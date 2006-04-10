@@ -1,0 +1,75 @@
+Copyright information for MZmine
+
+	Copyright (C) 2005-2006 VTT Biotechnology
+
+	MZmine is free software; you can redistribute it and/or modify
+	it under the terms of the GNU General Public License as published by
+	the Free Software Foundation; either version 2 of the License, or
+	(at your option) any later version.
+
+	MZmine is distributed in the hope that it will be useful,
+	but WITHOUT ANY WARRANTY; without even the implied warranty of
+	MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+	GNU General Public License for more details.
+
+	You should have received a copy of the GNU General Public License
+	along with MZmine; if not, write to the Free Software
+	Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
+
+
+Information about used third-party libraries
+
+	MZmine uses some pieces of third-party code. We are thankful to their authors 
+	for the code. These libraries are included with this source code packet 
+	(in directory lib/) to make compiling of MZmine easier.
+	
+	NetCDF Java Library by the Unidata community is available from 
+	http://my.unidata.ucar.edu/content/software/netcdf-java/index.html under 
+	GNU Lesser General Public License (LGPL).
+	
+	Danby Package for probability and statistics by Charles S. Stanton available from
+	http://www.math.csusb.edu/faculty/stanton/danby/danby_package.html
+
+	ExampleFileFilter.java, TableMap.java, TableSorter.java by Sun Microsystems, Inc. 
+	are available in JDK's demos. For license and copyright information, see below.
+	
+	Base64.java by Robert Harder is available from http://iharder.net/xmlizable and 
+	is placed in the Public Domain.
+	
+	JRAP by SASHIMI-project is available from http://sashimi.sourceforge.net under 
+	GNU General Public License (GPL).
+	
+	
+Copyright information for ExampleFileFilter.java, TableMap.java, TableSorter.java
+
+	Copyright (c) 2004 Sun Microsystems, Inc. All Rights Reserved.
+
+	Redistribution and use in source and binary forms, with or without
+	modification, are permitted provided that the following conditions are met:
+
+	-Redistribution of source code must retain the above copyright notice, this
+	 list of conditions and the following disclaimer.
+
+	-Redistribution in binary form must reproduce the above copyright notice,
+	 this list of conditions and the following disclaimer in the documentation
+	 and/or other materials provided with the distribution.
+
+	Neither the name of Sun Microsystems, Inc. or the names of contributors may
+	be used to endorse or promote products derived from this software without
+	specific prior written permission.
+
+	This software is provided "AS IS," without a warranty of any kind. ALL
+	EXPRESS OR IMPLIED CONDITIONS, REPRESENTATIONS AND WARRANTIES, INCLUDING
+	ANY IMPLIED WARRANTY OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE
+	OR NON-INFRINGEMENT, ARE HEREBY EXCLUDED. SUN MIDROSYSTEMS, INC. ("SUN")
+	AND ITS LICENSORS SHALL NOT BE LIABLE FOR ANY DAMAGES SUFFERED BY LICENSEE
+	AS A RESULT OF USING, MODIFYING OR DISTRIBUTING THIS SOFTWARE OR ITS
+	DERIVATIVES. IN NO EVENT WILL SUN OR ITS LICENSORS BE LIABLE FOR ANY LOST
+	REVENUE, PROFIT OR DATA, OR FOR DIRECT, INDIRECT, SPECIAL, CONSEQUENTIAL,
+	INCIDENTAL OR PUNITIVE DAMAGES, HOWEVER CAUSED AND REGARDLESS OF THE THEORY
+	OF LIABILITY, ARISING OUT OF THE USE OF OR INABILITY TO USE THIS SOFTWARE,
+	EVEN IF SUN HAS BEEN ADVISED OF THE POSSIBILITY OF SUCH DAMAGES.
+
+	You acknowledge that this software is not designed, licensed or intended
+	for use in the design, construction, operation or maintenance of any
+	nuclear facility.
