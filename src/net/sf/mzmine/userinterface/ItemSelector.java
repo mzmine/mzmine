@@ -21,12 +21,13 @@ package net.sf.mzmine.userinterface;
 import net.sf.mzmine.alignmentresultmethods.*;
 import net.sf.mzmine.alignmentresultvisualizers.*;
 import net.sf.mzmine.datastructures.*;
-import net.sf.mzmine.distributionframework.*;
-import net.sf.mzmine.miscellaneous.*;
+import net.sf.mzmine.obsoletedistributionframework.*;
 import net.sf.mzmine.peaklistmethods.*;
 import net.sf.mzmine.rawdatamethods.*;
 import net.sf.mzmine.rawdatavisualizers.*;
 import net.sf.mzmine.userinterface.*;
+import net.sf.mzmine.util.*;
+import net.sf.mzmine.visualizers.rawdata.RawDataVisualizerTICView;
 
 
 // Java packages
