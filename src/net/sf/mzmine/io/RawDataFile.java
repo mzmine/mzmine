@@ -19,21 +19,36 @@
 
 package net.sf.mzmine.io;
 
-
+/**
+ * Class representing a raw data file, no matter what format it is using.
+ * 
+ * Raw data are accessed in following ways:
+ * - TIC visualizer needs all scan headers (RT + total intensity) of a certain MSn level, but not m/z values
+ * - Base peak visualizer needs base peak m/z + intensity of a certain MSn level
+ * - Spectra visualizer needs m/z values for one particular scan
+ * - 2D visualizer needs all m/z values for all scans of certain MSn level
+ * - data methods need all m/z values for all scans of all MSn levels
+ *
+ */
 public interface RawDataFile {
 
-    public static enum KeepState {
-        NO_KEEP, KEEP_SCAN_HEADER, KEEP_ALL_DATA
-    };
-
-    public void addKeepInMemoryRequest(KeepState state, Object caller);
-
-    public void discardKeepInMemoryRequest(Object caller);
+    public void reloadFile();
+    
+    public void saveFile();
 
     public int getNumOfScans();
+    
+    public int[] getMSLevels();
+    
+    public int[] getScanNumbers(int msLevel);
 
+    /**
+     * This method may parse the RAW data file, therefore it may be quite slow.
+     * @param scan Desired can number
+     * @return Desred scan
+     */
     public Scan getScan(int scan);
-
+    
     public String getDataDescription();
 
     public double getDataMinMZ();
