@@ -18,45 +18,47 @@
     Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 */
 package net.sf.mzmine.visualizers.rawdata;
-import net.sf.mzmine.alignmentresultmethods.*;
-import net.sf.mzmine.alignmentresultvisualizers.*;
-import net.sf.mzmine.datastructures.*;
-import net.sf.mzmine.obsoletedistributionframework.*;
-import net.sf.mzmine.peaklistmethods.*;
-import net.sf.mzmine.rawdatamethods.*;
-import net.sf.mzmine.rawdatavisualizers.*;
-import net.sf.mzmine.userinterface.*;
-import net.sf.mzmine.util.*;
-
-
-// Java packages
-
-import java.util.*;
-
-import java.text.DecimalFormat;
-
-import java.awt.geom.Point2D;
-import java.awt.event.MouseListener;
-import java.awt.event.MouseEvent;
-import java.awt.image.BufferedImage;
+import java.awt.BorderLayout;
+import java.awt.Color;
+import java.awt.Dimension;
+import java.awt.Graphics;
 import java.awt.Graphics2D;
-import java.awt.geom.AffineTransform;
-
-import java.awt.*;
-import java.awt.*;
-import java.awt.color.*;
-import java.awt.image.*;
-import java.awt.geom.*;
-import java.awt.print.*;
+import java.awt.Point;
+import java.awt.Toolkit;
+import java.awt.Transparency;
+import java.awt.color.ColorSpace;
 import java.awt.datatransfer.Clipboard;
-
+import java.awt.event.MouseEvent;
+import java.awt.geom.AffineTransform;
+import java.awt.image.BufferedImage;
+import java.awt.image.ColorModel;
+import java.awt.image.ComponentColorModel;
+import java.awt.image.DataBuffer;
+import java.awt.image.Raster;
+import java.awt.image.SampleModel;
+import java.awt.image.WritableRaster;
+import java.awt.print.PageFormat;
+import java.awt.print.Printable;
+import java.awt.print.PrinterJob;
+import java.util.Vector;
 
 import javax.print.attribute.HashPrintRequestAttributeSet;
-
-import javax.swing.*;
-import javax.swing.*;
-import javax.swing.event.InternalFrameListener;
+import javax.swing.JInternalFrame;
+import javax.swing.JMenuItem;
+import javax.swing.JPanel;
+import javax.swing.JPopupMenu;
+import javax.swing.RepaintManager;
 import javax.swing.event.InternalFrameEvent;
+import javax.swing.event.InternalFrameListener;
+
+import net.sf.mzmine.datastructures.Peak;
+import net.sf.mzmine.datastructures.RawDataAtClient;
+import net.sf.mzmine.userinterface.ItemSelector;
+import net.sf.mzmine.userinterface.MainWindow;
+import net.sf.mzmine.userinterface.Statusbar;
+import net.sf.mzmine.util.FormatCoordinates;
+import net.sf.mzmine.util.HeatMapColorPicker;
+import net.sf.mzmine.util.TransferableImage;
 
 
 

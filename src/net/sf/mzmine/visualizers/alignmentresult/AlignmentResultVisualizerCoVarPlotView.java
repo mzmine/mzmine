@@ -20,39 +20,47 @@
 
 package net.sf.mzmine.visualizers.alignmentresult;
 
-import net.sf.mzmine.alignmentresultmethods.*;
-import net.sf.mzmine.alignmentresultvisualizers.*;
-import net.sf.mzmine.datastructures.*;
-import net.sf.mzmine.obsoletedistributionframework.*;
-import net.sf.mzmine.peaklistmethods.*;
-import net.sf.mzmine.rawdatamethods.*;
-import net.sf.mzmine.rawdatavisualizers.*;
-import net.sf.mzmine.userinterface.*;
-import net.sf.mzmine.util.*;
-
-///
-import java.awt.*;
-import java.awt.print.*;
-import javax.print.attribute.HashPrintRequestAttributeSet;
-import java.awt.image.*;
-import java.awt.geom.*;
-import java.awt.event.MouseListener;
-import java.awt.event.MouseEvent;
-import java.awt.event.ActionListener;
-import java.awt.event.ItemListener;
-import java.awt.event.ItemEvent;
+import java.awt.BorderLayout;
+import java.awt.Color;
+import java.awt.Dimension;
+import java.awt.Graphics;
+import java.awt.Graphics2D;
+import java.awt.Toolkit;
 import java.awt.datatransfer.Clipboard;
-
-import javax.swing.*;
-import javax.swing.event.InternalFrameListener;
-import javax.swing.event.InternalFrameEvent;
-import javax.swing.event.ChangeListener;
-import javax.swing.event.ChangeEvent;
-
-import java.util.Vector;
-import java.util.Hashtable;
-
+import java.awt.event.ActionListener;
+import java.awt.event.MouseEvent;
+import java.awt.geom.AffineTransform;
+import java.awt.image.BufferedImage;
+import java.awt.print.PageFormat;
+import java.awt.print.Printable;
+import java.awt.print.PrinterJob;
 import java.text.DecimalFormat;
+import java.util.Hashtable;
+import java.util.Vector;
+
+import javax.print.attribute.HashPrintRequestAttributeSet;
+import javax.swing.JInternalFrame;
+import javax.swing.JLabel;
+import javax.swing.JMenuItem;
+import javax.swing.JPanel;
+import javax.swing.JPopupMenu;
+import javax.swing.JSlider;
+import javax.swing.RepaintManager;
+import javax.swing.event.ChangeEvent;
+import javax.swing.event.ChangeListener;
+import javax.swing.event.InternalFrameEvent;
+import javax.swing.event.InternalFrameListener;
+
+import net.sf.mzmine.datastructures.AlignmentResult;
+import net.sf.mzmine.userinterface.Colorbar;
+import net.sf.mzmine.userinterface.MainWindow;
+import net.sf.mzmine.userinterface.SelectOneGroupDialog;
+import net.sf.mzmine.userinterface.Statusbar;
+import net.sf.mzmine.util.FormatCoordinates;
+import net.sf.mzmine.util.GeneralParameters;
+import net.sf.mzmine.util.HeatMapColorPicker;
+import net.sf.mzmine.util.MyMath;
+import net.sf.mzmine.util.TransferableImage;
 
 
 

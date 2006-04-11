@@ -20,39 +20,30 @@
 
 package net.sf.mzmine.visualizers.alignmentresult;
 
-import net.sf.mzmine.alignmentresultmethods.*;
-import net.sf.mzmine.alignmentresultvisualizers.*;
-import net.sf.mzmine.datastructures.*;
-import net.sf.mzmine.obsoletedistributionframework.*;
-import net.sf.mzmine.peaklistmethods.*;
-import net.sf.mzmine.rawdatamethods.*;
-import net.sf.mzmine.rawdatavisualizers.*;
-import net.sf.mzmine.userinterface.*;
-import net.sf.mzmine.util.*;
-import net.sf.mzmine.visualizers.rawdata.RawDataVisualizer;
-
-
-// Java packages
-import java.util.*;
-
-import java.awt.*;
-import java.awt.print.*;
-import java.awt.geom.*;
-
-import java.awt.event.MouseListener;
-import java.awt.event.MouseEvent;
-import java.awt.event.ActionListener;
+import java.awt.BorderLayout;
 import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.awt.event.MouseEvent;
+import java.awt.event.MouseListener;
 
-import javax.print.attribute.standard.*;
-import javax.print.attribute.HashPrintRequestAttributeSet;
-
-import javax.swing.*;
-import javax.swing.table.AbstractTableModel;
-import javax.swing.event.InternalFrameListener;
+import javax.swing.JInternalFrame;
+import javax.swing.JMenuItem;
+import javax.swing.JOptionPane;
+import javax.swing.JPopupMenu;
+import javax.swing.JScrollPane;
+import javax.swing.JTable;
 import javax.swing.event.InternalFrameEvent;
+import javax.swing.event.InternalFrameListener;
+import javax.swing.table.AbstractTableModel;
 
-// Sun stuff from tutorials
+import net.sf.mzmine.datastructures.AlignmentResult;
+import net.sf.mzmine.datastructures.Peak;
+import net.sf.mzmine.datastructures.RawDataAtClient;
+import net.sf.mzmine.userinterface.ItemSelector;
+import net.sf.mzmine.userinterface.MainWindow;
+import net.sf.mzmine.userinterface.Statusbar;
+import net.sf.mzmine.util.GeneralParameters;
+import net.sf.mzmine.visualizers.rawdata.RawDataVisualizer;
 import sunutils.TableSorter;
 
 

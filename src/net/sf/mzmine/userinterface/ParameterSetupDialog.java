@@ -18,22 +18,16 @@
     Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 */
 package net.sf.mzmine.userinterface;
-import net.sf.mzmine.alignmentresultmethods.*;
-import net.sf.mzmine.alignmentresultvisualizers.*;
-import net.sf.mzmine.datastructures.*;
-import net.sf.mzmine.obsoletedistributionframework.*;
-import net.sf.mzmine.peaklistmethods.*;
-import net.sf.mzmine.rawdatamethods.*;
-import net.sf.mzmine.rawdatavisualizers.*;
-import net.sf.mzmine.userinterface.*;
-import net.sf.mzmine.util.*;
+import java.awt.BorderLayout;
+import java.awt.GridLayout;
+import java.awt.event.ActionListener;
+import java.text.NumberFormat;
 
-
-// Java packages
-import javax.swing.*;
-import java.awt.*;
-import java.text.*;
-import java.awt.event.*;
+import javax.swing.BorderFactory;
+import javax.swing.JButton;
+import javax.swing.JFormattedTextField;
+import javax.swing.JLabel;
+import javax.swing.JPanel;
 
 /**
  * This class represents the parameter setup dialog shown to the user before processing

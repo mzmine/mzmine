@@ -18,36 +18,43 @@
     Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 */
 package net.sf.mzmine.visualizers.rawdata;
-import net.sf.mzmine.alignmentresultmethods.*;
-import net.sf.mzmine.alignmentresultvisualizers.*;
-import net.sf.mzmine.datastructures.*;
-import net.sf.mzmine.obsoletedistributionframework.*;
-import net.sf.mzmine.peaklistmethods.*;
-import net.sf.mzmine.rawdatamethods.*;
-import net.sf.mzmine.rawdatavisualizers.*;
-import net.sf.mzmine.userinterface.*;
-import net.sf.mzmine.util.*;
-
-
-// Java packages
-import java.util.*;
+import java.awt.BorderLayout;
+import java.awt.Color;
+import java.awt.Dimension;
+import java.awt.Graphics;
+import java.awt.Graphics2D;
+import java.awt.GridLayout;
+import java.awt.Toolkit;
+import java.awt.datatransfer.Clipboard;
+import java.awt.event.ActionListener;
+import java.awt.event.MouseEvent;
+import java.awt.geom.AffineTransform;
+import java.awt.image.BufferedImage;
+import java.awt.print.PageFormat;
+import java.awt.print.Printable;
+import java.awt.print.PrinterJob;
 import java.text.DecimalFormat;
 
-import javax.print.attribute.standard.*;
 import javax.print.attribute.HashPrintRequestAttributeSet;
-
-import java.awt.*;
-import java.awt.print.*;
-import java.awt.image.*;
-import java.awt.geom.*;
-import java.awt.event.MouseListener;
-import java.awt.event.MouseEvent;
-import java.awt.event.ActionListener;
-import java.awt.datatransfer.Clipboard;
-
-import javax.swing.*;
-import javax.swing.event.InternalFrameListener;
+import javax.print.attribute.standard.OrientationRequested;
+import javax.swing.JButton;
+import javax.swing.JDialog;
+import javax.swing.JInternalFrame;
+import javax.swing.JLabel;
+import javax.swing.JMenuItem;
+import javax.swing.JPanel;
+import javax.swing.JPopupMenu;
+import javax.swing.JTextField;
+import javax.swing.RepaintManager;
 import javax.swing.event.InternalFrameEvent;
+import javax.swing.event.InternalFrameListener;
+
+import net.sf.mzmine.datastructures.RawDataAtClient;
+import net.sf.mzmine.userinterface.ItemSelector;
+import net.sf.mzmine.userinterface.MainWindow;
+import net.sf.mzmine.userinterface.Statusbar;
+import net.sf.mzmine.util.FormatCoordinates;
+import net.sf.mzmine.util.TransferableImage;
 
 
 /**

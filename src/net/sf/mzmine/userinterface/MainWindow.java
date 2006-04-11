@@ -19,9 +19,37 @@
 */
 
 package net.sf.mzmine.userinterface;
-import net.sf.mzmine.alignmentresultmethods.*;
-import net.sf.mzmine.alignmentresultvisualizers.*;
-import net.sf.mzmine.datastructures.*;
+import java.awt.BorderLayout;
+import java.awt.Container;
+import java.awt.Cursor;
+import java.awt.FileDialog;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.awt.event.KeyEvent;
+import java.awt.event.MouseAdapter;
+import java.awt.event.WindowEvent;
+import java.awt.event.WindowListener;
+import java.io.File;
+import java.util.Enumeration;
+import java.util.Hashtable;
+import java.util.StringTokenizer;
+import java.util.Vector;
+
+import javax.swing.JDesktopPane;
+import javax.swing.JFileChooser;
+import javax.swing.JFrame;
+import javax.swing.JInternalFrame;
+import javax.swing.JMenu;
+import javax.swing.JMenuBar;
+import javax.swing.JMenuItem;
+import javax.swing.JOptionPane;
+import javax.swing.JSplitPane;
+import javax.swing.KeyStroke;
+
+import net.sf.mzmine.datastructures.AlignmentResult;
+import net.sf.mzmine.datastructures.ParameterStorage;
+import net.sf.mzmine.datastructures.PeakList;
+import net.sf.mzmine.datastructures.RawDataAtClient;
 import net.sf.mzmine.methods.alignment.AlignmentResultExporter;
 import net.sf.mzmine.methods.alignment.AlignmentResultExporterParameterSetupDialog;
 import net.sf.mzmine.methods.alignment.AlignmentResultExporterParameters;
@@ -61,12 +89,9 @@ import net.sf.mzmine.methods.rawdata.SavitzkyGolayFilter;
 import net.sf.mzmine.methods.rawdata.SavitzkyGolayFilterParameters;
 import net.sf.mzmine.methods.rawdata.ZoomScanFilter;
 import net.sf.mzmine.methods.rawdata.ZoomScanFilterParameters;
-import net.sf.mzmine.obsoletedistributionframework.*;
-import net.sf.mzmine.peaklistmethods.*;
-import net.sf.mzmine.rawdatamethods.*;
-import net.sf.mzmine.rawdatavisualizers.*;
-import net.sf.mzmine.userinterface.*;
-import net.sf.mzmine.util.*;
+import net.sf.mzmine.obsoletedistributionframework.ClientForCluster;
+import net.sf.mzmine.obsoletedistributionframework.ControllerServer;
+import net.sf.mzmine.util.GeneralParameters;
 import net.sf.mzmine.visualizers.alignmentresult.AlignmentResultVisualizer;
 import net.sf.mzmine.visualizers.alignmentresult.AlignmentResultVisualizerCDAPlotView;
 import net.sf.mzmine.visualizers.alignmentresult.AlignmentResultVisualizerCDAPlotViewParameters;
@@ -82,45 +107,6 @@ import net.sf.mzmine.visualizers.rawdata.RawDataVisualizerRefreshResult;
 import net.sf.mzmine.visualizers.rawdata.RawDataVisualizerSpectrumView;
 import net.sf.mzmine.visualizers.rawdata.RawDataVisualizerTICView;
 import net.sf.mzmine.visualizers.rawdata.RawDataVisualizerTwoDView;
-
-
-// Java packages
-import java.util.*;
-
-import java.nio.channels.*;
-import java.io.*;
-
-import javax.swing.JFrame;
-import javax.swing.JDesktopPane;
-import javax.swing.JMenuBar;
-import javax.swing.JMenu;
-import javax.swing.JMenuItem;
-import javax.swing.JPanel;
-import javax.swing.border.EtchedBorder;
-import javax.swing.JLabel;
-import javax.swing.JInternalFrame;
-import javax.swing.JFileChooser;
-import javax.swing.KeyStroke;
-import javax.swing.JSplitPane;
-import javax.swing.JOptionPane;
-
-import javax.swing.event.InternalFrameListener;
-import javax.swing.event.InternalFrameEvent;
-
-
-import java.awt.FileDialog;
-import java.awt.BorderLayout;
-import java.awt.Container;
-import java.awt.Cursor;
-
-import java.awt.event.WindowListener;
-import java.awt.event.WindowEvent;
-import java.awt.event.ActionListener;
-import java.awt.event.ActionEvent;
-import java.awt.event.MouseAdapter;
-import java.awt.event.KeyEvent;
-
-// Sun example stuff
 import sunutils.ExampleFileFilter;
 
 

@@ -18,47 +18,9 @@
     Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 */
 package net.sf.mzmine.visualizers.rawdata;
-import net.sf.mzmine.alignmentresultmethods.*;
-import net.sf.mzmine.alignmentresultvisualizers.*;
-import net.sf.mzmine.datastructures.*;
-import net.sf.mzmine.obsoletedistributionframework.*;
-import net.sf.mzmine.peaklistmethods.*;
-import net.sf.mzmine.rawdatamethods.*;
-import net.sf.mzmine.rawdatavisualizers.*;
-import net.sf.mzmine.userinterface.*;
-import net.sf.mzmine.util.*;
+import java.util.Vector;
 
-
-// Java packages
-import java.awt.*;
-
-import javax.swing.*;
-import java.util.*;
-
-
-import javax.swing.event.InternalFrameListener;
-import javax.swing.event.InternalFrameEvent;
-
-import java.awt.geom.Point2D;
-import java.awt.event.MouseListener;
-import java.awt.event.MouseEvent;
-import java.awt.image.BufferedImage;
-import java.awt.Graphics2D;
-import java.awt.geom.AffineTransform;
-
-
-import java.awt.color.*;
-import java.awt.image.*;
-import javax.swing.*;
-import java.awt.*;
-import java.awt.geom.*;
-import java.awt.print.*;
-
-import javax.print.attribute.HashPrintRequestAttributeSet;
-
-import java.text.DecimalFormat;
-
-import java.awt.datatransfer.Clipboard;
+import net.sf.mzmine.datastructures.Scan;
 
 
 

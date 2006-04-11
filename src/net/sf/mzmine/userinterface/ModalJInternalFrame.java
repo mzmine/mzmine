@@ -2,29 +2,16 @@
  * This class uses some pieces of code from JOptionPane to make JInternalFrame behave modal.
  */
 package net.sf.mzmine.userinterface;
-import net.sf.mzmine.alignmentresultmethods.*;
-import net.sf.mzmine.alignmentresultvisualizers.*;
-import net.sf.mzmine.datastructures.*;
-import net.sf.mzmine.obsoletedistributionframework.*;
-import net.sf.mzmine.peaklistmethods.*;
-import net.sf.mzmine.rawdatamethods.*;
-import net.sf.mzmine.rawdatavisualizers.*;
-import net.sf.mzmine.userinterface.*;
-import net.sf.mzmine.util.*;
-
-
+import java.awt.Component;
+import java.awt.Container;
+import java.awt.KeyboardFocusManager;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 import java.security.AccessController;
 import java.security.PrivilegedAction;
 
-import java.lang.reflect.Method;
-import java.lang.reflect.InvocationTargetException;
-import java.awt.Container;
-import java.awt.Component;
-import java.awt.KeyboardFocusManager;
-
-import javax.swing.JInternalFrame;
 import javax.swing.JDesktopPane;
-import javax.swing.PopupFactory;
+import javax.swing.JInternalFrame;
 
 public class ModalJInternalFrame extends JInternalFrame {
 

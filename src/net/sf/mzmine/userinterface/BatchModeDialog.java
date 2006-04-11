@@ -18,9 +18,17 @@
     Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 */
 package net.sf.mzmine.userinterface;
-import net.sf.mzmine.alignmentresultmethods.*;
-import net.sf.mzmine.alignmentresultvisualizers.*;
-import net.sf.mzmine.datastructures.*;
+import java.awt.BorderLayout;
+import java.awt.FileDialog;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+
+import javax.swing.JButton;
+import javax.swing.JComboBox;
+import javax.swing.JDesktopPane;
+import javax.swing.JLabel;
+import javax.swing.JPanel;
+
 import net.sf.mzmine.methods.alignment.AlignmentResultFilterByGaps;
 import net.sf.mzmine.methods.alignment.AlignmentResultFilterByGapsParameters;
 import net.sf.mzmine.methods.alignment.AlignmentResultProcessorParameters;
@@ -56,26 +64,6 @@ import net.sf.mzmine.methods.rawdata.MeanFilter;
 import net.sf.mzmine.methods.rawdata.MeanFilterParameters;
 import net.sf.mzmine.methods.rawdata.SavitzkyGolayFilter;
 import net.sf.mzmine.methods.rawdata.SavitzkyGolayFilterParameters;
-import net.sf.mzmine.obsoletedistributionframework.*;
-import net.sf.mzmine.peaklistmethods.*;
-import net.sf.mzmine.rawdatamethods.*;
-import net.sf.mzmine.rawdatavisualizers.*;
-import net.sf.mzmine.userinterface.*;
-import net.sf.mzmine.util.*;
-
-
-// Java packages
-import javax.swing.JPanel;
-import javax.swing.JButton;
-import javax.swing.JComboBox;
-import javax.swing.JLabel;
-import javax.swing.SpringLayout;
-import javax.swing.JDesktopPane;
-
-import java.awt.*;
-
-import java.awt.event.ActionListener;
-import java.awt.event.ActionEvent;
 
 
 public class BatchModeDialog extends javax.swing.JInternalFrame implements ActionListener {

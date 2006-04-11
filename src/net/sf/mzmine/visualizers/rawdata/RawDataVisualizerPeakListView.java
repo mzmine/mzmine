@@ -18,40 +18,34 @@
     Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 */
 package net.sf.mzmine.visualizers.rawdata;
-import net.sf.mzmine.alignmentresultmethods.*;
-import net.sf.mzmine.alignmentresultvisualizers.*;
-import net.sf.mzmine.datastructures.*;
-import net.sf.mzmine.obsoletedistributionframework.*;
-import net.sf.mzmine.peaklistmethods.*;
-import net.sf.mzmine.rawdatamethods.*;
-import net.sf.mzmine.rawdatavisualizers.*;
-import net.sf.mzmine.userinterface.*;
-import net.sf.mzmine.util.*;
+import java.awt.BorderLayout;
+import java.awt.Graphics;
+import java.awt.event.ActionListener;
+import java.awt.event.MouseEvent;
+import java.awt.event.MouseListener;
+import java.awt.print.PageFormat;
+import java.awt.print.Printable;
+import java.util.Enumeration;
+import java.util.Vector;
 
-
-// Java standard packages
-import java.util.*;
-
-import javax.print.attribute.standard.*;
-import javax.print.attribute.HashPrintRequestAttributeSet;
-
-import javax.swing.*;
-import javax.swing.event.InternalFrameListener;
+import javax.swing.JInternalFrame;
+import javax.swing.JMenuItem;
+import javax.swing.JPopupMenu;
+import javax.swing.JScrollPane;
+import javax.swing.JTable;
 import javax.swing.event.InternalFrameEvent;
-import javax.swing.event.ListSelectionListener;
+import javax.swing.event.InternalFrameListener;
 import javax.swing.event.ListSelectionEvent;
+import javax.swing.event.ListSelectionListener;
 import javax.swing.table.AbstractTableModel;
 
-import java.awt.*;
-import java.awt.event.ActionListener;
-import java.awt.event.ActionEvent;
-import java.awt.event.MouseListener;
-import java.awt.event.MouseEvent;
-import java.awt.print.*;
-import java.awt.geom.*;
-
-
-// Additional stuff by Sun
+import net.sf.mzmine.datastructures.AlignmentResult;
+import net.sf.mzmine.datastructures.Peak;
+import net.sf.mzmine.datastructures.PeakList;
+import net.sf.mzmine.datastructures.RawDataAtClient;
+import net.sf.mzmine.userinterface.ItemSelector;
+import net.sf.mzmine.userinterface.MainWindow;
+import net.sf.mzmine.userinterface.Statusbar;
 import sunutils.TableSorter;
 
 
