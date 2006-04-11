@@ -22,12 +22,14 @@ package net.sf.mzmine.datastructures;
 import net.sf.mzmine.alignmentresultmethods.*;
 import net.sf.mzmine.alignmentresultvisualizers.*;
 import net.sf.mzmine.datastructures.*;
-import net.sf.mzmine.distributionframework.*;
-import net.sf.mzmine.miscellaneous.*;
+import net.sf.mzmine.methods.rawdata.MZXMLHandlerForPreload;
+import net.sf.mzmine.methods.rawdata.MZXMLHandlerForRetrieve;
+import net.sf.mzmine.obsoletedistributionframework.*;
 import net.sf.mzmine.peaklistmethods.*;
 import net.sf.mzmine.rawdatamethods.*;
 import net.sf.mzmine.rawdatavisualizers.*;
 import net.sf.mzmine.userinterface.*;
+import net.sf.mzmine.util.*;
 
 // Java packages
 import java.io.File;
