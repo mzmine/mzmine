@@ -23,7 +23,7 @@ package net.sf.mzmine.methods.peakpicking;
 import java.io.FileWriter;
 import java.util.Enumeration;
 
-import net.sf.mzmine.datastructures.RawDataAtClient;
+import net.sf.mzmine.obsoletedatastructures.RawDataAtClient;
 
 
 public class PeakListExporter {

@@ -36,8 +36,8 @@ import javax.swing.JFormattedTextField;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 
-import net.sf.mzmine.datastructures.RawDataAtNode;
-import net.sf.mzmine.datastructures.Scan;
+import net.sf.mzmine.obsoletedatastructures.RawDataAtNode;
+import net.sf.mzmine.obsoletedatastructures.Scan;
 import net.sf.mzmine.obsoletedistributionframework.NodeServer;
 import net.sf.mzmine.userinterface.MainWindow;
 

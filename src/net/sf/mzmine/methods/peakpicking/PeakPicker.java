@@ -18,7 +18,7 @@
     Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 */
 package net.sf.mzmine.methods.peakpicking;
-import net.sf.mzmine.datastructures.RawDataAtNode;
+import net.sf.mzmine.obsoletedatastructures.RawDataAtNode;
 import net.sf.mzmine.obsoletedistributionframework.NodeServer;
 
 public interface PeakPicker {

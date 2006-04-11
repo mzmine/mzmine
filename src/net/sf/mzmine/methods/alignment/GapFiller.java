@@ -22,7 +22,7 @@ package net.sf.mzmine.methods.alignment;
 
 import java.util.Hashtable;
 
-import net.sf.mzmine.datastructures.RawDataAtNode;
+import net.sf.mzmine.obsoletedatastructures.RawDataAtNode;
 import net.sf.mzmine.obsoletedistributionframework.NodeServer;
 
 public interface GapFiller {

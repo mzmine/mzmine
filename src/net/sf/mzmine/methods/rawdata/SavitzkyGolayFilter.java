@@ -22,8 +22,8 @@ import java.util.Hashtable;
 
 import javax.swing.JOptionPane;
 
-import net.sf.mzmine.datastructures.RawDataAtNode;
-import net.sf.mzmine.datastructures.Scan;
+import net.sf.mzmine.obsoletedatastructures.RawDataAtNode;
+import net.sf.mzmine.obsoletedatastructures.Scan;
 import net.sf.mzmine.obsoletedistributionframework.NodeServer;
 import net.sf.mzmine.userinterface.MainWindow;
 import net.sf.mzmine.userinterface.Statusbar;

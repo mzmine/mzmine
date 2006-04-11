@@ -19,7 +19,7 @@
 */
 
 package net.sf.mzmine.methods.peakpicking;
-import net.sf.mzmine.datastructures.RawDataAtNode;
+import net.sf.mzmine.obsoletedatastructures.RawDataAtNode;
 import net.sf.mzmine.util.MyMath;
 
 

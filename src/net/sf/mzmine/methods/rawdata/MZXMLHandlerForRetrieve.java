@@ -27,7 +27,7 @@ import javax.xml.parsers.SAXParser;
 import javax.xml.parsers.SAXParserFactory;
 
 import net.iharder.xmlizable.Base64;
-import net.sf.mzmine.datastructures.Scan;
+import net.sf.mzmine.obsoletedatastructures.Scan;
 import net.sf.mzmine.util.Logger;
 
 import org.xml.sax.Attributes;

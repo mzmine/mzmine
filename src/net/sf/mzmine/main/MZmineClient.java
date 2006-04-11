@@ -19,7 +19,7 @@
 
 package net.sf.mzmine.main;
 
-import net.sf.mzmine.newdistributionframework.TaskManager;
+import net.sf.mzmine.taskcontroller.TaskController;
 import net.sf.mzmine.userinterface.MainWindow;
 import net.sf.mzmine.util.Logger;
 
@@ -27,7 +27,7 @@ public class MZmineClient {
 
     private static MainWindow mainWindow;
 
-    private static TaskManager taskManager;
+    private static TaskController taskManager;
 
     /**
      * Main method
@@ -53,7 +53,7 @@ public class MZmineClient {
         }
 
         Logger.putFatal("MZmine client is starting up with " + numberOfNodes
-                + " local computing nodes...");
+                + " local computing threads..");
 
         // TODO: check if we have any remote nodes. if we do, startup RMI
 
@@ -73,7 +73,7 @@ public class MZmineClient {
 
         Logger.put("STARTUP THREAD: Starting node(s)");
 
-        taskManager = new TaskManager(numberOfNodes);
+        taskManager = new TaskController(numberOfNodes);
 
         Logger.put("STARTUP THREAD: Starting GUI.");
 
@@ -85,14 +85,6 @@ public class MZmineClient {
         });
 
     }
-
-    /**
-     * @return Returns a reference to main window, or null if we're not running on client
-     */
-    public static MainWindow getMainWindow() {
-        return mainWindow;
-    }
-    
     
 
 }

@@ -22,9 +22,8 @@ package net.sf.mzmine.main;
 
 import java.rmi.Remote;
 
-import net.sf.mzmine.newdistributionframework.RemoteTask;
-import net.sf.mzmine.newdistributionframework.TaskStatus;
-
+import net.sf.mzmine.taskcontroller.DistributableTask;
+import net.sf.mzmine.taskcontroller.Task;
 
 
 /**
@@ -33,7 +32,7 @@ import net.sf.mzmine.newdistributionframework.TaskStatus;
 public class MZmineClusterNode implements Remote {
 
 
-    public TaskStatus addTask(RemoteTask task) {
+    public Task addTask(DistributableTask task) {
         
         return null;
     }

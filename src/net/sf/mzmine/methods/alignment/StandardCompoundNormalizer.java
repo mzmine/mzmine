@@ -26,7 +26,7 @@ import java.text.NumberFormat;
 
 import javax.swing.JDialog;
 
-import net.sf.mzmine.datastructures.RawDataAtClient;
+import net.sf.mzmine.obsoletedatastructures.RawDataAtClient;
 import net.sf.mzmine.obsoletedistributionframework.Task;
 import net.sf.mzmine.userinterface.ClientDialog;
 import net.sf.mzmine.userinterface.MainWindow;

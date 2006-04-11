@@ -24,7 +24,7 @@ import java.util.Iterator;
 import java.util.TreeSet;
 import java.util.Vector;
 
-import net.sf.mzmine.datastructures.RawDataAtNode;
+import net.sf.mzmine.obsoletedatastructures.RawDataAtNode;
 import net.sf.mzmine.obsoletedistributionframework.NodeServer;
 import net.sf.mzmine.userinterface.MainWindow;
 import net.sf.mzmine.userinterface.ParameterSetupDialog;
