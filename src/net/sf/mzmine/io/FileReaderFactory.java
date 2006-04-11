@@ -22,6 +22,9 @@
  */
 package net.sf.mzmine.io;
 
+import java.io.File;
+import java.io.IOException;
+
 /**
  *
  *
@@ -29,10 +32,22 @@ package net.sf.mzmine.io;
 public class FileReaderFactory {
 
     /**
-     * 
+     * Opens a dialog to read a new file.
+     * Only makes sense on client.
      */
-    public void showFileOpenDialog() {
+    public static void showFileOpenDialog() {
+        
+        // assert MainWindow.getInstance() != null;
         
     }
 
+    public static RawDataFile openFile(File file) throws IOException {
+        
+        return null;
+    }
+    
+    public static void closeFile(File f) {
+        
+        
+    }
 }

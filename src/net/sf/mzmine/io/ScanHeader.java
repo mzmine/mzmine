@@ -17,47 +17,42 @@
  * Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-/**
- * 
- */
-package net.sf.mzmine.io.mzxml;
 
-import net.sf.mzmine.io.Scan;
-import net.sf.mzmine.io.ScanHeader;
+package net.sf.mzmine.io;
+
+
 
 /**
+ * This class represent one spectrum of a raw data file.
+ * The implementing class is supposed to be immutable.
  * 
  */
-class MZXMLScan extends MZXMLScanHeader implements Scan, ScanHeader {
+public interface ScanHeader {
 
-    private double MZValues[], intensityValues[];
+    public RawDataFile getRawData();
 
-    /**
-     * 
-     */
-    public MZXMLScan(MZXMLFile rawDataFile, int scanNumber) {
-        super(rawDataFile, scanNumber);
-    }
+    public int getScanNumber();
 
-    /**
-     * @return Returns the intensityValues.
-     */
-    public double[] getIntensityValues() {
-        return intensityValues;
-    }
+    public int getMSLevel();
 
-    /**
-     * @return Returns the mZValues.
-     */
-    public double[] getMZValues() {
-        return MZValues;
-    }
+    public double getPrecursorMZ();
 
-    /**
-     * @see net.sf.mzmine.io.Scan#getNumberOfDataPoints()
-     */
-    public int getNumberOfDataPoints() {
-        return MZValues.length;
-    }
+    public double getPrecursorRT();
+
+    public int getPrecursorScanNumber();
+
+    public double getScanAcquisitionTime();
+
+    public double getScanDuration();
+
+    public double getMZRangeMin();
+
+    public double getMZRangeMax();
+
+    public double getBasePeakMZ();
+
+    public double getBasePeakIntensity();
+
+    public double getTotalIonCurrent();
 
 }

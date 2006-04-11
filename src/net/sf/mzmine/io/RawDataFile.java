@@ -33,6 +33,8 @@ package net.sf.mzmine.io;
  */
 public interface RawDataFile {
 
+    public enum LoadType { READ_ORIGINAL, MAKE_LOCAL_COPY, PRELOAD_HEADER, PRELOAD_DATA };
+    
     public void reloadFile();
     
     public void saveFile();
@@ -46,9 +48,16 @@ public interface RawDataFile {
     /**
      * This method may parse the RAW data file, therefore it may be quite slow.
      * @param scan Desired can number
-     * @return Desred scan
+     * @return Desired scan
      */
     public Scan getScan(int scan);
+    
+    /**
+     * This method may parse the RAW data file, therefore it may be quite slow.
+     * @param scan Desired can number
+     * @return Desired scan
+     */   
+    public ScanHeader getScanHeader(int scan);
     
     public String getDataDescription();
 

@@ -77,6 +77,9 @@ public class MZmineClient {
 
         Logger.put("STARTUP THREAD: Starting GUI.");
 
+        /*
+         * Create the GUI in the event-dispatching thread, as recommended by Swing tutorial
+         */
         javax.swing.SwingUtilities.invokeLater(new Runnable() {
             public void run() {
                 mainWindow = new MainWindow("MZmine", null);

@@ -27,38 +27,12 @@ package net.sf.mzmine.io;
  * The implementing class is supposed to be immutable.
  * 
  */
-public interface Scan {
-
-    public RawDataFile getRawData();
-
-    public int getScanNumber();
-
-    public int getMSLevel();
-
-    public double getPrecursorMZ();
-
-    public double getPrecursorRT();
-
-    public int getPrecursorScanNumber();
-
-    public double getScanAcquisitionTime();
-
-    public double getScanDuration();
-
-    public double getMZRangeMin();
-
-    public double getMZRangeMax();
-
-    public int getNumberOfDataPoints();
+public interface Scan extends ScanHeader {
 
     public double[] getMZValues();
 
     public double[] getIntensityValues();
 
-    public double getBasePeakMZ();
-
-    public double getBasePeakIntensity();
-
-    public double getTotalIonCurrent();
-
+    public int getNumberOfDataPoints();
+    
 }
