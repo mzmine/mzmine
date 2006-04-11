@@ -1,5 +1,5 @@
 /*
- * Copyright 2005 VTT Biotechnology
+ * Copyright 2006 Okinawa Institute of Science and Technology
  * 
  * This file is part of MZmine.
  * 
@@ -22,7 +22,7 @@ package net.sf.mzmine.newdistributionframework;
 
 import java.rmi.Remote;
 
-public interface TaskResult extends Remote {
+public interface TaskStatus extends Remote {
 
     /**
      * @return description of the Task

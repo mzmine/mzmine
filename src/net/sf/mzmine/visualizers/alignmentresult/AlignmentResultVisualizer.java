@@ -20,7 +20,7 @@
 
 package net.sf.mzmine.visualizers.alignmentresult;
 
-import net.sf.mzmine.datastructures.AlignmentResult;
+import net.sf.mzmine.methods.alignment.AlignmentResult;
 
 public interface AlignmentResultVisualizer {
 

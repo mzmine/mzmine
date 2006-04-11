@@ -46,10 +46,9 @@ import javax.swing.JOptionPane;
 import javax.swing.JSplitPane;
 import javax.swing.KeyStroke;
 
-import net.sf.mzmine.datastructures.AlignmentResult;
 import net.sf.mzmine.datastructures.ParameterStorage;
-import net.sf.mzmine.datastructures.PeakList;
 import net.sf.mzmine.datastructures.RawDataAtClient;
+import net.sf.mzmine.methods.alignment.AlignmentResult;
 import net.sf.mzmine.methods.alignment.AlignmentResultExporter;
 import net.sf.mzmine.methods.alignment.AlignmentResultExporterParameterSetupDialog;
 import net.sf.mzmine.methods.alignment.AlignmentResultExporterParameters;
@@ -74,6 +73,7 @@ import net.sf.mzmine.methods.peakpicking.IncompleteIsotopePatternFilter;
 import net.sf.mzmine.methods.peakpicking.IncompleteIsotopePatternFilterParameters;
 import net.sf.mzmine.methods.peakpicking.LocalPicker;
 import net.sf.mzmine.methods.peakpicking.LocalPickerParameters;
+import net.sf.mzmine.methods.peakpicking.PeakList;
 import net.sf.mzmine.methods.peakpicking.PeakListExporter;
 import net.sf.mzmine.methods.peakpicking.RecursiveThresholdPicker;
 import net.sf.mzmine.methods.peakpicking.RecursiveThresholdPickerParameters;
@@ -218,10 +218,10 @@ public class MainWindow extends JFrame implements WindowListener, ActionListener
 		// -------------------------
 		if (controllerServer==null) {
 			// Cluster mode
-			clientForCluster = new ClientForCluster(this);
+//			clientForCluster = new ClientForCluster(this);
 		} else {
 			// Single computer mode
-			clientForCluster = new ClientForCluster(this, controllerServer);
+//			clientForCluster = new ClientForCluster(this, controllerServer);
 		}
 
 

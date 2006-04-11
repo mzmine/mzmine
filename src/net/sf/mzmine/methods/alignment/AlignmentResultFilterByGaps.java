@@ -25,7 +25,6 @@ import java.util.Vector;
 
 import javax.swing.JOptionPane;
 
-import net.sf.mzmine.datastructures.AlignmentResult;
 import net.sf.mzmine.obsoletedistributionframework.Task;
 import net.sf.mzmine.userinterface.ClientDialog;
 import net.sf.mzmine.userinterface.MainWindow;

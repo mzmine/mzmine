@@ -27,8 +27,6 @@ import java.util.Set;
 import java.util.TreeSet;
 import java.util.Vector;
 
-import net.sf.mzmine.datastructures.Peak;
-import net.sf.mzmine.datastructures.PeakList;
 import net.sf.mzmine.datastructures.RawDataAtNode;
 import net.sf.mzmine.obsoletedistributionframework.NodeServer;
 import net.sf.mzmine.userinterface.MainWindow;

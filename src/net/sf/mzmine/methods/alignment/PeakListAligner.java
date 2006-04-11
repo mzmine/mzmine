@@ -22,8 +22,7 @@ package net.sf.mzmine.methods.alignment;
 
 import java.util.Hashtable;
 
-import net.sf.mzmine.datastructures.AlignmentResult;
-import net.sf.mzmine.datastructures.PeakList;
+import net.sf.mzmine.methods.peakpicking.PeakList;
 import net.sf.mzmine.obsoletedistributionframework.NodeServer;
 
 public interface PeakListAligner {

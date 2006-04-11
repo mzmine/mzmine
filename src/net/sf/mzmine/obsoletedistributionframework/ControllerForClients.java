@@ -23,10 +23,10 @@ import java.io.File;
 import java.net.InetAddress;
 import java.util.Hashtable;
 
-import net.sf.mzmine.datastructures.AlignmentResult;
-import net.sf.mzmine.datastructures.PeakList;
+import net.sf.mzmine.methods.alignment.AlignmentResult;
 import net.sf.mzmine.methods.alignment.GapFillerParameters;
 import net.sf.mzmine.methods.alignment.PeakListAlignerParameters;
+import net.sf.mzmine.methods.peakpicking.PeakList;
 import net.sf.mzmine.methods.peakpicking.PeakListProcessorParameters;
 import net.sf.mzmine.methods.peakpicking.PeakPickerParameters;
 import net.sf.mzmine.methods.rawdata.FilterParameters;

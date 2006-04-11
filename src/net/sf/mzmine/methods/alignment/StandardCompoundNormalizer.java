@@ -26,7 +26,6 @@ import java.text.NumberFormat;
 
 import javax.swing.JDialog;
 
-import net.sf.mzmine.datastructures.AlignmentResult;
 import net.sf.mzmine.datastructures.RawDataAtClient;
 import net.sf.mzmine.obsoletedistributionframework.Task;
 import net.sf.mzmine.userinterface.ClientDialog;

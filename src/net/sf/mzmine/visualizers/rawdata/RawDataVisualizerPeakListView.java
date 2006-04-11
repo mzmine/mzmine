@@ -39,10 +39,10 @@ import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
 import javax.swing.table.AbstractTableModel;
 
-import net.sf.mzmine.datastructures.AlignmentResult;
-import net.sf.mzmine.datastructures.Peak;
-import net.sf.mzmine.datastructures.PeakList;
 import net.sf.mzmine.datastructures.RawDataAtClient;
+import net.sf.mzmine.methods.alignment.AlignmentResult;
+import net.sf.mzmine.methods.peakpicking.Peak;
+import net.sf.mzmine.methods.peakpicking.PeakList;
 import net.sf.mzmine.userinterface.ItemSelector;
 import net.sf.mzmine.userinterface.MainWindow;
 import net.sf.mzmine.userinterface.Statusbar;

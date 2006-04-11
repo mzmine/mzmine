@@ -23,7 +23,6 @@ package net.sf.mzmine.methods.peakpicking;
 import java.io.FileWriter;
 import java.util.Enumeration;
 
-import net.sf.mzmine.datastructures.Peak;
 import net.sf.mzmine.datastructures.RawDataAtClient;
 
 

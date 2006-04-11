@@ -28,7 +28,6 @@ import java.util.Hashtable;
 import java.util.StringTokenizer;
 import java.util.Vector;
 
-import net.sf.mzmine.datastructures.AlignmentResult;
 import net.sf.mzmine.datastructures.RawDataAtClient;
 import net.sf.mzmine.userinterface.MainWindow;
 import net.sf.mzmine.util.Logger;

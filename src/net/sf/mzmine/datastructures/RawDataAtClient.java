@@ -22,6 +22,8 @@
 package net.sf.mzmine.datastructures;
 import java.util.Vector;
 
+import net.sf.mzmine.methods.peakpicking.Peak;
+import net.sf.mzmine.methods.peakpicking.PeakList;
 import net.sf.mzmine.util.Logger;
 import net.sf.mzmine.visualizers.rawdata.RawDataVisualizer;
 

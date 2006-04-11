@@ -1,5 +1,5 @@
 /*
- * Copyright 2005 VTT Biotechnology
+ * Copyright 2006 Okinawa Institute of Science and Technology
  * 
  * This file is part of MZmine.
  * 
@@ -36,6 +36,6 @@ public interface Task extends Runnable {
 
     public String getTaskDescription();
 
-    public TaskResult getResult();
+    public TaskStatus getResult();
 
 }

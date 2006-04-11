@@ -19,7 +19,7 @@
 */
 
 
-package net.sf.mzmine.datastructures;
+package net.sf.mzmine.methods.peakpicking;
 import java.io.Serializable;
 import java.util.Enumeration;
 import java.util.Hashtable;

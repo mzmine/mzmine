@@ -51,7 +51,7 @@ import javax.swing.event.ChangeListener;
 import javax.swing.event.InternalFrameEvent;
 import javax.swing.event.InternalFrameListener;
 
-import net.sf.mzmine.datastructures.AlignmentResult;
+import net.sf.mzmine.methods.alignment.AlignmentResult;
 import net.sf.mzmine.userinterface.Colorbar;
 import net.sf.mzmine.userinterface.MainWindow;
 import net.sf.mzmine.userinterface.SelectOneGroupDialog;

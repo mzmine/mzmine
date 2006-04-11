@@ -18,20 +18,24 @@
     Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
+package net.sf.mzmine.main;
 
-package net.sf.mzmine.methods.alignment;
+import java.rmi.Remote;
 
-import net.sf.mzmine.userinterface.MainWindow;
+import net.sf.mzmine.newdistributionframework.RemoteTask;
+import net.sf.mzmine.newdistributionframework.TaskStatus;
 
 
-/* New interface for all methods that process alignment results at client-side
-and return their output as a new alignment result object.
-Also normalizers will implement this interface (instead of Normalizer which
-will be thrown away) in the future.
-*/
 
-public interface AlignmentResultProcessor {
+/**
+ *
+ */
+public class MZmineClusterNode implements Remote {
 
-	public AlignmentResult processAlignment(MainWindow _mainWin, AlignmentResult ar, AlignmentResultProcessorParameters arpParams);
+
+    public TaskStatus addTask(RemoteTask task) {
+        
+        return null;
+    }
 
 }

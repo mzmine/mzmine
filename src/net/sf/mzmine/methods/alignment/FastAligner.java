@@ -41,9 +41,8 @@ import javax.swing.JFormattedTextField;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 
-import net.sf.mzmine.datastructures.AlignmentResult;
-import net.sf.mzmine.datastructures.Peak;
-import net.sf.mzmine.datastructures.PeakList;
+import net.sf.mzmine.methods.peakpicking.Peak;
+import net.sf.mzmine.methods.peakpicking.PeakList;
 import net.sf.mzmine.obsoletedistributionframework.NodeServer;
 import net.sf.mzmine.userinterface.MainWindow;
 import net.sf.mzmine.util.MyMath;

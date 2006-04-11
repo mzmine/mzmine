@@ -50,7 +50,7 @@ import javax.swing.event.InternalFrameListener;
 
 import jmprojection.Preprocessor;
 import jmprojection.Sammons;
-import net.sf.mzmine.datastructures.AlignmentResult;
+import net.sf.mzmine.methods.alignment.AlignmentResult;
 import net.sf.mzmine.obsoletedistributionframework.Task;
 import net.sf.mzmine.userinterface.ClientDialog;
 import net.sf.mzmine.userinterface.MainWindow;

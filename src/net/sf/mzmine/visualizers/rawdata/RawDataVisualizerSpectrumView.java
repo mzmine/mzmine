@@ -45,8 +45,8 @@ import javax.swing.RepaintManager;
 import javax.swing.event.InternalFrameEvent;
 import javax.swing.event.InternalFrameListener;
 
-import net.sf.mzmine.datastructures.Peak;
 import net.sf.mzmine.datastructures.RawDataAtClient;
+import net.sf.mzmine.methods.peakpicking.Peak;
 import net.sf.mzmine.userinterface.ItemSelector;
 import net.sf.mzmine.userinterface.MainWindow;
 import net.sf.mzmine.userinterface.Statusbar;
