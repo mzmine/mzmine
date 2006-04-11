@@ -20,7 +20,7 @@
 package net.sf.mzmine.util;
 import java.text.DecimalFormat;
 
-import net.sf.mzmine.datastructures.RawDataAtClient;
+import net.sf.mzmine.obsoletedatastructures.RawDataAtClient;
 
 
 /**

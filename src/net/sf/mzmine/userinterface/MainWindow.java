@@ -46,8 +46,6 @@ import javax.swing.JOptionPane;
 import javax.swing.JSplitPane;
 import javax.swing.KeyStroke;
 
-import net.sf.mzmine.datastructures.ParameterStorage;
-import net.sf.mzmine.datastructures.RawDataAtClient;
 import net.sf.mzmine.methods.alignment.AlignmentResult;
 import net.sf.mzmine.methods.alignment.AlignmentResultExporter;
 import net.sf.mzmine.methods.alignment.AlignmentResultExporterParameterSetupDialog;
@@ -89,6 +87,8 @@ import net.sf.mzmine.methods.rawdata.SavitzkyGolayFilter;
 import net.sf.mzmine.methods.rawdata.SavitzkyGolayFilterParameters;
 import net.sf.mzmine.methods.rawdata.ZoomScanFilter;
 import net.sf.mzmine.methods.rawdata.ZoomScanFilterParameters;
+import net.sf.mzmine.obsoletedatastructures.ParameterStorage;
+import net.sf.mzmine.obsoletedatastructures.RawDataAtClient;
 import net.sf.mzmine.obsoletedistributionframework.ClientForCluster;
 import net.sf.mzmine.obsoletedistributionframework.ControllerServer;
 import net.sf.mzmine.util.GeneralParameters;

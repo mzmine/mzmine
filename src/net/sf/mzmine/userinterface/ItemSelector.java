@@ -38,8 +38,8 @@ import javax.swing.ListModel;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
 
-import net.sf.mzmine.datastructures.RawDataAtClient;
 import net.sf.mzmine.methods.alignment.AlignmentResult;
+import net.sf.mzmine.obsoletedatastructures.RawDataAtClient;
 import net.sf.mzmine.visualizers.rawdata.RawDataVisualizerTICView;
 
 

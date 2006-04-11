@@ -29,7 +29,7 @@ import javax.swing.JPanel;
 import javax.swing.JProgressBar;
 import javax.swing.border.EtchedBorder;
 
-import net.sf.mzmine.datastructures.RawDataAtClient;
+import net.sf.mzmine.obsoletedatastructures.RawDataAtClient;
 import net.sf.mzmine.util.FormatCoordinates;
 
 

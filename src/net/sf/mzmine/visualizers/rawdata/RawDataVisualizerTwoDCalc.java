@@ -20,7 +20,7 @@
 package net.sf.mzmine.visualizers.rawdata;
 import java.util.Vector;
 
-import net.sf.mzmine.datastructures.Scan;
+import net.sf.mzmine.obsoletedatastructures.Scan;
 
 
 
