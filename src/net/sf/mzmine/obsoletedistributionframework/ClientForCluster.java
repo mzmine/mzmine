@@ -29,8 +29,6 @@ import java.util.Hashtable;
 import java.util.StringTokenizer;
 import java.util.Vector;
 
-import net.sf.mzmine.datastructures.RawDataAtClient;
-import net.sf.mzmine.datastructures.RawDataOnTransit;
 import net.sf.mzmine.methods.alignment.AlignmentResult;
 import net.sf.mzmine.methods.alignment.AlignmentResultFilterByGapsParameters;
 import net.sf.mzmine.methods.alignment.AlignmentResultProcessorParameters;
@@ -42,6 +40,8 @@ import net.sf.mzmine.methods.peakpicking.PeakList;
 import net.sf.mzmine.methods.peakpicking.PeakListProcessorParameters;
 import net.sf.mzmine.methods.peakpicking.PeakPickerParameters;
 import net.sf.mzmine.methods.rawdata.FilterParameters;
+import net.sf.mzmine.obsoletedatastructures.RawDataAtClient;
+import net.sf.mzmine.obsoletedatastructures.RawDataOnTransit;
 import net.sf.mzmine.userinterface.ClientDialog;
 import net.sf.mzmine.userinterface.ItemSelector;
 import net.sf.mzmine.userinterface.MainWindow;
