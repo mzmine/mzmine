@@ -19,9 +19,12 @@
 */
 
 package net.sf.mzmine.datastructures;
-import net.sf.mzmine.alignmentresultmethods.*;
-import net.sf.mzmine.alignmentresultvisualizers.*;
-import net.sf.mzmine.datastructures.*;
+import java.io.File;
+import java.io.FileWriter;
+
+import javax.xml.parsers.SAXParser;
+import javax.xml.parsers.SAXParserFactory;
+
 import net.sf.mzmine.methods.alignment.AlignmentResultExporterParameters;
 import net.sf.mzmine.methods.alignment.AlignmentResultFilterByGapsParameters;
 import net.sf.mzmine.methods.alignment.FastAlignerParameters;
@@ -40,18 +43,11 @@ import net.sf.mzmine.methods.rawdata.CropFilterParameters;
 import net.sf.mzmine.methods.rawdata.MeanFilterParameters;
 import net.sf.mzmine.methods.rawdata.SavitzkyGolayFilterParameters;
 import net.sf.mzmine.methods.rawdata.ZoomScanFilterParameters;
-import net.sf.mzmine.obsoletedistributionframework.*;
-import net.sf.mzmine.peaklistmethods.*;
-import net.sf.mzmine.rawdatamethods.*;
-import net.sf.mzmine.rawdatavisualizers.*;
-import net.sf.mzmine.userinterface.*;
-import net.sf.mzmine.util.*;
+import net.sf.mzmine.userinterface.BatchModeDialogParameters;
+import net.sf.mzmine.util.GeneralParameters;
+import net.sf.mzmine.util.Logger;
 import net.sf.mzmine.visualizers.alignmentresult.AlignmentResultVisualizerCDAPlotViewParameters;
 import net.sf.mzmine.visualizers.alignmentresult.AlignmentResultVisualizerSammonsPlotViewParameters;
-
-import java.io.*;
-import javax.xml.parsers.SAXParser;
-import javax.xml.parsers.SAXParserFactory;
 
 public class ParameterStorage {
 
