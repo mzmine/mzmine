@@ -19,27 +19,17 @@
 */
 
 package net.sf.mzmine.obsoletedistributionframework;
-import net.sf.mzmine.alignmentresultmethods.*;
-import net.sf.mzmine.alignmentresultvisualizers.*;
-import net.sf.mzmine.datastructures.*;
+import java.io.File;
+import java.net.InetAddress;
+import java.util.Hashtable;
+
+import net.sf.mzmine.datastructures.PeakList;
 import net.sf.mzmine.methods.alignment.GapFillerParameters;
 import net.sf.mzmine.methods.alignment.PeakListAlignerParameters;
 import net.sf.mzmine.methods.peakpicking.PeakListProcessorParameters;
 import net.sf.mzmine.methods.peakpicking.PeakPickerParameters;
 import net.sf.mzmine.methods.rawdata.FilterParameters;
-import net.sf.mzmine.obsoletedistributionframework.*;
-import net.sf.mzmine.peaklistmethods.*;
-import net.sf.mzmine.rawdatamethods.*;
-import net.sf.mzmine.rawdatavisualizers.*;
-import net.sf.mzmine.userinterface.*;
-import net.sf.mzmine.util.*;
 import net.sf.mzmine.visualizers.rawdata.RawDataVisualizerRefreshRequest;
-
-
-// Java packages
-import java.io.File;
-import java.net.InetAddress;
-import java.util.Hashtable;
 
 
 /**

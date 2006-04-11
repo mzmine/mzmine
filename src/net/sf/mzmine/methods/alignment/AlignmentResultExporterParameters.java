@@ -21,17 +21,9 @@
 
 package net.sf.mzmine.methods.alignment;
 
-import net.sf.mzmine.alignmentresultmethods.*;
-import net.sf.mzmine.alignmentresultvisualizers.*;
-import net.sf.mzmine.datastructures.*;
-import net.sf.mzmine.obsoletedistributionframework.*;
-import net.sf.mzmine.peaklistmethods.*;
-import net.sf.mzmine.rawdatamethods.*;
-import net.sf.mzmine.rawdatavisualizers.*;
-import net.sf.mzmine.userinterface.*;
-import net.sf.mzmine.util.*;
-
 import java.util.HashSet;
+
+import net.sf.mzmine.util.GeneralParameters;
 
 import org.xml.sax.Attributes;
 

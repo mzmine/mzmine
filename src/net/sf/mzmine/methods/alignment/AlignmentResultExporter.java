@@ -21,24 +21,17 @@
 
 package net.sf.mzmine.methods.alignment;
 
-import net.sf.mzmine.alignmentresultmethods.*;
-import net.sf.mzmine.alignmentresultvisualizers.*;
-import net.sf.mzmine.datastructures.*;
-import net.sf.mzmine.obsoletedistributionframework.*;
-import net.sf.mzmine.peaklistmethods.*;
-import net.sf.mzmine.rawdatamethods.*;
-import net.sf.mzmine.rawdatavisualizers.*;
-import net.sf.mzmine.userinterface.*;
-import net.sf.mzmine.util.*;
-
-import java.io.FileWriter;
-import java.io.FileReader;
 import java.io.BufferedReader;
-
-import java.util.Vector;
-import java.util.Arrays;
-import java.util.StringTokenizer;
+import java.io.FileReader;
+import java.io.FileWriter;
 import java.util.Hashtable;
+import java.util.StringTokenizer;
+import java.util.Vector;
+
+import net.sf.mzmine.datastructures.AlignmentResult;
+import net.sf.mzmine.datastructures.RawDataAtClient;
+import net.sf.mzmine.userinterface.MainWindow;
+import net.sf.mzmine.util.Logger;
 
 
 /**

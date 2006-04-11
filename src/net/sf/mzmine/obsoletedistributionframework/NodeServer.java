@@ -19,9 +19,23 @@
 */
 
 package net.sf.mzmine.obsoletedistributionframework;
-import net.sf.mzmine.alignmentresultmethods.*;
-import net.sf.mzmine.alignmentresultvisualizers.*;
-import net.sf.mzmine.datastructures.*;
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.FileReader;
+import java.net.InetAddress;
+import java.nio.channels.FileChannel;
+import java.rmi.Naming;
+import java.util.Hashtable;
+import java.util.StringTokenizer;
+import java.util.Vector;
+
+import net.sf.mzmine.datastructures.AlignmentResult;
+import net.sf.mzmine.datastructures.PeakList;
+import net.sf.mzmine.datastructures.RawDataAtNode;
+import net.sf.mzmine.datastructures.RawDataOnTransit;
+import net.sf.mzmine.datastructures.Scan;
 import net.sf.mzmine.methods.alignment.FastAligner;
 import net.sf.mzmine.methods.alignment.GapFillerParameters;
 import net.sf.mzmine.methods.alignment.JoinAligner;
@@ -41,31 +55,12 @@ import net.sf.mzmine.methods.rawdata.FilterParameters;
 import net.sf.mzmine.methods.rawdata.MeanFilter;
 import net.sf.mzmine.methods.rawdata.SavitzkyGolayFilter;
 import net.sf.mzmine.methods.rawdata.ZoomScanFilter;
-import net.sf.mzmine.obsoletedistributionframework.*;
-import net.sf.mzmine.peaklistmethods.*;
-import net.sf.mzmine.rawdatamethods.*;
-import net.sf.mzmine.rawdatavisualizers.*;
-import net.sf.mzmine.userinterface.*;
-import net.sf.mzmine.util.*;
+import net.sf.mzmine.util.Logger;
 import net.sf.mzmine.visualizers.rawdata.RawDataVisualizerRefreshRequest;
 import net.sf.mzmine.visualizers.rawdata.RawDataVisualizerRefreshResult;
 import net.sf.mzmine.visualizers.rawdata.RawDataVisualizerSpectrumCalc;
 import net.sf.mzmine.visualizers.rawdata.RawDataVisualizerTICCalc;
 import net.sf.mzmine.visualizers.rawdata.RawDataVisualizerTwoDCalc;
-
-
-// Java packages
-import java.rmi.Naming;
-import java.util.Vector;
-import java.util.Hashtable;
-import java.util.StringTokenizer;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
-import java.io.BufferedReader;
-import java.io.FileReader;
-import java.nio.channels.FileChannel;
-import java.net.InetAddress;
 
 
 

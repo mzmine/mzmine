@@ -18,20 +18,20 @@
     Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 */
 package net.sf.mzmine.methods.peakpicking;
-import net.sf.mzmine.alignmentresultmethods.*;
-import net.sf.mzmine.alignmentresultvisualizers.*;
-import net.sf.mzmine.datastructures.*;
-import net.sf.mzmine.obsoletedistributionframework.*;
-import net.sf.mzmine.peaklistmethods.*;
-import net.sf.mzmine.rawdatamethods.*;
-import net.sf.mzmine.rawdatavisualizers.*;
-import net.sf.mzmine.userinterface.*;
-import net.sf.mzmine.util.*;
-
-
-// Java packages
-import java.util.*;
 import java.text.NumberFormat;
+import java.util.Iterator;
+import java.util.TreeSet;
+import java.util.Vector;
+
+import net.sf.mzmine.datastructures.Peak;
+import net.sf.mzmine.datastructures.PeakConstruction;
+import net.sf.mzmine.datastructures.PeakList;
+import net.sf.mzmine.datastructures.RawDataAtNode;
+import net.sf.mzmine.datastructures.Scan;
+import net.sf.mzmine.obsoletedistributionframework.NodeServer;
+import net.sf.mzmine.userinterface.MainWindow;
+import net.sf.mzmine.userinterface.ParameterSetupDialog;
+import net.sf.mzmine.util.MyMath;
 
 public class RecursiveThresholdPicker implements PeakPicker {
 

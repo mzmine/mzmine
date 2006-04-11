@@ -18,34 +18,23 @@
     Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 */
 package net.sf.mzmine.methods.rawdata;
-import net.sf.mzmine.alignmentresultmethods.*;
-import net.sf.mzmine.alignmentresultvisualizers.*;
-import net.sf.mzmine.datastructures.*;
-import net.sf.mzmine.obsoletedistributionframework.*;
-import net.sf.mzmine.peaklistmethods.*;
-import net.sf.mzmine.rawdatamethods.*;
-import net.sf.mzmine.rawdatavisualizers.*;
-import net.sf.mzmine.userinterface.*;
-import net.sf.mzmine.util.*;
-
-
 import java.io.File;
 import java.io.FileInputStream;
-import java.util.Vector;
-import java.util.Date;
 import java.util.Hashtable;
+import java.util.Vector;
 
-import org.xml.sax.*;
-import org.xml.sax.helpers.DefaultHandler;
-
-import javax.xml.parsers.SAXParserFactory;
-import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.parsers.SAXParser;
-
-import javax.xml.datatype.DatatypeFactory;
-import javax.xml.datatype.Duration;
+import javax.xml.parsers.SAXParserFactory;
 
 import net.iharder.xmlizable.Base64;
+import net.sf.mzmine.datastructures.Scan;
+import net.sf.mzmine.util.Logger;
+
+import org.xml.sax.Attributes;
+import org.xml.sax.InputSource;
+import org.xml.sax.SAXException;
+import org.xml.sax.SAXParseException;
+import org.xml.sax.helpers.DefaultHandler;
 
 public class MZXMLHandlerForRetrieve extends DefaultHandler {
 

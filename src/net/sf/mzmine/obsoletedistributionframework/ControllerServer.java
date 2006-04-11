@@ -20,36 +20,25 @@
 
 
 package net.sf.mzmine.obsoletedistributionframework;
-import net.sf.mzmine.alignmentresultmethods.*;
-import net.sf.mzmine.alignmentresultvisualizers.*;
-import net.sf.mzmine.datastructures.*;
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileReader;
+import java.net.InetAddress;
+import java.rmi.Naming;
+import java.util.Enumeration;
+import java.util.Hashtable;
+import java.util.StringTokenizer;
+import java.util.Vector;
+
+import net.sf.mzmine.datastructures.AlignmentResult;
+import net.sf.mzmine.datastructures.PeakList;
 import net.sf.mzmine.methods.alignment.GapFillerParameters;
 import net.sf.mzmine.methods.alignment.PeakListAlignerParameters;
 import net.sf.mzmine.methods.peakpicking.PeakListProcessorParameters;
 import net.sf.mzmine.methods.peakpicking.PeakPickerParameters;
 import net.sf.mzmine.methods.rawdata.FilterParameters;
-import net.sf.mzmine.obsoletedistributionframework.*;
-import net.sf.mzmine.peaklistmethods.*;
-import net.sf.mzmine.rawdatamethods.*;
-import net.sf.mzmine.rawdatavisualizers.*;
-import net.sf.mzmine.userinterface.*;
-import net.sf.mzmine.util.*;
+import net.sf.mzmine.util.Logger;
 import net.sf.mzmine.visualizers.rawdata.RawDataVisualizerRefreshRequest;
-
-
-// Java packages
-import java.rmi.Naming;
-import java.util.Hashtable;
-import java.util.Enumeration;
-import java.util.Vector;
-import java.util.StringTokenizer;
-import java.io.File;
-import java.io.BufferedReader;
-import java.io.FileReader;
-import java.net.InetAddress;
-
-
-// Other libs
 import edu.csusb.danby.stat.RegressionCalculator;
 
 

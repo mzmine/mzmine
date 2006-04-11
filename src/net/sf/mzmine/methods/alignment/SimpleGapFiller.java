@@ -20,27 +20,26 @@
 
 package net.sf.mzmine.methods.alignment;
 
-import net.sf.mzmine.alignmentresultmethods.*;
-import net.sf.mzmine.alignmentresultvisualizers.*;
-import net.sf.mzmine.datastructures.*;
-import net.sf.mzmine.obsoletedistributionframework.*;
-import net.sf.mzmine.peaklistmethods.*;
-import net.sf.mzmine.rawdatamethods.*;
-import net.sf.mzmine.rawdatavisualizers.*;
-import net.sf.mzmine.userinterface.*;
-import net.sf.mzmine.util.*;
-
+import java.awt.BorderLayout;
+import java.awt.GridLayout;
+import java.awt.event.ActionListener;
+import java.text.NumberFormat;
 import java.util.Enumeration;
-import java.util.Vector;
 import java.util.Hashtable;
+import java.util.Vector;
 
-import javax.swing.JOptionPane;
-import javax.swing.JScrollPane;
+import javax.swing.BorderFactory;
+import javax.swing.JButton;
+import javax.swing.JComboBox;
+import javax.swing.JDialog;
+import javax.swing.JFormattedTextField;
+import javax.swing.JLabel;
+import javax.swing.JPanel;
 
-import javax.swing.*;
-import java.awt.*;
-import java.text.*;
-import java.awt.event.*;
+import net.sf.mzmine.datastructures.RawDataAtNode;
+import net.sf.mzmine.datastructures.Scan;
+import net.sf.mzmine.obsoletedistributionframework.NodeServer;
+import net.sf.mzmine.userinterface.MainWindow;
 
 
 public class SimpleGapFiller implements GapFiller {
