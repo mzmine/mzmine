@@ -19,7 +19,7 @@
 
 package net.sf.mzmine.main;
 
-import net.sf.mzmine.taskcontroller.TaskController;
+import net.sf.mzmine.taskcontrol.TaskController;
 import net.sf.mzmine.userinterface.MainWindow;
 import net.sf.mzmine.util.Logger;
 

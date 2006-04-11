@@ -22,8 +22,8 @@ package net.sf.mzmine.main;
 
 import java.rmi.Remote;
 
-import net.sf.mzmine.taskcontroller.DistributableTask;
-import net.sf.mzmine.taskcontroller.Task;
+import net.sf.mzmine.taskcontrol.DistributableTask;
+import net.sf.mzmine.taskcontrol.Task;
 
 
 /**
