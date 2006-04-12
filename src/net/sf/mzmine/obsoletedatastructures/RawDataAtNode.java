@@ -29,8 +29,8 @@ import javax.xml.datatype.DatatypeFactory;
 import javax.xml.datatype.Duration;
 
 import net.iharder.xmlizable.Base64;
-import net.sf.mzmine.methods.rawdata.MZXMLHandlerForPreload;
-import net.sf.mzmine.methods.rawdata.MZXMLHandlerForRetrieve;
+import net.sf.mzmine.methods.filtering.MZXMLHandlerForPreload;
+import net.sf.mzmine.methods.filtering.MZXMLHandlerForRetrieve;
 import net.sf.mzmine.util.Logger;
 import ucar.ma2.Array;
 import ucar.ma2.ArrayInt;

@@ -56,13 +56,7 @@ public interface RawDataFile {
      */
     public Scan getScan(int scan);
     
-    /**
-     * This method may parse the RAW data file, therefore it may be quite slow.
-     * @param scan Desired can number
-     * @return Desired scan
-     */   
-    public ScanHeader getScanHeader(int scan);
-    
+   
     public String getDataDescription();
 
     public double getDataMinMZ();

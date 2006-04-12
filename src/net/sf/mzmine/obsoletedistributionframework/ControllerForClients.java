@@ -26,10 +26,10 @@ import java.util.Hashtable;
 import net.sf.mzmine.methods.alignment.AlignmentResult;
 import net.sf.mzmine.methods.alignment.GapFillerParameters;
 import net.sf.mzmine.methods.alignment.PeakListAlignerParameters;
+import net.sf.mzmine.methods.filtering.FilterParameters;
 import net.sf.mzmine.methods.peakpicking.PeakList;
 import net.sf.mzmine.methods.peakpicking.PeakListProcessorParameters;
 import net.sf.mzmine.methods.peakpicking.PeakPickerParameters;
-import net.sf.mzmine.methods.rawdata.FilterParameters;
 import net.sf.mzmine.visualizers.rawdata.RawDataVisualizerRefreshRequest;
 
 /**

@@ -26,7 +26,6 @@ import java.io.File;
 
 import net.sf.mzmine.io.RawDataFile;
 import net.sf.mzmine.io.Scan;
-import net.sf.mzmine.io.ScanHeader;
 
 /**
  * 
@@ -73,13 +72,6 @@ public class NetCDFFile implements RawDataFile {
         return null;
     }
 
-    /*
-     * @see net.sf.mzmine.io.RawDataFile#getScan(int)
-     */
-    public ScanHeader getScanHeader(int scan) {
-        // TODO Auto-generated method stub
-        return null;
-    }
 
     /**
      * @see net.sf.mzmine.io.RawDataFile#getDataDescription()

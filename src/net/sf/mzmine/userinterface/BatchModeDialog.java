@@ -43,6 +43,15 @@ import net.sf.mzmine.methods.alignment.NormalizerParameters;
 import net.sf.mzmine.methods.alignment.PeakListAlignerParameters;
 import net.sf.mzmine.methods.alignment.SimpleGapFiller;
 import net.sf.mzmine.methods.alignment.SimpleGapFillerParameters;
+import net.sf.mzmine.methods.filtering.ChromatographicMedianFilter;
+import net.sf.mzmine.methods.filtering.ChromatographicMedianFilterParameters;
+import net.sf.mzmine.methods.filtering.CropFilter;
+import net.sf.mzmine.methods.filtering.CropFilterParameters;
+import net.sf.mzmine.methods.filtering.FilterParameters;
+import net.sf.mzmine.methods.filtering.MeanFilter;
+import net.sf.mzmine.methods.filtering.MeanFilterParameters;
+import net.sf.mzmine.methods.filtering.SavitzkyGolayFilter;
+import net.sf.mzmine.methods.filtering.SavitzkyGolayFilterParameters;
 import net.sf.mzmine.methods.peakpicking.CentroidPicker;
 import net.sf.mzmine.methods.peakpicking.CentroidPickerParameters;
 import net.sf.mzmine.methods.peakpicking.IncompleteIsotopePatternFilter;
@@ -55,15 +64,6 @@ import net.sf.mzmine.methods.peakpicking.RecursiveThresholdPicker;
 import net.sf.mzmine.methods.peakpicking.RecursiveThresholdPickerParameters;
 import net.sf.mzmine.methods.peakpicking.SimpleDeisotoper;
 import net.sf.mzmine.methods.peakpicking.SimpleDeisotoperParameters;
-import net.sf.mzmine.methods.rawdata.ChromatographicMedianFilter;
-import net.sf.mzmine.methods.rawdata.ChromatographicMedianFilterParameters;
-import net.sf.mzmine.methods.rawdata.CropFilter;
-import net.sf.mzmine.methods.rawdata.CropFilterParameters;
-import net.sf.mzmine.methods.rawdata.FilterParameters;
-import net.sf.mzmine.methods.rawdata.MeanFilter;
-import net.sf.mzmine.methods.rawdata.MeanFilterParameters;
-import net.sf.mzmine.methods.rawdata.SavitzkyGolayFilter;
-import net.sf.mzmine.methods.rawdata.SavitzkyGolayFilterParameters;
 
 
 public class BatchModeDialog extends javax.swing.JInternalFrame implements ActionListener {
