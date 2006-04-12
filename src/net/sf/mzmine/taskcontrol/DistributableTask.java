@@ -22,10 +22,12 @@
  */
 package net.sf.mzmine.taskcontrol;
 
+import java.rmi.Remote;
+
 
 /**
- * 
+ * This interface represents a task that can be transferred to a remote node for computation.
  */
-public interface DistributableTask extends Task {
+public interface DistributableTask extends Task, Remote {
 
 }

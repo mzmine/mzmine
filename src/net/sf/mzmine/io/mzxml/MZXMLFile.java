@@ -132,4 +132,22 @@ class MZXMLFile implements RawDataFile {
         return null;
     }
 
+
+    /**
+     * @see net.sf.mzmine.io.RawDataFile#getFileName()
+     */
+    public File getFileName() {
+        // TODO Auto-generated method stub
+        return null;
+    }
+
+
+    /**
+     * @see net.sf.mzmine.io.RawDataFile#getDataMaxIntensity()
+     */
+    public double getDataMaxIntensity() {
+        // TODO Auto-generated method stub
+        return 0;
+    }
+
 }

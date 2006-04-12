@@ -20,6 +20,8 @@
 
 package net.sf.mzmine.io;
 
+import java.io.File;
+
 /**
  * Class representing a raw data file, no matter what format it is using.
  * 
@@ -34,6 +36,8 @@ package net.sf.mzmine.io;
 public interface RawDataFile {
 
     public enum LoadType { READ_ORIGINAL, MAKE_LOCAL_COPY, PRELOAD_HEADER, PRELOAD_DATA };
+    
+    public File getFileName();
     
     public void reloadFile();
     
@@ -64,10 +68,7 @@ public interface RawDataFile {
     public double getDataMinMZ();
 
     public double getDataMaxMZ();
-
-    public double getTotalRawSignal();
-
-    // public PeakList getPeakList();
-    // public void setPeakList(PeakList peakList);
+    
+    public double getDataMaxIntensity();
 
 }

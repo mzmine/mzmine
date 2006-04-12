@@ -24,8 +24,6 @@ package net.sf.mzmine.io;
 
 /**
  * This class represent one spectrum of a raw data file.
- * The implementing class is supposed to be immutable.
- * 
  */
 public interface Scan extends ScanHeader {
 

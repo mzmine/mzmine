@@ -3,10 +3,11 @@
  */
 package net.sf.mzmine.taskcontrol;
 
-
 /**
- * This is a wrapper class that represents a task.
- * Since the task may be transferred to another node, this wrapper is necessary to keep the actual reference to the task's location. 
+ * This is a wrapper class that represents a task. Since the task may be
+ * transferred to another cluster node (and therefore the reference to local
+ * task becomes invalid), this wrapper is necessary to keep the actual reference
+ * to the task's location.
  */
 class AbstractTaskReference implements Task {
 
@@ -61,6 +62,13 @@ class AbstractTaskReference implements Task {
     }
 
     /**
+     * @see net.sf.mzmine.newdistributionframework.Task#getPriority()
+     */
+    public TaskPriority getPriority() {
+        return referencedTask.getPriority();
+    }
+
+    /**
      * @return Returns the referencedTask.
      */
     Task getReferencedTask() {
@@ -76,10 +84,10 @@ class AbstractTaskReference implements Task {
     }
 
     /**
-     * @see net.sf.mzmine.newdistributionframework.Task#getPriority()
+     * @see net.sf.mzmine.taskcontrol.Task#cancel()
      */
-    public TaskPriority getPriority() {
-        return referencedTask.getPriority();
+    public void cancel() {
+        referencedTask.cancel();
     }
 
 }

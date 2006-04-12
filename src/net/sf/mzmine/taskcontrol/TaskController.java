@@ -22,6 +22,7 @@
  */
 package net.sf.mzmine.taskcontrol;
 
+import java.net.InetAddress;
 import java.util.Comparator;
 import java.util.PriorityQueue;
 
@@ -71,6 +72,12 @@ public class TaskController implements Runnable {
         return newReference;
 
     }
+    
+    public InetAddress getTaskNode(DistributableTask task) {
+        
+        return null;
+    }
+
 
     /**
      * @see java.lang.Runnable#run()
@@ -78,7 +85,8 @@ public class TaskController implements Runnable {
     public void run() {
 
         while (true) {
-
+// TODO: always allocate a thread for high-priority tasks?
+            
             /*
              * if the queue is not empty, poll local threads
              */

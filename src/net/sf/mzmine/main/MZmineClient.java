@@ -27,7 +27,7 @@ public class MZmineClient {
 
     private static MainWindow mainWindow;
 
-    private static TaskController taskManager;
+    private static TaskController taskController;
 
     /**
      * Main method
@@ -36,7 +36,7 @@ public class MZmineClient {
 
         Logger.disableOutput();
 
-        int numberOfNodes = 1;
+        int numberOfNodes = 2;
 
         for (String arg : argz) {
             if ((arg.compareToIgnoreCase(new String("verbose"))) == 0) {
@@ -73,7 +73,7 @@ public class MZmineClient {
 
         Logger.put("STARTUP THREAD: Starting node(s)");
 
-        taskManager = new TaskController(numberOfNodes);
+        taskController = new TaskController(numberOfNodes);
 
         Logger.put("STARTUP THREAD: Starting GUI.");
 

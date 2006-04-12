@@ -17,20 +17,24 @@
  * Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-/**
- * 
- */
 package net.sf.mzmine.io;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.Hashtable;
 
 /**
- *
+ * C
+ * Files may be opened in following ways:
+ * - on the client, user selects "Open file" from menu,
+ *   new task is created and then the file appears in open files list
+ * - on the cluster node, a running task requires raw data, so it opens a "file opening" task
  *
  */
 public class FileReaderFactory {
 
+    private static Hashtable<File, RawDataFile> openFiles = new Hashtable<File, RawDataFile>();
+    
     /**
      * Opens a dialog to read a new file.
      * Only makes sense on client.
@@ -41,6 +45,12 @@ public class FileReaderFactory {
         
     }
 
+    /**
+     * Blocking methos that runs a file opening task and waits until it's open.
+     * @param file
+     * @return
+     * @throws IOException
+     */
     public static RawDataFile openFile(File file) throws IOException {
         
         return null;

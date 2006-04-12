@@ -3,11 +3,15 @@
  */
 package net.sf.mzmine.methods;
 
+import java.io.Serializable;
+
 /**
  *
  */
 public interface Method {
 
     
-    public void getParameters();
+    public String getMethodDescription();
+    
+    public Serializable getParameters();
 }

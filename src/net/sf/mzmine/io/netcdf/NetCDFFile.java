@@ -22,6 +22,8 @@
  */
 package net.sf.mzmine.io.netcdf;
 
+import java.io.File;
+
 import net.sf.mzmine.io.RawDataFile;
 import net.sf.mzmine.io.Scan;
 import net.sf.mzmine.io.ScanHeader;
@@ -125,6 +127,22 @@ public class NetCDFFile implements RawDataFile {
     public int[] getMSLevels() {
         // TODO Auto-generated method stub
         return null;
+    }
+
+    /**
+     * @see net.sf.mzmine.io.RawDataFile#getFileName()
+     */
+    public File getFileName() {
+        // TODO Auto-generated method stub
+        return null;
+    }
+
+    /**
+     * @see net.sf.mzmine.io.RawDataFile#getDataMaxIntensity()
+     */
+    public double getDataMaxIntensity() {
+        // TODO Auto-generated method stub
+        return 0;
     }
 
 }

@@ -95,4 +95,12 @@ public class MZXMLFileOpeningTask implements Task {
 
     }
 
+    /**
+     * @see net.sf.mzmine.taskcontrol.Task#cancel()
+     */
+    public void cancel() {
+        
+        
+    }
+
 }

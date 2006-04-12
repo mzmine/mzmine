@@ -21,7 +21,7 @@ package net.sf.mzmine.visualizers;
 
 import net.sf.mzmine.io.RawDataFile;
 
-public interface Visualizer {
+public interface RawDataVisualizer {
 
     public RawDataFile getRawDataFile();
 
@@ -33,9 +33,9 @@ public interface Visualizer {
 
     public void setRTPosition(double rt);
 
-    public void attachVisualizer(Visualizer visualizer);
+    public void attachVisualizer(RawDataVisualizer visualizer);
 
-    public void detachVisualizer(Visualizer visualizer);
+    public void detachVisualizer(RawDataVisualizer visualizer);
 
     public void printMe();
 

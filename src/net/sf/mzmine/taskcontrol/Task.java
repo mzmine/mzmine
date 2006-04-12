@@ -19,10 +19,21 @@
 
 package net.sf.mzmine.taskcontrol;
 
+
 public interface Task extends Runnable {
 
+    
+    /**
+     * WAITING - task cannot start, because it's waiting for another task's results
+     * READY - task is ready to start
+     * PROCESSING - task is running
+     * FINISHED - task finished succesfully, results can be obtained by getResult()
+     * CANCELED - task was canceled by user
+     * ERROR - task finished with error, error message can be obtained by getErrorMessage()
+     *
+     */
     public static enum TaskStatus {
-        TASK_WAITING, TASK_READY, TASK_PROCESSING, TASK_FINISHED, TASK_ERROR
+        WAITING, READY, PROCESSING, FINISHED, CANCELED, ERROR
     };
 
     public static enum TaskPriority {
@@ -38,6 +49,14 @@ public interface Task extends Runnable {
     public String getErrorMessage();
 
     public Object getResult();
+    
+    /**
+     * Cancel a running task by user request.
+     * This method must clean up everything and return to 
+     * a state prior to starting the task.
+     *
+     */
+    public void cancel();
 
     public TaskPriority getPriority();
 
