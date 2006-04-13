@@ -22,12 +22,16 @@
  */
 package net.sf.mzmine.taskcontrol;
 
+import java.io.Serializable;
+import java.net.InetAddress;
 import java.rmi.Remote;
 
-
 /**
- * This interface represents a task that can be transferred to a remote node for computation.
+ * This interface represents a task that can be transferred to a remote node for
+ * computation.
  */
-public interface DistributableTask extends Task, Remote {
+public interface DistributableTask extends Task, Remote, Serializable {
+
+    public InetAddress getCurrentNode();
 
 }

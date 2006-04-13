@@ -26,14 +26,16 @@ import java.net.InetAddress;
 import java.util.Comparator;
 import java.util.PriorityQueue;
 
+import net.sf.mzmine.userinterface.MainWindow;
 import net.sf.mzmine.util.Logger;
-
 
 /**
  * 
  */
 public class TaskController implements Runnable {
 
+    private static TaskController myInstance;
+    
     private final int TASKCONTROLLER_THREAD_SLEEP = 100;
 
     private Thread taskControllerThread;
@@ -42,11 +44,15 @@ public class TaskController implements Runnable {
 
     private PriorityQueue<AbstractTaskReference> taskQueue;
 
+    public static TaskController getInstance() { return myInstance; }
+
     /**
      * 
      */
     public TaskController(int numberOfThreads) {
 
+        assert myInstance == null;
+        myInstance = this;
         workerThreads = new Thread[numberOfThreads];
         taskQueue = new PriorityQueue<AbstractTaskReference>(10,
                 new TaskPriorityComparator());
@@ -58,13 +64,18 @@ public class TaskController implements Runnable {
     }
 
     public Task addTask(Task task) {
+        return addTask(task, null);
+    }
+
+    public Task addTask(Task task, TaskListener listener) {
 
         assert task != null;
 
         AbstractTaskReference newReference = new AbstractTaskReference(task);
 
-        Logger.put("Adding task " + task.getTaskDescription() + " to the task controller queue");
-        
+        Logger.put("Adding task " + task.getTaskDescription()
+                + " to the task controller queue");
+
         synchronized (taskQueue) {
             taskQueue.add(newReference);
         }
@@ -72,12 +83,17 @@ public class TaskController implements Runnable {
         return newReference;
 
     }
-    
-    public InetAddress getTaskNode(DistributableTask task) {
-        
-        return null;
-    }
 
+    /**
+     * This method adds the task to queue and waits (puts the caller to sleep)
+     * until the task is finished
+     * 
+     * @param task
+     * @return
+     */
+    public void processTask(Task task) {
+
+    }
 
     /**
      * @see java.lang.Runnable#run()
@@ -85,13 +101,13 @@ public class TaskController implements Runnable {
     public void run() {
 
         while (true) {
-// TODO: always allocate a thread for high-priority tasks?
-            
+            // TODO: always allocate a thread for high-priority tasks?
+
             /*
              * if the queue is not empty, poll local threads
              */
             synchronized (taskQueue) {
-                
+
                 if (!taskQueue.isEmpty()) {
 
                     for (int i = 0; i < workerThreads.length; i++) {
@@ -101,17 +117,20 @@ public class TaskController implements Runnable {
 
                             AbstractTaskReference taskRef = taskQueue.poll();
                             if (taskRef != null) {
-                                
-                                Logger.put("Creating new thread for task " + taskRef.getTaskDescription());
+
+                                Logger.put("Creating new thread for task "
+                                        + taskRef.getTaskDescription());
                                 workerThreads[i] = new Thread(taskRef,
                                         "Thread for task: "
                                                 + taskRef.getTaskDescription());
 
                                 if (taskRef.getPriority() == Task.TaskPriority.HIGH)
-                                    workerThreads[i].setPriority(Thread.MAX_PRIORITY);
+                                    workerThreads[i]
+                                            .setPriority(Thread.MAX_PRIORITY);
 
                                 if (taskRef.getPriority() == Task.TaskPriority.LOW)
-                                    workerThreads[i].setPriority(Thread.MIN_PRIORITY);
+                                    workerThreads[i]
+                                            .setPriority(Thread.MIN_PRIORITY);
 
                                 workerThreads[i].start();
                             }
@@ -125,14 +144,16 @@ public class TaskController implements Runnable {
                  * if still not empty, poll the remote nodes, too
                  */
                 if (!taskQueue.isEmpty()) {
-                    // TODO: find DistributableTasks in the queue and poll remote nodes
+                    // TODO: find DistributableTasks in the queue and poll
+                    // remote nodes
 
                 }
 
-                // TODO: update status in GUI - include all worker threads + threads in the queue
+                // TODO: update status in GUI - include all worker threads +
+                // threads in the queue
 
             }
-            
+
             try {
                 Thread.sleep(TASKCONTROLLER_THREAD_SLEEP);
             } catch (InterruptedException e) {

@@ -13,5 +13,5 @@ public interface Method {
     
     public String getMethodDescription();
     
-    public Serializable getParameters();
+    public MethodParameters getParameters();
 }

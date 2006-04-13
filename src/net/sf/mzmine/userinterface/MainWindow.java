@@ -46,6 +46,7 @@ import javax.swing.JOptionPane;
 import javax.swing.JSplitPane;
 import javax.swing.KeyStroke;
 
+import net.sf.mzmine.io.IOController;
 import net.sf.mzmine.methods.alignment.AlignmentResult;
 import net.sf.mzmine.methods.alignment.AlignmentResultExporter;
 import net.sf.mzmine.methods.alignment.AlignmentResultExporterParameterSetupDialog;
@@ -116,6 +117,7 @@ import sunutils.ExampleFileFilter;
  */
 public class MainWindow extends JFrame implements WindowListener, ActionListener {
 
+    private static MainWindow myInstance;
 
 	// This is the .ini file for GUI program (client for cluster has different .ini file)
 	private static final String settingsFilename = "mzmine.ini";
@@ -126,7 +128,7 @@ public class MainWindow extends JFrame implements WindowListener, ActionListener
 	public static final int SET_SAME_ZOOM_BOTH = 3;
 
 
-
+	public static MainWindow getInstance() { return myInstance; }
 
     // GUI components
     private JDesktopPane desktop;
@@ -214,6 +216,9 @@ public class MainWindow extends JFrame implements WindowListener, ActionListener
 	 */
 	public MainWindow(String title, ControllerServer controllerServer) {
 
+        assert myInstance == null;
+        myInstance = this;
+        
 		// Connect to MZmine cluster
 		// -------------------------
 		if (controllerServer==null) {
@@ -1387,15 +1392,18 @@ public class MainWindow extends JFrame implements WindowListener, ActionListener
 
 			statBar.setStatusText("Please select a data file to open");
 
+ 
 			// Open file dialog
 			JFileChooser fileOpenChooser = new JFileChooser();
 			fileOpenChooser.setDialogType(JFileChooser.OPEN_DIALOG);
 			fileOpenChooser.setMultiSelectionEnabled(true);
 			fileOpenChooser.setDialogTitle("Please select data files to open");
-			if (dataDirectory == null) {
+			
+             /*if (dataDirectory == null) {
 				dataDirectory = clientForCluster.getDataRootPath();
 			}
-			fileOpenChooser.setCurrentDirectory(new File(dataDirectory));
+            */
+//			fileOpenChooser.setCurrentDirectory(new File(dataDirectory));
 
 			ExampleFileFilter filter = new ExampleFileFilter();
 			filter.addExtension("CDF");
@@ -1411,7 +1419,9 @@ public class MainWindow extends JFrame implements WindowListener, ActionListener
 			if(retval == JFileChooser.APPROVE_OPTION) {
 
 				File[] selectedFiles = fileOpenChooser.getSelectedFiles();
-				String[] dataFilePaths = new String[selectedFiles.length];
+
+                 IOController.getInstance().openFiles(selectedFiles);
+                 /* String[] dataFilePaths = new String[selectedFiles.length];
 
 
 				for (int i=0; i<selectedFiles.length; i++) {
@@ -1431,10 +1441,11 @@ public class MainWindow extends JFrame implements WindowListener, ActionListener
 				}
 
 				clientForCluster.openRawDataFiles(dataFilePaths);
+                 */
 
 			} else {
 				statBar.setStatusText("File open cancelled.");
-			}
+			} 
 
 		}
 

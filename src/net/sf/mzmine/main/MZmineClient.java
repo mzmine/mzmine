@@ -19,6 +19,7 @@
 
 package net.sf.mzmine.main;
 
+import net.sf.mzmine.io.IOController;
 import net.sf.mzmine.taskcontrol.TaskController;
 import net.sf.mzmine.userinterface.MainWindow;
 import net.sf.mzmine.util.Logger;
@@ -73,6 +74,7 @@ public class MZmineClient {
 
         Logger.put("STARTUP THREAD: Starting node(s)");
 
+        new IOController();
         taskController = new TaskController(numberOfNodes);
 
         Logger.put("STARTUP THREAD: Starting GUI.");

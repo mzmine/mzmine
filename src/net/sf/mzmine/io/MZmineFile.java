@@ -31,26 +31,48 @@ import net.sf.mzmine.methods.peakpicking.PeakList;
  * That includes original raw data files, temporary (processed) raw data files,
  * peak lists, alignment results.... 
  */
-public interface MZmineFile {
+public class MZmineFile {
 
-    public RawDataFile getCurrentFile();
+    File originalFileName;
+    RawDataFile currentFile;
+    
+    public RawDataFile getCurrentFile() {
+        return currentFile;
+    }
  
+    MZmineFile(RawDataFile parsedFile) {
+        currentFile = parsedFile;
+        originalFileName = parsedFile.getFileName();
+    }
     
     /**
      * TODO: how to notify visualizers? 
      * @param newFile
      * @param methodParameters
      */
-    public void addNewCurrentFile(RawDataFile newFile, Method processingMethod, Serializable methodParameters);
+    public void addNewCurrentFile(RawDataFile newFile, Method processingMethod, Serializable methodParameters) {
+        currentFile = newFile;
+        
+    }
     
-    public File getOriginalFileName();
+    public File getOriginalFileName() {
+        return originalFileName;
+    }
     
-    public File[] getTemporaryFiles();
+    public File[] getTemporaryFiles() {
+        return null;
+    }
     
-    public PeakList getPeakList();
+    public PeakList getPeakList() {
+        return null;
+    }
     
-    public AlignmentResult getAlignmentResult();
+    public AlignmentResult getAlignmentResult() {
+        return null;
+    }
     
-    public RawDataFileWriter createNewTemporaryFile();
+    public RawDataFileWriter createNewTemporaryFile() {
+        return null;
+    }
     
 }

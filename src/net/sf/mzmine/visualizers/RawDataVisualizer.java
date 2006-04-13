@@ -24,6 +24,8 @@ import net.sf.mzmine.io.RawDataFile;
 public interface RawDataVisualizer {
 
     public RawDataFile getRawDataFile();
+    
+    public void setRawDataFile(RawDataFile newFile);
 
     public void setMZRange(double mzMin, double mzMax);
 
