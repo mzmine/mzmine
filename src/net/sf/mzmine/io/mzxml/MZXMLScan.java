@@ -22,21 +22,57 @@
  */
 package net.sf.mzmine.io.mzxml;
 
-import net.sf.mzmine.io.RawDataFile;
+import java.util.Date;
+
+import javax.xml.datatype.DatatypeFactory;
+import javax.xml.datatype.Duration;
+
+import net.iharder.xmlizable.Base64;
 import net.sf.mzmine.io.Scan;
+import net.sf.mzmine.util.Logger;
+
+import org.xml.sax.Attributes;
+import org.xml.sax.SAXException;
+import org.xml.sax.helpers.DefaultHandler;
 
 /**
  * 
  */
-class MZXMLScan implements Scan {
+class MZXMLScan extends DefaultHandler implements Scan {
 
-    private double MZValues[], intensityValues[];
+    private int scanNumber;
+
+    private int msLevel;
+
+    private double mzValues[], intensityValues[];
+
+    private double precursorMZ;
+
+    private double retentionTime;
+
+    private double mzRangeMin, mzRangeMax;
+
+    private double basePeakMZ, basePeakIntensity;
+
+    /*
+     * Variables used for parsing
+     */
+    private StringBuffer charBuffer;
+
+    private int peakDataPrecision;
+
+    private boolean lowHighGiven;
+
+    /**
+     * Used for parsing XML time values
+     */
+    private static final Date currentDate = new Date();
 
     /**
      * 
      */
-    public MZXMLScan(MZXMLFile rawDataFile, int scanNumber) {
-        
+    public MZXMLScan() {
+        charBuffer = new StringBuffer(256);
     }
 
     /**
@@ -50,118 +86,246 @@ class MZXMLScan implements Scan {
      * @return Returns the mZValues.
      */
     public double[] getMZValues() {
-        return MZValues;
+        return mzValues;
     }
 
     /**
      * @see net.sf.mzmine.io.Scan#getNumberOfDataPoints()
      */
     public int getNumberOfDataPoints() {
-        return MZValues.length;
-    }
-
-    /**
-     * @see net.sf.mzmine.io.Scan#getRawData()
-     */
-    public RawDataFile getRawData() {
-        // TODO Auto-generated method stub
-        return null;
+        return mzValues.length;
     }
 
     /**
      * @see net.sf.mzmine.io.Scan#getScanNumber()
      */
     public int getScanNumber() {
-        // TODO Auto-generated method stub
-        return 0;
+        return scanNumber;
     }
 
     /**
      * @see net.sf.mzmine.io.Scan#getMSLevel()
      */
     public int getMSLevel() {
-        // TODO Auto-generated method stub
-        return 0;
+        return msLevel;
     }
 
     /**
      * @see net.sf.mzmine.io.Scan#getPrecursorMZ()
      */
     public double getPrecursorMZ() {
-        // TODO Auto-generated method stub
-        return 0;
-    }
-
-    /**
-     * @see net.sf.mzmine.io.Scan#getPrecursorRT()
-     */
-    public double getPrecursorRT() {
-        // TODO Auto-generated method stub
-        return 0;
-    }
-
-    /**
-     * @see net.sf.mzmine.io.Scan#getPrecursorScanNumber()
-     */
-    public int getPrecursorScanNumber() {
-        // TODO Auto-generated method stub
-        return 0;
+        return precursorMZ;
     }
 
     /**
      * @see net.sf.mzmine.io.Scan#getScanAcquisitionTime()
      */
-    public double getScanAcquisitionTime() {
-        // TODO Auto-generated method stub
-        return 0;
-    }
-
-    /**
-     * @see net.sf.mzmine.io.Scan#getScanDuration()
-     */
-    public double getScanDuration() {
-        // TODO Auto-generated method stub
-        return 0;
+    public double getRetentionTime() {
+        return retentionTime;
     }
 
     /**
      * @see net.sf.mzmine.io.Scan#getMZRangeMin()
      */
     public double getMZRangeMin() {
-        // TODO Auto-generated method stub
-        return 0;
+        return mzRangeMin;
     }
 
     /**
      * @see net.sf.mzmine.io.Scan#getMZRangeMax()
      */
     public double getMZRangeMax() {
-        // TODO Auto-generated method stub
-        return 0;
+        return mzRangeMax;
     }
 
     /**
      * @see net.sf.mzmine.io.Scan#getBasePeakMZ()
      */
     public double getBasePeakMZ() {
-        // TODO Auto-generated method stub
-        return 0;
+        return basePeakMZ;
     }
 
     /**
      * @see net.sf.mzmine.io.Scan#getBasePeakIntensity()
      */
     public double getBasePeakIntensity() {
-        // TODO Auto-generated method stub
-        return 0;
+        return basePeakIntensity;
+    }
+
+    public void startElement(String namespaceURI, String lName, // local name
+            String qName, // qualified name
+            Attributes attrs) throws SAXException {
+
+        charBuffer.setLength(0);
+
+        // <scan>
+        if (qName.equalsIgnoreCase("scan")) {
+
+            // Get number of the scan
+            scanNumber = Integer.parseInt(attrs.getValue("num"));
+            msLevel = Integer.parseInt(attrs.getValue("msLevel"));
+
+            /* Allocate memory for data */
+            int peaksCount = Integer.parseInt(attrs.getValue("peaksCount"));
+            assert peaksCount > 0;
+            mzValues = new double[peaksCount];
+            intensityValues = new double[peaksCount];
+
+            String retentionTimeStr = attrs.getValue("retentionTime");
+            if (retentionTimeStr != null) {
+                // Create a DataTypeFactory for converting XML datetypes to
+                // seconds
+                DatatypeFactory dataTypeFactory;
+                try {
+                    dataTypeFactory = DatatypeFactory.newInstance();
+                    Duration dur = dataTypeFactory.newDuration(retentionTimeStr);
+                    retentionTime = dur.getTimeInMillis(currentDate) / 1000.0;
+                } catch (Exception e) {
+                    Logger.put(e.toString());
+                    throw (new SAXException(
+                            "Could not instantiate DatatypeFactory"));
+
+                }
+            }
+            String basePeakMZStr = attrs.getValue("basePeakMz");
+            if (basePeakMZStr != null)
+                basePeakMZ = Double.parseDouble(basePeakMZStr);
+
+            String basePeakIntensityStr;
+            basePeakIntensityStr = attrs.getValue("basePeakIntensity");
+            if (basePeakIntensityStr != null)
+                basePeakIntensity = Double.parseDouble(basePeakIntensityStr);
+
+            // Set MZ range minimum and maximum parameters if available
+            String scanLowMZStr = attrs.getValue("lowMz");
+            if (scanLowMZStr == null)
+                scanLowMZStr = attrs.getValue("startMz");
+
+            String scanHighMZStr = attrs.getValue("highMz");
+            if (scanHighMZStr == null)
+                scanHighMZStr = attrs.getValue("endMz");
+
+            lowHighGiven = false;
+            if ((scanLowMZStr != null) && (scanHighMZStr != null)) {
+                lowHighGiven = true;
+                try {
+                    mzRangeMin = Double.parseDouble(scanLowMZStr);
+                    mzRangeMax = Double.parseDouble(scanHighMZStr);
+
+                } catch (NumberFormatException e) {
+                    Logger.put("Can't interpret scan lowest/highest mz value");
+                    lowHighGiven = false;
+                }
+            }
+
+        }
+
+        // <peaks>
+        if (qName.equalsIgnoreCase("peaks")) {
+            // Get precision of peak data
+            peakDataPrecision = Integer.parseInt(attrs.getValue("precision"));
+        }
+
     }
 
     /**
-     * @see net.sf.mzmine.io.Scan#getTotalIonCurrent()
+     * endElement()
      */
-    public double getTotalIonCurrent() {
-        // TODO Auto-generated method stub
-        return 0;
+    public void endElement(String namespaceURI, String sName, // simple name
+            String qName // qualified name
+    ) throws SAXException {
+
+        // </scan>
+        if (qName.equalsIgnoreCase("scan")) {
+
+            // free memory
+            charBuffer = null;
+            // Stop parsing by throwing an exception
+            throw (new SAXException("Scan reading finished"));
+        }
+
+        // </precursorMz>
+        if (qName.equals("precursorMz")) {
+            precursorMZ = Double.parseDouble(charBuffer.toString());
+        }
+
+        // </peaks>
+        if (qName.equals("peaks")) {
+
+            // Decode base64 data
+
+            byte[] tmpArr = Base64.decode(charBuffer.toString());
+
+            int floatBytes = peakDataPrecision / 8;
+
+            int peakIndex = 0;
+            int fieldIndex = 0;
+
+            for (int i = 0; i <= tmpArr.length - floatBytes; i += floatBytes) {
+
+                int intBits = 0;
+                intBits |= (((int) tmpArr[i]) & 0xff);
+                intBits <<= 8;
+                intBits |= (((int) tmpArr[i + 1]) & 0xff);
+                intBits <<= 8;
+                intBits |= (((int) tmpArr[i + 2]) & 0xff);
+                intBits <<= 8;
+                intBits |= (((int) tmpArr[i + 3]) & 0xff);
+                // Must be in IEEE 754 encoding!
+                switch (fieldIndex) {
+
+                case 0:
+
+                    // mass values
+                    mzValues[peakIndex] = (double) (Float
+                            .intBitsToFloat(intBits));
+                    break;
+
+                case 1:
+                    // intensity values
+                    intensityValues[peakIndex] = (double) (Float
+                            .intBitsToFloat(intBits));
+                    break;
+
+                }
+
+                fieldIndex++;
+
+                if (fieldIndex == 2) {
+                    fieldIndex = 0;
+                    peakIndex++;
+                }
+
+            }
+
+        }
+
+        // If lowMZ and highMZ were not defined as attributes, we must pick
+        // values from MZ data points
+        if ((!lowHighGiven) && (mzValues.length > 0)) {
+            mzRangeMin = mzValues[0];
+            mzRangeMax = mzValues[mzValues.length - 1];
+        }
+
+        // If base peak was not defined as attributes, we must pick
+        // values from MZ data points
+        if ((basePeakMZ == 0) || (basePeakIntensity == 0)) {
+            for (int i = 0; i < intensityValues.length; i++) {
+                if (intensityValues[i] > basePeakIntensity) {
+                    basePeakIntensity = intensityValues[i];
+                    basePeakMZ = mzValues[i];
+                }
+            }
+
+        }
+
+    }
+
+    /**
+     * characters()
+     */
+    public void characters(char buf[], int offset, int len) throws SAXException {
+        charBuffer = charBuffer.append(buf, offset, len);
     }
 
 }

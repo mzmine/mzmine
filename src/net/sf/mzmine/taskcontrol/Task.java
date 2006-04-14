@@ -19,6 +19,8 @@
 
 package net.sf.mzmine.taskcontrol;
 
+import java.io.Serializable;
+
 
 public interface Task extends Runnable {
 
@@ -41,7 +43,7 @@ public interface Task extends Runnable {
 
     public String getTaskDescription();
 
-    public int getFinishedPercentage();
+    public float getFinishedPercentage();
 
     public TaskStatus getStatus();
 

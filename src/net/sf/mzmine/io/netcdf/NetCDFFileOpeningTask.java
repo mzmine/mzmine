@@ -50,7 +50,7 @@ public class NetCDFFileOpeningTask implements Task {
     /**
      * @see net.sf.mzmine.taskcontrol.Task#getFinishedPercentage()
      */
-    public int getFinishedPercentage() {
+    public float getFinishedPercentage() {
         // TODO Auto-generated method stub
         return 0;
     }

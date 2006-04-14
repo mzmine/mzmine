@@ -22,7 +22,6 @@ package net.sf.mzmine.userinterface;
 import java.awt.BorderLayout;
 import java.awt.Container;
 import java.awt.Cursor;
-import java.awt.FileDialog;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
@@ -47,6 +46,7 @@ import javax.swing.JSplitPane;
 import javax.swing.KeyStroke;
 
 import net.sf.mzmine.io.IOController;
+import net.sf.mzmine.io.RawDataFile.PreloadLevel;
 import net.sf.mzmine.methods.alignment.AlignmentResult;
 import net.sf.mzmine.methods.alignment.AlignmentResultExporter;
 import net.sf.mzmine.methods.alignment.AlignmentResultExporterParameterSetupDialog;
@@ -1385,8 +1385,7 @@ public class MainWindow extends JFrame implements WindowListener, ActionListener
 		if (isBusy()) { return; }
 
 		Object src = e.getSource();
-		FileDialog fileOpenDialog;
-
+		
 		// File -> Open
 		if (src == fileOpen) {
 
@@ -1420,7 +1419,7 @@ public class MainWindow extends JFrame implements WindowListener, ActionListener
 
 				File[] selectedFiles = fileOpenChooser.getSelectedFiles();
 
-                 IOController.getInstance().openFiles(selectedFiles);
+                 IOController.getInstance().openFiles(selectedFiles, PreloadLevel.NO_PRELOAD);
                  /* String[] dataFilePaths = new String[selectedFiles.length];
 
 

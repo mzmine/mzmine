@@ -17,17 +17,12 @@
  * Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-
 package net.sf.mzmine.io;
-
-
 
 /**
  * This class represent one spectrum of a raw data file.
  */
 public interface Scan {
-
-    public RawDataFile getRawData();
 
     public int getScanNumber();
 
@@ -35,13 +30,7 @@ public interface Scan {
 
     public double getPrecursorMZ();
 
-    public double getPrecursorRT();
-
-    public int getPrecursorScanNumber();
-
-    public double getScanAcquisitionTime();
-
-    public double getScanDuration();
+    public double getRetentionTime();
 
     public double getMZRangeMin();
 
@@ -51,12 +40,10 @@ public interface Scan {
 
     public double getBasePeakIntensity();
 
-    public double getTotalIonCurrent();
-    
     public double[] getMZValues();
 
     public double[] getIntensityValues();
 
     public int getNumberOfDataPoints();
-    
+
 }

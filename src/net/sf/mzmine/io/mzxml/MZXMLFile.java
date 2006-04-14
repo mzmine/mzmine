@@ -23,124 +23,217 @@
 package net.sf.mzmine.io.mzxml;
 
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Hashtable;
+import java.util.Iterator;
+import java.util.Set;
+
+import javax.xml.parsers.SAXParser;
+import javax.xml.parsers.SAXParserFactory;
 
 import net.sf.mzmine.io.RawDataFile;
 import net.sf.mzmine.io.Scan;
+import net.sf.mzmine.util.Logger;
 
 /**
- *
+ * 
  */
 class MZXMLFile implements RawDataFile {
 
+    private File originalFile;
+
+    private int numOfScans = 0;
+
+    private double dataMinMZ, dataMaxMZ, dataMaxIntensity;
+
+    private Hashtable<Integer, MZXMLScan> scans;
+
+    private PreloadLevel preloadLevel;
+    
+    private StringBuffer dataDescription;
+    
+    private Hashtable<Integer, Long> scansIndex;
+    
+    /**
+     * Maps scan level -> list of scan numbers in that level
+     */
+    private Hashtable<Integer, ArrayList<Integer>> scanNumbers;
+
     /**
      * 
+     * @param numOfScans
      */
-    public MZXMLFile(File file) {
-        super();
-        // TODO Auto-generated constructor stub
+    MZXMLFile(File originalFile, PreloadLevel preloadLevel) {
+        this.originalFile = originalFile;
+        this.preloadLevel = preloadLevel;
+        dataDescription = new StringBuffer();
+        scansIndex = new Hashtable<Integer, Long>();
+        scanNumbers = new Hashtable<Integer, ArrayList<Integer>>();
     }
 
-    
-    /* (non-Javadoc)
-     * @see net.sf.mzmine.io.RawDataFile#reloadFile()
-     */
-    public void reloadFile() {
-        // TODO Auto-generated method stub
-
-    }
-
-    /* (non-Javadoc)
+    /**
      * @see net.sf.mzmine.io.RawDataFile#getNumOfScans()
      */
     public int getNumOfScans() {
-        // TODO Auto-generated method stub
-        return 0;
+        return numOfScans;
     }
 
-    /* (non-Javadoc)
+    /**
      * @see net.sf.mzmine.io.RawDataFile#getScan(int)
      */
-    public Scan getScan(int scan) {
-        // TODO Auto-generated method stub
-        return null;
-    }
-    
+    public Scan getScan(int scanNumber) throws IOException {
+        
+        /* check if we have desired scan in memory */
+        MZXMLScan preloadedScan = scans.get(new Integer(scanNumber));
+        if (preloadedScan != null) return preloadedScan;
+        
+        Long filePos = scansIndex.get(new Integer(scanNumber));
+        if (filePos == null) throw(new IllegalArgumentException("Scan " + scanNumber + " is not present in file " + originalFile));
+                
+        MZXMLScan buildingScan = new MZXMLScan();
 
-    /* (non-Javadoc)
+        
+        // Logger.put("Skip mzXML file to position " + filePos);
+
+        FileInputStream fileIN = null;
+        try {
+            fileIN = new FileInputStream(originalFile);
+            fileIN.skip(filePos);
+        } catch (Exception e) {
+            Logger.putFatal("ERROR while seeking for scan " + scanNumber
+                    + " from mzXML file " + originalFile);
+            Logger.putFatal(e.toString());
+        }
+
+
+        // Use the default (non-validating) parser
+        SAXParserFactory factory = SAXParserFactory.newInstance();
+        try {
+
+            // Parse the file
+            SAXParser saxParser = factory.newSAXParser();
+            saxParser.parse(fileIN, buildingScan);
+            saxParser.reset();
+
+        } catch (Exception e) {
+
+            if (!e.getMessage().equals("Scan reading finished")) {
+                           
+                Logger.putFatal(e.toString());
+                throw(new IOException("Couldn't retrieve scan "
+                        + scanNumber + " from file " + originalFile));
+                
+            }
+        }
+
+        if (buildingScan.getScanNumber() != scanNumber) {
+            throw new IOException("Error while reading from mzXML file: Retrieving incorrect scan #"
+                    + buildingScan.getScanNumber()
+                    + " supposed-to-be #"
+                    + scanNumber);
+        }
+      
+        return buildingScan;
+
+    }
+
+    /**
      * @see net.sf.mzmine.io.RawDataFile#getDataDescription()
      */
     public String getDataDescription() {
-        // TODO Auto-generated method stub
-        return null;
+        return dataDescription.toString();
     }
 
-    /* (non-Javadoc)
+    /**
      * @see net.sf.mzmine.io.RawDataFile#getDataMinMZ()
      */
     public double getDataMinMZ() {
-        // TODO Auto-generated method stub
-        return 0;
+        return dataMinMZ;
     }
 
-    /* (non-Javadoc)
+    /**
      * @see net.sf.mzmine.io.RawDataFile#getDataMaxMZ()
      */
     public double getDataMaxMZ() {
-        // TODO Auto-generated method stub
-        return 0;
+        return dataMaxMZ;
     }
-
-    /* (non-Javadoc)
-     * @see net.sf.mzmine.io.RawDataFile#getTotalRawSignal()
-     */
-    public double getTotalRawSignal() {
-        // TODO Auto-generated method stub
-        return 0;
-    }
-
-
-    /**
-     * @see net.sf.mzmine.io.RawDataFile#saveFile()
-     */
-    public void saveFile() {
-        // TODO Auto-generated method stub
-        
-    }
-
 
     /**
      * @see net.sf.mzmine.io.RawDataFile#getScanNumbers(int)
      */
     public int[] getScanNumbers(int msLevel) {
-        // TODO Auto-generated method stub
-        return null;
+        
+        ArrayList<Integer> numbersList = scanNumbers.get(new Integer(msLevel));
+        if (numbersList == null) return null;
+        
+        int[] numbersArray = new int[numbersList.size()];
+        int index = 0;
+        Iterator<Integer> iter = numbersList.iterator();
+        while (iter.hasNext()) numbersArray[index++] = iter.next().intValue();
+        Arrays.sort(numbersArray);
+        return numbersArray;
     }
-
 
     /**
      * @see net.sf.mzmine.io.RawDataFile#getMSLevels()
      */
     public int[] getMSLevels() {
-        // TODO Auto-generated method stub
-        return null;
+        Set<Integer> msLevelsSet = scanNumbers.keySet();
+        int[] msLevels =  new int[msLevelsSet.size()];
+        int index = 0;
+        Iterator<Integer> iter = msLevelsSet.iterator();
+        while (iter.hasNext()) msLevels[index++] = iter.next().intValue();
+        Arrays.sort(msLevels);
+        return msLevels;
+        
     }
-
 
     /**
      * @see net.sf.mzmine.io.RawDataFile#getFileName()
      */
     public File getFileName() {
-        // TODO Auto-generated method stub
-        return null;
+        return originalFile;
     }
-
 
     /**
      * @see net.sf.mzmine.io.RawDataFile#getDataMaxIntensity()
      */
     public double getDataMaxIntensity() {
-        // TODO Auto-generated method stub
-        return 0;
+        return dataMaxIntensity;
     }
 
+    void addIndexEntry(Integer scanNumber, Long filePosition) {
+        scansIndex.put(scanNumber, filePosition);
+    }
+    
+    void addDataDescription(String description) {
+        if (dataDescription.length() > 0) dataDescription.append("\n");
+        dataDescription.append(description);
+    }
+    
+    void addScan(MZXMLScan newScan) {
+     
+        /* if we want to keep data in memory, save a reference */
+        if (preloadLevel == PreloadLevel.PRELOAD_ALL_SCANS)
+            scans.put(new Integer(newScan.getScanNumber()), newScan);
+        
+        if ((numOfScans == 0) || (dataMinMZ > newScan.getMZRangeMin())) dataMinMZ = newScan.getMZRangeMin();
+        if ((numOfScans == 0) || (dataMaxMZ < newScan.getMZRangeMax())) dataMaxMZ = newScan.getMZRangeMax();
+        if ((numOfScans == 0) || (dataMaxIntensity < newScan.getBasePeakIntensity())) dataMaxIntensity = newScan.getBasePeakIntensity();
+
+        ArrayList<Integer> scanList = scanNumbers.get(new Integer(newScan.getMSLevel()));
+        if (scanList == null) {
+            scanList = new ArrayList<Integer>(64);
+            scanNumbers.put(new Integer(newScan.getMSLevel()), scanList);
+        }
+        scanList.add(new Integer(newScan.getScanNumber()));
+         
+        numOfScans++;
+          
+        
+    }
+    
 }

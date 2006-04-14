@@ -37,14 +37,14 @@ public class MZmineClient {
 
         Logger.disableOutput();
 
-        int numberOfNodes = 2;
+        int numberOfNodes = 1;
 
         for (String arg : argz) {
             if ((arg.compareToIgnoreCase(new String("verbose"))) == 0) {
                 Logger.setOutputOnScreen();
-            } else if (arg.toLowerCase().startsWith("numberOfNodes=")) {
+            } else if (arg.toLowerCase().startsWith("numberofnodes=")) {
                 numberOfNodes = Integer.parseInt(arg.substring(arg
-                        .toLowerCase().indexOf("numberOfNodes=") + 14));
+                        .toLowerCase().indexOf("numberofnodes=") + 14));
             } else {
                 Logger.putFatal("Could not interpret command-line argument: "
                         + arg);

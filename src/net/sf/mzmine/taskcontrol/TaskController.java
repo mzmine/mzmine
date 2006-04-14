@@ -115,8 +115,8 @@ public class TaskController implements Runnable {
                         if ((workerThreads[i] == null)
                                 || (workerThreads[i].getState() == Thread.State.TERMINATED)) {
 
-                            AbstractTaskReference taskRef = taskQueue.poll();
-                            if (taskRef != null) {
+                            AbstractTaskReference taskRef = taskQueue.peek();
+                            if ((taskRef != null) && (taskRef.getStatus()==Task.TaskStatus.READY)) {
 
                                 Logger.put("Creating new thread for task "
                                         + taskRef.getTaskDescription());
@@ -132,6 +132,7 @@ public class TaskController implements Runnable {
                                     workerThreads[i]
                                             .setPriority(Thread.MIN_PRIORITY);
 
+                                Logger.put("starting thread " + workerThreads[i]);
                                 workerThreads[i].start();
                             }
 
@@ -148,6 +149,9 @@ public class TaskController implements Runnable {
                     // remote nodes
 
                 }
+                
+                Task[] tq = taskQueue.toArray(new Task[0]);
+                for (Task t: tq) Logger.put("Task " + t.getTaskDescription() + " [" + t.getStatus() + "] finished " + t.getFinishedPercentage() + " error? " + t.getErrorMessage());
 
                 // TODO: update status in GUI - include all worker threads +
                 // threads in the queue

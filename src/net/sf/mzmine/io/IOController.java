@@ -21,6 +21,7 @@ package net.sf.mzmine.io;
 
 import java.io.File;
 
+import net.sf.mzmine.io.RawDataFile.PreloadLevel;
 import net.sf.mzmine.io.mzxml.MZXMLFileOpeningTask;
 import net.sf.mzmine.io.netcdf.NetCDFFileOpeningTask;
 import net.sf.mzmine.taskcontrol.Task;
@@ -41,12 +42,16 @@ public class IOController implements TaskListener {
         assert myInstance == null;
         myInstance = this;
     }
-    
+
+    public static IOController getInstance() {
+        return myInstance;
+    }
+
     /**
      * This method is non-blocking, it places a request to open these files and
      * exits immediately.
      */
-    public void openFiles(File[] files) {
+    public void openFiles(File[] files, PreloadLevel preloadLevel) {
         String extension;
         Task openTask;
 
@@ -55,7 +60,7 @@ public class IOController implements TaskListener {
             extension = file.getName().substring(
                     file.getName().lastIndexOf(".") + 1).toLowerCase();
             if (extension.endsWith("mzxml")) {
-                openTask = new MZXMLFileOpeningTask(file);
+                openTask = new MZXMLFileOpeningTask(file, preloadLevel);
                 TaskController.getInstance().addTask(openTask, this);
             } else if (extension.equals("cdf")) {
                 openTask = new NetCDFFileOpeningTask(file);
@@ -66,13 +71,9 @@ public class IOController implements TaskListener {
 
     }
 
-    public static IOController getInstance() { return myInstance; }
-    
     public RawDataFileWriter createNewTemporaryFile(RawDataFile file) {
         return null;
     }
-
-
 
     /**
      * This method is called when the file opening task is finished.

@@ -21,6 +21,8 @@
 package net.sf.mzmine.io;
 
 import java.io.File;
+import java.io.IOException;
+import java.io.Serializable;
 
 /**
  * Class representing a raw data file, no matter what format it is using.
@@ -32,17 +34,15 @@ import java.io.File;
  * - 2D visualizer needs all m/z values for all scans of certain MSn level
  * - data methods need all m/z values for all scans of all MSn levels
  *
+ * Data file must be Serializable, because it is passed as a parameter to remote nodes
+ *
  */
-public interface RawDataFile {
+public interface RawDataFile extends Serializable{
 
-    public enum LoadType { READ_ORIGINAL, MAKE_LOCAL_COPY, PRELOAD_HEADER, PRELOAD_DATA };
+    public enum PreloadLevel { NO_PRELOAD, PRELOAD_ALL_SCANS };
     
     public File getFileName();
     
-    public void reloadFile();
-    
-    public void saveFile();
-
     public int getNumOfScans();
     
     public int[] getMSLevels();
@@ -54,8 +54,7 @@ public interface RawDataFile {
      * @param scan Desired can number
      * @return Desired scan
      */
-    public Scan getScan(int scan);
-    
+    public Scan getScan(int scan) throws IOException;
    
     public String getDataDescription();
 

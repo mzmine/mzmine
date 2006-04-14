@@ -23,6 +23,7 @@
 package net.sf.mzmine.io.netcdf;
 
 import java.io.File;
+import java.io.IOException;
 
 import net.sf.mzmine.io.RawDataFile;
 import net.sf.mzmine.io.Scan;
@@ -33,27 +34,11 @@ import net.sf.mzmine.io.Scan;
 public class NetCDFFile implements RawDataFile {
 
     /**
-     * 
+     * @see net.sf.mzmine.io.RawDataFile#getFileName()
      */
-    public NetCDFFile() {
-        super();
-        // TODO Auto-generated constructor stub
-    }
-
-    /**
-     * @see net.sf.mzmine.io.RawDataFile#reloadFile()
-     */
-    public void reloadFile() {
+    public File getFileName() {
         // TODO Auto-generated method stub
-
-    }
-
-    /**
-     * @see net.sf.mzmine.io.RawDataFile#saveFile()
-     */
-    public void saveFile() {
-        // TODO Auto-generated method stub
-
+        return null;
     }
 
     /**
@@ -65,13 +50,28 @@ public class NetCDFFile implements RawDataFile {
     }
 
     /**
-     * @see net.sf.mzmine.io.RawDataFile#getScan(int)
+     * @see net.sf.mzmine.io.RawDataFile#getMSLevels()
      */
-    public Scan getScan(int scan) {
+    public int[] getMSLevels() {
         // TODO Auto-generated method stub
         return null;
     }
 
+    /**
+     * @see net.sf.mzmine.io.RawDataFile#getScanNumbers(int)
+     */
+    public int[] getScanNumbers(int msLevel) {
+        // TODO Auto-generated method stub
+        return null;
+    }
+
+    /**
+     * @see net.sf.mzmine.io.RawDataFile#getScan(int)
+     */
+    public Scan getScan(int scan) throws IOException {
+        // TODO Auto-generated method stub
+        return null;
+    }
 
     /**
      * @see net.sf.mzmine.io.RawDataFile#getDataDescription()
@@ -98,38 +98,6 @@ public class NetCDFFile implements RawDataFile {
     }
 
     /**
-     * @see net.sf.mzmine.io.RawDataFile#getTotalRawSignal()
-     */
-    public double getTotalRawSignal() {
-        // TODO Auto-generated method stub
-        return 0;
-    }
-
-    /**
-     * @see net.sf.mzmine.io.RawDataFile#getScanNumbers(int)
-     */
-    public int[] getScanNumbers(int msLevel) {
-        // TODO Auto-generated method stub
-        return null;
-    }
-
-    /**
-     * @see net.sf.mzmine.io.RawDataFile#getMSLevels()
-     */
-    public int[] getMSLevels() {
-        // TODO Auto-generated method stub
-        return null;
-    }
-
-    /**
-     * @see net.sf.mzmine.io.RawDataFile#getFileName()
-     */
-    public File getFileName() {
-        // TODO Auto-generated method stub
-        return null;
-    }
-
-    /**
      * @see net.sf.mzmine.io.RawDataFile#getDataMaxIntensity()
      */
     public double getDataMaxIntensity() {
@@ -137,4 +105,5 @@ public class NetCDFFile implements RawDataFile {
         return 0;
     }
 
+  
 }

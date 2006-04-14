@@ -30,7 +30,7 @@ class AbstractTaskReference implements Task {
     /**
      * @see net.sf.mzmine.newdistributionframework.Task#getFinishedPercentage()
      */
-    public int getFinishedPercentage() {
+    public float getFinishedPercentage() {
         return referencedTask.getFinishedPercentage();
     }
 
@@ -59,6 +59,7 @@ class AbstractTaskReference implements Task {
      * @see java.lang.Runnable#run()
      */
     public void run() {
+        referencedTask.run();
     }
 
     /**
