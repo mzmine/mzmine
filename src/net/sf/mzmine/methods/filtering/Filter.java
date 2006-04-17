@@ -19,7 +19,6 @@
 */
 package net.sf.mzmine.methods.filtering;
 import net.sf.mzmine.obsoletedatastructures.RawDataAtNode;
-import net.sf.mzmine.obsoletedistributionframework.NodeServer;
 
 
 /**
@@ -40,7 +39,7 @@ public interface Filter {
 	 * This method does the filtering for given raw data file
 	 * Method runs on a node
 	 */
-    public int doFiltering(NodeServer nodeServer, RawDataAtNode theData, FilterParameters filterParameters);
+    public int doFiltering(RawDataAtNode theData, FilterParameters filterParameters);
 
 } // end Filter
 

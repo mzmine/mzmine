@@ -52,11 +52,11 @@ class MZXMLFile implements RawDataFile {
     private Hashtable<Integer, MZXMLScan> scans;
 
     private PreloadLevel preloadLevel;
-    
+
     private StringBuffer dataDescription;
-    
+
     private Hashtable<Integer, Long> scansIndex;
-    
+
     /**
      * Maps scan level -> list of scan numbers in that level
      */
@@ -85,29 +85,24 @@ class MZXMLFile implements RawDataFile {
      * @see net.sf.mzmine.io.RawDataFile#getScan(int)
      */
     public Scan getScan(int scanNumber) throws IOException {
-        
+
         /* check if we have desired scan in memory */
         MZXMLScan preloadedScan = scans.get(new Integer(scanNumber));
-        if (preloadedScan != null) return preloadedScan;
-        
+        if (preloadedScan != null)
+            return preloadedScan;
+
         Long filePos = scansIndex.get(new Integer(scanNumber));
-        if (filePos == null) throw(new IllegalArgumentException("Scan " + scanNumber + " is not present in file " + originalFile));
-                
+        if (filePos == null)
+            throw (new IllegalArgumentException("Scan " + scanNumber
+                    + " is not present in file " + originalFile));
+
         MZXMLScan buildingScan = new MZXMLScan();
 
-        
         // Logger.put("Skip mzXML file to position " + filePos);
 
         FileInputStream fileIN = null;
-        try {
-            fileIN = new FileInputStream(originalFile);
-            fileIN.skip(filePos);
-        } catch (Exception e) {
-            Logger.putFatal("ERROR while seeking for scan " + scanNumber
-                    + " from mzXML file " + originalFile);
-            Logger.putFatal(e.toString());
-        }
-
+        fileIN = new FileInputStream(originalFile);
+        fileIN.skip(filePos);
 
         // Use the default (non-validating) parser
         SAXParserFactory factory = SAXParserFactory.newInstance();
@@ -121,21 +116,21 @@ class MZXMLFile implements RawDataFile {
         } catch (Exception e) {
 
             if (!e.getMessage().equals("Scan reading finished")) {
-                           
+
                 Logger.putFatal(e.toString());
-                throw(new IOException("Couldn't retrieve scan "
-                        + scanNumber + " from file " + originalFile));
-                
+                throw (new IOException("Couldn't parse scan " + scanNumber
+                        + " from file " + originalFile));
+
             }
         }
 
         if (buildingScan.getScanNumber() != scanNumber) {
-            throw new IOException("Error while reading from mzXML file: Retrieving incorrect scan #"
-                    + buildingScan.getScanNumber()
-                    + " supposed-to-be #"
-                    + scanNumber);
+            throw new IOException(
+                    "Error while reading from mzXML file: Retrieving incorrect scan #"
+                            + buildingScan.getScanNumber()
+                            + " supposed-to-be #" + scanNumber);
         }
-      
+
         return buildingScan;
 
     }
@@ -165,14 +160,16 @@ class MZXMLFile implements RawDataFile {
      * @see net.sf.mzmine.io.RawDataFile#getScanNumbers(int)
      */
     public int[] getScanNumbers(int msLevel) {
-        
+
         ArrayList<Integer> numbersList = scanNumbers.get(new Integer(msLevel));
-        if (numbersList == null) return null;
-        
+        if (numbersList == null)
+            return null;
+
         int[] numbersArray = new int[numbersList.size()];
         int index = 0;
         Iterator<Integer> iter = numbersList.iterator();
-        while (iter.hasNext()) numbersArray[index++] = iter.next().intValue();
+        while (iter.hasNext())
+            numbersArray[index++] = iter.next().intValue();
         Arrays.sort(numbersArray);
         return numbersArray;
     }
@@ -182,13 +179,14 @@ class MZXMLFile implements RawDataFile {
      */
     public int[] getMSLevels() {
         Set<Integer> msLevelsSet = scanNumbers.keySet();
-        int[] msLevels =  new int[msLevelsSet.size()];
+        int[] msLevels = new int[msLevelsSet.size()];
         int index = 0;
         Iterator<Integer> iter = msLevelsSet.iterator();
-        while (iter.hasNext()) msLevels[index++] = iter.next().intValue();
+        while (iter.hasNext())
+            msLevels[index++] = iter.next().intValue();
         Arrays.sort(msLevels);
         return msLevels;
-        
+
     }
 
     /**
@@ -208,32 +206,40 @@ class MZXMLFile implements RawDataFile {
     void addIndexEntry(Integer scanNumber, Long filePosition) {
         scansIndex.put(scanNumber, filePosition);
     }
-    
+
     void addDataDescription(String description) {
-        if (dataDescription.length() > 0) dataDescription.append("\n");
+        if (dataDescription.length() > 0)
+            dataDescription.append("\n");
         dataDescription.append(description);
     }
-    
+
+    /**
+     * SAX parser calls this method when parsing the XML file
+     */
     void addScan(MZXMLScan newScan) {
-     
+
         /* if we want to keep data in memory, save a reference */
         if (preloadLevel == PreloadLevel.PRELOAD_ALL_SCANS)
             scans.put(new Integer(newScan.getScanNumber()), newScan);
-        
-        if ((numOfScans == 0) || (dataMinMZ > newScan.getMZRangeMin())) dataMinMZ = newScan.getMZRangeMin();
-        if ((numOfScans == 0) || (dataMaxMZ < newScan.getMZRangeMax())) dataMaxMZ = newScan.getMZRangeMax();
-        if ((numOfScans == 0) || (dataMaxIntensity < newScan.getBasePeakIntensity())) dataMaxIntensity = newScan.getBasePeakIntensity();
 
-        ArrayList<Integer> scanList = scanNumbers.get(new Integer(newScan.getMSLevel()));
+        if ((numOfScans == 0) || (dataMinMZ > newScan.getMZRangeMin()))
+            dataMinMZ = newScan.getMZRangeMin();
+        if ((numOfScans == 0) || (dataMaxMZ < newScan.getMZRangeMax()))
+            dataMaxMZ = newScan.getMZRangeMax();
+        if ((numOfScans == 0)
+                || (dataMaxIntensity < newScan.getBasePeakIntensity()))
+            dataMaxIntensity = newScan.getBasePeakIntensity();
+
+        ArrayList<Integer> scanList = scanNumbers.get(new Integer(newScan
+                .getMSLevel()));
         if (scanList == null) {
             scanList = new ArrayList<Integer>(64);
             scanNumbers.put(new Integer(newScan.getMSLevel()), scanList);
         }
         scanList.add(new Integer(newScan.getScanNumber()));
-         
+
         numOfScans++;
-          
-        
+
     }
-    
+
 }

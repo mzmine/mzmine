@@ -23,12 +23,11 @@ package net.sf.mzmine.methods.alignment;
 import java.util.Hashtable;
 
 import net.sf.mzmine.methods.peakpicking.PeakList;
-import net.sf.mzmine.obsoletedistributionframework.NodeServer;
 
 public interface PeakListAligner {
 
 	// public PeakListAlignerParameters askParameters(MainWindow mainWin);
 
-	public AlignmentResult doAlignment(NodeServer nodeServer, Hashtable<Integer, PeakList> peakLists, PeakListAlignerParameters parameters);
+	public AlignmentResult doAlignment(Hashtable<Integer, PeakList> peakLists, PeakListAlignerParameters parameters);
 
 }

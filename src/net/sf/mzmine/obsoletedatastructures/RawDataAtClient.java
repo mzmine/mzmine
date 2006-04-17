@@ -69,20 +69,7 @@ public class RawDataAtClient {
 	private boolean rawDataUpdatedFlag;
 
 
-	/**
-	 * Constructor
-	 * Creates a new object on basis of all available information in RawDataOnTransit object.
-	 */
-	public RawDataAtClient(RawDataOnTransit rawDataOnTransit) {
-		rawDataID = rawDataOnTransit.rawDataID;
-		niceName = rawDataOnTransit.niceName;
-		numberOfScans = rawDataOnTransit.numberOfScans;
-		scanTimes = rawDataOnTransit.scanTimes;
-		minMZValue = rawDataOnTransit.minMZValue;
-		maxMZValue = rawDataOnTransit.maxMZValue;
-		alignmentResultIDs = new Vector<Integer>();
-		clearSelection();
-	}
+
 
 	/**
 	 * Constructor
@@ -102,44 +89,6 @@ public class RawDataAtClient {
 	}
 
 
-	/**
-	 * This method updates current settings of RawDataOnClient object with data
-	 * available on RawDataOnTransit. This is used when major change (filtering)
-	 * has been made to raw data on node-side.
-	 */
-	public void updateFromRawDataOnTransit(RawDataOnTransit rawDataOnTransit) {
-
-		Logger.put("!!! updateFromRawDataOnTransit");
-		rawDataUpdatedFlag = true;
-
-		// Record RT of previous cursor position
-		double previousCursorPositionRT = scanTimes[cursorPositionScan];
-
-		numberOfScans = rawDataOnTransit.numberOfScans;
-		scanTimes = rawDataOnTransit.scanTimes;
-		minMZValue = rawDataOnTransit.minMZValue;
-		maxMZValue = rawDataOnTransit.maxMZValue;
-
-		// Restore cursor position to scan which has nearest RT value after change
-		double smallestDifference = Double.MAX_VALUE;
-		for (int ind=0; ind<scanTimes.length; ind++) {
-			if (java.lang.Math.abs(previousCursorPositionRT-scanTimes[ind])<smallestDifference) {
-				cursorPositionScan = ind;
-				smallestDifference = java.lang.Math.abs(previousCursorPositionRT-scanTimes[ind]);
-			}
-		}
-
-		if ( (cursorPositionMZ>=minMZValue) && (cursorPositionMZ<=maxMZValue) ) {
-			// If MZ of previous cursor position is still within the M/Z range, then use it.
-		} else {
-			// Else set cursor to minMZValue
-			cursorPositionMZ = minMZValue;
-		}
-
-		// Clear selection to avoid more mess.
-    	clearSelection();
-
-	}
 
 	public boolean getRawDataUpdatedFlag() {
 		return rawDataUpdatedFlag;

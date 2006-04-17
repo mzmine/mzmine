@@ -38,7 +38,6 @@ import javax.swing.JPanel;
 
 import net.sf.mzmine.obsoletedatastructures.RawDataAtNode;
 import net.sf.mzmine.obsoletedatastructures.Scan;
-import net.sf.mzmine.obsoletedistributionframework.NodeServer;
 import net.sf.mzmine.userinterface.MainWindow;
 
 
@@ -70,7 +69,7 @@ private static int idCount = 0; // DEBUG
 
 	}
 
-	public Hashtable<Integer, double[]> fillGaps(NodeServer nodeServer, Hashtable<Integer, double[]> gapsToFill, RawDataAtNode rawData, GapFillerParameters _parameters) {
+	public Hashtable<Integer, double[]> fillGaps(Hashtable<Integer, double[]> gapsToFill, RawDataAtNode rawData, GapFillerParameters _parameters) {
 
 		SimpleGapFillerParameters parameters = (SimpleGapFillerParameters)_parameters;
 

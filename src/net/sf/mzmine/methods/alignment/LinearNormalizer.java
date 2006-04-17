@@ -24,8 +24,6 @@ package net.sf.mzmine.methods.alignment;
 import javax.swing.JOptionPane;
 
 import net.sf.mzmine.obsoletedatastructures.RawDataAtClient;
-import net.sf.mzmine.obsoletedistributionframework.Task;
-import net.sf.mzmine.userinterface.ClientDialog;
 import net.sf.mzmine.userinterface.MainWindow;
 import net.sf.mzmine.userinterface.Statusbar;
 import net.sf.mzmine.util.GeneralParameters;
@@ -116,12 +114,12 @@ public class LinearNormalizer implements Normalizer {
 
 		mainWin = _mainWin;
 
-		ClientDialog waitDialog = new ClientDialog(mainWin);
+		/*ClientDialog waitDialog = new ClientDialog(mainWin);
 		waitDialog.setTitle("Normalizing, please wait...");
 		Integer jobID = new Integer(1);
 		waitDialog.addJob(jobID, ar.getNiceName(), "client-side", Task.JOBSTATUS_UNDERPROCESSING_STR, new Double(0));
 		waitDialog.showMe();
-		waitDialog.paintNow();
+		waitDialog.paintNow();*/
 
 		LinearNormalizerParameters myParameters = (LinearNormalizerParameters)_myParameters;
 
@@ -152,11 +150,11 @@ public class LinearNormalizer implements Normalizer {
 		// Loop through all control runs
 		for (int i=0; i<numOfRawDatas; i++) {
 
-			if (waitDialog!=null) {
+		/*	if (waitDialog!=null) {
 				waitDialog.updateJobStatus(jobID, Task.JOBSTATUS_UNDERPROCESSING_STR, new Double((double)(i+1)/(double)(numOfRawDatas)));
 				//waitDialog.paintNow();
 			}
-
+*/
 			// Get this control run and raw peak heights and areas
 			//r = ar.getRun(i);
 			rawDataID = ar.getRawDataID(i);
@@ -289,7 +287,7 @@ public class LinearNormalizer implements Normalizer {
 
 		}
 
-		waitDialog.hideMe();
+	//	waitDialog.hideMe();
 
 		return nar;
 	}

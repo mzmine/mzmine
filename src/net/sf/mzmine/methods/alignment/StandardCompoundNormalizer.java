@@ -27,8 +27,6 @@ import java.text.NumberFormat;
 import javax.swing.JDialog;
 
 import net.sf.mzmine.obsoletedatastructures.RawDataAtClient;
-import net.sf.mzmine.obsoletedistributionframework.Task;
-import net.sf.mzmine.userinterface.ClientDialog;
 import net.sf.mzmine.userinterface.MainWindow;
 import net.sf.mzmine.userinterface.Statusbar;
 import net.sf.mzmine.util.GeneralParameters;
@@ -90,12 +88,12 @@ public class StandardCompoundNormalizer implements Normalizer {
 	 */
     public AlignmentResult calcNormalization(MainWindow _mainWin, AlignmentResult ar, NormalizerParameters _myParameters) {
 
-		ClientDialog waitDialog = new ClientDialog(mainWin);
+		/*ClientDialog waitDialog = new ClientDialog(mainWin);
 		waitDialog.setTitle("Normalizing, please wait...");
 		waitDialog.addJob(new Integer(1), ar.getNiceName(), "client-side", Task.JOBSTATUS_UNDERPROCESSING_STR, new Double(0));
 		waitDialog.showMe();
 		waitDialog.paintNow();
-
+*/
 		StandardCompoundNormalizerParameters myParameters = (StandardCompoundNormalizerParameters)_myParameters;
 
 		int numOfRawDatas = ar.getNumOfRawDatas();
@@ -127,10 +125,10 @@ public class StandardCompoundNormalizer implements Normalizer {
 		double relativeFactor = 0;
 
 		// Check that there are at least some standard compounds defined in this alignment result
-		if (ar.getNumOfStandardCompounds()==0) {
+	/*	if (ar.getNumOfStandardCompounds()==0) {
 			waitDialog.hideMe();
 			return null;
-		}
+		}*/
 
 
 		// Construct title for the new normalized alignment result
@@ -172,10 +170,10 @@ public class StandardCompoundNormalizer implements Normalizer {
 
 		for (int rawDataCount=0; rawDataCount<numOfRawDatas; rawDataCount++) {
 
-			if (waitDialog!=null) {
+		/*	if (waitDialog!=null) {
 				waitDialog.updateJobStatus(new Integer(1), Task.JOBSTATUS_UNDERPROCESSING_STR, new Double((double)(rawDataCount+1)/(double)(numOfRawDatas)));
 				waitDialog.paintNow();
-			}
+			}*/
 
 
 			int currentColRawDataID = ar.getRawDataID(rawDataCount);
@@ -200,7 +198,7 @@ public class StandardCompoundNormalizer implements Normalizer {
 									"Sorry",JOptionPane.ERROR_MESSAGE);
 							} catch (Exception exce ) {}
 							*/
-							waitDialog.hideMe();
+						//	waitDialog.hideMe();
 							return null;
 						}
 					}
@@ -218,7 +216,7 @@ public class StandardCompoundNormalizer implements Normalizer {
 									"Sorry",JOptionPane.ERROR_MESSAGE);
 							} catch (Exception exce ) {}
 							*/
-							waitDialog.hideMe();
+					//		waitDialog.hideMe();
 							return null;
 						}
 					}
@@ -369,7 +367,7 @@ public class StandardCompoundNormalizer implements Normalizer {
 
 		}
 
-		waitDialog.hideMe();
+	//	waitDialog.hideMe();
 
 		return nar;
 

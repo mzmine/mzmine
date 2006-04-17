@@ -26,7 +26,7 @@ public interface Task extends Runnable {
 
     
     /**
-     * READY - task is ready to start
+     * WAITING - task is ready and waiting to start
      * PROCESSING - task is running
      * FINISHED - task finished succesfully, results can be obtained by getResult()
      * CANCELED - task was canceled by user
@@ -34,7 +34,7 @@ public interface Task extends Runnable {
      *
      */
     public static enum TaskStatus {
-        READY, PROCESSING, FINISHED, CANCELED, ERROR
+        WAITING, PROCESSING, FINISHED, CANCELED, ERROR
     };
 
     public static enum TaskPriority {

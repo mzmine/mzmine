@@ -19,7 +19,6 @@
 */
 package net.sf.mzmine.methods.peakpicking;
 import net.sf.mzmine.obsoletedatastructures.RawDataAtNode;
-import net.sf.mzmine.obsoletedistributionframework.NodeServer;
 
 public interface PeakPicker {
 
@@ -35,7 +34,7 @@ public interface PeakPicker {
 	 * This method does the peak picking for given raw data file
 	 * Method runs on a node
 	 */
-    public PeakList findPeaks(NodeServer nodeServer, RawDataAtNode theData, PeakPickerParameters parameters);
+    public PeakList findPeaks(RawDataAtNode theData, PeakPickerParameters parameters);
 
 
 }

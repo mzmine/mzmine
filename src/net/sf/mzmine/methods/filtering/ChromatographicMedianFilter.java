@@ -23,7 +23,6 @@ import java.util.Vector;
 
 import net.sf.mzmine.obsoletedatastructures.RawDataAtNode;
 import net.sf.mzmine.obsoletedatastructures.Scan;
-import net.sf.mzmine.obsoletedistributionframework.NodeServer;
 import net.sf.mzmine.userinterface.MainWindow;
 import net.sf.mzmine.userinterface.ParameterSetupDialog;
 import net.sf.mzmine.util.MyMath;
@@ -96,7 +95,7 @@ public class ChromatographicMedianFilter implements Filter {
 	}
 
 
-	public int doFiltering(NodeServer nodeServer, RawDataAtNode rawData, FilterParameters _filterParameters) {
+	public int doFiltering(RawDataAtNode rawData, FilterParameters _filterParameters) {
 
 		ChromatographicMedianFilterParameters filterParameters = (ChromatographicMedianFilterParameters)_filterParameters;
 
@@ -118,7 +117,7 @@ public class ChromatographicMedianFilter implements Filter {
 
 		for (int scani=0; scani<(maxScan+filterParameters.oneSidedWindowLength); scani++) {
 
-			nodeServer.updateJobCompletionRate((double)scani/(double)(maxScan-1));
+			//nodeServer.updateJobCompletionRate((double)scani/(double)(maxScan-1));
 
 			// Pickup next scan from original raw data file
 			if (scani<maxScan) {

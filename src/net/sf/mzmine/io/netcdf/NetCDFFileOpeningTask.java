@@ -24,20 +24,23 @@ package net.sf.mzmine.io.netcdf;
 
 import java.io.File;
 
-import net.sf.mzmine.taskcontrol.Task;
+import net.sf.mzmine.taskcontrol.DistributableTask;
 
 /**
- *
+ * 
  */
-public class NetCDFFileOpeningTask implements Task {
+public class NetCDFFileOpeningTask implements DistributableTask {
 
-    File originalFile;
-    
+    private File originalFile;
+
+    private TaskStatus status;
+
     /**
      * 
      */
     public NetCDFFileOpeningTask(File fileToOpen) {
         originalFile = fileToOpen;
+        status = TaskStatus.WAITING;
     }
 
     /**
@@ -59,8 +62,7 @@ public class NetCDFFileOpeningTask implements Task {
      * @see net.sf.mzmine.taskcontrol.Task#getStatus()
      */
     public TaskStatus getStatus() {
-        // TODO Auto-generated method stub
-        return null;
+        return status;
     }
 
     /**
@@ -99,8 +101,7 @@ public class NetCDFFileOpeningTask implements Task {
      * @see net.sf.mzmine.taskcontrol.Task#cancel()
      */
     public void cancel() {
-        
-        
+
     }
 
 }

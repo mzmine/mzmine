@@ -20,9 +20,9 @@
 package net.sf.mzmine.io;
 
 import java.io.File;
-import java.io.Serializable;
 
 import net.sf.mzmine.methods.Method;
+import net.sf.mzmine.methods.MethodParameters;
 import net.sf.mzmine.methods.alignment.AlignmentResult;
 import net.sf.mzmine.methods.peakpicking.PeakList;
 
@@ -50,7 +50,7 @@ public class MZmineFile {
      * @param newFile
      * @param methodParameters
      */
-    public void addNewCurrentFile(RawDataFile newFile, Method processingMethod, Serializable methodParameters) {
+    public void addNewCurrentFile(RawDataFile newFile, Method processingMethod, MethodParameters methodParameters) {
         currentFile = newFile;
         
     }
@@ -71,8 +71,5 @@ public class MZmineFile {
         return null;
     }
     
-    public RawDataFileWriter createNewTemporaryFile() {
-        return null;
-    }
     
 }

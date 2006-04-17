@@ -21,7 +21,6 @@ package net.sf.mzmine.methods.peakpicking;
 import java.util.Vector;
 
 import net.sf.mzmine.obsoletedatastructures.RawDataAtNode;
-import net.sf.mzmine.obsoletedistributionframework.NodeServer;
 import net.sf.mzmine.userinterface.MainWindow;
 
 
@@ -66,7 +65,7 @@ public class CombinatorialDeisotoper implements PeakListProcessor {
 	 * @param	_parameters		Parameter values
 	 * @return					New peak list
 	 */
-	public PeakList processPeakList(NodeServer nodeServer, RawDataAtNode theData, PeakList peakList, PeakListProcessorParameters _parameters) {
+	public PeakList processPeakList(RawDataAtNode theData, PeakList peakList, PeakListProcessorParameters _parameters) {
 
 		// Take the parameters
 		CombinatorialDeisotoperParameters parameters = (CombinatorialDeisotoperParameters)_parameters;
@@ -81,7 +80,7 @@ public class CombinatorialDeisotoper implements PeakListProcessor {
 		for (Peak p : originalPeaks) {
 
 			// Update wait dialog
-			nodeServer.updateJobCompletionRate((double)currentPeakNumber/(double)numberOfPeaks);
+			// updateJobCompletionRate((double)currentPeakNumber/(double)numberOfPeaks);
 
 			// Give each peak a unique isotope pattern ID (put every peak to different pattern)
 			p.setIsotopePatternID(currentPeakNumber);

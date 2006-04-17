@@ -32,6 +32,4 @@ import java.rmi.Remote;
  */
 public interface DistributableTask extends Task, Remote, Serializable {
 
-    public InetAddress getCurrentNode();
-
 }

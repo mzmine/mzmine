@@ -43,7 +43,6 @@ import javax.swing.JPanel;
 
 import net.sf.mzmine.methods.peakpicking.Peak;
 import net.sf.mzmine.methods.peakpicking.PeakList;
-import net.sf.mzmine.obsoletedistributionframework.NodeServer;
 import net.sf.mzmine.userinterface.MainWindow;
 import net.sf.mzmine.util.MyMath;
 
@@ -88,7 +87,7 @@ public class FastAligner implements PeakListAligner {
 	 * This function aligns peak lists of selected group of raw data files
 	 */
 	// public AlignmentResult doAlignment(MainWindow _mainWin) {
-	 public AlignmentResult doAlignment(NodeServer nodeServer, Hashtable<Integer, PeakList> peakLists, PeakListAlignerParameters _parameters) {
+	 public AlignmentResult doAlignment( Hashtable<Integer, PeakList> peakLists, PeakListAlignerParameters _parameters) {
 
 
 		parameters = (FastAlignerParameters)_parameters;
@@ -165,7 +164,7 @@ public class FastAligner implements PeakListAligner {
 		while (rawDataIDEnum.hasMoreElements()) {
 			Integer rawDataID = rawDataIDEnum.nextElement();
 
-			nodeServer.updateJobCompletionRate((double)(currentList)/(double)(numberOfLists));
+		//	nodeServer.updateJobCompletionRate((double)(currentList)/(double)(numberOfLists));
 			currentList++;
 
 

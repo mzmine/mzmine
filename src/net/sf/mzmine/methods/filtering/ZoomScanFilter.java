@@ -22,7 +22,6 @@ import java.text.NumberFormat;
 
 import net.sf.mzmine.obsoletedatastructures.RawDataAtNode;
 import net.sf.mzmine.obsoletedatastructures.Scan;
-import net.sf.mzmine.obsoletedistributionframework.NodeServer;
 import net.sf.mzmine.userinterface.MainWindow;
 import net.sf.mzmine.userinterface.ParameterSetupDialog;
 
@@ -82,7 +81,7 @@ public class ZoomScanFilter implements Filter {
 	}
 
 
-	public int doFiltering(NodeServer nodeServer, RawDataAtNode rawData, FilterParameters _filterParameters) {
+	public int doFiltering(RawDataAtNode rawData, FilterParameters _filterParameters) {
 
 		ZoomScanFilterParameters filterParameters = (ZoomScanFilterParameters)_filterParameters;
 
@@ -117,7 +116,7 @@ public class ZoomScanFilter implements Filter {
 
 		for (int scani=0; scani<maxScan; scani++) {
 
-			nodeServer.updateJobCompletionRate((double)scani/(double)(maxScan-1));
+			//nodeServer.updateJobCompletionRate((double)scani/(double)(maxScan-1));
 
 			Scan sc = rawData.getNextScan();
 

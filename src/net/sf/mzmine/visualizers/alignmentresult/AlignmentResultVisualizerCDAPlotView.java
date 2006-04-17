@@ -50,8 +50,6 @@ import javax.swing.event.InternalFrameListener;
 import jmprojection.CDA;
 import jmprojection.Preprocessor;
 import net.sf.mzmine.methods.alignment.AlignmentResult;
-import net.sf.mzmine.obsoletedistributionframework.Task;
-import net.sf.mzmine.userinterface.ClientDialog;
 import net.sf.mzmine.userinterface.MainWindow;
 import net.sf.mzmine.userinterface.SelectClassLabelsDialog;
 import net.sf.mzmine.userinterface.Statusbar;
@@ -214,11 +212,11 @@ public class AlignmentResultVisualizerCDAPlotView extends JInternalFrame impleme
 	 */
 	private void preparePlot() {
 
-		ClientDialog waitDialog = new ClientDialog(mainWin);
+		/*ClientDialog waitDialog = new ClientDialog(mainWin);
 		waitDialog.setTitle("Calculating plot, please wait...");
 		waitDialog.addJob(new Integer(1), alignmentResult.getNiceName(), "client-side", Task.JOBSTATUS_UNDERPROCESSING_STR, new Double(0));
 		waitDialog.showMe();
-		waitDialog.paintNow();
+		waitDialog.paintNow();*/
 
 		if (mainWin.getParameterStorage().getGeneralParameters().getPeakMeasuringType() == GeneralParameters.PARAMETERVALUE_PEAKMEASURING_HEIGHT) {
 			setTitle(alignmentResult.getNiceName() + ": CDA plot of average peak heights.");
@@ -270,14 +268,14 @@ public class AlignmentResultVisualizerCDAPlotView extends JInternalFrame impleme
 			}
 		}
 
-		waitDialog.updateJobStatus(new Integer(1), Task.JOBSTATUS_UNDERPROCESSING_STR, new Double(0.25));
-		waitDialog.paintNow();
+		/*waitDialog.updateJobStatus(new Integer(1), Task.JOBSTATUS_UNDERPROCESSING_STR, new Double(0.25));
+		waitDialog.paintNow();*/
 
 		// Do preprocessing
 		double[][] dataT2 = Preprocessor.autoScaleToUnityVariance(dataT);
 
-		waitDialog.updateJobStatus(new Integer(1), Task.JOBSTATUS_UNDERPROCESSING_STR, new Double(0.50));
-		waitDialog.paintNow();
+		/*waitDialog.updateJobStatus(new Integer(1), Task.JOBSTATUS_UNDERPROCESSING_STR, new Double(0.50));
+		waitDialog.paintNow();*/
 
 		// Transpose back
 		for (int sample=0; sample<data.length; sample++) {
@@ -287,19 +285,19 @@ public class AlignmentResultVisualizerCDAPlotView extends JInternalFrame impleme
 		}
 		dataT2 = null;
 
-		waitDialog.updateJobStatus(new Integer(1), Task.JOBSTATUS_UNDERPROCESSING_STR, new Double(0.75));
-		waitDialog.paintNow();
+		/*waitDialog.updateJobStatus(new Integer(1), Task.JOBSTATUS_UNDERPROCESSING_STR, new Double(0.75));
+		waitDialog.paintNow();*/
 
 		// Do CDA
 		CDA projector = new CDA(data, myParameters.paramAlpha, myParameters.paramLambda, myParameters.paramMaximumLoss, myParameters.paramTrainingLength, myParameters.paramNeighbourhoodSize, 2);
 		for (int i=0; i<myParameters.paramTrainingLength; i++) { projector.iterate(); }
 		double[][] results = projector.getState();
 
-		waitDialog.updateJobStatus(new Integer(1), Task.JOBSTATUS_UNDERPROCESSING_STR, new Double(0.99));
+		/*waitDialog.updateJobStatus(new Integer(1), Task.JOBSTATUS_UNDERPROCESSING_STR, new Double(0.99));
 		waitDialog.paintNow();
 
 		waitDialog.hideMe();
-
+*/
 		// Set plot data
 		plotArea.setData(results[0], results[1], sampleClasses, rawDataNames);
 

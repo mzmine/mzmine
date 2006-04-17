@@ -18,7 +18,7 @@
     Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
-package net.sf.mzmine.obsoletedatastructures;
+package net.sf.mzmine.util;
 import java.io.File;
 import java.io.FileWriter;
 
@@ -44,8 +44,6 @@ import net.sf.mzmine.methods.peakpicking.LocalPickerParameters;
 import net.sf.mzmine.methods.peakpicking.RecursiveThresholdPickerParameters;
 import net.sf.mzmine.methods.peakpicking.SimpleDeisotoperParameters;
 import net.sf.mzmine.userinterface.BatchModeDialogParameters;
-import net.sf.mzmine.util.GeneralParameters;
-import net.sf.mzmine.util.Logger;
 import net.sf.mzmine.visualizers.alignmentresult.AlignmentResultVisualizerCDAPlotViewParameters;
 import net.sf.mzmine.visualizers.alignmentresult.AlignmentResultVisualizerSammonsPlotViewParameters;
 

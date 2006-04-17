@@ -25,8 +25,6 @@ import java.util.Vector;
 
 import javax.swing.JOptionPane;
 
-import net.sf.mzmine.obsoletedistributionframework.Task;
-import net.sf.mzmine.userinterface.ClientDialog;
 import net.sf.mzmine.userinterface.MainWindow;
 
 
@@ -83,11 +81,11 @@ public class AlignmentResultFilterByGaps implements AlignmentResultProcessor {
 
 		mainWin = _mainWin;
 
-		ClientDialog waitDialog = new ClientDialog(_mainWin);
+		/*ClientDialog waitDialog = new ClientDialog(_mainWin);
 		waitDialog.setTitle("Filtering alignment result, please wait...");
 		waitDialog.addJob(new Integer(1), ar.getNiceName(), "client-side", Task.JOBSTATUS_UNDERPROCESSING_STR, new Double(0));
 		waitDialog.showMe();
-		waitDialog.paintNow();
+		waitDialog.paintNow();*/
 
 		AlignmentResultFilterByGapsParameters params = (AlignmentResultFilterByGapsParameters)_params;
 
@@ -110,8 +108,8 @@ public class AlignmentResultFilterByGaps implements AlignmentResultProcessor {
 
 		}
 
-		waitDialog.updateJobStatus(new Integer(1), Task.JOBSTATUS_UNDERPROCESSING_STR, new Double(0.25));
-		waitDialog.paintNow();
+		/*waitDialog.updateJobStatus(new Integer(1), Task.JOBSTATUS_UNDERPROCESSING_STR, new Double(0.25));
+		waitDialog.paintNow();*/
 
 		// Create datastructures for constructing new alignment result
 		Vector<Integer> newRawDataIDs = new Vector<Integer>();
@@ -204,8 +202,8 @@ public class AlignmentResultFilterByGaps implements AlignmentResultProcessor {
 
 		}
 
-		waitDialog.updateJobStatus(new Integer(1), Task.JOBSTATUS_UNDERPROCESSING_STR, new Double(0.99));
-		waitDialog.paintNow();
+		/*waitDialog.updateJobStatus(new Integer(1), Task.JOBSTATUS_UNDERPROCESSING_STR, new Double(0.99));
+		waitDialog.paintNow();*/
 
 		AlignmentResult nar = new AlignmentResult(	newRawDataIDs,
 													newStandardCompounds,
@@ -221,7 +219,7 @@ public class AlignmentResultFilterByGaps implements AlignmentResultProcessor {
 													new String("Results from " + ar.getNiceName() + " filtered by number of detections.")
 												);
 
-		waitDialog.hideMe();
+		/*waitDialog.hideMe();*/
 
 		return nar;
 

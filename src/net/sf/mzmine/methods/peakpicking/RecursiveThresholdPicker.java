@@ -25,7 +25,6 @@ import java.util.Vector;
 
 import net.sf.mzmine.obsoletedatastructures.RawDataAtNode;
 import net.sf.mzmine.obsoletedatastructures.Scan;
-import net.sf.mzmine.obsoletedistributionframework.NodeServer;
 import net.sf.mzmine.userinterface.MainWindow;
 import net.sf.mzmine.userinterface.ParameterSetupDialog;
 import net.sf.mzmine.util.MyMath;
@@ -188,7 +187,7 @@ public class RecursiveThresholdPicker implements PeakPicker {
 	 * This method does the processing
 	 */
 	//public Vector<Peak> findPeaks(NodeServer nodeServer, RawDataAtNode rawData, PeakPickerParameters _parameters) {
-	public PeakList findPeaks(NodeServer nodeServer, RawDataAtNode rawData, PeakPickerParameters _parameters) {
+	public PeakList findPeaks(RawDataAtNode rawData, PeakPickerParameters _parameters) {
 
 		RecursiveThresholdPickerParameters parameters = (RecursiveThresholdPickerParameters)_parameters;
 
@@ -241,7 +240,7 @@ public class RecursiveThresholdPicker implements PeakPicker {
 				s = rawData.getNextScan();
 				//statBar.setStatusProgBar(scani,maxScanNum*2-2);
 
-				nodeServer.updateJobCompletionRate((double)(scani)/(double)(maxScanNum*2-2));
+				//nodeServer.updateJobCompletionRate((double)(scani)/(double)(maxScanNum*2-2));
 
 				tmpInts = s.getBinnedIntensities(startMZ, endMZ, numOfBins, true);
 				for (int bini=0; bini<numOfBins; bini++) {
@@ -277,7 +276,7 @@ public class RecursiveThresholdPicker implements PeakPicker {
 
 			// GET NEXT SPECTRUM
 
-			nodeServer.updateJobCompletionRate((double)(i+maxScanNum)/(double)(maxScanNum*2-2));
+			//nodeServer.updateJobCompletionRate((double)(i+maxScanNum)/(double)(maxScanNum*2-2));
 
 			s = rawData.getNextScan();
 			masses = s.getMZValues();

@@ -23,15 +23,14 @@
 package net.sf.mzmine.io.mzxml;
 
 import java.io.File;
-import java.util.Date;
 
-import javax.xml.datatype.DatatypeFactory;
-import javax.xml.datatype.Duration;
 import javax.xml.parsers.SAXParser;
 import javax.xml.parsers.SAXParserFactory;
 
 import net.sf.mzmine.io.RawDataFile.PreloadLevel;
-import net.sf.mzmine.taskcontrol.Task;
+import net.sf.mzmine.taskcontrol.DistributableTask;
+import net.sf.mzmine.taskcontrol.Task.TaskPriority;
+import net.sf.mzmine.taskcontrol.Task.TaskStatus;
 import net.sf.mzmine.util.Logger;
 
 import org.xml.sax.Attributes;
@@ -41,7 +40,7 @@ import org.xml.sax.helpers.DefaultHandler;
 /**
  * 
  */
-public class MZXMLFileOpeningTask extends DefaultHandler implements Task {
+public class MZXMLFileOpeningTask extends DefaultHandler implements DistributableTask {
 
     private File originalFile;
 
@@ -71,7 +70,7 @@ public class MZXMLFileOpeningTask extends DefaultHandler implements Task {
     public MZXMLFileOpeningTask(File fileToOpen, PreloadLevel preloadLevel) {
 
         originalFile = fileToOpen;
-        status = TaskStatus.READY;
+        status = TaskStatus.WAITING;
 
         charBuffer = new StringBuffer(256);
         // Get current date which is also required in conversions

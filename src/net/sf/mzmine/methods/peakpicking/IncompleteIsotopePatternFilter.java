@@ -25,7 +25,6 @@ import java.util.TreeSet;
 import java.util.Vector;
 
 import net.sf.mzmine.obsoletedatastructures.RawDataAtNode;
-import net.sf.mzmine.obsoletedistributionframework.NodeServer;
 import net.sf.mzmine.userinterface.MainWindow;
 import net.sf.mzmine.userinterface.ParameterSetupDialog;
 
@@ -89,7 +88,7 @@ public class IncompleteIsotopePatternFilter implements PeakListProcessor {
 	/**
 	 * This method does the processing
 	 */
-	public PeakList processPeakList(NodeServer nodeServer, RawDataAtNode theData, PeakList peakList, PeakListProcessorParameters _parameters) {
+	public PeakList processPeakList(RawDataAtNode theData, PeakList peakList, PeakListProcessorParameters _parameters) {
 
 		IncompleteIsotopePatternFilterParameters parameters = (IncompleteIsotopePatternFilterParameters)_parameters;
 
@@ -135,7 +134,7 @@ public class IncompleteIsotopePatternFilter implements PeakListProcessor {
 
 		}
 
-		nodeServer.updateJobCompletionRate(1);
+		//nodeServer.updateJobCompletionRate(1);
 		//return modifiedPeakList;
 
 		return modifiedPeakList;

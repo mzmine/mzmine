@@ -88,11 +88,9 @@ import net.sf.mzmine.methods.peakpicking.RecursiveThresholdPicker;
 import net.sf.mzmine.methods.peakpicking.RecursiveThresholdPickerParameters;
 import net.sf.mzmine.methods.peakpicking.SimpleDeisotoper;
 import net.sf.mzmine.methods.peakpicking.SimpleDeisotoperParameters;
-import net.sf.mzmine.obsoletedatastructures.ParameterStorage;
 import net.sf.mzmine.obsoletedatastructures.RawDataAtClient;
-import net.sf.mzmine.obsoletedistributionframework.ClientForCluster;
-import net.sf.mzmine.obsoletedistributionframework.ControllerServer;
 import net.sf.mzmine.util.GeneralParameters;
+import net.sf.mzmine.util.ParameterStorage;
 import net.sf.mzmine.visualizers.alignmentresult.AlignmentResultVisualizer;
 import net.sf.mzmine.visualizers.alignmentresult.AlignmentResultVisualizerCDAPlotView;
 import net.sf.mzmine.visualizers.alignmentresult.AlignmentResultVisualizerCDAPlotViewParameters;
@@ -198,36 +196,26 @@ public class MainWindow extends JFrame implements WindowListener, ActionListener
 	private Hashtable<Integer, Vector<RawDataVisualizer>> rawDataVisualizers;
 	private Hashtable<Integer, Vector<AlignmentResultVisualizer>> alignmentResultVisualizers;
 
-	private ClientForCluster clientForCluster;
-
 
 	private boolean busyFlag;		// This flag is true when system is busy doing some computational stuff
 
 	private String dataDirectory;		// Stores the last used directory for saving peak lists & alignment results
 
-/*
-    private String dataDirectory;
-    private String homeDirectory;
-*/
+    private TaskStatusWindow taskList;
 
+    
+    public TaskStatusWindow getTaskList() {
+        return taskList;
+    }
 
 	/**
 	 * Constructor for MainWindow
 	 */
-	public MainWindow(String title, ControllerServer controllerServer) {
+	public MainWindow(String title) {
 
         assert myInstance == null;
         myInstance = this;
         
-		// Connect to MZmine cluster
-		// -------------------------
-		if (controllerServer==null) {
-			// Cluster mode
-//			clientForCluster = new ClientForCluster(this);
-		} else {
-			// Single computer mode
-//			clientForCluster = new ClientForCluster(this, controllerServer);
-		}
 
 
 
@@ -385,7 +373,8 @@ public class MainWindow extends JFrame implements WindowListener, ActionListener
 		c.setLayout(new BorderLayout());
 		c.add(split, BorderLayout.CENTER);
 		c.add(statBar,BorderLayout.SOUTH);
-
+        
+        
 
 		// Initialize window listener for responding to user events
 		addWindowListener(this);
@@ -405,8 +394,12 @@ public class MainWindow extends JFrame implements WindowListener, ActionListener
 
 		statBar.setStatusText("Welcome to MZmine!");
 
+        taskList = new TaskStatusWindow(this);
+        desktop.add(taskList, javax.swing.JLayeredPane.DEFAULT_LAYER);
 
 	}
+    
+    
 
 	/**
 	 * This method returns the desktop
@@ -907,7 +900,7 @@ public class MainWindow extends JFrame implements WindowListener, ActionListener
 			// Then ask client for cluster to initiate a refresh task on those raw data files
 			RawDataVisualizerRefreshRequest[] refreshRequestsA = new RawDataVisualizerRefreshRequest[refreshRequestsV.size()];
 			refreshRequestsA = refreshRequestsV.toArray(refreshRequestsA);
-			clientForCluster.refreshVisualizers(refreshRequestsA);
+		//	clientForCluster.refreshVisualizers(refreshRequestsA);
 
 		} else {
 			// else call afterRefresh-method of every visualizer
@@ -952,7 +945,7 @@ public class MainWindow extends JFrame implements WindowListener, ActionListener
 			// Then ask client for cluster to initiate a refresh task on those raw data files
 			RawDataVisualizerRefreshRequest[] refreshRequestsA = new RawDataVisualizerRefreshRequest[1];
 			refreshRequestsA[0] = refreshRequest;
-			clientForCluster.refreshVisualizers(refreshRequestsA);
+			//clientForCluster.refreshVisualizers(refreshRequestsA);
 
 		} else {
 			// Create empty refresh result
@@ -1626,7 +1619,7 @@ public class MainWindow extends JFrame implements WindowListener, ActionListener
 			fileOpenChooser.setDialogType(JFileChooser.OPEN_DIALOG);
 			fileOpenChooser.setMultiSelectionEnabled(false);
 			fileOpenChooser.setDialogTitle("Please select parameter file");
-			fileOpenChooser.setCurrentDirectory(new File(clientForCluster.getDataRootPath()));
+		//	fileOpenChooser.setCurrentDirectory(new File(clientForCluster.getDataRootPath()));
 
 			ExampleFileFilter filter = new ExampleFileFilter();
 			filter.addExtension("XML");
@@ -1815,7 +1808,7 @@ public class MainWindow extends JFrame implements WindowListener, ActionListener
 
 			// Collect raw data IDs and initiate filtering on the cluster
 			int[] selectedRawDataIDs = itemSelector.getSelectedRawDataIDs();
-			clientForCluster.filterRawDataFiles(selectedRawDataIDs, mfParam);
+		//	clientForCluster.filterRawDataFiles(selectedRawDataIDs, mfParam);
 
 		}
 
@@ -1836,7 +1829,7 @@ public class MainWindow extends JFrame implements WindowListener, ActionListener
 
 			// Collect raw data IDs and initiate filtering on the cluster
 			int[] selectedRawDataIDs = itemSelector.getSelectedRawDataIDs();
-			clientForCluster.filterRawDataFiles(selectedRawDataIDs, sfParam);
+		//	clientForCluster.filterRawDataFiles(selectedRawDataIDs, sfParam);
 
 		}
 
@@ -1856,7 +1849,7 @@ public class MainWindow extends JFrame implements WindowListener, ActionListener
 
 			// Collect raw data IDs and initiate filtering on the cluster
 			int[] selectedRawDataIDs = itemSelector.getSelectedRawDataIDs();
-			clientForCluster.filterRawDataFiles(selectedRawDataIDs, cmfParam);
+		//	clientForCluster.filterRawDataFiles(selectedRawDataIDs, cmfParam);
 
 		}
 
@@ -1877,7 +1870,7 @@ public class MainWindow extends JFrame implements WindowListener, ActionListener
 
 			// Collect raw data IDs and initiate filtering on the cluster
 			int[] selectedRawDataIDs = itemSelector.getSelectedRawDataIDs();
-			clientForCluster.filterRawDataFiles(selectedRawDataIDs, cfParam);
+		//	clientForCluster.filterRawDataFiles(selectedRawDataIDs, cfParam);
 
 
 		}
@@ -1899,7 +1892,7 @@ public class MainWindow extends JFrame implements WindowListener, ActionListener
 
 			// Collect raw data IDs and initiate filtering on the cluster
 			int[] selectedRawDataIDs = itemSelector.getSelectedRawDataIDs();
-			clientForCluster.filterRawDataFiles(selectedRawDataIDs, zsfParam);
+		//	clientForCluster.filterRawDataFiles(selectedRawDataIDs, zsfParam);
 
 
 		}
@@ -1921,7 +1914,7 @@ public class MainWindow extends JFrame implements WindowListener, ActionListener
 			paintNow();
 
 			// Call cluster controller
-			clientForCluster.findPeaks(rawDataIDs, rpParam);
+		//	clientForCluster.findPeaks(rawDataIDs, rpParam);
 
 			rp = null;
 			rpParam = null;
@@ -1945,7 +1938,7 @@ public class MainWindow extends JFrame implements WindowListener, ActionListener
 			paintNow();
 
 			// Call cluster controller
-			clientForCluster.findPeaks(rawDataIDs, lpParam);
+		//	clientForCluster.findPeaks(rawDataIDs, lpParam);
 
 			lp = null;
 			lpParam = null;
@@ -1969,7 +1962,7 @@ public class MainWindow extends JFrame implements WindowListener, ActionListener
 			paintNow();
 
 			// Call cluster controller to start peak picking process
-			clientForCluster.findPeaks(rawDataIDs, cpParam);
+		//	clientForCluster.findPeaks(rawDataIDs, cpParam);
 
 			cp = null;
 			cpParam = null;
@@ -1997,7 +1990,7 @@ public class MainWindow extends JFrame implements WindowListener, ActionListener
 			paintNow();
 
 			// Call cluster controller to start peak picking process
-			clientForCluster.processPeakLists(peakLists, sdParam);
+		//	clientForCluster.processPeakLists(peakLists, sdParam);
 
 			sd = null;
 			sdParam = null;
@@ -2026,7 +2019,7 @@ public class MainWindow extends JFrame implements WindowListener, ActionListener
 			paintNow();
 
 			// Call cluster controller to start peak picking process
-			clientForCluster.processPeakLists(peakLists, cdParam);
+		//	clientForCluster.processPeakLists(peakLists, cdParam);
 
 			cd = null;
 			cdParam = null;
@@ -2057,7 +2050,7 @@ public class MainWindow extends JFrame implements WindowListener, ActionListener
 			paintNow();
 
 			// Call cluster controller to start peak picking process
-			clientForCluster.processPeakLists(peakLists, iifParam);
+		//	clientForCluster.processPeakLists(peakLists, iifParam);
 
 
 			iif = null;
@@ -2095,7 +2088,7 @@ public class MainWindow extends JFrame implements WindowListener, ActionListener
 			paintNow();
 
 			// Call cluster controller
-			clientForCluster.doAlignment(peakLists, jaParam);
+		//	clientForCluster.doAlignment(peakLists, jaParam);
 
 			ja = null;
 			jaParam = null;
@@ -2132,7 +2125,7 @@ public class MainWindow extends JFrame implements WindowListener, ActionListener
 			paintNow();
 
 			// Call cluster controller
-			clientForCluster.doAlignment(peakLists, faParam);
+		//	clientForCluster.doAlignment(peakLists, faParam);
 
 			fa = null;
 			faParam = null;
@@ -2174,7 +2167,7 @@ public class MainWindow extends JFrame implements WindowListener, ActionListener
 
 				// Ask controller to fetch total raw signals for these raw data files
 				//Vector<AlignmentResult> selectedAlignmentResults = itemSelector.getSelectedAlignmentResults();
-				clientForCluster.calcTotalRawSignal(allRequiredRawDataIDsi, lnp, selectedAlignmentResults);
+			//	clientForCluster.calcTotalRawSignal(allRequiredRawDataIDsi, lnp, selectedAlignmentResults);
 
 				// doLinearNormalizationClientSide() will be called by clientForCluster when task completes
 
@@ -2280,7 +2273,7 @@ public class MainWindow extends JFrame implements WindowListener, ActionListener
 			statBar.setStatusText("Filling empty gaps in alignment result.");
 			paintNow();
 
-			clientForCluster.fillGaps(alignmentResult, sgfParam);
+	//		clientForCluster.fillGaps(alignmentResult, sgfParam);
 
 		}
 
@@ -2526,7 +2519,7 @@ public class MainWindow extends JFrame implements WindowListener, ActionListener
 				// Remove all visualizers for these raw data files
 				for (int rawDataID : rawDataIDs) { removeRawDataVisualizers(rawDataID); }
 
-				clientForCluster.closeRawDataFiles(rawDataIDs);
+			//	clientForCluster.closeRawDataFiles(rawDataIDs);
 
 				getStatusBar().setStatusText("Closing " + rawDataIDs.length + " raw data file(s).");
 
@@ -2749,9 +2742,7 @@ public class MainWindow extends JFrame implements WindowListener, ActionListener
 		return itemSelector;
 	}
 
-	public ClientForCluster getClientForCluster() {
-		return clientForCluster;
-	}
+
 
 
 	/**
@@ -2775,7 +2766,7 @@ public class MainWindow extends JFrame implements WindowListener, ActionListener
 		closeRawDataFiles(rawDataIDs);
 
 		// Disconnect client from cluster
-		clientForCluster.disconnectFromController();
+		//clientForCluster.disconnectFromController();
 
 		// Save settings
 		// (not automatic)

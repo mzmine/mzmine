@@ -26,19 +26,15 @@ import net.sf.mzmine.util.Logger;
 
 public class MZmineClient {
 
-    private static MainWindow mainWindow;
-
-    private static TaskController taskController;
-
+    private static int numberOfNodes = 4;
+    
     /**
      * Main method
      */
     public static void main(String argz[]) {
 
         Logger.disableOutput();
-
-        int numberOfNodes = 1;
-
+        
         for (String arg : argz) {
             if ((arg.compareToIgnoreCase(new String("verbose"))) == 0) {
                 Logger.setOutputOnScreen();
@@ -71,25 +67,27 @@ public class MZmineClient {
          * try { Thread.sleep(2000); } catch (Exception e) { Logger.put("STARTUP
          * THREAD: ERROR - Can't get no sleep"); }
          */
-
-        Logger.put("STARTUP THREAD: Starting node(s)");
-
-        new IOController();
-        taskController = new TaskController(numberOfNodes);
-
-        Logger.put("STARTUP THREAD: Starting GUI.");
-
+        
         /*
-         * Create the GUI in the event-dispatching thread, as recommended by Swing tutorial
+         * Create the GUI in the event-dispatching thread
          */
         javax.swing.SwingUtilities.invokeLater(new Runnable() {
             public void run() {
-                mainWindow = new MainWindow("MZmine", null);
+                
+                Logger.put("STARTUP THREAD: Starting node(s)");
+
+                new IOController();
+                new TaskController(numberOfNodes);
+
+                Logger.put("STARTUP THREAD: Starting GUI.");
+
+                MainWindow mainWindow = new MainWindow("MZmine");
                 mainWindow.setVisible(true);
             }
         });
+        
+        Logger.put("STARTUP THREAD: finishing startup thread");
 
     }
     
-
 }

@@ -23,10 +23,14 @@
 package net.sf.mzmine.taskcontrol;
 
 import java.net.InetAddress;
+import java.util.Arrays;
 import java.util.Comparator;
-import java.util.PriorityQueue;
+import java.util.Date;
+import java.util.Vector;
 
+import net.sf.mzmine.taskcontrol.Task.TaskStatus;
 import net.sf.mzmine.userinterface.MainWindow;
+import net.sf.mzmine.userinterface.TaskStatusWindow;
 import net.sf.mzmine.util.Logger;
 
 /**
@@ -35,16 +39,30 @@ import net.sf.mzmine.util.Logger;
 public class TaskController implements Runnable {
 
     private static TaskController myInstance;
-    
+
     private final int TASKCONTROLLER_THREAD_SLEEP = 100;
 
     private Thread taskControllerThread;
 
-    private Thread[] workerThreads;
+    private WorkerThread[] workerThreads;
 
-    private PriorityQueue<AbstractTaskReference> taskQueue;
+    class WrappedTask {
+        Task task;
 
-    public static TaskController getInstance() { return myInstance; }
+        Date addedTime = new Date();
+
+        TaskListener listener;
+
+        boolean assigned = false;
+
+        InetAddress node;
+    }
+
+    private Vector<WrappedTask> taskQueue;
+
+    public static TaskController getInstance() {
+        return myInstance;
+    }
 
     /**
      * 
@@ -53,14 +71,18 @@ public class TaskController implements Runnable {
 
         assert myInstance == null;
         myInstance = this;
-        workerThreads = new Thread[numberOfThreads];
-        taskQueue = new PriorityQueue<AbstractTaskReference>(10,
-                new TaskPriorityComparator());
+
+        taskQueue = new Vector<WrappedTask>();
 
         taskControllerThread = new Thread(this, "Task controller thread");
         taskControllerThread.setPriority(Thread.MIN_PRIORITY);
         taskControllerThread.start();
 
+        workerThreads = new WorkerThread[numberOfThreads];
+        for (int i = 0; i < numberOfThreads; i++) {
+            workerThreads[i] = new WorkerThread(i);
+            workerThreads[i].start();
+        }
     }
 
     public Task addTask(Task task) {
@@ -71,90 +93,112 @@ public class TaskController implements Runnable {
 
         assert task != null;
 
-        AbstractTaskReference newReference = new AbstractTaskReference(task);
+        WrappedTask newQueueEntry = new WrappedTask();
+        newQueueEntry.task = task;
+        newQueueEntry.listener = listener;
 
         Logger.put("Adding task " + task.getTaskDescription()
                 + " to the task controller queue");
 
         synchronized (taskQueue) {
-            taskQueue.add(newReference);
+            taskQueue.add(newQueueEntry);
+            taskQueue.notifyAll();
         }
 
-        return newReference;
+        /*
+         * show the task list component
+         */
+        MainWindow mainWindow = MainWindow.getInstance();
+        if (mainWindow != null) {
+            TaskStatusWindow tlc = mainWindow.getTaskList();
+            tlc.setVisible(true);
+        }
+
+        return task;
 
     }
 
     /**
-     * This method adds the task to queue and waits (puts the caller to sleep)
-     * until the task is finished
+     * Task controller thread main method.
      * 
-     * @param task
-     * @return
-     */
-    public void processTask(Task task) {
-
-    }
-
-    /**
      * @see java.lang.Runnable#run()
      */
     public void run() {
 
         while (true) {
-            // TODO: always allocate a thread for high-priority tasks?
 
-            /*
-             * if the queue is not empty, poll local threads
-             */
             synchronized (taskQueue) {
 
-                if (!taskQueue.isEmpty()) {
+                /* if the queue is empty, we can sleep */
+                while (taskQueue.isEmpty()) {
+                    try {
+                        taskQueue.wait();
+                    } catch (InterruptedException e) {
+                    }
+                }
 
-                    for (int i = 0; i < workerThreads.length; i++) {
+                WrappedTask[] currentTasks = taskQueue
+                        .toArray(new WrappedTask[0]);
+                // sort the array, so we can traverse the tasks in priority
+                // order
+                Arrays.sort(currentTasks, new TaskPriorityComparator());
 
-                        if ((workerThreads[i] == null)
-                                || (workerThreads[i].getState() == Thread.State.TERMINATED)) {
+                // for each task, check if it's assigned
+                for (WrappedTask task : currentTasks) {
 
-                            AbstractTaskReference taskRef = taskQueue.peek();
-                            if ((taskRef != null) && (taskRef.getStatus()==Task.TaskStatus.READY)) {
+                    if (!task.assigned) {
+                        // poll local threads
 
-                                Logger.put("Creating new thread for task "
-                                        + taskRef.getTaskDescription());
-                                workerThreads[i] = new Thread(taskRef,
-                                        "Thread for task: "
-                                                + taskRef.getTaskDescription());
+                        for (WorkerThread worker : workerThreads) {
+                            // Logger.put("polling thread " + worker + " for
+                            // task " + task.task.getTaskDescription());
+                            if (worker.getCurrentTask() == null) {
+                                worker.setCurrentTask(task.task);
+                                task.assigned = true;
+                                break;
+                            }
 
-                                if (taskRef.getPriority() == Task.TaskPriority.HIGH)
-                                    workerThreads[i]
-                                            .setPriority(Thread.MAX_PRIORITY);
+                        }
 
-                                if (taskRef.getPriority() == Task.TaskPriority.LOW)
-                                    workerThreads[i]
-                                            .setPriority(Thread.MIN_PRIORITY);
+                        // TODO: poll remote nodes
 
-                                Logger.put("starting thread " + workerThreads[i]);
-                                workerThreads[i].start();
+                    } else {
+                        /* check whether the task is finished */
+                        TaskStatus status = task.task.getStatus();
+                        if ((status == TaskStatus.FINISHED)
+                                || (status == TaskStatus.ERROR)
+                                || (status == TaskStatus.CANCELED)) {
+                            if (task.listener != null)
+                                task.listener.taskFinished(task.task);
+                            taskQueue.remove(task);
+                        }
+                    }
+
+                    MainWindow mainWindow = MainWindow.getInstance();
+                    if (mainWindow != null) {
+                        TaskStatusWindow tlc = mainWindow.getTaskList();
+                        if (tlc.isVisible()) {
+
+                            if (taskQueue.isEmpty())
+                                tlc.setVisible(false);
+                            else {
+                                Task[] componentList = new Task[currentTasks.length];
+                                for (int i = 0; i < currentTasks.length; i++)
+                                    componentList[i] = currentTasks[i].task;
+                                tlc.setCurrentTasks(componentList);
                             }
 
                         }
 
                     }
+
+                    /*
+                     * Logger.put("Task " + task.task.getTaskDescription() + " [" +
+                     * task.task.getStatus() + "] finished " +
+                     * task.task.getFinishedPercentage() + " error? " +
+                     * task.task.getErrorMessage());
+                     */
                 }
-
-                /*
-                 * if still not empty, poll the remote nodes, too
-                 */
-                if (!taskQueue.isEmpty()) {
-                    // TODO: find DistributableTasks in the queue and poll
-                    // remote nodes
-
-                }
-                
-                Task[] tq = taskQueue.toArray(new Task[0]);
-                for (Task t: tq) Logger.put("Task " + t.getTaskDescription() + " [" + t.getStatus() + "] finished " + t.getFinishedPercentage() + " error? " + t.getErrorMessage());
-
-                // TODO: update status in GUI - include all worker threads +
-                // threads in the queue
 
             }
 
@@ -167,15 +211,19 @@ public class TaskController implements Runnable {
 
     }
 
-    class TaskPriorityComparator implements Comparator<Task> {
+    class TaskPriorityComparator implements Comparator<WrappedTask> {
 
         /**
          * @see java.util.Comparator#compare(T, T)
          */
-        public int compare(Task arg0, Task arg1) {
-            // TODO: think about this
-            return arg0.getPriority().compareTo(arg1.getPriority());
+        public int compare(WrappedTask arg0, WrappedTask arg1) {
+            int result;
+            result = arg0.task.getPriority().compareTo(arg1.task.getPriority());
+            if (result == 0)
+                result = arg0.addedTime.compareTo(arg1.addedTime);
+            return result;
         }
 
     }
+
 }

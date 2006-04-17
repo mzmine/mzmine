@@ -23,7 +23,6 @@ package net.sf.mzmine.methods.alignment;
 import java.util.Hashtable;
 
 import net.sf.mzmine.obsoletedatastructures.RawDataAtNode;
-import net.sf.mzmine.obsoletedistributionframework.NodeServer;
 
 public interface GapFiller {
 
@@ -39,7 +38,7 @@ public interface GapFiller {
 	 * rawDataAtNode	Raw data file where the gaps should be filled
 	 * parameters		Parameters for the gap filler
 	 */
-	public Hashtable<Integer, double[]> fillGaps(NodeServer nodeServer, Hashtable<Integer, double[]> gapsToFill, RawDataAtNode rawData, GapFillerParameters parameters);
+	public Hashtable<Integer, double[]> fillGaps(Hashtable<Integer, double[]> gapsToFill, RawDataAtNode rawData, GapFillerParameters parameters);
 
 
 }

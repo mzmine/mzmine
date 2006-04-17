@@ -565,7 +565,7 @@ public class BatchModeDialog extends javax.swing.JInternalFrame implements Actio
 			if (cmbFiller1.getSelectedIndex()==0) { paramFiller1 = null; }
 			if (cmbNormalizer1.getSelectedIndex()==0) { paramNormalizer1 = null; }
 
-			mainWin.getClientForCluster().startBatch(	rawDataIDs,
+/*			mainWin.getClientForCluster().startBatch(	rawDataIDs,
 														paramFilter1,
 														paramFilter2,
 														paramFilter3,
@@ -576,7 +576,7 @@ public class BatchModeDialog extends javax.swing.JInternalFrame implements Actio
 														paramAlignmentFilter1,
 														paramFiller1,
 														paramNormalizer1	);
-
+*/
 		}
 
 		// Button CANCEL

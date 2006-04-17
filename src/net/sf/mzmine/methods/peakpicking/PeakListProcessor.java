@@ -19,10 +19,9 @@
 */
 package net.sf.mzmine.methods.peakpicking;
 import net.sf.mzmine.obsoletedatastructures.RawDataAtNode;
-import net.sf.mzmine.obsoletedistributionframework.NodeServer;
 
 public interface PeakListProcessor {
 
-	public PeakList processPeakList(NodeServer nodeServer, RawDataAtNode theData, PeakList peakList, PeakListProcessorParameters parameters);
+	public PeakList processPeakList(RawDataAtNode theData, PeakList peakList, PeakListProcessorParameters parameters);
 
 }

@@ -67,6 +67,8 @@ public class ItemSelector extends JPanel implements ListSelectionListener, Mouse
 	private int alignmentResultIDCount = 0;
 
 
+    
+
 	/**
 	 * Constructor
 	 */
@@ -97,10 +99,14 @@ public class ItemSelector extends JPanel implements ListSelectionListener, Mouse
 		resultList = new JList(resultObjects);
 		resultScroll = new JScrollPane(resultList);
 
+
+        
 		resultsPanel.setLayout(new BorderLayout());
 		resultsPanel.add(resultsTitle, BorderLayout.NORTH);
 		resultsPanel.add(resultScroll, BorderLayout.CENTER);
+
 		resultsPanel.setMinimumSize(new Dimension(150,10));
+        
 
 
 		// Add panels to a split and put split on the main panel
@@ -109,11 +115,12 @@ public class ItemSelector extends JPanel implements ListSelectionListener, Mouse
 
 		JSplitPane rawAndResultsSplit = new JSplitPane(JSplitPane.VERTICAL_SPLIT, rawDataPanel, resultsPanel);
 		add(rawAndResultsSplit, BorderLayout.CENTER);
-
+        
 		rawAndResultsSplit.setDividerLocation(230);
 
 		rawDataList.addListSelectionListener(this);
 		resultList.addListSelectionListener(this);
+
 
 
 		// Create a pop-up menu
@@ -255,7 +262,7 @@ public class ItemSelector extends JPanel implements ListSelectionListener, Mouse
 				for (int rawDataID : rawDataIDs) { mainWin.removeRawDataVisualizers(rawDataID); }
 
 				// Initiate close the raw data files on the cluster
-				mainWin.getClientForCluster().closeRawDataFiles(rawDataIDs);
+			//	mainWin.getClientForCluster().closeRawDataFiles(rawDataIDs);
 
 				mainWin.getStatusBar().setStatusText("Closing " + rawDataIDs.length + " raw data file(s).");
 
@@ -619,5 +626,6 @@ public class ItemSelector extends JPanel implements ListSelectionListener, Mouse
 		//mainWin.repaint();
 
 	}
+
 
 }
