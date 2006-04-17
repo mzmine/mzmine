@@ -48,13 +48,9 @@ public class TaskController implements Runnable {
 
     class WrappedTask {
         Task task;
-
         Date addedTime = new Date();
-
         TaskListener listener;
-
         boolean assigned = false;
-
         InetAddress node;
     }
 

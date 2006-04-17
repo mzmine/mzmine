@@ -20,6 +20,7 @@
 package net.sf.mzmine.io;
 
 import java.io.File;
+import java.util.Vector;
 
 import net.sf.mzmine.methods.Method;
 import net.sf.mzmine.methods.MethodParameters;
@@ -31,18 +32,25 @@ import net.sf.mzmine.methods.peakpicking.PeakList;
  * That includes original raw data files, temporary (processed) raw data files,
  * peak lists, alignment results.... 
  */
-public class MZmineFile {
+public class MZmineProject {
 
-    File originalFileName;
-    RawDataFile currentFile;
+    private RawDataFile currentFile;
+    private Vector<ProcessedFile> fileHistory;
+    
+    class ProcessedFile {
+        RawDataFile data;
+        Method processsingMethod;
+        MethodParameters parameters;
+    }
     
     public RawDataFile getCurrentFile() {
         return currentFile;
     }
  
-    MZmineFile(RawDataFile parsedFile) {
+    MZmineProject(RawDataFile parsedFile) {
         currentFile = parsedFile;
-        originalFileName = parsedFile.getFileName();
+        // originalFileName = parsedFile.getFileName();
+        fileHistory = new Vector<ProcessedFile>();
     }
     
     /**
@@ -50,14 +58,15 @@ public class MZmineFile {
      * @param newFile
      * @param methodParameters
      */
-    public void addNewCurrentFile(RawDataFile newFile, Method processingMethod, MethodParameters methodParameters) {
+    public void updateCurrentFile(RawDataFile newFile, Method processingMethod, MethodParameters methodParameters) {
         currentFile = newFile;
-        
+        ProcessedFile historyRecord = new ProcessedFile();
+        historyRecord.data = newFile;
+        historyRecord.processsingMethod = processingMethod;
+        historyRecord.parameters = methodParameters;
     }
     
-    public File getOriginalFileName() {
-        return originalFileName;
-    }
+
     
     public File[] getTemporaryFiles() {
         return null;

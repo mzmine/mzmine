@@ -121,12 +121,16 @@ public class TaskStatusWindow extends JInternalFrame {
         setDefaultCloseOperation(HIDE_ON_CLOSE);
         taskModel = new TaskModel();
         taskTable = new JTable(taskModel);
+        taskTable.setColumnSelectionAllowed(false);
+        taskTable.setRowSelectionAllowed(false);
+        taskTable.setCellSelectionEnabled(false);
         JScrollPane jJobScroll = new JScrollPane(taskTable);
         add(jJobScroll, java.awt.BorderLayout.CENTER);
         // setSize(200, 200);
         pack();
         
         JDesktopPane mainWinDesktop = w.getDesktop(); 
+        System.out.println(mainWinDesktop.getWidth() + " " + getWidth());
         // setLocation(mainWinDesktop.getWidth()/2-getWidth()/2, mainWinDesktop.getHeight()/2-getHeight()/2 );
 
         // mainWinDesktop.add(this);

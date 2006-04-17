@@ -3,7 +3,7 @@
  */
 package net.sf.mzmine.methods;
 
-import net.sf.mzmine.io.MZmineFile;
+import net.sf.mzmine.io.MZmineProject;
 
 /**
  *
@@ -15,6 +15,6 @@ public interface Method {
     
     public MethodParameters getParameters();
     
-    public void runMethod(MZmineFile[] files);
+    public void runMethod(MZmineProject[] files);
     
 }

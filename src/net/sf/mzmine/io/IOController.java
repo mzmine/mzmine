@@ -59,7 +59,7 @@ public class IOController implements TaskListener {
             /* TODO: determine file contents by header */
             extension = file.getName().substring(
                     file.getName().lastIndexOf(".") + 1).toLowerCase();
-            if (extension.endsWith("mzxml")) {
+            if (extension.endsWith("xml")) {
                 openTask = new MZXMLFileOpeningTask(file, preloadLevel);
                 TaskController.getInstance().addTask(openTask, this);
             } else if (extension.equals("cdf")) {
@@ -88,7 +88,7 @@ public class IOController implements TaskListener {
             try {
 
                 RawDataFile newFile = (RawDataFile) task.getResult();
-                MZmineFile newMZFile = new MZmineFile(newFile);
+                MZmineProject newMZFile = new MZmineProject(newFile);
                 // TODO:
                 // MainWindow.getInstance().getFileListComponent().addFile(
                 // newMZFile);

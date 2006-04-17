@@ -28,6 +28,7 @@ class WorkerThread extends Thread {
      *            The currentTask to set.
      */
     void setCurrentTask(Task currentTask) {
+        assert currentTask == null;
         this.currentTask = currentTask;
         synchronized(this) {
             notify();
@@ -69,6 +70,7 @@ class WorkerThread extends Thread {
                 Logger.putFatal("Unhandled exception while processing task "
                         + currentTask.getTaskDescription() + ": " + e);
                 e.printStackTrace();
+                // TODO: show a message box?
             }
 
             currentTask = null;

@@ -382,8 +382,9 @@ public class MainWindow extends JFrame implements WindowListener, ActionListener
 
 
 		updateMenuAvailability();
-
+		
 		pack();
+
 		setBounds(0,0, 800, 600);
 		setLocationRelativeTo(null);
 
@@ -394,6 +395,7 @@ public class MainWindow extends JFrame implements WindowListener, ActionListener
 
 		statBar.setStatusText("Welcome to MZmine!");
 
+        System.out.println(desktop.getWidth());
         taskList = new TaskStatusWindow(this);
         desktop.add(taskList, javax.swing.JLayeredPane.DEFAULT_LAYER);
 
