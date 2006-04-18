@@ -21,6 +21,7 @@
 package net.sf.mzmine.obsoletedatastructures;
 import java.io.File;
 import java.io.FileWriter;
+import java.io.IOException;
 import java.util.Hashtable;
 import java.util.StringTokenizer;
 import java.util.Vector;
@@ -29,6 +30,7 @@ import javax.xml.datatype.DatatypeFactory;
 import javax.xml.datatype.Duration;
 
 import net.iharder.xmlizable.Base64;
+import net.sf.mzmine.io.RawDataFile;
 import net.sf.mzmine.methods.filtering.MZXMLHandlerForPreload;
 import net.sf.mzmine.methods.filtering.MZXMLHandlerForRetrieve;
 import net.sf.mzmine.util.Logger;
@@ -45,7 +47,7 @@ import ucar.nc2.Variable;
 /**
  * This class represent raw data file as it is stored on a node
  */
-public class RawDataAtNode {
+public class RawDataAtNode implements RawDataFile {
 	public static final int FILETYPE_UNDETERMINED=-1;
 	public static final int FILETYPE_UNKNOWN=-2;
 	public static final int FILETYPE_NETCDF=1;
@@ -1445,6 +1447,78 @@ public class RawDataAtNode {
 		return 1;
 
 	}
+
+
+    /**
+     * @see net.sf.mzmine.io.RawDataFile#getFileName()
+     */
+    public File getFileName() {
+        // TODO Auto-generated method stub
+        return null;
+    }
+
+
+    /**
+     * @see net.sf.mzmine.io.RawDataFile#getNumOfScans()
+     */
+    public int getNumOfScans() {
+        // TODO Auto-generated method stub
+        return 0;
+    }
+
+
+    /**
+     * @see net.sf.mzmine.io.RawDataFile#getMSLevels()
+     */
+    public int[] getMSLevels() {
+        // TODO Auto-generated method stub
+        return null;
+    }
+
+
+    /**
+     * @see net.sf.mzmine.io.RawDataFile#getScanNumbers(int)
+     */
+    public int[] getScanNumbers(int msLevel) {
+        // TODO Auto-generated method stub
+        return null;
+    }
+
+
+    /**
+     * @see net.sf.mzmine.io.RawDataFile#getScan(int)
+     */
+    public net.sf.mzmine.io.Scan getScan(int scan) throws IOException {
+        // TODO Auto-generated method stub
+        return null;
+    }
+
+
+    /**
+     * @see net.sf.mzmine.io.RawDataFile#getDataDescription()
+     */
+    public String getDataDescription() {
+        // TODO Auto-generated method stub
+        return null;
+    }
+
+
+    /**
+     * @see net.sf.mzmine.io.RawDataFile#getDataMinMZ()
+     */
+    public double getDataMinMZ() {
+        // TODO Auto-generated method stub
+        return 0;
+    }
+
+
+    /**
+     * @see net.sf.mzmine.io.RawDataFile#getDataMaxMZ()
+     */
+    public double getDataMaxMZ() {
+        // TODO Auto-generated method stub
+        return 0;
+    }
 
 
 

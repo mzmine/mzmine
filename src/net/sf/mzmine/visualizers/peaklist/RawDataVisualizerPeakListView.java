@@ -17,7 +17,7 @@
     along with MZmine; if not, write to the Free Software
     Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 */
-package net.sf.mzmine.visualizers.rawdata;
+package net.sf.mzmine.visualizers.peaklist;
 import java.awt.BorderLayout;
 import java.awt.Graphics;
 import java.awt.event.ActionListener;
@@ -39,6 +39,7 @@ import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
 import javax.swing.table.AbstractTableModel;
 
+import net.sf.mzmine.io.RawDataFile;
 import net.sf.mzmine.methods.alignment.AlignmentResult;
 import net.sf.mzmine.methods.peakpicking.Peak;
 import net.sf.mzmine.methods.peakpicking.PeakList;
@@ -46,6 +47,7 @@ import net.sf.mzmine.obsoletedatastructures.RawDataAtClient;
 import net.sf.mzmine.userinterface.mainwindow.ItemSelector;
 import net.sf.mzmine.userinterface.mainwindow.MainWindow;
 import net.sf.mzmine.userinterface.mainwindow.Statusbar;
+import net.sf.mzmine.visualizers.RawDataVisualizer;
 import sunutils.TableSorter;
 
 
@@ -145,107 +147,10 @@ public class RawDataVisualizerPeakListView extends JInternalFrame implements Raw
 	}
 
 
-	/**
-	 * Asks if this visualizer needs some raw data for refreshing its view
-	 */
-	public RawDataVisualizerRefreshRequest beforeRefresh(RawDataVisualizerRefreshRequest refreshRequest) {
-		// Peak list visualizer never needs raw data
-		refreshRequest.peakListNeedsRawData = false;
-		return refreshRequest;
-	}
-
-
-	/**
-	 * Offers visualizer the data it requested
-	 */
-	public void afterRefresh(RawDataVisualizerRefreshResult refreshResult) {
-
-		int changeType = refreshResult.changeType;
-
-		// Peak list visualizer doesn't need anything from the raw data...
-		// But this is a good place to fill table with peak data, if peaks have changed
-
-		if ( (changeType!=RawDataVisualizer.CHANGETYPE_PEAKS) && (changeType!=RawDataVisualizer.CHANGETYPE_DATA) && (changeType!=RawDataVisualizer.CHANGETYPE_PEAKSANDDATA) && (!firstTimer) ) {
-			if (rawData.hasPeakData()) {
-				boolean previousState = getAutoRefresh();
-				setAutoRefresh(false);
-				selectedPeakID = rawData.getPeakList().getSelectedPeakID();
-
-				if (selectedPeakID != -1) {
-					selectPeakFromList(selectedPeakID);
-				} else {
-					table.clearSelection();
-				}
-
-				setAutoRefresh(true);
-			}
-			return;
-		}
-
-		firstTimer = false;
-
-		if (rawData.hasPeakData()) {
-
-			PeakList peakList = rawData.getPeakList();
-
-			Object[][] data = null;
-			String[] colNames = null;
 
 
 
 
-			data = new Object[peakList.getNumberOfPeaks()][COLCOUNT];
-			colNames = new String[COLCOUNT];
-			colNames[COL_PEAKID] = "ID";
-			colNames[COL_MZ] = "M/Z";
-			colNames[COL_RT] = "RT";
-			colNames[COL_HEIGHT] = "Height";
-			colNames[COL_AREA] = "Area";
-			colNames[COL_CHARGE] = "Charge";
-			colNames[COL_ISOTOPEPATTERNID] = "Isotope Pattern ID";
-			colNames[COL_ISOTOPEPEAKNUMBER] = "Isotope Peak #";
-			colNames[COL_DURATION] = "Duration";
-			colNames[COL_MZSTDEV] = "M/Z stdev";
-
-			Peak p;
-			Vector<Peak> ps = peakList.getPeaks();
-			Enumeration<Peak> pse = ps.elements();
-			int row = 0;
-			while (pse.hasMoreElements()) {
-				p = pse.nextElement();
-				data[row][COL_PEAKID] = new Integer(p.getPeakID());
-				data[row][COL_MZ] = new Double(p.getMZ());
-				data[row][COL_RT] = new Double(p.getRT());
-				data[row][COL_HEIGHT] = new Double(p.getHeight());
-				data[row][COL_AREA] = new Double(p.getArea());
-				data[row][COL_CHARGE] = new Integer(p.getChargeState());
-				data[row][COL_ISOTOPEPATTERNID] = new Integer(p.getIsotopePatternID());
-				data[row][COL_ISOTOPEPEAKNUMBER] = new Integer(p.getIsotopePeakNumber());
-				data[row][COL_DURATION] = new Double(rawData.getScanTime(p.getStopScanNumber()) - rawData.getScanTime(p.getStartScanNumber()));
-				data[row][COL_MZSTDEV] = new Double(p.getMZStdev());
-				row++;
-			}
-
-			AbstractTableModel mtm = new MyTableModel(data, colNames);
-
-			TableSorter sorter = new TableSorter(mtm);
-			table.getTableHeader().setReorderingAllowed(false);
-			sorter.addMouseListenerToHeaderInTable(table);
-			table.setModel(sorter);
-
-			selectedPeakID = peakList.getSelectedPeakID();
-			setAutoRefresh(false);
-			if (selectedPeakID != -1) {
-				selectPeakFromList(selectedPeakID);
-			} else {
-				table.clearSelection();
-			}
-			setAutoRefresh(true);
-			// setVisible(true);
-			// repaint();
-
-		}
-	}
 
 	public void printMe() {}
 
@@ -377,7 +282,7 @@ public class RawDataVisualizerPeakListView extends JInternalFrame implements Raw
 
 		rawData.setSelectionAroundPeak(p);
 
-		mainWin.startRefreshRawDataVisualizers(RawDataVisualizer.CHANGETYPE_SELECTION_BOTH, rawData.getRawDataID());
+//		mainWin.startRefreshRawDataVisualizers(RawDataVisualizer.CHANGETYPE_SELECTION_BOTH, rawData.getRawDataID());
 
 		/*
 		BackgroundThread bt = new BackgroundThread(mainWin, rawData, Visualizer.CHANGETYPE_SELECTION_BOTH, BackgroundThread.TASK_REFRESHVISUALIZERS);
@@ -414,7 +319,7 @@ public class RawDataVisualizerPeakListView extends JInternalFrame implements Raw
 						rawData.setCursorPositionByPeakID(peakID);
 						statBar.setCursorPosition(rawData);
 
-						mainWin.startRefreshRawDataVisualizers(RawDataVisualizer.CHANGETYPE_CURSORPOSITION_BOTH, rawData.getRawDataID());
+	//					mainWin.startRefreshRawDataVisualizers(RawDataVisualizer.CHANGETYPE_CURSORPOSITION_BOTH, rawData.getRawDataID());
 						/*
 						BackgroundThread bt = new BackgroundThread(mainWin, rawData, Visualizer.CHANGETYPE_CURSORPOSITION_SCAN, BackgroundThread.TASK_REFRESHVISUALIZERS);
 						bt.start();
@@ -481,6 +386,74 @@ public class RawDataVisualizerPeakListView extends JInternalFrame implements Raw
 		}
 
 	}
+
+
+
+
+
+    /**
+     * @see net.sf.mzmine.visualizers.RawDataVisualizer#getRawDataFile()
+     */
+    public RawDataFile getRawDataFile() {
+        // TODO Auto-generated method stub
+        return null;
+    }
+
+    /**
+     * @see net.sf.mzmine.visualizers.RawDataVisualizer#setRawDataFile(net.sf.mzmine.io.RawDataFile)
+     */
+    public void setRawDataFile(RawDataFile newFile) {
+        // TODO Auto-generated method stub
+        
+    }
+
+    /**
+     * @see net.sf.mzmine.visualizers.RawDataVisualizer#setMZRange(double, double)
+     */
+    public void setMZRange(double mzMin, double mzMax) {
+        // TODO Auto-generated method stub
+        
+    }
+
+    /**
+     * @see net.sf.mzmine.visualizers.RawDataVisualizer#setRTRange(double, double)
+     */
+    public void setRTRange(double rtMin, double rtMax) {
+        // TODO Auto-generated method stub
+        
+    }
+
+    /**
+     * @see net.sf.mzmine.visualizers.RawDataVisualizer#setMZPosition(double)
+     */
+    public void setMZPosition(double mz) {
+        // TODO Auto-generated method stub
+        
+    }
+
+    /**
+     * @see net.sf.mzmine.visualizers.RawDataVisualizer#setRTPosition(double)
+     */
+    public void setRTPosition(double rt) {
+        // TODO Auto-generated method stub
+        
+    }
+
+    /**
+     * @see net.sf.mzmine.visualizers.RawDataVisualizer#attachVisualizer(net.sf.mzmine.visualizers.RawDataVisualizer)
+     */
+    public void attachVisualizer(RawDataVisualizer visualizer) {
+        // TODO Auto-generated method stub
+        
+    }
+
+    /**
+     * @see net.sf.mzmine.visualizers.RawDataVisualizer#detachVisualizer(net.sf.mzmine.visualizers.RawDataVisualizer)
+     */
+    public void detachVisualizer(RawDataVisualizer visualizer) {
+        // TODO Auto-generated method stub
+        
+    }
 
 }
 

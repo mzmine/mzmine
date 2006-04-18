@@ -25,9 +25,9 @@ import net.sf.mzmine.visualizers.alignmentresult.AlignmentResultVisualizerCDAPlo
 import net.sf.mzmine.visualizers.alignmentresult.AlignmentResultVisualizerCoVarPlotView;
 import net.sf.mzmine.visualizers.alignmentresult.AlignmentResultVisualizerLogratioPlotView;
 import net.sf.mzmine.visualizers.alignmentresult.AlignmentResultVisualizerSammonsPlotView;
-import net.sf.mzmine.visualizers.rawdata.RawDataVisualizerSpectrumView;
-import net.sf.mzmine.visualizers.rawdata.RawDataVisualizerTICView;
-import net.sf.mzmine.visualizers.rawdata.RawDataVisualizerTwoDView;
+import net.sf.mzmine.visualizers.rawdata.spectra.RawDataVisualizerSpectrumView;
+import net.sf.mzmine.visualizers.rawdata.tic.RawDataVisualizerTICView;
+import net.sf.mzmine.visualizers.rawdata.twod.RawDataVisualizerTwoDView;
 import sunutils.ExampleFileFilter;
 
 /**
@@ -1074,7 +1074,7 @@ class MainMenu extends JMenuBar implements ActionListener {
          * (numOfResultsWithVisibleVisualizer(false)>0) ) {
          * windowTileWindows.setEnabled(true); }
          */
-        RawDataAtClient actRawData = itemSelector.getActiveRawData();
+        RawDataFile[] actRawData = itemSelector.getSelectedRawData();
         if (actRawData != null) {
             fileClose.setEnabled(true);
 
@@ -1089,7 +1089,7 @@ class MainMenu extends JMenuBar implements ActionListener {
 
             batDefine.setEnabled(true);
 
-            if (actRawData.hasPeakData()) {
+     /*       if (actRawData.hasPeakData()) {
                 ssSimpleDeisotoping.setEnabled(true);
                 // ssCombinatorialDeisotoping.setEnabled(true); DEBUG: Feature
                 // not yet ready
@@ -1098,7 +1098,7 @@ class MainMenu extends JMenuBar implements ActionListener {
                 tsJoinAligner.setEnabled(true);
                 tsFastAligner.setEnabled(true);
             }
-
+*/
             JInternalFrame activeWindow = mainWin.getDesktop()
                     .getSelectedFrame();
 

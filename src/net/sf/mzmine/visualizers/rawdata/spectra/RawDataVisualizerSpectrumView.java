@@ -17,7 +17,7 @@
     along with MZmine; if not, write to the Free Software
     Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 */
-package net.sf.mzmine.visualizers.rawdata;
+package net.sf.mzmine.visualizers.rawdata.spectra;
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Dimension;
@@ -45,6 +45,7 @@ import javax.swing.RepaintManager;
 import javax.swing.event.InternalFrameEvent;
 import javax.swing.event.InternalFrameListener;
 
+import net.sf.mzmine.io.RawDataFile;
 import net.sf.mzmine.methods.peakpicking.Peak;
 import net.sf.mzmine.obsoletedatastructures.RawDataAtClient;
 import net.sf.mzmine.userinterface.mainwindow.ItemSelector;
@@ -53,6 +54,7 @@ import net.sf.mzmine.userinterface.mainwindow.Statusbar;
 import net.sf.mzmine.util.FormatCoordinates;
 import net.sf.mzmine.util.GeneralParameters;
 import net.sf.mzmine.util.TransferableImage;
+import net.sf.mzmine.visualizers.RawDataVisualizer;
 
 
 public class RawDataVisualizerSpectrumView extends JInternalFrame implements RawDataVisualizer, Printable, InternalFrameListener {
@@ -138,158 +140,12 @@ public class RawDataVisualizerSpectrumView extends JInternalFrame implements Raw
 	}
 
 
-	public RawDataVisualizerRefreshRequest beforeRefresh(RawDataVisualizerRefreshRequest refreshRequest) {
-
-
-		// Change in MZ cursor, no need to refresh
-		if (refreshRequest.changeType==RawDataVisualizerTICView.CHANGETYPE_CURSORPOSITION_MZ) {
-			refreshRequest.spectrumNeedsRawData = false;
-			return refreshRequest;
-		}
-
-		// When in combination mode, change in RT cursor position (or both RT & MZ cursor pos.) doesn't need refreshing
-		if (spectrumSpectraMode==COMBINATION_SPECTRA_MODE) {
-			if (refreshRequest.changeType==RawDataVisualizerTICView.CHANGETYPE_CURSORPOSITION_SCAN) {
-				refreshRequest.spectrumNeedsRawData = false;
-				return refreshRequest;
-			}
-			if (refreshRequest.changeType==RawDataVisualizerTICView.CHANGETYPE_CURSORPOSITION_BOTH) {
-				refreshRequest.spectrumNeedsRawData = false;
-				return refreshRequest;
-			}
-
-		}
-
-		// There seems to be some need for refresh
-		refreshRequest.spectrumNeedsRawData = true;
-
-		// If MZ area is zoomed
-		if (rawData.getSelectionMZStart()!=-1) {
-			// then request datapoints within that MZ range
-			refreshRequest.spectrumStartMZ = rawData.getSelectionMZStart();
-			refreshRequest.spectrumStopMZ = rawData.getSelectionMZEnd();
-		} else {
-			// otherwise request datapoints within the whole MZ range of the raw data
-			refreshRequest.spectrumStartMZ = rawData.getDataMinMZ();
-			refreshRequest.spectrumStopMZ = rawData.getDataMaxMZ();
-		}
-
-		FormatCoordinates formatCoordinates = new FormatCoordinates(mainWin.getParameterStorage().getGeneralParameters());
-
-		if (spectrumSpectraMode==ONE_SPECTRUM_MODE) {
-			refreshRequest.spectrumMode = RawDataVisualizerRefreshRequest.MODE_SINGLESPECTRUM;
-			refreshRequest.spectrumStartScan = rawData.getCursorPositionScan();
-			refreshRequest.spectrumStopScan = rawData.getCursorPositionScan();
-
-
-			String tmps = formatCoordinates.formatRTValue(rawData.getCursorPositionScan(), rawData);
-			setTitle("" + rawData.getNiceName() + ": Spectrum, time " + tmps);
-
-		}
-
-		if (spectrumSpectraMode==COMBINATION_SPECTRA_MODE) {
-
-			refreshRequest.spectrumMode = RawDataVisualizerRefreshRequest.MODE_COMBINEDSPECTRA;
-
-			// If there is no selected scan range
-			if (rawData.getSelectionScanStart()==-1) {
-					// Then combine all available scans
-					refreshRequest.spectrumStartScan = 0;
-					refreshRequest.spectrumStopScan = rawData.getNumOfScans()-1; }
-			else {
-					// Othewise combine only scans insisde selection
-					refreshRequest.spectrumStartScan = rawData.getSelectionScanStart();
-					refreshRequest.spectrumStopScan = rawData.getSelectionScanEnd();
-			}
-
-			refreshRequest.spectrumXResolution = this.getWidth() - 50 -5;
-
-			String tmps_start = formatCoordinates.formatRTValue(refreshRequest.spectrumStartScan, rawData);
-			String tmps_end = formatCoordinates.formatRTValue(refreshRequest.spectrumStopScan, rawData);
-
-			setTitle("" + rawData.getNiceName() + ": Combination of spectra, from time " + tmps_start + " to " + tmps_end + "");
-
-		}
-
-		return refreshRequest;
-
-	}
-
-	public void afterRefresh(RawDataVisualizerRefreshResult refreshResult) {
-
-		// Change in MZ cursor, no need to refresh
-		if (refreshResult.changeType==RawDataVisualizerTICView.CHANGETYPE_CURSORPOSITION_MZ) { return; }
-
-
-		// When in combination mode, change in RT cursor position (or both RT & MZ cursor pos.) doesn't need refreshing
-		if (spectrumSpectraMode==COMBINATION_SPECTRA_MODE) {
-			if (refreshResult.changeType==RawDataVisualizerTICView.CHANGETYPE_CURSORPOSITION_SCAN) { return; }
-			if (refreshResult.changeType==RawDataVisualizerTICView.CHANGETYPE_CURSORPOSITION_BOTH) { return; }
-		}
-
-
-		if ( refreshResult.spectrumMZValues != null) {
-			// Update scale
-			spectraCombinationStartScan = refreshResult.spectrumCombinationStartScan;
-			spectraCombinationStopScan = refreshResult.spectrumCombinationStopScan;
-			scanPlot.setScale(refreshResult.spectrumMinMZValue,	refreshResult.spectrumMaxMZValue, 0, refreshResult.spectrumMaxIntensity);
-			((ScanXAxis)bottomPnl).setScale(refreshResult.spectrumMinMZValue, refreshResult.spectrumMaxMZValue);
-			((ScanYAxis)leftPnl).setScale(0, refreshResult.spectrumMaxIntensity);
-
-
-			// Update plot panels
-			scanPlot.setData(	refreshResult.spectrumMZValues,	refreshResult.spectrumIntensities);
-		}
-
-		// Peak handling (missing!)
-
-		if (rawData.hasPeakData()) {
-
-			double[] peakMZs = null;
-			double[] peakInts = null;
-
-			if (spectrumSpectraMode==ONE_SPECTRUM_MODE) {
-
-				Vector<Peak> peaks = rawData.getPeakList().getPeaksForScans(rawData.getCursorPositionScan(), rawData.getCursorPositionScan());
-				if (peaks!=null) {
-					peakMZs = new double[peaks.size()];
-					peakInts = new double[peaks.size()];
-					for (int pi=0; pi<peaks.size(); pi++) {
-						Peak p = peaks.get(pi);
-						peakMZs[pi] = p.getMZAtScan(rawData.getCursorPositionScan());
-						peakInts[pi] = p.getIntensityAtScan(rawData.getCursorPositionScan());
-					}
-				}
-			}
-			if (spectrumSpectraMode==COMBINATION_SPECTRA_MODE) {
-
-				Vector<Peak> peaks = rawData.getPeakList().getPeaksForScans(spectraCombinationStartScan, spectraCombinationStopScan);
-				if (peaks!=null) {
-					peakMZs = new double[peaks.size()];
-					peakInts = new double[peaks.size()];
-					for (int pi=0; pi<peaks.size(); pi++) {
-						Peak p = peaks.get(pi);
-						peakMZs[pi] = p.getMZ();
-						peakInts[pi] = p.getMedianIntensity();
-					}
-				}
-			}
-
-			scanPlot.setPeaks(peakMZs, peakInts);
-		}
-
-
-
-
-
-	}
-
 
 
 	private void setSpectrumSpectraMode(int _mode) {
 		spectrumSpectraMode = _mode;
 
-		mainWin.startRefreshRawDataVisualizers(RawDataVisualizer.CHANGETYPE_SELECTION_SCAN, rawData.getRawDataID());
+//		mainWin.startRefreshRawDataVisualizers(RawDataVisualizer.CHANGETYPE_SELECTION_SCAN, rawData.getRawDataID());
 
 		/*
 		BackgroundThread bt = new BackgroundThread(mainWin, msRun, this, Visualizer.CHANGETYPE_INTERNAL, BackgroundThread.TASK_REFRESHVISUALIZER);
@@ -666,7 +522,7 @@ public class RawDataVisualizerSpectrumView extends JInternalFrame implements Raw
 				mouseAreaEnd = rawData.getCursorPositionMZ();
 				zoomToSelectionMenuItem.setEnabled(false);
 
-				mainWin.startRefreshRawDataVisualizers(RawDataVisualizer.CHANGETYPE_SELECTION_MZ, rawData.getRawDataID());
+			//	mainWin.startRefreshRawDataVisualizers(RawDataVisualizer.CHANGETYPE_SELECTION_MZ, rawData.getRawDataID());
 
 				/*
 				BackgroundThread bt = new BackgroundThread(mainWin, msRun, Visualizer.CHANGETYPE_SELECTION_MZ, BackgroundThread.TASK_REFRESHVISUALIZERS);
@@ -680,7 +536,7 @@ public class RawDataVisualizerSpectrumView extends JInternalFrame implements Raw
 				mouseAreaStart = rawData.getCursorPositionMZ();
 				mouseAreaEnd = rawData.getCursorPositionMZ();
 
-				mainWin.startRefreshRawDataVisualizers(RawDataVisualizer.CHANGETYPE_SELECTION_MZ, rawData.getRawDataID());
+		//		mainWin.startRefreshRawDataVisualizers(RawDataVisualizer.CHANGETYPE_SELECTION_MZ, rawData.getRawDataID());
 
 				/*
 				BackgroundThread bt = new BackgroundThread(mainWin, msRun, Visualizer.CHANGETYPE_SELECTION_MZ, BackgroundThread.TASK_REFRESHVISUALIZERS);
@@ -710,7 +566,7 @@ public class RawDataVisualizerSpectrumView extends JInternalFrame implements Raw
 				mouseAreaStart = rawData.getCursorPositionMZ();
 				mouseAreaEnd = rawData.getCursorPositionMZ();
 
-				mainWin.startRefreshRawDataVisualizers(RawDataVisualizer.CHANGETYPE_SELECTION_MZ, rawData.getRawDataID());
+	//			mainWin.startRefreshRawDataVisualizers(RawDataVisualizer.CHANGETYPE_SELECTION_MZ, rawData.getRawDataID());
 
 				/*
 				BackgroundThread bt = new BackgroundThread(mainWin, msRun, Visualizer.CHANGETYPE_SELECTION_MZ, BackgroundThread.TASK_REFRESHVISUALIZERS);
@@ -790,7 +646,7 @@ public class RawDataVisualizerSpectrumView extends JInternalFrame implements Raw
 				rawData.setCursorPositionMZ(xpos);
 				statBar.setCursorPositionMZ(xpos);
 
-				mainWin.startRefreshRawDataVisualizers(RawDataVisualizer.CHANGETYPE_CURSORPOSITION_MZ, rawData.getRawDataID());
+		//		mainWin.startRefreshRawDataVisualizers(RawDataVisualizer.CHANGETYPE_CURSORPOSITION_MZ, rawData.getRawDataID());
 
 				/*
 				BackgroundThread bt = new BackgroundThread(mainWin, msRun, Visualizer.CHANGETYPE_CURSORPOSITION_MZ, BackgroundThread.TASK_REFRESHVISUALIZERS);
@@ -979,5 +835,70 @@ public class RawDataVisualizerSpectrumView extends JInternalFrame implements Raw
 		}
 
 	}
+
+
+    /**
+     * @see net.sf.mzmine.visualizers.RawDataVisualizer#getRawDataFile()
+     */
+    public RawDataFile getRawDataFile() {
+        // TODO Auto-generated method stub
+        return null;
+    }
+
+    /**
+     * @see net.sf.mzmine.visualizers.RawDataVisualizer#setRawDataFile(net.sf.mzmine.io.RawDataFile)
+     */
+    public void setRawDataFile(RawDataFile newFile) {
+        // TODO Auto-generated method stub
+        
+    }
+
+    /**
+     * @see net.sf.mzmine.visualizers.RawDataVisualizer#setMZRange(double, double)
+     */
+    public void setMZRange(double mzMin, double mzMax) {
+        // TODO Auto-generated method stub
+        
+    }
+
+    /**
+     * @see net.sf.mzmine.visualizers.RawDataVisualizer#setRTRange(double, double)
+     */
+    public void setRTRange(double rtMin, double rtMax) {
+        // TODO Auto-generated method stub
+        
+    }
+
+    /**
+     * @see net.sf.mzmine.visualizers.RawDataVisualizer#setMZPosition(double)
+     */
+    public void setMZPosition(double mz) {
+        // TODO Auto-generated method stub
+        
+    }
+
+    /**
+     * @see net.sf.mzmine.visualizers.RawDataVisualizer#setRTPosition(double)
+     */
+    public void setRTPosition(double rt) {
+        // TODO Auto-generated method stub
+        
+    }
+
+    /**
+     * @see net.sf.mzmine.visualizers.RawDataVisualizer#attachVisualizer(net.sf.mzmine.visualizers.RawDataVisualizer)
+     */
+    public void attachVisualizer(RawDataVisualizer visualizer) {
+        // TODO Auto-generated method stub
+        
+    }
+
+    /**
+     * @see net.sf.mzmine.visualizers.RawDataVisualizer#detachVisualizer(net.sf.mzmine.visualizers.RawDataVisualizer)
+     */
+    public void detachVisualizer(RawDataVisualizer visualizer) {
+        // TODO Auto-generated method stub
+        
+    }
 
 }

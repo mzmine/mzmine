@@ -43,7 +43,6 @@ import net.sf.mzmine.userinterface.mainwindow.ItemSelector;
 import net.sf.mzmine.userinterface.mainwindow.MainWindow;
 import net.sf.mzmine.userinterface.mainwindow.Statusbar;
 import net.sf.mzmine.util.GeneralParameters;
-import net.sf.mzmine.visualizers.rawdata.RawDataVisualizer;
 import sunutils.TableSorter;
 
 
@@ -410,7 +409,7 @@ public class AlignmentResultVisualizerList extends JInternalFrame implements Ali
 			}
 
 			// Refresh visualizers
-			mainWin.startRefreshRawDataVisualizers(RawDataVisualizer.CHANGETYPE_SELECTION_BOTH, rawDataIDs);
+		//	mainWin.startRefreshRawDataVisualizers(RawDataVisualizer.CHANGETYPE_SELECTION_BOTH, rawDataIDs);
 			/*
 			if 	(!(r.visualizersAreHidden())) {
 				BackgroundThread bt = new BackgroundThread(mainWin, r, Visualizer.CHANGETYPE_SELECTION_BOTH, BackgroundThread.TASK_REFRESHVISUALIZERS);

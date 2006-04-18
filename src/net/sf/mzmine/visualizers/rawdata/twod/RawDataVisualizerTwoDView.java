@@ -17,7 +17,7 @@
     along with MZmine; if not, write to the Free Software
     Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 */
-package net.sf.mzmine.visualizers.rawdata;
+package net.sf.mzmine.visualizers.rawdata.twod;
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Dimension;
@@ -51,6 +51,7 @@ import javax.swing.RepaintManager;
 import javax.swing.event.InternalFrameEvent;
 import javax.swing.event.InternalFrameListener;
 
+import net.sf.mzmine.io.RawDataFile;
 import net.sf.mzmine.methods.peakpicking.Peak;
 import net.sf.mzmine.obsoletedatastructures.RawDataAtClient;
 import net.sf.mzmine.userinterface.mainwindow.ItemSelector;
@@ -59,6 +60,7 @@ import net.sf.mzmine.userinterface.mainwindow.Statusbar;
 import net.sf.mzmine.util.FormatCoordinates;
 import net.sf.mzmine.util.HeatMapColorPicker;
 import net.sf.mzmine.util.TransferableImage;
+import net.sf.mzmine.visualizers.RawDataVisualizer;
 
 
 
@@ -169,156 +171,6 @@ public class RawDataVisualizerTwoDView extends JInternalFrame implements RawData
 	}
 
 
-
-	public RawDataVisualizerRefreshRequest beforeRefresh(RawDataVisualizerRefreshRequest refreshRequest) {
-
-		// If this it not the very first refresh for the visualizer, it is not necessary to get any raw data for some change types
-		if (firstRefreshAlreadyDone) {
-			// Change in cursor position doesn't require refresh
-			if 	(	(	(refreshRequest.changeType==RawDataVisualizer.CHANGETYPE_CURSORPOSITION_SCAN) ||
-						(refreshRequest.changeType==RawDataVisualizer.CHANGETYPE_CURSORPOSITION_MZ) ||
-						(refreshRequest.changeType==RawDataVisualizer.CHANGETYPE_CURSORPOSITION_BOTH)
-					))	{
-							refreshRequest.twodNeedsRawData = false;
-							return refreshRequest;
-						}
-
-			if (	(refreshRequest.changeType==RawDataVisualizer.CHANGETYPE_PEAKS)	)
-					{
-						refreshRequest.twodNeedsRawData = false;
-						return refreshRequest;
-					}
-		}
-
-		firstRefreshAlreadyDone = true;
-
-		// Some refresh is necessary
-		refreshRequest.twodNeedsRawData = true;
-
-		// Set window title
-		setTitle("" + rawData.getNiceName() + ": 2D-view");
-
-
-		// Preliminary image resolution (these would be optimal for GUI)
-		refreshRequest.twodXResolution = this.getWidth()-100-5;
-		refreshRequest.twodYResolution = this.getHeight()-25-5;
-
-
-		// Determine first and last scan required for the refresh
-		int numscans;
-		if (rawData.getSelectionScanStart()!=-1) {
-			numscans = rawData.getSelectionScanEnd()-rawData.getSelectionScanStart()+1;
-			refreshRequest.twodStartScan = rawData.getSelectionScanStart();
-			refreshRequest.twodStopScan = rawData.getSelectionScanEnd();
-		} else {
-			numscans = rawData.getNumOfScans();
-			refreshRequest.twodStartScan = 0;
-			refreshRequest.twodStopScan = numscans-1;
-		}
-
-
-		// Adjust image x resolution to final value (suitable resolution depends on number of scans)
-		if (numscans<refreshRequest.twodXResolution) {
-			refreshRequest.twodXResolution = numscans;
-			refreshRequest.twodScansPerX = 1;
-		} else {
-			refreshRequest.twodScansPerX = (int)java.lang.Math.ceil((double)numscans / (double)refreshRequest.twodXResolution);
-			refreshRequest.twodXResolution = (int)java.lang.Math.ceil((double)numscans / (double)refreshRequest.twodScansPerX);
-		}
-
-
-		// Determine MZ range
-		if (rawData.getSelectionMZStart()!=-1) {
-			refreshRequest.twodStartMZ = rawData.getSelectionMZStart();
-			refreshRequest.twodStopMZ = rawData.getSelectionMZEnd();
-		} else {
-			refreshRequest.twodStartMZ = rawData.getDataMinMZ();
-			refreshRequest.twodStopMZ = rawData.getDataMaxMZ();
-		}
-
-		return refreshRequest;
-
-	}
-
-
-	public void afterRefresh(RawDataVisualizerRefreshResult refreshResult) {
-
-		// Changes in cursor position do not need any refreshing
-		if 	(	(refreshResult.changeType==RawDataVisualizer.CHANGETYPE_CURSORPOSITION_SCAN) ||
-				(refreshResult.changeType==RawDataVisualizer.CHANGETYPE_CURSORPOSITION_MZ) ||
-				(refreshResult.changeType==RawDataVisualizer.CHANGETYPE_CURSORPOSITION_BOTH)) {
-			return;
-		}
-
-
-		// Determine plot range
-		// --------------------
-
-		int dataStartScan, dataStopScan;
-		double dataStartMZ, dataStopMZ;
-
-		// - scan range
-		if (rawData.getSelectionScanStart()!=-1) {
-			dataStartScan = rawData.getSelectionScanStart();
-			dataStopScan = rawData.getSelectionScanEnd();
-		} else {
-			dataStartScan = 0;
-			dataStopScan = rawData.getNumOfScans()-1;
-		}
-
-		// - MZ range
-		if (rawData.getSelectionMZStart()!=-1) {
-			dataStartMZ = rawData.getSelectionMZStart();
-			dataStopMZ = rawData.getSelectionMZEnd();
-		} else {
-			dataStartMZ = rawData.getDataMinMZ();
-			dataStopMZ = rawData.getDataMaxMZ();
-		}
-
-		twodPlot.setScale(dataStartScan, dataStopScan, dataStartMZ, dataStopMZ);
-		((TwoDYAxis)leftPnl).setScale(dataStartMZ, dataStopMZ);
-		((TwoDXAxis)bottomPnl).setScale(dataStartScan, dataStopScan);
-
-
-
-		// Update 2d-image, if data available
-		// ----------------------------------
-		if (refreshResult.twodMatrix != null) {
-
-			bitmapMatrix = refreshResult.twodMatrix;
-			bitmapWidth = refreshResult.twodMatrixWidth;
-			bitmapHeight = refreshResult.twodMatrixHeight;
-			bitmapMaxIntensity = refreshResult.twodMaxIntensity;
-			bitmapMinIntensity = refreshResult.twodMinIntensity;
-			dataMaxIntensity = refreshResult.twodDataMaxIntensity;
-
-			BufferedImage bi = createBufferedImage();
-
-			twodPlot.setImage(bi);
-		}
-
-
-		// Update peak information, if data available
-		// ------------------------------------------
-
-		if (rawData.hasPeakData()) {
-			Vector<Peak> peaksInsideRange = null;
-			Vector<double[]> isotopeBoxesInsideRange = null;
-
-			if (rawData.getSelectionScanStart()!=-1) {
-				peaksInsideRange = rawData.getPeakList().getPeaksForScans(rawData.getSelectionScanStart(), rawData.getSelectionScanEnd());
-				isotopeBoxesInsideRange = rawData.getPeakList().getIsotopePatternBoundingBoxesForScans(rawData.getSelectionScanStart(), rawData.getSelectionScanEnd());
-			} else {
-				peaksInsideRange = rawData.getPeakList().getPeaksForScans(0, rawData.getNumOfScans()-1);
-				isotopeBoxesInsideRange = rawData.getPeakList().getIsotopePatternBoundingBoxesForScans(0, rawData.getNumOfScans()-1);
-			}
-
-			twodPlot.setPeaks(peaksInsideRange);
-			twodPlot.setIsotopeBoxes(isotopeBoxesInsideRange);
-
-		}
-
-	}
 
 	public void adjustBitmapPalette() {
 
@@ -771,7 +623,7 @@ public class RawDataVisualizerTwoDView extends JInternalFrame implements RawData
 				mouseAreaStartMZ = rawData.getCursorPositionMZ();
 				mouseAreaEndMZ = rawData.getCursorPositionMZ();
 
-				mainWin.startRefreshRawDataVisualizers(RawDataVisualizer.CHANGETYPE_SELECTION_BOTH, rawData.getRawDataID());
+		//		mainWin.startRefreshRawDataVisualizers(RawDataVisualizer.CHANGETYPE_SELECTION_BOTH, rawData.getRawDataID());
 
 				/*
 				BackgroundThread bt = new BackgroundThread(mainWin, msRun, Visualizer.CHANGETYPE_SELECTION_BOTH, BackgroundThread.TASK_REFRESHVISUALIZERS);
@@ -790,7 +642,7 @@ public class RawDataVisualizerTwoDView extends JInternalFrame implements RawData
 				mouseAreaStartMZ = rawData.getCursorPositionMZ();
 				mouseAreaEndMZ = rawData.getCursorPositionMZ();
 
-				mainWin.startRefreshRawDataVisualizers(RawDataVisualizer.CHANGETYPE_SELECTION_BOTH, rawData.getRawDataID());
+			//	mainWin.startRefreshRawDataVisualizers(RawDataVisualizer.CHANGETYPE_SELECTION_BOTH, rawData.getRawDataID());
 
 				/*
 				BackgroundThread bt = new BackgroundThread(mainWin, msRun, Visualizer.CHANGETYPE_SELECTION_BOTH, BackgroundThread.TASK_REFRESHVISUALIZERS);
@@ -830,7 +682,7 @@ public class RawDataVisualizerTwoDView extends JInternalFrame implements RawData
 				rawData.setSelection(tmpMinX, tmpMaxX, tmpMinY, tmpMaxY);
 
 
-				mainWin.startRefreshRawDataVisualizers(RawDataVisualizer.CHANGETYPE_SELECTION_BOTH, rawData.getRawDataID());
+		//		mainWin.startRefreshRawDataVisualizers(RawDataVisualizer.CHANGETYPE_SELECTION_BOTH, rawData.getRawDataID());
 
 				/*
 				BackgroundThread bt = new BackgroundThread(mainWin, msRun, Visualizer.CHANGETYPE_SELECTION_BOTH, BackgroundThread.TASK_REFRESHVISUALIZERS);
@@ -850,9 +702,9 @@ public class RawDataVisualizerTwoDView extends JInternalFrame implements RawData
 				double pixelHorizontal = (rawData.getScanTime(maxX)-rawData.getScanTime(minX)) / bi.getWidth();
 				double MZvsScanNum = pixelVertical / pixelHorizontal;
 
-				int changeType = rawData.selectNearestPeak(rawData.getCursorPositionMZ(), rawData.getCursorPositionScan(), MZvsScanNum);
+		//		int changeType = rawData.selectNearestPeak(rawData.getCursorPositionMZ(), rawData.getCursorPositionScan(), MZvsScanNum);
 
-				mainWin.startRefreshRawDataVisualizers(changeType, rawData.getRawDataID());
+		//		mainWin.startRefreshRawDataVisualizers(changeType, rawData.getRawDataID());
 			}
 
 			if (src == setPalLin1MenuItem) {
@@ -974,7 +826,7 @@ public class RawDataVisualizerTwoDView extends JInternalFrame implements RawData
 
 				int[] tmpRawDataIDs = new int[1];
 				tmpRawDataIDs[0] = rawData.getRawDataID();
-				mainWin.startRefreshRawDataVisualizers(RawDataVisualizer.CHANGETYPE_CURSORPOSITION_BOTH, tmpRawDataIDs);
+		//		mainWin.startRefreshRawDataVisualizers(RawDataVisualizer.CHANGETYPE_CURSORPOSITION_BOTH, tmpRawDataIDs);
 
 				//msRun.refreshVisualizers(Visualizer.CHANGETYPE_CURSORPOSITION_BOTH, statBar);
 		    }
@@ -1184,6 +1036,72 @@ public class RawDataVisualizerTwoDView extends JInternalFrame implements RawData
 		}
 
 	}
+
+
+
+    /**
+     * @see net.sf.mzmine.visualizers.RawDataVisualizer#getRawDataFile()
+     */
+    public RawDataFile getRawDataFile() {
+        // TODO Auto-generated method stub
+        return null;
+    }
+
+    /**
+     * @see net.sf.mzmine.visualizers.RawDataVisualizer#setRawDataFile(net.sf.mzmine.io.RawDataFile)
+     */
+    public void setRawDataFile(RawDataFile newFile) {
+        // TODO Auto-generated method stub
+        
+    }
+
+    /**
+     * @see net.sf.mzmine.visualizers.RawDataVisualizer#setMZRange(double, double)
+     */
+    public void setMZRange(double mzMin, double mzMax) {
+        // TODO Auto-generated method stub
+        
+    }
+
+    /**
+     * @see net.sf.mzmine.visualizers.RawDataVisualizer#setRTRange(double, double)
+     */
+    public void setRTRange(double rtMin, double rtMax) {
+        // TODO Auto-generated method stub
+        
+    }
+
+    /**
+     * @see net.sf.mzmine.visualizers.RawDataVisualizer#setMZPosition(double)
+     */
+    public void setMZPosition(double mz) {
+        // TODO Auto-generated method stub
+        
+    }
+
+    /**
+     * @see net.sf.mzmine.visualizers.RawDataVisualizer#setRTPosition(double)
+     */
+    public void setRTPosition(double rt) {
+        // TODO Auto-generated method stub
+        
+    }
+
+    /**
+     * @see net.sf.mzmine.visualizers.RawDataVisualizer#attachVisualizer(net.sf.mzmine.visualizers.RawDataVisualizer)
+     */
+    public void attachVisualizer(RawDataVisualizer visualizer) {
+        // TODO Auto-generated method stub
+        
+    }
+
+    /**
+     * @see net.sf.mzmine.visualizers.RawDataVisualizer#detachVisualizer(net.sf.mzmine.visualizers.RawDataVisualizer)
+     */
+    public void detachVisualizer(RawDataVisualizer visualizer) {
+        // TODO Auto-generated method stub
+        
+    }
 
 
 

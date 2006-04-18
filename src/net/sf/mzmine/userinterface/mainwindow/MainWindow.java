@@ -21,80 +21,24 @@ package net.sf.mzmine.userinterface.mainwindow;
 
 import java.awt.BorderLayout;
 import java.awt.Container;
-import java.awt.Cursor;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
-import java.awt.event.KeyEvent;
-import java.awt.event.MouseAdapter;
 import java.awt.event.WindowEvent;
 import java.awt.event.WindowListener;
-import java.io.File;
 import java.util.Enumeration;
 import java.util.Hashtable;
-import java.util.StringTokenizer;
 import java.util.Vector;
 
 import javax.swing.JDesktopPane;
-import javax.swing.JFileChooser;
 import javax.swing.JFrame;
 import javax.swing.JInternalFrame;
-import javax.swing.JMenu;
-import javax.swing.JMenuBar;
-import javax.swing.JMenuItem;
 import javax.swing.JOptionPane;
 import javax.swing.JSplitPane;
-import javax.swing.KeyStroke;
 
-import net.sf.mzmine.io.IOController;
-import net.sf.mzmine.io.RawDataFile.PreloadLevel;
 import net.sf.mzmine.methods.alignment.AlignmentResult;
-import net.sf.mzmine.methods.alignment.AlignmentResultExporter;
-import net.sf.mzmine.methods.alignment.AlignmentResultExporterParameterSetupDialog;
-import net.sf.mzmine.methods.alignment.AlignmentResultExporterParameters;
-import net.sf.mzmine.methods.alignment.AlignmentResultFilterByGaps;
-import net.sf.mzmine.methods.alignment.AlignmentResultFilterByGapsParameters;
-import net.sf.mzmine.methods.alignment.AlignmentResultProcessorParameters;
-import net.sf.mzmine.methods.alignment.FastAligner;
-import net.sf.mzmine.methods.alignment.FastAlignerParameters;
-import net.sf.mzmine.methods.alignment.JoinAligner;
-import net.sf.mzmine.methods.alignment.JoinAlignerParameters;
-import net.sf.mzmine.methods.alignment.LinearNormalizer;
-import net.sf.mzmine.methods.alignment.LinearNormalizerParameters;
-import net.sf.mzmine.methods.alignment.SimpleGapFiller;
-import net.sf.mzmine.methods.alignment.SimpleGapFillerParameters;
-import net.sf.mzmine.methods.alignment.StandardCompoundNormalizer;
-import net.sf.mzmine.methods.alignment.StandardCompoundNormalizerParameters;
-import net.sf.mzmine.methods.filtering.ChromatographicMedianFilter;
-import net.sf.mzmine.methods.filtering.ChromatographicMedianFilterParameters;
-import net.sf.mzmine.methods.filtering.CropFilter;
-import net.sf.mzmine.methods.filtering.CropFilterParameters;
-import net.sf.mzmine.methods.filtering.MeanFilter;
-import net.sf.mzmine.methods.filtering.MeanFilterParameters;
-import net.sf.mzmine.methods.filtering.SavitzkyGolayFilter;
-import net.sf.mzmine.methods.filtering.SavitzkyGolayFilterParameters;
-import net.sf.mzmine.methods.filtering.ZoomScanFilter;
-import net.sf.mzmine.methods.filtering.ZoomScanFilterParameters;
-import net.sf.mzmine.methods.peakpicking.CentroidPicker;
-import net.sf.mzmine.methods.peakpicking.CentroidPickerParameters;
-import net.sf.mzmine.methods.peakpicking.CombinatorialDeisotoper;
-import net.sf.mzmine.methods.peakpicking.CombinatorialDeisotoperParameters;
-import net.sf.mzmine.methods.peakpicking.IncompleteIsotopePatternFilter;
-import net.sf.mzmine.methods.peakpicking.IncompleteIsotopePatternFilterParameters;
-import net.sf.mzmine.methods.peakpicking.LocalPicker;
-import net.sf.mzmine.methods.peakpicking.LocalPickerParameters;
-import net.sf.mzmine.methods.peakpicking.PeakList;
-import net.sf.mzmine.methods.peakpicking.PeakListExporter;
-import net.sf.mzmine.methods.peakpicking.RecursiveThresholdPicker;
-import net.sf.mzmine.methods.peakpicking.RecursiveThresholdPickerParameters;
-import net.sf.mzmine.methods.peakpicking.SimpleDeisotoper;
-import net.sf.mzmine.methods.peakpicking.SimpleDeisotoperParameters;
 import net.sf.mzmine.obsoletedatastructures.RawDataAtClient;
-import net.sf.mzmine.userinterface.dialogs.AboutDialog;
-import net.sf.mzmine.userinterface.dialogs.BatchModeDialog;
-import net.sf.mzmine.userinterface.dialogs.OptionsWindow;
 import net.sf.mzmine.userinterface.dialogs.TaskProgressWindow;
 import net.sf.mzmine.util.GeneralParameters;
 import net.sf.mzmine.util.ParameterStorage;
+import net.sf.mzmine.visualizers.RawDataVisualizer;
 import net.sf.mzmine.visualizers.alignmentresult.AlignmentResultVisualizer;
 import net.sf.mzmine.visualizers.alignmentresult.AlignmentResultVisualizerCDAPlotView;
 import net.sf.mzmine.visualizers.alignmentresult.AlignmentResultVisualizerCDAPlotViewParameters;
@@ -103,14 +47,10 @@ import net.sf.mzmine.visualizers.alignmentresult.AlignmentResultVisualizerList;
 import net.sf.mzmine.visualizers.alignmentresult.AlignmentResultVisualizerLogratioPlotView;
 import net.sf.mzmine.visualizers.alignmentresult.AlignmentResultVisualizerSammonsPlotView;
 import net.sf.mzmine.visualizers.alignmentresult.AlignmentResultVisualizerSammonsPlotViewParameters;
-import net.sf.mzmine.visualizers.rawdata.RawDataVisualizer;
-import net.sf.mzmine.visualizers.rawdata.RawDataVisualizerPeakListView;
-import net.sf.mzmine.visualizers.rawdata.RawDataVisualizerRefreshRequest;
-import net.sf.mzmine.visualizers.rawdata.RawDataVisualizerRefreshResult;
-import net.sf.mzmine.visualizers.rawdata.RawDataVisualizerSpectrumView;
-import net.sf.mzmine.visualizers.rawdata.RawDataVisualizerTICView;
-import net.sf.mzmine.visualizers.rawdata.RawDataVisualizerTwoDView;
-import sunutils.ExampleFileFilter;
+import net.sf.mzmine.visualizers.peaklist.RawDataVisualizerPeakListView;
+import net.sf.mzmine.visualizers.rawdata.spectra.RawDataVisualizerSpectrumView;
+import net.sf.mzmine.visualizers.rawdata.tic.RawDataVisualizerTICView;
+import net.sf.mzmine.visualizers.rawdata.twod.RawDataVisualizerTwoDView;
 
 /**
  * This class is the main window of application
@@ -196,7 +136,7 @@ public class MainWindow extends JFrame implements WindowListener {
         statBar = new Statusbar(this);
 
         // Initialize item selector
-        itemSelector = new ItemSelector(this);
+        itemSelector = new ItemSelector();
 
         // Initialize method parameter storage (and default parameter values
         // too)
@@ -328,23 +268,7 @@ public class MainWindow extends JFrame implements WindowListener {
 
     }
 
-    /**
-     * Calculates number of raw data files with one or more visible visualizer
-     * windows
-     */
-    private int numOfRawDataWithVisibleVisualizer(boolean includeIcons) {
 
-        int num = 0;
-        int[] allRawDataIDs = itemSelector.getRawDataIDs();
-
-        for (int id : allRawDataIDs) {
-            if (rawDataHasVisibleVisualizers(id, includeIcons)) {
-                num++;
-            }
-        }
-
-        return num;
-    }
 
     /**
      * Checks if a raw data file has one or more visible visualizers
@@ -450,8 +374,8 @@ public class MainWindow extends JFrame implements WindowListener {
 
         // Calculate number of raw data files and alignment results with one or
         // more open visualizer windows
-        int numViewableRawDataFiles = numOfRawDataWithVisibleVisualizer(false);
-        int numViewableResults = numOfResultsWithVisibleVisualizer(false);
+        int numViewableRawDataFiles = 0; // numOfRawDataWithVisibleVisualizer(false);
+        int numViewableResults = 0; // numOfResultsWithVisibleVisualizer(false);
 
         // Arrange visualizers for raw data files
         if (numViewableRawDataFiles > 0) {
@@ -474,7 +398,7 @@ public class MainWindow extends JFrame implements WindowListener {
             // Enumeration<Vector<RawDataVisualizer>> allVisualizerVectors =
             // rawDataVisualizers.elements();
             // while (allVisualizerVectors.hasMoreElements()) {
-            int rawDataIDs[] = getItemSelector().getRawDataIDs();
+            int rawDataIDs[] = null; // getItemSelector().getRawDataIDs();
             for (int rawDataID : rawDataIDs) {
 
                 RawDataAtClient rawData = getItemSelector().getRawDataByID(
@@ -801,233 +725,7 @@ public class MainWindow extends JFrame implements WindowListener {
         }
     }
 
-    /**
-     * This method refreshes all visualizer for listed raw data files
-     */
-    public void startRefreshRawDataVisualizers(int changeType, int[] rawDataIDs) {
-
-        // Loop through all raw data files
-        Vector<RawDataVisualizerRefreshRequest> refreshRequestsV = new Vector<RawDataVisualizerRefreshRequest>();
-        for (int i = 0; i < rawDataIDs.length; i++) {
-
-            // Ask refresh request for a raw data file
-            RawDataVisualizerRefreshRequest refreshRequest = getRefreshRequestForRawData(
-                    changeType, rawDataIDs[i]);
-
-            // If some visualizer need refresh, then add this request into
-            // vector
-            if ((refreshRequest.ticNeedsRawData == true)
-                    || (refreshRequest.spectrumNeedsRawData == true)
-                    || (refreshRequest.twodNeedsRawData == true)) {
-                refreshRequestsV.add(refreshRequest);
-            }
-
-        }
-
-        // If some raw data file needed refresh
-        if (refreshRequestsV.size() > 0) {
-
-            // Then ask client for cluster to initiate a refresh task on those
-            // raw data files
-            RawDataVisualizerRefreshRequest[] refreshRequestsA = new RawDataVisualizerRefreshRequest[refreshRequestsV
-                    .size()];
-            refreshRequestsA = refreshRequestsV.toArray(refreshRequestsA);
-            // clientForCluster.refreshVisualizers(refreshRequestsA);
-
-        } else {
-            // else call afterRefresh-method of every visualizer
-
-            // Create empty refresh result
-            RawDataVisualizerRefreshResult emptyRefreshResult = new RawDataVisualizerRefreshResult();
-            emptyRefreshResult.changeType = changeType;
-
-            // Call every involved raw data visualizer's afterRefresh method
-            // with this refreshResult
-            // This is needed because visualizers still may need to do something
-            // although they didn't need raw data
-            // (for example, they may need to take into account change in peak
-            // data)
-            for (int rawDataID : rawDataIDs) {
-                Vector<RawDataVisualizer> visualizerVector = rawDataVisualizers
-                        .get(new Integer(rawDataID));
-                Enumeration<RawDataVisualizer> visualizers = visualizerVector
-                        .elements();
-                while (visualizers.hasMoreElements()) {
-                    RawDataVisualizer vis = visualizers.nextElement();
-                    vis.afterRefresh(emptyRefreshResult);
-                }
-            }
-
-            // Repaint main window
-            repaint();
-        }
-
-    }
-
-    /**
-     * This method refreshes all visualizer for a raw data file
-     */
-    public void startRefreshRawDataVisualizers(int changeType, int rawDataID) {
-
-        // Ask refresh request for a raw data file
-        RawDataVisualizerRefreshRequest refreshRequest = getRefreshRequestForRawData(
-                changeType, rawDataID);
-
-        // If some visualizer needs raw data in the refresh?
-        if (refreshRequest.ticNeedsRawData
-                || refreshRequest.spectrumNeedsRawData
-                || refreshRequest.twodNeedsRawData
-                || refreshRequest.peakListNeedsRawData) {
-
-            // Then ask client for cluster to initiate a refresh task on those
-            // raw data files
-            RawDataVisualizerRefreshRequest[] refreshRequestsA = new RawDataVisualizerRefreshRequest[1];
-            refreshRequestsA[0] = refreshRequest;
-            // clientForCluster.refreshVisualizers(refreshRequestsA);
-
-        } else {
-            // Create empty refresh result
-            RawDataVisualizerRefreshResult emptyRefreshResult = new RawDataVisualizerRefreshResult();
-            emptyRefreshResult.changeType = changeType;
-
-            Vector<RawDataVisualizer> visualizerVector = rawDataVisualizers
-                    .get(new Integer(rawDataID));
-            Enumeration<RawDataVisualizer> visualizers = visualizerVector
-                    .elements();
-            while (visualizers.hasMoreElements()) {
-                RawDataVisualizer vis = visualizers.nextElement();
-                vis.afterRefresh(emptyRefreshResult);
-            }
-
-            // Repaint the main window
-            repaint();
-        }
-
-    }
-
-    /**
-     * This method queries visualizers of a single raw data file for their
-     * refresh request
-     * 
-     * @param changeType
-     *            Type of change that initiated refresh
-     * @param rawDataID
-     *            Raw data ID
-     * @return RefreshRequest that defines refresh needs of visualizers
-     */
-    private RawDataVisualizerRefreshRequest getRefreshRequestForRawData(
-            int changeType, int rawDataID) {
-
-        Integer rawDataIDI = new Integer(rawDataID);
-
-        // Get all visualizers for this raw data file
-        Vector<RawDataVisualizer> visualizers = rawDataVisualizers
-                .get(rawDataIDI);
-
-        // Generate refresh request
-        RawDataVisualizerRefreshRequest refreshRequest = new RawDataVisualizerRefreshRequest();
-        refreshRequest.changeType = changeType;
-        refreshRequest.rawDataID = rawDataID;
-
-        if (getParameterStorage().getGeneralParameters().getTypeOfData() == GeneralParameters.PARAMETERVALUE_TYPEOFDATA_CONTINUOUS) {
-            refreshRequest.dataType = RawDataVisualizerRefreshRequest.MODE_CONTINUOUS;
-        }
-
-        if (getParameterStorage().getGeneralParameters().getTypeOfData() == GeneralParameters.PARAMETERVALUE_TYPEOFDATA_CENTROIDS) {
-            refreshRequest.dataType = RawDataVisualizerRefreshRequest.MODE_CENTROIDS;
-        }
-
-        // If no visualizers
-        if (visualizers == null) {
-            return refreshRequest;
-        }
-
-        // If no visible visualizers
-        // if (!rawDataHasVisibleVisualizers(rawDataID)) { return
-        // refreshRequest; }
-
-        // Loop through all visualizers for raw data file
-        Enumeration<RawDataVisualizer> visualizerEnum = visualizers.elements();
-        while (visualizerEnum.hasMoreElements()) {
-            RawDataVisualizer vis = visualizerEnum.nextElement();
-            refreshRequest = vis.beforeRefresh(refreshRequest);
-        }
-
-        return refreshRequest;
-
-    }
-
-    public void doRefreshRawDataVisualizers(
-            RawDataVisualizerRefreshResult refreshResult) {
-
-        // Find visualizers for this raw data file
-        Vector<RawDataVisualizer> visualizers = rawDataVisualizers
-                .get(new Integer(refreshResult.rawDataID));
-
-        // Offer refreshResults to all visualizers that require it
-        for (RawDataVisualizer vis : visualizers) {
-
-            if (vis.getClass() == RawDataVisualizerTICView.class) {
-                // if (refreshResult.ticScanNumbers != null) {
-                vis.afterRefresh(refreshResult);
-                // }
-            }
-
-            if (vis.getClass() == RawDataVisualizerSpectrumView.class) {
-                // if (refreshResult.spectrumIntensities != null) {
-                vis.afterRefresh(refreshResult);
-                // }
-            }
-
-            if (vis.getClass() == RawDataVisualizerTwoDView.class) {
-                // if (refreshResult.twodMatrix != null) {
-                vis.afterRefresh(refreshResult);
-                // }
-            }
-
-            if (vis.getClass() == RawDataVisualizerPeakListView.class) {
-                // if (refreshResult.twodMatrix != null) {
-                vis.afterRefresh(refreshResult);
-                // }
-
-            }
-        }
-
-        RawDataAtClient rawData = getItemSelector().getRawDataByID(
-                refreshResult.rawDataID);
-
-        rawData.setRawDataUpdatedFlag(false);
-
-    }
-
-    /**
-     * This method refreshes all visualizers for listed raw data files
-     * 
-     * @param changeType
-     *            What was reason for need to refresh
-     * @param rawDataIDs
-     *            Array of raw data ids (raw data files whose visualizers need
-     *            refreshing)
-     */
-    /*
-     * public void refreshRawDataVisualizers(int changeType, int[] rawDataIDs) { //
-     * Loop through all raw data files RawDataVisualizerRefreshRequest[]
-     * refreshRequests = new RawDataVisualizerRefreshRequest[rawDataIDs.length];
-     * for (int i=0; i<rawDataIDs.length; i++) { // Get all visualizers for
-     * this raw data file Vector<RawDataVisualizer> visualizers =
-     * rawDataVisualizers.get(new Integer(rawDataIDs[i]));
-     *  // Generate refresh request RawDataVisualizerRefreshRequest
-     * refreshRequest = new RawDataVisualizerRefreshRequest(); Enumeration<RawDataVisualizer>
-     * visualizerEnum = visualizers.elements(); while
-     * (visualizerEnum.hasMoreElements()) { RawDataVisualizer vis =
-     * visualizerEnum.nextElement(); vis.beforeRefresh(changeType,
-     * refreshRequest); }
-     * 
-     * refreshRequests[i] = refreshRequest; }
-     *  // Ask cluster client to do the refresh
-     * clientForCluster.refreshVisualizers(refreshRequests); }
-     */
-
+    
     public void addAlignmentResultVisualizerList(AlignmentResult alignmentResult) {
 
         Integer alignmentResultID = new Integer(alignmentResult

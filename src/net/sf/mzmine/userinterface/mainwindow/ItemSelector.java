@@ -41,7 +41,7 @@ import net.sf.mzmine.io.MZmineProject;
 import net.sf.mzmine.io.RawDataFile;
 import net.sf.mzmine.methods.alignment.AlignmentResult;
 import net.sf.mzmine.obsoletedatastructures.RawDataAtClient;
-import net.sf.mzmine.visualizers.rawdata.RawDataVisualizerTICView;
+import net.sf.mzmine.visualizers.rawdata.tic.RawDataVisualizerTICView;
 
 /**
  * This class implements a selector of raw data files and alignment results
@@ -49,8 +49,6 @@ import net.sf.mzmine.visualizers.rawdata.RawDataVisualizerTICView;
 public class ItemSelector extends JPanel implements ListSelectionListener,
         MouseListener, ActionListener {
 
-    private MainWindow mainWin;
-    private Statusbar statBar;
 
     private DefaultListModel rawDataObjects;
     private JList rawDataList;
@@ -65,15 +63,11 @@ public class ItemSelector extends JPanel implements ListSelectionListener,
     private JMenuItem pmShowVisualizers;
     private JMenuItem pmClose;
 
-    private int alignmentResultIDCount = 0;
 
     /**
      * Constructor
      */
-    public ItemSelector(MainWindow _mainWin) {
-
-        mainWin = _mainWin;
-        statBar = mainWin.getStatusBar();
+    public ItemSelector() {
 
         // Create panel for raw data objects
         JPanel rawDataPanel = new JPanel();
@@ -99,7 +93,6 @@ public class ItemSelector extends JPanel implements ListSelectionListener,
         resultsPanel.setLayout(new BorderLayout());
         resultsPanel.add(resultsTitle, BorderLayout.NORTH);
         resultsPanel.add(resultScroll, BorderLayout.CENTER);
-
         resultsPanel.setMinimumSize(new Dimension(150, 10));
 
         // Add panels to a split and put split on the main panel
@@ -164,83 +157,7 @@ public class ItemSelector extends JPanel implements ListSelectionListener,
         Object src = e.getSource();
 
         // Hide visualizers for all selected objects
-        if (src == pmHideVisualizers) {
-
-            // Grab selected raw data objects
-            Object[] tmpArray = rawDataList.getSelectedValues();
-            if (tmpArray.length > 0) {
-                int[] rawDataIDs = new int[tmpArray.length];
-                for (int i = 0; i < tmpArray.length; i++) {
-                    rawDataIDs[i] = ((RawDataAtClient) tmpArray[i])
-                            .getRawDataID();
-                }
-
-                // Show visualizers, tile all windows and refresh visualizers
-                mainWin.toggleRawDataVisualizers(rawDataIDs, false);
-                mainWin.tileWindows();
-                mainWin.getMainMenu().updateMenuAvailability();
-                mainWin.repaint();
-            }
-
-            // Grab selected result objects
-            tmpArray = resultList.getSelectedValues();
-            int[] alignmentResultIDs = new int[tmpArray.length];
-            for (int i = 0; i < tmpArray.length; i++) {
-                alignmentResultIDs[i] = ((AlignmentResult) tmpArray[i])
-                        .getAlignmentResultID();
-            }
-
-            // Show visualizers, tile all windows and refresh visualizers
-            if (alignmentResultIDs.length > 0) {
-                mainWin.toggleAlignmentResultVisualizers(alignmentResultIDs,
-                        false);
-                mainWin.tileWindows();
-                mainWin.getMainMenu().updateMenuAvailability();
-                mainWin.repaint();
-            }
-
-        }
-
-        // Show visualizers for all selected objects
-        if (src == pmShowVisualizers) {
-
-            // Grab selected raw data objects
-            Object[] tmpArray = rawDataList.getSelectedValues();
-            if (tmpArray.length > 0) {
-                int[] rawDataIDs = new int[tmpArray.length];
-                for (int i = 0; i < tmpArray.length; i++) {
-                    rawDataIDs[i] = ((RawDataAtClient) tmpArray[i])
-                            .getRawDataID();
-                }
-
-                // Show visualizers, tile all windows and refresh visualizers
-                mainWin.toggleRawDataVisualizers(rawDataIDs, true);
-                mainWin.tileWindows();
-                mainWin.getMainMenu().updateMenuAvailability();
-                mainWin.startRefreshRawDataVisualizers(
-                        RawDataVisualizerTICView.CHANGETYPE_DATA, rawDataIDs);
-            }
-
-            // Grab selected result objects
-            tmpArray = resultList.getSelectedValues();
-            int[] alignmentResultIDs = new int[tmpArray.length];
-            for (int i = 0; i < tmpArray.length; i++) {
-                alignmentResultIDs[i] = ((AlignmentResult) tmpArray[i])
-                        .getAlignmentResultID();
-            }
-
-            // Show visualizers, tile all windows and refresh visualizers
-            if (alignmentResultIDs.length > 0) {
-                mainWin.toggleAlignmentResultVisualizers(alignmentResultIDs,
-                        true);
-                mainWin.tileWindows();
-                mainWin.getMainMenu().updateMenuAvailability();
-                mainWin.repaint();
-            }
-
-            // (not implemented)
-        }
-
+ 
         // Close selected items
         if (src == pmClose) {
 
@@ -254,7 +171,7 @@ public class ItemSelector extends JPanel implements ListSelectionListener,
 
             // TODO: Remove all visualizers for these raw data files
 
-            mainWin.getMainMenu().updateMenuAvailability();
+            MainWindow.getInstance().getMainMenu().updateMenuAvailability();
 
         }
 
@@ -304,7 +221,7 @@ public class ItemSelector extends JPanel implements ListSelectionListener,
     public boolean removeRawData(RawDataFile r) {
         boolean ans = rawDataObjects.removeElement(r);
 
-        mainWin.getMainMenu().updateMenuAvailability();
+        MainWindow.getInstance().getMainMenu().updateMenuAvailability();
 
         return ans;
     }
@@ -346,53 +263,32 @@ public class ItemSelector extends JPanel implements ListSelectionListener,
     /**
      * Sets the active raw data item in the list
      */
-    public void setActiveRawData(RawDataAtClient rawData) {
+    public void setActiveAlignmentResult(AlignmentResult ar) {
+        resultList.setSelectedValue(ar, true);
+
+        MainWindow.getInstance().getMainMenu().updateMenuAvailability();
+        // repaint();
+    }
+
+
+    /**
+     * Sets the active raw data item in the list
+     */
+    public void setActiveRawData(RawDataFile rawData) {
         rawDataList.setSelectedValue(rawData, true);
 
-        mainWin.getMainMenu().updateMenuAvailability();
+        MainWindow.getInstance().getMainMenu().updateMenuAvailability();
         // repaint();
     }
 
     /**
      * Returns the run that is selected in run list
-     */
+     
     public RawDataAtClient getActiveRawData() {
         return (RawDataAtClient) rawDataList.getSelectedValue();
     }
-
-    /**
-     * Returns all raw data objects
-     */
-    public RawDataAtClient[] getRawDatas() {
-
-        ListModel listModel = rawDataList.getModel();
-
-        RawDataAtClient[] rawDatas = new RawDataAtClient[listModel.getSize()];
-
-        for (int i = 0; i < listModel.getSize(); i++) {
-            rawDatas[i] = (RawDataAtClient) (listModel.getElementAt(i));
-        }
-
-        return rawDatas;
-
-    }
-
-    /**
-     * Returns all raw data ids
-     */
-    public int[] getRawDataIDs() {
-        ListModel listModel = rawDataList.getModel();
-
-        int[] rawDataIDs = new int[listModel.getSize()];
-
-        for (int i = 0; i < listModel.getSize(); i++) {
-            rawDataIDs[i] = ((RawDataAtClient) (listModel.getElementAt(i)))
-                    .getRawDataID();
-        }
-
-        return rawDataIDs;
-
-    }
+    */
+    
 
     // METHODS FOR MAINTAINING LIST OF RESULTS
     // ---------------------------------------
@@ -432,15 +328,11 @@ public class ItemSelector extends JPanel implements ListSelectionListener,
      * 
      * @return ID for the alignment result
      */
-    public int addAlignmentResult(AlignmentResult ar) {
-        int id = getNewAlignmentResultID();
-        ar.setAlignmentResultID(id);
+    public void addAlignmentResult(AlignmentResult ar) {
+
 
         resultObjects.addElement(ar);
 
-        if (ar.isImported()) {
-            return id;
-        }
 
         // Add dependency to all involved raw data files
         for (int rawDataID : ar.getRawDataIDs()) {
@@ -448,24 +340,17 @@ public class ItemSelector extends JPanel implements ListSelectionListener,
                     ar.getAlignmentResultID());
         }
 
-        return id;
-
     }
 
     public boolean removeAlignmentResult(AlignmentResult ar) {
         boolean ans = resultObjects.removeElement(ar);
 
-        mainWin.getMainMenu().updateMenuAvailability();
+        MainWindow.getInstance().getMainMenu().updateMenuAvailability();
 
         return ans;
     }
 
-    public void setActiveAlignmentResult(AlignmentResult ar) {
-        resultList.setSelectedValue(ar, true);
 
-        mainWin.getMainMenu().updateMenuAvailability();
-
-    }
 
     /**
      * Returns all alignment result ids
@@ -504,10 +389,7 @@ public class ItemSelector extends JPanel implements ListSelectionListener,
         return (AlignmentResult) resultList.getSelectedValue();
     }
 
-    private int getNewAlignmentResultID() {
-        alignmentResultIDCount++;
-        return alignmentResultIDCount;
-    }
+
 
     // MISC. STUFF
     // -----------

@@ -17,7 +17,7 @@
     along with MZmine; if not, write to the Free Software
     Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 */
-package net.sf.mzmine.visualizers.rawdata;
+package net.sf.mzmine.visualizers.rawdata.tic;
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Dimension;
@@ -49,12 +49,14 @@ import javax.swing.RepaintManager;
 import javax.swing.event.InternalFrameEvent;
 import javax.swing.event.InternalFrameListener;
 
+import net.sf.mzmine.io.RawDataFile;
 import net.sf.mzmine.obsoletedatastructures.RawDataAtClient;
 import net.sf.mzmine.userinterface.mainwindow.ItemSelector;
 import net.sf.mzmine.userinterface.mainwindow.MainWindow;
 import net.sf.mzmine.userinterface.mainwindow.Statusbar;
 import net.sf.mzmine.util.FormatCoordinates;
 import net.sf.mzmine.util.TransferableImage;
+import net.sf.mzmine.visualizers.RawDataVisualizer;
 
 
 /**
@@ -148,118 +150,6 @@ public class RawDataVisualizerTICView extends JInternalFrame implements RawDataV
 	}
 
 
-	/**
-	 * Returns number of the first scan and the last scan needed in displaying the TIC view with current zoom settings
-	 */
-	public RawDataVisualizerRefreshRequest beforeRefresh(RawDataVisualizerRefreshRequest refreshRequest) {
-
-		// Determine parameters for refreshRequest
-		// ---------------------------------------
-
-		// If this it not the very first refresh for the visualizer, it is not necessary to get any raw data for some change types
-		if (firstRefreshAlreadyDone) {
-			// Change in peak information doesn't affect TIC/XIC visualizer
-			if (refreshRequest.changeType==RawDataVisualizerTICView.CHANGETYPE_PEAKS) { refreshRequest.ticNeedsRawData = false; return refreshRequest; }
-
-			// Change in cursor position doesn't require any new data for TIC/XIC
-			if (refreshRequest.changeType==RawDataVisualizerTICView.CHANGETYPE_CURSORPOSITION_MZ) { refreshRequest.ticNeedsRawData = false; return refreshRequest; }
-			if (refreshRequest.changeType==RawDataVisualizerTICView.CHANGETYPE_CURSORPOSITION_SCAN) { refreshRequest.ticNeedsRawData = false; return refreshRequest; }
-			if (refreshRequest.changeType==RawDataVisualizerTICView.CHANGETYPE_CURSORPOSITION_BOTH) { refreshRequest.ticNeedsRawData = false; return refreshRequest; }
-
-			// In TIC mode, change in m/z zoom has no effect.
-			if ((ticXicMode==TIC_MODE) && (refreshRequest.changeType==RawDataVisualizerTICView.CHANGETYPE_SELECTION_MZ)) { refreshRequest.ticNeedsRawData = false; return refreshRequest; }
-		}
-
-		firstRefreshAlreadyDone = true;
-
-		// None of above cases, some scans are needed to refresh this TIC/XIC
-		refreshRequest.ticNeedsRawData = true;
-		if (ticXicMode==TIC_MODE) { refreshRequest.ticMode = RawDataVisualizerRefreshRequest.MODE_TIC; }
-		if (ticXicMode==XIC_MODE) {
-			refreshRequest.ticMode = RawDataVisualizerRefreshRequest.MODE_XIC;
-
-			// If current m/z zoom range is defined, then XIC will be calculated over this range
-			if (rawData.getSelectionMZStart()!=-1) {
-				refreshRequest.ticStartMZ = rawData.getSelectionMZStart();
-				refreshRequest.ticStopMZ = rawData.getSelectionMZEnd();
-			} else {
-				// Otherwise, XIC is calculated using the full m/z range of the data set.
-				refreshRequest.ticStartMZ = rawData.getDataMinMZ();
-				refreshRequest.ticStopMZ = rawData.getDataMaxMZ();
-			}
-		}
-
-		// If scan zoom range has been defined, then all scans in that range are needed
-		if (rawData.getSelectionScanStart()!=-1) {
-			refreshRequest.ticStartScan = rawData.getSelectionScanStart();
-			refreshRequest.ticStopScan = rawData.getSelectionScanEnd();
-		} else {
-			// If no scan zoom range, then all scans are required
-			refreshRequest.ticStartScan = 0;
-			refreshRequest.ticStopScan = rawData.getNumOfScans()-1;
-		}
-
-
-		// Setup string for window title
-		// -----------------------------
-
-		// For XIC, M/Z range must be in title line
-		if (ticXicMode==XIC_MODE) {
-
-			FormatCoordinates formatCoordinates = new FormatCoordinates(mainWin.getParameterStorage().getGeneralParameters());
-
-			// Setup window title for a XIC-type visualizer
-			String startStr = formatCoordinates.formatMZValue(refreshRequest.ticStartMZ);
-			String stopStr = formatCoordinates.formatMZValue(refreshRequest.ticStopMZ);
-			setTitle("" + rawData.getNiceName() + ": eXtracted ion chromatogram, MZ range from " + startStr + " to " + stopStr + "");
-
-		} else {
-
-			// Setup window title for a TIC-type visualizer
-			setTitle("" + rawData.getNiceName() + ": Total ion chromatogram");
-		}
-
-		return refreshRequest;
-
-	}
-
-
-	/**
-	 *	Implementation of refreshFinalize method (Visualizer interface)
-	 */
-	public void afterRefresh(RawDataVisualizerRefreshResult refreshResult) {
-
-		// Change in peaks doesn't require any action
-		if (refreshResult.changeType==RawDataVisualizer.CHANGETYPE_PEAKS) { return; }
-
-		// Change in MZ cursor position doesn't require any action
-		if (refreshResult.changeType==RawDataVisualizer.CHANGETYPE_CURSORPOSITION_MZ) { return; }
-
-		// When in TIC mode, change in MZ selection doesn't require any action
-		if ((ticXicMode==TIC_MODE) && (refreshResult.changeType==RawDataVisualizer.CHANGETYPE_SELECTION_MZ)) { return; }
-
-		// Scan cursor position changed, no action (repaint needed, but called elsewhere)
-		if ((refreshResult.changeType==RawDataVisualizer.CHANGETYPE_CURSORPOSITION_SCAN) || (refreshResult.changeType==RawDataVisualizer.CHANGETYPE_CURSORPOSITION_BOTH)) { return; }
-
-
-
-		// Refresh the plot and coordinate axis with the new data
-		if (refreshResult.ticScanNumbers != null) {
-
-			ticPlot.setData(rawData,
-							refreshResult.ticScanNumbers,
-							refreshResult.ticIntensities,
-							refreshResult.ticScanNumbers[0],
-							refreshResult.ticScanNumbers[refreshResult.ticScanNumbers.length-1],
-							0,
-							refreshResult.ticMaxIntensity);
-			((TICXAxis)bottomPnl).setScale(refreshResult.ticScanNumbers[0], refreshResult.ticScanNumbers[refreshResult.ticScanNumbers.length-1]);
-			((TICYAxis)leftPnl).setScale(0, refreshResult.ticMaxIntensity);
-		} else {
-		}
-
-	}
-
 
 	/**
 	 * Return TIC/XIC mode which indicates wheter this visualizer is displaying TIC or XIC
@@ -276,7 +166,7 @@ public class RawDataVisualizerTICView extends JInternalFrame implements RawDataV
 
 		RawDataAtClient[] tmpRawDatas = new RawDataAtClient[1];
 		tmpRawDatas[0] = rawData;
-		mainWin.startRefreshRawDataVisualizers(RawDataVisualizer.CHANGETYPE_SELECTION_SCAN, rawData.getRawDataID());
+//		mainWin.startRefreshRawDataVisualizers(RawDataVisualizer.CHANGETYPE_SELECTION_SCAN, rawData.getRawDataID());
 
 /*
 		BackgroundThread bt = new BackgroundThread(mainWin, msRun, this, Visualizer.CHANGETYPE_SELECTION_BOTH, BackgroundThread.TASK_REFRESHVISUALIZER);
@@ -586,7 +476,7 @@ public class RawDataVisualizerTICView extends JInternalFrame implements RawDataV
 				// Refresh all visualizers
 				RawDataAtClient[] tmpRawDatas = new RawDataAtClient[1];
 				tmpRawDatas[0] = rawData;
-				mainWin.startRefreshRawDataVisualizers(RawDataVisualizer.CHANGETYPE_SELECTION_SCAN, rawData.getRawDataID());
+			//	mainWin.startRefreshRawDataVisualizers(RawDataVisualizer.CHANGETYPE_SELECTION_SCAN, rawData.getRawDataID());
 /*
 				BackgroundThread bt = new BackgroundThread(mainWin, msRun, Visualizer.CHANGETYPE_SELECTION_SCAN, BackgroundThread.TASK_REFRESHVISUALIZERS);
 				bt.start();
@@ -604,7 +494,7 @@ public class RawDataVisualizerTICView extends JInternalFrame implements RawDataV
 				mouseAreaEnd = rawData.getCursorPositionScan();
 
 				// Refresh all visualizers
-				mainWin.startRefreshRawDataVisualizers(RawDataVisualizer.CHANGETYPE_SELECTION_SCAN, rawData.getRawDataID());
+		//		mainWin.startRefreshRawDataVisualizers(RawDataVisualizer.CHANGETYPE_SELECTION_SCAN, rawData.getRawDataID());
 
 /*
 				BackgroundThread bt = new BackgroundThread(mainWin, msRun, Visualizer.CHANGETYPE_SELECTION_SCAN, BackgroundThread.TASK_REFRESHVISUALIZERS);
@@ -639,7 +529,7 @@ public class RawDataVisualizerTICView extends JInternalFrame implements RawDataV
 				zoomToSelectionMenuItem.setEnabled(false);
 
 				// Refresh all visualizers
-				mainWin.startRefreshRawDataVisualizers(RawDataVisualizer.CHANGETYPE_SELECTION_SCAN, rawData.getRawDataID());
+		//		mainWin.startRefreshRawDataVisualizers(RawDataVisualizer.CHANGETYPE_SELECTION_SCAN, rawData.getRawDataID());
 
 /*
 				BackgroundThread bt = new BackgroundThread(mainWin, msRun, Visualizer.CHANGETYPE_SELECTION_SCAN, BackgroundThread.TASK_REFRESHVISUALIZERS);
@@ -710,7 +600,7 @@ public class RawDataVisualizerTICView extends JInternalFrame implements RawDataV
 				changeTicXicModeMenuItem.setText("Switch to TIC");
 
 				// Refresh all visualizers
-				mainWin.startRefreshRawDataVisualizers(RawDataVisualizer.CHANGETYPE_SELECTION_MZ, rawData.getRawDataID());
+			//	mainWin.startRefreshRawDataVisualizers(RawDataVisualizer.CHANGETYPE_SELECTION_MZ, rawData.getRawDataID());
 
 /*
 				BackgroundThread bt = new BackgroundThread(mainWin, msRun, Visualizer.CHANGETYPE_SELECTION_MZ, BackgroundThread.TASK_REFRESHVISUALIZERS);
@@ -763,7 +653,7 @@ public class RawDataVisualizerTICView extends JInternalFrame implements RawDataV
 				statBar.setCursorPosition(rawData);
 
 				// Refresh visualizers
-				mainWin.startRefreshRawDataVisualizers(RawDataVisualizer.CHANGETYPE_CURSORPOSITION_SCAN, rawData.getRawDataID());
+			//	mainWin.startRefreshRawDataVisualizers(RawDataVisualizer.CHANGETYPE_CURSORPOSITION_SCAN, rawData.getRawDataID());
 /*
 				BackgroundThread bt = new BackgroundThread(mainWin, msRun, Visualizer.CHANGETYPE_CURSORPOSITION_SCAN, BackgroundThread.TASK_REFRESHVISUALIZERS);
 				bt.start();
@@ -1092,6 +982,70 @@ public class RawDataVisualizerTICView extends JInternalFrame implements RawDataV
 			return exitCode;
 		}
 	}
+
+    /**
+     * @see net.sf.mzmine.visualizers.RawDataVisualizer#getRawDataFile()
+     */
+    public RawDataFile getRawDataFile() {
+        // TODO Auto-generated method stub
+        return null;
+    }
+
+    /**
+     * @see net.sf.mzmine.visualizers.RawDataVisualizer#setRawDataFile(net.sf.mzmine.io.RawDataFile)
+     */
+    public void setRawDataFile(RawDataFile newFile) {
+        // TODO Auto-generated method stub
+        
+    }
+
+    /**
+     * @see net.sf.mzmine.visualizers.RawDataVisualizer#setMZRange(double, double)
+     */
+    public void setMZRange(double mzMin, double mzMax) {
+        // TODO Auto-generated method stub
+        
+    }
+
+    /**
+     * @see net.sf.mzmine.visualizers.RawDataVisualizer#setRTRange(double, double)
+     */
+    public void setRTRange(double rtMin, double rtMax) {
+        // TODO Auto-generated method stub
+        
+    }
+
+    /**
+     * @see net.sf.mzmine.visualizers.RawDataVisualizer#setMZPosition(double)
+     */
+    public void setMZPosition(double mz) {
+        // TODO Auto-generated method stub
+        
+    }
+
+    /**
+     * @see net.sf.mzmine.visualizers.RawDataVisualizer#setRTPosition(double)
+     */
+    public void setRTPosition(double rt) {
+        // TODO Auto-generated method stub
+        
+    }
+
+    /**
+     * @see net.sf.mzmine.visualizers.RawDataVisualizer#attachVisualizer(net.sf.mzmine.visualizers.RawDataVisualizer)
+     */
+    public void attachVisualizer(RawDataVisualizer visualizer) {
+        // TODO Auto-generated method stub
+        
+    }
+
+    /**
+     * @see net.sf.mzmine.visualizers.RawDataVisualizer#detachVisualizer(net.sf.mzmine.visualizers.RawDataVisualizer)
+     */
+    public void detachVisualizer(RawDataVisualizer visualizer) {
+        // TODO Auto-generated method stub
+        
+    }
 
 
 

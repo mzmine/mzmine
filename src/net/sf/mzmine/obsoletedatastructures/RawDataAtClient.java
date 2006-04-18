@@ -20,14 +20,16 @@
 
 
 package net.sf.mzmine.obsoletedatastructures;
+import java.io.File;
+import java.io.IOException;
 import java.util.Vector;
 
+import net.sf.mzmine.io.RawDataFile;
+import net.sf.mzmine.io.Scan;
 import net.sf.mzmine.methods.peakpicking.Peak;
 import net.sf.mzmine.methods.peakpicking.PeakList;
-import net.sf.mzmine.util.Logger;
-import net.sf.mzmine.visualizers.rawdata.RawDataVisualizer;
 
-public class RawDataAtClient {
+public class RawDataAtClient  implements RawDataFile {
 
 
 	private static final int paramRangeFoldMZ = 100;		// These two parameters define the shape of selection when it is set around a specific mz,rt location
@@ -274,7 +276,6 @@ public class RawDataAtClient {
 	 * @param	scan			Scan number of search start location
 	 * @param	ratioMZvsRT		Balance between coordinate axes when measuring what is closest
 	 * @return	If successful, change type (cursor position or selection changed), -1 if no change (no peak found)
-	 */
 	public int selectNearestPeak(double mz, int scan, double ratioMZvsRT) {
 		// Find nearest peak
 		if (peakList == null) { return -1; }
@@ -308,6 +309,7 @@ public class RawDataAtClient {
 
 	}
 
+     */
 
 
 
@@ -367,6 +369,66 @@ public class RawDataAtClient {
 	public String toString() {
 		return getNiceName();
 	}
+
+
+
+    /**
+     * @see net.sf.mzmine.io.RawDataFile#getFileName()
+     */
+    public File getFileName() {
+        // TODO Auto-generated method stub
+        return null;
+    }
+
+
+
+    /**
+     * @see net.sf.mzmine.io.RawDataFile#getMSLevels()
+     */
+    public int[] getMSLevels() {
+        // TODO Auto-generated method stub
+        return null;
+    }
+
+
+
+    /**
+     * @see net.sf.mzmine.io.RawDataFile#getScanNumbers(int)
+     */
+    public int[] getScanNumbers(int msLevel) {
+        // TODO Auto-generated method stub
+        return null;
+    }
+
+
+
+    /**
+     * @see net.sf.mzmine.io.RawDataFile#getScan(int)
+     */
+    public Scan getScan(int scan) throws IOException {
+        // TODO Auto-generated method stub
+        return null;
+    }
+
+
+
+    /**
+     * @see net.sf.mzmine.io.RawDataFile#getDataDescription()
+     */
+    public String getDataDescription() {
+        // TODO Auto-generated method stub
+        return null;
+    }
+
+
+
+    /**
+     * @see net.sf.mzmine.io.RawDataFile#getDataMaxIntensity()
+     */
+    public double getDataMaxIntensity() {
+        // TODO Auto-generated method stub
+        return 0;
+    }
 
 
 }
