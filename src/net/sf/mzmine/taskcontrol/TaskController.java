@@ -29,7 +29,7 @@ import java.util.Date;
 import java.util.Vector;
 
 import net.sf.mzmine.taskcontrol.Task.TaskStatus;
-import net.sf.mzmine.userinterface.dialogs.TaskStatusWindow;
+import net.sf.mzmine.userinterface.dialogs.TaskProgressWindow;
 import net.sf.mzmine.userinterface.mainwindow.MainWindow;
 import net.sf.mzmine.util.Logger;
 
@@ -106,7 +106,7 @@ public class TaskController implements Runnable {
          */
         MainWindow mainWindow = MainWindow.getInstance();
         if (mainWindow != null) {
-            TaskStatusWindow tlc = mainWindow.getTaskList();
+            TaskProgressWindow tlc = mainWindow.getTaskList();
             tlc.setVisible(true);
         }
 
@@ -173,7 +173,7 @@ public class TaskController implements Runnable {
 
                     MainWindow mainWindow = MainWindow.getInstance();
                     if (mainWindow != null) {
-                        TaskStatusWindow tlc = mainWindow.getTaskList();
+                        TaskProgressWindow tlc = mainWindow.getTaskList();
                         if (tlc.isVisible()) {
 
                             if (taskQueue.isEmpty())

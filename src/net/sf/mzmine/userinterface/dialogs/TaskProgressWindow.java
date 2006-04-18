@@ -31,7 +31,7 @@ import net.sf.mzmine.userinterface.mainwindow.MainWindow;
 /**
  * 
  */
-public class TaskStatusWindow extends JInternalFrame {
+public class TaskProgressWindow extends JInternalFrame {
 
     private Task[] currentTasks;
 
@@ -117,7 +117,7 @@ public class TaskStatusWindow extends JInternalFrame {
     /**
      * 
      */
-    public TaskStatusWindow(MainWindow w) {
+    public TaskProgressWindow(MainWindow w) {
         super("Tasks in progress...", true, true, true, true);
         setDefaultCloseOperation(HIDE_ON_CLOSE);
         taskModel = new TaskModel();

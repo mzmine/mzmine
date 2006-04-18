@@ -92,7 +92,7 @@ import net.sf.mzmine.obsoletedatastructures.RawDataAtClient;
 import net.sf.mzmine.userinterface.dialogs.AboutDialog;
 import net.sf.mzmine.userinterface.dialogs.BatchModeDialog;
 import net.sf.mzmine.userinterface.dialogs.OptionsWindow;
-import net.sf.mzmine.userinterface.dialogs.TaskStatusWindow;
+import net.sf.mzmine.userinterface.dialogs.TaskProgressWindow;
 import net.sf.mzmine.util.GeneralParameters;
 import net.sf.mzmine.util.ParameterStorage;
 import net.sf.mzmine.visualizers.alignmentresult.AlignmentResultVisualizer;
@@ -166,9 +166,9 @@ public class MainWindow extends JFrame implements WindowListener {
     private String dataDirectory; // Stores the last used directory for saving
                                     // peak lists & alignment results
 
-    private TaskStatusWindow taskList;
+    private TaskProgressWindow taskList;
 
-    public TaskStatusWindow getTaskList() {
+    public TaskProgressWindow getTaskList() {
         return taskList;
     }
 
@@ -243,7 +243,7 @@ public class MainWindow extends JFrame implements WindowListener {
         statBar.setStatusText("Welcome to MZmine!");
 
         System.out.println(desktop.getWidth());
-        taskList = new TaskStatusWindow(this);
+        taskList = new TaskProgressWindow(this);
         desktop.add(taskList, javax.swing.JLayeredPane.DEFAULT_LAYER);
 
     }
