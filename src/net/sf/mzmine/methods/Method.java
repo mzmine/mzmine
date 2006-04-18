@@ -15,6 +15,6 @@ public interface Method {
     
     public MethodParameters getParameters();
     
-    public void runMethod(MZmineProject[] files);
+    public void runMethod(MZmineProject project);
     
 }
