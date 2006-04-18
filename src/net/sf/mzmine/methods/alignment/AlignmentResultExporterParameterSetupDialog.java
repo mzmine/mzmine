@@ -31,7 +31,7 @@ import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JRadioButton;
 
-import net.sf.mzmine.userinterface.ModalJInternalFrame;
+import net.sf.mzmine.userinterface.components.ModalJInternalFrame;
 import net.sf.mzmine.util.GeneralParameters;
 
 

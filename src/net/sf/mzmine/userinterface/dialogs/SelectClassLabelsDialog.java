@@ -17,13 +17,16 @@
     along with MZmine; if not, write to the Free Software
     Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 */
-package net.sf.mzmine.userinterface;
+package net.sf.mzmine.userinterface.dialogs;
 import java.text.NumberFormat;
 
 import javax.swing.DefaultCellEditor;
 import javax.swing.JComboBox;
 import javax.swing.JTable;
 import javax.swing.table.AbstractTableModel;
+
+import net.sf.mzmine.userinterface.components.ModalJInternalFrame;
+import net.sf.mzmine.userinterface.mainwindow.MainWindow;
 
 
 public class SelectClassLabelsDialog extends ModalJInternalFrame implements java.awt.event.ActionListener {

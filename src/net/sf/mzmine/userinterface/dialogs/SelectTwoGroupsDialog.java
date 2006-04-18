@@ -17,8 +17,11 @@
     along with MZmine; if not, write to the Free Software
     Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 */
-package net.sf.mzmine.userinterface;
+package net.sf.mzmine.userinterface.dialogs;
 import java.util.Vector;
+
+import net.sf.mzmine.userinterface.components.ModalJInternalFrame;
+import net.sf.mzmine.userinterface.mainwindow.MainWindow;
 
 public class SelectTwoGroupsDialog extends ModalJInternalFrame implements java.awt.event.ActionListener {
 

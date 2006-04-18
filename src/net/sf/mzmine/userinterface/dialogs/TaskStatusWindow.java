@@ -17,7 +17,7 @@
  * Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-package net.sf.mzmine.userinterface;
+package net.sf.mzmine.userinterface.dialogs;
 
 import javax.swing.JDesktopPane;
 import javax.swing.JInternalFrame;
@@ -26,6 +26,7 @@ import javax.swing.JTable;
 import javax.swing.table.AbstractTableModel;
 
 import net.sf.mzmine.taskcontrol.Task;
+import net.sf.mzmine.userinterface.mainwindow.MainWindow;
 
 /**
  * 
@@ -117,7 +118,7 @@ public class TaskStatusWindow extends JInternalFrame {
      * 
      */
     public TaskStatusWindow(MainWindow w) {
-        super("Tasks in progress...", true, true, true);
+        super("Tasks in progress...", true, true, true, true);
         setDefaultCloseOperation(HIDE_ON_CLOSE);
         taskModel = new TaskModel();
         taskTable = new JTable(taskModel);

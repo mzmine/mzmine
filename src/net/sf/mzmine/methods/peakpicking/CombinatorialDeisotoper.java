@@ -21,7 +21,7 @@ package net.sf.mzmine.methods.peakpicking;
 import java.util.Vector;
 
 import net.sf.mzmine.obsoletedatastructures.RawDataAtNode;
-import net.sf.mzmine.userinterface.MainWindow;
+import net.sf.mzmine.userinterface.mainwindow.MainWindow;
 
 
 /**

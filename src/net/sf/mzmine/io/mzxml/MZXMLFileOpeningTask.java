@@ -132,6 +132,8 @@ public class MZXMLFileOpeningTask extends DefaultHandler implements Distributabl
         // Use the default (non-validating) parser
         SAXParserFactory factory = SAXParserFactory.newInstance();
 
+        // TODO: check file header?
+        
         try {
             SAXParser saxParser = factory.newSAXParser();
             // Parse the file
@@ -147,7 +149,14 @@ public class MZXMLFileOpeningTask extends DefaultHandler implements Distributabl
             e.printStackTrace();
             return;
         }
-
+        
+        if (parsedScans == 0) {
+            status = TaskStatus.ERROR;
+            errorMessage = "No scans found";
+            return;
+        }
+        
+        Logger.put("Finished parsing " + originalFile + ", parsed " + parsedScans + " scans");
         status = TaskStatus.FINISHED;
 
     }

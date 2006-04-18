@@ -31,7 +31,7 @@ import javax.swing.JFormattedTextField;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 
-import net.sf.mzmine.userinterface.ModalJInternalFrame;
+import net.sf.mzmine.userinterface.components.ModalJInternalFrame;
 
 
 /**

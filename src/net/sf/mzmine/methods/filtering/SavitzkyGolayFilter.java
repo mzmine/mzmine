@@ -24,8 +24,8 @@ import javax.swing.JOptionPane;
 
 import net.sf.mzmine.obsoletedatastructures.RawDataAtNode;
 import net.sf.mzmine.obsoletedatastructures.Scan;
-import net.sf.mzmine.userinterface.MainWindow;
-import net.sf.mzmine.userinterface.Statusbar;
+import net.sf.mzmine.userinterface.mainwindow.MainWindow;
+import net.sf.mzmine.userinterface.mainwindow.Statusbar;
 
 
 public class SavitzkyGolayFilter implements Filter {

@@ -20,64 +20,60 @@
 package net.sf.mzmine.io;
 
 import java.io.File;
+import java.util.Hashtable;
 import java.util.Vector;
 
 import net.sf.mzmine.methods.Method;
 import net.sf.mzmine.methods.MethodParameters;
 import net.sf.mzmine.methods.alignment.AlignmentResult;
 import net.sf.mzmine.methods.peakpicking.PeakList;
+import net.sf.mzmine.userinterface.mainwindow.MainWindow;
 
 /**
- * This class represents a data file open in MZmine.
- * That includes original raw data files, temporary (processed) raw data files,
+ * This class represents a MZmine project.
+ * That includes raw data files, processed raw data files,
  * peak lists, alignment results.... 
  */
 public class MZmineProject {
 
-    private RawDataFile currentFile;
-    private Vector<ProcessedFile> fileHistory;
+    private static MZmineProject currentProject;
+    private Vector<RawDataFile> projectFiles;
     
-    class ProcessedFile {
-        RawDataFile data;
+    class Operation {
+        File previousFileName;
         Method processsingMethod;
         MethodParameters parameters;
     }
+    /* we have to index by File, not by RawDataFile - that would 
+     * cause keeping all previous RawDataFile objects in memory */
+    private Hashtable<File, Operation> fileHistory;
     
-    public RawDataFile getCurrentFile() {
-        return currentFile;
+    public MZmineProject() {
+        projectFiles = new Vector<RawDataFile>();
+        fileHistory = new Hashtable<File, Operation>();
+        currentProject = this;
     }
- 
-    MZmineProject(RawDataFile parsedFile) {
-        currentFile = parsedFile;
-        // originalFileName = parsedFile.getFileName();
-        fileHistory = new Vector<ProcessedFile>();
+    
+    public static MZmineProject getCurrentProject() {
+        assert currentProject != null;
+        return currentProject;
+    }
+    
+    void addFile(RawDataFile newFile) {
+        projectFiles.add(newFile);
+        MainWindow.getInstance().getItemSelector().addRawData(newFile);
     }
     
     /**
-     * TODO: how to notify visualizers? 
-     * @param newFile
-     * @param methodParameters
      */
-    public void updateCurrentFile(RawDataFile newFile, Method processingMethod, MethodParameters methodParameters) {
-        currentFile = newFile;
-        ProcessedFile historyRecord = new ProcessedFile();
-        historyRecord.data = newFile;
-        historyRecord.processsingMethod = processingMethod;
-        historyRecord.parameters = methodParameters;
-    }
-    
-
-    
-    public File[] getTemporaryFiles() {
-        return null;
-    }
-    
-    public PeakList getPeakList() {
-        return null;
-    }
-    
-    public AlignmentResult getAlignmentResult() {
-        return null;
+    public void updateFile(RawDataFile oldFile, RawDataFile newFile, Method processingMethod, MethodParameters methodParameters) {
+        Operation op = new Operation();
+        op.previousFileName = oldFile.getFileName();
+        op.processsingMethod = processingMethod;
+        op.parameters = methodParameters;
+        projectFiles.setElementAt(newFile, projectFiles.indexOf(oldFile));
+        fileHistory.put(newFile.getFileName(), op);
+        // TODO: notify visualizers? 
     }
     
     

@@ -49,6 +49,9 @@ class MZXMLFile implements RawDataFile {
 
     private double dataMinMZ, dataMaxMZ, dataMaxIntensity;
 
+    /**
+     * preloaded scans
+     */
     private Hashtable<Integer, MZXMLScan> scans;
 
     private PreloadLevel preloadLevel;
@@ -63,8 +66,6 @@ class MZXMLFile implements RawDataFile {
     private Hashtable<Integer, ArrayList<Integer>> scanNumbers;
 
     /**
-     * 
-     * @param numOfScans
      */
     MZXMLFile(File originalFile, PreloadLevel preloadLevel) {
         this.originalFile = originalFile;
@@ -240,6 +241,10 @@ class MZXMLFile implements RawDataFile {
 
         numOfScans++;
 
+    }
+    
+    public String toString() {
+        return originalFile.getName();
     }
 
 }

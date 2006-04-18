@@ -38,7 +38,7 @@ import javax.swing.JPanel;
 
 import net.sf.mzmine.obsoletedatastructures.RawDataAtNode;
 import net.sf.mzmine.obsoletedatastructures.Scan;
-import net.sf.mzmine.userinterface.MainWindow;
+import net.sf.mzmine.userinterface.mainwindow.MainWindow;
 
 
 public class SimpleGapFiller implements GapFiller {

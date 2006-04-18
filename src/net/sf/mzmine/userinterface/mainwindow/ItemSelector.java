@@ -17,7 +17,7 @@
     along with MZmine; if not, write to the Free Software
     Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 */
-package net.sf.mzmine.userinterface;
+package net.sf.mzmine.userinterface.mainwindow;
 import java.awt.BorderLayout;
 import java.awt.Dimension;
 import java.awt.event.ActionListener;
@@ -38,6 +38,7 @@ import javax.swing.ListModel;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
 
+import net.sf.mzmine.io.RawDataFile;
 import net.sf.mzmine.methods.alignment.AlignmentResult;
 import net.sf.mzmine.obsoletedatastructures.RawDataAtClient;
 import net.sf.mzmine.visualizers.rawdata.RawDataVisualizerTICView;
@@ -98,16 +99,12 @@ public class ItemSelector extends JPanel implements ListSelectionListener, Mouse
 		resultObjects = new DefaultListModel();
 		resultList = new JList(resultObjects);
 		resultScroll = new JScrollPane(resultList);
-
-
         
 		resultsPanel.setLayout(new BorderLayout());
 		resultsPanel.add(resultsTitle, BorderLayout.NORTH);
 		resultsPanel.add(resultScroll, BorderLayout.CENTER);
 
 		resultsPanel.setMinimumSize(new Dimension(150,10));
-        
-
 
 		// Add panels to a split and put split on the main panel
 		setPreferredSize(new Dimension(150,10));
@@ -120,8 +117,6 @@ public class ItemSelector extends JPanel implements ListSelectionListener, Mouse
 
 		rawDataList.addListSelectionListener(this);
 		resultList.addListSelectionListener(this);
-
-
 
 		// Create a pop-up menu
 		popupMenu = new JPopupMenu();
@@ -179,7 +174,7 @@ public class ItemSelector extends JPanel implements ListSelectionListener, Mouse
 				// Show visualizers, tile all windows and refresh visualizers
 				mainWin.toggleRawDataVisualizers(rawDataIDs, false);
 				mainWin.tileWindows();
-				mainWin.updateMenuAvailability();
+				mainWin.getMainMenu().updateMenuAvailability();
 				mainWin.repaint();
 			}
 
@@ -193,7 +188,7 @@ public class ItemSelector extends JPanel implements ListSelectionListener, Mouse
 			if (alignmentResultIDs.length>0) {
 				mainWin.toggleAlignmentResultVisualizers(alignmentResultIDs, false);
 				mainWin.tileWindows();
-				mainWin.updateMenuAvailability();
+				mainWin.getMainMenu().updateMenuAvailability();
 				mainWin.repaint();
 			}
 
@@ -212,7 +207,7 @@ public class ItemSelector extends JPanel implements ListSelectionListener, Mouse
 				// Show visualizers, tile all windows and refresh visualizers
 				mainWin.toggleRawDataVisualizers(rawDataIDs, true);
 				mainWin.tileWindows();
-				mainWin.updateMenuAvailability();
+				mainWin.getMainMenu().updateMenuAvailability();
 				mainWin.startRefreshRawDataVisualizers(RawDataVisualizerTICView.CHANGETYPE_DATA, rawDataIDs);
 			}
 
@@ -226,7 +221,7 @@ public class ItemSelector extends JPanel implements ListSelectionListener, Mouse
 			if (alignmentResultIDs.length>0) {
 				mainWin.toggleAlignmentResultVisualizers(alignmentResultIDs, true);
 				mainWin.tileWindows();
-				mainWin.updateMenuAvailability();
+				mainWin.getMainMenu().updateMenuAvailability();
 				mainWin.repaint();
 			}
 
@@ -266,7 +261,7 @@ public class ItemSelector extends JPanel implements ListSelectionListener, Mouse
 
 				mainWin.getStatusBar().setStatusText("Closing " + rawDataIDs.length + " raw data file(s).");
 
-				mainWin.updateMenuAvailability();
+				mainWin.getMainMenu().updateMenuAvailability();
 				mainWin.repaint();
 
 			}
@@ -299,7 +294,7 @@ public class ItemSelector extends JPanel implements ListSelectionListener, Mouse
 
 				mainWin.getStatusBar().setStatusText("Closed " + alignmentResultIDs.length + " alignment result(s).");
 
-				mainWin.updateMenuAvailability();
+				mainWin.getMainMenu().updateMenuAvailability();
 				mainWin.repaint();
 
 
@@ -317,6 +312,13 @@ public class ItemSelector extends JPanel implements ListSelectionListener, Mouse
 	public void addRawData(RawDataAtClient r) {
 		rawDataObjects.addElement(r);
 	}
+    
+    /**
+     * Adds a raw data object to storage
+     */
+    public void addRawData(RawDataFile r) {
+        rawDataObjects.addElement(r);
+    }
 
 	/**
 	 * Removes a raw data object from storage
@@ -324,7 +326,7 @@ public class ItemSelector extends JPanel implements ListSelectionListener, Mouse
 	public boolean removeRawData(RawDataAtClient r) {
 		boolean ans = rawDataObjects.removeElement(r);
 
-		mainWin.updateMenuAvailability();
+		mainWin.getMainMenu().updateMenuAvailability();
 
 		return ans;
 	}
@@ -398,7 +400,7 @@ public class ItemSelector extends JPanel implements ListSelectionListener, Mouse
 	public void setActiveRawData(RawDataAtClient rawData) {
 		rawDataList.setSelectedValue(rawData, true);
 
-		mainWin.updateMenuAvailability();
+		mainWin.getMainMenu().updateMenuAvailability();
 		//repaint();
 	}
 
@@ -501,7 +503,7 @@ public class ItemSelector extends JPanel implements ListSelectionListener, Mouse
 	public boolean removeAlignmentResult(AlignmentResult ar) {
 		boolean ans = resultObjects.removeElement(ar);
 
-		mainWin.updateMenuAvailability();
+		mainWin.getMainMenu().updateMenuAvailability();
 
 		return ans;
 	}
@@ -510,7 +512,7 @@ public class ItemSelector extends JPanel implements ListSelectionListener, Mouse
 	public void setActiveAlignmentResult(AlignmentResult ar) {
 		resultList.setSelectedValue(ar, true);
 
-		mainWin.updateMenuAvailability();
+		mainWin.getMainMenu().updateMenuAvailability();
 
 	}
 
@@ -621,7 +623,7 @@ public class ItemSelector extends JPanel implements ListSelectionListener, Mouse
 
 		}
 
-		if ( !(mainWin.isBusy()) ) { mainWin.updateMenuAvailability(); }
+		if ( !(mainWin.isBusy()) ) { mainWin.getMainMenu().updateMenuAvailability(); }
 
 		//mainWin.repaint();
 

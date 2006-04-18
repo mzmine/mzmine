@@ -33,12 +33,13 @@ import net.sf.mzmine.io.Scan;
  */
 public class NetCDFFile implements RawDataFile {
 
+    private File originalFile;
+    
     /**
      * @see net.sf.mzmine.io.RawDataFile#getFileName()
      */
     public File getFileName() {
-        // TODO Auto-generated method stub
-        return null;
+        return originalFile;
     }
 
     /**
@@ -105,5 +106,8 @@ public class NetCDFFile implements RawDataFile {
         return 0;
     }
 
-  
+    public String toString() {
+        return originalFile.getName();
+    }
+    
 }

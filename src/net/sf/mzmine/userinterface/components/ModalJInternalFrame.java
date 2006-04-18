@@ -1,7 +1,7 @@
 /**
  * This class uses some pieces of code from JOptionPane to make JInternalFrame behave modal.
  */
-package net.sf.mzmine.userinterface;
+package net.sf.mzmine.userinterface.components;
 import java.awt.Component;
 import java.awt.Container;
 import java.awt.KeyboardFocusManager;

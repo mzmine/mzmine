@@ -50,9 +50,9 @@ import javax.swing.event.InternalFrameListener;
 import jmprojection.CDA;
 import jmprojection.Preprocessor;
 import net.sf.mzmine.methods.alignment.AlignmentResult;
-import net.sf.mzmine.userinterface.MainWindow;
-import net.sf.mzmine.userinterface.SelectClassLabelsDialog;
-import net.sf.mzmine.userinterface.Statusbar;
+import net.sf.mzmine.userinterface.dialogs.SelectClassLabelsDialog;
+import net.sf.mzmine.userinterface.mainwindow.MainWindow;
+import net.sf.mzmine.userinterface.mainwindow.Statusbar;
 import net.sf.mzmine.util.GeneralParameters;
 import net.sf.mzmine.util.TransferableImage;
 

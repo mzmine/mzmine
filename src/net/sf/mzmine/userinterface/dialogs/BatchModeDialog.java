@@ -17,7 +17,7 @@
     along with MZmine; if not, write to the Free Software
     Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 */
-package net.sf.mzmine.userinterface;
+package net.sf.mzmine.userinterface.dialogs;
 import java.awt.BorderLayout;
 import java.awt.FileDialog;
 import java.awt.event.ActionEvent;
@@ -64,6 +64,7 @@ import net.sf.mzmine.methods.peakpicking.RecursiveThresholdPicker;
 import net.sf.mzmine.methods.peakpicking.RecursiveThresholdPickerParameters;
 import net.sf.mzmine.methods.peakpicking.SimpleDeisotoper;
 import net.sf.mzmine.methods.peakpicking.SimpleDeisotoperParameters;
+import net.sf.mzmine.userinterface.mainwindow.MainWindow;
 
 
 public class BatchModeDialog extends javax.swing.JInternalFrame implements ActionListener {

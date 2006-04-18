@@ -20,8 +20,9 @@
 package net.sf.mzmine.main;
 
 import net.sf.mzmine.io.IOController;
+import net.sf.mzmine.io.MZmineProject;
 import net.sf.mzmine.taskcontrol.TaskController;
-import net.sf.mzmine.userinterface.MainWindow;
+import net.sf.mzmine.userinterface.mainwindow.MainWindow;
 import net.sf.mzmine.util.Logger;
 
 public class MZmineClient {
@@ -78,6 +79,8 @@ public class MZmineClient {
 
                 new IOController();
                 new TaskController(numberOfNodes);
+                Logger.put("STARTUP THREAD: Opening a new project");
+                new MZmineProject();
 
                 Logger.put("STARTUP THREAD: Starting GUI.");
 

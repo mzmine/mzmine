@@ -43,7 +43,7 @@ import javax.swing.JPanel;
 
 import net.sf.mzmine.methods.peakpicking.Peak;
 import net.sf.mzmine.methods.peakpicking.PeakList;
-import net.sf.mzmine.userinterface.MainWindow;
+import net.sf.mzmine.userinterface.mainwindow.MainWindow;
 import net.sf.mzmine.util.MyMath;
 
 

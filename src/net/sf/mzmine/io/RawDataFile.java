@@ -37,7 +37,7 @@ import java.io.Serializable;
  * Data file must be Serializable, because it is passed as a parameter to remote nodes
  *
  */
-public interface RawDataFile extends Serializable{
+public interface RawDataFile extends Serializable {
 
     public enum PreloadLevel { NO_PRELOAD, PRELOAD_ALL_SCANS };
     
@@ -63,5 +63,10 @@ public interface RawDataFile extends Serializable{
     public double getDataMaxMZ();
     
     public double getDataMaxIntensity();
-
+    
+    /**
+     * @return filename
+     */
+    public String toString();
+        
 }

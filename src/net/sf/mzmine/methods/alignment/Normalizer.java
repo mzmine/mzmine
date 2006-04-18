@@ -21,7 +21,7 @@
 
 package net.sf.mzmine.methods.alignment;
 
-import net.sf.mzmine.userinterface.MainWindow;
+import net.sf.mzmine.userinterface.mainwindow.MainWindow;
 
 public interface Normalizer {
 

@@ -17,7 +17,7 @@
     along with MZmine; if not, write to the Free Software
     Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 */
-package net.sf.mzmine.userinterface;
+package net.sf.mzmine.userinterface.dialogs;
 import java.awt.BorderLayout;
 import java.awt.GridLayout;
 import java.awt.event.ActionListener;
@@ -28,6 +28,9 @@ import javax.swing.JButton;
 import javax.swing.JFormattedTextField;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
+
+import net.sf.mzmine.userinterface.components.ModalJInternalFrame;
+import net.sf.mzmine.userinterface.mainwindow.MainWindow;
 
 /**
  * This class represents the parameter setup dialog shown to the user before processing

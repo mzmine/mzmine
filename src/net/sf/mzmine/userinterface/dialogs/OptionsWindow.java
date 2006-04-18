@@ -17,12 +17,13 @@
     along with MZmine; if not, write to the Free Software
     Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 */
-package net.sf.mzmine.userinterface;
+package net.sf.mzmine.userinterface.dialogs;
 import java.awt.BorderLayout;
 
 import javax.swing.JDesktopPane;
 import javax.swing.JPanel;
 
+import net.sf.mzmine.userinterface.mainwindow.MainWindow;
 import net.sf.mzmine.util.GeneralParameters;
 
 

@@ -47,9 +47,9 @@ import javax.swing.event.InternalFrameListener;
 
 import net.sf.mzmine.methods.peakpicking.Peak;
 import net.sf.mzmine.obsoletedatastructures.RawDataAtClient;
-import net.sf.mzmine.userinterface.ItemSelector;
-import net.sf.mzmine.userinterface.MainWindow;
-import net.sf.mzmine.userinterface.Statusbar;
+import net.sf.mzmine.userinterface.mainwindow.ItemSelector;
+import net.sf.mzmine.userinterface.mainwindow.MainWindow;
+import net.sf.mzmine.userinterface.mainwindow.Statusbar;
 import net.sf.mzmine.util.FormatCoordinates;
 import net.sf.mzmine.util.GeneralParameters;
 import net.sf.mzmine.util.TransferableImage;

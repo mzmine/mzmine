@@ -27,6 +27,7 @@ import net.sf.mzmine.io.netcdf.NetCDFFileOpeningTask;
 import net.sf.mzmine.taskcontrol.Task;
 import net.sf.mzmine.taskcontrol.TaskController;
 import net.sf.mzmine.taskcontrol.TaskListener;
+import net.sf.mzmine.util.Logger;
 
 /**
  * C Files may be opened in following ways: - on the client, user selects "Open
@@ -85,19 +86,13 @@ public class IOController implements TaskListener {
 
         if (task.getStatus() == Task.TaskStatus.FINISHED) {
 
-            try {
+            RawDataFile newFile = (RawDataFile) task.getResult();
+            MZmineProject.getCurrentProject().addFile(newFile);
 
-                RawDataFile newFile = (RawDataFile) task.getResult();
-                MZmineProject newMZFile = new MZmineProject(newFile);
-                // TODO:
-                // MainWindow.getInstance().getFileListComponent().addFile(
-                // newMZFile);
-            } catch (ClassCastException e) {
-
-            }
         } else if (task.getStatus() == Task.TaskStatus.ERROR) {
             /* Task encountered an error */
-            // TODO: show a message box Task.get
+            Logger.putFatal("error opening a file " + task.getErrorMessage());
+            // TODO: show a message box
         }
     }
 }

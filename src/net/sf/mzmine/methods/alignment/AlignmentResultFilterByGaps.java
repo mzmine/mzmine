@@ -25,7 +25,7 @@ import java.util.Vector;
 
 import javax.swing.JOptionPane;
 
-import net.sf.mzmine.userinterface.MainWindow;
+import net.sf.mzmine.userinterface.mainwindow.MainWindow;
 
 
 /**

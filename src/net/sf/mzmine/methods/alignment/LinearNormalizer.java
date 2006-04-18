@@ -24,8 +24,8 @@ package net.sf.mzmine.methods.alignment;
 import javax.swing.JOptionPane;
 
 import net.sf.mzmine.obsoletedatastructures.RawDataAtClient;
-import net.sf.mzmine.userinterface.MainWindow;
-import net.sf.mzmine.userinterface.Statusbar;
+import net.sf.mzmine.userinterface.mainwindow.MainWindow;
+import net.sf.mzmine.userinterface.mainwindow.Statusbar;
 import net.sf.mzmine.util.GeneralParameters;
 
 

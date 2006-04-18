@@ -29,8 +29,8 @@ import java.util.Date;
 import java.util.Vector;
 
 import net.sf.mzmine.taskcontrol.Task.TaskStatus;
-import net.sf.mzmine.userinterface.MainWindow;
-import net.sf.mzmine.userinterface.TaskStatusWindow;
+import net.sf.mzmine.userinterface.dialogs.TaskStatusWindow;
+import net.sf.mzmine.userinterface.mainwindow.MainWindow;
 import net.sf.mzmine.util.Logger;
 
 /**
@@ -166,6 +166,7 @@ public class TaskController implements Runnable {
                                 || (status == TaskStatus.CANCELED)) {
                             if (task.listener != null)
                                 task.listener.taskFinished(task.task);
+                            Logger.put("task " + task.task.getTaskDescription() + " seems to be " + status + ", removing from queue ");
                             taskQueue.remove(task);
                         }
                     }
@@ -188,12 +189,6 @@ public class TaskController implements Runnable {
 
                     }
 
-                    /*
-                     * Logger.put("Task " + task.task.getTaskDescription() + " [" +
-                     * task.task.getStatus() + "] finished " +
-                     * task.task.getFinishedPercentage() + " error? " +
-                     * task.task.getErrorMessage());
-                     */
                 }
 
             }

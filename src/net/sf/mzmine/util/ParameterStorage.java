@@ -43,7 +43,7 @@ import net.sf.mzmine.methods.peakpicking.IncompleteIsotopePatternFilterParameter
 import net.sf.mzmine.methods.peakpicking.LocalPickerParameters;
 import net.sf.mzmine.methods.peakpicking.RecursiveThresholdPickerParameters;
 import net.sf.mzmine.methods.peakpicking.SimpleDeisotoperParameters;
-import net.sf.mzmine.userinterface.BatchModeDialogParameters;
+import net.sf.mzmine.userinterface.dialogs.BatchModeDialogParameters;
 import net.sf.mzmine.visualizers.alignmentresult.AlignmentResultVisualizerCDAPlotViewParameters;
 import net.sf.mzmine.visualizers.alignmentresult.AlignmentResultVisualizerSammonsPlotViewParameters;
 

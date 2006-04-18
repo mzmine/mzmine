@@ -21,7 +21,7 @@
 
 package net.sf.mzmine.methods.alignment;
 
-import net.sf.mzmine.userinterface.MainWindow;
+import net.sf.mzmine.userinterface.mainwindow.MainWindow;
 
 
 /* New interface for all methods that process alignment results at client-side
