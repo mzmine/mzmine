@@ -83,7 +83,6 @@ public class IOController implements TaskListener {
      * @see net.sf.mzmine.taskcontrol.TaskListener#taskFinished(net.sf.mzmine.taskcontrol.Task)
      */
     public void taskFinished(Task task) {
-        // TODO Auto-generated method stub
 
         if (task.getStatus() == Task.TaskStatus.FINISHED) {
 
