@@ -27,6 +27,7 @@ import net.sf.mzmine.io.netcdf.NetCDFFileOpeningTask;
 import net.sf.mzmine.taskcontrol.Task;
 import net.sf.mzmine.taskcontrol.TaskController;
 import net.sf.mzmine.taskcontrol.TaskListener;
+import net.sf.mzmine.userinterface.mainwindow.MainWindow;
 import net.sf.mzmine.util.Logger;
 
 /**
@@ -91,8 +92,9 @@ public class IOController implements TaskListener {
 
         } else if (task.getStatus() == Task.TaskStatus.ERROR) {
             /* Task encountered an error */
-            Logger.putFatal("error opening a file " + task.getErrorMessage());
-            // TODO: show a message box
+            Logger.putFatal("error opening a file: " + task.getErrorMessage());
+            MainWindow.displayErrorMessage("error opening a file: " + task.getErrorMessage());
+
         }
     }
 }
