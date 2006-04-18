@@ -720,7 +720,7 @@ public class RawDataVisualizerSpectrumView extends JInternalFrame implements Raw
 			}
 
 			if (src == zoomSameToOthersMenuItem) {
-				mainWin.setSameZoomToOtherRawDatas(rawData, masterFrame.mainWin.SET_SAME_ZOOM_MZ);
+			//	mainWin.setSameZoomToOtherRawDatas(rawData, masterFrame.mainWin.SET_SAME_ZOOM_MZ);
 			}
 
 			if (src == changeSpectrumSpectraMenuItem) {

@@ -31,7 +31,7 @@ import net.sf.mzmine.userinterface.mainwindow.MainWindow;
 import net.sf.mzmine.util.Logger;
 
 /**
- * IO Controller
+ * IO controller
  * 
  */
 public class IOController implements TaskListener {
@@ -52,6 +52,7 @@ public class IOController implements TaskListener {
      * exits immediately.
      */
     public void openFiles(File[] files, PreloadLevel preloadLevel) {
+
         String extension;
         Task openTask;
 
@@ -59,18 +60,25 @@ public class IOController implements TaskListener {
             /* TODO: determine file contents by header */
             extension = file.getName().substring(
                     file.getName().lastIndexOf(".") + 1).toLowerCase();
+            
             if (extension.endsWith("xml")) {
                 openTask = new MZXMLFileOpeningTask(file, preloadLevel);
-                TaskController.getInstance().addTask(openTask, this);
             } else if (extension.equals("cdf")) {
                 openTask = new NetCDFFileOpeningTask(file);
-                TaskController.getInstance().addTask(openTask, this);
+            } else {
+                MainWindow.getInstance().displayErrorMessage("Unknown file format of file " + file);
+                continue;
             }
-
+               
+            TaskController.getInstance().addTask(openTask, this);
         }
 
     }
-
+    
+    /**
+     * TODO
+     * 
+     */
     public RawDataFileWriter createNewTemporaryFile(RawDataFile file) {
         return null;
     }
@@ -89,8 +97,9 @@ public class IOController implements TaskListener {
 
         } else if (task.getStatus() == Task.TaskStatus.ERROR) {
             /* Task encountered an error */
-            Logger.putFatal("error opening a file: " + task.getErrorMessage());
-            MainWindow.displayErrorMessage("error opening a file: " + task.getErrorMessage());
+            Logger.putFatal("Error opening a file: " + task.getErrorMessage());
+            MainWindow.getInstance().displayErrorMessage(
+                    "Error opening a file: " + task.getErrorMessage());
 
         }
     }

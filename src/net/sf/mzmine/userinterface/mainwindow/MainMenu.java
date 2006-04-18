@@ -7,72 +7,24 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
 import java.io.File;
-import java.util.Enumeration;
-import java.util.Hashtable;
-import java.util.StringTokenizer;
-import java.util.Vector;
 
 import javax.swing.JFileChooser;
 import javax.swing.JInternalFrame;
 import javax.swing.JMenu;
 import javax.swing.JMenuBar;
 import javax.swing.JMenuItem;
-import javax.swing.JOptionPane;
 import javax.swing.KeyStroke;
 
 import net.sf.mzmine.io.IOController;
+import net.sf.mzmine.io.MZmineProject;
+import net.sf.mzmine.io.RawDataFile;
 import net.sf.mzmine.io.RawDataFile.PreloadLevel;
 import net.sf.mzmine.methods.alignment.AlignmentResult;
-import net.sf.mzmine.methods.alignment.AlignmentResultExporter;
-import net.sf.mzmine.methods.alignment.AlignmentResultExporterParameterSetupDialog;
-import net.sf.mzmine.methods.alignment.AlignmentResultExporterParameters;
-import net.sf.mzmine.methods.alignment.AlignmentResultFilterByGaps;
-import net.sf.mzmine.methods.alignment.AlignmentResultFilterByGapsParameters;
-import net.sf.mzmine.methods.alignment.FastAligner;
-import net.sf.mzmine.methods.alignment.FastAlignerParameters;
-import net.sf.mzmine.methods.alignment.JoinAligner;
-import net.sf.mzmine.methods.alignment.JoinAlignerParameters;
-import net.sf.mzmine.methods.alignment.LinearNormalizer;
-import net.sf.mzmine.methods.alignment.LinearNormalizerParameters;
-import net.sf.mzmine.methods.alignment.SimpleGapFiller;
-import net.sf.mzmine.methods.alignment.SimpleGapFillerParameters;
-import net.sf.mzmine.methods.alignment.StandardCompoundNormalizer;
-import net.sf.mzmine.methods.alignment.StandardCompoundNormalizerParameters;
-import net.sf.mzmine.methods.filtering.ChromatographicMedianFilter;
-import net.sf.mzmine.methods.filtering.ChromatographicMedianFilterParameters;
-import net.sf.mzmine.methods.filtering.CropFilter;
-import net.sf.mzmine.methods.filtering.CropFilterParameters;
-import net.sf.mzmine.methods.filtering.MeanFilter;
-import net.sf.mzmine.methods.filtering.MeanFilterParameters;
-import net.sf.mzmine.methods.filtering.SavitzkyGolayFilter;
-import net.sf.mzmine.methods.filtering.SavitzkyGolayFilterParameters;
-import net.sf.mzmine.methods.filtering.ZoomScanFilter;
-import net.sf.mzmine.methods.filtering.ZoomScanFilterParameters;
-import net.sf.mzmine.methods.peakpicking.CentroidPicker;
-import net.sf.mzmine.methods.peakpicking.CentroidPickerParameters;
-import net.sf.mzmine.methods.peakpicking.CombinatorialDeisotoper;
-import net.sf.mzmine.methods.peakpicking.CombinatorialDeisotoperParameters;
-import net.sf.mzmine.methods.peakpicking.IncompleteIsotopePatternFilter;
-import net.sf.mzmine.methods.peakpicking.IncompleteIsotopePatternFilterParameters;
-import net.sf.mzmine.methods.peakpicking.LocalPicker;
-import net.sf.mzmine.methods.peakpicking.LocalPickerParameters;
-import net.sf.mzmine.methods.peakpicking.PeakList;
-import net.sf.mzmine.methods.peakpicking.PeakListExporter;
-import net.sf.mzmine.methods.peakpicking.RecursiveThresholdPicker;
-import net.sf.mzmine.methods.peakpicking.RecursiveThresholdPickerParameters;
-import net.sf.mzmine.methods.peakpicking.SimpleDeisotoper;
-import net.sf.mzmine.methods.peakpicking.SimpleDeisotoperParameters;
 import net.sf.mzmine.obsoletedatastructures.RawDataAtClient;
-import net.sf.mzmine.userinterface.dialogs.AboutDialog;
-import net.sf.mzmine.userinterface.dialogs.BatchModeDialog;
-import net.sf.mzmine.userinterface.dialogs.OptionsWindow;
-import net.sf.mzmine.util.GeneralParameters;
-import net.sf.mzmine.visualizers.alignmentresult.AlignmentResultVisualizer;
 import net.sf.mzmine.visualizers.alignmentresult.AlignmentResultVisualizerCDAPlotView;
 import net.sf.mzmine.visualizers.alignmentresult.AlignmentResultVisualizerCoVarPlotView;
 import net.sf.mzmine.visualizers.alignmentresult.AlignmentResultVisualizerLogratioPlotView;
 import net.sf.mzmine.visualizers.alignmentresult.AlignmentResultVisualizerSammonsPlotView;
-import net.sf.mzmine.visualizers.rawdata.RawDataVisualizer;
 import net.sf.mzmine.visualizers.rawdata.RawDataVisualizerSpectrumView;
 import net.sf.mzmine.visualizers.rawdata.RawDataVisualizerTICView;
 import net.sf.mzmine.visualizers.rawdata.RawDataVisualizerTwoDView;
@@ -420,14 +372,15 @@ class MainMenu extends JMenuBar implements ActionListener {
         if (src == fileClose) {
 
             // Grab selected raw data files
-            int[] rawDataIDs = itemSelector.getSelectedRawDataIDs();
+            RawDataFile[] selectedFiles = itemSelector.getSelectedRawData();
+            for (RawDataFile file : selectedFiles) MZmineProject.getCurrentProject().removeFile(file);
 
-            mainWin.closeRawDataFiles(rawDataIDs);
+     //       mainWin.closeRawDataFiles(rawDataIDs);
 
-            int[] alignmentResultIDs = itemSelector
-                    .getSelectedAlignmentResultIDs();
+            // int[] alignmentResultIDs = itemSelector
+//                    .getSelectedAlignmentResultIDs();
 
-            mainWin.closeAlignmentResults(alignmentResultIDs);
+   //         mainWin.closeAlignmentResults(alignmentResultIDs);
 
         }
 

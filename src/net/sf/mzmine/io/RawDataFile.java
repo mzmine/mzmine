@@ -27,14 +27,7 @@ import java.io.Serializable;
 /**
  * Class representing a raw data file, no matter what format it is using.
  * 
- * Raw data are accessed in following ways:
- * - TIC visualizer needs all scan headers (RT + total intensity) of a certain MSn level, but not m/z values
- * - Base peak visualizer needs base peak m/z + intensity of a certain MSn level
- * - Spectra visualizer needs m/z values for one particular scan
- * - 2D visualizer needs all m/z values for all scans of certain MSn level
- * - data methods need all m/z values for all scans of all MSn levels
- *
- * Data file must be Serializable, because it is passed as a parameter to remote nodes
+ * Data file must be Serializable, because it may be passed as a parameter to remote nodes
  *
  */
 public interface RawDataFile extends Serializable {
@@ -44,9 +37,7 @@ public interface RawDataFile extends Serializable {
     public File getFileName();
     
     public int getNumOfScans();
-    
     public int[] getMSLevels();
-    
     public int[] getScanNumbers(int msLevel);
 
     /**
@@ -59,9 +50,7 @@ public interface RawDataFile extends Serializable {
     public String getDataDescription();
 
     public double getDataMinMZ();
-
     public double getDataMaxMZ();
-    
     public double getDataMaxIntensity();
     
     /**

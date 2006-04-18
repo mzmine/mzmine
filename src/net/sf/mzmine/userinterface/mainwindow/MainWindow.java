@@ -138,11 +138,6 @@ public class MainWindow extends JFrame implements WindowListener {
     // GUI components
     private JDesktopPane desktop;
 
-    private MouseAdapter myMouseAdapter;
-
-    private Cursor myWaitCursor = new Cursor(Cursor.WAIT_CURSOR);
-
-    private Cursor myDefaultCursor = new Cursor(Cursor.DEFAULT_CURSOR);
 
     private MainMenu menuBar;
 
@@ -259,19 +254,13 @@ public class MainWindow extends JFrame implements WindowListener {
         return desktop;
     }
 
-    /**
-     * This method is called to disable/enable GUI before/after doing some
-     * computational work
-     */
-    public void setBusy(boolean flag) {
-        busyFlag = flag;
+    public ItemSelector getItemSelector() {
+        return itemSelector;
     }
 
-    /**
-     * This method returns true when all GUI actions should be disabled.
-     */
-    public boolean isBusy() {
-        return busyFlag;
+
+    public ParameterStorage getParameterStorage() {
+        return parameterStorage;
     }
 
     /**
@@ -1393,14 +1382,11 @@ public class MainWindow extends JFrame implements WindowListener {
     /*
      * public RunSelector getRunSelector() { //return runPick; return null; }
      */
-
+/*
     public void paintNow() {
         update(getGraphics());
     }
 
-    /**
-     * This method closes a set of raw data files
-     */
     public void closeRawDataFiles(int[] rawDataIDs) {
 
         if (rawDataIDs.length > 0) {
@@ -1440,9 +1426,7 @@ public class MainWindow extends JFrame implements WindowListener {
 
     }
 
-    /**
-     * This method closes a set of alignment results
-     */
+
     public void closeAlignmentResults(int[] alignmentResultIDs) {
 
         if (alignmentResultIDs.length > 0) {
@@ -1554,8 +1538,7 @@ public class MainWindow extends JFrame implements WindowListener {
      * Copies the zoom settings from given run to all other runs. whatDims
      * parameter defines wheter to copy zoom settings only in mz, rt or both
      * dimensions
-     */
-
+  
     public void setSameZoomToOtherRawDatas(RawDataAtClient originalRawData,
             int whatDims) {
 
@@ -1682,37 +1665,19 @@ public class MainWindow extends JFrame implements WindowListener {
 
     }
 
-    public void setMouseWaitCursor() {
-        if (myMouseAdapter == null) {
-            myMouseAdapter = new MouseAdapter() {
-            };
-            this.getGlassPane().addMouseListener(myMouseAdapter);
-            this.getGlassPane().setCursor(myWaitCursor);
-        }
-        this.getGlassPane().setVisible(true);
-    }
-
-    public void setMouseDefaultCursor() {
-        this.getGlassPane().setVisible(false);
-    }
-
-    public ParameterStorage getParameterStorage() {
-        return parameterStorage;
-    }
 
     /*
      * public FormatCoordinates getFormatCoordinates() { return
      * paramSettings.getFormatCoordinates(); }
-     */
 
-    public ItemSelector getItemSelector() {
-        return itemSelector;
-    }
 
+
+    
+*/
     /**
      * Prepares everything for quit and then shutdowns the application
      */
-    private boolean exitMZmine() {
+    void exitMZmine() {
 
         // Ask if use really wants to quit
         int selectedValue = JOptionPane.showInternalConfirmDialog(desktop,
@@ -1720,16 +1685,16 @@ public class MainWindow extends JFrame implements WindowListener {
                 JOptionPane.YES_NO_OPTION, JOptionPane.WARNING_MESSAGE);
         if (selectedValue != JOptionPane.YES_OPTION) {
             statBar.setStatusText("Exit cancelled.");
-            return false;
+            return;
         }
 
         // Close all alignment results
-        int[] alignmentResultIDs = itemSelector.getAlignmentResultIDs();
-        closeAlignmentResults(alignmentResultIDs);
+       // int[] alignmentResultIDs = itemSelector.getAlignmentResultIDs();
+        // closeAlignmentResults(alignmentResultIDs);
 
         // Close all raw data files
-        int[] rawDataIDs = itemSelector.getRawDataIDs();
-        closeRawDataFiles(rawDataIDs);
+      //  int[] rawDataIDs = itemSelector.getRawDataIDs();
+        // closeRawDataFiles(rawDataIDs);
 
         // Disconnect client from cluster
         // clientForCluster.disconnectFromController();
@@ -1738,15 +1703,13 @@ public class MainWindow extends JFrame implements WindowListener {
         // (not automatic)
 
         // Shutdown
-        this.dispose();
+        dispose();
         System.exit(0);
 
-        return true;
 
     }
-
-    public static void displayErrorMessage(String msg) {
-            myInstance.statBar.setStatusText(msg);
+    public void displayErrorMessage(String msg) {
+            statBar.setStatusText(msg);
             JOptionPane.showInternalMessageDialog(myInstance.getDesktop(), msg, "Sorry",
                     JOptionPane.ERROR_MESSAGE);
     }

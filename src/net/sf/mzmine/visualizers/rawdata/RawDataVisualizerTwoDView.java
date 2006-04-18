@@ -840,7 +840,7 @@ public class RawDataVisualizerTwoDView extends JInternalFrame implements RawData
 			}
 
 			if (src == zoomSameToOthersMenuItem) {
-				mainWin.setSameZoomToOtherRawDatas(rawData, masterFrame.mainWin.SET_SAME_ZOOM_BOTH);
+		//		mainWin.setSameZoomToOtherRawDatas(rawData, masterFrame.mainWin.SET_SAME_ZOOM_BOTH);
 			}
 
 

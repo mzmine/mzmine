@@ -650,7 +650,7 @@ public class RawDataVisualizerTICView extends JInternalFrame implements RawDataV
 			// Copy same scan range settings to all other open runs
 			if (src == zoomSameToOthersMenuItem) {
 
-				mainWin.setSameZoomToOtherRawDatas(rawData, masterFrame.mainWin.SET_SAME_ZOOM_SCAN);
+		//		mainWin.setSameZoomToOtherRawDatas(rawData, masterFrame.mainWin.SET_SAME_ZOOM_SCAN);
 
 			}
 

@@ -166,7 +166,6 @@ public class TaskController implements Runnable {
                                 || (status == TaskStatus.CANCELED)) {
                             if (task.listener != null)
                                 task.listener.taskFinished(task.task);
-                            Logger.put("task " + task.task.getTaskDescription() + " seems to be " + status + ", removing from queue ");
                             taskQueue.remove(task);
                         }
                     }

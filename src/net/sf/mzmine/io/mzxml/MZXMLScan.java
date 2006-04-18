@@ -41,26 +41,18 @@ import org.xml.sax.helpers.DefaultHandler;
 class MZXMLScan extends DefaultHandler implements Scan {
 
     private int scanNumber;
-
     private int msLevel;
-
     private double mzValues[], intensityValues[];
-
     private double precursorMZ;
-
     private double retentionTime;
-
     private double mzRangeMin, mzRangeMax;
-
     private double basePeakMZ, basePeakIntensity;
 
     /*
      * Variables used for parsing
      */
     private StringBuffer charBuffer;
-
     private int peakDataPrecision;
-
     private boolean lowHighGiven;
 
     /**

@@ -44,6 +44,7 @@ public class MZmineProject {
         Method processsingMethod;
         MethodParameters parameters;
     }
+    
     /* we have to index by File, not by RawDataFile - that would 
      * cause keeping all previous RawDataFile objects in memory */
     private Hashtable<File, Operation> fileHistory;
@@ -62,6 +63,12 @@ public class MZmineProject {
     void addFile(RawDataFile newFile) {
         projectFiles.add(newFile);
         MainWindow.getInstance().getItemSelector().addRawData(newFile);
+    }
+    
+    public void removeFile(RawDataFile file) {
+        projectFiles.remove(file);
+        fileHistory.remove(file);
+        MainWindow.getInstance().getItemSelector().removeRawData(file);
     }
     
     /**

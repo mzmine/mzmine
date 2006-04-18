@@ -19,6 +19,8 @@
 
 package net.sf.mzmine.main;
 
+import javax.swing.JFrame;
+
 import net.sf.mzmine.io.IOController;
 import net.sf.mzmine.io.MZmineProject;
 import net.sf.mzmine.taskcontrol.TaskController;

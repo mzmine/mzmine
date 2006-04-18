@@ -33,15 +33,12 @@ public interface Scan {
     public double getRetentionTime();
 
     public double getMZRangeMin();
-
     public double getMZRangeMax();
 
     public double getBasePeakMZ();
-
     public double getBasePeakIntensity();
 
     public double[] getMZValues();
-
     public double[] getIntensityValues();
 
     public int getNumberOfDataPoints();

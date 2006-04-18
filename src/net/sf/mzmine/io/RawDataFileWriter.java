@@ -27,8 +27,16 @@ import java.io.File;
  */
 public interface RawDataFileWriter {
 
+    /**
+     * Adds a new scan to the file. 
+     * @param newScan
+     */
     public void addScan(Scan newScan);
     
+    /**
+     * Finishes writing of the file 
+     * @return newly written file as RawDataFile
+     */
     public RawDataFile finishWriting();
 
 
