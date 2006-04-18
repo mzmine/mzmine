@@ -1,2 +1,2 @@
-Main-Class: net.sf.mzmine.main.MZmineClient
+Main-Class: net.sf.mzmine.MZmineClient
 Class-Path: lib/netcdf.jar lib/sunutils.jar lib/base64.jar lib/jmprojection.jar lib/danby.jar
