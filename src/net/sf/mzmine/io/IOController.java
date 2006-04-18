@@ -31,9 +31,7 @@ import net.sf.mzmine.userinterface.mainwindow.MainWindow;
 import net.sf.mzmine.util.Logger;
 
 /**
- * C Files may be opened in following ways: - on the client, user selects "Open
- * file" from menu, new task is created and then the file appears in open files
- * list
+ * IO Controller
  * 
  */
 public class IOController implements TaskListener {

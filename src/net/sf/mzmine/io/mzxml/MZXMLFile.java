@@ -39,6 +39,7 @@ import net.sf.mzmine.io.Scan;
 import net.sf.mzmine.util.Logger;
 
 /**
+ * Class representing raw data file in MZXML format.
  * 
  */
 class MZXMLFile implements RawDataFile {
@@ -50,7 +51,7 @@ class MZXMLFile implements RawDataFile {
     private double dataMinMZ, dataMaxMZ, dataMaxIntensity;
 
     /**
-     * preloaded scans
+     * Preloaded scans
      */
     private Hashtable<Integer, MZXMLScan> scans;
 
@@ -179,6 +180,7 @@ class MZXMLFile implements RawDataFile {
      * @see net.sf.mzmine.io.RawDataFile#getMSLevels()
      */
     public int[] getMSLevels() {
+
         Set<Integer> msLevelsSet = scanNumbers.keySet();
         int[] msLevels = new int[msLevelsSet.size()];
         int index = 0;
@@ -242,7 +244,7 @@ class MZXMLFile implements RawDataFile {
         numOfScans++;
 
     }
-    
+
     public String toString() {
         return originalFile.getName();
     }
