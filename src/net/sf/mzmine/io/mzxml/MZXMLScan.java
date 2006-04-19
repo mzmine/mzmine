@@ -153,6 +153,14 @@ class MZXMLScan extends DefaultHandler implements Scan {
         // <scan>
         if (qName.equalsIgnoreCase("scan")) {
 
+            /* check if we have already read the scan data, in such case this <scan> is inner scan and we want to ignore it */
+            if (mzValues != null) {
+                // free memory
+                charBuffer = null;
+                // Stop parsing by throwing an exception
+                throw (new SAXException("Scan reading finished"));
+            }
+            
             // Get number of the scan
             scanNumber = Integer.parseInt(attrs.getValue("num"));
             msLevel = Integer.parseInt(attrs.getValue("msLevel"));
@@ -170,7 +178,8 @@ class MZXMLScan extends DefaultHandler implements Scan {
                 DatatypeFactory dataTypeFactory;
                 try {
                     dataTypeFactory = DatatypeFactory.newInstance();
-                    Duration dur = dataTypeFactory.newDuration(retentionTimeStr);
+                    Duration dur = dataTypeFactory
+                            .newDuration(retentionTimeStr);
                     retentionTime = dur.getTimeInMillis(currentDate) / 1000.0;
                 } catch (Exception e) {
                     Logger.put(e.toString());

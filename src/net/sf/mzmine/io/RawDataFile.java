@@ -51,7 +51,10 @@ public interface RawDataFile extends Serializable {
 
     public double getDataMinMZ();
     public double getDataMaxMZ();
-    public double getDataMaxIntensity();
+    public double getDataMinRT();
+    public double getDataMaxRT();
+    public double getDataMaxBasePeakIntensity();
+    public double getDataMaxTotalIonCurrent();
     
     /**
      * @return filename

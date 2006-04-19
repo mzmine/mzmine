@@ -641,7 +641,7 @@ public class AlignmentResultVisualizerCoVarPlotView extends JInternalFrame imple
 
 				// And select this item in all other visualizers diplaying this same alignment result
 				alignmentResult.setSelectedRow(alignmentRowValues[nearestInd]);
-				mainWin.updateAlignmentResultVisualizers(alignmentResult.getAlignmentResultID());
+		//		mainWin.updateAlignmentResultVisualizers(alignmentResult.getAlignmentResultID());
 
 				repaint();
 			}

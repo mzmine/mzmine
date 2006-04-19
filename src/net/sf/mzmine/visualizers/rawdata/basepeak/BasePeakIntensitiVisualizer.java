@@ -95,4 +95,36 @@ public class BasePeakIntensitiVisualizer extends JInternalFrame implements
 
     }
 
+    /**
+     * @see net.sf.mzmine.visualizers.RawDataVisualizer#resetMZRange()
+     */
+    public void resetMZRange() {
+        // TODO Auto-generated method stub
+        
+    }
+
+    /**
+     * @see net.sf.mzmine.visualizers.RawDataVisualizer#resetRTRange()
+     */
+    public void resetRTRange() {
+        // TODO Auto-generated method stub
+        
+    }
+
+    /**
+     * @see net.sf.mzmine.visualizers.RawDataVisualizer#setIntensityRange(double, double)
+     */
+    public void setIntensityRange(double intensityMin, double intensityMax) {
+        // TODO Auto-generated method stub
+        
+    }
+
+    /**
+     * @see net.sf.mzmine.visualizers.RawDataVisualizer#resetIntensityRange()
+     */
+    public void resetIntensityRange() {
+        // TODO Auto-generated method stub
+        
+    }
+
 }

@@ -41,7 +41,8 @@ import net.sf.mzmine.io.MZmineProject;
 import net.sf.mzmine.io.RawDataFile;
 import net.sf.mzmine.methods.alignment.AlignmentResult;
 import net.sf.mzmine.obsoletedatastructures.RawDataAtClient;
-import net.sf.mzmine.visualizers.rawdata.tic.RawDataVisualizerTICView;
+import net.sf.mzmine.visualizers.RawDataVisualizer;
+import net.sf.mzmine.visualizers.rawdata.tic.TICVisualizer;
 
 /**
  * This class implements a selector of raw data files and alignment results
@@ -175,6 +176,28 @@ public class ItemSelector extends JPanel implements ListSelectionListener,
 
         }
 
+        if (src == pmShowVisualizers) {
+            RawDataFile[] selectedFiles = getSelectedRawData();
+            for (RawDataFile file : selectedFiles) {
+                
+                TICVisualizer vis = new TICVisualizer(file, 1);
+                vis.setVisible(true);
+                MainWindow.getInstance().getDesktop().add(vis);
+
+            }
+            
+        }
+        
+        /*
+        TICVisualizer ticView = new TICVisualizer();
+        ticView.setRawData(rawData);
+        // theRun.addVisualizer(ticView);
+        ticView.setFrameIcon(null);
+        ticView.setVisible(false);
+        desktop.add(ticView, javax.swing.JLayeredPane.DEFAULT_LAYER);
+
+        visualizers.add(ticView);
+        */
         /*
          * int[] alignmentResultIDs = getSelectedAlignmentResultIDs();
          * 

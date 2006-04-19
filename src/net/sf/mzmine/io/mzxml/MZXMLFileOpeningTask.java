@@ -40,28 +40,18 @@ import org.xml.sax.helpers.DefaultHandler;
 /**
  * 
  */
-public class MZXMLFileOpeningTask extends DefaultHandler implements DistributableTask {
+public class MZXMLFileOpeningTask extends DefaultHandler implements
+        DistributableTask {
 
     private File originalFile;
-
     private MZXMLFile buildingFile;
-
     private TaskStatus status;
-
     private int totalScans;
-
     private int parsedScans;
-
     private String errorMessage;
-
     private StringBuffer charBuffer;
-
     private int scanIndexID; // While reading <offset> tag for a scan index,
-
     private boolean readingIndex;
-
-    private boolean readingScan;
-
     private MZXMLScan buildingScan;
 
     /**
@@ -74,7 +64,7 @@ public class MZXMLFileOpeningTask extends DefaultHandler implements Distributabl
 
         charBuffer = new StringBuffer(256);
         // Get current date which is also required in conversions
-        
+
         buildingFile = new MZXMLFile(fileToOpen, preloadLevel);
 
     }
@@ -133,7 +123,7 @@ public class MZXMLFileOpeningTask extends DefaultHandler implements Distributabl
         SAXParserFactory factory = SAXParserFactory.newInstance();
 
         // TODO: check file header?
-        
+
         try {
             SAXParser saxParser = factory.newSAXParser();
             // Parse the file
@@ -149,14 +139,15 @@ public class MZXMLFileOpeningTask extends DefaultHandler implements Distributabl
             e.printStackTrace();
             return;
         }
-        
+
         if (parsedScans == 0) {
             status = TaskStatus.ERROR;
             errorMessage = "No scans found";
             return;
         }
-        
-        Logger.put("Finished parsing " + originalFile + ", parsed " + parsedScans + " scans");
+
+        Logger.put("Finished parsing " + originalFile + ", parsed "
+                + parsedScans + " scans");
         status = TaskStatus.FINISHED;
 
     }
@@ -179,13 +170,17 @@ public class MZXMLFileOpeningTask extends DefaultHandler implements Distributabl
         // <scan>
         if (qName.equalsIgnoreCase("scan")) {
 
-            readingScan = true;
+            if (buildingScan != null) {
+                /* previous scan reading is finished, add it to the file */
+                buildingFile.addScan(buildingScan);
+                parsedScans++;
+            }
             buildingScan = new MZXMLScan();
 
         }
-        
+
         // if reading a scan, pass this method to the scan SAX handler
-        if (readingScan) {
+        if (buildingScan != null) {
             buildingScan.startElement(namespaceURI, lName, qName, attrs);
             return;
         }
@@ -197,8 +192,6 @@ public class MZXMLFileOpeningTask extends DefaultHandler implements Distributabl
         if (qName.equals("msRun")) {
             totalScans = Integer.parseInt(attrs.getValue("scanCount"));
         }
-
-
 
         // <index>
         if (qName.equalsIgnoreCase("index")) {
@@ -244,16 +237,18 @@ public class MZXMLFileOpeningTask extends DefaultHandler implements Distributabl
 
         // </scan>
         if (qName.equalsIgnoreCase("scan")) {
-
-            readingScan = false;
-            parsedScans++;
-
-            /* scan reading is finished, add it to the file */
-            buildingFile.addScan(buildingScan);
-
+            
+            if (buildingScan != null) {
+                /* scan reading is finished, add it to the file */
+                buildingFile.addScan(buildingScan);
+                parsedScans++;
+                buildingScan = null;
+                return;
+            }
+            
         }
 
-        if (readingScan) {
+        if (buildingScan != null) {
             buildingScan.endElement(namespaceURI, sName, qName);
             return;
         }
@@ -279,7 +274,7 @@ public class MZXMLFileOpeningTask extends DefaultHandler implements Distributabl
      */
     public void characters(char buf[], int offset, int len) throws SAXException {
 
-        if (readingScan) {
+        if (buildingScan != null) {
             buildingScan.characters(buf, offset, len);
             return;
         }

@@ -26,7 +26,7 @@ import net.sf.mzmine.visualizers.alignmentresult.AlignmentResultVisualizerCoVarP
 import net.sf.mzmine.visualizers.alignmentresult.AlignmentResultVisualizerLogratioPlotView;
 import net.sf.mzmine.visualizers.alignmentresult.AlignmentResultVisualizerSammonsPlotView;
 import net.sf.mzmine.visualizers.rawdata.spectra.RawDataVisualizerSpectrumView;
-import net.sf.mzmine.visualizers.rawdata.tic.RawDataVisualizerTICView;
+import net.sf.mzmine.visualizers.rawdata.tic.TICVisualizer;
 import net.sf.mzmine.visualizers.rawdata.twod.RawDataVisualizerTwoDView;
 import sunutils.ExampleFileFilter;
 
@@ -1103,7 +1103,7 @@ class MainMenu extends JMenuBar implements ActionListener {
                     .getSelectedFrame();
 
             if (activeWindow != null) {
-                if ((activeWindow.getClass() == RawDataVisualizerTICView.class)
+                if ((activeWindow.getClass() == TICVisualizer.class)
                         || (activeWindow.getClass() == RawDataVisualizerTwoDView.class)
                         || (activeWindow.getClass() == RawDataVisualizerSpectrumView.class)) {
                     filePrint.setEnabled(true);

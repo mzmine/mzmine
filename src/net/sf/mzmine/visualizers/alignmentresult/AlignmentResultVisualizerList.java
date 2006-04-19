@@ -252,7 +252,7 @@ public class AlignmentResultVisualizerList extends JInternalFrame implements Ali
 			// Get alignment ID for selected row
 			int rowInd = ((Integer)(table.getValueAt(table.getSelectedRow(), 0))).intValue();
 			alignmentResult.setSelectedRow(rowInd-1);
-			mainWin.updateAlignmentResultVisualizers(alignmentResult.getAlignmentResultID());
+		//	mainWin.updateAlignmentResultVisualizers(alignmentResult.getAlignmentResultID());
 
 		}
 

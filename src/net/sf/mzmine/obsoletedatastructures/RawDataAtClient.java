@@ -423,9 +423,39 @@ public class RawDataAtClient  implements RawDataFile {
 
 
     /**
-     * @see net.sf.mzmine.io.RawDataFile#getDataMaxIntensity()
+     * @see net.sf.mzmine.io.RawDataFile#getDataMaxBasePeakIntensity()
      */
-    public double getDataMaxIntensity() {
+    public double getDataMaxBasePeakIntensity() {
+        // TODO Auto-generated method stub
+        return 0;
+    }
+
+
+
+    /**
+     * @see net.sf.mzmine.io.RawDataFile#getDataMinRT()
+     */
+    public double getDataMinRT() {
+        // TODO Auto-generated method stub
+        return 0;
+    }
+
+
+
+    /**
+     * @see net.sf.mzmine.io.RawDataFile#getDataMaxRT()
+     */
+    public double getDataMaxRT() {
+        // TODO Auto-generated method stub
+        return 0;
+    }
+
+
+
+    /**
+     * @see net.sf.mzmine.io.RawDataFile#getDataMaxTotalIonCurrent()
+     */
+    public double getDataMaxTotalIonCurrent() {
         // TODO Auto-generated method stub
         return 0;
     }

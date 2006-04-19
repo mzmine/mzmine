@@ -206,7 +206,7 @@ public class RawDataAtNode implements RawDataFile {
 	/**
 	 * Return maximum intensity
 	 */
-	public double getDataMaxIntensity() {
+	public double getDataMaxBasePeakIntensity() {
 		return maxIntensityValue;
 	}
 
@@ -1516,6 +1516,33 @@ public class RawDataAtNode implements RawDataFile {
      * @see net.sf.mzmine.io.RawDataFile#getDataMaxMZ()
      */
     public double getDataMaxMZ() {
+        // TODO Auto-generated method stub
+        return 0;
+    }
+
+
+    /**
+     * @see net.sf.mzmine.io.RawDataFile#getDataMinRT()
+     */
+    public double getDataMinRT() {
+        // TODO Auto-generated method stub
+        return 0;
+    }
+
+
+    /**
+     * @see net.sf.mzmine.io.RawDataFile#getDataMaxRT()
+     */
+    public double getDataMaxRT() {
+        // TODO Auto-generated method stub
+        return 0;
+    }
+
+
+    /**
+     * @see net.sf.mzmine.io.RawDataFile#getDataMaxTotalIonCurrent()
+     */
+    public double getDataMaxTotalIonCurrent() {
         // TODO Auto-generated method stub
         return 0;
     }

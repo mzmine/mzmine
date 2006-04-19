@@ -54,7 +54,7 @@ import sunutils.TableSorter;
 /**
  *
  */
-public class RawDataVisualizerPeakListView extends JInternalFrame implements RawDataVisualizer, Printable, InternalFrameListener, ActionListener, MouseListener {
+public class RawDataVisualizerPeakListView extends JInternalFrame implements Printable, InternalFrameListener, ActionListener, MouseListener {
 
 	private static final int COLCOUNT = 10;
 
@@ -220,7 +220,7 @@ public class RawDataVisualizerPeakListView extends JInternalFrame implements Raw
 					mainWin.displayErrorMessage("Peak not found in alignment " + alignmentResult.getNiceName());
 				} else {
 					// Found Inform all alignment result visualizers about this change
-					mainWin.updateAlignmentResultVisualizers(alignmentResultID.intValue());
+				//	mainWin.updateAlignmentResultVisualizers(alignmentResultID.intValue());
 				}
 			}
 		}
