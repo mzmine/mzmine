@@ -179,7 +179,7 @@ public class AlignmentResultVisualizerLogratioPlotView extends JInternalFrame im
 		if (alignmentResult.isImported()) {
 			for (int i=0; i<rawDataIDs.length; i++) { rawDatas[i] = new RawDataPlaceHolder(alignmentResult.getImportedRawDataName(rawDataIDs[i]), rawDataIDs[i]);  }
 		} else {
-			for (int i=0; i<rawDataIDs.length; i++) { rawDatas[i] = new RawDataPlaceHolder(mainWin.getItemSelector().getRawDataByID(rawDataIDs[i]).getNiceName(), rawDataIDs[i]); }
+		//	for (int i=0; i<rawDataIDs.length; i++) { rawDatas[i] = new RawDataPlaceHolder(mainWin.getItemSelector().getRawDataByID(rawDataIDs[i]).getNiceName(), rawDataIDs[i]); }
 		}
 
 

@@ -93,13 +93,13 @@ public class AlignmentResultExporter {
 
 			} else {
 
-				RawDataAtClient rawData = mainWin.getItemSelector().getRawDataByID(rawDataID);
+				/*RawDataAtClient rawData = mainWin.getItemSelector().getRawDataByID(rawDataID);
 				if (parameters.isSelectedRawDataCol(AlignmentResultExporterParameters.RAWDATACOLS_MZ)) 		{ s += rawData.getNiceName() + ": " + parameters.rawDataColsMZColumnHeader 		+ "\t"; }
 				if (parameters.isSelectedRawDataCol(AlignmentResultExporterParameters.RAWDATACOLS_RT)) 		{ s += rawData.getNiceName() + ": " + parameters.rawDataColsRTColumnHeader 		+ "\t"; }
 				if (parameters.isSelectedRawDataCol(AlignmentResultExporterParameters.RAWDATACOLS_HEIGHT)) 	{ s += rawData.getNiceName() + ": " + parameters.rawDataColsHeightColumnHeader 	+ "\t"; }
 				if (parameters.isSelectedRawDataCol(AlignmentResultExporterParameters.RAWDATACOLS_AREA)) 		{ s += rawData.getNiceName() + ": " + parameters.rawDataColsAreaColumnHeader 		+ "\t"; }
 				if (parameters.isSelectedRawDataCol(AlignmentResultExporterParameters.RAWDATACOLS_STATUS)) 	{ s += rawData.getNiceName() + ": " + parameters.rawDataColsStatusColumnHeader 	+ "\t"; }
-
+*/
 			}
 
 		}

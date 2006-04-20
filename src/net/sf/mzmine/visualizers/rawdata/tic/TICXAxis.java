@@ -4,26 +4,33 @@
 package net.sf.mzmine.visualizers.rawdata.tic;
 
 import java.awt.Color;
+import java.awt.Dimension;
 import java.awt.Graphics;
-import java.text.DecimalFormat;
 
 import javax.swing.JPanel;
 
 import net.sf.mzmine.userinterface.mainwindow.MainWindow;
 import net.sf.mzmine.util.FormatCoordinates;
 
-
 /**
- *
+ * 
  */
 class TICXAxis extends JPanel {
 
-    private final int leftMargin = 50;
-    private final int rightMargin = 5;
+    private static final int leftMargin = 60;
+    private static final int rightMargin = 5;
+    private static final int MIN_HEIGHT = 25;
+    private static final int STEP_PIXELS = 60;
 
-    private int minX;
-    private int maxX;
+    private TICVisualizer masterFrame;
 
+    TICXAxis(TICVisualizer masterFrame) {
+        this.masterFrame = masterFrame;
+        setMinimumSize(new Dimension(0, MIN_HEIGHT));
+        setPreferredSize(new Dimension(0, MIN_HEIGHT));
+        setBackground(Color.white);
+        setForeground(Color.black);
+    }
 
     /**
      * This method paints the x-axis
@@ -32,53 +39,40 @@ class TICXAxis extends JPanel {
 
         super.paint(g);
 
-        FormatCoordinates formatCoordinates = new FormatCoordinates(MainWindow.getInstance()
-                .getParameterStorage().getGeneralParameters());
+        FormatCoordinates formatCoordinates = new FormatCoordinates(MainWindow
+                .getInstance().getParameterStorage().getGeneralParameters());
 
         // Calc some dimensions with depend on the panel width (in pixels)
         // and plot area (in scans)
-        int w = getWidth();
-        double h = getHeight();
+        int width = getWidth();
+        int height = getHeight();
 
-        // / - number of pixels per scan
-        int numofscans = maxX - minX;
-        double pixelsperscan = (double) (w - leftMargin - rightMargin)
-                / (double) numofscans;
+        double retValueMin = masterFrame.getZoomRTMin();
+        double retValueMax = masterFrame.getZoomRTMax();
 
-        // - number of scans between tic marks
-        int scanspertic = 1;
-        while ((scanspertic * pixelsperscan) < 60) {
-            scanspertic++;
-        }
-
-        // - number of pixels between tic marks
-        double pixelspertic = (double) scanspertic * pixelsperscan;
-        int numoftics = (int) java.lang.Math.floor((double) numofscans
-                / (double) scanspertic);
+        double stepIncrement = (retValueMax - retValueMin)
+                / (double) (width - leftMargin - rightMargin) * STEP_PIXELS;
 
         // Draw axis
-        this.setForeground(Color.black);
-        g.drawLine((int) leftMargin, 0, (int) (w - rightMargin), 0);
+
+        g.drawLine(leftMargin, 0, width - rightMargin, 0);
 
         // Draw tics and numbers
         String tmps;
-        double xpos = leftMargin;
-        int xval = minX;
-        for (int t = 0; t < numoftics; t++) {
-            // if (t==(numoftics-1)) { this.setForeground(Color.red); }
+        double rt = retValueMin;
 
-            tmps = formatCoordinates.formatRTValue(xval, null); // TODO
+        for (int xpos = leftMargin; xpos < width - rightMargin; xpos += STEP_PIXELS) {
 
-            g.drawLine((int) java.lang.Math.round(xpos), 0,
-                    (int) java.lang.Math.round(xpos), (int) (h / 4));
-            g.drawBytes(tmps.getBytes(), 0, tmps.length(),
-                    (int) java.lang.Math.round(xpos), (int) (3 * h / 4));
+            g.drawLine(xpos, 0, xpos, height / 4);
 
-            xval += scanspertic;
-            xpos += pixelspertic;
+            if (xpos < width - rightMargin - 20) {
+                tmps = formatCoordinates.formatRTValue(rt);
+                g.drawBytes(tmps.getBytes(), 0, tmps.length(), xpos - (tmps.length() * 4),
+                        (int) (3 * height / 4));
+            }
+            rt += stepIncrement;
 
         }
     }
-
 
 }

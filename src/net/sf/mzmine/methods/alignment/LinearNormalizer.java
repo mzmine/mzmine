@@ -242,12 +242,12 @@ public class LinearNormalizer implements Normalizer {
 
 
 			//
-			if (myParameters.paramNormalizationType == LinearNormalizerParameters.NORMALIZATIONTYPE_TOTRAWSIGNAL) {
+	/*		if (myParameters.paramNormalizationType == LinearNormalizerParameters.NORMALIZATIONTYPE_TOTRAWSIGNAL) {
 				rawDataID = ar.getRawDataID(i);
 				RawDataAtClient rawData = mainWin.getItemSelector().getRawDataByID(rawDataID);
 				normFactor = rawData.getTotalRawSignal();
 			}
-
+*/
 
 
 			// Calculate normalized intensities

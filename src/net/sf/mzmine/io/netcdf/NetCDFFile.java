@@ -133,5 +133,21 @@ public class NetCDFFile implements RawDataFile {
         // TODO Auto-generated method stub
         return 0;
     }
+
+    /**
+     * @see net.sf.mzmine.io.RawDataFile#getDataMaxBasePeakIntensity(int)
+     */
+    public double getDataMaxBasePeakIntensity(int msLevel) {
+        // TODO Auto-generated method stub
+        return 0;
+    }
+
+    /**
+     * @see net.sf.mzmine.io.RawDataFile#getDataMaxTotalIonCurrent(int)
+     */
+    public double getDataMaxTotalIonCurrent(int msLevel) {
+        // TODO Auto-generated method stub
+        return 0;
+    }
     
 }

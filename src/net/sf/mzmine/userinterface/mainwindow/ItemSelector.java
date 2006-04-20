@@ -20,6 +20,7 @@ package net.sf.mzmine.userinterface.mainwindow;
 
 import java.awt.BorderLayout;
 import java.awt.Dimension;
+import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
@@ -27,6 +28,7 @@ import java.util.Vector;
 
 import javax.swing.DefaultListModel;
 import javax.swing.JLabel;
+import javax.swing.JLayeredPane;
 import javax.swing.JList;
 import javax.swing.JMenuItem;
 import javax.swing.JPanel;
@@ -40,8 +42,6 @@ import javax.swing.event.ListSelectionListener;
 import net.sf.mzmine.io.MZmineProject;
 import net.sf.mzmine.io.RawDataFile;
 import net.sf.mzmine.methods.alignment.AlignmentResult;
-import net.sf.mzmine.obsoletedatastructures.RawDataAtClient;
-import net.sf.mzmine.visualizers.RawDataVisualizer;
 import net.sf.mzmine.visualizers.rawdata.tic.TICVisualizer;
 
 /**
@@ -50,7 +50,6 @@ import net.sf.mzmine.visualizers.rawdata.tic.TICVisualizer;
 public class ItemSelector extends JPanel implements ListSelectionListener,
         MouseListener, ActionListener {
 
-
     private DefaultListModel rawDataObjects;
     private JList rawDataList;
     private JScrollPane rawDataScroll;
@@ -58,11 +57,6 @@ public class ItemSelector extends JPanel implements ListSelectionListener,
     private DefaultListModel resultObjects;
     private JList resultList;
     private JScrollPane resultScroll;
-
-    private JPopupMenu popupMenu;
-    private JMenuItem pmHideVisualizers;
-    private JMenuItem pmShowVisualizers;
-    private JMenuItem pmClose;
 
 
     /**
@@ -110,17 +104,6 @@ public class ItemSelector extends JPanel implements ListSelectionListener,
         resultList.addListSelectionListener(this);
 
         // Create a pop-up menu
-        popupMenu = new JPopupMenu();
-        pmHideVisualizers = new JMenuItem("Hide visualizers");
-        pmHideVisualizers.addActionListener(this);
-        pmShowVisualizers = new JMenuItem("Show visualizers");
-        pmShowVisualizers.addActionListener(this);
-        pmClose = new JMenuItem("Close");
-        pmClose.addActionListener(this);
-        popupMenu.add(pmShowVisualizers);
-        popupMenu.add(pmHideVisualizers);
-        popupMenu.addSeparator();
-        popupMenu.add(pmClose);
 
         // Add listeners to both lists
         rawDataList.addMouseListener(this);
@@ -140,27 +123,44 @@ public class ItemSelector extends JPanel implements ListSelectionListener,
     }
 
     public void mousePressed(MouseEvent e) {
-        if (e.isPopupTrigger()) {
-            popupMenu.show(e.getComponent(), e.getX(), e.getY());
-        }
+        if (e.isPopupTrigger())
+            showPopupMenu(e);
     }
 
     public void mouseReleased(MouseEvent e) {
-        if (e.isPopupTrigger()) {
-            popupMenu.show(e.getComponent(), e.getX(), e.getY());
+        if (e.isPopupTrigger())
+            showPopupMenu(e);
+    }
+
+    private void showPopupMenu(MouseEvent e) {
+        JPopupMenu popupMenu = new JPopupMenu();
+        if (e.getComponent() == rawDataList) {
+            RawDataFile selectedFile = (RawDataFile) rawDataObjects.get(rawDataList.locationToIndex(e.getPoint()));
+            int[] msLevels = selectedFile.getMSLevels();
+            for (int msLevel : msLevels) {
+                JMenuItem showTIC = new JMenuItem("Show TIC of MS level " + msLevel);
+                showTIC.addActionListener(this);
+                showTIC.setActionCommand("TIC" + msLevel);
+                popupMenu.add(showTIC);    
+            }
+            popupMenu.addSeparator();
+            JMenuItem pmClose = new JMenuItem("Close");
+            pmClose.addActionListener(this);
+            pmClose.setActionCommand("CLOSE");
+            popupMenu.add(pmClose);
         }
+        popupMenu.show(e.getComponent(), e.getX(), e.getY());
     }
 
     // Implementation of action listener interface
 
-    public void actionPerformed(java.awt.event.ActionEvent e) {
+    public void actionPerformed(ActionEvent e) {
 
-        Object src = e.getSource();
+        String command = e.getActionCommand();
 
-        // Hide visualizers for all selected objects
- 
+        
         // Close selected items
-        if (src == pmClose) {
+        if (command.equals("CLOSE")) {
 
             // Grab selected raw data files
             // int[] rawDataIDs = getSelectedRawDataIDs();
@@ -176,28 +176,27 @@ public class ItemSelector extends JPanel implements ListSelectionListener,
 
         }
 
-        if (src == pmShowVisualizers) {
+        if (command.startsWith("TIC")) {
             RawDataFile[] selectedFiles = getSelectedRawData();
+            int msLevel = Integer.parseInt(command.substring(3));
             for (RawDataFile file : selectedFiles) {
-                
-                TICVisualizer vis = new TICVisualizer(file, 1);
+
+                TICVisualizer vis = new TICVisualizer(file, msLevel);
+                MainWindow.getInstance().getDesktop().add(vis, JLayeredPane.DEFAULT_LAYER);
                 vis.setVisible(true);
-                MainWindow.getInstance().getDesktop().add(vis);
 
             }
-            
-        }
-        
-        /*
-        TICVisualizer ticView = new TICVisualizer();
-        ticView.setRawData(rawData);
-        // theRun.addVisualizer(ticView);
-        ticView.setFrameIcon(null);
-        ticView.setVisible(false);
-        desktop.add(ticView, javax.swing.JLayeredPane.DEFAULT_LAYER);
 
-        visualizers.add(ticView);
-        */
+        }
+
+        /*
+         * TICVisualizer ticView = new TICVisualizer();
+         * ticView.setRawData(rawData); // theRun.addVisualizer(ticView);
+         * ticView.setFrameIcon(null); ticView.setVisible(false);
+         * desktop.add(ticView, javax.swing.JLayeredPane.DEFAULT_LAYER);
+         * 
+         * visualizers.add(ticView);
+         */
         /*
          * int[] alignmentResultIDs = getSelectedAlignmentResultIDs();
          * 
@@ -217,8 +216,8 @@ public class ItemSelector extends JPanel implements ListSelectionListener,
          * 
          * for (int alignmentResultID : alignmentResultIDs) { // Close all
          * visualizers for these alignment results
-         * mainWin.removeAlignmentResultVisualizers(alignmentResultID);
-         *  // Remove these alignment results from the item selector
+         * mainWin.removeAlignmentResultVisualizers(alignmentResultID); //
+         * Remove these alignment results from the item selector
          * removeAlignmentResult(getAlignmentResultByID(alignmentResultID)); }
          * 
          * 
@@ -267,23 +266,6 @@ public class ItemSelector extends JPanel implements ListSelectionListener,
     }
 
     /**
-     * 
-     */
-    public RawDataAtClient getRawDataByID(int rawDataID) {
-        ListModel listModel = rawDataList.getModel();
-
-        for (int i = 0; i < listModel.getSize(); i++) {
-            RawDataAtClient rawData = (RawDataAtClient) listModel
-                    .getElementAt(i);
-            if (rawData.getRawDataID() == rawDataID) {
-                return rawData;
-            }
-        }
-
-        return null;
-    }
-
-    /**
      * Sets the active raw data item in the list
      */
     public void setActiveAlignmentResult(AlignmentResult ar) {
@@ -292,7 +274,6 @@ public class ItemSelector extends JPanel implements ListSelectionListener,
         MainWindow.getInstance().getMainMenu().updateMenuAvailability();
         // repaint();
     }
-
 
     /**
      * Sets the active raw data item in the list
@@ -306,16 +287,13 @@ public class ItemSelector extends JPanel implements ListSelectionListener,
 
     /**
      * Returns the run that is selected in run list
-     
-    public RawDataAtClient getActiveRawData() {
-        return (RawDataAtClient) rawDataList.getSelectedValue();
-    }
-    */
-    
+     * 
+     * public RawDataAtClient getActiveRawData() { return (RawDataAtClient)
+     * rawDataList.getSelectedValue(); }
+     */
 
     // METHODS FOR MAINTAINING LIST OF RESULTS
     // ---------------------------------------
-
     /**
      * Returns a vector containing all currently selected result objects in the
      * list
@@ -353,14 +331,12 @@ public class ItemSelector extends JPanel implements ListSelectionListener,
      */
     public void addAlignmentResult(AlignmentResult ar) {
 
-
         resultObjects.addElement(ar);
-
 
         // Add dependency to all involved raw data files
         for (int rawDataID : ar.getRawDataIDs()) {
-            getRawDataByID(rawDataID).addAlignmentResultID(
-                    ar.getAlignmentResultID());
+            // getRawDataByID(rawDataID).addAlignmentResultID(
+            // ar.getAlignmentResultID());
         }
 
     }
@@ -372,8 +348,6 @@ public class ItemSelector extends JPanel implements ListSelectionListener,
 
         return ans;
     }
-
-
 
     /**
      * Returns all alignment result ids
@@ -412,8 +386,6 @@ public class ItemSelector extends JPanel implements ListSelectionListener,
         return (AlignmentResult) resultList.getSelectedValue();
     }
 
-
-
     // MISC. STUFF
     // -----------
 
@@ -448,7 +420,7 @@ public class ItemSelector extends JPanel implements ListSelectionListener,
                     activeRawData = (RawDataFile) tmpObj;
 
                     // Update cursor position in status bar
-                 //   statBar.setCursorPosition(activeRawData);
+                    // statBar.setCursorPosition(activeRawData);
 
                     // Bring visualizers for this run to top
                     // if ( !(mainWin.isBusy()) ) {

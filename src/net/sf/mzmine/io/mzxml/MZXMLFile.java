@@ -48,8 +48,9 @@ class MZXMLFile implements RawDataFile {
 
     private int numOfScans = 0;
 
-    private double dataMinMZ, dataMaxMZ, dataMinRT, dataMaxRT,
-            dataMaxBasePeakIntensity, dataMaxTIC;
+    private double dataMinMZ, dataMaxMZ, dataMinRT, dataMaxRT;
+
+    private Hashtable<Integer, Double> dataMaxBasePeakIntensity, dataMaxTIC;
 
     /**
      * Preloaded scans
@@ -75,6 +76,8 @@ class MZXMLFile implements RawDataFile {
         dataDescription = new StringBuffer();
         scansIndex = new Hashtable<Integer, Long>();
         scanNumbers = new Hashtable<Integer, ArrayList<Integer>>();
+        dataMaxBasePeakIntensity = new Hashtable<Integer, Double>();
+        dataMaxTIC = new Hashtable<Integer, Double>();
     }
 
     /**
@@ -205,8 +208,15 @@ class MZXMLFile implements RawDataFile {
     /**
      * @see net.sf.mzmine.io.RawDataFile#getDataMaxBasePeakIntensity()
      */
-    public double getDataMaxBasePeakIntensity() {
-        return dataMaxBasePeakIntensity;
+    public double getDataMaxBasePeakIntensity(int msLevel) {
+        return dataMaxBasePeakIntensity.get(msLevel).doubleValue();
+    }
+
+    /**
+     * @see net.sf.mzmine.io.RawDataFile#getDataMaxTotalIonCurrent()
+     */
+    public double getDataMaxTotalIonCurrent(int msLevel) {
+        return dataMaxTIC.get(msLevel).doubleValue();
     }
 
     void addIndexEntry(Integer scanNumber, Long filePosition) {
@@ -236,17 +246,20 @@ class MZXMLFile implements RawDataFile {
             dataMinRT = newScan.getRetentionTime();
         if ((numOfScans == 0) || (dataMaxRT < newScan.getRetentionTime()))
             dataMaxRT = newScan.getRetentionTime();
-        if ((numOfScans == 0)
-                || (dataMaxBasePeakIntensity < newScan.getBasePeakIntensity()))
-            dataMaxBasePeakIntensity = newScan.getBasePeakIntensity();
+        if ((dataMaxBasePeakIntensity.get(newScan.getMSLevel()) == null)
+                || (dataMaxBasePeakIntensity.get(newScan.getMSLevel()) < newScan
+                        .getBasePeakIntensity()))
+            dataMaxBasePeakIntensity.put(newScan.getMSLevel(), newScan
+                    .getBasePeakIntensity());
 
         double scanTIC = 0;
-        
+
         for (double intensity : newScan.getIntensityValues())
             scanTIC += intensity;
-        
-        if ((numOfScans == 0) || (scanTIC > dataMaxTIC))
-            dataMaxTIC = scanTIC;
+
+        if ((dataMaxTIC.get(newScan.getMSLevel()) == null)
+                || (scanTIC > dataMaxTIC.get(newScan.getMSLevel())))
+            dataMaxTIC.put(newScan.getMSLevel(), scanTIC);
 
         ArrayList<Integer> scanList = scanNumbers.get(new Integer(newScan
                 .getMSLevel()));
@@ -276,13 +289,6 @@ class MZXMLFile implements RawDataFile {
      */
     public double getDataMaxRT() {
         return dataMaxRT;
-    }
-
-    /**
-     * @see net.sf.mzmine.io.RawDataFile#getDataMaxTotalIonCurrent()
-     */
-    public double getDataMaxTotalIonCurrent() {
-        return dataMaxTIC;
     }
 
 }

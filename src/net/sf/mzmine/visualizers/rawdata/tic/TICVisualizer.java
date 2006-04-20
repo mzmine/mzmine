@@ -30,6 +30,7 @@ import java.awt.image.BufferedImage;
 import java.awt.print.PageFormat;
 import java.awt.print.Printable;
 import java.awt.print.PrinterJob;
+import java.text.DecimalFormat;
 
 import javax.print.attribute.HashPrintRequestAttributeSet;
 import javax.print.attribute.standard.OrientationRequested;
@@ -39,6 +40,8 @@ import javax.swing.RepaintManager;
 import javax.swing.event.InternalFrameEvent;
 import javax.swing.event.InternalFrameListener;
 
+import com.sun.org.apache.xalan.internal.xsltc.compiler.util.RtMethodGenerator;
+
 import net.sf.mzmine.io.RawDataFile;
 import net.sf.mzmine.obsoletedatastructures.RawDataAtClient;
 import net.sf.mzmine.taskcontrol.Task;
@@ -46,6 +49,7 @@ import net.sf.mzmine.taskcontrol.TaskController;
 import net.sf.mzmine.taskcontrol.TaskListener;
 import net.sf.mzmine.taskcontrol.Task.TaskStatus;
 import net.sf.mzmine.userinterface.mainwindow.MainWindow;
+import net.sf.mzmine.util.FormatCoordinates;
 import net.sf.mzmine.util.TransferableImage;
 import net.sf.mzmine.visualizers.RawDataVisualizer;
 
@@ -65,10 +69,10 @@ public class TICVisualizer extends JInternalFrame implements RawDataVisualizer,
     private boolean xicMode = false;
 
     private double retentionTimes[], intensities[];
-    /* maximum intensity in current TIC/XIC */
 
+    private double mzRangeMin, mzRangeMax;
     private double zoomRTMin, zoomRTMax, zoomIntensityMin, zoomIntensityMax;
-    private double cursorPosition;
+    private double cursorPosition = -1;
 
     /**
      * scan numbers of selected MS level
@@ -81,18 +85,15 @@ public class TICVisualizer extends JInternalFrame implements RawDataVisualizer,
      */
     public TICVisualizer(RawDataFile rawDataFile, int msLevel) {
 
-        super(rawDataFile.toString() + ": Total ion chromatogram, MS level "
-                + msLevel, true, true, true, true);
+        super("", true, true, true, true);
 
         setDefaultCloseOperation(DISPOSE_ON_CLOSE);
 
         // Build this visualizer
         getContentPane().setLayout(new BorderLayout());
 
-        bottomPnl = new TICXAxis();
-        bottomPnl.setMinimumSize(new Dimension(getWidth(), 25));
-        bottomPnl.setPreferredSize(new Dimension(getWidth(), 25));
-        bottomPnl.setBackground(Color.white);
+        bottomPnl = new TICXAxis(this);
+
         getContentPane().add(bottomPnl, java.awt.BorderLayout.SOUTH);
 
         topPnl = new JPanel();
@@ -101,10 +102,8 @@ public class TICVisualizer extends JInternalFrame implements RawDataVisualizer,
         topPnl.setBackground(Color.white);
         getContentPane().add(topPnl, java.awt.BorderLayout.NORTH);
 
-        leftPnl = new TICYAxis();
-        leftPnl.setMinimumSize(new Dimension(50, getHeight()));
-        leftPnl.setPreferredSize(new Dimension(50, getHeight()));
-        leftPnl.setBackground(Color.white);
+        leftPnl = new TICYAxis(this);
+
         getContentPane().add(leftPnl, java.awt.BorderLayout.WEST);
 
         rightPnl = new JPanel();
@@ -152,22 +151,29 @@ public class TICVisualizer extends JInternalFrame implements RawDataVisualizer,
         zoomRTMin = newFile.getDataMinRT();
         zoomRTMax = newFile.getDataMaxRT();
         zoomIntensityMin = 0;
-        zoomIntensityMax = newFile.getDataMaxTotalIonCurrent();
+        zoomIntensityMax = newFile.getDataMaxTotalIonCurrent(msLevel);
 
         Task updateTask = new TICVisualizerDataRetrievalTask(rawDataFile,
                 scanNumbers, this);
         TaskController.getInstance().addTask(updateTask, this);
-
+        
+        updateTitle();
+        
     }
 
+    boolean getXicMode() {
+        return xicMode;
+    }
+    
     /**
      * @see net.sf.mzmine.visualizers.RawDataVisualizer#setMZRange(double,
      *      double)
      */
     public void setMZRange(double mzMin, double mzMax) {
         xicMode = true;
-        setTitle(rawDataFile.toString() + ": Extracted ion chromatogram, MS level "
-                + msLevel + ", MZ range " + mzMin + " - " + mzMax);
+        mzRangeMin = mzMin;
+        mzRangeMax = mzMax;
+        updateTitle();
         Task updateTask = new TICVisualizerDataRetrievalTask(rawDataFile,
                 scanNumbers, this, mzMin, mzMax);
         TaskController.getInstance().addTask(updateTask, this);
@@ -179,12 +185,29 @@ public class TICVisualizer extends JInternalFrame implements RawDataVisualizer,
     public void resetMZRange() {
         if (xicMode) {
             xicMode = false;
-            setTitle(rawDataFile.toString()
-                    + ": Total ion chromatogram, MS level " + msLevel);
+            updateTitle();
             Task updateTask = new TICVisualizerDataRetrievalTask(rawDataFile,
                     scanNumbers, this);
             TaskController.getInstance().addTask(updateTask, this);
         }
+    }
+    
+    private void updateTitle() {
+        FormatCoordinates formatCoordinates = new FormatCoordinates(
+                MainWindow.getInstance().getParameterStorage()
+                        .getGeneralParameters());
+        DecimalFormat intFormat = new DecimalFormat("0.####E0");
+        
+        StringBuffer title = new StringBuffer();
+        title.append(rawDataFile.toString());
+        title.append(": ");
+        if (xicMode) title.append("Extracted"); else title.append("Total");
+        title.append(" ion chromatogram, MS level ");
+        title.append(msLevel);
+        if (xicMode) title.append(", MZ range " + mzRangeMin + " - " + mzRangeMax);
+        title.append(", RT " + formatCoordinates.formatRTValue(zoomRTMin) + " - " + formatCoordinates.formatRTValue(zoomRTMax));
+        title.append(", IC " + intFormat.format(zoomIntensityMin) + " - " + intFormat.format(zoomIntensityMax));
+        setTitle(title.toString());
     }
 
     /**
@@ -194,6 +217,7 @@ public class TICVisualizer extends JInternalFrame implements RawDataVisualizer,
     public void setRTRange(double rtMin, double rtMax) {
         zoomRTMin = rtMin;
         zoomRTMax = rtMax;
+        updateTitle();
         repaint();
     }
 
@@ -203,6 +227,7 @@ public class TICVisualizer extends JInternalFrame implements RawDataVisualizer,
     public void resetRTRange() {
         zoomRTMin = rawDataFile.getDataMinRT();
         zoomRTMax = rawDataFile.getDataMaxRT();
+        updateTitle();
         repaint();
     }
 
@@ -213,6 +238,7 @@ public class TICVisualizer extends JInternalFrame implements RawDataVisualizer,
     public void setIntensityRange(double intensityMin, double intensityMax) {
         zoomIntensityMin = intensityMin;
         zoomIntensityMax = intensityMax;
+        updateTitle();
         repaint();
     }
 
@@ -221,7 +247,8 @@ public class TICVisualizer extends JInternalFrame implements RawDataVisualizer,
      */
     public void resetIntensityRange() {
         zoomIntensityMin = 0;
-        zoomIntensityMax = rawDataFile.getDataMaxTotalIonCurrent();
+        zoomIntensityMax = rawDataFile.getDataMaxTotalIonCurrent(msLevel);
+        updateTitle();
         repaint();
     }
 

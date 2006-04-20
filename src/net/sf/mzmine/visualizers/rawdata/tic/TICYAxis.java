@@ -4,32 +4,33 @@
 package net.sf.mzmine.visualizers.rawdata.tic;
 
 import java.awt.Color;
+import java.awt.Dimension;
 import java.awt.Graphics;
 import java.text.DecimalFormat;
 
 import javax.swing.JPanel;
-
 
 /**
  * This class presents the y-axis of the plot
  */
 class TICYAxis extends JPanel {
 
-    private final double bottomMargin = (double) 0.0;
-    private final double topMargin = (double) 0.0;
-
-    private double minY;
-    private double maxY;
-    private int numTics;
+    private final int topMargin = 0;
+    private final int bottomMargin = 0;
+    private static final int STEP_PIXELS = 40;
 
     private DecimalFormat tickFormat;
 
-    /**
-     * Constructor
-     */
-    public TICYAxis() {
-        super();
-        tickFormat = new DecimalFormat("0.##E0");
+    private TICVisualizer masterFrame;
+
+    TICYAxis(TICVisualizer masterFrame) {
+        this.masterFrame = masterFrame;
+        tickFormat = new DecimalFormat("0.00E0");
+        setMinimumSize(new Dimension(60, 0));
+        setPreferredSize(new Dimension(60, 0));
+        setBackground(Color.white);
+        setForeground(Color.black);
+
     }
 
     /**
@@ -37,53 +38,38 @@ class TICYAxis extends JPanel {
      */
     public void paint(Graphics g) {
 
-
         super.paint(g);
 
-        double w = getWidth();
-        double h = getHeight();
+        int width = getWidth();
+        int height = getHeight();
 
-        // Setup number of tics depending on how tall the panel is
-        numTics = 5;
-        if (h > 250) {
-            numTics = 10;
-        }
-        if (h > 500) {
-            numTics = 20;
-        }
-        if (h > 1000) {
-            numTics = 40;
-        }
+        double intValueMin = masterFrame.getZoomIntensityMin();
+        double intValueMax = masterFrame.getZoomIntensityMax();
+
+        double stepIncrement = (intValueMax - intValueMin)
+                / (double) (height - topMargin - bottomMargin) * STEP_PIXELS;
 
         // Draw axis
-        this.setForeground(Color.black);
-        g.drawLine((int) w - 1, 0, (int) w - 1, (int) h);
+        g.drawLine(width - 1, 0, width - 1, height);
 
         // Draw tics and numbers
         String tmps;
-        double diff_dat = maxY - minY;
-        double diff_scr = h - bottomMargin - topMargin;
-        double ypos = bottomMargin;
-        double yval = minY;
-        for (int t = 1; t <= numTics; t++) {
-            // tmps = new String("" + (int)yval);
-            tmps = new String(tickFormat.format(yval));
-            g.drawLine((int) (3 * w / 4), (int) (h - ypos), (int) (w),
-                    (int) (h - ypos));
-            g.drawBytes(tmps.getBytes(), 0, tmps.length(),
-                    (int) (w / 4) - 4, (int) (h - ypos));
+        double intensity = intValueMin;
 
-            yval += diff_dat / numTics;
-            ypos += diff_scr / numTics;
+        for (int ypos = bottomMargin; ypos < height - topMargin; ypos += STEP_PIXELS) {
+
+            g.drawLine(width - 10, height - ypos, width, height - ypos);
+
+            if ((ypos > 5) && (ypos < height - topMargin - 5)) {
+                tmps = new String(tickFormat.format(intensity));
+                g.drawBytes(tmps.getBytes(), 0, tmps.length(), 3,
+                        height - ypos + 5);
+            }
+
+            intensity += stepIncrement;
+
         }
-    }
 
-    /**
-     * Set scale of the axis
-     */
-    public void setScale(double _minY, double _maxY) {
-        minY = _minY;
-        maxY = _maxY;
     }
 
 }

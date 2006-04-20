@@ -40,7 +40,7 @@ class XICSetupDialog extends JDialog implements
         JLabel ricMZLabel = new JLabel("MZ");
         // txtXicMZ= new JTextField(new
         // String(strFormatter.format(_ricMZ)));
-        txtXicMZ = new JTextField("" + java.lang.Math.round(_ricMZ * 1000)
+        txtXicMZ = new JTextField("" + Math.round(_ricMZ * 1000)
                 / 1000.0);
 
         // MZ delta value

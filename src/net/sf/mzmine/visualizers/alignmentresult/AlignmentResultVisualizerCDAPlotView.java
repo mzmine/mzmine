@@ -141,7 +141,7 @@ public class AlignmentResultVisualizerCDAPlotView extends JInternalFrame impleme
 		if (alignmentResult.isImported()) {
 			for (int i=0; i<rawDataIDs.length; i++) { rawDatas[i] = new RawDataPlaceHolder(alignmentResult.getImportedRawDataName(rawDataIDs[i]), rawDataIDs[i]);  }
 		} else {
-			for (int i=0; i<rawDataIDs.length; i++) { rawDatas[i] = new RawDataPlaceHolder(mainWin.getItemSelector().getRawDataByID(rawDataIDs[i]).getNiceName(), rawDataIDs[i]); }
+	//		for (int i=0; i<rawDataIDs.length; i++) { rawDatas[i] = new RawDataPlaceHolder(mainWin.getItemSelector().getRawDataByID(rawDataIDs[i]).getNiceName(), rawDataIDs[i]); }
 		}
 
 		// Collect parameter names and values to arrayrs
@@ -239,7 +239,7 @@ public class AlignmentResultVisualizerCDAPlotView extends JInternalFrame impleme
 			if (alignmentResult.isImported()) {
 				rawDataNames[sample] = alignmentResult.getImportedRawDataName(rawDataID);
 			} else {
-				rawDataNames[sample] = mainWin.getItemSelector().getRawDataByID(rawDataID).getNiceName();
+				//rawDataNames[sample] = mainWin.getItemSelector().getRawDataByID(rawDataID).getNiceName();
 			}
 			int colInd=0;
 			for (int peak=0; peak<numOfPeaks; peak++) {

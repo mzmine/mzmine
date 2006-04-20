@@ -348,10 +348,10 @@ public class AlignmentResultVisualizerList extends JInternalFrame implements Ali
 
 				if (peakStatus==AlignmentResult.PEAKSTATUS_DETECTED) {
 					peakInd = alignmentResult.getPeakID(rawDataID, rowInd);
-					RawDataAtClient rawData = mainWin.getItemSelector().getRawDataByID(rawDataID);
-					Peak p = rawData.getPeakList().getPeak(peakInd);
-					sumStdevMZ += p.getMZStdev();
-					sumDuration += rawData.getScanTime(p.getStopScanNumber()) - rawData.getScanTime(p.getStartScanNumber());
+					// RawDataAtClient rawData = mainWin.getItemSelector().getRawDataByID(rawDataID);
+				//	Peak p = rawData.getPeakList().getPeak(peakInd);
+			//		sumStdevMZ += p.getMZStdev();
+				//	sumDuration += rawData.getScanTime(p.getStopScanNumber()) - rawData.getScanTime(p.getStartScanNumber());
 					numSum++;
 				}
 			}
@@ -374,7 +374,7 @@ public class AlignmentResultVisualizerList extends JInternalFrame implements Ali
 			// Loop over all raw data files again, and set cursor and zoom on the spot
 			for (int rawDataID : rawDataIDs) {
 
-				RawDataAtClient rawData = mainWin.getItemSelector().getRawDataByID(rawDataID);
+			RawDataAtClient rawData = null; // = mainWin.getItemSelector().getRawDataByID(rawDataID);
 				int avgScan = rawData.getScanNumberByTime(avgRT);
 				peakStatus = alignmentResult.getPeakStatus(rawDataID, rowInd);
 
@@ -675,12 +675,12 @@ public class AlignmentResultVisualizerList extends JInternalFrame implements Ali
 				int i=0;
 				int[] rawDataIDs = alignmentResult.getRawDataIDs();
 				for (int rawDataID : rawDataIDs) {
-					String rawDataName;
+					String rawDataName = null;
 					if (alignmentResult.isImported()) {
 						rawDataName = alignmentResult.getImportedRawDataName(rawDataID);
 					} else {
-						RawDataAtClient rawData = mainWin.getItemSelector().getRawDataByID(rawDataID);
-						rawDataName = rawData.getNiceName();
+					//	RawDataAtClient rawData = mainWin.getItemSelector().getRawDataByID(rawDataID);
+					//	rawDataName = rawData.getNiceName();
 					}
 					s[COLINFO_WIDEMODE_LASTCOMMONCOL + 1 + i*COLINFO_WIDEMODE_COLSPERRUN] = new String("m/z: " + rawDataName);
 					s[COLINFO_WIDEMODE_LASTCOMMONCOL + 2 + i*COLINFO_WIDEMODE_COLSPERRUN] = new String("rt: " + rawDataName);
@@ -706,12 +706,12 @@ public class AlignmentResultVisualizerList extends JInternalFrame implements Ali
 				int i = 0;
 				for (int rawDataID : rawDataIDs) {
 
-					String rawDataName;
+					String rawDataName ="";
 					if (alignmentResult.isImported()) {
 						rawDataName = alignmentResult.getImportedRawDataName(rawDataID);
 					} else {
-						RawDataAtClient rawData = mainWin.getItemSelector().getRawDataByID(rawDataID);
-						rawDataName = rawData.getNiceName();
+					//	RawDataAtClient rawData = mainWin.getItemSelector().getRawDataByID(rawDataID);
+					//	rawDataName = rawData.getNiceName();
 					}
 
 					if (mainWin.getParameterStorage().getGeneralParameters().getPeakMeasuringType() == GeneralParameters.PARAMETERVALUE_PEAKMEASURING_HEIGHT) {

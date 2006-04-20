@@ -398,7 +398,7 @@ public class MainWindow extends JFrame implements WindowListener {
             // Enumeration<Vector<RawDataVisualizer>> allVisualizerVectors =
             // rawDataVisualizers.elements();
             // while (allVisualizerVectors.hasMoreElements()) {
-            int rawDataIDs[] = null; // getItemSelector().getRawDataIDs();
+            /*int rawDataIDs[] = null; // getItemSelector().getRawDataIDs();
             for (int rawDataID : rawDataIDs) {
 
                 RawDataAtClient rawData = getItemSelector().getRawDataByID(
@@ -542,7 +542,7 @@ public class MainWindow extends JFrame implements WindowListener {
                     }
                 }
             }
-        }
+ */       }
 
     } // Method
 
