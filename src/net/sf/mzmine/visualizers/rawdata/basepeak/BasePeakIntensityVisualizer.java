@@ -12,7 +12,7 @@ import net.sf.mzmine.visualizers.RawDataVisualizer;
 /**
  *
  */
-public class BasePeakIntensitiVisualizer extends JInternalFrame implements
+public class BasePeakIntensityVisualizer extends JInternalFrame implements
         RawDataVisualizer {
 
     /**
