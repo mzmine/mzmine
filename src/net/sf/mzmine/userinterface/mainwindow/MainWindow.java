@@ -914,7 +914,7 @@ public class MainWindow extends JFrame implements WindowListener {
     }
     public void displayErrorMessage(String msg) {
             statBar.setStatusText(msg);
-            JOptionPane.showInternalMessageDialog(myInstance.getDesktop(), msg, "Sorry",
+            JOptionPane.showMessageDialog(myInstance.getDesktop(), msg, "Sorry",
                     JOptionPane.ERROR_MESSAGE);
     }
 

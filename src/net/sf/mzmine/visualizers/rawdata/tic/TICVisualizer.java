@@ -156,15 +156,15 @@ public class TICVisualizer extends JInternalFrame implements RawDataVisualizer,
         Task updateTask = new TICVisualizerDataRetrievalTask(rawDataFile,
                 scanNumbers, this);
         TaskController.getInstance().addTask(updateTask, this);
-        
+
         updateTitle();
-        
+
     }
 
     boolean getXicMode() {
         return xicMode;
     }
-    
+
     /**
      * @see net.sf.mzmine.visualizers.RawDataVisualizer#setMZRange(double,
      *      double)
@@ -191,22 +191,27 @@ public class TICVisualizer extends JInternalFrame implements RawDataVisualizer,
             TaskController.getInstance().addTask(updateTask, this);
         }
     }
-    
+
     private void updateTitle() {
-        FormatCoordinates formatCoordinates = new FormatCoordinates(
-                MainWindow.getInstance().getParameterStorage()
-                        .getGeneralParameters());
+        FormatCoordinates formatCoordinates = new FormatCoordinates(MainWindow
+                .getInstance().getParameterStorage().getGeneralParameters());
         DecimalFormat intFormat = new DecimalFormat("0.####E0");
-        
+
         StringBuffer title = new StringBuffer();
         title.append(rawDataFile.toString());
         title.append(": ");
-        if (xicMode) title.append("Extracted"); else title.append("Total");
+        if (xicMode)
+            title.append("Extracted");
+        else
+            title.append("Total");
         title.append(" ion chromatogram, MS level ");
         title.append(msLevel);
-        if (xicMode) title.append(", MZ range " + mzRangeMin + " - " + mzRangeMax);
-        title.append(", RT " + formatCoordinates.formatRTValue(zoomRTMin) + " - " + formatCoordinates.formatRTValue(zoomRTMax));
-        title.append(", IC " + intFormat.format(zoomIntensityMin) + " - " + intFormat.format(zoomIntensityMax));
+        if (xicMode)
+            title.append(", MZ range " + mzRangeMin + " - " + mzRangeMax);
+        title.append(", RT " + formatCoordinates.formatRTValue(zoomRTMin)
+                + " - " + formatCoordinates.formatRTValue(zoomRTMax));
+        title.append(", IC " + intFormat.format(zoomIntensityMin) + " - "
+                + intFormat.format(zoomIntensityMax));
         setTitle(title.toString());
     }
 
@@ -334,15 +339,10 @@ public class TICVisualizer extends JInternalFrame implements RawDataVisualizer,
 
     void updateData(int position, double retentionTime, double intensity) {
 
- /*       if (intensity > zoomIntensityMax)
-            zoomIntensityMax = intensity;
-        if (retentionTime > zoomRTMax)
-            zoomRTMax = retentionTime;
-*/
         retentionTimes[position] = retentionTime;
         intensities[position] = intensity;
         repaint();
-        
+
     }
 
     /**

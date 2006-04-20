@@ -135,6 +135,7 @@ public class ItemSelector extends JPanel implements ListSelectionListener,
     private void showPopupMenu(MouseEvent e) {
         JPopupMenu popupMenu = new JPopupMenu();
         if (e.getComponent() == rawDataList) {
+            if (rawDataList.locationToIndex(e.getPoint()) == -1) return;
             RawDataFile selectedFile = (RawDataFile) rawDataObjects.get(rawDataList.locationToIndex(e.getPoint()));
             int[] msLevels = selectedFile.getMSLevels();
             for (int msLevel : msLevels) {

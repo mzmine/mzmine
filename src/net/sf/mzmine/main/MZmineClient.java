@@ -29,7 +29,7 @@ import net.sf.mzmine.util.Logger;
 
 public class MZmineClient {
 
-    private static int numberOfNodes = 4;
+    private static int numberOfNodes = 2;
     
     /**
      * Main method

@@ -78,6 +78,7 @@ class MZXMLFile implements RawDataFile {
         scanNumbers = new Hashtable<Integer, ArrayList<Integer>>();
         dataMaxBasePeakIntensity = new Hashtable<Integer, Double>();
         dataMaxTIC = new Hashtable<Integer, Double>();
+        if (preloadLevel != PreloadLevel.NO_PRELOAD) scans = new Hashtable<Integer, MZXMLScan>();
     }
 
     /**

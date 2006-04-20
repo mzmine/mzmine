@@ -3,6 +3,7 @@
  */
 package net.sf.mzmine.taskcontrol;
 
+import net.sf.mzmine.userinterface.mainwindow.MainWindow;
 import net.sf.mzmine.util.Logger;
 
 /**
@@ -64,17 +65,27 @@ class WorkerThread extends Thread {
                 break;
             }
 
+
             try {
                 currentTask.run();
-            } catch (Exception e) {
-                Logger.putFatal("Unhandled exception while processing task "
-                        + currentTask.getTaskDescription() + ": " + e);
-                e.printStackTrace();
-                // TODO: show a message box?
+            } catch (Throwable e) {
+                
+                // we catch Throwable instead of Exception, to catch the OutOfMemoryError
+                
+                String errorMessage = "Unhandled exception while processing task "
+                    + currentTask.getTaskDescription() + ": " + e + ", cancelling the task.";
+                Logger.putFatal(errorMessage);
+                
+                currentTask.cancel();
+                
+                if (MainWindow.getInstance() != null)
+                    MainWindow.getInstance().displayErrorMessage(errorMessage);
+                
             }
-
+            
+            /* discard the task, so that garbace collecter can collect it */
             currentTask = null;
-
+            
         }
 
     }

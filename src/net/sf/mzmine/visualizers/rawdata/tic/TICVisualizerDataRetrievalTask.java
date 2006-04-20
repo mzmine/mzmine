@@ -31,6 +31,7 @@ public class TICVisualizerDataRetrievalTask implements Task {
      */
     TICVisualizerDataRetrievalTask(RawDataFile rawDataFile, int scanNumbers[],
             TICVisualizer visualizer) {
+        status = TaskStatus.WAITING;
         this.rawDataFile = rawDataFile;
         this.visualizer = visualizer;
         this.scanNumbers = scanNumbers;

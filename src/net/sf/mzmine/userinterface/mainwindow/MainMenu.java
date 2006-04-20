@@ -8,6 +8,7 @@ import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
 import java.io.File;
 
+import javax.swing.JCheckBox;
 import javax.swing.JFileChooser;
 import javax.swing.JInternalFrame;
 import javax.swing.JMenu;
@@ -20,7 +21,6 @@ import net.sf.mzmine.io.MZmineProject;
 import net.sf.mzmine.io.RawDataFile;
 import net.sf.mzmine.io.RawDataFile.PreloadLevel;
 import net.sf.mzmine.methods.alignment.AlignmentResult;
-import net.sf.mzmine.obsoletedatastructures.RawDataAtClient;
 import net.sf.mzmine.visualizers.alignmentresult.AlignmentResultVisualizerCDAPlotView;
 import net.sf.mzmine.visualizers.alignmentresult.AlignmentResultVisualizerCoVarPlotView;
 import net.sf.mzmine.visualizers.alignmentresult.AlignmentResultVisualizerLogratioPlotView;
@@ -323,6 +323,9 @@ class MainMenu extends JMenuBar implements ActionListener {
             fileOpenChooser.setDialogType(JFileChooser.OPEN_DIALOG);
             fileOpenChooser.setMultiSelectionEnabled(true);
             fileOpenChooser.setDialogTitle("Please select data files to open");
+            JCheckBox preloadCheckBox = new JCheckBox(
+                    "Preload all data into memory? (use with caution)");
+            fileOpenChooser.add(preloadCheckBox);
 
             /*
              * if (dataDirectory == null) { dataDirectory =
@@ -344,8 +347,10 @@ class MainMenu extends JMenuBar implements ActionListener {
 
                 File[] selectedFiles = fileOpenChooser.getSelectedFiles();
 
+                PreloadLevel preloadLevel = PreloadLevel.NO_PRELOAD;
+                if (preloadCheckBox.isSelected()) preloadLevel = PreloadLevel.PRELOAD_ALL_SCANS;
                 IOController.getInstance().openFiles(selectedFiles,
-                        PreloadLevel.NO_PRELOAD);
+                        preloadLevel);
                 /*
                  * String[] dataFilePaths = new String[selectedFiles.length];
                  * 
@@ -373,14 +378,15 @@ class MainMenu extends JMenuBar implements ActionListener {
 
             // Grab selected raw data files
             RawDataFile[] selectedFiles = itemSelector.getSelectedRawData();
-            for (RawDataFile file : selectedFiles) MZmineProject.getCurrentProject().removeFile(file);
+            for (RawDataFile file : selectedFiles)
+                MZmineProject.getCurrentProject().removeFile(file);
 
-     //       mainWin.closeRawDataFiles(rawDataIDs);
+            // mainWin.closeRawDataFiles(rawDataIDs);
 
             // int[] alignmentResultIDs = itemSelector
-//                    .getSelectedAlignmentResultIDs();
+            // .getSelectedAlignmentResultIDs();
 
-   //         mainWin.closeAlignmentResults(alignmentResultIDs);
+            // mainWin.closeAlignmentResults(alignmentResultIDs);
 
         }
 
@@ -437,8 +443,8 @@ class MainMenu extends JMenuBar implements ActionListener {
          * if (PeakListExporter.writePeakListToFile(r, peakListName)) {
          * statBar.setStatusText("Peak list export done."); } else {
          * mainWin.displayErrorMessage("Failed to write peak list for raw data " +
-         * r.getNiceName()); statBar.setStatusText("Peak list export failed."); }
-         *  } else { statBar.setStatusText("Peak list export cancelled."); } } }
+         * r.getNiceName()); statBar.setStatusText("Peak list export failed."); } }
+         * else { statBar.setStatusText("Peak list export cancelled."); } } }
          * 
          * 
          * Vector<AlignmentResult> results =
@@ -499,7 +505,6 @@ class MainMenu extends JMenuBar implements ActionListener {
          * resultName, areParams, this); statBar.setStatusText("Alignment result
          * export done."); } else { statBar.setStatusText("Alignment result
          * export cancelled."); } } }
-         * 
          * 
          *  }
          * 
@@ -1089,16 +1094,14 @@ class MainMenu extends JMenuBar implements ActionListener {
 
             batDefine.setEnabled(true);
 
-     /*       if (actRawData.hasPeakData()) {
-                ssSimpleDeisotoping.setEnabled(true);
-                // ssCombinatorialDeisotoping.setEnabled(true); DEBUG: Feature
-                // not yet ready
-                ssIncompleteIsotopePatternFilter.setEnabled(true);
-                fileExportPeakList.setEnabled(true);
-                tsJoinAligner.setEnabled(true);
-                tsFastAligner.setEnabled(true);
-            }
-*/
+            /*
+             * if (actRawData.hasPeakData()) {
+             * ssSimpleDeisotoping.setEnabled(true); //
+             * ssCombinatorialDeisotoping.setEnabled(true); DEBUG: Feature //
+             * not yet ready ssIncompleteIsotopePatternFilter.setEnabled(true);
+             * fileExportPeakList.setEnabled(true);
+             * tsJoinAligner.setEnabled(true); tsFastAligner.setEnabled(true); }
+             */
             JInternalFrame activeWindow = mainWin.getDesktop()
                     .getSelectedFrame();
 
