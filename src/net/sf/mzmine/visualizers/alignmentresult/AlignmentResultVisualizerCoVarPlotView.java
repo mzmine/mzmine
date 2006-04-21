@@ -996,8 +996,6 @@ public class AlignmentResultVisualizerCoVarPlotView extends JInternalFrame imple
 
 			super.paint(g);
 
-			FormatCoordinates formatCoordinates = new FormatCoordinates(mainWin.getParameterStorage().getGeneralParameters());
-
 			int w = getWidth();
 			double h = getHeight();
 
@@ -1028,7 +1026,7 @@ public class AlignmentResultVisualizerCoVarPlotView extends JInternalFrame imple
 			for (int t=0; t<numoftics; t++) {
 				// if (t==(numoftics-1)) { this.setForeground(Color.red); }
 
-				tmps = formatCoordinates.formatRTValue(xval);
+				tmps = FormatCoordinates.formatRTValue(xval);
 
 				g.drawLine((int)java.lang.Math.round(xpos), 0, (int)java.lang.Math.round(xpos), (int)(h/4));
 				g.drawBytes(tmps.getBytes(), 0, tmps.length(), (int)java.lang.Math.round(xpos),(int)(3*h/4));
@@ -1068,8 +1066,6 @@ public class AlignmentResultVisualizerCoVarPlotView extends JInternalFrame imple
 
 			super.paint(g);
 
-			FormatCoordinates formatCoordinates = new FormatCoordinates(mainWin.getParameterStorage().getGeneralParameters());
-
 			double w = getWidth();
 			double h = getHeight();
 
@@ -1090,7 +1086,7 @@ public class AlignmentResultVisualizerCoVarPlotView extends JInternalFrame imple
 			double yval = minY;
 			for (int t=1; t<=numTics; t++) {
 
-				tmps = formatCoordinates.formatMZValue(yval);
+				tmps = FormatCoordinates.formatMZValue(yval);
 
 				g.drawLine((int)(3*w/4), (int)(h-ypos), (int)(w), (int)(h-ypos));
 				g.drawBytes(tmps.getBytes(), 0, tmps.length(), (int)(w/4)-4,(int)(h-ypos));

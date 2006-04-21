@@ -26,6 +26,7 @@ import java.util.Vector;
 
 import net.sf.mzmine.io.RawDataFile;
 import net.sf.mzmine.io.Scan;
+import net.sf.mzmine.io.RawDataFile.PreloadLevel;
 import net.sf.mzmine.methods.peakpicking.Peak;
 import net.sf.mzmine.methods.peakpicking.PeakList;
 
@@ -478,6 +479,16 @@ public class RawDataAtClient  implements RawDataFile {
     public double getDataMaxTotalIonCurrent(int msLevel) {
         // TODO Auto-generated method stub
         return 0;
+    }
+
+
+
+    /**
+     * @see net.sf.mzmine.io.RawDataFile#getPreloadLevel()
+     */
+    public PreloadLevel getPreloadLevel() {
+        // TODO Auto-generated method stub
+        return null;
     }
 
 

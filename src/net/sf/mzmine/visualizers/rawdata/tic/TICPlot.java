@@ -12,7 +12,6 @@ import java.awt.event.ActionListener;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.awt.event.MouseMotionListener;
-import java.text.DecimalFormat;
 
 import javax.swing.JMenuItem;
 import javax.swing.JPanel;
@@ -20,6 +19,7 @@ import javax.swing.JPopupMenu;
 
 import net.sf.mzmine.userinterface.mainwindow.MainWindow;
 import net.sf.mzmine.util.FormatCoordinates;
+import net.sf.mzmine.visualizers.rawdata.spectra.SpectrumVisualizer;
 
 /**
  * 
@@ -31,12 +31,11 @@ public class TICPlot extends JPanel implements ActionListener, MouseListener,
 
     private JPopupMenu popupMenu;
     private JMenuItem zoomOutMenuItem;
+    private JMenuItem showSpectrumMenuItem;
     private JMenuItem zoomSameToOthersMenuItem;
     private JMenuItem changeTicXicModeMenuItem;
 
     private TICVisualizer masterFrame;
-
-    private DecimalFormat tickFormat;
 
     private boolean mousePresent = false;
     private int mousePositionX, mousePositionY;
@@ -51,9 +50,8 @@ public class TICPlot extends JPanel implements ActionListener, MouseListener,
 
         this.masterFrame = masterFrame;
 
+        setBackground(Color.white);
         setCursor(Cursor.getPredefinedCursor(Cursor.CROSSHAIR_CURSOR));
-
-        tickFormat = new DecimalFormat("0.000E0");
 
         // Create popup-menu
         popupMenu = new JPopupMenu();
@@ -68,6 +66,12 @@ public class TICPlot extends JPanel implements ActionListener, MouseListener,
                 "Set same zoom to other raw data viewers");
         zoomSameToOthersMenuItem.addActionListener(this);
         popupMenu.add(zoomSameToOthersMenuItem);
+
+        popupMenu.addSeparator();
+
+        showSpectrumMenuItem = new JMenuItem("Show spectrum");
+        showSpectrumMenuItem.addActionListener(this);
+        popupMenu.add(showSpectrumMenuItem);
 
         popupMenu.addSeparator();
 
@@ -94,32 +98,33 @@ public class TICPlot extends JPanel implements ActionListener, MouseListener,
 
         double retentionTimes[] = masterFrame.getRetentionTimes();
         double intensities[] = masterFrame.getIntensities();
-        assert retentionTimes != null && intensities != null;
+        int scanNumbers[] = masterFrame.getScanNumbers();
+        assert retentionTimes != null && intensities != null
+                & scanNumbers != null;
 
-        double retValueMin = masterFrame.getZoomRTMin();
-        double retValueMax = masterFrame.getZoomRTMax();
-        double intValueMin = masterFrame.getZoomIntensityMin();
-        double intValueMax = masterFrame.getZoomIntensityMax();
+        final double retValueMin = masterFrame.getZoomRTMin();
+        final double retValueMax = masterFrame.getZoomRTMax();
+        final double intValueMin = masterFrame.getZoomIntensityMin();
+        final double intValueMax = masterFrame.getZoomIntensityMax();
+        final double xAxisStep = (retValueMax - retValueMin) / width;
+        final double yAxisStep = (intValueMax - intValueMin) / height;
 
-        int startIndex = 0, endIndex = retentionTimes.length - 1;
-        while (retentionTimes[startIndex] < retValueMin) {
-            if (startIndex == retentionTimes.length - 1)
+        int startIndex = 1, endIndex = retentionTimes.length - 1;
+        while (retentionTimes[startIndex] < retValueMin - 1) {
+            if (startIndex == retentionTimes.length)
                 break;
             startIndex++;
         }
+        startIndex--;
         while (retentionTimes[endIndex] > retValueMax) {
             if (endIndex == 0)
                 break;
             endIndex--;
         }
 
-        /* check if there is anything to draw */
-        if (startIndex >= endIndex)
-            return;
-
         // Draw selection
         if (mouseSelection) {
-            g.setColor(Color.gray);
+            g.setColor(Color.lightGray);
             int selX = Math.min(lastClickX, mousePositionX);
             int selY = Math.min(lastClickY, mousePositionY);
             int selWidth = Math.abs(mousePositionX - lastClickX);
@@ -135,43 +140,61 @@ public class TICPlot extends JPanel implements ActionListener, MouseListener,
         }
 
         // Draw linegraph
-        g.setColor(Color.blue);
-        int x, y, prevx = 0, prevy = 0;
-        final double xAxisStep = (retValueMax - retValueMin) / width;
-        final double yAxisStep = (intValueMax - intValueMin) / height;
+        if (startIndex < endIndex) {
 
-        for (int ind = startIndex; ind <= endIndex; ind++) {
+            g.setColor(new Color(0, 0, 224));
+            int x, y, prevx = 0, prevy = 0;
 
-            x = (int) Math.round((retentionTimes[ind] - retValueMin)
-                    / xAxisStep);
-            y = height
-                    - (int) Math.round((intensities[ind] - intValueMin)
-                            / yAxisStep);
+            for (int ind = startIndex; ind <= endIndex; ind++) {
 
-            if ((ind > startIndex) && (x > 0) && (y > 0)) {
-                g.drawLine(prevx, prevy, x, y);
-                // Logger.put("line " + prevx + ":" + prevy + " -> " + x + ":" +
-                // y + " " + (retentionTimes[ind] - retValueMin));
+                x = (int) Math.round((retentionTimes[ind] - retValueMin)
+                        / xAxisStep);
+                y = height
+                        - (int) Math.round((intensities[ind] - intValueMin)
+                                / yAxisStep);
+
+                if ((ind > startIndex) && (x > 0) && (y > 0)) {
+                    g.drawLine(prevx, prevy, x, y);
+                    // Logger.put("line " + prevx + ":" + prevy + " -> " + x +
+                    // ":" +
+                    // y + " " + (retentionTimes[ind] - retValueMin));
+                }
+
+                prevx = x;
+                prevy = y;
             }
-
-            prevx = x;
-            prevy = y;
         }
 
         // draw cursor
-        if (masterFrame.getCursorPosition() >= 0) {
+        int cursorPosition = masterFrame.getCursorPosition();
+        if (cursorPosition >= 0) {
             int cursorX = (int) Math
-                    .round((masterFrame.getCursorPosition() - retValueMin)
+                    .round((retentionTimes[cursorPosition] - retValueMin)
                             / xAxisStep);
             g.setColor(Color.red);
             g.drawLine(cursorX, 0, cursorX, height);
+            g.setColor(Color.black);
+            g.setFont(g.getFont().deriveFont(10.0f));
+            int textX;
+            if (cursorX > width / 2)
+                textX = cursorX - 70;
+            else
+                textX = cursorX + 10;
+            g.drawString(
+                    "Scan #" + String.valueOf(scanNumbers[cursorPosition]),
+                    textX, 10);
+            g.drawString("RT: "
+                    + FormatCoordinates
+                            .formatRTValue(retentionTimes[cursorPosition]),
+                    textX, 22);
+            g.drawString("IC: "
+                    + FormatCoordinates
+                            .formatIntensityValue(intensities[cursorPosition]),
+                    textX, 34);
         }
 
         // draw mouse cursor
         if (mousePresent) {
-            FormatCoordinates formatCoordinates = new FormatCoordinates(
-                    MainWindow.getInstance().getParameterStorage()
-                            .getGeneralParameters());
             /*
              * g.drawLine(mousePositionX - 15, mousePositionY, mousePositionX +
              * 15, mousePositionY); g.drawLine(mousePositionX, 0,
@@ -180,8 +203,9 @@ public class TICPlot extends JPanel implements ActionListener, MouseListener,
             double rt = retValueMin + xAxisStep * mousePositionX;
             double intensity = intValueMin + (intValueMax - intValueMin)
                     / height * (height - mousePositionY);
-            String positionRT = "RT: " + formatCoordinates.formatRTValue(rt);
-            String positionInt = "IC: " + tickFormat.format(intensity);
+            String positionRT = "RT: " + FormatCoordinates.formatRTValue(rt);
+            String positionInt = "IC: "
+                    + FormatCoordinates.formatIntensityValue(intensity);
             int drawX = mousePositionX + 8;
             int drawY = mousePositionY - 20;
 
@@ -215,6 +239,12 @@ public class TICPlot extends JPanel implements ActionListener, MouseListener,
         // Copy same scan range settings to all other open runs
         if (src == zoomSameToOthersMenuItem) {
             // TODO:
+        }
+        
+        if (src == showSpectrumMenuItem) {
+            SpectrumVisualizer specVis = new SpectrumVisualizer(masterFrame
+                    .getRawDataFile(), masterFrame.getScanNumbers()[masterFrame.getCursorPosition()]);
+            MainWindow.getInstance().addInternalFrame(specVis);
         }
 
         // Show a dialog where user can select range for XIC and switch to
@@ -270,7 +300,44 @@ public class TICPlot extends JPanel implements ActionListener, MouseListener,
      * Implementation of MouseListener interface methods
      */
     public void mouseClicked(MouseEvent e) {
-        
+
+        if (e.getButton() != MouseEvent.BUTTON1)
+            return;
+
+        int width = getWidth();
+        double retValueMin = masterFrame.getZoomRTMin();
+        double retValueMax = masterFrame.getZoomRTMax();
+        final double xAxisStep = (retValueMax - retValueMin) / width;
+        double clickedRT = retValueMin + (xAxisStep * e.getX());
+
+        if (e.getClickCount() == 1) {
+            masterFrame.setRTPosition(clickedRT);
+        }
+
+        if (e.getClickCount() == 2) {
+
+            double[] retentionTimes = masterFrame.getRetentionTimes();
+            int scanNumbers[] = masterFrame.getScanNumbers();
+
+            // find the first scan number with RT higher than given rt
+            int index;
+            for (index = 1; index < retentionTimes.length; index++) {
+                if (retentionTimes[index] > clickedRT)
+                    break;
+            }
+            if (index == retentionTimes.length)
+                return;
+
+            if (clickedRT - retentionTimes[index - 1] < retentionTimes[index]
+                    - clickedRT)
+                index = index - 1;
+
+            SpectrumVisualizer specVis = new SpectrumVisualizer(masterFrame
+                    .getRawDataFile(), scanNumbers[index]);
+            MainWindow.getInstance().addInternalFrame(specVis);
+
+        }
+
     }
 
     public void mouseEntered(MouseEvent e) {
@@ -288,7 +355,6 @@ public class TICPlot extends JPanel implements ActionListener, MouseListener,
         if (mouseSelection) {
 
             mouseSelection = false;
-            zoomOutMenuItem.setEnabled(true);
             int width = getWidth();
             int height = getHeight();
             double retValueMin = masterFrame.getZoomRTMin();
@@ -310,6 +376,7 @@ public class TICPlot extends JPanel implements ActionListener, MouseListener,
                 if (newRtMax > retValueMax)
                     newRtMax = retValueMax;
                 masterFrame.setRTRange(newRtMin, newRtMax);
+                zoomOutMenuItem.setEnabled(true);
             }
             if (selHeight > SELECTION_TOLERANCE) {
                 double newIntMin = intValueMin + (selY * yAxisStep);
@@ -320,28 +387,26 @@ public class TICPlot extends JPanel implements ActionListener, MouseListener,
                 if (newIntMax > intValueMax)
                     newIntMax = intValueMax;
                 masterFrame.setIntensityRange(newIntMin, newIntMax);
+                zoomOutMenuItem.setEnabled(true);
             }
             // no need to call repaint(), master frame will repaint
             // automatically
         } else if (e.isPopupTrigger()) {
             popupMenu.show(e.getComponent(), e.getX(), e.getY());
-        } else {
-            /* set cursor position */
-            int width = getWidth();
-            double retValueMin = masterFrame.getZoomRTMin();
-            double retValueMax = masterFrame.getZoomRTMax();
-            final double xAxisStep = (retValueMax - retValueMin) / width;
-            double newCursorPosition = retValueMin + (xAxisStep * e.getX());
-            masterFrame.setRTPosition(newCursorPosition);
         }
 
     }
 
     public void mousePressed(MouseEvent e) {
-        lastClickX = e.getX();
-        lastClickY = e.getY();
+
         if (e.isPopupTrigger()) {
             popupMenu.show(e.getComponent(), e.getX(), e.getY());
+        }
+
+        if (e.getButton() == MouseEvent.BUTTON1) {
+            mouseSelection = true;
+            lastClickX = e.getX();
+            lastClickY = e.getY();
         }
     }
 
@@ -351,7 +416,6 @@ public class TICPlot extends JPanel implements ActionListener, MouseListener,
     public void mouseDragged(MouseEvent e) {
         mousePositionX = e.getX();
         mousePositionY = e.getY();
-        mouseSelection = true;
         repaint();
     }
 
@@ -360,6 +424,5 @@ public class TICPlot extends JPanel implements ActionListener, MouseListener,
         mousePositionY = e.getY();
         repaint();
     }
-  
 
 }

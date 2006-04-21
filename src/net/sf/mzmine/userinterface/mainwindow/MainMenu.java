@@ -25,9 +25,9 @@ import net.sf.mzmine.visualizers.alignmentresult.AlignmentResultVisualizerCDAPlo
 import net.sf.mzmine.visualizers.alignmentresult.AlignmentResultVisualizerCoVarPlotView;
 import net.sf.mzmine.visualizers.alignmentresult.AlignmentResultVisualizerLogratioPlotView;
 import net.sf.mzmine.visualizers.alignmentresult.AlignmentResultVisualizerSammonsPlotView;
-import net.sf.mzmine.visualizers.rawdata.spectra.RawDataVisualizerSpectrumView;
+import net.sf.mzmine.visualizers.rawdata.spectra.SpectrumVisualizer;
 import net.sf.mzmine.visualizers.rawdata.tic.TICVisualizer;
-import net.sf.mzmine.visualizers.rawdata.twod.RawDataVisualizerTwoDView;
+import net.sf.mzmine.visualizers.rawdata.twod.TwoDVisualizer;
 import sunutils.ExampleFileFilter;
 
 /**
@@ -1107,8 +1107,8 @@ class MainMenu extends JMenuBar implements ActionListener {
 
             if (activeWindow != null) {
                 if ((activeWindow.getClass() == TICVisualizer.class)
-                        || (activeWindow.getClass() == RawDataVisualizerTwoDView.class)
-                        || (activeWindow.getClass() == RawDataVisualizerSpectrumView.class)) {
+                        || (activeWindow.getClass() == TwoDVisualizer.class)
+                        || (activeWindow.getClass() == SpectrumVisualizer.class)) {
                     filePrint.setEnabled(true);
                     editCopy.setEnabled(true);
                 }

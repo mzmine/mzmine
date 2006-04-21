@@ -21,6 +21,7 @@ package net.sf.mzmine.userinterface.mainwindow;
 
 import java.awt.BorderLayout;
 import java.awt.Container;
+import java.awt.Dimension;
 import java.awt.event.WindowEvent;
 import java.awt.event.WindowListener;
 import java.util.Enumeration;
@@ -30,27 +31,16 @@ import java.util.Vector;
 import javax.swing.JDesktopPane;
 import javax.swing.JFrame;
 import javax.swing.JInternalFrame;
+import javax.swing.JLayeredPane;
 import javax.swing.JOptionPane;
 import javax.swing.JSplitPane;
 
 import net.sf.mzmine.methods.alignment.AlignmentResult;
 import net.sf.mzmine.obsoletedatastructures.RawDataAtClient;
 import net.sf.mzmine.userinterface.dialogs.TaskProgressWindow;
-import net.sf.mzmine.util.GeneralParameters;
 import net.sf.mzmine.util.ParameterStorage;
 import net.sf.mzmine.visualizers.RawDataVisualizer;
 import net.sf.mzmine.visualizers.alignmentresult.AlignmentResultVisualizer;
-import net.sf.mzmine.visualizers.alignmentresult.AlignmentResultVisualizerCDAPlotView;
-import net.sf.mzmine.visualizers.alignmentresult.AlignmentResultVisualizerCDAPlotViewParameters;
-import net.sf.mzmine.visualizers.alignmentresult.AlignmentResultVisualizerCoVarPlotView;
-import net.sf.mzmine.visualizers.alignmentresult.AlignmentResultVisualizerList;
-import net.sf.mzmine.visualizers.alignmentresult.AlignmentResultVisualizerLogratioPlotView;
-import net.sf.mzmine.visualizers.alignmentresult.AlignmentResultVisualizerSammonsPlotView;
-import net.sf.mzmine.visualizers.alignmentresult.AlignmentResultVisualizerSammonsPlotViewParameters;
-import net.sf.mzmine.visualizers.peaklist.RawDataVisualizerPeakListView;
-import net.sf.mzmine.visualizers.rawdata.spectra.RawDataVisualizerSpectrumView;
-import net.sf.mzmine.visualizers.rawdata.tic.TICVisualizer;
-import net.sf.mzmine.visualizers.rawdata.twod.RawDataVisualizerTwoDView;
 
 /**
  * This class is the main window of application
@@ -167,9 +157,10 @@ public class MainWindow extends JFrame implements WindowListener {
 
         pack();
 
-        setBounds(0, 0, 800, 600);
+        //  TODO: check screen size?
+        setBounds(0, 0, 1000, 700);
         setLocationRelativeTo(null);
-
+                
         // Application wants to control closing by itself
         setDefaultCloseOperation(DO_NOTHING_ON_CLOSE);
 
@@ -178,7 +169,7 @@ public class MainWindow extends JFrame implements WindowListener {
         statBar.setStatusText("Welcome to MZmine!");
 
         System.out.println(desktop.getWidth());
-        taskList = new TaskProgressWindow(this);
+        taskList = new TaskProgressWindow();
         desktop.add(taskList, javax.swing.JLayeredPane.DEFAULT_LAYER);
 
     }
@@ -186,6 +177,14 @@ public class MainWindow extends JFrame implements WindowListener {
     public MainMenu getMainMenu() {
         return menuBar;
     }
+    
+    public void addInternalFrame(JInternalFrame frame) {
+        desktop.add(frame, JLayeredPane.DEFAULT_LAYER);
+        // TODO: adjust frame position
+        frame.addInternalFrameListener(itemSelector);
+        frame.setVisible(true);
+    }
+    
 
     /**
      * This method returns the desktop
@@ -311,19 +310,6 @@ public class MainWindow extends JFrame implements WindowListener {
 
     }
 
-    private int numOfResultsWithVisibleVisualizer(boolean includeIcons) {
-
-        int num = 0;
-        int[] alignmentResultIDs = itemSelector.getAlignmentResultIDs();
-
-        for (int id : alignmentResultIDs) {
-            if (alignmentHasVisibleVisualizers(id, includeIcons)) {
-                num++;
-            }
-        }
-
-        return num;
-    }
 
     private boolean alignmentHasVisibleVisualizers(int alignmentResultID,
             boolean includeIcons) {

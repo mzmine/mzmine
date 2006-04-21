@@ -63,7 +63,6 @@ public class MZXMLFileOpeningTask extends DefaultHandler implements
         status = TaskStatus.WAITING;
 
         charBuffer = new StringBuffer(256);
-        // Get current date which is also required in conversions
 
         buildingFile = new MZXMLFile(fileToOpen, preloadLevel);
 
@@ -131,12 +130,15 @@ public class MZXMLFileOpeningTask extends DefaultHandler implements
             saxParser.parse(originalFile, this);
             saxParser.reset();
 
-        } catch (Exception e) {
+        } catch (Throwable e) {
+            /* catch Throwable instead of Exception, to catch errors like OutOfMemoryError */
+            
             /* we may already have set the status to CANCELED */
             if (status == TaskStatus.PROCESSING)
                 status = TaskStatus.ERROR;
             errorMessage = e.toString();
-            e.printStackTrace();
+            buildingFile = null;
+
             return;
         }
 

@@ -36,6 +36,8 @@ public interface RawDataFile extends Serializable {
     
     public File getFileName();
     
+    public PreloadLevel getPreloadLevel();
+    
     public int getNumOfScans();
     public int[] getMSLevels();
     public int[] getScanNumbers(int msLevel);

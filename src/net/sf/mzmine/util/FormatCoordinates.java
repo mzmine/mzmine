@@ -30,29 +30,22 @@ import net.sf.mzmine.obsoletedatastructures.RawDataAtClient;
 public class FormatCoordinates {
 
 	// Helper objects that do the actual formatting
-    private DecimalFormat mzFormat;
-    private DecimalFormat rtFormat;
-
+    private static DecimalFormat mzFormat = new DecimalFormat("0.00");
+    private static DecimalFormat rtFormat = new DecimalFormat("0.0");
+    private static DecimalFormat intensityFormat = new DecimalFormat("0.000E0");
+    
     // These store the current formatting settings
-    private Integer mzFormatSetting;
-    private Integer rtFormatSetting;
+    private static Integer rtFormatSetting;
 
 
-	/**
-	 * Constructor
-	 *
-	 */
-	public FormatCoordinates(GeneralParameters param) {
-		setMZValueFormat(param.getMZLabelFormat());
-		setRTValueFormat(param.getChromatographicLabelFormat());
-	}
+
 
 	/**
 	 * This function changes current representation of M/Z values
 	 */
-	public void setMZValueFormat(Integer format) {
+	public static void setMZValueFormat(Integer format) {
 
-		mzFormatSetting = format;
+
 		if (format == GeneralParameters.PARAMETERVALUE_MZLABELFORMAT_TWODIGITS) 	{ mzFormat = new DecimalFormat("0.00"); }
 		if (format == GeneralParameters.PARAMETERVALUE_MZLABELFORMAT_THREEDIGITS) 	{ mzFormat = new DecimalFormat("0.000"); }
 		if (format == GeneralParameters.PARAMETERVALUE_MZLABELFORMAT_FOURDIGITS) 	{ mzFormat = new DecimalFormat("0.0000"); }
@@ -75,53 +68,35 @@ public class FormatCoordinates {
 	/**
 	 * This function turns given M/Z value into string representation with currently selected number of decimals
 	 */
-	public String formatMZValue(double mz) {
+	public static String formatMZValue(double mz) {
 
 		return new String(mzFormat.format(mz));
 
 	}
+    
+    public static String formatIntensityValue(double intensity) {
 
+        return new String(intensityFormat.format(intensity));
+
+    }
 	/**
 	 * This function turns given rt value (in secs) to string representation (either "secs" or "mins:secs")
 	 */
-	public String formatRTValue(double rt) {
+	public static String formatRTValue(double rt) {
 
 		String val = null;
 
 		if (rtFormatSetting == GeneralParameters.PARAMETERVALUE_CHROMATOGRAPHICLABELFORMAT_SEC) {
 			val = new String(rtFormat.format(rt));
-		}
-
-		if (rtFormatSetting == GeneralParameters.PARAMETERVALUE_CHROMATOGRAPHICLABELFORMAT_MINSEC) {
-			int mins = (int)java.lang.Math.floor(rt / 60);
+		} else {
+	
+			int mins = (int)Math.floor(rt / 60);
 			double secs = rt - mins*60;
 			val = mins + ":" + rtFormat.format(secs);
 		}
 
 		return val;
 
-	}
-
-
-	/**
-	 * This function translates scan number into rt value string
-	 */
-	public String formatRTValue(int scanNum, RawDataAtClient r) {
-
-		String val = null;
-
-		if (rtFormatSetting == GeneralParameters.PARAMETERVALUE_CHROMATOGRAPHICLABELFORMAT_SEC) {
-			val = new String(rtFormat.format(r.getScanTime(scanNum)));
-		}
-
-		if (rtFormatSetting == GeneralParameters.PARAMETERVALUE_CHROMATOGRAPHICLABELFORMAT_MINSEC) {
-			double tot_secs = r.getScanTime(scanNum);
-			int mins = (int)java.lang.Math.floor(tot_secs / 60);
-			double secs = tot_secs - mins*60;
-			val = mins + ":" + rtFormat.format(secs);
-		}
-
-		return val;
 	}
 
 

@@ -57,7 +57,6 @@ import net.sf.mzmine.obsoletedatastructures.RawDataAtClient;
 import net.sf.mzmine.userinterface.mainwindow.ItemSelector;
 import net.sf.mzmine.userinterface.mainwindow.MainWindow;
 import net.sf.mzmine.userinterface.mainwindow.Statusbar;
-import net.sf.mzmine.util.FormatCoordinates;
 import net.sf.mzmine.util.HeatMapColorPicker;
 import net.sf.mzmine.util.TransferableImage;
 import net.sf.mzmine.visualizers.RawDataVisualizer;
@@ -65,7 +64,7 @@ import net.sf.mzmine.visualizers.RawDataVisualizer;
 
 
 
-public class RawDataVisualizerTwoDView extends JInternalFrame implements RawDataVisualizer, Printable, InternalFrameListener {
+public class TwoDVisualizer extends JInternalFrame implements RawDataVisualizer, Printable, InternalFrameListener {
 
 	private JPanel bottomPnl, leftPnl, rightPnl, topPnl;
 	private TwoDPlot twodPlot;
@@ -104,7 +103,7 @@ public class RawDataVisualizerTwoDView extends JInternalFrame implements RawData
 	private boolean firstRefreshAlreadyDone = false;
 
 
-	public RawDataVisualizerTwoDView(MainWindow _mainWin) {
+	public TwoDVisualizer(MainWindow _mainWin) {
 
 		mainWin = _mainWin;
 		statBar = mainWin.getStatusBar();
@@ -405,12 +404,12 @@ public class RawDataVisualizerTwoDView extends JInternalFrame implements RawData
 		private JMenuItem setPalLogMenuItem;
 		private JMenuItem setPalHeatmapMenuItem;
 
-		private RawDataVisualizerTwoDView masterFrame;
+		private TwoDVisualizer masterFrame;
 
 		int minX,maxX;
 		double minY, maxY;
 
-		public TwoDPlot(RawDataVisualizerTwoDView _masterFrame) {
+		public TwoDPlot(TwoDVisualizer _masterFrame) {
 
 			masterFrame = _masterFrame;
 
@@ -899,75 +898,6 @@ public class RawDataVisualizerTwoDView extends JInternalFrame implements RawData
 	////////////////////////////////////////////////////////////////
 
 
-	class TwoDXAxis extends JPanel {
-
-		private final int leftMargin = 100;
-		private final int rightMargin = 5;
-
-		private int minX;
-		private int maxX;
-		// private int numTics;
-
-
-		public TwoDXAxis() {
-			super();
-		}
-
-
-		public void paint(Graphics g) {
-
-			if (rawData==null) { return; }
-			if (rawData.getRawDataUpdatedFlag()) { return; }
-
-
-			super.paint(g);
-
-			FormatCoordinates formatCoordinates = new FormatCoordinates(mainWin.getParameterStorage().getGeneralParameters());
-
-			int w = getWidth();
-			double h = getHeight();
-
-			int numofscans = maxX-minX+1;
-			double pixelsperscan = (double)(w-leftMargin-rightMargin) / (double)numofscans;
-			if (pixelsperscan<=0) { return; }
-
-			int scanspertic = 1;
-			while ( (scanspertic * pixelsperscan) < 60 ) { scanspertic++;}
-
-			double pixelspertic = (double)scanspertic * pixelsperscan;
-			int numoftics = (int)java.lang.Math.floor((double)numofscans / (double)scanspertic);
-
-
-			// Draw axis
-			this.setForeground(Color.black);
-			g.drawLine((int)leftMargin,0,(int)(w-rightMargin),0);
-
-			// Draw tics and numbers
-			String tmps;
-			double xpos = leftMargin;
-			int xval = minX;
-			for (int t=0; t<numoftics; t++) {
-				// if (t==(numoftics-1)) { this.setForeground(Color.red); }
-
-				tmps = null;
-				tmps = formatCoordinates.formatRTValue(xval, rawData);
-
-				g.drawLine((int)java.lang.Math.round(xpos), 0, (int)java.lang.Math.round(xpos), (int)(h/4));
-				g.drawBytes(tmps.getBytes(), 0, tmps.length(), (int)java.lang.Math.round(xpos),(int)(3*h/4));
-
-				xval += scanspertic;
-				xpos += pixelspertic;
-			}
-		}
-
-
-		public void setScale(int _minX, int _maxX) {
-			minX = _minX;
-			maxX = _maxX;
-		}
-
-	}
-
 
 
 	////////////////////////////////////////////////////////////////
@@ -978,64 +908,7 @@ public class RawDataVisualizerTwoDView extends JInternalFrame implements RawData
 
 
 
-	class TwoDYAxis extends JPanel {
 
-		private final double bottomMargin = (double)0.0;
-		private final double topMargin = (double)0.0;
-
-		private double minY;
-		private double maxY;
-		private int numTics;
-
-		public TwoDYAxis() {
-			super();
-		}
-
-		public void paint(Graphics g) {
-
-			if (rawData==null) { return; }
-			if (rawData.getRawDataUpdatedFlag()) { return; }
-
-			super.paint(g);
-
-			FormatCoordinates formatCoordinates = new FormatCoordinates(mainWin.getParameterStorage().getGeneralParameters());
-
-			double w = getWidth();
-			double h = getHeight();
-
-			numTics = 5;
-			if (h>250) { numTics = 10; }
-			if (h>500) { numTics = 20; }
-			if (h>1000) { numTics = 40; }
-
-			this.setForeground(Color.black);
-			g.drawLine((int)w-1,0,(int)w-1,(int)h);
-
-			String tmps;
-
-			double diff_dat = maxY-minY;
-			double diff_scr = h - bottomMargin - topMargin;
-			double ypos = bottomMargin;
-			double yval = minY;
-			for (int t=1; t<=numTics; t++) {
-				// tmps = new String("" + (int)yval);
-				//tmps = new String(tickFormat.format(yval));
-				tmps = formatCoordinates.formatMZValue(yval);
-				g.drawLine((int)(3*w/4), (int)(h-ypos), (int)(w), (int)(h-ypos));
-				g.drawBytes(tmps.getBytes(), 0, tmps.length(), (int)(w/4)-4,(int)(h-ypos));
-
-				yval += diff_dat / numTics;
-				ypos += diff_scr / numTics;
-			}
-		}
-
-
-		public void setScale(double _minY, double _maxY) {
-			minY = _minY;
-			maxY = _maxY;
-		}
-
-	}
 
 
 

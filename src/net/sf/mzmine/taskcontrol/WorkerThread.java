@@ -70,7 +70,7 @@ class WorkerThread extends Thread {
                 currentTask.run();
             } catch (Throwable e) {
                 
-                // we catch Throwable instead of Exception, to catch the OutOfMemoryError
+                // this should never happen!
                 
                 String errorMessage = "Unhandled exception while processing task "
                     + currentTask.getTaskDescription() + ": " + e + ", cancelling the task.";
@@ -83,7 +83,7 @@ class WorkerThread extends Thread {
                 
             }
             
-            /* discard the task, so that garbace collecter can collect it */
+            /* discard the task, so that garbage collecter can collect it */
             currentTask = null;
             
         }

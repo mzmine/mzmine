@@ -25,6 +25,7 @@ import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.Toolkit;
 import java.awt.datatransfer.Clipboard;
+import java.awt.event.ActionEvent;
 import java.awt.geom.AffineTransform;
 import java.awt.image.BufferedImage;
 import java.awt.print.PageFormat;
@@ -34,16 +35,14 @@ import java.text.DecimalFormat;
 
 import javax.print.attribute.HashPrintRequestAttributeSet;
 import javax.print.attribute.standard.OrientationRequested;
+import javax.swing.AbstractAction;
 import javax.swing.JInternalFrame;
 import javax.swing.JPanel;
+import javax.swing.KeyStroke;
 import javax.swing.RepaintManager;
-import javax.swing.event.InternalFrameEvent;
-import javax.swing.event.InternalFrameListener;
-
-import com.sun.org.apache.xalan.internal.xsltc.compiler.util.RtMethodGenerator;
 
 import net.sf.mzmine.io.RawDataFile;
-import net.sf.mzmine.obsoletedatastructures.RawDataAtClient;
+import net.sf.mzmine.io.RawDataFile.PreloadLevel;
 import net.sf.mzmine.taskcontrol.Task;
 import net.sf.mzmine.taskcontrol.TaskController;
 import net.sf.mzmine.taskcontrol.TaskListener;
@@ -57,7 +56,7 @@ import net.sf.mzmine.visualizers.RawDataVisualizer;
  * This class defines the total ion chromatogram visualizer for raw data
  */
 public class TICVisualizer extends JInternalFrame implements RawDataVisualizer,
-        TaskListener, Printable, InternalFrameListener {
+        TaskListener, Printable {
 
     // Components of the window
     private JPanel bottomPnl, leftPnl, rightPnl, topPnl;
@@ -72,7 +71,11 @@ public class TICVisualizer extends JInternalFrame implements RawDataVisualizer,
 
     private double mzRangeMin, mzRangeMax;
     private double zoomRTMin, zoomRTMax, zoomIntensityMin, zoomIntensityMax;
-    private double cursorPosition = -1;
+
+    /**
+     * cursor posititon represented by an index to retentionTimes[]
+     */
+    private int cursorPosition = -1;
 
     /**
      * scan numbers of selected MS level
@@ -116,9 +119,27 @@ public class TICVisualizer extends JInternalFrame implements RawDataVisualizer,
         ticPlot.setBackground(Color.white);
         getContentPane().add(ticPlot, java.awt.BorderLayout.CENTER);
 
-        pack();
+        getInputMap().put(KeyStroke.getKeyStroke("RIGHT"), "moveCursorRight");
+        getActionMap().put("moveCursorRight", new AbstractAction() {
+            public void actionPerformed(ActionEvent e) {
+                if ((cursorPosition >= 0)
+                        && (cursorPosition < retentionTimes.length - 1)) {
+                    cursorPosition++;
+                    repaint();
+                }
+            }
+        });
+        getInputMap().put(KeyStroke.getKeyStroke("LEFT"), "moveCursorLeft");
+        getActionMap().put("moveCursorLeft", new AbstractAction() {
+            public void actionPerformed(ActionEvent e) {
+                if (cursorPosition > 0) {
+                    cursorPosition--;
+                    repaint();
+                }
+            }
+        });
 
-        addInternalFrameListener(this);
+        pack();
 
         this.msLevel = msLevel;
 
@@ -155,7 +176,15 @@ public class TICVisualizer extends JInternalFrame implements RawDataVisualizer,
 
         Task updateTask = new TICVisualizerDataRetrievalTask(rawDataFile,
                 scanNumbers, this);
-        TaskController.getInstance().addTask(updateTask, this);
+
+        /*
+         * if the file data is preloaded in memory, we can update the visualizer
+         * in this thread, otherwise start a task
+         */
+        if (newFile.getPreloadLevel() == PreloadLevel.PRELOAD_ALL_SCANS)
+            updateTask.run();
+        else
+            TaskController.getInstance().addTask(updateTask, this);
 
         updateTitle();
 
@@ -176,7 +205,14 @@ public class TICVisualizer extends JInternalFrame implements RawDataVisualizer,
         updateTitle();
         Task updateTask = new TICVisualizerDataRetrievalTask(rawDataFile,
                 scanNumbers, this, mzMin, mzMax);
-        TaskController.getInstance().addTask(updateTask, this);
+        /*
+         * if the file data is preloaded in memory, we can update the visualizer
+         * in this thread, otherwise start a task
+         */
+        if (rawDataFile.getPreloadLevel() == PreloadLevel.PRELOAD_ALL_SCANS)
+            updateTask.run();
+        else
+            TaskController.getInstance().addTask(updateTask, this);
     }
 
     /**
@@ -188,13 +224,19 @@ public class TICVisualizer extends JInternalFrame implements RawDataVisualizer,
             updateTitle();
             Task updateTask = new TICVisualizerDataRetrievalTask(rawDataFile,
                     scanNumbers, this);
-            TaskController.getInstance().addTask(updateTask, this);
+            /*
+             * if the file data is preloaded in memory, we can update the
+             * visualizer in this thread, otherwise start a task
+             */
+            if (rawDataFile.getPreloadLevel() == PreloadLevel.PRELOAD_ALL_SCANS)
+                updateTask.run();
+            else
+                TaskController.getInstance().addTask(updateTask, this);
         }
     }
 
     private void updateTitle() {
-        FormatCoordinates formatCoordinates = new FormatCoordinates(MainWindow
-                .getInstance().getParameterStorage().getGeneralParameters());
+
         DecimalFormat intFormat = new DecimalFormat("0.####E0");
 
         StringBuffer title = new StringBuffer();
@@ -207,9 +249,9 @@ public class TICVisualizer extends JInternalFrame implements RawDataVisualizer,
         title.append(" ion chromatogram, MS level ");
         title.append(msLevel);
         if (xicMode)
-            title.append(", MZ range " + mzRangeMin + " - " + mzRangeMax);
-        title.append(", RT " + formatCoordinates.formatRTValue(zoomRTMin)
-                + " - " + formatCoordinates.formatRTValue(zoomRTMax));
+            title.append(", m/z range " + mzRangeMin + " - " + mzRangeMax);
+        title.append(", RT " + FormatCoordinates.formatRTValue(zoomRTMin)
+                + " - " + FormatCoordinates.formatRTValue(zoomRTMax));
         title.append(", IC " + intFormat.format(zoomIntensityMin) + " - "
                 + intFormat.format(zoomIntensityMax));
         setTitle(title.toString());
@@ -268,14 +310,31 @@ public class TICVisualizer extends JInternalFrame implements RawDataVisualizer,
      * @see net.sf.mzmine.visualizers.RawDataVisualizer#setRTPosition(double)
      */
     public void setRTPosition(double rt) {
-        cursorPosition = rt;
+
+        if (rt < retentionTimes[0]) {
+            cursorPosition = -1;
+        } else {
+            // find the first scan number with RT higher than given rt
+            int index;
+            for (index = 1; index < retentionTimes.length; index++) {
+                if (retentionTimes[index] > rt)
+                    break;
+            }
+            if (index == retentionTimes.length) {
+                cursorPosition = -1;
+            } else if (rt - retentionTimes[index - 1] < retentionTimes[index]
+                    - rt)
+                cursorPosition = index - 1;
+            else
+                cursorPosition = index;
+        }
         repaint();
     }
 
     /**
      * @return Returns the cursorPosition.
      */
-    double getCursorPosition() {
+    int getCursorPosition() {
         return cursorPosition;
     }
 
@@ -320,21 +379,9 @@ public class TICVisualizer extends JInternalFrame implements RawDataVisualizer,
     double[] getRetentionTimes() {
         return retentionTimes;
     }
-
-    /**
-     * @see net.sf.mzmine.visualizers.RawDataVisualizer#attachVisualizer(net.sf.mzmine.visualizers.RawDataVisualizer)
-     */
-    public void attachVisualizer(RawDataVisualizer visualizer) {
-        // TODO Auto-generated method stub
-
-    }
-
-    /**
-     * @see net.sf.mzmine.visualizers.RawDataVisualizer#detachVisualizer(net.sf.mzmine.visualizers.RawDataVisualizer)
-     */
-    public void detachVisualizer(RawDataVisualizer visualizer) {
-        // TODO Auto-generated method stub
-
+    
+    int[] getScanNumbers() {
+        return scanNumbers;
     }
 
     void updateData(int position, double retentionTime, double intensity) {
@@ -443,32 +490,5 @@ public class TICVisualizer extends JInternalFrame implements RawDataVisualizer,
         }
     }
 
-    public void internalFrameOpened(InternalFrameEvent e) {
-    }
-
-    public void internalFrameIconified(InternalFrameEvent e) {
-    }
-
-    public void internalFrameDeiconified(InternalFrameEvent e) {
-    }
-
-    public void internalFrameDeactivated(InternalFrameEvent e) {
-    }
-
-    public void internalFrameClosing(InternalFrameEvent e) {
-    }
-
-    public void internalFrameClosed(InternalFrameEvent e) {
-    }
-
-    /**
-     * Implementation of methods in InternalFrameListener
-     */
-    public void internalFrameActivated(InternalFrameEvent e) {
-
-        MainWindow.getInstance().getItemSelector()
-                .setActiveRawData(rawDataFile);
-
-    }
 
 }

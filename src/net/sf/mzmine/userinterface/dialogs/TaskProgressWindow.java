@@ -117,7 +117,7 @@ public class TaskProgressWindow extends JInternalFrame {
     /**
      * 
      */
-    public TaskProgressWindow(MainWindow w) {
+    public TaskProgressWindow() {
         super("Tasks in progress...", true, true, true, true);
         setDefaultCloseOperation(HIDE_ON_CLOSE);
         taskModel = new TaskModel();
@@ -128,9 +128,12 @@ public class TaskProgressWindow extends JInternalFrame {
         JScrollPane jJobScroll = new JScrollPane(taskTable);
         add(jJobScroll, java.awt.BorderLayout.CENTER);
         // setSize(200, 200);
+        taskTable.getColumnModel().getColumn(0).setPreferredWidth(350);
         pack();
-        
-        JDesktopPane mainWinDesktop = w.getDesktop(); 
+        setBounds(120, 460, 600, 150);
+        // setLocationRelativeTo(w.getDesktop());
+        // setSize(630, 200);    
+        JDesktopPane mainWinDesktop = MainWindow.getInstance().getDesktop(); 
         System.out.println(mainWinDesktop.getWidth() + " " + getWidth());
         // setLocation(mainWinDesktop.getWidth()/2-getWidth()/2, mainWinDesktop.getHeight()/2-getHeight()/2 );
 

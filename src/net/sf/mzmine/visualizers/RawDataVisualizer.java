@@ -38,9 +38,6 @@ public interface RawDataVisualizer {
     public void setMZPosition(double mz);
     public void setRTPosition(double rt);
 
-    public void attachVisualizer(RawDataVisualizer visualizer);
-    public void detachVisualizer(RawDataVisualizer visualizer);
-
     public void printMe();
     public void copyMe();
 

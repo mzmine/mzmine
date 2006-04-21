@@ -1,7 +1,7 @@
 /**
  * 
  */
-package net.sf.mzmine.visualizers.rawdata.tic;
+package net.sf.mzmine.visualizers.rawdata.spectra;
 
 import java.awt.Color;
 import java.awt.Dimension;
@@ -11,9 +11,9 @@ import java.text.DecimalFormat;
 import javax.swing.JPanel;
 
 /**
- * This class presents the y-axis of the plot
+ * 
  */
-class TICYAxis extends JPanel {
+class ScanYAxis extends JPanel {
 
     private final int topMargin = 0;
     private final int bottomMargin = 0;
@@ -21,9 +21,9 @@ class TICYAxis extends JPanel {
 
     private DecimalFormat tickFormat;
 
-    private TICVisualizer masterFrame;
+    private SpectrumVisualizer masterFrame;
 
-    TICYAxis(TICVisualizer masterFrame) {
+    ScanYAxis(SpectrumVisualizer masterFrame) {
         this.masterFrame = masterFrame;
         tickFormat = new DecimalFormat("0.00E0");
         setMinimumSize(new Dimension(60, 0));
@@ -71,5 +71,4 @@ class TICYAxis extends JPanel {
         }
 
     }
-
 }

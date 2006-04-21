@@ -31,6 +31,7 @@ import javax.xml.datatype.Duration;
 
 import net.iharder.xmlizable.Base64;
 import net.sf.mzmine.io.RawDataFile;
+import net.sf.mzmine.io.RawDataFile.PreloadLevel;
 import net.sf.mzmine.methods.filtering.MZXMLHandlerForPreload;
 import net.sf.mzmine.methods.filtering.MZXMLHandlerForRetrieve;
 import net.sf.mzmine.util.Logger;
@@ -1563,6 +1564,15 @@ public class RawDataAtNode implements RawDataFile {
     public double getDataMaxTotalIonCurrent(int msLevel) {
         // TODO Auto-generated method stub
         return 0;
+    }
+
+
+    /**
+     * @see net.sf.mzmine.io.RawDataFile#getPreloadLevel()
+     */
+    public PreloadLevel getPreloadLevel() {
+        // TODO Auto-generated method stub
+        return null;
     }
 
 

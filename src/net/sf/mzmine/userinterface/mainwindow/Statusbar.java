@@ -239,12 +239,10 @@ public class Statusbar extends JPanel {
 
 		super.paint(g);
 
-		FormatCoordinates formatCoordinates = new FormatCoordinates(mainWin.getParameterStorage().getGeneralParameters());
-
-		if (coordsRT>=0)	{ coordsScanLabel.setText("RT: " + formatCoordinates.formatRTValue(coordsRT)); }
+		if (coordsRT>=0)	{ coordsScanLabel.setText("RT: " + FormatCoordinates.formatRTValue(coordsRT)); }
 		else				{ coordsScanLabel.setText("RT: "); }
 
-		if (coordsMZ>0)		{ coordsMZLabel.setText("M/Z: " + formatCoordinates.formatMZValue(coordsMZ)); }
+		if (coordsMZ>0)		{ coordsMZLabel.setText("M/Z: " + FormatCoordinates.formatMZValue(coordsMZ)); }
 		else 				{ coordsMZLabel.setText("M/Z: "); }
 
 	}

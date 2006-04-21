@@ -27,6 +27,7 @@ import java.io.IOException;
 
 import net.sf.mzmine.io.RawDataFile;
 import net.sf.mzmine.io.Scan;
+import net.sf.mzmine.io.RawDataFile.PreloadLevel;
 
 /**
  * 
@@ -148,6 +149,14 @@ public class NetCDFFile implements RawDataFile {
     public double getDataMaxTotalIonCurrent(int msLevel) {
         // TODO Auto-generated method stub
         return 0;
+    }
+
+    /**
+     * @see net.sf.mzmine.io.RawDataFile#getPreloadLevel()
+     */
+    public PreloadLevel getPreloadLevel() {
+        // TODO Auto-generated method stub
+        return null;
     }
     
 }

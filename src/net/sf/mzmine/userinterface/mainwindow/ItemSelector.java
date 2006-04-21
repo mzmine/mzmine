@@ -36,19 +36,22 @@ import javax.swing.JPopupMenu;
 import javax.swing.JScrollPane;
 import javax.swing.JSplitPane;
 import javax.swing.ListModel;
+import javax.swing.event.InternalFrameEvent;
+import javax.swing.event.InternalFrameListener;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
 
 import net.sf.mzmine.io.MZmineProject;
 import net.sf.mzmine.io.RawDataFile;
 import net.sf.mzmine.methods.alignment.AlignmentResult;
+import net.sf.mzmine.visualizers.RawDataVisualizer;
 import net.sf.mzmine.visualizers.rawdata.tic.TICVisualizer;
 
 /**
  * This class implements a selector of raw data files and alignment results
  */
 public class ItemSelector extends JPanel implements ListSelectionListener,
-        MouseListener, ActionListener {
+        MouseListener, ActionListener, InternalFrameListener {
 
     private DefaultListModel rawDataObjects;
     private JList rawDataList;
@@ -183,8 +186,7 @@ public class ItemSelector extends JPanel implements ListSelectionListener,
             for (RawDataFile file : selectedFiles) {
 
                 TICVisualizer vis = new TICVisualizer(file, msLevel);
-                MainWindow.getInstance().getDesktop().add(vis, JLayeredPane.DEFAULT_LAYER);
-                vis.setVisible(true);
+                MainWindow.getInstance().addInternalFrame(vis);
 
             }
 
@@ -459,6 +461,52 @@ public class ItemSelector extends JPanel implements ListSelectionListener,
 
         // mainWin.repaint();
 
+    }
+
+    /**
+     * @see javax.swing.event.InternalFrameListener#internalFrameOpened(javax.swing.event.InternalFrameEvent)
+     */
+    public void internalFrameOpened(InternalFrameEvent arg0) {
+    }
+
+    /**
+     * @see javax.swing.event.InternalFrameListener#internalFrameClosing(javax.swing.event.InternalFrameEvent)
+     */
+    public void internalFrameClosing(InternalFrameEvent arg0) {
+    }
+
+    /**
+     * @see javax.swing.event.InternalFrameListener#internalFrameClosed(javax.swing.event.InternalFrameEvent)
+     */
+    public void internalFrameClosed(InternalFrameEvent arg0) {
+    }
+
+    /**
+     * @see javax.swing.event.InternalFrameListener#internalFrameIconified(javax.swing.event.InternalFrameEvent)
+     */
+    public void internalFrameIconified(InternalFrameEvent arg0) {
+    }
+
+    /**
+     * @see javax.swing.event.InternalFrameListener#internalFrameDeiconified(javax.swing.event.InternalFrameEvent)
+     */
+    public void internalFrameDeiconified(InternalFrameEvent arg0) {
+    }
+
+    /**
+     * @see javax.swing.event.InternalFrameListener#internalFrameActivated(javax.swing.event.InternalFrameEvent)
+     */
+    public void internalFrameActivated(InternalFrameEvent e) {
+        if (e.getInternalFrame() instanceof RawDataVisualizer) {
+            RawDataVisualizer visualizer = (RawDataVisualizer) e.getInternalFrame();
+            setActiveRawData(visualizer.getRawDataFile());
+        }
+    }
+
+    /**
+     * @see javax.swing.event.InternalFrameListener#internalFrameDeactivated(javax.swing.event.InternalFrameEvent)
+     */
+    public void internalFrameDeactivated(InternalFrameEvent arg0) {
     }
 
 }

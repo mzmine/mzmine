@@ -36,6 +36,7 @@ import javax.xml.parsers.SAXParserFactory;
 
 import net.sf.mzmine.io.RawDataFile;
 import net.sf.mzmine.io.Scan;
+import net.sf.mzmine.io.RawDataFile.PreloadLevel;
 import net.sf.mzmine.util.Logger;
 
 /**
@@ -290,6 +291,13 @@ class MZXMLFile implements RawDataFile {
      */
     public double getDataMaxRT() {
         return dataMaxRT;
+    }
+
+    /**
+     * @see net.sf.mzmine.io.RawDataFile#getPreloadLevel()
+     */
+    public PreloadLevel getPreloadLevel() {
+        return preloadLevel;
     }
 
 }
