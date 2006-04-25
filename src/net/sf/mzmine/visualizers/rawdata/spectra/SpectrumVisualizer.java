@@ -20,100 +20,116 @@ package net.sf.mzmine.visualizers.rawdata.spectra;
 
 import java.awt.BorderLayout;
 import java.awt.Color;
-import java.awt.Dimension;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.Toolkit;
 import java.awt.datatransfer.Clipboard;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.awt.geom.AffineTransform;
 import java.awt.image.BufferedImage;
 import java.awt.print.PageFormat;
 import java.awt.print.Printable;
 import java.awt.print.PrinterJob;
 import java.io.IOException;
-import java.text.DecimalFormat;
 
 import javax.print.attribute.HashPrintRequestAttributeSet;
 import javax.print.attribute.standard.OrientationRequested;
+import javax.swing.BorderFactory;
 import javax.swing.JInternalFrame;
-import javax.swing.JPanel;
+import javax.swing.JLabel;
 import javax.swing.RepaintManager;
-import javax.swing.event.InternalFrameEvent;
-import javax.swing.event.InternalFrameListener;
 
 import net.sf.mzmine.io.RawDataFile;
 import net.sf.mzmine.io.Scan;
+import net.sf.mzmine.obsoletedatastructures.FormatCoordinates;
+import net.sf.mzmine.userinterface.components.XAxis;
+import net.sf.mzmine.userinterface.components.YAxis;
 import net.sf.mzmine.userinterface.mainwindow.MainWindow;
-import net.sf.mzmine.util.FormatCoordinates;
 import net.sf.mzmine.util.TransferableImage;
+import net.sf.mzmine.util.format.IntensityValueFormat;
+import net.sf.mzmine.util.format.MZValueFormat;
+import net.sf.mzmine.util.format.ValueFormat;
 import net.sf.mzmine.visualizers.RawDataVisualizer;
+import net.sf.mzmine.visualizers.rawdata.spectra.SpectrumPlot.PlotMode;
 
 public class SpectrumVisualizer extends JInternalFrame implements
-        RawDataVisualizer, Printable {
+        RawDataVisualizer, Printable, ActionListener {
 
-    private JPanel bottomPnl, leftPnl, rightPnl, topPnl;
-    private ScanPlot scanPlot;
-
-    private RawDataFile rawDataFile;
+    private SpectrumToolBar toolBar;
+    private SpectrumPopupMenu popupMenu;
+    private SpectrumPlot spectrumPlot;
     
+    private JLabel titleLabel;
+    private XAxis xAxis;
+    private YAxis yAxis;
+    
+    private RawDataFile rawDataFile;
+
     private double zoomMZMin, zoomMZMax, zoomIntensityMin, zoomIntensityMax;
-       
+
+    private ValueFormat mzFormat, intensityFormat;
+
     private Scan[] scans;
 
-   
     public SpectrumVisualizer(RawDataFile rawDataFile, int scanNumber) {
         this(rawDataFile, new int[] { scanNumber });
     }
 
-
     public SpectrumVisualizer(RawDataFile rawDataFile, int[] scanNumbers) {
 
-        super("", true, true, true, true);
+        super(rawDataFile.toString(), true, true, true, true);
+
         setDefaultCloseOperation(DISPOSE_ON_CLOSE);
 
-        getContentPane().setLayout(new BorderLayout());
+        mzFormat = new MZValueFormat();
+        intensityFormat = new IntensityValueFormat();
 
-        bottomPnl = new ScanXAxis(this);
-        getContentPane().add(bottomPnl, java.awt.BorderLayout.SOUTH);
+        
+        popupMenu = new SpectrumPopupMenu(this);
+        
+                setLayout(new BorderLayout());
+        setBackground(Color.white);
 
-        topPnl = new JPanel();
-        topPnl.setMinimumSize(new Dimension(getWidth(), 5));
-        topPnl.setPreferredSize(new Dimension(getWidth(), 5));
-        topPnl.setBackground(Color.white);
-        getContentPane().add(topPnl, java.awt.BorderLayout.NORTH);
+        titleLabel = new JLabel(rawDataFile.toString(), JLabel.CENTER);
+        titleLabel.setBorder(BorderFactory.createEmptyBorder(5, 5, 5, 5));
+        titleLabel.setFont(getFont().deriveFont(11.0f));
+        add(titleLabel, BorderLayout.NORTH);
 
-        leftPnl = new ScanYAxis(this);
-        getContentPane().add(leftPnl, java.awt.BorderLayout.WEST);
+        toolBar = new SpectrumToolBar(this);
+        add(toolBar, BorderLayout.EAST);
+        
+        
+        yAxis = new YAxis(0, 0, 0, 0, intensityFormat);
+        add(yAxis, BorderLayout.WEST);
 
-        rightPnl = new JPanel();
-        rightPnl.setMinimumSize(new Dimension(5, getHeight()));
-        rightPnl.setPreferredSize(new Dimension(5, getHeight()));
-        rightPnl.setBackground(Color.white);
-        getContentPane().add(rightPnl, java.awt.BorderLayout.EAST);
+        xAxis = new XAxis(0, 0,
+                (int) yAxis.getPreferredSize().getWidth(), (int) toolBar
+                        .getPreferredSize().getWidth(), mzFormat);
+        add(xAxis, BorderLayout.SOUTH);
 
-        scanPlot = new ScanPlot(this);
-
-        getContentPane().add(scanPlot, java.awt.BorderLayout.CENTER);
-
-        scanPlot.setVisible(true);
+        spectrumPlot = new SpectrumPlot(this);
+        add(spectrumPlot, BorderLayout.CENTER);
 
         pack();
-        
+
         this.rawDataFile = rawDataFile;
-        
+
         // TODO: create a task for this
         scans = new Scan[scanNumbers.length];
         try {
             for (int i = 0; i < scanNumbers.length; i++)
                 scans[i] = rawDataFile.getScan(scanNumbers[i]);
         } catch (IOException e) {
-            MainWindow.getInstance().displayErrorMessage("Error while loading scan data: " + e);
+            MainWindow.getInstance().displayErrorMessage(
+                    "Error while loading scan data: " + e);
             dispose(); // TODO: is this correct?
             return;
         }
-        
+
         resetMZRange();
         resetIntensityRange();
+        
         updateTitle();
 
     }
@@ -188,35 +204,11 @@ public class SpectrumVisualizer extends JInternalFrame implements
     Scan[] getScans() {
         return scans;
     }
+
+    SpectrumPopupMenu getPopupMenu() {
+        return popupMenu;
+    }
     
-    /**
-     * @return Returns the zoomIntensityMax.
-     */
-    double getZoomIntensityMax() {
-        return zoomIntensityMax;
-    }
-
-    /**
-     * @return Returns the zoomIntensityMin.
-     */
-    double getZoomIntensityMin() {
-        return zoomIntensityMin;
-    }
-
-    /**
-     * @return Returns the zoomRTMax.
-     */
-    double getZoomMZMax() {
-        return zoomMZMax;
-    }
-
-    /**
-     * @return Returns the zoomRTMin.
-     */
-    double getZoomMZMin() {
-        return zoomMZMin;
-    }
- 
     /**
      * @see net.sf.mzmine.visualizers.RawDataVisualizer#getRawDataFile()
      */
@@ -236,11 +228,13 @@ public class SpectrumVisualizer extends JInternalFrame implements
      *      double)
      */
     public void setMZRange(double mzMin, double mzMax) {
+        toolBar.setZoomOutButtonEnabled(true);
         zoomMZMin = mzMin;
         zoomMZMax = mzMax;
+        xAxis.setRange(mzMin, mzMax);
+        spectrumPlot.setMZRange(mzMin, mzMax);
         updateTitle();
         repaint();
-
     }
 
     /**
@@ -268,20 +262,20 @@ public class SpectrumVisualizer extends JInternalFrame implements
 
     }
 
-
-
     /**
      * @see net.sf.mzmine.visualizers.RawDataVisualizer#resetMZRange()
      */
     public void resetMZRange() {
         zoomMZMin = scans[0].getMZRangeMin();
-        zoomMZMax = scans[0].getMZRangeMax();       
+        zoomMZMax = scans[0].getMZRangeMax();
         for (int i = 1; i < scans.length; i++) {
             if (scans[i].getMZRangeMin() < zoomMZMin)
                 zoomMZMin = scans[i].getMZRangeMin();
             if (scans[i].getMZRangeMax() > zoomMZMax)
                 zoomMZMax = scans[i].getMZRangeMax();
         }
+        xAxis.setRange(zoomMZMin, zoomMZMax);
+        spectrumPlot.setMZRange(zoomMZMin, zoomMZMax);
         updateTitle();
         repaint();
     }
@@ -299,11 +293,13 @@ public class SpectrumVisualizer extends JInternalFrame implements
      *      double)
      */
     public void setIntensityRange(double intensityMin, double intensityMax) {
+        toolBar.setZoomOutButtonEnabled(true);
         zoomIntensityMin = intensityMin;
         zoomIntensityMax = intensityMax;
+        yAxis.setRange(zoomIntensityMin, zoomIntensityMax);
+        spectrumPlot.setIntensityRange(zoomIntensityMin, zoomIntensityMax);
         updateTitle();
         repaint();
-
     }
 
     /**
@@ -311,42 +307,90 @@ public class SpectrumVisualizer extends JInternalFrame implements
      */
     public void resetIntensityRange() {
         zoomIntensityMin = 0;
-        zoomIntensityMax = scans[0].getBasePeakIntensity();       
+        zoomIntensityMax = scans[0].getBasePeakIntensity();
         for (int i = 1; i < scans.length; i++) {
             if (scans[i].getBasePeakIntensity() > zoomIntensityMax)
                 zoomIntensityMax = scans[i].getBasePeakIntensity();
         }
+        yAxis.setRange(zoomIntensityMin, zoomIntensityMax);
+        spectrumPlot.setIntensityRange(zoomIntensityMin, zoomIntensityMax);
         updateTitle();
         repaint();
     }
+
     
     private void updateTitle() {
-        
+
         StringBuffer title = new StringBuffer();
         title.append(rawDataFile.toString());
         title.append(": ");
-        
+
         if (scans.length == 1) {
             title.append("Scan #");
             title.append(scans[0].getScanNumber());
             title.append(", RT ");
-            title.append(FormatCoordinates.formatRTValue(scans[0].getRetentionTime()));
+            title.append(FormatCoordinates.formatRTValue(scans[0]
+                    .getRetentionTime()));
 
         } else {
             title.append("Combination of spectra, RT ");
-            title.append(FormatCoordinates.formatRTValue(scans[0].getRetentionTime()));
-            title.append(" - ");            
-            title.append(FormatCoordinates.formatRTValue(scans[scans.length - 1].getRetentionTime()));
+            title.append(FormatCoordinates.formatRTValue(scans[0]
+                    .getRetentionTime()));
+            title.append(" - ");
+            title.append(FormatCoordinates
+                    .formatRTValue(scans[scans.length - 1].getRetentionTime()));
         }
-        title.append(", MS level ");
-        title.append(scans[0].getMSLevel());
-     
-        title.append(", m/z " + FormatCoordinates.formatMZValue(zoomMZMin)
-                + " - " + FormatCoordinates.formatMZValue(zoomMZMax));
-        title.append(", IC " + FormatCoordinates.formatIntensityValue(zoomIntensityMin) + " - "
-                + FormatCoordinates.formatIntensityValue(zoomIntensityMax));
-        
         setTitle(title.toString());
+        title.setLength(0);
+        
+        title.append("MS level ");
+        title.append(scans[0].getMSLevel());
+
+        title.append(", m/z " + mzFormat.format(zoomMZMin)
+                + " - " + mzFormat.format(zoomMZMax));
+        title.append(", intensity "
+                + intensityFormat.format(zoomIntensityMin)
+                + " - "
+                + intensityFormat.format(zoomIntensityMax));
+
+        titleLabel.setText(title.toString());
+
+    }
+
+    /**
+     * @see java.awt.event.ActionListener#actionPerformed(java.awt.event.ActionEvent)
+     */
+    public void actionPerformed(ActionEvent event) {
+        
+        String command = event.getActionCommand();
+        
+        if (command.equals("ZOOM_OUT")) {
+            resetMZRange();
+            resetIntensityRange();
+            toolBar.setZoomOutButtonEnabled(false);
+            popupMenu.setZoomOutMenuItem(false);
+        }
+
+        if (command.equals("SHOW_DATA_POINTS")) {
+            if (spectrumPlot.getShowDataPoints()) {
+                spectrumPlot.setShowDataPoints(false);
+                popupMenu.setDataPointsMenuItem("Show data points");
+            } else {
+                spectrumPlot.setShowDataPoints(true);
+                popupMenu.setDataPointsMenuItem("Hide data points");
+            }
+        }
+        
+        if (command.equals("SET_PLOT_MODE")) {
+            if (spectrumPlot.getPlotMode() == PlotMode.CENTROID) {
+                spectrumPlot.setPlotMode(PlotMode.CONTINUOUS);
+                popupMenu.setPlotModeMenuItem("Show as centroid");
+            } else {
+                spectrumPlot.setPlotMode(PlotMode.CENTROID);
+                popupMenu.setPlotModeMenuItem("Show as continuous");
+            }
+            
+        }
         
     }
 

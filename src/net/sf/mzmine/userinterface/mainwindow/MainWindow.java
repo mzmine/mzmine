@@ -168,7 +168,7 @@ public class MainWindow extends JFrame implements WindowListener {
 
         statBar.setStatusText("Welcome to MZmine!");
 
-        System.out.println(desktop.getWidth());
+        
         taskList = new TaskProgressWindow();
         desktop.add(taskList, javax.swing.JLayeredPane.DEFAULT_LAYER);
 

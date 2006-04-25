@@ -29,8 +29,8 @@ import javax.swing.JPanel;
 import javax.swing.JProgressBar;
 import javax.swing.border.EtchedBorder;
 
+import net.sf.mzmine.obsoletedatastructures.FormatCoordinates;
 import net.sf.mzmine.obsoletedatastructures.RawDataAtClient;
-import net.sf.mzmine.util.FormatCoordinates;
 
 
 public class Statusbar extends JPanel {

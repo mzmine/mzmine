@@ -8,7 +8,7 @@ import java.awt.Graphics;
 
 import javax.swing.JPanel;
 
-import net.sf.mzmine.util.FormatCoordinates;
+import net.sf.mzmine.obsoletedatastructures.FormatCoordinates;
 
 
 /**

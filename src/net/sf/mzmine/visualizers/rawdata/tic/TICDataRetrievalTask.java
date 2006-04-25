@@ -12,7 +12,7 @@ import net.sf.mzmine.taskcontrol.Task;
 /**
  * 
  */
-public class TICVisualizerDataRetrievalTask implements Task {
+public class TICDataRetrievalTask implements Task {
 
     private RawDataFile rawDataFile;
     private TICVisualizer visualizer;
@@ -29,7 +29,7 @@ public class TICVisualizerDataRetrievalTask implements Task {
      * @param scanNumbers
      * @param visualizer
      */
-    TICVisualizerDataRetrievalTask(RawDataFile rawDataFile, int scanNumbers[],
+    TICDataRetrievalTask(RawDataFile rawDataFile, int scanNumbers[],
             TICVisualizer visualizer) {
         status = TaskStatus.WAITING;
         this.rawDataFile = rawDataFile;
@@ -45,7 +45,7 @@ public class TICVisualizerDataRetrievalTask implements Task {
      * @param mzRangeMin
      * @param mzRangeMax
      */
-    TICVisualizerDataRetrievalTask(RawDataFile rawDataFile, int scanNumbers[],
+    TICDataRetrievalTask(RawDataFile rawDataFile, int scanNumbers[],
             TICVisualizer visualizer, double mzRangeMin, double mzRangeMax) {
         this.rawDataFile = rawDataFile;
         this.visualizer = visualizer;

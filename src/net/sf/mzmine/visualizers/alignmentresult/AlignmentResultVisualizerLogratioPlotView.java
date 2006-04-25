@@ -53,11 +53,11 @@ import javax.swing.event.InternalFrameEvent;
 import javax.swing.event.InternalFrameListener;
 
 import net.sf.mzmine.methods.alignment.AlignmentResult;
+import net.sf.mzmine.obsoletedatastructures.FormatCoordinates;
 import net.sf.mzmine.userinterface.components.Colorbar;
 import net.sf.mzmine.userinterface.dialogs.SelectTwoGroupsDialog;
 import net.sf.mzmine.userinterface.mainwindow.MainWindow;
 import net.sf.mzmine.userinterface.mainwindow.Statusbar;
-import net.sf.mzmine.util.FormatCoordinates;
 import net.sf.mzmine.util.GeneralParameters;
 import net.sf.mzmine.util.HeatMapColorPicker;
 import net.sf.mzmine.util.MyMath;
