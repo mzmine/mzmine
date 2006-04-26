@@ -153,14 +153,17 @@ class MZXMLScan extends DefaultHandler implements Scan {
         // <scan>
         if (qName.equalsIgnoreCase("scan")) {
 
-            /* check if we have already read the scan data, in such case this <scan> is inner scan and we want to ignore it */
+            /*
+             * check if we have already read the scan data, in such case this
+             * <scan> is inner scan and we want to ignore it
+             */
             if (mzValues != null) {
                 // free memory
                 charBuffer = null;
                 // Stop parsing by throwing an exception
                 throw (new SAXException("Scan reading finished"));
             }
-            
+
             // Get number of the scan
             scanNumber = Integer.parseInt(attrs.getValue("num"));
             msLevel = Integer.parseInt(attrs.getValue("msLevel"));
@@ -188,14 +191,6 @@ class MZXMLScan extends DefaultHandler implements Scan {
 
                 }
             }
-            String basePeakMZStr = attrs.getValue("basePeakMz");
-            if (basePeakMZStr != null)
-                basePeakMZ = Double.parseDouble(basePeakMZStr);
-
-            String basePeakIntensityStr;
-            basePeakIntensityStr = attrs.getValue("basePeakIntensity");
-            if (basePeakIntensityStr != null)
-                basePeakIntensity = Double.parseDouble(basePeakIntensityStr);
 
             // Set MZ range minimum and maximum parameters if available
             String scanLowMZStr = attrs.getValue("lowMz");
@@ -308,16 +303,13 @@ class MZXMLScan extends DefaultHandler implements Scan {
             mzRangeMax = mzValues[mzValues.length - 1];
         }
 
-        // If base peak was not defined as attributes, we must pick
-        // values from MZ data points
-        if ((basePeakMZ == 0) || (basePeakIntensity == 0)) {
-            for (int i = 0; i < intensityValues.length; i++) {
-                if (intensityValues[i] > basePeakIntensity) {
-                    basePeakIntensity = intensityValues[i];
-                    basePeakMZ = mzValues[i];
-                }
+        // find the base peak ourselves (the "basePeakIntensity" cannot be
+        // trusted)
+        for (int i = 0; i < intensityValues.length; i++) {
+            if (intensityValues[i] > basePeakIntensity) {
+                basePeakIntensity = intensityValues[i];
+                basePeakMZ = mzValues[i];
             }
-
         }
 
     }

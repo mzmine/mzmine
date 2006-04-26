@@ -511,10 +511,10 @@ public class TICVisualizer extends JInternalFrame implements RawDataVisualizer,
 
             if (xicMode) {
                 resetMZRange();
-                popupMenu.setTicXicMenuItem("Switch to TIC");
+                popupMenu.setTicXicMenuItem("Switch to XIC");
             } else {
 
-                popupMenu.setTicXicMenuItem("Switch to XIC");
+                popupMenu.setTicXicMenuItem("Switch to TIC");
                 // Default range is cursor location +- 0.25
                 double ricMZ = 0; // getCursorPositionMZ();
                 double ricMZDelta = (double) 0.25;
