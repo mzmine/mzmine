@@ -16,7 +16,7 @@
  * MZmine; if not, write to the Free Software Foundation, Inc., 51 Franklin St,
  * Fifth Floor, Boston, MA 02110-1301 USA
  */
-package net.sf.mzmine.visualizers.rawdata.tic;
+package net.sf.mzmine.visualizers.rawdata.basepeak;
 
 import java.awt.BorderLayout;
 import java.awt.Color;
@@ -60,12 +60,12 @@ import net.sf.mzmine.visualizers.rawdata.spectra.SpectrumVisualizer;
 /**
  * This class defines the total ion chromatogram visualizer for raw data
  */
-public class TICVisualizer extends JInternalFrame implements RawDataVisualizer,
+public class BasePeakVisualizer extends JInternalFrame implements RawDataVisualizer,
         TaskListener, Printable, ActionListener {
 
-    private TICToolBar toolBar;
-    private TICPopupMenu popupMenu;
-    private TICPlot ticPlot;
+    private BasePeakToolBar toolBar;
+    private BasePeakPopupMenu popupMenu;
+    private BasePeakPlot basePeakPlot;
 
     private JLabel titleLabel;
     private XAxis xAxis;
@@ -74,11 +74,8 @@ public class TICVisualizer extends JInternalFrame implements RawDataVisualizer,
     private RawDataFile rawDataFile;
     private int msLevel;
 
-    private boolean xicMode = false;
+    private double retentionTimes[], intensities[], basePeaks[];
 
-    private double retentionTimes[], intensities[];
-
-    private double mzRangeMin, mzRangeMax;
     private double zoomRTMin, zoomRTMax, zoomIntensityMin, zoomIntensityMax;
 
     private ValueFormat rtFormat, intensityFormat;
@@ -97,16 +94,16 @@ public class TICVisualizer extends JInternalFrame implements RawDataVisualizer,
      * Constructor for total ion chromatogram visualizer
      * 
      */
-    public TICVisualizer(RawDataFile rawDataFile, int msLevel) {
+    public BasePeakVisualizer(RawDataFile rawDataFile, int msLevel) {
 
-        super(rawDataFile.toString() + ": TIC", true, true, true, true);
+        super(rawDataFile.toString() + ": base peak intensity", true, true, true, true);
 
         setDefaultCloseOperation(DISPOSE_ON_CLOSE);
 
         rtFormat = new RetentionTimeValueFormat();
         intensityFormat = new IntensityValueFormat();
 
-        popupMenu = new TICPopupMenu(this);
+        popupMenu = new BasePeakPopupMenu(this);
 
         setLayout(new BorderLayout());
         setBackground(Color.white);
@@ -116,7 +113,7 @@ public class TICVisualizer extends JInternalFrame implements RawDataVisualizer,
         titleLabel.setFont(getFont().deriveFont(11.0f));
         add(titleLabel, BorderLayout.NORTH);
 
-        toolBar = new TICToolBar(this);
+        toolBar = new BasePeakToolBar(this);
         add(toolBar, BorderLayout.EAST);
 
         yAxis = new YAxis(0, 0, 0, 0, intensityFormat);
@@ -126,8 +123,8 @@ public class TICVisualizer extends JInternalFrame implements RawDataVisualizer,
                 (int) toolBar.getPreferredSize().getWidth(), rtFormat);
         add(xAxis, BorderLayout.SOUTH);
 
-        ticPlot = new TICPlot(this);
-        getContentPane().add(ticPlot, BorderLayout.CENTER);
+        basePeakPlot = new BasePeakPlot(this);
+        getContentPane().add(basePeakPlot, BorderLayout.CENTER);
 
         getInputMap().put(KeyStroke.getKeyStroke("RIGHT"), "moveCursorRight");
         getActionMap().put("moveCursorRight", new AbstractAction() {
@@ -180,14 +177,14 @@ public class TICVisualizer extends JInternalFrame implements RawDataVisualizer,
         assert scanNumbers != null;
         retentionTimes = new double[scanNumbers.length];
         intensities = new double[scanNumbers.length];
+        basePeaks = new double[scanNumbers.length];
 
         resetRTRange();
         resetIntensityRange();
         toolBar.setZoomOutButton(false);
-        toolBar.setXicButton(true);
         popupMenu.setZoomOutMenuItem(false);
 
-        Task updateTask = new TICDataRetrievalTask(rawDataFile, scanNumbers,
+        Task updateTask = new BasePeakDataRetrievalTask(rawDataFile, scanNumbers,
                 this);
 
         /*
@@ -206,60 +203,25 @@ public class TICVisualizer extends JInternalFrame implements RawDataVisualizer,
      *      double)
      */
     public void setMZRange(double mzMin, double mzMax) {
-        xicMode = true;
-        toolBar.setXicButton(false);
-        mzRangeMin = mzMin;
-        mzRangeMax = mzMax;
-        updateTitle();
-        setTitle(rawDataFile.toString() + ": XIC");
-        Task updateTask = new TICDataRetrievalTask(rawDataFile, scanNumbers,
-                this, mzMin, mzMax);
-        /*
-         * if the file data is preloaded in memory, we can update the visualizer
-         * in this thread, otherwise start a task
-         */
-        if (rawDataFile.getPreloadLevel() == PreloadLevel.PRELOAD_ALL_SCANS)
-            updateTask.run();
-        else
-            TaskController.getInstance().addTask(updateTask, this);
-
+        // do nothing
     }
 
     /**
      * @see net.sf.mzmine.visualizers.RawDataVisualizer#resetMZRange()
      */
     public void resetMZRange() {
-
-        xicMode = false;
-        toolBar.setXicButton(true);
-        updateTitle();
-        setTitle(rawDataFile.toString() + ": TIC");
-        Task updateTask = new TICDataRetrievalTask(rawDataFile, scanNumbers,
-                this);
-        /*
-         * if the file data is preloaded in memory, we can update the visualizer
-         * in this thread, otherwise start a task
-         */
-        if (rawDataFile.getPreloadLevel() == PreloadLevel.PRELOAD_ALL_SCANS)
-            updateTask.run();
-        else
-            TaskController.getInstance().addTask(updateTask, this);
-
+        // do nothing
     }
 
     private void updateTitle() {
 
         StringBuffer title = new StringBuffer();
-        if (xicMode) {
-            title.append("XIC");
-            title.append(" m/z range " + mzRangeMin + " - " + mzRangeMax);
-        } else
-            title.append("TIC");
-        title.append(", MS level ");
+        
+        title.append("Base peak intensity, MS level ");
         title.append(msLevel);
         title.append(", RT " + rtFormat.format(zoomRTMin) + " - "
                 + rtFormat.format(zoomRTMax));
-        title.append(", IC " + intensityFormat.format(zoomIntensityMin) + " - "
+        title.append(", intensity " + intensityFormat.format(zoomIntensityMin) + " - "
                 + intensityFormat.format(zoomIntensityMax));
 
         titleLabel.setText(title.toString());
@@ -275,7 +237,7 @@ public class TICVisualizer extends JInternalFrame implements RawDataVisualizer,
         zoomRTMin = rtMin;
         zoomRTMax = rtMax;
         xAxis.setRange(zoomRTMin, zoomRTMax);
-        ticPlot.setRTRange(zoomRTMin, zoomRTMax);
+        basePeakPlot.setRTRange(zoomRTMin, zoomRTMax);
         updateTitle();
     }
 
@@ -286,7 +248,7 @@ public class TICVisualizer extends JInternalFrame implements RawDataVisualizer,
         zoomRTMin = rawDataFile.getDataMinRT();
         zoomRTMax = rawDataFile.getDataMaxRT();
         xAxis.setRange(zoomRTMin, zoomRTMax);
-        ticPlot.setRTRange(zoomRTMin, zoomRTMax);
+        basePeakPlot.setRTRange(zoomRTMin, zoomRTMax);
         updateTitle();
     }
 
@@ -300,7 +262,7 @@ public class TICVisualizer extends JInternalFrame implements RawDataVisualizer,
         zoomIntensityMin = intensityMin;
         zoomIntensityMax = intensityMax;
         yAxis.setRange(zoomIntensityMin, zoomIntensityMax);
-        ticPlot.setIntensityRange(zoomIntensityMin, zoomIntensityMax);
+        basePeakPlot.setIntensityRange(zoomIntensityMin, zoomIntensityMax);
         updateTitle();
     }
 
@@ -309,9 +271,9 @@ public class TICVisualizer extends JInternalFrame implements RawDataVisualizer,
      */
     public void resetIntensityRange() {
         zoomIntensityMin = 0;
-        zoomIntensityMax = rawDataFile.getDataMaxTotalIonCurrent(msLevel);
+        zoomIntensityMax = rawDataFile.getDataMaxBasePeakIntensity(msLevel);
         yAxis.setRange(zoomIntensityMin, zoomIntensityMax);
-        ticPlot.setIntensityRange(zoomIntensityMin, zoomIntensityMax);
+        basePeakPlot.setIntensityRange(zoomIntensityMin, zoomIntensityMax);
         updateTitle();
     }
 
@@ -368,21 +330,26 @@ public class TICVisualizer extends JInternalFrame implements RawDataVisualizer,
     double[] getRetentionTimes() {
         return retentionTimes;
     }
+    
+    double[] getBasePeaks() {
+        return basePeaks;
+    }
 
     int[] getScanNumbers() {
         return scanNumbers;
     }
 
-    TICPopupMenu getPopupMenu() {
+    BasePeakPopupMenu getPopupMenu() {
         return popupMenu;
     }
 
-    void updateData(int position, double retentionTime, double intensity) {
+    void updateData(int position, double retentionTime, double intensity, double basePeak) {
 
         retentionTimes[position] = retentionTime;
         intensities[position] = intensity;
-        if (ticPlot.getWidth() > 0) {
-            if (position % (retentionTimes.length / ticPlot.getWidth()) == 0)
+        basePeaks[position] = basePeak;
+        if (basePeakPlot.getWidth() > 0) {
+            if (position % (retentionTimes.length / basePeakPlot.getWidth()) == 0)
                 repaint();
         }
 
@@ -394,7 +361,7 @@ public class TICVisualizer extends JInternalFrame implements RawDataVisualizer,
     public void taskFinished(Task task) {
         if (task.getStatus() == TaskStatus.ERROR) {
             MainWindow.getInstance().displayErrorMessage(
-                    "Error while updating TIC visualizer: "
+                    "Error while updating base peak visualizer: "
                             + task.getErrorMessage());
         }
 
@@ -506,49 +473,14 @@ public class TICVisualizer extends JInternalFrame implements RawDataVisualizer,
                     scanNumbers[cursorPosition]);
             MainWindow.getInstance().addInternalFrame(specVis);
         }
-
-        if (command.equals("CHANGE_XIC_TIC")) {
-
-            if (xicMode) {
-                resetMZRange();
-                popupMenu.setTicXicMenuItem("Switch to TIC");
+        
+        if (command.equals("SHOW_ANNOTATIONS")) {
+            if (basePeakPlot.getShowAnnotations()) {
+                basePeakPlot.setShowAnnotations(false);
+                popupMenu.setAnnotationsMenuItem("Show base peak values");
             } else {
-
-                popupMenu.setTicXicMenuItem("Switch to XIC");
-                // Default range is cursor location +- 0.25
-                double ricMZ = 0; // getCursorPositionMZ();
-                double ricMZDelta = (double) 0.25;
-
-                // Show dialog
-                XICSetupDialog psd = new XICSetupDialog(
-                        "Please give centroid and delta MZ values for XIC",
-                        ricMZ, ricMZDelta);
-                psd.setVisible(true);
-                // if cancel was clicked
-                if (psd.getExitCode() == -1) {
-                    MainWindow.getInstance().getStatusBar().setStatusText(
-                            "Switch to XIC cancelled.");
-                    return;
-                }
-
-                // Validate given parameter values
-
-                ricMZ = psd.getXicMZ();
-                if (ricMZ < 0) {
-                    MainWindow.getInstance().getStatusBar().setStatusText(
-                            "Error: incorrect parameter values.");
-                    return;
-                }
-
-                ricMZDelta = psd.getXicMZDelta();
-                if (ricMZDelta < 0) {
-                    MainWindow.getInstance().getStatusBar().setStatusText(
-                            "Error: incorrect parameter values.");
-                    return;
-                }
-
-                setMZRange(ricMZ - ricMZDelta, ricMZ + ricMZDelta);
-
+                basePeakPlot.setShowAnnotations(true);
+                popupMenu.setAnnotationsMenuItem("Hide base peak values");
             }
         }
 

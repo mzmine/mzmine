@@ -229,6 +229,7 @@ public class SpectrumVisualizer extends JInternalFrame implements
      */
     public void setMZRange(double mzMin, double mzMax) {
         toolBar.setZoomOutButtonEnabled(true);
+        popupMenu.setZoomOutMenuItem(true);
         zoomMZMin = mzMin;
         zoomMZMax = mzMax;
         xAxis.setRange(mzMin, mzMax);
@@ -294,6 +295,7 @@ public class SpectrumVisualizer extends JInternalFrame implements
      */
     public void setIntensityRange(double intensityMin, double intensityMax) {
         toolBar.setZoomOutButtonEnabled(true);
+        popupMenu.setZoomOutMenuItem(true);
         zoomIntensityMin = intensityMin;
         zoomIntensityMax = intensityMax;
         yAxis.setRange(zoomIntensityMin, zoomIntensityMax);
@@ -385,11 +387,23 @@ public class SpectrumVisualizer extends JInternalFrame implements
             if (spectrumPlot.getPlotMode() == PlotMode.CENTROID) {
                 spectrumPlot.setPlotMode(PlotMode.CONTINUOUS);
                 popupMenu.setPlotModeMenuItem("Show as centroid");
+                toolBar.setCentroidButton(true);
             } else {
                 spectrumPlot.setPlotMode(PlotMode.CENTROID);
                 popupMenu.setPlotModeMenuItem("Show as continuous");
+                toolBar.setCentroidButton(false);
             }
             
+        }
+        
+        if (command.equals("SHOW_ANNOTATIONS")) {
+            if (spectrumPlot.getShowAnnotations()) {
+                spectrumPlot.setShowAnnotations(false);
+                popupMenu.setAnnotationsMenuItem("Show base peak values");
+            } else {
+                spectrumPlot.setShowAnnotations(true);
+                popupMenu.setAnnotationsMenuItem("Hide base peak values");
+            }
         }
         
     }

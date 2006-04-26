@@ -34,6 +34,7 @@ class TICPopupMenu extends JPopupMenu {
         showSpectrumMenuItem = new JMenuItem("Show spectrum");
         showSpectrumMenuItem.addActionListener(masterFrame);
         showSpectrumMenuItem.setActionCommand("SHOW_SPECTRUM");
+        showSpectrumMenuItem.setEnabled(false);
         add(showSpectrumMenuItem);
 
         addSeparator();

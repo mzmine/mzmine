@@ -1,7 +1,7 @@
 /**
  * 
  */
-package net.sf.mzmine.visualizers.rawdata.spectra;
+package net.sf.mzmine.visualizers.rawdata.basepeak;
 
 import java.awt.Component;
 import java.awt.Cursor;
@@ -9,20 +9,17 @@ import java.awt.Cursor;
 import javax.swing.JMenuItem;
 import javax.swing.JPopupMenu;
 
-import net.sf.mzmine.visualizers.rawdata.spectra.SpectrumPlot.PlotMode;
-
 
 /**
  *
  */
-class SpectrumPopupMenu extends JPopupMenu {
+class BasePeakPopupMenu extends JPopupMenu {
     
     private JMenuItem zoomOutMenuItem;
-    private JMenuItem showDataPointsMenuItem;
-    private JMenuItem plotTypeMenuItem;
+    private JMenuItem showSpectrumMenuItem;
     private JMenuItem annotationsMenuItem;
     
-    SpectrumPopupMenu(SpectrumVisualizer masterFrame) {
+    BasePeakPopupMenu(BasePeakVisualizer masterFrame) {
         
         setCursor(Cursor.getPredefinedCursor(Cursor.DEFAULT_CURSOR));
 
@@ -33,30 +30,18 @@ class SpectrumPopupMenu extends JPopupMenu {
         add(zoomOutMenuItem);
         
         addSeparator();
-
+        
         annotationsMenuItem = new JMenuItem("Hide peak values");
         annotationsMenuItem.addActionListener(masterFrame);
         annotationsMenuItem.setActionCommand("SHOW_ANNOTATIONS");
         add(annotationsMenuItem);
         
-        plotTypeMenuItem = new JMenuItem("Show as centroid");
-        plotTypeMenuItem.addActionListener(masterFrame);
-        plotTypeMenuItem.setActionCommand("SET_PLOT_MODE");
-        add(plotTypeMenuItem);
-        
-        showDataPointsMenuItem = new JMenuItem("Show data points");
-        showDataPointsMenuItem.setActionCommand("SHOW_DATA_POINTS");
-        showDataPointsMenuItem.addActionListener(masterFrame);
-        add(showDataPointsMenuItem);
-        
-    }
-    
-    void setPlotModeMenuItem(String text) {
-        plotTypeMenuItem.setText(text);
-    }
-    
-    void setDataPointsMenuItem(String text) {
-        showDataPointsMenuItem.setText(text);
+        showSpectrumMenuItem = new JMenuItem("Show spectrum");
+        showSpectrumMenuItem.addActionListener(masterFrame);
+        showSpectrumMenuItem.setActionCommand("SHOW_SPECTRUM");
+        showSpectrumMenuItem.setEnabled(false);
+        add(showSpectrumMenuItem);
+       
     }
     
     void setZoomOutMenuItem(boolean enabled) {

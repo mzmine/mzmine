@@ -28,7 +28,6 @@ import java.util.Vector;
 
 import javax.swing.DefaultListModel;
 import javax.swing.JLabel;
-import javax.swing.JLayeredPane;
 import javax.swing.JList;
 import javax.swing.JMenuItem;
 import javax.swing.JPanel;
@@ -45,6 +44,7 @@ import net.sf.mzmine.io.MZmineProject;
 import net.sf.mzmine.io.RawDataFile;
 import net.sf.mzmine.methods.alignment.AlignmentResult;
 import net.sf.mzmine.visualizers.RawDataVisualizer;
+import net.sf.mzmine.visualizers.rawdata.basepeak.BasePeakVisualizer;
 import net.sf.mzmine.visualizers.rawdata.tic.TICVisualizer;
 
 /**
@@ -147,6 +147,12 @@ public class ItemSelector extends JPanel implements ListSelectionListener,
                 showTIC.setActionCommand("TIC" + msLevel);
                 popupMenu.add(showTIC);    
             }
+            for (int msLevel : msLevels) {
+                JMenuItem showBP = new JMenuItem("Show base peak intensity of MS level " + msLevel);
+                showBP.addActionListener(this);
+                showBP.setActionCommand("BP" + msLevel);
+                popupMenu.add(showBP);    
+            }
             popupMenu.addSeparator();
             JMenuItem pmClose = new JMenuItem("Close");
             pmClose.addActionListener(this);
@@ -189,7 +195,17 @@ public class ItemSelector extends JPanel implements ListSelectionListener,
                 MainWindow.getInstance().addInternalFrame(vis);
 
             }
+        }
+        
+        if (command.startsWith("BP")) {
+            RawDataFile[] selectedFiles = getSelectedRawData();
+            int msLevel = Integer.parseInt(command.substring(2));
+            for (RawDataFile file : selectedFiles) {
 
+                BasePeakVisualizer vis = new BasePeakVisualizer(file, msLevel);
+                MainWindow.getInstance().addInternalFrame(vis);
+
+            }
         }
 
         /*

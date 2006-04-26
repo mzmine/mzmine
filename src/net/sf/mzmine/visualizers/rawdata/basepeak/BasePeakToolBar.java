@@ -1,7 +1,7 @@
 /**
  * 
  */
-package net.sf.mzmine.visualizers.rawdata.tic;
+package net.sf.mzmine.visualizers.rawdata.basepeak;
 
 import java.awt.Color;
 import java.awt.Insets;
@@ -14,16 +14,15 @@ import javax.swing.JToolBar;
 /**
  * 
  */
-class TICToolBar extends JToolBar {
+class BasePeakToolBar extends JToolBar {
 
-    private JButton zoomOutButton, showSpectraButton, ticXicButton;
+    private JButton zoomOutButton, showSpectraButton, annotationsButton;
 
     static final Icon zoomOutIcon = new ImageIcon("zoomouticon.png");
     static final Icon showSpectrumIcon = new ImageIcon("spectrumicon.png");
-    static final Icon xicIcon = new ImageIcon("xicicon.png");
-    static final Icon ticIcon = new ImageIcon("ticicon.png");
-
-    TICToolBar(TICVisualizer masterFrame) {
+    static final Icon annotationsIcon = new ImageIcon("annotationsicon.png");
+    
+    BasePeakToolBar(BasePeakVisualizer masterFrame) {
 
         super(JToolBar.VERTICAL);
 
@@ -38,22 +37,22 @@ class TICToolBar extends JToolBar {
         zoomOutButton.setToolTipText("Zoom out");
         zoomOutButton.addActionListener(masterFrame);
 
+        annotationsButton = new JButton(annotationsIcon);
+        annotationsButton.setActionCommand("SHOW_ANNOTATIONS");
+        annotationsButton.setToolTipText("Toggle displaying of peak values");
+        annotationsButton.addActionListener(masterFrame);
+
         showSpectraButton = new JButton(showSpectrumIcon);
         showSpectraButton.setEnabled(false);
         showSpectraButton.setActionCommand("SHOW_SPECTRUM");
         showSpectraButton.setToolTipText("Show spectrum of selected scan");
         showSpectraButton.addActionListener(masterFrame);
-
-        ticXicButton = new JButton(xicIcon);
-        ticXicButton.setActionCommand("CHANGE_XIC_TIC");
-        ticXicButton.setToolTipText("Change XIC/TIC mode");
-        ticXicButton.addActionListener(masterFrame);
-
+        
         add(zoomOutButton);
         addSeparator();
-        add(showSpectraButton);
+        add(annotationsButton);
         addSeparator();
-        add(ticXicButton);
+        add(showSpectraButton);
 
     }
 
@@ -63,13 +62,6 @@ class TICToolBar extends JToolBar {
 
     void setSpectraButton(boolean enabled) {
         showSpectraButton.setEnabled(enabled);
-    }
-
-    void setXicButton(boolean xic) {
-        if (xic)
-            ticXicButton.setIcon(xicIcon);
-        else
-            ticXicButton.setIcon(ticIcon);
     }
 
 }

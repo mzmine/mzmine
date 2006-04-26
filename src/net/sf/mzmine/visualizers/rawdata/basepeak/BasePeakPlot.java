@@ -1,40 +1,35 @@
 /**
  * 
  */
-package net.sf.mzmine.visualizers.rawdata.tic;
+package net.sf.mzmine.visualizers.rawdata.basepeak;
 
 import java.awt.Color;
 import java.awt.Cursor;
 import java.awt.Dimension;
 import java.awt.Graphics;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
-import java.awt.event.KeyEvent;
-import java.awt.event.KeyListener;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.awt.event.MouseMotionListener;
 
-import javax.swing.JMenuItem;
 import javax.swing.JPanel;
-import javax.swing.JPopupMenu;
 
 import net.sf.mzmine.obsoletedatastructures.FormatCoordinates;
 import net.sf.mzmine.userinterface.mainwindow.MainWindow;
-import net.sf.mzmine.util.Logger;
+import net.sf.mzmine.util.format.MZValueFormat;
+import net.sf.mzmine.util.format.ValueFormat;
 import net.sf.mzmine.visualizers.rawdata.spectra.SpectrumVisualizer;
 
 /**
  * 
  */
-public class TICPlot extends JPanel implements MouseListener,
+public class BasePeakPlot extends JPanel implements MouseListener,
         MouseMotionListener {
 
     static final int SELECTION_TOLERANCE = 10;
 
     static final Color plotColor = new Color(0, 0, 224);
 
-    private TICVisualizer masterFrame;
+    private BasePeakVisualizer masterFrame;
 
     private boolean mousePresent = false;
     private int mousePositionX, mousePositionY;
@@ -46,11 +41,15 @@ public class TICPlot extends JPanel implements MouseListener,
     private double intValueMin;
     private double intValueMax;
 
+    private boolean showAnnotations = true;
+
+    private ValueFormat mzFormat = new MZValueFormat();
+
     /**
      * Constructor: initializes the plot panel
      * 
      */
-    TICPlot(TICVisualizer masterFrame) {
+    BasePeakPlot(BasePeakVisualizer masterFrame) {
 
         this.masterFrame = masterFrame;
 
@@ -65,19 +64,34 @@ public class TICPlot extends JPanel implements MouseListener,
 
     }
 
-   
     void setRTRange(double min, double max) {
         retValueMin = min;
         retValueMax = max;
         repaint();
     }
-    
+
     void setIntensityRange(double min, double max) {
         intValueMin = min;
         intValueMax = max;
         repaint();
     }
-    
+
+    /**
+     * @return Returns the showAnnotations.
+     */
+    boolean getShowAnnotations() {
+        return showAnnotations;
+    }
+
+    /**
+     * @param showAnnotations
+     *            The showAnnotations to set.
+     */
+    void setShowAnnotations(boolean showAnnotations) {
+        this.showAnnotations = showAnnotations;
+        repaint();
+    }
+
     /**
      * This method paints the plot to this panel
      */
@@ -87,9 +101,10 @@ public class TICPlot extends JPanel implements MouseListener,
 
         int width = getWidth();
         int height = getHeight();
-        
+
         double retentionTimes[] = masterFrame.getRetentionTimes();
         double intensities[] = masterFrame.getIntensities();
+        double basePeaks[] = masterFrame.getBasePeaks();
         int scanNumbers[] = masterFrame.getScanNumbers();
         assert retentionTimes != null && intensities != null
                 & scanNumbers != null;
@@ -128,9 +143,9 @@ public class TICPlot extends JPanel implements MouseListener,
         }
 
         // Draw linegraph
-        g.setColor(plotColor);
+        g.setFont(g.getFont().deriveFont(8.0f));
         int x, y, prevx = 0, prevy = 0;
-
+        boolean localMaximum;
         for (int ind = startIndex; ind <= endIndex; ind++) {
 
             x = (int) Math.round((retentionTimes[ind] - retValueMin)
@@ -140,7 +155,50 @@ public class TICPlot extends JPanel implements MouseListener,
                             / yAxisStep);
 
             if ((ind > startIndex) && (x > 0) && (y > 0)) {
+                g.setColor(plotColor);
                 g.drawLine(prevx, prevy, x, y);
+            }
+
+            if (showAnnotations) {
+                localMaximum = (x > 10) && (x < width - 10);
+                int i;
+                if (localMaximum)
+                    for (i = ind; (i >= 0)
+                            && (retentionTimes[i] > retentionTimes[ind]
+                                    - (25 * xAxisStep)); i--) {
+                        if (intensities[i] > intensities[ind]) {
+                            localMaximum = false;
+                            break;
+                        }
+                    }
+
+                if (localMaximum)
+                    for (i = ind; (i < retentionTimes.length)
+                            && (retentionTimes[i] < retentionTimes[ind]
+                                    + (25 * xAxisStep)); i++) {
+                        if (intensities[i] > intensities[ind]) {
+                            localMaximum = false;
+                            break;
+                        }
+                    }
+
+                if (localMaximum) {
+
+                    String value = mzFormat.format(basePeaks[ind]);
+                    int posx = x - value.length() * 2;
+                    int posy = y - 10;
+                    g.setColor(Color.lightGray);
+                    if (posy < 8) {
+                        posx = x + 6;
+                        posy = 8;
+                        g.drawLine(x, y - 2, posx - 1, posy - 3);
+                    } else {
+                        g.drawLine(x, y - 2, x, posy + 1);
+                    }
+                    g.setColor(Color.darkGray);
+                    g.drawString(value, posx, posy);
+
+                }
             }
 
             prevx = x;
@@ -169,7 +227,7 @@ public class TICPlot extends JPanel implements MouseListener,
                     + FormatCoordinates
                             .formatRTValue(retentionTimes[cursorPosition]),
                     textX, 22);
-            g.drawString("IC: "
+            g.drawString("BP: "
                     + FormatCoordinates
                             .formatIntensityValue(intensities[cursorPosition]),
                     textX, 34);
@@ -186,7 +244,7 @@ public class TICPlot extends JPanel implements MouseListener,
             double intensity = intValueMin + (intValueMax - intValueMin)
                     / height * (height - mousePositionY);
             String positionRT = "RT: " + FormatCoordinates.formatRTValue(rt);
-            String positionInt = "IC: "
+            String positionInt = "INT: "
                     + FormatCoordinates.formatIntensityValue(intensity);
             int drawX = mousePositionX + 8;
             int drawY = mousePositionY - 20;

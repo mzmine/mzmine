@@ -17,6 +17,8 @@ import javax.swing.JPopupMenu;
 
 import net.sf.mzmine.io.Scan;
 import net.sf.mzmine.obsoletedatastructures.FormatCoordinates;
+import net.sf.mzmine.util.format.MZValueFormat;
+import net.sf.mzmine.util.format.ValueFormat;
 
 /**
  * 
@@ -44,6 +46,10 @@ class SpectrumPlot extends JPanel implements
     private double mzValueMax;
     private double intValueMin;
     private double intValueMax;
+    
+    private boolean showAnnotations = true;
+    
+    private ValueFormat mzFormat = new MZValueFormat();
 
     SpectrumPlot(SpectrumVisualizer masterFrame) {
 
@@ -106,14 +112,12 @@ class SpectrumPlot extends JPanel implements
             }
         }
 
-        // TODO: Draw MZ value as label on each peak
-        
-        
         // Draw linegraph 
-        g.setColor(plotColor);
+
         double mzValues[];
         double intensities[];
-                         
+        boolean localMaximum;
+        g.setFont(g.getFont().deriveFont(8.0f));
         
         for (Scan scan: scans) {
             mzValues = scan.getMZValues();
@@ -145,8 +149,11 @@ class SpectrumPlot extends JPanel implements
                                     / yAxisStep);
 
                     if (showDataPoints) {
+                        g.setColor(Color.red);
                         g.fillOval(x - 2, y - 2, 4, 4);
                     }
+                    
+                    g.setColor(plotColor);
                     
                     if (plotMode == PlotMode.CONTINUOUS) {
                         if (ind > startIndex) 
@@ -154,6 +161,48 @@ class SpectrumPlot extends JPanel implements
                         
                     } else {
                         g.drawLine(x, y, x, height);
+                    }
+                    
+                    if (showAnnotations) {
+                        localMaximum = (x > 10) && (x < width - 10);
+                        int i;
+                        if (localMaximum)
+                            for (i = ind; (i >= 0)
+                                    && (mzValues[i] > mzValues[ind]
+                                            - (25 * xAxisStep)); i--) {
+                                if (intensities[i] > intensities[ind]) {
+                                    localMaximum = false;
+                                    break;
+                                }
+                            }
+
+                        if (localMaximum)
+                            for (i = ind; (i < mzValues.length)
+                                    && (mzValues[i] < mzValues[ind]
+                                            + (25 * xAxisStep)); i++) {
+                                if (intensities[i] > intensities[ind]) {
+                                    localMaximum = false;
+                                    break;
+                                }
+                            }
+
+                        if (localMaximum) {
+
+                            String value = mzFormat.format(mzValues[ind]);
+                            int posx = x - value.length() * 2;
+                            int posy = y - 10;
+                            g.setColor(Color.lightGray);
+                            if (posy < 8) {
+                                posx = x + 6;
+                                posy = 8;
+                                g.drawLine(x, y - 2, posx - 1, posy - 3);
+                            } else {
+                                g.drawLine(x, y - 2, x, posy + 1);
+                            }
+                            g.setColor(Color.darkGray);
+                            g.drawString(value, posx, posy);
+
+                        }
                     }
 
                     prevx = x;
@@ -201,6 +250,22 @@ class SpectrumPlot extends JPanel implements
      */
     void setShowDataPoints(boolean showDataPoints) {
         this.showDataPoints = showDataPoints;
+        repaint();
+    }
+    
+    /**
+     * @return Returns the showAnnotations.
+     */
+    boolean getShowAnnotations() {
+        return showAnnotations;
+    }
+
+    /**
+     * @param showAnnotations
+     *            The showAnnotations to set.
+     */
+    void setShowAnnotations(boolean showAnnotations) {
+        this.showAnnotations = showAnnotations;
         repaint();
     }
 
