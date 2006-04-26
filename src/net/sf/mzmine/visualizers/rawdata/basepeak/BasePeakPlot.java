@@ -165,7 +165,7 @@ public class BasePeakPlot extends JPanel implements MouseListener,
                 if (localMaximum)
                     for (i = ind; (i >= 0)
                             && (retentionTimes[i] > retentionTimes[ind]
-                                    - (25 * xAxisStep)); i--) {
+                                    - (35 * xAxisStep)); i--) {
                         if (intensities[i] > intensities[ind]) {
                             localMaximum = false;
                             break;
@@ -175,7 +175,7 @@ public class BasePeakPlot extends JPanel implements MouseListener,
                 if (localMaximum)
                     for (i = ind; (i < retentionTimes.length)
                             && (retentionTimes[i] < retentionTimes[ind]
-                                    + (25 * xAxisStep)); i++) {
+                                    + (35 * xAxisStep)); i++) {
                         if (intensities[i] > intensities[ind]) {
                             localMaximum = false;
                             break;

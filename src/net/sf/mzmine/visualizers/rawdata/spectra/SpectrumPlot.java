@@ -169,7 +169,7 @@ class SpectrumPlot extends JPanel implements
                         if (localMaximum)
                             for (i = ind; (i >= 0)
                                     && (mzValues[i] > mzValues[ind]
-                                            - (25 * xAxisStep)); i--) {
+                                            - (35 * xAxisStep)); i--) {
                                 if (intensities[i] > intensities[ind]) {
                                     localMaximum = false;
                                     break;
@@ -179,7 +179,7 @@ class SpectrumPlot extends JPanel implements
                         if (localMaximum)
                             for (i = ind; (i < mzValues.length)
                                     && (mzValues[i] < mzValues[ind]
-                                            + (25 * xAxisStep)); i++) {
+                                            + (35 * xAxisStep)); i++) {
                                 if (intensities[i] > intensities[ind]) {
                                     localMaximum = false;
                                     break;
