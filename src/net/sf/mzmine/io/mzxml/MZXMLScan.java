@@ -1,24 +1,24 @@
 /*
  * Copyright 2006 Okinawa Institute of Science and Technology
- * 
+ *
  * This file is part of MZmine.
- * 
+ *
  * MZmine is free software; you can redistribute it and/or modify it under the
  * terms of the GNU General Public License as published by the Free Software
  * Foundation; either version 2 of the License, or (at your option) any later
  * version.
- * 
+ *
  * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY
  * WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR
  * A PARTICULAR PURPOSE. See the GNU General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License along with
  * MZmine; if not, write to the Free Software Foundation, Inc., 51 Franklin St,
  * Fifth Floor, Boston, MA 02110-1301 USA
  */
 
 /**
- * 
+ *
  */
 package net.sf.mzmine.io.mzxml;
 
@@ -36,7 +36,7 @@ import org.xml.sax.SAXException;
 import org.xml.sax.helpers.DefaultHandler;
 
 /**
- * 
+ *
  */
 class MZXMLScan extends DefaultHandler implements Scan {
 
@@ -61,7 +61,7 @@ class MZXMLScan extends DefaultHandler implements Scan {
     private static final Date currentDate = new Date();
 
     /**
-     * 
+     *
      */
     public MZXMLScan() {
         charBuffer = new StringBuffer(256);
@@ -143,6 +143,13 @@ class MZXMLScan extends DefaultHandler implements Scan {
     public double getBasePeakIntensity() {
         return basePeakIntensity;
     }
+
+    /**
+     * @see net.sf.mzmine.io.Scan#isCentroided()
+     */
+    public boolean isCentroided() {
+		return false;
+	}
 
     public void startElement(String namespaceURI, String lName, // local name
             String qName, // qualified name
