@@ -1,5 +1,5 @@
 /**
- * 
+ *
  */
 package net.sf.mzmine.userinterface.mainwindow;
 
@@ -31,7 +31,7 @@ import net.sf.mzmine.visualizers.rawdata.twod.TwoDVisualizer;
 import sunutils.ExampleFileFilter;
 
 /**
- * 
+ *
  */
 class MainMenu extends JMenuBar implements ActionListener {
 
@@ -325,7 +325,7 @@ class MainMenu extends JMenuBar implements ActionListener {
             fileOpenChooser.setDialogTitle("Please select data files to open");
             JCheckBox preloadCheckBox = new JCheckBox(
                     "Preload all data into memory? (use with caution)");
-            fileOpenChooser.add(preloadCheckBox);
+            fileOpenChooser.setAccessory(preloadCheckBox);
 
             /*
              * if (dataDirectory == null) { dataDirectory =
@@ -353,17 +353,17 @@ class MainMenu extends JMenuBar implements ActionListener {
                         preloadLevel);
                 /*
                  * String[] dataFilePaths = new String[selectedFiles.length];
-                 * 
-                 * 
+                 *
+                 *
                  * for (int i=0; i<selectedFiles.length; i++) { File f =
                  * selectedFiles[i];
-                 * 
+                 *
                  * if (f.exists()) { dataFilePaths[i] = f.getPath(); // Update
                  * dataDirectory String tmppath = f.getPath().substring(0,
                  * f.getPath().length()-f.getName().length()); dataDirectory =
                  * new String(tmppath); } else { displayErrorMessage("File " + f + "
                  * does not exist."); return; } }
-                 * 
+                 *
                  * clientForCluster.openRawDataFiles(dataFilePaths);
                  */
 
@@ -393,20 +393,20 @@ class MainMenu extends JMenuBar implements ActionListener {
         // File->Export table
         /*
          * if (src == fileExportPeakList) {
-         * 
+         *
          * RawDataAtClient[] rawDatas = itemSelector.getSelectedRawDatas();
-         * 
+         *
          * for (RawDataAtClient r : rawDatas) {
-         * 
+         *
          * statBar.setStatusText("Writing peak list for file " +
          * r.getNiceName());
-         * 
+         *
          * if (!r.hasPeakData()) { // No peak list available for active run try {
          * JOptionPane.showInternalMessageDialog( mainWin.mainWin.getDesktop,
          * "No peak data available for " + r.getNiceName() + ". Please run a
          * peak picker first.", "Sorry", JOptionPane.ERROR_MESSAGE ); } catch
          * (Exception exce ) {}
-         * 
+         *
          * statBar.setStatusText("Peak list export failed."); } else { //
          * Generate name for the peak list file StringTokenizer st = new
          * StringTokenizer(r.getNiceName(),"."); String peakListName=""; String
@@ -420,36 +420,36 @@ class MainMenu extends JMenuBar implements ActionListener {
          * of " + r.getNiceName()); statBar.setStatusText("Please give file name
          * for peak list of " + r.getNiceName()); //if (dataDirectory!=null) {
          * //fileSaveChooser.setCurrentDirectory(new File(dataDirectory)); //}
-         * 
+         *
          * fileSaveChooser.setSelectedFile(new File(peakListName));
-         * 
+         *
          * ExampleFileFilter filter = new ExampleFileFilter();
          * filter.addExtension("txt"); filter.setDescription("Peak list as
          * tab-delimitted text file");
-         * 
+         *
          * fileSaveChooser.setFileFilter(filter); int retval =
          * fileSaveChooser.showSaveDialog(this);
-         * 
+         *
          * if(retval == JFileChooser.APPROVE_OPTION) { File selectedFile =
          * fileSaveChooser.getSelectedFile();
-         * 
+         *
          * String tmpfullpath = selectedFile.getPath(); String datafilename =
          * selectedFile.getName(); String datafilepath =
          * tmpfullpath.substring(0, tmpfullpath.length()-datafilename.length()); //
          * dataDirectory = new String(datafilepath);
-         * 
+         *
          * peakListName = tmpfullpath;
-         * 
+         *
          * if (PeakListExporter.writePeakListToFile(r, peakListName)) {
          * statBar.setStatusText("Peak list export done."); } else {
          * mainWin.displayErrorMessage("Failed to write peak list for raw data " +
          * r.getNiceName()); statBar.setStatusText("Peak list export failed."); } }
          * else { statBar.setStatusText("Peak list export cancelled."); } } }
-         * 
-         * 
+         *
+         *
          * Vector<AlignmentResult> results =
          * itemSelector.getSelectedAlignmentResults();
-         * 
+         *
          * if (results.size()>0) { AlignmentResultExporterParameters areParams =
          * mainWin.getParameterStorage().getAlignmentResultExporterParameters();
          * GeneralParameters genParams =
@@ -458,20 +458,20 @@ class MainMenu extends JMenuBar implements ActionListener {
          * AlignmentResultExporterParameterSetupDialog(genParams, areParams);
          * statBar.setStatusText("Please select columns for alignment result
          * exporting."); arepsd.showModal(mainWin.getDesktop);
-         * 
+         *
          * if (arepsd.getExitCode()==-1) { statBar.setStatusText("Alignment
          * result export cancelled."); return; }
-         * 
+         *
          * parameterStorage.setAlignmentResultExporterParameters(areParams);
-         * 
-         * 
-         * 
+         *
+         *
+         *
          * for (int i=0; i<results.size(); i++) { AlignmentResult result =
          * results.get(i);
-         * 
+         *
          * statBar.setStatusText("Writing alignment result " +
          * result.getNiceName() + " to file.");
-         * 
+         *
          * String resultName = result.getNiceName() + ".txt"; // Save file
          * dialog JFileChooser fileSaveChooser = new JFileChooser();
          * fileSaveChooser.setDialogType(JFileChooser.SAVE_DIALOG);
@@ -479,35 +479,35 @@ class MainMenu extends JMenuBar implements ActionListener {
          * fileSaveChooser.setDialogTitle("Please give file name for alignment
          * result " + result.getNiceName()); if (dataDirectory!=null) {
          * fileSaveChooser.setCurrentDirectory(new File(dataDirectory)); }
-         * 
+         *
          * fileSaveChooser.setSelectedFile(new File(resultName));
-         * 
+         *
          * ExampleFileFilter filter = new ExampleFileFilter();
          * filter.addExtension("txt"); filter.setDescription("Alignment results
          * as tab-delimitted text file");
-         * 
+         *
          * fileSaveChooser.setFileFilter(filter); int retval =
          * fileSaveChooser.showSaveDialog(this);
-         * 
+         *
          * if(retval == JFileChooser.APPROVE_OPTION) { File selectedFile =
          * fileSaveChooser.getSelectedFile();
-         * 
+         *
          * String tmpfullpath = selectedFile.getPath(); String datafilename =
          * selectedFile.getName(); String datafilepath =
          * tmpfullpath.substring(0, tmpfullpath.length()-datafilename.length());
          * dataDirectory = new String(datafilepath);
-         * 
+         *
          * resultName = datafilepath + datafilename;
-         * 
-         * 
+         *
+         *
          * //result.writeResultsToFile(resultName, areParams, this);
          * AlignmentResultExporter.exportAlignmentResultToFile(result,
          * resultName, areParams, this); statBar.setStatusText("Alignment result
          * export done."); } else { statBar.setStatusText("Alignment result
          * export cancelled."); } } }
-         * 
+         *
          *  }
-         * 
+         *
          * if (src == fileLoadParameters) { statBar.setStatusText("Please select
          * a parameter file"); // Open file dialog JFileChooser fileOpenChooser =
          * new JFileChooser();
@@ -516,15 +516,15 @@ class MainMenu extends JMenuBar implements ActionListener {
          * fileOpenChooser.setDialogTitle("Please select parameter file"); //
          * fileOpenChooser.setCurrentDirectory(new
          * File(clientForCluster.getDataRootPath()));
-         * 
+         *
          * ExampleFileFilter filter = new ExampleFileFilter();
          * filter.addExtension("XML"); filter.setDescription("MZmine parameters
          * file");
-         * 
+         *
          * fileOpenChooser.setFileFilter(filter); int retval =
          * fileOpenChooser.showOpenDialog(this); // If ok to go on with file
          * open if(retval == JFileChooser.APPROVE_OPTION) {
-         * 
+         *
          * File selectedFile = fileOpenChooser.getSelectedFile(); if
          * (!(selectedFile.exists())) { displayErrorMessage("Parameter file " +
          * selectedFile + " does not exist!"); statBar.setStatusText("Parameter
@@ -534,34 +534,34 @@ class MainMenu extends JMenuBar implements ActionListener {
          * displayErrorMessage("Parameter file " + selectedFile + " loading
          * failed!"); statBar.setStatusText("Parameter file loading failed."); } }
          * else { statBar.setStatusText("Parameter file loading cancelled."); } }
-         * 
-         * 
+         *
+         *
          * if (src == fileSaveParameters) { // Save file dialog JFileChooser
          * fileSaveChooser = new JFileChooser();
          * fileSaveChooser.setDialogType(JFileChooser.SAVE_DIALOG);
          * fileSaveChooser.setMultiSelectionEnabled(false);
          * fileSaveChooser.setDialogTitle("Please give file name for parameters
          * file.");
-         * 
+         *
          * ExampleFileFilter filter = new ExampleFileFilter();
          * filter.addExtension("xml"); filter.setDescription("MZmine parameters
          * file");
-         * 
+         *
          * fileSaveChooser.setFileFilter(filter); int retval =
          * fileSaveChooser.showSaveDialog(this);
-         * 
+         *
          * if(retval == JFileChooser.APPROVE_OPTION) { File selectedFile =
          * fileSaveChooser.getSelectedFile(); // Ask for overwrite? if
          * (selectedFile.exists()) { } // Write parameters
          * mainWin.getParameterStorage().writeParametersToFile(selectedFile);
-         * 
-         * 
+         *
+         *
          * statBar.setStatusText("Parameters written to file."); } else {
          * statBar.setStatusText("Parameter saving cancelled."); } }
-         * 
-         * 
+         *
+         *
          * if (src == fileImportAlignmentResult) {
-         * 
+         *
          * statBar.setStatusText("Please select a result file to import"); //
          * Open file dialog JFileChooser fileOpenChooser = new JFileChooser();
          * fileOpenChooser.setDialogType(JFileChooser.OPEN_DIALOG);
@@ -569,17 +569,17 @@ class MainMenu extends JMenuBar implements ActionListener {
          * fileOpenChooser.setDialogTitle("Please select alignment result file
          * to open"); if (dataDirectory!=null) {
          * fileOpenChooser.setCurrentDirectory(new File(dataDirectory)); }
-         * 
+         *
          * ExampleFileFilter filter = new ExampleFileFilter();
          * filter.addExtension("txt"); filter.setDescription("Tab-delimitted
          * text files"); fileOpenChooser.addChoosableFileFilter(filter);
-         * 
+         *
          * int retval = fileOpenChooser.showOpenDialog(this); // If ok to go on
          * with file open if(retval == JFileChooser.APPROVE_OPTION) {
-         * 
+         *
          * File f = fileOpenChooser.getSelectedFile(); String fpath =
          * f.getPath(); String fname = f.getName();
-         * 
+         *
          * String tmpfullpath = f.getPath(); String datafilename = f.getName();
          * String datafilepath = tmpfullpath.substring(0,
          * tmpfullpath.length()-datafilename.length()); dataDirectory = new
@@ -587,27 +587,27 @@ class MainMenu extends JMenuBar implements ActionListener {
          * ar =
          * AlignmentResultExporter.importAlignmentResultFromFile(datafilepath,
          * datafilename);
-         * 
+         *
          * if (ar == null) { displayErrorMessage("Could not import alignment
          * result from file " + datafilename + "\n" + "(Maybe it was not
          * exported in Wide format?)"); return; }
-         * 
+         *
          * itemSelector.addAlignmentResult(ar);
          * addAlignmentResultVisualizerList(ar); // tileWindows();
-         * 
+         *
          * statBar.setStatusText("Result file imported."); } else {
          * statBar.setStatusText("Result import cancelled"); } }
-         * 
+         *
          * if (src == filePrint) {
-         * 
+         *
          * JInternalFrame activeWindow = desktop.getSelectedFrame(); if
          * (activeWindow!=null) { if ((activeWindow.getClass() ==
          * RawDataVisualizerTICView.class) || (activeWindow.getClass() ==
          * RawDataVisualizerTwoDView.class) || (activeWindow.getClass() ==
          * RawDataVisualizerSpectrumView.class) ) {
-         * 
+         *
          * ((RawDataVisualizer)activeWindow).printMe(); }
-         * 
+         *
          * if (activeWindow!=null) { if ((activeWindow.getClass() ==
          * AlignmentResultVisualizerLogratioPlotView.class) ||
          * (activeWindow.getClass() ==
@@ -615,15 +615,15 @@ class MainMenu extends JMenuBar implements ActionListener {
          * (activeWindow.getClass() ==
          * AlignmentResultVisualizerCDAPlotView.class) ) {
          * ((AlignmentResultVisualizer)activeWindow).printMe(); } } } }
-         * 
+         *
          * if (src == editCopy) { JInternalFrame activeWindow =
          * desktop.getSelectedFrame(); if (activeWindow!=null) { if
          * ((activeWindow.getClass() == RawDataVisualizerTICView.class) ||
          * (activeWindow.getClass() == RawDataVisualizerTwoDView.class) ||
          * (activeWindow.getClass() == RawDataVisualizerSpectrumView.class) ) {
-         * 
+         *
          * ((RawDataVisualizer)activeWindow).copyMe(); }
-         * 
+         *
          * if (activeWindow!=null) { if ((activeWindow.getClass() ==
          * AlignmentResultVisualizerLogratioPlotView.class) ||
          * (activeWindow.getClass() ==
@@ -632,13 +632,13 @@ class MainMenu extends JMenuBar implements ActionListener {
          * AlignmentResultVisualizerCDAPlotView.class) ) {
          * ((AlignmentResultVisualizer)activeWindow).copyMe(); } } } } // File ->
          * Exit if (src == fileExit) {
-         * 
+         *
          * statBar.setStatusText("Exiting."); exitMZmine(); }
-         * 
+         *
          * if (src == toolsOptions) {
-         * 
+         *
          * new OptionsWindow(this); }
-         * 
+         *
          * if (src == ssMeanFilter) { // Ask parameters from user MeanFilter mf =
          * new MeanFilter(); MeanFilterParameters mfParam =
          * mf.askParameters(this, parameterStorage.getMeanFilterParameters());
@@ -650,7 +650,7 @@ class MainMenu extends JMenuBar implements ActionListener {
          * cluster int[] selectedRawDataIDs =
          * itemSelector.getSelectedRawDataIDs(); //
          * clientForCluster.filterRawDataFiles(selectedRawDataIDs, mfParam); }
-         * 
+         *
          * if (src == ssSGFilter) { // Ask parameters from user
          * SavitzkyGolayFilter sf = new SavitzkyGolayFilter();
          * SavitzkyGolayFilterParameters sfParam = sf.askParameters(this,
@@ -663,7 +663,7 @@ class MainMenu extends JMenuBar implements ActionListener {
          * initiate filtering on the cluster int[] selectedRawDataIDs =
          * itemSelector.getSelectedRawDataIDs(); //
          * clientForCluster.filterRawDataFiles(selectedRawDataIDs, sfParam); }
-         * 
+         *
          * if (src == ssChromatographicMedianFilter) { // Ask parameters from
          * user ChromatographicMedianFilter cmf = new
          * ChromatographicMedianFilter(); ChromatographicMedianFilterParameters
@@ -677,7 +677,7 @@ class MainMenu extends JMenuBar implements ActionListener {
          * and initiate filtering on the cluster int[] selectedRawDataIDs =
          * itemSelector.getSelectedRawDataIDs(); //
          * clientForCluster.filterRawDataFiles(selectedRawDataIDs, cmfParam); }
-         * 
+         *
          * if (src == ssCropFilter) { // Ask parameters from user CropFilter cf =
          * new CropFilter(); CropFilterParameters cfParam =
          * cf.askParameters(this, parameterStorage.getCropFilterParameters());
@@ -689,7 +689,7 @@ class MainMenu extends JMenuBar implements ActionListener {
          * on the cluster int[] selectedRawDataIDs =
          * itemSelector.getSelectedRawDataIDs(); //
          * clientForCluster.filterRawDataFiles(selectedRawDataIDs, cfParam); }
-         * 
+         *
          * if (src == ssZoomScanFilter) { // Ask parameters from user
          * ZoomScanFilter zsf = new ZoomScanFilter(); ZoomScanFilterParameters
          * zsfParam = zsf.askParameters(this,
@@ -701,136 +701,136 @@ class MainMenu extends JMenuBar implements ActionListener {
          * on the cluster int[] selectedRawDataIDs =
          * itemSelector.getSelectedRawDataIDs(); //
          * clientForCluster.filterRawDataFiles(selectedRawDataIDs, zsfParam); }
-         * 
+         *
          * if (src == ssRecursiveThresholdPicker) {
-         * 
+         *
          * RecursiveThresholdPicker rp = new RecursiveThresholdPicker();
-         * 
+         *
          * RecursiveThresholdPickerParameters rpParam = rp.askParameters(this,
          * mainWin.getParameterStorage().getRecursiveThresholdPickerParameters());
          * if (rpParam == null) { statBar.setStatusText("Peak picking
          * cancelled."); return; }
          * mainWin.getParameterStorage().setRecursiveThresholdPickerParameters(rpParam);
-         * 
+         *
          * int[] rawDataIDs = itemSelector.getSelectedRawDataIDs();
-         * 
+         *
          * statBar.setStatusText("Searching for peaks."); paintNow(); // Call
          * cluster controller // clientForCluster.findPeaks(rawDataIDs,
          * rpParam);
-         * 
+         *
          * rp = null; rpParam = null; }
-         * 
+         *
          * if (src == ssLocalPicker) {
-         * 
+         *
          * LocalPicker lp = new LocalPicker();
-         * 
+         *
          * LocalPickerParameters lpParam = lp.askParameters(this,
          * mainWin.getParameterStorage().getLocalPickerParameters()); if
          * (lpParam == null) { statBar.setStatusText("Peak picking cancelled.");
          * return; }
          * mainWin.getParameterStorage().setLocalPickerParameters(lpParam);
-         * 
+         *
          * int[] rawDataIDs = itemSelector.getSelectedRawDataIDs();
-         * 
+         *
          * statBar.setStatusText("Searching for peaks."); paintNow(); // Call
          * cluster controller // clientForCluster.findPeaks(rawDataIDs,
          * lpParam);
-         * 
+         *
          * lp = null; lpParam = null; }
-         * 
+         *
          * if (src == ssCentroidPicker) {
-         * 
+         *
          * CentroidPicker cp = new CentroidPicker();
-         * 
+         *
          * CentroidPickerParameters cpParam = cp.askParameters(this,
          * mainWin.getParameterStorage().getCentroidPickerParameters()); if
          * (cpParam == null) { statBar.setStatusText("Peak picking cancelled.");
          * return; }
          * mainWin.getParameterStorage().setCentroidPickerParameters(cpParam);
-         * 
+         *
          * int[] rawDataIDs = itemSelector.getSelectedRawDataIDs();
-         * 
+         *
          * statBar.setStatusText("Searching for peaks."); paintNow(); // Call
          * cluster controller to start peak picking process //
          * clientForCluster.findPeaks(rawDataIDs, cpParam);
-         * 
+         *
          * cp = null; cpParam = null; }
-         * 
+         *
          * if (src == ssSimpleDeisotoping) {
-         * 
+         *
          * SimpleDeisotoper sd = new SimpleDeisotoper();
-         * 
+         *
          * SimpleDeisotoperParameters sdParam = sd.askParameters(this,
          * mainWin.getParameterStorage().getSimpleDeisotoperParameters()); if
          * (sdParam == null) { statBar.setStatusText("Deisotoping cancelled.");
          * return; }
          * mainWin.getParameterStorage().setSimpleDeisotoperParameters(sdParam);
-         * 
+         *
          * Hashtable<Integer, PeakList> peakLists = new Hashtable<Integer,
          * PeakList>(); int[] rawDataIDs = itemSelector.getSelectedRawDataIDs();
          * for (int i=0; i<rawDataIDs.length; i++) { peakLists.put( new
          * Integer(rawDataIDs[i]),
          * itemSelector.getRawDataByID(rawDataIDs[i]).getPeakList() ); }
-         * 
+         *
          * statBar.setStatusText("Deisotoping peak lists."); paintNow(); // Call
          * cluster controller to start peak picking process //
          * clientForCluster.processPeakLists(peakLists, sdParam);
-         * 
+         *
          * sd = null; sdParam = null; }
-         * 
+         *
          * if (src == ssCombinatorialDeisotoping) {
-         * 
+         *
          * CombinatorialDeisotoper cd = new CombinatorialDeisotoper();
-         * 
+         *
          * CombinatorialDeisotoperParameters cdParam = cd.askParameters(this,
          * mainWin.getParameterStorage().getCombinatorialDeisotoperParameters());
          * if (cdParam == null) { statBar.setStatusText("Deisotoping
          * cancelled."); return; }
          * mainWin.getParameterStorage().setCombinatorialDeisotoperParameters(cdParam);
-         * 
+         *
          * Hashtable<Integer, PeakList> peakLists = new Hashtable<Integer,
          * PeakList>(); int[] rawDataIDs = itemSelector.getSelectedRawDataIDs();
          * for (int i=0; i<rawDataIDs.length; i++) { peakLists.put( new
          * Integer(rawDataIDs[i]),
          * itemSelector.getRawDataByID(rawDataIDs[i]).getPeakList() ); }
-         * 
+         *
          * statBar.setStatusText("Deisotoping peak lists."); paintNow(); // Call
          * cluster controller to start peak picking process //
          * clientForCluster.processPeakLists(peakLists, cdParam);
-         * 
+         *
          * cd = null; cdParam = null; }
-         * 
-         * 
-         * 
+         *
+         *
+         *
          * if (src == ssIncompleteIsotopePatternFilter) {
-         * 
+         *
          * IncompleteIsotopePatternFilter iif = new
          * IncompleteIsotopePatternFilter();
-         * 
+         *
          * IncompleteIsotopePatternFilterParameters iifParam =
          * iif.askParameters(this,
          * mainWin.getParameterStorage().getIncompleteIsotopePatternFilterParameters());
          * if (iifParam == null) { statBar.setStatusText("Peak list filtering
          * cancelled."); return; }
          * mainWin.getParameterStorage().setIncompleteIsotopePatternFilterParameters(iifParam);
-         * 
+         *
          * Hashtable<Integer, PeakList> peakLists = new Hashtable<Integer,
          * PeakList>(); int[] rawDataIDs = itemSelector.getSelectedRawDataIDs();
          * for (int i=0; i<rawDataIDs.length; i++) { peakLists.put( new
          * Integer(rawDataIDs[i]),
          * itemSelector.getRawDataByID(rawDataIDs[i]).getPeakList() ); }
-         * 
+         *
          * statBar.setStatusText("Filtering peak lists."); paintNow(); // Call
          * cluster controller to start peak picking process //
          * clientForCluster.processPeakLists(peakLists, iifParam);
-         * 
-         * 
+         *
+         *
          * iif = null; iifParam = null; }
-         * 
+         *
          * if (src == tsJoinAligner) { // Make sure that every selected raw data
          * file has a peak list Hashtable<Integer, PeakList> peakLists = new
          * Hashtable<Integer, PeakList>();
-         * 
+         *
          * int[] rawDataIDs = itemSelector.getSelectedRawDataIDs(); for (int
          * rawDataID : rawDataIDs) { RawDataAtClient rawData =
          * itemSelector.getRawDataByID(rawDataID); if (!(rawData.hasPeakData())) {
@@ -843,17 +843,17 @@ class MainMenu extends JMenuBar implements ActionListener {
          * (jaParam==null) { statBar.setStatusText("Alignment cancelled.");
          * return; }
          * mainWin.getParameterStorage().setJoinAlignerParameters(jaParam);
-         * 
+         *
          * statBar.setStatusText("Aligning peak lists."); paintNow(); // Call
          * cluster controller // clientForCluster.doAlignment(peakLists,
          * jaParam);
-         * 
+         *
          * ja = null; jaParam = null; }
-         * 
+         *
          * if (src == tsFastAligner) { // Make sure that every selected raw data
          * file has a peak list Hashtable<Integer, PeakList> peakLists = new
          * Hashtable<Integer, PeakList>();
-         * 
+         *
          * int[] rawDataIDs = itemSelector.getSelectedRawDataIDs(); for (int
          * rawDataID : rawDataIDs) { RawDataAtClient rawData =
          * itemSelector.getRawDataByID(rawDataID); if (!(rawData.hasPeakData())) {
@@ -866,17 +866,17 @@ class MainMenu extends JMenuBar implements ActionListener {
          * (faParam==null) { statBar.setStatusText("Alignment cancelled.");
          * return; }
          * mainWin.getParameterStorage().setFastAlignerParameters(faParam);
-         * 
+         *
          * statBar.setStatusText("Aligning peak lists."); paintNow(); // Call
          * cluster controller // clientForCluster.doAlignment(peakLists,
          * faParam);
-         * 
+         *
          * fa = null; faParam = null; }
-         * 
+         *
          * if (src == normLinear) {
-         * 
+         *
          * LinearNormalizer ln = new LinearNormalizer();
-         * 
+         *
          * LinearNormalizerParameters lnp = ln.askParameters(this,
          * mainWin.getParameterStorage().getLinearNormalizerParameters()); if
          * (lnp == null) { statBar.setStatusText("Normalization cancelled.");
@@ -912,28 +912,28 @@ class MainMenu extends JMenuBar implements ActionListener {
          * Vector<AlignmentResult> selectedAlignmentResults =
          * itemSelector.getSelectedAlignmentResults();
          * doLinearNormalizationClientSide(lnp, selectedAlignmentResults); } }
-         * 
-         * 
+         *
+         *
          * if (src == normStdComp) {
-         * 
+         *
          * StandardCompoundNormalizer scn = new StandardCompoundNormalizer();
-         * 
+         *
          * StandardCompoundNormalizerParameters scnp = scn.askParameters(this,
          * mainWin.getParameterStorage().getStandardCompoundNormalizerParameters());
          * if (scnp==null) { statBar.setStatusText("Normalization cancelled.");
          * return; }
          * mainWin.getParameterStorage().setStandardCompoundNormalizerParameters(scnp);
-         * 
+         *
          * statBar.setStatusText("Normalizing selected alignment results.");
          * paintNow(); // setBusy(true);
-         * 
+         *
          * Vector<AlignmentResult> selectedAlignmentResults =
          * itemSelector.getSelectedAlignmentResults(); Enumeration<AlignmentResult>
          * selectedAlignmentResultEnum = selectedAlignmentResults.elements();
          * while (selectedAlignmentResultEnum.hasMoreElements()) {
          * AlignmentResult ar = selectedAlignmentResultEnum.nextElement();
          * AlignmentResult nar = scn.calcNormalization(this, ar, scnp);
-         * 
+         *
          * if (nar==null) { if (ar.getNumOfStandardCompounds()==0) {
          * displayErrorMessage("Could not normalize " + ar.getNiceName() + ",
          * because it does not have any standard compounds defined."); } else {
@@ -941,28 +941,28 @@ class MainMenu extends JMenuBar implements ActionListener {
          * because of an unknown error."); } } else {
          * itemSelector.addAlignmentResult(nar);
          * addAlignmentResultVisualizerList(nar); } }
-         * 
+         *
          * statBar.setStatusText("Normalization done."); // setBusy(false); }
-         * 
-         * 
+         *
+         *
          * if (src == tsAlignmentFilter) { // Get all selected alignment results
          * Vector<AlignmentResult> alignmentResults =
          * itemSelector.getSelectedAlignmentResults(); if
          * (alignmentResults==null) { return; }
-         * 
+         *
          * AlignmentResultFilterByGaps arfbg = new
          * AlignmentResultFilterByGaps();
-         * 
+         *
          * AlignmentResultFilterByGapsParameters arfbgParam=
          * arfbg.askParameters(this,
          * mainWin.getParameterStorage().getAlignmentResultFilterByGapsParameters());
          * if (arfbgParam == null) { statBar.setStatusText("Alignment result
          * filtering cancelled."); return; }
          * mainWin.getParameterStorage().setAlignmentResultFilterByGapsParameters(arfbgParam);
-         * 
+         *
          * runAlignmentResultFilteringByGapsClientSide(arfbgParam,
          * alignmentResults); }
-         * 
+         *
          * if (src == tsEmptySlotFiller) { // Get all selected alignment results
          * Vector<AlignmentResult> alignmentResults =
          * itemSelector.getSelectedAlignmentResults(); if
@@ -974,47 +974,47 @@ class MainMenu extends JMenuBar implements ActionListener {
          * alignmentResult = alignmentResults.get(0); // Check that the selected
          * alignment result is not an imported version if
          * (alignmentResult.isImported()) { }
-         * 
+         *
          * SimpleGapFiller sgf = new SimpleGapFiller();
-         * 
+         *
          * SimpleGapFillerParameters sgfParam= sgf.askParameters(this,
          * mainWin.getParameterStorage().getSimpleGapFillerParameters()); if
          * (sgfParam == null) { statBar.setStatusText("Gap filling cancelled.");
          * return; }
          * mainWin.getParameterStorage().setSimpleGapFillerParameters(sgfParam);
-         * 
-         * 
+         *
+         *
          * statBar.setStatusText("Filling empty gaps in alignment result."); //
          * paintNow(); // clientForCluster.fillGaps(alignmentResult, sgfParam); }
-         * 
+         *
          * if (src == batDefine) { // Get selected rawDataIDs int[] rawDataIDs =
          * itemSelector.getSelectedRawDataIDs();
-         * 
+         *
          * BatchModeDialog bmd = new BatchModeDialog(mainWin, rawDataIDs); }
-         * 
+         *
          * if (src == anOpenSRView) { // Add a new visualizer to all selected
          * alignment results Vector<AlignmentResult> rv =
          * itemSelector.getSelectedAlignmentResults();
-         * 
+         *
          * for (AlignmentResult ar : rv ) {
          * mainWin.addAlignmentResultVisualizerLogratioPlot(ar); } // //
          * tileWindows(); }
-         * 
-         * 
+         *
+         *
          * if (src == anOpenSCVView) { // Add a new visualizer to all selected
          * alignment results Vector<AlignmentResult> rv =
          * itemSelector.getSelectedAlignmentResults();
-         * 
+         *
          * for (AlignmentResult ar : rv ) {
          * mainWin.addAlignmentResultVisualizerCoVarPlot(ar); } //
          * tileWindows(); }
-         * 
+         *
          * if (src == anOpenCDAView) { // Add a new visualizer to all selected
          * alignment results // setBusy(true); Vector<AlignmentResult> rv =
          * itemSelector.getSelectedAlignmentResults(); for (AlignmentResult ar :
          * rv ) { mainWin.addAlignmentResultVisualizerCDAPlot(ar); } //
          * setBusy(false); updateMenuAvailability(); // tileWindows(); }
-         * 
+         *
          * if (src == anOpenSammonsView) { // Add a new visualizer to all
          * selected alignment results // setBusy(true); Vector<AlignmentResult>
          * rv = itemSelector.getSelectedAlignmentResults(); for (AlignmentResult
@@ -1025,14 +1025,14 @@ class MainMenu extends JMenuBar implements ActionListener {
          * parameterStorage.getAlignmentResultVisualizerSammonsPlotViewParameters());
          * mainWin.addAlignmentResultVisualizerSammonsPlot(ar); } //
          * setBusy(false); // tileWindows(); updateMenuAvailability(); }
-         * 
-         * 
+         *
+         *
          * if (src == windowTileWindows) { // tileWindows(); }
-         * 
-         * 
+         *
+         *
          * if (src == hlpAbout) { AboutDialog ad = new AboutDialog();
          * ad.showModal(mainWin.getDesktop); }
-         * 
+         *
          */
 
     }
