@@ -1,5 +1,5 @@
 /**
- * 
+ *
  */
 package net.sf.mzmine.visualizers.rawdata.tic;
 
@@ -25,7 +25,7 @@ import net.sf.mzmine.util.Logger;
 import net.sf.mzmine.visualizers.rawdata.spectra.SpectrumVisualizer;
 
 /**
- * 
+ *
  */
 public class TICPlot extends JPanel implements MouseListener,
         MouseMotionListener {
@@ -48,7 +48,7 @@ public class TICPlot extends JPanel implements MouseListener,
 
     /**
      * Constructor: initializes the plot panel
-     * 
+     *
      */
     TICPlot(TICVisualizer masterFrame) {
 
@@ -65,19 +65,19 @@ public class TICPlot extends JPanel implements MouseListener,
 
     }
 
-   
+
     void setRTRange(double min, double max) {
         retValueMin = min;
         retValueMax = max;
         repaint();
     }
-    
+
     void setIntensityRange(double min, double max) {
         intValueMin = min;
         intValueMax = max;
         repaint();
     }
-    
+
     /**
      * This method paints the plot to this panel
      */
@@ -87,7 +87,7 @@ public class TICPlot extends JPanel implements MouseListener,
 
         int width = getWidth();
         int height = getHeight();
-        
+
         double retentionTimes[] = masterFrame.getRetentionTimes();
         double intensities[] = masterFrame.getIntensities();
         int scanNumbers[] = masterFrame.getScanNumbers();
@@ -99,7 +99,7 @@ public class TICPlot extends JPanel implements MouseListener,
 
         int startIndex = 1, endIndex = retentionTimes.length - 1;
         while (retentionTimes[startIndex] < retValueMin - 1) {
-            if (startIndex == retentionTimes.length)
+            if (startIndex == (retentionTimes.length-1))
                 break;
             startIndex++;
         }
