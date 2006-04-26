@@ -60,8 +60,8 @@ import net.sf.mzmine.visualizers.rawdata.spectra.SpectrumVisualizer;
 /**
  * This class defines the total ion chromatogram visualizer for raw data
  */
-public class BasePeakVisualizer extends JInternalFrame implements RawDataVisualizer,
-        TaskListener, Printable, ActionListener {
+public class BasePeakVisualizer extends JInternalFrame implements
+        RawDataVisualizer, TaskListener, Printable, ActionListener {
 
     private BasePeakToolBar toolBar;
     private BasePeakPopupMenu popupMenu;
@@ -96,7 +96,8 @@ public class BasePeakVisualizer extends JInternalFrame implements RawDataVisuali
      */
     public BasePeakVisualizer(RawDataFile rawDataFile, int msLevel) {
 
-        super(rawDataFile.toString() + ": base peak intensity", true, true, true, true);
+        super(rawDataFile.toString() + ": base peak intensity", true, true,
+                true, true);
 
         setDefaultCloseOperation(DISPOSE_ON_CLOSE);
 
@@ -110,7 +111,7 @@ public class BasePeakVisualizer extends JInternalFrame implements RawDataVisuali
 
         titleLabel = new JLabel(rawDataFile.toString(), JLabel.CENTER);
         titleLabel.setBorder(BorderFactory.createEmptyBorder(5, 5, 5, 5));
-        titleLabel.setFont(getFont().deriveFont(11.0f));
+        titleLabel.setFont(titleLabel.getFont().deriveFont(11.0f));
         add(titleLabel, BorderLayout.NORTH);
 
         toolBar = new BasePeakToolBar(this);
@@ -184,8 +185,8 @@ public class BasePeakVisualizer extends JInternalFrame implements RawDataVisuali
         toolBar.setZoomOutButton(false);
         popupMenu.setZoomOutMenuItem(false);
 
-        Task updateTask = new BasePeakDataRetrievalTask(rawDataFile, scanNumbers,
-                this);
+        Task updateTask = new BasePeakDataRetrievalTask(rawDataFile,
+                scanNumbers, this);
 
         /*
          * if the file data is preloaded in memory, we can update the visualizer
@@ -216,13 +217,13 @@ public class BasePeakVisualizer extends JInternalFrame implements RawDataVisuali
     private void updateTitle() {
 
         StringBuffer title = new StringBuffer();
-        
+
         title.append("Base peak intensity, MS level ");
         title.append(msLevel);
         title.append(", RT " + rtFormat.format(zoomRTMin) + " - "
                 + rtFormat.format(zoomRTMax));
-        title.append(", intensity " + intensityFormat.format(zoomIntensityMin) + " - "
-                + intensityFormat.format(zoomIntensityMax));
+        title.append(", intensity " + intensityFormat.format(zoomIntensityMin)
+                + " - " + intensityFormat.format(zoomIntensityMax));
 
         titleLabel.setText(title.toString());
     }
@@ -330,7 +331,7 @@ public class BasePeakVisualizer extends JInternalFrame implements RawDataVisuali
     double[] getRetentionTimes() {
         return retentionTimes;
     }
-    
+
     double[] getBasePeaks() {
         return basePeaks;
     }
@@ -343,7 +344,8 @@ public class BasePeakVisualizer extends JInternalFrame implements RawDataVisuali
         return popupMenu;
     }
 
-    void updateData(int position, double retentionTime, double intensity, double basePeak) {
+    void updateData(int position, double retentionTime, double intensity,
+            double basePeak) {
 
         retentionTimes[position] = retentionTime;
         intensities[position] = intensity;
@@ -473,7 +475,7 @@ public class BasePeakVisualizer extends JInternalFrame implements RawDataVisuali
                     scanNumbers[cursorPosition]);
             MainWindow.getInstance().addInternalFrame(specVis);
         }
-        
+
         if (command.equals("SHOW_ANNOTATIONS")) {
             if (basePeakPlot.getShowAnnotations()) {
                 basePeakPlot.setShowAnnotations(false);

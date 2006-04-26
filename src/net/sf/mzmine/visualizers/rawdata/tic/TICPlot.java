@@ -219,9 +219,7 @@ public class TICPlot extends JPanel implements MouseListener,
         double xAxisStep = (retValueMax - retValueMin) / width;
         double clickedRT = retValueMin + (xAxisStep * e.getX());
 
-        if (e.getClickCount() == 1) {
-            masterFrame.setRTPosition(clickedRT);
-        }
+        masterFrame.setRTPosition(clickedRT);
 
         if (e.getClickCount() == 2) {
 

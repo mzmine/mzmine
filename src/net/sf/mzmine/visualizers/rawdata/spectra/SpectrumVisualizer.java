@@ -59,11 +59,11 @@ public class SpectrumVisualizer extends JInternalFrame implements
     private SpectrumToolBar toolBar;
     private SpectrumPopupMenu popupMenu;
     private SpectrumPlot spectrumPlot;
-    
+
     private JLabel titleLabel;
     private XAxis xAxis;
     private YAxis yAxis;
-    
+
     private RawDataFile rawDataFile;
 
     private double zoomMZMin, zoomMZMax, zoomIntensityMin, zoomIntensityMax;
@@ -85,27 +85,24 @@ public class SpectrumVisualizer extends JInternalFrame implements
         mzFormat = new MZValueFormat();
         intensityFormat = new IntensityValueFormat();
 
-        
         popupMenu = new SpectrumPopupMenu(this);
-        
-                setLayout(new BorderLayout());
+
+        setLayout(new BorderLayout());
         setBackground(Color.white);
 
         titleLabel = new JLabel(rawDataFile.toString(), JLabel.CENTER);
         titleLabel.setBorder(BorderFactory.createEmptyBorder(5, 5, 5, 5));
-        titleLabel.setFont(getFont().deriveFont(11.0f));
+        titleLabel.setFont(titleLabel.getFont().deriveFont(11.0f));
         add(titleLabel, BorderLayout.NORTH);
 
         toolBar = new SpectrumToolBar(this);
         add(toolBar, BorderLayout.EAST);
-        
-        
+
         yAxis = new YAxis(0, 0, 0, 0, intensityFormat);
         add(yAxis, BorderLayout.WEST);
 
-        xAxis = new XAxis(0, 0,
-                (int) yAxis.getPreferredSize().getWidth(), (int) toolBar
-                        .getPreferredSize().getWidth(), mzFormat);
+        xAxis = new XAxis(0, 0, (int) yAxis.getPreferredSize().getWidth(),
+                (int) toolBar.getPreferredSize().getWidth(), mzFormat);
         add(xAxis, BorderLayout.SOUTH);
 
         spectrumPlot = new SpectrumPlot(this);
@@ -129,7 +126,7 @@ public class SpectrumVisualizer extends JInternalFrame implements
 
         resetMZRange();
         resetIntensityRange();
-        
+
         updateTitle();
 
     }
@@ -208,7 +205,7 @@ public class SpectrumVisualizer extends JInternalFrame implements
     SpectrumPopupMenu getPopupMenu() {
         return popupMenu;
     }
-    
+
     /**
      * @see net.sf.mzmine.visualizers.RawDataVisualizer#getRawDataFile()
      */
@@ -320,7 +317,6 @@ public class SpectrumVisualizer extends JInternalFrame implements
         repaint();
     }
 
-    
     private void updateTitle() {
 
         StringBuffer title = new StringBuffer();
@@ -344,16 +340,14 @@ public class SpectrumVisualizer extends JInternalFrame implements
         }
         setTitle(title.toString());
         title.setLength(0);
-        
+
         title.append("MS level ");
         title.append(scans[0].getMSLevel());
 
-        title.append(", m/z " + mzFormat.format(zoomMZMin)
-                + " - " + mzFormat.format(zoomMZMax));
-        title.append(", intensity "
-                + intensityFormat.format(zoomIntensityMin)
-                + " - "
-                + intensityFormat.format(zoomIntensityMax));
+        title.append(", m/z " + mzFormat.format(zoomMZMin) + " - "
+                + mzFormat.format(zoomMZMax));
+        title.append(", intensity " + intensityFormat.format(zoomIntensityMin)
+                + " - " + intensityFormat.format(zoomIntensityMax));
 
         titleLabel.setText(title.toString());
 
@@ -363,9 +357,9 @@ public class SpectrumVisualizer extends JInternalFrame implements
      * @see java.awt.event.ActionListener#actionPerformed(java.awt.event.ActionEvent)
      */
     public void actionPerformed(ActionEvent event) {
-        
+
         String command = event.getActionCommand();
-        
+
         if (command.equals("ZOOM_OUT")) {
             resetMZRange();
             resetIntensityRange();
@@ -382,7 +376,7 @@ public class SpectrumVisualizer extends JInternalFrame implements
                 popupMenu.setDataPointsMenuItem("Hide data points");
             }
         }
-        
+
         if (command.equals("SET_PLOT_MODE")) {
             if (spectrumPlot.getPlotMode() == PlotMode.CENTROID) {
                 spectrumPlot.setPlotMode(PlotMode.CONTINUOUS);
@@ -393,9 +387,9 @@ public class SpectrumVisualizer extends JInternalFrame implements
                 popupMenu.setPlotModeMenuItem("Show as continuous");
                 toolBar.setCentroidButton(false);
             }
-            
+
         }
-        
+
         if (command.equals("SHOW_ANNOTATIONS")) {
             if (spectrumPlot.getShowAnnotations()) {
                 spectrumPlot.setShowAnnotations(false);
@@ -405,7 +399,7 @@ public class SpectrumVisualizer extends JInternalFrame implements
                 popupMenu.setAnnotationsMenuItem("Hide base peak values");
             }
         }
-        
+
     }
 
 }
