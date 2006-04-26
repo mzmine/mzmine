@@ -191,7 +191,7 @@ public class BasePeakPlot extends JPanel implements MouseListener,
                     if (posy < 8) {
                         posx = x + 6;
                         posy = 8;
-                        g.drawLine(x, y - 2, posx - 1, posy - 3);
+                        g.drawLine(x, y - 2, posx - 2, posy - 4);
                     } else {
                         g.drawLine(x, y - 2, x, posy + 1);
                     }
@@ -229,8 +229,12 @@ public class BasePeakPlot extends JPanel implements MouseListener,
                     textX, 22);
             g.drawString("BP: "
                     + FormatCoordinates
-                            .formatIntensityValue(intensities[cursorPosition]),
+                            .formatMZValue(basePeaks[cursorPosition]),
                     textX, 34);
+            g.drawString("INT: "
+                    + FormatCoordinates
+                            .formatIntensityValue(intensities[cursorPosition]),
+                    textX, 46);
         }
 
         // draw mouse cursor

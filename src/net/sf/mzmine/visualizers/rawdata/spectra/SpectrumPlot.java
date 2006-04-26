@@ -91,8 +91,8 @@ class SpectrumPlot extends JPanel implements
         Scan scans[] = masterFrame.getScans();
         assert scans != null;
 
-        double xAxisStep = (mzValueMax - mzValueMin) / width;
-        double yAxisStep = (intValueMax - intValueMin) / height;
+        double xAxisStep = (mzValueMax - mzValueMin) / (width - 1);
+        double yAxisStep = (intValueMax - intValueMin) / (height - 1);
 
 
         // Draw selection
@@ -195,7 +195,7 @@ class SpectrumPlot extends JPanel implements
                             if (posy < 8) {
                                 posx = x + 6;
                                 posy = 8;
-                                g.drawLine(x, y - 2, posx - 1, posy - 3);
+                                g.drawLine(x, y - 2, posx - 2, posy - 4);
                             } else {
                                 g.drawLine(x, y - 2, x, posy + 1);
                             }
