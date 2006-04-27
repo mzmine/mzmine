@@ -48,14 +48,9 @@ public class NetCDFFile implements RawDataFile {
 
     private double dataMinMZ, dataMaxMZ, dataMinRT, dataMaxRT;
 
-    /**
-     * Maps scan number -> start position and length for each scan in the datapoint arrays
-     */
-    private Hashtable<Integer, Integer[]> scansIndex;
-
     private Hashtable<Integer, Double> dataMaxBasePeakIntensity, dataMaxTIC;
 
-	private Hashtable<Integer, Double> retentionTimes;
+	private NetCDFFileParser cdfParser;
 
     /**
      * Preloaded scans
@@ -74,7 +69,6 @@ public class NetCDFFile implements RawDataFile {
         this.originalFile = originalFile;
         this.preloadLevel = preloadLevel;
         dataDescription = new StringBuffer();
-        scansIndex = new Hashtable<Integer, Integer[]>();
         scanNumbers = new Hashtable<Integer, ArrayList<Integer>>();
         dataMaxBasePeakIntensity = new Hashtable<Integer, Double>();
         dataMaxTIC = new Hashtable<Integer, Double>();
@@ -143,131 +137,12 @@ public class NetCDFFile implements RawDataFile {
                 return preloadedScan;
         }
 
-
 		// Fetch scan from file
-		NetCDFScan fetchedScan;
+		cdfParser.openFile();
+		NetCDFScan fetchedScan = cdfParser.parseScan(scanNumber);
+		cdfParser.closeFile();
 
-		// Get start position and length for this scan
-		Integer[] startAndLength = scansIndex.get(new Integer(scanNumber));
-		int[] scanStartPosition = new int[1]; scanStartPosition[0] = startAndLength[0];
-		int[] scanLength = new int[1]; scanLength[0] = startAndLength[1];
-
-		if (scanLength[0]==0) {
-			// An empty scan needs some special attention...
-			double[] massValues = new double[0];
-			double[] intensityValues = new double[0];
-			fetchedScan = new NetCDFScan(scanNumber, retentionTimes.get(new Integer(scanNumber)), massValues, intensityValues);
-
-			massValues = null; intensityValues =  null;
-
-		} else {
-
-			// Open NetCDF-file
-			ucar.nc2.NetcdfFile inputFile;
-			try {
-				inputFile = new ucar.nc2.NetcdfFile(originalFile.getPath());
-			} catch (Exception e) {
-                Logger.putFatal(e.toString());
-                throw (new IOException("Couldn't open input file" + originalFile));
-			}
-
-
-			// Get datapoint variables
-			ucar.nc2.Variable massValueVariable = inputFile.findVariable("mass_values");
-			ucar.nc2.Variable intensityValueVariable = inputFile.findVariable("intensity_values");
-			if (intensityValueVariable==null) {
-                Logger.putFatal("Couldn't find variable mass_values and/or intensity_values from file " + originalFile);
-                throw (new IOException("Couldn't find variable mass_values and/or intensity_values from file " + originalFile));
-			}
-
-
-			// Read mass and intensity values
-			ucar.ma2.Array massValueArray;
-			ucar.ma2.Array intensityValueArray;
-			try {
-				massValueArray = massValueVariable.read(scanStartPosition, scanLength);
-				intensityValueArray = intensityValueVariable.read(scanStartPosition, scanLength);
-			} catch (Exception e) {
-                Logger.putFatal(e.toString());
-                throw (new IOException("Couldn't read variable mass_values and/or intensity_values from file " + originalFile));
-			}
-
-			// Translate values to plain Java arrays
-
-			double[] massValues = null;
-
-			if (massValueVariable.getDataType().getPrimitiveClassType() == double.class) {
-				massValues = (double[])massValueArray.copyTo1DJavaArray();
-			}
-
-			if (massValueVariable.getDataType().getPrimitiveClassType() == float.class) {
-				float[] floatMassValues = (float[])massValueArray.copyTo1DJavaArray();
-				massValues = new double[floatMassValues.length];
-				for (int j=0; j<massValues.length; j++) { massValues[j] = (double)(floatMassValues[j]); }
-				floatMassValues = null;
-			}
-
-			if (massValueVariable.getDataType().getPrimitiveClassType() == short.class) {
-				short[] shortMassValues = (short[])massValueArray.copyTo1DJavaArray();
-				massValues = new double[shortMassValues.length];
-				for (int j=0; j<massValues.length; j++) { massValues[j] = (double)(shortMassValues[j]); }
-				shortMassValues = null;
-			}
-
-			if (massValueVariable.getDataType().getPrimitiveClassType() == int.class) {
-				int[] intMassValues = (int[])massValueArray.copyTo1DJavaArray();
-				massValues = new double[intMassValues.length];
-				for (int j=0; j<massValues.length; j++) { massValues[j] = (double)(intMassValues[j]); }
-				intMassValues = null;
-			}
-
-
-			double[] intensityValues = null;
-
-			if (intensityValueVariable.getDataType().getPrimitiveClassType() == double.class) {
-				intensityValues = (double[])intensityValueArray.copyTo1DJavaArray();
-			}
-
-			if (intensityValueVariable.getDataType().getPrimitiveClassType() == float.class) {
-				float[] floatIntensityValues = (float[])intensityValueArray.copyTo1DJavaArray();
-				intensityValues = new double[floatIntensityValues.length];
-				for (int j=0; j<intensityValues.length; j++) { intensityValues[j] = (float)(floatIntensityValues[j]); }
-				floatIntensityValues = null;
-			}
-
-			if (intensityValueVariable.getDataType().getPrimitiveClassType() == short.class) {
-				short[] shortIntensityValues = (short[])intensityValueArray.copyTo1DJavaArray();
-				intensityValues = new double[shortIntensityValues.length];
-				for (int j=0; j<intensityValues.length; j++) { intensityValues[j] = (double)(shortIntensityValues[j]); }
-				shortIntensityValues = null;
-			}
-
-			if (intensityValueVariable.getDataType().getPrimitiveClassType() == int.class) {
-				int[] intIntensityValues = (int[])intensityValueArray.copyTo1DJavaArray();
-				intensityValues = new double[intIntensityValues.length];
-				for (int j=0; j<intensityValues.length; j++) {	intensityValues[j] = (double)(intIntensityValues[j]); }
-				intIntensityValues = null;
-			}
-
-			fetchedScan = new NetCDFScan(scanNumber, retentionTimes.get(new Integer(scanNumber)), massValues, intensityValues);
-
-
-			// Close the raw data file
-			try {
-				inputFile.close();
-			} catch (Exception e) {
-                Logger.putFatal(e.toString());
-                throw (new IOException("Couldn't close file " + originalFile));
-			}
-
-			massValueArray = null; intensityValueArray = null;
-			massValueVariable = null; intensityValueVariable = null;
-			massValues = null; intensityValues = null;
-			inputFile = null;
-
-		}
-
-        return fetchedScan;
+		return fetchedScan;
 
     }
 
@@ -332,21 +207,16 @@ public class NetCDFFile implements RawDataFile {
     }
 
 
-    void addIndexEntry(Integer scanNumber, Integer arrayPositionStart, Integer lengthInArray) {
-		Integer[] arrayPosition = new Integer[2];
-		arrayPosition[0] = arrayPositionStart; arrayPosition[1] = lengthInArray;
-        scansIndex.put(scanNumber, arrayPosition);
-    }
-
-    void addDataDescription(String description) {
+	void addDataDescription(String description) {
         if (dataDescription.length() > 0)
             dataDescription.append("\n");
         dataDescription.append(description);
     }
 
-    void addRetentionTimes(Hashtable<Integer, Double> retentionTimes) {
-		this.retentionTimes = retentionTimes;
+	void addParser(NetCDFFileParser cdfParser) {
+		this.cdfParser = cdfParser;
 	}
+
 
     /**
      *

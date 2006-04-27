@@ -104,314 +104,47 @@ public class NetCDFFileOpeningTask implements DistributableTask {
      */
     public void run() {
 
-		// Open NetCDF-file
-		ucar.nc2.NetcdfFile inputFile;
+		// Update task status
+		status = TaskStatus.PROCESSING;
+
 		try {
-			inputFile = new ucar.nc2.NetcdfFile(originalFile.getPath());
-		} catch (Exception e) {
-			status = TaskStatus.ERROR;
-            errorMessage = "Failed to open file.";
-            return;
-		}
+
+			// Initialize parser
+			NetCDFFileParser cdfParser = new NetCDFFileParser(originalFile);
+			buildingFile.addParser(cdfParser);
+
+			// Open netCDF file and read general information
+			cdfParser.openFile();
+			cdfParser.readGeneralInformation();
 
 
-		// Read number of scans
-		ucar.nc2.Variable scanIndexVariable = inputFile.findVariable("scan_index");
-		if (scanIndexVariable == null) {
-			status = TaskStatus.ERROR;
-            errorMessage = "Could not find variable scan_index.";
-            return;
-		}
-		totalScans = scanIndexVariable.getShape()[0];
-
-
-
-		// Read scan start positions
-		int[] scanStartPositions = new int[totalScans+1]; // Extra element is required, because element totalScans+1 is used to find the stop position for last scan
-
-		ucar.ma2.Array scanIndexArray = null;
-		try {
-			scanIndexArray = scanIndexVariable.read();
-		} catch (Exception e) {
-			status = TaskStatus.ERROR;
-            errorMessage = "Could not read from variable scan_index.";
-            return;
-
-		}
-
-		ucar.ma2.IndexIterator scanIndexIterator = scanIndexArray.getIndexIterator();
-		int ind = 0;
-		while (scanIndexIterator.hasNext()) {
-			scanStartPositions[ind] = ((Integer)scanIndexIterator.next()).intValue();
-			ind++;
-		}
-		scanIndexIterator = null; scanIndexArray = null; scanIndexVariable = null;
-
-		// Calc stop position for the last scan
-		ucar.nc2.Variable massValueVariable = inputFile.findVariable("mass_values");
-		if (massValueVariable == null) {
-			status = TaskStatus.ERROR;
-            errorMessage = "Could not find variable mass_values.";
-            return;
-		}
-		scanStartPositions[totalScans] = (int)massValueVariable.getSize();	// This defines the end index of the last scan
-		massValueVariable = null;
-
-
-
-		// Read retention times
-		double[] retentionTimes = new double[totalScans];
-
-		ucar.nc2.Variable scanTimeVariable = inputFile.findVariable("scan_acquisition_time");
-		if (scanTimeVariable == null) {
-			status = TaskStatus.ERROR;
-            errorMessage = "Could not find variable scan_acquisition_time.";
-            return;
-		}
-		ucar.ma2.Array scanTimeArray = null;
-		try {
-			scanTimeArray = scanTimeVariable.read();
-		} catch (Exception e) {
-			status = TaskStatus.ERROR;
-            errorMessage = "Could not read from variable scan_acquisition_time.";
-            return;
-		}
-
-		ucar.ma2.IndexIterator scanTimeIterator = scanTimeArray.getIndexIterator();
-		ind = 0;
-		while (scanTimeIterator.hasNext()) {
-			if (scanTimeVariable.getDataType().getPrimitiveClassType() == float.class) {
-				retentionTimes[ind] = ((Float)scanTimeIterator.next()).doubleValue();
-			}
-			if (scanTimeVariable.getDataType().getPrimitiveClassType() == double.class) {
-				retentionTimes[ind] = ((Double)scanTimeIterator.next()).doubleValue();
-			}
-			ind++;
-		}
-
-		scanTimeIterator = null; scanTimeArray = null; scanTimeVariable = null;
-
-
-		// TODO: Read (optional) variable scan_type
-
-
-
-		// Fix problems caused by new QStar data converter
-
-		// assume scan is missing when scan_index[i]<0
-		// for these scans, fix variables:
-		// -	scan_acquisition_time: interpolate/extrapolate using times of present scans
-		// -	scan_index: fill with following good value
-
-		// Calculate number of good scans
-		int numberOfGoodScans = 0;
-		for (int i=0; i<totalScans; i++) {
-			if (scanStartPositions[i]>=0) { numberOfGoodScans++; }
-		}
-
-		// Is there need to fix something?
-		if (numberOfGoodScans<totalScans) {
-
-
-			// Fix scan_acquisition_time
-			// - calculate average delta time between present scans
-			double sumDelta=0; int n=0;
+			// Parse scans
+			totalScans = cdfParser.getTotalScans();
 			for (int i=0; i<totalScans; i++) {
-				// Is this a present scan?
-				if (scanStartPositions[i]>=0) {
-					// Yes, find next present scan
-					for (int j=i+1; j<totalScans; j++) {
-						if (scanStartPositions[j]>=0) {
-							sumDelta += (retentionTimes[j]-retentionTimes[i])/((double)(j-i));
-							n++;
-							break;
-						}
-					}
-				}
-			}
-			double avgDelta=sumDelta/(double)n;
-			// - fill missing scan times using nearest good scan and avgDelta
-			for (int i=0; i<totalScans; i++) {
-				// Is this a missing scan?
-				if (scanStartPositions[i]<0) {
-					// Yes, find nearest present scan
-					int nearestI = Integer.MAX_VALUE;
-					for (int j=1; 1<2; j++) {
-						if ((i+j)<totalScans) {
-							if (scanStartPositions[i+j]>=0) {
-								nearestI = i+j;
-								break;
-							}
-						}
-						if ((i-j)>=0) {
-							if (scanStartPositions[i-j]>=0) {
-								nearestI = i+j;
-								break;
-							}
-						}
+				NetCDFScan buildingScan = cdfParser.parseScan(i);
+				buildingFile.addScan(buildingScan);
+				parsedScans++;
 
-						// Out of bounds?
-						if ( ((i+j)>=totalScans) && ((i-j)<0) ) {
-							break;
-						}
-					}
-
-					if (nearestI!=Integer.MAX_VALUE) {
-
-						retentionTimes[i] = retentionTimes[nearestI] + (i-nearestI) * avgDelta;
-
-					} else {
-						if (i>0) { retentionTimes[i] = retentionTimes[i-1]; } else { retentionTimes[i] = 0; }
-						Logger.putFatal("ERROR: Could not fix incorrect QStar scan times.");
-					}
-				}
-			}
-
-			// Fix scanStartPositions by filling gaps with next good value
-			for (int i=0; i<totalScans; i++) {
-				if (scanStartPositions[i]<0) {
-					for (int j=i+1; j<(totalScans+1); j++) {
-						if (scanStartPositions[j]>=0) {
-							scanStartPositions[i] = scanStartPositions[j];
-							break;
-						}
-					}
-				}
-			}
-		}
-
-		Hashtable<Integer, Double> retentionTimeHash = new Hashtable<Integer, Double>();
-		for (int i=0; i<totalScans; i++) {
-			retentionTimeHash.put(new Integer(i), new Double(retentionTimes[i]));
-		}
-		buildingFile.addRetentionTimes(retentionTimeHash);
-
-
-		// Get datapoint variables
-		massValueVariable = inputFile.findVariable("mass_values");
-		ucar.nc2.Variable intensityValueVariable = inputFile.findVariable("intensity_values");
-		if (intensityValueVariable==null) {
-			status = TaskStatus.ERROR;
-            errorMessage = "Could not find variable intensity_values.";
-            return;
-		}
-
-		// Initialize variables for scan starting position and length
-		int[] scanStartPosition = new int[1];
-		int[] scanLength = new int[1];
-
-		// Parse the scans
-		for (int i=0; i<totalScans; i++) {
-
-			// Get starting position and shape for this scan
-			scanStartPosition[0] = scanStartPositions[i];
-			scanLength[0] = scanStartPositions[i+1] - scanStartPositions[i];
-
-			if (scanLength[0]==0) {
-				// An empty scan needs some special attention..
-				double[] massValues = new double[0];
-				double[] intensityValues = new double[0];
-				buildingScan = new NetCDFScan(i, retentionTimes[i], massValues, intensityValues);
-			} else {
-
-				// Read mass and intensity values
-				ucar.ma2.Array massValueArray;
-				ucar.ma2.Array intensityValueArray;
-				try {
-					massValueArray = massValueVariable.read(scanStartPosition, scanLength);
-					intensityValueArray = intensityValueVariable.read(scanStartPosition, scanLength);
-				} catch (Exception e) {
-					Logger.putFatal("Could not read from variables mass_values and/or intensity_values.");
-					Logger.putFatal(e.toString());
-					status = TaskStatus.ERROR;
-					errorMessage = "Could not read from variables mass_values and/or intensity_values.";
+				// Check if cancel is requested
+				if (status == TaskStatus.CANCELED) {
+					// Close netCDF file
+					cdfParser.closeFile();
 					return;
 				}
-
-				// Translate values to plain Java arrays
-
-				double[] massValues = null;
-
-				if (massValueVariable.getDataType().getPrimitiveClassType() == double.class) {
-					massValues = (double[])massValueArray.copyTo1DJavaArray();
-				}
-
-				if (massValueVariable.getDataType().getPrimitiveClassType() == float.class) {
-					float[] floatMassValues = (float[])massValueArray.copyTo1DJavaArray();
-					massValues = new double[floatMassValues.length];
-					for (int j=0; j<massValues.length; j++) { massValues[j] = (double)(floatMassValues[j]); }
-					floatMassValues = null;
-				}
-
-				if (massValueVariable.getDataType().getPrimitiveClassType() == short.class) {
-					short[] shortMassValues = (short[])massValueArray.copyTo1DJavaArray();
-					massValues = new double[shortMassValues.length];
-					for (int j=0; j<massValues.length; j++) { massValues[j] = (double)(shortMassValues[j]); }
-					shortMassValues = null;
-				}
-
-				if (massValueVariable.getDataType().getPrimitiveClassType() == int.class) {
-					int[] intMassValues = (int[])massValueArray.copyTo1DJavaArray();
-					massValues = new double[intMassValues.length];
-					for (int j=0; j<massValues.length; j++) { massValues[j] = (double)(intMassValues[j]); }
-					intMassValues = null;
-				}
-
-
-				double[] intensityValues = null;
-
-				if (intensityValueVariable.getDataType().getPrimitiveClassType() == double.class) {
-					intensityValues = (double[])intensityValueArray.copyTo1DJavaArray();
-				}
-
-				if (intensityValueVariable.getDataType().getPrimitiveClassType() == float.class) {
-					float[] floatIntensityValues = (float[])intensityValueArray.copyTo1DJavaArray();
-					intensityValues = new double[floatIntensityValues.length];
-					for (int j=0; j<intensityValues.length; j++) { intensityValues[j] = (float)(floatIntensityValues[j]); }
-					floatIntensityValues = null;
-				}
-
-				if (intensityValueVariable.getDataType().getPrimitiveClassType() == short.class) {
-					short[] shortIntensityValues = (short[])intensityValueArray.copyTo1DJavaArray();
-					intensityValues = new double[shortIntensityValues.length];
-					for (int j=0; j<intensityValues.length; j++) { intensityValues[j] = (double)(shortIntensityValues[j]); }
-					shortIntensityValues = null;
-				}
-
-				if (intensityValueVariable.getDataType().getPrimitiveClassType() == int.class) {
-					int[] intIntensityValues = (int[])intensityValueArray.copyTo1DJavaArray();
-					intensityValues = new double[intIntensityValues.length];
-					for (int j=0; j<intensityValues.length; j++) {	intensityValues[j] = (double)(intIntensityValues[j]); }
-					intIntensityValues = null;
-				}
-
-				buildingScan = new NetCDFScan(i, retentionTimes[i], massValues, intensityValues);
-
-				massValueArray = null; intensityValueArray = null;
-				massValues = null; intensityValues = null;
-
 			}
 
-			buildingFile.addIndexEntry(i, scanStartPosition[0], scanLength[0]);
-			buildingFile.addScan(buildingScan);
-			parsedScans++;
-			buildingScan = null;
+			// Close netCDF file
+			cdfParser.closeFile();
 
-		}
-
-
-
-		// Close the raw data file
-		try {
-			inputFile.close();
 		} catch (Exception e) {
+			Logger.putFatal("Could not open file " + originalFile.getPath());
+			errorMessage = e.toString();
 			status = TaskStatus.ERROR;
-            errorMessage = "Failed to close file.";
-            return;
+			return;
 		}
 
+		// Update task status
 		status = TaskStatus.FINISHED;
-
 
 
     }
