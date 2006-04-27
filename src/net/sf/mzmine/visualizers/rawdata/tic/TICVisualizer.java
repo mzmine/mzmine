@@ -194,9 +194,11 @@ public class TICVisualizer extends JInternalFrame implements RawDataVisualizer,
          * if the file data is preloaded in memory, we can update the visualizer
          * in this thread, otherwise start a task
          */
-        if (newFile.getPreloadLevel() == PreloadLevel.PRELOAD_ALL_SCANS)
+        if (newFile.getPreloadLevel() == PreloadLevel.PRELOAD_ALL_SCANS) {
+            taskStarted(updateTask);
             updateTask.run();
-        else
+            taskFinished(updateTask);
+        } else
             TaskController.getInstance().addTask(updateTask, this);
 
     }
