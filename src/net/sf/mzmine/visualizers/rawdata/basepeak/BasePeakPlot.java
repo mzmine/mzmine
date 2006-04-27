@@ -113,8 +113,8 @@ public class BasePeakPlot extends JPanel implements MouseListener,
         double yAxisStep = (intValueMax - intValueMin) / (height - 1);
 
         int startIndex = 1, endIndex = retentionTimes.length - 1;
-        while (retentionTimes[startIndex] < retValueMin - 1) {
-            if (startIndex == retentionTimes.length)
+        while (retentionTimes[startIndex] < retValueMin) {
+            if (startIndex == retentionTimes.length - 1)
                 break;
             startIndex++;
         }
@@ -163,20 +163,20 @@ public class BasePeakPlot extends JPanel implements MouseListener,
                 localMaximum = (x > 10) && (x < width - 10);
                 int i;
                 if (localMaximum)
-                    for (i = ind; (i >= 0)
+                    for (i = ind - 1; (i >= 0)
                             && (retentionTimes[i] > retentionTimes[ind]
                                     - (35 * xAxisStep)); i--) {
-                        if (intensities[i] > intensities[ind]) {
+                        if (intensities[i] >= intensities[ind]) {
                             localMaximum = false;
                             break;
                         }
                     }
 
                 if (localMaximum)
-                    for (i = ind; (i < retentionTimes.length)
+                    for (i = ind + 1; (i < retentionTimes.length)
                             && (retentionTimes[i] < retentionTimes[ind]
                                     + (35 * xAxisStep)); i++) {
-                        if (intensities[i] > intensities[ind]) {
+                        if (intensities[i] >= intensities[ind]) {
                             localMaximum = false;
                             break;
                         }

@@ -124,8 +124,8 @@ class SpectrumPlot extends JPanel implements
             intensities = scan.getIntensityValues();
 
             int startIndex = 1, endIndex = mzValues.length - 1;
-            while (mzValues[startIndex] < mzValueMin - 1) {
-                if (startIndex == mzValues.length)
+            while (mzValues[startIndex] < mzValueMin) {
+                if (startIndex == mzValues.length - 1)
                     break;
                 startIndex++;
             }
@@ -167,20 +167,20 @@ class SpectrumPlot extends JPanel implements
                         localMaximum = (x > 10) && (x < width - 10);
                         int i;
                         if (localMaximum)
-                            for (i = ind; (i >= 0)
+                            for (i = ind - 1; (i >= 0)
                                     && (mzValues[i] > mzValues[ind]
                                             - (35 * xAxisStep)); i--) {
-                                if (intensities[i] > intensities[ind]) {
+                                if (intensities[i] >= intensities[ind]) {
                                     localMaximum = false;
                                     break;
                                 }
                             }
 
                         if (localMaximum)
-                            for (i = ind; (i < mzValues.length)
+                            for (i = ind + 1; (i < mzValues.length)
                                     && (mzValues[i] < mzValues[ind]
                                             + (35 * xAxisStep)); i++) {
-                                if (intensities[i] > intensities[ind]) {
+                                if (intensities[i] >= intensities[ind]) {
                                     localMaximum = false;
                                     break;
                                 }
