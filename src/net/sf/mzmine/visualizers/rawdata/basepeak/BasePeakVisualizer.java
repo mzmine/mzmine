@@ -357,17 +357,7 @@ public class BasePeakVisualizer extends JInternalFrame implements
 
     }
 
-    /**
-     * @see net.sf.mzmine.taskcontrol.TaskListener#taskFinished(net.sf.mzmine.taskcontrol.Task)
-     */
-    public void taskFinished(Task task) {
-        if (task.getStatus() == TaskStatus.ERROR) {
-            MainWindow.getInstance().displayErrorMessage(
-                    "Error while updating base peak visualizer: "
-                            + task.getErrorMessage());
-        }
 
-    }
 
     /**
      * Implementation of the copyMe() method (Visualizer interface)
@@ -488,4 +478,19 @@ public class BasePeakVisualizer extends JInternalFrame implements
 
     }
 
+    /**
+     * @see net.sf.mzmine.taskcontrol.TaskListener#taskFinished(net.sf.mzmine.taskcontrol.Task)
+     */
+    public void taskFinished(Task task) {
+        if (task.getStatus() == TaskStatus.ERROR) {
+            MainWindow.getInstance().displayErrorMessage(
+                    "Error while updating base peak visualizer: "
+                            + task.getErrorMessage());
+        }
+
+    }
+    
+    public void taskStarted(Task task) {
+        MainWindow.getInstance().addInternalFrame(this);
+    }
 }

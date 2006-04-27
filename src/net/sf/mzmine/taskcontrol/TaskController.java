@@ -140,17 +140,19 @@ public class TaskController implements Runnable {
                 Arrays.sort(currentTasks, new TaskPriorityComparator());
 
                 // for each task, check if it's assigned
-                for (WrappedTask task : currentTasks) {
+                for (WrappedTask wrappedTask : currentTasks) {
 
-                    if (!task.assigned) {
+                    if (!wrappedTask.assigned) {
                         // poll local threads
 
                         for (WorkerThread worker : workerThreads) {
                             // Logger.put("polling thread " + worker + " for
                             // task " + task.task.getTaskDescription());
                             if (worker.getCurrentTask() == null) {
-                                worker.setCurrentTask(task.task);
-                                task.assigned = true;
+                                if (wrappedTask.listener != null)
+                                    wrappedTask.listener.taskStarted(wrappedTask.task);
+                                worker.setCurrentTask(wrappedTask.task);
+                                wrappedTask.assigned = true;
                                 break;
                             }
 
@@ -160,13 +162,13 @@ public class TaskController implements Runnable {
 
                     } else {
                         /* check whether the task is finished */
-                        TaskStatus status = task.task.getStatus();
+                        TaskStatus status = wrappedTask.task.getStatus();
                         if ((status == TaskStatus.FINISHED)
                                 || (status == TaskStatus.ERROR)
                                 || (status == TaskStatus.CANCELED)) {
-                            if (task.listener != null)
-                                task.listener.taskFinished(task.task);
-                            taskQueue.remove(task);
+                            if (wrappedTask.listener != null)
+                                wrappedTask.listener.taskFinished(wrappedTask.task);
+                            taskQueue.remove(wrappedTask);
                         }
                     }
 

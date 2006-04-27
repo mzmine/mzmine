@@ -103,4 +103,11 @@ public class IOController implements TaskListener {
 
         }
     }
+
+    /**
+     * @see net.sf.mzmine.taskcontrol.TaskListener#taskStarted(net.sf.mzmine.taskcontrol.Task)
+     */
+    public void taskStarted(Task task) {
+        // do nothing
+    }
 }

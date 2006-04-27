@@ -399,6 +399,10 @@ public class TICVisualizer extends JInternalFrame implements RawDataVisualizer,
         }
 
     }
+    
+    public void taskStarted(Task task) {
+        MainWindow.getInstance().addInternalFrame(this);
+    }
 
     /**
      * Implementation of the copyMe() method (Visualizer interface)

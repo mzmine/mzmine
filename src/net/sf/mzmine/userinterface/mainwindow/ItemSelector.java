@@ -191,8 +191,7 @@ public class ItemSelector extends JPanel implements ListSelectionListener,
             int msLevel = Integer.parseInt(command.substring(3));
             for (RawDataFile file : selectedFiles) {
 
-                TICVisualizer vis = new TICVisualizer(file, msLevel);
-                MainWindow.getInstance().addInternalFrame(vis);
+                new TICVisualizer(file, msLevel);
 
             }
         }
@@ -202,8 +201,7 @@ public class ItemSelector extends JPanel implements ListSelectionListener,
             int msLevel = Integer.parseInt(command.substring(2));
             for (RawDataFile file : selectedFiles) {
 
-                BasePeakVisualizer vis = new BasePeakVisualizer(file, msLevel);
-                MainWindow.getInstance().addInternalFrame(vis);
+                new BasePeakVisualizer(file, msLevel);
 
             }
         }
