@@ -19,6 +19,7 @@
 
 package net.sf.mzmine.interfaces;
 
+import net.sf.mzmine.io.RawDataFile;
 
 /**
  *
