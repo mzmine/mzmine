@@ -121,7 +121,7 @@ public class NetCDFFileOpeningTask implements DistributableTask {
 			// Parse scans
 			totalScans = cdfParser.getTotalScans();
 			for (int i=0; i<totalScans; i++) {
-				NetCDFScan buildingScan = cdfParser.parseScan(i);
+				buildingScan = cdfParser.parseScan(i);
 				buildingFile.addScan(buildingScan);
 				parsedScans++;
 
@@ -136,7 +136,7 @@ public class NetCDFFileOpeningTask implements DistributableTask {
 			// Close netCDF file
 			cdfParser.closeFile();
 
-		} catch (Exception e) {
+		} catch (Throwable e) {
 			Logger.putFatal("Could not open file " + originalFile.getPath());
 			errorMessage = e.toString();
 			status = TaskStatus.ERROR;
