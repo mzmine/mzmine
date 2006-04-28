@@ -6,21 +6,17 @@ package net.sf.mzmine.userinterface.mainwindow;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
-import java.io.File;
 
-import javax.swing.JCheckBox;
-import javax.swing.JFileChooser;
 import javax.swing.JInternalFrame;
 import javax.swing.JMenu;
 import javax.swing.JMenuBar;
 import javax.swing.JMenuItem;
 import javax.swing.KeyStroke;
 
-import net.sf.mzmine.io.IOController;
 import net.sf.mzmine.io.MZmineProject;
 import net.sf.mzmine.io.RawDataFile;
-import net.sf.mzmine.io.RawDataFile.PreloadLevel;
 import net.sf.mzmine.methods.alignment.AlignmentResult;
+import net.sf.mzmine.userinterface.dialogs.FileOpenDialog;
 import net.sf.mzmine.visualizers.alignmentresult.AlignmentResultVisualizerCDAPlotView;
 import net.sf.mzmine.visualizers.alignmentresult.AlignmentResultVisualizerCoVarPlotView;
 import net.sf.mzmine.visualizers.alignmentresult.AlignmentResultVisualizerLogratioPlotView;
@@ -28,7 +24,6 @@ import net.sf.mzmine.visualizers.alignmentresult.AlignmentResultVisualizerSammon
 import net.sf.mzmine.visualizers.rawdata.spectra.SpectrumVisualizer;
 import net.sf.mzmine.visualizers.rawdata.tic.TICVisualizer;
 import net.sf.mzmine.visualizers.rawdata.twod.TwoDVisualizer;
-import sunutils.ExampleFileFilter;
 
 /**
  *
@@ -316,60 +311,8 @@ class MainMenu extends JMenuBar implements ActionListener {
         // File -> Open
         if (src == fileOpen) {
 
-            // statBar.setStatusText("Please select a data file to open");
-
-            // Open file dialog
-            JFileChooser fileOpenChooser = new JFileChooser();
-            fileOpenChooser.setDialogType(JFileChooser.OPEN_DIALOG);
-            fileOpenChooser.setMultiSelectionEnabled(true);
-            fileOpenChooser.setDialogTitle("Please select data files to open");
-            JCheckBox preloadCheckBox = new JCheckBox(
-                    "Preload all data into memory? (use with caution)");
-            fileOpenChooser.setAccessory(preloadCheckBox);
-
-            /*
-             * if (dataDirectory == null) { dataDirectory =
-             * clientForCluster.getDataRootPath(); }
-             */
-            // fileOpenChooser.setCurrentDirectory(new File(dataDirectory));
-            ExampleFileFilter filter = new ExampleFileFilter();
-            filter.addExtension("CDF");
-            filter.addExtension("nc");
-            filter.addExtension("XML");
-            filter.addExtension("mzXML");
-            filter.setDescription("Raw data files");
-
-            fileOpenChooser.setFileFilter(filter);
-            int retval = fileOpenChooser.showOpenDialog(this);
-
-            // If ok to go on with file open
-            if (retval == JFileChooser.APPROVE_OPTION) {
-
-                File[] selectedFiles = fileOpenChooser.getSelectedFiles();
-
-                PreloadLevel preloadLevel = PreloadLevel.NO_PRELOAD;
-                if (preloadCheckBox.isSelected()) preloadLevel = PreloadLevel.PRELOAD_ALL_SCANS;
-                IOController.getInstance().openFiles(selectedFiles,
-                        preloadLevel);
-                /*
-                 * String[] dataFilePaths = new String[selectedFiles.length];
-                 *
-                 *
-                 * for (int i=0; i<selectedFiles.length; i++) { File f =
-                 * selectedFiles[i];
-                 *
-                 * if (f.exists()) { dataFilePaths[i] = f.getPath(); // Update
-                 * dataDirectory String tmppath = f.getPath().substring(0,
-                 * f.getPath().length()-f.getName().length()); dataDirectory =
-                 * new String(tmppath); } else { displayErrorMessage("File " + f + "
-                 * does not exist."); return; } }
-                 *
-                 * clientForCluster.openRawDataFiles(dataFilePaths);
-                 */
-
-            } else {
-                statBar.setStatusText("File open cancelled.");
-            }
+            FileOpenDialog fileOpenDialog = new FileOpenDialog();
+            fileOpenDialog.setVisible(true);
 
         }
 
@@ -380,8 +323,6 @@ class MainMenu extends JMenuBar implements ActionListener {
             RawDataFile[] selectedFiles = itemSelector.getSelectedRawData();
             for (RawDataFile file : selectedFiles)
                 MZmineProject.getCurrentProject().removeFile(file);
-
-            // mainWin.closeRawDataFiles(rawDataIDs);
 
             // int[] alignmentResultIDs = itemSelector
             // .getSelectedAlignmentResultIDs();
