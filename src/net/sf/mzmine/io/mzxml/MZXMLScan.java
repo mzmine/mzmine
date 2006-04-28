@@ -1,5 +1,5 @@
 /*
- * Copyright 2006 Okinawa Institute of Science and Technology
+ * Copyright 2006 The MZmine Development Team
  *
  * This file is part of MZmine.
  *
