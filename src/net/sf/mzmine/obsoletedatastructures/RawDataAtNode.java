@@ -31,9 +31,6 @@ import javax.xml.datatype.Duration;
 
 import net.iharder.xmlizable.Base64;
 import net.sf.mzmine.io.RawDataFile;
-import net.sf.mzmine.io.RawDataFile.PreloadLevel;
-import net.sf.mzmine.methods.filtering.MZXMLHandlerForPreload;
-import net.sf.mzmine.methods.filtering.MZXMLHandlerForRetrieve;
 import net.sf.mzmine.util.Logger;
 import ucar.ma2.Array;
 import ucar.ma2.ArrayInt;
@@ -94,7 +91,7 @@ public class RawDataAtNode implements RawDataFile {
 	private Vector<Integer> mzxml_ms1Scans;
 	private Hashtable<Integer, Long> mzxml_scanOffsets;
 	private int mzxml_currentScanNumber;
-	private MZXMLHandlerForRetrieve mzxml_scanHandler;
+	// private MZXMLHandlerForRetrieve mzxml_scanHandler;
 
 	private FileWriter mzxml_newWorkingCopyWriter;
 	private long mzxml_newWorkingCopyBytesWritten;
@@ -271,7 +268,7 @@ public class RawDataAtNode implements RawDataFile {
 	/**
 	 * Preloads some important details about the data
 	 * @return	1 = preload ok, -1 = preload failed
-	 */
+	 
 	public int preLoad() {
 		if (fileType == FILETYPE_UNDETERMINED) {
 			fileType = checkFileType();
@@ -288,8 +285,9 @@ public class RawDataAtNode implements RawDataFile {
 			return retval;
 		}
 		return -1;
+        
 	}
-
+*/
 
 
 	/* Methods for reading through the scans */
@@ -306,11 +304,11 @@ public class RawDataAtNode implements RawDataFile {
 			fileType = checkFileType();
 		}
 		if (fileType == FILETYPE_NETCDF) {
-			initializeScanBrowserNetCDF(startScan, stopScan);
+//			initializeScanBrowserNetCDF(startScan, stopScan);
 		}
 
 		if (fileType == FILETYPE_MZXML) {
-			initializeScanBrowserMZXML(startScan, stopScan);
+		//	initializeScanBrowserMZXML(startScan, stopScan);
 		}
 
 		browsingStartScan = startScan;
@@ -332,7 +330,7 @@ public class RawDataAtNode implements RawDataFile {
 		}
 
 		if (fileType == FILETYPE_MZXML) {
-			s = getNextScanMZXML();
+		//	s = getNextScanMZXML();
 		}
 
 		if (!maxIntensityFound) {
@@ -1203,11 +1201,10 @@ public class RawDataAtNode implements RawDataFile {
 
 	/**
 	 * Preloads mzXML-file
-	 */
-	private int preLoadMZXML() {
+	 rivate int preLoadMZXML() {
 
-		MZXMLHandlerForPreload mzXMLPreloader = new MZXMLHandlerForPreload();
-		mzXMLPreloader.preloadFile(workingCopy);
+		// MZXMLHandlerForPreload mzXMLPreloader = new MZXMLHandlerForPreload();
+     		mzXMLPreloader.preloadFile(workingCopy);
 
 		numberOfScans = mzXMLPreloader.getNumberOfScans();
 		minMZValue = mzXMLPreloader.getLowMZ();
@@ -1227,29 +1224,28 @@ public class RawDataAtNode implements RawDataFile {
 	/**
 	 * Initializes for reading scans from NetCDF file
 	 * - picks up mz and intensity variables from NetCDF file
-	 */
 	private void initializeScanBrowserMZXML(int startScan, int stopScan) {
  		mzxml_currentScanNumber = startScan;
  		mzxml_scanHandler = new MZXMLHandlerForRetrieve(workingCopy, mzxml_ms1Scans, mzxml_scanOffsets);
 	}
 
 	/**
-	 *
-	 */
+	
 	private Scan getNextScanMZXML() {
 
 		Scan tmpScan = mzxml_scanHandler.getScan(mzxml_currentScanNumber);
 		mzxml_currentScanNumber++;
 		return tmpScan;
 
-	}
+	}*/
+    
 
 	/**
 	 *
 	 */
 	private void finalizeScanBrowserMZXML() {
 		// Do nothing
-		mzxml_scanHandler = null;
+		//mzxml_scanHandler = null;
 	}
 
 

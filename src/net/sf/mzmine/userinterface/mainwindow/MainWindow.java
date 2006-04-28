@@ -36,7 +36,6 @@ import javax.swing.JOptionPane;
 import javax.swing.JSplitPane;
 
 import net.sf.mzmine.methods.alignment.AlignmentResult;
-import net.sf.mzmine.obsoletedatastructures.RawDataAtClient;
 import net.sf.mzmine.userinterface.dialogs.TaskProgressWindow;
 import net.sf.mzmine.util.ParameterStorage;
 import net.sf.mzmine.visualizers.RawDataVisualizer;
@@ -204,7 +203,7 @@ public class MainWindow extends JFrame implements WindowListener {
 
     /**
      * This method moves all visualizers of given raw data to the top on desktop
-     */
+  
     public void moveVisualizersToFront(RawDataAtClient rawData) {
 
         Integer rawDataID = new Integer(rawData.getRawDataID());
