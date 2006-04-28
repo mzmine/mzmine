@@ -25,4 +25,38 @@ package net.sf.mzmine.interfaces;
  */
 public interface AlignmentResult {
 
+	// TODO: Can we have references to RawDataFiles from an AlignmentResult??
+
+	/**
+	 * Returns number of raw data files participating in the alignment
+	 */
+	public int getNumberOfRawDataFiles();
+
+	/**
+	 * Returns all raw data files participating in the alignment
+	 */
+	public RawDataFile[] getRawDataFiles();
+
+	/**
+	 * Returns number of rows in the alignment result
+	 */
+	public int getNumberOfRows();
+
+	/**
+	 * Returns the peak of a given raw data file on a give row of the alignment result
+	 * @param	row	Row of the alignment result
+	 * @param	rawDataFile	Raw data file where the peak is detected/estimated
+	 */
+	public Peak getPeak(int row, RawDataFile rawDataFile);
+
+	/**
+	 * Returns all peaks for a raw data file
+	 */
+	public Peak[] getPeaks(RawDataFile rawDataFile);
+
+	/**
+	 * Returns all peaks on one row
+	 */
+	public Peak[] getPeaks(int row);
+
 }
