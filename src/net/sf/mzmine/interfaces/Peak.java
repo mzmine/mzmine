@@ -26,6 +26,22 @@ import java.util.Hashtable;
  */
 public interface Peak {
 
+    /**
+     * DETECTED - peak was found in primary peak picking
+     * ESTIMATED - peak was estimated in secondary peak picking (after alignment)
+     * MISSING - peak is not found or estimated
+     *
+     */
+    public static enum PeakStatus {
+        DETECTED, ESTIMATED, MISSING
+    };
+
+	/**
+	 * This method returns the status of the peak
+	 */
+	public PeakStatus getPeakStatus();
+
+
 	/* Get methods for basic properties of the peak as defined by the peak picking method */
 
 	/**
