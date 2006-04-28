@@ -19,10 +19,78 @@
 
 package net.sf.mzmine.interfaces;
 
+import java.util.Hashtable;
 
 /**
- *
+ * This interface defines the properties of a detected peak
  */
 public interface Peak {
+
+	/* Get methods for basic properties of the peak as defined by the peak picking method */
+
+	/**
+	 * This method returns M/Z value of the peak
+	 */
+	public double getMZ();
+
+	/**
+	 * This method returns retention time of the peak
+	 */
+	public double getRT();
+
+	/**
+	 * This method returns the raw height of the peak
+	 */
+	public double getRawHeight();
+
+	/**
+	 * This method returns the raw area of the peak
+	 */
+	public double getRawArea();
+
+
+
+	/* Get method for accessing the raw datapoints that construct the peak */
+
+	/**
+	 * This method returns a hashtable of scan numbers and indices of datapoints
+	 * within the scans.
+	 *
+	 * @return Hashtable maps scan number to index of datapoint within the scan
+	 */
+	public Hashtable<Integer, Integer> getRawDatapoints();
+
+
+
+	/* Set/get methods for handling normalized heights and areas */
+
+	/**
+	 * This method sets the normalized height of the peak
+	 */
+	public void setNormalizedHeight();
+
+	/**
+	 * This method returns the normalized height of the peak, or raw height if normalized height is not set.
+	 */
+	public double getNormalizedHeight();
+
+	/**
+	 * This method sets the normalized area of the peak
+	 */
+	public void setNormalizedArea();
+
+	/**
+	 * This method returns the normalized area of the peak, or raw area if normalized area is not set.
+	 */
+	public double getNormalizedArea();
+
+
+
+	/* 	Set/get methods for isotope pattern information */
+
+	// TODO
+
+
+
 
 }
