@@ -54,6 +54,10 @@ import net.sf.mzmine.util.format.ValueFormat;
 import net.sf.mzmine.visualizers.RawDataVisualizer;
 import net.sf.mzmine.visualizers.rawdata.spectra.SpectrumPlot.PlotMode;
 
+/**
+ * TODO: implement combination of spectra
+ *
+ */
 public class SpectrumVisualizer extends JInternalFrame implements
         RawDataVisualizer, Printable, ActionListener {
 
@@ -125,7 +129,14 @@ public class SpectrumVisualizer extends JInternalFrame implements
             dispose(); // TODO: is this correct?
             return;
         }
-
+        
+        // if the scans are centroided, switch to centroid mode
+        if (scans[0].isCentroided()) {
+            spectrumPlot.setPlotMode(PlotMode.CENTROID);
+            popupMenu.setPlotModeMenuItem("Show as continuous");
+            toolBar.setCentroidButton(false);
+        }
+        
         resetMZRange();
         resetIntensityRange();
 
