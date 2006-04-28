@@ -25,4 +25,28 @@ package net.sf.mzmine.interfaces;
  */
 public interface PeakList {
 
+	/**
+	 * Returns number of peaks on the list
+	 */
+	public int getNumberOfPeaks();
+
+	/**
+	 * Returns all peaks in the peak list
+	 */
+	public Peak[] getPeaks();
+
+	/**
+	 * Returns all peaks overlapping the scan range
+	 * @param	firstScan	First scan inside the range
+	 * @param	lastScan	Last scan inside the range
+	 */
+	public Peak[] getPeaksInsideScanRange(int firstScan, int lastScan);
+
+	/**
+	 * Returns all isotope patterns overlapping given scan range
+	 * @param	firstScan	First scan inside the range
+	 * @param	lastScan	Last scan inside the range
+	 */
+	public IsotopePattern[] getIsotopePatternsInsideScanRange(int firstScan, int lastScan);
+
 }
