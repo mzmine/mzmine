@@ -50,7 +50,7 @@ public interface Peak {
 
 
 
-	/* Get method for accessing the raw datapoints that construct the peak */
+	/* Get methods for accessing the raw datapoints that construct the peak */
 
 	/**
 	 * This method returns a hashtable of scan numbers and indices of datapoints
@@ -59,6 +59,26 @@ public interface Peak {
 	 * @return Hashtable maps scan number to index of datapoint within the scan
 	 */
 	public Hashtable<Integer, Integer> getRawDatapoints();
+
+	/**
+	 * Returns the first scan number of all datapoints
+	 */
+	public int getFirstScanNumber();
+
+	/**
+	 * Returns the last scan number of all datapoints
+	 */
+	public int getLastScanNumber();
+
+	/**
+	 * Returns minimum M/Z value of all datapoints
+	 */
+	public double getMinMZ();
+
+	/**
+	 * Returns maximum M/Z value of all datapoints
+	 */
+	public double getMaxMZ();
 
 
 

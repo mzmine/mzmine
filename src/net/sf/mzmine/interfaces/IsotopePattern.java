@@ -52,4 +52,24 @@ public interface IsotopePattern {
 	public Peak getPeak(int n);
 
 
+	/**
+	 * Returns first scan included in any of the peaks of the pattern
+	 */
+	public int getFirstScanNumber();
+
+	/**
+	 * Returns last scan included in any of the peaks of the pattern
+	 */
+	public int getLastScanNumber();
+
+	/**
+	 * Returns minimum M/Z value of all datapoints in any of the peaks of the pattern
+	 */
+	public int getMinMZ();
+
+	/**
+	 * Returns maximum M/Z value of all datapoints in any of the peaks of the pattern
+	 */
+	public int getMaxMZ();
+
 }
