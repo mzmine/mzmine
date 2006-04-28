@@ -40,8 +40,8 @@ import javax.swing.JInternalFrame;
 import javax.swing.JLabel;
 import javax.swing.RepaintManager;
 
+import net.sf.mzmine.interfaces.Scan;
 import net.sf.mzmine.io.RawDataFile;
-import net.sf.mzmine.io.Scan;
 import net.sf.mzmine.obsoletedatastructures.FormatCoordinates;
 import net.sf.mzmine.userinterface.components.XAxis;
 import net.sf.mzmine.userinterface.components.YAxis;

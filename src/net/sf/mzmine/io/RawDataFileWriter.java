@@ -22,6 +22,8 @@ package net.sf.mzmine.io;
 
 import java.io.File;
 
+import net.sf.mzmine.interfaces.Scan;
+
 /**
  *
  */

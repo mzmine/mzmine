@@ -23,7 +23,7 @@
  */
 package net.sf.mzmine.io.netcdf;
 
-import net.sf.mzmine.io.Scan;
+import net.sf.mzmine.interfaces.Scan;
 
 /**
  *
@@ -75,70 +75,70 @@ class NetCDFScan implements Scan {
     }
 
     /**
-     * @see net.sf.mzmine.io.Scan#getNumberOfDataPoints()
+     * @see net.sf.mzmine.interfaces.Scan#getNumberOfDataPoints()
      */
     public int getNumberOfDataPoints() {
         return mzValues.length;
     }
 
     /**
-     * @see net.sf.mzmine.io.Scan#getScanNumber()
+     * @see net.sf.mzmine.interfaces.Scan#getScanNumber()
      */
     public int getScanNumber() {
         return scanNumber;
     }
 
     /**
-     * @see net.sf.mzmine.io.Scan#getMSLevel()
+     * @see net.sf.mzmine.interfaces.Scan#getMSLevel()
      */
     public int getMSLevel() {
         return 1;
     }
 
     /**
-     * @see net.sf.mzmine.io.Scan#getPrecursorMZ()
+     * @see net.sf.mzmine.interfaces.Scan#getPrecursorMZ()
      */
     public double getPrecursorMZ() {
         return 0.0;
     }
 
     /**
-     * @see net.sf.mzmine.io.Scan#getScanAcquisitionTime()
+     * @see net.sf.mzmine.interfaces.Scan#getScanAcquisitionTime()
      */
     public double getRetentionTime() {
         return retentionTime;
     }
 
     /**
-     * @see net.sf.mzmine.io.Scan#getMZRangeMin()
+     * @see net.sf.mzmine.interfaces.Scan#getMZRangeMin()
      */
     public double getMZRangeMin() {
         return mzRangeMin;
     }
 
     /**
-     * @see net.sf.mzmine.io.Scan#getMZRangeMax()
+     * @see net.sf.mzmine.interfaces.Scan#getMZRangeMax()
      */
     public double getMZRangeMax() {
         return mzRangeMax;
     }
 
     /**
-     * @see net.sf.mzmine.io.Scan#getBasePeakMZ()
+     * @see net.sf.mzmine.interfaces.Scan#getBasePeakMZ()
      */
     public double getBasePeakMZ() {
         return basePeakMZ;
     }
 
     /**
-     * @see net.sf.mzmine.io.Scan#getBasePeakIntensity()
+     * @see net.sf.mzmine.interfaces.Scan#getBasePeakIntensity()
      */
     public double getBasePeakIntensity() {
         return basePeakIntensity;
     }
 
     /**
-     * @see net.sf.mzmine.io.Scan#isCentroided()
+     * @see net.sf.mzmine.interfaces.Scan#isCentroided()
      */
     public boolean isCentroided() {
 		return false;

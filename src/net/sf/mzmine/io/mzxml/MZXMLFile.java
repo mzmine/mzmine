@@ -34,8 +34,8 @@ import java.util.Set;
 import javax.xml.parsers.SAXParser;
 import javax.xml.parsers.SAXParserFactory;
 
+import net.sf.mzmine.interfaces.Scan;
 import net.sf.mzmine.io.RawDataFile;
-import net.sf.mzmine.io.Scan;
 import net.sf.mzmine.io.RawDataFile.PreloadLevel;
 import net.sf.mzmine.util.Logger;
 

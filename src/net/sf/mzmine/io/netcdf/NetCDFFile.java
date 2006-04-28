@@ -30,8 +30,8 @@ import java.util.Hashtable;
 import java.util.Iterator;
 import java.util.Set;
 
+import net.sf.mzmine.interfaces.Scan;
 import net.sf.mzmine.io.RawDataFile;
-import net.sf.mzmine.io.Scan;
 import net.sf.mzmine.io.RawDataFile.PreloadLevel;
 import net.sf.mzmine.util.Logger;
 

@@ -5,8 +5,8 @@ package net.sf.mzmine.visualizers.rawdata.basepeak;
 
 import java.io.IOException;
 
+import net.sf.mzmine.interfaces.Scan;
 import net.sf.mzmine.io.RawDataFile;
-import net.sf.mzmine.io.Scan;
 import net.sf.mzmine.taskcontrol.Task;
 
 /**

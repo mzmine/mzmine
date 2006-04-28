@@ -15,7 +15,7 @@ import javax.swing.JMenuItem;
 import javax.swing.JPanel;
 import javax.swing.JPopupMenu;
 
-import net.sf.mzmine.io.Scan;
+import net.sf.mzmine.interfaces.Scan;
 import net.sf.mzmine.obsoletedatastructures.FormatCoordinates;
 import net.sf.mzmine.util.format.MZValueFormat;
 import net.sf.mzmine.util.format.ValueFormat;

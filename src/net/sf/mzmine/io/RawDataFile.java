@@ -24,6 +24,8 @@ import java.io.File;
 import java.io.IOException;
 import java.io.Serializable;
 
+import net.sf.mzmine.interfaces.Scan;
+
 /**
  * Class representing a raw data file, no matter what format it is using.
  * 
