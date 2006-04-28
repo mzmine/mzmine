@@ -27,11 +27,10 @@ import java.text.NumberFormat;
 
 import javax.swing.JButton;
 import javax.swing.JCheckBox;
+import javax.swing.JDialog;
 import javax.swing.JFormattedTextField;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
-
-import net.sf.mzmine.userinterface.components.ModalJInternalFrame;
 
 
 /**
@@ -39,7 +38,7 @@ import net.sf.mzmine.userinterface.components.ModalJInternalFrame;
  *
  * @version 30 March 2006
  */
-public class SimpleDeisotoperParameterSetupDialog extends ModalJInternalFrame implements java.awt.event.ActionListener {
+public class SimpleDeisotoperParameterSetupDialog extends JDialog implements java.awt.event.ActionListener {
 
 
 	// VARIABLES
@@ -117,7 +116,7 @@ public class SimpleDeisotoperParameterSetupDialog extends ModalJInternalFrame im
 			exitCode = 1;
 
 			// Hide form
-			disposeModal();
+			dispose();
 		}
 
 		// Cancel button
@@ -127,7 +126,7 @@ public class SimpleDeisotoperParameterSetupDialog extends ModalJInternalFrame im
 			exitCode = -1;
 
 			// Hide form
-			disposeModal();
+			dispose();
 
 		}
 

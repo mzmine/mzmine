@@ -155,7 +155,7 @@ public class AlignmentResultVisualizerSammonsPlotView extends JInternalFrame imp
 																"Please define class labels for samples",
 																rawDatas, paramNames, paramValues, paramFormats);
 
-		stgd.showModal(mainWin.getDesktop());
+		stgd.show();
 
 		retval = stgd.getExitCode();
 

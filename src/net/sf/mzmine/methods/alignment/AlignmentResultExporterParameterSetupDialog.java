@@ -27,11 +27,11 @@ import java.awt.GridLayout;
 import javax.swing.ButtonGroup;
 import javax.swing.JButton;
 import javax.swing.JCheckBox;
+import javax.swing.JDialog;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JRadioButton;
 
-import net.sf.mzmine.userinterface.components.ModalJInternalFrame;
 import net.sf.mzmine.util.GeneralParameters;
 
 
@@ -40,7 +40,7 @@ import net.sf.mzmine.util.GeneralParameters;
  *
  * @version 30 March 2006
  */
-public class AlignmentResultExporterParameterSetupDialog extends ModalJInternalFrame implements java.awt.event.ActionListener {
+public class AlignmentResultExporterParameterSetupDialog extends JDialog implements java.awt.event.ActionListener {
 
 	// CONSTANTS
 
@@ -141,7 +141,7 @@ public class AlignmentResultExporterParameterSetupDialog extends ModalJInternalF
 			exitCode = 1;
 
 			// Hide form
-			disposeModal();
+			dispose();
 		}
 
 		// Cancel button
@@ -151,7 +151,7 @@ public class AlignmentResultExporterParameterSetupDialog extends ModalJInternalF
 			exitCode = -1;
 
 			// Hide form
-			disposeModal();
+			dispose();
 
 		}
 

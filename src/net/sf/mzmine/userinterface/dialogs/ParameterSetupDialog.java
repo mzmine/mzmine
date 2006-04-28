@@ -25,17 +25,17 @@ import java.text.NumberFormat;
 
 import javax.swing.BorderFactory;
 import javax.swing.JButton;
+import javax.swing.JDialog;
 import javax.swing.JFormattedTextField;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 
-import net.sf.mzmine.userinterface.components.ModalJInternalFrame;
 import net.sf.mzmine.userinterface.mainwindow.MainWindow;
 
 /**
  * This class represents the parameter setup dialog shown to the user before processing
  */
-public class ParameterSetupDialog extends ModalJInternalFrame implements ActionListener {
+public class ParameterSetupDialog extends JDialog implements ActionListener {
 
 	// Array for Text fields
 	private JFormattedTextField[] textFields;
@@ -127,12 +127,12 @@ public class ParameterSetupDialog extends ModalJInternalFrame implements ActionL
 		Object src = ae.getSource();
 		if (src==btnOK) {
 			exitCode = 1;
-			disposeModal();
+			dispose();
 			//setVisible(false);
 		}
 		if (src==btnCancel) {
 			exitCode = -1;
-			disposeModal();
+			dispose();
 			//setVisible(false);
 		}
 	}

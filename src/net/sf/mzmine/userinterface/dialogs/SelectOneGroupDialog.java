@@ -20,10 +20,11 @@
 package net.sf.mzmine.userinterface.dialogs;
 import java.util.Vector;
 
-import net.sf.mzmine.userinterface.components.ModalJInternalFrame;
+import javax.swing.JDialog;
+
 import net.sf.mzmine.userinterface.mainwindow.MainWindow;
 
-public class SelectOneGroupDialog extends ModalJInternalFrame implements java.awt.event.ActionListener {
+public class SelectOneGroupDialog extends JDialog implements java.awt.event.ActionListener {
 
 	private static final int LISTBOXWIDTH = 250;
 	private static final int LISTBOXHEIGHT = 200;
@@ -110,7 +111,7 @@ public class SelectOneGroupDialog extends ModalJInternalFrame implements java.aw
 			exitCode = 1;
 
 			// Hide form
-			disposeModal();
+			dispose();
 			//setVisible(false);
 		}
 
@@ -121,7 +122,7 @@ public class SelectOneGroupDialog extends ModalJInternalFrame implements java.aw
 			exitCode = -1;
 
 			// Hide form
-			disposeModal();
+			dispose();
 			//setVisible(false);
 		}
 

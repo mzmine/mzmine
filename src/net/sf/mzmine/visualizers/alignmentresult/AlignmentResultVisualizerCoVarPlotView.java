@@ -195,7 +195,7 @@ public class AlignmentResultVisualizerCoVarPlotView extends JInternalFrame imple
 
 		//ParameterSetupDialog psd = new ParameterSetupDialog(mainWin, true, alignmentResult);
 
-		sord.showModal(mainWin.getDesktop());
+		sord.show();
 /*
 		sord.setLocationRelativeTo(mainWin);
 		sord.setVisible(true);

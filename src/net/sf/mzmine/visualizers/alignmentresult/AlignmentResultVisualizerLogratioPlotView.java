@@ -189,7 +189,7 @@ public class AlignmentResultVisualizerLogratioPlotView extends JInternalFrame im
 																"Select raw data files for group one",
 																"Select raw data files for group two",
 																rawDatas, null, null);
-		stgd.showModal(mainWin.getDesktop());
+		stgd.show();
 /*
 		stgd.setLocationRelativeTo(mainWin);
 		stgd.setVisible(true);

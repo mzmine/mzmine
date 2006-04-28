@@ -169,7 +169,7 @@ public class AlignmentResultVisualizerCDAPlotView extends JInternalFrame impleme
 																rawDatas, paramNames, paramValues, paramFormats);
 
 
-		stgd.showModal(mainWin.getDesktop());
+		stgd.show();
 
 		retval = stgd.getExitCode();
 

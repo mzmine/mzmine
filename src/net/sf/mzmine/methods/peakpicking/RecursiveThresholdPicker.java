@@ -92,7 +92,7 @@ public class RecursiveThresholdPicker implements PeakPicker {
 
 
 		ParameterSetupDialog psd = new ParameterSetupDialog(mainWin, "Please check the parameter values", fieldNames, paramValues, numberFormats);
-		psd.showModal(mainWin.getDesktop());
+		psd.show();
 
 
 		// Check if user clicked Cancel-button

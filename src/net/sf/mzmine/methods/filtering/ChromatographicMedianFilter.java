@@ -59,7 +59,7 @@ public class ChromatographicMedianFilter implements Filter {
 
 		ParameterSetupDialog psd = new ParameterSetupDialog(mainWin, "Please check the parameter values", fieldNames, paramValues, numberFormats);
 
-		psd.showModal(mainWin.getDesktop());
+		psd.show();
 		/*
 		psd.setLocationRelativeTo(mainWin);
 		psd.setVisible(true);

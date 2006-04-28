@@ -59,7 +59,7 @@ public class SimpleDeisotoper implements PeakListProcessor {
 
 		SimpleDeisotoperParameterSetupDialog sdpsd = new SimpleDeisotoperParameterSetupDialog(myParameters);
 
-		sdpsd.showModal(mainWin.getDesktop());
+		sdpsd.show();
 
 
 		if (sdpsd.getExitCode()==-1) { return null; }

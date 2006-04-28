@@ -55,7 +55,7 @@ public class MeanFilter implements Filter {
 		numberFormats[0] = NumberFormat.getNumberInstance(); numberFormats[0].setMinimumFractionDigits(3);
 
 		ParameterSetupDialog psd = new ParameterSetupDialog(mainWin, "Please check the parameter values", fieldNames, paramValues, numberFormats);
-		psd.showModal(mainWin.getDesktop());
+		psd.show();
 		/*
 		psd.setLocationRelativeTo(mainWin);
 		psd.setVisible(true);

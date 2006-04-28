@@ -20,7 +20,7 @@
 
 package net.sf.mzmine.userinterface.dialogs;
 
-import net.sf.mzmine.userinterface.components.ModalJInternalFrame;
+import javax.swing.JDialog;
 
 
 
@@ -30,7 +30,7 @@ import net.sf.mzmine.userinterface.components.ModalJInternalFrame;
  *
  * @version	30 March 2006
  */
-public class AboutDialog extends ModalJInternalFrame {
+public class AboutDialog extends JDialog {
 
 	// GUI elements
 	private javax.swing.JButton jButton1;
@@ -87,7 +87,7 @@ public class AboutDialog extends ModalJInternalFrame {
 	 * This method is called by to OK button's action listener when button is clicked
 	 */
     private void jButton1ActionPerformed(java.awt.event.ActionEvent evt) {
-        disposeModal();
+        dispose();
     }
 
 

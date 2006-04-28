@@ -22,14 +22,14 @@ import java.text.NumberFormat;
 
 import javax.swing.DefaultCellEditor;
 import javax.swing.JComboBox;
+import javax.swing.JDialog;
 import javax.swing.JTable;
 import javax.swing.table.AbstractTableModel;
 
-import net.sf.mzmine.userinterface.components.ModalJInternalFrame;
 import net.sf.mzmine.userinterface.mainwindow.MainWindow;
 
 
-public class SelectClassLabelsDialog extends ModalJInternalFrame implements java.awt.event.ActionListener {
+public class SelectClassLabelsDialog extends JDialog implements java.awt.event.ActionListener {
 
 	private String[] classValues = { "", "1", "2", "3", "4", "5", "6", "7", "8"};
 
@@ -135,7 +135,7 @@ public class SelectClassLabelsDialog extends ModalJInternalFrame implements java
 			exitCode = 1;
 
 			// Hide form
-			disposeModal();
+			dispose();
 /*
 			dispose();
 			mainWin.getDesktop().remove(this);
@@ -149,7 +149,7 @@ public class SelectClassLabelsDialog extends ModalJInternalFrame implements java
 			exitCode = -1;
 
 			// Hide form
-			disposeModal();
+			dispose();
 /*
 			dispose();
 			mainWin.getDesktop().remove(this);
