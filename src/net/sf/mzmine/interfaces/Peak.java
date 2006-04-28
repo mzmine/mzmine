@@ -67,7 +67,7 @@ public interface Peak {
 	/**
 	 * This method sets the normalized height of the peak
 	 */
-	public void setNormalizedHeight();
+	public void setNormalizedHeight(double normalizedHeight);
 
 	/**
 	 * This method returns the normalized height of the peak, or raw height if normalized height is not set.
@@ -77,7 +77,7 @@ public interface Peak {
 	/**
 	 * This method sets the normalized area of the peak
 	 */
-	public void setNormalizedArea();
+	public void setNormalizedArea(double normalizedArea);
 
 	/**
 	 * This method returns the normalized area of the peak, or raw area if normalized area is not set.
@@ -86,9 +86,19 @@ public interface Peak {
 
 
 
-	/* 	Set/get methods for isotope pattern information */
+	/* 	Set/get methods for isotope pattern of the peak */
 
-	// TODO
+	/**
+	 * This method returns the isotope pattern where this peak is assigned
+	 *
+	 * @return isotope pattern or null if peak is not assigned to any pattern.
+	 */
+	public IsotopePattern getIsotopePattern();
+
+	/**
+	 * This method sets the isotope pattern of the peak
+	 */
+	public void setIsotopePattern(IsotopePattern isotopePattern);
 
 
 
