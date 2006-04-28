@@ -53,7 +53,6 @@ import javax.swing.event.InternalFrameEvent;
 import javax.swing.event.InternalFrameListener;
 
 import net.sf.mzmine.methods.alignment.AlignmentResult;
-import net.sf.mzmine.obsoletedatastructures.FormatCoordinates;
 import net.sf.mzmine.userinterface.components.Colorbar;
 import net.sf.mzmine.userinterface.dialogs.SelectTwoGroupsDialog;
 import net.sf.mzmine.userinterface.mainwindow.MainWindow;
@@ -923,7 +922,6 @@ public class AlignmentResultVisualizerLogratioPlotView extends JInternalFrame im
 				// 	Set cursor to current location
 				cursorPositionRT = xpos;
 				cursorPositionMZ = ypos;
-				statBar.setCursorPosition(ypos, xpos);
 
 				zoomToSelectionMenuItem.setEnabled(false);
 
@@ -1049,7 +1047,7 @@ public class AlignmentResultVisualizerLogratioPlotView extends JInternalFrame im
 			for (int t=0; t<numoftics; t++) {
 				// if (t==(numoftics-1)) { this.setForeground(Color.red); }
 
-				tmps = FormatCoordinates.formatRTValue(xval);
+				tmps = "";//FormatCoordinates.formatRTValue(xval);
 
 				g.drawLine((int)java.lang.Math.round(xpos), 0, (int)java.lang.Math.round(xpos), (int)(h/4));
 				g.drawBytes(tmps.getBytes(), 0, tmps.length(), (int)java.lang.Math.round(xpos),(int)(3*h/4));
@@ -1109,7 +1107,7 @@ public class AlignmentResultVisualizerLogratioPlotView extends JInternalFrame im
 			double yval = minY;
 			for (int t=1; t<=numTics; t++) {
 
-				tmps = FormatCoordinates.formatMZValue(yval);
+				tmps = "";//FormatCoordinates.formatMZValue(yval);
 
 				g.drawLine((int)(3*w/4), (int)(h-ypos), (int)(w), (int)(h-ypos));
 				g.drawBytes(tmps.getBytes(), 0, tmps.length(), (int)(w/4)-4,(int)(h-ypos));

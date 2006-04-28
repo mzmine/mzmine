@@ -21,8 +21,8 @@ package net.sf.mzmine.methods.filtering;
 import java.text.NumberFormat;
 import java.util.Vector;
 
-import net.sf.mzmine.obsoletedatastructures.RawDataAtNode;
-import net.sf.mzmine.obsoletedatastructures.Scan;
+import net.sf.mzmine.interfaces.Scan;
+import net.sf.mzmine.io.RawDataFile;
 import net.sf.mzmine.userinterface.dialogs.ParameterSetupDialog;
 import net.sf.mzmine.userinterface.mainwindow.MainWindow;
 import net.sf.mzmine.util.MyMath;
@@ -95,17 +95,17 @@ public class ChromatographicMedianFilter implements Filter {
 	}
 
 
-	public int doFiltering(RawDataAtNode rawData, FilterParameters _filterParameters) {
+	public int doFiltering(RawDataFile rawData, FilterParameters _filterParameters) {
 
 		ChromatographicMedianFilterParameters filterParameters = (ChromatographicMedianFilterParameters)_filterParameters;
 
 
 		Scan[] scanBuffer = new Scan[1+2*filterParameters.oneSidedWindowLength];
 
-		Scan sc;
-		int ret;
+		Scan sc = null;
+		int ret = 0, maxScan = 0;
 
-		int numberOfDatapoints = rawData.getNumberOfDatapoints();
+		/*int numberOfDatapoints = rawData.getNumberOfDatapoints();
 		int maxScan = rawData.getNumberOfScans();
 
 
@@ -114,17 +114,17 @@ public class ChromatographicMedianFilter implements Filter {
 
 
 		rawData.initializeScanBrowser(0, maxScan);
-
+*/
 		for (int scani=0; scani<(maxScan+filterParameters.oneSidedWindowLength); scani++) {
 
 			//nodeServer.updateJobCompletionRate((double)scani/(double)(maxScan-1));
 
 			// Pickup next scan from original raw data file
-			if (scani<maxScan) {
-				sc = rawData.getNextScan();
-			} else {
-				sc = null;
-			}
+		//	if (scani<maxScan) {
+				//sc = rawData.getNextScan();
+			//} else {
+				//sc = null;
+			//}
 
 
 			// Advance scan buffer
@@ -177,12 +177,12 @@ public class ChromatographicMedianFilter implements Filter {
 				}
 
 				// Write the modified scan to file
-				Scan modifiedScan = new Scan(sc.getMZValues(), newIntValues, sc.getScanNumber(), sc.getMZRangeMin(), sc.getMZRangeMax());
-				ret = rawData.setScan(modifiedScan);
+			//	Scan modifiedScan = new Scan(sc.getMZValues(), newIntValues, sc.getScanNumber(), sc.getMZRangeMin(), sc.getMZRangeMax());
+				// ret = rawData.setScan(modifiedScan);
 
 				if (ret != 1) {
-					rawData.finalizeScanBrowser();
-					rawData.finalizeAfterWriting();
+					//rawData.finalizeScanBrowser();
+					//rawData.finalizeAfterWriting();
 					return ret;
 				}
 
@@ -192,9 +192,9 @@ public class ChromatographicMedianFilter implements Filter {
 
 		}
 
-		rawData.finalizeScanBrowser();
-
-		ret = rawData.finalizeAfterWriting();
+//		rawData.finalizeScanBrowser();
+//
+		//ret = rawData.finalizeAfterWriting();
 
 		return ret;
 

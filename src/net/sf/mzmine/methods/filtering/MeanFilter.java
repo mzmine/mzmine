@@ -21,8 +21,8 @@ package net.sf.mzmine.methods.filtering;
 import java.text.NumberFormat;
 import java.util.Vector;
 
-import net.sf.mzmine.obsoletedatastructures.RawDataAtNode;
-import net.sf.mzmine.obsoletedatastructures.Scan;
+import net.sf.mzmine.interfaces.Scan;
+import net.sf.mzmine.io.RawDataFile;
 import net.sf.mzmine.userinterface.dialogs.ParameterSetupDialog;
 import net.sf.mzmine.userinterface.mainwindow.MainWindow;
 
@@ -81,13 +81,13 @@ public class MeanFilter implements Filter {
 	}
 
 
-	public int doFiltering(RawDataAtNode rawData, FilterParameters _filterParameters) {
+	public int doFiltering(RawDataFile rawData, FilterParameters _filterParameters) {
 
 		MeanFilterParameters filterParameters = (MeanFilterParameters)_filterParameters;
 
 		Scan sc;
-		int ret;
-
+		int ret =0;
+/*
 		int numberOfDatapoints = rawData.getNumberOfDatapoints();
 		int maxScan = rawData.getNumberOfScans();
 
@@ -119,7 +119,7 @@ public class MeanFilter implements Filter {
 		rawData.finalizeScanBrowser();
 
 		ret = rawData.finalizeAfterWriting();
-
+*/
 		return ret;
 
 	}
@@ -175,7 +175,7 @@ public class MeanFilter implements Filter {
 			newIntensities[i] = elSum / (double)intensityWindow.size();
 
 		}
-		sc.setIntensityValues(newIntensities);
+		//sc.setIntensityValues(newIntensities);
 
 	}
 

@@ -27,7 +27,7 @@ import java.util.Set;
 import java.util.TreeSet;
 import java.util.Vector;
 
-import net.sf.mzmine.obsoletedatastructures.RawDataAtNode;
+import net.sf.mzmine.io.RawDataFile;
 import net.sf.mzmine.userinterface.mainwindow.MainWindow;
 
 
@@ -75,7 +75,7 @@ public class SimpleDeisotoper implements PeakListProcessor {
 	/**
 	 * This method does the processing
 	 */
-	public PeakList processPeakList(RawDataAtNode theData, PeakList peakList, PeakListProcessorParameters _parameters) {
+	public PeakList processPeakList(RawDataFile theData, PeakList peakList, PeakListProcessorParameters _parameters) {
 
 		// Take the parameters
 		SimpleDeisotoperParameters parameters = (SimpleDeisotoperParameters)_parameters;

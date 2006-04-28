@@ -18,7 +18,7 @@
     Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 */
 package net.sf.mzmine.methods.peakpicking;
-import net.sf.mzmine.obsoletedatastructures.RawDataAtNode;
+import net.sf.mzmine.io.RawDataFile;
 
 public interface PeakPicker {
 
@@ -34,7 +34,7 @@ public interface PeakPicker {
 	 * This method does the peak picking for given raw data file
 	 * Method runs on a node
 	 */
-    public PeakList findPeaks(RawDataAtNode theData, PeakPickerParameters parameters);
+    public PeakList findPeaks(RawDataFile theData, PeakPickerParameters parameters);
 
 
 }

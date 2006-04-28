@@ -26,7 +26,7 @@ import java.text.NumberFormat;
 
 import javax.swing.JDialog;
 
-import net.sf.mzmine.obsoletedatastructures.RawDataAtClient;
+import net.sf.mzmine.io.RawDataFile;
 import net.sf.mzmine.userinterface.mainwindow.MainWindow;
 import net.sf.mzmine.userinterface.mainwindow.Statusbar;
 import net.sf.mzmine.util.GeneralParameters;
@@ -98,7 +98,7 @@ public class StandardCompoundNormalizer implements Normalizer {
 
 		int numOfRawDatas = ar.getNumOfRawDatas();
 
-		RawDataAtClient r;
+		RawDataFile r;
 		int rawDataID;
 
 		double[] rawPeakHeights;

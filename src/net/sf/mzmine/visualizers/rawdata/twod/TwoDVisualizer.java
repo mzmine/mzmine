@@ -53,7 +53,6 @@ import javax.swing.event.InternalFrameListener;
 
 import net.sf.mzmine.io.RawDataFile;
 import net.sf.mzmine.methods.peakpicking.Peak;
-import net.sf.mzmine.obsoletedatastructures.RawDataAtClient;
 import net.sf.mzmine.userinterface.mainwindow.ItemSelector;
 import net.sf.mzmine.userinterface.mainwindow.MainWindow;
 import net.sf.mzmine.userinterface.mainwindow.Statusbar;
@@ -69,7 +68,7 @@ public class TwoDVisualizer extends JInternalFrame implements RawDataVisualizer,
 	private JPanel bottomPnl, leftPnl, rightPnl, topPnl;
 	private TwoDPlot twodPlot;
 
-	private RawDataAtClient rawData;
+	private RawDataFile rawData;
 
 	private int mouseAreaStartScan;
 	private int mouseAreaEndScan;
@@ -113,7 +112,7 @@ public class TwoDVisualizer extends JInternalFrame implements RawDataVisualizer,
 
 		getContentPane().setLayout(new BorderLayout());
 
-		bottomPnl = new TwoDXAxis();
+		bottomPnl = new JPanel(); //TwoDXAxis();
 		bottomPnl.setMinimumSize(new Dimension(getWidth(),25));
 		bottomPnl.setPreferredSize(new Dimension(getWidth(),25));
 		bottomPnl.setBackground(Color.white);
@@ -125,7 +124,7 @@ public class TwoDVisualizer extends JInternalFrame implements RawDataVisualizer,
 		topPnl.setBackground(Color.white);
 		getContentPane().add(topPnl, java.awt.BorderLayout.NORTH);
 
-		leftPnl = new TwoDYAxis();
+		leftPnl = new JPanel(); //TwoDYAxis();
 		leftPnl.setMinimumSize(new Dimension(100, getHeight()));
 		leftPnl.setPreferredSize(new Dimension(100, getHeight()));
 		leftPnl.setBackground(Color.white);
@@ -153,21 +152,6 @@ public class TwoDVisualizer extends JInternalFrame implements RawDataVisualizer,
         setIconifiable( true );
 
     }
-
-    public void setRawData(RawDataAtClient _rawData) {
-		rawData = _rawData;
-    }
-
-    public RawDataAtClient getRawData() {
-		return rawData;
-	}
-
-    public void paint(Graphics g) {
-		if (rawData==null) { return; }
-		if (rawData.getRawDataUpdatedFlag()) { return; }
-
-		super.paint(g);
-	}
 
 
 
@@ -478,8 +462,6 @@ public class TwoDVisualizer extends JInternalFrame implements RawDataVisualizer,
 
 		public void paint(Graphics g) {
 
-			if (rawData==null) { return; }
-			if (rawData.getRawDataUpdatedFlag()) { return; }
 
 			double w = getWidth();
 			double h = getHeight();
@@ -561,13 +543,15 @@ public class TwoDVisualizer extends JInternalFrame implements RawDataVisualizer,
 
 
 				// Draw Scan cursor position
-				x = rawData.getCursorPositionScan();
+		//		x = rawData.getCursorPositionScan();
+                x = 0;
+                y= 0;
 				x2 = (int)java.lang.Math.round((double)w * ((double)(x-minX) / (double)(maxX-minX+1)));
 				g.setColor(Color.red);
 				g.drawLine(x2,0,x2,(int)h);
 
 				// Draw MZ cursor position
-				y = rawData.getCursorPositionMZ();
+		//		y = rawData.getCursorPositionMZ();
 				y2 = (int)java.lang.Math.round((double)h * ((double)(y-minY) / (double)(maxY-minY)));
 				g.setColor(Color.red);
 				g.drawLine(0,(int)(h-y2),(int)w,(int)(h-y2));
@@ -614,91 +598,12 @@ public class TwoDVisualizer extends JInternalFrame implements RawDataVisualizer,
 
 			Object src = e.getSource();
 
-			if (src == zoomToSelectionMenuItem) {
-
-				rawData.setSelection(mouseAreaStartScan, mouseAreaEndScan, mouseAreaStartMZ, mouseAreaEndMZ);
-				mouseAreaStartScan = rawData.getCursorPositionScan();
-				mouseAreaEndScan = rawData.getCursorPositionScan();
-				mouseAreaStartMZ = rawData.getCursorPositionMZ();
-				mouseAreaEndMZ = rawData.getCursorPositionMZ();
-
-		//		mainWin.startRefreshRawDataVisualizers(RawDataVisualizer.CHANGETYPE_SELECTION_BOTH, rawData.getRawDataID());
-
-				/*
-				BackgroundThread bt = new BackgroundThread(mainWin, msRun, Visualizer.CHANGETYPE_SELECTION_BOTH, BackgroundThread.TASK_REFRESHVISUALIZERS);
-				bt.start();
-				*/
-
-				zoomToSelectionMenuItem.setEnabled(false);
-
-			}
-
-			if (src == zoomOutMenuItem) {
-
-				rawData.clearSelection();
-				mouseAreaStartScan = rawData.getCursorPositionScan();
-				mouseAreaEndScan = rawData.getCursorPositionScan();
-				mouseAreaStartMZ = rawData.getCursorPositionMZ();
-				mouseAreaEndMZ = rawData.getCursorPositionMZ();
-
-			//	mainWin.startRefreshRawDataVisualizers(RawDataVisualizer.CHANGETYPE_SELECTION_BOTH, rawData.getRawDataID());
-
-				/*
-				BackgroundThread bt = new BackgroundThread(mainWin, msRun, Visualizer.CHANGETYPE_SELECTION_BOTH, BackgroundThread.TASK_REFRESHVISUALIZERS);
-				bt.start();
-				*/
-
-			}
-
-			if (src == zoomOutLittleMenuItem) {
-				int midX = (int)(java.lang.Math.round( (double)(minX+maxX)/(double)2 ) );
-				double midY = (minY+maxY)/(double)2.0;
-				int tmpMinX, tmpMaxX;
-				double tmpMinY, tmpMaxY;
-
-				if (((midX-minX)>0) && ((maxX-midX)>0)) {
-					tmpMinX = (int)(java.lang.Math.round(midX - (midX-minX)*(double)1.5));
-					tmpMaxX = (int)(java.lang.Math.round(midX + (maxX-midX)*(double)1.5));
-				} else {
-					tmpMinX = minX - 1;
-					tmpMaxX = maxX + 1;
-				}
-
-
-				if (((midY-minY)>0) && ((maxY-midY)>0)) {
-					tmpMinY = midY - (midY-minY)*(double)1.5;
-					tmpMaxY = midY + (maxY-midY)*(double)1.5;
-				} else {
-					tmpMinY = minY - (double)0.5;
-					tmpMaxY = maxY + (double)0.5;
-				}
-
-				if (tmpMinX<0) {tmpMinX = 0;}
-				if (tmpMaxX>(rawData.getNumOfScans()-1)) { tmpMaxX = rawData.getNumOfScans()-1; }
-				if (tmpMinY<rawData.getDataMinMZ()) { tmpMinY = rawData.getDataMinMZ(); }
-				if (tmpMaxY>rawData.getDataMaxMZ()) { tmpMaxY = rawData.getDataMaxMZ(); }
-
-				rawData.setSelection(tmpMinX, tmpMaxX, tmpMinY, tmpMaxY);
-
-
-		//		mainWin.startRefreshRawDataVisualizers(RawDataVisualizer.CHANGETYPE_SELECTION_BOTH, rawData.getRawDataID());
-
-				/*
-				BackgroundThread bt = new BackgroundThread(mainWin, msRun, Visualizer.CHANGETYPE_SELECTION_BOTH, BackgroundThread.TASK_REFRESHVISUALIZERS);
-				bt.start();
-				*/
-
-			}
-
-			if (src == zoomSameToOthersMenuItem) {
-		//		mainWin.setSameZoomToOtherRawDatas(rawData, masterFrame.mainWin.SET_SAME_ZOOM_BOTH);
-			}
 
 
 			if (src == selectNearestPeakMenuItem) {
 				// Calc MZ vs ScanNum parameter
 				double pixelVertical = (maxY-minY) / bi.getHeight();
-				double pixelHorizontal = (rawData.getScanTime(maxX)-rawData.getScanTime(minX)) / bi.getWidth();
+				double pixelHorizontal = 0;// (rawData.getScanTime(maxX)-rawData.getScanTime(minX)) / bi.getWidth();
 				double MZvsScanNum = pixelVertical / pixelHorizontal;
 
 		//		int changeType = rawData.selectNearestPeak(rawData.getCursorPositionMZ(), rawData.getCursorPositionScan(), MZvsScanNum);
@@ -820,11 +725,11 @@ public class TwoDVisualizer extends JInternalFrame implements RawDataVisualizer,
 				mouseAreaEndMZ = ypos;
 
 				zoomToSelectionMenuItem.setEnabled(false);
-				rawData.setCursorPosition(xpos, ypos);
-				statBar.setCursorPosition(ypos, rawData.getScanTime(xpos));
+				//rawData.setCursorPosition(xpos, ypos);
+//				statBar.setCursorPosition(ypos, rawData.getScanTime(xpos));
 
 				int[] tmpRawDataIDs = new int[1];
-				tmpRawDataIDs[0] = rawData.getRawDataID();
+//				tmpRawDataIDs[0] = rawData.getRawDataID();
 		//		mainWin.startRefreshRawDataVisualizers(RawDataVisualizer.CHANGETYPE_CURSORPOSITION_BOTH, tmpRawDataIDs);
 
 				//msRun.refreshVisualizers(Visualizer.CHANGETYPE_CURSORPOSITION_BOTH, statBar);
@@ -851,7 +756,7 @@ public class TwoDVisualizer extends JInternalFrame implements RawDataVisualizer,
 			if (selectionFirstClickScan == -1) {
 				selectionFirstClickScan = xpos;
 				selectionFirstClickMZ = ypos;
-				rawData.setCursorPosition(xpos,ypos);
+			//	rawData.setCursorPosition(xpos,ypos);
 			} else {
 				selectionLastClickScan = xpos;
 				selectionLastClickMZ = ypos;

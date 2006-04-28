@@ -11,12 +11,10 @@ import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.awt.event.MouseMotionListener;
 
-import javax.swing.JMenuItem;
 import javax.swing.JPanel;
-import javax.swing.JPopupMenu;
 
 import net.sf.mzmine.interfaces.Scan;
-import net.sf.mzmine.obsoletedatastructures.FormatCoordinates;
+import net.sf.mzmine.util.format.IntensityValueFormat;
 import net.sf.mzmine.util.format.MZValueFormat;
 import net.sf.mzmine.util.format.ValueFormat;
 
@@ -49,12 +47,15 @@ class SpectrumPlot extends JPanel implements
     
     private boolean showAnnotations = true;
     
-    private ValueFormat mzFormat = new MZValueFormat();
+    private ValueFormat mzFormat, intensityFormat;
 
     SpectrumPlot(SpectrumVisualizer masterFrame) {
 
         this.masterFrame = masterFrame;
 
+        mzFormat = new MZValueFormat();
+        intensityFormat = new IntensityValueFormat();
+        
         setBackground(Color.white);
         setCursor(Cursor.getPredefinedCursor(Cursor.CROSSHAIR_CURSOR));
 
@@ -220,9 +221,9 @@ class SpectrumPlot extends JPanel implements
             double mz = mzValueMin + xAxisStep * mousePositionX;
             double intensity = intValueMin + (intValueMax - intValueMin)
                     / height * (height - mousePositionY);
-            String positionMZ = "m/z: " + FormatCoordinates.formatMZValue(mz);
+            String positionMZ = "m/z: " + mzFormat.format(mz);
             String positionInt = "IC: "
-                    + FormatCoordinates.formatIntensityValue(intensity);
+                    + intensityFormat.format(intensity);
             int drawX = mousePositionX + 8;
             int drawY = mousePositionY - 20;
 

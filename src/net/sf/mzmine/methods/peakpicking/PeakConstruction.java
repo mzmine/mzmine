@@ -19,7 +19,7 @@
 */
 
 package net.sf.mzmine.methods.peakpicking;
-import net.sf.mzmine.obsoletedatastructures.RawDataAtNode;
+import net.sf.mzmine.io.RawDataFile;
 import net.sf.mzmine.util.MyMath;
 
 
@@ -39,7 +39,7 @@ public class PeakConstruction {
 	int reservedSize;
 	int reservedSizeIncrement;
 
-	RawDataAtNode rawData;
+	RawDataFile rawData;
 
 	boolean peakGrowing;
 
@@ -64,7 +64,7 @@ public class PeakConstruction {
 	 * @param	initialReservedSize		Amount of memory (length of peak in scans) reserved immediately
 	 * @param	initialReservedSizeIncrement	Increment (num of new scans) used when more memory is needed
 	 */
-    public PeakConstruction(RawDataAtNode _rawData, int initialReservedSize, int initialReservedSizeIncrement) {
+    public PeakConstruction(RawDataFile _rawData, int initialReservedSize, int initialReservedSizeIncrement) {
 		rawData = _rawData;
 
 		reservedSize = initialReservedSize;
@@ -376,7 +376,7 @@ public class PeakConstruction {
 	 * Returns RT in seconds of M/Z peak with strongest intensity
 	 */
 	public double getMaxIntensityTime() {
-		return rawData.getScanTime(getMaxIntensityScanNum());
+return 0; //		return rawData.getScanTime(getMaxIntensityScanNum());
 	}
 
 
@@ -448,13 +448,14 @@ public class PeakConstruction {
 	 */
 	public double getLengthInSecs() {
 		if (usedSize<=0) { return 0; }
-		return ( rawData.getScanTime(scanNums[usedSize-1]) - rawData.getScanTime(scanNums[0]) );
+	//	return ( rawData.getScanTime(scanNums[usedSize-1]) - rawData.getScanTime(scanNums[0]) );
+        return 0;
 	}
 
 	/**
 	 * Returns the Run object where this peak belongs to
 	 */
-	public RawDataAtNode getRawData() {
+	public RawDataFile getRawData() {
 		return rawData;
 	}
 

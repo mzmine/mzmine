@@ -20,8 +20,8 @@
 package net.sf.mzmine.methods.filtering;
 import java.text.NumberFormat;
 
-import net.sf.mzmine.obsoletedatastructures.RawDataAtNode;
-import net.sf.mzmine.obsoletedatastructures.Scan;
+import net.sf.mzmine.interfaces.Scan;
+import net.sf.mzmine.io.RawDataFile;
 import net.sf.mzmine.userinterface.dialogs.ParameterSetupDialog;
 import net.sf.mzmine.userinterface.mainwindow.MainWindow;
 
@@ -113,16 +113,16 @@ public class CropFilter implements Filter {
 	}
 
 
-	public int doFiltering(RawDataAtNode rawData, FilterParameters _filterParameters) {
+	public int doFiltering(RawDataFile rawData, FilterParameters _filterParameters) {
 
 		CropFilterParameters filterParameters = (CropFilterParameters)_filterParameters;
 
 		Scan sc;
 		int ret;
 
-		int maxScan = rawData.getNumberOfScans();
+		int maxScan = rawData.getNumOfScans();
 
-		double[] scanTimes = rawData.getScanTimes();
+		/*double[] scanTimes = rawData.getScanTimes();
 		int numOfIncludeScans = 0;
 		for (double rt : scanTimes) {
 			// Is this within the RT range?
@@ -176,8 +176,8 @@ public class CropFilter implements Filter {
 			}
 
 			// Set net datapoints
-			sc.setMZValues(newMassValues);
-			sc.setIntensityValues(newIntensityValues);
+			// sc.setMZValues(newMassValues);
+			// sc.setIntensityValues(newIntensityValues);
 
 
 			// Store scan
@@ -194,8 +194,10 @@ public class CropFilter implements Filter {
 		rawData.finalizeScanBrowser();
 
 		ret = rawData.finalizeAfterWriting();
-
+		
 		return ret;
+        */
+        return 0;
 
 	}
 

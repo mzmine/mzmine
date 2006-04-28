@@ -23,7 +23,7 @@ package net.sf.mzmine.methods.peakpicking;
 import java.io.FileWriter;
 import java.util.Enumeration;
 
-import net.sf.mzmine.obsoletedatastructures.RawDataAtClient;
+import net.sf.mzmine.io.RawDataFile;
 
 
 public class PeakListExporter {
@@ -31,9 +31,9 @@ public class PeakListExporter {
 	/**
 	 * Exports peak data to a text file
 	 */
-	public static boolean writePeakListToFile(RawDataAtClient rawData, String fname) {
+	public static boolean writePeakListToFile(RawDataFile rawData, String fname) {
 
-		double mz,rt,height,area, duration, stdevMZ;
+		double mz,rt,height,area, duration = 0, stdevMZ;
 		int charge, isotopePatternID, isotopePeakNumber;
 
 		// Open file
@@ -67,7 +67,7 @@ public class PeakListExporter {
 
 		// Loop through peaks
 
-		Enumeration<Peak> pe = rawData.getPeakList().getPeaks().elements();
+		Enumeration<Peak> pe = null; //rawData.getPeakList().getPeaks().elements();
 		Peak p;
 
 		while (pe.hasMoreElements()) {
@@ -80,7 +80,7 @@ public class PeakListExporter {
 			charge = p.getChargeState();
 			isotopePatternID = p.getIsotopePatternID();
 			isotopePeakNumber = p.getIsotopePeakNumber();
-			duration = rawData.getScanTime(p.getStopScanNumber()) - rawData.getScanTime(p.getStartScanNumber());
+			//duration = rawData.getScanTime(p.getStopScanNumber()) - rawData.getScanTime(p.getStartScanNumber());
 			stdevMZ = p.getMZStdev();
 
 			s = ""	+ mz + "\t"

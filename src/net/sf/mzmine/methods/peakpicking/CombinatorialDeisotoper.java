@@ -20,7 +20,7 @@
 package net.sf.mzmine.methods.peakpicking;
 import java.util.Vector;
 
-import net.sf.mzmine.obsoletedatastructures.RawDataAtNode;
+import net.sf.mzmine.io.RawDataFile;
 import net.sf.mzmine.userinterface.mainwindow.MainWindow;
 
 
@@ -65,7 +65,7 @@ public class CombinatorialDeisotoper implements PeakListProcessor {
 	 * @param	_parameters		Parameter values
 	 * @return					New peak list
 	 */
-	public PeakList processPeakList(RawDataAtNode theData, PeakList peakList, PeakListProcessorParameters _parameters) {
+	public PeakList processPeakList(RawDataFile theData, PeakList peakList, PeakListProcessorParameters _parameters) {
 
 		// Take the parameters
 		CombinatorialDeisotoperParameters parameters = (CombinatorialDeisotoperParameters)_parameters;

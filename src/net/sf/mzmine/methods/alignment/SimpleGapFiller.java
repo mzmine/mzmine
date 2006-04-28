@@ -36,8 +36,8 @@ import javax.swing.JFormattedTextField;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 
-import net.sf.mzmine.obsoletedatastructures.RawDataAtNode;
-import net.sf.mzmine.obsoletedatastructures.Scan;
+import net.sf.mzmine.interfaces.Scan;
+import net.sf.mzmine.io.RawDataFile;
 import net.sf.mzmine.userinterface.mainwindow.MainWindow;
 
 
@@ -69,7 +69,7 @@ private static int idCount = 0; // DEBUG
 
 	}
 
-	public Hashtable<Integer, double[]> fillGaps(Hashtable<Integer, double[]> gapsToFill, RawDataAtNode rawData, GapFillerParameters _parameters) {
+	public Hashtable<Integer, double[]> fillGaps(Hashtable<Integer, double[]> gapsToFill, RawDataFile rawData, GapFillerParameters _parameters) {
 
 		SimpleGapFillerParameters parameters = (SimpleGapFillerParameters)_parameters;
 
@@ -92,7 +92,7 @@ private static int idCount = 0; // DEBUG
 		gapsToFill = null;
 
 		// Loop through required scan range
-		rawData.initializeScanBrowser(0, rawData.getNumberOfScans()-1);
+/*		rawData.initializeScanBrowser(0, rawData.getNumberOfScans()-1);
 
 		for (int scanInd=0; scanInd<=(rawData.getNumberOfScans()-1); scanInd++) {
 
@@ -117,7 +117,7 @@ private static int idCount = 0; // DEBUG
 
 		// Finalize scan loop
 		rawData.finalizeScanBrowser();
-
+*/
 
 		// Contruct results
 		Hashtable<Integer, double[]> results = new Hashtable<Integer, double[]>();

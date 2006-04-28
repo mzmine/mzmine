@@ -22,8 +22,8 @@ import java.util.Hashtable;
 
 import javax.swing.JOptionPane;
 
-import net.sf.mzmine.obsoletedatastructures.RawDataAtNode;
-import net.sf.mzmine.obsoletedatastructures.Scan;
+import net.sf.mzmine.interfaces.Scan;
+import net.sf.mzmine.io.RawDataFile;
 import net.sf.mzmine.userinterface.mainwindow.MainWindow;
 import net.sf.mzmine.userinterface.mainwindow.Statusbar;
 
@@ -85,7 +85,7 @@ public class SavitzkyGolayFilter implements Filter {
 	}
 
 
-	public int doFiltering(RawDataAtNode rawData, FilterParameters _filterParameters) {
+	public int doFiltering(RawDataFile rawData, FilterParameters _filterParameters) {
 
 		// Get parameters
 		SavitzkyGolayFilterParameters filterParameters = (SavitzkyGolayFilterParameters)_filterParameters;
@@ -93,7 +93,7 @@ public class SavitzkyGolayFilter implements Filter {
 		// Initialize AH values
 		initializeAHValues();
 
-		int numberOfDatapoints = rawData.getNumberOfDatapoints();
+/*		int numberOfDatapoints = rawData.getNumberOfDatapoints();
 		int maxScan = rawData.getNumberOfScans();
 
 		int ret = rawData.initializeForWriting(numberOfDatapoints, maxScan);
@@ -123,7 +123,8 @@ public class SavitzkyGolayFilter implements Filter {
 
 		rawData.finalizeScanBrowser();
 		return rawData.finalizeAfterWriting();
-
+*/
+        return 0;
 	}
 
 
@@ -151,7 +152,7 @@ public class SavitzkyGolayFilter implements Filter {
 			newIntensities[spectrumInd] = sumOfInts;
 
 		}
-		sc.setIntensityValues(newIntensities);
+		//sc.setIntensityValues(newIntensities);
 
 	}
 

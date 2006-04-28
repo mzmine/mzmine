@@ -25,7 +25,6 @@ import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.awt.print.PageFormat;
 import java.awt.print.Printable;
-import java.util.Enumeration;
 import java.util.Vector;
 
 import javax.swing.JInternalFrame;
@@ -42,13 +41,10 @@ import javax.swing.table.AbstractTableModel;
 import net.sf.mzmine.io.RawDataFile;
 import net.sf.mzmine.methods.alignment.AlignmentResult;
 import net.sf.mzmine.methods.peakpicking.Peak;
-import net.sf.mzmine.methods.peakpicking.PeakList;
-import net.sf.mzmine.obsoletedatastructures.RawDataAtClient;
 import net.sf.mzmine.userinterface.mainwindow.ItemSelector;
 import net.sf.mzmine.userinterface.mainwindow.MainWindow;
 import net.sf.mzmine.userinterface.mainwindow.Statusbar;
 import net.sf.mzmine.visualizers.RawDataVisualizer;
-import sunutils.TableSorter;
 
 
 /**
@@ -73,7 +69,7 @@ public class RawDataVisualizerPeakListView extends JInternalFrame implements Pri
 	private Statusbar statBar;
 	private ItemSelector itemSelector;
 
-	private RawDataAtClient rawData;
+	private RawDataFile rawData;
 
 	private JTable table;
 	private JScrollPane scrollPane;
@@ -131,20 +127,6 @@ public class RawDataVisualizerPeakListView extends JInternalFrame implements Pri
 
 	}
 
-	/**
-	 * Sets raw data
-	 */
-    public void setRawData(RawDataAtClient _rawData) {
-		rawData = _rawData;
-		setTitle("" + rawData.getNiceName() + ": Peak list");
-	}
-
-	/**
-	 * Returns raw data assigned to this visualizer
-	 */
-	public RawDataAtClient getRawData() {
-		return rawData;
-	}
 
 
 
@@ -201,29 +183,7 @@ public class RawDataVisualizerPeakListView extends JInternalFrame implements Pri
 			setZoomAroundSelectedPeak();
 		}
 
-		if (src == findInAlignmentsMenuItem) {
-
-			// Determine Peak ID
-			int selectedRow = table.getSelectedRow();
-			if (selectedRow == -1) { return; }
-			int peakID = ((Integer)table.getValueAt(selectedRow, 0)).intValue();
-
-			// Loop through all alignment results
-			Vector<Integer> alignmentResultIDs = rawData.getAlignmentResultIDs();
-			for (Integer alignmentResultID : alignmentResultIDs) {
-
-				AlignmentResult alignmentResult = mainWin.getItemSelector().getAlignmentResultByID(alignmentResultID.intValue());
-
-				// Select the row with this peak in the alignment result
-				if (alignmentResult.selectPeak(rawData.getRawDataID(), peakID) == -1) {
-					// Not found => show message
-					mainWin.displayErrorMessage("Peak not found in alignment " + alignmentResult.getNiceName());
-				} else {
-					// Found Inform all alignment result visualizers about this change
-				//	mainWin.updateAlignmentResultVisualizers(alignmentResultID.intValue());
-				}
-			}
-		}
+	
 	}
 
 
@@ -276,11 +236,11 @@ public class RawDataVisualizerPeakListView extends JInternalFrame implements Pri
 	private void setZoomAroundSelectedPeak() {
 
 		int selectedRow = table.getSelectedRow();
-		int peakInd = ((Integer)table.getValueAt(selectedRow, 0)).intValue();	// -1
+//		int peakInd = ((Integer)table.getValueAt(selectedRow, 0)).intValue();	// -1
 
-		Peak p = rawData.getPeakList().getPeak(peakInd);
+//		Peak p = rawData.getPeakList().getPeak(peakInd);
 
-		rawData.setSelectionAroundPeak(p);
+	//	rawData.setSelectionAroundPeak(p);
 
 //		mainWin.startRefreshRawDataVisualizers(RawDataVisualizer.CHANGETYPE_SELECTION_BOTH, rawData.getRawDataID());
 
@@ -315,9 +275,8 @@ public class RawDataVisualizerPeakListView extends JInternalFrame implements Pri
 						int peakID = ((Integer)table.getValueAt(row,0)).intValue();
 						// peakID--;
 
-						rawData.getPeakList().setSelectedPeakID(peakID);
-						rawData.setCursorPositionByPeakID(peakID);
-						statBar.setCursorPosition(rawData);
+						//rawData.getPeakList().setSelectedPeakID(peakID);
+						//rawData.setCursorPositionByPeakID(peakID);
 
 	//					mainWin.startRefreshRawDataVisualizers(RawDataVisualizer.CHANGETYPE_CURSORPOSITION_BOTH, rawData.getRawDataID());
 						/*

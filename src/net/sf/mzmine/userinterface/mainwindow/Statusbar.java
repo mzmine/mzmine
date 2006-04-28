@@ -29,9 +29,6 @@ import javax.swing.JPanel;
 import javax.swing.JProgressBar;
 import javax.swing.border.EtchedBorder;
 
-import net.sf.mzmine.obsoletedatastructures.FormatCoordinates;
-import net.sf.mzmine.obsoletedatastructures.RawDataAtClient;
-
 
 public class Statusbar extends JPanel {
 
@@ -139,9 +136,7 @@ public class Statusbar extends JPanel {
 
 		add(coordsMZPanel);
 
-		clearCursorPosition();
-
-		//add(coordsPanel, BorderLayout.EAST);
+				//add(coordsPanel, BorderLayout.EAST);
 
 
 
@@ -184,67 +179,18 @@ public class Statusbar extends JPanel {
 	}
 
 
-	/**
-	 * Sets the cursor position displayed in status bar to current cursor position in the given run
-	 *
-	 * @param msRun	Raw data file whose cursor location will be displayed on status bar
-	 */
-	public void setCursorPosition(RawDataAtClient rawData) {
-		coordsMZ = rawData.getCursorPositionMZ();;
-		coordsRT = rawData.getScanTime(rawData.getCursorPositionScan());
-		repaint();
-	}
 
-	/**
-	 * Sets the cursor position displayed in status bar to given mz, rt values
-	 *
-	 * @param mz	M/Z coordinate location
-	 * @param rt	RT coordinate location
-	 */
-	public void setCursorPosition(double mz, double rt) {
-		coordsMZ = mz;
-		coordsRT = rt;
-		repaint();
-	}
-
-	/**
-	 * Sets the cursor position displayed in status bar to given mz, rt values
-	 *
-	 * @param mz	M/Z coordinate location
-	 */
-	public void setCursorPositionMZ(double mz) {
-		coordsMZ = mz;
-		repaint();
-	}
-
-	/**
-	 * Sets the cursor position displayed in status bar to given mz, rt values
-	 *
-	 * @param rt	RT coordinate location
-	 */
-	public void setCursorPositionRT(double rt) {
-		coordsRT = rt;
-		repaint();
-	}
-
-
-
-	public void clearCursorPosition() {
-		coordsMZ = -1;
-		coordsRT = -1;
-		repaint();
-	}
 
 	public void paint(Graphics g) {
 
 		super.paint(g);
 
-		if (coordsRT>=0)	{ coordsScanLabel.setText("RT: " + FormatCoordinates.formatRTValue(coordsRT)); }
+		/*if (coordsRT>=0)	{ coordsScanLabel.setText("RT: " + FormatCoordinates.formatRTValue(coordsRT)); }
 		else				{ coordsScanLabel.setText("RT: "); }
 
 		if (coordsMZ>0)		{ coordsMZLabel.setText("M/Z: " + FormatCoordinates.formatMZValue(coordsMZ)); }
 		else 				{ coordsMZLabel.setText("M/Z: "); }
-
+*/
 	}
 
 

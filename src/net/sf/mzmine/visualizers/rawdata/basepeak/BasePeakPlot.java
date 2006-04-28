@@ -13,9 +13,10 @@ import java.awt.event.MouseMotionListener;
 
 import javax.swing.JPanel;
 
-import net.sf.mzmine.obsoletedatastructures.FormatCoordinates;
 import net.sf.mzmine.userinterface.mainwindow.MainWindow;
+import net.sf.mzmine.util.format.IntensityValueFormat;
 import net.sf.mzmine.util.format.MZValueFormat;
+import net.sf.mzmine.util.format.RetentionTimeValueFormat;
 import net.sf.mzmine.util.format.ValueFormat;
 import net.sf.mzmine.visualizers.rawdata.spectra.SpectrumVisualizer;
 
@@ -43,7 +44,7 @@ public class BasePeakPlot extends JPanel implements MouseListener,
 
     private boolean showAnnotations = true;
 
-    private ValueFormat mzFormat = new MZValueFormat();
+    private ValueFormat mzFormat, intensityFormat, rtFormat;
 
     /**
      * Constructor: initializes the plot panel
@@ -52,6 +53,10 @@ public class BasePeakPlot extends JPanel implements MouseListener,
     BasePeakPlot(BasePeakVisualizer masterFrame) {
 
         this.masterFrame = masterFrame;
+
+        mzFormat = new MZValueFormat();
+        intensityFormat = new IntensityValueFormat();
+        rtFormat = new RetentionTimeValueFormat();
 
         setBackground(Color.white);
         setCursor(Cursor.getPredefinedCursor(Cursor.CROSSHAIR_CURSOR));
@@ -224,16 +229,12 @@ public class BasePeakPlot extends JPanel implements MouseListener,
                     "Scan #" + String.valueOf(scanNumbers[cursorPosition]),
                     textX, 10);
             g.drawString("RT: "
-                    + FormatCoordinates
-                            .formatRTValue(retentionTimes[cursorPosition]),
-                    textX, 22);
-            g.drawString("BP: "
-                    + FormatCoordinates
-                            .formatMZValue(basePeaks[cursorPosition]),
+                    + rtFormat.format(retentionTimes[cursorPosition]), textX,
+                    22);
+            g.drawString("BP: " + mzFormat.format(basePeaks[cursorPosition]),
                     textX, 34);
             g.drawString("INT: "
-                    + FormatCoordinates
-                            .formatIntensityValue(intensities[cursorPosition]),
+                    + intensityFormat.format(intensities[cursorPosition]),
                     textX, 46);
         }
 
@@ -247,9 +248,8 @@ public class BasePeakPlot extends JPanel implements MouseListener,
             double rt = retValueMin + xAxisStep * mousePositionX;
             double intensity = intValueMin + (intValueMax - intValueMin)
                     / height * (height - mousePositionY);
-            String positionRT = "RT: " + FormatCoordinates.formatRTValue(rt);
-            String positionInt = "INT: "
-                    + FormatCoordinates.formatIntensityValue(intensity);
+            String positionRT = "RT: " + rtFormat.format(rt);
+            String positionInt = "INT: " + intensityFormat.format(intensity);
             int drawX = mousePositionX + 8;
             int drawY = mousePositionY - 20;
 

@@ -7,21 +7,16 @@ import java.awt.Color;
 import java.awt.Cursor;
 import java.awt.Dimension;
 import java.awt.Graphics;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
-import java.awt.event.KeyEvent;
-import java.awt.event.KeyListener;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.awt.event.MouseMotionListener;
 
-import javax.swing.JMenuItem;
 import javax.swing.JPanel;
-import javax.swing.JPopupMenu;
 
-import net.sf.mzmine.obsoletedatastructures.FormatCoordinates;
 import net.sf.mzmine.userinterface.mainwindow.MainWindow;
-import net.sf.mzmine.util.Logger;
+import net.sf.mzmine.util.format.IntensityValueFormat;
+import net.sf.mzmine.util.format.RetentionTimeValueFormat;
+import net.sf.mzmine.util.format.ValueFormat;
 import net.sf.mzmine.visualizers.rawdata.spectra.SpectrumVisualizer;
 
 /**
@@ -45,6 +40,8 @@ public class TICPlot extends JPanel implements MouseListener,
     private double retValueMax;
     private double intValueMin;
     private double intValueMax;
+    
+    private ValueFormat rtFormat, intensityFormat;
 
     /**
      * Constructor: initializes the plot panel
@@ -54,6 +51,9 @@ public class TICPlot extends JPanel implements MouseListener,
 
         this.masterFrame = masterFrame;
 
+        rtFormat = new RetentionTimeValueFormat();
+        intensityFormat = new IntensityValueFormat();
+        
         setBackground(Color.white);
         setCursor(Cursor.getPredefinedCursor(Cursor.CROSSHAIR_CURSOR));
 
@@ -166,12 +166,10 @@ public class TICPlot extends JPanel implements MouseListener,
                     "Scan #" + String.valueOf(scanNumbers[cursorPosition]),
                     textX, 10);
             g.drawString("RT: "
-                    + FormatCoordinates
-                            .formatRTValue(retentionTimes[cursorPosition]),
+                    + rtFormat.format(retentionTimes[cursorPosition]),
                     textX, 22);
             g.drawString("IC: "
-                    + FormatCoordinates
-                            .formatIntensityValue(intensities[cursorPosition]),
+                    + intensityFormat.format(intensities[cursorPosition]),
                     textX, 34);
         }
 
@@ -185,9 +183,9 @@ public class TICPlot extends JPanel implements MouseListener,
             double rt = retValueMin + xAxisStep * mousePositionX;
             double intensity = intValueMin + (intValueMax - intValueMin)
                     / height * (height - mousePositionY);
-            String positionRT = "RT: " + FormatCoordinates.formatRTValue(rt);
+            String positionRT = "RT: " + rtFormat.format(rt);
             String positionInt = "IC: "
-                    + FormatCoordinates.formatIntensityValue(intensity);
+                    + intensityFormat.format(intensity);
             int drawX = mousePositionX + 8;
             int drawY = mousePositionY - 20;
 

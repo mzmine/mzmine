@@ -36,9 +36,8 @@ import javax.swing.event.InternalFrameEvent;
 import javax.swing.event.InternalFrameListener;
 import javax.swing.table.AbstractTableModel;
 
+import net.sf.mzmine.io.RawDataFile;
 import net.sf.mzmine.methods.alignment.AlignmentResult;
-import net.sf.mzmine.methods.peakpicking.Peak;
-import net.sf.mzmine.obsoletedatastructures.RawDataAtClient;
 import net.sf.mzmine.userinterface.mainwindow.ItemSelector;
 import net.sf.mzmine.userinterface.mainwindow.MainWindow;
 import net.sf.mzmine.userinterface.mainwindow.Statusbar;
@@ -164,7 +163,6 @@ public class AlignmentResultVisualizerList extends JInternalFrame implements Ali
 		double mz = alignmentResult.getAverageMZ(rowInd);
 		double rt = alignmentResult.getAverageRT(rowInd);
 
-		statBar.setCursorPosition(mz,rt);
 
 
 
@@ -374,8 +372,8 @@ public class AlignmentResultVisualizerList extends JInternalFrame implements Ali
 			// Loop over all raw data files again, and set cursor and zoom on the spot
 			for (int rawDataID : rawDataIDs) {
 
-			RawDataAtClient rawData = null; // = mainWin.getItemSelector().getRawDataByID(rawDataID);
-				int avgScan = rawData.getScanNumberByTime(avgRT);
+			RawDataFile rawData = null; // = mainWin.getItemSelector().getRawDataByID(rawDataID);
+/*				int avgScan = rawData.getScanNumberByTime(avgRT);
 				peakStatus = alignmentResult.getPeakStatus(rawDataID, rowInd);
 
 				// If this is a normal detected peak, then center the cursor on the peak's max intensity data point
@@ -405,7 +403,7 @@ public class AlignmentResultVisualizerList extends JInternalFrame implements Ali
 
 				// Set selection around the average mz,rt for this row (this means that selection will be the same for all runs on this row!)
 				rawData.setSelectionAroundPeak(avgMZ,avgRT,avgStdevMZ,avgDuration);
-
+*/
 			}
 
 			// Refresh visualizers

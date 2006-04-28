@@ -18,7 +18,7 @@
     Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 */
 package net.sf.mzmine.methods.filtering;
-import net.sf.mzmine.obsoletedatastructures.RawDataAtNode;
+import net.sf.mzmine.io.RawDataFile;
 
 
 /**
@@ -39,7 +39,7 @@ public interface Filter {
 	 * This method does the filtering for given raw data file
 	 * Method runs on a node
 	 */
-    public int doFiltering(RawDataAtNode theData, FilterParameters filterParameters);
+    public int doFiltering(RawDataFile theData, FilterParameters filterParameters);
 
 } // end Filter
 

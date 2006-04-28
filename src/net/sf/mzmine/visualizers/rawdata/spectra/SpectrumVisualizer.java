@@ -42,13 +42,13 @@ import javax.swing.RepaintManager;
 
 import net.sf.mzmine.interfaces.Scan;
 import net.sf.mzmine.io.RawDataFile;
-import net.sf.mzmine.obsoletedatastructures.FormatCoordinates;
 import net.sf.mzmine.userinterface.components.XAxis;
 import net.sf.mzmine.userinterface.components.YAxis;
 import net.sf.mzmine.userinterface.mainwindow.MainWindow;
 import net.sf.mzmine.util.TransferableImage;
 import net.sf.mzmine.util.format.IntensityValueFormat;
 import net.sf.mzmine.util.format.MZValueFormat;
+import net.sf.mzmine.util.format.RetentionTimeValueFormat;
 import net.sf.mzmine.util.format.ValueFormat;
 import net.sf.mzmine.visualizers.RawDataVisualizer;
 import net.sf.mzmine.visualizers.rawdata.spectra.SpectrumPlot.PlotMode;
@@ -68,7 +68,7 @@ public class SpectrumVisualizer extends JInternalFrame implements
 
     private double zoomMZMin, zoomMZMax, zoomIntensityMin, zoomIntensityMax;
 
-    private ValueFormat mzFormat, intensityFormat;
+    private ValueFormat mzFormat, intensityFormat, rtFormat;
 
     private Scan[] scans;
 
@@ -84,7 +84,8 @@ public class SpectrumVisualizer extends JInternalFrame implements
 
         mzFormat = new MZValueFormat();
         intensityFormat = new IntensityValueFormat();
-
+        rtFormat = new RetentionTimeValueFormat();
+        
         popupMenu = new SpectrumPopupMenu(this);
 
         setLayout(new BorderLayout());
@@ -327,16 +328,15 @@ public class SpectrumVisualizer extends JInternalFrame implements
             title.append("Scan #");
             title.append(scans[0].getScanNumber());
             title.append(", RT ");
-            title.append(FormatCoordinates.formatRTValue(scans[0]
+            title.append(rtFormat.format(scans[0]
                     .getRetentionTime()));
 
         } else {
             title.append("Combination of spectra, RT ");
-            title.append(FormatCoordinates.formatRTValue(scans[0]
+            title.append(rtFormat.format(scans[0]
                     .getRetentionTime()));
             title.append(" - ");
-            title.append(FormatCoordinates
-                    .formatRTValue(scans[scans.length - 1].getRetentionTime()));
+            title.append(rtFormat.format(scans[scans.length - 1].getRetentionTime()));
         }
         setTitle(title.toString());
         title.setLength(0);

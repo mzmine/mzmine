@@ -20,8 +20,8 @@
 package net.sf.mzmine.methods.filtering;
 import java.text.NumberFormat;
 
-import net.sf.mzmine.obsoletedatastructures.RawDataAtNode;
-import net.sf.mzmine.obsoletedatastructures.Scan;
+import net.sf.mzmine.interfaces.Scan;
+import net.sf.mzmine.io.RawDataFile;
 import net.sf.mzmine.userinterface.dialogs.ParameterSetupDialog;
 import net.sf.mzmine.userinterface.mainwindow.MainWindow;
 
@@ -81,15 +81,15 @@ public class ZoomScanFilter implements Filter {
 	}
 
 
-	public int doFiltering(RawDataAtNode rawData, FilterParameters _filterParameters) {
+	public int doFiltering(RawDataFile rawData, FilterParameters _filterParameters) {
 
 		ZoomScanFilterParameters filterParameters = (ZoomScanFilterParameters)_filterParameters;
 
 		int outputNumberOfScans = -1;
 		int outputNumberOfDatapoints = -1;
-
+/*
 		// Check if file type is NetCDF
-		if (rawData.checkFileType()==RawDataAtNode.FILETYPE_NETCDF) {
+		if (rawData.checkFileType()==RawDataFile.FILETYPE_NETCDF) {
 			// Then we must count number of scans in the result file before filtering
 			double[] mzMins = rawData.netdf_getScanMZRangeMins();
 			double[] mzMaxs = rawData.netdf_getScanMZRangeMaxs();
@@ -141,7 +141,8 @@ public class ZoomScanFilter implements Filter {
 
 		ret = rawData.finalizeAfterWriting();
 
-		return ret;
+		return ret;*/
+        return 0;
 
 	}
 

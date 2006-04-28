@@ -23,8 +23,8 @@ import java.util.Iterator;
 import java.util.TreeSet;
 import java.util.Vector;
 
-import net.sf.mzmine.obsoletedatastructures.RawDataAtNode;
-import net.sf.mzmine.obsoletedatastructures.Scan;
+import net.sf.mzmine.interfaces.Scan;
+import net.sf.mzmine.io.RawDataFile;
 import net.sf.mzmine.userinterface.dialogs.ParameterSetupDialog;
 import net.sf.mzmine.userinterface.mainwindow.MainWindow;
 import net.sf.mzmine.util.MyMath;
@@ -186,8 +186,8 @@ public class RecursiveThresholdPicker implements PeakPicker {
 	/**
 	 * This method does the processing
 	 */
-	//public Vector<Peak> findPeaks(NodeServer nodeServer, RawDataAtNode rawData, PeakPickerParameters _parameters) {
-	public PeakList findPeaks(RawDataAtNode rawData, PeakPickerParameters _parameters) {
+	//public Vector<Peak> findPeaks(NodeServer nodeServer, RawDataFile rawData, PeakPickerParameters _parameters) {
+	public PeakList findPeaks(RawDataFile rawData, PeakPickerParameters _parameters) {
 
 		RecursiveThresholdPickerParameters parameters = (RecursiveThresholdPickerParameters)_parameters;
 
@@ -197,7 +197,7 @@ public class RecursiveThresholdPicker implements PeakPicker {
 
 		// These variables are used during binning (calculating a set of RICs)
 
-		double startMZ = rawData.getMinMZValue();							// minimum m/z value in the raw data file
+		/*double startMZ = rawData.getMinMZValue();							// minimum m/z value in the raw data file
 		double endMZ = rawData.getMaxMZValue();								// maximum m/z value in the raw data file
 		int maxScanNum = rawData.getNumberOfScans();							// number of spectra in the raw data file
 		int numOfBins = (int)(java.lang.Math.ceil((endMZ-startMZ)/parameters.binSize));// Calculate how many bins of desired size fit to entire m/z range of this run
@@ -230,7 +230,7 @@ public class RecursiveThresholdPicker implements PeakPicker {
 
 		/*
 			CALCULATE M/Z BINNING (SET OF XICS) AND THRESHOLD LEVEL FOR EACH XIC
-		*/
+
 
 		// Calculate set of XICs by binning intensites in each spectrum
 
@@ -242,9 +242,9 @@ public class RecursiveThresholdPicker implements PeakPicker {
 
 				//nodeServer.updateJobCompletionRate((double)(scani)/(double)(maxScanNum*2-2));
 
-				tmpInts = s.getBinnedIntensities(startMZ, endMZ, numOfBins, true);
+				//tmpInts = s.getBinnedIntensities(startMZ, endMZ, numOfBins, true);
 				for (int bini=0; bini<numOfBins; bini++) {
-					binInts[bini][scani] = tmpInts[bini];
+					//binInts[bini][scani] = tmpInts[bini];
 				}
 			}
 			rawData.finalizeScanBrowser();
@@ -268,7 +268,7 @@ public class RecursiveThresholdPicker implements PeakPicker {
 
 		/*
 			LOOP THROUGH ALL SCANS IN THIS RAW DATA FILE
-		*/
+
 
 		rawData.initializeScanBrowser(0, rawData.getNumberOfScans()-1);
 		for (int i=0; i<maxScanNum; i++) {
@@ -440,7 +440,8 @@ public class RecursiveThresholdPicker implements PeakPicker {
 		rawData.finalizeScanBrowser();
 
 		return peakList;
-
+        */
+        return null;
 	}
 
 
