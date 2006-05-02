@@ -21,27 +21,17 @@ package net.sf.mzmine.visualizers.rawdata.experimentaltic;
 
 import java.awt.BorderLayout;
 import java.awt.Color;
-import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.Toolkit;
 import java.awt.datatransfer.Clipboard;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.awt.geom.AffineTransform;
 import java.awt.image.BufferedImage;
-import java.awt.print.PageFormat;
-import java.awt.print.Printable;
-import java.awt.print.PrinterJob;
 
-import javax.print.attribute.HashPrintRequestAttributeSet;
-import javax.print.attribute.standard.OrientationRequested;
 import javax.swing.AbstractAction;
-import javax.swing.BorderFactory;
 import javax.swing.JInternalFrame;
-import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.KeyStroke;
-import javax.swing.RepaintManager;
 
 import net.sf.mzmine.io.RawDataFile;
 import net.sf.mzmine.io.RawDataFile.PreloadLevel;
@@ -49,12 +39,9 @@ import net.sf.mzmine.taskcontrol.Task;
 import net.sf.mzmine.taskcontrol.TaskController;
 import net.sf.mzmine.taskcontrol.TaskListener;
 import net.sf.mzmine.taskcontrol.Task.TaskStatus;
-import net.sf.mzmine.userinterface.components.XAxis;
-import net.sf.mzmine.userinterface.components.YAxis;
 import net.sf.mzmine.userinterface.mainwindow.MainWindow;
 import net.sf.mzmine.util.TransferableImage;
 import net.sf.mzmine.util.format.IntensityValueFormat;
-import net.sf.mzmine.util.format.RetentionTimeValueFormat;
 import net.sf.mzmine.util.format.ValueFormat;
 import net.sf.mzmine.visualizers.RawDataVisualizer;
 import net.sf.mzmine.visualizers.rawdata.spectra.SpectrumVisualizer;
@@ -62,11 +49,13 @@ import net.sf.mzmine.visualizers.rawdata.spectra.SpectrumVisualizer;
 import org.jfree.chart.ChartFactory;
 import org.jfree.chart.ChartPanel;
 import org.jfree.chart.JFreeChart;
+import org.jfree.chart.labels.XYItemLabelGenerator;
 import org.jfree.chart.plot.PlotOrientation;
 import org.jfree.chart.plot.XYPlot;
 import org.jfree.chart.renderer.xy.XYItemRenderer;
 import org.jfree.chart.renderer.xy.XYLineAndShapeRenderer;
 import org.jfree.data.xy.DefaultTableXYDataset;
+import org.jfree.data.xy.XYDataset;
 import org.jfree.data.xy.XYSeries;
 import org.jfree.ui.RectangleInsets;
 
@@ -74,10 +63,10 @@ import org.jfree.ui.RectangleInsets;
  * This class defines the total ion chromatogram visualizer for raw data
  */
 public class TICVisualizer extends JInternalFrame implements RawDataVisualizer,
-        TaskListener, Printable, ActionListener {
+        TaskListener, ActionListener {
 
     private TICToolBar toolBar;
-    
+
     private JPanel ticPlot;
 
     private RawDataFile rawDataFile;
@@ -87,6 +76,8 @@ public class TICVisualizer extends JInternalFrame implements RawDataVisualizer,
 
     private XYSeries series;
     
+    private DefaultTableXYDataset dataset;
+
     /**
      * cursor posititon represented by an index to retentionTimes[]
      */
@@ -96,9 +87,9 @@ public class TICVisualizer extends JInternalFrame implements RawDataVisualizer,
      * scan numbers of selected MS level
      */
     private int scanNumbers[];
+    
+    private ValueFormat intensityFormat = new IntensityValueFormat();
 
-    
-    
     /**
      * Constructor for total ion chromatogram visualizer
      * 
@@ -109,22 +100,19 @@ public class TICVisualizer extends JInternalFrame implements RawDataVisualizer,
 
         setDefaultCloseOperation(DISPOSE_ON_CLOSE);
 
-
-
- //      setLayout(new BorderLayout());
+        // setLayout(new BorderLayout());
         setBackground(Color.white);
 
-  
         toolBar = new TICToolBar(this);
         add(toolBar, BorderLayout.EAST);
 
-        DefaultTableXYDataset dataset = new DefaultTableXYDataset();;
+        dataset = new DefaultTableXYDataset();
+        
 
         series = new XYSeries(1, true, false);
         dataset.addSeries(series);
-        
-        JFreeChart chart = ChartFactory.createXYLineChart(
-                "TIC", // title
+
+        final JFreeChart chart = ChartFactory.createXYLineChart("TIC", // title
                 "Retention time", // x-axis label
                 "Intensity", // y-axis label
                 dataset, // data
@@ -133,50 +121,76 @@ public class TICVisualizer extends JInternalFrame implements RawDataVisualizer,
                 true, // generate tooltips?
                 false // generate URLs?
                 );
-        
+
         chart.setBackgroundPaint(Color.white);
-        
-        XYPlot plot = (XYPlot) chart.getPlot();
 
-        plot.setBackgroundPaint(new Color(240,240,240));
+        final XYPlot plot = chart.getXYPlot();
 
-        
-        plot.setDomainGridlinePaint(Color.white);
-        plot.setRangeGridlinePaint(Color.white);
+        plot.setBackgroundPaint(Color.white);
+
+        plot.setDomainGridlinePaint(Color.lightGray);
+        plot.setRangeGridlinePaint(Color.lightGray);
         plot.setAxisOffset(new RectangleInsets(5.0, 5.0, 5.0, 5.0));
         plot.setDomainCrosshairVisible(true);
         plot.setRangeCrosshairVisible(true);
-        plot.getDomainAxis().setRange(rawDataFile.getDataMinRT(), rawDataFile.getDataMaxRT());
-        plot.getRangeAxis().setRange(0, rawDataFile.getDataMaxTotalIonCurrent(msLevel));
-        
+        plot.getDomainAxis().setRange(rawDataFile.getDataMinRT(),
+                rawDataFile.getDataMaxRT());
+        plot.getRangeAxis().setRange(0,
+                rawDataFile.getDataMaxTotalIonCurrent(msLevel) * 1.05);
 
+        ticPlot = new ChartPanel(chart);
+        add(ticPlot, BorderLayout.CENTER);
+        
         XYItemRenderer r = plot.getRenderer();
 
         if (r instanceof XYLineAndShapeRenderer) {
 
             XYLineAndShapeRenderer renderer = (XYLineAndShapeRenderer) r;
 
-            //renderer.setBaseShapesVisible(true);
+            // renderer.setBaseShapesVisible(true);
 
-            //renderer.setBaseShapesFilled(true);
+            // renderer.setBaseShapesFilled(true);
 
         }
+        
+        XYItemLabelGenerator gener = new XYItemLabelGenerator() {
 
-        
-        ticPlot = new ChartPanel(chart);
-        add(ticPlot, BorderLayout.CENTER);
+            public String generateLabel(XYDataset dataset, int series, int item) {
 
-        
-        
+                final double originalX = dataset.getXValue(series, item);
+
+                final double pointX = plot.getDomainAxis().getRange().getLength() / ticPlot.getWidth();
+  
+                for (int i = item - 1; i > 1; i--) {
+                    if (dataset.getXValue(series, i) < (originalX - 40 * pointX)) break;
+                    if (dataset.getYValue(series, item) < dataset.getYValue(
+                            series, i))
+                        return null;
+                }
+                for (int i = item + 1; i < dataset.getItemCount(series); i++) {
+                    if (dataset.getXValue(series, i) > (originalX + 40 * pointX)) break;
+                    if (dataset.getYValue(series, item) < dataset.getYValue(
+                            series, i))
+                        return null;
+                }
+                
+                return intensityFormat.format(dataset.getYValue(series, item));
+             
+            }
+
+        };
+
+        r.setItemLabelGenerator(gener);
+        r.setItemLabelsVisible(true);
+
         getInputMap().put(KeyStroke.getKeyStroke("RIGHT"), "moveCursorRight");
         getActionMap().put("moveCursorRight", new AbstractAction() {
 
             public void actionPerformed(ActionEvent e) {
-/*                if ((cursorPosition >= 0)
-                        && (cursorPosition < retentionTimes.length - 1)) {
-                    cursorPosition++;
-                    repaint();
-                }*/
+                /*
+                 * if ((cursorPosition >= 0) && (cursorPosition <
+                 * retentionTimes.length - 1)) { cursorPosition++; repaint(); }
+                 */
             }
         });
         getInputMap().put(KeyStroke.getKeyStroke("LEFT"), "moveCursorLeft");
@@ -217,8 +231,8 @@ public class TICVisualizer extends JInternalFrame implements RawDataVisualizer,
          */
         scanNumbers = rawDataFile.getScanNumbers(msLevel);
         assert scanNumbers != null;
-        //retentionTimes = new double[scanNumbers.length];
-        //intensities = new double[scanNumbers.length];
+        // retentionTimes = new double[scanNumbers.length];
+        // intensities = new double[scanNumbers.length];
 
         resetRTRange();
         resetIntensityRange();
@@ -248,8 +262,8 @@ public class TICVisualizer extends JInternalFrame implements RawDataVisualizer,
     public void setMZRange(double mzMin, double mzMax) {
         xicMode = true;
         toolBar.setXicButton(false);
-        //mzRangeMin = mzMin;
-        //mzRangeMax = mzMax;
+        // mzRangeMin = mzMin;
+        // mzRangeMax = mzMax;
         updateTitle();
         setTitle(rawDataFile.toString() + ": XIC");
         Task updateTask = new TICDataRetrievalTask(rawDataFile, scanNumbers,
@@ -289,7 +303,6 @@ public class TICVisualizer extends JInternalFrame implements RawDataVisualizer,
 
     private void updateTitle() {
 
-
     }
 
     /**
@@ -298,9 +311,9 @@ public class TICVisualizer extends JInternalFrame implements RawDataVisualizer,
      */
     public void setRTRange(double rtMin, double rtMax) {
         toolBar.setZoomOutButton(true);
-     //   zoomRTMin = rtMin;
-     //   zoomRTMax = rtMax;
-        //xAxis.setRange(zoomRTMin, zoomRTMax);
+        // zoomRTMin = rtMin;
+        // zoomRTMax = rtMax;
+        // xAxis.setRange(zoomRTMin, zoomRTMax);
         // ticPlot.setRTRange(zoomRTMin, zoomRTMax);
         updateTitle();
     }
@@ -309,9 +322,9 @@ public class TICVisualizer extends JInternalFrame implements RawDataVisualizer,
      * @see net.sf.mzmine.visualizers.RawDataVisualizer#resetRTRange()
      */
     public void resetRTRange() {
-     //   zoomRTMin = rawDataFile.getDataMinRT();
-     //   zoomRTMax = rawDataFile.getDataMaxRT();
-        //xAxis.setRange(zoomRTMin, zoomRTMax);
+        // zoomRTMin = rawDataFile.getDataMinRT();
+        // zoomRTMax = rawDataFile.getDataMaxRT();
+        // xAxis.setRange(zoomRTMin, zoomRTMax);
         // ticPlot.setRTRange(zoomRTMin, zoomRTMax);
         updateTitle();
     }
@@ -322,9 +335,9 @@ public class TICVisualizer extends JInternalFrame implements RawDataVisualizer,
      */
     public void setIntensityRange(double intensityMin, double intensityMax) {
         toolBar.setZoomOutButton(true);
-      //  zoomIntensityMin = intensityMin;
-      //  zoomIntensityMax = intensityMax;
-        //yAxis.setRange(zoomIntensityMin, zoomIntensityMax);
+        // zoomIntensityMin = intensityMin;
+        // zoomIntensityMax = intensityMax;
+        // yAxis.setRange(zoomIntensityMin, zoomIntensityMax);
         // ticPlot.setIntensityRange(zoomIntensityMin, zoomIntensityMax);
         updateTitle();
     }
@@ -333,9 +346,9 @@ public class TICVisualizer extends JInternalFrame implements RawDataVisualizer,
      * @see net.sf.mzmine.visualizers.RawDataVisualizer#resetIntensityRange()
      */
     public void resetIntensityRange() {
-      //  zoomIntensityMin = 0;
-      //  zoomIntensityMax = rawDataFile.getDataMaxTotalIonCurrent(msLevel);
-        //yAxis.setRange(zoomIntensityMin, zoomIntensityMax);
+        // zoomIntensityMin = 0;
+        // zoomIntensityMax = rawDataFile.getDataMaxTotalIonCurrent(msLevel);
+        // yAxis.setRange(zoomIntensityMin, zoomIntensityMax);
         // ticPlot.setIntensityRange(zoomIntensityMin, zoomIntensityMax);
         updateTitle();
     }
@@ -351,27 +364,16 @@ public class TICVisualizer extends JInternalFrame implements RawDataVisualizer,
      * @see net.sf.mzmine.visualizers.RawDataVisualizer#setRTPosition(double)
      */
     public void setRTPosition(double rt) {
-/*
-        if (rt < retentionTimes[0]) {
-            cursorPosition = -1;
-        } else {
-            // find the first scan number with RT higher than given rt
-            int index;
-            for (index = 1; index < retentionTimes.length; index++) {
-                if (retentionTimes[index] > rt)
-                    break;
-            }
-            if (index == retentionTimes.length) {
-                cursorPosition = -1;
-            } else if (rt - retentionTimes[index - 1] < retentionTimes[index]
-                    - rt)
-                cursorPosition = index - 1;
-            else
-                cursorPosition = index;
-        }
-        toolBar.setSpectraButton(cursorPosition != -1);
-        repaint();
-        */
+        /*
+         * if (rt < retentionTimes[0]) { cursorPosition = -1; } else { // find
+         * the first scan number with RT higher than given rt int index; for
+         * (index = 1; index < retentionTimes.length; index++) { if
+         * (retentionTimes[index] > rt) break; } if (index ==
+         * retentionTimes.length) { cursorPosition = -1; } else if (rt -
+         * retentionTimes[index - 1] < retentionTimes[index] - rt)
+         * cursorPosition = index - 1; else cursorPosition = index; }
+         * toolBar.setSpectraButton(cursorPosition != -1); repaint();
+         */
     }
 
     /**
@@ -380,9 +382,6 @@ public class TICVisualizer extends JInternalFrame implements RawDataVisualizer,
     int getCursorPosition() {
         return cursorPosition;
     }
-
-
-
 
     void updateData(int position, double retentionTime, double intensity) {
 
@@ -425,72 +424,7 @@ public class TICVisualizer extends JInternalFrame implements RawDataVisualizer,
         clipboard.setContents(new TransferableImage(bi), null);
     }
 
-    /**
-     * This method is used for drawing the window contents in a separate buffer
-     * which will then go to printer.
-     */
-    public int print(Graphics g, PageFormat pf, int pi) {
-        double sx, sy;
-        final int titleHeight = 30;
-
-        // Since this visualizer will be printed on a single page, don't try to
-        // print pages 2,3,4,...
-        if (pi > 0) {
-            return NO_SUCH_PAGE;
-        }
-
-        // Prepare given buffer for drawing the plot in it
-        Graphics2D g2 = (Graphics2D) g;
-        g2.translate(pf.getImageableX(), pf.getImageableY());
-
-        // Print title of this visualizer
-        g2.drawString(this.getTitle(), 0, titleHeight - 5);
-
-        // Setup transform so that plot will fit on page
-        g2.translate(0, titleHeight);
-
-        sx = (double) pf.getImageableWidth()
-                / (double) getContentPane().getWidth();
-        sy = (double) (pf.getImageableHeight() - titleHeight)
-                / (double) getContentPane().getHeight();
-
-        g2.transform(AffineTransform.getScaleInstance(sx, sy));
-
-        // Disabling double buffering increases print quality
-        RepaintManager currentManager = RepaintManager
-                .currentManager(getContentPane());
-        currentManager.setDoubleBufferingEnabled(false);
-
-        // Draw this visualizer to the buffer
-        getContentPane().paint(g2);
-
-        // Enable double buffering again (good for screen output)
-        currentManager.setDoubleBufferingEnabled(true);
-
-        // Return page ready status
-        return Printable.PAGE_EXISTS;
-
-    }
-
-    /**
-     * Implementation of the printMe() method (Visualizer interface)
-     */
-    public void printMe() {
-
-        // Set default printer parameters
-        PrinterJob printJob = PrinterJob.getPrinterJob();
-        HashPrintRequestAttributeSet pSet = new HashPrintRequestAttributeSet();
-        pSet.add(OrientationRequested.LANDSCAPE);
-
-        // Open print dialog and initiate print job if user confirms
-        if (printJob.printDialog(pSet)) {
-            printJob.setPrintable(this);
-            try {
-                printJob.print(pSet);
-            } catch (Exception PrintException) {
-            }
-        }
-    }
+   
 
     /**
      * @see java.awt.event.ActionListener#actionPerformed(java.awt.event.ActionEvent)
@@ -519,7 +453,6 @@ public class TICVisualizer extends JInternalFrame implements RawDataVisualizer,
                 resetMZRange();
 
             } else {
-
 
                 // Default range is cursor location +- 0.25
                 double ricMZ = 0; // getCursorPositionMZ();
@@ -559,5 +492,14 @@ public class TICVisualizer extends JInternalFrame implements RawDataVisualizer,
         }
 
     }
+
+    /**
+     * @see net.sf.mzmine.visualizers.RawDataVisualizer#printMe()
+     */
+    public void printMe() {
+        
+        
+    }
+
 
 }
