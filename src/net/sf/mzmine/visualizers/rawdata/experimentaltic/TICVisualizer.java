@@ -146,7 +146,8 @@ public class TICVisualizer extends JInternalFrame implements RawDataVisualizer,
         plot.setAxisOffset(new RectangleInsets(5.0, 5.0, 5.0, 5.0));
         plot.setDomainCrosshairVisible(true);
         plot.setRangeCrosshairVisible(true);
-
+        plot.getDomainAxis().setRange(rawDataFile.getDataMinRT(), rawDataFile.getDataMaxRT());
+        plot.getRangeAxis().setRange(0, rawDataFile.getDataMaxTotalIonCurrent(msLevel));
         
 
         XYItemRenderer r = plot.getRenderer();
