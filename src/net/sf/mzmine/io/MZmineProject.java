@@ -67,7 +67,7 @@ public class MZmineProject {
     
     public void removeFile(RawDataFile file) {
         projectFiles.remove(file);
-        fileHistory.remove(file);
+        fileHistory.remove(file.getFileName());
         MainWindow.getInstance().getItemSelector().removeRawData(file);
     }
     
