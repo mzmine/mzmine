@@ -27,10 +27,22 @@ import net.sf.mzmine.io.MZmineProject;
 public interface Method {
 
     
+    /**
+     * @return Textual description of method
+     */
     public String getMethodDescription();
     
-    public MethodParameters getParameters();
+    /**
+     * This function displays a modal dialog to define method parameters
+     * @return parameters set by user
+     */
+    public MethodParameters askParameters();
     
-    public void runMethod(MZmineProject project);
+    /**
+     * Runs this method on a given project
+     * @param project
+     * @param parameters
+     */
+    public void runMethod(MZmineProject project, MethodParameters parameters);
     
 }

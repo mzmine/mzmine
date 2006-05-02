@@ -21,11 +21,28 @@ package net.sf.mzmine.methods;
 
 import java.io.Serializable;
 
+import org.w3c.dom.Element;
+
 /**
  *
  */
 public interface MethodParameters extends Serializable {
 
-    public String exportParameters();
+    /**
+     * @return parameters in human readable form
+     */
+    public String toString();
+    
+    /**
+     * 
+     * @return parameters represented by XML element
+     */
+    public Element toXML();
+    
+    /**
+     * Reads parameters from XML
+     * @param parameters parameters represented by XML element
+     */
+    public void readFromXML(Element parameters);
     
 }
