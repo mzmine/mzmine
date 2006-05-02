@@ -44,9 +44,9 @@ class WorkerThread extends Thread {
      * @param currentTask
      *            The currentTask to set.
      */
-    void setCurrentTask(Task currentTask) {
-        assert this.currentTask == null;
-        this.currentTask = currentTask;
+    void setCurrentTask(Task newTask) {
+        assert currentTask == null;
+        currentTask = newTask;
         synchronized(this) {
             notify();
         }
