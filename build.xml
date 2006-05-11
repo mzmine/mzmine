@@ -14,6 +14,8 @@
 		<pathelement location="${lib}/jmprojection.jar"/>
 		<pathelement location="${lib}/netcdf.jar"/>
 		<pathelement location="${lib}/sunutils.jar"/>
+		<pathelement location="${lib}/jcommon-1.0.0.jar"/>
+		<pathelement location="${lib}/jfreechart-1.0.1.jar"/>
 	</path>
 	
 
@@ -36,6 +38,7 @@
 			<fileset file="${rest}/mzminecontroller.ini"/>
 			<fileset file="${rest}/mzminenode.ini"/>
 			<fileset file="${rest}/startMZmine.bat"/>
+			<fileset file="${rest}/*.png"/>
 		</copy>
 		<copy todir="${dist}/lib">
 			<fileset file="${lib}/base64.jar"/>
@@ -43,6 +46,9 @@
 			<fileset file="${lib}/jmprojection.jar"/>
 			<fileset file="${lib}/netcdf.jar"/>
 			<fileset file="${lib}/sunutils.jar"/>
+			<fileset file="${lib}/jcommon-1.0.0.jar"/>
+			<fileset file="${lib}/jfreechart-1.0.1.jar"/>
+			
 		</copy>
 		
 		<jar destfile="${dist}/MZmine.jar" manifest="${rest}/mzminemanifest">
