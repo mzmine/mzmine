@@ -22,6 +22,8 @@ package net.sf.mzmine.methods;
 import java.io.Serializable;
 
 import org.w3c.dom.Element;
+import org.w3c.dom.Document;
+
 
 /**
  *
@@ -32,17 +34,22 @@ public interface MethodParameters extends Serializable {
      * @return parameters in human readable form
      */
     public String toString();
-    
+
     /**
-     * 
-     * @return parameters represented by XML element
+     * Adds parameters to XML document
      */
-    public Element toXML();
-    
+    public Element addToXML(Document doc);
+
     /**
      * Reads parameters from XML
-     * @param parameters parameters represented by XML element
+     * @param doc XML document supposed to contain parameters for the method (may not contain them, though)
      */
-    public void readFromXML(Element parameters);
-    
+    public void readFromXML(Element element);
+
+	/**
+	 * Returns the XML tag name
+	 */
+	public String getTagName();
+
+
 }
