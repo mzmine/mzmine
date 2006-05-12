@@ -32,57 +32,58 @@ import net.sf.mzmine.userinterface.mainwindow.MainWindow;
 /**
  * This class represents a MZmine project.
  * That includes raw data files, processed raw data files,
- * peak lists, alignment results.... 
+ * peak lists, alignment results....
  */
 public class MZmineProject {
 
     private static MZmineProject currentProject;
     private Vector<RawDataFile> projectFiles;
-    
+
     class Operation {
         File previousFileName;
         Method processsingMethod;
         MethodParameters parameters;
     }
-    
-    /* we have to index by File, not by RawDataFile - that would 
+
+    /* we have to index by File, not by RawDataFile - that would
      * cause keeping all previous RawDataFile objects in memory */
     private Hashtable<File, Operation> fileHistory;
-    
+
     public MZmineProject() {
         projectFiles = new Vector<RawDataFile>();
         fileHistory = new Hashtable<File, Operation>();
         currentProject = this;
     }
-    
+
     public static MZmineProject getCurrentProject() {
         assert currentProject != null;
         return currentProject;
     }
-    
+
     void addFile(RawDataFile newFile) {
         projectFiles.add(newFile);
         MainWindow.getInstance().getItemSelector().addRawData(newFile);
     }
-    
+
     public void removeFile(RawDataFile file) {
         projectFiles.remove(file);
-        fileHistory.remove(file.getFileName());
+        fileHistory.remove(file.getCurrentFile());
         MainWindow.getInstance().getItemSelector().removeRawData(file);
     }
-    
+
     /**
      */
     public void updateFile(RawDataFile oldFile, RawDataFile newFile, Method processingMethod, MethodParameters methodParameters) {
         Operation op = new Operation();
-        op.previousFileName = oldFile.getFileName();
+        op.previousFileName = oldFile.getCurrentFile();
         op.processsingMethod = processingMethod;
         op.parameters = methodParameters;
         projectFiles.setElementAt(newFile, projectFiles.indexOf(oldFile));
-        fileHistory.put(newFile.getFileName(), op);
-        // TODO: notify visualizers? 
+        fileHistory.put(newFile.getCurrentFile(), op);
+        MainWindow.getInstance().getItemSelector().replaceRawData(oldFile, newFile);
+        // TODO: notify visualizers?
     }
-    
-    
-    
+
+
+
 }
