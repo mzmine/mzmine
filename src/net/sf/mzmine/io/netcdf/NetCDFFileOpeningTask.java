@@ -54,7 +54,7 @@ public class NetCDFFileOpeningTask implements DistributableTask {
         originalFile = fileToOpen;
         status = TaskStatus.WAITING;
 
-        buildingFile = new NetCDFFile(fileToOpen, preloadLevel);
+        buildingFile = new NetCDFFile(fileToOpen, fileToOpen, preloadLevel);
     }
 
     /**

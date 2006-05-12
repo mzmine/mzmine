@@ -41,6 +41,8 @@ import net.sf.mzmine.util.Logger;
 public class NetCDFFile implements RawDataFile {
 
     private File originalFile;
+    private File currentFile;
+
     private PreloadLevel preloadLevel;
     private StringBuffer dataDescription;
 
@@ -65,9 +67,11 @@ public class NetCDFFile implements RawDataFile {
 
     /**
      */
-    NetCDFFile(File originalFile, PreloadLevel preloadLevel) {
+    NetCDFFile(File originalFile, File currentFile, PreloadLevel preloadLevel) {
         this.originalFile = originalFile;
+        this.currentFile = currentFile;
         this.preloadLevel = preloadLevel;
+
         dataDescription = new StringBuffer();
         scanNumbers = new Hashtable<Integer, ArrayList<Integer>>();
         dataMaxBasePeakIntensity = new Hashtable<Integer, Double>();
@@ -75,13 +79,16 @@ public class NetCDFFile implements RawDataFile {
         if (preloadLevel != PreloadLevel.NO_PRELOAD) scans = new Hashtable<Integer, NetCDFScan>();
     }
 
-
     /**
-     * @see net.sf.mzmine.io.RawDataFile#getFileName()
+     * @see net.sf.mzmine.io.RawDataFile#getOriginalFile()
      */
-    public File getFileName() {
+    public File getOriginalFile() {
         return originalFile;
     }
+
+    public File getCurrentFile() {
+		return currentFile;
+	}
 
     /**
      * @see net.sf.mzmine.io.RawDataFile#getNumOfScans()
