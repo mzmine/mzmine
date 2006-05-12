@@ -23,6 +23,7 @@ import java.util.Comparator;
 import java.util.Iterator;
 import java.util.TreeSet;
 import java.util.Vector;
+import java.awt.Frame;
 
 import net.sf.mzmine.io.RawDataFile;
 import net.sf.mzmine.methods.peakpicking.Peak;
@@ -64,8 +65,8 @@ public class IncompleteIsotopePatternFilter implements PeakListProcessor {
 		numberFormats[0] = NumberFormat.getNumberInstance(); numberFormats[0].setMinimumFractionDigits(0);
 
 
-		ParameterSetupDialog psd = new ParameterSetupDialog(mainWin, "Please check the parameter values", fieldNames, paramValues, numberFormats);
-		psd.show();
+		ParameterSetupDialog psd = new ParameterSetupDialog((Frame)mainWin, "Please check the parameter values", fieldNames, paramValues, numberFormats);
+		psd.setVisible(true);
 
 
 		// Check if user clicked Cancel-button
