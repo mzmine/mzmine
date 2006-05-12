@@ -22,12 +22,12 @@ import java.text.NumberFormat;
 
 import net.sf.mzmine.interfaces.Scan;
 import net.sf.mzmine.io.RawDataFile;
-import net.sf.mzmine.methods.filtering.Filter;
-import net.sf.mzmine.methods.filtering.FilterParameters;
+import net.sf.mzmine.methods.Method;
+import net.sf.mzmine.methods.MethodParameters;
 import net.sf.mzmine.userinterface.dialogs.ParameterSetupDialog;
 import net.sf.mzmine.userinterface.mainwindow.MainWindow;
 
-public class ZoomScanFilter implements Filter {
+public class ZoomScanFilter implements Method {
 
 	private ZoomScanFilterParameters myParameters;
 
@@ -35,9 +35,12 @@ public class ZoomScanFilter implements Filter {
 											"Minimum M/Z range width",
 										};
 
+	public String getMethodDescription() {
+		return new String("Zoom scan filter");
+	}
 
-	public ZoomScanFilterParameters askParameters(MainWindow mainWin, ZoomScanFilterParameters currentValues) {
-
+	public ZoomScanFilterParameters askParameters(MethodParameters currentValues) {
+/*
 		// Create filter parameter object
 		ZoomScanFilterParameters tmpParameters;
 		if (currentValues == null) {
@@ -54,13 +57,11 @@ public class ZoomScanFilter implements Filter {
 		NumberFormat[] numberFormats = new NumberFormat[1];
 		numberFormats[0] = NumberFormat.getNumberInstance(); numberFormats[0].setMinimumFractionDigits(3);
 
+		MainWindow mainWin = MainWindow.getInstance();
+
 		ParameterSetupDialog psd = new ParameterSetupDialog(mainWin, "Please check the parameter values", fieldNames, paramValues, numberFormats);
 
 		psd.show();
-/*
-		psd.setLocationRelativeTo(mainWin);
-		psd.setVisible(true);
-*/
 
 		// Check if user clicked Cancel-button
 		if (psd.getExitCode()==-1) {
@@ -79,17 +80,21 @@ public class ZoomScanFilter implements Filter {
 		tmpParameters.minMZRange = d;
 
 		return tmpParameters;
-
+*/
+		return null;
 	}
 
+	public void runMethod(RawDataFile[] rawDataFiles, MethodParameters parameters) {
+	}
 
+/*
 	public int doFiltering(RawDataFile rawData, FilterParameters _filterParameters) {
 
 		ZoomScanFilterParameters filterParameters = (ZoomScanFilterParameters)_filterParameters;
 
 		int outputNumberOfScans = -1;
 		int outputNumberOfDatapoints = -1;
-/*
+
 		// Check if file type is NetCDF
 		if (rawData.checkFileType()==RawDataFile.FILETYPE_NETCDF) {
 			// Then we must count number of scans in the result file before filtering
@@ -143,10 +148,10 @@ public class ZoomScanFilter implements Filter {
 
 		ret = rawData.finalizeAfterWriting();
 
-		return ret;*/
+		return ret;
         return 0;
 
 	}
-
+*/
 
 }

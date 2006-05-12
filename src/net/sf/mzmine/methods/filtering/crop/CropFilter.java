@@ -18,16 +18,19 @@
     Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 */
 package net.sf.mzmine.methods.filtering.crop;
+
 import java.text.NumberFormat;
+
+import java.awt.Frame;
 
 import net.sf.mzmine.interfaces.Scan;
 import net.sf.mzmine.io.RawDataFile;
-import net.sf.mzmine.methods.filtering.Filter;
-import net.sf.mzmine.methods.filtering.FilterParameters;
+import net.sf.mzmine.methods.Method;
+import net.sf.mzmine.methods.MethodParameters;
 import net.sf.mzmine.userinterface.dialogs.ParameterSetupDialog;
 import net.sf.mzmine.userinterface.mainwindow.MainWindow;
 
-public class CropFilter implements Filter {
+public class CropFilter implements Method {
 
 	private CropFilterParameters myParameters;
 
@@ -38,15 +41,18 @@ public class CropFilter implements Filter {
 											"Maximum RT value"
 										};
 
+	public String getMethodDescription() {
+		return new String("Crop filter");
+	}
 
-	public CropFilterParameters askParameters(MainWindow mainWin, CropFilterParameters currentValues) {
+	public CropFilterParameters askParameters(MethodParameters currentValues) {
 
 		// Create filter parameter object
 		CropFilterParameters tmpParameters;
 		if (currentValues == null) {
 			tmpParameters = new CropFilterParameters();
 		} else {
-			tmpParameters = currentValues;
+			tmpParameters = (CropFilterParameters)currentValues;
 		}
 
 
@@ -63,12 +69,9 @@ public class CropFilter implements Filter {
 		numberFormats[2] = NumberFormat.getNumberInstance(); numberFormats[2].setMinimumFractionDigits(1);
 		numberFormats[3] = NumberFormat.getNumberInstance(); numberFormats[3].setMinimumFractionDigits(1);
 
-		ParameterSetupDialog psd = new ParameterSetupDialog(mainWin, "Please check the parameter values", fieldNames, paramValues, numberFormats);
-		psd.show();
-		/*
-		psd.setLocationRelativeTo(mainWin);
+		MainWindow mainWin = MainWindow.getInstance();
+		ParameterSetupDialog psd = new ParameterSetupDialog((Frame)mainWin, "Please check the parameter values", fieldNames, paramValues, numberFormats);
 		psd.setVisible(true);
-		*/
 
 		// Check if user clicked Cancel-button
 		if (psd.getExitCode()==-1) {
@@ -114,7 +117,10 @@ public class CropFilter implements Filter {
 
 	}
 
+	public void runMethod(RawDataFile[] rawDataFiles, MethodParameters parameters) {
+	}
 
+/*
 	public int doFiltering(RawDataFile rawData, FilterParameters _filterParameters) {
 
 		CropFilterParameters filterParameters = (CropFilterParameters)_filterParameters;
@@ -124,7 +130,7 @@ public class CropFilter implements Filter {
 
 		int maxScan = rawData.getNumOfScans();
 
-		/*double[] scanTimes = rawData.getScanTimes();
+		double[] scanTimes = rawData.getScanTimes();
 		int numOfIncludeScans = 0;
 		for (double rt : scanTimes) {
 			// Is this within the RT range?
@@ -196,12 +202,10 @@ public class CropFilter implements Filter {
 		rawData.finalizeScanBrowser();
 
 		ret = rawData.finalizeAfterWriting();
-		
+
 		return ret;
-        */
-        return 0;
 
 	}
-
+*/
 
 }

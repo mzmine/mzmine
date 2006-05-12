@@ -24,30 +24,29 @@ import javax.swing.JOptionPane;
 
 import net.sf.mzmine.interfaces.Scan;
 import net.sf.mzmine.io.RawDataFile;
-import net.sf.mzmine.methods.filtering.Filter;
-import net.sf.mzmine.methods.filtering.FilterParameters;
+import net.sf.mzmine.methods.Method;
+import net.sf.mzmine.methods.MethodParameters;
 import net.sf.mzmine.userinterface.mainwindow.MainWindow;
 import net.sf.mzmine.userinterface.mainwindow.Statusbar;
 
 
-public class SavitzkyGolayFilter implements Filter {
+public class SavitzkyGolayFilter implements Method {
 
 	private Hashtable<Integer, Integer> Hvalues;
 	private Hashtable<Integer, int[]> Avalues;
 
-	private MainWindow mainWin;
-	private Statusbar statBar;
+	public String getMethodDescription() {
+		return new String("Savitzky Golay filter");
+	}
 
-	public SavitzkyGolayFilterParameters askParameters(MainWindow _mainWin, SavitzkyGolayFilterParameters currentValues) {
-		mainWin = _mainWin;
-		statBar = mainWin.getStatusBar();
+	public SavitzkyGolayFilterParameters askParameters(MethodParameters currentValues) {
 
 		// Initialize parameter values
 		SavitzkyGolayFilterParameters tmpParameters;
 		if (currentValues==null) {
 			tmpParameters = new SavitzkyGolayFilterParameters();
 		} else {
-			tmpParameters = currentValues;
+			tmpParameters = (SavitzkyGolayFilterParameters)currentValues;
 		}
 
 		// Define different options and currently selected item
@@ -61,6 +60,7 @@ public class SavitzkyGolayFilter implements Filter {
 
 		// Show dialog
 
+		MainWindow mainWin = MainWindow.getInstance();
 
 		String s = (String)JOptionPane.showInputDialog(
 						mainWin,
@@ -86,7 +86,11 @@ public class SavitzkyGolayFilter implements Filter {
 
 	}
 
+	public void runMethod(RawDataFile[] rawDataFiles, MethodParameters parameters) {
+	}
 
+
+/*
 	public int doFiltering(RawDataFile rawData, FilterParameters _filterParameters) {
 
 		// Get parameters
@@ -95,7 +99,7 @@ public class SavitzkyGolayFilter implements Filter {
 		// Initialize AH values
 		initializeAHValues();
 
-/*		int numberOfDatapoints = rawData.getNumberOfDatapoints();
+		int numberOfDatapoints = rawData.getNumberOfDatapoints();
 		int maxScan = rawData.getNumberOfScans();
 
 		int ret = rawData.initializeForWriting(numberOfDatapoints, maxScan);
@@ -125,10 +129,9 @@ public class SavitzkyGolayFilter implements Filter {
 
 		rawData.finalizeScanBrowser();
 		return rawData.finalizeAfterWriting();
-*/
-        return 0;
 	}
 
+*/
 
 	private void processOneScan(Scan sc, int numOfDataPoints, int h, int[] aVals) {
 

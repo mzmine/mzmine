@@ -20,18 +20,19 @@
 package net.sf.mzmine.methods.filtering.chromatographicmedian;
 import java.text.NumberFormat;
 import java.util.Vector;
+import java.awt.Frame;
 
 import net.sf.mzmine.interfaces.Scan;
 import net.sf.mzmine.io.RawDataFile;
-import net.sf.mzmine.methods.filtering.Filter;
-import net.sf.mzmine.methods.filtering.FilterParameters;
+import net.sf.mzmine.methods.Method;
+import net.sf.mzmine.methods.MethodParameters;
 import net.sf.mzmine.userinterface.dialogs.ParameterSetupDialog;
 import net.sf.mzmine.userinterface.mainwindow.MainWindow;
 import net.sf.mzmine.util.MyMath;
 
 
 
-public class ChromatographicMedianFilter implements Filter {
+public class ChromatographicMedianFilter implements Method {
 
 	private ChromatographicMedianFilterParameters parameters;
 
@@ -40,14 +41,18 @@ public class ChromatographicMedianFilter implements Filter {
 											"One-sided scan window length" };
 
 
-	public ChromatographicMedianFilterParameters askParameters(MainWindow mainWin, ChromatographicMedianFilterParameters currentValues) {
+	public String getMethodDescription() {
+		return new String("Chromatographic median filter");
+	}
+
+	public ChromatographicMedianFilterParameters askParameters(MethodParameters currentValues) {
 
 		// Initialize parameters
 		ChromatographicMedianFilterParameters myParameters;
 		if (currentValues==null) {
 			myParameters = new ChromatographicMedianFilterParameters();
 		} else {
-			myParameters = currentValues;
+			myParameters = (ChromatographicMedianFilterParameters)currentValues;
 		}
 
 		// Show parameter setup dialog
@@ -59,13 +64,9 @@ public class ChromatographicMedianFilter implements Filter {
 		numberFormats[0] = NumberFormat.getNumberInstance(); numberFormats[0].setMinimumFractionDigits(3);
 		numberFormats[1] = NumberFormat.getIntegerInstance();
 
-		ParameterSetupDialog psd = new ParameterSetupDialog(mainWin, "Please check the parameter values", fieldNames, paramValues, numberFormats);
-
-		psd.show();
-		/*
-		psd.setLocationRelativeTo(mainWin);
+		MainWindow mainWin = MainWindow.getInstance();
+		ParameterSetupDialog psd = new ParameterSetupDialog((Frame)mainWin, "Please check the parameter values", fieldNames, paramValues, numberFormats);
 		psd.setVisible(true);
-		*/
 
 
 		// Check if user clicked Cancel-button
@@ -96,7 +97,10 @@ public class ChromatographicMedianFilter implements Filter {
 
 	}
 
+	public void runMethod(RawDataFile[] rawDataFiles, MethodParameters parameters) {
+	}
 
+/*
 	public int doFiltering(RawDataFile rawData, FilterParameters _filterParameters) {
 
 		ChromatographicMedianFilterParameters filterParameters = (ChromatographicMedianFilterParameters)_filterParameters;
@@ -107,7 +111,7 @@ public class ChromatographicMedianFilter implements Filter {
 		Scan sc = null;
 		int ret = 0, maxScan = 0;
 
-		/*int numberOfDatapoints = rawData.getNumberOfDatapoints();
+		int numberOfDatapoints = rawData.getNumberOfDatapoints();
 		int maxScan = rawData.getNumberOfScans();
 
 
@@ -116,7 +120,7 @@ public class ChromatographicMedianFilter implements Filter {
 
 
 		rawData.initializeScanBrowser(0, maxScan);
-*/
+
 		for (int scani=0; scani<(maxScan+filterParameters.oneSidedWindowLength); scani++) {
 
 			//nodeServer.updateJobCompletionRate((double)scani/(double)(maxScan-1));
@@ -201,7 +205,7 @@ public class ChromatographicMedianFilter implements Filter {
 		return ret;
 
 	}
-
+*/
 
 	/**
 	 * Searches for data point in a scan closest to given mz value.
