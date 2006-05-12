@@ -20,9 +20,12 @@
 package net.sf.mzmine.io;
 
 import java.io.File;
+import java.io.IOException;
+
 
 import net.sf.mzmine.io.RawDataFile.PreloadLevel;
 import net.sf.mzmine.io.mzxml.MZXMLFileOpeningTask;
+import net.sf.mzmine.io.mzxml.MZXMLFileWriter;
 import net.sf.mzmine.io.netcdf.NetCDFFileOpeningTask;
 import net.sf.mzmine.taskcontrol.Task;
 import net.sf.mzmine.taskcontrol.TaskController;
@@ -37,6 +40,8 @@ import net.sf.mzmine.util.Logger;
 public class IOController implements TaskListener {
 
     private static IOController myInstance;
+
+    private enum FileType { MZXML, NETCDF, UNKNOWN };
 
     public IOController() {
         assert myInstance == null;
@@ -57,31 +62,75 @@ public class IOController implements TaskListener {
         Task openTask;
 
         for (File file : files) {
-            /* TODO: determine file contents by header */
-            extension = file.getName().substring(
-                    file.getName().lastIndexOf(".") + 1).toLowerCase();
 
-            if (extension.endsWith("xml")) {
-                openTask = new MZXMLFileOpeningTask(file, preloadLevel);
-            } else if (extension.equals("cdf")) {
-                openTask = new NetCDFFileOpeningTask(file, preloadLevel);
-            } else {
-                MainWindow.getInstance().displayErrorMessage("Unknown file format of file " + file);
-                continue;
-            }
+			FileType fileType = determineFileType(file);
 
-            TaskController.getInstance().addTask(openTask, this);
+			switch(fileType) {
+				case MZXML:
+					openTask = new MZXMLFileOpeningTask(file, preloadLevel);
+					TaskController.getInstance().addTask(openTask, this);
+					break;
+				case NETCDF:
+					openTask = new NetCDFFileOpeningTask(file, preloadLevel);
+					TaskController.getInstance().addTask(openTask, this);
+					break;
+				case UNKNOWN:
+				default:
+	                MainWindow.getInstance().displayErrorMessage("Unknown file format of file " + file);
+					break;
+			}
+
         }
 
     }
 
     /**
-     * TODO:
+     * TODO: Currently always uses MZXMLFileWriter, should also include NetCDFWriter when it is implemented
      *
      */
-    public RawDataFileWriter createNewTemporaryFile(RawDataFile file) {
-        return null;
+    public RawDataFileWriter createNewTemporaryFile(RawDataFile file) throws IOException {
+
+
+		// Determine file type
+		FileType fileType = determineFileType(file.getOriginalFile());
+		if (fileType==FileType.UNKNOWN) { return null; }
+
+
+		// Create new temp file
+		File workingCopy;
+		try {
+			workingCopy = File.createTempFile("MZmine", null);
+			workingCopy.deleteOnExit();
+		} catch (SecurityException e) {
+			Logger.putFatal("Could not prepare newly created temporary copy for deletion on exit.");
+			throw new IOException("Could not prepare newly created temporary copy for deletion on exit.");
+		}
+
+
+		// Create the writer
+		switch(fileType) {
+			case MZXML:
+			case NETCDF:
+				RawDataFileWriter rawDataFileWriter = new MZXMLFileWriter(file.getOriginalFile(), workingCopy, file.getPreloadLevel());
+				return rawDataFileWriter;
+
+			default:
+				return null;
+
+		}
+
     }
+
+    private FileType determineFileType(File file) {
+
+		String extension;
+
+		extension = file.getName().substring(file.getName().lastIndexOf(".") + 1).toLowerCase();
+		if (extension.endsWith("xml")) { return FileType.MZXML; }
+		if (extension.equals("cdf")) { return FileType.NETCDF; }
+		return FileType.UNKNOWN;
+
+	}
 
     /**
      * This method is called when the file opening task is finished.
