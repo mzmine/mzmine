@@ -1,17 +1,17 @@
 /*
- * Copyright 2005 VTT Biotechnology
- * 
+ * Copyright 2006 The MZmine Development Team
+ *
  * This file is part of MZmine.
- * 
+ *
  * MZmine is free software; you can redistribute it and/or modify it under the
  * terms of the GNU General Public License as published by the Free Software
  * Foundation; either version 2 of the License, or (at your option) any later
  * version.
- * 
+ *
  * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY
  * WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR
  * A PARTICULAR PURPOSE. See the GNU General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License along with
  * MZmine; if not, write to the Free Software Foundation, Inc., 51 Franklin St,
  * Fifth Floor, Boston, MA 02110-1301 USA
@@ -43,7 +43,7 @@ import net.sf.mzmine.visualizers.alignmentresult.AlignmentResultVisualizer;
 
 /**
  * This class is the main window of application
- * 
+ *
  */
 public class MainWindow extends JFrame implements WindowListener {
 
@@ -159,7 +159,7 @@ public class MainWindow extends JFrame implements WindowListener {
         //  TODO: check screen size?
         setBounds(0, 0, 1000, 700);
         setLocationRelativeTo(null);
-                
+
         // Application wants to control closing by itself
         setDefaultCloseOperation(DO_NOTHING_ON_CLOSE);
 
@@ -167,7 +167,7 @@ public class MainWindow extends JFrame implements WindowListener {
 
         statBar.setStatusText("Welcome to MZmine!");
 
-        
+
         taskList = new TaskProgressWindow();
         desktop.add(taskList, javax.swing.JLayeredPane.DEFAULT_LAYER);
 
@@ -176,14 +176,14 @@ public class MainWindow extends JFrame implements WindowListener {
     public MainMenu getMainMenu() {
         return menuBar;
     }
-    
+
     public void addInternalFrame(JInternalFrame frame) {
         desktop.add(frame, JLayeredPane.DEFAULT_LAYER);
         // TODO: adjust frame position
         frame.addInternalFrameListener(itemSelector);
         frame.setVisible(true);
     }
-    
+
 
     /**
      * This method returns the desktop
@@ -203,7 +203,7 @@ public class MainWindow extends JFrame implements WindowListener {
 
     /**
      * This method moves all visualizers of given raw data to the top on desktop
-  
+
     public void moveVisualizersToFront(RawDataAtClient rawData) {
 
         Integer rawDataID = new Integer(rawData.getRawDataID());
@@ -270,7 +270,7 @@ public class MainWindow extends JFrame implements WindowListener {
 
     /**
      * Checks if a raw data file has one or more visible visualizers
-     * 
+     *
      * @param rawDataID
      *            raw data file ID
      * @return true if raw data file has one or more visible visualizers
@@ -537,8 +537,8 @@ public class MainWindow extends JFrame implements WindowListener {
 
 
 
-    
- 
+
+
     /**
      * WindowListener interface implementation
      */
@@ -727,7 +727,7 @@ public class MainWindow extends JFrame implements WindowListener {
      * Copies the zoom settings from given run to all other runs. whatDims
      * parameter defines wheter to copy zoom settings only in mz, rt or both
      * dimensions
-  
+
     public void setSameZoomToOtherRawDatas(RawDataAtClient originalRawData,
             int whatDims) {
 
@@ -861,7 +861,7 @@ public class MainWindow extends JFrame implements WindowListener {
 
 
 
-    
+
 */
     /**
      * Prepares everything for quit and then shutdowns the application
