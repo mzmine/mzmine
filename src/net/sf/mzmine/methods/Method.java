@@ -20,29 +20,32 @@
 package net.sf.mzmine.methods;
 
 import net.sf.mzmine.io.MZmineProject;
+import net.sf.mzmine.io.RawDataFile;
+import net.sf.mzmine.userinterface.mainwindow.MainWindow;
 
 /**
  *
  */
 public interface Method {
 
-    
     /**
      * @return Textual description of method
      */
     public String getMethodDescription();
-    
+
     /**
      * This function displays a modal dialog to define method parameters
-     * @return parameters set by user
+     *
+     * @param	parameters	Previous parameter values
+     * @return	Parameters set by user
      */
-    public MethodParameters askParameters();
-    
+    public MethodParameters askParameters(MethodParameters parameters);
+
     /**
-     * Runs this method on a given project
-     * @param project
+     * Runs this method on a given raw data files
+     * @param rawDataFiles
      * @param parameters
      */
-    public void runMethod(MZmineProject project, MethodParameters parameters);
-    
+    public void runMethod(RawDataFile[] rawDataFiles, MethodParameters parameters);
+
 }
