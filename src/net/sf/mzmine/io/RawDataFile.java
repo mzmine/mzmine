@@ -28,18 +28,19 @@ import net.sf.mzmine.interfaces.Scan;
 
 /**
  * Class representing a raw data file, no matter what format it is using.
- * 
+ *
  * Data file must be Serializable, because it may be passed as a parameter to remote nodes
  *
  */
 public interface RawDataFile extends Serializable {
 
     public enum PreloadLevel { NO_PRELOAD, PRELOAD_ALL_SCANS };
-    
-    public File getFileName();
-    
+
+    public File getOriginalFile();
+    public File getCurrentFile();
+
     public PreloadLevel getPreloadLevel();
-    
+
     public int getNumOfScans();
     public int[] getMSLevels();
     public int[] getScanNumbers(int msLevel);
@@ -50,7 +51,7 @@ public interface RawDataFile extends Serializable {
      * @return Desired scan
      */
     public Scan getScan(int scan) throws IOException;
-   
+
     public String getDataDescription();
 
     public double getDataMinMZ();
@@ -59,10 +60,10 @@ public interface RawDataFile extends Serializable {
     public double getDataMaxRT();
     public double getDataMaxBasePeakIntensity(int msLevel);
     public double getDataMaxTotalIonCurrent(int msLevel);
-    
+
     /**
      * @return filename
      */
     public String toString();
-        
+
 }
