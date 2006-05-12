@@ -28,11 +28,20 @@ import javax.swing.JMenu;
 import javax.swing.JMenuBar;
 import javax.swing.JMenuItem;
 import javax.swing.KeyStroke;
+import javax.swing.JFileChooser;
+
+import java.io.File;
+import java.io.IOException;
 
 import net.sf.mzmine.io.MZmineProject;
 import net.sf.mzmine.io.RawDataFile;
 import net.sf.mzmine.methods.alignment.AlignmentResult;
 import net.sf.mzmine.userinterface.dialogs.FileOpenDialog;
+
+import net.sf.mzmine.methods.MethodParameters;
+import net.sf.mzmine.methods.filtering.mean.MeanFilter;
+import net.sf.mzmine.methods.filtering.mean.MeanFilterParameters;
+
 import net.sf.mzmine.visualizers.alignmentresult.AlignmentResultVisualizerCDAPlotView;
 import net.sf.mzmine.visualizers.alignmentresult.AlignmentResultVisualizerCoVarPlotView;
 import net.sf.mzmine.visualizers.alignmentresult.AlignmentResultVisualizerLogratioPlotView;
@@ -40,6 +49,8 @@ import net.sf.mzmine.visualizers.alignmentresult.AlignmentResultVisualizerSammon
 import net.sf.mzmine.visualizers.rawdata.spectra.SpectrumVisualizer;
 import net.sf.mzmine.visualizers.rawdata.tic.TICVisualizer;
 import net.sf.mzmine.visualizers.rawdata.twod.TwoDVisualizer;
+
+import sunutils.ExampleFileFilter;
 
 /**
  *
@@ -347,6 +358,109 @@ class MainMenu extends JMenuBar implements ActionListener {
 
         }
 
+
+		if (src == fileLoadParameters) {
+
+			statBar.setStatusText("Please select a parameter file");
+
+			// Build open dialog
+			JFileChooser fileOpenChooser = new JFileChooser();
+			fileOpenChooser.setDialogType(JFileChooser.OPEN_DIALOG);
+			fileOpenChooser.setMultiSelectionEnabled(false);
+			fileOpenChooser.setDialogTitle("Please select parameter file");
+
+			// Setup file extension filter
+			ExampleFileFilter filter = new ExampleFileFilter();
+			filter.addExtension("mzmine-parameters");
+			filter.setDescription("MZmine parameters file");
+			fileOpenChooser.setFileFilter(filter);
+
+			// Show dialog and test return value from user
+			int retval = fileOpenChooser.showOpenDialog(mainWin);
+			if(retval == JFileChooser.APPROVE_OPTION) {
+
+				File selectedFile = fileOpenChooser.getSelectedFile();
+				if (!(selectedFile.exists())) {
+					mainWin.displayErrorMessage("Selected parameter file " + selectedFile + " does not exist!");
+					return;
+				}
+
+				// Read parameters from file
+				try {
+					mainWin.getParameterStorage().readParameters(selectedFile);
+				} catch (IOException ioexce) {
+					mainWin.displayErrorMessage("Failed to load parameter settings from file " + selectedFile + ": " + ioexce.toString());
+				}
+
+			}
+
+		}
+
+
+		// File -> Save parameters
+		if (src == fileSaveParameters) {
+
+			// Build save dialog
+			JFileChooser fileSaveChooser = new JFileChooser();
+			fileSaveChooser.setDialogType(JFileChooser.SAVE_DIALOG);
+			fileSaveChooser.setMultiSelectionEnabled(false);
+			fileSaveChooser.setDialogTitle("Please give file name for parameters file.");
+
+			// Setup file extension filter
+			ExampleFileFilter filter = new ExampleFileFilter();
+			filter.addExtension("mzmine-parameters");
+			filter.setDescription("MZmine parameters file");
+			fileSaveChooser.setFileFilter(filter);
+
+			// Show dialog and test return value from user
+			int retval = fileSaveChooser.showSaveDialog(mainWin);
+			if(retval == JFileChooser.APPROVE_OPTION) {
+				File selectedFile = fileSaveChooser.getSelectedFile();
+
+				// Add extension .mzmine-parameters to file name unless it is there already
+				String extension = selectedFile.getName().substring(selectedFile.getName().lastIndexOf(".") + 1).toLowerCase();
+				if (!extension.equals("mzmine-parameters")) { selectedFile = new File(selectedFile.getPath() + ".mzmine-parameters"); }
+
+				// Write parameters to file
+				try {
+					mainWin.getParameterStorage().writeParameters(selectedFile);
+				} catch (IOException ioexce) {
+					mainWin.displayErrorMessage("Failed to load parameter settings from file " + selectedFile + ": " + ioexce.toString());
+				}
+
+			}
+
+		}
+
+
+		// File -> Exit
+		if (src == fileExit) {
+			statBar.setStatusText("Exiting.");
+			mainWin.exitMZmine();
+		}
+
+		// Filter -> Mean
+		if (src == ssMeanFilter) {
+
+			 // Ask parameters from user
+			MeanFilter mf = new MeanFilter();
+			MeanFilterParameters mfParam = mainWin.getParameterStorage().getMeanFilterParameters();
+			mfParam = mf.askParameters((MethodParameters)mfParam);
+         	if (mfParam==null) { statBar.setStatusText("Mean filtering cancelled."); return; }
+         	//parameterStorage.setMeanFilterParameters(mfParam);
+
+         	// It seems user didn't cancel
+         	statBar.setStatusText("Mean filtering spectra.");
+         	//paintNow();
+
+         	// Collect selected raw data files raw data IDs and initiate filtering
+         	RawDataFile[] selectedFiles = itemSelector.getSelectedRawData();
+         	mf.runMethod(selectedFiles, mfParam);
+
+		}
+
+
+
         // File->Export table
         /*
          * if (src == fileExportPeakList) {
@@ -595,19 +709,11 @@ class MainMenu extends JMenuBar implements ActionListener {
          * if (src == toolsOptions) {
          *
          * new OptionsWindow(this); }
-         *
-         * if (src == ssMeanFilter) { // Ask parameters from user MeanFilter mf =
-         * new MeanFilter(); MeanFilterParameters mfParam =
-         * mf.askParameters(this, parameterStorage.getMeanFilterParameters());
-         * if (mfParam==null) { statBar.setStatusText("Mean filtering
-         * cancelled."); return; }
-         * parameterStorage.setMeanFilterParameters(mfParam); // It seems user
-         * didn't cancel statBar.setStatusText("Mean filtering spectra.");
-         * paintNow(); // Collect raw data IDs and initiate filtering on the
-         * cluster int[] selectedRawDataIDs =
-         * itemSelector.getSelectedRawDataIDs(); //
-         * clientForCluster.filterRawDataFiles(selectedRawDataIDs, mfParam); }
-         *
+         */
+
+
+
+         /*
          * if (src == ssSGFilter) { // Ask parameters from user
          * SavitzkyGolayFilter sf = new SavitzkyGolayFilter();
          * SavitzkyGolayFilterParameters sfParam = sf.askParameters(this,
