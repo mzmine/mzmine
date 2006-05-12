@@ -61,11 +61,42 @@ class MZXMLScan extends DefaultHandler implements Scan {
     private static final Date currentDate = new Date();
 
     /**
-     *
+     * Constructor for empty scan that which will be parsed from XML document
      */
-    public MZXMLScan() {
+    protected MZXMLScan() {
         charBuffer = new StringBuffer(256);
     }
+
+    /**
+     * Constructor for creating scan with given data
+     */
+    protected MZXMLScan(int scanNumber,
+    					int msLevel,
+    					double precursorMZ,
+    					double retentionTime,
+    					double basePeakMZ,
+    					double basePeakIntensity,
+    					double[] mzValues,
+    					double[] intensityValues,
+    					boolean centroided) {
+		this.scanNumber = scanNumber;
+		this.msLevel = msLevel;
+		this.precursorMZ = precursorMZ;
+		this.retentionTime = retentionTime;
+		this.basePeakMZ = basePeakMZ;
+		this.basePeakIntensity = basePeakIntensity;
+		this.mzValues = mzValues;
+		this.intensityValues = intensityValues;
+		// TODO: this.XXX = centroided;
+
+		// Find M/Z range min and max
+		mzRangeMin = Double.MAX_VALUE;
+		mzRangeMax = Double.MIN_VALUE;
+		for (double mz : mzValues) {
+			if (mzRangeMin>mz) mzRangeMin = mz;
+			if (mzRangeMax<mz) mzRangeMax = mz;
+		}
+	}
 
     /**
      * @return Returns the intensityValues.
@@ -219,6 +250,7 @@ class MZXMLScan extends DefaultHandler implements Scan {
                     Logger.put("Can't interpret scan lowest/highest mz value");
                     lowHighGiven = false;
                 }
+
             }
 
         }
