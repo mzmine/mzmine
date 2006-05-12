@@ -18,7 +18,7 @@
  */
 
 /**
- * 
+ *
  */
 package net.sf.mzmine.io.mzxml;
 
@@ -41,11 +41,21 @@ import net.sf.mzmine.util.Logger;
 
 /**
  * Class representing raw data file in MZXML format.
- * 
+ *
  */
 class MZXMLFile implements RawDataFile {
 
+	/**
+	 * This is the original data file (opened by the user)
+	 */
     private File originalFile;
+
+    /**
+     * This is the file containing current version of the data
+     * By default it is same as originalFile, but if raw data is modified
+     * then this is the current working copy of the data file.
+     */
+    private File currentFile;
 
     private int numOfScans = 0;
 
@@ -71,9 +81,11 @@ class MZXMLFile implements RawDataFile {
 
     /**
      */
-    MZXMLFile(File originalFile, PreloadLevel preloadLevel) {
+    MZXMLFile(File originalFile, File currentFile, PreloadLevel preloadLevel) {
         this.originalFile = originalFile;
+		this.currentFile = currentFile;
         this.preloadLevel = preloadLevel;
+
         dataDescription = new StringBuffer();
         scansIndex = new Hashtable<Integer, Long>();
         scanNumbers = new Hashtable<Integer, ArrayList<Integer>>();
@@ -104,14 +116,14 @@ class MZXMLFile implements RawDataFile {
         Long filePos = scansIndex.get(new Integer(scanNumber));
         if (filePos == null)
             throw (new IllegalArgumentException("Scan " + scanNumber
-                    + " is not present in file " + originalFile));
+                    + " is not present in file " + currentFile + "(" + originalFile + ")"));
 
         MZXMLScan buildingScan = new MZXMLScan();
 
-        // Logger.put("Skip mzXML file to position " + filePos);
+        //Logger.putFatal("Skip mzXML file to position " + filePos);
 
         FileInputStream fileIN = null;
-        fileIN = new FileInputStream(originalFile);
+        fileIN = new FileInputStream(currentFile);
         fileIN.skip(filePos);
 
         // Use the default (non-validating) parser
@@ -129,7 +141,7 @@ class MZXMLFile implements RawDataFile {
 
                 Logger.putFatal(e.toString());
                 throw (new IOException("Couldn't parse scan " + scanNumber
-                        + " from file " + originalFile));
+                        + " from file " + currentFile + "(" + originalFile + ")"));
 
             }
         }
@@ -201,11 +213,15 @@ class MZXMLFile implements RawDataFile {
     }
 
     /**
-     * @see net.sf.mzmine.io.RawDataFile#getFileName()
+     * @see net.sf.mzmine.io.RawDataFile#getOriginalFile()
      */
-    public File getFileName() {
+    public File getOriginalFile() {
         return originalFile;
     }
+
+    public File getCurrentFile() {
+		return currentFile;
+	}
 
     /**
      * @see net.sf.mzmine.io.RawDataFile#getDataMaxBasePeakIntensity()

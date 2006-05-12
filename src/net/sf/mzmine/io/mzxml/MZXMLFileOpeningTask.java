@@ -18,7 +18,7 @@
  */
 
 /**
- * 
+ *
  */
 package net.sf.mzmine.io.mzxml;
 
@@ -38,7 +38,7 @@ import org.xml.sax.SAXException;
 import org.xml.sax.helpers.DefaultHandler;
 
 /**
- * 
+ *
  */
 public class MZXMLFileOpeningTask extends DefaultHandler implements
         DistributableTask {
@@ -55,7 +55,7 @@ public class MZXMLFileOpeningTask extends DefaultHandler implements
     private MZXMLScan buildingScan;
 
     /**
-     * 
+     *
      */
     public MZXMLFileOpeningTask(File fileToOpen, PreloadLevel preloadLevel) {
 
@@ -64,7 +64,7 @@ public class MZXMLFileOpeningTask extends DefaultHandler implements
 
         charBuffer = new StringBuffer(256);
 
-        buildingFile = new MZXMLFile(fileToOpen, preloadLevel);
+        buildingFile = new MZXMLFile(fileToOpen, fileToOpen, preloadLevel);
 
     }
 
@@ -132,7 +132,7 @@ public class MZXMLFileOpeningTask extends DefaultHandler implements
 
         } catch (Throwable e) {
             /* catch Throwable instead of Exception, to catch errors like OutOfMemoryError */
-            
+
             /* we may already have set the status to CANCELED */
             if (status == TaskStatus.PROCESSING)
                 status = TaskStatus.ERROR;
@@ -239,7 +239,7 @@ public class MZXMLFileOpeningTask extends DefaultHandler implements
 
         // </scan>
         if (qName.equalsIgnoreCase("scan")) {
-            
+
             if (buildingScan != null) {
                 /* scan reading is finished, add it to the file */
                 buildingFile.addScan(buildingScan);
@@ -247,7 +247,7 @@ public class MZXMLFileOpeningTask extends DefaultHandler implements
                 buildingScan = null;
                 return;
             }
-            
+
         }
 
         if (buildingScan != null) {
@@ -271,7 +271,7 @@ public class MZXMLFileOpeningTask extends DefaultHandler implements
 
     /**
      * characters()
-     * 
+     *
      * @see org.xml.sax.ContentHandler#characters(char[], int, int)
      */
     public void characters(char buf[], int offset, int len) throws SAXException {
