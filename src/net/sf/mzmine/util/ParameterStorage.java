@@ -1,29 +1,52 @@
 /*
-    Copyright 2005 VTT Biotechnology
-
-    This file is part of MZmine.
-
-    MZmine is free software; you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
-    the Free Software Foundation; either version 2 of the License, or
-    (at your option) any later version.
-
-    MZmine is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
-
-    You should have received a copy of the GNU General Public License
-    along with MZmine; if not, write to the Free Software
-    Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
-*/
+ * Copyright 2006 The MZmine Development Team
+ *
+ * This file is part of MZmine.
+ *
+ * MZmine is free software; you can redistribute it and/or modify it under the
+ * terms of the GNU General Public License as published by the Free Software
+ * Foundation; either version 2 of the License, or (at your option) any later
+ * version.
+ *
+ * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY
+ * WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR
+ * A PARTICULAR PURPOSE. See the GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License along with
+ * MZmine; if not, write to the Free Software Foundation, Inc., 51 Franklin St,
+ * Fifth Floor, Boston, MA 02110-1301 USA
+ */
 
 package net.sf.mzmine.util;
 import java.io.File;
 import java.io.FileWriter;
+import java.io.FileOutputStream;
+import java.io.IOException;
 
 import javax.xml.parsers.SAXParser;
 import javax.xml.parsers.SAXParserFactory;
+
+import javax.xml.transform.Source;
+import javax.xml.transform.Result;
+import javax.xml.transform.Transformer;
+import javax.xml.transform.TransformerFactory;
+import javax.xml.transform.TransformerException;
+import javax.xml.transform.TransformerConfigurationException;
+import javax.xml.transform.dom.DOMSource;
+import javax.xml.transform.stream.StreamResult;
+
+import javax.xml.parsers.DocumentBuilderFactory;
+import javax.xml.parsers.DocumentBuilder;
+import javax.xml.parsers.ParserConfigurationException;
+
+
+import org.w3c.dom.Element;
+import org.w3c.dom.Document;
+import org.w3c.dom.NodeList;
+
+import org.xml.sax.Attributes;
+import org.xml.sax.SAXException;
+
 
 import net.sf.mzmine.methods.alignment.AlignmentResultExporterParameters;
 import net.sf.mzmine.methods.alignment.fast.FastAlignerParameters;
@@ -46,6 +69,11 @@ import net.sf.mzmine.methods.peakpicking.recursivethreshold.RecursiveThresholdPi
 import net.sf.mzmine.userinterface.dialogs.BatchModeDialogParameters;
 import net.sf.mzmine.visualizers.alignmentresult.AlignmentResultVisualizerCDAPlotViewParameters;
 import net.sf.mzmine.visualizers.alignmentresult.AlignmentResultVisualizerSammonsPlotViewParameters;
+
+
+
+
+
 
 public class ParameterStorage {
 
@@ -155,7 +183,9 @@ public class ParameterStorage {
 
 
 
-
+	/**
+	 * Constructor: Initializes all parameters with their default values
+	 */
 	public ParameterStorage() {
 
 		generalParameters = new GeneralParameters();
@@ -184,161 +214,67 @@ public class ParameterStorage {
 	}
 
 
-	public boolean readParametesFromFile(File paramFile) {
+	/**
+	 * Reads all parameter settings from a file
+	 * @param	paramFile	Parameter settings file
+	 */
+	public void readParameters(File paramFile) throws IOException {
 
-		if (!(paramFile.exists())) { return false; }
 
-		ParameterStorageXMLReader xmlHandler = new ParameterStorageXMLReader(this);
+		// Read XML file to a DOM document
+		DocumentBuilder docBuilder;
+		Document doc;
+		try {
+			docBuilder = DocumentBuilderFactory.newInstance().newDocumentBuilder();
+			doc = docBuilder.parse(paramFile);
+		}
+		catch (ParserConfigurationException e) { throw new IOException(e.toString()); }
+		catch (SAXException e) { throw new IOException(e.toString()); }
 
-
-		// Use the default (non-validating) parser
-        SAXParserFactory factory = SAXParserFactory.newInstance();
-        try {
-
-            // Parse the file
-            SAXParser saxParser = factory.newSAXParser();
-            saxParser.parse( paramFile, xmlHandler);
-
-        } catch (Throwable t) {
-            t.printStackTrace();
-            return false;
-        }
-
-        return true;
+		// Let parameter objects fetch their values from document
+		NodeList n = doc.getElementsByTagName(meanFilterParameters.getTagName()); meanFilterParameters.readFromXML((Element)(n.item(0)));
 
 	}
 
-	public boolean writeParametersToFile(File paramFile) {
+	/**
+	 * Writes all parameter values to file
+	 * @param	paramFile	Parameter settings file
+	 */
+	public void writeParameters(File paramFile) throws IOException {
 		FileWriter paramFileWriter;
 
-		// Open file
-		if (paramFile.exists()) { if(!(paramFile.delete())) { return false; } }
-
+		// Create new DOM document
+		DocumentBuilder docBuilder;
+		Document doc;
 		try {
-			if (!(paramFile.createNewFile())) { return false; }
-		} catch (Exception e) {
-			Logger.put("Could not create parameters file " + paramFile + "for writing.");
-			Logger.put(e.toString());
-			return false;
+			docBuilder = DocumentBuilderFactory.newInstance().newDocumentBuilder();
+			doc = docBuilder.newDocument();
 		}
+		catch (ParserConfigurationException e) { throw new IOException(e.toString()); }
 
-		try {
-			paramFileWriter = new FileWriter(paramFile);
-		} catch (Exception e) {
-			Logger.put("Could not open parameters file " + paramFile + "for writing.");
-			Logger.put(e.toString());
-			return false;
-		}
+		Element rootElement = doc.createElement("MZmineParameters");
+		doc.appendChild(rootElement);
 
-		// Write header
-		String s;
-		try {
-			s = "<?xml version=\"1.0\" encoding=\"ISO-8859-1\"?>\n";
-			paramFileWriter.write(s);
-			s = "<MZmineParameters>\n";
-			paramFileWriter.write(s);
-		} catch (Exception e) {
-			Logger.put("Could not write to parameters file " + paramFile + ".");
-			Logger.put(e.toString());
-			return false;
-		}
+		// Ask parameter object to add their elements to the document
+		// Raw data filters
+		Element filtersParameters = doc.createElement("RawDataFilters");
+		rootElement.appendChild(filtersParameters);
+		filtersParameters.appendChild(meanFilterParameters.addToXML(doc));
 
+	    // Write a DOM document to a file
+        try {
+            Source source = new DOMSource(doc);
+            FileOutputStream ostream = new FileOutputStream(paramFile);
+            Result result = new StreamResult(ostream);
+            Transformer xformer = TransformerFactory.newInstance().newTransformer();
+            xformer.transform(source, result);
+            ostream.close();
+        } catch (TransformerConfigurationException e) {
+			throw new IOException(e.toString());
+        } catch (TransformerException e) {
+			throw new IOException(e.toString());
+        }
 
-		// Write parameters
-		try {
-			s = generalParameters.writeParameterTag();
-			paramFileWriter.write("\t" + s + "\n");
-
-			s = alignmentResultExporterParameters.writeParameterTag();
-			paramFileWriter.write("\t" + s + "\n");
-
-			s = batchModeDialogParameters.writeParameterTag();
-			paramFileWriter.write("\t" + s + "\n");
-
-			s = meanFilterParameters.writeParameterTag();
-			paramFileWriter.write("\t" + s + "\n");
-
-			s = savitzkyGolayFilterParameters.writeParameterTag();
-			paramFileWriter.write("\t" + s + "\n");
-
-			s = chromatographicMedianFilterParameters.writeParameterTag();
-			paramFileWriter.write("\t" + s + "\n");
-
-			s = cropFilterParameters.writeParameterTag();
-			paramFileWriter.write("\t" + s + "\n");
-
-			s = localPickerParameters.writeParameterTag();
-			paramFileWriter.write("\t" + s + "\n");
-
-			s = recursiveThresholdPickerParameters.writeParameterTag();
-			paramFileWriter.write("\t" + s + "\n");
-
-			s = centroidPickerParameters.writeParameterTag();
-			paramFileWriter.write("\t" + s + "\n");
-
-			s = simpleDeisotoperParameters.writeParameterTag();
-			paramFileWriter.write("\t" + s + "\n");
-
-			s = combinatorialDeisotoperParameters.writeParameterTag();
-			paramFileWriter.write("\t" + s + "\n");
-
-			s = incompleteIsotopePatternFilterParameters.writeParameterTag();
-			paramFileWriter.write("\t" + s + "\n");
-
-			s = joinAlignerParameters.writeParameterTag();
-			paramFileWriter.write("\t" + s + "\n");
-
-			s = fastAlignerParameters.writeParameterTag();
-			paramFileWriter.write("\t" + s + "\n");
-
-			s = alignmentResultVisualizerCDAPlotViewParameters.writeParameterTag();
-			paramFileWriter.write("\t" + s + "\n");
-
-			s = alignmentResultVisualizerSammonsPlotViewParameters.writeParameterTag();
-			paramFileWriter.write("\t" + s + "\n");
-
-			s = alignmentResultFilterByGapsParameters.writeParameterTag();
-			paramFileWriter.write("\t" + s + "\n");
-
-			s = simpleGapFillerParameters.writeParameterTag();
-			paramFileWriter.write("\t" + s + "\n");
-
-			s = linearNormalizerParameters.writeParameterTag();
-			paramFileWriter.write("\t" + s + "\n");
-
-			s = standardCompoundNormalizerParameters.writeParameterTag();
-			paramFileWriter.write("\t" + s + "\n");
-
-		} catch (Exception e) {
-			Logger.put("Could not write to parameters file " + paramFile + ".");
-			Logger.put(e.toString());
-			return false;
-		}
-
-		// Write footer
-		try {
-			s = "</MZmineParameters>\n";
-			paramFileWriter.write(s);
-		} catch (Exception e) {
-			Logger.put("Could not write to parameters file " + paramFile + ".");
-			Logger.put(e.toString());
-			return false;
-		}
-
-
-		// Close file
-		try {
-			paramFileWriter.close();
-		} catch (Exception e) {
-			Logger.put("Could not write to parameters file " + paramFile + ".");
-			Logger.put(e.toString());
-			return false;
-		}
-
-
-		return true;
-
-	}
-
+    }
 
 }
