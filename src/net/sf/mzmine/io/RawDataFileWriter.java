@@ -21,6 +21,7 @@
 package net.sf.mzmine.io;
 
 import java.io.File;
+import java.io.IOException;
 
 import net.sf.mzmine.interfaces.Scan;
 
@@ -29,17 +30,36 @@ import net.sf.mzmine.interfaces.Scan;
  */
 public interface RawDataFileWriter {
 
+
     /**
-     * Adds a new scan to the file. 
-     * @param newScan
+     * Creates a new scan and adds it to the file.
+     * @param	scanNumber	Scan number
+     * @param	msLevel		MS level of the scan
+     * @param	precursorMZ	Precursor M/Z
+     * @param	retentionTime	Retention time of the scan
+     * @param	basePeakMZ	Base peak's M/Z
+     * @param	basePeakIntensity	Base peak's intensity
+     * @param	mzValues	mass values of datapoints
+     * @param	intensityValues	intensity values of datapoints
+     * @param	centroided	True if scan is centroided
+     * @return Newly created scan object
      */
-    public void addScan(Scan newScan);
-    
+    public Scan createScan(	int scanNumber,
+    						int msLevel,
+    						double precursorMZ,
+    						double retentionTime,
+    						double basePeakMZ,
+    						double basePeakIntensity,
+    						double[] mzValues,
+    						double[] intensityValues,
+    						boolean centroided
+    						) throws IOException;
+
     /**
-     * Finishes writing of the file 
+     * Finishes writing of the file
      * @return newly written file as RawDataFile
      */
-    public RawDataFile finishWriting();
+    public RawDataFile finishWriting() throws IOException;
 
 
 }
