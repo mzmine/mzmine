@@ -1,17 +1,17 @@
 /*
- * Copyright 2005 VTT Biotechnology
- * 
+ * Copyright 2006 The MZmine Development Team
+ *
  * This file is part of MZmine.
- * 
+ *
  * MZmine is free software; you can redistribute it and/or modify it under the
  * terms of the GNU General Public License as published by the Free Software
  * Foundation; either version 2 of the License, or (at your option) any later
  * version.
- * 
+ *
  * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY
  * WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR
  * A PARTICULAR PURPOSE. See the GNU General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License along with
  * MZmine; if not, write to the Free Software Foundation, Inc., 51 Franklin St,
  * Fifth Floor, Boston, MA 02110-1301 USA
@@ -145,19 +145,19 @@ public class ItemSelector extends JPanel implements ListSelectionListener,
                 JMenuItem showTIC = new JMenuItem("Show TIC of MS level " + msLevel);
                 showTIC.addActionListener(this);
                 showTIC.setActionCommand("TIC" + msLevel);
-                popupMenu.add(showTIC);    
-            }           
+                popupMenu.add(showTIC);
+            }
             for (int msLevel : msLevels) {
                 JMenuItem showTIC = new JMenuItem("Show experimental (JFreeChart) TIC of MS level " + msLevel);
                 showTIC.addActionListener(this);
                 showTIC.setActionCommand("EXP" + msLevel);
-                popupMenu.add(showTIC);    
+                popupMenu.add(showTIC);
             }
             for (int msLevel : msLevels) {
                 JMenuItem showBP = new JMenuItem("Show base peak intensity of MS level " + msLevel);
                 showBP.addActionListener(this);
                 showBP.setActionCommand("BP" + msLevel);
-                popupMenu.add(showBP);    
+                popupMenu.add(showBP);
             }
             popupMenu.addSeparator();
             JMenuItem pmClose = new JMenuItem("Close");
@@ -174,7 +174,7 @@ public class ItemSelector extends JPanel implements ListSelectionListener,
 
         String command = e.getActionCommand();
 
-        
+
         // Close selected items
         if (command.equals("CLOSE")) {
 
@@ -209,7 +209,7 @@ public class ItemSelector extends JPanel implements ListSelectionListener,
 
             }
         }
-        
+
         if (command.startsWith("BP")) {
             RawDataFile[] selectedFiles = getSelectedRawData();
             int msLevel = Integer.parseInt(command.substring(2));
@@ -225,37 +225,37 @@ public class ItemSelector extends JPanel implements ListSelectionListener,
          * ticView.setRawData(rawData); // theRun.addVisualizer(ticView);
          * ticView.setFrameIcon(null); ticView.setVisible(false);
          * desktop.add(ticView, javax.swing.JLayeredPane.DEFAULT_LAYER);
-         * 
+         *
          * visualizers.add(ticView);
          */
         /*
          * int[] alignmentResultIDs = getSelectedAlignmentResultIDs();
-         * 
+         *
          * if (alignmentResultIDs.length>0) { // Remove dependency from each
          * involved raw data file for (int alignmentResultID :
          * alignmentResultIDs) {
-         * 
+         *
          * if (getAlignmentResultByID(alignmentResultID).isImported()) {
          * continue; }
-         * 
+         *
          * rawDataIDs =
          * getAlignmentResultByID(alignmentResultID).getRawDataIDs(); for (int
          * rawDataID : rawDataIDs) { RawDataAtClient rawData =
          * getRawDataByID(rawDataID);
          * rawData.removeAlignmentResultID(alignmentResultID); } }
-         * 
-         * 
+         *
+         *
          * for (int alignmentResultID : alignmentResultIDs) { // Close all
          * visualizers for these alignment results
          * mainWin.removeAlignmentResultVisualizers(alignmentResultID); //
          * Remove these alignment results from the item selector
          * removeAlignmentResult(getAlignmentResultByID(alignmentResultID)); }
-         * 
-         * 
-         * 
+         *
+         *
+         *
          * mainWin.getStatusBar().setStatusText("Closed " +
          * alignmentResultIDs.length + " alignment result(s).");
-         * 
+         *
          * mainWin.getMainMenu().updateMenuAvailability(); mainWin.repaint();
          */
 
@@ -278,6 +278,13 @@ public class ItemSelector extends JPanel implements ListSelectionListener,
 
         return ans;
     }
+
+	/**
+	 * Replaces a raw data object in the list with a new file
+	 */
+	public void replaceRawData(RawDataFile oldFile, RawDataFile newFile) {
+		rawDataObjects.setElementAt(newFile, rawDataObjects.indexOf(oldFile));
+	}
 
     /**
      * Returns selected raw data objects in an array
@@ -318,7 +325,7 @@ public class ItemSelector extends JPanel implements ListSelectionListener,
 
     /**
      * Returns the run that is selected in run list
-     * 
+     *
      * public RawDataAtClient getActiveRawData() { return (RawDataAtClient)
      * rawDataList.getSelectedValue(); }
      */
@@ -357,7 +364,7 @@ public class ItemSelector extends JPanel implements ListSelectionListener,
 
     /**
      * Adds alignment result to item storage
-     * 
+     *
      * @return ID for the alignment result
      */
     public void addAlignmentResult(AlignmentResult ar) {
