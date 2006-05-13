@@ -46,6 +46,6 @@ public interface Method {
      * @param rawDataFiles
      * @param parameters
      */
-    public void runMethod(RawDataFile[] rawDataFiles, MethodParameters parameters);
+    public void runMethod(MethodParameters parameters);
 
 }

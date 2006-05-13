@@ -90,14 +90,14 @@ public class MeanFilterParameters implements MethodParameters {
 	/**
 	 *
 	 */
-	public RawDataFile[] getSelectedRawDataFiles() {
+	public RawDataFile[] getRawDataFiles() {
 		return rawDataFiles;
 	}
 
 	/**
 	 *
 	 */
-	public void setSelectedRawDataFiles(RawDataFile[] rawDataFiles) {
+	public void setRawDataFiles(RawDataFile[] rawDataFiles) {
 		this.rawDataFiles = rawDataFiles;
 	}
 

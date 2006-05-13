@@ -86,7 +86,7 @@ public class SavitzkyGolayFilter implements Method {
 
 	}
 
-	public void runMethod(RawDataFile[] rawDataFiles, MethodParameters parameters) {
+	public void runMethod(MethodParameters parameters) {
 	}
 
 

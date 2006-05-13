@@ -455,7 +455,8 @@ class MainMenu extends JMenuBar implements ActionListener {
 
          	// Collect selected raw data files raw data IDs and initiate filtering
          	RawDataFile[] selectedFiles = itemSelector.getSelectedRawData();
-         	mf.runMethod(selectedFiles, mfParam);
+         	mfParam.setRawDataFiles(selectedFiles);
+         	mf.runMethod(mfParam);
 
 		}
 
