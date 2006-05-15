@@ -232,7 +232,13 @@ public class ParameterStorage {
 		catch (SAXException e) { throw new IOException(e.toString()); }
 
 		// Let parameter objects fetch their values from document
-		NodeList n = doc.getElementsByTagName(meanFilterParameters.getTagName()); meanFilterParameters.readFromXML((Element)(n.item(0)));
+		NodeList n = doc.getElementsByTagName("RawDataFilters");
+		Element filtersParameters = (Element)(n.item(0));
+		meanFilterParameters.readFromXML(filtersParameters);
+		chromatographicMedianFilterParameters.readFromXML(filtersParameters);
+		savitzkyGolayFilterParameters.readFromXML(filtersParameters);
+		zoomScanFilterParameters.readFromXML(filtersParameters);
+
 
 	}
 
@@ -260,6 +266,9 @@ public class ParameterStorage {
 		Element filtersParameters = doc.createElement("RawDataFilters");
 		rootElement.appendChild(filtersParameters);
 		filtersParameters.appendChild(meanFilterParameters.addToXML(doc));
+		filtersParameters.appendChild(chromatographicMedianFilterParameters.addToXML(doc));
+		filtersParameters.appendChild(savitzkyGolayFilterParameters.addToXML(doc));
+		filtersParameters.appendChild(zoomScanFilterParameters.addToXML(doc));
 
 	    // Write a DOM document to a file
         try {
