@@ -38,7 +38,7 @@ public class MeanFilterTask implements Task {
     private TaskStatus status;
     private String errorMessage;
 
-    private int[] scanNumbers;
+    //private int[] scanNumbers;
 
     private int filteredScans;
     private int totalScans;
@@ -130,7 +130,7 @@ public class MeanFilterTask implements Task {
 			return;
 		}
 
-        scanNumbers = rawDataFile.getScanNumbers(1);
+        int[] scanNumbers = rawDataFile.getScanNumbers(1);
         totalScans = scanNumbers.length;
 
 		Scan oldScan, filteredScan;
@@ -146,6 +146,9 @@ public class MeanFilterTask implements Task {
 			} catch (IOException e) {
 				status = TaskStatus.ERROR;
 				errorMessage = e.toString();
+				try {
+					filteredRawDataFile = rawDataFileWriter.finishWriting();
+				} catch (IOException e2) {}
 				return;
 			}
 
