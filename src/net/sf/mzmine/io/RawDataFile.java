@@ -32,12 +32,29 @@ import net.sf.mzmine.interfaces.Scan;
  * Data file must be Serializable, because it may be passed as a parameter to remote nodes
  *
  */
+
+import net.sf.mzmine.methods.Method;
+import net.sf.mzmine.methods.MethodParameters;
+
+import java.util.Vector;
+
+
 public interface RawDataFile extends Serializable {
+
+    class Operation {
+        public File previousFileName;
+        public Class processingMethod;
+        public MethodParameters parameters;
+    }
+
 
     public enum PreloadLevel { NO_PRELOAD, PRELOAD_ALL_SCANS };
 
     public File getOriginalFile();
     public File getCurrentFile();
+
+    public Vector<Operation> getHistory();
+    public void addHistory(File previousFileName, Class processingMethod, MethodParameters parameters);
 
     public PreloadLevel getPreloadLevel();
 

@@ -56,7 +56,7 @@ public class MZXMLFileWriter implements RawDataFileWriter {
 
 
 
-	public MZXMLFileWriter(File originalFile, File workingCopy, PreloadLevel preloadLevel) throws IOException {
+	public MZXMLFileWriter(RawDataFile originalFile, File workingCopy, PreloadLevel preloadLevel) throws IOException {
 
 		// Create a DataTypeFactory for converting XML datetypes to seconds
 		try {
@@ -81,7 +81,7 @@ public class MZXMLFileWriter implements RawDataFileWriter {
 		bytesWritten += s.length();
 
 		// Create a new MZXMLFile
-		filteredMZXMLFile = new MZXMLFile(originalFile, workingCopy, preloadLevel);
+		filteredMZXMLFile = new MZXMLFile(workingCopy, preloadLevel, originalFile.getHistory());
 
 	}
 

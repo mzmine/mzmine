@@ -29,22 +29,25 @@ import java.util.Arrays;
 import java.util.Hashtable;
 import java.util.Iterator;
 import java.util.Set;
+import java.util.Vector;
 
 import net.sf.mzmine.interfaces.Scan;
 import net.sf.mzmine.io.RawDataFile;
 import net.sf.mzmine.io.RawDataFile.PreloadLevel;
 import net.sf.mzmine.util.Logger;
+import net.sf.mzmine.methods.MethodParameters;
 
 /**
  *
  */
 public class NetCDFFile implements RawDataFile {
 
-    private File originalFile;
     private File currentFile;
 
     private PreloadLevel preloadLevel;
     private StringBuffer dataDescription;
+
+    private Vector<Operation> history;
 
     private int numOfScans = 0;
 
@@ -66,11 +69,20 @@ public class NetCDFFile implements RawDataFile {
 
 
     /**
+     *
      */
-    NetCDFFile(File originalFile, File currentFile, PreloadLevel preloadLevel) {
-        this.originalFile = originalFile;
+    NetCDFFile(File currentFile, PreloadLevel preloadLevel) {
+		this(currentFile, preloadLevel, null);
+	}
+
+    /**
+     *
+     */
+    NetCDFFile(File currentFile, PreloadLevel preloadLevel, Vector<Operation> history) {
+
         this.currentFile = currentFile;
         this.preloadLevel = preloadLevel;
+        if (history==null) { this.history = new Vector<Operation>(); } else { this.history = history; }
 
         dataDescription = new StringBuffer();
         scanNumbers = new Hashtable<Integer, ArrayList<Integer>>();
@@ -83,11 +95,24 @@ public class NetCDFFile implements RawDataFile {
      * @see net.sf.mzmine.io.RawDataFile#getOriginalFile()
      */
     public File getOriginalFile() {
-        return originalFile;
+		if (history.size()==0) return currentFile;
+		return history.get(0).previousFileName;
     }
 
     public File getCurrentFile() {
 		return currentFile;
+	}
+
+	public Vector<Operation> getHistory() {
+		return history;
+	}
+
+	public void addHistory(File previousFile, Class processingMethod, MethodParameters parameters) {
+		Operation o = new Operation();
+		o.previousFileName = previousFile;
+		o.processingMethod = processingMethod;
+		o.parameters = parameters;
+		history.add(o);
 	}
 
     /**
@@ -175,7 +200,7 @@ public class NetCDFFile implements RawDataFile {
     }
 
     public String toString() {
-        return originalFile.getName();
+        return getOriginalFile().getName();
     }
 
     /**

@@ -64,7 +64,7 @@ public class MZXMLFileOpeningTask extends DefaultHandler implements
 
         charBuffer = new StringBuffer(256);
 
-        buildingFile = new MZXMLFile(fileToOpen, fileToOpen, preloadLevel);
+        buildingFile = new MZXMLFile(fileToOpen, preloadLevel);
 
     }
 

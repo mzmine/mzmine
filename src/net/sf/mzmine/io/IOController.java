@@ -111,7 +111,7 @@ public class IOController implements TaskListener {
 		switch(fileType) {
 			case MZXML:
 			case NETCDF:
-				RawDataFileWriter rawDataFileWriter = new MZXMLFileWriter(file.getOriginalFile(), workingCopy, file.getPreloadLevel());
+				RawDataFileWriter rawDataFileWriter = new MZXMLFileWriter(file, workingCopy, file.getPreloadLevel());
 				return rawDataFileWriter;
 
 			default:
