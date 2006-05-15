@@ -42,10 +42,10 @@ public interface Method {
     public MethodParameters askParameters(MethodParameters parameters);
 
     /**
-     * Runs this method on a given raw data files
-     * @param rawDataFiles
-     * @param parameters
+     * Runs this method on a given items
+     * @param parameters	Parameter values for the method
+     * @param	targets	Method processes these items (RawDataFile[], PeakList[], AlignmentResult[], ...)
      */
-    public void runMethod(MethodParameters parameters);
+    public void runMethod(MethodParameters parameters, Object[] targets);
 
 }

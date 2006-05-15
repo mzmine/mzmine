@@ -453,7 +453,9 @@ class MainMenu extends JMenuBar implements ActionListener {
          	statBar.setStatusText("Mean filtering spectra.");
          	//paintNow();
 
-         	mf.runMethod(mfParam);
+         	Object[] targets = mainWin.getItemSelector().getSelectedRawData();
+
+         	mf.runMethod(mfParam, targets);
 
 		}
 

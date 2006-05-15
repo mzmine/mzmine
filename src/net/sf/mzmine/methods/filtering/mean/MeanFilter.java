@@ -103,13 +103,13 @@ public class MeanFilter implements Method, TaskListener {
      * @param project
      * @param parameters
      */
-    public void runMethod(MethodParameters parameters) {
+    public void runMethod(MethodParameters parameters, Object[] targets) {
 
 		Task filterTask;
 		MeanFilterParameters mfParam = (MeanFilterParameters)parameters;
 
 		// Get selected raw data files
-		RawDataFile[] rawDataFiles = MainWindow.getInstance().getItemSelector().getSelectedRawData();
+		RawDataFile[] rawDataFiles = (RawDataFile[])targets;
 
 		for (RawDataFile rawDataFile: rawDataFiles) {
 			filterTask = new MeanFilterTask(rawDataFile, mfParam);

@@ -84,7 +84,7 @@ public class ZoomScanFilter implements Method {
 		return null;
 	}
 
-	public void runMethod(MethodParameters parameters) {
+	public void runMethod(MethodParameters parameters, Object[] targets) {
 	}
 
 /*
