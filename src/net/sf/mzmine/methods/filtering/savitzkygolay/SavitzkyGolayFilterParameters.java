@@ -27,8 +27,6 @@ import org.w3c.dom.Node;
 
 import org.xml.sax.Attributes;
 
-import net.sf.mzmine.io.RawDataFile;
-
 import net.sf.mzmine.methods.MethodParameters;
 
 /**
@@ -46,8 +44,6 @@ public class SavitzkyGolayFilterParameters implements MethodParameters {
 	 * Number of datapoints used for fitting
 	 */
 	public int numberOfDataPoints = 5;
-
-	private RawDataFile[] rawDataFiles;
 
 
 	public String toString() {
@@ -71,28 +67,22 @@ public class SavitzkyGolayFilterParameters implements MethodParameters {
      */
     public void readFromXML(Element element) {
 
+		// Find my element
+		NodeList n = element.getElementsByTagName(tagName);
+		if ((n==null) || (n.getLength()<1)) return;
+		Element myElement = (Element)(n.item(0));
+
+		// Set values
 		String attrValue;
-		attrValue = element.getAttribute(numberOfDataPointsAttributeName);
+		attrValue = myElement.getAttribute(numberOfDataPointsAttributeName);
 		try { numberOfDataPoints = Integer.parseInt(attrValue); } catch (NumberFormatException nfe) {}
 
 	}
 
-	public String getTagName() {
-		return tagName;
-	}
-
-	/**
-	 *
-	 */
-	public RawDataFile[] getSelectedRawDataFiles() {
-		return rawDataFiles;
-	}
-
-	/**
-	 *
-	 */
-	public void setSelectedRawDataFiles(RawDataFile[] rawDataFiles) {
-		this.rawDataFiles = rawDataFiles;
+	public SavitzkyGolayFilterParameters clone() {
+		SavitzkyGolayFilterParameters myClone = new SavitzkyGolayFilterParameters();
+		myClone.numberOfDataPoints = numberOfDataPoints;
+		return myClone;
 	}
 
 }

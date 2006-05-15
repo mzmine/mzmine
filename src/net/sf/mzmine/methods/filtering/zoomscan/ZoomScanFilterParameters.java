@@ -23,7 +23,6 @@ import org.w3c.dom.Document;
 import org.w3c.dom.NodeList;
 import org.w3c.dom.Node;
 
-import net.sf.mzmine.io.RawDataFile;
 
 import net.sf.mzmine.methods.MethodParameters;
 
@@ -39,9 +38,6 @@ public class ZoomScanFilterParameters implements MethodParameters {
 	 * Minimum required M/Z range width
 	 */
 	public double minMZRange = (double)100;
-
-	private RawDataFile[] rawDataFiles;
-
 
     /**
      * @return parameters in human readable form
@@ -68,27 +64,22 @@ public class ZoomScanFilterParameters implements MethodParameters {
      */
     public void readFromXML(Element element) {
 
+		// Find my element
+		NodeList n = element.getElementsByTagName(tagName);
+		if ((n==null) || (n.getLength()<1)) return;
+		Element myElement = (Element)(n.item(0));
+
+		// Set values
 		String attrValue;
-		attrValue = element.getAttribute(minMZRangeAttibuteName);
+		attrValue = myElement.getAttribute(minMZRangeAttibuteName);
 		try { minMZRange = Double.parseDouble(attrValue); } catch (NumberFormatException nfe) {}
 	}
 
-	public String getTagName() {
-		return tagName;
+	public ZoomScanFilterParameters clone() {
+		ZoomScanFilterParameters myClone = new ZoomScanFilterParameters();
+		myClone.minMZRange = minMZRange;
+		return myClone;
 	}
 
-	/**
-	 *
-	 */
-	public RawDataFile[] getSelectedRawDataFiles() {
-		return rawDataFiles;
-	}
-
-	/**
-	 *
-	 */
-	public void setSelectedRawDataFiles(RawDataFile[] rawDataFiles) {
-		this.rawDataFiles = rawDataFiles;
-	}
 
 }

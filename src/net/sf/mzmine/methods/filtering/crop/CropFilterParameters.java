@@ -100,11 +100,14 @@ public class CropFilterParameters implements MethodParameters {
 
 	}
 
-	public String getTagName() {
-		return tagName;
+	public CropFilterParameters clone() {
+		CropFilterParameters myClone = new CropFilterParameters();
+		myClone.minMZ = minMZ;
+		myClone.maxMZ = maxMZ;
+		myClone.minRT = minRT;
+		myClone.maxRT = maxRT;
+		return myClone;
 	}
-
-
 
 	/**
 	 *
