@@ -46,10 +46,5 @@ public interface MethodParameters extends Serializable {
      */
     public void readFromXML(Element element);
 
-	/**
-	 * Returns the XML tag name
-	 */
-	public String getTagName();
-
-
+	public MethodParameters clone();
 }
