@@ -23,7 +23,6 @@ import org.w3c.dom.Document;
 import org.w3c.dom.NodeList;
 import org.w3c.dom.Node;
 
-import net.sf.mzmine.io.RawDataFile;
 import net.sf.mzmine.methods.MethodParameters;
 
 /**
@@ -47,8 +46,6 @@ public class ChromatographicMedianFilterParameters implements MethodParameters {
 	 * Median filter window length (one-sided, in scans)
 	 */
 	public int oneSidedWindowLength = 1;
-
-	private RawDataFile[] rawDataFiles;
 
 
     /**
@@ -77,31 +74,25 @@ public class ChromatographicMedianFilterParameters implements MethodParameters {
      */
     public void readFromXML(Element element) {
 
+		// Find my element
+		NodeList n = element.getElementsByTagName(tagName);
+		if ((n==null) || (n.getLength()<1)) return;
+		Element myElement = (Element)(n.item(0));
+
+		// Set values
 		String attrValue;
-		attrValue = element.getAttribute(mzToleranceAttributeName);
+		attrValue = myElement.getAttribute(mzToleranceAttributeName);
 		try { mzTolerance = Double.parseDouble(attrValue); } catch (NumberFormatException nfe) {}
-		attrValue = element.getAttribute(oneSidedWindowLengthAttributeName);
+		attrValue = myElement.getAttribute(oneSidedWindowLengthAttributeName);
 		try { oneSidedWindowLength = Integer.parseInt(attrValue); } catch (NumberFormatException nfe) {}
 	}
 
-	public String getTagName() {
-		return tagName;
+	public ChromatographicMedianFilterParameters clone() {
+		ChromatographicMedianFilterParameters myClone = new ChromatographicMedianFilterParameters();
+		myClone.mzTolerance = mzTolerance;
+		myClone.oneSidedWindowLength = oneSidedWindowLength;
+		return myClone;
 	}
-
-	/**
-	 *
-	 */
-	public RawDataFile[] getSelectedRawDataFiles() {
-		return rawDataFiles;
-	}
-
-	/**
-	 *
-	 */
-	public void setSelectedRawDataFiles(RawDataFile[] rawDataFiles) {
-		this.rawDataFiles = rawDataFiles;
-	}
-
 
 
 }
