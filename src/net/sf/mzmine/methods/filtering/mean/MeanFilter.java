@@ -108,8 +108,8 @@ public class MeanFilter implements Method, TaskListener {
 		Task filterTask;
 		MeanFilterParameters mfParam = (MeanFilterParameters)parameters;
 
-		RawDataFile[] rawDataFiles = mfParam.getRawDataFiles();
-		mfParam.setRawDataFiles(null);
+		// Get selected raw data files
+		RawDataFile[] rawDataFiles = MainWindow.getInstance().getItemSelector().getSelectedRawData();
 
 		for (RawDataFile rawDataFile: rawDataFiles) {
 			filterTask = new MeanFilterTask(rawDataFile, mfParam);
@@ -128,7 +128,21 @@ public class MeanFilter implements Method, TaskListener {
 			RawDataFile oldFile = (RawDataFile)((Object[])task.getResult())[0];
 			RawDataFile newFile = (RawDataFile)((Object[])task.getResult())[1];
 			MeanFilterParameters mfParam = (MeanFilterParameters)((Object[])task.getResult())[2];
-			MZmineProject.getCurrentProject().updateFile(oldFile, newFile, this, mfParam);
+
+			// Add mean filtering to the history of the file
+			newFile.addHistory(oldFile.getCurrentFile(), MeanFilter.class, mfParam.clone());
+
+			/*
+			Vector<RawDataFile.Operation> debugH = newFile.getHistory();
+			for (RawDataFile.Operation op : debugH) {
+				System.out.print("previousFileName = " + op.previousFileName.getName());
+				System.out.print(", method = " + op.processingMethod.getName());
+				System.out.println(", parameters = " + op.parameters.toString());
+			}
+			*/
+
+			// Update MZmineProject about replacement of oldFile by newFile
+			MZmineProject.getCurrentProject().updateFile(oldFile, newFile);
 
         } else if (task.getStatus() == Task.TaskStatus.ERROR) {
             /* Task encountered an error */
