@@ -23,8 +23,6 @@ import org.w3c.dom.Document;
 import org.w3c.dom.NodeList;
 import org.w3c.dom.Node;
 
-import net.sf.mzmine.io.RawDataFile;
-
 import net.sf.mzmine.util.Logger;
 
 import net.sf.mzmine.methods.MethodParameters;
@@ -45,9 +43,6 @@ public class MeanFilterParameters implements MethodParameters {
 	 */
 
 	public double oneSidedWindowLength = (double)0.1;
-
-	private RawDataFile[] rawDataFiles;
-
 
     /**
      * @return parameters in human readable form
@@ -75,30 +70,21 @@ public class MeanFilterParameters implements MethodParameters {
      */
     public void readFromXML(Element element) {
 
+		// Find my element
+		NodeList n = element.getElementsByTagName(tagName);
+		if ((n==null) || (n.getLength()<1)) return;
+		Element myElement = (Element)(n.item(0));
+
+		// Set values
 		String attrValue;
-		attrValue = element.getAttribute(oneSidedWindowLengthAttributeName);
+		attrValue = myElement.getAttribute(oneSidedWindowLengthAttributeName);
 		try { oneSidedWindowLength = Double.parseDouble(attrValue); } catch (NumberFormatException nfe) {}
 	}
 
-	/**
-	 * Returns the XML tag name
-	 */
-	public String getTagName() {
-		return tagName;
-	}
-
-	/**
-	 *
-	 */
-	public RawDataFile[] getRawDataFiles() {
-		return rawDataFiles;
-	}
-
-	/**
-	 *
-	 */
-	public void setRawDataFiles(RawDataFile[] rawDataFiles) {
-		this.rawDataFiles = rawDataFiles;
+	public MeanFilterParameters clone() {
+		MeanFilterParameters myClone = new MeanFilterParameters();
+		myClone.oneSidedWindowLength = oneSidedWindowLength;
+		return myClone;
 	}
 
 
