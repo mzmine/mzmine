@@ -66,7 +66,7 @@ public class MeanFilter implements Method, TaskListener {
 		paramValues[0] = currentParameters.oneSidedWindowLength;
 
 		String[] paramNames = new String[1];
-		paramNames[0] = "Give M/Z window length (one-sided)";
+		paramNames[0] = "One-sided M/Z window length (Da)";
 
 		NumberFormat[] numberFormats = new NumberFormat[1];
 		numberFormats[0] = NumberFormat.getNumberInstance(); numberFormats[0].setMinimumFractionDigits(3);
