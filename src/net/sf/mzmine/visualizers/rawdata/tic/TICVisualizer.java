@@ -385,8 +385,10 @@ public class TICVisualizer extends JInternalFrame implements RawDataVisualizer,
         retentionTimes[position] = retentionTime;
         intensities[position] = intensity;
         if (ticPlot.getWidth() > 0) {
-            if (position % (retentionTimes.length / ticPlot.getWidth()) == 0)
-                repaint();
+			if (retentionTimes.length>=ticPlot.getWidth()) {
+            	if (position % (retentionTimes.length / ticPlot.getWidth()) == 0)
+            	    repaint();
+			} else { repaint(); }
         }
 
     }
@@ -402,7 +404,7 @@ public class TICVisualizer extends JInternalFrame implements RawDataVisualizer,
         }
 
     }
-    
+
     public void taskStarted(Task task) {
         MainWindow.getInstance().addInternalFrame(this);
     }
