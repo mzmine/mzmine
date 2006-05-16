@@ -43,7 +43,8 @@ import net.sf.mzmine.methods.filtering.mean.MeanFilter;
 import net.sf.mzmine.methods.filtering.mean.MeanFilterParameters;
 import net.sf.mzmine.methods.filtering.chromatographicmedian.ChromatographicMedianFilter;
 import net.sf.mzmine.methods.filtering.chromatographicmedian.ChromatographicMedianFilterParameters;
-
+import net.sf.mzmine.methods.filtering.crop.CropFilter;
+import net.sf.mzmine.methods.filtering.crop.CropFilterParameters;
 
 import net.sf.mzmine.visualizers.alignmentresult.AlignmentResultVisualizerCDAPlotView;
 import net.sf.mzmine.visualizers.alignmentresult.AlignmentResultVisualizerCoVarPlotView;
@@ -484,6 +485,28 @@ class MainMenu extends JMenuBar implements ActionListener {
 
 		}
 
+		// Filter -> Crop
+		if (src == ssCropFilter) {
+
+			 // Ask parameters from user
+			CropFilter cf = new CropFilter();
+			CropFilterParameters cfParam = mainWin.getParameterStorage().getCropFilterParameters();
+
+			if (!(cf.askParameters((MethodParameters)cfParam))) {
+				statBar.setStatusText("Filtering cancelled."); return;
+			}
+
+         	// It seems user didn't cancel
+         	statBar.setStatusText("Filtering spectra.");
+         	//paintNow();
+
+         	RawDataFile[] rawDataFiles = mainWin.getItemSelector().getSelectedRawData();
+
+         	cf.runMethod(cfParam, rawDataFiles, null);
+
+		}
+
+
 
         // File->Export table
         /*
@@ -750,32 +773,6 @@ class MainMenu extends JMenuBar implements ActionListener {
          * initiate filtering on the cluster int[] selectedRawDataIDs =
          * itemSelector.getSelectedRawDataIDs(); //
          * clientForCluster.filterRawDataFiles(selectedRawDataIDs, sfParam); }
-         *
-         * if (src == ssChromatographicMedianFilter) { // Ask parameters from
-         * user ChromatographicMedianFilter cmf = new
-         * ChromatographicMedianFilter(); ChromatographicMedianFilterParameters
-         * cmfParam = cmf.askParameters(this,
-         * parameterStorage.getChromatographicMedianFilterParameters()); if
-         * (cmfParam==null) { statBar.setStatusText("Chromatographic median
-         * filtering cancelled."); return; }
-         * parameterStorage.setChromatographicMedianFilterParameters(cmfParam); //
-         * It seems user didn't cancel statBar.setStatusText("Filtering with
-         * chromatographic median filter."); paintNow(); // Collect raw data IDs
-         * and initiate filtering on the cluster int[] selectedRawDataIDs =
-         * itemSelector.getSelectedRawDataIDs(); //
-         * clientForCluster.filterRawDataFiles(selectedRawDataIDs, cmfParam); }
-         *
-         * if (src == ssCropFilter) { // Ask parameters from user CropFilter cf =
-         * new CropFilter(); CropFilterParameters cfParam =
-         * cf.askParameters(this, parameterStorage.getCropFilterParameters());
-         * if (cfParam==null) { statBar.setStatusText("Crop filtering
-         * cancelled."); return; }
-         * parameterStorage.setCropFilterParameters(cfParam); // It seems user
-         * didn't cancel statBar.setStatusText("Filtering with cropping
-         * filter."); paintNow(); // Collect raw data IDs and initiate filtering
-         * on the cluster int[] selectedRawDataIDs =
-         * itemSelector.getSelectedRawDataIDs(); //
-         * clientForCluster.filterRawDataFiles(selectedRawDataIDs, cfParam); }
          *
          * if (src == ssZoomScanFilter) { // Ask parameters from user
          * ZoomScanFilter zsf = new ZoomScanFilter(); ZoomScanFilterParameters
@@ -1167,19 +1164,22 @@ class MainMenu extends JMenuBar implements ActionListener {
          * windowTileWindows.setEnabled(true); }
          */
         RawDataFile[] actRawData = itemSelector.getSelectedRawData();
-        if (actRawData != null) {
+        if ( (actRawData != null) && (actRawData.length>0)) {
             fileClose.setEnabled(true);
 
             ssMeanFilter.setEnabled(true);
-            ssSGFilter.setEnabled(true);
+            //ssSGFilter.setEnabled(true);
             ssChromatographicMedianFilter.setEnabled(true);
             ssCropFilter.setEnabled(true);
-            ssZoomScanFilter.setEnabled(true);
+            //ssZoomScanFilter.setEnabled(true);
+
+			/*
             ssRecursiveThresholdPicker.setEnabled(true);
             ssLocalPicker.setEnabled(true);
             ssCentroidPicker.setEnabled(true);
+            */
 
-            batDefine.setEnabled(true);
+            // batDefine.setEnabled(true);
 
             /*
              * if (actRawData.hasPeakData()) {

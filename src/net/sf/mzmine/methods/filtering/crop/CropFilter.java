@@ -25,27 +25,25 @@ import java.awt.Frame;
 
 import net.sf.mzmine.interfaces.Scan;
 import net.sf.mzmine.io.RawDataFile;
+import net.sf.mzmine.io.MZmineProject;
 import net.sf.mzmine.methods.Method;
 import net.sf.mzmine.methods.MethodParameters;
 import net.sf.mzmine.methods.alignment.AlignmentResult;
+import net.sf.mzmine.taskcontrol.Task;
+import net.sf.mzmine.taskcontrol.TaskController;
+import net.sf.mzmine.taskcontrol.TaskListener;
 import net.sf.mzmine.userinterface.dialogs.ParameterSetupDialog;
 import net.sf.mzmine.userinterface.mainwindow.MainWindow;
+import net.sf.mzmine.util.Logger;
 
-public class CropFilter implements Method {
+public class CropFilter implements Method, TaskListener {
 
-	private final String[] fieldNames = {
-											"Minimum M/Z value",
-											"Maximum M/Z value",
-											"Minimum RT value",
-											"Maximum RT value"
-										};
 
 	public String getMethodDescription() {
 		return new String("Crop filter");
 	}
 
 	public boolean askParameters(MethodParameters parameters) {
-
 
 		CropFilterParameters currentParameters = (CropFilterParameters)parameters;
 		if (currentParameters==null) return false;
@@ -57,6 +55,12 @@ public class CropFilter implements Method {
 		paramValues[2] = currentParameters.minRT;
 		paramValues[3] = currentParameters.maxRT;
 
+		String[] paramNames = new String[4];
+		paramNames[0] = "Minimum M/Z (Da)";
+		paramNames[1] = "Maximum M/Z (Da)";
+		paramNames[2] = "Minimum RT (seconds)";
+		paramNames[3] = "Maximum RT (seconds)";
+
 		NumberFormat[] numberFormats = new NumberFormat[4];
 		numberFormats[0] = NumberFormat.getNumberInstance(); numberFormats[0].setMinimumFractionDigits(3);
 		numberFormats[1] = NumberFormat.getNumberInstance(); numberFormats[1].setMinimumFractionDigits(3);
@@ -64,7 +68,7 @@ public class CropFilter implements Method {
 		numberFormats[3] = NumberFormat.getNumberInstance(); numberFormats[3].setMinimumFractionDigits(1);
 
 		MainWindow mainWin = MainWindow.getInstance();
-		ParameterSetupDialog psd = new ParameterSetupDialog((Frame)mainWin, "Please check the parameter values", fieldNames, paramValues, numberFormats);
+		ParameterSetupDialog psd = new ParameterSetupDialog((Frame)mainWin, "Please check the parameter values", paramNames, paramValues, numberFormats);
 		psd.setVisible(true);
 
 		// Check if user clicked Cancel-button
@@ -112,94 +116,44 @@ public class CropFilter implements Method {
 	}
 
 	public void runMethod(MethodParameters parameters, RawDataFile[] rawDataFiles, AlignmentResult[] alignmentResults) {
-	}
 
-/*
-	public int doFiltering(RawDataFile rawData, FilterParameters _filterParameters) {
+		Task filterTask;
+		CropFilterParameters cmfParam = (CropFilterParameters)parameters;
 
-		CropFilterParameters filterParameters = (CropFilterParameters)_filterParameters;
-
-		Scan sc;
-		int ret;
-
-		int maxScan = rawData.getNumOfScans();
-
-		double[] scanTimes = rawData.getScanTimes();
-		int numOfIncludeScans = 0;
-		for (double rt : scanTimes) {
-			// Is this within the RT range?
-			if (rt < filterParameters.minRT) { continue; }
-			if (rt > filterParameters.maxRT) { break; }
-			numOfIncludeScans++;
+		for (RawDataFile rawDataFile: rawDataFiles) {
+			filterTask = new CropFilterTask(rawDataFile, cmfParam);
+			TaskController.getInstance().addTask(filterTask, this);
 		}
 
-		ret = rawData.initializeForWriting(-1, numOfIncludeScans);
-		if (ret != 1) { return ret; }
-
-		rawData.initializeScanBrowser(0, maxScan-1);
-
-		for (int scani=0; scani<maxScan; scani++) {
-
-			//nodeServer.updateJobCompletionRate((double)scani/(double)(maxScan-1));
-
-			sc = rawData.getNextScan();
-
-
-			// Process the scan
-
-			// Is this within the RT range?
-			if (rawData.getScanTime(sc.getScanNumber()) < filterParameters.minRT) { continue; }
-			if (rawData.getScanTime(sc.getScanNumber()) > filterParameters.maxRT) { break; }
-
-			// Pickup datapoints inside the M/Z range
-			double originalMassValues[] = sc.getMZValues();
-			double originalIntensityValues[] = sc.getIntensityValues();
-
-			int numSmallerThanMin = 0;
-			for (int ind=0; ind<originalMassValues.length; ind++) {
-				if (originalMassValues[ind]>=filterParameters.minMZ) { break; }
-				numSmallerThanMin++;
-			}
-
-			int numBiggerThanMax = 0;
-			for (int ind=(originalMassValues.length-1); ind>=0; ind--) {
-				if (originalMassValues[ind]<=filterParameters.maxMZ) { break; }
-				numBiggerThanMax++;
-			}
-
-			double newMassValues[] = new double[originalMassValues.length-numSmallerThanMin-numBiggerThanMax];
-			double newIntensityValues[] = new double[originalMassValues.length-numSmallerThanMin-numBiggerThanMax];
-
-			int newInd = 0;
-			for (int ind=numSmallerThanMin; ind<(originalMassValues.length-numBiggerThanMax); ind++) {
-				newMassValues[newInd] = originalMassValues[ind];
-				newIntensityValues[newInd] = originalIntensityValues[ind];
-				newInd++;
-			}
-
-			// Set net datapoints
-			// sc.setMZValues(newMassValues);
-			// sc.setIntensityValues(newIntensityValues);
-
-
-			// Store scan
-			ret = rawData.setScan(sc);
-
-			if (ret != 1) {
-				rawData.finalizeScanBrowser();
-				rawData.finalizeAfterWriting();
-				return ret;
-			}
-
-		}
-
-		rawData.finalizeScanBrowser();
-
-		ret = rawData.finalizeAfterWriting();
-
-		return ret;
 
 	}
-*/
+
+    public void taskStarted(Task task) {
+		// do nothing
+	}
+
+    public void taskFinished(Task task) {
+
+        if (task.getStatus() == Task.TaskStatus.FINISHED) {
+
+			RawDataFile oldFile = (RawDataFile)((Object[])task.getResult())[0];
+			RawDataFile newFile = (RawDataFile)((Object[])task.getResult())[1];
+			CropFilterParameters cfParam = (CropFilterParameters)((Object[])task.getResult())[2];
+
+			// Add mean filtering to the history of the file
+			newFile.addHistory(oldFile.getCurrentFile(), this, cfParam.clone());
+
+			// Update MZmineProject about replacement of oldFile by newFile
+			MZmineProject.getCurrentProject().updateFile(oldFile, newFile);
+
+        } else if (task.getStatus() == Task.TaskStatus.ERROR) {
+            /* Task encountered an error */
+            Logger.putFatal("Error while filtering a file: " + task.getErrorMessage());
+            MainWindow.getInstance().displayErrorMessage(
+                    "Error while filtering a file: " + task.getErrorMessage());
+
+        }
+
+	}
 
 }
