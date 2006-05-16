@@ -41,6 +41,9 @@ import net.sf.mzmine.userinterface.dialogs.FileOpenDialog;
 import net.sf.mzmine.methods.MethodParameters;
 import net.sf.mzmine.methods.filtering.mean.MeanFilter;
 import net.sf.mzmine.methods.filtering.mean.MeanFilterParameters;
+import net.sf.mzmine.methods.filtering.chromatographicmedian.ChromatographicMedianFilter;
+import net.sf.mzmine.methods.filtering.chromatographicmedian.ChromatographicMedianFilterParameters;
+
 
 import net.sf.mzmine.visualizers.alignmentresult.AlignmentResultVisualizerCDAPlotView;
 import net.sf.mzmine.visualizers.alignmentresult.AlignmentResultVisualizerCoVarPlotView;
@@ -447,11 +450,11 @@ class MainMenu extends JMenuBar implements ActionListener {
 			MeanFilterParameters mfParam = mainWin.getParameterStorage().getMeanFilterParameters();
 
 			if (!(mf.askParameters((MethodParameters)mfParam))) {
-				statBar.setStatusText("Mean filtering cancelled."); return;
+				statBar.setStatusText("Filtering cancelled."); return;
 			}
 
          	// It seems user didn't cancel
-         	statBar.setStatusText("Mean filtering spectra.");
+         	statBar.setStatusText("Filtering spectra.");
          	//paintNow();
 
          	RawDataFile[] rawDataFiles = mainWin.getItemSelector().getSelectedRawData();
@@ -460,6 +463,26 @@ class MainMenu extends JMenuBar implements ActionListener {
 
 		}
 
+		// Filter -> Chromatographic median
+		if (src == ssChromatographicMedianFilter) {
+
+			 // Ask parameters from user
+			ChromatographicMedianFilter cmf = new ChromatographicMedianFilter();
+			ChromatographicMedianFilterParameters cmfParam = mainWin.getParameterStorage().getChromatographicMedianFilterParameters();
+
+			if (!(cmf.askParameters((MethodParameters)cmfParam))) {
+				statBar.setStatusText("Filtering cancelled."); return;
+			}
+
+         	// It seems user didn't cancel
+         	statBar.setStatusText("Filtering spectra.");
+         	//paintNow();
+
+         	RawDataFile[] rawDataFiles = mainWin.getItemSelector().getSelectedRawData();
+
+         	cmf.runMethod(cmfParam, rawDataFiles, null);
+
+		}
 
 
         // File->Export table
