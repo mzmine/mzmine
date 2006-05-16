@@ -491,8 +491,7 @@ public class ItemSelector extends JPanel implements ListSelectionListener,
 
         }
 
-        // if ( !(mainWin.isBusy()) ) {
-        // mainWin.getMainMenu().updateMenuAvailability(); }
+        MainWindow.getInstance().getMainMenu().updateMenuAvailability();
 
         // mainWin.repaint();
 
