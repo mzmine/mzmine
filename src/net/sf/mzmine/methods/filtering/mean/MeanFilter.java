@@ -61,7 +61,7 @@ public class MeanFilter implements Method, TaskListener {
 		MeanFilterParameters currentParameters = (MeanFilterParameters)parameters;
 		if (currentParameters==null) return false;
 
-		// Show parameter setup dialog
+		// Initialize parameter setup dialog with current parameter values
 		double[] paramValues = new double[1];
 		paramValues[0] = currentParameters.oneSidedWindowLength;
 
@@ -71,19 +71,17 @@ public class MeanFilter implements Method, TaskListener {
 		NumberFormat[] numberFormats = new NumberFormat[1];
 		numberFormats[0] = NumberFormat.getNumberInstance(); numberFormats[0].setMinimumFractionDigits(3);
 
+		// Show parameter setup dialog
 		MainWindow mainWin = MainWindow.getInstance();
-
 		ParameterSetupDialog psd = new ParameterSetupDialog((Frame)mainWin, "Please check the parameter values", paramNames, paramValues, numberFormats);
 		psd.show();
-
 
 		// Check if user clicked Cancel-button
 		if (psd.getExitCode()==-1) {
 			return false;
 		}
 
-
-		// Read parameter values
+		// Write values from dialog back to current parameter values
 		double d;
 
 		d = psd.getFieldValue(0);
@@ -93,6 +91,7 @@ public class MeanFilter implements Method, TaskListener {
 		}
 		currentParameters.oneSidedWindowLength = d;
 
+		// It is ok to go on
 		return true;
 
 	}
