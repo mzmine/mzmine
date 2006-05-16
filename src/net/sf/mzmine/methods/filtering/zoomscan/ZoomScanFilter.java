@@ -24,6 +24,7 @@ import net.sf.mzmine.interfaces.Scan;
 import net.sf.mzmine.io.RawDataFile;
 import net.sf.mzmine.methods.Method;
 import net.sf.mzmine.methods.MethodParameters;
+import net.sf.mzmine.methods.alignment.AlignmentResult;
 import net.sf.mzmine.userinterface.dialogs.ParameterSetupDialog;
 import net.sf.mzmine.userinterface.mainwindow.MainWindow;
 
@@ -84,7 +85,7 @@ public class ZoomScanFilter implements Method {
 		return null;
 	}
 
-	public void runMethod(MethodParameters parameters, Object[] targets) {
+	public void runMethod(MethodParameters parameters, RawDataFile[] rawDataFiles, AlignmentResult[] alignmentResults) {
 	}
 
 /*

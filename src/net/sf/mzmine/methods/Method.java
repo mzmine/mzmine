@@ -22,6 +22,7 @@ package net.sf.mzmine.methods;
 import net.sf.mzmine.io.MZmineProject;
 import net.sf.mzmine.io.RawDataFile;
 import net.sf.mzmine.userinterface.mainwindow.MainWindow;
+import net.sf.mzmine.methods.alignment.AlignmentResult;
 
 /**
  *
@@ -43,9 +44,10 @@ public interface Method {
 
     /**
      * Runs this method on a given items
-     * @param parameters	Parameter values for the method
-     * @param	targets	Method processes these items (RawDataFile[], PeakList[], AlignmentResult[], ...)
+     * @param	parameters	Parameter values for the method
+     * @param	rawDataFiles	Raw data files to be processed (null if the method doesn't work on raw data files)
+     * @param	alignmentResult	AlignmentResults to be processed (null if the method doesn't work on alignment results)
      */
-    public void runMethod(MethodParameters parameters, Object[] targets);
+    public void runMethod(MethodParameters parameters, RawDataFile[] rawDataFiles, AlignmentResult[] alignmentResults);
 
 }

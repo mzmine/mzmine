@@ -30,6 +30,7 @@ import net.sf.mzmine.io.RawDataFile;
 import net.sf.mzmine.io.MZmineProject;
 import net.sf.mzmine.methods.Method;
 import net.sf.mzmine.methods.MethodParameters;
+import net.sf.mzmine.methods.alignment.AlignmentResult;
 import net.sf.mzmine.userinterface.dialogs.ParameterSetupDialog;
 import net.sf.mzmine.userinterface.mainwindow.MainWindow;
 import net.sf.mzmine.taskcontrol.Task;
@@ -103,13 +104,10 @@ public class MeanFilter implements Method, TaskListener {
      * @param project
      * @param parameters
      */
-    public void runMethod(MethodParameters parameters, Object[] targets) {
+    public void runMethod(MethodParameters parameters, RawDataFile[] rawDataFiles, AlignmentResult[] alignmentResults) {
 
 		Task filterTask;
 		MeanFilterParameters mfParam = (MeanFilterParameters)parameters;
-
-		// Get selected raw data files
-		RawDataFile[] rawDataFiles = (RawDataFile[])targets;
 
 		for (RawDataFile rawDataFile: rawDataFiles) {
 			filterTask = new MeanFilterTask(rawDataFile, mfParam);
