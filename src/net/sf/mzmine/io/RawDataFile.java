@@ -43,7 +43,7 @@ public interface RawDataFile extends Serializable {
 
     class Operation {
         public File previousFileName;
-        public Class processingMethod;
+        public Method processingMethod;
         public MethodParameters parameters;
     }
 
@@ -54,7 +54,7 @@ public interface RawDataFile extends Serializable {
     public File getCurrentFile();
 
     public Vector<Operation> getHistory();
-    public void addHistory(File previousFileName, Class processingMethod, MethodParameters parameters);
+    public void addHistory(File previousFileName, Method processingMethod, MethodParameters parameters);
 
     public PreloadLevel getPreloadLevel();
 

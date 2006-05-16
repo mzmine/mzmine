@@ -39,6 +39,7 @@ import net.sf.mzmine.interfaces.Scan;
 import net.sf.mzmine.io.RawDataFile;
 import net.sf.mzmine.io.RawDataFile.PreloadLevel;
 import net.sf.mzmine.util.Logger;
+import net.sf.mzmine.methods.Method;
 import net.sf.mzmine.methods.MethodParameters;
 
 /**
@@ -236,7 +237,7 @@ class MZXMLFile implements RawDataFile {
 		return history;
 	}
 
-	public void addHistory(File previousFile, Class processingMethod, MethodParameters parameters) {
+	public void addHistory(File previousFile, Method processingMethod, MethodParameters parameters) {
 		Operation o = new Operation();
 		o.previousFileName = previousFile;
 		o.processingMethod = processingMethod;
