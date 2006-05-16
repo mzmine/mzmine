@@ -40,7 +40,7 @@ public class ZoomScanFilter implements Method {
 		return new String("Zoom scan filter");
 	}
 
-	public ZoomScanFilterParameters askParameters(MethodParameters currentValues) {
+	public boolean askParameters(MethodParameters currentValues) {
 /*
 		// Create filter parameter object
 		ZoomScanFilterParameters tmpParameters;
@@ -82,7 +82,7 @@ public class ZoomScanFilter implements Method {
 
 		return tmpParameters;
 */
-		return null;
+		return false;
 	}
 
 	public void runMethod(MethodParameters parameters, RawDataFile[] rawDataFiles, AlignmentResult[] alignmentResults) {

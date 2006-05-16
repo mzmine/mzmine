@@ -40,7 +40,7 @@ public class SavitzkyGolayFilter implements Method {
 		return new String("Savitzky Golay filter");
 	}
 
-	public SavitzkyGolayFilterParameters askParameters(MethodParameters currentValues) {
+	public boolean askParameters(MethodParameters currentValues) {
 
 		// Initialize parameter values
 		SavitzkyGolayFilterParameters tmpParameters;
@@ -73,17 +73,16 @@ public class SavitzkyGolayFilter implements Method {
 						new Integer(tmpParameters.numberOfDataPoints).toString());
 
 
-		if (s==null) { return null; }
+		if (s==null) { return false; }
 
 		try {
 			tmpParameters.numberOfDataPoints = Integer.parseInt(s);
 
 		} catch (NumberFormatException exe) {
-			return null;
+			return false;
 		}
 
-		// Return parameter values to caller
-		return tmpParameters;
+		return true;
 
 	}
 

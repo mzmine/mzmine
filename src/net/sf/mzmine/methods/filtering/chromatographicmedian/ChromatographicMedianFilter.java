@@ -46,7 +46,7 @@ public class ChromatographicMedianFilter implements Method {
 		return new String("Chromatographic median filter");
 	}
 
-	public ChromatographicMedianFilterParameters askParameters(MethodParameters currentValues) {
+	public boolean askParameters(MethodParameters currentValues) {
 
 		// Initialize parameters
 		ChromatographicMedianFilterParameters myParameters;
@@ -72,7 +72,7 @@ public class ChromatographicMedianFilter implements Method {
 
 		// Check if user clicked Cancel-button
 		if (psd.getExitCode()==-1) {
-			return null;
+			return false;
 		}
 
 
@@ -82,7 +82,7 @@ public class ChromatographicMedianFilter implements Method {
 		d = psd.getFieldValue(0);
 		if (d<=0) {
 			mainWin.displayErrorMessage("Incorrect M/Z tolerance value!");
-			return null;
+			return false;
 		}
 		myParameters.mzTolerance = d;
 
@@ -90,11 +90,11 @@ public class ChromatographicMedianFilter implements Method {
 		i = (int)java.lang.Math.round(psd.getFieldValue(1));
 		if (i<=0) {
 			mainWin.displayErrorMessage("Incorrect one-sided scan window length!");
-			return null;
+			return false;
 		}
 		myParameters.oneSidedWindowLength = i;
 
-		return myParameters;
+		return true;
 
 	}
 

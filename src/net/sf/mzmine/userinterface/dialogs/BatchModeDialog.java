@@ -599,24 +599,20 @@ public class BatchModeDialog extends javax.swing.JInternalFrame implements Actio
 				case 0:
 					break;
 				case 1:
-					paramFilter1 = new MeanFilter().askParameters(mainWin.getParameterStorage().getMeanFilterParameters());
-					if (paramFilter1==null) { paramFilter1 = mainWin.getParameterStorage().getMeanFilterParameters();	}
-					else { mainWin.getParameterStorage().setMeanFilterParameters((MeanFilterParameters)paramFilter1); }
+					paramFilter1 = mainWin.getParameterStorage().getMeanFilterParameters();
+					new MeanFilter().askParameters(paramFilter1);
 					break;
 				case 2:
-					paramFilter1 = new SavitzkyGolayFilter().askParameters(mainWin.getParameterStorage().getSavitzkyGolayFilterParameters());
-					if (paramFilter1==null) { paramFilter1 = mainWin.getParameterStorage().getSavitzkyGolayFilterParameters();	}
-					else { mainWin.getParameterStorage().setSavitzkyGolayFilterParameters((SavitzkyGolayFilterParameters)paramFilter1); }
+					paramFilter1 = mainWin.getParameterStorage().getSavitzkyGolayFilterParameters();
+					new SavitzkyGolayFilter().askParameters(paramFilter1);
 					break;
 				case 3:
-					paramFilter1 = new ChromatographicMedianFilter().askParameters(mainWin.getParameterStorage().getChromatographicMedianFilterParameters());
-					if (paramFilter1==null) { paramFilter1 = mainWin.getParameterStorage().getChromatographicMedianFilterParameters();	}
-					else { mainWin.getParameterStorage().setChromatographicMedianFilterParameters((ChromatographicMedianFilterParameters)paramFilter1); }
+					paramFilter1 = mainWin.getParameterStorage().getChromatographicMedianFilterParameters();
+					new ChromatographicMedianFilter().askParameters(paramFilter1);
 					break;
 				case 4:
-					paramFilter1 = new CropFilter().askParameters(mainWin.getParameterStorage().getCropFilterParameters());
-					if (paramFilter1==null) { paramFilter1 = mainWin.getParameterStorage().getCropFilterParameters(); }
-					else { mainWin.getParameterStorage().setCropFilterParameters((CropFilterParameters)paramFilter1); }
+					paramFilter1 = mainWin.getParameterStorage().getCropFilterParameters();
+					new CropFilter().askParameters(paramFilter1);
 					break;
 
 			}
@@ -630,24 +626,20 @@ public class BatchModeDialog extends javax.swing.JInternalFrame implements Actio
 				case 0:
 					break;
 				case 1:
-					paramFilter2 = new MeanFilter().askParameters(mainWin.getParameterStorage().getMeanFilterParameters());
-					if (paramFilter2==null) { paramFilter2 = mainWin.getParameterStorage().getMeanFilterParameters();	}
-					else { mainWin.getParameterStorage().setMeanFilterParameters((MeanFilterParameters)paramFilter2); }
+					paramFilter2 = mainWin.getParameterStorage().getMeanFilterParameters();
+					new MeanFilter().askParameters(paramFilter2);
 					break;
 				case 2:
-					paramFilter2 = new SavitzkyGolayFilter().askParameters(mainWin.getParameterStorage().getSavitzkyGolayFilterParameters());
-					if (paramFilter2==null) { paramFilter2 = mainWin.getParameterStorage().getSavitzkyGolayFilterParameters();	}
-					else { mainWin.getParameterStorage().setSavitzkyGolayFilterParameters((SavitzkyGolayFilterParameters)paramFilter2); }
+					paramFilter2 = mainWin.getParameterStorage().getSavitzkyGolayFilterParameters();
+					new SavitzkyGolayFilter().askParameters(paramFilter2);
 					break;
 				case 3:
-					paramFilter2 = new ChromatographicMedianFilter().askParameters(mainWin.getParameterStorage().getChromatographicMedianFilterParameters());
-					if (paramFilter2==null) { paramFilter2 = mainWin.getParameterStorage().getChromatographicMedianFilterParameters();	}
-					else { mainWin.getParameterStorage().setChromatographicMedianFilterParameters((ChromatographicMedianFilterParameters)paramFilter2); }
+					paramFilter2 = mainWin.getParameterStorage().getChromatographicMedianFilterParameters();
+					new ChromatographicMedianFilter().askParameters(paramFilter2);
 					break;
 				case 4:
-					paramFilter2 = new CropFilter().askParameters(mainWin.getParameterStorage().getCropFilterParameters());
-					if (paramFilter2==null) { paramFilter2 = mainWin.getParameterStorage().getCropFilterParameters(); }
-					else { mainWin.getParameterStorage().setCropFilterParameters((CropFilterParameters)paramFilter2); }
+					paramFilter2 = mainWin.getParameterStorage().getCropFilterParameters();
+					new CropFilter().askParameters(paramFilter2);
 					break;
 			}
 			toFront();
@@ -660,24 +652,20 @@ public class BatchModeDialog extends javax.swing.JInternalFrame implements Actio
 				case 0:
 					break;
 				case 1:
-					paramFilter3 = new MeanFilter().askParameters(mainWin.getParameterStorage().getMeanFilterParameters());
-					if (paramFilter3==null) { paramFilter3 = mainWin.getParameterStorage().getMeanFilterParameters();	}
-					else { mainWin.getParameterStorage().setMeanFilterParameters((MeanFilterParameters)paramFilter3); }
+					paramFilter3 = mainWin.getParameterStorage().getMeanFilterParameters();
+					new MeanFilter().askParameters(paramFilter3);
 					break;
 				case 2:
-					paramFilter3 = new SavitzkyGolayFilter().askParameters(mainWin.getParameterStorage().getSavitzkyGolayFilterParameters());
-					if (paramFilter3==null) { paramFilter3 = mainWin.getParameterStorage().getSavitzkyGolayFilterParameters();	}
-					else { mainWin.getParameterStorage().setSavitzkyGolayFilterParameters((SavitzkyGolayFilterParameters)paramFilter3); }
+					paramFilter3 = mainWin.getParameterStorage().getSavitzkyGolayFilterParameters();
+					new SavitzkyGolayFilter().askParameters(paramFilter3);
 					break;
 				case 3:
-					paramFilter3 = new ChromatographicMedianFilter().askParameters(mainWin.getParameterStorage().getChromatographicMedianFilterParameters());
-					if (paramFilter3==null) { paramFilter3 = mainWin.getParameterStorage().getChromatographicMedianFilterParameters();	}
-					else { mainWin.getParameterStorage().setChromatographicMedianFilterParameters((ChromatographicMedianFilterParameters)paramFilter3); }
+					paramFilter3 = mainWin.getParameterStorage().getChromatographicMedianFilterParameters();
+					new ChromatographicMedianFilter().askParameters(paramFilter3);
 					break;
 				case 4:
-					paramFilter3 = new CropFilter().askParameters(mainWin.getParameterStorage().getCropFilterParameters());
-					if (paramFilter3==null) { paramFilter3 = mainWin.getParameterStorage().getCropFilterParameters(); }
-					else { mainWin.getParameterStorage().setCropFilterParameters((CropFilterParameters)paramFilter3); }
+					paramFilter3 = mainWin.getParameterStorage().getCropFilterParameters();
+					new CropFilter().askParameters(paramFilter3);
 					break;
 			}
 			toFront();

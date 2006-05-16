@@ -445,9 +445,10 @@ class MainMenu extends JMenuBar implements ActionListener {
 			 // Ask parameters from user
 			MeanFilter mf = new MeanFilter();
 			MeanFilterParameters mfParam = mainWin.getParameterStorage().getMeanFilterParameters();
-			mfParam = mf.askParameters((MethodParameters)mfParam);
-         	if (mfParam==null) { statBar.setStatusText("Mean filtering cancelled."); return; }
-         	//parameterStorage.setMeanFilterParameters(mfParam);
+
+			if (!(mf.askParameters((MethodParameters)mfParam))) {
+				statBar.setStatusText("Mean filtering cancelled."); return;
+			}
 
          	// It seems user didn't cancel
          	statBar.setStatusText("Mean filtering spectra.");

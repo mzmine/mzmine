@@ -46,7 +46,7 @@ public class CropFilter implements Method {
 		return new String("Crop filter");
 	}
 
-	public CropFilterParameters askParameters(MethodParameters currentValues) {
+	public boolean askParameters(MethodParameters currentValues) {
 
 		// Create filter parameter object
 		CropFilterParameters tmpParameters;
@@ -76,7 +76,7 @@ public class CropFilter implements Method {
 
 		// Check if user clicked Cancel-button
 		if (psd.getExitCode()==-1) {
-			return null;
+			return false;
 		}
 
 		// Read parameter values
@@ -86,7 +86,7 @@ public class CropFilter implements Method {
 		d = psd.getFieldValue(0);
 		if (d<0) {
 			mainWin.displayErrorMessage("Incorrect minimum M/Z value!");
-			return null;
+			return false;
 		}
 		tmpParameters.minMZ = d;
 
@@ -94,7 +94,7 @@ public class CropFilter implements Method {
 		d = psd.getFieldValue(1);
 		if (d<=0) {
 			mainWin.displayErrorMessage("Incorrect maximum M/Z value!");
-			return null;
+			return false;
 		}
 		tmpParameters.maxMZ = d;
 
@@ -102,7 +102,7 @@ public class CropFilter implements Method {
 		d = psd.getFieldValue(2);
 		if (d<0) {
 			mainWin.displayErrorMessage("Incorrect minimum RT value!");
-			return null;
+			return false;
 		}
 		tmpParameters.minRT = d;
 
@@ -110,11 +110,11 @@ public class CropFilter implements Method {
 		d = psd.getFieldValue(3);
 		if (d<=0) {
 			mainWin.displayErrorMessage("Incorrect maximum RT value!");
-			return null;
+			return false;
 		}
 		tmpParameters.maxRT = d;
 
-		return tmpParameters;
+		return true;
 
 	}
 

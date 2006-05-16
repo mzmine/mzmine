@@ -56,7 +56,7 @@ public class MeanFilter implements Method, TaskListener {
      * This function displays a modal dialog to define method parameters
      * @return parameters set by user
      */
-	public MeanFilterParameters askParameters(MethodParameters parameters) {
+	public boolean askParameters(MethodParameters parameters) {
 
 		MeanFilterParameters currentParameters = (MeanFilterParameters)parameters;
 
@@ -80,7 +80,7 @@ public class MeanFilter implements Method, TaskListener {
 
 		// Check if user clicked Cancel-button
 		if (psd.getExitCode()==-1) {
-			return null;
+			return false;
 		}
 
 
@@ -90,11 +90,11 @@ public class MeanFilter implements Method, TaskListener {
 		d = psd.getFieldValue(0);
 		if (d<=0) {
 			mainWin.displayErrorMessage("Incorrect M/Z window length value!");
-			return null;
+			return false;
 		}
 		currentParameters.oneSidedWindowLength = d;
 
-		return currentParameters;
+		return true;
 
 	}
 
@@ -130,14 +130,14 @@ public class MeanFilter implements Method, TaskListener {
 			// Add mean filtering to the history of the file
 			newFile.addHistory(oldFile.getCurrentFile(), MeanFilter.class, mfParam.clone());
 
-			/*
+
 			Vector<RawDataFile.Operation> debugH = newFile.getHistory();
 			for (RawDataFile.Operation op : debugH) {
 				System.out.print("previousFileName = " + op.previousFileName.getName());
 				System.out.print(", method = " + op.processingMethod.getName());
 				System.out.println(", parameters = " + op.parameters.toString());
 			}
-			*/
+
 
 			// Update MZmineProject about replacement of oldFile by newFile
 			MZmineProject.getCurrentProject().updateFile(oldFile, newFile);

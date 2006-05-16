@@ -37,10 +37,10 @@ public interface Method {
     /**
      * This function displays a modal dialog to define method parameters
      *
-     * @param	parameters	Previous parameter values
-     * @return	Parameters set by user
+     * @param	parameters	Current parameter values, any changes should be written back to this instance.
+     * @return	True if it is OK to go on and run the method
      */
-    public MethodParameters askParameters(MethodParameters parameters);
+    public boolean askParameters(MethodParameters parameters);
 
     /**
      * Runs this method on a given items
