@@ -35,8 +35,6 @@ import net.sf.mzmine.userinterface.mainwindow.MainWindow;
 
 public class ChromatographicMedianFilter implements Method {
 
-	private ChromatographicMedianFilterParameters parameters;
-
 	// Labels for parameters
 	private final String[] fieldNames = {	"Tolerance in M/Z tolerance",
 											"One-sided scan window length" };
@@ -46,20 +44,15 @@ public class ChromatographicMedianFilter implements Method {
 		return new String("Chromatographic median filter");
 	}
 
-	public boolean askParameters(MethodParameters currentValues) {
+	public boolean askParameters(MethodParameters parameters) {
 
-		// Initialize parameters
-		ChromatographicMedianFilterParameters myParameters;
-		if (currentValues==null) {
-			myParameters = new ChromatographicMedianFilterParameters();
-		} else {
-			myParameters = (ChromatographicMedianFilterParameters)currentValues;
-		}
+		ChromatographicMedianFilterParameters currentParameters = (ChromatographicMedianFilterParameters)parameters;
+		if (currentParameters==null) return false;
 
 		// Show parameter setup dialog
 		double[] paramValues = new double[2];
-		paramValues[0] = myParameters.mzTolerance;
-		paramValues[1] = myParameters.oneSidedWindowLength;
+		paramValues[0] = currentParameters.mzTolerance;
+		paramValues[1] = currentParameters.oneSidedWindowLength;
 
 		NumberFormat[] numberFormats = new NumberFormat[2];
 		numberFormats[0] = NumberFormat.getNumberInstance(); numberFormats[0].setMinimumFractionDigits(3);
@@ -84,7 +77,7 @@ public class ChromatographicMedianFilter implements Method {
 			mainWin.displayErrorMessage("Incorrect M/Z tolerance value!");
 			return false;
 		}
-		myParameters.mzTolerance = d;
+		currentParameters.mzTolerance = d;
 
 		int i;
 		i = (int)java.lang.Math.round(psd.getFieldValue(1));
@@ -92,7 +85,7 @@ public class ChromatographicMedianFilter implements Method {
 			mainWin.displayErrorMessage("Incorrect one-sided scan window length!");
 			return false;
 		}
-		myParameters.oneSidedWindowLength = i;
+		currentParameters.oneSidedWindowLength = i;
 
 		return true;
 

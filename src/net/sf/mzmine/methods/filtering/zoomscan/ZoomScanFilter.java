@@ -30,8 +30,6 @@ import net.sf.mzmine.userinterface.mainwindow.MainWindow;
 
 public class ZoomScanFilter implements Method {
 
-	private ZoomScanFilterParameters myParameters;
-
 	private final String[] fieldNames = {
 											"Minimum M/Z range width",
 										};

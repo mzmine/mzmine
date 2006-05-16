@@ -59,8 +59,7 @@ public class MeanFilter implements Method, TaskListener {
 	public boolean askParameters(MethodParameters parameters) {
 
 		MeanFilterParameters currentParameters = (MeanFilterParameters)parameters;
-
-		if (currentParameters==null) currentParameters = new MeanFilterParameters();
+		if (currentParameters==null) return false;
 
 		// Show parameter setup dialog
 		double[] paramValues = new double[1];
@@ -130,14 +129,14 @@ public class MeanFilter implements Method, TaskListener {
 			// Add mean filtering to the history of the file
 			newFile.addHistory(oldFile.getCurrentFile(), MeanFilter.class, mfParam.clone());
 
-
+			/*
 			Vector<RawDataFile.Operation> debugH = newFile.getHistory();
 			for (RawDataFile.Operation op : debugH) {
 				System.out.print("previousFileName = " + op.previousFileName.getName());
 				System.out.print(", method = " + op.processingMethod.getName());
 				System.out.println(", parameters = " + op.parameters.toString());
 			}
-
+			*/
 
 			// Update MZmineProject about replacement of oldFile by newFile
 			MZmineProject.getCurrentProject().updateFile(oldFile, newFile);

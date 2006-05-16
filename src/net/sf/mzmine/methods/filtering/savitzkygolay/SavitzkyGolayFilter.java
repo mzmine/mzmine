@@ -40,21 +40,16 @@ public class SavitzkyGolayFilter implements Method {
 		return new String("Savitzky Golay filter");
 	}
 
-	public boolean askParameters(MethodParameters currentValues) {
+	public boolean askParameters(MethodParameters parameters) {
 
-		// Initialize parameter values
-		SavitzkyGolayFilterParameters tmpParameters;
-		if (currentValues==null) {
-			tmpParameters = new SavitzkyGolayFilterParameters();
-		} else {
-			tmpParameters = (SavitzkyGolayFilterParameters)currentValues;
-		}
+		SavitzkyGolayFilterParameters currentParameters = (SavitzkyGolayFilterParameters)parameters;
+		if (currentParameters==null) return false;
 
 		// Define different options and currently selected item
 		String[] possibilities = {"5","7","9","11","13","15","17","19","21","23","25"};
 		String selectedValue = "5";
 		for (String s : possibilities) {
-			if (Integer.parseInt(s)==tmpParameters.numberOfDataPoints) {
+			if (Integer.parseInt(s)==currentParameters.numberOfDataPoints) {
 				selectedValue = s;
 			}
 		}
@@ -70,13 +65,13 @@ public class SavitzkyGolayFilter implements Method {
 						JOptionPane.PLAIN_MESSAGE,
 						null,
 						possibilities,
-						new Integer(tmpParameters.numberOfDataPoints).toString());
+						new Integer(currentParameters.numberOfDataPoints).toString());
 
 
 		if (s==null) { return false; }
 
 		try {
-			tmpParameters.numberOfDataPoints = Integer.parseInt(s);
+			currentParameters.numberOfDataPoints = Integer.parseInt(s);
 
 		} catch (NumberFormatException exe) {
 			return false;

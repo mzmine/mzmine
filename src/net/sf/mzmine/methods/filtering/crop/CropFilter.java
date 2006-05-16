@@ -33,8 +33,6 @@ import net.sf.mzmine.userinterface.mainwindow.MainWindow;
 
 public class CropFilter implements Method {
 
-	private CropFilterParameters myParameters;
-
 	private final String[] fieldNames = {
 											"Minimum M/Z value",
 											"Maximum M/Z value",
@@ -46,23 +44,18 @@ public class CropFilter implements Method {
 		return new String("Crop filter");
 	}
 
-	public boolean askParameters(MethodParameters currentValues) {
+	public boolean askParameters(MethodParameters parameters) {
 
-		// Create filter parameter object
-		CropFilterParameters tmpParameters;
-		if (currentValues == null) {
-			tmpParameters = new CropFilterParameters();
-		} else {
-			tmpParameters = (CropFilterParameters)currentValues;
-		}
 
+		CropFilterParameters currentParameters = (CropFilterParameters)parameters;
+		if (currentParameters==null) return false;
 
 		// Show parameter setup dialog
 		double[] paramValues = new double[4];
-		paramValues[0] = tmpParameters.minMZ;
-		paramValues[1] = tmpParameters.maxMZ;
-		paramValues[2] = tmpParameters.minRT;
-		paramValues[3] = tmpParameters.maxRT;
+		paramValues[0] = currentParameters.minMZ;
+		paramValues[1] = currentParameters.maxMZ;
+		paramValues[2] = currentParameters.minRT;
+		paramValues[3] = currentParameters.maxRT;
 
 		NumberFormat[] numberFormats = new NumberFormat[4];
 		numberFormats[0] = NumberFormat.getNumberInstance(); numberFormats[0].setMinimumFractionDigits(3);
@@ -88,7 +81,7 @@ public class CropFilter implements Method {
 			mainWin.displayErrorMessage("Incorrect minimum M/Z value!");
 			return false;
 		}
-		tmpParameters.minMZ = d;
+		currentParameters.minMZ = d;
 
 		// maxMZ
 		d = psd.getFieldValue(1);
@@ -96,7 +89,7 @@ public class CropFilter implements Method {
 			mainWin.displayErrorMessage("Incorrect maximum M/Z value!");
 			return false;
 		}
-		tmpParameters.maxMZ = d;
+		currentParameters.maxMZ = d;
 
 		// minRT
 		d = psd.getFieldValue(2);
@@ -104,7 +97,7 @@ public class CropFilter implements Method {
 			mainWin.displayErrorMessage("Incorrect minimum RT value!");
 			return false;
 		}
-		tmpParameters.minRT = d;
+		currentParameters.minRT = d;
 
 		// maxRT
 		d = psd.getFieldValue(3);
@@ -112,7 +105,7 @@ public class CropFilter implements Method {
 			mainWin.displayErrorMessage("Incorrect maximum RT value!");
 			return false;
 		}
-		tmpParameters.maxRT = d;
+		currentParameters.maxRT = d;
 
 		return true;
 
