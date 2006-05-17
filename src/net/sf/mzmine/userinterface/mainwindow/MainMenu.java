@@ -47,6 +47,9 @@ import net.sf.mzmine.methods.filtering.crop.CropFilter;
 import net.sf.mzmine.methods.filtering.crop.CropFilterParameters;
 import net.sf.mzmine.methods.filtering.savitzkygolay.SavitzkyGolayFilter;
 import net.sf.mzmine.methods.filtering.savitzkygolay.SavitzkyGolayFilterParameters;
+import net.sf.mzmine.methods.filtering.zoomscan.ZoomScanFilter;
+import net.sf.mzmine.methods.filtering.zoomscan.ZoomScanFilterParameters;
+
 
 import net.sf.mzmine.visualizers.alignmentresult.AlignmentResultVisualizerCDAPlotView;
 import net.sf.mzmine.visualizers.alignmentresult.AlignmentResultVisualizerCoVarPlotView;
@@ -529,6 +532,27 @@ class MainMenu extends JMenuBar implements ActionListener {
 
 		}
 
+		// Filter -> Zoom scan
+		if (src == ssZoomScanFilter) {
+
+			 // Ask parameters from user
+			ZoomScanFilter zsf = new ZoomScanFilter();
+			ZoomScanFilterParameters zsfParam = mainWin.getParameterStorage().getZoomScanFilterParameters();
+
+			if (!(zsf.askParameters((MethodParameters)zsfParam))) {
+				statBar.setStatusText("Filtering cancelled."); return;
+			}
+
+         	// It seems user didn't cancel
+         	statBar.setStatusText("Filtering spectra.");
+         	//paintNow();
+
+         	RawDataFile[] rawDataFiles = mainWin.getItemSelector().getSelectedRawData();
+
+         	zsf.runMethod(zsfParam, rawDataFiles, null);
+
+		}
+
 
 		// File->Export table
         /*
@@ -784,17 +808,6 @@ class MainMenu extends JMenuBar implements ActionListener {
 
          /*
          *
-         * if (src == ssZoomScanFilter) { // Ask parameters from user
-         * ZoomScanFilter zsf = new ZoomScanFilter(); ZoomScanFilterParameters
-         * zsfParam = zsf.askParameters(this,
-         * parameterStorage.getZoomScanFilterParameters()); if (zsfParam==null) {
-         * statBar.setStatusText("Zoom scan filtering cancelled."); return; }
-         * parameterStorage.setZoomScanFilterParameters(zsfParam); // It seems
-         * user didn't cancel statBar.setStatusText("Filtering with zoom scan
-         * filter."); paintNow(); // Collect raw data IDs and initiate filtering
-         * on the cluster int[] selectedRawDataIDs =
-         * itemSelector.getSelectedRawDataIDs(); //
-         * clientForCluster.filterRawDataFiles(selectedRawDataIDs, zsfParam); }
          *
          * if (src == ssRecursiveThresholdPicker) {
          *
@@ -1182,7 +1195,7 @@ class MainMenu extends JMenuBar implements ActionListener {
             ssSGFilter.setEnabled(true);
             ssChromatographicMedianFilter.setEnabled(true);
             ssCropFilter.setEnabled(true);
-            //ssZoomScanFilter.setEnabled(true);
+            ssZoomScanFilter.setEnabled(true);
 
 			/*
             ssRecursiveThresholdPicker.setEnabled(true);
