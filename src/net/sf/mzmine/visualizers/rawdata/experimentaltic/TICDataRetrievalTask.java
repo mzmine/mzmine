@@ -25,13 +25,15 @@ import net.sf.mzmine.interfaces.Scan;
 import net.sf.mzmine.io.RawDataFile;
 import net.sf.mzmine.taskcontrol.Task;
 
+import org.jfree.data.xy.XYSeries;
+
 /**
  * 
  */
 public class TICDataRetrievalTask implements Task {
 
     private RawDataFile rawDataFile;
-    private TICVisualizer visualizer;
+    private XYSeries series;
     private int scanNumbers[];
     private int retrievedScans = 0;
     private TaskStatus status;
@@ -46,10 +48,10 @@ public class TICDataRetrievalTask implements Task {
      * @param visualizer
      */
     TICDataRetrievalTask(RawDataFile rawDataFile, int scanNumbers[],
-            TICVisualizer visualizer) {
+            XYSeries series) {
         status = TaskStatus.WAITING;
         this.rawDataFile = rawDataFile;
-        this.visualizer = visualizer;
+        this.series = series;
         this.scanNumbers = scanNumbers;
     }
 
@@ -62,9 +64,9 @@ public class TICDataRetrievalTask implements Task {
      * @param mzRangeMax
      */
     TICDataRetrievalTask(RawDataFile rawDataFile, int scanNumbers[],
-            TICVisualizer visualizer, double mzRangeMin, double mzRangeMax) {
+            XYSeries series, double mzRangeMin, double mzRangeMax) {
         this.rawDataFile = rawDataFile;
-        this.visualizer = visualizer;
+        this.series = series;
         this.scanNumbers = scanNumbers;
         xicMode = true;
         this.mzRangeMin = mzRangeMin;
@@ -144,8 +146,7 @@ public class TICDataRetrievalTask implements Task {
                     if ((!xicMode) || ((mzValues[j] >= mzRangeMin) && (mzValues[j] <= mzRangeMax)))
                         totalIntensity += intensityValues[j];
                 }
-
-                visualizer.updateData(i, scan.getRetentionTime(), totalIntensity);
+                series.addOrUpdate(scan.getRetentionTime() * 1000, totalIntensity);
             } catch (IOException e) {
                 status = TaskStatus.ERROR;
                 errorMessage = e.toString();

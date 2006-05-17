@@ -165,7 +165,7 @@ public class RawDataVisualizerPeakListView extends JInternalFrame implements Pri
 
 	public void internalFrameActivated(InternalFrameEvent e) {
 		//rawData.setActiveVisualizer(this);
-		itemSelector.setActiveRawData(rawData);
+//		itemSelector.setActiveRawData(rawData);
 
 	}
 	public void internalFrameClosed(InternalFrameEvent e) {	}

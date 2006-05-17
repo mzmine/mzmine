@@ -19,26 +19,18 @@
 
 package net.sf.mzmine.visualizers;
 
+import java.util.Set;
+
 import net.sf.mzmine.io.RawDataFile;
 
 public interface RawDataVisualizer {
 
-    public RawDataFile getRawDataFile();
-    public void setRawDataFile(RawDataFile newFile);
-
-    public void setMZRange(double mzMin, double mzMax);
-    public void resetMZRange();
-
-    public void setRTRange(double rtMin, double rtMax);
-    public void resetRTRange();
-
-    public void setIntensityRange(double intensityMin, double intensityMax);
-    public void resetIntensityRange();
+    public RawDataFile[] getRawDataFiles();
     
-    public void setMZPosition(double mz);
-    public void setRTPosition(double rt);
-
-    public void printMe();
-    public void copyMe();
-
+    public void setMZRange(double mzMin, double mzMax);
+    
+    public void setRTRange(double rtMin, double rtMax);
+    
+    public void setIntensityRange(double intensityMin, double intensityMax);
+    
 }

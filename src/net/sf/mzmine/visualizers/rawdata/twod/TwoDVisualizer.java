@@ -40,6 +40,7 @@ import java.awt.image.WritableRaster;
 import java.awt.print.PageFormat;
 import java.awt.print.Printable;
 import java.awt.print.PrinterJob;
+import java.util.Set;
 import java.util.Vector;
 
 import javax.print.attribute.HashPrintRequestAttributeSet;
@@ -344,7 +345,7 @@ public class TwoDVisualizer extends JInternalFrame implements RawDataVisualizer,
 	public void internalFrameActivated(InternalFrameEvent e) {
 
 		//rawData.setActiveVisualizer(this);
-		itemSelector.setActiveRawData(rawData);
+		//itemSelector.setActiveRawData(rawData);
 
 	}
 	public void internalFrameClosed(InternalFrameEvent e) {	}
@@ -911,6 +912,16 @@ public class TwoDVisualizer extends JInternalFrame implements RawDataVisualizer,
     public void resetIntensityRange() {
         // TODO Auto-generated method stub
         
+    }
+
+
+
+    /**
+     * @see net.sf.mzmine.visualizers.RawDataVisualizer#getRawDataFiles()
+     */
+    public RawDataFile[] getRawDataFiles() {
+        // TODO Auto-generated method stub
+        return null;
     }
 
 

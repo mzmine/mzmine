@@ -33,6 +33,7 @@ import java.awt.print.PageFormat;
 import java.awt.print.Printable;
 import java.awt.print.PrinterJob;
 import java.io.IOException;
+import java.util.Set;
 
 import javax.print.attribute.HashPrintRequestAttributeSet;
 import javax.print.attribute.standard.OrientationRequested;
@@ -412,6 +413,14 @@ public class SpectrumVisualizer extends JInternalFrame implements
             }
         }
 
+    }
+
+    /**
+     * @see net.sf.mzmine.visualizers.RawDataVisualizer#getRawDataFiles()
+     */
+    public RawDataFile[] getRawDataFiles() {
+        // TODO Auto-generated method stub
+        return null;
     }
 
 }
