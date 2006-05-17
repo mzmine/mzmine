@@ -45,6 +45,8 @@ import net.sf.mzmine.methods.filtering.chromatographicmedian.ChromatographicMedi
 import net.sf.mzmine.methods.filtering.chromatographicmedian.ChromatographicMedianFilterParameters;
 import net.sf.mzmine.methods.filtering.crop.CropFilter;
 import net.sf.mzmine.methods.filtering.crop.CropFilterParameters;
+import net.sf.mzmine.methods.filtering.savitzkygolay.SavitzkyGolayFilter;
+import net.sf.mzmine.methods.filtering.savitzkygolay.SavitzkyGolayFilterParameters;
 
 import net.sf.mzmine.visualizers.alignmentresult.AlignmentResultVisualizerCDAPlotView;
 import net.sf.mzmine.visualizers.alignmentresult.AlignmentResultVisualizerCoVarPlotView;
@@ -506,9 +508,29 @@ class MainMenu extends JMenuBar implements ActionListener {
 
 		}
 
+		// Filter -> Crop
+		if (src == ssSGFilter) {
+
+			 // Ask parameters from user
+			SavitzkyGolayFilter sgf = new SavitzkyGolayFilter();
+			SavitzkyGolayFilterParameters sgfParam = mainWin.getParameterStorage().getSavitzkyGolayFilterParameters();
+
+			if (!(sgf.askParameters((MethodParameters)sgfParam))) {
+				statBar.setStatusText("Filtering cancelled."); return;
+			}
+
+         	// It seems user didn't cancel
+         	statBar.setStatusText("Filtering spectra.");
+         	//paintNow();
+
+         	RawDataFile[] rawDataFiles = mainWin.getItemSelector().getSelectedRawData();
+
+         	sgf.runMethod(sgfParam, rawDataFiles, null);
+
+		}
 
 
-        // File->Export table
+		// File->Export table
         /*
          * if (src == fileExportPeakList) {
          *
@@ -761,18 +783,6 @@ class MainMenu extends JMenuBar implements ActionListener {
 
 
          /*
-         * if (src == ssSGFilter) { // Ask parameters from user
-         * SavitzkyGolayFilter sf = new SavitzkyGolayFilter();
-         * SavitzkyGolayFilterParameters sfParam = sf.askParameters(this,
-         * parameterStorage.getSavitzkyGolayFilterParameters()); if
-         * (sfParam==null) { statBar.setStatusText("Savitzky-Golay filtering
-         * cancelled."); return; }
-         * parameterStorage.setSavitzkyGolayFilterParameters(sfParam); // It
-         * seems user didn't cancel statBar.setStatusText("Savitzky-Golay
-         * filtering spectra."); paintNow(); // Collect raw data IDs and
-         * initiate filtering on the cluster int[] selectedRawDataIDs =
-         * itemSelector.getSelectedRawDataIDs(); //
-         * clientForCluster.filterRawDataFiles(selectedRawDataIDs, sfParam); }
          *
          * if (src == ssZoomScanFilter) { // Ask parameters from user
          * ZoomScanFilter zsf = new ZoomScanFilter(); ZoomScanFilterParameters
@@ -1165,10 +1175,11 @@ class MainMenu extends JMenuBar implements ActionListener {
          */
         RawDataFile[] actRawData = itemSelector.getSelectedRawData();
         if ( (actRawData != null) && (actRawData.length>0)) {
+
             fileClose.setEnabled(true);
 
             ssMeanFilter.setEnabled(true);
-            //ssSGFilter.setEnabled(true);
+            ssSGFilter.setEnabled(true);
             ssChromatographicMedianFilter.setEnabled(true);
             ssCropFilter.setEnabled(true);
             //ssZoomScanFilter.setEnabled(true);

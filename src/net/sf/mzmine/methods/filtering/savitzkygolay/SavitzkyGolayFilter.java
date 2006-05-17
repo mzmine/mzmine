@@ -24,17 +24,20 @@ import javax.swing.JOptionPane;
 
 import net.sf.mzmine.interfaces.Scan;
 import net.sf.mzmine.io.RawDataFile;
+import net.sf.mzmine.io.MZmineProject;
 import net.sf.mzmine.methods.Method;
 import net.sf.mzmine.methods.MethodParameters;
 import net.sf.mzmine.methods.alignment.AlignmentResult;
 import net.sf.mzmine.userinterface.mainwindow.MainWindow;
 import net.sf.mzmine.userinterface.mainwindow.Statusbar;
+import net.sf.mzmine.taskcontrol.Task;
+import net.sf.mzmine.taskcontrol.TaskController;
+import net.sf.mzmine.taskcontrol.TaskListener;
+import net.sf.mzmine.util.Logger;
 
 
-public class SavitzkyGolayFilter implements Method {
+public class SavitzkyGolayFilter implements Method, TaskListener {
 
-	private Hashtable<Integer, Integer> Hvalues;
-	private Hashtable<Integer, int[]> Avalues;
 
 	public String getMethodDescription() {
 		return new String("Savitzky Golay filter");
@@ -55,7 +58,6 @@ public class SavitzkyGolayFilter implements Method {
 		}
 
 		// Show dialog
-
 		MainWindow mainWin = MainWindow.getInstance();
 
 		String s = (String)JOptionPane.showInputDialog(
@@ -66,13 +68,10 @@ public class SavitzkyGolayFilter implements Method {
 						null,
 						possibilities,
 						new Integer(currentParameters.numberOfDataPoints).toString());
-
-
 		if (s==null) { return false; }
 
 		try {
 			currentParameters.numberOfDataPoints = Integer.parseInt(s);
-
 		} catch (NumberFormatException exe) {
 			return false;
 		}
@@ -81,114 +80,50 @@ public class SavitzkyGolayFilter implements Method {
 
 	}
 
-	public void runMethod(MethodParameters parameters, RawDataFile[] rawDataFiles, AlignmentResult[] alignmentResults) {
-	}
+    /**
+     * Runs this method on a given project
+     * @param project
+     * @param parameters
+     */
+    public void runMethod(MethodParameters parameters, RawDataFile[] rawDataFiles, AlignmentResult[] alignmentResults) {
 
+		Task filterTask;
+		SavitzkyGolayFilterParameters sgfParam = (SavitzkyGolayFilterParameters)parameters;
 
-/*
-	public int doFiltering(RawDataFile rawData, FilterParameters _filterParameters) {
-
-		// Get parameters
-		SavitzkyGolayFilterParameters filterParameters = (SavitzkyGolayFilterParameters)_filterParameters;
-
-		// Initialize AH values
-		initializeAHValues();
-
-		int numberOfDatapoints = rawData.getNumberOfDatapoints();
-		int maxScan = rawData.getNumberOfScans();
-
-		int ret = rawData.initializeForWriting(numberOfDatapoints, maxScan);
-		if (ret != 1) { return ret; }
-
-
-		int[] aVals = Avalues.get(new Integer(filterParameters.numberOfDataPoints));
-		int h = Hvalues.get(new Integer(filterParameters.numberOfDataPoints)).intValue();
-
-		rawData.initializeScanBrowser(0, maxScan);
-
-		for (int scani=0; scani<maxScan; scani++) {
-			//nodeServer.updateJobCompletionRate((double)scani/(double)(maxScan-1));
-
-			Scan sc = rawData.getNextScan();
-			processOneScan(sc, filterParameters.numberOfDataPoints, h, aVals);
-
-			ret = rawData.setScan(sc);
-
-			if (ret != 1) {
-				rawData.finalizeScanBrowser();
-				rawData.finalizeAfterWriting();
-				return ret;
-			}
-
+		for (RawDataFile rawDataFile: rawDataFiles) {
+			filterTask = new SavitzkyGolayFilterTask(rawDataFile, sgfParam);
+			TaskController.getInstance().addTask(filterTask, this);
 		}
 
-		rawData.finalizeScanBrowser();
-		return rawData.finalizeAfterWriting();
 	}
 
-*/
-
-	private void processOneScan(Scan sc, int numOfDataPoints, int h, int[] aVals) {
-
-		int marginSize = (numOfDataPoints+1)/2-1;
-		double sumOfInts;
-
-		double[] masses = sc.getMZValues();
-		double[] intensities = sc.getIntensityValues();
-		double[] newIntensities = new double[masses.length];
-
-		int addi=0;
-		for (int spectrumInd=marginSize; spectrumInd<(masses.length-marginSize); spectrumInd++) {
-
-			sumOfInts = aVals[0] * intensities[spectrumInd];
-
-			for (int windowInd=1; windowInd<=marginSize; windowInd++) {
-				sumOfInts += aVals[windowInd] * (intensities[spectrumInd+windowInd] +intensities[spectrumInd-windowInd] );
-			}
-
-			sumOfInts = sumOfInts / h;
-
-			if (sumOfInts<0) { sumOfInts = 0; }
-			newIntensities[spectrumInd] = sumOfInts;
-
-		}
-		//sc.setIntensityValues(newIntensities);
-
+    public void taskStarted(Task task) {
+		// do nothing
 	}
 
-	/**
-	 * Initialize Avalues and Hvalues
-	 * These are actually constants, but it is difficult to define them as static final
-	 */
-	private void initializeAHValues() {
-		Avalues = new Hashtable<Integer, int[]>();
-		Hvalues = new Hashtable<Integer, Integer>();
+    public void taskFinished(Task task) {
 
-		int[] a5Ints =  {  17,  12,  -3,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0}; Avalues.put(new Integer(5), a5Ints);
-		int[] a7Ints =  {   7,   6,   3,  -2,   0,   0,   0,   0,   0,   0,   0,   0,   0}; Avalues.put(new Integer(7), a7Ints);
-		int[] a9Ints =  {  59,  54,  39,  14, -21,   0,   0,   0,   0,   0,   0,   0,   0}; Avalues.put(new Integer(9), a9Ints);
-		int[] a11Ints = {  89,  84,  69,  44,   9, -36,   0,   0,   0,   0,   0,   0,   0}; Avalues.put(new Integer(11), a11Ints);
-		int[] a13Ints = {  25,  24,  21,  16,   9,   0, -11,   0,   0,   0,   0,   0,   0}; Avalues.put(new Integer(13), a13Ints);
-		int[] a15Ints = { 167, 162, 147, 122,  87,  42, -13, -78,   0,   0,   0,   0,   0}; Avalues.put(new Integer(15), a15Ints);
-		int[] a17Ints = {  43,  42,  39,  34,  27,  18,   7,  -6, -21,   0,   0,   0,   0}; Avalues.put(new Integer(17), a17Ints);
-		int[] a19Ints = { 269, 264, 249, 224, 189, 144,  89,  24, -51,-136,   0,   0,   0}; Avalues.put(new Integer(19), a19Ints);
-		int[] a21Ints = { 329, 324, 309, 284, 249, 204, 149,  84,   9, -76,-171,   0,   0}; Avalues.put(new Integer(21), a21Ints);
-		int[] a23Ints = {  79,  78,  75,  70,  63,  54,  43,  30,  15,  -2, -21, -42,   0}; Avalues.put(new Integer(23), a23Ints);
-		int[] a25Ints = { 467, 462, 447, 422, 387, 343, 287, 222, 147,  62, -33,-138,-253}; Avalues.put(new Integer(25), a25Ints);
+        if (task.getStatus() == Task.TaskStatus.FINISHED) {
 
-		Integer h5Int = new Integer(35); Hvalues.put(new Integer(5), h5Int);
-		Integer h7Int = new Integer(21); Hvalues.put(new Integer(7), h7Int);
-		Integer h9Int = new Integer(231); Hvalues.put(new Integer(9), h9Int);
-		Integer h11Int = new Integer(429); Hvalues.put(new Integer(11), h11Int);
-		Integer h13Int = new Integer(143); Hvalues.put(new Integer(13), h13Int);
-		Integer h15Int = new Integer(1105); Hvalues.put(new Integer(15), h15Int);
-		Integer h17Int = new Integer(323); Hvalues.put(new Integer(17), h17Int);
-		Integer h19Int = new Integer(2261); Hvalues.put(new Integer(19), h19Int);
-		Integer h21Int = new Integer(3059); Hvalues.put(new Integer(21), h21Int);
-		Integer h23Int = new Integer(805); Hvalues.put(new Integer(23), h23Int);
-		Integer h25Int = new Integer(5175); Hvalues.put(new Integer(25), h25Int);
+			RawDataFile oldFile = (RawDataFile)((Object[])task.getResult())[0];
+			RawDataFile newFile = (RawDataFile)((Object[])task.getResult())[1];
+			SavitzkyGolayFilterParameters sgfParam = (SavitzkyGolayFilterParameters)((Object[])task.getResult())[2];
+
+			// Add mean filtering to the history of the file
+			newFile.addHistory(oldFile.getCurrentFile(), this, sgfParam.clone());
+
+			// Update MZmineProject about replacement of oldFile by newFile
+			MZmineProject.getCurrentProject().updateFile(oldFile, newFile);
+
+        } else if (task.getStatus() == Task.TaskStatus.ERROR) {
+            /* Task encountered an error */
+            Logger.putFatal("Error while filtering a file: " + task.getErrorMessage());
+            MainWindow.getInstance().displayErrorMessage(
+                    "Error while filtering a file: " + task.getErrorMessage());
+
+        }
+
 	}
-
 
 }
 
