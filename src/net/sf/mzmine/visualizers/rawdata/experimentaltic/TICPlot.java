@@ -190,7 +190,7 @@ class TICPlot extends ChartPanel {
         // when displaying more than one dataset, add a legend, too
         if (visualizer.getRawDataFiles().length == 1) {
             chart.removeLegend();
-        } else {
+        } else if (visualizer.getRawDataFiles().length == 2) {
             chart.addLegend(legend);
         }
     }
