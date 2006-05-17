@@ -282,7 +282,6 @@ public class OptionsWindow extends javax.swing.JInternalFrame {
 	 */
     private void btnOKActionPerformed(java.awt.event.ActionEvent evt) {
         setSettingsFromForm();
-        mainWin.getParameterStorage().setGeneralParameters(paramSettings);
 		dispose(); //setVisible(false);
 		mainWin.getDesktop().remove(this);
 		mainWin.repaint();
@@ -295,7 +294,6 @@ public class OptionsWindow extends javax.swing.JInternalFrame {
 	 */
     private void btnApplyActionPerformed(java.awt.event.ActionEvent evt) {
 		setSettingsFromForm();
-		mainWin.getParameterStorage().setGeneralParameters(paramSettings);
 		mainWin.repaint();
 
     }

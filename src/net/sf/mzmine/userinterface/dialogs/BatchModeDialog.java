@@ -678,19 +678,17 @@ public class BatchModeDialog extends javax.swing.JInternalFrame implements Actio
 				case 0:
 					break;
 				case 1:
-					paramPicker1 = new RecursiveThresholdPicker().askParameters(mainWin, mainWin.getParameterStorage().getRecursiveThresholdPickerParameters());
-					if (paramPicker1==null) { paramPicker1 = mainWin.getParameterStorage().getRecursiveThresholdPickerParameters(); }
-					else { mainWin.getParameterStorage().setRecursiveThresholdPickerParameters((RecursiveThresholdPickerParameters)paramPicker1); }
+					paramPicker1 = mainWin.getParameterStorage().getRecursiveThresholdPickerParameters();
+					//TODO: uncomment all these after methods implement Method
+					//new RecursiveThresholdPicker().askParameters(paramPicker1);
 					break;
 				case 2:
-					paramPicker1 = new LocalPicker().askParameters(mainWin, mainWin.getParameterStorage().getLocalPickerParameters());
-					if (paramPicker1==null) { paramPicker1 = mainWin.getParameterStorage().getLocalPickerParameters(); }
-					else { mainWin.getParameterStorage().setLocalPickerParameters((LocalPickerParameters)paramPicker1); }
+					paramPicker1 = mainWin.getParameterStorage().getLocalPickerParameters();
+					//new LocalPicker().askParameters(paramPicker1);
 					break;
 				case 3:
-					paramPicker1 = new CentroidPicker().askParameters(mainWin, mainWin.getParameterStorage().getCentroidPickerParameters());
-					if (paramPicker1==null) { paramPicker1 = mainWin.getParameterStorage().getCentroidPickerParameters(); }
-					else { mainWin.getParameterStorage().setCentroidPickerParameters((CentroidPickerParameters)paramPicker1); }
+					paramPicker1 = mainWin.getParameterStorage().getCentroidPickerParameters();
+					//new CentroidPicker().askParameters(paramPicker1);
 					break;
 			}
 			toFront();
@@ -703,9 +701,8 @@ public class BatchModeDialog extends javax.swing.JInternalFrame implements Actio
 				case 0:
 					break;
 				case 1:
-					paramPeakListProcessor1 = new SimpleDeisotoper().askParameters(mainWin, mainWin.getParameterStorage().getSimpleDeisotoperParameters());
-					if (paramPeakListProcessor1==null) { paramPeakListProcessor1 = mainWin.getParameterStorage().getSimpleDeisotoperParameters(); }
-					else { mainWin.getParameterStorage().setSimpleDeisotoperParameters((SimpleDeisotoperParameters)paramPeakListProcessor1); }
+					paramPeakListProcessor1 = mainWin.getParameterStorage().getSimpleDeisotoperParameters();
+					//new SimpleDeisotoper().askParameters(mainWin, paramPeakListProcessor1);
 					break;
 					/*
 				case 2:
@@ -715,9 +712,8 @@ public class BatchModeDialog extends javax.swing.JInternalFrame implements Actio
 					break;
 					*/
 				case 2:
-					paramPeakListProcessor1 = new IncompleteIsotopePatternFilter().askParameters(mainWin, mainWin.getParameterStorage().getIncompleteIsotopePatternFilterParameters());
-					if (paramPeakListProcessor1==null) { paramPeakListProcessor1 = mainWin.getParameterStorage().getIncompleteIsotopePatternFilterParameters(); }
-					else { mainWin.getParameterStorage().setIncompleteIsotopePatternFilterParameters((IncompleteIsotopePatternFilterParameters)paramPeakListProcessor1); }
+					paramPeakListProcessor1 = mainWin.getParameterStorage().getIncompleteIsotopePatternFilterParameters();
+					//new IncompleteIsotopePatternFilter().askParameters(mainWin, paramPeakListProcessor1);
 					break;
 			}
 			toFront();
@@ -730,9 +726,8 @@ public class BatchModeDialog extends javax.swing.JInternalFrame implements Actio
 				case 0:
 					break;
 				case 1:
-					paramPeakListProcessor2 = new SimpleDeisotoper().askParameters(mainWin, mainWin.getParameterStorage().getSimpleDeisotoperParameters());
-					if (paramPeakListProcessor2==null) { paramPeakListProcessor2 = mainWin.getParameterStorage().getSimpleDeisotoperParameters(); }
-					else { mainWin.getParameterStorage().setSimpleDeisotoperParameters((SimpleDeisotoperParameters)paramPeakListProcessor2); }
+					paramPeakListProcessor2 = mainWin.getParameterStorage().getSimpleDeisotoperParameters();
+					//new SimpleDeisotoper().askParameters(mainWin, paramPeakListProcessor2);
 					break;
 					/*
 				case 2:
@@ -742,9 +737,8 @@ public class BatchModeDialog extends javax.swing.JInternalFrame implements Actio
 					break;
 					*/
 				case 2:
-					paramPeakListProcessor2 = new IncompleteIsotopePatternFilter().askParameters(mainWin, mainWin.getParameterStorage().getIncompleteIsotopePatternFilterParameters());
-					if (paramPeakListProcessor2==null) { paramPeakListProcessor2 = mainWin.getParameterStorage().getIncompleteIsotopePatternFilterParameters(); }
-					else { mainWin.getParameterStorage().setIncompleteIsotopePatternFilterParameters((IncompleteIsotopePatternFilterParameters)paramPeakListProcessor2); }
+					paramPeakListProcessor2 = mainWin.getParameterStorage().getIncompleteIsotopePatternFilterParameters();
+					//new IncompleteIsotopePatternFilter().askParameters(mainWin, paramPeakListProcessor2);
 					break;
 			}
 			toFront();
@@ -758,14 +752,12 @@ public class BatchModeDialog extends javax.swing.JInternalFrame implements Actio
 				case 0:
 					break;
 				case 1:
-					paramAligner1 = new JoinAligner().askParameters(mainWin, mainWin.getParameterStorage().getJoinAlignerParameters());
-					if (paramAligner1==null) { paramAligner1 = mainWin.getParameterStorage().getJoinAlignerParameters(); }
-					else { mainWin.getParameterStorage().setJoinAlignerParameters((JoinAlignerParameters)paramAligner1); }
+					paramAligner1 = mainWin.getParameterStorage().getJoinAlignerParameters();
+					//new JoinAligner().askParameters(paramAligner1);
 					break;
 				case 2:
-					paramAligner1 = new FastAligner().askParameters(mainWin, mainWin.getParameterStorage().getFastAlignerParameters());
-					if (paramAligner1==null) { paramAligner1 = mainWin.getParameterStorage().getFastAlignerParameters(); }
-					else { mainWin.getParameterStorage().setFastAlignerParameters((FastAlignerParameters)paramAligner1); }
+					paramAligner1 = mainWin.getParameterStorage().getFastAlignerParameters();
+					//new FastAligner().askParameters(paramAligner1);
 					break;
 			}
 			toFront();
@@ -779,9 +771,8 @@ public class BatchModeDialog extends javax.swing.JInternalFrame implements Actio
 				case 0:
 					break;
 				case 1:
-					paramAlignmentFilter1 = new AlignmentResultFilterByGaps().askParameters(mainWin, mainWin.getParameterStorage().getAlignmentResultFilterByGapsParameters());
-					if (paramAlignmentFilter1==null) { paramAlignmentFilter1 = mainWin.getParameterStorage().getAlignmentResultFilterByGapsParameters(); }
-					else { mainWin.getParameterStorage().setAlignmentResultFilterByGapsParameters((AlignmentResultFilterByGapsParameters)paramAlignmentFilter1); }
+					paramAlignmentFilter1 = mainWin.getParameterStorage().getAlignmentResultFilterByGapsParameters();
+					//new AlignmentResultFilterByGaps().askParameters(paramAlignmentFilter1);
 					break;
 			}
 			toFront();
@@ -794,9 +785,8 @@ public class BatchModeDialog extends javax.swing.JInternalFrame implements Actio
 				case 0:
 					break;
 				case 1:
-					paramFiller1 = new SimpleGapFiller().askParameters(mainWin, mainWin.getParameterStorage().getSimpleGapFillerParameters());
-					if (paramFiller1==null) { paramFiller1 = mainWin.getParameterStorage().getSimpleGapFillerParameters(); }
-					else { mainWin.getParameterStorage().setSimpleGapFillerParameters((SimpleGapFillerParameters)paramFiller1); }
+					paramFiller1 = mainWin.getParameterStorage().getSimpleGapFillerParameters();
+					// new SimpleGapFiller().askParameters(paramFiller1);
 					break;
 			}
 			toFront();
@@ -811,11 +801,8 @@ public class BatchModeDialog extends javax.swing.JInternalFrame implements Actio
 					paramNormalizer1 = null;
 					break;
 				case 1:
-					LinearNormalizerParameters tmp = mainWin.getParameterStorage().getLinearNormalizerParameters();
-					paramNormalizer1 = new LinearNormalizer().askParameters(mainWin, mainWin.getParameterStorage().getLinearNormalizerParameters());
-					if (paramNormalizer1==null) { paramNormalizer1 = mainWin.getParameterStorage().getLinearNormalizerParameters(); }
-					else { mainWin.getParameterStorage().setLinearNormalizerParameters((LinearNormalizerParameters)paramNormalizer1); }
-
+					paramNormalizer1 = mainWin.getParameterStorage().getLinearNormalizerParameters();
+					// new LinearNormalizer().askParameters(paramNormalizer1);
 					break;
 			}
 			toFront();
@@ -922,7 +909,6 @@ public class BatchModeDialog extends javax.swing.JInternalFrame implements Actio
 		params.setSelectedFiller1Name((String)(cmbFiller1.getSelectedItem()));
 		params.setSelectedNormalizer1Name((String)(cmbNormalizer1.getSelectedItem()));
 
-		mainWin.getParameterStorage().setBatchModeDialogParameters(params);
 	}
 
 }

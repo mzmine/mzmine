@@ -81,105 +81,85 @@ public class ParameterStorage {
 	// GENERAL PARAMETERS
 	private GeneralParameters generalParameters;
 	public GeneralParameters getGeneralParameters() { return generalParameters; }
-	public void setGeneralParameters(GeneralParameters param) { generalParameters = param; }
 
 	private AlignmentResultExporterParameters  alignmentResultExporterParameters;
 	public AlignmentResultExporterParameters getAlignmentResultExporterParameters() { return alignmentResultExporterParameters; }
-	public void setAlignmentResultExporterParameters(AlignmentResultExporterParameters param) { alignmentResultExporterParameters = param; }
 
 
 	// BATCH MODE PARAMETERES
 	private BatchModeDialogParameters batchModeDialogParameters;
 	public BatchModeDialogParameters getBatchModeDialogParameters() { return batchModeDialogParameters; }
-	public void setBatchModeDialogParameters(BatchModeDialogParameters param) { batchModeDialogParameters = param; }
 
 
 	// FILTER PARAMETERS
 	private MeanFilterParameters meanFilterParameters;
 	public MeanFilterParameters getMeanFilterParameters() { return meanFilterParameters; }
-	public void setMeanFilterParameters(MeanFilterParameters param) { meanFilterParameters = param; }
 
 	private SavitzkyGolayFilterParameters savitzkyGolayFilterParameters;
 	public SavitzkyGolayFilterParameters getSavitzkyGolayFilterParameters() { return savitzkyGolayFilterParameters; }
-	public void setSavitzkyGolayFilterParameters(SavitzkyGolayFilterParameters param) { savitzkyGolayFilterParameters = param; }
 
 	private ChromatographicMedianFilterParameters chromatographicMedianFilterParameters;
 	public ChromatographicMedianFilterParameters getChromatographicMedianFilterParameters() { return chromatographicMedianFilterParameters; }
-	public void setChromatographicMedianFilterParameters(ChromatographicMedianFilterParameters param) { chromatographicMedianFilterParameters = param; }
 
 	private CropFilterParameters cropFilterParameters;
 	public CropFilterParameters getCropFilterParameters() { return cropFilterParameters; }
-	public void setCropFilterParameters(CropFilterParameters param) { cropFilterParameters = param; }
 
 	private ZoomScanFilterParameters zoomScanFilterParameters;
 	public ZoomScanFilterParameters getZoomScanFilterParameters() { return zoomScanFilterParameters; }
-	public void setZoomScanFilterParameters(ZoomScanFilterParameters param) { zoomScanFilterParameters = param; }
 
 
 	// PEAK PICKER PARAMETERS
 	private LocalPickerParameters localPickerParameters;
 	public LocalPickerParameters getLocalPickerParameters() { return localPickerParameters; }
-	public void setLocalPickerParameters(LocalPickerParameters param) { localPickerParameters = param; }
 
 	private RecursiveThresholdPickerParameters recursiveThresholdPickerParameters;
 	public RecursiveThresholdPickerParameters getRecursiveThresholdPickerParameters() { return recursiveThresholdPickerParameters; }
-	public void setRecursiveThresholdPickerParameters(RecursiveThresholdPickerParameters param) { recursiveThresholdPickerParameters = param; }
 
 	private CentroidPickerParameters centroidPickerParameters;
 	public CentroidPickerParameters getCentroidPickerParameters() { return centroidPickerParameters; }
-	public void setCentroidPickerParameters(CentroidPickerParameters param) { centroidPickerParameters = param; }
 
 	private SimpleDeisotoperParameters simpleDeisotoperParameters;
 	public SimpleDeisotoperParameters getSimpleDeisotoperParameters() { return simpleDeisotoperParameters; }
-	public void setSimpleDeisotoperParameters(SimpleDeisotoperParameters param) { simpleDeisotoperParameters = param; }
 
 	private IncompleteIsotopePatternFilterParameters incompleteIsotopePatternFilterParameters;
 	public IncompleteIsotopePatternFilterParameters getIncompleteIsotopePatternFilterParameters() { return incompleteIsotopePatternFilterParameters; }
-	public void setIncompleteIsotopePatternFilterParameters(IncompleteIsotopePatternFilterParameters param) { incompleteIsotopePatternFilterParameters = param; }
 
 	private CombinatorialDeisotoperParameters combinatorialDeisotoperParameters;
 	public CombinatorialDeisotoperParameters getCombinatorialDeisotoperParameters() { return combinatorialDeisotoperParameters; }
-	public void setCombinatorialDeisotoperParameters(CombinatorialDeisotoperParameters param) { combinatorialDeisotoperParameters = param; }
 
 
 	// ALIGNMENT PARAMETERS
 	private JoinAlignerParameters joinAlignerParameters;
 	public JoinAlignerParameters getJoinAlignerParameters() { return joinAlignerParameters; }
-	public void setJoinAlignerParameters(JoinAlignerParameters param) { joinAlignerParameters = param; }
 
 	private FastAlignerParameters fastAlignerParameters;
 	public FastAlignerParameters getFastAlignerParameters() { return fastAlignerParameters; }
-	public void setFastAlignerParameters(FastAlignerParameters param) { fastAlignerParameters = param; }
+
 
 	// ALIGNMENT VISUALIZER PARAMETERS
 	private AlignmentResultVisualizerCDAPlotViewParameters alignmentResultVisualizerCDAPlotViewParameters;
 	public AlignmentResultVisualizerCDAPlotViewParameters getAlignmentResultVisualizerCDAPlotViewParameters() { return alignmentResultVisualizerCDAPlotViewParameters; }
-	public void setAlignmentResultVisualizerCDAPlotViewParameters(AlignmentResultVisualizerCDAPlotViewParameters param) { alignmentResultVisualizerCDAPlotViewParameters = param; }
 
 	private AlignmentResultVisualizerSammonsPlotViewParameters alignmentResultVisualizerSammonsPlotViewParameters;
 	public AlignmentResultVisualizerSammonsPlotViewParameters getAlignmentResultVisualizerSammonsPlotViewParameters() { return alignmentResultVisualizerSammonsPlotViewParameters; }
-	public void setAlignmentResultVisualizerSammonsPlotViewParameters(AlignmentResultVisualizerSammonsPlotViewParameters param) { alignmentResultVisualizerSammonsPlotViewParameters = param; }
+
 
 	// ALIGNMENT PROCESSOR PARAMETERS
 	private AlignmentResultFilterByGapsParameters alignmentResultFilterByGapsParameters;
 	public AlignmentResultFilterByGapsParameters getAlignmentResultFilterByGapsParameters() { return alignmentResultFilterByGapsParameters; }
-	public void setAlignmentResultFilterByGapsParameters(AlignmentResultFilterByGapsParameters param) { alignmentResultFilterByGapsParameters = param; }
 
 
 	// GAP-FILLER PARAMETERS
 	private SimpleGapFillerParameters simpleGapFillerParameters;
 	public SimpleGapFillerParameters getSimpleGapFillerParameters() { return simpleGapFillerParameters; }
-	public void setSimpleGapFillerParameters(SimpleGapFillerParameters param) { simpleGapFillerParameters = param; }
 
 
 	// NORMALIZER PARAMETERS
 	private LinearNormalizerParameters linearNormalizerParameters;
 	public LinearNormalizerParameters getLinearNormalizerParameters() { return linearNormalizerParameters; }
-	public void setLinearNormalizerParameters(LinearNormalizerParameters param) { linearNormalizerParameters = param; }
 
 	private StandardCompoundNormalizerParameters standardCompoundNormalizerParameters;
 	public StandardCompoundNormalizerParameters getStandardCompoundNormalizerParameters() { return standardCompoundNormalizerParameters; }
-	public void setStandardCompoundNormalizerParameters(StandardCompoundNormalizerParameters param) { standardCompoundNormalizerParameters = param; }
 
 
 
