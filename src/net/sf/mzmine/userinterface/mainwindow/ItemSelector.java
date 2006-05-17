@@ -533,7 +533,7 @@ public class ItemSelector extends JPanel implements ListSelectionListener,
     public void internalFrameActivated(InternalFrameEvent e) {
         if (e.getInternalFrame() instanceof RawDataVisualizer) {
             RawDataVisualizer visualizer = (RawDataVisualizer) e.getInternalFrame();
-            setActiveRawData(visualizer.getRawDataFile());
+            // TODO: setActiveRawData(visualizer.getRawDataFile());
         }
     }
 
