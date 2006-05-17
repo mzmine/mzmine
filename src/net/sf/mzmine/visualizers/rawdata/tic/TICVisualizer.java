@@ -32,6 +32,7 @@ import java.awt.image.BufferedImage;
 import java.awt.print.PageFormat;
 import java.awt.print.Printable;
 import java.awt.print.PrinterJob;
+import java.util.Set;
 
 import javax.print.attribute.HashPrintRequestAttributeSet;
 import javax.print.attribute.standard.OrientationRequested;
@@ -561,6 +562,14 @@ public class TICVisualizer extends JInternalFrame implements RawDataVisualizer,
             }
         }
 
+    }
+
+    /**
+     * @see net.sf.mzmine.visualizers.RawDataVisualizer#getRawDataFiles()
+     */
+    public RawDataFile[] getRawDataFiles() {
+        // TODO Auto-generated method stub
+        return null;
     }
 
 }
