@@ -1,156 +1,127 @@
 /*
-    Copyright 2005 VTT Biotechnology
-
-    This file is part of MZmine.
-
-    MZmine is free software; you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
-    the Free Software Foundation; either version 2 of the License, or
-    (at your option) any later version.
-
-    MZmine is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
-
-    You should have received a copy of the GNU General Public License
-    along with MZmine; if not, write to the Free Software
-    Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
-*/
+ * Copyright 2006 The MZmine Development Team
+ *
+ * This file is part of MZmine.
+ *
+ * MZmine is free software; you can redistribute it and/or modify it under the
+ * terms of the GNU General Public License as published by the Free Software
+ * Foundation; either version 2 of the License, or (at your option) any later
+ * version.
+ *
+ * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY
+ * WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR
+ * A PARTICULAR PURPOSE. See the GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License along with
+ * MZmine; if not, write to the Free Software Foundation, Inc., 51 Franklin St,
+ * Fifth Floor, Boston, MA 02110-1301 USA
+ */
 package net.sf.mzmine.methods.filtering.zoomscan;
 import java.text.NumberFormat;
 
 import net.sf.mzmine.interfaces.Scan;
 import net.sf.mzmine.io.RawDataFile;
+import net.sf.mzmine.io.MZmineProject;
 import net.sf.mzmine.methods.Method;
 import net.sf.mzmine.methods.MethodParameters;
 import net.sf.mzmine.methods.alignment.AlignmentResult;
 import net.sf.mzmine.userinterface.dialogs.ParameterSetupDialog;
 import net.sf.mzmine.userinterface.mainwindow.MainWindow;
+import net.sf.mzmine.taskcontrol.Task;
+import net.sf.mzmine.taskcontrol.TaskController;
+import net.sf.mzmine.taskcontrol.TaskListener;
+import net.sf.mzmine.util.Logger;
 
-public class ZoomScanFilter implements Method {
 
-	private final String[] fieldNames = {
-											"Minimum M/Z range width",
-										};
+public class ZoomScanFilter implements Method, TaskListener {
+
 
 	public String getMethodDescription() {
 		return new String("Zoom scan filter");
 	}
 
-	public boolean askParameters(MethodParameters currentValues) {
-/*
-		// Create filter parameter object
-		ZoomScanFilterParameters tmpParameters;
-		if (currentValues == null) {
-			tmpParameters = new ZoomScanFilterParameters();
-		} else {
-			tmpParameters = currentValues;
-		}
+	public boolean askParameters(MethodParameters parameters) {
 
+		ZoomScanFilterParameters currentParameters = (ZoomScanFilterParameters)parameters;
+		if (currentParameters==null) return false;
 
-		// Show parameter setup dialog
+		// Initialize parameter setup dialog
 		double[] paramValues = new double[1];
-		paramValues[0] = tmpParameters.minMZRange;
+		paramValues[0] = currentParameters.minMZRange;
+
+		String[] paramNames = new String[1];
+		paramNames[0] = "Minimum M/Z range width";
 
 		NumberFormat[] numberFormats = new NumberFormat[1];
 		numberFormats[0] = NumberFormat.getNumberInstance(); numberFormats[0].setMinimumFractionDigits(3);
 
+		// Show parameter setup dialog
 		MainWindow mainWin = MainWindow.getInstance();
-
-		ParameterSetupDialog psd = new ParameterSetupDialog(mainWin, "Please check the parameter values", fieldNames, paramValues, numberFormats);
-
+		ParameterSetupDialog psd = new ParameterSetupDialog(mainWin, "Please check the parameter values", paramNames, paramValues, numberFormats);
 		psd.show();
 
 		// Check if user clicked Cancel-button
 		if (psd.getExitCode()==-1) {
-			return null;
+			return false;
 		}
 
-		// Read parameter values
+		// Read parameter values from dialog
 		double d;
 
 		// minMZRange
 		d = psd.getFieldValue(0);
 		if (d<=0) {
 			mainWin.displayErrorMessage("Incorrect minimum M/Z range width!");
-			return null;
+			return false;
 		}
-		tmpParameters.minMZRange = d;
+		currentParameters.minMZRange = d;
 
-		return tmpParameters;
-*/
-		return false;
+		return true;
 	}
 
-	public void runMethod(MethodParameters parameters, RawDataFile[] rawDataFiles, AlignmentResult[] alignmentResults) {
+    /**
+     * Runs this method on a given project
+     * @param project
+     * @param parameters
+     */
+    public void runMethod(MethodParameters parameters, RawDataFile[] rawDataFiles, AlignmentResult[] alignmentResults) {
+
+		Task filterTask;
+		ZoomScanFilterParameters zsfParam = (ZoomScanFilterParameters)parameters;
+
+		for (RawDataFile rawDataFile: rawDataFiles) {
+			filterTask = new ZoomScanFilterTask(rawDataFile, zsfParam);
+			TaskController.getInstance().addTask(filterTask, this);
+		}
 	}
 
-/*
-	public int doFiltering(RawDataFile rawData, FilterParameters _filterParameters) {
+    public void taskStarted(Task task) {
+		// do nothing
+	}
 
-		ZoomScanFilterParameters filterParameters = (ZoomScanFilterParameters)_filterParameters;
+    public void taskFinished(Task task) {
 
-		int outputNumberOfScans = -1;
-		int outputNumberOfDatapoints = -1;
+        if (task.getStatus() == Task.TaskStatus.FINISHED) {
 
-		// Check if file type is NetCDF
-		if (rawData.checkFileType()==RawDataFile.FILETYPE_NETCDF) {
-			// Then we must count number of scans in the result file before filtering
-			double[] mzMins = rawData.netdf_getScanMZRangeMins();
-			double[] mzMaxs = rawData.netdf_getScanMZRangeMaxs();
-			outputNumberOfScans=0;
-			for (int ind=0; ind<mzMins.length; ind++) {
-				if ((mzMaxs[ind]-mzMins[ind])>=filterParameters.minMZRange) { outputNumberOfScans++; }
-			}
-		}
+			RawDataFile oldFile = (RawDataFile)((Object[])task.getResult())[0];
+			RawDataFile newFile = (RawDataFile)((Object[])task.getResult())[1];
+			ZoomScanFilterParameters zsfParam = (ZoomScanFilterParameters)((Object[])task.getResult())[2];
 
-		if (outputNumberOfScans==0) {
-			return -1;
-		}
+			// Add mean filtering to the history of the file
+			newFile.addHistory(oldFile.getCurrentFile(), this, zsfParam.clone());
 
-		// Prepare for filtering input data and writing output data
+			// Update MZmineProject about replacement of oldFile by newFile
+			MZmineProject.getCurrentProject().updateFile(oldFile, newFile);
 
-		int ret = rawData.initializeForWriting(outputNumberOfDatapoints, outputNumberOfScans);
-		if (ret != 1) { return ret; }
+        } else if (task.getStatus() == Task.TaskStatus.ERROR) {
+            /* Task encountered an error */
+            Logger.putFatal("Error while filtering a file: " + task.getErrorMessage());
+            MainWindow.getInstance().displayErrorMessage(
+                    "Error while filtering a file: " + task.getErrorMessage());
 
-		int maxScan = rawData.getNumberOfScans();
-		rawData.initializeScanBrowser(0, maxScan-1);
-
-
-		// Loop through all scans
-
-		for (int scani=0; scani<maxScan; scani++) {
-
-			//nodeServer.updateJobCompletionRate((double)scani/(double)(maxScan-1));
-
-			Scan sc = rawData.getNextScan();
-
-			// Check if mz range is wide enough
-			double mzMin = sc.getMZRangeMin();
-			double mzMax = sc.getMZRangeMax();
-			if ( (mzMax-mzMin)<filterParameters.minMZRange) { continue; }
-
-
-			// Store scan
-			ret = rawData.setScan(sc);
-
-			if (ret != 1) {
-				rawData.finalizeScanBrowser();
-				rawData.finalizeAfterWriting();
-				return ret;
-			}
-
-		}
-
-		rawData.finalizeScanBrowser();
-
-		ret = rawData.finalizeAfterWriting();
-
-		return ret;
-        return 0;
+        }
 
 	}
-*/
+
 
 }
