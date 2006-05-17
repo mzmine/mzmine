@@ -67,6 +67,10 @@ public class MZmineProject {
         MainWindow.getInstance().getItemSelector().replaceRawData(oldFile, newFile);
         // TODO: notify visualizers?
     }
+    
+    public RawDataFile[] getRawDataFiles() {
+        return projectFiles.toArray(new RawDataFile[0]);
+    }
 
 
 
