@@ -5,6 +5,7 @@ package net.sf.mzmine.visualizers.rawdata.tic;
 
 import java.awt.BasicStroke;
 import java.awt.Color;
+import java.awt.Shape;
 import java.awt.event.ActionEvent;
 import java.awt.event.MouseEvent;
 import java.awt.geom.Ellipse2D;
@@ -12,15 +13,11 @@ import java.text.DateFormat;
 import java.text.DecimalFormat;
 import java.text.NumberFormat;
 import java.text.SimpleDateFormat;
-import java.util.Enumeration;
 
 import javax.swing.AbstractAction;
 import javax.swing.JMenuItem;
 import javax.swing.JPopupMenu;
 import javax.swing.KeyStroke;
-
-import net.sf.mzmine.userinterface.mainwindow.MainWindow;
-import net.sf.mzmine.visualizers.rawdata.spectra.SpectrumVisualizer;
 
 import org.jfree.chart.ChartFactory;
 import org.jfree.chart.ChartPanel;
@@ -28,7 +25,6 @@ import org.jfree.chart.JFreeChart;
 import org.jfree.chart.axis.DateAxis;
 import org.jfree.chart.axis.NumberAxis;
 import org.jfree.chart.event.ChartProgressEvent;
-import org.jfree.chart.labels.XYItemLabelGenerator;
 import org.jfree.chart.plot.XYPlot;
 import org.jfree.chart.renderer.xy.XYLineAndShapeRenderer;
 import org.jfree.chart.title.LegendTitle;
@@ -43,21 +39,42 @@ class TICPlot extends ChartPanel {
 
     private XYPlot plot;
 
-    private DateFormat rtFormat; // TODO
-    private NumberFormat intensityFormat;
+    // TODO: get these from parameter storage
+    private static DateFormat rtFormat = new SimpleDateFormat("m:ss");
+    private static NumberFormat intensityFormat = new DecimalFormat("0.00E0");
 
     private TICVisualizer visualizer;
 
     private int numberOfDataSets = 0;
 
+    // plot colors for plotted files, circulated by numberOfDataSets
     private static Color[] plotColors = { new Color(0, 0, 192), // blue
             new Color(192, 0, 0), // red
             new Color(0, 192, 0), // green
             Color.magenta, Color.cyan, Color.orange };
+    
+    //  crosshair (selection) color
+    private static Color crossHairColor = Color.gray; 
+    
+    // crosshair stroke
+    private static BasicStroke crossHairStroke = new BasicStroke(1, BasicStroke.CAP_BUTT,
+            BasicStroke.JOIN_BEVEL, 1.0f, new float[] { 5, 3 }, 0);
 
+    // data points shape
+    private static Shape dataPointsShape = new Ellipse2D.Float(-2, -2, 5, 5);
+    
     private LegendTitle legend;
 
     XYLineAndShapeRenderer defaultRenderer;
+
+    /**
+     * Indicates whether we have a request to show spectra visualizer for
+     * selected data point. Since the selection (crosshair) is updated with some
+     * delay after clicking with mouse, we cannot open the new visualizer
+     * immediately. Therefore we place a request and open the visualizer later
+     * in chartProgress()
+     */
+    private boolean showSpectrumRequest = false;
 
     /**
      * @param chart
@@ -68,63 +85,73 @@ class TICPlot extends ChartPanel {
 
         this.visualizer = visualizer;
 
+        // initialize the chart by default time series chart from factory
         chart = ChartFactory.createTimeSeriesChart(null, // title
                 "Retention time", // x-axis label
                 "Intensity", // y-axis label
-                null, // data
+                null, // no data yet
                 true, // create legend?
                 true, // generate tooltips?
                 false // generate URLs?
                 );
-
         chart.setBackgroundPaint(Color.white);
         setChart(chart);
+        
+        // disable maximum size (we don't want scaling)
+        setMaximumDrawWidth(Integer.MAX_VALUE);
+        setMaximumDrawHeight(Integer.MAX_VALUE);
 
         // the legend was constructed by ChartFactory, we can save it for later
         legend = chart.getLegend();
         chart.removeLegend();
 
+        // set the plot properties
         plot = chart.getXYPlot();
         plot.setBackgroundPaint(Color.white);
+        plot.setAxisOffset(new RectangleInsets(5.0, 5.0, 5.0, 5.0));
+        
+        // set grid properties
         plot.setDomainGridlinePaint(Color.lightGray);
         plot.setRangeGridlinePaint(Color.lightGray);
-        plot.setAxisOffset(new RectangleInsets(5.0, 5.0, 5.0, 5.0));
-
-        rtFormat = new SimpleDateFormat("m:ss");
-        intensityFormat = new DecimalFormat("0.00E0");
-
+        
+        // set crosshair (selection) properties
+        plot.setDomainCrosshairVisible(true);
+        plot.setRangeCrosshairVisible(true);
+        plot.setDomainCrosshairPaint(crossHairColor);
+        plot.setRangeCrosshairPaint(crossHairColor);
+        plot.setDomainCrosshairStroke(crossHairStroke);
+        plot.setRangeCrosshairStroke(crossHairStroke);
+        
+        // set the X axis (retention time) properties
         DateAxis xAxis = (DateAxis) plot.getDomainAxis();
         xAxis.setDateFormatOverride(rtFormat);
         xAxis.setUpperMargin(0.001);
         xAxis.setLowerMargin(0.001);
-        plot.setDomainAxis(xAxis);
 
+        // set the Y axis (intensity) properties
         NumberAxis yAxis = (NumberAxis) plot.getRangeAxis();
         yAxis.setNumberFormatOverride(intensityFormat);
 
-        plot.setDomainCrosshairVisible(true);
-        plot.setRangeCrosshairVisible(true);
-        plot.setDomainCrosshairPaint(Color.darkGray);
-        plot.setRangeCrosshairPaint(Color.darkGray);
-        BasicStroke crossHairStroke = new BasicStroke(1, BasicStroke.CAP_BUTT,
-                BasicStroke.JOIN_BEVEL, 1.0f, new float[] { 3, 5 }, 0);
-        plot.setDomainCrosshairStroke(crossHairStroke);
-        plot.setRangeCrosshairStroke(crossHairStroke);
-
+        // set default renderer properties
         defaultRenderer = (XYLineAndShapeRenderer) plot.getRenderer();
-        defaultRenderer.setPaint(Color.blue);
         defaultRenderer.setShapesFilled(true);
         defaultRenderer.setDrawOutlines(false);
         defaultRenderer.setUseFillPaint(true);
-        defaultRenderer.setShape(new Ellipse2D.Float(-2, -2, 5, 5));
+        defaultRenderer.setShape(dataPointsShape);
 
-        XYItemLabelGenerator labelGenerator = new TICItemLabelGenerator(this);
+        // set label generator
+        TICItemLabelGenerator labelGenerator = new TICItemLabelGenerator(this);
         defaultRenderer.setItemLabelGenerator(labelGenerator);
         defaultRenderer.setItemLabelsVisible(true);
 
-        // to receive key events
+        // set toolTipGenerator
+        TICToolTipGenerator toolTipGenerator = new TICToolTipGenerator();
+        defaultRenderer.setToolTipGenerator(toolTipGenerator);
+
+        // set focusable state to receive key events
         setFocusable(true);
 
+        // register key event for right arrow key
         getInputMap().put(KeyStroke.getKeyStroke("RIGHT"), "moveCursorRight");
         getActionMap().put("moveCursorRight", new AbstractAction() {
 
@@ -151,6 +178,8 @@ class TICPlot extends ChartPanel {
 
             }
         });
+
+        // register key event for left arrow key
         getInputMap().put(KeyStroke.getKeyStroke("LEFT"), "moveCursorLeft");
         getActionMap().put("moveCursorLeft", new AbstractAction() {
 
@@ -177,9 +206,8 @@ class TICPlot extends ChartPanel {
             }
         });
 
-        setMaximumDrawWidth(Integer.MAX_VALUE);
-        setMaximumDrawHeight(Integer.MAX_VALUE);
 
+        // add items to popup menu
         JMenuItem showSpectrumMenuItem, changeTicXicModeMenuItem, annotationsMenuItem, dataPointsMenuItem;
 
         annotationsMenuItem = new JMenuItem("Toggle showing peak values");
@@ -190,7 +218,7 @@ class TICPlot extends ChartPanel {
         dataPointsMenuItem.addActionListener(visualizer);
         dataPointsMenuItem.setActionCommand("SHOW_DATA_POINTS");
 
-        showSpectrumMenuItem = new JMenuItem("Show spectrum for selected point");
+        showSpectrumMenuItem = new JMenuItem("Show spectrum of selected scan");
         showSpectrumMenuItem.addActionListener(visualizer);
         showSpectrumMenuItem.setActionCommand("SHOW_SPECTRUM");
 
@@ -215,37 +243,33 @@ class TICPlot extends ChartPanel {
      * @see java.awt.event.MouseListener#mouseClicked(java.awt.event.MouseEvent)
      */
     public void mouseClicked(MouseEvent event) {
+
+        // let the parent handle the event (selection etc.)
         super.mouseClicked(event);
 
+        // request focus to receive key events
         requestFocus();
 
+        // if user double-clicked left button, place a request to open a spectrum
         if ((event.getButton() == MouseEvent.BUTTON1)
                 && (event.getClickCount() == 2)) {
-
-            double selectedRT = plot.getDomainCrosshairValue();
-            double selectedIT = plot.getRangeCrosshairValue();
-            for (int i = 0; i < numberOfDataSets; i++) {
-                RawDataFileDataSet dataSet = (RawDataFileDataSet) plot
-                        .getDataset(i);
-
-                int index = dataSet.getSeriesIndex(selectedRT, selectedIT);
-                if (index >= 0) {
-                    int scanNumber = dataSet.getScanNumber(index);
-                    SpectrumVisualizer specVis = new SpectrumVisualizer(dataSet
-                            .getRawDataFile(), scanNumber);
-                    MainWindow.getInstance().addInternalFrame(specVis);
-                    break;
-                }
-            }
-
+            showSpectrumRequest = true;
         }
 
     }
 
+    /**
+     * @see org.jfree.chart.event.ChartProgressListener#chartProgress(org.jfree.chart.event.ChartProgressEvent)
+     */
     public void chartProgress(ChartProgressEvent event) {
         super.chartProgress(event);
-        if (event.getType() == ChartProgressEvent.DRAWING_FINISHED)
+        if (event.getType() == ChartProgressEvent.DRAWING_FINISHED) {
             visualizer.updateTitle();
+            if (showSpectrumRequest) {
+                showSpectrumRequest = false;
+                visualizer.showSpectrum();
+            }
+        }
     }
 
     void switchItemLabelsVisible() {

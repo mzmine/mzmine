@@ -46,7 +46,6 @@ class TICToolBar extends JToolBar {
         super(JToolBar.VERTICAL);
 
         setFloatable(false);
-        setFocusable(false);
         setMargin(new Insets(5, 5, 5, 5));
         setBackground(Color.white);
 
@@ -57,12 +56,12 @@ class TICToolBar extends JToolBar {
 
         ticXicButton = new JButton(xicIcon);
         ticXicButton.setActionCommand("CHANGE_XIC_TIC");
-        ticXicButton.setToolTipText("Change XIC/TIC mode");
+        ticXicButton.setToolTipText("Change TIC/XIC mode");
         ticXicButton.addActionListener(masterFrame);
 
         dataPointsButton = new JButton(dataPointsIcon);
         dataPointsButton.setActionCommand("SHOW_DATA_POINTS");
-        dataPointsButton.setToolTipText("Toggle data points display");
+        dataPointsButton.setToolTipText("Toggle displaying of data points");
         dataPointsButton.addActionListener(masterFrame);
 
         annotationsButton = new JButton(annotationsIcon);

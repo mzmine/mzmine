@@ -43,7 +43,7 @@ import net.sf.mzmine.visualizers.RawDataVisualizer;
 import net.sf.mzmine.visualizers.rawdata.spectra.SpectrumVisualizer;
 
 /**
- * This class defines the total ion chromatogram visualizer for raw data
+ * This class defines a total ion chromatogram visualizer for raw data
  */
 public class TICVisualizer extends JInternalFrame implements RawDataVisualizer,
         TaskListener, ActionListener {
@@ -56,6 +56,10 @@ public class TICVisualizer extends JInternalFrame implements RawDataVisualizer,
     private int msLevel;
 
     private boolean xicMode = false;
+
+    // TODO: get these from parameter storage
+    private static DateFormat rtFormat = new SimpleDateFormat("m:ss");
+    private static NumberFormat intensityFormat = new DecimalFormat("0.00E0");
 
     /**
      * Constructor for total ion chromatogram visualizer
@@ -113,22 +117,12 @@ public class TICVisualizer extends JInternalFrame implements RawDataVisualizer,
     }
 
     /**
-     * @see net.sf.mzmine.taskcontrol.TaskListener#taskFinished(net.sf.mzmine.taskcontrol.Task)
+     * @see net.sf.mzmine.visualizers.RawDataVisualizer#getRawDataFiles()
      */
-    public void taskFinished(Task task) {
-        if (task.getStatus() == TaskStatus.ERROR) {
-            MainWindow.getInstance().displayErrorMessage(
-                    "Error while updating TIC visualizer: "
-                            + task.getErrorMessage());
-        }
-
+    public RawDataFile[] getRawDataFiles() {
+        return rawDataFiles.keySet().toArray(new RawDataFile[0]);
     }
-
-    public void taskStarted(Task task) {
-        // if we have not added this frame before, do it now
-        if (getParent() == null)
-            MainWindow.getInstance().addInternalFrame(this);
-    }
+ 
 
     void addRawDataFile(RawDataFile newFile) {
         RawDataFileDataSet dataset = new RawDataFileDataSet(newFile, msLevel,
@@ -162,8 +156,6 @@ public class TICVisualizer extends JInternalFrame implements RawDataVisualizer,
     }
 
     void updateTitle() {
-        DateFormat rtFormat = new SimpleDateFormat("m:ss"); // TODO
-        NumberFormat intensityFormat = new DecimalFormat("0.00E0");
 
         String TICXIC = xicMode ? "XIC" : "TIC";
         String scan = "", selectedValue = "";
@@ -195,7 +187,45 @@ public class TICVisualizer extends JInternalFrame implements RawDataVisualizer,
         titleLabel.setText(newLabel);
 
     }
+    
+    void showSpectrum() {
+        double selectedRT = ticPlot.getPlot().getDomainCrosshairValue();
+        double selectedIT = ticPlot.getPlot().getRangeCrosshairValue();
+        Enumeration<RawDataFileDataSet> e = rawDataFiles.elements();
+        while (e.hasMoreElements()) {
+            RawDataFileDataSet dataSet = e.nextElement();
+            int index = dataSet.getSeriesIndex(selectedRT, selectedIT);
+            if (index >= 0) {
+                int scanNumber = dataSet.getScanNumber(index);
+                SpectrumVisualizer specVis = new SpectrumVisualizer(dataSet
+                        .getRawDataFile(), scanNumber);
+                MainWindow.getInstance().addInternalFrame(specVis);
+                return;
+            }
+        }
+    }
 
+    /**
+     * @see net.sf.mzmine.taskcontrol.TaskListener#taskFinished(net.sf.mzmine.taskcontrol.Task)
+     */
+    public void taskFinished(Task task) {
+        if (task.getStatus() == TaskStatus.ERROR) {
+            MainWindow.getInstance().displayErrorMessage(
+                    "Error while updating TIC visualizer: "
+                            + task.getErrorMessage());
+        }
+
+    }
+
+    /**
+     * @see net.sf.mzmine.taskcontrol.TaskListener#taskStarted(net.sf.mzmine.taskcontrol.Task)
+     */
+    public void taskStarted(Task task) {
+        // if we have not added this frame before, do it now
+        if (getParent() == null)
+            MainWindow.getInstance().addInternalFrame(this);
+    }
+    
     /**
      * @see java.awt.event.ActionListener#actionPerformed(java.awt.event.ActionEvent)
      */
@@ -205,31 +235,14 @@ public class TICVisualizer extends JInternalFrame implements RawDataVisualizer,
 
         if (command.equals("SHOW_DATA_POINTS")) {
             ticPlot.switchDataPointsVisible();
-
         }
 
         if (command.equals("SHOW_ANNOTATIONS")) {
             ticPlot.switchItemLabelsVisible();
-
         }
 
         if (command.equals("SHOW_SPECTRUM")) {
-
-            double selectedRT = ticPlot.getPlot().getDomainCrosshairValue();
-            double selectedIT = ticPlot.getPlot().getRangeCrosshairValue();
-            Enumeration<RawDataFileDataSet> e = rawDataFiles.elements();
-            while (e.hasMoreElements()) {
-                RawDataFileDataSet dataSet = e.nextElement();
-                int index = dataSet.getSeriesIndex(selectedRT, selectedIT);
-                if (index >= 0) {
-                    int scanNumber = dataSet.getScanNumber(index);
-                    SpectrumVisualizer specVis = new SpectrumVisualizer(dataSet
-                            .getRawDataFile(), scanNumber);
-                    MainWindow.getInstance().addInternalFrame(specVis);
-                    return;
-                }
-            }
-
+            showSpectrum();
         }
 
         if (command.equals("CHANGE_XIC_TIC")) {
@@ -291,11 +304,5 @@ public class TICVisualizer extends JInternalFrame implements RawDataVisualizer,
 
     }
 
-    /**
-     * @see net.sf.mzmine.visualizers.RawDataVisualizer#getRawDataFiles()
-     */
-    public RawDataFile[] getRawDataFiles() {
-        return rawDataFiles.keySet().toArray(new RawDataFile[0]);
-    }
 
 }
