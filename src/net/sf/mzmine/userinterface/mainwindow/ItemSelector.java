@@ -147,12 +147,7 @@ public class ItemSelector extends JPanel implements ListSelectionListener,
                 showTIC.setActionCommand("TIC" + msLevel);
                 popupMenu.add(showTIC);
             }
-            for (int msLevel : msLevels) {
-                JMenuItem showTIC = new JMenuItem("Show experimental (JFreeChart) TIC of MS level " + msLevel);
-                showTIC.addActionListener(this);
-                showTIC.setActionCommand("EXP" + msLevel);
-                popupMenu.add(showTIC);
-            }
+  
             for (int msLevel : msLevels) {
                 JMenuItem showBP = new JMenuItem("Show base peak intensity of MS level " + msLevel);
                 showBP.addActionListener(this);
@@ -191,15 +186,7 @@ public class ItemSelector extends JPanel implements ListSelectionListener,
             MainWindow.getInstance().getMainMenu().updateMenuAvailability();
 
         }
-        if (command.startsWith("EXP")) {
-            RawDataFile[] selectedFiles = getSelectedRawData();
-            int msLevel = Integer.parseInt(command.substring(3));
-            for (RawDataFile file : selectedFiles) {
 
-                new net.sf.mzmine.visualizers.rawdata.experimentaltic.TICVisualizer(file, msLevel);
-
-            }
-        }
         if (command.startsWith("TIC")) {
             RawDataFile[] selectedFiles = getSelectedRawData();
             int msLevel = Integer.parseInt(command.substring(3));

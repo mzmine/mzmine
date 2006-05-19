@@ -58,7 +58,6 @@ import net.sf.mzmine.visualizers.alignmentresult.AlignmentResultVisualizerSammon
 import net.sf.mzmine.visualizers.rawdata.spectra.SpectrumVisualizer;
 import net.sf.mzmine.visualizers.rawdata.tic.TICVisualizer;
 import net.sf.mzmine.visualizers.rawdata.twod.TwoDVisualizer;
-
 import sunutils.ExampleFileFilter;
 
 /**
