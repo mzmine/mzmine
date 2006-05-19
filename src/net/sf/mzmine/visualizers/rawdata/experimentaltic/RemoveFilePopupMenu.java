@@ -54,16 +54,12 @@ class RemoveFilePopupMenu extends JMenu implements MenuListener, ActionListener 
      * @see javax.swing.event.MenuListener#menuDeselected(javax.swing.event.MenuEvent)
      */
     public void menuDeselected(MenuEvent arg0) {
-        // TODO Auto-generated method stub
-        
     }
 
     /**
      * @see javax.swing.event.MenuListener#menuCanceled(javax.swing.event.MenuEvent)
      */
     public void menuCanceled(MenuEvent arg0) {
-        // TODO Auto-generated method stub
-        
     }
 
     /**

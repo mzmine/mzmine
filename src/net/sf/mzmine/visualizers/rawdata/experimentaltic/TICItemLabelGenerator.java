@@ -34,13 +34,13 @@ class TICItemLabelGenerator implements XYItemLabelGenerator {
                 / plot.getWidth();
 
         for (int i = item - 1; i > 1; i--) {
-            if (dataset.getXValue(series, i) < (originalX - 40 * pointX))
+            if (dataset.getXValue(series, i) < (originalX - 50 * pointX))
                 break;
             if (dataset.getYValue(series, item) < dataset.getYValue(series, i))
                 return null;
         }
         for (int i = item + 1; i < dataset.getItemCount(series); i++) {
-            if (dataset.getXValue(series, i) > (originalX + 40 * pointX))
+            if (dataset.getXValue(series, i) > (originalX + 50 * pointX))
                 break;
             if (dataset.getYValue(series, item) < dataset.getYValue(series, i))
                 return null;

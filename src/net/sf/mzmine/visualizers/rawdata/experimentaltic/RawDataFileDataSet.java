@@ -48,6 +48,17 @@ class RawDataFileDataSet extends DefaultTableXYDataset  {
         
     }
     
+    int getSeriesIndex(double retentionTime, double intensity) {
+        int seriesIndex = series.indexOf(retentionTime);
+        if (seriesIndex < 0) return -1;
+        if (series.getY(seriesIndex).equals(intensity)) return seriesIndex;
+        return -1;
+    }
+    
+    int getScanNumber(int index) {
+        return scanNumbers[index];
+    }
+    
     RawDataFile getRawDataFile() {
         return rawDataFile;
     }

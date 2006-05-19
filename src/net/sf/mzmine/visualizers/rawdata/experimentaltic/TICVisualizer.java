@@ -27,8 +27,8 @@ import java.text.DateFormat;
 import java.text.DecimalFormat;
 import java.text.NumberFormat;
 import java.text.SimpleDateFormat;
+import java.util.Enumeration;
 import java.util.Hashtable;
-import java.util.Set;
 
 import javax.swing.BorderFactory;
 import javax.swing.JInternalFrame;
@@ -40,6 +40,7 @@ import net.sf.mzmine.taskcontrol.TaskListener;
 import net.sf.mzmine.taskcontrol.Task.TaskStatus;
 import net.sf.mzmine.userinterface.mainwindow.MainWindow;
 import net.sf.mzmine.visualizers.RawDataVisualizer;
+import net.sf.mzmine.visualizers.rawdata.spectra.SpectrumVisualizer;
 
 /**
  * This class defines the total ion chromatogram visualizer for raw data
@@ -77,15 +78,14 @@ public class TICVisualizer extends JInternalFrame implements RawDataVisualizer,
 
         ticPlot = new TICPlot(this);
         add(ticPlot, BorderLayout.CENTER);
-        
+
         this.msLevel = msLevel;
-        this.rawDataFiles = new Hashtable<RawDataFile,RawDataFileDataSet>();
+        this.rawDataFiles = new Hashtable<RawDataFile, RawDataFileDataSet>();
         addRawDataFile(rawDataFile);
 
         pack();
 
     }
-
 
     /**
      * @see net.sf.mzmine.visualizers.RawDataVisualizer#setMZRange(double,
@@ -128,48 +128,69 @@ public class TICVisualizer extends JInternalFrame implements RawDataVisualizer,
         if (getParent() == null)
             MainWindow.getInstance().addInternalFrame(this);
     }
-    
+
     void addRawDataFile(RawDataFile newFile) {
-        RawDataFileDataSet dataset = new RawDataFileDataSet(newFile, msLevel, this);
+        RawDataFileDataSet dataset = new RawDataFileDataSet(newFile, msLevel,
+                this);
         rawDataFiles.put(newFile, dataset);
         ticPlot.addDataset(dataset);
         if (rawDataFiles.size() == 1) {
-            setRTRange(newFile.getDataMinRT() * 1000, newFile.getDataMaxRT() * 1000);
-            setIntensityRange(0, newFile.getDataMaxTotalIonCurrent(msLevel) * 1.05);
+            setRTRange(newFile.getDataMinRT() * 1000,
+                    newFile.getDataMaxRT() * 1000);
+            setIntensityRange(0,
+                    newFile.getDataMaxTotalIonCurrent(msLevel) * 1.05);
         }
+       
+        // when displaying more than one file, show a legend
+        if (rawDataFiles.size() > 1) {
+            ticPlot.showLegend(true);
+        }
+            
     }
-    
+
     void removeRawDataFile(RawDataFile file) {
         RawDataFileDataSet dataset = rawDataFiles.get(file);
         ticPlot.getPlot().setDataset(ticPlot.getPlot().indexOf(dataset), null);
         rawDataFiles.remove(file);
+        
+        // when displaying less than two files, hide a legend
+        if (rawDataFiles.size() < 2) {
+            ticPlot.showLegend(false);
+        }
+
     }
-    
 
     void updateTitle() {
         DateFormat rtFormat = new SimpleDateFormat("m:ss"); // TODO
         NumberFormat intensityFormat = new DecimalFormat("0.00E0");
 
         String TICXIC = xicMode ? "XIC" : "TIC";
-        String scan = "";
-        setTitle(rawDataFiles.keySet().toString() + " " + TICXIC + " MS " + msLevel);
+        String scan = "", selectedValue = "";
+        setTitle(TICXIC + " " + rawDataFiles.keySet().toString() + " MS"
+                + msLevel);
 
-        /*for (int i = 0; i < ticPlot.getDataset().getItemCount(); i++) {
-            double val = ticPlot.getDataset().getXValue(0, i);
-            if (val == ticPlot.getPlot().getDomainCrosshairValue()) {
-                scan = ", scan #"
-                        + scanNumbers[i]
-                        + ", RT: "
-                        + rtFormat.format(ticPlot.getPlot()
-                                .getDomainCrosshairValue())
-                        + ", IC: "
-                        + intensityFormat.format(ticPlot.getDataset()
-                                .getYValue(0, i));
+        double selectedRT = ticPlot.getPlot().getDomainCrosshairValue();
+        double selectedIT = ticPlot.getPlot().getRangeCrosshairValue();
+
+        if (selectedIT > 0) {
+            selectedValue = ", RT: " + rtFormat.format(selectedRT) + ", IC: "
+                    + intensityFormat.format(selectedIT);
+        }
+        Enumeration<RawDataFileDataSet> e = rawDataFiles.elements();
+        while (e.hasMoreElements()) {
+            RawDataFileDataSet dataSet = e.nextElement();
+            int index = dataSet.getSeriesIndex(selectedRT, selectedIT);
+            if (index >= 0) {
+                int scanNumber = dataSet.getScanNumber(index);
+                scan = ", scan #" + scanNumber;
+                if (rawDataFiles.size() > 1) scan += " (" + dataSet.getRawDataFile() + ")";
                 break;
             }
         }
-        */
-        titleLabel.setText(rawDataFiles.keySet().toString() + TICXIC + " MS " + msLevel + scan);
+
+        String newLabel = TICXIC + " " + rawDataFiles.keySet().toString()
+                + " MS" + msLevel + scan + selectedValue;
+        titleLabel.setText(newLabel);
 
     }
 
@@ -181,27 +202,31 @@ public class TICVisualizer extends JInternalFrame implements RawDataVisualizer,
         String command = event.getActionCommand();
 
         if (command.equals("SHOW_DATA_POINTS")) {
-//            ticPlot.getRenderer().setBaseShapesVisible(
-                    //!ticPlot.getRenderer().getBaseShapesVisible());
+            ticPlot.switchDataPointsVisible();
+
         }
 
         if (command.equals("SHOW_ANNOTATIONS")) {
-//            ticPlot.getRenderer().setItemLabelsVisible(
-                    ///!ticPlot.getRenderer().isSeriesItemLabelsVisible(0));
+            ticPlot.switchItemLabelsVisible();
+
         }
 
         if (command.equals("SHOW_SPECTRUM")) {
 
-/*            for (int i = 0; i < ticPlot.getSeries().getItemCount(); i++) {
-                double val = ticPlot.getDataset().getXValue(0, i);
-                if (val == ticPlot.getPlot().getDomainCrosshairValue()) {
-                    SpectrumVisualizer specVis = new SpectrumVisualizer(
-                            rawDataFile, scanNumbers[i]);
+            double selectedRT = ticPlot.getPlot().getDomainCrosshairValue();
+            double selectedIT = ticPlot.getPlot().getRangeCrosshairValue();
+            Enumeration<RawDataFileDataSet> e = rawDataFiles.elements();
+            while (e.hasMoreElements()) {
+                RawDataFileDataSet dataSet = e.nextElement();
+                int index = dataSet.getSeriesIndex(selectedRT, selectedIT);
+                if (index >= 0) {
+                    int scanNumber = dataSet.getScanNumber(index);
+                    SpectrumVisualizer specVis = new SpectrumVisualizer(dataSet
+                            .getRawDataFile(), scanNumber);
                     MainWindow.getInstance().addInternalFrame(specVis);
                     return;
                 }
             }
-            */
 
         }
 
@@ -212,17 +237,16 @@ public class TICVisualizer extends JInternalFrame implements RawDataVisualizer,
                 toolBar.setXicButton(true);
 
                 updateTitle();
-/*                Task updateTask = new TICDataRetrievalTask(rawDataFile,
-                        scanNumbers, ticPlot.getSeries());
                 /*
-                 * if the file data is preloaded in memory, we can update the
-                 * visualizer in this thread, otherwise start a task
-                 
-                if (rawDataFile.getPreloadLevel() == PreloadLevel.PRELOAD_ALL_SCANS)
-                    updateTask.run();
-                else
-                    TaskController.getInstance().addTask(updateTask, this);
-*/
+                 * Task updateTask = new TICDataRetrievalTask(rawDataFile,
+                 * scanNumbers, ticPlot.getSeries()); /* if the file data is
+                 * preloaded in memory, we can update the visualizer in this
+                 * thread, otherwise start a task
+                 * 
+                 * if (rawDataFile.getPreloadLevel() ==
+                 * PreloadLevel.PRELOAD_ALL_SCANS) updateTask.run(); else
+                 * TaskController.getInstance().addTask(updateTask, this);
+                 */
             } else {
 
                 // Default range is cursor location +- 0.25
@@ -260,26 +284,23 @@ public class TICVisualizer extends JInternalFrame implements RawDataVisualizer,
                 toolBar.setXicButton(false);
 
                 updateTitle();
-/*                Task updateTask = new TICDataRetrievalTask(rawDataFile,
-                        scanNumbers, ticPlot.getSeries(), ricMZ - ricMZDelta,
-                        ricMZ + ricMZDelta);
                 /*
-                 * if the file data is preloaded in memory, we can update the
-                 * visualizer in this thread, otherwise start a task
+                 * Task updateTask = new TICDataRetrievalTask(rawDataFile,
+                 * scanNumbers, ticPlot.getSeries(), ricMZ - ricMZDelta, ricMZ +
+                 * ricMZDelta); /* if the file data is preloaded in memory, we
+                 * can update the visualizer in this thread, otherwise start a
+                 * task
                  */
-                /*if (rawDataFile.getPreloadLevel() == PreloadLevel.PRELOAD_ALL_SCANS) {
-                    taskStarted(updateTask);
-                    updateTask.run();
-                    taskFinished(updateTask);
-                } else
-                    TaskController.getInstance().addTask(updateTask, this);
-*/
+                /*
+                 * if (rawDataFile.getPreloadLevel() ==
+                 * PreloadLevel.PRELOAD_ALL_SCANS) { taskStarted(updateTask);
+                 * updateTask.run(); taskFinished(updateTask); } else
+                 * TaskController.getInstance().addTask(updateTask, this);
+                 */
             }
         }
 
     }
-
-
 
     /**
      * @see net.sf.mzmine.visualizers.RawDataVisualizer#getRawDataFiles()

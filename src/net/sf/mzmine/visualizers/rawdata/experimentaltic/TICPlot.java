@@ -5,11 +5,16 @@ package net.sf.mzmine.visualizers.rawdata.experimentaltic;
 
 import java.awt.BasicStroke;
 import java.awt.Color;
+import java.awt.event.ActionEvent;
 import java.awt.event.MouseEvent;
 import java.text.DateFormat;
 import java.text.DecimalFormat;
 import java.text.NumberFormat;
 import java.text.SimpleDateFormat;
+import java.util.Enumeration;
+
+import javax.swing.AbstractAction;
+import javax.swing.KeyStroke;
 
 import org.jfree.chart.ChartFactory;
 import org.jfree.chart.ChartPanel;
@@ -22,6 +27,8 @@ import org.jfree.chart.plot.XYPlot;
 import org.jfree.chart.renderer.xy.XYLineAndShapeRenderer;
 import org.jfree.chart.title.LegendTitle;
 import org.jfree.ui.RectangleInsets;
+
+import com.sun.org.apache.xerces.internal.impl.dv.dtd.NMTOKENDatatypeValidator;
 
 /**
  * 
@@ -65,7 +72,9 @@ class TICPlot extends ChartPanel {
         chart.setBackgroundPaint(Color.white);
         setChart(chart);
 
+        // the legend was constructed by ChartFactory, we can save it for later
         legend = chart.getLegend();
+        chart.removeLegend();
 
         plot = chart.getXYPlot();
         plot.setBackgroundPaint(Color.white);
@@ -109,26 +118,59 @@ class TICPlot extends ChartPanel {
 
         // to receive key events
         setFocusable(true);
-        /*
-         * getInputMap().put(KeyStroke.getKeyStroke("RIGHT"),
-         * "moveCursorRight"); getActionMap().put("moveCursorRight", new
-         * AbstractAction() {
-         * 
-         * public void actionPerformed(ActionEvent e) { int i; for (i = 0; i <
-         * series.getItemCount(); i++) { double val = dataset.getXValue(0, i);
-         * if (val == plot.getDomainCrosshairValue()) break; } if (i <
-         * series.getItemCount() - 1) { i++;
-         * plot.setDomainCrosshairValue(dataset.getXValue(0, i));
-         * visualizer.updateTitle(); } } });
-         * getInputMap().put(KeyStroke.getKeyStroke("LEFT"), "moveCursorLeft");
-         * getActionMap().put("moveCursorLeft", new AbstractAction() {
-         * 
-         * public void actionPerformed(ActionEvent e) { int i; for (i = 0; i <
-         * series.getItemCount(); i++) { double val = dataset.getXValue(0, i);
-         * if (val == plot.getDomainCrosshairValue()) break; } if (i > 0) { i--;
-         * plot.setDomainCrosshairValue(dataset.getXValue(0, i));
-         * visualizer.updateTitle(); } } });
-         */
+
+        getInputMap().put(KeyStroke.getKeyStroke("RIGHT"), "moveCursorRight");
+        getActionMap().put("moveCursorRight", new AbstractAction() {
+
+            public void actionPerformed(ActionEvent e) {
+                double selectedRT = plot.getDomainCrosshairValue();
+                double selectedIT = plot.getRangeCrosshairValue();
+                for (int i = 0; i < numberOfDataSets; i++) {
+                    RawDataFileDataSet dataSet = (RawDataFileDataSet) plot
+                            .getDataset(i);
+                    if (dataSet == null)
+                        continue;
+                    int index = dataSet.getSeriesIndex(selectedRT, selectedIT);
+                    if (index >= 0) {
+                        index++;
+                        if (index < dataSet.getItemCount(0)) {
+                            plot.setDomainCrosshairValue(dataSet.getXValue(0,
+                                    index));
+                            plot.setRangeCrosshairValue(dataSet.getYValue(0,
+                                    index));
+                        }
+                        break;
+                    }
+                }
+
+            }
+        });
+        getInputMap().put(KeyStroke.getKeyStroke("LEFT"), "moveCursorLeft");
+        getActionMap().put("moveCursorLeft", new AbstractAction() {
+
+            public void actionPerformed(ActionEvent e) {
+                double selectedRT = plot.getDomainCrosshairValue();
+                double selectedIT = plot.getRangeCrosshairValue();
+                for (int i = 0; i < numberOfDataSets; i++) {
+                    RawDataFileDataSet dataSet = (RawDataFileDataSet) plot
+                            .getDataset(i);
+                    if (dataSet == null)
+                        continue;
+                    int index = dataSet.getSeriesIndex(selectedRT, selectedIT);
+                    if (index >= 0) {
+                        index--;
+                        if (index > 0) {
+                            plot.setDomainCrosshairValue(dataSet.getXValue(0,
+                                    index));
+                            plot.setRangeCrosshairValue(dataSet.getYValue(0,
+                                    index));
+                        }
+                        break;
+                    }
+                }
+            }
+        });
+
         setMaximumDrawWidth(Integer.MAX_VALUE);
         setMaximumDrawHeight(Integer.MAX_VALUE);
 
@@ -166,6 +208,33 @@ class TICPlot extends ChartPanel {
             visualizer.updateTitle();
     }
 
+    void switchItemLabelsVisible() {
+
+        XYLineAndShapeRenderer renderer = (XYLineAndShapeRenderer) plot
+                .getRenderer();
+        ;
+        boolean itemLabelsVisible = renderer.isSeriesItemLabelsVisible(0);
+        for (int i = 0; i < numberOfDataSets; i++) {
+            renderer = (XYLineAndShapeRenderer) plot.getRenderer(i);
+            if (renderer != null) {
+                renderer.setItemLabelsVisible(!itemLabelsVisible);
+            }
+        }
+    }
+
+    void switchDataPointsVisible() {
+
+        XYLineAndShapeRenderer renderer = (XYLineAndShapeRenderer) plot
+                .getRenderer();
+        boolean dataPointsVisible = renderer.getBaseShapesVisible();
+        for (int i = 0; i < numberOfDataSets; i++) {
+            renderer = (XYLineAndShapeRenderer) plot.getRenderer(i);
+            if (renderer != null) {
+                renderer.setBaseShapesVisible(!dataPointsVisible);
+            }
+        }
+    }
+
     XYPlot getPlot() {
         return plot;
     }
@@ -187,10 +256,11 @@ class TICPlot extends ChartPanel {
 
         numberOfDataSets++;
 
-        // when displaying more than one dataset, add a legend, too
-        if (visualizer.getRawDataFiles().length == 1) {
-            chart.removeLegend();
-        } else if (visualizer.getRawDataFiles().length == 2) {
+    }
+
+    void showLegend(boolean show) {
+        chart.removeLegend();
+        if (show) {
             chart.addLegend(legend);
         }
     }
