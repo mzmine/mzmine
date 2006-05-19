@@ -259,45 +259,15 @@ public class TICVisualizer extends JInternalFrame implements RawDataVisualizer,
 
             } else {
 
-                // Default range is cursor location +- 0.25
-                double ricMZ = 0;
-                double ricMZDelta = (double) 0.25;
+                RawDataFileDataSet[] dataSets = rawDataFiles.values().toArray(new RawDataFileDataSet[0]);
 
                 // Show dialog
-                XICSetupDialog psd = new XICSetupDialog(
-                        "Please give centroid and delta MZ values for XIC",
-                        ricMZ, ricMZDelta);
+                XICSetupDialog psd = new XICSetupDialog(dataSets);
+                
                 psd.setVisible(true);
-                // if cancel was clicked
-                if (psd.getExitCode() == -1) {
-                    MainWindow.getInstance().getStatusBar().setStatusText(
-                            "Switch to XIC cancelled.");
-                    return;
-                }
 
-                // Validate given parameter values
-                ricMZ = psd.getXicMZ();
-                if (ricMZ < 0) {
-                    MainWindow.getInstance().getStatusBar().setStatusText(
-                            "Error: incorrect parameter values.");
-                    return;
-                }
-
-                ricMZDelta = psd.getXicMZDelta();
-                if (ricMZDelta < 0) {
-                    MainWindow.getInstance().getStatusBar().setStatusText(
-                            "Error: incorrect parameter values.");
-                    return;
-                }
-
-                xicMode = true;
-                toolBar.setXicButton(false);
-
-                Enumeration<RawDataFileDataSet> e = rawDataFiles.elements();
-                while (e.hasMoreElements()) {
-                    RawDataFileDataSet dataSet = e.nextElement();
-                    dataSet.setXICMode(ricMZ - ricMZDelta, ricMZ + ricMZDelta);
-                }
+                xicMode = psd.getXICSet();
+                toolBar.setXicButton(! xicMode);
 
             }
         }
