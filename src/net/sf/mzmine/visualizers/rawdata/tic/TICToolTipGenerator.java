@@ -25,7 +25,7 @@ class TICToolTipGenerator implements XYToolTipGenerator {
      *      int, int)
      */
     public String generateToolTip(XYDataset dataset, int series, int item) {
-        double rtValue = dataset.getYValue(series, item);
+        double rtValue = dataset.getXValue(series, item);
         double intValue = dataset.getYValue(series, item);
         return "Retention time: " + rtFormat.format(rtValue) + ", IC: "
                 + intensityFormat.format(intValue);
