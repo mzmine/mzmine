@@ -23,7 +23,6 @@
 package net.sf.mzmine.io.netcdf;
 
 import java.io.File;
-import java.util.Hashtable;
 
 import net.sf.mzmine.io.RawDataFile.PreloadLevel;
 import net.sf.mzmine.taskcontrol.DistributableTask;
@@ -90,13 +89,6 @@ public class NetCDFFileOpeningTask implements DistributableTask {
      */
     public Object getResult() {
         return buildingFile;
-    }
-
-    /**
-     * @see net.sf.mzmine.taskcontrol.Task#getPriority()
-     */
-    public TaskPriority getPriority() {
-        return TaskPriority.NORMAL;
     }
 
     /**

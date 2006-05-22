@@ -29,8 +29,6 @@ import javax.xml.parsers.SAXParserFactory;
 
 import net.sf.mzmine.io.RawDataFile.PreloadLevel;
 import net.sf.mzmine.taskcontrol.DistributableTask;
-import net.sf.mzmine.taskcontrol.Task.TaskPriority;
-import net.sf.mzmine.taskcontrol.Task.TaskStatus;
 import net.sf.mzmine.util.Logger;
 
 import org.xml.sax.Attributes;
@@ -101,13 +99,6 @@ public class MZXMLFileOpeningTask extends DefaultHandler implements
      */
     public Object getResult() {
         return buildingFile;
-    }
-
-    /**
-     * @see net.sf.mzmine.taskcontrol.Task#getPriority()
-     */
-    public TaskPriority getPriority() {
-        return TaskPriority.NORMAL;
     }
 
     /**

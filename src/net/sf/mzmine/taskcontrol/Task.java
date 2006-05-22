@@ -59,6 +59,4 @@ public interface Task extends Runnable {
      */
     public void cancel();
 
-    public TaskPriority getPriority();
-
 }

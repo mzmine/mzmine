@@ -69,18 +69,6 @@ class WorkerThread extends Thread {
                 }
             }
 
-            switch (currentTask.getPriority()) {
-            case HIGH:
-                setPriority(MAX_PRIORITY);
-                break;
-            case LOW:
-                setPriority(MIN_PRIORITY);
-                break;
-            default:
-                setPriority(NORM_PRIORITY);
-                break;
-            }
-
 
             try {
                 currentTask.run();
