@@ -20,7 +20,7 @@
 /**
  * 
  */
-package net.sf.mzmine.visualizers.rawdata.tic;
+package net.sf.mzmine.visualizers.rawdata.basepeak;
 
 import java.awt.BasicStroke;
 import java.awt.Color;
@@ -52,7 +52,7 @@ import org.jfree.ui.RectangleInsets;
 /**
  * 
  */
-class TICPlot extends ChartPanel {
+class BasePeakPlot extends ChartPanel {
 
     private JFreeChart chart;
 
@@ -62,7 +62,7 @@ class TICPlot extends ChartPanel {
     private static DateFormat rtFormat = new SimpleDateFormat("m:ss");
     private static NumberFormat intensityFormat = new DecimalFormat("0.00E0");
 
-    private TICVisualizer visualizer;
+    private BasePeakVisualizer visualizer;
 
     private int numberOfDataSets = 0;
 
@@ -98,7 +98,7 @@ class TICPlot extends ChartPanel {
     /**
      * @param chart
      */
-    TICPlot(final TICVisualizer visualizer) {
+    BasePeakPlot(final BasePeakVisualizer visualizer) {
         // superconstructor with no chart yet, but enable off-screen buffering
         super(null, true);
 
@@ -107,7 +107,7 @@ class TICPlot extends ChartPanel {
         // initialize the chart by default time series chart from factory
         chart = ChartFactory.createTimeSeriesChart(null, // title
                 "Retention time", // x-axis label
-                "Total ion intensity", // y-axis label
+                "Base peak intensity", // y-axis label
                 null, // no data yet
                 true, // create legend?
                 true, // generate tooltips?
@@ -159,12 +159,12 @@ class TICPlot extends ChartPanel {
         defaultRenderer.setShape(dataPointsShape);
 
         // set label generator
-        TICItemLabelGenerator labelGenerator = new TICItemLabelGenerator(this);
+        BasePeakItemLabelGenerator labelGenerator = new BasePeakItemLabelGenerator(this);
         defaultRenderer.setItemLabelGenerator(labelGenerator);
         defaultRenderer.setItemLabelsVisible(true);
 
         // set toolTipGenerator
-        TICToolTipGenerator toolTipGenerator = new TICToolTipGenerator();
+        BasePeakToolTipGenerator toolTipGenerator = new BasePeakToolTipGenerator();
         defaultRenderer.setToolTipGenerator(toolTipGenerator);
 
         // set focusable state to receive key events
@@ -178,7 +178,7 @@ class TICPlot extends ChartPanel {
                 double selectedRT = plot.getDomainCrosshairValue();
                 double selectedIT = plot.getRangeCrosshairValue();
                 for (int i = 0; i < numberOfDataSets; i++) {
-                    TICDataSet dataSet = (TICDataSet) plot
+                    BasePeakDataSet dataSet = (BasePeakDataSet) plot
                             .getDataset(i);
                     if (dataSet == null)
                         continue;
@@ -206,7 +206,7 @@ class TICPlot extends ChartPanel {
                 double selectedRT = plot.getDomainCrosshairValue();
                 double selectedIT = plot.getRangeCrosshairValue();
                 for (int i = 0; i < numberOfDataSets; i++) {
-                    TICDataSet dataSet = (TICDataSet) plot
+                    BasePeakDataSet dataSet = (BasePeakDataSet) plot
                             .getDataset(i);
                     if (dataSet == null)
                         continue;
@@ -227,7 +227,7 @@ class TICPlot extends ChartPanel {
 
 
         // add items to popup menu
-        JMenuItem showSpectrumMenuItem, changeTicXicModeMenuItem, annotationsMenuItem, dataPointsMenuItem;
+        JMenuItem showSpectrumMenuItem, annotationsMenuItem, dataPointsMenuItem;
 
         annotationsMenuItem = new JMenuItem("Toggle showing peak values");
         annotationsMenuItem.addActionListener(visualizer);
@@ -241,10 +241,6 @@ class TICPlot extends ChartPanel {
         showSpectrumMenuItem.addActionListener(visualizer);
         showSpectrumMenuItem.setActionCommand("SHOW_SPECTRUM");
 
-        changeTicXicModeMenuItem = new JMenuItem("Switch TIC/XIC mode");
-        changeTicXicModeMenuItem.addActionListener(visualizer);
-        changeTicXicModeMenuItem.setActionCommand("CHANGE_XIC_TIC");
-
         JPopupMenu popupMenu = getPopupMenu();
         popupMenu.addSeparator();
         popupMenu.add(new AddFilePopupMenu(visualizer));
@@ -253,8 +249,6 @@ class TICPlot extends ChartPanel {
         popupMenu.add(annotationsMenuItem);
         popupMenu.add(dataPointsMenuItem);
         popupMenu.addSeparator();
-        popupMenu.add(showSpectrumMenuItem);
-        popupMenu.add(changeTicXicModeMenuItem);
 
     }
 
@@ -321,7 +315,7 @@ class TICPlot extends ChartPanel {
         return plot;
     }
 
-    synchronized void addDataset(TICDataSet newSet) {
+    synchronized void addDataset(BasePeakDataSet newSet) {
 
         plot.setDataset(numberOfDataSets, newSet);
 

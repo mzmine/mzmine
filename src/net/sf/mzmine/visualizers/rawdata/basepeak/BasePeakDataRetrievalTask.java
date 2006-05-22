@@ -17,7 +17,7 @@
  * Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-package net.sf.mzmine.visualizers.rawdata.tic;
+package net.sf.mzmine.visualizers.rawdata.basepeak;
 
 import java.io.IOException;
 
@@ -30,47 +30,27 @@ import org.jfree.data.xy.XYSeries;
 /**
  * 
  */
-public class TICDataRetrievalTask implements Task {
+public class BasePeakDataRetrievalTask implements Task {
 
     private RawDataFile rawDataFile;
-    private TICDataSet dataset;
+    private BasePeakDataSet dataset;
     private int scanNumbers[];
     private int retrievedScans = 0;
     private TaskStatus status;
     private String errorMessage;
-    private boolean xicMode = false;
-    private double mzRangeMin, mzRangeMax;
-
+  
     /**
      * constructor for TIC
      * @param rawDataFile
      * @param scanNumbers
      * @param visualizer
      */
-    TICDataRetrievalTask(RawDataFile rawDataFile, int scanNumbers[],
-            TICDataSet dataset) {
+    BasePeakDataRetrievalTask(RawDataFile rawDataFile, int scanNumbers[],
+            BasePeakDataSet dataset) {
         status = TaskStatus.WAITING;
         this.rawDataFile = rawDataFile;
         this.dataset = dataset;
         this.scanNumbers = scanNumbers;
-    }
-
-    /**
-     * constructor for XIC
-     * @param rawDataFile
-     * @param scanNumbers
-     * @param visualizer
-     * @param mzRangeMin
-     * @param mzRangeMax
-     */
-    TICDataRetrievalTask(RawDataFile rawDataFile, int scanNumbers[],
-            TICDataSet dataset, double mzRangeMin, double mzRangeMax) {
-        this.rawDataFile = rawDataFile;
-        this.dataset = dataset;
-        this.scanNumbers = scanNumbers;
-        xicMode = true;
-        this.mzRangeMin = mzRangeMin;
-        this.mzRangeMax = mzRangeMax;
     }
 
     /**
@@ -123,7 +103,7 @@ public class TICDataRetrievalTask implements Task {
 
         status = TaskStatus.PROCESSING;
         Scan scan;
-        double intensityValues[], mzValues[] = null, totalIntensity;
+        double basePeakIntensity, basePeakMZ;
         XYSeries series = dataset.getSeries(0);
         
         for (int i = 0; i < scanNumbers.length; i++) {
@@ -133,14 +113,12 @@ public class TICDataRetrievalTask implements Task {
 
             try {
                 scan = rawDataFile.getScan(scanNumbers[i]);
-                totalIntensity = 0;
-                intensityValues = scan.getIntensityValues();
-                if (xicMode) mzValues = scan.getMZValues();
-                for (int j = 0; j < intensityValues.length; j++) {
-                    if ((!xicMode) || ((mzValues[j] >= mzRangeMin) && (mzValues[j] <= mzRangeMax)))
-                        totalIntensity += intensityValues[j];
-                }
-                series.addOrUpdate(scan.getRetentionTime() * 1000, totalIntensity);
+                basePeakMZ = scan.getBasePeakMZ();
+                basePeakIntensity = scan.getBasePeakIntensity();
+                
+                series.addOrUpdate(scan.getRetentionTime() * 1000, basePeakIntensity);
+                dataset.setMZValue(series.getItemCount() - 1, basePeakMZ);
+                
             } catch (IOException e) {
                 status = TaskStatus.ERROR;
                 errorMessage = e.toString();

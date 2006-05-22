@@ -20,7 +20,7 @@
 /**
  * 
  */
-package net.sf.mzmine.visualizers.rawdata.tic;
+package net.sf.mzmine.visualizers.rawdata.basepeak;
 
 import java.text.DateFormat;
 import java.text.DecimalFormat;
@@ -33,11 +33,12 @@ import org.jfree.data.xy.XYDataset;
 /**
  * 
  */
-class TICToolTipGenerator implements XYToolTipGenerator {
+class BasePeakToolTipGenerator implements XYToolTipGenerator {
 
     // TODO: get these from parameter storage
     private static DateFormat rtFormat = new SimpleDateFormat("m:ss");
     private static NumberFormat intensityFormat = new DecimalFormat("0.00E0");
+    private static NumberFormat mzFormat = new DecimalFormat("0.00");
 
     /**
      * @see org.jfree.chart.labels.XYToolTipGenerator#generateToolTip(org.jfree.data.xy.XYDataset,
@@ -46,7 +47,8 @@ class TICToolTipGenerator implements XYToolTipGenerator {
     public String generateToolTip(XYDataset dataset, int series, int item) {
         double rtValue = dataset.getXValue(series, item);
         double intValue = dataset.getYValue(series, item);
-        return "Retention time: " + rtFormat.format(rtValue) + ", TIC: "
+        double mzValue = ((BasePeakDataSet) dataset).getMZValue(item);
+        return "Retention time: " + rtFormat.format(rtValue) + ", base peak m/z: " + mzFormat.format(mzValue) + ", base peak intensity: "
                 + intensityFormat.format(intValue);
     }
 

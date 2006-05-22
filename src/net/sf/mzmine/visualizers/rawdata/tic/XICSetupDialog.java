@@ -41,12 +41,12 @@ class XICSetupDialog extends JDialog implements ActionListener {
 
     private boolean XICSet = false;
 
-    private RawDataFileDataSet[] dataSets;
+    private TICDataSet[] dataSets;
 
     /**
      * Constructor
      */
-    public XICSetupDialog(RawDataFileDataSet[] dataSets) {
+    public XICSetupDialog(TICDataSet[] dataSets) {
 
         super(MainWindow.getInstance(),
                 "Please give centroid and delta MZ values for XIC", true);
@@ -111,7 +111,7 @@ class XICSetupDialog extends JDialog implements ActionListener {
 
                 XICSet = true;
                 
-                for (RawDataFileDataSet dataSet : dataSets) {
+                for (TICDataSet dataSet : dataSets) {
                     dataSet.setXICMode(mz - mzDelta, mz + mzDelta);
                 }
 

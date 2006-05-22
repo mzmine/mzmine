@@ -17,7 +17,7 @@
  * Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-package net.sf.mzmine.visualizers.rawdata.tic;
+package net.sf.mzmine.visualizers.rawdata.basepeak;
 
 import java.awt.BorderLayout;
 import java.awt.Color;
@@ -43,19 +43,17 @@ import net.sf.mzmine.visualizers.RawDataVisualizer;
 import net.sf.mzmine.visualizers.rawdata.spectra.SpectrumVisualizer;
 
 /**
- * This class defines a total ion chromatogram visualizer for raw data
+ * This class defines a base peak intensity visualizer for raw data
  */
-public class TICVisualizer extends JInternalFrame implements RawDataVisualizer,
+public class BasePeakVisualizer extends JInternalFrame implements RawDataVisualizer,
         TaskListener, ActionListener {
 
-    private TICToolBar toolBar;
-    private TICPlot ticPlot;
+    private BasePeakToolBar toolBar;
+    private BasePeakPlot basePeakPlot;
     private JLabel titleLabel;
 
-    private Hashtable<RawDataFile, TICDataSet> rawDataFiles;
+    private Hashtable<RawDataFile, BasePeakDataSet> rawDataFiles;
     private int msLevel;
-
-    private boolean xicMode = false;
 
     // TODO: get these from parameter storage
     private static DateFormat rtFormat = new SimpleDateFormat("m:ss");
@@ -65,26 +63,26 @@ public class TICVisualizer extends JInternalFrame implements RawDataVisualizer,
      * Constructor for total ion chromatogram visualizer
      * 
      */
-    public TICVisualizer(RawDataFile rawDataFile, int msLevel) {
+    public BasePeakVisualizer(RawDataFile rawDataFile, int msLevel) {
 
-        super(rawDataFile.toString() + " TIC", true, true, true, true);
+        super(rawDataFile.toString() + " base peak intensity", true, true, true, true);
 
         setDefaultCloseOperation(DISPOSE_ON_CLOSE);
         setBackground(Color.white);
 
-        titleLabel = new JLabel(rawDataFile.toString() + " TIC", JLabel.CENTER);
+        titleLabel = new JLabel(rawDataFile.toString() + " base peak intensity", JLabel.CENTER);
         titleLabel.setBorder(BorderFactory.createEmptyBorder(5, 5, 5, 5));
         titleLabel.setFont(titleLabel.getFont().deriveFont(11.0f));
         add(titleLabel, BorderLayout.NORTH);
 
-        toolBar = new TICToolBar(this);
+        toolBar = new BasePeakToolBar(this);
         add(toolBar, BorderLayout.EAST);
 
-        ticPlot = new TICPlot(this);
-        add(ticPlot, BorderLayout.CENTER);
+        basePeakPlot = new BasePeakPlot(this);
+        add(basePeakPlot, BorderLayout.CENTER);
 
         this.msLevel = msLevel;
-        this.rawDataFiles = new Hashtable<RawDataFile, TICDataSet>();
+        this.rawDataFiles = new Hashtable<RawDataFile, BasePeakDataSet>();
 
         addRawDataFile(rawDataFile);
 
@@ -105,7 +103,7 @@ public class TICVisualizer extends JInternalFrame implements RawDataVisualizer,
      *      double)
      */
     public void setRTRange(double rtMin, double rtMax) {
-        ticPlot.getPlot().getDomainAxis().setRange(rtMin, rtMax);
+        basePeakPlot.getPlot().getDomainAxis().setRange(rtMin, rtMax);
     }
 
     /**
@@ -113,7 +111,7 @@ public class TICVisualizer extends JInternalFrame implements RawDataVisualizer,
      *      double)
      */
     public void setIntensityRange(double intensityMin, double intensityMax) {
-        ticPlot.getPlot().getRangeAxis().setRange(intensityMin, intensityMax);
+        basePeakPlot.getPlot().getRangeAxis().setRange(intensityMin, intensityMax);
     }
 
     /**
@@ -125,53 +123,52 @@ public class TICVisualizer extends JInternalFrame implements RawDataVisualizer,
  
 
     void addRawDataFile(RawDataFile newFile) {
-        TICDataSet dataset = new TICDataSet(newFile, msLevel,
+        BasePeakDataSet dataset = new BasePeakDataSet(newFile, msLevel,
                 this);
         rawDataFiles.put(newFile, dataset);
-        ticPlot.addDataset(dataset);
+        basePeakPlot.addDataset(dataset);
         if (rawDataFiles.size() == 1) {
             setRTRange(newFile.getDataMinRT() * 1000,
                     newFile.getDataMaxRT() * 1000);
             setIntensityRange(0,
-                    newFile.getDataMaxTotalIonCurrent(msLevel) * 1.05);
+                    newFile.getDataMaxBasePeakIntensity(msLevel) * 1.05);
         }
 
         // when displaying more than one file, show a legend
         if (rawDataFiles.size() > 1) {
-            ticPlot.showLegend(true);
+            basePeakPlot.showLegend(true);
         }
 
     }
 
     void removeRawDataFile(RawDataFile file) {
-        TICDataSet dataset = rawDataFiles.get(file);
-        ticPlot.getPlot().setDataset(ticPlot.getPlot().indexOf(dataset), null);
+        BasePeakDataSet dataset = rawDataFiles.get(file);
+        basePeakPlot.getPlot().setDataset(basePeakPlot.getPlot().indexOf(dataset), null);
         rawDataFiles.remove(file);
 
         // when displaying less than two files, hide a legend
         if (rawDataFiles.size() < 2) {
-            ticPlot.showLegend(false);
+            basePeakPlot.showLegend(false);
         }
 
     }
 
     void updateTitle() {
 
-        String TICXIC = xicMode ? "XIC" : "TIC";
         String scan = "", selectedValue = "";
-        setTitle(TICXIC + " " + rawDataFiles.keySet().toString() + " MS"
+        setTitle("Base peak intensity " + rawDataFiles.keySet().toString() + " MS"
                 + msLevel);
 
-        double selectedRT = ticPlot.getPlot().getDomainCrosshairValue();
-        double selectedIT = ticPlot.getPlot().getRangeCrosshairValue();
+        double selectedRT = basePeakPlot.getPlot().getDomainCrosshairValue();
+        double selectedIT = basePeakPlot.getPlot().getRangeCrosshairValue();
 
         if (selectedIT > 0) {
             selectedValue = ", RT: " + rtFormat.format(selectedRT) + ", IC: "
                     + intensityFormat.format(selectedIT);
         }
-        Enumeration<TICDataSet> e = rawDataFiles.elements();
+        Enumeration<BasePeakDataSet> e = rawDataFiles.elements();
         while (e.hasMoreElements()) {
-            TICDataSet dataSet = e.nextElement();
+            BasePeakDataSet dataSet = e.nextElement();
             int index = dataSet.getSeriesIndex(selectedRT, selectedIT);
             if (index >= 0) {
                 int scanNumber = dataSet.getScanNumber(index);
@@ -182,18 +179,18 @@ public class TICVisualizer extends JInternalFrame implements RawDataVisualizer,
             }
         }
 
-        String newLabel = TICXIC + " " + rawDataFiles.keySet().toString()
+        String newLabel = "Base peak intensity " + rawDataFiles.keySet().toString()
                 + " MS" + msLevel + scan + selectedValue;
         titleLabel.setText(newLabel);
 
     }
     
     void showSpectrum() {
-        double selectedRT = ticPlot.getPlot().getDomainCrosshairValue();
-        double selectedIT = ticPlot.getPlot().getRangeCrosshairValue();
-        Enumeration<TICDataSet> e = rawDataFiles.elements();
+        double selectedRT = basePeakPlot.getPlot().getDomainCrosshairValue();
+        double selectedIT = basePeakPlot.getPlot().getRangeCrosshairValue();
+        Enumeration<BasePeakDataSet> e = rawDataFiles.elements();
         while (e.hasMoreElements()) {
-            TICDataSet dataSet = e.nextElement();
+            BasePeakDataSet dataSet = e.nextElement();
             int index = dataSet.getSeriesIndex(selectedRT, selectedIT);
             if (index >= 0) {
                 int scanNumber = dataSet.getScanNumber(index);
@@ -211,7 +208,7 @@ public class TICVisualizer extends JInternalFrame implements RawDataVisualizer,
     public void taskFinished(Task task) {
         if (task.getStatus() == TaskStatus.ERROR) {
             MainWindow.getInstance().displayErrorMessage(
-                    "Error while updating TIC visualizer: "
+                    "Error while updating base peak visualizer: "
                             + task.getErrorMessage());
         }
 
@@ -234,42 +231,15 @@ public class TICVisualizer extends JInternalFrame implements RawDataVisualizer,
         String command = event.getActionCommand();
 
         if (command.equals("SHOW_DATA_POINTS")) {
-            ticPlot.switchDataPointsVisible();
+            basePeakPlot.switchDataPointsVisible();
         }
 
         if (command.equals("SHOW_ANNOTATIONS")) {
-            ticPlot.switchItemLabelsVisible();
+            basePeakPlot.switchItemLabelsVisible();
         }
 
         if (command.equals("SHOW_SPECTRUM")) {
             showSpectrum();
-        }
-
-        if (command.equals("CHANGE_XIC_TIC")) {
-
-            if (xicMode) {
-                xicMode = false;
-                toolBar.setXicButton(true);
-
-                Enumeration<TICDataSet> e = rawDataFiles.elements();
-                while (e.hasMoreElements()) {
-                    TICDataSet dataSet = e.nextElement();
-                    dataSet.setTICMode();
-                }
-
-            } else {
-
-                TICDataSet[] dataSets = rawDataFiles.values().toArray(new TICDataSet[0]);
-
-                // Show dialog
-                XICSetupDialog psd = new XICSetupDialog(dataSets);
-                
-                psd.setVisible(true);
-
-                xicMode = psd.getXICSet();
-                toolBar.setXicButton(! xicMode);
-
-            }
         }
 
     }

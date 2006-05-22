@@ -35,14 +35,14 @@ import org.jfree.data.xy.XYSeries;
 /**
  *
  */
-class RawDataFileDataSet extends DefaultTableXYDataset  {
+class TICDataSet extends DefaultTableXYDataset  {
 
     private RawDataFile rawDataFile;
     private int[] scanNumbers;
     private XYSeries series;
     private TICVisualizer visualizer; 
     
-    RawDataFileDataSet(RawDataFile rawDataFile, int msLevel, TICVisualizer visualizer) {
+    TICDataSet(RawDataFile rawDataFile, int msLevel, TICVisualizer visualizer) {
         
         series = new XYSeries(rawDataFile.getOriginalFile().getName(), false, false);
         
@@ -61,7 +61,7 @@ class RawDataFileDataSet extends DefaultTableXYDataset  {
     void setTICMode() {
         
         Task updateTask = new TICDataRetrievalTask(rawDataFile, scanNumbers,
-                series);
+                this);
 
         /*
          * if the file data is preloaded in memory, we can update the visualizer
@@ -79,7 +79,7 @@ class RawDataFileDataSet extends DefaultTableXYDataset  {
     void setXICMode(double mzMin, double mzMax) {
         
         Task updateTask = new TICDataRetrievalTask(rawDataFile, scanNumbers,
-                series, mzMin, mzMax);
+                this, mzMin, mzMax);
 
         /*
          * if the file data is preloaded in memory, we can update the visualizer
