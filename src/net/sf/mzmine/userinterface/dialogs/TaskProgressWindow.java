@@ -19,7 +19,6 @@
 
 package net.sf.mzmine.userinterface.dialogs;
 
-import java.awt.Dimension;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 
@@ -57,7 +56,7 @@ public class TaskProgressWindow extends JInternalFrame implements
     public TaskProgressWindow() {
         super("Tasks in progress...", true, true, true, true);
         setDefaultCloseOperation(HIDE_ON_CLOSE);
-        taskTable = new JTable(TaskController.getInstance().getTableModel());
+        taskTable = new JTable(TaskController.getInstance().getTaskTableModel());
         taskTable.setCellSelectionEnabled(false);
         taskTable.setColumnSelectionAllowed(false);
         taskTable.setRowSelectionAllowed(true);
@@ -126,9 +125,7 @@ public class TaskProgressWindow extends JInternalFrame implements
         if (src == lowPriorityMenuItem) {
             TaskController.getInstance().setTaskPriority(selectedTask, TaskPriority.LOW);
         }
-
-        TaskController.getInstance().getTableModel().fireTableDataChanged();
-
+       
     }
 
 }

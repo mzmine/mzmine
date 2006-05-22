@@ -27,7 +27,7 @@ import net.sf.mzmine.util.Logger;
  */
 class WorkerThread extends Thread {
 
-    private Task currentTask;
+    private WrappedTask currentTask;
 
     WorkerThread(int workerNumber) {
         super("Task controller worker thread #" + workerNumber);
@@ -36,7 +36,7 @@ class WorkerThread extends Thread {
     /**
      * @return Returns the currentTask.
      */
-    Task getCurrentTask() {
+    WrappedTask getCurrentTask() {
         return currentTask;
     }
 
@@ -44,9 +44,10 @@ class WorkerThread extends Thread {
      * @param currentTask
      *            The currentTask to set.
      */
-    void setCurrentTask(Task newTask) {
+    void setCurrentTask(WrappedTask newTask) {
         assert currentTask == null;
         currentTask = newTask;
+        newTask.assignTo(this);
         synchronized(this) {
             notify();
         }
@@ -71,16 +72,16 @@ class WorkerThread extends Thread {
 
 
             try {
-                currentTask.run();
+                currentTask.getTask().run();
             } catch (Throwable e) {
                 
                 // this should never happen!
                 
                 String errorMessage = "Unhandled exception while processing task "
-                    + currentTask.getTaskDescription() + ": " + e + ", cancelling the task.";
+                    + currentTask + ": " + e + ", cancelling the task.";
                 Logger.putFatal(errorMessage);
                 
-                currentTask.cancel();
+                currentTask.getTask().cancel();
                 
                 if (MainWindow.getInstance() != null)
                     MainWindow.getInstance().displayErrorMessage(errorMessage);

@@ -19,14 +19,7 @@
 
 package net.sf.mzmine.taskcontrol;
 
-import java.net.InetAddress;
-import java.util.Arrays;
-import java.util.Comparator;
-import java.util.Date;
-import java.util.Iterator;
-import java.util.Vector;
-
-import javax.swing.table.AbstractTableModel;
+import javax.swing.table.TableModel;
 
 import net.sf.mzmine.taskcontrol.Task.TaskPriority;
 import net.sf.mzmine.taskcontrol.Task.TaskStatus;
@@ -47,24 +40,11 @@ public class TaskController implements Runnable {
 
     private WorkerThread[] workerThreads;
 
-    class WrappedTask {
-
-        Task task;
-        Date addedTime = new Date();
-        TaskListener listener;
-        TaskPriority priority;
-        boolean assigned = false;
-        InetAddress node;
-    }
-
-    private Vector<WrappedTask> taskQueue;
-    private WrappedTask[] currentTasks; // taskQueue represented as sorted array
+    private TaskQueue taskQueue;
 
     public static TaskController getInstance() {
         return myInstance;
     }
-
-    private TaskModel taskModel;
 
     /**
      * 
@@ -74,7 +54,7 @@ public class TaskController implements Runnable {
         assert myInstance == null;
         myInstance = this;
 
-        taskQueue = new Vector<WrappedTask>();
+        taskQueue = new TaskQueue();
 
         taskControllerThread = new Thread(this, "Task controller thread");
         taskControllerThread.setPriority(Thread.MIN_PRIORITY);
@@ -86,37 +66,33 @@ public class TaskController implements Runnable {
             workerThreads[i].start();
         }
 
-        taskModel = new TaskModel();
-
     }
 
     public Task addTask(Task task) {
         return addTask(task, TaskPriority.NORMAL, null);
     }
-    
+
     public Task addTask(Task task, TaskPriority priority) {
         return addTask(task, priority, null);
     }
-    
+
     public Task addTask(Task task, TaskListener listener) {
         return addTask(task, TaskPriority.NORMAL, listener);
     }
-    
+
     public Task addTask(Task task, TaskPriority priority, TaskListener listener) {
 
         assert task != null;
 
-        WrappedTask newQueueEntry = new WrappedTask();
-        newQueueEntry.task = task;
-        newQueueEntry.listener = listener;
-        newQueueEntry.priority = priority;
+        WrappedTask newQueueEntry = new WrappedTask(task, priority, listener);
 
         Logger.put("Adding task " + task.getTaskDescription()
                 + " to the task controller queue");
 
-        synchronized (taskQueue) {
-            taskQueue.add(newQueueEntry);
-            taskQueue.notifyAll();
+        taskQueue.addWrappedTask(newQueueEntry);
+
+        synchronized (this) {
+            this.notifyAll();
         }
 
         /*
@@ -128,18 +104,8 @@ public class TaskController implements Runnable {
             tlc.setVisible(true);
         }
 
-        taskModel.fireTableDataChanged();
-
         return task;
 
-    }
-
-    public Task getTask(int index) {
-        synchronized (taskQueue) {
-            if ((index < 0) || (index > currentTasks.length))
-                return null;
-            return currentTasks[index].task;
-        }
     }
 
     /**
@@ -151,75 +117,59 @@ public class TaskController implements Runnable {
 
         while (true) {
 
-            synchronized (taskQueue) {
-
-                /* if the queue is empty, we can sleep */
-                while (taskQueue.isEmpty()) {
+            /* if the queue is empty, we can sleep */
+            while (taskQueue.isEmpty()) {
+                synchronized (this) {
                     try {
-                        taskQueue.wait();
+                        this.wait();
                     } catch (InterruptedException e) {
                     }
                 }
+            }
 
-                currentTasks = taskQueue.toArray(new WrappedTask[0]);
-                // sort the array, so we can traverse the tasks in priority
-                // order
-                Arrays.sort(currentTasks, new TaskPriorityComparator());
+            WrappedTask[] queueSnapshot = taskQueue.getQueueSnapshot();
 
-                // for each task, check if it's assigned
-                for (int i = 0; i < currentTasks.length; i++) {
+            // for each task, check if it's assigned
+            for (WrappedTask task : queueSnapshot) {
 
-                    if (!currentTasks[i].assigned) {
-                        // poll local threads
+                TaskListener listener = task.getListener();
 
-                        for (WorkerThread worker : workerThreads) {
-                            // Logger.put("polling thread " + worker + " for
-                            // task " + task.task.getTaskDescription());
-                            if (worker.getCurrentTask() == null) {
-                                if (currentTasks[i].listener != null)
-                                    currentTasks[i].listener
-                                            .taskStarted(currentTasks[i].task);
-                                worker.setCurrentTask(currentTasks[i].task);
-                                currentTasks[i].assigned = true;
-                                break;
-                            }
+                if (!task.isAssigned()) {
+                    // poll local threads
 
-                        }
+                    for (WorkerThread worker : workerThreads) {
 
-                        // TODO: poll remote nodes
-
-                    }
-
-                    /* check whether the task is finished */
-                    TaskStatus status = currentTasks[i].task.getStatus();
-                    if ((status == TaskStatus.FINISHED)
-                            || (status == TaskStatus.ERROR)
-                            || (status == TaskStatus.CANCELED)) {
-                        if (currentTasks[i].listener != null)
-                            currentTasks[i].listener
-                                    .taskFinished(currentTasks[i].task);
-                        taskQueue.remove(currentTasks[i]);
-                        taskModel.fireTableRowsDeleted(i, i);
-                    }
-
-                    MainWindow mainWindow = MainWindow.getInstance();
-                    if (mainWindow != null) {
-                        TaskProgressWindow tlc = mainWindow.getTaskList();
-                        if (tlc.isVisible()) {
-
-                            if (taskQueue.isEmpty())
-                                tlc.setVisible(false);
-                            else {
-                                taskModel.fireTableRowsUpdated(0,
-                                        currentTasks.length);
-                            }
-
+                        if (worker.getCurrentTask() == null) {
+                            if (listener != null)
+                                listener.taskStarted(task.getTask());
+                            worker.setCurrentTask(task);
+                            break;
                         }
 
                     }
+
+                    // TODO: poll remote nodes
 
                 }
 
+                /* check whether the task is finished */
+                TaskStatus status = task.getTask().getStatus();
+                if ((status == TaskStatus.FINISHED)
+                        || (status == TaskStatus.ERROR)
+                        || (status == TaskStatus.CANCELED)) {
+                    if (listener != null)
+                        listener.taskFinished(task.getTask());
+                    taskQueue.removeWrappedTask(task);
+                }
+
+            }
+
+            MainWindow mainWindow = MainWindow.getInstance();
+            if (taskQueue.isEmpty() && (mainWindow != null)) {
+                TaskProgressWindow tlc = mainWindow.getTaskList();
+                tlc.setVisible(false);
+            } else {
+                taskQueue.refresh();
             }
 
             try {
@@ -230,118 +180,23 @@ public class TaskController implements Runnable {
         }
 
     }
-    
+
     public void setTaskPriority(Task task, TaskPriority priority) {
-        synchronized (taskQueue) {
-            Iterator<WrappedTask> i = taskQueue.iterator();
-            while (i.hasNext()) {
-                WrappedTask wt = i.next();
-                if (wt.task == task) { 
-                    wt.priority = priority;
-                    return;
-                }
-            }
-            
-            
-        }
+        WrappedTask wt = taskQueue.getWrappedTask(task);
+        if (wt != null)
+            wt.setPriority(priority);
     }
 
-    public TaskModel getTableModel() {
-        return taskModel;
+    public TableModel getTaskTableModel() {
+        return taskQueue;
     }
 
-    public class TaskModel extends AbstractTableModel {
-
-        private final int NUM_COLUMNS = 4;
-
-        public final String colDescription = "Item";
-        public final String colPriorityName = "Priority";
-        public final String colJobStatus = "Status";
-        public final String colJobRate = "% done";
-
-        /**
-         * @see javax.swing.table.TableModel#getRowCount()
-         */
-        public int getRowCount() {
-            return taskQueue.size();
-        }
-
-        /**
-         * @see javax.swing.table.TableModel#getColumnCount()
-         */
-        public int getColumnCount() {
-            return NUM_COLUMNS;
-        }
-
-        public String getColumnName(int column) {
-            switch (column) {
-            case 0:
-                return colDescription;
-            case 1:
-                return colPriorityName;
-            case 2:
-                return colJobStatus;
-            case 3:
-                return colJobRate;
-            }
-            return "";
-        }
-
-        /**
-         * @see javax.swing.table.TableModel#getValueAt(int, int)
-         */
-        public Object getValueAt(int row, int column) {
-            synchronized (taskQueue) {
-
-                try {
-                    WrappedTask task = currentTasks[row];
-                    switch (column) {
-                    case 0:
-                        return task.task.getTaskDescription();
-                    case 1:
-                        return task.priority;
-                    case 2:
-                        return task.task.getStatus();
-                    case 3:
-                        return String.valueOf(Math.round(task.task
-                                .getFinishedPercentage() * 100))
-                                + "%";
-                    }
-                } catch (Exception e) {
-                }
-            }
-            return "";
-        }
-
-        public void fireTableDataChanged() {
-
-            synchronized (taskQueue) {
-
-                currentTasks = taskQueue.toArray(new WrappedTask[0]);
-                // sort the array, so we can traverse the tasks in priority
-                // order
-                Arrays.sort(currentTasks, new TaskPriorityComparator());
-
-            }
-
-            super.fireTableDataChanged();
-        }
-
-    }
-
-    class TaskPriorityComparator implements Comparator<WrappedTask> {
-
-        /**
-         * @see java.util.Comparator#compare(T, T)
-         */
-        public int compare(WrappedTask arg0, WrappedTask arg1) {
-            int result;
-            result = arg0.priority.compareTo(arg1.priority);
-            if (result == 0)
-                result = arg0.addedTime.compareTo(arg1.addedTime);
-            return result;
-        }
-
+    public Task getTask(int index) {
+        WrappedTask wt = taskQueue.getWrappedTask(index);
+        if (wt != null)
+            return wt.getTask();
+        else
+            return null;
     }
 
 }
