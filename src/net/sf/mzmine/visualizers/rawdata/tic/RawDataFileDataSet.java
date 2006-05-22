@@ -26,6 +26,7 @@ import net.sf.mzmine.io.RawDataFile;
 import net.sf.mzmine.io.RawDataFile.PreloadLevel;
 import net.sf.mzmine.taskcontrol.Task;
 import net.sf.mzmine.taskcontrol.TaskController;
+import net.sf.mzmine.taskcontrol.Task.TaskPriority;
 
 import org.jfree.data.xy.DefaultTableXYDataset;
 import org.jfree.data.xy.XYSeries;
@@ -71,7 +72,7 @@ class RawDataFileDataSet extends DefaultTableXYDataset  {
             updateTask.run();
             visualizer.taskFinished(updateTask);
         } else
-            TaskController.getInstance().addTask(updateTask, visualizer);
+            TaskController.getInstance().addTask(updateTask, TaskPriority.HIGH, visualizer);
         
     }
     

@@ -117,13 +117,6 @@ public class TICDataRetrievalTask implements Task {
     }
 
     /**
-     * @see net.sf.mzmine.taskcontrol.Task#getPriority()
-     */
-    public TaskPriority getPriority() {
-        return TaskPriority.HIGH;
-    }
-
-    /**
      * @see java.lang.Runnable#run()
      */
     public void run() {
