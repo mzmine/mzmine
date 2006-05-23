@@ -53,7 +53,7 @@ import javax.swing.event.InternalFrameEvent;
 import javax.swing.event.InternalFrameListener;
 
 import net.sf.mzmine.io.RawDataFile;
-import net.sf.mzmine.methods.peakpicking.Peak;
+import net.sf.mzmine.interfaces.Peak;
 import net.sf.mzmine.userinterface.mainwindow.ItemSelector;
 import net.sf.mzmine.userinterface.mainwindow.MainWindow;
 import net.sf.mzmine.userinterface.mainwindow.Statusbar;
@@ -483,6 +483,7 @@ public class TwoDVisualizer extends JInternalFrame implements RawDataVisualizer,
 					g.setColor(Color.green);
 				}
 				if (peaks!=null) {
+					/*
 
 					int startScanI;
 					int endScanI;
@@ -505,6 +506,7 @@ public class TwoDVisualizer extends JInternalFrame implements RawDataVisualizer,
 						}
 
 					}
+					*/
 
 				}
 
@@ -831,7 +833,7 @@ public class TwoDVisualizer extends JInternalFrame implements RawDataVisualizer,
      */
     public void setRawDataFile(RawDataFile newFile) {
         // TODO Auto-generated method stub
-        
+
     }
 
     /**
@@ -839,7 +841,7 @@ public class TwoDVisualizer extends JInternalFrame implements RawDataVisualizer,
      */
     public void setMZRange(double mzMin, double mzMax) {
         // TODO Auto-generated method stub
-        
+
     }
 
     /**
@@ -847,7 +849,7 @@ public class TwoDVisualizer extends JInternalFrame implements RawDataVisualizer,
      */
     public void setRTRange(double rtMin, double rtMax) {
         // TODO Auto-generated method stub
-        
+
     }
 
     /**
@@ -855,7 +857,7 @@ public class TwoDVisualizer extends JInternalFrame implements RawDataVisualizer,
      */
     public void setMZPosition(double mz) {
         // TODO Auto-generated method stub
-        
+
     }
 
     /**
@@ -863,7 +865,7 @@ public class TwoDVisualizer extends JInternalFrame implements RawDataVisualizer,
      */
     public void setRTPosition(double rt) {
         // TODO Auto-generated method stub
-        
+
     }
 
     /**
@@ -871,7 +873,7 @@ public class TwoDVisualizer extends JInternalFrame implements RawDataVisualizer,
      */
     public void attachVisualizer(RawDataVisualizer visualizer) {
         // TODO Auto-generated method stub
-        
+
     }
 
     /**
@@ -879,7 +881,7 @@ public class TwoDVisualizer extends JInternalFrame implements RawDataVisualizer,
      */
     public void detachVisualizer(RawDataVisualizer visualizer) {
         // TODO Auto-generated method stub
-        
+
     }
 
     /**
@@ -887,7 +889,7 @@ public class TwoDVisualizer extends JInternalFrame implements RawDataVisualizer,
      */
     public void resetMZRange() {
         // TODO Auto-generated method stub
-        
+
     }
 
     /**
@@ -895,7 +897,7 @@ public class TwoDVisualizer extends JInternalFrame implements RawDataVisualizer,
      */
     public void resetRTRange() {
         // TODO Auto-generated method stub
-        
+
     }
 
     /**
@@ -903,7 +905,7 @@ public class TwoDVisualizer extends JInternalFrame implements RawDataVisualizer,
      */
     public void setIntensityRange(double intensityMin, double intensityMax) {
         // TODO Auto-generated method stub
-        
+
     }
 
     /**
@@ -911,7 +913,7 @@ public class TwoDVisualizer extends JInternalFrame implements RawDataVisualizer,
      */
     public void resetIntensityRange() {
         // TODO Auto-generated method stub
-        
+
     }
 
 
