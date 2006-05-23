@@ -24,6 +24,8 @@ import java.awt.Color;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.text.DateFormat;
+import java.text.DecimalFormat;
+import java.text.NumberFormat;
 import java.text.SimpleDateFormat;
 
 import javax.swing.JInternalFrame;
@@ -64,6 +66,8 @@ public class SpectrumVisualizer extends JInternalFrame implements
 
     // TODO: get these from parameter storage
     private static DateFormat rtFormat = new SimpleDateFormat("m:ss");
+    private static NumberFormat mzFormat = new DecimalFormat("0.00");
+    private static NumberFormat intensityFormat = new DecimalFormat("0.00E0");
 
     public SpectrumVisualizer(RawDataFile rawDataFile, int scanNumber) {
         this(rawDataFile, new int[] { scanNumber });
@@ -152,7 +156,13 @@ public class SpectrumVisualizer extends JInternalFrame implements
 
             title.append(", RT ");
             title.append(rtFormat.format(scans[0].getRetentionTime() * 1000));
-
+            
+            title.append(", base peak: ");
+            title.append(mzFormat.format(scans[0].getBasePeakMZ()));
+            title.append(" m/z, ");
+            title.append(intensityFormat.format(scans[0].getBasePeakIntensity()));
+            title.append(" intensity");
+            
         } else {
             title.append("Combination of spectra, RT ");
             title.append(rtFormat.format(scans[0].getRetentionTime() * 1000));

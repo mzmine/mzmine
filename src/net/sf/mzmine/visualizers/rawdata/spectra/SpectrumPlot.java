@@ -51,6 +51,7 @@ class SpectrumPlot extends ChartPanel {
 
     private XYPlot plot;
 
+    // TODO: get these from parameter storage
     private static NumberFormat intensityFormat = new DecimalFormat("0.00E0");
     private static NumberFormat mzFormat = new DecimalFormat("0.00");
 
