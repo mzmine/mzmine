@@ -159,9 +159,9 @@ public class SpectrumVisualizer extends JInternalFrame implements
             
             title.append(", base peak: ");
             title.append(mzFormat.format(scans[0].getBasePeakMZ()));
-            title.append(" m/z, ");
+            title.append(" m/z (");
             title.append(intensityFormat.format(scans[0].getBasePeakIntensity()));
-            title.append(" intensity");
+            title.append(")");
             
         } else {
             title.append("Combination of spectra, RT ");
