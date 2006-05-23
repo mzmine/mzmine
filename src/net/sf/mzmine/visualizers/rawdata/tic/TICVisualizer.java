@@ -178,6 +178,7 @@ public class TICVisualizer extends JInternalFrame implements RawDataVisualizer,
 
         String newLabel = TICXIC + " " + rawDataFiles.keySet().toString()
                 + " MS" + msLevel + scan + selectedValue;
+        
         ticPlot.setTitle(newLabel);
 
     }

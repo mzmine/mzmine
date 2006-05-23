@@ -89,6 +89,8 @@ class BasePeakPlot extends ChartPanel {
     
     // title font
     private static final Font titleFont = new Font("SansSerif", Font.PLAIN, 12);
+    
+    private TextTitle chartTitle;
 
     XYLineAndShapeRenderer defaultRenderer;
 
@@ -105,15 +107,16 @@ class BasePeakPlot extends ChartPanel {
      * @param chart
      */
     BasePeakPlot(final BasePeakVisualizer visualizer) {
-        // superconstructor with no chart yet, but enable off-screen buffering
-        super(null, true);
+        // superconstructor with no chart yet
+        // disable off-screen buffering (makes problems with late drawing of the title)
+        super(null, false);
 
         this.visualizer = visualizer;
         
         setCursor(Cursor.getPredefinedCursor(Cursor.CROSSHAIR_CURSOR));
 
         // initialize the chart by default time series chart from factory
-        chart = ChartFactory.createTimeSeriesChart(null, // title
+        chart = ChartFactory.createTimeSeriesChart("", // title
                 "Retention time", // x-axis label
                 "Base peak intensity", // y-axis label
                 null, // no data yet
@@ -123,6 +126,11 @@ class BasePeakPlot extends ChartPanel {
                 );
         chart.setBackgroundPaint(Color.white);
         setChart(chart);
+        
+        // title
+        chartTitle = chart.getTitle();
+        chartTitle.setMargin(5,0,0,0);
+        chartTitle.setFont(titleFont);
         
         // disable maximum size (we don't want scaling)
         setMaximumDrawWidth(Integer.MAX_VALUE);
@@ -283,13 +291,18 @@ class BasePeakPlot extends ChartPanel {
      * @see org.jfree.chart.event.ChartProgressListener#chartProgress(org.jfree.chart.event.ChartProgressEvent)
      */
     public void chartProgress(ChartProgressEvent event) {
+        
         super.chartProgress(event);
+        
         if (event.getType() == ChartProgressEvent.DRAWING_FINISHED) {
+            
             visualizer.updateTitle();
+            
             if (showSpectrumRequest) {
                 showSpectrumRequest = false;
                 visualizer.showSpectrum();
             }
+            
         }
     }
 
@@ -351,9 +364,7 @@ class BasePeakPlot extends ChartPanel {
     }
         
     void setTitle(String title) {
-        TextTitle newTitle = new TextTitle(title, titleFont);
-        newTitle.setMargin(5,0,0,0);
-        chart.setTitle(newTitle);
+        chartTitle.setText(title);
     }
     
 }

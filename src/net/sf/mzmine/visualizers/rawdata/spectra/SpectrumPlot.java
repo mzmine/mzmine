@@ -68,18 +68,21 @@ class SpectrumPlot extends ChartPanel {
     // title font
     private static final Font titleFont = new Font("SansSerif", Font.PLAIN, 12);
 
+    private TextTitle chartTitle;
+    
     XYBarRenderer centroidRenderer;
     XYLineAndShapeRenderer continuousRenderer;
 
     SpectrumPlot(SpectrumVisualizer visualizer, XYDataset dataset) {
-        // superconstructor with no chart yet, but enable off-screen buffering
-        super(null, true);
+        // superconstructor with no chart yet
+        // disable off-screen buffering (makes problems with late drawing of the title)
+        super(null, false);
 
         setBackground(Color.white);
         setCursor(Cursor.getPredefinedCursor(Cursor.CROSSHAIR_CURSOR));
 
         // initialize the chart by default time series chart from factory
-        chart = ChartFactory.createXYLineChart(null, // title
+        chart = ChartFactory.createXYLineChart("", // title
                 "m/z", // x-axis label
                 "Intensity", // y-axis label
                 dataset, // data set
@@ -91,6 +94,11 @@ class SpectrumPlot extends ChartPanel {
         chart.setBackgroundPaint(Color.white);
         setChart(chart);
 
+        // title
+        chartTitle = chart.getTitle();
+        chartTitle.setMargin(5,0,0,0);
+        chartTitle.setFont(titleFont);
+        
         // disable maximum size (we don't want scaling)
         setMaximumDrawWidth(Integer.MAX_VALUE);
         setMaximumDrawHeight(Integer.MAX_VALUE);
@@ -207,9 +215,7 @@ class SpectrumPlot extends ChartPanel {
     }
     
     void setTitle(String title) {
-        TextTitle newTitle = new TextTitle(title, titleFont);
-        newTitle.setMargin(5,0,0,0);
-        chart.setTitle(newTitle);
+        chartTitle.setText(title);
     }
 
 }

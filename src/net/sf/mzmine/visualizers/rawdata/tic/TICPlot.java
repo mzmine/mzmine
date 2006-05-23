@@ -46,6 +46,8 @@ import org.jfree.chart.JFreeChart;
 import org.jfree.chart.axis.DateAxis;
 import org.jfree.chart.axis.NumberAxis;
 import org.jfree.chart.event.ChartProgressEvent;
+import org.jfree.chart.event.PlotChangeEvent;
+import org.jfree.chart.event.PlotChangeListener;
 import org.jfree.chart.plot.XYPlot;
 import org.jfree.chart.renderer.xy.XYLineAndShapeRenderer;
 import org.jfree.chart.title.LegendTitle;
@@ -88,6 +90,8 @@ class TICPlot extends ChartPanel {
     // title font
     private static final Font titleFont = new Font("SansSerif", Font.PLAIN, 12);
     
+    private TextTitle chartTitle;
+    
     private LegendTitle legend;
 
     XYLineAndShapeRenderer defaultRenderer;
@@ -105,15 +109,16 @@ class TICPlot extends ChartPanel {
      *
      */
     TICPlot(final TICVisualizer visualizer) {
-        // superconstructor with no chart yet, but enable off-screen buffering
-        super(null, true);
+        // superconstructor with no chart yet
+        // disable off-screen buffering (makes problems with late drawing of the title)
+        super(null, false);
 
         this.visualizer = visualizer;
         
         setCursor(Cursor.getPredefinedCursor(Cursor.CROSSHAIR_CURSOR));
         
         // initialize the chart by default time series chart from factory
-        chart = ChartFactory.createTimeSeriesChart(null, // title TODO:
+        chart = ChartFactory.createTimeSeriesChart("", // title
                 "Retention time", // x-axis label
                 "Total ion intensity", // y-axis label
                 null, // data set
@@ -123,6 +128,11 @@ class TICPlot extends ChartPanel {
                 );
         chart.setBackgroundPaint(Color.white);
         setChart(chart);
+        
+        // title
+        chartTitle = chart.getTitle();
+        chartTitle.setMargin(5,0,0,0);
+        chartTitle.setFont(titleFont);
         
         // disable maximum size (we don't want scaling)
         setMaximumDrawWidth(Integer.MAX_VALUE);
@@ -289,14 +299,19 @@ class TICPlot extends ChartPanel {
      * @see org.jfree.chart.event.ChartProgressListener#chartProgress(org.jfree.chart.event.ChartProgressEvent)
      */
     public void chartProgress(ChartProgressEvent event) {
+
         super.chartProgress(event);
+        
         if (event.getType() == ChartProgressEvent.DRAWING_FINISHED) {
+
             visualizer.updateTitle();
+            
             if (showSpectrumRequest) {
                 showSpectrumRequest = false;
                 visualizer.showSpectrum();
             }
         }
+        
     }
 
     void switchItemLabelsVisible() {
@@ -357,9 +372,8 @@ class TICPlot extends ChartPanel {
     }
     
     void setTitle(String title) {
-        TextTitle newTitle = new TextTitle(title, titleFont);
-        newTitle.setMargin(5,0,0,0);
-        chart.setTitle(newTitle);
+        chartTitle.setText(title);
     }
+
     
 }
