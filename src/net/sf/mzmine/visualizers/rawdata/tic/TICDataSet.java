@@ -36,45 +36,45 @@ import net.sf.mzmine.util.RawDataRetrievalTask;
 import org.jfree.data.xy.DefaultTableXYDataset;
 import org.jfree.data.xy.XYSeries;
 
-
 /**
- *
+ * 
  */
-class TICDataSet extends DefaultTableXYDataset implements RawDataAcceptor  {
+class TICDataSet extends DefaultTableXYDataset implements RawDataAcceptor {
 
     // redraw the chart every 100 ms while updating
     private static final int REDRAW_INTERVAL = 100;
-    
+
     private RawDataFile rawDataFile;
     private int[] scanNumbers;
     private XYSeries series;
     private TICVisualizer visualizer;
-    
+
     private boolean xicMode = false;
     private double mzRangeMin, mzRangeMax;
-    
+
     private Date lastRedrawTime = new Date();
-    
+
     TICDataSet(RawDataFile rawDataFile, int msLevel, TICVisualizer visualizer) {
-        
-        series = new XYSeries(rawDataFile.getOriginalFile().getName(), false, false);
-        
+
+        series = new XYSeries(rawDataFile.getOriginalFile().getName(), false,
+                false);
+
         addSeries(series);
-        
+
         this.visualizer = visualizer;
         this.rawDataFile = rawDataFile;
-        
+
         scanNumbers = rawDataFile.getScanNumbers(msLevel);
         assert scanNumbers != null;
 
         setTICMode();
-        
+
     }
-    
+
     void setTICMode() {
-        
+
         xicMode = false;
-        
+
         Task updateTask = new RawDataRetrievalTask(rawDataFile, scanNumbers,
                 this);
 
@@ -87,16 +87,17 @@ class TICDataSet extends DefaultTableXYDataset implements RawDataAcceptor  {
             updateTask.run();
             visualizer.taskFinished(updateTask);
         } else
-            TaskController.getInstance().addTask(updateTask, TaskPriority.HIGH, visualizer);
-        
+            TaskController.getInstance().addTask(updateTask, TaskPriority.HIGH,
+                    visualizer);
+
     }
-    
+
     void setXICMode(double mzMin, double mzMax) {
-        
-        xicMode = true;
+
         this.mzRangeMin = mzMin;
         this.mzRangeMax = mzMax;
-        
+        xicMode = true;
+
         Task updateTask = new RawDataRetrievalTask(rawDataFile, scanNumbers,
                 this);
 
@@ -111,18 +112,20 @@ class TICDataSet extends DefaultTableXYDataset implements RawDataAcceptor  {
         } else
             TaskController.getInstance().addTask(updateTask, visualizer);
     }
-    
+
     int getSeriesIndex(double retentionTime, double intensity) {
         int seriesIndex = series.indexOf(retentionTime);
-        if (seriesIndex < 0) return -1;
-        if (series.getY(seriesIndex).equals(intensity)) return seriesIndex;
+        if (seriesIndex < 0)
+            return -1;
+        if (series.getY(seriesIndex).equals(intensity))
+            return seriesIndex;
         return -1;
     }
-    
+
     int getScanNumber(int index) {
         return scanNumbers[index];
     }
-    
+
     RawDataFile getRawDataFile() {
         return rawDataFile;
     }
@@ -142,7 +145,7 @@ class TICDataSet extends DefaultTableXYDataset implements RawDataAcceptor  {
         double intensityValues[] = scan.getIntensityValues();
         double mzValues[] = null;
         double totalIntensity = 0;
-        
+
         if (xicMode)
             mzValues = scan.getMZValues();
         for (int j = 0; j < intensityValues.length; j++) {
@@ -163,9 +166,12 @@ class TICDataSet extends DefaultTableXYDataset implements RawDataAcceptor  {
         if (scan.getScanNumber() == scanNumbers[scanNumbers.length - 1])
             notify = true;
 
-        series.add(scan.getRetentionTime() * 1000, totalIntensity,
-                notify);
-        
-        
+        int index = series.indexOf(scan.getRetentionTime() * 1000);
+        if (index < 0) {
+            series.add(scan.getRetentionTime() * 1000, totalIntensity, notify);
+        } else {
+            series.updateByIndex(index, totalIntensity);
+        }
+
     }
 }
