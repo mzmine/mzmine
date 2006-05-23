@@ -40,6 +40,9 @@ import javax.swing.JMenuItem;
 import javax.swing.JPopupMenu;
 import javax.swing.KeyStroke;
 
+import net.sf.mzmine.util.AddFilePopupMenu;
+import net.sf.mzmine.util.RemoveFilePopupMenu;
+
 import org.jfree.chart.ChartFactory;
 import org.jfree.chart.ChartPanel;
 import org.jfree.chart.JFreeChart;
@@ -242,20 +245,23 @@ class BasePeakPlot extends ChartPanel {
         });
 
 
-        // add items to popup menu
-        JMenuItem showSpectrumMenuItem, annotationsMenuItem, dataPointsMenuItem;
+        // add items to popup menu       
 
-        annotationsMenuItem = new JMenuItem("Toggle showing peak values");
+        JMenuItem annotationsMenuItem = new JMenuItem("Toggle showing peak values");
         annotationsMenuItem.addActionListener(visualizer);
         annotationsMenuItem.setActionCommand("SHOW_ANNOTATIONS");
 
-        dataPointsMenuItem = new JMenuItem("Toggle showing data points");
+        JMenuItem dataPointsMenuItem = new JMenuItem("Toggle showing data points");
         dataPointsMenuItem.addActionListener(visualizer);
         dataPointsMenuItem.setActionCommand("SHOW_DATA_POINTS");
 
-        showSpectrumMenuItem = new JMenuItem("Show spectrum of selected scan");
+        JMenuItem showSpectrumMenuItem = new JMenuItem("Show spectrum of selected scan");
         showSpectrumMenuItem.addActionListener(visualizer);
         showSpectrumMenuItem.setActionCommand("SHOW_SPECTRUM");
+        
+        JMenuItem showMultipleSpectraMenuItem = new JMenuItem("Show multiple spectra");
+        showMultipleSpectraMenuItem.addActionListener(visualizer);
+        showMultipleSpectraMenuItem.setActionCommand("SHOW_MULTIPLE_SPECTRA");
 
         JPopupMenu popupMenu = getPopupMenu();
         popupMenu.addSeparator();
@@ -265,6 +271,8 @@ class BasePeakPlot extends ChartPanel {
         popupMenu.add(annotationsMenuItem);
         popupMenu.add(dataPointsMenuItem);
         popupMenu.addSeparator();
+        popupMenu.add(showSpectrumMenuItem);
+        popupMenu.add(showMultipleSpectraMenuItem);
 
     }
 

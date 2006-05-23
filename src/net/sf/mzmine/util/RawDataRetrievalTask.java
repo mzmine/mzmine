@@ -17,73 +17,37 @@
  * Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-package net.sf.mzmine.visualizers.rawdata.tic;
-
-import java.io.IOException;
-import java.util.Date;
+package net.sf.mzmine.util;
 
 import net.sf.mzmine.interfaces.Scan;
 import net.sf.mzmine.io.RawDataFile;
 import net.sf.mzmine.taskcontrol.Task;
 
-import org.jfree.data.xy.XYSeries;
-
 /**
  * 
  */
-public class TICDataRetrievalTask implements Task {
-
-    // redraw the chart every 100 ms while updating
-    private static final int REDRAW_INTERVAL = 100;
+public class RawDataRetrievalTask implements Task {
 
     private RawDataFile rawDataFile;
-    private TICDataSet dataset;
     private int scanNumbers[];
-    private int retrievedScans = 0;
+    private int retrievedScans;
+    private RawDataAcceptor acceptor;
     private TaskStatus status;
     private String errorMessage;
-    private boolean xicMode = false;
-    private double mzRangeMin, mzRangeMax;
 
-    /**
-     * constructor for TIC
-     * 
-     * @param rawDataFile
-     * @param scanNumbers
-     * @param visualizer
-     */
-    TICDataRetrievalTask(RawDataFile rawDataFile, int scanNumbers[],
-            TICDataSet dataset) {
+    public RawDataRetrievalTask(RawDataFile rawDataFile, int scanNumbers[],
+            RawDataAcceptor acceptor) {
         status = TaskStatus.WAITING;
         this.rawDataFile = rawDataFile;
-        this.dataset = dataset;
+        this.acceptor = acceptor;
         this.scanNumbers = scanNumbers;
-    }
-
-    /**
-     * constructor for XIC
-     * 
-     * @param rawDataFile
-     * @param scanNumbers
-     * @param visualizer
-     * @param mzRangeMin
-     * @param mzRangeMax
-     */
-    TICDataRetrievalTask(RawDataFile rawDataFile, int scanNumbers[],
-            TICDataSet dataset, double mzRangeMin, double mzRangeMax) {
-        this.rawDataFile = rawDataFile;
-        this.dataset = dataset;
-        this.scanNumbers = scanNumbers;
-        xicMode = true;
-        this.mzRangeMin = mzRangeMin;
-        this.mzRangeMax = mzRangeMax;
     }
 
     /**
      * @see net.sf.mzmine.taskcontrol.Task#getTaskDescription()
      */
     public String getTaskDescription() {
-        return "Updating TIC visualizer of " + rawDataFile;
+        return acceptor.getTaskDescription();
     }
 
     /**
@@ -129,9 +93,6 @@ public class TICDataRetrievalTask implements Task {
 
         status = TaskStatus.PROCESSING;
         Scan scan;
-        double intensityValues[], mzValues[] = null, totalIntensity;
-        XYSeries series = dataset.getSeries(0);
-        Date lastRedrawTime = new Date(), currentTime;
 
         for (int i = 0; i < scanNumbers.length; i++) {
 
@@ -139,34 +100,12 @@ public class TICDataRetrievalTask implements Task {
                 return;
 
             try {
-                
+
                 scan = rawDataFile.getScan(scanNumbers[i]);
-                totalIntensity = 0;
-                intensityValues = scan.getIntensityValues();
-                if (xicMode)
-                    mzValues = scan.getMZValues();
-                for (int j = 0; j < intensityValues.length; j++) {
-                    if ((!xicMode)
-                            || ((mzValues[j] >= mzRangeMin) && (mzValues[j] <= mzRangeMax)))
-                        totalIntensity += intensityValues[j];
-                }
 
-                // redraw every REDRAW_INTERVAL ms
-                boolean notify = false;
-                currentTime = new Date();
-                if (currentTime.getTime() - lastRedrawTime.getTime() > REDRAW_INTERVAL) {
-                    notify = true;
-                    lastRedrawTime = currentTime;
-                }
+                acceptor.addScan(scan);
 
-                // always redraw when we add last value
-                if (i == scanNumbers.length - 1)
-                    notify = true;
-
-                series.add(scan.getRetentionTime() * 1000, totalIntensity,
-                        notify);
-
-            } catch (IOException e) {
+            } catch (Throwable e) {
                 status = TaskStatus.ERROR;
                 errorMessage = e.toString();
                 return;

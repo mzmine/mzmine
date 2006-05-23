@@ -22,11 +22,16 @@
  */
 package net.sf.mzmine.visualizers.rawdata.tic;
 
+import java.util.Date;
+
+import net.sf.mzmine.interfaces.Scan;
 import net.sf.mzmine.io.RawDataFile;
 import net.sf.mzmine.io.RawDataFile.PreloadLevel;
 import net.sf.mzmine.taskcontrol.Task;
 import net.sf.mzmine.taskcontrol.TaskController;
 import net.sf.mzmine.taskcontrol.Task.TaskPriority;
+import net.sf.mzmine.util.RawDataAcceptor;
+import net.sf.mzmine.util.RawDataRetrievalTask;
 
 import org.jfree.data.xy.DefaultTableXYDataset;
 import org.jfree.data.xy.XYSeries;
@@ -35,12 +40,20 @@ import org.jfree.data.xy.XYSeries;
 /**
  *
  */
-class TICDataSet extends DefaultTableXYDataset  {
+class TICDataSet extends DefaultTableXYDataset implements RawDataAcceptor  {
 
+    // redraw the chart every 100 ms while updating
+    private static final int REDRAW_INTERVAL = 100;
+    
     private RawDataFile rawDataFile;
     private int[] scanNumbers;
     private XYSeries series;
-    private TICVisualizer visualizer; 
+    private TICVisualizer visualizer;
+    
+    private boolean xicMode = false;
+    private double mzRangeMin, mzRangeMax;
+    
+    private Date lastRedrawTime = new Date();
     
     TICDataSet(RawDataFile rawDataFile, int msLevel, TICVisualizer visualizer) {
         
@@ -60,7 +73,9 @@ class TICDataSet extends DefaultTableXYDataset  {
     
     void setTICMode() {
         
-        Task updateTask = new TICDataRetrievalTask(rawDataFile, scanNumbers,
+        xicMode = false;
+        
+        Task updateTask = new RawDataRetrievalTask(rawDataFile, scanNumbers,
                 this);
 
         /*
@@ -78,8 +93,12 @@ class TICDataSet extends DefaultTableXYDataset  {
     
     void setXICMode(double mzMin, double mzMax) {
         
-        Task updateTask = new TICDataRetrievalTask(rawDataFile, scanNumbers,
-                this, mzMin, mzMax);
+        xicMode = true;
+        this.mzRangeMin = mzMin;
+        this.mzRangeMax = mzMax;
+        
+        Task updateTask = new RawDataRetrievalTask(rawDataFile, scanNumbers,
+                this);
 
         /*
          * if the file data is preloaded in memory, we can update the visualizer
@@ -106,5 +125,47 @@ class TICDataSet extends DefaultTableXYDataset  {
     
     RawDataFile getRawDataFile() {
         return rawDataFile;
+    }
+
+    /**
+     * @see net.sf.mzmine.util.RawDataAcceptor#getTaskDescription()
+     */
+    public String getTaskDescription() {
+        return "Updating TIC visualizer of " + rawDataFile;
+    }
+
+    /**
+     * @see net.sf.mzmine.util.RawDataAcceptor#addScan(net.sf.mzmine.interfaces.Scan)
+     */
+    public void addScan(Scan scan) {
+
+        double intensityValues[] = scan.getIntensityValues();
+        double mzValues[] = null;
+        double totalIntensity = 0;
+        
+        if (xicMode)
+            mzValues = scan.getMZValues();
+        for (int j = 0; j < intensityValues.length; j++) {
+            if ((!xicMode)
+                    || ((mzValues[j] >= mzRangeMin) && (mzValues[j] <= mzRangeMax)))
+                totalIntensity += intensityValues[j];
+        }
+
+        // redraw every REDRAW_INTERVAL ms
+        boolean notify = false;
+        Date currentTime = new Date();
+        if (currentTime.getTime() - lastRedrawTime.getTime() > REDRAW_INTERVAL) {
+            notify = true;
+            lastRedrawTime = currentTime;
+        }
+
+        // always redraw when we add last value
+        if (scan.getScanNumber() == scanNumbers[scanNumbers.length - 1])
+            notify = true;
+
+        series.add(scan.getRetentionTime() * 1000, totalIntensity,
+                notify);
+        
+        
     }
 }

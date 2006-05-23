@@ -30,23 +30,22 @@ import java.text.SimpleDateFormat;
 import java.util.Enumeration;
 import java.util.Hashtable;
 
-import javax.swing.BorderFactory;
 import javax.swing.JInternalFrame;
-import javax.swing.JLabel;
 
 import net.sf.mzmine.io.RawDataFile;
 import net.sf.mzmine.taskcontrol.Task;
 import net.sf.mzmine.taskcontrol.TaskListener;
 import net.sf.mzmine.taskcontrol.Task.TaskStatus;
+import net.sf.mzmine.userinterface.dialogs.OpenScansDialog;
 import net.sf.mzmine.userinterface.mainwindow.MainWindow;
-import net.sf.mzmine.visualizers.RawDataVisualizer;
+import net.sf.mzmine.visualizers.rawdata.MultipleRawDataVisualizer;
 import net.sf.mzmine.visualizers.rawdata.spectra.SpectrumVisualizer;
 
 /**
  * This class defines a total ion chromatogram visualizer for raw data
  */
-public class TICVisualizer extends JInternalFrame implements RawDataVisualizer,
-        TaskListener, ActionListener {
+public class TICVisualizer extends JInternalFrame implements
+        MultipleRawDataVisualizer, TaskListener, ActionListener {
 
     private TICToolBar toolBar;
     private TICPlot ticPlot;
@@ -76,7 +75,7 @@ public class TICVisualizer extends JInternalFrame implements RawDataVisualizer,
 
         ticPlot = new TICPlot(this);
         add(ticPlot, BorderLayout.CENTER);
-        
+
         this.msLevel = msLevel;
         this.rawDataFiles = new Hashtable<RawDataFile, TICDataSet>();
 
@@ -87,7 +86,7 @@ public class TICVisualizer extends JInternalFrame implements RawDataVisualizer,
     }
 
     /**
-     * @see net.sf.mzmine.visualizers.RawDataVisualizer#setMZRange(double,
+     * @see net.sf.mzmine.visualizers.rawdata.RawDataVisualizer#setMZRange(double,
      *      double)
      */
     public void setMZRange(double mzMin, double mzMax) {
@@ -95,7 +94,7 @@ public class TICVisualizer extends JInternalFrame implements RawDataVisualizer,
     }
 
     /**
-     * @see net.sf.mzmine.visualizers.RawDataVisualizer#setRTRange(double,
+     * @see net.sf.mzmine.visualizers.rawdata.RawDataVisualizer#setRTRange(double,
      *      double)
      */
     public void setRTRange(double rtMin, double rtMax) {
@@ -103,7 +102,7 @@ public class TICVisualizer extends JInternalFrame implements RawDataVisualizer,
     }
 
     /**
-     * @see net.sf.mzmine.visualizers.RawDataVisualizer#setIntensityRange(double,
+     * @see net.sf.mzmine.visualizers.rawdata.RawDataVisualizer#setIntensityRange(double,
      *      double)
      */
     public void setIntensityRange(double intensityMin, double intensityMax) {
@@ -111,16 +110,14 @@ public class TICVisualizer extends JInternalFrame implements RawDataVisualizer,
     }
 
     /**
-     * @see net.sf.mzmine.visualizers.RawDataVisualizer#getRawDataFiles()
+     * @see net.sf.mzmine.visualizers.rawdata.RawDataVisualizer#getRawDataFiles()
      */
     public RawDataFile[] getRawDataFiles() {
         return rawDataFiles.keySet().toArray(new RawDataFile[0]);
     }
- 
 
-    void addRawDataFile(RawDataFile newFile) {
-        TICDataSet dataset = new TICDataSet(newFile, msLevel,
-                this);
+    public void addRawDataFile(RawDataFile newFile) {
+        TICDataSet dataset = new TICDataSet(newFile, msLevel, this);
         rawDataFiles.put(newFile, dataset);
         ticPlot.addDataset(dataset);
         if (rawDataFiles.size() == 1) {
@@ -137,7 +134,7 @@ public class TICVisualizer extends JInternalFrame implements RawDataVisualizer,
 
     }
 
-    void removeRawDataFile(RawDataFile file) {
+    public void removeRawDataFile(RawDataFile file) {
         TICDataSet dataset = rawDataFiles.get(file);
         ticPlot.getPlot().setDataset(ticPlot.getPlot().indexOf(dataset), null);
         rawDataFiles.remove(file);
@@ -178,11 +175,11 @@ public class TICVisualizer extends JInternalFrame implements RawDataVisualizer,
 
         String newLabel = TICXIC + " " + rawDataFiles.keySet().toString()
                 + " MS" + msLevel + scan + selectedValue;
-        
+
         ticPlot.setTitle(newLabel);
 
     }
-    
+
     void showSpectrum() {
         double selectedRT = ticPlot.getPlot().getDomainCrosshairValue();
         double selectedIT = ticPlot.getPlot().getRangeCrosshairValue();
@@ -192,9 +189,7 @@ public class TICVisualizer extends JInternalFrame implements RawDataVisualizer,
             int index = dataSet.getSeriesIndex(selectedRT, selectedIT);
             if (index >= 0) {
                 int scanNumber = dataSet.getScanNumber(index);
-                SpectrumVisualizer specVis = new SpectrumVisualizer(dataSet
-                        .getRawDataFile(), scanNumber);
-                MainWindow.getInstance().addInternalFrame(specVis);
+                new SpectrumVisualizer(dataSet.getRawDataFile(), scanNumber);
                 return;
             }
         }
@@ -220,7 +215,7 @@ public class TICVisualizer extends JInternalFrame implements RawDataVisualizer,
         if (getParent() == null)
             MainWindow.getInstance().addInternalFrame(this);
     }
-    
+
     /**
      * @see java.awt.event.ActionListener#actionPerformed(java.awt.event.ActionEvent)
      */
@@ -239,6 +234,33 @@ public class TICVisualizer extends JInternalFrame implements RawDataVisualizer,
         if (command.equals("SHOW_SPECTRUM")) {
             showSpectrum();
         }
+        
+        if (command.equals("SHOW_MULTIPLE_SPECTRA")) {
+            
+            RawDataFile file = rawDataFiles.keys().nextElement();
+            int scanNumbers[] = file.getScanNumbers(msLevel);
+            int defaultFirst = scanNumbers[0];
+            int defaultLast = scanNumbers[scanNumbers.length - 1];
+            
+            double selectedRT = ticPlot.getPlot().getDomainCrosshairValue();
+            double selectedIT = ticPlot.getPlot().getRangeCrosshairValue();
+            Enumeration<TICDataSet> e = rawDataFiles.elements();
+            while (e.hasMoreElements()) {
+                TICDataSet dataSet = e.nextElement();
+                int index = dataSet.getSeriesIndex(selectedRT, selectedIT);
+                if (index >= 0) {
+                    file = dataSet.getRawDataFile();
+                    scanNumbers = file.getScanNumbers(msLevel);
+                    defaultFirst = dataSet.getScanNumber(index);
+                    defaultLast = dataSet.getScanNumber(index);
+                    break;
+                }
+            }
+            
+            OpenScansDialog dialog = new OpenScansDialog(file, scanNumbers, defaultFirst, defaultLast);
+            dialog.setVisible(true);
+            
+        }
 
         if (command.equals("CHANGE_XIC_TIC")) {
 
@@ -254,20 +276,20 @@ public class TICVisualizer extends JInternalFrame implements RawDataVisualizer,
 
             } else {
 
-                TICDataSet[] dataSets = rawDataFiles.values().toArray(new TICDataSet[0]);
+                TICDataSet[] dataSets = rawDataFiles.values().toArray(
+                        new TICDataSet[0]);
 
                 // Show dialog
                 XICSetupDialog psd = new XICSetupDialog(dataSets);
-                
+
                 psd.setVisible(true);
 
                 xicMode = psd.getXICSet();
-                toolBar.setXicButton(! xicMode);
+                toolBar.setXicButton(!xicMode);
 
             }
         }
 
     }
-
 
 }

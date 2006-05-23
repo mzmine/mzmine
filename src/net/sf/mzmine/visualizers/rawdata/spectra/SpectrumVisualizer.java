@@ -1,17 +1,17 @@
 /*
  * Copyright 2006 The MZmine Development Team
- *
+ * 
  * This file is part of MZmine.
- *
+ * 
  * MZmine is free software; you can redistribute it and/or modify it under the
  * terms of the GNU General Public License as published by the Free Software
  * Foundation; either version 2 of the License, or (at your option) any later
  * version.
- *
+ * 
  * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY
  * WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR
  * A PARTICULAR PURPOSE. See the GNU General Public License for more details.
- *
+ * 
  * You should have received a copy of the GNU General Public License along with
  * MZmine; if not, write to the Free Software Foundation, Inc., 51 Franklin St,
  * Fifth Floor, Boston, MA 02110-1301 USA
@@ -23,49 +23,51 @@ import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.awt.print.PrinterJob;
-import java.io.IOException;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 
-import javax.print.attribute.HashPrintRequestAttributeSet;
-import javax.print.attribute.standard.OrientationRequested;
-import javax.swing.BorderFactory;
 import javax.swing.JInternalFrame;
-import javax.swing.JLabel;
 
 import net.sf.mzmine.interfaces.Scan;
 import net.sf.mzmine.io.RawDataFile;
+import net.sf.mzmine.io.RawDataFile.PreloadLevel;
+import net.sf.mzmine.taskcontrol.Task;
+import net.sf.mzmine.taskcontrol.TaskController;
+import net.sf.mzmine.taskcontrol.TaskListener;
+import net.sf.mzmine.taskcontrol.Task.TaskPriority;
+import net.sf.mzmine.taskcontrol.Task.TaskStatus;
 import net.sf.mzmine.userinterface.mainwindow.MainWindow;
-import net.sf.mzmine.visualizers.RawDataVisualizer;
+import net.sf.mzmine.util.RawDataAcceptor;
+import net.sf.mzmine.util.RawDataRetrievalTask;
+import net.sf.mzmine.visualizers.rawdata.RawDataVisualizer;
 import net.sf.mzmine.visualizers.rawdata.spectra.SpectrumPlot.PlotMode;
 
 import org.jfree.data.xy.DefaultTableXYDataset;
-import org.jfree.data.xy.XYDataset;
 import org.jfree.data.xy.XYSeries;
 
 /**
- * TODO: implement combination of spectra
- *
+ * 
  */
 public class SpectrumVisualizer extends JInternalFrame implements
-        RawDataVisualizer, ActionListener {
+        RawDataVisualizer, ActionListener, RawDataAcceptor, TaskListener {
 
     private SpectrumToolBar toolBar;
     private SpectrumPlot spectrumPlot;
 
     private RawDataFile rawDataFile;
 
+    private DefaultTableXYDataset dataset;
+    private XYSeries series;
+
     private Scan[] scans;
+    private int loadedScans = 0;
+
+    // TODO: get these from parameter storage
+    private static DateFormat rtFormat = new SimpleDateFormat("m:ss");
 
     public SpectrumVisualizer(RawDataFile rawDataFile, int scanNumber) {
         this(rawDataFile, new int[] { scanNumber });
     }
-    
-    private DefaultTableXYDataset dataset;
-    
-    // TODO: get these from parameter storage
-    private static DateFormat rtFormat = new SimpleDateFormat("m:ss");
 
     public SpectrumVisualizer(RawDataFile rawDataFile, int[] scanNumbers) {
 
@@ -78,54 +80,41 @@ public class SpectrumVisualizer extends JInternalFrame implements
         add(toolBar, BorderLayout.EAST);
 
         this.rawDataFile = rawDataFile;
-        
+
         dataset = new DefaultTableXYDataset();
         // set minimum width for peak line (in fact, a bar)
         dataset.setIntervalWidth(Double.MIN_VALUE);
-        XYSeries series = new XYSeries(rawDataFile.toString(), false, false);
+        
+        // keep the series sorted, for easy searching for local maxima
+        series = new XYSeries(rawDataFile.toString(), true, false);
         dataset.addSeries(series);
 
-        // TODO: create a task for this?
-        scans = new Scan[scanNumbers.length];
-        try {
-            for (int i = 0; i < scanNumbers.length; i++) {
-                scans[i] = rawDataFile.getScan(scanNumbers[i]);
-                double mzValues[] = scans[i].getMZValues();
-                double intValues[] = scans[i].getIntensityValues();
-                for (int j = 0; j < mzValues.length; j++)
-                    series.addOrUpdate(mzValues[j], intValues[j]);
-            }
-        } catch (IOException e) {
-            MainWindow.getInstance().displayErrorMessage(
-                    "Error while loading scan data: " + e);
-            dispose(); // TODO: is this correct?
-            return;
-        }
-        
         spectrumPlot = new SpectrumPlot(this, dataset);
         add(spectrumPlot, BorderLayout.CENTER);
-        
+
+        scans = new Scan[scanNumbers.length];
+
+        Task updateTask = new RawDataRetrievalTask(rawDataFile, scanNumbers,
+                this);
+
+        /*
+         * if the file data is preloaded in memory, we can update the visualizer
+         * in this thread, otherwise start a task
+         */
+        if (rawDataFile.getPreloadLevel() == PreloadLevel.PRELOAD_ALL_SCANS) {
+            taskStarted(updateTask);
+            updateTask.run();
+            taskFinished(updateTask);
+        } else
+            TaskController.getInstance().addTask(updateTask, TaskPriority.HIGH,
+                    this);
+
         pack();
-        
-        // if the scans are centroided, switch to centroid mode
-        if (scans[0].isCentroided()) {
-            spectrumPlot.setPlotMode(PlotMode.CENTROID);
-            toolBar.setCentroidButton(false);
-        } else {
-            spectrumPlot.setPlotMode(PlotMode.CONTINUOUS);
-            toolBar.setCentroidButton(true);
-        }
-        
-        updateTitle();
 
-    }
-
-    Scan[] getScans() {
-        return scans;
     }
 
     /**
-     * @see net.sf.mzmine.visualizers.RawDataVisualizer#setMZRange(double,
+     * @see net.sf.mzmine.visualizers.rawdata.RawDataVisualizer#setMZRange(double,
      *      double)
      */
     public void setMZRange(double mzMin, double mzMax) {
@@ -133,7 +122,7 @@ public class SpectrumVisualizer extends JInternalFrame implements
     }
 
     /**
-     * @see net.sf.mzmine.visualizers.RawDataVisualizer#setRTRange(double,
+     * @see net.sf.mzmine.visualizers.rawdata.RawDataVisualizer#setRTRange(double,
      *      double)
      */
     public void setRTRange(double rtMin, double rtMax) {
@@ -142,37 +131,36 @@ public class SpectrumVisualizer extends JInternalFrame implements
     }
 
     /**
-     * @see net.sf.mzmine.visualizers.RawDataVisualizer#setIntensityRange(double,
+     * @see net.sf.mzmine.visualizers.rawdata.RawDataVisualizer#setIntensityRange(double,
      *      double)
      */
     public void setIntensityRange(double intensityMin, double intensityMax) {
-        spectrumPlot.getPlot().getRangeAxis().setRange(intensityMin, intensityMax);
+        spectrumPlot.getPlot().getRangeAxis().setRange(intensityMin,
+                intensityMax);
     }
 
-
-
-    private void updateTitle() {
+    void updateTitle() {
 
         StringBuffer title = new StringBuffer();
         title.append(rawDataFile.toString());
         title.append(": ");
 
-        if (scans.length == 1) {
+        if (loadedScans == 1) {
             title.append("Scan #");
             title.append(scans[0].getScanNumber());
+            setTitle(title.toString());
+
             title.append(", RT ");
-            title.append(rtFormat.format(scans[0]
-                    .getRetentionTime() * 1000));
+            title.append(rtFormat.format(scans[0].getRetentionTime() * 1000));
 
         } else {
             title.append("Combination of spectra, RT ");
-            title.append(rtFormat.format(scans[0]
-                    .getRetentionTime() * 1000));
+            title.append(rtFormat.format(scans[0].getRetentionTime() * 1000));
             title.append(" - ");
-            title.append(rtFormat.format(scans[scans.length - 1].getRetentionTime() * 1000));
+            title.append(rtFormat.format(scans[loadedScans - 1]
+                    .getRetentionTime() * 1000));
+            setTitle(title.toString());
         }
-        setTitle(title.toString());
-
         title.append(", MS");
         title.append(scans[0].getMSLevel());
 
@@ -208,10 +196,80 @@ public class SpectrumVisualizer extends JInternalFrame implements
     }
 
     /**
-     * @see net.sf.mzmine.visualizers.RawDataVisualizer#getRawDataFiles()
+     * @see net.sf.mzmine.visualizers.rawdata.RawDataVisualizer#getRawDataFiles()
      */
     public RawDataFile[] getRawDataFiles() {
         return new RawDataFile[] { rawDataFile };
+    }
+
+    /**
+     * @see net.sf.mzmine.util.RawDataAcceptor#getTaskDescription()
+     */
+    public String getTaskDescription() {
+        return "Updating spectrum visualizer of " + rawDataFile;
+    }
+
+    /**
+     * @see net.sf.mzmine.util.RawDataAcceptor#addScan(net.sf.mzmine.interfaces.Scan)
+     */
+    public void addScan(Scan scan) {
+
+        scans[loadedScans++] = scan;
+
+        if (loadedScans == 1) {
+            // if the scans are centroided, switch to centroid mode
+            if (scan.isCentroided()) {
+                spectrumPlot.setPlotMode(PlotMode.CENTROID);
+                toolBar.setCentroidButton(false);
+            } else {
+                spectrumPlot.setPlotMode(PlotMode.CONTINUOUS);
+                toolBar.setCentroidButton(true);
+            }
+
+        }
+
+        double mzValues[] = scan.getMZValues();
+        double intValues[] = scan.getIntensityValues();
+        for (int j = 0; j < mzValues.length; j++) {
+
+            int index = series.indexOf(mzValues[j]);
+            
+            // if we don't have this m/z value yet, add it. 
+            // otherwise make a sum of intensities
+            if (index < 0) {
+                series.add(mzValues[j], intValues[j], false);
+            } else {
+                double newVal = dataset.getYValue(0, index) + intValues[j];
+                series.updateByIndex(index, newVal);
+            }
+
+        }
+
+        series.fireSeriesChanged();
+
+        updateTitle();
+
+    }
+
+    /**
+     * @see net.sf.mzmine.taskcontrol.TaskListener#taskFinished(net.sf.mzmine.taskcontrol.Task)
+     */
+    public void taskFinished(Task task) {
+        if (task.getStatus() == TaskStatus.ERROR) {
+            MainWindow.getInstance().displayErrorMessage(
+                    "Error while updating spectrum visualizer: "
+                            + task.getErrorMessage());
+        }
+
+    }
+
+    /**
+     * @see net.sf.mzmine.taskcontrol.TaskListener#taskStarted(net.sf.mzmine.taskcontrol.Task)
+     */
+    public void taskStarted(Task task) {
+        // if we have not added this frame before, do it now
+        if (getParent() == null)
+            MainWindow.getInstance().addInternalFrame(this);
     }
 
 }

@@ -38,8 +38,8 @@ import javax.swing.JSplitPane;
 import net.sf.mzmine.methods.alignment.AlignmentResult;
 import net.sf.mzmine.userinterface.dialogs.TaskProgressWindow;
 import net.sf.mzmine.util.ParameterStorage;
-import net.sf.mzmine.visualizers.RawDataVisualizer;
 import net.sf.mzmine.visualizers.alignmentresult.AlignmentResultVisualizer;
+import net.sf.mzmine.visualizers.rawdata.RawDataVisualizer;
 
 /**
  * This class is the main window of application

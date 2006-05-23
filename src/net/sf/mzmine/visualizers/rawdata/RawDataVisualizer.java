@@ -17,7 +17,7 @@
  * Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-package net.sf.mzmine.visualizers;
+package net.sf.mzmine.visualizers.rawdata;
 
 import java.util.Set;
 

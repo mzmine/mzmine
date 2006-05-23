@@ -20,7 +20,7 @@
 /**
  * 
  */
-package net.sf.mzmine.visualizers.rawdata.tic;
+package net.sf.mzmine.util;
 
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -34,17 +34,18 @@ import javax.swing.event.MenuListener;
 
 import net.sf.mzmine.io.MZmineProject;
 import net.sf.mzmine.io.RawDataFile;
+import net.sf.mzmine.visualizers.rawdata.MultipleRawDataVisualizer;
 
 
 /**
  *
  */
-class AddFilePopupMenu extends JMenu implements MenuListener, ActionListener {
+public class AddFilePopupMenu extends JMenu implements MenuListener, ActionListener {
 
     private Hashtable<JMenuItem,RawDataFile> menuItemFiles;
-    TICVisualizer visualizer;
+    MultipleRawDataVisualizer visualizer;
     
-    AddFilePopupMenu(TICVisualizer visualizer) {
+    public AddFilePopupMenu(MultipleRawDataVisualizer visualizer) {
         super("Add plot of file...");
         addMenuListener(this);
         this.visualizer = visualizer;

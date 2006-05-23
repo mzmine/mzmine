@@ -22,11 +22,16 @@
  */
 package net.sf.mzmine.visualizers.rawdata.basepeak;
 
+import java.util.Date;
+
+import net.sf.mzmine.interfaces.Scan;
 import net.sf.mzmine.io.RawDataFile;
 import net.sf.mzmine.io.RawDataFile.PreloadLevel;
 import net.sf.mzmine.taskcontrol.Task;
 import net.sf.mzmine.taskcontrol.TaskController;
 import net.sf.mzmine.taskcontrol.Task.TaskPriority;
+import net.sf.mzmine.util.RawDataAcceptor;
+import net.sf.mzmine.util.RawDataRetrievalTask;
 
 import org.jfree.data.xy.DefaultTableXYDataset;
 import org.jfree.data.xy.XYSeries;
@@ -35,12 +40,17 @@ import org.jfree.data.xy.XYSeries;
 /**
  *
  */
-class BasePeakDataSet extends DefaultTableXYDataset  {
+class BasePeakDataSet extends DefaultTableXYDataset implements RawDataAcceptor {
 
+    // redraw the chart every 100 ms while updating
+    private static final int REDRAW_INTERVAL = 100;
+    
     private RawDataFile rawDataFile;
     private int[] scanNumbers;
     private double[] mzValues;
     private XYSeries series;
+    
+    private Date lastRedrawTime = new Date();
     
     BasePeakDataSet(RawDataFile rawDataFile, int msLevel, BasePeakVisualizer visualizer) {
         
@@ -55,7 +65,7 @@ class BasePeakDataSet extends DefaultTableXYDataset  {
         
         mzValues = new double[scanNumbers.length];
 
-        Task updateTask = new BasePeakDataRetrievalTask(rawDataFile, scanNumbers,
+        Task updateTask = new RawDataRetrievalTask(rawDataFile, scanNumbers,
                 this);
 
         /*
@@ -83,15 +93,46 @@ class BasePeakDataSet extends DefaultTableXYDataset  {
         return mzValues[index];
     }
     
-    void setMZValue(int index, double value) {
-        mzValues[index] = value;
-    }
-    
     int getScanNumber(int index) {
         return scanNumbers[index];
     }
     
     RawDataFile getRawDataFile() {
         return rawDataFile;
+    }
+
+    /**
+     * @see net.sf.mzmine.util.RawDataAcceptor#getTaskDescription()
+     */
+    public String getTaskDescription() {
+        return "Updating base peak visualizer of " + rawDataFile;
+    }
+
+    /**
+     * @see net.sf.mzmine.util.RawDataAcceptor#addScan(net.sf.mzmine.interfaces.Scan)
+     */
+    public void addScan(Scan scan) {
+
+        double basePeakIntensity, basePeakMZ;
+        basePeakMZ = scan.getBasePeakMZ();
+        basePeakIntensity = scan.getBasePeakIntensity();
+
+        // redraw every REDRAW_INTERVAL ms
+        boolean notify = false;
+        Date currentTime = new Date();
+        if (currentTime.getTime() - lastRedrawTime.getTime() > REDRAW_INTERVAL) {
+            notify = true;
+            lastRedrawTime = currentTime;
+        }
+
+        // always redraw when we add last value
+        if (scan.getScanNumber() == scanNumbers[scanNumbers.length - 1])
+            notify = true;
+
+        series.add(scan.getRetentionTime() * 1000, basePeakIntensity,
+                notify);
+
+        mzValues[series.getItemCount() - 1] = basePeakMZ;
+        
     }
 }

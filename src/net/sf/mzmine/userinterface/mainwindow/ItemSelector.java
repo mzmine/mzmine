@@ -43,7 +43,7 @@ import javax.swing.event.ListSelectionListener;
 import net.sf.mzmine.io.MZmineProject;
 import net.sf.mzmine.io.RawDataFile;
 import net.sf.mzmine.methods.alignment.AlignmentResult;
-import net.sf.mzmine.visualizers.RawDataVisualizer;
+import net.sf.mzmine.visualizers.rawdata.RawDataVisualizer;
 import net.sf.mzmine.visualizers.rawdata.basepeak.BasePeakVisualizer;
 import net.sf.mzmine.visualizers.rawdata.tic.TICVisualizer;
 

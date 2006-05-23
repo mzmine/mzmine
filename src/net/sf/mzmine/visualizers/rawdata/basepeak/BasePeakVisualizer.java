@@ -30,25 +30,22 @@ import java.text.SimpleDateFormat;
 import java.util.Enumeration;
 import java.util.Hashtable;
 
-import javax.swing.BorderFactory;
 import javax.swing.JInternalFrame;
-import javax.swing.JLabel;
-
-import org.jfree.chart.title.TextTitle;
 
 import net.sf.mzmine.io.RawDataFile;
 import net.sf.mzmine.taskcontrol.Task;
 import net.sf.mzmine.taskcontrol.TaskListener;
 import net.sf.mzmine.taskcontrol.Task.TaskStatus;
+import net.sf.mzmine.userinterface.dialogs.OpenScansDialog;
 import net.sf.mzmine.userinterface.mainwindow.MainWindow;
-import net.sf.mzmine.visualizers.RawDataVisualizer;
+import net.sf.mzmine.visualizers.rawdata.MultipleRawDataVisualizer;
 import net.sf.mzmine.visualizers.rawdata.spectra.SpectrumVisualizer;
 
 /**
  * This class defines a base peak intensity visualizer for raw data
  */
-public class BasePeakVisualizer extends JInternalFrame implements RawDataVisualizer,
-        TaskListener, ActionListener {
+public class BasePeakVisualizer extends JInternalFrame implements
+        MultipleRawDataVisualizer, TaskListener, ActionListener {
 
     private BasePeakToolBar toolBar;
     private BasePeakPlot basePeakPlot;
@@ -66,7 +63,8 @@ public class BasePeakVisualizer extends JInternalFrame implements RawDataVisuali
      */
     public BasePeakVisualizer(RawDataFile rawDataFile, int msLevel) {
 
-        super(rawDataFile.toString() + " base peak intensity", true, true, true, true);
+        super(rawDataFile.toString() + " base peak intensity", true, true,
+                true, true);
 
         setDefaultCloseOperation(DISPOSE_ON_CLOSE);
         setBackground(Color.white);
@@ -87,7 +85,7 @@ public class BasePeakVisualizer extends JInternalFrame implements RawDataVisuali
     }
 
     /**
-     * @see net.sf.mzmine.visualizers.RawDataVisualizer#setMZRange(double,
+     * @see net.sf.mzmine.visualizers.rawdata.RawDataVisualizer#setMZRange(double,
      *      double)
      */
     public void setMZRange(double mzMin, double mzMax) {
@@ -95,7 +93,7 @@ public class BasePeakVisualizer extends JInternalFrame implements RawDataVisuali
     }
 
     /**
-     * @see net.sf.mzmine.visualizers.RawDataVisualizer#setRTRange(double,
+     * @see net.sf.mzmine.visualizers.rawdata.RawDataVisualizer#setRTRange(double,
      *      double)
      */
     public void setRTRange(double rtMin, double rtMax) {
@@ -103,24 +101,23 @@ public class BasePeakVisualizer extends JInternalFrame implements RawDataVisuali
     }
 
     /**
-     * @see net.sf.mzmine.visualizers.RawDataVisualizer#setIntensityRange(double,
+     * @see net.sf.mzmine.visualizers.rawdata.RawDataVisualizer#setIntensityRange(double,
      *      double)
      */
     public void setIntensityRange(double intensityMin, double intensityMax) {
-        basePeakPlot.getPlot().getRangeAxis().setRange(intensityMin, intensityMax);
+        basePeakPlot.getPlot().getRangeAxis().setRange(intensityMin,
+                intensityMax);
     }
 
     /**
-     * @see net.sf.mzmine.visualizers.RawDataVisualizer#getRawDataFiles()
+     * @see net.sf.mzmine.visualizers.rawdata.RawDataVisualizer#getRawDataFiles()
      */
     public RawDataFile[] getRawDataFiles() {
         return rawDataFiles.keySet().toArray(new RawDataFile[0]);
     }
- 
 
-    void addRawDataFile(RawDataFile newFile) {
-        BasePeakDataSet dataset = new BasePeakDataSet(newFile, msLevel,
-                this);
+    public void addRawDataFile(RawDataFile newFile) {
+        BasePeakDataSet dataset = new BasePeakDataSet(newFile, msLevel, this);
         rawDataFiles.put(newFile, dataset);
         basePeakPlot.addDataset(dataset);
         if (rawDataFiles.size() == 1) {
@@ -137,9 +134,10 @@ public class BasePeakVisualizer extends JInternalFrame implements RawDataVisuali
 
     }
 
-    void removeRawDataFile(RawDataFile file) {
+    public void removeRawDataFile(RawDataFile file) {
         BasePeakDataSet dataset = rawDataFiles.get(file);
-        basePeakPlot.getPlot().setDataset(basePeakPlot.getPlot().indexOf(dataset), null);
+        basePeakPlot.getPlot().setDataset(
+                basePeakPlot.getPlot().indexOf(dataset), null);
         rawDataFiles.remove(file);
 
         // when displaying less than two files, hide a legend
@@ -152,8 +150,8 @@ public class BasePeakVisualizer extends JInternalFrame implements RawDataVisuali
     void updateTitle() {
 
         String scan = "", selectedValue = "";
-        setTitle("Base peak intensity " + rawDataFiles.keySet().toString() + " MS"
-                + msLevel);
+        setTitle("Base peak intensity " + rawDataFiles.keySet().toString()
+                + " MS" + msLevel);
 
         double selectedRT = basePeakPlot.getPlot().getDomainCrosshairValue();
         double selectedIT = basePeakPlot.getPlot().getRangeCrosshairValue();
@@ -175,12 +173,13 @@ public class BasePeakVisualizer extends JInternalFrame implements RawDataVisuali
             }
         }
 
-        String newLabel = "Base peak intensity " + rawDataFiles.keySet().toString()
-                + " MS" + msLevel + scan + selectedValue;
+        String newLabel = "Base peak intensity "
+                + rawDataFiles.keySet().toString() + " MS" + msLevel + scan
+                + selectedValue;
         basePeakPlot.setTitle(newLabel);
 
     }
-    
+
     void showSpectrum() {
         double selectedRT = basePeakPlot.getPlot().getDomainCrosshairValue();
         double selectedIT = basePeakPlot.getPlot().getRangeCrosshairValue();
@@ -190,9 +189,7 @@ public class BasePeakVisualizer extends JInternalFrame implements RawDataVisuali
             int index = dataSet.getSeriesIndex(selectedRT, selectedIT);
             if (index >= 0) {
                 int scanNumber = dataSet.getScanNumber(index);
-                SpectrumVisualizer specVis = new SpectrumVisualizer(dataSet
-                        .getRawDataFile(), scanNumber);
-                MainWindow.getInstance().addInternalFrame(specVis);
+                new SpectrumVisualizer(dataSet.getRawDataFile(), scanNumber);
                 return;
             }
         }
@@ -218,7 +215,7 @@ public class BasePeakVisualizer extends JInternalFrame implements RawDataVisuali
         if (getParent() == null)
             MainWindow.getInstance().addInternalFrame(this);
     }
-    
+
     /**
      * @see java.awt.event.ActionListener#actionPerformed(java.awt.event.ActionEvent)
      */
@@ -236,6 +233,33 @@ public class BasePeakVisualizer extends JInternalFrame implements RawDataVisuali
 
         if (command.equals("SHOW_SPECTRUM")) {
             showSpectrum();
+        }
+        
+       if (command.equals("SHOW_MULTIPLE_SPECTRA")) {
+            
+            RawDataFile file = rawDataFiles.keys().nextElement();
+            int scanNumbers[] = file.getScanNumbers(msLevel);
+            int defaultFirst = scanNumbers[0];
+            int defaultLast = scanNumbers[scanNumbers.length - 1];
+            
+            double selectedRT = basePeakPlot.getPlot().getDomainCrosshairValue();
+            double selectedIT = basePeakPlot.getPlot().getRangeCrosshairValue();
+            Enumeration<BasePeakDataSet> e = rawDataFiles.elements();
+            while (e.hasMoreElements()) {
+                BasePeakDataSet dataSet = e.nextElement();
+                int index = dataSet.getSeriesIndex(selectedRT, selectedIT);
+                if (index >= 0) {
+                    file = dataSet.getRawDataFile();
+                    scanNumbers = file.getScanNumbers(msLevel);
+                    defaultFirst = dataSet.getScanNumber(index);
+                    defaultLast = dataSet.getScanNumber(index);
+                    break;
+                }
+            }
+            
+            OpenScansDialog dialog = new OpenScansDialog(file, scanNumbers, defaultFirst, defaultLast);
+            dialog.setVisible(true);
+            
         }
 
     }

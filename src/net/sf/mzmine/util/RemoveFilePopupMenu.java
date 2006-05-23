@@ -20,12 +20,11 @@
 /**
  * 
  */
-package net.sf.mzmine.visualizers.rawdata.basepeak;
+package net.sf.mzmine.util;
 
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.util.Hashtable;
-import java.util.Set;
 
 import javax.swing.JMenu;
 import javax.swing.JMenuItem;
@@ -33,18 +32,18 @@ import javax.swing.event.MenuEvent;
 import javax.swing.event.MenuListener;
 
 import net.sf.mzmine.io.RawDataFile;
-import net.sf.mzmine.visualizers.rawdata.tic.TICVisualizer;
+import net.sf.mzmine.visualizers.rawdata.MultipleRawDataVisualizer;
 
 
 /**
  *
  */
-class RemoveFilePopupMenu extends JMenu implements MenuListener, ActionListener {
+public class RemoveFilePopupMenu extends JMenu implements MenuListener, ActionListener {
 
     private Hashtable<JMenuItem,RawDataFile> menuItemFiles;
-    BasePeakVisualizer visualizer;
+    MultipleRawDataVisualizer visualizer;
     
-    RemoveFilePopupMenu(BasePeakVisualizer visualizer) {
+    public RemoveFilePopupMenu(MultipleRawDataVisualizer visualizer) {
         super("Remove plot of file...");
         addMenuListener(this);
         this.visualizer = visualizer;

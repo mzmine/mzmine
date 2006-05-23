@@ -44,7 +44,7 @@ import net.sf.mzmine.methods.peakpicking.Peak;
 import net.sf.mzmine.userinterface.mainwindow.ItemSelector;
 import net.sf.mzmine.userinterface.mainwindow.MainWindow;
 import net.sf.mzmine.userinterface.mainwindow.Statusbar;
-import net.sf.mzmine.visualizers.RawDataVisualizer;
+import net.sf.mzmine.visualizers.rawdata.RawDataVisualizer;
 
 
 /**
@@ -351,7 +351,7 @@ public class RawDataVisualizerPeakListView extends JInternalFrame implements Pri
 
 
     /**
-     * @see net.sf.mzmine.visualizers.RawDataVisualizer#getRawDataFile()
+     * @see net.sf.mzmine.visualizers.rawdata.RawDataVisualizer#getRawDataFile()
      */
     public RawDataFile getRawDataFile() {
         // TODO Auto-generated method stub
@@ -359,7 +359,7 @@ public class RawDataVisualizerPeakListView extends JInternalFrame implements Pri
     }
 
     /**
-     * @see net.sf.mzmine.visualizers.RawDataVisualizer#setRawDataFile(net.sf.mzmine.io.RawDataFile)
+     * @see net.sf.mzmine.visualizers.rawdata.RawDataVisualizer#setRawDataFile(net.sf.mzmine.io.RawDataFile)
      */
     public void setRawDataFile(RawDataFile newFile) {
         // TODO Auto-generated method stub
@@ -367,7 +367,7 @@ public class RawDataVisualizerPeakListView extends JInternalFrame implements Pri
     }
 
     /**
-     * @see net.sf.mzmine.visualizers.RawDataVisualizer#setMZRange(double, double)
+     * @see net.sf.mzmine.visualizers.rawdata.RawDataVisualizer#setMZRange(double, double)
      */
     public void setMZRange(double mzMin, double mzMax) {
         // TODO Auto-generated method stub
@@ -375,7 +375,7 @@ public class RawDataVisualizerPeakListView extends JInternalFrame implements Pri
     }
 
     /**
-     * @see net.sf.mzmine.visualizers.RawDataVisualizer#setRTRange(double, double)
+     * @see net.sf.mzmine.visualizers.rawdata.RawDataVisualizer#setRTRange(double, double)
      */
     public void setRTRange(double rtMin, double rtMax) {
         // TODO Auto-generated method stub
@@ -383,7 +383,7 @@ public class RawDataVisualizerPeakListView extends JInternalFrame implements Pri
     }
 
     /**
-     * @see net.sf.mzmine.visualizers.RawDataVisualizer#setMZPosition(double)
+     * @see net.sf.mzmine.visualizers.rawdata.RawDataVisualizer#setMZPosition(double)
      */
     public void setMZPosition(double mz) {
         // TODO Auto-generated method stub
@@ -391,7 +391,7 @@ public class RawDataVisualizerPeakListView extends JInternalFrame implements Pri
     }
 
     /**
-     * @see net.sf.mzmine.visualizers.RawDataVisualizer#setRTPosition(double)
+     * @see net.sf.mzmine.visualizers.rawdata.RawDataVisualizer#setRTPosition(double)
      */
     public void setRTPosition(double rt) {
         // TODO Auto-generated method stub
@@ -399,7 +399,7 @@ public class RawDataVisualizerPeakListView extends JInternalFrame implements Pri
     }
 
     /**
-     * @see net.sf.mzmine.visualizers.RawDataVisualizer#attachVisualizer(net.sf.mzmine.visualizers.RawDataVisualizer)
+     * @see net.sf.mzmine.visualizers.rawdata.RawDataVisualizer#attachVisualizer(net.sf.mzmine.visualizers.rawdata.RawDataVisualizer)
      */
     public void attachVisualizer(RawDataVisualizer visualizer) {
         // TODO Auto-generated method stub
@@ -407,7 +407,7 @@ public class RawDataVisualizerPeakListView extends JInternalFrame implements Pri
     }
 
     /**
-     * @see net.sf.mzmine.visualizers.RawDataVisualizer#detachVisualizer(net.sf.mzmine.visualizers.RawDataVisualizer)
+     * @see net.sf.mzmine.visualizers.rawdata.RawDataVisualizer#detachVisualizer(net.sf.mzmine.visualizers.rawdata.RawDataVisualizer)
      */
     public void detachVisualizer(RawDataVisualizer visualizer) {
         // TODO Auto-generated method stub
