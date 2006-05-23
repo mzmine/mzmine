@@ -24,6 +24,8 @@ package net.sf.mzmine.visualizers.rawdata.basepeak;
 
 import java.awt.BasicStroke;
 import java.awt.Color;
+import java.awt.Cursor;
+import java.awt.Font;
 import java.awt.Shape;
 import java.awt.event.ActionEvent;
 import java.awt.event.MouseEvent;
@@ -47,6 +49,7 @@ import org.jfree.chart.event.ChartProgressEvent;
 import org.jfree.chart.plot.XYPlot;
 import org.jfree.chart.renderer.xy.XYLineAndShapeRenderer;
 import org.jfree.chart.title.LegendTitle;
+import org.jfree.chart.title.TextTitle;
 import org.jfree.ui.RectangleInsets;
 
 /**
@@ -83,6 +86,9 @@ class BasePeakPlot extends ChartPanel {
     private static Shape dataPointsShape = new Ellipse2D.Float(-2, -2, 5, 5);
     
     private LegendTitle legend;
+    
+    // title font
+    private static final Font titleFont = new Font("SansSerif", Font.PLAIN, 12);
 
     XYLineAndShapeRenderer defaultRenderer;
 
@@ -103,6 +109,8 @@ class BasePeakPlot extends ChartPanel {
         super(null, true);
 
         this.visualizer = visualizer;
+        
+        setCursor(Cursor.getPredefinedCursor(Cursor.CROSSHAIR_CURSOR));
 
         // initialize the chart by default time series chart from factory
         chart = ChartFactory.createTimeSeriesChart(null, // title
@@ -341,4 +349,11 @@ class BasePeakPlot extends ChartPanel {
             chart.addLegend(legend);
         }
     }
+        
+    void setTitle(String title) {
+        TextTitle newTitle = new TextTitle(title, titleFont);
+        newTitle.setMargin(5,0,0,0);
+        chart.setTitle(newTitle);
+    }
+    
 }

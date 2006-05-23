@@ -34,6 +34,8 @@ import javax.swing.BorderFactory;
 import javax.swing.JInternalFrame;
 import javax.swing.JLabel;
 
+import org.jfree.chart.title.TextTitle;
+
 import net.sf.mzmine.io.RawDataFile;
 import net.sf.mzmine.taskcontrol.Task;
 import net.sf.mzmine.taskcontrol.TaskListener;
@@ -50,7 +52,6 @@ public class BasePeakVisualizer extends JInternalFrame implements RawDataVisuali
 
     private BasePeakToolBar toolBar;
     private BasePeakPlot basePeakPlot;
-    private JLabel titleLabel;
 
     private Hashtable<RawDataFile, BasePeakDataSet> rawDataFiles;
     private int msLevel;
@@ -69,11 +70,6 @@ public class BasePeakVisualizer extends JInternalFrame implements RawDataVisuali
 
         setDefaultCloseOperation(DISPOSE_ON_CLOSE);
         setBackground(Color.white);
-
-        titleLabel = new JLabel(rawDataFile.toString() + " base peak intensity", JLabel.CENTER);
-        titleLabel.setBorder(BorderFactory.createEmptyBorder(5, 5, 5, 5));
-        titleLabel.setFont(titleLabel.getFont().deriveFont(11.0f));
-        add(titleLabel, BorderLayout.NORTH);
 
         toolBar = new BasePeakToolBar(this);
         add(toolBar, BorderLayout.EAST);
@@ -181,7 +177,7 @@ public class BasePeakVisualizer extends JInternalFrame implements RawDataVisuali
 
         String newLabel = "Base peak intensity " + rawDataFiles.keySet().toString()
                 + " MS" + msLevel + scan + selectedValue;
-        titleLabel.setText(newLabel);
+        basePeakPlot.setTitle(newLabel);
 
     }
     
@@ -243,6 +239,5 @@ public class BasePeakVisualizer extends JInternalFrame implements RawDataVisuali
         }
 
     }
-
 
 }

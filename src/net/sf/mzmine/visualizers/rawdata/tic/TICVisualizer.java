@@ -50,7 +50,6 @@ public class TICVisualizer extends JInternalFrame implements RawDataVisualizer,
 
     private TICToolBar toolBar;
     private TICPlot ticPlot;
-    private JLabel titleLabel;
 
     private Hashtable<RawDataFile, TICDataSet> rawDataFiles;
     private int msLevel;
@@ -72,17 +71,12 @@ public class TICVisualizer extends JInternalFrame implements RawDataVisualizer,
         setDefaultCloseOperation(DISPOSE_ON_CLOSE);
         setBackground(Color.white);
 
-        titleLabel = new JLabel(rawDataFile.toString() + " TIC", JLabel.CENTER);
-        titleLabel.setBorder(BorderFactory.createEmptyBorder(5, 5, 5, 5));
-        titleLabel.setFont(titleLabel.getFont().deriveFont(11.0f));
-        add(titleLabel, BorderLayout.NORTH);
-
         toolBar = new TICToolBar(this);
         add(toolBar, BorderLayout.EAST);
 
         ticPlot = new TICPlot(this);
         add(ticPlot, BorderLayout.CENTER);
-
+        
         this.msLevel = msLevel;
         this.rawDataFiles = new Hashtable<RawDataFile, TICDataSet>();
 
@@ -184,7 +178,7 @@ public class TICVisualizer extends JInternalFrame implements RawDataVisualizer,
 
         String newLabel = TICXIC + " " + rawDataFiles.keySet().toString()
                 + " MS" + msLevel + scan + selectedValue;
-        titleLabel.setText(newLabel);
+        ticPlot.setTitle(newLabel);
 
     }
     

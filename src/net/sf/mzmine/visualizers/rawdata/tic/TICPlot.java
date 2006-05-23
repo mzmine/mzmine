@@ -24,6 +24,8 @@ package net.sf.mzmine.visualizers.rawdata.tic;
 
 import java.awt.BasicStroke;
 import java.awt.Color;
+import java.awt.Cursor;
+import java.awt.Font;
 import java.awt.Shape;
 import java.awt.event.ActionEvent;
 import java.awt.event.MouseEvent;
@@ -47,6 +49,7 @@ import org.jfree.chart.event.ChartProgressEvent;
 import org.jfree.chart.plot.XYPlot;
 import org.jfree.chart.renderer.xy.XYLineAndShapeRenderer;
 import org.jfree.chart.title.LegendTitle;
+import org.jfree.chart.title.TextTitle;
 import org.jfree.ui.RectangleInsets;
 
 /**
@@ -67,20 +70,23 @@ class TICPlot extends ChartPanel {
     private int numberOfDataSets = 0;
 
     // plot colors for plotted files, circulated by numberOfDataSets
-    private static Color[] plotColors = { new Color(0, 0, 192), // blue
+    private static final Color[] plotColors = { new Color(0, 0, 192), // blue
             new Color(192, 0, 0), // red
             new Color(0, 192, 0), // green
             Color.magenta, Color.cyan, Color.orange };
     
     //  crosshair (selection) color
-    private static Color crossHairColor = Color.gray; 
+    private static final Color crossHairColor = Color.gray; 
     
     // crosshair stroke
-    private static BasicStroke crossHairStroke = new BasicStroke(1, BasicStroke.CAP_BUTT,
+    private static final BasicStroke crossHairStroke = new BasicStroke(1, BasicStroke.CAP_BUTT,
             BasicStroke.JOIN_BEVEL, 1.0f, new float[] { 5, 3 }, 0);
 
     // data points shape
-    private static Shape dataPointsShape = new Ellipse2D.Float(-2, -2, 5, 5);
+    private static final Shape dataPointsShape = new Ellipse2D.Float(-2, -2, 5, 5);
+    
+    // title font
+    private static final Font titleFont = new Font("SansSerif", Font.PLAIN, 12);
     
     private LegendTitle legend;
 
@@ -96,19 +102,21 @@ class TICPlot extends ChartPanel {
     private boolean showSpectrumRequest = false;
 
     /**
-     * @param chart
+     *
      */
     TICPlot(final TICVisualizer visualizer) {
         // superconstructor with no chart yet, but enable off-screen buffering
         super(null, true);
 
         this.visualizer = visualizer;
-
+        
+        setCursor(Cursor.getPredefinedCursor(Cursor.CROSSHAIR_CURSOR));
+        
         // initialize the chart by default time series chart from factory
-        chart = ChartFactory.createTimeSeriesChart(null, // title
+        chart = ChartFactory.createTimeSeriesChart(null, // title TODO:
                 "Retention time", // x-axis label
                 "Total ion intensity", // y-axis label
-                null, // no data yet
+                null, // data set
                 true, // create legend?
                 true, // generate tooltips?
                 false // generate URLs?
@@ -347,4 +355,11 @@ class TICPlot extends ChartPanel {
             chart.addLegend(legend);
         }
     }
+    
+    void setTitle(String title) {
+        TextTitle newTitle = new TextTitle(title, titleFont);
+        newTitle.setMargin(5,0,0,0);
+        chart.setTitle(newTitle);
+    }
+    
 }

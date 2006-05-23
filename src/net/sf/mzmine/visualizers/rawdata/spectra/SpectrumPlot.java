@@ -1,17 +1,17 @@
 /*
  * Copyright 2006 The MZmine Development Team
- *
+ * 
  * This file is part of MZmine.
- *
+ * 
  * MZmine is free software; you can redistribute it and/or modify it under the
  * terms of the GNU General Public License as published by the Free Software
  * Foundation; either version 2 of the License, or (at your option) any later
  * version.
- *
+ * 
  * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY
  * WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR
  * A PARTICULAR PURPOSE. See the GNU General Public License for more details.
- *
+ * 
  * You should have received a copy of the GNU General Public License along with
  * MZmine; if not, write to the Free Software Foundation, Inc., 51 Franklin St,
  * Fifth Floor, Boston, MA 02110-1301 USA
@@ -21,364 +21,195 @@ package net.sf.mzmine.visualizers.rawdata.spectra;
 
 import java.awt.Color;
 import java.awt.Cursor;
-import java.awt.Dimension;
-import java.awt.Graphics;
-import java.awt.event.MouseEvent;
-import java.awt.event.MouseListener;
-import java.awt.event.MouseMotionListener;
+import java.awt.Font;
+import java.awt.Shape;
+import java.awt.geom.Ellipse2D;
+import java.text.DecimalFormat;
+import java.text.NumberFormat;
 
-import javax.swing.JPanel;
+import javax.swing.JMenuItem;
+import javax.swing.JPopupMenu;
 
-import net.sf.mzmine.interfaces.Scan;
-import net.sf.mzmine.util.format.IntensityValueFormat;
-import net.sf.mzmine.util.format.MZValueFormat;
-import net.sf.mzmine.util.format.ValueFormat;
+import org.jfree.chart.ChartFactory;
+import org.jfree.chart.ChartPanel;
+import org.jfree.chart.JFreeChart;
+import org.jfree.chart.axis.NumberAxis;
+import org.jfree.chart.plot.PlotOrientation;
+import org.jfree.chart.plot.XYPlot;
+import org.jfree.chart.renderer.xy.XYBarRenderer;
+import org.jfree.chart.renderer.xy.XYLineAndShapeRenderer;
+import org.jfree.chart.title.TextTitle;
+import org.jfree.data.xy.XYDataset;
+import org.jfree.ui.RectangleInsets;
 
 /**
  * 
  */
-class SpectrumPlot extends JPanel implements 
-        MouseListener, MouseMotionListener {
+class SpectrumPlot extends ChartPanel {
 
-    static final int SELECTION_TOLERANCE = 10;
-    
-    static enum PlotMode { CENTROID, CONTINUOUS };
-    
-    static final Color plotColor = new Color(0,0,224); 
+    private JFreeChart chart;
 
-    private SpectrumVisualizer masterFrame;
-    
-    private boolean mousePresent = false;
-    private int mousePositionX, mousePositionY;
-    private int lastClickX, lastClickY;
-    private boolean mouseSelection = false;
-    private boolean showDataPoints = false;
-    
+    private XYPlot plot;
+
+    private static NumberFormat intensityFormat = new DecimalFormat("0.00E0");
+    private static NumberFormat mzFormat = new DecimalFormat("0.00");
+
+    static enum PlotMode {
+        CENTROID, CONTINUOUS
+    };
+
     private PlotMode plotMode = PlotMode.CONTINUOUS;
-    
-    private double mzValueMin;
-    private double mzValueMax;
-    private double intValueMin;
-    private double intValueMax;
-    
-    private boolean showAnnotations = true;
-    
-    private ValueFormat mzFormat, intensityFormat;
 
-    SpectrumPlot(SpectrumVisualizer masterFrame) {
+    static final Color plotColor = new Color(0, 0, 192);
+    
+    // data points shape
+    private static Shape dataPointsShape = new Ellipse2D.Float(-2, -2, 5, 5);
+    
+    // title font
+    private static final Font titleFont = new Font("SansSerif", Font.PLAIN, 12);
 
-        this.masterFrame = masterFrame;
+    XYBarRenderer centroidRenderer;
+    XYLineAndShapeRenderer continuousRenderer;
 
-        mzFormat = new MZValueFormat();
-        intensityFormat = new IntensityValueFormat();
-        
+    SpectrumPlot(SpectrumVisualizer visualizer, XYDataset dataset) {
+        // superconstructor with no chart yet, but enable off-screen buffering
+        super(null, true);
+
         setBackground(Color.white);
         setCursor(Cursor.getPredefinedCursor(Cursor.CROSSHAIR_CURSOR));
 
+        // initialize the chart by default time series chart from factory
+        chart = ChartFactory.createXYLineChart(null, // title
+                "m/z", // x-axis label
+                "Intensity", // y-axis label
+                dataset, // data set
+                PlotOrientation.VERTICAL, // orientation
+                false, // create legend?
+                true, // generate tooltips?
+                false // generate URLs?
+                );
+        chart.setBackgroundPaint(Color.white);
+        setChart(chart);
 
-        addMouseListener(this);
-        addMouseMotionListener(this);
+        // disable maximum size (we don't want scaling)
+        setMaximumDrawWidth(Integer.MAX_VALUE);
+        setMaximumDrawHeight(Integer.MAX_VALUE);
 
-        setMinimumSize(new Dimension(300, 100));
-        setPreferredSize(new Dimension(500, 250));
+        // set the plot properties
+        plot = chart.getXYPlot();
+        plot.setBackgroundPaint(Color.white);
+        plot.setAxisOffset(new RectangleInsets(5.0, 5.0, 5.0, 5.0));
+
+        // set grid properties
+        plot.setDomainGridlinePaint(Color.lightGray);
+        plot.setRangeGridlinePaint(Color.lightGray);
+
+        // set crosshair (selection) properties
+        plot.setDomainCrosshairVisible(false);
+        plot.setRangeCrosshairVisible(false);
+
+        // set the X axis (retention time) properties
+        NumberAxis xAxis = (NumberAxis) plot.getDomainAxis();
+        xAxis.setNumberFormatOverride(mzFormat);
+        xAxis.setUpperMargin(0.001);
+        xAxis.setLowerMargin(0.001);
+        xAxis.setTickLabelInsets(new RectangleInsets(0,0,20,20));
+
+        // set the Y axis (intensity) properties
+        NumberAxis yAxis = (NumberAxis) plot.getRangeAxis();
+        yAxis.setNumberFormatOverride(intensityFormat);
+
+        // set default renderer properties
+        continuousRenderer = new XYLineAndShapeRenderer();
+        continuousRenderer.setShapesFilled(true);
+        continuousRenderer.setDrawOutlines(false);
+        continuousRenderer.setUseFillPaint(true);
+        continuousRenderer.setShape(dataPointsShape);
+        continuousRenderer.setPaint(plotColor);
+        continuousRenderer.setFillPaint(plotColor);
+        continuousRenderer.setBaseShapesVisible(false);
+
+        centroidRenderer = new XYBarRenderer();
+        centroidRenderer.setBaseShape(dataPointsShape);
+        centroidRenderer.setPaint(plotColor);
         
-        plotMode = PlotMode.CONTINUOUS;
+        // set label generator
+        SpectrumItemLabelGenerator labelGenerator = new SpectrumItemLabelGenerator(
+                this);
+        continuousRenderer.setItemLabelGenerator(labelGenerator);
+        continuousRenderer.setItemLabelsVisible(true);
+        centroidRenderer.setItemLabelGenerator(labelGenerator);
+        centroidRenderer.setItemLabelsVisible(true);
 
-    }
-    
-    void setMZRange(double min, double max) {
-        mzValueMin = min;
-        mzValueMax = max;
-        repaint();
-    }
-    
-    void setIntensityRange(double min, double max) {
-        intValueMin = min;
-        intValueMax = max;
-        repaint();
-    }
+        // set toolTipGenerator
+        SpectrumToolTipGenerator toolTipGenerator = new SpectrumToolTipGenerator();
+        continuousRenderer.setToolTipGenerator(toolTipGenerator);
+        centroidRenderer.setToolTipGenerator(toolTipGenerator);
 
-    public void paint(Graphics g) {
+        // add items to popup menu
+        JMenuItem annotationsMenuItem, dataPointsMenuItem, plotTypeMenuItem;
 
-        super.paint(g);
+        annotationsMenuItem = new JMenuItem("Toggle displaying of peak values");
+        annotationsMenuItem.addActionListener(visualizer);
+        annotationsMenuItem.setActionCommand("SHOW_ANNOTATIONS");
 
-        int width = getWidth();
-        int height = getHeight();
+        dataPointsMenuItem = new JMenuItem("Toggle displaying of data points in continuous mode");
+        dataPointsMenuItem.addActionListener(visualizer);
+        dataPointsMenuItem.setActionCommand("SHOW_DATA_POINTS");
 
-        Scan scans[] = masterFrame.getScans();
-        assert scans != null;
+        plotTypeMenuItem = new JMenuItem("Toggle centroid/continuous mode");
+        plotTypeMenuItem.addActionListener(visualizer);
+        plotTypeMenuItem.setActionCommand("TOGGLE_PLOT_MODE");
+        add(plotTypeMenuItem);
 
-        double xAxisStep = (mzValueMax - mzValueMin) / (width - 1);
-        double yAxisStep = (intValueMax - intValueMin) / (height - 1);
+        JPopupMenu popupMenu = getPopupMenu();
+        popupMenu.addSeparator();
+        popupMenu.add(annotationsMenuItem);
+        popupMenu.add(dataPointsMenuItem);
+        popupMenu.add(plotTypeMenuItem);
 
-
-        // Draw selection
-        if (mouseSelection) {
-            g.setColor(Color.lightGray);
-            int selX = Math.min(lastClickX, mousePositionX);
-            int selY = Math.min(lastClickY, mousePositionY);
-            int selWidth = Math.abs(mousePositionX - lastClickX);
-            int selHeight = Math.abs(mousePositionY - lastClickY);
-            if ((selWidth > SELECTION_TOLERANCE)
-                    && (selHeight > SELECTION_TOLERANCE)) {
-                g.drawRect(selX, selY, selWidth, selHeight);
-            } else if (selWidth > SELECTION_TOLERANCE) {
-                g.drawLine(lastClickX, lastClickY, mousePositionX, lastClickY);
-            } else if (selHeight > SELECTION_TOLERANCE) {
-                g.drawLine(lastClickX, lastClickY, lastClickX, mousePositionY);
-            }
-        }
-
-        // Draw linegraph 
-
-        double mzValues[];
-        double intensities[];
-        boolean localMaximum;
-        g.setFont(g.getFont().deriveFont(8.0f));
-        
-        for (Scan scan: scans) {
-            mzValues = scan.getMZValues();
-            intensities = scan.getIntensityValues();
-
-            int startIndex = 1, endIndex = mzValues.length - 1;
-            while (mzValues[startIndex] < mzValueMin) {
-                if (startIndex == mzValues.length - 1)
-                    break;
-                startIndex++;
-            }
-            startIndex--;
-            while (mzValues[endIndex] > mzValueMax) {
-                if (endIndex == 0)
-                    break;
-                endIndex--;
-            }
-            
-            if (startIndex < endIndex) {
-
-                int x, y, prevx = 0, prevy = 0;
-
-                for (int ind = startIndex; ind <= endIndex; ind++) {
-                    
-                    x = (int) Math.round((mzValues[ind] - mzValueMin)
-                            / xAxisStep);
-                    y = height
-                            - (int) Math.round((intensities[ind] - intValueMin)
-                                    / yAxisStep);
-
-                    if (showDataPoints) {
-                        g.setColor(Color.red);
-                        g.fillOval(x - 2, y - 2, 4, 4);
-                    }
-                    
-                    g.setColor(plotColor);
-                    
-                    if (plotMode == PlotMode.CONTINUOUS) {
-                        if (ind > startIndex) 
-                            g.drawLine(prevx, prevy, x, y);
-                        
-                    } else {
-                        g.drawLine(x, y, x, height);
-                    }
-                    
-                    if (showAnnotations) {
-                        localMaximum = (x > 10) && (x < width - 10);
-                        int i;
-                        if (localMaximum)
-                            for (i = ind - 1; (i >= 0)
-                                    && (mzValues[i] > mzValues[ind]
-                                            - (35 * xAxisStep)); i--) {
-                                if (intensities[i] >= intensities[ind]) {
-                                    localMaximum = false;
-                                    break;
-                                }
-                            }
-
-                        if (localMaximum)
-                            for (i = ind + 1; (i < mzValues.length)
-                                    && (mzValues[i] < mzValues[ind]
-                                            + (35 * xAxisStep)); i++) {
-                                if (intensities[i] >= intensities[ind]) {
-                                    localMaximum = false;
-                                    break;
-                                }
-                            }
-
-                        if (localMaximum) {
-
-                            String value = mzFormat.format(mzValues[ind]);
-                            int posx = x - value.length() * 2;
-                            int posy = y - 10;
-                            g.setColor(Color.lightGray);
-                            if (posy < 8) {
-                                posx = x + 6;
-                                posy = 8;
-                                g.drawLine(x, y - 2, posx - 2, posy - 4);
-                            } else {
-                                g.drawLine(x, y - 2, x, posy + 1);
-                            }
-                            g.setColor(Color.darkGray);
-                            g.drawString(value, posx, posy);
-
-                        }
-                    }
-
-                    prevx = x;
-                    prevy = y;
-                }
-            }
-            
-            
-        }
-        
- 
-        // draw mouse cursor
-        if (mousePresent) {
- 
-            double mz = mzValueMin + xAxisStep * mousePositionX;
-            double intensity = intValueMin + (intValueMax - intValueMin)
-                    / height * (height - mousePositionY);
-            String positionMZ = "m/z: " + mzFormat.format(mz);
-            String positionInt = "IC: "
-                    + intensityFormat.format(intensity);
-            int drawX = mousePositionX + 8;
-            int drawY = mousePositionY - 20;
-
-            if (drawX > width
-                    - Math.max(positionMZ.length(), positionInt.length()) * 5)
-                drawX = mousePositionX
-                        - Math.max(positionMZ.length(), positionInt.length())
-                        * 5 - 5;
-            if (drawY < 5)
-                drawY = mousePositionY + 15;
-            g.setColor(Color.black);
-            g.setFont(g.getFont().deriveFont(10.0f));
-            g.drawString(positionMZ, drawX, drawY);
-            g.drawString(positionInt, drawX, drawY + 12);
-        }
-
-    }
-
-    boolean getShowDataPoints() {
-        return showDataPoints;
-    }
-    
-    /**
-     * @param showDataPoints The showDataPoints to set.
-     */
-    void setShowDataPoints(boolean showDataPoints) {
-        this.showDataPoints = showDataPoints;
-        repaint();
-    }
-    
-    /**
-     * @return Returns the showAnnotations.
-     */
-    boolean getShowAnnotations() {
-        return showAnnotations;
     }
 
     /**
-     * @param showAnnotations
-     *            The showAnnotations to set.
-     */
-    void setShowAnnotations(boolean showAnnotations) {
-        this.showAnnotations = showAnnotations;
-        repaint();
-    }
-
-    /**
-     * Implementation of MouseListener interface methods
-     */
-    public void mouseClicked(MouseEvent e) {
-
-    }
-
-    public void mouseEntered(MouseEvent e) {
-        mousePresent = true;
-        repaint();
-    }
-
-    public void mouseExited(MouseEvent e) {
-        mousePresent = false;
-        repaint();
-    }
-
-    public void mouseReleased(MouseEvent e) {
-
-        if (mouseSelection) {
-
-            mouseSelection = false;
-            
-            int width = getWidth();
-            int height = getHeight();
-            int selX = Math.min(lastClickX, mousePositionX);
-            int selY = height - Math.max(lastClickY, mousePositionY);
-            int selWidth = Math.abs(mousePositionX - lastClickX);
-            int selHeight = Math.abs(mousePositionY - lastClickY);
-            double xAxisStep = (mzValueMax - mzValueMin) / width;
-            double yAxisStep = (intValueMax - intValueMin) / height;
-
-            if (selWidth > SELECTION_TOLERANCE) {
-                double newMZMin = mzValueMin + (selX * xAxisStep);
-                double newMZMax = mzValueMin + ((selX + selWidth) * xAxisStep);
-                if (newMZMin < mzValueMin)
-                    newMZMin = mzValueMin;
-                if (newMZMax > mzValueMax)
-                    newMZMax = mzValueMax;
-                masterFrame.setMZRange(newMZMin, newMZMax);
-            }
-            if (selHeight > SELECTION_TOLERANCE) {
-                double newIntMin = intValueMin + (selY * yAxisStep);
-                double newIntMax = intValueMin
-                        + ((selY + selHeight) * yAxisStep);
-                if (newIntMin < intValueMin)
-                    newIntMin = intValueMin;
-                if (newIntMax > intValueMax)
-                    newIntMax = intValueMax;
-                masterFrame.setIntensityRange(newIntMin, newIntMax);
-            }
-            // no need to call repaint(), master frame will repaint
-            // automatically
-        } else if (e.isPopupTrigger()) {
-            masterFrame.getPopupMenu().show(e.getComponent(), e.getX(), e.getY());
-        } 
-
-    }
-
-    public void mousePressed(MouseEvent e) {
-        lastClickX = e.getX();
-        lastClickY = e.getY();
-        if (e.isPopupTrigger()) {
-            masterFrame.getPopupMenu().show(e.getComponent(), e.getX(), e.getY());
-        }
-    }
-
-    /**
-     * Implementation of methods for MouseMotionListener interface
-     */
-    public void mouseDragged(MouseEvent e) {
-        mousePositionX = e.getX();
-        mousePositionY = e.getY();
-        mouseSelection = true;
-        repaint();
-    }
-
-    public void mouseMoved(MouseEvent e) {
-        mousePositionX = e.getX();
-        mousePositionY = e.getY();
-        repaint();
-    }
-    
-    /**
-     * @param plotMode The plotMode to set.
+     * @param plotMode
+     *            The plotMode to set.
      */
     void setPlotMode(PlotMode plotMode) {
         this.plotMode = plotMode;
-        repaint();
+        if (plotMode == PlotMode.CENTROID) 
+            plot.setRenderer(centroidRenderer);
+         else 
+            plot.setRenderer(continuousRenderer);
+            
     }
-    
+
     PlotMode getPlotMode() {
         return plotMode;
+    }
+
+    XYPlot getPlot() {
+        return plot;
+    }
+
+    void switchItemLabelsVisible() {
+
+        boolean itemLabelsVisible = continuousRenderer.isSeriesItemLabelsVisible(0);
+        centroidRenderer.setItemLabelsVisible(!itemLabelsVisible);
+        continuousRenderer.setItemLabelsVisible(!itemLabelsVisible);
+    }
+
+    void switchDataPointsVisible() {
+
+        boolean dataPointsVisible = continuousRenderer.getBaseShapesVisible();
+
+        continuousRenderer.setBaseShapesVisible(!dataPointsVisible);
+
+    }
+    
+    void setTitle(String title) {
+        TextTitle newTitle = new TextTitle(title, titleFont);
+        newTitle.setMargin(5,0,0,0);
+        chart.setTitle(newTitle);
     }
 
 }

@@ -32,13 +32,12 @@ import javax.swing.JToolBar;
  */
 class SpectrumToolBar extends JToolBar {
 
-    static final Icon zoomOutIcon = new ImageIcon("zoomouticon.png");
     static final Icon centroidIcon = new ImageIcon("centroidicon.png");
     static final Icon continuousIcon = new ImageIcon("continuousicon.png");
     static final Icon dataPointsIcon = new ImageIcon("datapointsicon.png");
     static final Icon annotationsIcon = new ImageIcon("annotationsicon.png");
 
-    private JButton zoomOutButton, centroidContinuousButton, dataPointsButton,
+    private JButton centroidContinuousButton, dataPointsButton,
             annotationsButton;
 
     SpectrumToolBar(SpectrumVisualizer masterFrame) {
@@ -50,20 +49,14 @@ class SpectrumToolBar extends JToolBar {
         setMargin(new Insets(5, 5, 5, 5));
         setBackground(Color.white);
 
-        zoomOutButton = new JButton(zoomOutIcon);
-        zoomOutButton.setEnabled(false);
-        zoomOutButton.setActionCommand("ZOOM_OUT");
-        zoomOutButton.setToolTipText("Zoom out");
-        zoomOutButton.addActionListener(masterFrame);
-
         centroidContinuousButton = new JButton(centroidIcon);
-        centroidContinuousButton.setActionCommand("SET_PLOT_MODE");
-        centroidContinuousButton.setToolTipText("Show as centroid");
+        centroidContinuousButton.setActionCommand("TOGGLE_PLOT_MODE");
+        centroidContinuousButton.setToolTipText("Toggle centroid/continuous mode");
         centroidContinuousButton.addActionListener(masterFrame);
 
         dataPointsButton = new JButton(dataPointsIcon);
         dataPointsButton.setActionCommand("SHOW_DATA_POINTS");
-        dataPointsButton.setToolTipText("Toggle data points display");
+        dataPointsButton.setToolTipText("Toggle displaying of data points in continuous mode");
         dataPointsButton.addActionListener(masterFrame);
 
         annotationsButton = new JButton(annotationsIcon);
@@ -71,8 +64,6 @@ class SpectrumToolBar extends JToolBar {
         annotationsButton.setToolTipText("Toggle displaying of peak values");
         annotationsButton.addActionListener(masterFrame);
 
-        add(zoomOutButton);
-        addSeparator();
         add(centroidContinuousButton);
         addSeparator();
         add(dataPointsButton);
@@ -81,17 +72,11 @@ class SpectrumToolBar extends JToolBar {
 
     }
 
-    void setZoomOutButtonEnabled(boolean enabled) {
-        zoomOutButton.setEnabled(enabled);
-    }
-
     void setCentroidButton(boolean centroid) {
         if (centroid) {
             centroidContinuousButton.setIcon(centroidIcon);
-            centroidContinuousButton.setToolTipText("Show as centroid");
         } else {
             centroidContinuousButton.setIcon(continuousIcon);
-            centroidContinuousButton.setToolTipText("Show as continuous");
         }
     }
 
