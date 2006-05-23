@@ -18,38 +18,46 @@
     Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 */
 package net.sf.mzmine.methods.deisotoping.combinatorial;
-import java.io.Serializable;
 
-import net.sf.mzmine.methods.peakpicking.PeakListProcessorParameters;
+import net.sf.mzmine.methods.MethodParameters;
 
-import org.xml.sax.Attributes;
+import org.w3c.dom.Element;
+import org.w3c.dom.Document;
+import org.w3c.dom.NodeList;
+import org.w3c.dom.Node;
 
-public class CombinatorialDeisotoperParameters implements PeakListProcessorParameters, Serializable {
 
-	private static final String myTagName = "CombinatorialDeisotoperParameters";
+/**
+ * Parameters for combinatorial deisotoper.
+ * Since this method is only a stub currently, this is an empty class.
+ */
+public class CombinatorialDeisotoperParameters implements MethodParameters {
 
-	// Parameters and their default values
+	private static final String tagName = "CombinatorialDeisotoperParameters";
 
-	// CURRENTLY NO PARAMETERS!
-
-	public Class getPeakListProcessorClass() {
-		return CombinatorialDeisotoper.class;
+    public String toString() {
+		return new String();
 	}
 
-	public String writeParameterTag() {
-
-		String s = "<";
-		s = s.concat(myTagName);
-		s = s.concat("/>");
-		return s;
-
+    /**
+     * Adds parameters to XML document
+     */
+    public Element addToXML(Document doc) {
+		Element e = doc.createElement(tagName);
+		return e;
 	}
 
-	public String getParameterTagName() { return myTagName; }
+    /**
+     * Reads parameters from XML
+     * @param doc XML document supposed to contain parameters for the method (may not contain them, though)
+     */
+    public void readFromXML(Element element) {
+		// no parameters => do nothing
+	}
 
-	public boolean loadXMLAttributes(Attributes atr) {
-
-		return true;
+	public MethodParameters clone() {
+		CombinatorialDeisotoperParameters myClone = new CombinatorialDeisotoperParameters();
+		return myClone;
 	}
 
 }

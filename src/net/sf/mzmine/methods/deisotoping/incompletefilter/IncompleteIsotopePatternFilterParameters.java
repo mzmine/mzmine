@@ -18,15 +18,18 @@
     Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 */
 package net.sf.mzmine.methods.deisotoping.incompletefilter;
-import java.io.Serializable;
 
-import net.sf.mzmine.methods.peakpicking.PeakListProcessorParameters;
+import org.w3c.dom.Element;
+import org.w3c.dom.Document;
+import org.w3c.dom.NodeList;
+import org.w3c.dom.Node;
 
-import org.xml.sax.Attributes;
+import net.sf.mzmine.methods.MethodParameters;
 
-public class IncompleteIsotopePatternFilterParameters implements PeakListProcessorParameters, Serializable {
 
-	private static final String myTagName = "IncompleteIsotopePatternFilterParameters";
+public class IncompleteIsotopePatternFilterParameters implements MethodParameters {
+
+	private static final String tagName = "IncompleteIsotopePatternFilterParameters";
 
 	private static final String minimumNumberOfPeaksAttributeName = "MinNumberOfPeaks";
 
@@ -34,27 +37,49 @@ public class IncompleteIsotopePatternFilterParameters implements PeakListProcess
 
 	public int minimumNumberOfPeaks = 2;
 
-	public Class getPeakListProcessorClass() {
-		return IncompleteIsotopePatternFilter.class;
+    /**
+     * @return parameters in human readable form
+     */
+    public String toString() {
+		return new String("Minimum number of peaks = " + minimumNumberOfPeaks);
 	}
 
-	public String writeParameterTag() {
+    /**
+     *
+     * @return parameters represented by XML element
+     */
+    public Element addToXML(Document doc) {
 
-		String s = "<";
-		s = s.concat(myTagName);
-		s = s.concat(" " + minimumNumberOfPeaksAttributeName + "=\"" + minimumNumberOfPeaks + "\"");
-		s = s.concat("/>");
-		return s;
+		Element e = doc.createElement(tagName);
+		e.setAttribute(minimumNumberOfPeaksAttributeName, String.valueOf(minimumNumberOfPeaks));
+		return e;
 
 	}
 
-	public String getParameterTagName() { return myTagName; }
 
-	public boolean loadXMLAttributes(Attributes atr) {
+    /**
+     * Reads parameters from XML
+     * @param doc XML document supposed to contain parameters for the method (may not contain them, though)
+     */
+    public void readFromXML(Element element) {
 
-		try { minimumNumberOfPeaks = Integer.parseInt(atr.getValue(minimumNumberOfPeaksAttributeName)); } catch (NumberFormatException e) {	return false; }
+		// Find my element
+		NodeList n = element.getElementsByTagName(tagName);
+		if ((n==null) || (n.getLength()<1)) return;
+		Element myElement = (Element)(n.item(0));
 
-		return true;
+		// Set values
+		String attrValue;
+		attrValue = myElement.getAttribute(minimumNumberOfPeaksAttributeName);
+		try { minimumNumberOfPeaks = Integer.parseInt(attrValue); } catch (NumberFormatException nfe) {}
 	}
+
+	public IncompleteIsotopePatternFilterParameters clone() {
+		IncompleteIsotopePatternFilterParameters myClone = new IncompleteIsotopePatternFilterParameters();
+		myClone.minimumNumberOfPeaks = minimumNumberOfPeaks;
+		return myClone;
+	}
+
+
 
 }

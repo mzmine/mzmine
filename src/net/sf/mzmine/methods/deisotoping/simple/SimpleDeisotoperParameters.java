@@ -19,23 +19,26 @@
 */
 package net.sf.mzmine.methods.deisotoping.simple;
 
-import java.io.Serializable;
 import java.util.HashSet;
 
-import net.sf.mzmine.methods.peakpicking.PeakListProcessorParameters;
+import org.w3c.dom.Element;
+import org.w3c.dom.Document;
+import org.w3c.dom.NodeList;
+import org.w3c.dom.Node;
 
-import org.xml.sax.Attributes;
+import net.sf.mzmine.methods.MethodParameters;
+
 
 /**
  * This class represents parameter settings for the simple deisotoper method
  *
  * @version 31 March 2006
  */
-public class SimpleDeisotoperParameters implements PeakListProcessorParameters, Serializable {
+public class SimpleDeisotoperParameters implements MethodParameters {
 
 	// CONSTANTS FOR WRITING PARAMETERS TO XML FILE
 
-	private static final String myTagName = "SimpleDeisotoperParameters";
+	private static final String tagName = "SimpleDeisotoperParameters";
 
 	private static final String mzToleranceAttributeName = "MZTolerance";
 	private static final String rtToleranceAttributeName = "RTTolerance";
@@ -69,61 +72,50 @@ public class SimpleDeisotoperParameters implements PeakListProcessorParameters, 
 		chargeStates.add(chargeOne);
 	}
 
-
-
-	/**
-	 * Returns the class of the peak list processor which corresponds to this parameter class
-	 */
-	public Class getPeakListProcessorClass() {
-		return SimpleDeisotoper.class;
+    /**
+     * @return parameters in human readable form
+     */
+    public String toString() {
+		// TODO
+		return new String();
 	}
 
+    /**
+     *
+     * @return parameters represented by XML element
+     */
+    public Element addToXML(Document doc) {
 
-
-	/**
-	 * Returns a string containing current parameter values in an XML tag
-	 */
-	public String writeParameterTag() {
-
-		String s = "<";
-		s = s.concat(myTagName);
-		s = s.concat(" " + mzToleranceAttributeName + "=\"" + mzTolerance + "\"");
-		s = s.concat(" " + rtToleranceAttributeName + "=\"" + rtTolerance + "\"");
-		if (monotonicShape) 					{ s = s.concat(" " + monotonicShapeAttributeName + "=\"1\""); }
-		if (chargeStates.contains(chargeOne))	{ s = s.concat(" " + chargeStateOneAttributeName + "=\"1\""); }
-		if (chargeStates.contains(chargeTwo))	{ s = s.concat(" " + chargeStateTwoAttributeName + "=\"1\""); }
-		if (chargeStates.contains(chargeThree))	{ s = s.concat(" " + chargeStateThreeAttributeName + "=\"1\""); }
-		s = s.concat("/>");
-		return s;
+		Element e = doc.createElement(tagName);
+		// TODO
+		return e;
 
 	}
 
 
+    /**
+     * Reads parameters from XML
+     * @param doc XML document supposed to contain parameters for the method (may not contain them, though)
+     */
+    public void readFromXML(Element element) {
 
-	/**
-	 * Returns the name of the XML tag for this parameter set
-	 */
-	public String getParameterTagName() { return myTagName; }
+		// Find my element
+		NodeList n = element.getElementsByTagName(tagName);
+		if ((n==null) || (n.getLength()<1)) return;
+		Element myElement = (Element)(n.item(0));
 
-
-
-	/**
-	 * Sets parameter values according to given XML attributes
-	 */
-	public boolean loadXMLAttributes(Attributes atr) {
-
-		try { mzTolerance = Double.parseDouble(atr.getValue(mzToleranceAttributeName)); } catch (NumberFormatException e) {	return false; }
-		try { rtTolerance = Double.parseDouble(atr.getValue(rtToleranceAttributeName)); } catch (NumberFormatException e) {	return false; }
-
-		if (atr.getValue(monotonicShapeAttributeName)!=null) { monotonicShape = true; }
-
-		chargeStates.clear();
-		if (atr.getValue(chargeStateOneAttributeName)!=null) { chargeStates.add(chargeOne); }
-		if (atr.getValue(chargeStateTwoAttributeName)!=null) { chargeStates.add(chargeTwo); }
-		if (atr.getValue(chargeStateThreeAttributeName)!=null) { chargeStates.add(chargeThree); }
-
-
-		return true;
+		// Set values
+		// TODO
 	}
+
+	public SimpleDeisotoperParameters clone() {
+		SimpleDeisotoperParameters myClone = new SimpleDeisotoperParameters();
+		// TODO
+		return myClone;
+	}
+
+
+
+
 
 }
