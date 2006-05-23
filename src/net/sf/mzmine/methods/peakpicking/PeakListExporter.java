@@ -23,6 +23,8 @@ package net.sf.mzmine.methods.peakpicking;
 import java.io.FileWriter;
 import java.util.Enumeration;
 
+import net.sf.mzmine.interfaces.Peak;
+import net.sf.mzmine.interfaces.PeakList;
 import net.sf.mzmine.io.RawDataFile;
 
 
@@ -72,6 +74,7 @@ public class PeakListExporter {
 
 		while (pe.hasMoreElements()) {
 			p = pe.nextElement();
+			/*
 
 			mz = p.getMZ();
 			rt = p.getRT();
@@ -80,8 +83,9 @@ public class PeakListExporter {
 			charge = p.getChargeState();
 			isotopePatternID = p.getIsotopePatternID();
 			isotopePeakNumber = p.getIsotopePeakNumber();
-			//duration = rawData.getScanTime(p.getStopScanNumber()) - rawData.getScanTime(p.getStartScanNumber());
+			duration = rawData.getScanTime(p.getStopScanNumber()) - rawData.getScanTime(p.getStartScanNumber());
 			stdevMZ = p.getMZStdev();
+
 
 			s = ""	+ mz + "\t"
 					+ rt + "\t"
@@ -92,6 +96,8 @@ public class PeakListExporter {
 					+ isotopePeakNumber + "\t"
 					+ duration + "\t"
 					+ stdevMZ + "\n";
+			*/
+			s = "TODO";
 
 			try {
 				fw.write(s);

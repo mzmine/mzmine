@@ -1,32 +1,33 @@
 /*
-    Copyright 2005 VTT Biotechnology
-
-    This file is part of MZmine.
-
-    MZmine is free software; you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
-    the Free Software Foundation; either version 2 of the License, or
-    (at your option) any later version.
-
-    MZmine is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
-
-    You should have received a copy of the GNU General Public License
-    along with MZmine; if not, write to the Free Software
-    Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
-*/
+ * Copyright 2006 The MZmine Development Team
+ *
+ * This file is part of MZmine.
+ *
+ * MZmine is free software; you can redistribute it and/or modify it under the
+ * terms of the GNU General Public License as published by the Free Software
+ * Foundation; either version 2 of the License, or (at your option) any later
+ * version.
+ *
+ * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY
+ * WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR
+ * A PARTICULAR PURPOSE. See the GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License along with
+ * MZmine; if not, write to the Free Software Foundation, Inc., 51 Franklin St,
+ * Fifth Floor, Boston, MA 02110-1301 USA
+ */
 package net.sf.mzmine.methods.peakpicking.recursivethreshold;
-import java.io.Serializable;
 
-import net.sf.mzmine.methods.peakpicking.PeakPickerParameters;
+import org.w3c.dom.Element;
+import org.w3c.dom.Document;
+import org.w3c.dom.NodeList;
+import org.w3c.dom.Node;
 
-import org.xml.sax.Attributes;
+import net.sf.mzmine.methods.MethodParameters;
 
-public class RecursiveThresholdPickerParameters implements PeakPickerParameters, Serializable {
+public class RecursiveThresholdPickerParameters implements MethodParameters {
 
-	private static final String myTagName = "RecursiveThresholdPickerParameters";
+	private static final String tagName = "RecursiveThresholdPickerParameters";
 
 	private static final String binSizeAttributeName = "BinSize";
 	private static final String chromatographicThresholdLevelAttributeName = "ChromatographicThresholdLevel";
@@ -50,52 +51,101 @@ public class RecursiveThresholdPickerParameters implements PeakPickerParameters,
 	public double mzTolerance = (double)0.1;
 	public double intTolerance = (double)0.15;
 
-	public Class getPeakPickerClass() {
-		return RecursiveThresholdPicker.class;
-	}
 
-	/**
-	 * This method returns a string containing XML-tag with current parameter values
-	 */
-	public String writeParameterTag() {
 
-		String s = "<";
-		s = s.concat(myTagName);
-		s = s.concat(" " + binSizeAttributeName + "=\"" + binSize + "\"");
-		s = s.concat(" " + chromatographicThresholdLevelAttributeName + "=\"" + chromatographicThresholdLevel + "\"");
-		s = s.concat(" " + noiseLevelAttributeName + "=\"" + noiseLevel + "\"");
-		s = s.concat(" " + minimumPeakHeightAttributeName + "=\"" + minimumPeakHeight + "\"");
-		s = s.concat(" " + minimumPeakDurationAttributeName + "=\"" + minimumPeakDuration + "\"");
-		s = s.concat(" " + minimumMZPeakWidthAttributeName + "=\"" + minimumMZPeakWidth + "\"");
-		s = s.concat(" " + maximumMZPeakWidthAttributeName + "=\"" + maximumMZPeakWidth + "\"");
-		s = s.concat(" " + mzToleranceAttributeName + "=\"" + mzTolerance + "\"");
-		s = s.concat(" " + intToleranceAttributeName + "=\"" + intTolerance + "\"");
-		s = s.concat("/>");
+    /**
+     * @return parameters in human readable form
+     */
+    public String toString() {
+		String s = new String();
+		s += ""   + "M/Z bin size=" + binSize + " Da";
+		s += ", " + "Chromatographic threshold level=" + chromatographicThresholdLevel*100.0 + "%";
+		s += ", " + "Noise level=" + noiseLevel;
+		s += ", " + "Minimum peak height=" + minimumPeakHeight;
+		s += ", " + "Minimum peak duratrion=" + minimumPeakDuration + " seconds";
+		s += ", " + "Minimum M/Z peak width=" + minimumMZPeakWidth + " Da";
+		s += ", " + "Maximum M/Z peak width=" + maximumMZPeakWidth + " Da";
+		s += ", " + "M/Z tolerance=" + mzTolerance + " Da";
+		s += ", " + "Intensity tolerance=" + intTolerance*100.0 + "%";
 		return s;
+	}
+
+    /**
+     * Adds parameters to XML document
+     */
+    public Element addToXML(Document doc) {
+
+		Element e = doc.createElement(tagName);
+		e.setAttribute(binSizeAttributeName, String.valueOf(binSize));
+		e.setAttribute(chromatographicThresholdLevelAttributeName, String.valueOf(chromatographicThresholdLevel));
+		e.setAttribute(noiseLevelAttributeName, String.valueOf(noiseLevel));
+		e.setAttribute(minimumPeakHeightAttributeName, String.valueOf(minimumPeakHeight));
+		e.setAttribute(minimumPeakDurationAttributeName, String.valueOf(minimumPeakDuration));
+		e.setAttribute(minimumMZPeakWidthAttributeName, String.valueOf(minimumMZPeakWidth));
+		e.setAttribute(maximumMZPeakWidthAttributeName, String.valueOf(maximumMZPeakWidth));
+		e.setAttribute(mzToleranceAttributeName, String.valueOf(mzTolerance));
+		e.setAttribute(intToleranceAttributeName, String.valueOf(intTolerance));
+
+		return e;
 
 	}
 
-	/**
-	 * This method returns the name of XML tag used for storing parameters.
-	 */
-	public String getParameterTagName() { return myTagName; }
+    /**
+     * Reads parameters from XML
+     * @param doc XML document supposed to contain parameters for the method (may not contain them, though)
+     */
+    public void readFromXML(Element element) {
 
-	/**
-	 * This method sets the current parameter values according to XML Attributes-object
-	 */
-	public boolean loadXMLAttributes(Attributes atr) {
+		// Find my element
+		NodeList n = element.getElementsByTagName(tagName);
+		if ((n==null) || (n.getLength()<1)) return;
+		Element myElement = (Element)(n.item(0));
 
-		try { binSize = Double.parseDouble(atr.getValue(binSizeAttributeName)); } catch (NumberFormatException e) {	return false; }
-		try { chromatographicThresholdLevel = Double.parseDouble(atr.getValue(chromatographicThresholdLevelAttributeName)); } catch (NumberFormatException e) {	return false; }
-		try { noiseLevel = Double.parseDouble(atr.getValue(noiseLevelAttributeName)); } catch (NumberFormatException e) {	return false; }
-		try { minimumPeakHeight = Double.parseDouble(atr.getValue(minimumPeakHeightAttributeName)); } catch (NumberFormatException e) {	return false; }
-		try { minimumPeakDuration = Double.parseDouble(atr.getValue(minimumPeakDurationAttributeName)); } catch (NumberFormatException e) {	return false; }
-		try { minimumMZPeakWidth = Double.parseDouble(atr.getValue(minimumMZPeakWidthAttributeName)); } catch (NumberFormatException e) {	return false; }
-		try { maximumMZPeakWidth = Double.parseDouble(atr.getValue(maximumMZPeakWidthAttributeName)); } catch (NumberFormatException e) {	return false; }
-		try { mzTolerance = Double.parseDouble(atr.getValue(mzToleranceAttributeName)); } catch (NumberFormatException e) {	return false; }
-		try { intTolerance = Double.parseDouble(atr.getValue(intToleranceAttributeName)); } catch (NumberFormatException e) {	return false; }
-		return true;
+		// Set values
+		String attrValue;
+		attrValue = myElement.getAttribute(binSizeAttributeName);
+		try { binSize = Double.parseDouble(attrValue); } catch (NumberFormatException nfe) {}
 
+		attrValue = myElement.getAttribute(chromatographicThresholdLevelAttributeName);
+		try { chromatographicThresholdLevel = Double.parseDouble(attrValue); } catch (NumberFormatException nfe) {}
+
+		attrValue = myElement.getAttribute(noiseLevelAttributeName);
+		try { noiseLevel = Double.parseDouble(attrValue); } catch (NumberFormatException nfe) {}
+
+		attrValue = myElement.getAttribute(minimumPeakHeightAttributeName);
+		try { minimumPeakHeight = Double.parseDouble(attrValue); } catch (NumberFormatException nfe) {}
+
+		attrValue = myElement.getAttribute(minimumPeakDurationAttributeName);
+		try { minimumPeakDuration = Double.parseDouble(attrValue); } catch (NumberFormatException nfe) {}
+
+		attrValue = myElement.getAttribute(minimumMZPeakWidthAttributeName);
+		try { minimumMZPeakWidth = Double.parseDouble(attrValue); } catch (NumberFormatException nfe) {}
+
+		attrValue = myElement.getAttribute(maximumMZPeakWidthAttributeName);
+		try { maximumMZPeakWidth = Double.parseDouble(attrValue); } catch (NumberFormatException nfe) {}
+
+		attrValue = myElement.getAttribute(mzToleranceAttributeName);
+		try { mzTolerance = Double.parseDouble(attrValue); } catch (NumberFormatException nfe) {}
+
+		attrValue = myElement.getAttribute(intToleranceAttributeName);
+		try { intTolerance = Double.parseDouble(attrValue); } catch (NumberFormatException nfe) {}
+
+
+	}
+
+	public MethodParameters clone() {
+		RecursiveThresholdPickerParameters myClone = new RecursiveThresholdPickerParameters();
+		myClone.binSize = binSize;
+		myClone.chromatographicThresholdLevel = chromatographicThresholdLevel;
+		myClone.noiseLevel = noiseLevel;
+		myClone.minimumPeakHeight = minimumPeakHeight;
+		myClone.minimumPeakDuration = minimumPeakDuration;
+		myClone.minimumMZPeakWidth = minimumMZPeakWidth;
+		myClone.maximumMZPeakWidth = maximumMZPeakWidth;
+		myClone.mzTolerance = mzTolerance;
+		myClone.intTolerance = intTolerance;
+
+		return myClone;
 	}
 
 }
