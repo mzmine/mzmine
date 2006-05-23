@@ -20,15 +20,17 @@
 
 package net.sf.mzmine.methods.alignment.join;
 
-import java.io.Serializable;
+import net.sf.mzmine.methods.MethodParameters;
 
-import net.sf.mzmine.methods.alignment.peaklist.PeakListAlignerParameters;
+import org.w3c.dom.Element;
+import org.w3c.dom.Document;
+import org.w3c.dom.NodeList;
+import org.w3c.dom.Node;
 
-import org.xml.sax.Attributes;
 
-public class JoinAlignerParameters implements PeakListAlignerParameters, Serializable {
+public class JoinAlignerParameters implements MethodParameters {
 
-	private static final String myTagName = "JoinAlignerParameters";
+	private static final String tagName = "JoinAlignerParameters";
 	private static final String paramMZvsRTBalanceAttributeName = "MZvsRTBalance";
 	private static final String paramMZToleranceAttributeName = "MZTolerance";
 	private static final String paramRTToleranceUseAbsAttributeName = "RTToleranceUseAbs";
@@ -42,34 +44,56 @@ public class JoinAlignerParameters implements PeakListAlignerParameters, Seriali
 	public double paramRTTolerancePercent = 0.01;
 
 
-	public Class getPeakListAlignerClass() {
-		return JoinAligner.class;
-	}
 
-	public String writeParameterTag() {
+    public String toString() {
+		String s = new String();
 
-		String s = "<";
-		s = s.concat(myTagName);
-		s = s.concat(" " + paramMZvsRTBalanceAttributeName + "=\"" + paramMZvsRTBalance + "\"");
-		s = s.concat(" " + paramMZToleranceAttributeName + "=\"" + paramMZTolerance + "\"");
-		s = s.concat(" " + paramRTToleranceUseAbsAttributeName + "=\"" + paramRTToleranceUseAbs + "\"");
-		s = s.concat(" " + paramRTToleranceAbsAttributeName + "=\"" + paramRTToleranceAbs + "\"");
-		s = s.concat(" " + paramRTTolerancePercentAttributeName + "=\"" + paramRTTolerancePercent + "\"");
-		s = s.concat("/>");
+		s += ""   + "M/Z vs. RT balance = " + paramMZvsRTBalance;
+		s += ", " + "M/Z tolerance = " + paramMZTolerance;
+		s += ", " + "Use absolute RT tolerance = " + paramRTToleranceUseAbs;
+		s += ", " + "Absolute RT tolerance = " + paramRTToleranceUseAbs;
+		s += ", " + "Relative RT tolerance = " + paramRTTolerancePercent;
+
 		return s;
+	}
+
+    /**
+     * Adds parameters to XML document
+     */
+    public Element addToXML(Document doc) {
+
+		Element e = doc.createElement(tagName);
+		// TODO
+		return e;
 
 	}
 
-	public String getParameterTagName() { return myTagName; }
+    /**
+     * Reads parameters from XML
+     * @param doc XML document supposed to contain parameters for the method (may not contain them, though)
+     */
+    public void readFromXML(Element element) {
 
-	public boolean loadXMLAttributes(Attributes atr) {
+		// Find my element
+		NodeList n = element.getElementsByTagName(tagName);
+		if ((n==null) || (n.getLength()<1)) return;
+		Element myElement = (Element)(n.item(0));
 
-		try { paramMZvsRTBalance = Double.parseDouble(atr.getValue(paramMZvsRTBalanceAttributeName));	} catch (NumberFormatException e) {	return false; }
-		try { paramMZTolerance = Double.parseDouble(atr.getValue(paramMZToleranceAttributeName)); } catch (NumberFormatException e) {	return false; }
-		try { paramRTToleranceUseAbs = Boolean.parseBoolean(atr.getValue(paramRTToleranceUseAbsAttributeName)); } catch (NumberFormatException e) {	return false; }
-		try { paramRTToleranceAbs = Double.parseDouble(atr.getValue(paramRTToleranceAbsAttributeName)); } catch (NumberFormatException e) {	return false; }
-		try { paramRTTolerancePercent = Double.parseDouble(atr.getValue(paramRTTolerancePercentAttributeName)); } catch (NumberFormatException e) {	return false; }
+		// Set values
+		// TODO
 
-		return true;
 	}
+
+	public MethodParameters clone() {
+		JoinAlignerParameters myClone = new JoinAlignerParameters();
+
+		myClone.paramMZvsRTBalance = paramMZvsRTBalance;
+		myClone.paramMZTolerance = paramMZTolerance;
+		myClone.paramRTToleranceUseAbs = paramRTToleranceUseAbs;
+		myClone.paramRTToleranceAbs = paramRTToleranceAbs;
+		myClone.paramRTTolerancePercent = paramRTTolerancePercent;
+
+		return myClone;
+	}
+
 }
