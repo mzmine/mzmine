@@ -40,7 +40,7 @@ import javax.swing.table.AbstractTableModel;
 
 import net.sf.mzmine.io.RawDataFile;
 import net.sf.mzmine.methods.alignment.AlignmentResult;
-import net.sf.mzmine.methods.peakpicking.Peak;
+import net.sf.mzmine.interfaces.Peak;
 import net.sf.mzmine.userinterface.mainwindow.ItemSelector;
 import net.sf.mzmine.userinterface.mainwindow.MainWindow;
 import net.sf.mzmine.userinterface.mainwindow.Statusbar;
@@ -183,7 +183,7 @@ public class RawDataVisualizerPeakListView extends JInternalFrame implements Pri
 			setZoomAroundSelectedPeak();
 		}
 
-	
+
 	}
 
 
@@ -363,7 +363,7 @@ public class RawDataVisualizerPeakListView extends JInternalFrame implements Pri
      */
     public void setRawDataFile(RawDataFile newFile) {
         // TODO Auto-generated method stub
-        
+
     }
 
     /**
@@ -371,7 +371,7 @@ public class RawDataVisualizerPeakListView extends JInternalFrame implements Pri
      */
     public void setMZRange(double mzMin, double mzMax) {
         // TODO Auto-generated method stub
-        
+
     }
 
     /**
@@ -379,7 +379,7 @@ public class RawDataVisualizerPeakListView extends JInternalFrame implements Pri
      */
     public void setRTRange(double rtMin, double rtMax) {
         // TODO Auto-generated method stub
-        
+
     }
 
     /**
@@ -387,7 +387,7 @@ public class RawDataVisualizerPeakListView extends JInternalFrame implements Pri
      */
     public void setMZPosition(double mz) {
         // TODO Auto-generated method stub
-        
+
     }
 
     /**
@@ -395,7 +395,7 @@ public class RawDataVisualizerPeakListView extends JInternalFrame implements Pri
      */
     public void setRTPosition(double rt) {
         // TODO Auto-generated method stub
-        
+
     }
 
     /**
@@ -403,7 +403,7 @@ public class RawDataVisualizerPeakListView extends JInternalFrame implements Pri
      */
     public void attachVisualizer(RawDataVisualizer visualizer) {
         // TODO Auto-generated method stub
-        
+
     }
 
     /**
@@ -411,7 +411,7 @@ public class RawDataVisualizerPeakListView extends JInternalFrame implements Pri
      */
     public void detachVisualizer(RawDataVisualizer visualizer) {
         // TODO Auto-generated method stub
-        
+
     }
 
 }
