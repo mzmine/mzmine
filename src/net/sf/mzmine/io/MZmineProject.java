@@ -26,7 +26,7 @@ import java.util.Vector;
 import net.sf.mzmine.methods.Method;
 import net.sf.mzmine.methods.MethodParameters;
 import net.sf.mzmine.methods.alignment.AlignmentResult;
-import net.sf.mzmine.methods.peakpicking.PeakList;
+import net.sf.mzmine.interfaces.PeakList;
 import net.sf.mzmine.userinterface.mainwindow.MainWindow;
 
 /**
@@ -67,7 +67,7 @@ public class MZmineProject {
         MainWindow.getInstance().getItemSelector().replaceRawData(oldFile, newFile);
         // TODO: notify visualizers?
     }
-    
+
     public RawDataFile[] getRawDataFiles() {
         return projectFiles.toArray(new RawDataFile[0]);
     }
