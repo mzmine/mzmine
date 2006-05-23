@@ -38,7 +38,6 @@ import net.sf.mzmine.methods.alignment.filterbygaps.AlignmentResultFilterByGaps;
 import net.sf.mzmine.methods.alignment.filterbygaps.AlignmentResultFilterByGapsParameters;
 import net.sf.mzmine.methods.alignment.join.JoinAligner;
 import net.sf.mzmine.methods.alignment.join.JoinAlignerParameters;
-import net.sf.mzmine.methods.alignment.peaklist.PeakListAlignerParameters;
 import net.sf.mzmine.methods.deisotoping.incompletefilter.IncompleteIsotopePatternFilter;
 import net.sf.mzmine.methods.deisotoping.incompletefilter.IncompleteIsotopePatternFilterParameters;
 import net.sf.mzmine.methods.deisotoping.simple.SimpleDeisotoper;
@@ -57,8 +56,6 @@ import net.sf.mzmine.methods.gapfilling.simple.SimpleGapFillerParameters;
 import net.sf.mzmine.methods.normalization.NormalizerParameters;
 import net.sf.mzmine.methods.normalization.linear.LinearNormalizer;
 import net.sf.mzmine.methods.normalization.linear.LinearNormalizerParameters;
-import net.sf.mzmine.methods.peakpicking.PeakListProcessorParameters;
-import net.sf.mzmine.methods.peakpicking.PeakPickerParameters;
 import net.sf.mzmine.methods.peakpicking.centroid.CentroidPicker;
 import net.sf.mzmine.methods.peakpicking.centroid.CentroidPickerParameters;
 import net.sf.mzmine.methods.peakpicking.local.LocalPicker;
@@ -119,10 +116,10 @@ public class BatchModeDialog extends javax.swing.JInternalFrame implements Actio
 	private MethodParameters paramFilter1;
 	private MethodParameters paramFilter2;
 	private MethodParameters paramFilter3;
-	private PeakPickerParameters paramPicker1;
-	private PeakListProcessorParameters paramPeakListProcessor1;
-	private PeakListProcessorParameters paramPeakListProcessor2;
-	private PeakListAlignerParameters paramAligner1;
+	private MethodParameters paramPicker1;
+	private MethodParameters paramPeakListProcessor1;
+	private MethodParameters paramPeakListProcessor2;
+	private MethodParameters paramAligner1;
 	private AlignmentResultProcessorParameters paramAlignmentFilter1;
 	private GapFillerParameters paramFiller1;
 	private NormalizerParameters paramNormalizer1;
@@ -679,16 +676,15 @@ public class BatchModeDialog extends javax.swing.JInternalFrame implements Actio
 					break;
 				case 1:
 					paramPicker1 = mainWin.getParameterStorage().getRecursiveThresholdPickerParameters();
-					//TODO: uncomment all these after methods implement Method
-					//new RecursiveThresholdPicker().askParameters(paramPicker1);
+					new RecursiveThresholdPicker().askParameters(paramPicker1);
 					break;
 				case 2:
 					paramPicker1 = mainWin.getParameterStorage().getLocalPickerParameters();
-					//new LocalPicker().askParameters(paramPicker1);
+					new LocalPicker().askParameters(paramPicker1);
 					break;
 				case 3:
 					paramPicker1 = mainWin.getParameterStorage().getCentroidPickerParameters();
-					//new CentroidPicker().askParameters(paramPicker1);
+					new CentroidPicker().askParameters(paramPicker1);
 					break;
 			}
 			toFront();
@@ -702,7 +698,7 @@ public class BatchModeDialog extends javax.swing.JInternalFrame implements Actio
 					break;
 				case 1:
 					paramPeakListProcessor1 = mainWin.getParameterStorage().getSimpleDeisotoperParameters();
-					//new SimpleDeisotoper().askParameters(mainWin, paramPeakListProcessor1);
+					new SimpleDeisotoper().askParameters(paramPeakListProcessor1);
 					break;
 					/*
 				case 2:
@@ -713,7 +709,7 @@ public class BatchModeDialog extends javax.swing.JInternalFrame implements Actio
 					*/
 				case 2:
 					paramPeakListProcessor1 = mainWin.getParameterStorage().getIncompleteIsotopePatternFilterParameters();
-					//new IncompleteIsotopePatternFilter().askParameters(mainWin, paramPeakListProcessor1);
+					new IncompleteIsotopePatternFilter().askParameters(paramPeakListProcessor1);
 					break;
 			}
 			toFront();
@@ -727,7 +723,7 @@ public class BatchModeDialog extends javax.swing.JInternalFrame implements Actio
 					break;
 				case 1:
 					paramPeakListProcessor2 = mainWin.getParameterStorage().getSimpleDeisotoperParameters();
-					//new SimpleDeisotoper().askParameters(mainWin, paramPeakListProcessor2);
+					new SimpleDeisotoper().askParameters(paramPeakListProcessor2);
 					break;
 					/*
 				case 2:
@@ -738,7 +734,7 @@ public class BatchModeDialog extends javax.swing.JInternalFrame implements Actio
 					*/
 				case 2:
 					paramPeakListProcessor2 = mainWin.getParameterStorage().getIncompleteIsotopePatternFilterParameters();
-					//new IncompleteIsotopePatternFilter().askParameters(mainWin, paramPeakListProcessor2);
+					new IncompleteIsotopePatternFilter().askParameters(paramPeakListProcessor2);
 					break;
 			}
 			toFront();
@@ -753,11 +749,11 @@ public class BatchModeDialog extends javax.swing.JInternalFrame implements Actio
 					break;
 				case 1:
 					paramAligner1 = mainWin.getParameterStorage().getJoinAlignerParameters();
-					//new JoinAligner().askParameters(paramAligner1);
+					new JoinAligner().askParameters(paramAligner1);
 					break;
 				case 2:
 					paramAligner1 = mainWin.getParameterStorage().getFastAlignerParameters();
-					//new FastAligner().askParameters(paramAligner1);
+					new FastAligner().askParameters(paramAligner1);
 					break;
 			}
 			toFront();
