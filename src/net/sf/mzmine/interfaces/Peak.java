@@ -42,7 +42,10 @@ public interface Peak {
 	public PeakStatus getPeakStatus();
 
 
-	/* Get methods for basic properties of the peak as defined by the peak picking method */
+	/*
+	 * Get methods for basic properties of the peak as defined by the peak picking method
+	 * Values for these properties can be freely defined by the peak picking method
+	 */
 
 	/**
 	 * This method returns M/Z value of the peak
@@ -66,25 +69,27 @@ public interface Peak {
 
 
 
-	/* Get methods for accessing the raw datapoints that construct the peak */
+	/*
+	 * Get methods for accessing the raw datapoints that construct the peak
+	 * These datapoints should correspond to datapoints in the raw data
+	 */
 
 	/**
-	 * This method returns a hashtable of scan numbers and indices of datapoints
-	 * within the scans.
+	 * This method returns all datapoints of the peak
 	 *
-	 * @return Hashtable maps scan number to index of datapoint within the scan
+	 * @return Hashtable maps scan number to triplets of M/Z, RT and Intensity
 	 */
-	public Hashtable<Integer, Integer> getRawDatapoints();
+	public Hashtable<Integer, Double[]> getRawDatapoints();
 
 	/**
-	 * Returns the first scan number of all datapoints
+	 * Returns the minimum RT of all datapoints
 	 */
-	public int getFirstScanNumber();
+	public double getMinRT();
 
 	/**
-	 * Returns the last scan number of all datapoints
+	 * Returns the maximum RT of all datapoints
 	 */
-	public int getLastScanNumber();
+	public double getMaxRT();
 
 	/**
 	 * Returns minimum M/Z value of all datapoints
