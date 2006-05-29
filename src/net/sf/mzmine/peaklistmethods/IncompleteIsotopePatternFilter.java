@@ -112,32 +112,34 @@ public class IncompleteIsotopePatternFilter implements PeakListProcessor {
 		}
 
 		Iterator<Peak> peakIterator = peakTree.iterator();
-		Peak nextPeak = peakIterator.next();
-		while (peakIterator.hasNext()) {
+		if (peakIterator.hasNext()) {
+			Peak nextPeak = peakIterator.next();
+			while (peakIterator.hasNext()) {
 
-			// Mark down the isotope pattern ID of current peak
-			int isotopePatternID = nextPeak.getIsotopePatternID();
+				// Mark down the isotope pattern ID of current peak
+				int isotopePatternID = nextPeak.getIsotopePatternID();
 
-			// Collect to a vector all peaks belonging to the same isotope pattern
-			Vector<Peak> allPeaksInThisPattern = new Vector<Peak>();
-			while (nextPeak.getIsotopePatternID()==isotopePatternID) {
+				// Collect to a vector all peaks belonging to the same isotope pattern
+				Vector<Peak> allPeaksInThisPattern = new Vector<Peak>();
+				while (nextPeak.getIsotopePatternID()==isotopePatternID) {
 
-				allPeaksInThisPattern.add(nextPeak);
-				if (peakIterator.hasNext()) { nextPeak = peakIterator.next(); } else {
-					break;
+					allPeaksInThisPattern.add(nextPeak);
+					if (peakIterator.hasNext()) { nextPeak = peakIterator.next(); } else {
+						break;
+					}
 				}
-			}
 
-			// Are there enough peaks in this isotope pattern
-			if (allPeaksInThisPattern.size()>=parameters.minimumNumberOfPeaks) {
-				// Yes, add them all to modified peak list
-				for (Peak aPeak : allPeaksInThisPattern) { modifiedPeakList.addPeakKeepOldID(aPeak); }
-				allPeaksInThisPattern.clear(); allPeaksInThisPattern = null;
-			} else {
-				// Throw away all peaks in this pattern
-				allPeaksInThisPattern.clear(); allPeaksInThisPattern = null;
-			}
+				// Are there enough peaks in this isotope pattern
+				if (allPeaksInThisPattern.size()>=parameters.minimumNumberOfPeaks) {
+					// Yes, add them all to modified peak list
+					for (Peak aPeak : allPeaksInThisPattern) { modifiedPeakList.addPeakKeepOldID(aPeak); }
+					allPeaksInThisPattern.clear(); allPeaksInThisPattern = null;
+				} else {
+					// Throw away all peaks in this pattern
+					allPeaksInThisPattern.clear(); allPeaksInThisPattern = null;
+				}
 
+			}
 		}
 
 		nodeServer.updateJobCompletionRate(1);
