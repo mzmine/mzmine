@@ -108,6 +108,8 @@ public class OpenScansDialog extends JDialog implements ActionListener {
             if ((firstIndex < 0) || (lastIndex < 0) || (lastIndex < firstIndex)) {
                 MainWindow.getInstance().getStatusBar().setStatusText(
                 "Error: incorrect scan numbers.");
+                dispose();
+                return;
             }
             
             int selectedScans[] = new int[lastIndex - firstIndex + 1];

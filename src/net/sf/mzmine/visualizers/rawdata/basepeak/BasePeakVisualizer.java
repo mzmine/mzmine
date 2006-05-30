@@ -38,6 +38,7 @@ import net.sf.mzmine.taskcontrol.TaskListener;
 import net.sf.mzmine.taskcontrol.Task.TaskStatus;
 import net.sf.mzmine.userinterface.dialogs.OpenScansDialog;
 import net.sf.mzmine.userinterface.mainwindow.MainWindow;
+import net.sf.mzmine.util.CursorPosition;
 import net.sf.mzmine.visualizers.rawdata.MultipleRawDataVisualizer;
 import net.sf.mzmine.visualizers.rawdata.spectra.SpectrumVisualizer;
 
@@ -48,7 +49,7 @@ public class BasePeakVisualizer extends JInternalFrame implements
         MultipleRawDataVisualizer, TaskListener, ActionListener {
 
     private BasePeakToolBar toolBar;
-    private BasePeakPlot basePeakPlot;
+    private BasePeakPlot plot;
 
     private Hashtable<RawDataFile, BasePeakDataSet> rawDataFiles;
     private int msLevel;
@@ -56,6 +57,9 @@ public class BasePeakVisualizer extends JInternalFrame implements
     // TODO: get these from parameter storage
     private static DateFormat rtFormat = new SimpleDateFormat("m:ss");
     private static NumberFormat intensityFormat = new DecimalFormat("0.00E0");
+    private static NumberFormat mzFormat = new DecimalFormat("0.00");
+    
+    private static final double zoomCoefficient = 1.2;
 
     /**
      * Constructor for total ion chromatogram visualizer
@@ -72,8 +76,8 @@ public class BasePeakVisualizer extends JInternalFrame implements
         toolBar = new BasePeakToolBar(this);
         add(toolBar, BorderLayout.EAST);
 
-        basePeakPlot = new BasePeakPlot(this);
-        add(basePeakPlot, BorderLayout.CENTER);
+        plot = new BasePeakPlot(this);
+        add(plot, BorderLayout.CENTER);
 
         this.msLevel = msLevel;
         this.rawDataFiles = new Hashtable<RawDataFile, BasePeakDataSet>();
@@ -81,6 +85,31 @@ public class BasePeakVisualizer extends JInternalFrame implements
         addRawDataFile(rawDataFile);
 
         pack();
+
+    }
+    
+    void updateTitle() {
+
+        StringBuffer title = new StringBuffer();
+        title.append(rawDataFiles.keySet().toString() + ": Base peak intensity");
+        title.append(" MS" + msLevel);
+
+        setTitle(title.toString());
+
+        CursorPosition pos = getCursorPosition();
+
+        if (pos != null) {
+            title.append(", scan #");
+            title.append(pos.getScanNumber());
+            if (rawDataFiles.size() > 1)
+                title.append(" (" + pos.getRawDataFile() + ")");
+            title.append(", RT: " + rtFormat.format(pos.getRetentionTime()));
+            title.append(", base peak: " + mzFormat.format(pos.getMzValue()));
+            title.append(" m/z, IC: "
+                    + intensityFormat.format(pos.getIntensityValue()));
+        }
+
+        plot.setTitle(title.toString());
 
     }
 
@@ -97,7 +126,7 @@ public class BasePeakVisualizer extends JInternalFrame implements
      *      double)
      */
     public void setRTRange(double rtMin, double rtMax) {
-        basePeakPlot.getPlot().getDomainAxis().setRange(rtMin, rtMax);
+        plot.getXYPlot().getDomainAxis().setRange(rtMin, rtMax);
     }
 
     /**
@@ -105,7 +134,7 @@ public class BasePeakVisualizer extends JInternalFrame implements
      *      double)
      */
     public void setIntensityRange(double intensityMin, double intensityMax) {
-        basePeakPlot.getPlot().getRangeAxis().setRange(intensityMin,
+        plot.getXYPlot().getRangeAxis().setRange(intensityMin,
                 intensityMax);
     }
 
@@ -119,80 +148,63 @@ public class BasePeakVisualizer extends JInternalFrame implements
     public void addRawDataFile(RawDataFile newFile) {
         BasePeakDataSet dataset = new BasePeakDataSet(newFile, msLevel, this);
         rawDataFiles.put(newFile, dataset);
-        basePeakPlot.addDataset(dataset);
+        plot.addDataset(dataset);
         if (rawDataFiles.size() == 1) {
-            setRTRange(newFile.getDataMinRT() * 1000,
-                    newFile.getDataMaxRT() * 1000);
+            setRTRange(newFile.getDataMinRT(msLevel) * 1000,
+                    newFile.getDataMaxRT(msLevel) * 1000);
             setIntensityRange(0,
                     newFile.getDataMaxBasePeakIntensity(msLevel) * 1.05);
         }
 
         // when displaying more than one file, show a legend
         if (rawDataFiles.size() > 1) {
-            basePeakPlot.showLegend(true);
+            plot.showLegend(true);
         }
 
     }
 
     public void removeRawDataFile(RawDataFile file) {
         BasePeakDataSet dataset = rawDataFiles.get(file);
-        basePeakPlot.getPlot().setDataset(
-                basePeakPlot.getPlot().indexOf(dataset), null);
+        plot.getXYPlot().setDataset(
+                plot.getXYPlot().indexOf(dataset), null);
         rawDataFiles.remove(file);
 
         // when displaying less than two files, hide a legend
         if (rawDataFiles.size() < 2) {
-            basePeakPlot.showLegend(false);
+            plot.showLegend(false);
         }
 
     }
-
-    void updateTitle() {
-
-        String scan = "", selectedValue = "";
-        setTitle("Base peak intensity " + rawDataFiles.keySet().toString()
-                + " MS" + msLevel);
-
-        double selectedRT = basePeakPlot.getPlot().getDomainCrosshairValue();
-        double selectedIT = basePeakPlot.getPlot().getRangeCrosshairValue();
-
-        if (selectedIT > 0) {
-            selectedValue = ", RT: " + rtFormat.format(selectedRT) + ", IC: "
-                    + intensityFormat.format(selectedIT);
-        }
+    
+    /**
+     * @return current cursor position
+     */
+    public CursorPosition getCursorPosition() {
+        double selectedRT = plot.getXYPlot().getDomainCrosshairValue();
+        double selectedIT = plot.getXYPlot().getRangeCrosshairValue();
         Enumeration<BasePeakDataSet> e = rawDataFiles.elements();
         while (e.hasMoreElements()) {
             BasePeakDataSet dataSet = e.nextElement();
             int index = dataSet.getSeriesIndex(selectedRT, selectedIT);
             if (index >= 0) {
-                int scanNumber = dataSet.getScanNumber(index);
-                scan = ", scan #" + scanNumber;
-                if (rawDataFiles.size() > 1)
-                    scan += " (" + dataSet.getRawDataFile() + ")";
-                break;
+                double basePeakMz = dataSet.getMZValue(index);
+                CursorPosition pos = new CursorPosition(selectedRT, basePeakMz,
+                        selectedIT, dataSet.getRawDataFile(), dataSet
+                                .getScanNumber(index));
+                return pos;
             }
         }
-
-        String newLabel = "Base peak intensity "
-                + rawDataFiles.keySet().toString() + " MS" + msLevel + scan
-                + selectedValue;
-        basePeakPlot.setTitle(newLabel);
-
+        return null;
     }
 
-    void showSpectrum() {
-        double selectedRT = basePeakPlot.getPlot().getDomainCrosshairValue();
-        double selectedIT = basePeakPlot.getPlot().getRangeCrosshairValue();
-        Enumeration<BasePeakDataSet> e = rawDataFiles.elements();
-        while (e.hasMoreElements()) {
-            BasePeakDataSet dataSet = e.nextElement();
-            int index = dataSet.getSeriesIndex(selectedRT, selectedIT);
-            if (index >= 0) {
-                int scanNumber = dataSet.getScanNumber(index);
-                new SpectrumVisualizer(dataSet.getRawDataFile(), scanNumber);
-                return;
-            }
-        }
+    /**
+     * @return current cursor position
+     */
+    public void setCursorPosition(CursorPosition newPosition) {
+        plot.getXYPlot().setDomainCrosshairValue(
+                newPosition.getRetentionTime(), false);
+        plot.getXYPlot().setRangeCrosshairValue(
+                newPosition.getIntensityValue());
     }
 
     /**
@@ -224,42 +236,76 @@ public class BasePeakVisualizer extends JInternalFrame implements
         String command = event.getActionCommand();
 
         if (command.equals("SHOW_DATA_POINTS")) {
-            basePeakPlot.switchDataPointsVisible();
+            plot.switchDataPointsVisible();
         }
 
         if (command.equals("SHOW_ANNOTATIONS")) {
-            basePeakPlot.switchItemLabelsVisible();
+            plot.switchItemLabelsVisible();
         }
 
         if (command.equals("SHOW_SPECTRUM")) {
-            showSpectrum();
+            CursorPosition pos = getCursorPosition();
+            if (pos != null) {
+                new SpectrumVisualizer(pos.getRawDataFile(), pos
+                        .getScanNumber());
+            }
         }
-        
-       if (command.equals("SHOW_MULTIPLE_SPECTRA")) {
-            
-            RawDataFile file = rawDataFiles.keys().nextElement();
-            int scanNumbers[] = file.getScanNumbers(msLevel);
-            int defaultFirst = scanNumbers[0];
-            int defaultLast = scanNumbers[scanNumbers.length - 1];
-            
-            double selectedRT = basePeakPlot.getPlot().getDomainCrosshairValue();
-            double selectedIT = basePeakPlot.getPlot().getRangeCrosshairValue();
-            Enumeration<BasePeakDataSet> e = rawDataFiles.elements();
-            while (e.hasMoreElements()) {
-                BasePeakDataSet dataSet = e.nextElement();
-                int index = dataSet.getSeriesIndex(selectedRT, selectedIT);
-                if (index >= 0) {
-                    file = dataSet.getRawDataFile();
-                    scanNumbers = file.getScanNumbers(msLevel);
-                    defaultFirst = dataSet.getScanNumber(index);
-                    defaultLast = dataSet.getScanNumber(index);
-                    break;
+
+        if (command.equals("MOVE_CURSOR_LEFT")) {
+            CursorPosition pos = getCursorPosition();
+            if (pos != null) {
+                BasePeakDataSet dataSet = rawDataFiles.get(pos.getRawDataFile());
+                int index = dataSet.getSeriesIndex(pos.getRetentionTime(), pos
+                        .getIntensityValue());
+                if (index > 0) {
+                    index--;
+                    pos.setRetentionTime(dataSet.getXValue(0, index));
+                    pos.setIntensityValue(dataSet.getYValue(0, index));
+                    setCursorPosition(pos);
+
                 }
             }
-            
-            OpenScansDialog dialog = new OpenScansDialog(file, scanNumbers, defaultFirst, defaultLast);
-            dialog.setVisible(true);
-            
+        }
+
+        if (command.equals("MOVE_CURSOR_RIGHT")) {
+            CursorPosition pos = getCursorPosition();
+            if (pos != null) {
+                BasePeakDataSet dataSet = rawDataFiles.get(pos.getRawDataFile());
+                int index = dataSet.getSeriesIndex(pos.getRetentionTime(), pos
+                        .getIntensityValue());
+                if (index >= 0) {
+                    index++;
+                    if (index < dataSet.getItemCount(0)) {
+                        pos.setRetentionTime(dataSet.getXValue(0, index));
+                        pos.setIntensityValue(dataSet.getYValue(0, index));
+                        setCursorPosition(pos);
+                    }
+                }
+            }
+        }
+
+        if (command.equals("ZOOM_IN")) {
+            plot.getXYPlot().getDomainAxis().resizeRange(1 / zoomCoefficient);
+            plot.getXYPlot().getRangeAxis().resizeRange(1 / zoomCoefficient);
+        }
+
+        if (command.equals("ZOOM_OUT")) {
+            plot.getXYPlot().getDomainAxis().resizeRange(zoomCoefficient);
+            plot.getXYPlot().getRangeAxis().resizeRange(zoomCoefficient);
+        }
+
+        if (command.equals("SHOW_MULTIPLE_SPECTRA")) {
+            CursorPosition pos = getCursorPosition();
+            if (pos != null) {
+                if (pos != null) {
+                    int scanNumbers[] = pos.getRawDataFile().getScanNumbers(
+                            msLevel);
+                    OpenScansDialog dialog = new OpenScansDialog(pos
+                            .getRawDataFile(), scanNumbers,
+                            pos.getScanNumber(), pos.getScanNumber());
+                    dialog.setVisible(true);
+                }
+            }
         }
 
     }

@@ -19,18 +19,19 @@
 
 package net.sf.mzmine.visualizers.rawdata;
 
-import java.util.Set;
-
 import net.sf.mzmine.io.RawDataFile;
+import net.sf.mzmine.util.CursorPosition;
 
 public interface RawDataVisualizer {
 
-    public RawDataFile[] getRawDataFiles();
-    
     public void setMZRange(double mzMin, double mzMax);
     
     public void setRTRange(double rtMin, double rtMax);
     
     public void setIntensityRange(double intensityMin, double intensityMax);
+    
+    public CursorPosition getCursorPosition();
+    
+    public void setCursorPosition(CursorPosition newPosition);
     
 }

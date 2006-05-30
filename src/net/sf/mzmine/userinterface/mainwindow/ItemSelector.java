@@ -46,6 +46,7 @@ import net.sf.mzmine.methods.alignment.AlignmentResult;
 import net.sf.mzmine.visualizers.rawdata.RawDataVisualizer;
 import net.sf.mzmine.visualizers.rawdata.basepeak.BasePeakVisualizer;
 import net.sf.mzmine.visualizers.rawdata.tic.TICVisualizer;
+import net.sf.mzmine.visualizers.rawdata.twod.TwoDVisualizer;
 
 /**
  * This class implements a selector of raw data files and alignment results
@@ -154,6 +155,14 @@ public class ItemSelector extends JPanel implements ListSelectionListener,
                 showBP.setActionCommand("BP" + msLevel);
                 popupMenu.add(showBP);
             }
+            
+            for (int msLevel : msLevels) {
+                JMenuItem showBP = new JMenuItem("Show 2D visualizer of MS level " + msLevel);
+                showBP.addActionListener(this);
+                showBP.setActionCommand("2D" + msLevel);
+                popupMenu.add(showBP);
+            }
+            
             popupMenu.addSeparator();
             JMenuItem pmClose = new JMenuItem("Close");
             pmClose.addActionListener(this);
@@ -203,6 +212,16 @@ public class ItemSelector extends JPanel implements ListSelectionListener,
             for (RawDataFile file : selectedFiles) {
 
                 new BasePeakVisualizer(file, msLevel);
+
+            }
+        }
+        
+        if (command.startsWith("2D")) {
+            RawDataFile[] selectedFiles = getSelectedRawData();
+            int msLevel = Integer.parseInt(command.substring(2));
+            for (RawDataFile file : selectedFiles) {
+
+                new TwoDVisualizer(file, msLevel);
 
             }
         }

@@ -67,7 +67,7 @@ class SpectrumPlot extends ChartPanel {
     private static Shape dataPointsShape = new Ellipse2D.Float(-2, -2, 5, 5);
     
     // title font
-    private static final Font titleFont = new Font("SansSerif", Font.PLAIN, 12);
+    private static final Font titleFont = new Font("SansSerif", Font.PLAIN, 11);
 
     private TextTitle chartTitle;
     
@@ -196,7 +196,7 @@ class SpectrumPlot extends ChartPanel {
         return plotMode;
     }
 
-    XYPlot getPlot() {
+    XYPlot getXYPlot() {
         return plot;
     }
 

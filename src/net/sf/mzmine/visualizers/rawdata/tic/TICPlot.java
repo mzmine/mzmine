@@ -36,11 +36,13 @@ import java.text.NumberFormat;
 import java.text.SimpleDateFormat;
 
 import javax.swing.AbstractAction;
+import javax.swing.Action;
 import javax.swing.JMenuItem;
 import javax.swing.JPopupMenu;
 import javax.swing.KeyStroke;
 
 import net.sf.mzmine.util.AddFilePopupMenu;
+import net.sf.mzmine.util.GUIUtils;
 import net.sf.mzmine.util.RemoveFilePopupMenu;
 
 import org.jfree.chart.ChartFactory;
@@ -49,8 +51,6 @@ import org.jfree.chart.JFreeChart;
 import org.jfree.chart.axis.DateAxis;
 import org.jfree.chart.axis.NumberAxis;
 import org.jfree.chart.event.ChartProgressEvent;
-import org.jfree.chart.event.PlotChangeEvent;
-import org.jfree.chart.event.PlotChangeListener;
 import org.jfree.chart.plot.XYPlot;
 import org.jfree.chart.renderer.xy.XYLineAndShapeRenderer;
 import org.jfree.chart.title.LegendTitle;
@@ -79,22 +79,24 @@ class TICPlot extends ChartPanel {
             new Color(192, 0, 0), // red
             new Color(0, 192, 0), // green
             Color.magenta, Color.cyan, Color.orange };
-    
-    //  crosshair (selection) color
-    private static final Color crossHairColor = Color.gray; 
-    
+
+    // crosshair (selection) color
+    private static final Color crossHairColor = Color.gray;
+
     // crosshair stroke
-    private static final BasicStroke crossHairStroke = new BasicStroke(1, BasicStroke.CAP_BUTT,
-            BasicStroke.JOIN_BEVEL, 1.0f, new float[] { 5, 3 }, 0);
+    private static final BasicStroke crossHairStroke = new BasicStroke(1,
+            BasicStroke.CAP_BUTT, BasicStroke.JOIN_BEVEL, 1.0f, new float[] {
+                    5, 3 }, 0);
 
     // data points shape
-    private static final Shape dataPointsShape = new Ellipse2D.Float(-2, -2, 5, 5);
-    
+    private static final Shape dataPointsShape = new Ellipse2D.Float(-2, -2, 5,
+            5);
+
     // title font
-    private static final Font titleFont = new Font("SansSerif", Font.PLAIN, 12);
-    
+    private static final Font titleFont = new Font("SansSerif", Font.PLAIN, 11);
+
     private TextTitle chartTitle;
-    
+
     private LegendTitle legend;
 
     XYLineAndShapeRenderer defaultRenderer;
@@ -109,17 +111,18 @@ class TICPlot extends ChartPanel {
     private boolean showSpectrumRequest = false;
 
     /**
-     *
+     * 
      */
     TICPlot(final TICVisualizer visualizer) {
         // superconstructor with no chart yet
-        // disable off-screen buffering (makes problems with late drawing of the title)
+        // disable off-screen buffering (makes problems with late drawing of the
+        // title)
         super(null, false);
 
         this.visualizer = visualizer;
-        
+
         setCursor(Cursor.getPredefinedCursor(Cursor.CROSSHAIR_CURSOR));
-        
+
         // initialize the chart by default time series chart from factory
         chart = ChartFactory.createTimeSeriesChart("", // title
                 "Retention time", // x-axis label
@@ -131,12 +134,12 @@ class TICPlot extends ChartPanel {
                 );
         chart.setBackgroundPaint(Color.white);
         setChart(chart);
-        
+
         // title
         chartTitle = chart.getTitle();
-        chartTitle.setMargin(5,0,0,0);
+        chartTitle.setMargin(5, 0, 0, 0);
         chartTitle.setFont(titleFont);
-        
+
         // disable maximum size (we don't want scaling)
         setMaximumDrawWidth(Integer.MAX_VALUE);
         setMaximumDrawHeight(Integer.MAX_VALUE);
@@ -149,11 +152,11 @@ class TICPlot extends ChartPanel {
         plot = chart.getXYPlot();
         plot.setBackgroundPaint(Color.white);
         plot.setAxisOffset(new RectangleInsets(5.0, 5.0, 5.0, 5.0));
-        
+
         // set grid properties
         plot.setDomainGridlinePaint(Color.lightGray);
         plot.setRangeGridlinePaint(Color.lightGray);
-        
+
         // set crosshair (selection) properties
         plot.setDomainCrosshairVisible(true);
         plot.setRangeCrosshairVisible(true);
@@ -161,7 +164,7 @@ class TICPlot extends ChartPanel {
         plot.setRangeCrosshairPaint(crossHairColor);
         plot.setDomainCrosshairStroke(crossHairStroke);
         plot.setRangeCrosshairStroke(crossHairStroke);
-        
+
         // set the X axis (retention time) properties
         DateAxis xAxis = (DateAxis) plot.getDomainAxis();
         xAxis.setDateFormatOverride(rtFormat);
@@ -191,97 +194,37 @@ class TICPlot extends ChartPanel {
         // set focusable state to receive key events
         setFocusable(true);
 
-        // register key event for right arrow key
-        getInputMap().put(KeyStroke.getKeyStroke("RIGHT"), "moveCursorRight");
-        getActionMap().put("moveCursorRight", new AbstractAction() {
+        // register key handlers
+        GUIUtils.registerKeyHandler(this, KeyStroke.getKeyStroke("LEFT"),
+                visualizer, "MOVE_CURSOR_LEFT");
+        GUIUtils.registerKeyHandler(this, KeyStroke.getKeyStroke("RIGHT"),
+                visualizer, "MOVE_CURSOR_RIGHT");
+        GUIUtils.registerKeyHandler(this, KeyStroke.getKeyStroke("SPACE"),
+                visualizer, "SHOW_SPECTRUM");
+        GUIUtils.registerKeyHandler(this, KeyStroke.getKeyStroke('+'),
+                visualizer, "ZOOM_IN");
+        GUIUtils.registerKeyHandler(this, KeyStroke.getKeyStroke('-'),
+                visualizer, "ZOOM_OUT");
 
-            public void actionPerformed(ActionEvent e) {
-                double selectedRT = plot.getDomainCrosshairValue();
-                double selectedIT = plot.getRangeCrosshairValue();
-                for (int i = 0; i < numberOfDataSets; i++) {
-                    TICDataSet dataSet = (TICDataSet) plot
-                            .getDataset(i);
-                    if (dataSet == null)
-                        continue;
-                    int index = dataSet.getSeriesIndex(selectedRT, selectedIT);
-                    if (index >= 0) {
-                        index++;
-                        if (index < dataSet.getItemCount(0)) {
-                            plot.setDomainCrosshairValue(dataSet.getXValue(0,
-                                    index));
-                            plot.setRangeCrosshairValue(dataSet.getYValue(0,
-                                    index));
-                        }
-                        break;
-                    }
-                }
-
-            }
-        });
-
-        // register key event for left arrow key
-        getInputMap().put(KeyStroke.getKeyStroke("LEFT"), "moveCursorLeft");
-        getActionMap().put("moveCursorLeft", new AbstractAction() {
-
-            public void actionPerformed(ActionEvent e) {
-                double selectedRT = plot.getDomainCrosshairValue();
-                double selectedIT = plot.getRangeCrosshairValue();
-                for (int i = 0; i < numberOfDataSets; i++) {
-                    TICDataSet dataSet = (TICDataSet) plot
-                            .getDataset(i);
-                    if (dataSet == null)
-                        continue;
-                    int index = dataSet.getSeriesIndex(selectedRT, selectedIT);
-                    if (index >= 0) {
-                        index--;
-                        if (index > 0) {
-                            plot.setDomainCrosshairValue(dataSet.getXValue(0,
-                                    index));
-                            plot.setRangeCrosshairValue(dataSet.getYValue(0,
-                                    index));
-                        }
-                        break;
-                    }
-                }
-            }
-        });
-
-
-        // add items to popup menu
-
-        JMenuItem  annotationsMenuItem = new JMenuItem("Toggle showing peak values");
-        annotationsMenuItem.addActionListener(visualizer);
-        annotationsMenuItem.setActionCommand("SHOW_ANNOTATIONS");
-
-        JMenuItem dataPointsMenuItem = new JMenuItem("Toggle showing data points");
-        dataPointsMenuItem.addActionListener(visualizer);
-        dataPointsMenuItem.setActionCommand("SHOW_DATA_POINTS");
-
-        JMenuItem showSpectrumMenuItem = new JMenuItem("Show spectrum of selected scan");
-        showSpectrumMenuItem.addActionListener(visualizer);
-        showSpectrumMenuItem.setActionCommand("SHOW_SPECTRUM");
-
-        JMenuItem showMultipleSpectraMenuItem = new JMenuItem("Show multiple spectra");
-        showMultipleSpectraMenuItem.addActionListener(visualizer);
-        showMultipleSpectraMenuItem.setActionCommand("SHOW_MULTIPLE_SPECTRA");
         
-        JMenuItem changeTicXicModeMenuItem = new JMenuItem("Switch TIC/XIC mode");
-        changeTicXicModeMenuItem.addActionListener(visualizer);
-        changeTicXicModeMenuItem.setActionCommand("CHANGE_XIC_TIC");
-
+        // add items to popup menu
         JPopupMenu popupMenu = getPopupMenu();
         popupMenu.addSeparator();
         popupMenu.add(new AddFilePopupMenu(visualizer));
         popupMenu.add(new RemoveFilePopupMenu(visualizer));
         popupMenu.addSeparator();
-        popupMenu.add(annotationsMenuItem);
-        popupMenu.add(dataPointsMenuItem);
+        GUIUtils.addMenuItem(popupMenu, "Toggle showing peak values",
+                visualizer, "SHOW_ANNOTATIONS");
+        GUIUtils.addMenuItem(popupMenu, "Toggle showing data points",
+                visualizer, "SHOW_DATA_POINTS");
         popupMenu.addSeparator();
-        popupMenu.add(showSpectrumMenuItem);
-        popupMenu.add(showMultipleSpectraMenuItem);
-        popupMenu.add(changeTicXicModeMenuItem);
-        
-        // TODO: menu item for opening a combination of scans
+        GUIUtils.addMenuItem(popupMenu, "Show spectrum of selected scan",
+                visualizer, "SHOW_SPECTRUM");
+        GUIUtils.addMenuItem(popupMenu, "Show multiple spectra",
+                visualizer, "SHOW_MULTIPLE_SPECTRA");
+        popupMenu.addSeparator();
+        GUIUtils.addMenuItem(popupMenu, "Switch TIC/XIC mode",
+                visualizer, "CHANGE_XIC_TIC");
 
     }
 
@@ -296,7 +239,8 @@ class TICPlot extends ChartPanel {
         // request focus to receive key events
         requestFocus();
 
-        // if user double-clicked left button, place a request to open a spectrum
+        // if user double-clicked left button, place a request to open a
+        // spectrum
         if ((event.getButton() == MouseEvent.BUTTON1)
                 && (event.getClickCount() == 2)) {
             showSpectrumRequest = true;
@@ -310,17 +254,18 @@ class TICPlot extends ChartPanel {
     public void chartProgress(ChartProgressEvent event) {
 
         super.chartProgress(event);
-        
+
         if (event.getType() == ChartProgressEvent.DRAWING_FINISHED) {
 
             visualizer.updateTitle();
-            
+
             if (showSpectrumRequest) {
                 showSpectrumRequest = false;
-                visualizer.showSpectrum();
+                visualizer.actionPerformed(new ActionEvent(event.getSource(),
+                        ActionEvent.ACTION_PERFORMED, "SHOW_SPECTRUM"));
             }
         }
-        
+
     }
 
     void switchItemLabelsVisible() {
@@ -349,7 +294,7 @@ class TICPlot extends ChartPanel {
         }
     }
 
-    XYPlot getPlot() {
+    XYPlot getXYPlot() {
         return plot;
     }
 
@@ -379,10 +324,9 @@ class TICPlot extends ChartPanel {
             chart.addLegend(legend);
         }
     }
-    
+
     void setTitle(String title) {
         chartTitle.setText(title);
     }
 
-    
 }

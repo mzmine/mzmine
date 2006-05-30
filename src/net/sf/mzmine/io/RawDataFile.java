@@ -61,6 +61,10 @@ public interface RawDataFile extends Serializable {
     public int getNumOfScans();
     public int[] getMSLevels();
     public int[] getScanNumbers(int msLevel);
+    
+    // returns a retention time of a scan
+    public double getRetentionTime(int scanNumber);
+    
 
     /**
      * This method may parse the RAW data file, therefore it may be quite slow.
@@ -71,10 +75,10 @@ public interface RawDataFile extends Serializable {
 
     public String getDataDescription();
 
-    public double getDataMinMZ();
-    public double getDataMaxMZ();
-    public double getDataMinRT();
-    public double getDataMaxRT();
+    public double getDataMinMZ(int msLevel);
+    public double getDataMaxMZ(int msLevel);
+    public double getDataMinRT(int msLevel);
+    public double getDataMaxRT(int msLevel);
     public double getDataMaxBasePeakIntensity(int msLevel);
     public double getDataMaxTotalIonCurrent(int msLevel);
 

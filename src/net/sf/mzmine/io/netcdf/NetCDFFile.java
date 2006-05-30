@@ -55,6 +55,8 @@ public class NetCDFFile implements RawDataFile {
     private double dataMinMZ, dataMaxMZ, dataMinRT, dataMaxRT;
 
     private Hashtable<Integer, Double> dataMaxBasePeakIntensity, dataMaxTIC;
+    
+    private Hashtable<Integer, Double> retentionTimes;
 
 	private NetCDFFileParser cdfParser;
 
@@ -67,7 +69,6 @@ public class NetCDFFile implements RawDataFile {
      * Maps scan level -> list of scan numbers in that level
      */
     private Hashtable<Integer, ArrayList<Integer>> scanNumbers;
-
 
     /**
      *
@@ -87,6 +88,7 @@ public class NetCDFFile implements RawDataFile {
 
         dataDescription = new StringBuffer();
         scanNumbers = new Hashtable<Integer, ArrayList<Integer>>();
+        retentionTimes = new Hashtable<Integer, Double>();
         dataMaxBasePeakIntensity = new Hashtable<Integer, Double>();
         dataMaxTIC = new Hashtable<Integer, Double>();
         if (preloadLevel != PreloadLevel.NO_PRELOAD) scans = new Hashtable<Integer, NetCDFScan>();
@@ -137,6 +139,17 @@ public class NetCDFFile implements RawDataFile {
         Arrays.sort(msLevels);
         return msLevels;
 
+    }
+    
+    /**
+     * @see net.sf.mzmine.io.RawDataFile#getRetentionTime(int)
+     */
+    public double getRetentionTime(int scanNumber) {
+        Double rt = retentionTimes.get(scanNumber);
+        if (rt == null)
+            return 0;
+        else
+            return rt.doubleValue();
     }
 
     /**
@@ -189,14 +202,14 @@ public class NetCDFFile implements RawDataFile {
     /**
      * @see net.sf.mzmine.io.RawDataFile#getDataMinMZ()
      */
-    public double getDataMinMZ() {
+    public double getDataMinMZ(int msLevel) {
         return dataMinMZ;
     }
 
     /**
      * @see net.sf.mzmine.io.RawDataFile#getDataMaxMZ()
      */
-    public double getDataMaxMZ() {
+    public double getDataMaxMZ(int msLevel) {
         return dataMaxMZ;
     }
 
@@ -207,14 +220,14 @@ public class NetCDFFile implements RawDataFile {
     /**
      * @see net.sf.mzmine.io.RawDataFile#getDataMinRT()
      */
-    public double getDataMinRT() {
+    public double getDataMinRT(int msLevel) {
         return dataMinRT;
     }
 
     /**
      * @see net.sf.mzmine.io.RawDataFile#getDataMaxRT()
      */
-    public double getDataMaxRT() {
+    public double getDataMaxRT(int msLevel) {
         return dataMaxRT;
     }
 
@@ -274,6 +287,8 @@ public class NetCDFFile implements RawDataFile {
             dataMaxBasePeakIntensity.put(newScan.getMSLevel(), newScan
                     .getBasePeakIntensity());
 
+        retentionTimes.put(newScan.getScanNumber(), newScan.getRetentionTime());
+        
         double scanTIC = 0;
 
         for (double intensity : newScan.getIntensityValues())

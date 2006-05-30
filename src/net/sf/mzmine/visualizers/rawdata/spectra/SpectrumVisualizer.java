@@ -39,6 +39,7 @@ import net.sf.mzmine.taskcontrol.TaskListener;
 import net.sf.mzmine.taskcontrol.Task.TaskPriority;
 import net.sf.mzmine.taskcontrol.Task.TaskStatus;
 import net.sf.mzmine.userinterface.mainwindow.MainWindow;
+import net.sf.mzmine.util.CursorPosition;
 import net.sf.mzmine.util.RawDataAcceptor;
 import net.sf.mzmine.util.RawDataRetrievalTask;
 import net.sf.mzmine.visualizers.rawdata.RawDataVisualizer;
@@ -53,6 +54,8 @@ import org.jfree.data.xy.XYSeries;
 public class SpectrumVisualizer extends JInternalFrame implements
         RawDataVisualizer, ActionListener, RawDataAcceptor, TaskListener {
 
+    // TODO: open a precursor scan/ open dependant MS/MS, zooming by + - keys
+    
     private SpectrumToolBar toolBar;
     private SpectrumPlot spectrumPlot;
 
@@ -122,7 +125,7 @@ public class SpectrumVisualizer extends JInternalFrame implements
      *      double)
      */
     public void setMZRange(double mzMin, double mzMax) {
-        spectrumPlot.getPlot().getDomainAxis().setRange(mzMin, mzMax);
+        spectrumPlot.getXYPlot().getDomainAxis().setRange(mzMin, mzMax);
     }
 
     /**
@@ -139,21 +142,24 @@ public class SpectrumVisualizer extends JInternalFrame implements
      *      double)
      */
     public void setIntensityRange(double intensityMin, double intensityMax) {
-        spectrumPlot.getPlot().getRangeAxis().setRange(intensityMin,
+        spectrumPlot.getXYPlot().getRangeAxis().setRange(intensityMin,
                 intensityMax);
     }
 
     void updateTitle() {
 
         StringBuffer title = new StringBuffer();
+        title.append("[");
         title.append(rawDataFile.toString());
-        title.append(": ");
+        title.append("]: ");
 
         if (loadedScans == 1) {
-            title.append("Scan #");
+            title.append("scan #");
             title.append(scans[0].getScanNumber());
             setTitle(title.toString());
 
+            title.append(", MS");
+            title.append(scans[0].getMSLevel());
             title.append(", RT ");
             title.append(rtFormat.format(scans[0].getRetentionTime() * 1000));
             
@@ -164,15 +170,15 @@ public class SpectrumVisualizer extends JInternalFrame implements
             title.append(")");
             
         } else {
-            title.append("Combination of spectra, RT ");
+            title.append("combination of spectra, RT ");
             title.append(rtFormat.format(scans[0].getRetentionTime() * 1000));
             title.append(" - ");
             title.append(rtFormat.format(scans[loadedScans - 1]
                     .getRetentionTime() * 1000));
             setTitle(title.toString());
+            title.append(", MS");
+            title.append(scans[0].getMSLevel());
         }
-        title.append(", MS");
-        title.append(scans[0].getMSLevel());
 
         spectrumPlot.setTitle(title.toString());
 
@@ -280,6 +286,21 @@ public class SpectrumVisualizer extends JInternalFrame implements
         // if we have not added this frame before, do it now
         if (getParent() == null)
             MainWindow.getInstance().addInternalFrame(this);
+    }
+
+    /**
+     * @see net.sf.mzmine.visualizers.rawdata.RawDataVisualizer#getCursorPosition()
+     */
+    public CursorPosition getCursorPosition() {
+        return null;
+    }
+
+    /**
+     * @see net.sf.mzmine.visualizers.rawdata.RawDataVisualizer#setCursorPosition(net.sf.mzmine.util.CursorPosition)
+     */
+    public void setCursorPosition(CursorPosition newPosition) {
+        // do nothing
+        
     }
 
 }

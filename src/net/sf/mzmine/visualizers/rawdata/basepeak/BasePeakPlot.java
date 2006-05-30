@@ -35,12 +35,11 @@ import java.text.DecimalFormat;
 import java.text.NumberFormat;
 import java.text.SimpleDateFormat;
 
-import javax.swing.AbstractAction;
-import javax.swing.JMenuItem;
 import javax.swing.JPopupMenu;
 import javax.swing.KeyStroke;
 
 import net.sf.mzmine.util.AddFilePopupMenu;
+import net.sf.mzmine.util.GUIUtils;
 import net.sf.mzmine.util.RemoveFilePopupMenu;
 
 import org.jfree.chart.ChartFactory;
@@ -91,7 +90,7 @@ class BasePeakPlot extends ChartPanel {
     private LegendTitle legend;
     
     // title font
-    private static final Font titleFont = new Font("SansSerif", Font.PLAIN, 12);
+    private static final Font titleFont = new Font("SansSerif", Font.PLAIN, 11);
     
     private TextTitle chartTitle;
 
@@ -189,90 +188,34 @@ class BasePeakPlot extends ChartPanel {
         // set focusable state to receive key events
         setFocusable(true);
 
-        // register key event for right arrow key
-        getInputMap().put(KeyStroke.getKeyStroke("RIGHT"), "moveCursorRight");
-        getActionMap().put("moveCursorRight", new AbstractAction() {
+        // register key handlers
+        GUIUtils.registerKeyHandler(this, KeyStroke.getKeyStroke("LEFT"),
+                visualizer, "MOVE_CURSOR_LEFT");
+        GUIUtils.registerKeyHandler(this, KeyStroke.getKeyStroke("RIGHT"),
+                visualizer, "MOVE_CURSOR_RIGHT");
+        GUIUtils.registerKeyHandler(this, KeyStroke.getKeyStroke("SPACE"),
+                visualizer, "SHOW_SPECTRUM");
+        GUIUtils.registerKeyHandler(this, KeyStroke.getKeyStroke('+'),
+                visualizer, "ZOOM_IN");
+        GUIUtils.registerKeyHandler(this, KeyStroke.getKeyStroke('-'),
+                visualizer, "ZOOM_OUT");
 
-            public void actionPerformed(ActionEvent e) {
-                double selectedRT = plot.getDomainCrosshairValue();
-                double selectedIT = plot.getRangeCrosshairValue();
-                for (int i = 0; i < numberOfDataSets; i++) {
-                    BasePeakDataSet dataSet = (BasePeakDataSet) plot
-                            .getDataset(i);
-                    if (dataSet == null)
-                        continue;
-                    int index = dataSet.getSeriesIndex(selectedRT, selectedIT);
-                    if (index >= 0) {
-                        index++;
-                        if (index < dataSet.getItemCount(0)) {
-                            plot.setDomainCrosshairValue(dataSet.getXValue(0,
-                                    index));
-                            plot.setRangeCrosshairValue(dataSet.getYValue(0,
-                                    index));
-                        }
-                        break;
-                    }
-                }
-
-            }
-        });
-
-        // register key event for left arrow key
-        getInputMap().put(KeyStroke.getKeyStroke("LEFT"), "moveCursorLeft");
-        getActionMap().put("moveCursorLeft", new AbstractAction() {
-
-            public void actionPerformed(ActionEvent e) {
-                double selectedRT = plot.getDomainCrosshairValue();
-                double selectedIT = plot.getRangeCrosshairValue();
-                for (int i = 0; i < numberOfDataSets; i++) {
-                    BasePeakDataSet dataSet = (BasePeakDataSet) plot
-                            .getDataset(i);
-                    if (dataSet == null)
-                        continue;
-                    int index = dataSet.getSeriesIndex(selectedRT, selectedIT);
-                    if (index >= 0) {
-                        index--;
-                        if (index > 0) {
-                            plot.setDomainCrosshairValue(dataSet.getXValue(0,
-                                    index));
-                            plot.setRangeCrosshairValue(dataSet.getYValue(0,
-                                    index));
-                        }
-                        break;
-                    }
-                }
-            }
-        });
-
-
-        // add items to popup menu       
-
-        JMenuItem annotationsMenuItem = new JMenuItem("Toggle showing peak values");
-        annotationsMenuItem.addActionListener(visualizer);
-        annotationsMenuItem.setActionCommand("SHOW_ANNOTATIONS");
-
-        JMenuItem dataPointsMenuItem = new JMenuItem("Toggle showing data points");
-        dataPointsMenuItem.addActionListener(visualizer);
-        dataPointsMenuItem.setActionCommand("SHOW_DATA_POINTS");
-
-        JMenuItem showSpectrumMenuItem = new JMenuItem("Show spectrum of selected scan");
-        showSpectrumMenuItem.addActionListener(visualizer);
-        showSpectrumMenuItem.setActionCommand("SHOW_SPECTRUM");
-        
-        JMenuItem showMultipleSpectraMenuItem = new JMenuItem("Show multiple spectra");
-        showMultipleSpectraMenuItem.addActionListener(visualizer);
-        showMultipleSpectraMenuItem.setActionCommand("SHOW_MULTIPLE_SPECTRA");
-
+        // add items to popup menu
         JPopupMenu popupMenu = getPopupMenu();
         popupMenu.addSeparator();
         popupMenu.add(new AddFilePopupMenu(visualizer));
         popupMenu.add(new RemoveFilePopupMenu(visualizer));
         popupMenu.addSeparator();
-        popupMenu.add(annotationsMenuItem);
-        popupMenu.add(dataPointsMenuItem);
+        GUIUtils.addMenuItem(popupMenu, "Toggle showing peak values",
+                visualizer, "SHOW_ANNOTATIONS");
+        GUIUtils.addMenuItem(popupMenu, "Toggle showing data points",
+                visualizer, "SHOW_DATA_POINTS");
         popupMenu.addSeparator();
-        popupMenu.add(showSpectrumMenuItem);
-        popupMenu.add(showMultipleSpectraMenuItem);
+        GUIUtils.addMenuItem(popupMenu, "Show spectrum of selected scan",
+                visualizer, "SHOW_SPECTRUM");
+        GUIUtils.addMenuItem(popupMenu, "Show multiple spectra",
+                visualizer, "SHOW_MULTIPLE_SPECTRA");
+        
 
     }
 
@@ -308,7 +251,8 @@ class BasePeakPlot extends ChartPanel {
             
             if (showSpectrumRequest) {
                 showSpectrumRequest = false;
-                visualizer.showSpectrum();
+                visualizer.actionPerformed(new ActionEvent(event.getSource(),
+                        ActionEvent.ACTION_PERFORMED, "SHOW_SPECTRUM"));
             }
             
         }
@@ -340,7 +284,7 @@ class BasePeakPlot extends ChartPanel {
         }
     }
 
-    XYPlot getPlot() {
+    XYPlot getXYPlot() {
         return plot;
     }
 

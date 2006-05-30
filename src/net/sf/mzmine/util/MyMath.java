@@ -114,7 +114,7 @@ public class MyMath {
 	 * @param	numberOfBins	Number of bins
 	 * @return	Values for each bin
 	 */
-	public double[] binValues(double[] x, double[] y, double firstBinStart, double lastBinStop, int numberOfBins, boolean interpolate) {
+	public static double[] binValues(double[] x, double[] y, double firstBinStart, double lastBinStop, int numberOfBins, boolean interpolate) {
 
 		Double[] binValues = new Double[numberOfBins];
 		double binWidth = (lastBinStop-firstBinStart)/numberOfBins;
@@ -125,7 +125,7 @@ public class MyMath {
 			if ((x[valueIndex]-firstBinStart)<0) continue;	// Before first bin?
 			if ((lastBinStop-x[valueIndex])<0) continue;	// After last bin?
 
-			int binIndex = (int)((x[valueIndex]-firstBinStart)/numberOfBins);
+			int binIndex = (int)((x[valueIndex]-firstBinStart)/binWidth);
 
 			if (binValues[binIndex]==null) {
 				binValues[binIndex] = y[valueIndex];
@@ -140,7 +140,7 @@ public class MyMath {
 
 		double[] res = new double[binValues.length];
 		for (int binIndex=0; binIndex<binValues.length; binIndex++) {
-			res[binIndex] = binValues[binIndex];
+			res[binIndex] = binValues[binIndex] == null ? 0 : binValues[binIndex];
 		}
 		return res;
 
@@ -153,7 +153,7 @@ public class MyMath {
 	 * @param	valueBefore	Value before the first element in "values". If null, then method tries to extrapolate if interpolation is not possible
 	 * @param	valueAfter	Value after the last element in "values". If null, then method tries to extrapolate if interpolation is not possible
 	 */
-	public void interpolateMissingValues(double x[], Double[] y) {
+	public static void interpolateMissingValues(double x[], Double[] y) {
 
 		for (int index=0; index<y.length; index++) {
 
