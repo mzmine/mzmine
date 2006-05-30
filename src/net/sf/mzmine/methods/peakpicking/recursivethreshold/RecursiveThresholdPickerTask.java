@@ -129,8 +129,8 @@ public class RecursiveThresholdPickerTask implements Task {
 		 * Calculate M/Z binning
 		 */
 
-		double startMZ = rawDataFile.getDataMinMZ();						// minimum m/z value in the raw data file
-		double endMZ = rawDataFile.getDataMaxMZ();							// maximum m/z value in the raw data file
+		double startMZ = rawDataFile.getDataMinMZ(1);						// minimum m/z value in the raw data file
+		double endMZ = rawDataFile.getDataMaxMZ(1);							// maximum m/z value in the raw data file
 		int numOfBins = (int)(java.lang.Math.ceil((endMZ-startMZ)/parameters.binSize));
 		double[][] binInts = new double[numOfBins][totalScans];
 
