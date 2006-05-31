@@ -112,6 +112,7 @@ public class MyMath {
 	 * @param	firstBinStart	Value at the "left"-edge of the first bin
 	 * @param	lastBinStop		Value at the "right"-edge of the last bin
 	 * @param	numberOfBins	Number of bins
+	 * @param	interpolate		If true, then empty bins will be filled with interpolation using other bins
 	 * @return	Values for each bin
 	 */
 	public static double[] binValues(double[] x, double[] y, double firstBinStart, double lastBinStop, int numberOfBins, boolean interpolate) {
@@ -119,11 +120,31 @@ public class MyMath {
 		Double[] binValues = new Double[numberOfBins];
 		double binWidth = (lastBinStop-firstBinStart)/numberOfBins;
 
+		double beforeX = Double.MIN_VALUE;
+		double beforeY = 0.0;
+		double afterX = Double.MAX_VALUE;
+		double afterY = 0.0;
+
 		// Binnings
 		for (int valueIndex=0; valueIndex<x.length; valueIndex++) {
 
-			if ((x[valueIndex]-firstBinStart)<0) continue;	// Before first bin?
-			if ((lastBinStop-x[valueIndex])<0) continue;	// After last bin?
+			// Before first bin?
+			if ((x[valueIndex]-firstBinStart)<0) {
+				if (x[valueIndex]>beforeX) {
+					beforeX = x[valueIndex];
+					beforeY = y[valueIndex];
+				}
+				continue;
+			}
+
+			// After last bin?
+			if ((lastBinStop-x[valueIndex])<0) {
+				if (x[valueIndex]<afterX) {
+					afterX = x[valueIndex];
+					afterY = y[valueIndex];
+				}
+				continue;
+			}
 
 			int binIndex = (int)((x[valueIndex]-firstBinStart)/binWidth);
 
@@ -138,6 +159,43 @@ public class MyMath {
 
 		}
 
+		// Interpolation
+		if (interpolate) {
+
+			for (int binIndex=0; binIndex<binValues.length; binIndex++) {
+				if (binValues[binIndex]==null) {
+
+					// Find exisiting left neighbour
+					double leftNeighbourValue = beforeY;
+					int leftNeighbourBinIndex = (int)java.lang.Math.floor((beforeX-firstBinStart)/binWidth);
+					for (int anotherBinIndex=binIndex-1; anotherBinIndex>=0; anotherBinIndex--) {
+						if (binValues[anotherBinIndex]!=null) {
+							leftNeighbourValue = binValues[anotherBinIndex];
+							leftNeighbourBinIndex = anotherBinIndex;
+							break;
+						}
+					}
+
+					// Find existing right neighbour
+					double rightNeighbourValue = afterY;
+					int rightNeighbourBinIndex = (binValues.length-1)+(int)java.lang.Math.ceil((afterX-lastBinStop)/binWidth);
+					for (int anotherBinIndex=binIndex+1; anotherBinIndex<binValues.length; anotherBinIndex++) {
+						if (binValues[anotherBinIndex]!=null) {
+							rightNeighbourValue = binValues[anotherBinIndex];
+							rightNeighbourBinIndex = anotherBinIndex;
+							break;
+						}
+					}
+
+					double slope = (rightNeighbourValue-leftNeighbourValue)/(rightNeighbourBinIndex-leftNeighbourBinIndex);
+					binValues[binIndex] = new Double(leftNeighbourValue + slope * (binIndex-leftNeighbourBinIndex));
+
+				}
+
+			}
+
+		}
+
 		double[] res = new double[binValues.length];
 		for (int binIndex=0; binIndex<binValues.length; binIndex++) {
 			res[binIndex] = binValues[binIndex] == null ? 0 : binValues[binIndex];
@@ -146,6 +204,7 @@ public class MyMath {
 
 	}
 
+
 	/**
 	 * This method fills missing values in an array by interpolation.
 	 * It is assumed that value
@@ -153,6 +212,7 @@ public class MyMath {
 	 * @param	valueBefore	Value before the first element in "values". If null, then method tries to extrapolate if interpolation is not possible
 	 * @param	valueAfter	Value after the last element in "values". If null, then method tries to extrapolate if interpolation is not possible
 	 */
+/*
 	public static void interpolateMissingValues(double x[], Double[] y) {
 
 		for (int index=0; index<y.length; index++) {
@@ -246,5 +306,6 @@ public class MyMath {
 		}
 
 	}
+*/
 
 }
