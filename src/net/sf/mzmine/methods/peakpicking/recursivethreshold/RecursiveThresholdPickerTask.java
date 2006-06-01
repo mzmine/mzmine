@@ -182,12 +182,46 @@ public class RecursiveThresholdPickerTask implements Task {
 
 			if (status == TaskStatus.CANCELED) return;
 
+			// Get next scan
+			Scan sc = null;
 			try {
-				Scan sc = rawDataFile.getScan(scanNumbers[i]);
+				sc = rawDataFile.getScan(scanNumbers[i]);
 			} catch(IOException e) {
 				status = TaskStatus.ERROR;
 				errorMessage = e.toString();
+				return;
 			}
+
+			double[] masses = sc.getMZValues();
+			double[] intensities = sc.getIntensityValues();
+
+
+			// Find 1D-peaks
+
+			Vector<Integer> inds = new Vector<Integer>();
+			recursiveThreshold(masses, intensities, 0, masses.length-1, parameters.noiseLevel, parameters.minimumMZPeakWidth, parameters.maximumMZPeakWidth, inds, 0);
+
+			Vector<OneDimPeak> oneDimPeaks = new Vector<OneDimPeak>();
+			for (Integer j : inds) {
+				// Is intensity above the noise level
+				if ( intensities[j] >= parameters.noiseLevel ) {
+
+					// Determine correct bin
+					int bin = (int)java.lang.Math.floor( (masses[j] - startMZ) / parameters.binSize );
+					if (bin<0) { bin = 0; }
+					if (bin>=numOfBins) { bin = numOfBins-1; }
+
+					// Is intensity above the chromatographic threshold level for this bin?
+					if (intensities[j]>=chromatographicThresholds[bin]) {
+						oneDimPeaks.add(new OneDimPeak(i, j, masses[j], intensities[j]));
+					}
+
+				}
+
+			}
+
+
+
 
 			processedScans++;
 		}
@@ -195,6 +229,113 @@ public class RecursiveThresholdPickerTask implements Task {
 		status = TaskStatus.FINISHED;
 
     }
+
+
+
+	/**
+	 * This function searches for maximums from given part of a spectrum
+	 */
+	private int recursiveThreshold(double[] masses, double intensities[], int startInd, int stopInd, double thresholdLevel, double minPeakWidthMZ, double maxPeakWidthMZ, Vector<Integer> CentroidInds, int recuLevel) {
+
+		int peakStartInd;
+		int peakStopInd;
+		int lastKnownGoodPeakStopInd;
+		double peakWidthMZ;
+		int peakMinInd;
+		int peakMaxInd;
+
+		lastKnownGoodPeakStopInd = stopInd;
+
+		for (int ind = startInd; ind <= stopInd; ind++) {
+			// While below threshold
+			while ((ind<=stopInd) && (intensities[ind]<=thresholdLevel)) { ind++; }
+
+			if (ind>=stopInd) { break; }
+
+			peakStartInd = ind;
+			peakMinInd = peakStartInd;
+			peakMaxInd = peakStartInd;
+
+			// While peak is on
+			while ((ind<=stopInd) && (intensities[ind]>thresholdLevel)) {
+				// Check if this is the minimum point of the peak
+				if (intensities[ind]<intensities[peakMinInd]) {
+					peakMinInd = ind;
+				}
+
+				// Check if this is the maximum poin of the peak
+				if (intensities[ind]>intensities[peakMaxInd]) {
+					peakMaxInd = ind;
+				}
+
+				ind++;
+			}
+
+			if (ind==stopInd) { ind--; }
+			//peakStopInd = ind - 1;
+			peakStopInd = ind-1;
+
+			// Is this suitable peak?
+
+			if (peakStopInd<0) {
+				peakWidthMZ = 0;
+			} else {
+				int tmpInd1 = peakStartInd - 1;
+				if (tmpInd1<startInd) { tmpInd1 = startInd; }
+				int tmpInd2 = peakStopInd + 1;
+				if (tmpInd2>stopInd) { tmpInd2 = stopInd; }
+				peakWidthMZ = masses[peakStopInd]-masses[peakStartInd];
+			}
+
+			if ( (peakWidthMZ>=minPeakWidthMZ) && (peakWidthMZ<=maxPeakWidthMZ) ) {
+
+				// Two options: define peak centroid index as maxintensity index or mean index of all indices
+				CentroidInds.add(new Integer(peakMaxInd));
+
+				if (recuLevel>0) { return peakStopInd+1; }
+				// lastKnownGoodPeakStopInd = peakStopInd;
+			}
+
+			// Is there need for further investigation?
+			if (peakWidthMZ>maxPeakWidthMZ) {
+				ind = recursiveThreshold(masses, intensities, peakStartInd, peakStopInd, intensities[peakMinInd], minPeakWidthMZ, maxPeakWidthMZ, CentroidInds, recuLevel+1);
+			}
+
+			if (ind==(stopInd-1)) { break; }
+		}
+
+		// return lastKnownGoodPeakStopInd;
+		return stopInd;
+
+	}
+
+	/**
+	 * This class represent a 1D peak
+	 */
+	private class OneDimPeak {
+
+		public int scanNum;
+
+		public double mz;
+		public double intensity;
+		public int datapointIndex;
+
+		private boolean connected;
+
+		public OneDimPeak(int _scanNum, int _datapointIndex, double _mz, double _intensity) {
+			scanNum = _scanNum;
+			datapointIndex = _datapointIndex;
+			mz = _mz;
+			intensity = _intensity;
+
+			connected = false;
+		}
+
+		public void setConnected() { connected = true; }
+		public boolean isConnected() { return connected; }
+
+	}
+
 
 
 }
