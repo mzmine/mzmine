@@ -1,22 +1,21 @@
 /*
-    Copyright 2005 VTT Biotechnology
-
-    This file is part of MZmine.
-
-    MZmine is free software; you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
-    the Free Software Foundation; either version 2 of the License, or
-    (at your option) any later version.
-
-    MZmine is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
-
-    You should have received a copy of the GNU General Public License
-    along with MZmine; if not, write to the Free Software
-    Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
-*/
+ * Copyright 2006 The MZmine Development Team
+ *
+ * This file is part of MZmine.
+ *
+ * MZmine is free software; you can redistribute it and/or modify it under the
+ * terms of the GNU General Public License as published by the Free Software
+ * Foundation; either version 2 of the License, or (at your option) any later
+ * version.
+ *
+ * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY
+ * WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR
+ * A PARTICULAR PURPOSE. See the GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License along with
+ * MZmine; if not, write to the Free Software Foundation, Inc., 51 Franklin St,
+ * Fifth Floor, Boston, MA 02110-1301 USA
+ */
 package net.sf.mzmine.util;
 import java.util.Arrays;
 import java.util.ArrayList;
@@ -103,6 +102,13 @@ public class MyMath {
 	}
 
 
+
+	/**
+	 * Binning modes
+	 */
+    public static enum BinningType {
+        SUM, MAX, MIN
+    };
 	/**
 	 * This method bins values on x-axis.
 	 * Each bin is assigned biggest y-value of all values in the same bin.
@@ -116,9 +122,6 @@ public class MyMath {
 	 * @param	binningType		Type of binning (sum of all 'y' within a bin, max of 'y', min of 'y')
 	 * @return	Values for each bin
 	 */
-    public static enum BinningType {
-        SUM, MAX, MIN
-    };
 	public static double[] binValues(double[] x, double[] y, double firstBinStart, double lastBinStop, int numberOfBins, boolean interpolate, BinningType binningType) {
 
 		Double[] binValues = new Double[numberOfBins];
@@ -153,9 +156,6 @@ public class MyMath {
 			int binIndex = (int)((x[valueIndex]-firstBinStart)/binWidth);
 
 			switch(binningType) {
-				case SUM:
-					if (binValues[binIndex]==null) { binValues[binIndex] = y[valueIndex]; } else { binValues[binIndex] += y[valueIndex]; }
-					break;
 				case MAX:
 					if (binValues[binIndex]==null) { binValues[binIndex] = y[valueIndex]; }
 						else { if (binValues[binIndex]<y[valueIndex]) { binValues[binIndex] = y[valueIndex]; } }
@@ -164,15 +164,11 @@ public class MyMath {
 					if (binValues[binIndex]==null) { binValues[binIndex] = y[valueIndex]; }
 						else { if (binValues[binIndex]>y[valueIndex]) { binValues[binIndex] = y[valueIndex]; } }
 					break;
-			}
+				case SUM:
+				default:
+					if (binValues[binIndex]==null) { binValues[binIndex] = y[valueIndex]; } else { binValues[binIndex] += y[valueIndex]; }
+					break;
 
-			if (binValues[binIndex]==null) {
-				binValues[binIndex] = y[valueIndex];
-				continue;
-			}
-
-			if (binValues[binIndex]<y[valueIndex]) {
-				binValues[binIndex] = y[valueIndex];
 			}
 
 		}
