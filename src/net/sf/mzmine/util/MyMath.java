@@ -113,9 +113,13 @@ public class MyMath {
 	 * @param	lastBinStop		Value at the "right"-edge of the last bin
 	 * @param	numberOfBins	Number of bins
 	 * @param	interpolate		If true, then empty bins will be filled with interpolation using other bins
+	 * @param	binningType		Type of binning (sum of all 'y' within a bin, max of 'y', min of 'y')
 	 * @return	Values for each bin
 	 */
-	public static double[] binValues(double[] x, double[] y, double firstBinStart, double lastBinStop, int numberOfBins, boolean interpolate) {
+    public static enum BinningType {
+        SUM, MAX, MIN
+    };
+	public static double[] binValues(double[] x, double[] y, double firstBinStart, double lastBinStop, int numberOfBins, boolean interpolate, BinningType binningType) {
 
 		Double[] binValues = new Double[numberOfBins];
 		double binWidth = (lastBinStop-firstBinStart)/numberOfBins;
@@ -147,6 +151,20 @@ public class MyMath {
 			}
 
 			int binIndex = (int)((x[valueIndex]-firstBinStart)/binWidth);
+
+			switch(binningType) {
+				case SUM:
+					if (binValues[binIndex]==null) { binValues[binIndex] = y[valueIndex]; } else { binValues[binIndex] += y[valueIndex]; }
+					break;
+				case MAX:
+					if (binValues[binIndex]==null) { binValues[binIndex] = y[valueIndex]; }
+						else { if (binValues[binIndex]<y[valueIndex]) { binValues[binIndex] = y[valueIndex]; } }
+					break;
+				case MIN:
+					if (binValues[binIndex]==null) { binValues[binIndex] = y[valueIndex]; }
+						else { if (binValues[binIndex]>y[valueIndex]) { binValues[binIndex] = y[valueIndex]; } }
+					break;
+			}
 
 			if (binValues[binIndex]==null) {
 				binValues[binIndex] = y[valueIndex];

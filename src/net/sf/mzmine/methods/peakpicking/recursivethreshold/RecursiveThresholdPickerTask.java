@@ -144,9 +144,7 @@ public class RecursiveThresholdPickerTask implements Task {
 
 				double[] mzValues = sc.getMZValues();
 				double[] intensityValues = sc.getIntensityValues();
-				// Todo Fix method binValues in MyMath
-				//double[] tmpInts = MyMath.binValues(mzValues, intensityValues, startMZ, endMZ, numOfBins, true);
-				double[] tmpInts = new double[numOfBins];
+				double[] tmpInts = MyMath.binValues(mzValues, intensityValues, startMZ, endMZ, numOfBins, true, MyMath.BinningType.MAX);
 				for (int bini=0; bini<numOfBins; bini++) {
 					binInts[bini][i] = tmpInts[bini];
 				}
@@ -160,7 +158,6 @@ public class RecursiveThresholdPickerTask implements Task {
 			processedScans++;
 
 		}
-
 
 		// Calculate filtering threshold from each RIC
 		double initialThreshold = Double.MAX_VALUE;
