@@ -59,6 +59,8 @@ public class SimpleDeisotoperParameters implements PeakListProcessorParameters, 
 	public static final Integer chargeOne = 1;
 	public static final Integer chargeTwo = 2;
 	public static final Integer chargeThree = 3;
+	public static final Integer chargeFour = 4;
+	public static final Integer chargeFive = 5;
 
 
 	// PARAMETERS AND THEIR DEFAULT VALUES

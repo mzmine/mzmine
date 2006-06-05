@@ -71,6 +71,10 @@ public class SimpleDeisotoperParameterSetupDialog extends ModalJInternalFrame im
 	private JCheckBox cbChargeStatesTwo;
 	private JLabel lblChargeStatesThree;
 	private JCheckBox cbChargeStatesThree;
+	private JLabel lblChargeStatesFour;
+	private JCheckBox cbChargeStatesFour;
+	private JLabel lblChargeStatesFive;
+	private JCheckBox cbChargeStatesFive;
 
 	private JLabel lblMonotonicShape;
 	private JCheckBox cbMonotonicShape;
@@ -176,6 +180,12 @@ public class SimpleDeisotoperParameterSetupDialog extends ModalJInternalFrame im
 		lblChargeStatesThree = new JLabel("+3");
 		cbChargeStatesThree = new JCheckBox();
 		lblChargeStatesThree.setLabelFor(cbChargeStatesThree);
+		lblChargeStatesFour = new JLabel("+4");
+		cbChargeStatesFour = new JCheckBox();
+		lblChargeStatesFour.setLabelFor(cbChargeStatesFour);
+		lblChargeStatesFive = new JLabel("+5");
+		cbChargeStatesFive = new JCheckBox();
+		lblChargeStatesFive.setLabelFor(cbChargeStatesFive);
 
 		pnlChargePanel.add(lblChargeStatesOne);
 		pnlChargePanel.add(cbChargeStatesOne);
@@ -183,6 +193,11 @@ public class SimpleDeisotoperParameterSetupDialog extends ModalJInternalFrame im
 		pnlChargePanel.add(cbChargeStatesTwo);
 		pnlChargePanel.add(lblChargeStatesThree);
 		pnlChargePanel.add(cbChargeStatesThree);
+		pnlChargePanel.add(lblChargeStatesFour);
+		pnlChargePanel.add(cbChargeStatesFour);
+		pnlChargePanel.add(lblChargeStatesFive);
+		pnlChargePanel.add(cbChargeStatesFive);
+
 
 		lblMonotonicShape = new JLabel("Monotonic pattern shape");
 		cbMonotonicShape = new JCheckBox();
@@ -260,6 +275,8 @@ public class SimpleDeisotoperParameterSetupDialog extends ModalJInternalFrame im
 			if (parameters.chargeStates.contains(SimpleDeisotoperParameters.chargeOne)) { cbChargeStatesOne.setSelected(true); } else { cbChargeStatesOne.setSelected(false); }
 			if (parameters.chargeStates.contains(SimpleDeisotoperParameters.chargeTwo)) { cbChargeStatesTwo.setSelected(true); } else { cbChargeStatesTwo.setSelected(false); }
 			if (parameters.chargeStates.contains(SimpleDeisotoperParameters.chargeThree)) { cbChargeStatesThree.setSelected(true); } else { cbChargeStatesThree.setSelected(false); }
+			if (parameters.chargeStates.contains(SimpleDeisotoperParameters.chargeFour)) { cbChargeStatesFour.setSelected(true); } else { cbChargeStatesFour.setSelected(false); }
+			if (parameters.chargeStates.contains(SimpleDeisotoperParameters.chargeFive)) { cbChargeStatesFive.setSelected(true); } else { cbChargeStatesFive.setSelected(false); }
 
 			txtRTTolerance.setValue(parameters.rtTolerance);
 			txtMZTolerance.setValue(parameters.mzTolerance);
@@ -277,6 +294,8 @@ public class SimpleDeisotoperParameterSetupDialog extends ModalJInternalFrame im
 		if (cbChargeStatesOne.isSelected()) { parameters.chargeStates.add(SimpleDeisotoperParameters.chargeOne); }
 		if (cbChargeStatesTwo.isSelected()) { parameters.chargeStates.add(SimpleDeisotoperParameters.chargeTwo); }
 		if (cbChargeStatesThree.isSelected()) { parameters.chargeStates.add(SimpleDeisotoperParameters.chargeThree); }
+		if (cbChargeStatesFour.isSelected()) { parameters.chargeStates.add(SimpleDeisotoperParameters.chargeFour); }
+		if (cbChargeStatesFive.isSelected()) { parameters.chargeStates.add(SimpleDeisotoperParameters.chargeFive); }
 
 		parameters.rtTolerance = ((Number)(txtRTTolerance.getValue())).doubleValue();
 		parameters.mzTolerance = ((Number)(txtMZTolerance.getValue())).doubleValue();
