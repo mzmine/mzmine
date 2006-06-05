@@ -747,7 +747,7 @@ public class RawDataAtNode {
 						}
 						if ((i-j)>=0) {
 							if (netcdf_scanStartingPoints[i-j]>=0) {
-								nearestI = i+j;
+								nearestI = i-j;
 								break;
 							}
 						}
