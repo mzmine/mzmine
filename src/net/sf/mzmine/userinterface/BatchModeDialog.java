@@ -47,7 +47,7 @@ public class BatchModeDialog extends javax.swing.JInternalFrame implements Actio
 
 	private String[] filterNames = { "not-in-use", "Mean spectra filter", "Savitzky-Golay spectra filter", "Chromatographic median filter", "Cropping filter"};
 	private String[] peakPickerNames = { "not-in-use", "Recursive threshold peak detector", "Local maxima peak detector", "Centroid peak detector"};
-	private String[] peakListProcessorNames = { "not-in-use", "Simple deisotoper", "Isotope pattern filter"};
+	private String[] peakListProcessorNames = { "not-in-use", "Group peaks to isotope patterns", "Isotope pattern filter"};
 	private String[] alignmentMethodNames = { "not-in-use", "Slow aligner", "Fast aligner"};
 	private String[] alignmentFilterNames = { "not-in-use", "Filter by number of detections"};
 	private String[] gapFillingMethodNames = { "not-in-use", "Basic gap-filler"};

@@ -265,7 +265,7 @@ public class MainWindow extends JFrame implements WindowListener, ActionListener
 		ssRecursiveThresholdPicker = new JMenuItem();ssRecursiveThresholdPicker.setText("Recursive threshold peak detector");ssRecursiveThresholdPicker.addActionListener(this);ssRecursiveThresholdPicker.setEnabled(false);
 		ssLocalPicker = new JMenuItem();ssLocalPicker.setText("Local maxima peak detector");ssLocalPicker.addActionListener(this);ssLocalPicker.setEnabled(false);
 		ssCentroidPicker = new JMenuItem();ssCentroidPicker.setText("Centroid peak detector");ssCentroidPicker.addActionListener(this);ssCentroidPicker.setEnabled(false);
-		ssSimpleDeisotoping = new JMenuItem();ssSimpleDeisotoping.setText("Simple deisotoper");ssSimpleDeisotoping.addActionListener(this);ssSimpleDeisotoping.setEnabled(false);
+		ssSimpleDeisotoping = new JMenuItem();ssSimpleDeisotoping.setText("Group peaks to isotope patterns");ssSimpleDeisotoping.addActionListener(this);ssSimpleDeisotoping.setEnabled(false);
 		ssCombinatorialDeisotoping = new JMenuItem();ssCombinatorialDeisotoping.setText("Combinatorial deisotoping");ssCombinatorialDeisotoping.addActionListener(this);ssCombinatorialDeisotoping.setEnabled(false);
 		ssIncompleteIsotopePatternFilter = new JMenuItem();ssIncompleteIsotopePatternFilter.setText("Filter incomplete isotope patterns");ssIncompleteIsotopePatternFilter.addActionListener(this);ssIncompleteIsotopePatternFilter.setEnabled(false);
 		peakMenu.add(ssRecursiveThresholdPicker);
