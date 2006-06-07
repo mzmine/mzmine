@@ -154,6 +154,9 @@ public class MyMath {
 			}
 
 			int binIndex = (int)((x[valueIndex]-firstBinStart)/binWidth);
+            
+			// in case x[valueIndex] is exactly lastBinStop, we would overflow the array
+			if (binIndex == binValues.length) binIndex--;
 
 			switch(binningType) {
 				case MAX:
