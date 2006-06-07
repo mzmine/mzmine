@@ -41,15 +41,23 @@ public class SimpleScan implements Scan {
     private boolean centroided;
 
     /**
+     * Clone constructor
+     */
+    public SimpleScan(Scan sc) {
+        this(sc.getScanNumber(), sc.getMSLevel(), sc.getRetentionTime(),
+                sc.getParentScanNumber(), sc.getPrecursorMZ(),
+                sc.getFragmentScanNumbers(), sc.getMZValues(),
+                sc.getIntensityValues(), sc.isCentroided());
+    }
+
+    /**
      * Constructor for creating scan with given data
      */
     public SimpleScan(int scanNumber, int msLevel, double retentionTime,
             int parentScan, double precursorMZ, int fragmentScans[],
             double[] mzValues, double[] intensityValues, boolean centroided) {
 
-        // check some assumptions about proper scan data
-        assert mzValues.length > 0;
-        assert mzValues.length == intensityValues.length;
+        // check assumptions about proper scan data
         assert (msLevel == 1) || (parentScan > 0);
 
         // save scan data
@@ -59,9 +67,40 @@ public class SimpleScan implements Scan {
         this.parentScan = parentScan;
         this.precursorMZ = precursorMZ;
         this.fragmentScans = fragmentScans;
+        this.centroided = centroided;
+
+        setData(mzValues, intensityValues);
+
+    }
+
+    /**
+     * @return Returns the intensityValues.
+     */
+    public double[] getIntensityValues() {
+        return intensityValues;
+    }
+
+    /**
+     * @return Returns the mZValues.
+     */
+    public double[] getMZValues() {
+        return mzValues;
+    }
+
+    /**
+     * @param mzValues
+     *            m/z values to set
+     * @param intensityValues
+     *            Intensity values to set
+     */
+    public void setData(double[] mzValues, double[] intensityValues) {
+
+        // check assumptions
+        assert mzValues.length > 0;
+        assert mzValues.length == intensityValues.length;
+
         this.mzValues = mzValues;
         this.intensityValues = intensityValues;
-        this.centroided = centroided;
 
         // find m/z range and base peak
         mzRangeMin = mzValues[0];
@@ -78,36 +117,7 @@ public class SimpleScan implements Scan {
                 basePeakMZ = mzValues[i];
             }
         }
-    }
 
-    /**
-     * @return Returns the intensityValues.
-     */
-    public double[] getIntensityValues() {
-        return intensityValues;
-    }
-
-    /**
-     * @param intensityValues
-     *            The intensityValues to set.
-     */
-    public void setIntensityValues(double[] intensityValues) {
-        this.intensityValues = intensityValues;
-    }
-
-    /**
-     * @return Returns the mZValues.
-     */
-    public double[] getMZValues() {
-        return mzValues;
-    }
-
-    /**
-     * @param mzValues
-     *            The mzValues to set.
-     */
-    public void setMZValues(double[] mzValues) {
-        this.mzValues = mzValues;
     }
 
     /**

@@ -63,40 +63,10 @@ class MZXMLScan extends DefaultHandler implements Scan {
     /**
      * Constructor for empty scan that which will be parsed from XML document
      */
-    protected MZXMLScan() {
+    MZXMLScan() {
         charBuffer = new StringBuffer(256);
     }
 
-    /**
-     * Constructor for creating scan with given data
-     */
-    protected MZXMLScan(int scanNumber,
-    					int msLevel,
-    					double precursorMZ,
-    					double retentionTime,
-    					double basePeakMZ,
-    					double basePeakIntensity,
-    					double[] mzValues,
-    					double[] intensityValues,
-    					boolean centroided) {
-		this.scanNumber = scanNumber;
-		this.msLevel = msLevel;
-		this.precursorMZ = precursorMZ;
-		this.retentionTime = retentionTime;
-		this.basePeakMZ = basePeakMZ;
-		this.basePeakIntensity = basePeakIntensity;
-		this.mzValues = mzValues;
-		this.intensityValues = intensityValues;
-		// TODO: this.XXX = centroided;
-
-		// Find M/Z range min and max
-		mzRangeMin = Double.MAX_VALUE;
-		mzRangeMax = Double.MIN_VALUE;
-		for (double mz : mzValues) {
-			if (mzRangeMin>mz) mzRangeMin = mz;
-			if (mzRangeMax<mz) mzRangeMax = mz;
-		}
-	}
 
     /**
      * @return Returns the intensityValues.
@@ -358,6 +328,24 @@ class MZXMLScan extends DefaultHandler implements Scan {
      */
     public void characters(char buf[], int offset, int len) throws SAXException {
         charBuffer = charBuffer.append(buf, offset, len);
+    }
+
+
+    /**
+     * @see net.sf.mzmine.interfaces.Scan#getParentScanNumber()
+     */
+    public int getParentScanNumber() {
+        // TODO Auto-generated method stub
+        return 0;
+    }
+
+
+    /**
+     * @see net.sf.mzmine.interfaces.Scan#getFragmentScanNumbers()
+     */
+    public int[] getFragmentScanNumbers() {
+        // TODO Auto-generated method stub
+        return null;
     }
 
 }

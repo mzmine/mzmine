@@ -27,6 +27,7 @@ import net.sf.mzmine.io.IOController;
 import net.sf.mzmine.io.RawDataFile;
 import net.sf.mzmine.io.RawDataFileWriter;
 import net.sf.mzmine.taskcontrol.Task;
+import net.sf.mzmine.util.SimpleScan;
 
 /**
  *
@@ -123,7 +124,7 @@ public class MeanFilterTask implements Task {
 		// Create new temporary copy
 		RawDataFileWriter rawDataFileWriter;
 		try {
-			rawDataFileWriter = IOController.getInstance().createNewTemporaryFile(rawDataFile);
+			rawDataFileWriter = rawDataFile.createNewTemporaryFile();
 		} catch (IOException e) {
 			status = TaskStatus.ERROR;
 			errorMessage = e.toString();
@@ -220,16 +221,14 @@ public class MeanFilterTask implements Task {
 
 		}
 
-		writer.createScan(	sc.getScanNumber(),
-							sc.getMSLevel(),
-							sc.getPrecursorMZ(),
-							sc.getRetentionTime(),
-							sc.getBasePeakMZ(),
-							sc.getBasePeakIntensity(),
-							sc.getMZValues(),
-							newIntensities,
-							sc.isCentroided()
-							);
+        Scan newScan = new SimpleScan(sc.getScanNumber(),
+                sc.getMSLevel(), sc.getRetentionTime(),
+                sc.getParentScanNumber(), sc.getPrecursorMZ(),
+                sc.getFragmentScanNumbers(), sc.getMZValues(),
+                newIntensities, sc.isCentroided());
+
+        writer.addScan(newScan);
+		
 
 	}
 

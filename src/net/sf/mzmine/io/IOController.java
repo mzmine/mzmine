@@ -84,42 +84,7 @@ public class IOController implements TaskListener {
 
     }
 
-    /**
-     * TODO: Currently always uses MZXMLFileWriter, should also include NetCDFWriter when it is implemented
-     *
-     */
-    public RawDataFileWriter createNewTemporaryFile(RawDataFile file) throws IOException {
-
-
-		// Determine file type
-		FileType fileType = determineFileType(file.getOriginalFile());
-		if (fileType==FileType.UNKNOWN) { return null; }
-
-
-		// Create new temp file
-		File workingCopy;
-		try {
-			workingCopy = File.createTempFile("MZmine", null);
-			workingCopy.deleteOnExit();
-		} catch (SecurityException e) {
-			Logger.putFatal("Could not prepare newly created temporary copy for deletion on exit.");
-			throw new IOException("Could not prepare newly created temporary copy for deletion on exit.");
-		}
-
-
-		// Create the writer
-		switch(fileType) {
-			case MZXML:
-			case NETCDF:
-				RawDataFileWriter rawDataFileWriter = new MZXMLFileWriter(file, workingCopy, file.getPreloadLevel());
-				return rawDataFileWriter;
-
-			default:
-				return null;
-
-		}
-
-    }
+ 
 
     private FileType determineFileType(File file) {
 

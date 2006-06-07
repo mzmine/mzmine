@@ -28,6 +28,7 @@ import net.sf.mzmine.io.IOController;
 import net.sf.mzmine.io.RawDataFile;
 import net.sf.mzmine.io.RawDataFileWriter;
 import net.sf.mzmine.taskcontrol.Task;
+import net.sf.mzmine.util.SimpleScan;
 
 /**
  *
@@ -128,7 +129,7 @@ public class SavitzkyGolayFilterTask implements Task {
 		// Create new temporary copy
 		RawDataFileWriter rawDataFileWriter;
 		try {
-			rawDataFileWriter = IOController.getInstance().createNewTemporaryFile(rawDataFile);
+			rawDataFileWriter = rawDataFile.createNewTemporaryFile();
 		} catch (IOException e) {
 			status = TaskStatus.ERROR;
 			errorMessage = e.toString();
@@ -202,16 +203,9 @@ public class SavitzkyGolayFilterTask implements Task {
 
 		}
 
-		writer.createScan(	sc.getScanNumber(),
-							sc.getMSLevel(),
-							sc.getPrecursorMZ(),
-							sc.getRetentionTime(),
-							sc.getBasePeakMZ(),
-							sc.getBasePeakIntensity(),
-							sc.getMZValues(),
-							newIntensities,
-							sc.isCentroided()
-							);
+        SimpleScan newScan = new SimpleScan(sc);
+        newScan.setData(sc.getMZValues(), newIntensities);
+        writer.addScan(newScan);
 
 	}
 

@@ -24,6 +24,7 @@ package net.sf.mzmine.io.netcdf;
 
 import java.io.File;
 
+import net.sf.mzmine.interfaces.Scan;
 import net.sf.mzmine.io.RawDataFile.PreloadLevel;
 import net.sf.mzmine.taskcontrol.DistributableTask;
 import net.sf.mzmine.util.Logger;
@@ -42,7 +43,7 @@ public class NetCDFFileOpeningTask implements DistributableTask {
 	private int totalScans;
 
 	private NetCDFFile buildingFile;
-	private NetCDFScan buildingScan;
+	private Scan buildingScan;
 
 
 

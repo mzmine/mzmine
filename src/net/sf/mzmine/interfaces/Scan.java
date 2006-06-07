@@ -44,5 +44,17 @@ public interface Scan {
     public int getNumberOfDataPoints();
 
     public boolean isCentroided();
+    
+    /**
+     * 
+     * @return parent scan number or -1 if there is no parent scan
+     */
+    public int getParentScanNumber();
+    
+    /**
+     * 
+     * @return array of fragment scan numbers, or null if there are none
+     */
+    public int[] getFragmentScanNumbers();
 
 }

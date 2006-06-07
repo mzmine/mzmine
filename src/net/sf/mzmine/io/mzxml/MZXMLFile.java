@@ -27,6 +27,8 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Enumeration;
+import java.util.HashSet;
 import java.util.Hashtable;
 import java.util.Iterator;
 import java.util.Set;
@@ -37,10 +39,10 @@ import javax.xml.parsers.SAXParserFactory;
 
 import net.sf.mzmine.interfaces.Scan;
 import net.sf.mzmine.io.RawDataFile;
-import net.sf.mzmine.io.RawDataFile.PreloadLevel;
-import net.sf.mzmine.util.Logger;
+import net.sf.mzmine.io.RawDataFileWriter;
 import net.sf.mzmine.methods.Method;
 import net.sf.mzmine.methods.MethodParameters;
+import net.sf.mzmine.util.Logger;
 
 /**
  * Class representing raw data file in MZXML format.
@@ -60,15 +62,13 @@ class MZXMLFile implements RawDataFile {
     private int numOfScans = 0;
 
     private Hashtable<Integer, Double> dataMinMZ, dataMaxMZ, dataMinRT, dataMaxRT;
-
     private Hashtable<Integer, Double> dataMaxBasePeakIntensity, dataMaxTIC;
-
     private Hashtable<Integer, Double> retentionTimes;
 
     /**
      * Preloaded scans
      */
-    private Hashtable<Integer, MZXMLScan> scans;
+    private Hashtable<Integer, Scan> scans;
 
     private PreloadLevel preloadLevel;
 
@@ -77,7 +77,7 @@ class MZXMLFile implements RawDataFile {
     private Hashtable<Integer, Long> scansIndex;
 
     /**
-     * Maps scan level -> list of scan numbers in that level
+     * Maps scan MS level to a list of scan numbers in that level
      */
     private Hashtable<Integer, ArrayList<Integer>> scanNumbers;
 
@@ -113,7 +113,7 @@ class MZXMLFile implements RawDataFile {
         dataMaxBasePeakIntensity = new Hashtable<Integer, Double>();
         dataMaxTIC = new Hashtable<Integer, Double>();
         if (preloadLevel != PreloadLevel.NO_PRELOAD)
-            scans = new Hashtable<Integer, MZXMLScan>();
+            scans = new Hashtable<Integer, Scan>();
     }
 
     /**
@@ -130,7 +130,7 @@ class MZXMLFile implements RawDataFile {
 
         /* check if we have desired scan in memory */
         if (scans != null) {
-            MZXMLScan preloadedScan = scans.get(new Integer(scanNumber));
+            Scan preloadedScan = scans.get(new Integer(scanNumber));
             if (preloadedScan != null)
                 return preloadedScan;
         }
@@ -219,6 +219,25 @@ class MZXMLFile implements RawDataFile {
         Arrays.sort(numbersArray);
         return numbersArray;
     }
+    
+    /**
+     * @see net.sf.mzmine.io.RawDataFile#getScanNumbers()
+     */
+    public int[] getScanNumbers() {
+        
+        Set<Integer> allScanNumbers = new HashSet<Integer>();
+        Enumeration<ArrayList<Integer>> scanNumberLists = scanNumbers.elements();
+        while (scanNumberLists.hasMoreElements()) allScanNumbers.addAll(scanNumberLists.nextElement());
+        
+        int[] numbersArray = new int[allScanNumbers.size()];
+        int index = 0;
+        Iterator<Integer> iter = allScanNumbers.iterator();
+        while (iter.hasNext())
+            numbersArray[index++] = iter.next().intValue();
+        Arrays.sort(numbersArray);
+        return numbersArray;
+        
+    }
 
     /**
      * @see net.sf.mzmine.io.RawDataFile#getMSLevels()
@@ -300,7 +319,7 @@ class MZXMLFile implements RawDataFile {
     /**
      * SAX parser calls this method when parsing the XML file
      */
-    void addScan(MZXMLScan newScan) {
+    void addScan(Scan newScan) {
 
         /* if we want to keep data in memory, save a reference */
         if (preloadLevel == PreloadLevel.PRELOAD_ALL_SCANS)
@@ -369,5 +388,25 @@ class MZXMLFile implements RawDataFile {
     public PreloadLevel getPreloadLevel() {
         return preloadLevel;
     }
+
+    /**
+     * 
+     */
+    public RawDataFileWriter createNewTemporaryFile() throws IOException {
+
+        // Create new temp file
+        File workingCopy;
+        try {
+            workingCopy = File.createTempFile("MZmine", null);
+            workingCopy.deleteOnExit();
+        } catch (SecurityException e) {
+            Logger.putFatal("Could not prepare newly created temporary copy for deletion on exit.");
+            throw new IOException("Could not prepare newly created temporary copy for deletion on exit.");
+        }
+
+        return new MZXMLFileWriter(this, workingCopy, preloadLevel);
+
+    }
+
 
 }

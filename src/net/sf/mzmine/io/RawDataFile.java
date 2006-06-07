@@ -61,6 +61,7 @@ public interface RawDataFile extends Serializable {
     public int getNumOfScans();
     public int[] getMSLevels();
     public int[] getScanNumbers(int msLevel);
+    public int[] getScanNumbers();
     
     // returns a retention time of a scan
     public double getRetentionTime(int scanNumber);
@@ -86,5 +87,7 @@ public interface RawDataFile extends Serializable {
      * @return filename
      */
     public String toString();
+    
+    public RawDataFileWriter createNewTemporaryFile() throws IOException;
 
 }

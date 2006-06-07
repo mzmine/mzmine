@@ -123,14 +123,14 @@ public class ZoomScanFilterTask implements Task {
 		// Create new temporary copy
 		RawDataFileWriter rawDataFileWriter;
 		try {
-			rawDataFileWriter = IOController.getInstance().createNewTemporaryFile(rawDataFile);
+			rawDataFileWriter = rawDataFile.createNewTemporaryFile();
 		} catch (IOException e) {
 			status = TaskStatus.ERROR;
 			errorMessage = e.toString();
 			return;
 		}
 
-        int[] scanNumbers = rawDataFile.getScanNumbers(1);
+        int[] scanNumbers = rawDataFile.getScanNumbers();
         totalScans = scanNumbers.length;
 
 
@@ -152,16 +152,8 @@ public class ZoomScanFilterTask implements Task {
 			if ( (mzMax-mzMin)<parameters.minMZRange) { continue; }
 
 			try {
-				rawDataFileWriter.createScan(	sc.getScanNumber(),
-									sc.getMSLevel(),
-									sc.getPrecursorMZ(),
-									sc.getRetentionTime(),
-									sc.getBasePeakMZ(),
-									sc.getBasePeakIntensity(),
-									sc.getMZValues(),
-									sc.getIntensityValues(),
-									sc.isCentroided()
-								);
+				rawDataFileWriter.addScan(sc);
+                
 			} catch (IOException e) {
 				status = TaskStatus.ERROR;
 				errorMessage = e.toString();

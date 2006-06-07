@@ -1,24 +1,24 @@
 /*
  * Copyright 2006 The MZmine Development Team
- *
+ * 
  * This file is part of MZmine.
- *
+ * 
  * MZmine is free software; you can redistribute it and/or modify it under the
  * terms of the GNU General Public License as published by the Free Software
  * Foundation; either version 2 of the License, or (at your option) any later
  * version.
- *
+ * 
  * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY
  * WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR
  * A PARTICULAR PURPOSE. See the GNU General Public License for more details.
- *
+ * 
  * You should have received a copy of the GNU General Public License along with
  * MZmine; if not, write to the Free Software Foundation, Inc., 51 Franklin St,
  * Fifth Floor, Boston, MA 02110-1301 USA
  */
 
 /**
- *
+ * 
  */
 package net.sf.mzmine.io.netcdf;
 
@@ -28,18 +28,18 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Hashtable;
 import java.util.Iterator;
-import java.util.Set;
 import java.util.Vector;
 
 import net.sf.mzmine.interfaces.Scan;
 import net.sf.mzmine.io.RawDataFile;
-import net.sf.mzmine.io.RawDataFile.PreloadLevel;
-import net.sf.mzmine.util.Logger;
+import net.sf.mzmine.io.RawDataFileWriter;
+import net.sf.mzmine.io.mzxml.MZXMLFileWriter;
 import net.sf.mzmine.methods.Method;
 import net.sf.mzmine.methods.MethodParameters;
+import net.sf.mzmine.util.Logger;
 
 /**
- *
+ * 
  */
 public class NetCDFFile implements RawDataFile {
 
@@ -54,69 +54,75 @@ public class NetCDFFile implements RawDataFile {
 
     private double dataMinMZ, dataMaxMZ, dataMinRT, dataMaxRT;
 
-    private Hashtable<Integer, Double> dataMaxBasePeakIntensity, dataMaxTIC;
-    
+    private double dataMaxBasePeakIntensity, dataMaxTIC;
+
     private Hashtable<Integer, Double> retentionTimes;
 
-	private NetCDFFileParser cdfParser;
+    private NetCDFFileParser cdfParser;
 
     /**
      * Preloaded scans
      */
-    private Hashtable<Integer, NetCDFScan> scans;
+    private Hashtable<Integer, Scan> scans;
 
     /**
-     * Maps scan level -> list of scan numbers in that level
+     * Scan numbers (only MS level 1)
      */
-    private Hashtable<Integer, ArrayList<Integer>> scanNumbers;
+    private ArrayList<Integer> scanNumbers;
 
     /**
-     *
+     * 
      */
     NetCDFFile(File currentFile, PreloadLevel preloadLevel) {
-		this(currentFile, preloadLevel, null);
-	}
+        this(currentFile, preloadLevel, null);
+    }
 
     /**
-     *
+     * 
      */
-    NetCDFFile(File currentFile, PreloadLevel preloadLevel, Vector<Operation> history) {
+    NetCDFFile(File currentFile, PreloadLevel preloadLevel,
+            Vector<Operation> history) {
 
         this.currentFile = currentFile;
         this.preloadLevel = preloadLevel;
-        if (history==null) { this.history = new Vector<Operation>(); } else { this.history = history; }
+        if (history == null) {
+            this.history = new Vector<Operation>();
+        } else {
+            this.history = history;
+        }
 
         dataDescription = new StringBuffer();
-        scanNumbers = new Hashtable<Integer, ArrayList<Integer>>();
+        scanNumbers = new ArrayList<Integer>();
         retentionTimes = new Hashtable<Integer, Double>();
-        dataMaxBasePeakIntensity = new Hashtable<Integer, Double>();
-        dataMaxTIC = new Hashtable<Integer, Double>();
-        if (preloadLevel != PreloadLevel.NO_PRELOAD) scans = new Hashtable<Integer, NetCDFScan>();
+        if (preloadLevel != PreloadLevel.NO_PRELOAD)
+            scans = new Hashtable<Integer, Scan>();
     }
 
     /**
      * @see net.sf.mzmine.io.RawDataFile#getOriginalFile()
      */
     public File getOriginalFile() {
-		if (history.size()==0) return currentFile;
-		return history.get(0).previousFileName;
+        if (history.size() == 0)
+            return currentFile;
+        return history.get(0).previousFileName;
     }
 
     public File getCurrentFile() {
-		return currentFile;
-	}
+        return currentFile;
+    }
 
-	public Vector<Operation> getHistory() {
-		return history;
-	}
+    public Vector<Operation> getHistory() {
+        return history;
+    }
 
-	public void addHistory(File previousFile, Method processingMethod, MethodParameters parameters) {
-		Operation o = new Operation();
-		o.previousFileName = previousFile;
-		o.processingMethod = processingMethod;
-		o.parameters = parameters;
-		history.add(o);
-	}
+    public void addHistory(File previousFile, Method processingMethod,
+            MethodParameters parameters) {
+        Operation o = new Operation();
+        o.previousFileName = previousFile;
+        o.processingMethod = processingMethod;
+        o.parameters = parameters;
+        history.add(o);
+    }
 
     /**
      * @see net.sf.mzmine.io.RawDataFile#getNumOfScans()
@@ -129,18 +135,9 @@ public class NetCDFFile implements RawDataFile {
      * @see net.sf.mzmine.io.RawDataFile#getMSLevels()
      */
     public int[] getMSLevels() {
-
-        Set<Integer> msLevelsSet = scanNumbers.keySet();
-        int[] msLevels = new int[msLevelsSet.size()];
-        int index = 0;
-        Iterator<Integer> iter = msLevelsSet.iterator();
-        while (iter.hasNext())
-            msLevels[index++] = iter.next().intValue();
-        Arrays.sort(msLevels);
-        return msLevels;
-
+        return new int[] { 1 };
     }
-    
+
     /**
      * @see net.sf.mzmine.io.RawDataFile#getRetentionTime(int)
      */
@@ -153,17 +150,20 @@ public class NetCDFFile implements RawDataFile {
     }
 
     /**
+     * @see net.sf.mzmine.io.RawDataFile#getScanNumbers()
+     */
+    public int[] getScanNumbers() {
+        return getScanNumbers(1);
+    }
+
+    /**
      * @see net.sf.mzmine.io.RawDataFile#getScanNumbers(int)
      */
     public int[] getScanNumbers(int msLevel) {
 
-        ArrayList<Integer> numbersList = scanNumbers.get(new Integer(msLevel));
-        if (numbersList == null)
-            return null;
-
-        int[] numbersArray = new int[numbersList.size()];
+        int[] numbersArray = new int[scanNumbers.size()];
         int index = 0;
-        Iterator<Integer> iter = numbersList.iterator();
+        Iterator<Integer> iter = scanNumbers.iterator();
         while (iter.hasNext())
             numbersArray[index++] = iter.next().intValue();
         Arrays.sort(numbersArray);
@@ -175,20 +175,19 @@ public class NetCDFFile implements RawDataFile {
      */
     public Scan getScan(int scanNumber) throws IOException {
 
-
         /* check if we have desired scan in memory */
         if (scans != null) {
-            NetCDFScan preloadedScan = scans.get(new Integer(scanNumber));
+            Scan preloadedScan = scans.get(new Integer(scanNumber));
             if (preloadedScan != null)
                 return preloadedScan;
         }
 
-		// Fetch scan from file
-		cdfParser.openFile();
-		NetCDFScan fetchedScan = cdfParser.parseScan(scanNumber);
-		cdfParser.closeFile();
+        // Fetch scan from file
+        cdfParser.openFile();
+        Scan fetchedScan = cdfParser.parseScan(scanNumber);
+        cdfParser.closeFile();
 
-		return fetchedScan;
+        return fetchedScan;
 
     }
 
@@ -235,14 +234,20 @@ public class NetCDFFile implements RawDataFile {
      * @see net.sf.mzmine.io.RawDataFile#getDataMaxBasePeakIntensity(int)
      */
     public double getDataMaxBasePeakIntensity(int msLevel) {
-        return dataMaxBasePeakIntensity.get(msLevel).doubleValue();
+        if (msLevel == 1)
+            return dataMaxBasePeakIntensity;
+        else
+            return 0;
     }
 
     /**
      * @see net.sf.mzmine.io.RawDataFile#getDataMaxTotalIonCurrent(int)
      */
     public double getDataMaxTotalIonCurrent(int msLevel) {
-        return dataMaxTIC.get(msLevel).doubleValue();
+        if (msLevel == 1)
+            return dataMaxTIC;
+        else
+            return 0;
     }
 
     /**
@@ -252,26 +257,24 @@ public class NetCDFFile implements RawDataFile {
         return preloadLevel;
     }
 
-
-	void addDataDescription(String description) {
+    void addDataDescription(String description) {
         if (dataDescription.length() > 0)
             dataDescription.append("\n");
         dataDescription.append(description);
     }
 
-	void addParser(NetCDFFileParser cdfParser) {
-		this.cdfParser = cdfParser;
-	}
-
+    void addParser(NetCDFFileParser cdfParser) {
+        this.cdfParser = cdfParser;
+    }
 
     /**
-     *
+     * 
      */
-    void addScan(NetCDFScan newScan) {
+    void addScan(Scan newScan) {
 
         /* if we want to keep data in memory, save a reference */
         if (preloadLevel == PreloadLevel.PRELOAD_ALL_SCANS)
-            scans.put(new Integer(newScan.getScanNumber()), newScan);
+            scans.put(newScan.getScanNumber(), newScan);
 
         if ((numOfScans == 0) || (dataMinMZ > newScan.getMZRangeMin()))
             dataMinMZ = newScan.getMZRangeMin();
@@ -281,35 +284,44 @@ public class NetCDFFile implements RawDataFile {
             dataMinRT = newScan.getRetentionTime();
         if ((numOfScans == 0) || (dataMaxRT < newScan.getRetentionTime()))
             dataMaxRT = newScan.getRetentionTime();
-        if ((dataMaxBasePeakIntensity.get(newScan.getMSLevel()) == null)
-                || (dataMaxBasePeakIntensity.get(newScan.getMSLevel()) < newScan
-                        .getBasePeakIntensity()))
-            dataMaxBasePeakIntensity.put(newScan.getMSLevel(), newScan
-                    .getBasePeakIntensity());
+        if ((numOfScans == 0)
+                || (dataMaxBasePeakIntensity < newScan.getBasePeakIntensity()))
+            dataMaxBasePeakIntensity = newScan.getBasePeakIntensity();
 
         retentionTimes.put(newScan.getScanNumber(), newScan.getRetentionTime());
-        
+
         double scanTIC = 0;
 
         for (double intensity : newScan.getIntensityValues())
             scanTIC += intensity;
 
-        if ((dataMaxTIC.get(newScan.getMSLevel()) == null)
-                || (scanTIC > dataMaxTIC.get(newScan.getMSLevel())))
-            dataMaxTIC.put(newScan.getMSLevel(), scanTIC);
+        if ((numOfScans == 0) || (scanTIC > dataMaxTIC))
+            dataMaxTIC = scanTIC;
 
-        ArrayList<Integer> scanList = scanNumbers.get(new Integer(newScan
-                .getMSLevel()));
-        if (scanList == null) {
-            scanList = new ArrayList<Integer>(64);
-            scanNumbers.put(new Integer(newScan.getMSLevel()), scanList);
-        }
-        scanList.add(new Integer(newScan.getScanNumber()));
+        scanNumbers.add(newScan.getScanNumber());
 
         numOfScans++;
 
     }
 
+    /**
+     * @see net.sf.mzmine.io.RawDataFile#createNewTemporaryFile()
+     */
+    public RawDataFileWriter createNewTemporaryFile() throws IOException {
 
+        // Create new temp file
+        File workingCopy;
+        try {
+            workingCopy = File.createTempFile("MZmine", null);
+            workingCopy.deleteOnExit();
+        } catch (SecurityException e) {
+            Logger.putFatal("Could not prepare newly created temporary copy for deletion on exit.");
+            throw new IOException(
+                    "Could not prepare newly created temporary copy for deletion on exit.");
+        }
+
+        // TODO: implement NetCDFFileWriter
+        return new MZXMLFileWriter(this, workingCopy, preloadLevel);
+    }
 
 }

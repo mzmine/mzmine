@@ -26,8 +26,9 @@ import java.io.File;
 import java.io.IOException;
 import java.util.Hashtable;
 
+import net.sf.mzmine.interfaces.Scan;
 import net.sf.mzmine.util.Logger;
-import net.sf.mzmine.io.netcdf.NetCDFScan;
+import net.sf.mzmine.util.SimpleScan;
 
 /**
  * This is a helper class used for parsing NetCDF files
@@ -268,7 +269,7 @@ public class NetCDFFileParser {
 	 * Reads one scan from the file.
 	 * Requires that general information has already been read.
 	 */
-	public NetCDFScan parseScan(int scanNum) throws IOException {
+	public Scan parseScan(int scanNum) throws IOException {
 
 		// Get scan starting position and length
 		int[] scanStartPosition = new int[1];
@@ -292,9 +293,7 @@ public class NetCDFFileParser {
 
 		// An empty scan needs some special attention..
 		if (scanLength[0]==0) {
-			double[] massValues = new double[0];
-			double[] intensityValues = new double[0];
-			return new NetCDFScan(scanNum, retentionTime, massValues, intensityValues);
+            return null;
 		}
 
 
@@ -380,7 +379,7 @@ public class NetCDFFileParser {
 			intIntensityValues = null;
 		}
 
-		return new NetCDFScan(scanNum, retentionTime, massValues, intensityValues);
+		return new SimpleScan(scanNum, 1, retentionTime, -1, 0, null, massValues, intensityValues, false);
 
 
 	}
