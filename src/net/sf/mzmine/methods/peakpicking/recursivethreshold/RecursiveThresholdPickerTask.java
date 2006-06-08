@@ -21,6 +21,9 @@ package net.sf.mzmine.methods.peakpicking.recursivethreshold;
 
 import java.io.IOException;
 import java.util.Vector;
+import java.util.TreeSet;
+import java.util.Hashtable;
+import java.util.Iterator;
 
 import net.sf.mzmine.taskcontrol.Task;
 import net.sf.mzmine.interfaces.Scan;
@@ -174,15 +177,20 @@ public class RecursiveThresholdPickerTask implements Task {
 
 
 
+		Vector<RecursiveThresholdPickerPeak> underConstructionPeaks = new Vector<RecursiveThresholdPickerPeak>();
+		Vector<RecursiveThresholdPickerPeak> detectedPeaks = new Vector<RecursiveThresholdPickerPeak>();
 
 		/**
 		 * Loop through scans
 		 */
+
+		Vector<OneDimPeak> oneDimPeaks = new Vector<OneDimPeak>();
 		for (int i=0; i<totalScans; i++) {
 
 			if (status == TaskStatus.CANCELED) return;
 
 			// Get next scan
+
 			Scan sc = null;
 			try {
 				sc = rawDataFile.getScan(scanNumbers[i]);
@@ -201,7 +209,6 @@ public class RecursiveThresholdPickerTask implements Task {
 			Vector<Integer> inds = new Vector<Integer>();
 			recursiveThreshold(masses, intensities, 0, masses.length-1, parameters.noiseLevel, parameters.minimumMZPeakWidth, parameters.maximumMZPeakWidth, inds, 0);
 
-			Vector<OneDimPeak> oneDimPeaks = new Vector<OneDimPeak>();
 			for (Integer j : inds) {
 				// Is intensity above the noise level
 				if ( intensities[j] >= parameters.noiseLevel ) {
@@ -221,9 +228,117 @@ public class RecursiveThresholdPickerTask implements Task {
 			}
 
 
+			// Calculate scores between under-construction scores and 1d-peaks
+
+			TreeSet<MatchScore> scores = new TreeSet<MatchScore>();
+
+			for (RecursiveThresholdPickerPeak ucPeak : underConstructionPeaks) {
+
+				for (OneDimPeak oneDimPeak : oneDimPeaks) {
+					MatchScore score = new MatchScore(ucPeak, oneDimPeak);
+					if (score.getScore()<Double.MAX_VALUE) { scores.add(score); }
+				}
+
+			}
+
+
+			// Connect the best scoring pairs of under-construction and 1d peaks
+
+			Iterator<MatchScore> scoreIterator = scores.iterator();
+			while (scoreIterator.hasNext()) {
+				MatchScore score = scoreIterator.next();
+
+				// If score is too high for connecting, then stop the loop
+				if ( score.getScore()>=Double.MAX_VALUE ) { break; }
+
+				// If 1d peak is already connected, then move to next score
+				OneDimPeak oneDimPeak = score.getOneDimPeak();
+				if (oneDimPeak.isConnected()) { continue; }
+
+				// If uc peak is already connected, then move on to next score
+				RecursiveThresholdPickerPeak ucPeak = score.getPeak();
+				if (ucPeak.isGrowing()) { continue; }
+
+				// Connect 1d to uc
+				ucPeak.addDatapoint(sc.getScanNumber(), oneDimPeak.mz, sc.getRetentionTime(), oneDimPeak.intensity);
+				oneDimPeak.setConnected();
+
+			}
+
+			// Check if there are any under-construction peaks that were not connected
+			for (RecursiveThresholdPickerPeak ucPeak : underConstructionPeaks) {
+
+				// If nothing was added,
+				if (!ucPeak.isGrowing()) {
+
+					// Check length
+					double ucLength = ucPeak.getMaxRT()-ucPeak.getMinRT();
+					double ucHeight = ucPeak.getRawHeight();
+					if (	(ucLength>=parameters.minimumPeakDuration) &&
+							(ucHeight >= parameters.minimumPeakHeight)
+					) {
+
+						// Good peak, add it to the peak list
+						readyPeakList.addPeak(ucPeak);
+
+						// Remove the peak from under construction peaks
+						int ucInd = underConstructionPeaks.indexOf(ucPeak);
+						underConstructionPeaks.set(ucInd, null);
+					}
+
+				}
+
+			}
+
+			// Clean-up empty slots under-construction peaks collection and reset growing statuses for remaining under construction peaks
+			for (int ucInd=0; ucInd<underConstructionPeaks.size(); ucInd++) {
+				RecursiveThresholdPickerPeak ucPeak = underConstructionPeaks.get(ucInd);
+				if (ucPeak==null) {
+					underConstructionPeaks.remove(ucInd);
+					ucInd--;
+				} else {
+					ucPeak.resetGrowingState();
+				}
+			}
+
+
+
+			// If there are some unconnected 1d-peaks, then start a new under-construction peak for each of them
+			for (OneDimPeak oneDimPeak : oneDimPeaks) {
+
+				if (!oneDimPeak.isConnected()) {
+
+					RecursiveThresholdPickerPeak ucPeak = new RecursiveThresholdPickerPeak();
+					ucPeak.addDatapoint(sc.getScanNumber(), oneDimPeak.mz, sc.getRetentionTime(), oneDimPeak.intensity);
+					underConstructionPeaks.add(ucPeak);
+
+				}
+
+			}
 
 
 			processedScans++;
+
+		} // End of scan loop
+
+
+
+		// Finally process all remaining under-construction peaks
+
+		for (RecursiveThresholdPickerPeak ucPeak : underConstructionPeaks) {
+
+			// Check length & height
+			double ucLength = ucPeak.getMaxRT()-ucPeak.getMinRT();
+			double ucHeight = ucPeak.getRawHeight();
+			if (	(ucLength>=parameters.minimumPeakDuration) &&
+					(ucHeight >= parameters.minimumPeakHeight)
+			) {
+
+				// Good peak, add it to the peak list
+				readyPeakList.addPeak(ucPeak);
+
+			}
+
 		}
 
 		status = TaskStatus.FINISHED;
@@ -337,5 +452,162 @@ public class RecursiveThresholdPickerTask implements Task {
 	}
 
 
+
+	/**
+	 * This class represents a score (goodness of fit) between Peak and 1D-peak
+	 */
+	private class MatchScore implements Comparable<MatchScore> {
+
+		private double score;
+		private RecursiveThresholdPickerPeak ucPeak;
+		private OneDimPeak oneDimPeak;
+
+
+		public MatchScore(RecursiveThresholdPickerPeak uc, OneDimPeak od) {
+			ucPeak = uc;
+			oneDimPeak = od;
+			score = calcScore(uc, od);
+		}
+
+		public double getScore() { return score; }
+		public RecursiveThresholdPickerPeak getPeak() { return ucPeak; }
+		public OneDimPeak getOneDimPeak() { return oneDimPeak; }
+
+		public int compareTo(MatchScore m) {
+			int retsig = (int)java.lang.Math.signum(score-m.getScore());
+			if (retsig==0) { retsig=-1; } // Must never return 0, because treeset can't hold equal elements
+			return retsig;
+		}
+
+
+		private double calcScore(RecursiveThresholdPickerPeak uc, OneDimPeak od) {
+
+			double ucMZ = uc.getMZ();
+
+			// If mz difference is too big? (do this first for optimal performance)
+			if ( java.lang.Math.abs(ucMZ-od.mz) > parameters.mzTolerance ) {
+				return Double.MAX_VALUE;
+
+			} else {
+
+				// Calculate score components and total score
+				double scoreMZComponent = java.lang.Math.abs(ucMZ-od.mz);
+				double scoreRTComponent = calcScoreForRTShape(uc, od);
+				double totalScore = java.lang.Math.sqrt(scoreMZComponent*scoreMZComponent + scoreRTComponent*scoreRTComponent);
+
+				return totalScore;
+			}
+
+		}
+
+		/**
+		 * This function check for the shape of the peak in RT direction, and
+		 * determines if it is possible to add given m/z peak at the end of the peak.
+		 *
+		 */
+		private double calcScoreForRTShape(RecursiveThresholdPickerPeak uc, OneDimPeak od) {
+
+			double nextIntensity = od.intensity;
+			Hashtable<Integer, Double[]> datapoints = uc.getRawDatapoints();
+
+			// If no previous m/z peaks
+			if (datapoints.size() == 0) {
+				return 0;
+			}
+
+
+			// If only one previous m/z peak
+			if (datapoints.size() == 1) {
+
+				Object[] triplets = datapoints.values().toArray();
+				double prevIntensity = ((Double[])(triplets[0]))[2];
+				triplets = null;
+
+				// If it goes up, then give minimum (best) score
+				if ((nextIntensity-prevIntensity) >=0 ) {
+					return 0;
+				}
+
+				// If it goes too much down, then give MAX_VALUE
+				double bottomMargin = prevIntensity*(1-parameters.intTolerance);
+				if (nextIntensity<=bottomMargin) { return Double.MAX_VALUE; }
+
+				// If it goes little bit down, but within marginal, then give score between 0...maxScore
+				//return ( (prevIntensity-nextIntensity) / ( prevIntensity-bottomMargin) );
+				return 0;
+
+			}
+
+
+			// There are two or more previous m/z peaks in this peak
+
+			// Determine shape of the peak
+
+			Object[] triplets = datapoints.values().toArray();
+			int derSign = 1;
+			for (int ind=1; ind<triplets.length; ind++) {
+
+				double prevIntensity = ((Double[])(triplets[ind-1]))[2];
+				double currIntensity = ((Double[])(triplets[ind]))[2];
+
+				// If peak is currently going up
+				if (derSign==1) {
+					// Then next intensity must be above bottomMargin or derSign changes
+					double bottomMargin = prevIntensity*(1-parameters.intTolerance);
+
+					if ( currIntensity <= bottomMargin ) {
+						derSign = -1;
+						continue;
+					}
+				}
+
+				// If peak is currently going down
+				if (derSign==-1) {
+					// Then next intensity should be less than topMargin or peak ends
+					double topMargin = prevIntensity*(1+parameters.intTolerance);
+
+					if ( currIntensity >= topMargin ) {
+						return Double.MAX_VALUE;
+					}
+				}
+
+			}
+			// derSign now contains information about RT peak shape at the end of the peak so far
+
+			// If peak is currently going up
+			if (derSign==1) {
+
+				// Then give minimum (best) score in any case (peak can continue going up or start going down)
+				return 0;
+			}
+
+			// If peak is currently going down
+			if (derSign==-1) {
+
+
+				double prevIntensity = ((Double[])(triplets[triplets.length-1]))[2];
+
+
+				// Then peak must not start going up again
+				double topMargin = prevIntensity*(1+parameters.intTolerance);
+
+				if ( nextIntensity>=topMargin) {
+					return Double.MAX_VALUE;
+				}
+
+				if ( nextIntensity<prevIntensity ) {
+					return 0;
+				}
+
+				//return maxScore * ( 1 - ( (topMargin-nextInt) / (topMargin-prevInts[usedSize-1]) ) );
+				return 0;
+			}
+
+			// Should never go here
+			return Double.MAX_VALUE;
+
+		}
+
+	}
 
 }

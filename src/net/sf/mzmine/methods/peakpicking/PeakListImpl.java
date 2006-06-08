@@ -64,4 +64,13 @@ public class PeakListImpl implements PeakList {
 		return null;
 	}
 
+
+	/**
+	 * Adds a new peak to peak list
+	 * TODO!! this method is not in the interface...
+	 */
+	public void addPeak(Peak p) {
+		// TODO
+	}
+
 }

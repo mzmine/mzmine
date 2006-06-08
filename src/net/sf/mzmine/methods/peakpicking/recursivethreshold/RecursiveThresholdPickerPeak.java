@@ -48,6 +48,7 @@ public class RecursiveThresholdPickerPeak implements Peak {
 	private double normalizedHeight;
 	private double normalizedArea;
 
+	private boolean growing=false;
 
 	RecursiveThresholdPickerPeak() {
 		datapoints = new Hashtable<Integer, Double[]>();
@@ -194,10 +195,21 @@ public class RecursiveThresholdPickerPeak implements Peak {
 		triplet[1] = rt;
 		triplet[2] = intensity;
 		datapoints.put(new Integer(scanNumber), triplet);
+
+		growing = true;
+		precalculateFromDatapoints();
+	}
+
+	protected boolean isGrowing() {
+		return growing;
+	}
+
+	protected void resetGrowingState() {
+		growing = false;
 	}
 
 
-	protected void finalizeConstruction() {
+	private void precalculateFromDatapoints() {
 
 		// Basic requirements of the interface:
 		// - Find minimum and maximum M/Z and RT of all datapoints
