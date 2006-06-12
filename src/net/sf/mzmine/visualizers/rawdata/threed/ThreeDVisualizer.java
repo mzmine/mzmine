@@ -50,6 +50,7 @@ import net.sf.mzmine.util.RawDataRetrievalTask;
 import net.sf.mzmine.util.TimeNumberFormat;
 import net.sf.mzmine.util.MyMath.BinningType;
 import net.sf.mzmine.visualizers.rawdata.RawDataVisualizer;
+import visad.ContourControl;
 import visad.DataReferenceImpl;
 import visad.Display;
 import visad.DisplayImpl;
@@ -58,6 +59,7 @@ import visad.FlatField;
 import visad.FunctionType;
 import visad.GraphicsModeControl;
 import visad.Gridded2DSet;
+import visad.Linear2DSet;
 import visad.MouseHelper;
 import visad.ProjectionControl;
 import visad.RealTupleType;
@@ -65,7 +67,6 @@ import visad.RealType;
 import visad.SI;
 import visad.ScalarMap;
 import visad.Set;
-import visad.java2d.DisplayImplJ2D;
 import visad.java3d.DisplayImplJ3D;
 import visad.java3d.MouseBehaviorJ3D;
 import visad.util.HersheyFont;
@@ -119,13 +120,15 @@ public class ThreeDVisualizer extends JInternalFrame implements
     private ScalarMap latMap, lonMap;
     private ScalarMap altZMap, tempRGBMap;
 
-    private int resol;
+    private int resol, resolScan;
 
     private float[][] flat_samples;
 
     private int scanNumbers[];
 
-    private double maxBinnedIntensity;
+    private float maxBinnedIntensity;
+    
+    private static final int MAXRESRT = 2000;
 
     public ThreeDVisualizer(RawDataFile rawDataFile, int msLevel) {
 
@@ -169,26 +172,51 @@ public class ThreeDVisualizer extends JInternalFrame implements
 
             scanNumbers = rawDataFile.getScanNumbers(msLevel);
 
-            resol = 600;
+            resol = Math.min(800,(int) (rawDataFile.getDataMaxMZ(msLevel) - rawDataFile.getDataMinMZ(msLevel)));;
+             
+            if (scanNumbers.length > MAXRESRT) {
+                resolScan = 1500; 
+                
+                domain_set = new Linear2DSet(domain_tuple, 
+                rawDataFile.getDataMinRT(msLevel), rawDataFile.getDataMaxRT(msLevel),
+                resolScan,
+                rawDataFile.getDataMinMZ(msLevel), rawDataFile.getDataMaxMZ(msLevel),
+                resol);
+                
+                
+            }
+                else {
+            
+                resolScan =scanNumbers.length;
+
+                float xpoints[][] = new float[2][resol * resolScan];
+
+                float step = (float) (rawDataFile.getDataMaxMZ(msLevel) - rawDataFile.getDataMinMZ(msLevel))
+                        / resol;
+                
+                for (int j = 0; j < resol; j++) {
+                    for (int i = 0; i < resolScan; i++) {
+                        
+                        xpoints[0][(resolScan * j) + i] = (float) rawDataFile.getRetentionTime(scanNumbers[i]);
+                        xpoints[1][(resolScan * j) + i] = (float) rawDataFile.getDataMinMZ(msLevel)
+                                + (j * step);
+                    }
+                }
+                
+                domain_set = new Gridded2DSet(domain_tuple, xpoints,
+                        resolScan, resol);
+                
+            }
+
+               
 
             // resol = (int) Math.round(rawDataFile.getDataMaxMZ(msLevel) -
             // rawDataFile.getDataMinMZ(msLevel));
 
-            System.out.println("resol " + scanNumbers.length + "x" + resol);
+            System.out.println("resol " + resolScan + "x" + resol);
 
-            float xpoints[][] = new float[2][resol * scanNumbers.length];
 
-            float step = (float) (rawDataFile.getDataMaxMZ(msLevel) - rawDataFile.getDataMinMZ(msLevel))
-                    / resol;
-            for (int j = 0; j < resol; j++) {
-                for (int i = 0; i < scanNumbers.length; i++) {
-                    xpoints[0][(scanNumbers.length * j) + i] = (float) rawDataFile.getRetentionTime(scanNumbers[i]);
-                    xpoints[1][(scanNumbers.length * j) + i] = (float) rawDataFile.getDataMinMZ(msLevel)
-                            + (j * step);
-                }
-            }
-
-            System.out.println("grid created");
+            
 
             // xpoints[0] = new float[resol];
             // for (int i = 0; i < resol; i++) xpoints[0][i] =
@@ -200,11 +228,13 @@ public class ThreeDVisualizer extends JInternalFrame implements
 
             // int NCOLS = 100;
             // int NROWS = NCOLS;
+            
 
-            domain_set = new Gridded2DSet(domain_tuple, xpoints,
-                    scanNumbers.length, resol);
+                    
 
-            flat_samples = new float[1][resol * scanNumbers.length];
+
+
+            flat_samples = new float[1][resol * resolScan];
 
             Task updateTask = new RawDataRetrievalTask(rawDataFile,
                     scanNumbers, "Updating 3D visualizer of " + rawDataFile,
@@ -341,29 +371,7 @@ public class ThreeDVisualizer extends JInternalFrame implements
         GUIUtils.registerKeyHandler((JComponent) display.getComponent(),
                 KeyStroke.getKeyStroke("SPACE"), this, "AAA");
 
-        ScalarMap tempIsoMap;
-        try {
-            /*
-             * tempIsoMap = new ScalarMap( intType, Display.IsoContour );
-             * display.addMap( tempIsoMap ); ContourControl isoControl =
-             * (ContourControl) tempIsoMap.getControl(); float interval = 50f; //
-             * interval between lines float lowValue = 100f; // lowest value
-             * float highValue = 10000f; // highest value float base = 0f; //
-             * starting at this base value
-             * 
-             * isoControl.setContourInterval(interval, lowValue, highValue,
-             * base); // isoControl.enableLabels(true);
-             * 
-             * 
-             * //ContourWidget contourWid = new ContourWidget( tempIsoMap );
-             * //add(contourWid, BorderLayout.SOUTH);
-             * 
-             * 
-             */
-        } catch (Exception e) {
-            // TODO Auto-generated catch block
-            e.printStackTrace();
-        }
+
         updateTitle();
 
         pack();
@@ -426,14 +434,33 @@ public class ThreeDVisualizer extends JInternalFrame implements
         if (command.equals("AAA")) {
             try {
 
-                DisplayRenderer dRenderer = display.getDisplayRenderer();
-                dRenderer.setBackgroundColor(Color.white);
-                dRenderer.setBoxOn(false);
-                // dRenderer.setBoxColor(Color.black);
-                dRenderer.setCursorColor(Color.red);
-                dRenderer.setForegroundColor(Color.black);
-                tempRGBMap.setRange(0, maxBinnedIntensity / 3);
-
+                ScalarMap tempIsoMap;
+                try {
+                    
+                     tempIsoMap = new ScalarMap( intType, Display.IsoContour );
+                      display.addMap( tempIsoMap ); 
+                      ContourControl isoControl =
+                      (ContourControl) tempIsoMap.getControl(); 
+                      float interval = maxBinnedIntensity / 100; //
+                      // interval between lines 
+                      float lowValue = maxBinnedIntensity / 100; // lowest value
+                      float highValue = maxBinnedIntensity; // highest value 
+                      float base = 0f; //
+                      // higstarting at this base value
+                      
+                     isoControl.setContourInterval(interval, lowValue, highValue,
+                     base); // isoControl.enableLabels(true);
+                      
+                      
+                      //ContourWidget contourWid = new ContourWidget( tempIsoMap );
+                      //add(contourWid, BorderLayout.SOUTH);
+                      
+                      
+                     
+                } catch (Exception e) {
+                    // TODO Auto-generated catch block
+                    e.printStackTrace();
+                }
             } catch (Exception e) {
                 e.printStackTrace();
             };
@@ -543,10 +570,26 @@ public class ThreeDVisualizer extends JInternalFrame implements
                 rawDataFile.getDataMaxMZ(msLevel), resol, !scan.isCentroided(),
                 BinningType.SUM);
 
+        float stepRT = (float) (rawDataFile.getDataMaxRT(msLevel) - rawDataFile.getDataMinRT(msLevel))
+        / resolScan;
+        
+        double rt = scan.getRetentionTime();
+        
+        int bin;
+        
+        if (scanNumbers.length > MAXRESRT) {
+        bin = (int) ((rt - rawDataFile.getDataMinRT(msLevel)) / stepRT);
+        if (bin == resolScan) bin--;
+        } else bin = index;
+        
+        
         for (int j = 0; j < resol; j++) {
-            flat_samples[0][(scanNumbers.length * j) + index] = (float) ints[j];
-            if (ints[j] > maxBinnedIntensity)
-                maxBinnedIntensity = ints[j];
+            int ind = (resolScan * j) + bin;
+
+            if (ints[j] > flat_samples[0][ind]) flat_samples[0][ind] = (float) ints[j];
+            
+            if (flat_samples[0][ind]  > maxBinnedIntensity)
+                maxBinnedIntensity = (float) ints[j];
         }
     }
 
