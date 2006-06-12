@@ -76,7 +76,7 @@ class TICDataSet extends DefaultTableXYDataset implements RawDataAcceptor {
         xicMode = false;
 
         Task updateTask = new RawDataRetrievalTask(rawDataFile, scanNumbers,
-                this);
+                "Updating TIC visualizer of " + rawDataFile, this);
 
         /*
          * if the file data is preloaded in memory, we can update the visualizer
@@ -99,7 +99,7 @@ class TICDataSet extends DefaultTableXYDataset implements RawDataAcceptor {
         xicMode = true;
 
         Task updateTask = new RawDataRetrievalTask(rawDataFile, scanNumbers,
-                this);
+                "Updating XIC visualizer of " + rawDataFile, this);
 
         /*
          * if the file data is preloaded in memory, we can update the visualizer
@@ -131,16 +131,9 @@ class TICDataSet extends DefaultTableXYDataset implements RawDataAcceptor {
     }
 
     /**
-     * @see net.sf.mzmine.util.RawDataAcceptor#getTaskDescription()
-     */
-    public String getTaskDescription() {
-        return "Updating TIC visualizer of " + rawDataFile;
-    }
-
-    /**
      * @see net.sf.mzmine.util.RawDataAcceptor#addScan(net.sf.mzmine.interfaces.Scan)
      */
-    public void addScan(Scan scan) {
+    public void addScan(Scan scan, int ind) {
 
         double intensityValues[] = scan.getIntensityValues();
         double mzValues[] = null;

@@ -33,12 +33,13 @@ public class RawDataRetrievalTask implements Task {
     private int retrievedScans;
     private RawDataAcceptor acceptor;
     private TaskStatus status;
-    private String errorMessage;
+    private String errorMessage, taskDescription;
 
     public RawDataRetrievalTask(RawDataFile rawDataFile, int scanNumbers[],
-            RawDataAcceptor acceptor) {
+            String taskDescription, RawDataAcceptor acceptor) {
         status = TaskStatus.WAITING;
         this.rawDataFile = rawDataFile;
+        this.taskDescription = taskDescription;
         this.acceptor = acceptor;
         this.scanNumbers = scanNumbers;
     }
@@ -47,7 +48,7 @@ public class RawDataRetrievalTask implements Task {
      * @see net.sf.mzmine.taskcontrol.Task#getTaskDescription()
      */
     public String getTaskDescription() {
-        return acceptor.getTaskDescription();
+        return taskDescription;
     }
 
     /**
@@ -103,7 +104,7 @@ public class RawDataRetrievalTask implements Task {
 
                 scan = rawDataFile.getScan(scanNumbers[i]);
 
-                acceptor.addScan(scan);
+                acceptor.addScan(scan, i);
 
             } catch (Throwable e) {
                 status = TaskStatus.ERROR;

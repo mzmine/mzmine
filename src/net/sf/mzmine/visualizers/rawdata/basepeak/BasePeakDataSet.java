@@ -66,7 +66,7 @@ class BasePeakDataSet extends DefaultTableXYDataset implements RawDataAcceptor {
         mzValues = new double[scanNumbers.length];
 
         Task updateTask = new RawDataRetrievalTask(rawDataFile, scanNumbers,
-                this);
+                "Updating base peak visualizer of " + rawDataFile, this);
 
         /*
          * if the file data is preloaded in memory, we can update the visualizer
@@ -102,16 +102,9 @@ class BasePeakDataSet extends DefaultTableXYDataset implements RawDataAcceptor {
     }
 
     /**
-     * @see net.sf.mzmine.util.RawDataAcceptor#getTaskDescription()
-     */
-    public String getTaskDescription() {
-        return "Updating base peak visualizer of " + rawDataFile;
-    }
-
-    /**
      * @see net.sf.mzmine.util.RawDataAcceptor#addScan(net.sf.mzmine.interfaces.Scan)
      */
-    public void addScan(Scan scan) {
+    public void addScan(Scan scan, int index) {
 
         double basePeakIntensity, basePeakMZ;
         basePeakMZ = scan.getBasePeakMZ();

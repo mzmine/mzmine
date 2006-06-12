@@ -16,6 +16,7 @@
 		<pathelement location="${lib}/sunutils.jar"/>
 		<pathelement location="${lib}/jcommon-1.0.0.jar"/>
 		<pathelement location="${lib}/jfreechart-1.0.1.jar"/>
+		<pathelement location="${lib}/visad.jar"/>
 	</path>
 	
 
@@ -48,6 +49,7 @@
 			<fileset file="${lib}/sunutils.jar"/>
 			<fileset file="${lib}/jcommon-1.0.0.jar"/>
 			<fileset file="${lib}/jfreechart-1.0.1.jar"/>
+			<fileset file="${lib}/visad.jar"/>
 			
 		</copy>
 		

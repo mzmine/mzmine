@@ -95,7 +95,7 @@ class TwoDDataSet extends AbstractXYZDataset implements RawDataAcceptor {
         intensityMatrix = new double[bitmapSizeX][bitmapSizeY];
         
         Task updateTask = new RawDataRetrievalTask(rawDataFile, scanNumbers,
-                this);
+                "Updating 2D visualizer of " + rawDataFile, this);
 
         /*
          * if the file data is preloaded in memory, we can update the visualizer
@@ -112,16 +112,9 @@ class TwoDDataSet extends AbstractXYZDataset implements RawDataAcceptor {
     }
 
     /**
-     * @see net.sf.mzmine.util.RawDataAcceptor#getTaskDescription()
-     */
-    public String getTaskDescription() {
-        return "Updating 2D visualizer of " + rawDataFile;
-    }
-
-    /**
      * @see net.sf.mzmine.util.RawDataAcceptor#addScan(net.sf.mzmine.interfaces.Scan)
      */
-    public synchronized void addScan(Scan scan) {
+    public synchronized void addScan(Scan scan, int index) {
 
         if ((scan.getRetentionTime() < rtMin) || (scan.getRetentionTime() > rtMax)) return;
         int xIndex = (int) Math.floor((scan.getRetentionTime() - rtMin) / rtStep);

@@ -102,7 +102,7 @@ public class SpectrumVisualizer extends JInternalFrame implements
         scans = new Scan[scanNumbers.length];
 
         Task updateTask = new RawDataRetrievalTask(rawDataFile, scanNumbers,
-                this);
+                "Updating spectrum visualizer of " + rawDataFile, this);
 
         /*
          * if the file data is preloaded in memory, we can update the visualizer
@@ -219,16 +219,9 @@ public class SpectrumVisualizer extends JInternalFrame implements
     }
 
     /**
-     * @see net.sf.mzmine.util.RawDataAcceptor#getTaskDescription()
-     */
-    public String getTaskDescription() {
-        return "Updating spectrum visualizer of " + rawDataFile;
-    }
-
-    /**
      * @see net.sf.mzmine.util.RawDataAcceptor#addScan(net.sf.mzmine.interfaces.Scan)
      */
-    public void addScan(Scan scan) {
+    public void addScan(Scan scan, int ind) {
 
         scans[loadedScans++] = scan;
 

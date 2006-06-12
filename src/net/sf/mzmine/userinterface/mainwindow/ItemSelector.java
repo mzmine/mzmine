@@ -45,6 +45,7 @@ import net.sf.mzmine.io.RawDataFile;
 import net.sf.mzmine.methods.alignment.AlignmentResult;
 import net.sf.mzmine.visualizers.rawdata.RawDataVisualizer;
 import net.sf.mzmine.visualizers.rawdata.basepeak.BasePeakVisualizer;
+import net.sf.mzmine.visualizers.rawdata.threed.ThreeDVisualizer;
 import net.sf.mzmine.visualizers.rawdata.tic.TICVisualizer;
 import net.sf.mzmine.visualizers.rawdata.twod.TwoDVisualizer;
 
@@ -163,6 +164,13 @@ public class ItemSelector extends JPanel implements ListSelectionListener,
                 popupMenu.add(showBP);
             }
             
+            for (int msLevel : msLevels) {
+                JMenuItem showBP = new JMenuItem("Show 3D visualizer of MS level " + msLevel);
+                showBP.addActionListener(this);
+                showBP.setActionCommand("3D" + msLevel);
+                popupMenu.add(showBP);
+            }
+            
             popupMenu.addSeparator();
             JMenuItem pmClose = new JMenuItem("Close");
             pmClose.addActionListener(this);
@@ -222,6 +230,16 @@ public class ItemSelector extends JPanel implements ListSelectionListener,
             for (RawDataFile file : selectedFiles) {
 
                 new TwoDVisualizer(file, msLevel);
+
+            }
+        }
+        
+        if (command.startsWith("3D")) {
+            RawDataFile[] selectedFiles = getSelectedRawData();
+            int msLevel = Integer.parseInt(command.substring(2));
+            for (RawDataFile file : selectedFiles) {
+
+                new ThreeDVisualizer(file, msLevel);
 
             }
         }
