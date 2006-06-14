@@ -23,22 +23,18 @@ import java.awt.Color;
 import java.awt.Insets;
 
 import javax.swing.Icon;
-import javax.swing.ImageIcon;
 import javax.swing.JButton;
 import javax.swing.JToolBar;
+import javax.swing.plaf.metal.MetalIconFactory;
 
 /**
  * 
  */
 class ThreeDToolBar extends JToolBar {
 
-    static final Icon centroidIcon = new ImageIcon("centroidicon.png");
-    static final Icon continuousIcon = new ImageIcon("continuousicon.png");
-    static final Icon dataPointsIcon = new ImageIcon("datapointsicon.png");
-    static final Icon annotationsIcon = new ImageIcon("annotationsicon.png");
-
-    private JButton centroidContinuousButton, dataPointsButton,
-            annotationsButton;
+    static final Icon centroidIcon = MetalIconFactory.getTreeComputerIcon();
+    
+    private JButton propertiesButton;
 
     ThreeDToolBar(ThreeDVisualizer masterFrame) {
 
@@ -49,26 +45,13 @@ class ThreeDToolBar extends JToolBar {
         setMargin(new Insets(5, 5, 5, 5));
         setBackground(Color.white);
 
-        centroidContinuousButton = new JButton(centroidIcon);
-        centroidContinuousButton.setActionCommand("TOGGLE_PLOT_MODE");
-        centroidContinuousButton.setToolTipText("Toggle centroid/continuous mode");
-        // centroidContinuousButton.addActionListener(masterFrame);
-
-        dataPointsButton = new JButton(dataPointsIcon);
-        dataPointsButton.setActionCommand("SHOW_DATA_POINTS");
-        dataPointsButton.setToolTipText("Toggle displaying of data points in continuous mode");
-        // dataPointsButton.addActionListener(masterFrame);
-
-        annotationsButton = new JButton(annotationsIcon);
-        annotationsButton.setActionCommand("SHOW_ANNOTATIONS");
-        annotationsButton.setToolTipText("Toggle displaying of peak values");
-        // annotationsButton.addActionListener(masterFrame);
-
-        add(centroidContinuousButton);
-        addSeparator();
-        add(dataPointsButton);
-        addSeparator();
-        add(annotationsButton);
+        propertiesButton = new JButton(centroidIcon);
+        propertiesButton.setActionCommand("PROPERTIES");
+        propertiesButton.setToolTipText("Set properties");
+        propertiesButton.addActionListener(masterFrame);
+        
+        add(propertiesButton);
+        
 
     }
 

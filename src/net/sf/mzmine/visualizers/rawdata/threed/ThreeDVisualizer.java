@@ -23,6 +23,8 @@ import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Component;
 import java.awt.Dimension;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.awt.event.MouseWheelEvent;
 import java.awt.event.MouseWheelListener;
 
@@ -39,17 +41,15 @@ import net.sf.mzmine.taskcontrol.Task.TaskStatus;
 import net.sf.mzmine.userinterface.mainwindow.MainWindow;
 import net.sf.mzmine.util.CursorPosition;
 import net.sf.mzmine.visualizers.rawdata.RawDataVisualizer;
+import visad.DisplayImpl;
 import visad.ProjectionControl;
-import visad.ScalarMap;
-import visad.java3d.DisplayImplJ3D;
 import visad.java3d.MouseBehaviorJ3D;
-import visad.util.ChosenColorWidget;
 
 /**
  * 3D visualizer using VisAd library
  */
 public class ThreeDVisualizer extends JInternalFrame implements
-        RawDataVisualizer, TaskListener, MouseWheelListener {
+        RawDataVisualizer, TaskListener, MouseWheelListener, ActionListener {
 
     private ThreeDToolBar toolBar;
     private JLabel titleLabel;
@@ -57,7 +57,7 @@ public class ThreeDVisualizer extends JInternalFrame implements
     private RawDataFile rawDataFile;
     private int msLevel;
 
-    private DisplayImplJ3D display;
+    private DisplayImpl display;
 
     public ThreeDVisualizer(RawDataFile rawDataFile, int msLevel) {
 
@@ -147,7 +147,7 @@ public class ThreeDVisualizer extends JInternalFrame implements
 
         if (task.getStatus() == TaskStatus.ERROR) {
             MainWindow.getInstance().displayErrorMessage(
-                    "Error while updating 2D visualizer: "
+                    "Error while updating 3D visualizer: "
                             + task.getErrorMessage());
             return;
         }
@@ -155,7 +155,7 @@ public class ThreeDVisualizer extends JInternalFrame implements
         if (task.getStatus() == TaskStatus.FINISHED) {
 
             // add the 3D component
-            display = (DisplayImplJ3D) task.getResult();
+            display = (DisplayImpl) task.getResult();
             Component threeDPlot = display.getComponent();
             threeDPlot.setPreferredSize(new Dimension(700, 500));
             threeDPlot.addMouseWheelListener(this);
@@ -201,6 +201,20 @@ public class ThreeDVisualizer extends JInternalFrame implements
             e.printStackTrace();
         }
 
+    }
+
+    /**
+     * @see java.awt.event.ActionListener#actionPerformed(java.awt.event.ActionEvent)
+     */
+    public void actionPerformed(ActionEvent event) {
+
+        String command = event.getActionCommand();
+
+        if (command.equals("PROPERTIES")) {
+            ThreeDPropertiesDialog dialog = new ThreeDPropertiesDialog(display);
+            dialog.setVisible(true);
+        }
+        
     }
 
 }

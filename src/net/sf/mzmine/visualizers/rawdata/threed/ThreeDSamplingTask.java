@@ -96,7 +96,7 @@ class ThreeDSamplingTask implements Task {
     private static final int MAXIMUM_SCANS = 2000;
     
     // maximum number of m/z bins 
-    private static final int MAXIMUM_MZ_RANGE = 800;
+    private static final int MAXIMUM_MZ_BINS = 800;
     
     
     // TODO: get these from parameter storage
@@ -127,7 +127,7 @@ class ThreeDSamplingTask implements Task {
      * @see net.sf.mzmine.taskcontrol.Task#getTaskDescription()
      */
     public String getTaskDescription() {
-        return "Sampling 3D plot of file " + rawDataFile;
+        return "Sampling 3D plot of " + rawDataFile;
     }
 
     /**
@@ -201,7 +201,7 @@ class ThreeDSamplingTask implements Task {
             Set domainSet;
 
             // set the resolution (number of data points) on m/z axis
-            resolutionMZ = Math.min(MAXIMUM_MZ_RANGE, Math.round(mzRange));
+            resolutionMZ = Math.min(MAXIMUM_MZ_BINS, Math.round(mzRange));
             final float mzStep = mzRange / resolutionMZ;
             
             // set the resolution (number of data points) on retention time axis
