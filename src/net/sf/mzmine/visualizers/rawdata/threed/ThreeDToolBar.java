@@ -52,17 +52,17 @@ class ThreeDToolBar extends JToolBar {
         centroidContinuousButton = new JButton(centroidIcon);
         centroidContinuousButton.setActionCommand("TOGGLE_PLOT_MODE");
         centroidContinuousButton.setToolTipText("Toggle centroid/continuous mode");
-        centroidContinuousButton.addActionListener(masterFrame);
+        // centroidContinuousButton.addActionListener(masterFrame);
 
         dataPointsButton = new JButton(dataPointsIcon);
         dataPointsButton.setActionCommand("SHOW_DATA_POINTS");
         dataPointsButton.setToolTipText("Toggle displaying of data points in continuous mode");
-        dataPointsButton.addActionListener(masterFrame);
+        // dataPointsButton.addActionListener(masterFrame);
 
         annotationsButton = new JButton(annotationsIcon);
         annotationsButton.setActionCommand("SHOW_ANNOTATIONS");
         annotationsButton.setToolTipText("Toggle displaying of peak values");
-        annotationsButton.addActionListener(masterFrame);
+        // annotationsButton.addActionListener(masterFrame);
 
         add(centroidContinuousButton);
         addSeparator();
