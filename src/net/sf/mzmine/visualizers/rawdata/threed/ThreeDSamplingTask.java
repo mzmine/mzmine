@@ -98,6 +98,9 @@ class ThreeDSamplingTask implements Task {
     // maximum number of m/z bins 
     private static final int MAXIMUM_MZ_BINS = 800;
     
+    // axes aspect ratio X:Y:Z
+    private static final double[] ASPECT_RATIO = new double[] { 1, 0.8, 0.2 };
+    
     
     // TODO: get these from parameter storage
     private static NumberFormat rtFormat = new TimeNumberFormat();
@@ -414,9 +417,8 @@ class ThreeDSamplingTask implements Task {
             // get projection control to set initial rotation and zooming
             ProjectionControl projCont = display.getProjectionControl();
 
-            // set axes aspect ratio X:Y:Z
-            double[] aspect = new double[] { 1.5, 1, 0.5 };
-            projCont.setAspect(aspect);
+            // set axes aspect ratio
+            projCont.setAspect(ASPECT_RATIO);
 
             // get default projection matrix
             double[] pControlMatrix = projCont.getMatrix();
@@ -424,7 +426,7 @@ class ThreeDSamplingTask implements Task {
             // prepare rotation and scaling matrix
             double[] mult = MouseBehaviorJ3D.static_make_matrix(
                     75, 0, 0,   // rotation X,Y,Z
-                    0.8,        // scaling
+                    1,        // scaling
                     0.1, 0.2, 0 // translation (moving) X,Y,Z
                     );
 
