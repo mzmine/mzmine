@@ -36,17 +36,17 @@ public interface PeakList {
 	public Peak[] getPeaks();
 
 	/**
-	 * Returns all peaks overlapping the scan range
-	 * @param	firstScan	First scan inside the range
-	 * @param	lastScan	Last scan inside the range
+	 * Returns all peaks overlapping with a retention time range
+	 * @param	startRT Start of the retention time range
+	 * @param	endRT	End of the retention time range
 	 */
-	public Peak[] getPeaksInsideScanRange(int firstScan, int lastScan);
+	public Peak[] getPeaksInsideScanRange(double startRT, double endRT);
 
 	/**
-	 * Returns all isotope patterns overlapping given scan range
-	 * @param	firstScan	First scan inside the range
-	 * @param	lastScan	Last scan inside the range
+	 * Returns all isotope patterns overlapping with a retention time range
+	 * @param	startRT Start of the retention time range
+	 * @param	endRT	End of the retention time range
 	 */
-	public IsotopePattern[] getIsotopePatternsInsideScanRange(int firstScan, int lastScan);
+	public IsotopePattern[] getIsotopePatternsInsideScanRange(double startRT, double endRT);
 
 }

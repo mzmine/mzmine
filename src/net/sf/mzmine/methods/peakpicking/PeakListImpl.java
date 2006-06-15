@@ -19,6 +19,9 @@
 
 package net.sf.mzmine.methods.peakpicking;
 
+import java.util.Vector;
+import java.util.HashSet;
+
 import net.sf.mzmine.interfaces.Peak;
 import net.sf.mzmine.interfaces.PeakList;
 import net.sf.mzmine.interfaces.IsotopePattern;
@@ -28,40 +31,60 @@ import net.sf.mzmine.interfaces.IsotopePattern;
  */
 public class PeakListImpl implements PeakList {
 
+	private Vector<Peak> peaks;
+
+
+	public PeakListImpl() {
+		peaks = new Vector<Peak>();
+	}
+
 	/**
 	 * Returns number of peaks on the list
 	 */
 	public int getNumberOfPeaks() {
-		// TODO
-		return 0;
+		return peaks.size();
 	}
 
 	/**
 	 * Returns all peaks in the peak list
 	 */
 	public Peak[] getPeaks() {
-		// TODO´
-		return null;
+		return peaks.toArray(new Peak[peaks.size()]);
 	}
 
 	/**
-	 * Returns all peaks overlapping the scan range
-	 * @param	firstScan	First scan inside the range
-	 * @param	lastScan	Last scan inside the range
+	 * Returns all peaks overlapping with a retention time range
+	 * @param	startRT Start of the retention time range
+	 * @param	endRT	End of the retention time range
+	 * @return
 	 */
-	public Peak[] getPeaksInsideScanRange(int firstScan, int lastScan) {
-		// TODO
-		return null;
+	public Peak[] getPeaksInsideScanRange(double startRT, double endRT) {
+		Vector<Peak> peaksInside = new Vector<Peak>();
+
+		for (Peak p : peaks)
+			if ((p.getMinRT()<=endRT) &&
+				(p.getMaxRT()>=startRT)) peaksInside.add(p);
+
+		return peaksInside.toArray(new Peak[peaksInside.size()]);
 	}
 
 	/**
-	 * Returns all isotope patterns overlapping given scan range
-	 * @param	firstScan	First scan inside the range
-	 * @param	lastScan	Last scan inside the range
+	 * Returns all isotope patterns overlapping with a retention time range
+	 * @param	startRT Start of the retention time range
+	 * @param	endRT	End of the retention time range
 	 */
-	public IsotopePattern[] getIsotopePatternsInsideScanRange(int firstScan, int lastScan) {
-		// TODO
-		return null;
+	public IsotopePattern[] getIsotopePatternsInsideScanRange(double startRT, double endRT) {
+
+
+		HashSet<IsotopePattern> isotopePatternsInside = new HashSet<IsotopePattern>();
+
+		for (Peak p : peaks)
+			if ((p.getMinRT()<=endRT) &&
+				(p.getMaxRT()>=startRT))
+					if (p.getIsotopePattern()!=null) isotopePatternsInside .add(p.getIsotopePattern());
+
+
+		return isotopePatternsInside.toArray(new IsotopePattern[0]);
 	}
 
 
