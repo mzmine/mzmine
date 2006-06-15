@@ -193,8 +193,7 @@ class ThreeDSamplingTask implements Task {
             RealType intensityType = RealType.getRealType("Intensity");
 
             // function domain - R^2 (retention time and m/z)
-            RealTupleType domainTuple = new RealTupleType(retentionTimeType,
-                    mzType);
+            RealTupleType domainTuple = new RealTupleType(retentionTimeType, mzType);
 
             
             // domain values set
@@ -262,7 +261,7 @@ class ThreeDSamplingTask implements Task {
                         rawDataFile.getDataMinMZ(msLevel),
                         rawDataFile.getDataMaxMZ(msLevel), 
                         resolutionMZ,
-                        ! scan.isCentroided(),
+                        false,
                         BinningType.SUM);
 
 
