@@ -39,7 +39,7 @@ import net.sf.mzmine.util.Logger;
 import net.sf.mzmine.util.MyMath;
 
 
-public class RecursiveThresholdPicker implements Method {
+public class RecursiveThresholdPicker implements Method, TaskListener {
 
 
 	public String getMethodDescription() {
@@ -171,7 +171,47 @@ public class RecursiveThresholdPicker implements Method {
 
 
 	public void runMethod(MethodParameters parameters, RawDataFile[] rawDataFiles, AlignmentResult[] alignmentResults) {
-		// TODO
+
+		Task peakPickerTask;
+		RecursiveThresholdPickerParameters rpParam = (RecursiveThresholdPickerParameters)parameters;
+
+		for (RawDataFile rawDataFile: rawDataFiles) {
+			peakPickerTask = new RecursiveThresholdPickerTask(rawDataFile, rpParam);
+			TaskController.getInstance().addTask(peakPickerTask, this);
+		}
+
+	}
+
+
+    public void taskStarted(Task task) {
+		// do nothing
+	}
+
+    public void taskFinished(Task task) {
+
+        if (task.getStatus() == Task.TaskStatus.FINISHED) {
+
+			// TODO
+			/*
+			RawDataFile oldFile = (RawDataFile)((Object[])task.getResult())[0];
+			RawDataFile newFile = (RawDataFile)((Object[])task.getResult())[1];
+			ChromatographicMedianFilterParameters cmfParam = (ChromatographicMedianFilterParameters)((Object[])task.getResult())[2];
+
+			// Add filtering to the history of the file
+			newFile.addHistory(oldFile.getCurrentFile(), this, cmfParam.clone());
+
+			// Update MZmineProject about replacement of oldFile by newFile
+			MZmineProject.getCurrentProject().updateFile(oldFile, newFile);
+			*/
+
+        } else if (task.getStatus() == Task.TaskStatus.ERROR) {
+            /* Task encountered an error */
+            Logger.putFatal("Error while finding peaks in a file: " + task.getErrorMessage());
+            MainWindow.getInstance().displayErrorMessage(
+                    "Error while finding peaks in a file: " + task.getErrorMessage());
+
+        }
+
 	}
 
 

@@ -29,6 +29,7 @@ import javax.swing.JMenuBar;
 import javax.swing.JMenuItem;
 import javax.swing.KeyStroke;
 import javax.swing.JFileChooser;
+import javax.swing.JOptionPane;
 
 import java.io.File;
 import java.io.IOException;
@@ -49,7 +50,8 @@ import net.sf.mzmine.methods.filtering.savitzkygolay.SavitzkyGolayFilter;
 import net.sf.mzmine.methods.filtering.savitzkygolay.SavitzkyGolayFilterParameters;
 import net.sf.mzmine.methods.filtering.zoomscan.ZoomScanFilter;
 import net.sf.mzmine.methods.filtering.zoomscan.ZoomScanFilterParameters;
-
+import net.sf.mzmine.methods.peakpicking.recursivethreshold.RecursiveThresholdPicker;
+import net.sf.mzmine.methods.peakpicking.recursivethreshold.RecursiveThresholdPickerParameters;
 
 import net.sf.mzmine.visualizers.alignmentresult.AlignmentResultVisualizerCDAPlotView;
 import net.sf.mzmine.visualizers.alignmentresult.AlignmentResultVisualizerCoVarPlotView;
@@ -549,6 +551,48 @@ class MainMenu extends JMenuBar implements ActionListener {
          	RawDataFile[] rawDataFiles = mainWin.getItemSelector().getSelectedRawData();
 
          	zsf.runMethod(zsfParam, rawDataFiles, null);
+
+		}
+
+
+
+		if (src == ssRecursiveThresholdPicker) {
+
+			RecursiveThresholdPicker rp = new RecursiveThresholdPicker();
+			RecursiveThresholdPickerParameters rpParam = mainWin.getParameterStorage().getRecursiveThresholdPickerParameters();
+
+			if (!(rp.askParameters((MethodParameters)rpParam))) {
+				statBar.setStatusText("Peak picking cancelled."); return;
+			}
+
+         	// It seems user didn't cancel
+         	statBar.setStatusText("Finding peaks.");
+
+         	// Check if selected data files have previous peak detection results
+         	RawDataFile[] rawDataFiles = mainWin.getItemSelector().getSelectedRawData();
+         	boolean previousExists = false;
+         	MZmineProject proj = MZmineProject.getCurrentProject();
+         	for (RawDataFile r : rawDataFiles)
+				if (proj.hasPeakList(r)) { previousExists = true; break; }
+
+			// Show warning if going to remove previous lists
+			if (previousExists) {
+				// Ask if is it ok to replace existing peak picking results
+				int selectedValue = JOptionPane.showInternalConfirmDialog(mainWin.getDesktop(),
+						"Previous peak picking results will be overwritten. Do you want to continue?", "Overwrite?",
+						JOptionPane.YES_NO_OPTION, JOptionPane.QUESTION_MESSAGE);
+				if (selectedValue != JOptionPane.YES_OPTION) {
+					statBar.setStatusText("Peak picking cancelled.");
+					return;
+				}
+			}
+
+			// Remove previous peak lists
+         	for (RawDataFile r : rawDataFiles)
+				if (proj.hasPeakList(r))
+					proj.removePeakList(r);
+
+			rp.runMethod(rpParam, rawDataFiles, null);
 
 		}
 

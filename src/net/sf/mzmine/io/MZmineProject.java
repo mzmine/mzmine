@@ -38,6 +38,8 @@ public class MZmineProject {
 
     private static MZmineProject currentProject;
     private Vector<RawDataFile> projectFiles;
+    private Hashtable<RawDataFile, PeakList> peakLists;
+
 
     public MZmineProject() {
         projectFiles = new Vector<RawDataFile>();
@@ -71,6 +73,22 @@ public class MZmineProject {
     public RawDataFile[] getRawDataFiles() {
         return projectFiles.toArray(new RawDataFile[0]);
     }
+
+	public PeakList getPeakList(RawDataFile rawData) {
+		return peakLists.get(rawData);
+	}
+
+	public boolean hasPeakList(RawDataFile rawData) {
+		return peakLists.containsKey(rawData);
+	}
+
+	public void setPeakList(RawDataFile rawData, PeakList peakList) {
+		peakLists.put(rawData, peakList);
+	}
+
+	public void removePeakList(RawDataFile rawData) {
+		peakLists.remove(rawData);
+	}
 
 
 

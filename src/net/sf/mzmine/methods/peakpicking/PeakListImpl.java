@@ -93,7 +93,7 @@ public class PeakListImpl implements PeakList {
 	 * TODO!! this method is not in the interface...
 	 */
 	public void addPeak(Peak p) {
-		// TODO
+		peaks.add(p);
 	}
 
 }
