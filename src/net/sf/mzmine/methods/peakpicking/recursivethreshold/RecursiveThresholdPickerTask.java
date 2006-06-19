@@ -164,8 +164,9 @@ public class RecursiveThresholdPickerTask implements Task {
 
 		// Calculate filtering threshold from each RIC
 		double initialThreshold = Double.MAX_VALUE;
-		double[] chromatographicThresholds = new double[totalScans];
+		double[] chromatographicThresholds = new double[numOfBins];
 		for (int bini=0; bini<numOfBins; bini++) {
+
 			chromatographicThresholds[bini] = MyMath.calcQuantile(binInts[bini], parameters.chromatographicThresholdLevel);
 			if (chromatographicThresholds[bini]<initialThreshold) {
 				initialThreshold = chromatographicThresholds[bini];
@@ -206,6 +207,8 @@ public class RecursiveThresholdPickerTask implements Task {
 
 			// Find 1D-peaks
 
+			//System.out.print("Find 1D-peaks: ");
+
 			Vector<Integer> inds = new Vector<Integer>();
 			recursiveThreshold(masses, intensities, 0, masses.length-1, parameters.noiseLevel, parameters.minimumMZPeakWidth, parameters.maximumMZPeakWidth, inds, 0);
 
@@ -226,6 +229,8 @@ public class RecursiveThresholdPickerTask implements Task {
 				}
 
 			}
+
+			//System.out.println("Found " + oneDimPeaks.size() + " 1D-peaks.");
 
 
 			// Calculate scores between under-construction scores and 1d-peaks
@@ -280,15 +285,16 @@ public class RecursiveThresholdPickerTask implements Task {
 
 						// Good peak, add it to the peak list
 						readyPeakList.addPeak(ucPeak);
-
-						// Remove the peak from under construction peaks
-						int ucInd = underConstructionPeaks.indexOf(ucPeak);
-						underConstructionPeaks.set(ucInd, null);
 					}
 
+					// Remove the peak from under construction peaks
+					int ucInd = underConstructionPeaks.indexOf(ucPeak);
+					underConstructionPeaks.set(ucInd, null);
 				}
 
 			}
+
+			//System.out.println("" + readyPeakList.getNumberOfPeaks() +  " ready peaks.");
 
 			// Clean-up empty slots under-construction peaks collection and reset growing statuses for remaining under construction peaks
 			for (int ucInd=0; ucInd<underConstructionPeaks.size(); ucInd++) {
@@ -315,6 +321,8 @@ public class RecursiveThresholdPickerTask implements Task {
 				}
 
 			}
+
+			oneDimPeaks.clear();
 
 
 			processedScans++;

@@ -45,6 +45,8 @@ public class RecursiveThresholdPickerPeak implements Peak {
 	private double minMZ;
 	private double maxMZ;
 
+	private double normalizedMZ;
+	private double normalizedRT;
 	private double normalizedHeight;
 	private double normalizedArea;
 
@@ -137,6 +139,35 @@ public class RecursiveThresholdPickerPeak implements Peak {
 
 
 	/* Set/get methods for handling normalized heights and areas */
+
+	/**
+	 * This method sets the normalized M/Z of the peak
+	 */
+	public void setNormalizedMZ(double normalizedMZ) {
+		this.normalizedMZ = normalizedMZ;
+	}
+
+	/**
+	 * This method returns the normalized M/Z of the peak
+	 */
+	public double getNormalizedMZ() {
+		return normalizedMZ;
+	}
+
+	/**
+	 * This method sets the normalized RT of the peak
+	 */
+	public void setNormalizedRT(double normalizedRT) {
+		this.normalizedRT = normalizedRT;
+	}
+
+	/**
+	 * This method returns the normalized RT of the peak
+	 */
+	public double getNormalizedRT() {
+		return normalizedRT;
+	}
+
 
 	/**
 	 * This method sets the normalized height of the peak
@@ -259,6 +290,11 @@ public class RecursiveThresholdPickerPeak implements Peak {
 		}
 
 		mz = MyMath.calcQuantile(allMZs, 0.5);
+
+		normalizedMZ = mz;
+		normalizedRT = rt;
+		normalizedHeight = height;
+		normalizedArea = area;
 
 	}
 

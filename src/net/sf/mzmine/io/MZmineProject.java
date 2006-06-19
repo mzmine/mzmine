@@ -43,6 +43,7 @@ public class MZmineProject {
 
     public MZmineProject() {
         projectFiles = new Vector<RawDataFile>();
+        peakLists = new Hashtable<RawDataFile, PeakList>();
         currentProject = this;
     }
 
@@ -84,10 +85,12 @@ public class MZmineProject {
 
 	public void setPeakList(RawDataFile rawData, PeakList peakList) {
 		peakLists.put(rawData, peakList);
+		//MainWindow.getInstance().getMainMenu().updateMenuAvailability();
 	}
 
 	public void removePeakList(RawDataFile rawData) {
 		peakLists.remove(rawData);
+		//MainWindow.getInstance().getMainMenu().updateMenuAvailability();
 	}
 
 

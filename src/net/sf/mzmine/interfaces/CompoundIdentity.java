@@ -19,20 +19,16 @@
 
 package net.sf.mzmine.interfaces;
 
-import java.util.Hashtable;
-
 /**
- * This interface defines the properties of a detected peak
+ * This interface represent an identification result.
+ * Exact contents of the interface are still open.
+ * Idea is that one identification result is assigned to one isotope pattern.
  */
-public interface IsotopePattern {
+public interface CompoundIdentity {
 
-	/**
-	 * Returns the charge state of peaks in the pattern
-	 */
-	public int getChargeState();
+	public String getCompoundName();
 
-	/**
-	 * Returns identification assigned to this isotope pattern, or null if no identification has been assigned.
-	 */
-	public CompoundIdentity getIdentity();
+	public String getDatabaseEntryURL();
 }
+
+

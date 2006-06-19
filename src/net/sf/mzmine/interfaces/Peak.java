@@ -103,7 +103,29 @@ public interface Peak {
 
 
 
-	/* Set/get methods for handling normalized heights and areas */
+	/* Set/get methods for handling normalized versions of basic properties */
+
+	/**
+	 * This method sets the normalized M/Z of the peak
+	 */
+	public void setNormalizedMZ(double normalizedMZ);
+
+	/**
+	 * This method returns the normalized M/Z of the peak
+	 */
+	public double getNormalizedMZ();
+
+
+	/**
+	 * This method sets the normalized RT of the peak
+	 */
+	public void setNormalizedRT(double normalizedRT);
+
+	/**
+	 * This method returns the normalized RT of the peak
+	 */
+	public double getNormalizedRT();
+
 
 	/**
 	 * This method sets the normalized height of the peak

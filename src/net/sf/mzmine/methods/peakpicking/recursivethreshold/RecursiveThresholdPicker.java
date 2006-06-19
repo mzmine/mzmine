@@ -23,7 +23,6 @@ import java.util.Iterator;
 import java.util.TreeSet;
 import java.util.Vector;
 
-import net.sf.mzmine.interfaces.Scan;
 import net.sf.mzmine.io.RawDataFile;
 import net.sf.mzmine.io.MZmineProject;
 import net.sf.mzmine.methods.Method;
@@ -191,18 +190,17 @@ public class RecursiveThresholdPicker implements Method, TaskListener {
 
         if (task.getStatus() == Task.TaskStatus.FINISHED) {
 
-			// TODO
-			/*
-			RawDataFile oldFile = (RawDataFile)((Object[])task.getResult())[0];
-			RawDataFile newFile = (RawDataFile)((Object[])task.getResult())[1];
-			ChromatographicMedianFilterParameters cmfParam = (ChromatographicMedianFilterParameters)((Object[])task.getResult())[2];
+			RawDataFile rawData = (RawDataFile)((Object[])task.getResult())[0];
+			PeakList peakList = (PeakList)((Object[])task.getResult())[1];
+			RecursiveThresholdPickerParameters params = (RecursiveThresholdPickerParameters)((Object[])task.getResult())[2];
 
-			// Add filtering to the history of the file
-			newFile.addHistory(oldFile.getCurrentFile(), this, cmfParam.clone());
+			// Add peak picking to the history of the file
+			rawData.addHistory(rawData.getCurrentFile(), this, params.clone());
 
-			// Update MZmineProject about replacement of oldFile by newFile
-			MZmineProject.getCurrentProject().updateFile(oldFile, newFile);
-			*/
+			// Add peak list to MZmineProject
+			MZmineProject.getCurrentProject().setPeakList(rawData, peakList);
+
+			MainWindow.getInstance().getMainMenu().updateMenuAvailability();
 
         } else if (task.getStatus() == Task.TaskStatus.ERROR) {
             /* Task encountered an error */
