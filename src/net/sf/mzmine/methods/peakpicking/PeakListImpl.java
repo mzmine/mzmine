@@ -52,6 +52,10 @@ public class PeakListImpl implements PeakList {
 		return peaks.toArray(new Peak[peaks.size()]);
 	}
 
+	public Peak getPeak(int index) {
+		return peaks.get(index);
+	}
+
 	/**
 	 * Returns all peaks overlapping with a retention time range
 	 * @param	startRT Start of the retention time range
