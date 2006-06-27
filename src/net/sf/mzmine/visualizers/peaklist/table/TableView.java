@@ -91,14 +91,12 @@ public class TableView extends JInternalFrame implements PeakListVisualizer, Act
 		pack();
 		*/
 
-
 		// Build table
-		TableViewTable theTable = new TableViewTable(rawData);
-		/*
-		table = new JTable();
+		TableViewTable table = new TableViewTable(rawData);
 		table.setAutoResizeMode( JTable.AUTO_RESIZE_OFF );
-		scrollPane = new JScrollPane(table);
+		JScrollPane tableScroll = new JScrollPane(table);
 
+		/*
 		SelectionListener listener = new SelectionListener(table);
     	table.getSelectionModel().addListSelectionListener(listener);
 	    table.getColumnModel().getSelectionModel().addListSelectionListener(listener);
@@ -106,15 +104,10 @@ public class TableView extends JInternalFrame implements PeakListVisualizer, Act
 	    table.getTableHeader().setToolTipText("Click to specify sorting; Control-Click to specify secondary sorting");
 	    */
 
-
 		add(toolBar, BorderLayout.EAST);
-		add(theTable, BorderLayout.CENTER);
-		/*
-		getContentPane().setLayout(new BorderLayout());
-		getContentPane().add(scrollPane, BorderLayout.CENTER);
-		getContentPane().add(scrollPane, BorderLayout.CENTER);
-		*/
+		add(tableScroll, BorderLayout.CENTER);
 
+		pack();
 	}
 
 

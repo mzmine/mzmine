@@ -36,6 +36,7 @@ import net.sf.mzmine.taskcontrol.TaskController;
 import net.sf.mzmine.taskcontrol.TaskListener;
 import net.sf.mzmine.util.Logger;
 import net.sf.mzmine.util.MyMath;
+import net.sf.mzmine.visualizers.peaklist.table.TableView;
 
 
 public class RecursiveThresholdPicker implements Method, TaskListener {
@@ -199,6 +200,8 @@ public class RecursiveThresholdPicker implements Method, TaskListener {
 
 			// Add peak list to MZmineProject
 			MZmineProject.getCurrentProject().setPeakList(rawData, peakList);
+
+			MainWindow.getInstance().addInternalFrame(new TableView(rawData));
 
 			MainWindow.getInstance().getMainMenu().updateMenuAvailability();
 

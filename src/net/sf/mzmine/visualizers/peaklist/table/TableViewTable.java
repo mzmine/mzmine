@@ -28,13 +28,41 @@ import javax.swing.event.ListSelectionListener;
 import javax.swing.table.AbstractTableModel;
 
 import net.sf.mzmine.interfaces.PeakList;
+import net.sf.mzmine.interfaces.Peak;
+import net.sf.mzmine.interfaces.IsotopePattern;
 import net.sf.mzmine.util.IsotopePatternGrouper;
 import net.sf.mzmine.io.RawDataFile;
+import net.sf.mzmine.io.MZmineProject;
 
 
 public class TableViewTable extends JTable {
 
 	public TableViewTable(RawDataFile rawData) {
+
+		PeakList peakList = MZmineProject.getCurrentProject().getPeakList(rawData);
+
+		if (peakList!=null) {
+			AbstractTableModel mtm = new MyTableModel(peakList);
+			setModel(mtm);
+
+			/*
+			TableSorter sorter = new TableSorter(mtm);
+			table.getTableHeader().setReorderingAllowed(false);
+			sorter.addMouseListenerToHeaderInTable(table);
+			table.setModel(sorter);
+			*/
+
+		} else {
+			//TODO (No peak list available: how to handle error
+		}
+
+
+
+
+
+
+
+
 	}
 
 
@@ -68,10 +96,10 @@ public class TableViewTable extends JTable {
 
 
 
-	/*
+
 	private class MyTableModel extends AbstractTableModel {
 
-		private static final String[] columnNames = {
+		private final String[] columnNames = {
 														"M/Z",
 														"RT",
 														"Height",
@@ -87,7 +115,7 @@ public class TableViewTable extends JTable {
 														"Identification result(s)"
 													};
 
-		private static final String unassignedValue = new String("N/A");
+		private final String unassignedValue = new String("N/A");
 
 		private PeakList peakList;
 		private IsotopePatternGrouper isotopePatternGrouper;
@@ -116,13 +144,13 @@ public class TableViewTable extends JTable {
 			if (col<0) return null;
 			if (col>columnNames.length) return null;
 
-			Peak p = peakList.get(row);
+			Peak p = peakList.getPeak(row);
 
 			// Isotope & charge columns
 			if (col == 0) return p.getMZ();
 			if (col == 1) return p.getRT();
-			if (col == 2) return p.getHeight();
-			if (col == 3) return p.getArea();
+			if (col == 2) return p.getRawHeight();
+			if (col == 3) return p.getRawArea();
 
 			if (col == 4) return p.getMaxRT() - p.getMinRT();
 			if (col == 5) return p.getMaxMZ() - p.getMinMZ();
@@ -134,21 +162,16 @@ public class TableViewTable extends JTable {
 
 			if (col == 10) {
 				IsotopePattern isotopePattern = p.getIsotopePattern();
-				if (isotopePattern = null) return unassignedValue;
+				if (isotopePattern == null) return unassignedValue;
 				return isotopePatternGrouper.getIsotopePatternNumber(isotopePattern);
 			}
 			if (col == 11) {
 				IsotopePattern isotopePattern = p.getIsotopePattern();
-				if (isotopePattern = null) return unassignedValue;
+				if (isotopePattern == null) return unassignedValue;
 				return isotopePattern.getChargeState();
-
 			}
-			// Identification column
 
-			if (col == COL_CHARGE) { if (((Integer)(data[row][col]))<0) { return unassignedValue; } }
-			if (col == COL_ISOTOPEPATTERNID) { if (((Integer)(data[row][col]))<0) { return unassignedValue; } }
-
-			return data[row][col];
+			return unassignedValue;
 		}
 
 		public Class getColumnClass(int c) {
@@ -163,7 +186,7 @@ public class TableViewTable extends JTable {
 		}
 
 	}
-	*/
+
 
 
 }

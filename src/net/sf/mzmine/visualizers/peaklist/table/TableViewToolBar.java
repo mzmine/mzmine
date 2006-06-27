@@ -48,11 +48,13 @@ class TableViewToolBar extends JToolBar {
         zoomToPeakButton = new JButton(zoomToPeakIcon);
         zoomToPeakButton.setActionCommand("ZOOM_TO_PEAK");
         zoomToPeakButton.setToolTipText("Zoom visualizers to selected peak");
+        zoomToPeakButton.setEnabled(false);
         zoomToPeakButton.addActionListener(masterFrame);
 
         findInAlignmentsButton = new JButton(findInAlignmentsIcon);
         findInAlignmentsButton.setActionCommand("FIND_IN_ALIGNMENTS");
         findInAlignmentsButton.setToolTipText("Find peak in alignments");
+        findInAlignmentsButton.setEnabled(false);
         findInAlignmentsButton.addActionListener(masterFrame);
 
         add(zoomToPeakButton);
