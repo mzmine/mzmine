@@ -21,12 +21,16 @@ package net.sf.mzmine.visualizers.peaklist.table;
 
 
 import javax.swing.JTable;
+import javax.swing.JPopupMenu;
 
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
 
 import javax.swing.table.AbstractTableModel;
 
+import sunutils.TableSorter;
+
+import net.sf.mzmine.util.GUIUtils;
 import net.sf.mzmine.interfaces.PeakList;
 import net.sf.mzmine.interfaces.Peak;
 import net.sf.mzmine.interfaces.IsotopePattern;
@@ -37,62 +41,55 @@ import net.sf.mzmine.io.MZmineProject;
 
 public class TableViewTable extends JTable {
 
-	public TableViewTable(RawDataFile rawData) {
+	private PeakList peakList;
+	private TableSorter sorter;
 
-		PeakList peakList = MZmineProject.getCurrentProject().getPeakList(rawData);
+	protected TableViewTable(TableView masterFrame, RawDataFile rawData) {
+
+		peakList = MZmineProject.getCurrentProject().getPeakList(rawData);
 
 		if (peakList!=null) {
 			AbstractTableModel mtm = new MyTableModel(peakList);
-			setModel(mtm);
 
-			/*
-			TableSorter sorter = new TableSorter(mtm);
-			table.getTableHeader().setReorderingAllowed(false);
-			sorter.addMouseListenerToHeaderInTable(table);
-			table.setModel(sorter);
-			*/
+			// Initialize sorter
+			sorter = new TableSorter(mtm);
+			getTableHeader().setReorderingAllowed(false);
+			sorter.addMouseListenerToHeaderInTable(this);
+			setModel(sorter);
+
+			// Setup popup menu
+			JPopupMenu popupMenu = new JPopupMenu();
+			popupMenu.addSeparator();
+			GUIUtils.addMenuItem(popupMenu, "Zoom visualizers to peak", masterFrame, "ZOOM_TO_PEAK");
+			GUIUtils.addMenuItem(popupMenu, "Find peak in alignments", masterFrame, "FIND_IN_ALIGNMENTS");
+			popupMenu.addSeparator();
+			setComponentPopupMenu(popupMenu);
 
 		} else {
-			//TODO (No peak list available: how to handle error
+			//TODO (No peak list available: display nothing or throw error?
 		}
-
-
-
-
-
-
-
 
 	}
 
+	protected Peak getSelectedPeak() {
 
-	/*
-    private class SelectionListener implements ListSelectionListener {
 
-        TableViewTable table;
+		int row = getSelectedRow();
+		if (row<0) return null;
+		int unsortedrow = sorter.getUnsortedRowIndex(row);
+		Peak p = peakList.getPeak(unsortedrow);
+		return p;
+	}
 
-        // It is necessary to keep the table since it is not possible
-        // to determine the table from the event's source
-        SelectionListener(TableViewTable table) {
+	protected void setSelectedPeak(Peak p) {
 
-            this.table = table;
+		int unsortedrow = peakList.indexOf(p);
+		if (unsortedrow<0) return;
+		int row = sorter.getSortedRowIndex(unsortedrow);
+		setRowSelectionInterval(row,row);
+		scrollRectToVisible(getCellRect(row, 0, true));
 
-        }
-
-        public void valueChanged(ListSelectionEvent e) {
-
-			if (!e.getValueIsAdjusting()) {
-
-				int row = table.getSelectedRow();
-				if (row!=-1) {
-				}
-
-            }
-
-        }
-
-    }
-	*/
+	}
 
 
 

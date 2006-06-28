@@ -42,6 +42,12 @@ public interface PeakList {
 	public Peak getPeak(int index);
 
 	/**
+	 * Returns the index of a peak on the peak list
+	 * @param peak	Peak to be searched
+	 */
+	public int indexOf(Peak peak);
+
+	/**
 	 * Returns all peaks overlapping with a retention time range
 	 * @param	startRT Start of the retention time range
 	 * @param	endRT	End of the retention time range

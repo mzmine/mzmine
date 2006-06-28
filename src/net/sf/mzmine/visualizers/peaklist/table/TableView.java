@@ -31,14 +31,8 @@ import java.util.Vector;
 
 import javax.swing.JInternalFrame;
 import javax.swing.JMenuItem;
-import javax.swing.JPopupMenu;
 import javax.swing.JScrollPane;
 import javax.swing.JTable;
-import javax.swing.event.InternalFrameEvent;
-import javax.swing.event.InternalFrameListener;
-import javax.swing.event.ListSelectionEvent;
-import javax.swing.event.ListSelectionListener;
-import javax.swing.table.AbstractTableModel;
 
 import net.sf.mzmine.io.RawDataFile;
 import net.sf.mzmine.methods.alignment.AlignmentResult;
@@ -55,17 +49,7 @@ import net.sf.mzmine.visualizers.peaklist.PeakListVisualizer;
 public class TableView extends JInternalFrame implements PeakListVisualizer, ActionListener {
 
 	private RawDataFile rawData;
-
-	private JTable table;
-	private JScrollPane scrollPane;
-
-	private JMenuItem zoomToPeakMenuItem;
-	private JMenuItem findInAlignmentsMenuItem;
-
-	private boolean doNotAutoRefresh = false;
-	private boolean firstTimer = true;
-	private int selectedPeakID = -1;
-
+	private TableViewTable table;
 
 	public TableView(RawDataFile rawData) {
 
@@ -76,33 +60,13 @@ public class TableView extends JInternalFrame implements PeakListVisualizer, Act
         setDefaultCloseOperation(DISPOSE_ON_CLOSE);
         setBackground(Color.white);
 
-
 		// Build toolbar
         TableViewToolBar toolBar = new TableViewToolBar(this);
 
-
-		// Build pop-up menu
-		/*
-		JPopupMenu popupMenu = new JPopupMenu();
-		popupMenu.addSeparator();
-		GUIUtils.addMenuItem(popupMenu, "Zoom visualizers to peak", this, "ZOOM_TO_PEAK");
-		GUIUtils.addMenuItem(popupMenu, "Find peak in alignments", this, "FIND_IN_ALIGNMENTS");
-		popupMenu.addSeparator();
-		pack();
-		*/
-
 		// Build table
-		TableViewTable table = new TableViewTable(rawData);
+		table = new TableViewTable(this, rawData);
 		table.setAutoResizeMode( JTable.AUTO_RESIZE_OFF );
 		JScrollPane tableScroll = new JScrollPane(table);
-
-		/*
-		SelectionListener listener = new SelectionListener(table);
-    	table.getSelectionModel().addListSelectionListener(listener);
-	    table.getColumnModel().getSelectionModel().addListSelectionListener(listener);
-
-	    table.getTableHeader().setToolTipText("Click to specify sorting; Control-Click to specify secondary sorting");
-	    */
 
 		add(toolBar, BorderLayout.EAST);
 		add(tableScroll, BorderLayout.CENTER);
@@ -111,22 +75,33 @@ public class TableView extends JInternalFrame implements PeakListVisualizer, Act
 	}
 
 
+	public void actionPerformed(java.awt.event.ActionEvent event) {
 
-	public void actionPerformed(java.awt.event.ActionEvent e) {
-		Object src = e.getSource();
+        String command = event.getActionCommand();
 
-		if (src == zoomToPeakMenuItem) {
-			//setZoomAroundSelectedPeak();
+
+        if (command.equals("ZOOM_TO_PEAK")) {
+
+			Peak p = getSelectedPeak();
+			// TODO: Update cursor position on all(?) raw data visualizers showing this rawData
+			// Requires solution for raw data visualizer interaction.
 		}
 
+        if (command.equals("FIND_IN_ALIGNMENTS")) {
+
+			Peak p = getSelectedPeak();
+			// TODO: Update selected row on visualizers for all(?) alignment result where this peakList is participating
+			// Requires implementing  alignment results and their visualizers.
+		}
 
 	}
 
 	public void setSelectedPeak(Peak p) {
+		table.setSelectedPeak(p);
 	}
 
 	public Peak getSelectedPeak() {
-		return null;
+		return table.getSelectedPeak();
 	}
 
 
