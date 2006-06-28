@@ -23,6 +23,7 @@ import java.awt.Color;
 import java.awt.Insets;
 
 import javax.swing.Icon;
+import javax.swing.ImageIcon;
 import javax.swing.JButton;
 import javax.swing.JToolBar;
 import javax.swing.plaf.metal.MetalIconFactory;
@@ -31,10 +32,11 @@ import javax.swing.plaf.metal.MetalIconFactory;
  * 
  */
 class ThreeDToolBar extends JToolBar {
-
-    static final Icon centroidIcon = MetalIconFactory.getTreeComputerIcon();
     
-    private JButton propertiesButton;
+    private JButton propertiesButton, annotationsButton;
+    
+    static final Icon propertiesIcon = MetalIconFactory.getTreeComputerIcon();
+    static final Icon annotationsIcon = new ImageIcon("annotationsicon.png");
 
     ThreeDToolBar(ThreeDVisualizer masterFrame) {
 
@@ -45,12 +47,19 @@ class ThreeDToolBar extends JToolBar {
         setMargin(new Insets(5, 5, 5, 5));
         setBackground(Color.white);
 
-        propertiesButton = new JButton(centroidIcon);
+        propertiesButton = new JButton(propertiesIcon);
         propertiesButton.setActionCommand("PROPERTIES");
         propertiesButton.setToolTipText("Set properties");
         propertiesButton.addActionListener(masterFrame);
         
+        annotationsButton = new JButton(annotationsIcon);
+        annotationsButton.setActionCommand("SHOW_ANNOTATIONS");
+        annotationsButton.setToolTipText("Toggle displaying of peak values");
+        annotationsButton.addActionListener(masterFrame);
+        
         add(propertiesButton);
+        addSeparator();
+        add(annotationsButton);
         
 
     }

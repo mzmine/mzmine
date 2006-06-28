@@ -27,6 +27,7 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.MouseWheelEvent;
 import java.awt.event.MouseWheelListener;
+import java.rmi.RemoteException;
 
 import javax.swing.BorderFactory;
 import javax.swing.JInternalFrame;
@@ -41,8 +42,12 @@ import net.sf.mzmine.taskcontrol.Task.TaskStatus;
 import net.sf.mzmine.userinterface.mainwindow.MainWindow;
 import net.sf.mzmine.util.CursorPosition;
 import net.sf.mzmine.visualizers.rawdata.RawDataVisualizer;
+import visad.ConstantMap;
+import visad.DataReference;
 import visad.DisplayImpl;
 import visad.ProjectionControl;
+import visad.VisADException;
+import visad.bom.PickManipulationRendererJ3D;
 import visad.java3d.MouseBehaviorJ3D;
 
 /**
@@ -58,6 +63,12 @@ public class ThreeDVisualizer extends JInternalFrame implements
     private int msLevel;
 
     private DisplayImpl display;
+    
+    // reference to a peak data
+    private DataReference peaksDataReference;
+    private boolean peaksShown = false;
+    private ConstantMap[] peakColorMap;
+    private PickManipulationRendererJ3D peakRenderer;
 
     public ThreeDVisualizer(RawDataFile rawDataFile, int msLevel) {
 
@@ -125,6 +136,19 @@ public class ThreeDVisualizer extends JInternalFrame implements
         titleLabel.setText(title.toString());
 
     }
+    
+    /**
+     * @param peakRenderer 
+     * @param peaksDataReference The peaksDataReference to set.
+     * @param peakColorMap 
+     */
+    void setPeaksDataReference(PickManipulationRendererJ3D peakRenderer, DataReference peaksDataReference, ConstantMap[] peakColorMap) {
+        this.peakRenderer = peakRenderer;
+        this.peaksDataReference = peaksDataReference;
+        this.peakColorMap = peakColorMap;
+        this.peaksShown = true;
+    }
+    
 
     /**
      * @see net.sf.mzmine.visualizers.rawdata.RawDataVisualizer#getCursorPosition()
@@ -203,6 +227,7 @@ public class ThreeDVisualizer extends JInternalFrame implements
 
     }
 
+
     /**
      * @see java.awt.event.ActionListener#actionPerformed(java.awt.event.ActionEvent)
      */
@@ -213,6 +238,25 @@ public class ThreeDVisualizer extends JInternalFrame implements
         if (command.equals("PROPERTIES")) {
             ThreeDPropertiesDialog dialog = new ThreeDPropertiesDialog(display);
             dialog.setVisible(true);
+        }
+        
+        if (command.equals("SHOW_ANNOTATIONS")) {
+            
+            if (peaksDataReference == null) return;
+            
+            try {
+                
+                if (peaksShown) {
+                    display.removeReference(peaksDataReference);
+                    peaksShown = false;
+                } else {
+                    display.addReferences(peakRenderer, peaksDataReference, peakColorMap);
+                    peaksShown = true;
+                }
+                
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
         }
         
     }

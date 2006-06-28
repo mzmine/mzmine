@@ -38,7 +38,7 @@ class ThreeDPropertiesDialog extends JDialog implements ActionListener {
         
         try {
             
-            ScalarMap colorMap = (ScalarMap) display.getMapVector().get(3);
+            ScalarMap colorMap = (ScalarMap) display.getMapVector().get(4);
             colorWidget = new ColorMapWidget(colorMap);
             JLabel colorLabel = new JLabel("Color mapping", SwingConstants.CENTER);
             add(colorLabel);
