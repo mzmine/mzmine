@@ -34,8 +34,8 @@ class TableViewToolBar extends JToolBar {
 
     private JButton zoomToPeakButton, findInAlignmentsButton;
 
-    static final Icon zoomToPeakIcon = new ImageIcon("spectrumicon.png");
-    static final Icon findInAlignmentsIcon = new ImageIcon("annotationsicon.png");
+    static final Icon zoomToPeakIcon = new ImageIcon("annotationsicon.png");
+    static final Icon findInAlignmentsIcon = new ImageIcon("tableselectionicon.png");
 
     TableViewToolBar(TableView masterFrame) {
 
