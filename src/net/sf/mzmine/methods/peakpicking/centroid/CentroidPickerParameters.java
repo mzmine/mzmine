@@ -32,7 +32,7 @@ import net.sf.mzmine.methods.MethodParameters;
 
 public class CentroidPickerParameters implements MethodParameters {
 
-	private static final String myTagName = "CentroidPickerParameters";
+	private static final String tagName = "CentroidPickerParameters";
 
 	private static final String binSizeAttributeName = "BinSize";
 	private static final String chromatographicThresholdLevelAttributeName = "ChromatographicThresholdLevel";
@@ -53,16 +53,33 @@ public class CentroidPickerParameters implements MethodParameters {
 	public double intTolerance = 0.20;
 
     public String toString() {
-		// TODO
-		return null;
+		String s = new String();
+		s += ""   + "M/Z bin size=" + binSize + " Da";
+		s += ", " + "Chromatographic threshold level=" + chromatographicThresholdLevel*100.0 + "%";
+		s += ", " + "Noise level=" + noiseLevel;
+		s += ", " + "Minimum peak height=" + minimumPeakHeight;
+		s += ", " + "Minimum peak duration=" + minimumPeakDuration + " seconds";
+		s += ", " + "M/Z tolerance=" + mzTolerance + " Da";
+		s += ", " + "Intensity tolerance=" + intTolerance*100.0 + "%";
+		return s;
+
 	}
 
     /**
      * Adds parameters to XML document
      */
     public Element addToXML(Document doc) {
-		// TODO
-		return null;
+
+		Element e = doc.createElement(tagName);
+		e.setAttribute(binSizeAttributeName, String.valueOf(binSize));
+		e.setAttribute(chromatographicThresholdLevelAttributeName, String.valueOf(chromatographicThresholdLevel));
+		e.setAttribute(noiseLevelAttributeName, String.valueOf(noiseLevel));
+		e.setAttribute(minimumPeakHeightAttributeName, String.valueOf(minimumPeakHeight));
+		e.setAttribute(minimumPeakDurationAttributeName, String.valueOf(minimumPeakDuration));
+		e.setAttribute(mzToleranceAttributeName, String.valueOf(mzTolerance));
+		e.setAttribute(intToleranceAttributeName, String.valueOf(intTolerance));
+
+		return e;
 	}
 
     /**
@@ -70,12 +87,47 @@ public class CentroidPickerParameters implements MethodParameters {
      * @param doc XML document supposed to contain parameters for the method (may not contain them, though)
      */
     public void readFromXML(Element element) {
-		// TODO
+		// Find my element
+		NodeList n = element.getElementsByTagName(tagName);
+		if ((n==null) || (n.getLength()<1)) return;
+		Element myElement = (Element)(n.item(0));
+
+		// Set values
+		String attrValue;
+		attrValue = myElement.getAttribute(binSizeAttributeName);
+		try { binSize = Double.parseDouble(attrValue); } catch (NumberFormatException nfe) {}
+
+		attrValue = myElement.getAttribute(chromatographicThresholdLevelAttributeName);
+		try { chromatographicThresholdLevel = Double.parseDouble(attrValue); } catch (NumberFormatException nfe) {}
+
+		attrValue = myElement.getAttribute(noiseLevelAttributeName);
+		try { noiseLevel = Double.parseDouble(attrValue); } catch (NumberFormatException nfe) {}
+
+		attrValue = myElement.getAttribute(minimumPeakHeightAttributeName);
+		try { minimumPeakHeight = Double.parseDouble(attrValue); } catch (NumberFormatException nfe) {}
+
+		attrValue = myElement.getAttribute(minimumPeakDurationAttributeName);
+		try { minimumPeakDuration = Double.parseDouble(attrValue); } catch (NumberFormatException nfe) {}
+
+		attrValue = myElement.getAttribute(mzToleranceAttributeName);
+		try { mzTolerance = Double.parseDouble(attrValue); } catch (NumberFormatException nfe) {}
+
+		attrValue = myElement.getAttribute(intToleranceAttributeName);
+		try { intTolerance = Double.parseDouble(attrValue); } catch (NumberFormatException nfe) {}
+
 	}
 
 	public MethodParameters clone() {
-		// TODO
-		return null;
+		CentroidPickerParameters myClone = new CentroidPickerParameters();
+		myClone.binSize = binSize;
+		myClone.chromatographicThresholdLevel = chromatographicThresholdLevel;
+		myClone.noiseLevel = noiseLevel;
+		myClone.minimumPeakHeight = minimumPeakHeight;
+		myClone.minimumPeakDuration = minimumPeakDuration;
+		myClone.mzTolerance = mzTolerance;
+		myClone.intTolerance = intTolerance;
+
+		return myClone;
 	}
 
 }
