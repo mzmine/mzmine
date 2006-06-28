@@ -67,14 +67,33 @@ public class PeakListImpl implements PeakList {
 	 * @return
 	 */
 	public Peak[] getPeaksInsideScanRange(double startRT, double endRT) {
-		Vector<Peak> peaksInside = new Vector<Peak>();
-
-		for (Peak p : peaks)
-			if ((p.getMinRT()<=endRT) &&
-				(p.getMaxRT()>=startRT)) peaksInside.add(p);
-
-		return peaksInside.toArray(new Peak[peaksInside.size()]);
+        return getPeaksInsideScanAndMZRange(startRT, endRT, Double.MIN_VALUE, Double.MAX_VALUE);
 	}
+    
+
+    /**
+     * @see net.sf.mzmine.interfaces.PeakList#getPeaksInsideMZRange(double, double)
+     */
+    public Peak[] getPeaksInsideMZRange(double startMZ, double endMZ) {
+        return getPeaksInsideScanAndMZRange(Double.MIN_VALUE, Double.MAX_VALUE, startMZ, endMZ);
+    }
+
+    /**
+     * @see net.sf.mzmine.interfaces.PeakList#getPeaksInsideScanAndMZRange(double, double, double, double)
+     */
+    public Peak[] getPeaksInsideScanAndMZRange(double startRT, double endRT, double startMZ, double endMZ) {
+        Vector<Peak> peaksInside = new Vector<Peak>();
+
+        for (Peak p : peaks) {
+            if ((p.getMinRT()<=endRT) &&
+                (p.getMaxRT()>=startRT) &&
+                (p.getMinMZ()<=endMZ) &&
+                (p.getMaxMZ()>=startMZ)) peaksInside.add(p);
+        }
+
+        return peaksInside.toArray(new Peak[peaksInside.size()]);
+    }
+    
 
 	/**
 	 * Returns all isotope patterns overlapping with a retention time range
@@ -103,5 +122,6 @@ public class PeakListImpl implements PeakList {
 	public void addPeak(Peak p) {
 		peaks.add(p);
 	}
+
 
 }

@@ -54,6 +54,22 @@ public interface PeakList {
 	 */
 	public Peak[] getPeaksInsideScanRange(double startRT, double endRT);
 
+    /**
+     * Returns all peaks in a given m/z range
+     * @param   startMZ Start of the m/z range
+     * @param   endMZ   End of the m/z range
+     */
+    public Peak[] getPeaksInsideMZRange(double startMZ, double endMZ);
+    
+    /**
+     * Returns all peaks in a given m/z & retention time ranges
+     * @param   startRT Start of the retention time range
+     * @param   endRT   End of the retention time range
+     * @param   startMZ Start of the m/z range
+     * @param   endMZ   End of the m/z range
+     */
+    public Peak[] getPeaksInsideScanAndMZRange(double startRT, double endRT, double startMZ, double endMZ);
+    
 	/**
 	 * Returns all isotope patterns overlapping with a retention time range
 	 * @param	startRT Start of the retention time range
