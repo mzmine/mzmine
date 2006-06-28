@@ -17,7 +17,7 @@
  * Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-package net.sf.mzmine.methods.peakpicking.recursivethreshold;
+package net.sf.mzmine.methods.peakpicking.centroid;
 
 import java.io.IOException;
 import java.util.Vector;
@@ -38,10 +38,10 @@ import net.sf.mzmine.util.MyMath;
 /**
  *
  */
-public class RecursiveThresholdPickerTask implements Task {
+public class CentroidPickerTask implements Task {
 
     private RawDataFile rawDataFile;
-    private RecursiveThresholdPickerParameters parameters;
+    private CentroidPickerParameters parameters;
     private TaskStatus status;
     private String errorMessage;
 
@@ -56,7 +56,7 @@ public class RecursiveThresholdPickerTask implements Task {
      * @param rawDataFile
      * @param parameters
      */
-    RecursiveThresholdPickerTask(RawDataFile rawDataFile, RecursiveThresholdPickerParameters parameters) {
+    CentroidPickerTask(RawDataFile rawDataFile, CentroidPickerParameters parameters) {
         status = TaskStatus.WAITING;
         this.rawDataFile = rawDataFile;
         this.parameters = parameters;
@@ -69,7 +69,7 @@ public class RecursiveThresholdPickerTask implements Task {
      * @see net.sf.mzmine.taskcontrol.Task#getTaskDescription()
      */
     public String getTaskDescription() {
-        return "Recursive threshold peak detection on " + rawDataFile;
+        return "Centroid peak detection on " + rawDataFile;
     }
 
     /**
@@ -211,11 +211,9 @@ public class RecursiveThresholdPickerTask implements Task {
 
 			//System.out.print("Find 1D-peaks: ");
 
-			Vector<Integer> inds = new Vector<Integer>();
-			recursiveThreshold(masses, intensities, 0, masses.length-1, parameters.noiseLevel, parameters.minimumMZPeakWidth, parameters.maximumMZPeakWidth, inds, 0);
+			for (int j=0; j<intensities.length; j++) {
 
-			for (Integer j : inds) {
-				// Is intensity above the noise level
+				// Is intensity above the noise level?
 				if ( intensities[j] >= parameters.noiseLevel ) {
 
 					// Determine correct bin
@@ -225,6 +223,8 @@ public class RecursiveThresholdPickerTask implements Task {
 
 					// Is intensity above the chromatographic threshold level for this bin?
 					if (intensities[j]>=chromatographicThresholds[bin]) {
+
+						// Yes, then mark this index as 1D-peak
 						oneDimPeaks.add(new OneDimPeak(i, j, masses[j], intensities[j]));
 					}
 
@@ -357,82 +357,6 @@ public class RecursiveThresholdPickerTask implements Task {
 
 
 
-	/**
-	 * This function searches for maximums from given part of a spectrum
-	 */
-	private int recursiveThreshold(double[] masses, double intensities[], int startInd, int stopInd, double thresholdLevel, double minPeakWidthMZ, double maxPeakWidthMZ, Vector<Integer> CentroidInds, int recuLevel) {
-
-		int peakStartInd;
-		int peakStopInd;
-		int lastKnownGoodPeakStopInd;
-		double peakWidthMZ;
-		int peakMinInd;
-		int peakMaxInd;
-
-		lastKnownGoodPeakStopInd = stopInd;
-
-		for (int ind = startInd; ind <= stopInd; ind++) {
-			// While below threshold
-			while ((ind<=stopInd) && (intensities[ind]<=thresholdLevel)) { ind++; }
-
-			if (ind>=stopInd) { break; }
-
-			peakStartInd = ind;
-			peakMinInd = peakStartInd;
-			peakMaxInd = peakStartInd;
-
-			// While peak is on
-			while ((ind<=stopInd) && (intensities[ind]>thresholdLevel)) {
-				// Check if this is the minimum point of the peak
-				if (intensities[ind]<intensities[peakMinInd]) {
-					peakMinInd = ind;
-				}
-
-				// Check if this is the maximum poin of the peak
-				if (intensities[ind]>intensities[peakMaxInd]) {
-					peakMaxInd = ind;
-				}
-
-				ind++;
-			}
-
-			if (ind==stopInd) { ind--; }
-			//peakStopInd = ind - 1;
-			peakStopInd = ind-1;
-
-			// Is this suitable peak?
-
-			if (peakStopInd<0) {
-				peakWidthMZ = 0;
-			} else {
-				int tmpInd1 = peakStartInd - 1;
-				if (tmpInd1<startInd) { tmpInd1 = startInd; }
-				int tmpInd2 = peakStopInd + 1;
-				if (tmpInd2>stopInd) { tmpInd2 = stopInd; }
-				peakWidthMZ = masses[peakStopInd]-masses[peakStartInd];
-			}
-
-			if ( (peakWidthMZ>=minPeakWidthMZ) && (peakWidthMZ<=maxPeakWidthMZ) ) {
-
-				// Two options: define peak centroid index as maxintensity index or mean index of all indices
-				CentroidInds.add(new Integer(peakMaxInd));
-
-				if (recuLevel>0) { return peakStopInd+1; }
-				// lastKnownGoodPeakStopInd = peakStopInd;
-			}
-
-			// Is there need for further investigation?
-			if (peakWidthMZ>maxPeakWidthMZ) {
-				ind = recursiveThreshold(masses, intensities, peakStartInd, peakStopInd, intensities[peakMinInd], minPeakWidthMZ, maxPeakWidthMZ, CentroidInds, recuLevel+1);
-			}
-
-			if (ind==(stopInd-1)) { break; }
-		}
-
-		// return lastKnownGoodPeakStopInd;
-		return stopInd;
-
-	}
 
 	/**
 	 * This class represent a 1D peak

@@ -24,19 +24,26 @@ import java.util.TreeSet;
 import java.util.Vector;
 
 import net.sf.mzmine.interfaces.Scan;
+import net.sf.mzmine.interfaces.PeakList;
 import net.sf.mzmine.io.RawDataFile;
+import net.sf.mzmine.io.MZmineProject;
 import net.sf.mzmine.methods.Method;
 import net.sf.mzmine.methods.MethodParameters;
 import net.sf.mzmine.methods.alignment.AlignmentResult;
+import net.sf.mzmine.taskcontrol.Task;
+import net.sf.mzmine.taskcontrol.TaskController;
+import net.sf.mzmine.taskcontrol.TaskListener;
 import net.sf.mzmine.userinterface.dialogs.ParameterSetupDialog;
 import net.sf.mzmine.userinterface.mainwindow.MainWindow;
 import net.sf.mzmine.util.MyMath;
+import net.sf.mzmine.util.Logger;
+import net.sf.mzmine.visualizers.peaklist.table.TableView;
 
 
 /**
  * This class implements a peak picker based on searching for local maximums in each spectra
  */
-public class CentroidPicker implements Method {
+public class CentroidPicker implements Method, TaskListener {
 
 
 	public String getMethodDescription() {
@@ -148,7 +155,48 @@ public class CentroidPicker implements Method {
 	}
 
 	public void runMethod(MethodParameters parameters, RawDataFile[] rawDataFiles, AlignmentResult[] alignmentResults) {
-		// TODO
+
+		Task peakPickerTask;
+		CentroidPickerParameters rpParam = (CentroidPickerParameters)parameters;
+
+		for (RawDataFile rawDataFile: rawDataFiles) {
+			peakPickerTask = new CentroidPickerTask(rawDataFile, rpParam);
+			TaskController.getInstance().addTask(peakPickerTask, this);
+		}
+
+	}
+
+
+    public void taskStarted(Task task) {
+		// do nothing
+	}
+
+    public void taskFinished(Task task) {
+
+        if (task.getStatus() == Task.TaskStatus.FINISHED) {
+
+			RawDataFile rawData = (RawDataFile)((Object[])task.getResult())[0];
+			PeakList peakList = (PeakList)((Object[])task.getResult())[1];
+			CentroidPickerParameters params = (CentroidPickerParameters)((Object[])task.getResult())[2];
+
+			// Add peak picking to the history of the file
+			rawData.addHistory(rawData.getCurrentFile(), this, params.clone());
+
+			// Add peak list to MZmineProject
+			MZmineProject.getCurrentProject().setPeakList(rawData, peakList);
+
+			MainWindow.getInstance().addInternalFrame(new TableView(rawData));
+
+			MainWindow.getInstance().getMainMenu().updateMenuAvailability();
+
+        } else if (task.getStatus() == Task.TaskStatus.ERROR) {
+            /* Task encountered an error */
+            Logger.putFatal("Error while finding peaks in a file: " + task.getErrorMessage());
+            MainWindow.getInstance().displayErrorMessage(
+                    "Error while finding peaks in a file: " + task.getErrorMessage());
+
+        }
+
 	}
 
 

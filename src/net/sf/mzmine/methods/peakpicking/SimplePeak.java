@@ -17,7 +17,7 @@
  * Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-package net.sf.mzmine.methods.peakpicking.recursivethreshold;
+package net.sf.mzmine.methods.peakpicking;
 
 import java.util.Hashtable;
 import java.util.Enumeration;
@@ -27,9 +27,10 @@ import net.sf.mzmine.interfaces.Peak;
 import net.sf.mzmine.interfaces.IsotopePattern;
 
 /**
- * This interface defines the properties of a detected peak
+ * This class is a simple implementation of the peak interface.
+ * This implementation is used by recursive threshold, centroid and local maximum peak pickers.
  */
-public class RecursiveThresholdPickerPeak implements Peak {
+public class SimplePeak implements Peak {
 
 	private PeakStatus peakStatus;
 
@@ -52,7 +53,7 @@ public class RecursiveThresholdPickerPeak implements Peak {
 
 	private boolean growing=false;
 
-	RecursiveThresholdPickerPeak() {
+	public SimplePeak() {
 		datapoints = new Hashtable<Integer, Double[]>();
 	}
 
@@ -220,7 +221,7 @@ public class RecursiveThresholdPickerPeak implements Peak {
 
 
 
-	protected void addDatapoint(int scanNumber, double mz, double rt, double intensity) {
+	public void addDatapoint(int scanNumber, double mz, double rt, double intensity) {
 		Double[] triplet = new Double[3];
 		triplet[0] = mz;
 		triplet[1] = rt;
@@ -231,11 +232,11 @@ public class RecursiveThresholdPickerPeak implements Peak {
 		precalculateFromDatapoints();
 	}
 
-	protected boolean isGrowing() {
+	public boolean isGrowing() {
 		return growing;
 	}
 
-	protected void resetGrowingState() {
+	public void resetGrowingState() {
 		growing = false;
 	}
 
@@ -245,7 +246,7 @@ public class RecursiveThresholdPickerPeak implements Peak {
 		// Basic requirements of the interface:
 		// - Find minimum and maximum M/Z and RT of all datapoints
 		//
-		// Specific to how recursive threshold method defines a peak:
+		// Specific to this peak implementation
 		// - Find maximum height and corresponding RT  (peak's height and RT)
 		// - Calculate sum of all intensities (peak's area)
 		// - Calculate median of all datapoints (defines peak's M/Z)

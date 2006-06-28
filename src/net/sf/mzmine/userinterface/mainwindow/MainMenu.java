@@ -38,6 +38,7 @@ import net.sf.mzmine.io.MZmineProject;
 import net.sf.mzmine.io.RawDataFile;
 import net.sf.mzmine.io.PeakListWriter;
 import net.sf.mzmine.methods.alignment.AlignmentResult;
+import net.sf.mzmine.methods.Method;
 import net.sf.mzmine.userinterface.dialogs.FileOpenDialog;
 
 
@@ -54,6 +55,10 @@ import net.sf.mzmine.methods.filtering.zoomscan.ZoomScanFilter;
 import net.sf.mzmine.methods.filtering.zoomscan.ZoomScanFilterParameters;
 import net.sf.mzmine.methods.peakpicking.recursivethreshold.RecursiveThresholdPicker;
 import net.sf.mzmine.methods.peakpicking.recursivethreshold.RecursiveThresholdPickerParameters;
+
+import net.sf.mzmine.methods.peakpicking.centroid.CentroidPicker;
+import net.sf.mzmine.methods.peakpicking.centroid.CentroidPickerParameters;
+
 
 import net.sf.mzmine.visualizers.alignmentresult.AlignmentResultVisualizerCDAPlotView;
 import net.sf.mzmine.visualizers.alignmentresult.AlignmentResultVisualizerCoVarPlotView;
@@ -500,20 +505,10 @@ public class MainMenu extends JMenuBar implements ActionListener {
 		if (src == ssMeanFilter) {
 
 			 // Ask parameters from user
-			MeanFilter mf = new MeanFilter();
-			MeanFilterParameters mfParam = mainWin.getParameterStorage().getMeanFilterParameters();
+			MeanFilter filter = new MeanFilter();
+			MeanFilterParameters filterParam = mainWin.getParameterStorage().getMeanFilterParameters();
 
-			if (!(mf.askParameters((MethodParameters)mfParam))) {
-				statBar.setStatusText("Filtering cancelled."); return;
-			}
-
-         	// It seems user didn't cancel
-         	statBar.setStatusText("Filtering spectra.");
-         	//paintNow();
-
-         	RawDataFile[] rawDataFiles = mainWin.getItemSelector().getSelectedRawData();
-
-         	mf.runMethod(mfParam, rawDataFiles, null);
+			startFilter(filter, filterParam);
 
 		}
 
@@ -521,20 +516,10 @@ public class MainMenu extends JMenuBar implements ActionListener {
 		if (src == ssChromatographicMedianFilter) {
 
 			 // Ask parameters from user
-			ChromatographicMedianFilter cmf = new ChromatographicMedianFilter();
-			ChromatographicMedianFilterParameters cmfParam = mainWin.getParameterStorage().getChromatographicMedianFilterParameters();
+			ChromatographicMedianFilter filter = new ChromatographicMedianFilter();
+			ChromatographicMedianFilterParameters filterParam = mainWin.getParameterStorage().getChromatographicMedianFilterParameters();
 
-			if (!(cmf.askParameters((MethodParameters)cmfParam))) {
-				statBar.setStatusText("Filtering cancelled."); return;
-			}
-
-         	// It seems user didn't cancel
-         	statBar.setStatusText("Filtering spectra.");
-         	//paintNow();
-
-         	RawDataFile[] rawDataFiles = mainWin.getItemSelector().getSelectedRawData();
-
-         	cmf.runMethod(cmfParam, rawDataFiles, null);
+			startFilter(filter, filterParam);
 
 		}
 
@@ -542,20 +527,10 @@ public class MainMenu extends JMenuBar implements ActionListener {
 		if (src == ssCropFilter) {
 
 			 // Ask parameters from user
-			CropFilter cf = new CropFilter();
-			CropFilterParameters cfParam = mainWin.getParameterStorage().getCropFilterParameters();
+			CropFilter filter = new CropFilter();
+			CropFilterParameters filterParam = mainWin.getParameterStorage().getCropFilterParameters();
 
-			if (!(cf.askParameters((MethodParameters)cfParam))) {
-				statBar.setStatusText("Filtering cancelled."); return;
-			}
-
-         	// It seems user didn't cancel
-         	statBar.setStatusText("Filtering spectra.");
-         	//paintNow();
-
-         	RawDataFile[] rawDataFiles = mainWin.getItemSelector().getSelectedRawData();
-
-         	cf.runMethod(cfParam, rawDataFiles, null);
+			startFilter(filter, filterParam);
 
 		}
 
@@ -563,51 +538,63 @@ public class MainMenu extends JMenuBar implements ActionListener {
 		if (src == ssSGFilter) {
 
 			 // Ask parameters from user
-			SavitzkyGolayFilter sgf = new SavitzkyGolayFilter();
-			SavitzkyGolayFilterParameters sgfParam = mainWin.getParameterStorage().getSavitzkyGolayFilterParameters();
+			SavitzkyGolayFilter filter = new SavitzkyGolayFilter();
+			SavitzkyGolayFilterParameters filterParam = mainWin.getParameterStorage().getSavitzkyGolayFilterParameters();
 
-			if (!(sgf.askParameters((MethodParameters)sgfParam))) {
-				statBar.setStatusText("Filtering cancelled."); return;
-			}
-
-         	// It seems user didn't cancel
-         	statBar.setStatusText("Filtering spectra.");
-         	//paintNow();
-
-         	RawDataFile[] rawDataFiles = mainWin.getItemSelector().getSelectedRawData();
-
-         	sgf.runMethod(sgfParam, rawDataFiles, null);
-
+			startFilter(filter, filterParam);
 		}
 
 		// Filter -> Zoom scan
 		if (src == ssZoomScanFilter) {
 
-			 // Ask parameters from user
-			ZoomScanFilter zsf = new ZoomScanFilter();
-			ZoomScanFilterParameters zsfParam = mainWin.getParameterStorage().getZoomScanFilterParameters();
 
-			if (!(zsf.askParameters((MethodParameters)zsfParam))) {
-				statBar.setStatusText("Filtering cancelled."); return;
-			}
+			ZoomScanFilter filter = new ZoomScanFilter();
+			ZoomScanFilterParameters filterParam = mainWin.getParameterStorage().getZoomScanFilterParameters();
 
-         	// It seems user didn't cancel
-         	statBar.setStatusText("Filtering spectra.");
-         	//paintNow();
-
-         	RawDataFile[] rawDataFiles = mainWin.getItemSelector().getSelectedRawData();
-
-         	zsf.runMethod(zsfParam, rawDataFiles, null);
+			startFilter(filter, filterParam);
 
 		}
 
 
 		if (src == ssRecursiveThresholdPicker) {
 
-			RecursiveThresholdPicker rp = new RecursiveThresholdPicker();
-			RecursiveThresholdPickerParameters rpParam = mainWin.getParameterStorage().getRecursiveThresholdPickerParameters();
+			RecursiveThresholdPicker picker = new RecursiveThresholdPicker();
+			RecursiveThresholdPickerParameters pickerParam = mainWin.getParameterStorage().getRecursiveThresholdPickerParameters();
 
-			if (!(rp.askParameters((MethodParameters)rpParam))) {
+			startPeakPicker(picker, pickerParam);
+
+		}
+
+		if (src == ssCentroidPicker) {
+
+			CentroidPicker picker = new CentroidPicker();
+			CentroidPickerParameters pickerParam = mainWin.getParameterStorage().getCentroidPickerParameters();
+			startPeakPicker(picker, pickerParam);
+
+		}
+
+    }
+
+	private void startFilter(Method filter, MethodParameters filterParam) {
+
+			// Ask parameters from user
+			if (!(filter.askParameters((MethodParameters)filterParam))) {
+				statBar.setStatusText("Filtering cancelled."); return;
+			}
+
+         	// It seems user didn't cancel
+         	statBar.setStatusText("Filtering spectra.");
+
+         	RawDataFile[] rawDataFiles = mainWin.getItemSelector().getSelectedRawData();
+
+         	filter.runMethod(filterParam, rawDataFiles, null);
+
+	}
+
+
+    private void startPeakPicker(Method picker, MethodParameters pickerParam) {
+
+			if (!(picker.askParameters((MethodParameters)pickerParam))) {
 				statBar.setStatusText("Peak picking cancelled."); return;
 			}
 
@@ -638,11 +625,9 @@ public class MainMenu extends JMenuBar implements ActionListener {
 				if (proj.hasPeakList(r))
 					proj.removePeakList(r);
 
-			rp.runMethod(rpParam, rawDataFiles, null);
+			picker.runMethod(pickerParam, rawDataFiles, null);
 
-		}
-
-    }
+	}
 
     /**
      * Update menu elements availability according to what is currently selected
@@ -710,9 +695,10 @@ public class MainMenu extends JMenuBar implements ActionListener {
             ssZoomScanFilter.setEnabled(true);
 
             ssRecursiveThresholdPicker.setEnabled(true);
+            ssCentroidPicker.setEnabled(true);
 			/*
             ssLocalPicker.setEnabled(true);
-            ssCentroidPicker.setEnabled(true);
+
             */
 
             // batDefine.setEnabled(true);
