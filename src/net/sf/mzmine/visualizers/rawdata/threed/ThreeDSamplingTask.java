@@ -21,7 +21,6 @@ package net.sf.mzmine.visualizers.rawdata.threed;
 
 import java.awt.Color;
 import java.awt.event.KeyEvent;
-import java.rmi.RemoteException;
 import java.text.DecimalFormat;
 import java.text.NumberFormat;
 
@@ -31,11 +30,10 @@ import net.sf.mzmine.interfaces.Scan;
 import net.sf.mzmine.io.MZmineProject;
 import net.sf.mzmine.io.RawDataFile;
 import net.sf.mzmine.taskcontrol.Task;
-import net.sf.mzmine.util.MyMath;
+import net.sf.mzmine.util.ScanUtils;
 import net.sf.mzmine.util.TimeNumberFormat;
-import net.sf.mzmine.util.MyMath.BinningType;
+import net.sf.mzmine.util.ScanUtils.BinningType;
 import visad.AxisScale;
-import visad.CellImpl;
 import visad.ConstantMap;
 import visad.Data;
 import visad.DataReference;
@@ -46,7 +44,6 @@ import visad.FlatField;
 import visad.FunctionType;
 import visad.GraphicsModeControl;
 import visad.Gridded2DSet;
-import visad.GriddedSet;
 import visad.Linear2DSet;
 import visad.MathType;
 import visad.MouseHelper;
@@ -62,7 +59,6 @@ import visad.TextControl;
 import visad.TextType;
 import visad.Tuple;
 import visad.TupleType;
-import visad.VisADException;
 import visad.bom.PickManipulationRendererJ3D;
 import visad.java3d.DisplayImplJ3D;
 import visad.java3d.DisplayRendererJ3D;
@@ -288,7 +284,7 @@ class ThreeDSamplingTask implements Task {
 
                 scan = rawDataFile.getScan(scanNumbers[scanIndex]);
 
-                double[] binnedIntensities = MyMath.binValues(scan.getMZValues(),
+                double[] binnedIntensities = ScanUtils.binValues(scan.getMZValues(),
                         scan.getIntensityValues(),
                         mzMin,
                         mzMax,

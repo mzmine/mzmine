@@ -20,19 +20,18 @@
 package net.sf.mzmine.methods.peakpicking.recursivethreshold;
 
 import java.io.IOException;
-import java.util.Vector;
-import java.util.TreeSet;
 import java.util.Hashtable;
 import java.util.Iterator;
+import java.util.TreeSet;
+import java.util.Vector;
 
-
-import net.sf.mzmine.taskcontrol.Task;
 import net.sf.mzmine.interfaces.Scan;
-import net.sf.mzmine.interfaces.PeakList;
-import net.sf.mzmine.methods.peakpicking.SimplePeakList;
-import net.sf.mzmine.methods.peakpicking.SimplePeak;
 import net.sf.mzmine.io.RawDataFile;
+import net.sf.mzmine.methods.peakpicking.SimplePeak;
+import net.sf.mzmine.methods.peakpicking.SimplePeakList;
+import net.sf.mzmine.taskcontrol.Task;
 import net.sf.mzmine.util.MyMath;
+import net.sf.mzmine.util.ScanUtils;
 
 
 /**
@@ -149,7 +148,7 @@ public class RecursiveThresholdPickerTask implements Task {
 
 				double[] mzValues = sc.getMZValues();
 				double[] intensityValues = sc.getIntensityValues();
-				double[] tmpInts = MyMath.binValues(mzValues, intensityValues, startMZ, endMZ, numOfBins, true, MyMath.BinningType.MAX);
+				double[] tmpInts = ScanUtils.binValues(mzValues, intensityValues, startMZ, endMZ, numOfBins, true, ScanUtils.BinningType.MAX);
 				for (int bini=0; bini<numOfBins; bini++) {
 					binInts[bini][i] = tmpInts[bini];
 				}
