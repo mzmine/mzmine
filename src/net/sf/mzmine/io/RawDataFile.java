@@ -60,17 +60,40 @@ public interface RawDataFile extends Serializable {
 
     public int getNumOfScans();
     public int[] getMSLevels();
+    
+    /**
+     * Returns sorted array of all scan numbers in given MS level 
+     * @param msLevel MS level
+     * @return Sorted array of scan numbers, never returns null
+     */
     public int[] getScanNumbers(int msLevel);
+    
+    /**
+     * Returns sorted array of all scan numbers in given MS level and retention time range
+     * @param msLevel MS level
+     * @param rtMin Minimum retention time
+     * @param rtMax Maximum retention time
+     * @return Sorted array of scan numbers, never returns null
+     */
     public int[] getScanNumbers(int msLevel, double rtMin, double rtMax);
+    
+    /**
+     * Returns sorted array of all scan numbers in this file
+     * @return Sorted array of scan numbers, never returns null
+     */
     public int[] getScanNumbers();
     
-    // returns a retention time of a scan
+    /**
+     * Returns a retention time of a given scan
+     * @param scanNumber Desired scan number
+     * @return Scan's retention time
+     */
     public double getRetentionTime(int scanNumber);
     
 
     /**
      * This method may parse the RAW data file, therefore it may be quite slow.
-     * @param scan Desired can number
+     * @param scan Desired scan number
      * @return Desired scan
      */
     public Scan getScan(int scan) throws IOException;

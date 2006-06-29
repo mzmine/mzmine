@@ -213,9 +213,9 @@ class MZXMLFile implements RawDataFile {
      * @see net.sf.mzmine.io.RawDataFile#getScanNumbers(int, double, double)
      */
     public int[] getScanNumbers(int msLevel, double rtMin, double rtMax) {
-        ArrayList<Integer> numbersList = scanNumbers.get(new Integer(msLevel));
-        if (numbersList == null)
-            return null;
+        ArrayList<Integer> numbersList = scanNumbers.get(msLevel);
+        if (numbersList == null) 
+            return new int[0];
 
         ArrayList<Integer> eligibleScans = new ArrayList<Integer>();
         
