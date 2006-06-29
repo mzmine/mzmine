@@ -183,24 +183,6 @@ public class CropFilterTask implements Task {
                     newInd++;
                 }
 
-                // If base peak M/Z of original scan is out of range, then we
-                // must manually search for a new base peak
-                double newBasePeakMZ = sc.getBasePeakMZ();
-                double newBasePeakIntensity = sc.getBasePeakIntensity();
-                if ((newBasePeakMZ < parameters.minMZ)
-                        || (newBasePeakMZ > parameters.maxMZ)) {
-
-                    newBasePeakMZ = newMassValues[0];
-                    newBasePeakIntensity = newIntensityValues[0];
-
-                    for (int i = 1; i < newIntensityValues.length; i++) {
-                        if (newIntensityValues[i] > newBasePeakIntensity) {
-                            newBasePeakIntensity = newIntensityValues[i];
-                            newBasePeakMZ = newMassValues[i];
-                        }
-                    }
-
-                }
 
                 // Write the modified scan to file
                 try {
