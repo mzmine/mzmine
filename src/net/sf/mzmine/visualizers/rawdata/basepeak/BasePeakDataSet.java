@@ -26,12 +26,12 @@ import java.util.Date;
 
 import net.sf.mzmine.interfaces.Scan;
 import net.sf.mzmine.io.RawDataFile;
-import net.sf.mzmine.io.RawDataFile.PreloadLevel;
 import net.sf.mzmine.taskcontrol.Task;
 import net.sf.mzmine.taskcontrol.TaskController;
 import net.sf.mzmine.taskcontrol.Task.TaskPriority;
 import net.sf.mzmine.util.RawDataAcceptor;
 import net.sf.mzmine.util.RawDataRetrievalTask;
+import net.sf.mzmine.util.ScanUtils;
 
 import org.jfree.data.xy.DefaultTableXYDataset;
 import org.jfree.data.xy.XYSeries;
@@ -49,35 +49,27 @@ class BasePeakDataSet extends DefaultTableXYDataset implements RawDataAcceptor {
     private int[] scanNumbers;
     private double[] mzValues;
     private XYSeries series;
+    private double mzMin, mzMax;
     
     private Date lastRedrawTime = new Date();
     
-    BasePeakDataSet(RawDataFile rawDataFile, int msLevel, BasePeakVisualizer visualizer) {
+    BasePeakDataSet(RawDataFile rawDataFile, int scanNumbers[], double mzMin, double mzMax, BasePeakVisualizer visualizer) {
+        
+        this.mzMin = mzMin;
+        this.mzMax = mzMax;
+        this.rawDataFile = rawDataFile;
+        this.scanNumbers = scanNumbers;
         
         series = new XYSeries(rawDataFile.getOriginalFile().getName(), false, false);
         
         addSeries(series);
-        
-        this.rawDataFile = rawDataFile;
-        
-        scanNumbers = rawDataFile.getScanNumbers(msLevel);
-        assert scanNumbers != null;
         
         mzValues = new double[scanNumbers.length];
 
         Task updateTask = new RawDataRetrievalTask(rawDataFile, scanNumbers,
                 "Updating base peak visualizer of " + rawDataFile, this);
 
-        /*
-         * if the file data is preloaded in memory, we can update the visualizer
-         * in this thread, otherwise start a task
-         */
-        if (rawDataFile.getPreloadLevel() == PreloadLevel.PRELOAD_ALL_SCANS) {
-            visualizer.taskStarted(updateTask);
-            updateTask.run();
-            visualizer.taskFinished(updateTask);
-        } else
-            TaskController.getInstance().addTask(updateTask, TaskPriority.HIGH, visualizer);
+        TaskController.getInstance().addTask(updateTask, TaskPriority.HIGH, visualizer);
         
     }
     
@@ -106,10 +98,8 @@ class BasePeakDataSet extends DefaultTableXYDataset implements RawDataAcceptor {
      */
     public void addScan(Scan scan, int index) {
 
-        double basePeakIntensity, basePeakMZ;
-        basePeakMZ = scan.getBasePeakMZ();
-        basePeakIntensity = scan.getBasePeakIntensity();
-
+        double basePeak[] = ScanUtils.findBasePeak(scan, mzMin, mzMax);
+        
         // redraw every REDRAW_INTERVAL ms
         boolean notify = false;
         Date currentTime = new Date();
@@ -122,10 +112,10 @@ class BasePeakDataSet extends DefaultTableXYDataset implements RawDataAcceptor {
         if (scan.getScanNumber() == scanNumbers[scanNumbers.length - 1])
             notify = true;
 
-        series.add(scan.getRetentionTime() * 1000, basePeakIntensity,
+        series.add(scan.getRetentionTime() * 1000, basePeak[1],
                 notify);
 
-        mzValues[series.getItemCount() - 1] = basePeakMZ;
+        mzValues[series.getItemCount() - 1] = basePeak[0];
         
     }
 }

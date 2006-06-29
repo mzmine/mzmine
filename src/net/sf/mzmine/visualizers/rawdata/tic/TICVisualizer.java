@@ -72,11 +72,6 @@ public class TICVisualizer extends JInternalFrame implements
         
         super(rawDataFile.toString() + " TIC", true, true, true, true);
 
-        this.rtMin = rtMin;
-        this.rtMax = rtMax;
-        this.mzMin = mzMin;
-        this.mzMax = mzMax;
-        
         setDefaultCloseOperation(DISPOSE_ON_CLOSE);
         setBackground(Color.white);
 
@@ -88,6 +83,10 @@ public class TICVisualizer extends JInternalFrame implements
 
         this.msLevel = msLevel;
         this.rawDataFiles = new Hashtable<RawDataFile, TICDataSet>();
+        this.rtMin = rtMin;
+        this.rtMax = rtMax;
+        this.mzMin = mzMin;
+        this.mzMax = mzMax;
 
         addRawDataFile(rawDataFile);
 

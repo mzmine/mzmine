@@ -77,6 +77,12 @@ class BasePeakPlot extends ChartPanel {
             new Color(0, 192, 0), // green
             Color.magenta, Color.cyan, Color.orange };
     
+    // peak labels color
+    private static final Color labelsColor = Color.darkGray;
+    
+    // grid color
+    private static final Color gridColor = Color.lightGray;
+    
     //  crosshair (selection) color
     private static Color crossHairColor = Color.gray; 
     
@@ -148,8 +154,8 @@ class BasePeakPlot extends ChartPanel {
         plot.setAxisOffset(new RectangleInsets(5.0, 5.0, 5.0, 5.0));
         
         // set grid properties
-        plot.setDomainGridlinePaint(Color.lightGray);
-        plot.setRangeGridlinePaint(Color.lightGray);
+        plot.setDomainGridlinePaint(gridColor);
+        plot.setRangeGridlinePaint(gridColor);
         
         // set crosshair (selection) properties
         plot.setDomainCrosshairVisible(true);
@@ -174,6 +180,7 @@ class BasePeakPlot extends ChartPanel {
         defaultRenderer.setShapesFilled(true);
         defaultRenderer.setDrawOutlines(false);
         defaultRenderer.setUseFillPaint(true);
+        defaultRenderer.setItemLabelPaint(labelsColor);
         defaultRenderer.setShape(dataPointsShape);
 
         // set label generator

@@ -53,6 +53,7 @@ public class BasePeakVisualizer extends JInternalFrame implements
 
     private Hashtable<RawDataFile, BasePeakDataSet> rawDataFiles;
     private int msLevel;
+    private double rtMin, rtMax, mzMin, mzMax;
 
     // TODO: get these from parameter storage
     private static DateFormat rtFormat = new SimpleDateFormat("m:ss");
@@ -62,11 +63,12 @@ public class BasePeakVisualizer extends JInternalFrame implements
     private static final double zoomCoefficient = 1.2;
 
     /**
-     * Constructor for total ion chromatogram visualizer
+     * Constructor for base peak visualizer
      * 
      */
     public BasePeakVisualizer(RawDataFile rawDataFile, int msLevel,
-            double rtMin, double rtMax) {
+            double rtMin, double rtMax,
+            double mzMin, double mzMax) {
 
         super(rawDataFile.toString() + " base peak intensity", true, true,
                 true, true);
@@ -82,6 +84,10 @@ public class BasePeakVisualizer extends JInternalFrame implements
 
         this.msLevel = msLevel;
         this.rawDataFiles = new Hashtable<RawDataFile, BasePeakDataSet>();
+        this.rtMin = rtMin;
+        this.rtMax = rtMax;
+        this.mzMin = mzMin;
+        this.mzMax = mzMax;
 
         addRawDataFile(rawDataFile);
 
@@ -96,6 +102,8 @@ public class BasePeakVisualizer extends JInternalFrame implements
         title.append(" MS" + msLevel);
 
         setTitle(title.toString());
+        
+        title.append(", m/z: " + mzFormat.format(mzMin) + " - " + mzFormat.format(mzMax));
 
         CursorPosition pos = getCursorPosition();
 
@@ -146,14 +154,19 @@ public class BasePeakVisualizer extends JInternalFrame implements
     }
 
     public void addRawDataFile(RawDataFile newFile) {
-        BasePeakDataSet dataset = new BasePeakDataSet(newFile, msLevel, this);
+        
+        int scanNumbers[] = newFile.getScanNumbers(msLevel, rtMin, rtMax);
+        if (scanNumbers.length == 0) {
+            MainWindow.getInstance().displayErrorMessage("No scans found at MS level " + msLevel + " within given retention time range.");
+            return;
+        }
+        
+        BasePeakDataSet dataset = new BasePeakDataSet(newFile, scanNumbers, mzMin, mzMax, this);
         rawDataFiles.put(newFile, dataset);
         plot.addDataset(dataset);
         if (rawDataFiles.size() == 1) {
-            setRTRange(newFile.getDataMinRT(msLevel) * 1000,
-                    newFile.getDataMaxRT(msLevel) * 1000);
-            setIntensityRange(0,
-                    newFile.getDataMaxBasePeakIntensity(msLevel) * 1.05);
+            setRTRange(rtMin * 1000, rtMax * 1000);
+            setIntensityRange(0, newFile.getDataMaxBasePeakIntensity(msLevel) * 1.05);
         }
 
         // when displaying more than one file, show a legend

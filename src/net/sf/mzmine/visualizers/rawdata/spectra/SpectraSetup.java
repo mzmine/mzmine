@@ -56,6 +56,9 @@ public class SpectraSetup extends JDialog implements ActionListener {
         // Make dialog modal
         super(MainWindow.getInstance(), "Spectra visualizer parameters (" + rawDataFile + ")", true);
         
+        
+        this.rawDataFile = rawDataFile;
+        
         // Buttons
         pnlButtons = new JPanel();
         btnOK = new JButton("OK");
@@ -73,6 +76,8 @@ public class SpectraSetup extends JDialog implements ActionListener {
         getContentPane().add(pnlAll);
         
         pack();
+        
+        setLocationRelativeTo(MainWindow.getInstance());
         
         
     }

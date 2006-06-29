@@ -73,11 +73,6 @@ public class TICSetup  {
 
         // Read parameter values from dialog
         int msLevel = (int) psd.getFieldValue(0);
-        int scanNumbers[] = rawDataFile.getScanNumbers(msLevel);
-        if (scanNumbers == null) {
-            mainWin.displayErrorMessage("No scans at MS level " + msLevel);
-            return;
-        }
 
         double rtMin = psd.getFieldValue(1);
         double rtMax = psd.getFieldValue(2);
