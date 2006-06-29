@@ -29,12 +29,12 @@ import net.sf.mzmine.interfaces.IsotopePattern;
 /**
  *
  */
-public class PeakListImpl implements PeakList {
+public class SimplePeakList implements PeakList {
 
 	private Vector<Peak> peaks;
 
 
-	public PeakListImpl() {
+	public SimplePeakList() {
 		peaks = new Vector<Peak>();
 	}
 
@@ -69,7 +69,7 @@ public class PeakListImpl implements PeakList {
 	public Peak[] getPeaksInsideScanRange(double startRT, double endRT) {
         return getPeaksInsideScanAndMZRange(startRT, endRT, Double.MIN_VALUE, Double.MAX_VALUE);
 	}
-    
+
 
     /**
      * @see net.sf.mzmine.interfaces.PeakList#getPeaksInsideMZRange(double, double)
@@ -93,7 +93,7 @@ public class PeakListImpl implements PeakList {
 
         return peaksInside.toArray(new Peak[peaksInside.size()]);
     }
-    
+
 
 	/**
 	 * Returns all isotope patterns overlapping with a retention time range

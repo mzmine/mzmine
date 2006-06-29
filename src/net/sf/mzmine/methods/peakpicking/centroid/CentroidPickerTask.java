@@ -29,7 +29,7 @@ import java.util.Iterator;
 import net.sf.mzmine.taskcontrol.Task;
 import net.sf.mzmine.interfaces.Scan;
 import net.sf.mzmine.interfaces.PeakList;
-import net.sf.mzmine.methods.peakpicking.PeakListImpl;
+import net.sf.mzmine.methods.peakpicking.SimplePeakList;
 import net.sf.mzmine.methods.peakpicking.SimplePeak;
 import net.sf.mzmine.io.RawDataFile;
 import net.sf.mzmine.util.MyMath;
@@ -48,7 +48,7 @@ public class CentroidPickerTask implements Task {
     private int processedScans;
     private int totalScans;
 
-    private PeakListImpl readyPeakList;
+    private SimplePeakList readyPeakList;
 
 
 
@@ -61,7 +61,7 @@ public class CentroidPickerTask implements Task {
         this.rawDataFile = rawDataFile;
         this.parameters = parameters;
 
-        readyPeakList = new PeakListImpl();
+        readyPeakList = new SimplePeakList();
     }
 
 
