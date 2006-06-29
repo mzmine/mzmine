@@ -53,12 +53,12 @@ public class TICVisualizer extends JInternalFrame implements
 
     private Hashtable<RawDataFile, TICDataSet> rawDataFiles;
     private int msLevel;
-
-    private boolean xicMode = false;
-
+    private double rtMin, rtMax, mzMin, mzMax;
+    
     // TODO: get these from parameter storage
     private static DateFormat rtFormat = new SimpleDateFormat("m:ss");
     private static NumberFormat intensityFormat = new DecimalFormat("0.00E0");
+    private static NumberFormat mzFormat = new DecimalFormat("0.00");
 
     private static final double zoomCoefficient = 1.2;
 
@@ -72,6 +72,11 @@ public class TICVisualizer extends JInternalFrame implements
         
         super(rawDataFile.toString() + " TIC", true, true, true, true);
 
+        this.rtMin = rtMin;
+        this.rtMax = rtMax;
+        this.mzMin = mzMin;
+        this.mzMax = mzMax;
+        
         setDefaultCloseOperation(DISPOSE_ON_CLOSE);
         setBackground(Color.white);
 
@@ -93,11 +98,12 @@ public class TICVisualizer extends JInternalFrame implements
     void updateTitle() {
 
         StringBuffer title = new StringBuffer();
-        title.append(rawDataFiles.keySet().toString() + ": ");
-        title.append(xicMode ? "XIC" : "TIC");
-        title.append(" MS" + msLevel);
+        title.append(rawDataFiles.keySet().toString());
+        title.append(": TIC MS" + msLevel);
 
         setTitle(title.toString());
+        
+        title.append(", m/z: " + mzFormat.format(mzMin) + " - " + mzFormat.format(mzMax));
 
         CursorPosition pos = getCursorPosition();
 
@@ -147,12 +153,11 @@ public class TICVisualizer extends JInternalFrame implements
     }
 
     public void addRawDataFile(RawDataFile newFile) {
-        TICDataSet dataset = new TICDataSet(newFile, msLevel, this);
+        TICDataSet dataset = new TICDataSet(newFile, msLevel, rtMin, rtMax, mzMin, mzMax, this);
         rawDataFiles.put(newFile, dataset);
         plot.addDataset(dataset);
         if (rawDataFiles.size() == 1) {
-            setRTRange(newFile.getDataMinRT(msLevel) * 1000,
-                    newFile.getDataMaxRT(msLevel) * 1000);
+            setRTRange(rtMin * 1000, rtMax * 1000);
             setIntensityRange(0,
                     newFile.getDataMaxTotalIonCurrent(msLevel) * 1.05);
         }
@@ -305,34 +310,6 @@ public class TICVisualizer extends JInternalFrame implements
                             pos.getScanNumber(), pos.getScanNumber());
                     dialog.setVisible(true);
                 }
-            }
-        }
-
-        if (command.equals("CHANGE_XIC_TIC")) {
-
-            if (xicMode) {
-                xicMode = false;
-                toolBar.setXicButton(true);
-
-                Enumeration<TICDataSet> e = rawDataFiles.elements();
-                while (e.hasMoreElements()) {
-                    TICDataSet dataSet = e.nextElement();
-                    dataSet.setTICMode();
-                }
-
-            } else {
-
-                TICDataSet[] dataSets = rawDataFiles.values().toArray(
-                        new TICDataSet[0]);
-
-                // Show dialog
-                XICSetupDialog psd = new XICSetupDialog(dataSets);
-
-                psd.setVisible(true);
-
-                xicMode = psd.getXICSet();
-                toolBar.setXicButton(!xicMode);
-
             }
         }
 

@@ -29,7 +29,6 @@ import net.sf.mzmine.io.RawDataFile;
 import net.sf.mzmine.io.RawDataFile.PreloadLevel;
 import net.sf.mzmine.taskcontrol.Task;
 import net.sf.mzmine.taskcontrol.TaskController;
-import net.sf.mzmine.taskcontrol.Task.TaskPriority;
 import net.sf.mzmine.util.RawDataAcceptor;
 import net.sf.mzmine.util.RawDataRetrievalTask;
 
@@ -47,70 +46,31 @@ class TICDataSet extends DefaultTableXYDataset implements RawDataAcceptor {
     private RawDataFile rawDataFile;
     private int[] scanNumbers;
     private XYSeries series;
-    private TICVisualizer visualizer;
-
-    private boolean xicMode = false;
-    private double mzRangeMin, mzRangeMax;
+    private double mzMin, mzMax;
 
     private Date lastRedrawTime = new Date();
 
-    TICDataSet(RawDataFile rawDataFile, int msLevel, TICVisualizer visualizer) {
+    TICDataSet(RawDataFile rawDataFile, int msLevel, double rtMin,
+            double rtMax, double mzMin, double mzMax, TICVisualizer visualizer) {
 
+        this.mzMin = mzMin;
+        this.mzMax = mzMax;
+        this.rawDataFile = rawDataFile;
+        
         series = new XYSeries(rawDataFile.getOriginalFile().getName(), false,
                 false);
 
         addSeries(series);
 
-        this.visualizer = visualizer;
-        this.rawDataFile = rawDataFile;
-
-        scanNumbers = rawDataFile.getScanNumbers(msLevel);
-        assert scanNumbers != null;
-
-        setTICMode();
-
-    }
-
-    void setTICMode() {
-
-        xicMode = false;
-
+        scanNumbers = rawDataFile.getScanNumbers(msLevel, rtMin, rtMax);
+        if (scanNumbers.length == 0) 
+            throw new IllegalArgumentException("No scans found at MS level" + msLevel + " within given retention time range.");
+        
         Task updateTask = new RawDataRetrievalTask(rawDataFile, scanNumbers,
                 "Updating TIC visualizer of " + rawDataFile, this);
 
-        /*
-         * if the file data is preloaded in memory, we can update the visualizer
-         * in this thread, otherwise start a task
-         */
-        if (rawDataFile.getPreloadLevel() == PreloadLevel.PRELOAD_ALL_SCANS) {
-            visualizer.taskStarted(updateTask);
-            updateTask.run();
-            visualizer.taskFinished(updateTask);
-        } else
-            TaskController.getInstance().addTask(updateTask, TaskPriority.HIGH,
-                    visualizer);
-
-    }
-
-    void setXICMode(double mzMin, double mzMax) {
-
-        this.mzRangeMin = mzMin;
-        this.mzRangeMax = mzMax;
-        xicMode = true;
-
-        Task updateTask = new RawDataRetrievalTask(rawDataFile, scanNumbers,
-                "Updating XIC visualizer of " + rawDataFile, this);
-
-        /*
-         * if the file data is preloaded in memory, we can update the visualizer
-         * in this thread, otherwise start a task
-         */
-        if (rawDataFile.getPreloadLevel() == PreloadLevel.PRELOAD_ALL_SCANS) {
-            visualizer.taskStarted(updateTask);
-            updateTask.run();
-            visualizer.taskFinished(updateTask);
-        } else
-            TaskController.getInstance().addTask(updateTask, visualizer);
+        TaskController.getInstance().addTask(updateTask, visualizer);
+        
     }
 
     int getSeriesIndex(double retentionTime, double intensity) {
@@ -139,11 +99,9 @@ class TICDataSet extends DefaultTableXYDataset implements RawDataAcceptor {
         double mzValues[] = null;
         double totalIntensity = 0;
 
-        if (xicMode)
-            mzValues = scan.getMZValues();
+        mzValues = scan.getMZValues();
         for (int j = 0; j < intensityValues.length; j++) {
-            if ((!xicMode)
-                    || ((mzValues[j] >= mzRangeMin) && (mzValues[j] <= mzRangeMax)))
+            if ((mzValues[j] >= mzMin) && (mzValues[j] <= mzMax))
                 totalIntensity += intensityValues[j];
         }
 

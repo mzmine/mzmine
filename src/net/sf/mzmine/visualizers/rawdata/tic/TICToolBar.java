@@ -32,12 +32,9 @@ import javax.swing.JToolBar;
  */
 class TICToolBar extends JToolBar {
 
-    private JButton showSpectraButton, ticXicButton, dataPointsButton,
-            annotationsButton;
+    private JButton showSpectraButton, dataPointsButton, annotationsButton;
 
     static final Icon showSpectrumIcon = new ImageIcon("spectrumicon.png");
-    static final Icon xicIcon = new ImageIcon("xicicon.png");
-    static final Icon ticIcon = new ImageIcon("ticicon.png");
     static final Icon dataPointsIcon = new ImageIcon("datapointsicon.png");
     static final Icon annotationsIcon = new ImageIcon("annotationsicon.png");
 
@@ -54,11 +51,6 @@ class TICToolBar extends JToolBar {
         showSpectraButton.setToolTipText("Show spectrum of selected scan");
         showSpectraButton.addActionListener(masterFrame);
 
-        ticXicButton = new JButton(xicIcon);
-        ticXicButton.setActionCommand("CHANGE_XIC_TIC");
-        ticXicButton.setToolTipText("Change TIC/XIC mode");
-        ticXicButton.addActionListener(masterFrame);
-
         dataPointsButton = new JButton(dataPointsIcon);
         dataPointsButton.setActionCommand("SHOW_DATA_POINTS");
         dataPointsButton.setToolTipText("Toggle displaying of data points");
@@ -71,19 +63,10 @@ class TICToolBar extends JToolBar {
 
         add(showSpectraButton);
         addSeparator();
-        add(ticXicButton);
-        addSeparator();
         add(dataPointsButton);
         addSeparator();
         add(annotationsButton);
 
-    }
-
-    void setXicButton(boolean xic) {
-        if (xic)
-            ticXicButton.setIcon(xicIcon);
-        else
-            ticXicButton.setIcon(ticIcon);
     }
 
 }

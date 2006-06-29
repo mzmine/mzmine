@@ -75,22 +75,31 @@ class TICPlot extends ChartPanel {
     private int numberOfDataSets = 0;
 
     // plot colors for plotted files, circulated by numberOfDataSets
-    private static final Color[] plotColors = { new Color(0, 0, 192), // blue
+    private static final Color[] plotColors = { 
+            new Color(0, 0, 192), // blue
             new Color(192, 0, 0), // red
             new Color(0, 192, 0), // green
-            Color.magenta, Color.cyan, Color.orange };
+            Color.magenta, 
+            Color.cyan,
+            Color.orange
+    };
 
+    // peak labels color
+    private static final Color labelsColor = Color.darkGray;
+    
+    // grid color
+    private static final Color gridColor = Color.lightGray;
+    
     // crosshair (selection) color
     private static final Color crossHairColor = Color.gray;
 
     // crosshair stroke
     private static final BasicStroke crossHairStroke = new BasicStroke(1,
-            BasicStroke.CAP_BUTT, BasicStroke.JOIN_BEVEL, 1.0f, new float[] {
-                    5, 3 }, 0);
+            BasicStroke.CAP_BUTT, BasicStroke.JOIN_BEVEL,
+            1.0f, new float[] { 5, 3 }, 0);
 
     // data points shape
-    private static final Shape dataPointsShape = new Ellipse2D.Float(-2, -2, 5,
-            5);
+    private static final Shape dataPointsShape = new Ellipse2D.Float(-2, -2, 5, 5);
 
     // title font
     private static final Font titleFont = new Font("SansSerif", Font.PLAIN, 11);
@@ -154,8 +163,8 @@ class TICPlot extends ChartPanel {
         plot.setAxisOffset(new RectangleInsets(5.0, 5.0, 5.0, 5.0));
 
         // set grid properties
-        plot.setDomainGridlinePaint(Color.lightGray);
-        plot.setRangeGridlinePaint(Color.lightGray);
+        plot.setDomainGridlinePaint(gridColor);
+        plot.setRangeGridlinePaint(gridColor);
 
         // set crosshair (selection) properties
         plot.setDomainCrosshairVisible(true);
@@ -180,6 +189,7 @@ class TICPlot extends ChartPanel {
         defaultRenderer.setShapesFilled(true);
         defaultRenderer.setDrawOutlines(false);
         defaultRenderer.setUseFillPaint(true);
+        defaultRenderer.setItemLabelPaint(labelsColor);
         defaultRenderer.setShape(dataPointsShape);
 
         // set label generator
@@ -222,9 +232,6 @@ class TICPlot extends ChartPanel {
                 visualizer, "SHOW_SPECTRUM");
         GUIUtils.addMenuItem(popupMenu, "Show multiple spectra",
                 visualizer, "SHOW_MULTIPLE_SPECTRA");
-        popupMenu.addSeparator();
-        GUIUtils.addMenuItem(popupMenu, "Switch TIC/XIC mode",
-                visualizer, "CHANGE_XIC_TIC");
 
     }
 
