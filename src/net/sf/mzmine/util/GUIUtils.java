@@ -5,6 +5,7 @@ package net.sf.mzmine.util;
 
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.KeyEvent;
 
 import javax.swing.AbstractAction;
 import javax.swing.JComponent;
@@ -28,20 +29,58 @@ public class GUIUtils {
         });
     }
     
+    public static JMenuItem addMenuItem(JMenu menu, String text, ActionListener listener) {
+        return addMenuItem(menu, text, listener, null, 0, false);
+    }
+    
     public static JMenuItem addMenuItem(JMenu menu, String text, ActionListener listener, String actionCommand) {
+        return addMenuItem(menu, text, listener, actionCommand, 0, false);
+    }
+    
+    public static JMenuItem addMenuItem(JMenu menu, String text, ActionListener listener, int mnemonic) {
+        return addMenuItem(menu, text, listener, null, mnemonic, false);
+    }
+    
+    public static JMenuItem addMenuItem(JMenu menu, String text, ActionListener listener, int mnemonic, boolean setAccelerator) {
+        return addMenuItem(menu, text, listener, null, mnemonic, setAccelerator);
+    }
+    
+    public static JMenuItem addMenuItem(JPopupMenu menu, String text, ActionListener listener) {
+        return addMenuItem(menu, text, listener, null, 0, false);
+    }
+    
+    public static JMenuItem addMenuItem(JPopupMenu menu, String text, ActionListener listener, String actionCommand) {
+        return addMenuItem(menu, text, listener, actionCommand, 0, false);
+    }
+    
+    public static JMenuItem addMenuItem(JPopupMenu menu, String text, ActionListener listener, int mnemonic) {
+        return addMenuItem(menu, text, listener, null, mnemonic, false);
+    }
+    
+    public static JMenuItem addMenuItem(JPopupMenu menu, String text, ActionListener listener, int mnemonic, boolean setAccelerator) {
+        return addMenuItem(menu, text, listener, null, mnemonic, setAccelerator);
+    }
+    
+    public static JMenuItem addMenuItem(JMenu menu, String text, ActionListener listener, String actionCommand, int mnemonic, boolean setAccelerator) {
         JMenuItem  item = new JMenuItem(text);
-        item.addActionListener(listener);
-        item.setActionCommand(actionCommand);
+        if (listener != null) item.addActionListener(listener);
+        if (actionCommand != null) item.setActionCommand(actionCommand);
+        if (mnemonic > 0) item.setMnemonic(mnemonic);
+        if (setAccelerator) item.setAccelerator(KeyStroke.getKeyStroke(mnemonic, ActionEvent.CTRL_MASK));
         menu.add(item);
         return item;
     }
     
-    public static JMenuItem addMenuItem(JPopupMenu menu, String text, ActionListener listener, String actionCommand) {
+    public static JMenuItem addMenuItem(JPopupMenu menu, String text, ActionListener listener, String actionCommand, int mnemonic, boolean setAccelerator) {
         JMenuItem  item = new JMenuItem(text);
-        item.addActionListener(listener);
-        item.setActionCommand(actionCommand);
+        if (listener != null) item.addActionListener(listener);
+        if (actionCommand != null) item.setActionCommand(actionCommand);
+        if (mnemonic > 0) item.setMnemonic(mnemonic);
+        if (setAccelerator) item.setAccelerator(KeyStroke.getKeyStroke(mnemonic, ActionEvent.CTRL_MASK));
         menu.add(item);
         return item;
     }
+
+    ;
     
 }
