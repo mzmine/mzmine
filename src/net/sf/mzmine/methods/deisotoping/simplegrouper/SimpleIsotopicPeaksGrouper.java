@@ -18,7 +18,7 @@
     Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
-package net.sf.mzmine.methods.deisotoping.simple;
+package net.sf.mzmine.methods.deisotoping.simplegrouper;
 
 
 import java.util.Comparator;
@@ -37,17 +37,17 @@ import net.sf.mzmine.userinterface.mainwindow.MainWindow;
 
 
 /**
- * This class implements a simple deisotoping method based on searhing for neighbouring peaks from expected locations.
+ * This class implements a simple isotopic peaks grouper method based on searhing for neighbouring peaks from expected locations.
  *
  * @version 31 March 2006
  */
 
-public class SimpleDeisotoper implements Method {
+public class SimpleIsotopicPeaksGrouper implements Method {
 
 	private static final double neutronMW = 1.008665;
 
 	public String getMethodDescription() {
-		return new String("Simple Deisotoper");
+		return new String("Simple isotopic peaks grouper");
 	}
 
 	/**
@@ -55,10 +55,10 @@ public class SimpleDeisotoper implements Method {
 	 */
 	public boolean askParameters(MethodParameters parameters) {
 
-		SimpleDeisotoperParameters currentParameters = (SimpleDeisotoperParameters)parameters;
+		SimpleIsotopicPeaksGrouperParameters currentParameters = (SimpleIsotopicPeaksGrouperParameters)parameters;
 		if (currentParameters==null) return false;
 
-		SimpleDeisotoperParameterSetupDialog sdpsd = new SimpleDeisotoperParameterSetupDialog(currentParameters);
+		SimpleIsotopicPeaksGrouperParameterSetupDialog sdpsd = new SimpleIsotopicPeaksGrouperParameterSetupDialog(currentParameters);
 		sdpsd.show();
 
 		if (sdpsd.getExitCode()==-1) { return false; }

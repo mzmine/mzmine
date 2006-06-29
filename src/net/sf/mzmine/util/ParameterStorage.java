@@ -53,7 +53,7 @@ import net.sf.mzmine.methods.alignment.fast.FastAlignerParameters;
 import net.sf.mzmine.methods.alignment.filterbygaps.AlignmentResultFilterByGapsParameters;
 import net.sf.mzmine.methods.alignment.join.JoinAlignerParameters;
 import net.sf.mzmine.methods.deisotoping.incompletefilter.IncompleteIsotopePatternFilterParameters;
-import net.sf.mzmine.methods.deisotoping.simple.SimpleDeisotoperParameters;
+import net.sf.mzmine.methods.deisotoping.simplegrouper.SimpleIsotopicPeaksGrouperParameters;
 import net.sf.mzmine.methods.filtering.chromatographicmedian.ChromatographicMedianFilterParameters;
 import net.sf.mzmine.methods.filtering.crop.CropFilterParameters;
 import net.sf.mzmine.methods.filtering.mean.MeanFilterParameters;
@@ -117,8 +117,8 @@ public class ParameterStorage {
 	private CentroidPickerParameters centroidPickerParameters;
 	public CentroidPickerParameters getCentroidPickerParameters() { return centroidPickerParameters; }
 
-	private SimpleDeisotoperParameters simpleDeisotoperParameters;
-	public SimpleDeisotoperParameters getSimpleDeisotoperParameters() { return simpleDeisotoperParameters; }
+	private SimpleIsotopicPeaksGrouperParameters simpleIsotopicPeaksGrouperParameters;
+	public SimpleIsotopicPeaksGrouperParameters getSimpleIsotopicPeaksGrouperParameters() { return simpleIsotopicPeaksGrouperParameters; }
 
 	private IncompleteIsotopePatternFilterParameters incompleteIsotopePatternFilterParameters;
 	public IncompleteIsotopePatternFilterParameters getIncompleteIsotopePatternFilterParameters() { return incompleteIsotopePatternFilterParameters; }
@@ -175,7 +175,7 @@ public class ParameterStorage {
 		localPickerParameters = new LocalPickerParameters();
 		recursiveThresholdPickerParameters = new RecursiveThresholdPickerParameters();
 		centroidPickerParameters = new CentroidPickerParameters();
-		simpleDeisotoperParameters = new SimpleDeisotoperParameters();
+		simpleIsotopicPeaksGrouperParameters = new SimpleIsotopicPeaksGrouperParameters();
 		incompleteIsotopePatternFilterParameters = new IncompleteIsotopePatternFilterParameters();
 		joinAlignerParameters = new JoinAlignerParameters();
 		fastAlignerParameters = new FastAlignerParameters();

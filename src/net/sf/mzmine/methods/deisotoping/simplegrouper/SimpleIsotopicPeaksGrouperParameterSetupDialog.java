@@ -18,7 +18,7 @@
     Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
-package net.sf.mzmine.methods.deisotoping.simple;
+package net.sf.mzmine.methods.deisotoping.simplegrouper;
 
 import java.awt.BorderLayout;
 import java.awt.FlowLayout;
@@ -34,11 +34,11 @@ import javax.swing.JPanel;
 
 
 /**
- * This class represent a dialog for adjusting parameter values for simple deisotoper method
+ * This class represent a dialog for adjusting parameter values for simple isotopic peaks grouper method
  *
  * @version 30 March 2006
  */
-public class SimpleDeisotoperParameterSetupDialog extends JDialog implements java.awt.event.ActionListener {
+public class SimpleIsotopicPeaksGrouperParameterSetupDialog extends JDialog implements java.awt.event.ActionListener {
 
 
 	// VARIABLES
@@ -74,7 +74,7 @@ public class SimpleDeisotoperParameterSetupDialog extends JDialog implements jav
 
 
 	// Parameters
-	private SimpleDeisotoperParameters parameters;
+	private SimpleIsotopicPeaksGrouperParameters parameters;
 
 
 	// Exit code (1=OK, -1=Cancel)
@@ -88,7 +88,7 @@ public class SimpleDeisotoperParameterSetupDialog extends JDialog implements jav
      * @param	_parameters				Current AlignmentResultExporter parameter settings
      *
      */
-    public SimpleDeisotoperParameterSetupDialog(SimpleDeisotoperParameters _parameters) {
+    public SimpleIsotopicPeaksGrouperParameterSetupDialog(SimpleIsotopicPeaksGrouperParameters _parameters) {
 
 		parameters = _parameters;
 
@@ -230,7 +230,7 @@ public class SimpleDeisotoperParameterSetupDialog extends JDialog implements jav
 	/**
 	 * Returns parameter settings
 	 */
-	public SimpleDeisotoperParameters getParameters() {
+	public SimpleIsotopicPeaksGrouperParameters getParameters() {
 		return parameters;
 	}
 
@@ -243,9 +243,9 @@ public class SimpleDeisotoperParameterSetupDialog extends JDialog implements jav
 
 			if (parameters.monotonicShape) { cbMonotonicShape.setSelected(true); } else { cbMonotonicShape.setSelected(false); }
 
-			if (parameters.chargeStates.contains(SimpleDeisotoperParameters.chargeOne)) { cbChargeStatesOne.setSelected(true); } else { cbChargeStatesOne.setSelected(false); }
-			if (parameters.chargeStates.contains(SimpleDeisotoperParameters.chargeTwo)) { cbChargeStatesTwo.setSelected(true); } else { cbChargeStatesTwo.setSelected(false); }
-			if (parameters.chargeStates.contains(SimpleDeisotoperParameters.chargeThree)) { cbChargeStatesThree.setSelected(true); } else { cbChargeStatesThree.setSelected(false); }
+			if (parameters.chargeStates.contains(SimpleIsotopicPeaksGrouperParameters.chargeOne)) { cbChargeStatesOne.setSelected(true); } else { cbChargeStatesOne.setSelected(false); }
+			if (parameters.chargeStates.contains(SimpleIsotopicPeaksGrouperParameters.chargeTwo)) { cbChargeStatesTwo.setSelected(true); } else { cbChargeStatesTwo.setSelected(false); }
+			if (parameters.chargeStates.contains(SimpleIsotopicPeaksGrouperParameters.chargeThree)) { cbChargeStatesThree.setSelected(true); } else { cbChargeStatesThree.setSelected(false); }
 
 			txtRTTolerance.setValue(parameters.rtTolerance);
 			txtMZTolerance.setValue(parameters.mzTolerance);
@@ -260,9 +260,9 @@ public class SimpleDeisotoperParameterSetupDialog extends JDialog implements jav
 		if (cbMonotonicShape.isSelected()) { parameters.monotonicShape = true; } else { parameters.monotonicShape = false; }
 
 		parameters.chargeStates.clear();
-		if (cbChargeStatesOne.isSelected()) { parameters.chargeStates.add(SimpleDeisotoperParameters.chargeOne); }
-		if (cbChargeStatesTwo.isSelected()) { parameters.chargeStates.add(SimpleDeisotoperParameters.chargeTwo); }
-		if (cbChargeStatesThree.isSelected()) { parameters.chargeStates.add(SimpleDeisotoperParameters.chargeThree); }
+		if (cbChargeStatesOne.isSelected()) { parameters.chargeStates.add(SimpleIsotopicPeaksGrouperParameters.chargeOne); }
+		if (cbChargeStatesTwo.isSelected()) { parameters.chargeStates.add(SimpleIsotopicPeaksGrouperParameters.chargeTwo); }
+		if (cbChargeStatesThree.isSelected()) { parameters.chargeStates.add(SimpleIsotopicPeaksGrouperParameters.chargeThree); }
 
 		parameters.rtTolerance = ((Number)(txtRTTolerance.getValue())).doubleValue();
 		parameters.mzTolerance = ((Number)(txtMZTolerance.getValue())).doubleValue();

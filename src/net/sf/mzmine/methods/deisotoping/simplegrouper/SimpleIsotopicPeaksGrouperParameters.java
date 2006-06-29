@@ -17,7 +17,7 @@
     along with MZmine; if not, write to the Free Software
     Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 */
-package net.sf.mzmine.methods.deisotoping.simple;
+package net.sf.mzmine.methods.deisotoping.simplegrouper;
 
 import java.util.HashSet;
 
@@ -30,15 +30,15 @@ import net.sf.mzmine.methods.MethodParameters;
 
 
 /**
- * This class represents parameter settings for the simple deisotoper method
+ * This class represents parameter settings for the simple isotopic peaks grouper method
  *
  * @version 31 March 2006
  */
-public class SimpleDeisotoperParameters implements MethodParameters {
+public class SimpleIsotopicPeaksGrouperParameters implements MethodParameters {
 
 	// CONSTANTS FOR WRITING PARAMETERS TO XML FILE
 
-	private static final String tagName = "SimpleDeisotoperParameters";
+	private static final String tagName = "SimpleIsotopicPeaksGrouperParameters";
 
 	private static final String mzToleranceAttributeName = "MZTolerance";
 	private static final String rtToleranceAttributeName = "RTTolerance";
@@ -67,7 +67,7 @@ public class SimpleDeisotoperParameters implements MethodParameters {
 	/**
 	 * Initializes parameter object and sets default parameter values
 	 */
-	public SimpleDeisotoperParameters() {
+	public SimpleIsotopicPeaksGrouperParameters() {
 		chargeStates = new HashSet<Integer>();
 		chargeStates.add(chargeOne);
 	}
@@ -108,8 +108,8 @@ public class SimpleDeisotoperParameters implements MethodParameters {
 		// TODO
 	}
 
-	public SimpleDeisotoperParameters clone() {
-		SimpleDeisotoperParameters myClone = new SimpleDeisotoperParameters();
+	public SimpleIsotopicPeaksGrouperParameters clone() {
+		SimpleIsotopicPeaksGrouperParameters myClone = new SimpleIsotopicPeaksGrouperParameters();
 		// TODO
 		return myClone;
 	}

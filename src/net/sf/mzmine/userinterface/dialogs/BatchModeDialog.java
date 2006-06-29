@@ -40,8 +40,8 @@ import net.sf.mzmine.methods.alignment.join.JoinAligner;
 import net.sf.mzmine.methods.alignment.join.JoinAlignerParameters;
 import net.sf.mzmine.methods.deisotoping.incompletefilter.IncompleteIsotopePatternFilter;
 import net.sf.mzmine.methods.deisotoping.incompletefilter.IncompleteIsotopePatternFilterParameters;
-import net.sf.mzmine.methods.deisotoping.simple.SimpleDeisotoper;
-import net.sf.mzmine.methods.deisotoping.simple.SimpleDeisotoperParameters;
+import net.sf.mzmine.methods.deisotoping.simplegrouper.SimpleIsotopicPeaksGrouper;
+import net.sf.mzmine.methods.deisotoping.simplegrouper.SimpleIsotopicPeaksGrouperParameters;
 import net.sf.mzmine.methods.filtering.chromatographicmedian.ChromatographicMedianFilter;
 import net.sf.mzmine.methods.filtering.chromatographicmedian.ChromatographicMedianFilterParameters;
 import net.sf.mzmine.methods.filtering.crop.CropFilter;
@@ -424,7 +424,7 @@ public class BatchModeDialog extends javax.swing.JInternalFrame implements Actio
 					paramPeakListProcessor1 = null;
 					break;
 				case 1:
-					paramPeakListProcessor1 = mainWin.getParameterStorage().getSimpleDeisotoperParameters();
+					paramPeakListProcessor1 = mainWin.getParameterStorage().getSimpleIsotopicPeaksGrouperParameters();
 					cmbPeakListProcessor1.setEnabled(true);
 					break;
 					/*
@@ -450,7 +450,7 @@ public class BatchModeDialog extends javax.swing.JInternalFrame implements Actio
 					paramPeakListProcessor2 = null;
 					break;
 				case 1:
-					paramPeakListProcessor2 = mainWin.getParameterStorage().getSimpleDeisotoperParameters();
+					paramPeakListProcessor2 = mainWin.getParameterStorage().getSimpleIsotopicPeaksGrouperParameters();
 					cmbPeakListProcessor2.setEnabled(true);
 					break;
 					/*
@@ -697,8 +697,8 @@ public class BatchModeDialog extends javax.swing.JInternalFrame implements Actio
 				case 0:
 					break;
 				case 1:
-					paramPeakListProcessor1 = mainWin.getParameterStorage().getSimpleDeisotoperParameters();
-					new SimpleDeisotoper().askParameters(paramPeakListProcessor1);
+					paramPeakListProcessor1 = mainWin.getParameterStorage().getSimpleIsotopicPeaksGrouperParameters();
+					new SimpleIsotopicPeaksGrouper().askParameters(paramPeakListProcessor1);
 					break;
 					/*
 				case 2:
@@ -722,8 +722,8 @@ public class BatchModeDialog extends javax.swing.JInternalFrame implements Actio
 				case 0:
 					break;
 				case 1:
-					paramPeakListProcessor2 = mainWin.getParameterStorage().getSimpleDeisotoperParameters();
-					new SimpleDeisotoper().askParameters(paramPeakListProcessor2);
+					paramPeakListProcessor2 = mainWin.getParameterStorage().getSimpleIsotopicPeaksGrouperParameters();
+					new SimpleIsotopicPeaksGrouper().askParameters(paramPeakListProcessor2);
 					break;
 					/*
 				case 2:
