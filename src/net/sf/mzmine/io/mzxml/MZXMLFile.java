@@ -192,6 +192,7 @@ class MZXMLFile implements RawDataFile {
      * @see net.sf.mzmine.io.RawDataFile#getDataMinMZ()
      */
     public double getDataMinMZ(int msLevel) {
+        if (! scanNumbers.containsKey(msLevel)) return -1;
         return dataMinMZ.get(msLevel);
     }
 
@@ -199,6 +200,7 @@ class MZXMLFile implements RawDataFile {
      * @see net.sf.mzmine.io.RawDataFile#getDataMaxMZ()
      */
     public double getDataMaxMZ(int msLevel) {
+        if (! scanNumbers.containsKey(msLevel)) return -1;
         return dataMaxMZ.get(msLevel);
     }
 
@@ -206,6 +208,7 @@ class MZXMLFile implements RawDataFile {
      * @see net.sf.mzmine.io.RawDataFile#getScanNumbers(int)
      */
     public int[] getScanNumbers(int msLevel) {
+        if (! scanNumbers.containsKey(msLevel)) return new int[0];
         return getScanNumbers(msLevel, dataMinRT.get(msLevel), dataMaxRT.get(msLevel));
     }
     
