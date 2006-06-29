@@ -1,17 +1,17 @@
 /*
  * Copyright 2006 The MZmine Development Team
- * 
+ *
  * This file is part of MZmine.
- * 
+ *
  * MZmine is free software; you can redistribute it and/or modify it under the
  * terms of the GNU General Public License as published by the Free Software
  * Foundation; either version 2 of the License, or (at your option) any later
  * version.
- * 
+ *
  * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY
  * WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR
  * A PARTICULAR PURPOSE. See the GNU General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License along with
  * MZmine; if not, write to the Free Software Foundation, Inc., 51 Franklin St,
  * Fifth Floor, Boston, MA 02110-1301 USA
@@ -52,6 +52,8 @@ import net.sf.mzmine.methods.peakpicking.centroid.CentroidPicker;
 import net.sf.mzmine.methods.peakpicking.centroid.CentroidPickerParameters;
 import net.sf.mzmine.methods.peakpicking.recursivethreshold.RecursiveThresholdPicker;
 import net.sf.mzmine.methods.peakpicking.recursivethreshold.RecursiveThresholdPickerParameters;
+import net.sf.mzmine.methods.peakpicking.local.LocalPicker;
+import net.sf.mzmine.methods.peakpicking.local.LocalPickerParameters;
 import net.sf.mzmine.userinterface.dialogs.FileOpenDialog;
 import net.sf.mzmine.util.GUIUtils;
 import net.sf.mzmine.visualizers.alignmentresult.AlignmentResultVisualizerCDAPlotView;
@@ -69,7 +71,7 @@ import net.sf.mzmine.visualizers.rawdata.twod.TwoDVisualizer;
 import sunutils.ExampleFileFilter;
 
 /**
- * 
+ *
  */
 public class MainMenu extends JMenuBar implements ActionListener {
 
@@ -500,34 +502,42 @@ public class MainMenu extends JMenuBar implements ActionListener {
 
         }
 
+        if (src == ssLocalPicker) {
+
+            LocalPicker picker = new LocalPicker();
+            LocalPickerParameters pickerParam = mainWin.getParameterStorage().getLocalPickerParameters();
+            startPeakPicker(picker, pickerParam);
+
+		}
+
         // Visualization -> TIC plot
         if (src == visOpenTIC) {
             RawDataFile[] selectedFiles = itemSelector.getSelectedRawData();
             for (RawDataFile file : selectedFiles)
                 TICSetup.showSetupDialog(file);
         }
-        
+
         // Visualization -> Base peak plot
         if (src == visOpenBasePeak) {
             RawDataFile[] selectedFiles = itemSelector.getSelectedRawData();
             for (RawDataFile file : selectedFiles)
                 BasePeakSetup.showSetupDialog(file);
         }
-        
+
         // Visualization -> Spectrum plot
         if (src == visOpenSpectra) {
             RawDataFile[] selectedFiles = itemSelector.getSelectedRawData();
             for (RawDataFile file : selectedFiles)
                 SpectraSetup.showSetupDialog(file);
         }
-        
+
         // Visualization -> 2D plot
         if (src == visOpenTwoD) {
             RawDataFile[] selectedFiles = itemSelector.getSelectedRawData();
             for (RawDataFile file : selectedFiles)
                 TwoDSetup.showSetupDialog(file);
         }
-        
+
         // Visualization -> 3D plot
         if (src == visOpenThreeD) {
             RawDataFile[] selectedFiles = itemSelector.getSelectedRawData();
@@ -632,7 +642,7 @@ public class MainMenu extends JMenuBar implements ActionListener {
         visOpenSpectra.setEnabled(false);
         visOpenTwoD.setEnabled(false);
         visOpenThreeD.setEnabled(false);
-        
+
         visOpenSRView.setEnabled(false);
         visOpenSCVView.setEnabled(false);
         visOpenCDAView.setEnabled(false);
@@ -668,11 +678,8 @@ public class MainMenu extends JMenuBar implements ActionListener {
 
             ssRecursiveThresholdPicker.setEnabled(true);
             ssCentroidPicker.setEnabled(true);
-            /*
-             * ssLocalPicker.setEnabled(true);
-             * 
-             */
-            
+            ssLocalPicker.setEnabled(true);
+
             visOpenTIC.setEnabled(true);
             visOpenBasePeak.setEnabled(true);
             visOpenSpectra.setEnabled(true);
@@ -680,14 +687,7 @@ public class MainMenu extends JMenuBar implements ActionListener {
             visOpenThreeD.setEnabled(true);
 
             // batDefine.setEnabled(true);
-            /*
-             * if (actRawData.hasPeakData()) {
-             * ssSimpleDeisotoping.setEnabled(true); //
-             * ssCombinatorialDeisotoping.setEnabled(true); DEBUG: Feature //
-             * not yet ready ssIncompleteIsotopePatternFilter.setEnabled(true);
-             * fileExportPeakList.setEnabled(true);
-             * tsJoinAligner.setEnabled(true); tsFastAligner.setEnabled(true); }
-             */
+
             JInternalFrame activeWindow = mainWin.getDesktop().getSelectedFrame();
 
             if (activeWindow != null) {

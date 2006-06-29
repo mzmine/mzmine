@@ -23,10 +23,9 @@ import java.util.Iterator;
 import java.util.TreeSet;
 import java.util.Vector;
 
-import net.sf.mzmine.interfaces.Scan;
 import net.sf.mzmine.interfaces.PeakList;
-import net.sf.mzmine.io.RawDataFile;
 import net.sf.mzmine.io.MZmineProject;
+import net.sf.mzmine.io.RawDataFile;
 import net.sf.mzmine.methods.Method;
 import net.sf.mzmine.methods.MethodParameters;
 import net.sf.mzmine.methods.alignment.AlignmentResult;

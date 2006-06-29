@@ -23,22 +23,30 @@ import java.util.Iterator;
 import java.util.TreeSet;
 import java.util.Vector;
 
+import net.sf.mzmine.interfaces.PeakList;
+import net.sf.mzmine.io.MZmineProject;
 import net.sf.mzmine.io.RawDataFile;
 import net.sf.mzmine.methods.Method;
 import net.sf.mzmine.methods.MethodParameters;
 import net.sf.mzmine.methods.alignment.AlignmentResult;
+import net.sf.mzmine.taskcontrol.Task;
+import net.sf.mzmine.taskcontrol.TaskController;
+import net.sf.mzmine.taskcontrol.TaskListener;
 import net.sf.mzmine.userinterface.dialogs.ParameterSetupDialog;
 import net.sf.mzmine.userinterface.mainwindow.MainWindow;
 import net.sf.mzmine.util.MyMath;
+import net.sf.mzmine.util.Logger;
+import net.sf.mzmine.visualizers.peaklist.table.TableView;
 
 
 /**
  * This class implements a peak picker based on searching for local maximums in each spectra
  */
-public class LocalPicker implements Method {
+public class LocalPicker implements Method, TaskListener {
+
 
 	public String getMethodDescription() {
-		return new String("Local peak picker");
+		return new String("Local maximum peak picker");
 	}
 
 	/**
@@ -144,8 +152,49 @@ public class LocalPicker implements Method {
 	}
 
 	public void runMethod(MethodParameters parameters, RawDataFile[] rawDataFiles, AlignmentResult[] alignmentResults) {
-		// TODO
+
+		Task peakPickerTask;
+		LocalPickerParameters lpParam = (LocalPickerParameters)parameters;
+
+		for (RawDataFile rawDataFile: rawDataFiles) {
+			peakPickerTask = new LocalPickerTask(rawDataFile, lpParam);
+			TaskController.getInstance().addTask(peakPickerTask, this);
+		}
+
 	}
+
+    public void taskStarted(Task task) {
+		// do nothing
+	}
+
+    public void taskFinished(Task task) {
+
+        if (task.getStatus() == Task.TaskStatus.FINISHED) {
+
+			RawDataFile rawData = (RawDataFile)((Object[])task.getResult())[0];
+			PeakList peakList = (PeakList)((Object[])task.getResult())[1];
+			LocalPickerParameters params = (LocalPickerParameters)((Object[])task.getResult())[2];
+
+			// Add peak picking to the history of the file
+			rawData.addHistory(rawData.getCurrentFile(), this, params.clone());
+
+			// Add peak list to MZmineProject
+			MZmineProject.getCurrentProject().setPeakList(rawData, peakList);
+
+			MainWindow.getInstance().addInternalFrame(new TableView(rawData));
+
+			MainWindow.getInstance().getMainMenu().updateMenuAvailability();
+
+        } else if (task.getStatus() == Task.TaskStatus.ERROR) {
+            /* Task encountered an error */
+            Logger.putFatal("Error while finding peaks in a file: " + task.getErrorMessage());
+            MainWindow.getInstance().displayErrorMessage(
+                    "Error while finding peaks in a file: " + task.getErrorMessage());
+
+        }
+
+	}
+
 
 
 }
