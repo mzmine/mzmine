@@ -206,19 +206,37 @@ class MZXMLFile implements RawDataFile {
      * @see net.sf.mzmine.io.RawDataFile#getScanNumbers(int)
      */
     public int[] getScanNumbers(int msLevel) {
-
+        return getScanNumbers(msLevel, dataMinRT.get(msLevel), dataMaxRT.get(msLevel));
+    }
+    
+    /**
+     * @see net.sf.mzmine.io.RawDataFile#getScanNumbers(int, double, double)
+     */
+    public int[] getScanNumbers(int msLevel, double rtMin, double rtMax) {
         ArrayList<Integer> numbersList = scanNumbers.get(new Integer(msLevel));
         if (numbersList == null)
             return null;
 
-        int[] numbersArray = new int[numbersList.size()];
-        int index = 0;
+        ArrayList<Integer> eligibleScans = new ArrayList<Integer>();
+        
         Iterator<Integer> iter = numbersList.iterator();
+        while (iter.hasNext()) {
+            Integer scanNumber = iter.next();
+            double rt = retentionTimes.get(scanNumber);
+            if ((rt >= rtMin) && (rt <= rtMax)) eligibleScans.add(scanNumber);
+        }
+        
+        int[] numbersArray = new int[eligibleScans.size()];
+        int index = 0;
+        iter = eligibleScans.iterator();
         while (iter.hasNext())
             numbersArray[index++] = iter.next().intValue();
+        
         Arrays.sort(numbersArray);
         return numbersArray;
     }
+
+
     
     /**
      * @see net.sf.mzmine.io.RawDataFile#getScanNumbers()

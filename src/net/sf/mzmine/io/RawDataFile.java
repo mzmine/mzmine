@@ -61,6 +61,7 @@ public interface RawDataFile extends Serializable {
     public int getNumOfScans();
     public int[] getMSLevels();
     public int[] getScanNumbers(int msLevel);
+    public int[] getScanNumbers(int msLevel, double rtMin, double rtMax);
     public int[] getScanNumbers();
     
     // returns a retention time of a scan
