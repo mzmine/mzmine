@@ -17,23 +17,35 @@
  * Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-package net.sf.mzmine.interfaces;
+package net.sf.mzmine.methods.deisotoping;
 
 import java.util.Hashtable;
+import net.sf.mzmine.interfaces.CompoundIdentity;
+import net.sf.mzmine.interfaces.IsotopePattern;
 
 /**
  * This interface defines the properties of a detected peak
  */
-public interface IsotopePattern {
+public class GrouperIsotopePattern implements IsotopePattern {
+
+	private int chargeState;
+
+	public GrouperIsotopePattern(int chargeState) {
+		this.chargeState = chargeState;
+	}
 
 	/**
 	 * Returns the charge state of peaks in the pattern
 	 */
-	public int getChargeState();
+	public int getChargeState() {
+		return chargeState;
+	}
 
 	/**
 	 * Returns identification assigned to this isotope pattern, or null if no identification has been assigned.
 	 */
-	// TODO : Maybe identification results should be assigned to alignment result rows instead of isotope patterns!!!
-	public CompoundIdentity getIdentity();
+	public CompoundIdentity getIdentity() {
+		// TODO
+		return null;
+	}
 }

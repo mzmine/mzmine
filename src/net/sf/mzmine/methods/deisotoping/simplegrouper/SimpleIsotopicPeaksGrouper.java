@@ -78,7 +78,8 @@ public class SimpleIsotopicPeaksGrouper implements Method, TaskListener {
 		SimpleIsotopicPeaksGrouperParameters param = (SimpleIsotopicPeaksGrouperParameters)parameters;
 
 		for (RawDataFile rawDataFile: rawDataFiles) {
-			peaklistProcessorTask = new SimpleIsotopicPeaksGrouperTask(rawDataFile, param);
+			PeakList currentPeakList = MZmineProject.getCurrentProject().getPeakList(rawDataFile);
+			peaklistProcessorTask = new SimpleIsotopicPeaksGrouperTask(rawDataFile, currentPeakList, param);
 			TaskController.getInstance().addTask(peaklistProcessorTask, this);
 		}
 

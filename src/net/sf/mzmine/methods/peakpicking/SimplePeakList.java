@@ -117,7 +117,6 @@ public class SimplePeakList implements PeakList {
 
 	/**
 	 * Adds a new peak to peak list
-	 * TODO!! this method is not in the interface...
 	 */
 	public void addPeak(Peak p) {
 		peaks.add(p);
