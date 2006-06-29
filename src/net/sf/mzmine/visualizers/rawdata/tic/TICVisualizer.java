@@ -153,13 +153,19 @@ public class TICVisualizer extends JInternalFrame implements
     }
 
     public void addRawDataFile(RawDataFile newFile) {
-        TICDataSet dataset = new TICDataSet(newFile, msLevel, rtMin, rtMax, mzMin, mzMax, this);
+        
+        int scanNumbers[] = newFile.getScanNumbers(msLevel, rtMin, rtMax);
+        if (scanNumbers.length == 0) {
+            MainWindow.getInstance().displayErrorMessage("No scans found at MS level " + msLevel + " within given retention time range.");
+            return;
+        }
+        
+        TICDataSet dataset = new TICDataSet(newFile, scanNumbers, mzMin, mzMax, this);
         rawDataFiles.put(newFile, dataset);
         plot.addDataset(dataset);
         if (rawDataFiles.size() == 1) {
             setRTRange(rtMin * 1000, rtMax * 1000);
-            setIntensityRange(0,
-                    newFile.getDataMaxTotalIonCurrent(msLevel) * 1.05);
+            setIntensityRange(0, newFile.getDataMaxTotalIonCurrent(msLevel) * 1.05);
         }
 
         // when displaying more than one file, show a legend

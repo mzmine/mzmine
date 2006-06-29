@@ -50,21 +50,17 @@ class TICDataSet extends DefaultTableXYDataset implements RawDataAcceptor {
 
     private Date lastRedrawTime = new Date();
 
-    TICDataSet(RawDataFile rawDataFile, int msLevel, double rtMin,
-            double rtMax, double mzMin, double mzMax, TICVisualizer visualizer) {
+    TICDataSet(RawDataFile rawDataFile, int scanNumbers[], double mzMin, double mzMax, TICVisualizer visualizer) {
 
         this.mzMin = mzMin;
         this.mzMax = mzMax;
         this.rawDataFile = rawDataFile;
+        this.scanNumbers = scanNumbers;
         
         series = new XYSeries(rawDataFile.getOriginalFile().getName(), false,
                 false);
 
         addSeries(series);
-
-        scanNumbers = rawDataFile.getScanNumbers(msLevel, rtMin, rtMax);
-        if (scanNumbers.length == 0) 
-            throw new IllegalArgumentException("No scans found at MS level" + msLevel + " within given retention time range.");
         
         Task updateTask = new RawDataRetrievalTask(rawDataFile, scanNumbers,
                 "Updating TIC visualizer of " + rawDataFile, this);
