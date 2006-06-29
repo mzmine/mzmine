@@ -48,14 +48,14 @@ public interface Peak {
 	 */
 
 	/**
-	 * This method returns M/Z value of the peak
+	 * This method returns raw M/Z value of the peak
 	 */
-	public double getMZ();
+	public double getRawMZ();
 
 	/**
-	 * This method returns retention time of the peak
+	 * This method returns raw retention time of the peak
 	 */
-	public double getRT();
+	public double getRawRT();
 
 	/**
 	 * This method returns the raw height of the peak

@@ -72,14 +72,14 @@ public class SimplePeak implements Peak {
 	/**
 	 * This method returns M/Z value of the peak
 	 */
-	public double getMZ() {
+	public double getRawMZ() {
 		return mz;
 	}
 
 	/**
 	 * This method returns retention time of the peak
 	 */
-	public double getRT() {
+	public double getRawRT() {
 		return rt;
 	}
 

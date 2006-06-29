@@ -144,8 +144,8 @@ public class TableViewTable extends JTable {
 			Peak p = peakList.getPeak(row);
 
 			// Isotope & charge columns
-			if (col == 0) return p.getMZ();
-			if (col == 1) return p.getRT();
+			if (col == 0) return p.getRawMZ();
+			if (col == 1) return p.getRawRT();
 			if (col == 2) return p.getRawHeight();
 			if (col == 3) return p.getRawArea();
 

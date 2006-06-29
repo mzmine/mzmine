@@ -91,8 +91,8 @@ public class PeakListWriter {
 
 			for (Peak p : peaks) {
 
-				double mz = p.getMZ();
-				double rt = p.getRT();
+				double mz = p.getRawMZ();
+				double rt = p.getRawRT();
 				double height = p.getRawHeight();
 				double area = p.getRawArea();
 

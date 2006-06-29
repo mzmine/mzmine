@@ -58,8 +58,8 @@ public class GrouperPeak implements Peak {
 	 * This constructor initializes a new peak with values from an old one.
 	 */
 	public GrouperPeak(Peak oldPeak) {
-		mz = oldPeak.getMZ();
-		rt = oldPeak.getRT();
+		mz = oldPeak.getRawMZ();
+		rt = oldPeak.getRawRT();
 		height = oldPeak.getRawHeight();
 		area = oldPeak.getRawArea();
 
@@ -85,14 +85,14 @@ public class GrouperPeak implements Peak {
 	/**
 	 * This method returns M/Z value of the peak
 	 */
-	public double getMZ() {
+	public double getRawMZ() {
 		return mz;
 	}
 
 	/**
 	 * This method returns retention time of the peak
 	 */
-	public double getRT() {
+	public double getRawRT() {
 		return rt;
 	}
 

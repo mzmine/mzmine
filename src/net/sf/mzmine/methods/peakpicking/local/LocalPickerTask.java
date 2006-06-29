@@ -416,7 +416,7 @@ public class LocalPickerTask implements Task {
 
 		private double calcScore(SimplePeak uc, OneDimPeak od) {
 
-			double ucMZ = uc.getMZ();
+			double ucMZ = uc.getRawMZ();
 
 			// If mz difference is too big? (do this first for optimal performance)
 			if ( java.lang.Math.abs(ucMZ-od.mz) > parameters.mzTolerance ) {
