@@ -66,8 +66,10 @@ public class TICVisualizer extends JInternalFrame implements
      * Constructor for total ion chromatogram visualizer
      * 
      */
-    public TICVisualizer(RawDataFile rawDataFile, int msLevel) {
-
+    public TICVisualizer(RawDataFile rawDataFile, int msLevel,
+            double rtMin, double rtMax,
+            double mzMin, double mzMax) {
+        
         super(rawDataFile.toString() + " TIC", true, true, true, true);
 
         setDefaultCloseOperation(DISPOSE_ON_CLOSE);

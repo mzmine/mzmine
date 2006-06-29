@@ -37,6 +37,7 @@ import org.jfree.chart.axis.DateAxis;
 import org.jfree.chart.axis.NumberAxis;
 import org.jfree.chart.plot.XYPlot;
 import org.jfree.chart.renderer.xy.XYDotRenderer;
+import org.jfree.chart.renderer.xy.XYItemRenderer;
 import org.jfree.chart.title.TextTitle;
 
 /**
@@ -47,6 +48,7 @@ class TwoDPlot extends ChartPanel {
     private JFreeChart chart;
 
     private XYPlot plot;
+    private XYItemRenderer renderer;
 
     // TODO: get these from parameter storage
     private static DateFormat rtFormat = new SimpleDateFormat("m:ss");
@@ -78,18 +80,21 @@ class TwoDPlot extends ChartPanel {
         // set the X axis (retention time) properties
         DateAxis xAxis = new DateAxis();
         xAxis.setDateFormatOverride(rtFormat);
-        xAxis.setUpperMargin(0.001);
-        xAxis.setLowerMargin(0.001);
+        xAxis.setUpperMargin(0);
+        xAxis.setLowerMargin(0);
 
         // set the Y axis (intensity) properties
-        NumberAxis yAxis = new NumberAxis();;
+        NumberAxis yAxis = new NumberAxis();
+        yAxis.setAutoRangeIncludesZero(false);
         yAxis.setNumberFormatOverride(mzFormat);
+        yAxis.setUpperMargin(0);
+        yAxis.setLowerMargin(0);
         
         // set the renderer properties
-       //  renderer = new TwoDItemRenderer();
+        renderer = new XYDotRenderer();
         
         // set the plot properties
-        plot = new TwoDXYPlot(dataset, xAxis, yAxis, new XYDotRenderer());
+        plot = new TwoDXYPlot(dataset, xAxis, yAxis, renderer);
         plot.setBackgroundPaint(Color.white);
        // TODO plot.setAxisOffset(new RectangleInsets(5.0, 5.0, 5.0, 5.0));
         
@@ -125,7 +130,7 @@ class TwoDPlot extends ChartPanel {
         
         // set toolTipGenerator
         TwoDToolTipGenerator toolTipGenerator = new TwoDToolTipGenerator();
-        // TODO setToolTipGenerator(toolTipGenerator);
+        renderer.setToolTipGenerator(toolTipGenerator);
         
 
         

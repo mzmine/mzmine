@@ -54,6 +54,7 @@ class TwoDToolTipGenerator implements XYZToolTipGenerator {
      *      int, int)
      */
     public String generateToolTip(XYZDataset dataset, int series, int item) {
+        System.out.println("generating tooltip");
         double rtValue = dataset.getXValue(series, item);
         double mzValue = dataset.getYValue(series, item);
         double intValue = dataset.getZValue(series, item);

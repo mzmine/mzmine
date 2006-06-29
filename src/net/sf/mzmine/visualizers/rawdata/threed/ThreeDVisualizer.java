@@ -70,7 +70,10 @@ public class ThreeDVisualizer extends JInternalFrame implements
     private ConstantMap[] peakColorMap;
     private PickManipulationRendererJ3D peakRenderer;
 
-    public ThreeDVisualizer(RawDataFile rawDataFile, int msLevel) {
+    public ThreeDVisualizer(RawDataFile rawDataFile, int msLevel,
+            double rtMin, double rtMax,
+            double mzMin, double mzMax,
+            int rtResolution, int mzResolution) {
 
         super(rawDataFile.toString(), true, true, true, true);
 
@@ -89,7 +92,10 @@ public class ThreeDVisualizer extends JInternalFrame implements
         titleLabel.setHorizontalAlignment(JLabel.CENTER);
         add(titleLabel, BorderLayout.NORTH);
 
-        Task updateTask = new ThreeDSamplingTask(rawDataFile, msLevel, this);
+        Task updateTask = new ThreeDSamplingTask(rawDataFile, msLevel, 
+                rtMin, rtMax, mzMin, mzMax, 
+                rtResolution, mzResolution,
+                this);
 
         TaskController.getInstance().addTask(updateTask, TaskPriority.HIGH,
                 this);

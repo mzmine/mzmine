@@ -69,6 +69,9 @@ class TwoDDataSet extends AbstractXYZDataset implements RawDataAcceptor {
     
     private double maxIntensity;
     
+    private BufferedImage totalImage, currentImage;
+
+    
     
     private Date lastRedrawTime = new Date();
 
@@ -94,8 +97,8 @@ class TwoDDataSet extends AbstractXYZDataset implements RawDataAcceptor {
         
         intensityMatrix = new double[bitmapSizeX][bitmapSizeY];
         
-        Task updateTask = new RawDataRetrievalTask(rawDataFile, scanNumbers,
-                "Updating 2D visualizer of " + rawDataFile, this);
+        Task updateTask = new RawDataRetrievalTask(rawDataFile, scanNumbers, "Updating 2D visualizer of " + rawDataFile,
+                this);
 
         /*
          * if the file data is preloaded in memory, we can update the visualizer
@@ -128,7 +131,7 @@ class TwoDDataSet extends AbstractXYZDataset implements RawDataAcceptor {
             
             if (mzValues[i] < mzMin) continue;
             if (mzValues[i] > mzMax) break;
-            yIndex = (int) Math.floor((mzValues[i] - mzMin) / mzStep);
+            yIndex = bitmapSizeY - 1 - (int) Math.floor((mzValues[i] - mzMin) / mzStep);
             intensityMatrix[xIndex][yIndex] += intensityValues[i];
              
             if (intensityMatrix[xIndex][yIndex] > maxIntensity) maxIntensity = intensityMatrix[xIndex][yIndex];
@@ -193,6 +196,7 @@ class TwoDDataSet extends AbstractXYZDataset implements RawDataAcceptor {
      * @see org.jfree.data.xy.XYDataset#getY(int, int)
      */
     public Number getY(int series, int item) {
+        if (mzMin + (mzStep * (item % bitmapSizeY)) < 200) System.out.println(mzMin + (mzStep * (item % bitmapSizeY)));
         return mzMin + (mzStep * (item % bitmapSizeY));
     }
     
@@ -209,11 +213,10 @@ class TwoDDataSet extends AbstractXYZDataset implements RawDataAcceptor {
     }
     
     
-    private BufferedImage bi;
     
     
     BufferedImage getRenderedImage() {
-        return bi;
+        return currentImage;
     }
     
     synchronized void renderImage() {
@@ -254,8 +257,10 @@ class TwoDDataSet extends AbstractXYZDataset implements RawDataAcceptor {
         }
         
         WritableRaster wr = Raster.createWritableRaster(sampleModel,dataBuffer, new Point(0,0));
-        bi = new BufferedImage(colorModel, wr,true,null);
+        currentImage = new BufferedImage(colorModel, wr,true,null);
+        if (totalImage == null) totalImage = currentImage;
         
+                
     }
        
 }

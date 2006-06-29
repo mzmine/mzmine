@@ -77,7 +77,11 @@ class ThreeDSamplingTask implements Task {
     private ThreeDVisualizer visualizer;
     private RawDataFile rawDataFile;
     private int scanNumbers[];
-    private int msLevel;
+    private double rtMin, rtMax, mzMin, mzMax;
+    
+    // data resolution on m/z and retention time axis
+    private int rtResolution, mzResolution;
+    
     private int retrievedScans;
     private TaskStatus status;
     private String errorMessage;
@@ -85,11 +89,6 @@ class ThreeDSamplingTask implements Task {
     // The 3D display
     private DisplayImplJ3D display;
 
-    // data resolution on m/z and retention time axis
-    private int resolutionMZ;
-
-    // data resolution on retention time axis
-    private int resolutionRT;
 
     // maximum value on Z axis
     private float maxBinnedIntensity;
@@ -109,12 +108,6 @@ class ThreeDSamplingTask implements Task {
     // tick labels font size
     private static final int LABEL_FONT_SIZE = 2;
     
-    // maximum number of scans sampled 
-    // if we have more scans, we have to bin them into retention time intervals
-    private static final int MAXIMUM_SCANS = 2000;
-    
-    // maximum number of m/z bins 
-    private static final int MAXIMUM_MZ_BINS = 800;
     
     // axes aspect ratio X:Y:Z
     private static final double[] ASPECT_RATIO = new double[] { 1, 0.8, 0.3 };
@@ -133,12 +126,22 @@ class ThreeDSamplingTask implements Task {
      * @param visualizer
      */
     ThreeDSamplingTask(RawDataFile rawDataFile, int msLevel,
+            double rtMin, double rtMax,
+            double mzMin, double mzMax,
+            int rtResolution, int mzResolution,
             ThreeDVisualizer visualizer) {
 
         status = TaskStatus.WAITING;
 
         this.rawDataFile = rawDataFile;
-        this.msLevel = msLevel;
+        
+        this.rtMin = rtMin;
+        this.rtMax = rtMax;
+        this.mzMin = mzMin;
+        this.mzMax = mzMax;
+        this.rtResolution = rtResolution;
+        this.mzResolution = mzResolution;
+        
         this.visualizer = visualizer;
 
         scanNumbers = rawDataFile.getScanNumbers(msLevel);
@@ -197,8 +200,8 @@ class ThreeDSamplingTask implements Task {
         try {
 
             // get the data range
-            final float mzRange = (float) (rawDataFile.getDataMaxMZ(msLevel) - rawDataFile.getDataMinMZ(msLevel));
-            final float rtRange = (float) (rawDataFile.getDataMaxRT(msLevel) - rawDataFile.getDataMinRT(msLevel));
+            final float mzRange = (float) (mzMax - mzMin);
+            final float rtRange = (float) (rtMax - rtMin);
 
             
             // create 3D display
@@ -230,86 +233,95 @@ class ThreeDSamplingTask implements Task {
             Set domainSet;
 
             // set the resolution (number of data points) on m/z axis
-            resolutionMZ = Math.min(MAXIMUM_MZ_BINS, Math.round(mzRange));
-            final float mzStep = mzRange / resolutionMZ;
+            final float mzStep = mzRange / mzResolution;
+            
+            int eligibleScans[] = new int[scanNumbers.length];
+            int numOfEligibleScans = 0;
+            for(int i = 0; i < scanNumbers.length; i++) {
+                double rt = rawDataFile.getRetentionTime(scanNumbers[i]); 
+                if ((rt >= rtMin) && (rt <= rtMax)) {
+                    eligibleScans[numOfEligibleScans++] = scanNumbers[i];
+                }
+            }
+            
+            if (numOfEligibleScans == 0) throw new Exception("No eligible scans found");
             
             // set the resolution (number of data points) on retention time axis
-            if (scanNumbers.length > MAXIMUM_SCANS) {
+            if (numOfEligibleScans > rtResolution) {
                 
                 // if the number of scans exceeds MAXIMUM_SCANS, we have to bin scans
-                resolutionRT = MAXIMUM_SCANS;
-
+                
                 domainSet = new Linear2DSet(domainTuple,
-                        rawDataFile.getDataMinRT(msLevel),
-                        rawDataFile.getDataMaxRT(msLevel),
-                        resolutionRT,
-                        rawDataFile.getDataMinMZ(msLevel),
-                        rawDataFile.getDataMaxMZ(msLevel),
-                        resolutionMZ);
+                        rtMin,
+                        rtMax,
+                        rtResolution,
+                        mzMin,
+                        mzMax,
+                        mzResolution);
 
             } else {
 
-                // number of scans is lower then MAXIMUM_SCANS, so we can create a grid column for each scan
-                resolutionRT = scanNumbers.length;
+                // number of scans is lower then max. resolution, so we can create a grid column for each scan
+                rtResolution = numOfEligibleScans;
 
                 // domain points in 2D grid
-                float domainPoints[][] = new float[2][resolutionMZ * resolutionRT];
+                float domainPoints[][] = new float[2][mzResolution * rtResolution];
 
-                for (int j = 0; j < resolutionMZ; j++) {
-                    for (int i = 0; i < resolutionRT; i++) {
+                for (int j = 0; j < mzResolution; j++) {
+                    for (int i = 0; i < rtResolution; i++) {
 
                         // set the point's X coordinate
-                        domainPoints[0][(resolutionRT * j) + i] = (float) rawDataFile.getRetentionTime(scanNumbers[i]);
+                        domainPoints[0][(rtResolution * j) + i] = (float) rawDataFile.getRetentionTime(eligibleScans[i]);
                         
                         // set the point's Y coordinate
-                        domainPoints[1][(resolutionRT * j) + i] = (float) rawDataFile.getDataMinMZ(msLevel) + (j * mzStep);
+                        domainPoints[1][(rtResolution * j) + i] = (float) mzMin + (j * mzStep);
                     }
                 }
 
                 domainSet = new Gridded2DSet(domainTuple, domainPoints,
-                        resolutionRT, resolutionMZ);
+                        rtResolution, mzResolution);
 
             }
             
-            final float rtStep = rtRange / resolutionRT;
+            final float rtStep = rtRange / rtResolution;
 
             // create an array for all data points
-            float[][] intensityValues = new float[1][resolutionMZ * resolutionRT];
+            float[][] intensityValues = new float[1][mzResolution * rtResolution];
             
             // load scans
             Scan scan;
             int scanBinIndex;
-            for (int scanIndex = 0; scanIndex < scanNumbers.length; scanIndex++) {
+            for (int scanIndex = 0; scanIndex < numOfEligibleScans; scanIndex++) {
 
                 if (status == TaskStatus.CANCELED)
                     return;
 
-                scan = rawDataFile.getScan(scanNumbers[scanIndex]);
+                scan = rawDataFile.getScan(eligibleScans[scanIndex]);
 
                 double[] binnedIntensities = MyMath.binValues(scan.getMZValues(),
                         scan.getIntensityValues(),
-                        rawDataFile.getDataMinMZ(msLevel),
-                        rawDataFile.getDataMaxMZ(msLevel), 
-                        resolutionMZ,
+                        mzMin,
+                        mzMax, 
+                        mzResolution,
                         false,
                         BinningType.MAX);
 
 
-                if (scanNumbers.length > MAXIMUM_SCANS) {
+                if (domainSet instanceof Linear2DSet) {
                     double rt = scan.getRetentionTime();
-                    scanBinIndex = (int) ((rt - rawDataFile.getDataMinRT(msLevel)) / rtStep);
+                    scanBinIndex = (int) ((rt - rtMin) / rtStep);
                     
                     // last scan falls into last bin
-                    if (scanBinIndex == resolutionRT) scanBinIndex--;
+                    if (scanBinIndex == rtResolution) scanBinIndex--;
                     
                 } else {
                     // 1 scan per 1 grid column
                     scanBinIndex = scanIndex;
                 }
 
-                for (int mzIndex = 0; mzIndex < resolutionMZ; mzIndex++) {
+                for (int mzIndex = 0; mzIndex < mzResolution; mzIndex++) {
                     
-                    int intensityValuesIndex = (resolutionRT * mzIndex) + scanBinIndex;
+                    int intensityValuesIndex = (rtResolution * mzIndex) + scanBinIndex;
 
                     if (binnedIntensities[mzIndex] > intensityValues[0][intensityValuesIndex])
                         intensityValues[0][intensityValuesIndex] = (float) binnedIntensities[mzIndex];
@@ -342,55 +354,69 @@ class ThreeDSamplingTask implements Task {
             
             // if we have peak data, connect them to the display, too
             PeakList peakList = MZmineProject.getCurrentProject().getPeakList(rawDataFile);
-            if ((peakList != null)  && (peakList.getNumberOfPeaks() > 0)) {
+            if (peakList != null) {
                 
-                float peaksDomainPoints[][] = new float[2][peakList.getNumberOfPeaks()];
-                Data peakValues[] = new Data[peakList.getNumberOfPeaks()];
-                Peak peaks[] = peakList.getPeaks();
+                Peak peaks[] = peakList.getPeaksInsideScanAndMZRange(rtMin, rtMax, mzMin, mzMax);
+                
+                if (peaks.length > 0) {
 
-                for (int i = 0; i < peaks.length; i++) {
-                    
-                    peaksDomainPoints[0][i]  = (float) peaks[i].getRT();
-                    peaksDomainPoints[1][i] = (float) peaks[i].getMZ();
-                    
-                    Data[] peakData = new Data[2];
-                    peakData[0] = new Real(peakHeightType, peaks[i].getRawHeight() + (maxBinnedIntensity * 0.03));
-                    peakData[1] = new Text(annotationType, mzFormat.format(peaks[i].getMZ()));
-                    
-                    peakValues[i] = new Tuple(annotationTupleType, peakData, false);
-                    
+                    float peaksDomainPoints[][] = new float[2][peaks.length];
+                    Data peakValues[] = new Data[peaks.length];
+
+                    for (int i = 0; i < peaks.length; i++) {
+
+                        peaksDomainPoints[0][i] = (float) peaks[i].getRT();
+                        peaksDomainPoints[1][i] = (float) peaks[i].getMZ();
+
+                        Data[] peakData = new Data[2];
+                        peakData[0] = new Real(peakHeightType,
+                                peaks[i].getRawHeight()
+                                        + (maxBinnedIntensity * 0.03));
+                        peakData[1] = new Text(annotationType,
+                                mzFormat.format(peaks[i].getMZ()));
+
+                        peakValues[i] = new Tuple(annotationTupleType,
+                                peakData, false);
+
+                    }
+
+                    // peak domain points set
+                    Set peaksDomainSet = new Gridded2DSet(domainTuple,
+                            peaksDomainPoints, peaks.length);
+
+                    // create peak values flat field
+                    FieldImpl peakValuesFlatField = new FieldImpl(
+                            annotationFunction, peaksDomainSet);
+                    peakValuesFlatField.setSamples(peakValues, false);
+
+                    // create data reference
+                    DataReference peaksReference = new DataReferenceImpl(
+                            "peaks");
+                    peaksReference.setData(peakValuesFlatField);
+
+                    // create a pick renderer, so we can track user clicks
+                    PickManipulationRendererJ3D pickRenderer = new PickManipulationRendererJ3D();
+
+                    // color of text annotations
+                    ConstantMap[] colorMap = {
+                            new ConstantMap(0.8, Display.Red),
+                            new ConstantMap(0.8, Display.Green),
+                            new ConstantMap(0.0f, Display.Blue) };
+
+                    // add the reference to the display
+                    display.addReferences(pickRenderer, peaksReference,
+                            colorMap);
+
+                    visualizer.setPeaksDataReference(pickRenderer,
+                            peaksReference, colorMap);
+
+                    // add the reference to the cell - the cell is activated by
+                    // shift+right mouse click
+                    ThreeDPeakCell cell = new ThreeDPeakCell(display,
+                            pickRenderer, peaks, pointTupleType, mzStep);
+                    cell.addReference(peaksReference);
+
                 }
-                
-                // peak domain points set
-                Set peaksDomainSet = new Gridded2DSet(domainTuple, peaksDomainPoints,
-                        peakList.getNumberOfPeaks());
-                
-                // create peak values flat field
-                FieldImpl peakValuesFlatField = new FieldImpl(annotationFunction, peaksDomainSet);                
-                peakValuesFlatField.setSamples(peakValues, false);
-                
-                // create data reference
-                DataReference peaksReference = new DataReferenceImpl("peaks");
-                peaksReference.setData(peakValuesFlatField);
-                
-                // create a pick renderer, so we can track user clicks
-                PickManipulationRendererJ3D pickRenderer = new PickManipulationRendererJ3D();
-                
-                // color of text annotations
-                ConstantMap[] colorMap = { 
-                        new ConstantMap( 0.8, Display.Red ),
-                        new ConstantMap( 0.8, Display.Green ),
-                        new ConstantMap( 0.0f, Display.Blue )
-                };
-                
-                // add the reference to the display
-                display.addReferences(pickRenderer, peaksReference, colorMap);
-                
-                visualizer.setPeaksDataReference(pickRenderer, peaksReference, colorMap);
-                
-                // add the reference to the cell - the cell is activated by shift+right mouse click
-                ThreeDPeakCell cell = new ThreeDPeakCell(display, pickRenderer, peaks, pointTupleType, mzStep);
-                cell.addReference(peaksReference);
                 
             }
 
@@ -461,7 +487,9 @@ class ThreeDSamplingTask implements Task {
             AxisScale peakHeightAxis = heightMap.getAxisScale();
             peakHeightAxis.setVisible(false);
             
-            // set intensity axis range
+            // set ranges
+            retentionTimeMap.setRange(rtMin, rtMax);
+            mzMap.setRange(mzMin, mzMax);
             intensityMap.setRange(0, maxBinnedIntensity);
             heightMap.setRange(0, maxBinnedIntensity);
                         

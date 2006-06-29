@@ -142,7 +142,7 @@ public class ItemSelector extends JPanel implements ListSelectionListener,
         if (e.getComponent() == rawDataList) {
             if (rawDataList.locationToIndex(e.getPoint()) == -1) return;
             RawDataFile selectedFile = (RawDataFile) rawDataObjects.get(rawDataList.locationToIndex(e.getPoint()));
-            int[] msLevels = selectedFile.getMSLevels();
+            /*int[] msLevels = selectedFile.getMSLevels();
             for (int msLevel : msLevels) {
                 JMenuItem showTIC = new JMenuItem("Show TIC of MS level " + msLevel);
                 showTIC.addActionListener(this);
@@ -169,9 +169,9 @@ public class ItemSelector extends JPanel implements ListSelectionListener,
                 showBP.addActionListener(this);
                 showBP.setActionCommand("3D" + msLevel);
                 popupMenu.add(showBP);
-            }
+            }*/
             
-            popupMenu.addSeparator();
+            //popupMenu.addSeparator();
             JMenuItem pmClose = new JMenuItem("Close");
             pmClose.addActionListener(this);
             pmClose.setActionCommand("CLOSE");
@@ -204,45 +204,9 @@ public class ItemSelector extends JPanel implements ListSelectionListener,
 
         }
 
-        if (command.startsWith("TIC")) {
-            RawDataFile[] selectedFiles = getSelectedRawData();
-            int msLevel = Integer.parseInt(command.substring(3));
-            for (RawDataFile file : selectedFiles) {
 
-                new TICVisualizer(file, msLevel);
-
-            }
-        }
-
-        if (command.startsWith("BP")) {
-            RawDataFile[] selectedFiles = getSelectedRawData();
-            int msLevel = Integer.parseInt(command.substring(2));
-            for (RawDataFile file : selectedFiles) {
-
-                new BasePeakVisualizer(file, msLevel);
-
-            }
-        }
         
-        if (command.startsWith("2D")) {
-            RawDataFile[] selectedFiles = getSelectedRawData();
-            int msLevel = Integer.parseInt(command.substring(2));
-            for (RawDataFile file : selectedFiles) {
 
-                new TwoDVisualizer(file, msLevel);
-
-            }
-        }
-        
-        if (command.startsWith("3D")) {
-            RawDataFile[] selectedFiles = getSelectedRawData();
-            int msLevel = Integer.parseInt(command.substring(2));
-            for (RawDataFile file : selectedFiles) {
-
-                new ThreeDVisualizer(file, msLevel);
-
-            }
-        }
 
         /*
          * TICVisualizer ticView = new TICVisualizer();

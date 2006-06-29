@@ -28,23 +28,18 @@ import java.text.DecimalFormat;
 import java.text.NumberFormat;
 import java.text.SimpleDateFormat;
 
+import javax.swing.BorderFactory;
+import javax.swing.JCheckBox;
 import javax.swing.JInternalFrame;
+import javax.swing.JLabel;
 
-import net.sf.mzmine.interfaces.Scan;
 import net.sf.mzmine.io.RawDataFile;
-import net.sf.mzmine.io.RawDataFile.PreloadLevel;
 import net.sf.mzmine.taskcontrol.Task;
-import net.sf.mzmine.taskcontrol.TaskController;
 import net.sf.mzmine.taskcontrol.TaskListener;
-import net.sf.mzmine.taskcontrol.Task.TaskPriority;
 import net.sf.mzmine.taskcontrol.Task.TaskStatus;
 import net.sf.mzmine.userinterface.mainwindow.MainWindow;
 import net.sf.mzmine.util.CursorPosition;
-import net.sf.mzmine.util.RawDataRetrievalTask;
 import net.sf.mzmine.visualizers.rawdata.RawDataVisualizer;
-
-import org.jfree.data.xy.DefaultTableXYDataset;
-import org.jfree.data.xy.XYSeries;
 
 /**
  * This class defines a total ion chromatogram visualizer for raw data
@@ -54,6 +49,7 @@ public class TwoDVisualizer extends JInternalFrame implements
 
     private TwoDToolBar toolBar;
     private TwoDPlot twoDPlot;
+    private JCheckBox resampleCheckBox;
     
     private TwoDDataSet dataset;
         
@@ -66,8 +62,11 @@ public class TwoDVisualizer extends JInternalFrame implements
     private static NumberFormat mzFormat = new DecimalFormat("0.00");
     private static NumberFormat intensityFormat = new DecimalFormat("0.00E0");
 
-    public TwoDVisualizer(RawDataFile rawDataFile, int msLevel) {
-
+    public TwoDVisualizer(RawDataFile rawDataFile, int msLevel,
+                double rtMin, double rtMax,
+                double mzMin, double mzMax,
+                int rtResolution, int mzResolution) {
+            
         super(rawDataFile.toString(), true, true, true, true);
 
         setDefaultCloseOperation(DISPOSE_ON_CLOSE);
@@ -83,6 +82,13 @@ public class TwoDVisualizer extends JInternalFrame implements
         
         twoDPlot = new TwoDPlot(this, dataset);
         add(twoDPlot, BorderLayout.CENTER);
+        
+        resampleCheckBox = new JCheckBox("Resample when zooming", true);
+        resampleCheckBox.setBackground(Color.white);
+        resampleCheckBox.setFont(resampleCheckBox.getFont().deriveFont(10f));
+        resampleCheckBox.setHorizontalAlignment(JCheckBox.CENTER);
+        resampleCheckBox.setBorder(BorderFactory.createEmptyBorder(5, 5, 5, 5));
+        add(resampleCheckBox, BorderLayout.SOUTH);
         
         updateTitle();
         
