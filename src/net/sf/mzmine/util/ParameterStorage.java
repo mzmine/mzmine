@@ -52,7 +52,6 @@ import net.sf.mzmine.methods.alignment.AlignmentResultExporterParameters;
 import net.sf.mzmine.methods.alignment.fast.FastAlignerParameters;
 import net.sf.mzmine.methods.alignment.filterbygaps.AlignmentResultFilterByGapsParameters;
 import net.sf.mzmine.methods.alignment.join.JoinAlignerParameters;
-import net.sf.mzmine.methods.deisotoping.combinatorial.CombinatorialDeisotoperParameters;
 import net.sf.mzmine.methods.deisotoping.incompletefilter.IncompleteIsotopePatternFilterParameters;
 import net.sf.mzmine.methods.deisotoping.simple.SimpleDeisotoperParameters;
 import net.sf.mzmine.methods.filtering.chromatographicmedian.ChromatographicMedianFilterParameters;
@@ -124,9 +123,6 @@ public class ParameterStorage {
 	private IncompleteIsotopePatternFilterParameters incompleteIsotopePatternFilterParameters;
 	public IncompleteIsotopePatternFilterParameters getIncompleteIsotopePatternFilterParameters() { return incompleteIsotopePatternFilterParameters; }
 
-	private CombinatorialDeisotoperParameters combinatorialDeisotoperParameters;
-	public CombinatorialDeisotoperParameters getCombinatorialDeisotoperParameters() { return combinatorialDeisotoperParameters; }
-
 
 	// ALIGNMENT PARAMETERS
 	private JoinAlignerParameters joinAlignerParameters;
@@ -180,7 +176,6 @@ public class ParameterStorage {
 		recursiveThresholdPickerParameters = new RecursiveThresholdPickerParameters();
 		centroidPickerParameters = new CentroidPickerParameters();
 		simpleDeisotoperParameters = new SimpleDeisotoperParameters();
-		combinatorialDeisotoperParameters = new CombinatorialDeisotoperParameters();
 		incompleteIsotopePatternFilterParameters = new IncompleteIsotopePatternFilterParameters();
 		joinAlignerParameters = new JoinAlignerParameters();
 		fastAlignerParameters = new FastAlignerParameters();
