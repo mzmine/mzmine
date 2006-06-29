@@ -91,8 +91,14 @@ public class ThreeDVisualizer extends JInternalFrame implements
         titleLabel.setBorder(BorderFactory.createEmptyBorder(5, 5, 5, 5));
         titleLabel.setHorizontalAlignment(JLabel.CENTER);
         add(titleLabel, BorderLayout.NORTH);
+        
+        int scanNumbers[] = rawDataFile.getScanNumbers(msLevel, rtMin, rtMax);
+        if (scanNumbers.length == 0) {
+            MainWindow.getInstance().displayErrorMessage("No scans found at MS level " + msLevel + " within given retention time range.");
+            return;
+        }
 
-        Task updateTask = new ThreeDSamplingTask(rawDataFile, msLevel, 
+        Task updateTask = new ThreeDSamplingTask(rawDataFile, scanNumbers,
                 rtMin, rtMax, mzMin, mzMax, 
                 rtResolution, mzResolution,
                 this);

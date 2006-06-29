@@ -82,7 +82,7 @@ class ThreeDSamplingTask implements Task {
     // data resolution on m/z and retention time axis
     private int rtResolution, mzResolution;
     
-    private int retrievedScans;
+    private int retrievedScans = 0;
     private TaskStatus status;
     private String errorMessage;
 
@@ -125,7 +125,7 @@ class ThreeDSamplingTask implements Task {
      * @param msLevel
      * @param visualizer
      */
-    ThreeDSamplingTask(RawDataFile rawDataFile, int msLevel,
+    ThreeDSamplingTask(RawDataFile rawDataFile, int scanNumbers[],
             double rtMin, double rtMax,
             double mzMin, double mzMax,
             int rtResolution, int mzResolution,
@@ -134,6 +134,7 @@ class ThreeDSamplingTask implements Task {
         status = TaskStatus.WAITING;
 
         this.rawDataFile = rawDataFile;
+        this.scanNumbers = scanNumbers;
         
         this.rtMin = rtMin;
         this.rtMax = rtMax;
@@ -141,10 +142,9 @@ class ThreeDSamplingTask implements Task {
         this.mzMax = mzMax;
         this.rtResolution = rtResolution;
         this.mzResolution = mzResolution;
-        
+                
         this.visualizer = visualizer;
 
-        scanNumbers = rawDataFile.getScanNumbers(msLevel);
 
     }
 
@@ -196,9 +196,9 @@ class ThreeDSamplingTask implements Task {
     public void run() {
 
         status = TaskStatus.PROCESSING;
-
+        
         try {
-
+            
             // get the data range
             final float mzRange = (float) (mzMax - mzMin);
             final float rtRange = (float) (rtMax - rtMin);
@@ -235,19 +235,9 @@ class ThreeDSamplingTask implements Task {
             // set the resolution (number of data points) on m/z axis
             final float mzStep = mzRange / mzResolution;
             
-            int eligibleScans[] = new int[scanNumbers.length];
-            int numOfEligibleScans = 0;
-            for(int i = 0; i < scanNumbers.length; i++) {
-                double rt = rawDataFile.getRetentionTime(scanNumbers[i]); 
-                if ((rt >= rtMin) && (rt <= rtMax)) {
-                    eligibleScans[numOfEligibleScans++] = scanNumbers[i];
-                }
-            }
-            
-            if (numOfEligibleScans == 0) throw new Exception("No eligible scans found");
             
             // set the resolution (number of data points) on retention time axis
-            if (numOfEligibleScans > rtResolution) {
+            if (scanNumbers.length > rtResolution) {
                 
                 // if the number of scans exceeds MAXIMUM_SCANS, we have to bin scans
                 
@@ -262,7 +252,7 @@ class ThreeDSamplingTask implements Task {
             } else {
 
                 // number of scans is lower then max. resolution, so we can create a grid column for each scan
-                rtResolution = numOfEligibleScans;
+                rtResolution = scanNumbers.length;
 
                 // domain points in 2D grid
                 float domainPoints[][] = new float[2][mzResolution * rtResolution];
@@ -271,7 +261,7 @@ class ThreeDSamplingTask implements Task {
                     for (int i = 0; i < rtResolution; i++) {
 
                         // set the point's X coordinate
-                        domainPoints[0][(rtResolution * j) + i] = (float) rawDataFile.getRetentionTime(eligibleScans[i]);
+                        domainPoints[0][(rtResolution * j) + i] = (float) rawDataFile.getRetentionTime(scanNumbers[i]);
                         
                         // set the point's Y coordinate
                         domainPoints[1][(rtResolution * j) + i] = (float) mzMin + (j * mzStep);
@@ -291,12 +281,12 @@ class ThreeDSamplingTask implements Task {
             // load scans
             Scan scan;
             int scanBinIndex;
-            for (int scanIndex = 0; scanIndex < numOfEligibleScans; scanIndex++) {
+            for (int scanIndex = 0; scanIndex < scanNumbers.length; scanIndex++) {
 
                 if (status == TaskStatus.CANCELED)
                     return;
 
-                scan = rawDataFile.getScan(eligibleScans[scanIndex]);
+                scan = rawDataFile.getScan(scanNumbers[scanIndex]);
 
                 double[] binnedIntensities = MyMath.binValues(scan.getMZValues(),
                         scan.getIntensityValues(),
