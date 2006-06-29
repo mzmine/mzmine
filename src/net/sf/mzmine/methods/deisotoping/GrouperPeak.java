@@ -17,7 +17,7 @@
  * Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-package net.sf.mzmine.methods.peakpicking;
+package net.sf.mzmine.methods.deisotoping;
 
 import java.util.Hashtable;
 import java.util.Enumeration;
@@ -30,7 +30,7 @@ import net.sf.mzmine.interfaces.IsotopePattern;
  * This class is a simple implementation of the peak interface.
  * This implementation is used by recursive threshold, centroid and local maximum peak pickers.
  */
-public class SimplePeak implements Peak {
+public class GrouperPeak implements Peak {
 
 	private PeakStatus peakStatus;
 
@@ -53,11 +53,24 @@ public class SimplePeak implements Peak {
 	private double normalizedHeight;
 	private double normalizedArea;
 
-	private boolean growing=false;
 
-	public SimplePeak() {
-		datapoints = new Hashtable<Integer, Double[]>();
+	/**
+	 * This constructor initializes a new peak with values from an old one.
+	 */
+	public GrouperPeak(Peak oldPeak) {
+		mz = oldPeak.getMZ();
+		rt = oldPeak.getRT();
+		height = oldPeak.getRawHeight();
+		area = oldPeak.getRawArea();
+
+		datapoints = oldPeak.getRawDatapoints();
+
+		normalizedMZ = oldPeak.getNormalizedMZ();
+		normalizedRT = oldPeak.getNormalizedRT();
+		normalizedHeight = oldPeak.getNormalizedHeight();
+		normalizedArea = oldPeak.getNormalizedArea();
 	}
+
 
 	/**
 	 * This method returns the status of the peak
@@ -184,84 +197,11 @@ public class SimplePeak implements Peak {
 		return isotopePattern;
 	}
 
-
-
-	public void addDatapoint(int scanNumber, double mz, double rt, double intensity) {
-		Double[] triplet = new Double[3];
-		triplet[0] = mz;
-		triplet[1] = rt;
-		triplet[2] = intensity;
-		datapoints.put(new Integer(scanNumber), triplet);
-
-		growing = true;
-		precalculateFromDatapoints();
-	}
-
-	public boolean isGrowing() {
-		return growing;
-	}
-
-	public void resetGrowingState() {
-		growing = false;
-	}
-
-
-	private void precalculateFromDatapoints() {
-
-		// Basic requirements of the interface:
-		// - Find minimum and maximum M/Z and RT of all datapoints
-		//
-		// Specific to this peak implementation
-		// - Find maximum height and corresponding RT  (peak's height and RT)
-		// - Calculate sum of all intensities (peak's area)
-		// - Calculate median of all datapoints (defines peak's M/Z)
-		//
-
-		minMZ = Double.MAX_VALUE;
-		maxMZ = Double.MIN_VALUE;
-		minRT = Double.MAX_VALUE;
-		maxRT = Double.MIN_VALUE;
-
-		height = 0.0;
-		area = 0.0;
-		double[] allMZs = new double[datapoints.size()];
-
-		int i=0;
-		for (Enumeration<Double[]> triplets = datapoints.elements();
-				triplets.hasMoreElements(); ) {
-
-			Double[] triplet = triplets.nextElement();
-			double tripletMZ = triplet[0];
-			double tripletRT = triplet[1];
-			double tripletIntensity = triplet[2];
-
-			// Find minimum and maximum M/Z & RT
-			if (tripletMZ<minMZ) minMZ = triplet[0];
-			if (tripletMZ>maxMZ) maxMZ = triplet[0];
-			if (tripletRT<minRT) minRT = triplet[1];
-			if (tripletRT>maxRT) maxRT = triplet[1];
-
-			// Find max intensity point (=> peak's height and RT)
-			if (tripletIntensity>=height) {
-				height = tripletIntensity;
-				rt = tripletRT;
-			}
-
-			// Calc peak's area
-			area += tripletIntensity;
-
-			// Collect M/Z values
-			allMZs[i] = tripletMZ;
-			i++;
-		}
-
-		mz = MyMath.calcQuantile(allMZs, 0.5);
-
-		normalizedMZ = mz;
-		normalizedRT = rt;
-		normalizedHeight = height;
-		normalizedArea = area;
-
+	/**
+	 * This method sets the isotope pattern of the peak
+	 */
+	public void setIsotopePattern(IsotopePattern isotopePattern) {
+		this.isotopePattern = isotopePattern;
 	}
 
 

@@ -108,7 +108,7 @@ public interface Peak {
 	/**
 	 * This method sets the normalized M/Z of the peak
 	 */
-	public void setNormalizedMZ(double normalizedMZ);
+	//public void setNormalizedMZ(double normalizedMZ);
 
 	/**
 	 * This method returns the normalized M/Z of the peak
@@ -119,7 +119,7 @@ public interface Peak {
 	/**
 	 * This method sets the normalized RT of the peak
 	 */
-	public void setNormalizedRT(double normalizedRT);
+	//public void setNormalizedRT(double normalizedRT);
 
 	/**
 	 * This method returns the normalized RT of the peak
@@ -130,7 +130,7 @@ public interface Peak {
 	/**
 	 * This method sets the normalized height of the peak
 	 */
-	public void setNormalizedHeight(double normalizedHeight);
+	//public void setNormalizedHeight(double normalizedHeight);
 
 	/**
 	 * This method returns the normalized height of the peak, or raw height if normalized height is not set.
@@ -140,7 +140,7 @@ public interface Peak {
 	/**
 	 * This method sets the normalized area of the peak
 	 */
-	public void setNormalizedArea(double normalizedArea);
+	//public void setNormalizedArea(double normalizedArea);
 
 	/**
 	 * This method returns the normalized area of the peak, or raw area if normalized area is not set.
@@ -161,7 +161,7 @@ public interface Peak {
 	/**
 	 * This method sets the isotope pattern of the peak
 	 */
-	public void setIsotopePattern(IsotopePattern isotopePattern);
+	//public void setIsotopePattern(IsotopePattern isotopePattern);
 
 
 
