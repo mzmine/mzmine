@@ -27,13 +27,17 @@ import java.util.Set;
 import java.util.TreeSet;
 import java.util.Vector;
 
+import net.sf.mzmine.io.MZmineProject;
 import net.sf.mzmine.io.RawDataFile;
 import net.sf.mzmine.interfaces.Peak;
 import net.sf.mzmine.interfaces.PeakList;
 import net.sf.mzmine.methods.Method;
 import net.sf.mzmine.methods.MethodParameters;
 import net.sf.mzmine.methods.alignment.AlignmentResult;
-import net.sf.mzmine.userinterface.mainwindow.MainWindow;
+import net.sf.mzmine.taskcontrol.Task;
+import net.sf.mzmine.taskcontrol.TaskController;
+import net.sf.mzmine.taskcontrol.TaskListener;
+import net.sf.mzmine.util.Logger;
 
 
 /**
@@ -42,7 +46,7 @@ import net.sf.mzmine.userinterface.mainwindow.MainWindow;
  * @version 31 March 2006
  */
 
-public class SimpleIsotopicPeaksGrouper implements Method {
+public class SimpleIsotopicPeaksGrouper implements Method, TaskListener {
 
 	private static final double neutronMW = 1.008665;
 
@@ -69,8 +73,21 @@ public class SimpleIsotopicPeaksGrouper implements Method {
 
 
 	public void runMethod(MethodParameters parameters, RawDataFile[] rawDataFiles, AlignmentResult[] alignmentResults) {
-		// TODO
+
+		Task peaklistProcessorTask;
+		SimpleIsotopicPeaksGrouperParameters param = (SimpleIsotopicPeaksGrouperParameters)parameters;
+
+		for (RawDataFile rawDataFile: rawDataFiles) {
+			peaklistProcessorTask = new SimpleIsotopicPeaksGrouperTask(rawDataFile, param);
+			TaskController.getInstance().addTask(peaklistProcessorTask, this);
+		}
+
 	}
+
+
+	public void taskStarted(Task task) {}
+
+    public void taskFinished(Task task) {}
 
 
 
