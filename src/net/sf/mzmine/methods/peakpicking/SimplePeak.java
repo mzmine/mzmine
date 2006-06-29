@@ -34,6 +34,8 @@ public class SimplePeak implements Peak {
 
 	private PeakStatus peakStatus;
 
+	private IsotopePattern isotopePattern;
+
 	private double mz;
 	private double rt;
 	private double height;
@@ -208,15 +210,14 @@ public class SimplePeak implements Peak {
 	 * @return isotope pattern or null if peak is not assigned to any pattern.
 	 */
 	public IsotopePattern getIsotopePattern() {
-		// TODO
-		return null;
+		return isotopePattern;
 	}
 
 	/**
 	 * This method sets the isotope pattern of the peak
 	 */
 	public void setIsotopePattern(IsotopePattern isotopePattern) {
-		// TODO
+		this.isotopePattern = isotopePattern;
 	}
 
 
