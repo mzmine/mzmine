@@ -20,7 +20,7 @@
 
 package net.sf.mzmine.methods.deisotoping.simplegrouper;
 
-
+import java.awt.Frame;
 import java.util.Comparator;
 import java.util.Iterator;
 import java.util.Set;
@@ -37,7 +37,10 @@ import net.sf.mzmine.methods.alignment.AlignmentResult;
 import net.sf.mzmine.taskcontrol.Task;
 import net.sf.mzmine.taskcontrol.TaskController;
 import net.sf.mzmine.taskcontrol.TaskListener;
+import net.sf.mzmine.userinterface.mainwindow.MainWindow;
 import net.sf.mzmine.util.Logger;
+import net.sf.mzmine.visualizers.peaklist.table.TableView;
+
 
 
 /**
@@ -62,7 +65,8 @@ public class SimpleIsotopicPeaksGrouper implements Method, TaskListener {
 		SimpleIsotopicPeaksGrouperParameters currentParameters = (SimpleIsotopicPeaksGrouperParameters)parameters;
 		if (currentParameters==null) return false;
 
-		SimpleIsotopicPeaksGrouperParameterSetupDialog sdpsd = new SimpleIsotopicPeaksGrouperParameterSetupDialog(currentParameters);
+		MainWindow mainWin = MainWindow.getInstance();
+		SimpleIsotopicPeaksGrouperParameterSetupDialog sdpsd = new SimpleIsotopicPeaksGrouperParameterSetupDialog((Frame)mainWin, currentParameters);
 		sdpsd.show();
 
 		if (sdpsd.getExitCode()==-1) { return false; }
@@ -86,11 +90,37 @@ public class SimpleIsotopicPeaksGrouper implements Method, TaskListener {
 	}
 
 
-	public void taskStarted(Task task) {}
+	public void taskStarted(Task task) {
+		// do nothing
+	}
 
-    public void taskFinished(Task task) {}
+    public void taskFinished(Task task) {
 
+        if (task.getStatus() == Task.TaskStatus.FINISHED) {
 
+			RawDataFile rawData = (RawDataFile)((Object[])task.getResult())[0];
+			PeakList peakList = (PeakList)((Object[])task.getResult())[1];
+			SimpleIsotopicPeaksGrouperParameters params = (SimpleIsotopicPeaksGrouperParameters)((Object[])task.getResult())[2];
+
+			// Add isotopic peaks grouping to the history of the file
+			rawData.addHistory(rawData.getCurrentFile(), this, params.clone());
+
+			// Add peak list to MZmineProject
+			MZmineProject.getCurrentProject().setPeakList(rawData, peakList);
+
+			MainWindow.getInstance().addInternalFrame(new TableView(rawData));
+
+			MainWindow.getInstance().getMainMenu().updateMenuAvailability();
+
+        } else if (task.getStatus() == Task.TaskStatus.ERROR) {
+            /* Task encountered an error */
+            Logger.putFatal("Error while finding peaks in a file: " + task.getErrorMessage());
+            MainWindow.getInstance().displayErrorMessage(
+                    "Error while finding peaks in a file: " + task.getErrorMessage());
+
+        }
+
+	}
 
 }
 

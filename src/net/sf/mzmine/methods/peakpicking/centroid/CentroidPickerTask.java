@@ -21,6 +21,7 @@ package net.sf.mzmine.methods.peakpicking.centroid;
 
 import java.io.IOException;
 import java.util.Hashtable;
+import java.util.Enumeration;
 import java.util.Iterator;
 import java.util.TreeSet;
 import java.util.Vector;
@@ -208,7 +209,7 @@ public class CentroidPickerTask implements Task {
 
 			// Find 1D-peaks
 
-			//System.out.print("Find 1D-peaks: ");
+			System.out.print("Find 1D-peaks: ");
 
 			for (int j=0; j<intensities.length; j++) {
 
@@ -231,7 +232,7 @@ public class CentroidPickerTask implements Task {
 
 			}
 
-			//System.out.println("Found " + oneDimPeaks.size() + " 1D-peaks.");
+			System.out.print("found " + oneDimPeaks.size() + " 1D-peaks, ");
 
 
 			// Calculate scores between under-construction scores and 1d-peaks
@@ -249,6 +250,8 @@ public class CentroidPickerTask implements Task {
 
 
 			// Connect the best scoring pairs of under-construction and 1d peaks
+
+			int DEBUGcounter = 0;
 
 			Iterator<MatchScore> scoreIterator = scores.iterator();
 			while (scoreIterator.hasNext()) {
@@ -269,7 +272,14 @@ public class CentroidPickerTask implements Task {
 				ucPeak.addDatapoint(sc.getScanNumber(), oneDimPeak.mz, sc.getRetentionTime(), oneDimPeak.intensity);
 				oneDimPeak.setConnected();
 
+				DEBUGcounter++;
+
 			}
+
+			System.out.print("connected " + DEBUGcounter + " uc-1D-pairs, ");
+
+			DEBUGcounter = 0;
+			int DEBUGcounter2 = 0;
 
 			// Check if there are any under-construction peaks that were not connected
 			for (SimplePeak ucPeak : underConstructionPeaks) {
@@ -286,16 +296,19 @@ public class CentroidPickerTask implements Task {
 
 						// Good peak, add it to the peak list
 						readyPeakList.addPeak(ucPeak);
+						DEBUGcounter2++;
 					}
 
 					// Remove the peak from under construction peaks
 					int ucInd = underConstructionPeaks.indexOf(ucPeak);
 					underConstructionPeaks.set(ucInd, null);
+
+					DEBUGcounter++;
 				}
 
 			}
 
-			//System.out.println("" + readyPeakList.getNumberOfPeaks() +  " ready peaks.");
+			System.out.print("" + DEBUGcounter + " ending uc-peaks (" + DEBUGcounter2 + " good ones), " );
 
 			// Clean-up empty slots under-construction peaks collection and reset growing statuses for remaining under construction peaks
 			for (int ucInd=0; ucInd<underConstructionPeaks.size(); ucInd++) {
@@ -309,6 +322,7 @@ public class CentroidPickerTask implements Task {
 			}
 
 
+			DEBUGcounter = 0;
 
 			// If there are some unconnected 1d-peaks, then start a new under-construction peak for each of them
 			for (OneDimPeak oneDimPeak : oneDimPeaks) {
@@ -319,9 +333,13 @@ public class CentroidPickerTask implements Task {
 					ucPeak.addDatapoint(sc.getScanNumber(), oneDimPeak.mz, sc.getRetentionTime(), oneDimPeak.intensity);
 					underConstructionPeaks.add(ucPeak);
 
+					DEBUGcounter++;
+
 				}
 
 			}
+
+			System.out.println("" + DEBUGcounter  + " new starting uc-peaks");
 
 			oneDimPeaks.clear();
 
@@ -448,13 +466,18 @@ public class CentroidPickerTask implements Task {
 				return 0;
 			}
 
+			Enumeration<Double[]> triplets = datapoints.elements();
 
 			// If only one previous m/z peak
 			if (datapoints.size() == 1) {
 
+				Double[] prevTriplet = triplets.nextElement();
+				double prevIntensity = prevTriplet[2];
+				/*
 				Object[] triplets = datapoints.values().toArray();
 				double prevIntensity = ((Double[])(triplets[0]))[2];
 				triplets = null;
+				*/
 
 				// If it goes up, then give minimum (best) score
 				if ((nextIntensity-prevIntensity) >=0 ) {
@@ -476,12 +499,21 @@ public class CentroidPickerTask implements Task {
 
 			// Determine shape of the peak
 
-			Object[] triplets = datapoints.values().toArray();
 			int derSign = 1;
-			for (int ind=1; ind<triplets.length; ind++) {
 
-				double prevIntensity = ((Double[])(triplets[ind-1]))[2];
-				double currIntensity = ((Double[])(triplets[ind]))[2];
+
+			// Object[] triplets = datapoints.values().toArray();
+			//for (int ind=1; ind<triplets.length; ind++) {
+			Double[] currTriplet = triplets.nextElement();
+			while (triplets.hasMoreElements()) {
+
+				Double[] prevTriplet = currTriplet;
+				currTriplet = triplets.nextElement();
+
+				//double prevIntensity = ((Double[])(triplets[ind-1]))[2];
+				//double currIntensity = ((Double[])(triplets[ind]))[2];
+				double prevIntensity = prevTriplet[2];
+				double currIntensity = currTriplet[2];
 
 				// If peak is currently going up
 				if (derSign==1) {
@@ -518,17 +550,17 @@ public class CentroidPickerTask implements Task {
 			if (derSign==-1) {
 
 
-				double prevIntensity = ((Double[])(triplets[triplets.length-1]))[2];
+				double lastIntensity = currTriplet[2];
 
 
 				// Then peak must not start going up again
-				double topMargin = prevIntensity*(1+parameters.intTolerance);
+				double topMargin = lastIntensity*(1+parameters.intTolerance);
 
 				if ( nextIntensity>=topMargin) {
 					return Double.MAX_VALUE;
 				}
 
-				if ( nextIntensity<prevIntensity ) {
+				if ( nextIntensity<lastIntensity ) {
 					return 0;
 				}
 

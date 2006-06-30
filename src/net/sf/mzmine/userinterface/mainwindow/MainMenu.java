@@ -54,6 +54,8 @@ import net.sf.mzmine.methods.peakpicking.local.LocalPicker;
 import net.sf.mzmine.methods.peakpicking.local.LocalPickerParameters;
 import net.sf.mzmine.methods.peakpicking.recursivethreshold.RecursiveThresholdPicker;
 import net.sf.mzmine.methods.peakpicking.recursivethreshold.RecursiveThresholdPickerParameters;
+import net.sf.mzmine.methods.deisotoping.simplegrouper.SimpleIsotopicPeaksGrouper;
+import net.sf.mzmine.methods.deisotoping.simplegrouper.SimpleIsotopicPeaksGrouperParameters;
 import net.sf.mzmine.userinterface.dialogs.FileOpenDialog;
 import net.sf.mzmine.util.GUIUtils;
 import net.sf.mzmine.visualizers.alignmentresult.AlignmentResultVisualizerCDAPlotView;
@@ -84,7 +86,7 @@ public class MainMenu extends JMenuBar implements ActionListener {
             ssCropFilter, ssZoomScanFilter;
     private JMenu peakMenu;
     private JMenuItem ssRecursiveThresholdPicker, ssLocalPicker,
-            ssCentroidPicker, ssSimpleDeisotoping, ssCombinatorialDeisotoping,
+            ssCentroidPicker, ssSimpleIsotopicPeaksGrouper, ssCombinatorialDeisotoping,
             ssIncompleteIsotopePatternFilter;
     private JMenu alignmentMenu;
     private JMenuItem tsJoinAligner, tsFastAligner, tsAlignmentFilter,
@@ -172,8 +174,8 @@ public class MainMenu extends JMenuBar implements ActionListener {
         ssCentroidPicker = GUIUtils.addMenuItem(peakMenu,
                 "Centroid peak detector", this);
         peakMenu.addSeparator();
-        ssSimpleDeisotoping = GUIUtils.addMenuItem(peakMenu,
-                "Simple deisotoper", this);
+        ssSimpleIsotopicPeaksGrouper = GUIUtils.addMenuItem(peakMenu,
+                "Simple isotopic peaks grouper", this);
         ssCombinatorialDeisotoping = GUIUtils.addMenuItem(peakMenu,
                 "Combinatorial deisotoping", this);
         ssIncompleteIsotopePatternFilter = GUIUtils.addMenuItem(peakMenu,
@@ -437,7 +439,7 @@ public class MainMenu extends JMenuBar implements ActionListener {
             MeanFilter filter = new MeanFilter();
             MeanFilterParameters filterParam = mainWin.getParameterStorage().getMeanFilterParameters();
 
-            startFilter(filter, filterParam);
+            startRawDataMethod(filter, filterParam);
 
         }
 
@@ -448,7 +450,7 @@ public class MainMenu extends JMenuBar implements ActionListener {
             ChromatographicMedianFilter filter = new ChromatographicMedianFilter();
             ChromatographicMedianFilterParameters filterParam = mainWin.getParameterStorage().getChromatographicMedianFilterParameters();
 
-            startFilter(filter, filterParam);
+            startRawDataMethod(filter, filterParam);
 
         }
 
@@ -459,7 +461,7 @@ public class MainMenu extends JMenuBar implements ActionListener {
             CropFilter filter = new CropFilter();
             CropFilterParameters filterParam = mainWin.getParameterStorage().getCropFilterParameters();
 
-            startFilter(filter, filterParam);
+            startRawDataMethod(filter, filterParam);
 
         }
 
@@ -470,7 +472,7 @@ public class MainMenu extends JMenuBar implements ActionListener {
             SavitzkyGolayFilter filter = new SavitzkyGolayFilter();
             SavitzkyGolayFilterParameters filterParam = mainWin.getParameterStorage().getSavitzkyGolayFilterParameters();
 
-            startFilter(filter, filterParam);
+            startRawDataMethod(filter, filterParam);
         }
 
         // Filter -> Zoom scan
@@ -479,7 +481,7 @@ public class MainMenu extends JMenuBar implements ActionListener {
             ZoomScanFilter filter = new ZoomScanFilter();
             ZoomScanFilterParameters filterParam = mainWin.getParameterStorage().getZoomScanFilterParameters();
 
-            startFilter(filter, filterParam);
+            startRawDataMethod(filter, filterParam);
 
         }
 
@@ -488,7 +490,7 @@ public class MainMenu extends JMenuBar implements ActionListener {
             RecursiveThresholdPicker picker = new RecursiveThresholdPicker();
             RecursiveThresholdPickerParameters pickerParam = mainWin.getParameterStorage().getRecursiveThresholdPickerParameters();
 
-            startPeakPicker(picker, pickerParam);
+            startPeakListMethod(picker, pickerParam);
 
         }
 
@@ -496,7 +498,7 @@ public class MainMenu extends JMenuBar implements ActionListener {
 
             CentroidPicker picker = new CentroidPicker();
             CentroidPickerParameters pickerParam = mainWin.getParameterStorage().getCentroidPickerParameters();
-            startPeakPicker(picker, pickerParam);
+            startPeakListMethod(picker, pickerParam);
 
         }
 
@@ -504,7 +506,16 @@ public class MainMenu extends JMenuBar implements ActionListener {
 
             LocalPicker picker = new LocalPicker();
             LocalPickerParameters pickerParam = mainWin.getParameterStorage().getLocalPickerParameters();
-            startPeakPicker(picker, pickerParam);
+            startPeakListMethod(picker, pickerParam);
+
+		}
+
+
+		if (src == ssSimpleIsotopicPeaksGrouper) {
+
+			SimpleIsotopicPeaksGrouper grouper = new SimpleIsotopicPeaksGrouper();
+			SimpleIsotopicPeaksGrouperParameters grouperParam = mainWin.getParameterStorage().getSimpleIsotopicPeaksGrouperParameters();
+			startPeakListMethod(grouper, grouperParam);
 
 		}
 
@@ -545,32 +556,24 @@ public class MainMenu extends JMenuBar implements ActionListener {
 
     }
 
-    private void startFilter(Method filter, MethodParameters filterParam) {
+    private void startRawDataMethod(Method method, MethodParameters methodParam) {
 
         // Ask parameters from user
-        if (!(filter.askParameters((MethodParameters) filterParam))) {
-            statBar.setStatusText("Filtering cancelled.");
+        if (!(method.askParameters((MethodParameters) methodParam))) {
+            statBar.setStatusText("Processing cancelled.");
             return;
         }
 
         // It seems user didn't cancel
-        statBar.setStatusText("Filtering spectra.");
+        statBar.setStatusText("Processing...");
 
         RawDataFile[] rawDataFiles = mainWin.getItemSelector().getSelectedRawData();
 
-        filter.runMethod(filterParam, rawDataFiles, null);
+        method.runMethod(methodParam, rawDataFiles, null);
 
     }
 
-    private void startPeakPicker(Method picker, MethodParameters pickerParam) {
-
-        if (!(picker.askParameters((MethodParameters) pickerParam))) {
-            statBar.setStatusText("Peak picking cancelled.");
-            return;
-        }
-
-        // It seems user didn't cancel
-        statBar.setStatusText("Finding peaks.");
+    private void startPeakListMethod(Method method, MethodParameters methodParam) {
 
         // Check if selected data files have previous peak detection results
         RawDataFile[] rawDataFiles = mainWin.getItemSelector().getSelectedRawData();
@@ -587,23 +590,29 @@ public class MainMenu extends JMenuBar implements ActionListener {
             // Ask if is it ok to replace existing peak picking results
             int selectedValue = JOptionPane.showInternalConfirmDialog(
                     mainWin.getDesktop(),
-                    "Previous peak picking results will be overwritten. Do you want to continue?",
-                    "Overwrite?", JOptionPane.YES_NO_OPTION,
+                    "Previous peak list(s) will be replaced with new ones and alignment results will be closed. Do you want to continue?",
+                    "Continue?", JOptionPane.YES_NO_OPTION,
                     JOptionPane.QUESTION_MESSAGE);
             if (selectedValue != JOptionPane.YES_OPTION) {
-                statBar.setStatusText("Peak picking cancelled.");
+                statBar.setStatusText("Processing cancelled.");
                 return;
             }
         }
 
-        // Remove previous peak lists
-        for (RawDataFile r : rawDataFiles)
-            if (proj.hasPeakList(r))
-                proj.removePeakList(r);
 
-        picker.runMethod(pickerParam, rawDataFiles, null);
+        if (!(method.askParameters((MethodParameters) methodParam))) {
+            statBar.setStatusText("Processing cancelled.");
+            return;
+        }
+
+        // It seems user didn't cancel
+        statBar.setStatusText("Processing...");
+
+        method.runMethod(methodParam, rawDataFiles, null);
 
     }
+
+
 
     /**
      * Update menu elements availability according to what is currently selected
@@ -623,7 +632,7 @@ public class MainMenu extends JMenuBar implements ActionListener {
         ssRecursiveThresholdPicker.setEnabled(false);
         ssLocalPicker.setEnabled(false);
         ssCentroidPicker.setEnabled(false);
-        ssSimpleDeisotoping.setEnabled(false);
+        ssSimpleIsotopicPeaksGrouper.setEnabled(false);
         ssCombinatorialDeisotoping.setEnabled(false);
         ssIncompleteIsotopePatternFilter.setEnabled(false);
         tsJoinAligner.setEnabled(false);
@@ -661,7 +670,7 @@ public class MainMenu extends JMenuBar implements ActionListener {
             for (RawDataFile file : actRawData)
                 if (proj.hasPeakList(file)) {
                     fileExportPeakList.setEnabled(true);
-                    // ssSimpleDeisotoping.setEnabled(true);
+					ssSimpleIsotopicPeaksGrouper.setEnabled(true);
                     // ssCombinatorialDeisotoping.setEnabled(true);
                     // tsJoinAligner.setEnabled(true);
                     // tsFastAligner.setEnabled(true);

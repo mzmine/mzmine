@@ -23,6 +23,7 @@ package net.sf.mzmine.methods.deisotoping.simplegrouper;
 import java.awt.BorderLayout;
 import java.awt.FlowLayout;
 import java.awt.GridLayout;
+import java.awt.Frame;
 import java.text.NumberFormat;
 
 import javax.swing.JButton;
@@ -88,7 +89,9 @@ public class SimpleIsotopicPeaksGrouperParameterSetupDialog extends JDialog impl
      * @param	_parameters				Current AlignmentResultExporter parameter settings
      *
      */
-    public SimpleIsotopicPeaksGrouperParameterSetupDialog(SimpleIsotopicPeaksGrouperParameters _parameters) {
+    public SimpleIsotopicPeaksGrouperParameterSetupDialog(Frame owner, SimpleIsotopicPeaksGrouperParameters _parameters) {
+
+		super(owner, true);
 
 		parameters = _parameters;
 
@@ -97,6 +100,8 @@ public class SimpleIsotopicPeaksGrouperParameterSetupDialog extends JDialog impl
 
 		// Put current parameter settings to form
         getSettingsToForm();
+
+        setLocationRelativeTo(owner);
 
     }
 
