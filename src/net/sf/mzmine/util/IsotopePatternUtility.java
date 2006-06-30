@@ -24,6 +24,10 @@ import net.sf.mzmine.interfaces.PeakList;
 
 import java.util.Vector;
 import java.util.Hashtable;
+import java.util.TreeSet;
+import java.util.SortedSet;
+import java.util.Comparator;
+import java.util.Iterator;
 
 /**
  * This helper class is used to group peaks by their isotope pattern.
@@ -32,7 +36,7 @@ import java.util.Hashtable;
 public class IsotopePatternUtility {
 
 	private Hashtable<IsotopePattern, Integer> isotopePatternNumbers;
-	private Hashtable<IsotopePattern, Vector<Peak>> isotopePatternPeaks;
+	private Hashtable<IsotopePattern, SortedSet<Peak>> isotopePatternPeaks;
 
 	/**
 	 * Constructor: groups peaks of a peak list by their isotope pattern
@@ -40,7 +44,8 @@ public class IsotopePatternUtility {
 	public IsotopePatternUtility(PeakList peakList) {
 
 		isotopePatternNumbers = new Hashtable<IsotopePattern, Integer>();
-		isotopePatternPeaks = new Hashtable<IsotopePattern, Vector<Peak>>();
+		isotopePatternPeaks = new Hashtable<IsotopePattern, SortedSet<Peak>>();
+		PeakSorter peakSorter = new PeakSorter();
 
 		int runningNumber = 0;
 		Peak[] peaks = peakList.getPeaks();
@@ -57,9 +62,9 @@ public class IsotopePatternUtility {
 			}
 
 			// Add this peak to the collection of peaks in this pattern
-			Vector<Peak> peaksInPattern = isotopePatternPeaks.get(isotopePattern);
+			SortedSet<Peak> peaksInPattern = isotopePatternPeaks.get(isotopePattern);
 			if (peaksInPattern==null) {
-				peaksInPattern = new Vector<Peak>();
+				peaksInPattern = new TreeSet<Peak>(peakSorter);
 				isotopePatternPeaks.put(isotopePattern, peaksInPattern);
 			}
 			peaksInPattern.add(p);
@@ -84,7 +89,7 @@ public class IsotopePatternUtility {
 	 * Returns all peaks that belong to the same pattern
 	 */
 	public Peak[] getPeaksInPattern(IsotopePattern isotopePattern) {
-		Vector<Peak> peaksVector = isotopePatternPeaks.get(isotopePattern);
+		SortedSet<Peak> peaksVector = isotopePatternPeaks.get(isotopePattern);
 		if (peaksVector==null) return new Peak[0];
 		return peaksVector.toArray(new Peak[0]);
 	}
@@ -93,7 +98,6 @@ public class IsotopePatternUtility {
 	/**
 	 * Returns number of the peak within pattern
 	 */
-	 /*
 	public int getPeakNumberWithinPattern(Peak p) {
 		if (p.getIsotopePattern()==null) return -1;
 
@@ -114,14 +118,14 @@ public class IsotopePatternUtility {
 
 	private class PeakSorter implements Comparator<Peak> {
 		public int compare(Peak p1, Peak p2) {
-			if (p1.getMZ() < p2.getMZ()) return -1;
-			if (p1.getMZ() > p2.getMZ()) return 1;
+			if (p1.getNormalizedMZ() < p2.getNormalizedMZ()) return -1;
+			if (p1.getNormalizedMZ() > p2.getNormalizedMZ()) return 1;
 
-			if (p1.getRT() <= p2.getRT()) return -1;
+			if (p1.getNormalizedRT() <= p2.getNormalizedRT()) return -1;
 			return 1;
 		}
 
-		public boolean equals(Object obj) return false;
+		public boolean equals(Object obj) { return false; }
 	}
-	*/
+
 }

@@ -108,6 +108,7 @@ public class TableViewTable extends JTable {
 														"Norm. Height",
 														"Norm. Area",
 														"Isotope Pattern #",
+														"Isotope Peak #",
 														"Charge State",
 														"Identification result(s)"
 													};
@@ -163,6 +164,11 @@ public class TableViewTable extends JTable {
 				return isotopePatternUtility.getIsotopePatternNumber(isotopePattern);
 			}
 			if (col == 11) {
+				IsotopePattern isotopePattern = p.getIsotopePattern();
+				if (isotopePattern == null) return unassignedValue;
+				return isotopePatternUtility.getPeakNumberWithinPattern(p);
+			}
+			if (col == 12) {
 				IsotopePattern isotopePattern = p.getIsotopePattern();
 				if (isotopePattern == null) return unassignedValue;
 				return isotopePattern.getChargeState();
