@@ -29,7 +29,7 @@ import java.util.Hashtable;
  * This helper class is used to group peaks by their isotope pattern.
  */
 
-public class IsotopePatternGrouper {
+public class IsotopePatternUtility {
 
 	private Hashtable<IsotopePattern, Integer> isotopePatternNumbers;
 	private Hashtable<IsotopePattern, Vector<Peak>> isotopePatternPeaks;
@@ -37,7 +37,7 @@ public class IsotopePatternGrouper {
 	/**
 	 * Constructor: groups peaks of a peak list by their isotope pattern
 	 */
-	public IsotopePatternGrouper(PeakList peakList) {
+	public IsotopePatternUtility(PeakList peakList) {
 
 		isotopePatternNumbers = new Hashtable<IsotopePattern, Integer>();
 		isotopePatternPeaks = new Hashtable<IsotopePattern, Vector<Peak>>();

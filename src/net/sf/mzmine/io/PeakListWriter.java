@@ -33,7 +33,7 @@ import net.sf.mzmine.interfaces.IsotopePattern;
 import net.sf.mzmine.interfaces.CompoundIdentity;
 import net.sf.mzmine.interfaces.Peak;
 import net.sf.mzmine.interfaces.PeakList;
-import net.sf.mzmine.util.IsotopePatternGrouper;
+import net.sf.mzmine.util.IsotopePatternUtility;
 
 
 
@@ -81,7 +81,7 @@ public class PeakListWriter {
 		PeakList peakList = proj.getPeakList(rawData);
 
 		// Group peaks by their isotope pattern
-		IsotopePatternGrouper isotopeGrouper = new IsotopePatternGrouper(peakList);
+		IsotopePatternUtility isotopeUtility = new IsotopePatternUtility(peakList);
 
 
 		// Loop through peaks
@@ -122,7 +122,7 @@ public class PeakListWriter {
 				IsotopePattern isotopePattern = p.getIsotopePattern();
 				if (isotopePattern!=null) {
 
-					int isotopePatternNumber =  isotopeGrouper.getIsotopePatternNumber(isotopePattern);
+					int isotopePatternNumber =  isotopeUtility.getIsotopePatternNumber(isotopePattern);
 					int charge = isotopePattern.getChargeState();
 
 					s += "" + isotopePatternNumber + "\t"

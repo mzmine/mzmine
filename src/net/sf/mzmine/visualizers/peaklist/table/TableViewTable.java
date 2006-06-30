@@ -34,7 +34,7 @@ import net.sf.mzmine.util.GUIUtils;
 import net.sf.mzmine.interfaces.PeakList;
 import net.sf.mzmine.interfaces.Peak;
 import net.sf.mzmine.interfaces.IsotopePattern;
-import net.sf.mzmine.util.IsotopePatternGrouper;
+import net.sf.mzmine.util.IsotopePatternUtility;
 import net.sf.mzmine.io.RawDataFile;
 import net.sf.mzmine.io.MZmineProject;
 
@@ -115,11 +115,11 @@ public class TableViewTable extends JTable {
 		private final String unassignedValue = new String("N/A");
 
 		private PeakList peakList;
-		private IsotopePatternGrouper isotopePatternGrouper;
+		private IsotopePatternUtility isotopePatternUtility;
 
 		public MyTableModel(PeakList peakList) {
 			this.peakList = peakList;
-			isotopePatternGrouper = new IsotopePatternGrouper(peakList);
+			isotopePatternUtility = new IsotopePatternUtility(peakList);
 		}
 
 		public int getColumnCount() {
@@ -160,7 +160,7 @@ public class TableViewTable extends JTable {
 			if (col == 10) {
 				IsotopePattern isotopePattern = p.getIsotopePattern();
 				if (isotopePattern == null) return unassignedValue;
-				return isotopePatternGrouper.getIsotopePatternNumber(isotopePattern);
+				return isotopePatternUtility.getIsotopePatternNumber(isotopePattern);
 			}
 			if (col == 11) {
 				IsotopePattern isotopePattern = p.getIsotopePattern();
