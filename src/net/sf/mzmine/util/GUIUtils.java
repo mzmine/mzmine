@@ -19,15 +19,21 @@
 
 package net.sf.mzmine.util;
 
+import java.awt.Container;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 
 import javax.swing.AbstractAction;
+import javax.swing.BorderFactory;
 import javax.swing.Icon;
 import javax.swing.JButton;
 import javax.swing.JComponent;
+import javax.swing.JLabel;
 import javax.swing.JMenuItem;
+import javax.swing.JPanel;
+import javax.swing.JSeparator;
 import javax.swing.KeyStroke;
+import javax.swing.border.Border;
 
 
 /**
@@ -59,7 +65,7 @@ public class GUIUtils {
      * @param listener Menu item's ActionListener or null
      * @return Created menu item
      */
-    public static JMenuItem addMenuItem(JComponent menu, String text, ActionListener listener) {
+    public static JMenuItem addMenuItem(Container menu, String text, ActionListener listener) {
         return addMenuItem(menu, text, listener, null, 0, false);
     }
     
@@ -71,7 +77,7 @@ public class GUIUtils {
      * @param actionCommand Menu item's action command or null 
      * @return Created menu item
      */
-    public static JMenuItem addMenuItem(JComponent menu, String text, ActionListener listener, String actionCommand) {
+    public static JMenuItem addMenuItem(Container menu, String text, ActionListener listener, String actionCommand) {
         return addMenuItem(menu, text, listener, actionCommand, 0, false);
     }
     
@@ -83,7 +89,7 @@ public class GUIUtils {
      * @param mnemonic Menu item's mnemonic (virtual key code) or 0 
      * @return Created menu item
      */
-    public static JMenuItem addMenuItem(JComponent menu, String text, ActionListener listener, int mnemonic) {
+    public static JMenuItem addMenuItem(Container menu, String text, ActionListener listener, int mnemonic) {
         return addMenuItem(menu, text, listener, null, mnemonic, false);
     }
     
@@ -96,7 +102,7 @@ public class GUIUtils {
      * @param setAccelerator Indicates whether to set key accelerator to CTRL + the key specified by mnemonic parameter
      * @return Created menu item
      */
-    public static JMenuItem addMenuItem(JComponent menu, String text, ActionListener listener, int mnemonic, boolean setAccelerator) {
+    public static JMenuItem addMenuItem(Container menu, String text, ActionListener listener, int mnemonic, boolean setAccelerator) {
         return addMenuItem(menu, text, listener, null, mnemonic, setAccelerator);
     }
     
@@ -110,7 +116,7 @@ public class GUIUtils {
      * @param setAccelerator Indicates whether to set key accelerator to CTRL + the key specified by mnemonic parameter
      * @return Created menu item
      */
-    public static JMenuItem addMenuItem(JComponent menu, String text, ActionListener listener, String actionCommand, int mnemonic, boolean setAccelerator) {
+    public static JMenuItem addMenuItem(Container menu, String text, ActionListener listener, String actionCommand, int mnemonic, boolean setAccelerator) {
         JMenuItem  item = new JMenuItem(text);
         if (listener != null) item.addActionListener(listener);
         if (actionCommand != null) item.setActionCommand(actionCommand);
@@ -128,7 +134,7 @@ public class GUIUtils {
      * @param listener Button's ActionListener or null
      * @return Created button
      */
-    public static JButton addButton(JComponent component, String text, Icon icon, ActionListener listener) {
+    public static JButton addButton(Container component, String text, Icon icon, ActionListener listener) {
         return addButton(component, text, icon, listener, null, 0, null);
     }
     
@@ -141,7 +147,7 @@ public class GUIUtils {
      * @param actionCommand Button's action command or null 
      * @return Created button
      */
-    public static JButton addButton(JComponent component, String text, Icon icon, ActionListener listener, String actionCommand) {
+    public static JButton addButton(Container component, String text, Icon icon, ActionListener listener, String actionCommand) {
         return addButton(component, text, icon, listener, actionCommand, 0, null);
     }
     
@@ -155,7 +161,7 @@ public class GUIUtils {
      * @param toolTip Button's tooltip text or null
      * @return Created button
      */
-    public static JButton addButton(JComponent component, String text, Icon icon, ActionListener listener, String actionCommand, String toolTip) {
+    public static JButton addButton(Container component, String text, Icon icon, ActionListener listener, String actionCommand, String toolTip) {
         return addButton(component, text, icon, listener, actionCommand, 0, toolTip);
     }
     
@@ -170,7 +176,7 @@ public class GUIUtils {
      * @param toolTip Button's tooltip text or null
      * @return Created button
      */
-    public static JButton addButton(JComponent component, String text, Icon icon, ActionListener listener, String actionCommand, int mnemonic, String toolTip) {
+    public static JButton addButton(Container component, String text, Icon icon, ActionListener listener, String actionCommand, int mnemonic, String toolTip) {
         JButton button = new JButton(text, icon);
         if (listener != null) button.addActionListener(listener);
         if (actionCommand != null) button.setActionCommand(actionCommand);
@@ -180,5 +186,117 @@ public class GUIUtils {
         return button;
     }
     
+    /**
+     * Add a new button to a JPanel and then add the panel to a given component
+     * @param component Component to add the button to
+     * @param text Button's text or null
+     * @param icon Button's icon or null
+     * @param listener Button's ActionListener or null 
+     * @return Created button
+     */
+    public static JButton addButtonInPanel(Container component, String text, ActionListener listener) {
+        return addButtonInPanel(component, text, listener, null);
+    }
+    
+    /**
+     * Add a new button to a JPanel and then add the panel to a given component
+     * @param component Component to add the button to
+     * @param text Button's text or null
+     * @param icon Button's icon or null
+     * @param listener Button's ActionListener or null
+     * @param actionCommand Button's action command or null 
+     * @return Created button
+     */
+    public static JButton addButtonInPanel(Container component, String text, ActionListener listener, String actionCommand) {
+        JPanel panel = new JPanel();
+        JButton button = new JButton(text);
+        if (listener != null) button.addActionListener(listener);
+        if (actionCommand != null) button.setActionCommand(actionCommand);
+        panel.add(button);
+        component.add(panel);
+        return button;
+    }
+    
+    /**
+     * Add a new label to a given component
+     * @param component Component to add the label to
+     * @param text Label's text
+     * @return Created label
+     */
+    public static JLabel addLabel(Container component, String text) {
+        return addLabel(component, text, null, JLabel.LEFT);
+    }
+    
+    /**
+     * Add a new label to a given component
+     * @param component Component to add the label to
+     * @param text Label's text
+     * @param horizontalAlignment Label's horizontal alignment (e.g. JLabel.LEFT)
+     * @return Created label
+     */
+    public static JLabel addLabel(Container component, String text, int horizontalAlignment) {
+        return addLabel(component, text, null, horizontalAlignment);
+    }
+    
+    /**
+     * Add a new label to a given component
+     * @param component Component to add the label to
+     * @param text Label's text
+     * @param icon Label's icon
+     * @param horizontalAlignment Label's horizontal alignment (e.g. JLabel.LEFT)
+     * @return Created label
+     */
+    public static JLabel addLabel(Container component, String text, Icon icon, int horizontalAlignment) {
+        JLabel label = new JLabel(text, icon, horizontalAlignment);
+        component.add(label);
+        return label;
+    }
+    
+    /**
+     * Add a new label to a JPanel and then add the panel to a given component
+     * @param component Component to add the label to
+     * @param text Label's text
+     * @return Created label
+     */
+    public static JLabel addLabelInPanel(Container component, String text) {
+        JPanel panel = new JPanel();
+        component.add(panel);
+        return addLabel(panel, text);
+    }
+    
+    /**
+     * Add a separator to a given component
+     * @param component Component to add the separator to
+     * @return Created separator
+     */
+    public static JSeparator addSeparator(Container component) {
+        return addSeparator(component, 0);
+    }
+    
+    
+    /**
+     * Add a separator to a given component
+     * @param component Component to add the separator to
+     * @param margin Margin around the separator
+     * @return Created separator
+     */
+    public static JSeparator addSeparator(Container component, int margin) {
+        JSeparator separator = new JSeparator(); 
+        if (margin > 0) addMargin(separator, margin);
+        component.add(separator);
+        return separator;
+    }
+    
+    /**
+     * Add a margin to a given component
+     * @param component Component to add the margin to
+     * @param margin Margin size
+     * @return Created border
+     */
+    public static Border addMargin(JComponent component, int margin) {
+        Border marginBorder = BorderFactory.createEmptyBorder(margin, margin, margin, margin);
+        component.setBorder(marginBorder);
+        return marginBorder;
+    }
     
 }
