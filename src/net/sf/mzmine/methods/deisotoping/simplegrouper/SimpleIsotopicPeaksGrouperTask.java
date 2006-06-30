@@ -228,7 +228,7 @@ public class SimpleIsotopicPeaksGrouperTask implements Task {
 		if (!parameters.monotonicShape) { fitHalfPattern(p, charge, -1, parameters, allPeaks, fittedPeaks, alreadyAssignedPeaks); }
 
 		// Search for peaks after the start peak
-		//fitHalfPattern(p, charge, 1, parameters, allPeaks, fittedPeaks, isotopePatternID);
+		fitHalfPattern(p, charge, 1, parameters, allPeaks, fittedPeaks, alreadyAssignedPeaks);
 
 		return fittedPeaks.toArray(new Peak[0]);
 
