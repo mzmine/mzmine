@@ -126,6 +126,18 @@ public class GUIUtils {
      * @param text Button's text or null
      * @param icon Button's icon or null
      * @param listener Button's ActionListener or null
+     * @return Created button
+     */
+    public static JButton addButton(JComponent component, String text, Icon icon, ActionListener listener) {
+        return addButton(component, text, icon, listener, null, 0, null);
+    }
+    
+    /**
+     * Add a new button to a given component
+     * @param component Component to add the button to
+     * @param text Button's text or null
+     * @param icon Button's icon or null
+     * @param listener Button's ActionListener or null
      * @param actionCommand Button's action command or null 
      * @return Created button
      */
