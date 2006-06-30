@@ -50,24 +50,22 @@ import net.sf.mzmine.methods.filtering.zoomscan.ZoomScanFilter;
 import net.sf.mzmine.methods.filtering.zoomscan.ZoomScanFilterParameters;
 import net.sf.mzmine.methods.peakpicking.centroid.CentroidPicker;
 import net.sf.mzmine.methods.peakpicking.centroid.CentroidPickerParameters;
-import net.sf.mzmine.methods.peakpicking.recursivethreshold.RecursiveThresholdPicker;
-import net.sf.mzmine.methods.peakpicking.recursivethreshold.RecursiveThresholdPickerParameters;
 import net.sf.mzmine.methods.peakpicking.local.LocalPicker;
 import net.sf.mzmine.methods.peakpicking.local.LocalPickerParameters;
+import net.sf.mzmine.methods.peakpicking.recursivethreshold.RecursiveThresholdPicker;
+import net.sf.mzmine.methods.peakpicking.recursivethreshold.RecursiveThresholdPickerParameters;
 import net.sf.mzmine.userinterface.dialogs.FileOpenDialog;
 import net.sf.mzmine.util.GUIUtils;
 import net.sf.mzmine.visualizers.alignmentresult.AlignmentResultVisualizerCDAPlotView;
 import net.sf.mzmine.visualizers.alignmentresult.AlignmentResultVisualizerCoVarPlotView;
 import net.sf.mzmine.visualizers.alignmentresult.AlignmentResultVisualizerLogratioPlotView;
 import net.sf.mzmine.visualizers.alignmentresult.AlignmentResultVisualizerSammonsPlotView;
+import net.sf.mzmine.visualizers.rawdata.RawDataVisualizer;
 import net.sf.mzmine.visualizers.rawdata.basepeak.BasePeakSetup;
 import net.sf.mzmine.visualizers.rawdata.spectra.SpectraSetup;
-import net.sf.mzmine.visualizers.rawdata.spectra.SpectrumVisualizer;
 import net.sf.mzmine.visualizers.rawdata.threed.ThreeDSetup;
 import net.sf.mzmine.visualizers.rawdata.tic.TICSetup;
-import net.sf.mzmine.visualizers.rawdata.tic.TICVisualizer;
 import net.sf.mzmine.visualizers.rawdata.twod.TwoDSetup;
-import net.sf.mzmine.visualizers.rawdata.twod.TwoDVisualizer;
 import sunutils.ExampleFileFilter;
 
 /**
@@ -691,9 +689,7 @@ public class MainMenu extends JMenuBar implements ActionListener {
             JInternalFrame activeWindow = mainWin.getDesktop().getSelectedFrame();
 
             if (activeWindow != null) {
-                if ((activeWindow.getClass() == TICVisualizer.class)
-                        || (activeWindow.getClass() == TwoDVisualizer.class)
-                        || (activeWindow.getClass() == SpectrumVisualizer.class)) {
+                if (activeWindow instanceof RawDataVisualizer) {
                     filePrint.setEnabled(true);
                     editCopy.setEnabled(true);
                 }
