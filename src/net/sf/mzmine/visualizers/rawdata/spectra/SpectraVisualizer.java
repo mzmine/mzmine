@@ -43,21 +43,23 @@ import net.sf.mzmine.util.CursorPosition;
 import net.sf.mzmine.util.RawDataAcceptor;
 import net.sf.mzmine.util.RawDataRetrievalTask;
 import net.sf.mzmine.visualizers.rawdata.RawDataVisualizer;
-import net.sf.mzmine.visualizers.rawdata.spectra.SpectrumPlot.PlotMode;
+import net.sf.mzmine.visualizers.rawdata.spectra.SpectraPlot.PlotMode;
 
 import org.jfree.data.xy.DefaultTableXYDataset;
 import org.jfree.data.xy.XYSeries;
 
 /**
- * 
+ * Spectrum visualizer using JFreeChart library
  */
-public class SpectrumVisualizer extends JInternalFrame implements
+public class SpectraVisualizer extends JInternalFrame implements
         RawDataVisualizer, ActionListener, RawDataAcceptor, TaskListener {
 
     // TODO: open a precursor scan/ open dependant MS/MS, zooming by + - keys
+    // TODO: display peaks from peaklist, other peaks with gray color
+    // TODO: binning of multiple scans
     
-    private SpectrumToolBar toolBar;
-    private SpectrumPlot spectrumPlot;
+    private SpectraToolBar toolBar;
+    private SpectraPlot spectrumPlot;
 
     private RawDataFile rawDataFile;
 
@@ -72,18 +74,18 @@ public class SpectrumVisualizer extends JInternalFrame implements
     private static NumberFormat mzFormat = new DecimalFormat("0.00");
     private static NumberFormat intensityFormat = new DecimalFormat("0.00E0");
 
-    public SpectrumVisualizer(RawDataFile rawDataFile, int scanNumber) {
+    public SpectraVisualizer(RawDataFile rawDataFile, int scanNumber) {
         this(rawDataFile, new int[] { scanNumber });
     }
 
-    public SpectrumVisualizer(RawDataFile rawDataFile, int[] scanNumbers) {
+    public SpectraVisualizer(RawDataFile rawDataFile, int[] scanNumbers) {
 
         super(rawDataFile.toString(), true, true, true, true);
 
         setDefaultCloseOperation(DISPOSE_ON_CLOSE);
         setBackground(Color.white);
 
-        toolBar = new SpectrumToolBar(this);
+        toolBar = new SpectraToolBar(this);
         add(toolBar, BorderLayout.EAST);
 
         this.rawDataFile = rawDataFile;
@@ -96,7 +98,7 @@ public class SpectrumVisualizer extends JInternalFrame implements
         series = new XYSeries(rawDataFile.toString(), true, false);
         dataset.addSeries(series);
 
-        spectrumPlot = new SpectrumPlot(this, dataset);
+        spectrumPlot = new SpectraPlot(this, dataset);
         add(spectrumPlot, BorderLayout.CENTER);
 
         scans = new Scan[scanNumbers.length];
@@ -104,16 +106,7 @@ public class SpectrumVisualizer extends JInternalFrame implements
         Task updateTask = new RawDataRetrievalTask(rawDataFile, scanNumbers,
                 "Updating spectrum visualizer of " + rawDataFile, this);
 
-        /*
-         * if the file data is preloaded in memory, we can update the visualizer
-         * in this thread, otherwise start a task
-         */
-        if (rawDataFile.getPreloadLevel() == PreloadLevel.PRELOAD_ALL_SCANS) {
-            taskStarted(updateTask);
-            updateTask.run();
-            taskFinished(updateTask);
-        } else
-            TaskController.getInstance().addTask(updateTask, TaskPriority.HIGH,
+        TaskController.getInstance().addTask(updateTask, TaskPriority.HIGH,
                     this);
 
         pack();

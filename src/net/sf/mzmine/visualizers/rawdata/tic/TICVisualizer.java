@@ -36,14 +36,14 @@ import net.sf.mzmine.io.RawDataFile;
 import net.sf.mzmine.taskcontrol.Task;
 import net.sf.mzmine.taskcontrol.TaskListener;
 import net.sf.mzmine.taskcontrol.Task.TaskStatus;
-import net.sf.mzmine.userinterface.dialogs.OpenScansDialog;
 import net.sf.mzmine.userinterface.mainwindow.MainWindow;
 import net.sf.mzmine.util.CursorPosition;
 import net.sf.mzmine.visualizers.rawdata.MultipleRawDataVisualizer;
-import net.sf.mzmine.visualizers.rawdata.spectra.SpectrumVisualizer;
+import net.sf.mzmine.visualizers.rawdata.spectra.SpectraSetup;
+import net.sf.mzmine.visualizers.rawdata.spectra.SpectraVisualizer;
 
 /**
- * This class defines a total ion chromatogram visualizer for raw data
+ * Total ion chromatogram visualizer using JFreeChart library
  */
 public class TICVisualizer extends JInternalFrame implements
         MultipleRawDataVisualizer, TaskListener, ActionListener {
@@ -256,7 +256,7 @@ public class TICVisualizer extends JInternalFrame implements
         if (command.equals("SHOW_SPECTRUM")) {
             CursorPosition pos = getCursorPosition();
             if (pos != null) {
-                new SpectrumVisualizer(pos.getRawDataFile(), pos
+                new SpectraVisualizer(pos.getRawDataFile(), pos
                         .getScanNumber());
             }
         }
@@ -306,16 +306,8 @@ public class TICVisualizer extends JInternalFrame implements
 
         if (command.equals("SHOW_MULTIPLE_SPECTRA")) {
             CursorPosition pos = getCursorPosition();
-            if (pos != null) {
-                if (pos != null) {
-                    int scanNumbers[] = pos.getRawDataFile().getScanNumbers(
-                            msLevel);
-                    OpenScansDialog dialog = new OpenScansDialog(pos
-                            .getRawDataFile(), scanNumbers,
-                            pos.getScanNumber(), pos.getScanNumber());
-                    dialog.setVisible(true);
-                }
-            }
+            if (pos != null) 
+                SpectraSetup.showSetupDialog(pos.getRawDataFile(), msLevel, pos.getScanNumber());
         }
 
     }

@@ -26,7 +26,7 @@ import net.sf.mzmine.userinterface.dialogs.ParameterSetupDialog;
 import net.sf.mzmine.userinterface.mainwindow.MainWindow;
 
 /**
- * 
+ * Setup class for 3D visualizer
  */
 public class ThreeDSetup {
 

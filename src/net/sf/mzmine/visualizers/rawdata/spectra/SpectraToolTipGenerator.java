@@ -33,7 +33,7 @@ import org.jfree.data.xy.XYDataset;
 /**
  * 
  */
-class SpectrumToolTipGenerator implements XYToolTipGenerator {
+class SpectraToolTipGenerator implements XYToolTipGenerator {
 
     // TODO: get these from parameter storage
     private static NumberFormat intensityFormat = new DecimalFormat("0.00E0");

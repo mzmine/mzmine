@@ -28,7 +28,7 @@ import net.sf.mzmine.userinterface.dialogs.ParameterSetupDialog;
 import net.sf.mzmine.userinterface.mainwindow.MainWindow;
 
 /**
- * 
+ * Setup class for TIC visualizer
  */
 public class TICSetup  {
 

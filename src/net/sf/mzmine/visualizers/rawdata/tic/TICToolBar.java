@@ -27,12 +27,12 @@ import javax.swing.ImageIcon;
 import javax.swing.JButton;
 import javax.swing.JToolBar;
 
+import net.sf.mzmine.util.GUIUtils;
+
 /**
- * 
+ * TIC visualizer's toolbar class
  */
 class TICToolBar extends JToolBar {
-
-    private JButton showSpectraButton, dataPointsButton, annotationsButton;
 
     static final Icon showSpectrumIcon = new ImageIcon("spectrumicon.png");
     static final Icon dataPointsIcon = new ImageIcon("datapointsicon.png");
@@ -46,26 +46,18 @@ class TICToolBar extends JToolBar {
         setMargin(new Insets(5, 5, 5, 5));
         setBackground(Color.white);
 
-        showSpectraButton = new JButton(showSpectrumIcon);
-        showSpectraButton.setActionCommand("SHOW_SPECTRUM");
-        showSpectraButton.setToolTipText("Show spectrum of selected scan");
-        showSpectraButton.addActionListener(masterFrame);
+        GUIUtils.addButton(this, null, showSpectrumIcon, masterFrame,
+                "SHOW_SPECTRUM", "Show spectrum of selected scan");
 
-        dataPointsButton = new JButton(dataPointsIcon);
-        dataPointsButton.setActionCommand("SHOW_DATA_POINTS");
-        dataPointsButton.setToolTipText("Toggle displaying of data points");
-        dataPointsButton.addActionListener(masterFrame);
-
-        annotationsButton = new JButton(annotationsIcon);
-        annotationsButton.setActionCommand("SHOW_ANNOTATIONS");
-        annotationsButton.setToolTipText("Toggle displaying of peak values");
-        annotationsButton.addActionListener(masterFrame);
-
-        add(showSpectraButton);
         addSeparator();
-        add(dataPointsButton);
+
+        GUIUtils.addButton(this, null, dataPointsIcon, masterFrame,
+                "SHOW_DATA_POINTS", "Toggle displaying of data points");
+
         addSeparator();
-        add(annotationsButton);
+
+        GUIUtils.addButton(this, null, annotationsIcon, masterFrame,
+                "SHOW_ANNOTATIONS", "Toggle displaying of peak values");
 
     }
 

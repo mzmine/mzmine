@@ -45,7 +45,7 @@ import org.jfree.ui.RectangleInsets;
 /**
  * 
  */
-class SpectrumPlot extends ChartPanel {
+class SpectraPlot extends ChartPanel {
 
     private JFreeChart chart;
 
@@ -74,7 +74,7 @@ class SpectrumPlot extends ChartPanel {
     XYBarRenderer centroidRenderer;
     XYLineAndShapeRenderer continuousRenderer;
 
-    SpectrumPlot(SpectrumVisualizer visualizer, XYDataset dataset) {
+    SpectraPlot(SpectraVisualizer visualizer, XYDataset dataset) {
         // superconstructor with no chart yet
         // disable off-screen buffering (makes problems with late drawing of the title)
         super(null, false);
@@ -143,7 +143,7 @@ class SpectrumPlot extends ChartPanel {
         centroidRenderer.setPaint(plotColor);
         
         // set label generator
-        SpectrumItemLabelGenerator labelGenerator = new SpectrumItemLabelGenerator(
+        SpectraItemLabelGenerator labelGenerator = new SpectraItemLabelGenerator(
                 this);
         continuousRenderer.setItemLabelGenerator(labelGenerator);
         continuousRenderer.setItemLabelsVisible(true);
@@ -151,7 +151,7 @@ class SpectrumPlot extends ChartPanel {
         centroidRenderer.setItemLabelsVisible(true);
 
         // set toolTipGenerator
-        SpectrumToolTipGenerator toolTipGenerator = new SpectrumToolTipGenerator();
+        SpectraToolTipGenerator toolTipGenerator = new SpectraToolTipGenerator();
         continuousRenderer.setToolTipGenerator(toolTipGenerator);
         centroidRenderer.setToolTipGenerator(toolTipGenerator);
 

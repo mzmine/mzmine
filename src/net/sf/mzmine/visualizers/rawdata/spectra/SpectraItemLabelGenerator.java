@@ -33,14 +33,14 @@ import org.jfree.data.xy.XYDataset;
 /**
  * 
  */
-class SpectrumItemLabelGenerator implements XYItemLabelGenerator {
+class SpectraItemLabelGenerator implements XYItemLabelGenerator {
 
-    private SpectrumPlot plot;
+    private SpectraPlot plot;
 
     // TODO: get this from parameter storage
     private static NumberFormat mzFormat = new DecimalFormat("0.00");
 
-    SpectrumItemLabelGenerator(SpectrumPlot plot) {
+    SpectraItemLabelGenerator(SpectraPlot plot) {
         this.plot = plot;
     }
 

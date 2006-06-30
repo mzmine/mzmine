@@ -27,7 +27,7 @@ import net.sf.mzmine.userinterface.mainwindow.MainWindow;
 import net.sf.mzmine.visualizers.rawdata.threed.ThreeDVisualizer;
 
 /**
- * 
+ * Setup class for base peak visualizer
  */
 public class BasePeakSetup {
 
