@@ -28,5 +28,17 @@ public class CollectionUtils {
         return array;
     }
     
+    /**
+     * Converts an array of ints to an array of Integers
+     * @param array Array of ints
+     * @return Array of Integers
+     */
+    public static Integer[] toIntegerArray(int array[]) {
+        Integer newArray[] = new Integer[array.length];
+        for (int i = 0; i < array.length; i++)
+            newArray[i] = new Integer(array[i]);
+        return newArray;
+    }
+    
 
 }
