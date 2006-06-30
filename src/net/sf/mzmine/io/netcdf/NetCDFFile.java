@@ -36,6 +36,7 @@ import net.sf.mzmine.io.RawDataFileWriter;
 import net.sf.mzmine.io.mzxml.MZXMLFileWriter;
 import net.sf.mzmine.methods.Method;
 import net.sf.mzmine.methods.MethodParameters;
+import net.sf.mzmine.util.CollectionUtils;
 import net.sf.mzmine.util.Logger;
 
 /**
@@ -176,13 +177,9 @@ public class NetCDFFile implements RawDataFile {
             if ((rt >= rtMin) && (rt <= rtMax)) eligibleScans.add(scanNumber);
         }
         
-        int[] numbersArray = new int[eligibleScans.size()];
-        int index = 0;
-        iter = eligibleScans.iterator();
-        while (iter.hasNext())
-            numbersArray[index++] = iter.next().intValue();
-        
+        int[] numbersArray = CollectionUtils.toArray(eligibleScans);
         Arrays.sort(numbersArray);
+        
         return numbersArray;
     }
 

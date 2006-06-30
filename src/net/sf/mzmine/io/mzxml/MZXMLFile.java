@@ -42,6 +42,7 @@ import net.sf.mzmine.io.RawDataFile;
 import net.sf.mzmine.io.RawDataFileWriter;
 import net.sf.mzmine.methods.Method;
 import net.sf.mzmine.methods.MethodParameters;
+import net.sf.mzmine.util.CollectionUtils;
 import net.sf.mzmine.util.Logger;
 
 /**
@@ -229,13 +230,9 @@ class MZXMLFile implements RawDataFile {
             if ((rt >= rtMin) && (rt <= rtMax)) eligibleScans.add(scanNumber);
         }
         
-        int[] numbersArray = new int[eligibleScans.size()];
-        int index = 0;
-        iter = eligibleScans.iterator();
-        while (iter.hasNext())
-            numbersArray[index++] = iter.next().intValue();
-        
+        int[] numbersArray = CollectionUtils.toArray(eligibleScans);
         Arrays.sort(numbersArray);
+        
         return numbersArray;
     }
 
@@ -248,14 +245,13 @@ class MZXMLFile implements RawDataFile {
         
         Set<Integer> allScanNumbers = new HashSet<Integer>();
         Enumeration<ArrayList<Integer>> scanNumberLists = scanNumbers.elements();
-        while (scanNumberLists.hasMoreElements()) allScanNumbers.addAll(scanNumberLists.nextElement());
         
-        int[] numbersArray = new int[allScanNumbers.size()];
-        int index = 0;
-        Iterator<Integer> iter = allScanNumbers.iterator();
-        while (iter.hasNext())
-            numbersArray[index++] = iter.next().intValue();
+        while (scanNumberLists.hasMoreElements()) 
+            allScanNumbers.addAll(scanNumberLists.nextElement());
+        
+        int[] numbersArray = CollectionUtils.toArray(allScanNumbers);
         Arrays.sort(numbersArray);
+        
         return numbersArray;
         
     }
@@ -266,11 +262,7 @@ class MZXMLFile implements RawDataFile {
     public int[] getMSLevels() {
 
         Set<Integer> msLevelsSet = scanNumbers.keySet();
-        int[] msLevels = new int[msLevelsSet.size()];
-        int index = 0;
-        Iterator<Integer> iter = msLevelsSet.iterator();
-        while (iter.hasNext())
-            msLevels[index++] = iter.next().intValue();
+        int[] msLevels = CollectionUtils.toArray(msLevelsSet);
         Arrays.sort(msLevels);
         return msLevels;
 
