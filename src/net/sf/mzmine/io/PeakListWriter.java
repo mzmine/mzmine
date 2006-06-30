@@ -68,9 +68,8 @@ public class PeakListWriter {
 						+ "M/Z diff" + "\t"
 
 						+ "Isotope Pattern Number" + "\t"
+						+ "Isotope Peak Number" + "\t"
 						+ "Charge" + "\t"
-
-						+ "Compound" + "\t"
 
 						+ "\n";
 
@@ -123,26 +122,21 @@ public class PeakListWriter {
 				if (isotopePattern!=null) {
 
 					int isotopePatternNumber =  isotopeUtility.getIsotopePatternNumber(isotopePattern);
+					int isotopePeakNumber = isotopeUtility.getPeakNumberWithinPattern(p);
 					int charge = isotopePattern.getChargeState();
 
 					s += "" + isotopePatternNumber + "\t"
+							+ isotopePeakNumber + "\t"
 							+ charge + "\t";
 
-					// Has isotope pattern got an identification result?
-					CompoundIdentity identity = isotopePattern.getIdentity();
-					if (identity!=null) {
-						s += "" + identity.getCompoundName() + "\t";
-					} else {
-						s += "" + "N/A" + "\t";
-					}
 
 				} else {
 
 					// No isotope pattern assigned for the peak
 					s += "" + "N/A" + "\t"
+							+ "N/A" + "\t"
 							+ "N/A" + "\t";
 
-					s += "" + "N/A" + "\t";
 				}
 
 				s += "\n";

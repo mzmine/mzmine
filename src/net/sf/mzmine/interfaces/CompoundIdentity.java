@@ -26,6 +26,8 @@ package net.sf.mzmine.interfaces;
  */
 public interface CompoundIdentity {
 
+	public String getCompoundID();
+
 	public String getCompoundName();
 
 	public String getDatabaseEntryURL();

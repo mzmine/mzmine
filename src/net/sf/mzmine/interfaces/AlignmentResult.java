@@ -20,13 +20,12 @@
 package net.sf.mzmine.interfaces;
 
 import net.sf.mzmine.io.RawDataFile;
+import net.sf.mzmine.interfaces.CompoundIdentity;
 
 /**
  *
  */
 public interface AlignmentResult {
-
-	// TODO: Can we have references to RawDataFiles from an AlignmentResult??
 
 	/**
 	 * Returns number of raw data files participating in the alignment
@@ -59,5 +58,11 @@ public interface AlignmentResult {
 	 * Returns all peaks on one row
 	 */
 	public Peak[] getPeaks(int row);
+
+	/**
+	 * Returns all identification results assigned to a single row of the alignment result
+	 * One row can have zero, one or any number of identifications.
+	 */
+	public CompoundIdentity[] getIdentificationResults(int row);
 
 }

@@ -31,9 +31,4 @@ public interface IsotopePattern {
 	 */
 	public int getChargeState();
 
-	/**
-	 * Returns identification assigned to this isotope pattern, or null if no identification has been assigned.
-	 */
-	// TODO : Maybe identification results should be assigned to alignment result rows instead of isotope patterns!!!
-	public CompoundIdentity getIdentity();
 }

@@ -20,7 +20,7 @@
 package net.sf.mzmine.methods.deisotoping;
 
 import java.util.Hashtable;
-import net.sf.mzmine.interfaces.CompoundIdentity;
+
 import net.sf.mzmine.interfaces.IsotopePattern;
 
 /**
@@ -41,11 +41,4 @@ public class GrouperIsotopePattern implements IsotopePattern {
 		return chargeState;
 	}
 
-	/**
-	 * Returns identification assigned to this isotope pattern, or null if no identification has been assigned.
-	 */
-	public CompoundIdentity getIdentity() {
-		// TODO
-		return null;
-	}
 }
