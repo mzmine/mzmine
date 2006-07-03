@@ -371,7 +371,11 @@ public class SpectraSetupDialog extends JDialog implements ActionListener {
                             && (scanNums[i] <= maxNumber))
                         eligibleScans.add(i);
                 }
-                int eligibleScanNums[] = CollectionUtils.toArray(eligibleScans);
+                int eligibleScanNums[] = CollectionUtils.toIntArray(eligibleScans);
+                if (eligibleScanNums.length == 0) {
+                    MainWindow.getInstance().displayErrorMessage("No scans found at MS level " + msLevel + " within given number range.");
+                    return;
+                }
                 new SpectraVisualizer(selectedFile, eligibleScanNums);
                 dispose();
             } catch (Exception e) {
@@ -385,8 +389,11 @@ public class SpectraSetupDialog extends JDialog implements ActionListener {
                 int msLevel = (Integer) comboTimeMSlevel.getSelectedItem();
                 double minRT = Double.parseDouble(fieldMinScanTime.getText());
                 double maxRT = Double.parseDouble(fieldMaxScanTime.getText());
-                int scanNums[] = selectedFile.getScanNumbers(msLevel, minRT,
-                        maxRT);
+                int scanNums[] = selectedFile.getScanNumbers(msLevel, minRT, maxRT);
+                if (scanNums.length == 0) {
+                    MainWindow.getInstance().displayErrorMessage("No scans found at MS level " + msLevel + " within given retention time range.");
+                    return;
+                }
                 new SpectraVisualizer(selectedFile, scanNums);
                 dispose();
             } catch (Exception e) {

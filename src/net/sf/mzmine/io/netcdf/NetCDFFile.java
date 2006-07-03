@@ -177,7 +177,7 @@ public class NetCDFFile implements RawDataFile {
             if ((rt >= rtMin) && (rt <= rtMax)) eligibleScans.add(scanNumber);
         }
         
-        int[] numbersArray = CollectionUtils.toArray(eligibleScans);
+        int[] numbersArray = CollectionUtils.toIntArray(eligibleScans);
         Arrays.sort(numbersArray);
         
         return numbersArray;

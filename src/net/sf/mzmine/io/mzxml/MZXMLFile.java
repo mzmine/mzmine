@@ -230,7 +230,7 @@ class MZXMLFile implements RawDataFile {
             if ((rt >= rtMin) && (rt <= rtMax)) eligibleScans.add(scanNumber);
         }
         
-        int[] numbersArray = CollectionUtils.toArray(eligibleScans);
+        int[] numbersArray = CollectionUtils.toIntArray(eligibleScans);
         Arrays.sort(numbersArray);
         
         return numbersArray;
@@ -249,7 +249,7 @@ class MZXMLFile implements RawDataFile {
         while (scanNumberLists.hasMoreElements()) 
             allScanNumbers.addAll(scanNumberLists.nextElement());
         
-        int[] numbersArray = CollectionUtils.toArray(allScanNumbers);
+        int[] numbersArray = CollectionUtils.toIntArray(allScanNumbers);
         Arrays.sort(numbersArray);
         
         return numbersArray;
@@ -262,7 +262,7 @@ class MZXMLFile implements RawDataFile {
     public int[] getMSLevels() {
 
         Set<Integer> msLevelsSet = scanNumbers.keySet();
-        int[] msLevels = CollectionUtils.toArray(msLevelsSet);
+        int[] msLevels = CollectionUtils.toIntArray(msLevelsSet);
         Arrays.sort(msLevels);
         return msLevels;
 

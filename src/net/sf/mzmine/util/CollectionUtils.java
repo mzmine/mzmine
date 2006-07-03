@@ -18,7 +18,7 @@ public class CollectionUtils {
      * @param collection Collection of Integers
      * @return Array of ints
      */
-    public static int[] toArray(Collection<Integer> collection) {
+    public static int[] toIntArray(Collection<Integer> collection) {
         int array[] = new int[collection.size()];
         int index = 0;
         Iterator<Integer> it = collection.iterator();
