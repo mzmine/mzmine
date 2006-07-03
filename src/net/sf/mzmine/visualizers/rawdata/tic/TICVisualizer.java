@@ -39,7 +39,7 @@ import net.sf.mzmine.taskcontrol.Task.TaskStatus;
 import net.sf.mzmine.userinterface.mainwindow.MainWindow;
 import net.sf.mzmine.util.CursorPosition;
 import net.sf.mzmine.visualizers.rawdata.MultipleRawDataVisualizer;
-import net.sf.mzmine.visualizers.rawdata.spectra.SpectraSetup;
+import net.sf.mzmine.visualizers.rawdata.spectra.SpectraSetupDialog;
 import net.sf.mzmine.visualizers.rawdata.spectra.SpectraVisualizer;
 
 /**
@@ -48,10 +48,13 @@ import net.sf.mzmine.visualizers.rawdata.spectra.SpectraVisualizer;
 public class TICVisualizer extends JInternalFrame implements
         MultipleRawDataVisualizer, TaskListener, ActionListener {
 
+    public static enum PlotType { TIC, BASE_PEAK };
+    
     private TICToolBar toolBar;
     private TICPlot plot;
 
     private Hashtable<RawDataFile, TICDataSet> rawDataFiles;
+    private PlotType plotType;
     private int msLevel;
     private double rtMin, rtMax, mzMin, mzMax;
     
@@ -66,12 +69,21 @@ public class TICVisualizer extends JInternalFrame implements
      * Constructor for total ion chromatogram visualizer
      * 
      */
-    public TICVisualizer(RawDataFile rawDataFile, int msLevel,
+    public TICVisualizer(RawDataFile rawDataFile, PlotType plotType,
+            int msLevel,
             double rtMin, double rtMax,
             double mzMin, double mzMax) {
         
-        super(rawDataFile.toString() + " TIC", true, true, true, true);
+        super(null, true, true, true, true);
 
+        this.plotType = plotType;
+        this.msLevel = msLevel;
+        this.rawDataFiles = new Hashtable<RawDataFile, TICDataSet>();
+        this.rtMin = rtMin;
+        this.rtMax = rtMax;
+        this.mzMin = mzMin;
+        this.mzMax = mzMax;
+        
         setDefaultCloseOperation(DISPOSE_ON_CLOSE);
         setBackground(Color.white);
 
@@ -80,13 +92,6 @@ public class TICVisualizer extends JInternalFrame implements
 
         plot = new TICPlot(this);
         add(plot, BorderLayout.CENTER);
-
-        this.msLevel = msLevel;
-        this.rawDataFiles = new Hashtable<RawDataFile, TICDataSet>();
-        this.rtMin = rtMin;
-        this.rtMax = rtMax;
-        this.mzMin = mzMin;
-        this.mzMax = mzMax;
 
         addRawDataFile(rawDataFile);
 
@@ -98,7 +103,11 @@ public class TICVisualizer extends JInternalFrame implements
 
         StringBuffer title = new StringBuffer();
         title.append(rawDataFiles.keySet().toString());
-        title.append(": TIC MS" + msLevel);
+        title.append(": ");
+        if (plotType == PlotType.BASE_PEAK) title.append("base peak");
+            else title.append("TIC"); 
+        
+        title.append(" MS" + msLevel);
 
         setTitle(title.toString());
         
@@ -112,12 +121,21 @@ public class TICVisualizer extends JInternalFrame implements
             if (rawDataFiles.size() > 1)
                 title.append(" (" + pos.getRawDataFile() + ")");
             title.append(", RT: " + rtFormat.format(pos.getRetentionTime()));
-            title.append(", IC: "
-                    + intensityFormat.format(pos.getIntensityValue()));
+            if (plotType == PlotType.BASE_PEAK)
+                title.append(", base peak: " + mzFormat.format(pos.getMzValue()) + " m/z");
+            title.append(", IC: " + intensityFormat.format(pos.getIntensityValue()));
         }
 
         plot.setTitle(title.toString());
 
+    }
+
+    
+    /**
+     * @return Returns the plotType.
+     */
+    PlotType getPlotType() {
+        return plotType;
     }
 
     /**
@@ -162,14 +180,13 @@ public class TICVisualizer extends JInternalFrame implements
         TICDataSet dataset = new TICDataSet(newFile, scanNumbers, mzMin, mzMax, this);
         rawDataFiles.put(newFile, dataset);
         plot.addDataset(dataset);
-        if (rawDataFiles.size() == 1) {
-            setRTRange(rtMin * 1000, rtMax * 1000);
-            setIntensityRange(0, newFile.getDataMaxTotalIonCurrent(msLevel) * 1.05);
-        }
-
-        // when displaying more than one file, show a legend
+        
         if (rawDataFiles.size() > 1) {
+            // when displaying more than one file, show a legend
             plot.showLegend(true);
+        } else {
+            // when adding first file, set the retention time range
+            setRTRange(rtMin * 1000, rtMax * 1000);
         }
 
     }
@@ -198,9 +215,10 @@ public class TICVisualizer extends JInternalFrame implements
             TICDataSet dataSet = e.nextElement();
             int index = dataSet.getSeriesIndex(selectedRT, selectedIT);
             if (index >= 0) {
-                CursorPosition pos = new CursorPosition(selectedRT, 0,
-                        selectedIT, dataSet.getRawDataFile(), dataSet
-                                .getScanNumber(index));
+                double mz = 0;
+                if (plotType == PlotType.BASE_PEAK) mz = dataSet.getMZValue(index);
+                CursorPosition pos = new CursorPosition(selectedRT, mz,
+                        selectedIT, dataSet.getRawDataFile(), dataSet.getScanNumber(index));
                 return pos;
             }
         }
@@ -306,8 +324,10 @@ public class TICVisualizer extends JInternalFrame implements
 
         if (command.equals("SHOW_MULTIPLE_SPECTRA")) {
             CursorPosition pos = getCursorPosition();
-            if (pos != null) 
-                SpectraSetup.showSetupDialog(pos.getRawDataFile(), msLevel, pos.getScanNumber());
+            if (pos != null) {
+                SpectraSetupDialog dialog = new SpectraSetupDialog(pos.getRawDataFile(), msLevel, pos.getScanNumber());
+                dialog.setVisible(true);
+            }
         }
 
     }

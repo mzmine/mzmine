@@ -35,15 +35,13 @@ import java.text.DecimalFormat;
 import java.text.NumberFormat;
 import java.text.SimpleDateFormat;
 
-import javax.swing.AbstractAction;
-import javax.swing.Action;
-import javax.swing.JMenuItem;
 import javax.swing.JPopupMenu;
 import javax.swing.KeyStroke;
 
-import net.sf.mzmine.util.AddFilePopupMenu;
+import net.sf.mzmine.userinterface.components.AddFilePopupMenu;
+import net.sf.mzmine.userinterface.components.RemoveFilePopupMenu;
 import net.sf.mzmine.util.GUIUtils;
-import net.sf.mzmine.util.RemoveFilePopupMenu;
+import net.sf.mzmine.visualizers.rawdata.tic.TICVisualizer.PlotType;
 
 import org.jfree.chart.ChartFactory;
 import org.jfree.chart.ChartPanel;
@@ -51,6 +49,8 @@ import org.jfree.chart.JFreeChart;
 import org.jfree.chart.axis.DateAxis;
 import org.jfree.chart.axis.NumberAxis;
 import org.jfree.chart.event.ChartProgressEvent;
+import org.jfree.chart.labels.XYItemLabelGenerator;
+import org.jfree.chart.labels.XYToolTipGenerator;
 import org.jfree.chart.plot.XYPlot;
 import org.jfree.chart.renderer.xy.XYLineAndShapeRenderer;
 import org.jfree.chart.title.LegendTitle;
@@ -132,10 +132,14 @@ class TICPlot extends ChartPanel {
 
         setCursor(Cursor.getPredefinedCursor(Cursor.CROSSHAIR_CURSOR));
 
+        String yAxisLabel;
+        if (visualizer.getPlotType() == PlotType.BASE_PEAK) yAxisLabel = "Base peak intensity";
+            else yAxisLabel = "Total ion intensity";
+        
         // initialize the chart by default time series chart from factory
         chart = ChartFactory.createTimeSeriesChart("", // title
                 "Retention time", // x-axis label
-                "Total ion intensity", // y-axis label
+                yAxisLabel, // y-axis label
                 null, // data set
                 true, // create legend?
                 true, // generate tooltips?
@@ -193,12 +197,16 @@ class TICPlot extends ChartPanel {
         defaultRenderer.setShape(dataPointsShape);
 
         // set label generator
-        TICItemLabelGenerator labelGenerator = new TICItemLabelGenerator(this);
+        XYItemLabelGenerator labelGenerator;
+        if (visualizer.getPlotType() == PlotType.BASE_PEAK) labelGenerator = new BasePeakItemLabelGenerator(this);
+            else labelGenerator = new TICItemLabelGenerator(this);
         defaultRenderer.setItemLabelGenerator(labelGenerator);
         defaultRenderer.setItemLabelsVisible(true);
 
         // set toolTipGenerator
-        TICToolTipGenerator toolTipGenerator = new TICToolTipGenerator();
+        XYToolTipGenerator toolTipGenerator;
+        if (visualizer.getPlotType() == PlotType.BASE_PEAK) toolTipGenerator = new BasePeakToolTipGenerator();
+            else toolTipGenerator = new TICToolTipGenerator();
         defaultRenderer.setToolTipGenerator(toolTipGenerator);
 
         // set focusable state to receive key events
@@ -290,8 +298,7 @@ class TICPlot extends ChartPanel {
 
     void switchDataPointsVisible() {
 
-        XYLineAndShapeRenderer renderer = (XYLineAndShapeRenderer) plot
-                .getRenderer();
+        XYLineAndShapeRenderer renderer = (XYLineAndShapeRenderer) plot.getRenderer();
         boolean dataPointsVisible = renderer.getBaseShapesVisible();
         for (int i = 0; i < numberOfDataSets; i++) {
             renderer = (XYLineAndShapeRenderer) plot.getRenderer(i);
@@ -310,8 +317,7 @@ class TICPlot extends ChartPanel {
         plot.setDataset(numberOfDataSets, newSet);
 
         try {
-            XYLineAndShapeRenderer newRenderer = (XYLineAndShapeRenderer) defaultRenderer
-                    .clone();
+            XYLineAndShapeRenderer newRenderer = (XYLineAndShapeRenderer) defaultRenderer.clone();
             Color rendererColor = plotColors[numberOfDataSets
                     % plotColors.length];
             newRenderer.setPaint(rendererColor);

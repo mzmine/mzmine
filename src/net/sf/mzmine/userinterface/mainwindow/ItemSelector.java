@@ -44,10 +44,6 @@ import net.sf.mzmine.io.MZmineProject;
 import net.sf.mzmine.io.RawDataFile;
 import net.sf.mzmine.methods.alignment.AlignmentResult;
 import net.sf.mzmine.visualizers.rawdata.RawDataVisualizer;
-import net.sf.mzmine.visualizers.rawdata.basepeak.BasePeakVisualizer;
-import net.sf.mzmine.visualizers.rawdata.threed.ThreeDVisualizer;
-import net.sf.mzmine.visualizers.rawdata.tic.TICVisualizer;
-import net.sf.mzmine.visualizers.rawdata.twod.TwoDVisualizer;
 
 /**
  * This class implements a selector of raw data files and alignment results
@@ -277,6 +273,23 @@ public class ItemSelector extends JPanel implements ListSelectionListener,
     /**
      * Returns selected raw data objects in an array
      */
+    public RawDataFile[] getRawDataFiles() {
+
+        Object o[] = rawDataObjects.toArray();
+
+        RawDataFile res[] = new RawDataFile[o.length];
+
+        for (int i = 0; i < o.length; i++) {
+            res[i] = (RawDataFile) (o[i]);
+        }
+
+        return res;
+
+    }
+    
+    /**
+     * Returns selected raw data objects in an array
+     */
     public RawDataFile[] getSelectedRawData() {
 
         Object o[] = rawDataList.getSelectedValues();
@@ -288,6 +301,15 @@ public class ItemSelector extends JPanel implements ListSelectionListener,
         }
 
         return res;
+
+    }
+    
+    /**
+     * Returns first selected raw data file
+     */
+    public RawDataFile getFirstSelectedRawData() {
+
+        return (RawDataFile) rawDataList.getSelectedValue();
 
     }
 

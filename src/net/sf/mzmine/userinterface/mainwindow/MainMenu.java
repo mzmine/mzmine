@@ -25,6 +25,7 @@ import java.awt.event.KeyEvent;
 import java.io.File;
 import java.io.IOException;
 
+import javax.swing.JDialog;
 import javax.swing.JFileChooser;
 import javax.swing.JInternalFrame;
 import javax.swing.JMenu;
@@ -38,6 +39,8 @@ import net.sf.mzmine.io.RawDataFile;
 import net.sf.mzmine.methods.Method;
 import net.sf.mzmine.methods.MethodParameters;
 import net.sf.mzmine.methods.alignment.AlignmentResult;
+import net.sf.mzmine.methods.deisotoping.simplegrouper.SimpleIsotopicPeaksGrouper;
+import net.sf.mzmine.methods.deisotoping.simplegrouper.SimpleIsotopicPeaksGrouperParameters;
 import net.sf.mzmine.methods.filtering.chromatographicmedian.ChromatographicMedianFilter;
 import net.sf.mzmine.methods.filtering.chromatographicmedian.ChromatographicMedianFilterParameters;
 import net.sf.mzmine.methods.filtering.crop.CropFilter;
@@ -54,8 +57,6 @@ import net.sf.mzmine.methods.peakpicking.local.LocalPicker;
 import net.sf.mzmine.methods.peakpicking.local.LocalPickerParameters;
 import net.sf.mzmine.methods.peakpicking.recursivethreshold.RecursiveThresholdPicker;
 import net.sf.mzmine.methods.peakpicking.recursivethreshold.RecursiveThresholdPickerParameters;
-import net.sf.mzmine.methods.deisotoping.simplegrouper.SimpleIsotopicPeaksGrouper;
-import net.sf.mzmine.methods.deisotoping.simplegrouper.SimpleIsotopicPeaksGrouperParameters;
 import net.sf.mzmine.userinterface.dialogs.FileOpenDialog;
 import net.sf.mzmine.util.GUIUtils;
 import net.sf.mzmine.visualizers.alignmentresult.AlignmentResultVisualizerCDAPlotView;
@@ -63,11 +64,10 @@ import net.sf.mzmine.visualizers.alignmentresult.AlignmentResultVisualizerCoVarP
 import net.sf.mzmine.visualizers.alignmentresult.AlignmentResultVisualizerLogratioPlotView;
 import net.sf.mzmine.visualizers.alignmentresult.AlignmentResultVisualizerSammonsPlotView;
 import net.sf.mzmine.visualizers.rawdata.RawDataVisualizer;
-import net.sf.mzmine.visualizers.rawdata.basepeak.BasePeakSetup;
-import net.sf.mzmine.visualizers.rawdata.spectra.SpectraSetup;
-import net.sf.mzmine.visualizers.rawdata.threed.ThreeDSetup;
-import net.sf.mzmine.visualizers.rawdata.tic.TICSetup;
-import net.sf.mzmine.visualizers.rawdata.twod.TwoDSetup;
+import net.sf.mzmine.visualizers.rawdata.spectra.SpectraSetupDialog;
+import net.sf.mzmine.visualizers.rawdata.threed.ThreeDSetupDialog;
+import net.sf.mzmine.visualizers.rawdata.tic.TICSetupDialog;
+import net.sf.mzmine.visualizers.rawdata.twod.TwoDSetupDialog;
 import sunutils.ExampleFileFilter;
 
 /**
@@ -96,7 +96,7 @@ public class MainMenu extends JMenuBar implements ActionListener {
     private JMenu batchMenu;
     private JMenuItem batDefine;
     private JMenu visualizationMenu;
-    private JMenuItem visOpenTIC, visOpenBasePeak, visOpenSpectra, visOpenTwoD,
+    private JMenuItem visOpenTIC, visOpenSpectra, visOpenTwoD,
             visOpenThreeD;
     private JMenuItem visOpenSRView, visOpenSCVView, visOpenCDAView,
             visOpenSammonsView;
@@ -217,8 +217,6 @@ public class MainMenu extends JMenuBar implements ActionListener {
 
         visOpenTIC = GUIUtils.addMenuItem(visualizationMenu, "TIC plot", this,
                 KeyEvent.VK_T);
-        visOpenBasePeak = GUIUtils.addMenuItem(visualizationMenu,
-                "Base peak plot", this, KeyEvent.VK_B);
         visOpenSpectra = GUIUtils.addMenuItem(visualizationMenu,
                 "Spectra plot", this, KeyEvent.VK_S);
         visOpenTwoD = GUIUtils.addMenuItem(visualizationMenu, "2D plot", this,
@@ -521,37 +519,30 @@ public class MainMenu extends JMenuBar implements ActionListener {
 
         // Visualization -> TIC plot
         if (src == visOpenTIC) {
-            RawDataFile[] selectedFiles = itemSelector.getSelectedRawData();
-            for (RawDataFile file : selectedFiles)
-                TICSetup.showSetupDialog(file);
-        }
-
-        // Visualization -> Base peak plot
-        if (src == visOpenBasePeak) {
-            RawDataFile[] selectedFiles = itemSelector.getSelectedRawData();
-            for (RawDataFile file : selectedFiles)
-                BasePeakSetup.showSetupDialog(file);
+            RawDataFile firstSelectedFile = itemSelector.getFirstSelectedRawData();
+            JDialog setupDialog = new TICSetupDialog(firstSelectedFile);
+            setupDialog.setVisible(true);
         }
 
         // Visualization -> Spectrum plot
         if (src == visOpenSpectra) {
-            RawDataFile[] selectedFiles = itemSelector.getSelectedRawData();
-            for (RawDataFile file : selectedFiles)
-                SpectraSetup.showSetupDialog(file);
+            RawDataFile firstSelectedFile = itemSelector.getFirstSelectedRawData();
+            JDialog setupDialog = new SpectraSetupDialog(firstSelectedFile);
+            setupDialog.setVisible(true);
         }
 
         // Visualization -> 2D plot
         if (src == visOpenTwoD) {
-            RawDataFile[] selectedFiles = itemSelector.getSelectedRawData();
-            for (RawDataFile file : selectedFiles)
-                TwoDSetup.showSetupDialog(file);
+            RawDataFile firstSelectedFile = itemSelector.getFirstSelectedRawData();
+            JDialog setupDialog = new TwoDSetupDialog(firstSelectedFile);
+            setupDialog.setVisible(true);
         }
 
         // Visualization -> 3D plot
         if (src == visOpenThreeD) {
-            RawDataFile[] selectedFiles = itemSelector.getSelectedRawData();
-            for (RawDataFile file : selectedFiles)
-                ThreeDSetup.showSetupDialog(file);
+            RawDataFile firstSelectedFile = itemSelector.getFirstSelectedRawData();
+            JDialog setupDialog = new ThreeDSetupDialog(firstSelectedFile);
+            setupDialog.setVisible(true);
         }
 
     }
@@ -645,7 +636,6 @@ public class MainMenu extends JMenuBar implements ActionListener {
         tsAlignmentFilter.setEnabled(false);
 
         visOpenTIC.setEnabled(false);
-        visOpenBasePeak.setEnabled(false);
         visOpenSpectra.setEnabled(false);
         visOpenTwoD.setEnabled(false);
         visOpenThreeD.setEnabled(false);
@@ -688,7 +678,6 @@ public class MainMenu extends JMenuBar implements ActionListener {
             ssLocalPicker.setEnabled(true);
 
             visOpenTIC.setEnabled(true);
-            visOpenBasePeak.setEnabled(true);
             visOpenSpectra.setEnabled(true);
             visOpenTwoD.setEnabled(true);
             visOpenThreeD.setEnabled(true);

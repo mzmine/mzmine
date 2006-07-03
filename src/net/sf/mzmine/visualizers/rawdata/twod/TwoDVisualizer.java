@@ -42,7 +42,7 @@ import net.sf.mzmine.util.CursorPosition;
 import net.sf.mzmine.visualizers.rawdata.RawDataVisualizer;
 
 /**
- * This class defines a total ion chromatogram visualizer for raw data
+ * 2D visualizer using JFreeChart library
  */
 public class TwoDVisualizer extends JInternalFrame implements
         RawDataVisualizer, ActionListener, TaskListener {

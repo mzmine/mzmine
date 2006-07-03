@@ -20,11 +20,10 @@
 /**
  * 
  */
-package net.sf.mzmine.util;
+package net.sf.mzmine.userinterface.components;
 
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.util.HashSet;
 import java.util.Hashtable;
 
 import javax.swing.JMenu;
@@ -32,7 +31,6 @@ import javax.swing.JMenuItem;
 import javax.swing.event.MenuEvent;
 import javax.swing.event.MenuListener;
 
-import net.sf.mzmine.io.MZmineProject;
 import net.sf.mzmine.io.RawDataFile;
 import net.sf.mzmine.visualizers.rawdata.MultipleRawDataVisualizer;
 
@@ -40,13 +38,13 @@ import net.sf.mzmine.visualizers.rawdata.MultipleRawDataVisualizer;
 /**
  *
  */
-public class AddFilePopupMenu extends JMenu implements MenuListener, ActionListener {
+public class RemoveFilePopupMenu extends JMenu implements MenuListener, ActionListener {
 
     private Hashtable<JMenuItem,RawDataFile> menuItemFiles;
     MultipleRawDataVisualizer visualizer;
     
-    public AddFilePopupMenu(MultipleRawDataVisualizer visualizer) {
-        super("Add plot of file...");
+    public RemoveFilePopupMenu(MultipleRawDataVisualizer visualizer) {
+        super("Remove plot of file...");
         addMenuListener(this);
         this.visualizer = visualizer;
     }
@@ -55,16 +53,14 @@ public class AddFilePopupMenu extends JMenu implements MenuListener, ActionListe
      * @see javax.swing.event.MenuListener#menuSelected(javax.swing.event.MenuEvent)
      */
     public void menuSelected(MenuEvent event) {
-
         removeAll();
-        RawDataFile[] openFiles = MZmineProject.getCurrentProject().getRawDataFiles();
-        HashSet<RawDataFile> visualizedFiles = new HashSet<RawDataFile>();
-        for (RawDataFile file : visualizer.getRawDataFiles()) visualizedFiles.add(file);
-
+        RawDataFile[] files = visualizer.getRawDataFiles();
+        
+        // if we have only one file, we cannot remove it
+        if (files.length == 1) return;
+        
         menuItemFiles = new Hashtable<JMenuItem,RawDataFile>();
-        for (RawDataFile file : openFiles) {
-            if (visualizedFiles.contains(file)) continue;
-            
+        for (RawDataFile file : files) {
             JMenuItem newItem = new JMenuItem(file.toString());
             newItem.addActionListener(this);
             menuItemFiles.put(newItem, file);
@@ -77,16 +73,12 @@ public class AddFilePopupMenu extends JMenu implements MenuListener, ActionListe
      * @see javax.swing.event.MenuListener#menuDeselected(javax.swing.event.MenuEvent)
      */
     public void menuDeselected(MenuEvent arg0) {
-        // TODO Auto-generated method stub
-        
     }
 
     /**
      * @see javax.swing.event.MenuListener#menuCanceled(javax.swing.event.MenuEvent)
      */
     public void menuCanceled(MenuEvent arg0) {
-        // TODO Auto-generated method stub
-        
     }
 
     /**
@@ -95,6 +87,6 @@ public class AddFilePopupMenu extends JMenu implements MenuListener, ActionListe
     public void actionPerformed(ActionEvent event) {
          Object src = event.getSource();
          RawDataFile file = menuItemFiles.get(src);
-         if (file != null) visualizer.addRawDataFile(file);
+         if (file != null) visualizer.removeRawDataFile(file);
     }
 }

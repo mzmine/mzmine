@@ -1,17 +1,17 @@
 /*
  * Copyright 2006 The MZmine Development Team
- *
+ * 
  * This file is part of MZmine.
- *
+ * 
  * MZmine is free software; you can redistribute it and/or modify it under the
  * terms of the GNU General Public License as published by the Free Software
  * Foundation; either version 2 of the License, or (at your option) any later
  * version.
- *
+ * 
  * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY
  * WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR
  * A PARTICULAR PURPOSE. See the GNU General Public License for more details.
- *
+ * 
  * You should have received a copy of the GNU General Public License along with
  * MZmine; if not, write to the Free Software Foundation, Inc., 51 Franklin St,
  * Fifth Floor, Boston, MA 02110-1301 USA
@@ -27,8 +27,10 @@ import javax.swing.ImageIcon;
 import javax.swing.JButton;
 import javax.swing.JToolBar;
 
+import net.sf.mzmine.util.GUIUtils;
+
 /**
- * 
+ * 2D visualizer's toolbar class
  */
 class TwoDToolBar extends JToolBar {
 
@@ -36,9 +38,6 @@ class TwoDToolBar extends JToolBar {
     static final Icon continuousIcon = new ImageIcon("continuousicon.png");
     static final Icon dataPointsIcon = new ImageIcon("datapointsicon.png");
     static final Icon annotationsIcon = new ImageIcon("annotationsicon.png");
-
-    private JButton centroidContinuousButton, dataPointsButton,
-            annotationsButton;
 
     TwoDToolBar(TwoDVisualizer masterFrame) {
 
@@ -49,26 +48,19 @@ class TwoDToolBar extends JToolBar {
         setMargin(new Insets(5, 5, 5, 5));
         setBackground(Color.white);
 
-        centroidContinuousButton = new JButton(centroidIcon);
-        centroidContinuousButton.setActionCommand("TOGGLE_PLOT_MODE");
-        centroidContinuousButton.setToolTipText("Toggle centroid/continuous mode");
-        centroidContinuousButton.addActionListener(masterFrame);
-
-        dataPointsButton = new JButton(dataPointsIcon);
-        dataPointsButton.setActionCommand("SHOW_DATA_POINTS");
-        dataPointsButton.setToolTipText("Toggle displaying of data points in continuous mode");
-        dataPointsButton.addActionListener(masterFrame);
-
-        annotationsButton = new JButton(annotationsIcon);
-        annotationsButton.setActionCommand("SHOW_ANNOTATIONS");
-        annotationsButton.setToolTipText("Toggle displaying of peak values");
-        annotationsButton.addActionListener(masterFrame);
-
-        add(centroidContinuousButton);
+        GUIUtils.addButton(this, null, centroidIcon, masterFrame,
+                "TOGGLE_PLOT_MODE", "Toggle centroid/continuous mode");
+        
         addSeparator();
-        add(dataPointsButton);
+        
+        GUIUtils.addButton(this, null, dataPointsIcon, masterFrame,
+                "SHOW_DATA_POINTS",
+                "Toggle displaying of data points in continuous mode");
+        
         addSeparator();
-        add(annotationsButton);
+        
+        GUIUtils.addButton(this, null, annotationsIcon, masterFrame,
+                "SHOW_ANNOTATIONS", "Toggle displaying of peak values");
 
     }
 
