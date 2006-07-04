@@ -178,7 +178,10 @@ class MZXMLScan extends DefaultHandler implements Scan {
 
             /* Allocate memory for data */
             int peaksCount = Integer.parseInt(attrs.getValue("peaksCount"));
-            assert peaksCount > 0;
+            
+            /* Workaround for a case of empty scan */
+            if (peaksCount <= 0) peaksCount = 1;
+
             mzValues = new double[peaksCount];
             intensityValues = new double[peaksCount];
 
@@ -335,7 +338,10 @@ class MZXMLScan extends DefaultHandler implements Scan {
      * @see net.sf.mzmine.interfaces.Scan#getParentScanNumber()
      */
     public int getParentScanNumber() {
-        // TODO Auto-generated method stub
+        
+        // TODO: temporary for testing
+        if (scanNumber > 100) return scanNumber - 5;
+
         return 0;
     }
 
@@ -344,7 +350,9 @@ class MZXMLScan extends DefaultHandler implements Scan {
      * @see net.sf.mzmine.interfaces.Scan#getFragmentScanNumbers()
      */
     public int[] getFragmentScanNumbers() {
-        // TODO Auto-generated method stub
+
+        // TODO: temporary for testing
+        if (scanNumber > 500) return new int[] { scanNumber + 1, scanNumber + 2, scanNumber + 3 };
         return null;
     }
 
