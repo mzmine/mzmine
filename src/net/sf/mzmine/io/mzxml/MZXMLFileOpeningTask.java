@@ -119,7 +119,6 @@ public class MZXMLFileOpeningTask extends DefaultHandler implements
             // Parse the file
 
             saxParser.parse(originalFile, this);
-            saxParser.reset();
 
         } catch (Throwable e) {
             /* catch Throwable instead of Exception, to catch errors like OutOfMemoryError */
