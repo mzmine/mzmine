@@ -55,6 +55,8 @@ public class TICSetupDialog extends JDialog implements ActionListener {
     private JButton btnOK, btnCancel;
     private JFormattedTextField fieldMinRT, fieldMaxRT, fieldMinMZ, fieldMaxMZ;
     private JComboBox comboPlotType, comboRawDataFile, comboMSlevel;
+    
+    private static final NumberFormat format = NumberFormat.getNumberInstance();
 
     public TICSetupDialog() {
 
@@ -105,8 +107,6 @@ public class TICSetupDialog extends JDialog implements ActionListener {
         constraints.gridx = 1; constraints.gridy = 2; constraints.gridwidth = 2; constraints.gridheight = 1;
         components.add(comboPlotType, constraints);
         constraints.fill = GridBagConstraints.HORIZONTAL;
-
-        NumberFormat format = NumberFormat.getNumberInstance();
 
         comp = GUIUtils.addLabel(components, "Minimum retention time");
 

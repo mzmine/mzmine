@@ -314,12 +314,10 @@ public class TICVisualizer extends JInternalFrame implements
 
         if (command.equals("ZOOM_IN")) {
             plot.getXYPlot().getDomainAxis().resizeRange(1 / zoomCoefficient);
-            plot.getXYPlot().getRangeAxis().resizeRange(1 / zoomCoefficient);
         }
 
         if (command.equals("ZOOM_OUT")) {
             plot.getXYPlot().getDomainAxis().resizeRange(zoomCoefficient);
-            plot.getXYPlot().getRangeAxis().resizeRange(zoomCoefficient);
         }
 
         if (command.equals("SHOW_MULTIPLE_SPECTRA")) {
