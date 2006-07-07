@@ -38,6 +38,7 @@ class SpectraToolBar extends JToolBar {
     static final Icon continuousIcon = new ImageIcon("continuousicon.png");
     static final Icon dataPointsIcon = new ImageIcon("datapointsicon.png");
     static final Icon annotationsIcon = new ImageIcon("annotationsicon.png");
+    static final Icon pickedPeakIcon = new ImageIcon("pickedpeakicon.png");
 
     private JButton centroidContinuousButton;
 
@@ -64,6 +65,11 @@ class SpectraToolBar extends JToolBar {
 
         GUIUtils.addButton(this, null, annotationsIcon, masterFrame,
                 "SHOW_ANNOTATIONS", "Toggle displaying of peak values");
+        
+        addSeparator();
+
+        GUIUtils.addButton(this, null, pickedPeakIcon, masterFrame,
+                "SHOW_PICKED_PEAKS", "Toggle displaying of picked peaks");
 
     }
 

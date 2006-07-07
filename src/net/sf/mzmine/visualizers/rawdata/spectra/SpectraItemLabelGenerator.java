@@ -22,13 +22,13 @@
  */
 package net.sf.mzmine.visualizers.rawdata.spectra;
 
-import java.text.DateFormat;
 import java.text.DecimalFormat;
 import java.text.NumberFormat;
-import java.text.SimpleDateFormat;
 
 import org.jfree.chart.labels.XYItemLabelGenerator;
+import org.jfree.data.xy.DefaultTableXYDataset;
 import org.jfree.data.xy.XYDataset;
+import org.jfree.data.xy.XYSeries;
 
 /**
  * 
@@ -52,34 +52,39 @@ class SpectraItemLabelGenerator implements XYItemLabelGenerator {
 
         final double originalX = dataset.getXValue(series, item);
         final double originalY = dataset.getYValue(series, item);
-
-        final double pointX = plot.getXYPlot().getDomainAxis().getRange()
-                .getLength()
+        final double pointX = plot.getXYPlot().getDomainAxis().getRange().getLength()
                 / plot.getWidth();
-
         final int itemCount = dataset.getItemCount(series);
-
         final double limitLeft = originalX - (40 * pointX);
         final double limitRight = originalX + (40 * pointX);
 
+        // get the peaklist dataset and check if we have a peak at this point
+        DefaultTableXYDataset peaksDataSet = (DefaultTableXYDataset) plot.getXYPlot().getDataset(1);
+        if ((dataset != peaksDataSet) && (plot.getPickedPeaksVisible())) {
+            XYSeries peaksSeries = peaksDataSet.getSeries(0);
+
+            for (int i = 0; i < peaksSeries.getItemCount(); i++) {
+                double peakMZ = peaksSeries.getX(i).doubleValue();
+                if ((peakMZ > limitLeft) && (peakMZ < limitRight))
+                    return null;
+            }
+
+        }
+
         for (int i = 1; (item - i > 0) || (item + i < itemCount); i++) {
 
-            if ((item - i > 0)
-                    && (dataset.getXValue(series, item - i) < limitLeft)
+            if (((item - i < 0) || (dataset.getXValue(series, item - i) < limitLeft))
                     && ((item + i >= itemCount) || (dataset.getXValue(series,
                             item + i) > limitRight)))
                 break;
 
-            if ((item + i < itemCount)
-                    && (dataset.getXValue(series, item + i) > limitRight)
-                    && ((item - i <= 0) || (dataset.getXValue(series, item - i) < limitLeft)))
-                break;
-
-            if ((item - i > 0)
+            if ((item - i >= 0)
+                    && (dataset.getXValue(series, item - i) >= limitLeft)
                     && (originalY <= dataset.getYValue(series, item - i)))
                 return null;
 
             if ((item + i < itemCount)
+                    && (dataset.getXValue(series, item + i) <= limitRight)
                     && (originalY <= dataset.getYValue(series, item + i)))
                 return null;
 

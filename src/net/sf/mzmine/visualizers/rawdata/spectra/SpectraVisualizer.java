@@ -23,16 +23,21 @@ import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.io.IOException;
 import java.text.DateFormat;
 import java.text.DecimalFormat;
 import java.text.NumberFormat;
 import java.text.SimpleDateFormat;
+import java.util.Arrays;
+import java.util.Hashtable;
 
 import javax.swing.JInternalFrame;
 
+import net.sf.mzmine.interfaces.Peak;
+import net.sf.mzmine.interfaces.PeakList;
 import net.sf.mzmine.interfaces.Scan;
+import net.sf.mzmine.io.MZmineProject;
 import net.sf.mzmine.io.RawDataFile;
-import net.sf.mzmine.io.RawDataFile.PreloadLevel;
 import net.sf.mzmine.taskcontrol.Task;
 import net.sf.mzmine.taskcontrol.TaskController;
 import net.sf.mzmine.taskcontrol.TaskListener;
@@ -42,6 +47,8 @@ import net.sf.mzmine.userinterface.mainwindow.MainWindow;
 import net.sf.mzmine.util.CursorPosition;
 import net.sf.mzmine.util.RawDataAcceptor;
 import net.sf.mzmine.util.RawDataRetrievalTask;
+import net.sf.mzmine.util.ScanUtils;
+import net.sf.mzmine.util.ScanUtils.BinningType;
 import net.sf.mzmine.visualizers.rawdata.RawDataVisualizer;
 import net.sf.mzmine.visualizers.rawdata.spectra.SpectraPlot.PlotMode;
 
@@ -57,28 +64,38 @@ public class SpectraVisualizer extends JInternalFrame implements
     // TODO: open a precursor scan/ open dependant MS/MS, zooming by + - keys
     // TODO: display peaks from peaklist, other peaks with gray color
     // TODO: binning of multiple scans
-    
+
     private SpectraToolBar toolBar;
     private SpectraPlot spectrumPlot;
 
     private RawDataFile rawDataFile;
 
-    private DefaultTableXYDataset dataset;
-    private XYSeries series;
+    private DefaultTableXYDataset rawDataSet, peaksDataSet;
+    private XYSeries rawDataSeries, peaksSeries;
 
+    private int scanNumbers[];
     private Scan[] scans;
     private int loadedScans = 0;
+
+    // mzMin, mzMax and mzBinSize/numOfBins are only used when we plot multiple
+    // scans
+    private double mzMin, mzMax, mzBinSize;
+    private int numOfBins;
+    private double rtMin, rtMax;
 
     // TODO: get these from parameter storage
     private static DateFormat rtFormat = new SimpleDateFormat("m:ss");
     private static NumberFormat mzFormat = new DecimalFormat("0.00");
     private static NumberFormat intensityFormat = new DecimalFormat("0.00E0");
 
+    private static final double zoomCoefficient = 1.2;
+
     public SpectraVisualizer(RawDataFile rawDataFile, int scanNumber) {
-        this(rawDataFile, new int[] { scanNumber });
+        this(rawDataFile, new int[] { scanNumber }, -1);
     }
 
-    public SpectraVisualizer(RawDataFile rawDataFile, int[] scanNumbers) {
+    public SpectraVisualizer(RawDataFile rawDataFile, int[] scanNumbers,
+            double mzBinSize) {
 
         super(rawDataFile.toString(), true, true, true, true);
 
@@ -89,27 +106,47 @@ public class SpectraVisualizer extends JInternalFrame implements
         add(toolBar, BorderLayout.EAST);
 
         this.rawDataFile = rawDataFile;
+        this.mzBinSize = mzBinSize;
 
-        dataset = new DefaultTableXYDataset();
+        rawDataSet = new DefaultTableXYDataset();
+        peaksDataSet = new DefaultTableXYDataset();
+
         // set minimum width for peak line (in fact, a bar)
-        dataset.setIntervalWidth(Double.MIN_VALUE);
-        
-        // keep the series sorted, for easy searching for local maxima
-        series = new XYSeries(rawDataFile.toString(), true, false);
-        dataset.addSeries(series);
+        rawDataSet.setIntervalWidth(Double.MIN_VALUE);
+        peaksDataSet.setIntervalWidth(Double.MIN_VALUE);
 
-        spectrumPlot = new SpectraPlot(this, dataset);
+        spectrumPlot = new SpectraPlot(this, rawDataSet, peaksDataSet);
         add(spectrumPlot, BorderLayout.CENTER);
 
+        setScans(scanNumbers);
+
+        pack();
+
+    }
+
+    private void setScans(int scanNumbers[]) {
+
+        this.scanNumbers = scanNumbers;
+
+        // wipe previous data, if any
+        rawDataSet.removeAllSeries();
+        peaksDataSet.removeAllSeries();
+        loadedScans = 0;
         scans = new Scan[scanNumbers.length];
+
+        // create sorted series, for easy searching for local maxima in the
+        // label generator
+        rawDataSeries = new XYSeries("data", true, false);
+        rawDataSet.addSeries(rawDataSeries);
+
+        peaksSeries = new XYSeries("peaks", true, false);
+        peaksDataSet.addSeries(peaksSeries);
 
         Task updateTask = new RawDataRetrievalTask(rawDataFile, scanNumbers,
                 "Updating spectrum visualizer of " + rawDataFile, this);
 
         TaskController.getInstance().addTask(updateTask, TaskPriority.HIGH,
-                    this);
-
-        pack();
+                this);
 
     }
 
@@ -155,19 +192,18 @@ public class SpectraVisualizer extends JInternalFrame implements
             title.append(scans[0].getMSLevel());
             title.append(", RT ");
             title.append(rtFormat.format(scans[0].getRetentionTime() * 1000));
-            
+
             title.append(", base peak: ");
             title.append(mzFormat.format(scans[0].getBasePeakMZ()));
             title.append(" m/z (");
             title.append(intensityFormat.format(scans[0].getBasePeakIntensity()));
             title.append(")");
-            
+
         } else {
             title.append("combination of spectra, RT ");
             title.append(rtFormat.format(scans[0].getRetentionTime() * 1000));
             title.append(" - ");
-            title.append(rtFormat.format(scans[loadedScans - 1]
-                    .getRetentionTime() * 1000));
+            title.append(rtFormat.format(scans[loadedScans - 1].getRetentionTime() * 1000));
             setTitle(title.toString());
             title.append(", MS");
             title.append(scans[0].getMSLevel());
@@ -192,6 +228,10 @@ public class SpectraVisualizer extends JInternalFrame implements
             spectrumPlot.switchItemLabelsVisible();
         }
 
+        if (command.equals("SHOW_PICKED_PEAKS")) {
+            spectrumPlot.switchPickedPeaksVisible();
+        }
+
         if (command.equals("TOGGLE_PLOT_MODE")) {
             if (spectrumPlot.getPlotMode() == PlotMode.CONTINUOUS) {
                 spectrumPlot.setPlotMode(PlotMode.CENTROID);
@@ -200,6 +240,42 @@ public class SpectraVisualizer extends JInternalFrame implements
                 spectrumPlot.setPlotMode(PlotMode.CONTINUOUS);
                 toolBar.setCentroidButton(true);
             }
+        }
+
+        if (command.equals("PREVIOUS_SCAN")) {
+            if ((scans.length == 1)  && (scans[0] != null)) {
+                int msLevel = scans[0].getMSLevel();
+                int scanNumbers[] = rawDataFile.getScanNumbers(msLevel);
+                int scanIndex = Arrays.binarySearch(scanNumbers,
+                        scans[0].getScanNumber());
+                if (scanIndex > 0) {
+                    int newScans[] = { scanNumbers[scanIndex - 1] };
+                    setScans(newScans);
+                }
+            }
+        }
+
+        if (command.equals("NEXT_SCAN")) {
+            if ((scans.length == 1) && (scans[0] != null)) {
+                int msLevel = scans[0].getMSLevel();
+                int scanNumbers[] = rawDataFile.getScanNumbers(msLevel);
+                int scanIndex = Arrays.binarySearch(scanNumbers,
+                        scans[0].getScanNumber());
+                if (scanIndex < (scanNumbers.length - 1)) {
+                    int newScans[] = { scanNumbers[scanIndex + 1] };
+                    setScans(newScans);
+                }
+            }
+        }
+
+        if (command.equals("ZOOM_IN")) {
+            spectrumPlot.getXYPlot().getDomainAxis().resizeRange(
+                    1 / zoomCoefficient);
+        }
+
+        if (command.equals("ZOOM_OUT")) {
+            spectrumPlot.getXYPlot().getDomainAxis().resizeRange(
+                    zoomCoefficient);
         }
 
     }
@@ -214,13 +290,14 @@ public class SpectraVisualizer extends JInternalFrame implements
     /**
      * @see net.sf.mzmine.util.RawDataAcceptor#addScan(net.sf.mzmine.interfaces.Scan)
      */
-    public void addScan(Scan scan, int ind) {
+    public void addScan(Scan scan, int scanIndex) {
 
-        scans[loadedScans++] = scan;
+        scans[scanIndex] = scan;
 
-        if (loadedScans == 1) {
+        if (scanIndex == 0) {
             // if the scans are centroided, switch to centroid mode
             if (scan.isCentroided()) {
+                // TODO: remember the centroid/cont. mode setting
                 spectrumPlot.setPlotMode(PlotMode.CENTROID);
                 toolBar.setCentroidButton(false);
             } else {
@@ -228,26 +305,115 @@ public class SpectraVisualizer extends JInternalFrame implements
                 toolBar.setCentroidButton(true);
             }
 
+            if (scans.length > 1) {
+                
+                // set the m/z axis range
+                this.mzMin = scan.getMZRangeMin();
+                this.mzMax = scan.getMZRangeMax();
+            
+                // count the number of bins and update the bin size accordingly
+                numOfBins = (int) Math.round((mzMax - mzMin) / mzBinSize);
+                mzBinSize = (mzMax - mzMin) / numOfBins;
+                
+            }
+             
+            // set the initial retention time range
+            this.rtMin = scan.getRetentionTime();
+            this.rtMax = scan.getRetentionTime();
+
+
+        } else {
+            // update the retention time range
+            if (scan.getRetentionTime() < rtMin)
+                rtMin = scan.getRetentionTime();
+            if (scan.getRetentionTime() > rtMax)
+                rtMax = scan.getRetentionTime();
         }
 
         double mzValues[] = scan.getMZValues();
         double intValues[] = scan.getIntensityValues();
-        for (int j = 0; j < mzValues.length; j++) {
 
-            int index = series.indexOf(mzValues[j]);
-            
-            // if we don't have this m/z value yet, add it. 
-            // otherwise make a sum of intensities
-            if (index < 0) {
-                series.add(mzValues[j], intValues[j], false);
-            } else {
-                double newVal = dataset.getYValue(0, index) + intValues[j];
-                series.updateByIndex(index, newVal);
+        if (scans.length == 1) {
+            // plotting single scan - just add values
+            for (int j = 0; j < mzValues.length; j++) {
+                if (intValues[j] == 0) continue;
+                rawDataSeries.add(mzValues[j], intValues[j], false);
             }
 
+        } else {
+            // plotting multiple scans - we have to bin the peaks
+            double binnedIntValues[] = ScanUtils.binValues(mzValues, intValues,
+                    mzMin, mzMax, numOfBins, false, BinningType.SUM);
+
+            for (int j = 0; j < binnedIntValues.length; j++) {
+
+                if (binnedIntValues[j] == 0) continue; 
+                
+                double mz = mzMin + (j * mzBinSize);
+
+                int index = rawDataSeries.indexOf(mz);
+
+                // if we don't have this m/z value yet, add it.
+                // otherwise make a max of intensities
+                if (index < 0) {
+                    rawDataSeries.add(mz, binnedIntValues[j], false);
+                } else {
+                    double newVal = Math.max(rawDataSet.getYValue(0, index),
+                            binnedIntValues[j]);
+                    rawDataSeries.updateByIndex(index, newVal);
+                }
+
+            }
         }
 
-        series.fireSeriesChanged();
+        // check if we added last scan
+        if (scanIndex == scans.length - 1) {
+
+            // if we have a peak list, add the eligible peaks
+            PeakList peakList = MZmineProject.getCurrentProject().getPeakList(
+                    rawDataFile);
+            if (peakList != null) {
+
+                Peak[] peaks = peakList.getPeaksInsideScanAndMZRange(rtMin,
+                        rtMax, mzMin, mzMax);
+
+                for (int i = 0; i < peaks.length; i++) {
+
+                    Hashtable<Integer, Double[]> dataPoints = peaks[i].getRawDatapoints();
+
+                    if (scans.length == 1) {
+                        Double[] dataPoint = dataPoints.get(scanNumbers[0]);
+                        if (dataPoint != null) {
+                            peaksSeries.add(dataPoint[0], dataPoint[2], false);
+                        }
+                    } else {
+                        double mz = peaks[i].getRawMZ();
+                        double intensity = peaks[i].getRawHeight();
+                        
+                        int index = peaksSeries.indexOf(mz);
+
+                        // if we don't have this m/z value yet, add it.
+                        // otherwise make a max of intensities
+                        if (index < 0) {
+                            peaksSeries.add(mz, intensity, false);
+                        } else {
+                            double newVal = Math.max(peaksSeries.getY(index).doubleValue(),
+                                    intensity);
+                            peaksSeries.updateByIndex(index, newVal);
+                        }
+
+                    }
+
+                    
+                }
+
+            }
+        }
+
+        // update the counter of loaded scans
+        loadedScans++;
+
+        rawDataSeries.fireSeriesChanged();
 
         updateTitle();
 
@@ -286,7 +452,7 @@ public class SpectraVisualizer extends JInternalFrame implements
      */
     public void setCursorPosition(CursorPosition newPosition) {
         // do nothing
-        
+
     }
 
 }

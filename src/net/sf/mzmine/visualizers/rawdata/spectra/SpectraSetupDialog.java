@@ -25,6 +25,7 @@ import java.awt.GridLayout;
 import java.awt.Insets;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.text.NumberFormat;
 import java.util.ArrayList;
 
 import javax.swing.BoxLayout;
@@ -33,6 +34,7 @@ import javax.swing.JButton;
 import javax.swing.JComboBox;
 import javax.swing.JComponent;
 import javax.swing.JDialog;
+import javax.swing.JFormattedTextField;
 import javax.swing.JPanel;
 import javax.swing.JTextField;
 
@@ -47,13 +49,18 @@ import net.sf.mzmine.util.GUIUtils;
 public class SpectraSetupDialog extends JDialog implements ActionListener {
 
     static final int PADDING_SIZE = 5;
+    
+    static final String DEFAULT_MZ_BIN_SIZE = "0.1";
 
     // dialog components
     private JButton btnNumberShow, btnNumbersRangeShow, btnTimeRangeShow,
             btnCancel;
     private JTextField fieldScanNumber, fieldMinScanNumber, fieldMaxScanNumber,
-            fieldMinScanTime, fieldMaxScanTime;
+            fieldMinScanTime, fieldMaxScanTime, fieldNumberBinSize,
+            fieldTimeBinSize;
     private JComboBox comboRawDataFile, comboNumbersMSlevel, comboTimeMSlevel;
+
+    private static final NumberFormat format = NumberFormat.getNumberInstance();
 
     public SpectraSetupDialog() {
 
@@ -85,15 +92,16 @@ public class SpectraSetupDialog extends JDialog implements ActionListener {
         constraints.fill = GridBagConstraints.NONE;
         constraints.gridx = 1;
         constraints.gridy = 0;
-        constraints.gridwidth = 1;
+        constraints.gridwidth = 2;
         constraints.gridheight = 1;
         components.add(comboRawDataFile, constraints);
+
         constraints.fill = GridBagConstraints.HORIZONTAL;
 
         comp = GUIUtils.addSeparator(components, PADDING_SIZE);
         constraints.gridx = 0;
         constraints.gridy = 1;
-        constraints.gridwidth = 2;
+        constraints.gridwidth = 3;
         constraints.gridheight = 1;
         layout.setConstraints(comp, constraints);
 
@@ -104,42 +112,41 @@ public class SpectraSetupDialog extends JDialog implements ActionListener {
         constraints.gridheight = 1;
         layout.setConstraints(comp, constraints);
 
-        fieldScanNumber = new JTextField();
+        fieldScanNumber = new JFormattedTextField(format);
         constraints.gridx = 1;
         constraints.gridy = 2;
         constraints.gridwidth = 1;
         constraints.gridheight = 1;
+        constraints.weightx = 1;
         components.add(fieldScanNumber, constraints);
 
+        constraints.weightx = 0;
+
         btnNumberShow = GUIUtils.addButton(components, "Show", null, this);
-        constraints.fill = GridBagConstraints.NONE;
-        constraints.anchor = GridBagConstraints.CENTER;
-        constraints.gridx = 0;
-        constraints.gridy = 3;
-        constraints.gridwidth = 2;
+        constraints.gridx = 2;
+        constraints.gridy = 2;
+        constraints.gridwidth = 1;
         constraints.gridheight = 1;
         layout.setConstraints(btnNumberShow, constraints);
-        constraints.fill = GridBagConstraints.HORIZONTAL;
-        constraints.anchor = GridBagConstraints.WEST;
 
         comp = GUIUtils.addSeparator(components, PADDING_SIZE);
         constraints.gridx = 0;
-        constraints.gridy = 4;
-        constraints.gridwidth = 2;
+        constraints.gridy = 3;
+        constraints.gridwidth = 3;
         constraints.gridheight = 1;
         layout.setConstraints(comp, constraints);
 
         comp = GUIUtils.addLabel(components,
                 "Show multiple scans by numbers range");
         constraints.gridx = 0;
-        constraints.gridy = 5;
-        constraints.gridwidth = 2;
+        constraints.gridy = 4;
+        constraints.gridwidth = 3;
         constraints.gridheight = 1;
         layout.setConstraints(comp, constraints);
 
         comp = GUIUtils.addLabel(components, "MS level");
         constraints.gridx = 0;
-        constraints.gridy = 6;
+        constraints.gridy = 5;
         constraints.gridwidth = 1;
         constraints.gridheight = 1;
         layout.setConstraints(comp, constraints);
@@ -148,48 +155,72 @@ public class SpectraSetupDialog extends JDialog implements ActionListener {
         comboNumbersMSlevel.addActionListener(this);
         constraints.fill = GridBagConstraints.NONE;
         constraints.gridx = 1;
-        constraints.gridy = 6;
+        constraints.gridy = 5;
         constraints.gridwidth = 2;
         constraints.gridheight = 1;
         components.add(comboNumbersMSlevel, constraints);
+
         constraints.fill = GridBagConstraints.HORIZONTAL;
 
         comp = GUIUtils.addLabel(components, "Minimum scan number");
         constraints.gridx = 0;
-        constraints.gridy = 7;
+        constraints.gridy = 6;
         constraints.gridwidth = 1;
         constraints.gridheight = 1;
         layout.setConstraints(comp, constraints);
 
-        fieldMinScanNumber = new JTextField();
+        fieldMinScanNumber = new JFormattedTextField(format);
         constraints.gridx = 1;
-        constraints.gridy = 7;
+        constraints.gridy = 6;
         constraints.gridwidth = 1;
         constraints.gridheight = 1;
         components.add(fieldMinScanNumber, constraints);
 
         comp = GUIUtils.addLabel(components, "Maximum scan number");
         constraints.gridx = 0;
+        constraints.gridy = 7;
+        constraints.gridwidth = 1;
+        constraints.gridheight = 1;
+        layout.setConstraints(comp, constraints);
+
+        fieldMaxScanNumber = new JFormattedTextField(format);
+        constraints.gridx = 1;
+        constraints.gridy = 7;
+        constraints.gridwidth = 1;
+        constraints.gridheight = 1;
+        components.add(fieldMaxScanNumber, constraints);
+
+        comp = GUIUtils.addLabel(components, "m/z bin size");
+        constraints.gridx = 0;
         constraints.gridy = 8;
         constraints.gridwidth = 1;
         constraints.gridheight = 1;
         layout.setConstraints(comp, constraints);
 
-        fieldMaxScanNumber = new JTextField();
+        fieldNumberBinSize = new JFormattedTextField(format);
+        fieldNumberBinSize.setText(DEFAULT_MZ_BIN_SIZE);
         constraints.gridx = 1;
         constraints.gridy = 8;
         constraints.gridwidth = 1;
         constraints.gridheight = 1;
-        components.add(fieldMaxScanNumber, constraints);
+        components.add(fieldNumberBinSize, constraints);
+
+        comp = GUIUtils.addLabel(components, "m/q (Th)");
+        constraints.gridx = 2;
+        constraints.gridy = 8;
+        constraints.gridwidth = 1;
+        constraints.gridheight = 1;
+        layout.setConstraints(comp, constraints);
 
         btnNumbersRangeShow = GUIUtils.addButton(components, "Show", null, this);
         constraints.fill = GridBagConstraints.NONE;
         constraints.anchor = GridBagConstraints.CENTER;
         constraints.gridx = 0;
         constraints.gridy = 9;
-        constraints.gridwidth = 2;
+        constraints.gridwidth = 3;
         constraints.gridheight = 1;
         layout.setConstraints(btnNumbersRangeShow, constraints);
+
         constraints.fill = GridBagConstraints.HORIZONTAL;
         constraints.anchor = GridBagConstraints.WEST;
 
@@ -232,12 +263,19 @@ public class SpectraSetupDialog extends JDialog implements ActionListener {
         constraints.gridheight = 1;
         layout.setConstraints(comp, constraints);
 
-        fieldMinScanTime = new JTextField();
+        fieldMinScanTime = new JFormattedTextField(format);
         constraints.gridx = 1;
         constraints.gridy = 13;
         constraints.gridwidth = 1;
         constraints.gridheight = 1;
         components.add(fieldMinScanTime, constraints);
+
+        comp = GUIUtils.addLabel(components, "s");
+        constraints.gridx = 2;
+        constraints.gridy = 13;
+        constraints.gridwidth = 1;
+        constraints.gridheight = 1;
+        layout.setConstraints(comp, constraints);
 
         comp = GUIUtils.addLabel(components, "Maximum retention time");
         constraints.gridx = 0;
@@ -246,28 +284,58 @@ public class SpectraSetupDialog extends JDialog implements ActionListener {
         constraints.gridheight = 1;
         layout.setConstraints(comp, constraints);
 
-        fieldMaxScanTime = new JTextField();
+        fieldMaxScanTime = new JFormattedTextField(format);
         constraints.gridx = 1;
         constraints.gridy = 14;
         constraints.gridwidth = 1;
         constraints.gridheight = 1;
         components.add(fieldMaxScanTime, constraints);
 
+        comp = GUIUtils.addLabel(components, "s");
+        constraints.gridx = 2;
+        constraints.gridy = 14;
+        constraints.gridwidth = 1;
+        constraints.gridheight = 1;
+        layout.setConstraints(comp, constraints);
+        
+        comp = GUIUtils.addLabel(components, "m/z bin size");
+        constraints.gridx = 0;
+        constraints.gridy = 15;
+        constraints.gridwidth = 1;
+        constraints.gridheight = 1;
+        layout.setConstraints(comp, constraints);
+
+        fieldTimeBinSize = new JFormattedTextField(format);
+        fieldTimeBinSize.setText(DEFAULT_MZ_BIN_SIZE);
+        constraints.gridx = 1;
+        constraints.gridy = 15;
+        constraints.gridwidth = 1;
+        constraints.gridheight = 1;
+        components.add(fieldTimeBinSize, constraints);
+
+        comp = GUIUtils.addLabel(components, "m/q (Th)");
+        constraints.gridx = 2;
+        constraints.gridy = 15;
+        constraints.gridwidth = 1;
+        constraints.gridheight = 1;
+        layout.setConstraints(comp, constraints);
+
         btnTimeRangeShow = GUIUtils.addButton(components, "Show", null, this);
         constraints.fill = GridBagConstraints.NONE;
         constraints.anchor = GridBagConstraints.CENTER;
         constraints.gridx = 0;
-        constraints.gridy = 15;
-        constraints.gridwidth = 2;
+        constraints.gridy = 16;
+        constraints.gridwidth = 3;
         constraints.gridheight = 1;
         layout.setConstraints(btnTimeRangeShow, constraints);
+        
         constraints.fill = GridBagConstraints.HORIZONTAL;
         constraints.anchor = GridBagConstraints.WEST;
 
         comp = GUIUtils.addSeparator(components, PADDING_SIZE);
         constraints.gridx = 0;
-        constraints.gridy = 16;
-        constraints.gridwidth = 2;
+        constraints.gridy = 17;
+        constraints.gridwidth = 3;
         constraints.gridheight = 1;
         layout.setConstraints(comp, constraints);
 
@@ -275,8 +343,8 @@ public class SpectraSetupDialog extends JDialog implements ActionListener {
         constraints.fill = GridBagConstraints.NONE;
         constraints.anchor = GridBagConstraints.CENTER;
         constraints.gridx = 0;
-        constraints.gridy = 17;
-        constraints.gridwidth = 2;
+        constraints.gridy = 18;
+        constraints.gridwidth = 3;
         constraints.gridheight = 1;
         layout.setConstraints(btnCancel, constraints);
 
@@ -364,19 +432,27 @@ public class SpectraSetupDialog extends JDialog implements ActionListener {
                 int msLevel = (Integer) comboNumbersMSlevel.getSelectedItem();
                 int minNumber = Integer.parseInt(fieldMinScanNumber.getText());
                 int maxNumber = Integer.parseInt(fieldMaxScanNumber.getText());
+                double mzBinSize = Double.parseDouble(fieldNumberBinSize.getText());
+                if (mzBinSize <= 0) {
+                    MainWindow.getInstance().displayErrorMessage(
+                            "Invalid bin size " + mzBinSize);
+                    return;
+                }
                 int scanNums[] = selectedFile.getScanNumbers(msLevel);
                 ArrayList<Integer> eligibleScans = new ArrayList<Integer>();
                 for (int i = 0; i < scanNums.length; i++) {
                     if ((scanNums[i] >= minNumber)
                             && (scanNums[i] <= maxNumber))
-                        eligibleScans.add(i);
+                        eligibleScans.add(scanNums[i]);
                 }
                 int eligibleScanNums[] = CollectionUtils.toIntArray(eligibleScans);
                 if (eligibleScanNums.length == 0) {
-                    MainWindow.getInstance().displayErrorMessage("No scans found at MS level " + msLevel + " within given number range.");
+                    MainWindow.getInstance().displayErrorMessage(
+                            "No scans found at MS level " + msLevel
+                                    + " within given number range.");
                     return;
                 }
-                new SpectraVisualizer(selectedFile, eligibleScanNums);
+                new SpectraVisualizer(selectedFile, eligibleScanNums, mzBinSize);
                 dispose();
             } catch (Exception e) {
                 MainWindow.getInstance().displayErrorMessage("Invalid input");
@@ -389,12 +465,21 @@ public class SpectraSetupDialog extends JDialog implements ActionListener {
                 int msLevel = (Integer) comboTimeMSlevel.getSelectedItem();
                 double minRT = Double.parseDouble(fieldMinScanTime.getText());
                 double maxRT = Double.parseDouble(fieldMaxScanTime.getText());
-                int scanNums[] = selectedFile.getScanNumbers(msLevel, minRT, maxRT);
-                if (scanNums.length == 0) {
-                    MainWindow.getInstance().displayErrorMessage("No scans found at MS level " + msLevel + " within given retention time range.");
+                double mzBinSize = Double.parseDouble(fieldTimeBinSize.getText());
+                if (mzBinSize <= 0) {
+                    MainWindow.getInstance().displayErrorMessage(
+                            "Invalid bin size " + mzBinSize);
                     return;
                 }
-                new SpectraVisualizer(selectedFile, scanNums);
+                int scanNums[] = selectedFile.getScanNumbers(msLevel, minRT,
+                        maxRT);
+                if (scanNums.length == 0) {
+                    MainWindow.getInstance().displayErrorMessage(
+                            "No scans found at MS level " + msLevel
+                                    + " within given retention time range.");
+                    return;
+                }
+                new SpectraVisualizer(selectedFile, scanNums, mzBinSize);
                 dispose();
             } catch (Exception e) {
                 MainWindow.getInstance().displayErrorMessage("Invalid input");
