@@ -19,6 +19,11 @@
 
 package net.sf.mzmine.taskcontrol;
 
+import java.awt.Component;
+import java.awt.KeyboardFocusManager;
+import java.beans.PropertyVetoException;
+
+import javax.swing.JInternalFrame;
 import javax.swing.table.TableModel;
 
 import net.sf.mzmine.taskcontrol.Task.TaskPriority;
@@ -32,6 +37,10 @@ import net.sf.mzmine.util.Logger;
  */
 public class TaskController implements Runnable {
 
+    
+    // TODO: always create a worker thread for high priority tasks
+    
+    
     private static TaskController myInstance;
 
     private final int TASKCONTROLLER_THREAD_SLEEP = 100;
@@ -101,7 +110,19 @@ public class TaskController implements Runnable {
         MainWindow mainWindow = MainWindow.getInstance();
         if (mainWindow != null) {
             TaskProgressWindow tlc = mainWindow.getTaskList();
+            JInternalFrame selectedFrame = mainWindow.getDesktop().getSelectedFrame();
+           //  KeyboardFocusManager focusManager = KeyboardFocusManager.getCurrentKeyboardFocusManager();
+            // Component currentFocus = focusManager.getFocusOwner();
             tlc.setVisible(true);
+            //mainWindow.getDesktop().setSelectedFrame(selectedFrame);
+            if (selectedFrame != null) {
+                try {
+                    selectedFrame.setSelected(true);
+                } catch (PropertyVetoException e) {
+                    // do nothing
+                }
+            }
+            // currentFocus.requestFocus();
         }
 
         return task;
