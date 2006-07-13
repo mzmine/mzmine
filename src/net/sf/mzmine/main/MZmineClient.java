@@ -61,63 +61,43 @@ public class MZmineClient implements Runnable {
      */
     public void run() {
 
-        // configure logging
-        try {
-            LogManager logManager = LogManager.getLogManager();
-            FileInputStream loggingConfig = new FileInputStream(
-                    "dist/logging.properties");
-            logManager.readConfiguration(loggingConfig);
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-
-        // get main class logger
+         // get main class logger
         mainLogger = Logger.getLogger(this.getClass().getName());
 
         // configuration properties
-        ResourceBundle configBundle = ResourceBundle.getBundle("config");
+        ResourceBundle configBundle = ResourceBundle.getBundle("conf/config");
 
         // get the configured number of computation nodes
-        int numberOfNodes = 2;
+        int numberOfNodes = 1;
         String numberOfNodesConfigEntry = configBundle.getString("NumberOfNodes");
         if (numberOfNodesConfigEntry != null) {
             numberOfNodes = Integer.parseInt(numberOfNodesConfigEntry);
         }
+        
+        mainLogger.info("MZmine starting with " + numberOfNodes + " computation nodes");
 
         mainLogger.finer("Loading core classes");
 
-        mainLogger.finest("Creating task controller with " + numberOfNodes
-                + " nodes");
         taskController = new TaskControllerImpl(numberOfNodes);
-
-        mainLogger.finest("Creating IO controller");
         ioController = new IOControllerImpl();
-
-        mainLogger.finest("Creating main window");
         mainWindow = new MainWindow();
-
-        mainLogger.finest("Creating MZmine project");
         MZmineProject project = new MZmineProject();
 
         Logger moduleLogger;
         mainLogger.finer("Initializing core classes");
 
-        mainLogger.finest("Initializing task controller");
         moduleLogger = Logger.getLogger(taskController.getClass().getName());
         taskController.initModule(ioController, taskController, mainWindow,
                 moduleLogger);
 
-        mainLogger.finest("Initializing IO controller");
         moduleLogger = Logger.getLogger(ioController.getClass().getName());
         ioController.initModule(ioController, taskController, mainWindow,
                 moduleLogger);
 
-        mainLogger.finest("Initializing main window");
         moduleLogger = Logger.getLogger(mainWindow.getClass().getName());
         mainWindow.initModule(ioController, taskController, mainWindow,
                 moduleLogger);
 
-        mainLogger.finest("Initializing MZmine project");
         moduleLogger = Logger.getLogger(project.getClass().getName());
         project.initModule(ioController, taskController, mainWindow,
                 moduleLogger);
@@ -131,18 +111,14 @@ public class MZmineClient implements Runnable {
 
             try {
 
-                mainLogger.finest("Loading class " + className);
+                mainLogger.finest("Loading module " + className);
                 Class moduleClass = Class.forName(className);
 
-                mainLogger.finest("Creating instance of module " + className);
                 MZmineModule moduleInstance = (MZmineModule) moduleClass.newInstance();
 
-                mainLogger.finest("Initializing module " + className);
                 moduleLogger = Logger.getLogger(className);
                 moduleInstance.initModule(ioController, taskController,
                         mainWindow, moduleLogger);
-
-                mainLogger.finest("Module " + className + " initialized");
 
             } catch (Exception e) {
                 mainLogger.log(Level.SEVERE, "Could not load module "

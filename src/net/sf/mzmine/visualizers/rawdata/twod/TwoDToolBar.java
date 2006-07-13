@@ -34,10 +34,10 @@ import net.sf.mzmine.util.GUIUtils;
  */
 class TwoDToolBar extends JToolBar {
 
-    static final Icon centroidIcon = new ImageIcon("dist/centroidicon.png");
-    static final Icon continuousIcon = new ImageIcon("dist/continuousicon.png");
-    static final Icon dataPointsIcon = new ImageIcon("dist/datapointsicon.png");
-    static final Icon annotationsIcon = new ImageIcon("dist/annotationsicon.png");
+    static final Icon centroidIcon = new ImageIcon("icons/centroidicon.png");
+    static final Icon continuousIcon = new ImageIcon("icons/continuousicon.png");
+    static final Icon dataPointsIcon = new ImageIcon("icons/datapointsicon.png");
+    static final Icon annotationsIcon = new ImageIcon("icons/annotationsicon.png");
 
     TwoDToolBar(TwoDVisualizerWindow masterFrame) {
 

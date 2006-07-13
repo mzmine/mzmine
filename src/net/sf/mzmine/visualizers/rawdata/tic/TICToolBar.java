@@ -34,9 +34,9 @@ import net.sf.mzmine.util.GUIUtils;
  */
 class TICToolBar extends JToolBar {
 
-    static final Icon showSpectrumIcon = new ImageIcon("dist/spectrumicon.png");
-    static final Icon dataPointsIcon = new ImageIcon("dist/datapointsicon.png");
-    static final Icon annotationsIcon = new ImageIcon("dist/annotationsicon.png");
+    static final Icon showSpectrumIcon = new ImageIcon("icons/spectrumicon.png");
+    static final Icon dataPointsIcon = new ImageIcon("icons/datapointsicon.png");
+    static final Icon annotationsIcon = new ImageIcon("icons/annotationsicon.png");
 
     TICToolBar(TICVisualizerWindow masterFrame) {
 

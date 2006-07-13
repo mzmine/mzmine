@@ -34,11 +34,11 @@ import net.sf.mzmine.util.GUIUtils;
  */
 class SpectraToolBar extends JToolBar {
 
-    static final Icon centroidIcon = new ImageIcon("dist/centroidicon.png");
-    static final Icon continuousIcon = new ImageIcon("dist/continuousicon.png");
-    static final Icon dataPointsIcon = new ImageIcon("dist/datapointsicon.png");
-    static final Icon annotationsIcon = new ImageIcon("dist/annotationsicon.png");
-    static final Icon pickedPeakIcon = new ImageIcon("dist/pickedpeakicon.png");
+    static final Icon centroidIcon = new ImageIcon("icons/centroidicon.png");
+    static final Icon continuousIcon = new ImageIcon("icons/continuousicon.png");
+    static final Icon dataPointsIcon = new ImageIcon("icons/datapointsicon.png");
+    static final Icon annotationsIcon = new ImageIcon("icons/annotationsicon.png");
+    static final Icon pickedPeakIcon = new ImageIcon("icons/pickedpeakicon.png");
 
     private JButton centroidContinuousButton, dataPointsButton, peaksButton;
 

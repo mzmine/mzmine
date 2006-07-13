@@ -53,6 +53,7 @@ public interface Desktop {
 
     public void addInternalFrame(JInternalFrame frame);
 
+    public JInternalFrame[] getVisibleFrames(Class frameClass);
     public JInternalFrame[] getVisibleFrames();
     public JInternalFrame getSelectedFrame();
 

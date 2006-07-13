@@ -34,8 +34,8 @@ class PeakListTableToolBar extends JToolBar {
 
     private JButton zoomToPeakButton, findInAlignmentsButton;
 
-    static final Icon zoomToPeakIcon = new ImageIcon("dist/annotationsicon.png");
-    static final Icon findInAlignmentsIcon = new ImageIcon("dist/tableselectionicon.png");
+    static final Icon zoomToPeakIcon = new ImageIcon("icons/annotationsicon.png");
+    static final Icon findInAlignmentsIcon = new ImageIcon("icons/tableselectionicon.png");
 
     PeakListTableToolBar(PeakListTableView masterFrame) {
 
