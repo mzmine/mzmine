@@ -1,88 +1,84 @@
 /*
  * Copyright 2006 The MZmine Development Team
- *
+ * 
  * This file is part of MZmine.
- *
+ * 
  * MZmine is free software; you can redistribute it and/or modify it under the
  * terms of the GNU General Public License as published by the Free Software
  * Foundation; either version 2 of the License, or (at your option) any later
  * version.
- *
+ * 
  * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY
  * WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR
  * A PARTICULAR PURPOSE. See the GNU General Public License for more details.
- *
+ * 
  * You should have received a copy of the GNU General Public License along with
  * MZmine; if not, write to the Free Software Foundation, Inc., 51 Franklin St,
  * Fifth Floor, Boston, MA 02110-1301 USA
  */
 package net.sf.mzmine.methods.filtering.savitzkygolay;
 
-import java.io.Serializable;
-
-import org.w3c.dom.Element;
-import org.w3c.dom.Document;
-import org.w3c.dom.NodeList;
-import org.w3c.dom.Node;
-
-import org.xml.sax.Attributes;
-
 import net.sf.mzmine.methods.MethodParameters;
+
+import org.w3c.dom.Document;
+import org.w3c.dom.Element;
+import org.w3c.dom.NodeList;
 
 /**
  * This class represents parameter for the Savizky-Golay filter
  */
 public class SavitzkyGolayFilterParameters implements MethodParameters {
 
-	/**
+    /**
      * These Strings are used to access parameter values in an XML element
      */
-	private static final String tagName = "SavitzkyGolayFilterParameters";
-	private static final String numberOfDataPointsAttributeName = "NumberOfDataPoints";
+    private static final String tagName = "SavitzkyGolayFilterParameters";
+    private static final String numberOfDataPointsAttributeName = "NumberOfDataPoints";
 
-	/**
-	 * Number of datapoints used for fitting
-	 */
-	public int numberOfDataPoints = 5;
+    /**
+     * Number of datapoints used for fitting
+     */
+    public int numberOfDataPoints = 5;
 
-
-	public String toString() {
-		return new String("Number of datapoints = " + numberOfDataPoints);
-	}
+    public String toString() {
+        return new String("Number of datapoints = " + numberOfDataPoints);
+    }
 
     /**
      * Adds parameters to XML document
      */
     public Element addToXML(Document doc) {
 
-		Element e = doc.createElement(tagName);
-		e.setAttribute(numberOfDataPointsAttributeName, String.valueOf(numberOfDataPoints));
-		return e;
+        Element e = doc.createElement(tagName);
+        e.setAttribute(numberOfDataPointsAttributeName,
+                String.valueOf(numberOfDataPoints));
+        return e;
 
-	}
+    }
 
     /**
      * Reads parameters from XML
-     * @param doc XML document supposed to contain parameters for the method (may not contain them, though)
+     * 
+     * @param doc
+     *            XML document supposed to contain parameters for the method
+     *            (may not contain them, though)
      */
     public void readFromXML(Element element) {
 
-		// Find my element
-		NodeList n = element.getElementsByTagName(tagName);
-		if ((n==null) || (n.getLength()<1)) return;
-		Element myElement = (Element)(n.item(0));
+        // Find my element
+        NodeList n = element.getElementsByTagName(tagName);
+        if ((n == null) || (n.getLength() < 1))
+            return;
+        Element myElement = (Element) (n.item(0));
 
-		// Set values
-		String attrValue;
-		attrValue = myElement.getAttribute(numberOfDataPointsAttributeName);
-		try { numberOfDataPoints = Integer.parseInt(attrValue); } catch (NumberFormatException nfe) {}
+        // Set values
+        String attrValue;
+        attrValue = myElement.getAttribute(numberOfDataPointsAttributeName);
+        try {
+            numberOfDataPoints = Integer.parseInt(attrValue);
+        } catch (NumberFormatException nfe) {
+        }
 
-	}
-
-	public SavitzkyGolayFilterParameters clone() {
-		SavitzkyGolayFilterParameters myClone = new SavitzkyGolayFilterParameters();
-		myClone.numberOfDataPoints = numberOfDataPoints;
-		return myClone;
-	}
+    }
 
 }

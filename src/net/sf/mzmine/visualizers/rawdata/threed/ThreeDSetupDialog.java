@@ -35,6 +35,9 @@ import javax.swing.JFormattedTextField;
 import javax.swing.JPanel;
 
 import net.sf.mzmine.io.RawDataFile;
+import net.sf.mzmine.project.MZmineProject;
+import net.sf.mzmine.taskcontrol.TaskController;
+import net.sf.mzmine.userinterface.Desktop;
 import net.sf.mzmine.userinterface.mainwindow.MainWindow;
 import net.sf.mzmine.util.CollectionUtils;
 import net.sf.mzmine.util.GUIUtils;
@@ -53,10 +56,16 @@ public class ThreeDSetupDialog extends JDialog implements ActionListener {
             fieldResolutionRT, fieldResolutionMZ;
     private JComboBox comboRawDataFile, comboMSlevel;
 
-    public ThreeDSetupDialog() {
+    private Desktop desktop;
+    private TaskController taskController;
+    
+    public ThreeDSetupDialog(TaskController taskController, Desktop desktop) {
 
         // Make dialog modal
-        super(MainWindow.getInstance(), "3D visualizer parameters", true);
+        super(desktop.getMainWindow(), "3D visualizer parameters", true);
+        
+        this.taskController = taskController;
+        this.desktop = desktop;
 
         GridBagConstraints constraints = new GridBagConstraints();
         
@@ -196,20 +205,20 @@ public class ThreeDSetupDialog extends JDialog implements ActionListener {
         add(components);
         
         // add data files to the combo box
-        RawDataFile files[] = MainWindow.getInstance().getItemSelector().getRawDataFiles();
+        RawDataFile files[] = MZmineProject.getCurrentProject().getRawDataFiles();
         DefaultComboBoxModel fileItems = new DefaultComboBoxModel(files);
         comboRawDataFile.setModel(fileItems);
 
         // finalize the dialog
         pack();
-        setLocationRelativeTo(MainWindow.getInstance());
+        setLocationRelativeTo(desktop.getMainWindow());
         setResizable(false);
 
     }
     
-    public ThreeDSetupDialog(RawDataFile rawDataFile) {
+    public ThreeDSetupDialog(TaskController taskController, Desktop desktop, RawDataFile rawDataFile) {
         
-        this();
+        this(taskController, desktop);
         
         comboRawDataFile.setSelectedItem(rawDataFile);
         
@@ -256,8 +265,6 @@ public class ThreeDSetupDialog extends JDialog implements ActionListener {
 
         if (src == btnOK) {
 
-            MainWindow mainWin = MainWindow.getInstance();
-
             try {
 
                 RawDataFile selectedFile = (RawDataFile) comboRawDataFile.getSelectedItem();
@@ -269,31 +276,31 @@ public class ThreeDSetupDialog extends JDialog implements ActionListener {
                 double mzMax = ((Number) fieldMaxMZ.getValue()).doubleValue();
 
                 if ((rtMax <= rtMin) || (mzMax <= mzMin)) {
-                    mainWin.displayErrorMessage("Invalid bounds");
+                    desktop.displayErrorMessage("Invalid bounds");
                     return;
                 }
 
                 int rtResolution = ((Number) fieldResolutionRT.getValue()).intValue();
                 if (rtResolution < 1) {
-                    mainWin.displayErrorMessage("Invalid retention time resolution: "
+                    desktop.displayErrorMessage("Invalid retention time resolution: "
                             + rtResolution);
                     return;
                 }
 
                 int mzResolution = ((Number) fieldResolutionMZ.getValue()).intValue();
                 if (mzResolution < 1) {
-                    mainWin.displayErrorMessage("Invalid m/z resolution: "
+                    desktop.displayErrorMessage("Invalid m/z resolution: "
                             + mzResolution);
                     return;
                 }
 
-                new ThreeDVisualizer(selectedFile, msLevel, rtMin, rtMax,
+                new ThreeDVisualizerWindow(taskController, desktop, selectedFile, msLevel, rtMin, rtMax,
                         mzMin, mzMax, rtResolution, mzResolution);
 
                 dispose();
 
             } catch (Exception e) {
-                mainWin.displayErrorMessage("Invalid input");
+                desktop.displayErrorMessage("Invalid input");
             }
         }
 

@@ -35,9 +35,9 @@ import net.sf.mzmine.util.GUIUtils;
 class ThreeDToolBar extends JToolBar {
 
     static final Icon propertiesIcon = MetalIconFactory.getTreeComputerIcon();
-    static final Icon annotationsIcon = new ImageIcon("annotationsicon.png");
+    static final Icon annotationsIcon = new ImageIcon("dist/annotationsicon.png");
 
-    ThreeDToolBar(ThreeDVisualizer masterFrame) {
+    ThreeDToolBar(ThreeDVisualizerWindow masterFrame) {
 
         super(JToolBar.VERTICAL);
 

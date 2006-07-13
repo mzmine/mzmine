@@ -21,14 +21,12 @@ package net.sf.mzmine.visualizers.rawdata.spectra;
 
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
-import java.awt.GridLayout;
 import java.awt.Insets;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.text.NumberFormat;
 import java.util.ArrayList;
 
-import javax.swing.BoxLayout;
 import javax.swing.DefaultComboBoxModel;
 import javax.swing.JButton;
 import javax.swing.JComboBox;
@@ -39,6 +37,9 @@ import javax.swing.JPanel;
 import javax.swing.JTextField;
 
 import net.sf.mzmine.io.RawDataFile;
+import net.sf.mzmine.project.MZmineProject;
+import net.sf.mzmine.taskcontrol.TaskController;
+import net.sf.mzmine.userinterface.Desktop;
 import net.sf.mzmine.userinterface.mainwindow.MainWindow;
 import net.sf.mzmine.util.CollectionUtils;
 import net.sf.mzmine.util.GUIUtils;
@@ -62,10 +63,16 @@ public class SpectraSetupDialog extends JDialog implements ActionListener {
 
     private static final NumberFormat format = NumberFormat.getNumberInstance();
 
-    public SpectraSetupDialog() {
+    private TaskController taskController;
+    private Desktop desktop;
+    
+    public SpectraSetupDialog(TaskController taskController, Desktop desktop) {
 
         // Make dialog modal
-        super(MainWindow.getInstance(), "Spectra visualizer parameters", true);
+        super(desktop.getMainWindow(), "Spectra visualizer parameters", true);
+        
+        this.taskController = taskController;
+        this.desktop = desktop;
 
         GridBagConstraints constraints = new GridBagConstraints();
 
@@ -352,30 +359,30 @@ public class SpectraSetupDialog extends JDialog implements ActionListener {
         add(components);
 
         // add data files to the combo box
-        RawDataFile files[] = MainWindow.getInstance().getItemSelector().getRawDataFiles();
+        RawDataFile files[] = MZmineProject.getCurrentProject().getRawDataFiles();
         DefaultComboBoxModel fileItems = new DefaultComboBoxModel(files);
         comboRawDataFile.setModel(fileItems);
 
         // finalize the dialog
         pack();
-        setLocationRelativeTo(MainWindow.getInstance());
+        setLocationRelativeTo(desktop.getMainWindow());
         setResizable(false);
 
     }
 
-    public SpectraSetupDialog(RawDataFile rawDataFile) {
+    public SpectraSetupDialog(TaskController taskController, Desktop desktop, RawDataFile rawDataFile) {
 
-        this();
+        this(taskController, desktop);
 
         if (rawDataFile != null)
             comboRawDataFile.setSelectedItem(rawDataFile);
 
     }
 
-    public SpectraSetupDialog(RawDataFile rawDataFile, int msLevel,
+    public SpectraSetupDialog(TaskController taskController, Desktop desktop, RawDataFile rawDataFile, int msLevel,
             int scanNumber) {
 
-        this(rawDataFile);
+        this(taskController, desktop, rawDataFile);
 
         String scanNumberString = String.valueOf(scanNumber);
         String retentionTimeString = String.valueOf(rawDataFile.getRetentionTime(scanNumber));
@@ -419,10 +426,10 @@ public class SpectraSetupDialog extends JDialog implements ActionListener {
             try {
                 RawDataFile selectedFile = (RawDataFile) comboRawDataFile.getSelectedItem();
                 int num = Integer.parseInt(fieldScanNumber.getText());
-                new SpectraVisualizer(selectedFile, num);
+                new SpectraVisualizerWindow(taskController, desktop, selectedFile, num);
                 dispose();
             } catch (Exception e) {
-                MainWindow.getInstance().displayErrorMessage("Invalid input");
+                desktop.displayErrorMessage("Invalid input");
             }
         }
 
@@ -434,7 +441,7 @@ public class SpectraSetupDialog extends JDialog implements ActionListener {
                 int maxNumber = Integer.parseInt(fieldMaxScanNumber.getText());
                 double mzBinSize = Double.parseDouble(fieldNumberBinSize.getText());
                 if (mzBinSize <= 0) {
-                    MainWindow.getInstance().displayErrorMessage(
+                    desktop.displayErrorMessage(
                             "Invalid bin size " + mzBinSize);
                     return;
                 }
@@ -447,15 +454,15 @@ public class SpectraSetupDialog extends JDialog implements ActionListener {
                 }
                 int eligibleScanNums[] = CollectionUtils.toIntArray(eligibleScans);
                 if (eligibleScanNums.length == 0) {
-                    MainWindow.getInstance().displayErrorMessage(
+                    desktop.displayErrorMessage(
                             "No scans found at MS level " + msLevel
                                     + " within given number range.");
                     return;
                 }
-                new SpectraVisualizer(selectedFile, eligibleScanNums, mzBinSize);
+                new SpectraVisualizerWindow(taskController, desktop, selectedFile, eligibleScanNums, mzBinSize);
                 dispose();
             } catch (Exception e) {
-                MainWindow.getInstance().displayErrorMessage("Invalid input");
+                desktop.displayErrorMessage("Invalid input");
             }
         }
 
@@ -467,22 +474,22 @@ public class SpectraSetupDialog extends JDialog implements ActionListener {
                 double maxRT = Double.parseDouble(fieldMaxScanTime.getText());
                 double mzBinSize = Double.parseDouble(fieldTimeBinSize.getText());
                 if (mzBinSize <= 0) {
-                    MainWindow.getInstance().displayErrorMessage(
+                    desktop.displayErrorMessage(
                             "Invalid bin size " + mzBinSize);
                     return;
                 }
                 int scanNums[] = selectedFile.getScanNumbers(msLevel, minRT,
                         maxRT);
                 if (scanNums.length == 0) {
-                    MainWindow.getInstance().displayErrorMessage(
+                    desktop.displayErrorMessage(
                             "No scans found at MS level " + msLevel
                                     + " within given retention time range.");
                     return;
                 }
-                new SpectraVisualizer(selectedFile, scanNums, mzBinSize);
+                new SpectraVisualizerWindow(taskController, desktop, selectedFile, scanNums, mzBinSize);
                 dispose();
             } catch (Exception e) {
-                MainWindow.getInstance().displayErrorMessage("Invalid input");
+                desktop.displayErrorMessage("Invalid input");
             }
         }
 

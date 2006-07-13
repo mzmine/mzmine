@@ -23,13 +23,13 @@
 package net.sf.mzmine.io.mzxml;
 
 import java.io.File;
+import java.util.logging.Logger;
 
 import javax.xml.parsers.SAXParser;
 import javax.xml.parsers.SAXParserFactory;
 
 import net.sf.mzmine.io.RawDataFile.PreloadLevel;
 import net.sf.mzmine.taskcontrol.DistributableTask;
-import net.sf.mzmine.util.Logger;
 
 import org.xml.sax.Attributes;
 import org.xml.sax.SAXException;
@@ -107,7 +107,7 @@ public class MZXMLFileOpeningTask extends DefaultHandler implements
     public void run() {
 
         status = TaskStatus.PROCESSING;
-        Logger.put("Started parsing file " + originalFile);
+        // Logger.put("Started parsing file " + originalFile);
 
         // Use the default (non-validating) parser
         SAXParserFactory factory = SAXParserFactory.newInstance();
@@ -115,9 +115,9 @@ public class MZXMLFileOpeningTask extends DefaultHandler implements
         // TODO: check file header?
 
         try {
+            
             SAXParser saxParser = factory.newSAXParser();
-            // Parse the file
-
+            
             saxParser.parse(originalFile, this);
 
         } catch (Throwable e) {
@@ -127,6 +127,8 @@ public class MZXMLFileOpeningTask extends DefaultHandler implements
             if (status == TaskStatus.PROCESSING)
                 status = TaskStatus.ERROR;
             errorMessage = e.toString();
+            
+            // discard the parsed data
             buildingFile = null;
 
             return;
@@ -138,8 +140,8 @@ public class MZXMLFileOpeningTask extends DefaultHandler implements
             return;
         }
 
-        Logger.put("Finished parsing " + originalFile + ", parsed "
-                + parsedScans + " scans");
+        //Logger.put("Finished parsing " + originalFile + ", parsed "
+        //        + parsedScans + " scans");
         status = TaskStatus.FINISHED;
 
     }

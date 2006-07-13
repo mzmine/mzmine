@@ -31,8 +31,8 @@ import javax.swing.JTable;
 import javax.swing.ListSelectionModel;
 
 import net.sf.mzmine.taskcontrol.Task;
-import net.sf.mzmine.taskcontrol.TaskController;
 import net.sf.mzmine.taskcontrol.Task.TaskPriority;
+import net.sf.mzmine.taskcontrol.impl.TaskControllerImpl;
 
 /**
  * 
@@ -41,6 +41,7 @@ public class TaskProgressWindow extends JInternalFrame implements
         ActionListener {
 
     private JTable taskTable;
+    private TaskControllerImpl taskController;
 
     // popup menu
     private JPopupMenu popupMenu;
@@ -53,10 +54,11 @@ public class TaskProgressWindow extends JInternalFrame implements
     /**
      * 
      */
-    public TaskProgressWindow() {
+    public TaskProgressWindow(TaskControllerImpl taskController) {
         super("Tasks in progress...", true, true, true, true);
         setDefaultCloseOperation(HIDE_ON_CLOSE);
-        taskTable = new JTable(TaskController.getInstance().getTaskTableModel());
+        this.taskController = taskController;
+        taskTable = new JTable(taskController.getTaskTableModel());
         taskTable.setCellSelectionEnabled(false);
         taskTable.setColumnSelectionAllowed(false);
         taskTable.setRowSelectionAllowed(true);
@@ -105,7 +107,7 @@ public class TaskProgressWindow extends JInternalFrame implements
         Task selectedTask;
 
         int selectedRow = taskTable.getSelectedRow();
-        selectedTask = TaskController.getInstance().getTask(selectedRow);
+        selectedTask = taskController.getTask(selectedRow);
 
         if (selectedTask == null)
             return;
@@ -115,15 +117,15 @@ public class TaskProgressWindow extends JInternalFrame implements
         }
 
         if (src == highPriorityMenuItem) {
-            TaskController.getInstance().setTaskPriority(selectedTask, TaskPriority.HIGH);
+            taskController.setTaskPriority(selectedTask, TaskPriority.HIGH);
         }
 
         if (src == normalPriorityMenuItem) {
-            TaskController.getInstance().setTaskPriority(selectedTask, TaskPriority.NORMAL);
+            taskController.setTaskPriority(selectedTask, TaskPriority.NORMAL);
         }
 
         if (src == lowPriorityMenuItem) {
-            TaskController.getInstance().setTaskPriority(selectedTask, TaskPriority.LOW);
+            taskController.setTaskPriority(selectedTask, TaskPriority.LOW);
         }
        
     }

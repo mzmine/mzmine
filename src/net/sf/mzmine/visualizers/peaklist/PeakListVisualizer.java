@@ -19,7 +19,7 @@
 
 package net.sf.mzmine.visualizers.peaklist;
 
-import net.sf.mzmine.interfaces.Peak;
+import net.sf.mzmine.data.Peak;
 
 
 public interface PeakListVisualizer {

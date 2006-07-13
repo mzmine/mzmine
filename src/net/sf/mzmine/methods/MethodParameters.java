@@ -46,5 +46,4 @@ public interface MethodParameters extends Serializable {
      */
     public void readFromXML(Element element);
 
-	public MethodParameters clone();
 }

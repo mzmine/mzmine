@@ -24,14 +24,17 @@ import java.util.Comparator;
 import java.util.Iterator;
 import java.util.TreeSet;
 import java.util.Vector;
+import java.util.logging.Logger;
 import java.awt.Frame;
 
+import net.sf.mzmine.data.Peak;
+import net.sf.mzmine.data.PeakList;
 import net.sf.mzmine.io.RawDataFile;
-import net.sf.mzmine.interfaces.Peak;
-import net.sf.mzmine.interfaces.PeakList;
 import net.sf.mzmine.methods.Method;
 import net.sf.mzmine.methods.MethodParameters;
 import net.sf.mzmine.methods.alignment.AlignmentResult;
+import net.sf.mzmine.taskcontrol.TaskController;
+import net.sf.mzmine.userinterface.Desktop;
 import net.sf.mzmine.userinterface.dialogs.ParameterSetupDialog;
 import net.sf.mzmine.userinterface.mainwindow.MainWindow;
 
@@ -64,7 +67,7 @@ public class IncompleteIsotopePatternFilter implements Method {
 		NumberFormat[] numberFormats = new NumberFormat[1];
 		numberFormats[0] = NumberFormat.getNumberInstance(); numberFormats[0].setMinimumFractionDigits(0);
 
-		MainWindow mainWin = MainWindow.getInstance();
+		MainWindow mainWin = null;
 		ParameterSetupDialog psd = new ParameterSetupDialog(mainWin, "Please check the parameter values", paramNames, paramValues, numberFormats);
 		psd.setVisible(true);
 
@@ -91,6 +94,22 @@ public class IncompleteIsotopePatternFilter implements Method {
 	public void runMethod(MethodParameters parameters, RawDataFile[] rawDataFiles, AlignmentResult[] alignmentResults) {
 		// TODO
 	}
+
+    /**
+     * @see net.sf.mzmine.main.MZmineModule#initModule(net.sf.mzmine.taskcontrol.TaskController, net.sf.mzmine.userinterface.Desktop, java.util.logging.Logger)
+     */
+    public void initModule(TaskController taskController, Desktop desktop, Logger logger) {
+        // TODO Auto-generated method stub
+        
+    }
+
+    /**
+     * @see net.sf.mzmine.methods.Method#askParameters()
+     */
+    public MethodParameters askParameters() {
+        // TODO Auto-generated method stub
+        return null;
+    }
 
 
 }

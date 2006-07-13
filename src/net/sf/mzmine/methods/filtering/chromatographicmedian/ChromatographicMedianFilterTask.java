@@ -22,17 +22,17 @@ package net.sf.mzmine.methods.filtering.chromatographicmedian;
 import java.io.IOException;
 import java.util.Vector;
 
-import net.sf.mzmine.interfaces.Scan;
+import net.sf.mzmine.data.Scan;
+import net.sf.mzmine.data.impl.SimpleScan;
 import net.sf.mzmine.io.RawDataFile;
 import net.sf.mzmine.io.RawDataFileWriter;
 import net.sf.mzmine.taskcontrol.Task;
-import net.sf.mzmine.util.MyMath;
-import net.sf.mzmine.util.SimpleScan;
+import net.sf.mzmine.util.MathUtils;
 
 /**
  * 
  */
-public class ChromatographicMedianFilterTask implements Task {
+class ChromatographicMedianFilterTask implements Task {
 
     private RawDataFile rawDataFile;
     private ChromatographicMedianFilterParameters parameters;
@@ -102,13 +102,6 @@ public class ChromatographicMedianFilterTask implements Task {
      */
     public void cancel() {
         status = TaskStatus.CANCELED;
-    }
-
-    /**
-     * @see net.sf.mzmine.taskcontrol.Task#getPriority()
-     */
-    public TaskPriority getPriority() {
-        return TaskPriority.NORMAL;
     }
 
     /**
@@ -205,7 +198,7 @@ public class ChromatographicMedianFilterTask implements Task {
                         tmpIntensities[bufferIndex] = intValueBuffer.get(
                                 bufferIndex).doubleValue();
                     }
-                    double medianIntensity = MyMath.calcQuantile(
+                    double medianIntensity = MathUtils.calcQuantile(
                             tmpIntensities, (double) 0.5);
 
                     newIntValues[datapointIndex] = medianIntensity;

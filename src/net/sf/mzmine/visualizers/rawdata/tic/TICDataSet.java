@@ -24,14 +24,14 @@ package net.sf.mzmine.visualizers.rawdata.tic;
 
 import java.util.Date;
 
-import net.sf.mzmine.interfaces.Scan;
+import net.sf.mzmine.data.Scan;
+import net.sf.mzmine.io.RawDataAcceptor;
 import net.sf.mzmine.io.RawDataFile;
+import net.sf.mzmine.io.util.RawDataRetrievalTask;
 import net.sf.mzmine.taskcontrol.Task;
 import net.sf.mzmine.taskcontrol.TaskController;
-import net.sf.mzmine.util.RawDataAcceptor;
-import net.sf.mzmine.util.RawDataRetrievalTask;
 import net.sf.mzmine.util.ScanUtils;
-import net.sf.mzmine.visualizers.rawdata.tic.TICVisualizer.PlotType;
+import net.sf.mzmine.visualizers.rawdata.tic.TICVisualizerWindow.PlotType;
 
 import org.jfree.data.xy.DefaultTableXYDataset;
 import org.jfree.data.xy.XYSeries;
@@ -44,7 +44,7 @@ class TICDataSet extends DefaultTableXYDataset implements RawDataAcceptor {
     // redraw the chart every 100 ms while updating
     private static final int REDRAW_INTERVAL = 100;
 
-    private TICVisualizer visualizer;
+    private TICVisualizerWindow visualizer;
     private RawDataFile rawDataFile;
     private int[] scanNumbers;
     private double[] mzValues;
@@ -53,7 +53,7 @@ class TICDataSet extends DefaultTableXYDataset implements RawDataAcceptor {
 
     private Date lastRedrawTime = new Date();
 
-    TICDataSet(RawDataFile rawDataFile, int scanNumbers[], double mzMin, double mzMax, TICVisualizer visualizer) {
+    TICDataSet(TaskController taskController, RawDataFile rawDataFile, int scanNumbers[], double mzMin, double mzMax, TICVisualizerWindow visualizer) {
 
         this.visualizer = visualizer;
         this.mzMin = mzMin;
@@ -72,7 +72,7 @@ class TICDataSet extends DefaultTableXYDataset implements RawDataAcceptor {
         Task updateTask = new RawDataRetrievalTask(rawDataFile, scanNumbers,
                 "Updating TIC visualizer of " + rawDataFile, this);
 
-        TaskController.getInstance().addTask(updateTask, visualizer);
+        taskController.addTask(updateTask, visualizer);
         
     }
 
@@ -98,7 +98,7 @@ class TICDataSet extends DefaultTableXYDataset implements RawDataAcceptor {
     }
 
     /**
-     * @see net.sf.mzmine.util.RawDataAcceptor#addScan(net.sf.mzmine.interfaces.Scan)
+     * @see net.sf.mzmine.io.RawDataAcceptor#addScan(net.sf.mzmine.data.Scan)
      */
     public void addScan(Scan scan, int ind) {
 

@@ -565,10 +565,12 @@ public class AlignmentResultVisualizerList extends JInternalFrame implements Ali
 
 					double preValue = -1;
 					if (columnGroupOffset==0) {
+                        /*
 						if (mainWin.getParameterStorage().getGeneralParameters().getPeakMeasuringType() == GeneralParameters.PARAMETERVALUE_PEAKMEASURING_HEIGHT)
 							{ preValue = alignmentResult.getPeakHeight(rawDataID, row); }
 						if (mainWin.getParameterStorage().getGeneralParameters().getPeakMeasuringType() == GeneralParameters.PARAMETERVALUE_PEAKMEASURING_AREA)
 							{ preValue = alignmentResult.getPeakArea(rawDataID, row); }
+                            */
 					}
 					if (preValue<0) { return null; } else {	return new Double(preValue); }
 				}
@@ -711,7 +713,7 @@ public class AlignmentResultVisualizerList extends JInternalFrame implements Ali
 					//	RawDataAtClient rawData = mainWin.getItemSelector().getRawDataByID(rawDataID);
 					//	rawDataName = rawData.getNiceName();
 					}
-
+/*
 					if (mainWin.getParameterStorage().getGeneralParameters().getPeakMeasuringType() == GeneralParameters.PARAMETERVALUE_PEAKMEASURING_HEIGHT) {
 						s[COLINFO_COMPACTMODE_LASTCOMMONCOL + 1 + i*COLINFO_COMPACTMODE_COLSPERRUN] = new String("height: " + rawDataName);
 					}
@@ -719,6 +721,7 @@ public class AlignmentResultVisualizerList extends JInternalFrame implements Ali
 					if (mainWin.getParameterStorage().getGeneralParameters().getPeakMeasuringType() == GeneralParameters.PARAMETERVALUE_PEAKMEASURING_AREA) {
 						s[COLINFO_COMPACTMODE_LASTCOMMONCOL + 1 + i*COLINFO_COMPACTMODE_COLSPERRUN] = new String("area: " + rawDataName);
 					}
+                    */
 
 					i++;
 				}

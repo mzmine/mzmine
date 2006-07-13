@@ -19,26 +19,14 @@
 
 package net.sf.mzmine.methods.alignment.fast;
 
-import java.text.NumberFormat;
-import java.util.Comparator;
-import java.util.Enumeration;
-import java.util.HashSet;
-import java.util.Hashtable;
-import java.util.Iterator;
-import java.util.Set;
-import java.util.TreeSet;
-import java.util.Vector;
-
-import javax.swing.JFrame;
+import java.util.logging.Logger;
 
 import net.sf.mzmine.io.RawDataFile;
-import net.sf.mzmine.methods.alignment.AlignmentResult;
 import net.sf.mzmine.methods.Method;
 import net.sf.mzmine.methods.MethodParameters;
-import net.sf.mzmine.interfaces.Peak;
-import net.sf.mzmine.interfaces.PeakList;
-import net.sf.mzmine.userinterface.mainwindow.MainWindow;
-import net.sf.mzmine.util.MyMath;
+import net.sf.mzmine.methods.alignment.AlignmentResult;
+import net.sf.mzmine.taskcontrol.TaskController;
+import net.sf.mzmine.userinterface.Desktop;
 
 /**
  *
@@ -58,19 +46,35 @@ public class FastAligner implements Method {
 		if (parameters==null) return false;
 		FastAlignerParameters currentParameters = (FastAlignerParameters)parameters;
 
-		FastAlignerParameterSetupDialog jaPSD = new FastAlignerParameterSetupDialog((JFrame)(MainWindow.getInstance()), new String("Please give parameter values"), currentParameters);
-		jaPSD.setVisible(true);
+		//FastAlignerParameterSetupDialog jaPSD = new FastAlignerParameterSetupDialog((JFrame)(MainWindow.getInstance()), new String("Please give parameter values"), currentParameters);
+		//jaPSD.setVisible(true);
 
 		// Check if user pressed cancel
-		if (jaPSD.getExitCode()==-1) {
-			return false;
-		}
+		//if (jaPSD.getExitCode()==-1) {
+		//	return false;
+		//}
 
 		return true;
 	}
 
 	public void runMethod(MethodParameters parameters, RawDataFile[] rawDataFiles, AlignmentResult[] alignmentResults) {
 	}
+
+    /**
+     * @see net.sf.mzmine.main.MZmineModule#initModule(net.sf.mzmine.taskcontrol.TaskController, net.sf.mzmine.userinterface.Desktop, java.util.logging.Logger)
+     */
+    public void initModule(TaskController taskController, Desktop desktop, Logger logger) {
+        // TODO Auto-generated method stub
+        
+    }
+
+    /**
+     * @see net.sf.mzmine.methods.Method#askParameters()
+     */
+    public MethodParameters askParameters() {
+        // TODO Auto-generated method stub
+        return null;
+    }
 
 
 }

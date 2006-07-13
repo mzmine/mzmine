@@ -36,7 +36,7 @@ import javax.swing.JFormattedTextField;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 
-import net.sf.mzmine.interfaces.Scan;
+import net.sf.mzmine.data.Scan;
 import net.sf.mzmine.io.RawDataFile;
 import net.sf.mzmine.methods.gapfilling.GapFiller;
 import net.sf.mzmine.methods.gapfilling.GapFillerParameters;

@@ -30,14 +30,13 @@ import java.util.Hashtable;
 import java.util.Iterator;
 import java.util.Vector;
 
-import net.sf.mzmine.interfaces.Scan;
+import net.sf.mzmine.data.Scan;
 import net.sf.mzmine.io.RawDataFile;
 import net.sf.mzmine.io.RawDataFileWriter;
 import net.sf.mzmine.io.mzxml.MZXMLFileWriter;
 import net.sf.mzmine.methods.Method;
 import net.sf.mzmine.methods.MethodParameters;
 import net.sf.mzmine.util.CollectionUtils;
-import net.sf.mzmine.util.Logger;
 
 /**
  * 
@@ -328,7 +327,7 @@ public class NetCDFFile implements RawDataFile {
             workingCopy = File.createTempFile("MZmine", null);
             workingCopy.deleteOnExit();
         } catch (SecurityException e) {
-            Logger.putFatal("Could not prepare newly created temporary copy for deletion on exit.");
+            // Logger.putFatal("Could not prepare newly created temporary copy for deletion on exit.");
             throw new IOException(
                     "Could not prepare newly created temporary copy for deletion on exit.");
         }

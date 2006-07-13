@@ -22,9 +22,9 @@ package net.sf.mzmine.methods.deisotoping;
 import java.util.Hashtable;
 import java.util.Enumeration;
 
-import net.sf.mzmine.util.MyMath;
-import net.sf.mzmine.interfaces.Peak;
-import net.sf.mzmine.interfaces.IsotopePattern;
+import net.sf.mzmine.util.MathUtils;
+import net.sf.mzmine.data.IsotopePattern;
+import net.sf.mzmine.data.Peak;
 
 /**
  * This class is a simple implementation of the peak interface.

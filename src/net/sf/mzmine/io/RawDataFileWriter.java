@@ -21,7 +21,10 @@ package net.sf.mzmine.io;
 
 import java.io.IOException;
 
-import net.sf.mzmine.interfaces.Scan;
+import net.sf.mzmine.data.Scan;
+
+
+
 
 /**
  * 

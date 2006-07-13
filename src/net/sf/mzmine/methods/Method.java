@@ -19,9 +19,7 @@
 
 package net.sf.mzmine.methods;
 
-import net.sf.mzmine.io.MZmineProject;
 import net.sf.mzmine.io.RawDataFile;
-import net.sf.mzmine.userinterface.mainwindow.MainWindow;
 import net.sf.mzmine.methods.alignment.AlignmentResult;
 
 /**
@@ -30,23 +28,17 @@ import net.sf.mzmine.methods.alignment.AlignmentResult;
 public interface Method {
 
     /**
-     * @return Textual description of method
-     */
-    public String getMethodDescription();
-
-    /**
      * This function displays a modal dialog to define method parameters
      *
-     * @param	parameters	Current parameter values, any changes should be written back to this instance.
-     * @return	True if it is OK to go on and run the method
+     * @return	Newly created parameters or null if user clicked "Cancel"
      */
-    public boolean askParameters(MethodParameters parameters);
+    public MethodParameters askParameters();
 
     /**
      * Runs this method on a given items
      * @param	parameters	Parameter values for the method
-     * @param	rawDataFiles	Raw data files to be processed (null if the method doesn't work on raw data files)
-     * @param	alignmentResult	AlignmentResults to be processed (null if the method doesn't work on alignment results)
+     * @param	rawDataFiles	Raw data files to be processed (null ok if the method doesn't work on raw data files)
+     * @param	alignmentResult	AlignmentResults to be processed (null ok if the method doesn't work on alignment results)
      */
     public void runMethod(MethodParameters parameters, RawDataFile[] rawDataFiles, AlignmentResult[] alignmentResults);
 

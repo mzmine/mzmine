@@ -94,7 +94,7 @@ class SpectraPlot extends ChartPanel {
     XYBarRenderer centroidRenderer, peakListRenderer;
     XYLineAndShapeRenderer continuousRenderer;
 
-    SpectraPlot(SpectraVisualizer visualizer, XYDataset rawDataSet, XYDataset peaksDataSet) {
+    SpectraPlot(SpectraVisualizerWindow visualizer, XYDataset rawDataSet, XYDataset peaksDataSet) {
         // superconstructor with no chart yet
         // disable off-screen buffering (makes problems with late drawing of the title)
         super(null, false);

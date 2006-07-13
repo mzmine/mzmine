@@ -31,7 +31,7 @@ import javax.swing.JFileChooser;
 
 import net.sf.mzmine.io.IOController;
 import net.sf.mzmine.io.RawDataFile.PreloadLevel;
-import net.sf.mzmine.userinterface.mainwindow.MainWindow;
+import net.sf.mzmine.userinterface.Desktop;
 import sunutils.ExampleFileFilter;
 
 /**
@@ -41,11 +41,16 @@ public class FileOpenDialog extends JDialog implements ActionListener {
 
     private JFileChooser fileChooser;
     private JCheckBox preloadCheckBox;
+    private IOController ioController;
+    private Desktop desktop;
 
-    public FileOpenDialog() {
+    public FileOpenDialog(IOController ioController, Desktop desktop) {
 
-        super(MainWindow.getInstance(), "Please select data files to open",
+        super(desktop.getMainWindow(), "Please select data files to open",
                 true);
+        
+        this.ioController = ioController;
+        this.desktop = desktop;
 
         fileChooser = new JFileChooser();
 
@@ -81,7 +86,7 @@ public class FileOpenDialog extends JDialog implements ActionListener {
 
         pack();
 
-        setLocationRelativeTo(MainWindow.getInstance());
+        setLocationRelativeTo(desktop.getMainWindow());
 
     }
 
@@ -100,7 +105,7 @@ public class FileOpenDialog extends JDialog implements ActionListener {
             PreloadLevel preloadLevel = PreloadLevel.NO_PRELOAD;
             if (preloadCheckBox.isSelected())
                 preloadLevel = PreloadLevel.PRELOAD_ALL_SCANS;
-            IOController.getInstance().openFiles(selectedFiles, preloadLevel);
+            ioController.openFiles(selectedFiles, preloadLevel);
 
         }
 

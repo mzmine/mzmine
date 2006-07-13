@@ -23,11 +23,11 @@
 package net.sf.mzmine.io.netcdf;
 
 import java.io.File;
+import java.util.logging.Logger;
 
-import net.sf.mzmine.interfaces.Scan;
+import net.sf.mzmine.data.Scan;
 import net.sf.mzmine.io.RawDataFile.PreloadLevel;
 import net.sf.mzmine.taskcontrol.DistributableTask;
-import net.sf.mzmine.util.Logger;
 
 
 /**
@@ -130,7 +130,7 @@ public class NetCDFFileOpeningTask implements DistributableTask {
 			cdfParser.closeFile();
 
 		} catch (Throwable e) {
-			Logger.putFatal("Could not open file " + originalFile.getPath());
+			//Logger.putFatal("Could not open file " + originalFile.getPath());
 			errorMessage = e.toString();
 			status = TaskStatus.ERROR;
 			return;

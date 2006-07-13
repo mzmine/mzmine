@@ -41,9 +41,6 @@ public class LinearNormalizer implements Normalizer {
 
 	private MainWindow mainWin;
 
-
-
-
 	private String NORMALIZATION_AVERAGEINT_STR = "Average intensity";
 	private String NORMALIZATION_AVERAGESQUAREINT_STR = "Average squared intensity";
 	private String NORMALIZATION_MAXPEAK_STR = "Maximum peak intensity";
@@ -59,7 +56,7 @@ public class LinearNormalizer implements Normalizer {
 			myParameters = new LinearNormalizerParameters();
 		} else {
 			myParameters = currentValues;
-		}
+		}/*
 
 		Statusbar statBar = _mainWin.getStatusBar();
 
@@ -105,7 +102,7 @@ public class LinearNormalizer implements Normalizer {
 		if (selectedValue == null) {
 			statBar.setStatusText("Normalization cancelled.");
 			return null;
-		}
+		}*/
 
 		return myParameters;
 	}
@@ -176,7 +173,7 @@ public class LinearNormalizer implements Normalizer {
 				int numOfPeakMeasures = 0;
 
 				for (int pi=0; pi<rawPeakHeights.length; pi++) {
-
+/*
 					if (mainWin.getParameterStorage().getGeneralParameters().getPeakMeasuringType() == GeneralParameters.PARAMETERVALUE_PEAKMEASURING_HEIGHT) {
 						if ((peakStatuses[pi]==AlignmentResult.PEAKSTATUS_DETECTED) ||
 							(peakStatuses[pi]==AlignmentResult.PEAKSTATUS_ESTIMATED)) {
@@ -192,10 +189,11 @@ public class LinearNormalizer implements Normalizer {
 						}
 					}
 				}
+                */
 				normFactor = sumOfPeakMeasures / ((double)numOfPeakMeasures);
 			}
 
-
+/*
 
 			//
  			if (myParameters.paramNormalizationType == LinearNormalizerParameters.NORMALIZATIONTYPE_AVERAGESQUAREINT) {
@@ -266,7 +264,7 @@ public class LinearNormalizer implements Normalizer {
 			double maxVal = 0;
 			if (i==0) {
 				for (int pi=0; pi<normPeakHeights.length; pi++) {
-					if (mainWin.getParameterStorage().getGeneralParameters().getPeakMeasuringType() == GeneralParameters.PARAMETERVALUE_PEAKMEASURING_HEIGHT) {
+/*					if (mainWin.getParameterStorage().getGeneralParameters().getPeakMeasuringType() == GeneralParameters.PARAMETERVALUE_PEAKMEASURING_HEIGHT) {
 						if (maxVal<normPeakHeights[pi]) { maxVal = normPeakHeights[pi]; }
 					}
 
@@ -274,6 +272,7 @@ public class LinearNormalizer implements Normalizer {
 						if (maxVal<normPeakAreas[pi]) { maxVal = normPeakAreas[pi]; }
 					}
 				}
+                */
 				relativeFactor = 100000 / maxVal;
 			}
 
@@ -294,4 +293,7 @@ public class LinearNormalizer implements Normalizer {
 		return nar;
 	}
 
+        }
+        return nar;
+    }
 }

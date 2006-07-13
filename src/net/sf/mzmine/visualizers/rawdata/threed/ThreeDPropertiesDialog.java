@@ -29,6 +29,7 @@ import javax.swing.JLabel;
 import javax.swing.JSeparator;
 import javax.swing.SwingConstants;
 
+import net.sf.mzmine.userinterface.Desktop;
 import net.sf.mzmine.userinterface.mainwindow.MainWindow;
 import visad.DisplayImpl;
 import visad.ScalarMap;
@@ -46,9 +47,9 @@ class ThreeDPropertiesDialog extends JDialog implements ActionListener {
     private GMCWidget gmcWidget;
     private ColorMapWidget colorWidget;
 
-    public ThreeDPropertiesDialog(DisplayImpl display) {
+    public ThreeDPropertiesDialog(Desktop desktop, DisplayImpl display) {
         
-        super(MainWindow.getInstance(), TITLE, true);
+        super(desktop.getMainWindow(), TITLE, true);
 
         setLayout(new BoxLayout(getContentPane(), BoxLayout.Y_AXIS));
         
@@ -78,7 +79,7 @@ class ThreeDPropertiesDialog extends JDialog implements ActionListener {
         add(okButton);
         
         pack();
-        setLocationRelativeTo(MainWindow.getInstance());
+        setLocationRelativeTo(desktop.getMainWindow());
 
     }
 

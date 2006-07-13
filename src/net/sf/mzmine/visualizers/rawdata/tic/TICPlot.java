@@ -41,7 +41,7 @@ import javax.swing.KeyStroke;
 import net.sf.mzmine.userinterface.components.AddFilePopupMenu;
 import net.sf.mzmine.userinterface.components.RemoveFilePopupMenu;
 import net.sf.mzmine.util.GUIUtils;
-import net.sf.mzmine.visualizers.rawdata.tic.TICVisualizer.PlotType;
+import net.sf.mzmine.visualizers.rawdata.tic.TICVisualizerWindow.PlotType;
 
 import org.jfree.chart.ChartFactory;
 import org.jfree.chart.ChartPanel;
@@ -70,7 +70,7 @@ class TICPlot extends ChartPanel {
     private static DateFormat rtFormat = new SimpleDateFormat("m:ss");
     private static NumberFormat intensityFormat = new DecimalFormat("0.00E0");
 
-    private TICVisualizer visualizer;
+    private TICVisualizerWindow visualizer;
 
     private int numberOfDataSets = 0;
 
@@ -122,7 +122,7 @@ class TICPlot extends ChartPanel {
     /**
      * 
      */
-    TICPlot(final TICVisualizer visualizer) {
+    TICPlot(final TICVisualizerWindow visualizer) {
         // superconstructor with no chart yet
         // disable off-screen buffering (makes problems with late drawing of the
         // title)

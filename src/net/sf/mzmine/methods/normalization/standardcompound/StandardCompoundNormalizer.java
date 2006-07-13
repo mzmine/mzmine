@@ -66,14 +66,14 @@ public class StandardCompoundNormalizer implements Normalizer {
 
 		myParameters.paramNormalizationType = StandardCompoundNormalizerParameters.NORMALIZATIONTYPE_STDCOMPOUND_NEAREST;
 
-		ParameterSetupDialog psd = new ParameterSetupDialog(_mainWin, myParameters);
+/*		ParameterSetupDialog psd = new ParameterSetupDialog(_mainWin, myParameters);
 		psd.setLocationRelativeTo(_mainWin);
 		psd.setVisible(true);
 
 		if (psd.getExitCode()==-1) {
 			statBar.setStatusText("Normalization cancelled.");
 			return null;
-		}
+		}*/
 
 		return myParameters;
 	}
@@ -83,7 +83,7 @@ public class StandardCompoundNormalizer implements Normalizer {
 	 */
 	private double calcDistance(double mz1, double rt1, double mz2, double rt2, double k) {
 		return (java.lang.Math.abs(mz1-mz2)*k+java.lang.Math.abs(rt1-rt2));
-	}
+    }
 
 
 	/**
@@ -147,12 +147,12 @@ public class StandardCompoundNormalizer implements Normalizer {
 			desc = desc + "normalized by weighted standard compound method ";
 		}
 
-		if (mainWin.getParameterStorage().getGeneralParameters().getPeakMeasuringType() == GeneralParameters.PARAMETERVALUE_PEAKMEASURING_HEIGHT) {
+		/*if (mainWin.getParameterStorage().getGeneralParameters().getPeakMeasuringType() == GeneralParameters.PARAMETERVALUE_PEAKMEASURING_HEIGHT) {
 			desc = desc + "using peak heights.";
 		}
 		if (mainWin.getParameterStorage().getGeneralParameters().getPeakMeasuringType() == GeneralParameters.PARAMETERVALUE_PEAKMEASURING_AREA) {
 			desc = desc + "using peak areas.";
-		}
+		}*/
 
 		// Initialize a new alignment result for storing the normalized version of ar
 		AlignmentResult nar = new AlignmentResult(ar, desc);
@@ -188,7 +188,7 @@ public class StandardCompoundNormalizer implements Normalizer {
 				// If this is a standard compound peak, then check that it has necessary data for calculating normalization factor
 				if (stdFlags[rowInd]==true) {
 
-					if (mainWin.getParameterStorage().getGeneralParameters().getPeakMeasuringType() == GeneralParameters.PARAMETERVALUE_PEAKMEASURING_HEIGHT) {
+					/*if (mainWin.getParameterStorage().getGeneralParameters().getPeakMeasuringType() == GeneralParameters.PARAMETERVALUE_PEAKMEASURING_HEIGHT) {
 						// Standard compounds must be "found" or "estimated" in both runs, so that height ratio can be determined
 						if ( (ar.getPeakStatus(firstColRawDataID, rowInd)==AlignmentResult.PEAKSTATUS_NOTFOUND) ||
 							 (ar.getPeakStatus(currentColRawDataID, rowInd)==AlignmentResult.PEAKSTATUS_NOTFOUND) ) {
@@ -200,11 +200,11 @@ public class StandardCompoundNormalizer implements Normalizer {
 									"Unable to normalize " + ar.getNiceName() + ": Standard compound with ID " + (rowInd+1) + " is missing peak height in some of the raw data files.",
 									"Sorry",JOptionPane.ERROR_MESSAGE);
 							} catch (Exception exce ) {}
-							*/
 						//	waitDialog.hideMe();
 							return null;
 						}
 					}
+       
 
 					if (mainWin.getParameterStorage().getGeneralParameters().getPeakMeasuringType() == GeneralParameters.PARAMETERVALUE_PEAKMEASURING_AREA) {
 						// Standard compounds must be "found" in both runs, so that area ratio can be determined
@@ -218,7 +218,7 @@ public class StandardCompoundNormalizer implements Normalizer {
 									"Unable to normalize " + ar.getNiceName() + ": Standard compound with ID " + (rowInd+1) + " is missing peak area in some of the raw data files.",
 									"Sorry",JOptionPane.ERROR_MESSAGE);
 							} catch (Exception exce ) {}
-							*/
+							
 					//		waitDialog.hideMe();
 							return null;
 						}
@@ -248,7 +248,7 @@ public class StandardCompoundNormalizer implements Normalizer {
 					stdCompInd++;
 				}
 
-			}
+			
 
 
 			// Get raw peak heights and areas in current column
@@ -260,7 +260,7 @@ public class StandardCompoundNormalizer implements Normalizer {
 			normPeakAreas = new double[rawPeakAreas.length];
 
 			normFactor = 0;
-
+/*
  			if (myParameters.paramNormalizationType == StandardCompoundNormalizerParameters.NORMALIZATIONTYPE_STDCOMPOUND_NEAREST) {
 
 				// Loop through all peak intensities for this run
@@ -371,7 +371,7 @@ public class StandardCompoundNormalizer implements Normalizer {
 		}
 
 	//	waitDialog.hideMe();
-
+*/
 		return nar;
 
 	}
@@ -379,7 +379,7 @@ public class StandardCompoundNormalizer implements Normalizer {
 
 
 	// The parameter setup dialog was created with NetBeans IDE
-	private class ParameterSetupDialog extends JDialog implements ActionListener { //javax.swing.JFrame implements ActionListener {
+	class ParameterSetupDialog extends JDialog implements ActionListener { //javax.swing.JFrame implements ActionListener {
 
 		private int exitCode = -1;
 		private StandardCompoundNormalizerParameters params;
@@ -490,5 +490,9 @@ public class StandardCompoundNormalizer implements Normalizer {
 
 	}
 
-
+            }
+        }
+        return nar;
+    }
+    
 }

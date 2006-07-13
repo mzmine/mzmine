@@ -198,12 +198,13 @@ public class AlignmentResultVisualizerSammonsPlotView extends JInternalFrame imp
 		waitDialog.showMe();
 		waitDialog.paintNow();*/
 
-		if (mainWin.getParameterStorage().getGeneralParameters().getPeakMeasuringType() == GeneralParameters.PARAMETERVALUE_PEAKMEASURING_HEIGHT) {
+	/*	if (mainWin.getParameterStorage().getGeneralParameters().getPeakMeasuringType() == GeneralParameters.PARAMETERVALUE_PEAKMEASURING_HEIGHT) {
 			setTitle(alignmentResult.getNiceName() + ": Sammons plot of average peak heights.");
 		}
 		if (mainWin.getParameterStorage().getGeneralParameters().getPeakMeasuringType() == GeneralParameters.PARAMETERVALUE_PEAKMEASURING_AREA) {
 			setTitle(alignmentResult.getNiceName() + ": Sammons plot of average peak areas.");
 		}
+        */
 
 		// Collect heights/areas to a matrix
 		int numOfSamples = alignmentResult.getNumOfRawDatas();
@@ -227,12 +228,12 @@ public class AlignmentResultVisualizerSammonsPlotView extends JInternalFrame imp
 				if (!(alignmentResult.isFullRow(peak))) { continue; }
 
 				// Use heights or areas
-				if (mainWin.getParameterStorage().getGeneralParameters().getPeakMeasuringType() == GeneralParameters.PARAMETERVALUE_PEAKMEASURING_HEIGHT) {
+			/*	if (mainWin.getParameterStorage().getGeneralParameters().getPeakMeasuringType() == GeneralParameters.PARAMETERVALUE_PEAKMEASURING_HEIGHT) {
 					data[sample][colInd] = alignmentResult.getPeakHeight(rawDataID, peak);
 				}
 				if (mainWin.getParameterStorage().getGeneralParameters().getPeakMeasuringType() == GeneralParameters.PARAMETERVALUE_PEAKMEASURING_AREA) {
 					data[sample][colInd] = alignmentResult.getPeakArea(rawDataID, peak);
-				}
+				}*/
 
 				// Next col
 				colInd++;

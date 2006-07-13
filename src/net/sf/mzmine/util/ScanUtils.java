@@ -19,7 +19,7 @@
 
 package net.sf.mzmine.util;
 
-import net.sf.mzmine.interfaces.Scan;
+import net.sf.mzmine.data.Scan;
 
 
 /**

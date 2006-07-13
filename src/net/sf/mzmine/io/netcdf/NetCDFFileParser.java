@@ -25,10 +25,10 @@ package net.sf.mzmine.io.netcdf;
 import java.io.File;
 import java.io.IOException;
 import java.util.Hashtable;
+import java.util.logging.Logger;
 
-import net.sf.mzmine.interfaces.Scan;
-import net.sf.mzmine.util.Logger;
-import net.sf.mzmine.util.SimpleScan;
+import net.sf.mzmine.data.Scan;
+import net.sf.mzmine.data.impl.SimpleScan;
 
 /**
  * This is a helper class used for parsing NetCDF files
@@ -56,7 +56,7 @@ public class NetCDFFileParser {
 		try {
 			inputFile = new ucar.nc2.NetcdfFile(originalFile.getPath());
 		} catch (Exception e) {
-			Logger.putFatal(e.toString());
+			// Logger.putFatal(e.toString());
 			throw (new IOException("Couldn't open input file" + originalFile));
 		}
 
@@ -72,7 +72,7 @@ public class NetCDFFileParser {
 		try {
 			inputFile = new ucar.nc2.NetcdfFile(originalFile.getPath());
 		} catch (Exception e) {
-			Logger.putFatal(e.toString());
+			// Logger.putFatal(e.toString());
 			throw (new IOException("Couldn't open input file" + originalFile));
 		}
 
@@ -86,7 +86,7 @@ public class NetCDFFileParser {
 		// Read number of scans
 		ucar.nc2.Variable scanIndexVariable = inputFile.findVariable("scan_index");
 		if (scanIndexVariable == null) {
-			Logger.putFatal("Could not find variable scan_index from file " + originalFile);
+			// Logger.putFatal("Could not find variable scan_index from file " + originalFile);
 			throw (new IOException("Could not find variable scan_index from file " + originalFile));
 		}
 		totalScans = scanIndexVariable.getShape()[0];
@@ -100,7 +100,7 @@ public class NetCDFFileParser {
 		try {
 			scanIndexArray = scanIndexVariable.read();
 		} catch (Exception e) {
-			Logger.putFatal(e.toString());
+			// Logger.putFatal(e.toString());
 			throw (new IOException("Could not read from variable scan_index from file " + originalFile));
 		}
 
@@ -115,7 +115,7 @@ public class NetCDFFileParser {
 		// Calc stop position for the last scan
 		ucar.nc2.Variable massValueVariable = inputFile.findVariable("mass_values");
 		if (massValueVariable == null) {
-			Logger.putFatal("Could not find variable mass_values from file " + originalFile);
+			// Logger.putFatal("Could not find variable mass_values from file " + originalFile);
 			throw (new IOException("Could not find variable mass_values from file " + originalFile));
 		}
 		scanStartPositions[totalScans] = (int)massValueVariable.getSize();	// This defines the end index of the last scan
@@ -128,14 +128,14 @@ public class NetCDFFileParser {
 
 		ucar.nc2.Variable scanTimeVariable = inputFile.findVariable("scan_acquisition_time");
 		if (scanTimeVariable == null) {
-			Logger.putFatal("Could not find variable scan_acquisition_time from file " + originalFile);
+			// Logger.putFatal("Could not find variable scan_acquisition_time from file " + originalFile);
 			throw (new IOException("Could not find variable scan_acquisition_time from file " + originalFile));
 		}
 		ucar.ma2.Array scanTimeArray = null;
 		try {
 			scanTimeArray = scanTimeVariable.read();
 		} catch (Exception e) {
-			Logger.putFatal(e.toString());
+			// Logger.putFatal(e.toString());
 			throw (new IOException("Could not read from variable scan_acquisition_time from file " + originalFile));
 		}
 
@@ -225,7 +225,7 @@ public class NetCDFFileParser {
 
 					} else {
 						if (i>0) { retentionTimes[i] = retentionTimes[i-1]; } else { retentionTimes[i] = 0; }
-						Logger.putFatal("ERROR: Could not fix incorrect QStar scan times.");
+						// Logger.putFatal("ERROR: Could not fix incorrect QStar scan times.");
 					}
 				}
 			}
@@ -276,7 +276,7 @@ public class NetCDFFileParser {
 		int[] scanLength = new int[1];
 		Integer[] startAndLength = scansIndex.get(new Integer(scanNum));
 		if (startAndLength==null) {
-			Logger.putFatal("Could not find scan start position and length for scan " + scanNum);
+			// Logger.putFatal("Could not find scan start position and length for scan " + scanNum);
 			throw (new IOException("Could not find scan start position and length for scan " + scanNum));
 		}
 		scanStartPosition[0] = startAndLength[0];
@@ -286,7 +286,7 @@ public class NetCDFFileParser {
 		// Get retention time of the scan
 		Double retentionTime = scansRetentionTimes.get(new Integer(scanNum));
 		if (retentionTime==null) {
-			Logger.putFatal("Could not find retention time for scan " + scanNum);
+			// Logger.putFatal("Could not find retention time for scan " + scanNum);
 			throw (new IOException("Could not find retention time for scan " + scanNum));
 		}
 
@@ -300,13 +300,13 @@ public class NetCDFFileParser {
 		// Find mass_values and intensity_values variables
 		ucar.nc2.Variable massValueVariable = inputFile.findVariable("mass_values");
 		if (massValueVariable == null) {
-			Logger.putFatal("Could not find variable mass_values");
+			// Logger.putFatal("Could not find variable mass_values");
 			throw (new IOException("Could not find variable mass_values"));
 		}
 
 		ucar.nc2.Variable intensityValueVariable = inputFile.findVariable("intensity_values");
 		if (intensityValueVariable == null) {
-			Logger.putFatal("Could not find variable intensity_values");
+			// Logger.putFatal("Could not find variable intensity_values");
 			throw (new IOException("Could not find variable intensity_values"));
 		}
 
@@ -317,8 +317,8 @@ public class NetCDFFileParser {
 			massValueArray = massValueVariable.read(scanStartPosition, scanLength);
 			intensityValueArray = intensityValueVariable.read(scanStartPosition, scanLength);
 		} catch (Exception e) {
-			Logger.putFatal("Could not read from variables mass_values and/or intensity_values.");
-			Logger.putFatal(e.toString());
+			// Logger.putFatal("Could not read from variables mass_values and/or intensity_values.");
+			// Logger.putFatal(e.toString());
 			throw (new IOException("Could not read from variables mass_values and/or intensity_values."));
 		}
 

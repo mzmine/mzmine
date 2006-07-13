@@ -1,137 +1,206 @@
 /*
  * Copyright 2006 The MZmine Development Team
- *
+ * 
  * This file is part of MZmine.
- *
+ * 
  * MZmine is free software; you can redistribute it and/or modify it under the
  * terms of the GNU General Public License as published by the Free Software
  * Foundation; either version 2 of the License, or (at your option) any later
  * version.
- *
+ * 
  * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY
  * WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR
  * A PARTICULAR PURPOSE. See the GNU General Public License for more details.
- *
+ * 
  * You should have received a copy of the GNU General Public License along with
  * MZmine; if not, write to the Free Software Foundation, Inc., 51 Franklin St,
  * Fifth Floor, Boston, MA 02110-1301 USA
  */
-package net.sf.mzmine.methods.filtering.chromatographicmedian;
-import java.text.NumberFormat;
-import java.util.Vector;
-import java.awt.Frame;
 
-import net.sf.mzmine.interfaces.Scan;
+package net.sf.mzmine.methods.filtering.chromatographicmedian;
+
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.awt.event.KeyEvent;
+import java.text.NumberFormat;
+import java.util.logging.Logger;
+
+import javax.swing.JMenuItem;
+import javax.swing.event.ListSelectionEvent;
+import javax.swing.event.ListSelectionListener;
+
+import net.sf.mzmine.io.IOController;
 import net.sf.mzmine.io.RawDataFile;
-import net.sf.mzmine.io.MZmineProject;
+import net.sf.mzmine.main.MZmineModule;
 import net.sf.mzmine.methods.Method;
 import net.sf.mzmine.methods.MethodParameters;
 import net.sf.mzmine.methods.alignment.AlignmentResult;
+import net.sf.mzmine.project.MZmineProject;
 import net.sf.mzmine.taskcontrol.Task;
 import net.sf.mzmine.taskcontrol.TaskController;
 import net.sf.mzmine.taskcontrol.TaskListener;
+import net.sf.mzmine.userinterface.Desktop;
+import net.sf.mzmine.userinterface.Desktop.MZmineMenu;
 import net.sf.mzmine.userinterface.dialogs.ParameterSetupDialog;
-import net.sf.mzmine.userinterface.mainwindow.MainWindow;
-import net.sf.mzmine.util.Logger;
 
+public class ChromatographicMedianFilter implements MZmineModule, Method,
+        TaskListener, ListSelectionListener, ActionListener {
 
+    private TaskController taskController;
+    private Desktop desktop;
+    private Logger logger;
+    private JMenuItem myMenuItem;
 
-public class ChromatographicMedianFilter implements Method, TaskListener {
+    /**
+     * @see net.sf.mzmine.main.MZmineModule#initModule(net.sf.mzmine.io.IOController,
+     *      net.sf.mzmine.taskcontrol.TaskController,
+     *      net.sf.mzmine.userinterface.Desktop, java.util.logging.Logger)
+     */
+    public void initModule(IOController ioController,
+            TaskController taskController, Desktop desktop, Logger logger) {
 
+        this.taskController = taskController;
+        this.desktop = desktop;
+        this.logger = logger;
 
-	public String getMethodDescription() {
-		return new String("Chromatographic median filter");
-	}
+        myMenuItem = desktop.addMenuItem(MZmineMenu.FILTERING,
+                "Chromatographic median filter", this, null, KeyEvent.VK_H,
+                false, false);
 
-	public boolean askParameters(MethodParameters parameters) {
+        desktop.addSelectionListener(this);
 
-		ChromatographicMedianFilterParameters currentParameters = (ChromatographicMedianFilterParameters)parameters;
-		if (currentParameters==null) return false;
+    }
 
-		// Initialize parameter setup dialog
-		double[] paramValues = new double[2];
-		paramValues[0] = currentParameters.mzTolerance;
-		paramValues[1] = currentParameters.oneSidedWindowLength;
+    /**
+     * @see net.sf.mzmine.methods.Method#askParameters()
+     */
+    public MethodParameters askParameters() {
 
-		String[] paramNames = new String[2];
-		paramNames[0] = "Tolerance in M/Z tolerance (Da)";
-		paramNames[1] = "One-sided window length (scans)";
+        MZmineProject currentProject = MZmineProject.getCurrentProject();
+        ChromatographicMedianFilterParameters currentParameters = (ChromatographicMedianFilterParameters) currentProject.getParameters(this);
+        if (currentParameters == null)
+            currentParameters = new ChromatographicMedianFilterParameters();
 
-		NumberFormat[] numberFormats = new NumberFormat[2];
-		numberFormats[0] = NumberFormat.getNumberInstance(); numberFormats[0].setMinimumFractionDigits(3);
-		numberFormats[1] = NumberFormat.getIntegerInstance();
+        // Initialize parameter setup dialog
+        double[] paramValues = new double[2];
+        paramValues[0] = currentParameters.mzTolerance;
+        paramValues[1] = currentParameters.oneSidedWindowLength;
 
-		// Show parameter setup dialog
-		MainWindow mainWin = MainWindow.getInstance();
-		ParameterSetupDialog psd = new ParameterSetupDialog((Frame)mainWin, "Please check the parameter values", paramNames, paramValues, numberFormats);
-		psd.setVisible(true);
+        String[] paramNames = new String[2];
+        paramNames[0] = "Tolerance in M/Z tolerance (Da)";
+        paramNames[1] = "One-sided window length (scans)";
 
-		// Check if user clicked Cancel-button
-		if (psd.getExitCode()==-1) {
-			return false;
-		}
+        NumberFormat[] numberFormats = new NumberFormat[2];
+        numberFormats[0] = NumberFormat.getNumberInstance();
+        numberFormats[0].setMinimumFractionDigits(3);
+        numberFormats[1] = NumberFormat.getIntegerInstance();
 
-		// Write values from dialog back to parameters object
-		double d;
+        logger.finest("Showing cromatographic median filter parameter setup dialog");
+        
+        // Show parameter setup dialog
+        ParameterSetupDialog psd = new ParameterSetupDialog(
+                desktop.getMainWindow(), "Please check the parameter values",
+                paramNames, paramValues, numberFormats);
+        psd.setVisible(true);
 
-		d = psd.getFieldValue(0);
-		if (d<=0) {
-			mainWin.displayErrorMessage("Incorrect M/Z tolerance value!");
-			return false;
-		}
-		currentParameters.mzTolerance = d;
+        // Check if user clicked Cancel-button
+        if (psd.getExitCode() == -1) {
+            return null;
+        }
 
-		int i;
-		i = (int)java.lang.Math.round(psd.getFieldValue(1));
-		if (i<=0) {
-			mainWin.displayErrorMessage("Incorrect one-sided scan window length!");
-			return false;
-		}
-		currentParameters.oneSidedWindowLength = i;
+        ChromatographicMedianFilterParameters newParameters = new ChromatographicMedianFilterParameters();
 
-		return true;
+        // Write values from dialog back to parameters object
+        double d;
 
-	}
+        d = psd.getFieldValue(0);
+        if (d <= 0) {
+            desktop.displayErrorMessage("Incorrect M/Z tolerance value!");
+            return null;
+        }
+        newParameters.mzTolerance = d;
 
-	public void runMethod(MethodParameters parameters, RawDataFile[] rawDataFiles, AlignmentResult[] alignmentResults) {
+        int i;
+        i = (int) java.lang.Math.round(psd.getFieldValue(1));
+        if (i <= 0) {
+            desktop.displayErrorMessage("Incorrect one-sided scan window length!");
+            return null;
+        }
+        newParameters.oneSidedWindowLength = i;
 
-		Task filterTask;
-		ChromatographicMedianFilterParameters cmfParam = (ChromatographicMedianFilterParameters)parameters;
+        // save the current parameter settings for future runs
+        currentProject.setParameters(this, newParameters);
 
-		for (RawDataFile rawDataFile: rawDataFiles) {
-			filterTask = new ChromatographicMedianFilterTask(rawDataFile, cmfParam);
-			TaskController.getInstance().addTask(filterTask, this);
-		}
+        return newParameters;
 
-	}
+    }
+
+    /**
+     * @see net.sf.mzmine.methods.Method#runMethod(net.sf.mzmine.methods.MethodParameters,
+     *      net.sf.mzmine.io.RawDataFile[],
+     *      net.sf.mzmine.methods.alignment.AlignmentResult[])
+     */
+    public void runMethod(MethodParameters parameters,
+            RawDataFile[] rawDataFiles, AlignmentResult[] alignmentResults) {
+        
+        logger.finest("Running chromatographic median filter");
+        desktop.setStatusBarText("Processing...");
+
+        for (RawDataFile rawDataFile : rawDataFiles) {
+            Task filterTask = new ChromatographicMedianFilterTask(rawDataFile,
+                    (ChromatographicMedianFilterParameters) parameters);
+            taskController.addTask(filterTask, this);
+        }
+
+    }
+
+    /**
+     * @see java.awt.event.ActionListener#actionPerformed(java.awt.event.ActionEvent)
+     */
+    public void actionPerformed(ActionEvent e) {
+
+        MethodParameters parameters = askParameters();
+        if (parameters == null)
+            return;
+
+        RawDataFile[] rawDataFiles = desktop.getSelectedRawData();
+
+        runMethod(parameters, rawDataFiles, null);
+
+    }
+
+    /**
+     * @see javax.swing.event.ListSelectionListener#valueChanged(javax.swing.event.ListSelectionEvent)
+     */
+    public void valueChanged(ListSelectionEvent e) {
+        myMenuItem.setEnabled(desktop.isRawDataSelected());
+    }
 
     public void taskStarted(Task task) {
-		// do nothing
-	}
+        // do nothing
+    }
 
     public void taskFinished(Task task) {
 
         if (task.getStatus() == Task.TaskStatus.FINISHED) {
 
-			RawDataFile oldFile = (RawDataFile)((Object[])task.getResult())[0];
-			RawDataFile newFile = (RawDataFile)((Object[])task.getResult())[1];
-			ChromatographicMedianFilterParameters cmfParam = (ChromatographicMedianFilterParameters)((Object[])task.getResult())[2];
+            RawDataFile oldFile = (RawDataFile) ((Object[]) task.getResult())[0];
+            RawDataFile newFile = (RawDataFile) ((Object[]) task.getResult())[1];
+            MethodParameters cfParam = (MethodParameters) ((Object[]) task.getResult())[2];
 
-			// Add filtering to the history of the file
-			newFile.addHistory(oldFile.getCurrentFile(), this, cmfParam.clone());
+            newFile.addHistory(oldFile.getCurrentFile(), this, cfParam);
 
-			// Update MZmineProject about replacement of oldFile by newFile
-			MZmineProject.getCurrentProject().updateFile(oldFile, newFile);
+            // Update MZmineProject about replacement of oldFile by newFile
+            MZmineProject.getCurrentProject().updateFile(oldFile, newFile);
 
         } else if (task.getStatus() == Task.TaskStatus.ERROR) {
             /* Task encountered an error */
-            Logger.putFatal("Error while filtering a file: " + task.getErrorMessage());
-            MainWindow.getInstance().displayErrorMessage(
-                    "Error while filtering a file: " + task.getErrorMessage());
-
+            String msg = "Error while filtering a file: "
+                    + task.getErrorMessage();
+            logger.severe(msg);
+            desktop.displayErrorMessage(msg);
         }
 
-	}
+    }
 
 }
-

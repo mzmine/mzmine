@@ -23,13 +23,13 @@
 package net.sf.mzmine.io.mzxml;
 
 import java.util.Date;
+import java.util.logging.Logger;
 
 import javax.xml.datatype.DatatypeFactory;
 import javax.xml.datatype.Duration;
 
 import net.iharder.xmlizable.Base64;
-import net.sf.mzmine.interfaces.Scan;
-import net.sf.mzmine.util.Logger;
+import net.sf.mzmine.data.Scan;
 
 import org.xml.sax.Attributes;
 import org.xml.sax.SAXException;
@@ -83,70 +83,70 @@ class MZXMLScan extends DefaultHandler implements Scan {
     }
 
     /**
-     * @see net.sf.mzmine.interfaces.Scan#getNumberOfDataPoints()
+     * @see net.sf.mzmine.data.Scan#getNumberOfDataPoints()
      */
     public int getNumberOfDataPoints() {
         return mzValues.length;
     }
 
     /**
-     * @see net.sf.mzmine.interfaces.Scan#getScanNumber()
+     * @see net.sf.mzmine.data.Scan#getScanNumber()
      */
     public int getScanNumber() {
         return scanNumber;
     }
 
     /**
-     * @see net.sf.mzmine.interfaces.Scan#getMSLevel()
+     * @see net.sf.mzmine.data.Scan#getMSLevel()
      */
     public int getMSLevel() {
         return msLevel;
     }
 
     /**
-     * @see net.sf.mzmine.interfaces.Scan#getPrecursorMZ()
+     * @see net.sf.mzmine.data.Scan#getPrecursorMZ()
      */
     public double getPrecursorMZ() {
         return precursorMZ;
     }
 
     /**
-     * @see net.sf.mzmine.interfaces.Scan#getScanAcquisitionTime()
+     * @see net.sf.mzmine.data.Scan#getScanAcquisitionTime()
      */
     public double getRetentionTime() {
         return retentionTime;
     }
 
     /**
-     * @see net.sf.mzmine.interfaces.Scan#getMZRangeMin()
+     * @see net.sf.mzmine.data.Scan#getMZRangeMin()
      */
     public double getMZRangeMin() {
         return mzRangeMin;
     }
 
     /**
-     * @see net.sf.mzmine.interfaces.Scan#getMZRangeMax()
+     * @see net.sf.mzmine.data.Scan#getMZRangeMax()
      */
     public double getMZRangeMax() {
         return mzRangeMax;
     }
 
     /**
-     * @see net.sf.mzmine.interfaces.Scan#getBasePeakMZ()
+     * @see net.sf.mzmine.data.Scan#getBasePeakMZ()
      */
     public double getBasePeakMZ() {
         return basePeakMZ;
     }
 
     /**
-     * @see net.sf.mzmine.interfaces.Scan#getBasePeakIntensity()
+     * @see net.sf.mzmine.data.Scan#getBasePeakIntensity()
      */
     public double getBasePeakIntensity() {
         return basePeakIntensity;
     }
 
     /**
-     * @see net.sf.mzmine.interfaces.Scan#isCentroided()
+     * @see net.sf.mzmine.data.Scan#isCentroided()
      */
     public boolean isCentroided() {
 		return false;
@@ -196,7 +196,7 @@ class MZXMLScan extends DefaultHandler implements Scan {
                             .newDuration(retentionTimeStr);
                     retentionTime = dur.getTimeInMillis(currentDate) / 1000.0;
                 } catch (Exception e) {
-                    Logger.put(e.toString());
+                    // Logger.put(e.toString());
                     throw (new SAXException(
                             "Could not instantiate DatatypeFactory"));
 
@@ -220,7 +220,7 @@ class MZXMLScan extends DefaultHandler implements Scan {
                     mzRangeMax = Double.parseDouble(scanHighMZStr);
 
                 } catch (NumberFormatException e) {
-                    Logger.put("Can't interpret scan lowest/highest mz value");
+                    // Logger.put("Can't interpret scan lowest/highest mz value");
                     lowHighGiven = false;
                 }
 
@@ -335,7 +335,7 @@ class MZXMLScan extends DefaultHandler implements Scan {
 
 
     /**
-     * @see net.sf.mzmine.interfaces.Scan#getParentScanNumber()
+     * @see net.sf.mzmine.data.Scan#getParentScanNumber()
      */
     public int getParentScanNumber() {
         
@@ -347,7 +347,7 @@ class MZXMLScan extends DefaultHandler implements Scan {
 
 
     /**
-     * @see net.sf.mzmine.interfaces.Scan#getFragmentScanNumbers()
+     * @see net.sf.mzmine.data.Scan#getFragmentScanNumbers()
      */
     public int[] getFragmentScanNumbers() {
 

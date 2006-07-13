@@ -21,16 +21,16 @@ package net.sf.mzmine.methods.filtering.crop;
 
 import java.io.IOException;
 
-import net.sf.mzmine.interfaces.Scan;
+import net.sf.mzmine.data.Scan;
+import net.sf.mzmine.data.impl.SimpleScan;
 import net.sf.mzmine.io.RawDataFile;
 import net.sf.mzmine.io.RawDataFileWriter;
 import net.sf.mzmine.taskcontrol.Task;
-import net.sf.mzmine.util.SimpleScan;
 
 /**
  * 
  */
-public class CropFilterTask implements Task {
+class CropFilterTask implements Task {
 
     private RawDataFile rawDataFile;
     private CropFilterParameters parameters;
@@ -99,13 +99,6 @@ public class CropFilterTask implements Task {
      */
     public void cancel() {
         status = TaskStatus.CANCELED;
-    }
-
-    /**
-     * @see net.sf.mzmine.taskcontrol.Task#getPriority()
-     */
-    public TaskPriority getPriority() {
-        return TaskPriority.NORMAL;
     }
 
     /**
@@ -182,7 +175,6 @@ public class CropFilterTask implements Task {
                     newIntensityValues[newInd] = originalIntensityValues[ind];
                     newInd++;
                 }
-
 
                 // Write the modified scan to file
                 try {

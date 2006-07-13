@@ -36,14 +36,13 @@ import java.awt.image.SampleModel;
 import java.awt.image.WritableRaster;
 import java.util.Date;
 
-import net.sf.mzmine.interfaces.Scan;
+import net.sf.mzmine.data.Scan;
+import net.sf.mzmine.io.RawDataAcceptor;
 import net.sf.mzmine.io.RawDataFile;
-import net.sf.mzmine.io.RawDataFile.PreloadLevel;
+import net.sf.mzmine.io.util.RawDataRetrievalTask;
 import net.sf.mzmine.taskcontrol.Task;
 import net.sf.mzmine.taskcontrol.TaskController;
 import net.sf.mzmine.taskcontrol.Task.TaskPriority;
-import net.sf.mzmine.util.RawDataAcceptor;
-import net.sf.mzmine.util.RawDataRetrievalTask;
 
 import org.jfree.data.xy.AbstractXYZDataset;
 
@@ -56,7 +55,7 @@ class TwoDDataSet extends AbstractXYZDataset implements RawDataAcceptor {
     private static final int REDRAW_INTERVAL = 100;
 
     private RawDataFile rawDataFile;
-    private TwoDVisualizer visualizer;
+    private TwoDVisualizerWindow visualizer;
     
     private int[] scanNumbers;
         
@@ -75,7 +74,7 @@ class TwoDDataSet extends AbstractXYZDataset implements RawDataAcceptor {
     
     private Date lastRedrawTime = new Date();
 
-    TwoDDataSet(RawDataFile rawDataFile, int msLevel, TwoDVisualizer visualizer) {
+    TwoDDataSet(TaskController taskController, RawDataFile rawDataFile, int msLevel, TwoDVisualizerWindow visualizer) {
 
         this.visualizer = visualizer;
         this.rawDataFile = rawDataFile;
@@ -100,22 +99,12 @@ class TwoDDataSet extends AbstractXYZDataset implements RawDataAcceptor {
         Task updateTask = new RawDataRetrievalTask(rawDataFile, scanNumbers, "Updating 2D visualizer of " + rawDataFile,
                 this);
 
-        /*
-         * if the file data is preloaded in memory, we can update the visualizer
-         * in this thread, otherwise start a task
-         */
-        if (rawDataFile.getPreloadLevel() == PreloadLevel.PRELOAD_ALL_SCANS) {
-            visualizer.taskStarted(updateTask);
-            updateTask.run();
-            visualizer.taskFinished(updateTask);
-        } else
-            TaskController.getInstance().addTask(updateTask, TaskPriority.HIGH,
-                    this.visualizer);
+        taskController.addTask(updateTask, TaskPriority.HIGH, this.visualizer);
 
     }
 
     /**
-     * @see net.sf.mzmine.util.RawDataAcceptor#addScan(net.sf.mzmine.interfaces.Scan)
+     * @see net.sf.mzmine.io.RawDataAcceptor#addScan(net.sf.mzmine.data.Scan)
      */
     public synchronized void addScan(Scan scan, int index) {
 

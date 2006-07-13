@@ -1,17 +1,17 @@
 /*
  * Copyright 2006 The MZmine Development Team
- *
+ * 
  * This file is part of MZmine.
- *
+ * 
  * MZmine is free software; you can redistribute it and/or modify it under the
  * terms of the GNU General Public License as published by the Free Software
  * Foundation; either version 2 of the License, or (at your option) any later
  * version.
- *
+ * 
  * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY
  * WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR
  * A PARTICULAR PURPOSE. See the GNU General Public License for more details.
- *
+ * 
  * You should have received a copy of the GNU General Public License along with
  * MZmine; if not, write to the Free Software Foundation, Inc., 51 Franklin St,
  * Fifth Floor, Boston, MA 02110-1301 USA
@@ -22,111 +22,86 @@ package net.sf.mzmine.userinterface.mainwindow;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
-import java.io.File;
-import java.io.IOException;
 
-import javax.swing.JDialog;
-import javax.swing.JFileChooser;
-import javax.swing.JInternalFrame;
 import javax.swing.JMenu;
 import javax.swing.JMenuBar;
 import javax.swing.JMenuItem;
-import javax.swing.JOptionPane;
+import javax.swing.KeyStroke;
+import javax.swing.event.ListSelectionEvent;
+import javax.swing.event.ListSelectionListener;
 
-import net.sf.mzmine.io.MZmineProject;
-import net.sf.mzmine.io.PeakListWriter;
+import net.sf.mzmine.io.IOController;
 import net.sf.mzmine.io.RawDataFile;
-import net.sf.mzmine.methods.Method;
-import net.sf.mzmine.methods.MethodParameters;
-import net.sf.mzmine.methods.alignment.AlignmentResult;
-import net.sf.mzmine.methods.deisotoping.simplegrouper.SimpleIsotopicPeaksGrouper;
-import net.sf.mzmine.methods.deisotoping.simplegrouper.SimpleIsotopicPeaksGrouperParameters;
-import net.sf.mzmine.methods.filtering.chromatographicmedian.ChromatographicMedianFilter;
-import net.sf.mzmine.methods.filtering.chromatographicmedian.ChromatographicMedianFilterParameters;
-import net.sf.mzmine.methods.filtering.crop.CropFilter;
-import net.sf.mzmine.methods.filtering.crop.CropFilterParameters;
-import net.sf.mzmine.methods.filtering.mean.MeanFilter;
-import net.sf.mzmine.methods.filtering.mean.MeanFilterParameters;
-import net.sf.mzmine.methods.filtering.savitzkygolay.SavitzkyGolayFilter;
-import net.sf.mzmine.methods.filtering.savitzkygolay.SavitzkyGolayFilterParameters;
-import net.sf.mzmine.methods.filtering.zoomscan.ZoomScanFilter;
-import net.sf.mzmine.methods.filtering.zoomscan.ZoomScanFilterParameters;
-import net.sf.mzmine.methods.peakpicking.centroid.CentroidPicker;
-import net.sf.mzmine.methods.peakpicking.centroid.CentroidPickerParameters;
-import net.sf.mzmine.methods.peakpicking.local.LocalPicker;
-import net.sf.mzmine.methods.peakpicking.local.LocalPickerParameters;
-import net.sf.mzmine.methods.peakpicking.recursivethreshold.RecursiveThresholdPicker;
-import net.sf.mzmine.methods.peakpicking.recursivethreshold.RecursiveThresholdPickerParameters;
+import net.sf.mzmine.project.MZmineProject;
+import net.sf.mzmine.userinterface.Desktop;
+import net.sf.mzmine.userinterface.Desktop.MZmineMenu;
 import net.sf.mzmine.userinterface.dialogs.FileOpenDialog;
 import net.sf.mzmine.util.GUIUtils;
-import net.sf.mzmine.visualizers.alignmentresult.AlignmentResultVisualizerCDAPlotView;
-import net.sf.mzmine.visualizers.alignmentresult.AlignmentResultVisualizerCoVarPlotView;
-import net.sf.mzmine.visualizers.alignmentresult.AlignmentResultVisualizerLogratioPlotView;
-import net.sf.mzmine.visualizers.alignmentresult.AlignmentResultVisualizerSammonsPlotView;
-import net.sf.mzmine.visualizers.rawdata.RawDataVisualizer;
-import net.sf.mzmine.visualizers.rawdata.spectra.SpectraSetupDialog;
-import net.sf.mzmine.visualizers.rawdata.threed.ThreeDSetupDialog;
-import net.sf.mzmine.visualizers.rawdata.tic.TICSetupDialog;
-import net.sf.mzmine.visualizers.rawdata.twod.TwoDSetupDialog;
-import sunutils.ExampleFileFilter;
 
 /**
- *
+ * 
  */
-public class MainMenu extends JMenuBar implements ActionListener {
+public class MainMenu extends JMenuBar implements ActionListener, ListSelectionListener {
 
     private JMenu fileMenu;
+    private JMenu editMenu;
+    private JMenu filterMenu;
+    private JMenu peakMenu;
+    private JMenu alignmentMenu;
+    private JMenu normalizationMenu;
+    private JMenu batchMenu;
+    private JMenu visualizationMenu;
+    private JMenu toolsMenu;
+    private JMenu windowMenu;
+    private JMenu helpMenu;
+
+    private JMenuItem editCopy;
+
     private JMenuItem fileOpen, fileClose, fileExportPeakList,
             fileExportAlignmentResult, fileSaveParameters, fileLoadParameters,
             filePrint, fileExit;
-    private JMenu editMenu;
-    private JMenuItem editCopy;
-    private JMenu filterMenu;
-    private JMenuItem ssMeanFilter, ssSGFilter, ssChromatographicMedianFilter,
-            ssCropFilter, ssZoomScanFilter;
-    private JMenu peakMenu;
-    private JMenuItem ssRecursiveThresholdPicker, ssLocalPicker,
-            ssCentroidPicker, ssSimpleIsotopicPeaksGrouper, ssCombinatorialDeisotoping,
-            ssIncompleteIsotopePatternFilter;
-    private JMenu alignmentMenu;
-    private JMenuItem tsJoinAligner, tsFastAligner, tsAlignmentFilter,
-            tsEmptySlotFiller;
-    private JMenu normalizationMenu;
-    private JMenuItem normLinear, normStdComp;
-    private JMenu batchMenu;
+    /*
+     * private JMenu filterMenu; private JMenuItem ssMeanFilter, ssSGFilter,
+     * ssChromatographicMedianFilter, ssCropFilter, ssZoomScanFilter; private
+     * JMenu peakMenu; private JMenuItem ssRecursiveThresholdPicker,
+     * ssLocalPicker, ssCentroidPicker, ssSimpleIsotopicPeaksGrouper,
+     * ssCombinatorialDeisotoping, ssIncompleteIsotopePatternFilter; private
+     * JMenu alignmentMenu; private JMenuItem tsJoinAligner, tsFastAligner,
+     * tsAlignmentFilter, tsEmptySlotFiller; private JMenu normalizationMenu;
+     * private JMenuItem normLinear, normStdComp; private JMenu batchMenu;
+     *  private JMenu visualizationMenu; private
+     * JMenuItem visOpenTIC, visOpenSpectra, visOpenTwoD, visOpenThreeD; private
+     * JMenuItem visOpenSRView, visOpenSCVView, visOpenCDAView,
+     * visOpenSammonsView; private JMenu toolsMenu; 
+     */ 
+    
     private JMenuItem batDefine;
-    private JMenu visualizationMenu;
-    private JMenuItem visOpenTIC, visOpenSpectra, visOpenTwoD,
-            visOpenThreeD;
-    private JMenuItem visOpenSRView, visOpenSCVView, visOpenCDAView,
-            visOpenSammonsView;
-    private JMenu toolsMenu;
-    private JMenuItem toolsOptions;
-    private JMenu windowMenu;
-    private JMenuItem windowTileWindows;
-    private JMenu helpMenu;
-    private JMenuItem hlpAbout;
+     private JMenuItem
+     toolsOptions;
+     
+      private JMenuItem
+      windowTileWindows, windowCascadeWindows;  private JMenuItem hlpAbout;
+     
 
-    private Statusbar statBar;
-    private MainWindow mainWin;
-    private ItemSelector itemSelector;
+    private IOController ioController;
+    private Desktop desktop;
 
-    MainMenu() {
+    MainMenu(IOController ioController, Desktop desktop) {
 
-        mainWin = MainWindow.getInstance();
-        statBar = mainWin.getStatusBar();
-        itemSelector = mainWin.getItemSelector();
+        this.ioController = ioController;
+        this.desktop = desktop;
 
         fileMenu = new JMenu("File");
         fileMenu.setMnemonic(KeyEvent.VK_F);
-        this.add(fileMenu);
-
+        add(fileMenu);
+        
+        
         fileOpen = GUIUtils.addMenuItem(fileMenu, "Open...", this,
                 KeyEvent.VK_O, true);
         fileClose = GUIUtils.addMenuItem(fileMenu, "Close", this, KeyEvent.VK_C);
         fileMenu.addSeparator();
         fileExportPeakList = GUIUtils.addMenuItem(fileMenu,
-                "Export peak list(s)...", this, KeyEvent.VK_E);
+                "Export peak  list(s)...", this, KeyEvent.VK_E);
         fileExportAlignmentResult = GUIUtils.addMenuItem(fileMenu,
                 "Export alignment result(s)...", this, KeyEvent.VK_A);
         fileMenu.addSeparator();
@@ -152,125 +127,190 @@ public class MainMenu extends JMenuBar implements ActionListener {
         filterMenu.setMnemonic(KeyEvent.VK_R);
         this.add(filterMenu);
 
-        ssMeanFilter = GUIUtils.addMenuItem(filterMenu, "Mean filter spectra",
-                this, KeyEvent.VK_M);
-        ssSGFilter = GUIUtils.addMenuItem(filterMenu,
-                "Savitzky-Golay filter spectra", this, KeyEvent.VK_S);
-        ssChromatographicMedianFilter = GUIUtils.addMenuItem(filterMenu,
-                "Chromatographic median filter", this, KeyEvent.VK_S);
-        ssCropFilter = GUIUtils.addMenuItem(filterMenu, "Cropping filter",
-                this, KeyEvent.VK_C);
-        ssZoomScanFilter = GUIUtils.addMenuItem(filterMenu, "Zoom scan filter",
-                this, KeyEvent.VK_Z);
-
         peakMenu = new JMenu("Peak detection");
         peakMenu.setMnemonic(KeyEvent.VK_P);
         this.add(peakMenu);
 
-        ssRecursiveThresholdPicker = GUIUtils.addMenuItem(peakMenu,
-                "Recursive threshold peak detector", this);
-        ssLocalPicker = GUIUtils.addMenuItem(peakMenu,
-                "Local maxima peak detector", this);
-        ssCentroidPicker = GUIUtils.addMenuItem(peakMenu,
-                "Centroid peak detector", this);
-        peakMenu.addSeparator();
-        ssSimpleIsotopicPeaksGrouper = GUIUtils.addMenuItem(peakMenu,
-                "Simple isotopic peaks grouper", this);
-        ssCombinatorialDeisotoping = GUIUtils.addMenuItem(peakMenu,
-                "Combinatorial deisotoping", this);
-        ssIncompleteIsotopePatternFilter = GUIUtils.addMenuItem(peakMenu,
-                "Filter incomplete isotope patterns", this);
+        /*
+         * ssRecursiveThresholdPicker = GUIUtils.addMenuItem(peakMenu,
+         * "Recursive threshold peak detector", this); ssLocalPicker =
+         * GUIUtils.addMenuItem(peakMenu, "Local maxima peak detector", this);
+         * ssCentroidPicker = GUIUtils.addMenuItem(peakMenu, "Centroid peak
+         * detector", this); peakMenu.addSeparator();
+         * ssSimpleIsotopicPeaksGrouper = GUIUtils.addMenuItem(peakMenu, "Simple
+         * isotopic peaks grouper", this); ssCombinatorialDeisotoping =
+         * GUIUtils.addMenuItem(peakMenu, "Combinatorial deisotoping", this);
+         * ssIncompleteIsotopePatternFilter = GUIUtils.addMenuItem(peakMenu,
+         * "Filter incomplete isotope patterns", this);
+         */
 
         alignmentMenu = new JMenu("Alignment");
         alignmentMenu.setMnemonic(KeyEvent.VK_A);
         this.add(alignmentMenu);
 
-        tsJoinAligner = GUIUtils.addMenuItem(alignmentMenu, "Slow aligner",
-                this, KeyEvent.VK_S);
-        tsFastAligner = GUIUtils.addMenuItem(alignmentMenu, "Fast aligner",
-                this, KeyEvent.VK_A);
-        alignmentMenu.addSeparator();
-        tsAlignmentFilter = GUIUtils.addMenuItem(alignmentMenu,
-                "Filter out rare peaks", this, KeyEvent.VK_R);
-        tsEmptySlotFiller = GUIUtils.addMenuItem(alignmentMenu,
-                "Fill-in empty gaps", this, KeyEvent.VK_F);
+        /*
+         * tsJoinAligner = GUIUtils.addMenuItem(alignmentMenu, "Slow aligner",
+         * this, KeyEvent.VK_S); tsFastAligner =
+         * GUIUtils.addMenuItem(alignmentMenu, "Fast aligner", this,
+         * KeyEvent.VK_A); alignmentMenu.addSeparator(); tsAlignmentFilter =
+         * GUIUtils.addMenuItem(alignmentMenu, "Filter out rare peaks", this,
+         * KeyEvent.VK_R); tsEmptySlotFiller =
+         * GUIUtils.addMenuItem(alignmentMenu, "Fill-in empty gaps", this,
+         * KeyEvent.VK_F);
+         */
 
         normalizationMenu = new JMenu("Normalization");
         normalizationMenu.setMnemonic(KeyEvent.VK_N);
         this.add(normalizationMenu);
 
-        normLinear = GUIUtils.addMenuItem(normalizationMenu,
-                "Linear normalization", this, KeyEvent.VK_L);
-        normStdComp = GUIUtils.addMenuItem(normalizationMenu,
-                "Normalization using standards", this, KeyEvent.VK_N);
+        /*
+         * normLinear = GUIUtils.addMenuItem(normalizationMenu, "Linear
+         * normalization", this, KeyEvent.VK_L); normStdComp =
+         * GUIUtils.addMenuItem(normalizationMenu, "Normalization using
+         * standards", this, KeyEvent.VK_N);
+         */
 
         batchMenu = new JMenu("Batch mode");
         batchMenu.setMnemonic(KeyEvent.VK_B);
         this.add(batchMenu);
 
-        batDefine = GUIUtils.addMenuItem(batchMenu, "Define batch operations",
-                this, KeyEvent.VK_R);
+        
+          batDefine = GUIUtils.addMenuItem(batchMenu, "Define batch operations", this, KeyEvent.VK_R);
+         
 
         visualizationMenu = new JMenu("Visualization");
         visualizationMenu.setMnemonic(KeyEvent.VK_V);
         this.add(visualizationMenu);
 
-        visOpenTIC = GUIUtils.addMenuItem(visualizationMenu, "TIC plot", this,
-                KeyEvent.VK_T);
-        visOpenSpectra = GUIUtils.addMenuItem(visualizationMenu,
-                "Spectra plot", this, KeyEvent.VK_S);
-        visOpenTwoD = GUIUtils.addMenuItem(visualizationMenu, "2D plot", this,
-                KeyEvent.VK_2);
-        visOpenThreeD = GUIUtils.addMenuItem(visualizationMenu, "3D plot",
-                this, KeyEvent.VK_3);
-        visualizationMenu.addSeparator();
-        visOpenSRView = GUIUtils.addMenuItem(visualizationMenu,
-                "Logratio plot", this, KeyEvent.VK_L);
-        visOpenSCVView = GUIUtils.addMenuItem(visualizationMenu,
-                "Coefficient of variation plot", this, KeyEvent.VK_V);
-        visOpenCDAView = GUIUtils.addMenuItem(visualizationMenu,
-                "CDA plot of samples", this, KeyEvent.VK_C);
-        visOpenSammonsView = GUIUtils.addMenuItem(visualizationMenu,
-                "Sammons plot of samples", this, KeyEvent.VK_S);
+        /*
+         * visOpenTIC = GUIUtils.addMenuItem(visualizationMenu, "TIC plot",
+         * this, KeyEvent.VK_T); visOpenSpectra =
+         * GUIUtils.addMenuItem(visualizationMenu, "Spectra plot", this,
+         * KeyEvent.VK_S); visOpenTwoD = GUIUtils.addMenuItem(visualizationMenu,
+         * "2D plot", this, KeyEvent.VK_2); visOpenThreeD =
+         * GUIUtils.addMenuItem(visualizationMenu, "3D plot", this,
+         * KeyEvent.VK_3); visualizationMenu.addSeparator(); visOpenSRView =
+         * GUIUtils.addMenuItem(visualizationMenu, "Logratio plot", this,
+         * KeyEvent.VK_L); visOpenSCVView =
+         * GUIUtils.addMenuItem(visualizationMenu, "Coefficient of variation
+         * plot", this, KeyEvent.VK_V); visOpenCDAView =
+         * GUIUtils.addMenuItem(visualizationMenu, "CDA plot of samples", this,
+         * KeyEvent.VK_C); visOpenSammonsView =
+         * GUIUtils.addMenuItem(visualizationMenu, "Sammons plot of samples",
+         * this, KeyEvent.VK_S);
+         */
 
         toolsMenu = new JMenu("Configure");
         toolsMenu.setMnemonic(KeyEvent.VK_C);
         this.add(toolsMenu);
 
-        toolsOptions = GUIUtils.addMenuItem(toolsMenu, "Preferences...", this,
-                KeyEvent.VK_P);
+
+          toolsOptions = GUIUtils.addMenuItem(toolsMenu, "Preferences...",
+          this, KeyEvent.VK_P);
+         
 
         windowMenu = new JMenu("Window");
         windowMenu.setMnemonic(KeyEvent.VK_W);
         this.add(windowMenu);
 
-        windowTileWindows = GUIUtils.addMenuItem(windowMenu, "Tile Windows",
-                this, KeyEvent.VK_T, true);
+        
+         windowTileWindows = GUIUtils.addMenuItem(windowMenu, "Tile windows",
+         this, KeyEvent.VK_T, true);
+         windowCascadeWindows = GUIUtils.addMenuItem(windowMenu, "Cascade windows",
+                 this, KeyEvent.VK_S, true);
+        
 
         helpMenu = new JMenu("Help");
         helpMenu.setMnemonic(KeyEvent.VK_H);
         this.add(helpMenu);
 
-        hlpAbout = GUIUtils.addMenuItem(helpMenu, "About MZmine...", this,
-                KeyEvent.VK_A);
+        
+         hlpAbout = GUIUtils.addMenuItem(helpMenu, "About MZmine...", this,
+        KeyEvent.VK_A);
+        
 
-        updateMenuAvailability();
+        
+        desktop.addSelectionListener(this);
+        
+    }
+
+    public void addMenuItem(MZmineMenu parentMenu, JMenuItem newItem) {
+        switch (parentMenu) {
+        case FILTERING:
+            filterMenu.add(newItem);
+            break;
+        case PEAKPICKING:
+            peakMenu.add(newItem);
+            break;
+        case ALIGNMENT:
+            alignmentMenu.add(newItem);
+            break;
+        case NORMALIZATION:
+            normalizationMenu.add(newItem);
+            break;
+        case VISUALIZATION:
+            visualizationMenu.add(newItem);
+            break;
+
+        }
+    }
+
+    public JMenuItem addMenuItem(MZmineMenu parentMenu, String text,
+            ActionListener listener, String actionCommand, int mnemonic,
+            boolean setAccelerator, boolean enabled) {
+
+        JMenuItem newItem = new JMenuItem(text);
+        if (listener != null)
+            newItem.addActionListener(listener);
+        if (actionCommand != null)
+            newItem.setActionCommand(actionCommand);
+        if (mnemonic > 0)
+            newItem.setMnemonic(mnemonic);
+        if (setAccelerator)
+            newItem.setAccelerator(KeyStroke.getKeyStroke(mnemonic,
+                    ActionEvent.CTRL_MASK));
+        newItem.setEnabled(enabled);
+        addMenuItem(parentMenu, newItem);
+        return newItem;
 
     }
 
+    public void addMenuSeparator(MZmineMenu parentMenu) {
+        switch (parentMenu) {
+        case FILTERING:
+            filterMenu.addSeparator();
+            break;
+        case PEAKPICKING:
+            peakMenu.addSeparator();
+            break;
+        case ALIGNMENT:
+            alignmentMenu.addSeparator();
+            break;
+        case NORMALIZATION:
+            normalizationMenu.addSeparator();
+            break;
+        case VISUALIZATION:
+            visualizationMenu.addSeparator();
+            break;
+
+        }
+    }
+
     /**
-     * ActionListener interface implementation
+     * @see java.awt.event.ActionListener#actionPerformed(java.awt.event.ActionEvent)
      */
     public void actionPerformed(ActionEvent e) {
 
         Object src = e.getSource();
 
-
+        if (src == fileExit) {
+            desktop.exitMZmine();
+        }
 
         // File -> Open
         if (src == fileOpen) {
-
-            FileOpenDialog fileOpenDialog = new FileOpenDialog();
+            FileOpenDialog fileOpenDialog = new FileOpenDialog(ioController,
+                    desktop);
             fileOpenDialog.setVisible(true);
 
         }
@@ -279,456 +319,303 @@ public class MainMenu extends JMenuBar implements ActionListener {
         if (src == fileClose) {
 
             // Grab selected raw data files
-            RawDataFile[] selectedFiles = itemSelector.getSelectedRawData();
+            RawDataFile[] selectedFiles = desktop.getSelectedRawData();
             for (RawDataFile file : selectedFiles)
                 MZmineProject.getCurrentProject().removeFile(file);
 
-            // int[] alignmentResultIDs = itemSelector
-            // .getSelectedAlignmentResultIDs();
-
-            // mainWin.closeAlignmentResults(alignmentResultIDs);
-
         }
-
-        if (src == fileLoadParameters) {
-
-            statBar.setStatusText("Please select a parameter file");
-
-            // Build open dialog
-            JFileChooser fileOpenChooser = new JFileChooser();
-            fileOpenChooser.setDialogType(JFileChooser.OPEN_DIALOG);
-            fileOpenChooser.setMultiSelectionEnabled(false);
-            fileOpenChooser.setDialogTitle("Please select parameter file");
-
-            // Setup file extension filter
-            ExampleFileFilter filter = new ExampleFileFilter();
-            filter.addExtension("mzmine-parameters");
-            filter.setDescription("MZmine parameters file");
-            fileOpenChooser.setFileFilter(filter);
-
-            // Show dialog and test return value from user
-            int retval = fileOpenChooser.showOpenDialog(mainWin);
-            if (retval == JFileChooser.APPROVE_OPTION) {
-
-                File selectedFile = fileOpenChooser.getSelectedFile();
-                if (!(selectedFile.exists())) {
-                    mainWin.displayErrorMessage("Selected parameter file "
-                            + selectedFile + " does not exist!");
-                    return;
-                }
-
-                // Read parameters from file
-                try {
-                    mainWin.getParameterStorage().readParameters(selectedFile);
-                } catch (IOException ioexce) {
-                    mainWin.displayErrorMessage("Failed to load parameter settings from file "
-                            + selectedFile + ": " + ioexce.toString());
-                }
-
-            }
-
+        
+        // Window->Tile
+        if (src == windowTileWindows) {
+            MainWindow mainWindow = (MainWindow) desktop;
+            mainWindow.tileInternalFrames();
         }
-
-        // File -> Save parameters
-        if (src == fileSaveParameters) {
-
-            // Build save dialog
-            JFileChooser fileSaveChooser = new JFileChooser();
-            fileSaveChooser.setDialogType(JFileChooser.SAVE_DIALOG);
-            fileSaveChooser.setMultiSelectionEnabled(false);
-            fileSaveChooser.setDialogTitle("Please give file name for parameters file.");
-
-            // Setup file extension filter
-            ExampleFileFilter filter = new ExampleFileFilter();
-            filter.addExtension("mzmine-parameters");
-            filter.setDescription("MZmine parameters file");
-            fileSaveChooser.setFileFilter(filter);
-
-            // Show dialog and test return value from user
-            int retval = fileSaveChooser.showSaveDialog(mainWin);
-            if (retval == JFileChooser.APPROVE_OPTION) {
-                File selectedFile = fileSaveChooser.getSelectedFile();
-
-                // Add extension .mzmine-parameters to file name unless it is
-                // there already
-                String extension = selectedFile.getName().substring(
-                        selectedFile.getName().lastIndexOf(".") + 1).toLowerCase();
-                if (!extension.equals("mzmine-parameters")) {
-                    selectedFile = new File(selectedFile.getPath()
-                            + ".mzmine-parameters");
-                }
-
-                // Write parameters to file
-                try {
-                    mainWin.getParameterStorage().writeParameters(selectedFile);
-                } catch (IOException ioexce) {
-                    mainWin.displayErrorMessage("Failed to save parameter settings from file "
-                            + selectedFile + ": " + ioexce.toString());
-                }
-
-            }
-
-        }
-
-        if (src == fileExportPeakList) {
-
-            MZmineProject proj = MZmineProject.getCurrentProject();
-            // Grab selected raw data files
-            RawDataFile[] selectedFiles = itemSelector.getSelectedRawData();
-            for (RawDataFile file : selectedFiles) {
-                if (proj.hasPeakList(file)) {
-
-                    // Build save dialog
-                    JFileChooser fileSaveChooser = new JFileChooser();
-                    fileSaveChooser.setDialogType(JFileChooser.SAVE_DIALOG);
-                    fileSaveChooser.setMultiSelectionEnabled(false);
-                    fileSaveChooser.setDialogTitle("Please give file name for peak list of "
-                            + file.toString());
-
-                    // Setup file extension filter
-                    ExampleFileFilter filter = new ExampleFileFilter();
-                    filter.addExtension("txt");
-                    filter.setDescription("Tab-delimitted text file");
-                    fileSaveChooser.setFileFilter(filter);
-
-                    // Show dialog and test return value from user
-                    int retval = fileSaveChooser.showSaveDialog(mainWin);
-                    if (retval == JFileChooser.APPROVE_OPTION) {
-                        File selectedFile = fileSaveChooser.getSelectedFile();
-
-                        // Add extension .txt to file name unless it is there
-                        // already
-                        String extension = selectedFile.getName().substring(
-                                selectedFile.getName().lastIndexOf(".") + 1).toLowerCase();
-                        if (!extension.equals("txt")) {
-                            selectedFile = new File(selectedFile.getPath()
-                                    + ".txt");
-                        }
-
-                        // Export peak list to file
-                        try {
-                            PeakListWriter.exportPeakListToFile(file,
-                                    selectedFile);
-                        } catch (IOException ioexce) {
-                            mainWin.displayErrorMessage("Failed to export peak list for file "
-                                    + file.toString()
-                                    + ": "
-                                    + ioexce.toString());
-                        }
-
-                    }
-
-                }
-
-            }
-
-        }
-
-        // File -> Exit
-        if (src == fileExit) {
-            statBar.setStatusText("Exiting.");
-            mainWin.exitMZmine();
-        }
-
-        // Filter -> Mean
-        if (src == ssMeanFilter) {
-
-            // Ask parameters from user
-            MeanFilter filter = new MeanFilter();
-            MeanFilterParameters filterParam = mainWin.getParameterStorage().getMeanFilterParameters();
-
-            startRawDataMethod(filter, filterParam);
-
-        }
-
-        // Filter -> Chromatographic median
-        if (src == ssChromatographicMedianFilter) {
-
-            // Ask parameters from user
-            ChromatographicMedianFilter filter = new ChromatographicMedianFilter();
-            ChromatographicMedianFilterParameters filterParam = mainWin.getParameterStorage().getChromatographicMedianFilterParameters();
-
-            startRawDataMethod(filter, filterParam);
-
-        }
-
-        // Filter -> Crop
-        if (src == ssCropFilter) {
-
-            // Ask parameters from user
-            CropFilter filter = new CropFilter();
-            CropFilterParameters filterParam = mainWin.getParameterStorage().getCropFilterParameters();
-
-            startRawDataMethod(filter, filterParam);
-
-        }
-
-        // Filter -> Crop
-        if (src == ssSGFilter) {
-
-            // Ask parameters from user
-            SavitzkyGolayFilter filter = new SavitzkyGolayFilter();
-            SavitzkyGolayFilterParameters filterParam = mainWin.getParameterStorage().getSavitzkyGolayFilterParameters();
-
-            startRawDataMethod(filter, filterParam);
-        }
-
-        // Filter -> Zoom scan
-        if (src == ssZoomScanFilter) {
-
-            ZoomScanFilter filter = new ZoomScanFilter();
-            ZoomScanFilterParameters filterParam = mainWin.getParameterStorage().getZoomScanFilterParameters();
-
-            startRawDataMethod(filter, filterParam);
-
-        }
-
-        if (src == ssRecursiveThresholdPicker) {
-
-            RecursiveThresholdPicker picker = new RecursiveThresholdPicker();
-            RecursiveThresholdPickerParameters pickerParam = mainWin.getParameterStorage().getRecursiveThresholdPickerParameters();
-
-            startPeakListMethod(picker, pickerParam);
-
-        }
-
-        if (src == ssCentroidPicker) {
-
-            CentroidPicker picker = new CentroidPicker();
-            CentroidPickerParameters pickerParam = mainWin.getParameterStorage().getCentroidPickerParameters();
-            startPeakListMethod(picker, pickerParam);
-
-        }
-
-        if (src == ssLocalPicker) {
-
-            LocalPicker picker = new LocalPicker();
-            LocalPickerParameters pickerParam = mainWin.getParameterStorage().getLocalPickerParameters();
-            startPeakListMethod(picker, pickerParam);
-
-		}
-
-
-		if (src == ssSimpleIsotopicPeaksGrouper) {
-
-			SimpleIsotopicPeaksGrouper grouper = new SimpleIsotopicPeaksGrouper();
-			SimpleIsotopicPeaksGrouperParameters grouperParam = mainWin.getParameterStorage().getSimpleIsotopicPeaksGrouperParameters();
-			startPeakListMethod(grouper, grouperParam);
-
-		}
-
-        // Visualization -> TIC plot
-        if (src == visOpenTIC) {
-            RawDataFile firstSelectedFile = itemSelector.getFirstSelectedRawData();
-            JDialog setupDialog = new TICSetupDialog(firstSelectedFile);
-            setupDialog.setVisible(true);
-        }
-
-        // Visualization -> Spectrum plot
-        if (src == visOpenSpectra) {
-            RawDataFile firstSelectedFile = itemSelector.getFirstSelectedRawData();
-            JDialog setupDialog = new SpectraSetupDialog(firstSelectedFile);
-            setupDialog.setVisible(true);
-        }
-
-        // Visualization -> 2D plot
-        if (src == visOpenTwoD) {
-            RawDataFile firstSelectedFile = itemSelector.getFirstSelectedRawData();
-            JDialog setupDialog = new TwoDSetupDialog(firstSelectedFile);
-            setupDialog.setVisible(true);
-        }
-
-        // Visualization -> 3D plot
-        if (src == visOpenThreeD) {
-            RawDataFile firstSelectedFile = itemSelector.getFirstSelectedRawData();
-            JDialog setupDialog = new ThreeDSetupDialog(firstSelectedFile);
-            setupDialog.setVisible(true);
+        
+        // Window->Cascade
+        if (src == windowCascadeWindows) {
+            MainWindow mainWindow = (MainWindow) desktop;
+            mainWindow.cascadeInternalFrames();
         }
 
     }
-
-    private void startRawDataMethod(Method method, MethodParameters methodParam) {
-
-        // Ask parameters from user
-        if (!(method.askParameters((MethodParameters) methodParam))) {
-            statBar.setStatusText("Processing cancelled.");
-            return;
-        }
-
-        // It seems user didn't cancel
-        statBar.setStatusText("Processing...");
-
-        RawDataFile[] rawDataFiles = mainWin.getItemSelector().getSelectedRawData();
-
-        method.runMethod(methodParam, rawDataFiles, null);
-
-    }
-
-    private void startPeakListMethod(Method method, MethodParameters methodParam) {
-
-        // Check if selected data files have previous peak detection results
-        RawDataFile[] rawDataFiles = mainWin.getItemSelector().getSelectedRawData();
-        boolean previousExists = false;
-        MZmineProject proj = MZmineProject.getCurrentProject();
-        for (RawDataFile r : rawDataFiles)
-            if (proj.hasPeakList(r)) {
-                previousExists = true;
-                break;
-            }
-
-        // Show warning if going to remove previous lists
-        if (previousExists) {
-            // Ask if is it ok to replace existing peak picking results
-            int selectedValue = JOptionPane.showInternalConfirmDialog(
-                    mainWin.getDesktop(),
-                    "Previous peak list(s) will be replaced with new ones and alignment results will be closed. Do you want to continue?",
-                    "Continue?", JOptionPane.YES_NO_OPTION,
-                    JOptionPane.QUESTION_MESSAGE);
-            if (selectedValue != JOptionPane.YES_OPTION) {
-                statBar.setStatusText("Processing cancelled.");
-                return;
-            }
-        }
-
-
-        if (!(method.askParameters((MethodParameters) methodParam))) {
-            statBar.setStatusText("Processing cancelled.");
-            return;
-        }
-
-        // It seems user didn't cancel
-        statBar.setStatusText("Processing...");
-
-        method.runMethod(methodParam, rawDataFiles, null);
-
-    }
-
-
 
     /**
-     * Update menu elements availability according to what is currently selected
-     * in run selector and on desktop
+     * @see javax.swing.event.ListSelectionListener#valueChanged(javax.swing.event.ListSelectionEvent)
      */
-    public void updateMenuAvailability() {
-
-        fileClose.setEnabled(false);
-        filePrint.setEnabled(false);
-        fileExportPeakList.setEnabled(false);
-        editCopy.setEnabled(false);
-        ssMeanFilter.setEnabled(false);
-        ssSGFilter.setEnabled(false);
-        ssChromatographicMedianFilter.setEnabled(false);
-        ssCropFilter.setEnabled(false);
-        ssZoomScanFilter.setEnabled(false);
-        ssRecursiveThresholdPicker.setEnabled(false);
-        ssLocalPicker.setEnabled(false);
-        ssCentroidPicker.setEnabled(false);
-        ssSimpleIsotopicPeaksGrouper.setEnabled(false);
-        ssCombinatorialDeisotoping.setEnabled(false);
-        ssIncompleteIsotopePatternFilter.setEnabled(false);
-        tsJoinAligner.setEnabled(false);
-        tsFastAligner.setEnabled(false);
-        normLinear.setEnabled(false);
-        normStdComp.setEnabled(false);
-        batDefine.setEnabled(false);
-        windowTileWindows.setEnabled(false);
-        tsEmptySlotFiller.setEnabled(false);
-        tsAlignmentFilter.setEnabled(false);
-
-        visOpenTIC.setEnabled(false);
-        visOpenSpectra.setEnabled(false);
-        visOpenTwoD.setEnabled(false);
-        visOpenThreeD.setEnabled(false);
-
-        visOpenSRView.setEnabled(false);
-        visOpenSCVView.setEnabled(false);
-        visOpenCDAView.setEnabled(false);
-        visOpenSammonsView.setEnabled(false);
-
-        /*
-         * if ( (numOfRawDataWithVisibleVisualizer(false)>0) ||
-         * (numOfResultsWithVisibleVisualizer(false)>0) ) {
-         * windowTileWindows.setEnabled(true); }
-         */
-        RawDataFile[] actRawData = itemSelector.getSelectedRawData();
-        if ((actRawData != null) && (actRawData.length > 0)) {
-
-            fileClose.setEnabled(true);
-
-            MZmineProject proj = MZmineProject.getCurrentProject();
-            fileExportPeakList.setEnabled(false);
-            for (RawDataFile file : actRawData)
-                if (proj.hasPeakList(file)) {
-                    fileExportPeakList.setEnabled(true);
-					ssSimpleIsotopicPeaksGrouper.setEnabled(true);
-                    // ssCombinatorialDeisotoping.setEnabled(true);
-                    // tsJoinAligner.setEnabled(true);
-                    // tsFastAligner.setEnabled(true);
-                    break;
-                }
-
-            ssMeanFilter.setEnabled(true);
-            ssSGFilter.setEnabled(true);
-            ssChromatographicMedianFilter.setEnabled(true);
-            ssCropFilter.setEnabled(true);
-            ssZoomScanFilter.setEnabled(true);
-
-            ssRecursiveThresholdPicker.setEnabled(true);
-            ssCentroidPicker.setEnabled(true);
-            ssLocalPicker.setEnabled(true);
-
-            visOpenTIC.setEnabled(true);
-            visOpenSpectra.setEnabled(true);
-            visOpenTwoD.setEnabled(true);
-            visOpenThreeD.setEnabled(true);
-
-            // batDefine.setEnabled(true);
-
-            JInternalFrame activeWindow = mainWin.getDesktop().getSelectedFrame();
-
-            if (activeWindow != null) {
-                if (activeWindow instanceof RawDataVisualizer) {
-                    filePrint.setEnabled(true);
-                    editCopy.setEnabled(true);
-                }
-            }
-        }
-
-        AlignmentResult actResult = itemSelector.getActiveResult();
-
-        if (actResult != null) {
-            fileClose.setEnabled(true);
-
-            normLinear.setEnabled(true);
-            normStdComp.setEnabled(true);
-            tsAlignmentFilter.setEnabled(true);
-            tsEmptySlotFiller.setEnabled(true);
-            visOpenSRView.setEnabled(true);
-            visOpenSCVView.setEnabled(true);
-            visOpenCDAView.setEnabled(true);
-            visOpenSammonsView.setEnabled(true);
-
-            fileExportPeakList.setEnabled(true);
-
-            JInternalFrame activeWindow = mainWin.getDesktop().getSelectedFrame();
-
-            if (activeWindow != null) {
-                if ((activeWindow.getClass() == AlignmentResultVisualizerLogratioPlotView.class)
-                        || (activeWindow.getClass() == AlignmentResultVisualizerCoVarPlotView.class)
-                        || (activeWindow.getClass() == AlignmentResultVisualizerCDAPlotView.class)
-                        || (activeWindow.getClass() == AlignmentResultVisualizerSammonsPlotView.class)) {
-                    filePrint.setEnabled(true);
-                    editCopy.setEnabled(true);
-                }
-            }
-        }
-
-        // If at least one run or result is visible, then tile windows is active
-        /*
-         * if ( (numOfRawDataWithVisibleVisualizer(false)>0) ||
-         * (numOfResultsWithVisibleVisualizer(false)>0) ) {
-         * windowTileWindows.setEnabled(true); }
-         */
+    public void valueChanged(ListSelectionEvent e) {
+        fileClose.setEnabled(desktop.isRawDataSelected());
     }
+
+    /**
+     * ActionListener interface implementation public void
+     * actionPerformed(ActionEvent e) {
+     * 
+     * Object src = e.getSource(); // File -> Open if (src == fileOpen) { //
+     * TODO FileOpenDialog fileOpenDialog = new FileOpenDialog(ioController,
+     * desktop); // fileOpenDialog.setVisible(true); } // File->Close if (src ==
+     * fileClose) { // Grab selected raw data files RawDataFile[] selectedFiles =
+     * itemSelector.getSelectedRawData(); for (RawDataFile file : selectedFiles)
+     * MZmineProject.getCurrentProject().removeFile(file); // int[]
+     * alignmentResultIDs = itemSelector // .getSelectedAlignmentResultIDs(); //
+     * desktop.closeAlignmentResults(alignmentResultIDs); }
+     * 
+     * if (src == fileLoadParameters) {
+     * 
+     * statBar.setStatusText("Please select a parameter file"); // Build open
+     * dialog JFileChooser fileOpenChooser = new JFileChooser();
+     * fileOpenChooser.setDialogType(JFileChooser.OPEN_DIALOG);
+     * fileOpenChooser.setMultiSelectionEnabled(false);
+     * fileOpenChooser.setDialogTitle("Please select parameter file"); // Setup
+     * file extension filter ExampleFileFilter filter = new ExampleFileFilter();
+     * filter.addExtension("mzmine-parameters"); filter.setDescription("MZmine
+     * parameters file"); fileOpenChooser.setFileFilter(filter); // Show dialog
+     * and test return value from user int retval =
+     * fileOpenChooser.showOpenDialog(desktop); if (retval ==
+     * JFileChooser.APPROVE_OPTION) {
+     * 
+     * File selectedFile = fileOpenChooser.getSelectedFile(); if
+     * (!(selectedFile.exists())) { desktop.displayErrorMessage("Selected
+     * parameter file " + selectedFile + " does not exist!"); return; } // Read
+     * parameters from file try {
+     * desktop.getParameterStorage().readParameters(selectedFile); } catch
+     * (IOException ioexce) { desktop.displayErrorMessage("Failed to load
+     * parameter settings from file " + selectedFile + ": " +
+     * ioexce.toString()); } } } // File -> Save parameters if (src ==
+     * fileSaveParameters) { // Build save dialog JFileChooser fileSaveChooser =
+     * new JFileChooser();
+     * fileSaveChooser.setDialogType(JFileChooser.SAVE_DIALOG);
+     * fileSaveChooser.setMultiSelectionEnabled(false);
+     * fileSaveChooser.setDialogTitle("Please give file name for parameters
+     * file."); // Setup file extension filter ExampleFileFilter filter = new
+     * ExampleFileFilter(); filter.addExtension("mzmine-parameters");
+     * filter.setDescription("MZmine parameters file");
+     * fileSaveChooser.setFileFilter(filter); // Show dialog and test return
+     * value from user int retval = fileSaveChooser.showSaveDialog(desktop); if
+     * (retval == JFileChooser.APPROVE_OPTION) { File selectedFile =
+     * fileSaveChooser.getSelectedFile(); // Add extension .mzmine-parameters to
+     * file name unless it is // there already String extension =
+     * selectedFile.getName().substring( selectedFile.getName().lastIndexOf(".") +
+     * 1).toLowerCase(); if (!extension.equals("mzmine-parameters")) {
+     * selectedFile = new File(selectedFile.getPath() + ".mzmine-parameters"); } //
+     * Write parameters to file try {
+     * desktop.getParameterStorage().writeParameters(selectedFile); } catch
+     * (IOException ioexce) { desktop.displayErrorMessage("Failed to save
+     * parameter settings from file " + selectedFile + ": " +
+     * ioexce.toString()); } } }
+     * 
+     * if (src == fileExportPeakList) {
+     * 
+     * MZmineProject proj = MZmineProject.getCurrentProject(); // Grab selected
+     * raw data files RawDataFile[] selectedFiles =
+     * itemSelector.getSelectedRawData(); for (RawDataFile file : selectedFiles) {
+     * if (proj.hasPeakList(file)) { // Build save dialog JFileChooser
+     * fileSaveChooser = new JFileChooser();
+     * fileSaveChooser.setDialogType(JFileChooser.SAVE_DIALOG);
+     * fileSaveChooser.setMultiSelectionEnabled(false);
+     * fileSaveChooser.setDialogTitle("Please give file name for peak list of " +
+     * file.toString()); // Setup file extension filter ExampleFileFilter filter =
+     * new ExampleFileFilter(); filter.addExtension("txt");
+     * filter.setDescription("Tab-delimitted text file");
+     * fileSaveChooser.setFileFilter(filter); // Show dialog and test return
+     * value from user int retval = fileSaveChooser.showSaveDialog(desktop); if
+     * (retval == JFileChooser.APPROVE_OPTION) { File selectedFile =
+     * fileSaveChooser.getSelectedFile(); // Add extension .txt to file name
+     * unless it is there // already String extension =
+     * selectedFile.getName().substring( selectedFile.getName().lastIndexOf(".") +
+     * 1).toLowerCase(); if (!extension.equals("txt")) { selectedFile = new
+     * File(selectedFile.getPath() + ".txt"); } // Export peak list to file try {
+     * PeakListWriter.exportPeakListToFile(file, selectedFile); } catch
+     * (IOException ioexce) { desktop.displayErrorMessage("Failed to export peak
+     * list for file " + file.toString() + ": " + ioexce.toString()); } } } } } //
+     * File -> Exit if (src == fileExit) { statBar.setStatusText("Exiting.");
+     * desktop.exitMZmine(); } // Filter -> Mean if (src == ssMeanFilter) { //
+     * Ask parameters from user MeanFilter filter = new MeanFilter();
+     * MeanFilterParameters filterParam =
+     * desktop.getParameterStorage().getMeanFilterParameters();
+     * 
+     * startRawDataMethod(filter, filterParam); } // Filter -> Chromatographic
+     * median if (src == ssChromatographicMedianFilter) { // Ask parameters from
+     * user ChromatographicMedianFilter filter = new
+     * ChromatographicMedianFilter(); ChromatographicMedianFilterParameters
+     * filterParam =
+     * desktop.getParameterStorage().getChromatographicMedianFilterParameters();
+     * 
+     * startRawDataMethod(filter, filterParam); } // Filter -> Crop if (src ==
+     * ssCropFilter) { // Ask parameters from user CropFilter filter = new
+     * CropFilter(); CropFilterParameters filterParam =
+     * desktop.getParameterStorage().getCropFilterParameters();
+     * 
+     * startRawDataMethod(filter, filterParam); } // Filter -> Crop if (src ==
+     * ssSGFilter) { // Ask parameters from user SavitzkyGolayFilter filter =
+     * new SavitzkyGolayFilter(); SavitzkyGolayFilterParameters filterParam =
+     * desktop.getParameterStorage().getSavitzkyGolayFilterParameters();
+     * 
+     * startRawDataMethod(filter, filterParam); } // Filter -> Zoom scan if (src ==
+     * ssZoomScanFilter) {
+     * 
+     * ZoomScanFilter filter = new ZoomScanFilter(); ZoomScanFilterParameters
+     * filterParam =
+     * desktop.getParameterStorage().getZoomScanFilterParameters();
+     * 
+     * startRawDataMethod(filter, filterParam); }
+     * 
+     * if (src == ssRecursiveThresholdPicker) {
+     * 
+     * RecursiveThresholdPicker picker = new RecursiveThresholdPicker();
+     * RecursiveThresholdPickerParameters pickerParam =
+     * desktop.getParameterStorage().getRecursiveThresholdPickerParameters();
+     * 
+     * startPeakListMethod(picker, pickerParam); }
+     * 
+     * if (src == ssCentroidPicker) {
+     * 
+     * CentroidPicker picker = new CentroidPicker(); CentroidPickerParameters
+     * pickerParam =
+     * desktop.getParameterStorage().getCentroidPickerParameters();
+     * startPeakListMethod(picker, pickerParam); }
+     * 
+     * if (src == ssLocalPicker) {
+     * 
+     * LocalPicker picker = new LocalPicker(); LocalPickerParameters pickerParam =
+     * desktop.getParameterStorage().getLocalPickerParameters();
+     * startPeakListMethod(picker, pickerParam); }
+     * 
+     * 
+     * if (src == ssSimpleIsotopicPeaksGrouper) {
+     * 
+     * SimpleIsotopicPeaksGrouper grouper = new SimpleIsotopicPeaksGrouper();
+     * SimpleIsotopicPeaksGrouperParameters grouperParam =
+     * desktop.getParameterStorage().getSimpleIsotopicPeaksGrouperParameters();
+     * startPeakListMethod(grouper, grouperParam); } // Visualization -> TIC
+     * plot if (src == visOpenTIC) { RawDataFile firstSelectedFile =
+     * itemSelector.getFirstSelectedRawData(); JDialog setupDialog = new
+     * TICSetupDialog(firstSelectedFile); setupDialog.setVisible(true); } //
+     * Visualization -> Spectrum plot if (src == visOpenSpectra) { RawDataFile
+     * firstSelectedFile = itemSelector.getFirstSelectedRawData(); // JDialog
+     * setupDialog = new SpectraSetupDialog(firstSelectedFile); //
+     * setupDialog.setVisible(true); } // Visualization -> 2D plot if (src ==
+     * visOpenTwoD) { RawDataFile firstSelectedFile =
+     * itemSelector.getFirstSelectedRawData(); JDialog setupDialog = new
+     * TwoDSetupDialog(firstSelectedFile); setupDialog.setVisible(true); } //
+     * Visualization -> 3D plot if (src == visOpenThreeD) { RawDataFile
+     * firstSelectedFile = itemSelector.getFirstSelectedRawData(); JDialog
+     * setupDialog = new ThreeDSetupDialog(firstSelectedFile);
+     * setupDialog.setVisible(true); } }
+     * 
+     * private void startRawDataMethod(Method method, MethodParameters
+     * methodParam) { // Ask parameters from user if
+     * (!(method.askParameters((MethodParameters) methodParam))) {
+     * statBar.setStatusText("Processing cancelled."); return; } // It seems
+     * user didn't cancel statBar.setStatusText("Processing...");
+     * 
+     * RawDataFile[] rawDataFiles =
+     * desktop.getItemSelector().getSelectedRawData();
+     * 
+     * method.runMethod(methodParam, rawDataFiles, null); }
+     * 
+     * private void startPeakListMethod(Method method, MethodParameters
+     * methodParam) { // Check if selected data files have previous peak
+     * detection results RawDataFile[] rawDataFiles =
+     * desktop.getItemSelector().getSelectedRawData(); boolean previousExists =
+     * false; MZmineProject proj = MZmineProject.getCurrentProject(); for
+     * (RawDataFile r : rawDataFiles) if (proj.hasPeakList(r)) { previousExists =
+     * true; break; } // Show warning if going to remove previous lists if
+     * (previousExists) { // Ask if is it ok to replace existing peak picking
+     * results int selectedValue = JOptionPane.showInternalConfirmDialog(
+     * desktop.getDesktop(), "Previous peak list(s) will be replaced with new
+     * ones and alignment results will be closed. Do you want to continue?",
+     * "Continue?", JOptionPane.YES_NO_OPTION, JOptionPane.QUESTION_MESSAGE); if
+     * (selectedValue != JOptionPane.YES_OPTION) {
+     * statBar.setStatusText("Processing cancelled."); return; } }
+     * 
+     * 
+     * if (!(method.askParameters((MethodParameters) methodParam))) {
+     * statBar.setStatusText("Processing cancelled."); return; } // It seems
+     * user didn't cancel statBar.setStatusText("Processing...");
+     * 
+     * method.runMethod(methodParam, rawDataFiles, null); }
+     * 
+     * 
+     * 
+     * /** Update menu elements availability according to what is currently
+     * selected in run selector and on desktop
+     * 
+     * public void updateMenuAvailability() {
+     * 
+     * fileClose.setEnabled(false); filePrint.setEnabled(false);
+     * fileExportPeakList.setEnabled(false); editCopy.setEnabled(false);
+     * ssMeanFilter.setEnabled(false); ssSGFilter.setEnabled(false);
+     * ssChromatographicMedianFilter.setEnabled(false);
+     * ssCropFilter.setEnabled(false); ssZoomScanFilter.setEnabled(false);
+     * ssRecursiveThresholdPicker.setEnabled(false);
+     * ssLocalPicker.setEnabled(false); ssCentroidPicker.setEnabled(false);
+     * ssSimpleIsotopicPeaksGrouper.setEnabled(false);
+     * ssCombinatorialDeisotoping.setEnabled(false);
+     * ssIncompleteIsotopePatternFilter.setEnabled(false);
+     * tsJoinAligner.setEnabled(false); tsFastAligner.setEnabled(false);
+     * normLinear.setEnabled(false); normStdComp.setEnabled(false);
+     * batDefine.setEnabled(false); windowTileWindows.setEnabled(false);
+     * tsEmptySlotFiller.setEnabled(false); tsAlignmentFilter.setEnabled(false);
+     * 
+     * visOpenTIC.setEnabled(false); visOpenSpectra.setEnabled(false);
+     * visOpenTwoD.setEnabled(false); visOpenThreeD.setEnabled(false);
+     * 
+     * visOpenSRView.setEnabled(false); visOpenSCVView.setEnabled(false);
+     * visOpenCDAView.setEnabled(false); visOpenSammonsView.setEnabled(false);
+     * 
+     * 
+     * RawDataFile[] actRawData = itemSelector.getSelectedRawData(); if
+     * ((actRawData != null) && (actRawData.length > 0)) {
+     * 
+     * fileClose.setEnabled(true);
+     * 
+     * MZmineProject proj = MZmineProject.getCurrentProject();
+     * fileExportPeakList.setEnabled(false); for (RawDataFile file : actRawData)
+     * if (proj.hasPeakList(file)) { fileExportPeakList.setEnabled(true);
+     * ssSimpleIsotopicPeaksGrouper.setEnabled(true); //
+     * ssCombinatorialDeisotoping.setEnabled(true); //
+     * tsJoinAligner.setEnabled(true); // tsFastAligner.setEnabled(true); break; }
+     * 
+     * ssMeanFilter.setEnabled(true); ssSGFilter.setEnabled(true);
+     * ssChromatographicMedianFilter.setEnabled(true);
+     * ssCropFilter.setEnabled(true); ssZoomScanFilter.setEnabled(true);
+     * 
+     * ssRecursiveThresholdPicker.setEnabled(true);
+     * ssCentroidPicker.setEnabled(true); ssLocalPicker.setEnabled(true);
+     * 
+     * visOpenTIC.setEnabled(true); visOpenSpectra.setEnabled(true);
+     * visOpenTwoD.setEnabled(true); visOpenThreeD.setEnabled(true); //
+     * batDefine.setEnabled(true);
+     * 
+     * JInternalFrame activeWindow = desktop.getDesktop().getSelectedFrame();
+     * 
+     * if (activeWindow != null) { if (activeWindow instanceof
+     * RawDataVisualizer) { filePrint.setEnabled(true);
+     * editCopy.setEnabled(true); } } }
+     * 
+     * AlignmentResult actResult = itemSelector.getActiveResult();
+     * 
+     * if (actResult != null) { fileClose.setEnabled(true);
+     * 
+     * normLinear.setEnabled(true); normStdComp.setEnabled(true);
+     * tsAlignmentFilter.setEnabled(true); tsEmptySlotFiller.setEnabled(true);
+     * visOpenSRView.setEnabled(true); visOpenSCVView.setEnabled(true);
+     * visOpenCDAView.setEnabled(true); visOpenSammonsView.setEnabled(true);
+     * 
+     * fileExportPeakList.setEnabled(true);
+     * 
+     * JInternalFrame activeWindow = desktop.getDesktop().getSelectedFrame();
+     * 
+     * if (activeWindow != null) { if ((activeWindow.getClass() ==
+     * AlignmentResultVisualizerLogratioPlotView.class) ||
+     * (activeWindow.getClass() == AlignmentResultVisualizerCoVarPlotView.class) ||
+     * (activeWindow.getClass() == AlignmentResultVisualizerCDAPlotView.class) ||
+     * (activeWindow.getClass() ==
+     * AlignmentResultVisualizerSammonsPlotView.class)) {
+     * filePrint.setEnabled(true); editCopy.setEnabled(true); } } } // If at
+     * least one run or result is visible, then tile windows is active }
+     * 
+     * 
+     */
 
 }

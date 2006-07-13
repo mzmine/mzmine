@@ -69,7 +69,7 @@ class TwoDPlot extends ChartPanel {
  //   private TwoDItemRenderer renderer;
 
     
-    TwoDPlot(TwoDVisualizer visualizer, TwoDDataSet dataset) {
+    TwoDPlot(TwoDVisualizerWindow visualizer, TwoDDataSet dataset) {
         // superconstructor with no chart yet
         // disable off-screen buffering (makes problems with late drawing of the title)
         super(null, false);

@@ -37,13 +37,12 @@ import java.util.Vector;
 import javax.xml.parsers.SAXParser;
 import javax.xml.parsers.SAXParserFactory;
 
-import net.sf.mzmine.interfaces.Scan;
+import net.sf.mzmine.data.Scan;
 import net.sf.mzmine.io.RawDataFile;
 import net.sf.mzmine.io.RawDataFileWriter;
 import net.sf.mzmine.methods.Method;
 import net.sf.mzmine.methods.MethodParameters;
 import net.sf.mzmine.util.CollectionUtils;
-import net.sf.mzmine.util.Logger;
 
 /**
  * Class representing raw data file in MZXML format.
@@ -139,8 +138,7 @@ class MZXMLFile implements RawDataFile {
         Long filePos = scansIndex.get(new Integer(scanNumber));
         if (filePos == null)
             throw (new IllegalArgumentException("Scan " + scanNumber
-                    + " is not present in file " + currentFile + "("
-                    + getOriginalFile() + ")"));
+                    + " is not present in file " + getOriginalFile()));
 
         MZXMLScan buildingScan = new MZXMLScan();
 
@@ -163,7 +161,7 @@ class MZXMLFile implements RawDataFile {
 
             if (!e.getMessage().equals("Scan reading finished")) {
 
-                Logger.putFatal(e.toString());
+                // Logger.putFatal(e.toString());
                 throw (new IOException("Couldn't parse scan " + scanNumber
                         + " from file " + currentFile + "(" + getOriginalFile()
                         + ")"));
@@ -413,7 +411,7 @@ class MZXMLFile implements RawDataFile {
             workingCopy = File.createTempFile("MZmine", null);
             workingCopy.deleteOnExit();
         } catch (SecurityException e) {
-            Logger.putFatal("Could not prepare newly created temporary copy for deletion on exit.");
+            // Logger.putFatal("Could not prepare newly created temporary copy for deletion on exit.");
             throw new IOException("Could not prepare newly created temporary copy for deletion on exit.");
         }
 

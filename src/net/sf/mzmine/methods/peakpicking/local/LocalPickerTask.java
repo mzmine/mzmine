@@ -25,19 +25,19 @@ import java.util.Iterator;
 import java.util.TreeSet;
 import java.util.Vector;
 
-import net.sf.mzmine.interfaces.Scan;
+import net.sf.mzmine.data.Scan;
+import net.sf.mzmine.data.impl.SimplePeak;
+import net.sf.mzmine.data.impl.SimplePeakList;
 import net.sf.mzmine.io.RawDataFile;
-import net.sf.mzmine.methods.peakpicking.SimplePeak;
-import net.sf.mzmine.methods.peakpicking.SimplePeakList;
 import net.sf.mzmine.taskcontrol.Task;
-import net.sf.mzmine.util.MyMath;
+import net.sf.mzmine.util.MathUtils;
 import net.sf.mzmine.util.ScanUtils;
 
 
 /**
  *
  */
-public class LocalPickerTask implements Task {
+class LocalPickerTask implements Task {
 
     private RawDataFile rawDataFile;
     private LocalPickerParameters parameters;
@@ -112,13 +112,6 @@ public class LocalPickerTask implements Task {
     }
 
     /**
-     * @see net.sf.mzmine.taskcontrol.Task#getPriority()
-     */
-    public TaskPriority getPriority() {
-        return TaskPriority.NORMAL;
-    }
-
-    /**
      * @see java.lang.Runnable#run()
      */
     public void run() {
@@ -168,7 +161,7 @@ public class LocalPickerTask implements Task {
 		double[] chromatographicThresholds = new double[numOfBins];
 		for (int bini=0; bini<numOfBins; bini++) {
 
-			chromatographicThresholds[bini] = MyMath.calcQuantile(binInts[bini], parameters.chromatographicThresholdLevel);
+			chromatographicThresholds[bini] = MathUtils.calcQuantile(binInts[bini], parameters.chromatographicThresholdLevel);
 			if (chromatographicThresholds[bini]<initialThreshold) {
 				initialThreshold = chromatographicThresholds[bini];
 			}

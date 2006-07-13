@@ -1,129 +1,186 @@
 /*
-    Copyright 2005 VTT Biotechnology
+ * Copyright 2006 The MZmine Development Team
+ *
+ * This file is part of MZmine.
+ *
+ * MZmine is free software; you can redistribute it and/or modify it under the
+ * terms of the GNU General Public License as published by the Free Software
+ * Foundation; either version 2 of the License, or (at your option) any later
+ * version.
+ *
+ * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY
+ * WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR
+ * A PARTICULAR PURPOSE. See the GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License along with
+ * MZmine; if not, write to the Free Software Foundation, Inc., 51 Franklin St,
+ * Fifth Floor, Boston, MA 02110-1301 USA
+ */
 
-    This file is part of MZmine.
-
-    MZmine is free software; you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
-    the Free Software Foundation; either version 2 of the License, or
-    (at your option) any later version.
-
-    MZmine is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
-
-    You should have received a copy of the GNU General Public License
-    along with MZmine; if not, write to the Free Software
-    Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
-*/
 package net.sf.mzmine.methods.filtering.savitzkygolay;
-import java.util.Hashtable;
 
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.awt.event.KeyEvent;
+import java.util.logging.Logger;
+
+import javax.swing.JMenuItem;
 import javax.swing.JOptionPane;
+import javax.swing.event.ListSelectionEvent;
+import javax.swing.event.ListSelectionListener;
 
-import net.sf.mzmine.interfaces.Scan;
+import net.sf.mzmine.io.IOController;
 import net.sf.mzmine.io.RawDataFile;
-import net.sf.mzmine.io.MZmineProject;
+import net.sf.mzmine.main.MZmineModule;
 import net.sf.mzmine.methods.Method;
 import net.sf.mzmine.methods.MethodParameters;
 import net.sf.mzmine.methods.alignment.AlignmentResult;
-import net.sf.mzmine.userinterface.mainwindow.MainWindow;
-import net.sf.mzmine.userinterface.mainwindow.Statusbar;
+import net.sf.mzmine.project.MZmineProject;
 import net.sf.mzmine.taskcontrol.Task;
 import net.sf.mzmine.taskcontrol.TaskController;
 import net.sf.mzmine.taskcontrol.TaskListener;
-import net.sf.mzmine.util.Logger;
+import net.sf.mzmine.userinterface.Desktop;
+import net.sf.mzmine.userinterface.Desktop.MZmineMenu;
 
+public class SavitzkyGolayFilter implements MZmineModule, Method, TaskListener,
+        ListSelectionListener, ActionListener {
 
-public class SavitzkyGolayFilter implements Method, TaskListener {
-
-
-	public String getMethodDescription() {
-		return new String("Savitzky Golay filter");
-	}
-
-	public boolean askParameters(MethodParameters parameters) {
-
-		SavitzkyGolayFilterParameters currentParameters = (SavitzkyGolayFilterParameters)parameters;
-		if (currentParameters==null) return false;
-
-		// Define different options and currently selected item
-		String[] possibilities = {"5","7","9","11","13","15","17","19","21","23","25"};
-		String selectedValue = "5";
-		for (String s : possibilities) {
-			if (Integer.parseInt(s)==currentParameters.numberOfDataPoints) {
-				selectedValue = s;
-			}
-		}
-
-		// Show dialog
-		MainWindow mainWin = MainWindow.getInstance();
-
-		String s = (String)JOptionPane.showInputDialog(
-						mainWin,
-						"Select number of data points used for smoothing:",
-						"Savitzky-Golay filter",
-						JOptionPane.PLAIN_MESSAGE,
-						null,
-						possibilities,
-						new Integer(currentParameters.numberOfDataPoints).toString());
-		if (s==null) { return false; }
-
-		try {
-			currentParameters.numberOfDataPoints = Integer.parseInt(s);
-		} catch (NumberFormatException exe) {
-			return false;
-		}
-
-		return true;
-
-	}
+    private TaskController taskController;
+    private Desktop desktop;
+    private Logger logger;
+    private JMenuItem myMenuItem;
 
     /**
-     * Runs this method on a given project
-     * @param project
-     * @param parameters
+     * @see net.sf.mzmine.main.MZmineModule#initModule(net.sf.mzmine.io.IOController,
+     *      net.sf.mzmine.taskcontrol.TaskController,
+     *      net.sf.mzmine.userinterface.Desktop, java.util.logging.Logger)
      */
-    public void runMethod(MethodParameters parameters, RawDataFile[] rawDataFiles, AlignmentResult[] alignmentResults) {
+    public void initModule(IOController ioController,
+            TaskController taskController, Desktop desktop, Logger logger) {
 
-		Task filterTask;
-		SavitzkyGolayFilterParameters sgfParam = (SavitzkyGolayFilterParameters)parameters;
+        this.taskController = taskController;
+        this.desktop = desktop;
+        this.logger = logger;
 
-		for (RawDataFile rawDataFile: rawDataFiles) {
-			filterTask = new SavitzkyGolayFilterTask(rawDataFile, sgfParam);
-			TaskController.getInstance().addTask(filterTask, this);
-		}
+        myMenuItem = desktop.addMenuItem(MZmineMenu.FILTERING,
+                "Savitzky-Golay filter spectra", this, null, KeyEvent.VK_S,
+                false, false);
 
-	}
+        desktop.addSelectionListener(this);
+
+    }
+
+    /**
+     * @see net.sf.mzmine.methods.Method#askParameters()
+     */
+    public MethodParameters askParameters() {
+
+        MZmineProject currentProject = MZmineProject.getCurrentProject();
+        SavitzkyGolayFilterParameters currentParameters = (SavitzkyGolayFilterParameters) currentProject.getParameters(this);
+        if (currentParameters == null)
+            currentParameters = new SavitzkyGolayFilterParameters();
+
+        // Define different options and currently selected item
+        String[] possibilities = { "5", "7", "9", "11", "13", "15", "17", "19",
+                "21", "23", "25" };
+        String selectedValue = "5";
+        for (String s : possibilities) {
+            if (Integer.parseInt(s) == currentParameters.numberOfDataPoints) {
+                selectedValue = s;
+            }
+        }
+
+        String s = (String) JOptionPane.showInputDialog(
+                desktop.getMainWindow(),
+                "Select number of data points used for smoothing:",
+                "Savitzky-Golay filter", JOptionPane.PLAIN_MESSAGE, null,
+                possibilities, selectedValue);
+
+        if (s == null) {
+            return null;
+        }
+
+        SavitzkyGolayFilterParameters newParameters = new SavitzkyGolayFilterParameters();
+
+        try {
+            newParameters.numberOfDataPoints = Integer.parseInt(s);
+        } catch (NumberFormatException exe) {
+            return null;
+        }
+
+        // save the current parameter settings for future runs
+        currentProject.setParameters(this, newParameters);
+
+        return newParameters;
+
+    }
+
+    /**
+     * @see net.sf.mzmine.methods.Method#runMethod(net.sf.mzmine.methods.MethodParameters,
+     *      net.sf.mzmine.io.RawDataFile[],
+     *      net.sf.mzmine.methods.alignment.AlignmentResult[])
+     */
+    public void runMethod(MethodParameters parameters,
+            RawDataFile[] rawDataFiles, AlignmentResult[] alignmentResults) {
+
+        logger.finest("Running Savitzky-Golay filter");
+        desktop.setStatusBarText("Processing...");
+
+        for (RawDataFile rawDataFile : rawDataFiles) {
+            Task filterTask = new SavitzkyGolayFilterTask(rawDataFile,
+                    (SavitzkyGolayFilterParameters) parameters);
+            taskController.addTask(filterTask, this);
+        }
+
+    }
+
+    /**
+     * @see java.awt.event.ActionListener#actionPerformed(java.awt.event.ActionEvent)
+     */
+    public void actionPerformed(ActionEvent e) {
+
+        MethodParameters parameters = askParameters();
+        if (parameters == null)
+            return;
+
+        RawDataFile[] rawDataFiles = desktop.getSelectedRawData();
+
+        runMethod(parameters, rawDataFiles, null);
+
+    }
+
+    /**
+     * @see javax.swing.event.ListSelectionListener#valueChanged(javax.swing.event.ListSelectionEvent)
+     */
+    public void valueChanged(ListSelectionEvent e) {
+        myMenuItem.setEnabled(desktop.isRawDataSelected());
+    }
 
     public void taskStarted(Task task) {
-		// do nothing
-	}
+        // do nothing
+    }
 
     public void taskFinished(Task task) {
 
         if (task.getStatus() == Task.TaskStatus.FINISHED) {
 
-			RawDataFile oldFile = (RawDataFile)((Object[])task.getResult())[0];
-			RawDataFile newFile = (RawDataFile)((Object[])task.getResult())[1];
-			SavitzkyGolayFilterParameters sgfParam = (SavitzkyGolayFilterParameters)((Object[])task.getResult())[2];
+            RawDataFile oldFile = (RawDataFile) ((Object[]) task.getResult())[0];
+            RawDataFile newFile = (RawDataFile) ((Object[]) task.getResult())[1];
+            MethodParameters cfParam = (MethodParameters) ((Object[]) task.getResult())[2];
 
-			// Add mean filtering to the history of the file
-			newFile.addHistory(oldFile.getCurrentFile(), this, sgfParam.clone());
+            newFile.addHistory(oldFile.getCurrentFile(), this, cfParam);
 
-			// Update MZmineProject about replacement of oldFile by newFile
-			MZmineProject.getCurrentProject().updateFile(oldFile, newFile);
+            // Update MZmineProject about replacement of oldFile by newFile
+            MZmineProject.getCurrentProject().updateFile(oldFile, newFile);
 
         } else if (task.getStatus() == Task.TaskStatus.ERROR) {
             /* Task encountered an error */
-            Logger.putFatal("Error while filtering a file: " + task.getErrorMessage());
-            MainWindow.getInstance().displayErrorMessage(
-                    "Error while filtering a file: " + task.getErrorMessage());
-
+            String msg = "Error while filtering a file: "
+                    + task.getErrorMessage();
+            logger.severe(msg);
+            desktop.displayErrorMessage(msg);
         }
 
-	}
+    }
 
 }
-

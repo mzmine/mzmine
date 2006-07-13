@@ -1,126 +1,191 @@
 /*
-    Copyright 2005-2006 VTT Biotechnology
-
-    This file is part of MZmine.
-
-    MZmine is free software; you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
-    the Free Software Foundation; either version 2 of the License, or
-    (at your option) any later version.
-
-    MZmine is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
-
-    You should have received a copy of the GNU General Public License
-    along with MZmine; if not, write to the Free Software
-    Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
-*/
+ * Copyright 2006 The MZmine Development Team
+ * 
+ * This file is part of MZmine.
+ * 
+ * MZmine is free software; you can redistribute it and/or modify it under the
+ * terms of the GNU General Public License as published by the Free Software
+ * Foundation; either version 2 of the License, or (at your option) any later
+ * version.
+ * 
+ * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY
+ * WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR
+ * A PARTICULAR PURPOSE. See the GNU General Public License for more details.
+ * 
+ * You should have received a copy of the GNU General Public License along with
+ * MZmine; if not, write to the Free Software Foundation, Inc., 51 Franklin St,
+ * Fifth Floor, Boston, MA 02110-1301 USA
+ */
 
 package net.sf.mzmine.methods.deisotoping.simplegrouper;
 
-import java.awt.Frame;
-import java.util.Comparator;
-import java.util.Iterator;
-import java.util.Set;
-import java.util.TreeSet;
-import java.util.Vector;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.awt.event.KeyEvent;
+import java.util.logging.Logger;
 
-import net.sf.mzmine.io.MZmineProject;
+import javax.swing.JMenuItem;
+import javax.swing.event.ListSelectionEvent;
+import javax.swing.event.ListSelectionListener;
+
+import net.sf.mzmine.data.PeakList;
+import net.sf.mzmine.io.IOController;
 import net.sf.mzmine.io.RawDataFile;
-import net.sf.mzmine.interfaces.Peak;
-import net.sf.mzmine.interfaces.PeakList;
+import net.sf.mzmine.main.MZmineModule;
 import net.sf.mzmine.methods.Method;
 import net.sf.mzmine.methods.MethodParameters;
 import net.sf.mzmine.methods.alignment.AlignmentResult;
+import net.sf.mzmine.project.MZmineProject;
 import net.sf.mzmine.taskcontrol.Task;
 import net.sf.mzmine.taskcontrol.TaskController;
 import net.sf.mzmine.taskcontrol.TaskListener;
-import net.sf.mzmine.userinterface.mainwindow.MainWindow;
-import net.sf.mzmine.util.Logger;
-import net.sf.mzmine.visualizers.peaklist.table.TableView;
-
-
+import net.sf.mzmine.userinterface.Desktop;
+import net.sf.mzmine.userinterface.Desktop.MZmineMenu;
 
 /**
- * This class implements a simple isotopic peaks grouper method based on searhing for neighbouring peaks from expected locations.
- *
+ * This class implements a simple isotopic peaks grouper method based on
+ * searhing for neighbouring peaks from expected locations.
+ * 
  * @version 31 March 2006
  */
 
-public class SimpleIsotopicPeaksGrouper implements Method, TaskListener {
+public class SimpleIsotopicPeaksGrouper implements MZmineModule, Method,
+        TaskListener, ListSelectionListener, ActionListener {
 
-	private static final double neutronMW = 1.008665;
+    private TaskController taskController;
+    private Desktop desktop;
+    private Logger logger;
+    private JMenuItem myMenuItem;
 
-	public String getMethodDescription() {
-		return new String("Simple isotopic peaks grouper");
-	}
+    /**
+     * @see net.sf.mzmine.main.MZmineModule#initModule(net.sf.mzmine.io.IOController,
+     *      net.sf.mzmine.taskcontrol.TaskController,
+     *      net.sf.mzmine.userinterface.Desktop, java.util.logging.Logger)
+     */
+    public void initModule(IOController ioController,
+            TaskController taskController, Desktop desktop, Logger logger) {
 
-	/**
-	 * Method asks parameter values from user
-	 */
-	public boolean askParameters(MethodParameters parameters) {
+        this.taskController = taskController;
+        this.desktop = desktop;
+        this.logger = logger;
 
-		SimpleIsotopicPeaksGrouperParameters currentParameters = (SimpleIsotopicPeaksGrouperParameters)parameters;
-		if (currentParameters==null) return false;
+        desktop.addMenuSeparator(MZmineMenu.PEAKPICKING);
 
-		MainWindow mainWin = MainWindow.getInstance();
-		SimpleIsotopicPeaksGrouperParameterSetupDialog sdpsd = new SimpleIsotopicPeaksGrouperParameterSetupDialog((Frame)mainWin, currentParameters);
-		sdpsd.show();
+        myMenuItem = desktop.addMenuItem(MZmineMenu.PEAKPICKING,
+                "Simple isotopic peaks grouper", this, null, KeyEvent.VK_S,
+                false, false);
 
-		if (sdpsd.getExitCode()==-1) { return false; }
+        desktop.addSelectionListener(this);
 
-		return true;
+    }
 
-	}
+    /**
+     * This function displays a modal dialog to define method parameters
+     * 
+     * @see net.sf.mzmine.methods.Method#askParameters()
+     */
+    public MethodParameters askParameters() {
 
+        MZmineProject currentProject = MZmineProject.getCurrentProject();
+        SimpleIsotopicPeaksGrouperParameters currentParameters = (SimpleIsotopicPeaksGrouperParameters) currentProject.getParameters(this);
+        if (currentParameters == null)
+            currentParameters = new SimpleIsotopicPeaksGrouperParameters();
 
-	public void runMethod(MethodParameters parameters, RawDataFile[] rawDataFiles, AlignmentResult[] alignmentResults) {
+        SimpleIsotopicPeaksGrouperParameterSetupDialog sdpsd = new SimpleIsotopicPeaksGrouperParameterSetupDialog(
+                desktop.getMainWindow(), currentParameters);
+        sdpsd.setVisible(true);
 
-		Task peaklistProcessorTask;
-		SimpleIsotopicPeaksGrouperParameters param = (SimpleIsotopicPeaksGrouperParameters)parameters;
+        if (sdpsd.getExitCode() == -1) {
+            return null;
+        }
 
-		for (RawDataFile rawDataFile: rawDataFiles) {
-			PeakList currentPeakList = MZmineProject.getCurrentProject().getPeakList(rawDataFile);
-			peaklistProcessorTask = new SimpleIsotopicPeaksGrouperTask(rawDataFile, currentPeakList, param);
-			TaskController.getInstance().addTask(peaklistProcessorTask, this);
-		}
+        return null;
 
-	}
+    }
 
+    /**
+     * @see net.sf.mzmine.methods.Method#runMethod(net.sf.mzmine.methods.MethodParameters,
+     *      net.sf.mzmine.io.RawDataFile[],
+     *      net.sf.mzmine.methods.alignment.AlignmentResult[])
+     */
+    public void runMethod(MethodParameters parameters,
+            RawDataFile[] rawDataFiles, AlignmentResult[] alignmentResults) {
 
-	public void taskStarted(Task task) {
-		// do nothing
-	}
+        logger.finest("Running simple isotopic peaks grouper");
+        desktop.setStatusBarText("Processing...");
+
+        SimpleIsotopicPeaksGrouperParameters param = (SimpleIsotopicPeaksGrouperParameters) parameters;
+
+        for (RawDataFile rawDataFile : rawDataFiles) {
+            PeakList currentPeakList = MZmineProject.getCurrentProject().getPeakList(
+                    rawDataFile);
+            if (currentPeakList == null)
+                continue;
+            Task peaklistProcessorTask = new SimpleIsotopicPeaksGrouperTask(
+                    rawDataFile, currentPeakList, param);
+            taskController.addTask(peaklistProcessorTask, this);
+        }
+
+    }
+
+    /**
+     * @see java.awt.event.ActionListener#actionPerformed(java.awt.event.ActionEvent)
+     */
+    public void actionPerformed(ActionEvent e) {
+
+        MethodParameters parameters = askParameters();
+        if (parameters == null)
+            return;
+
+        RawDataFile[] rawDataFiles = desktop.getSelectedRawData();
+
+        runMethod(parameters, rawDataFiles, null);
+
+    }
+
+    /**
+     * @see javax.swing.event.ListSelectionListener#valueChanged(javax.swing.event.ListSelectionEvent)
+     */
+    public void valueChanged(ListSelectionEvent e) {
+
+        RawDataFile[] rawDataFiles = desktop.getSelectedRawData();
+
+        for (RawDataFile file : rawDataFiles) {
+            if (MZmineProject.getCurrentProject().hasPeakList(file)) {
+                myMenuItem.setEnabled(true);
+                return;
+            }
+        }
+        myMenuItem.setEnabled(false);
+    }
+
+    public void taskStarted(Task task) {
+        // do nothing
+    }
 
     public void taskFinished(Task task) {
 
         if (task.getStatus() == Task.TaskStatus.FINISHED) {
 
-			RawDataFile rawData = (RawDataFile)((Object[])task.getResult())[0];
-			PeakList peakList = (PeakList)((Object[])task.getResult())[1];
-			SimpleIsotopicPeaksGrouperParameters params = (SimpleIsotopicPeaksGrouperParameters)((Object[])task.getResult())[2];
+            RawDataFile rawData = (RawDataFile) ((Object[]) task.getResult())[0];
+            PeakList peakList = (PeakList) ((Object[]) task.getResult())[1];
+            SimpleIsotopicPeaksGrouperParameters params = (SimpleIsotopicPeaksGrouperParameters) ((Object[]) task.getResult())[2];
 
-			// Add isotopic peaks grouping to the history of the file
-			rawData.addHistory(rawData.getCurrentFile(), this, params.clone());
+            // Add isotopic peaks grouping to the history of the file
+            rawData.addHistory(rawData.getCurrentFile(), this, params);
 
-			// Add peak list to MZmineProject
-			MZmineProject.getCurrentProject().setPeakList(rawData, peakList);
-
-			MainWindow.getInstance().addInternalFrame(new TableView(rawData));
-
-			MainWindow.getInstance().getMainMenu().updateMenuAvailability();
+            // Add peak list to MZmineProject
+            MZmineProject.getCurrentProject().setPeakList(rawData, peakList);
 
         } else if (task.getStatus() == Task.TaskStatus.ERROR) {
             /* Task encountered an error */
-            Logger.putFatal("Error while finding peaks in a file: " + task.getErrorMessage());
-            MainWindow.getInstance().displayErrorMessage(
-                    "Error while finding peaks in a file: " + task.getErrorMessage());
+            String msg = "Error while deisotoping a file: "
+                    + task.getErrorMessage();
+            logger.severe(msg);
+            desktop.displayErrorMessage(msg);
 
         }
 
-	}
+    }
 
 }
-

@@ -35,10 +35,12 @@ import javax.swing.JFormattedTextField;
 import javax.swing.JPanel;
 
 import net.sf.mzmine.io.RawDataFile;
-import net.sf.mzmine.userinterface.mainwindow.MainWindow;
+import net.sf.mzmine.project.MZmineProject;
+import net.sf.mzmine.taskcontrol.TaskController;
+import net.sf.mzmine.userinterface.Desktop;
 import net.sf.mzmine.util.CollectionUtils;
 import net.sf.mzmine.util.GUIUtils;
-import net.sf.mzmine.visualizers.rawdata.tic.TICVisualizer.PlotType;
+import net.sf.mzmine.visualizers.rawdata.tic.TICVisualizerWindow.PlotType;
 
 /**
  * Setup dialog for TIC visualizer
@@ -57,11 +59,17 @@ public class TICSetupDialog extends JDialog implements ActionListener {
     private JComboBox comboPlotType, comboRawDataFile, comboMSlevel;
     
     private static final NumberFormat format = NumberFormat.getNumberInstance();
+    
+    private Desktop desktop;
+    private TaskController taskController;
 
-    public TICSetupDialog() {
+    public TICSetupDialog(TaskController taskController, Desktop desktop) {
 
         // Make dialog modal
-        super(MainWindow.getInstance(), "TIC visualizer parameters", true);
+        super(desktop.getMainWindow(), "TIC visualizer parameters", true);
+        
+        this.taskController = taskController;
+        this.desktop = desktop;
 
         GridBagConstraints constraints = new GridBagConstraints();
         
@@ -181,20 +189,20 @@ public class TICSetupDialog extends JDialog implements ActionListener {
         add(components);
         
         // add data files to the combo box
-        RawDataFile files[] = MainWindow.getInstance().getItemSelector().getRawDataFiles();
+        RawDataFile files[] = MZmineProject.getCurrentProject().getRawDataFiles();
         DefaultComboBoxModel fileItems = new DefaultComboBoxModel(files);
         comboRawDataFile.setModel(fileItems);
 
         // finalize the dialog
         pack();
-        setLocationRelativeTo(MainWindow.getInstance());
+        setLocationRelativeTo(desktop.getMainWindow());
         setResizable(false);
 
     }
 
-    public TICSetupDialog(RawDataFile rawDataFile) {
+    public TICSetupDialog(TaskController taskController, Desktop desktop, RawDataFile rawDataFile) {
 
-        this();
+        this(taskController, desktop);
 
         comboRawDataFile.setSelectedItem(rawDataFile);
 
@@ -236,8 +244,6 @@ public class TICSetupDialog extends JDialog implements ActionListener {
 
         if (src == btnOK) {
 
-            MainWindow mainWin = MainWindow.getInstance();
-
             try {
 
                 RawDataFile selectedFile = (RawDataFile) comboRawDataFile.getSelectedItem();
@@ -249,7 +255,7 @@ public class TICSetupDialog extends JDialog implements ActionListener {
                 double mzMax = ((Number) fieldMaxMZ.getValue()).doubleValue();
 
                 if ((rtMax <= rtMin) || (mzMax <= mzMin)) {
-                    mainWin.displayErrorMessage("Invalid bounds");
+                    desktop.displayErrorMessage("Invalid bounds");
                     return;
                 }
 
@@ -258,13 +264,13 @@ public class TICSetupDialog extends JDialog implements ActionListener {
                 if (comboPlotType.getSelectedIndex() == 1)
                     plotType = PlotType.BASE_PEAK;
 
-                new TICVisualizer(selectedFile, plotType, msLevel, rtMin,
+                new TICVisualizerWindow(taskController, desktop, selectedFile, plotType, msLevel, rtMin,
                         rtMax, mzMin, mzMax);
 
                 dispose();
 
             } catch (Exception e) {
-                mainWin.displayErrorMessage("Invalid input");
+                desktop.displayErrorMessage("Invalid input");
             }
         }
 

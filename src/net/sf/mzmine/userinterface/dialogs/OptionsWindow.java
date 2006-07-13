@@ -42,15 +42,15 @@ public class OptionsWindow extends javax.swing.JInternalFrame {
      */
     public OptionsWindow(MainWindow _mainWin) {
 		mainWin = _mainWin;
-		paramSettings = mainWin.getParameterStorage().getGeneralParameters();
+		//paramSettings = mainWin.getParameterStorage().getGeneralParameters();
         initComponents();
 
 		getSettingsToForm();
 
-		JDesktopPane desktop = mainWin.getDesktop();
-		desktop.add(this);
+		//JDesktopPane desktop = mainWin.getDesktop();
+		//desktop.add(this);
 		setVisible(true);
-		setLocation(( desktop.getWidth()-getWidth() ) / 2,  ( desktop.getHeight()-getHeight() ) / 2 );
+		//setLocation(( desktop.getWidth()-getWidth() ) / 2,  ( desktop.getHeight()-getHeight() ) / 2 );
 
     }
 
@@ -283,7 +283,7 @@ public class OptionsWindow extends javax.swing.JInternalFrame {
     private void btnOKActionPerformed(java.awt.event.ActionEvent evt) {
         setSettingsFromForm();
 		dispose(); //setVisible(false);
-		mainWin.getDesktop().remove(this);
+		//mainWin.getDesktop().remove(this);
 		mainWin.repaint();
 
 	}
@@ -303,10 +303,10 @@ public class OptionsWindow extends javax.swing.JInternalFrame {
 	 * This method is called when Cancel button is clicked
 	 */
     private void btnCancelActionPerformed(java.awt.event.ActionEvent evt) {
-		paramSettings = mainWin.getParameterStorage().getGeneralParameters();
+		//paramSettings = mainWin.getParameterStorage().getGeneralParameters();
         getSettingsToForm();
         dispose(); // setVisible(false);
-        mainWin.getDesktop().remove(this);
+       // mainWin.getDesktop().remove(this);
         mainWin.repaint();
     }
 

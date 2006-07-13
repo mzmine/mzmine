@@ -30,38 +30,13 @@ import javax.swing.JLabel;
 import javax.swing.JPanel;
 
 import net.sf.mzmine.methods.MethodParameters;
-
 import net.sf.mzmine.methods.alignment.AlignmentResultProcessorParameters;
 import net.sf.mzmine.methods.alignment.fast.FastAligner;
-import net.sf.mzmine.methods.alignment.fast.FastAlignerParameters;
-import net.sf.mzmine.methods.alignment.filterbygaps.AlignmentResultFilterByGaps;
-import net.sf.mzmine.methods.alignment.filterbygaps.AlignmentResultFilterByGapsParameters;
 import net.sf.mzmine.methods.alignment.join.JoinAligner;
-import net.sf.mzmine.methods.alignment.join.JoinAlignerParameters;
 import net.sf.mzmine.methods.deisotoping.incompletefilter.IncompleteIsotopePatternFilter;
-import net.sf.mzmine.methods.deisotoping.incompletefilter.IncompleteIsotopePatternFilterParameters;
 import net.sf.mzmine.methods.deisotoping.simplegrouper.SimpleIsotopicPeaksGrouper;
-import net.sf.mzmine.methods.deisotoping.simplegrouper.SimpleIsotopicPeaksGrouperParameters;
-import net.sf.mzmine.methods.filtering.chromatographicmedian.ChromatographicMedianFilter;
-import net.sf.mzmine.methods.filtering.chromatographicmedian.ChromatographicMedianFilterParameters;
-import net.sf.mzmine.methods.filtering.crop.CropFilter;
-import net.sf.mzmine.methods.filtering.crop.CropFilterParameters;
-import net.sf.mzmine.methods.filtering.mean.MeanFilter;
-import net.sf.mzmine.methods.filtering.mean.MeanFilterParameters;
-import net.sf.mzmine.methods.filtering.savitzkygolay.SavitzkyGolayFilter;
-import net.sf.mzmine.methods.filtering.savitzkygolay.SavitzkyGolayFilterParameters;
 import net.sf.mzmine.methods.gapfilling.GapFillerParameters;
-import net.sf.mzmine.methods.gapfilling.simple.SimpleGapFiller;
-import net.sf.mzmine.methods.gapfilling.simple.SimpleGapFillerParameters;
 import net.sf.mzmine.methods.normalization.NormalizerParameters;
-import net.sf.mzmine.methods.normalization.linear.LinearNormalizer;
-import net.sf.mzmine.methods.normalization.linear.LinearNormalizerParameters;
-import net.sf.mzmine.methods.peakpicking.centroid.CentroidPicker;
-import net.sf.mzmine.methods.peakpicking.centroid.CentroidPickerParameters;
-import net.sf.mzmine.methods.peakpicking.local.LocalPicker;
-import net.sf.mzmine.methods.peakpicking.local.LocalPickerParameters;
-import net.sf.mzmine.methods.peakpicking.recursivethreshold.RecursiveThresholdPicker;
-import net.sf.mzmine.methods.peakpicking.recursivethreshold.RecursiveThresholdPickerParameters;
 import net.sf.mzmine.userinterface.mainwindow.MainWindow;
 
 
@@ -144,10 +119,10 @@ public class BatchModeDialog extends javax.swing.JInternalFrame implements Actio
         //setLocationRelativeTo(mainWin);
         setSettingsToForm();
 
-		JDesktopPane desktop = mainWin.getDesktop();
-		desktop.add(this);
+		//JDesktopPane desktop = mainWin.getDesktop();
+		//desktop.add(this);
 		setVisible(true);
-		setLocation(( desktop.getWidth()-getWidth() ) / 2,  ( desktop.getHeight()-getHeight() ) / 2 );
+		//setLocation(( desktop.getWidth()-getWidth() ) / 2,  ( desktop.getHeight()-getHeight() ) / 2 );
 
     }
 
@@ -173,7 +148,7 @@ public class BatchModeDialog extends javax.swing.JInternalFrame implements Actio
             public void internalFrameClosing(javax.swing.event.InternalFrameEvent evt) {
 				mainWin.getStatusBar().setStatusText("Batch run cancelled.");
 				dispose(); // setVisible(false);
-				mainWin.getDesktop().remove(BatchModeDialog.this);
+				//mainWin.getDesktop().remove(BatchModeDialog.this);
             }
 			public void internalFrameOpened(javax.swing.event.InternalFrameEvent evt) {
 				setLocation((mainWin.getWidth()-getWidth())/2, (mainWin.getHeight()-getHeight())/2);
@@ -309,7 +284,7 @@ public class BatchModeDialog extends javax.swing.JInternalFrame implements Actio
 		FileDialog fileOpenDialog;
 
 
-		// ComboBox FILTER1
+/*		// ComboBox FILTER1
 		if (src == cmbFilter1) {
 			btnFilter1.setEnabled(true);
 			switch(cmbFilter1.getSelectedIndex()) {
@@ -427,12 +402,7 @@ public class BatchModeDialog extends javax.swing.JInternalFrame implements Actio
 					paramPeakListProcessor1 = mainWin.getParameterStorage().getSimpleIsotopicPeaksGrouperParameters();
 					cmbPeakListProcessor1.setEnabled(true);
 					break;
-					/*
-				case 2:
-					paramPeakListProcessor1 = mainWin.getParameterStorage().getCombinatorialDeisotoperParameters();
-					cmbPeakListProcessor1.setEnabled(true);
-					break;
-					*/
+
 				case 2:
 					paramPeakListProcessor1 = mainWin.getParameterStorage().getIncompleteIsotopePatternFilterParameters();
 					cmbPeakListProcessor1.setEnabled(true);
@@ -453,12 +423,7 @@ public class BatchModeDialog extends javax.swing.JInternalFrame implements Actio
 					paramPeakListProcessor2 = mainWin.getParameterStorage().getSimpleIsotopicPeaksGrouperParameters();
 					cmbPeakListProcessor2.setEnabled(true);
 					break;
-					/*
-				case 2:
-					paramPeakListProcessor2 = mainWin.getParameterStorage().getCombinatorialDeisotoperParameters();
-					cmbPeakListProcessor2.setEnabled(true);
-					break;
-					*/
+
 				case 2:
 					paramPeakListProcessor2 = mainWin.getParameterStorage().getIncompleteIsotopePatternFilterParameters();
 					cmbPeakListProcessor2.setEnabled(true);
@@ -564,18 +529,7 @@ public class BatchModeDialog extends javax.swing.JInternalFrame implements Actio
 			if (cmbFiller1.getSelectedIndex()==0) { paramFiller1 = null; }
 			if (cmbNormalizer1.getSelectedIndex()==0) { paramNormalizer1 = null; }
 
-/*			mainWin.getClientForCluster().startBatch(	rawDataIDs,
-														paramFilter1,
-														paramFilter2,
-														paramFilter3,
-														paramPicker1,
-														paramPeakListProcessor1,
-														paramPeakListProcessor2,
-														paramAligner1,
-														paramAlignmentFilter1,
-														paramFiller1,
-														paramNormalizer1	);
-*/
+
 		}
 
 		// Button CANCEL
@@ -609,7 +563,7 @@ public class BatchModeDialog extends javax.swing.JInternalFrame implements Actio
 					break;
 				case 4:
 					paramFilter1 = mainWin.getParameterStorage().getCropFilterParameters();
-					new CropFilter().askParameters(paramFilter1);
+				//	new CropFilter().askParameters(paramFilter1);
 					break;
 
 			}
@@ -636,7 +590,7 @@ public class BatchModeDialog extends javax.swing.JInternalFrame implements Actio
 					break;
 				case 4:
 					paramFilter2 = mainWin.getParameterStorage().getCropFilterParameters();
-					new CropFilter().askParameters(paramFilter2);
+				//	new CropFilter().askParameters(paramFilter2);
 					break;
 			}
 			toFront();
@@ -662,7 +616,7 @@ public class BatchModeDialog extends javax.swing.JInternalFrame implements Actio
 					break;
 				case 4:
 					paramFilter3 = mainWin.getParameterStorage().getCropFilterParameters();
-					new CropFilter().askParameters(paramFilter3);
+				//	new CropFilter().askParameters(paramFilter3);
 					break;
 			}
 			toFront();
@@ -700,13 +654,6 @@ public class BatchModeDialog extends javax.swing.JInternalFrame implements Actio
 					paramPeakListProcessor1 = mainWin.getParameterStorage().getSimpleIsotopicPeaksGrouperParameters();
 					new SimpleIsotopicPeaksGrouper().askParameters(paramPeakListProcessor1);
 					break;
-					/*
-				case 2:
-					paramPeakListProcessor1 = new CombinatorialDeisotoper().askParameters(mainWin, mainWin.getParameterStorage().getCombinatorialDeisotoperParameters());
-					if (paramPeakListProcessor1==null) { paramPeakListProcessor1 = mainWin.getParameterStorage().getCombinatorialDeisotoperParameters(); }
-					else { mainWin.getParameterStorage().setCombinatorialDeisotoperParameters((CombinatorialDeisotoperParameters)paramPeakListProcessor1); }
-					break;
-					*/
 				case 2:
 					paramPeakListProcessor1 = mainWin.getParameterStorage().getIncompleteIsotopePatternFilterParameters();
 					new IncompleteIsotopePatternFilter().askParameters(paramPeakListProcessor1);
@@ -714,6 +661,7 @@ public class BatchModeDialog extends javax.swing.JInternalFrame implements Actio
 			}
 			toFront();
 		}
+
 
 		// Button PEAKLISTPROCESSOR2 PROPERTIES
 		if (src == btnPeakListProcessor2) {
@@ -731,7 +679,7 @@ public class BatchModeDialog extends javax.swing.JInternalFrame implements Actio
 					if (paramPeakListProcessor2==null) { paramPeakListProcessor2 = mainWin.getParameterStorage().getCombinatorialDeisotoperParameters(); }
 					else { mainWin.getParameterStorage().setCombinatorialDeisotoperParameters((CombinatorialDeisotoperParameters)paramPeakListProcessor2); }
 					break;
-					*/
+					
 				case 2:
 					paramPeakListProcessor2 = mainWin.getParameterStorage().getIncompleteIsotopePatternFilterParameters();
 					new IncompleteIsotopePatternFilter().askParameters(paramPeakListProcessor2);
@@ -803,11 +751,11 @@ public class BatchModeDialog extends javax.swing.JInternalFrame implements Actio
 			}
 			toFront();
 		}
-
+        */
 	}
 
 	public void setSettingsToForm() {
-		params = mainWin.getParameterStorage().getBatchModeDialogParameters();
+		//params = mainWin.getParameterStorage().getBatchModeDialogParameters();
 
 		cmbFilter1.setSelectedIndex(0);
 		cmbFilter2.setSelectedItem(0);

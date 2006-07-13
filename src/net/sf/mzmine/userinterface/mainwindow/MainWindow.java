@@ -21,60 +21,54 @@ package net.sf.mzmine.userinterface.mainwindow;
 
 import java.awt.BorderLayout;
 import java.awt.Container;
-import java.awt.Dimension;
+import java.awt.Rectangle;
+import java.awt.event.ActionListener;
 import java.awt.event.WindowEvent;
 import java.awt.event.WindowListener;
+import java.util.ArrayList;
 import java.util.Enumeration;
 import java.util.Hashtable;
 import java.util.Vector;
+import java.util.logging.Logger;
 
 import javax.swing.JDesktopPane;
 import javax.swing.JFrame;
 import javax.swing.JInternalFrame;
 import javax.swing.JLayeredPane;
+import javax.swing.JMenuItem;
 import javax.swing.JOptionPane;
 import javax.swing.JSplitPane;
+import javax.swing.event.ListSelectionListener;
 
+import net.sf.mzmine.io.IOController;
+import net.sf.mzmine.io.RawDataFile;
+import net.sf.mzmine.main.MZmineModule;
 import net.sf.mzmine.methods.alignment.AlignmentResult;
+import net.sf.mzmine.taskcontrol.TaskController;
+import net.sf.mzmine.taskcontrol.impl.TaskControllerImpl;
+import net.sf.mzmine.userinterface.Desktop;
 import net.sf.mzmine.userinterface.dialogs.TaskProgressWindow;
-import net.sf.mzmine.util.ParameterStorage;
+import net.sf.mzmine.visualizers.RawDataVisualizer;
 import net.sf.mzmine.visualizers.alignmentresult.AlignmentResultVisualizer;
-import net.sf.mzmine.visualizers.rawdata.RawDataVisualizer;
 
 /**
  * This class is the main window of application
  *
  */
-public class MainWindow extends JFrame implements WindowListener {
+public class MainWindow extends JFrame implements Desktop, MZmineModule, WindowListener {
 
-    private static MainWindow myInstance;
-
-    // This is the .ini file for GUI program (client for cluster has different
-    // .ini file)
-    private static final String settingsFilename = "mzmine.ini";
-
-    // These constants are used with setSameZoomToOtherRawDatas method
-    public static final int SET_SAME_ZOOM_MZ = 1;
-
-    public static final int SET_SAME_ZOOM_SCAN = 2;
-
-    public static final int SET_SAME_ZOOM_BOTH = 3;
-
-    public static MainWindow getInstance() {
-        return myInstance;
-    }
-
-    // GUI components
+    private TaskController taskController;
+    private IOController ioController;
+    private Logger logger;
+    
+    
     private JDesktopPane desktop;
 
-
-    private MainMenu menuBar;
 
     private Statusbar statBar;
 
     private JSplitPane split;
 
-    private ParameterStorage parameterStorage;
 
     // private ItemStorage itemStorage;
     private ItemSelector itemSelector;
@@ -95,83 +89,13 @@ public class MainWindow extends JFrame implements WindowListener {
     public TaskProgressWindow getTaskList() {
         return taskList;
     }
-
-    /**
-     * Constructor for MainWindow
-     */
-    public MainWindow(String title) {
-
-        assert myInstance == null;
-        myInstance = this;
-
-        // Setup data structures
-        // ---------------------
-
-        // Load default parameter settings
-        parameterStorage = new ParameterStorage();
-        // parameterStorage.readParametesFromFile(settingsFilename); (not
-        // automatic)
-
-        // Initialize structures for storing visualizers
-        rawDataVisualizers = new Hashtable<Integer, Vector<RawDataVisualizer>>();
-        alignmentResultVisualizers = new Hashtable<Integer, Vector<AlignmentResultVisualizer>>();
-
-        // Setup GUI
-        // ---------
-
-        // Initialize options window (controller for parameter settings)
-
-        // Initialize status bar
-        statBar = new Statusbar(this);
-
-        // Initialize item selector
-        itemSelector = new ItemSelector();
-
-        // Initialize method parameter storage (and default parameter values
-        // too)
-        parameterStorage = new ParameterStorage();
-
-        // Construct menu
-
-        menuBar = new MainMenu();
-
-        setJMenuBar(menuBar);
-
-        // Place objects on main window
-        desktop = new JDesktopPane();
-        split = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, itemSelector,
-                desktop);
-
-        desktop.setDragMode(JDesktopPane.OUTLINE_DRAG_MODE);
-
-        Container c = getContentPane();
-        c.setLayout(new BorderLayout());
-        c.add(split, BorderLayout.CENTER);
-        c.add(statBar, BorderLayout.SOUTH);
-
-        // Initialize window listener for responding to user events
-        addWindowListener(this);
-
-        menuBar.updateMenuAvailability();
-
-        pack();
-
-        //  TODO: check screen size?
-        setBounds(0, 0, 1000, 700);
-        setLocationRelativeTo(null);
-
-        // Application wants to control closing by itself
-        setDefaultCloseOperation(DO_NOTHING_ON_CLOSE);
-
-        setTitle(title);
-
-        statBar.setStatusText("Welcome to MZmine!");
+    
+    
+    private MainMenu menuBar;
 
 
-        taskList = new TaskProgressWindow();
-        desktop.add(taskList, javax.swing.JLayeredPane.DEFAULT_LAYER);
 
-    }
+
 
     public MainMenu getMainMenu() {
         return menuBar;
@@ -188,7 +112,7 @@ public class MainWindow extends JFrame implements WindowListener {
     /**
      * This method returns the desktop
      */
-    public JDesktopPane getDesktop() {
+    public JDesktopPane getDesktopPane() {
         return desktop;
     }
 
@@ -196,10 +120,6 @@ public class MainWindow extends JFrame implements WindowListener {
         return itemSelector;
     }
 
-
-    public ParameterStorage getParameterStorage() {
-        return parameterStorage;
-    }
 
     /**
      * This method moves all visualizers of given raw data to the top on desktop
@@ -310,228 +230,56 @@ public class MainWindow extends JFrame implements WindowListener {
     }
 
 
-    private boolean alignmentHasVisibleVisualizers(int alignmentResultID,
-            boolean includeIcons) {
 
-        // Get visualizer vector for this raw data ID
-        Vector<AlignmentResultVisualizer> visualizerVector = alignmentResultVisualizers
-                .get(new Integer(alignmentResultID));
+    void tileInternalFrames() {
+        JInternalFrame[] frames = getVisibleFrames();
+        if (frames.length == 0)
+            return;
+        Rectangle dBounds = desktop.getBounds();
 
-        // If raw data file has some visualizers, check if any of them is
-        // visible
-        if (visualizerVector != null) {
-            Enumeration<AlignmentResultVisualizer> visualizers = visualizerVector
-                    .elements();
-            while (visualizers.hasMoreElements()) {
-                AlignmentResultVisualizer vis = visualizers.nextElement();
-                JInternalFrame jif = (JInternalFrame) vis;
-                if (includeIcons) {
-                    if (jif.isVisible()) {
-                        return true;
-                    }
-                } else {
-                    if (jif.isVisible() && !(jif.isIcon())) {
-                        return true;
-                    }
+        int cols = (int) Math.sqrt(frames.length);
+        int rows = (int) (Math.ceil(((double) frames.length) / cols));
+        int lastRow = frames.length - cols * (rows - 1);
+        int width, height;
+
+        if (lastRow == 0) {
+            rows--;
+            height = dBounds.height / rows;
+        } else {
+            height = dBounds.height / rows;
+            if (lastRow < cols) {
+                rows--;
+                width = dBounds.width / lastRow;
+                for (int i = 0; i < lastRow; i++) {
+                    frames[cols * rows + i].setBounds(i * width, rows * height,
+                            width, height);
                 }
             }
         }
 
-        return false;
-
+        width = dBounds.width / cols;
+        for (int j = 0; j < rows; j++) {
+            for (int i = 0; i < cols; i++) {
+                frames[i + j * cols].setBounds(i * width, j * height, width,
+                        height);
+            }
+        }
     }
-
-    /**
-     * This method tiles all visible visualizer windows
-     */
-    public void tileWindows() {
-
-        final double goldenCut = 0.618033989;
-
-        double widthForRawDataFiles = 0;
-        double heightForRawDataFile = 0;
-        double widthForAlignmentResults = 0;
-        double heightForAlignmentResult = 0;
-
-        double currentX;
-        double currentY;
-        JInternalFrame jif;
-
-        // Calculate number of raw data files and alignment results with one or
-        // more open visualizer windows
-        int numViewableRawDataFiles = 0; // numOfRawDataWithVisibleVisualizer(false);
-        int numViewableResults = 0; // numOfResultsWithVisibleVisualizer(false);
-
-        // Arrange visualizers for raw data files
-        if (numViewableRawDataFiles > 0) {
-
-            // Determine space that is available for each run's visualizers on
-            // the main window
-            if (numViewableResults == 0) {
-                widthForRawDataFiles = desktop.getWidth();
-            } else {
-                widthForRawDataFiles = goldenCut * desktop.getWidth();
-            }
-
-            heightForRawDataFile = desktop.getHeight()
-                    / numViewableRawDataFiles;
-
-            currentX = 0;
-            currentY = 0;
-
-            // Arrange visualizers of each raw data file
-            // Enumeration<Vector<RawDataVisualizer>> allVisualizerVectors =
-            // rawDataVisualizers.elements();
-            // while (allVisualizerVectors.hasMoreElements()) {
-            /*int rawDataIDs[] = null; // getItemSelector().getRawDataIDs();
-            for (int rawDataID : rawDataIDs) {
-
-                RawDataAtClient rawData = getItemSelector().getRawDataByID(
-                        rawDataID);
-                Vector<RawDataVisualizer> visualizerVector = rawDataVisualizers
-                        .get(new Integer(rawDataID));
-
-                // Get all visualizers for this raw data file
-                // Vector<RawDataVisualizer> visualizerVector =
-                // allVisualizerVectors.nextElement();
-                if (visualizerVector == null) {
-                    continue;
-                }
-
-                // Calculate how many of these visualizers should be shown
-                int numToBeShown = 0;
-                Enumeration<RawDataVisualizer> visualizers = visualizerVector
-                        .elements();
-                while (visualizers.hasMoreElements()) {
-                    jif = (JInternalFrame) visualizers.nextElement();
-                    if (jif.isVisible() && !(jif.isIcon())) {
-                        numToBeShown++;
-                    }
-                    // if (jif.isIcon() || !jif.isVisible()) {} else {
-                    // numToBeShown++; }
-                }
-
-                // If there are visible visualizers, then arrange all of the
-                // visualizers for this raw data file
-                if (numToBeShown > 0) {
-
-                    if (!rawData.hasPeakData()) {
-                        // TIC
-                        jif = (JInternalFrame) visualizerVector.get(0);
-                        jif.setLocation((int) currentX, (int) currentY);
-                        jif.setSize((int) (goldenCut * widthForRawDataFiles),
-                                (int) (heightForRawDataFile / 2.0));
-                        // Scan
-                        jif = (JInternalFrame) visualizerVector.get(1);
-                        jif
-                                .setLocation(
-                                        (int) currentX,
-                                        (int) (currentY + 1 + heightForRawDataFile / 2.0));
-                        jif.setSize((int) (1.0 * widthForRawDataFiles),
-                                (int) (heightForRawDataFile / 2.0));
-                        // 2D
-                        jif = (JInternalFrame) visualizerVector.get(2);
-                        jif.setLocation((int) (currentX + goldenCut
-                                * widthForRawDataFiles), (int) currentY);
-                        jif.setSize(
-                                (int) ((1 - goldenCut) * widthForRawDataFiles),
-                                (int) (heightForRawDataFile / 2.0));
-                    } else {
-
-                        // TIC
-                        jif = (JInternalFrame) visualizerVector.get(0);
-                        jif.setLocation((int) currentX, (int) currentY);
-                        jif.setSize((int) (goldenCut * widthForRawDataFiles),
-                                (int) (heightForRawDataFile / 3.0));
-                        // Scan
-                        jif = (JInternalFrame) visualizerVector.get(1);
-                        jif
-                                .setLocation(
-                                        (int) currentX,
-                                        (int) (currentY + 1 + heightForRawDataFile / 3.0));
-                        jif.setSize((int) (goldenCut * widthForRawDataFiles),
-                                (int) (heightForRawDataFile / 3.0));
-                        // 2D
-                        jif = (JInternalFrame) visualizerVector.get(2);
-                        jif.setLocation((int) (currentX + goldenCut
-                                * widthForRawDataFiles), (int) currentY);
-                        jif.setSize(
-                                (int) ((1 - goldenCut) * widthForRawDataFiles),
-                                (int) (heightForRawDataFile));
-                        // Peaklist
-                        jif = (JInternalFrame) visualizerVector.get(3);
-                        jif
-                                .setLocation(
-                                        (int) currentX,
-                                        (int) (currentY + 1 + heightForRawDataFile * 2.0 / 3.0));
-                        jif.setSize((int) (goldenCut * widthForRawDataFiles),
-                                (int) (heightForRawDataFile / 3.0));
-                    }
-
-                    currentY += heightForRawDataFile;
-
-                } // shouldBeShown
-
-            } // raw data files loop
-
-        } // numViewableRawDataFiles>0
-
-        if (numViewableResults > 0) {
-
-            currentY = 0;
-            currentX = widthForRawDataFiles + 1;
-
-            // Determine space available for each results' visualizers on main
-            // window
-            widthForAlignmentResults = desktop.getWidth()
-                    - widthForRawDataFiles;
-            heightForAlignmentResult = desktop.getHeight() / numViewableResults;
-
-            Enumeration<Vector<AlignmentResultVisualizer>> allVisualizerVectors = alignmentResultVisualizers
-                    .elements();
-            while (allVisualizerVectors.hasMoreElements()) {
-
-                Vector<AlignmentResultVisualizer> visualizerVector = allVisualizerVectors
-                        .nextElement();
-                if (visualizerVector == null) {
-                    continue;
-                }
-
-                // Count how many of these visualizers should be shown
-                int numToBeShown = 0;
-                Enumeration<AlignmentResultVisualizer> visualizers = visualizerVector
-                        .elements();
-                while (visualizers.hasMoreElements()) {
-                    jif = (JInternalFrame) visualizers.nextElement();
-                    if (jif.isIcon() || !jif.isVisible()) {
-                    } else {
-                        numToBeShown++;
-                    }
-                }
-
-                // If there are visible visualizers, then arrange all of the
-                // visualizers for this raw data file
-                if (numToBeShown > 0) {
-                    visualizers = visualizerVector.elements();
-                    while (visualizers.hasMoreElements()) {
-                        jif = (JInternalFrame) visualizers.nextElement();
-                        if (!jif.isIcon() && jif.isVisible()) {
-                            jif.setLocation((int) currentX, (int) currentY);
-                            jif
-                                    .setSize(
-                                            (int) (widthForAlignmentResults),
-                                            (int) (heightForAlignmentResult / (double) numToBeShown));
-                            currentY += heightForAlignmentResult
-                                    / (double) numToBeShown;
-                        }
-                    }
-                }
-            }
- */       }
-
-    } // Method
-
-
+    
+    void cascadeInternalFrames() {
+        JInternalFrame[] frames = getVisibleFrames();
+        if ( frames.length == 0) return;
+        Rectangle dBounds = desktop.getBounds();
+        int separation = 24;
+        int margin = (frames.length - 1) *separation;
+        int width = dBounds.width - margin;
+        int height = dBounds.height - margin;
+        for ( int i = 0; i < frames.length; i++) {
+            frames[i].setBounds( i*separation,
+                                 i*separation,
+                                 width, height );
+        }
+    }
 
 
 
@@ -866,41 +614,194 @@ public class MainWindow extends JFrame implements WindowListener {
     /**
      * Prepares everything for quit and then shutdowns the application
      */
-    void exitMZmine() {
+    public void exitMZmine() {
 
         // Ask if use really wants to quit
         int selectedValue = JOptionPane.showInternalConfirmDialog(desktop,
                 "Are you sure you want to exit MZmine?", "Exiting...",
                 JOptionPane.YES_NO_OPTION, JOptionPane.WARNING_MESSAGE);
-        if (selectedValue != JOptionPane.YES_OPTION) {
-            statBar.setStatusText("Exit cancelled.");
+        
+        if (selectedValue != JOptionPane.YES_OPTION) 
             return;
-        }
-
-        // Close all alignment results
-       // int[] alignmentResultIDs = itemSelector.getAlignmentResultIDs();
-        // closeAlignmentResults(alignmentResultIDs);
-
-        // Close all raw data files
-      //  int[] rawDataIDs = itemSelector.getRawDataIDs();
-        // closeRawDataFiles(rawDataIDs);
-
-        // Disconnect client from cluster
-        // clientForCluster.disconnectFromController();
-
-        // Save settings
-        // (not automatic)
-
-        // Shutdown
+        
         dispose();
         System.exit(0);
 
-
     }
+    
     public void displayErrorMessage(String msg) {
-            statBar.setStatusText(msg);
-            JOptionPane.showMessageDialog(myInstance.getDesktop(), msg, "Sorry",
+            //statBar.setStatusText(msg);
+            JOptionPane.showMessageDialog(this, msg, "Sorry",
                     JOptionPane.ERROR_MESSAGE);
     }
+
+
+
+
+    public void addMenuItem(MZmineMenu parentMenu, JMenuItem newItem) {
+
+        menuBar.addMenuItem(parentMenu, newItem);
+    }
+
+    /**
+     * @see net.sf.mzmine.userinterface.Desktop#setStatusBarString(java.lang.String)
+     */
+    public void setStatusBarText(String msg) {
+        statBar.setStatusText(msg);
+        
+    }
+
+    /**
+     * @see net.sf.mzmine.userinterface.Desktop#getSelectedRawData()
+     */
+    public RawDataFile[] getSelectedRawData() {
+        return itemSelector.getSelectedRawData();
+    }
+
+    /**
+     * @see net.sf.mzmine.userinterface.Desktop#getFirstSelectedRawData()
+     */
+    public RawDataFile getFirstSelectedRawData() {
+        return itemSelector.getFirstSelectedRawData();
+    }
+
+    /**
+     * @see net.sf.mzmine.userinterface.Desktop#addSelectionListener(javax.swing.event.ListSelectionListener)
+     */
+    public void addSelectionListener(ListSelectionListener listener) {
+        itemSelector.addSelectionListener(listener);
+    }
+
+
+
+    /**
+     * @see net.sf.mzmine.main.MZmineModule#initModule(net.sf.mzmine.io.IOController, net.sf.mzmine.taskcontrol.TaskController, net.sf.mzmine.userinterface.Desktop, java.util.logging.Logger)
+     */
+    public void initModule(IOController ioController, TaskController taskController, Desktop d, Logger logger) {
+        this.ioController = ioController;
+        this.taskController = taskController;
+        this.logger = logger;    
+        
+
+        // Setup data structures
+        // ---------------------
+
+        // Load default parameter settings
+        // parameterStorage.readParametesFromFile(settingsFilename); (not
+        // automatic)
+
+        // Initialize structures for storing visualizers
+        rawDataVisualizers = new Hashtable<Integer, Vector<RawDataVisualizer>>();
+        alignmentResultVisualizers = new Hashtable<Integer, Vector<AlignmentResultVisualizer>>();
+
+        // Setup GUI
+        // ---------
+
+        // Initialize options window (controller for parameter settings)
+
+        // Initialize status bar
+        statBar = new Statusbar(this);
+
+        // Initialize item selector
+        itemSelector = new ItemSelector(this);
+
+        // Initialize method parameter storage (and default parameter values
+        // too)
+
+        // Construct menu
+
+        menuBar = new MainMenu(ioController, this);
+
+        setJMenuBar(menuBar);
+
+        // Place objects on main window
+        desktop = new JDesktopPane();
+        split = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, itemSelector,
+                desktop);
+
+        desktop.setDragMode(JDesktopPane.OUTLINE_DRAG_MODE);
+
+        Container c = getContentPane();
+        c.setLayout(new BorderLayout());
+        c.add(split, BorderLayout.CENTER);
+        c.add(statBar, BorderLayout.SOUTH);
+
+        // Initialize window listener for responding to user events
+        addWindowListener(this);
+
+//        menuBar.updateMenuAvailability();
+
+        pack();
+
+        //  TODO: check screen size?
+        setBounds(0, 0, 1000, 700);
+        setLocationRelativeTo(null);
+
+        // Application wants to control closing by itself
+        setDefaultCloseOperation(DO_NOTHING_ON_CLOSE);
+
+        setTitle("MZmine");
+
+        statBar.setStatusText("Welcome to MZmine!");
+
+
+        taskList = new TaskProgressWindow((TaskControllerImpl) taskController);
+        desktop.add(taskList, javax.swing.JLayeredPane.DEFAULT_LAYER);
+        
+    }
+
+    /**
+     * @see net.sf.mzmine.userinterface.Desktop#getMainWindow()
+     */
+    public JFrame getMainWindow() {
+        return this;
+    }
+
+
+
+    /**
+     * @see net.sf.mzmine.userinterface.Desktop#isRawDataSelected()
+     */
+    public boolean isRawDataSelected() {
+        return itemSelector.getSelectedRawData().length > 0;
+    }
+
+    /**
+     * @see net.sf.mzmine.userinterface.Desktop#addMenuItem(net.sf.mzmine.userinterface.Desktop.MZmineMenu, java.lang.String, java.awt.event.ActionListener, java.lang.String, int, boolean, boolean)
+     */
+    public JMenuItem addMenuItem(MZmineMenu parentMenu, String text, ActionListener listener, String actionCommand, int mnemonic, boolean setAccelerator, boolean enabled) {
+        return menuBar.addMenuItem(parentMenu, text, listener, actionCommand, mnemonic, setAccelerator, enabled);
+    }
+
+    /**
+     * @see net.sf.mzmine.userinterface.Desktop#addMenuSeparator(net.sf.mzmine.userinterface.Desktop.MZmineMenu)
+     */
+    public void addMenuSeparator(MZmineMenu parentMenu) {
+        menuBar.addMenuSeparator(parentMenu);
+        
+    }
+
+    /**
+     * @see net.sf.mzmine.userinterface.Desktop#getSelectedFrame()
+     */
+    public JInternalFrame getSelectedFrame() {
+        return desktop.getSelectedFrame();
+    }
+
+    /**
+     * @see net.sf.mzmine.userinterface.Desktop#getVisibleFrames()
+     */
+    public JInternalFrame[] getVisibleFrames() {
+        
+        JInternalFrame[] allFrames = desktop.getAllFrames();
+        
+        ArrayList<JInternalFrame> visibleFrames = new ArrayList<JInternalFrame>();
+        for (JInternalFrame frame : allFrames) 
+            if (frame.isVisible()) visibleFrames.add(frame);
+        
+        return visibleFrames.toArray(new JInternalFrame[0]);
+    }
+
+ 
 
 }

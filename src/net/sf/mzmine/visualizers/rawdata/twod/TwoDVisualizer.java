@@ -19,181 +19,75 @@
 
 package net.sf.mzmine.visualizers.rawdata.twod;
 
-import java.awt.BorderLayout;
-import java.awt.Color;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.text.DateFormat;
-import java.text.DecimalFormat;
-import java.text.NumberFormat;
-import java.text.SimpleDateFormat;
+import java.awt.event.KeyEvent;
+import java.util.logging.Logger;
 
-import javax.swing.BorderFactory;
-import javax.swing.JCheckBox;
-import javax.swing.JInternalFrame;
-import javax.swing.JLabel;
+import javax.swing.JDialog;
+import javax.swing.JMenuItem;
+import javax.swing.event.ListSelectionEvent;
+import javax.swing.event.ListSelectionListener;
 
+import net.sf.mzmine.io.IOController;
 import net.sf.mzmine.io.RawDataFile;
-import net.sf.mzmine.taskcontrol.Task;
-import net.sf.mzmine.taskcontrol.TaskListener;
-import net.sf.mzmine.taskcontrol.Task.TaskStatus;
-import net.sf.mzmine.userinterface.mainwindow.MainWindow;
-import net.sf.mzmine.util.CursorPosition;
-import net.sf.mzmine.visualizers.rawdata.RawDataVisualizer;
+import net.sf.mzmine.main.MZmineModule;
+import net.sf.mzmine.taskcontrol.TaskController;
+import net.sf.mzmine.userinterface.Desktop;
+import net.sf.mzmine.userinterface.Desktop.MZmineMenu;
+import net.sf.mzmine.visualizers.rawdata.tic.TICSetupDialog;
 
 /**
  * 2D visualizer using JFreeChart library
  */
-public class TwoDVisualizer extends JInternalFrame implements
-        RawDataVisualizer, ActionListener, TaskListener {
+public class TwoDVisualizer implements MZmineModule, ActionListener,
+        ListSelectionListener {
 
-    private TwoDToolBar toolBar;
-    private TwoDPlot twoDPlot;
-    private JCheckBox resampleCheckBox;
-    
-    private TwoDDataSet dataset;
-        
-    private RawDataFile rawDataFile;
-    private int msLevel;
+    private TaskController taskController;
+    private Desktop desktop;
+    private Logger logger;
 
-
-    // TODO: get these from parameter storage
-    private static DateFormat rtFormat = new SimpleDateFormat("m:ss");
-    private static NumberFormat mzFormat = new DecimalFormat("0.00");
-    private static NumberFormat intensityFormat = new DecimalFormat("0.00E0");
-
-    public TwoDVisualizer(RawDataFile rawDataFile, int msLevel,
-                double rtMin, double rtMax,
-                double mzMin, double mzMax,
-                int rtResolution, int mzResolution) {
-            
-        super(rawDataFile.toString(), true, true, true, true);
-
-        setDefaultCloseOperation(DISPOSE_ON_CLOSE);
-        setBackground(Color.white);
-
-        this.rawDataFile = rawDataFile;
-        this.msLevel = msLevel;
-        
-        dataset = new TwoDDataSet(rawDataFile, msLevel, this);
-
-        toolBar = new TwoDToolBar(this);
-        add(toolBar, BorderLayout.EAST);
-        
-        twoDPlot = new TwoDPlot(this, dataset);
-        add(twoDPlot, BorderLayout.CENTER);
-        
-        resampleCheckBox = new JCheckBox("Resample when zooming", true);
-        resampleCheckBox.setBackground(Color.white);
-        resampleCheckBox.setFont(resampleCheckBox.getFont().deriveFont(10f));
-        resampleCheckBox.setHorizontalAlignment(JCheckBox.CENTER);
-        resampleCheckBox.setBorder(BorderFactory.createEmptyBorder(5, 5, 5, 5));
-        add(resampleCheckBox, BorderLayout.SOUTH);
-        
-        updateTitle();
-        
-        pack();
-
-    }
+    private JMenuItem twoDMenuItem;
 
     /**
-     * @see net.sf.mzmine.visualizers.rawdata.RawDataVisualizer#setMZRange(double,
-     *      double)
+     * @see net.sf.mzmine.main.MZmineModule#initModule(net.sf.mzmine.io.IOController,
+     *      net.sf.mzmine.taskcontrol.TaskController,
+     *      net.sf.mzmine.userinterface.Desktop, java.util.logging.Logger)
      */
-    public void setMZRange(double mzMin, double mzMax) {
-        twoDPlot.getPlot().getRangeAxis().setRange(mzMin, mzMax);
-    }
+    public void initModule(IOController ioController,
+            TaskController taskController, Desktop desktop, Logger logger) {
 
-    /**
-     * @see net.sf.mzmine.visualizers.rawdata.RawDataVisualizer#setRTRange(double,
-     *      double)
-     */
-    public void setRTRange(double rtMin, double rtMax) {
-        twoDPlot.getPlot().getDomainAxis().setRange(rtMin, rtMax);
+        this.taskController = taskController;
+        this.desktop = desktop;
+        this.logger = logger;
 
-    }
-
-    /**
-     * @see net.sf.mzmine.visualizers.rawdata.RawDataVisualizer#setIntensityRange(double,
-     *      double)
-     */
-    public void setIntensityRange(double intensityMin, double intensityMax) {
-        // do nothing
-    }
-
-    void updateTitle() {
-
-        StringBuffer title = new StringBuffer();
-        title.append("[");
-        title.append(rawDataFile.toString());
-        title.append("]: 2D view");
-
-        setTitle(title.toString());
-
-        title.append(", MS");
-        title.append(msLevel);
-
-        twoDPlot.setTitle(title.toString());
+        twoDMenuItem = desktop.addMenuItem(MZmineMenu.VISUALIZATION, "2D plot",
+                this, null, KeyEvent.VK_2, false, false);
+        desktop.addSelectionListener(this);
 
     }
 
     /**
      * @see java.awt.event.ActionListener#actionPerformed(java.awt.event.ActionEvent)
      */
-    public void actionPerformed(ActionEvent event) {
+    public void actionPerformed(ActionEvent e) {
 
-        String command = event.getActionCommand();
+        RawDataFile firstSelectedFile = desktop.getFirstSelectedRawData();
+        if (firstSelectedFile == null)
+            return;
 
-        if (command.equals("SHOW_DATA_POINTS")) {
-            // TODO
-        }
-
-        
-
-    }
-
-    /**
-     * @see net.sf.mzmine.visualizers.rawdata.RawDataVisualizer#getRawDataFiles()
-     */
-    public RawDataFile[] getRawDataFiles() {
-        return new RawDataFile[] { rawDataFile };
-    }
-
-    /**
-     * @see net.sf.mzmine.taskcontrol.TaskListener#taskFinished(net.sf.mzmine.taskcontrol.Task)
-     */
-    public void taskFinished(Task task) {
-        if (task.getStatus() == TaskStatus.ERROR) {
-            MainWindow.getInstance().displayErrorMessage(
-                    "Error while updating 2D visualizer: "
-                            + task.getErrorMessage());
-        }
+        logger.finest("Opening a new 2D visualizer setup dialog");
+        JDialog setupDialog = new TwoDSetupDialog(taskController, desktop,
+                firstSelectedFile);
+        setupDialog.setVisible(true);
 
     }
 
     /**
-     * @see net.sf.mzmine.taskcontrol.TaskListener#taskStarted(net.sf.mzmine.taskcontrol.Task)
+     * @see javax.swing.event.ListSelectionListener#valueChanged(javax.swing.event.ListSelectionEvent)
      */
-    public void taskStarted(Task task) {
-        // if we have not added this frame before, do it now
-        if (getParent() == null)
-            MainWindow.getInstance().addInternalFrame(this);
-    }
-
-    /**
-     * @see net.sf.mzmine.visualizers.rawdata.RawDataVisualizer#getCursorPosition()
-     */
-    public CursorPosition getCursorPosition() {
-        // TODO Auto-generated method stub
-        return null;
-    }
-
-    /**
-     * @see net.sf.mzmine.visualizers.rawdata.RawDataVisualizer#setCursorPosition(net.sf.mzmine.util.CursorPosition)
-     */
-    public void setCursorPosition(CursorPosition newPosition) {
-        // TODO Auto-generated method stub
-        
+    public void valueChanged(ListSelectionEvent e) {
+        twoDMenuItem.setEnabled(desktop.isRawDataSelected());
     }
 
 }

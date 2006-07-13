@@ -216,7 +216,7 @@ public class AlignmentResultVisualizerCDAPlotView extends JInternalFrame impleme
 		waitDialog.setTitle("Calculating plot, please wait...");
 		waitDialog.addJob(new Integer(1), alignmentResult.getNiceName(), "client-side", Task.JOBSTATUS_UNDERPROCESSING_STR, new Double(0));
 		waitDialog.showMe();
-		waitDialog.paintNow();*/
+		waitDialog.paintNow();
 
 		if (mainWin.getParameterStorage().getGeneralParameters().getPeakMeasuringType() == GeneralParameters.PARAMETERVALUE_PEAKMEASURING_HEIGHT) {
 			setTitle(alignmentResult.getNiceName() + ": CDA plot of average peak heights.");
@@ -224,6 +224,7 @@ public class AlignmentResultVisualizerCDAPlotView extends JInternalFrame impleme
 		if (mainWin.getParameterStorage().getGeneralParameters().getPeakMeasuringType() == GeneralParameters.PARAMETERVALUE_PEAKMEASURING_AREA) {
 			setTitle(alignmentResult.getNiceName() + ": CDA plot of average peak areas.");
 		}
+        */
 
 		// Collect heights/areas to a matrix
 		int numOfSamples = alignmentResult.getNumOfRawDatas();
@@ -247,12 +248,14 @@ public class AlignmentResultVisualizerCDAPlotView extends JInternalFrame impleme
 				if (!(alignmentResult.isFullRow(peak))) { continue; }
 
 				// Use heights or areas
+                /*
 				if (mainWin.getParameterStorage().getGeneralParameters().getPeakMeasuringType() == GeneralParameters.PARAMETERVALUE_PEAKMEASURING_HEIGHT) {
 					data[sample][colInd] = alignmentResult.getPeakHeight(rawDataID, peak);
 				}
 				if (mainWin.getParameterStorage().getGeneralParameters().getPeakMeasuringType() == GeneralParameters.PARAMETERVALUE_PEAKMEASURING_AREA) {
 					data[sample][colInd] = alignmentResult.getPeakArea(rawDataID, peak);
 				}
+                */
 
 				// Next col
 				colInd++;

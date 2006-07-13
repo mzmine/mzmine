@@ -23,20 +23,11 @@ package net.sf.mzmine.io;
 import java.io.File;
 import java.io.IOException;
 import java.io.Serializable;
+import java.util.Vector;
 
-import net.sf.mzmine.interfaces.Scan;
-
-/**
- * Class representing a raw data file, no matter what format it is using.
- *
- * Data file must be Serializable, because it may be passed as a parameter to remote nodes
- *
- */
-
+import net.sf.mzmine.data.Scan;
 import net.sf.mzmine.methods.Method;
 import net.sf.mzmine.methods.MethodParameters;
-
-import java.util.Vector;
 
 
 public interface RawDataFile extends Serializable {

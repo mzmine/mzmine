@@ -1,22 +1,22 @@
 /*
-    Copyright 2005 VTT Biotechnology
+ * Copyright 2006 The MZmine Development Team
+ * 
+ * This file is part of MZmine.
+ * 
+ * MZmine is free software; you can redistribute it and/or modify it under the
+ * terms of the GNU General Public License as published by the Free Software
+ * Foundation; either version 2 of the License, or (at your option) any later
+ * version.
+ * 
+ * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY
+ * WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR
+ * A PARTICULAR PURPOSE. See the GNU General Public License for more details.
+ * 
+ * You should have received a copy of the GNU General Public License along with
+ * MZmine; if not, write to the Free Software Foundation, Inc., 51 Franklin St,
+ * Fifth Floor, Boston, MA 02110-1301 USA
+ */
 
-    This file is part of MZmine.
-
-    MZmine is free software; you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
-    the Free Software Foundation; either version 2 of the License, or
-    (at your option) any later version.
-
-    MZmine is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
-
-    You should have received a copy of the GNU General Public License
-    along with MZmine; if not, write to the Free Software
-    Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
-*/
 package net.sf.mzmine.methods.peakpicking.local;
 
 import java.io.Serializable;
@@ -30,7 +30,7 @@ import org.w3c.dom.Node;
 import net.sf.mzmine.methods.MethodParameters;
 
 
-public class LocalPickerParameters implements MethodParameters {
+class LocalPickerParameters implements MethodParameters {
 
 	private static final String tagName = "LocalPickerParameters";
 
@@ -117,20 +117,6 @@ public class LocalPickerParameters implements MethodParameters {
 
 		attrValue = myElement.getAttribute(intToleranceAttributeName);
 		try { intTolerance = Double.parseDouble(attrValue); } catch (NumberFormatException nfe) {}
-
-	}
-
-	public MethodParameters clone() {
-		LocalPickerParameters myClone = new LocalPickerParameters();
-		myClone.binSize = binSize;
-		myClone.chromatographicThresholdLevel = chromatographicThresholdLevel;
-		myClone.noiseLevel = noiseLevel;
-		myClone.minimumPeakHeight = minimumPeakHeight;
-		myClone.minimumPeakDuration = minimumPeakDuration;
-		myClone.mzTolerance = mzTolerance;
-		myClone.intTolerance = intTolerance;
-
-		return myClone;
 
 	}
 

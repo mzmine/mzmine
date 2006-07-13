@@ -21,7 +21,7 @@ package net.sf.mzmine.methods.deisotoping;
 
 import java.util.Hashtable;
 
-import net.sf.mzmine.interfaces.IsotopePattern;
+import net.sf.mzmine.data.IsotopePattern;
 
 /**
  * This interface defines the properties of a detected peak

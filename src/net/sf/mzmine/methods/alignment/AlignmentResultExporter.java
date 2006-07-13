@@ -29,7 +29,6 @@ import java.util.StringTokenizer;
 import java.util.Vector;
 
 import net.sf.mzmine.userinterface.mainwindow.MainWindow;
-import net.sf.mzmine.util.Logger;
 
 
 /**
@@ -57,7 +56,7 @@ public class AlignmentResultExporter {
 		try {
 			fw = new FileWriter(fileName);
 		} catch (Exception e) {
-			Logger.putFatal("Could not open file " + fileName + "for writing.");
+			//Logger.putFatal("Could not open file " + fileName + "for writing.");
 			return false;
 		}
 
@@ -112,7 +111,7 @@ public class AlignmentResultExporter {
 		try {
 			fw.write(s);
 		} catch (Exception e) {
-			Logger.putFatal("Could not open file " + fileName + "for writing.");
+		//	Logger.putFatal("Could not open file " + fileName + "for writing.");
 			return false;
 		}
 
@@ -172,7 +171,7 @@ public class AlignmentResultExporter {
 			try {
 				fw.write(s);
 			} catch (Exception e) {
-				Logger.putFatal("Could not open file " + fileName + " for writing.");
+				//L//ogger.putFatal("Could not open file " + fileName + " for writing.");
 				return false;
 			}
 		}
@@ -183,7 +182,7 @@ public class AlignmentResultExporter {
 		try {
 			fw.close();
 		} catch (Exception e) {
-			Logger.putFatal("Could not close file " + fileName + "after writing.");
+			//Logger.putFatal("Could not close file " + fileName + "after writing.");
 			return false;
 		}
 

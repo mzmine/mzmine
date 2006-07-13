@@ -34,15 +34,15 @@ import net.sf.mzmine.util.GUIUtils;
  */
 class SpectraToolBar extends JToolBar {
 
-    static final Icon centroidIcon = new ImageIcon("centroidicon.png");
-    static final Icon continuousIcon = new ImageIcon("continuousicon.png");
-    static final Icon dataPointsIcon = new ImageIcon("datapointsicon.png");
-    static final Icon annotationsIcon = new ImageIcon("annotationsicon.png");
-    static final Icon pickedPeakIcon = new ImageIcon("pickedpeakicon.png");
+    static final Icon centroidIcon = new ImageIcon("dist/centroidicon.png");
+    static final Icon continuousIcon = new ImageIcon("dist/continuousicon.png");
+    static final Icon dataPointsIcon = new ImageIcon("dist/datapointsicon.png");
+    static final Icon annotationsIcon = new ImageIcon("dist/annotationsicon.png");
+    static final Icon pickedPeakIcon = new ImageIcon("dist/pickedpeakicon.png");
 
-    private JButton centroidContinuousButton;
+    private JButton centroidContinuousButton, dataPointsButton;
 
-    SpectraToolBar(SpectraVisualizer masterFrame) {
+    SpectraToolBar(SpectraVisualizerWindow masterFrame) {
 
         super(JToolBar.VERTICAL);
 
@@ -57,15 +57,15 @@ class SpectraToolBar extends JToolBar {
 
         addSeparator();
 
-        GUIUtils.addButton(this, null, dataPointsIcon, masterFrame,
-                "SHOW_DATA_POINTS",
+        dataPointsButton = GUIUtils.addButton(this, null, dataPointsIcon,
+                masterFrame, "SHOW_DATA_POINTS",
                 "Toggle displaying of data points  in continuous mode");
 
         addSeparator();
 
         GUIUtils.addButton(this, null, annotationsIcon, masterFrame,
                 "SHOW_ANNOTATIONS", "Toggle displaying of peak values");
-        
+
         addSeparator();
 
         GUIUtils.addButton(this, null, pickedPeakIcon, masterFrame,
@@ -76,8 +76,10 @@ class SpectraToolBar extends JToolBar {
     void setCentroidButton(boolean centroid) {
         if (centroid) {
             centroidContinuousButton.setIcon(centroidIcon);
+            dataPointsButton.setEnabled(true);
         } else {
             centroidContinuousButton.setIcon(continuousIcon);
+            dataPointsButton.setEnabled(false);
         }
     }
 

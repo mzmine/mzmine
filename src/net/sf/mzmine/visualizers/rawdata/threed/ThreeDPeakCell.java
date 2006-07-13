@@ -21,7 +21,7 @@ package net.sf.mzmine.visualizers.rawdata.threed;
 
 import java.rmi.RemoteException;
 
-import net.sf.mzmine.interfaces.Peak;
+import net.sf.mzmine.data.Peak;
 import visad.CellImpl;
 import visad.ConstantMap;
 import visad.DataReference;

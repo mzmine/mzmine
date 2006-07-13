@@ -24,11 +24,11 @@ import java.awt.event.KeyEvent;
 import java.text.DecimalFormat;
 import java.text.NumberFormat;
 
-import net.sf.mzmine.interfaces.Peak;
-import net.sf.mzmine.interfaces.PeakList;
-import net.sf.mzmine.interfaces.Scan;
-import net.sf.mzmine.io.MZmineProject;
+import net.sf.mzmine.data.Peak;
+import net.sf.mzmine.data.PeakList;
+import net.sf.mzmine.data.Scan;
 import net.sf.mzmine.io.RawDataFile;
+import net.sf.mzmine.project.MZmineProject;
 import net.sf.mzmine.taskcontrol.Task;
 import net.sf.mzmine.util.ScanUtils;
 import net.sf.mzmine.util.TimeNumberFormat;
@@ -70,7 +70,7 @@ import visad.java3d.MouseBehaviorJ3D;
  */
 class ThreeDSamplingTask implements Task {
 
-    private ThreeDVisualizer visualizer;
+    private ThreeDVisualizerWindow visualizer;
     private RawDataFile rawDataFile;
     private int scanNumbers[];
     private double rtMin, rtMax, mzMin, mzMax;
@@ -125,7 +125,7 @@ class ThreeDSamplingTask implements Task {
             double rtMin, double rtMax,
             double mzMin, double mzMax,
             int rtResolution, int mzResolution,
-            ThreeDVisualizer visualizer) {
+            ThreeDVisualizerWindow visualizer) {
 
         status = TaskStatus.WAITING;
 

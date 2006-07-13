@@ -58,7 +58,7 @@ import net.sf.mzmine.userinterface.mainwindow.MainWindow;
 import net.sf.mzmine.userinterface.mainwindow.Statusbar;
 import net.sf.mzmine.util.GeneralParameters;
 import net.sf.mzmine.util.HeatMapColorPicker;
-import net.sf.mzmine.util.MyMath;
+import net.sf.mzmine.util.MathUtils;
 import net.sf.mzmine.util.TransferableImage;
 
 
@@ -235,12 +235,14 @@ public class AlignmentResultVisualizerCoVarPlotView extends JInternalFrame imple
 	 */
 	private void preparePlot() {
 
+        /*
 		if (mainWin.getParameterStorage().getGeneralParameters().getPeakMeasuringType() == GeneralParameters.PARAMETERVALUE_PEAKMEASURING_HEIGHT) {
 			setTitle(alignmentResult.getNiceName() + ": Coefficient of variation in peak heights.");
 		}
 		if (mainWin.getParameterStorage().getGeneralParameters().getPeakMeasuringType() == GeneralParameters.PARAMETERVALUE_PEAKMEASURING_AREA) {
 			setTitle(alignmentResult.getNiceName() + ": Coefficient of variation in peak areas.");
 		}
+        */
 
 		int numOfPeaks = alignmentResult.getNumOfRows();
 
@@ -273,6 +275,7 @@ public class AlignmentResultVisualizerCoVarPlotView extends JInternalFrame imple
 			// Collect peak's height/area values among the group of runs
 			groupOneMeasurementsVector = new Vector();
 
+            /*
 			if (mainWin.getParameterStorage().getGeneralParameters().getPeakMeasuringType() == GeneralParameters.PARAMETERVALUE_PEAKMEASURING_HEIGHT) {
 				for (int runInd : groupOneIDs) {
 					if ( (alignmentResult.getPeakStatus(runInd, rowInd)==AlignmentResult.PEAKSTATUS_DETECTED) ||
@@ -289,7 +292,7 @@ public class AlignmentResultVisualizerCoVarPlotView extends JInternalFrame imple
 						groupOneMeasurementsVector.add(new Double(alignmentResult.getPeakArea(runInd, rowInd)));
 					}
 				}
-			}
+			}*/
 
 
 			// If there were at least two measurements for the peak, include it in the plot
@@ -304,9 +307,9 @@ public class AlignmentResultVisualizerCoVarPlotView extends JInternalFrame imple
 				tmp_alignmentRowValues[numOfValues] = rowInd;
 				tmp_mzValues[numOfValues] = alignmentResult.getAverageMZ(rowInd);
 				tmp_rtValues[numOfValues] = alignmentResult.getAverageRT(rowInd);
-				if (mainWin.getParameterStorage().getGeneralParameters().getPeakMeasuringType() == GeneralParameters.PARAMETERVALUE_PEAKMEASURING_HEIGHT) { tmp_avgMeasurementValues[numOfValues] = alignmentResult.getAverageHeight(rowInd); }
-				if (mainWin.getParameterStorage().getGeneralParameters().getPeakMeasuringType() == GeneralParameters.PARAMETERVALUE_PEAKMEASURING_AREA) { tmp_avgMeasurementValues[numOfValues] = alignmentResult.getAverageArea(rowInd); }
-				tmp_cvValues[numOfValues] = MyMath.calcCV(groupOneMeasurementsArray);
+				//if (mainWin.getParameterStorage().getGeneralParameters().getPeakMeasuringType() == GeneralParameters.PARAMETERVALUE_PEAKMEASURING_HEIGHT) { tmp_avgMeasurementValues[numOfValues] = alignmentResult.getAverageHeight(rowInd); }
+				//if (mainWin.getParameterStorage().getGeneralParameters().getPeakMeasuringType() == GeneralParameters.PARAMETERVALUE_PEAKMEASURING_AREA) { tmp_avgMeasurementValues[numOfValues] = alignmentResult.getAverageArea(rowInd); }
+				tmp_cvValues[numOfValues] = MathUtils.calcCV(groupOneMeasurementsArray);
 
 				// Also control what are the minimum and maximum mz and rt value of all peaks that are added to the plot
 				if (minMZ>=tmp_mzValues[numOfValues]) { minMZ = tmp_mzValues[numOfValues]; }
@@ -350,7 +353,7 @@ public class AlignmentResultVisualizerCoVarPlotView extends JInternalFrame imple
 			quantiles[ind] = (double)ind/(double)10 * (double)1;
 			quantileLabels[ind] = 1-quantiles[ind];
 		}
-		double[] quantileValues = MyMath.calcQuantile(avgMeasurementValues, quantiles);
+		double[] quantileValues = MathUtils.calcQuantile(avgMeasurementValues, quantiles);
 
 		// Set thresholding levels to slider
 		topPnl.setupIntThresholdSlider(quantileLabels, quantileValues);

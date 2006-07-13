@@ -59,7 +59,7 @@ import net.sf.mzmine.userinterface.mainwindow.MainWindow;
 import net.sf.mzmine.userinterface.mainwindow.Statusbar;
 import net.sf.mzmine.util.GeneralParameters;
 import net.sf.mzmine.util.HeatMapColorPicker;
-import net.sf.mzmine.util.MyMath;
+import net.sf.mzmine.util.MathUtils;
 import net.sf.mzmine.util.TransferableImage;
 
 
@@ -238,14 +238,14 @@ public class AlignmentResultVisualizerLogratioPlotView extends JInternalFrame im
 	 * This function calculates logratios between average peak intensities of two groups
 	 */
 	private void preparePlot() {
-
+/*
 		if (mainWin.getParameterStorage().getGeneralParameters().getPeakMeasuringType() == GeneralParameters.PARAMETERVALUE_PEAKMEASURING_HEIGHT) {
 			setTitle(alignmentResult.getNiceName() + ": Logratios of average peak heights.");
 		}
 		if (mainWin.getParameterStorage().getGeneralParameters().getPeakMeasuringType() == GeneralParameters.PARAMETERVALUE_PEAKMEASURING_AREA) {
 			setTitle(alignmentResult.getNiceName() + ": Logratios of average peak areas.");
 		}
-
+*/
 
 		int numOfPeaks = alignmentResult.getNumOfRows();
 
@@ -276,6 +276,7 @@ public class AlignmentResultVisualizerLogratioPlotView extends JInternalFrame im
 
 
 			// Average among group one
+            /*
 			if (mainWin.getParameterStorage().getGeneralParameters().getPeakMeasuringType() == GeneralParameters.PARAMETERVALUE_PEAKMEASURING_HEIGHT) {
 				for (int runInd : groupOneIDs) {
 					if ((alignmentResult.getPeakStatus(runInd, rowInd)==AlignmentResult.PEAKSTATUS_DETECTED) ||
@@ -314,7 +315,7 @@ public class AlignmentResultVisualizerLogratioPlotView extends JInternalFrame im
 							groupTwoMeasurementSum += alignmentResult.getPeakArea(runInd, rowInd);
 					}
 				}
-			}
+			}*/
 
 
 			// If there were at least one intensity measurement in both groups, add this peak to the plot
@@ -327,8 +328,8 @@ public class AlignmentResultVisualizerLogratioPlotView extends JInternalFrame im
 				tmp_mzValues[numOfValues] = alignmentResult.getAverageMZ(rowInd);
 				tmp_rtValues[numOfValues] = alignmentResult.getAverageRT(rowInd);
 
-				if (mainWin.getParameterStorage().getGeneralParameters().getPeakMeasuringType() == GeneralParameters.PARAMETERVALUE_PEAKMEASURING_HEIGHT) { tmp_avgMeasurementValues[numOfValues] = alignmentResult.getAverageHeight(rowInd); }
-				if (mainWin.getParameterStorage().getGeneralParameters().getPeakMeasuringType() == GeneralParameters.PARAMETERVALUE_PEAKMEASURING_AREA) { tmp_avgMeasurementValues[numOfValues] = alignmentResult.getAverageArea(rowInd); }
+//				if (mainWin.getParameterStorage().getGeneralParameters().getPeakMeasuringType() == GeneralParameters.PARAMETERVALUE_PEAKMEASURING_HEIGHT) { tmp_avgMeasurementValues[numOfValues] = alignmentResult.getAverageHeight(rowInd); }
+	//			if (mainWin.getParameterStorage().getGeneralParameters().getPeakMeasuringType() == GeneralParameters.PARAMETERVALUE_PEAKMEASURING_AREA) { tmp_avgMeasurementValues[numOfValues] = alignmentResult.getAverageArea(rowInd); }
 
 				tmp_logratioValues[numOfValues] = (double)( java.lang.Math.log( (double)groupOneMeasurementAvg / (double)groupTwoMeasurementAvg ) / java.lang.Math.log(2.0) );
 
@@ -374,7 +375,7 @@ public class AlignmentResultVisualizerLogratioPlotView extends JInternalFrame im
 			quantiles[ind] = (double)ind/(double)10 * (double)1;
 			quantileLabels[ind] = 1-quantiles[ind];
 		}
-		double[] quantileValues = MyMath.calcQuantile(avgMeasurementValues, quantiles);
+		double[] quantileValues = MathUtils.calcQuantile(avgMeasurementValues, quantiles);
 
 		// Set thresholding levels to slider
 		topPnl.setupIntThresholdSlider(quantileLabels, quantileValues);

@@ -18,17 +18,16 @@
  */
 package net.sf.mzmine.methods.filtering.mean;
 
-import org.w3c.dom.Element;
-import org.w3c.dom.Document;
-import org.w3c.dom.NodeList;
-import org.w3c.dom.Node;
-
 import net.sf.mzmine.methods.MethodParameters;
+
+import org.w3c.dom.Document;
+import org.w3c.dom.Element;
+import org.w3c.dom.NodeList;
 
 /**
  * This class represents parameter for the mean filter method
  */
-public class MeanFilterParameters implements MethodParameters {
+class MeanFilterParameters implements MethodParameters {
 
 	/**
      * These Strings are used to access parameter values in an XML element
@@ -78,12 +77,5 @@ public class MeanFilterParameters implements MethodParameters {
 		attrValue = myElement.getAttribute(oneSidedWindowLengthAttributeName);
 		try { oneSidedWindowLength = Double.parseDouble(attrValue); } catch (NumberFormatException nfe) {}
 	}
-
-	public MeanFilterParameters clone() {
-		MeanFilterParameters myClone = new MeanFilterParameters();
-		myClone.oneSidedWindowLength = oneSidedWindowLength;
-		return myClone;
-	}
-
 
 }
