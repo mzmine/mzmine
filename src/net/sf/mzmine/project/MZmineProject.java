@@ -219,6 +219,8 @@ public class MZmineProject implements MZmineModule {
 
     public void removePeakList(RawDataFile rawData) {
         peakLists.remove(rawData);
+        MainWindow mainWin = (MainWindow) desktop;
+        mainWin.getItemSelector().fireDataChanged();
         // MainWindow.getInstance().getMainMenu().updateMenuAvailability();
     }
 
