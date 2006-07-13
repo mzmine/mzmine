@@ -4,7 +4,7 @@
 	<property name="src" value="src/net/sf/mzmine"/>
 	<property name="lib" value="lib"/>
 	<property name="rest" value="rest"/>
-	
+        <property name="icons" value="icons"/>
 	<property name="build" value="build"/>
 	<property name="dist" value="dist"/>
 		
@@ -17,6 +17,7 @@
 		<pathelement location="${lib}/jcommon-1.0.0.jar"/>
 		<pathelement location="${lib}/jfreechart-1.0.1.jar"/>
 		<pathelement location="${lib}/visad.jar"/>
+                <pathelement location="${lib}/cdk.jar"/>
 	</path>
 	
 
@@ -43,7 +44,7 @@
 			<fileset file="${rest}/*.properties"/>
 		</copy>
                 <copy todir="${dist}/icons">
-			<fileset file="${rest}/*.png"/>
+                        <fileset file="${icons}/*.png"/>
 		</copy>
 		<copy todir="${dist}/lib">
 			<fileset file="${lib}/base64.jar"/>
