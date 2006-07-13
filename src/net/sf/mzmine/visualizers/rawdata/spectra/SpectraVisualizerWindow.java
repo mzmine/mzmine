@@ -53,7 +53,7 @@ import net.sf.mzmine.userinterface.mainwindow.MainWindow;
 import net.sf.mzmine.util.CursorPosition;
 import net.sf.mzmine.util.ScanUtils;
 import net.sf.mzmine.util.ScanUtils.BinningType;
-import net.sf.mzmine.visualizers.RawDataVisualizer;
+import net.sf.mzmine.visualizers.rawdata.RawDataVisualizer;
 import net.sf.mzmine.visualizers.rawdata.spectra.SpectraPlot.PlotMode;
 
 import org.jfree.data.xy.DefaultTableXYDataset;
@@ -163,7 +163,7 @@ public class SpectraVisualizerWindow extends JInternalFrame implements
     }
 
     /**
-     * @see net.sf.mzmine.visualizers.RawDataVisualizer#setMZRange(double,
+     * @see net.sf.mzmine.visualizers.rawdata.RawDataVisualizer#setMZRange(double,
      *      double)
      */
     public void setMZRange(double mzMin, double mzMax) {
@@ -171,7 +171,7 @@ public class SpectraVisualizerWindow extends JInternalFrame implements
     }
 
     /**
-     * @see net.sf.mzmine.visualizers.RawDataVisualizer#setRTRange(double,
+     * @see net.sf.mzmine.visualizers.rawdata.RawDataVisualizer#setRTRange(double,
      *      double)
      */
     public void setRTRange(double rtMin, double rtMax) {
@@ -180,7 +180,7 @@ public class SpectraVisualizerWindow extends JInternalFrame implements
     }
 
     /**
-     * @see net.sf.mzmine.visualizers.RawDataVisualizer#setIntensityRange(double,
+     * @see net.sf.mzmine.visualizers.rawdata.RawDataVisualizer#setIntensityRange(double,
      *      double)
      */
     public void setIntensityRange(double intensityMin, double intensityMax) {
@@ -293,7 +293,7 @@ public class SpectraVisualizerWindow extends JInternalFrame implements
     }
 
     /**
-     * @see net.sf.mzmine.visualizers.RawDataVisualizer#getRawDataFiles()
+     * @see net.sf.mzmine.visualizers.rawdata.RawDataVisualizer#getRawDataFiles()
      */
     public RawDataFile[] getRawDataFiles() {
         return new RawDataFile[] { rawDataFile };
@@ -392,6 +392,8 @@ public class SpectraVisualizerWindow extends JInternalFrame implements
             PeakList peakList = MZmineProject.getCurrentProject().getPeakList(
                     rawDataFile);
             if (peakList != null) {
+                
+                toolBar.setPeaksButtonEnabled(true);
 
                 Peak[] peaks = peakList.getPeaksInsideScanAndMZRange(rtMin,
                         rtMax, mzMin, mzMax);
@@ -422,10 +424,12 @@ public class SpectraVisualizerWindow extends JInternalFrame implements
                         }
 
                     }
-
                     
                 }
 
+            } else {
+                // no peaklist
+                toolBar.setPeaksButtonEnabled(false);
             }
         }
 
@@ -460,14 +464,14 @@ public class SpectraVisualizerWindow extends JInternalFrame implements
     }
 
     /**
-     * @see net.sf.mzmine.visualizers.RawDataVisualizer#getCursorPosition()
+     * @see net.sf.mzmine.visualizers.rawdata.RawDataVisualizer#getCursorPosition()
      */
     public CursorPosition getCursorPosition() {
         return null;
     }
 
     /**
-     * @see net.sf.mzmine.visualizers.RawDataVisualizer#setCursorPosition(net.sf.mzmine.util.CursorPosition)
+     * @see net.sf.mzmine.visualizers.rawdata.RawDataVisualizer#setCursorPosition(net.sf.mzmine.util.CursorPosition)
      */
     public void setCursorPosition(CursorPosition newPosition) {
         // do nothing

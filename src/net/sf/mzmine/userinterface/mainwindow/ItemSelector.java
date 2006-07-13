@@ -44,8 +44,8 @@ import net.sf.mzmine.methods.alignment.AlignmentResult;
 import net.sf.mzmine.project.MZmineProject;
 import net.sf.mzmine.userinterface.Desktop;
 import net.sf.mzmine.util.GUIUtils;
-import net.sf.mzmine.visualizers.RawDataVisualizer;
 import net.sf.mzmine.visualizers.peaklist.table.PeakListTableView;
+import net.sf.mzmine.visualizers.rawdata.RawDataVisualizer;
 
 /**
  * This class implements a selector of raw data files and alignment results

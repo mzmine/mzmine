@@ -39,7 +39,7 @@ import net.sf.mzmine.taskcontrol.TaskListener;
 import net.sf.mzmine.taskcontrol.Task.TaskStatus;
 import net.sf.mzmine.userinterface.Desktop;
 import net.sf.mzmine.util.CursorPosition;
-import net.sf.mzmine.visualizers.MultipleRawDataVisualizer;
+import net.sf.mzmine.visualizers.rawdata.MultipleRawDataVisualizer;
 import net.sf.mzmine.visualizers.rawdata.spectra.SpectraSetupDialog;
 import net.sf.mzmine.visualizers.rawdata.spectra.SpectraVisualizerWindow;
 
@@ -145,7 +145,7 @@ public class TICVisualizerWindow extends JInternalFrame implements
     }
 
     /**
-     * @see net.sf.mzmine.visualizers.RawDataVisualizer#setMZRange(double,
+     * @see net.sf.mzmine.visualizers.rawdata.RawDataVisualizer#setMZRange(double,
      *      double)
      */
     public void setMZRange(double mzMin, double mzMax) {
@@ -153,7 +153,7 @@ public class TICVisualizerWindow extends JInternalFrame implements
     }
 
     /**
-     * @see net.sf.mzmine.visualizers.RawDataVisualizer#setRTRange(double,
+     * @see net.sf.mzmine.visualizers.rawdata.RawDataVisualizer#setRTRange(double,
      *      double)
      */
     public void setRTRange(double rtMin, double rtMax) {
@@ -161,7 +161,7 @@ public class TICVisualizerWindow extends JInternalFrame implements
     }
 
     /**
-     * @see net.sf.mzmine.visualizers.RawDataVisualizer#setIntensityRange(double,
+     * @see net.sf.mzmine.visualizers.rawdata.RawDataVisualizer#setIntensityRange(double,
      *      double)
      */
     public void setIntensityRange(double intensityMin, double intensityMax) {
@@ -169,7 +169,7 @@ public class TICVisualizerWindow extends JInternalFrame implements
     }
 
     /**
-     * @see net.sf.mzmine.visualizers.RawDataVisualizer#getRawDataFiles()
+     * @see net.sf.mzmine.visualizers.rawdata.RawDataVisualizer#getRawDataFiles()
      */
     public RawDataFile[] getRawDataFiles() {
         return rawDataFiles.keySet().toArray(new RawDataFile[0]);

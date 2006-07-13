@@ -1,7 +1,7 @@
 /**
  * 
  */
-package net.sf.mzmine.visualizers;
+package net.sf.mzmine.visualizers.rawdata;
 
 import net.sf.mzmine.io.RawDataFile;
 

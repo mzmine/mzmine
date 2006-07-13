@@ -48,8 +48,8 @@ import net.sf.mzmine.taskcontrol.TaskController;
 import net.sf.mzmine.taskcontrol.impl.TaskControllerImpl;
 import net.sf.mzmine.userinterface.Desktop;
 import net.sf.mzmine.userinterface.dialogs.TaskProgressWindow;
-import net.sf.mzmine.visualizers.RawDataVisualizer;
 import net.sf.mzmine.visualizers.alignmentresult.AlignmentResultVisualizer;
+import net.sf.mzmine.visualizers.rawdata.RawDataVisualizer;
 
 /**
  * This class is the main window of application

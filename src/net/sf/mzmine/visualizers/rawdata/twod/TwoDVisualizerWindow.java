@@ -39,7 +39,7 @@ import net.sf.mzmine.taskcontrol.TaskListener;
 import net.sf.mzmine.taskcontrol.Task.TaskStatus;
 import net.sf.mzmine.userinterface.Desktop;
 import net.sf.mzmine.util.CursorPosition;
-import net.sf.mzmine.visualizers.RawDataVisualizer;
+import net.sf.mzmine.visualizers.rawdata.RawDataVisualizer;
 
 /**
  * 2D visualizer using JFreeChart library
@@ -101,7 +101,7 @@ public class TwoDVisualizerWindow extends JInternalFrame implements
     }
 
     /**
-     * @see net.sf.mzmine.visualizers.RawDataVisualizer#setMZRange(double,
+     * @see net.sf.mzmine.visualizers.rawdata.RawDataVisualizer#setMZRange(double,
      *      double)
      */
     public void setMZRange(double mzMin, double mzMax) {
@@ -109,7 +109,7 @@ public class TwoDVisualizerWindow extends JInternalFrame implements
     }
 
     /**
-     * @see net.sf.mzmine.visualizers.RawDataVisualizer#setRTRange(double,
+     * @see net.sf.mzmine.visualizers.rawdata.RawDataVisualizer#setRTRange(double,
      *      double)
      */
     public void setRTRange(double rtMin, double rtMax) {
@@ -118,7 +118,7 @@ public class TwoDVisualizerWindow extends JInternalFrame implements
     }
 
     /**
-     * @see net.sf.mzmine.visualizers.RawDataVisualizer#setIntensityRange(double,
+     * @see net.sf.mzmine.visualizers.rawdata.RawDataVisualizer#setIntensityRange(double,
      *      double)
      */
     public void setIntensityRange(double intensityMin, double intensityMax) {
@@ -155,7 +155,7 @@ public class TwoDVisualizerWindow extends JInternalFrame implements
     }
 
     /**
-     * @see net.sf.mzmine.visualizers.RawDataVisualizer#getRawDataFiles()
+     * @see net.sf.mzmine.visualizers.rawdata.RawDataVisualizer#getRawDataFiles()
      */
     public RawDataFile[] getRawDataFiles() {
         return new RawDataFile[] { rawDataFile };
@@ -182,7 +182,7 @@ public class TwoDVisualizerWindow extends JInternalFrame implements
     }
 
     /**
-     * @see net.sf.mzmine.visualizers.RawDataVisualizer#getCursorPosition()
+     * @see net.sf.mzmine.visualizers.rawdata.RawDataVisualizer#getCursorPosition()
      */
     public CursorPosition getCursorPosition() {
         // TODO Auto-generated method stub
@@ -190,7 +190,7 @@ public class TwoDVisualizerWindow extends JInternalFrame implements
     }
 
     /**
-     * @see net.sf.mzmine.visualizers.RawDataVisualizer#setCursorPosition(net.sf.mzmine.util.CursorPosition)
+     * @see net.sf.mzmine.visualizers.rawdata.RawDataVisualizer#setCursorPosition(net.sf.mzmine.util.CursorPosition)
      */
     public void setCursorPosition(CursorPosition newPosition) {
         // TODO Auto-generated method stub
