@@ -33,12 +33,16 @@
 	<target name="jar" depends="compile">
 		<mkdir dir="${dist}"/>
 		<mkdir dir="${dist}/lib"/>
+                <mkdir dir="${dist}/icons"/>
+                <mkdir dir="${dist}/conf"/>
 		
 		<copy todir="${dist}">
-			<fileset file="${rest}/mzmineclient.ini"/>
-			<fileset file="${rest}/mzminecontroller.ini"/>
-			<fileset file="${rest}/mzminenode.ini"/>
-			<fileset file="${rest}/startMZmine.bat"/>
+                        <fileset file="${rest}/startMZmine.*"/>
+		</copy>
+                <copy todir="${dist}/conf">
+			<fileset file="${rest}/*.properties"/>
+		</copy>
+                <copy todir="${dist}/icons">
 			<fileset file="${rest}/*.png"/>
 		</copy>
 		<copy todir="${dist}/lib">
@@ -50,12 +54,11 @@
 			<fileset file="${lib}/jcommon-1.0.0.jar"/>
 			<fileset file="${lib}/jfreechart-1.0.1.jar"/>
 			<fileset file="${lib}/visad.jar"/>
-			
+			<fileset file="${lib}/cdk.jar"/>
 		</copy>
 		
 		<jar destfile="${dist}/MZmine.jar" manifest="${rest}/mzminemanifest">
 			<fileset dir="${build}" />
-			<fileset dir="${lib}"/>
 		</jar>
 	</target>
 	
