@@ -44,17 +44,12 @@ public class IOControllerImpl implements IOController, MZmineModule, TaskListene
 
     private TaskController taskController;
     private Desktop desktop;
-    private Logger logger;
-    
-    
-
     /**
      * This method is non-blocking, it places a request to open these files and
      * exits immediately.
      */
     public void openFiles(File[] files, PreloadLevel preloadLevel) {
 
-        String extension;
         Task openTask;
 
         for (File file : files) {
@@ -129,6 +124,5 @@ public class IOControllerImpl implements IOController, MZmineModule, TaskListene
     public void initModule(IOController ioController, TaskController taskController, Desktop desktop, Logger logger) {
         this.taskController = taskController;
         this.desktop = desktop;
-        this.logger = logger;
     }
 }
