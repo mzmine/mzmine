@@ -35,15 +35,15 @@ import net.sf.mzmine.io.OpenedRawDataFile;
 import net.sf.mzmine.io.RawDataFile;
 import net.sf.mzmine.visualizers.rawdata.MultipleRawDataVisualizer;
 
-
 /**
- *
+ * 
  */
-public class RemoveFilePopupMenu extends JMenu implements MenuListener, ActionListener {
+public class RemoveFilePopupMenu extends JMenu implements MenuListener,
+        ActionListener {
 
-    private Hashtable<JMenuItem,OpenedRawDataFile> menuItemFiles;
+    private Hashtable<JMenuItem, OpenedRawDataFile> menuItemFiles;
     MultipleRawDataVisualizer visualizer;
-    
+
     public RemoveFilePopupMenu(MultipleRawDataVisualizer visualizer) {
         super("Remove plot of file...");
         addMenuListener(this);
@@ -56,38 +56,42 @@ public class RemoveFilePopupMenu extends JMenu implements MenuListener, ActionLi
     public void menuSelected(MenuEvent event) {
         removeAll();
         OpenedRawDataFile[] files = visualizer.getRawDataFiles();
-        
+
         // if we have only one file, we cannot remove it
-        if (files.length == 1) return;
-        
-        menuItemFiles = new Hashtable<JMenuItem,OpenedRawDataFile>();
+        if (files.length == 1)
+            return;
+
+        menuItemFiles = new Hashtable<JMenuItem, OpenedRawDataFile>();
         for (OpenedRawDataFile file : files) {
             JMenuItem newItem = new JMenuItem(file.toString());
             newItem.addActionListener(this);
             menuItemFiles.put(newItem, file);
             add(newItem);
         }
-        
+
     }
 
     /**
      * @see javax.swing.event.MenuListener#menuDeselected(javax.swing.event.MenuEvent)
      */
     public void menuDeselected(MenuEvent arg0) {
+        // do nothing
     }
 
     /**
      * @see javax.swing.event.MenuListener#menuCanceled(javax.swing.event.MenuEvent)
      */
     public void menuCanceled(MenuEvent arg0) {
+        // do nothing
     }
 
     /**
      * @see java.awt.event.ActionListener#actionPerformed(java.awt.event.ActionEvent)
      */
     public void actionPerformed(ActionEvent event) {
-         Object src = event.getSource();
-         OpenedRawDataFile file = menuItemFiles.get(src);
-         if (file != null) visualizer.removeRawDataFile(file);
+        Object src = event.getSource();
+        OpenedRawDataFile file = menuItemFiles.get(src);
+        if (file != null)
+            visualizer.removeRawDataFile(file);
     }
 }

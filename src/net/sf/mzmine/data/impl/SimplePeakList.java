@@ -27,7 +27,7 @@ import net.sf.mzmine.data.Peak;
 import net.sf.mzmine.data.PeakList;
 
 /**
- *
+ * Simple implementation of the PeakList interface.
  */
 public class SimplePeakList implements PeakList {
 

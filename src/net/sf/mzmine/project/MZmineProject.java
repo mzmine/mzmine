@@ -61,14 +61,12 @@ import org.xml.sax.SAXException;
 public class MZmineProject implements MZmineModule {
 
     private Desktop desktop;
-    
+
     private static MZmineProject currentProject;
     private Vector<OpenedRawDataFile> projectFiles;
     private Hashtable<OpenedRawDataFile, PeakList> peakLists;
 
     private Hashtable<MZmineModule, MethodParameters> parameterStorage;
-
-
 
     public MZmineProject() {
         projectFiles = new Vector<OpenedRawDataFile>();
@@ -93,8 +91,7 @@ public class MZmineProject implements MZmineModule {
     /**
      * Reads all parameter settings from a file
      * 
-     * @param paramFile
-     *            Parameter settings file
+     * @param paramFile Parameter settings file
      */
     public void readParameters(File paramFile) throws IOException {
 
@@ -125,8 +122,7 @@ public class MZmineProject implements MZmineModule {
     /**
      * Writes all parameter values to file
      * 
-     * @param paramFile
-     *            Parameter settings file
+     * @param paramFile Parameter settings file
      */
     public void writeParameters(File paramFile) throws IOException {
         FileWriter paramFileWriter;
@@ -183,8 +179,6 @@ public class MZmineProject implements MZmineModule {
         is.removeRawData(file);
     }
 
-
-
     public OpenedRawDataFile[] getDataFiles() {
         return projectFiles.toArray(new OpenedRawDataFile[0]);
     }
@@ -201,14 +195,12 @@ public class MZmineProject implements MZmineModule {
         peakLists.put(rawData, peakList);
         MainWindow mainWin = (MainWindow) desktop;
         mainWin.getItemSelector().fireDataChanged();
-        // MainWindow.getInstance().getMainMenu().updateMenuAvailability();
     }
 
     public void removePeakList(OpenedRawDataFile rawData) {
         peakLists.remove(rawData);
         MainWindow mainWin = (MainWindow) desktop;
         mainWin.getItemSelector().fireDataChanged();
-        // MainWindow.getInstance().getMainMenu().updateMenuAvailability();
     }
 
     /**

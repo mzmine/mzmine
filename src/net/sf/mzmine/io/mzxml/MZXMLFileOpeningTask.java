@@ -113,7 +113,7 @@ public class MZXMLFileOpeningTask extends DefaultHandler implements
     public void run() {
 
         status = TaskStatus.PROCESSING;
-        // Logger.put("Started parsing file " + originalFile);
+        logger.finest("Started parsing file " + originalFile);
 
         // Use the default (non-validating) parser
         SAXParserFactory factory = SAXParserFactory.newInstance();

@@ -37,15 +37,15 @@ import net.sf.mzmine.io.RawDataFile;
 import net.sf.mzmine.project.MZmineProject;
 import net.sf.mzmine.visualizers.rawdata.MultipleRawDataVisualizer;
 
-
 /**
- *
+ * 
  */
-public class AddFilePopupMenu extends JMenu implements MenuListener, ActionListener {
+public class AddFilePopupMenu extends JMenu implements MenuListener,
+        ActionListener {
 
-    private Hashtable<JMenuItem,OpenedRawDataFile> menuItemFiles;
+    private Hashtable<JMenuItem, OpenedRawDataFile> menuItemFiles;
     MultipleRawDataVisualizer visualizer;
-    
+
     public AddFilePopupMenu(MultipleRawDataVisualizer visualizer) {
         super("Add plot of file...");
         addMenuListener(this);
@@ -60,42 +60,43 @@ public class AddFilePopupMenu extends JMenu implements MenuListener, ActionListe
         removeAll();
         OpenedRawDataFile[] openFiles = MZmineProject.getCurrentProject().getDataFiles();
         HashSet<OpenedRawDataFile> visualizedFiles = new HashSet<OpenedRawDataFile>();
-        for (OpenedRawDataFile file : visualizer.getRawDataFiles()) visualizedFiles.add(file);
+        for (OpenedRawDataFile file : visualizer.getRawDataFiles())
+            visualizedFiles.add(file);
 
-        menuItemFiles = new Hashtable<JMenuItem,OpenedRawDataFile>();
+        menuItemFiles = new Hashtable<JMenuItem, OpenedRawDataFile>();
         for (OpenedRawDataFile file : openFiles) {
-            if (visualizedFiles.contains(file)) continue;
-            
+            if (visualizedFiles.contains(file))
+                continue;
+
             JMenuItem newItem = new JMenuItem(file.toString());
             newItem.addActionListener(this);
             menuItemFiles.put(newItem, file);
             add(newItem);
         }
-        
+
     }
 
     /**
      * @see javax.swing.event.MenuListener#menuDeselected(javax.swing.event.MenuEvent)
      */
     public void menuDeselected(MenuEvent arg0) {
-        // TODO Auto-generated method stub
-        
+        // do nothing
     }
 
     /**
      * @see javax.swing.event.MenuListener#menuCanceled(javax.swing.event.MenuEvent)
      */
     public void menuCanceled(MenuEvent arg0) {
-        // TODO Auto-generated method stub
-        
+        // do nothing
     }
 
     /**
      * @see java.awt.event.ActionListener#actionPerformed(java.awt.event.ActionEvent)
      */
     public void actionPerformed(ActionEvent event) {
-         Object src = event.getSource();
-         OpenedRawDataFile file = menuItemFiles.get(src);
-         if (file != null) visualizer.addRawDataFile(file);
+        Object src = event.getSource();
+        OpenedRawDataFile file = menuItemFiles.get(src);
+        if (file != null)
+            visualizer.addRawDataFile(file);
     }
 }

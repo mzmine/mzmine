@@ -17,15 +17,12 @@
  * Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-/**
- * 
- */
 package net.sf.mzmine.data.impl;
 
 import net.sf.mzmine.data.Scan;
 
 /**
- * 
+ * Simple implementation of the Scan interface.
  */
 public class SimpleScan implements Scan {
 
@@ -88,10 +85,8 @@ public class SimpleScan implements Scan {
     }
 
     /**
-     * @param mzValues
-     *            m/z values to set
-     * @param intensityValues
-     *            Intensity values to set
+     * @param mzValues m/z values to set
+     * @param intensityValues Intensity values to set
      */
     public void setData(double[] mzValues, double[] intensityValues) {
 
@@ -135,8 +130,7 @@ public class SimpleScan implements Scan {
     }
 
     /**
-     * @param scanNumber
-     *            The scanNumber to set.
+     * @param scanNumber The scanNumber to set.
      */
     public void setScanNumber(int scanNumber) {
         this.scanNumber = scanNumber;
@@ -150,8 +144,7 @@ public class SimpleScan implements Scan {
     }
 
     /**
-     * @param msLevel
-     *            The msLevel to set.
+     * @param msLevel The msLevel to set.
      */
     public void setMSLevel(int msLevel) {
         this.msLevel = msLevel;
@@ -165,8 +158,7 @@ public class SimpleScan implements Scan {
     }
 
     /**
-     * @param precursorMZ
-     *            The precursorMZ to set.
+     * @param precursorMZ The precursorMZ to set.
      */
     public void setPrecursorMZ(double precursorMZ) {
         this.precursorMZ = precursorMZ;
@@ -180,8 +172,7 @@ public class SimpleScan implements Scan {
     }
 
     /**
-     * @param retentionTime
-     *            The retentionTime to set.
+     * @param retentionTime The retentionTime to set.
      */
     public void setRetentionTime(double retentionTime) {
         this.retentionTime = retentionTime;
@@ -195,8 +186,7 @@ public class SimpleScan implements Scan {
     }
 
     /**
-     * @param mzRangeMin
-     *            The mzRangeMin to set.
+     * @param mzRangeMin The mzRangeMin to set.
      */
     public void setMZRangeMin(double mzRangeMin) {
         this.mzRangeMin = mzRangeMin;
@@ -210,8 +200,7 @@ public class SimpleScan implements Scan {
     }
 
     /**
-     * @param mzRangeMax
-     *            The mzRangeMax to set.
+     * @param mzRangeMax The mzRangeMax to set.
      */
     public void setMZRangeMax(double mzRangeMax) {
         this.mzRangeMax = mzRangeMax;
@@ -225,8 +214,7 @@ public class SimpleScan implements Scan {
     }
 
     /**
-     * @param basePeakMZ
-     *            The basePeakMZ to set.
+     * @param basePeakMZ The basePeakMZ to set.
      */
     public void setBasePeakMZ(double basePeakMZ) {
         this.basePeakMZ = basePeakMZ;
@@ -240,8 +228,7 @@ public class SimpleScan implements Scan {
     }
 
     /**
-     * @param basePeakIntensity
-     *            The basePeakIntensity to set.
+     * @param basePeakIntensity The basePeakIntensity to set.
      */
     public void setBasePeakIntensity(double basePeakIntensity) {
         this.basePeakIntensity = basePeakIntensity;
@@ -255,8 +242,7 @@ public class SimpleScan implements Scan {
     }
 
     /**
-     * @param parentScan
-     *            The parentScan to set.
+     * @param parentScan The parentScan to set.
      */
     public void setParentScanNumber(int parentScan) {
         this.parentScan = parentScan;
@@ -270,8 +256,7 @@ public class SimpleScan implements Scan {
     }
 
     /**
-     * @param fragmentScans
-     *            The fragmentScans to set.
+     * @param fragmentScans The fragmentScans to set.
      */
     public void setFragmentScanNumbers(int[] fragmentScans) {
         this.fragmentScans = fragmentScans;
@@ -285,8 +270,7 @@ public class SimpleScan implements Scan {
     }
 
     /**
-     * @param centroided
-     *            The centroided to set.
+     * @param centroided The centroided to set.
      */
     public void setCentroided(boolean centroided) {
         this.centroided = centroided;
