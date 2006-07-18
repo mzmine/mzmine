@@ -14,7 +14,7 @@ import net.sf.mzmine.methods.MethodParameters;
 /**
  *
  */
-public interface MZmineOpenedFile {
+public interface OpenedRawDataFile {
     
     class Operation {
         public File oldFileName;

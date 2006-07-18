@@ -23,9 +23,10 @@ import java.io.File;
 import java.util.logging.Logger;
 
 import net.sf.mzmine.io.IOController;
-import net.sf.mzmine.io.MZmineOpenedFile;
+import net.sf.mzmine.io.OpenedRawDataFile;
 import net.sf.mzmine.io.mzxml.MZXMLFileOpeningTask;
 import net.sf.mzmine.io.netcdf.NetCDFFileOpeningTask;
+import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.main.MZmineModule;
 import net.sf.mzmine.project.MZmineProject;
 import net.sf.mzmine.taskcontrol.Task;
@@ -102,7 +103,7 @@ public class IOControllerImpl implements IOController, MZmineModule,
 
         if (task.getStatus() == Task.TaskStatus.FINISHED) {
 
-            MZmineOpenedFile newFile = (MZmineOpenedFile) task.getResult();
+            OpenedRawDataFile newFile = (OpenedRawDataFile) task.getResult();
             MZmineProject.getCurrentProject().addFile(newFile);
 
         } else if (task.getStatus() == Task.TaskStatus.ERROR) {
@@ -121,14 +122,12 @@ public class IOControllerImpl implements IOController, MZmineModule,
         // do nothing
     }
 
+
     /**
-     * @see net.sf.mzmine.main.MZmineModule#initModule(net.sf.mzmine.io.impl.IOControllerImpl,
-     *      net.sf.mzmine.taskcontrol.TaskController,
-     *      net.sf.mzmine.userinterface.Desktop, java.util.logging.Logger)
+     * @see net.sf.mzmine.main.MZmineModule#initModule(net.sf.mzmine.main.MZmineCore)
      */
-    public void initModule(IOController ioController,
-            TaskController taskController, Desktop desktop) {
-        this.taskController = taskController;
-        this.desktop = desktop;
+    public void initModule(MZmineCore core) {
+        this.taskController = core.getTaskController();
+        this.desktop = core.getDesktop();
     }
 }

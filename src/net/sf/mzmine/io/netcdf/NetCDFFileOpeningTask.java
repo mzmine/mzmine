@@ -27,9 +27,9 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import net.sf.mzmine.data.Scan;
-import net.sf.mzmine.io.MZmineOpenedFile;
+import net.sf.mzmine.io.OpenedRawDataFile;
 import net.sf.mzmine.io.IOController.PreloadLevel;
-import net.sf.mzmine.io.impl.MZmineOpenedFileImpl;
+import net.sf.mzmine.io.impl.OpenedRawDataFileImpl;
 import net.sf.mzmine.taskcontrol.DistributableTask;
 import net.sf.mzmine.taskcontrol.Task.TaskStatus;
 
@@ -48,7 +48,7 @@ public class NetCDFFileOpeningTask implements DistributableTask {
     private int totalScans;
 
     private NetCDFFile buildingFile;
-    private MZmineOpenedFile newMZmineFile;
+    private OpenedRawDataFile newMZmineFile;
     private Scan buildingScan;
 
     /**
@@ -92,7 +92,7 @@ public class NetCDFFileOpeningTask implements DistributableTask {
     /**
      * @see net.sf.mzmine.taskcontrol.Task#getResult()
      */
-    public MZmineOpenedFile getResult() {
+    public OpenedRawDataFile getResult() {
         return newMZmineFile;
     }
 
@@ -132,7 +132,7 @@ public class NetCDFFileOpeningTask implements DistributableTask {
             // Close netCDF file
             cdfParser.closeFile();
 
-            newMZmineFile = new MZmineOpenedFileImpl(buildingFile,
+            newMZmineFile = new OpenedRawDataFileImpl(buildingFile,
                     buildingFile.getDataDescription());
 
         } catch (Throwable e) {

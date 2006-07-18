@@ -31,7 +31,7 @@ import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
 
 import net.sf.mzmine.io.IOController;
-import net.sf.mzmine.io.MZmineOpenedFile;
+import net.sf.mzmine.io.OpenedRawDataFile;
 import net.sf.mzmine.project.MZmineProject;
 import net.sf.mzmine.userinterface.Desktop;
 import net.sf.mzmine.userinterface.Desktop.MZmineMenu;
@@ -320,8 +320,8 @@ public class MainMenu extends JMenuBar implements ActionListener, ListSelectionL
         if (src == fileClose) {
 
             // Grab selected raw data files
-            MZmineOpenedFile[] selectedFiles = desktop.getSelectedDataFiles();
-            for (MZmineOpenedFile file : selectedFiles)
+            OpenedRawDataFile[] selectedFiles = desktop.getSelectedDataFiles();
+            for (OpenedRawDataFile file : selectedFiles)
                 MZmineProject.getCurrentProject().removeFile(file);
 
         }

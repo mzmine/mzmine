@@ -32,7 +32,7 @@ import javax.swing.BorderFactory;
 import javax.swing.JInternalFrame;
 import javax.swing.JLabel;
 
-import net.sf.mzmine.io.MZmineOpenedFile;
+import net.sf.mzmine.io.OpenedRawDataFile;
 import net.sf.mzmine.io.RawDataFile;
 import net.sf.mzmine.taskcontrol.Task;
 import net.sf.mzmine.taskcontrol.TaskController;
@@ -71,7 +71,7 @@ public class ThreeDVisualizerWindow extends JInternalFrame implements
 
     private Desktop desktop;
     
-    public ThreeDVisualizerWindow(TaskController taskController, Desktop desktop, MZmineOpenedFile dataFile, int msLevel,
+    public ThreeDVisualizerWindow(TaskController taskController, Desktop desktop, OpenedRawDataFile dataFile, int msLevel,
             double rtMin, double rtMax,
             double mzMin, double mzMax,
             int rtResolution, int mzResolution) {

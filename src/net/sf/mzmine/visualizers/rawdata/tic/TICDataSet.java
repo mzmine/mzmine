@@ -25,7 +25,7 @@ package net.sf.mzmine.visualizers.rawdata.tic;
 import java.util.Date;
 
 import net.sf.mzmine.data.Scan;
-import net.sf.mzmine.io.MZmineOpenedFile;
+import net.sf.mzmine.io.OpenedRawDataFile;
 import net.sf.mzmine.io.RawDataAcceptor;
 import net.sf.mzmine.io.RawDataFile;
 import net.sf.mzmine.io.util.RawDataRetrievalTask;
@@ -47,7 +47,7 @@ class TICDataSet extends DefaultTableXYDataset implements RawDataAcceptor {
     private static final int REDRAW_INTERVAL = 100;
 
     private TICVisualizerWindow visualizer;
-    private MZmineOpenedFile dataFile;
+    private OpenedRawDataFile dataFile;
     private RawDataFile rawDataFile;
     private int[] scanNumbers;
     private double[] mzValues;
@@ -56,7 +56,7 @@ class TICDataSet extends DefaultTableXYDataset implements RawDataAcceptor {
 
     private Date lastRedrawTime = new Date();
 
-    TICDataSet(TaskController taskController, MZmineOpenedFile dataFile, int scanNumbers[], double mzMin, double mzMax, TICVisualizerWindow visualizer) {
+    TICDataSet(TaskController taskController, OpenedRawDataFile dataFile, int scanNumbers[], double mzMin, double mzMax, TICVisualizerWindow visualizer) {
 
         this.visualizer = visualizer;
         this.mzMin = mzMin;
@@ -97,7 +97,7 @@ class TICDataSet extends DefaultTableXYDataset implements RawDataAcceptor {
         return mzValues[index];
     }
 
-    MZmineOpenedFile getDataFile() {
+    OpenedRawDataFile getDataFile() {
         return dataFile;
     }
 

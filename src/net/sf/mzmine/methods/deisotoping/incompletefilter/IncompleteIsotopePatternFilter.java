@@ -29,7 +29,7 @@ import java.awt.Frame;
 
 import net.sf.mzmine.data.Peak;
 import net.sf.mzmine.data.PeakList;
-import net.sf.mzmine.io.MZmineOpenedFile;
+import net.sf.mzmine.io.OpenedRawDataFile;
 import net.sf.mzmine.io.RawDataFile;
 import net.sf.mzmine.methods.Method;
 import net.sf.mzmine.methods.MethodParameters;
@@ -113,9 +113,9 @@ public class IncompleteIsotopePatternFilter implements Method {
     }
 
     /**
-     * @see net.sf.mzmine.methods.Method#runMethod(net.sf.mzmine.methods.MethodParameters, net.sf.mzmine.io.MZmineOpenedFile[], net.sf.mzmine.methods.alignment.AlignmentResult[])
+     * @see net.sf.mzmine.methods.Method#runMethod(net.sf.mzmine.methods.MethodParameters, net.sf.mzmine.io.OpenedRawDataFile[], net.sf.mzmine.methods.alignment.AlignmentResult[])
      */
-    public void runMethod(MethodParameters parameters, MZmineOpenedFile[] dataFiles, AlignmentResult[] alignmentResults) {
+    public void runMethod(MethodParameters parameters, OpenedRawDataFile[] dataFiles, AlignmentResult[] alignmentResults) {
         // TODO Auto-generated method stub
         
     }

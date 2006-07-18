@@ -30,8 +30,9 @@ import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
 
 import net.sf.mzmine.io.IOController;
-import net.sf.mzmine.io.MZmineOpenedFile;
+import net.sf.mzmine.io.OpenedRawDataFile;
 import net.sf.mzmine.io.RawDataFile;
+import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.main.MZmineModule;
 import net.sf.mzmine.taskcontrol.TaskController;
 import net.sf.mzmine.userinterface.Desktop;
@@ -52,15 +53,12 @@ public class TICVisualizer implements MZmineModule, ActionListener,
     private JMenuItem ticMenuItem;
 
     /**
-     * @see net.sf.mzmine.main.MZmineModule#initModule(net.sf.mzmine.io.IOController,
-     *      net.sf.mzmine.taskcontrol.TaskController,
-     *      net.sf.mzmine.userinterface.Desktop)
+     * @see net.sf.mzmine.main.MZmineModule#initModule(net.sf.mzmine.main.MZmineCore)
      */
-    public void initModule(IOController ioController,
-            TaskController taskController, Desktop desktop) {
+    public void initModule(MZmineCore core) {
 
-        this.taskController = taskController;
-        this.desktop = desktop;
+        this.taskController = core.getTaskController();
+        this.desktop = core.getDesktop();
         
         ticMenuItem = desktop.addMenuItem(MZmineMenu.VISUALIZATION, "TIC plot",
                 this, null, KeyEvent.VK_T, false, false);
@@ -75,9 +73,9 @@ public class TICVisualizer implements MZmineModule, ActionListener,
 
         logger.finest("Opening a new TIC visualizer setup dialog");
 
-        MZmineOpenedFile dataFiles[] = desktop.getSelectedDataFiles();
+        OpenedRawDataFile dataFiles[] = desktop.getSelectedDataFiles();
 
-        for (MZmineOpenedFile dataFile : dataFiles) {
+        for (OpenedRawDataFile dataFile : dataFiles) {
             JDialog setupDialog = new TICSetupDialog(taskController,
                     desktop, dataFile);
             setupDialog.setVisible(true);

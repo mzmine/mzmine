@@ -29,7 +29,7 @@ import java.util.Vector;
 import net.sf.mzmine.data.Scan;
 import net.sf.mzmine.data.impl.SimplePeak;
 import net.sf.mzmine.data.impl.SimplePeakList;
-import net.sf.mzmine.io.MZmineOpenedFile;
+import net.sf.mzmine.io.OpenedRawDataFile;
 import net.sf.mzmine.io.RawDataFile;
 import net.sf.mzmine.taskcontrol.Task;
 import net.sf.mzmine.util.MathUtils;
@@ -40,7 +40,7 @@ import net.sf.mzmine.util.ScanUtils;
  */
 class CentroidPickerTask implements Task {
 
-    private MZmineOpenedFile dataFile;
+    private OpenedRawDataFile dataFile;
     private RawDataFile rawDataFile;
     private CentroidPickerParameters parameters;
     private TaskStatus status;
@@ -55,7 +55,7 @@ class CentroidPickerTask implements Task {
      * @param rawDataFile
      * @param parameters
      */
-    CentroidPickerTask(MZmineOpenedFile dataFile,
+    CentroidPickerTask(OpenedRawDataFile dataFile,
             CentroidPickerParameters parameters) {
         status = TaskStatus.WAITING;
         this.dataFile = dataFile;

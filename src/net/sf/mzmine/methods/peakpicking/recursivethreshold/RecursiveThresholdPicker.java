@@ -25,7 +25,8 @@ import javax.swing.event.ListSelectionListener;
 
 import net.sf.mzmine.data.PeakList;
 import net.sf.mzmine.io.IOController;
-import net.sf.mzmine.io.MZmineOpenedFile;
+import net.sf.mzmine.io.OpenedRawDataFile;
+import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.main.MZmineModule;
 import net.sf.mzmine.methods.Method;
 import net.sf.mzmine.methods.MethodParameters;
@@ -49,15 +50,12 @@ public class RecursiveThresholdPicker implements MZmineModule, Method,
     private JMenuItem myMenuItem;
 
     /**
-     * @see net.sf.mzmine.main.MZmineModule#initModule(net.sf.mzmine.io.IOController,
-     *      net.sf.mzmine.taskcontrol.TaskController,
-     *      net.sf.mzmine.userinterface.Desktop)
+     * @see net.sf.mzmine.main.MZmineModule#initModule(net.sf.mzmine.main.MZmineCore)
      */
-    public void initModule(IOController ioController,
-            TaskController taskController, Desktop desktop) {
+    public void initModule(MZmineCore core) {
 
-        this.taskController = taskController;
-        this.desktop = desktop;
+        this.taskController = core.getTaskController();
+        this.desktop = core.getDesktop();
 
         myMenuItem = desktop.addMenuItem(MZmineMenu.PEAKPICKING,
                 "Recursive threshold peak detector", this, null, KeyEvent.VK_R,
@@ -214,11 +212,11 @@ public class RecursiveThresholdPicker implements MZmineModule, Method,
      *      net.sf.mzmine.methods.alignment.AlignmentResult[])
      */
     public void runMethod(MethodParameters parameters,
-            MZmineOpenedFile[] dataFiles, AlignmentResult[] alignmentResults) {
+            OpenedRawDataFile[] dataFiles, AlignmentResult[] alignmentResults) {
 
         logger.finest("Running recursive threshold peak picker");
 
-        for (MZmineOpenedFile dataFile : dataFiles) {
+        for (OpenedRawDataFile dataFile : dataFiles) {
             Task pickerTask = new RecursiveThresholdPickerTask(dataFile,
                     (RecursiveThresholdPickerParameters) parameters);
             taskController.addTask(pickerTask, this);
@@ -235,7 +233,7 @@ public class RecursiveThresholdPicker implements MZmineModule, Method,
         if (parameters == null)
             return;
 
-        MZmineOpenedFile[] dataFiles = desktop.getSelectedDataFiles();
+        OpenedRawDataFile[] dataFiles = desktop.getSelectedDataFiles();
 
         runMethod(parameters, dataFiles, null);
 
@@ -257,7 +255,7 @@ public class RecursiveThresholdPicker implements MZmineModule, Method,
         if (task.getStatus() == Task.TaskStatus.FINISHED) {
 
             Object[] result = (Object[]) task.getResult();
-            MZmineOpenedFile dataFile = (MZmineOpenedFile) result[0];
+            OpenedRawDataFile dataFile = (OpenedRawDataFile) result[0];
             PeakList peakList = (PeakList) result[1];
             MethodParameters params = (MethodParameters) result[2];
 

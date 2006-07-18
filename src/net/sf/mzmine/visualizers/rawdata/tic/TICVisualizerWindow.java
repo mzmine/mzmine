@@ -30,7 +30,7 @@ import java.util.Hashtable;
 
 import javax.swing.JInternalFrame;
 
-import net.sf.mzmine.io.MZmineOpenedFile;
+import net.sf.mzmine.io.OpenedRawDataFile;
 import net.sf.mzmine.taskcontrol.Task;
 import net.sf.mzmine.taskcontrol.TaskController;
 import net.sf.mzmine.taskcontrol.TaskListener;
@@ -53,7 +53,7 @@ public class TICVisualizerWindow extends JInternalFrame implements
     private TICToolBar toolBar;
     private TICPlot plot;
 
-    private Hashtable<MZmineOpenedFile, TICDataSet> dataFiles;
+    private Hashtable<OpenedRawDataFile, TICDataSet> dataFiles;
     private PlotType plotType;
     private int msLevel;
     private double rtMin, rtMax, mzMin, mzMax;
@@ -72,7 +72,7 @@ public class TICVisualizerWindow extends JInternalFrame implements
      * Constructor for total ion chromatogram visualizer
      * 
      */
-    public TICVisualizerWindow(TaskController taskController, Desktop desktop, MZmineOpenedFile dataFile, PlotType plotType,
+    public TICVisualizerWindow(TaskController taskController, Desktop desktop, OpenedRawDataFile dataFile, PlotType plotType,
             int msLevel,
             double rtMin, double rtMax,
             double mzMin, double mzMax) {
@@ -83,7 +83,7 @@ public class TICVisualizerWindow extends JInternalFrame implements
         this.desktop = desktop;
         this.plotType = plotType;
         this.msLevel = msLevel;
-        this.dataFiles = new Hashtable<MZmineOpenedFile, TICDataSet>();
+        this.dataFiles = new Hashtable<OpenedRawDataFile, TICDataSet>();
         this.rtMin = rtMin;
         this.rtMax = rtMax;
         this.mzMin = mzMin;
@@ -170,11 +170,11 @@ public class TICVisualizerWindow extends JInternalFrame implements
     /**
      * @see net.sf.mzmine.visualizers.rawdata.RawDataVisualizer#getRawDataFiles()
      */
-    public MZmineOpenedFile[] getRawDataFiles() {
-        return dataFiles.keySet().toArray(new MZmineOpenedFile[0]);
+    public OpenedRawDataFile[] getRawDataFiles() {
+        return dataFiles.keySet().toArray(new OpenedRawDataFile[0]);
     }
 
-    public void addRawDataFile(MZmineOpenedFile newFile) {
+    public void addRawDataFile(OpenedRawDataFile newFile) {
         
         int scanNumbers[] = newFile.getCurrentFile().getScanNumbers(msLevel, rtMin, rtMax);
         if (scanNumbers.length == 0) {
@@ -196,7 +196,7 @@ public class TICVisualizerWindow extends JInternalFrame implements
 
     }
 
-    public void removeRawDataFile(MZmineOpenedFile file) {
+    public void removeRawDataFile(OpenedRawDataFile file) {
         TICDataSet dataset = dataFiles.get(file);
         plot.getXYPlot().setDataset(plot.getXYPlot().indexOf(dataset), null);
         dataFiles.remove(file);

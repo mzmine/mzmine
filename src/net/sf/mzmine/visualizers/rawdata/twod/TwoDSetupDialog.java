@@ -34,7 +34,7 @@ import javax.swing.JFormattedTextField;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 
-import net.sf.mzmine.io.MZmineOpenedFile;
+import net.sf.mzmine.io.OpenedRawDataFile;
 import net.sf.mzmine.io.RawDataFile;
 import net.sf.mzmine.taskcontrol.TaskController;
 import net.sf.mzmine.userinterface.Desktop;
@@ -61,7 +61,7 @@ public class TwoDSetupDialog extends JDialog implements ActionListener {
     private RawDataFile rawDataFile;
 
     public TwoDSetupDialog(TaskController taskController, Desktop desktop,
-            MZmineOpenedFile dataFile) {
+            OpenedRawDataFile dataFile) {
 
         // Make dialog modal
         super(desktop.getMainWindow(), "2D visualizer parameters", true);

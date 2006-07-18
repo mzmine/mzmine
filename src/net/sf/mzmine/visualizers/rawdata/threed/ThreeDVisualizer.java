@@ -30,7 +30,8 @@ import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
 
 import net.sf.mzmine.io.IOController;
-import net.sf.mzmine.io.MZmineOpenedFile;
+import net.sf.mzmine.io.OpenedRawDataFile;
+import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.main.MZmineModule;
 import net.sf.mzmine.taskcontrol.TaskController;
 import net.sf.mzmine.userinterface.Desktop;
@@ -49,16 +50,14 @@ public class ThreeDVisualizer implements MZmineModule, ListSelectionListener,
 
     private JMenuItem threeDMenuItem;
 
-    /**
-     * @see net.sf.mzmine.main.MZmineModule#initModule(net.sf.mzmine.io.IOController,
-     *      net.sf.mzmine.taskcontrol.TaskController,
-     *      net.sf.mzmine.userinterface.Desktop)
-     */
-    public void initModule(IOController ioController,
-            TaskController taskController, Desktop desktop) {
 
-        this.taskController = taskController;
-        this.desktop = desktop;
+    /**
+     * @see net.sf.mzmine.main.MZmineModule#initModule(net.sf.mzmine.main.MZmineCore)
+     */
+    public void initModule(MZmineCore core) {
+        
+        this.taskController = core.getTaskController();
+        this.desktop = core.getDesktop();
 
         threeDMenuItem = desktop.addMenuItem(MZmineMenu.VISUALIZATION,
                 "3D plot", this, null, KeyEvent.VK_3, false, false);
@@ -73,9 +72,9 @@ public class ThreeDVisualizer implements MZmineModule, ListSelectionListener,
 
         logger.finest("Opening a new 3D visualizer setup dialog");
 
-        MZmineOpenedFile dataFiles[] = desktop.getSelectedDataFiles();
+        OpenedRawDataFile dataFiles[] = desktop.getSelectedDataFiles();
 
-        for (MZmineOpenedFile dataFile : dataFiles) {
+        for (OpenedRawDataFile dataFile : dataFiles) {
             JDialog setupDialog = new ThreeDSetupDialog(taskController,
                     desktop, dataFile);
             setupDialog.setVisible(true);

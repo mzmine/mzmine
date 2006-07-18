@@ -40,7 +40,7 @@ import javax.swing.event.InternalFrameListener;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
 
-import net.sf.mzmine.io.MZmineOpenedFile;
+import net.sf.mzmine.io.OpenedRawDataFile;
 import net.sf.mzmine.methods.alignment.AlignmentResult;
 import net.sf.mzmine.project.MZmineProject;
 import net.sf.mzmine.userinterface.Desktop;
@@ -154,7 +154,7 @@ public class ItemSelector extends JPanel implements ListSelectionListener,
         if (e.getComponent() == rawDataList) {
             if (rawDataList.locationToIndex(e.getPoint()) == -1)
                 return;
-            MZmineOpenedFile selectedFile = (MZmineOpenedFile) rawDataObjects.get(rawDataList.locationToIndex(e.getPoint()));
+            OpenedRawDataFile selectedFile = (OpenedRawDataFile) rawDataObjects.get(rawDataList.locationToIndex(e.getPoint()));
             /*
              * int[] msLevels = selectedFile.getMSLevels(); for (int msLevel :
              * msLevels) { JMenuItem showTIC = new JMenuItem("Show TIC of MS
@@ -199,8 +199,8 @@ public class ItemSelector extends JPanel implements ListSelectionListener,
         String command = e.getActionCommand();
 
         if (command.equals("PEAKLIST")) {
-            MZmineOpenedFile[] selectedFiles = getSelectedRawData();
-            for (MZmineOpenedFile file : selectedFiles) {
+            OpenedRawDataFile[] selectedFiles = getSelectedRawData();
+            for (OpenedRawDataFile file : selectedFiles) {
                 if (MZmineProject.getCurrentProject().hasPeakList(file)) {
                     PeakListTableView peakListTable = new PeakListTableView(
                             file);
@@ -210,8 +210,8 @@ public class ItemSelector extends JPanel implements ListSelectionListener,
         }
 
         if (command.equals("CLOSE")) {
-            MZmineOpenedFile[] selectedFiles = getSelectedRawData();
-            for (MZmineOpenedFile file : selectedFiles)
+            OpenedRawDataFile[] selectedFiles = getSelectedRawData();
+            for (OpenedRawDataFile file : selectedFiles)
                 MZmineProject.getCurrentProject().removeFile(file);
 
         }
@@ -221,14 +221,14 @@ public class ItemSelector extends JPanel implements ListSelectionListener,
     /**
      * Adds a raw data object to storage
      */
-    public void addRawData(MZmineOpenedFile r) {
+    public void addRawData(OpenedRawDataFile r) {
         rawDataObjects.addElement(r);
     }
 
     /**
      * Removes a raw data object from storage
      */
-    public boolean removeRawData(MZmineOpenedFile r) {
+    public boolean removeRawData(OpenedRawDataFile r) {
         boolean ans = rawDataObjects.removeElement(r);
 
         // MainWindow.getInstance().getMainMenu().updateMenuAvailability();
@@ -239,21 +239,21 @@ public class ItemSelector extends JPanel implements ListSelectionListener,
     /**
      * Replaces a raw data object in the list with a new file
      */
-    public void replaceRawData(MZmineOpenedFile oldFile, MZmineOpenedFile newFile) {
+    public void replaceRawData(OpenedRawDataFile oldFile, OpenedRawDataFile newFile) {
         rawDataObjects.setElementAt(newFile, rawDataObjects.indexOf(oldFile));
     }
 
     /**
      * Returns selected raw data objects in an array
      */
-    public MZmineOpenedFile[] getMZmineOpenedFiles() {
+    public OpenedRawDataFile[] getMZmineOpenedFiles() {
 
         Object o[] = rawDataObjects.toArray();
 
-        MZmineOpenedFile res[] = new MZmineOpenedFile[o.length];
+        OpenedRawDataFile res[] = new OpenedRawDataFile[o.length];
 
         for (int i = 0; i < o.length; i++) {
-            res[i] = (MZmineOpenedFile) (o[i]);
+            res[i] = (OpenedRawDataFile) (o[i]);
         }
 
         return res;
@@ -263,14 +263,14 @@ public class ItemSelector extends JPanel implements ListSelectionListener,
     /**
      * Returns selected raw data objects in an array
      */
-    public MZmineOpenedFile[] getSelectedRawData() {
+    public OpenedRawDataFile[] getSelectedRawData() {
 
         Object o[] = rawDataList.getSelectedValues();
 
-        MZmineOpenedFile res[] = new MZmineOpenedFile[o.length];
+        OpenedRawDataFile res[] = new OpenedRawDataFile[o.length];
 
         for (int i = 0; i < o.length; i++) {
-            res[i] = (MZmineOpenedFile) (o[i]);
+            res[i] = (OpenedRawDataFile) (o[i]);
         }
 
         return res;
@@ -280,9 +280,9 @@ public class ItemSelector extends JPanel implements ListSelectionListener,
     /**
      * Returns first selected raw data file
      */
-    public MZmineOpenedFile getFirstSelectedRawData() {
+    public OpenedRawDataFile getFirstSelectedRawData() {
 
-        return (MZmineOpenedFile) rawDataList.getSelectedValue();
+        return (OpenedRawDataFile) rawDataList.getSelectedValue();
 
     }
 
@@ -299,7 +299,7 @@ public class ItemSelector extends JPanel implements ListSelectionListener,
     /**
      * Sets the active raw data item in the list
      */
-    public void setActiveRawData(MZmineOpenedFile rawData) {
+    public void setActiveRawData(OpenedRawDataFile rawData) {
         rawDataList.setSelectedValue(rawData, true);
 
         // MainWindow.getInstance().getMainMenu().updateMenuAvailability();
@@ -412,7 +412,7 @@ public class ItemSelector extends JPanel implements ListSelectionListener,
      */
     public void valueChanged(ListSelectionEvent e) {
 
-        MZmineOpenedFile activeRawData;
+        OpenedRawDataFile activeRawData;
         AlignmentResult activeResult;
 
         // Avoid reacting to unnecessary events
@@ -435,7 +435,7 @@ public class ItemSelector extends JPanel implements ListSelectionListener,
                 Object tmpObj = rawDataList.getSelectedValue();
                 if (tmpObj != null) {
 
-                    activeRawData = (MZmineOpenedFile) tmpObj;
+                    activeRawData = (OpenedRawDataFile) tmpObj;
 
                     // Update cursor position in status bar
                     // statBar.setCursorPosition(activeRawData);

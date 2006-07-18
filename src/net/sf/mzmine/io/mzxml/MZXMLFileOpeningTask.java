@@ -28,9 +28,9 @@ import java.util.logging.Logger;
 import javax.xml.parsers.SAXParser;
 import javax.xml.parsers.SAXParserFactory;
 
-import net.sf.mzmine.io.MZmineOpenedFile;
+import net.sf.mzmine.io.OpenedRawDataFile;
 import net.sf.mzmine.io.IOController.PreloadLevel;
-import net.sf.mzmine.io.impl.MZmineOpenedFileImpl;
+import net.sf.mzmine.io.impl.OpenedRawDataFileImpl;
 import net.sf.mzmine.taskcontrol.DistributableTask;
 import net.sf.mzmine.taskcontrol.Task.TaskStatus;
 
@@ -48,7 +48,7 @@ public class MZXMLFileOpeningTask extends DefaultHandler implements
 
     private File originalFile;
     private MZXMLFile buildingFile;
-    private MZmineOpenedFile newMZmineFile;
+    private OpenedRawDataFile newMZmineFile;
     private TaskStatus status;
     private int totalScans;
     private int parsedScans;
@@ -103,7 +103,7 @@ public class MZXMLFileOpeningTask extends DefaultHandler implements
     /**
      * @see net.sf.mzmine.taskcontrol.Task#getResult()
      */
-    public MZmineOpenedFile getResult() {
+    public OpenedRawDataFile getResult() {
         return newMZmineFile;
     }
 
@@ -126,7 +126,7 @@ public class MZXMLFileOpeningTask extends DefaultHandler implements
 
             saxParser.parse(originalFile, this);
 
-            newMZmineFile = new MZmineOpenedFileImpl(buildingFile,
+            newMZmineFile = new OpenedRawDataFileImpl(buildingFile,
                     buildingFile.getDataDescription());
 
         } catch (Throwable e) {

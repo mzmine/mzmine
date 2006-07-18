@@ -18,7 +18,7 @@ import java.util.Hashtable;
 
 import net.sf.mzmine.data.Scan;
 import net.sf.mzmine.data.impl.SimpleScan;
-import net.sf.mzmine.io.MZmineOpenedFile;
+import net.sf.mzmine.io.OpenedRawDataFile;
 import net.sf.mzmine.io.RawDataFile;
 import net.sf.mzmine.io.RawDataFileWriter;
 import net.sf.mzmine.taskcontrol.Task;
@@ -28,7 +28,7 @@ import net.sf.mzmine.taskcontrol.Task;
  */
 class SavitzkyGolayFilterTask implements Task {
 
-    private MZmineOpenedFile dataFile;
+    private OpenedRawDataFile dataFile;
     private RawDataFile rawDataFile;
     private SavitzkyGolayFilterParameters parameters;
     private TaskStatus status;
@@ -46,7 +46,7 @@ class SavitzkyGolayFilterTask implements Task {
      * @param rawDataFile
      * @param parameters
      */
-    SavitzkyGolayFilterTask(MZmineOpenedFile dataFile,
+    SavitzkyGolayFilterTask(OpenedRawDataFile dataFile,
             SavitzkyGolayFilterParameters parameters) {
         status = TaskStatus.WAITING;
         this.dataFile = dataFile;

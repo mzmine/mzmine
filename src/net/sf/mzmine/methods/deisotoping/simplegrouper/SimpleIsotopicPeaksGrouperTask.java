@@ -23,7 +23,7 @@ import java.util.Vector;
 import net.sf.mzmine.data.Peak;
 import net.sf.mzmine.data.PeakList;
 import net.sf.mzmine.data.impl.SimplePeakList;
-import net.sf.mzmine.io.MZmineOpenedFile;
+import net.sf.mzmine.io.OpenedRawDataFile;
 import net.sf.mzmine.io.RawDataFile;
 import net.sf.mzmine.methods.deisotoping.GrouperIsotopePattern;
 import net.sf.mzmine.methods.deisotoping.GrouperPeak;
@@ -36,7 +36,7 @@ class SimpleIsotopicPeaksGrouperTask implements Task {
 
     private static final double neutronMW = 1.008665;
 
-    private MZmineOpenedFile dataFile;
+    private OpenedRawDataFile dataFile;
     private RawDataFile rawDataFile;
     private SimpleIsotopicPeaksGrouperParameters parameters;
     private TaskStatus status;
@@ -52,7 +52,7 @@ class SimpleIsotopicPeaksGrouperTask implements Task {
      * @param rawDataFile
      * @param parameters
      */
-    SimpleIsotopicPeaksGrouperTask(MZmineOpenedFile dataFile,
+    SimpleIsotopicPeaksGrouperTask(OpenedRawDataFile dataFile,
             PeakList currentPeakList,
             SimpleIsotopicPeaksGrouperParameters parameters) {
         status = TaskStatus.WAITING;

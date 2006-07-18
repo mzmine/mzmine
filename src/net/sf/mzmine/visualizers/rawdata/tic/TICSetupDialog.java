@@ -34,7 +34,7 @@ import javax.swing.JFormattedTextField;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 
-import net.sf.mzmine.io.MZmineOpenedFile;
+import net.sf.mzmine.io.OpenedRawDataFile;
 import net.sf.mzmine.io.RawDataFile;
 import net.sf.mzmine.taskcontrol.TaskController;
 import net.sf.mzmine.userinterface.Desktop;
@@ -60,11 +60,11 @@ public class TICSetupDialog extends JDialog implements ActionListener {
 
     private Desktop desktop;
     private TaskController taskController;
-    private MZmineOpenedFile dataFile;
+    private OpenedRawDataFile dataFile;
     private RawDataFile rawDataFile;
 
     public TICSetupDialog(TaskController taskController, Desktop desktop,
-            MZmineOpenedFile dataFile) {
+            OpenedRawDataFile dataFile) {
 
         // Make dialog modal
         super(desktop.getMainWindow(), "TIC visualizer parameters", true);

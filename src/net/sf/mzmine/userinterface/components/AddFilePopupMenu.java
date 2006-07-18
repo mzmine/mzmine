@@ -32,7 +32,7 @@ import javax.swing.JMenuItem;
 import javax.swing.event.MenuEvent;
 import javax.swing.event.MenuListener;
 
-import net.sf.mzmine.io.MZmineOpenedFile;
+import net.sf.mzmine.io.OpenedRawDataFile;
 import net.sf.mzmine.io.RawDataFile;
 import net.sf.mzmine.project.MZmineProject;
 import net.sf.mzmine.visualizers.rawdata.MultipleRawDataVisualizer;
@@ -43,7 +43,7 @@ import net.sf.mzmine.visualizers.rawdata.MultipleRawDataVisualizer;
  */
 public class AddFilePopupMenu extends JMenu implements MenuListener, ActionListener {
 
-    private Hashtable<JMenuItem,MZmineOpenedFile> menuItemFiles;
+    private Hashtable<JMenuItem,OpenedRawDataFile> menuItemFiles;
     MultipleRawDataVisualizer visualizer;
     
     public AddFilePopupMenu(MultipleRawDataVisualizer visualizer) {
@@ -58,12 +58,12 @@ public class AddFilePopupMenu extends JMenu implements MenuListener, ActionListe
     public void menuSelected(MenuEvent event) {
 
         removeAll();
-        MZmineOpenedFile[] openFiles = MZmineProject.getCurrentProject().getDataFiles();
-        HashSet<MZmineOpenedFile> visualizedFiles = new HashSet<MZmineOpenedFile>();
-        for (MZmineOpenedFile file : visualizer.getRawDataFiles()) visualizedFiles.add(file);
+        OpenedRawDataFile[] openFiles = MZmineProject.getCurrentProject().getDataFiles();
+        HashSet<OpenedRawDataFile> visualizedFiles = new HashSet<OpenedRawDataFile>();
+        for (OpenedRawDataFile file : visualizer.getRawDataFiles()) visualizedFiles.add(file);
 
-        menuItemFiles = new Hashtable<JMenuItem,MZmineOpenedFile>();
-        for (MZmineOpenedFile file : openFiles) {
+        menuItemFiles = new Hashtable<JMenuItem,OpenedRawDataFile>();
+        for (OpenedRawDataFile file : openFiles) {
             if (visualizedFiles.contains(file)) continue;
             
             JMenuItem newItem = new JMenuItem(file.toString());
@@ -95,7 +95,7 @@ public class AddFilePopupMenu extends JMenu implements MenuListener, ActionListe
      */
     public void actionPerformed(ActionEvent event) {
          Object src = event.getSource();
-         MZmineOpenedFile file = menuItemFiles.get(src);
+         OpenedRawDataFile file = menuItemFiles.get(src);
          if (file != null) visualizer.addRawDataFile(file);
     }
 }

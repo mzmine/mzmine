@@ -25,12 +25,15 @@ import java.util.logging.Logger;
 
 import javax.swing.SwingUtilities;
 
+import net.sf.mzmine.io.IOController;
 import net.sf.mzmine.io.impl.IOControllerImpl;
 import net.sf.mzmine.project.MZmineProject;
+import net.sf.mzmine.taskcontrol.TaskController;
 import net.sf.mzmine.taskcontrol.impl.TaskControllerImpl;
+import net.sf.mzmine.userinterface.Desktop;
 import net.sf.mzmine.userinterface.mainwindow.MainWindow;
 
-public class MZmineClient implements Runnable {
+public class MZmineClient implements Runnable, MZmineCore {
 
     private static final String CONFIG_PROPERTIES = "conf/config";
 
@@ -78,10 +81,10 @@ public class MZmineClient implements Runnable {
 
         logger.finer("Initializing core classes");
 
-        taskController.initModule(ioController, taskController, mainWindow);
-        ioController.initModule(ioController, taskController, mainWindow);
-        mainWindow.initModule(ioController, taskController, mainWindow);
-        project.initModule(ioController, taskController, mainWindow);
+        taskController.initModule(this);
+        ioController.initModule(this);
+        mainWindow.initModule(this);
+        project.initModule(this);
 
         logger.finer("Loading modules");
 
@@ -97,8 +100,7 @@ public class MZmineClient implements Runnable {
 
                 MZmineModule moduleInstance = (MZmineModule) moduleClass.newInstance();
 
-                moduleInstance.initModule(ioController, taskController,
-                        mainWindow);
+                moduleInstance.initModule(this);
 
             } catch (Exception e) {
                 logger.log(Level.SEVERE, "Could not load module "
@@ -111,6 +113,27 @@ public class MZmineClient implements Runnable {
         logger.finer("Showing main window");
         mainWindow.setVisible(true);
 
+    }
+
+    /**
+     * @see net.sf.mzmine.main.MZmineCore#getIOController()
+     */
+    public IOController getIOController() {
+        return ioController;
+    }
+
+    /**
+     * @see net.sf.mzmine.main.MZmineCore#getTaskController()
+     */
+    public TaskController getTaskController() {
+        return taskController;
+    }
+
+    /**
+     * @see net.sf.mzmine.main.MZmineCore#getDesktop()
+     */
+    public Desktop getDesktop() {
+        return mainWindow;
     }
 
 }

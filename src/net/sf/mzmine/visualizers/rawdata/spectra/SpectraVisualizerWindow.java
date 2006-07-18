@@ -32,7 +32,7 @@ import javax.swing.JPanel;
 import net.sf.mzmine.data.Peak;
 import net.sf.mzmine.data.PeakList;
 import net.sf.mzmine.data.Scan;
-import net.sf.mzmine.io.MZmineOpenedFile;
+import net.sf.mzmine.io.OpenedRawDataFile;
 import net.sf.mzmine.io.RawDataAcceptor;
 import net.sf.mzmine.io.RawDataFile;
 import net.sf.mzmine.io.util.RawDataRetrievalTask;
@@ -65,7 +65,7 @@ public class SpectraVisualizerWindow extends JInternalFrame implements
     private SpectraToolBar toolBar;
     private SpectraPlot spectrumPlot;
 
-    private MZmineOpenedFile dataFile;
+    private OpenedRawDataFile dataFile;
     private RawDataFile rawDataFile;
 
     private DefaultTableXYDataset rawDataSet, peaksDataSet;
@@ -97,12 +97,12 @@ public class SpectraVisualizerWindow extends JInternalFrame implements
     private JComboBox fragmentScansSelector;
 
     public SpectraVisualizerWindow(TaskController taskController,
-            Desktop desktop, MZmineOpenedFile dataFile, int scanNumber) {
+            Desktop desktop, OpenedRawDataFile dataFile, int scanNumber) {
         this(taskController, desktop, dataFile, new int[] { scanNumber }, -1);
     }
 
     public SpectraVisualizerWindow(TaskController taskController,
-            Desktop desktop, MZmineOpenedFile dataFile, int[] scanNumbers,
+            Desktop desktop, OpenedRawDataFile dataFile, int[] scanNumbers,
             double mzBinSize) {
 
         super(dataFile.toString(), true, true, true, true);

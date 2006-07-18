@@ -24,7 +24,8 @@ import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
 
 import net.sf.mzmine.io.IOController;
-import net.sf.mzmine.io.MZmineOpenedFile;
+import net.sf.mzmine.io.OpenedRawDataFile;
+import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.main.MZmineModule;
 import net.sf.mzmine.taskcontrol.TaskController;
 import net.sf.mzmine.userinterface.Desktop;
@@ -44,15 +45,12 @@ public class SpectraVisualizer implements MZmineModule, ListSelectionListener,
     private JMenuItem spectraMenuItem;
 
     /**
-     * @see net.sf.mzmine.main.MZmineModule#initModule(net.sf.mzmine.io.IOController,
-     *      net.sf.mzmine.taskcontrol.TaskController,
-     *      net.sf.mzmine.userinterface.Desktop)
+     * @see net.sf.mzmine.main.MZmineModule#initModule(net.sf.mzmine.main.MZmineCore)
      */
-    public void initModule(IOController ioController,
-            TaskController taskController, Desktop desktop) {
+    public void initModule(MZmineCore core) {
 
-        this.taskController = taskController;
-        this.desktop = desktop;
+        this.taskController = core.getTaskController();
+        this.desktop = core.getDesktop();
 
         spectraMenuItem = desktop.addMenuItem(MZmineMenu.VISUALIZATION,
                 "Spectra plot", this, null, KeyEvent.VK_S, false, false);
@@ -67,9 +65,9 @@ public class SpectraVisualizer implements MZmineModule, ListSelectionListener,
 
         logger.finest("Opening a new spectra visualizer setup dialog");
 
-        MZmineOpenedFile dataFiles[] = desktop.getSelectedDataFiles();
+        OpenedRawDataFile dataFiles[] = desktop.getSelectedDataFiles();
 
-        for (MZmineOpenedFile dataFile : dataFiles) {
+        for (OpenedRawDataFile dataFile : dataFiles) {
             JDialog setupDialog = new SpectraSetupDialog(taskController,
                     desktop, dataFile);
             setupDialog.setVisible(true);

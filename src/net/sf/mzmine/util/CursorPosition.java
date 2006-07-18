@@ -3,7 +3,7 @@
  */
 package net.sf.mzmine.util;
 
-import net.sf.mzmine.io.MZmineOpenedFile;
+import net.sf.mzmine.io.OpenedRawDataFile;
 import net.sf.mzmine.io.RawDataFile;
 
 
@@ -13,7 +13,7 @@ import net.sf.mzmine.io.RawDataFile;
 public class CursorPosition {
 
     private double retentionTime, mzValue, intensityValue;
-    private MZmineOpenedFile dataFile;
+    private OpenedRawDataFile dataFile;
     private int scanNumber;
 
     /**
@@ -23,7 +23,7 @@ public class CursorPosition {
      * @param rawDataFile
      * @param scanNumber
      */
-    public CursorPosition(double retentionTime, double mzValue, double intensityValue, MZmineOpenedFile dataFile, int scanNumber) {
+    public CursorPosition(double retentionTime, double mzValue, double intensityValue, OpenedRawDataFile dataFile, int scanNumber) {
         this.retentionTime = retentionTime;
         this.mzValue = mzValue;
         this.intensityValue = intensityValue;
@@ -84,7 +84,7 @@ public class CursorPosition {
     /**
      * @return Returns the dataFile.
      */
-    public MZmineOpenedFile getDataFile() {
+    public OpenedRawDataFile getDataFile() {
         return dataFile;
     }
 
@@ -93,7 +93,7 @@ public class CursorPosition {
     /**
      * @param dataFile The dataFile to set.
      */
-    public void setDataFile(MZmineOpenedFile dataFile) {
+    public void setDataFile(OpenedRawDataFile dataFile) {
         this.dataFile = dataFile;
     }
 

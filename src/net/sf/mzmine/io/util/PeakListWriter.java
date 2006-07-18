@@ -27,7 +27,7 @@ import java.io.IOException;
 import net.sf.mzmine.data.IsotopePattern;
 import net.sf.mzmine.data.Peak;
 import net.sf.mzmine.data.PeakList;
-import net.sf.mzmine.io.MZmineOpenedFile;
+import net.sf.mzmine.io.OpenedRawDataFile;
 import net.sf.mzmine.methods.deisotoping.util.IsotopePatternUtility;
 import net.sf.mzmine.project.MZmineProject;
 
@@ -45,7 +45,7 @@ public class PeakListWriter {
 	/**
 	 * Exports peak list to a tab-delimitted text file
 	 */
-	public static void exportPeakListToFile(MZmineOpenedFile rawData, File outputfile) throws IOException {
+	public static void exportPeakListToFile(OpenedRawDataFile rawData, File outputfile) throws IOException {
 
 
 		// Open file

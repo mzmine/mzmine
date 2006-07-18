@@ -19,7 +19,7 @@
 
 package net.sf.mzmine.methods;
 
-import net.sf.mzmine.io.MZmineOpenedFile;
+import net.sf.mzmine.io.OpenedRawDataFile;
 import net.sf.mzmine.methods.alignment.AlignmentResult;
 
 /**
@@ -45,6 +45,6 @@ public interface Method {
      * @param	dataFiles	Data files to be processed (null ok if the method doesn't work on raw data files)
      * @param	alignmentResult	AlignmentResults to be processed (null ok if the method doesn't work on alignment results)
      */
-    public void runMethod(MethodParameters parameters, MZmineOpenedFile[] dataFiles, AlignmentResult[] alignmentResults);
+    public void runMethod(MethodParameters parameters, OpenedRawDataFile[] dataFiles, AlignmentResult[] alignmentResults);
 
 }

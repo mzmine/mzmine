@@ -26,7 +26,7 @@ import javax.swing.JInternalFrame;
 import javax.swing.JMenuItem;
 import javax.swing.event.ListSelectionListener;
 
-import net.sf.mzmine.io.MZmineOpenedFile;
+import net.sf.mzmine.io.OpenedRawDataFile;
 
 /**
  * This interface represents the application GUI
@@ -68,9 +68,9 @@ public interface Desktop {
 
     public boolean isDataFileSelected();
 
-    public MZmineOpenedFile[] getSelectedDataFiles();
+    public OpenedRawDataFile[] getSelectedDataFiles();
 
-    public MZmineOpenedFile getFirstSelectedDataFile();
+    public OpenedRawDataFile getFirstSelectedDataFile();
 
     public void exitMZmine();
 

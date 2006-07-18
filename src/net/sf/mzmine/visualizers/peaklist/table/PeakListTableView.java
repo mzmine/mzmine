@@ -28,7 +28,7 @@ import javax.swing.JScrollPane;
 import javax.swing.JTable;
 
 import net.sf.mzmine.data.Peak;
-import net.sf.mzmine.io.MZmineOpenedFile;
+import net.sf.mzmine.io.OpenedRawDataFile;
 import net.sf.mzmine.visualizers.peaklist.PeakListVisualizer;
 
 
@@ -37,10 +37,10 @@ import net.sf.mzmine.visualizers.peaklist.PeakListVisualizer;
  */
 public class PeakListTableView extends JInternalFrame implements PeakListVisualizer, ActionListener {
 
-	private MZmineOpenedFile rawData;
+	private OpenedRawDataFile rawData;
 	private PeakListTable table;
 
-	public PeakListTableView(MZmineOpenedFile rawData) {
+	public PeakListTableView(OpenedRawDataFile rawData) {
 
 		super(rawData.toString() + " Peak list", true, true, true, true);
 

@@ -26,6 +26,7 @@ import javax.swing.JInternalFrame;
 import javax.swing.table.TableModel;
 
 import net.sf.mzmine.io.IOController;
+import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.main.MZmineModule;
 import net.sf.mzmine.taskcontrol.Task;
 import net.sf.mzmine.taskcontrol.TaskController;
@@ -221,10 +222,10 @@ public class TaskControllerImpl implements TaskController, MZmineModule, Runnabl
     }
 
     /**
-     * @see net.sf.mzmine.main.MZmineModule#initModule(net.sf.mzmine.io.IOController, net.sf.mzmine.taskcontrol.TaskController, net.sf.mzmine.userinterface.Desktop, java.util.logging.Logger)
+     * @see net.sf.mzmine.main.MZmineModule#initModule(net.sf.mzmine.main.MZmineCore)
      */
-    public void initModule(IOController ioController, TaskController taskController, Desktop desktop) {
-        this.desktop = desktop;
+    public void initModule(MZmineCore core) {
+        this.desktop = core.getDesktop();
         
     }
 

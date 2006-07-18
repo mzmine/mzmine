@@ -18,7 +18,7 @@ import java.util.Vector;
 
 import net.sf.mzmine.data.Scan;
 import net.sf.mzmine.data.impl.SimpleScan;
-import net.sf.mzmine.io.MZmineOpenedFile;
+import net.sf.mzmine.io.OpenedRawDataFile;
 import net.sf.mzmine.io.RawDataFile;
 import net.sf.mzmine.io.RawDataFileWriter;
 import net.sf.mzmine.taskcontrol.Task;
@@ -28,7 +28,7 @@ import net.sf.mzmine.taskcontrol.Task;
  */
 class MeanFilterTask implements Task {
 
-    private MZmineOpenedFile dataFile;
+    private OpenedRawDataFile dataFile;
     private RawDataFile rawDataFile;
     private MeanFilterParameters parameters;
     private TaskStatus status;
@@ -43,7 +43,7 @@ class MeanFilterTask implements Task {
      * @param rawDataFile
      * @param parameters
      */
-    MeanFilterTask(MZmineOpenedFile dataFile, MeanFilterParameters parameters) {
+    MeanFilterTask(OpenedRawDataFile dataFile, MeanFilterParameters parameters) {
         status = TaskStatus.WAITING;
         this.dataFile = dataFile;
         this.rawDataFile = dataFile.getCurrentFile();

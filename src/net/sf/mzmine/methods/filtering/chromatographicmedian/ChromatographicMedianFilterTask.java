@@ -18,7 +18,7 @@ import java.util.Vector;
 
 import net.sf.mzmine.data.Scan;
 import net.sf.mzmine.data.impl.SimpleScan;
-import net.sf.mzmine.io.MZmineOpenedFile;
+import net.sf.mzmine.io.OpenedRawDataFile;
 import net.sf.mzmine.io.RawDataFile;
 import net.sf.mzmine.io.RawDataFileWriter;
 import net.sf.mzmine.taskcontrol.Task;
@@ -29,7 +29,7 @@ import net.sf.mzmine.util.MathUtils;
  */
 class ChromatographicMedianFilterTask implements Task {
 
-    private MZmineOpenedFile dataFile;
+    private OpenedRawDataFile dataFile;
     private RawDataFile rawDataFile;
     private ChromatographicMedianFilterParameters parameters;
     private TaskStatus status;
@@ -44,7 +44,7 @@ class ChromatographicMedianFilterTask implements Task {
      * @param dataFile
      * @param parameters
      */
-    ChromatographicMedianFilterTask(MZmineOpenedFile dataFile,
+    ChromatographicMedianFilterTask(OpenedRawDataFile dataFile,
             ChromatographicMedianFilterParameters parameters) {
         status = TaskStatus.WAITING;
         this.dataFile = dataFile;

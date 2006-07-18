@@ -27,7 +27,7 @@ import java.text.NumberFormat;
 import net.sf.mzmine.data.Peak;
 import net.sf.mzmine.data.PeakList;
 import net.sf.mzmine.data.Scan;
-import net.sf.mzmine.io.MZmineOpenedFile;
+import net.sf.mzmine.io.OpenedRawDataFile;
 import net.sf.mzmine.io.RawDataFile;
 import net.sf.mzmine.project.MZmineProject;
 import net.sf.mzmine.taskcontrol.Task;
@@ -72,7 +72,7 @@ import visad.java3d.MouseBehaviorJ3D;
 class ThreeDSamplingTask implements Task {
 
     private ThreeDVisualizerWindow visualizer;
-    private MZmineOpenedFile dataFile;
+    private OpenedRawDataFile dataFile;
     private RawDataFile rawDataFile;
     private int scanNumbers[];
     private double rtMin, rtMax, mzMin, mzMax;
@@ -123,7 +123,7 @@ class ThreeDSamplingTask implements Task {
      * @param msLevel
      * @param visualizer
      */
-    ThreeDSamplingTask(MZmineOpenedFile dataFile, int scanNumbers[],
+    ThreeDSamplingTask(OpenedRawDataFile dataFile, int scanNumbers[],
             double rtMin, double rtMax,
             double mzMin, double mzMax,
             int rtResolution, int mzResolution,

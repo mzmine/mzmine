@@ -3,7 +3,7 @@
  */
 package net.sf.mzmine.visualizers.rawdata;
 
-import net.sf.mzmine.io.MZmineOpenedFile;
+import net.sf.mzmine.io.OpenedRawDataFile;
 
 
 
@@ -13,10 +13,10 @@ import net.sf.mzmine.io.MZmineOpenedFile;
  */
 public interface MultipleRawDataVisualizer extends RawDataVisualizer {
 
-    public MZmineOpenedFile[] getRawDataFiles();
+    public OpenedRawDataFile[] getRawDataFiles();
     
-    public void addRawDataFile(MZmineOpenedFile newFile);
+    public void addRawDataFile(OpenedRawDataFile newFile);
  
-    public void removeRawDataFile(MZmineOpenedFile file);
+    public void removeRawDataFile(OpenedRawDataFile file);
     
 }

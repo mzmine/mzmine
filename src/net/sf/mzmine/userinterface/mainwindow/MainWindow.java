@@ -41,7 +41,8 @@ import javax.swing.border.EtchedBorder;
 import javax.swing.event.ListSelectionListener;
 
 import net.sf.mzmine.io.IOController;
-import net.sf.mzmine.io.MZmineOpenedFile;
+import net.sf.mzmine.io.OpenedRawDataFile;
+import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.main.MZmineModule;
 import net.sf.mzmine.methods.alignment.AlignmentResult;
 import net.sf.mzmine.taskcontrol.TaskController;
@@ -498,14 +499,14 @@ public class MainWindow extends JFrame implements Desktop, MZmineModule,
     /**
      * @see net.sf.mzmine.userinterface.Desktop#getSelectedDataFiles()
      */
-    public MZmineOpenedFile[] getSelectedDataFiles() {
+    public OpenedRawDataFile[] getSelectedDataFiles() {
         return itemSelector.getSelectedRawData();
     }
 
     /**
      * @see net.sf.mzmine.userinterface.Desktop#getFirstSelectedDataFile()
      */
-    public MZmineOpenedFile getFirstSelectedDataFile() {
+    public OpenedRawDataFile getFirstSelectedDataFile() {
         return itemSelector.getFirstSelectedRawData();
     }
 
@@ -517,12 +518,9 @@ public class MainWindow extends JFrame implements Desktop, MZmineModule,
     }
 
     /**
-     * @see net.sf.mzmine.main.MZmineModule#initModule(net.sf.mzmine.io.IOController,
-     *      net.sf.mzmine.taskcontrol.TaskController,
-     *      net.sf.mzmine.userinterface.Desktop, java.util.logging.Logger)
+     * @see net.sf.mzmine.main.MZmineModule#initModule(net.sf.mzmine.main.MZmineCore)
      */
-    public void initModule(IOController ioController,
-            TaskController taskController, Desktop d) {
+    public void initModule(MZmineCore core) {
         // Initialize structures for storing visualizers
         rawDataVisualizers = new Hashtable<Integer, Vector<RawDataVisualizer>>();
         alignmentResultVisualizers = new Hashtable<Integer, Vector<AlignmentResultVisualizer>>();
@@ -542,7 +540,7 @@ public class MainWindow extends JFrame implements Desktop, MZmineModule,
 
         // Construct menu
 
-        menuBar = new MainMenu(ioController, this);
+        menuBar = new MainMenu(core.getIOController(), this);
 
         setJMenuBar(menuBar);
         
@@ -581,7 +579,7 @@ public class MainWindow extends JFrame implements Desktop, MZmineModule,
 
         statusBar.setStatusText("Welcome to MZmine!");
 
-        taskList = new TaskProgressWindow((TaskControllerImpl) taskController);
+        taskList = new TaskProgressWindow((TaskControllerImpl) core.getTaskController());
         desktopPane.add(taskList, javax.swing.JLayeredPane.DEFAULT_LAYER);
 
     }

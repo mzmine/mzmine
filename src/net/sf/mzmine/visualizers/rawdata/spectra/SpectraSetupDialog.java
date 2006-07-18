@@ -36,7 +36,7 @@ import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JTextField;
 
-import net.sf.mzmine.io.MZmineOpenedFile;
+import net.sf.mzmine.io.OpenedRawDataFile;
 import net.sf.mzmine.io.RawDataFile;
 import net.sf.mzmine.taskcontrol.TaskController;
 import net.sf.mzmine.userinterface.Desktop;
@@ -64,10 +64,10 @@ public class SpectraSetupDialog extends JDialog implements ActionListener {
 
     private TaskController taskController;
     private Desktop desktop;
-    private MZmineOpenedFile dataFile;
+    private OpenedRawDataFile dataFile;
 
     public SpectraSetupDialog(TaskController taskController, Desktop desktop,
-            MZmineOpenedFile dataFile) {
+            OpenedRawDataFile dataFile) {
 
         // Make dialog modal
         super(desktop.getMainWindow(), "Spectra visualizer parameters", true);
@@ -368,7 +368,7 @@ public class SpectraSetupDialog extends JDialog implements ActionListener {
     }
 
     public SpectraSetupDialog(TaskController taskController, Desktop desktop,
-            MZmineOpenedFile dataFile, int msLevel, int scanNumber) {
+            OpenedRawDataFile dataFile, int msLevel, int scanNumber) {
 
         this(taskController, desktop, dataFile);
 
