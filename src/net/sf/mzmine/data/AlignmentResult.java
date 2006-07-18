@@ -19,7 +19,7 @@
 
 package net.sf.mzmine.data;
 
-import net.sf.mzmine.io.RawDataFile;
+import net.sf.mzmine.io.OpenedRawDataFile;
 
 
 /**
@@ -35,7 +35,7 @@ public interface AlignmentResult {
 	/**
 	 * Returns all raw data files participating in the alignment
 	 */
-	public RawDataFile[] getRawDataFiles();
+	public OpenedRawDataFile[] getRawDataFiles();
 
 	/**
 	 * Returns number of rows in the alignment result
@@ -47,12 +47,12 @@ public interface AlignmentResult {
 	 * @param	row	Row of the alignment result
 	 * @param	rawDataFile	Raw data file where the peak is detected/estimated
 	 */
-	public Peak getPeak(int row, RawDataFile rawDataFile);
+	public Peak getPeak(int row, OpenedRawDataFile rawDataFile);
 
 	/**
 	 * Returns all peaks for a raw data file
 	 */
-	public Peak[] getPeaks(RawDataFile rawDataFile);
+	public Peak[] getPeaks(OpenedRawDataFile rawDataFile);
 
 	/**
 	 * Returns all peaks on one row

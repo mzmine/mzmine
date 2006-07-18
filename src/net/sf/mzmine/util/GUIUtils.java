@@ -46,14 +46,10 @@ public class GUIUtils {
     /**
      * Registers a keyboard handler to a given component
      * 
-     * @param component
-     *            Component to register the handler to
-     * @param stroke
-     *            Keystroke to activate the handler
-     * @param listener
-     *            ActionListener to handle the key press
-     * @param actionCommand
-     *            Action command string
+     * @param component Component to register the handler to
+     * @param stroke Keystroke to activate the handler
+     * @param listener ActionListener to handle the key press
+     * @param actionCommand Action command string
      */
     public static void registerKeyHandler(JComponent component,
             KeyStroke stroke, final ActionListener listener,
@@ -72,12 +68,9 @@ public class GUIUtils {
     /**
      * Add a new menu item to a given menu
      * 
-     * @param menu
-     *            Menu to add the item to
-     * @param text
-     *            Menu item text
-     * @param listener
-     *            Menu item's ActionListener or null
+     * @param menu Menu to add the item to
+     * @param text Menu item text
+     * @param listener Menu item's ActionListener or null
      * @return Created menu item
      */
     public static JMenuItem addMenuItem(Container menu, String text,
@@ -88,14 +81,10 @@ public class GUIUtils {
     /**
      * Add a new menu item to a given menu
      * 
-     * @param menu
-     *            Menu to add the item to
-     * @param text
-     *            Menu item text
-     * @param listener
-     *            Menu item's ActionListener or null
-     * @param actionCommand
-     *            Menu item's action command or null
+     * @param menu Menu to add the item to
+     * @param text Menu item text
+     * @param listener Menu item's ActionListener or null
+     * @param actionCommand Menu item's action command or null
      * @return Created menu item
      */
     public static JMenuItem addMenuItem(Container menu, String text,
@@ -106,14 +95,10 @@ public class GUIUtils {
     /**
      * Add a new menu item to a given menu
      * 
-     * @param menu
-     *            Menu to add the item to
-     * @param text
-     *            Menu item text
-     * @param listener
-     *            Menu item's ActionListener or null
-     * @param mnemonic
-     *            Menu item's mnemonic (virtual key code) or 0
+     * @param menu Menu to add the item to
+     * @param text Menu item text
+     * @param listener Menu item's ActionListener or null
+     * @param mnemonic Menu item's mnemonic (virtual key code) or 0
      * @return Created menu item
      */
     public static JMenuItem addMenuItem(Container menu, String text,
@@ -124,17 +109,12 @@ public class GUIUtils {
     /**
      * Add a new menu item to a given menu
      * 
-     * @param menu
-     *            Menu to add the item to
-     * @param text
-     *            Menu item text
-     * @param listener
-     *            Menu item's ActionListener or null
-     * @param mnemonic
-     *            Menu item's mnemonic (virtual key code) or 0
-     * @param setAccelerator
-     *            Indicates whether to set key accelerator to CTRL + the key
-     *            specified by mnemonic parameter
+     * @param menu Menu to add the item to
+     * @param text Menu item text
+     * @param listener Menu item's ActionListener or null
+     * @param mnemonic Menu item's mnemonic (virtual key code) or 0
+     * @param setAccelerator Indicates whether to set key accelerator to CTRL +
+     *            the key specified by mnemonic parameter
      * @return Created menu item
      */
     public static JMenuItem addMenuItem(Container menu, String text,
@@ -145,19 +125,13 @@ public class GUIUtils {
     /**
      * Add a new menu item to a given menu
      * 
-     * @param menu
-     *            Menu to add the item to
-     * @param text
-     *            Menu item text
-     * @param listener
-     *            Menu item's ActionListener or null
-     * @param actionCommand
-     *            Menu item's action command or null
-     * @param mnemonic
-     *            Menu item's mnemonic (virtual key code) or 0
-     * @param setAccelerator
-     *            Indicates whether to set key accelerator to CTRL + the key
-     *            specified by mnemonic parameter
+     * @param menu Menu to add the item to
+     * @param text Menu item text
+     * @param listener Menu item's ActionListener or null
+     * @param actionCommand Menu item's action command or null
+     * @param mnemonic Menu item's mnemonic (virtual key code) or 0
+     * @param setAccelerator Indicates whether to set key accelerator to CTRL +
+     *            the key specified by mnemonic parameter
      * @return Created menu item
      */
     public static JMenuItem addMenuItem(Container menu, String text,
@@ -181,14 +155,10 @@ public class GUIUtils {
     /**
      * Add a new button to a given component
      * 
-     * @param component
-     *            Component to add the button to
-     * @param text
-     *            Button's text or null
-     * @param icon
-     *            Button's icon or null
-     * @param listener
-     *            Button's ActionListener or null
+     * @param component Component to add the button to
+     * @param text Button's text or null
+     * @param icon Button's icon or null
+     * @param listener Button's ActionListener or null
      * @return Created button
      */
     public static JButton addButton(Container component, String text,
@@ -199,16 +169,11 @@ public class GUIUtils {
     /**
      * Add a new button to a given component
      * 
-     * @param component
-     *            Component to add the button to
-     * @param text
-     *            Button's text or null
-     * @param icon
-     *            Button's icon or null
-     * @param listener
-     *            Button's ActionListener or null
-     * @param actionCommand
-     *            Button's action command or null
+     * @param component Component to add the button to
+     * @param text Button's text or null
+     * @param icon Button's icon or null
+     * @param listener Button's ActionListener or null
+     * @param actionCommand Button's action command or null
      * @return Created button
      */
     public static JButton addButton(Container component, String text,
@@ -220,18 +185,12 @@ public class GUIUtils {
     /**
      * Add a new button to a given component
      * 
-     * @param component
-     *            Component to add the button to
-     * @param text
-     *            Button's text or null
-     * @param icon
-     *            Button's icon or null
-     * @param listener
-     *            Button's ActionListener or null
-     * @param actionCommand
-     *            Button's action command or null
-     * @param toolTip
-     *            Button's tooltip text or null
+     * @param component Component to add the button to
+     * @param text Button's text or null
+     * @param icon Button's icon or null
+     * @param listener Button's ActionListener or null
+     * @param actionCommand Button's action command or null
+     * @param toolTip Button's tooltip text or null
      * @return Created button
      */
     public static JButton addButton(Container component, String text,
@@ -244,20 +203,13 @@ public class GUIUtils {
     /**
      * Add a new button to a given component
      * 
-     * @param component
-     *            Component to add the button to
-     * @param text
-     *            Button's text or null
-     * @param icon
-     *            Button's icon or null
-     * @param listener
-     *            Button's ActionListener or null
-     * @param actionCommand
-     *            Button's action command or null
-     * @param mnemonic
-     *            Button's mnemonic (virtual key code) or 0
-     * @param toolTip
-     *            Button's tooltip text or null
+     * @param component Component to add the button to
+     * @param text Button's text or null
+     * @param icon Button's icon or null
+     * @param listener Button's ActionListener or null
+     * @param actionCommand Button's action command or null
+     * @param mnemonic Button's mnemonic (virtual key code) or 0
+     * @param toolTip Button's tooltip text or null
      * @return Created button
      */
     public static JButton addButton(Container component, String text,
@@ -279,14 +231,10 @@ public class GUIUtils {
     /**
      * Add a new button to a JPanel and then add the panel to a given component
      * 
-     * @param component
-     *            Component to add the button to
-     * @param text
-     *            Button's text or null
-     * @param icon
-     *            Button's icon or null
-     * @param listener
-     *            Button's ActionListener or null
+     * @param component Component to add the button to
+     * @param text Button's text or null
+     * @param icon Button's icon or null
+     * @param listener Button's ActionListener or null
      * @return Created button
      */
     public static JButton addButtonInPanel(Container component, String text,
@@ -297,16 +245,11 @@ public class GUIUtils {
     /**
      * Add a new button to a JPanel and then add the panel to a given component
      * 
-     * @param component
-     *            Component to add the button to
-     * @param text
-     *            Button's text or null
-     * @param icon
-     *            Button's icon or null
-     * @param listener
-     *            Button's ActionListener or null
-     * @param actionCommand
-     *            Button's action command or null
+     * @param component Component to add the button to
+     * @param text Button's text or null
+     * @param icon Button's icon or null
+     * @param listener Button's ActionListener or null
+     * @param actionCommand Button's action command or null
      * @return Created button
      */
     public static JButton addButtonInPanel(Container component, String text,
@@ -325,10 +268,8 @@ public class GUIUtils {
     /**
      * Add a new label to a given component
      * 
-     * @param component
-     *            Component to add the label to
-     * @param text
-     *            Label's text
+     * @param component Component to add the label to
+     * @param text Label's text
      * @return Created label
      */
     public static JLabel addLabel(Container component, String text) {
@@ -338,12 +279,10 @@ public class GUIUtils {
     /**
      * Add a new label to a given component
      * 
-     * @param component
-     *            Component to add the label to
-     * @param text
-     *            Label's text
-     * @param horizontalAlignment
-     *            Label's horizontal alignment (e.g. JLabel.LEFT)
+     * @param component Component to add the label to
+     * @param text Label's text
+     * @param horizontalAlignment Label's horizontal alignment (e.g.
+     *            JLabel.LEFT)
      * @return Created label
      */
     public static JLabel addLabel(Container component, String text,
@@ -354,14 +293,11 @@ public class GUIUtils {
     /**
      * Add a new label to a given component
      * 
-     * @param component
-     *            Component to add the label to
-     * @param text
-     *            Label's text
-     * @param icon
-     *            Label's icon
-     * @param horizontalAlignment
-     *            Label's horizontal alignment (e.g. JLabel.LEFT)
+     * @param component Component to add the label to
+     * @param text Label's text
+     * @param icon Label's icon
+     * @param horizontalAlignment Label's horizontal alignment (e.g.
+     *            JLabel.LEFT)
      * @return Created label
      */
     public static JLabel addLabel(Container component, String text, Icon icon,
@@ -374,10 +310,8 @@ public class GUIUtils {
     /**
      * Add a new label to a JPanel and then add the panel to a given component
      * 
-     * @param component
-     *            Component to add the label to
-     * @param text
-     *            Label's text
+     * @param component Component to add the label to
+     * @param text Label's text
      * @return Created label
      */
     public static JLabel addLabelInPanel(Container component, String text) {
@@ -389,8 +323,7 @@ public class GUIUtils {
     /**
      * Add a separator to a given component
      * 
-     * @param component
-     *            Component to add the separator to
+     * @param component Component to add the separator to
      * @return Created separator
      */
     public static JSeparator addSeparator(Container component) {
@@ -400,10 +333,8 @@ public class GUIUtils {
     /**
      * Add a separator to a given component
      * 
-     * @param component
-     *            Component to add the separator to
-     * @param margin
-     *            Margin around the separator
+     * @param component Component to add the separator to
+     * @param margin Margin around the separator
      * @return Created separator
      */
     public static JSeparator addSeparator(Container component, int margin) {
@@ -417,10 +348,8 @@ public class GUIUtils {
     /**
      * Add a margin to a given component
      * 
-     * @param component
-     *            Component to add the margin to
-     * @param margin
-     *            Margin size
+     * @param component Component to add the margin to
+     * @param margin Margin size
      * @return Created border
      */
     public static Border addMargin(JComponent component, int margin) {
@@ -429,8 +358,5 @@ public class GUIUtils {
         component.setBorder(marginBorder);
         return marginBorder;
     }
-
-
-    
 
 }

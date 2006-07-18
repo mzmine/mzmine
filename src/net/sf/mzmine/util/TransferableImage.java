@@ -1,5 +1,5 @@
 /*
- * Copyright 2005 VTT Biotechnology
+ * Copyright 2006 The MZmine Development Team
  * 
  * This file is part of MZmine.
  * 
@@ -16,6 +16,7 @@
  * MZmine; if not, write to the Free Software Foundation, Inc., 51 Franklin St,
  * Fifth Floor, Boston, MA 02110-1301 USA
  */
+
 package net.sf.mzmine.util;
 
 import java.awt.Image;

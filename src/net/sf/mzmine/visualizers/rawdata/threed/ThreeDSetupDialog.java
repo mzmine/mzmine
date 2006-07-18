@@ -91,7 +91,7 @@ public class ThreeDSetupDialog extends JDialog implements ActionListener {
         constraints.gridheight = 1;
         layout.setConstraints(comp, constraints);
 
-        comp = GUIUtils.addLabel(components, rawDataFile.toString(),
+        comp = GUIUtils.addLabel(components, dataFile.toString(),
                 JLabel.LEFT);
         constraints.gridx = 1;
         constraints.gridy = 0;
