@@ -1,20 +1,14 @@
 /*
- * Copyright 2006 The MZmine Development Team
- * 
- * This file is part of MZmine.
- * 
+ * Copyright 2006 The MZmine Development Team This file is part of MZmine.
  * MZmine is free software; you can redistribute it and/or modify it under the
  * terms of the GNU General Public License as published by the Free Software
  * Foundation; either version 2 of the License, or (at your option) any later
- * version.
- * 
- * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY
- * WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR
- * A PARTICULAR PURPOSE. See the GNU General Public License for more details.
- * 
- * You should have received a copy of the GNU General Public License along with
- * MZmine; if not, write to the Free Software Foundation, Inc., 51 Franklin St,
- * Fifth Floor, Boston, MA 02110-1301 USA
+ * version. MZmine is distributed in the hope that it will be useful, but
+ * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
+ * FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for more
+ * details. You should have received a copy of the GNU General Public License
+ * along with MZmine; if not, write to the Free Software Foundation, Inc., 51
+ * Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
 package net.sf.mzmine.methods.filtering.savitzkygolay;
@@ -24,6 +18,7 @@ import java.util.Hashtable;
 
 import net.sf.mzmine.data.Scan;
 import net.sf.mzmine.data.impl.SimpleScan;
+import net.sf.mzmine.io.MZmineOpenedFile;
 import net.sf.mzmine.io.RawDataFile;
 import net.sf.mzmine.io.RawDataFileWriter;
 import net.sf.mzmine.taskcontrol.Task;
@@ -33,12 +28,11 @@ import net.sf.mzmine.taskcontrol.Task;
  */
 class SavitzkyGolayFilterTask implements Task {
 
+    private MZmineOpenedFile dataFile;
     private RawDataFile rawDataFile;
     private SavitzkyGolayFilterParameters parameters;
     private TaskStatus status;
     private String errorMessage;
-
-    // private int[] scanNumbers;
 
     private int filteredScans;
     private int totalScans;
@@ -52,10 +46,11 @@ class SavitzkyGolayFilterTask implements Task {
      * @param rawDataFile
      * @param parameters
      */
-    SavitzkyGolayFilterTask(RawDataFile rawDataFile,
+    SavitzkyGolayFilterTask(MZmineOpenedFile dataFile,
             SavitzkyGolayFilterParameters parameters) {
         status = TaskStatus.WAITING;
-        this.rawDataFile = rawDataFile;
+        this.dataFile = dataFile;
+        this.rawDataFile = dataFile.getCurrentFile();
         this.parameters = parameters;
     }
 
@@ -94,7 +89,7 @@ class SavitzkyGolayFilterTask implements Task {
      */
     public Object getResult() {
         Object[] results = new Object[3];
-        results[0] = rawDataFile;
+        results[0] = dataFile;
         results[1] = filteredRawDataFile;
         results[2] = parameters;
 
@@ -120,7 +115,7 @@ class SavitzkyGolayFilterTask implements Task {
         // Create new temporary copy
         RawDataFileWriter rawDataFileWriter;
         try {
-            rawDataFileWriter = rawDataFile.createNewTemporaryFile();
+            rawDataFileWriter = dataFile.createNewTemporaryFile();
         } catch (IOException e) {
             status = TaskStatus.ERROR;
             errorMessage = e.toString();
@@ -133,7 +128,7 @@ class SavitzkyGolayFilterTask implements Task {
         int[] scanNumbers = rawDataFile.getScanNumbers(1);
         totalScans = scanNumbers.length;
 
-        Scan oldScan, filteredScan;
+        Scan oldScan;
 
         for (int i = 0; i < scanNumbers.length; i++) {
 
@@ -181,7 +176,6 @@ class SavitzkyGolayFilterTask implements Task {
         double[] intensities = sc.getIntensityValues();
         double[] newIntensities = new double[masses.length];
 
-        int addi = 0;
         for (int spectrumInd = marginSize; spectrumInd < (masses.length - marginSize); spectrumInd++) {
 
             sumOfInts = aVals[0] * intensities[spectrumInd];

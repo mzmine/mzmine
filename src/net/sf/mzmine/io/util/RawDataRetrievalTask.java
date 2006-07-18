@@ -19,6 +19,9 @@
 
 package net.sf.mzmine.io.util;
 
+import java.util.logging.Level;
+import java.util.logging.Logger;
+
 import net.sf.mzmine.data.Scan;
 import net.sf.mzmine.io.RawDataAcceptor;
 import net.sf.mzmine.io.RawDataFile;
@@ -29,6 +32,8 @@ import net.sf.mzmine.taskcontrol.Task;
  */
 public class RawDataRetrievalTask implements Task {
 
+    private Logger logger = Logger.getLogger(this.getClass().getName());
+    
     private RawDataFile rawDataFile;
     private int scanNumbers[];
     private int retrievedScans;
@@ -104,10 +109,11 @@ public class RawDataRetrievalTask implements Task {
             try {
 
                 scan = rawDataFile.getScan(scanNumbers[i]);
-
                 acceptor.addScan(scan, i);
 
             } catch (Throwable e) {
+                
+                logger.log(Level.WARNING, "Raw data retrieval task caught an exception", e);
                 status = TaskStatus.ERROR;
                 errorMessage = e.toString();
                 return;

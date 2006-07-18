@@ -26,16 +26,16 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.text.NumberFormat;
 
-import javax.swing.DefaultComboBoxModel;
 import javax.swing.JButton;
 import javax.swing.JComboBox;
 import javax.swing.JComponent;
 import javax.swing.JDialog;
 import javax.swing.JFormattedTextField;
+import javax.swing.JLabel;
 import javax.swing.JPanel;
 
+import net.sf.mzmine.io.MZmineOpenedFile;
 import net.sf.mzmine.io.RawDataFile;
-import net.sf.mzmine.project.MZmineProject;
 import net.sf.mzmine.taskcontrol.TaskController;
 import net.sf.mzmine.userinterface.Desktop;
 import net.sf.mzmine.util.CollectionUtils;
@@ -47,164 +47,216 @@ import net.sf.mzmine.visualizers.rawdata.tic.TICVisualizerWindow.PlotType;
  */
 public class TICSetupDialog extends JDialog implements ActionListener {
 
-    static final int PADDING_SIZE = 3;
-    static final int DEFAULT_RT_RESOLUTION = 3000;
-    static final int DEFAULT_MZ_RESOLUTION = 3000;
+    static final int PADDING_SIZE = 5;
 
     static final String[] plotTypes = { "TIC", "Base peak intensity" };
 
     // dialog components
     private JButton btnOK, btnCancel;
     private JFormattedTextField fieldMinRT, fieldMaxRT, fieldMinMZ, fieldMaxMZ;
-    private JComboBox comboPlotType, comboRawDataFile, comboMSlevel;
-    
+    private JComboBox comboPlotType, comboMSlevel;
+
     private static final NumberFormat format = NumberFormat.getNumberInstance();
-    
+
     private Desktop desktop;
     private TaskController taskController;
+    private MZmineOpenedFile dataFile;
+    private RawDataFile rawDataFile;
 
-    public TICSetupDialog(TaskController taskController, Desktop desktop) {
+    public TICSetupDialog(TaskController taskController, Desktop desktop,
+            MZmineOpenedFile dataFile) {
 
         // Make dialog modal
         super(desktop.getMainWindow(), "TIC visualizer parameters", true);
-        
+
         this.taskController = taskController;
         this.desktop = desktop;
+        this.dataFile = dataFile;
+        this.rawDataFile = dataFile.getCurrentFile();
 
         GridBagConstraints constraints = new GridBagConstraints();
-        
+
         // set default layout constraints
         constraints.fill = GridBagConstraints.HORIZONTAL;
         constraints.anchor = GridBagConstraints.WEST;
-        constraints.insets = new Insets(PADDING_SIZE, PADDING_SIZE, PADDING_SIZE, PADDING_SIZE);
-        
+        constraints.insets = new Insets(PADDING_SIZE, PADDING_SIZE,
+                PADDING_SIZE, PADDING_SIZE);
+
         JComponent comp;
         GridBagLayout layout = new GridBagLayout();
-        
+
         JPanel components = new JPanel(layout);
-        
+
         comp = GUIUtils.addLabel(components, "Raw data file");
-        constraints.gridx = 0; constraints.gridy = 0; constraints.gridwidth = 1; constraints.gridheight = 1;
+        constraints.gridx = 0;
+        constraints.gridy = 0;
+        constraints.gridwidth = 1;
+        constraints.gridheight = 1;
         layout.setConstraints(comp, constraints);
-        
-        comboRawDataFile = new JComboBox();
-        comboRawDataFile.addActionListener(this);
-        constraints.fill = GridBagConstraints.NONE;
-        constraints.gridx = 1; constraints.gridy = 0; constraints.gridwidth = 2; constraints.gridheight = 1;
-        components.add(comboRawDataFile, constraints);
-        constraints.fill = GridBagConstraints.HORIZONTAL;
+
+        comp = GUIUtils.addLabel(components, rawDataFile.toString(),
+                JLabel.LEFT);
+        constraints.gridx = 1;
+        constraints.gridy = 0;
+        constraints.gridwidth = 2;
+        constraints.gridheight = 1;
+        layout.setConstraints(comp, constraints);
 
         comp = GUIUtils.addLabel(components, "MS level");
-        constraints.gridx = 0; constraints.gridy = 1; constraints.gridwidth = 1; constraints.gridheight = 1;
+        constraints.gridx = 0;
+        constraints.gridy = 1;
+        constraints.gridwidth = 1;
+        constraints.gridheight = 1;
         layout.setConstraints(comp, constraints);
-        
-        comboMSlevel = new JComboBox();
+
+        Integer msLevels[] = CollectionUtils.toIntegerArray(rawDataFile.getMSLevels());
+
+        comboMSlevel = new JComboBox(msLevels);
         comboMSlevel.addActionListener(this);
         constraints.fill = GridBagConstraints.NONE;
-        constraints.gridx = 1; constraints.gridy = 1; constraints.gridwidth = 2; constraints.gridheight = 1;
+        constraints.gridx = 1;
+        constraints.gridy = 1;
+        constraints.gridwidth = 2;
+        constraints.gridheight = 1;
         components.add(comboMSlevel, constraints);
         constraints.fill = GridBagConstraints.HORIZONTAL;
-        
+
         comp = GUIUtils.addLabel(components, "Plot type");
-        constraints.gridx = 0; constraints.gridy = 2; constraints.gridwidth = 1; constraints.gridheight = 1;
+        constraints.gridx = 0;
+        constraints.gridy = 2;
+        constraints.gridwidth = 1;
+        constraints.gridheight = 1;
         layout.setConstraints(comp, constraints);
-        
+
         comboPlotType = new JComboBox(plotTypes);
         comboPlotType.addActionListener(this);
         constraints.fill = GridBagConstraints.NONE;
-        constraints.gridx = 1; constraints.gridy = 2; constraints.gridwidth = 2; constraints.gridheight = 1;
+        constraints.gridx = 1;
+        constraints.gridy = 2;
+        constraints.gridwidth = 2;
+        constraints.gridheight = 1;
         components.add(comboPlotType, constraints);
         constraints.fill = GridBagConstraints.HORIZONTAL;
 
         comp = GUIUtils.addLabel(components, "Minimum retention time");
 
-        constraints.gridx = 0; constraints.gridy = 3; constraints.gridwidth = 1; constraints.gridheight = 1;
+        constraints.gridx = 0;
+        constraints.gridy = 3;
+        constraints.gridwidth = 1;
+        constraints.gridheight = 1;
         layout.setConstraints(comp, constraints);
-        
+
         fieldMinRT = new JFormattedTextField(format);
         constraints.weightx = 1;
-        constraints.gridx = 1; constraints.gridy = 3; constraints.gridwidth = 1; constraints.gridheight = 1;
+        constraints.gridx = 1;
+        constraints.gridy = 3;
+        constraints.gridwidth = 1;
+        constraints.gridheight = 1;
         components.add(fieldMinRT, constraints);
         constraints.weightx = 0;
 
-        
         comp = GUIUtils.addLabel(components, "s");
-        constraints.gridx = 2; constraints.gridy = 3; constraints.gridwidth = 1; constraints.gridheight = 1;
+        constraints.gridx = 2;
+        constraints.gridy = 3;
+        constraints.gridwidth = 1;
+        constraints.gridheight = 1;
         layout.setConstraints(comp, constraints);
 
         comp = GUIUtils.addLabel(components, "Maximum retention time");
-        constraints.gridx = 0; constraints.gridy = 4; constraints.gridwidth = 1; constraints.gridheight = 1;
+        constraints.gridx = 0;
+        constraints.gridy = 4;
+        constraints.gridwidth = 1;
+        constraints.gridheight = 1;
         layout.setConstraints(comp, constraints);
-        
+
         fieldMaxRT = new JFormattedTextField(format);
         constraints.weightx = 1;
-        constraints.gridx = 1; constraints.gridy = 4; constraints.gridwidth = 1; constraints.gridheight = 1;
+        constraints.gridx = 1;
+        constraints.gridy = 4;
+        constraints.gridwidth = 1;
+        constraints.gridheight = 1;
         components.add(fieldMaxRT, constraints);
         constraints.weightx = 0;
-        
+
         comp = GUIUtils.addLabel(components, "s");
-        constraints.gridx = 2; constraints.gridy = 4; constraints.gridwidth = 1; constraints.gridheight = 1;
+        constraints.gridx = 2;
+        constraints.gridy = 4;
+        constraints.gridwidth = 1;
+        constraints.gridheight = 1;
         layout.setConstraints(comp, constraints);
 
         comp = GUIUtils.addLabel(components, "Minimum m/z");
-        constraints.gridx = 0; constraints.gridy = 5; constraints.gridwidth = 1; constraints.gridheight = 1;
+        constraints.gridx = 0;
+        constraints.gridy = 5;
+        constraints.gridwidth = 1;
+        constraints.gridheight = 1;
         layout.setConstraints(comp, constraints);
-        
+
         fieldMinMZ = new JFormattedTextField(format);
         constraints.weightx = 1;
-        constraints.gridx = 1; constraints.gridy = 5; constraints.gridwidth = 1; constraints.gridheight = 1;
+        constraints.gridx = 1;
+        constraints.gridy = 5;
+        constraints.gridwidth = 1;
+        constraints.gridheight = 1;
         components.add(fieldMinMZ, constraints);
         constraints.weightx = 0;
-        
+
         comp = GUIUtils.addLabel(components, "m/q (Th)");
-        constraints.gridx = 2; constraints.gridy = 5; constraints.gridwidth = 1; constraints.gridheight = 1;
+        constraints.gridx = 2;
+        constraints.gridy = 5;
+        constraints.gridwidth = 1;
+        constraints.gridheight = 1;
         layout.setConstraints(comp, constraints);
 
         comp = GUIUtils.addLabel(components, "Maximum m/z");
-        constraints.gridx = 0; constraints.gridy = 6; constraints.gridwidth = 1; constraints.gridheight = 1;
-        layout.setConstraints(comp, constraints);
-        
-        fieldMaxMZ = new JFormattedTextField(format);
-        constraints.weightx = 1;
-        constraints.gridx = 1; constraints.gridy = 6; constraints.gridwidth = 1; constraints.gridheight = 1;
-        components.add(fieldMaxMZ, constraints);
-        constraints.weightx = 0;
-        
-        comp = GUIUtils.addLabel(components, "m/q (Th)");
-        constraints.gridx = 2; constraints.gridy = 6; constraints.gridwidth = 1; constraints.gridheight = 1;
+        constraints.gridx = 0;
+        constraints.gridy = 6;
+        constraints.gridwidth = 1;
+        constraints.gridheight = 1;
         layout.setConstraints(comp, constraints);
 
-        
+        fieldMaxMZ = new JFormattedTextField(format);
+        constraints.weightx = 1;
+        constraints.gridx = 1;
+        constraints.gridy = 6;
+        constraints.gridwidth = 1;
+        constraints.gridheight = 1;
+        components.add(fieldMaxMZ, constraints);
+        constraints.weightx = 0;
+
+        comp = GUIUtils.addLabel(components, "m/q (Th)");
+        constraints.gridx = 2;
+        constraints.gridy = 6;
+        constraints.gridwidth = 1;
+        constraints.gridheight = 1;
+        layout.setConstraints(comp, constraints);
+
         comp = GUIUtils.addSeparator(components, PADDING_SIZE);
-        constraints.gridx = 0; constraints.gridy = 7; constraints.gridwidth = 3; constraints.gridheight = 1;
+        constraints.gridx = 0;
+        constraints.gridy = 7;
+        constraints.gridwidth = 3;
+        constraints.gridheight = 1;
         layout.setConstraints(comp, constraints);
 
         JPanel buttonsPanel = new JPanel();
         btnOK = GUIUtils.addButton(buttonsPanel, "OK", null, this);
         btnCancel = GUIUtils.addButton(buttonsPanel, "Cancel", null, this);
-        constraints.gridx = 0; constraints.gridy = 8; constraints.gridwidth = 3; constraints.gridheight = 1;
+        constraints.gridx = 0;
+        constraints.gridy = 8;
+        constraints.gridwidth = 3;
+        constraints.gridheight = 1;
         components.add(buttonsPanel, constraints);
 
         GUIUtils.addMargin(components, PADDING_SIZE);
         add(components);
-        
-        // add data files to the combo box
-        RawDataFile files[] = MZmineProject.getCurrentProject().getRawDataFiles();
-        DefaultComboBoxModel fileItems = new DefaultComboBoxModel(files);
-        comboRawDataFile.setModel(fileItems);
 
+        // to activate the selection listener
+        comboMSlevel.setSelectedIndex(0);
+        
         // finalize the dialog
         pack();
         setLocationRelativeTo(desktop.getMainWindow());
         setResizable(false);
-
-    }
-
-    public TICSetupDialog(TaskController taskController, Desktop desktop, RawDataFile rawDataFile) {
-
-        this(taskController, desktop);
-
-        comboRawDataFile.setSelectedItem(rawDataFile);
 
     }
 
@@ -215,30 +267,15 @@ public class TICSetupDialog extends JDialog implements ActionListener {
 
         Object src = ae.getSource();
 
-        // raw data selection changed
-        if (src == comboRawDataFile) {
-            RawDataFile selectedFile = (RawDataFile) comboRawDataFile.getSelectedItem();
-            Integer msLevels[] = CollectionUtils.toIntegerArray(selectedFile.getMSLevels());
-
-            DefaultComboBoxModel msLevelItems = new DefaultComboBoxModel(
-                    msLevels);
-            comboMSlevel.setModel(msLevelItems);
-            
-            // call setSelectedIndex to notify listeners about combo change
-            comboMSlevel.setSelectedIndex(0);
-
-        }
-
         // ms level selection changed
         if (src == comboMSlevel) {
 
-            RawDataFile selectedFile = (RawDataFile) comboRawDataFile.getSelectedItem();
             int msLevel = (Integer) comboMSlevel.getSelectedItem();
 
-            fieldMinRT.setValue(selectedFile.getDataMinRT(msLevel));
-            fieldMaxRT.setValue(selectedFile.getDataMaxRT(msLevel));
-            fieldMinMZ.setValue(selectedFile.getDataMinMZ(msLevel));
-            fieldMaxMZ.setValue(selectedFile.getDataMaxMZ(msLevel));
+            fieldMinRT.setValue(rawDataFile.getDataMinRT(msLevel));
+            fieldMaxRT.setValue(rawDataFile.getDataMaxRT(msLevel));
+            fieldMinMZ.setValue(rawDataFile.getDataMinMZ(msLevel));
+            fieldMaxMZ.setValue(rawDataFile.getDataMaxMZ(msLevel));
 
         }
 
@@ -246,7 +283,6 @@ public class TICSetupDialog extends JDialog implements ActionListener {
 
             try {
 
-                RawDataFile selectedFile = (RawDataFile) comboRawDataFile.getSelectedItem();
                 int msLevel = (Integer) comboMSlevel.getSelectedItem();
 
                 double rtMin = ((Number) fieldMinRT.getValue()).doubleValue();
@@ -264,8 +300,8 @@ public class TICSetupDialog extends JDialog implements ActionListener {
                 if (comboPlotType.getSelectedIndex() == 1)
                     plotType = PlotType.BASE_PEAK;
 
-                new TICVisualizerWindow(taskController, desktop, selectedFile, plotType, msLevel, rtMin,
-                        rtMax, mzMin, mzMax);
+                new TICVisualizerWindow(taskController, desktop, dataFile,
+                        plotType, msLevel, rtMin, rtMax, mzMin, mzMax);
 
                 dispose();
 

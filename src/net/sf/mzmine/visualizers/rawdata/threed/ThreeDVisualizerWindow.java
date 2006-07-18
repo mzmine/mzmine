@@ -27,28 +27,25 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.MouseWheelEvent;
 import java.awt.event.MouseWheelListener;
-import java.rmi.RemoteException;
 
 import javax.swing.BorderFactory;
 import javax.swing.JInternalFrame;
 import javax.swing.JLabel;
 
+import net.sf.mzmine.io.MZmineOpenedFile;
 import net.sf.mzmine.io.RawDataFile;
 import net.sf.mzmine.taskcontrol.Task;
 import net.sf.mzmine.taskcontrol.TaskController;
 import net.sf.mzmine.taskcontrol.TaskListener;
 import net.sf.mzmine.taskcontrol.Task.TaskPriority;
 import net.sf.mzmine.taskcontrol.Task.TaskStatus;
-import net.sf.mzmine.taskcontrol.impl.TaskControllerImpl;
 import net.sf.mzmine.userinterface.Desktop;
-import net.sf.mzmine.userinterface.mainwindow.MainWindow;
 import net.sf.mzmine.util.CursorPosition;
 import net.sf.mzmine.visualizers.rawdata.RawDataVisualizer;
 import visad.ConstantMap;
 import visad.DataReference;
 import visad.DisplayImpl;
 import visad.ProjectionControl;
-import visad.VisADException;
 import visad.bom.PickManipulationRendererJ3D;
 import visad.java3d.MouseBehaviorJ3D;
 
@@ -73,21 +70,19 @@ public class ThreeDVisualizerWindow extends JInternalFrame implements
     private PickManipulationRendererJ3D peakRenderer;
 
     private Desktop desktop;
-    private TaskController taskController;
     
-    public ThreeDVisualizerWindow(TaskController taskController, Desktop desktop, RawDataFile rawDataFile, int msLevel,
+    public ThreeDVisualizerWindow(TaskController taskController, Desktop desktop, MZmineOpenedFile dataFile, int msLevel,
             double rtMin, double rtMax,
             double mzMin, double mzMax,
             int rtResolution, int mzResolution) {
 
-        super(rawDataFile.toString(), true, true, true, true);
+        super(dataFile.toString(), true, true, true, true);
 
         setDefaultCloseOperation(DISPOSE_ON_CLOSE);
         setBackground(Color.white);
 
-        this.taskController = taskController;
         this.desktop = desktop;
-        this.rawDataFile = rawDataFile;
+        this.rawDataFile = dataFile.getCurrentFile();
         this.msLevel = msLevel;
 
         toolBar = new ThreeDToolBar(this);
@@ -105,7 +100,7 @@ public class ThreeDVisualizerWindow extends JInternalFrame implements
             return;
         }
 
-        Task updateTask = new ThreeDSamplingTask(rawDataFile, scanNumbers,
+        Task updateTask = new ThreeDSamplingTask(dataFile, scanNumbers,
                 rtMin, rtMax, mzMin, mzMax, 
                 rtResolution, mzResolution,
                 this);

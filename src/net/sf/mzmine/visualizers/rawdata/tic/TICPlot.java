@@ -30,10 +30,8 @@ import java.awt.Shape;
 import java.awt.event.ActionEvent;
 import java.awt.event.MouseEvent;
 import java.awt.geom.Ellipse2D;
-import java.text.DateFormat;
 import java.text.DecimalFormat;
 import java.text.NumberFormat;
-import java.text.SimpleDateFormat;
 
 import javax.swing.JPopupMenu;
 import javax.swing.KeyStroke;
@@ -41,6 +39,7 @@ import javax.swing.KeyStroke;
 import net.sf.mzmine.userinterface.components.AddFilePopupMenu;
 import net.sf.mzmine.userinterface.components.RemoveFilePopupMenu;
 import net.sf.mzmine.util.GUIUtils;
+import net.sf.mzmine.util.TimeNumberFormat;
 import net.sf.mzmine.visualizers.rawdata.tic.TICVisualizerWindow.PlotType;
 
 import org.jfree.chart.ChartFactory;
@@ -51,6 +50,7 @@ import org.jfree.chart.axis.NumberAxis;
 import org.jfree.chart.event.ChartProgressEvent;
 import org.jfree.chart.labels.XYItemLabelGenerator;
 import org.jfree.chart.labels.XYToolTipGenerator;
+import org.jfree.chart.plot.PlotOrientation;
 import org.jfree.chart.plot.XYPlot;
 import org.jfree.chart.renderer.xy.XYLineAndShapeRenderer;
 import org.jfree.chart.title.LegendTitle;
@@ -67,7 +67,7 @@ class TICPlot extends ChartPanel {
     private XYPlot plot;
 
     // TODO: get these from parameter storage
-    private static DateFormat rtFormat = new SimpleDateFormat("m:ss");
+    private static NumberFormat rtFormat = new TimeNumberFormat();
     private static NumberFormat intensityFormat = new DecimalFormat("0.00E0");
 
     private TICVisualizerWindow visualizer;
@@ -137,10 +137,11 @@ class TICPlot extends ChartPanel {
             else yAxisLabel = "Total ion intensity";
         
         // initialize the chart by default time series chart from factory
-        chart = ChartFactory.createTimeSeriesChart("", // title
+        chart = ChartFactory.createXYLineChart("", // title
                 "Retention time", // x-axis label
                 yAxisLabel, // y-axis label
                 null, // data set
+                PlotOrientation.VERTICAL, // orientation
                 true, // create legend?
                 true, // generate tooltips?
                 false // generate URLs?
@@ -179,8 +180,8 @@ class TICPlot extends ChartPanel {
         plot.setRangeCrosshairStroke(crossHairStroke);
 
         // set the X axis (retention time) properties
-        DateAxis xAxis = (DateAxis) plot.getDomainAxis();
-        xAxis.setDateFormatOverride(rtFormat);
+        NumberAxis xAxis = (NumberAxis) plot.getDomainAxis();
+        xAxis.setNumberFormatOverride(rtFormat);
         xAxis.setUpperMargin(0.001);
         xAxis.setLowerMargin(0.001);
 

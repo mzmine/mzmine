@@ -30,11 +30,13 @@ import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
 
 import net.sf.mzmine.io.IOController;
+import net.sf.mzmine.io.MZmineOpenedFile;
 import net.sf.mzmine.io.RawDataFile;
 import net.sf.mzmine.main.MZmineModule;
 import net.sf.mzmine.taskcontrol.TaskController;
 import net.sf.mzmine.userinterface.Desktop;
 import net.sf.mzmine.userinterface.Desktop.MZmineMenu;
+import net.sf.mzmine.visualizers.rawdata.threed.ThreeDSetupDialog;
 import net.sf.mzmine.visualizers.rawdata.tic.TICSetupDialog;
 
 /**
@@ -43,23 +45,23 @@ import net.sf.mzmine.visualizers.rawdata.tic.TICSetupDialog;
 public class TwoDVisualizer implements MZmineModule, ActionListener,
         ListSelectionListener {
 
+    private Logger logger = Logger.getLogger(this.getClass().getName());
+    
     private TaskController taskController;
     private Desktop desktop;
-    private Logger logger;
-
+    
     private JMenuItem twoDMenuItem;
 
     /**
      * @see net.sf.mzmine.main.MZmineModule#initModule(net.sf.mzmine.io.IOController,
      *      net.sf.mzmine.taskcontrol.TaskController,
-     *      net.sf.mzmine.userinterface.Desktop, java.util.logging.Logger)
+     *      net.sf.mzmine.userinterface.Desktop)
      */
     public void initModule(IOController ioController,
-            TaskController taskController, Desktop desktop, Logger logger) {
+            TaskController taskController, Desktop desktop) {
 
         this.taskController = taskController;
         this.desktop = desktop;
-        this.logger = logger;
 
         twoDMenuItem = desktop.addMenuItem(MZmineMenu.VISUALIZATION, "2D plot",
                 this, null, KeyEvent.VK_2, false, false);
@@ -72,14 +74,15 @@ public class TwoDVisualizer implements MZmineModule, ActionListener,
      */
     public void actionPerformed(ActionEvent e) {
 
-        RawDataFile firstSelectedFile = desktop.getFirstSelectedRawData();
-        if (firstSelectedFile == null)
-            return;
-
         logger.finest("Opening a new 2D visualizer setup dialog");
-        JDialog setupDialog = new TwoDSetupDialog(taskController, desktop,
-                firstSelectedFile);
-        setupDialog.setVisible(true);
+        
+        MZmineOpenedFile dataFiles[] = desktop.getSelectedDataFiles();
+
+        for (MZmineOpenedFile dataFile : dataFiles) {
+            JDialog setupDialog = new TwoDSetupDialog(taskController,
+                    desktop, dataFile);
+            setupDialog.setVisible(true);
+        }
 
     }
 
@@ -87,7 +90,7 @@ public class TwoDVisualizer implements MZmineModule, ActionListener,
      * @see javax.swing.event.ListSelectionListener#valueChanged(javax.swing.event.ListSelectionEvent)
      */
     public void valueChanged(ListSelectionEvent e) {
-        twoDMenuItem.setEnabled(desktop.isRawDataSelected());
+        twoDMenuItem.setEnabled(desktop.isDataFileSelected());
     }
 
 }

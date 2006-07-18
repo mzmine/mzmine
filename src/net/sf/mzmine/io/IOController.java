@@ -21,8 +21,6 @@ package net.sf.mzmine.io;
 
 import java.io.File;
 
-import net.sf.mzmine.io.RawDataFile.PreloadLevel;
-
 /**
  * IO controller
  *
@@ -31,6 +29,8 @@ public interface IOController {
 
     public enum FileType { MZXML, NETCDF, UNKNOWN };
 
+    //  TODO: implement preloading of full scans only
+    public enum PreloadLevel { NO_PRELOAD, PRELOAD_FULL_SCANS, PRELOAD_ALL_SCANS };
     
     /**
      * This method is non-blocking, it places a request to open these files and

@@ -29,6 +29,7 @@ import java.util.Vector;
 import net.sf.mzmine.data.Scan;
 import net.sf.mzmine.data.impl.SimplePeak;
 import net.sf.mzmine.data.impl.SimplePeakList;
+import net.sf.mzmine.io.MZmineOpenedFile;
 import net.sf.mzmine.io.RawDataFile;
 import net.sf.mzmine.taskcontrol.Task;
 import net.sf.mzmine.util.MathUtils;
@@ -39,6 +40,7 @@ import net.sf.mzmine.util.ScanUtils;
  */
 class CentroidPickerTask implements Task {
 
+    private MZmineOpenedFile dataFile;
     private RawDataFile rawDataFile;
     private CentroidPickerParameters parameters;
     private TaskStatus status;
@@ -53,10 +55,11 @@ class CentroidPickerTask implements Task {
      * @param rawDataFile
      * @param parameters
      */
-    CentroidPickerTask(RawDataFile rawDataFile,
+    CentroidPickerTask(MZmineOpenedFile dataFile,
             CentroidPickerParameters parameters) {
         status = TaskStatus.WAITING;
-        this.rawDataFile = rawDataFile;
+        this.dataFile = dataFile;
+        this.rawDataFile = dataFile.getCurrentFile();
         this.parameters = parameters;
 
         readyPeakList = new SimplePeakList();
@@ -97,7 +100,7 @@ class CentroidPickerTask implements Task {
      */
     public Object getResult() {
         Object[] results = new Object[3];
-        results[0] = rawDataFile;
+        results[0] = dataFile;
         results[1] = readyPeakList;
         results[2] = parameters;
         return results;
@@ -176,13 +179,8 @@ class CentroidPickerTask implements Task {
         System.gc();
 
         Vector<SimplePeak> underConstructionPeaks = new Vector<SimplePeak>();
-        Vector<SimplePeak> detectedPeaks = new Vector<SimplePeak>();
-
-        /**
-         * Loop through scans
-         */
-
         Vector<OneDimPeak> oneDimPeaks = new Vector<OneDimPeak>();
+        
         for (int i = 0; i < totalScans; i++) {
 
             if (status == TaskStatus.CANCELED)

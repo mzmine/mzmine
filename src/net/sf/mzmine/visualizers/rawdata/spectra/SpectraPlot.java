@@ -95,9 +95,8 @@ class SpectraPlot extends ChartPanel {
     XYLineAndShapeRenderer continuousRenderer;
 
     SpectraPlot(SpectraVisualizerWindow visualizer, XYDataset rawDataSet, XYDataset peaksDataSet) {
-        // superconstructor with no chart yet
-        // disable off-screen buffering (makes problems with late drawing of the title)
-        super(null, false);
+
+        super(null, true); // enable double-buffering
 
         setBackground(Color.white);
         setCursor(Cursor.getPredefinedCursor(Cursor.CROSSHAIR_CURSOR));

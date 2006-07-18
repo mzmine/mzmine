@@ -1,20 +1,14 @@
 /*
- * Copyright 2006 The MZmine Development Team
- * 
- * This file is part of MZmine.
- * 
+ * Copyright 2006 The MZmine Development Team This file is part of MZmine.
  * MZmine is free software; you can redistribute it and/or modify it under the
  * terms of the GNU General Public License as published by the Free Software
  * Foundation; either version 2 of the License, or (at your option) any later
- * version.
- * 
- * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY
- * WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR
- * A PARTICULAR PURPOSE. See the GNU General Public License for more details.
- * 
- * You should have received a copy of the GNU General Public License along with
- * MZmine; if not, write to the Free Software Foundation, Inc., 51 Franklin St,
- * Fifth Floor, Boston, MA 02110-1301 USA
+ * version. MZmine is distributed in the hope that it will be useful, but
+ * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
+ * FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for more
+ * details. You should have received a copy of the GNU General Public License
+ * along with MZmine; if not, write to the Free Software Foundation, Inc., 51
+ * Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
 package net.sf.mzmine.methods.deisotoping.simplegrouper;
@@ -39,8 +33,8 @@ import javax.swing.JPanel;
  * 
  * @version 30 March 2006
  */
-class SimpleIsotopicPeaksGrouperParameterSetupDialog extends JDialog
-        implements ActionListener {
+class SimpleIsotopicPeaksGrouperParameterSetupDialog extends JDialog implements
+        ActionListener {
 
     // VARIABLES
 
@@ -69,7 +63,6 @@ class SimpleIsotopicPeaksGrouperParameterSetupDialog extends JDialog
     private JFormattedTextField txtMZTolerance;
 
     // Bottom: OK & cancel buttons
-    private JPanel pnlBottom;
     private JButton btnOK;
     private JButton btnCancel;
 
@@ -82,12 +75,9 @@ class SimpleIsotopicPeaksGrouperParameterSetupDialog extends JDialog
     /**
      * Initializes dialog
      * 
-     * @param generalParameters
-     *            MZmine GeneralParameters. There are required for determining
-     *            current peak measurement type
-     * @param _parameters
-     *            Current AlignmentResultExporter parameter settings
-     * 
+     * @param generalParameters MZmine GeneralParameters. There are required for
+     *            determining current peak measurement type
+     * @param _parameters Current AlignmentResultExporter parameter settings
      */
     public SimpleIsotopicPeaksGrouperParameterSetupDialog(Frame owner,
             SimpleIsotopicPeaksGrouperParameters _parameters) {

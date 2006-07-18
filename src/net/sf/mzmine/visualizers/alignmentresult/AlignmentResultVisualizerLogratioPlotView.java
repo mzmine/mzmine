@@ -56,8 +56,6 @@ import net.sf.mzmine.methods.alignment.AlignmentResult;
 import net.sf.mzmine.userinterface.components.Colorbar;
 import net.sf.mzmine.userinterface.dialogs.SelectTwoGroupsDialog;
 import net.sf.mzmine.userinterface.mainwindow.MainWindow;
-import net.sf.mzmine.userinterface.mainwindow.Statusbar;
-import net.sf.mzmine.util.GeneralParameters;
 import net.sf.mzmine.util.HeatMapColorPicker;
 import net.sf.mzmine.util.MathUtils;
 import net.sf.mzmine.util.TransferableImage;
@@ -82,7 +80,7 @@ public class AlignmentResultVisualizerLogratioPlotView extends JInternalFrame im
 	private int[][] heatmap_pal_waypointRGBs = { {0,255,0}, {0,255,0}, {0,0,0}, {255,0,0}, {255,0,0} };
 
 	private MainWindow mainWin;
-	private Statusbar statBar;
+	//private Statusbar statBar;
 
 	private AlignmentResult alignmentResult;
 
@@ -110,7 +108,7 @@ public class AlignmentResultVisualizerLogratioPlotView extends JInternalFrame im
 	 */
 	public AlignmentResultVisualizerLogratioPlotView(MainWindow _mainWin) {
 		mainWin = _mainWin;
-		statBar = mainWin.getStatusBar();
+		//statBar = mainWin.getStatusBar();
 
 		heatMap = new HeatMapColorPicker(heatmap_pal_waypoints, heatmap_pal_waypointRGBs);
 
@@ -886,7 +884,7 @@ public class AlignmentResultVisualizerLogratioPlotView extends JInternalFrame im
 				selectionLastClickMZ = -1;
 		    }
 		    // Clear status bar
-		    statBar.setStatusText("");
+		   
 		}
 
 
@@ -929,7 +927,7 @@ public class AlignmentResultVisualizerLogratioPlotView extends JInternalFrame im
 				repaint();
 
 		    }
-		    statBar.setStatusText("");
+		    
 
 		}
 
@@ -987,7 +985,7 @@ public class AlignmentResultVisualizerLogratioPlotView extends JInternalFrame im
 
 				repaint();
 			}
-			statBar.setStatusText("");
+			
 
 		}
 

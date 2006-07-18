@@ -29,7 +29,6 @@ import java.util.ArrayList;
 import java.util.Enumeration;
 import java.util.Hashtable;
 import java.util.Vector;
-import java.util.logging.Logger;
 
 import javax.swing.JDesktopPane;
 import javax.swing.JFrame;
@@ -38,10 +37,11 @@ import javax.swing.JLayeredPane;
 import javax.swing.JMenuItem;
 import javax.swing.JOptionPane;
 import javax.swing.JSplitPane;
+import javax.swing.border.EtchedBorder;
 import javax.swing.event.ListSelectionListener;
 
 import net.sf.mzmine.io.IOController;
-import net.sf.mzmine.io.RawDataFile;
+import net.sf.mzmine.io.MZmineOpenedFile;
 import net.sf.mzmine.main.MZmineModule;
 import net.sf.mzmine.methods.alignment.AlignmentResult;
 import net.sf.mzmine.taskcontrol.TaskController;
@@ -58,13 +58,9 @@ import net.sf.mzmine.visualizers.rawdata.RawDataVisualizer;
 public class MainWindow extends JFrame implements Desktop, MZmineModule,
         WindowListener {
 
-    private TaskController taskController;
-    private IOController ioController;
-    private Logger logger;
+    private JDesktopPane desktopPane;
 
-    private JDesktopPane desktop;
 
-    private Statusbar statBar;
 
     private JSplitPane split;
 
@@ -76,12 +72,6 @@ public class MainWindow extends JFrame implements Desktop, MZmineModule,
 
     private Hashtable<Integer, Vector<AlignmentResultVisualizer>> alignmentResultVisualizers;
 
-    private boolean busyFlag; // This flag is true when system is busy doing
-    // some computational stuff
-
-    private String dataDirectory; // Stores the last used directory for saving
-    // peak lists & alignment results
-
     private TaskProgressWindow taskList;
 
     public TaskProgressWindow getTaskList() {
@@ -89,13 +79,15 @@ public class MainWindow extends JFrame implements Desktop, MZmineModule,
     }
 
     private MainMenu menuBar;
+    
+    private Statusbar statusBar;
 
     public MainMenu getMainMenu() {
         return menuBar;
     }
 
     public void addInternalFrame(JInternalFrame frame) {
-        desktop.add(frame, JLayeredPane.DEFAULT_LAYER);
+        desktopPane.add(frame, JLayeredPane.DEFAULT_LAYER);
         // TODO: adjust frame position
         frame.addInternalFrameListener(itemSelector);
         frame.setVisible(true);
@@ -105,7 +97,7 @@ public class MainWindow extends JFrame implements Desktop, MZmineModule,
      * This method returns the desktop
      */
     public JDesktopPane getDesktopPane() {
-        return desktop;
+        return desktopPane;
     }
 
     public ItemSelector getItemSelector() {
@@ -203,7 +195,7 @@ public class MainWindow extends JFrame implements Desktop, MZmineModule,
         JInternalFrame[] frames = getVisibleFrames();
         if (frames.length == 0)
             return;
-        Rectangle dBounds = desktop.getBounds();
+        Rectangle dBounds = desktopPane.getBounds();
 
         int cols = (int) Math.sqrt(frames.length);
         int rows = (int) (Math.ceil(((double) frames.length) / cols));
@@ -238,7 +230,7 @@ public class MainWindow extends JFrame implements Desktop, MZmineModule,
         JInternalFrame[] frames = getVisibleFrames();
         if (frames.length == 0)
             return;
-        Rectangle dBounds = desktop.getBounds();
+        Rectangle dBounds = desktopPane.getBounds();
         int separation = 24;
         int margin = (frames.length - 1) * separation;
         int width = dBounds.width - margin;
@@ -273,9 +265,7 @@ public class MainWindow extends JFrame implements Desktop, MZmineModule,
     public void windowDeactivated(WindowEvent e) {
     }
 
-    public Statusbar getStatusBar() {
-        return statBar;
-    }
+
 
     /*
      * public RunSelector getRunSelector() { //return runPick; return null; }
@@ -476,7 +466,7 @@ public class MainWindow extends JFrame implements Desktop, MZmineModule,
     public void exitMZmine() {
 
         // Ask if use really wants to quit
-        int selectedValue = JOptionPane.showInternalConfirmDialog(desktop,
+        int selectedValue = JOptionPane.showInternalConfirmDialog(desktopPane,
                 "Are you sure you want to exit MZmine?", "Exiting...",
                 JOptionPane.YES_NO_OPTION, JOptionPane.WARNING_MESSAGE);
 
@@ -486,6 +476,10 @@ public class MainWindow extends JFrame implements Desktop, MZmineModule,
         dispose();
         System.exit(0);
 
+    }
+    
+    public void setStatusBarText(String text) {
+        statusBar.setStatusText(text);
     }
 
     public void displayErrorMessage(String msg) {
@@ -499,25 +493,19 @@ public class MainWindow extends JFrame implements Desktop, MZmineModule,
         menuBar.addMenuItem(parentMenu, newItem);
     }
 
-    /**
-     * @see net.sf.mzmine.userinterface.Desktop#setStatusBarString(java.lang.String)
-     */
-    public void setStatusBarText(String msg) {
-        statBar.setStatusText(msg);
 
-    }
 
     /**
-     * @see net.sf.mzmine.userinterface.Desktop#getSelectedRawData()
+     * @see net.sf.mzmine.userinterface.Desktop#getSelectedDataFiles()
      */
-    public RawDataFile[] getSelectedRawData() {
+    public MZmineOpenedFile[] getSelectedDataFiles() {
         return itemSelector.getSelectedRawData();
     }
 
     /**
-     * @see net.sf.mzmine.userinterface.Desktop#getFirstSelectedRawData()
+     * @see net.sf.mzmine.userinterface.Desktop#getFirstSelectedDataFile()
      */
-    public RawDataFile getFirstSelectedRawData() {
+    public MZmineOpenedFile getFirstSelectedDataFile() {
         return itemSelector.getFirstSelectedRawData();
     }
 
@@ -534,18 +522,7 @@ public class MainWindow extends JFrame implements Desktop, MZmineModule,
      *      net.sf.mzmine.userinterface.Desktop, java.util.logging.Logger)
      */
     public void initModule(IOController ioController,
-            TaskController taskController, Desktop d, Logger logger) {
-        this.ioController = ioController;
-        this.taskController = taskController;
-        this.logger = logger;
-
-        // Setup data structures
-        // ---------------------
-
-        // Load default parameter settings
-        // parameterStorage.readParametesFromFile(settingsFilename); (not
-        // automatic)
-
+            TaskController taskController, Desktop d) {
         // Initialize structures for storing visualizers
         rawDataVisualizers = new Hashtable<Integer, Vector<RawDataVisualizer>>();
         alignmentResultVisualizers = new Hashtable<Integer, Vector<AlignmentResultVisualizer>>();
@@ -555,8 +532,7 @@ public class MainWindow extends JFrame implements Desktop, MZmineModule,
 
         // Initialize options window (controller for parameter settings)
 
-        // Initialize status bar
-        statBar = new Statusbar(this);
+
 
         // Initialize item selector
         itemSelector = new ItemSelector(this);
@@ -569,23 +545,28 @@ public class MainWindow extends JFrame implements Desktop, MZmineModule,
         menuBar = new MainMenu(ioController, this);
 
         setJMenuBar(menuBar);
+        
+
 
         // Place objects on main window
-        desktop = new JDesktopPane();
+        desktopPane = new JDesktopPane();
+        
         split = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, itemSelector,
-                desktop);
+                desktopPane);
 
-        desktop.setDragMode(JDesktopPane.OUTLINE_DRAG_MODE);
+        desktopPane.setDragMode(JDesktopPane.OUTLINE_DRAG_MODE);
 
+        desktopPane.setBorder(new EtchedBorder(EtchedBorder.RAISED));
         Container c = getContentPane();
         c.setLayout(new BorderLayout());
         c.add(split, BorderLayout.CENTER);
-        c.add(statBar, BorderLayout.SOUTH);
+        
+        statusBar = new Statusbar(this);
+        c.add(statusBar, BorderLayout.SOUTH);
+
 
         // Initialize window listener for responding to user events
         addWindowListener(this);
-
-        // menuBar.updateMenuAvailability();
 
         pack();
 
@@ -598,10 +579,10 @@ public class MainWindow extends JFrame implements Desktop, MZmineModule,
 
         setTitle("MZmine");
 
-        statBar.setStatusText("Welcome to MZmine!");
+        statusBar.setStatusText("Welcome to MZmine!");
 
         taskList = new TaskProgressWindow((TaskControllerImpl) taskController);
-        desktop.add(taskList, javax.swing.JLayeredPane.DEFAULT_LAYER);
+        desktopPane.add(taskList, javax.swing.JLayeredPane.DEFAULT_LAYER);
 
     }
 
@@ -613,9 +594,9 @@ public class MainWindow extends JFrame implements Desktop, MZmineModule,
     }
 
     /**
-     * @see net.sf.mzmine.userinterface.Desktop#isRawDataSelected()
+     * @see net.sf.mzmine.userinterface.Desktop#isDataFileSelected()
      */
-    public boolean isRawDataSelected() {
+    public boolean isDataFileSelected() {
         return itemSelector.getSelectedRawData().length > 0;
     }
 
@@ -643,7 +624,7 @@ public class MainWindow extends JFrame implements Desktop, MZmineModule,
      * @see net.sf.mzmine.userinterface.Desktop#getSelectedFrame()
      */
     public JInternalFrame getSelectedFrame() {
-        return desktop.getSelectedFrame();
+        return desktopPane.getSelectedFrame();
     }
 
     /**
@@ -651,7 +632,7 @@ public class MainWindow extends JFrame implements Desktop, MZmineModule,
      */
     public JInternalFrame[] getVisibleFrames() {
 
-        JInternalFrame[] allFrames = desktop.getAllFrames();
+        JInternalFrame[] allFrames = desktopPane.getAllFrames();
 
         ArrayList<JInternalFrame> visibleFrames = new ArrayList<JInternalFrame>();
         for (JInternalFrame frame : allFrames)
@@ -666,7 +647,7 @@ public class MainWindow extends JFrame implements Desktop, MZmineModule,
      */
     public JInternalFrame[] getVisibleFrames(Class frameClass) {
 
-        JInternalFrame[] allFrames = desktop.getAllFrames();
+        JInternalFrame[] allFrames = desktopPane.getAllFrames();
 
         ArrayList<JInternalFrame> visibleFrames = new ArrayList<JInternalFrame>();
         for (JInternalFrame frame : allFrames)

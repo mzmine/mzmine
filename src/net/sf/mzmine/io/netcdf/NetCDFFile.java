@@ -28,14 +28,13 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Hashtable;
 import java.util.Iterator;
-import java.util.Vector;
+import java.util.logging.Logger;
 
 import net.sf.mzmine.data.Scan;
 import net.sf.mzmine.io.RawDataFile;
 import net.sf.mzmine.io.RawDataFileWriter;
+import net.sf.mzmine.io.IOController.PreloadLevel;
 import net.sf.mzmine.io.mzxml.MZXMLFileWriter;
-import net.sf.mzmine.methods.Method;
-import net.sf.mzmine.methods.MethodParameters;
 import net.sf.mzmine.util.CollectionUtils;
 
 /**
@@ -43,13 +42,14 @@ import net.sf.mzmine.util.CollectionUtils;
  */
 public class NetCDFFile implements RawDataFile {
 
-    private File currentFile;
+    private Logger logger = Logger.getLogger(this.getClass().getName());
+    
+    private File realFile;
 
     private PreloadLevel preloadLevel;
     private StringBuffer dataDescription;
 
-    private Vector<Operation> history;
-
+    
     private int numOfScans = 0;
 
     private double dataMinMZ, dataMaxMZ, dataMinRT, dataMaxRT;
@@ -70,26 +70,14 @@ public class NetCDFFile implements RawDataFile {
      */
     private ArrayList<Integer> scanNumbers;
 
+
     /**
      * 
      */
     NetCDFFile(File currentFile, PreloadLevel preloadLevel) {
-        this(currentFile, preloadLevel, null);
-    }
 
-    /**
-     * 
-     */
-    NetCDFFile(File currentFile, PreloadLevel preloadLevel,
-            Vector<Operation> history) {
-
-        this.currentFile = currentFile;
+        this.realFile = currentFile;
         this.preloadLevel = preloadLevel;
-        if (history == null) {
-            this.history = new Vector<Operation>();
-        } else {
-            this.history = history;
-        }
 
         dataDescription = new StringBuffer();
         scanNumbers = new ArrayList<Integer>();
@@ -98,30 +86,10 @@ public class NetCDFFile implements RawDataFile {
             scans = new Hashtable<Integer, Scan>();
     }
 
-    /**
-     * @see net.sf.mzmine.io.RawDataFile#getOriginalFile()
-     */
-    public File getOriginalFile() {
-        if (history.size() == 0)
-            return currentFile;
-        return history.get(0).previousFileName;
-    }
 
-    public File getCurrentFile() {
-        return currentFile;
-    }
 
-    public Vector<Operation> getHistory() {
-        return history;
-    }
-
-    public void addHistory(File previousFile, Method processingMethod,
-            MethodParameters parameters) {
-        Operation o = new Operation();
-        o.previousFileName = previousFile;
-        o.processingMethod = processingMethod;
-        o.parameters = parameters;
-        history.add(o);
+    public File getFile() {
+        return realFile;
     }
 
     /**
@@ -225,7 +193,7 @@ public class NetCDFFile implements RawDataFile {
     }
 
     public String toString() {
-        return getOriginalFile().getName();
+        return realFile.getName();
     }
 
     /**
@@ -327,13 +295,20 @@ public class NetCDFFile implements RawDataFile {
             workingCopy = File.createTempFile("MZmine", null);
             workingCopy.deleteOnExit();
         } catch (SecurityException e) {
-            // Logger.putFatal("Could not prepare newly created temporary copy for deletion on exit.");
+            logger.severe("Could not prepare newly created temporary copy for deletion on exit.");
             throw new IOException(
                     "Could not prepare newly created temporary copy for deletion on exit.");
         }
 
         // TODO: implement NetCDFFileWriter
         return new MZXMLFileWriter(this, workingCopy, preloadLevel);
+    }
+
+    /**
+     * @see net.sf.mzmine.io.RawDataFile#getPrecursorMZ(int)
+     */
+    public double getPrecursorMZ(int scanNumber) {
+        return -1;
     }
 
 }

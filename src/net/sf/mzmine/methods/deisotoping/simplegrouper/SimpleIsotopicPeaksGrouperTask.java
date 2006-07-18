@@ -1,43 +1,33 @@
 /*
- * Copyright 2006 The MZmine Development Team
- * 
- * This file is part of MZmine.
- * 
+ * Copyright 2006 The MZmine Development Team This file is part of MZmine.
  * MZmine is free software; you can redistribute it and/or modify it under the
  * terms of the GNU General Public License as published by the Free Software
  * Foundation; either version 2 of the License, or (at your option) any later
- * version.
- * 
- * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY
- * WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR
- * A PARTICULAR PURPOSE. See the GNU General Public License for more details.
- * 
- * You should have received a copy of the GNU General Public License along with
- * MZmine; if not, write to the Free Software Foundation, Inc., 51 Franklin St,
- * Fifth Floor, Boston, MA 02110-1301 USA
+ * version. MZmine is distributed in the hope that it will be useful, but
+ * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
+ * FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for more
+ * details. You should have received a copy of the GNU General Public License
+ * along with MZmine; if not, write to the Free Software Foundation, Inc., 51
+ * Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
 package net.sf.mzmine.methods.deisotoping.simplegrouper;
 
-import java.io.IOException;
-import java.util.Vector;
-import java.util.TreeSet;
-import java.util.Iterator;
 import java.util.Comparator;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.Set;
+import java.util.TreeSet;
+import java.util.Vector;
 
-import net.sf.mzmine.taskcontrol.Task;
-import net.sf.mzmine.data.IsotopePattern;
 import net.sf.mzmine.data.Peak;
 import net.sf.mzmine.data.PeakList;
-import net.sf.mzmine.data.Scan;
-import net.sf.mzmine.data.impl.SimplePeak;
 import net.sf.mzmine.data.impl.SimplePeakList;
+import net.sf.mzmine.io.MZmineOpenedFile;
 import net.sf.mzmine.io.RawDataFile;
 import net.sf.mzmine.methods.deisotoping.GrouperIsotopePattern;
 import net.sf.mzmine.methods.deisotoping.GrouperPeak;
-import net.sf.mzmine.util.MathUtils;
+import net.sf.mzmine.taskcontrol.Task;
 
 /**
  * 
@@ -46,6 +36,7 @@ class SimpleIsotopicPeaksGrouperTask implements Task {
 
     private static final double neutronMW = 1.008665;
 
+    private MZmineOpenedFile dataFile;
     private RawDataFile rawDataFile;
     private SimpleIsotopicPeaksGrouperParameters parameters;
     private TaskStatus status;
@@ -61,11 +52,12 @@ class SimpleIsotopicPeaksGrouperTask implements Task {
      * @param rawDataFile
      * @param parameters
      */
-    SimpleIsotopicPeaksGrouperTask(RawDataFile rawDataFile,
+    SimpleIsotopicPeaksGrouperTask(MZmineOpenedFile dataFile,
             PeakList currentPeakList,
             SimpleIsotopicPeaksGrouperParameters parameters) {
         status = TaskStatus.WAITING;
-        this.rawDataFile = rawDataFile;
+        this.dataFile = dataFile;
+        this.rawDataFile = dataFile.getCurrentFile();
         this.parameters = parameters;
         this.currentPeakList = currentPeakList;
 
@@ -108,7 +100,7 @@ class SimpleIsotopicPeaksGrouperTask implements Task {
      */
     public Object getResult() {
         Object[] results = new Object[3];
-        results[0] = rawDataFile;
+        results[0] = dataFile;
         results[1] = processedPeakList;
         results[2] = parameters;
         return results;
@@ -206,17 +198,13 @@ class SimpleIsotopicPeaksGrouperTask implements Task {
     /**
      * Fits isotope pattern around one peak.
      * 
-     * @param p
-     *            Pattern is fitted around this peak
-     * @param charge
-     *            Charge state of the fitted pattern
-     * @param parameters
-     *            User-defined parameters
-     * @param allPeaks
-     *            Array containing all peaks
-     * @param assignPeaks
-     *            If true, all fitted peaks are assigned to same isotope pattern
-     *            and numbered according to their position within the pattern.
+     * @param p Pattern is fitted around this peak
+     * @param charge Charge state of the fitted pattern
+     * @param parameters User-defined parameters
+     * @param allPeaks Array containing all peaks
+     * @param assignPeaks If true, all fitted peaks are assigned to same isotope
+     *            pattern and numbered according to their position within the
+     *            pattern.
      * @return Array of peaks in same pattern
      */
     private Peak[] fitPattern(Peak p, int charge,
@@ -250,17 +238,12 @@ class SimpleIsotopicPeaksGrouperTask implements Task {
     /**
      * Helper method for fitPattern. Fits only one half of the pattern.
      * 
-     * @param p
-     *            Pattern is fitted around this peak
-     * @param charge
-     *            Charge state of the fitted pattern
-     * @param direction
-     *            Defines which half to fit: -1=fit to peaks before start M/Z,
-     *            +1=fit to peaks after start M/Z
-     * @param allPeaks
-     *            Vector of all peaks
-     * @param fittedPeaks
-     *            All matching peaks will be added to this set
+     * @param p Pattern is fitted around this peak
+     * @param charge Charge state of the fitted pattern
+     * @param direction Defines which half to fit: -1=fit to peaks before start
+     *            M/Z, +1=fit to peaks after start M/Z
+     * @param allPeaks Vector of all peaks
+     * @param fittedPeaks All matching peaks will be added to this set
      */
     private void fitHalfPattern(Peak p, int charge, int direction,
             SimpleIsotopicPeaksGrouperParameters parameters, Peak[] allPeaks,

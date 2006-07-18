@@ -1,24 +1,24 @@
 /*
  * Copyright 2006 The MZmine Development Team
- *
+ * 
  * This file is part of MZmine.
- *
+ * 
  * MZmine is free software; you can redistribute it and/or modify it under the
  * terms of the GNU General Public License as published by the Free Software
  * Foundation; either version 2 of the License, or (at your option) any later
  * version.
- *
+ * 
  * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY
  * WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR
  * A PARTICULAR PURPOSE. See the GNU General Public License for more details.
- *
+ * 
  * You should have received a copy of the GNU General Public License along with
  * MZmine; if not, write to the Free Software Foundation, Inc., 51 Franklin St,
  * Fifth Floor, Boston, MA 02110-1301 USA
  */
 
 /**
- *
+ * 
  */
 package net.sf.mzmine.io.mzxml;
 
@@ -28,39 +28,45 @@ import java.util.logging.Logger;
 import javax.xml.parsers.SAXParser;
 import javax.xml.parsers.SAXParserFactory;
 
-import net.sf.mzmine.io.RawDataFile.PreloadLevel;
+import net.sf.mzmine.io.MZmineOpenedFile;
+import net.sf.mzmine.io.IOController.PreloadLevel;
+import net.sf.mzmine.io.impl.MZmineOpenedFileImpl;
 import net.sf.mzmine.taskcontrol.DistributableTask;
+import net.sf.mzmine.taskcontrol.Task.TaskStatus;
 
 import org.xml.sax.Attributes;
 import org.xml.sax.SAXException;
 import org.xml.sax.helpers.DefaultHandler;
 
 /**
- *
+ * 
  */
 public class MZXMLFileOpeningTask extends DefaultHandler implements
         DistributableTask {
 
+    private Logger logger = Logger.getLogger(this.getClass().getName());
+
     private File originalFile;
     private MZXMLFile buildingFile;
+    private MZmineOpenedFile newMZmineFile;
     private TaskStatus status;
     private int totalScans;
     private int parsedScans;
     private String errorMessage;
-    private StringBuffer charBuffer;
+    private StringBuilder charBuffer;
     private int scanIndexID; // While reading <offset> tag for a scan index,
     private boolean readingIndex;
     private MZXMLScan buildingScan;
 
     /**
-     *
+     * 
      */
     public MZXMLFileOpeningTask(File fileToOpen, PreloadLevel preloadLevel) {
 
         originalFile = fileToOpen;
         status = TaskStatus.WAITING;
 
-        charBuffer = new StringBuffer(256);
+        charBuffer = new StringBuilder(2048);
 
         buildingFile = new MZXMLFile(fileToOpen, preloadLevel);
 
@@ -97,8 +103,8 @@ public class MZXMLFileOpeningTask extends DefaultHandler implements
     /**
      * @see net.sf.mzmine.taskcontrol.Task#getResult()
      */
-    public Object getResult() {
-        return buildingFile;
+    public MZmineOpenedFile getResult() {
+        return newMZmineFile;
     }
 
     /**
@@ -115,19 +121,25 @@ public class MZXMLFileOpeningTask extends DefaultHandler implements
         // TODO: check file header?
 
         try {
-            
+
             SAXParser saxParser = factory.newSAXParser();
-            
+
             saxParser.parse(originalFile, this);
 
+            newMZmineFile = new MZmineOpenedFileImpl(buildingFile,
+                    buildingFile.getDataDescription());
+
         } catch (Throwable e) {
-            /* catch Throwable instead of Exception, to catch errors like OutOfMemoryError */
+            /*
+             * catch Throwable instead of Exception, to catch errors like
+             * OutOfMemoryError
+             */
 
             /* we may already have set the status to CANCELED */
             if (status == TaskStatus.PROCESSING)
                 status = TaskStatus.ERROR;
             errorMessage = e.toString();
-            
+
             // discard the parsed data
             buildingFile = null;
 
@@ -140,8 +152,8 @@ public class MZXMLFileOpeningTask extends DefaultHandler implements
             return;
         }
 
-        //Logger.put("Finished parsing " + originalFile + ", parsed "
-        //        + parsedScans + " scans");
+        logger.finest("Finished parsing " + originalFile + ", parsed "
+                + parsedScans + " scans");
         status = TaskStatus.FINISHED;
 
     }
@@ -263,7 +275,7 @@ public class MZXMLFileOpeningTask extends DefaultHandler implements
 
     /**
      * characters()
-     *
+     * 
      * @see org.xml.sax.ContentHandler#characters(char[], int, int)
      */
     public void characters(char buf[], int offset, int len) throws SAXException {

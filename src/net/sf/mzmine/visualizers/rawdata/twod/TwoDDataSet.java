@@ -99,7 +99,7 @@ class TwoDDataSet extends AbstractXYZDataset implements RawDataAcceptor {
         Task updateTask = new RawDataRetrievalTask(rawDataFile, scanNumbers, "Updating 2D visualizer of " + rawDataFile,
                 this);
 
-        taskController.addTask(updateTask, TaskPriority.HIGH, this.visualizer);
+        taskController.addTask(updateTask, TaskPriority.HIGH, visualizer);
 
     }
 
@@ -178,14 +178,14 @@ class TwoDDataSet extends AbstractXYZDataset implements RawDataAcceptor {
      * @see org.jfree.data.xy.XYDataset#getX(int, int)
      */
     public Number getX(int series, int item) {
-        return (rtMin + (rtStep * (item / bitmapSizeY))) * 1000;
+        return (rtMin + (rtStep * (item / bitmapSizeY)));
     }
 
     /**
      * @see org.jfree.data.xy.XYDataset#getY(int, int)
      */
     public Number getY(int series, int item) {
-        if (mzMin + (mzStep * (item % bitmapSizeY)) < 200) System.out.println(mzMin + (mzStep * (item % bitmapSizeY)));
+        //if (mzMin + (mzStep * (item % bitmapSizeY)) < 200) System.out.println(mzMin + (mzStep * (item % bitmapSizeY)));
         return mzMin + (mzStep * (item % bitmapSizeY));
     }
     
@@ -194,7 +194,7 @@ class TwoDDataSet extends AbstractXYZDataset implements RawDataAcceptor {
     }
     
     double getRTStep() {
-        return rtStep * 1000;
+        return rtStep;
     }
     
     double getMZStep() {

@@ -41,9 +41,9 @@ import net.sf.mzmine.userinterface.mainwindow.MainWindow;
  */
 public class TaskControllerImpl implements TaskController, MZmineModule, Runnable {
 
-    private IOController ioController;
+    private Logger logger = Logger.getLogger(this.getClass().getName());
+    
     private Desktop desktop;
-    private Logger logger;
     
     // TODO: always create a worker thread for high priority tasks
     
@@ -223,10 +223,8 @@ public class TaskControllerImpl implements TaskController, MZmineModule, Runnabl
     /**
      * @see net.sf.mzmine.main.MZmineModule#initModule(net.sf.mzmine.io.IOController, net.sf.mzmine.taskcontrol.TaskController, net.sf.mzmine.userinterface.Desktop, java.util.logging.Logger)
      */
-    public void initModule(IOController ioController, TaskController taskController, Desktop desktop, Logger logger) {
-        this.ioController = ioController;
+    public void initModule(IOController ioController, TaskController taskController, Desktop desktop) {
         this.desktop = desktop;
-        this.logger = logger;
         
     }
 

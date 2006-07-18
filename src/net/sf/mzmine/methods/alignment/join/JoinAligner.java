@@ -21,6 +21,7 @@ package net.sf.mzmine.methods.alignment.join;
 
 import java.util.logging.Logger;
 
+import net.sf.mzmine.io.MZmineOpenedFile;
 import net.sf.mzmine.io.RawDataFile;
 import net.sf.mzmine.methods.Method;
 import net.sf.mzmine.methods.MethodParameters;
@@ -78,6 +79,14 @@ public class JoinAligner implements Method {
     public MethodParameters askParameters() {
         // TODO Auto-generated method stub
         return null;
+    }
+
+    /**
+     * @see net.sf.mzmine.methods.Method#runMethod(net.sf.mzmine.methods.MethodParameters, net.sf.mzmine.io.MZmineOpenedFile[], net.sf.mzmine.methods.alignment.AlignmentResult[])
+     */
+    public void runMethod(MethodParameters parameters, MZmineOpenedFile[] dataFiles, AlignmentResult[] alignmentResults) {
+        // TODO Auto-generated method stub
+        
     }
 
 

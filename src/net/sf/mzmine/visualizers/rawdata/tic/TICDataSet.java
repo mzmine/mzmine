@@ -25,11 +25,13 @@ package net.sf.mzmine.visualizers.rawdata.tic;
 import java.util.Date;
 
 import net.sf.mzmine.data.Scan;
+import net.sf.mzmine.io.MZmineOpenedFile;
 import net.sf.mzmine.io.RawDataAcceptor;
 import net.sf.mzmine.io.RawDataFile;
 import net.sf.mzmine.io.util.RawDataRetrievalTask;
 import net.sf.mzmine.taskcontrol.Task;
 import net.sf.mzmine.taskcontrol.TaskController;
+import net.sf.mzmine.taskcontrol.Task.TaskPriority;
 import net.sf.mzmine.util.ScanUtils;
 import net.sf.mzmine.visualizers.rawdata.tic.TICVisualizerWindow.PlotType;
 
@@ -45,6 +47,7 @@ class TICDataSet extends DefaultTableXYDataset implements RawDataAcceptor {
     private static final int REDRAW_INTERVAL = 100;
 
     private TICVisualizerWindow visualizer;
+    private MZmineOpenedFile dataFile;
     private RawDataFile rawDataFile;
     private int[] scanNumbers;
     private double[] mzValues;
@@ -53,15 +56,16 @@ class TICDataSet extends DefaultTableXYDataset implements RawDataAcceptor {
 
     private Date lastRedrawTime = new Date();
 
-    TICDataSet(TaskController taskController, RawDataFile rawDataFile, int scanNumbers[], double mzMin, double mzMax, TICVisualizerWindow visualizer) {
+    TICDataSet(TaskController taskController, MZmineOpenedFile dataFile, int scanNumbers[], double mzMin, double mzMax, TICVisualizerWindow visualizer) {
 
         this.visualizer = visualizer;
         this.mzMin = mzMin;
         this.mzMax = mzMax;
-        this.rawDataFile = rawDataFile;
+        this.dataFile = dataFile;
+        this.rawDataFile = dataFile.getCurrentFile();
         this.scanNumbers = scanNumbers;
         
-        series = new XYSeries(rawDataFile.getOriginalFile().getName(), false,
+        series = new XYSeries(rawDataFile.toString(), false,
                 false);
 
         addSeries(series);
@@ -72,7 +76,7 @@ class TICDataSet extends DefaultTableXYDataset implements RawDataAcceptor {
         Task updateTask = new RawDataRetrievalTask(rawDataFile, scanNumbers,
                 "Updating TIC visualizer of " + rawDataFile, this);
 
-        taskController.addTask(updateTask, visualizer);
+        taskController.addTask(updateTask, TaskPriority.HIGH, visualizer);
         
     }
 
@@ -93,8 +97,8 @@ class TICDataSet extends DefaultTableXYDataset implements RawDataAcceptor {
         return mzValues[index];
     }
 
-    RawDataFile getRawDataFile() {
-        return rawDataFile;
+    MZmineOpenedFile getDataFile() {
+        return dataFile;
     }
 
     /**
@@ -136,7 +140,7 @@ class TICDataSet extends DefaultTableXYDataset implements RawDataAcceptor {
         if (scan.getScanNumber() == scanNumbers[scanNumbers.length - 1])
             notify = true;
 
-        series.add(scan.getRetentionTime() * 1000, totalIntensity, notify);
+        series.add(scan.getRetentionTime(), totalIntensity, notify);
 
 
     }

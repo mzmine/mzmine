@@ -31,10 +31,11 @@ import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
 
 import net.sf.mzmine.io.IOController;
-import net.sf.mzmine.io.RawDataFile;
+import net.sf.mzmine.io.MZmineOpenedFile;
 import net.sf.mzmine.project.MZmineProject;
 import net.sf.mzmine.userinterface.Desktop;
 import net.sf.mzmine.userinterface.Desktop.MZmineMenu;
+import net.sf.mzmine.userinterface.dialogs.AboutDialog;
 import net.sf.mzmine.userinterface.dialogs.FileOpenDialog;
 import net.sf.mzmine.util.GUIUtils;
 
@@ -319,8 +320,8 @@ public class MainMenu extends JMenuBar implements ActionListener, ListSelectionL
         if (src == fileClose) {
 
             // Grab selected raw data files
-            RawDataFile[] selectedFiles = desktop.getSelectedRawData();
-            for (RawDataFile file : selectedFiles)
+            MZmineOpenedFile[] selectedFiles = desktop.getSelectedDataFiles();
+            for (MZmineOpenedFile file : selectedFiles)
                 MZmineProject.getCurrentProject().removeFile(file);
 
         }
@@ -336,6 +337,12 @@ public class MainMenu extends JMenuBar implements ActionListener, ListSelectionL
             MainWindow mainWindow = (MainWindow) desktop;
             mainWindow.cascadeInternalFrames();
         }
+        
+        // Help->About
+        if (src == hlpAbout) {
+            AboutDialog dialog = new AboutDialog(desktop);
+            dialog.setVisible(true);
+        }
 
     }
 
@@ -343,7 +350,7 @@ public class MainMenu extends JMenuBar implements ActionListener, ListSelectionL
      * @see javax.swing.event.ListSelectionListener#valueChanged(javax.swing.event.ListSelectionEvent)
      */
     public void valueChanged(ListSelectionEvent e) {
-        fileClose.setEnabled(desktop.isRawDataSelected());
+        fileClose.setEnabled(desktop.isDataFileSelected());
     }
 
     /**

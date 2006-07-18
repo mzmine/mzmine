@@ -32,8 +32,6 @@ import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JRadioButton;
 
-import net.sf.mzmine.util.GeneralParameters;
-
 
 /**
  * This class represent a dialog for adjusting parameter values for alignment result exporting
@@ -99,7 +97,7 @@ public class AlignmentResultExporterParameterSetupDialog extends JDialog impleme
 
 	// Parameters
 	private AlignmentResultExporterParameters parameters;
-	private GeneralParameters generalParameters;
+	//private GeneralParameters generalParameters;
 
 	// Exit code (1=OK, -1=Cancel)
 	private int exitCode = -1;
@@ -112,9 +110,9 @@ public class AlignmentResultExporterParameterSetupDialog extends JDialog impleme
      * @param	_parameters				Current AlignmentResultExporter parameter settings
      *
      */
-    public AlignmentResultExporterParameterSetupDialog(GeneralParameters _generalParameters, AlignmentResultExporterParameters _parameters) {
+    public AlignmentResultExporterParameterSetupDialog( AlignmentResultExporterParameters _parameters) {
 
-		generalParameters = _generalParameters;
+		//generalParameters = _generalParameters;
 		parameters = _parameters;
 
 		// Build the form
@@ -159,7 +157,7 @@ public class AlignmentResultExporterParameterSetupDialog extends JDialog impleme
 		if (src == rbExportTypeCompact) {
 
 			// Set selections to COMPACT
-			parameters.setExportType(AlignmentResultExporterParameters.EXPORTTYPE_COMPACT, generalParameters);
+	//		parameters.setExportType(AlignmentResultExporterParameters.EXPORTTYPE_COMPACT, generalParameters);
 			getSettingsToForm();
 
 		}
@@ -168,7 +166,7 @@ public class AlignmentResultExporterParameterSetupDialog extends JDialog impleme
 		if (src == rbExportTypeWide) {
 
 			// Set selections to WIDE
-			parameters.setExportType(AlignmentResultExporterParameters.EXPORTTYPE_WIDE, generalParameters);
+		//	parameters.setExportType(AlignmentResultExporterParameters.EXPORTTYPE_WIDE, generalParameters);
 			getSettingsToForm();
 
 		}
@@ -176,8 +174,8 @@ public class AlignmentResultExporterParameterSetupDialog extends JDialog impleme
 		// CUSTOM radio button
 		if (src == rbExportTypeCustom) {
 
-			// Set selections to CUSTOM
-			parameters.setExportType(AlignmentResultExporterParameters.EXPORTTYPE_CUSTOM, generalParameters);
+		//	// Set selections to CUSTOM
+		//	parameters.setExportType(AlignmentResultExporterParameters.EXPORTTYPE_CUSTOM, generalParameters);
 			getSettingsToForm();
 		}
 

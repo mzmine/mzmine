@@ -1,54 +1,58 @@
 /*
  * Copyright 2006 The MZmine Development Team
- *
+ * 
  * This file is part of MZmine.
- *
+ * 
  * MZmine is free software; you can redistribute it and/or modify it under the
  * terms of the GNU General Public License as published by the Free Software
  * Foundation; either version 2 of the License, or (at your option) any later
  * version.
- *
+ * 
  * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY
  * WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR
  * A PARTICULAR PURPOSE. See the GNU General Public License for more details.
- *
+ * 
  * You should have received a copy of the GNU General Public License along with
  * MZmine; if not, write to the Free Software Foundation, Inc., 51 Franklin St,
  * Fifth Floor, Boston, MA 02110-1301 USA
  */
 
 /**
- *
+ * 
  */
 package net.sf.mzmine.io.netcdf;
 
 import java.io.File;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import net.sf.mzmine.data.Scan;
-import net.sf.mzmine.io.RawDataFile.PreloadLevel;
+import net.sf.mzmine.io.MZmineOpenedFile;
+import net.sf.mzmine.io.IOController.PreloadLevel;
+import net.sf.mzmine.io.impl.MZmineOpenedFileImpl;
 import net.sf.mzmine.taskcontrol.DistributableTask;
-
+import net.sf.mzmine.taskcontrol.Task.TaskStatus;
 
 /**
- *
+ * 
  */
 public class NetCDFFileOpeningTask implements DistributableTask {
+
+    private Logger logger = Logger.getLogger(this.getClass().getName());
 
     private File originalFile;
     private TaskStatus status;
     private String errorMessage;
 
-	private int parsedScans;
-	private int totalScans;
+    private int parsedScans;
+    private int totalScans;
 
-	private NetCDFFile buildingFile;
-	private Scan buildingScan;
-
-
+    private NetCDFFile buildingFile;
+    private MZmineOpenedFile newMZmineFile;
+    private Scan buildingScan;
 
     /**
-     *
+     * 
      */
     public NetCDFFileOpeningTask(File fileToOpen, PreloadLevel preloadLevel) {
         originalFile = fileToOpen;
@@ -88,8 +92,8 @@ public class NetCDFFileOpeningTask implements DistributableTask {
     /**
      * @see net.sf.mzmine.taskcontrol.Task#getResult()
      */
-    public Object getResult() {
-        return buildingFile;
+    public MZmineOpenedFile getResult() {
+        return newMZmineFile;
     }
 
     /**
@@ -97,48 +101,50 @@ public class NetCDFFileOpeningTask implements DistributableTask {
      */
     public void run() {
 
-		// Update task status
-		status = TaskStatus.PROCESSING;
+        // Update task status
+        status = TaskStatus.PROCESSING;
 
-		try {
+        try {
 
-			// Initialize parser
-			NetCDFFileParser cdfParser = new NetCDFFileParser(originalFile);
-			buildingFile.addParser(cdfParser);
+            // Initialize parser
+            NetCDFFileParser cdfParser = new NetCDFFileParser(originalFile);
+            buildingFile.addParser(cdfParser);
 
-			// Open netCDF file and read general information
-			cdfParser.openFile();
-			cdfParser.readGeneralInformation();
+            // Open netCDF file and read general information
+            cdfParser.openFile();
+            cdfParser.readGeneralInformation();
 
+            // Parse scans
+            totalScans = cdfParser.getTotalScans();
+            for (int i = 0; i < totalScans; i++) {
+                buildingScan = cdfParser.parseScan(i);
+                buildingFile.addScan(buildingScan);
+                parsedScans++;
 
-			// Parse scans
-			totalScans = cdfParser.getTotalScans();
-			for (int i=0; i<totalScans; i++) {
-				buildingScan = cdfParser.parseScan(i);
-				buildingFile.addScan(buildingScan);
-				parsedScans++;
+                // Check if cancel is requested
+                if (status == TaskStatus.CANCELED) {
+                    // Close netCDF file
+                    cdfParser.closeFile();
+                    return;
+                }
+            }
 
-				// Check if cancel is requested
-				if (status == TaskStatus.CANCELED) {
-					// Close netCDF file
-					cdfParser.closeFile();
-					return;
-				}
-			}
+            // Close netCDF file
+            cdfParser.closeFile();
 
-			// Close netCDF file
-			cdfParser.closeFile();
+            newMZmineFile = new MZmineOpenedFileImpl(buildingFile,
+                    buildingFile.getDataDescription());
 
-		} catch (Throwable e) {
-			//Logger.putFatal("Could not open file " + originalFile.getPath());
-			errorMessage = e.toString();
-			status = TaskStatus.ERROR;
-			return;
-		}
+        } catch (Throwable e) {
+            logger.log(Level.SEVERE, "Could not open file "
+                    + originalFile.getPath(), e);
+            errorMessage = e.toString();
+            status = TaskStatus.ERROR;
+            return;
+        }
 
-		// Update task status
-		status = TaskStatus.FINISHED;
-
+        // Update task status
+        status = TaskStatus.FINISHED;
 
     }
 
@@ -146,7 +152,7 @@ public class NetCDFFileOpeningTask implements DistributableTask {
      * @see net.sf.mzmine.taskcontrol.Task#cancel()
      */
     public void cancel() {
-		status = TaskStatus.CANCELED;
+        status = TaskStatus.CANCELED;
     }
 
 }

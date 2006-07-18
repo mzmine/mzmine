@@ -26,16 +26,16 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.text.NumberFormat;
 
-import javax.swing.DefaultComboBoxModel;
 import javax.swing.JButton;
 import javax.swing.JComboBox;
 import javax.swing.JComponent;
 import javax.swing.JDialog;
 import javax.swing.JFormattedTextField;
+import javax.swing.JLabel;
 import javax.swing.JPanel;
 
+import net.sf.mzmine.io.MZmineOpenedFile;
 import net.sf.mzmine.io.RawDataFile;
-import net.sf.mzmine.project.MZmineProject;
 import net.sf.mzmine.taskcontrol.TaskController;
 import net.sf.mzmine.userinterface.Desktop;
 import net.sf.mzmine.util.CollectionUtils;
@@ -54,18 +54,21 @@ public class TwoDSetupDialog extends JDialog implements ActionListener {
     private JButton btnOK, btnCancel;
     private JFormattedTextField fieldMinRT, fieldMaxRT, fieldMinMZ, fieldMaxMZ,
             fieldResolutionRT, fieldResolutionMZ;
-    private JComboBox comboRawDataFile, comboMSlevel;
+    private JComboBox comboMSlevel;
 
     private Desktop desktop;
     private TaskController taskController;
+    private RawDataFile rawDataFile;
 
-    public TwoDSetupDialog(TaskController taskController, Desktop desktop) {
+    public TwoDSetupDialog(TaskController taskController, Desktop desktop,
+            MZmineOpenedFile dataFile) {
 
         // Make dialog modal
         super(desktop.getMainWindow(), "2D visualizer parameters", true);
 
         this.taskController = taskController;
         this.desktop = desktop;
+        this.rawDataFile = dataFile.getCurrentFile();
 
         GridBagConstraints constraints = new GridBagConstraints();
 
@@ -87,15 +90,13 @@ public class TwoDSetupDialog extends JDialog implements ActionListener {
         constraints.gridheight = 1;
         layout.setConstraints(comp, constraints);
 
-        comboRawDataFile = new JComboBox();
-        comboRawDataFile.addActionListener(this);
-        constraints.fill = GridBagConstraints.NONE;
+        comp = GUIUtils.addLabel(components, rawDataFile.toString(),
+                JLabel.LEFT);
         constraints.gridx = 1;
         constraints.gridy = 0;
         constraints.gridwidth = 2;
         constraints.gridheight = 1;
-        components.add(comboRawDataFile, constraints);
-        constraints.fill = GridBagConstraints.HORIZONTAL;
+        layout.setConstraints(comp, constraints);
 
         comp = GUIUtils.addLabel(components, "MS level");
         constraints.gridx = 0;
@@ -104,7 +105,8 @@ public class TwoDSetupDialog extends JDialog implements ActionListener {
         constraints.gridheight = 1;
         layout.setConstraints(comp, constraints);
 
-        comboMSlevel = new JComboBox();
+        Integer msLevels[] = CollectionUtils.toIntegerArray(rawDataFile.getMSLevels());
+        comboMSlevel = new JComboBox(msLevels);
         comboMSlevel.addActionListener(this);
         constraints.fill = GridBagConstraints.NONE;
         constraints.gridx = 1;
@@ -276,24 +278,13 @@ public class TwoDSetupDialog extends JDialog implements ActionListener {
         GUIUtils.addMargin(components, PADDING_SIZE);
         add(components);
 
-        // add data files to the combo box
-        RawDataFile files[] = MZmineProject.getCurrentProject().getRawDataFiles();
-        DefaultComboBoxModel fileItems = new DefaultComboBoxModel(files);
-        comboRawDataFile.setModel(fileItems);
+        // to activate the selection listener
+        comboMSlevel.setSelectedIndex(0);
 
         // finalize the dialog
         pack();
         setLocationRelativeTo(desktop.getMainWindow());
         setResizable(false);
-
-    }
-
-    public TwoDSetupDialog(TaskController taskController, Desktop desktop,
-            RawDataFile rawDataFile) {
-
-        this(taskController, desktop);
-
-        comboRawDataFile.setSelectedItem(rawDataFile);
 
     }
 
@@ -304,30 +295,15 @@ public class TwoDSetupDialog extends JDialog implements ActionListener {
 
         Object src = ae.getSource();
 
-        // raw data selection changed
-        if (src == comboRawDataFile) {
-            RawDataFile selectedFile = (RawDataFile) comboRawDataFile.getSelectedItem();
-            Integer msLevels[] = CollectionUtils.toIntegerArray(selectedFile.getMSLevels());
-
-            DefaultComboBoxModel msLevelItems = new DefaultComboBoxModel(
-                    msLevels);
-            comboMSlevel.setModel(msLevelItems);
-
-            // call setSelectedIndex to notify listeners about combo change
-            comboMSlevel.setSelectedIndex(0);
-
-        }
-
         // ms level selection changed
         if (src == comboMSlevel) {
 
-            RawDataFile selectedFile = (RawDataFile) comboRawDataFile.getSelectedItem();
             int msLevel = (Integer) comboMSlevel.getSelectedItem();
 
-            fieldMinRT.setValue(selectedFile.getDataMinRT(msLevel));
-            fieldMaxRT.setValue(selectedFile.getDataMaxRT(msLevel));
-            fieldMinMZ.setValue(selectedFile.getDataMinMZ(msLevel));
-            fieldMaxMZ.setValue(selectedFile.getDataMaxMZ(msLevel));
+            fieldMinRT.setValue(rawDataFile.getDataMinRT(msLevel));
+            fieldMaxRT.setValue(rawDataFile.getDataMaxRT(msLevel));
+            fieldMinMZ.setValue(rawDataFile.getDataMinMZ(msLevel));
+            fieldMaxMZ.setValue(rawDataFile.getDataMaxMZ(msLevel));
 
         }
 
@@ -335,7 +311,6 @@ public class TwoDSetupDialog extends JDialog implements ActionListener {
 
             try {
 
-                RawDataFile selectedFile = (RawDataFile) comboRawDataFile.getSelectedItem();
                 int msLevel = (Integer) comboMSlevel.getSelectedItem();
 
                 double rtMin = ((Number) fieldMinRT.getValue()).doubleValue();
@@ -362,7 +337,7 @@ public class TwoDSetupDialog extends JDialog implements ActionListener {
                     return;
                 }
 
-                new TwoDVisualizerWindow(taskController, desktop, selectedFile,
+                new TwoDVisualizerWindow(taskController, desktop, rawDataFile,
                         msLevel, rtMin, rtMax, mzMin, mzMax, rtResolution,
                         mzResolution);
 

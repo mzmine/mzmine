@@ -1,20 +1,14 @@
 /*
- * Copyright 2006 The MZmine Development Team
- * 
- * This file is part of MZmine.
- * 
+ * Copyright 2006 The MZmine Development Team This file is part of MZmine.
  * MZmine is free software; you can redistribute it and/or modify it under the
  * terms of the GNU General Public License as published by the Free Software
  * Foundation; either version 2 of the License, or (at your option) any later
- * version.
- * 
- * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY
- * WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR
- * A PARTICULAR PURPOSE. See the GNU General Public License for more details.
- * 
- * You should have received a copy of the GNU General Public License along with
- * MZmine; if not, write to the Free Software Foundation, Inc., 51 Franklin St,
- * Fifth Floor, Boston, MA 02110-1301 USA
+ * version. MZmine is distributed in the hope that it will be useful, but
+ * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
+ * FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for more
+ * details. You should have received a copy of the GNU General Public License
+ * along with MZmine; if not, write to the Free Software Foundation, Inc., 51
+ * Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
 package net.sf.mzmine.visualizers.rawdata.spectra;
@@ -23,35 +17,36 @@ import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.text.DateFormat;
 import java.text.DecimalFormat;
 import java.text.NumberFormat;
-import java.text.SimpleDateFormat;
 import java.util.Arrays;
 import java.util.Hashtable;
 import java.util.logging.Logger;
 
+import javax.swing.JButton;
+import javax.swing.JComboBox;
 import javax.swing.JInternalFrame;
+import javax.swing.JLabel;
+import javax.swing.JPanel;
 
 import net.sf.mzmine.data.Peak;
 import net.sf.mzmine.data.PeakList;
 import net.sf.mzmine.data.Scan;
-import net.sf.mzmine.io.IOController;
+import net.sf.mzmine.io.MZmineOpenedFile;
 import net.sf.mzmine.io.RawDataAcceptor;
 import net.sf.mzmine.io.RawDataFile;
 import net.sf.mzmine.io.util.RawDataRetrievalTask;
-import net.sf.mzmine.main.MZmineModule;
 import net.sf.mzmine.project.MZmineProject;
 import net.sf.mzmine.taskcontrol.Task;
 import net.sf.mzmine.taskcontrol.TaskController;
 import net.sf.mzmine.taskcontrol.TaskListener;
 import net.sf.mzmine.taskcontrol.Task.TaskPriority;
 import net.sf.mzmine.taskcontrol.Task.TaskStatus;
-import net.sf.mzmine.taskcontrol.impl.TaskControllerImpl;
 import net.sf.mzmine.userinterface.Desktop;
-import net.sf.mzmine.userinterface.mainwindow.MainWindow;
 import net.sf.mzmine.util.CursorPosition;
+import net.sf.mzmine.util.GUIUtils;
 import net.sf.mzmine.util.ScanUtils;
+import net.sf.mzmine.util.TimeNumberFormat;
 import net.sf.mzmine.util.ScanUtils.BinningType;
 import net.sf.mzmine.visualizers.rawdata.RawDataVisualizer;
 import net.sf.mzmine.visualizers.rawdata.spectra.SpectraPlot.PlotMode;
@@ -65,12 +60,12 @@ import org.jfree.data.xy.XYSeries;
 public class SpectraVisualizerWindow extends JInternalFrame implements
         RawDataVisualizer, ActionListener, RawDataAcceptor, TaskListener {
 
-    // TODO: open a precursor scan/ open dependant MS/MS
-
+    private Logger logger = Logger.getLogger(this.getClass().getName());
 
     private SpectraToolBar toolBar;
     private SpectraPlot spectrumPlot;
 
+    private MZmineOpenedFile dataFile;
     private RawDataFile rawDataFile;
 
     private DefaultTableXYDataset rawDataSet, peaksDataSet;
@@ -87,36 +82,45 @@ public class SpectraVisualizerWindow extends JInternalFrame implements
     private double rtMin, rtMax;
 
     // TODO: get these from parameter storage
-    private static DateFormat rtFormat = new SimpleDateFormat("m:ss");
+    private static NumberFormat rtFormat = new TimeNumberFormat();
     private static NumberFormat mzFormat = new DecimalFormat("0.00");
     private static NumberFormat intensityFormat = new DecimalFormat("0.00E0");
 
     private static final double zoomCoefficient = 1.2;
-    
+
     private boolean initialPropertiesSet = false;
-    
+
     private Desktop desktop;
     private TaskController taskController;
 
-    public SpectraVisualizerWindow(TaskController taskController, Desktop desktop, RawDataFile rawDataFile, int scanNumber) {
-        this(taskController, desktop, rawDataFile, new int[] { scanNumber }, -1);
+    private JPanel msmsPanel;
+    private JComboBox fragmentScansSelector;
+
+    public SpectraVisualizerWindow(TaskController taskController,
+            Desktop desktop, MZmineOpenedFile dataFile, int scanNumber) {
+        this(taskController, desktop, dataFile, new int[] { scanNumber }, -1);
     }
 
-    public SpectraVisualizerWindow(TaskController taskController, Desktop desktop, RawDataFile rawDataFile, int[] scanNumbers,
+    public SpectraVisualizerWindow(TaskController taskController,
+            Desktop desktop, MZmineOpenedFile dataFile, int[] scanNumbers,
             double mzBinSize) {
 
-        super(rawDataFile.toString(), true, true, true, true);
+        super(dataFile.toString(), true, true, true, true);
 
         this.taskController = taskController;
         this.desktop = desktop;
-        
+
         setDefaultCloseOperation(DISPOSE_ON_CLOSE);
         setBackground(Color.white);
 
         toolBar = new SpectraToolBar(this);
         add(toolBar, BorderLayout.EAST);
 
-        this.rawDataFile = rawDataFile;
+        msmsPanel = new JPanel();
+        msmsPanel.setBackground(Color.white);
+
+        this.dataFile = dataFile;
+        this.rawDataFile = dataFile.getCurrentFile();
         this.mzBinSize = mzBinSize;
 
         rawDataSet = new DefaultTableXYDataset();
@@ -139,7 +143,6 @@ public class SpectraVisualizerWindow extends JInternalFrame implements
 
         this.scanNumbers = scanNumbers;
 
-        
         // wipe previous data, if any
         rawDataSet.removeAllSeries();
         peaksDataSet.removeAllSeries();
@@ -157,8 +160,7 @@ public class SpectraVisualizerWindow extends JInternalFrame implements
         Task updateTask = new RawDataRetrievalTask(rawDataFile, scanNumbers,
                 "Updating spectrum visualizer of " + rawDataFile, this);
 
-        taskController.addTask(updateTask, TaskPriority.HIGH,
-                this);
+        taskController.addTask(updateTask, TaskPriority.HIGH, this);
 
     }
 
@@ -188,7 +190,10 @@ public class SpectraVisualizerWindow extends JInternalFrame implements
                 intensityMax);
     }
 
-    void updateTitle() {
+    synchronized void updateTitle() {
+
+        if (loadedScans == 0)
+            return;
 
         StringBuffer title = new StringBuffer();
         title.append("[");
@@ -203,7 +208,7 @@ public class SpectraVisualizerWindow extends JInternalFrame implements
             title.append(", MS");
             title.append(scans[0].getMSLevel());
             title.append(", RT ");
-            title.append(rtFormat.format(scans[0].getRetentionTime() * 1000));
+            title.append(rtFormat.format(scans[0].getRetentionTime()));
 
             title.append(", base peak: ");
             title.append(mzFormat.format(scans[0].getBasePeakMZ()));
@@ -213,9 +218,9 @@ public class SpectraVisualizerWindow extends JInternalFrame implements
 
         } else {
             title.append("combination of spectra, RT ");
-            title.append(rtFormat.format(scans[0].getRetentionTime() * 1000));
+            title.append(rtFormat.format(scans[0].getRetentionTime()));
             title.append(" - ");
-            title.append(rtFormat.format(scans[loadedScans - 1].getRetentionTime() * 1000));
+            title.append(rtFormat.format(scans[loadedScans - 1].getRetentionTime()));
             setTitle(title.toString());
             title.append(", MS");
             title.append(scans[0].getMSLevel());
@@ -255,7 +260,7 @@ public class SpectraVisualizerWindow extends JInternalFrame implements
         }
 
         if (command.equals("PREVIOUS_SCAN")) {
-            if ((scans.length == 1)  && (scans[0] != null)) {
+            if ((scans.length == 1) && (scans[0] != null)) {
                 int msLevel = scans[0].getMSLevel();
                 int scanNumbers[] = rawDataFile.getScanNumbers(msLevel);
                 int scanIndex = Arrays.binarySearch(scanNumbers,
@@ -290,6 +295,18 @@ public class SpectraVisualizerWindow extends JInternalFrame implements
                     zoomCoefficient);
         }
 
+        if (command.equals("SHOW_PARENT")) {
+            new SpectraVisualizerWindow(taskController, desktop, dataFile,
+                    scans[0].getParentScanNumber());
+        }
+
+        if (command.equals("SHOW_FRAGMENT")) {
+            int fragments[] = scans[0].getFragmentScanNumbers();
+            int selectedFragment = fragments[fragmentScansSelector.getSelectedIndex()];
+            new SpectraVisualizerWindow(taskController, desktop, dataFile,
+                    selectedFragment);
+        }
+
     }
 
     /**
@@ -302,30 +319,29 @@ public class SpectraVisualizerWindow extends JInternalFrame implements
     /**
      * @see net.sf.mzmine.io.RawDataAcceptor#addScan(net.sf.mzmine.data.Scan)
      */
-    public void addScan(Scan scan, int scanIndex) {
+    public synchronized void addScan(Scan scan, int scanIndex) {
 
         scans[scanIndex] = scan;
 
-        if (! initialPropertiesSet) {
-            
+        if (!initialPropertiesSet) {
+
             // if the scans are centroided, switch to centroid mode
-            if (scan.isCentroided()) {
-                // TODO: remember the centroid/cont. mode setting
+            if (scan.isCentroided() || (scans.length > 1)) {
                 spectrumPlot.setPlotMode(PlotMode.CENTROID);
                 toolBar.setCentroidButton(false);
             } else {
                 spectrumPlot.setPlotMode(PlotMode.CONTINUOUS);
                 toolBar.setCentroidButton(true);
             }
-            
+
             // set the X axis range
             setMZRange(scan.getMZRangeMin(), scan.getMZRangeMax());
-            
+
             initialPropertiesSet = true;
         }
-        
+
         if (scanIndex == 0) {
-            
+
             // set the m/z axis range
             mzMin = scan.getMZRangeMin();
             mzMax = scan.getMZRangeMax();
@@ -334,7 +350,6 @@ public class SpectraVisualizerWindow extends JInternalFrame implements
             rtMin = scan.getRetentionTime();
             rtMax = scan.getRetentionTime();
 
-            
             if (scans.length > 1) {
                 // count the number of bins and update the bin size accordingly
                 numOfBins = (int) Math.round((mzMax - mzMin) / mzBinSize);
@@ -355,8 +370,61 @@ public class SpectraVisualizerWindow extends JInternalFrame implements
         if (scans.length == 1) {
             // plotting single scan - just add values
             for (int j = 0; j < mzValues.length; j++) {
-                if (intValues[j] == 0) continue;
                 rawDataSeries.add(mzValues[j], intValues[j], false);
+            }
+
+            remove(msmsPanel);
+
+            int parentNumber = scan.getParentScanNumber();
+            if ((scan.getMSLevel() > 1) && (parentNumber > 0)) {
+                msmsPanel.removeAll();
+                String labelText = "Parent scan #"
+                        + parentNumber
+                        + ", RT: "
+                        + rtFormat.format(rawDataFile.getRetentionTime(parentNumber));
+                JLabel label = new JLabel(labelText);
+                label.setFont(label.getFont().deriveFont(10f));
+                msmsPanel.add(label, BorderLayout.CENTER);
+                JButton showButton = GUIUtils.addButton(msmsPanel, "Show",
+                        null, this, "SHOW_PARENT");
+                showButton.setFont(showButton.getFont().deriveFont(10f));
+                showButton.setBackground(Color.white);
+                msmsPanel.getLayout().addLayoutComponent(BorderLayout.EAST,
+                        showButton);
+                add(msmsPanel, BorderLayout.SOUTH);
+
+            } else {
+                int fragmentScans[] = scan.getFragmentScanNumbers();
+                if (fragmentScans != null) {
+                    msmsPanel.removeAll();
+                    String labelText = "Fragment scans:";
+                    JLabel label = new JLabel(labelText);
+                    label.setFont(label.getFont().deriveFont(10f));
+                    msmsPanel.add(label, BorderLayout.WEST);
+                    fragmentScansSelector = new JComboBox();
+                    for (int fragment : fragmentScans) {
+                        String item = "#"
+                                + fragment
+                                + ", RT: "
+                                + rtFormat.format(rawDataFile.getRetentionTime(fragment))
+                                + ", precursor m/z: "
+                                + mzFormat.format(rawDataFile.getPrecursorMZ(fragment));
+                        fragmentScansSelector.addItem(item);
+                    }
+                    fragmentScansSelector.setBackground(Color.white);
+                    fragmentScansSelector.setFont(fragmentScansSelector.getFont().deriveFont(
+                            10f));
+                    msmsPanel.add(fragmentScansSelector, BorderLayout.CENTER);
+
+                    JButton showButton = GUIUtils.addButton(msmsPanel, "Show",
+                            null, this, "SHOW_FRAGMENT");
+                    showButton.setBackground(Color.white);
+                    showButton.setFont(showButton.getFont().deriveFont(10f));
+                    msmsPanel.getLayout().addLayoutComponent(BorderLayout.EAST,
+                            showButton);
+                    add(msmsPanel, BorderLayout.SOUTH);
+
+                }
             }
 
         } else {
@@ -366,8 +434,9 @@ public class SpectraVisualizerWindow extends JInternalFrame implements
 
             for (int j = 0; j < binnedIntValues.length; j++) {
 
-                if (binnedIntValues[j] == 0) continue; 
-                
+                if (binnedIntValues[j] == 0)
+                    continue;
+
                 double mz = mzMin + (j * mzBinSize);
 
                 int index = rawDataSeries.indexOf(mz);
@@ -390,9 +459,9 @@ public class SpectraVisualizerWindow extends JInternalFrame implements
 
             // if we have a peak list, add the eligible peaks
             PeakList peakList = MZmineProject.getCurrentProject().getPeakList(
-                    rawDataFile);
+                    dataFile);
             if (peakList != null) {
-                
+
                 toolBar.setPeaksButtonEnabled(true);
 
                 Peak[] peaks = peakList.getPeaksInsideScanAndMZRange(rtMin,
@@ -410,7 +479,7 @@ public class SpectraVisualizerWindow extends JInternalFrame implements
                     } else {
                         double mz = peaks[i].getRawMZ();
                         double intensity = peaks[i].getRawHeight();
-                        
+
                         int index = peaksSeries.indexOf(mz);
 
                         // if we don't have this m/z value yet, add it.
@@ -418,13 +487,14 @@ public class SpectraVisualizerWindow extends JInternalFrame implements
                         if (index < 0) {
                             peaksSeries.add(mz, intensity, false);
                         } else {
-                            double newVal = Math.max(peaksSeries.getY(index).doubleValue(),
+                            double newVal = Math.max(
+                                    peaksSeries.getY(index).doubleValue(),
                                     intensity);
                             peaksSeries.updateByIndex(index, newVal);
                         }
 
                     }
-                    
+
                 }
 
             } else {
@@ -447,9 +517,10 @@ public class SpectraVisualizerWindow extends JInternalFrame implements
      */
     public void taskFinished(Task task) {
         if (task.getStatus() == TaskStatus.ERROR) {
-            desktop.displayErrorMessage(
-                    "Error while updating spectrum visualizer: "
-                            + task.getErrorMessage());
+            logger.severe("Error while updating spectrum visualizer: "
+                    + task.getErrorMessage());
+            desktop.displayErrorMessage("Error while updating spectrum visualizer: "
+                    + task.getErrorMessage());
         }
 
     }
@@ -477,8 +548,5 @@ public class SpectraVisualizerWindow extends JInternalFrame implements
         // do nothing
 
     }
-    
-
-
 
 }

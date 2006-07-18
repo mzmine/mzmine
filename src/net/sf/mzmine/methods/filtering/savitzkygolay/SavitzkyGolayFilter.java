@@ -30,6 +30,7 @@ import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
 
 import net.sf.mzmine.io.IOController;
+import net.sf.mzmine.io.MZmineOpenedFile;
 import net.sf.mzmine.io.RawDataFile;
 import net.sf.mzmine.main.MZmineModule;
 import net.sf.mzmine.methods.Method;
@@ -45,22 +46,22 @@ import net.sf.mzmine.userinterface.Desktop.MZmineMenu;
 public class SavitzkyGolayFilter implements MZmineModule, Method, TaskListener,
         ListSelectionListener, ActionListener {
 
+    private Logger logger = Logger.getLogger(this.getClass().getName());
+    
     private TaskController taskController;
     private Desktop desktop;
-    private Logger logger;
     private JMenuItem myMenuItem;
 
     /**
      * @see net.sf.mzmine.main.MZmineModule#initModule(net.sf.mzmine.io.IOController,
      *      net.sf.mzmine.taskcontrol.TaskController,
-     *      net.sf.mzmine.userinterface.Desktop, java.util.logging.Logger)
+     *      net.sf.mzmine.userinterface.Desktop)
      */
     public void initModule(IOController ioController,
-            TaskController taskController, Desktop desktop, Logger logger) {
+            TaskController taskController, Desktop desktop) {
 
         this.taskController = taskController;
         this.desktop = desktop;
-        this.logger = logger;
 
         myMenuItem = desktop.addMenuItem(MZmineMenu.FILTERING,
                 "Savitzky-Golay filter spectra", this, null, KeyEvent.VK_S,
@@ -121,17 +122,16 @@ public class SavitzkyGolayFilter implements MZmineModule, Method, TaskListener,
      *      net.sf.mzmine.methods.alignment.AlignmentResult[])
      */
     public void runMethod(MethodParameters parameters,
-            RawDataFile[] rawDataFiles, AlignmentResult[] alignmentResults) {
+            MZmineOpenedFile[] dataFiles, AlignmentResult[] alignmentResults) {
 
         logger.finest("Running Savitzky-Golay filter");
-        desktop.setStatusBarText("Processing...");
 
-        for (RawDataFile rawDataFile : rawDataFiles) {
-            Task filterTask = new SavitzkyGolayFilterTask(rawDataFile,
+
+        for (MZmineOpenedFile dataFile : dataFiles) {
+            Task filterTask = new SavitzkyGolayFilterTask(dataFile,
                     (SavitzkyGolayFilterParameters) parameters);
             taskController.addTask(filterTask, this);
         }
-
     }
 
     /**
@@ -143,9 +143,9 @@ public class SavitzkyGolayFilter implements MZmineModule, Method, TaskListener,
         if (parameters == null)
             return;
 
-        RawDataFile[] rawDataFiles = desktop.getSelectedRawData();
+        MZmineOpenedFile[] dataFiles = desktop.getSelectedDataFiles();
 
-        runMethod(parameters, rawDataFiles, null);
+        runMethod(parameters, dataFiles, null);
 
     }
 
@@ -153,7 +153,7 @@ public class SavitzkyGolayFilter implements MZmineModule, Method, TaskListener,
      * @see javax.swing.event.ListSelectionListener#valueChanged(javax.swing.event.ListSelectionEvent)
      */
     public void valueChanged(ListSelectionEvent e) {
-        myMenuItem.setEnabled(desktop.isRawDataSelected());
+        myMenuItem.setEnabled(desktop.isDataFileSelected());
     }
 
     public void taskStarted(Task task) {
@@ -164,14 +164,12 @@ public class SavitzkyGolayFilter implements MZmineModule, Method, TaskListener,
 
         if (task.getStatus() == Task.TaskStatus.FINISHED) {
 
-            RawDataFile oldFile = (RawDataFile) ((Object[]) task.getResult())[0];
-            RawDataFile newFile = (RawDataFile) ((Object[]) task.getResult())[1];
-            MethodParameters cfParam = (MethodParameters) ((Object[]) task.getResult())[2];
+            Object[] result = (Object[]) task.getResult();
+            MZmineOpenedFile openedFile = (MZmineOpenedFile) result[0];
+            RawDataFile newFile = (RawDataFile) result[1];
+            MethodParameters cfParam = (MethodParameters) result[2];
 
-            newFile.addHistory(oldFile.getCurrentFile(), this, cfParam);
-
-            // Update MZmineProject about replacement of oldFile by newFile
-            MZmineProject.getCurrentProject().updateFile(oldFile, newFile);
+            openedFile.updateFile(newFile, this, cfParam);
 
         } else if (task.getStatus() == Task.TaskStatus.ERROR) {
             /* Task encountered an error */
@@ -181,6 +179,13 @@ public class SavitzkyGolayFilter implements MZmineModule, Method, TaskListener,
             desktop.displayErrorMessage(msg);
         }
 
+    }
+
+    /**
+     * @see net.sf.mzmine.methods.Method#getMethodDescription()
+     */
+    public String getMethodDescription() {
+        return "Savitzky Golay filter";
     }
 
 }

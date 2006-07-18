@@ -32,6 +32,6 @@ import net.sf.mzmine.userinterface.Desktop;
  */
 public interface MZmineModule {
 
-    public void initModule(IOController ioController, TaskController taskController, Desktop desktop, Logger logger);
+    public void initModule(IOController ioController, TaskController taskController, Desktop desktop);
     
 }

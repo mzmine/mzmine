@@ -31,6 +31,8 @@ import java.text.SimpleDateFormat;
 import javax.swing.JMenuItem;
 import javax.swing.JPopupMenu;
 
+import net.sf.mzmine.util.TimeNumberFormat;
+
 import org.jfree.chart.ChartPanel;
 import org.jfree.chart.JFreeChart;
 import org.jfree.chart.axis.DateAxis;
@@ -51,7 +53,7 @@ class TwoDPlot extends ChartPanel {
     private XYItemRenderer renderer;
 
     // TODO: get these from parameter storage
-    private static DateFormat rtFormat = new SimpleDateFormat("m:ss");
+    private static NumberFormat rtFormat = new TimeNumberFormat();
     private static NumberFormat mzFormat = new DecimalFormat("0.00");
     
     //  crosshair (selection) color
@@ -78,8 +80,8 @@ class TwoDPlot extends ChartPanel {
         setCursor(Cursor.getPredefinedCursor(Cursor.CROSSHAIR_CURSOR));
 
         // set the X axis (retention time) properties
-        DateAxis xAxis = new DateAxis();
-        xAxis.setDateFormatOverride(rtFormat);
+        NumberAxis xAxis = new NumberAxis();
+        xAxis.setNumberFormatOverride(rtFormat);
         xAxis.setUpperMargin(0);
         xAxis.setLowerMargin(0);
 

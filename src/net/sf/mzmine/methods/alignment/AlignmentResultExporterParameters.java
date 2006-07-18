@@ -23,8 +23,6 @@ package net.sf.mzmine.methods.alignment;
 
 import java.util.HashSet;
 
-import net.sf.mzmine.util.GeneralParameters;
-
 import org.xml.sax.Attributes;
 
 
@@ -120,7 +118,7 @@ public class AlignmentResultExporterParameters {
 		selectedRawDataCols = new HashSet<Integer>();
 
 		// Setup default parameter values
-		setExportType(EXPORTTYPE_COMPACT, null);
+		setExportType(EXPORTTYPE_COMPACT);
 
 	}
 
@@ -140,7 +138,7 @@ public class AlignmentResultExporterParameters {
 	 * Sets current export type and also selects columns accordingly
 	 * @param	generalParameters	Access to general parameters is required because compact mode stores only peak height or area according to current peak measurement setting. If this is null, then height is used for peak measuring.
 	 */
-	public void setExportType(Integer type, GeneralParameters generalParameters) {
+	public void setExportType(Integer type) {
 		exportType = type;
 
 		if (exportType==EXPORTTYPE_COMPACT) {
@@ -155,7 +153,7 @@ public class AlignmentResultExporterParameters {
 			addCommonCol(COMMONCOLS_NUMFOUND);
 
 			selectedRawDataCols.clear();
-			if (generalParameters==null) {
+/*			if (generalParameters==null) {
 				addRawDataCol(RAWDATACOLS_HEIGHT);
 			} else {
 				if (generalParameters.getPeakMeasuringType()==GeneralParameters.PARAMETERVALUE_PEAKMEASURING_HEIGHT) {
@@ -164,7 +162,7 @@ public class AlignmentResultExporterParameters {
 				if (generalParameters.getPeakMeasuringType()==GeneralParameters.PARAMETERVALUE_PEAKMEASURING_AREA) {
 					addRawDataCol(RAWDATACOLS_AREA);
 				}
-			}
+			}*/
 		}
 
 		if (exportType==EXPORTTYPE_WIDE) {

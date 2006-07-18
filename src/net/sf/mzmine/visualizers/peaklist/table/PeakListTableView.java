@@ -20,26 +20,15 @@
 package net.sf.mzmine.visualizers.peaklist.table;
 
 import java.awt.BorderLayout;
-import java.awt.Graphics;
 import java.awt.Color;
 import java.awt.event.ActionListener;
-import java.awt.event.MouseEvent;
-import java.awt.event.MouseListener;
-import java.awt.print.PageFormat;
-import java.awt.print.Printable;
-import java.util.Vector;
 
 import javax.swing.JInternalFrame;
-import javax.swing.JMenuItem;
 import javax.swing.JScrollPane;
 import javax.swing.JTable;
 
-import net.sf.mzmine.io.RawDataFile;
-import net.sf.mzmine.methods.alignment.AlignmentResult;
 import net.sf.mzmine.data.Peak;
-import net.sf.mzmine.userinterface.mainwindow.ItemSelector;
-import net.sf.mzmine.userinterface.mainwindow.MainWindow;
-import net.sf.mzmine.userinterface.mainwindow.Statusbar;
+import net.sf.mzmine.io.MZmineOpenedFile;
 import net.sf.mzmine.visualizers.peaklist.PeakListVisualizer;
 
 
@@ -48,10 +37,10 @@ import net.sf.mzmine.visualizers.peaklist.PeakListVisualizer;
  */
 public class PeakListTableView extends JInternalFrame implements PeakListVisualizer, ActionListener {
 
-	private RawDataFile rawData;
+	private MZmineOpenedFile rawData;
 	private PeakListTable table;
 
-	public PeakListTableView(RawDataFile rawData) {
+	public PeakListTableView(MZmineOpenedFile rawData) {
 
 		super(rawData.toString() + " Peak list", true, true, true, true);
 

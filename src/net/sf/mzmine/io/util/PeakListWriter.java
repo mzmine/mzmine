@@ -18,22 +18,21 @@
     Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
-package net.sf.mzmine.io.impl;
+package net.sf.mzmine.io.util;
 
-import java.io.IOException;
 import java.io.File;
 import java.io.FileWriter;
+import java.io.IOException;
 
-import org.w3c.dom.Element;
-import org.w3c.dom.Document;
-
-import net.sf.mzmine.data.CompoundIdentity;
 import net.sf.mzmine.data.IsotopePattern;
 import net.sf.mzmine.data.Peak;
 import net.sf.mzmine.data.PeakList;
-import net.sf.mzmine.io.RawDataFile;
+import net.sf.mzmine.io.MZmineOpenedFile;
 import net.sf.mzmine.methods.deisotoping.util.IsotopePatternUtility;
 import net.sf.mzmine.project.MZmineProject;
+
+import org.w3c.dom.Document;
+import org.w3c.dom.Element;
 
 
 
@@ -46,7 +45,7 @@ public class PeakListWriter {
 	/**
 	 * Exports peak list to a tab-delimitted text file
 	 */
-	public static void exportPeakListToFile(RawDataFile rawData, File outputfile) throws IOException {
+	public static void exportPeakListToFile(MZmineOpenedFile rawData, File outputfile) throws IOException {
 
 
 		// Open file

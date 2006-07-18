@@ -21,14 +21,10 @@
 
 package net.sf.mzmine.methods.normalization.linear;
 
-import javax.swing.JOptionPane;
-
 import net.sf.mzmine.methods.alignment.AlignmentResult;
 import net.sf.mzmine.methods.normalization.Normalizer;
 import net.sf.mzmine.methods.normalization.NormalizerParameters;
 import net.sf.mzmine.userinterface.mainwindow.MainWindow;
-import net.sf.mzmine.userinterface.mainwindow.Statusbar;
-import net.sf.mzmine.util.GeneralParameters;
 
 
 /**

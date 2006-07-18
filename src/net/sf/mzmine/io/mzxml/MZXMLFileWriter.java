@@ -23,6 +23,7 @@ import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.util.Hashtable;
+import java.util.logging.Logger;
 
 import javax.xml.datatype.DatatypeConfigurationException;
 import javax.xml.datatype.DatatypeFactory;
@@ -32,7 +33,7 @@ import net.iharder.xmlizable.Base64;
 import net.sf.mzmine.data.Scan;
 import net.sf.mzmine.io.RawDataFile;
 import net.sf.mzmine.io.RawDataFileWriter;
-import net.sf.mzmine.io.RawDataFile.PreloadLevel;
+import net.sf.mzmine.io.IOController.PreloadLevel;
 
 /**
  * This class represent a writer for mzXML files. TODO: Currently writes only
@@ -40,6 +41,8 @@ import net.sf.mzmine.io.RawDataFile.PreloadLevel;
  */
 public class MZXMLFileWriter implements RawDataFileWriter {
 
+    private Logger logger = Logger.getLogger(this.getClass().getName());
+    
     private DatatypeFactory datatypeFactory;
     private File workingCopy;
     private FileWriter fileWriter;
@@ -55,7 +58,7 @@ public class MZXMLFileWriter implements RawDataFileWriter {
         try {
             datatypeFactory = DatatypeFactory.newInstance();
         } catch (DatatypeConfigurationException e) {
-            // Logger.putFatal("Could not instantiate DatatypeFactory.");
+            logger.severe("Could not instantiate DatatypeFactory.");
             throw new IOException("Could not instantiate DatatypeFactory.");
         }
 
@@ -74,8 +77,7 @@ public class MZXMLFileWriter implements RawDataFileWriter {
         bytesWritten += s.length();
 
         // Create a new MZXMLFile
-        filteredMZXMLFile = new MZXMLFile(workingCopy, preloadLevel,
-                originalFile.getHistory());
+        filteredMZXMLFile = new MZXMLFile(workingCopy, preloadLevel);
 
     }
 

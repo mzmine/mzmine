@@ -53,8 +53,6 @@ import jmprojection.Sammons;
 import net.sf.mzmine.methods.alignment.AlignmentResult;
 import net.sf.mzmine.userinterface.dialogs.SelectClassLabelsDialog;
 import net.sf.mzmine.userinterface.mainwindow.MainWindow;
-import net.sf.mzmine.userinterface.mainwindow.Statusbar;
-import net.sf.mzmine.util.GeneralParameters;
 import net.sf.mzmine.util.TransferableImage;
 
 
@@ -67,7 +65,7 @@ public class AlignmentResultVisualizerSammonsPlotView extends JInternalFrame imp
 	private static final double marginSize = (double)0.02; // How much extra margin is added to the axis in full zoom
 
 	private MainWindow mainWin;
-	private Statusbar statBar;
+	// private Statusbar statBar;
 
 	private AlignmentResult alignmentResult;
 
@@ -89,7 +87,7 @@ public class AlignmentResultVisualizerSammonsPlotView extends JInternalFrame imp
 	 */
 	public AlignmentResultVisualizerSammonsPlotView(MainWindow _mainWin) {
 		mainWin = _mainWin;
-		statBar = mainWin.getStatusBar();
+	//	statBar = mainWin.getStatusBar();
 
 		// Build this visualizer
 		getContentPane().setLayout(new BorderLayout());
@@ -731,7 +729,7 @@ public class AlignmentResultVisualizerSammonsPlotView extends JInternalFrame imp
 				selectionLastClickComp2 = -1;
 		    }
 		    // Clear status bar
-		    statBar.setStatusText("");
+		   
 		}
 
 
@@ -776,7 +774,7 @@ public class AlignmentResultVisualizerSammonsPlotView extends JInternalFrame imp
 
 		    }
 
-		    statBar.setStatusText("");
+		
 
 		}
 
@@ -834,7 +832,7 @@ public class AlignmentResultVisualizerSammonsPlotView extends JInternalFrame imp
 
 				repaint();
 			}
-			statBar.setStatusText("");
+		
 
 		}
 

@@ -1,20 +1,14 @@
 /*
- * Copyright 2006 The MZmine Development Team
- * 
- * This file is part of MZmine.
- * 
+ * Copyright 2006 The MZmine Development Team This file is part of MZmine.
  * MZmine is free software; you can redistribute it and/or modify it under the
  * terms of the GNU General Public License as published by the Free Software
  * Foundation; either version 2 of the License, or (at your option) any later
- * version.
- * 
- * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY
- * WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR
- * A PARTICULAR PURPOSE. See the GNU General Public License for more details.
- * 
- * You should have received a copy of the GNU General Public License along with
- * MZmine; if not, write to the Free Software Foundation, Inc., 51 Franklin St,
- * Fifth Floor, Boston, MA 02110-1301 USA
+ * version. MZmine is distributed in the hope that it will be useful, but
+ * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
+ * FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for more
+ * details. You should have received a copy of the GNU General Public License
+ * along with MZmine; if not, write to the Free Software Foundation, Inc., 51
+ * Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
 package net.sf.mzmine.methods.peakpicking.recursivethreshold;
@@ -28,6 +22,7 @@ import java.util.Vector;
 import net.sf.mzmine.data.Scan;
 import net.sf.mzmine.data.impl.SimplePeak;
 import net.sf.mzmine.data.impl.SimplePeakList;
+import net.sf.mzmine.io.MZmineOpenedFile;
 import net.sf.mzmine.io.RawDataFile;
 import net.sf.mzmine.taskcontrol.Task;
 import net.sf.mzmine.util.MathUtils;
@@ -38,6 +33,7 @@ import net.sf.mzmine.util.ScanUtils;
  */
 class RecursiveThresholdPickerTask implements Task {
 
+    private MZmineOpenedFile dataFile;
     private RawDataFile rawDataFile;
     private RecursiveThresholdPickerParameters parameters;
     private TaskStatus status;
@@ -52,10 +48,11 @@ class RecursiveThresholdPickerTask implements Task {
      * @param rawDataFile
      * @param parameters
      */
-    RecursiveThresholdPickerTask(RawDataFile rawDataFile,
+    RecursiveThresholdPickerTask(MZmineOpenedFile dataFile,
             RecursiveThresholdPickerParameters parameters) {
         status = TaskStatus.WAITING;
-        this.rawDataFile = rawDataFile;
+        this.dataFile = dataFile;
+        this.rawDataFile = dataFile.getCurrentFile();
         this.parameters = parameters;
 
         readyPeakList = new SimplePeakList();
@@ -96,7 +93,7 @@ class RecursiveThresholdPickerTask implements Task {
      */
     public Object getResult() {
         Object[] results = new Object[3];
-        results[0] = rawDataFile;
+        results[0] = dataFile;
         results[1] = readyPeakList;
         results[2] = parameters;
         return results;
@@ -125,9 +122,9 @@ class RecursiveThresholdPickerTask implements Task {
          */
 
         double startMZ = rawDataFile.getDataMinMZ(1); // minimum m/z value in
-                                                        // the raw data file
+        // the raw data file
         double endMZ = rawDataFile.getDataMaxMZ(1); // maximum m/z value in the
-                                                    // raw data file
+        // raw data file
         int numOfBins = (int) (java.lang.Math.ceil((endMZ - startMZ)
                 / parameters.binSize));
         double[][] binInts = new double[numOfBins][totalScans];
@@ -175,12 +172,6 @@ class RecursiveThresholdPickerTask implements Task {
         System.gc();
 
         Vector<SimplePeak> underConstructionPeaks = new Vector<SimplePeak>();
-        Vector<SimplePeak> detectedPeaks = new Vector<SimplePeak>();
-
-        /**
-         * Loop through scans
-         */
-
         Vector<OneDimPeak> oneDimPeaks = new Vector<OneDimPeak>();
         for (int i = 0; i < totalScans; i++) {
 
@@ -373,12 +364,9 @@ class RecursiveThresholdPickerTask implements Task {
 
         int peakStartInd;
         int peakStopInd;
-        int lastKnownGoodPeakStopInd;
         double peakWidthMZ;
         int peakMinInd;
         int peakMaxInd;
-
-        lastKnownGoodPeakStopInd = stopInd;
 
         for (int ind = startInd; ind <= stopInd; ind++) {
             // While below threshold
@@ -526,7 +514,7 @@ class RecursiveThresholdPickerTask implements Task {
             if (retsig == 0) {
                 retsig = -1;
             } // Must never return 0, because treeset can't hold equal
-                // elements
+            // elements
             return retsig;
         }
 
@@ -557,7 +545,6 @@ class RecursiveThresholdPickerTask implements Task {
          * This function check for the shape of the peak in RT direction, and
          * determines if it is possible to add given m/z peak at the end of the
          * peak.
-         * 
          */
         private double calcScoreForRTShape(SimplePeak uc, OneDimPeak od) {
 

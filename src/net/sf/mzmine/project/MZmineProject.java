@@ -19,20 +19,13 @@
 
 package net.sf.mzmine.project;
 
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
-import java.awt.event.KeyEvent;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.util.Hashtable;
 import java.util.Vector;
-import java.util.logging.Logger;
 
-import javax.swing.JMenuItem;
-import javax.swing.event.ListSelectionEvent;
-import javax.swing.event.ListSelectionListener;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
@@ -45,22 +38,20 @@ import javax.xml.transform.TransformerFactory;
 import javax.xml.transform.dom.DOMSource;
 import javax.xml.transform.stream.StreamResult;
 
-import org.w3c.dom.Document;
-import org.w3c.dom.Element;
-import org.w3c.dom.NodeList;
-import org.xml.sax.SAXException;
-
 import net.sf.mzmine.data.PeakList;
 import net.sf.mzmine.io.IOController;
-import net.sf.mzmine.io.RawDataFile;
+import net.sf.mzmine.io.MZmineOpenedFile;
 import net.sf.mzmine.main.MZmineModule;
 import net.sf.mzmine.methods.MethodParameters;
 import net.sf.mzmine.taskcontrol.TaskController;
 import net.sf.mzmine.userinterface.Desktop;
-import net.sf.mzmine.userinterface.Desktop.MZmineMenu;
-import net.sf.mzmine.userinterface.dialogs.FileOpenDialog;
 import net.sf.mzmine.userinterface.mainwindow.ItemSelector;
 import net.sf.mzmine.userinterface.mainwindow.MainWindow;
+
+import org.w3c.dom.Document;
+import org.w3c.dom.Element;
+import org.w3c.dom.NodeList;
+import org.xml.sax.SAXException;
 
 /**
  * This class represents a MZmine project. That includes raw data files,
@@ -68,22 +59,19 @@ import net.sf.mzmine.userinterface.mainwindow.MainWindow;
  */
 public class MZmineProject implements MZmineModule {
 
-    private IOController ioController;
-    private TaskController taskController;
     private Desktop desktop;
-    private Logger logger;
-
+    
     private static MZmineProject currentProject;
-    private Vector<RawDataFile> projectFiles;
-    private Hashtable<RawDataFile, PeakList> peakLists;
+    private Vector<MZmineOpenedFile> projectFiles;
+    private Hashtable<MZmineOpenedFile, PeakList> peakLists;
 
     private Hashtable<MZmineModule, MethodParameters> parameterStorage;
 
 
 
     public MZmineProject() {
-        projectFiles = new Vector<RawDataFile>();
-        peakLists = new Hashtable<RawDataFile, PeakList>();
+        projectFiles = new Vector<MZmineOpenedFile>();
+        peakLists = new Hashtable<MZmineOpenedFile, PeakList>();
         parameterStorage = new Hashtable<MZmineModule, MethodParameters>();
         currentProject = this;
     }
@@ -182,42 +170,40 @@ public class MZmineProject implements MZmineModule {
 
     }
 
-    public void addFile(RawDataFile newFile) {
+    public void addFile(MZmineOpenedFile newFile) {
         projectFiles.add(newFile);
         ItemSelector is = ((MainWindow) desktop).getItemSelector();
         is.addRawData(newFile);
     }
 
-    public void removeFile(RawDataFile file) {
+    public void removeFile(MZmineOpenedFile file) {
         projectFiles.remove(file);
         ItemSelector is = ((MainWindow) desktop).getItemSelector();
         is.removeRawData(file);
     }
 
-    public void updateFile(RawDataFile oldFile, RawDataFile newFile) {
-        // TODO
+
+
+    public MZmineOpenedFile[] getDataFiles() {
+        return projectFiles.toArray(new MZmineOpenedFile[0]);
     }
 
-    public RawDataFile[] getRawDataFiles() {
-        return projectFiles.toArray(new RawDataFile[0]);
-    }
-
-    public PeakList getPeakList(RawDataFile rawData) {
+    public PeakList getPeakList(MZmineOpenedFile rawData) {
         return peakLists.get(rawData);
     }
 
-    public boolean hasPeakList(RawDataFile rawData) {
+    public boolean hasPeakList(MZmineOpenedFile rawData) {
         return peakLists.containsKey(rawData);
     }
 
-    public void setPeakList(RawDataFile rawData, PeakList peakList) {
+    public void setPeakList(MZmineOpenedFile rawData, PeakList peakList) {
         peakLists.put(rawData, peakList);
         MainWindow mainWin = (MainWindow) desktop;
         mainWin.getItemSelector().fireDataChanged();
         // MainWindow.getInstance().getMainMenu().updateMenuAvailability();
     }
 
-    public void removePeakList(RawDataFile rawData) {
+    public void removePeakList(MZmineOpenedFile rawData) {
         peakLists.remove(rawData);
         MainWindow mainWin = (MainWindow) desktop;
         mainWin.getItemSelector().fireDataChanged();
@@ -227,15 +213,12 @@ public class MZmineProject implements MZmineModule {
     /**
      * @see net.sf.mzmine.main.MZmineModule#initModule(net.sf.mzmine.io.IOController,
      *      net.sf.mzmine.taskcontrol.TaskController,
-     *      net.sf.mzmine.userinterface.Desktop, java.util.logging.Logger)
+     *      net.sf.mzmine.userinterface.Desktop)
      */
     public void initModule(IOController ioController,
-            TaskController taskController, Desktop desktop, Logger logger) {
+            TaskController taskController, Desktop desktop) {
 
-        this.ioController = ioController;
-        this.taskController = taskController;
         this.desktop = desktop;
-        this.logger = logger;
 
     }
 

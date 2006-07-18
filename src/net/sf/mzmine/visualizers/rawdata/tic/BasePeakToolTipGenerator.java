@@ -27,6 +27,8 @@ import java.text.DecimalFormat;
 import java.text.NumberFormat;
 import java.text.SimpleDateFormat;
 
+import net.sf.mzmine.util.TimeNumberFormat;
+
 import org.jfree.chart.labels.XYToolTipGenerator;
 import org.jfree.data.xy.XYDataset;
 
@@ -36,7 +38,7 @@ import org.jfree.data.xy.XYDataset;
 class BasePeakToolTipGenerator implements XYToolTipGenerator {
 
     // TODO: get these from parameter storage
-    private static DateFormat rtFormat = new SimpleDateFormat("m:ss");
+    private static NumberFormat rtFormat = new TimeNumberFormat();
     private static NumberFormat intensityFormat = new DecimalFormat("0.00E0");
     private static NumberFormat mzFormat = new DecimalFormat("0.00");
 

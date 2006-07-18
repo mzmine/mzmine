@@ -39,6 +39,7 @@ import net.sf.mzmine.taskcontrol.TaskListener;
 import net.sf.mzmine.taskcontrol.Task.TaskStatus;
 import net.sf.mzmine.userinterface.Desktop;
 import net.sf.mzmine.util.CursorPosition;
+import net.sf.mzmine.util.TimeNumberFormat;
 import net.sf.mzmine.visualizers.rawdata.RawDataVisualizer;
 
 /**
@@ -60,7 +61,7 @@ public class TwoDVisualizerWindow extends JInternalFrame implements
     private TaskController taskController;
 
     // TODO: get these from parameter storage
-    private static DateFormat rtFormat = new SimpleDateFormat("m:ss");
+    private static NumberFormat rtFormat = new TimeNumberFormat();
     private static NumberFormat mzFormat = new DecimalFormat("0.00");
     private static NumberFormat intensityFormat = new DecimalFormat("0.00E0");
 

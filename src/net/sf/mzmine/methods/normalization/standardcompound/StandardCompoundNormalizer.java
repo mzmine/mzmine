@@ -31,8 +31,6 @@ import net.sf.mzmine.methods.alignment.AlignmentResult;
 import net.sf.mzmine.methods.normalization.Normalizer;
 import net.sf.mzmine.methods.normalization.NormalizerParameters;
 import net.sf.mzmine.userinterface.mainwindow.MainWindow;
-import net.sf.mzmine.userinterface.mainwindow.Statusbar;
-import net.sf.mzmine.util.GeneralParameters;
 
 
 
@@ -62,7 +60,7 @@ public class StandardCompoundNormalizer implements Normalizer {
 
 		mainWin = _mainWin;
 
-		Statusbar statBar = _mainWin.getStatusBar();
+		//Statusbar statBar = _mainWin.getStatusBar();
 
 		myParameters.paramNormalizationType = StandardCompoundNormalizerParameters.NORMALIZATIONTYPE_STDCOMPOUND_NEAREST;
 

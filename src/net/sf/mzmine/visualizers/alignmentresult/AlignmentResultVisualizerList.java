@@ -40,8 +40,6 @@ import net.sf.mzmine.io.RawDataFile;
 import net.sf.mzmine.methods.alignment.AlignmentResult;
 import net.sf.mzmine.userinterface.mainwindow.ItemSelector;
 import net.sf.mzmine.userinterface.mainwindow.MainWindow;
-import net.sf.mzmine.userinterface.mainwindow.Statusbar;
-import net.sf.mzmine.util.GeneralParameters;
 import sunutils.TableSorter;
 
 
@@ -71,7 +69,7 @@ public class AlignmentResultVisualizerList extends JInternalFrame implements Ali
 
 
 	private MainWindow mainWin;
-	private Statusbar statBar;
+	//private Statusbar statBar;
 	private ItemSelector itemSelector;
 
 	private AlignmentResult alignmentResult;
@@ -93,7 +91,7 @@ public class AlignmentResultVisualizerList extends JInternalFrame implements Ali
 	public AlignmentResultVisualizerList(MainWindow _mainWin) {
 
 		mainWin = _mainWin;
-		statBar = mainWin.getStatusBar();
+		//statBar = mainWin.getStatusBar();
 		itemSelector = mainWin.getItemSelector();
 		setResizable( true );
 		setIconifiable( true );

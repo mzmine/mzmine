@@ -30,7 +30,7 @@ import javax.swing.event.ListSelectionListener;
 
 import net.sf.mzmine.data.PeakList;
 import net.sf.mzmine.io.IOController;
-import net.sf.mzmine.io.RawDataFile;
+import net.sf.mzmine.io.MZmineOpenedFile;
 import net.sf.mzmine.main.MZmineModule;
 import net.sf.mzmine.methods.Method;
 import net.sf.mzmine.methods.MethodParameters;
@@ -52,9 +52,10 @@ import net.sf.mzmine.userinterface.Desktop.MZmineMenu;
 public class SimpleIsotopicPeaksGrouper implements MZmineModule, Method,
         TaskListener, ListSelectionListener, ActionListener {
 
+    private Logger logger = Logger.getLogger(this.getClass().getName());
+    
     private TaskController taskController;
     private Desktop desktop;
-    private Logger logger;
     private JMenuItem myMenuItem;
 
     /**
@@ -63,11 +64,10 @@ public class SimpleIsotopicPeaksGrouper implements MZmineModule, Method,
      *      net.sf.mzmine.userinterface.Desktop, java.util.logging.Logger)
      */
     public void initModule(IOController ioController,
-            TaskController taskController, Desktop desktop, Logger logger) {
+            TaskController taskController, Desktop desktop) {
 
         this.taskController = taskController;
         this.desktop = desktop;
-        this.logger = logger;
 
         desktop.addMenuSeparator(MZmineMenu.PEAKPICKING);
 
@@ -109,20 +109,19 @@ public class SimpleIsotopicPeaksGrouper implements MZmineModule, Method,
      *      net.sf.mzmine.methods.alignment.AlignmentResult[])
      */
     public void runMethod(MethodParameters parameters,
-            RawDataFile[] rawDataFiles, AlignmentResult[] alignmentResults) {
+            MZmineOpenedFile[] dataFiles, AlignmentResult[] alignmentResults) {
 
         logger.finest("Running simple isotopic peaks grouper");
-        desktop.setStatusBarText("Processing...");
 
         SimpleIsotopicPeaksGrouperParameters param = (SimpleIsotopicPeaksGrouperParameters) parameters;
 
-        for (RawDataFile rawDataFile : rawDataFiles) {
+        for (MZmineOpenedFile dataFile : dataFiles) {
             PeakList currentPeakList = MZmineProject.getCurrentProject().getPeakList(
-                    rawDataFile);
+                    dataFile);
             if (currentPeakList == null)
                 continue;
             Task peaklistProcessorTask = new SimpleIsotopicPeaksGrouperTask(
-                    rawDataFile, currentPeakList, param);
+                    dataFile, currentPeakList, param);
             taskController.addTask(peaklistProcessorTask, this);
         }
 
@@ -137,9 +136,9 @@ public class SimpleIsotopicPeaksGrouper implements MZmineModule, Method,
         if (parameters == null)
             return;
 
-        RawDataFile[] rawDataFiles = desktop.getSelectedRawData();
+        MZmineOpenedFile[] dataFiles = desktop.getSelectedDataFiles();
 
-        runMethod(parameters, rawDataFiles, null);
+        runMethod(parameters, dataFiles, null);
 
     }
 
@@ -148,9 +147,9 @@ public class SimpleIsotopicPeaksGrouper implements MZmineModule, Method,
      */
     public void valueChanged(ListSelectionEvent e) {
 
-        RawDataFile[] rawDataFiles = desktop.getSelectedRawData();
+        MZmineOpenedFile[] dataFiles = desktop.getSelectedDataFiles();
 
-        for (RawDataFile file : rawDataFiles) {
+        for (MZmineOpenedFile file : dataFiles) {
             if (MZmineProject.getCurrentProject().hasPeakList(file)) {
                 myMenuItem.setEnabled(true);
                 return;
@@ -167,15 +166,17 @@ public class SimpleIsotopicPeaksGrouper implements MZmineModule, Method,
 
         if (task.getStatus() == Task.TaskStatus.FINISHED) {
 
-            RawDataFile rawData = (RawDataFile) ((Object[]) task.getResult())[0];
-            PeakList peakList = (PeakList) ((Object[]) task.getResult())[1];
-            SimpleIsotopicPeaksGrouperParameters params = (SimpleIsotopicPeaksGrouperParameters) ((Object[]) task.getResult())[2];
-
-            // Add isotopic peaks grouping to the history of the file
-            rawData.addHistory(rawData.getCurrentFile(), this, params);
+            Object[] result = (Object[]) task.getResult();
+            MZmineOpenedFile dataFile = (MZmineOpenedFile) result[0];
+            PeakList peakList = (PeakList) result[1];
+            MethodParameters params = (MethodParameters) result[2];
+            
+            dataFile.addHistoryEntry(dataFile.getCurrentFile().getFile(), this,
+                    params);
 
             // Add peak list to MZmineProject
-            MZmineProject.getCurrentProject().setPeakList(rawData, peakList);
+            MZmineProject.getCurrentProject().setPeakList(dataFile, peakList);
+
 
         } else if (task.getStatus() == Task.TaskStatus.ERROR) {
             /* Task encountered an error */
@@ -186,6 +187,13 @@ public class SimpleIsotopicPeaksGrouper implements MZmineModule, Method,
 
         }
 
+    }
+
+    /**
+     * @see net.sf.mzmine.methods.Method#getMethodDescription()
+     */
+    public String getMethodDescription() {
+        return "Simple isotopic peaks grouper";
     }
 
 }

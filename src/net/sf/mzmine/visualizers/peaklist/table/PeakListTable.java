@@ -20,23 +20,18 @@
 package net.sf.mzmine.visualizers.peaklist.table;
 
 
-import javax.swing.JTable;
 import javax.swing.JPopupMenu;
-
-import javax.swing.event.ListSelectionEvent;
-import javax.swing.event.ListSelectionListener;
-
+import javax.swing.JTable;
 import javax.swing.table.AbstractTableModel;
 
-import sunutils.TableSorter;
-
-import net.sf.mzmine.methods.deisotoping.util.IsotopePatternUtility;
-import net.sf.mzmine.project.MZmineProject;
-import net.sf.mzmine.util.GUIUtils;
 import net.sf.mzmine.data.IsotopePattern;
 import net.sf.mzmine.data.Peak;
 import net.sf.mzmine.data.PeakList;
-import net.sf.mzmine.io.RawDataFile;
+import net.sf.mzmine.io.MZmineOpenedFile;
+import net.sf.mzmine.methods.deisotoping.util.IsotopePatternUtility;
+import net.sf.mzmine.project.MZmineProject;
+import net.sf.mzmine.util.GUIUtils;
+import sunutils.TableSorter;
 
 
 public class PeakListTable extends JTable {
@@ -44,7 +39,7 @@ public class PeakListTable extends JTable {
 	private PeakList peakList;
 	private TableSorter sorter;
 
-	protected PeakListTable(PeakListTableView masterFrame, RawDataFile rawData) {
+	protected PeakListTable(PeakListTableView masterFrame, MZmineOpenedFile rawData) {
 
 		peakList = MZmineProject.getCurrentProject().getPeakList(rawData);
 

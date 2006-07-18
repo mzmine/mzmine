@@ -25,16 +25,11 @@ import java.awt.event.ActionListener;
 
 import javax.swing.JButton;
 import javax.swing.JComboBox;
-import javax.swing.JDesktopPane;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 
 import net.sf.mzmine.methods.MethodParameters;
 import net.sf.mzmine.methods.alignment.AlignmentResultProcessorParameters;
-import net.sf.mzmine.methods.alignment.fast.FastAligner;
-import net.sf.mzmine.methods.alignment.join.JoinAligner;
-import net.sf.mzmine.methods.deisotoping.incompletefilter.IncompleteIsotopePatternFilter;
-import net.sf.mzmine.methods.deisotoping.simplegrouper.SimpleIsotopicPeaksGrouper;
 import net.sf.mzmine.methods.gapfilling.GapFillerParameters;
 import net.sf.mzmine.methods.normalization.NormalizerParameters;
 import net.sf.mzmine.userinterface.mainwindow.MainWindow;
@@ -146,7 +141,7 @@ public class BatchModeDialog extends javax.swing.JInternalFrame implements Actio
 */
         addInternalFrameListener(new javax.swing.event.InternalFrameAdapter() {
             public void internalFrameClosing(javax.swing.event.InternalFrameEvent evt) {
-				mainWin.getStatusBar().setStatusText("Batch run cancelled.");
+				//mainWin.getStatusBar().setStatusText("Batch run cancelled.");
 				dispose(); // setVisible(false);
 				//mainWin.getDesktop().remove(BatchModeDialog.this);
             }

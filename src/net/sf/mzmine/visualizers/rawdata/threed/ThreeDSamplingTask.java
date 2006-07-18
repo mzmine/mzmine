@@ -27,6 +27,7 @@ import java.text.NumberFormat;
 import net.sf.mzmine.data.Peak;
 import net.sf.mzmine.data.PeakList;
 import net.sf.mzmine.data.Scan;
+import net.sf.mzmine.io.MZmineOpenedFile;
 import net.sf.mzmine.io.RawDataFile;
 import net.sf.mzmine.project.MZmineProject;
 import net.sf.mzmine.taskcontrol.Task;
@@ -71,6 +72,7 @@ import visad.java3d.MouseBehaviorJ3D;
 class ThreeDSamplingTask implements Task {
 
     private ThreeDVisualizerWindow visualizer;
+    private MZmineOpenedFile dataFile;
     private RawDataFile rawDataFile;
     private int scanNumbers[];
     private double rtMin, rtMax, mzMin, mzMax;
@@ -121,7 +123,7 @@ class ThreeDSamplingTask implements Task {
      * @param msLevel
      * @param visualizer
      */
-    ThreeDSamplingTask(RawDataFile rawDataFile, int scanNumbers[],
+    ThreeDSamplingTask(MZmineOpenedFile dataFile, int scanNumbers[],
             double rtMin, double rtMax,
             double mzMin, double mzMax,
             int rtResolution, int mzResolution,
@@ -129,7 +131,8 @@ class ThreeDSamplingTask implements Task {
 
         status = TaskStatus.WAITING;
 
-        this.rawDataFile = rawDataFile;
+        this.dataFile = dataFile;
+        this.rawDataFile = dataFile.getCurrentFile();
         this.scanNumbers = scanNumbers;
 
         this.rtMin = rtMin;
@@ -339,7 +342,7 @@ class ThreeDSamplingTask implements Task {
 
 
             // if we have peak data, connect them to the display, too
-            PeakList peakList = MZmineProject.getCurrentProject().getPeakList(rawDataFile);
+            PeakList peakList = MZmineProject.getCurrentProject().getPeakList(dataFile);
             if (peakList != null) {
 
                 Peak peaks[] = peakList.getPeaksInsideScanAndMZRange(rtMin, rtMax, mzMin, mzMax);

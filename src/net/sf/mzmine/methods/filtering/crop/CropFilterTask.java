@@ -23,6 +23,7 @@ import java.io.IOException;
 
 import net.sf.mzmine.data.Scan;
 import net.sf.mzmine.data.impl.SimpleScan;
+import net.sf.mzmine.io.MZmineOpenedFile;
 import net.sf.mzmine.io.RawDataFile;
 import net.sf.mzmine.io.RawDataFileWriter;
 import net.sf.mzmine.taskcontrol.Task;
@@ -32,6 +33,7 @@ import net.sf.mzmine.taskcontrol.Task;
  */
 class CropFilterTask implements Task {
 
+    private MZmineOpenedFile dataFile;
     private RawDataFile rawDataFile;
     private CropFilterParameters parameters;
     private TaskStatus status;
@@ -46,9 +48,10 @@ class CropFilterTask implements Task {
      * @param rawDataFile
      * @param parameters
      */
-    CropFilterTask(RawDataFile rawDataFile, CropFilterParameters parameters) {
+    CropFilterTask(MZmineOpenedFile dataFile, CropFilterParameters parameters) {
         status = TaskStatus.WAITING;
-        this.rawDataFile = rawDataFile;
+        this.dataFile = dataFile;
+        this.rawDataFile = dataFile.getCurrentFile();
         this.parameters = parameters;
     }
 
@@ -87,7 +90,7 @@ class CropFilterTask implements Task {
      */
     public Object getResult() {
         Object[] results = new Object[3];
-        results[0] = rawDataFile;
+        results[0] = dataFile;
         results[1] = filteredRawDataFile;
         results[2] = parameters;
 
@@ -111,7 +114,7 @@ class CropFilterTask implements Task {
         // Create new temporary copy
         RawDataFileWriter rawDataFileWriter;
         try {
-            rawDataFileWriter = rawDataFile.createNewTemporaryFile();
+            rawDataFileWriter = dataFile.createNewTemporaryFile();
         } catch (IOException e) {
             status = TaskStatus.ERROR;
             errorMessage = e.toString();

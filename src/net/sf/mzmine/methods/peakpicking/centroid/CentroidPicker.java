@@ -1,20 +1,14 @@
 /*
- * Copyright 2006 The MZmine Development Team
- * 
- * This file is part of MZmine.
- * 
+ * Copyright 2006 The MZmine Development Team This file is part of MZmine.
  * MZmine is free software; you can redistribute it and/or modify it under the
  * terms of the GNU General Public License as published by the Free Software
  * Foundation; either version 2 of the License, or (at your option) any later
- * version.
- * 
- * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY
- * WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR
- * A PARTICULAR PURPOSE. See the GNU General Public License for more details.
- * 
- * You should have received a copy of the GNU General Public License along with
- * MZmine; if not, write to the Free Software Foundation, Inc., 51 Franklin St,
- * Fifth Floor, Boston, MA 02110-1301 USA
+ * version. MZmine is distributed in the hope that it will be useful, but
+ * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
+ * FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for more
+ * details. You should have received a copy of the GNU General Public License
+ * along with MZmine; if not, write to the Free Software Foundation, Inc., 51
+ * Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
 package net.sf.mzmine.methods.peakpicking.centroid;
@@ -31,6 +25,7 @@ import javax.swing.event.ListSelectionListener;
 
 import net.sf.mzmine.data.PeakList;
 import net.sf.mzmine.io.IOController;
+import net.sf.mzmine.io.MZmineOpenedFile;
 import net.sf.mzmine.io.RawDataFile;
 import net.sf.mzmine.main.MZmineModule;
 import net.sf.mzmine.methods.Method;
@@ -52,22 +47,22 @@ import net.sf.mzmine.visualizers.peaklist.table.PeakListTableView;
 public class CentroidPicker implements MZmineModule, Method, TaskListener,
         ListSelectionListener, ActionListener {
 
+    private Logger logger = Logger.getLogger(this.getClass().getName());
+
     private TaskController taskController;
     private Desktop desktop;
-    private Logger logger;
     private JMenuItem myMenuItem;
 
     /**
      * @see net.sf.mzmine.main.MZmineModule#initModule(net.sf.mzmine.io.IOController,
      *      net.sf.mzmine.taskcontrol.TaskController,
-     *      net.sf.mzmine.userinterface.Desktop, java.util.logging.Logger)
+     *      net.sf.mzmine.userinterface.Desktop)
      */
     public void initModule(IOController ioController,
-            TaskController taskController, Desktop desktop, Logger logger) {
+            TaskController taskController, Desktop desktop) {
 
         this.taskController = taskController;
         this.desktop = desktop;
-        this.logger = logger;
 
         myMenuItem = desktop.addMenuItem(MZmineMenu.PEAKPICKING,
                 "Centroid peak detector", this, null, KeyEvent.VK_C, false,
@@ -202,13 +197,12 @@ public class CentroidPicker implements MZmineModule, Method, TaskListener,
      *      net.sf.mzmine.methods.alignment.AlignmentResult[])
      */
     public void runMethod(MethodParameters parameters,
-            RawDataFile[] rawDataFiles, AlignmentResult[] alignmentResults) {
+            MZmineOpenedFile[] dataFiles, AlignmentResult[] alignmentResults) {
 
         logger.finest("Running centroid peak picker");
-        desktop.setStatusBarText("Processing...");
 
-        for (RawDataFile rawDataFile : rawDataFiles) {
-            Task pickerTask = new CentroidPickerTask(rawDataFile,
+        for (MZmineOpenedFile dataFile : dataFiles) {
+            Task pickerTask = new CentroidPickerTask(dataFile,
                     (CentroidPickerParameters) parameters);
             taskController.addTask(pickerTask, this);
         }
@@ -224,9 +218,9 @@ public class CentroidPicker implements MZmineModule, Method, TaskListener,
         if (parameters == null)
             return;
 
-        RawDataFile[] rawDataFiles = desktop.getSelectedRawData();
+        MZmineOpenedFile[] dataFiles = desktop.getSelectedDataFiles();
 
-        runMethod(parameters, rawDataFiles, null);
+        runMethod(parameters, dataFiles, null);
 
     }
 
@@ -234,7 +228,7 @@ public class CentroidPicker implements MZmineModule, Method, TaskListener,
      * @see javax.swing.event.ListSelectionListener#valueChanged(javax.swing.event.ListSelectionEvent)
      */
     public void valueChanged(ListSelectionEvent e) {
-        myMenuItem.setEnabled(desktop.isRawDataSelected());
+        myMenuItem.setEnabled(desktop.isDataFileSelected());
     }
 
     public void taskStarted(Task task) {
@@ -245,17 +239,19 @@ public class CentroidPicker implements MZmineModule, Method, TaskListener,
 
         if (task.getStatus() == Task.TaskStatus.FINISHED) {
 
-            RawDataFile rawData = (RawDataFile) ((Object[]) task.getResult())[0];
-            PeakList peakList = (PeakList) ((Object[]) task.getResult())[1];
-            CentroidPickerParameters params = (CentroidPickerParameters) ((Object[]) task.getResult())[2];
+            Object[] result = (Object[]) task.getResult();
+            MZmineOpenedFile dataFile = (MZmineOpenedFile) result[0];
+            PeakList peakList = (PeakList) result[1];
+            MethodParameters params = (MethodParameters) result[2];
 
             // Add peak picking to the history of the file
-            rawData.addHistory(rawData.getCurrentFile(), this, params);
+            dataFile.addHistoryEntry(dataFile.getCurrentFile().getFile(), this,
+                    params);
 
             // Add peak list to MZmineProject
-            MZmineProject.getCurrentProject().setPeakList(rawData, peakList);
+            MZmineProject.getCurrentProject().setPeakList(dataFile, peakList);
 
-            PeakListTableView peakListTable = new PeakListTableView(rawData);
+            PeakListTableView peakListTable = new PeakListTableView(dataFile);
             desktop.addInternalFrame(peakListTable);
 
         } else if (task.getStatus() == Task.TaskStatus.ERROR) {
@@ -266,6 +262,13 @@ public class CentroidPicker implements MZmineModule, Method, TaskListener,
             desktop.displayErrorMessage(msg);
         }
 
+    }
+
+    /**
+     * @see net.sf.mzmine.methods.Method#getMethodDescription()
+     */
+    public String getMethodDescription() {
+        return "Centroid peak detector";
     }
 
 }

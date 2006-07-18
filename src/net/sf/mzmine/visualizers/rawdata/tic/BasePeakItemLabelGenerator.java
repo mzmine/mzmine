@@ -48,13 +48,11 @@ class BasePeakItemLabelGenerator implements XYItemLabelGenerator {
      */
     public String generateLabel(XYDataset dataset, int series, int item) {
 
-        
         // TODO: write comments
         final double originalX = dataset.getXValue(series, item);
         final double originalY = dataset.getYValue(series, item);
 
-        final double pointX = plot.getXYPlot().getDomainAxis().getRange()
-                .getLength()
+        final double pointX = plot.getXYPlot().getDomainAxis().getRange().getLength()
                 / plot.getWidth();
 
         final int itemCount = dataset.getItemCount(series);

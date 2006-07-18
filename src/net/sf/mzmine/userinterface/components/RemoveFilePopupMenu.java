@@ -31,6 +31,7 @@ import javax.swing.JMenuItem;
 import javax.swing.event.MenuEvent;
 import javax.swing.event.MenuListener;
 
+import net.sf.mzmine.io.MZmineOpenedFile;
 import net.sf.mzmine.io.RawDataFile;
 import net.sf.mzmine.visualizers.rawdata.MultipleRawDataVisualizer;
 
@@ -40,7 +41,7 @@ import net.sf.mzmine.visualizers.rawdata.MultipleRawDataVisualizer;
  */
 public class RemoveFilePopupMenu extends JMenu implements MenuListener, ActionListener {
 
-    private Hashtable<JMenuItem,RawDataFile> menuItemFiles;
+    private Hashtable<JMenuItem,MZmineOpenedFile> menuItemFiles;
     MultipleRawDataVisualizer visualizer;
     
     public RemoveFilePopupMenu(MultipleRawDataVisualizer visualizer) {
@@ -54,13 +55,13 @@ public class RemoveFilePopupMenu extends JMenu implements MenuListener, ActionLi
      */
     public void menuSelected(MenuEvent event) {
         removeAll();
-        RawDataFile[] files = visualizer.getRawDataFiles();
+        MZmineOpenedFile[] files = visualizer.getRawDataFiles();
         
         // if we have only one file, we cannot remove it
         if (files.length == 1) return;
         
-        menuItemFiles = new Hashtable<JMenuItem,RawDataFile>();
-        for (RawDataFile file : files) {
+        menuItemFiles = new Hashtable<JMenuItem,MZmineOpenedFile>();
+        for (MZmineOpenedFile file : files) {
             JMenuItem newItem = new JMenuItem(file.toString());
             newItem.addActionListener(this);
             menuItemFiles.put(newItem, file);
@@ -86,7 +87,7 @@ public class RemoveFilePopupMenu extends JMenu implements MenuListener, ActionLi
      */
     public void actionPerformed(ActionEvent event) {
          Object src = event.getSource();
-         RawDataFile file = menuItemFiles.get(src);
+         MZmineOpenedFile file = menuItemFiles.get(src);
          if (file != null) visualizer.removeRawDataFile(file);
     }
 }

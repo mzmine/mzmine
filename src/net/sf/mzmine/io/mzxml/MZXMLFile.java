@@ -32,7 +32,8 @@ import java.util.HashSet;
 import java.util.Hashtable;
 import java.util.Iterator;
 import java.util.Set;
-import java.util.Vector;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 import javax.xml.parsers.SAXParser;
 import javax.xml.parsers.SAXParserFactory;
@@ -40,8 +41,7 @@ import javax.xml.parsers.SAXParserFactory;
 import net.sf.mzmine.data.Scan;
 import net.sf.mzmine.io.RawDataFile;
 import net.sf.mzmine.io.RawDataFileWriter;
-import net.sf.mzmine.methods.Method;
-import net.sf.mzmine.methods.MethodParameters;
+import net.sf.mzmine.io.IOController.PreloadLevel;
 import net.sf.mzmine.util.CollectionUtils;
 
 /**
@@ -50,20 +50,17 @@ import net.sf.mzmine.util.CollectionUtils;
  */
 class MZXMLFile implements RawDataFile {
 
-    /**
-     * This is the file containing current version of the data By default it is
-     * same as originalFile, but if raw data is modified then this is the
-     * current working copy of the data file.
-     */
-    private File currentFile;
-
-    private Vector<Operation> history;
+    private Logger logger = Logger.getLogger(this.getClass().getName());
+    
+    private File realFile;
 
     private int numOfScans = 0;
 
-    private Hashtable<Integer, Double> dataMinMZ, dataMaxMZ, dataMinRT, dataMaxRT;
+    private Hashtable<Integer, Double> dataMinMZ, dataMaxMZ, dataMinRT,
+            dataMaxRT;
     private Hashtable<Integer, Double> dataMaxBasePeakIntensity, dataMaxTIC;
     private Hashtable<Integer, Double> retentionTimes;
+    private Hashtable<Integer, Double> precursorMZ;
 
     /**
      * Preloaded scans
@@ -84,28 +81,17 @@ class MZXMLFile implements RawDataFile {
     /**
      * 
      */
-    MZXMLFile(File currentFile, PreloadLevel preloadLevel) {
-        this(currentFile, preloadLevel, null);
-    }
+    MZXMLFile(File file, PreloadLevel preloadLevel) {
 
-    /**
-     * 
-     */
-    MZXMLFile(File currentFile, PreloadLevel preloadLevel,
-            Vector<Operation> history) {
-
-        this.currentFile = currentFile;
+        this.realFile = file;
         this.preloadLevel = preloadLevel;
-        if (history == null) {
-            this.history = new Vector<Operation>();
-        } else {
-            this.history = history;
-        }
 
         dataDescription = new StringBuffer();
         scansIndex = new Hashtable<Integer, Long>();
         scanNumbers = new Hashtable<Integer, ArrayList<Integer>>();
         retentionTimes = new Hashtable<Integer, Double>();
+        precursorMZ = new Hashtable<Integer, Double>();
+
         dataMinMZ = new Hashtable<Integer, Double>();
         dataMaxMZ = new Hashtable<Integer, Double>();
         dataMinRT = new Hashtable<Integer, Double>();
@@ -138,14 +124,12 @@ class MZXMLFile implements RawDataFile {
         Long filePos = scansIndex.get(new Integer(scanNumber));
         if (filePos == null)
             throw (new IllegalArgumentException("Scan " + scanNumber
-                    + " is not present in file " + getOriginalFile()));
+                    + " is not present in file " + realFile));
 
         MZXMLScan buildingScan = new MZXMLScan();
 
-        // Logger.putFatal("Skip mzXML file to position " + filePos);
-
         FileInputStream fileIN = null;
-        fileIN = new FileInputStream(currentFile);
+        fileIN = new FileInputStream(realFile);
         fileIN.skip(filePos);
 
         // Use the default (non-validating) parser
@@ -161,10 +145,10 @@ class MZXMLFile implements RawDataFile {
 
             if (!e.getMessage().equals("Scan reading finished")) {
 
-                // Logger.putFatal(e.toString());
+                logger.log(Level.SEVERE, "Couldn't parse scan " + scanNumber
+                        + " from file " + realFile,  e);
                 throw (new IOException("Couldn't parse scan " + scanNumber
-                        + " from file " + currentFile + "(" + getOriginalFile()
-                        + ")"));
+                        + " from file " + realFile));
 
             }
         }
@@ -191,7 +175,8 @@ class MZXMLFile implements RawDataFile {
      * @see net.sf.mzmine.io.RawDataFile#getDataMinMZ()
      */
     public double getDataMinMZ(int msLevel) {
-        if (! scanNumbers.containsKey(msLevel)) return -1;
+        if (!scanNumbers.containsKey(msLevel))
+            return -1;
         return dataMinMZ.get(msLevel);
     }
 
@@ -199,7 +184,8 @@ class MZXMLFile implements RawDataFile {
      * @see net.sf.mzmine.io.RawDataFile#getDataMaxMZ()
      */
     public double getDataMaxMZ(int msLevel) {
-        if (! scanNumbers.containsKey(msLevel)) return -1;
+        if (!scanNumbers.containsKey(msLevel))
+            return -1;
         return dataMaxMZ.get(msLevel);
     }
 
@@ -207,51 +193,52 @@ class MZXMLFile implements RawDataFile {
      * @see net.sf.mzmine.io.RawDataFile#getScanNumbers(int)
      */
     public int[] getScanNumbers(int msLevel) {
-        if (! scanNumbers.containsKey(msLevel)) return new int[0];
-        return getScanNumbers(msLevel, dataMinRT.get(msLevel), dataMaxRT.get(msLevel));
+        if (!scanNumbers.containsKey(msLevel))
+            return new int[0];
+        return getScanNumbers(msLevel, dataMinRT.get(msLevel),
+                dataMaxRT.get(msLevel));
     }
-    
+
     /**
      * @see net.sf.mzmine.io.RawDataFile#getScanNumbers(int, double, double)
      */
     public int[] getScanNumbers(int msLevel, double rtMin, double rtMax) {
         ArrayList<Integer> numbersList = scanNumbers.get(msLevel);
-        if (numbersList == null) 
+        if (numbersList == null)
             return new int[0];
 
         ArrayList<Integer> eligibleScans = new ArrayList<Integer>();
-        
+
         Iterator<Integer> iter = numbersList.iterator();
         while (iter.hasNext()) {
             Integer scanNumber = iter.next();
             double rt = retentionTimes.get(scanNumber);
-            if ((rt >= rtMin) && (rt <= rtMax)) eligibleScans.add(scanNumber);
+            if ((rt >= rtMin) && (rt <= rtMax))
+                eligibleScans.add(scanNumber);
         }
-        
+
         int[] numbersArray = CollectionUtils.toIntArray(eligibleScans);
         Arrays.sort(numbersArray);
-        
+
         return numbersArray;
     }
 
-
-    
     /**
      * @see net.sf.mzmine.io.RawDataFile#getScanNumbers()
      */
     public int[] getScanNumbers() {
-        
+
         Set<Integer> allScanNumbers = new HashSet<Integer>();
         Enumeration<ArrayList<Integer>> scanNumberLists = scanNumbers.elements();
-        
-        while (scanNumberLists.hasMoreElements()) 
+
+        while (scanNumberLists.hasMoreElements())
             allScanNumbers.addAll(scanNumberLists.nextElement());
-        
+
         int[] numbersArray = CollectionUtils.toIntArray(allScanNumbers);
         Arrays.sort(numbersArray);
-        
+
         return numbersArray;
-        
+
     }
 
     /**
@@ -277,31 +264,11 @@ class MZXMLFile implements RawDataFile {
             return rt.doubleValue();
     }
 
-    /**
-     * @see net.sf.mzmine.io.RawDataFile#getOriginalFile()
-     */
-    public File getOriginalFile() {
-        if (history.size() == 0)
-            return currentFile;
-        return history.get(0).previousFileName;
+
+    public File getFile() {
+        return realFile;
     }
 
-    public File getCurrentFile() {
-        return currentFile;
-    }
-
-    public Vector<Operation> getHistory() {
-        return history;
-    }
-
-    public void addHistory(File previousFile, Method processingMethod,
-            MethodParameters parameters) {
-        Operation o = new Operation();
-        o.previousFileName = previousFile;
-        o.processingMethod = processingMethod;
-        o.parameters = parameters;
-        history.add(o);
-    }
 
     /**
      * @see net.sf.mzmine.io.RawDataFile#getDataMaxBasePeakIntensity()
@@ -337,23 +304,27 @@ class MZXMLFile implements RawDataFile {
             scans.put(new Integer(newScan.getScanNumber()), newScan);
 
         int msLevel = newScan.getMSLevel();
-        
-        if ((dataMinMZ.get(msLevel) == null) || (dataMinMZ.get(msLevel) > newScan.getMZRangeMin()))
+
+        if ((dataMinMZ.get(msLevel) == null)
+                || (dataMinMZ.get(msLevel) > newScan.getMZRangeMin()))
             dataMinMZ.put(msLevel, newScan.getMZRangeMin());
-        if ((dataMaxMZ.get(msLevel) == null) || (dataMaxMZ.get(msLevel) < newScan.getMZRangeMax()))
+        if ((dataMaxMZ.get(msLevel) == null)
+                || (dataMaxMZ.get(msLevel) < newScan.getMZRangeMax()))
             dataMaxMZ.put(msLevel, newScan.getMZRangeMax());
-        if ((dataMinRT.get(msLevel) == null) || (dataMinRT.get(msLevel) > newScan.getRetentionTime()))
+        if ((dataMinRT.get(msLevel) == null)
+                || (dataMinRT.get(msLevel) > newScan.getRetentionTime()))
             dataMinRT.put(msLevel, newScan.getRetentionTime());
-        if ((dataMaxRT.get(msLevel) == null) || (dataMaxRT.get(msLevel) < newScan.getRetentionTime()))
+        if ((dataMaxRT.get(msLevel) == null)
+                || (dataMaxRT.get(msLevel) < newScan.getRetentionTime()))
             dataMaxRT.put(msLevel, newScan.getRetentionTime());
         if ((dataMaxBasePeakIntensity.get(newScan.getMSLevel()) == null)
-                || (dataMaxBasePeakIntensity.get(newScan.getMSLevel()) < newScan
-                        .getBasePeakIntensity()))
-            dataMaxBasePeakIntensity.put(newScan.getMSLevel(), newScan
-                    .getBasePeakIntensity());
+                || (dataMaxBasePeakIntensity.get(newScan.getMSLevel()) < newScan.getBasePeakIntensity()))
+            dataMaxBasePeakIntensity.put(newScan.getMSLevel(),
+                    newScan.getBasePeakIntensity());
 
         retentionTimes.put(newScan.getScanNumber(), newScan.getRetentionTime());
-        
+        precursorMZ.put(newScan.getScanNumber(), newScan.getPrecursorMZ());
+
         double scanTIC = 0;
 
         for (double intensity : newScan.getIntensityValues())
@@ -363,8 +334,8 @@ class MZXMLFile implements RawDataFile {
                 || (scanTIC > dataMaxTIC.get(newScan.getMSLevel())))
             dataMaxTIC.put(newScan.getMSLevel(), scanTIC);
 
-        ArrayList<Integer> scanList = scanNumbers.get(new Integer(newScan
-                .getMSLevel()));
+        ArrayList<Integer> scanList = scanNumbers.get(new Integer(
+                newScan.getMSLevel()));
         if (scanList == null) {
             scanList = new ArrayList<Integer>(64);
             scanNumbers.put(new Integer(newScan.getMSLevel()), scanList);
@@ -376,7 +347,7 @@ class MZXMLFile implements RawDataFile {
     }
 
     public String toString() {
-        return getOriginalFile().getName();
+        return realFile.getName();
     }
 
     /**
@@ -400,24 +371,17 @@ class MZXMLFile implements RawDataFile {
         return preloadLevel;
     }
 
+
+
     /**
-     * 
+     * @see net.sf.mzmine.io.RawDataFile#getPrecursorMZ(int)
      */
-    public RawDataFileWriter createNewTemporaryFile() throws IOException {
-
-        // Create new temp file
-        File workingCopy;
-        try {
-            workingCopy = File.createTempFile("MZmine", null);
-            workingCopy.deleteOnExit();
-        } catch (SecurityException e) {
-            // Logger.putFatal("Could not prepare newly created temporary copy for deletion on exit.");
-            throw new IOException("Could not prepare newly created temporary copy for deletion on exit.");
-        }
-
-        return new MZXMLFileWriter(this, workingCopy, preloadLevel);
-
+    public double getPrecursorMZ(int scanNumber) {
+        Double mz = precursorMZ.get(scanNumber);
+        if (mz == null)
+            return -1;
+        else
+            return mz.doubleValue();
     }
-
 
 }

@@ -23,14 +23,13 @@ import java.awt.event.ActionListener;
 
 import javax.swing.JFrame;
 import javax.swing.JInternalFrame;
-import javax.swing.JMenu;
 import javax.swing.JMenuItem;
 import javax.swing.event.ListSelectionListener;
 
-import net.sf.mzmine.io.RawDataFile;
+import net.sf.mzmine.io.MZmineOpenedFile;
 
 /**
- * This class is the main window of application
+ * This interface represents the application GUI
  * 
  */
 public interface Desktop {
@@ -39,16 +38,22 @@ public interface Desktop {
         FILTERING, PEAKPICKING, ALIGNMENT, NORMALIZATION, VISUALIZATION
     };
 
+    /**
+     * Returns a reference to main application window
+     * @return Main window frame
+     */
     public JFrame getMainWindow();
-
-    public void addMenuItem(MZmineMenu parentMenu, JMenuItem newItem);
 
     public JMenuItem addMenuItem(MZmineMenu parentMenu, String text,
             ActionListener listener, String actionCommand, int mnemonic,
             boolean setAccelerator, boolean enabled);
 
+    /**
+     * Adds a separator to a given MZmine menu
+     * @param parentMenu Menu where to add a separator
+     */
     public void addMenuSeparator(MZmineMenu parentMenu);
-
+    
     public void addSelectionListener(ListSelectionListener listener);
 
     public void addInternalFrame(JInternalFrame frame);
@@ -57,15 +62,15 @@ public interface Desktop {
     public JInternalFrame[] getVisibleFrames();
     public JInternalFrame getSelectedFrame();
 
-    public void setStatusBarText(String msg);
-
+    public void setStatusBarText(String text);
+    
     public void displayErrorMessage(String msg);
 
-    public boolean isRawDataSelected();
+    public boolean isDataFileSelected();
 
-    public RawDataFile[] getSelectedRawData();
+    public MZmineOpenedFile[] getSelectedDataFiles();
 
-    public RawDataFile getFirstSelectedRawData();
+    public MZmineOpenedFile getFirstSelectedDataFile();
 
     public void exitMZmine();
 

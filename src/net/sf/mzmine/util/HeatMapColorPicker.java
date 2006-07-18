@@ -19,6 +19,8 @@
 */
 package net.sf.mzmine.util;
 
+import java.awt.Color;
+
 
 public class HeatMapColorPicker {
 
@@ -92,9 +94,9 @@ public class HeatMapColorPicker {
 
 	/**
 	 * This function returns color for given intensity level as Color object
-	 * @return	java.awt.Color object
+	 * @return	Color object
 	 */
-	public java.awt.Color getColorC(int intensity) {
+	public Color getColorC(int intensity) {
 
 		int[] tmp = getColorI(intensity);
 
@@ -102,7 +104,7 @@ public class HeatMapColorPicker {
 		float g = (float)tmp[1]/(float)255.0;
 		float b = (float)tmp[2]/(float)255.0;
 
-		java.awt.Color c = new java.awt.Color(r,g,b);
+		Color c = new Color(r,g,b);
 
 		return c;
 
@@ -158,9 +160,9 @@ public class HeatMapColorPicker {
 		after_g = heatmap_pal_waypointRGBs[after_index][1];
 		after_b = heatmap_pal_waypointRGBs[after_index][2];
 
-		r = (int)java.lang.Math.round((double)(after_r - before_r) / (double)(after_intensity - before_intensity) * (double)(intensity - before_intensity) + (double)before_r);
-		g = (int)java.lang.Math.round((double)(after_g - before_g) / (double)(after_intensity - before_intensity) * (double)(intensity - before_intensity) + (double)before_g);
-		b = (int)java.lang.Math.round((double)(after_b - before_b) / (double)(after_intensity - before_intensity) * (double)(intensity - before_intensity) + (double)before_b);
+		r = (int)Math.round((double)(after_r - before_r) / (double)(after_intensity - before_intensity) * (double)(intensity - before_intensity) + (double)before_r);
+		g = (int)Math.round((double)(after_g - before_g) / (double)(after_intensity - before_intensity) * (double)(intensity - before_intensity) + (double)before_g);
+		b = (int)Math.round((double)(after_b - before_b) / (double)(after_intensity - before_intensity) * (double)(intensity - before_intensity) + (double)before_b);
 
 		// Return result
 		res[0]=r; res[1]=g; res[2]=b;
