@@ -71,8 +71,7 @@ public class Statusbar extends JPanel {
     /**
      * Set the text displayed in status bar
      * 
-     * @param t
-     *            Text for status bar
+     * @param t Text for status bar
      */
     void setStatusText(String statusText) {
         statusTextLabel.setText(statusText);
@@ -82,12 +81,9 @@ public class Statusbar extends JPanel {
     /**
      * Sets the text displayed in status bar and progress indicators position
      * 
-     * @param t
-     *            Text for status bar
-     * @param currentSlot
-     *            Current position of progress indicator
-     * @param fullSlot
-     *            Last position of progress indicator
+     * @param t Text for status bar
+     * @param currentSlot Current position of progress indicator
+     * @param fullSlot Last position of progress indicator
      */
     public void setStatusProgBar(int _currentSlot, int _fullSlot) {
         // if (!statusProgBar.isVisible()) {

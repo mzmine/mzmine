@@ -42,7 +42,8 @@ import net.sf.mzmine.util.GUIUtils;
 /**
  * 
  */
-public class MainMenu extends JMenuBar implements ActionListener, ListSelectionListener {
+public class MainMenu extends JMenuBar implements ActionListener,
+        ListSelectionListener {
 
     private JMenu fileMenu;
     private JMenu editMenu;
@@ -70,19 +71,17 @@ public class MainMenu extends JMenuBar implements ActionListener, ListSelectionL
      * JMenu alignmentMenu; private JMenuItem tsJoinAligner, tsFastAligner,
      * tsAlignmentFilter, tsEmptySlotFiller; private JMenu normalizationMenu;
      * private JMenuItem normLinear, normStdComp; private JMenu batchMenu;
-     *  private JMenu visualizationMenu; private
-     * JMenuItem visOpenTIC, visOpenSpectra, visOpenTwoD, visOpenThreeD; private
-     * JMenuItem visOpenSRView, visOpenSCVView, visOpenCDAView,
-     * visOpenSammonsView; private JMenu toolsMenu; 
-     */ 
-    
+     * private JMenu visualizationMenu; private JMenuItem visOpenTIC,
+     * visOpenSpectra, visOpenTwoD, visOpenThreeD; private JMenuItem
+     * visOpenSRView, visOpenSCVView, visOpenCDAView, visOpenSammonsView;
+     * private JMenu toolsMenu;
+     */
+
     private JMenuItem batDefine;
-     private JMenuItem
-     toolsOptions;
-     
-      private JMenuItem
-      windowTileWindows, windowCascadeWindows;  private JMenuItem hlpAbout;
-     
+    private JMenuItem toolsOptions;
+
+    private JMenuItem windowTileWindows, windowCascadeWindows;
+    private JMenuItem hlpAbout;
 
     private IOController ioController;
     private Desktop desktop;
@@ -95,8 +94,7 @@ public class MainMenu extends JMenuBar implements ActionListener, ListSelectionL
         fileMenu = new JMenu("File");
         fileMenu.setMnemonic(KeyEvent.VK_F);
         add(fileMenu);
-        
-        
+
         fileOpen = GUIUtils.addMenuItem(fileMenu, "Open...", this,
                 KeyEvent.VK_O, true);
         fileClose = GUIUtils.addMenuItem(fileMenu, "Close", this, KeyEvent.VK_C);
@@ -175,9 +173,8 @@ public class MainMenu extends JMenuBar implements ActionListener, ListSelectionL
         batchMenu.setMnemonic(KeyEvent.VK_B);
         this.add(batchMenu);
 
-        
-          batDefine = GUIUtils.addMenuItem(batchMenu, "Define batch operations", this, KeyEvent.VK_R);
-         
+        batDefine = GUIUtils.addMenuItem(batchMenu, "Define batch operations",
+                this, KeyEvent.VK_R);
 
         visualizationMenu = new JMenu("Visualization");
         visualizationMenu.setMnemonic(KeyEvent.VK_V);
@@ -205,34 +202,27 @@ public class MainMenu extends JMenuBar implements ActionListener, ListSelectionL
         toolsMenu.setMnemonic(KeyEvent.VK_C);
         this.add(toolsMenu);
 
-
-          toolsOptions = GUIUtils.addMenuItem(toolsMenu, "Preferences...",
-          this, KeyEvent.VK_P);
-         
+        toolsOptions = GUIUtils.addMenuItem(toolsMenu, "Preferences...", this,
+                KeyEvent.VK_P);
 
         windowMenu = new JMenu("Window");
         windowMenu.setMnemonic(KeyEvent.VK_W);
         this.add(windowMenu);
 
-        
-         windowTileWindows = GUIUtils.addMenuItem(windowMenu, "Tile windows",
-         this, KeyEvent.VK_T, true);
-         windowCascadeWindows = GUIUtils.addMenuItem(windowMenu, "Cascade windows",
-                 this, KeyEvent.VK_S, true);
-        
+        windowTileWindows = GUIUtils.addMenuItem(windowMenu, "Tile windows",
+                this, KeyEvent.VK_T, true);
+        windowCascadeWindows = GUIUtils.addMenuItem(windowMenu,
+                "Cascade windows", this, KeyEvent.VK_S, true);
 
         helpMenu = new JMenu("Help");
         helpMenu.setMnemonic(KeyEvent.VK_H);
         this.add(helpMenu);
 
-        
-         hlpAbout = GUIUtils.addMenuItem(helpMenu, "About MZmine...", this,
-        KeyEvent.VK_A);
-        
+        hlpAbout = GUIUtils.addMenuItem(helpMenu, "About MZmine...", this,
+                KeyEvent.VK_A);
 
-        
         desktop.addSelectionListener(this);
-        
+
     }
 
     public void addMenuItem(MZmineMenu parentMenu, JMenuItem newItem) {
@@ -325,19 +315,19 @@ public class MainMenu extends JMenuBar implements ActionListener, ListSelectionL
                 MZmineProject.getCurrentProject().removeFile(file);
 
         }
-        
+
         // Window->Tile
         if (src == windowTileWindows) {
             MainWindow mainWindow = (MainWindow) desktop;
             mainWindow.tileInternalFrames();
         }
-        
+
         // Window->Cascade
         if (src == windowCascadeWindows) {
             MainWindow mainWindow = (MainWindow) desktop;
             mainWindow.cascadeInternalFrames();
         }
-        
+
         // Help->About
         if (src == hlpAbout) {
             AboutDialog dialog = new AboutDialog(desktop);

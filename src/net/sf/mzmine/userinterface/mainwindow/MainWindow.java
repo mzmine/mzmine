@@ -68,11 +68,7 @@ public class MainWindow extends JFrame implements Desktop, MZmineModule,
     // private ItemStorage itemStorage;
     private ItemSelector itemSelector;
 
-    // This table maps rawDataIDs to visualizers showing the data
-    private Hashtable<Integer, Vector<RawDataVisualizer>> rawDataVisualizers;
-
-    private Hashtable<Integer, Vector<AlignmentResultVisualizer>> alignmentResultVisualizers;
-
+  
     private TaskProgressWindow taskList;
 
     public TaskProgressWindow getTaskList() {
@@ -105,92 +101,9 @@ public class MainWindow extends JFrame implements Desktop, MZmineModule,
         return itemSelector;
     }
 
-    /**
-     * This method moves all visualizers of given raw data to the top on desktop
-     * 
-     * public void moveVisualizersToFront(RawDataAtClient rawData) {
-     * 
-     * Integer rawDataID = new Integer(rawData.getRawDataID());
-     *  // Get all visualizers for this raw data file Vector<RawDataVisualizer>
-     * visualizers = rawDataVisualizers .get(rawDataID);
-     * 
-     * if (visualizers == null) { return; }
-     *  // Move each visualizer window to front boolean somethingIsSelected =
-     * false; JInternalFrame jif = null; for (RawDataVisualizer vis :
-     * visualizers) { jif = (JInternalFrame) vis; if (jif.isSelected()) {
-     * somethingIsSelected = true; } jif.moveToFront(); }
-     * 
-     * if ((!somethingIsSelected) && (visualizers != null)) { try { jif =
-     * (JInternalFrame) (visualizers.get(0)); jif.setSelected(true); } catch
-     * (Exception e) { } }
-     *  }
-     * 
-     * /** This method moves all visualizers of given alignment result to the
-     * top on desktop
-     */
-    public void moveVisualizersToFront(AlignmentResult result) {
 
-        Integer alignmentResultID = new Integer(result.getAlignmentResultID());
 
-        // Get all visualizer for this alignment result
-        Vector<AlignmentResultVisualizer> visualizers = alignmentResultVisualizers.get(alignmentResultID);
 
-        if (visualizers == null) {
-            return;
-        }
-
-        // Move each visualizer window to front
-        for (AlignmentResultVisualizer vis : visualizers) {
-            ((JInternalFrame) vis).moveToFront();
-        }
-
-        // Select first visualizer window as the active window
-        try {
-            ((JInternalFrame) (visualizers.get(0))).setSelected(true);
-        } catch (Exception e) {
-        }
-
-    }
-
-    /**
-     * Checks if a raw data file has one or more visible visualizers
-     * 
-     * @param rawDataID
-     *            raw data file ID
-     * @return true if raw data file has one or more visible visualizers
-     */
-    public boolean rawDataHasVisibleVisualizers(int rawDataID,
-            boolean includeIcons) {
-        boolean shouldBeShown = false;
-
-        // Get visualizer vector for this raw data ID
-        Vector<RawDataVisualizer> visualizerVector = rawDataVisualizers.get(new Integer(
-                rawDataID));
-
-        // If raw data file has some visualizers, check if any of them is
-        // visible
-        if (visualizerVector != null) {
-            Enumeration<RawDataVisualizer> visualizers = visualizerVector.elements();
-            while (visualizers.hasMoreElements()) {
-
-                RawDataVisualizer vis = visualizers.nextElement();
-                JInternalFrame jif = (JInternalFrame) vis;
-
-                if (includeIcons) {
-                    if (jif.isVisible()) {
-                        shouldBeShown = true;
-                    }
-                } else {
-                    if (jif.isVisible() && !(jif.isIcon())) {
-                        shouldBeShown = true;
-                    }
-                }
-            }
-        }
-
-        return shouldBeShown;
-
-    }
 
     void tileInternalFrames() {
         JInternalFrame[] frames = getVisibleFrames();
@@ -268,199 +181,6 @@ public class MainWindow extends JFrame implements Desktop, MZmineModule,
 
 
 
-    /*
-     * public RunSelector getRunSelector() { //return runPick; return null; }
-     */
-    /*
-     * public void paintNow() { update(getGraphics()); }
-     * 
-     * public void closeRawDataFiles(int[] rawDataIDs) {
-     * 
-     * if (rawDataIDs.length > 0) { // Check that any of these files is not
-     * participating any alignment String errorMessage = null; for (int
-     * rawDataID : rawDataIDs) { RawDataAtClient rawData = itemSelector
-     * .getRawDataByID(rawDataID); if (rawData.getAlignmentResultIDs().size() >
-     * 0) { Vector<Integer> alignmentResultIDs = rawData
-     * .getAlignmentResultIDs(); errorMessage = rawData.getNiceName() + " is
-     * participating in alignment(s). Before closing the raw data files, please
-     * close alignment result(s): "; for (Integer alignmentResultID :
-     * alignmentResultIDs) { errorMessage +=
-     * itemSelector.getAlignmentResultByID(
-     * alignmentResultID.intValue()).getNiceName() + ", "; } } if (errorMessage !=
-     * null) { displayErrorMessage(errorMessage); return; } }
-     *  // Remove all visualizers for these raw data files for (int rawDataID :
-     * rawDataIDs) { removeRawDataVisualizers(rawDataID); }
-     *  // clientForCluster.closeRawDataFiles(rawDataIDs);
-     * 
-     * getStatusBar().setStatusText( "Closing " + rawDataIDs.length + " raw data
-     * file(s).");
-     *  }
-     *  }
-     * 
-     * 
-     * public void closeAlignmentResults(int[] alignmentResultIDs) {
-     * 
-     * if (alignmentResultIDs.length > 0) {
-     * 
-     * for (int alignmentResultID : alignmentResultIDs) {
-     * 
-     * if (itemSelector.getAlignmentResultByID(alignmentResultID) .isImported()) {
-     * continue; }
-     *  // Remove dependency from each involved raw data file int[] rawDataIDs =
-     * itemSelector.getAlignmentResultByID( alignmentResultID).getRawDataIDs();
-     * for (int rawDataID : rawDataIDs) { RawDataAtClient rawData = itemSelector
-     * .getRawDataByID(rawDataID);
-     * rawData.removeAlignmentResultID(alignmentResultID); } }
-     * 
-     * for (int alignmentResultID : alignmentResultIDs) { // Close all
-     * visualizers for these alignment results
-     * removeAlignmentResultVisualizers(alignmentResultID);
-     *  // Remove these alignment results from the item selector
-     * itemSelector.removeAlignmentResult(itemSelector
-     * .getAlignmentResultByID(alignmentResultID)); }
-     * 
-     * getStatusBar().setStatusText( "Closed " + alignmentResultIDs.length + "
-     * alignment result(s).");
-     *  }
-     *  }
-     * 
-     * public void doLinearNormalizationClientSide(LinearNormalizerParameters
-     * lnp, Vector<AlignmentResult> originalAlignmentResults) {
-     * statBar.setStatusText("Normalizing selected alignment results.");
-     * paintNow();
-     * 
-     * setBusy(true);
-     * 
-     * LinearNormalizer ln = new LinearNormalizer(); Enumeration<AlignmentResult>
-     * originalAlignmentResultEnum = originalAlignmentResults .elements(); while
-     * (originalAlignmentResultEnum.hasMoreElements()) { AlignmentResult ar =
-     * originalAlignmentResultEnum.nextElement(); AlignmentResult nar = ln
-     * .calcNormalization(MainWindow.this, ar, lnp);
-     * itemSelector.addAlignmentResult(nar);
-     * addAlignmentResultVisualizerList(nar); }
-     * 
-     * setBusy(false); statBar.setStatusText("Normalization done."); }
-     * 
-     * public void runAlignmentResultFilteringByGapsClientSide(
-     * AlignmentResultFilterByGapsParameters arpp, Vector<AlignmentResult>
-     * originalAlignmentResults) { statBar.setStatusText("Filtering selected
-     * alignment results."); paintNow();
-     * 
-     * setBusy(true);
-     * 
-     * AlignmentResultFilterByGaps arfbg = new AlignmentResultFilterByGaps();
-     * 
-     * Enumeration<AlignmentResult> originalAlignmentResultEnum =
-     * originalAlignmentResults .elements(); while
-     * (originalAlignmentResultEnum.hasMoreElements()) { AlignmentResult ar =
-     * originalAlignmentResultEnum.nextElement(); AlignmentResult nar =
-     * arfbg.processAlignment(MainWindow.this, ar,
-     * (AlignmentResultProcessorParameters) arpp);
-     * itemSelector.addAlignmentResult(nar);
-     * addAlignmentResultVisualizerList(nar); }
-     * 
-     * setBusy(false); statBar.setStatusText("Alignment result filtering
-     * done.");
-     *  }
-     * 
-     * public AlignmentResult runAlignmentResultFilteringByGapsClientSide(
-     * AlignmentResultFilterByGapsParameters arpp, AlignmentResult
-     * originalAlignmentResult) { statBar.setStatusText("Filtering alignment
-     * result."); paintNow();
-     * 
-     * setBusy(true);
-     * 
-     * AlignmentResultFilterByGaps arfbg = new AlignmentResultFilterByGaps();
-     * 
-     * AlignmentResult nar = arfbg.processAlignment(MainWindow.this,
-     * originalAlignmentResult, (AlignmentResultProcessorParameters) arpp);
-     * itemSelector.addAlignmentResult(nar);
-     * addAlignmentResultVisualizerList(nar);
-     * 
-     * setBusy(false); statBar.setStatusText("Alignment result filtering
-     * done."); return nar;
-     *  }
-     * 
-     * /** Copies the zoom settings from given run to all other runs. whatDims
-     * parameter defines wheter to copy zoom settings only in mz, rt or both
-     * dimensions
-     * 
-     * public void setSameZoomToOtherRawDatas(RawDataAtClient originalRawData,
-     * int whatDims) {
-     * 
-     * double startMZ = 0; double endMZ = 0; int startScan = 0; int endScan = 0;
-     * double cursorMZ = 0; int cursorScan = 0;
-     * 
-     * double tmpStartMZ; double tmpEndMZ; int tmpStartScan; int tmpEndScan;
-     * 
-     * double tmpCursorMZ; int tmpCursorScan;
-     * 
-     * startMZ = originalRawData.getSelectionMZStart(); endMZ =
-     * originalRawData.getSelectionMZEnd(); startScan =
-     * originalRawData.getSelectionScanStart(); endScan =
-     * originalRawData.getSelectionScanEnd(); cursorMZ =
-     * originalRawData.getCursorPositionMZ(); cursorScan =
-     * originalRawData.getCursorPositionScan();
-     * 
-     * RawDataAtClient[] rawDatas = itemSelector.getRawDatas(); int[]
-     * modifiedRawDataIDs = new int[rawDatas.length - 1]; int
-     * modifiedRawDataIDsInd = 0;
-     * 
-     * for (RawDataAtClient r : rawDatas) {
-     * 
-     * if (originalRawData != r) {
-     * 
-     * modifiedRawDataIDs[modifiedRawDataIDsInd] = r.getRawDataID();
-     * modifiedRawDataIDsInd++;
-     *  // Check that selection and cursor position of source run are // valid
-     * also for this target run if (r.getDataMinMZ() > cursorMZ) { tmpCursorMZ =
-     * r.getDataMinMZ(); } else { tmpCursorMZ = cursorMZ; } if (r.getDataMaxMZ() <
-     * cursorMZ) { tmpCursorMZ = r.getDataMaxMZ(); } else { tmpCursorMZ =
-     * cursorMZ; }
-     * 
-     * if (r.getDataMinMZ() > startMZ) { tmpStartMZ = r.getDataMinMZ(); } else {
-     * tmpStartMZ = startMZ; } if (r.getDataMaxMZ() < startMZ) { tmpStartMZ =
-     * r.getDataMaxMZ(); } else { tmpStartMZ = startMZ; }
-     * 
-     * if (r.getDataMinMZ() > endMZ) { tmpEndMZ = r.getDataMinMZ(); } else {
-     * tmpEndMZ = endMZ; } if (r.getDataMaxMZ() < endMZ) { tmpEndMZ =
-     * r.getDataMaxMZ(); } else { tmpEndMZ = endMZ; }
-     * 
-     * if ((r.getNumOfScans() - 1) < cursorScan) { tmpCursorScan =
-     * r.getNumOfScans() - 1; } else { tmpCursorScan = cursorScan; }
-     * 
-     * if ((r.getNumOfScans() - 1) < endScan) { tmpEndScan = r.getNumOfScans() -
-     * 1; } else { tmpEndScan = endScan; } tmpStartScan = startScan; // Start
-     * scan is 0 for all runs
-     * 
-     * if (whatDims == SET_SAME_ZOOM_MZ) { r.setSelectionMZ(tmpStartMZ,
-     * tmpEndMZ); r.setCursorPositionMZ(tmpCursorMZ); //
-     * r.refreshVisualizers(Visualizer.CHANGETYPE_SELECTION_MZ, // statBar); }
-     * 
-     * if (whatDims == SET_SAME_ZOOM_SCAN) { r.setSelectionScan(tmpStartScan,
-     * tmpEndScan); r.setCursorPositionScan(tmpCursorScan); //
-     * r.refreshVisualizers(Visualizer.CHANGETYPE_SELECTION_SCAN, // statBar); }
-     * 
-     * if (whatDims == SET_SAME_ZOOM_BOTH) { r.setSelection(tmpStartScan,
-     * tmpEndScan, tmpStartMZ, tmpEndMZ); r.setCursorPosition(tmpCursorScan,
-     * tmpCursorMZ); //
-     * r.refreshVisualizers(Visualizer.CHANGETYPE_SELECTION_BOTH, // statBar); } } }
-     * 
-     * if (whatDims == SET_SAME_ZOOM_MZ) { startRefreshRawDataVisualizers(
-     * RawDataVisualizer.CHANGETYPE_SELECTION_MZ, modifiedRawDataIDs); } if
-     * (whatDims == SET_SAME_ZOOM_SCAN) { startRefreshRawDataVisualizers(
-     * RawDataVisualizer.CHANGETYPE_SELECTION_SCAN, modifiedRawDataIDs); } if
-     * (whatDims == SET_SAME_ZOOM_BOTH) { startRefreshRawDataVisualizers(
-     * RawDataVisualizer.CHANGETYPE_SELECTION_BOTH, modifiedRawDataIDs); }
-     *  }
-     * 
-     *  /* public FormatCoordinates getFormatCoordinates() { return
-     * paramSettings.getFormatCoordinates(); }
-     * 
-     * 
-     * 
-     * 
-     */
     /**
      * Prepares everything for quit and then shutdowns the application
      */
@@ -490,7 +210,6 @@ public class MainWindow extends JFrame implements Desktop, MZmineModule,
     }
 
     public void addMenuItem(MZmineMenu parentMenu, JMenuItem newItem) {
-
         menuBar.addMenuItem(parentMenu, newItem);
     }
 
@@ -521,22 +240,14 @@ public class MainWindow extends JFrame implements Desktop, MZmineModule,
      * @see net.sf.mzmine.main.MZmineModule#initModule(net.sf.mzmine.main.MZmineCore)
      */
     public void initModule(MZmineCore core) {
-        // Initialize structures for storing visualizers
-        rawDataVisualizers = new Hashtable<Integer, Vector<RawDataVisualizer>>();
-        alignmentResultVisualizers = new Hashtable<Integer, Vector<AlignmentResultVisualizer>>();
 
-        // Setup GUI
-        // ---------
-
-        // Initialize options window (controller for parameter settings)
 
 
 
         // Initialize item selector
         itemSelector = new ItemSelector(this);
 
-        // Initialize method parameter storage (and default parameter values
-        // too)
+
 
         // Construct menu
 
@@ -580,7 +291,7 @@ public class MainWindow extends JFrame implements Desktop, MZmineModule,
         statusBar.setStatusText("Welcome to MZmine!");
 
         taskList = new TaskProgressWindow((TaskControllerImpl) core.getTaskController());
-        desktopPane.add(taskList, javax.swing.JLayeredPane.DEFAULT_LAYER);
+        desktopPane.add(taskList, JLayeredPane.DEFAULT_LAYER);
 
     }
 
@@ -629,15 +340,7 @@ public class MainWindow extends JFrame implements Desktop, MZmineModule,
      * @see net.sf.mzmine.userinterface.Desktop#getVisibleFrames()
      */
     public JInternalFrame[] getVisibleFrames() {
-
-        JInternalFrame[] allFrames = desktopPane.getAllFrames();
-
-        ArrayList<JInternalFrame> visibleFrames = new ArrayList<JInternalFrame>();
-        for (JInternalFrame frame : allFrames)
-            if (frame.isVisible())
-                visibleFrames.add(frame);
-
-        return visibleFrames.toArray(new JInternalFrame[0]);
+        return getVisibleFrames(JInternalFrame.class);
     }
 
     /**

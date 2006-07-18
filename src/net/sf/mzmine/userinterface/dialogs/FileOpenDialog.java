@@ -42,16 +42,12 @@ public class FileOpenDialog extends JDialog implements ActionListener {
     private JFileChooser fileChooser;
     private JCheckBox preloadCheckBox;
     private IOController ioController;
-    private Desktop desktop;
-
     public FileOpenDialog(IOController ioController, Desktop desktop) {
 
         super(desktop.getMainWindow(), "Please select data files to open",
                 true);
         
         this.ioController = ioController;
-        this.desktop = desktop;
-
         fileChooser = new JFileChooser();
 
         fileChooser.setMultiSelectionEnabled(true);
