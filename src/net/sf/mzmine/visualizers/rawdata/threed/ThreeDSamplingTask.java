@@ -23,6 +23,8 @@ import java.awt.Color;
 import java.awt.event.KeyEvent;
 import java.text.DecimalFormat;
 import java.text.NumberFormat;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 import net.sf.mzmine.data.Peak;
 import net.sf.mzmine.data.PeakList;
@@ -71,6 +73,8 @@ import visad.java3d.MouseBehaviorJ3D;
  */
 class ThreeDSamplingTask implements Task {
 
+    private Logger logger = Logger.getLogger(this.getClass().getName());
+    
     private ThreeDVisualizerWindow visualizer;
     private OpenedRawDataFile dataFile;
     private RawDataFile rawDataFile;
@@ -565,7 +569,7 @@ class ThreeDSamplingTask implements Task {
 
 
         } catch (Throwable e) {
-            e.printStackTrace();
+            logger.log(Level.SEVERE, "Error while sampling 3D data", e);
             status = TaskStatus.ERROR;
             errorMessage = e.toString();
             return;
