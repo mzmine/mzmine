@@ -63,4 +63,12 @@ public class MZmineClusterNode implements MZmineCore, Remote {
         return null;
     }
 
+    /**
+     * @see net.sf.mzmine.main.MZmineCore#getAllModules()
+     */
+    public MZmineModule[] getAllModules() {
+        // TODO Auto-generated method stub
+        return null;
+    }
+
 }

@@ -19,6 +19,7 @@
 
 package net.sf.mzmine.main;
 
+import java.util.HashSet;
 import java.util.ResourceBundle;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -38,6 +39,8 @@ public class MZmineClient implements Runnable, MZmineCore {
     private static final String CONFIG_PROPERTIES = "conf/config";
 
     private Logger logger = Logger.getLogger(this.getClass().getName());
+    
+    private HashSet<MZmineModule> moduleSet;
     
     private TaskControllerImpl taskController;
     private IOControllerImpl ioController;
@@ -87,6 +90,8 @@ public class MZmineClient implements Runnable, MZmineCore {
         project.initModule(this);
 
         logger.finer("Loading modules");
+        
+        moduleSet = new HashSet<MZmineModule>();
 
         // get module classes and trim spaces from their names
         String[] modules = configBundle.getString("Modules").split(" *[,;:] *");
@@ -96,11 +101,18 @@ public class MZmineClient implements Runnable, MZmineCore {
             try {
 
                 logger.finest("Loading module " + className);
+                
+                // load the module class
                 Class moduleClass = Class.forName(className);
 
+                // create instance
                 MZmineModule moduleInstance = (MZmineModule) moduleClass.newInstance();
 
+                // init module
                 moduleInstance.initModule(this);
+                
+                // add to the module set
+                moduleSet.add(moduleInstance);
 
             } catch (Exception e) {
                 logger.log(Level.SEVERE, "Could not load module "
@@ -134,6 +146,13 @@ public class MZmineClient implements Runnable, MZmineCore {
      */
     public Desktop getDesktop() {
         return mainWindow;
+    }
+
+    /**
+     * @see net.sf.mzmine.main.MZmineCore#getAllModules()
+     */
+    public MZmineModule[] getAllModules() {
+        return moduleSet.toArray(new MZmineModule[0]);
     }
 
 }
