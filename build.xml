@@ -1,72 +1,72 @@
 <?xml version="1.0"?>
 <project name="MZmine" default="jar" basedir=".">
-	
-	<property name="src" value="src/net/sf/mzmine"/>
-	<property name="lib" value="lib"/>
-	<property name="rest" value="rest"/>
-        <property name="icons" value="icons"/>
-	<property name="build" value="build"/>
-	<property name="dist" value="dist"/>
-		
+
+	<property name="src" value="src/net/sf/mzmine" />
+	<property name="lib" value="lib" />
+	<property name="rest" value="rest" />
+	<property name="icons" value="icons" />
+	<property name="build" value="build" />
+	<property name="dist" value="dist" />
+
 	<path id="classpath.alllibs">
-		<pathelement location="${lib}/base64.jar"/>
-		<pathelement location="${lib}/danby.jar"/>
-		<pathelement location="${lib}/jmprojection.jar"/>
-		<pathelement location="${lib}/netcdf.jar"/>
-		<pathelement location="${lib}/sunutils.jar"/>
-		<pathelement location="${lib}/jcommon-1.0.0.jar"/>
-		<pathelement location="${lib}/jfreechart-1.0.1.jar"/>
-		<pathelement location="${lib}/visad.jar"/>
-                <pathelement location="${lib}/cdk.jar"/>
+		<pathelement location="${lib}/base64.jar" />
+		<pathelement location="${lib}/danby.jar" />
+		<pathelement location="${lib}/jmprojection.jar" />
+		<pathelement location="${lib}/netcdf.jar" />
+		<pathelement location="${lib}/sunutils.jar" />
+		<pathelement location="${lib}/jcommon-1.0.0.jar" />
+		<pathelement location="${lib}/jfreechart-1.0.1.jar" />
+		<pathelement location="${lib}/visad.jar" />
+		<pathelement location="${lib}/cdk.jar" />
 	</path>
-	
 
 
-	<target name="compile">	
-		<mkdir dir="${build}"/>
-		
+
+	<target name="compile">
+		<mkdir dir="${build}" />
+
 		<javac srcdir="${src}" destdir="${build}" debug="on">
-			<classpath refid="classpath.alllibs"/>
+			<classpath refid="classpath.alllibs" />
 		</javac>
-		
+
 	</target>
-	
+
 	<target name="jar" depends="compile">
-		<mkdir dir="${dist}"/>
-		<mkdir dir="${dist}/lib"/>
-                <mkdir dir="${dist}/icons"/>
-                <mkdir dir="${dist}/conf"/>
-		
+		<mkdir dir="${dist}" />
+		<mkdir dir="${dist}/lib" />
+		<mkdir dir="${dist}/icons" />
+		<mkdir dir="${dist}/conf" />
+
 		<copy todir="${dist}">
-                        <fileset file="${rest}/startMZmine.*"/>
+			<fileset file="${rest}/startMZmine.*" />
 		</copy>
-                <copy todir="${dist}/conf">
-			<fileset file="${rest}/*.properties"/>
+		<copy todir="${dist}/conf">
+			<fileset file="${rest}/*.properties" />
 		</copy>
-                <copy todir="${dist}/icons">
-                        <fileset file="${icons}/*.png"/>
+		<copy todir="${dist}/icons">
+			<fileset file="${icons}/*.png" />
 		</copy>
 		<copy todir="${dist}/lib">
-			<fileset file="${lib}/base64.jar"/>
-			<fileset file="${lib}/danby.jar"/>
-			<fileset file="${lib}/jmprojection.jar"/>
-			<fileset file="${lib}/netcdf.jar"/>
-			<fileset file="${lib}/sunutils.jar"/>
-			<fileset file="${lib}/jcommon-1.0.0.jar"/>
-			<fileset file="${lib}/jfreechart-1.0.1.jar"/>
-			<fileset file="${lib}/visad.jar"/>
-			<fileset file="${lib}/cdk.jar"/>
+			<fileset file="${lib}/base64.jar" />
+			<fileset file="${lib}/danby.jar" />
+			<fileset file="${lib}/jmprojection.jar" />
+			<fileset file="${lib}/netcdf.jar" />
+			<fileset file="${lib}/sunutils.jar" />
+			<fileset file="${lib}/jcommon-1.0.0.jar" />
+			<fileset file="${lib}/jfreechart-1.0.1.jar" />
+			<fileset file="${lib}/visad.jar" />
+			<fileset file="${lib}/cdk.jar" />
 		</copy>
-		
+
 		<jar destfile="${dist}/MZmine.jar" manifest="${rest}/mzminemanifest">
 			<fileset dir="${build}" />
 		</jar>
 	</target>
-	
+
 	<target name="clean">
-		<delete dir="${build}"/>
-		<delete dir="${dist}"/>
+		<delete dir="${build}" />
+		<delete dir="${dist}" />
 	</target>
 
-	
+
 </project>
