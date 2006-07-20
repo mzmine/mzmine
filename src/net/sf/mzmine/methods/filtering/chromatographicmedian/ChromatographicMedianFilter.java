@@ -44,7 +44,7 @@ import net.sf.mzmine.userinterface.Desktop;
 import net.sf.mzmine.userinterface.Desktop.MZmineMenu;
 import net.sf.mzmine.userinterface.dialogs.ParameterSetupDialog;
 
-public class ChromatographicMedianFilter implements MZmineModule, Method,
+public class ChromatographicMedianFilter implements Method,
         TaskListener, ListSelectionListener, ActionListener {
 
     private Logger logger = Logger.getLogger(this.getClass().getName());
@@ -199,9 +199,9 @@ public class ChromatographicMedianFilter implements MZmineModule, Method,
     }
 
     /**
-     * @see net.sf.mzmine.methods.Method#getMethodDescription()
+     * @see net.sf.mzmine.methods.Method#getModuleDescription()
      */
-    public String getMethodDescription() {
+    public String getModuleDescription() {
         return "Chromatographic median filter";
     }
 

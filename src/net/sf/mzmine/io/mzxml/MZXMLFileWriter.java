@@ -44,10 +44,8 @@ public class MZXMLFileWriter implements RawDataFileWriter {
     private Logger logger = Logger.getLogger(this.getClass().getName());
     
     private DatatypeFactory datatypeFactory;
-    private File workingCopy;
     private FileWriter fileWriter;
     private long bytesWritten;
-    private long scansWritten;
     private MZXMLFile filteredMZXMLFile;
     private Hashtable<Integer, Long> scanIndex; // Maps scan number to index
 
@@ -66,7 +64,6 @@ public class MZXMLFileWriter implements RawDataFileWriter {
         fileWriter = new FileWriter(workingCopy);
 
         bytesWritten = 0;
-        scansWritten = 0;
         scanIndex = new Hashtable<Integer, Long>();
 
         // Write header to XML file

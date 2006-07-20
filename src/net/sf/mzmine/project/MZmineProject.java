@@ -58,7 +58,7 @@ import org.xml.sax.SAXException;
  * This class represents a MZmine project. That includes raw data files,
  * processed raw data files, peak lists, alignment results....
  */
-public class MZmineProject implements MZmineModule {
+public class MZmineProject {
 
     private Desktop desktop;
 
@@ -204,7 +204,7 @@ public class MZmineProject implements MZmineModule {
     }
 
     /**
-     * @see net.sf.mzmine.main.MZmineModule#initModule(net.sf.mzmine.main.MZmineCore)
+     * 
      */
     public void initModule(MZmineCore core) {
 

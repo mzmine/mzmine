@@ -40,7 +40,7 @@ import net.sf.mzmine.userinterface.mainwindow.MainWindow;
 /**
  * 
  */
-public class TaskControllerImpl implements TaskController, MZmineModule, Runnable {
+public class TaskControllerImpl implements TaskController, Runnable {
 
     private Logger logger = Logger.getLogger(this.getClass().getName());
     
@@ -222,7 +222,6 @@ public class TaskControllerImpl implements TaskController, MZmineModule, Runnabl
     }
 
     /**
-     * @see net.sf.mzmine.main.MZmineModule#initModule(net.sf.mzmine.main.MZmineCore)
      */
     public void initModule(MZmineCore core) {
         this.desktop = core.getDesktop();

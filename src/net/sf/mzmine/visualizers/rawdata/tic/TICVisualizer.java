@@ -89,4 +89,11 @@ public class TICVisualizer implements MZmineModule, ActionListener,
         ticMenuItem.setEnabled(desktop.isDataFileSelected());
     }
 
+    /**
+     * @see net.sf.mzmine.main.MZmineModule#getModuleDescription()
+     */
+    public String getModuleDescription() {
+        return "TIC visualizer";
+    }
+
 }

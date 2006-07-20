@@ -43,7 +43,7 @@ import net.sf.mzmine.taskcontrol.TaskListener;
 import net.sf.mzmine.userinterface.Desktop;
 import net.sf.mzmine.userinterface.Desktop.MZmineMenu;
 
-public class SavitzkyGolayFilter implements MZmineModule, Method, TaskListener,
+public class SavitzkyGolayFilter implements Method, TaskListener,
         ListSelectionListener, ActionListener {
 
     private Logger logger = Logger.getLogger(this.getClass().getName());
@@ -179,9 +179,9 @@ public class SavitzkyGolayFilter implements MZmineModule, Method, TaskListener,
     }
 
     /**
-     * @see net.sf.mzmine.methods.Method#getMethodDescription()
+     * @see net.sf.mzmine.methods.Method#getModuleDescription()
      */
-    public String getMethodDescription() {
+    public String getModuleDescription() {
         return "Savitzky Golay filter";
     }
 

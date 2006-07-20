@@ -48,7 +48,7 @@ import net.sf.mzmine.userinterface.dialogs.ParameterSetupDialog;
  * This class represent a method for filtering scans in raw data file with
  * moving average filter.
  */
-public class MeanFilter implements MZmineModule, Method, TaskListener,
+public class MeanFilter implements Method, TaskListener,
         ListSelectionListener, ActionListener {
 
     private Logger logger = Logger.getLogger(this.getClass().getName());
@@ -193,9 +193,9 @@ public class MeanFilter implements MZmineModule, Method, TaskListener,
     }
 
     /**
-     * @see net.sf.mzmine.methods.Method#getMethodDescription()
+     * @see net.sf.mzmine.methods.Method#getModuleDescription()
      */
-    public String getMethodDescription() {
+    public String getModuleDescription() {
         return "Moving average filter";
     }
 

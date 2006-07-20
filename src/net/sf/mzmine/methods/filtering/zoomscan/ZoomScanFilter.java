@@ -44,7 +44,7 @@ import net.sf.mzmine.userinterface.Desktop;
 import net.sf.mzmine.userinterface.Desktop.MZmineMenu;
 import net.sf.mzmine.userinterface.dialogs.ParameterSetupDialog;
 
-public class ZoomScanFilter implements MZmineModule, Method, TaskListener,
+public class ZoomScanFilter implements Method, TaskListener,
         ListSelectionListener, ActionListener {
 
     private Logger logger = Logger.getLogger(this.getClass().getName());
@@ -189,9 +189,9 @@ public class ZoomScanFilter implements MZmineModule, Method, TaskListener,
     }
 
     /**
-     * @see net.sf.mzmine.methods.Method#getMethodDescription()
+     * @see net.sf.mzmine.methods.Method#getModuleDescription()
      */
-    public String getMethodDescription() {
+    public String getModuleDescription() {
         return "Zoom scan filter";
     }
 

@@ -38,7 +38,7 @@ import net.sf.mzmine.userinterface.Desktop;
  * IO controller
  * 
  */
-public class IOControllerImpl implements IOController, MZmineModule,
+public class IOControllerImpl implements IOController, 
         TaskListener {
 
     private Logger logger = Logger.getLogger(this.getClass().getName());

@@ -49,7 +49,7 @@ import net.sf.mzmine.userinterface.Desktop.MZmineMenu;
  * @version 31 March 2006
  */
 
-public class SimpleIsotopicPeaksGrouper implements MZmineModule, Method,
+public class SimpleIsotopicPeaksGrouper implements Method,
         TaskListener, ListSelectionListener, ActionListener {
 
     private Logger logger = Logger.getLogger(this.getClass().getName());
@@ -187,9 +187,9 @@ public class SimpleIsotopicPeaksGrouper implements MZmineModule, Method,
     }
 
     /**
-     * @see net.sf.mzmine.methods.Method#getMethodDescription()
+     * @see net.sf.mzmine.methods.Method#getModuleDescription()
      */
-    public String getMethodDescription() {
+    public String getModuleDescription() {
         return "Simple isotopic peaks grouper";
     }
 

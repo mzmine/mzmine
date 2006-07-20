@@ -31,4 +31,12 @@ public interface MZmineModule {
      */
     public void initModule(MZmineCore core);
 
+    /**
+     * Returns a short textual desription of this module. Returned string must
+     * be XML-friendly - no <,>,",' characters
+     * 
+     * @return Module description
+     */
+    public String getModuleDescription();
+
 }

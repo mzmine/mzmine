@@ -22,13 +22,17 @@
 package net.sf.mzmine.methods.normalization.linear;
 
 import net.sf.mzmine.data.AlignmentResult;
+import net.sf.mzmine.io.OpenedRawDataFile;
+import net.sf.mzmine.main.MZmineCore;
+import net.sf.mzmine.methods.Method;
+import net.sf.mzmine.methods.MethodParameters;
 import net.sf.mzmine.userinterface.mainwindow.MainWindow;
 
 
 /**
  *
  */
-public class LinearNormalizer {
+public class LinearNormalizer implements Method {
 
   ///////////////////////////////////////
   // operations
@@ -289,6 +293,46 @@ public class LinearNormalizer {
 
         }
         */
+        return null;
+    }
+
+
+
+    /**
+     * @see net.sf.mzmine.methods.Method#askParameters()
+     */
+    public MethodParameters askParameters() {
+        // TODO Auto-generated method stub
+        return null;
+    }
+
+
+
+    /**
+     * @see net.sf.mzmine.methods.Method#runMethod(net.sf.mzmine.methods.MethodParameters, net.sf.mzmine.io.OpenedRawDataFile[], net.sf.mzmine.data.AlignmentResult[])
+     */
+    public void runMethod(MethodParameters parameters, OpenedRawDataFile[] dataFiles, AlignmentResult[] alignmentResults) {
+        // TODO Auto-generated method stub
+        
+    }
+
+
+
+    /**
+     * @see net.sf.mzmine.main.MZmineModule#initModule(net.sf.mzmine.main.MZmineCore)
+     */
+    public void initModule(MZmineCore core) {
+        // TODO Auto-generated method stub
+        
+    }
+
+
+
+    /**
+     * @see net.sf.mzmine.main.MZmineModule#getModuleDescription()
+     */
+    public String getModuleDescription() {
+        // TODO Auto-generated method stub
         return null;
     }
 }

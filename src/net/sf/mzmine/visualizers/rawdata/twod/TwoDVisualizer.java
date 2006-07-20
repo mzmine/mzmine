@@ -91,4 +91,11 @@ public class TwoDVisualizer implements MZmineModule, ActionListener,
         twoDMenuItem.setEnabled(desktop.isDataFileSelected());
     }
 
+    /**
+     * @see net.sf.mzmine.main.MZmineModule#getModuleDescription()
+     */
+    public String getModuleDescription() {
+        return "2D visualizer";
+    }
+
 }

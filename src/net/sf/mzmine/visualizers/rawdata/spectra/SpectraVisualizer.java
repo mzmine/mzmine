@@ -88,4 +88,11 @@ public class SpectraVisualizer implements MZmineModule, ListSelectionListener,
         spectraMenuItem.setEnabled(desktop.isDataFileSelected());
     }
 
+    /**
+     * @see net.sf.mzmine.main.MZmineModule#getModuleDescription()
+     */
+    public String getModuleDescription() {
+        return "Spectra visualizer";
+    }
+
 }

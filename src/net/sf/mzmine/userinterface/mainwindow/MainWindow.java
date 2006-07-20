@@ -48,19 +48,15 @@ import net.sf.mzmine.userinterface.dialogs.TaskProgressWindow;
  * This class is the main window of application
  * 
  */
-public class MainWindow extends JFrame implements Desktop, MZmineModule,
-        WindowListener {
+public class MainWindow extends JFrame implements Desktop, WindowListener {
 
     private JDesktopPane desktopPane;
-
-
 
     private JSplitPane split;
 
     // private ItemStorage itemStorage;
     private ItemSelector itemSelector;
 
-  
     private TaskProgressWindow taskList;
 
     public TaskProgressWindow getTaskList() {
@@ -68,7 +64,7 @@ public class MainWindow extends JFrame implements Desktop, MZmineModule,
     }
 
     private MainMenu menuBar;
-    
+
     private Statusbar statusBar;
 
     public MainMenu getMainMenu() {
@@ -92,10 +88,6 @@ public class MainWindow extends JFrame implements Desktop, MZmineModule,
     public ItemSelector getItemSelector() {
         return itemSelector;
     }
-
-
-
-
 
     void tileInternalFrames() {
         JInternalFrame[] frames = getVisibleFrames();
@@ -171,8 +163,6 @@ public class MainWindow extends JFrame implements Desktop, MZmineModule,
     public void windowDeactivated(WindowEvent e) {
     }
 
-
-
     /**
      * Prepares everything for quit and then shutdowns the application
      */
@@ -190,7 +180,7 @@ public class MainWindow extends JFrame implements Desktop, MZmineModule,
         System.exit(0);
 
     }
-    
+
     public void setStatusBarText(String text) {
         statusBar.setStatusText(text);
     }
@@ -204,8 +194,6 @@ public class MainWindow extends JFrame implements Desktop, MZmineModule,
     public void addMenuItem(MZmineMenu parentMenu, JMenuItem newItem) {
         menuBar.addMenuItem(parentMenu, newItem);
     }
-
-
 
     /**
      * @see net.sf.mzmine.userinterface.Desktop#getSelectedDataFiles()
@@ -229,29 +217,21 @@ public class MainWindow extends JFrame implements Desktop, MZmineModule,
     }
 
     /**
-     * @see net.sf.mzmine.main.MZmineModule#initModule(net.sf.mzmine.main.MZmineCore)
      */
     public void initModule(MZmineCore core) {
 
-
-
-
         // Initialize item selector
         itemSelector = new ItemSelector(this);
-
-
 
         // Construct menu
 
         menuBar = new MainMenu(core.getIOController(), this);
 
         setJMenuBar(menuBar);
-        
-
 
         // Place objects on main window
         desktopPane = new JDesktopPane();
-        
+
         split = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, itemSelector,
                 desktopPane);
 
@@ -261,10 +241,9 @@ public class MainWindow extends JFrame implements Desktop, MZmineModule,
         Container c = getContentPane();
         c.setLayout(new BorderLayout());
         c.add(split, BorderLayout.CENTER);
-        
+
         statusBar = new Statusbar(this);
         c.add(statusBar, BorderLayout.SOUTH);
-
 
         // Initialize window listener for responding to user events
         addWindowListener(this);
@@ -282,7 +261,8 @@ public class MainWindow extends JFrame implements Desktop, MZmineModule,
 
         statusBar.setStatusText("Welcome to MZmine!");
 
-        taskList = new TaskProgressWindow((TaskControllerImpl) core.getTaskController());
+        taskList = new TaskProgressWindow(
+                (TaskControllerImpl) core.getTaskController());
         desktopPane.add(taskList, JLayeredPane.DEFAULT_LAYER);
 
     }

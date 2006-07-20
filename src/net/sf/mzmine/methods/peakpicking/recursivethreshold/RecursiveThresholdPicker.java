@@ -45,7 +45,7 @@ import net.sf.mzmine.userinterface.Desktop.MZmineMenu;
 import net.sf.mzmine.userinterface.dialogs.ParameterSetupDialog;
 import net.sf.mzmine.visualizers.peaklist.table.PeakListTableView;
 
-public class RecursiveThresholdPicker implements MZmineModule, Method,
+public class RecursiveThresholdPicker implements Method,
         TaskListener, ListSelectionListener, ActionListener {
 
     private Logger logger = Logger.getLogger(this.getClass().getName());
@@ -285,9 +285,9 @@ public class RecursiveThresholdPicker implements MZmineModule, Method,
     }
 
     /**
-     * @see net.sf.mzmine.methods.Method#getMethodDescription()
+     * @see net.sf.mzmine.methods.Method#getModuleDescription()
      */
-    public String getMethodDescription() {
+    public String getModuleDescription() {
         return "Recursive threshold peak detector";
     }
 

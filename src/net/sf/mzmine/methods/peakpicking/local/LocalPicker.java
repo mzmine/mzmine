@@ -49,7 +49,7 @@ import net.sf.mzmine.visualizers.peaklist.table.PeakListTableView;
  * This class implements a peak picker based on searching for local maximums in
  * each spectra
  */
-public class LocalPicker implements MZmineModule, Method, TaskListener,
+public class LocalPicker implements Method, TaskListener,
         ListSelectionListener, ActionListener {
 
     private Logger logger = Logger.getLogger(this.getClass().getName());
@@ -266,9 +266,9 @@ public class LocalPicker implements MZmineModule, Method, TaskListener,
     }
 
     /**
-     * @see net.sf.mzmine.methods.Method#getMethodDescription()
+     * @see net.sf.mzmine.methods.Method#getModuleDescription()
      */
-    public String getMethodDescription() {
+    public String getModuleDescription() {
         return "Local maxima peak detector";
     }
 

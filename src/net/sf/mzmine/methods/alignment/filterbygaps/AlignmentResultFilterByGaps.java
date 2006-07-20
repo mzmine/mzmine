@@ -20,12 +20,13 @@
 
 package net.sf.mzmine.methods.alignment.filterbygaps;
 
-import java.util.Hashtable;
-import java.util.Vector;
-
 import javax.swing.JOptionPane;
 
 import net.sf.mzmine.data.AlignmentResult;
+import net.sf.mzmine.io.OpenedRawDataFile;
+import net.sf.mzmine.main.MZmineCore;
+import net.sf.mzmine.methods.Method;
+import net.sf.mzmine.methods.MethodParameters;
 import net.sf.mzmine.userinterface.mainwindow.MainWindow;
 
 
@@ -35,7 +36,7 @@ import net.sf.mzmine.userinterface.mainwindow.MainWindow;
  *
  * @version 30 March 2006
  */
-public class AlignmentResultFilterByGaps {
+public class AlignmentResultFilterByGaps implements Method {
 
 	private MainWindow mainWin;
 
@@ -222,5 +223,37 @@ public class AlignmentResultFilterByGaps {
         return null;
 
 	}
+
+    /**
+     * @see net.sf.mzmine.methods.Method#askParameters()
+     */
+    public MethodParameters askParameters() {
+        // TODO Auto-generated method stub
+        return null;
+    }
+
+    /**
+     * @see net.sf.mzmine.methods.Method#runMethod(net.sf.mzmine.methods.MethodParameters, net.sf.mzmine.io.OpenedRawDataFile[], net.sf.mzmine.data.AlignmentResult[])
+     */
+    public void runMethod(MethodParameters parameters, OpenedRawDataFile[] dataFiles, AlignmentResult[] alignmentResults) {
+        // TODO Auto-generated method stub
+        
+    }
+
+    /**
+     * @see net.sf.mzmine.main.MZmineModule#initModule(net.sf.mzmine.main.MZmineCore)
+     */
+    public void initModule(MZmineCore core) {
+        // TODO Auto-generated method stub
+        
+    }
+
+    /**
+     * @see net.sf.mzmine.main.MZmineModule#getModuleDescription()
+     */
+    public String getModuleDescription() {
+        // TODO Auto-generated method stub
+        return null;
+    }
 
 }
