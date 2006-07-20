@@ -18,7 +18,7 @@
     Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
-package net.sf.mzmine.methods.alignment.util;
+package net.sf.mzmine.io.util;
 
 import java.awt.BorderLayout;
 import java.awt.FlowLayout;

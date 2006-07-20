@@ -19,7 +19,7 @@
 */
 
 
-package net.sf.mzmine.methods.alignment.util;
+package net.sf.mzmine.io.util;
 
 import java.io.BufferedReader;
 import java.io.FileReader;
