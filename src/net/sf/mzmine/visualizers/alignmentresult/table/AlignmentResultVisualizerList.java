@@ -18,7 +18,7 @@
     Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
-package net.sf.mzmine.visualizers.alignmentresult;
+package net.sf.mzmine.visualizers.alignmentresult.table;
 
 import java.awt.BorderLayout;
 import java.awt.event.ActionEvent;
@@ -36,10 +36,11 @@ import javax.swing.event.InternalFrameEvent;
 import javax.swing.event.InternalFrameListener;
 import javax.swing.table.AbstractTableModel;
 
+import net.sf.mzmine.data.AlignmentResult;
 import net.sf.mzmine.io.RawDataFile;
-import net.sf.mzmine.methods.alignment.AlignmentResult;
 import net.sf.mzmine.userinterface.mainwindow.ItemSelector;
 import net.sf.mzmine.userinterface.mainwindow.MainWindow;
+import net.sf.mzmine.visualizers.alignmentresult.AlignmentResultVisualizer;
 import sunutils.TableSorter;
 
 
@@ -129,7 +130,7 @@ public class AlignmentResultVisualizerList extends JInternalFrame implements Ali
 
 		alignmentResult = _alignmentResult;
 
-		setTitle(alignmentResult.getNiceName() + ": " + alignmentResult.getDescription());
+		//setTitle(alignmentResult.getNiceName() + ": " + alignmentResult.getDescription());
 
 		refreshTableFormatting();
 
@@ -138,7 +139,7 @@ public class AlignmentResultVisualizerList extends JInternalFrame implements Ali
 
 	/**
 	 * This method is called when selected row has changed in the alignment result
-	 */
+
 	public void updateSelectedRow() {
 		int selectedRowNum = alignmentResult.getSelectedRow();
 
@@ -165,7 +166,8 @@ public class AlignmentResultVisualizerList extends JInternalFrame implements Ali
 
 
 	}
-
+     */
+    
 	/**
 	 * Select a row in table with matching alignment ID.
 	 * Also suitable column for given Run will be selected
@@ -247,7 +249,7 @@ public class AlignmentResultVisualizerList extends JInternalFrame implements Ali
 		if (e.getButton()==MouseEvent.BUTTON1) {
 			// Get alignment ID for selected row
 			int rowInd = ((Integer)(table.getValueAt(table.getSelectedRow(), 0))).intValue();
-			alignmentResult.setSelectedRow(rowInd-1);
+		 // alignmentResult.setSelectedRow(rowInd-1);
 		//	mainWin.updateAlignmentResultVisualizers(alignmentResult.getAlignmentResultID());
 
 		}
@@ -269,11 +271,10 @@ public class AlignmentResultVisualizerList extends JInternalFrame implements Ali
 
 	/**
 	 * Method for calculating run number for given column number
-	 */
 	//private int calcRunNum(int colInd) {
 	private int calcColumnGroupNum(int colInd) {
 
-		int numOfRawDatas = alignmentResult.getNumOfRawDatas();
+//		int numOfRawDatas = alignmentResult.getNumOfRawDatas();
 		int columnGroupNum = -1;
 
 		// For both compact and wide mode, try to calculate column group number, if the selected column is some raw data specific column
@@ -311,15 +312,15 @@ public class AlignmentResultVisualizerList extends JInternalFrame implements Ali
 		// Zoom selected run around selected peak (or its estimated position if undetected)
 		if (src == zoomToPeakMenuItem) {
 
-			if (alignmentResult.isImported()) {
-				try {
+			//if (alignmentResult.isImported()) {
+/*				try {
 					JOptionPane.showMessageDialog(mainWin,
 								"Zoom to peak is not available for IMPORTED alignment results. (" + alignmentResult.getNiceName() + ")",
 								"Sorry",JOptionPane.ERROR_MESSAGE);
 				} catch (Exception exce ) {}
 				return;
-			}
-
+			//}
+*/
 			// Get alignment ID for selected row
 			int tmpRow = table.getSelectedRow();
 			if (tmpRow == -1) { return; }
@@ -337,7 +338,7 @@ public class AlignmentResultVisualizerList extends JInternalFrame implements Ali
 
 			// Loop over all raw data files participating in this alignment
 			// and calculate center and shape of the zoom area (average mz,rt and mz stdev & rt duration)
-			int[] rawDataIDs = alignmentResult.getRawDataIDs();
+			/*int[] rawDataIDs = alignmentResult.getRawDataIDs();
 			for (int rawDataID : rawDataIDs) {
 
 				peakStatus = alignmentResult.getPeakStatus(rawDataID, rowInd);
@@ -350,7 +351,7 @@ public class AlignmentResultVisualizerList extends JInternalFrame implements Ali
 				//	sumDuration += rawData.getScanTime(p.getStopScanNumber()) - rawData.getScanTime(p.getStartScanNumber());
 					numSum++;
 				}
-			}
+			}*/
 
 
 			double avgStdevMZ;
@@ -363,7 +364,7 @@ public class AlignmentResultVisualizerList extends JInternalFrame implements Ali
 				avgDuration = 10;
 			}
 
-			double avgMZ = alignmentResult.getAverageMZ(rowInd);
+			/*double avgMZ = alignmentResult.getAverageMZ(rowInd);
 			double avgRT = alignmentResult.getAverageRT(rowInd);
 
 
@@ -413,7 +414,7 @@ public class AlignmentResultVisualizerList extends JInternalFrame implements Ali
 			}
 			*/
 		}
-	}
+	
 
 
 	public void printMe() {}
@@ -454,7 +455,7 @@ public class AlignmentResultVisualizerList extends JInternalFrame implements Ali
 
 		/**
 		 * Counts number of columns in this table in current column mode
-		 */
+
 		public int getColumnCount() {
 			if (!compactMode) {
 				return COLINFO_WIDEMODE_LASTCOMMONCOL+COLINFO_WIDEMODE_COLSPERRUN*alignmentResult.getNumOfRawDatas()+1;
@@ -476,7 +477,7 @@ public class AlignmentResultVisualizerList extends JInternalFrame implements Ali
 		public String getColumnName(int col) {
 			return columnNames[col];
 		}
-
+         */
 
 		/**
 		 * This method returns the value at given coordinates of the dataset or null if it is a missing value
@@ -486,7 +487,7 @@ public class AlignmentResultVisualizerList extends JInternalFrame implements Ali
 		private String peakStatusNotFound = new String("Not Found");
 		public Object getValueAt(int row, int col) {
 
-
+/*
 			// First column is index numbering
 			if (col==0) { return new Integer(row+1); }
 
@@ -568,12 +569,12 @@ public class AlignmentResultVisualizerList extends JInternalFrame implements Ali
 							{ preValue = alignmentResult.getPeakHeight(rawDataID, row); }
 						if (mainWin.getParameterStorage().getGeneralParameters().getPeakMeasuringType() == GeneralParameters.PARAMETERVALUE_PEAKMEASURING_AREA)
 							{ preValue = alignmentResult.getPeakArea(rawDataID, row); }
-                            */
+                 
 					}
 					if (preValue<0) { return null; } else {	return new Double(preValue); }
 				}
 
-			}
+			}*/
 
 			return null;
 
@@ -585,7 +586,7 @@ public class AlignmentResultVisualizerList extends JInternalFrame implements Ali
 		 */
 		public Class getColumnClass(int col) {
 
-			int numOfRuns = alignmentResult.getNumOfRawDatas();
+			int numOfRuns = 0; //alignmentResult.getNumOfRawDatas();
 
 			if (!compactMode) {
 
@@ -598,7 +599,7 @@ public class AlignmentResultVisualizerList extends JInternalFrame implements Ali
 				if ((col >COLINFO_WIDEMODE_LASTCOMMONCOL) &&
 					(col<=(COLINFO_WIDEMODE_LASTCOMMONCOL+COLINFO_WIDEMODE_COLSPERRUN*numOfRuns)) ) {
 						// Calc runNumber and offset from the first column of this run
-						int columnGroupNumber = calcColumnGroupNum(col);
+						int columnGroupNumber = 0; //calcColumnGroupNum(col);
 						int columnGroupOffset = col - (COLINFO_WIDEMODE_LASTCOMMONCOL+1) - columnGroupNumber*COLINFO_WIDEMODE_COLSPERRUN;
 
 						// mz, rt, height, area or status?
@@ -623,7 +624,7 @@ public class AlignmentResultVisualizerList extends JInternalFrame implements Ali
 				if ((col >COLINFO_COMPACTMODE_LASTCOMMONCOL) &&
 					(col<=(COLINFO_COMPACTMODE_LASTCOMMONCOL+COLINFO_COMPACTMODE_COLSPERRUN*numOfRuns)) ) {
 
-					int columnGroupNumber = calcColumnGroupNum(col);
+					int columnGroupNumber = 0; //calcColumnGroupNum(col);
 					int columnGroupOffset = col - (COLINFO_COMPACTMODE_LASTCOMMONCOL+1) - columnGroupNumber*COLINFO_COMPACTMODE_COLSPERRUN;
 
 					// Only one column per each run (height or area)
@@ -651,7 +652,7 @@ public class AlignmentResultVisualizerList extends JInternalFrame implements Ali
 				if (col!=COLINFO_COMPACTMODE_STD) { return; }
 			}
 
-			alignmentResult.setStandardCompoundFlag(row, ((Boolean)value).booleanValue());
+		//	alignmentResult.setStandardCompoundFlag(row, ((Boolean)value).booleanValue());
 
 			mainWin.repaint();
 		}
@@ -670,7 +671,7 @@ public class AlignmentResultVisualizerList extends JInternalFrame implements Ali
 				s[4] = new String("Charge State");
 
 
-				int i=0;
+/*				int i=0;
 				int[] rawDataIDs = alignmentResult.getRawDataIDs();
 				for (int rawDataID : rawDataIDs) {
 					String rawDataName = null;
@@ -719,19 +720,65 @@ public class AlignmentResultVisualizerList extends JInternalFrame implements Ali
 					if (mainWin.getParameterStorage().getGeneralParameters().getPeakMeasuringType() == GeneralParameters.PARAMETERVALUE_PEAKMEASURING_AREA) {
 						s[COLINFO_COMPACTMODE_LASTCOMMONCOL + 1 + i*COLINFO_COMPACTMODE_COLSPERRUN] = new String("area: " + rawDataName);
 					}
-                    */
+                 
 
 					i++;
 				}
 
-			}
+			}*/
 
 			return s;
 
 		}
+            return s;
+
+        }
 
 
-	}
+        /**
+         * @see javax.swing.table.TableModel#getRowCount()
+         */
+        public int getRowCount() {
+            // TODO Auto-generated method stub
+            return 0;
+        }
+
+
+        /**
+         * @see javax.swing.table.TableModel#getColumnCount()
+         */
+        public int getColumnCount() {
+            // TODO Auto-generated method stub
+            return 0;
+        }}
+	
+
+
+        /**
+         * @see javax.swing.table.TableModel#getRowCount()
+         */
+        public int getRowCount() {
+            // TODO Auto-generated method stub
+            return 0;
+        }
+
+
+        /**
+         * @see javax.swing.table.TableModel#getColumnCount()
+         */
+        public int getColumnCount() {
+            // TODO Auto-generated method stub
+            return 0;
+        }
+
+
+        /**
+         * @see net.sf.mzmine.visualizers.alignmentresult.AlignmentResultVisualizer#updateSelectedRow()
+         */
+        public void updateSelectedRow() {
+            // TODO Auto-generated method stub
+            
+        }
 
 }
 

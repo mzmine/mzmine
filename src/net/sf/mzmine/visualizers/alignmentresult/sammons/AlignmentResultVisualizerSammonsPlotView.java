@@ -19,7 +19,7 @@
 */
 
 
-package net.sf.mzmine.visualizers.alignmentresult;
+package net.sf.mzmine.visualizers.alignmentresult.sammons;
 
 
 import java.awt.BorderLayout;
@@ -50,10 +50,11 @@ import javax.swing.event.InternalFrameListener;
 
 import jmprojection.Preprocessor;
 import jmprojection.Sammons;
-import net.sf.mzmine.methods.alignment.AlignmentResult;
+import net.sf.mzmine.data.AlignmentResult;
 import net.sf.mzmine.userinterface.dialogs.SelectClassLabelsDialog;
 import net.sf.mzmine.userinterface.mainwindow.MainWindow;
 import net.sf.mzmine.util.TransferableImage;
+import net.sf.mzmine.visualizers.alignmentresult.AlignmentResultVisualizer;
 
 
 /**
@@ -128,7 +129,7 @@ public class AlignmentResultVisualizerSammonsPlotView extends JInternalFrame imp
 		alignmentResult = _alignmentResult;
 		myParameters = _myParameters;
 
-		setTitle(alignmentResult.getNiceName() + ": logratio plot");
+		/*setTitle(alignmentResult.getNiceName() + ": logratio plot");
 
 		// Collect raw data IDs and names for dialog
 		int[] rawDataIDs = alignmentResult.getRawDataIDs();
@@ -137,7 +138,7 @@ public class AlignmentResultVisualizerSammonsPlotView extends JInternalFrame imp
 			for (int i=0; i<rawDataIDs.length; i++) { rawDatas[i] = new RawDataPlaceHolder(alignmentResult.getImportedRawDataName(rawDataIDs[i]), rawDataIDs[i]);  }
 		} else {
 		//	for (int i=0; i<rawDataIDs.length; i++) { rawDatas[i] = new RawDataPlaceHolder(mainWin.getItemSelector().getRawDataByID(rawDataIDs[i]).getNiceName(), rawDataIDs[i]); }
-		}
+		}*/
 
 		// Collect parameter names and values to arrayrs
 		String[] paramNames = { "Number of iterations" };
@@ -151,7 +152,7 @@ public class AlignmentResultVisualizerSammonsPlotView extends JInternalFrame imp
 		SelectClassLabelsDialog stgd = new SelectClassLabelsDialog(mainWin,
 																"Sammons Plot",
 																"Please define class labels for samples",
-																rawDatas, paramNames, paramValues, paramFormats);
+																null, paramNames, paramValues, paramFormats);
 
 		stgd.show();
 
@@ -205,7 +206,7 @@ public class AlignmentResultVisualizerSammonsPlotView extends JInternalFrame imp
         */
 
 		// Collect heights/areas to a matrix
-		int numOfSamples = alignmentResult.getNumOfRawDatas();
+		/*int numOfSamples = alignmentResult.getNumOfRawDatas();
 		int numOfPeaks = alignmentResult.getNumOfRows();
 		int numOfDim = alignmentResult.getNumOfFullRows();
 		int[] rawDataIDs = alignmentResult.getRawDataIDs();
@@ -231,7 +232,7 @@ public class AlignmentResultVisualizerSammonsPlotView extends JInternalFrame imp
 				}
 				if (mainWin.getParameterStorage().getGeneralParameters().getPeakMeasuringType() == GeneralParameters.PARAMETERVALUE_PEAKMEASURING_AREA) {
 					data[sample][colInd] = alignmentResult.getPeakArea(rawDataID, peak);
-				}*/
+				}
 
 				// Next col
 				colInd++;
@@ -250,14 +251,14 @@ public class AlignmentResultVisualizerSammonsPlotView extends JInternalFrame imp
 
 	/*	waitDialog.updateJobStatus(new Integer(1), Task.JOBSTATUS_UNDERPROCESSING_STR, new Double(0.25));
 		waitDialog.paintNow();
-*/
+
 
 		// Do preprocessing
 		double[][] dataT2 = Preprocessor.autoScaleToUnityVariance(dataT);
 
 	/*	waitDialog.updateJobStatus(new Integer(1), Task.JOBSTATUS_UNDERPROCESSING_STR, new Double(0.50));
 		waitDialog.paintNow();
-*/
+
 		// Transpose back
 		for (int sample=0; sample<data.length; sample++) {
 			for (int dim=0; dim<data[0].length; dim++) {
@@ -268,7 +269,7 @@ public class AlignmentResultVisualizerSammonsPlotView extends JInternalFrame imp
 
 	/*	waitDialog.updateJobStatus(new Integer(1), Task.JOBSTATUS_UNDERPROCESSING_STR, new Double(0.75));
 		waitDialog.paintNow();
-*/
+
 		// Do Sammons
 		Sammons projector = new Sammons(data, 2);
 		for (int i=0; i<myParameters.paramTrainingLength; i++) { projector.iterate(); }
@@ -276,11 +277,11 @@ public class AlignmentResultVisualizerSammonsPlotView extends JInternalFrame imp
 /*
 		waitDialog.updateJobStatus(new Integer(1), Task.JOBSTATUS_UNDERPROCESSING_STR, new Double(0.99));
 		waitDialog.paintNow();
-*/
+
 
 		// Set plot data
 		plotArea.setData(results[0], results[1], sampleClasses, rawDataNames);
-
+        */
 //		waitDialog.hideMe();
 
 	}
@@ -308,7 +309,7 @@ public class AlignmentResultVisualizerSammonsPlotView extends JInternalFrame imp
 	 * Implementation of AlignmentResultVisualizer interface
 	 */
 	public void updateSelectedRow() {
-		int rowNum = alignmentResult.getSelectedRow();
+		int rowNum = 0; //alignmentResult.getSelectedRow();
 		// Actual selection (cursor movement) is done in the plot panel
 		plotArea.selectAlignmentRow(rowNum);
 	}

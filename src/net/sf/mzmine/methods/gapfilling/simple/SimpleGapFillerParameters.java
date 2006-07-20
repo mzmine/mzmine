@@ -22,11 +22,9 @@ package net.sf.mzmine.methods.gapfilling.simple;
 
 import java.io.Serializable;
 
-import net.sf.mzmine.methods.gapfilling.GapFillerParameters;
-
 import org.xml.sax.Attributes;
 
-public class SimpleGapFillerParameters implements GapFillerParameters, Serializable {
+public class SimpleGapFillerParameters implements Serializable {
 
 	private static final String myTagName = "SimpleGapFillerParameters";
 	private static final String paramIntensityTolerancePercentAttributeName = "IntensityTolerance";

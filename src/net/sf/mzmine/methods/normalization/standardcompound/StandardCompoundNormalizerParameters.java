@@ -20,11 +20,13 @@
 
 package net.sf.mzmine.methods.normalization.standardcompound;
 
-import net.sf.mzmine.methods.normalization.NormalizerParameters;
+import net.sf.mzmine.methods.MethodParameters;
 
+import org.w3c.dom.Document;
+import org.w3c.dom.Element;
 import org.xml.sax.Attributes;
 
-public class StandardCompoundNormalizerParameters implements NormalizerParameters {
+public class StandardCompoundNormalizerParameters implements MethodParameters {
 
 	private static final String myTagName = "StandardCompoundNormalizerParameters";
 	private static final String paramNormalizationTypeAttributeName = "NormalizationType";
@@ -61,4 +63,20 @@ public class StandardCompoundNormalizerParameters implements NormalizerParameter
 
 		return true;
 	}
+
+    /**
+     * @see net.sf.mzmine.methods.MethodParameters#addToXML(org.w3c.dom.Document)
+     */
+    public Element addToXML(Document doc) {
+        // TODO Auto-generated method stub
+        return null;
+    }
+
+    /**
+     * @see net.sf.mzmine.methods.MethodParameters#readFromXML(org.w3c.dom.Element)
+     */
+    public void readFromXML(Element element) {
+        // TODO Auto-generated method stub
+        
+    }
 }

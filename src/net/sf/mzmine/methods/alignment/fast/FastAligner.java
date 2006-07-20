@@ -21,11 +21,11 @@ package net.sf.mzmine.methods.alignment.fast;
 
 import java.util.logging.Logger;
 
+import net.sf.mzmine.data.AlignmentResult;
 import net.sf.mzmine.io.OpenedRawDataFile;
 import net.sf.mzmine.io.RawDataFile;
 import net.sf.mzmine.methods.Method;
 import net.sf.mzmine.methods.MethodParameters;
-import net.sf.mzmine.methods.alignment.AlignmentResult;
 import net.sf.mzmine.taskcontrol.TaskController;
 import net.sf.mzmine.userinterface.Desktop;
 

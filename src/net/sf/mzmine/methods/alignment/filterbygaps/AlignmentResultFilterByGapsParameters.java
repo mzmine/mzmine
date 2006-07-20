@@ -20,11 +20,9 @@
 
 package net.sf.mzmine.methods.alignment.filterbygaps;
 
-import net.sf.mzmine.methods.alignment.AlignmentResultProcessorParameters;
-
 import org.xml.sax.Attributes;
 
-public class AlignmentResultFilterByGapsParameters implements AlignmentResultProcessorParameters {
+public class AlignmentResultFilterByGapsParameters {
 
 
 	private static final String myTagName = "AlignmentResultFilterByGapsParameters";

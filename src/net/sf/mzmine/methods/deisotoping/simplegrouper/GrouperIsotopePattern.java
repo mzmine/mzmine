@@ -17,7 +17,7 @@
  * Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-package net.sf.mzmine.methods.deisotoping;
+package net.sf.mzmine.methods.deisotoping.simplegrouper;
 
 import java.util.Hashtable;
 

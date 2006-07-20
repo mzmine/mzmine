@@ -19,7 +19,7 @@
 */
 
 
-package net.sf.mzmine.visualizers.alignmentresult;
+package net.sf.mzmine.visualizers.alignmentresult.cda;
 
 import java.awt.BorderLayout;
 import java.awt.Color;
@@ -49,10 +49,11 @@ import javax.swing.event.InternalFrameListener;
 
 import jmprojection.CDA;
 import jmprojection.Preprocessor;
-import net.sf.mzmine.methods.alignment.AlignmentResult;
+import net.sf.mzmine.data.AlignmentResult;
 import net.sf.mzmine.userinterface.dialogs.SelectClassLabelsDialog;
 import net.sf.mzmine.userinterface.mainwindow.MainWindow;
 import net.sf.mzmine.util.TransferableImage;
+import net.sf.mzmine.visualizers.alignmentresult.AlignmentResultVisualizer;
 
 
 /**
@@ -130,7 +131,7 @@ public class AlignmentResultVisualizerCDAPlotView extends JInternalFrame impleme
 		alignmentResult = _alignmentResult;
 		myParameters = _myParameters;
 
-		setTitle(alignmentResult.getNiceName() + ": logratio plot");
+		/*setTitle(alignmentResult.getNiceName() + ": logratio plot");
 
 		// Collect raw data IDs and names for dialog
 		int[] rawDataIDs = alignmentResult.getRawDataIDs();
@@ -183,7 +184,7 @@ public class AlignmentResultVisualizerCDAPlotView extends JInternalFrame impleme
 
 		// Prepare data for the plot
 		preparePlot();
-
+*/
 		return myParameters;
 
 	}
@@ -224,7 +225,7 @@ public class AlignmentResultVisualizerCDAPlotView extends JInternalFrame impleme
         */
 
 		// Collect heights/areas to a matrix
-		int numOfSamples = alignmentResult.getNumOfRawDatas();
+	/*	int numOfSamples = alignmentResult.getNumOfRawDatas();
 		int numOfPeaks = alignmentResult.getNumOfRows();
 		int numOfDim = alignmentResult.getNumOfFullRows();
 		int[] rawDataIDs = alignmentResult.getRawDataIDs();
@@ -252,11 +253,11 @@ public class AlignmentResultVisualizerCDAPlotView extends JInternalFrame impleme
 				if (mainWin.getParameterStorage().getGeneralParameters().getPeakMeasuringType() == GeneralParameters.PARAMETERVALUE_PEAKMEASURING_AREA) {
 					data[sample][colInd] = alignmentResult.getPeakArea(rawDataID, peak);
 				}
-                */
-
+    
 				// Next col
 				colInd++;
 			}
+
 		}
 
 
@@ -269,13 +270,13 @@ public class AlignmentResultVisualizerCDAPlotView extends JInternalFrame impleme
 		}
 
 		/*waitDialog.updateJobStatus(new Integer(1), Task.JOBSTATUS_UNDERPROCESSING_STR, new Double(0.25));
-		waitDialog.paintNow();*/
+		waitDialog.paintNow();
 
 		// Do preprocessing
 		double[][] dataT2 = Preprocessor.autoScaleToUnityVariance(dataT);
 
 		/*waitDialog.updateJobStatus(new Integer(1), Task.JOBSTATUS_UNDERPROCESSING_STR, new Double(0.50));
-		waitDialog.paintNow();*/
+		waitDialog.paintNow();
 
 		// Transpose back
 		for (int sample=0; sample<data.length; sample++) {
@@ -286,7 +287,7 @@ public class AlignmentResultVisualizerCDAPlotView extends JInternalFrame impleme
 		dataT2 = null;
 
 		/*waitDialog.updateJobStatus(new Integer(1), Task.JOBSTATUS_UNDERPROCESSING_STR, new Double(0.75));
-		waitDialog.paintNow();*/
+		waitDialog.paintNow();
 
 		// Do CDA
 		CDA projector = new CDA(data, myParameters.paramAlpha, myParameters.paramLambda, myParameters.paramMaximumLoss, myParameters.paramTrainingLength, myParameters.paramNeighbourhoodSize, 2);
@@ -297,10 +298,10 @@ public class AlignmentResultVisualizerCDAPlotView extends JInternalFrame impleme
 		waitDialog.paintNow();
 
 		waitDialog.hideMe();
-*/
+
 		// Set plot data
 		plotArea.setData(results[0], results[1], sampleClasses, rawDataNames);
-
+*/
 
 
 	}
@@ -328,7 +329,7 @@ public class AlignmentResultVisualizerCDAPlotView extends JInternalFrame impleme
 	 * Implementation of AlignmentResultVisualizer interface
 	 */
 	public void updateSelectedRow() {
-		int rowNum = alignmentResult.getSelectedRow();
+		int rowNum = 0; // alignmentResult.getSelectedRow();
 		// Actual selection (cursor movement) is done in the plot panel
 		plotArea.selectAlignmentRow(rowNum);
 	}

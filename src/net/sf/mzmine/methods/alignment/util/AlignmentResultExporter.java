@@ -19,7 +19,7 @@
 */
 
 
-package net.sf.mzmine.methods.alignment;
+package net.sf.mzmine.methods.alignment.util;
 
 import java.io.BufferedReader;
 import java.io.FileReader;
@@ -28,6 +28,7 @@ import java.util.Hashtable;
 import java.util.StringTokenizer;
 import java.util.Vector;
 
+import net.sf.mzmine.data.AlignmentResult;
 import net.sf.mzmine.userinterface.mainwindow.MainWindow;
 
 
@@ -74,7 +75,7 @@ public class AlignmentResultExporter {
 
 
 
-
+/*
 		// Define headers for raw data specific columns
 
 		int[] rawDataIDs = alignmentResult.getRawDataIDs();
@@ -97,10 +98,9 @@ public class AlignmentResultExporter {
 				if (parameters.isSelectedRawDataCol(AlignmentResultExporterParameters.RAWDATACOLS_HEIGHT)) 	{ s += rawData.getNiceName() + ": " + parameters.rawDataColsHeightColumnHeader 	+ "\t"; }
 				if (parameters.isSelectedRawDataCol(AlignmentResultExporterParameters.RAWDATACOLS_AREA)) 		{ s += rawData.getNiceName() + ": " + parameters.rawDataColsAreaColumnHeader 		+ "\t"; }
 				if (parameters.isSelectedRawDataCol(AlignmentResultExporterParameters.RAWDATACOLS_STATUS)) 	{ s += rawData.getNiceName() + ": " + parameters.rawDataColsStatusColumnHeader 	+ "\t"; }
-*/
 			}
 
-		}
+	}
 		s = s + "\n";
 
 
@@ -185,6 +185,7 @@ public class AlignmentResultExporter {
 			//Logger.putFatal("Could not close file " + fileName + "after writing.");
 			return false;
 		}
+*/
 
 		return true;
 
@@ -444,7 +445,7 @@ public class AlignmentResultExporter {
 
 		// Create alignment	result
 
-		AlignmentResult nar = new AlignmentResult(	importedRawDataIDs,
+		/*AlignmentResult nar = new AlignmentResult(	importedRawDataIDs,
 													standardCompounds,
 													isotopePatternIDs,
 													isotopePeakNumbers,
@@ -464,9 +465,9 @@ public class AlignmentResultExporter {
 
 		nar.setImported(true);
 		nar.setImportedRawDataNames(importedRawDataNames);
+*/
 
-
-		return nar;
+		return null;
 
 	}
 

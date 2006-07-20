@@ -38,12 +38,10 @@ import javax.swing.JPanel;
 
 import net.sf.mzmine.data.Scan;
 import net.sf.mzmine.io.RawDataFile;
-import net.sf.mzmine.methods.gapfilling.GapFiller;
-import net.sf.mzmine.methods.gapfilling.GapFillerParameters;
 import net.sf.mzmine.userinterface.mainwindow.MainWindow;
 
 
-public class SimpleGapFiller implements GapFiller {
+public class SimpleGapFiller {
 
 private static int idCount = 0; // DEBUG
 
@@ -71,7 +69,7 @@ private static int idCount = 0; // DEBUG
 
 	}
 
-	public Hashtable<Integer, double[]> fillGaps(Hashtable<Integer, double[]> gapsToFill, RawDataFile rawData, GapFillerParameters _parameters) {
+	public Hashtable<Integer, double[]> fillGaps(Hashtable<Integer, double[]> gapsToFill, RawDataFile rawData, SimpleGapFillerParameters _parameters) {
 
 		SimpleGapFillerParameters parameters = (SimpleGapFillerParameters)_parameters;
 

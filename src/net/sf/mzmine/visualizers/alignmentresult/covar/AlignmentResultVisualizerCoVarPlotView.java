@@ -18,8 +18,7 @@
     Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
-
-package net.sf.mzmine.visualizers.alignmentresult;
+package net.sf.mzmine.visualizers.alignmentresult.covar;
 
 import java.awt.BorderLayout;
 import java.awt.Color;
@@ -52,44 +51,51 @@ import javax.swing.event.ChangeListener;
 import javax.swing.event.InternalFrameEvent;
 import javax.swing.event.InternalFrameListener;
 
-import net.sf.mzmine.methods.alignment.AlignmentResult;
+import net.sf.mzmine.data.AlignmentResult;
 import net.sf.mzmine.userinterface.components.Colorbar;
-import net.sf.mzmine.userinterface.dialogs.SelectTwoGroupsDialog;
+import net.sf.mzmine.userinterface.dialogs.SelectOneGroupDialog;
 import net.sf.mzmine.userinterface.mainwindow.MainWindow;
 import net.sf.mzmine.util.HeatMapColorPicker;
 import net.sf.mzmine.util.MathUtils;
 import net.sf.mzmine.util.TransferableImage;
-
+import net.sf.mzmine.visualizers.alignmentresult.AlignmentResultVisualizer;
 
 
 
 /**
- * This class is used to draw a spatial logratio plot between two groups of runs in one alignment result
+ * This class is used to draw a spatial cv plot between two groups of runs in one alignment result
  *
  */
-public class AlignmentResultVisualizerLogratioPlotView extends JInternalFrame implements Printable, AlignmentResultVisualizer, InternalFrameListener {
+public class AlignmentResultVisualizerCoVarPlotView extends JInternalFrame implements Printable, AlignmentResultVisualizer, InternalFrameListener {
 
 	private static final double marginSize = (double)0.02; // How much extra margin is added to the axis in full zoom
 
-	private double paramLogratioThresholdLevel = (double)1.5;	// Logratio-level which gives total red or green colour.
-	private double paramLogratioThresholdLevelMax = (double)3.0;	// User can control above parameter within range 0..this
-	private double paramAvgIntThresholdLevel;	// Intensity thresholding level
+	private int[][] heatmap_pal_waypoints = {	{00, 15, 30, 45},
+												{00, 20, 40, 60},
+												{00, 25, 50, 75},
+												{00, 30, 60, 90}
+											};
 
-	private int[] heatmap_pal_waypoints = {-30, -15, 0, 15, 30};
-	private String[] heatmap_pal_waypointLabels = {"-3.0", "-1.5", "0", "1.5", "3.0"};
-	private int[][] heatmap_pal_waypointRGBs = { {0,255,0}, {0,255,0}, {0,0,0}, {255,0,0}, {255,0,0} };
+	private String[][] heatmap_pal_waypointLabels = {	{"0%", "15%", "30%", "45%"},
+														{"0%", "20%", "40%", "60%"},
+														{"0%", "25%", "50%", "75%"},
+														{"0%", "30%", "60%", "90%"}
+													};
+	private int[][] heatmap_pal_waypointRGBs = { {0,0,0}, {102,255,102}, {51,102,255}, {255,0,0} };
+
+	private double paramAvgIntThresholdLevel;	// Intensity thresholding level
+	private int paramCVSetting = 0;
 
 	private MainWindow mainWin;
-	//private Statusbar statBar;
+//	private Statusbar statBar;
 
 	private AlignmentResult alignmentResult;
 
 	private int[] groupOneIDs;
-	private int[] groupTwoIDs;
 
 	private JPanel rightPnl;
-	private Colorbar colorPnl;
 	private OptionsPanelVertical sliderPnl;
+	private Colorbar colorPnl;
 	private OptionsPanelHorizontal topPnl;
 	private PlotYAxis leftPnl;
 	private PlotXAxis bottomPnl;
@@ -106,11 +112,11 @@ public class AlignmentResultVisualizerLogratioPlotView extends JInternalFrame im
 	 *
 	 * @param _mainWin	Main window of Masso
 	 */
-	public AlignmentResultVisualizerLogratioPlotView(MainWindow _mainWin) {
+	public AlignmentResultVisualizerCoVarPlotView(MainWindow _mainWin) {
 		mainWin = _mainWin;
-		//statBar = mainWin.getStatusBar();
+//		statBar = mainWin.getStatusBar();
 
-		heatMap = new HeatMapColorPicker(heatmap_pal_waypoints, heatmap_pal_waypointRGBs);
+		heatMap = new HeatMapColorPicker(heatmap_pal_waypoints[paramCVSetting], heatmap_pal_waypointRGBs);
 
 		// Build this visualizer
 		getContentPane().setLayout(new BorderLayout());
@@ -132,19 +138,18 @@ public class AlignmentResultVisualizerLogratioPlotView extends JInternalFrame im
 		leftPnl.setBackground(Color.white);
 		getContentPane().add(leftPnl, java.awt.BorderLayout.WEST);
 
-
 		rightPnl = new JPanel();
 		rightPnl.setMinimumSize(new Dimension(70, getHeight()));
 		rightPnl.setPreferredSize(new Dimension(70, getHeight()));
 		rightPnl.setLayout(new BorderLayout());
+
 		getContentPane().add(rightPnl, java.awt.BorderLayout.EAST);
 
-		colorPnl = new Colorbar(heatMap, heatmap_pal_waypointLabels, 256);
 		sliderPnl = new OptionsPanelVertical();
+		colorPnl = new Colorbar(heatMap, heatmap_pal_waypointLabels[paramCVSetting],256);
 
 		rightPnl.add(colorPnl, java.awt.BorderLayout.CENTER);
 		rightPnl.add(sliderPnl, java.awt.BorderLayout.EAST);
-
 
 		PlotArea = new PlotArea(this);
 		PlotArea.setBackground(Color.white);
@@ -167,8 +172,7 @@ public class AlignmentResultVisualizerLogratioPlotView extends JInternalFrame im
 	 */
 	public int askParameters(AlignmentResult _alignmentResult) {
 		alignmentResult = _alignmentResult;
-		setTitle(alignmentResult.getNiceName() + ": logratio plot");
-
+		/*setTitle(alignmentResult.getNiceName() + ": Correlation of variance plot");
 
 		// Collect raw data IDs and names for dialog
 		int[] rawDataIDs = alignmentResult.getRawDataIDs();
@@ -177,37 +181,34 @@ public class AlignmentResultVisualizerLogratioPlotView extends JInternalFrame im
 			for (int i=0; i<rawDataIDs.length; i++) { rawDatas[i] = new RawDataPlaceHolder(alignmentResult.getImportedRawDataName(rawDataIDs[i]), rawDataIDs[i]);  }
 		} else {
 		//	for (int i=0; i<rawDataIDs.length; i++) { rawDatas[i] = new RawDataPlaceHolder(mainWin.getItemSelector().getRawDataByID(rawDataIDs[i]).getNiceName(), rawDataIDs[i]); }
-		}
+		}*/
+
 
 
 		// Show user a dialog for selecting two groups of runs from this aligment
 
-		SelectTwoGroupsDialog stgd = new SelectTwoGroupsDialog(mainWin,
-																"Logratio plot",
-																"Select raw data files for group one",
-																"Select raw data files for group two",
-																rawDatas, null, null);
-		stgd.show();
-/*
-		stgd.setLocationRelativeTo(mainWin);
-		stgd.setVisible(true);
-*/
-		retval = stgd.getExitCode();
+		SelectOneGroupDialog sord = new SelectOneGroupDialog(mainWin,
+															"Coefficient of variation plot",
+															"Select runs for the plot",
+															null, null, null);
 
+		//ParameterSetupDialog psd = new ParameterSetupDialog(mainWin, true, alignmentResult);
+
+		sord.show();
+/*
+		sord.setLocationRelativeTo(mainWin);
+		sord.setVisible(true);
+		*/
+		retval = sord.getExitCode();
 
 		// Check if user clicked cancel
 		if (retval == -1) { return -1; }
 
 		// Get index numbers for runs
-		Vector<RawDataPlaceHolder> tmpRawDatas = stgd.getSelectedItems(1);
+		Vector<RawDataPlaceHolder> tmpRawDatas = sord.getSelectedItems();
 		groupOneIDs = new int[tmpRawDatas.size()];
 		for (int ind=0; ind<tmpRawDatas.size(); ind++) {
 			groupOneIDs[ind] = tmpRawDatas.get(ind).getRawDataID(); }
-
-		tmpRawDatas = stgd.getSelectedItems(2);
-		groupTwoIDs = new int[tmpRawDatas.size()];
-		for (int ind=0; ind<tmpRawDatas.size(); ind++) {
-			groupTwoIDs[ind] = tmpRawDatas.get(ind).getRawDataID(); }
 
 		// Prepare data for the plot
 		preparePlot();
@@ -216,14 +217,10 @@ public class AlignmentResultVisualizerLogratioPlotView extends JInternalFrame im
 
 	}
 
-	public void setAlignmentResult(AlignmentResult alignmentResult) {
-		// Logratio plot doesn't use this method
-		// Required data is given by user in parameter setup dialog
-	}
 
 	/**
 	 * This method is called when peak measuring is switched between height / area.
-	 * Logratios are always calculated using the currently selected mode
+	 * CV are always calculated using the currently selected mode
 	 */
 	public void refreshVisualizer(int changeType) {
 		if (changeType == AlignmentResultVisualizer.CHANGETYPE_PEAK_MEASURING_SETTING) {
@@ -236,21 +233,22 @@ public class AlignmentResultVisualizerLogratioPlotView extends JInternalFrame im
 	 * This function calculates logratios between average peak intensities of two groups
 	 */
 	private void preparePlot() {
-/*
+
+        /*
 		if (mainWin.getParameterStorage().getGeneralParameters().getPeakMeasuringType() == GeneralParameters.PARAMETERVALUE_PEAKMEASURING_HEIGHT) {
-			setTitle(alignmentResult.getNiceName() + ": Logratios of average peak heights.");
+			setTitle(alignmentResult.getNiceName() + ": Coefficient of variation in peak heights.");
 		}
 		if (mainWin.getParameterStorage().getGeneralParameters().getPeakMeasuringType() == GeneralParameters.PARAMETERVALUE_PEAKMEASURING_AREA) {
-			setTitle(alignmentResult.getNiceName() + ": Logratios of average peak areas.");
+			setTitle(alignmentResult.getNiceName() + ": Coefficient of variation in peak areas.");
 		}
-*/
+        */
 
-		int numOfPeaks = alignmentResult.getNumOfRows();
+		int numOfPeaks = 0; //alignmentResult.getNumOfRows();
 
 		int[] tmp_alignmentRowValues = new int[numOfPeaks];
 		double[] tmp_mzValues = new double[numOfPeaks];
 		double[] tmp_rtValues = new double[numOfPeaks];
-		double[] tmp_logratioValues = new double[numOfPeaks];
+		double[] tmp_cvValues = new double[numOfPeaks];
 		double[] tmp_avgMeasurementValues = new double[numOfPeaks];
 		int numOfValues = 0;
 
@@ -262,25 +260,27 @@ public class AlignmentResultVisualizerLogratioPlotView extends JInternalFrame im
 
 		int numOfGoodPeaks;
 
-		double groupOneMeasurementSum, groupTwoMeasurementSum;
-		int groupOneMeasurementNum, groupTwoMeasurementNum;
-		double groupOneMeasurementAvg, groupTwoMeasurementAvg;
+		Vector<Double> groupOneMeasurementsVector;
+		double[] groupOneMeasurementsArray;
 
-		// Calculate average height/area in both groups for every peak
-		for (int rowInd=0; rowInd<alignmentResult.getNumOfRows(); rowInd++) {
-
-			groupOneMeasurementNum = 0; groupOneMeasurementSum = 0;
-			groupTwoMeasurementNum = 0; groupTwoMeasurementSum = 0;
+		double measurementSum;
+		int measurementNum;
+		double avgMeasurement;
 
 
-			// Average among group one
+		// Loop through all peaks
+		/*for (int rowInd=0; rowInd<alignmentResult.getNumOfRows(); rowInd++) {
+
+			// Collect peak's height/area values among the group of runs
+			groupOneMeasurementsVector = new Vector();
+
             /*
 			if (mainWin.getParameterStorage().getGeneralParameters().getPeakMeasuringType() == GeneralParameters.PARAMETERVALUE_PEAKMEASURING_HEIGHT) {
 				for (int runInd : groupOneIDs) {
-					if ((alignmentResult.getPeakStatus(runInd, rowInd)==AlignmentResult.PEAKSTATUS_DETECTED) ||
-					 	(alignmentResult.getPeakStatus(runInd, rowInd)==AlignmentResult.PEAKSTATUS_ESTIMATED)) {
-						 	groupOneMeasurementNum++;
-							groupOneMeasurementSum += alignmentResult.getPeakHeight(runInd, rowInd);
+					if ( (alignmentResult.getPeakStatus(runInd, rowInd)==AlignmentResult.PEAKSTATUS_DETECTED) ||
+						 (alignmentResult.getPeakStatus(runInd, rowInd)==AlignmentResult.PEAKSTATUS_ESTIMATED) ) {
+
+						groupOneMeasurementsVector.add(new Double(alignmentResult.getPeakHeight(runInd, rowInd)));
 					}
 				}
 			}
@@ -288,48 +288,27 @@ public class AlignmentResultVisualizerLogratioPlotView extends JInternalFrame im
 			if (mainWin.getParameterStorage().getGeneralParameters().getPeakMeasuringType() == GeneralParameters.PARAMETERVALUE_PEAKMEASURING_AREA) {
 				for (int runInd : groupOneIDs) {
 					if (alignmentResult.getPeakStatus(runInd, rowInd)==AlignmentResult.PEAKSTATUS_DETECTED) {
-						 	groupOneMeasurementNum++;
-							groupOneMeasurementSum += alignmentResult.getPeakArea(runInd, rowInd);
+						groupOneMeasurementsVector.add(new Double(alignmentResult.getPeakArea(runInd, rowInd)));
 					}
 				}
 			}
 
 
-			// Average among "target" group
-			if (mainWin.getParameterStorage().getGeneralParameters().getPeakMeasuringType() == GeneralParameters.PARAMETERVALUE_PEAKMEASURING_HEIGHT) {
-				for (int runInd : groupTwoIDs) {
-					if ((alignmentResult.getPeakStatus(runInd, rowInd)==AlignmentResult.PEAKSTATUS_DETECTED) ||
-					 	(alignmentResult.getPeakStatus(runInd, rowInd)==AlignmentResult.PEAKSTATUS_ESTIMATED)) {
-						 	groupTwoMeasurementNum++;
-							groupTwoMeasurementSum += alignmentResult.getPeakHeight(runInd, rowInd);
-					}
+			// If there were at least two measurements for the peak, include it in the plot
+			if ( groupOneMeasurementsVector.size()>1 ) {
+
+				// Move data from vector to array (needed for calculating CV)
+				groupOneMeasurementsArray = new double[groupOneMeasurementsVector.size()];
+				for (int i=0; i<groupOneMeasurementsVector.size(); i++ ) {
+					groupOneMeasurementsArray[i] = groupOneMeasurementsVector.get(i).doubleValue();
 				}
-			}
-
-			if (mainWin.getParameterStorage().getGeneralParameters().getPeakMeasuringType() == GeneralParameters.PARAMETERVALUE_PEAKMEASURING_AREA) {
-				for (int runInd : groupTwoIDs) {
-					if (alignmentResult.getPeakStatus(runInd, rowInd)==AlignmentResult.PEAKSTATUS_DETECTED) {
-						 	groupTwoMeasurementNum++;
-							groupTwoMeasurementSum += alignmentResult.getPeakArea(runInd, rowInd);
-					}
-				}
-			}*/
-
-
-			// If there were at least one intensity measurement in both groups, add this peak to the plot
-			if ( (groupOneMeasurementNum>0) && (groupTwoMeasurementNum>0) ) {
-
-				groupOneMeasurementAvg = groupOneMeasurementSum / (double)groupOneMeasurementNum;
-				groupTwoMeasurementAvg = groupTwoMeasurementSum / (double)groupTwoMeasurementNum;
 
 				tmp_alignmentRowValues[numOfValues] = rowInd;
 				tmp_mzValues[numOfValues] = alignmentResult.getAverageMZ(rowInd);
 				tmp_rtValues[numOfValues] = alignmentResult.getAverageRT(rowInd);
-
-//				if (mainWin.getParameterStorage().getGeneralParameters().getPeakMeasuringType() == GeneralParameters.PARAMETERVALUE_PEAKMEASURING_HEIGHT) { tmp_avgMeasurementValues[numOfValues] = alignmentResult.getAverageHeight(rowInd); }
-	//			if (mainWin.getParameterStorage().getGeneralParameters().getPeakMeasuringType() == GeneralParameters.PARAMETERVALUE_PEAKMEASURING_AREA) { tmp_avgMeasurementValues[numOfValues] = alignmentResult.getAverageArea(rowInd); }
-
-				tmp_logratioValues[numOfValues] = (double)( java.lang.Math.log( (double)groupOneMeasurementAvg / (double)groupTwoMeasurementAvg ) / java.lang.Math.log(2.0) );
+				//if (mainWin.getParameterStorage().getGeneralParameters().getPeakMeasuringType() == GeneralParameters.PARAMETERVALUE_PEAKMEASURING_HEIGHT) { tmp_avgMeasurementValues[numOfValues] = alignmentResult.getAverageHeight(rowInd); }
+				//if (mainWin.getParameterStorage().getGeneralParameters().getPeakMeasuringType() == GeneralParameters.PARAMETERVALUE_PEAKMEASURING_AREA) { tmp_avgMeasurementValues[numOfValues] = alignmentResult.getAverageArea(rowInd); }
+				tmp_cvValues[numOfValues] = MathUtils.calcCV(groupOneMeasurementsArray);
 
 				// Also control what are the minimum and maximum mz and rt value of all peaks that are added to the plot
 				if (minMZ>=tmp_mzValues[numOfValues]) { minMZ = tmp_mzValues[numOfValues]; }
@@ -339,7 +318,7 @@ public class AlignmentResultVisualizerLogratioPlotView extends JInternalFrame im
 
 				numOfValues++;
 			}
-		}
+		}*/
 
 		// Add small margins to plot
 		minMZ=minMZ-marginSize*(maxMZ-minMZ);
@@ -354,7 +333,7 @@ public class AlignmentResultVisualizerLogratioPlotView extends JInternalFrame im
 		int[] alignmentRowValues = new int[numOfValues];
 		double[] mzValues = new double[numOfValues];
 		double[] rtValues = new double[numOfValues];
-		double[] logratioValues = new double[numOfValues];
+		double[] cvValues = new double[numOfValues];
 		double[] avgMeasurementValues = new double[numOfValues];
 
 		for (int ind=0; ind<numOfValues; ind++) {
@@ -362,7 +341,7 @@ public class AlignmentResultVisualizerLogratioPlotView extends JInternalFrame im
 			mzValues[ind] = tmp_mzValues[ind];
 			rtValues[ind] = tmp_rtValues[ind];
 			avgMeasurementValues[ind] = tmp_avgMeasurementValues[ind];
-			logratioValues[ind] = tmp_logratioValues[ind];
+			cvValues[ind] = tmp_cvValues[ind];
 		}
 
 
@@ -379,7 +358,7 @@ public class AlignmentResultVisualizerLogratioPlotView extends JInternalFrame im
 		topPnl.setupIntThresholdSlider(quantileLabels, quantileValues);
 
 		// Set plot data
-		PlotArea.setData(alignmentRowValues, mzValues, rtValues, logratioValues, avgMeasurementValues, minRT, maxRT, minMZ, maxMZ);
+		PlotArea.setData(alignmentRowValues, mzValues, rtValues, cvValues, avgMeasurementValues, minRT, maxRT, minMZ, maxMZ);
 
 	}
 
@@ -406,14 +385,22 @@ public class AlignmentResultVisualizerLogratioPlotView extends JInternalFrame im
 	 * Implementation of AlignmentResultVisualizer interface
 	 */
 	public void updateSelectedRow() {
-		int rowNum = alignmentResult.getSelectedRow();
+		int rowNum = 0; // alignmentResult.getSelectedRow();
 		// Actual selection (cursor movement) is done in the plot panel
 		PlotArea.selectAlignmentRow(rowNum);
 	}
 
-	/**
-	 * Implementation of AlignmentResultVisualizer interface
-	 */
+	public void setAlignmentResult(AlignmentResult alignmentResult) {
+		// Covar plot doesn't use this method
+		// Required data is given by user in parameter setup dialog
+	}
+
+/*
+	public void selectAlignmentRow(int alignID) {
+		// Actual selection (cursor movement) is done in the plot panel
+		PlotArea.selectAlignmentRow(alignID);
+	}
+*/
 	public void printMe() {
 		PrinterJob printJob = PrinterJob.getPrinterJob();
 		HashPrintRequestAttributeSet pSet = new HashPrintRequestAttributeSet();
@@ -487,6 +474,7 @@ public class AlignmentResultVisualizerLogratioPlotView extends JInternalFrame im
 	 */
 	 /*
 	public void closeMe() {
+		mainWin.desktop.remove(this);
 		dispose();
 		alignmentResult = null;
 	}
@@ -499,7 +487,7 @@ public class AlignmentResultVisualizerLogratioPlotView extends JInternalFrame im
 	private class PlotArea extends JPanel implements ActionListener, java.awt.event.MouseListener , java.awt.event.MouseMotionListener {
 
 
-		private AlignmentResultVisualizerLogratioPlotView masterFrame;
+		private AlignmentResultVisualizerCoVarPlotView masterFrame;
 		private double minMZ;
 		private double maxMZ;
 		private double minRT;
@@ -526,7 +514,7 @@ public class AlignmentResultVisualizerLogratioPlotView extends JInternalFrame im
 		private int[] alignmentRowValues = null;
 		private double[] mzValues = null;
 		private double[] rtValues = null;
-		private double[] lrValues = null;
+		private double[] cvValues = null;
 		private double[] avgIntValues = null;
 
 		private JPopupMenu popupMenu;
@@ -541,9 +529,9 @@ public class AlignmentResultVisualizerLogratioPlotView extends JInternalFrame im
 		/**
 		 * Constructor: initializes panel
 		 *
-		 * @param	_masterFrame	SpatialLogratioPlotView frame where this panel is located
+		 * @param	_masterFrame	AlignmentResultVisualizerCoVarPlotView frame where this panel is located
 		 */
-		public PlotArea(AlignmentResultVisualizerLogratioPlotView _masterFrame) {
+		public PlotArea(AlignmentResultVisualizerCoVarPlotView _masterFrame) {
 			masterFrame = _masterFrame;
 		    popupMenu = new JPopupMenu();
 		    zoomToSelectionMenuItem = new JMenuItem("Zoom to selection");
@@ -653,8 +641,9 @@ public class AlignmentResultVisualizerLogratioPlotView extends JInternalFrame im
 				}
 
 				// And select this item in all other visualizers diplaying this same alignment result
-				alignmentResult.setSelectedRow(alignmentRowValues[nearestInd]);
+			//	alignmentResult.setSelectedRow(alignmentRowValues[nearestInd]);
 		//		mainWin.updateAlignmentResultVisualizers(alignmentResult.getAlignmentResultID());
+
 				repaint();
 			}
 
@@ -747,6 +736,8 @@ public class AlignmentResultVisualizerLogratioPlotView extends JInternalFrame im
 		}
 
 
+
+
 		/**
 		 * This method paints the plot to this panel
 		 */
@@ -756,9 +747,9 @@ public class AlignmentResultVisualizerLogratioPlotView extends JInternalFrame im
 			double x,y;
 			int x1,y1,x2,y2;
 			int radius;
-			double mz,rt,lr, ai;
+			double mz,rt,cv, ai;
 			double red, green;
-			Color c;
+
 
 
 			if (rtValues!=null) {
@@ -779,10 +770,12 @@ public class AlignmentResultVisualizerLogratioPlotView extends JInternalFrame im
 				if (radius<1) { radius=1; }
 
 
+				Color c;
+
 				for (int ind=0; ind<rtValues.length; ind++) {
 					rt = rtValues[ind];
 					mz = mzValues[ind];
-					lr = lrValues[ind];
+					cv = cvValues[ind];
 					ai = avgIntValues[ind];
 
 					if (ai>=paramAvgIntThresholdLevel) {
@@ -790,23 +783,10 @@ public class AlignmentResultVisualizerLogratioPlotView extends JInternalFrame im
 						x1 = (int)java.lang.Math.round((double)diff_x_scr * ((double)(rt-zoomMinRT) / (double)diff_x_dat));
 						y1 = (int)(diff_y_scr * (1 - ((mz-zoomMinMZ) / diff_y_dat)) );
 
-						// Calculate the shade of red or green for this logratio
-						c = heatMap.getColorC((int)java.lang.Math.round(lr*10));
-/*
-						red = 0;
-						green = 0;
+						// Calculate color for this cv
+						c = heatMap.getColorC((int)java.lang.Math.round(cv*100));
 
-						if (lr<=0) { red = 0; }
-						if ( (lr>0) && (lr<paramLogratioThresholdLevel) ) {	red = (double)(lr/paramLogratioThresholdLevel);	}
-						if (lr>=paramLogratioThresholdLevel) { red = 1; }
-
-						if (lr>=0) { green = 0; }
-						if ( (lr<0) && (lr>(-paramLogratioThresholdLevel)) ) {	green = (double)(lr/(-paramLogratioThresholdLevel));	}
-						if (lr<=(-paramLogratioThresholdLevel)) { green = 1; }
-*/
 						// Draw a spot
-						//g.setColor(Color.red);
-						//g.setColor(new Color(red,green,(double)0.0));
 						g.setColor(c);
 						g.fillOval(x1-radius,y1-radius,2*radius, 2*radius);
 					}
@@ -842,7 +822,7 @@ public class AlignmentResultVisualizerLogratioPlotView extends JInternalFrame im
 		/**
 		 * Sets data for plotting
 		 */
-		public void setData(int[] _alignmentRowValues, double[] _mzValues, double[] _rtValues, double[] _lrValues, double[] _avgIntValues, double _minRT, double _maxRT, double _minMZ, double _maxMZ) {
+		public void setData(int[] _alignmentRowValues, double[] _mzValues, double[] _rtValues, double[] _cvValues, double[] _avgIntValues, double _minRT, double _maxRT, double _minMZ, double _maxMZ) {
 
 			alignmentRowValues = _alignmentRowValues;
 			minMZ = _minMZ;
@@ -857,7 +837,7 @@ public class AlignmentResultVisualizerLogratioPlotView extends JInternalFrame im
 
 			mzValues = _mzValues;
 			rtValues = _rtValues;
-			lrValues = _lrValues;
+			cvValues = _cvValues;
 			avgIntValues = _avgIntValues;
 
 			bottomPnl.setScale(zoomMinRT, zoomMaxRT);
@@ -884,7 +864,7 @@ public class AlignmentResultVisualizerLogratioPlotView extends JInternalFrame im
 				selectionLastClickMZ = -1;
 		    }
 		    // Clear status bar
-		   
+		    
 		}
 
 
@@ -922,12 +902,12 @@ public class AlignmentResultVisualizerLogratioPlotView extends JInternalFrame im
 				cursorPositionRT = xpos;
 				cursorPositionMZ = ypos;
 
+
 				zoomToSelectionMenuItem.setEnabled(false);
 
 				repaint();
 
 		    }
-		    
 
 		}
 
@@ -985,7 +965,6 @@ public class AlignmentResultVisualizerLogratioPlotView extends JInternalFrame im
 
 				repaint();
 			}
-			
 
 		}
 
@@ -1016,7 +995,7 @@ public class AlignmentResultVisualizerLogratioPlotView extends JInternalFrame im
 
 			super.paint(g);
 
-						int w = getWidth();
+			int w = getWidth();
 			double h = getHeight();
 
 			if (w<=0) { return; }
@@ -1130,7 +1109,6 @@ public class AlignmentResultVisualizerLogratioPlotView extends JInternalFrame im
 	 * This class is used to draw slider for controlling colouring
 	 */
 	private class OptionsPanelVertical extends javax.swing.JPanel implements ChangeListener {
-		private DecimalFormat tickFormat;
 	    /**
 	     * Creates new form PlotAreaOptions
 	     */
@@ -1148,20 +1126,10 @@ public class AlignmentResultVisualizerLogratioPlotView extends JInternalFrame im
 	        slideThreshold = new javax.swing.JSlider();
 	        slideThreshold.setOrientation(JSlider.VERTICAL);
 	        slideThreshold.setMinimum(0);
-	        slideThreshold.setMaximum((int)(paramLogratioThresholdLevelMax*10));
-	        slideThreshold.setValue((int)(paramLogratioThresholdLevel*10));
+	        slideThreshold.setMaximum(3);
+	        slideThreshold.setValue(paramCVSetting);
+	        slideThreshold.setSnapToTicks(true);
 
-
-			// Create labels (1/10th of the actual slider value)
-	        Hashtable labelTable = new Hashtable();
-	        double curLabel = 0;
-	        tickFormat = new DecimalFormat("0.0");
-	        while (curLabel<=paramLogratioThresholdLevelMax) {
-				labelTable.put(new Integer((int)(curLabel*10)), new JLabel(tickFormat.format(curLabel)));
-				curLabel += 1.0;
-			}
-			//slideThreshold.setLabelTable(labelTable);
-			//slideThreshold.setPaintLabels(true);
 			slideThreshold.addChangeListener(this);
 
 	        add(slideThreshold, BorderLayout.EAST);
@@ -1176,16 +1144,11 @@ public class AlignmentResultVisualizerLogratioPlotView extends JInternalFrame im
 	    public void stateChanged(ChangeEvent e) {
 		    JSlider source = (JSlider)e.getSource();
 		    //if (!source.getValueIsAdjusting()) {
+
 				int value = source.getValue();
-		        paramLogratioThresholdLevel = (double)value/(double)10.0;
 
-				heatmap_pal_waypoints[1] = -value;
-				heatmap_pal_waypoints[3] = value;
-				heatmap_pal_waypointLabels[1] = tickFormat.format(-paramLogratioThresholdLevel);
-				heatmap_pal_waypointLabels[3] = tickFormat.format(paramLogratioThresholdLevel);
-
-				heatMap.setIntensityLevels(heatmap_pal_waypoints);
-				colorPnl.setIntensityLabels(heatmap_pal_waypointLabels);
+				heatMap.setIntensityLevels(heatmap_pal_waypoints[value]);
+				colorPnl.setIntensityLabels(heatmap_pal_waypointLabels[value]);
 				colorPnl.repaint();
 
 		        PlotArea.repaint();
@@ -1288,7 +1251,6 @@ public class AlignmentResultVisualizerLogratioPlotView extends JInternalFrame im
 	}
 
 
-
 	private class RawDataPlaceHolder {
 		private String niceName;
 		private int rawDataID;
@@ -1306,5 +1268,6 @@ public class AlignmentResultVisualizerLogratioPlotView extends JInternalFrame im
 			return rawDataID;
 		}
 	}
+
 
 }

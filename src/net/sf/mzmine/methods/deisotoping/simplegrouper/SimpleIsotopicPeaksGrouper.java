@@ -28,14 +28,13 @@ import javax.swing.JMenuItem;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
 
+import net.sf.mzmine.data.AlignmentResult;
 import net.sf.mzmine.data.PeakList;
-import net.sf.mzmine.io.IOController;
 import net.sf.mzmine.io.OpenedRawDataFile;
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.main.MZmineModule;
 import net.sf.mzmine.methods.Method;
 import net.sf.mzmine.methods.MethodParameters;
-import net.sf.mzmine.methods.alignment.AlignmentResult;
 import net.sf.mzmine.project.MZmineProject;
 import net.sf.mzmine.taskcontrol.Task;
 import net.sf.mzmine.taskcontrol.TaskController;

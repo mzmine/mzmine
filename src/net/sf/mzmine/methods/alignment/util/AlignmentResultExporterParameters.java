@@ -19,7 +19,7 @@
 */
 
 
-package net.sf.mzmine.methods.alignment;
+package net.sf.mzmine.methods.alignment.util;
 
 import java.util.HashSet;
 

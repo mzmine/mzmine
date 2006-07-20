@@ -25,8 +25,6 @@ import net.sf.mzmine.data.PeakList;
 import net.sf.mzmine.data.impl.SimplePeakList;
 import net.sf.mzmine.io.OpenedRawDataFile;
 import net.sf.mzmine.io.RawDataFile;
-import net.sf.mzmine.methods.deisotoping.GrouperIsotopePattern;
-import net.sf.mzmine.methods.deisotoping.GrouperPeak;
 import net.sf.mzmine.taskcontrol.Task;
 
 /**

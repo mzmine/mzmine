@@ -26,9 +26,6 @@ import java.awt.event.ActionListener;
 import java.awt.event.WindowEvent;
 import java.awt.event.WindowListener;
 import java.util.ArrayList;
-import java.util.Enumeration;
-import java.util.Hashtable;
-import java.util.Vector;
 
 import javax.swing.JDesktopPane;
 import javax.swing.JFrame;
@@ -40,17 +37,12 @@ import javax.swing.JSplitPane;
 import javax.swing.border.EtchedBorder;
 import javax.swing.event.ListSelectionListener;
 
-import net.sf.mzmine.io.IOController;
 import net.sf.mzmine.io.OpenedRawDataFile;
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.main.MZmineModule;
-import net.sf.mzmine.methods.alignment.AlignmentResult;
-import net.sf.mzmine.taskcontrol.TaskController;
 import net.sf.mzmine.taskcontrol.impl.TaskControllerImpl;
 import net.sf.mzmine.userinterface.Desktop;
 import net.sf.mzmine.userinterface.dialogs.TaskProgressWindow;
-import net.sf.mzmine.visualizers.alignmentresult.AlignmentResultVisualizer;
-import net.sf.mzmine.visualizers.rawdata.RawDataVisualizer;
 
 /**
  * This class is the main window of application

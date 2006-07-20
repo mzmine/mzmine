@@ -20,11 +20,13 @@
 
 package net.sf.mzmine.methods.normalization.linear;
 
-import net.sf.mzmine.methods.normalization.NormalizerParameters;
+import net.sf.mzmine.methods.MethodParameters;
 
+import org.w3c.dom.Document;
+import org.w3c.dom.Element;
 import org.xml.sax.Attributes;
 
-public class LinearNormalizerParameters implements NormalizerParameters {
+public class LinearNormalizerParameters implements MethodParameters {
 
 
 	private static final String myTagName = "LinearNormalizerParameters";
@@ -58,5 +60,21 @@ public class LinearNormalizerParameters implements NormalizerParameters {
 		try { paramNormalizationType = Integer.parseInt(atr.getValue(paramNormalizationTypeAttributeName));	} catch (NumberFormatException e) {	return false; }
 		return true;
 	}
+
+    /**
+     * @see net.sf.mzmine.methods.MethodParameters#addToXML(org.w3c.dom.Document)
+     */
+    public Element addToXML(Document doc) {
+        // TODO Auto-generated method stub
+        return null;
+    }
+
+    /**
+     * @see net.sf.mzmine.methods.MethodParameters#readFromXML(org.w3c.dom.Element)
+     */
+    public void readFromXML(Element element) {
+        // TODO Auto-generated method stub
+        
+    }
 
 }

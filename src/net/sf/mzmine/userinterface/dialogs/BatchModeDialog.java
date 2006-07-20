@@ -29,9 +29,6 @@ import javax.swing.JLabel;
 import javax.swing.JPanel;
 
 import net.sf.mzmine.methods.MethodParameters;
-import net.sf.mzmine.methods.alignment.AlignmentResultProcessorParameters;
-import net.sf.mzmine.methods.gapfilling.GapFillerParameters;
-import net.sf.mzmine.methods.normalization.NormalizerParameters;
 import net.sf.mzmine.userinterface.mainwindow.MainWindow;
 
 
@@ -90,9 +87,7 @@ public class BatchModeDialog extends javax.swing.JInternalFrame implements Actio
 	private MethodParameters paramPeakListProcessor1;
 	private MethodParameters paramPeakListProcessor2;
 	private MethodParameters paramAligner1;
-	private AlignmentResultProcessorParameters paramAlignmentFilter1;
-	private GapFillerParameters paramFiller1;
-	private NormalizerParameters paramNormalizer1;
+	
 
 	private int[] rawDataIDs;
 

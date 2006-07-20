@@ -41,8 +41,8 @@ import javax.swing.event.InternalFrameListener;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
 
+import net.sf.mzmine.data.AlignmentResult;
 import net.sf.mzmine.io.OpenedRawDataFile;
-import net.sf.mzmine.methods.alignment.AlignmentResult;
 import net.sf.mzmine.project.MZmineProject;
 import net.sf.mzmine.userinterface.Desktop;
 import net.sf.mzmine.util.GUIUtils;
@@ -332,78 +332,7 @@ public class ItemSelector extends JPanel implements ListSelectionListener,
         return v;
     }
 
-    public int[] getSelectedAlignmentResultIDs() {
 
-        Object o[] = resultList.getSelectedValues();
-        int[] alignmentResultIDs = new int[o.length];
-
-        for (int i = 0; i < o.length; i++) {
-            alignmentResultIDs[i] = ((AlignmentResult) o[i]).getAlignmentResultID();
-        }
-
-        return alignmentResultIDs;
-
-    }
-
-    /**
-     * Adds alignment result to item storage
-     * 
-     * @return ID for the alignment result
-     */
-    public void addAlignmentResult(AlignmentResult ar) {
-
-        resultObjects.addElement(ar);
-
-        // Add dependency to all involved raw data files
-        for (int rawDataID : ar.getRawDataIDs()) {
-            // getRawDataByID(rawDataID).addAlignmentResultID(
-            // ar.getAlignmentResultID());
-        }
-
-    }
-
-    public boolean removeAlignmentResult(AlignmentResult ar) {
-        boolean ans = resultObjects.removeElement(ar);
-
-        // MainWindow.getInstance().getMainMenu().updateMenuAvailability();
-
-        return ans;
-    }
-
-    /**
-     * Returns all alignment result ids
-     */
-    public int[] getAlignmentResultIDs() {
-        ListModel listModel = resultList.getModel();
-
-        int[] alignmentResultIDs = new int[listModel.getSize()];
-
-        for (int i = 0; i < listModel.getSize(); i++) {
-            alignmentResultIDs[i] = ((AlignmentResult) (listModel.getElementAt(i))).getAlignmentResultID();
-        }
-
-        return alignmentResultIDs;
-    }
-
-    public AlignmentResult getAlignmentResultByID(int alignmentResultID) {
-        ListModel listModel = resultList.getModel();
-
-        for (int i = 0; i < listModel.getSize(); i++) {
-            AlignmentResult alignmentResult = (AlignmentResult) listModel.getElementAt(i);
-            if (alignmentResult.getAlignmentResultID() == alignmentResultID) {
-                return alignmentResult;
-            }
-        }
-
-        return null;
-    }
-
-    /**
-     * Returns the currently selected result object.
-     */
-    public AlignmentResult getActiveResult() {
-        return (AlignmentResult) resultList.getSelectedValue();
-    }
 
     // MISC. STUFF
     // -----------

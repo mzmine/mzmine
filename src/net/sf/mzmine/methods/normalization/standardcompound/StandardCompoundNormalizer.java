@@ -26,10 +26,8 @@ import java.text.NumberFormat;
 
 import javax.swing.JDialog;
 
+import net.sf.mzmine.data.AlignmentResult;
 import net.sf.mzmine.io.RawDataFile;
-import net.sf.mzmine.methods.alignment.AlignmentResult;
-import net.sf.mzmine.methods.normalization.Normalizer;
-import net.sf.mzmine.methods.normalization.NormalizerParameters;
 import net.sf.mzmine.userinterface.mainwindow.MainWindow;
 
 
@@ -37,7 +35,7 @@ import net.sf.mzmine.userinterface.mainwindow.MainWindow;
 /**
  *
  */
-public class StandardCompoundNormalizer implements Normalizer {
+public class StandardCompoundNormalizer {
 
   ///////////////////////////////////////
   // operations
@@ -87,14 +85,14 @@ public class StandardCompoundNormalizer implements Normalizer {
 	/**
 	 * This method does normalization on given alignment result object and returns a new version with normalized peak heights and areas
 	 */
-    public AlignmentResult calcNormalization(MainWindow _mainWin, AlignmentResult ar, NormalizerParameters _myParameters) {
+    public AlignmentResult calcNormalization(MainWindow _mainWin, AlignmentResult ar, StandardCompoundNormalizerParameters _myParameters) {
 
 		/*ClientDialog waitDialog = new ClientDialog(mainWin);
 		waitDialog.setTitle("Normalizing, please wait...");
 		waitDialog.addJob(new Integer(1), ar.getNiceName(), "client-side", Task.JOBSTATUS_UNDERPROCESSING_STR, new Double(0));
 		waitDialog.showMe();
 		waitDialog.paintNow();
-*/
+
 		StandardCompoundNormalizerParameters myParameters = (StandardCompoundNormalizerParameters)_myParameters;
 
 		int numOfRawDatas = ar.getNumOfRawDatas();
@@ -129,7 +127,7 @@ public class StandardCompoundNormalizer implements Normalizer {
 	/*	if (ar.getNumOfStandardCompounds()==0) {
 			waitDialog.hideMe();
 			return null;
-		}*/
+		}
 
 
 		// Construct title for the new normalized alignment result
@@ -150,7 +148,7 @@ public class StandardCompoundNormalizer implements Normalizer {
 		}
 		if (mainWin.getParameterStorage().getGeneralParameters().getPeakMeasuringType() == GeneralParameters.PARAMETERVALUE_PEAKMEASURING_AREA) {
 			desc = desc + "using peak areas.";
-		}*/
+		}
 
 		// Initialize a new alignment result for storing the normalized version of ar
 		AlignmentResult nar = new AlignmentResult(ar, desc);
@@ -174,7 +172,7 @@ public class StandardCompoundNormalizer implements Normalizer {
 		/*	if (waitDialog!=null) {
 				waitDialog.updateJobStatus(new Integer(1), Task.JOBSTATUS_UNDERPROCESSING_STR, new Double((double)(rawDataCount+1)/(double)(numOfRawDatas)));
 				waitDialog.paintNow();
-			}*/
+			}
 
 
 			int currentColRawDataID = ar.getRawDataID(rawDataCount);
@@ -370,7 +368,7 @@ public class StandardCompoundNormalizer implements Normalizer {
 
 	//	waitDialog.hideMe();
 */
-		return nar;
+		return null;
 
 	}
 
@@ -486,11 +484,8 @@ public class StandardCompoundNormalizer implements Normalizer {
 		private NumberFormat decimalNumberFormat;
 		// End of variables declaration//GEN-END:variables
 
-	}
+	
 
-            }
-        }
-        return nar;
     }
     
 }

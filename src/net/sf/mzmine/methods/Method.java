@@ -19,8 +19,8 @@
 
 package net.sf.mzmine.methods;
 
+import net.sf.mzmine.data.AlignmentResult;
 import net.sf.mzmine.io.OpenedRawDataFile;
-import net.sf.mzmine.methods.alignment.AlignmentResult;
 
 /**
  *

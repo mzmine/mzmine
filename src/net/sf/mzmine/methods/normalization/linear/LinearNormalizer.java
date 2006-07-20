@@ -21,16 +21,14 @@
 
 package net.sf.mzmine.methods.normalization.linear;
 
-import net.sf.mzmine.methods.alignment.AlignmentResult;
-import net.sf.mzmine.methods.normalization.Normalizer;
-import net.sf.mzmine.methods.normalization.NormalizerParameters;
+import net.sf.mzmine.data.AlignmentResult;
 import net.sf.mzmine.userinterface.mainwindow.MainWindow;
 
 
 /**
  *
  */
-public class LinearNormalizer implements Normalizer {
+public class LinearNormalizer {
 
   ///////////////////////////////////////
   // operations
@@ -105,7 +103,7 @@ public class LinearNormalizer implements Normalizer {
 
 
 
-    public AlignmentResult calcNormalization(MainWindow _mainWin, AlignmentResult ar, NormalizerParameters _myParameters) {
+    public AlignmentResult calcNormalization(MainWindow _mainWin, AlignmentResult ar, LinearNormalizerParameters _myParameters) {
 
 		mainWin = _mainWin;
 
@@ -118,7 +116,7 @@ public class LinearNormalizer implements Normalizer {
 
 		LinearNormalizerParameters myParameters = (LinearNormalizerParameters)_myParameters;
 
-		int numOfRawDatas = ar.getNumOfRawDatas();
+/*		int numOfRawDatas = ar.getNumOfRawDatas();
 
 		//RawDataAtClient r;
 		int rawDataID;
@@ -149,7 +147,7 @@ public class LinearNormalizer implements Normalizer {
 				waitDialog.updateJobStatus(jobID, Task.JOBSTATUS_UNDERPROCESSING_STR, new Double((double)(i+1)/(double)(numOfRawDatas)));
 				//waitDialog.paintNow();
 			}
-*/
+
 			// Get this control run and raw peak heights and areas
 			//r = ar.getRun(i);
 			rawDataID = ar.getRawDataID(i);
@@ -185,7 +183,7 @@ public class LinearNormalizer implements Normalizer {
 						}
 					}
 				}
-                */
+
 				normFactor = sumOfPeakMeasures / ((double)numOfPeakMeasures);
 			}
 
@@ -243,7 +241,7 @@ public class LinearNormalizer implements Normalizer {
 				RawDataAtClient rawData = mainWin.getItemSelector().getRawDataByID(rawDataID);
 				normFactor = rawData.getTotalRawSignal();
 			}
-*/
+
 
 
 			// Calculate normalized intensities
@@ -268,7 +266,7 @@ public class LinearNormalizer implements Normalizer {
 						if (maxVal<normPeakAreas[pi]) { maxVal = normPeakAreas[pi]; }
 					}
 				}
-                */
+
 				relativeFactor = 100000 / maxVal;
 			}
 
@@ -290,6 +288,7 @@ public class LinearNormalizer implements Normalizer {
 	}
 
         }
-        return nar;
+        */
+        return null;
     }
 }

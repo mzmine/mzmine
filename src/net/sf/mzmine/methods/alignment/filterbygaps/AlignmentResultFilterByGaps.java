@@ -25,9 +25,7 @@ import java.util.Vector;
 
 import javax.swing.JOptionPane;
 
-import net.sf.mzmine.methods.alignment.AlignmentResult;
-import net.sf.mzmine.methods.alignment.AlignmentResultProcessor;
-import net.sf.mzmine.methods.alignment.AlignmentResultProcessorParameters;
+import net.sf.mzmine.data.AlignmentResult;
 import net.sf.mzmine.userinterface.mainwindow.MainWindow;
 
 
@@ -37,7 +35,7 @@ import net.sf.mzmine.userinterface.mainwindow.MainWindow;
  *
  * @version 30 March 2006
  */
-public class AlignmentResultFilterByGaps implements AlignmentResultProcessor {
+public class AlignmentResultFilterByGaps {
 
 	private MainWindow mainWin;
 
@@ -80,7 +78,7 @@ public class AlignmentResultFilterByGaps implements AlignmentResultProcessor {
 
 	}
 
-	public AlignmentResult processAlignment(MainWindow _mainWin, AlignmentResult ar, AlignmentResultProcessorParameters _params) {
+	public AlignmentResult processAlignment(MainWindow _mainWin, AlignmentResult ar, AlignmentResultFilterByGapsParameters _params) {
 
 		mainWin = _mainWin;
 
@@ -93,7 +91,7 @@ public class AlignmentResultFilterByGaps implements AlignmentResultProcessor {
 		AlignmentResultFilterByGapsParameters params = (AlignmentResultFilterByGapsParameters)_params;
 
 		// Count number of rows to drop
-		int rowsFine = 0;
+		/*int rowsFine = 0;
 		Vector<Integer> fineRowInds = new Vector<Integer>();
 
 		for (int rowInd=0; rowInd<ar.getNumOfRows(); rowInd++) {
@@ -111,8 +109,6 @@ public class AlignmentResultFilterByGaps implements AlignmentResultProcessor {
 
 		}
 
-		/*waitDialog.updateJobStatus(new Integer(1), Task.JOBSTATUS_UNDERPROCESSING_STR, new Double(0.25));
-		waitDialog.paintNow();*/
 
 		// Create datastructures for constructing new alignment result
 		Vector<Integer> newRawDataIDs = new Vector<Integer>();
@@ -205,8 +201,6 @@ public class AlignmentResultFilterByGaps implements AlignmentResultProcessor {
 
 		}
 
-		/*waitDialog.updateJobStatus(new Integer(1), Task.JOBSTATUS_UNDERPROCESSING_STR, new Double(0.99));
-		waitDialog.paintNow();*/
 
 		AlignmentResult nar = new AlignmentResult(	newRawDataIDs,
 													newStandardCompounds,
@@ -222,9 +216,10 @@ public class AlignmentResultFilterByGaps implements AlignmentResultProcessor {
 													new String("Results from " + ar.getNiceName() + " filtered by number of detections.")
 												);
 
-		/*waitDialog.hideMe();*/
-
+		
 		return nar;
+        */
+        return null;
 
 	}
 
