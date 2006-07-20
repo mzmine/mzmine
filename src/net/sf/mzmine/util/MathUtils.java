@@ -38,8 +38,8 @@ public class MathUtils {
 
 		Arrays.sort(vals);
 
-		int ind1 = (int)java.lang.Math.floor((vals.length-1)*q);
-		int ind2 = (int)java.lang.Math.ceil((vals.length-1)*q);
+		int ind1 = (int)Math.floor((vals.length-1)*q);
+		int ind2 = (int)Math.ceil((vals.length-1)*q);
 
 		return ( vals[ind1] + vals[ind2] ) / (double)2;
 
@@ -64,8 +64,8 @@ public class MathUtils {
 			if (q>1) { q = 1; }
 			if (q<0) { q = 0; }
 
-			ind1 = (int)java.lang.Math.floor((vals.length-1)*q);
-			ind2 = (int)java.lang.Math.ceil((vals.length-1)*q);
+			ind1 = (int)Math.floor((vals.length-1)*q);
+			ind2 = (int)Math.ceil((vals.length-1)*q);
 
 			retVals[qInd] = ( vals[ind1] + vals[ind2] ) / (double)2;
 		}
@@ -83,7 +83,7 @@ public class MathUtils {
 		sum = 0;
 		for (double d: values) { sum+=(d-avg)*(d-avg); }
 
-		stdev = (double)java.lang.Math.sqrt((double)sum/(double)(values.length-1));
+		stdev = (double)Math.sqrt((double)sum/(double)(values.length-1));
 		return stdev;
 	}
 
@@ -96,7 +96,7 @@ public class MathUtils {
 		sum = 0;
 		for (double d: values) { sum+=(d-avg)*(d-avg); }
 
-		stdev = (double)java.lang.Math.sqrt((double)sum/(double)(values.length-1));
+		stdev = (double)Math.sqrt((double)sum/(double)(values.length-1));
 
 		return stdev/avg;
 	}

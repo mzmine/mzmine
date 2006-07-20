@@ -39,10 +39,9 @@ public interface Method extends MZmineModule {
      * Runs this method on a given items
      * 
      * @param parameters Parameter values for the method
-     * @param dataFiles Data files to be processed (null ok if the method
-     *            doesn't work on raw data files)
-     * @param alignmentResult AlignmentResults to be processed (null ok if the
-     *            method doesn't work on alignment results)
+     * @param dataFiles Data files to be processed
+     * @param alignmentResult AlignmentResults to be processed
+     * 
      */
     public void runMethod(MethodParameters parameters,
             OpenedRawDataFile[] dataFiles, AlignmentResult[] alignmentResults);
