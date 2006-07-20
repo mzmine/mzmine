@@ -17,9 +17,6 @@
  * Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-/**
- * 
- */
 package net.sf.mzmine.userinterface.components;
 
 import java.awt.event.ActionEvent;
@@ -42,7 +39,7 @@ public class RemoveFilePopupMenu extends JMenu implements MenuListener,
         ActionListener {
 
     private Hashtable<JMenuItem, OpenedRawDataFile> menuItemFiles;
-    MultipleRawDataVisualizer visualizer;
+    private MultipleRawDataVisualizer visualizer;
 
     public RemoveFilePopupMenu(MultipleRawDataVisualizer visualizer) {
         super("Remove plot of file...");

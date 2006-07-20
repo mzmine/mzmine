@@ -17,9 +17,6 @@
  * Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-/**
- * 
- */
 package net.sf.mzmine.io.netcdf;
 
 import java.io.File;
@@ -103,6 +100,7 @@ public class NetCDFFileOpeningTask implements DistributableTask {
 
         // Update task status
         status = TaskStatus.PROCESSING;
+        logger.finest("Started parsing file " + originalFile);
 
         try {
 
@@ -143,6 +141,9 @@ public class NetCDFFileOpeningTask implements DistributableTask {
             return;
         }
 
+        logger.finest("Finished parsing " + originalFile + ", parsed "
+                + parsedScans + " scans");
+        
         // Update task status
         status = TaskStatus.FINISHED;
 

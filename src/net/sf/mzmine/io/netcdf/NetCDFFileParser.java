@@ -17,9 +17,6 @@
  * Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-/**
- *
- */
 package net.sf.mzmine.io.netcdf;
 
 import java.io.File;

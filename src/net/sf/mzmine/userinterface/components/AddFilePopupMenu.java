@@ -17,9 +17,6 @@
  * Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-/**
- * 
- */
 package net.sf.mzmine.userinterface.components;
 
 import java.awt.event.ActionEvent;
@@ -44,7 +41,7 @@ public class AddFilePopupMenu extends JMenu implements MenuListener,
         ActionListener {
 
     private Hashtable<JMenuItem, OpenedRawDataFile> menuItemFiles;
-    MultipleRawDataVisualizer visualizer;
+    private MultipleRawDataVisualizer visualizer;
 
     public AddFilePopupMenu(MultipleRawDataVisualizer visualizer) {
         super("Add plot of file...");
