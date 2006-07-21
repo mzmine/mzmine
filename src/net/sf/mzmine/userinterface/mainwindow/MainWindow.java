@@ -26,6 +26,7 @@ import java.awt.event.ActionListener;
 import java.awt.event.WindowEvent;
 import java.awt.event.WindowListener;
 import java.util.ArrayList;
+import java.util.logging.Logger;
 
 import javax.swing.JDesktopPane;
 import javax.swing.JFrame;
@@ -50,6 +51,8 @@ import net.sf.mzmine.userinterface.dialogs.TaskProgressWindow;
  */
 public class MainWindow extends JFrame implements Desktop, WindowListener {
 
+    private Logger logger = Logger.getLogger(this.getClass().getName());
+    
     private JDesktopPane desktopPane;
 
     private JSplitPane split;
@@ -77,6 +80,8 @@ public class MainWindow extends JFrame implements Desktop, WindowListener {
         frame.addInternalFrameListener(itemSelector);
         frame.setVisible(true);
     }
+    
+    private static MainWindow myInstance;
 
     /**
      * This method returns the desktop
@@ -90,6 +95,7 @@ public class MainWindow extends JFrame implements Desktop, WindowListener {
     }
 
     void tileInternalFrames() {
+        logger.finest("Tiling windows");
         JInternalFrame[] frames = getVisibleFrames();
         if (frames.length == 0)
             return;
@@ -125,6 +131,7 @@ public class MainWindow extends JFrame implements Desktop, WindowListener {
     }
 
     void cascadeInternalFrames() {
+        logger.finest("Cascading windows");
         JInternalFrame[] frames = getVisibleFrames();
         if (frames.length == 0)
             return;
@@ -176,6 +183,7 @@ public class MainWindow extends JFrame implements Desktop, WindowListener {
         if (selectedValue != JOptionPane.YES_OPTION)
             return;
 
+        logger.info("Exiting MZmine");
         dispose();
         System.exit(0);
 
@@ -259,18 +267,25 @@ public class MainWindow extends JFrame implements Desktop, WindowListener {
 
         setTitle("MZmine");
 
-        statusBar.setStatusText("Welcome to MZmine!");
-
         taskList = new TaskProgressWindow(
                 (TaskControllerImpl) core.getTaskController());
         desktopPane.add(taskList, JLayeredPane.DEFAULT_LAYER);
+        
+        assert myInstance == null;
+        myInstance = this;
+        
 
+
+    }
+    
+    public static MainWindow getInstance() {
+        return myInstance;
     }
 
     /**
-     * @see net.sf.mzmine.userinterface.Desktop#getMainWindow()
+     * @see net.sf.mzmine.userinterface.Desktop#getMainFrame()
      */
-    public JFrame getMainWindow() {
+    public JFrame getMainFrame() {
         return this;
     }
 

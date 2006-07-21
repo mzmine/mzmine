@@ -42,7 +42,7 @@ public interface Desktop {
      * Returns a reference to main application window
      * @return Main window frame
      */
-    public JFrame getMainWindow();
+    public JFrame getMainFrame();
 
     public JMenuItem addMenuItem(MZmineMenu parentMenu, String text,
             ActionListener listener, String actionCommand, int mnemonic,

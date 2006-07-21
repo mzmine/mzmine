@@ -104,7 +104,7 @@ public class CropFilter implements Method, TaskListener,
         logger.finest("Showing cropping filter parameter setup dialog");
 
         ParameterSetupDialog psd = new ParameterSetupDialog(
-                desktop.getMainWindow(), "Please check the parameter values",
+                desktop.getMainFrame(), "Please check the parameter values",
                 paramNames, paramValues, numberFormats);
         psd.setVisible(true);
 

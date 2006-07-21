@@ -99,7 +99,7 @@ public class MeanFilter implements Method, TaskListener,
 
         // Show parameter setup dialog
         ParameterSetupDialog psd = new ParameterSetupDialog(
-                desktop.getMainWindow(), "Please check the parameter values",
+                desktop.getMainFrame(), "Please check the parameter values",
                 paramNames, paramValues, numberFormats);
         psd.setVisible(true);
 

@@ -49,7 +49,7 @@ class ThreeDPropertiesDialog extends JDialog implements ActionListener {
 
     public ThreeDPropertiesDialog(Desktop desktop, DisplayImpl display) {
         
-        super(desktop.getMainWindow(), TITLE, true);
+        super(desktop.getMainFrame(), TITLE, true);
 
         setLayout(new BoxLayout(getContentPane(), BoxLayout.Y_AXIS));
         
@@ -79,7 +79,7 @@ class ThreeDPropertiesDialog extends JDialog implements ActionListener {
         add(okButton);
         
         pack();
-        setLocationRelativeTo(desktop.getMainWindow());
+        setLocationRelativeTo(desktop.getMainFrame());
 
     }
 

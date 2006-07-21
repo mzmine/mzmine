@@ -44,7 +44,7 @@ public class FileOpenDialog extends JDialog implements ActionListener {
     private IOController ioController;
     public FileOpenDialog(IOController ioController, Desktop desktop) {
 
-        super(desktop.getMainWindow(), "Please select data files to open",
+        super(desktop.getMainFrame(), "Please select data files to open",
                 true);
         
         this.ioController = ioController;
@@ -82,7 +82,7 @@ public class FileOpenDialog extends JDialog implements ActionListener {
 
         pack();
 
-        setLocationRelativeTo(desktop.getMainWindow());
+        setLocationRelativeTo(desktop.getMainFrame());
 
     }
 

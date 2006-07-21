@@ -89,7 +89,7 @@ public class SimpleIsotopicPeaksGrouper implements Method,
             currentParameters = new SimpleIsotopicPeaksGrouperParameters();
 
         SimpleIsotopicPeaksGrouperParameterSetupDialog sdpsd = new SimpleIsotopicPeaksGrouperParameterSetupDialog(
-                desktop.getMainWindow(), currentParameters);
+                desktop.getMainFrame(), currentParameters);
         sdpsd.setVisible(true);
 
         if (sdpsd.getExitCode() == -1) {

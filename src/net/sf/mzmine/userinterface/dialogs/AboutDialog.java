@@ -49,7 +49,7 @@ public class AboutDialog extends JDialog implements ActionListener {
      */
     public AboutDialog(Desktop desktop) {
 
-        super(desktop.getMainWindow(), "About MZmine", true);
+        super(desktop.getMainFrame(), "About MZmine", true);
 
         JPanel buttonPanel = new JPanel();
         GUIUtils.addButtonInPanel(buttonPanel, "OK!", this);
@@ -69,7 +69,7 @@ public class AboutDialog extends JDialog implements ActionListener {
 
         pack();
         setBounds(0, 0, 600, 300);
-        setLocationRelativeTo(desktop.getMainWindow());
+        setLocationRelativeTo(desktop.getMainFrame());
     }
 
     /**

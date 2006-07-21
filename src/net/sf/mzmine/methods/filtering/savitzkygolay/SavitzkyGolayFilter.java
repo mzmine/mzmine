@@ -89,7 +89,7 @@ public class SavitzkyGolayFilter implements Method, TaskListener,
         }
 
         String s = (String) JOptionPane.showInputDialog(
-                desktop.getMainWindow(),
+                desktop.getMainFrame(),
                 "Select number of data points used for smoothing:",
                 "Savitzky-Golay filter", JOptionPane.PLAIN_MESSAGE, null,
                 possibilities, selectedValue);

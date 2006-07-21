@@ -17,7 +17,7 @@
  * Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-package net.sf.mzmine.util;
+package net.sf.mzmine.util.logging;
 
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
@@ -26,9 +26,9 @@ import java.util.logging.Formatter;
 import java.util.logging.LogRecord;
 
 /**
- * MZmine log formatter
+ * Console log formatter
  */
-public class LogFormatter extends Formatter {
+public class ConsoleFormatter extends Formatter {
 
     private static final DateFormat format = new SimpleDateFormat("H:mm:ss");
     private static final String lineSep = System.getProperty("line.separator");

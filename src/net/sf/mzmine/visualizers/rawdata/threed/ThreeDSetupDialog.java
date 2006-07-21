@@ -64,7 +64,7 @@ public class ThreeDSetupDialog extends JDialog implements ActionListener {
             OpenedRawDataFile dataFile) {
 
         // Make dialog modal
-        super(desktop.getMainWindow(), "3D visualizer parameters", true);
+        super(desktop.getMainFrame(), "3D visualizer parameters", true);
 
         this.taskController = taskController;
         this.desktop = desktop;
@@ -285,7 +285,7 @@ public class ThreeDSetupDialog extends JDialog implements ActionListener {
 
         // finalize the dialog
         pack();
-        setLocationRelativeTo(desktop.getMainWindow());
+        setLocationRelativeTo(desktop.getMainFrame());
         setResizable(false);
 
     }

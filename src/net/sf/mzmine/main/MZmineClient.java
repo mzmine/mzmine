@@ -124,6 +124,9 @@ public class MZmineClient implements Runnable, MZmineCore {
         // show the GUI
         logger.finer("Showing main window");
         mainWindow.setVisible(true);
+        
+        // show the welcome message
+        mainWindow.setStatusBarText("Welcome to MZmine!");
 
     }
 
