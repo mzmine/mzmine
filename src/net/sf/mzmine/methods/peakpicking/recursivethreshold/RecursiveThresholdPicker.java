@@ -285,9 +285,9 @@ public class RecursiveThresholdPicker implements Method,
     }
 
     /**
-     * @see net.sf.mzmine.methods.Method#getModuleDescription()
+     * @see net.sf.mzmine.methods.Method#toString()
      */
-    public String getModuleDescription() {
+    public String toString() {
         return "Recursive threshold peak detector";
     }
 

@@ -249,9 +249,9 @@ public class AlignmentResultFilterByGaps implements Method {
     }
 
     /**
-     * @see net.sf.mzmine.main.MZmineModule#getModuleDescription()
+     * @see net.sf.mzmine.main.MZmineModule#toString()
      */
-    public String getModuleDescription() {
+    public String toString() {
         // TODO Auto-generated method stub
         return null;
     }

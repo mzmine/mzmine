@@ -267,9 +267,9 @@ public class CentroidPicker implements Method, TaskListener,
     }
 
     /**
-     * @see net.sf.mzmine.methods.Method#getModuleDescription()
+     * @see net.sf.mzmine.methods.Method#toString()
      */
-    public String getModuleDescription() {
+    public String toString() {
         return "Centroid peak detector";
     }
 

@@ -36,7 +36,7 @@ import net.sf.mzmine.userinterface.Desktop;
 public class FastAligner implements Method {
 
 
-	public String getModuleDescription() {
+	public String toString() {
 		return "Fast aligner";
 	}
 

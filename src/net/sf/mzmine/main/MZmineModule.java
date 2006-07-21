@@ -37,6 +37,6 @@ public interface MZmineModule {
      * 
      * @return Module description
      */
-    public String getModuleDescription();
+    public String toString();
 
 }

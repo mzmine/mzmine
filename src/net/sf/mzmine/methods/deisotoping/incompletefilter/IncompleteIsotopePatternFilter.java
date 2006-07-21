@@ -39,7 +39,7 @@ import net.sf.mzmine.userinterface.mainwindow.MainWindow;
  */
 public class IncompleteIsotopePatternFilter implements Method {
 
-	public String getModuleDescription() {
+	public String toString() {
 		return new String("Incomplete isotope pattern filter");
 	}
 

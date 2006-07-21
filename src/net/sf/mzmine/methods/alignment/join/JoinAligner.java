@@ -40,7 +40,7 @@ public class JoinAligner implements Method {
 
 
 
-	public String getModuleDescription() {
+	public String toString() {
 		return new String("Join Aligner");
 	}
 

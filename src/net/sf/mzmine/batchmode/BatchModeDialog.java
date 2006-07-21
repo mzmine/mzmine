@@ -19,21 +19,54 @@
 
 package net.sf.mzmine.batchmode;
 
+import java.awt.GridBagConstraints;
+import java.awt.GridBagLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 
+import javax.swing.JButton;
 import javax.swing.JDialog;
+import javax.swing.JPanel;
 
 import net.sf.mzmine.io.OpenedRawDataFile;
 import net.sf.mzmine.main.MZmineCore;
+import net.sf.mzmine.util.GUIUtils;
 
 class BatchModeDialog extends JDialog implements ActionListener {
 
+    static final int PADDING_SIZE = 5;
+    
+    // dialog components
+    private JButton btnOK, btnCancel;
+    
     public BatchModeDialog(MZmineCore core, OpenedRawDataFile dataFiles[]) {
 
         // Make dialog modal
-        super(core.getDesktop().getMainFrame(),
-                "Spectra visualizer parameters", true);
+        super(core.getDesktop().getMainFrame(), "Batch mode parameters", true);
+        
+        GridBagConstraints constraints = new GridBagConstraints();
+        
+        GridBagLayout layout = new GridBagLayout();
+
+        JPanel components = new JPanel(layout);
+        
+        
+        JPanel buttonsPanel = new JPanel();
+        btnOK = GUIUtils.addButton(buttonsPanel, "OK", null, this);
+        btnCancel = GUIUtils.addButton(buttonsPanel, "Cancel", null, this);
+        constraints.gridx = 0;
+        constraints.gridy = 9;
+        constraints.gridwidth = 3;
+        constraints.gridheight = 1;
+        components.add(buttonsPanel, constraints);
+        
+        GUIUtils.addMargin(components, PADDING_SIZE);
+        add(components);
+        
+        // finalize the dialog
+        pack();
+        setLocationRelativeTo(core.getDesktop().getMainFrame());
+        setResizable(false);
 
     }
 
