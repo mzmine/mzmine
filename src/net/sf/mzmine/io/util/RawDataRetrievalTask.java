@@ -28,12 +28,12 @@ import net.sf.mzmine.io.RawDataFile;
 import net.sf.mzmine.taskcontrol.Task;
 
 /**
- * 
+ * Utility task to retrieve selected scans from raw data file.
  */
 public class RawDataRetrievalTask implements Task {
 
     private Logger logger = Logger.getLogger(this.getClass().getName());
-    
+
     private RawDataFile rawDataFile;
     private int scanNumbers[];
     private int retrievedScans;
@@ -98,6 +98,8 @@ public class RawDataRetrievalTask implements Task {
      */
     public void run() {
 
+        logger.finest("Starting new raw data retrieval task");
+
         status = TaskStatus.PROCESSING;
         Scan scan;
 
@@ -112,8 +114,9 @@ public class RawDataRetrievalTask implements Task {
                 acceptor.addScan(scan, i);
 
             } catch (Throwable e) {
-                
-                logger.log(Level.WARNING, "Raw data retrieval task caught an exception", e);
+
+                logger.log(Level.WARNING,
+                        "Raw data retrieval task caught an exception", e);
                 status = TaskStatus.ERROR;
                 errorMessage = e.toString();
                 return;
@@ -124,6 +127,8 @@ public class RawDataRetrievalTask implements Task {
         }
 
         status = TaskStatus.FINISHED;
+
+        logger.finest("Raw data retrieval task finished");
 
     }
 

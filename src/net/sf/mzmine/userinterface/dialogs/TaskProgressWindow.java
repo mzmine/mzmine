@@ -33,6 +33,7 @@ import javax.swing.ListSelectionModel;
 import net.sf.mzmine.taskcontrol.Task;
 import net.sf.mzmine.taskcontrol.Task.TaskPriority;
 import net.sf.mzmine.taskcontrol.impl.TaskControllerImpl;
+import net.sf.mzmine.util.GUIUtils;
 
 /**
  * 
@@ -67,33 +68,26 @@ public class TaskProgressWindow extends JInternalFrame implements
         add(jJobScroll, java.awt.BorderLayout.CENTER);
 
         // create popup menu items
-        priorityMenu = new JMenu("Set priority...");
-
-        highPriorityMenuItem = new JMenuItem("High");
-        highPriorityMenuItem.addActionListener(this);
-        priorityMenu.add(highPriorityMenuItem);
-
-        normalPriorityMenuItem = new JMenuItem("Normal");
-        normalPriorityMenuItem.addActionListener(this);
-        priorityMenu.add(normalPriorityMenuItem);
-
-        lowPriorityMenuItem = new JMenuItem("Low");
-        lowPriorityMenuItem.addActionListener(this);
-        priorityMenu.add(lowPriorityMenuItem);
-
-        cancelTaskMenuItem = new JMenuItem("Cancel task");
-        cancelTaskMenuItem.addActionListener(this);
 
         popupMenu = new JPopupMenu();
+
+        priorityMenu = new JMenu("Set priority...");
+        highPriorityMenuItem = GUIUtils.addMenuItem(priorityMenu, "High", this);
+        normalPriorityMenuItem = GUIUtils.addMenuItem(priorityMenu, "Normal",
+                this);
+        lowPriorityMenuItem = GUIUtils.addMenuItem(priorityMenu, "Low", this);
         popupMenu.add(priorityMenu);
-        popupMenu.add(cancelTaskMenuItem);
+
+        cancelTaskMenuItem = GUIUtils.addMenuItem(popupMenu, "Cancel task",
+                this);
+
         taskTable.setComponentPopupMenu(popupMenu);
 
         // set the width for first column (task description)
         taskTable.getColumnModel().getColumn(0).setPreferredWidth(350);
 
         pack();
-        
+
         // set position and size
         setBounds(120, 30, 600, 150);
 
@@ -127,7 +121,7 @@ public class TaskProgressWindow extends JInternalFrame implements
         if (src == lowPriorityMenuItem) {
             taskController.setTaskPriority(selectedTask, TaskPriority.LOW);
         }
-       
+
     }
 
 }
