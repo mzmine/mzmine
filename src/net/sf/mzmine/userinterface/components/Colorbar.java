@@ -23,7 +23,6 @@ import java.awt.Graphics;
 
 import javax.swing.JPanel;
 
-import net.sf.mzmine.util.HeatMapColorPicker;
 
 
 public class Colorbar extends JPanel {

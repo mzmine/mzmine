@@ -35,7 +35,7 @@ import net.sf.mzmine.io.OpenedRawDataFile;
 public interface Desktop {
 
     public enum MZmineMenu {
-        FILTERING, PEAKPICKING, ALIGNMENT, NORMALIZATION, VISUALIZATION
+        FILTERING, PEAKPICKING, ALIGNMENT, NORMALIZATION, BATCH, VISUALIZATION
     };
 
     /**

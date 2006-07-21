@@ -17,7 +17,7 @@
     along with MZmine; if not, write to the Free Software
     Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 */
-package net.sf.mzmine.userinterface.dialogs;
+package net.sf.mzmine.visualizers.alignmentresult.logratio;
 import java.util.Vector;
 
 import javax.swing.JDialog;

@@ -54,9 +54,8 @@ import javax.swing.event.InternalFrameListener;
 
 import net.sf.mzmine.data.AlignmentResult;
 import net.sf.mzmine.userinterface.components.Colorbar;
-import net.sf.mzmine.userinterface.dialogs.SelectTwoGroupsDialog;
+import net.sf.mzmine.userinterface.components.HeatMapColorPicker;
 import net.sf.mzmine.userinterface.mainwindow.MainWindow;
-import net.sf.mzmine.util.HeatMapColorPicker;
 import net.sf.mzmine.util.MathUtils;
 import net.sf.mzmine.util.TransferableImage;
 import net.sf.mzmine.visualizers.alignmentresult.AlignmentResultVisualizer;

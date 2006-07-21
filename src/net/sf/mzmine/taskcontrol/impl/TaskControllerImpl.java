@@ -34,7 +34,7 @@ import net.sf.mzmine.taskcontrol.TaskListener;
 import net.sf.mzmine.taskcontrol.Task.TaskPriority;
 import net.sf.mzmine.taskcontrol.Task.TaskStatus;
 import net.sf.mzmine.userinterface.Desktop;
-import net.sf.mzmine.userinterface.dialogs.TaskProgressWindow;
+import net.sf.mzmine.userinterface.components.TaskProgressWindow;
 import net.sf.mzmine.userinterface.mainwindow.MainWindow;
 
 /**

@@ -24,6 +24,7 @@ import java.awt.Insets;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.File;
+import java.util.logging.Logger;
 
 import javax.swing.JCheckBox;
 import javax.swing.JDialog;
@@ -35,10 +36,12 @@ import net.sf.mzmine.userinterface.Desktop;
 import sunutils.ExampleFileFilter;
 
 /**
- * 
+ * File open dialog
  */
 public class FileOpenDialog extends JDialog implements ActionListener {
 
+    private Logger logger = Logger.getLogger(this.getClass().getName());
+    
     private JFileChooser fileChooser;
     private JCheckBox preloadCheckBox;
     private IOController ioController;
@@ -46,6 +49,8 @@ public class FileOpenDialog extends JDialog implements ActionListener {
 
         super(desktop.getMainFrame(), "Please select data files to open",
                 true);
+        
+        logger.finest("Showing new file open dialog");
         
         this.ioController = ioController;
         fileChooser = new JFileChooser();

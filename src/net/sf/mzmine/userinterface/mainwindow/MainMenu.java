@@ -173,8 +173,7 @@ public class MainMenu extends JMenuBar implements ActionListener,
         batchMenu.setMnemonic(KeyEvent.VK_B);
         this.add(batchMenu);
 
-        batDefine = GUIUtils.addMenuItem(batchMenu, "Define batch operations",
-                this, KeyEvent.VK_R);
+        
 
         visualizationMenu = new JMenu("Visualization");
         visualizationMenu.setMnemonic(KeyEvent.VK_V);
@@ -239,6 +238,9 @@ public class MainMenu extends JMenuBar implements ActionListener,
         case NORMALIZATION:
             normalizationMenu.add(newItem);
             break;
+        case BATCH:
+            batchMenu.add(newItem);
+            break;
         case VISUALIZATION:
             visualizationMenu.add(newItem);
             break;
@@ -280,9 +282,13 @@ public class MainMenu extends JMenuBar implements ActionListener,
         case NORMALIZATION:
             normalizationMenu.addSeparator();
             break;
+        case BATCH:
+            batchMenu.addSeparator();
+            break;
         case VISUALIZATION:
             visualizationMenu.addSeparator();
             break;
+            
 
         }
     }

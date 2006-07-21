@@ -43,7 +43,7 @@ import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.main.MZmineModule;
 import net.sf.mzmine.taskcontrol.impl.TaskControllerImpl;
 import net.sf.mzmine.userinterface.Desktop;
-import net.sf.mzmine.userinterface.dialogs.TaskProgressWindow;
+import net.sf.mzmine.userinterface.components.TaskProgressWindow;
 
 /**
  * This class is the main window of application
