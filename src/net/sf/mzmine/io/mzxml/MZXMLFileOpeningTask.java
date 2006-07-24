@@ -162,8 +162,8 @@ public class MZXMLFileOpeningTask extends DefaultHandler implements
      * @see net.sf.mzmine.taskcontrol.Task#cancel()
      */
     public void cancel() {
+        logger.finest("Cancelling opening of MZXML file " + originalFile);
         status = TaskStatus.CANCELED;
-
     }
 
     public void startElement(String namespaceURI, String lName, // local name

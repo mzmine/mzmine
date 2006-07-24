@@ -153,6 +153,7 @@ public class NetCDFFileOpeningTask implements DistributableTask {
      * @see net.sf.mzmine.taskcontrol.Task#cancel()
      */
     public void cancel() {
+        logger.finest("Cancelling opening of NETCDF file " + originalFile);
         status = TaskStatus.CANCELED;
     }
 

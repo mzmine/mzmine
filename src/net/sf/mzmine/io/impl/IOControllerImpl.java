@@ -36,10 +36,8 @@ import net.sf.mzmine.userinterface.Desktop;
 
 /**
  * IO controller
- * 
  */
-public class IOControllerImpl implements IOController, 
-        TaskListener {
+public class IOControllerImpl implements IOController, TaskListener {
 
     private Logger logger = Logger.getLogger(this.getClass().getName());
 
@@ -121,7 +119,6 @@ public class IOControllerImpl implements IOController,
     public void taskStarted(Task task) {
         // do nothing
     }
-
 
     /**
      * @see net.sf.mzmine.main.MZmineModule#initModule(net.sf.mzmine.main.MZmineCore)
