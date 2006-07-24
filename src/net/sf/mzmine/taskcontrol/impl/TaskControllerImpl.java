@@ -161,7 +161,7 @@ public class TaskControllerImpl implements TaskController, Runnable {
                     for (WorkerThread worker : workerThreads) {
 
                         if (worker.getCurrentTask() == null) {
-                            logger.finest("Assigning task " + task.getTask().getTaskDescription() + " to the worker thread " + worker.toString());
+                            logger.finest("Assigning task \"" + task.getTask().getTaskDescription() + "\" to " + worker.toString());
                             if (listener != null)
                                 listener.taskStarted(task.getTask());
                             worker.setCurrentTask(task);

@@ -19,8 +19,10 @@
 
 package net.sf.mzmine.util.logging;
 
+import java.awt.Color;
 import java.util.logging.Formatter;
 import java.util.logging.Handler;
+import java.util.logging.Level;
 import java.util.logging.LogRecord;
 
 import net.sf.mzmine.userinterface.Desktop;
@@ -38,13 +40,25 @@ public class StatusBarHandler extends Handler {
      */
     public void publish(LogRecord record) {
 
-        // format the message
-        String formattedMessage = statusBarFormatter.format(record);
-
         // get Desktop instance from MainWindow
         Desktop desktop = MainWindow.getInstance();
-        if (desktop != null)
-            desktop.setStatusBarText(formattedMessage);
+        if (desktop != null) {
+
+            // format the message
+            String formattedMessage = statusBarFormatter.format(record);
+
+            // default color is black
+            Color messageColor = Color.black;
+            
+            // display severe errors in red
+            if (record.getLevel().equals(Level.SEVERE)) messageColor = Color.red;
+            
+            // display warnings in blue
+            if (record.getLevel().equals(Level.WARNING)) messageColor = Color.blue;
+
+            // set status bar text
+            desktop.setStatusBarText(formattedMessage, messageColor);
+        }
 
     }
 

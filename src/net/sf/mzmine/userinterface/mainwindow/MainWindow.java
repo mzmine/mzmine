@@ -20,6 +20,7 @@
 package net.sf.mzmine.userinterface.mainwindow;
 
 import java.awt.BorderLayout;
+import java.awt.Color;
 import java.awt.Container;
 import java.awt.Rectangle;
 import java.awt.event.ActionListener;
@@ -190,7 +191,7 @@ public class MainWindow extends JFrame implements Desktop, WindowListener {
     }
 
     public void setStatusBarText(String text) {
-        statusBar.setStatusText(text);
+        setStatusBarText(text, Color.black);
     }
 
     public void displayErrorMessage(String msg) {
@@ -343,6 +344,14 @@ public class MainWindow extends JFrame implements Desktop, WindowListener {
                 visibleFrames.add(frame);
 
         return visibleFrames.toArray(new JInternalFrame[0]);
+    }
+
+    /**
+     * @see net.sf.mzmine.userinterface.Desktop#setStatusBarText(java.lang.String, java.awt.Color)
+     */
+    public void setStatusBarText(String text, Color textColor) {
+        statusBar.setStatusText(text, textColor);
+        
     }
 
 }

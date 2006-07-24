@@ -19,9 +19,8 @@
 
 package net.sf.mzmine.userinterface.mainwindow;
 
+import java.awt.Color;
 import java.awt.Dimension;
-import java.awt.Graphics;
-import java.text.DecimalFormat;
 
 import javax.swing.Box;
 import javax.swing.BoxLayout;
@@ -73,9 +72,9 @@ public class Statusbar extends JPanel {
      * 
      * @param t Text for status bar
      */
-    void setStatusText(String statusText) {
+    void setStatusText(String statusText, Color textColor) {
         statusTextLabel.setText(statusText);
-
+        statusTextLabel.setForeground(textColor);
     }
 
     /**

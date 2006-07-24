@@ -19,6 +19,7 @@
 
 package net.sf.mzmine.userinterface;
 
+import java.awt.Color;
 import java.awt.event.ActionListener;
 
 import javax.swing.JFrame;
@@ -63,6 +64,7 @@ public interface Desktop {
     public JInternalFrame getSelectedFrame();
 
     public void setStatusBarText(String text);
+    public void setStatusBarText(String text, Color textColor);
     
     public void displayErrorMessage(String msg);
 
