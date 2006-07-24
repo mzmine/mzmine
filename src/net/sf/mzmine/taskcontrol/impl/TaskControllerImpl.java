@@ -75,7 +75,7 @@ public class TaskControllerImpl implements TaskController, Runnable {
 
         workerThreads = new WorkerThread[numberOfThreads];
         for (int i = 0; i < numberOfThreads; i++) {
-            workerThreads[i] = new WorkerThread(i, desktop);
+            workerThreads[i] = new WorkerThread(i + 1, desktop);
             workerThreads[i].start();
         }
 
@@ -205,8 +205,10 @@ public class TaskControllerImpl implements TaskController, Runnable {
 
     public void setTaskPriority(Task task, TaskPriority priority) {
         WrappedTask wt = taskQueue.getWrappedTask(task);
-        if (wt != null)
+        if (wt != null) {
+            logger.finest("Setting priority of task \"" + task.getTaskDescription() + "\" to " + priority); 
             wt.setPriority(priority);
+        }
     }
 
     public TableModel getTaskTableModel() {

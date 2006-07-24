@@ -35,7 +35,7 @@ class WorkerThread extends Thread {
     private Desktop desktop;
 
     WorkerThread(int workerNumber, Desktop desktop) {
-        super("Task controller worker thread #" + workerNumber);
+        super("Task worker #" + workerNumber);
         this.desktop = desktop;
     }
 
