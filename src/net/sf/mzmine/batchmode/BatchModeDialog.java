@@ -31,18 +31,24 @@ import javax.swing.JPanel;
 import net.sf.mzmine.io.OpenedRawDataFile;
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.util.GUIUtils;
+import net.sf.mzmine.visualizers.rawdata.twod.TwoDVisualizerWindow;
 
 class BatchModeDialog extends JDialog implements ActionListener {
 
     static final int PADDING_SIZE = 5;
     
+    private BatchMode batchModeModule;
+    
+    
     // dialog components
     private JButton btnOK, btnCancel;
     
-    public BatchModeDialog(MZmineCore core, OpenedRawDataFile dataFiles[]) {
+    public BatchModeDialog(BatchMode batchModeModule, MZmineCore core, OpenedRawDataFile dataFiles[]) {
 
         // Make dialog modal
         super(core.getDesktop().getMainFrame(), "Batch mode parameters", true);
+        
+        this.batchModeModule = batchModeModule;
         
         GridBagConstraints constraints = new GridBagConstraints();
         
@@ -75,6 +81,18 @@ class BatchModeDialog extends JDialog implements ActionListener {
      */
     public void actionPerformed(ActionEvent event) {
 
+        Object src = event.getSource();
+        
+        if (src == btnOK) {
+            
+            dispose();
+
+        }
+
+        if (src == btnCancel) {
+            dispose();
+        }
+        
     }
 
 }

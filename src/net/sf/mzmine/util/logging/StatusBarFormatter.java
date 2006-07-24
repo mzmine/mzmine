@@ -27,9 +27,13 @@ import java.util.logging.LogRecord;
  */
 public class StatusBarFormatter extends Formatter {
 
+    /**
+     * Simply return the log record message and ignore all other fields
+     * 
+     * @see java.util.logging.Formatter#format(java.util.logging.LogRecord)
+     */
     public String format(LogRecord record) {
         return record.getMessage();
     }
-
 
 }

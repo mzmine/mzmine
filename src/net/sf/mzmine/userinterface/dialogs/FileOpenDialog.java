@@ -50,7 +50,7 @@ public class FileOpenDialog extends JDialog implements ActionListener {
         super(desktop.getMainFrame(), "Please select data files to open",
                 true);
         
-        logger.finest("Showing new file open dialog");
+        logger.finest("Displaying file open dialog");
         
         this.ioController = ioController;
         fileChooser = new JFileChooser();

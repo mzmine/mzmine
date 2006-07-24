@@ -48,7 +48,7 @@ public class BatchMode implements MZmineModule, ListSelectionListener,
     private MZmineCore core;
     private Desktop desktop;
 
-    private JMenuItem spectraMenuItem;
+    private JMenuItem batchMenuItem;
 
     /**
      * @see net.sf.mzmine.main.MZmineModule#initModule(net.sf.mzmine.main.MZmineCore)
@@ -58,7 +58,7 @@ public class BatchMode implements MZmineModule, ListSelectionListener,
         this.core = core;
         this.desktop = core.getDesktop();
 
-        spectraMenuItem = desktop.addMenuItem(MZmineMenu.BATCH,
+        batchMenuItem = desktop.addMenuItem(MZmineMenu.BATCH,
                 "Define batch operations", this, null, KeyEvent.VK_D, false,
                 false);
         desktop.addSelectionListener(this);
@@ -74,7 +74,7 @@ public class BatchMode implements MZmineModule, ListSelectionListener,
 
         OpenedRawDataFile dataFiles[] = desktop.getSelectedDataFiles();
 
-        JDialog setupDialog = new BatchModeDialog(core, dataFiles);
+        JDialog setupDialog = new BatchModeDialog(this, core, dataFiles);
         setupDialog.setVisible(true);
 
     }
@@ -83,7 +83,7 @@ public class BatchMode implements MZmineModule, ListSelectionListener,
      * @see javax.swing.event.ListSelectionListener#valueChanged(javax.swing.event.ListSelectionEvent)
      */
     public void valueChanged(ListSelectionEvent e) {
-        spectraMenuItem.setEnabled(desktop.isDataFileSelected());
+        batchMenuItem.setEnabled(desktop.isDataFileSelected());
     }
 
     /**

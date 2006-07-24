@@ -37,14 +37,15 @@ public class StatusBarHandler extends Handler {
      * @see java.util.logging.Handler#publish(java.util.logging.LogRecord)
      */
     public void publish(LogRecord record) {
-        
+
+        // format the message
         String formattedMessage = statusBarFormatter.format(record);
-        
+
         // get Desktop instance from MainWindow
         Desktop desktop = MainWindow.getInstance();
         if (desktop != null)
             desktop.setStatusBarText(formattedMessage);
-        
+
     }
 
     /**
@@ -61,6 +62,9 @@ public class StatusBarHandler extends Handler {
         // do nothing
     }
 
+    /**
+     * @see java.util.logging.Handler#getFormatter()
+     */
     public Formatter getFormatter() {
         return statusBarFormatter;
     }

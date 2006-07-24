@@ -39,9 +39,10 @@ public class ConsoleFormatter extends Formatter {
         String loggerName = loggerNameElements[loggerNameElements.length - 1];
 
         StringBuilder output = new StringBuilder(512);
+        Date eventTime = new Date(record.getMillis());
 
         output.append("[");
-        output.append(format.format(new Date(record.getMillis())));
+        output.append(format.format(eventTime));
         output.append('|');
         output.append(record.getLevel());
         output.append('|');
