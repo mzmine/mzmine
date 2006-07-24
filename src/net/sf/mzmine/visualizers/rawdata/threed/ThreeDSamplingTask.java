@@ -155,7 +155,7 @@ class ThreeDSamplingTask implements Task {
      * @see net.sf.mzmine.taskcontrol.Task#getTaskDescription()
      */
     public String getTaskDescription() {
-        return "Sampling 3D plot of " + rawDataFile;
+        return "Sampling 3D plot of " + dataFile;
     }
 
     /**

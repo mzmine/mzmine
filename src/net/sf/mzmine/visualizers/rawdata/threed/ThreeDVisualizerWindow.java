@@ -58,6 +58,7 @@ public class ThreeDVisualizerWindow extends JInternalFrame implements
     private ThreeDToolBar toolBar;
     private JLabel titleLabel;
 
+    private OpenedRawDataFile dataFile;
     private RawDataFile rawDataFile;
     private int msLevel;
 
@@ -82,6 +83,7 @@ public class ThreeDVisualizerWindow extends JInternalFrame implements
         setBackground(Color.white);
 
         this.desktop = desktop;
+        this.dataFile = dataFile;
         this.rawDataFile = dataFile.getCurrentFile();
         this.msLevel = msLevel;
 
@@ -139,7 +141,7 @@ public class ThreeDVisualizerWindow extends JInternalFrame implements
 
         StringBuffer title = new StringBuffer();
 
-        title.append(rawDataFile.toString());
+        title.append(dataFile.toString());
         title.append(": 3D view");
 
         setTitle(title.toString());
