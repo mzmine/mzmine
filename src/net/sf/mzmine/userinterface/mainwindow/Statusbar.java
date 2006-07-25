@@ -21,7 +21,11 @@ package net.sf.mzmine.userinterface.mainwindow;
 
 import java.awt.Color;
 import java.awt.Dimension;
+import java.awt.event.MouseEvent;
+import java.awt.event.MouseListener;
+import java.beans.PropertyVetoException;
 
+import javax.swing.BoundedRangeModel;
 import javax.swing.Box;
 import javax.swing.BoxLayout;
 import javax.swing.JLabel;
@@ -29,15 +33,22 @@ import javax.swing.JPanel;
 import javax.swing.JProgressBar;
 import javax.swing.border.EtchedBorder;
 
-public class Statusbar extends JPanel {
+import net.sf.mzmine.main.MZmineCore;
+import net.sf.mzmine.taskcontrol.impl.TaskControllerImpl;
+import net.sf.mzmine.userinterface.components.TaskProgressWindow;
+
+public class Statusbar extends JPanel implements MouseListener {
 
     private JPanel statusTextPanel;
     private JLabel statusTextLabel;
     private JProgressBar statusProgBar;
+    private MainWindow mainWin; 
 
     private final int statusBarHeight = 25;
 
-    public Statusbar(MainWindow _mainWin) {
+    Statusbar(MZmineCore core) {
+        
+        mainWin = (MainWindow) core.getDesktop();
 
         setLayout(new BoxLayout(this, BoxLayout.X_AXIS));
         setBorder(new EtchedBorder());
@@ -47,11 +58,15 @@ public class Statusbar extends JPanel {
                 BoxLayout.X_AXIS));
         statusTextPanel.setBorder(new EtchedBorder(EtchedBorder.RAISED));
 
-        statusProgBar = new JProgressBar();
+        TaskControllerImpl tc = (TaskControllerImpl) core.getTaskController();
+        BoundedRangeModel progressModel = tc.getTaskQueue();
+        statusProgBar = new JProgressBar(progressModel);
         statusProgBar.setMinimumSize(new Dimension(100, statusBarHeight));
-        statusProgBar.setPreferredSize(new Dimension(3200, statusBarHeight));
+        statusProgBar.setPreferredSize(new Dimension(500, statusBarHeight));
+        statusProgBar.setToolTipText("Overall progress of all scheduled tasks");
         statusProgBar.setVisible(false);
-
+        statusProgBar.addMouseListener(this);
+        
         statusTextLabel = new JLabel();
         statusTextLabel.setMinimumSize(new Dimension(100, statusBarHeight));
         statusTextLabel.setPreferredSize(new Dimension(3200, statusBarHeight));
@@ -70,32 +85,67 @@ public class Statusbar extends JPanel {
     /**
      * Set the text displayed in status bar
      * 
-     * @param t Text for status bar
+     * @param statusText Text for status bar
+     * @param textColor Text color
      */
     void setStatusText(String statusText, Color textColor) {
         statusTextLabel.setText(statusText);
         statusTextLabel.setForeground(textColor);
     }
+    
+    public void setProgressBarVisible(boolean visible) {
+        statusProgBar.setVisible(visible);
+    }
 
     /**
-     * Sets the text displayed in status bar and progress indicators position
-     * 
-     * @param t Text for status bar
-     * @param currentSlot Current position of progress indicator
-     * @param fullSlot Last position of progress indicator
+     * @see java.awt.event.MouseListener#mouseClicked(java.awt.event.MouseEvent)
      */
-    public void setStatusProgBar(int _currentSlot, int _fullSlot) {
-        // if (!statusProgBar.isVisible()) {
-        statusProgBar.setVisible(true);
-        // }
-        statusProgBar.setMaximum(_fullSlot);
-        statusProgBar.setValue(_currentSlot);
-
-        // statusTextPanel.update(statusTextPanel.getGraphics());
+    public void mouseClicked(MouseEvent event) {
+        
+        Object src = event.getSource();
+        
+        if (src == statusProgBar) {
+            TaskProgressWindow taskProgressWindow = mainWin.getTaskList();
+            taskProgressWindow.setVisible(true);
+            try {
+                taskProgressWindow.setSelected(true);
+            } catch (PropertyVetoException e) {
+                // do nothing
+            }
+        }
     }
 
-    public void disableProgBar() {
-        statusProgBar.setVisible(false);
+    /**
+     * @see java.awt.event.MouseListener#mousePressed(java.awt.event.MouseEvent)
+     */
+    public void mousePressed(MouseEvent event) {
+        // do nothing
+        
     }
+
+    /**
+     * @see java.awt.event.MouseListener#mouseReleased(java.awt.event.MouseEvent)
+     */
+    public void mouseReleased(MouseEvent event) {
+        // do nothing
+        
+    }
+
+    /**
+     * @see java.awt.event.MouseListener#mouseEntered(java.awt.event.MouseEvent)
+     */
+    public void mouseEntered(MouseEvent event) {
+        // do nothing
+        
+    }
+
+    /**
+     * @see java.awt.event.MouseListener#mouseExited(java.awt.event.MouseEvent)
+     */
+    public void mouseExited(MouseEvent event) {
+        // do nothing
+        
+    }
+
 
 }

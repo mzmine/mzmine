@@ -22,20 +22,19 @@ package net.sf.mzmine.taskcontrol.impl;
 import java.beans.PropertyVetoException;
 import java.util.logging.Logger;
 
+import javax.swing.BoundedRangeModel;
 import javax.swing.JInternalFrame;
 import javax.swing.table.TableModel;
 
-import net.sf.mzmine.io.IOController;
 import net.sf.mzmine.main.MZmineCore;
-import net.sf.mzmine.main.MZmineModule;
 import net.sf.mzmine.taskcontrol.Task;
 import net.sf.mzmine.taskcontrol.TaskController;
 import net.sf.mzmine.taskcontrol.TaskListener;
 import net.sf.mzmine.taskcontrol.Task.TaskPriority;
-import net.sf.mzmine.taskcontrol.Task.TaskStatus;
 import net.sf.mzmine.userinterface.Desktop;
 import net.sf.mzmine.userinterface.components.TaskProgressWindow;
 import net.sf.mzmine.userinterface.mainwindow.MainWindow;
+import net.sf.mzmine.userinterface.mainwindow.Statusbar;
 
 /**
  * Task controller implementation
@@ -43,12 +42,11 @@ import net.sf.mzmine.userinterface.mainwindow.MainWindow;
 public class TaskControllerImpl implements TaskController, Runnable {
 
     private Logger logger = Logger.getLogger(this.getClass().getName());
-    
+
     private Desktop desktop;
-    
+
     // TODO: always create a worker thread for high priority tasks
-    
-    
+
     private static TaskControllerImpl myInstance;
 
     private final int TASKCONTROLLER_THREAD_SLEEP = 100;
@@ -100,7 +98,7 @@ public class TaskControllerImpl implements TaskController, Runnable {
         WrappedTask newQueueEntry = new WrappedTask(task, priority, listener);
 
         logger.finest("Adding task \"" + task.getTaskDescription()
-            + "\" to the task controller queue");
+                + "\" to the task controller queue");
 
         taskQueue.addWrappedTask(newQueueEntry);
 
@@ -113,10 +111,14 @@ public class TaskControllerImpl implements TaskController, Runnable {
          */
         MainWindow mainWindow = (MainWindow) desktop;
         if (mainWindow != null) {
-            TaskProgressWindow tlc = mainWindow.getTaskList();
             JInternalFrame selectedFrame = desktop.getSelectedFrame();
 
+            TaskProgressWindow tlc = mainWindow.getTaskList();
             tlc.setVisible(true);
+
+            Statusbar sb = mainWindow.getStatusBar();
+            sb.setProgressBarVisible(true);
+
             if (selectedFrame != null) {
                 try {
                     selectedFrame.setSelected(true);
@@ -152,17 +154,15 @@ public class TaskControllerImpl implements TaskController, Runnable {
             // for each task, check if it's assigned
             for (WrappedTask task : queueSnapshot) {
 
-                TaskListener listener = task.getListener();
-
                 if (!task.isAssigned()) {
                     // poll local threads
 
                     for (WorkerThread worker : workerThreads) {
 
                         if (worker.getCurrentTask() == null) {
-                            logger.finest("Assigning task \"" + task.getTask().getTaskDescription() + "\" to " + worker.toString());
-                            if (listener != null)
-                                listener.taskStarted(task.getTask());
+                            logger.finest("Assigning task \""
+                                    + task.getTask().getTaskDescription()
+                                    + "\" to " + worker.toString());
                             worker.setCurrentTask(task);
                             break;
                         }
@@ -173,22 +173,21 @@ public class TaskControllerImpl implements TaskController, Runnable {
 
                 }
 
-                /* check whether the task is finished */
-                TaskStatus status = task.getTask().getStatus();
-                if ((status == TaskStatus.FINISHED)
-                        || (status == TaskStatus.ERROR)
-                        || (status == TaskStatus.CANCELED)) {
-                    if (listener != null)
-                        listener.taskFinished(task.getTask());
-                    taskQueue.removeWrappedTask(task);
-                }
-
             }
 
-            MainWindow mainWindow = (MainWindow) desktop;
-            if (taskQueue.isEmpty() && (mainWindow != null)) {
-                TaskProgressWindow tlc = mainWindow.getTaskList();
-                tlc.setVisible(false);
+            // check if all tasks are finished
+            if (taskQueue.allTasksFinished()) {
+
+                MainWindow mainWindow = (MainWindow) desktop;
+
+                if (mainWindow != null) {
+                    TaskProgressWindow tlc = mainWindow.getTaskList();
+                    tlc.setVisible(false);
+                    Statusbar sb = mainWindow.getStatusBar();
+                    sb.setProgressBarVisible(false);
+                    taskQueue.clear();
+                }
+
             } else {
                 taskQueue.refresh();
             }
@@ -205,12 +204,14 @@ public class TaskControllerImpl implements TaskController, Runnable {
     public void setTaskPriority(Task task, TaskPriority priority) {
         WrappedTask wt = taskQueue.getWrappedTask(task);
         if (wt != null) {
-            logger.finest("Setting priority of task \"" + task.getTaskDescription() + "\" to " + priority); 
+            logger.finest("Setting priority of task \""
+                    + task.getTaskDescription() + "\" to " + priority);
             wt.setPriority(priority);
+            taskQueue.refresh();
         }
     }
 
-    public TableModel getTaskTableModel() {
+    public TaskQueue getTaskQueue() {
         return taskQueue;
     }
 
@@ -226,7 +227,7 @@ public class TaskControllerImpl implements TaskController, Runnable {
      */
     public void initModule(MZmineCore core) {
         this.desktop = core.getDesktop();
-        
+
     }
 
 }

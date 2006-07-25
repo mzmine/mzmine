@@ -41,7 +41,6 @@ import javax.swing.event.ListSelectionListener;
 
 import net.sf.mzmine.io.OpenedRawDataFile;
 import net.sf.mzmine.main.MZmineCore;
-import net.sf.mzmine.main.MZmineModule;
 import net.sf.mzmine.taskcontrol.impl.TaskControllerImpl;
 import net.sf.mzmine.userinterface.Desktop;
 import net.sf.mzmine.userinterface.components.TaskProgressWindow;
@@ -53,12 +52,11 @@ import net.sf.mzmine.userinterface.components.TaskProgressWindow;
 public class MainWindow extends JFrame implements Desktop, WindowListener {
 
     private Logger logger = Logger.getLogger(this.getClass().getName());
-    
+
     private JDesktopPane desktopPane;
 
     private JSplitPane split;
 
-    // private ItemStorage itemStorage;
     private ItemSelector itemSelector;
 
     private TaskProgressWindow taskList;
@@ -81,7 +79,7 @@ public class MainWindow extends JFrame implements Desktop, WindowListener {
         frame.addInternalFrameListener(itemSelector);
         frame.setVisible(true);
     }
-    
+
     private static MainWindow myInstance;
 
     /**
@@ -229,6 +227,9 @@ public class MainWindow extends JFrame implements Desktop, WindowListener {
      */
     public void initModule(MZmineCore core) {
 
+        assert myInstance == null;
+        myInstance = this;
+
         // Initialize item selector
         itemSelector = new ItemSelector(this);
 
@@ -251,7 +252,7 @@ public class MainWindow extends JFrame implements Desktop, WindowListener {
         c.setLayout(new BorderLayout());
         c.add(split, BorderLayout.CENTER);
 
-        statusBar = new Statusbar(this);
+        statusBar = new Statusbar(core);
         c.add(statusBar, BorderLayout.SOUTH);
 
         // Initialize window listener for responding to user events
@@ -271,14 +272,9 @@ public class MainWindow extends JFrame implements Desktop, WindowListener {
         taskList = new TaskProgressWindow(
                 (TaskControllerImpl) core.getTaskController());
         desktopPane.add(taskList, JLayeredPane.DEFAULT_LAYER);
-        
-        assert myInstance == null;
-        myInstance = this;
-        
-
 
     }
-    
+
     public static MainWindow getInstance() {
         return myInstance;
     }
@@ -347,11 +343,15 @@ public class MainWindow extends JFrame implements Desktop, WindowListener {
     }
 
     /**
-     * @see net.sf.mzmine.userinterface.Desktop#setStatusBarText(java.lang.String, java.awt.Color)
+     * @see net.sf.mzmine.userinterface.Desktop#setStatusBarText(java.lang.String,
+     *      java.awt.Color)
      */
     public void setStatusBarText(String text, Color textColor) {
         statusBar.setStatusText(text, textColor);
-        
+    }
+
+    public Statusbar getStatusBar() {
+        return statusBar;
     }
 
 }

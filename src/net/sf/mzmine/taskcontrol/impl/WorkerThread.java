@@ -22,6 +22,7 @@ package net.sf.mzmine.taskcontrol.impl;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import net.sf.mzmine.taskcontrol.TaskListener;
 import net.sf.mzmine.userinterface.Desktop;
 
 /**
@@ -76,21 +77,31 @@ class WorkerThread extends Thread {
             }
 
             try {
+                
+                TaskListener listener = currentTask.getListener();
+                
+                if (listener != null)
+                    listener.taskStarted(currentTask.getTask());
+                
                 currentTask.getTask().run();
+                
+                if (listener != null)
+                    listener.taskFinished(currentTask.getTask());
+                
             } catch (Throwable e) {
 
                 // this should never happen!
 
                 logger.log(Level.SEVERE, "Unhandled exception while processing task "
                         + currentTask, e);
-                
-                String errorMessage = "Unhandled exception while processing task "
-                    + currentTask + ": " + e + ", cancelling the task.";
 
-                currentTask.getTask().cancel();
+                if (desktop != null) {
+                    
+                    String errorMessage = "Unhandled exception while processing task "
+                        + currentTask + ": " + e;
 
-                if (desktop != null)
                     desktop.displayErrorMessage(errorMessage);
+                }
 
             }
 

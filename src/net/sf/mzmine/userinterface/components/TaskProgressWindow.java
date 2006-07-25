@@ -32,6 +32,7 @@ import javax.swing.ListSelectionModel;
 
 import net.sf.mzmine.taskcontrol.Task;
 import net.sf.mzmine.taskcontrol.Task.TaskPriority;
+import net.sf.mzmine.taskcontrol.Task.TaskStatus;
 import net.sf.mzmine.taskcontrol.impl.TaskControllerImpl;
 import net.sf.mzmine.util.GUIUtils;
 
@@ -59,7 +60,7 @@ public class TaskProgressWindow extends JInternalFrame implements
         super("Tasks in progress...", true, true, true, true);
         setDefaultCloseOperation(HIDE_ON_CLOSE);
         this.taskController = taskController;
-        taskTable = new JTable(taskController.getTaskTableModel());
+        taskTable = new JTable(taskController.getTaskQueue());
         taskTable.setCellSelectionEnabled(false);
         taskTable.setColumnSelectionAllowed(false);
         taskTable.setRowSelectionAllowed(true);
@@ -107,7 +108,11 @@ public class TaskProgressWindow extends JInternalFrame implements
             return;
 
         if (src == cancelTaskMenuItem) {
-            selectedTask.cancel();
+            TaskStatus status = selectedTask.getStatus();
+            if ((status == TaskStatus.WAITING)
+                    || (status == TaskStatus.PROCESSING)) {
+                selectedTask.cancel();
+            }
         }
 
         if (src == highPriorityMenuItem) {

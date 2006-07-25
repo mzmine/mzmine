@@ -20,26 +20,38 @@
 package net.sf.mzmine.taskcontrol.impl;
 
 import java.util.Arrays;
+import java.util.EventListener;
+import java.util.HashSet;
+import java.util.Iterator;
 
-import javax.swing.table.AbstractTableModel;
+import javax.swing.BoundedRangeModel;
+import javax.swing.event.ChangeEvent;
+import javax.swing.event.ChangeListener;
+import javax.swing.event.TableModelEvent;
+import javax.swing.event.TableModelListener;
+import javax.swing.table.TableModel;
 
 import net.sf.mzmine.taskcontrol.Task;
+import net.sf.mzmine.taskcontrol.Task.TaskStatus;
 
 /**
  * Task queue
  */
-class TaskQueue extends AbstractTableModel {
+class TaskQueue implements TableModel, BoundedRangeModel {
 
     private static final int DEFAULT_CAPACITY = 64;
 
     private WrappedTask[] queue;
     private int size, capacity;
 
+    private HashSet<EventListener> listeners;
+
     TaskQueue() {
 
         size = 0;
         capacity = DEFAULT_CAPACITY;
         queue = new WrappedTask[capacity];
+        listeners = new HashSet<EventListener>();
 
     }
 
@@ -58,33 +70,15 @@ class TaskQueue extends AbstractTableModel {
         size++;
 
         resort();
-        fireTableDataChanged();
+        fireRowsChanged();
 
     }
 
-    synchronized void removeWrappedTask(WrappedTask task) {
-
-        for (int i = 0; i < size; i++) {
-            if (queue[i] == task) {
-                for (int j = i + 1; j < size; j++)
-                    queue[j - 1] = queue[j];
-                size--;
-                break;
-            }
-        }
-
-        if ((size < capacity / 2) && (size > DEFAULT_CAPACITY)) {
-            capacity /= 2;
-            WrappedTask[] temp = new WrappedTask[capacity];
-            // copy the old queue to the new one
-            for (int i = 0; i < size; i++)
-                temp[i] = queue[i];
-            queue = temp;
-        }
-
-        resort();
-        fireTableDataChanged();
-
+    synchronized void clear() {
+        size = 0;
+        capacity = DEFAULT_CAPACITY;
+        queue = new WrappedTask[capacity];
+        fireRowsChanged();
     }
 
     synchronized void resort() {
@@ -93,7 +87,17 @@ class TaskQueue extends AbstractTableModel {
 
     synchronized void refresh() {
         resort();
-        fireTableRowsUpdated(0, size - 1);
+        ChangeEvent ce = new ChangeEvent(this);
+        TableModelEvent te = new TableModelEvent(this, 0, size);
+
+        Iterator<EventListener> iter = listeners.iterator();
+        while (iter.hasNext()) {
+            EventListener el = iter.next();
+            if (el instanceof ChangeListener)
+                ((ChangeListener) el).stateChanged(ce);
+            if (el instanceof TableModelListener)
+                ((TableModelListener) el).tableChanged(te);
+        }
     }
 
     synchronized WrappedTask getWrappedTask(Task t) {
@@ -116,9 +120,17 @@ class TaskQueue extends AbstractTableModel {
     }
 
     synchronized boolean isEmpty() {
-
         return size == 0;
+    }
 
+    synchronized boolean allTasksFinished() {
+        for (int i = 0; i < size; i++) {
+            TaskStatus status = queue[i].getTask().getStatus();
+            if ((status == TaskStatus.PROCESSING)
+                    || (status == TaskStatus.WAITING))
+                return false;
+        }
+        return true;
     }
 
     synchronized WrappedTask[] getQueueSnapshot() {
@@ -128,6 +140,20 @@ class TaskQueue extends AbstractTableModel {
             snapshot[i] = queue[i];
         return snapshot;
 
+    }
+
+    private void fireRowsChanged() {
+        ChangeEvent ce = new ChangeEvent(this);
+        TableModelEvent te = new TableModelEvent(this);
+
+        Iterator<EventListener> iter = listeners.iterator();
+        while (iter.hasNext()) {
+            EventListener el = iter.next();
+            if (el instanceof ChangeListener)
+                ((ChangeListener) el).stateChanged(ce);
+            if (el instanceof TableModelListener)
+                ((TableModelListener) el).tableChanged(te);
+        }
     }
 
     /* TableModel implementation */
@@ -176,6 +202,143 @@ class TaskQueue extends AbstractTableModel {
 
         return null;
 
+    }
+
+    /**
+     * @see javax.swing.table.TableModel#getColumnClass(int)
+     */
+    public Class<?> getColumnClass(int column) {
+        return String.class;
+    }
+
+    /**
+     * @see javax.swing.table.TableModel#isCellEditable(int, int)
+     */
+    public boolean isCellEditable(int arg0, int arg1) {
+        return false;
+    }
+
+    /**
+     * @see javax.swing.table.TableModel#setValueAt(java.lang.Object, int, int)
+     */
+    public void setValueAt(Object arg0, int arg1, int arg2) {
+        // do nothing
+    }
+
+    /**
+     * @see javax.swing.table.TableModel#addTableModelListener(javax.swing.event.TableModelListener)
+     */
+    public void addTableModelListener(TableModelListener listener) {
+        listeners.add(listener);
+    }
+
+    /**
+     * @see javax.swing.table.TableModel#removeTableModelListener(javax.swing.event.TableModelListener)
+     */
+    public void removeTableModelListener(TableModelListener listener) {
+        listeners.remove(listener);
+    }
+
+    /* BoundedRangeModel implementation */
+
+    /**
+     * @see javax.swing.BoundedRangeModel#getMinimum()
+     */
+    public int getMinimum() {
+        return 0;
+    }
+
+    /**
+     * @see javax.swing.BoundedRangeModel#setMinimum(int)
+     */
+    public void setMinimum(int min) {
+        // do nothing
+    }
+
+    /**
+     * @see javax.swing.BoundedRangeModel#getMaximum()
+     */
+    public int getMaximum() {
+        return size * 100;
+    }
+
+    /**
+     * @see javax.swing.BoundedRangeModel#setMaximum(int)
+     */
+    public void setMaximum(int max) {
+        // do nothing
+
+    }
+
+    /**
+     * @see javax.swing.BoundedRangeModel#getValue()
+     */
+    public int getValue() {
+        int value = 0;
+        for (int i = 0; i < size; i++) {
+            Task t = queue[i].getTask();
+            value += (t.getFinishedPercentage() * 100);
+        }
+        return value;
+    }
+
+    /**
+     * @see javax.swing.BoundedRangeModel#setValue(int)
+     */
+    public void setValue(int val) {
+        // do nothing
+    }
+
+    /**
+     * @see javax.swing.BoundedRangeModel#setValueIsAdjusting(boolean)
+     */
+    public void setValueIsAdjusting(boolean adjusting) {
+        // do nothing
+    }
+
+    /**
+     * @see javax.swing.BoundedRangeModel#getValueIsAdjusting()
+     */
+    public boolean getValueIsAdjusting() {
+        return false;
+    }
+
+    /**
+     * @see javax.swing.BoundedRangeModel#getExtent()
+     */
+    public int getExtent() {
+        return 1;
+    }
+
+    /**
+     * @see javax.swing.BoundedRangeModel#setExtent(int)
+     */
+    public void setExtent(int ext) {
+        // do nothing
+
+    }
+
+    /**
+     * @see javax.swing.BoundedRangeModel#setRangeProperties(int, int, int, int,
+     *      boolean)
+     */
+    public void setRangeProperties(int arg0, int arg1, int arg2, int arg3,
+            boolean arg4) {
+        // do nothing
+    }
+
+    /**
+     * @see javax.swing.BoundedRangeModel#addChangeListener(javax.swing.event.ChangeListener)
+     */
+    public void addChangeListener(ChangeListener listener) {
+        listeners.add(listener);
+    }
+
+    /**
+     * @see javax.swing.BoundedRangeModel#removeChangeListener(javax.swing.event.ChangeListener)
+     */
+    public void removeChangeListener(ChangeListener listener) {
+        listeners.remove(listener);
     }
 
 }
