@@ -86,17 +86,24 @@ class TaskQueue implements TableModel, BoundedRangeModel {
     }
 
     synchronized void refresh() {
-        resort();
-        ChangeEvent ce = new ChangeEvent(this);
-        TableModelEvent te = new TableModelEvent(this, 0, size);
 
-        Iterator<EventListener> iter = listeners.iterator();
-        while (iter.hasNext()) {
-            EventListener el = iter.next();
-            if (el instanceof ChangeListener)
-                ((ChangeListener) el).stateChanged(ce);
-            if (el instanceof TableModelListener)
-                ((TableModelListener) el).tableChanged(te);
+        resort();
+
+        ChangeEvent ce = new ChangeEvent(this);
+        TableModelEvent te = new TableModelEvent(this, 0, size - 1);
+
+        Iterator<EventListener> listenerIterator = listeners.iterator();
+
+        while (listenerIterator.hasNext()) {
+
+            EventListener eventListener = listenerIterator.next();
+
+            if (eventListener instanceof ChangeListener)
+                ((ChangeListener) eventListener).stateChanged(ce);
+
+            if (eventListener instanceof TableModelListener)
+                ((TableModelListener) eventListener).tableChanged(te);
+
         }
     }
 
@@ -143,22 +150,30 @@ class TaskQueue implements TableModel, BoundedRangeModel {
     }
 
     private void fireRowsChanged() {
+
         ChangeEvent ce = new ChangeEvent(this);
         TableModelEvent te = new TableModelEvent(this);
 
-        Iterator<EventListener> iter = listeners.iterator();
-        while (iter.hasNext()) {
-            EventListener el = iter.next();
-            if (el instanceof ChangeListener)
-                ((ChangeListener) el).stateChanged(ce);
-            if (el instanceof TableModelListener)
-                ((TableModelListener) el).tableChanged(te);
+        Iterator<EventListener> listenerIterator = listeners.iterator();
+
+        while (listenerIterator.hasNext()) {
+
+            EventListener eventListener = listenerIterator.next();
+
+            if (eventListener instanceof ChangeListener)
+                ((ChangeListener) eventListener).stateChanged(ce);
+
+            if (eventListener instanceof TableModelListener)
+                ((TableModelListener) eventListener).tableChanged(te);
+
         }
+
     }
 
     /* TableModel implementation */
 
-    private final String columns[] = { "Item", "Priority", "Status", "% done" };
+    private static final String columns[] = { "Item", "Priority", "Status",
+            "% done" };
 
     /**
      * @see javax.swing.table.TableModel#getRowCount()
@@ -214,14 +229,14 @@ class TaskQueue implements TableModel, BoundedRangeModel {
     /**
      * @see javax.swing.table.TableModel#isCellEditable(int, int)
      */
-    public boolean isCellEditable(int arg0, int arg1) {
+    public boolean isCellEditable(int row, int col) {
         return false;
     }
 
     /**
      * @see javax.swing.table.TableModel#setValueAt(java.lang.Object, int, int)
      */
-    public void setValueAt(Object arg0, int arg1, int arg2) {
+    public void setValueAt(Object val, int row, int col) {
         // do nothing
     }
 
