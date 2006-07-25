@@ -25,7 +25,7 @@ import java.util.logging.Logger;
 import net.sf.mzmine.userinterface.Desktop;
 
 /**
- * 
+ * Task controller worker thread
  */
 class WorkerThread extends Thread {
 
@@ -35,7 +35,7 @@ class WorkerThread extends Thread {
     private Desktop desktop;
 
     WorkerThread(int workerNumber, Desktop desktop) {
-        super("Task worker #" + workerNumber);
+        super("Worker thread #" + workerNumber);
         this.desktop = desktop;
     }
 
@@ -81,10 +81,11 @@ class WorkerThread extends Thread {
 
                 // this should never happen!
 
-                String errorMessage = "Unhandled exception while processing task "
-                        + currentTask + ": " + e + ", cancelling the task.";
                 logger.log(Level.SEVERE, "Unhandled exception while processing task "
                         + currentTask, e);
+                
+                String errorMessage = "Unhandled exception while processing task "
+                    + currentTask + ": " + e + ", cancelling the task.";
 
                 currentTask.getTask().cancel();
 
@@ -98,6 +99,10 @@ class WorkerThread extends Thread {
 
         }
 
+    }
+    
+    public String toString() {
+        return this.getName();
     }
 
 }

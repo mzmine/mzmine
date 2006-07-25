@@ -1,17 +1,17 @@
 /*
  * Copyright 2006 The MZmine Development Team
- *
+ * 
  * This file is part of MZmine.
- *
+ * 
  * MZmine is free software; you can redistribute it and/or modify it under the
  * terms of the GNU General Public License as published by the Free Software
  * Foundation; either version 2 of the License, or (at your option) any later
  * version.
- *
+ * 
  * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY
  * WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR
  * A PARTICULAR PURPOSE. See the GNU General Public License for more details.
- *
+ * 
  * You should have received a copy of the GNU General Public License along with
  * MZmine; if not, write to the Free Software Foundation, Inc., 51 Franklin St,
  * Fifth Floor, Boston, MA 02110-1301 USA
@@ -26,7 +26,7 @@ import javax.swing.table.AbstractTableModel;
 import net.sf.mzmine.taskcontrol.Task;
 
 /**
- * 
+ * Task queue
  */
 class TaskQueue extends AbstractTableModel {
 
@@ -88,50 +88,46 @@ class TaskQueue extends AbstractTableModel {
     }
 
     synchronized void resort() {
-        
         Arrays.sort(queue, 0, size);
-
     }
 
     synchronized void refresh() {
-        
         resort();
         fireTableRowsUpdated(0, size - 1);
-        
     }
 
     synchronized WrappedTask getWrappedTask(Task t) {
-        
+
         for (int i = 0; i < size; i++)
             if (queue[i].getTask() == t)
                 return queue[i];
-        
+
         return null;
-        
+
     }
 
     synchronized WrappedTask getWrappedTask(int index) {
-        
+
         if ((index < 0) || (index >= size))
             return null;
         else
             return queue[index];
-        
+
     }
 
     synchronized boolean isEmpty() {
-        
+
         return size == 0;
-        
+
     }
 
     synchronized WrappedTask[] getQueueSnapshot() {
-        
+
         WrappedTask[] snapshot = new WrappedTask[size];
         for (int i = 0; i < size; i++)
             snapshot[i] = queue[i];
         return snapshot;
-        
+
     }
 
     /* TableModel implementation */
@@ -173,8 +169,7 @@ class TaskQueue extends AbstractTableModel {
             case 2:
                 return task.getTask().getStatus();
             case 3:
-                return String.valueOf(Math.round(task.getTask()
-                        .getFinishedPercentage() * 100))
+                return String.valueOf(Math.round(task.getTask().getFinishedPercentage() * 100))
                         + "%";
             }
         }

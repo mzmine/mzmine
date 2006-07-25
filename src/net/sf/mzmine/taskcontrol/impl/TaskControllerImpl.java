@@ -38,7 +38,7 @@ import net.sf.mzmine.userinterface.components.TaskProgressWindow;
 import net.sf.mzmine.userinterface.mainwindow.MainWindow;
 
 /**
- * 
+ * Task controller implementation
  */
 public class TaskControllerImpl implements TaskController, Runnable {
 
@@ -99,8 +99,8 @@ public class TaskControllerImpl implements TaskController, Runnable {
 
         WrappedTask newQueueEntry = new WrappedTask(task, priority, listener);
 
-        logger.finest("Adding task " + task.getTaskDescription()
-            + " to the task controller queue");
+        logger.finest("Adding task \"" + task.getTaskDescription()
+            + "\" to the task controller queue");
 
         taskQueue.addWrappedTask(newQueueEntry);
 
@@ -124,7 +124,6 @@ public class TaskControllerImpl implements TaskController, Runnable {
                     // do nothing
                 }
             }
-            // currentFocus.requestFocus();
         }
 
     }
