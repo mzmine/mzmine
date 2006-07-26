@@ -69,7 +69,7 @@ class CentroidPickerTask implements Task {
      * @see net.sf.mzmine.taskcontrol.Task#getTaskDescription()
      */
     public String getTaskDescription() {
-        return "Centroid peak detection on " + rawDataFile;
+        return "Centroid peak detection on " + dataFile;
     }
 
     /**

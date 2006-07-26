@@ -64,7 +64,7 @@ class SavitzkyGolayFilterTask implements Task {
      * @see net.sf.mzmine.taskcontrol.Task#getTaskDescription()
      */
     public String getTaskDescription() {
-        return "Savitzky-Golay filtering " + rawDataFile;
+        return "Savitzky-Golay filtering " + dataFile;
     }
 
     /**

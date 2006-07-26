@@ -67,7 +67,7 @@ class SimpleIsotopicPeaksGrouperTask implements Task {
      * @see net.sf.mzmine.taskcontrol.Task#getTaskDescription()
      */
     public String getTaskDescription() {
-        return "Simple isotopic peaks grouper on " + rawDataFile;
+        return "Simple isotopic peaks grouper on " + dataFile;
     }
 
     /**

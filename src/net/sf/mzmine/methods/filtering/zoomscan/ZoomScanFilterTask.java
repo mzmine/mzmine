@@ -59,7 +59,7 @@ class ZoomScanFilterTask implements Task {
      * @see net.sf.mzmine.taskcontrol.Task#getTaskDescription()
      */
     public String getTaskDescription() {
-        return "Zoom scan filtering " + rawDataFile;
+        return "Zoom scan filtering " + dataFile;
     }
 
     /**

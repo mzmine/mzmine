@@ -62,7 +62,7 @@ class ChromatographicMedianFilterTask implements Task {
      * @see net.sf.mzmine.taskcontrol.Task#getTaskDescription()
      */
     public String getTaskDescription() {
-        return "Chromatographic median filtering " + rawDataFile;
+        return "Chromatographic median filtering " + dataFile;
     }
 
     /**
@@ -214,6 +214,7 @@ class ChromatographicMedianFilterTask implements Task {
                     SimpleScan newScan = new SimpleScan(sc);
                     newScan.setData(mzValues, newIntValues);
                     rawDataFileWriter.addScan(newScan);
+                    filteredScans++;
 
                 } catch (IOException e) {
                     status = TaskStatus.ERROR;

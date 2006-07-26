@@ -59,7 +59,7 @@ class CropFilterTask implements Task {
      * @see net.sf.mzmine.taskcontrol.Task#getTaskDescription()
      */
     public String getTaskDescription() {
-        return "Crop filtering " + rawDataFile;
+        return "Crop filtering " + dataFile;
     }
 
     /**

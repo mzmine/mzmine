@@ -68,7 +68,7 @@ class RecursiveThresholdPickerTask implements Task {
      * @see net.sf.mzmine.taskcontrol.Task#getTaskDescription()
      */
     public String getTaskDescription() {
-        return "Recursive threshold peak detection on " + rawDataFile;
+        return "Recursive threshold peak detection on " + dataFile;
     }
 
     /**

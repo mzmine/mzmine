@@ -67,7 +67,7 @@ class LocalPickerTask implements Task {
      * @see net.sf.mzmine.taskcontrol.Task#getTaskDescription()
      */
     public String getTaskDescription() {
-        return "Local maximum peak detection on " + rawDataFile;
+        return "Local maximum peak detection on " + dataFile;
     }
 
     /**

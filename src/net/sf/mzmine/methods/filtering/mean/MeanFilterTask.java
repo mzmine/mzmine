@@ -60,7 +60,7 @@ class MeanFilterTask implements Task {
      * @see net.sf.mzmine.taskcontrol.Task#getTaskDescription()
      */
     public String getTaskDescription() {
-        return "Mean filtering " + rawDataFile;
+        return "Mean filtering " + dataFile;
     }
 
     /**
