@@ -200,7 +200,7 @@ public class LocalPicker implements Method, TaskListener,
     public void runMethod(MethodParameters parameters,
             OpenedRawDataFile[] dataFiles, AlignmentResult[] alignmentResults) {
 
-        logger.finest("Running local maxima peak picker");
+        logger.info("Running local maxima peak picker");
 
         for (OpenedRawDataFile dataFile : dataFiles) {
             Task pickerTask = new LocalPickerTask(dataFile,

@@ -164,7 +164,7 @@ public class CropFilter implements Method, TaskListener,
     public void runMethod(MethodParameters parameters,
             OpenedRawDataFile[] dataFiles, AlignmentResult[] alignmentResults) {
 
-        logger.finest("Running cropping filter");
+        logger.info("Running cropping filter");
 
         for (OpenedRawDataFile dataFile : dataFiles) {
             Task filterTask = new CropFilterTask(dataFile,

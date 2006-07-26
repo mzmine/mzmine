@@ -34,12 +34,16 @@ import net.sf.mzmine.userinterface.mainwindow.MainWindow;
 public class StatusBarHandler extends Handler {
 
     private static final Formatter statusBarFormatter = new StatusBarFormatter();
-
+    private static final int infoLevel = Level.INFO.intValue();
+    
     /**
      * @see java.util.logging.Handler#publish(java.util.logging.LogRecord)
      */
     public void publish(LogRecord record) {
 
+        // if the event level is below INFO, just return
+        if (record.getLevel().intValue() < infoLevel) return;
+        
         // get Desktop instance from MainWindow
         Desktop desktop = MainWindow.getInstance();
         if (desktop != null) {
@@ -81,6 +85,20 @@ public class StatusBarHandler extends Handler {
      */
     public Formatter getFormatter() {
         return statusBarFormatter;
+    }
+    
+    /**
+     * @see java.util.logging.Handler#isLoggable(java.util.logging.LogRecord)
+     */
+    public boolean isLoggable(LogRecord record) {
+        return (record.getLevel().intValue() >= infoLevel); 
+    }
+        
+    /**
+     * @see java.util.logging.Handler#getLevel()
+     */
+    public Level getLevel() {
+        return Level.INFO;
     }
 
 }

@@ -135,7 +135,7 @@ public class MeanFilter implements Method, TaskListener,
     public void runMethod(MethodParameters parameters,
             OpenedRawDataFile[] dataFiles, AlignmentResult[] alignmentResults) {
 
-        logger.finest("Running mean filter");
+        logger.info("Running mean filter");
 
         for (OpenedRawDataFile dataFile : dataFiles) {
             Task filterTask = new MeanFilterTask(dataFile,

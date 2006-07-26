@@ -219,7 +219,7 @@ public class RecursiveThresholdPicker implements Method,
     public void runMethod(MethodParameters parameters,
             OpenedRawDataFile[] dataFiles, AlignmentResult[] alignmentResults) {
 
-        logger.finest("Running recursive threshold peak picker");
+        logger.info("Running recursive threshold peak picker");
 
         for (OpenedRawDataFile dataFile : dataFiles) {
             Task pickerTask = new RecursiveThresholdPickerTask(dataFile,

@@ -113,7 +113,7 @@ public class MZXMLFileOpeningTask extends DefaultHandler implements
     public void run() {
 
         status = TaskStatus.PROCESSING;
-        logger.finest("Started parsing file " + originalFile);
+        logger.info("Started parsing file " + originalFile);
 
         // Use the default (non-validating) parser
         SAXParserFactory factory = SAXParserFactory.newInstance();
@@ -152,7 +152,7 @@ public class MZXMLFileOpeningTask extends DefaultHandler implements
             return;
         }
 
-        logger.finest("Finished parsing " + originalFile + ", parsed "
+        logger.info("Finished parsing " + originalFile + ", parsed "
                 + parsedScans + " scans");
         status = TaskStatus.FINISHED;
 
@@ -162,7 +162,7 @@ public class MZXMLFileOpeningTask extends DefaultHandler implements
      * @see net.sf.mzmine.taskcontrol.Task#cancel()
      */
     public void cancel() {
-        logger.finest("Cancelling opening of MZXML file " + originalFile);
+        logger.info("Cancelling opening of MZXML file " + originalFile);
         status = TaskStatus.CANCELED;
     }
 

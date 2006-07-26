@@ -26,7 +26,7 @@ import javax.swing.JTable;
 import javax.swing.table.TableCellRenderer;
 
 /**
- * 
+ * Simple table cell renderer that renders only JComponents
  */
 public class ComponentTableCellRenderer implements TableCellRenderer {
 
@@ -38,7 +38,7 @@ public class ComponentTableCellRenderer implements TableCellRenderer {
             boolean isSelected, boolean hasFocus, int row, int column) {
 
         if (value instanceof JComponent)
-            return (JComponent) value;
+            return (Component) value;
 
         return null;
 

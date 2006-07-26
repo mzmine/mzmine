@@ -19,21 +19,15 @@
 
 package net.sf.mzmine.userinterface.components;
 
-import java.awt.Component;
-
-import javax.swing.JComponent;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JProgressBar;
-import javax.swing.JTable;
 import javax.swing.OverlayLayout;
-import javax.swing.SwingConstants;
-import javax.swing.table.TableCellRenderer;
 
 /**
- * Progress bar with a text label
+ * Progress bar with a text label displaying % of completion
  */
-public class LabeledProgressBar extends JPanel implements TableCellRenderer {
+public class LabeledProgressBar extends JPanel {
 
     private JLabel label;
     private JProgressBar progressBar;
@@ -43,7 +37,7 @@ public class LabeledProgressBar extends JPanel implements TableCellRenderer {
         setLayout(new OverlayLayout(this));
 
         label = new JLabel();
-        label.setAlignmentX(0.5f); //HorizontalAlignment(SwingConstants.CENTER);
+        label.setAlignmentX(0.5f);
         label.setFont(label.getFont().deriveFont(11f));
         add(label);
 
@@ -64,16 +58,4 @@ public class LabeledProgressBar extends JPanel implements TableCellRenderer {
         label.setText(percent + "%");
     }
 
-    /**
-     * @see javax.swing.table.TableCellRenderer#getTableCellRendererComponent(javax.swing.JTable,
-     *      java.lang.Object, boolean, boolean, int, int)
-     */
-    public Component getTableCellRendererComponent(JTable table, Object value,
-            boolean isSelected, boolean hasFocus, int row, int column) {
-        if (value instanceof JComponent) {
-            return (JComponent) value;
-        } else {
-            return null;
-        }
-    }
 }

@@ -100,7 +100,7 @@ public class NetCDFFileOpeningTask implements DistributableTask {
 
         // Update task status
         status = TaskStatus.PROCESSING;
-        logger.finest("Started parsing file " + originalFile);
+        logger.info("Started parsing file " + originalFile);
 
         try {
 
@@ -141,7 +141,7 @@ public class NetCDFFileOpeningTask implements DistributableTask {
             return;
         }
 
-        logger.finest("Finished parsing " + originalFile + ", parsed "
+        logger.info("Finished parsing " + originalFile + ", parsed "
                 + parsedScans + " scans");
         
         // Update task status
@@ -153,7 +153,7 @@ public class NetCDFFileOpeningTask implements DistributableTask {
      * @see net.sf.mzmine.taskcontrol.Task#cancel()
      */
     public void cancel() {
-        logger.finest("Cancelling opening of NETCDF file " + originalFile);
+        logger.info("Cancelling opening of NETCDF file " + originalFile);
         status = TaskStatus.CANCELED;
     }
 

@@ -94,7 +94,7 @@ public class MainWindow extends JFrame implements Desktop, WindowListener {
     }
 
     void tileInternalFrames() {
-        logger.finest("Tiling windows");
+        logger.info("Tiling windows");
         JInternalFrame[] frames = getVisibleFrames();
         if (frames.length == 0)
             return;
@@ -130,7 +130,7 @@ public class MainWindow extends JFrame implements Desktop, WindowListener {
     }
 
     void cascadeInternalFrames() {
-        logger.finest("Cascading windows");
+        logger.info("Cascading windows");
         JInternalFrame[] frames = getVisibleFrames();
         if (frames.length == 0)
             return;

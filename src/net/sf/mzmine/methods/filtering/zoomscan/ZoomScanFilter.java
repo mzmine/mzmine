@@ -131,7 +131,7 @@ public class ZoomScanFilter implements Method, TaskListener,
     public void runMethod(MethodParameters parameters,
             OpenedRawDataFile[] dataFiles, AlignmentResult[] alignmentResults) {
 
-        logger.finest("Running zoom scan filter");
+        logger.info("Running zoom scan filter");
 
         for (OpenedRawDataFile dataFile : dataFiles) {
             Task filterTask = new ZoomScanFilterTask(dataFile,

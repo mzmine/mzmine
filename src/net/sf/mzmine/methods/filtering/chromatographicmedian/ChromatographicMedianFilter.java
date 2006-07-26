@@ -141,7 +141,7 @@ public class ChromatographicMedianFilter implements Method,
     public void runMethod(MethodParameters parameters,
             OpenedRawDataFile[] dataFiles, AlignmentResult[] alignmentResults) {
 
-        logger.finest("Running chromatographic median filter");
+        logger.info("Running chromatographic median filter");
 
         for (OpenedRawDataFile dataFile : dataFiles) {
             Task filterTask = new ChromatographicMedianFilterTask(dataFile,
