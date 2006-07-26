@@ -1,3 +1,3 @@
 #!/bin/sh
 
-java -Dj3d.rend=d3d -Djava.util.logging.config.file=conf/logging.properties -Xms512m -Xmx2048m -jar MZmine.jar
+java -Dj3d.rend=d3d -Djava.util.logging.config.file=conf/logging.properties -Xms512m -Xmx1384m -jar MZmine.jar
