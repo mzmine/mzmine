@@ -21,6 +21,8 @@ package net.sf.mzmine.data.impl;
 
 import java.util.Hashtable;
 import java.util.Enumeration;
+import java.util.TreeSet;
+import java.util.Iterator;
 
 import net.sf.mzmine.util.MathUtils;
 import net.sf.mzmine.data.IsotopePattern;
@@ -43,6 +45,8 @@ public class SimplePeak implements Peak {
 
 	private Hashtable<Integer, Double[]> datapoints;
 
+	private TreeSet<Double> allMZs; // Used only during construction
+
 	private double minRT;
 	private double maxRT;
 	private double minMZ;
@@ -57,6 +61,7 @@ public class SimplePeak implements Peak {
 
 	public SimplePeak() {
 		datapoints = new Hashtable<Integer, Double[]>();
+		intializePrecalculatedValues();
 	}
 
 	/**
@@ -185,7 +190,6 @@ public class SimplePeak implements Peak {
 	}
 
 
-
 	public void addDatapoint(int scanNumber, double mz, double rt, double intensity) {
 		Double[] triplet = new Double[3];
 		triplet[0] = mz;
@@ -194,78 +198,80 @@ public class SimplePeak implements Peak {
 		datapoints.put(new Integer(scanNumber), triplet);
 
 		growing = true;
-		precalculateFromDatapoints();
+		updatePrecalculatedValues(mz, rt, intensity);
 	}
+
 
 	public boolean isGrowing() {
 		return growing;
 	}
+
 
 	public void resetGrowingState() {
 		growing = false;
 	}
 
 
-	private void precalculateFromDatapoints() {
-
-		// Basic requirements of the interface:
-		// - Find minimum and maximum M/Z and RT of all datapoints
-		//
-		// Specific to this peak implementation
-		// - Find maximum height and corresponding RT  (peak's height and RT)
-		// - Calculate sum of all intensities (peak's area)
-		// - Calculate median of all datapoints (defines peak's M/Z)
-		//
+	private void intializePrecalculatedValues() {
 
 		minMZ = Double.MAX_VALUE;
 		maxMZ = Double.MIN_VALUE;
 		minRT = Double.MAX_VALUE;
 		maxRT = Double.MIN_VALUE;
 
+		allMZs = new TreeSet<Double>();
+
+		mz = 0;
+		rt = 0;
 		height = 0.0;
 		area = 0.0;
-		double[] allMZs = new double[datapoints.size()];
 
-		int i=0;
-		for (Enumeration<Double[]> triplets = datapoints.elements();
-				triplets.hasMoreElements(); ) {
-
-			Double[] triplet = triplets.nextElement();
-			double tripletMZ = triplet[0];
-			double tripletRT = triplet[1];
-			double tripletIntensity = triplet[2];
-
-			// Find minimum and maximum M/Z & RT
-			if (tripletMZ<minMZ) minMZ = triplet[0];
-			if (tripletMZ>maxMZ) maxMZ = triplet[0];
-			if (tripletRT<minRT) minRT = triplet[1];
-			if (tripletRT>maxRT) maxRT = triplet[1];
-
-			// Find max intensity point (=> peak's height and RT)
-			if (tripletIntensity>=height) {
-				height = tripletIntensity;
-				rt = tripletRT;
-			}
-
-			// Calc peak's area
-			area += tripletIntensity;
-
-			// Collect M/Z values
-			allMZs[i] = tripletMZ;
-			i++;
-		}
-
-		mz = MathUtils.calcQuantile(allMZs, 0.5);
-
-		normalizedMZ = mz;
-		normalizedRT = rt;
-		normalizedHeight = height;
-		normalizedArea = area;
 
 	}
 
 
+	private void updatePrecalculatedValues(double mz, double rt, double intensity) {
 
+		if (mz<minMZ) minMZ = mz;
+		if (mz>maxMZ) maxMZ = mz;
+
+		if (rt<minRT) minRT = rt;
+		if (rt>maxRT) maxRT = rt;
+
+		if (intensity>=height) {
+			this.rt = rt;
+			height = intensity;
+		}
+
+		area += intensity;
+
+		allMZs.add(mz);
+		int numofvalues = allMZs.size();
+
+		if ( (numofvalues % 2) != 0 ) {
+
+			// odd
+			int numofmidvalue = (int)java.lang.Math.round((double)numofvalues/2.0);
+			Iterator<Double> allMZsIter = allMZs.iterator();
+			int n=1; while (n<numofmidvalue) { allMZsIter.next(); n++; }
+			this.mz = allMZsIter.next();
+
+		} else {
+
+			// Even
+			int numofmidvalue = (int)java.lang.Math.round((double)numofvalues/2.0);
+			Iterator<Double> allMZsIter = allMZs.iterator();
+			int n=1; while (n<numofmidvalue) { allMZsIter.next(); n++; }
+			this.mz = ( allMZsIter.next() + allMZsIter.next()) / 2.0;
+
+		}
+
+		normalizedMZ = this.mz;
+		normalizedRT = this.rt;
+		normalizedHeight = height;
+		normalizedArea = area;
+
+	}
 
 
 }
