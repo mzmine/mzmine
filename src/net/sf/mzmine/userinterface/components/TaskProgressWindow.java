@@ -22,6 +22,7 @@ package net.sf.mzmine.userinterface.components;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 
+import javax.swing.JComponent;
 import javax.swing.JInternalFrame;
 import javax.swing.JMenu;
 import javax.swing.JMenuItem;
@@ -65,6 +66,7 @@ public class TaskProgressWindow extends JInternalFrame implements
         taskTable.setColumnSelectionAllowed(false);
         taskTable.setRowSelectionAllowed(true);
         taskTable.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+        taskTable.setDefaultRenderer(JComponent.class, new ComponentTableCellRenderer());
         JScrollPane jJobScroll = new JScrollPane(taskTable);
         add(jJobScroll, java.awt.BorderLayout.CENTER);
 

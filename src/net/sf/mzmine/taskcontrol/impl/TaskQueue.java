@@ -32,7 +32,9 @@ import javax.swing.event.TableModelListener;
 import javax.swing.table.TableModel;
 
 import net.sf.mzmine.taskcontrol.Task;
+import net.sf.mzmine.taskcontrol.Task.TaskPriority;
 import net.sf.mzmine.taskcontrol.Task.TaskStatus;
+import net.sf.mzmine.userinterface.components.LabeledProgressBar;
 
 /**
  * Task queue
@@ -210,8 +212,7 @@ class TaskQueue implements TableModel, BoundedRangeModel {
             case 2:
                 return task.getTask().getStatus();
             case 3:
-                return String.valueOf(Math.round(task.getTask().getFinishedPercentage() * 100))
-                        + "%";
+                return new LabeledProgressBar(task.getTask().getFinishedPercentage());
             }
         }
 
@@ -223,7 +224,18 @@ class TaskQueue implements TableModel, BoundedRangeModel {
      * @see javax.swing.table.TableModel#getColumnClass(int)
      */
     public Class<?> getColumnClass(int column) {
-        return String.class;
+        switch (column) {
+        case 0:
+            return String.class;
+        case 1:
+            return TaskPriority.class;
+        case 2:
+            return TaskStatus.class;
+        case 3:
+            return LabeledProgressBar.class;
+        }
+        return null;
+
     }
 
     /**
