@@ -22,15 +22,14 @@ package net.sf.mzmine.taskcontrol.impl;
 import java.beans.PropertyVetoException;
 import java.util.logging.Logger;
 
-import javax.swing.BoundedRangeModel;
 import javax.swing.JInternalFrame;
-import javax.swing.table.TableModel;
 
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.taskcontrol.Task;
 import net.sf.mzmine.taskcontrol.TaskController;
 import net.sf.mzmine.taskcontrol.TaskListener;
 import net.sf.mzmine.taskcontrol.Task.TaskPriority;
+import net.sf.mzmine.taskcontrol.Task.TaskStatus;
 import net.sf.mzmine.userinterface.Desktop;
 import net.sf.mzmine.userinterface.components.TaskProgressWindow;
 import net.sf.mzmine.userinterface.mainwindow.MainWindow;
@@ -151,10 +150,10 @@ public class TaskControllerImpl implements TaskController, Runnable {
 
             WrappedTask[] queueSnapshot = taskQueue.getQueueSnapshot();
 
-            // for each task, check if it's assigned
+            // for each task, check if it's assigned and not canceled
             for (WrappedTask task : queueSnapshot) {
 
-                if (!task.isAssigned()) {
+                if (!task.isAssigned() && (task.getTask().getStatus() != TaskStatus.CANCELED)) {
                     // poll local threads
 
                     for (WorkerThread worker : workerThreads) {
