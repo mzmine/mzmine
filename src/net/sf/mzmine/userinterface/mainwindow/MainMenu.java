@@ -211,7 +211,7 @@ public class MainMenu extends JMenuBar implements ActionListener,
         windowTileWindows = GUIUtils.addMenuItem(windowMenu, "Tile windows",
                 this, KeyEvent.VK_T, true);
         windowCascadeWindows = GUIUtils.addMenuItem(windowMenu,
-                "Cascade windows", this, KeyEvent.VK_S, true);
+                "Cascade windows", this, KeyEvent.VK_A, true);
 
         helpMenu = new JMenu("Help");
         helpMenu.setMnemonic(KeyEvent.VK_H);
