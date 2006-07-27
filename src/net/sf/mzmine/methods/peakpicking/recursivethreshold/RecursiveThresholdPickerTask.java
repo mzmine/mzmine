@@ -24,6 +24,7 @@ import java.util.Hashtable;
 import java.util.Iterator;
 import java.util.TreeSet;
 import java.util.Vector;
+import java.util.ArrayList;
 
 import net.sf.mzmine.data.Scan;
 import net.sf.mzmine.data.impl.SimplePeak;
@@ -35,7 +36,7 @@ import net.sf.mzmine.util.MathUtils;
 import net.sf.mzmine.util.ScanUtils;
 
 /**
- * 
+ *
  */
 class RecursiveThresholdPickerTask implements Task {
 
@@ -133,49 +134,60 @@ class RecursiveThresholdPickerTask implements Task {
         // raw data file
         int numOfBins = (int) (java.lang.Math.ceil((endMZ - startMZ)
                 / parameters.binSize));
-        double[][] binInts = new double[numOfBins][totalScans];
+		double[] chromatographicThresholds = new double[numOfBins];
 
-        // Loop through scans and calculate binned maximum intensities
-        for (int i = 0; i < totalScans; i++) {
+		if (parameters.chromatographicThresholdLevel>0) {
 
-            if (status == TaskStatus.CANCELED)
-                return;
+			double[][] binInts = new double[numOfBins][totalScans];
 
-            try {
-                Scan sc = rawDataFile.getScan(scanNumbers[i]);
+			// Loop through scans and calculate binned maximum intensities
+			for (int i = 0; i < totalScans; i++) {
 
-                double[] mzValues = sc.getMZValues();
-                double[] intensityValues = sc.getIntensityValues();
-                double[] tmpInts = ScanUtils.binValues(mzValues,
-                        intensityValues, startMZ, endMZ, numOfBins, true,
-                        ScanUtils.BinningType.MAX);
-                for (int bini = 0; bini < numOfBins; bini++) {
-                    binInts[bini][i] = tmpInts[bini];
-                }
+				if (status == TaskStatus.CANCELED)
+					return;
 
-            } catch (IOException e) {
-                status = TaskStatus.ERROR;
-                errorMessage = e.toString();
-            }
+				try {
+					Scan sc = rawDataFile.getScan(scanNumbers[i]);
 
-            processedScans++;
+					double[] mzValues = sc.getMZValues();
+					double[] intensityValues = sc.getIntensityValues();
+					double[] tmpInts = ScanUtils.binValues(mzValues,
+							intensityValues, startMZ, endMZ, numOfBins, true,
+							ScanUtils.BinningType.MAX);
+					for (int bini = 0; bini < numOfBins; bini++) {
+						binInts[bini][i] = tmpInts[bini];
+					}
 
-        }
+				} catch (IOException e) {
+					status = TaskStatus.ERROR;
+					errorMessage = e.toString();
+				}
 
-        // Calculate filtering threshold from each RIC
-        double initialThreshold = Double.MAX_VALUE;
-        double[] chromatographicThresholds = new double[numOfBins];
-        for (int bini = 0; bini < numOfBins; bini++) {
+				processedScans++;
 
-            chromatographicThresholds[bini] = MathUtils.calcQuantile(
-                    binInts[bini], parameters.chromatographicThresholdLevel);
-            if (chromatographicThresholds[bini] < initialThreshold) {
-                initialThreshold = chromatographicThresholds[bini];
-            }
-        }
+			}
 
-        binInts = null;
-        System.gc();
+			// Calculate filtering threshold from each RIC
+			double initialThreshold = Double.MAX_VALUE;
+
+			for (int bini = 0; bini < numOfBins; bini++) {
+
+				chromatographicThresholds[bini] = MathUtils.calcQuantile(
+						binInts[bini], parameters.chromatographicThresholdLevel);
+				if (chromatographicThresholds[bini] < initialThreshold) {
+					initialThreshold = chromatographicThresholds[bini];
+				}
+			}
+
+			binInts = null;
+			System.gc();
+
+		} else {
+			processedScans += totalScans;
+			for (int bini = 0; bini < numOfBins; bini++)
+				chromatographicThresholds[bini] = 0;
+
+		}
 
         Vector<SimplePeak> underConstructionPeaks = new Vector<SimplePeak>();
         Vector<OneDimPeak> oneDimPeaks = new Vector<OneDimPeak>();
@@ -555,19 +567,20 @@ class RecursiveThresholdPickerTask implements Task {
         private double calcScoreForRTShape(SimplePeak uc, OneDimPeak od) {
 
             double nextIntensity = od.intensity;
-            Hashtable<Integer, Double[]> datapoints = uc.getRawDatapoints();
+            //Hashtable<Integer, Double[]> datapoints = uc.getRawDatapoints();
+            ArrayList<Double> intensities = uc.getRawDatapointIntensities();
 
             // If no previous m/z peaks
-            if (datapoints.size() == 0) {
+            if (intensities.size() == 0) {
                 return 0;
             }
 
-            // If only one previous m/z peak
-            if (datapoints.size() == 1) {
+            //Enumeration<Double[]> triplets = datapoints.elements();
 
-                Object[] triplets = datapoints.values().toArray();
-                double prevIntensity = ((Double[]) (triplets[0]))[2];
-                triplets = null;
+            // If only one previous m/z peak
+            if (intensities.size() == 1) {
+
+                double prevIntensity = intensities.get(0);
 
                 // If it goes up, then give minimum (best) score
                 if ((nextIntensity - prevIntensity) >= 0) {
@@ -593,12 +606,12 @@ class RecursiveThresholdPickerTask implements Task {
 
             // Determine shape of the peak
 
-            Object[] triplets = datapoints.values().toArray();
             int derSign = 1;
-            for (int ind = 1; ind < triplets.length; ind++) {
 
-                double prevIntensity = ((Double[]) (triplets[ind - 1]))[2];
-                double currIntensity = ((Double[]) (triplets[ind]))[2];
+			for (int ind=1; ind<intensities.size(); ind++) {
+
+                double prevIntensity = intensities.get(ind-1);
+                double currIntensity = intensities.get(ind);
 
                 // If peak is currently going up
                 if (derSign == 1) {
@@ -640,17 +653,17 @@ class RecursiveThresholdPickerTask implements Task {
             // If peak is currently going down
             if (derSign == -1) {
 
-                double prevIntensity = ((Double[]) (triplets[triplets.length - 1]))[2];
+                double lastIntensity = intensities.get(intensities.size()-1);
 
                 // Then peak must not start going up again
-                double topMargin = prevIntensity
+                double topMargin = lastIntensity
                         * (1 + parameters.intTolerance);
 
                 if (nextIntensity >= topMargin) {
                     return Double.MAX_VALUE;
                 }
 
-                if (nextIntensity < prevIntensity) {
+                if (nextIntensity < lastIntensity) {
                     return 0;
                 }
 

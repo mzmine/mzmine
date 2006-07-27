@@ -23,6 +23,7 @@ import java.util.Hashtable;
 import java.util.Enumeration;
 import java.util.TreeSet;
 import java.util.Iterator;
+import java.util.ArrayList;
 
 import net.sf.mzmine.util.MathUtils;
 import net.sf.mzmine.data.IsotopePattern;
@@ -43,9 +44,10 @@ public class SimplePeak implements Peak {
 	private double height;
 	private double area;
 
-	private Hashtable<Integer, Double[]> datapoints;
-
-	private TreeSet<Double> allMZs; // Used only during construction
+	private ArrayList<Integer> datapointScanNumbers;
+	private ArrayList<Double> datapointMZs;
+	private ArrayList<Double> datapointRTs;
+	private ArrayList<Double> datapointIntensities;
 
 	private double minRT;
 	private double maxRT;
@@ -57,11 +59,15 @@ public class SimplePeak implements Peak {
 	private double normalizedHeight;
 	private double normalizedArea;
 
+	// These are only used during construction
+	private TreeSet<Double> constructionSortedMZs;
 	private boolean growing=false;
 
+	/**
+	 * Initializes empty peak for adding data points to
+	 */
 	public SimplePeak() {
-		datapoints = new Hashtable<Integer, Double[]>();
-		intializePrecalculatedValues();
+		intializeAddingDatapoints();
 	}
 
 	/**
@@ -106,13 +112,37 @@ public class SimplePeak implements Peak {
 
 	/* Get methods for accessing the raw datapoints that construct the peak */
 
-	/**
-	 * This method returns a hashtable mapping scan numbers to triplets of M/Z, RT and Intensity
-	 *
-	 * @return Hashtable maps scan number to datapoints for the scan
-	 */
 	public Hashtable<Integer, Double[]> getRawDatapoints() {
-		return datapoints;
+
+		Hashtable<Integer, Double[]> dpHash = new Hashtable<Integer, Double[]>();
+
+		for (int i=0; i<datapointScanNumbers.size(); i++) {
+
+			Double[] dps = new Double[3];
+			dps[0] = datapointMZs.get(i);
+			dps[1] = datapointRTs.get(i);
+			dps[2] = datapointIntensities.get(i);
+
+			dpHash.put(new Integer(i), dps);
+		}
+
+		return dpHash;
+	}
+
+	public ArrayList<Integer> getRawDatapointScanNumbers() {
+		return datapointScanNumbers;
+	}
+
+	public ArrayList<Double> getRawDatapointMZs() {
+		return datapointMZs;
+	}
+
+	public ArrayList<Double> getRawDatapointRTs() {
+		return datapointRTs;
+	}
+
+	public ArrayList<Double> getRawDatapointIntensities() {
+		return datapointIntensities;
 	}
 
 
@@ -190,16 +220,7 @@ public class SimplePeak implements Peak {
 	}
 
 
-	public void addDatapoint(int scanNumber, double mz, double rt, double intensity) {
-		Double[] triplet = new Double[3];
-		triplet[0] = mz;
-		triplet[1] = rt;
-		triplet[2] = intensity;
-		datapoints.put(new Integer(scanNumber), triplet);
-
-		growing = true;
-		updatePrecalculatedValues(mz, rt, intensity);
-	}
+	/* Following methods are not part of Peak interface implementation */
 
 
 	public boolean isGrowing() {
@@ -211,26 +232,35 @@ public class SimplePeak implements Peak {
 		growing = false;
 	}
 
+	private void intializeAddingDatapoints() {
 
-	private void intializePrecalculatedValues() {
+		constructionSortedMZs = new TreeSet<Double>();
+
+		datapointScanNumbers = new ArrayList<Integer>();
+		datapointMZs = new ArrayList<Double>();
+		datapointRTs = new ArrayList<Double>();
+		datapointIntensities = new ArrayList<Double>();
 
 		minMZ = Double.MAX_VALUE;
 		maxMZ = Double.MIN_VALUE;
 		minRT = Double.MAX_VALUE;
 		maxRT = Double.MIN_VALUE;
 
-		allMZs = new TreeSet<Double>();
-
 		mz = 0;
 		rt = 0;
 		height = 0.0;
 		area = 0.0;
 
-
 	}
 
+	public void addDatapoint(int scanNumber, double mz, double rt, double intensity) {
 
-	private void updatePrecalculatedValues(double mz, double rt, double intensity) {
+		growing = true;
+
+		datapointScanNumbers.add(scanNumber);
+		datapointMZs.add(mz);
+		datapointRTs.add(rt);
+		datapointIntensities.add(intensity);
 
 		if (mz<minMZ) minMZ = mz;
 		if (mz>maxMZ) maxMZ = mz;
@@ -245,24 +275,24 @@ public class SimplePeak implements Peak {
 
 		area += intensity;
 
-		allMZs.add(mz);
-		int numofvalues = allMZs.size();
+		constructionSortedMZs.add(mz);
+		int numofvalues = constructionSortedMZs.size();
 
 		if ( (numofvalues % 2) != 0 ) {
 
 			// odd
 			int numofmidvalue = (int)java.lang.Math.round((double)numofvalues/2.0);
-			Iterator<Double> allMZsIter = allMZs.iterator();
-			int n=1; while (n<numofmidvalue) { allMZsIter.next(); n++; }
-			this.mz = allMZsIter.next();
+			Iterator<Double> constructionSortedMZsIter = constructionSortedMZs.iterator();
+			int n=1; while (n<numofmidvalue) { constructionSortedMZsIter.next(); n++; }
+			this.mz = constructionSortedMZsIter.next();
 
 		} else {
 
 			// Even
 			int numofmidvalue = (int)java.lang.Math.round((double)numofvalues/2.0);
-			Iterator<Double> allMZsIter = allMZs.iterator();
-			int n=1; while (n<numofmidvalue) { allMZsIter.next(); n++; }
-			this.mz = ( allMZsIter.next() + allMZsIter.next()) / 2.0;
+			Iterator<Double> constructionSortedMZsIter = constructionSortedMZs.iterator();
+			int n=1; while (n<numofmidvalue) { constructionSortedMZsIter.next(); n++; }
+			this.mz = ( constructionSortedMZsIter.next() + constructionSortedMZsIter.next()) / 2.0;
 
 		}
 
@@ -272,6 +302,13 @@ public class SimplePeak implements Peak {
 		normalizedArea = area;
 
 	}
+
+	public void finalizedAddingDatapoints() {
+
+
+	}
+
+
 
 
 }

@@ -1,17 +1,17 @@
 /*
  * Copyright 2006 The MZmine Development Team
- * 
+ *
  * This file is part of MZmine.
- * 
+ *
  * MZmine is free software; you can redistribute it and/or modify it under the
  * terms of the GNU General Public License as published by the Free Software
  * Foundation; either version 2 of the License, or (at your option) any later
  * version.
- * 
+ *
  * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY
  * WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR
  * A PARTICULAR PURPOSE. See the GNU General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License along with
  * MZmine; if not, write to the Free Software Foundation, Inc., 51 Franklin St,
  * Fifth Floor, Boston, MA 02110-1301 USA
@@ -20,6 +20,7 @@
 package net.sf.mzmine.data;
 
 import java.util.Hashtable;
+import java.util.ArrayList;
 
 /**
  * This interface defines the properties of a detected peak
@@ -30,7 +31,7 @@ public interface Peak {
      * DETECTED - peak was found in primary peak picking ESTIMATED - peak was
      * estimated in secondary peak picking (after alignment) MISSING - peak is
      * not found or estimated
-     * 
+     *
      */
     public static enum PeakStatus {
         DETECTED, ESTIMATED, MISSING
@@ -72,12 +73,31 @@ public interface Peak {
      * These datapoints should correspond to datapoints in the raw data.
      */
 
+	/**
+	 * This method returns datapoints
+	 */
+	public Hashtable<Integer, Double[]> getRawDatapoints();
+
     /**
-     * This method returns all datapoints of the peak
-     * 
-     * @return Hashtable maps scan number to triplets of M/Z, RT and Intensity
+     * This method returns scan numbers of datapoints
      */
-    public Hashtable<Integer, Double[]> getRawDatapoints();
+    public ArrayList<Integer> getRawDatapointScanNumbers();
+
+    /**
+     * This method returns M/Z values of datapoints
+     */
+    public ArrayList<Double> getRawDatapointMZs();
+
+    /**
+     * This method returns RT values of datapoints
+     */
+    public ArrayList<Double> getRawDatapointRTs();
+
+    /**
+     * This method returns intensity values of datapoints
+     */
+    public ArrayList<Double> getRawDatapointIntensities();
+
 
     /**
      * Returns the minimum RT of all datapoints
@@ -123,7 +143,7 @@ public interface Peak {
 
     /**
      * This method returns the isotope pattern where this peak is assigned
-     * 
+     *
      * @return isotope pattern or null if peak is not assigned to any pattern.
      */
     public IsotopePattern getIsotopePattern();

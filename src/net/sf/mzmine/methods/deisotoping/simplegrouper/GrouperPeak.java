@@ -20,15 +20,14 @@
 package net.sf.mzmine.methods.deisotoping.simplegrouper;
 
 import java.util.Hashtable;
-import java.util.Enumeration;
+import java.util.ArrayList;
 
 import net.sf.mzmine.util.MathUtils;
 import net.sf.mzmine.data.IsotopePattern;
 import net.sf.mzmine.data.Peak;
 
 /**
- * This class is a simple implementation of the peak interface.
- * This implementation is used by recursive threshold, centroid and local maximum peak pickers.
+ *
  */
 public class GrouperPeak implements Peak {
 
@@ -41,7 +40,10 @@ public class GrouperPeak implements Peak {
 	private double height;
 	private double area;
 
-	private Hashtable<Integer, Double[]> datapoints;
+	private ArrayList<Integer> datapointScanNumbers;
+	private ArrayList<Double> datapointMZs;
+	private ArrayList<Double> datapointRTs;
+	private ArrayList<Double> datapointIntensities;
 
 	private double minRT;
 	private double maxRT;
@@ -63,7 +65,10 @@ public class GrouperPeak implements Peak {
 		height = oldPeak.getRawHeight();
 		area = oldPeak.getRawArea();
 
-		datapoints = oldPeak.getRawDatapoints();
+		datapointScanNumbers = oldPeak.getRawDatapointScanNumbers();
+		datapointMZs = oldPeak.getRawDatapointMZs();
+		datapointRTs = oldPeak.getRawDatapointRTs();
+		datapointIntensities = oldPeak.getRawDatapointIntensities();
 
 		normalizedMZ = oldPeak.getNormalizedMZ();
 		normalizedRT = oldPeak.getNormalizedRT();
@@ -114,14 +119,39 @@ public class GrouperPeak implements Peak {
 
 	/* Get methods for accessing the raw datapoints that construct the peak */
 
-	/**
-	 * This method returns a hashtable mapping scan numbers to triplets of M/Z, RT and Intensity
-	 *
-	 * @return Hashtable maps scan number to datapoints for the scan
-	 */
 	public Hashtable<Integer, Double[]> getRawDatapoints() {
-		return datapoints;
+
+		Hashtable<Integer, Double[]> dpHash = new Hashtable<Integer, Double[]>();
+
+		for (int i=0; i<datapointScanNumbers.size(); i++) {
+
+			Double[] dps = new Double[3];
+			dps[0] = datapointMZs.get(i);
+			dps[1] = datapointRTs.get(i);
+			dps[2] = datapointIntensities.get(i);
+
+			dpHash.put(new Integer(i), dps);
+		}
+
+		return dpHash;
 	}
+
+	public ArrayList<Integer> getRawDatapointScanNumbers() {
+		return datapointScanNumbers;
+	}
+
+	public ArrayList<Double> getRawDatapointMZs() {
+		return datapointMZs;
+	}
+
+	public ArrayList<Double> getRawDatapointRTs() {
+		return datapointRTs;
+	}
+
+	public ArrayList<Double> getRawDatapointIntensities() {
+		return datapointIntensities;
+	}
+
 
 
 	/**

@@ -25,6 +25,7 @@ import java.util.Hashtable;
 import java.util.Iterator;
 import java.util.TreeSet;
 import java.util.Vector;
+import java.util.ArrayList;
 
 import net.sf.mzmine.data.Scan;
 import net.sf.mzmine.data.impl.SimplePeak;
@@ -492,20 +493,20 @@ class CentroidPickerTask implements Task {
         private double calcScoreForRTShape(SimplePeak uc, OneDimPeak od) {
 
             double nextIntensity = od.intensity;
-            Hashtable<Integer, Double[]> datapoints = uc.getRawDatapoints();
+            //Hashtable<Integer, Double[]> datapoints = uc.getRawDatapoints();
+            ArrayList<Double> intensities = uc.getRawDatapointIntensities();
 
             // If no previous m/z peaks
-            if (datapoints.size() == 0) {
+            if (intensities.size() == 0) {
                 return 0;
             }
 
-            Enumeration<Double[]> triplets = datapoints.elements();
+            //Enumeration<Double[]> triplets = datapoints.elements();
 
             // If only one previous m/z peak
-            if (datapoints.size() == 1) {
+            if (intensities.size() == 1) {
 
-                Double[] prevTriplet = triplets.nextElement();
-                double prevIntensity = prevTriplet[2];
+                double prevIntensity = intensities.get(0);
 
                 // If it goes up, then give minimum (best) score
                 if ((nextIntensity - prevIntensity) >= 0) {
@@ -533,18 +534,10 @@ class CentroidPickerTask implements Task {
 
             int derSign = 1;
 
-            // Object[] triplets = datapoints.values().toArray();
-            // for (int ind=1; ind<triplets.length; ind++) {
-            Double[] currTriplet = triplets.nextElement();
-            while (triplets.hasMoreElements()) {
+			for (int ind=1; ind<intensities.size(); ind++) {
 
-                Double[] prevTriplet = currTriplet;
-                currTriplet = triplets.nextElement();
-
-                // double prevIntensity = ((Double[])(triplets[ind-1]))[2];
-                // double currIntensity = ((Double[])(triplets[ind]))[2];
-                double prevIntensity = prevTriplet[2];
-                double currIntensity = currTriplet[2];
+                double prevIntensity = intensities.get(ind-1);
+                double currIntensity = intensities.get(ind);
 
                 // If peak is currently going up
                 if (derSign == 1) {
@@ -586,7 +579,7 @@ class CentroidPickerTask implements Task {
             // If peak is currently going down
             if (derSign == -1) {
 
-                double lastIntensity = currTriplet[2];
+                double lastIntensity = intensities.get(intensities.size()-1);
 
                 // Then peak must not start going up again
                 double topMargin = lastIntensity
