@@ -54,7 +54,7 @@ class TICDataSet extends DefaultTableXYDataset implements RawDataAcceptor {
     private XYSeries series;
     private double mzMin, mzMax;
 
-    private Date lastRedrawTime = new Date();
+    private static Date lastRedrawTime = new Date();
 
     TICDataSet(TaskController taskController, OpenedRawDataFile dataFile, int scanNumbers[], double mzMin, double mzMax, TICVisualizerWindow visualizer) {
 
