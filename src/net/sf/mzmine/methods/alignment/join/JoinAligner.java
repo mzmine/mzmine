@@ -19,60 +19,49 @@
 
 package net.sf.mzmine.methods.alignment.join;
 
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.awt.event.KeyEvent;
 import java.util.logging.Logger;
 
+import javax.swing.JMenuItem;
+import javax.swing.event.ListSelectionEvent;
+import javax.swing.event.ListSelectionListener;
+
 import net.sf.mzmine.data.AlignmentResult;
+import net.sf.mzmine.data.PeakList;
 import net.sf.mzmine.io.OpenedRawDataFile;
-import net.sf.mzmine.io.RawDataFile;
 import net.sf.mzmine.main.MZmineCore;
+import net.sf.mzmine.main.MZmineModule;
 import net.sf.mzmine.methods.Method;
 import net.sf.mzmine.methods.MethodParameters;
+import net.sf.mzmine.project.MZmineProject;
+import net.sf.mzmine.taskcontrol.Task;
 import net.sf.mzmine.taskcontrol.TaskController;
+import net.sf.mzmine.taskcontrol.TaskListener;
 import net.sf.mzmine.userinterface.Desktop;
-
+import net.sf.mzmine.userinterface.Desktop.MZmineMenu;
 
 
 
 /**
  *
  */
-public class JoinAligner implements Method {
+public class JoinAligner implements Method,
+        TaskListener, ListSelectionListener, ActionListener {
 
+    private Logger logger = Logger.getLogger(this.getClass().getName());
+
+    private TaskController taskController;
+    private Desktop desktop;
+    private JMenuItem myMenuItem;
 
 
 	public String toString() {
 		return new String("Join Aligner");
 	}
 
-	/**
-	 * This method asks user to define which raw data files should be aligned and also check parameter values
-	 */
-	public boolean askParameters(MethodParameters parameters) {
 
-		if (parameters==null) return false;
-		JoinAlignerParameters currentParameters = (JoinAlignerParameters)parameters;
-
-		//JoinAlignerParameterSetupDialog jaPSD = new JoinAlignerParameterSetupDialog((JFrame)(MainWindow.getInstance()), new String("Please give parameter values"), currentParameters);
-		//jaPSD.setVisible(true);
-
-		// Check if user pressed cancel
-		//if (jaPSD.getExitCode()==-1) {
-		//	return false;
-		//}
-
-		return true;
-	}
-
-	public void runMethod(MethodParameters parameters, RawDataFile[] rawDataFiles, AlignmentResult[] alignmentResults) {
-	}
-
-    /**
-     * @see net.sf.mzmine.main.MZmineModule#initModule(net.sf.mzmine.taskcontrol.TaskController, net.sf.mzmine.userinterface.Desktop, java.util.logging.Logger)
-     */
-    public void initModule(TaskController taskController, Desktop desktop, Logger logger) {
-        // TODO Auto-generated method stub
-        
-    }
 
     /**
      * @see net.sf.mzmine.methods.Method#askParameters()
@@ -87,16 +76,57 @@ public class JoinAligner implements Method {
      */
     public void runMethod(MethodParameters parameters, OpenedRawDataFile[] dataFiles, AlignmentResult[] alignmentResults) {
         // TODO Auto-generated method stub
-        
+
     }
 
     /**
      * @see net.sf.mzmine.main.MZmineModule#initModule(net.sf.mzmine.main.MZmineCore)
      */
     public void initModule(MZmineCore core) {
-        // TODO Auto-generated method stub
-        
+
+        this.taskController = core.getTaskController();
+        this.desktop = core.getDesktop();
+
+        myMenuItem = desktop.addMenuItem(MZmineMenu.ALIGNMENT,
+                "Peak list aligner", this, null, KeyEvent.VK_A,
+                false, false);
+
+        desktop.addSelectionListener(this);
+
+
     }
 
+
+    /**
+     * @see java.awt.event.ActionListener#actionPerformed(java.awt.event.ActionEvent)
+     */
+    public void actionPerformed(ActionEvent e) {
+
+        MethodParameters parameters = askParameters();
+        if (parameters == null)
+            return;
+
+        OpenedRawDataFile[] dataFiles = desktop.getSelectedDataFiles();
+
+        runMethod(parameters, dataFiles, null);
+
+    }
+
+    /**
+     * @see javax.swing.event.ListSelectionListener#valueChanged(javax.swing.event.ListSelectionEvent)
+     */
+    public void valueChanged(ListSelectionEvent e) {
+        //myMenuItem.setEnabled(desktop.isDataFileSelected());
+    }
+
+
+
+    public void taskStarted(Task task) {
+        // do nothing
+    }
+
+    public void taskFinished(Task task) {
+		// TODO
+	}
 
 }
