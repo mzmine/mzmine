@@ -117,6 +117,18 @@ public class JoinAligner implements Method,
      */
     public void valueChanged(ListSelectionEvent e) {
         //myMenuItem.setEnabled(desktop.isDataFileSelected());
+
+        OpenedRawDataFile[] dataFiles = desktop.getSelectedDataFiles();
+
+		boolean allOk = true;
+
+        for (OpenedRawDataFile file : dataFiles) {
+            if (!(MZmineProject.getCurrentProject().hasPeakList(file))) {
+				allOk = false;
+            }
+        }
+        myMenuItem.setEnabled(allOk);
+
     }
 
 
@@ -126,7 +138,19 @@ public class JoinAligner implements Method,
     }
 
     public void taskFinished(Task task) {
-		// TODO
+
+        if (task.getStatus() == Task.TaskStatus.FINISHED) {
+
+			// TODO
+
+        } else if (task.getStatus() == Task.TaskStatus.ERROR) {
+            /* Task encountered an error */
+            String msg = "Error while aligning peak lists: "
+                    + task.getErrorMessage();
+            logger.severe(msg);
+            desktop.displayErrorMessage(msg);
+        }
+
 	}
 
 }
