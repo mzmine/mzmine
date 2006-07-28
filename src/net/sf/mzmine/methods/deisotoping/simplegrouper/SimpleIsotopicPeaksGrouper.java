@@ -1,17 +1,17 @@
 /*
  * Copyright 2006 The MZmine Development Team
- * 
+ *
  * This file is part of MZmine.
- * 
+ *
  * MZmine is free software; you can redistribute it and/or modify it under the
  * terms of the GNU General Public License as published by the Free Software
  * Foundation; either version 2 of the License, or (at your option) any later
  * version.
- * 
+ *
  * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY
  * WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR
  * A PARTICULAR PURPOSE. See the GNU General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License along with
  * MZmine; if not, write to the Free Software Foundation, Inc., 51 Franklin St,
  * Fifth Floor, Boston, MA 02110-1301 USA
@@ -45,7 +45,7 @@ import net.sf.mzmine.userinterface.Desktop.MZmineMenu;
 /**
  * This class implements a simple isotopic peaks grouper method based on
  * searhing for neighbouring peaks from expected locations.
- * 
+ *
  * @version 31 March 2006
  */
 
@@ -53,7 +53,7 @@ public class SimpleIsotopicPeaksGrouper implements Method,
         TaskListener, ListSelectionListener, ActionListener {
 
     private Logger logger = Logger.getLogger(this.getClass().getName());
-    
+
     private TaskController taskController;
     private Desktop desktop;
     private JMenuItem myMenuItem;
@@ -78,10 +78,12 @@ public class SimpleIsotopicPeaksGrouper implements Method,
 
     /**
      * This function displays a modal dialog to define method parameters
-     * 
+     *
      * @see net.sf.mzmine.methods.Method#askParameters()
      */
     public MethodParameters askParameters() {
+
+		logger.finest("Showing simple isotopic peaks grouper parameter setup dialog");
 
         MZmineProject currentProject = MZmineProject.getCurrentProject();
         SimpleIsotopicPeaksGrouperParameters currentParameters = (SimpleIsotopicPeaksGrouperParameters) currentProject.getParameters(this);
@@ -96,7 +98,7 @@ public class SimpleIsotopicPeaksGrouper implements Method,
             return null;
         }
 
-        return null;
+        return sdpsd.getParameters();
 
     }
 
@@ -167,7 +169,7 @@ public class SimpleIsotopicPeaksGrouper implements Method,
             OpenedRawDataFile dataFile = (OpenedRawDataFile) result[0];
             PeakList peakList = (PeakList) result[1];
             MethodParameters params = (MethodParameters) result[2];
-            
+
             dataFile.addHistoryEntry(dataFile.getCurrentFile().getFile(), this,
                     params);
 
