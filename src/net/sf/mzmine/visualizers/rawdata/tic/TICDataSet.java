@@ -65,7 +65,7 @@ class TICDataSet extends DefaultTableXYDataset implements RawDataAcceptor {
         this.rawDataFile = dataFile.getCurrentFile();
         this.scanNumbers = scanNumbers;
         
-        series = new XYSeries(rawDataFile.toString(), false,
+        series = new XYSeries(dataFile.toString(), false,
                 false);
 
         addSeries(series);
@@ -74,7 +74,7 @@ class TICDataSet extends DefaultTableXYDataset implements RawDataAcceptor {
             mzValues = new double[scanNumbers.length];
         
         Task updateTask = new RawDataRetrievalTask(rawDataFile, scanNumbers,
-                "Updating TIC visualizer of " + rawDataFile, this);
+                "Updating TIC visualizer of " + dataFile, this);
 
         taskController.addTask(updateTask, TaskPriority.HIGH, visualizer);
         
