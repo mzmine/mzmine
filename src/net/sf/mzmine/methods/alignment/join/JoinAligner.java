@@ -67,15 +67,36 @@ public class JoinAligner implements Method,
      * @see net.sf.mzmine.methods.Method#askParameters()
      */
     public MethodParameters askParameters() {
-        // TODO Auto-generated method stub
-        return null;
+
+
+        MZmineProject currentProject = MZmineProject.getCurrentProject();
+        JoinAlignerParameters currentParameters = (JoinAlignerParameters) currentProject.getParameters(this);
+        if (currentParameters == null)
+            currentParameters = new JoinAlignerParameters();
+
+		JoinAlignerParameterSetupDialog jaPSD = new JoinAlignerParameterSetupDialog(desktop.getMainFrame(), new String("Please give parameter values"), currentParameters);
+		jaPSD.setVisible(true);
+
+		// Check if user pressed cancel
+		if (jaPSD.getExitCode()==-1) {
+			return null;
+		}
+
+		currentParameters = jaPSD.getParameters();
+
+		return currentParameters;
+
     }
 
     /**
      * @see net.sf.mzmine.methods.Method#runMethod(net.sf.mzmine.methods.MethodParameters, net.sf.mzmine.io.OpenedRawDataFile[], net.sf.mzmine.methods.alignment.AlignmentResult[])
      */
     public void runMethod(MethodParameters parameters, OpenedRawDataFile[] dataFiles, AlignmentResult[] alignmentResults) {
-        // TODO Auto-generated method stub
+
+        logger.info("Running join aligner");
+
+		Task alignmentTask = new JoinAlignerTask(dataFiles, (JoinAlignerParameters) parameters);
+		taskController.addTask(alignmentTask, this);
 
     }
 
