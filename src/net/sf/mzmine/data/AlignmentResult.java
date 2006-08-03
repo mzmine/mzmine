@@ -63,6 +63,6 @@ public interface AlignmentResult {
 	 * Returns all identification results assigned to a single row of the alignment result
 	 * One row can have zero, one or any number of identifications.
 	 */
-	public CompoundIdentity[] getIdentificationResults(int row);
+	//public CompoundIdentity[] getIdentificationResults(int row);
 
 }
