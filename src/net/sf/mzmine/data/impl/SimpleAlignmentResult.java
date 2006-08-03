@@ -128,4 +128,48 @@ public class SimpleAlignmentResult implements AlignmentResult {
 	 */
 	//public CompoundIdentity[] getIdentificationResults(int row);
 
+
+	/**
+	 * Adds a new opened raw data to the alignment result
+	 */
+	public void addOpenedRawDataFile(OpenedRawDataFile openedRawDataFile) {
+		alignmentResultMatrix.put(openedRawDataFile, new ArrayList<Peak>());
+
+	}
+
+	/**
+	 * Adds a new row the the alignment result matrix and puts the peak to this row.
+	 */
+	public void addPeakOnNewRow(OpenedRawDataFile openedRawDataFile, Peak peak) {
+
+		Enumeration<ArrayList<Peak>> peakArrayEnum = alignmentResultMatrix.elements();
+		Enumeration<OpenedRawDataFile> dataFileEnum = alignmentResultMatrix.keys();
+
+		if (!(peakArrayEnum.hasMoreElements())) return;
+
+		while (peakArrayEnum.hasMoreElements()) {
+			ArrayList<Peak> peakArray = peakArrayEnum.nextElement();
+			OpenedRawDataFile currentFile = dataFileEnum.nextElement();
+
+			// If this is correct column, then add peak to this column, otherwise empty slot
+			if (currentFile == openedRawDataFile) { peakArray.add(peak);	}
+			else { peakArray.add(null); }
+
+		}
+
+	}
+
+	/**
+	 * Puts a peak to existing row on the alignment result matrix
+	 */
+	public void putPeakOnRow(OpenedRawDataFile rawDataFile, Peak peak, int row) {
+		ArrayList<Peak> peakArray = alignmentResultMatrix.get(rawDataFile);
+
+		if (peakArray == null) return; // TODO Throw error?
+
+		peakArray.set(row, peak);
+
+	}
+
+
 }
