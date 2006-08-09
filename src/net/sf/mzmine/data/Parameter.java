@@ -48,6 +48,12 @@ public interface Parameter {
      * @return Detailed description of the parameter
      */
     public String getDescription();
+    
+    /**
+     * 
+     * @return Symbol for units of the parameter
+     */
+    public String getUnits();
 
     /**
      * 
