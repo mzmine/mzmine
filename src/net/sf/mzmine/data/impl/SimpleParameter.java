@@ -34,29 +34,44 @@ public class SimpleParameter implements Parameter {
     private Object defaultValue, minValue, maxValue, possibleValues[];
     private NumberFormat format;
 
+    public SimpleParameter(ParameterType type, String name, String description) {
+        this(type, name, description, null, null, null, null, null, null);
+    }
 
-    public SimpleParameter(ParameterType type, String name, String description, String units) {
+    public SimpleParameter(ParameterType type, String name, String description,
+            String units) {
         this(type, name, description, units, null, null, null, null, null);
     }
-    
-    public SimpleParameter(ParameterType type, String name, String description, String units, NumberFormat format) {
+
+    public SimpleParameter(ParameterType type, String name, String description,
+            String units, NumberFormat format) {
         this(type, name, description, units, null, null, null, null, format);
     }
 
-    public SimpleParameter(ParameterType type, String name, String description, String units, Object defaultValue) {
-        this(type, name, description, units, defaultValue, null, null, null, null);
-    }
-    
-    public SimpleParameter(ParameterType type, String name, String description, String units, Object defaultValue, NumberFormat format) {
-        this(type, name, description, units, defaultValue, null, null, null, format);
+    public SimpleParameter(ParameterType type, String name, String description,
+            String units, Object defaultValue) {
+        this(type, name, description, units, defaultValue, null, null, null,
+                null);
     }
 
-    public SimpleParameter(ParameterType type, String name, String description, String units, Object defaultValue, Object possibleValues[], NumberFormat format) {
-        this(type, name, description, units, defaultValue, null, null, possibleValues, format);
+    public SimpleParameter(ParameterType type, String name, String description,
+            String units, Object defaultValue, NumberFormat format) {
+        this(type, name, description, units, defaultValue, null, null, null,
+                format);
     }
-    
-    public SimpleParameter(ParameterType type, String name, String description, String units, Object defaultValue, Object minValue, Object maxValue, NumberFormat format) {
-        this(type, name, description, units, defaultValue, minValue, maxValue, null, format);
+
+    public SimpleParameter(ParameterType type, String name, String description,
+            String units, Object defaultValue, Object possibleValues[],
+            NumberFormat format) {
+        this(type, name, description, units, defaultValue, null, null,
+                possibleValues, format);
+    }
+
+    public SimpleParameter(ParameterType type, String name, String description,
+            String units, Object defaultValue, Object minValue,
+            Object maxValue, NumberFormat format) {
+        this(type, name, description, units, defaultValue, minValue, maxValue,
+                null, format);
     }
 
     /**
@@ -70,7 +85,10 @@ public class SimpleParameter implements Parameter {
      * @param possibleValues
      * @param format
      */
-    private SimpleParameter(ParameterType type, String name, String description, String units, Object defaultValue, Object minValue, Object maxValue, Object[] possibleValues, NumberFormat format) {
+    private SimpleParameter(ParameterType type, String name,
+            String description, String units, Object defaultValue,
+            Object minValue, Object maxValue, Object[] possibleValues,
+            NumberFormat format) {
         this.type = type;
         this.name = name;
         this.description = description;
@@ -123,7 +141,7 @@ public class SimpleParameter implements Parameter {
     public Object getDefaultValue() {
         return defaultValue;
     }
-    
+
     /**
      * @see net.sf.mzmine.data.Parameter#getMinimumValue()
      */
@@ -144,6 +162,5 @@ public class SimpleParameter implements Parameter {
     public NumberFormat getFormat() {
         return format;
     }
-
 
 }
