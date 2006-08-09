@@ -51,13 +51,19 @@ public interface Parameter {
     
     /**
      * 
-     * @return Symbol for units of the parameter
+     * @return Symbol for units of the parameter or null
      */
     public String getUnits();
 
     /**
      * 
-     * @return Array of possible values of this parameter, or null
+     * @return Default value of this parameter or null
+     */
+    public Object getDefaultValue();
+    
+    /**
+     * 
+     * @return Array of possible values of this parameter or null
      */
     public Object[] getPossibleValues();
 
