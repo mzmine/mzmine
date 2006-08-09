@@ -19,6 +19,8 @@
 
 package net.sf.mzmine.data;
 
+import java.text.NumberFormat;
+
 /**
  * Parameter interface, represents parameters or variables used in the project
  */
@@ -47,11 +49,29 @@ public interface Parameter {
      */
     public String getDescription();
 
+    /**
+     * 
+     * @return Array of possible values of this parameter, or null
+     */
     public Object[] getPossibleValues();
 
+    /**
+     * 
+     * @return Minimum possible value of this parameter or null
+     */
     public Object getMinimumValue();
 
+    /**
+     * 
+     * @return Maximum possible value of this parameter or null
+     */
     public Object getMaximumValue();
+    
+    /**
+     * 
+     * @return NumberFormat suitable for this parameter or null
+     */
+    public NumberFormat getFormat();
 
     
 }

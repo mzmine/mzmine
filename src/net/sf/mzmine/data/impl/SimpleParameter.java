@@ -19,8 +19,9 @@
 
 package net.sf.mzmine.data.impl;
 
+import java.text.NumberFormat;
+
 import net.sf.mzmine.data.Parameter;
-import net.sf.mzmine.data.Parameter.ParameterType;
 
 
 /**
@@ -31,6 +32,7 @@ public class SimpleParameter implements Parameter {
     private ParameterType type;
     private String name, description;
     private Object minValue, maxValue, possibleValues[];
+    private NumberFormat format;
     
     /**
      * @param type
@@ -42,7 +44,19 @@ public class SimpleParameter implements Parameter {
         this.name = name;
         this.description = description;
     }
-
+    
+    /**
+     * @param type
+     * @param name
+     * @param description
+     */
+    public SimpleParameter(ParameterType type, String name, String description, NumberFormat format) {
+        this.type = type;
+        this.name = name;
+        this.description = description;
+        this.format = format;
+    }
+    
     /**
      * @param type
      * @param name
@@ -54,6 +68,20 @@ public class SimpleParameter implements Parameter {
         this.name = name;
         this.description = description;
         this.possibleValues = possibleValues;
+    }
+    
+    /**
+     * @param type
+     * @param name
+     * @param description
+     * @param possibleValues
+     */
+    public SimpleParameter(ParameterType type, String name, String description, Object[] possibleValues, NumberFormat format) {
+        this.type = type;
+        this.name = name;
+        this.description = description;
+        this.possibleValues = possibleValues;
+        this.format = format;
     }
 
     /**
@@ -69,6 +97,22 @@ public class SimpleParameter implements Parameter {
         this.description = description;
         this.minValue = minValue;
         this.maxValue = maxValue;
+    }
+    
+    /**
+     * @param type
+     * @param name
+     * @param description
+     * @param minValue
+     * @param maxValue
+     */
+    public SimpleParameter(ParameterType type, String name, String description, Object minValue, Object maxValue, NumberFormat format) {
+        this.type = type;
+        this.name = name;
+        this.description = description;
+        this.minValue = minValue;
+        this.maxValue = maxValue;
+        this.format = format;
     }
 
     /**
@@ -111,6 +155,13 @@ public class SimpleParameter implements Parameter {
      */
     public Object getMaximumValue() {
         return maxValue;
+    }
+
+    /**
+     * @see net.sf.mzmine.data.Parameter#getFormat()
+     */
+    public NumberFormat getFormat() {
+        return format;
     }
 
 }
