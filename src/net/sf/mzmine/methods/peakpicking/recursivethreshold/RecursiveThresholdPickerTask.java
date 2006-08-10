@@ -568,19 +568,20 @@ class RecursiveThresholdPickerTask implements Task {
 
             double nextIntensity = od.intensity;
             //Hashtable<Integer, Double[]> datapoints = uc.getRawDatapoints();
-            ArrayList<Double> intensities = uc.getRawDatapointIntensities();
+            int[] scanNumbers = uc.getScanNumbers();
 
             // If no previous m/z peaks
-            if (intensities.size() == 0) {
+            if (scanNumbers.length == 0) {
                 return 0;
             }
 
             //Enumeration<Double[]> triplets = datapoints.elements();
 
             // If only one previous m/z peak
-            if (intensities.size() == 1) {
+            if (scanNumbers.length == 1) {
 
-                double prevIntensity = intensities.get(0);
+				double[][] tmp = uc.getRawDatapoints(scanNumbers[0]);
+                double prevIntensity = tmp[0][1];
 
                 // If it goes up, then give minimum (best) score
                 if ((nextIntensity - prevIntensity) >= 0) {
@@ -608,10 +609,12 @@ class RecursiveThresholdPickerTask implements Task {
 
             int derSign = 1;
 
-			for (int ind=1; ind<intensities.size(); ind++) {
+			for (int ind=1; ind<scanNumbers.length; ind++) {
 
-                double prevIntensity = intensities.get(ind-1);
-                double currIntensity = intensities.get(ind);
+				double[][] tmp = uc.getRawDatapoints(scanNumbers[ind-1]);
+                double prevIntensity = tmp[0][1];
+                tmp = uc.getRawDatapoints(scanNumbers[ind]);
+                double currIntensity = tmp[0][1];
 
                 // If peak is currently going up
                 if (derSign == 1) {
@@ -653,7 +656,8 @@ class RecursiveThresholdPickerTask implements Task {
             // If peak is currently going down
             if (derSign == -1) {
 
-                double lastIntensity = intensities.get(intensities.size()-1);
+				double[][] tmp = uc.getRawDatapoints(scanNumbers[scanNumbers.length-1]);
+                double lastIntensity = tmp[0][1];
 
                 // Then peak must not start going up again
                 double topMargin = lastIntensity

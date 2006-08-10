@@ -475,12 +475,10 @@ public class SpectraVisualizerWindow extends JInternalFrame implements
 
                 for (int i = 0; i < peaks.length; i++) {
 
-                    Hashtable<Integer, Double[]> dataPoints = peaks[i].getRawDatapoints();
-
                     if (scans.length == 1) {
-                        Double[] dataPoint = dataPoints.get(scanNumbers[0]);
-                        if (dataPoint != null) {
-                            peaksSeries.add(dataPoint[0], dataPoint[2], false);
+						double[][] dataPoints = peaks[i].getRawDatapoints(scanNumbers[0]);
+                        for (double[] dataPoint : dataPoints) {
+                            peaksSeries.add(dataPoint[0], dataPoint[1], false);
                         }
                     } else {
                         double mz = peaks[i].getRawMZ();

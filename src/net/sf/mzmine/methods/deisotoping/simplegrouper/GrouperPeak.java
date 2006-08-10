@@ -21,6 +21,7 @@ package net.sf.mzmine.methods.deisotoping.simplegrouper;
 
 import java.util.Hashtable;
 import java.util.ArrayList;
+import java.util.Iterator;
 
 import net.sf.mzmine.util.MathUtils;
 import net.sf.mzmine.data.IsotopePattern;
@@ -41,9 +42,7 @@ public class GrouperPeak implements Peak {
 	private double area;
 
 	private ArrayList<Integer> datapointScanNumbers;
-	private ArrayList<Double> datapointMZs;
-	private ArrayList<Double> datapointRTs;
-	private ArrayList<Double> datapointIntensities;
+	private Hashtable<Integer, ArrayList<double[]>> datapointMZInts;
 
 	private double minRT;
 	private double maxRT;
@@ -65,15 +64,27 @@ public class GrouperPeak implements Peak {
 		height = oldPeak.getRawHeight();
 		area = oldPeak.getRawArea();
 
-		datapointScanNumbers = oldPeak.getRawDatapointScanNumbers();
-		datapointMZs = oldPeak.getRawDatapointMZs();
-		datapointRTs = oldPeak.getRawDatapointRTs();
-		datapointIntensities = oldPeak.getRawDatapointIntensities();
-
 		normalizedMZ = oldPeak.getNormalizedMZ();
 		normalizedRT = oldPeak.getNormalizedRT();
 		normalizedHeight = oldPeak.getNormalizedHeight();
 		normalizedArea = oldPeak.getNormalizedArea();
+
+		// Copy raw data points
+		int[] scanNumbers = oldPeak.getScanNumbers();
+		datapointMZInts = new Hashtable<Integer, ArrayList<double[]>>();
+
+		for (int scanNumber : scanNumbers) {
+			double[][] dps = oldPeak.getRawDatapoints(scanNumber);
+
+			ArrayList<double[]> datapointArray = datapointMZInts.get(scanNumber);
+			if (datapointArray == null) {
+				datapointArray = new ArrayList<double[]>();
+				datapointMZInts.put(scanNumber, datapointArray);
+			}
+
+			for (double[] dp : dps)
+				datapointArray.add(dp);
+		}
 	}
 
 
@@ -117,42 +128,34 @@ public class GrouperPeak implements Peak {
 
 
 
-	/* Get methods for accessing the raw datapoints that construct the peak */
+	/**
+	 * This method returns numbers of scans that contain this peak
+	 */
+	public int[] getScanNumbers() {
+		int[] res = new int[datapointScanNumbers.size()];
 
-	public Hashtable<Integer, Double[]> getRawDatapoints() {
+		int ind=0;
+		for ( Iterator<Integer> scanNumberIter = datapointScanNumbers.iterator(); scanNumberIter.hasNext(); ind++)
+	      res[ind] = scanNumberIter.next();
 
-		Hashtable<Integer, Double[]> dpHash = new Hashtable<Integer, Double[]>();
-
-		for (int i=0; i<datapointScanNumbers.size(); i++) {
-
-			Double[] dps = new Double[3];
-			dps[0] = datapointMZs.get(i);
-			dps[1] = datapointRTs.get(i);
-			dps[2] = datapointIntensities.get(i);
-
-			dpHash.put(new Integer(i), dps);
-		}
-
-		return dpHash;
+		return res;
 	}
 
-	public ArrayList<Integer> getRawDatapointScanNumbers() {
-		return datapointScanNumbers;
+	/**
+	 * This method returns an array of double[2] (mz and intensity) points for a given scan number
+	 */
+	public double[][] getRawDatapoints(int scanNumber) {
+
+		ArrayList<double[]> singleScanMZInts = datapointMZInts.get(new Integer(scanNumber));
+
+		double[][] res = new double[singleScanMZInts.size()][2];
+
+		int ind=0;
+		for ( Iterator<double[]> mzIntIter = singleScanMZInts.iterator(); mzIntIter.hasNext(); ind++)
+			res[ind] = mzIntIter.next();
+
+		return res;
 	}
-
-	public ArrayList<Double> getRawDatapointMZs() {
-		return datapointMZs;
-	}
-
-	public ArrayList<Double> getRawDatapointRTs() {
-		return datapointRTs;
-	}
-
-	public ArrayList<Double> getRawDatapointIntensities() {
-		return datapointIntensities;
-	}
-
-
 
 	/**
 	 * Returns the first scan number of all datapoints

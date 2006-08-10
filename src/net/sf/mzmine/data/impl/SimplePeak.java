@@ -109,42 +109,33 @@ public class SimplePeak implements Peak {
 	}
 
 
+	/**
+	 * This method returns numbers of scans that contain this peak
+	 */
+	public int[] getScanNumbers() {
+		int[] res = new int[datapointScanNumbers.size()];
 
-	/* Get methods for accessing the raw datapoints that construct the peak */
+		int ind=0;
+		for ( Iterator<Integer> scanNumberIter = datapointScanNumbers.iterator(); scanNumberIter.hasNext(); ind++)
+	      res[ind] = scanNumberIter.next();
 
-	public Hashtable<Integer, Double[]> getRawDatapoints() {
-
-		Hashtable<Integer, Double[]> dpHash = new Hashtable<Integer, Double[]>();
-
-		for (int i=0; i<datapointScanNumbers.size(); i++) {
-
-			Double[] dps = new Double[3];
-			dps[0] = datapointMZs.get(i);
-			dps[1] = datapointRTs.get(i);
-			dps[2] = datapointIntensities.get(i);
-
-			dpHash.put(new Integer(i), dps);
-		}
-
-		return dpHash;
+		return res;
 	}
 
-	public ArrayList<Integer> getRawDatapointScanNumbers() {
-		return datapointScanNumbers;
-	}
+	/**
+	 * This method returns an array of double[2] (mz and intensity) points for a given scan number
+	 */
+	public double[][] getRawDatapoints(int scanNumber) {
 
-	public ArrayList<Double> getRawDatapointMZs() {
-		return datapointMZs;
-	}
+		int ind = datapointScanNumbers.indexOf(new Integer(scanNumber));
 
-	public ArrayList<Double> getRawDatapointRTs() {
-		return datapointRTs;
-	}
+		double[][] res = new double[1][2];
 
-	public ArrayList<Double> getRawDatapointIntensities() {
-		return datapointIntensities;
-	}
+		res[0][0] = datapointMZs.get(ind);
+		res[0][1] = datapointIntensities.get(ind);
 
+		return res;
+	}
 
 	/**
 	 * Returns the first scan number of all datapoints

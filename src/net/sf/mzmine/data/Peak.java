@@ -73,30 +73,16 @@ public interface Peak {
      * These datapoints should correspond to datapoints in the raw data.
      */
 
+
 	/**
-	 * This method returns datapoints
+	 * This method returns numbers of scans that contain this peak
 	 */
-	public Hashtable<Integer, Double[]> getRawDatapoints();
+	public int[] getScanNumbers();
 
-    /**
-     * This method returns scan numbers of datapoints
-     */
-    public ArrayList<Integer> getRawDatapointScanNumbers();
-
-    /**
-     * This method returns M/Z values of datapoints
-     */
-    public ArrayList<Double> getRawDatapointMZs();
-
-    /**
-     * This method returns RT values of datapoints
-     */
-    public ArrayList<Double> getRawDatapointRTs();
-
-    /**
-     * This method returns intensity values of datapoints
-     */
-    public ArrayList<Double> getRawDatapointIntensities();
+	/**
+	 * This method returns an array of double[2] (mz and intensity) points for a given scan number
+	 */
+	public double[][] getRawDatapoints(int scanNumber);
 
 
     /**
