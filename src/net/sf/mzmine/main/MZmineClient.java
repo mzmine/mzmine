@@ -66,7 +66,7 @@ public class MZmineClient implements Runnable, MZmineCore {
         ResourceBundle configBundle = ResourceBundle.getBundle(CONFIG_PROPERTIES);
 
         // get the configured number of computation nodes
-        int numberOfNodes = 1;
+        int numberOfNodes = Runtime.getRuntime().availableProcessors();
         String numberOfNodesConfigEntry = configBundle.getString("NumberOfNodes");
         if (numberOfNodesConfigEntry != null) {
             numberOfNodes = Integer.parseInt(numberOfNodesConfigEntry);
