@@ -225,25 +225,6 @@ public class GrouperPeak implements Peak {
 
 
 
-	/* 	Set/get methods for isotope pattern of the peak */
-
-	/**
-	 * This method returns the isotope pattern where this peak is assigned
-	 *
-	 * @return isotope pattern or null if peak is not assigned to any pattern.
-	 */
-	public IsotopePattern getIsotopePattern() {
-		return isotopePattern;
-	}
-
-	/**
-	 * This method sets the isotope pattern of the peak
-	 */
-	public void setIsotopePattern(IsotopePattern isotopePattern) {
-		this.isotopePattern = isotopePattern;
-	}
-
-
 	/* These methods implement the DataUnit interface */
 
 	public void addData(Class dataType, DataUnit data) {

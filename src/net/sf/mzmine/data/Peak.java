@@ -127,11 +127,5 @@ public interface Peak extends DataUnit {
      */
     public double getNormalizedArea();
 
-    /**
-     * This method returns the isotope pattern where this peak is assigned
-     *
-     * @return isotope pattern or null if peak is not assigned to any pattern.
-     */
-    //public IsotopePattern getIsotopePattern();
 
 }
