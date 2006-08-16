@@ -51,8 +51,10 @@ public class IsotopePatternUtility {
 		Peak[] peaks = peakList.getPeaks();
 		for (Peak p : peaks) {
 
-			IsotopePattern isotopePattern = p.getIsotopePattern();
-			if (isotopePattern==null) continue;
+			if (!(p.hasData(IsotopePattern.class)))
+				continue;
+
+			IsotopePattern isotopePattern = (IsotopePattern)(p.getData(IsotopePattern.class)[0]);
 
 			// Check if this pattern has already been assigned with a number
 			Integer currentNumber = isotopePatternNumbers.get(isotopePattern);
@@ -106,9 +108,10 @@ public class IsotopePatternUtility {
 	 * Returns number of the peak within pattern
 	 */
 	public int getPeakNumberWithinPattern(Peak p) {
-		if (p.getIsotopePattern()==null) return -1;
 
-		SortedSet<Peak> peaksInPattern = isotopePatternPeaks.get(p.getIsotopePattern());
+		if (!(p.hasData(IsotopePattern.class))) return -1;
+
+		SortedSet<Peak> peaksInPattern = isotopePatternPeaks.get((p.getData(IsotopePattern.class))[0]);
 		if (peaksInPattern==null) return -1;
 
 		Iterator<Peak> peakIterator = peaksInPattern.iterator();

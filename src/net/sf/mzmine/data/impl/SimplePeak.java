@@ -219,7 +219,7 @@ public class SimplePeak implements Peak {
 
 	public void addData(Class dataType, DataUnit data) {
 
-		ArrayList<DataUnit> correctSet = myDataUnits.get(data);
+		ArrayList<DataUnit> correctSet = myDataUnits.get(dataType);
 
 		if (correctSet==null) {
 			correctSet = new ArrayList<DataUnit>();

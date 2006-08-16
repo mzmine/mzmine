@@ -88,6 +88,9 @@ public class GrouperPeak implements Peak {
 			for (double[] dp : dps)
 				datapointArray.add(dp);
 		}
+
+		myDataUnits = new Hashtable<Class, ArrayList<DataUnit>>();
+		// TODO: Copy all data units from old peak?
 	}
 
 
@@ -245,7 +248,7 @@ public class GrouperPeak implements Peak {
 
 	public void addData(Class dataType, DataUnit data) {
 
-		ArrayList<DataUnit> correctSet = myDataUnits.get(data);
+		ArrayList<DataUnit> correctSet = myDataUnits.get(dataType);
 
 		if (correctSet==null) {
 			correctSet = new ArrayList<DataUnit>();

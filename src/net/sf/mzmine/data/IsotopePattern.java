@@ -23,7 +23,7 @@ package net.sf.mzmine.data;
 /**
  * This interface defines the properties of a detected peak
  */
-public interface IsotopePattern {
+public interface IsotopePattern extends DataUnit {
 
 	/**
 	 * Returns the charge state of peaks in the pattern

@@ -117,8 +117,10 @@ public class PeakListWriter {
 
 
 				// Is this peak assigned to some isotope pattern?
-				IsotopePattern isotopePattern = p.getIsotopePattern();
-				if (isotopePattern!=null) {
+
+				if (p.hasData(IsotopePattern.class)) {
+
+					IsotopePattern isotopePattern = (IsotopePattern)(p.getData(IsotopePattern.class)[0]);
 
 					int isotopePatternNumber =  isotopeUtility.getIsotopePatternNumber(isotopePattern);
 					int isotopePeakNumber = isotopeUtility.getPeakNumberWithinPattern(p);

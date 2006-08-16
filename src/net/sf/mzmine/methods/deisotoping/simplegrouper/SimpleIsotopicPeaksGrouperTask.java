@@ -22,13 +22,14 @@ import java.util.Vector;
 
 import net.sf.mzmine.data.Peak;
 import net.sf.mzmine.data.PeakList;
+import net.sf.mzmine.data.IsotopePattern;
 import net.sf.mzmine.data.impl.SimplePeakList;
 import net.sf.mzmine.io.OpenedRawDataFile;
 import net.sf.mzmine.io.RawDataFile;
 import net.sf.mzmine.taskcontrol.Task;
 
 /**
- * 
+ *
  */
 class SimpleIsotopicPeaksGrouperTask implements Task {
 
@@ -140,8 +141,10 @@ class SimpleIsotopicPeaksGrouperTask implements Task {
 
         HashSet<Peak> alreadyAssignedPeaks = new HashSet<Peak>();
 
+
         // Loop through all peaks in the order of descending intensity
         Iterator<Peak> peakIterator = peakTree.iterator();
+        totalPeaks = peakTree.size();
         while (peakIterator.hasNext()) {
 
             if (status == TaskStatus.CANCELED)
@@ -180,7 +183,7 @@ class SimpleIsotopicPeaksGrouperTask implements Task {
             for (Peak p : bestFitPeaks) {
                 alreadyAssignedPeaks.add(p);
                 GrouperPeak processedPeak = new GrouperPeak(p);
-                processedPeak.setIsotopePattern(isotopePattern);
+                processedPeak.addData(IsotopePattern.class, isotopePattern);
                 processedPeakList.addPeak(processedPeak);
             }
 
@@ -195,7 +198,7 @@ class SimpleIsotopicPeaksGrouperTask implements Task {
 
     /**
      * Fits isotope pattern around one peak.
-     * 
+     *
      * @param p Pattern is fitted around this peak
      * @param charge Charge state of the fitted pattern
      * @param parameters User-defined parameters
@@ -235,7 +238,7 @@ class SimpleIsotopicPeaksGrouperTask implements Task {
 
     /**
      * Helper method for fitPattern. Fits only one half of the pattern.
-     * 
+     *
      * @param p Pattern is fitted around this peak
      * @param charge Charge state of the fitted pattern
      * @param direction Defines which half to fit: -1=fit to peaks before start

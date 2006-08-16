@@ -107,9 +107,14 @@ public class SimplePeakList implements PeakList {
 
 		for (Peak p : peaks)
 			if ((p.getMinRT()<=endRT) &&
-				(p.getMaxRT()>=startRT))
-					if (p.getIsotopePattern()!=null) isotopePatternsInside .add(p.getIsotopePattern());
+				(p.getMaxRT()>=startRT)) {
 
+				//if (p.getIsotopePattern()!=null) isotopePatternsInside .add(p.getIsotopePattern());
+				if (p.hasData(IsotopePattern.class)) {
+					isotopePatternsInside.add((IsotopePattern)(p.getData(IsotopePattern.class)[0]));
+				}
+
+			}
 
 		return isotopePatternsInside.toArray(new IsotopePattern[0]);
 	}

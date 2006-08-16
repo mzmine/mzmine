@@ -154,18 +154,17 @@ public class PeakListTable extends JTable {
 			if (col == 9) return p.getNormalizedArea();
 
 			if (col == 10) {
-				IsotopePattern isotopePattern = p.getIsotopePattern();
-				if (isotopePattern == null) return unassignedValue;
+				if (!p.hasData(IsotopePattern.class)) return unassignedValue;
+				IsotopePattern isotopePattern = (IsotopePattern)p.getData(IsotopePattern.class)[0];
 				return isotopePatternUtility.getIsotopePatternNumber(isotopePattern);
 			}
 			if (col == 11) {
-				IsotopePattern isotopePattern = p.getIsotopePattern();
-				if (isotopePattern == null) return unassignedValue;
+				if (!p.hasData(IsotopePattern.class)) return unassignedValue;
 				return isotopePatternUtility.getPeakNumberWithinPattern(p);
 			}
 			if (col == 12) {
-				IsotopePattern isotopePattern = p.getIsotopePattern();
-				if (isotopePattern == null) return unassignedValue;
+				if (!p.hasData(IsotopePattern.class)) return unassignedValue;
+				IsotopePattern isotopePattern = (IsotopePattern)p.getData(IsotopePattern.class)[0];
 				return isotopePattern.getChargeState();
 			}
 

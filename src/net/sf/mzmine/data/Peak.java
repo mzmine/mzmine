@@ -132,6 +132,6 @@ public interface Peak extends DataUnit {
      *
      * @return isotope pattern or null if peak is not assigned to any pattern.
      */
-    public IsotopePattern getIsotopePattern();
+    //public IsotopePattern getIsotopePattern();
 
 }
