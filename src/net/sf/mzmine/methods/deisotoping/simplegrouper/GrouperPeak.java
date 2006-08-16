@@ -26,6 +26,7 @@ import java.util.Iterator;
 import net.sf.mzmine.util.MathUtils;
 import net.sf.mzmine.data.IsotopePattern;
 import net.sf.mzmine.data.Peak;
+import net.sf.mzmine.data.DataUnit;
 
 /**
  *
@@ -54,6 +55,8 @@ public class GrouperPeak implements Peak {
 	private double normalizedHeight;
 	private double normalizedArea;
 
+	// This is for implementing DataUnit interface
+	private Hashtable<Class, ArrayList<DataUnit>> myDataUnits;
 
 	/**
 	 * This constructor initializes a new peak with values from an old one.
@@ -235,6 +238,40 @@ public class GrouperPeak implements Peak {
 	 */
 	public void setIsotopePattern(IsotopePattern isotopePattern) {
 		this.isotopePattern = isotopePattern;
+	}
+
+
+	/* These methods implement the DataUnit interface */
+
+	public void addData(Class dataType, DataUnit data) {
+
+		ArrayList<DataUnit> correctSet = myDataUnits.get(data);
+
+		if (correctSet==null) {
+			correctSet = new ArrayList<DataUnit>();
+			myDataUnits.put(dataType, correctSet);
+		}
+
+		correctSet.add(data);
+
+	}
+
+	public DataUnit[] getData(Class dataType) {
+
+		ArrayList<DataUnit> adu = myDataUnits.get(dataType);
+
+		if (adu==null) return new DataUnit[0];
+
+		return myDataUnits.get(dataType).toArray(new DataUnit[0]);
+
+	}
+
+	public boolean hasData(Class dataType) {
+
+		ArrayList<DataUnit> adu = myDataUnits.get(dataType);
+
+		return adu!=null;
+
 	}
 
 

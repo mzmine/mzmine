@@ -25,7 +25,7 @@ import java.util.ArrayList;
 /**
  * This interface defines the properties of a detected peak
  */
-public interface Peak {
+public interface Peak extends DataUnit {
 
     /**
      * DETECTED - peak was found in primary peak picking ESTIMATED - peak was

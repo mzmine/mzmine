@@ -28,6 +28,7 @@ import java.util.ArrayList;
 import net.sf.mzmine.util.MathUtils;
 import net.sf.mzmine.data.IsotopePattern;
 import net.sf.mzmine.data.Peak;
+import net.sf.mzmine.data.DataUnit;
 
 /**
  * This class is a simple implementation of the peak interface.
@@ -63,11 +64,15 @@ public class SimplePeak implements Peak {
 	private TreeSet<Double> constructionSortedMZs;
 	private boolean growing=false;
 
+	// This is for implementing DataUnit interface
+	private Hashtable<Class, ArrayList<DataUnit>> myDataUnits;
+
 	/**
 	 * Initializes empty peak for adding data points to
 	 */
 	public SimplePeak() {
 		intializeAddingDatapoints();
+		myDataUnits = new Hashtable<Class, ArrayList<DataUnit>>();
 	}
 
 	/**
@@ -210,8 +215,41 @@ public class SimplePeak implements Peak {
 		return isotopePattern;
 	}
 
+	/* These methods implement the DataUnit interface */
 
-	/* Following methods are not part of Peak interface implementation */
+	public void addData(Class dataType, DataUnit data) {
+
+		ArrayList<DataUnit> correctSet = myDataUnits.get(data);
+
+		if (correctSet==null) {
+			correctSet = new ArrayList<DataUnit>();
+			myDataUnits.put(dataType, correctSet);
+		}
+
+		correctSet.add(data);
+
+	}
+
+	public DataUnit[] getData(Class dataType) {
+
+		ArrayList<DataUnit> adu = myDataUnits.get(dataType);
+
+		if (adu==null) return new DataUnit[0];
+
+		return myDataUnits.get(dataType).toArray(new DataUnit[0]);
+
+	}
+
+	public boolean hasData(Class dataType) {
+
+		ArrayList<DataUnit> adu = myDataUnits.get(dataType);
+
+		return adu!=null;
+
+	}
+
+
+	/* Following methods are not part of any interface implementation */
 
 
 	public boolean isGrowing() {
