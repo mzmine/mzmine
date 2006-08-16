@@ -86,12 +86,19 @@ public class IsotopePatternUtility {
 	}
 
 	/**
-	 * Returns all peaks that belong to the same pattern
+	 * Returns all peaks that belong to the same pattern, sorted in order of accending M/Z
 	 */
 	public Peak[] getPeaksInPattern(IsotopePattern isotopePattern) {
 		SortedSet<Peak> peaksVector = isotopePatternPeaks.get(isotopePattern);
 		if (peaksVector==null) return new Peak[0];
 		return peaksVector.toArray(new Peak[0]);
+	}
+
+	/**
+	 * Returns all isotope patterns that appear in the peak list
+	 */
+	public IsotopePattern[] getAllIsotopePatterns() {
+		return isotopePatternPeaks.keySet().toArray(new IsotopePattern[0]);
 	}
 
 
