@@ -29,6 +29,9 @@ import java.util.ArrayList;
 import net.sf.mzmine.io.OpenedRawDataFile;
 import net.sf.mzmine.taskcontrol.Task;
 
+import net.sf.mzmine.data.Peak;
+import net.sf.mzmine.data.PeakList;
+
 /**
  *
  */
@@ -108,7 +111,13 @@ class JoinAlignerTask implements Task {
 
         status = TaskStatus.PROCESSING;
 
-		// TODO
+		// Collect peak lists for all raw data files
+		Hashtable<OpenedRawDataFile, PeakList> peakListTable = new Hashtable<OpenedRawDataFile, PeakList>();
+
+		for (OpenedRawDataFile dataFile : dataFiles) {
+			//peakListTable.put(dataFile, dataFile.getCurrentFile().
+
+		}
 
         status = TaskStatus.FINISHED;
 
