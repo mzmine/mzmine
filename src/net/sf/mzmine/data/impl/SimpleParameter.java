@@ -27,7 +27,7 @@ import net.sf.mzmine.data.Parameter.ParameterType;
 /**
  * Simple Parameter implementation
  */
-public class SimpleParameter implements Parameter {
+public class SimpleParameter extends AbstractDataUnit implements Parameter {
 
     private ParameterType type;
     private String name, description, units;
