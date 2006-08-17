@@ -76,9 +76,7 @@ public class GrouperIsotopePattern implements IsotopePattern {
 
 	public boolean hasData(Class dataType) {
 
-		ArrayList<DataUnit> adu = myDataUnits.get(dataType);
-
-		return adu!=null;
+		return myDataUnits.containsKey(dataType);
 
 	}
 
