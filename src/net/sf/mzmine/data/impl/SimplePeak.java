@@ -25,16 +25,18 @@ import java.util.TreeSet;
 import java.util.Iterator;
 import java.util.ArrayList;
 
+
 import net.sf.mzmine.util.MathUtils;
 import net.sf.mzmine.data.IsotopePattern;
 import net.sf.mzmine.data.Peak;
 import net.sf.mzmine.data.DataUnit;
+import net.sf.mzmine.data.impl.AbstractDataUnit;
 
 /**
  * This class is a simple implementation of the peak interface.
  * This implementation is used by recursive threshold, centroid and local maximum peak pickers.
  */
-public class SimplePeak implements Peak {
+public class SimplePeak extends AbstractDataUnit implements Peak {
 
 	private PeakStatus peakStatus;
 
@@ -64,15 +66,11 @@ public class SimplePeak implements Peak {
 	private TreeSet<Double> constructionSortedMZs;
 	private boolean growing=false;
 
-	// This is for implementing DataUnit interface
-	private Hashtable<Class, ArrayList<DataUnit>> myDataUnits;
-
 	/**
 	 * Initializes empty peak for adding data points to
 	 */
 	public SimplePeak() {
 		intializeAddingDatapoints();
-		myDataUnits = new Hashtable<Class, ArrayList<DataUnit>>();
 	}
 
 	/**
@@ -200,39 +198,6 @@ public class SimplePeak implements Peak {
 	 */
 	public double getNormalizedArea() {
 		return normalizedArea;
-	}
-
-
-
-	/* These methods implement the DataUnit interface */
-
-	public void addData(Class dataType, DataUnit data) {
-
-		ArrayList<DataUnit> correctSet = myDataUnits.get(dataType);
-
-		if (correctSet==null) {
-			correctSet = new ArrayList<DataUnit>();
-			myDataUnits.put(dataType, correctSet);
-		}
-
-		correctSet.add(data);
-
-	}
-
-	public DataUnit[] getData(Class dataType) {
-
-		ArrayList<DataUnit> adu = myDataUnits.get(dataType);
-
-		if (adu==null) return new DataUnit[0];
-
-		return myDataUnits.get(dataType).toArray(new DataUnit[0]);
-
-	}
-
-	public boolean hasData(Class dataType) {
-
-		return myDataUnits.containsKey(dataType);
-
 	}
 
 

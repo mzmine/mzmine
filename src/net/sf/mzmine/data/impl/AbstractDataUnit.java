@@ -31,7 +31,7 @@ import net.sf.mzmine.data.DataUnit;
 public abstract class AbstractDataUnit implements DataUnit {
 
     // This is for implementing DataUnit interface
-    private Hashtable<Class, ArrayList<DataUnit>> myDataUnits;
+    private Hashtable<Class, ArrayList<DataUnit>> myDataUnits = new Hashtable<Class, ArrayList<DataUnit>>();
 
     public void addData(Class dataType, DataUnit data) {
 

@@ -27,11 +27,12 @@ import net.sf.mzmine.util.MathUtils;
 import net.sf.mzmine.data.IsotopePattern;
 import net.sf.mzmine.data.Peak;
 import net.sf.mzmine.data.DataUnit;
+import net.sf.mzmine.data.impl.AbstractDataUnit;
 
 /**
  *
  */
-public class GrouperPeak implements Peak {
+public class GrouperPeak extends AbstractDataUnit implements Peak {
 
 	private PeakStatus peakStatus;
 
@@ -54,9 +55,6 @@ public class GrouperPeak implements Peak {
 	private double normalizedRT;
 	private double normalizedHeight;
 	private double normalizedArea;
-
-	// This is for implementing DataUnit interface
-	private Hashtable<Class, ArrayList<DataUnit>> myDataUnits;
 
 	/**
 	 * This constructor initializes a new peak with values from an old one.
@@ -89,8 +87,8 @@ public class GrouperPeak implements Peak {
 				datapointArray.add(dp);
 		}
 
-		myDataUnits = new Hashtable<Class, ArrayList<DataUnit>>();
-		// TODO: Copy all data units from old peak?
+		// TODO: Copy all myDataUnits from old peak?
+
 	}
 
 
@@ -221,39 +219,6 @@ public class GrouperPeak implements Peak {
 	 */
 	public double getNormalizedArea() {
 		return normalizedArea;
-	}
-
-
-
-	/* These methods implement the DataUnit interface */
-
-	public void addData(Class dataType, DataUnit data) {
-
-		ArrayList<DataUnit> correctSet = myDataUnits.get(dataType);
-
-		if (correctSet==null) {
-			correctSet = new ArrayList<DataUnit>();
-			myDataUnits.put(dataType, correctSet);
-		}
-
-		correctSet.add(data);
-
-	}
-
-	public DataUnit[] getData(Class dataType) {
-
-		ArrayList<DataUnit> adu = myDataUnits.get(dataType);
-
-		if (adu==null) return new DataUnit[0];
-
-		return myDataUnits.get(dataType).toArray(new DataUnit[0]);
-
-	}
-
-	public boolean hasData(Class dataType) {
-
-		return myDataUnits.containsKey(dataType);
-
 	}
 
 }

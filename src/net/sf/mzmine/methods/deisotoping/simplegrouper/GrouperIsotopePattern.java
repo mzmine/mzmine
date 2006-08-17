@@ -24,18 +24,14 @@ import java.util.ArrayList;
 
 import net.sf.mzmine.data.IsotopePattern;
 import net.sf.mzmine.data.DataUnit;
-
+import net.sf.mzmine.data.impl.AbstractDataUnit;
 
 /**
  *
  */
-public class GrouperIsotopePattern implements IsotopePattern {
+public class GrouperIsotopePattern extends AbstractDataUnit implements IsotopePattern {
 
 	private int chargeState;
-
-	// This is for implementing DataUnit interface
-	private Hashtable<Class, ArrayList<DataUnit>> myDataUnits;
-
 
 	public GrouperIsotopePattern(int chargeState) {
 		this.chargeState = chargeState;
@@ -47,40 +43,5 @@ public class GrouperIsotopePattern implements IsotopePattern {
 	public int getChargeState() {
 		return chargeState;
 	}
-
-
-	/* These methods implement the DataUnit interface */
-
-	public void addData(Class dataType, DataUnit data) {
-
-		ArrayList<DataUnit> correctSet = myDataUnits.get(dataType);
-
-		if (correctSet==null) {
-			correctSet = new ArrayList<DataUnit>();
-			myDataUnits.put(dataType, correctSet);
-		}
-
-		correctSet.add(data);
-
-	}
-
-	public DataUnit[] getData(Class dataType) {
-
-		ArrayList<DataUnit> adu = myDataUnits.get(dataType);
-
-		if (adu==null) return new DataUnit[0];
-
-		return myDataUnits.get(dataType).toArray(new DataUnit[0]);
-
-	}
-
-	public boolean hasData(Class dataType) {
-
-		return myDataUnits.containsKey(dataType);
-
-	}
-
-
-
 
 }
