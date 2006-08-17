@@ -24,7 +24,7 @@ import java.text.NumberFormat;
 /**
  * Parameter interface, represents parameters or variables used in the project
  */
-public interface Parameter {
+public interface Parameter extends DataUnit {
 
     public enum ParameterType {
         STRING, INTEGER, DOUBLE, OBJECT
