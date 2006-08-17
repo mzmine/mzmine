@@ -23,10 +23,16 @@ import net.sf.mzmine.data.Scan;
 
 
 /**
- *
+ * Interface for classes that accept scans for processing, visualization etc.
  */
 public interface RawDataAcceptor {
 
-    void addScan(Scan scan, int index);
+    /**
+     * Process a scan
+     * @param scan Scan to process 
+     * @param index Index of this scan in the array of requested scans (0..total - 1)
+     * @param total Total number of requested scans
+     */
+    void addScan(Scan scan, int index, int total);
     
 }

@@ -111,7 +111,7 @@ public class RawDataRetrievalTask implements Task {
             try {
 
                 scan = rawDataFile.getScan(scanNumbers[i]);
-                acceptor.addScan(scan, i);
+                acceptor.addScan(scan, i, scanNumbers.length);
 
             } catch (Throwable e) {
 
