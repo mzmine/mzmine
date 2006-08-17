@@ -25,6 +25,8 @@ import java.awt.Insets;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.text.NumberFormat;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 import javax.swing.JButton;
 import javax.swing.JComboBox;
@@ -46,6 +48,8 @@ import net.sf.mzmine.util.GUIUtils;
  */
 public class TwoDSetupDialog extends JDialog implements ActionListener {
 
+    private Logger logger = Logger.getLogger(this.getClass().getName());
+    
     static final int PADDING_SIZE = 5;
     static final int DEFAULT_RT_RESOLUTION = 3000;
     static final int DEFAULT_MZ_RESOLUTION = 3000;
@@ -58,6 +62,7 @@ public class TwoDSetupDialog extends JDialog implements ActionListener {
 
     private Desktop desktop;
     private TaskController taskController;
+    private OpenedRawDataFile dataFile;
     private RawDataFile rawDataFile;
 
     public TwoDSetupDialog(TaskController taskController, Desktop desktop,
@@ -68,6 +73,7 @@ public class TwoDSetupDialog extends JDialog implements ActionListener {
 
         this.taskController = taskController;
         this.desktop = desktop;
+        this.dataFile = dataFile;
         this.rawDataFile = dataFile.getCurrentFile();
 
         GridBagConstraints constraints = new GridBagConstraints();
@@ -337,13 +343,14 @@ public class TwoDSetupDialog extends JDialog implements ActionListener {
                     return;
                 }
 
-                new TwoDVisualizerWindow(taskController, desktop, rawDataFile,
+                new TwoDVisualizerWindow(taskController, desktop, dataFile,
                         msLevel, rtMin, rtMax, mzMin, mzMax, rtResolution,
                         mzResolution);
 
                 dispose();
 
             } catch (Exception e) {
+                logger.log(Level.FINE, "Error while opening 2D visualizer window", e);
                 desktop.displayErrorMessage("Invalid input");
             }
         }

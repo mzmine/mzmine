@@ -17,9 +17,6 @@
  * Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-/**
- * 
- */
 package net.sf.mzmine.visualizers.rawdata.tic;
 
 import java.util.Date;
@@ -39,7 +36,7 @@ import org.jfree.data.xy.DefaultTableXYDataset;
 import org.jfree.data.xy.XYSeries;
 
 /**
- * 
+ * TIC visualizer data set 
  */
 class TICDataSet extends DefaultTableXYDataset implements RawDataAcceptor {
 
@@ -56,7 +53,9 @@ class TICDataSet extends DefaultTableXYDataset implements RawDataAcceptor {
 
     private static Date lastRedrawTime = new Date();
 
-    TICDataSet(TaskController taskController, OpenedRawDataFile dataFile, int scanNumbers[], double mzMin, double mzMax, TICVisualizerWindow visualizer) {
+    TICDataSet(TaskController taskController, OpenedRawDataFile dataFile,
+            int scanNumbers[], double mzMin, double mzMax,
+            TICVisualizerWindow visualizer) {
 
         this.visualizer = visualizer;
         this.mzMin = mzMin;
@@ -64,20 +63,19 @@ class TICDataSet extends DefaultTableXYDataset implements RawDataAcceptor {
         this.dataFile = dataFile;
         this.rawDataFile = dataFile.getCurrentFile();
         this.scanNumbers = scanNumbers;
-        
-        series = new XYSeries(dataFile.toString(), false,
-                false);
+
+        series = new XYSeries(dataFile.toString(), false, false);
 
         addSeries(series);
-        
+
         if (visualizer.getPlotType() == PlotType.BASE_PEAK)
             mzValues = new double[scanNumbers.length];
-        
+
         Task updateTask = new RawDataRetrievalTask(rawDataFile, scanNumbers,
                 "Updating TIC visualizer of " + dataFile, this);
 
         taskController.addTask(updateTask, TaskPriority.HIGH, visualizer);
-        
+
     }
 
     int getSeriesIndex(double retentionTime, double intensity) {
@@ -92,7 +90,7 @@ class TICDataSet extends DefaultTableXYDataset implements RawDataAcceptor {
     int getScanNumber(int index) {
         return scanNumbers[index];
     }
-    
+
     double getMZValue(int index) {
         return mzValues[index];
     }
@@ -104,28 +102,28 @@ class TICDataSet extends DefaultTableXYDataset implements RawDataAcceptor {
     /**
      * @see net.sf.mzmine.io.RawDataAcceptor#addScan(net.sf.mzmine.data.Scan)
      */
-    public void addScan(Scan scan, int ind) {
+    public void addScan(Scan scan, int index, int total) {
 
         double intensityValues[] = scan.getIntensityValues();
 
         double totalIntensity = 0;
 
         switch (visualizer.getPlotType()) {
-            
-            case TIC:
-                double mzValues[] = scan.getMZValues();
-                for (int j = 0; j < intensityValues.length; j++) {
-                    if ((mzValues[j] >= mzMin) && (mzValues[j] <= mzMax))
-                        totalIntensity += intensityValues[j];
-                }
-                break;
-                
-            case BASE_PEAK:
-                double basePeak[] = ScanUtils.findBasePeak(scan, mzMin, mzMax);
-                this.mzValues[series.getItemCount()] = basePeak[0];
-                totalIntensity = basePeak[1];
-                break;
-                
+
+        case TIC:
+            double mzValues[] = scan.getMZValues();
+            for (int j = 0; j < intensityValues.length; j++) {
+                if ((mzValues[j] >= mzMin) && (mzValues[j] <= mzMax))
+                    totalIntensity += intensityValues[j];
+            }
+            break;
+
+        case BASE_PEAK:
+            double basePeak[] = ScanUtils.findBasePeak(scan, mzMin, mzMax);
+            this.mzValues[series.getItemCount()] = basePeak[0];
+            totalIntensity = basePeak[1];
+            break;
+
         }
 
         // redraw every REDRAW_INTERVAL ms
@@ -137,11 +135,10 @@ class TICDataSet extends DefaultTableXYDataset implements RawDataAcceptor {
         }
 
         // always redraw when we add last value
-        if (scan.getScanNumber() == scanNumbers[scanNumbers.length - 1])
+        if (index == total - 1)
             notify = true;
 
         series.add(scan.getRetentionTime(), totalIntensity, notify);
-
 
     }
 }

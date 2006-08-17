@@ -23,15 +23,14 @@ import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.text.DateFormat;
 import java.text.DecimalFormat;
 import java.text.NumberFormat;
-import java.text.SimpleDateFormat;
 
 import javax.swing.BorderFactory;
 import javax.swing.JCheckBox;
 import javax.swing.JInternalFrame;
 
+import net.sf.mzmine.io.OpenedRawDataFile;
 import net.sf.mzmine.io.RawDataFile;
 import net.sf.mzmine.taskcontrol.Task;
 import net.sf.mzmine.taskcontrol.TaskController;
@@ -54,39 +53,37 @@ public class TwoDVisualizerWindow extends JInternalFrame implements
 
     private TwoDDataSet dataset;
 
-    private RawDataFile rawDataFile;
+    private OpenedRawDataFile dataFile;
     private int msLevel;
 
     private Desktop desktop;
-    private TaskController taskController;
-
-    // TODO: get these from parameter storage
-    private static NumberFormat rtFormat = new TimeNumberFormat();
-    private static NumberFormat mzFormat = new DecimalFormat("0.00");
-    private static NumberFormat intensityFormat = new DecimalFormat("0.00E0");
 
     public TwoDVisualizerWindow(TaskController taskController, Desktop desktop,
-            RawDataFile rawDataFile, int msLevel, double rtMin, double rtMax,
-            double mzMin, double mzMax, int rtResolution, int mzResolution) {
+            OpenedRawDataFile dataFile, int msLevel, double rtMin,
+            double rtMax, double mzMin, double mzMax, int rtResolution,
+            int mzResolution) {
 
-        super(rawDataFile.toString(), true, true, true, true);
+        super(dataFile.toString(), true, true, true, true);
 
-        this.taskController = taskController;
         this.desktop = desktop;
 
         setDefaultCloseOperation(DISPOSE_ON_CLOSE);
         setBackground(Color.white);
 
-        this.rawDataFile = rawDataFile;
+        this.dataFile = dataFile;
         this.msLevel = msLevel;
 
-        dataset = new TwoDDataSet(taskController, rawDataFile, msLevel, this);
+        dataset = new TwoDDataSet(taskController, dataFile.getCurrentFile(),
+                msLevel, rtMin, rtMax, mzMin, mzMax, rtResolution,
+                mzResolution, this);
 
         toolBar = new TwoDToolBar(this);
         add(toolBar, BorderLayout.EAST);
 
         twoDPlot = new TwoDPlot(this, dataset);
         add(twoDPlot, BorderLayout.CENTER);
+        // make sure the dataset knows about zooming events
+        twoDPlot.getXYPlot().addChangeListener(dataset);
 
         resampleCheckBox = new JCheckBox("Resample when zooming", true);
         resampleCheckBox.setBackground(Color.white);
@@ -106,7 +103,7 @@ public class TwoDVisualizerWindow extends JInternalFrame implements
      *      double)
      */
     public void setMZRange(double mzMin, double mzMax) {
-        twoDPlot.getPlot().getRangeAxis().setRange(mzMin, mzMax);
+        twoDPlot.getXYPlot().getRangeAxis().setRange(mzMin, mzMax);
     }
 
     /**
@@ -114,7 +111,7 @@ public class TwoDVisualizerWindow extends JInternalFrame implements
      *      double)
      */
     public void setRTRange(double rtMin, double rtMax) {
-        twoDPlot.getPlot().getDomainAxis().setRange(rtMin, rtMax);
+        twoDPlot.getXYPlot().getDomainAxis().setRange(rtMin, rtMax);
 
     }
 
@@ -130,7 +127,7 @@ public class TwoDVisualizerWindow extends JInternalFrame implements
 
         StringBuffer title = new StringBuffer();
         title.append("[");
-        title.append(rawDataFile.toString());
+        title.append(dataFile.toString());
         title.append("]: 2D view");
 
         setTitle(title.toString());
@@ -153,13 +150,6 @@ public class TwoDVisualizerWindow extends JInternalFrame implements
             // TODO
         }
 
-    }
-
-    /**
-     * @see net.sf.mzmine.visualizers.rawdata.RawDataVisualizer#getRawDataFiles()
-     */
-    public RawDataFile[] getRawDataFiles() {
-        return new RawDataFile[] { rawDataFile };
     }
 
     /**
@@ -196,6 +186,10 @@ public class TwoDVisualizerWindow extends JInternalFrame implements
     public void setCursorPosition(CursorPosition newPosition) {
         // TODO Auto-generated method stub
 
+    }
+    
+    TwoDPlot getPlot() {
+        return twoDPlot;
     }
 
 }

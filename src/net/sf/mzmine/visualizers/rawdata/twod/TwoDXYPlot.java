@@ -19,16 +19,16 @@ class TwoDXYPlot extends XYPlot {
 
     TwoDDataSet dataset;
 
-    TwoDXYPlot(XYDataset dataset, ValueAxis domainAxis, ValueAxis rangeAxis,
+    TwoDXYPlot(TwoDDataSet dataset, ValueAxis domainAxis, ValueAxis rangeAxis,
             XYItemRenderer renderer) {
         super(dataset, domainAxis, rangeAxis, renderer);
-        this.dataset = (TwoDDataSet) dataset;
+        this.dataset = dataset;
     }
 
     public boolean render(Graphics2D g2, Rectangle2D area, int index,
             PlotRenderingInfo info, CrosshairState crosshairState) {
 
-        BufferedImage image = dataset.getRenderedImage();
+        BufferedImage image = dataset.getCurrentImage();
 
         if (image != null) {
 
@@ -42,9 +42,12 @@ class TwoDXYPlot extends XYPlot {
             transform.concatenate(scaleTransform);
 
             g2.drawRenderedImage(image, transform);
+            
+            return true;
+            
         }
         
-        return image != null;
+        return false;
 
     }
 

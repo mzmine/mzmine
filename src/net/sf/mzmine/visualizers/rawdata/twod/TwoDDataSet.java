@@ -19,9 +19,7 @@
 
 package net.sf.mzmine.visualizers.rawdata.twod;
 
-import java.awt.Dimension;
 import java.awt.Point;
-import java.awt.Toolkit;
 import java.awt.Transparency;
 import java.awt.color.ColorSpace;
 import java.awt.image.BufferedImage;
@@ -41,60 +39,70 @@ import net.sf.mzmine.taskcontrol.Task;
 import net.sf.mzmine.taskcontrol.TaskController;
 import net.sf.mzmine.taskcontrol.Task.TaskPriority;
 
+import org.jfree.chart.event.PlotChangeEvent;
+import org.jfree.chart.event.PlotChangeListener;
+import org.jfree.chart.plot.XYPlot;
 import org.jfree.data.xy.AbstractXYZDataset;
 
 /**
  * 
  */
-class TwoDDataSet extends AbstractXYZDataset implements RawDataAcceptor {
+class TwoDDataSet extends AbstractXYZDataset implements RawDataAcceptor,
+        PlotChangeListener {
 
     // redraw the chart every 100 ms while updating
     private static final int REDRAW_INTERVAL = 100;
 
     private RawDataFile rawDataFile;
-    private TwoDVisualizerWindow visualizer;
-    
-    private int[] scanNumbers;
-        
-    private double intensityMatrix[][];
-    
-    private double rtMin, rtMax, mzMin, mzMax;
-    private double rtStep, mzStep;
-    
-    private int bitmapSizeX, bitmapSizeY;
-    
-    private double maxIntensity;
-    
-    private BufferedImage totalImage, currentImage;
 
-    
-    
+    private double totalIntensityMatrix[][];
+    private double currentIntensityMatrix[][];
+
+    // bounds for the total (zoom-out) image
+    private double totalRTMin, totalRTMax, totalMZMin, totalMZMax;
+    private double totalRTStep, totalMZStep;
+
+    // bounds for current zoom image
+    private double currentRTMin, currentRTMax, currentMZMin, currentMZMax;
+    private double currentRTStep, currentMZStep;
+
+    // max intensity in current image
+    private double currentMaxIntensity;
+
+    private BufferedImage currentImage;
+
     private Date lastRedrawTime = new Date();
 
-    TwoDDataSet(TaskController taskController, RawDataFile rawDataFile, int msLevel, TwoDVisualizerWindow visualizer) {
+    private boolean totalDataLoaded = false;
 
-        this.visualizer = visualizer;
+    TwoDDataSet(TaskController taskController, RawDataFile rawDataFile,
+            int msLevel, double rtMin, double rtMax, double mzMin,
+            double mzMax, int rtResolution, int mzResolution,
+            TwoDVisualizerWindow visualizer) {
+
         this.rawDataFile = rawDataFile;
 
-        scanNumbers = rawDataFile.getScanNumbers(msLevel);
+        totalRTMin = rtMin;
+        totalRTMax = rtMax;
+        totalMZMin = mzMin;
+        totalMZMax = mzMax;
+        totalRTStep = (rtMax - rtMin) / (rtResolution - 1);
+        totalMZStep = (mzMax - mzMin) / (mzResolution - 1);
+        totalIntensityMatrix = new double[rtResolution][mzResolution];
+
+        currentRTMin = rtMin;
+        currentRTMax = rtMax;
+        currentMZMin = mzMin;
+        currentMZMax = mzMax;
+        currentRTStep = (rtMax - rtMin) / (rtResolution - 1);
+        currentMZStep = (mzMax - mzMin) / (mzResolution - 1);
+        currentIntensityMatrix = totalIntensityMatrix;
+
+        int scanNumbers[] = rawDataFile.getScanNumbers(msLevel, rtMin, rtMax);
         assert scanNumbers != null;
-        
-        rtMin = rawDataFile.getDataMinRT(msLevel);
-        rtMax = rawDataFile.getDataMaxRT(msLevel);
-        mzMin = rawDataFile.getDataMinMZ(msLevel);
-        mzMax = rawDataFile.getDataMaxMZ(msLevel);
-        
-        Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize(); 
-        bitmapSizeX = (int) 400; // screenSize.getWidth();
-        bitmapSizeY = (int) 300; // screenSize.getHeight();
-        
-        rtStep = (rtMax - rtMin) / (bitmapSizeX - 1); 
-        mzStep = (mzMax - mzMin) / (bitmapSizeY - 1);
-        
-        intensityMatrix = new double[bitmapSizeX][bitmapSizeY];
-        
-        Task updateTask = new RawDataRetrievalTask(rawDataFile, scanNumbers, "Updating 2D visualizer of " + rawDataFile,
-                this);
+
+        Task updateTask = new RawDataRetrievalTask(rawDataFile, scanNumbers,
+                "Updating 2D visualizer of " + rawDataFile, this);
 
         taskController.addTask(updateTask, TaskPriority.HIGH, visualizer);
 
@@ -103,26 +111,61 @@ class TwoDDataSet extends AbstractXYZDataset implements RawDataAcceptor {
     /**
      * @see net.sf.mzmine.io.RawDataAcceptor#addScan(net.sf.mzmine.data.Scan)
      */
-    public synchronized void addScan(Scan scan, int index) {
+    public synchronized void addScan(Scan scan, int index, int total) {
 
-        if ((scan.getRetentionTime() < rtMin) || (scan.getRetentionTime() > rtMax)) return;
-        int xIndex = (int) Math.floor((scan.getRetentionTime() - rtMin) / rtStep);
+        double rtMin, rtMax, rtStep, mzMin, mzMax, mzStep;
+        double intensityMatrix[][];
+        int bitmapSizeX, bitmapSizeY;
+
+        if (totalDataLoaded) {
+            rtMin = currentRTMin;
+            rtMax = currentRTMax;
+            rtStep = currentRTStep;
+            mzMin = currentMZMin;
+            mzMax = currentMZMax;
+            mzStep = currentMZStep;
+            intensityMatrix = currentIntensityMatrix;
+            bitmapSizeX = totalIntensityMatrix.length;
+            bitmapSizeY = totalIntensityMatrix[0].length;
+        } else {
+            rtMin = totalRTMin;
+            rtMax = totalRTMax;
+            rtStep = totalRTStep;
+            mzMin = totalMZMin;
+            mzMax = totalMZMax;
+            mzStep = totalMZStep;
+            intensityMatrix = totalIntensityMatrix;
+            bitmapSizeX = currentIntensityMatrix.length;
+            bitmapSizeY = currentIntensityMatrix[0].length;
+
+        }
+
+        if ((scan.getRetentionTime() < rtMin)
+                || (scan.getRetentionTime() > rtMax))
+            return;
+
+        int xIndex = (int) Math.floor((scan.getRetentionTime() - rtMin)
+                / rtStep);
         int yIndex;
-        
-        
+
         double mzValues[] = scan.getMZValues();
         double intensityValues[] = scan.getIntensityValues();
-        
+
         for (int i = 0; i < mzValues.length; i++) {
-            
-            if (mzValues[i] < mzMin) continue;
-            if (mzValues[i] > mzMax) break;
-            yIndex = bitmapSizeY - 1 - (int) Math.floor((mzValues[i] - mzMin) / mzStep);
+
+            if (mzValues[i] < mzMin)
+                continue;
+            if (mzValues[i] > mzMax)
+                break;
+            yIndex = bitmapSizeY - 1
+                    - (int) Math.floor((mzValues[i] - mzMin) / mzStep);
             intensityMatrix[xIndex][yIndex] += intensityValues[i];
-             
-            if (intensityMatrix[xIndex][yIndex] > maxIntensity) maxIntensity = intensityMatrix[xIndex][yIndex];
+
+            if (totalDataLoaded) {
+                if (intensityMatrix[xIndex][yIndex] > currentMaxIntensity)
+                    currentMaxIntensity = intensityMatrix[xIndex][yIndex];
+            }
         }
-        
 
         // redraw every REDRAW_INTERVAL ms
         boolean notify = false;
@@ -133,11 +176,13 @@ class TwoDDataSet extends AbstractXYZDataset implements RawDataAcceptor {
         }
 
         // always redraw when we add last value
-        if (scan.getScanNumber() == scanNumbers[scanNumbers.length - 1])
+        if (index == total - 1) {
             notify = true;
+            totalDataLoaded = true;
+        }
 
         if (notify) {
-            renderImage();
+            renderCurrentImage();
             fireDatasetChanged();
         }
 
@@ -158,95 +203,107 @@ class TwoDDataSet extends AbstractXYZDataset implements RawDataAcceptor {
     }
 
     /**
-     * @see org.jfree.data.xy.XYZDataset#getZ(int, int)
-     */
-    public Number getZ(int series, int item) {
-        return intensityMatrix[item / bitmapSizeY][item % bitmapSizeY];
-    }
-
-    /**
      * @see org.jfree.data.xy.XYDataset#getItemCount(int)
      */
     public int getItemCount(int series) {
-        return bitmapSizeX * bitmapSizeY;
+        return 0;
     }
 
     /**
      * @see org.jfree.data.xy.XYDataset#getX(int, int)
      */
     public Number getX(int series, int item) {
-        return (rtMin + (rtStep * (item / bitmapSizeY)));
+        return null;
     }
 
     /**
      * @see org.jfree.data.xy.XYDataset#getY(int, int)
      */
     public Number getY(int series, int item) {
-        //if (mzMin + (mzStep * (item % bitmapSizeY)) < 200) System.out.println(mzMin + (mzStep * (item % bitmapSizeY)));
-        return mzMin + (mzStep * (item % bitmapSizeY));
+        return null;
     }
-    
-    double getMaxIntensity() {
-        return maxIntensity;
+
+    /**
+     * @see org.jfree.data.xy.XYZDataset#getZ(int, int)
+     */
+    public Number getZ(int series, int item) {
+        return null;
     }
-    
-    double getRTStep() {
-        return rtStep;
-    }
-    
-    double getMZStep() {
-        return mzStep;
-    }
-    
-    
-    
-    
-    BufferedImage getRenderedImage() {
+
+    BufferedImage getCurrentImage() {
         return currentImage;
     }
-    
-    synchronized void renderImage() {
-        
+
+    synchronized void renderCurrentImage() {
+
         ColorSpace cs = null;
         double dataImgMax = Double.MAX_VALUE;
 
-                cs = ColorSpace.getInstance(ColorSpace.CS_GRAY);
+        cs = ColorSpace.getInstance(ColorSpace.CS_GRAY);
 
-                dataImgMax = maxIntensity;
+        dataImgMax = currentMaxIntensity;
 
-                
-        // How many 8-bit components are used for representing shade of color in this color space?
+        int bitmapSizeX = currentIntensityMatrix.length;
+        int bitmapSizeY = currentIntensityMatrix[0].length;
+
+        // How many 8-bit components are used for representing shade of color in
+        // this color space?
         int nComp = cs.getNumComponents();
         int[] nBits = new int[nComp];
-        for (int nb=0; nb<nComp; nb++) { nBits[nb]=8; }
+        for (int nb = 0; nb < nComp; nb++) {
+            nBits[nb] = 8;
+        }
 
         // Create sample model for storing the image
-        ColorModel colorModel = new ComponentColorModel(cs, nBits, false,true,Transparency.OPAQUE,DataBuffer.TYPE_BYTE);
-        SampleModel sampleModel = colorModel.createCompatibleSampleModel(bitmapSizeX, bitmapSizeY);
+        ColorModel colorModel = new ComponentColorModel(cs, nBits, false, true,
+                Transparency.OPAQUE, DataBuffer.TYPE_BYTE);
+        SampleModel sampleModel = colorModel.createCompatibleSampleModel(
+                bitmapSizeX, bitmapSizeY);
         DataBuffer dataBuffer = sampleModel.createDataBuffer();
-        
-        byte count=0;
+
+        byte count = 0;
         byte[] b = new byte[nComp];
         double bb;
         double fac;
-        for (int xpos=0; xpos<bitmapSizeX; xpos++) {
-            for (int ypos=0; ypos<bitmapSizeY; ypos++) {
+        for (int xpos = 0; xpos < bitmapSizeX; xpos++) {
+            for (int ypos = 0; ypos < bitmapSizeY; ypos++) {
 
                 bb = 0;
-                        bb = (double)((0.20*dataImgMax-intensityMatrix[xpos][ypos])/(0.20*dataImgMax));
-                        if (bb<0) { bb = 0; }
-                        b[0] = (byte)(255*bb);
+                bb = (double) ((0.20 * dataImgMax - currentIntensityMatrix[xpos][ypos]) / (0.20 * dataImgMax));
+                if (bb < 0) {
+                    bb = 0;
+                }
+                b[0] = (byte) (255 * bb);
 
-                sampleModel.setDataElements(xpos,ypos,b,dataBuffer);
+                sampleModel.setDataElements(xpos, ypos, b, dataBuffer);
             }
 
         }
-        
-        WritableRaster wr = Raster.createWritableRaster(sampleModel,dataBuffer, new Point(0,0));
-        currentImage = new BufferedImage(colorModel, wr,true,null);
-        if (totalImage == null) totalImage = currentImage;
-        
-                
+
+        WritableRaster wr = Raster.createWritableRaster(sampleModel,
+                dataBuffer, new Point(0, 0));
+        currentImage = new BufferedImage(colorModel, wr, true, null);
+
     }
-       
+
+    /**
+     * @see org.jfree.chart.event.PlotChangeListener#plotChanged(org.jfree.chart.event.PlotChangeEvent)
+     */
+    public void plotChanged(PlotChangeEvent event) {
+        System.out.println(event);
+        XYPlot plot = (XYPlot) event.getPlot();
+        currentRTMin = plot.getDomainAxis().getLowerBound();
+        currentRTMax = plot.getDomainAxis().getUpperBound();
+        currentMZMin = plot.getRangeAxis().getLowerBound();
+        currentMZMax = plot.getRangeAxis().getUpperBound();
+        int rtResolution = currentIntensityMatrix.length;
+        int mzResolution = currentIntensityMatrix[0].length;
+
+        currentRTStep = (currentRTMax - currentRTMin) / (rtResolution - 1);
+        currentMZStep = (currentMZMax - currentMZMin) / (mzResolution - 1);
+        currentIntensityMatrix = new double[rtResolution][mzResolution];
+        // TODO copy data
+
+    }
+
 }

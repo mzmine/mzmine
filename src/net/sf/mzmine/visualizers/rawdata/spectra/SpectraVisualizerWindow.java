@@ -325,7 +325,7 @@ public class SpectraVisualizerWindow extends JInternalFrame implements
     /**
      * @see net.sf.mzmine.io.RawDataAcceptor#addScan(net.sf.mzmine.data.Scan)
      */
-    public synchronized void addScan(Scan scan, int scanIndex) {
+    public synchronized void addScan(Scan scan, int scanIndex, int total) {
 
         scans[scanIndex] = scan;
 
@@ -461,7 +461,7 @@ public class SpectraVisualizerWindow extends JInternalFrame implements
         }
 
         // check if we added last scan
-        if (scanIndex == scans.length - 1) {
+        if (scanIndex == total - 1) {
 
             // if we have a peak list, add the eligible peaks
             PeakList peakList = MZmineProject.getCurrentProject().getPeakList(
