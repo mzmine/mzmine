@@ -139,7 +139,7 @@ class SimpleIsotopicPeaksGrouperTask implements Task {
             peakTree.add(p);
         }
 
-        HashSet<Peak> alreadyAssignedPeaks = new HashSet<Peak>();
+        //HashSet<Peak> alreadyAssignedPeaks = new HashSet<Peak>();
 
 
         // Loop through all peaks in the order of descending intensity
@@ -155,19 +155,16 @@ class SimpleIsotopicPeaksGrouperTask implements Task {
 
             // If this peak is already assigned to some isotope pattern, then
             // skip it
-            if (alreadyAssignedPeaks.contains(aPeak)) {
-                continue;
-            }
+            if (aPeak.hasData(IsotopePattern.class)) continue;
 
             // Check which charge state fits best around this peak
             int bestFitCharge = 0;
             int bestFitScore = -1;
-            Peak[] bestFitPeaks = null;
+            Vector<Peak> bestFitPeaks = null;
             for (int charge : charges) {
 
-                Peak[] fittedPeaks = fitPattern(aPeak, charge, parameters,
-                        allPeaks, alreadyAssignedPeaks);
-                int score = fittedPeaks.length;
+                Vector<Peak> fittedPeaks = fitPattern(aPeak, charge, parameters, allPeaks);
+                int score = fittedPeaks.size();
                 if ((score > bestFitScore)
                         || ((score == bestFitScore) && (bestFitCharge > charge))) {
                     bestFitScore = score;
@@ -181,7 +178,6 @@ class SimpleIsotopicPeaksGrouperTask implements Task {
             GrouperIsotopePattern isotopePattern = new GrouperIsotopePattern(
                     bestFitCharge);
             for (Peak p : bestFitPeaks) {
-                alreadyAssignedPeaks.add(p);
                 GrouperPeak processedPeak = new GrouperPeak(p);
                 processedPeak.addData(IsotopePattern.class, isotopePattern);
                 processedPeakList.addPeak(processedPeak);
@@ -208,9 +204,8 @@ class SimpleIsotopicPeaksGrouperTask implements Task {
      *            pattern.
      * @return Array of peaks in same pattern
      */
-    private Peak[] fitPattern(Peak p, int charge,
-            SimpleIsotopicPeaksGrouperParameters parameters, Peak[] allPeaks,
-            Set<Peak> alreadyAssignedPeaks) {
+    private Vector<Peak> fitPattern(Peak p, int charge,
+            SimpleIsotopicPeaksGrouperParameters parameters, Peak[] allPeaks) {
 
         if (charge == 0) {
             return null;
@@ -224,15 +219,13 @@ class SimpleIsotopicPeaksGrouperTask implements Task {
 
         // Search for peaks before the start peak
         if (!parameters.monotonicShape) {
-            fitHalfPattern(p, charge, -1, parameters, allPeaks, fittedPeaks,
-                    alreadyAssignedPeaks);
+            fitHalfPattern(p, charge, -1, parameters, allPeaks, fittedPeaks);
         }
 
         // Search for peaks after the start peak
-        fitHalfPattern(p, charge, 1, parameters, allPeaks, fittedPeaks,
-                alreadyAssignedPeaks);
+        fitHalfPattern(p, charge, 1, parameters, allPeaks, fittedPeaks);
 
-        return fittedPeaks.toArray(new Peak[0]);
+        return fittedPeaks;
 
     }
 
@@ -248,7 +241,7 @@ class SimpleIsotopicPeaksGrouperTask implements Task {
      */
     private void fitHalfPattern(Peak p, int charge, int direction,
             SimpleIsotopicPeaksGrouperParameters parameters, Peak[] allPeaks,
-            Vector<Peak> fittedPeaks, Set<Peak> alreadyAssignedPeaks) {
+            Vector<Peak> fittedPeaks) {
 
         // Use M/Z and RT of the strongest peak of the pattern (peak 'p')
         double currentMZ = p.getNormalizedMZ();
@@ -274,9 +267,7 @@ class SimpleIsotopicPeaksGrouperTask implements Task {
 
                 // If this peak is already assigned to some isotope pattern, the
                 // skip it
-                if (alreadyAssignedPeaks.contains(candidatePeak)) {
-                    continue;
-                }
+                if (candidatePeak.hasData(IsotopePattern.class)) continue;
 
                 // Get properties of the candidate peak
                 double candidatePeakMZ = candidatePeak.getNormalizedMZ();
