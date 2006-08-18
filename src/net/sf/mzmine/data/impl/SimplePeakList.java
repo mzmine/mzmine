@@ -25,11 +25,12 @@ import java.util.HashSet;
 import net.sf.mzmine.data.IsotopePattern;
 import net.sf.mzmine.data.Peak;
 import net.sf.mzmine.data.PeakList;
+import net.sf.mzmine.data.impl.AbstractDataUnit;
 
 /**
  * Simple implementation of the PeakList interface.
  */
-public class SimplePeakList implements PeakList {
+public class SimplePeakList extends AbstractDataUnit implements PeakList {
 
 	private Vector<Peak> peaks;
 

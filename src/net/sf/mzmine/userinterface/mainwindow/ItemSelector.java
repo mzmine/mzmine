@@ -1,17 +1,17 @@
 /*
  * Copyright 2006 The MZmine Development Team
- * 
+ *
  * This file is part of MZmine.
- * 
+ *
  * MZmine is free software; you can redistribute it and/or modify it under the
  * terms of the GNU General Public License as published by the Free Software
  * Foundation; either version 2 of the License, or (at your option) any later
  * version.
- * 
+ *
  * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY
  * WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR
  * A PARTICULAR PURPOSE. See the GNU General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License along with
  * MZmine; if not, write to the Free Software Foundation, Inc., 51 Franklin St,
  * Fifth Floor, Boston, MA 02110-1301 USA
@@ -41,6 +41,7 @@ import javax.swing.event.InternalFrameListener;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
 
+import net.sf.mzmine.data.PeakList;
 import net.sf.mzmine.data.AlignmentResult;
 import net.sf.mzmine.io.OpenedRawDataFile;
 import net.sf.mzmine.project.MZmineProject;
@@ -162,17 +163,17 @@ public class ItemSelector extends JPanel implements ListSelectionListener,
              * level " + msLevel); showTIC.addActionListener(this);
              * showTIC.setActionCommand("TIC" + msLevel);
              * popupMenu.add(showTIC); }
-             * 
+             *
              * for (int msLevel : msLevels) { JMenuItem showBP = new
              * JMenuItem("Show base peak intensity of MS level " + msLevel);
              * showBP.addActionListener(this); showBP.setActionCommand("BP" +
              * msLevel); popupMenu.add(showBP); }
-             * 
+             *
              * for (int msLevel : msLevels) { JMenuItem showBP = new
              * JMenuItem("Show 2D visualizer of MS level " + msLevel);
              * showBP.addActionListener(this); showBP.setActionCommand("2D" +
              * msLevel); popupMenu.add(showBP); }
-             * 
+             *
              * for (int msLevel : msLevels) { JMenuItem showBP = new
              * JMenuItem("Show 3D visualizer of MS level " + msLevel);
              * showBP.addActionListener(this); showBP.setActionCommand("3D" +
@@ -182,8 +183,7 @@ public class ItemSelector extends JPanel implements ListSelectionListener,
             // TODO: show scan list?
             JMenuItem peakListMenuItem = GUIUtils.addMenuItem(popupMenu,
                     "Show peak list", this, "PEAKLIST");
-            boolean hasPeakList = MZmineProject.getCurrentProject().hasPeakList(
-                    selectedFile);
+            boolean hasPeakList = selectedFile.getCurrentFile().hasData(PeakList.class);
             peakListMenuItem.setEnabled(hasPeakList);
             popupMenu.addSeparator();
 
@@ -202,7 +202,7 @@ public class ItemSelector extends JPanel implements ListSelectionListener,
         if (command.equals("PEAKLIST")) {
             OpenedRawDataFile[] selectedFiles = getSelectedRawData();
             for (OpenedRawDataFile file : selectedFiles) {
-                if (MZmineProject.getCurrentProject().hasPeakList(file)) {
+				if (file.getCurrentFile().hasData(PeakList.class)) {
                     PeakListTableView peakListTable = new PeakListTableView(
                             file);
                     desktop.addInternalFrame(peakListTable);
@@ -309,7 +309,7 @@ public class ItemSelector extends JPanel implements ListSelectionListener,
 
     /**
      * Returns the run that is selected in run list
-     * 
+     *
      * public RawDataAtClient getActiveRawData() { return (RawDataAtClient)
      * rawDataList.getSelectedValue(); }
      */

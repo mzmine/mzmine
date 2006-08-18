@@ -1,17 +1,17 @@
 /*
  * Copyright 2006 The MZmine Development Team
- * 
+ *
  * This file is part of MZmine.
- * 
+ *
  * MZmine is free software; you can redistribute it and/or modify it under the
  * terms of the GNU General Public License as published by the Free Software
  * Foundation; either version 2 of the License, or (at your option) any later
  * version.
- * 
+ *
  * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY
  * WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR
  * A PARTICULAR PURPOSE. See the GNU General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License along with
  * MZmine; if not, write to the Free Software Foundation, Inc., 51 Franklin St,
  * Fifth Floor, Boston, MA 02110-1301 USA
@@ -28,6 +28,7 @@ import java.util.Iterator;
 import java.util.logging.Logger;
 
 import net.sf.mzmine.data.Scan;
+import net.sf.mzmine.data.impl.AbstractDataUnit;
 import net.sf.mzmine.io.RawDataFile;
 import net.sf.mzmine.io.RawDataFileWriter;
 import net.sf.mzmine.io.IOController.PreloadLevel;
@@ -35,18 +36,18 @@ import net.sf.mzmine.io.mzxml.MZXMLFileWriter;
 import net.sf.mzmine.util.CollectionUtils;
 
 /**
- * 
+ *
  */
-public class NetCDFFile implements RawDataFile {
+public class NetCDFFile extends AbstractDataUnit implements RawDataFile {
 
     private Logger logger = Logger.getLogger(this.getClass().getName());
-    
+
     private File realFile;
 
     private PreloadLevel preloadLevel;
     private StringBuffer dataDescription;
 
-    
+
     private int numOfScans = 0;
 
     private double dataMinMZ, dataMaxMZ, dataMinRT, dataMaxRT;
@@ -69,7 +70,7 @@ public class NetCDFFile implements RawDataFile {
 
 
     /**
-     * 
+     *
      */
     NetCDFFile(File currentFile, PreloadLevel preloadLevel) {
 
@@ -127,23 +128,23 @@ public class NetCDFFile implements RawDataFile {
     public int[] getScanNumbers(int msLevel) {
         return getScanNumbers(msLevel, dataMinRT, dataMaxRT);
     }
-    
+
     /**
      * @see net.sf.mzmine.io.RawDataFile#getScanNumbers(int, double, double)
      */
     public int[] getScanNumbers(int msLevel, double rtMin, double rtMax) {
         ArrayList<Integer> eligibleScans = new ArrayList<Integer>();
-        
+
         Iterator<Integer> iter = scanNumbers.iterator();
         while (iter.hasNext()) {
             Integer scanNumber = iter.next();
             double rt = retentionTimes.get(scanNumber);
             if ((rt >= rtMin) && (rt <= rtMax)) eligibleScans.add(scanNumber);
         }
-        
+
         int[] numbersArray = CollectionUtils.toIntArray(eligibleScans);
         Arrays.sort(numbersArray);
-        
+
         return numbersArray;
     }
 
@@ -245,7 +246,7 @@ public class NetCDFFile implements RawDataFile {
     }
 
     /**
-     * 
+     *
      */
     void addScan(Scan newScan) {
 

@@ -144,7 +144,7 @@ public class JoinAligner implements Method,
 		boolean allOk = true;
 
         for (OpenedRawDataFile file : dataFiles) {
-            if (!(MZmineProject.getCurrentProject().hasPeakList(file))) {
+			if (!file.getCurrentFile().hasData(PeakList.class)) {
 				allOk = false;
             }
         }

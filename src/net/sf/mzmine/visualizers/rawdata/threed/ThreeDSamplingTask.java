@@ -74,7 +74,7 @@ import visad.java3d.MouseBehaviorJ3D;
 class ThreeDSamplingTask implements Task {
 
     private Logger logger = Logger.getLogger(this.getClass().getName());
-    
+
     private ThreeDVisualizerWindow visualizer;
     private OpenedRawDataFile dataFile;
     private RawDataFile rawDataFile;
@@ -346,7 +346,7 @@ class ThreeDSamplingTask implements Task {
 
 
             // if we have peak data, connect them to the display, too
-            PeakList peakList = MZmineProject.getCurrentProject().getPeakList(dataFile);
+            PeakList peakList = (PeakList)dataFile.getCurrentFile().getData(PeakList.class)[0];
             if (peakList != null) {
 
                 Peak peaks[] = peakList.getPeaksInsideScanAndMZRange(rtMin, rtMax, mzMin, mzMax);

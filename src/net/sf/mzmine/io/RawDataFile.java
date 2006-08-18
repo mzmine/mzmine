@@ -24,21 +24,22 @@ import java.io.IOException;
 import java.io.Serializable;
 
 import net.sf.mzmine.data.Scan;
+import net.sf.mzmine.data.DataUnit;
 import net.sf.mzmine.io.IOController.PreloadLevel;
 
-public interface RawDataFile extends Serializable {
+public interface RawDataFile extends Serializable, DataUnit {
 
     public File getFile();
 
     public PreloadLevel getPreloadLevel();
-    
+
     public int getNumOfScans();
 
     public int[] getMSLevels();
 
     /**
      * Returns sorted array of all scan numbers in given MS level
-     * 
+     *
      * @param msLevel MS level
      * @return Sorted array of scan numbers, never returns null
      */
@@ -47,7 +48,7 @@ public interface RawDataFile extends Serializable {
     /**
      * Returns sorted array of all scan numbers in given MS level and retention
      * time range
-     * 
+     *
      * @param msLevel MS level
      * @param rtMin Minimum retention time
      * @param rtMax Maximum retention time
@@ -57,14 +58,14 @@ public interface RawDataFile extends Serializable {
 
     /**
      * Returns sorted array of all scan numbers in this file
-     * 
+     *
      * @return Sorted array of scan numbers, never returns null
      */
     public int[] getScanNumbers();
 
     /**
      * Returns a retention time of a given scan
-     * 
+     *
      * @param scanNumber Scan number
      * @return Scan's retention time
      */
@@ -72,7 +73,7 @@ public interface RawDataFile extends Serializable {
 
     /**
      * Returns a precursor m/z of a given MS-MS scan
-     * 
+     *
      * @param scanNumber MS-MS scan number
      * @return Scan's precursor m/z, or -1 if there is none
      */
@@ -80,7 +81,7 @@ public interface RawDataFile extends Serializable {
 
     /**
      * This method may parse the RAW data file, therefore it may be quite slow.
-     * 
+     *
      * @param scan Desired scan number
      * @return Desired scan
      */

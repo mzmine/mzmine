@@ -115,8 +115,7 @@ public class SimpleIsotopicPeaksGrouper implements Method,
         SimpleIsotopicPeaksGrouperParameters param = (SimpleIsotopicPeaksGrouperParameters) parameters;
 
         for (OpenedRawDataFile dataFile : dataFiles) {
-            PeakList currentPeakList = MZmineProject.getCurrentProject().getPeakList(
-                    dataFile);
+            PeakList currentPeakList = (PeakList)dataFile.getCurrentFile().getData(PeakList.class)[0];
             if (currentPeakList == null)
                 continue;
             Task peaklistProcessorTask = new SimpleIsotopicPeaksGrouperTask(
@@ -149,7 +148,7 @@ public class SimpleIsotopicPeaksGrouper implements Method,
         OpenedRawDataFile[] dataFiles = desktop.getSelectedDataFiles();
 
         for (OpenedRawDataFile file : dataFiles) {
-            if (MZmineProject.getCurrentProject().hasPeakList(file)) {
+			if (file.getCurrentFile().hasData(PeakList.class)) {
                 myMenuItem.setEnabled(true);
                 return;
             }
@@ -174,7 +173,7 @@ public class SimpleIsotopicPeaksGrouper implements Method,
                     params);
 
             // Add peak list to MZmineProject
-            MZmineProject.getCurrentProject().setPeakList(dataFile, peakList);
+            dataFile.getCurrentFile().addData(PeakList.class, peakList);
 
 
         } else if (task.getStatus() == Task.TaskStatus.ERROR) {

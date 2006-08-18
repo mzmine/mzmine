@@ -76,7 +76,7 @@ public class CentroidPicker implements Method, TaskListener,
 
     /**
      * This function displays a modal dialog to define method parameters
-     * 
+     *
      * @see net.sf.mzmine.methods.Method#askParameters()
      */
     public MethodParameters askParameters() {
@@ -251,7 +251,7 @@ public class CentroidPicker implements Method, TaskListener,
                     params);
 
             // Add peak list to MZmineProject
-            MZmineProject.getCurrentProject().setPeakList(dataFile, peakList);
+            dataFile.getCurrentFile().addData(PeakList.class, peakList);
 
             PeakListTableView peakListTable = new PeakListTableView(dataFile);
             desktop.addInternalFrame(peakListTable);

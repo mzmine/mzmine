@@ -31,6 +31,8 @@ import net.sf.mzmine.taskcontrol.Task;
 
 import net.sf.mzmine.data.Peak;
 import net.sf.mzmine.data.PeakList;
+import net.sf.mzmine.data.IsotopePattern;
+
 
 /**
  *
@@ -111,17 +113,41 @@ class JoinAlignerTask implements Task {
 
         status = TaskStatus.PROCESSING;
 
-		// Collect peak lists for all raw data files
-		Hashtable<OpenedRawDataFile, PeakList> peakListTable = new Hashtable<OpenedRawDataFile, PeakList>();
+		// Initialize master isotope list
+		// ------------------------------
+		Vector<MasterIsotopeListRow> masterIsotopeListRows = new Vector<MasterIsotopeListRow>();
 
+
+		// Loop through all data files
+		// ---------------------------
 		for (OpenedRawDataFile dataFile : dataFiles) {
-			//peakListTable.put(dataFile, dataFile.getCurrentFile().
+
+			// Pickup peak list for this file
+			PeakList peakList = (PeakList)dataFile.getCurrentFile().getData(PeakList.class)[0];
+
 
 		}
+
 
         status = TaskStatus.FINISHED;
 
     }
+
+
+
+
+
+	/**
+	 * This class represent one row of the master isotope list
+	 */
+	private class MasterIsotopeListRow extends Hashtable<Integer, IsotopePattern> {
+		private boolean alreadyJoined = false;
+
+		public void setJoined(boolean b) { alreadyJoined = b; }
+		public boolean isAlreadyJoined() { return alreadyJoined; }
+
+	}
+
 
 
 }

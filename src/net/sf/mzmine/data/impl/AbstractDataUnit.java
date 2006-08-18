@@ -19,7 +19,7 @@
 
 package net.sf.mzmine.data.impl;
 
-import java.util.ArrayList;
+import java.util.Vector;
 import java.util.Hashtable;
 
 import net.sf.mzmine.data.DataUnit;
@@ -31,14 +31,14 @@ import net.sf.mzmine.data.DataUnit;
 public abstract class AbstractDataUnit implements DataUnit {
 
     // This is for implementing DataUnit interface
-    private Hashtable<Class, ArrayList<DataUnit>> myDataUnits = new Hashtable<Class, ArrayList<DataUnit>>();
+    private Hashtable<Class, Vector<DataUnit>> myDataUnits = new Hashtable<Class, Vector<DataUnit>>();
 
     public void addData(Class dataType, DataUnit data) {
 
-        ArrayList<DataUnit> correctSet = myDataUnits.get(dataType);
+        Vector<DataUnit> correctSet = myDataUnits.get(dataType);
 
         if (correctSet==null) {
-            correctSet = new ArrayList<DataUnit>();
+            correctSet = new Vector<DataUnit>();
             myDataUnits.put(dataType, correctSet);
         }
 
@@ -48,11 +48,11 @@ public abstract class AbstractDataUnit implements DataUnit {
 
     public DataUnit[] getData(Class dataType) {
 
-        ArrayList<DataUnit> adu = myDataUnits.get(dataType);
+        Vector<DataUnit> adu = myDataUnits.get(dataType);
 
         if (adu==null) return new DataUnit[0];
 
-        return myDataUnits.get(dataType).toArray(new DataUnit[0]);
+        return adu.toArray(new DataUnit[adu.size()]);
 
     }
 

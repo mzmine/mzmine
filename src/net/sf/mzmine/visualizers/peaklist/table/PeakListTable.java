@@ -41,7 +41,7 @@ public class PeakListTable extends JTable {
 
 	protected PeakListTable(PeakListTableView masterFrame, OpenedRawDataFile rawData) {
 
-		peakList = MZmineProject.getCurrentProject().getPeakList(rawData);
+		peakList = (PeakList)rawData.getCurrentFile().getData(PeakList.class)[0];
 
 		if (peakList!=null) {
 			AbstractTableModel mtm = new MyTableModel(peakList);

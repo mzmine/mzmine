@@ -19,12 +19,13 @@
 
 package net.sf.mzmine.data;
 
+import net.sf.mzmine.data.DataUnit;
 
 
 /**
  *
  */
-public interface PeakList {
+public interface PeakList extends DataUnit {
 
 	/**
 	 * Returns number of peaks on the list
@@ -61,7 +62,7 @@ public interface PeakList {
      * @param   endMZ   End of the m/z range
      */
     public Peak[] getPeaksInsideMZRange(double startMZ, double endMZ);
-    
+
     /**
      * Returns all peaks in a given m/z & retention time ranges
      * @param   startRT Start of the retention time range
@@ -70,7 +71,7 @@ public interface PeakList {
      * @param   endMZ   End of the m/z range
      */
     public Peak[] getPeaksInsideScanAndMZRange(double startRT, double endRT, double startMZ, double endMZ);
-    
+
 	/**
 	 * Returns all isotope patterns overlapping with a retention time range
 	 * @param	startRT Start of the retention time range

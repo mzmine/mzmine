@@ -72,7 +72,7 @@ public class RecursiveThresholdPicker implements Method,
 
     /**
      * This function displays a modal dialog to define method parameters
-     * 
+     *
      * @see net.sf.mzmine.methods.Method#askParameters()
      */
     public MethodParameters askParameters() {
@@ -268,8 +268,8 @@ public class RecursiveThresholdPicker implements Method,
             dataFile.addHistoryEntry(dataFile.getCurrentFile().getFile(), this,
                     params);
 
-            // Add peak list to MZmineProject
-            MZmineProject.getCurrentProject().setPeakList(dataFile, peakList);
+            // Add peak list as a data unit to current raw data file
+            dataFile.getCurrentFile().addData(PeakList.class, peakList);
 
             PeakListTableView peakListTable = new PeakListTableView(dataFile);
             desktop.addInternalFrame(peakListTable);

@@ -1,24 +1,24 @@
 /*
  * Copyright 2006 The MZmine Development Team
- * 
+ *
  * This file is part of MZmine.
- * 
+ *
  * MZmine is free software; you can redistribute it and/or modify it under the
  * terms of the GNU General Public License as published by the Free Software
  * Foundation; either version 2 of the License, or (at your option) any later
  * version.
- * 
+ *
  * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY
  * WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR
  * A PARTICULAR PURPOSE. See the GNU General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License along with
  * MZmine; if not, write to the Free Software Foundation, Inc., 51 Franklin St,
  * Fifth Floor, Boston, MA 02110-1301 USA
  */
 
 /**
- * 
+ *
  */
 package net.sf.mzmine.io.mzxml;
 
@@ -39,6 +39,7 @@ import javax.xml.parsers.SAXParser;
 import javax.xml.parsers.SAXParserFactory;
 
 import net.sf.mzmine.data.Scan;
+import net.sf.mzmine.data.impl.AbstractDataUnit;
 import net.sf.mzmine.io.RawDataFile;
 import net.sf.mzmine.io.RawDataFileWriter;
 import net.sf.mzmine.io.IOController.PreloadLevel;
@@ -46,12 +47,12 @@ import net.sf.mzmine.util.CollectionUtils;
 
 /**
  * Class representing raw data file in MZXML format.
- * 
+ *
  */
-class MZXMLFile implements RawDataFile {
+class MZXMLFile extends AbstractDataUnit implements RawDataFile {
 
     private Logger logger = Logger.getLogger(this.getClass().getName());
-    
+
     private File realFile;
 
     private int numOfScans = 0;
@@ -79,7 +80,7 @@ class MZXMLFile implements RawDataFile {
     private Hashtable<Integer, ArrayList<Integer>> scanNumbers;
 
     /**
-     * 
+     *
      */
     MZXMLFile(File file, PreloadLevel preloadLevel) {
 

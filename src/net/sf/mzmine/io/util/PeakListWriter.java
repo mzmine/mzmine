@@ -76,7 +76,7 @@ public class PeakListWriter {
 
 		// Get peak list
 		MZmineProject proj = MZmineProject.getCurrentProject();
-		PeakList peakList = proj.getPeakList(rawData);
+		PeakList peakList = (PeakList)rawData.getCurrentFile().getData(PeakList.class)[0];
 
 		// Group peaks by their isotope pattern
 		IsotopePatternUtility isotopeUtility = new IsotopePatternUtility(peakList);
