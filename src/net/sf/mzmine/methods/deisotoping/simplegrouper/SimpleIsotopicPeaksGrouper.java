@@ -41,6 +41,7 @@ import net.sf.mzmine.taskcontrol.TaskController;
 import net.sf.mzmine.taskcontrol.TaskListener;
 import net.sf.mzmine.userinterface.Desktop;
 import net.sf.mzmine.userinterface.Desktop.MZmineMenu;
+import net.sf.mzmine.userinterface.mainwindow.MainWindow;
 
 /**
  * This class implements a simple isotopic peaks grouper method based on
@@ -149,7 +150,7 @@ public class SimpleIsotopicPeaksGrouper implements Method,
 
         for (OpenedRawDataFile file : dataFiles) {
 			if (file.getCurrentFile().hasData(PeakList.class)) {
-                myMenuItem.setEnabled(true);
+				myMenuItem.setEnabled(true);
                 return;
             }
         }
@@ -175,6 +176,8 @@ public class SimpleIsotopicPeaksGrouper implements Method,
             // Add peak list to MZmineProject
             dataFile.getCurrentFile().addData(PeakList.class, peakList);
 
+			// Notify listeners
+			MainWindow.getInstance().getItemSelector().fireDataChanged();
 
         } else if (task.getStatus() == Task.TaskStatus.ERROR) {
             /* Task encountered an error */

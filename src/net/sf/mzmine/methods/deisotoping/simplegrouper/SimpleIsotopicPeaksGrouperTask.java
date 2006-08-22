@@ -19,6 +19,8 @@ import java.util.Iterator;
 import java.util.Set;
 import java.util.TreeSet;
 import java.util.Vector;
+import java.util.Hashtable;
+import java.util.Arrays;
 
 import net.sf.mzmine.data.Peak;
 import net.sf.mzmine.data.PeakList;
@@ -128,42 +130,30 @@ class SimpleIsotopicPeaksGrouperTask implements Task {
             index++;
         }
 
-        // Assign all peaks to a TreeSet for sorting them in order of descending
-        // intensity
-        // At the same time, clear all previous isotope pattern IDs
-        TreeSet<Peak> peakTree = new TreeSet<Peak>(
-                new PeakOrdererByDescendingHeight());
-
-        Peak[] allPeaks = currentPeakList.getPeaks();
-        for (Peak p : allPeaks) {
-            peakTree.add(p);
-        }
-
-        //HashSet<Peak> alreadyAssignedPeaks = new HashSet<Peak>();
-
+        Peak[] sortedPeaks = currentPeakList.getPeaks();
+        Arrays.sort(sortedPeaks, new PeakOrdererByDescendingHeight());
 
         // Loop through all peaks in the order of descending intensity
-        Iterator<Peak> peakIterator = peakTree.iterator();
-        totalPeaks = peakTree.size();
-        while (peakIterator.hasNext()) {
+        totalPeaks = sortedPeaks.length;
 
-            if (status == TaskStatus.CANCELED)
-                return;
+        for (int ind=0; ind<sortedPeaks.length; ind++) {
 
-            // Get next peak
-            Peak aPeak = peakIterator.next();
+			Peak aPeak = sortedPeaks[ind];
 
-            // If this peak is already assigned to some isotope pattern, then
-            // skip it
-            if (aPeak.hasData(IsotopePattern.class)) continue;
+            if (status == TaskStatus.CANCELED) return;
+
+            if (aPeak == null) continue;
 
             // Check which charge state fits best around this peak
             int bestFitCharge = 0;
             int bestFitScore = -1;
-            Vector<Peak> bestFitPeaks = null;
+            Hashtable<Peak, Integer> bestFitPeaks = null;
             for (int charge : charges) {
 
-                Vector<Peak> fittedPeaks = fitPattern(aPeak, charge, parameters, allPeaks);
+                Hashtable<Peak, Integer> fittedPeaks = new Hashtable<Peak, Integer>();
+                fittedPeaks.put(aPeak, new Integer(ind));
+                fitPattern(fittedPeaks, aPeak, charge, parameters, sortedPeaks);
+
                 int score = fittedPeaks.size();
                 if ((score > bestFitScore)
                         || ((score == bestFitScore) && (bestFitCharge > charge))) {
@@ -175,13 +165,14 @@ class SimpleIsotopicPeaksGrouperTask implements Task {
             }
 
             // Assign peaks in best fitted pattern to same isotope pattern
-            GrouperIsotopePattern isotopePattern = new GrouperIsotopePattern(
-                    bestFitCharge);
-            for (Peak p : bestFitPeaks) {
-                GrouperPeak processedPeak = new GrouperPeak(p);
-                processedPeak.addData(IsotopePattern.class, isotopePattern);
-                processedPeakList.addPeak(processedPeak);
-            }
+            GrouperIsotopePattern isotopePattern = new GrouperIsotopePattern(bestFitCharge);
+
+			for (Peak p : bestFitPeaks.keySet()) {
+				GrouperPeak processedPeak = new GrouperPeak(p);
+				processedPeak.addData(IsotopePattern.class, isotopePattern);
+				processedPeakList.addPeak(processedPeak);
+			}
+			for (Integer ind2 : bestFitPeaks.values()) { sortedPeaks[ind2] = null;}
 
             // Update completion rate
             processedPeaks++;
@@ -204,28 +195,20 @@ class SimpleIsotopicPeaksGrouperTask implements Task {
      *            pattern.
      * @return Array of peaks in same pattern
      */
-    private Vector<Peak> fitPattern(Peak p, int charge,
-            SimpleIsotopicPeaksGrouperParameters parameters, Peak[] allPeaks) {
+    private void fitPattern(Hashtable<Peak, Integer> fittedPeaks, Peak p, int charge,
+            SimpleIsotopicPeaksGrouperParameters parameters, Peak[] sortedPeaks) {
 
         if (charge == 0) {
-            return null;
+            return;
         }
-
-        // All peaks of the fitted pattern will be collected to this set
-        Vector<Peak> fittedPeaks = new Vector<Peak>();
-
-        // Naturally 'p' will be always fitted to the pattern
-        fittedPeaks.add(p);
 
         // Search for peaks before the start peak
         if (!parameters.monotonicShape) {
-            fitHalfPattern(p, charge, -1, parameters, allPeaks, fittedPeaks);
+            fitHalfPattern(p, charge, -1, parameters, fittedPeaks, sortedPeaks);
         }
 
         // Search for peaks after the start peak
-        fitHalfPattern(p, charge, 1, parameters, allPeaks, fittedPeaks);
-
-        return fittedPeaks;
+        fitHalfPattern(p, charge, 1, parameters, fittedPeaks, sortedPeaks);
 
     }
 
@@ -240,8 +223,9 @@ class SimpleIsotopicPeaksGrouperTask implements Task {
      * @param fittedPeaks All matching peaks will be added to this set
      */
     private void fitHalfPattern(Peak p, int charge, int direction,
-            SimpleIsotopicPeaksGrouperParameters parameters, Peak[] allPeaks,
-            Vector<Peak> fittedPeaks) {
+            SimpleIsotopicPeaksGrouperParameters parameters,
+            Hashtable<Peak, Integer> fittedPeaks,
+            Peak[] sortedPeaks) {
 
         // Use M/Z and RT of the strongest peak of the pattern (peak 'p')
         double currentMZ = p.getNormalizedMZ();
@@ -262,12 +246,12 @@ class SimpleIsotopicPeaksGrouperTask implements Task {
 
             // Loop through all peaks, and collect candidates for the n:th peak
             // in the pattern
-            Vector<Peak> goodCandidates = new Vector<Peak>();
-            for (Peak candidatePeak : allPeaks) {
+            Hashtable<Peak, Integer> goodCandidates = new Hashtable<Peak, Integer>();
+			for (int ind=0; ind<sortedPeaks.length; ind++) {
 
-                // If this peak is already assigned to some isotope pattern, the
-                // skip it
-                if (candidatePeak.hasData(IsotopePattern.class)) continue;
+				Peak candidatePeak = sortedPeaks[ind];
+
+                if (candidatePeak==null) continue;
 
                 // Get properties of the candidate peak
                 double candidatePeakMZ = candidatePeak.getNormalizedMZ();
@@ -286,7 +270,7 @@ class SimpleIsotopicPeaksGrouperTask implements Task {
                                 * neutronMW / (double) charge)
                                 - currentMZ) < parameters.mzTolerance)
                         && (!fittedPeaks.contains(candidatePeak))) {
-                    goodCandidates.add(candidatePeak);
+                    goodCandidates.put(candidatePeak, new Integer(ind));
                 }
 
             }
@@ -299,7 +283,7 @@ class SimpleIsotopicPeaksGrouperTask implements Task {
             // candidates. However, currently
             // nothing is done with other candidates.
             Peak bestCandidate = null;
-            for (Peak candidatePeak : goodCandidates) {
+            for (Peak candidatePeak : goodCandidates.keySet()) {
                 if (bestCandidate != null) {
                     if (bestCandidate.getNormalizedHeight() < candidatePeak.getNormalizedHeight()) {
                         bestCandidate = candidatePeak;
@@ -315,7 +299,7 @@ class SimpleIsotopicPeaksGrouperTask implements Task {
             if (bestCandidate != null) {
 
                 // Add best candidate to fitted peaks of the pattern
-                fittedPeaks.add(bestCandidate);
+                fittedPeaks.put(bestCandidate, goodCandidates.get(bestCandidate));
 
                 // Update height limit
                 currentHeight = bestCandidate.getNormalizedHeight();
@@ -337,6 +321,7 @@ class SimpleIsotopicPeaksGrouperTask implements Task {
     private class PeakOrdererByDescendingHeight implements Comparator<Peak> {
 
         public int compare(Peak p1, Peak p2) {
+			if (p1==p2) return 0;
             if (p1.getNormalizedHeight() <= p2.getNormalizedHeight()) {
                 return 1;
             } else {
