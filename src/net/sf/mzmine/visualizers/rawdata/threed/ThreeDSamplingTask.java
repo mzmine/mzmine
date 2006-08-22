@@ -26,12 +26,12 @@ import java.text.NumberFormat;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import net.sf.mzmine.data.DataUnit;
 import net.sf.mzmine.data.Peak;
 import net.sf.mzmine.data.PeakList;
 import net.sf.mzmine.data.Scan;
 import net.sf.mzmine.io.OpenedRawDataFile;
 import net.sf.mzmine.io.RawDataFile;
-import net.sf.mzmine.project.MZmineProject;
 import net.sf.mzmine.taskcontrol.Task;
 import net.sf.mzmine.util.ScanUtils;
 import net.sf.mzmine.util.TimeNumberFormat;
@@ -346,8 +346,12 @@ class ThreeDSamplingTask implements Task {
 
 
             // if we have peak data, connect them to the display, too
-            PeakList peakList = (PeakList)dataFile.getCurrentFile().getData(PeakList.class)[0];
-            if (peakList != null) {
+            DataUnit peakLists[] = dataFile.getCurrentFile().getData(PeakList.class);
+            
+            if (peakLists.length > 0) {
+                
+                // get the last peaklist
+                PeakList peakList = (PeakList) peakLists[peakLists.length - 1];
 
                 Peak peaks[] = peakList.getPeaksInsideScanAndMZRange(rtMin, rtMax, mzMin, mzMax);
 
