@@ -27,6 +27,7 @@ import javax.swing.table.AbstractTableModel;
 import net.sf.mzmine.data.IsotopePattern;
 import net.sf.mzmine.data.Peak;
 import net.sf.mzmine.data.PeakList;
+import net.sf.mzmine.data.DataUnit;
 import net.sf.mzmine.io.OpenedRawDataFile;
 import net.sf.mzmine.methods.deisotoping.util.IsotopePatternUtility;
 import net.sf.mzmine.project.MZmineProject;
@@ -41,7 +42,8 @@ public class PeakListTable extends JTable {
 
 	protected PeakListTable(PeakListTableView masterFrame, OpenedRawDataFile rawData) {
 
-		peakList = (PeakList)rawData.getCurrentFile().getData(PeakList.class)[0];
+		DataUnit[] peakLists = (DataUnit[])rawData.getCurrentFile().getData(PeakList.class);
+		peakList = (PeakList)peakLists[peakLists.length-1];
 
 		if (peakList!=null) {
 			AbstractTableModel mtm = new MyTableModel(peakList);
