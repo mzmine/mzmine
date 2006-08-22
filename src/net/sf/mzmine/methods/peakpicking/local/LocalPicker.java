@@ -43,6 +43,7 @@ import net.sf.mzmine.taskcontrol.TaskListener;
 import net.sf.mzmine.userinterface.Desktop;
 import net.sf.mzmine.userinterface.Desktop.MZmineMenu;
 import net.sf.mzmine.userinterface.dialogs.ParameterSetupDialog;
+import net.sf.mzmine.userinterface.mainwindow.MainWindow;
 import net.sf.mzmine.visualizers.peaklist.table.PeakListTableView;
 
 /**
@@ -249,8 +250,11 @@ public class LocalPicker implements Method, TaskListener,
             dataFile.addHistoryEntry(dataFile.getCurrentFile().getFile(), this,
                     params);
 
-            // Add peak list to MZmineProject
+            // Add peak list as data unit to current file
             dataFile.getCurrentFile().addData(PeakList.class, peakList);
+
+			// Notify listeners
+			MainWindow.getInstance().getItemSelector().fireDataChanged();
 
             PeakListTableView peakListTable = new PeakListTableView(dataFile);
             desktop.addInternalFrame(peakListTable);
