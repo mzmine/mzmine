@@ -32,7 +32,7 @@ public class DummyMain {
      */
     public static void main(String[] args) {
 
-        String msg = "Please run MZmine using a provided starting script (startMZmine.bat or startMZmine.sh)";
+        String msg = "Please run MZmine using one of the provided startMZmine scripts.";
 
         System.out.println(msg);
 
