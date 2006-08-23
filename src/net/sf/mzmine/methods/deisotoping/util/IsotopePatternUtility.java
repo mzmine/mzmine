@@ -97,6 +97,15 @@ public class IsotopePatternUtility {
 	}
 
 	/**
+	 * Returns monoisotopic peak of the pattern (peak with lowest M/Z)
+	 */
+	public Peak getMonoisotopicPeak(IsotopePattern isotopePattern) {
+		SortedSet<Peak> peaksVector = isotopePatternPeaks.get(isotopePattern);
+		if (peaksVector==null) return null;
+		return peaksVector.first();
+	}
+
+	/**
 	 * Returns all isotope patterns that appear in the peak list
 	 */
 	public IsotopePattern[] getAllIsotopePatterns() {
