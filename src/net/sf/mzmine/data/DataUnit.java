@@ -24,10 +24,37 @@ package net.sf.mzmine.data;
  */
 public interface DataUnit {
 
+	/**
+	 * Adds a new data unit
+	 */
 	public void addData(Class dataType, DataUnit data);
 
+	/**
+	 * Returns all added data units of given type.
+	 * Data units are stored in the array in the same order as they were added
+	 */
 	public DataUnit[] getData(Class dataType);
 
+	/**
+	 * Returns the latest added data unit of given type
+	 */
+	public DataUnit getLastData(Class dataType);
+
+	/**
+	 * Checks if there are any data units of given type
+	 */
 	public boolean hasData(Class dataType);
+
+	/**
+	 * Removes all data units of given type
+	 * @return	true if something was removed
+	 */
+	public boolean removeAllData(Class dataType);
+
+	/**
+	 * Removes a single data unit
+	 * @return	true if a data unit was removed
+	 */
+	public boolean removeData(Class dataType, DataUnit data);
 
 }

@@ -35,14 +35,14 @@ public abstract class AbstractDataUnit implements DataUnit {
 
     public void addData(Class dataType, DataUnit data) {
 
-        Vector<DataUnit> correctSet = myDataUnits.get(dataType);
+        Vector<DataUnit> adu = myDataUnits.get(dataType);
 
-        if (correctSet==null) {
-            correctSet = new Vector<DataUnit>();
-            myDataUnits.put(dataType, correctSet);
+        if (adu==null) {
+            adu = new Vector<DataUnit>();
+            myDataUnits.put(dataType, adu);
         }
 
-        correctSet.add(data);
+        adu.add(data);
 
     }
 
@@ -56,10 +56,46 @@ public abstract class AbstractDataUnit implements DataUnit {
 
     }
 
+    public DataUnit getLastData(Class dataType) {
+
+        Vector<DataUnit> adu = myDataUnits.get(dataType);
+
+        if (adu==null) return null;
+
+        return adu.lastElement();
+
+	}
+
     public boolean hasData(Class dataType) {
 
         return myDataUnits.containsKey(dataType);
 
     }
+
+    public boolean removeAllData(Class dataType) {
+
+		Vector<DataUnit> adu = myDataUnits.remove(dataType);
+
+		if (adu==null) return false;
+
+		return true;
+
+	}
+
+	public boolean removeData(Class dataType, DataUnit data) {
+
+        Vector<DataUnit> adu = myDataUnits.get(dataType);
+
+        if (adu==null) return false;
+
+        boolean res = adu.remove(data);
+
+        if (res==false) return res;
+
+        if (adu.size()==0) myDataUnits.remove(dataType);
+
+        return true;
+
+	}
 
 }
