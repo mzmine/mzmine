@@ -23,8 +23,10 @@ import java.io.IOException;
 import java.util.Hashtable;
 import java.util.Iterator;
 import java.util.TreeSet;
+import java.util.HashSet;
 import java.util.Vector;
 import java.util.ArrayList;
+import java.util.Comparator;
 
 import net.sf.mzmine.io.OpenedRawDataFile;
 import net.sf.mzmine.taskcontrol.Task;
@@ -114,32 +116,97 @@ class JoinAlignerTask implements Task {
 
         status = TaskStatus.PROCESSING;
 
-		// Initialize master isotope list
-		// ------------------------------
+		/*
+		 * Initialize master isotope list
+		 */
 		Vector<MasterIsotopeListRow> masterIsotopeListRows = new Vector<MasterIsotopeListRow>();
 
 
-		// Loop through all data files
-		// ---------------------------
+		/*
+		 * Loop through all data files
+		 */
 		for (OpenedRawDataFile dataFile : dataFiles) {
 
-			// Pickup peak list for this file and generate list of isotope patterns
+			/*
+			 * Pickup peak list for this file and generate list of isotope patterns
+			 */
 			PeakList peakList = (PeakList)dataFile.getCurrentFile().getLastData(PeakList.class);
 			IsotopePatternUtility isoUtil = new IsotopePatternUtility(peakList);
 			IsotopePattern[] isotopePatternList = isoUtil.getAllIsotopePatterns();
 
-			// Calculate scores between all pairs of isotope pattern and master isotope list row
-			// Loop through isotope patterns
+
+
+			/*
+			 * Calculate scores between all pairs of isotope pattern and master isotope list row
+			 */
+
+			// Reset score tree
+			TreeSet<PatternVsRowScore> scoreTree = new TreeSet<PatternVsRowScore>(new ScoreOrderer());
+
 			for (IsotopePattern isotopePattern : isotopePatternList) {
-
-				// Loop through master isotope list row
-
+				for (MasterIsotopeListRow masterIsotopeListRow : masterIsotopeListRows) {
+					PatternVsRowScore score = new PatternVsRowScore(masterIsotopeListRow, isotopePattern, isoUtil, parameters);
+					if (score.isGoodEnough()) scoreTree.add(score);
+				}
 			}
 
 
+			/*
+			 * Browse scores in order of descending goodness-of-fit
+			 */
 
+			// Reset 'joined' information for isotope patterns
+			HashSet<IsotopePattern> alreadyJoinedIsotopePatterns = new HashSet<IsotopePattern>();
+
+			Iterator<PatternVsRowScore> scoreIter = scoreTree.iterator();
+			while (scoreIter.hasNext()) {
+				PatternVsRowScore score = scoreIter.next();
+
+				MasterIsotopeListRow masterIsotopeListRow = score.getMasterIsotopeListRow();
+				IsotopePattern isotopePattern = score.getIsotopePattern();
+
+				// Check if master list row is already assigned with an isotope pattern (from this rawDataID)
+				if (masterIsotopeListRow.isAlreadyJoined()) continue;
+
+				// Check if isotope pattern is already assigned to some master isotope list row
+				if (alreadyJoinedIsotopePatterns.contains(isotopePattern)) continue;
+
+				// Assign isotope pattern to master peak list row
+				masterIsotopeListRow.addIsotopePattern(isotopePattern, isoUtil);
+
+				// Mark pattern and isotope pattern row as joined
+				masterIsotopeListRow.setJoined(true);
+				alreadyJoinedIsotopePatterns.add(isotopePattern);
+
+
+			}
+
+			/*
+			 * Add null (empty slot) to all unjoined master isotope list rows
+			 */
+			 for (MasterIsotopeListRow masterIsotopeListRow : masterIsotopeListRows) {
+				 if (!masterIsotopeListRow.isAlreadyJoined()) {
+					 masterIsotopeListRow.addEmptySlot();
+				 }
+				 masterIsotopeListRow.setJoined(false);
+
+			 }
+
+
+			/*
+			 * Add remaining isotope patterns as new rows to master isotope list
+			 */
+			for (IsotopePattern isotopePattern : isotopePatternList) {
+				if (alreadyJoinedIsotopePatterns.contains(isotopePattern)) continue;
+				MasterIsotopeListRow masterIsotopeListRow = new MasterIsotopeListRow();
+			}
 
 		}
+
+		/*
+		 * Convert master isotope list to master peak list
+		 */
+
 
 
 
@@ -154,7 +221,9 @@ class JoinAlignerTask implements Task {
 	/**
 	 * This class represent one row of the master isotope list
 	 */
-	private class MasterIsotopeListRow extends Hashtable<OpenedRawDataFile, IsotopePattern> {
+	private class MasterIsotopeListRow {
+
+		private Vector<IsotopePattern> isotopePatterns;
 
 		private double monoMZ;
 		private double monoRT;
@@ -167,21 +236,40 @@ class JoinAlignerTask implements Task {
 		private boolean alreadyJoined = false;
 
 		public MasterIsotopeListRow() {
+			isotopePatterns = new Vector<IsotopePattern>();
 			mzVals = new Vector<Double>();
 			rtVals = new Vector<Double>();
 		}
 
 		public void addIsotopePattern(IsotopePattern isotopePattern, IsotopePatternUtility util) {
-			// TODO:
 
 			// Get monoisotopic peak
+			Peak[] peaks = util.getPeaksInPattern(isotopePattern);
+			Peak monoPeak = peaks[0];
 
 			// Add M/Z and RT
+			mzVals.add(monoPeak.getNormalizedMZ());
+			rtVals.add(monoPeak.getNormalizedRT());
 
 			// Update medians
+			Double[] mzValsArray = mzVals.toArray(new Double[0]);
+			double[] mzValsArrayN = new double[mzValsArray.length];
+			for (int i=0; i<mzValsArray.length; i++)
+				mzValsArrayN[i] = mzValsArray[i];
+
+			Double[] rtValsArray = rtVals.toArray(new Double[0]);
+			double[] rtValsArrayN = new double[rtValsArray.length];
+			for (int i=0; i<rtValsArray.length; i++)
+				rtValsArrayN[i] = rtValsArray[i];
+
 
 			// Set charge state
+			chargeState = isotopePattern.getChargeState();
 
+		}
+
+		public void addEmptySlot() {
+			isotopePatterns.add(null);
 		}
 
 		public double getMonoisotopicMZ() { return monoMZ; }
@@ -270,6 +358,20 @@ class JoinAlignerTask implements Task {
 
 	}
 
+
+	/**
+	 * This is a helper class required for TreeSet to sorting scores in order of descending goodness of fit.
+	 */
+	private class ScoreOrderer implements Comparator<PatternVsRowScore> {
+		public int compare(PatternVsRowScore score1, PatternVsRowScore score2) {
+
+			if (score1.getScore()>score2.getScore()) return -1;
+			return 1;
+
+		}
+
+		public boolean equals(Object obj) { return false; }
+	}
 
 
 }
