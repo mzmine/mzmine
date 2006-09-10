@@ -140,34 +140,13 @@ public class SimpleAlignmentResult implements AlignmentResult {
 	/**
 	 * Adds a new row the the alignment result matrix and puts the peak to this row.
 	 */
-	public void addPeakOnNewRow(OpenedRawDataFile openedRawDataFile, Peak peak) {
+	public void addPeak(OpenedRawDataFile openedRawDataFile, Peak peak) {
 
-		Enumeration<ArrayList<Peak>> peakArrayEnum = alignmentResultMatrix.elements();
-		Enumeration<OpenedRawDataFile> dataFileEnum = alignmentResultMatrix.keys();
+		ArrayList<Peak> peakArray = alignmentResultMatrix.get(openedRawDataFile);
 
-		if (!(peakArrayEnum.hasMoreElements())) return;
+		if (peakArray == null) return;
 
-		while (peakArrayEnum.hasMoreElements()) {
-			ArrayList<Peak> peakArray = peakArrayEnum.nextElement();
-			OpenedRawDataFile currentFile = dataFileEnum.nextElement();
-
-			// If this is correct column, then add peak to this column, otherwise empty slot
-			if (currentFile == openedRawDataFile) { peakArray.add(peak);	}
-			else { peakArray.add(null); }
-
-		}
-
-	}
-
-	/**
-	 * Puts a peak to existing row on the alignment result matrix
-	 */
-	public void putPeakOnRow(OpenedRawDataFile rawDataFile, Peak peak, int row) {
-		ArrayList<Peak> peakArray = alignmentResultMatrix.get(rawDataFile);
-
-		if (peakArray == null) return; // TODO Throw error?
-
-		peakArray.set(row, peak);
+		peakArray.add(peak);
 
 	}
 

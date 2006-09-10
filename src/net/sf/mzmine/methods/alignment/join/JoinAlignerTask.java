@@ -34,6 +34,7 @@ import net.sf.mzmine.taskcontrol.Task;
 import net.sf.mzmine.data.Peak;
 import net.sf.mzmine.data.PeakList;
 import net.sf.mzmine.data.IsotopePattern;
+import net.sf.mzmine.data.impl.SimpleAlignmentResult;
 
 import net.sf.mzmine.methods.deisotoping.util.IsotopePatternUtility;
 
@@ -50,6 +51,8 @@ class JoinAlignerTask implements Task {
 
     private int processedScans;
     private int totalScans;
+
+    private SimpleAlignmentResult alignmentResult;
 
     /**
      * @param rawDataFile
@@ -117,9 +120,10 @@ class JoinAlignerTask implements Task {
         status = TaskStatus.PROCESSING;
 
 		/*
-		 * Initialize master isotope list
+		 * Initialize master isotope list and isotope pattern utility vector
 		 */
 		Vector<MasterIsotopeListRow> masterIsotopeListRows = new Vector<MasterIsotopeListRow>();
+		Vector<IsotopePatternUtility> isotopePatternUtils = new Vector<IsotopePatternUtility>();
 
 
 		/*
@@ -132,6 +136,7 @@ class JoinAlignerTask implements Task {
 			 */
 			PeakList peakList = (PeakList)dataFile.getCurrentFile().getLastData(PeakList.class);
 			IsotopePatternUtility isoUtil = new IsotopePatternUtility(peakList);
+			isotopePatternUtils.add(isoUtil);
 			IsotopePattern[] isotopePatternList = isoUtil.getAllIsotopePatterns();
 
 
@@ -204,10 +209,47 @@ class JoinAlignerTask implements Task {
 		}
 
 		/*
-		 * Convert master isotope list to master peak list
+		 * Convert master isotope list to alignment result (master peak list)
 		 */
 
+		// Get number of peak rows
+		int numberOfRows = 0;
+		for (MasterIsotopeListRow masterIsotopeListRow : masterIsotopeListRows) { numberOfRows += masterIsotopeListRow.getNumberOfPeaksOnRow(); }
 
+
+		alignmentResult = new SimpleAlignmentResult();
+
+		// Add openedrawdatafiles to alignment result
+		for (OpenedRawDataFile dataFile : dataFiles) alignmentResult.addOpenedRawDataFile(dataFile);
+
+		for (MasterIsotopeListRow masterIsotopeListRow : masterIsotopeListRows) {
+			Vector<IsotopePattern> isotopePatterns = masterIsotopeListRow.getIsotopePatterns();
+
+			boolean appendNew = true;
+
+			for (int i=0; i<isotopePatterns.size(); i++) {
+				IsotopePatternUtility isoUtil = isotopePatternUtils.get(i);
+				IsotopePattern isotopePattern = isotopePatterns.get(i);
+				OpenedRawDataFile openedRawDataFile = dataFiles[i];
+
+				int emptySlotsToAdd = masterIsotopeListRow.getNumberOfPeaksOnRow();
+
+				if (isotopePattern!=null) {
+					Peak[] peaksInPattern = isoUtil.getPeaksInPattern(isotopePattern);
+
+					for (Peak p : peaksInPattern) {
+						alignmentResult.addPeak(openedRawDataFile, p);
+						emptySlotsToAdd--;
+					}
+				}
+
+				for (int slotNum = 0; slotNum<emptySlotsToAdd; slotNum++)
+					alignmentResult.addPeak(openedRawDataFile, null);
+
+			}
+
+
+		}
 
 
         status = TaskStatus.FINISHED;
@@ -235,6 +277,8 @@ class JoinAlignerTask implements Task {
 
 		private boolean alreadyJoined = false;
 
+		private int numberOfPeaksOnRow;
+
 		public MasterIsotopeListRow() {
 			isotopePatterns = new Vector<IsotopePattern>();
 			mzVals = new Vector<Double>();
@@ -246,6 +290,8 @@ class JoinAlignerTask implements Task {
 			// Get monoisotopic peak
 			Peak[] peaks = util.getPeaksInPattern(isotopePattern);
 			Peak monoPeak = peaks[0];
+
+			if (numberOfPeaksOnRow<peaks.length) numberOfPeaksOnRow = peaks.length;
 
 			// Add M/Z and RT
 			mzVals.add(monoPeak.getNormalizedMZ());
@@ -277,6 +323,10 @@ class JoinAlignerTask implements Task {
 		public double getMonoisotopicRT() { return monoRT; }
 
 		public int getChargeState() { return chargeState; }
+
+		public int getNumberOfPeaksOnRow() { return numberOfPeaksOnRow; }
+
+		public Vector<IsotopePattern> getIsotopePatterns() { return isotopePatterns; }
 
 		public void setJoined(boolean b) { alreadyJoined = b; }
 
