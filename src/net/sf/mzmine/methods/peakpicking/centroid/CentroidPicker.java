@@ -202,9 +202,11 @@ public class CentroidPicker implements Method, TaskListener,
     public void runMethod(MethodParameters parameters,
             OpenedRawDataFile[] dataFiles, AlignmentResult[] alignmentResults) {
 
-        logger.info("Running centroid peak picker");
+
 
         for (OpenedRawDataFile dataFile : dataFiles) {
+			logger.info("Running centroid peak picker on " + dataFile.toString());
+
             Task pickerTask = new CentroidPickerTask(dataFile,
                     (CentroidPickerParameters) parameters);
             taskController.addTask(pickerTask, this);
