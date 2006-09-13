@@ -37,7 +37,7 @@ class PeakListTableToolBar extends JToolBar {
     static final Icon zoomToPeakIcon = new ImageIcon("icons/annotationsicon.png");
     static final Icon findInAlignmentsIcon = new ImageIcon("icons/tableselectionicon.png");
 
-    PeakListTableToolBar(PeakListTableView masterFrame) {
+    PeakListTableToolBar(PeakListTableViewWindow masterFrame) {
 
         super(JToolBar.VERTICAL);
 

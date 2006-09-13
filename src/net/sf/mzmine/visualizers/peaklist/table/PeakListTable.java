@@ -40,7 +40,7 @@ public class PeakListTable extends JTable {
 	private PeakList peakList;
 	private TableSorter sorter;
 
-	protected PeakListTable(PeakListTableView masterFrame, OpenedRawDataFile rawData) {
+	protected PeakListTable(PeakListTableViewWindow masterFrame, OpenedRawDataFile rawData) {
 
 		DataUnit[] peakLists = (DataUnit[])rawData.getCurrentFile().getData(PeakList.class);
 		peakList = (PeakList)peakLists[peakLists.length-1];

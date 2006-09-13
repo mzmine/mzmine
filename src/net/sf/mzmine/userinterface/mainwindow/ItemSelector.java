@@ -47,7 +47,6 @@ import net.sf.mzmine.io.OpenedRawDataFile;
 import net.sf.mzmine.project.MZmineProject;
 import net.sf.mzmine.userinterface.Desktop;
 import net.sf.mzmine.util.GUIUtils;
-import net.sf.mzmine.visualizers.peaklist.table.PeakListTableView;
 import net.sf.mzmine.visualizers.rawdata.RawDataVisualizer;
 
 /**
@@ -158,11 +157,13 @@ public class ItemSelector extends JPanel implements ListSelectionListener,
                 return;
             OpenedRawDataFile selectedFile = (OpenedRawDataFile) rawDataObjects.get(rawDataList.locationToIndex(e.getPoint()));
 
+			/*
             JMenuItem peakListMenuItem = GUIUtils.addMenuItem(popupMenu,
                     "Show peak list", this, "PEAKLIST");
             boolean hasPeakList = selectedFile.getCurrentFile().hasData(PeakList.class);
             peakListMenuItem.setEnabled(hasPeakList);
             popupMenu.addSeparator();
+            */
 
             GUIUtils.addMenuItem(popupMenu, "Close", this, "CLOSE");
 
@@ -176,6 +177,7 @@ public class ItemSelector extends JPanel implements ListSelectionListener,
 
         String command = e.getActionCommand();
 
+		/*
         if (command.equals("PEAKLIST")) {
             OpenedRawDataFile[] selectedFiles = getSelectedRawData();
             for (OpenedRawDataFile file : selectedFiles) {
@@ -186,6 +188,7 @@ public class ItemSelector extends JPanel implements ListSelectionListener,
                 }
             }
         }
+        */
 
         if (command.equals("CLOSE")) {
             OpenedRawDataFile[] selectedFiles = getSelectedRawData();

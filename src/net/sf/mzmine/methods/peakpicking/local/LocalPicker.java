@@ -44,7 +44,6 @@ import net.sf.mzmine.userinterface.Desktop;
 import net.sf.mzmine.userinterface.Desktop.MZmineMenu;
 import net.sf.mzmine.userinterface.dialogs.ParameterSetupDialog;
 import net.sf.mzmine.userinterface.mainwindow.MainWindow;
-import net.sf.mzmine.visualizers.peaklist.table.PeakListTableView;
 
 /**
  * This class implements a peak picker based on searching for local maximums in
@@ -255,9 +254,6 @@ public class LocalPicker implements Method, TaskListener,
 
 			// Notify listeners
 			MainWindow.getInstance().getItemSelector().fireDataChanged();
-
-            PeakListTableView peakListTable = new PeakListTableView(dataFile);
-            desktop.addInternalFrame(peakListTable);
 
         } else if (task.getStatus() == Task.TaskStatus.ERROR) {
             /* Task encountered an error */

@@ -35,12 +35,13 @@ import net.sf.mzmine.visualizers.peaklist.PeakListVisualizer;
 /**
  *
  */
-public class PeakListTableView extends JInternalFrame implements PeakListVisualizer, ActionListener {
+public class PeakListTableViewWindow extends JInternalFrame implements PeakListVisualizer, ActionListener {
 
 	private OpenedRawDataFile rawData;
 	private PeakListTable table;
 
-	public PeakListTableView(OpenedRawDataFile rawData) {
+
+	public PeakListTableViewWindow(OpenedRawDataFile rawData) {
 
 		super(rawData.toString() + " Peak list", true, true, true, true);
 
