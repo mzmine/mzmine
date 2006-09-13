@@ -100,7 +100,7 @@ class JoinAlignerTask implements Task {
      */
     public Object getResult() {
         Object[] results = new Object[2];
-        results[0] = null; // alignmentResult; TODO
+        results[0] = alignmentResult;
         results[1] = parameters;
         return results;
     }
@@ -130,6 +130,8 @@ class JoinAlignerTask implements Task {
 		 * Loop through all data files
 		 */
 		for (OpenedRawDataFile dataFile : dataFiles) {
+
+			if (status == TaskStatus.CANCELED) return;
 
 			/*
 			 * Pickup peak list for this file and generate list of isotope patterns
@@ -217,7 +219,7 @@ class JoinAlignerTask implements Task {
 		for (MasterIsotopeListRow masterIsotopeListRow : masterIsotopeListRows) { numberOfRows += masterIsotopeListRow.getNumberOfPeaksOnRow(); }
 
 
-		alignmentResult = new SimpleAlignmentResult();
+		alignmentResult = new SimpleAlignmentResult("Result from Join Aligner");
 
 		// Add openedrawdatafiles to alignment result
 		for (OpenedRawDataFile dataFile : dataFiles) alignmentResult.addOpenedRawDataFile(dataFile);
@@ -245,12 +247,9 @@ class JoinAlignerTask implements Task {
 
 				for (int slotNum = 0; slotNum<emptySlotsToAdd; slotNum++)
 					alignmentResult.addPeak(openedRawDataFile, null);
-
 			}
 
-
 		}
-
 
         status = TaskStatus.FINISHED;
 
