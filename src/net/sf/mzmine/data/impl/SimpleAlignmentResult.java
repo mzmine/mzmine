@@ -37,6 +37,10 @@ public class SimpleAlignmentResult implements AlignmentResult {
 	private Hashtable<OpenedRawDataFile, ArrayList<Peak>> alignmentResultMatrix;
 
 
+	public SimpleAlignmentResult() {
+		alignmentResultMatrix = new Hashtable<OpenedRawDataFile, ArrayList<Peak>>();
+	}
+
 	/**
 	 * Returns number of raw data files participating in the alignment
 	 */
