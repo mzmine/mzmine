@@ -93,7 +93,7 @@ public class JoinAligner implements Method,
      */
     public void runMethod(MethodParameters parameters, OpenedRawDataFile[] dataFiles, AlignmentResult[] alignmentResults) {
 
-        logger.info("Running join aligner");
+        logger.info("Running join aligner on " + dataFiles.length + " peak lists.");
 
 		Task alignmentTask = new JoinAlignerTask(dataFiles, (JoinAlignerParameters) parameters);
 		taskController.addTask(alignmentTask, this);
@@ -162,7 +162,12 @@ public class JoinAligner implements Method,
 
         if (task.getStatus() == Task.TaskStatus.FINISHED) {
 
-			// TODO
+			Object[] results = (Object[]) task.getResult();
+			AlignmentResult alignmentResult = (AlignmentResult)results[0];
+			JoinAlignerParameters parameters = (JoinAlignerParameters)results[1];
+
+			MZmineProject.getCurrentProject().addAlignmentResult(alignmentResult);
+
 
         } else if (task.getStatus() == Task.TaskStatus.ERROR) {
             /* Task encountered an error */
