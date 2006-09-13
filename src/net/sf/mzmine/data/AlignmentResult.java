@@ -27,6 +27,12 @@ import net.sf.mzmine.io.OpenedRawDataFile;
  */
 public interface AlignmentResult {
 
+
+    /**
+     * @return Short descriptive name for the alignment result
+     */
+    public String toString();
+
 	/**
 	 * Returns number of raw data files participating in the alignment
 	 */

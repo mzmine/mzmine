@@ -34,11 +34,17 @@ import net.sf.mzmine.io.OpenedRawDataFile;
  */
 public class SimpleAlignmentResult implements AlignmentResult {
 
+	private String name;
 	private Hashtable<OpenedRawDataFile, ArrayList<Peak>> alignmentResultMatrix;
 
 
-	public SimpleAlignmentResult() {
+	public SimpleAlignmentResult(String name) {
+		this.name = name;
 		alignmentResultMatrix = new Hashtable<OpenedRawDataFile, ArrayList<Peak>>();
+	}
+
+	public String toString() {
+		return name;
 	}
 
 	/**
