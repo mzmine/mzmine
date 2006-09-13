@@ -157,30 +157,7 @@ public class ItemSelector extends JPanel implements ListSelectionListener,
             if (rawDataList.locationToIndex(e.getPoint()) == -1)
                 return;
             OpenedRawDataFile selectedFile = (OpenedRawDataFile) rawDataObjects.get(rawDataList.locationToIndex(e.getPoint()));
-            /*
-             * int[] msLevels = selectedFile.getMSLevels(); for (int msLevel :
-             * msLevels) { JMenuItem showTIC = new JMenuItem("Show TIC of MS
-             * level " + msLevel); showTIC.addActionListener(this);
-             * showTIC.setActionCommand("TIC" + msLevel);
-             * popupMenu.add(showTIC); }
-             *
-             * for (int msLevel : msLevels) { JMenuItem showBP = new
-             * JMenuItem("Show base peak intensity of MS level " + msLevel);
-             * showBP.addActionListener(this); showBP.setActionCommand("BP" +
-             * msLevel); popupMenu.add(showBP); }
-             *
-             * for (int msLevel : msLevels) { JMenuItem showBP = new
-             * JMenuItem("Show 2D visualizer of MS level " + msLevel);
-             * showBP.addActionListener(this); showBP.setActionCommand("2D" +
-             * msLevel); popupMenu.add(showBP); }
-             *
-             * for (int msLevel : msLevels) { JMenuItem showBP = new
-             * JMenuItem("Show 3D visualizer of MS level " + msLevel);
-             * showBP.addActionListener(this); showBP.setActionCommand("3D" +
-             * msLevel); popupMenu.add(showBP); }
-             */
 
-            // TODO: show scan list?
             JMenuItem peakListMenuItem = GUIUtils.addMenuItem(popupMenu,
                     "Show peak list", this, "PEAKLIST");
             boolean hasPeakList = selectedFile.getCurrentFile().hasData(PeakList.class);
@@ -231,9 +208,6 @@ public class ItemSelector extends JPanel implements ListSelectionListener,
      */
     public boolean removeRawData(OpenedRawDataFile r) {
         boolean ans = rawDataObjects.removeElement(r);
-
-        // MainWindow.getInstance().getMainMenu().updateMenuAvailability();
-
         return ans;
     }
 
@@ -244,22 +218,6 @@ public class ItemSelector extends JPanel implements ListSelectionListener,
         rawDataObjects.setElementAt(newFile, rawDataObjects.indexOf(oldFile));
     }
 
-    /**
-     * Returns selected raw data objects in an array
-     */
-    public OpenedRawDataFile[] getMZmineOpenedFiles() {
-
-        Object o[] = rawDataObjects.toArray();
-
-        OpenedRawDataFile res[] = new OpenedRawDataFile[o.length];
-
-        for (int i = 0; i < o.length; i++) {
-            res[i] = (OpenedRawDataFile) (o[i]);
-        }
-
-        return res;
-
-    }
 
     /**
      * Returns selected raw data objects in an array
@@ -282,19 +240,7 @@ public class ItemSelector extends JPanel implements ListSelectionListener,
      * Returns first selected raw data file
      */
     public OpenedRawDataFile getFirstSelectedRawData() {
-
         return (OpenedRawDataFile) rawDataList.getSelectedValue();
-
-    }
-
-    /**
-     * Sets the active raw data item in the list
-     */
-    public void setActiveAlignmentResult(AlignmentResult ar) {
-        resultList.setSelectedValue(ar, true);
-
-        // MainWindow.getInstance().getMainMenu().updateMenuAvailability();
-        // repaint();
     }
 
     /**
@@ -302,35 +248,50 @@ public class ItemSelector extends JPanel implements ListSelectionListener,
      */
     public void setActiveRawData(OpenedRawDataFile rawData) {
         rawDataList.setSelectedValue(rawData, true);
-
-        // MainWindow.getInstance().getMainMenu().updateMenuAvailability();
-        // repaint();
     }
 
-    /**
-     * Returns the run that is selected in run list
-     *
-     * public RawDataAtClient getActiveRawData() { return (RawDataAtClient)
-     * rawDataList.getSelectedValue(); }
-     */
 
     // METHODS FOR MAINTAINING LIST OF RESULTS
     // ---------------------------------------
-    /**
-     * Returns a vector containing all currently selected result objects in the
-     * list
-     */
-    public Vector<AlignmentResult> getSelectedAlignmentResults() {
 
-        Vector<AlignmentResult> v = new Vector<AlignmentResult>();
+    public void addAlignmentResult(AlignmentResult a) {
+		resultObjects.addElement(a);
+	}
+
+    public boolean removeAlignmentResult(AlignmentResult a) {
+        boolean ans = resultObjects.removeElement(a);
+        return ans;
+    }
+
+    public void replaceAlignmentResult(AlignmentResult oldResult, AlignmentResult newResult) {
+        resultObjects.setElementAt(newResult, resultObjects.indexOf(oldResult));
+    }
+
+    public AlignmentResult[] getSelectedAlignmentResult() {
+
         Object o[] = resultList.getSelectedValues();
 
+        AlignmentResult res[] = new AlignmentResult[o.length];
+
         for (int i = 0; i < o.length; i++) {
-            v.add((AlignmentResult) o[i]);
+            res[i] = (AlignmentResult) (o[i]);
         }
 
-        return v;
+        return res;
+
     }
+    /**
+     * Returns first selected raw data file
+     */
+    public AlignmentResult getFirstSelectedAlignmentResult() {
+        return (AlignmentResult) resultList.getSelectedValue();
+    }
+
+    public void setActiveAlignmentResult(AlignmentResult ar) {
+        resultList.setSelectedValue(ar, true);
+    }
+
+
 
 
 
@@ -362,21 +323,7 @@ public class ItemSelector extends JPanel implements ListSelectionListener,
                 resultList.clearSelection();
 
                 // Get run that was just selected in run list
-                Object tmpObj = rawDataList.getSelectedValue();
-                if (tmpObj != null) {
-
-                    activeRawData = (OpenedRawDataFile) tmpObj;
-
-                    // Update cursor position in status bar
-                    // statBar.setCursorPosition(activeRawData);
-
-                    // Bring visualizers for this run to top
-                    // if ( !(mainWin.isBusy()) ) {
-                    // mainWin.moveVisualizersToFront(activeRawData); }
-
-                } else {
-                }
-
+                activeRawData = (OpenedRawDataFile) rawDataList.getSelectedValue();
             }
 
         }
@@ -393,17 +340,9 @@ public class ItemSelector extends JPanel implements ListSelectionListener,
                 // Get result object that was just selected in the list
                 activeResult = (AlignmentResult) resultList.getSelectedValue();
 
-                // Bring visualizers for this run to top
-                // if ( !(mainWin.isBusy()) ) {
-                // mainWin.moveVisualizersToFront(activeResult); }
-
             }
 
         }
-
-        // MainWindow.getInstance().getMainMenu().updateMenuAvailability();
-
-        // mainWin.repaint();
 
     }
 
