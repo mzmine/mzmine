@@ -64,13 +64,11 @@ public class MZmineProject {
 
     private static MZmineProject currentProject;
     private Vector<OpenedRawDataFile> projectFiles;
-    private Hashtable<OpenedRawDataFile, PeakList> peakLists;
 
     private Hashtable<MZmineModule, MethodParameters> parameterStorage;
 
     public MZmineProject() {
         projectFiles = new Vector<OpenedRawDataFile>();
-        peakLists = new Hashtable<OpenedRawDataFile, PeakList>();
         parameterStorage = new Hashtable<MZmineModule, MethodParameters>();
         currentProject = this;
     }
@@ -182,27 +180,7 @@ public class MZmineProject {
     public OpenedRawDataFile[] getDataFiles() {
         return projectFiles.toArray(new OpenedRawDataFile[0]);
     }
-/*
-    public PeakList getPeakList(OpenedRawDataFile rawData) {
-        return peakLists.get(rawData);
-    }
 
-    public boolean hasPeakList(OpenedRawDataFile rawData) {
-        return peakLists.containsKey(rawData);
-    }
-
-    public void setPeakList(OpenedRawDataFile rawData, PeakList peakList) {
-        peakLists.put(rawData, peakList);
-        MainWindow mainWin = (MainWindow) desktop;
-        mainWin.getItemSelector().fireDataChanged();
-    }
-
-    public void removePeakList(OpenedRawDataFile rawData) {
-        peakLists.remove(rawData);
-        MainWindow mainWin = (MainWindow) desktop;
-        mainWin.getItemSelector().fireDataChanged();
-    }
-*/
     /**
      *
      */
