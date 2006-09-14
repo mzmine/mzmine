@@ -153,18 +153,7 @@ public class ItemSelector extends JPanel implements ListSelectionListener,
     private void showPopupMenu(MouseEvent e) {
         JPopupMenu popupMenu = new JPopupMenu();
         if (e.getComponent() == rawDataList) {
-            if (rawDataList.locationToIndex(e.getPoint()) == -1)
-                return;
-            OpenedRawDataFile selectedFile = (OpenedRawDataFile) rawDataObjects.get(rawDataList.locationToIndex(e.getPoint()));
-
-			/*
-            JMenuItem peakListMenuItem = GUIUtils.addMenuItem(popupMenu,
-                    "Show peak list", this, "PEAKLIST");
-            boolean hasPeakList = selectedFile.getCurrentFile().hasData(PeakList.class);
-            peakListMenuItem.setEnabled(hasPeakList);
-            popupMenu.addSeparator();
-            */
-
+            if (rawDataList.locationToIndex(e.getPoint()) == -1) return;
             GUIUtils.addMenuItem(popupMenu, "Close", this, "CLOSE");
 
         }
@@ -177,24 +166,10 @@ public class ItemSelector extends JPanel implements ListSelectionListener,
 
         String command = e.getActionCommand();
 
-		/*
-        if (command.equals("PEAKLIST")) {
-            OpenedRawDataFile[] selectedFiles = getSelectedRawData();
-            for (OpenedRawDataFile file : selectedFiles) {
-				if (file.getCurrentFile().hasData(PeakList.class)) {
-                    PeakListTableView peakListTable = new PeakListTableView(
-                            file);
-                    desktop.addInternalFrame(peakListTable);
-                }
-            }
-        }
-        */
-
         if (command.equals("CLOSE")) {
             OpenedRawDataFile[] selectedFiles = getSelectedRawData();
             for (OpenedRawDataFile file : selectedFiles)
                 MZmineProject.getCurrentProject().removeFile(file);
-
         }
 
     }
@@ -270,7 +245,7 @@ public class ItemSelector extends JPanel implements ListSelectionListener,
         resultObjects.setElementAt(newResult, resultObjects.indexOf(oldResult));
     }
 
-    public AlignmentResult[] getSelectedAlignmentResult() {
+    public AlignmentResult[] getSelectedAlignmentResults() {
 
         Object o[] = resultList.getSelectedValues();
 
