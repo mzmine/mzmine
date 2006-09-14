@@ -81,7 +81,7 @@ public class PeakListTableVisualizer implements MZmineModule, ActionListener, Li
 
 		for (OpenedRawDataFile openedRawDataFile : openedRawDataFiles) {
 			if (openedRawDataFile.getCurrentFile().hasData(PeakList.class)) {
-				peakListViewMenuItem.setEnabled(desktop.isDataFileSelected());
+				peakListViewMenuItem.setEnabled(true);
 				break;
 			}
 		}
