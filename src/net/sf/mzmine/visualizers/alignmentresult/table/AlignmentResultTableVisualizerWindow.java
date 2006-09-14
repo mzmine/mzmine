@@ -1,23 +1,21 @@
 /*
-    Copyright 2005 VTT Biotechnology
-
-    This file is part of MZmine.
-
-    MZmine is free software; you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
-    the Free Software Foundation; either version 2 of the License, or
-    (at your option) any later version.
-
-    MZmine is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
-
-    You should have received a copy of the GNU General Public License
-    along with MZmine; if not, write to the Free Software
-    Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
-*/
-
+ * Copyright 2006 The MZmine Development Team
+ *
+ * This file is part of MZmine.
+ *
+ * MZmine is free software; you can redistribute it and/or modify it under the
+ * terms of the GNU General Public License as published by the Free Software
+ * Foundation; either version 2 of the License, or (at your option) any later
+ * version.
+ *
+ * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY
+ * WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR
+ * A PARTICULAR PURPOSE. See the GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License along with
+ * MZmine; if not, write to the Free Software Foundation, Inc., 51 Franklin St,
+ * Fifth Floor, Boston, MA 02110-1301 USA
+ */
 package net.sf.mzmine.visualizers.alignmentresult.table;
 
 import java.awt.BorderLayout;
@@ -44,10 +42,9 @@ import net.sf.mzmine.visualizers.alignmentresult.AlignmentResultVisualizer;
 import sunutils.TableSorter;
 
 
-/**
- * This class decribes a visualizer used for displaying alignment results in a table format
- */
-public class AlignmentResultVisualizerList extends JInternalFrame implements AlignmentResultVisualizer, InternalFrameListener, MouseListener, ActionListener {
+
+//public class AlignmentResultTableVisualizerWindow extends JInternalFrame implements AlignmentResultVisualizer, InternalFrameListener, MouseListener, ActionListener {
+public class AlignmentResultTableVisualizerWindow extends JInternalFrame implements InternalFrameListener, MouseListener, ActionListener {
 
 	// These constants are used for calculating table's column layout in two different modes
 	private final int COLINFO_COMPACTMODE_IND = 0;
@@ -69,10 +66,6 @@ public class AlignmentResultVisualizerList extends JInternalFrame implements Ali
 	private final int COLINFO_WIDEMODE_LASTCOMMONCOL = COLINFO_WIDEMODE_CHARGESTATE;
 
 
-	private MainWindow mainWin;
-	//private Statusbar statBar;
-	private ItemSelector itemSelector;
-
 	private AlignmentResult alignmentResult;
 
 	private JTable table;
@@ -89,11 +82,8 @@ public class AlignmentResultVisualizerList extends JInternalFrame implements Ali
 	/**
 	 * Constructor: initializes an empty visualizer
 	 */
-	public AlignmentResultVisualizerList(MainWindow _mainWin) {
+	public AlignmentResultTableVisualizerWindow(AlignmentResult alignmentResult) {
 
-		mainWin = _mainWin;
-		//statBar = mainWin.getStatusBar();
-		itemSelector = mainWin.getItemSelector();
 		setResizable( true );
 		setIconifiable( true );
 
@@ -167,7 +157,7 @@ public class AlignmentResultVisualizerList extends JInternalFrame implements Ali
 
 	}
      */
-    
+
 	/**
 	 * Select a row in table with matching alignment ID.
 	 * Also suitable column for given Run will be selected
@@ -199,12 +189,13 @@ public class AlignmentResultVisualizerList extends JInternalFrame implements Ali
 	}
 */
 
+/*
 	public void refreshVisualizer(int changeType) {
 		if (changeType == AlignmentResultVisualizer.CHANGETYPE_PEAK_MEASURING_SETTING) {
 			refreshTableFormatting();
 		}
 	}
-
+*/
 	/**
 	 * Refresh table formatting, for example when column format mode is changed
 	 *
@@ -226,7 +217,7 @@ public class AlignmentResultVisualizerList extends JInternalFrame implements Ali
 	 */
 	public void internalFrameActivated(InternalFrameEvent e) {
 		//alignmentResult.setActiveVisualizer(this);
-		itemSelector.setActiveAlignmentResult(alignmentResult);
+		//itemSelector.setActiveAlignmentResult(alignmentResult);
 	}
 	public void internalFrameClosed(InternalFrameEvent e) {	}
 	public void internalFrameClosing(InternalFrameEvent e) { }
@@ -414,7 +405,7 @@ public class AlignmentResultVisualizerList extends JInternalFrame implements Ali
 			}
 			*/
 		}
-	
+
 
 
 	public void printMe() {}
@@ -569,7 +560,7 @@ public class AlignmentResultVisualizerList extends JInternalFrame implements Ali
 							{ preValue = alignmentResult.getPeakHeight(rawDataID, row); }
 						if (mainWin.getParameterStorage().getGeneralParameters().getPeakMeasuringType() == GeneralParameters.PARAMETERVALUE_PEAKMEASURING_AREA)
 							{ preValue = alignmentResult.getPeakArea(rawDataID, row); }
-                 
+
 					}
 					if (preValue<0) { return null; } else {	return new Double(preValue); }
 				}
@@ -654,7 +645,7 @@ public class AlignmentResultVisualizerList extends JInternalFrame implements Ali
 
 		//	alignmentResult.setStandardCompoundFlag(row, ((Boolean)value).booleanValue());
 
-			mainWin.repaint();
+			//mainWin.repaint();
 		}
 
 
@@ -720,7 +711,7 @@ public class AlignmentResultVisualizerList extends JInternalFrame implements Ali
 					if (mainWin.getParameterStorage().getGeneralParameters().getPeakMeasuringType() == GeneralParameters.PARAMETERVALUE_PEAKMEASURING_AREA) {
 						s[COLINFO_COMPACTMODE_LASTCOMMONCOL + 1 + i*COLINFO_COMPACTMODE_COLSPERRUN] = new String("area: " + rawDataName);
 					}
-                 
+
 
 					i++;
 				}
@@ -751,7 +742,7 @@ public class AlignmentResultVisualizerList extends JInternalFrame implements Ali
             // TODO Auto-generated method stub
             return 0;
         }}
-	
+
 
 
         /**
@@ -777,7 +768,7 @@ public class AlignmentResultVisualizerList extends JInternalFrame implements Ali
          */
         public void updateSelectedRow() {
             // TODO Auto-generated method stub
-            
+
         }
 
 }

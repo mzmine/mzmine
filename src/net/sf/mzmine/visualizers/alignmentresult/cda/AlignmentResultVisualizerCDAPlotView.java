@@ -60,7 +60,8 @@ import net.sf.mzmine.visualizers.alignmentresult.AlignmentResultVisualizer;
  * This class is used to draw a spatial logratio plot between two groups of runs in one alignment result
  *
  */
-public class AlignmentResultVisualizerCDAPlotView extends JInternalFrame implements Printable, AlignmentResultVisualizer, InternalFrameListener {
+//public class AlignmentResultVisualizerCDAPlotView extends JInternalFrame implements Printable, AlignmentResultVisualizer, InternalFrameListener {
+public class AlignmentResultVisualizerCDAPlotView extends JInternalFrame implements Printable, InternalFrameListener {
 
 	private static final double marginSize = (double)0.02; // How much extra margin is added to the axis in full zoom
 
@@ -68,7 +69,7 @@ public class AlignmentResultVisualizerCDAPlotView extends JInternalFrame impleme
 	// private double paramJokuParameteri = ...
 
 	private MainWindow mainWin;
-	
+
 	private AlignmentResult alignmentResult;
 
 	private int[] sampleClasses;			// 0 = unassigned, 1,2,3,...= classes
@@ -90,7 +91,7 @@ public class AlignmentResultVisualizerCDAPlotView extends JInternalFrame impleme
 	 */
 	public AlignmentResultVisualizerCDAPlotView(MainWindow _mainWin) {
 		mainWin = _mainWin;
-		
+
 
 		// Build this visualizer
 		getContentPane().setLayout(new BorderLayout());
@@ -199,9 +200,11 @@ public class AlignmentResultVisualizerCDAPlotView extends JInternalFrame impleme
 	 * Logratios are always calculated using the currently selected mode
 	 */
 	public void refreshVisualizer(int changeType) {
+		/*
 		if (changeType == AlignmentResultVisualizer.CHANGETYPE_PEAK_MEASURING_SETTING) {
 			preparePlot();
 		}
+		*/
 	}
 
 
@@ -253,7 +256,7 @@ public class AlignmentResultVisualizerCDAPlotView extends JInternalFrame impleme
 				if (mainWin.getParameterStorage().getGeneralParameters().getPeakMeasuringType() == GeneralParameters.PARAMETERVALUE_PEAKMEASURING_AREA) {
 					data[sample][colInd] = alignmentResult.getPeakArea(rawDataID, peak);
 				}
-    
+
 				// Next col
 				colInd++;
 			}
@@ -749,7 +752,7 @@ public class AlignmentResultVisualizerCDAPlotView extends JInternalFrame impleme
 				selectionLastClickComp1 = -1;
 				selectionLastClickComp2 = -1;
 		    }
-		    
+
 		}
 
 
@@ -794,7 +797,7 @@ public class AlignmentResultVisualizerCDAPlotView extends JInternalFrame impleme
 
 		    }
 
-		   
+
 
 		}
 
@@ -852,7 +855,7 @@ public class AlignmentResultVisualizerCDAPlotView extends JInternalFrame impleme
 
 				repaint();
 			}
-			
+
 
 		}
 

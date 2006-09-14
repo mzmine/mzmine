@@ -65,7 +65,8 @@ import net.sf.mzmine.visualizers.alignmentresult.AlignmentResultVisualizer;
  * This class is used to draw a spatial cv plot between two groups of runs in one alignment result
  *
  */
-public class AlignmentResultVisualizerCoVarPlotView extends JInternalFrame implements Printable, AlignmentResultVisualizer, InternalFrameListener {
+//public class AlignmentResultVisualizerCoVarPlotView extends JInternalFrame implements Printable, AlignmentResultVisualizer, InternalFrameListener {
+	public class AlignmentResultVisualizerCoVarPlotView extends JInternalFrame implements Printable, InternalFrameListener {
 
 	private static final double marginSize = (double)0.02; // How much extra margin is added to the axis in full zoom
 
@@ -222,9 +223,11 @@ public class AlignmentResultVisualizerCoVarPlotView extends JInternalFrame imple
 	 * CV are always calculated using the currently selected mode
 	 */
 	public void refreshVisualizer(int changeType) {
+		/*
 		if (changeType == AlignmentResultVisualizer.CHANGETYPE_PEAK_MEASURING_SETTING) {
 			preparePlot();
 		}
+		*/
 	}
 
 
@@ -863,7 +866,7 @@ public class AlignmentResultVisualizerCoVarPlotView extends JInternalFrame imple
 				selectionLastClickMZ = -1;
 		    }
 		    // Clear status bar
-		    
+
 		}
 
 

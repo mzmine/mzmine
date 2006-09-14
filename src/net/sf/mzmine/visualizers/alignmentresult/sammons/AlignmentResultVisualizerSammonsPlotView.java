@@ -61,7 +61,8 @@ import net.sf.mzmine.visualizers.alignmentresult.AlignmentResultVisualizer;
  * This class is used to draw a spatial logratio plot between two groups of runs in one alignment result
  *
  */
-public class AlignmentResultVisualizerSammonsPlotView extends JInternalFrame implements Printable, AlignmentResultVisualizer, InternalFrameListener {
+//public class AlignmentResultVisualizerSammonsPlotView extends JInternalFrame implements Printable, AlignmentResultVisualizer, InternalFrameListener {
+public class AlignmentResultVisualizerSammonsPlotView extends JInternalFrame implements Printable, InternalFrameListener {
 
 	private static final double marginSize = (double)0.02; // How much extra margin is added to the axis in full zoom
 
@@ -180,9 +181,11 @@ public class AlignmentResultVisualizerSammonsPlotView extends JInternalFrame imp
 	 * Logratios are always calculated using the currently selected mode
 	 */
 	public void refreshVisualizer(int changeType) {
+		/*
 		if (changeType == AlignmentResultVisualizer.CHANGETYPE_PEAK_MEASURING_SETTING) {
 			preparePlot();
 		}
+		*/
 	}
 
 
@@ -730,7 +733,7 @@ public class AlignmentResultVisualizerSammonsPlotView extends JInternalFrame imp
 				selectionLastClickComp2 = -1;
 		    }
 		    // Clear status bar
-		   
+
 		}
 
 
@@ -775,7 +778,7 @@ public class AlignmentResultVisualizerSammonsPlotView extends JInternalFrame imp
 
 		    }
 
-		
+
 
 		}
 
@@ -833,7 +836,7 @@ public class AlignmentResultVisualizerSammonsPlotView extends JInternalFrame imp
 
 				repaint();
 			}
-		
+
 
 		}
 
