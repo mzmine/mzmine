@@ -62,19 +62,18 @@ public class AlignmentResultTableVisualizer implements MZmineModule, ActionListe
      * @see java.awt.event.ActionListener#actionPerformed(java.awt.event.ActionEvent)
      */
     public void actionPerformed(ActionEvent e) {
-/*
-        OpenedRawDataFile dataFiles[] = desktop.getSelectedDataFiles();
 
-        for (OpenedRawDataFile dataFile : dataFiles) {
-			if (dataFile.getCurrentFile().hasData(PeakList.class)) {
+        AlignmentResult[] alignmentResults = desktop.getItemSelector().getSelectedAlignmentResults();
 
-				logger.finest("Showing a new peak list view");
+        for (AlignmentResult alignmentResult : alignmentResults) {
 
-            	PeakListTableViewWindow peakListTable = new PeakListTableViewWindow(dataFile);
-            	desktop.addInternalFrame(peakListTable);
-			}
+			logger.finest("Showing a new alignment result list view");
+
+            AlignmentResultTableVisualizerWindow alignmentResultView = new AlignmentResultTableVisualizerWindow(alignmentResult);
+            desktop.addInternalFrame(alignmentResultView);
+
         }
-*/
+
     }
 
     /**
