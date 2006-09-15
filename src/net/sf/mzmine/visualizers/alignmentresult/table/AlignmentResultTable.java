@@ -32,49 +32,36 @@ import sunutils.TableSorter;
 
 public class AlignmentResultTable extends JTable {
 
-	// These constants are used for calculating table's column layout in two different modes
-	private final int COLUMNMODE_COMPACT = 1;
-	private final int COLUMNMODE_WIDE = 2;
 
 
 	private AlignmentResult alignmentResult;
+	private MyTableModel tableModel;
 	private TableSorter sorter;
-
-	private int columnMode;
 
 
 	public AlignmentResultTable(AlignmentResultTableVisualizerWindow masterFrame, AlignmentResult alignmentResult) {
 		this.alignmentResult = alignmentResult;
-
-		AbstractTableModel mtm = new MyTableModel(alignmentResult);
-
-		// Initialize sorter
-		sorter = new TableSorter(mtm);
-		getTableHeader().setReorderingAllowed(false);
-		sorter.addMouseListenerToHeaderInTable(this);
-		setModel(sorter);
-
+		setColumnMode(MyTableModel.COLUMNMODE_COMPACT);
 	}
 
 	private void switchColumnMode() {
-		if (columnMode == COLUMNMODE_COMPACT) {
-			setColumnMode(COLUMNMODE_WIDE);
+		if (tableModel.getColumnMode() == MyTableModel.COLUMNMODE_COMPACT) {
+			setColumnMode(MyTableModel.COLUMNMODE_WIDE);
 		} else {
-			setColumnMode(COLUMNMODE_COMPACT);
+			setColumnMode(MyTableModel.COLUMNMODE_COMPACT);
 		}
 	}
 
 	private void setColumnMode(int columnMode) {
-		this.columnMode = columnMode;
 
-		/*
-		AbstractTableModel mtm = new MyTableModel(alignmentResult);
-		TableSorter sorter = new TableSorter(mtm); //ADDED THIS
-		table.getTableHeader().setReorderingAllowed(false);
-		//sorter.setTableHeader(table.getTableHeader()); //ADDED THIS	(REMOVED FOR TEST)
-		sorter.addMouseListenerToHeaderInTable(table); // ADDED THIS TODAY
-		table.setModel(sorter);
-		*/
+		tableModel = new MyTableModel(alignmentResult, columnMode);
+
+		// Initialize sorter
+		sorter = new TableSorter(tableModel);
+		getTableHeader().setReorderingAllowed(false);
+		sorter.addMouseListenerToHeaderInTable(this);
+		setModel(sorter);
+
 	}
 
 
@@ -85,7 +72,11 @@ public class AlignmentResultTable extends JTable {
 	/**
 	 * This class is a slighty customized table model for JTable presenting the alignment results
 	 */
-	class MyTableModel extends AbstractTableModel {
+	private class MyTableModel extends AbstractTableModel {
+
+		// These constants are used for calculating table's column layout in two different modes
+		public static final int COLUMNMODE_COMPACT = 1;
+		public static final int COLUMNMODE_WIDE = 2;
 
 		private final int COLINFO_COMPACTMODE_IND = 0;
 		private final int COLINFO_COMPACTMODE_MZ = 1;
@@ -103,6 +94,7 @@ public class AlignmentResultTable extends JTable {
 		private final int COLINFO_WIDEMODE_COLSPERRUN = 5;
 		private final int COLINFO_WIDEMODE_LASTCOMMONCOL = COLINFO_WIDEMODE_CHARGESTATE;
 
+		private int columnMode;
 		private String[] columnNames;
 		private AlignmentResult alignmentResult;
 		private IsotopePatternUtility isoUtil;
@@ -112,10 +104,11 @@ public class AlignmentResultTable extends JTable {
 		/**
 		 * Constructor, assign given dataset to this table
 		 */
-		public MyTableModel(AlignmentResult alignmentResult) {
+		public MyTableModel(AlignmentResult alignmentResult, int columnMode) {
 
 			this.alignmentResult = alignmentResult;
 			columnNames = getColumnNames();
+
 
 			// Collect names of raw data files (for column headers) and construct isotope pattern utilities for each peak list (for getting isotope pattern information to table)
 			OpenedRawDataFile[] openedRawDataFiles = alignmentResult.getRawDataFiles();
@@ -128,6 +121,13 @@ public class AlignmentResultTable extends JTable {
 				isotopePatternUtils.add(new IsotopePatternUtility(peakList));
 			}
 
+			System.out.println("alignmentResult.getNumberOfRows()=" + alignmentResult.getNumberOfRows());
+			System.out.println("columnNames.length=" + columnNames.length);
+
+		}
+
+		public int getColumnMode() {
+			return columnMode;
 		}
 
 		public int getColumnCount() {
@@ -163,17 +163,14 @@ public class AlignmentResultTable extends JTable {
 		private String peakStatusNotFound = new String("Not Found");
 
 		public Object getValueAt(int row, int col) {
-/*
+
 			// First column is index numbering
 			if (col==0) { return new Integer(row+1); }
 
-			// Second column is the standard flag
-			if (col==1) { return new Boolean(alignmentResult.getStandardCompoundFlag(row)); }
-
 			int numOfRawDatas = alignmentResult.getNumberOfRawDataFiles();
 
-			if (!compactMode) {
-
+			if (columnMode == COLUMNMODE_WIDE) {
+/*
 				if (col==COLINFO_WIDEMODE_IND) { return new Integer(row+1); }
 				if (col==COLINFO_WIDEMODE_ISOTOPEPATTERNID) { return new Integer(alignmentResult.getIsotopePatternID(row)); }
 				if (col==COLINFO_WIDEMODE_ISOTOPEPEAKNUMBER) { return new Integer(alignmentResult.getIsotopePeakNumber(row)); }
@@ -207,9 +204,9 @@ public class AlignmentResultTable extends JTable {
 					}
 
 				}
-
+*/
 			} else {
-
+/*
 				if (col==COLINFO_COMPACTMODE_IND) { return new Integer(row+1); }
 				if (col==COLINFO_COMPACTMODE_STD) { return new Boolean(alignmentResult.getStandardCompoundFlag(row)); }
 				if (col==COLINFO_COMPACTMODE_ISOTOPEPATTERNID) { return new Integer(alignmentResult.getIsotopePatternID(row)); }
@@ -244,9 +241,9 @@ public class AlignmentResultTable extends JTable {
 					}
 					if (preValue<0) { return null; } else {	return new Double(preValue); }
 				}
-
-			}
 */
+			}
+
 			return null;
 
 		}
