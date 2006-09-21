@@ -19,11 +19,12 @@
 
 package net.sf.mzmine.data.impl;
 
-import java.util.Hashtable;
 import java.util.Enumeration;
 import java.util.ArrayList;
+import java.util.Vector;
 
 import net.sf.mzmine.data.AlignmentResult;
+import net.sf.mzmine.data.AlignmentResultRow;
 import net.sf.mzmine.data.Peak;
 import net.sf.mzmine.io.OpenedRawDataFile;
 
@@ -32,15 +33,17 @@ import net.sf.mzmine.io.OpenedRawDataFile;
 /**
  *
  */
-public class SimpleAlignmentResult implements AlignmentResult {
+public class SimpleAlignmentResult extends AbstractDataUnit implements AlignmentResult {
 
 	private String name;
-	private Hashtable<OpenedRawDataFile, ArrayList<Peak>> alignmentResultMatrix;
+	private Vector<OpenedRawDataFile> rawDataFiles;
+	private ArrayList<SimpleAlignmentResultRow> alignmentRows;
 
 
 	public SimpleAlignmentResult(String name) {
 		this.name = name;
-		alignmentResultMatrix = new Hashtable<OpenedRawDataFile, ArrayList<Peak>>();
+		rawDataFiles = new Vector<OpenedRawDataFile>();
+		alignmentRows = new ArrayList<SimpleAlignmentResultRow>();
 	}
 
 	public String toString() {
@@ -51,38 +54,25 @@ public class SimpleAlignmentResult implements AlignmentResult {
 	 * Returns number of raw data files participating in the alignment
 	 */
 	public int getNumberOfRawDataFiles() {
-		return alignmentResultMatrix.size();
+		return rawDataFiles.size();
 	}
 
 	/**
 	 * Returns all raw data files participating in the alignment
 	 */
 	public OpenedRawDataFile[] getRawDataFiles() {
-		OpenedRawDataFile[] res = new OpenedRawDataFile[getNumberOfRawDataFiles()];
+		return rawDataFiles.toArray(new OpenedRawDataFile[0]);
+	}
 
-		Enumeration<OpenedRawDataFile> dataFileEnum = alignmentResultMatrix.keys();
-		int ind = 0;
-		while (dataFileEnum.hasMoreElements()) {
-			res[ind] = dataFileEnum.nextElement();
-			ind++;
-		}
-
-		return res;
-
+	public OpenedRawDataFile getRawDataFile(int position) {
+		return rawDataFiles.get(position);
 	}
 
 	/**
 	 * Returns number of rows in the alignment result
 	 */
 	public int getNumberOfRows() {
-		Enumeration<ArrayList<Peak>> peakArrayEnum = alignmentResultMatrix.elements();
-		if (!(peakArrayEnum.hasMoreElements())) return 0;
-
-		ArrayList<Peak> firstArray = peakArrayEnum.nextElement();
-		if (firstArray == null) return 0;
-
-		return firstArray.size();
-
+		return alignmentRows.size();
 	}
 
 	/**
@@ -91,73 +81,53 @@ public class SimpleAlignmentResult implements AlignmentResult {
 	 * @param	rawDataFile	Raw data file where the peak is detected/estimated
 	 */
 	public Peak getPeak(int row, OpenedRawDataFile rawDataFile) {
-		ArrayList<Peak> peakArray = alignmentResultMatrix.get(rawDataFile);
-
-		if (peakArray==null) return null;
-		return peakArray.get(row);
+		return alignmentRows.get(row).getPeak(rawDataFile);
 	}
 
 	/**
 	 * Returns all peaks for a raw data file
 	 */
 	public Peak[] getPeaks(OpenedRawDataFile rawDataFile) {
-		ArrayList<Peak> peakArray = alignmentResultMatrix.get(rawDataFile);
-
-		if (peakArray==null) return null;
-
-		return peakArray.toArray(new Peak[0]);
+		Peak[] peaks = new Peak[getNumberOfRows()];
+		for (int row=0; row<getNumberOfRows(); row++) {
+			peaks[row] = alignmentRows.get(row).getPeak(rawDataFile);
+		}
+		return peaks;
 	}
 
 
 	/**
 	 * Returns all peaks on one row
 	 */
-	public Peak[] getPeaks(int row) {
+	public AlignmentResultRow getRow(int row) {
 
+		return alignmentRows.get(row);
 
-		Peak[] peaksOnRow = new Peak[getNumberOfRawDataFiles()];
-
-		Enumeration<ArrayList<Peak>> peakArrayEnum = alignmentResultMatrix.elements();
-
-		if (!(peakArrayEnum.hasMoreElements())) return new Peak[0];
-
-		int ind = 0;
-
-		while (peakArrayEnum.hasMoreElements()) {
-			ArrayList<Peak> peakArray = peakArrayEnum.nextElement();
-			peaksOnRow[ind] = peakArray.get(row);
-			ind ++;
-		}
-
-		return null;
 	}
 
-	/**
-	 * Returns all identification results assigned to a single row of the alignment result
-	 * One row can have zero, one or any number of identifications.
-	 */
-	//public CompoundIdentity[] getIdentificationResults(int row);
+	public void addRow(SimpleAlignmentResultRow row) {
+		alignmentRows.add(row);
+	}
 
 
 	/**
 	 * Adds a new opened raw data to the alignment result
 	 */
 	public void addOpenedRawDataFile(OpenedRawDataFile openedRawDataFile) {
-		alignmentResultMatrix.put(openedRawDataFile, new ArrayList<Peak>());
+
+		rawDataFiles.add(openedRawDataFile);
 
 	}
 
 	/**
-	 * Adds a new row the the alignment result matrix and puts the peak to this row.
+	 * Adds peak to the next row
 	 */
 	public void addPeak(OpenedRawDataFile openedRawDataFile, Peak peak) {
 
-		ArrayList<Peak> peakArray = alignmentResultMatrix.get(openedRawDataFile);
+		SimpleAlignmentResultRow alignmentRow = new SimpleAlignmentResultRow();
+		alignmentRow.addPeak(openedRawDataFile, peak);
 
-		if (peakArray == null) return;
-
-		peakArray.add(peak);
-
+		alignmentRows.add(alignmentRow);
 	}
 
 

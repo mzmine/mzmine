@@ -44,6 +44,12 @@ public interface AlignmentResult {
 	public OpenedRawDataFile[] getRawDataFiles();
 
 	/**
+	 * Returns a raw data file
+	 * @param position	Position of the raw data file in the matrix (running numbering from left 0,1,2,...)
+	 */
+	public OpenedRawDataFile getRawDataFile(int position);
+
+	/**
 	 * Returns number of rows in the alignment result
 	 */
 	public int getNumberOfRows();
@@ -63,12 +69,7 @@ public interface AlignmentResult {
 	/**
 	 * Returns all peaks on one row
 	 */
-	public Peak[] getPeaks(int row);
+	public AlignmentResultRow getRow(int row);
 
-	/**
-	 * Returns all identification results assigned to a single row of the alignment result
-	 * One row can have zero, one or any number of identifications.
-	 */
-	//public CompoundIdentity[] getIdentificationResults(int row);
 
 }

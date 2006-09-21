@@ -17,10 +17,7 @@
  * Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-package net.sf.mzmine.methods.deisotoping.simplegrouper;
-
-import java.util.Hashtable;
-import java.util.ArrayList;
+package net.sf.mzmine.data.impl;
 
 import net.sf.mzmine.data.IsotopePattern;
 import net.sf.mzmine.data.DataUnit;
@@ -29,11 +26,11 @@ import net.sf.mzmine.data.impl.AbstractDataUnit;
 /**
  *
  */
-public class GrouperIsotopePattern extends AbstractDataUnit implements IsotopePattern {
+public class SimpleIsotopePattern extends AbstractDataUnit implements IsotopePattern {
 
 	private int chargeState;
 
-	public GrouperIsotopePattern(int chargeState) {
+	public SimpleIsotopePattern(int chargeState) {
 		this.chargeState = chargeState;
 	}
 

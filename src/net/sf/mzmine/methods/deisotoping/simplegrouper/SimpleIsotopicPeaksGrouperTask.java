@@ -26,6 +26,7 @@ import net.sf.mzmine.data.Peak;
 import net.sf.mzmine.data.PeakList;
 import net.sf.mzmine.data.IsotopePattern;
 import net.sf.mzmine.data.impl.SimplePeakList;
+import net.sf.mzmine.data.impl.SimpleIsotopePattern;
 import net.sf.mzmine.io.OpenedRawDataFile;
 import net.sf.mzmine.io.RawDataFile;
 import net.sf.mzmine.taskcontrol.Task;
@@ -165,7 +166,7 @@ class SimpleIsotopicPeaksGrouperTask implements Task {
             }
 
             // Assign peaks in best fitted pattern to same isotope pattern
-            GrouperIsotopePattern isotopePattern = new GrouperIsotopePattern(bestFitCharge);
+            SimpleIsotopePattern isotopePattern = new SimpleIsotopePattern(bestFitCharge);
 
 			for (Peak p : bestFitPeaks.keySet()) {
 				GrouperPeak processedPeak = new GrouperPeak(p);

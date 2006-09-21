@@ -25,7 +25,10 @@ import javax.swing.JPopupMenu;
 import javax.swing.table.AbstractTableModel;
 
 import net.sf.mzmine.data.AlignmentResult;
+import net.sf.mzmine.data.AlignmentResultRow;
 import net.sf.mzmine.data.PeakList;
+import net.sf.mzmine.data.Peak;
+import net.sf.mzmine.data.Peak.PeakStatus;
 import net.sf.mzmine.io.OpenedRawDataFile;
 import net.sf.mzmine.methods.deisotoping.util.IsotopePatternUtility;
 import sunutils.TableSorter;
@@ -167,14 +170,18 @@ public class AlignmentResultTable extends JTable {
 			// First column is index numbering
 			if (col==0) { return new Integer(row+1); }
 
+			AlignmentResultRow alignmentRow = alignmentResult.getRow(row);
+
 			int numOfRawDatas = alignmentResult.getNumberOfRawDataFiles();
 
 			if (columnMode == COLUMNMODE_WIDE) {
-/*
+
+				/*
 				if (col==COLINFO_WIDEMODE_IND) { return new Integer(row+1); }
-				if (col==COLINFO_WIDEMODE_ISOTOPEPATTERNID) { return new Integer(alignmentResult.getIsotopePatternID(row)); }
-				if (col==COLINFO_WIDEMODE_ISOTOPEPEAKNUMBER) { return new Integer(alignmentResult.getIsotopePeakNumber(row)); }
-				if (col==COLINFO_WIDEMODE_CHARGESTATE) { return new Integer(alignmentResult.getChargeState(row)); }
+
+				if (col==COLINFO_WIDEMODE_ISOTOPEPATTERNID) { return new Integer(alignmentResult.getIsotopePatternInformation(row)[0]); }
+				if (col==COLINFO_WIDEMODE_ISOTOPEPEAKNUMBER) { return new Integer(alignmentResult.getIsotopePatternInformation(row)[1]); }
+				if (col==COLINFO_WIDEMODE_CHARGESTATE) { return new Integer(alignmentResult.getIsotopePatternInformation(row)[2]); }
 
 				if ((col >COLINFO_WIDEMODE_LASTCOMMONCOL) &&
 					(col<=(COLINFO_WIDEMODE_LASTCOMMONCOL+COLINFO_WIDEMODE_COLSPERRUN*numOfRawDatas)) ) {
@@ -182,40 +189,36 @@ public class AlignmentResultTable extends JTable {
 					// Calc runNumber and offset from the first column of this run
 					int columnGroupNumber = calcColumnGroupNum(col);
 					int columnGroupOffset = col - (COLINFO_WIDEMODE_LASTCOMMONCOL+1) - columnGroupNumber*COLINFO_WIDEMODE_COLSPERRUN;
-					int rawDataID = alignmentResult.getRawDataID(columnGroupNumber);
+					OpenedRawDataFile openedRawDataFile = alignmentResult.getRawDataFile(columnGroupNumber);
 
 					// mz, rt or intensity?
 					if ( (columnGroupOffset>=0) && (columnGroupOffset<=3) ) {
 						double preValue = 0;
-						if (columnGroupOffset==0) { preValue = alignmentResult.getPeakMZ(rawDataID, row); }
-						if (columnGroupOffset==1) { preValue = alignmentResult.getPeakRT(rawDataID, row); }
-						if (columnGroupOffset==2) { preValue = alignmentResult.getPeakHeight(rawDataID, row); }
-						if (columnGroupOffset==3) { preValue = alignmentResult.getPeakArea(rawDataID, row); }
+						if (columnGroupOffset==0) { preValue = alignmentResult.getPeak(row, alignmentResult.getRawDataFile(columnGroupNumber-1)).getNormalizedMZ(); }
+						if (columnGroupOffset==1) { preValue = alignmentResult.getPeak(row, alignmentResult.getRawDataFile(columnGroupNumber-1)).getNormalizedRT(); }
+						if (columnGroupOffset==2) { preValue = alignmentResult.getPeak(row, alignmentResult.getRawDataFile(columnGroupNumber-1)).getNormalizedHeight(); }
+						if (columnGroupOffset==3) { preValue = alignmentResult.getPeak(row, alignmentResult.getRawDataFile(columnGroupNumber-1)).getNormalizedArea(); }
 						if (preValue<0) { return null; } else { return new Double(preValue); }
 					}
-
-					int statValue=0;
 					if (columnGroupOffset==4) {
-						statValue = alignmentResult.getPeakStatus(rawDataID, row);
+						PeakStatus statValue = alignmentResult.getPeak(row, alignmentResult.getRawDataFile(columnGroupNumber-1)).getPeakStatus();
 
-						if (statValue==AlignmentResult.PEAKSTATUS_DETECTED) { return peakStatusDetected; }
-						if (statValue==AlignmentResult.PEAKSTATUS_ESTIMATED) { return peakStatusEstimated; }
-						if (statValue==AlignmentResult.PEAKSTATUS_NOTFOUND) { return peakStatusNotFound; }
+						if (statValue==PeakStatus.DETECTED) { return peakStatusDetected; }
+						else if (statValue==PeakStatus.ESTIMATED) { return peakStatusEstimated; }
+						else return peakStatusNotFound;
 					}
 
 				}
-*/
+				*/
+
 			} else {
-/*
+				/*
+
 				if (col==COLINFO_COMPACTMODE_IND) { return new Integer(row+1); }
-				if (col==COLINFO_COMPACTMODE_STD) { return new Boolean(alignmentResult.getStandardCompoundFlag(row)); }
-				if (col==COLINFO_COMPACTMODE_ISOTOPEPATTERNID) { return new Integer(alignmentResult.getIsotopePatternID(row)); }
-				if (col==COLINFO_COMPACTMODE_ISOTOPEPEAKNUMBER) { return new Integer(alignmentResult.getIsotopePeakNumber(row)); }
-				if (col==COLINFO_COMPACTMODE_CHARGESTATE) {
-					return new Integer(alignmentResult.getChargeState(row));
-				}
-
-
+//				if (col==COLINFO_COMPACTMODE_STD) { return new Boolean(alignmentResult.getStandardCompoundFlag(row)); }
+				if (col==COLINFO_COMPACTMODE_ISOTOPEPATTERNID) { return new Integer(alignmentResult.getIsotopePatternInformation(row)[0]); }
+				if (col==COLINFO_COMPACTMODE_ISOTOPEPEAKNUMBER) { return new Integer(alignmentResult.getIsotopePatternInformation(row)[1]); }
+				if (col==COLINFO_COMPACTMODE_CHARGESTATE) { return new Integer(alignmentResult.getIsotopePatternInformation(row)[2]); }
 
 				if (col==COLINFO_COMPACTMODE_MZ) {
 					double preValue = alignmentResult.getAverageMZ(row);
@@ -241,7 +244,7 @@ public class AlignmentResultTable extends JTable {
 					}
 					if (preValue<0) { return null; } else {	return new Double(preValue); }
 				}
-*/
+				*/
 			}
 
 			return null;
@@ -300,6 +303,29 @@ public class AlignmentResultTable extends JTable {
 			}
 			return null;
 		}
+
+		private int calcColumnGroupNum(int colInd) {
+
+			int numOfRawDatas = alignmentResult.getNumberOfRawDataFiles();
+			int columnGroupNum = -1;
+
+			// For both compact and wide mode, try to calculate column group number, if the selected column is some raw data specific column
+			// Column group number is the
+			if (columnMode==COLUMNMODE_WIDE) {
+				if ( (colInd>COLINFO_WIDEMODE_LASTCOMMONCOL) && (colInd<=(COLINFO_WIDEMODE_LASTCOMMONCOL+COLINFO_WIDEMODE_COLSPERRUN*numOfRawDatas)) ) {
+					columnGroupNum = (int)java.lang.Math.floor((colInd-(COLINFO_WIDEMODE_LASTCOMMONCOL+1)) / (double)COLINFO_WIDEMODE_COLSPERRUN);
+				}
+			} else {
+
+				if ( (colInd>COLINFO_COMPACTMODE_LASTCOMMONCOL) && (colInd<=(COLINFO_COMPACTMODE_LASTCOMMONCOL+COLINFO_COMPACTMODE_COLSPERRUN*numOfRawDatas)) ) {
+					columnGroupNum = (int)java.lang.Math.floor((colInd-(COLINFO_COMPACTMODE_LASTCOMMONCOL+1)) / (double)COLINFO_COMPACTMODE_COLSPERRUN);
+				}
+			}
+
+			return columnGroupNum;
+
+		}
+
 
 		public boolean isCellEditable(int row, int col) {
 			return false;

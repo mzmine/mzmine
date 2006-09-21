@@ -35,6 +35,8 @@ import net.sf.mzmine.data.Peak;
 import net.sf.mzmine.data.PeakList;
 import net.sf.mzmine.data.IsotopePattern;
 import net.sf.mzmine.data.impl.SimpleAlignmentResult;
+import net.sf.mzmine.data.impl.SimpleAlignmentResultRow;
+import net.sf.mzmine.data.impl.SimpleIsotopePattern;
 
 import net.sf.mzmine.methods.deisotoping.util.IsotopePatternUtility;
 
@@ -227,26 +229,27 @@ class JoinAlignerTask implements Task {
 		for (MasterIsotopeListRow masterIsotopeListRow : masterIsotopeListRows) {
 			Vector<IsotopePattern> isotopePatterns = masterIsotopeListRow.getIsotopePatterns();
 
-			boolean appendNew = true;
+			SimpleIsotopePattern masterIsotopePattern = new SimpleIsotopePattern(masterIsotopeListRow.getChargeState());
 
-			for (int i=0; i<isotopePatterns.size(); i++) {
-				IsotopePatternUtility isoUtil = isotopePatternUtils.get(i);
-				IsotopePattern isotopePattern = isotopePatterns.get(i);
-				OpenedRawDataFile openedRawDataFile = dataFiles[i];
+			// Loop through peaks (on this master isotope list row)
+			for (int peakRow=0; peakRow<masterIsotopeListRow.getNumberOfPeaksOnRow(); peakRow++) {
 
-				int emptySlotsToAdd = masterIsotopeListRow.getNumberOfPeaksOnRow();
+				SimpleAlignmentResultRow alignmentRow = new SimpleAlignmentResultRow();
+				alignmentRow.setIsotopePattern(masterIsotopePattern);
 
-				if (isotopePattern!=null) {
-					Peak[] peaksInPattern = isoUtil.getPeaksInPattern(isotopePattern);
+				// Loop through raw data files
+				for (int i=0; i<isotopePatterns.size(); i++) {
+					IsotopePatternUtility isoUtil = isotopePatternUtils.get(i);
+					IsotopePattern isotopePattern = isotopePatterns.get(i);
+					OpenedRawDataFile openedRawDataFile = dataFiles[i];
 
-					for (Peak p : peaksInPattern) {
-						alignmentResult.addPeak(openedRawDataFile, p);
-						emptySlotsToAdd--;
-					}
+					// Add peak to alignment row
+					Peak[] isotopePeaks = isoUtil.getPeaksInPattern(isotopePattern);
+					if (isotopePeaks.length<peakRow) alignmentRow.addPeak(openedRawDataFile, isotopePeaks[peakRow]);
 				}
 
-				for (int slotNum = 0; slotNum<emptySlotsToAdd; slotNum++)
-					alignmentResult.addPeak(openedRawDataFile, null);
+				alignmentResult.addRow(alignmentRow);
+
 			}
 
 		}

@@ -34,7 +34,7 @@ public interface Peak extends DataUnit {
      *
      */
     public static enum PeakStatus {
-        DETECTED, ESTIMATED, MISSING
+        DETECTED, ESTIMATED
     };
 
     /**
