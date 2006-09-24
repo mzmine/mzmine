@@ -52,8 +52,7 @@ public class AlignmentResultTableVisualizer implements MZmineModule, ActionListe
 
         desktop.addMenuSeparator(MZmineMenu.VISUALIZATION);
 
-        myMenuItem = desktop.addMenuItem(MZmineMenu.VISUALIZATION, "Alignment result list view",
-                this, null, KeyEvent.VK_A, false, false);
+        myMenuItem = desktop.addMenuItem(MZmineMenu.VISUALIZATION, "Alignment result list view", this, null, KeyEvent.VK_A, false, false);
         desktop.addSelectionListener(this);
 
     }

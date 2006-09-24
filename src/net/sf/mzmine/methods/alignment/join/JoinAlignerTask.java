@@ -31,6 +31,8 @@ import java.util.Comparator;
 import net.sf.mzmine.io.OpenedRawDataFile;
 import net.sf.mzmine.taskcontrol.Task;
 
+import net.sf.mzmine.util.MathUtils;
+
 import net.sf.mzmine.data.Peak;
 import net.sf.mzmine.data.PeakList;
 import net.sf.mzmine.data.IsotopePattern;
@@ -51,8 +53,7 @@ class JoinAlignerTask implements Task {
     private TaskStatus status;
     private String errorMessage;
 
-    private int processedScans;
-    private int totalScans;
+	private float processedPercentage;
 
     private SimpleAlignmentResult alignmentResult;
 
@@ -80,7 +81,7 @@ class JoinAlignerTask implements Task {
      * @see net.sf.mzmine.taskcontrol.Task#getFinishedPercentage()
      */
     public float getFinishedPercentage() {
-		return 0.0f;
+		return processedPercentage;
     }
 
     /**
@@ -125,7 +126,7 @@ class JoinAlignerTask implements Task {
 		 * Initialize master isotope list and isotope pattern utility vector
 		 */
 		Vector<MasterIsotopeListRow> masterIsotopeListRows = new Vector<MasterIsotopeListRow>();
-		Vector<IsotopePatternUtility> isotopePatternUtils = new Vector<IsotopePatternUtility>();
+		Hashtable<OpenedRawDataFile, IsotopePatternUtility> isotopePatternUtils = new Hashtable<OpenedRawDataFile, IsotopePatternUtility>();
 
 
 		/*
@@ -140,10 +141,8 @@ class JoinAlignerTask implements Task {
 			 */
 			PeakList peakList = (PeakList)dataFile.getCurrentFile().getLastData(PeakList.class);
 			IsotopePatternUtility isoUtil = new IsotopePatternUtility(peakList);
-			isotopePatternUtils.add(isoUtil);
+			isotopePatternUtils.put(dataFile, isoUtil);
 			IsotopePattern[] isotopePatternList = isoUtil.getAllIsotopePatterns();
-
-
 
 			/*
 			 * Calculate scores between all pairs of isotope pattern and master isotope list row
@@ -158,7 +157,6 @@ class JoinAlignerTask implements Task {
 					if (score.isGoodEnough()) scoreTree.add(score);
 				}
 			}
-
 
 			/*
 			 * Browse scores in order of descending goodness-of-fit
@@ -181,7 +179,7 @@ class JoinAlignerTask implements Task {
 				if (alreadyJoinedIsotopePatterns.contains(isotopePattern)) continue;
 
 				// Assign isotope pattern to master peak list row
-				masterIsotopeListRow.addIsotopePattern(isotopePattern, isoUtil);
+				masterIsotopeListRow.addIsotopePattern(dataFile, isotopePattern, isoUtil);
 
 				// Mark pattern and isotope pattern row as joined
 				masterIsotopeListRow.setJoined(true);
@@ -191,14 +189,10 @@ class JoinAlignerTask implements Task {
 			}
 
 			/*
-			 * Add null (empty slot) to all unjoined master isotope list rows
+			 * Remove 'joined' from all master isotope list rows
 			 */
 			 for (MasterIsotopeListRow masterIsotopeListRow : masterIsotopeListRows) {
-				 if (!masterIsotopeListRow.isAlreadyJoined()) {
-					 masterIsotopeListRow.addEmptySlot();
-				 }
 				 masterIsotopeListRow.setJoined(false);
-
 			 }
 
 
@@ -207,8 +201,14 @@ class JoinAlignerTask implements Task {
 			 */
 			for (IsotopePattern isotopePattern : isotopePatternList) {
 				if (alreadyJoinedIsotopePatterns.contains(isotopePattern)) continue;
+
 				MasterIsotopeListRow masterIsotopeListRow = new MasterIsotopeListRow();
+				masterIsotopeListRow.addIsotopePattern(dataFile, isotopePattern, isoUtil);
+				masterIsotopeListRows.add(masterIsotopeListRow);
+
 			}
+
+			processedPercentage += 1.0f / (float)dataFiles.length;
 
 		}
 
@@ -220,32 +220,37 @@ class JoinAlignerTask implements Task {
 		int numberOfRows = 0;
 		for (MasterIsotopeListRow masterIsotopeListRow : masterIsotopeListRows) { numberOfRows += masterIsotopeListRow.getNumberOfPeaksOnRow(); }
 
-
 		alignmentResult = new SimpleAlignmentResult("Result from Join Aligner");
 
 		// Add openedrawdatafiles to alignment result
 		for (OpenedRawDataFile dataFile : dataFiles) alignmentResult.addOpenedRawDataFile(dataFile);
 
+		// Loop through master isotope list rows
 		for (MasterIsotopeListRow masterIsotopeListRow : masterIsotopeListRows) {
-			Vector<IsotopePattern> isotopePatterns = masterIsotopeListRow.getIsotopePatterns();
 
 			SimpleIsotopePattern masterIsotopePattern = new SimpleIsotopePattern(masterIsotopeListRow.getChargeState());
 
-			// Loop through peaks (on this master isotope list row)
+			// Loop through peaks on this master isotope list row
 			for (int peakRow=0; peakRow<masterIsotopeListRow.getNumberOfPeaksOnRow(); peakRow++) {
 
+				// Create alignment result row
 				SimpleAlignmentResultRow alignmentRow = new SimpleAlignmentResultRow();
+
+				// Tag row with isotope pattern
 				alignmentRow.setIsotopePattern(masterIsotopePattern);
 
 				// Loop through raw data files
-				for (int i=0; i<isotopePatterns.size(); i++) {
-					IsotopePatternUtility isoUtil = isotopePatternUtils.get(i);
-					IsotopePattern isotopePattern = isotopePatterns.get(i);
-					OpenedRawDataFile openedRawDataFile = dataFiles[i];
+				for (OpenedRawDataFile dataFile : dataFiles) {
+
+					IsotopePattern isotopePattern = masterIsotopeListRow.getIsotopePattern(dataFile);
+					if (isotopePattern==null) continue;
+					IsotopePatternUtility isoUtil = isotopePatternUtils.get(dataFile);
 
 					// Add peak to alignment row
 					Peak[] isotopePeaks = isoUtil.getPeaksInPattern(isotopePattern);
-					if (isotopePeaks.length<peakRow) alignmentRow.addPeak(openedRawDataFile, isotopePeaks[peakRow]);
+					if (peakRow<isotopePeaks.length) {
+						alignmentRow.addPeak(dataFile, isotopePeaks[peakRow]);
+					}
 				}
 
 				alignmentResult.addRow(alignmentRow);
@@ -253,7 +258,6 @@ class JoinAlignerTask implements Task {
 			}
 
 		}
-
         status = TaskStatus.FINISHED;
 
     }
@@ -267,7 +271,7 @@ class JoinAlignerTask implements Task {
 	 */
 	private class MasterIsotopeListRow {
 
-		private Vector<IsotopePattern> isotopePatterns;
+		private Hashtable<OpenedRawDataFile, IsotopePattern> isotopePatterns;
 
 		private double monoMZ;
 		private double monoRT;
@@ -282,12 +286,14 @@ class JoinAlignerTask implements Task {
 		private int numberOfPeaksOnRow;
 
 		public MasterIsotopeListRow() {
-			isotopePatterns = new Vector<IsotopePattern>();
+			isotopePatterns = new Hashtable<OpenedRawDataFile, IsotopePattern>();
 			mzVals = new Vector<Double>();
 			rtVals = new Vector<Double>();
 		}
 
-		public void addIsotopePattern(IsotopePattern isotopePattern, IsotopePatternUtility util) {
+		public void addIsotopePattern(OpenedRawDataFile dataFile, IsotopePattern isotopePattern, IsotopePatternUtility util) {
+
+			isotopePatterns.put(dataFile, isotopePattern);
 
 			// Get monoisotopic peak
 			Peak[] peaks = util.getPeaksInPattern(isotopePattern);
@@ -304,11 +310,13 @@ class JoinAlignerTask implements Task {
 			double[] mzValsArrayN = new double[mzValsArray.length];
 			for (int i=0; i<mzValsArray.length; i++)
 				mzValsArrayN[i] = mzValsArray[i];
+			monoMZ = MathUtils.calcQuantile(mzValsArrayN, 0.5);
 
 			Double[] rtValsArray = rtVals.toArray(new Double[0]);
 			double[] rtValsArrayN = new double[rtValsArray.length];
 			for (int i=0; i<rtValsArray.length; i++)
 				rtValsArrayN[i] = rtValsArray[i];
+			monoRT = MathUtils.calcQuantile(rtValsArrayN, 0.5);
 
 
 			// Set charge state
@@ -316,9 +324,6 @@ class JoinAlignerTask implements Task {
 
 		}
 
-		public void addEmptySlot() {
-			isotopePatterns.add(null);
-		}
 
 		public double getMonoisotopicMZ() { return monoMZ; }
 
@@ -328,7 +333,9 @@ class JoinAlignerTask implements Task {
 
 		public int getNumberOfPeaksOnRow() { return numberOfPeaksOnRow; }
 
-		public Vector<IsotopePattern> getIsotopePatterns() { return isotopePatterns; }
+		public IsotopePattern getIsotopePattern(OpenedRawDataFile dataFile) {
+			return isotopePatterns.get(dataFile);
+		}
 
 		public void setJoined(boolean b) { alreadyJoined = b; }
 

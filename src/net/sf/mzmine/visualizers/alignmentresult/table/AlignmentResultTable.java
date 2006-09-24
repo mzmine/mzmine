@@ -36,7 +36,6 @@ import sunutils.TableSorter;
 public class AlignmentResultTable extends JTable {
 
 
-
 	private AlignmentResult alignmentResult;
 	private MyTableModel tableModel;
 	private TableSorter sorter;
@@ -44,20 +43,14 @@ public class AlignmentResultTable extends JTable {
 
 	public AlignmentResultTable(AlignmentResultTableVisualizerWindow masterFrame, AlignmentResult alignmentResult) {
 		this.alignmentResult = alignmentResult;
-		setColumnMode(MyTableModel.COLUMNMODE_COMPACT);
+		initializeTableModel(new AlignmentResultTableColumnSelection());
+
 	}
 
-	private void switchColumnMode() {
-		if (tableModel.getColumnMode() == MyTableModel.COLUMNMODE_COMPACT) {
-			setColumnMode(MyTableModel.COLUMNMODE_WIDE);
-		} else {
-			setColumnMode(MyTableModel.COLUMNMODE_COMPACT);
-		}
-	}
 
-	private void setColumnMode(int columnMode) {
+	private void initializeTableModel(AlignmentResultTableColumnSelection columnSelection) {
 
-		tableModel = new MyTableModel(alignmentResult, columnMode);
+		tableModel = new MyTableModel(alignmentResult, columnSelection);
 
 		// Initialize sorter
 		sorter = new TableSorter(tableModel);
@@ -77,74 +70,29 @@ public class AlignmentResultTable extends JTable {
 	 */
 	private class MyTableModel extends AbstractTableModel {
 
-		// These constants are used for calculating table's column layout in two different modes
-		public static final int COLUMNMODE_COMPACT = 1;
-		public static final int COLUMNMODE_WIDE = 2;
-
-		private final int COLINFO_COMPACTMODE_IND = 0;
-		private final int COLINFO_COMPACTMODE_MZ = 1;
-		private final int COLINFO_COMPACTMODE_RT = 2;
-		private final int COLINFO_COMPACTMODE_ISOTOPEPATTERNID = 3;
-		private final int COLINFO_COMPACTMODE_ISOTOPEPEAKNUMBER = 4;
-		private final int COLINFO_COMPACTMODE_CHARGESTATE = 5;
-		private final int COLINFO_COMPACTMODE_COLSPERRUN = 1;
-		private final int COLINFO_COMPACTMODE_LASTCOMMONCOL = COLINFO_COMPACTMODE_CHARGESTATE;
-
-		private final int COLINFO_WIDEMODE_IND = 0;
-		private final int COLINFO_WIDEMODE_ISOTOPEPATTERNID = 1;
-		private final int COLINFO_WIDEMODE_ISOTOPEPEAKNUMBER = 2;
-		private final int COLINFO_WIDEMODE_CHARGESTATE = 3;
-		private final int COLINFO_WIDEMODE_COLSPERRUN = 5;
-		private final int COLINFO_WIDEMODE_LASTCOMMONCOL = COLINFO_WIDEMODE_CHARGESTATE;
-
-		private int columnMode;
-		private String[] columnNames;
 		private AlignmentResult alignmentResult;
+		private AlignmentResultTableColumnSelection columnSelection;
+
 		private IsotopePatternUtility isoUtil;
-		private Vector<String> rawDataNames;
-		private Vector<IsotopePatternUtility> isotopePatternUtils;
+
 
 		/**
 		 * Constructor, assign given dataset to this table
 		 */
-		public MyTableModel(AlignmentResult alignmentResult, int columnMode) {
-
+		public MyTableModel(AlignmentResult alignmentResult, AlignmentResultTableColumnSelection columnSelection) {
 			this.alignmentResult = alignmentResult;
-			columnNames = getColumnNames();
+			this.columnSelection = columnSelection;
 
-
-			// Collect names of raw data files (for column headers) and construct isotope pattern utilities for each peak list (for getting isotope pattern information to table)
-			OpenedRawDataFile[] openedRawDataFiles = alignmentResult.getRawDataFiles();
-			rawDataNames = new Vector<String>();
-			isotopePatternUtils = new Vector<IsotopePatternUtility>();
-
-			for (OpenedRawDataFile openedRawDataFile : openedRawDataFiles) {
-				PeakList peakList = (PeakList)openedRawDataFile.getCurrentFile().getLastData(PeakList.class);
-				rawDataNames.add(openedRawDataFile.toString());
-				isotopePatternUtils.add(new IsotopePatternUtility(peakList));
-			}
-
-			System.out.println("alignmentResult.getNumberOfRows()=" + alignmentResult.getNumberOfRows());
-			System.out.println("columnNames.length=" + columnNames.length);
+			isoUtil = new IsotopePatternUtility(alignmentResult);
 
 		}
 
-		public int getColumnMode() {
-			return columnMode;
+		public AlignmentResultTableColumnSelection getColumnSelection() {
+			return columnSelection;
 		}
 
 		public int getColumnCount() {
-
-			if (columnMode == COLUMNMODE_WIDE) {
-				return COLINFO_WIDEMODE_LASTCOMMONCOL+COLINFO_WIDEMODE_COLSPERRUN*alignmentResult.getNumberOfRawDataFiles()+1;
-			}
-
-			if (columnMode == COLUMNMODE_COMPACT) {
-				return COLINFO_COMPACTMODE_LASTCOMMONCOL+COLINFO_COMPACTMODE_COLSPERRUN*alignmentResult.getNumberOfRawDataFiles()+1;
-			}
-
-			return 0;
-
+			return columnSelection.getNumberOfCommonColumns() + alignmentResult.getNumberOfRawDataFiles()*columnSelection.getNumberOfRawDataColumns();
 		}
 
 		public int getRowCount() {
@@ -152,9 +100,23 @@ public class AlignmentResultTable extends JTable {
 		}
 
 
-
 		public String getColumnName(int col) {
-			return columnNames[col];
+
+			int[] groupOffset = getColumnGroupAndOffset(col);
+
+			// Common column
+			if (groupOffset[0]<0) {
+				return columnSelection.getSelectedCommonColumn(groupOffset[1]).getColumnName();
+			}
+
+			if (groupOffset[0]>=0) {
+				OpenedRawDataFile rawData = alignmentResult.getRawDataFile(groupOffset[0]);
+				String rawDataName = rawData.toString();
+				return rawDataName + ": " + columnSelection.getSelectedRawDataColumn(groupOffset[1]).getColumnName();
+			}
+
+			return new String("No Name");
+
 		}
 
 
@@ -167,87 +129,58 @@ public class AlignmentResultTable extends JTable {
 
 		public Object getValueAt(int row, int col) {
 
-			// First column is index numbering
-			if (col==0) { return new Integer(row+1); }
 
-			AlignmentResultRow alignmentRow = alignmentResult.getRow(row);
 
-			int numOfRawDatas = alignmentResult.getNumberOfRawDataFiles();
+			int[] groupOffset = getColumnGroupAndOffset(col);
 
-			if (columnMode == COLUMNMODE_WIDE) {
 
-				/*
-				if (col==COLINFO_WIDEMODE_IND) { return new Integer(row+1); }
 
-				if (col==COLINFO_WIDEMODE_ISOTOPEPATTERNID) { return new Integer(alignmentResult.getIsotopePatternInformation(row)[0]); }
-				if (col==COLINFO_WIDEMODE_ISOTOPEPEAKNUMBER) { return new Integer(alignmentResult.getIsotopePatternInformation(row)[1]); }
-				if (col==COLINFO_WIDEMODE_CHARGESTATE) { return new Integer(alignmentResult.getIsotopePatternInformation(row)[2]); }
+			// Common column
+			if (groupOffset[0]<0) {
 
-				if ((col >COLINFO_WIDEMODE_LASTCOMMONCOL) &&
-					(col<=(COLINFO_WIDEMODE_LASTCOMMONCOL+COLINFO_WIDEMODE_COLSPERRUN*numOfRawDatas)) ) {
+				AlignmentResultRow alignmentRow = alignmentResult.getRow(row);
 
-					// Calc runNumber and offset from the first column of this run
-					int columnGroupNumber = calcColumnGroupNum(col);
-					int columnGroupOffset = col - (COLINFO_WIDEMODE_LASTCOMMONCOL+1) - columnGroupNumber*COLINFO_WIDEMODE_COLSPERRUN;
-					OpenedRawDataFile openedRawDataFile = alignmentResult.getRawDataFile(columnGroupNumber);
-
-					// mz, rt or intensity?
-					if ( (columnGroupOffset>=0) && (columnGroupOffset<=3) ) {
-						double preValue = 0;
-						if (columnGroupOffset==0) { preValue = alignmentResult.getPeak(row, alignmentResult.getRawDataFile(columnGroupNumber-1)).getNormalizedMZ(); }
-						if (columnGroupOffset==1) { preValue = alignmentResult.getPeak(row, alignmentResult.getRawDataFile(columnGroupNumber-1)).getNormalizedRT(); }
-						if (columnGroupOffset==2) { preValue = alignmentResult.getPeak(row, alignmentResult.getRawDataFile(columnGroupNumber-1)).getNormalizedHeight(); }
-						if (columnGroupOffset==3) { preValue = alignmentResult.getPeak(row, alignmentResult.getRawDataFile(columnGroupNumber-1)).getNormalizedArea(); }
-						if (preValue<0) { return null; } else { return new Double(preValue); }
-					}
-					if (columnGroupOffset==4) {
-						PeakStatus statValue = alignmentResult.getPeak(row, alignmentResult.getRawDataFile(columnGroupNumber-1)).getPeakStatus();
-
-						if (statValue==PeakStatus.DETECTED) { return peakStatusDetected; }
-						else if (statValue==PeakStatus.ESTIMATED) { return peakStatusEstimated; }
-						else return peakStatusNotFound;
-					}
-
-				}
-				*/
-
-			} else {
-				/*
-
-				if (col==COLINFO_COMPACTMODE_IND) { return new Integer(row+1); }
-//				if (col==COLINFO_COMPACTMODE_STD) { return new Boolean(alignmentResult.getStandardCompoundFlag(row)); }
-				if (col==COLINFO_COMPACTMODE_ISOTOPEPATTERNID) { return new Integer(alignmentResult.getIsotopePatternInformation(row)[0]); }
-				if (col==COLINFO_COMPACTMODE_ISOTOPEPEAKNUMBER) { return new Integer(alignmentResult.getIsotopePatternInformation(row)[1]); }
-				if (col==COLINFO_COMPACTMODE_CHARGESTATE) { return new Integer(alignmentResult.getIsotopePatternInformation(row)[2]); }
-
-				if (col==COLINFO_COMPACTMODE_MZ) {
-					double preValue = alignmentResult.getAverageMZ(row);
-					if (preValue>=0) { return new Double(preValue); } else { return null; }
+				switch(columnSelection.getSelectedCommonColumn(groupOffset[1])) {
+					case ROWNUM:
+						return new Integer(row+1);
+					case AVGMZ:
+						return new Double(alignmentRow.getAverageMZ());
+					case AVGRT:
+						return new Double(alignmentRow.getAverageRT());
+					case ISOTOPEID:
+						return new Integer(isoUtil.getIsotopePatternNumber(alignmentRow.getIsotopePattern()));
+					case ISOTOPEPEAK:
+						return new Integer(isoUtil.getIsotopePatternNumber(alignmentRow.getIsotopePattern()));
+					case CHARGE:
+						return new Integer(alignmentRow.getIsotopePattern().getChargeState());
+					default:
+						//System.out.println("Illegal common column");
+						return null;
 				}
 
-				if (col==COLINFO_COMPACTMODE_RT) {
-					double preValue = alignmentResult.getAverageRT(row);
-					if (preValue>=0) { return new Double(preValue); } else { return null; }
-				}
-
-				if ((col >COLINFO_COMPACTMODE_LASTCOMMONCOL) &&
-					(col<=(COLINFO_COMPACTMODE_LASTCOMMONCOL+COLINFO_COMPACTMODE_COLSPERRUN*numOfRawDatas)) ) {
-
-					int columnGroupNumber = calcColumnGroupNum(col);
-					int columnGroupOffset = col - (COLINFO_COMPACTMODE_LASTCOMMONCOL+1) - columnGroupNumber*COLINFO_COMPACTMODE_COLSPERRUN;
-					int rawDataID = alignmentResult.getRawDataID(columnGroupNumber);
-
-					double preValue = -1;
-					if (columnGroupOffset==0) {
-						//if (mainWin.getParameterStorage().getGeneralParameters().getPeakMeasuringType() == GeneralParameters.PARAMETERVALUE_PEAKMEASURING_HEIGHT) { preValue = alignmentResult.getPeakHeight(rawDataID, row); }
-						//if (mainWin.getParameterStorage().getGeneralParameters().getPeakMeasuringType() == GeneralParameters.PARAMETERVALUE_PEAKMEASURING_AREA) { preValue = alignmentResult.getPeakArea(rawDataID, row); }
-					}
-					if (preValue<0) { return null; } else {	return new Double(preValue); }
-				}
-				*/
 			}
 
-			return null;
+			else { //if (groupOffset[0]>=0)
+
+				OpenedRawDataFile rawData = alignmentResult.getRawDataFile(groupOffset[0]);
+				Peak p = alignmentResult.getPeak(row, rawData);
+				if (p==null) return null;
+
+				switch(columnSelection.getSelectedRawDataColumn(groupOffset[1])) {
+					case MZ:
+						return new Double(p.getNormalizedMZ());
+					case RT:
+						return new Double(p.getNormalizedRT());
+					case HEIGHT:
+						return new Double(p.getNormalizedHeight());
+					case AREA:
+						return new Double(p.getNormalizedArea());
+					default:
+						//System.out.println("Illegal raw data column");
+						return null;
+				}
+
+			}
 
 		}
 
@@ -257,155 +190,45 @@ public class AlignmentResultTable extends JTable {
 		 */
 		public Class getColumnClass(int col) {
 
-			int numOfRuns = 0; //alignmentResult.getNumOfRawDatas();
 
-			if (columnMode == COLUMNMODE_WIDE) {
+			int[] groupOffset = getColumnGroupAndOffset(col);
 
-				if (col==COLINFO_WIDEMODE_IND) { return Integer.class; }
-				if (col==COLINFO_WIDEMODE_ISOTOPEPATTERNID) { return Integer.class; }
-				if (col==COLINFO_WIDEMODE_ISOTOPEPEAKNUMBER) { return Integer.class; }
-				if (col==COLINFO_WIDEMODE_CHARGESTATE) { return Integer.class; }
-
-				if ((col >COLINFO_WIDEMODE_LASTCOMMONCOL) &&
-					(col<=(COLINFO_WIDEMODE_LASTCOMMONCOL+COLINFO_WIDEMODE_COLSPERRUN*numOfRuns)) ) {
-						// Calc runNumber and offset from the first column of this run
-						int columnGroupNumber = 0; //calcColumnGroupNum(col);
-						int columnGroupOffset = col - (COLINFO_WIDEMODE_LASTCOMMONCOL+1) - columnGroupNumber*COLINFO_WIDEMODE_COLSPERRUN;
-
-						// mz, rt, height, area or status?
-						if (columnGroupOffset==0) { return Double.class; }
-						if (columnGroupOffset==1) { return Double.class; }
-						if (columnGroupOffset==2) { return Double.class; }
-						if (columnGroupOffset==3) { return Double.class; }
-						if (columnGroupOffset==4) { return String.class; }
-				}
-
-			} else {
-
-				if (col==COLINFO_COMPACTMODE_IND) { return Integer.class; }
-				if (col==COLINFO_COMPACTMODE_MZ) { return Double.class; }
-				if (col==COLINFO_COMPACTMODE_RT) { return Double.class; }
-				if (col==COLINFO_COMPACTMODE_ISOTOPEPATTERNID) { return Integer.class; }
-				if (col==COLINFO_COMPACTMODE_ISOTOPEPEAKNUMBER) { return Integer.class; }
-				if (col==COLINFO_COMPACTMODE_CHARGESTATE) { return Integer.class; }
-
-
-				if ((col >COLINFO_COMPACTMODE_LASTCOMMONCOL) &&
-					(col<=(COLINFO_COMPACTMODE_LASTCOMMONCOL+COLINFO_COMPACTMODE_COLSPERRUN*numOfRuns)) ) {
-
-					int columnGroupNumber = 0; //calcColumnGroupNum(col);
-					int columnGroupOffset = col - (COLINFO_COMPACTMODE_LASTCOMMONCOL+1) - columnGroupNumber*COLINFO_COMPACTMODE_COLSPERRUN;
-
-					// Only one column per each run (height or area)
-					if (columnGroupOffset==0) { return Double.class; }
-				}
-
-			}
-			return null;
-		}
-
-		private int calcColumnGroupNum(int colInd) {
-
-			int numOfRawDatas = alignmentResult.getNumberOfRawDataFiles();
-			int columnGroupNum = -1;
-
-			// For both compact and wide mode, try to calculate column group number, if the selected column is some raw data specific column
-			// Column group number is the
-			if (columnMode==COLUMNMODE_WIDE) {
-				if ( (colInd>COLINFO_WIDEMODE_LASTCOMMONCOL) && (colInd<=(COLINFO_WIDEMODE_LASTCOMMONCOL+COLINFO_WIDEMODE_COLSPERRUN*numOfRawDatas)) ) {
-					columnGroupNum = (int)java.lang.Math.floor((colInd-(COLINFO_WIDEMODE_LASTCOMMONCOL+1)) / (double)COLINFO_WIDEMODE_COLSPERRUN);
-				}
-			} else {
-
-				if ( (colInd>COLINFO_COMPACTMODE_LASTCOMMONCOL) && (colInd<=(COLINFO_COMPACTMODE_LASTCOMMONCOL+COLINFO_COMPACTMODE_COLSPERRUN*numOfRawDatas)) ) {
-					columnGroupNum = (int)java.lang.Math.floor((colInd-(COLINFO_COMPACTMODE_LASTCOMMONCOL+1)) / (double)COLINFO_COMPACTMODE_COLSPERRUN);
-				}
+			// Common column
+			if (groupOffset[0]<0) {
+				return columnSelection.getSelectedCommonColumn(groupOffset[1]).getColumnClass();
+			} else { //if (groupOffset[0]>=0)
+				return columnSelection.getSelectedRawDataColumn(groupOffset[1]).getColumnClass();
 			}
 
-			return columnGroupNum;
+		}
+
+		private int[] getColumnGroupAndOffset(int col) {
+
+			// Is this a common column?
+			if (col<columnSelection.getNumberOfCommonColumns()) {
+				int[] res = new int[2];
+				res[0] = -1;
+				res[1] = col;
+				return res;
+			}
+
+			// This is a raw data specific column.
+
+			// Calc number of raw data
+			int[] res = new int[2];
+			res[0] = (int)java.lang.Math.floor( (double)(col-columnSelection.getNumberOfCommonColumns()) / (double)columnSelection.getNumberOfRawDataColumns() );
+			res[1] = col - columnSelection.getNumberOfCommonColumns() - res[0] * columnSelection.getNumberOfRawDataColumns();
+
+			return res;
 
 		}
 
 
-		public boolean isCellEditable(int row, int col) {
-			return false;
-		}
+
+		public boolean isCellEditable(int row, int col) { return false;	}
 
 		public void setValueAt(Object value, int row, int col) {}
 
-
-		private String[] getColumnNames() {
-
-			String[] s = new String[getColumnCount()];
-/*
-			if (!compactMode) {
-
-				s[0] = new String("ID");
-				s[1] = new String("Std");
-				s[2] = new String("Isotope Pattern ID");
-				s[3] = new String("Isotope Peak Number");
-				s[4] = new String("Charge State");
-
-
-				int i=0;
-				int[] rawDataIDs = alignmentResult.getRawDataIDs();
-				for (int rawDataID : rawDataIDs) {
-					String rawDataName = null;
-					if (alignmentResult.isImported()) {
-						rawDataName = alignmentResult.getImportedRawDataName(rawDataID);
-					} else {
-					//	RawDataAtClient rawData = mainWin.getItemSelector().getRawDataByID(rawDataID);
-					//	rawDataName = rawData.getNiceName();
-					}
-					s[COLINFO_WIDEMODE_LASTCOMMONCOL + 1 + i*COLINFO_WIDEMODE_COLSPERRUN] = new String("m/z: " + rawDataName);
-					s[COLINFO_WIDEMODE_LASTCOMMONCOL + 2 + i*COLINFO_WIDEMODE_COLSPERRUN] = new String("rt: " + rawDataName);
-					s[COLINFO_WIDEMODE_LASTCOMMONCOL + 3 + i*COLINFO_WIDEMODE_COLSPERRUN] = new String("height: " + rawDataName);
-					s[COLINFO_WIDEMODE_LASTCOMMONCOL + 4 + i*COLINFO_WIDEMODE_COLSPERRUN] = new String("area: " + rawDataName);
-					s[COLINFO_WIDEMODE_LASTCOMMONCOL + 5 + i*COLINFO_WIDEMODE_COLSPERRUN] = new String("status: " + rawDataName);
-					i++;
-				}
-
-
-			} else {
-
-				s[0] = new String("ID");
-				s[1] = new String("Std");
-				s[2] = new String("M/Z");
-				s[3] = new String("RT");
-				s[4] = new String("Isotope Pattern ID");
-				s[5] = new String("Isotope Peak Number");
-				s[6] = new String("Charge State");
-
-
-				int[] rawDataIDs = alignmentResult.getRawDataIDs();
-				int i = 0;
-				for (int rawDataID : rawDataIDs) {
-
-					String rawDataName ="";
-					if (alignmentResult.isImported()) {
-						rawDataName = alignmentResult.getImportedRawDataName(rawDataID);
-					} else {
-					//	RawDataAtClient rawData = mainWin.getItemSelector().getRawDataByID(rawDataID);
-					//	rawDataName = rawData.getNiceName();
-					}
-
-					if (mainWin.getParameterStorage().getGeneralParameters().getPeakMeasuringType() == GeneralParameters.PARAMETERVALUE_PEAKMEASURING_HEIGHT) {
-						s[COLINFO_COMPACTMODE_LASTCOMMONCOL + 1 + i*COLINFO_COMPACTMODE_COLSPERRUN] = new String("height: " + rawDataName);
-					}
-
-					if (mainWin.getParameterStorage().getGeneralParameters().getPeakMeasuringType() == GeneralParameters.PARAMETERVALUE_PEAKMEASURING_AREA) {
-						s[COLINFO_COMPACTMODE_LASTCOMMONCOL + 1 + i*COLINFO_COMPACTMODE_COLSPERRUN] = new String("area: " + rawDataName);
-					}
-
-
-					i++;
-				}
-
-			}*/
-
-			return s;
-
-        }
 
 	}
 

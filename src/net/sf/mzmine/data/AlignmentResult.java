@@ -71,5 +71,10 @@ public interface AlignmentResult {
 	 */
 	public AlignmentResultRow getRow(int row);
 
+	/**
+	 * Returns all alignment result rows
+	 */
+	public AlignmentResultRow[] getRows();
+
 
 }

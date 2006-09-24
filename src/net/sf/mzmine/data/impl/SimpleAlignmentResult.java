@@ -105,6 +105,10 @@ public class SimpleAlignmentResult extends AbstractDataUnit implements Alignment
 
 	}
 
+	public AlignmentResultRow[] getRows() {
+		return alignmentRows.toArray(new AlignmentResultRow[0]);
+	}
+
 	public void addRow(SimpleAlignmentResultRow row) {
 		alignmentRows.add(row);
 	}

@@ -130,7 +130,7 @@ public class AlignmentResultTableVisualizerWindow extends JInternalFrame impleme
 			// TODO
 		}
 
-        if (command.equals("CHANGE_FORMAT")) {
+        if (command.equals("CHANGE_COLUMN_FORMAT")) {
 			// TODO
 			/*
 				AbstractTableModel mtm = new MyTableModel(alignmentResult);

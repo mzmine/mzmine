@@ -21,6 +21,8 @@ package net.sf.mzmine.methods.deisotoping.util;
 import net.sf.mzmine.data.IsotopePattern;
 import net.sf.mzmine.data.Peak;
 import net.sf.mzmine.data.PeakList;
+import net.sf.mzmine.data.AlignmentResult;
+import net.sf.mzmine.data.AlignmentResultRow;
 
 import java.util.Vector;
 import java.util.Hashtable;
@@ -37,6 +39,7 @@ public class IsotopePatternUtility {
 
 	private Hashtable<IsotopePattern, Integer> isotopePatternNumbers;
 	private Hashtable<IsotopePattern, SortedSet<Peak>> isotopePatternPeaks;
+	private Hashtable<IsotopePattern, SortedSet<AlignmentResultRow>> isotopePatternRows;
 
 	/**
 	 * Constructor: groups peaks of a peak list by their isotope pattern
@@ -75,6 +78,41 @@ public class IsotopePatternUtility {
 
 	}
 
+	/**
+	 * Constructor: groups alignment rows of an alignment result by their isotope pattern
+	 */
+	public IsotopePatternUtility(AlignmentResult alignmentResult) {
+
+		isotopePatternNumbers = new Hashtable<IsotopePattern, Integer>();
+		isotopePatternRows = new Hashtable<IsotopePattern, SortedSet<AlignmentResultRow>>();
+		RowSorter rowSorter = new RowSorter();
+
+		int runningNumber = 0;
+		AlignmentResultRow[] rows = alignmentResult.getRows();
+		for (AlignmentResultRow row : rows) {
+
+			IsotopePattern isotopePattern = row.getIsotopePattern();
+			if (isotopePattern == null) continue;
+
+			// Check if this pattern has already been assigned with a number
+			Integer currentNumber = isotopePatternNumbers.get(isotopePattern);
+			if (currentNumber==null) {
+				runningNumber++;
+				isotopePatternNumbers.put(isotopePattern, new Integer(runningNumber));
+			}
+
+			// Add this peak to the collection of peaks in this pattern
+			SortedSet<AlignmentResultRow> rowsInPattern = isotopePatternRows.get(isotopePattern);
+			if (rowsInPattern==null) {
+				rowsInPattern = new TreeSet<AlignmentResultRow>(rowSorter);
+				isotopePatternRows.put(isotopePattern, rowsInPattern);
+			}
+			rowsInPattern.add(row);
+
+		}
+
+	}
+
 
 	/**
 	 * Returns running number for an isotope pattern
@@ -88,12 +126,25 @@ public class IsotopePatternUtility {
 	}
 
 	/**
+	 * Returns all isotope patterns that appear in the peak list
+	 */
+	public IsotopePattern[] getAllIsotopePatterns() {
+		return isotopePatternNumbers.keySet().toArray(new IsotopePattern[0]);
+	}
+
+	/**
 	 * Returns all peaks that belong to the same pattern, sorted in order of accending M/Z
 	 */
 	public Peak[] getPeaksInPattern(IsotopePattern isotopePattern) {
 		SortedSet<Peak> peaksVector = isotopePatternPeaks.get(isotopePattern);
 		if (peaksVector==null) return new Peak[0];
 		return peaksVector.toArray(new Peak[0]);
+	}
+
+	public AlignmentResultRow[] getRowsInPattern(IsotopePattern isotopePattern) {
+		SortedSet<AlignmentResultRow> rowsVector = isotopePatternRows.get(isotopePattern);
+		if (rowsVector==null) return new AlignmentResultRow[0];
+		return rowsVector.toArray(new AlignmentResultRow[0]);
 	}
 
 	/**
@@ -105,12 +156,13 @@ public class IsotopePatternUtility {
 		return peaksVector.first();
 	}
 
-	/**
-	 * Returns all isotope patterns that appear in the peak list
-	 */
-	public IsotopePattern[] getAllIsotopePatterns() {
-		return isotopePatternPeaks.keySet().toArray(new IsotopePattern[0]);
+	public AlignmentResultRow getFirstRow(IsotopePattern isotopePattern) {
+		SortedSet<AlignmentResultRow> rowsVector = isotopePatternRows.get(isotopePattern);
+		if (rowsVector==null) return null;
+		return rowsVector.first();
 	}
+
+
 
 
 	/**
@@ -134,6 +186,24 @@ public class IsotopePatternUtility {
 
 	}
 
+	public int getRowNumberWithinPattern(AlignmentResultRow p) {
+
+		if (!(p.hasData(IsotopePattern.class))) return -1;
+
+		SortedSet<AlignmentResultRow> rowsInPattern = isotopePatternRows.get((p.getData(IsotopePattern.class))[0]);
+		if (rowsInPattern==null) return -1;
+
+		Iterator<AlignmentResultRow> rowIterator = rowsInPattern.iterator();
+		int number = 0;
+		while (rowIterator.hasNext()) {
+			AlignmentResultRow p2 = rowIterator.next();
+			if (p==p2) return number;
+			number++;
+		}
+		return -2;
+
+	}
+
 
 	private class PeakSorter implements Comparator<Peak> {
 		public int compare(Peak p1, Peak p2) {
@@ -146,5 +216,19 @@ public class IsotopePatternUtility {
 
 		public boolean equals(Object obj) { return false; }
 	}
+
+
+	private class RowSorter implements Comparator<AlignmentResultRow> {
+		public int compare(AlignmentResultRow p1, AlignmentResultRow p2) {
+			if (p1.getAverageMZ() < p2.getAverageMZ()) return -1;
+			if (p1.getAverageMZ() > p2.getAverageMZ()) return 1;
+
+			if (p1.getAverageRT() <= p2.getAverageRT()) return -1;
+			return 1;
+		}
+
+		public boolean equals(Object obj) { return false; }
+	}
+
 
 }

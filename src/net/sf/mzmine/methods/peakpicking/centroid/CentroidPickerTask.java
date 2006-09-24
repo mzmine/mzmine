@@ -28,8 +28,10 @@ import java.util.Vector;
 import java.util.ArrayList;
 
 import net.sf.mzmine.data.Scan;
+import net.sf.mzmine.data.IsotopePattern;
 import net.sf.mzmine.data.impl.SimplePeak;
 import net.sf.mzmine.data.impl.SimplePeakList;
+import net.sf.mzmine.data.impl.SimpleIsotopePattern;
 import net.sf.mzmine.io.OpenedRawDataFile;
 import net.sf.mzmine.io.RawDataFile;
 import net.sf.mzmine.taskcontrol.Task;
@@ -315,7 +317,12 @@ class CentroidPickerTask implements Task {
                     if ((ucLength >= parameters.minimumPeakDuration)
                             && (ucHeight >= parameters.minimumPeakHeight)) {
 
-                        // Good peak, add it to the peak list
+                        // Good peak
+
+                        // Since this peak picker doesn't detect isotope patterns, assign this peak to a dummy pattern
+                        ucPeak.addData(IsotopePattern.class, new SimpleIsotopePattern(1));
+
+                        // Add it to the peak list
                         readyPeakList.addPeak(ucPeak);
                         DEBUGcounter2++;
                     }
@@ -381,7 +388,12 @@ class CentroidPickerTask implements Task {
             if ((ucLength >= parameters.minimumPeakDuration)
                     && (ucHeight >= parameters.minimumPeakHeight)) {
 
-                // Good peak, add it to the peak list
+                // Good peak
+
+				// Since this peak picker doesn't detect isotope patterns, assign this peak to a dummy pattern
+				ucPeak.addData(IsotopePattern.class, new SimpleIsotopePattern(1));
+
+				// Add it to the peak list
                 readyPeakList.addPeak(ucPeak);
 
             }
