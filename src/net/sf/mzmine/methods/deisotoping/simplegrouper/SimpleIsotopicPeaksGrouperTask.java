@@ -265,15 +265,17 @@ class SimpleIsotopicPeaksGrouperTask implements Task {
                 // - within tolerances from the expected location (M/Z and RT)
                 // - not already a fitted peak (only necessary to avoid
                 // conflicts when parameters are set too wide)
-                if ((candidatePeakIntensity < currentHeight)
-                        && (java.lang.Math.abs(candidatePeakRT - currentRT) < parameters.rtTolerance)
-                        && (java.lang.Math.abs((candidatePeakMZ - direction * n
-                                * neutronMW / (double) charge)
-                                - currentMZ) < parameters.mzTolerance)
-                        && (!fittedPeaks.contains(candidatePeak))) {
-                    goodCandidates.put(candidatePeak, new Integer(ind));
+                
+                if (java.lang.Math.abs((candidatePeakMZ - direction * n * neutronMW / (double) charge) - currentMZ) < parameters.mzTolerance) {
+                	if (java.lang.Math.abs(candidatePeakRT - currentRT) < parameters.rtTolerance) {
+                		if (candidatePeakIntensity < currentHeight) {
+                			if (!fittedPeaks.contains(candidatePeak)) {
+                				goodCandidates.put(candidatePeak, new Integer(ind));
+                			}
+                		}
+                	}
                 }
-
+              
             }
 
             // If there are some candidates for n:th peak, then select the one

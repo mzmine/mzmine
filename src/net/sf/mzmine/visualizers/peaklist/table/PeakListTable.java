@@ -28,10 +28,12 @@ import net.sf.mzmine.data.IsotopePattern;
 import net.sf.mzmine.data.Peak;
 import net.sf.mzmine.data.PeakList;
 import net.sf.mzmine.data.DataUnit;
+import net.sf.mzmine.data.impl.StandardCompoundFlag;
 import net.sf.mzmine.io.OpenedRawDataFile;
 import net.sf.mzmine.methods.deisotoping.util.IsotopePatternUtility;
 import net.sf.mzmine.project.MZmineProject;
 import net.sf.mzmine.util.GUIUtils;
+import net.sf.mzmine.visualizers.peaklist.table.PeakListTableColumnSelection.PeakListColumnType;
 import sunutils.TableSorter;
 
 
@@ -93,23 +95,8 @@ public class PeakListTable extends JTable {
 
 	private class MyTableModel extends AbstractTableModel {
 
-		private final String[] columnNames = {
-														"M/Z",
-														"RT",
-														"Height",
-														"Area",
-														"Duration",
-														"M/Z difference",
-														"Norm. M/Z",
-														"Norm. RT",
-														"Norm. Height",
-														"Norm. Area",
-														"Isotope Pattern #",
-														"Isotope Peak #",
-														"Charge State",
-														"Identification result(s)"
-													};
-
+		private PeakListTableColumnSelection columnSelection = new PeakListTableColumnSelection();
+		
 		private final String unassignedValue = new String("N/A");
 
 		private PeakList peakList;
@@ -121,7 +108,7 @@ public class PeakListTable extends JTable {
 		}
 
 		public int getColumnCount() {
-			return columnNames.length;
+			return columnSelection.getNumberOfColumns();
 		}
 
 		public int getRowCount() {
@@ -129,59 +116,73 @@ public class PeakListTable extends JTable {
 		}
 
 		public String getColumnName(int col) {
-			return columnNames[col];
+			return columnSelection.getSelectedColumn(col).getColumnName();
 		}
 
 		public Object getValueAt(int row, int col) {
 
-			if (row<0) return null;
-			if (row>peakList.getNumberOfPeaks()) return null;
-			if (col<0) return null;
-			if (col>columnNames.length) return null;
-
 			Peak p = peakList.getPeak(row);
 
-			// Isotope & charge columns
-			if (col == 0) return p.getRawMZ();
-			if (col == 1) return p.getRawRT();
-			if (col == 2) return p.getRawHeight();
-			if (col == 3) return p.getRawArea();
-
-			if (col == 4) return p.getMaxRT() - p.getMinRT();
-			if (col == 5) return p.getMaxMZ() - p.getMinMZ();
-
-			if (col == 6) return p.getNormalizedMZ();
-			if (col == 7) return p.getNormalizedRT();
-			if (col == 8) return p.getNormalizedHeight();
-			if (col == 9) return p.getNormalizedArea();
-
-			if (col == 10) {
-				if (!p.hasData(IsotopePattern.class)) return unassignedValue;
-				IsotopePattern isotopePattern = (IsotopePattern)p.getData(IsotopePattern.class)[0];
-				return isotopePatternUtility.getIsotopePatternNumber(isotopePattern);
-			}
-			if (col == 11) {
-				if (!p.hasData(IsotopePattern.class)) return unassignedValue;
-				return isotopePatternUtility.getPeakNumberWithinPattern(p);
-			}
-			if (col == 12) {
-				if (!p.hasData(IsotopePattern.class)) return unassignedValue;
-				IsotopePattern isotopePattern = (IsotopePattern)p.getData(IsotopePattern.class)[0];
-				return isotopePattern.getChargeState();
+			switch (columnSelection.getSelectedColumn(col)) {
+				case STDCOMPOUND: return p.hasData(StandardCompoundFlag.class);
+				
+				case MZ: return p.getRawMZ();
+				case RT: return p.getRawRT();
+				case HEIGHT: return p.getRawHeight();
+				case AREA: return p.getRawArea();
+				
+				case DURATION: return p.getMaxRT() - p.getMinRT();
+				case MZDIFF: return p.getMaxMZ() - p.getMinMZ();
+				
+				case NORMMZ: return p.getNormalizedMZ();
+				case NORMRT: return p.getNormalizedRT();
+				case NORMHEIGHT: return p.getNormalizedHeight();
+				case NORMAREA: return p.getNormalizedArea();
+				
+				case ISOTOPEPATTERNNUMBER: 
+					if (!p.hasData(IsotopePattern.class)) return unassignedValue;
+					IsotopePattern isotopePattern = (IsotopePattern)p.getData(IsotopePattern.class)[0];
+					return isotopePatternUtility.getIsotopePatternNumber(isotopePattern);
+					
+				case ISOTOPEPEAKNUMBER:
+					if (!p.hasData(IsotopePattern.class)) return unassignedValue;
+					return isotopePatternUtility.getPeakNumberWithinPattern(p);
+				
+				case CHARGE:
+					if (!p.hasData(IsotopePattern.class)) return unassignedValue;
+					isotopePattern = (IsotopePattern)p.getData(IsotopePattern.class)[0];
+					return isotopePattern.getChargeState();
 			}
 
 			return unassignedValue;
 		}
 
-		public Class getColumnClass(int c) {
-			return getValueAt(0, c).getClass();
+		public Class<?> getColumnClass(int col) {
+			return columnSelection.getSelectedColumn(col).getColumnClass();
 		}
 
 		public boolean isCellEditable(int row, int col) {
-			return false;
+			switch (columnSelection.getSelectedColumn(col)) {
+				case STDCOMPOUND:
+					return true;
+				default:
+					return false;
+			}
 		}
 		public void setValueAt(Object value, int row, int col) {
-			return;
+			
+			Peak p = peakList.getPeak(row);
+			
+			switch (columnSelection.getSelectedColumn(col)) {
+				case STDCOMPOUND:
+					if (p.hasData(StandardCompoundFlag.class)) {
+						p.removeAllData(StandardCompoundFlag.class);
+					} else {
+						p.addData(StandardCompoundFlag.class, new StandardCompoundFlag());
+					}
+				default:
+			}
+
 		}
 
 	}

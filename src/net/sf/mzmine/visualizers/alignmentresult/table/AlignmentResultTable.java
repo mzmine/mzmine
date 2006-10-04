@@ -29,6 +29,7 @@ import net.sf.mzmine.data.AlignmentResultRow;
 import net.sf.mzmine.data.PeakList;
 import net.sf.mzmine.data.Peak;
 import net.sf.mzmine.data.Peak.PeakStatus;
+import net.sf.mzmine.data.impl.StandardCompoundFlag;
 import net.sf.mzmine.io.OpenedRawDataFile;
 import net.sf.mzmine.methods.deisotoping.util.IsotopePatternUtility;
 import sunutils.TableSorter;
@@ -123,17 +124,10 @@ public class AlignmentResultTable extends JTable {
 		/**
 		 * This method returns the value at given coordinates of the dataset or null if it is a missing value
 		 */
-		private String peakStatusDetected = new String("Found");
-		private String peakStatusEstimated = new String("Estimated");
-		private String peakStatusNotFound = new String("Not Found");
 
 		public Object getValueAt(int row, int col) {
 
-
-
 			int[] groupOffset = getColumnGroupAndOffset(col);
-
-
 
 			// Common column
 			if (groupOffset[0]<0) {
@@ -141,6 +135,8 @@ public class AlignmentResultTable extends JTable {
 				AlignmentResultRow alignmentRow = alignmentResult.getRow(row);
 
 				switch(columnSelection.getSelectedCommonColumn(groupOffset[1])) {
+					case STDCOMPOUND:
+						return alignmentRow.hasData(StandardCompoundFlag.class);
 					case ROWNUM:
 						return new Integer(row+1);
 					case AVGMZ:
@@ -225,9 +221,38 @@ public class AlignmentResultTable extends JTable {
 
 
 
-		public boolean isCellEditable(int row, int col) { return false;	}
+		public boolean isCellEditable(int row, int col) {
+			int[] groupOffset = getColumnGroupAndOffset(col);
+			
+			if (groupOffset[0]<0) {
+				switch(columnSelection.getSelectedCommonColumn(groupOffset[1])) {
+					case STDCOMPOUND:				
+						return true;
+					default:
+						return false;
+				}
+			}
+			return false;	
+		}
 
-		public void setValueAt(Object value, int row, int col) {}
+		public void setValueAt(Object value, int row, int col) {
+			int[] groupOffset = getColumnGroupAndOffset(col);
+			
+			if (groupOffset[0]<0) {
+				switch(columnSelection.getSelectedCommonColumn(groupOffset[1])) {
+					case STDCOMPOUND:
+						AlignmentResultRow alignmentRow = alignmentResult.getRow(row);
+						if (alignmentRow.hasData(StandardCompoundFlag.class)) {
+							alignmentRow.removeAllData(StandardCompoundFlag.class);
+						} else {
+							alignmentRow.addData(StandardCompoundFlag.class, new StandardCompoundFlag());
+						}
+						break;
+					default:
+						break;
+				}
+			}	
+		}
 
 
 	}

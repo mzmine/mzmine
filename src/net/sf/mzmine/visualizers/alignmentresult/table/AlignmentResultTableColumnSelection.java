@@ -25,6 +25,7 @@ public class AlignmentResultTableColumnSelection {
 	// type for common columns
 
     public enum CommonColumnType {
+    	STDCOMPOUND ("STD", Boolean.class),
         ROWNUM ("ID", Integer.class),
         AVGMZ ("Average M/Z", Double.class),
         AVGRT ("Average Retention time", Double.class),
@@ -67,6 +68,7 @@ public class AlignmentResultTableColumnSelection {
 
 		selectedCommonColumns = new Vector<CommonColumnType>();
 		selectedCommonColumns.add(CommonColumnType.ROWNUM);
+		selectedCommonColumns.add(CommonColumnType.STDCOMPOUND);
 		selectedCommonColumns.add(CommonColumnType.AVGMZ);
 		selectedCommonColumns.add(CommonColumnType.AVGRT);
 		selectedCommonColumns.add(CommonColumnType.ISOTOPEID);
