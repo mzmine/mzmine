@@ -21,46 +21,43 @@ package net.sf.mzmine.visualizers.alignmentresult.table;
 
 import java.awt.Color;
 import java.awt.Insets;
+import java.util.logging.Logger;
 
 import javax.swing.Icon;
 import javax.swing.ImageIcon;
 import javax.swing.JButton;
 import javax.swing.JToolBar;
 
+import net.sf.mzmine.util.GUIUtils;
+
 /**
  *
  */
 class AlignmentResultTableVisualizerToolBar extends JToolBar {
-
-    private JButton zoomToPeakButton;
-    private JButton changeFormatButton;
-
+	
+	private Logger logger = Logger.getLogger(this.getClass().getName());
+	
     static final Icon zoomToPeakIcon = new ImageIcon("icons/annotationsicon.png");
     static final Icon changeFormatIcon = new ImageIcon("icons/tableselectionicon.png");
 
     AlignmentResultTableVisualizerToolBar(AlignmentResultTableVisualizerWindow masterFrame) {
-
+    	
         super(JToolBar.VERTICAL);
+        
+        logger.info("Initializing alignment result table visualizer toolbar");
 
         setFloatable(false);
         setMargin(new Insets(5, 5, 5, 5));
         setBackground(Color.white);
 
-        zoomToPeakButton = new JButton(zoomToPeakIcon);
-        zoomToPeakButton.setActionCommand("ZOOM_TO_PEAK");
-        zoomToPeakButton.setToolTipText("Zoom visualizers to selected peak");
-        zoomToPeakButton.setEnabled(true);
-        zoomToPeakButton.addActionListener(masterFrame);
-
-        changeFormatButton = new JButton(changeFormatIcon);
-        changeFormatButton.setActionCommand("CHANGE_FORMAT");
-        changeFormatButton.setToolTipText("Change table column format");
-        changeFormatButton.setEnabled(true);
-        changeFormatButton.addActionListener(masterFrame);
-
-        add(zoomToPeakButton);
+        GUIUtils.addButton(this, null, zoomToPeakIcon, masterFrame,
+                "ZOOM_TO_PEAK", "Zoom visualizers to selected peak");
+        
         addSeparator();
-        add(changeFormatButton);
+        
+        GUIUtils.addButton(this, null, changeFormatIcon, masterFrame,
+                "CHANGE_FORMAT", "Change table column format");
+        
 
     }
 

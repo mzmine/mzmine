@@ -24,8 +24,10 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
+import java.util.logging.Logger;
 
 
+import javax.swing.JDesktopPane;
 import javax.swing.JInternalFrame;
 import javax.swing.JMenuItem;
 import javax.swing.JOptionPane;
@@ -51,9 +53,9 @@ TODO
 
 */
 
-public class AlignmentResultTableVisualizerWindow extends JInternalFrame implements MouseListener, ActionListener {
+public class AlignmentResultTableVisualizerWindow extends JInternalFrame implements ActionListener {
 
-
+	private Logger logger = Logger.getLogger(this.getClass().getName());
 
 	private AlignmentResult alignmentResult;
 
@@ -63,6 +65,8 @@ public class AlignmentResultTableVisualizerWindow extends JInternalFrame impleme
 	private JMenuItem changeFormattingMenuItem;
 	private JMenuItem zoomToPeakMenuItem;
 
+	private AlignmentResultTable table;
+	
 	private boolean compactMode = true;
 
 
@@ -73,6 +77,8 @@ public class AlignmentResultTableVisualizerWindow extends JInternalFrame impleme
 	public AlignmentResultTableVisualizerWindow(AlignmentResult alignmentResult) {
 
 		super(alignmentResult.toString(), true, true, true, true);
+		
+		logger.info("Initializing alignment result table visualizer window");
 
 		setResizable( true );
 		setIconifiable( true );
@@ -82,16 +88,15 @@ public class AlignmentResultTableVisualizerWindow extends JInternalFrame impleme
 
 		// Build toolbar
         AlignmentResultTableVisualizerToolBar toolBar = new AlignmentResultTableVisualizerToolBar(this);
+        add(toolBar, BorderLayout.EAST);
 
 		// Build table
-		AlignmentResultTable table = new AlignmentResultTable(this, alignmentResult);
+		table = new AlignmentResultTable(this, alignmentResult);
 		table.setAutoResizeMode( JTable.AUTO_RESIZE_OFF );
 		scrollPane = new JScrollPane(table);
 
-		add(toolBar, BorderLayout.EAST);
+		
 		add(scrollPane, BorderLayout.CENTER);
-
-		table.addMouseListener(this);
 
 		pack();
 
@@ -101,45 +106,32 @@ public class AlignmentResultTableVisualizerWindow extends JInternalFrame impleme
 
 
 	/**
-	 * Methods for MouseListener interface implementation
-	 */
-	public void mouseClicked(MouseEvent e) {}
-	public void mouseEntered(MouseEvent e) {}
-	public void mouseExited(MouseEvent e) {}
-	public void mousePressed(MouseEvent e) {}
-	public void mouseReleased(MouseEvent e) {
-
-		// Normal click: select row
-		if (e.getButton()==MouseEvent.BUTTON1) {
-			//int rowInd = ((Integer)(table.getValueAt(table.getSelectedRow(), 0))).intValue();
-			// TODO: What to do when row is clicked?
-		}
-
-	}
-
-
-
-	/**
 	 * Methods for ActionListener interface implementation
 	 */
 	public void actionPerformed(ActionEvent event) {
-
+		
+		logger.info("actionPerformed");
+		
         String command = event.getActionCommand();
+        
+        logger.info("command=" + command);
+        
 
         if (command.equals("ZOOM_TO_PEAK")) {
 			// TODO
 		}
 
-        if (command.equals("CHANGE_COLUMN_FORMAT")) {
-			// TODO
-			/*
-				AbstractTableModel mtm = new MyTableModel(alignmentResult);
-				TableSorter sorter = new TableSorter(mtm); //ADDED THIS
-				table.getTableHeader().setReorderingAllowed(false);
-				//sorter.setTableHeader(table.getTableHeader()); //ADDED THIS	(REMOVED FOR TEST)
-				sorter.addMouseListenerToHeaderInTable(table); // ADDED THIS TODAY
-				table.setModel(sorter);
-			*/
+        if (command.equals("CHANGE_FORMAT")) {
+        	
+        	AlignmentResultTableColumnSelectionDialog dialog = new AlignmentResultTableColumnSelectionDialog (table);
+        	JDesktopPane desktop = MainWindow.getInstance().getDesktopPane();
+        	desktop.add(dialog);
+        	
+        	logger.info("setting choose columns dialog visible");
+        	dialog.setVisible(true);
+        	dialog.setLocation( (int)(0.5*(desktop.getWidth()-dialog.getWidth())),
+        						(int)(0.5*(desktop.getHeight()-dialog.getHeight())) );
+
 		}
 
 	}

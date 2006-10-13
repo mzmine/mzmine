@@ -67,6 +67,12 @@ public class AlignmentResultTableColumnSelection {
 	public AlignmentResultTableColumnSelection() {
 
 		selectedCommonColumns = new Vector<CommonColumnType>();
+		selectedRawDataColumns = new Vector<RawDataColumnType>();
+		
+	}
+	
+	public void setAllColumns() {
+		
 		selectedCommonColumns.add(CommonColumnType.ROWNUM);
 		selectedCommonColumns.add(CommonColumnType.STDCOMPOUND);
 		selectedCommonColumns.add(CommonColumnType.AVGMZ);
@@ -74,13 +80,11 @@ public class AlignmentResultTableColumnSelection {
 		selectedCommonColumns.add(CommonColumnType.ISOTOPEID);
 		selectedCommonColumns.add(CommonColumnType.ISOTOPEPEAK);
 		selectedCommonColumns.add(CommonColumnType.CHARGE);
-
-		selectedRawDataColumns = new Vector<RawDataColumnType>();
+		
 		selectedRawDataColumns.add(RawDataColumnType.MZ);
 		selectedRawDataColumns.add(RawDataColumnType.RT);
 		selectedRawDataColumns.add(RawDataColumnType.HEIGHT);
-		selectedRawDataColumns.add(RawDataColumnType.AREA);
-
+		selectedRawDataColumns.add(RawDataColumnType.AREA);		
 	}
 
 	public int getNumberOfCommonColumns() {
@@ -104,8 +108,31 @@ public class AlignmentResultTableColumnSelection {
 	}
 
 	public RawDataColumnType getSelectedRawDataColumn(int index) {
-
 		return selectedRawDataColumns.get(index);
+	}
+	
+	public boolean isSelectedCommonColumnType(CommonColumnType c) {
+		return selectedCommonColumns.contains(c);
+	}
+	
+	public boolean isSelectedRawDataColumnType(RawDataColumnType c) {
+		return selectedRawDataColumns.contains(c);
+	}
+	
+	public void addCommonColumn(CommonColumnType c) {
+		selectedCommonColumns.add(c);
+	}
+	
+	public void removeCommonColumn(CommonColumnType c) {
+		selectedCommonColumns.remove(c);
+	}
+	
+	public void addRawDataColumn(RawDataColumnType c) {
+		selectedRawDataColumns.add(c);
+	}
+	
+	public void removeRawDataColumn(RawDataColumnType c) {
+		selectedRawDataColumns.remove(c);
 	}
 
 

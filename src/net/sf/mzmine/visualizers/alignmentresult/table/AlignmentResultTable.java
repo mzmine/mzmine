@@ -18,40 +18,30 @@
  */
 package net.sf.mzmine.visualizers.alignmentresult.table;
 
-import java.util.Vector;
-
 import javax.swing.JTable;
-import javax.swing.JPopupMenu;
-import javax.swing.table.AbstractTableModel;
 
 import net.sf.mzmine.data.AlignmentResult;
-import net.sf.mzmine.data.AlignmentResultRow;
-import net.sf.mzmine.data.PeakList;
-import net.sf.mzmine.data.Peak;
-import net.sf.mzmine.data.Peak.PeakStatus;
-import net.sf.mzmine.data.impl.StandardCompoundFlag;
-import net.sf.mzmine.io.OpenedRawDataFile;
-import net.sf.mzmine.methods.deisotoping.util.IsotopePatternUtility;
 import sunutils.TableSorter;
 
 public class AlignmentResultTable extends JTable {
 
-
 	private AlignmentResult alignmentResult;
-	private MyTableModel tableModel;
+	private AlignmentResultTableModel tableModel;
 	private TableSorter sorter;
-
-
+	
 	public AlignmentResultTable(AlignmentResultTableVisualizerWindow masterFrame, AlignmentResult alignmentResult) {
 		this.alignmentResult = alignmentResult;
-		initializeTableModel(new AlignmentResultTableColumnSelection());
-
+		
+		AlignmentResultTableColumnSelection columnSelection = new AlignmentResultTableColumnSelection();
+		columnSelection.setAllColumns();
+		
+		initializeTableModel(columnSelection);
 	}
 
-
+	
 	private void initializeTableModel(AlignmentResultTableColumnSelection columnSelection) {
 
-		tableModel = new MyTableModel(alignmentResult, columnSelection);
+		tableModel = new AlignmentResultTableModel(alignmentResult, columnSelection);
 
 		// Initialize sorter
 		sorter = new TableSorter(tableModel);
@@ -60,201 +50,16 @@ public class AlignmentResultTable extends JTable {
 		setModel(sorter);
 
 	}
-
-
-
-
-
-
-	/**
-	 * This class is a slighty customized table model for JTable presenting the alignment results
-	 */
-	private class MyTableModel extends AbstractTableModel {
-
-		private AlignmentResult alignmentResult;
-		private AlignmentResultTableColumnSelection columnSelection;
-
-		private IsotopePatternUtility isoUtil;
-
-
-		/**
-		 * Constructor, assign given dataset to this table
-		 */
-		public MyTableModel(AlignmentResult alignmentResult, AlignmentResultTableColumnSelection columnSelection) {
-			this.alignmentResult = alignmentResult;
-			this.columnSelection = columnSelection;
-
-			isoUtil = new IsotopePatternUtility(alignmentResult);
-
-		}
-
-		public AlignmentResultTableColumnSelection getColumnSelection() {
-			return columnSelection;
-		}
-
-		public int getColumnCount() {
-			return columnSelection.getNumberOfCommonColumns() + alignmentResult.getNumberOfRawDataFiles()*columnSelection.getNumberOfRawDataColumns();
-		}
-
-		public int getRowCount() {
-			return alignmentResult.getNumberOfRows();
-		}
-
-
-		public String getColumnName(int col) {
-
-			int[] groupOffset = getColumnGroupAndOffset(col);
-
-			// Common column
-			if (groupOffset[0]<0) {
-				return columnSelection.getSelectedCommonColumn(groupOffset[1]).getColumnName();
-			}
-
-			if (groupOffset[0]>=0) {
-				OpenedRawDataFile rawData = alignmentResult.getRawDataFile(groupOffset[0]);
-				String rawDataName = rawData.toString();
-				return rawDataName + ": " + columnSelection.getSelectedRawDataColumn(groupOffset[1]).getColumnName();
-			}
-
-			return new String("No Name");
-
-		}
-
-
-		/**
-		 * This method returns the value at given coordinates of the dataset or null if it is a missing value
-		 */
-
-		public Object getValueAt(int row, int col) {
-
-			int[] groupOffset = getColumnGroupAndOffset(col);
-
-			// Common column
-			if (groupOffset[0]<0) {
-
-				AlignmentResultRow alignmentRow = alignmentResult.getRow(row);
-
-				switch(columnSelection.getSelectedCommonColumn(groupOffset[1])) {
-					case STDCOMPOUND:
-						return alignmentRow.hasData(StandardCompoundFlag.class);
-					case ROWNUM:
-						return new Integer(row+1);
-					case AVGMZ:
-						return new Double(alignmentRow.getAverageMZ());
-					case AVGRT:
-						return new Double(alignmentRow.getAverageRT());
-					case ISOTOPEID:
-						return new Integer(isoUtil.getIsotopePatternNumber(alignmentRow.getIsotopePattern()));
-					case ISOTOPEPEAK:
-						return new Integer(isoUtil.getIsotopePatternNumber(alignmentRow.getIsotopePattern()));
-					case CHARGE:
-						return new Integer(alignmentRow.getIsotopePattern().getChargeState());
-					default:
-						//System.out.println("Illegal common column");
-						return null;
-				}
-
-			}
-
-			else { //if (groupOffset[0]>=0)
-
-				OpenedRawDataFile rawData = alignmentResult.getRawDataFile(groupOffset[0]);
-				Peak p = alignmentResult.getPeak(row, rawData);
-				if (p==null) return null;
-
-				switch(columnSelection.getSelectedRawDataColumn(groupOffset[1])) {
-					case MZ:
-						return new Double(p.getNormalizedMZ());
-					case RT:
-						return new Double(p.getNormalizedRT());
-					case HEIGHT:
-						return new Double(p.getNormalizedHeight());
-					case AREA:
-						return new Double(p.getNormalizedArea());
-					default:
-						//System.out.println("Illegal raw data column");
-						return null;
-				}
-
-			}
-
-		}
-
-
-		/**
-		 * This method returns the class of the objects in this column of the table
-		 */
-		public Class getColumnClass(int col) {
-
-
-			int[] groupOffset = getColumnGroupAndOffset(col);
-
-			// Common column
-			if (groupOffset[0]<0) {
-				return columnSelection.getSelectedCommonColumn(groupOffset[1]).getColumnClass();
-			} else { //if (groupOffset[0]>=0)
-				return columnSelection.getSelectedRawDataColumn(groupOffset[1]).getColumnClass();
-			}
-
-		}
-
-		private int[] getColumnGroupAndOffset(int col) {
-
-			// Is this a common column?
-			if (col<columnSelection.getNumberOfCommonColumns()) {
-				int[] res = new int[2];
-				res[0] = -1;
-				res[1] = col;
-				return res;
-			}
-
-			// This is a raw data specific column.
-
-			// Calc number of raw data
-			int[] res = new int[2];
-			res[0] = (int)java.lang.Math.floor( (double)(col-columnSelection.getNumberOfCommonColumns()) / (double)columnSelection.getNumberOfRawDataColumns() );
-			res[1] = col - columnSelection.getNumberOfCommonColumns() - res[0] * columnSelection.getNumberOfRawDataColumns();
-
-			return res;
-
-		}
-
-
-
-		public boolean isCellEditable(int row, int col) {
-			int[] groupOffset = getColumnGroupAndOffset(col);
-			
-			if (groupOffset[0]<0) {
-				switch(columnSelection.getSelectedCommonColumn(groupOffset[1])) {
-					case STDCOMPOUND:				
-						return true;
-					default:
-						return false;
-				}
-			}
-			return false;	
-		}
-
-		public void setValueAt(Object value, int row, int col) {
-			int[] groupOffset = getColumnGroupAndOffset(col);
-			
-			if (groupOffset[0]<0) {
-				switch(columnSelection.getSelectedCommonColumn(groupOffset[1])) {
-					case STDCOMPOUND:
-						AlignmentResultRow alignmentRow = alignmentResult.getRow(row);
-						if (alignmentRow.hasData(StandardCompoundFlag.class)) {
-							alignmentRow.removeAllData(StandardCompoundFlag.class);
-						} else {
-							alignmentRow.addData(StandardCompoundFlag.class, new StandardCompoundFlag());
-						}
-						break;
-					default:
-						break;
-				}
-			}	
-		}
-
-
+	
+	public void setColumnSelection(AlignmentResultTableColumnSelection columnSelection) {
+		initializeTableModel(columnSelection);
 	}
+	
+	public AlignmentResultTableColumnSelection getColumnSelection() {
+		return tableModel.getColumnSelection();
+	}
+
+
+	
 
 }
