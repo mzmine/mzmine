@@ -123,15 +123,9 @@ public class AlignmentResultTableVisualizerWindow extends JInternalFrame impleme
 
         if (command.equals("CHANGE_FORMAT")) {
         	
+        	logger.info("showing choose columns dialog");
         	AlignmentResultTableColumnSelectionDialog dialog = new AlignmentResultTableColumnSelectionDialog (table);
-        	JDesktopPane desktop = MainWindow.getInstance().getDesktopPane();
-        	desktop.add(dialog);
-        	
-        	logger.info("setting choose columns dialog visible");
-        	dialog.setVisible(true);
-        	dialog.setLocation( (int)(0.5*(desktop.getWidth()-dialog.getWidth())),
-        						(int)(0.5*(desktop.getHeight()-dialog.getHeight())) );
-
+        	MainWindow.getInstance().addInternalFrame(dialog);
 		}
 
 	}
