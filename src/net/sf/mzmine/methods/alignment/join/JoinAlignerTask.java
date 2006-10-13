@@ -39,6 +39,7 @@ import net.sf.mzmine.data.IsotopePattern;
 import net.sf.mzmine.data.impl.SimpleAlignmentResult;
 import net.sf.mzmine.data.impl.SimpleAlignmentResultRow;
 import net.sf.mzmine.data.impl.SimpleIsotopePattern;
+import net.sf.mzmine.data.impl.StandardCompoundFlag;
 
 import net.sf.mzmine.methods.deisotoping.util.IsotopePatternUtility;
 
@@ -250,6 +251,11 @@ class JoinAlignerTask implements Task {
 					Peak[] isotopePeaks = isoUtil.getPeaksInPattern(isotopePattern);
 					if (peakRow<isotopePeaks.length) {
 						alignmentRow.addPeak(dataFile, isotopePeaks[peakRow]);
+						if (isotopePeaks[peakRow].hasData(StandardCompoundFlag.class)) {
+							if (!alignmentRow.hasData(StandardCompoundFlag.class)) {
+								alignmentRow.addData(StandardCompoundFlag.class, new StandardCompoundFlag());
+							}
+						}
 					}
 				}
 
