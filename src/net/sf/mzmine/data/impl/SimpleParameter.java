@@ -67,6 +67,12 @@ public class SimpleParameter extends AbstractDataUnit implements Parameter {
     }
 
     public SimpleParameter(ParameterType type, String name, String description,
+            Object defaultValue, Object possibleValues[]) {
+        this(type, name, description, null, defaultValue, null, null,
+                possibleValues, null);
+    }    
+    
+    public SimpleParameter(ParameterType type, String name, String description,
             String units, Object defaultValue, Object minValue,
             Object maxValue, NumberFormat format) {
         this(type, name, description, units, defaultValue, minValue, maxValue,

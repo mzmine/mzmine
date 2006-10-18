@@ -31,6 +31,7 @@ import net.sf.mzmine.io.IOController;
 import net.sf.mzmine.io.impl.IOControllerImpl;
 import net.sf.mzmine.methods.MethodParameters;
 import net.sf.mzmine.methods.alignment.filterbygaps.AlignmentResultFilterByGapsParameters;
+import net.sf.mzmine.methods.alignment.join.JoinAlignerParameters;
 import net.sf.mzmine.project.MZmineProject;
 import net.sf.mzmine.taskcontrol.TaskController;
 import net.sf.mzmine.taskcontrol.impl.TaskControllerImpl;
@@ -140,7 +141,7 @@ public class MZmineClient implements Runnable, MZmineCore {
         = new ParameterSetupDialog
         		(		mainWindow.getInstance(),
         				"Testing...",
-        				new AlignmentResultFilterByGapsParameters()
+        				new JoinAlignerParameters()
         		);
         psdialog.setVisible(true);
         */

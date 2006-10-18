@@ -21,6 +21,8 @@
 package net.sf.mzmine.methods.alignment.join;
 
 import net.sf.mzmine.data.Parameter;
+import net.sf.mzmine.data.Parameter.ParameterType;
+import net.sf.mzmine.data.impl.SimpleParameter;
 import net.sf.mzmine.methods.MethodParameters;
 
 import org.w3c.dom.Element;
@@ -43,18 +45,52 @@ public class JoinAlignerParameters implements MethodParameters {
 	public double paramRTToleranceAbs = (double)15;
 	public double paramRTTolerancePercent = 0.01;
 
+	public enum RTToleranceTypeValues { Absolute, Relative };
+	
+	public Parameter MZvsRTBalance;
+	public Parameter MZTolerance;
+	public Parameter RTToleranceType;
+	public Parameter RTToleranceValueAbs;
+	public Parameter RTToleranceValuePercent;
 
+	public JoinAlignerParameters() {
+		// Setup parameter and their default values
+		
+		MZvsRTBalance =	new SimpleParameter(	ParameterType.DOUBLE,
+												"M/Z vs RT balance",
+												"Used in distance measuring as multiplier of M/Z difference",
+												"",
+												new Double(10));
+
+		MZTolerance = 	new SimpleParameter(	ParameterType.DOUBLE,
+												"M/Z tolerance",
+												"Maximum allowed M/Z difference",
+												"Da",
+												new Double(0.2));
+
+		RTToleranceType = new SimpleParameter(	ParameterType.OBJECT,
+												"RT tolerance type",
+												"Maximum RT difference can be defined either using absolute or relative value",
+												RTToleranceTypeValues.Absolute,
+												RTToleranceTypeValues.values());
+
+		RTToleranceValueAbs = new SimpleParameter(	ParameterType.DOUBLE,
+												"Absolute RT tolerance",
+												"Maximum allowed absolute RT difference",
+												"seconds",
+												new Double(15));
+		
+		RTToleranceValuePercent = new SimpleParameter(	ParameterType.DOUBLE,
+												"Relative RT tolerance",
+												"Maximum allowed relative RT difference",
+												"%",
+												new Double(15));
+ 
+		
+	}
 
     public String toString() {
-		String s = new String();
-
-		s += ""   + "M/Z vs. RT balance = " + paramMZvsRTBalance;
-		s += ", " + "M/Z tolerance = " + paramMZTolerance;
-		s += ", " + "Use absolute RT tolerance = " + paramRTToleranceUseAbs;
-		s += ", " + "Absolute RT tolerance = " + paramRTToleranceUseAbs;
-		s += ", " + "Relative RT tolerance = " + paramRTTolerancePercent;
-
-		return s;
+		return null;
 	}
 
     /**
@@ -62,9 +98,7 @@ public class JoinAlignerParameters implements MethodParameters {
      */
     public Element addToXML(Document doc) {
 
-		Element e = doc.createElement(tagName);
-		// TODO
-		return e;
+		return null;
 
 	}
 
@@ -73,17 +107,10 @@ public class JoinAlignerParameters implements MethodParameters {
      * @param doc XML document supposed to contain parameters for the method (may not contain them, though)
      */
     public void readFromXML(Element element) {
-
-		// Find my element
-		NodeList n = element.getElementsByTagName(tagName);
-		if ((n==null) || (n.getLength()<1)) return;
-		Element myElement = (Element)(n.item(0));
-
-		// Set values
-		// TODO
-
+    	
 	}
-
+    
+/*
 	public MethodParameters clone() {
 		JoinAlignerParameters myClone = new JoinAlignerParameters();
 
@@ -95,10 +122,16 @@ public class JoinAlignerParameters implements MethodParameters {
 
 		return myClone;
 	}
-
+*/
 	public Parameter[] getParameters() {
-		// TODO Auto-generated method stub
-		return null;
+		Parameter[] parameters = new Parameter[5];
+		parameters[0] = MZvsRTBalance;
+		parameters[1] = MZTolerance;
+		parameters[2] = RTToleranceType;
+		parameters[3] = RTToleranceValueAbs;
+		parameters[4] = RTToleranceValuePercent;			
+			
+		return parameters;
 	}
 
 }

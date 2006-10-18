@@ -18,13 +18,16 @@
  */
 package net.sf.mzmine.userinterface.dialogs;
 import java.awt.BorderLayout;
+import java.awt.Component;
 import java.awt.GridLayout;
 import java.awt.event.ActionListener;
 import java.awt.Frame;
 import java.text.NumberFormat;
+import java.util.Hashtable;
 
 import javax.swing.BorderFactory;
 import javax.swing.JButton;
+import javax.swing.JComboBox;
 import javax.swing.JDialog;
 import javax.swing.JFormattedTextField;
 import javax.swing.JLabel;
@@ -49,6 +52,9 @@ public class ParameterSetupDialog extends JDialog implements ActionListener {
 	// Labels
 	private JLabel[] labels;
 
+	// Parameters and their representation in the dialog
+	private Hashtable<Parameter, Component> parametersAndComponents;
+	
 	// Buttons
 	private JButton btnOK;
 	private JButton btnCancel;
@@ -71,10 +77,9 @@ public class ParameterSetupDialog extends JDialog implements ActionListener {
 		// Make dialog modal
 		super(owner, true);
 		
-		System.err.println("Initializing parameter setup dialog");
-		
 		exitCode = -1;
 
+		// Check if there are any parameters
 		Parameter[] parameters = methodParameters.getParameters();
 		if ( (parameters==null) || (parameters.length==0) ) {
 			System.err.println("Parameters is null or length 0.");
@@ -86,6 +91,7 @@ public class ParameterSetupDialog extends JDialog implements ActionListener {
 		// Allocate arrays
 		textFields = new JFormattedTextField[methodParameters.getParameters().length];
 		labels = new JLabel[methodParameters.getParameters().length];
+		parametersAndComponents = new Hashtable<Parameter, Component>();
 
 		// Panel where everything is collected
 		pnlAll = new JPanel(new BorderLayout());
@@ -95,26 +101,56 @@ public class ParameterSetupDialog extends JDialog implements ActionListener {
 		// Two more panels: one for labels and another for text fields
 		pnlLabels = new JPanel(new GridLayout(0,1));
 		pnlFields = new JPanel(new GridLayout(0,1));
+		
+		pnlFields.setBorder(BorderFactory.createEmptyBorder(0, 5, 5, 5));
+		pnlLabels.setBorder(BorderFactory.createEmptyBorder(0, 5, 5, 5));
 
 		// Setup number format for text fields
 		decimalNumberFormat = NumberFormat.getNumberInstance();
 		decimalNumberFormat.setMinimumFractionDigits(1);
 
-		// Create fields and labels
+		// Create labels and components for each parameter
 		for (int i=0; i<methodParameters.getParameters().length; i++) {
 			Parameter p = methodParameters.getParameters()[i];
+
+			// Create label
+			String labelString = p.getName();
+			if ((p.getUnits()!=null) && (p.getUnits().length()>0)) labelString = labelString.concat(" (" + p.getUnits() + ")");
+			JLabel lbl = new JLabel(labelString);
 			
-			//textFields[i] = new JFormattedTextField(decimalNumberFormat);
-			textFields[i] = new JFormattedTextField(p.getFormat());
-			textFields[i].setValue(p.getDefaultValue());
-			textFields[i].setColumns(8);
-			textFields[i].setToolTipText(p.getDescription());
+			pnlLabels.add(lbl);
+			
+			switch (p.getType()) {
+			case INTEGER:
+			case DOUBLE:
+			case STRING:
+			default:
+				JFormattedTextField txtField = new JFormattedTextField(p.getFormat());
+				txtField.setValue(p.getDefaultValue());
+				txtField.setColumns(8);
+				txtField.setToolTipText(p.getDescription());
+				parametersAndComponents.put(p, txtField);
+				
+				lbl.setLabelFor(txtField);
+				
+				pnlFields.add(txtField);
+				
+				break;
+				
+			case OBJECT:
+				JComboBox cmbPossibleValues = new JComboBox(p.getPossibleValues());
+				cmbPossibleValues.setSelectedItem(p.getDefaultValue());
+				cmbPossibleValues.setToolTipText(p.getDescription());
+				parametersAndComponents.put(p, cmbPossibleValues);
+				
+				lbl.setLabelFor(cmbPossibleValues);
 
-			labels[i] = new JLabel(p.getName());
-			labels[i].setLabelFor(textFields[i]);
-
-			pnlLabels.add(labels[i]);
-			pnlFields.add(textFields[i]);
+ 				pnlFields.add(cmbPossibleValues);
+ 				
+ 				break;
+				
+			}
+			
 		}
 
 		// Buttons
@@ -145,6 +181,8 @@ public class ParameterSetupDialog extends JDialog implements ActionListener {
 	public void actionPerformed(java.awt.event.ActionEvent ae) {
 		Object src = ae.getSource();
 		if (src==btnOK) {
+			// TODO: Copy values from components to parameters
+			
 			exitCode = 1;
 			dispose();
 			//setVisible(false);
