@@ -19,7 +19,6 @@
 
 package net.sf.mzmine.data.impl;
 
-import java.util.Enumeration;
 import java.util.ArrayList;
 import java.util.Vector;
 
@@ -46,6 +45,7 @@ public class SimpleAlignmentResult extends AbstractDataUnit implements Alignment
 		alignmentRows = new ArrayList<SimpleAlignmentResultRow>();
 	}
 
+	@Override
 	public String toString() {
 		return name;
 	}

@@ -20,7 +20,6 @@
 package net.sf.mzmine.util;
 
 import net.sf.mzmine.io.OpenedRawDataFile;
-import net.sf.mzmine.io.RawDataFile;
 
 /**
  * 

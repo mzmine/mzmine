@@ -23,8 +23,6 @@
 package net.sf.mzmine.io.mzxml;
 
 import java.util.Date;
-import java.util.logging.Logger;
-
 import javax.xml.datatype.DatatypeFactory;
 import javax.xml.datatype.Duration;
 

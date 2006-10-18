@@ -19,17 +19,13 @@
 
 package net.sf.mzmine.data.impl;
 
-import java.util.Hashtable;
-import java.util.Enumeration;
 import java.util.TreeSet;
 import java.util.Iterator;
 import java.util.ArrayList;
 
 
-import net.sf.mzmine.util.MathUtils;
 import net.sf.mzmine.data.IsotopePattern;
 import net.sf.mzmine.data.Peak;
-import net.sf.mzmine.data.DataUnit;
 import net.sf.mzmine.data.impl.AbstractDataUnit;
 
 /**
@@ -262,7 +258,7 @@ public class SimplePeak extends AbstractDataUnit implements Peak {
 		if ( (numofvalues % 2) != 0 ) {
 
 			// odd
-			int numofmidvalue = (int)java.lang.Math.round((double)numofvalues/2.0);
+			int numofmidvalue = (int)java.lang.Math.round(numofvalues/2.0);
 			Iterator<Double> constructionSortedMZsIter = constructionSortedMZs.iterator();
 			int n=1; while (n<numofmidvalue) { constructionSortedMZsIter.next(); n++; }
 			this.mz = constructionSortedMZsIter.next();
@@ -270,7 +266,7 @@ public class SimplePeak extends AbstractDataUnit implements Peak {
 		} else {
 
 			// Even
-			int numofmidvalue = (int)java.lang.Math.round((double)numofvalues/2.0);
+			int numofmidvalue = (int)java.lang.Math.round(numofvalues/2.0);
 			Iterator<Double> constructionSortedMZsIter = constructionSortedMZs.iterator();
 			int n=1; while (n<numofmidvalue) { constructionSortedMZsIter.next(); n++; }
 			this.mz = ( constructionSortedMZsIter.next() + constructionSortedMZsIter.next()) / 2.0;

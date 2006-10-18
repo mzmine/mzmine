@@ -26,7 +26,6 @@ import java.util.Vector;
 import net.sf.mzmine.data.Peak;
 import net.sf.mzmine.data.AlignmentResultRow;
 import net.sf.mzmine.data.CompoundIdentity;
-import net.sf.mzmine.data.impl.SimpleAlignmentResult;
 import net.sf.mzmine.data.IsotopePattern;
 import net.sf.mzmine.io.OpenedRawDataFile;
 
@@ -78,7 +77,7 @@ public class SimpleAlignmentResultRow extends AbstractDataUnit implements Alignm
 			Peak p = peakEnum.nextElement();
 			mzSum += p.getNormalizedMZ();
 		}
-		return mzSum / (double)peaks.size();
+		return mzSum / peaks.size();
 	}
 
 	/*
@@ -91,7 +90,7 @@ public class SimpleAlignmentResultRow extends AbstractDataUnit implements Alignm
 			Peak p = peakEnum.nextElement();
 			rtSum += p.getNormalizedMZ();
 		}
-		return rtSum / (double)peaks.size();
+		return rtSum / peaks.size();
 	}
 
 	/*

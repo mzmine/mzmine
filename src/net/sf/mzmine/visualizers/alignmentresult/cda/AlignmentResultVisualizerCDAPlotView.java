@@ -36,8 +36,6 @@ import java.awt.print.PageFormat;
 import java.awt.print.Printable;
 import java.awt.print.PrinterJob;
 import java.text.DecimalFormat;
-import java.text.NumberFormat;
-
 import javax.print.attribute.HashPrintRequestAttributeSet;
 import javax.swing.JInternalFrame;
 import javax.swing.JMenuItem;
@@ -47,13 +45,9 @@ import javax.swing.RepaintManager;
 import javax.swing.event.InternalFrameEvent;
 import javax.swing.event.InternalFrameListener;
 
-import jmprojection.CDA;
-import jmprojection.Preprocessor;
 import net.sf.mzmine.data.AlignmentResult;
-import net.sf.mzmine.userinterface.dialogs.SelectClassLabelsDialog;
 import net.sf.mzmine.userinterface.mainwindow.MainWindow;
 import net.sf.mzmine.util.TransferableImage;
-import net.sf.mzmine.visualizers.alignmentresult.AlignmentResultVisualizer;
 
 
 /**

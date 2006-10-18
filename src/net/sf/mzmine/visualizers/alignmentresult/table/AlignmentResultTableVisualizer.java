@@ -31,8 +31,6 @@ import net.sf.mzmine.userinterface.Desktop;
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.main.MZmineModule;
 import net.sf.mzmine.userinterface.Desktop.MZmineMenu;
-import net.sf.mzmine.io.OpenedRawDataFile;
-import net.sf.mzmine.data.PeakList;
 import net.sf.mzmine.data.AlignmentResult;
 
 

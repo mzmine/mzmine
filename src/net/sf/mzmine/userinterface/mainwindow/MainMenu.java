@@ -33,15 +33,12 @@ import javax.swing.event.ListSelectionListener;
 import net.sf.mzmine.data.AlignmentResult;
 import net.sf.mzmine.io.IOController;
 import net.sf.mzmine.io.OpenedRawDataFile;
-import net.sf.mzmine.io.util.AlignmentResultExporter;
 import net.sf.mzmine.project.MZmineProject;
 import net.sf.mzmine.userinterface.Desktop;
 import net.sf.mzmine.userinterface.Desktop.MZmineMenu;
 import net.sf.mzmine.userinterface.dialogs.AboutDialog;
 import net.sf.mzmine.userinterface.dialogs.AlignmentResultExportDialog;
 import net.sf.mzmine.userinterface.dialogs.FileOpenDialog;
-import net.sf.mzmine.userinterface.dialogs.alignmentresultcolumnselection.AlignmentResultColumnSelection;
-import net.sf.mzmine.userinterface.dialogs.alignmentresultcolumnselection.AlignmentResultColumnSelectionDialog;
 import net.sf.mzmine.util.GUIUtils;
 
 /**

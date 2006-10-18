@@ -41,7 +41,6 @@ import javax.xml.parsers.SAXParserFactory;
 import net.sf.mzmine.data.Scan;
 import net.sf.mzmine.data.impl.AbstractDataUnit;
 import net.sf.mzmine.io.RawDataFile;
-import net.sf.mzmine.io.RawDataFileWriter;
 import net.sf.mzmine.io.IOController.PreloadLevel;
 import net.sf.mzmine.util.CollectionUtils;
 

@@ -20,8 +20,6 @@
 package net.sf.mzmine.taskcontrol.impl;
 
 import java.util.Date;
-import java.util.logging.Logger;
-
 import net.sf.mzmine.taskcontrol.Task;
 import net.sf.mzmine.taskcontrol.TaskListener;
 import net.sf.mzmine.taskcontrol.Task.TaskPriority;

@@ -19,8 +19,6 @@
 
 package net.sf.mzmine.data;
 
-import java.util.Hashtable;
-import java.util.ArrayList;
 
 /**
  * This interface defines the properties of a detected peak

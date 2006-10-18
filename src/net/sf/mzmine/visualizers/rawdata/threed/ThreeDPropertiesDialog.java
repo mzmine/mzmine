@@ -30,7 +30,6 @@ import javax.swing.JSeparator;
 import javax.swing.SwingConstants;
 
 import net.sf.mzmine.userinterface.Desktop;
-import net.sf.mzmine.userinterface.mainwindow.MainWindow;
 import visad.DisplayImpl;
 import visad.ScalarMap;
 import visad.util.ColorMapWidget;

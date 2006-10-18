@@ -19,7 +19,6 @@
 
 package net.sf.mzmine.visualizers.alignmentresult;
 
-import net.sf.mzmine.data.AlignmentResult;
 import net.sf.mzmine.data.Peak;
 
 public interface AlignmentResultVisualizer {

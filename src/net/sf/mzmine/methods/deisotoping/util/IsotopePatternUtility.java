@@ -24,7 +24,6 @@ import net.sf.mzmine.data.PeakList;
 import net.sf.mzmine.data.AlignmentResult;
 import net.sf.mzmine.data.AlignmentResultRow;
 
-import java.util.Vector;
 import java.util.Hashtable;
 import java.util.TreeSet;
 import java.util.SortedSet;

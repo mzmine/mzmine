@@ -57,7 +57,6 @@ import net.sf.mzmine.userinterface.components.HeatMapColorPicker;
 import net.sf.mzmine.userinterface.mainwindow.MainWindow;
 import net.sf.mzmine.util.MathUtils;
 import net.sf.mzmine.util.TransferableImage;
-import net.sf.mzmine.visualizers.alignmentresult.AlignmentResultVisualizer;
 
 
 

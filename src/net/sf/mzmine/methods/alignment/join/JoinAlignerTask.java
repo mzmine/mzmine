@@ -19,13 +19,11 @@
 
 package net.sf.mzmine.methods.alignment.join;
 
-import java.io.IOException;
 import java.util.Hashtable;
 import java.util.Iterator;
 import java.util.TreeSet;
 import java.util.HashSet;
 import java.util.Vector;
-import java.util.ArrayList;
 import java.util.Comparator;
 
 import net.sf.mzmine.io.OpenedRawDataFile;

@@ -25,7 +25,6 @@ import net.sf.mzmine.methods.MethodParameters;
 import org.w3c.dom.Element;
 import org.w3c.dom.Document;
 import org.w3c.dom.NodeList;
-import org.w3c.dom.Node;
 
 
 public class JoinAlignerParameters implements MethodParameters {

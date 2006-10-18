@@ -45,7 +45,6 @@ import net.sf.mzmine.visualizers.rawdata.tic.TICVisualizerWindow.PlotType;
 import org.jfree.chart.ChartFactory;
 import org.jfree.chart.ChartPanel;
 import org.jfree.chart.JFreeChart;
-import org.jfree.chart.axis.DateAxis;
 import org.jfree.chart.axis.NumberAxis;
 import org.jfree.chart.event.ChartProgressEvent;
 import org.jfree.chart.labels.XYItemLabelGenerator;

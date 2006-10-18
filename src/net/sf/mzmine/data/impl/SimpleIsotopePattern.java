@@ -20,7 +20,6 @@
 package net.sf.mzmine.data.impl;
 
 import net.sf.mzmine.data.IsotopePattern;
-import net.sf.mzmine.data.DataUnit;
 import net.sf.mzmine.data.impl.AbstractDataUnit;
 
 /**

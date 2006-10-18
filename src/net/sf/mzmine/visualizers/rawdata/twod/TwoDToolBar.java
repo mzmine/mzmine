@@ -24,7 +24,6 @@ import java.awt.Insets;
 
 import javax.swing.Icon;
 import javax.swing.ImageIcon;
-import javax.swing.JButton;
 import javax.swing.JToolBar;
 
 import net.sf.mzmine.util.GUIUtils;

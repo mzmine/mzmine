@@ -27,7 +27,6 @@ import java.util.logging.Logger;
 import net.sf.mzmine.io.OpenedRawDataFile;
 import net.sf.mzmine.io.RawDataFile;
 import net.sf.mzmine.io.RawDataFileWriter;
-import net.sf.mzmine.io.OpenedRawDataFile.Operation;
 import net.sf.mzmine.io.mzxml.MZXMLFileWriter;
 import net.sf.mzmine.methods.Method;
 import net.sf.mzmine.methods.MethodParameters;
@@ -156,7 +155,8 @@ public class OpenedRawDataFileImpl implements OpenedRawDataFile {
         processingHistory.add(op);        
     }
     
-    public String toString() {
+    @Override
+	public String toString() {
         return originalFile.getName();
     }
 

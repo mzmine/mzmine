@@ -19,14 +19,9 @@
 
 package net.sf.mzmine.methods.peakpicking.local;
 
-import java.io.Serializable;
-import org.xml.sax.Attributes;
-
 import org.w3c.dom.Element;
 import org.w3c.dom.Document;
 import org.w3c.dom.NodeList;
-import org.w3c.dom.Node;
-
 import net.sf.mzmine.methods.MethodParameters;
 
 class LocalPickerParameters implements MethodParameters {

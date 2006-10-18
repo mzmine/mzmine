@@ -28,7 +28,6 @@ import net.sf.mzmine.io.OpenedRawDataFile;
 import net.sf.mzmine.io.IOController.PreloadLevel;
 import net.sf.mzmine.io.impl.OpenedRawDataFileImpl;
 import net.sf.mzmine.taskcontrol.DistributableTask;
-import net.sf.mzmine.taskcontrol.Task.TaskStatus;
 
 /**
  * 

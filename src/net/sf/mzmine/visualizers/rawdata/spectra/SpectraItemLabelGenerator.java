@@ -26,9 +26,7 @@ import java.text.DecimalFormat;
 import java.text.NumberFormat;
 
 import org.jfree.chart.labels.XYItemLabelGenerator;
-import org.jfree.data.xy.DefaultTableXYDataset;
 import org.jfree.data.xy.XYDataset;
-import org.jfree.data.xy.XYSeries;
 
 /**
  * 

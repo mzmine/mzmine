@@ -19,8 +19,6 @@
 
 package net.sf.mzmine.taskcontrol;
 
-import java.io.Serializable;
-
 
 public interface Task extends Runnable {
 

@@ -32,8 +32,6 @@ import net.sf.mzmine.io.OpenedRawDataFile;
 import net.sf.mzmine.io.IOController.PreloadLevel;
 import net.sf.mzmine.io.impl.OpenedRawDataFileImpl;
 import net.sf.mzmine.taskcontrol.DistributableTask;
-import net.sf.mzmine.taskcontrol.Task.TaskStatus;
-
 import org.xml.sax.Attributes;
 import org.xml.sax.SAXException;
 import org.xml.sax.helpers.DefaultHandler;

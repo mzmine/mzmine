@@ -20,12 +20,9 @@
 package net.sf.mzmine.methods.peakpicking.recursivethreshold;
 
 import java.io.IOException;
-import java.util.Hashtable;
 import java.util.Iterator;
 import java.util.TreeSet;
 import java.util.Vector;
-import java.util.ArrayList;
-
 import net.sf.mzmine.data.Scan;
 import net.sf.mzmine.data.IsotopePattern;
 import net.sf.mzmine.data.impl.SimplePeak;

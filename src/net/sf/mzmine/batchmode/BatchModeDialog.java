@@ -31,7 +31,6 @@ import javax.swing.JPanel;
 import net.sf.mzmine.io.OpenedRawDataFile;
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.util.GUIUtils;
-import net.sf.mzmine.visualizers.rawdata.twod.TwoDVisualizerWindow;
 
 class BatchModeDialog extends JDialog implements ActionListener {
 

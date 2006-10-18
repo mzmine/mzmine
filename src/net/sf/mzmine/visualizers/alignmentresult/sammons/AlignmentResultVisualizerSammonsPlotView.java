@@ -48,13 +48,10 @@ import javax.swing.RepaintManager;
 import javax.swing.event.InternalFrameEvent;
 import javax.swing.event.InternalFrameListener;
 
-import jmprojection.Preprocessor;
-import jmprojection.Sammons;
 import net.sf.mzmine.data.AlignmentResult;
 import net.sf.mzmine.userinterface.dialogs.SelectClassLabelsDialog;
 import net.sf.mzmine.userinterface.mainwindow.MainWindow;
 import net.sf.mzmine.util.TransferableImage;
-import net.sf.mzmine.visualizers.alignmentresult.AlignmentResultVisualizer;
 
 
 /**

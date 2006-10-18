@@ -23,10 +23,8 @@ import java.util.Hashtable;
 import java.util.ArrayList;
 import java.util.Iterator;
 
-import net.sf.mzmine.util.MathUtils;
 import net.sf.mzmine.data.IsotopePattern;
 import net.sf.mzmine.data.Peak;
-import net.sf.mzmine.data.DataUnit;
 import net.sf.mzmine.data.impl.AbstractDataUnit;
 
 /**

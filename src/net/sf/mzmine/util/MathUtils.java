@@ -18,7 +18,6 @@
  */
 package net.sf.mzmine.util;
 import java.util.Arrays;
-import java.util.ArrayList;
 
 public class MathUtils {
 

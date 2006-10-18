@@ -1,19 +1,13 @@
 package net.sf.mzmine.userinterface.dialogs.alignmentresultcolumnselection;
 
 import java.awt.BorderLayout;
-import java.awt.Color;
 import java.awt.Component;
 import java.awt.Dimension;
-import java.awt.FlowLayout;
-import java.awt.GridLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.util.Comparator;
 import java.util.Enumeration;
 import java.util.Hashtable;
-import java.util.Iterator;
-import java.util.TreeMap;
-
 import javax.swing.BorderFactory;
 import javax.swing.Box;
 import javax.swing.BoxLayout;
@@ -24,10 +18,8 @@ import javax.swing.JLabel;
 import javax.swing.JPanel;
 
 
-import net.sf.mzmine.io.util.AlignmentResultExporter;
 import net.sf.mzmine.userinterface.dialogs.alignmentresultcolumnselection.AlignmentResultColumnSelection.CommonColumnType;
 import net.sf.mzmine.userinterface.dialogs.alignmentresultcolumnselection.AlignmentResultColumnSelection.RawDataColumnType;
-import net.sf.mzmine.visualizers.alignmentresult.table.AlignmentResultTable;
 
 public class AlignmentResultColumnSelectionDialog extends JInternalFrame implements ActionListener {
 	

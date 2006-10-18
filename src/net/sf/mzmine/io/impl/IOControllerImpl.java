@@ -27,7 +27,6 @@ import net.sf.mzmine.io.OpenedRawDataFile;
 import net.sf.mzmine.io.mzxml.MZXMLFileOpeningTask;
 import net.sf.mzmine.io.netcdf.NetCDFFileOpeningTask;
 import net.sf.mzmine.main.MZmineCore;
-import net.sf.mzmine.main.MZmineModule;
 import net.sf.mzmine.project.MZmineProject;
 import net.sf.mzmine.taskcontrol.Task;
 import net.sf.mzmine.taskcontrol.TaskController;

@@ -31,9 +31,7 @@ import net.sf.mzmine.data.DataUnit;
 import net.sf.mzmine.data.impl.StandardCompoundFlag;
 import net.sf.mzmine.io.OpenedRawDataFile;
 import net.sf.mzmine.methods.deisotoping.util.IsotopePatternUtility;
-import net.sf.mzmine.project.MZmineProject;
 import net.sf.mzmine.util.GUIUtils;
-import net.sf.mzmine.visualizers.peaklist.table.PeakListTableColumnSelection.PeakListColumnType;
 import sunutils.TableSorter;
 
 

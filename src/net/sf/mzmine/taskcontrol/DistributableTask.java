@@ -20,7 +20,6 @@
 package net.sf.mzmine.taskcontrol;
 
 import java.io.Serializable;
-import java.net.InetAddress;
 import java.rmi.Remote;
 
 /**

@@ -18,9 +18,7 @@
  */
 package net.sf.mzmine.userinterface.dialogs.alignmentresultcolumnselection;
 
-import java.util.SortedSet;
 import java.util.TreeSet;
-import java.util.Vector;
 
 public class AlignmentResultColumnSelection {
 

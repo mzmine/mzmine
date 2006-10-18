@@ -30,8 +30,6 @@ import javax.swing.JFormattedTextField;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 
-import net.sf.mzmine.userinterface.mainwindow.MainWindow;
-
 /**
  * This class represents the parameter setup dialog shown to the user before processing
  */

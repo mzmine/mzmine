@@ -22,8 +22,6 @@ package net.sf.mzmine.io.netcdf;
 import java.io.File;
 import java.io.IOException;
 import java.util.Hashtable;
-import java.util.logging.Logger;
-
 import net.sf.mzmine.data.Scan;
 import net.sf.mzmine.data.impl.SimpleScan;
 
