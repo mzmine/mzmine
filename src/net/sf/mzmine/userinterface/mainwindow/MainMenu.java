@@ -38,6 +38,7 @@ import net.sf.mzmine.project.MZmineProject;
 import net.sf.mzmine.userinterface.Desktop;
 import net.sf.mzmine.userinterface.Desktop.MZmineMenu;
 import net.sf.mzmine.userinterface.dialogs.AboutDialog;
+import net.sf.mzmine.userinterface.dialogs.AlignmentResultExportDialog;
 import net.sf.mzmine.userinterface.dialogs.FileOpenDialog;
 import net.sf.mzmine.userinterface.dialogs.alignmentresultcolumnselection.AlignmentResultColumnSelection;
 import net.sf.mzmine.userinterface.dialogs.alignmentresultcolumnselection.AlignmentResultColumnSelectionDialog;
@@ -327,6 +328,10 @@ public class MainMenu extends JMenuBar implements ActionListener,
         }
         
         if (src == fileExportAlignmentResult) {
+
+        	AlignmentResult[] alignmentResults = desktop.getItemSelector().getSelectedAlignmentResults();
+        	if (alignmentResults.length>0) 
+        		new AlignmentResultExportDialog(alignmentResults);
         	
         }
 

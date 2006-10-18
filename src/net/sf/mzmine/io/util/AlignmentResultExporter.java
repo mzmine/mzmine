@@ -21,12 +21,9 @@
 
 package net.sf.mzmine.io.util;
 
-import java.io.BufferedReader;
-import java.io.FileReader;
+
 import java.io.FileWriter;
-import java.util.Hashtable;
-import java.util.StringTokenizer;
-import java.util.Vector;
+import java.io.File;
 import java.util.logging.Logger;
 
 import net.sf.mzmine.data.AlignmentResult;
@@ -38,33 +35,33 @@ import net.sf.mzmine.methods.deisotoping.util.IsotopePatternUtility;
 import net.sf.mzmine.userinterface.dialogs.alignmentresultcolumnselection.AlignmentResultColumnSelection;
 import net.sf.mzmine.userinterface.dialogs.alignmentresultcolumnselection.AlignmentResultColumnSelection.CommonColumnType;
 import net.sf.mzmine.userinterface.dialogs.alignmentresultcolumnselection.AlignmentResultColumnSelection.RawDataColumnType;
-import net.sf.mzmine.userinterface.mainwindow.MainWindow;
 
 
 public class AlignmentResultExporter {
 
 
 	private Logger logger = Logger.getLogger(this.getClass().getName());
+
 	
 	/**
 	 * Writes an alignment result to tab-delimitted text file.
 	 *
 	 * @param	alignmentResult		The alignment result to be exported
-	 * @param	fileName			Name of the file
+	 * @param	outputFile			Output file
 	 * @param	parameters			User-definable parameters (defines which columns to export)
 	 *
 	 * @return	true if successfully exported, otherwise false
 	 */
-	public boolean exportAlignmentResultToFile(AlignmentResult alignmentResult, String fileName, AlignmentResultColumnSelection columnSelection) {
+	public boolean exportToFile(AlignmentResult alignmentResult, File outputFile, AlignmentResultColumnSelection columnSelection) {
 
 		IsotopePatternUtility isoUtil = new IsotopePatternUtility(alignmentResult);
 		
 		// Open file
 		FileWriter fw;
 		try {
-			fw = new FileWriter(fileName);
+			fw = new FileWriter(outputFile);
 		} catch (Exception e) {
-			logger.warning("Could not open file " + fileName + " for writing.");
+			logger.warning("Could not open file " + outputFile + " for writing.");
 			return false;
 		}
 
@@ -83,11 +80,13 @@ public class AlignmentResultExporter {
 				s += rawData.toString() + ": " + c.getColumnName() + "\t"; 
 			}
 		}
+		
+		s = s + "\n";
 
 		try {
 			fw.write(s);
 		} catch (Exception e) {
-			logger.warning("Could not write to file " + fileName);
+			logger.warning("Could not write to file " + outputFile);
 			return false;
 		}
 
@@ -115,13 +114,13 @@ public class AlignmentResultExporter {
 					s += "" + alignmentRow.getAverageRT() + "\t";
 					break;
 				case ISOTOPEID:
-					s += "" + isoUtil.getIsotopePatternNumber(alignmentRow.getIsotopePattern());
+					s += "" + isoUtil.getIsotopePatternNumber(alignmentRow.getIsotopePattern()) + "\t";
 					break;
 				case ISOTOPEPEAK:
-					s += "" + isoUtil.getIsotopePatternNumber(alignmentRow.getIsotopePattern());
+					s += "" + isoUtil.getIsotopePatternNumber(alignmentRow.getIsotopePattern()) + "\t";
 					break;
 				case CHARGE:
-					s += "" + alignmentRow.getIsotopePattern().getChargeState();
+					s += "" + alignmentRow.getIsotopePattern().getChargeState() + "\t";
 					break;
 				}
 			}
@@ -161,7 +160,7 @@ public class AlignmentResultExporter {
 			try {
 				fw.write(s);
 			} catch (Exception e) {
-				logger.warning("Could not write to file " + fileName);
+				logger.warning("Could not write to file " + outputFile);
 				return false;
 			}
 			
@@ -174,7 +173,7 @@ public class AlignmentResultExporter {
 		try {
 			fw.close();
 		} catch (Exception e) {
-			logger.warning("Could not close file " + fileName);
+			logger.warning("Could not close file " + outputFile);
 			return false;
 		}		
 
