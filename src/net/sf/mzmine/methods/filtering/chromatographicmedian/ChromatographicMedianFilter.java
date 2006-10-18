@@ -78,6 +78,10 @@ public class ChromatographicMedianFilter implements Method,
         if (currentParameters == null)
             currentParameters = new ChromatographicMedianFilterParameters();
 
+        return currentParameters;
+        
+        // TODO: Edit & enable this code, after reorganizating parameters and parameter setup dialog to comply with MethodParameters and new ParameterSetupDialog 
+/*        
         // Initialize parameter setup dialog
         double[] paramValues = new double[2];
         paramValues[0] = currentParameters.mzTolerance;
@@ -129,7 +133,7 @@ public class ChromatographicMedianFilter implements Method,
         currentProject.setParameters(this, newParameters);
 
         return newParameters;
-
+*/
     }
 
     /**

@@ -19,6 +19,7 @@
 
 package net.sf.mzmine.methods.peakpicking.recursivethreshold;
 
+import net.sf.mzmine.data.Parameter;
 import net.sf.mzmine.methods.MethodParameters;
 
 import org.w3c.dom.Document;
@@ -165,5 +166,10 @@ class RecursiveThresholdPickerParameters implements MethodParameters {
         }
 
     }
+
+	public Parameter[] getParameters() {
+		// TODO Auto-generated method stub
+		return null;
+	}
 
 }

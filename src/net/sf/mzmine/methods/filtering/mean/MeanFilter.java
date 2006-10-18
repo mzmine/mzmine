@@ -83,6 +83,11 @@ public class MeanFilter implements Method, TaskListener,
         if (currentParameters == null)
             currentParameters = new MeanFilterParameters();
 
+        return currentParameters;
+
+        // TODO: Edit & enable this code, after reorganizating parameters and parameter setup dialog to comply with MethodParameters and new ParameterSetupDialog 
+
+/*        
         // Initialize parameter setup dialog with current parameter values
         double[] paramValues = new double[1];
         paramValues[0] = currentParameters.oneSidedWindowLength;
@@ -123,7 +128,7 @@ public class MeanFilter implements Method, TaskListener,
         currentProject.setParameters(this, newParameters);
 
         return newParameters;
-
+*/
     }
 
     /**

@@ -19,6 +19,7 @@
 
 package net.sf.mzmine.methods.filtering.savitzkygolay;
 
+import net.sf.mzmine.data.Parameter;
 import net.sf.mzmine.methods.MethodParameters;
 
 import org.w3c.dom.Document;
@@ -80,5 +81,10 @@ public class SavitzkyGolayFilterParameters implements MethodParameters {
         }
 
     }
+
+	public Parameter[] getParameters() {
+		// TODO Auto-generated method stub
+		return null;
+	}
 
 }

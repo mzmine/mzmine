@@ -79,6 +79,9 @@ public class ZoomScanFilter implements Method, TaskListener,
         if (currentParameters == null)
             currentParameters = new ZoomScanFilterParameters();
 
+        return currentParameters;
+        // TODO: Edit & enable this code, after reorganizating parameters and parameter setup dialog to comply with MethodParameters and new ParameterSetupDialog
+/*        
         // Initialize parameter setup dialog
         double[] paramValues = new double[1];
         paramValues[0] = currentParameters.minMZRange;
@@ -120,6 +123,7 @@ public class ZoomScanFilter implements Method, TaskListener,
         currentProject.setParameters(this, newParameters);
 
         return newParameters;
+*/        
     }
 
     /**

@@ -77,6 +77,11 @@ public class CropFilter implements Method, TaskListener,
         if (currentParameters == null)
             currentParameters = new CropFilterParameters();
 
+        return currentParameters;
+        
+        // TODO: Edit & enable this code, after reorganizating parameters and parameter setup dialog to comply with MethodParameters and new ParameterSetupDialog 
+        
+/*        
         // Show parameter setup dialog
         double[] paramValues = new double[4];
         paramValues[0] = currentParameters.minMZ;
@@ -152,7 +157,7 @@ public class CropFilter implements Method, TaskListener,
         currentProject.setParameters(this, newParameters);
 
         return newParameters;
-
+*/
     }
 
     /**

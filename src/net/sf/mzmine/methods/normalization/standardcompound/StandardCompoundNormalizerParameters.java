@@ -20,6 +20,7 @@
 
 package net.sf.mzmine.methods.normalization.standardcompound;
 
+import net.sf.mzmine.data.Parameter;
 import net.sf.mzmine.methods.MethodParameters;
 
 import org.w3c.dom.Document;
@@ -79,4 +80,9 @@ public class StandardCompoundNormalizerParameters implements MethodParameters {
         // TODO Auto-generated method stub
         
     }
+
+	public Parameter[] getParameters() {
+		// TODO Auto-generated method stub
+		return null;
+	}
 }

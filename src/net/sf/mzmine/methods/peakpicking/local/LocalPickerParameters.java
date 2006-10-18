@@ -22,6 +22,8 @@ package net.sf.mzmine.methods.peakpicking.local;
 import org.w3c.dom.Element;
 import org.w3c.dom.Document;
 import org.w3c.dom.NodeList;
+
+import net.sf.mzmine.data.Parameter;
 import net.sf.mzmine.methods.MethodParameters;
 
 class LocalPickerParameters implements MethodParameters {
@@ -142,5 +144,10 @@ class LocalPickerParameters implements MethodParameters {
         }
 
     }
+
+	public Parameter[] getParameters() {
+		// TODO Auto-generated method stub
+		return null;
+	}
 
 }

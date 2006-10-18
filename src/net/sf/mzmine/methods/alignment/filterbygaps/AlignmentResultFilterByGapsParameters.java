@@ -20,33 +20,44 @@
 
 package net.sf.mzmine.methods.alignment.filterbygaps;
 
-import org.xml.sax.Attributes;
+import org.w3c.dom.Document;
+import org.w3c.dom.Element;
 
-public class AlignmentResultFilterByGapsParameters {
+import net.sf.mzmine.data.Parameter;
+import net.sf.mzmine.data.Parameter.ParameterType;
+import net.sf.mzmine.data.impl.SimpleParameter;
+import net.sf.mzmine.methods.MethodParameters;
 
 
-	private static final String myTagName = "AlignmentResultFilterByGapsParameters";
-	private static final String requiredNumOfPresentAttributeName = "RequiredNumOfPresent";
+public class AlignmentResultFilterByGapsParameters implements MethodParameters {
 
-	public int paramRequiredNumOfPresent = 1;
 
-	public Class getAlignmentResultProcessorClass() {
-		return AlignmentResultFilterByGaps.class;
+
+
+
+	public Parameter maxGaps;
+
+	public AlignmentResultFilterByGapsParameters() {
+		maxGaps = new SimpleParameter(	ParameterType.INTEGER,
+										"Max gaps",
+										"Maximum number of gaps allowed per line",
+										"",
+										new Integer(1) );
+	
 	}
 
-	public String writeParameterTag() {
-		String s = "<";
-		s = s.concat(myTagName);
-		s = s.concat(" " + requiredNumOfPresentAttributeName + "=\"" + paramRequiredNumOfPresent + "\"");
-		s = s.concat("/>");
-		return s;
+	public Element addToXML(Document doc) {
+		// TODO Auto-generated method stub
+		return null;
 	}
 
-	public String getParameterTagName() { return myTagName; }
+	public void readFromXML(Element element) {
+		// TODO Auto-generated method stub
+	}	
 
-	public boolean loadXMLAttributes(Attributes atr) {
-		try { paramRequiredNumOfPresent = Integer.parseInt(atr.getValue(requiredNumOfPresentAttributeName));	} catch (NumberFormatException e) {	return false; }
-		return true;
+	public Parameter[] getParameters() {
+		Parameter[] parameters = new Parameter[1];
+		parameters[0] = maxGaps;
+		return parameters;
 	}
-
 }

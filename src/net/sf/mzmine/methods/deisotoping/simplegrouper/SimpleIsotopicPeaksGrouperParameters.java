@@ -18,6 +18,8 @@ import java.util.HashSet;
 import org.w3c.dom.Element;
 import org.w3c.dom.Document;
 import org.w3c.dom.NodeList;
+
+import net.sf.mzmine.data.Parameter;
 import net.sf.mzmine.methods.MethodParameters;
 
 /**
@@ -96,5 +98,10 @@ class SimpleIsotopicPeaksGrouperParameters implements MethodParameters {
         // Set values
         // TODO
     }
+
+	public Parameter[] getParameters() {
+		// TODO Auto-generated method stub
+		return null;
+	}
 
 }

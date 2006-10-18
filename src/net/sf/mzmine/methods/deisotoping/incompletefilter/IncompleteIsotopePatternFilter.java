@@ -28,6 +28,8 @@ import net.sf.mzmine.io.RawDataFile;
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.methods.Method;
 import net.sf.mzmine.methods.MethodParameters;
+import net.sf.mzmine.methods.alignment.join.JoinAlignerParameters;
+import net.sf.mzmine.project.MZmineProject;
 import net.sf.mzmine.taskcontrol.TaskController;
 import net.sf.mzmine.userinterface.Desktop;
 import net.sf.mzmine.userinterface.dialogs.ParameterSetupDialog;
@@ -48,6 +50,12 @@ public class IncompleteIsotopePatternFilter implements Method {
 	 */
 	public boolean askParameters(MethodParameters parameters) {
 
+        return true;
+        
+        // TODO: Edit & enable this code, after reorganizating parameters and parameter setup dialog to comply with MethodParameters and new ParameterSetupDialog
+        // Note that this is older generation of code than other uncommented fragments.
+        
+/*		
 		if (parameters==null) return false;
 		IncompleteIsotopePatternFilterParameters currentParameters = (IncompleteIsotopePatternFilterParameters)parameters;
 
@@ -82,7 +90,7 @@ public class IncompleteIsotopePatternFilter implements Method {
 		currentParameters.minimumNumberOfPeaks = d;
 
 		return true;
-
+*/
 	}
 
 

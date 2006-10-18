@@ -30,6 +30,11 @@ import javax.swing.JFormattedTextField;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 
+import net.sf.mzmine.data.Parameter;
+import net.sf.mzmine.methods.MethodParameters;
+
+
+
 /**
  * This class represents the parameter setup dialog shown to the user before processing
  */
@@ -61,16 +66,26 @@ public class ParameterSetupDialog extends JDialog implements ActionListener {
 	/**
 	 * Constructor
 	 */
-	public ParameterSetupDialog(Frame owner, String title, String[] labelNames, double[] defaultValues, NumberFormat[] numberFormats) {
+	public ParameterSetupDialog(Frame owner, String title, MethodParameters methodParameters) {
 
 		// Make dialog modal
 		super(owner, true);
-
+		
+		System.err.println("Initializing parameter setup dialog");
+		
 		exitCode = -1;
 
+		Parameter[] parameters = methodParameters.getParameters();
+		if ( (parameters==null) || (parameters.length==0) ) {
+			System.err.println("Parameters is null or length 0.");
+			System.err.println("parameters.length = " + parameters.length);
+			exitCode = 1;
+			dispose();		
+		}
+		
 		// Allocate arrays
-		textFields = new JFormattedTextField[labelNames.length];
-		labels = new JLabel[labelNames.length];
+		textFields = new JFormattedTextField[methodParameters.getParameters().length];
+		labels = new JLabel[methodParameters.getParameters().length];
 
 		// Panel where everything is collected
 		pnlAll = new JPanel(new BorderLayout());
@@ -86,13 +101,16 @@ public class ParameterSetupDialog extends JDialog implements ActionListener {
 		decimalNumberFormat.setMinimumFractionDigits(1);
 
 		// Create fields and labels
-		for (int i=0; i<labelNames.length; i++) {
+		for (int i=0; i<methodParameters.getParameters().length; i++) {
+			Parameter p = methodParameters.getParameters()[i];
+			
 			//textFields[i] = new JFormattedTextField(decimalNumberFormat);
-			textFields[i] = new JFormattedTextField(numberFormats[i]);
-			textFields[i].setValue(new Double(defaultValues[i]));
+			textFields[i] = new JFormattedTextField(p.getFormat());
+			textFields[i].setValue(p.getDefaultValue());
 			textFields[i].setColumns(8);
+			textFields[i].setToolTipText(p.getDescription());
 
-			labels[i] = new JLabel(labelNames[i]);
+			labels[i] = new JLabel(p.getName());
 			labels[i].setLabelFor(textFields[i]);
 
 			pnlLabels.add(labels[i]);

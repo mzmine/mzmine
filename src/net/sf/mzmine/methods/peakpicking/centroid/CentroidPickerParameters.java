@@ -19,6 +19,7 @@
 
 package net.sf.mzmine.methods.peakpicking.centroid;
 
+import net.sf.mzmine.data.Parameter;
 import net.sf.mzmine.methods.MethodParameters;
 
 import org.w3c.dom.Document;
@@ -140,5 +141,10 @@ class CentroidPickerParameters implements MethodParameters {
         }
 
     }
+
+	public Parameter[] getParameters() {
+		// TODO Auto-generated method stub
+		return null;
+	}
 
 }

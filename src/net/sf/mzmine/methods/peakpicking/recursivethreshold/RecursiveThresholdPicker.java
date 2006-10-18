@@ -81,6 +81,9 @@ public class RecursiveThresholdPicker implements Method,
         if (currentParameters == null)
             currentParameters = new RecursiveThresholdPickerParameters();
 
+        return currentParameters;
+        // TODO: Edit & enable this code, after reorganizating parameters and parameter setup dialog to comply with MethodParameters and new ParameterSetupDialog        
+/*        
         // Initialize parameter setup dialog
         double[] paramValues = new double[9];
         paramValues[0] = currentParameters.binSize;
@@ -207,7 +210,7 @@ public class RecursiveThresholdPicker implements Method,
         currentProject.setParameters(this, newParameters);
 
         return newParameters;
-
+*/
     }
 
     /**

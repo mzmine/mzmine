@@ -27,6 +27,8 @@ import net.sf.mzmine.io.OpenedRawDataFile;
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.methods.Method;
 import net.sf.mzmine.methods.MethodParameters;
+import net.sf.mzmine.methods.alignment.join.JoinAlignerParameters;
+import net.sf.mzmine.project.MZmineProject;
 import net.sf.mzmine.userinterface.mainwindow.MainWindow;
 
 
@@ -41,42 +43,21 @@ public class AlignmentResultFilterByGaps implements Method {
 	private MainWindow mainWin;
 
 
-	public AlignmentResultFilterByGapsParameters askParameters(MainWindow _mainWin, AlignmentResultFilterByGapsParameters currentValues) {
-		mainWin = _mainWin;
+	public AlignmentResultFilterByGapsParameters askParameters() {
 
-		AlignmentResultFilterByGapsParameters myParameters;
-		if (currentValues==null) {
-			myParameters = new AlignmentResultFilterByGapsParameters();
-		} else {
-			myParameters = currentValues;
-		}
+		// Get current parameters
+        MZmineProject currentProject = MZmineProject.getCurrentProject();
+        AlignmentResultFilterByGapsParameters currentParameters = (AlignmentResultFilterByGapsParameters) currentProject.getParameters(this);
+        if (currentParameters == null)
+            currentParameters = new AlignmentResultFilterByGapsParameters();
 
-		// Show parameter setup dialog
-		String s = (String)JOptionPane.showInputDialog(mainWin,
-												"Give minimum number of detections",
-												"Filter alignment result",
-												JOptionPane.PLAIN_MESSAGE,
-												null,
-												null,
-												new Integer(myParameters.paramRequiredNumOfPresent));
-
-		if (s==null) {
-			return null;
-		}
-
-		// Get parameter value
-		int tmpNum;
-		try {
-			tmpNum= Integer.parseInt(s);
-		} catch (NumberFormatException exe) {
-			mainWin.displayErrorMessage("Incorrect window length parameter value!");
-			return null;
-		}
-
-		myParameters.paramRequiredNumOfPresent = tmpNum;
-
-		return myParameters;
-
+        
+        // Show parameter setup dialog
+        
+        
+        // Return parameters object
+        return currentParameters;
+        
 	}
 
 	public AlignmentResult processAlignment(MainWindow _mainWin, AlignmentResult ar, AlignmentResultFilterByGapsParameters _params) {
@@ -224,13 +205,6 @@ public class AlignmentResultFilterByGaps implements Method {
 
 	}
 
-    /**
-     * @see net.sf.mzmine.methods.Method#askParameters()
-     */
-    public MethodParameters askParameters() {
-        // TODO Auto-generated method stub
-        return null;
-    }
 
     /**
      * @see net.sf.mzmine.methods.Method#runMethod(net.sf.mzmine.methods.MethodParameters, net.sf.mzmine.io.OpenedRawDataFile[], net.sf.mzmine.data.AlignmentResult[])

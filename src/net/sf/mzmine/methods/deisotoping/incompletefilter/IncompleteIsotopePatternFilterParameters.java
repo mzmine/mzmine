@@ -22,6 +22,8 @@ package net.sf.mzmine.methods.deisotoping.incompletefilter;
 import org.w3c.dom.Element;
 import org.w3c.dom.Document;
 import org.w3c.dom.NodeList;
+
+import net.sf.mzmine.data.Parameter;
 import net.sf.mzmine.methods.MethodParameters;
 
 
@@ -76,6 +78,11 @@ public class IncompleteIsotopePatternFilterParameters implements MethodParameter
 		IncompleteIsotopePatternFilterParameters myClone = new IncompleteIsotopePatternFilterParameters();
 		myClone.minimumNumberOfPeaks = minimumNumberOfPeaks;
 		return myClone;
+	}
+
+	public Parameter[] getParameters() {
+		// TODO Auto-generated method stub
+		return null;
 	}
 
 

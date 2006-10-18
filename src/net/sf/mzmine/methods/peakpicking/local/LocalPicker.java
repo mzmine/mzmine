@@ -85,6 +85,9 @@ public class LocalPicker implements Method, TaskListener,
         if (currentParameters == null)
             currentParameters = new LocalPickerParameters();
 
+        return currentParameters;
+        // TODO: Edit & enable this code, after reorganizating parameters and parameter setup dialog to comply with MethodParameters and new ParameterSetupDialog        
+/*        
         // Ínitialize parameter setup dialog
         double[] paramValues = new double[7];
         paramValues[0] = currentParameters.binSize;
@@ -189,6 +192,7 @@ public class LocalPicker implements Method, TaskListener,
         currentProject.setParameters(this, newParameters);
 
         return newParameters;
+*/        
     }
 
     /**

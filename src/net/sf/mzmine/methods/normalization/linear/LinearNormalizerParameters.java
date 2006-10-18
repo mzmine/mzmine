@@ -20,6 +20,7 @@
 
 package net.sf.mzmine.methods.normalization.linear;
 
+import net.sf.mzmine.data.Parameter;
 import net.sf.mzmine.methods.MethodParameters;
 
 import org.w3c.dom.Document;
@@ -76,5 +77,10 @@ public class LinearNormalizerParameters implements MethodParameters {
         // TODO Auto-generated method stub
         
     }
+
+	public Parameter[] getParameters() {
+		// TODO Auto-generated method stub
+		return null;
+	}
 
 }

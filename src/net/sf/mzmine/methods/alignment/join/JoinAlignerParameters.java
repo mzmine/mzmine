@@ -20,6 +20,7 @@
 
 package net.sf.mzmine.methods.alignment.join;
 
+import net.sf.mzmine.data.Parameter;
 import net.sf.mzmine.methods.MethodParameters;
 
 import org.w3c.dom.Element;
@@ -93,6 +94,11 @@ public class JoinAlignerParameters implements MethodParameters {
 		myClone.paramRTTolerancePercent = paramRTTolerancePercent;
 
 		return myClone;
+	}
+
+	public Parameter[] getParameters() {
+		// TODO Auto-generated method stub
+		return null;
 	}
 
 }

@@ -19,6 +19,7 @@
 
 package net.sf.mzmine.methods.filtering.chromatographicmedian;
 
+import net.sf.mzmine.data.Parameter;
 import net.sf.mzmine.methods.MethodParameters;
 
 import org.w3c.dom.Document;
@@ -95,5 +96,10 @@ class ChromatographicMedianFilterParameters implements MethodParameters {
         } catch (NumberFormatException nfe) {
         }
     }
+
+	public Parameter[] getParameters() {
+		// TODO Auto-generated method stub
+		return null;
+	}
 
 }

@@ -85,6 +85,10 @@ public class CentroidPicker implements Method, TaskListener,
         if (currentParameters == null)
             currentParameters = new CentroidPickerParameters();
 
+        return currentParameters;
+        // TODO: Edit & enable this code, after reorganizating parameters and parameter setup dialog to comply with MethodParameters and new ParameterSetupDialog
+        
+/*        
         // Initialize parameter setup dialog
         double[] paramValues = new double[7];
         paramValues[0] = currentParameters.binSize;
@@ -189,7 +193,7 @@ public class CentroidPicker implements Method, TaskListener,
         currentProject.setParameters(this, newParameters);
 
         return newParameters;
-
+*/
     }
 
     /**

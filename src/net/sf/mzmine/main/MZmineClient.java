@@ -19,6 +19,7 @@
 
 package net.sf.mzmine.main;
 
+import java.awt.Frame;
 import java.util.HashSet;
 import java.util.ResourceBundle;
 import java.util.logging.Level;
@@ -28,10 +29,13 @@ import javax.swing.SwingUtilities;
 
 import net.sf.mzmine.io.IOController;
 import net.sf.mzmine.io.impl.IOControllerImpl;
+import net.sf.mzmine.methods.MethodParameters;
+import net.sf.mzmine.methods.alignment.filterbygaps.AlignmentResultFilterByGapsParameters;
 import net.sf.mzmine.project.MZmineProject;
 import net.sf.mzmine.taskcontrol.TaskController;
 import net.sf.mzmine.taskcontrol.impl.TaskControllerImpl;
 import net.sf.mzmine.userinterface.Desktop;
+import net.sf.mzmine.userinterface.dialogs.ParameterSetupDialog;
 import net.sf.mzmine.userinterface.mainwindow.MainWindow;
 
 public class MZmineClient implements Runnable, MZmineCore {
@@ -129,6 +133,19 @@ public class MZmineClient implements Runnable, MZmineCore {
         
         // show the welcome message
         mainWindow.setStatusBarText("Welcome to MZmine!");
+        
+        // DEBUG start
+        /*
+        ParameterSetupDialog psdialog 
+        = new ParameterSetupDialog
+        		(		mainWindow.getInstance(),
+        				"Testing...",
+        				new AlignmentResultFilterByGapsParameters()
+        		);
+        psdialog.setVisible(true);
+        */
+        // DEBUG end
+        
 
     }
 

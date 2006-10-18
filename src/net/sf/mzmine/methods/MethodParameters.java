@@ -21,6 +21,8 @@ package net.sf.mzmine.methods;
 
 import java.io.Serializable;
 
+import net.sf.mzmine.data.Parameter;
+
 import org.w3c.dom.Element;
 import org.w3c.dom.Document;
 
@@ -46,4 +48,11 @@ public interface MethodParameters extends Serializable {
      */
     public void readFromXML(Element element);
 
+    
+    /**
+     * 
+     * @return all parameters 
+     */
+    public Parameter[] getParameters();
+    
 }
