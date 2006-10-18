@@ -40,6 +40,7 @@ import javax.swing.table.AbstractTableModel;
 
 import net.sf.mzmine.data.AlignmentResult;
 import net.sf.mzmine.io.RawDataFile;
+import net.sf.mzmine.userinterface.dialogs.alignmentresultcolumnselection.AlignmentResultColumnSelectionDialog;
 import net.sf.mzmine.userinterface.mainwindow.ItemSelector;
 import net.sf.mzmine.userinterface.mainwindow.MainWindow;
 import net.sf.mzmine.visualizers.alignmentresult.AlignmentResultVisualizer;
@@ -47,10 +48,7 @@ import sunutils.TableSorter;
 
 
 /*
-TODO
-- this should implement AlignmentResultVisualizer
-- everything
-
+TODO: this should implement AlignmentResultVisualizer
 */
 
 public class AlignmentResultTableVisualizerWindow extends JInternalFrame implements ActionListener {
@@ -78,8 +76,6 @@ public class AlignmentResultTableVisualizerWindow extends JInternalFrame impleme
 
 		super(alignmentResult.toString(), true, true, true, true);
 		
-		logger.info("Initializing alignment result table visualizer window");
-
 		setResizable( true );
 		setIconifiable( true );
 
@@ -94,7 +90,6 @@ public class AlignmentResultTableVisualizerWindow extends JInternalFrame impleme
 		table = new AlignmentResultTable(this, alignmentResult);
 		table.setAutoResizeMode( JTable.AUTO_RESIZE_OFF );
 		scrollPane = new JScrollPane(table);
-
 		
 		add(scrollPane, BorderLayout.CENTER);
 
@@ -110,12 +105,7 @@ public class AlignmentResultTableVisualizerWindow extends JInternalFrame impleme
 	 */
 	public void actionPerformed(ActionEvent event) {
 		
-		logger.info("actionPerformed");
-		
         String command = event.getActionCommand();
-        
-        logger.info("command=" + command);
-        
 
         if (command.equals("ZOOM_TO_PEAK")) {
 			// TODO
@@ -123,8 +113,7 @@ public class AlignmentResultTableVisualizerWindow extends JInternalFrame impleme
 
         if (command.equals("CHANGE_FORMAT")) {
         	
-        	logger.info("showing choose columns dialog");
-        	AlignmentResultTableColumnSelectionDialog dialog = new AlignmentResultTableColumnSelectionDialog (table);
+        	AlignmentResultColumnSelectionDialog dialog = new AlignmentResultColumnSelectionDialog(table.getColumnSelection(), table);
         	MainWindow.getInstance().addInternalFrame(dialog);
 		}
 

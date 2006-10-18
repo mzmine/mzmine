@@ -30,13 +30,17 @@ import javax.swing.KeyStroke;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
 
+import net.sf.mzmine.data.AlignmentResult;
 import net.sf.mzmine.io.IOController;
 import net.sf.mzmine.io.OpenedRawDataFile;
+import net.sf.mzmine.io.util.AlignmentResultExporter;
 import net.sf.mzmine.project.MZmineProject;
 import net.sf.mzmine.userinterface.Desktop;
 import net.sf.mzmine.userinterface.Desktop.MZmineMenu;
 import net.sf.mzmine.userinterface.dialogs.AboutDialog;
 import net.sf.mzmine.userinterface.dialogs.FileOpenDialog;
+import net.sf.mzmine.userinterface.dialogs.alignmentresultcolumnselection.AlignmentResultColumnSelection;
+import net.sf.mzmine.userinterface.dialogs.alignmentresultcolumnselection.AlignmentResultColumnSelectionDialog;
 import net.sf.mzmine.util.GUIUtils;
 
 /**
@@ -320,6 +324,10 @@ public class MainMenu extends JMenuBar implements ActionListener,
             for (OpenedRawDataFile file : selectedFiles)
                 MZmineProject.getCurrentProject().removeFile(file);
 
+        }
+        
+        if (src == fileExportAlignmentResult) {
+        	
         }
 
         // Window->Tile

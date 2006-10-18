@@ -21,9 +21,11 @@ package net.sf.mzmine.visualizers.alignmentresult.table;
 import javax.swing.JTable;
 
 import net.sf.mzmine.data.AlignmentResult;
+import net.sf.mzmine.userinterface.dialogs.alignmentresultcolumnselection.AlignmentResultColumnSelection;
+import net.sf.mzmine.userinterface.dialogs.alignmentresultcolumnselection.AlignmentResultColumnSelectionAcceptor;
 import sunutils.TableSorter;
 
-public class AlignmentResultTable extends JTable {
+public class AlignmentResultTable extends JTable implements AlignmentResultColumnSelectionAcceptor {
 
 	private AlignmentResult alignmentResult;
 	private AlignmentResultTableModel tableModel;
@@ -32,14 +34,14 @@ public class AlignmentResultTable extends JTable {
 	public AlignmentResultTable(AlignmentResultTableVisualizerWindow masterFrame, AlignmentResult alignmentResult) {
 		this.alignmentResult = alignmentResult;
 		
-		AlignmentResultTableColumnSelection columnSelection = new AlignmentResultTableColumnSelection();
+		AlignmentResultColumnSelection columnSelection = new AlignmentResultColumnSelection();
 		columnSelection.setAllColumns();
 		
 		initializeTableModel(columnSelection);
 	}
 
 	
-	private void initializeTableModel(AlignmentResultTableColumnSelection columnSelection) {
+	private void initializeTableModel(AlignmentResultColumnSelection columnSelection) {
 
 		tableModel = new AlignmentResultTableModel(alignmentResult, columnSelection);
 
@@ -51,11 +53,11 @@ public class AlignmentResultTable extends JTable {
 
 	}
 	
-	public void setColumnSelection(AlignmentResultTableColumnSelection columnSelection) {
+	public void setColumnSelection(AlignmentResultColumnSelection columnSelection) {
 		initializeTableModel(columnSelection);
 	}
 	
-	public AlignmentResultTableColumnSelection getColumnSelection() {
+	public AlignmentResultColumnSelection getColumnSelection() {
 		return tableModel.getColumnSelection();
 	}
 

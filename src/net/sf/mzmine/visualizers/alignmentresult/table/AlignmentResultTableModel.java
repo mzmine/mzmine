@@ -8,11 +8,12 @@ import net.sf.mzmine.data.Peak;
 import net.sf.mzmine.data.impl.StandardCompoundFlag;
 import net.sf.mzmine.io.OpenedRawDataFile;
 import net.sf.mzmine.methods.deisotoping.util.IsotopePatternUtility;
+import net.sf.mzmine.userinterface.dialogs.alignmentresultcolumnselection.AlignmentResultColumnSelection;
 
 public class AlignmentResultTableModel extends AbstractTableModel {
 
 	private AlignmentResult alignmentResult;
-	private AlignmentResultTableColumnSelection columnSelection;
+	private AlignmentResultColumnSelection columnSelection;
 
 	private IsotopePatternUtility isoUtil;
 
@@ -20,7 +21,7 @@ public class AlignmentResultTableModel extends AbstractTableModel {
 	/**
 	 * Constructor, assign given dataset to this table
 	 */
-	public AlignmentResultTableModel(AlignmentResult alignmentResult, AlignmentResultTableColumnSelection columnSelection) {
+	public AlignmentResultTableModel(AlignmentResult alignmentResult, AlignmentResultColumnSelection columnSelection) {
 		this.alignmentResult = alignmentResult;
 		this.columnSelection = columnSelection;
 
@@ -28,7 +29,7 @@ public class AlignmentResultTableModel extends AbstractTableModel {
 
 	}
 
-	public AlignmentResultTableColumnSelection getColumnSelection() {
+	public AlignmentResultColumnSelection getColumnSelection() {
 		return columnSelection;
 	}
 

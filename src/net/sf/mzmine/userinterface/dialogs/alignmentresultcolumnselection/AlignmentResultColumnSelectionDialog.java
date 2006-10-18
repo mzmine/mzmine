@@ -1,4 +1,4 @@
-package net.sf.mzmine.visualizers.alignmentresult.table;
+package net.sf.mzmine.userinterface.dialogs.alignmentresultcolumnselection;
 
 import java.awt.BorderLayout;
 import java.awt.Color;
@@ -8,8 +8,11 @@ import java.awt.FlowLayout;
 import java.awt.GridLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.util.Comparator;
 import java.util.Enumeration;
 import java.util.Hashtable;
+import java.util.Iterator;
+import java.util.TreeMap;
 
 import javax.swing.BorderFactory;
 import javax.swing.Box;
@@ -21,24 +24,32 @@ import javax.swing.JLabel;
 import javax.swing.JPanel;
 
 
-import net.sf.mzmine.visualizers.alignmentresult.table.AlignmentResultTableColumnSelection.CommonColumnType;
-import net.sf.mzmine.visualizers.alignmentresult.table.AlignmentResultTableColumnSelection.RawDataColumnType;
+import net.sf.mzmine.io.util.AlignmentResultExporter;
+import net.sf.mzmine.userinterface.dialogs.alignmentresultcolumnselection.AlignmentResultColumnSelection.CommonColumnType;
+import net.sf.mzmine.userinterface.dialogs.alignmentresultcolumnselection.AlignmentResultColumnSelection.RawDataColumnType;
+import net.sf.mzmine.visualizers.alignmentresult.table.AlignmentResultTable;
 
-public class AlignmentResultTableColumnSelectionDialog extends JInternalFrame implements ActionListener {
+public class AlignmentResultColumnSelectionDialog extends JInternalFrame implements ActionListener {
 	
-	private AlignmentResultTable table;
+	private AlignmentResultColumnSelection currentColumnSelection;
+	private AlignmentResultColumnSelectionAcceptor columnSelectionAcceptor;
 	private String title;
 	
-	private Hashtable<JCheckBox, CommonColumnType> commonColumnCheckBoxes;
-	private Hashtable<JCheckBox, RawDataColumnType> rawDataColumnCheckBoxes;
+	private Hashtable<CommonColumnType, JCheckBox> commonColumnCheckBoxes;
+	private Hashtable<RawDataColumnType, JCheckBox> rawDataColumnCheckBoxes;
 	
 	private JButton btnOk;
 	private JButton btnCancel;
 
-	public AlignmentResultTableColumnSelectionDialog(AlignmentResultTable table) {
-		this.table = table;
+	public AlignmentResultColumnSelectionDialog(AlignmentResultColumnSelection currentColumnSelection, AlignmentResultColumnSelectionAcceptor columnSelectionAcceptor) {
+		
+		this.currentColumnSelection = currentColumnSelection; 
+		this.columnSelectionAcceptor = columnSelectionAcceptor;
+		
 		initComponents();
+		
 	}
+
 	
 	public void initComponents() {
 
@@ -49,7 +60,7 @@ public class AlignmentResultTableColumnSelectionDialog extends JInternalFrame im
 		JPanel pnlCommon = new JPanel();
 		pnlCommon.setLayout(new BoxLayout(pnlCommon, BoxLayout.PAGE_AXIS));
 		
-		commonColumnCheckBoxes = new Hashtable<JCheckBox, CommonColumnType>();
+		commonColumnCheckBoxes = new Hashtable<CommonColumnType, JCheckBox>();
 
 		JLabel commonColsTitle = new JLabel("Available common columns");
 		pnlCommon.add(commonColsTitle);
@@ -57,18 +68,13 @@ public class AlignmentResultTableColumnSelectionDialog extends JInternalFrame im
 		
 		pnlCommon.add(Box.createRigidArea(new Dimension(0,5)));
 
-		AlignmentResultTableColumnSelection columnSelection = table.getColumnSelection();
-		System.err.println("Number of selected common cols = " + columnSelection.getNumberOfCommonColumns());
-		System.err.println("Number of selected raw data cols = " + columnSelection.getNumberOfRawDataColumns());
-		
-	
 		for (CommonColumnType c : CommonColumnType.values()) {
 
 			JCheckBox commonColumnCheckBox = new JCheckBox();
 			commonColumnCheckBox.setText(c.getColumnName());
-			commonColumnCheckBoxes.put(commonColumnCheckBox, c);
+			commonColumnCheckBoxes.put(c, commonColumnCheckBox);
 
-			if (columnSelection.isSelectedCommonColumnType(c)) 
+			if (currentColumnSelection.isSelectedCommonColumnType(c)) 
 				commonColumnCheckBox.setSelected(true);
 			
 			commonColumnCheckBox.setAlignmentX(Component.LEFT_ALIGNMENT);
@@ -83,7 +89,7 @@ public class AlignmentResultTableColumnSelectionDialog extends JInternalFrame im
 		JPanel pnlRaw = new JPanel();
 		pnlRaw.setLayout(new BoxLayout(pnlRaw, BoxLayout.PAGE_AXIS));
 		
-		rawDataColumnCheckBoxes = new Hashtable<JCheckBox, RawDataColumnType>();
+		rawDataColumnCheckBoxes = new Hashtable<RawDataColumnType, JCheckBox>();
 		
 		JLabel rawDataColsTitle = new JLabel("Available raw data columns");
 		pnlRaw.add(rawDataColsTitle);
@@ -92,9 +98,9 @@ public class AlignmentResultTableColumnSelectionDialog extends JInternalFrame im
 
 			JCheckBox rawDataColumnCheckBox = new JCheckBox();
 			rawDataColumnCheckBox.setText(c.getColumnName());
-			rawDataColumnCheckBoxes.put(rawDataColumnCheckBox, c);
+			rawDataColumnCheckBoxes.put(c, rawDataColumnCheckBox);
 			
-			if (columnSelection.isSelectedRawDataColumnType(c)) 
+			if (currentColumnSelection.isSelectedRawDataColumnType(c)) 
 				rawDataColumnCheckBox.setSelected(true);
 			
 			rawDataColumnCheckBox.setAlignmentX(Component.LEFT_ALIGNMENT);
@@ -136,27 +142,27 @@ public class AlignmentResultTableColumnSelectionDialog extends JInternalFrame im
 	
 	public void actionPerformed(ActionEvent e) {
 		if (e.getSource()==btnOk) {
-			AlignmentResultTableColumnSelection columnSelection = new AlignmentResultTableColumnSelection();
-			
-			Enumeration<JCheckBox> checkBoxEnum = commonColumnCheckBoxes.keys();
-			while (checkBoxEnum.hasMoreElements()) {
-				JCheckBox checkBox = checkBoxEnum.nextElement();
-				if (checkBox.isSelected()) {
-					CommonColumnType c = commonColumnCheckBoxes.get(checkBox);
-					columnSelection.addCommonColumn(c);
+			AlignmentResultColumnSelection columnSelection = new AlignmentResultColumnSelection();
+				
+			Enumeration<CommonColumnType> ccEnum = commonColumnCheckBoxes.keys();
+			while (ccEnum.hasMoreElements()) {
+				CommonColumnType ccType = ccEnum.nextElement();
+				JCheckBox ccBox = commonColumnCheckBoxes.get(ccType);
+				if (ccBox.isSelected()) {
+					columnSelection.addCommonColumn(ccType);
 				}
 			}
 			
-			checkBoxEnum = rawDataColumnCheckBoxes.keys();
-			while (checkBoxEnum.hasMoreElements()) {
-				JCheckBox checkBox = checkBoxEnum.nextElement();
-				if (checkBox.isSelected()) {
-					RawDataColumnType c = rawDataColumnCheckBoxes.get(checkBox);
-					columnSelection.addRawDataColumn(c);
+			Enumeration<RawDataColumnType> rcEnum = rawDataColumnCheckBoxes.keys();
+			while (rcEnum.hasMoreElements()) {
+				RawDataColumnType rcType = rcEnum.nextElement();
+				JCheckBox rcBox = rawDataColumnCheckBoxes.get(rcType);
+				if (rcBox.isSelected()) {
+					columnSelection.addRawDataColumn(rcType);
 				}
 			}
 			
-			table.setColumnSelection(columnSelection);
+			columnSelectionAcceptor.setColumnSelection(columnSelection);
 			setVisible(false);
 			dispose();
 			
@@ -169,5 +175,13 @@ public class AlignmentResultTableColumnSelectionDialog extends JInternalFrame im
 		
 		
 	}	
+	
+	private class JCheckBoxComparator implements Comparator<JCheckBox> {
+		
+		public int compare(JCheckBox o1, JCheckBox o2) {
+			return o1.getText().compareTo(o2.getText());
+		}
+			
+	}
 	
 }

@@ -16,11 +16,13 @@
  * MZmine; if not, write to the Free Software Foundation, Inc., 51 Franklin St,
  * Fifth Floor, Boston, MA 02110-1301 USA
  */
-package net.sf.mzmine.visualizers.alignmentresult.table;
+package net.sf.mzmine.userinterface.dialogs.alignmentresultcolumnselection;
 
+import java.util.SortedSet;
+import java.util.TreeSet;
 import java.util.Vector;
 
-public class AlignmentResultTableColumnSelection {
+public class AlignmentResultColumnSelection {
 
 	// type for common columns
 
@@ -61,13 +63,13 @@ public class AlignmentResultTableColumnSelection {
 		public Class getColumnClass() { return columnClass; }
 	}
 
-	private Vector<CommonColumnType> selectedCommonColumns;
-	private Vector<RawDataColumnType> selectedRawDataColumns;
+	private TreeSet<CommonColumnType> selectedCommonColumns;
+	private TreeSet<RawDataColumnType> selectedRawDataColumns;
 
-	public AlignmentResultTableColumnSelection() {
+	public AlignmentResultColumnSelection() {
 
-		selectedCommonColumns = new Vector<CommonColumnType>();
-		selectedRawDataColumns = new Vector<RawDataColumnType>();
+		selectedCommonColumns = new TreeSet<CommonColumnType>();
+		selectedRawDataColumns = new TreeSet<RawDataColumnType>();
 		
 	}
 	
@@ -100,7 +102,7 @@ public class AlignmentResultTableColumnSelection {
 	}
 
 	public CommonColumnType getSelectedCommonColumn(int index) {
-		return selectedCommonColumns.get(index);
+		return selectedCommonColumns.toArray(new CommonColumnType[0])[index];
 	}
 
 	public RawDataColumnType[] getSelectedRawDataColumns() {
@@ -108,7 +110,7 @@ public class AlignmentResultTableColumnSelection {
 	}
 
 	public RawDataColumnType getSelectedRawDataColumn(int index) {
-		return selectedRawDataColumns.get(index);
+		return selectedRawDataColumns.toArray(new RawDataColumnType[0])[index];
 	}
 	
 	public boolean isSelectedCommonColumnType(CommonColumnType c) {
