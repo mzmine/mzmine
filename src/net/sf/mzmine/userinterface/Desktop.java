@@ -57,8 +57,23 @@ public interface Desktop {
      */
     public void addMenuSeparator(MZmineMenu parentMenu);
 
+    /**
+     * Adds a listener for raw data file and alignment result selection changes
+     * @param listener
+     */
     public void addSelectionListener(ListSelectionListener listener);
 
+    /**
+     * Used to notify all registered listeners of an "artificial change" in raw data file or alignment result selection
+     * For example: menu option availability may depend on properties of selected raw data file.
+     * When selection doesn't change but properties of selected raw data file change, 
+     * data processing method may call this method to update available menu options.
+     */
+    public void notifySelectionListeners();
+    
+    /**
+     * 
+     */
     public void addInternalFrame(JInternalFrame frame);
 
     public JInternalFrame[] getVisibleFrames(Class frameClass);
@@ -112,7 +127,6 @@ public interface Desktop {
      */
     public void removeAlignmentResult(AlignmentResult alignmentResult);
     
-	public ItemSelector getItemSelector();
 
     public void exitMZmine();
 

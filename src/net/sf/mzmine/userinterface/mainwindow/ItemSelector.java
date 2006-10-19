@@ -113,12 +113,6 @@ public class ItemSelector extends JPanel implements ListSelectionListener,
 
     }
 
-    public void fireDataChanged() {
-        // hack
-        rawDataList.setSelectedIndices(rawDataList.getSelectedIndices());
-        resultList.setSelectedIndices(resultList.getSelectedIndices());
-    }
-
     void addSelectionListener(ListSelectionListener listener) {
         rawDataList.addListSelectionListener(listener);
         resultList.addListSelectionListener(listener);

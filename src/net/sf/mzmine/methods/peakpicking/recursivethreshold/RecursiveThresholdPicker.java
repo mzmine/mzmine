@@ -152,7 +152,7 @@ public class RecursiveThresholdPicker implements Method,
             dataFile.getCurrentFile().addData(PeakList.class, peakList);
 
 			// Notify listeners
-			MainWindow.getInstance().getItemSelector().fireDataChanged();
+            desktop.notifySelectionListeners();
 
         } else if (task.getStatus() == Task.TaskStatus.ERROR) {
             /* Task encountered an error */

@@ -159,7 +159,7 @@ public class CentroidPicker implements Method, TaskListener,
             dataFile.getCurrentFile().addData(PeakList.class, peakList);
 
 			// Notify listeners
-			MainWindow.getInstance().getItemSelector().fireDataChanged();
+            desktop.notifySelectionListeners();
 
         } else if (task.getStatus() == Task.TaskStatus.ERROR) {
             /* Task encountered an error */

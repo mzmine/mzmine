@@ -27,6 +27,7 @@ import java.awt.event.ActionListener;
 import java.awt.event.WindowEvent;
 import java.awt.event.WindowListener;
 import java.util.ArrayList;
+import java.util.Vector;
 import java.util.logging.Logger;
 
 import javax.swing.JDesktopPane;
@@ -37,6 +38,7 @@ import javax.swing.JMenuItem;
 import javax.swing.JOptionPane;
 import javax.swing.JSplitPane;
 import javax.swing.border.EtchedBorder;
+import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
 
 import net.sf.mzmine.data.AlignmentResult;
@@ -61,6 +63,8 @@ public class MainWindow extends JFrame implements Desktop, WindowListener {
     private ItemSelector itemSelector;
 
     private TaskProgressWindow taskList;
+    
+    private Vector<ListSelectionListener> selectionListeners = new Vector<ListSelectionListener>();
 
     public TaskProgressWindow getTaskList() {
         return taskList;
@@ -88,10 +92,6 @@ public class MainWindow extends JFrame implements Desktop, WindowListener {
      */
     public JDesktopPane getDesktopPane() {
         return desktopPane;
-    }
-
-    public ItemSelector getItemSelector() {
-        return itemSelector;
     }
 
     void tileInternalFrames() {
@@ -243,8 +243,15 @@ public class MainWindow extends JFrame implements Desktop, WindowListener {
      */
     public void addSelectionListener(ListSelectionListener listener) {
         itemSelector.addSelectionListener(listener);
+        selectionListeners.add(listener);
     }
 
+    public void notifySelectionListeners() {
+    	for (ListSelectionListener listener : selectionListeners) {
+    		listener.valueChanged(new ListSelectionEvent(this,0,0,false));
+    	}
+    }
+    
     /**
      */
     public void initModule(MZmineCore core) {
