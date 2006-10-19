@@ -45,7 +45,6 @@ public class AlignmentResultFilterByGaps implements Method {
 	public boolean askParameters() {
 
         parameters = new AlignmentResultFilterByGapsParameters();
-        parameters.initParameters();
 
         ParameterSetupDialog dialog = new ParameterSetupDialog(		
         				MainWindow.getInstance(),

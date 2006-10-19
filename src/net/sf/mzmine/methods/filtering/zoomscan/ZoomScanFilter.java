@@ -75,8 +75,7 @@ public class ZoomScanFilter implements Method, TaskListener,
      */
     public boolean askParameters() {
 
-        parameters = new ZoomScanFilterParameters();
-        parameters.initParameters();    	
+        parameters = new ZoomScanFilterParameters(); 	
 
         ParameterSetupDialog dialog = new ParameterSetupDialog(		
         				MainWindow.getInstance(),

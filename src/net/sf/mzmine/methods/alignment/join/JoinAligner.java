@@ -74,7 +74,6 @@ public class JoinAligner implements Method,
     public boolean askParameters() {
 
         parameters = new JoinAlignerParameters();
-        parameters.initParameters();    	
 
         ParameterSetupDialog dialog = new ParameterSetupDialog(		
         				MainWindow.getInstance(),

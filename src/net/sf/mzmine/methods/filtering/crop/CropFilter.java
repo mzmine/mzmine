@@ -73,8 +73,7 @@ public class CropFilter implements Method, TaskListener,
      */
     public boolean  askParameters() {
 
-        parameters = new CropFilterParameters();
-        parameters.initParameters();    	
+        parameters = new CropFilterParameters();	
 
         ParameterSetupDialog dialog = new ParameterSetupDialog(		
         				MainWindow.getInstance(),

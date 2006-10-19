@@ -45,7 +45,6 @@ public class IncompleteIsotopePatternFilter implements Method {
 	public boolean askParameters() {
 
         parameters = new IncompleteIsotopePatternFilterParameters();
-        parameters.initParameters();    	
 
         ParameterSetupDialog dialog = new ParameterSetupDialog(		
         				MainWindow.getInstance(),

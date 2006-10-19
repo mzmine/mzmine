@@ -80,8 +80,7 @@ public class CentroidPicker implements Method, TaskListener,
      */
     public boolean askParameters() {
 
-        parameters = new CentroidPickerParameters();
-        parameters.initParameters();    	
+        parameters = new CentroidPickerParameters();   	
 
         ParameterSetupDialog dialog = new ParameterSetupDialog(		
         				MainWindow.getInstance(),

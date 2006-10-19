@@ -79,8 +79,7 @@ public class MeanFilter implements Method, TaskListener,
      */
     public boolean askParameters() {
 
-        parameters = new MeanFilterParameters();
-        parameters.initParameters();    	
+        parameters = new MeanFilterParameters();  	
 
         ParameterSetupDialog dialog = new ParameterSetupDialog(		
         				MainWindow.getInstance(),

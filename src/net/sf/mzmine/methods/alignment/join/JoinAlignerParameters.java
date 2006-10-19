@@ -34,13 +34,19 @@ public class JoinAlignerParameters extends MethodParameters {
 																			"M/Z vs RT balance",
 																			"Used in distance measuring as multiplier of M/Z difference",
 																			"",
-																			new Double(10));
+																			new Double(10),
+																			new Double(0),
+																			null,
+																			null);
 	
 	protected static final Parameter MZTolerance = new SimpleParameter(		ParameterType.DOUBLE,
 																			"M/Z tolerance",
 																			"Maximum allowed M/Z difference",
 																			"Da",
-																			new Double(0.2));
+																			new Double(0.2),
+																			new Double(0),
+																			null,
+																			null);
 	
 	protected static final Parameter RTToleranceType = new SimpleParameter(	ParameterType.OBJECT,
 																			"RT tolerance type",
@@ -53,14 +59,20 @@ public class JoinAlignerParameters extends MethodParameters {
 																			"Absolute RT tolerance",
 																			"Maximum allowed absolute RT difference",
 																			"seconds",
-																			new Double(15));
+																			new Double(15),
+																			new Double(0),
+																			null,
+																			null);
 	
 	protected static final Parameter RTToleranceValuePercent = new SimpleParameter(	
 																			ParameterType.DOUBLE,
 																			"Relative RT tolerance",
 																			"Maximum allowed relative RT difference",
 																			"%",
-																			new Double(15)); 
+																			new Double(15),
+																			new Double(0),
+																			null,
+																			null);
 	
 	
 	public Parameter[] getParameters() {

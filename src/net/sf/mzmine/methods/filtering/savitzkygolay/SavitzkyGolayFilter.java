@@ -74,8 +74,7 @@ public class SavitzkyGolayFilter implements Method, TaskListener,
      */
     public boolean askParameters() {
 
-        parameters = new SavitzkyGolayFilterParameters();
-        parameters.initParameters();    	
+        parameters = new SavitzkyGolayFilterParameters();   	
 
         ParameterSetupDialog dialog = new ParameterSetupDialog(		
         				MainWindow.getInstance(),

@@ -24,6 +24,7 @@ import java.util.Hashtable;
 import net.sf.mzmine.data.Parameter;
 import net.sf.mzmine.data.ParameterValue;
 import net.sf.mzmine.data.impl.SimpleParameterValue;
+import net.sf.mzmine.data.impl.SimpleParameterValueInvalidValueException;
 import net.sf.mzmine.project.MZmineProject;
 
 
@@ -32,27 +33,43 @@ import net.sf.mzmine.project.MZmineProject;
  * They also store values of parameters at the moment when Method ran.
  */
 public abstract class MethodParameters {
+	
+	private Hashtable<Parameter, ParameterValue> values;
 
+	
 	/**
 	 * Returns array of all method's parameters
 	 */
 	public abstract Parameter[] getParameters();
 
 	
-	
-	
-	private Hashtable<Parameter, ParameterValue> values = new Hashtable<Parameter, ParameterValue>();
-	
 	/**
-	 * Adds method's parameters, and also parameters' default values as current values to the project 
-	 */	
-	public void initParameters() {
+	 * Checks if project contains current value for some of the parameters, and initializes this object using those values if present. 
+	 *
+	 */
+	public MethodParameters() {
+		// Initialize hashtable for storing values for parameters
+		values = new Hashtable<Parameter, ParameterValue>();
+		
+		// Check if the project contains current value for some of the parameters
+		
 		MZmineProject project = MZmineProject.getCurrentProject();
 		for (Parameter p : getParameters()) {
-			if (!project.containsParameterValue(p))
-				project.setParameterValue(p, new SimpleParameterValue(p.getDefaultValue()));
+			ParameterValue pVal = project.getParameterValue(p);
+			if (pVal!=null) { 
+				// Yes, then use the current value to initialize value used in this object
+				values.put(p, pVal);
+			} else {
+				// No, then use the default parameter value for initialization
+				SimpleParameterValue spVal=null;
+				try {
+					spVal = new SimpleParameterValue(p, p.getDefaultValue());
+				} catch (SimpleParameterValueInvalidValueException e) {}
+				values.put(p, spVal);
+			}
 		}
-	}	
+	}
+	
 	
 	/**
 	 * Returns value of a parameter.
@@ -69,7 +86,6 @@ public abstract class MethodParameters {
 	 */
 	public void setParameterValue(Parameter parameter, ParameterValue value) {
 		values.put(parameter, value);
-		MZmineProject.getCurrentProject().setParameterValue(parameter, value);
 	}
 	
 	/**

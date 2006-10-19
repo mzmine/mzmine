@@ -74,8 +74,7 @@ public class ChromatographicMedianFilter implements Method,
      */
     public boolean askParameters() {
 
-        parameters = new ChromatographicMedianFilterParameters();
-        parameters.initParameters();    	
+        parameters = new ChromatographicMedianFilterParameters(); 	
 
         ParameterSetupDialog dialog = new ParameterSetupDialog(		
         				MainWindow.getInstance(),

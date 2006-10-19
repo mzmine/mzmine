@@ -81,7 +81,6 @@ public class LocalPicker implements Method, TaskListener,
     public boolean askParameters() {
 
         parameters = new LocalPickerParameters();
-        parameters.initParameters();    	
 
         ParameterSetupDialog dialog = new ParameterSetupDialog(		
         				MainWindow.getInstance(),

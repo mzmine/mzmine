@@ -77,7 +77,6 @@ public class RecursiveThresholdPicker implements Method,
     public boolean askParameters() {
 
         parameters = new RecursiveThresholdPickerParameters();
-        parameters.initParameters();    	
 
         ParameterSetupDialog dialog = new ParameterSetupDialog(		
         				MainWindow.getInstance(),

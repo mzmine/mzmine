@@ -85,8 +85,7 @@ public class SimpleIsotopicPeaksGrouper implements Method,
      */
     public boolean askParameters() {
 
-        parameters = new SimpleIsotopicPeaksGrouperParameters();
-        parameters.initParameters();    	
+        parameters = new SimpleIsotopicPeaksGrouperParameters();	
 
         ParameterSetupDialog dialog = new ParameterSetupDialog(		
         				MainWindow.getInstance(),

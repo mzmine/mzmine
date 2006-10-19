@@ -25,18 +25,25 @@ import java.awt.Frame;
 import java.text.NumberFormat;
 import java.util.Enumeration;
 import java.util.Hashtable;
+import java.util.logging.Logger;
 
 import javax.swing.BorderFactory;
 import javax.swing.JButton;
+import javax.swing.JCheckBox;
 import javax.swing.JComboBox;
 import javax.swing.JDialog;
 import javax.swing.JFormattedTextField;
 import javax.swing.JLabel;
+import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 
 import net.sf.mzmine.data.Parameter;
+import net.sf.mzmine.data.ParameterValue;
+import net.sf.mzmine.data.impl.SimpleParameterValue;
+import net.sf.mzmine.data.impl.SimpleParameterValueInvalidValueException;
 import net.sf.mzmine.methods.MethodParameters;
 import net.sf.mzmine.project.MZmineProject;
+import net.sf.mzmine.userinterface.mainwindow.MainWindow;
 
 
 
@@ -45,6 +52,8 @@ import net.sf.mzmine.project.MZmineProject;
  */
 public class ParameterSetupDialog extends JDialog implements ActionListener {
 
+	private Logger logger = Logger.getLogger(this.getClass().getName());
+	
 	// Array for Text fields
 	private JFormattedTextField[] textFields;
 
@@ -67,8 +76,7 @@ public class ParameterSetupDialog extends JDialog implements ActionListener {
 	private JPanel pnlFields;
 	private JPanel pnlButtons;
 
-	private MethodParameters oldParameters;
-	private MethodParameters newParameters;
+	private MethodParameters parameters;
 	
 	// Exit code for controlling ok/cancel response
 	private int exitCode = -1;
@@ -82,15 +90,13 @@ public class ParameterSetupDialog extends JDialog implements ActionListener {
 		// Make dialog modal
 		super(owner, true);
 		
-		this.oldParameters = methodParameters;
+		this.parameters = methodParameters;
 		
 		exitCode = -1;
 
 		// Check if there are any parameters
-		Parameter[] parameters = methodParameters.getParameters();
-		if ( (parameters==null) || (parameters.length==0) ) {
-			System.err.println("Parameters is null or length 0.");
-			System.err.println("parameters.length = " + parameters.length);
+		Parameter[] allParameters = methodParameters.getParameters();
+		if ( (allParameters==null) || (allParameters.length==0) ) {
 			exitCode = 1;
 			dispose();		
 		}
@@ -134,7 +140,11 @@ public class ParameterSetupDialog extends JDialog implements ActionListener {
 			case STRING:
 			default:
 				JFormattedTextField txtField = new JFormattedTextField(p.getFormat());
-				txtField.setValue(project.getParameterValue(p));
+				ParameterValue parameterValue = parameters.getParameterValue(p);
+				Object value=null;
+				if (parameterValue!=null) value = parameterValue.getValue();
+				else value = p.getDefaultValue();
+				txtField.setValue(value);
 				txtField.setColumns(8);
 				txtField.setToolTipText(p.getDescription());
 				parametersAndComponents.put(p, txtField);
@@ -145,9 +155,25 @@ public class ParameterSetupDialog extends JDialog implements ActionListener {
 				
 				break;
 				
+			case BOOLEAN:
+				JCheckBox checkBox = new JCheckBox();
+				checkBox.setSelected((Boolean)parameters.getParameterValue(p).getValue());
+				checkBox.setToolTipText(p.getDescription());
+				parametersAndComponents.put(p, checkBox);
+				
+				lbl.setLabelFor(checkBox);
+				
+				pnlFields.add(checkBox);
+				
+				break;
+				
 			case OBJECT:
 				JComboBox cmbPossibleValues = new JComboBox(p.getPossibleValues());
-				cmbPossibleValues.setSelectedItem(p.getDefaultValue());
+				parameterValue = parameters.getParameterValue(p);
+				value=null;
+				if (parameterValue!=null) value = parameterValue.getValue();
+				else value = p.getDefaultValue();
+				cmbPossibleValues.setSelectedItem(value);
 				cmbPossibleValues.setToolTipText(p.getDescription());
 				parametersAndComponents.put(p, cmbPossibleValues);
 				
@@ -190,13 +216,52 @@ public class ParameterSetupDialog extends JDialog implements ActionListener {
 		Object src = ae.getSource();
 		if (src==btnOK) {
 			
-			// Copy values from components to parameters
+			// Copy values from form, validate them, and set them to project
 			Enumeration<Parameter> paramEnum = parametersAndComponents.keys();
+			MZmineProject project = MZmineProject.getCurrentProject();
 			while (paramEnum.hasMoreElements()) {
 				Parameter p = paramEnum.nextElement();
 				Component c = parametersAndComponents.get(p);
+				Object value=null;
+				
+				switch (p.getType()) {
+				case INTEGER:
+					JFormattedTextField txtField = (JFormattedTextField)parametersAndComponents.get(p); 
+					try { value = (Integer)txtField.getValue(); }
+					catch (Exception e) { displayMessage("Invalid parameter value for " + p.getName()); return;	}
+					break;
+				case DOUBLE:
+					txtField = (JFormattedTextField)parametersAndComponents.get(p);
+					try { value = (Double)txtField.getValue(); } 
+					catch (Exception e) { displayMessage("Invalid parameter value for " + p.getName()); return;	}
+					break;
+				case STRING:
+					txtField = (JFormattedTextField)parametersAndComponents.get(p); 
+					try { value = (String)txtField.getValue(); }
+					catch (Exception e) { displayMessage("Invalid parameter value for " + p.getName()); return;	}
+					break;
+				case BOOLEAN:
+					JCheckBox checkBox = (JCheckBox)parametersAndComponents.get(p);
+					if (checkBox.isSelected()) value = new Boolean(true); else value = new Boolean(false);
+					break;
+				case OBJECT:
+					JComboBox comboBox = (JComboBox)parametersAndComponents.get(p);
+					value = comboBox.getSelectedItem();
+					break;
+				}
 
-			
+				SimpleParameterValue parameterValue = null;
+				try {
+					parameterValue = new SimpleParameterValue(p, value);
+				} catch (SimpleParameterValueInvalidValueException invalidValueException) {				
+					displayMessage(invalidValueException.getMessage());
+					return;
+				} 
+				if (parameterValue!=null) { 
+					parameters.setParameterValue(p, parameterValue);
+					project.setParameterValue(p, parameterValue);
+				}
+				
 			}
 			
 			
@@ -211,15 +276,19 @@ public class ParameterSetupDialog extends JDialog implements ActionListener {
 		}
 	}
 
-	/**
-	 * Method for reading contents of a field
-	 * @param	fieldNum	Number of field
-	 * @return	Value of the field
-	 */
-	public MethodParameters getParameters() {
-		return newParameters;
+	
+	private void displayMessage(String msg) {
+		try {
+			logger.info(msg);
+			JOptionPane.showMessageDialog(
+										this,
+										msg,
+										"Error",
+										JOptionPane.ERROR_MESSAGE
+									 );
+		} catch (Exception exce ) {}
 	}
-
+	
 	/**
 	 * Method for reading exit code
 	 * @return	1=OK clicked, -1=cancel clicked
