@@ -39,7 +39,6 @@ import net.sf.mzmine.data.impl.SimpleAlignmentResultRow;
 import net.sf.mzmine.data.impl.SimpleIsotopePattern;
 import net.sf.mzmine.data.impl.StandardCompoundFlag;
 
-import net.sf.mzmine.methods.alignment.join.JoinAlignerParameters.RTToleranceTypePossibleValues;
 import net.sf.mzmine.methods.deisotoping.util.IsotopePatternUtility;
 
 /**

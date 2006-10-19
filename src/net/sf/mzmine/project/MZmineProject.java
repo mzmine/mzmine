@@ -43,12 +43,7 @@ import net.sf.mzmine.data.Parameter;
 import net.sf.mzmine.data.ParameterValue;
 import net.sf.mzmine.io.OpenedRawDataFile;
 import net.sf.mzmine.main.MZmineCore;
-import net.sf.mzmine.main.MZmineModule;
-import net.sf.mzmine.methods.MethodParameters;
 import net.sf.mzmine.userinterface.Desktop;
-import net.sf.mzmine.userinterface.mainwindow.ItemSelector;
-import net.sf.mzmine.userinterface.mainwindow.MainWindow;
-
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;

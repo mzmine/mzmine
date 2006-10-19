@@ -19,10 +19,6 @@
 */
 package net.sf.mzmine.methods.deisotoping.incompletefilter;
 
-import org.w3c.dom.Element;
-import org.w3c.dom.Document;
-import org.w3c.dom.NodeList;
-
 import net.sf.mzmine.data.Parameter;
 import net.sf.mzmine.data.Parameter.ParameterType;
 import net.sf.mzmine.data.impl.SimpleParameter;

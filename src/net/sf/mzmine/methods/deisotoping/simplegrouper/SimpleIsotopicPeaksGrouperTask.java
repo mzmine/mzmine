@@ -14,7 +14,6 @@
 package net.sf.mzmine.methods.deisotoping.simplegrouper;
 
 import java.util.Comparator;
-import java.util.Iterator;
 import java.util.Hashtable;
 import java.util.Arrays;
 

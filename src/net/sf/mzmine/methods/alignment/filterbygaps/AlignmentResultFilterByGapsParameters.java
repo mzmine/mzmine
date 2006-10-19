@@ -20,9 +20,6 @@
 
 package net.sf.mzmine.methods.alignment.filterbygaps;
 
-import org.w3c.dom.Document;
-import org.w3c.dom.Element;
-
 import net.sf.mzmine.data.Parameter;
 import net.sf.mzmine.data.Parameter.ParameterType;
 import net.sf.mzmine.data.impl.SimpleParameter;

@@ -25,7 +25,6 @@ import java.awt.event.KeyEvent;
 import java.util.logging.Logger;
 
 import javax.swing.JMenuItem;
-import javax.swing.JOptionPane;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
 
@@ -35,8 +34,6 @@ import net.sf.mzmine.io.RawDataFile;
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.methods.Method;
 import net.sf.mzmine.methods.MethodParameters;
-import net.sf.mzmine.methods.alignment.join.JoinAlignerParameters;
-import net.sf.mzmine.project.MZmineProject;
 import net.sf.mzmine.taskcontrol.Task;
 import net.sf.mzmine.taskcontrol.TaskController;
 import net.sf.mzmine.taskcontrol.TaskListener;

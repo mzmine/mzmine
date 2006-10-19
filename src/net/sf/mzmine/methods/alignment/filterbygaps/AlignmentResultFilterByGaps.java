@@ -20,15 +20,11 @@
 
 package net.sf.mzmine.methods.alignment.filterbygaps;
 
-import javax.swing.JOptionPane;
-
 import net.sf.mzmine.data.AlignmentResult;
 import net.sf.mzmine.io.OpenedRawDataFile;
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.methods.Method;
 import net.sf.mzmine.methods.MethodParameters;
-import net.sf.mzmine.methods.alignment.join.JoinAlignerParameters;
-import net.sf.mzmine.project.MZmineProject;
 import net.sf.mzmine.userinterface.dialogs.ParameterSetupDialog;
 import net.sf.mzmine.userinterface.mainwindow.MainWindow;
 

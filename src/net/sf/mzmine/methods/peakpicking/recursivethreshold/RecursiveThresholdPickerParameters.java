@@ -24,10 +24,6 @@ import net.sf.mzmine.data.Parameter.ParameterType;
 import net.sf.mzmine.data.impl.SimpleParameter;
 import net.sf.mzmine.methods.MethodParameters;
 
-import org.w3c.dom.Document;
-import org.w3c.dom.Element;
-import org.w3c.dom.NodeList;
-
 class RecursiveThresholdPickerParameters extends MethodParameters {
   
     protected static final Parameter binSize = new SimpleParameter(	ParameterType.DOUBLE,

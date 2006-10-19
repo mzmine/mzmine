@@ -22,7 +22,6 @@ package net.sf.mzmine.methods.peakpicking.centroid;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
-import java.text.NumberFormat;
 import java.util.logging.Logger;
 
 import javax.swing.JMenuItem;
@@ -35,8 +34,6 @@ import net.sf.mzmine.io.OpenedRawDataFile;
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.methods.Method;
 import net.sf.mzmine.methods.MethodParameters;
-import net.sf.mzmine.methods.alignment.join.JoinAlignerParameters;
-import net.sf.mzmine.project.MZmineProject;
 import net.sf.mzmine.taskcontrol.Task;
 import net.sf.mzmine.taskcontrol.TaskController;
 import net.sf.mzmine.taskcontrol.TaskListener;

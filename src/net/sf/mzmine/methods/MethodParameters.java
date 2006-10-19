@@ -19,16 +19,12 @@
 
 package net.sf.mzmine.methods;
 
-import java.io.Serializable;
 import java.util.Hashtable;
 
 import net.sf.mzmine.data.Parameter;
 import net.sf.mzmine.data.ParameterValue;
 import net.sf.mzmine.data.impl.SimpleParameterValue;
 import net.sf.mzmine.project.MZmineProject;
-
-import org.w3c.dom.Element;
-import org.w3c.dom.Document;
 
 
 /**

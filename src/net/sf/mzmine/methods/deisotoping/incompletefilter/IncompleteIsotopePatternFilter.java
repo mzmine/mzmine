@@ -19,19 +19,11 @@
 */
 package net.sf.mzmine.methods.deisotoping.incompletefilter;
 
-import java.text.NumberFormat;
-import java.util.logging.Logger;
-
 import net.sf.mzmine.data.AlignmentResult;
 import net.sf.mzmine.io.OpenedRawDataFile;
-import net.sf.mzmine.io.RawDataFile;
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.methods.Method;
 import net.sf.mzmine.methods.MethodParameters;
-import net.sf.mzmine.methods.alignment.join.JoinAlignerParameters;
-import net.sf.mzmine.project.MZmineProject;
-import net.sf.mzmine.taskcontrol.TaskController;
-import net.sf.mzmine.userinterface.Desktop;
 import net.sf.mzmine.userinterface.dialogs.ParameterSetupDialog;
 import net.sf.mzmine.userinterface.mainwindow.MainWindow;
 

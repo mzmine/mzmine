@@ -29,10 +29,7 @@ import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
 
 import net.sf.mzmine.data.AlignmentResult;
-import net.sf.mzmine.data.Parameter;
 import net.sf.mzmine.data.PeakList;
-import net.sf.mzmine.data.Parameter.ParameterType;
-import net.sf.mzmine.data.impl.SimpleParameter;
 import net.sf.mzmine.io.OpenedRawDataFile;
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.methods.Method;

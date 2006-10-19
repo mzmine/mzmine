@@ -20,19 +20,10 @@
 
 package net.sf.mzmine.methods.alignment.join;
 
-import java.util.Hashtable;
-
 import net.sf.mzmine.data.Parameter;
-import net.sf.mzmine.data.ParameterValue;
 import net.sf.mzmine.data.Parameter.ParameterType;
 import net.sf.mzmine.data.impl.SimpleParameter;
-import net.sf.mzmine.data.impl.SimpleParameterValue;
 import net.sf.mzmine.methods.MethodParameters;
-import net.sf.mzmine.project.MZmineProject;
-
-import org.w3c.dom.Element;
-import org.w3c.dom.Document;
-import org.w3c.dom.NodeList;
 
 
 public class JoinAlignerParameters extends MethodParameters {

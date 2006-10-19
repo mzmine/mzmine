@@ -29,7 +29,6 @@ import javax.swing.event.ListSelectionListener;
 
 import net.sf.mzmine.data.AlignmentResult;
 import net.sf.mzmine.io.OpenedRawDataFile;
-import net.sf.mzmine.userinterface.mainwindow.ItemSelector;
 
 /**
  * This interface represents the application GUI

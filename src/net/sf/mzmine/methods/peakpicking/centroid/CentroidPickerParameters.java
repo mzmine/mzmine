@@ -22,13 +22,7 @@ package net.sf.mzmine.methods.peakpicking.centroid;
 import net.sf.mzmine.data.Parameter;
 import net.sf.mzmine.data.Parameter.ParameterType;
 import net.sf.mzmine.data.impl.SimpleParameter;
-import net.sf.mzmine.data.impl.SimpleParameterValue;
 import net.sf.mzmine.methods.MethodParameters;
-import net.sf.mzmine.project.MZmineProject;
-
-import org.w3c.dom.Document;
-import org.w3c.dom.Element;
-import org.w3c.dom.NodeList;
 
 class CentroidPickerParameters extends MethodParameters {
 
