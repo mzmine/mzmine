@@ -20,39 +20,72 @@
 package net.sf.mzmine.methods;
 
 import java.io.Serializable;
+import java.util.Hashtable;
 
 import net.sf.mzmine.data.Parameter;
+import net.sf.mzmine.data.ParameterValue;
+import net.sf.mzmine.data.impl.SimpleParameterValue;
+import net.sf.mzmine.project.MZmineProject;
 
 import org.w3c.dom.Element;
 import org.w3c.dom.Document;
 
 
 /**
- *
+ * Classes extending MethodParameters represent a set of parameters used by a Method.
+ * They also store values of parameters at the moment when Method ran.
  */
-public interface MethodParameters extends Serializable {
+public abstract class MethodParameters {
 
-    /**
-     * @return parameters in human readable form
-     */
-    public String toString();
+	/**
+	 * Returns array of all method's parameters
+	 */
+	public abstract Parameter[] getParameters();
 
-    /**
-     * Adds parameters to XML document
-     */
-    public Element addToXML(Document doc);
-
-    /**
-     * Reads parameters from XML
-     * @param doc XML document supposed to contain parameters for the method (may not contain them, though)
-     */
-    public void readFromXML(Element element);
-
-    
-    /**
-     * 
-     * @return all parameters 
-     */
-    public Parameter[] getParameters();
+	
+	
+	
+	private Hashtable<Parameter, ParameterValue> values = new Hashtable<Parameter, ParameterValue>();
+	
+	/**
+	 * Adds method's parameters, and also parameters' default values as current values to the project 
+	 */	
+	public void initParameters() {
+		MZmineProject project = MZmineProject.getCurrentProject();
+		for (Parameter p : getParameters()) {
+			if (!project.containsParameterValue(p))
+				project.setParameterValue(p, new SimpleParameterValue(p.getDefaultValue()));
+		}
+	}	
+	
+	/**
+	 * Returns value of a parameter.
+	 * Note: returned value is not necessarily the same as current value for this parameter (current value is stored at project level)
+	 * @return parameter value or null if value has not been set using setParameterValue method
+	 */
+	public ParameterValue getParameterValue(Parameter parameter) {
+		return values.get(parameter);
+	}
+	
+	/**
+	 * Sets value of a parameter.
+	 * Also the current value of the parameter at project level is set to this value 
+	 */
+	public void setParameterValue(Parameter parameter, ParameterValue value) {
+		values.put(parameter, value);
+		MZmineProject.getCurrentProject().setParameterValue(parameter, value);
+	}
+	
+	/**
+	 * Represent method's parameters and their values in human-readable format 
+	 */
+    public String toString() {
+    	String s = "";
+    	MZmineProject project = MZmineProject.getCurrentProject();
+		for (Parameter p : getParameters()) {
+			s = s.concat(p.getName() + values.get(p) + ", ");
+		}
+		return s;
+	}	
     
 }

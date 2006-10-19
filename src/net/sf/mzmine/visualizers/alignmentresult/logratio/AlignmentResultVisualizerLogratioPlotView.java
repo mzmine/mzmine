@@ -394,7 +394,7 @@ public class AlignmentResultVisualizerLogratioPlotView extends JInternalFrame im
 		// - Set this as active visualizer for the alignment result
 		//alignmentResult.setActiveVisualizer(this);
 		// - Select the alignment result in the menu
-		mainWin.getItemSelector().setActiveAlignmentResult(alignmentResult);
+		mainWin.setSelectedAlignmentResult(alignmentResult);
 	}
 	public void internalFrameClosed(InternalFrameEvent e) {	}
 	public void internalFrameClosing(InternalFrameEvent e) { }

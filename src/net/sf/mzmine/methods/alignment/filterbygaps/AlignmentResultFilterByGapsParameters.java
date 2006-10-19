@@ -29,35 +29,17 @@ import net.sf.mzmine.data.impl.SimpleParameter;
 import net.sf.mzmine.methods.MethodParameters;
 
 
-public class AlignmentResultFilterByGapsParameters implements MethodParameters {
+public class AlignmentResultFilterByGapsParameters extends MethodParameters {
 
 
-
-
-
-	public Parameter maxGaps;
-
-	public AlignmentResultFilterByGapsParameters() {
-		maxGaps = new SimpleParameter(	ParameterType.INTEGER,
-										"Max gaps",
-										"Maximum number of gaps allowed per line",
-										"",
-										new Integer(1) );
+	protected static final Parameter maxGaps = new SimpleParameter(	ParameterType.INTEGER,
+																	"Max gaps",
+																	"Maximum number of gaps allowed per line",
+																	"",
+																	new Integer(1) );
 	
-	}
-
-	public Element addToXML(Document doc) {
-		// TODO Auto-generated method stub
-		return null;
-	}
-
-	public void readFromXML(Element element) {
-		// TODO Auto-generated method stub
-	}	
-
 	public Parameter[] getParameters() {
-		Parameter[] parameters = new Parameter[1];
-		parameters[0] = maxGaps;
-		return parameters;
+		return new Parameter[] {maxGaps};
 	}
+	
 }

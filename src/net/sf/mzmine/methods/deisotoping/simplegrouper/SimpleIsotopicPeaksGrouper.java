@@ -34,12 +34,14 @@ import net.sf.mzmine.io.OpenedRawDataFile;
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.methods.Method;
 import net.sf.mzmine.methods.MethodParameters;
+import net.sf.mzmine.methods.alignment.join.JoinAlignerParameters;
 import net.sf.mzmine.project.MZmineProject;
 import net.sf.mzmine.taskcontrol.Task;
 import net.sf.mzmine.taskcontrol.TaskController;
 import net.sf.mzmine.taskcontrol.TaskListener;
 import net.sf.mzmine.userinterface.Desktop;
 import net.sf.mzmine.userinterface.Desktop.MZmineMenu;
+import net.sf.mzmine.userinterface.dialogs.ParameterSetupDialog;
 import net.sf.mzmine.userinterface.mainwindow.MainWindow;
 
 /**
@@ -54,6 +56,8 @@ public class SimpleIsotopicPeaksGrouper implements Method,
 
     private Logger logger = Logger.getLogger(this.getClass().getName());
 
+    private SimpleIsotopicPeaksGrouperParameters parameters;
+    
     private TaskController taskController;
     private Desktop desktop;
     private JMenuItem myMenuItem;
@@ -81,24 +85,21 @@ public class SimpleIsotopicPeaksGrouper implements Method,
      *
      * @see net.sf.mzmine.methods.Method#askParameters()
      */
-    public MethodParameters askParameters() {
+    public boolean askParameters() {
 
-		logger.finest("Showing simple isotopic peaks grouper parameter setup dialog");
+        parameters = new SimpleIsotopicPeaksGrouperParameters();
+        parameters.initParameters();    	
 
-        MZmineProject currentProject = MZmineProject.getCurrentProject();
-        SimpleIsotopicPeaksGrouperParameters currentParameters = (SimpleIsotopicPeaksGrouperParameters) currentProject.getParameters(this);
-        if (currentParameters == null)
-            currentParameters = new SimpleIsotopicPeaksGrouperParameters();
+        ParameterSetupDialog dialog = new ParameterSetupDialog(		
+        				MainWindow.getInstance(),
+        				"Please check parameter values for " + toString(),
+        				parameters
+        		);
+        dialog.setVisible(true);
+        
+		if (dialog.getExitCode()==-1) return false;
 
-        SimpleIsotopicPeaksGrouperParameterSetupDialog sdpsd = new SimpleIsotopicPeaksGrouperParameterSetupDialog(
-                desktop.getMainFrame(), currentParameters);
-        sdpsd.setVisible(true);
-
-        if (sdpsd.getExitCode() == -1) {
-            return null;
-        }
-
-        return sdpsd.getParameters();
+		return true;
 
     }
 
@@ -110,7 +111,7 @@ public class SimpleIsotopicPeaksGrouper implements Method,
     public void runMethod(MethodParameters parameters,
             OpenedRawDataFile[] dataFiles, AlignmentResult[] alignmentResults) {
 
-        logger.finest("Running simple isotopic peaks grouper");
+        logger.finest("Running " + toString());
 
         SimpleIsotopicPeaksGrouperParameters param = (SimpleIsotopicPeaksGrouperParameters) parameters;
 
@@ -130,9 +131,7 @@ public class SimpleIsotopicPeaksGrouper implements Method,
      */
     public void actionPerformed(ActionEvent e) {
 
-        MethodParameters parameters = askParameters();
-        if (parameters == null)
-            return;
+        if (!askParameters()) return;
 
         OpenedRawDataFile[] dataFiles = desktop.getSelectedDataFiles();
 

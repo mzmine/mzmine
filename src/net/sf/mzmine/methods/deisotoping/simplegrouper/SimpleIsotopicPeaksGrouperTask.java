@@ -36,7 +36,7 @@ class SimpleIsotopicPeaksGrouperTask implements Task {
 
     private OpenedRawDataFile dataFile;
     private RawDataFile rawDataFile;
-    private SimpleIsotopicPeaksGrouperParameters parameters;
+    
     private TaskStatus status;
     private String errorMessage;
 
@@ -45,6 +45,12 @@ class SimpleIsotopicPeaksGrouperTask implements Task {
 
     private PeakList currentPeakList;
     private SimplePeakList processedPeakList;
+    
+    private SimpleIsotopicPeaksGrouperParameters parameters;
+    private double mzTolerance;
+    private double rtTolerance;
+    private boolean monotonicShape;
+    private int maximumCharge;
 
     /**
      * @param rawDataFile
@@ -56,10 +62,16 @@ class SimpleIsotopicPeaksGrouperTask implements Task {
         status = TaskStatus.WAITING;
         this.dataFile = dataFile;
         this.rawDataFile = dataFile.getCurrentFile();
-        this.parameters = parameters;
+        
         this.currentPeakList = currentPeakList;
 
         processedPeakList = new SimplePeakList();
+        
+        this.parameters = parameters;
+        mzTolerance = (Double)parameters.getParameterValue(parameters.mzTolerance).getValue();
+        rtTolerance = (Double)parameters.getParameterValue(parameters.rtTolerance).getValue();
+        monotonicShape = (Boolean)parameters.getParameterValue(parameters.monotonicShape).getValue();
+        maximumCharge = (Integer)parameters.getParameterValue(parameters.maximumCharge).getValue();
 
     }
 
@@ -119,13 +131,8 @@ class SimpleIsotopicPeaksGrouperTask implements Task {
         status = TaskStatus.PROCESSING;
 
         // Collect all selected charge states
-        int charges[] = new int[parameters.chargeStates.size()];
-        Iterator<Integer> chargeIter = parameters.chargeStates.iterator();
-        int index = 0;
-        while (chargeIter.hasNext()) {
-            charges[index] = chargeIter.next().intValue();
-            index++;
-        }
+        int charges[] = new int[maximumCharge];
+        for (int i=0; i<maximumCharge; i++) charges[i] = (i+1);
 
         Peak[] sortedPeaks = currentPeakList.getPeaks();
         Arrays.sort(sortedPeaks, new PeakOrdererByDescendingHeight());
@@ -149,7 +156,7 @@ class SimpleIsotopicPeaksGrouperTask implements Task {
 
                 Hashtable<Peak, Integer> fittedPeaks = new Hashtable<Peak, Integer>();
                 fittedPeaks.put(aPeak, new Integer(ind));
-                fitPattern(fittedPeaks, aPeak, charge, parameters, sortedPeaks);
+                fitPattern(fittedPeaks, aPeak, charge, sortedPeaks);
 
                 int score = fittedPeaks.size();
                 if ((score > bestFitScore)
@@ -192,20 +199,19 @@ class SimpleIsotopicPeaksGrouperTask implements Task {
      *            pattern.
      * @return Array of peaks in same pattern
      */
-    private void fitPattern(Hashtable<Peak, Integer> fittedPeaks, Peak p, int charge,
-            SimpleIsotopicPeaksGrouperParameters parameters, Peak[] sortedPeaks) {
+    private void fitPattern(Hashtable<Peak, Integer> fittedPeaks, Peak p, int charge, Peak[] sortedPeaks) {
 
         if (charge == 0) {
             return;
         }
 
         // Search for peaks before the start peak
-        if (!parameters.monotonicShape) {
-            fitHalfPattern(p, charge, -1, parameters, fittedPeaks, sortedPeaks);
+        if (!monotonicShape) {
+            fitHalfPattern(p, charge, -1, fittedPeaks, sortedPeaks);
         }
 
         // Search for peaks after the start peak
-        fitHalfPattern(p, charge, 1, parameters, fittedPeaks, sortedPeaks);
+        fitHalfPattern(p, charge, 1, fittedPeaks, sortedPeaks);
 
     }
 
@@ -220,7 +226,6 @@ class SimpleIsotopicPeaksGrouperTask implements Task {
      * @param fittedPeaks All matching peaks will be added to this set
      */
     private void fitHalfPattern(Peak p, int charge, int direction,
-            SimpleIsotopicPeaksGrouperParameters parameters,
             Hashtable<Peak, Integer> fittedPeaks,
             Peak[] sortedPeaks) {
 
@@ -262,8 +267,8 @@ class SimpleIsotopicPeaksGrouperTask implements Task {
                 // - not already a fitted peak (only necessary to avoid
                 // conflicts when parameters are set too wide)
                 
-                if (java.lang.Math.abs((candidatePeakMZ - direction * n * neutronMW / (double) charge) - currentMZ) < parameters.mzTolerance) {
-                	if (java.lang.Math.abs(candidatePeakRT - currentRT) < parameters.rtTolerance) {
+                if (java.lang.Math.abs((candidatePeakMZ - direction * n * neutronMW / (double) charge) - currentMZ) < mzTolerance) {
+                	if (java.lang.Math.abs(candidatePeakRT - currentRT) < rtTolerance) {
                 		if (candidatePeakIntensity < currentHeight) {
                 			if (!fittedPeaks.contains(candidatePeak)) {
                 				goodCandidates.put(candidatePeak, new Integer(ind));

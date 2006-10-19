@@ -41,7 +41,7 @@ class CentroidPickerTask implements Task {
 
     private OpenedRawDataFile dataFile;
     private RawDataFile rawDataFile;
-    private CentroidPickerParameters parameters;
+    
     private TaskStatus status;
     private String errorMessage;
 
@@ -50,6 +50,16 @@ class CentroidPickerTask implements Task {
 
     private SimplePeakList readyPeakList;
 
+    private CentroidPickerParameters parameters;
+    private double binSize;
+    private double chromatographicThresholdLevel;
+    private double intTolerance;
+    private double minimumPeakDuration;
+    private double minimumPeakHeight;
+    private double mzTolerance;
+    private double noiseLevel;        
+
+    
     /**
      * @param rawDataFile
      * @param parameters
@@ -61,6 +71,15 @@ class CentroidPickerTask implements Task {
         this.rawDataFile = dataFile.getCurrentFile();
         this.parameters = parameters;
 
+        // Get parameter values for easier use
+        binSize = (Double)parameters.getParameterValue(parameters.binSize).getValue();
+        chromatographicThresholdLevel = (Double)parameters.getParameterValue(parameters.chromatographicThresholdLevel).getValue();
+        intTolerance = (Double)parameters.getParameterValue(parameters.intTolerance).getValue();
+        minimumPeakDuration = (Double)parameters.getParameterValue(parameters.minimumPeakDuration).getValue();
+        minimumPeakHeight = (Double)parameters.getParameterValue(parameters.minimumPeakHeight).getValue();
+        mzTolerance = (Double)parameters.getParameterValue(parameters.mzTolerance).getValue();
+        noiseLevel = (Double)parameters.getParameterValue(parameters.noiseLevel).getValue();        
+        
         readyPeakList = new SimplePeakList();
     }
 
@@ -123,6 +142,8 @@ class CentroidPickerTask implements Task {
 
         totalScans = scanNumbers.length;
 
+
+        
         /*
          * Calculate M/Z binning
          */
@@ -131,12 +152,11 @@ class CentroidPickerTask implements Task {
                                                         // the raw data file
         double endMZ = rawDataFile.getDataMaxMZ(1); // maximum m/z value in the
                                                     // raw data file
-        int numOfBins = (int) (java.lang.Math.ceil((endMZ - startMZ)
-                / parameters.binSize));
+        int numOfBins = (int) (java.lang.Math.ceil((endMZ - startMZ) / binSize));
 
 		double[] chromatographicThresholds = new double[numOfBins];
 
-		if (parameters.chromatographicThresholdLevel>0) {
+		if (chromatographicThresholdLevel>0) {
 
 			double[][] binInts = new double[numOfBins][totalScans];
 
@@ -172,8 +192,7 @@ class CentroidPickerTask implements Task {
 
 			for (int bini = 0; bini < numOfBins; bini++) {
 
-				chromatographicThresholds[bini] = MathUtils.calcQuantile(
-						binInts[bini], parameters.chromatographicThresholdLevel);
+				chromatographicThresholds[bini] = MathUtils.calcQuantile(binInts[bini], chromatographicThresholdLevel);
 				if (chromatographicThresholds[bini] < initialThreshold) {
 					initialThreshold = chromatographicThresholds[bini];
 				}
@@ -218,11 +237,10 @@ class CentroidPickerTask implements Task {
             for (int j = 0; j < intensities.length; j++) {
 
                 // Is intensity above the noise level?
-                if (intensities[j] >= parameters.noiseLevel) {
+                if (intensities[j] >= noiseLevel) {
 
                     // Determine correct bin
-                    int bin = (int) java.lang.Math.floor((masses[j] - startMZ)
-                            / parameters.binSize);
+                    int bin = (int) java.lang.Math.floor((masses[j] - startMZ) / binSize);
                     if (bin < 0) {
                         bin = 0;
                     }
@@ -310,8 +328,7 @@ class CentroidPickerTask implements Task {
                     // Check length
                     double ucLength = ucPeak.getMaxRT() - ucPeak.getMinRT();
                     double ucHeight = ucPeak.getRawHeight();
-                    if ((ucLength >= parameters.minimumPeakDuration)
-                            && (ucHeight >= parameters.minimumPeakHeight)) {
+                    if ((ucLength >= minimumPeakDuration) && (ucHeight >= minimumPeakHeight)) {
 
                         // Good peak
 
@@ -381,8 +398,7 @@ class CentroidPickerTask implements Task {
             // Check length & height
             double ucLength = ucPeak.getMaxRT() - ucPeak.getMinRT();
             double ucHeight = ucPeak.getRawHeight();
-            if ((ucLength >= parameters.minimumPeakDuration)
-                    && (ucHeight >= parameters.minimumPeakHeight)) {
+            if ((ucLength >= minimumPeakDuration) && (ucHeight >= minimumPeakHeight)) {
 
                 // Good peak
 
@@ -475,7 +491,7 @@ class CentroidPickerTask implements Task {
 
             // If mz difference is too big? (do this first for optimal
             // performance)
-            if (java.lang.Math.abs(ucMZ - od.mz) > parameters.mzTolerance) {
+            if (java.lang.Math.abs(ucMZ - od.mz) > mzTolerance) {
                 return Double.MAX_VALUE;
 
             } else {
@@ -525,7 +541,7 @@ class CentroidPickerTask implements Task {
 
                 // If it goes too much down, then give MAX_VALUE
                 double bottomMargin = prevIntensity
-                        * (1 - parameters.intTolerance);
+                        * (1 - intTolerance);
                 if (nextIntensity <= bottomMargin) {
                     return Double.MAX_VALUE;
                 }
@@ -556,7 +572,7 @@ class CentroidPickerTask implements Task {
                     // Then next intensity must be above bottomMargin or derSign
                     // changes
                     double bottomMargin = prevIntensity
-                            * (1 - parameters.intTolerance);
+                            * (1 - intTolerance);
 
                     if (currIntensity <= bottomMargin) {
                         derSign = -1;
@@ -569,7 +585,7 @@ class CentroidPickerTask implements Task {
                     // Then next intensity should be less than topMargin or peak
                     // ends
                     double topMargin = prevIntensity
-                            * (1 + parameters.intTolerance);
+                            * (1 + intTolerance);
 
                     if (currIntensity >= topMargin) {
                         return Double.MAX_VALUE;
@@ -597,7 +613,7 @@ class CentroidPickerTask implements Task {
 
                 // Then peak must not start going up again
                 double topMargin = lastIntensity
-                        * (1 + parameters.intTolerance);
+                        * (1 + intTolerance);
 
                 if (nextIntensity >= topMargin) {
                     return Double.MAX_VALUE;

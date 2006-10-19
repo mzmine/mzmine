@@ -52,6 +52,8 @@ public class RecursiveThresholdPicker implements Method,
     private TaskController taskController;
     private Desktop desktop;
     private JMenuItem myMenuItem;
+    
+    private RecursiveThresholdPickerParameters parameters;
 
     /**
      * @see net.sf.mzmine.main.MZmineModule#initModule(net.sf.mzmine.main.MZmineCore)
@@ -74,143 +76,21 @@ public class RecursiveThresholdPicker implements Method,
      *
      * @see net.sf.mzmine.methods.Method#askParameters()
      */
-    public MethodParameters askParameters() {
+    public boolean askParameters() {
 
-        MZmineProject currentProject = MZmineProject.getCurrentProject();
-        RecursiveThresholdPickerParameters currentParameters = (RecursiveThresholdPickerParameters) currentProject.getParameters(this);
-        if (currentParameters == null)
-            currentParameters = new RecursiveThresholdPickerParameters();
+        parameters = new RecursiveThresholdPickerParameters();
+        parameters.initParameters();    	
 
-        return currentParameters;
-        // TODO: Edit & enable this code, after reorganizating parameters and parameter setup dialog to comply with MethodParameters and new ParameterSetupDialog        
-/*        
-        // Initialize parameter setup dialog
-        double[] paramValues = new double[9];
-        paramValues[0] = currentParameters.binSize;
-        paramValues[1] = currentParameters.chromatographicThresholdLevel;
-        paramValues[2] = currentParameters.noiseLevel;
-        paramValues[3] = currentParameters.minimumPeakHeight;
-        paramValues[4] = currentParameters.minimumPeakDuration;
-        paramValues[5] = currentParameters.minimumMZPeakWidth;
-        paramValues[6] = currentParameters.maximumMZPeakWidth;
-        paramValues[7] = currentParameters.mzTolerance;
-        paramValues[8] = currentParameters.intTolerance;
+        ParameterSetupDialog dialog = new ParameterSetupDialog(		
+        				MainWindow.getInstance(),
+        				"Please check parameter values for " + toString(),
+        				parameters);
+        
+        dialog.setVisible(true);
+        
+		if (dialog.getExitCode()==-1) return false;
 
-        String[] paramNames = new String[9];
-        paramNames[0] = "M/Z bin size (Da)";
-        paramNames[1] = "Chromatographic threshold level (%)";
-        paramNames[2] = "Noise level (absolute value)";
-        paramNames[3] = "Minimum peak height (absolute value)";
-        paramNames[4] = "Minimum peak duration (seconds)";
-        paramNames[5] = "Minimum M/Z peak width (Da)";
-        paramNames[6] = "Maximum M/Z peak width (Da)";
-        paramNames[7] = "Tolerance for M/Z variation (Da)";
-        paramNames[8] = "Tolerance for intensity variation (%)";
-
-        NumberFormat[] numberFormats = new NumberFormat[9];
-        numberFormats[0] = NumberFormat.getNumberInstance();
-        numberFormats[0].setMinimumFractionDigits(3);
-        numberFormats[1] = NumberFormat.getPercentInstance();
-        numberFormats[2] = NumberFormat.getNumberInstance();
-        numberFormats[2].setMinimumFractionDigits(0);
-        numberFormats[3] = NumberFormat.getNumberInstance();
-        numberFormats[3].setMinimumFractionDigits(0);
-        numberFormats[4] = NumberFormat.getNumberInstance();
-        numberFormats[4].setMinimumFractionDigits(1);
-        numberFormats[5] = NumberFormat.getNumberInstance();
-        numberFormats[5].setMinimumFractionDigits(3);
-        numberFormats[6] = NumberFormat.getNumberInstance();
-        numberFormats[6].setMinimumFractionDigits(3);
-        numberFormats[7] = NumberFormat.getNumberInstance();
-        numberFormats[7].setMinimumFractionDigits(3);
-        numberFormats[8] = NumberFormat.getPercentInstance();
-
-        logger.finest("Showing recursive threshold peak picker parameter setup dialog");
-
-        // Show parameter setup dialog
-        ParameterSetupDialog psd = new ParameterSetupDialog(
-                desktop.getMainFrame(), "Please check the parameter values",
-                paramNames, paramValues, numberFormats);
-        psd.setVisible(true);
-
-        // Check if user clicked Cancel-button
-        if (psd.getExitCode() == -1) {
-            return null;
-        }
-
-        RecursiveThresholdPickerParameters newParameters = new RecursiveThresholdPickerParameters();
-
-        // Read parameter values from dialog
-        double d;
-
-        d = psd.getFieldValue(0);
-        if (d <= 0) {
-            desktop.displayErrorMessage("Incorrect " + paramNames[0]);
-            return null;
-        }
-        currentParameters.binSize = d;
-
-        d = psd.getFieldValue(1);
-        if (d < 0) {
-            desktop.displayErrorMessage("Incorrect " + paramNames[1]);
-            return null;
-        }
-        currentParameters.chromatographicThresholdLevel = d;
-
-        d = psd.getFieldValue(2);
-        if (d < 0) {
-            desktop.displayErrorMessage("Incorrect " + paramNames[2]);
-            return null;
-        }
-        currentParameters.noiseLevel = d;
-
-        d = psd.getFieldValue(3);
-        if (d <= 0) {
-            desktop.displayErrorMessage("Incorrect " + paramNames[3]);
-            return null;
-        }
-        currentParameters.minimumPeakHeight = d;
-
-        d = psd.getFieldValue(4);
-        if (d <= 0) {
-            desktop.displayErrorMessage("Incorrect " + paramNames[4]);
-            return null;
-        }
-        currentParameters.minimumPeakDuration = d;
-
-        d = psd.getFieldValue(5);
-        if (d <= 0) {
-            desktop.displayErrorMessage("Incorrect " + paramNames[5]);
-            return null;
-        }
-        currentParameters.minimumMZPeakWidth = d;
-
-        d = psd.getFieldValue(6);
-        if (d <= 0) {
-            desktop.displayErrorMessage("Incorrect " + paramNames[6]);
-            return null;
-        }
-        currentParameters.maximumMZPeakWidth = d;
-
-        d = psd.getFieldValue(7);
-        if (d < 0) {
-            desktop.displayErrorMessage("Incorrect " + paramNames[7]);
-            return null;
-        }
-        currentParameters.mzTolerance = d;
-
-        d = psd.getFieldValue(8);
-        if (d < 0) {
-            desktop.displayErrorMessage("Incorrect " + paramNames[8]);
-            return null;
-        }
-        currentParameters.intTolerance = d;
-
-        // save the current parameter settings for future runs
-        currentProject.setParameters(this, newParameters);
-
-        return newParameters;
-*/
+		return true;
     }
 
     /**
@@ -221,7 +101,7 @@ public class RecursiveThresholdPicker implements Method,
     public void runMethod(MethodParameters parameters,
             OpenedRawDataFile[] dataFiles, AlignmentResult[] alignmentResults) {
 
-        logger.info("Running recursive threshold peak picker");
+    	logger.info("Running " + toString() + " on " + dataFiles.length + " raw data files.");
 
         for (OpenedRawDataFile dataFile : dataFiles) {
             Task pickerTask = new RecursiveThresholdPickerTask(dataFile,
@@ -236,9 +116,7 @@ public class RecursiveThresholdPicker implements Method,
      */
     public void actionPerformed(ActionEvent e) {
 
-        MethodParameters parameters = askParameters();
-        if (parameters == null)
-            return;
+        if (!askParameters()) return;
 
         OpenedRawDataFile[] dataFiles = desktop.getSelectedDataFiles();
 

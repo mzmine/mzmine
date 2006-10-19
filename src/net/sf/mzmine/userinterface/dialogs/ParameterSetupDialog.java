@@ -23,6 +23,7 @@ import java.awt.GridLayout;
 import java.awt.event.ActionListener;
 import java.awt.Frame;
 import java.text.NumberFormat;
+import java.util.Enumeration;
 import java.util.Hashtable;
 
 import javax.swing.BorderFactory;
@@ -35,6 +36,7 @@ import javax.swing.JPanel;
 
 import net.sf.mzmine.data.Parameter;
 import net.sf.mzmine.methods.MethodParameters;
+import net.sf.mzmine.project.MZmineProject;
 
 
 
@@ -65,6 +67,9 @@ public class ParameterSetupDialog extends JDialog implements ActionListener {
 	private JPanel pnlFields;
 	private JPanel pnlButtons;
 
+	private MethodParameters oldParameters;
+	private MethodParameters newParameters;
+	
 	// Exit code for controlling ok/cancel response
 	private int exitCode = -1;
 
@@ -76,6 +81,8 @@ public class ParameterSetupDialog extends JDialog implements ActionListener {
 
 		// Make dialog modal
 		super(owner, true);
+		
+		this.oldParameters = methodParameters;
 		
 		exitCode = -1;
 
@@ -110,6 +117,7 @@ public class ParameterSetupDialog extends JDialog implements ActionListener {
 		decimalNumberFormat.setMinimumFractionDigits(1);
 
 		// Create labels and components for each parameter
+		MZmineProject project = MZmineProject.getCurrentProject();
 		for (int i=0; i<methodParameters.getParameters().length; i++) {
 			Parameter p = methodParameters.getParameters()[i];
 
@@ -126,7 +134,7 @@ public class ParameterSetupDialog extends JDialog implements ActionListener {
 			case STRING:
 			default:
 				JFormattedTextField txtField = new JFormattedTextField(p.getFormat());
-				txtField.setValue(p.getDefaultValue());
+				txtField.setValue(project.getParameterValue(p));
 				txtField.setColumns(8);
 				txtField.setToolTipText(p.getDescription());
 				parametersAndComponents.put(p, txtField);
@@ -181,7 +189,16 @@ public class ParameterSetupDialog extends JDialog implements ActionListener {
 	public void actionPerformed(java.awt.event.ActionEvent ae) {
 		Object src = ae.getSource();
 		if (src==btnOK) {
-			// TODO: Copy values from components to parameters
+			
+			// Copy values from components to parameters
+			Enumeration<Parameter> paramEnum = parametersAndComponents.keys();
+			while (paramEnum.hasMoreElements()) {
+				Parameter p = paramEnum.nextElement();
+				Component c = parametersAndComponents.get(p);
+
+			
+			}
+			
 			
 			exitCode = 1;
 			dispose();
@@ -199,8 +216,8 @@ public class ParameterSetupDialog extends JDialog implements ActionListener {
 	 * @param	fieldNum	Number of field
 	 * @return	Value of the field
 	 */
-	public double getFieldValue(int fieldNum) {
-		return ((Number)textFields[fieldNum].getValue()).doubleValue();
+	public MethodParameters getParameters() {
+		return newParameters;
 	}
 
 	/**

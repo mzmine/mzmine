@@ -35,6 +35,7 @@ import net.sf.mzmine.io.RawDataFile;
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.methods.Method;
 import net.sf.mzmine.methods.MethodParameters;
+import net.sf.mzmine.methods.alignment.join.JoinAlignerParameters;
 import net.sf.mzmine.project.MZmineProject;
 import net.sf.mzmine.taskcontrol.Task;
 import net.sf.mzmine.taskcontrol.TaskController;
@@ -42,11 +43,14 @@ import net.sf.mzmine.taskcontrol.TaskListener;
 import net.sf.mzmine.userinterface.Desktop;
 import net.sf.mzmine.userinterface.Desktop.MZmineMenu;
 import net.sf.mzmine.userinterface.dialogs.ParameterSetupDialog;
+import net.sf.mzmine.userinterface.mainwindow.MainWindow;
 
 public class ZoomScanFilter implements Method, TaskListener,
         ListSelectionListener, ActionListener {
 
     private Logger logger = Logger.getLogger(this.getClass().getName());
+    
+    private ZoomScanFilterParameters parameters;
 
     private TaskController taskController;
     private Desktop desktop;
@@ -72,58 +76,22 @@ public class ZoomScanFilter implements Method, TaskListener,
      * 
      * @see net.sf.mzmine.methods.Method#askParameters()
      */
-    public MethodParameters askParameters() {
+    public boolean askParameters() {
 
-        MZmineProject currentProject = MZmineProject.getCurrentProject();
-        ZoomScanFilterParameters currentParameters = (ZoomScanFilterParameters) currentProject.getParameters(this);
-        if (currentParameters == null)
-            currentParameters = new ZoomScanFilterParameters();
+        parameters = new ZoomScanFilterParameters();
+        parameters.initParameters();    	
 
-        return currentParameters;
-        // TODO: Edit & enable this code, after reorganizating parameters and parameter setup dialog to comply with MethodParameters and new ParameterSetupDialog
-/*        
-        // Initialize parameter setup dialog
-        double[] paramValues = new double[1];
-        paramValues[0] = currentParameters.minMZRange;
+        ParameterSetupDialog dialog = new ParameterSetupDialog(		
+        				MainWindow.getInstance(),
+        				"Please check parameter values for " + toString(),
+        				parameters
+        		);
+        dialog.setVisible(true);
+        
+		if (dialog.getExitCode()==-1) return false;
 
-        String[] paramNames = new String[1];
-        paramNames[0] = "Minimum M/Z range width";
-
-        NumberFormat[] numberFormats = new NumberFormat[1];
-        numberFormats[0] = NumberFormat.getNumberInstance();
-        numberFormats[0].setMinimumFractionDigits(3);
-
-        logger.finest("Showing zoom scan filter parameter setup dialog");
-
-        // Show parameter setup dialog
-        ParameterSetupDialog psd = new ParameterSetupDialog(
-                desktop.getMainFrame(), "Please check the parameter values",
-                paramNames, paramValues, numberFormats);
-        psd.setVisible(true);
-
-        // Check if user clicked Cancel-button
-        if (psd.getExitCode() == -1) {
-            return null;
-        }
-
-        ZoomScanFilterParameters newParameters = new ZoomScanFilterParameters();
-
-        // Read parameter values from dialog
-        double d;
-
-        // minMZRange
-        d = psd.getFieldValue(0);
-        if (d <= 0) {
-            desktop.displayErrorMessage("Incorrect minimum M/Z range width!");
-            return null;
-        }
-        newParameters.minMZRange = d;
-
-        // save the current parameter settings for future runs
-        currentProject.setParameters(this, newParameters);
-
-        return newParameters;
-*/        
+		return true;
+		
     }
 
     /**
@@ -134,7 +102,7 @@ public class ZoomScanFilter implements Method, TaskListener,
     public void runMethod(MethodParameters parameters,
             OpenedRawDataFile[] dataFiles, AlignmentResult[] alignmentResults) {
 
-        logger.info("Running zoom scan filter");
+        logger.info("Running " + toString() + " on " + dataFiles.length + " raw data files.");
 
         for (OpenedRawDataFile dataFile : dataFiles) {
             Task filterTask = new ZoomScanFilterTask(dataFile,
@@ -149,9 +117,7 @@ public class ZoomScanFilter implements Method, TaskListener,
      */
     public void actionPerformed(ActionEvent e) {
 
-        MethodParameters parameters = askParameters();
-        if (parameters == null)
-            return;
+        if (!askParameters()) return;
 
         OpenedRawDataFile[] dataFiles = desktop.getSelectedDataFiles();
 

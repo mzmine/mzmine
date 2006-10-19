@@ -20,6 +20,8 @@
 package net.sf.mzmine.methods.filtering.savitzkygolay;
 
 import net.sf.mzmine.data.Parameter;
+import net.sf.mzmine.data.Parameter.ParameterType;
+import net.sf.mzmine.data.impl.SimpleParameter;
 import net.sf.mzmine.methods.MethodParameters;
 
 import org.w3c.dom.Document;
@@ -29,62 +31,27 @@ import org.w3c.dom.NodeList;
 /**
  * This class represents parameter for the Savizky-Golay filter
  */
-public class SavitzkyGolayFilterParameters implements MethodParameters {
-
-    /**
-     * These Strings are used to access parameter values in an XML element
-     */
-    private static final String tagName = "SavitzkyGolayFilterParameters";
-    private static final String numberOfDataPointsAttributeName = "NumberOfDataPoints";
-
-    /**
-     * Number of datapoints used for fitting
-     */
-    public int numberOfDataPoints = 5;
-
-    public String toString() {
-        return new String("Number of datapoints = " + numberOfDataPoints);
-    }
-
-    /**
-     * Adds parameters to XML document
-     */
-    public Element addToXML(Document doc) {
-
-        Element e = doc.createElement(tagName);
-        e.setAttribute(numberOfDataPointsAttributeName,
-                String.valueOf(numberOfDataPoints));
-        return e;
-
-    }
-
-    /**
-     * Reads parameters from XML
-     * 
-     * @param doc XML document supposed to contain parameters for the method
-     *            (may not contain them, though)
-     */
-    public void readFromXML(Element element) {
-
-        // Find my element
-        NodeList n = element.getElementsByTagName(tagName);
-        if ((n == null) || (n.getLength() < 1))
-            return;
-        Element myElement = (Element) (n.item(0));
-
-        // Set values
-        String attrValue;
-        attrValue = myElement.getAttribute(numberOfDataPointsAttributeName);
-        try {
-            numberOfDataPoints = Integer.parseInt(attrValue);
-        } catch (NumberFormatException nfe) {
-        }
-
-    }
+public class SavitzkyGolayFilterParameters extends MethodParameters {
+    
+	protected static final Integer datapoints5 = new Integer(5);
+	protected static final Integer datapoints7 = new Integer(7);
+	protected static final Integer datapoints9 = new Integer(9);
+	protected static final Integer datapoints11 = new Integer(11);
+	protected static final Integer datapoints13 = new Integer(13);
+	protected static final Integer datapoints15 = new Integer(15);
+	
+    protected static final Integer[] numberOfDatapointsPossibleValues = { datapoints5, datapoints7, datapoints9, datapoints11, datapoints13, datapoints15};
+    
+	protected static final Parameter numberOfDatapoints = new SimpleParameter(	
+			ParameterType.OBJECT,
+			"Number of datapoints",
+			"Number of datapoints",
+			numberOfDatapointsPossibleValues[0],
+			numberOfDatapointsPossibleValues);
+    
 
 	public Parameter[] getParameters() {
-		// TODO Auto-generated method stub
-		return null;
+		return new Parameter[] { numberOfDatapoints };
 	}
 
 }

@@ -41,7 +41,7 @@ class RecursiveThresholdPickerTask implements Task {
 
     private OpenedRawDataFile dataFile;
     private RawDataFile rawDataFile;
-    private RecursiveThresholdPickerParameters parameters;
+    
     private TaskStatus status;
     private String errorMessage;
 
@@ -49,6 +49,17 @@ class RecursiveThresholdPickerTask implements Task {
     private int totalScans;
 
     private SimplePeakList readyPeakList;
+    
+    private RecursiveThresholdPickerParameters parameters;
+    private double binSize;
+    private double chromatographicThresholdLevel;
+    private double intTolerance;
+    private double minimumPeakDuration;
+    private double minimumPeakHeight;
+    private double minimumMZPeakWidth;
+    private double maximumMZPeakWidth;
+    private double mzTolerance;
+    private double noiseLevel;    
 
     /**
      * @param rawDataFile
@@ -59,8 +70,18 @@ class RecursiveThresholdPickerTask implements Task {
         status = TaskStatus.WAITING;
         this.dataFile = dataFile;
         this.rawDataFile = dataFile.getCurrentFile();
-        this.parameters = parameters;
 
+        this.parameters = parameters;
+        binSize = (Double)parameters.getParameterValue(parameters.binSize).getValue();
+        chromatographicThresholdLevel = (Double)parameters.getParameterValue(parameters.chromatographicThresholdLevel).getValue();
+        intTolerance = (Double)parameters.getParameterValue(parameters.intTolerance).getValue();
+        minimumPeakDuration = (Double)parameters.getParameterValue(parameters.minimumPeakDuration).getValue();
+        minimumPeakHeight = (Double)parameters.getParameterValue(parameters.minimumPeakHeight).getValue();
+        minimumMZPeakWidth = (Double)parameters.getParameterValue(parameters.minimumMZPeakWidth).getValue();
+        maximumMZPeakWidth = (Double)parameters.getParameterValue(parameters.maximumMZPeakWidth).getValue();
+        mzTolerance = (Double)parameters.getParameterValue(parameters.mzTolerance).getValue();
+        noiseLevel = (Double)parameters.getParameterValue(parameters.noiseLevel).getValue();        
+        
         readyPeakList = new SimplePeakList();
     }
 
@@ -131,11 +152,10 @@ class RecursiveThresholdPickerTask implements Task {
         // the raw data file
         double endMZ = rawDataFile.getDataMaxMZ(1); // maximum m/z value in the
         // raw data file
-        int numOfBins = (int) (java.lang.Math.ceil((endMZ - startMZ)
-                / parameters.binSize));
+        int numOfBins = (int) (java.lang.Math.ceil((endMZ - startMZ) / binSize));
 		double[] chromatographicThresholds = new double[numOfBins];
 
-		if (parameters.chromatographicThresholdLevel>0) {
+		if (chromatographicThresholdLevel>0) {
 
 			double[][] binInts = new double[numOfBins][totalScans];
 
@@ -172,7 +192,7 @@ class RecursiveThresholdPickerTask implements Task {
 			for (int bini = 0; bini < numOfBins; bini++) {
 
 				chromatographicThresholds[bini] = MathUtils.calcQuantile(
-						binInts[bini], parameters.chromatographicThresholdLevel);
+						binInts[bini], chromatographicThresholdLevel);
 				if (chromatographicThresholds[bini] < initialThreshold) {
 					initialThreshold = chromatographicThresholds[bini];
 				}
@@ -215,16 +235,14 @@ class RecursiveThresholdPickerTask implements Task {
 
             Vector<Integer> inds = new Vector<Integer>();
             recursiveThreshold(masses, intensities, 0, masses.length - 1,
-                    parameters.noiseLevel, parameters.minimumMZPeakWidth,
-                    parameters.maximumMZPeakWidth, inds, 0);
+                    noiseLevel, minimumMZPeakWidth,maximumMZPeakWidth, inds, 0);
 
             for (Integer j : inds) {
                 // Is intensity above the noise level
-                if (intensities[j] >= parameters.noiseLevel) {
+                if (intensities[j] >= noiseLevel) {
 
                     // Determine correct bin
-                    int bin = (int) java.lang.Math.floor((masses[j] - startMZ)
-                            / parameters.binSize);
+                    int bin = (int) java.lang.Math.floor((masses[j] - startMZ) / binSize);
                     if (bin < 0) {
                         bin = 0;
                     }
@@ -300,8 +318,8 @@ class RecursiveThresholdPickerTask implements Task {
                     // Check length
                     double ucLength = ucPeak.getMaxRT() - ucPeak.getMinRT();
                     double ucHeight = ucPeak.getRawHeight();
-                    if ((ucLength >= parameters.minimumPeakDuration)
-                            && (ucHeight >= parameters.minimumPeakHeight)) {
+                    if ((ucLength >= minimumPeakDuration)
+                            && (ucHeight >= minimumPeakHeight)) {
 
                         // Good peak
 
@@ -362,8 +380,7 @@ class RecursiveThresholdPickerTask implements Task {
             // Check length & height
             double ucLength = ucPeak.getMaxRT() - ucPeak.getMinRT();
             double ucHeight = ucPeak.getRawHeight();
-            if ((ucLength >= parameters.minimumPeakDuration)
-                    && (ucHeight >= parameters.minimumPeakHeight)) {
+            if ((ucLength >= minimumPeakDuration) && (ucHeight >= minimumPeakHeight)) {
 
                 // Good peak
 
@@ -551,7 +568,7 @@ class RecursiveThresholdPickerTask implements Task {
 
             // If mz difference is too big? (do this first for optimal
             // performance)
-            if (java.lang.Math.abs(ucMZ - od.mz) > parameters.mzTolerance) {
+            if (java.lang.Math.abs(ucMZ - od.mz) > mzTolerance) {
                 return Double.MAX_VALUE;
 
             } else {
@@ -599,7 +616,7 @@ class RecursiveThresholdPickerTask implements Task {
 
                 // If it goes too much down, then give MAX_VALUE
                 double bottomMargin = prevIntensity
-                        * (1 - parameters.intTolerance);
+                        * (1 - intTolerance);
                 if (nextIntensity <= bottomMargin) {
                     return Double.MAX_VALUE;
                 }
@@ -630,7 +647,7 @@ class RecursiveThresholdPickerTask implements Task {
                     // Then next intensity must be above bottomMargin or derSign
                     // changes
                     double bottomMargin = prevIntensity
-                            * (1 - parameters.intTolerance);
+                            * (1 - intTolerance);
 
                     if (currIntensity <= bottomMargin) {
                         derSign = -1;
@@ -643,7 +660,7 @@ class RecursiveThresholdPickerTask implements Task {
                     // Then next intensity should be less than topMargin or peak
                     // ends
                     double topMargin = prevIntensity
-                            * (1 + parameters.intTolerance);
+                            * (1 + intTolerance);
 
                     if (currIntensity >= topMargin) {
                         return Double.MAX_VALUE;
@@ -670,7 +687,7 @@ class RecursiveThresholdPickerTask implements Task {
 
                 // Then peak must not start going up again
                 double topMargin = lastIntensity
-                        * (1 + parameters.intTolerance);
+                        * (1 + intTolerance);
 
                 if (nextIntensity >= topMargin) {
                     return Double.MAX_VALUE;

@@ -35,17 +35,22 @@ import net.sf.mzmine.io.RawDataFile;
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.methods.Method;
 import net.sf.mzmine.methods.MethodParameters;
+import net.sf.mzmine.methods.alignment.join.JoinAlignerParameters;
 import net.sf.mzmine.project.MZmineProject;
 import net.sf.mzmine.taskcontrol.Task;
 import net.sf.mzmine.taskcontrol.TaskController;
 import net.sf.mzmine.taskcontrol.TaskListener;
 import net.sf.mzmine.userinterface.Desktop;
 import net.sf.mzmine.userinterface.Desktop.MZmineMenu;
+import net.sf.mzmine.userinterface.dialogs.ParameterSetupDialog;
+import net.sf.mzmine.userinterface.mainwindow.MainWindow;
 
 public class SavitzkyGolayFilter implements Method, TaskListener,
         ListSelectionListener, ActionListener {
 
     private Logger logger = Logger.getLogger(this.getClass().getName());
+    
+    private SavitzkyGolayFilterParameters parameters;
 
     private TaskController taskController;
     private Desktop desktop;
@@ -70,44 +75,21 @@ public class SavitzkyGolayFilter implements Method, TaskListener,
     /**
      * @see net.sf.mzmine.methods.Method#askParameters()
      */
-    public MethodParameters askParameters() {
+    public boolean askParameters() {
 
-        MZmineProject currentProject = MZmineProject.getCurrentProject();
-        SavitzkyGolayFilterParameters currentParameters = (SavitzkyGolayFilterParameters) currentProject.getParameters(this);
-        if (currentParameters == null)
-            currentParameters = new SavitzkyGolayFilterParameters();
+        parameters = new SavitzkyGolayFilterParameters();
+        parameters.initParameters();    	
 
-        // Define different options and currently selected item
-        String[] possibilities = { "5", "7", "9", "11", "13", "15", "17", "19",
-                "21", "23", "25" };
-        String selectedValue = "5";
-        for (String s : possibilities) {
-            if (Integer.parseInt(s) == currentParameters.numberOfDataPoints) {
-                selectedValue = s;
-            }
-        }
+        ParameterSetupDialog dialog = new ParameterSetupDialog(		
+        				MainWindow.getInstance(),
+        				"Please check parameter values for " + toString(),
+        				parameters
+        		);
+        dialog.setVisible(true);
+        
+		if (dialog.getExitCode()==-1) return false;
 
-        String s = (String) JOptionPane.showInputDialog(desktop.getMainFrame(),
-                "Select number of data points used for smoothing:",
-                "Savitzky-Golay filter", JOptionPane.PLAIN_MESSAGE, null,
-                possibilities, selectedValue);
-
-        if (s == null) {
-            return null;
-        }
-
-        SavitzkyGolayFilterParameters newParameters = new SavitzkyGolayFilterParameters();
-
-        try {
-            newParameters.numberOfDataPoints = Integer.parseInt(s);
-        } catch (NumberFormatException exe) {
-            return null;
-        }
-
-        // save the current parameter settings for future runs
-        currentProject.setParameters(this, newParameters);
-
-        return newParameters;
+		return true;
 
     }
 
@@ -119,7 +101,7 @@ public class SavitzkyGolayFilter implements Method, TaskListener,
     public void runMethod(MethodParameters parameters,
             OpenedRawDataFile[] dataFiles, AlignmentResult[] alignmentResults) {
 
-        logger.info("Running Savitzky-Golay filter");
+        logger.info("Running " + toString());
 
         for (OpenedRawDataFile dataFile : dataFiles) {
             Task filterTask = new SavitzkyGolayFilterTask(dataFile,
@@ -133,12 +115,10 @@ public class SavitzkyGolayFilter implements Method, TaskListener,
      */
     public void actionPerformed(ActionEvent e) {
 
-        MethodParameters parameters = askParameters();
-        if (parameters == null)
-            return;
+        if (!askParameters()) return;
 
         OpenedRawDataFile[] dataFiles = desktop.getSelectedDataFiles();
-
+        
         runMethod(parameters, dataFiles, null);
 
     }
@@ -179,7 +159,7 @@ public class SavitzkyGolayFilter implements Method, TaskListener,
      * @see net.sf.mzmine.methods.Method#toString()
      */
     public String toString() {
-        return "Savitzky Golay filter";
+        return "Savitzky-Golay filter";
     }
 
 }

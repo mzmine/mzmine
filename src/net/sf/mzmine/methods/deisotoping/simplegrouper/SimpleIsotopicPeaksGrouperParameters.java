@@ -20,6 +20,8 @@ import org.w3c.dom.Document;
 import org.w3c.dom.NodeList;
 
 import net.sf.mzmine.data.Parameter;
+import net.sf.mzmine.data.Parameter.ParameterType;
+import net.sf.mzmine.data.impl.SimpleParameter;
 import net.sf.mzmine.methods.MethodParameters;
 
 /**
@@ -28,80 +30,39 @@ import net.sf.mzmine.methods.MethodParameters;
  * 
  * @version 31 March 2006
  */
-class SimpleIsotopicPeaksGrouperParameters implements MethodParameters {
+class SimpleIsotopicPeaksGrouperParameters extends MethodParameters {
+  
+	protected static final Parameter mzTolerance = new SimpleParameter(	
+			ParameterType.DOUBLE,
+			"M/Z tolerance",
+			"Maximum distance in M/Z from the expected location of a peak",
+			"Da",
+			new Double(0.05));
+	
+	protected static final Parameter rtTolerance = new SimpleParameter(	
+			ParameterType.DOUBLE,
+			"RT tolerance",
+			"Maximum distance in RT from the expected location of a peak",
+			"seconds",
+			new Double(5));
+	
+	protected static final Parameter monotonicShape = new SimpleParameter(	
+			ParameterType.BOOLEAN,
+			"Monotonic shape",
+			"If true, then monotonically decreasing height of isotope pattern is required (monoisotopic peak is strongest).",
+			"",
+			new Boolean(true));
 
-    // CONSTANTS FOR WRITING PARAMETERS TO XML FILE
-
-    private static final String tagName = "SimpleIsotopicPeaksGrouperParameters";
-
-    private static final String mzToleranceAttributeName = "MZTolerance";
-    private static final String rtToleranceAttributeName = "RTTolerance";
-    private static final String monotonicShapeAttributeName = "MonotonicShape";
-    private static final String chargeStateOneAttributeName = "ChargeOne";
-    private static final String chargeStateTwoAttributeName = "ChargeTwo";
-    private static final String chargeStateThreeAttributeName = "ChargeThree";
-
-    // CONSTANTS FOR REPRESENTING DIFFERENT CHARGES
-
-    public static final Integer chargeOne = 1;
-    public static final Integer chargeTwo = 2;
-    public static final Integer chargeThree = 3;
-
-    // PARAMETERS AND THEIR DEFAULT VALUES
-
-    public double mzTolerance = (double) 0.05;
-    public double rtTolerance = (double) 5;
-    public boolean monotonicShape = true;
-    public HashSet<Integer> chargeStates;
-
-    /**
-     * Initializes parameter object and sets default parameter values
-     */
-    public SimpleIsotopicPeaksGrouperParameters() {
-        chargeStates = new HashSet<Integer>();
-        chargeStates.add(chargeOne);
-    }
-
-    /**
-     * @return parameters in human readable form
-     */
-    public String toString() {
-        // TODO
-        return new String();
-    }
-
-    /**
-     * @return parameters represented by XML element
-     */
-    public Element addToXML(Document doc) {
-
-        Element e = doc.createElement(tagName);
-        // TODO
-        return e;
-
-    }
-
-    /**
-     * Reads parameters from XML
-     * 
-     * @param doc XML document supposed to contain parameters for the method
-     *            (may not contain them, though)
-     */
-    public void readFromXML(Element element) {
-
-        // Find my element
-        NodeList n = element.getElementsByTagName(tagName);
-        if ((n == null) || (n.getLength() < 1))
-            return;
-        Element myElement = (Element) (n.item(0));
-
-        // Set values
-        // TODO
-    }
-
-	public Parameter[] getParameters() {
-		// TODO Auto-generated method stub
-		return null;
+	protected static final Parameter maximumCharge = new SimpleParameter(	
+			ParameterType.INTEGER,
+			"Maximum charge",
+			"Maximum charge",
+			"",
+			new Integer(1));	
+    
+    
+	public Parameter[] getParameters() {   
+		return new Parameter[] { mzTolerance, rtTolerance, monotonicShape, maximumCharge };
 	}
 
 }

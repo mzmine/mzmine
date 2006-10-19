@@ -20,6 +20,8 @@
 package net.sf.mzmine.methods.filtering.mean;
 
 import net.sf.mzmine.data.Parameter;
+import net.sf.mzmine.data.Parameter.ParameterType;
+import net.sf.mzmine.data.impl.SimpleParameter;
 import net.sf.mzmine.methods.MethodParameters;
 
 import org.w3c.dom.Document;
@@ -29,67 +31,20 @@ import org.w3c.dom.NodeList;
 /**
  * This class represents parameter for the mean filter method
  */
-class MeanFilterParameters implements MethodParameters {
+class MeanFilterParameters extends MethodParameters {
 
-    /**
-     * These Strings are used to access parameter values in an XML element
-     */
-    private static final String tagName = "MeanFilterParameters";
-    private static final String oneSidedWindowLengthAttributeName = "OneSidedWindowLength";
 
-    /**
-     * One-sided window length. Value is in MZ. True window size is two times
-     * this (plus-minus)
-     */
+	protected static final Parameter oneSidedWindowLength = new SimpleParameter(		
+			ParameterType.DOUBLE,
+			"Window length",
+			"One-sided length of the smoothing window",
+			"Da",
+			new Double(0.1));	
+    
 
-    public double oneSidedWindowLength = (double) 0.1;
-
-    /**
-     * @return parameters in human readable form
-     */
-    public String toString() {
-        return new String("One-sided window length = " + oneSidedWindowLength
-                + "Da");
-    }
-
-    /**
-     * @return parameters represented by XML element
-     */
-    public Element addToXML(Document doc) {
-
-        Element e = doc.createElement(tagName);
-        e.setAttribute(oneSidedWindowLengthAttributeName,
-                String.valueOf(oneSidedWindowLength));
-        return e;
-
-    }
-
-    /**
-     * Reads parameters from XML
-     * 
-     * @param doc XML document supposed to contain parameters for the method
-     *            (may not contain them, though)
-     */
-    public void readFromXML(Element element) {
-
-        // Find my element
-        NodeList n = element.getElementsByTagName(tagName);
-        if ((n == null) || (n.getLength() < 1))
-            return;
-        Element myElement = (Element) (n.item(0));
-
-        // Set values
-        String attrValue;
-        attrValue = myElement.getAttribute(oneSidedWindowLengthAttributeName);
-        try {
-            oneSidedWindowLength = Double.parseDouble(attrValue);
-        } catch (NumberFormatException nfe) {
-        }
-    }
 
 	public Parameter[] getParameters() {
-		// TODO Auto-generated method stub
-		return null;
+		return new Parameter[] {oneSidedWindowLength};
 	}
 
 }

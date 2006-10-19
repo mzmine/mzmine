@@ -29,6 +29,7 @@ import net.sf.mzmine.methods.Method;
 import net.sf.mzmine.methods.MethodParameters;
 import net.sf.mzmine.methods.alignment.join.JoinAlignerParameters;
 import net.sf.mzmine.project.MZmineProject;
+import net.sf.mzmine.userinterface.dialogs.ParameterSetupDialog;
 import net.sf.mzmine.userinterface.mainwindow.MainWindow;
 
 
@@ -41,22 +42,25 @@ import net.sf.mzmine.userinterface.mainwindow.MainWindow;
 public class AlignmentResultFilterByGaps implements Method {
 
 	private MainWindow mainWin;
+	
+	private AlignmentResultFilterByGapsParameters parameters;
 
 
-	public AlignmentResultFilterByGapsParameters askParameters() {
+	public boolean askParameters() {
 
-		// Get current parameters
-        MZmineProject currentProject = MZmineProject.getCurrentProject();
-        AlignmentResultFilterByGapsParameters currentParameters = (AlignmentResultFilterByGapsParameters) currentProject.getParameters(this);
-        if (currentParameters == null)
-            currentParameters = new AlignmentResultFilterByGapsParameters();
+        parameters = new AlignmentResultFilterByGapsParameters();
+        parameters.initParameters();
 
+        ParameterSetupDialog dialog = new ParameterSetupDialog(		
+        				MainWindow.getInstance(),
+        				"Please check parameter values for Join Aligner",
+        				parameters
+        		);
+        dialog.setVisible(true);
         
-        // Show parameter setup dialog
-        
-        
-        // Return parameters object
-        return currentParameters;
+		if (dialog.getExitCode()==-1) return false;
+
+		return true;
         
 	}
 

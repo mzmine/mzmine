@@ -35,12 +35,18 @@ class CropFilterTask implements Task {
 
     private OpenedRawDataFile dataFile;
     private RawDataFile rawDataFile;
-    private CropFilterParameters parameters;
+    
     private TaskStatus status;
     private String errorMessage;
 
     private int filteredScans;
     private int totalScans;
+    
+    private CropFilterParameters parameters;
+    private double minMZ;
+    private double maxMZ;
+    private double minRT;
+    private double maxRT;
 
     private RawDataFile filteredRawDataFile;
 
@@ -53,6 +59,10 @@ class CropFilterTask implements Task {
         this.dataFile = dataFile;
         this.rawDataFile = dataFile.getCurrentFile();
         this.parameters = parameters;
+        minMZ = (Double)parameters.getParameterValue(parameters.minMZ).getValue();
+        maxMZ = (Double)parameters.getParameterValue(parameters.maxMZ).getValue();
+        minRT = (Double)parameters.getParameterValue(parameters.minRT).getValue();
+        maxRT = (Double)parameters.getParameterValue(parameters.maxRT).getValue();
     }
 
     /**
@@ -144,8 +154,8 @@ class CropFilterTask implements Task {
             }
 
             // Is this scan within the RT range?
-            if ((sc.getRetentionTime() >= parameters.minRT)
-                    && (sc.getRetentionTime() <= parameters.maxRT)) {
+            if ((sc.getRetentionTime() >= minRT)
+                    && (sc.getRetentionTime() <= maxRT)) {
 
                 // Pickup datapoints inside the M/Z range
                 double originalMassValues[] = sc.getMZValues();
@@ -153,7 +163,7 @@ class CropFilterTask implements Task {
 
                 int numSmallerThanMin = 0;
                 for (int ind = 0; ind < originalMassValues.length; ind++) {
-                    if (originalMassValues[ind] >= parameters.minMZ) {
+                    if (originalMassValues[ind] >= minMZ) {
                         break;
                     }
                     numSmallerThanMin++;
@@ -161,7 +171,7 @@ class CropFilterTask implements Task {
 
                 int numBiggerThanMax = 0;
                 for (int ind = (originalMassValues.length - 1); ind >= 0; ind--) {
-                    if (originalMassValues[ind] <= parameters.maxMZ) {
+                    if (originalMassValues[ind] <= maxMZ) {
                         break;
                     }
                     numBiggerThanMax++;

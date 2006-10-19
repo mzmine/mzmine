@@ -24,65 +24,24 @@ import org.w3c.dom.Document;
 import org.w3c.dom.NodeList;
 
 import net.sf.mzmine.data.Parameter;
+import net.sf.mzmine.data.Parameter.ParameterType;
+import net.sf.mzmine.data.impl.SimpleParameter;
 import net.sf.mzmine.methods.MethodParameters;
 
 
-public class IncompleteIsotopePatternFilterParameters implements MethodParameters {
+public class IncompleteIsotopePatternFilterParameters extends MethodParameters {
 
-	private static final String tagName = "IncompleteIsotopePatternFilterParameters";
-
-	private static final String minimumNumberOfPeaksAttributeName = "MinNumberOfPeaks";
-
-	// Parameters and their default values
-
-	public int minimumNumberOfPeaks = 2;
-
-    /**
-     * @return parameters in human readable form
-     */
-    public String toString() {
-		return new String("Minimum number of peaks = " + minimumNumberOfPeaks);
-	}
-
-    /**
-     *
-     * @return parameters represented by XML element
-     */
-    public Element addToXML(Document doc) {
-
-		Element e = doc.createElement(tagName);
-		e.setAttribute(minimumNumberOfPeaksAttributeName, String.valueOf(minimumNumberOfPeaks));
-		return e;
-
-	}
-
-
-    /**
-     * Reads parameters from XML
-     * @param doc XML document supposed to contain parameters for the method (may not contain them, though)
-     */
-    public void readFromXML(Element element) {
-
-		// Find my element
-		NodeList n = element.getElementsByTagName(tagName);
-		if ((n==null) || (n.getLength()<1)) return;
-		Element myElement = (Element)(n.item(0));
-
-		// Set values
-		String attrValue;
-		attrValue = myElement.getAttribute(minimumNumberOfPeaksAttributeName);
-		try { minimumNumberOfPeaks = Integer.parseInt(attrValue); } catch (NumberFormatException nfe) {}
-	}
-
-	public IncompleteIsotopePatternFilterParameters clone() {
-		IncompleteIsotopePatternFilterParameters myClone = new IncompleteIsotopePatternFilterParameters();
-		myClone.minimumNumberOfPeaks = minimumNumberOfPeaks;
-		return myClone;
-	}
+	protected static final Parameter minimumNumberOfPeaks = new SimpleParameter(		
+			ParameterType.INTEGER,
+			"Minimum number of peaks",
+			"Minimum acceptable number of peaks per isotope pattern",
+			"",
+			new Integer(2));
+	
+	
 
 	public Parameter[] getParameters() {
-		// TODO Auto-generated method stub
-		return null;
+		return new Parameter[] {minimumNumberOfPeaks};
 	}
 
 

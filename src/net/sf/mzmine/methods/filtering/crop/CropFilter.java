@@ -35,6 +35,7 @@ import net.sf.mzmine.io.RawDataFile;
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.methods.Method;
 import net.sf.mzmine.methods.MethodParameters;
+import net.sf.mzmine.methods.alignment.join.JoinAlignerParameters;
 import net.sf.mzmine.project.MZmineProject;
 import net.sf.mzmine.taskcontrol.Task;
 import net.sf.mzmine.taskcontrol.TaskController;
@@ -42,6 +43,7 @@ import net.sf.mzmine.taskcontrol.TaskListener;
 import net.sf.mzmine.userinterface.Desktop;
 import net.sf.mzmine.userinterface.Desktop.MZmineMenu;
 import net.sf.mzmine.userinterface.dialogs.ParameterSetupDialog;
+import net.sf.mzmine.userinterface.mainwindow.MainWindow;
 
 public class CropFilter implements Method, TaskListener,
         ListSelectionListener, ActionListener {
@@ -51,6 +53,8 @@ public class CropFilter implements Method, TaskListener,
     private TaskController taskController;
     private Desktop desktop;
     private JMenuItem myMenuItem;
+    
+    private CropFilterParameters parameters;
 
     /**
      * @see net.sf.mzmine.main.MZmineModule#initModule(net.sf.mzmine.main.MZmineCore)
@@ -70,94 +74,21 @@ public class CropFilter implements Method, TaskListener,
     /**
      * @see net.sf.mzmine.methods.Method#askParameters()
      */
-    public MethodParameters askParameters() {
+    public boolean  askParameters() {
 
-        MZmineProject currentProject = MZmineProject.getCurrentProject();
-        CropFilterParameters currentParameters = (CropFilterParameters) currentProject.getParameters(this);
-        if (currentParameters == null)
-            currentParameters = new CropFilterParameters();
+        parameters = new CropFilterParameters();
+        parameters.initParameters();    	
 
-        return currentParameters;
+        ParameterSetupDialog dialog = new ParameterSetupDialog(		
+        				MainWindow.getInstance(),
+        				"Please check parameter values for " + toString(),
+        				parameters
+        		);
+        dialog.setVisible(true);
         
-        // TODO: Edit & enable this code, after reorganizating parameters and parameter setup dialog to comply with MethodParameters and new ParameterSetupDialog 
-        
-/*        
-        // Show parameter setup dialog
-        double[] paramValues = new double[4];
-        paramValues[0] = currentParameters.minMZ;
-        paramValues[1] = currentParameters.maxMZ;
-        paramValues[2] = currentParameters.minRT;
-        paramValues[3] = currentParameters.maxRT;
+		if (dialog.getExitCode()==-1) return false;
 
-        String[] paramNames = new String[4];
-        paramNames[0] = "Minimum M/Z (Da)";
-        paramNames[1] = "Maximum M/Z (Da)";
-        paramNames[2] = "Minimum RT (seconds)";
-        paramNames[3] = "Maximum RT (seconds)";
-
-        NumberFormat[] numberFormats = new NumberFormat[4];
-        numberFormats[0] = NumberFormat.getNumberInstance();
-        numberFormats[0].setMinimumFractionDigits(3);
-        numberFormats[1] = NumberFormat.getNumberInstance();
-        numberFormats[1].setMinimumFractionDigits(3);
-        numberFormats[2] = NumberFormat.getNumberInstance();
-        numberFormats[2].setMinimumFractionDigits(1);
-        numberFormats[3] = NumberFormat.getNumberInstance();
-        numberFormats[3].setMinimumFractionDigits(1);
-
-        logger.finest("Showing cropping filter parameter setup dialog");
-
-        ParameterSetupDialog psd = new ParameterSetupDialog(
-                desktop.getMainFrame(), "Please check the parameter values",
-                paramNames, paramValues, numberFormats);
-        psd.setVisible(true);
-
-        // Check if user clicked Cancel-button
-        if (psd.getExitCode() == -1)
-            return null;
-
-        CropFilterParameters newParameters = new CropFilterParameters();
-
-        // Read parameter values
-        double d;
-
-        // minMZ
-        d = psd.getFieldValue(0);
-        if (d < 0) {
-            desktop.displayErrorMessage("Incorrect minimum M/Z value!");
-            return null;
-        }
-        newParameters.minMZ = d;
-
-        // maxMZ
-        d = psd.getFieldValue(1);
-        if (d <= 0) {
-            desktop.displayErrorMessage("Incorrect maximum M/Z value!");
-            return null;
-        }
-        newParameters.maxMZ = d;
-
-        // minRT
-        d = psd.getFieldValue(2);
-        if (d < 0) {
-            desktop.displayErrorMessage("Incorrect minimum RT value!");
-            return null;
-        }
-        newParameters.minRT = d;
-
-        // maxRT
-        d = psd.getFieldValue(3);
-        if (d <= 0) {
-            desktop.displayErrorMessage("Incorrect maximum RT value!");
-            return null;
-        }
-        newParameters.maxRT = d;
-
-        // save the current parameter settings for future runs
-        currentProject.setParameters(this, newParameters);
-
-        return newParameters;
-*/
+		return true;
     }
 
     /**
@@ -183,12 +114,10 @@ public class CropFilter implements Method, TaskListener,
      */
     public void actionPerformed(ActionEvent e) {
 
-        MethodParameters parameters = askParameters();
-        if (parameters == null)
-            return;
+        if (!askParameters()) return;
 
         OpenedRawDataFile[] dataFiles = desktop.getSelectedDataFiles();
-
+              
         runMethod(parameters, dataFiles, null);
 
     }

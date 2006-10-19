@@ -39,6 +39,8 @@ import javax.xml.transform.dom.DOMSource;
 import javax.xml.transform.stream.StreamResult;
 
 import net.sf.mzmine.data.AlignmentResult;
+import net.sf.mzmine.data.Parameter;
+import net.sf.mzmine.data.ParameterValue;
 import net.sf.mzmine.io.OpenedRawDataFile;
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.main.MZmineModule;
@@ -61,16 +63,18 @@ public class MZmineProject {
     private Desktop desktop;
 
     private static MZmineProject currentProject;
+
     private Vector<OpenedRawDataFile> projectFiles;
     private Vector<AlignmentResult> projectResults;
-
-    private Hashtable<MZmineModule, MethodParameters> parameterStorage;
+    private Hashtable<Parameter, ParameterValue> projectParameters; // Maps project parameters to their current values
 
     public MZmineProject() {
+    	currentProject = this;
+    	
         projectFiles = new Vector<OpenedRawDataFile>();
         projectResults = new Vector<AlignmentResult>();
-        parameterStorage = new Hashtable<MZmineModule, MethodParameters>();
-        currentProject = this;
+        projectParameters = new Hashtable<Parameter, ParameterValue>();
+        
     }
 
     public static MZmineProject getCurrentProject() {
@@ -78,12 +82,16 @@ public class MZmineProject {
         return currentProject;
     }
 
-    public void setParameters(MZmineModule module, MethodParameters param) {
-        parameterStorage.put(module, param);
+    public void setParameterValue(Parameter parameter, ParameterValue value) {
+    	projectParameters.put(parameter, value);
     }
 
-    public MethodParameters getParameters(MZmineModule module) {
-        return parameterStorage.get(module);
+    public ParameterValue getParameterValue(Parameter parameter) {
+        return projectParameters.get(parameter);
+    }
+    
+    public boolean containsParameterValue(Parameter parameter) {
+    	return projectParameters.contains(parameter);
     }
 
     /**
@@ -167,14 +175,12 @@ public class MZmineProject {
 
     public void addFile(OpenedRawDataFile newFile) {
         projectFiles.add(newFile);
-        ItemSelector is = ((MainWindow) desktop).getItemSelector();
-        is.addRawData(newFile);
+        desktop.addDataFile(newFile);
     }
 
     public void removeFile(OpenedRawDataFile file) {
         projectFiles.remove(file);
-        ItemSelector is = ((MainWindow) desktop).getItemSelector();
-        is.removeRawData(file);
+        desktop.removeDataFile(file);
     }
 
     public OpenedRawDataFile[] getDataFiles() {
@@ -183,14 +189,12 @@ public class MZmineProject {
 
     public void addAlignmentResult(AlignmentResult newResult) {
 		projectResults.add(newResult);
-        ItemSelector is = ((MainWindow) desktop).getItemSelector();
-        is.addAlignmentResult(newResult);
+		desktop.addAlignmentResult(newResult);
 	}
 
 	public void removeAlignmentResult(AlignmentResult result) {
 		projectResults.remove(result);
-        ItemSelector is = ((MainWindow) desktop).getItemSelector();
-        is.removeAlignmentResult(result);
+		desktop.removeAlignmentResult(result);
 	}
 
     public AlignmentResult[] getAlignmentResults() {

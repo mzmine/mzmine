@@ -20,6 +20,8 @@
 package net.sf.mzmine.methods.filtering.zoomscan;
 
 import net.sf.mzmine.data.Parameter;
+import net.sf.mzmine.data.Parameter.ParameterType;
+import net.sf.mzmine.data.impl.SimpleParameter;
 import net.sf.mzmine.methods.MethodParameters;
 
 import org.w3c.dom.Document;
@@ -29,62 +31,17 @@ import org.w3c.dom.NodeList;
 /**
  * This class represents parameter for the zoom scan filter method
  */
-class ZoomScanFilterParameters implements MethodParameters {
+class ZoomScanFilterParameters extends MethodParameters {
 
-    private static final String tagName = "ZoomScanFilterParameters";
-    private static final String minMZRangeAttibuteName = "MinimumMZRage";
-
-    /**
-     * Minimum required M/Z range width
-     */
-    public double minMZRange = (double) 100;
-
-    /**
-     * @return parameters in human readable form
-     */
-    public String toString() {
-        return new String("Minimum M/Z range = " + minMZRange + "Da");
-    }
-
-    /**
-     * 
-     * @return parameters represented by XML element
-     */
-    public Element addToXML(Document doc) {
-
-        Element e = doc.createElement(tagName);
-        e.setAttribute(minMZRangeAttibuteName, String.valueOf(minMZRange));
-        return e;
-
-    }
-
-    /**
-     * Reads parameters from XML
-     * 
-     * @param doc
-     *            XML document containing all available parameters (may not
-     *            contain tag for this
-     */
-    public void readFromXML(Element element) {
-
-        // Find my element
-        NodeList n = element.getElementsByTagName(tagName);
-        if ((n == null) || (n.getLength() < 1))
-            return;
-        Element myElement = (Element) (n.item(0));
-
-        // Set values
-        String attrValue;
-        attrValue = myElement.getAttribute(minMZRangeAttibuteName);
-        try {
-            minMZRange = Double.parseDouble(attrValue);
-        } catch (NumberFormatException nfe) {
-        }
-    }
-
+	protected static final Parameter minMZRange = new SimpleParameter(	
+			ParameterType.DOUBLE,
+			"Minimum M/Z range",
+			"Required minimum M/Z range for a full scan",
+			"Da",
+			new Double(100));
+    
 	public Parameter[] getParameters() {
-		// TODO Auto-generated method stub
-		return null;
+		return new Parameter[] { minMZRange };
 	}
 
 }

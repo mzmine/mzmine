@@ -34,7 +34,7 @@ class ZoomScanFilterTask implements Task {
 
     private OpenedRawDataFile dataFile;
     private RawDataFile rawDataFile;
-    private ZoomScanFilterParameters parameters;
+    
     private TaskStatus status;
     private String errorMessage;
 
@@ -42,6 +42,10 @@ class ZoomScanFilterTask implements Task {
     private int totalScans;
 
     private RawDataFile filteredRawDataFile;
+    
+    private ZoomScanFilterParameters parameters;
+    private double minMZRange;
+    
 
     /**
      * @param rawDataFile
@@ -53,6 +57,7 @@ class ZoomScanFilterTask implements Task {
         this.dataFile = dataFile;
         this.rawDataFile = dataFile.getCurrentFile();
         this.parameters = parameters;
+        minMZRange = (Double)parameters.getParameterValue(parameters.minMZRange).getValue();
     }
 
     /**
@@ -138,7 +143,7 @@ class ZoomScanFilterTask implements Task {
             // Check if mz range is wide enough
             double mzMin = sc.getMZRangeMin();
             double mzMax = sc.getMZRangeMax();
-            if ((mzMax - mzMin) < parameters.minMZRange) {
+            if ((mzMax - mzMin) < minMZRange) {
                 continue;
             }
 

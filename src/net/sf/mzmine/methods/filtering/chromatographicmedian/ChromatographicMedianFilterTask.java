@@ -37,7 +37,6 @@ class ChromatographicMedianFilterTask implements Task {
 
     private OpenedRawDataFile dataFile;
     private RawDataFile rawDataFile;
-    private ChromatographicMedianFilterParameters parameters;
     private TaskStatus status;
     private String errorMessage;
 
@@ -45,6 +44,10 @@ class ChromatographicMedianFilterTask implements Task {
     private int totalScans;
 
     private RawDataFile filteredRawDataFile;
+    
+    private ChromatographicMedianFilterParameters parameters;
+    private double mzTolerance;
+    private int oneSidedWindowLength;
 
     /**
      * @param dataFile
@@ -56,6 +59,8 @@ class ChromatographicMedianFilterTask implements Task {
         this.dataFile = dataFile;
         this.rawDataFile = dataFile.getCurrentFile();
         this.parameters = parameters;
+        mzTolerance = (Double)parameters.getParameterValue(parameters.MZTolerance).getValue();
+        oneSidedWindowLength = (Integer)parameters.getParameterValue(parameters.oneSidedWindowLength).getValue(); 
     }
 
     /**
@@ -124,13 +129,13 @@ class ChromatographicMedianFilterTask implements Task {
             return;
         }
 
-        Scan[] scanBuffer = new Scan[1 + 2 * parameters.oneSidedWindowLength];
+        Scan[] scanBuffer = new Scan[1 + 2 * oneSidedWindowLength];
         Scan sc = null;
 
         int[] scanNumbers = rawDataFile.getScanNumbers(1);
         totalScans = scanNumbers.length;
 
-        for (int scani = 0; scani < (totalScans + parameters.oneSidedWindowLength); scani++) {
+        for (int scani = 0; scani < (totalScans + oneSidedWindowLength); scani++) {
 
             // Pickup next scan from original raw data file
             if (scani < totalScans) {
@@ -156,7 +161,7 @@ class ChromatographicMedianFilterTask implements Task {
             scanBuffer[scanBuffer.length - 1] = sc;
 
             // Pickup mid element in the buffer
-            sc = scanBuffer[parameters.oneSidedWindowLength];
+            sc = scanBuffer[oneSidedWindowLength];
             if (sc != null) {
 
                 Integer[] dataPointIndices = new Integer[scanBuffer.length];
@@ -181,12 +186,11 @@ class ChromatographicMedianFilterTask implements Task {
                         // Exclude middle buffer element
                         // if (bufferIndex==oneSidedWindowLength) { continue; }
 
-                        if ((bufferIndex != parameters.oneSidedWindowLength)
+                        if ((bufferIndex != oneSidedWindowLength)
                                 && (scanBuffer[bufferIndex] != null)) {
                             Object[] res = findClosestDatapointIntensity(
                                     mzValue, scanBuffer[bufferIndex],
-                                    dataPointIndices[bufferIndex].intValue(),
-                                    parameters);
+                                    dataPointIndices[bufferIndex].intValue());
                             Double closestInt = (Double) (res[0]);
                             dataPointIndices[bufferIndex] = (Integer) (res[1]);
                             if (closestInt != null) {
@@ -257,7 +261,7 @@ class ChromatographicMedianFilterTask implements Task {
      *         point is close enough (mz tolerance) then null value is returned.
      */
     private Object[] findClosestDatapointIntensity(double mzValue, Scan s,
-            int startIndex, ChromatographicMedianFilterParameters param) {
+            int startIndex) {
         double[] massValues = s.getMZValues();
         double[] intensityValues = s.getIntensityValues();
 
@@ -273,7 +277,7 @@ class ChromatographicMedianFilterTask implements Task {
 
             // Check if this mass values is within range to mz value
             double tmpDistance = java.lang.Math.abs(massValues[i] - mzValue);
-            if (tmpDistance < param.mzTolerance) {
+            if (tmpDistance < mzTolerance) {
 
                 // If this is first datapoint within range, then save the index
                 // if (firstIndex==null) { firstIndex = new Integer(i); }

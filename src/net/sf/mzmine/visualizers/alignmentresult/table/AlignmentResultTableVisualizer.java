@@ -60,7 +60,7 @@ public class AlignmentResultTableVisualizer implements MZmineModule, ActionListe
      */
     public void actionPerformed(ActionEvent e) {
 
-        AlignmentResult[] alignmentResults = desktop.getItemSelector().getSelectedAlignmentResults();
+        AlignmentResult[] alignmentResults = desktop.getSelectedAlignmentResults();
 
         for (AlignmentResult alignmentResult : alignmentResults) {
 
@@ -78,7 +78,7 @@ public class AlignmentResultTableVisualizer implements MZmineModule, ActionListe
      */
     public void valueChanged(ListSelectionEvent e) {
 
-		AlignmentResult[] alignmentResults = desktop.getItemSelector().getSelectedAlignmentResults();
+		AlignmentResult[] alignmentResults = desktop.getSelectedAlignmentResults();
 		if (alignmentResults.length>0) myMenuItem.setEnabled(true);
 
     }

@@ -27,7 +27,7 @@ import java.text.NumberFormat;
 public interface Parameter extends DataUnit {
 
     public enum ParameterType {
-        STRING, INTEGER, DOUBLE, OBJECT
+        STRING, INTEGER, DOUBLE, BOOLEAN, OBJECT
     };
 
     /**
@@ -54,7 +54,7 @@ public interface Parameter extends DataUnit {
      * @return Symbol for units of the parameter or null
      */
     public String getUnits();
-
+  
     /**
      * 
      * @return Default value of this parameter or null

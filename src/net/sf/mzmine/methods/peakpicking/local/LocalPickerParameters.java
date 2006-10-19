@@ -24,130 +24,63 @@ import org.w3c.dom.Document;
 import org.w3c.dom.NodeList;
 
 import net.sf.mzmine.data.Parameter;
+import net.sf.mzmine.data.Parameter.ParameterType;
+import net.sf.mzmine.data.impl.SimpleParameter;
 import net.sf.mzmine.methods.MethodParameters;
 
-class LocalPickerParameters implements MethodParameters {
+class LocalPickerParameters extends MethodParameters {
 
-    private static final String tagName = "LocalPickerParameters";
+    protected static final Parameter binSize = new SimpleParameter(	ParameterType.DOUBLE,
+			"M/Z bin width",
+			"Width of M/Z range for each precalculated XIC",
+			"Da",
+			new Double(0.25));
 
-    private static final String binSizeAttributeName = "BinSize";
-    private static final String chromatographicThresholdLevelAttributeName = "ChromatographicThresholdLevel";
-    private static final String noiseLevelAttributeName = "NoiseLevel";
-    private static final String minimumPeakHeightAttributeName = "MinimumPeakHeight";
-    private static final String minimumPeakDurationAttributeName = "MinimumPeakDuration";
-    private static final String mzToleranceAttributeName = "MZTolerance";
-    private static final String intToleranceAttributeName = "IntTolerance";
+    protected static final Parameter chromatographicThresholdLevel = new SimpleParameter(	
+			ParameterType.DOUBLE,
+			"Chromatographic threshold level",
+			"Used in defining threshold level value from an XIC",
+			"%",
+			new Double(0.0));
 
-    // Parameters and their default values
+    protected static final Parameter noiseLevel = new SimpleParameter(	
+			ParameterType.DOUBLE,
+			"Nouse level",
+			"Intensities less than this value are interpreted as noise",
+			"absolute",
+			new Double(4.0));
 
-    public double binSize = 0.25;
-    public double chromatographicThresholdLevel = 0.0;
-    public double noiseLevel = 4.0;
-    public double minimumPeakHeight = 15.0;
-    public double minimumPeakDuration = 3.0;
-    public double mzTolerance = 0.050;
-    public double intTolerance = 0.20;
+    protected static final Parameter minimumPeakHeight = new SimpleParameter(	
+			ParameterType.DOUBLE,
+			"Min peak height",
+			"Minimum acceptable peak height",
+			"absolute",
+			new Double(15.0));
 
-    public String toString() {
+    protected static final Parameter minimumPeakDuration = new SimpleParameter(	
+			ParameterType.DOUBLE,
+			"Min peak duration",
+			"Minimum acceptable peak duration",
+			"seconds",
+			new Double(3.0));
 
-        String s = new String();
-        s += "" + "M/Z bin size=" + binSize + " Da";
-        s += ", " + "Chromatographic threshold level="
-                + chromatographicThresholdLevel * 100.0 + "%";
-        s += ", " + "Noise level=" + noiseLevel;
-        s += ", " + "Minimum peak height=" + minimumPeakHeight;
-        s += ", " + "Minimum peak duratrion=" + minimumPeakDuration
-                + " seconds";
-        s += ", " + "M/Z tolerance=" + mzTolerance + " Da";
-        s += ", " + "Intensity tolerance=" + intTolerance * 100.0 + "%";
-        return s;
+    protected static final Parameter mzTolerance = new SimpleParameter(	
+			ParameterType.DOUBLE,
+			"M/Z tolerance",
+			"Maximum allowed distance in M/Z between centroid peaks in successive scans",
+			"Da",
+			new Double(0.050));
 
-    }
-
-    /**
-     * Adds parameters to XML document
-     */
-    public Element addToXML(Document doc) {
-
-        Element e = doc.createElement(tagName);
-        e.setAttribute(binSizeAttributeName, String.valueOf(binSize));
-        e.setAttribute(chromatographicThresholdLevelAttributeName,
-                String.valueOf(chromatographicThresholdLevel));
-        e.setAttribute(noiseLevelAttributeName, String.valueOf(noiseLevel));
-        e.setAttribute(minimumPeakHeightAttributeName,
-                String.valueOf(minimumPeakHeight));
-        e.setAttribute(minimumPeakDurationAttributeName,
-                String.valueOf(minimumPeakDuration));
-        e.setAttribute(mzToleranceAttributeName, String.valueOf(mzTolerance));
-        e.setAttribute(intToleranceAttributeName, String.valueOf(intTolerance));
-
-        return e;
-
-    }
-
-    /**
-     * Reads parameters from XML
-     * 
-     * @param doc XML document supposed to contain parameters for the method
-     *            (may not contain them, though)
-     */
-    public void readFromXML(Element element) {
-
-        // Find my element
-        NodeList n = element.getElementsByTagName(tagName);
-        if ((n == null) || (n.getLength() < 1))
-            return;
-        Element myElement = (Element) (n.item(0));
-
-        // Set values
-        String attrValue;
-        attrValue = myElement.getAttribute(binSizeAttributeName);
-        try {
-            binSize = Double.parseDouble(attrValue);
-        } catch (NumberFormatException nfe) {
-        }
-
-        attrValue = myElement.getAttribute(chromatographicThresholdLevelAttributeName);
-        try {
-            chromatographicThresholdLevel = Double.parseDouble(attrValue);
-        } catch (NumberFormatException nfe) {
-        }
-
-        attrValue = myElement.getAttribute(noiseLevelAttributeName);
-        try {
-            noiseLevel = Double.parseDouble(attrValue);
-        } catch (NumberFormatException nfe) {
-        }
-
-        attrValue = myElement.getAttribute(minimumPeakHeightAttributeName);
-        try {
-            minimumPeakHeight = Double.parseDouble(attrValue);
-        } catch (NumberFormatException nfe) {
-        }
-
-        attrValue = myElement.getAttribute(minimumPeakDurationAttributeName);
-        try {
-            minimumPeakDuration = Double.parseDouble(attrValue);
-        } catch (NumberFormatException nfe) {
-        }
-
-        attrValue = myElement.getAttribute(mzToleranceAttributeName);
-        try {
-            mzTolerance = Double.parseDouble(attrValue);
-        } catch (NumberFormatException nfe) {
-        }
-
-        attrValue = myElement.getAttribute(intToleranceAttributeName);
-        try {
-            intTolerance = Double.parseDouble(attrValue);
-        } catch (NumberFormatException nfe) {
-        }
-
-    }
-
+    protected static final Parameter intTolerance = new SimpleParameter(	
+			ParameterType.DOUBLE,
+			"Intensity tolerance",
+			"Maximum allowed deviation from expected /\\ shape of a peak in chromatographic direction",
+			"%",
+			new Double(0.20)); 
+    
+    
 	public Parameter[] getParameters() {
-		// TODO Auto-generated method stub
-		return null;
+		return new Parameter[] {binSize,chromatographicThresholdLevel,noiseLevel,minimumPeakHeight,minimumPeakDuration,mzTolerance,intTolerance};
 	}
 
 }

@@ -35,6 +35,7 @@ import net.sf.mzmine.io.OpenedRawDataFile;
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.methods.Method;
 import net.sf.mzmine.methods.MethodParameters;
+import net.sf.mzmine.methods.alignment.join.JoinAlignerParameters;
 import net.sf.mzmine.project.MZmineProject;
 import net.sf.mzmine.taskcontrol.Task;
 import net.sf.mzmine.taskcontrol.TaskController;
@@ -56,6 +57,8 @@ public class CentroidPicker implements Method, TaskListener,
     private TaskController taskController;
     private Desktop desktop;
     private JMenuItem myMenuItem;
+    
+    private CentroidPickerParameters parameters;
 
     /**
      * @see net.sf.mzmine.main.MZmineModule#initModule(net.sf.mzmine.main.MZmineCore)
@@ -78,122 +81,21 @@ public class CentroidPicker implements Method, TaskListener,
      *
      * @see net.sf.mzmine.methods.Method#askParameters()
      */
-    public MethodParameters askParameters() {
+    public boolean askParameters() {
 
-        MZmineProject currentProject = MZmineProject.getCurrentProject();
-        CentroidPickerParameters currentParameters = (CentroidPickerParameters) currentProject.getParameters(this);
-        if (currentParameters == null)
-            currentParameters = new CentroidPickerParameters();
+        parameters = new CentroidPickerParameters();
+        parameters.initParameters();    	
 
-        return currentParameters;
-        // TODO: Edit & enable this code, after reorganizating parameters and parameter setup dialog to comply with MethodParameters and new ParameterSetupDialog
+        ParameterSetupDialog dialog = new ParameterSetupDialog(		
+        				MainWindow.getInstance(),
+        				"Please check parameter values for " + toString(),
+        				parameters
+        		);
+        dialog.setVisible(true);
         
-/*        
-        // Initialize parameter setup dialog
-        double[] paramValues = new double[7];
-        paramValues[0] = currentParameters.binSize;
-        paramValues[1] = currentParameters.chromatographicThresholdLevel;
-        paramValues[2] = currentParameters.noiseLevel;
-        paramValues[3] = currentParameters.minimumPeakHeight;
-        paramValues[4] = currentParameters.minimumPeakDuration;
-        paramValues[5] = currentParameters.mzTolerance;
-        paramValues[6] = currentParameters.intTolerance;
+		if (dialog.getExitCode()==-1) return false;
 
-        String[] paramNames = new String[7];
-        paramNames[0] = "M/Z bin size (Da)";
-        paramNames[1] = "Chromatographic threshold level (%)";
-        paramNames[2] = "Noise level (absolute value)";
-        paramNames[3] = "Minimum peak height (absolute value)";
-        paramNames[4] = "Minimum peak duration (seconds)";
-        paramNames[5] = "Tolerance for m/z variation (Da)";
-        paramNames[6] = "Tolerance for intensity variation (%)";
-
-        NumberFormat[] numberFormats = new NumberFormat[7];
-        numberFormats[0] = NumberFormat.getNumberInstance();
-        numberFormats[0].setMinimumFractionDigits(2);
-        numberFormats[1] = NumberFormat.getPercentInstance();
-        numberFormats[2] = NumberFormat.getNumberInstance();
-        numberFormats[2].setMinimumFractionDigits(0);
-        numberFormats[3] = NumberFormat.getNumberInstance();
-        numberFormats[3].setMinimumFractionDigits(0);
-        numberFormats[4] = NumberFormat.getNumberInstance();
-        numberFormats[4].setMinimumFractionDigits(1);
-        numberFormats[5] = NumberFormat.getNumberInstance();
-        numberFormats[5].setMinimumFractionDigits(3);
-        numberFormats[6] = NumberFormat.getPercentInstance();
-
-        logger.finest("Showing centroid peak picker parameter setup dialog");
-
-        // Show parameter setup dialog
-        ParameterSetupDialog psd = new ParameterSetupDialog(
-                desktop.getMainFrame(), "Please check the parameter values",
-                paramNames, paramValues, numberFormats);
-        psd.setVisible(true);
-
-        // Check if user clicked Cancel-button
-        if (psd.getExitCode() == -1) {
-            return null;
-        }
-
-        CentroidPickerParameters newParameters = new CentroidPickerParameters();
-
-        // Read parameter values
-        double d;
-
-        d = psd.getFieldValue(0);
-        if (d <= 0) {
-            desktop.displayErrorMessage("Incorrect bin size!");
-            return null;
-        }
-        newParameters.binSize = d;
-
-        d = psd.getFieldValue(1);
-        if ((d < 0) || (d > 1)) {
-            desktop.displayErrorMessage("Incorrect chromatographic threshold level!");
-            return null;
-        }
-        newParameters.chromatographicThresholdLevel = d;
-
-        d = psd.getFieldValue(2);
-        if (d < 0) {
-            desktop.displayErrorMessage("Incorrect noise level!");
-            return null;
-        }
-        newParameters.noiseLevel = d;
-
-        d = psd.getFieldValue(3);
-        if (d <= 0) {
-            desktop.displayErrorMessage("Incorrect minimum peak height!");
-            return null;
-        }
-        newParameters.minimumPeakHeight = d;
-
-        d = psd.getFieldValue(4);
-        if (d <= 0) {
-            desktop.displayErrorMessage("Incorrect minimum peak duration!");
-            return null;
-        }
-        newParameters.minimumPeakDuration = d;
-
-        d = psd.getFieldValue(5);
-        if (d < 0) {
-            desktop.displayErrorMessage("Incorrect m/z tolerance value!");
-            return null;
-        }
-        newParameters.mzTolerance = d;
-
-        d = psd.getFieldValue(6);
-        if (d < 0) {
-            desktop.displayErrorMessage("Incorrect intensity tolerance value!");
-            return null;
-        }
-        newParameters.intTolerance = d;
-
-        // save the current parameter settings for future runs
-        currentProject.setParameters(this, newParameters);
-
-        return newParameters;
-*/
+		return true;
     }
 
     /**
@@ -203,11 +105,11 @@ public class CentroidPicker implements Method, TaskListener,
      */
     public void runMethod(MethodParameters parameters,
             OpenedRawDataFile[] dataFiles, AlignmentResult[] alignmentResults) {
-
-
-
+    	
+    	logger.info("Running " + toString() + " on " + dataFiles.length + " raw data files.");
+    	
         for (OpenedRawDataFile dataFile : dataFiles) {
-			logger.info("Running centroid peak picker on " + dataFile.toString());
+			
 
             Task pickerTask = new CentroidPickerTask(dataFile,
                     (CentroidPickerParameters) parameters);
@@ -221,10 +123,8 @@ public class CentroidPicker implements Method, TaskListener,
      */
     public void actionPerformed(ActionEvent e) {
 
-        MethodParameters parameters = askParameters();
-        if (parameters == null)
-            return;
-
+        if(!askParameters()) return;
+        
         OpenedRawDataFile[] dataFiles = desktop.getSelectedDataFiles();
 
         runMethod(parameters, dataFiles, null);

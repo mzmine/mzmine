@@ -29,7 +29,10 @@ import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
 
 import net.sf.mzmine.data.AlignmentResult;
+import net.sf.mzmine.data.Parameter;
 import net.sf.mzmine.data.PeakList;
+import net.sf.mzmine.data.Parameter.ParameterType;
+import net.sf.mzmine.data.impl.SimpleParameter;
 import net.sf.mzmine.io.OpenedRawDataFile;
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.methods.Method;
@@ -40,6 +43,8 @@ import net.sf.mzmine.taskcontrol.TaskController;
 import net.sf.mzmine.taskcontrol.TaskListener;
 import net.sf.mzmine.userinterface.Desktop;
 import net.sf.mzmine.userinterface.Desktop.MZmineMenu;
+import net.sf.mzmine.userinterface.dialogs.ParameterSetupDialog;
+import net.sf.mzmine.userinterface.mainwindow.MainWindow;
 
 
 
@@ -51,9 +56,13 @@ public class JoinAligner implements Method,
 
     private Logger logger = Logger.getLogger(this.getClass().getName());
 
+    private JoinAlignerParameters parameters;
+    
     private TaskController taskController;
     private Desktop desktop;
     private JMenuItem myMenuItem;
+    
+    
 
 
 	public String toString() {
@@ -65,25 +74,21 @@ public class JoinAligner implements Method,
     /**
      * @see net.sf.mzmine.methods.Method#askParameters()
      */
-    public MethodParameters askParameters() {
+    public boolean askParameters() {
 
+        parameters = new JoinAlignerParameters();
+        parameters.initParameters();    	
 
-        MZmineProject currentProject = MZmineProject.getCurrentProject();
-        JoinAlignerParameters currentParameters = (JoinAlignerParameters) currentProject.getParameters(this);
-        if (currentParameters == null)
-            currentParameters = new JoinAlignerParameters();
+        ParameterSetupDialog dialog = new ParameterSetupDialog(		
+        				MainWindow.getInstance(),
+        				"Please check parameter values for " + toString(),
+        				parameters
+        		);
+        dialog.setVisible(true);
+        
+		if (dialog.getExitCode()==-1) return false;
 
-		JoinAlignerParameterSetupDialog jaPSD = new JoinAlignerParameterSetupDialog(desktop.getMainFrame(), new String("Please give parameter values"), currentParameters);
-		jaPSD.setVisible(true);
-
-		// Check if user pressed cancel
-		if (jaPSD.getExitCode()==-1) {
-			return null;
-		}
-
-		currentParameters = jaPSD.getParameters();
-
-		return currentParameters;
+		return true;
 
     }
 
@@ -92,7 +97,7 @@ public class JoinAligner implements Method,
      */
     public void runMethod(MethodParameters parameters, OpenedRawDataFile[] dataFiles, AlignmentResult[] alignmentResults) {
 
-        logger.info("Running join aligner on " + dataFiles.length + " peak lists.");
+        logger.info("Running " + toString() + " on " + dataFiles.length + " peak lists.");
 
 		Task alignmentTask = new JoinAlignerTask(dataFiles, (JoinAlignerParameters) parameters);
 		taskController.addTask(alignmentTask, this);
@@ -106,7 +111,7 @@ public class JoinAligner implements Method,
 
         this.taskController = core.getTaskController();
         this.desktop = core.getDesktop();
-
+        
         myMenuItem = desktop.addMenuItem(MZmineMenu.ALIGNMENT,
                 "Peak list aligner", this, null, KeyEvent.VK_A,
                 false, false);
@@ -122,11 +127,9 @@ public class JoinAligner implements Method,
      */
     public void actionPerformed(ActionEvent e) {
 
-        MethodParameters parameters = askParameters();
-        if (parameters == null)
-            return;
+        if (!askParameters()) return;
 
-        OpenedRawDataFile[] dataFiles = desktop.getSelectedDataFiles();
+        OpenedRawDataFile[] dataFiles = desktop.getSelectedDataFiles();      
 
         runMethod(parameters, dataFiles, null);
 

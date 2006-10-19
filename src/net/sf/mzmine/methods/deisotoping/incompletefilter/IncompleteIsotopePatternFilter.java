@@ -41,6 +41,8 @@ import net.sf.mzmine.userinterface.mainwindow.MainWindow;
  */
 public class IncompleteIsotopePatternFilter implements Method {
 
+	private IncompleteIsotopePatternFilterParameters parameters;
+	
 	public String toString() {
 		return new String("Incomplete isotope pattern filter");
 	}
@@ -48,71 +50,23 @@ public class IncompleteIsotopePatternFilter implements Method {
 	/**
 	 * Method asks parameter values from user
 	 */
-	public boolean askParameters(MethodParameters parameters) {
+	public boolean askParameters() {
 
-        return true;
+        parameters = new IncompleteIsotopePatternFilterParameters();
+        parameters.initParameters();    	
+
+        ParameterSetupDialog dialog = new ParameterSetupDialog(		
+        				MainWindow.getInstance(),
+        				"Please check parameter values for " + toString(),
+        				parameters
+        		);
+        dialog.setVisible(true);
         
-        // TODO: Edit & enable this code, after reorganizating parameters and parameter setup dialog to comply with MethodParameters and new ParameterSetupDialog
-        // Note that this is older generation of code than other uncommented fragments.
-        
-/*		
-		if (parameters==null) return false;
-		IncompleteIsotopePatternFilterParameters currentParameters = (IncompleteIsotopePatternFilterParameters)parameters;
-
-		// Initialize parameter setup dialog
-		double[] paramValues = new double[1];
-		paramValues[0] = currentParameters.minimumNumberOfPeaks;
-
-		String[] paramNames = new String[1];
-		paramNames[0] = "Minimum number of peaks";
-
-		// Define number formats for displaying each parameter
-		NumberFormat[] numberFormats = new NumberFormat[1];
-		numberFormats[0] = NumberFormat.getNumberInstance(); numberFormats[0].setMinimumFractionDigits(0);
-
-		MainWindow mainWin = null;
-		ParameterSetupDialog psd = new ParameterSetupDialog(mainWin, "Please check the parameter values", paramNames, paramValues, numberFormats);
-		psd.setVisible(true);
-
-
-		// Check if user clicked Cancel-button
-		if (psd.getExitCode()==-1) {
-			return false;
-		}
-
-		// Read parameter values
-		int d;
-		d = (int)psd.getFieldValue(0);
-		if (d<1) {
-			mainWin.displayErrorMessage("Incorrect minimum number of peaks!");
-			return false;
-		}
-		currentParameters.minimumNumberOfPeaks = d;
+		if (dialog.getExitCode()==-1) return false;
 
 		return true;
-*/
 	}
 
-
-	public void runMethod(MethodParameters parameters, RawDataFile[] rawDataFiles, AlignmentResult[] alignmentResults) {
-		// TODO
-	}
-
-    /**
-     * @see net.sf.mzmine.main.MZmineModule#initModule(net.sf.mzmine.taskcontrol.TaskController, net.sf.mzmine.userinterface.Desktop, java.util.logging.Logger)
-     */
-    public void initModule(TaskController taskController, Desktop desktop, Logger logger) {
-        // TODO Auto-generated method stub
-        
-    }
-
-    /**
-     * @see net.sf.mzmine.methods.Method#askParameters()
-     */
-    public MethodParameters askParameters() {
-        // TODO Auto-generated method stub
-        return null;
-    }
 
     /**
      * @see net.sf.mzmine.methods.Method#runMethod(net.sf.mzmine.methods.MethodParameters, net.sf.mzmine.io.OpenedRawDataFile[], net.sf.mzmine.methods.alignment.AlignmentResult[])

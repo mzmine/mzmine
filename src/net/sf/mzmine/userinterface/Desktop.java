@@ -27,6 +27,7 @@ import javax.swing.JInternalFrame;
 import javax.swing.JMenuItem;
 import javax.swing.event.ListSelectionListener;
 
+import net.sf.mzmine.data.AlignmentResult;
 import net.sf.mzmine.io.OpenedRawDataFile;
 import net.sf.mzmine.userinterface.mainwindow.ItemSelector;
 
@@ -71,10 +72,46 @@ public interface Desktop {
 
     public boolean isDataFileSelected();
 
+    /**
+     * Returns array of currently selected raw data files in GUI
+     */
     public OpenedRawDataFile[] getSelectedDataFiles();
+    
+    /**
+     * Returns array of currently selected alignment results in GUI 
+     */
+    public AlignmentResult[] getSelectedAlignmentResults();
 
-    public OpenedRawDataFile getFirstSelectedDataFile();
-
+    /**
+     * Selects one raw data file in GUI
+     */
+    public void setSelectedDataFile(OpenedRawDataFile dataFile);
+    
+    /**
+     * Selects one alignment result in GUI
+     */
+    public void setSelectedAlignmentResult(AlignmentResult alignmentResult);
+    
+    /**
+     * Adds a new raw data file to GUI
+     */
+    public void addDataFile(OpenedRawDataFile dataFile);
+    
+    /**
+     * Adds a new alignment result to GUI
+     */
+    public void addAlignmentResult(AlignmentResult alignmentResult);
+    
+    /**
+     * Removes raw data file from GUI
+     */
+    public void removeDataFile(OpenedRawDataFile dataFile);
+    
+    /**
+     * Removes alignment result from GUI
+     */
+    public void removeAlignmentResult(AlignmentResult alignmentResult);
+    
 	public ItemSelector getItemSelector();
 
     public void exitMZmine();

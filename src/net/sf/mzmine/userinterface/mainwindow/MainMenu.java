@@ -326,7 +326,7 @@ public class MainMenu extends JMenuBar implements ActionListener,
         
         if (src == fileExportAlignmentResult) {
 
-        	AlignmentResult[] alignmentResults = desktop.getItemSelector().getSelectedAlignmentResults();
+        	AlignmentResult[] alignmentResults = desktop.getSelectedAlignmentResults();
         	if (alignmentResults.length>0) 
         		new AlignmentResultExportDialog(alignmentResults);
         	

@@ -31,9 +31,9 @@ public interface Method extends MZmineModule {
     /**
      * This function displays a modal dialog to define method parameters
      * 
-     * @return Newly created parameters or null if user clicked "Cancel"
+     * @return true if user clicked "ok", and false if used clicked "cancel"
      */
-    public MethodParameters askParameters();
+    public boolean askParameters();
 
     /**
      * Runs this method on a given items

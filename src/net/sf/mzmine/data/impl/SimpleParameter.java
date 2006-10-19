@@ -30,7 +30,7 @@ public class SimpleParameter extends AbstractDataUnit implements Parameter {
 
     private ParameterType type;
     private String name, description, units;
-    private Object defaultValue, minValue, maxValue, possibleValues[];
+    private Object value, defaultValue, minValue, maxValue, possibleValues[];
     private NumberFormat format;
 
     public SimpleParameter(ParameterType type, String name, String description) {
@@ -78,7 +78,7 @@ public class SimpleParameter extends AbstractDataUnit implements Parameter {
         this(type, name, description, units, defaultValue, minValue, maxValue,
                 null, format);
     }
-
+   
     /**
      * @param type
      * @param name
@@ -90,6 +90,7 @@ public class SimpleParameter extends AbstractDataUnit implements Parameter {
      * @param possibleValues
      * @param format
      */
+   
     private SimpleParameter(ParameterType type, String name,
             String description, String units, Object defaultValue,
             Object minValue, Object maxValue, Object[] possibleValues,
@@ -139,7 +140,7 @@ public class SimpleParameter extends AbstractDataUnit implements Parameter {
     public Object[] getPossibleValues() {
         return possibleValues;
     }
-
+   
     /**
      * @see net.sf.mzmine.data.Parameter#getDefaultValue()
      */

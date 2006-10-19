@@ -36,7 +36,7 @@ class MeanFilterTask implements Task {
 
     private OpenedRawDataFile dataFile;
     private RawDataFile rawDataFile;
-    private MeanFilterParameters parameters;
+    
     private TaskStatus status;
     private String errorMessage;
 
@@ -44,6 +44,9 @@ class MeanFilterTask implements Task {
     private int totalScans;
 
     private RawDataFile filteredRawDataFile;
+    
+    private MeanFilterParameters parameters;
+    private double oneSidedWindowLength;
 
     /**
      * @param rawDataFile
@@ -54,6 +57,8 @@ class MeanFilterTask implements Task {
         this.dataFile = dataFile;
         this.rawDataFile = dataFile.getCurrentFile();
         this.parameters = parameters;
+        
+        oneSidedWindowLength = (Double)parameters.getParameterValue(parameters.oneSidedWindowLength).getValue();
     }
 
     /**
@@ -134,8 +139,7 @@ class MeanFilterTask implements Task {
 
             try {
                 oldScan = rawDataFile.getScan(scanNumbers[i]);
-                processOneScan(rawDataFileWriter, oldScan,
-                        parameters.oneSidedWindowLength);
+                processOneScan(rawDataFileWriter, oldScan, oneSidedWindowLength);
 
             } catch (IOException e) {
                 status = TaskStatus.ERROR;

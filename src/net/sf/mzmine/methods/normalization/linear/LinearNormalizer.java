@@ -29,6 +29,8 @@ import net.sf.mzmine.methods.MethodParameters;
 import net.sf.mzmine.userinterface.mainwindow.MainWindow;
 
 
+ // TODO: Code for this method needs to be reorganized
+
 /**
  *
  */
@@ -301,9 +303,9 @@ public class LinearNormalizer implements Method {
     /**
      * @see net.sf.mzmine.methods.Method#askParameters()
      */
-    public MethodParameters askParameters() {
+    public boolean askParameters() {
         // TODO Auto-generated method stub
-        return null;
+        return false;
     }
 
 

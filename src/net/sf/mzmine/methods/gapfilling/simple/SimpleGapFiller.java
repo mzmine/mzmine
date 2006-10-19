@@ -45,6 +45,7 @@ import net.sf.mzmine.methods.Method;
 import net.sf.mzmine.methods.MethodParameters;
 import net.sf.mzmine.userinterface.mainwindow.MainWindow;
 
+// TODO: Code for this method must be rewritten
 
 public class SimpleGapFiller implements Method {
 
@@ -713,9 +714,9 @@ private static int idCount = 0; // DEBUG
     /**
      * @see net.sf.mzmine.methods.Method#askParameters()
      */
-    public MethodParameters askParameters() {
+    public boolean askParameters() {
         // TODO Auto-generated method stub
-        return null;
+        return false;
     }
 
     /**

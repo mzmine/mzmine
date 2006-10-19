@@ -39,6 +39,7 @@ import net.sf.mzmine.data.impl.SimpleAlignmentResultRow;
 import net.sf.mzmine.data.impl.SimpleIsotopePattern;
 import net.sf.mzmine.data.impl.StandardCompoundFlag;
 
+import net.sf.mzmine.methods.alignment.join.JoinAlignerParameters.RTToleranceTypePossibleValues;
 import net.sf.mzmine.methods.deisotoping.util.IsotopePatternUtility;
 
 /**
@@ -47,14 +48,21 @@ import net.sf.mzmine.methods.deisotoping.util.IsotopePatternUtility;
 class JoinAlignerTask implements Task {
 
     private OpenedRawDataFile[] dataFiles;
-    private JoinAlignerParameters parameters;
-
+    
     private TaskStatus status;
     private String errorMessage;
 
 	private float processedPercentage;
 
     private SimpleAlignmentResult alignmentResult;
+    
+    private JoinAlignerParameters parameters;
+    private double MZTolerance;
+    private double MZvsRTBalance;
+    private boolean RTToleranceUseAbs;
+    private double RTToleranceValueAbs;
+    private double RTToleranceValuePercent;
+    
 
     /**
      * @param rawDataFile
@@ -66,6 +74,13 @@ class JoinAlignerTask implements Task {
         status = TaskStatus.WAITING;
         this.dataFiles = dataFiles;
         this.parameters = parameters;
+        
+		// Get parameter values for easier use
+        MZTolerance = (Double)parameters.getParameterValue(parameters.MZTolerance).getValue();
+        MZvsRTBalance = (Double)parameters.getParameterValue(parameters.MZvsRTBalance).getValue();
+        if (parameters.getParameterValue(parameters.RTToleranceType).getValue() == JoinAlignerParameters.RTToleranceTypePossibleValues.Absolute) RTToleranceUseAbs = true; else RTToleranceUseAbs = false;  
+        RTToleranceValueAbs = (Double)parameters.getParameterValue(parameters.RTToleranceValueAbs).getValue();
+        RTToleranceValuePercent = (Double)parameters.getParameterValue(parameters.RTToleranceValuePercent).getValue();     
 
     }
 
@@ -152,7 +167,7 @@ class JoinAlignerTask implements Task {
 
 			for (IsotopePattern isotopePattern : isotopePatternList) {
 				for (MasterIsotopeListRow masterIsotopeListRow : masterIsotopeListRows) {
-					PatternVsRowScore score = new PatternVsRowScore(masterIsotopeListRow, isotopePattern, isoUtil, parameters);
+					PatternVsRowScore score = new PatternVsRowScore(masterIsotopeListRow, isotopePattern, isoUtil);
 					if (score.isGoodEnough()) scoreTree.add(score);
 				}
 			}
@@ -360,7 +375,7 @@ class JoinAlignerTask implements Task {
 		boolean goodEnough;
 
 
-		public PatternVsRowScore(MasterIsotopeListRow masterIsotopeListRow, IsotopePattern isotopePattern, IsotopePatternUtility isotopePatternUtil, JoinAlignerParameters parameters) {
+		public PatternVsRowScore(MasterIsotopeListRow masterIsotopeListRow, IsotopePattern isotopePattern, IsotopePatternUtility isotopePatternUtil) {
 
 			this.masterIsotopeListRow = masterIsotopeListRow;
 			this.isotopePattern = isotopePattern;
@@ -380,16 +395,16 @@ class JoinAlignerTask implements Task {
 
 			// What type of RT tolerance is used?
 			double rtTolerance=0;
-			if (parameters.paramRTToleranceUseAbs) {
-				rtTolerance = parameters.paramRTToleranceAbs;
+			if (RTToleranceUseAbs) {
+				rtTolerance = RTToleranceValueAbs;
 			} else {
-				rtTolerance = parameters.paramRTTolerancePercent * 0.5 * (masterIsotopeListRow.getMonoisotopicRT()+monoPeak.getNormalizedRT());
+				rtTolerance = RTToleranceValuePercent * 0.5 * (masterIsotopeListRow.getMonoisotopicRT()+monoPeak.getNormalizedRT());
 			}
 
 			// Calculate score if differences within tolerances
-			if ( (diffMZ < parameters.paramMZTolerance) &&
+			if ( (diffMZ < MZTolerance) &&
 				 (diffRT < rtTolerance) ) {
-				score = parameters.paramMZvsRTBalance * diffMZ + diffRT;
+				score = MZvsRTBalance * diffMZ + diffRT;
 				goodEnough = true;
 			} else {
 				score = Double.MAX_VALUE;

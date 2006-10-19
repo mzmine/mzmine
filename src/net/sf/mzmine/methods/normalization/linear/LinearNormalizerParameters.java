@@ -21,66 +21,25 @@
 package net.sf.mzmine.methods.normalization.linear;
 
 import net.sf.mzmine.data.Parameter;
+import net.sf.mzmine.data.Parameter.ParameterType;
+import net.sf.mzmine.data.impl.SimpleParameter;
 import net.sf.mzmine.methods.MethodParameters;
 
-import org.w3c.dom.Document;
-import org.w3c.dom.Element;
-import org.xml.sax.Attributes;
 
-public class LinearNormalizerParameters implements MethodParameters {
+public class LinearNormalizerParameters extends MethodParameters {
 
+	
+	protected enum NormalizationTypePossibleValues { AverageIntensity, AverageSquaredIntensity, MaximumPeakHeight, TotalRawSignal };
 
-	private static final String myTagName = "LinearNormalizerParameters";
-	private static final String paramNormalizationTypeAttributeName = "NormalizationType";
-
-	public static final int NORMALIZATIONTYPE_AVERAGEINT = 1;
-	public static final int NORMALIZATIONTYPE_AVERAGESQUAREINT = 2;
-	public static final int NORMALIZATIONTYPE_MAXPEAK = 3;
-	public static final int NORMALIZATIONTYPE_TOTRAWSIGNAL = 4;
-
-	public int paramNormalizationType = 1;
-
-	public Class getNormalizerClass() {
-		return LinearNormalizer.class;
-	}
-
-	public String writeParameterTag() {
-
-		String s = "<";
-		s = s.concat(myTagName);
-		s = s.concat(" " + paramNormalizationTypeAttributeName + "=\"" + paramNormalizationType + "\"");
-		s = s.concat("/>");
-		return s;
-
-	}
-
-	public String getParameterTagName() { return myTagName; }
-
-	public boolean loadXMLAttributes(Attributes atr) {
-
-		try { paramNormalizationType = Integer.parseInt(atr.getValue(paramNormalizationTypeAttributeName));	} catch (NumberFormatException e) {	return false; }
-		return true;
-	}
-
-    /**
-     * @see net.sf.mzmine.methods.MethodParameters#addToXML(org.w3c.dom.Document)
-     */
-    public Element addToXML(Document doc) {
-        // TODO Auto-generated method stub
-        return null;
-    }
-
-    /**
-     * @see net.sf.mzmine.methods.MethodParameters#readFromXML(org.w3c.dom.Element)
-     */
-    public void readFromXML(Element element) {
-        // TODO Auto-generated method stub
-        
-    }
+	protected static final Parameter NormalizationType = new SimpleParameter(	ParameterType.OBJECT,
+			"Normalization type",
+			"Normalize intensities by...",
+			NormalizationTypePossibleValues.TotalRawSignal,
+			NormalizationTypePossibleValues.values());
+	
 
 	public Parameter[] getParameters() {
-		// TODO Auto-generated method stub
-		return null;
+		return new Parameter[] { NormalizationType };
 	}
 
 }

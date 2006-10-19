@@ -39,6 +39,7 @@ import javax.swing.JSplitPane;
 import javax.swing.border.EtchedBorder;
 import javax.swing.event.ListSelectionListener;
 
+import net.sf.mzmine.data.AlignmentResult;
 import net.sf.mzmine.io.OpenedRawDataFile;
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.taskcontrol.impl.TaskControllerImpl;
@@ -208,15 +209,36 @@ public class MainWindow extends JFrame implements Desktop, WindowListener {
     public OpenedRawDataFile[] getSelectedDataFiles() {
         return itemSelector.getSelectedRawData();
     }
-
-    /**
-     * @see net.sf.mzmine.userinterface.Desktop#getFirstSelectedDataFile()
-     */
-    public OpenedRawDataFile getFirstSelectedDataFile() {
-        return itemSelector.getFirstSelectedRawData();
+    
+    public AlignmentResult[] getSelectedAlignmentResults() {
+    	return itemSelector.getSelectedAlignmentResults();
     }
+ 
+    public void setSelectedAlignmentResult(AlignmentResult alignmentResult) {
+    	itemSelector.setActiveAlignmentResult(alignmentResult);
+	}
 
-    /**
+	public void setSelectedDataFile(OpenedRawDataFile dataFile) {
+		itemSelector.setActiveRawData(dataFile);
+	}
+
+	public void addAlignmentResult(AlignmentResult alignmentResult) {
+    	itemSelector.addAlignmentResult(alignmentResult);
+	}
+
+	public void addDataFile(OpenedRawDataFile dataFile) {
+		itemSelector.addRawData(dataFile);
+	}
+
+	public void removeAlignmentResult(AlignmentResult alignmentResult) {
+		itemSelector.removeAlignmentResult(alignmentResult);
+	}
+
+	public void removeDataFile(OpenedRawDataFile dataFile) {
+		itemSelector.removeRawData(dataFile);
+	}
+
+	/**
      * @see net.sf.mzmine.userinterface.Desktop#addSelectionListener(javax.swing.event.ListSelectionListener)
      */
     public void addSelectionListener(ListSelectionListener listener) {

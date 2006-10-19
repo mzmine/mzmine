@@ -35,6 +35,7 @@ import net.sf.mzmine.io.RawDataFile;
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.methods.Method;
 import net.sf.mzmine.methods.MethodParameters;
+import net.sf.mzmine.methods.alignment.join.JoinAlignerParameters;
 import net.sf.mzmine.project.MZmineProject;
 import net.sf.mzmine.taskcontrol.Task;
 import net.sf.mzmine.taskcontrol.TaskController;
@@ -42,12 +43,15 @@ import net.sf.mzmine.taskcontrol.TaskListener;
 import net.sf.mzmine.userinterface.Desktop;
 import net.sf.mzmine.userinterface.Desktop.MZmineMenu;
 import net.sf.mzmine.userinterface.dialogs.ParameterSetupDialog;
+import net.sf.mzmine.userinterface.mainwindow.MainWindow;
 
 public class ChromatographicMedianFilter implements Method,
         TaskListener, ListSelectionListener, ActionListener {
 
     private Logger logger = Logger.getLogger(this.getClass().getName());
 
+    private ChromatographicMedianFilterParameters parameters;
+    
     private TaskController taskController;
     private Desktop desktop;
     private JMenuItem myMenuItem;
@@ -71,69 +75,21 @@ public class ChromatographicMedianFilter implements Method,
     /**
      * @see net.sf.mzmine.methods.Method#askParameters()
      */
-    public MethodParameters askParameters() {
+    public boolean askParameters() {
 
-        MZmineProject currentProject = MZmineProject.getCurrentProject();
-        ChromatographicMedianFilterParameters currentParameters = (ChromatographicMedianFilterParameters) currentProject.getParameters(this);
-        if (currentParameters == null)
-            currentParameters = new ChromatographicMedianFilterParameters();
+        parameters = new ChromatographicMedianFilterParameters();
+        parameters.initParameters();    	
 
-        return currentParameters;
+        ParameterSetupDialog dialog = new ParameterSetupDialog(		
+        				MainWindow.getInstance(),
+        				"Please check parameter values for Chromatographic Median Filter",
+        				parameters
+        		);
+        dialog.setVisible(true);
         
-        // TODO: Edit & enable this code, after reorganizating parameters and parameter setup dialog to comply with MethodParameters and new ParameterSetupDialog 
-/*        
-        // Initialize parameter setup dialog
-        double[] paramValues = new double[2];
-        paramValues[0] = currentParameters.mzTolerance;
-        paramValues[1] = currentParameters.oneSidedWindowLength;
+		if (dialog.getExitCode()==-1) return false;
 
-        String[] paramNames = new String[2];
-        paramNames[0] = "Tolerance in M/Z tolerance (Da)";
-        paramNames[1] = "One-sided window length (scans)";
-
-        NumberFormat[] numberFormats = new NumberFormat[2];
-        numberFormats[0] = NumberFormat.getNumberInstance();
-        numberFormats[0].setMinimumFractionDigits(3);
-        numberFormats[1] = NumberFormat.getIntegerInstance();
-
-        logger.finest("Showing cromatographic median filter parameter setup dialog");
-
-        // Show parameter setup dialog
-        ParameterSetupDialog psd = new ParameterSetupDialog(
-                desktop.getMainFrame(), "Please check the parameter values",
-                paramNames, paramValues, numberFormats);
-        psd.setVisible(true);
-
-        // Check if user clicked Cancel-button
-        if (psd.getExitCode() == -1) {
-            return null;
-        }
-
-        ChromatographicMedianFilterParameters newParameters = new ChromatographicMedianFilterParameters();
-
-        // Write values from dialog back to parameters object
-        double d;
-
-        d = psd.getFieldValue(0);
-        if (d <= 0) {
-            desktop.displayErrorMessage("Incorrect M/Z tolerance value!");
-            return null;
-        }
-        newParameters.mzTolerance = d;
-
-        int i;
-        i = (int) Math.round(psd.getFieldValue(1));
-        if (i <= 0) {
-            desktop.displayErrorMessage("Incorrect one-sided scan window length!");
-            return null;
-        }
-        newParameters.oneSidedWindowLength = i;
-
-        // save the current parameter settings for future runs
-        currentProject.setParameters(this, newParameters);
-
-        return newParameters;
-*/
+		return true;
     }
 
     /**
@@ -159,12 +115,10 @@ public class ChromatographicMedianFilter implements Method,
      */
     public void actionPerformed(ActionEvent e) {
 
-        MethodParameters parameters = askParameters();
-        if (parameters == null)
-            return;
+    	if (!askParameters()) return;
 
         OpenedRawDataFile[] dataFiles = desktop.getSelectedDataFiles();
-
+              
         runMethod(parameters, dataFiles, null);
 
     }

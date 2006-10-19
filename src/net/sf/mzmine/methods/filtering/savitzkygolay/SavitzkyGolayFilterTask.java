@@ -36,7 +36,7 @@ class SavitzkyGolayFilterTask implements Task {
 
     private OpenedRawDataFile dataFile;
     private RawDataFile rawDataFile;
-    private SavitzkyGolayFilterParameters parameters;
+    
     private TaskStatus status;
     private String errorMessage;
 
@@ -44,9 +44,13 @@ class SavitzkyGolayFilterTask implements Task {
     private int totalScans;
 
     private RawDataFile filteredRawDataFile;
-
+    
     private Hashtable<Integer, Integer> Hvalues;
     private Hashtable<Integer, int[]> Avalues;
+    
+    private SavitzkyGolayFilterParameters parameters;
+    int numberOfDataPoints = (Integer)parameters.getParameterValue(parameters.numberOfDatapoints).getValue();
+    
 
     /**
      * @param rawDataFile
@@ -128,8 +132,8 @@ class SavitzkyGolayFilterTask implements Task {
             return;
         }
 
-        int[] aVals = Avalues.get(new Integer(parameters.numberOfDataPoints));
-        int h = Hvalues.get(new Integer(parameters.numberOfDataPoints)).intValue();
+        int[] aVals = Avalues.get(new Integer(numberOfDataPoints));
+        int h = Hvalues.get(new Integer(numberOfDataPoints)).intValue();
 
         int[] scanNumbers = rawDataFile.getScanNumbers(1);
         totalScans = scanNumbers.length;
@@ -143,8 +147,8 @@ class SavitzkyGolayFilterTask implements Task {
 
             try {
                 oldScan = rawDataFile.getScan(scanNumbers[i]);
-                processOneScan(rawDataFileWriter, oldScan,
-                        parameters.numberOfDataPoints, h, aVals);
+                processOneScan(	rawDataFileWriter, oldScan,
+                        		numberOfDataPoints, h, aVals);
 
             } catch (IOException e) {
                 status = TaskStatus.ERROR;
