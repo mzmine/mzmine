@@ -23,20 +23,23 @@ package net.sf.mzmine.methods.alignment.filterbygaps;
 import net.sf.mzmine.data.Parameter;
 import net.sf.mzmine.data.Parameter.ParameterType;
 import net.sf.mzmine.data.impl.SimpleParameter;
+import net.sf.mzmine.data.impl.SimpleParameterValue;
 import net.sf.mzmine.methods.MethodParameters;
 
 
 public class AlignmentResultFilterByGapsParameters extends MethodParameters {
 
-
-	protected static final Parameter maxGaps = new SimpleParameter(	ParameterType.INTEGER,
-																	"Max gaps",
-																	"Maximum number of gaps allowed per line",
+	protected static final Parameter minPresent = new SimpleParameter(	ParameterType.INTEGER,
+																	"Minimum present",
+																	"Minimum number of peak detections required for keeping a row",
 																	"",
-																	new Integer(1) );
+																	new SimpleParameterValue(1),
+																	new SimpleParameterValue(1),
+																	null,
+																	null);
 	
 	public Parameter[] getParameters() {
-		return new Parameter[] {maxGaps};
+		return new Parameter[] {minPresent};
 	}
 	
 }

@@ -75,11 +75,11 @@ class JoinAlignerTask implements Task {
         this.parameters = parameters;
         
 		// Get parameter values for easier use
-        MZTolerance = (Double)parameters.getParameterValue(JoinAlignerParameters.MZTolerance).getValue();
-        MZvsRTBalance = (Double)parameters.getParameterValue(JoinAlignerParameters.MZvsRTBalance).getValue();
-        if (parameters.getParameterValue(JoinAlignerParameters.RTToleranceType).getValue() == JoinAlignerParameters.RTToleranceTypePossibleValues.Absolute) RTToleranceUseAbs = true; else RTToleranceUseAbs = false;  
-        RTToleranceValueAbs = (Double)parameters.getParameterValue(JoinAlignerParameters.RTToleranceValueAbs).getValue();
-        RTToleranceValuePercent = (Double)parameters.getParameterValue(JoinAlignerParameters.RTToleranceValuePercent).getValue();     
+        MZTolerance = parameters.getParameterValue(JoinAlignerParameters.MZTolerance).getDoubleValue();
+        MZvsRTBalance = parameters.getParameterValue(JoinAlignerParameters.MZvsRTBalance).getDoubleValue();
+        if (parameters.getParameterValue(JoinAlignerParameters.RTToleranceType) == JoinAlignerParameters.RTToleranceTypeAbsolute) RTToleranceUseAbs = true; else RTToleranceUseAbs = false;  
+        RTToleranceValueAbs = parameters.getParameterValue(JoinAlignerParameters.RTToleranceValueAbs).getDoubleValue();
+        RTToleranceValuePercent = parameters.getParameterValue(JoinAlignerParameters.RTToleranceValuePercent).getDoubleValue();     
 
     }
 

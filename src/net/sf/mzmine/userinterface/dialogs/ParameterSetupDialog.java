@@ -138,7 +138,10 @@ public class ParameterSetupDialog extends JDialog implements ActionListener {
 			case DOUBLE:
 			case STRING:
 			default:
-				JFormattedTextField txtField = new JFormattedTextField(p.getFormat());
+				Parameter numberFormatParameter = p.getNumberFormatParameter();
+				NumberFormat numberFormat = null;
+				if (numberFormatParameter!=null) numberFormat = (NumberFormat)project.getParameterValue(numberFormatParameter).getValue();
+				JFormattedTextField txtField = new JFormattedTextField(numberFormat);
 				ParameterValue parameterValue = parameters.getParameterValue(p);
 				Object value=null;
 				if (parameterValue!=null) value = parameterValue.getValue();
@@ -156,7 +159,7 @@ public class ParameterSetupDialog extends JDialog implements ActionListener {
 				
 			case BOOLEAN:
 				JCheckBox checkBox = new JCheckBox();
-				checkBox.setSelected((Boolean)parameters.getParameterValue(p).getValue());
+				checkBox.setSelected(parameters.getParameterValue(p).getBooleanValue());
 				checkBox.setToolTipText(p.getDescription());
 				parametersAndComponents.put(p, checkBox);
 				
@@ -227,17 +230,17 @@ public class ParameterSetupDialog extends JDialog implements ActionListener {
 				case INTEGER:
 					JFormattedTextField txtField = (JFormattedTextField)parametersAndComponents.get(p); 
 					try { value = (Integer)txtField.getValue(); }
-					catch (Exception e) { displayMessage("Invalid parameter value for " + p.getName()); return;	}
+					catch (Exception e) { e.printStackTrace(); displayMessage("Invalid parameter value for " + p.getName()); return;	}
 					break;
 				case DOUBLE:
 					txtField = (JFormattedTextField)parametersAndComponents.get(p);
 					try { value = (Double)txtField.getValue(); } 
-					catch (Exception e) { displayMessage("Invalid parameter value for " + p.getName()); return;	}
+					catch (Exception e) { e.printStackTrace(); displayMessage("Invalid parameter value for " + p.getName()); return;	}
 					break;
 				case STRING:
 					txtField = (JFormattedTextField)parametersAndComponents.get(p); 
 					try { value = (String)txtField.getValue(); }
-					catch (Exception e) { displayMessage("Invalid parameter value for " + p.getName()); return;	}
+					catch (Exception e) { e.printStackTrace(); displayMessage("Invalid parameter value for " + p.getName()); return;	}
 					break;
 				case BOOLEAN:
 					JCheckBox checkBox = (JCheckBox)parametersAndComponents.get(p);

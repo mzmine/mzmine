@@ -81,11 +81,21 @@ public class MZmineProject {
     	projectParameters.put(parameter, value);
     }
 
+    /**
+     * Returns current value of the parameter.
+     * If current value is not set in the project, then returns default value of the parameter and sets current value equal to default value.
+     * @param parameter
+     * @return Current value of the parameter or null if parameter is null
+     */
     public ParameterValue getParameterValue(Parameter parameter) {
+    	if (parameter==null) return null;
+    	if (!containsParameterValue(parameter)) 
+    		setParameterValue(parameter, parameter.getDefaultValue());
         return projectParameters.get(parameter);
     }
     
     public boolean containsParameterValue(Parameter parameter) {
+    	if (parameter==null) return false;
     	return projectParameters.contains(parameter);
     }
 

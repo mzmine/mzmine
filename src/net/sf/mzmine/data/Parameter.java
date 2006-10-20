@@ -59,31 +59,31 @@ public interface Parameter extends DataUnit {
      * 
      * @return Default value of this parameter or null
      */
-    public Object getDefaultValue();
+    public ParameterValue getDefaultValue();
     
     /**
      * 
      * @return Array of possible values of this parameter or null
      */
-    public Object[] getPossibleValues();
+    public ParameterValue[] getPossibleValues();
 
     /**
      * 
      * @return Minimum possible value of this parameter or null
      */
-    public Object getMinimumValue();
+    public ParameterValue getMinimumValue();
 
     /**
      * 
      * @return Maximum possible value of this parameter or null
      */
-    public Object getMaximumValue();
+    public ParameterValue getMaximumValue();
     
     /**
      * 
-     * @return NumberFormat suitable for this parameter or null
+     * @return Parameter for the NumberFormat suitable for this parameter or null
      */
-    public NumberFormat getFormat();
+    public Parameter getNumberFormatParameter();
 
     
 }

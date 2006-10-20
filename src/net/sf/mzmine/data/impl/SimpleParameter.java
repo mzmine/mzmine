@@ -22,6 +22,7 @@ package net.sf.mzmine.data.impl;
 import java.text.NumberFormat;
 
 import net.sf.mzmine.data.Parameter;
+import net.sf.mzmine.data.ParameterValue;
 
 /**
  * Simple Parameter implementation
@@ -30,8 +31,8 @@ public class SimpleParameter extends AbstractDataUnit implements Parameter {
 
     private ParameterType type;
     private String name, description, units;
-    private Object value, defaultValue, minValue, maxValue, possibleValues[];
-    private NumberFormat format;
+    private ParameterValue value, defaultValue, minValue, maxValue, possibleValues[];
+    private Parameter numberFormatParameter;
 
     public SimpleParameter(ParameterType type, String name, String description) {
         this(type, name, description, null, null, null, null, null, null);
@@ -43,40 +44,39 @@ public class SimpleParameter extends AbstractDataUnit implements Parameter {
     }
 
     public SimpleParameter(ParameterType type, String name, String description,
-            String units, NumberFormat format) {
-        this(type, name, description, units, null, null, null, null, format);
+            String units, Parameter numberFormatParameter) {
+        this(type, name, description, units, null, null, null, null, numberFormatParameter);
     }
 
     public SimpleParameter(ParameterType type, String name, String description,
-            String units, Object defaultValue) {
+            String units, ParameterValue defaultValue) {
         this(type, name, description, units, defaultValue, null, null, null,
                 null);
     }
 
     public SimpleParameter(ParameterType type, String name, String description,
-            String units, Object defaultValue, NumberFormat format) {
-        this(type, name, description, units, defaultValue, null, null, null,
-                format);
+            String units, ParameterValue defaultValue, Parameter numberFormatParameter) {
+        this(type, name, description, units, defaultValue, null, null, null, numberFormatParameter);
     }
 
     public SimpleParameter(ParameterType type, String name, String description,
-            String units, Object defaultValue, Object possibleValues[],
-            NumberFormat format) {
+            String units, ParameterValue defaultValue, ParameterValue possibleValues[],
+            Parameter numberFormatParameter) {
         this(type, name, description, units, defaultValue, null, null,
-                possibleValues, format);
+                possibleValues, numberFormatParameter);
     }
 
     public SimpleParameter(ParameterType type, String name, String description,
-            Object defaultValue, Object possibleValues[]) {
+    		ParameterValue defaultValue, ParameterValue possibleValues[]) {
         this(type, name, description, null, defaultValue, null, null,
                 possibleValues, null);
     }    
     
     public SimpleParameter(ParameterType type, String name, String description,
-            String units, Object defaultValue, Object minValue,
-            Object maxValue, NumberFormat format) {
+            String units, ParameterValue defaultValue, ParameterValue minValue,
+            ParameterValue maxValue, Parameter numberFormatParameter) {
         this(type, name, description, units, defaultValue, minValue, maxValue,
-                null, format);
+                null, numberFormatParameter);
     }
    
     /**
@@ -92,9 +92,9 @@ public class SimpleParameter extends AbstractDataUnit implements Parameter {
      */
    
     private SimpleParameter(ParameterType type, String name,
-            String description, String units, Object defaultValue,
-            Object minValue, Object maxValue, Object[] possibleValues,
-            NumberFormat format) {
+            String description, String units, ParameterValue defaultValue,
+            ParameterValue minValue, ParameterValue maxValue, ParameterValue[] possibleValues,
+            Parameter numberFormatParameter) {
         this.type = type;
         this.name = name;
         this.description = description;
@@ -103,7 +103,7 @@ public class SimpleParameter extends AbstractDataUnit implements Parameter {
         this.minValue = minValue;
         this.maxValue = maxValue;
         this.possibleValues = possibleValues;
-        this.format = format;
+        this.numberFormatParameter = numberFormatParameter;
     }
 
     /**
@@ -137,36 +137,36 @@ public class SimpleParameter extends AbstractDataUnit implements Parameter {
     /**
      * @see net.sf.mzmine.data.Parameter#getPossibleValues()
      */
-    public Object[] getPossibleValues() {
+    public ParameterValue[] getPossibleValues() {
         return possibleValues;
     }
    
     /**
      * @see net.sf.mzmine.data.Parameter#getDefaultValue()
      */
-    public Object getDefaultValue() {
+    public ParameterValue getDefaultValue() {
         return defaultValue;
     }
 
     /**
      * @see net.sf.mzmine.data.Parameter#getMinimumValue()
      */
-    public Object getMinimumValue() {
+    public ParameterValue getMinimumValue() {
         return minValue;
     }
 
     /**
      * @see net.sf.mzmine.data.Parameter#getMaximumValue()
      */
-    public Object getMaximumValue() {
+    public ParameterValue getMaximumValue() {
         return maxValue;
     }
 
     /**
      * @see net.sf.mzmine.data.Parameter#getFormat()
      */
-    public NumberFormat getFormat() {
-        return format;
+    public Parameter getNumberFormatParameter() {
+        return numberFormatParameter;
     }
 
 }

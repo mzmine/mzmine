@@ -22,26 +22,33 @@ package net.sf.mzmine.methods.filtering.chromatographicmedian;
 import net.sf.mzmine.data.Parameter;
 import net.sf.mzmine.data.Parameter.ParameterType;
 import net.sf.mzmine.data.impl.SimpleParameter;
+import net.sf.mzmine.data.impl.SimpleParameterValue;
 import net.sf.mzmine.methods.MethodParameters;
 
 /**
  * This class represents parameter for the chromatographic median filter method
  */
-class ChromatographicMedianFilterParameters extends MethodParameters {
+public class ChromatographicMedianFilterParameters extends MethodParameters {
 
 	protected static final Parameter oneSidedWindowLength = new SimpleParameter(		
 			ParameterType.INTEGER,
 			"Window length",
 			"One-sided width of the smoothing window",
 			"scans",
-			new Integer(1));	
+			new SimpleParameterValue(1),
+			new SimpleParameterValue(1),
+			null,
+			null);
 	
 	protected static final Parameter MZTolerance = new SimpleParameter(		
 			ParameterType.DOUBLE,
 			"M/Z tolerance",
 			"Maximum allowed M/Z difference",
 			"Da",
-			new Double(0.1));
+			new SimpleParameterValue(0.1),
+			new SimpleParameterValue(0.0),
+			null,
+			null);
     
 
 	public Parameter[] getParameters() {

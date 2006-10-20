@@ -22,12 +22,13 @@ package net.sf.mzmine.methods.filtering.crop;
 import net.sf.mzmine.data.Parameter;
 import net.sf.mzmine.data.Parameter.ParameterType;
 import net.sf.mzmine.data.impl.SimpleParameter;
+import net.sf.mzmine.data.impl.SimpleParameterValue;
 import net.sf.mzmine.methods.MethodParameters;
 
 /**
  * This class represents parameter for the crop filter method
  */
-class CropFilterParameters extends MethodParameters {
+public class CropFilterParameters extends MethodParameters {
 
 
     
@@ -36,28 +37,40 @@ class CropFilterParameters extends MethodParameters {
 			"Minimum M/Z",
 			"Lower M/Z boundary of the cropped region",
 			"Da",
-			new Double(100));
+			new SimpleParameterValue(100.0),
+			new SimpleParameterValue(0.0),
+			null,
+			null);
     
 	protected static final Parameter maxMZ = new SimpleParameter(		
 			ParameterType.DOUBLE,
 			"Maximum M/Z",
 			"Upper M/Z boundary of the cropped region",
 			"Da",
-			new Double(1000));
+			new SimpleParameterValue(1000.0),
+			new SimpleParameterValue(0.0),
+			null,
+			null);
 
 	protected static final Parameter minRT = new SimpleParameter(		
 			ParameterType.DOUBLE,
 			"Minimum Retention time",
 			"Lower RT boundary of the cropped region",
 			"seconds",
-			new Double(10));
+			new SimpleParameterValue(10.0),
+			new SimpleParameterValue(0.0),
+			null,
+			null);
     
 	protected static final Parameter maxRT = new SimpleParameter(		
 			ParameterType.DOUBLE,
 			"Maximum Retention time",
 			"Upper RT boundary of the cropped region",
 			"seconds",
-			new Double(600));	
+			new SimpleParameterValue(600.0),
+			new SimpleParameterValue(0.0),
+			null,
+			null);	
 	
 	public Parameter[] getParameters() {
 		return new Parameter[] {minMZ, maxMZ, minRT, maxRT};

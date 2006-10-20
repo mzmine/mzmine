@@ -28,10 +28,25 @@ import javax.swing.SwingUtilities;
 
 import net.sf.mzmine.io.IOController;
 import net.sf.mzmine.io.impl.IOControllerImpl;
+import net.sf.mzmine.methods.alignment.filterbygaps.AlignmentResultFilterByGapsParameters;
+import net.sf.mzmine.methods.alignment.join.JoinAlignerParameters;
+import net.sf.mzmine.methods.deisotoping.incompletefilter.IncompleteIsotopePatternFilterParameters;
+import net.sf.mzmine.methods.deisotoping.simplegrouper.SimpleIsotopicPeaksGrouperParameters;
+import net.sf.mzmine.methods.filtering.chromatographicmedian.ChromatographicMedianFilterParameters;
+import net.sf.mzmine.methods.filtering.crop.CropFilterParameters;
+import net.sf.mzmine.methods.filtering.mean.MeanFilterParameters;
+import net.sf.mzmine.methods.filtering.savitzkygolay.SavitzkyGolayFilterParameters;
+import net.sf.mzmine.methods.filtering.zoomscan.ZoomScanFilterParameters;
+import net.sf.mzmine.methods.gapfilling.simple.SimpleGapFillerParameters;
+import net.sf.mzmine.methods.normalization.linear.LinearNormalizerParameters;
+import net.sf.mzmine.methods.peakpicking.centroid.CentroidPickerParameters;
+import net.sf.mzmine.methods.peakpicking.local.LocalPickerParameters;
+import net.sf.mzmine.methods.peakpicking.recursivethreshold.RecursiveThresholdPickerParameters;
 import net.sf.mzmine.project.MZmineProject;
 import net.sf.mzmine.taskcontrol.TaskController;
 import net.sf.mzmine.taskcontrol.impl.TaskControllerImpl;
 import net.sf.mzmine.userinterface.Desktop;
+import net.sf.mzmine.userinterface.dialogs.ParameterSetupDialog;
 import net.sf.mzmine.userinterface.mainwindow.MainWindow;
 
 public class MZmineClient implements Runnable, MZmineCore {
@@ -131,15 +146,13 @@ public class MZmineClient implements Runnable, MZmineCore {
         mainWindow.setStatusBarText("Welcome to MZmine!");
         
         // DEBUG start
-        /*
         ParameterSetupDialog psdialog 
         = new ParameterSetupDialog
-        		(		mainWindow.getInstance(),
+        		(		MainWindow.getInstance(),
         				"Testing...",
-        				new JoinAlignerParameters()
+        				new RecursiveThresholdPickerParameters()
         		);
         psdialog.setVisible(true);
-        */
         // DEBUG end
         
 

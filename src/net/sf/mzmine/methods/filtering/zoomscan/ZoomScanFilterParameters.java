@@ -22,19 +22,23 @@ package net.sf.mzmine.methods.filtering.zoomscan;
 import net.sf.mzmine.data.Parameter;
 import net.sf.mzmine.data.Parameter.ParameterType;
 import net.sf.mzmine.data.impl.SimpleParameter;
+import net.sf.mzmine.data.impl.SimpleParameterValue;
 import net.sf.mzmine.methods.MethodParameters;
 
 /**
  * This class represents parameter for the zoom scan filter method
  */
-class ZoomScanFilterParameters extends MethodParameters {
+public class ZoomScanFilterParameters extends MethodParameters {
 
 	protected static final Parameter minMZRange = new SimpleParameter(	
 			ParameterType.DOUBLE,
 			"Minimum M/Z range",
 			"Required minimum M/Z range for a full scan",
 			"Da",
-			new Double(100));
+			new SimpleParameterValue(100.0),
+			new SimpleParameterValue(0.0),
+			null,
+			null);
     
 	public Parameter[] getParameters() {
 		return new Parameter[] { minMZRange };

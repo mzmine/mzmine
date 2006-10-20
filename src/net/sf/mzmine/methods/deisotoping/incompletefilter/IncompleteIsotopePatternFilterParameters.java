@@ -22,6 +22,7 @@ package net.sf.mzmine.methods.deisotoping.incompletefilter;
 import net.sf.mzmine.data.Parameter;
 import net.sf.mzmine.data.Parameter.ParameterType;
 import net.sf.mzmine.data.impl.SimpleParameter;
+import net.sf.mzmine.data.impl.SimpleParameterValue;
 import net.sf.mzmine.methods.MethodParameters;
 
 
@@ -32,7 +33,10 @@ public class IncompleteIsotopePatternFilterParameters extends MethodParameters {
 			"Minimum number of peaks",
 			"Minimum acceptable number of peaks per isotope pattern",
 			"",
-			new Integer(2));
+			new SimpleParameterValue(2),
+			new SimpleParameterValue(1),
+			null,
+			null);
 	
 	
 

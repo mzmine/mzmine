@@ -21,21 +21,26 @@
 package net.sf.mzmine.methods.alignment.join;
 
 import net.sf.mzmine.data.Parameter;
+import net.sf.mzmine.data.ParameterValue;
 import net.sf.mzmine.data.Parameter.ParameterType;
 import net.sf.mzmine.data.impl.SimpleParameter;
+import net.sf.mzmine.data.impl.SimpleParameterValue;
 import net.sf.mzmine.methods.MethodParameters;
 
 
 public class JoinAlignerParameters extends MethodParameters {
 
-	protected enum RTToleranceTypePossibleValues { Absolute, Relative };
+	protected static final ParameterValue RTToleranceTypeAbsolute = new SimpleParameterValue("Absolute");
+	protected static final ParameterValue RTToleranceTypeRelative = new SimpleParameterValue("Relative");
+	
+	protected static final ParameterValue[] RTToleranceTypePossibleValues = {RTToleranceTypeAbsolute , RTToleranceTypeRelative}; 
 	
 	protected static final Parameter MZvsRTBalance = new SimpleParameter(	ParameterType.DOUBLE,
 																			"M/Z vs RT balance",
 																			"Used in distance measuring as multiplier of M/Z difference",
 																			"",
-																			new Double(10),
-																			new Double(0),
+																			new SimpleParameterValue(10.0),
+																			new SimpleParameterValue(0.0),
 																			null,
 																			null);
 	
@@ -43,24 +48,24 @@ public class JoinAlignerParameters extends MethodParameters {
 																			"M/Z tolerance",
 																			"Maximum allowed M/Z difference",
 																			"Da",
-																			new Double(0.2),
-																			new Double(0),
+																			new SimpleParameterValue(0.2),
+																			new SimpleParameterValue(0.0),
 																			null,
 																			null);
 	
 	protected static final Parameter RTToleranceType = new SimpleParameter(	ParameterType.OBJECT,
 																			"RT tolerance type",
 																			"Maximum RT difference can be defined either using absolute or relative value",
-																			RTToleranceTypePossibleValues.Absolute,
-																			RTToleranceTypePossibleValues.values());
+																			RTToleranceTypePossibleValues[0],
+																			RTToleranceTypePossibleValues);
 	
 	protected static final Parameter RTToleranceValueAbs = new SimpleParameter(	
 																			ParameterType.DOUBLE,
 																			"Absolute RT tolerance",
 																			"Maximum allowed absolute RT difference",
 																			"seconds",
-																			new Double(15),
-																			new Double(0),
+																			new SimpleParameterValue(15.0),
+																			new SimpleParameterValue(0.0),
 																			null,
 																			null);
 	
@@ -69,8 +74,8 @@ public class JoinAlignerParameters extends MethodParameters {
 																			"Relative RT tolerance",
 																			"Maximum allowed relative RT difference",
 																			"%",
-																			new Double(15),
-																			new Double(0),
+																			new SimpleParameterValue(15.0),
+																			new SimpleParameterValue(0.0),
 																			null,
 																			null);
 	

@@ -21,21 +21,27 @@
 package net.sf.mzmine.methods.normalization.linear;
 
 import net.sf.mzmine.data.Parameter;
+import net.sf.mzmine.data.ParameterValue;
 import net.sf.mzmine.data.Parameter.ParameterType;
 import net.sf.mzmine.data.impl.SimpleParameter;
+import net.sf.mzmine.data.impl.SimpleParameterValue;
 import net.sf.mzmine.methods.MethodParameters;
 
 
 public class LinearNormalizerParameters extends MethodParameters {
 
+	protected static final ParameterValue NormalizationTypeAverageIntensity = new SimpleParameterValue("Average intensity");
+	protected static final ParameterValue NormalizationTypeAverageSquaredIntensity = new SimpleParameterValue("Average squared intensity");
+	protected static final ParameterValue NormalizationTypeMaximumPeakHeight = new SimpleParameterValue("Maximum peak height");
+	protected static final ParameterValue NormalizationTypeTotalRawSignal = new SimpleParameterValue("Total raw signal");
 	
-	protected enum NormalizationTypePossibleValues { AverageIntensity, AverageSquaredIntensity, MaximumPeakHeight, TotalRawSignal };
+	protected static final ParameterValue[] NormalizationTypePossibleValues = { NormalizationTypeAverageIntensity, NormalizationTypeAverageSquaredIntensity, NormalizationTypeMaximumPeakHeight, NormalizationTypeTotalRawSignal };
 
 	protected static final Parameter NormalizationType = new SimpleParameter(	ParameterType.OBJECT,
 			"Normalization type",
 			"Normalize intensities by...",
-			NormalizationTypePossibleValues.TotalRawSignal,
-			NormalizationTypePossibleValues.values());
+			NormalizationTypeAverageIntensity,
+			NormalizationTypePossibleValues);
 	
 
 	public Parameter[] getParameters() {

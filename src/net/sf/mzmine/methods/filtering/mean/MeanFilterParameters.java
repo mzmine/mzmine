@@ -22,12 +22,13 @@ package net.sf.mzmine.methods.filtering.mean;
 import net.sf.mzmine.data.Parameter;
 import net.sf.mzmine.data.Parameter.ParameterType;
 import net.sf.mzmine.data.impl.SimpleParameter;
+import net.sf.mzmine.data.impl.SimpleParameterValue;
 import net.sf.mzmine.methods.MethodParameters;
 
 /**
  * This class represents parameter for the mean filter method
  */
-class MeanFilterParameters extends MethodParameters {
+public class MeanFilterParameters extends MethodParameters {
 
 
 	protected static final Parameter oneSidedWindowLength = new SimpleParameter(		
@@ -35,7 +36,10 @@ class MeanFilterParameters extends MethodParameters {
 			"Window length",
 			"One-sided length of the smoothing window",
 			"Da",
-			new Double(0.1));	
+			new SimpleParameterValue(0.1),
+			new SimpleParameterValue(0.0),
+			null,
+			null);	
     
 
 

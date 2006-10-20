@@ -59,14 +59,7 @@ public abstract class MethodParameters {
 			if (pVal!=null) { 
 				// Yes, then use the current value to initialize value used in this object
 				values.put(p, pVal);
-			} else {
-				// No, then use the default parameter value for initialization
-				SimpleParameterValue spVal=null;
-				try {
-					spVal = new SimpleParameterValue(p, p.getDefaultValue());
-				} catch (SimpleParameterValueInvalidValueException e) {}
-				values.put(p, spVal);
-			}
+			} 
 		}
 	}
 	

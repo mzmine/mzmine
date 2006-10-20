@@ -16,6 +16,7 @@ package net.sf.mzmine.methods.deisotoping.simplegrouper;
 import net.sf.mzmine.data.Parameter;
 import net.sf.mzmine.data.Parameter.ParameterType;
 import net.sf.mzmine.data.impl.SimpleParameter;
+import net.sf.mzmine.data.impl.SimpleParameterValue;
 import net.sf.mzmine.methods.MethodParameters;
 
 /**
@@ -24,35 +25,44 @@ import net.sf.mzmine.methods.MethodParameters;
  * 
  * @version 31 March 2006
  */
-class SimpleIsotopicPeaksGrouperParameters extends MethodParameters {
+public class SimpleIsotopicPeaksGrouperParameters extends MethodParameters {
   
 	protected static final Parameter mzTolerance = new SimpleParameter(	
 			ParameterType.DOUBLE,
 			"M/Z tolerance",
 			"Maximum distance in M/Z from the expected location of a peak",
 			"Da",
-			new Double(0.05));
+			new SimpleParameterValue(0.05),
+			new SimpleParameterValue(0.0),
+			null,
+			null);
 	
 	protected static final Parameter rtTolerance = new SimpleParameter(	
 			ParameterType.DOUBLE,
 			"RT tolerance",
 			"Maximum distance in RT from the expected location of a peak",
 			"seconds",
-			new Double(5));
+			new SimpleParameterValue(5.0),
+			new SimpleParameterValue(0.0),
+			null,
+			null);
 	
 	protected static final Parameter monotonicShape = new SimpleParameter(	
 			ParameterType.BOOLEAN,
 			"Monotonic shape",
 			"If true, then monotonically decreasing height of isotope pattern is required (monoisotopic peak is strongest).",
 			"",
-			new Boolean(true));
+			new SimpleParameterValue(new Boolean(true)));
 
 	protected static final Parameter maximumCharge = new SimpleParameter(	
 			ParameterType.INTEGER,
 			"Maximum charge",
 			"Maximum charge",
 			"",
-			new Integer(1));	
+			new SimpleParameterValue(1),
+			new SimpleParameterValue(1),
+			null,
+			null);	
     
     
 	public Parameter[] getParameters() {   

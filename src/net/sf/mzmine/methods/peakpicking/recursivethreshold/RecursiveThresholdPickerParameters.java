@@ -19,74 +19,107 @@
 
 package net.sf.mzmine.methods.peakpicking.recursivethreshold;
 
+import java.text.DecimalFormat;
+import java.text.NumberFormat;
+
 import net.sf.mzmine.data.Parameter;
 import net.sf.mzmine.data.Parameter.ParameterType;
 import net.sf.mzmine.data.impl.SimpleParameter;
+import net.sf.mzmine.data.impl.SimpleParameterValue;
 import net.sf.mzmine.methods.MethodParameters;
+import net.sf.mzmine.userinterface.DesktopParameters;
 
-class RecursiveThresholdPickerParameters extends MethodParameters {
+public class RecursiveThresholdPickerParameters extends MethodParameters {
   
-    protected static final Parameter binSize = new SimpleParameter(	ParameterType.DOUBLE,
+    protected static final Parameter binSize = new SimpleParameter(	
+    		ParameterType.DOUBLE,
 			"M/Z bin width",
 			"Width of M/Z range for each precalculated XIC",
 			"Da",
-			new Double(0.25));
+			new SimpleParameterValue(0.25),
+			new SimpleParameterValue(0.05),
+			null,
+			DesktopParameters.mzNumberFormatParameter);
 
     protected static final Parameter chromatographicThresholdLevel = new SimpleParameter(	
 			ParameterType.DOUBLE,
 			"Chromatographic threshold level",
 			"Used in defining threshold level value from an XIC",
 			"%",
-			new Double(0.0));
+			new SimpleParameterValue(0.0),
+			new SimpleParameterValue(0.0),
+			new SimpleParameterValue(1.0),
+			DesktopParameters.percentFormatParameter);
 
     protected static final Parameter noiseLevel = new SimpleParameter(	
 			ParameterType.DOUBLE,
 			"Nouse level",
 			"Intensities less than this value are interpreted as noise",
 			"absolute",
-			new Double(10.0));
+			new SimpleParameterValue(10.0),
+			new SimpleParameterValue(0.0),
+			null,
+			DesktopParameters.decimalFormatParameter);
 
     protected static final Parameter minimumPeakHeight = new SimpleParameter(	
 			ParameterType.DOUBLE,
 			"Min peak height",
 			"Minimum acceptable peak height",
 			"absolute",
-			new Double(100.0));
+			new SimpleParameterValue(100.0),
+			new SimpleParameterValue(0.0),
+			null,
+			DesktopParameters.decimalFormatParameter);
 
     protected static final Parameter minimumPeakDuration = new SimpleParameter(	
 			ParameterType.DOUBLE,
 			"Min peak duration",
 			"Minimum acceptable peak duration",
 			"seconds",
-			new Double(4.0));
+			new SimpleParameterValue(4.0),
+			new SimpleParameterValue(0.0),
+			null,
+			DesktopParameters.decimalFormatParameter);
     
     protected static final Parameter minimumMZPeakWidth = new SimpleParameter(	
 			ParameterType.DOUBLE,
 			"Min M/Z peak width",
 			"Minimum acceptable peak width in M/Z",
 			"Da",
-			new Double(0.2));
+			new SimpleParameterValue(0.2),
+			new SimpleParameterValue(0.0),
+			null,
+			DesktopParameters.mzNumberFormatParameter);
 
     protected static final Parameter maximumMZPeakWidth = new SimpleParameter(	
 			ParameterType.DOUBLE,
 			"Max M/Z peak width",
 			"Maximum acceptable peak width in M/Z",
 			"Da",
-			new Double(1.00));    
+			new SimpleParameterValue(1.00),
+			new SimpleParameterValue(0.0),
+			null,
+			DesktopParameters.mzNumberFormatParameter);    
     
     protected static final Parameter mzTolerance = new SimpleParameter(	
 			ParameterType.DOUBLE,
 			"M/Z tolerance",
 			"Maximum allowed distance in M/Z between centroid peaks in successive scans",
 			"Da",
-			new Double(0.1));
+			new SimpleParameterValue(0.1),
+			new SimpleParameterValue(0.0),
+			null,
+			DesktopParameters.mzNumberFormatParameter);
 
     protected static final Parameter intTolerance = new SimpleParameter(	
 			ParameterType.DOUBLE,
 			"Intensity tolerance",
 			"Maximum allowed deviation from expected /\\ shape of a peak in chromatographic direction",
 			"%",
-			new Double(0.15)); 
+			new SimpleParameterValue(0.15),
+			new SimpleParameterValue(0.0),
+			null,
+			DesktopParameters.decimalFormatParameter); 
     
     
 	public Parameter[] getParameters() {

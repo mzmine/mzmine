@@ -72,15 +72,15 @@ class RecursiveThresholdPickerTask implements Task {
         this.rawDataFile = dataFile.getCurrentFile();
 
         this.parameters = parameters;
-        binSize = (Double)parameters.getParameterValue(RecursiveThresholdPickerParameters.binSize).getValue();
-        chromatographicThresholdLevel = (Double)parameters.getParameterValue(RecursiveThresholdPickerParameters.chromatographicThresholdLevel).getValue();
-        intTolerance = (Double)parameters.getParameterValue(RecursiveThresholdPickerParameters.intTolerance).getValue();
-        minimumPeakDuration = (Double)parameters.getParameterValue(RecursiveThresholdPickerParameters.minimumPeakDuration).getValue();
-        minimumPeakHeight = (Double)parameters.getParameterValue(RecursiveThresholdPickerParameters.minimumPeakHeight).getValue();
-        minimumMZPeakWidth = (Double)parameters.getParameterValue(RecursiveThresholdPickerParameters.minimumMZPeakWidth).getValue();
-        maximumMZPeakWidth = (Double)parameters.getParameterValue(RecursiveThresholdPickerParameters.maximumMZPeakWidth).getValue();
-        mzTolerance = (Double)parameters.getParameterValue(RecursiveThresholdPickerParameters.mzTolerance).getValue();
-        noiseLevel = (Double)parameters.getParameterValue(RecursiveThresholdPickerParameters.noiseLevel).getValue();        
+        binSize = parameters.getParameterValue(RecursiveThresholdPickerParameters.binSize).getDoubleValue();
+        chromatographicThresholdLevel = parameters.getParameterValue(RecursiveThresholdPickerParameters.chromatographicThresholdLevel).getDoubleValue();
+        intTolerance = parameters.getParameterValue(RecursiveThresholdPickerParameters.intTolerance).getDoubleValue();
+        minimumPeakDuration = parameters.getParameterValue(RecursiveThresholdPickerParameters.minimumPeakDuration).getDoubleValue();
+        minimumPeakHeight = parameters.getParameterValue(RecursiveThresholdPickerParameters.minimumPeakHeight).getDoubleValue();
+        minimumMZPeakWidth = parameters.getParameterValue(RecursiveThresholdPickerParameters.minimumMZPeakWidth).getDoubleValue();
+        maximumMZPeakWidth = parameters.getParameterValue(RecursiveThresholdPickerParameters.maximumMZPeakWidth).getDoubleValue();
+        mzTolerance = parameters.getParameterValue(RecursiveThresholdPickerParameters.mzTolerance).getDoubleValue();
+        noiseLevel = parameters.getParameterValue(RecursiveThresholdPickerParameters.noiseLevel).getDoubleValue();        
         
         readyPeakList = new SimplePeakList();
     }
