@@ -43,7 +43,6 @@ import net.sf.mzmine.data.impl.SimpleParameterValue;
 import net.sf.mzmine.data.impl.SimpleParameterValueInvalidValueException;
 import net.sf.mzmine.methods.MethodParameters;
 import net.sf.mzmine.project.MZmineProject;
-import net.sf.mzmine.userinterface.mainwindow.MainWindow;
 
 
 

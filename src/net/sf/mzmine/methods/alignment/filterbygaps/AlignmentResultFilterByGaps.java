@@ -37,8 +37,6 @@ import net.sf.mzmine.userinterface.mainwindow.MainWindow;
  */
 public class AlignmentResultFilterByGaps implements Method {
 
-	private MainWindow mainWin;
-	
 	private AlignmentResultFilterByGapsParameters parameters;
 
 
@@ -61,7 +59,7 @@ public class AlignmentResultFilterByGaps implements Method {
 
 	public AlignmentResult processAlignment(MainWindow _mainWin, AlignmentResult ar, AlignmentResultFilterByGapsParameters _params) {
 
-		mainWin = _mainWin;
+		// mainWin = _mainWin;
 
 		/*ClientDialog waitDialog = new ClientDialog(_mainWin);
 		waitDialog.setTitle("Filtering alignment result, please wait...");
@@ -69,7 +67,7 @@ public class AlignmentResultFilterByGaps implements Method {
 		waitDialog.showMe();
 		waitDialog.paintNow();*/
 
-		AlignmentResultFilterByGapsParameters params = (AlignmentResultFilterByGapsParameters)_params;
+		// AlignmentResultFilterByGapsParameters params = (AlignmentResultFilterByGapsParameters)_params;
 
 		// Count number of rows to drop
 		/*int rowsFine = 0;

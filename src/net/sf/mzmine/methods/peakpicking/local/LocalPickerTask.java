@@ -71,13 +71,13 @@ class LocalPickerTask implements Task {
 
         this.parameters = parameters;
         // Get parameter values for easier use
-        binSize = (Double)parameters.getParameterValue(parameters.binSize).getValue();
-        chromatographicThresholdLevel = (Double)parameters.getParameterValue(parameters.chromatographicThresholdLevel).getValue();
-        intTolerance = (Double)parameters.getParameterValue(parameters.intTolerance).getValue();
-        minimumPeakDuration = (Double)parameters.getParameterValue(parameters.minimumPeakDuration).getValue();
-        minimumPeakHeight = (Double)parameters.getParameterValue(parameters.minimumPeakHeight).getValue();
-        mzTolerance = (Double)parameters.getParameterValue(parameters.mzTolerance).getValue();
-        noiseLevel = (Double)parameters.getParameterValue(parameters.noiseLevel).getValue();        
+        binSize = (Double)parameters.getParameterValue(LocalPickerParameters.binSize).getValue();
+        chromatographicThresholdLevel = (Double)parameters.getParameterValue(LocalPickerParameters.chromatographicThresholdLevel).getValue();
+        intTolerance = (Double)parameters.getParameterValue(LocalPickerParameters.intTolerance).getValue();
+        minimumPeakDuration = (Double)parameters.getParameterValue(LocalPickerParameters.minimumPeakDuration).getValue();
+        minimumPeakHeight = (Double)parameters.getParameterValue(LocalPickerParameters.minimumPeakHeight).getValue();
+        mzTolerance = (Double)parameters.getParameterValue(LocalPickerParameters.mzTolerance).getValue();
+        noiseLevel = (Double)parameters.getParameterValue(LocalPickerParameters.noiseLevel).getValue();        
         
         readyPeakList = new SimplePeakList();
     }

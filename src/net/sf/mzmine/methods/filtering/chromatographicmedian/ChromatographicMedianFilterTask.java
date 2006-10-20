@@ -59,8 +59,8 @@ class ChromatographicMedianFilterTask implements Task {
         this.dataFile = dataFile;
         this.rawDataFile = dataFile.getCurrentFile();
         this.parameters = parameters;
-        mzTolerance = (Double)parameters.getParameterValue(parameters.MZTolerance).getValue();
-        oneSidedWindowLength = (Integer)parameters.getParameterValue(parameters.oneSidedWindowLength).getValue(); 
+        mzTolerance = (Double)parameters.getParameterValue(ChromatographicMedianFilterParameters.MZTolerance).getValue();
+        oneSidedWindowLength = (Integer)parameters.getParameterValue(ChromatographicMedianFilterParameters.oneSidedWindowLength).getValue(); 
     }
 
     /**

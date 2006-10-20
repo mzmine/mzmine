@@ -49,7 +49,7 @@ class SavitzkyGolayFilterTask implements Task {
     private Hashtable<Integer, int[]> Avalues;
     
     private SavitzkyGolayFilterParameters parameters;
-    int numberOfDataPoints = (Integer)parameters.getParameterValue(parameters.numberOfDatapoints).getValue();
+    int numberOfDataPoints = (Integer)parameters.getParameterValue(SavitzkyGolayFilterParameters.numberOfDatapoints).getValue();
     
 
     /**

@@ -93,7 +93,6 @@ public abstract class MethodParameters {
 	 */
     public String toString() {
     	String s = "";
-    	MZmineProject project = MZmineProject.getCurrentProject();
 		for (Parameter p : getParameters()) {
 			s = s.concat(p.getName() + values.get(p) + ", ");
 		}

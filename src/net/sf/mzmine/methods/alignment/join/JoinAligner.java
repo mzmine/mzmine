@@ -164,6 +164,8 @@ public class JoinAligner implements Method,
 			AlignmentResult alignmentResult = (AlignmentResult)results[0];
 			JoinAlignerParameters parameters = (JoinAlignerParameters)results[1];
 
+			// TODO: Add method and parameters to history of an alignment result
+			
 			MZmineProject.getCurrentProject().addAlignmentResult(alignmentResult);
 
 

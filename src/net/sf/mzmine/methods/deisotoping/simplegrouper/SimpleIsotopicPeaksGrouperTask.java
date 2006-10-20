@@ -23,7 +23,6 @@ import net.sf.mzmine.data.IsotopePattern;
 import net.sf.mzmine.data.impl.SimplePeakList;
 import net.sf.mzmine.data.impl.SimpleIsotopePattern;
 import net.sf.mzmine.io.OpenedRawDataFile;
-import net.sf.mzmine.io.RawDataFile;
 import net.sf.mzmine.taskcontrol.Task;
 
 /**
@@ -34,7 +33,6 @@ class SimpleIsotopicPeaksGrouperTask implements Task {
     private static final double neutronMW = 1.008665;
 
     private OpenedRawDataFile dataFile;
-    private RawDataFile rawDataFile;
     
     private TaskStatus status;
     private String errorMessage;
@@ -60,17 +58,16 @@ class SimpleIsotopicPeaksGrouperTask implements Task {
             SimpleIsotopicPeaksGrouperParameters parameters) {
         status = TaskStatus.WAITING;
         this.dataFile = dataFile;
-        this.rawDataFile = dataFile.getCurrentFile();
         
         this.currentPeakList = currentPeakList;
 
         processedPeakList = new SimplePeakList();
         
         this.parameters = parameters;
-        mzTolerance = (Double)parameters.getParameterValue(parameters.mzTolerance).getValue();
-        rtTolerance = (Double)parameters.getParameterValue(parameters.rtTolerance).getValue();
-        monotonicShape = (Boolean)parameters.getParameterValue(parameters.monotonicShape).getValue();
-        maximumCharge = (Integer)parameters.getParameterValue(parameters.maximumCharge).getValue();
+        mzTolerance = (Double)parameters.getParameterValue(SimpleIsotopicPeaksGrouperParameters.mzTolerance).getValue();
+        rtTolerance = (Double)parameters.getParameterValue(SimpleIsotopicPeaksGrouperParameters.rtTolerance).getValue();
+        monotonicShape = (Boolean)parameters.getParameterValue(SimpleIsotopicPeaksGrouperParameters.monotonicShape).getValue();
+        maximumCharge = (Integer)parameters.getParameterValue(SimpleIsotopicPeaksGrouperParameters.maximumCharge).getValue();
 
     }
 
