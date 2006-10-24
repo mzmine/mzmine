@@ -90,7 +90,7 @@ TaskListener, ListSelectionListener, ActionListener {
      * @see net.sf.mzmine.methods.Method#runMethod(net.sf.mzmine.methods.MethodParameters, net.sf.mzmine.io.OpenedRawDataFile[], net.sf.mzmine.data.AlignmentResult[])
      */
     public void runMethod(MethodParameters parameters, OpenedRawDataFile[] dataFiles, AlignmentResult[] alignmentResults) {
-        logger.info("Running " + toString() + " on " + dataFiles.length + " alignment results.");
+        logger.info("Running " + toString() + " on " + alignmentResults.length + " alignment results.");
 
         for (AlignmentResult alignmentResult : alignmentResults) {
     		Task alignmentTask = new AlignmentResultFilterByGapsTask(alignmentResult, (AlignmentResultFilterByGapsParameters) parameters);
@@ -107,6 +107,8 @@ TaskListener, ListSelectionListener, ActionListener {
         this.taskController = core.getTaskController();
         this.desktop = core.getDesktop();
         
+        desktop.addMenuSeparator(MZmineMenu.ALIGNMENT);
+        
         myMenuItem = desktop.addMenuItem(MZmineMenu.ALIGNMENT,
                 toString(), this, null, KeyEvent.VK_A,
                 false, false);
@@ -121,7 +123,7 @@ TaskListener, ListSelectionListener, ActionListener {
     public void actionPerformed(ActionEvent e) {
 
         if (!askParameters()) return;
-
+        
         AlignmentResult[] alignmentResults = desktop.getSelectedAlignmentResults();      
 
         runMethod(parameters, null, alignmentResults);
