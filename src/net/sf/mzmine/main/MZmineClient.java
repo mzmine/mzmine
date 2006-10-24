@@ -19,6 +19,7 @@
 
 package net.sf.mzmine.main;
 
+import java.io.File;
 import java.util.HashSet;
 import java.util.ResourceBundle;
 import java.util.logging.Level;
@@ -27,6 +28,7 @@ import java.util.logging.Logger;
 import javax.swing.SwingUtilities;
 
 import net.sf.mzmine.io.IOController;
+import net.sf.mzmine.io.IOController.PreloadLevel;
 import net.sf.mzmine.io.impl.IOControllerImpl;
 import net.sf.mzmine.methods.alignment.filterbygaps.AlignmentResultFilterByGapsParameters;
 import net.sf.mzmine.methods.alignment.join.JoinAlignerParameters;
@@ -145,16 +147,31 @@ public class MZmineClient implements Runnable, MZmineCore {
         // show the welcome message
         mainWindow.setStatusBarText("Welcome to MZmine!");
         
-        // DEBUG start
+        
+///////////////////////////////////////////////////////////        
+        // DEBUG test one dialog
+         /*
         ParameterSetupDialog psdialog 
         = new ParameterSetupDialog
         		(		MainWindow.getInstance(),
         				"Testing...",
-        				new RecursiveThresholdPickerParameters()
+        				new JoinAlignerParameters()
         		);
         psdialog.setVisible(true);
-        // DEBUG end
+        MainWindow.getInstance().notifySelectionListeners();
+        */
         
+        
+        // DEBUG open files
+        /*
+        File[] selectedFiles = new File[2];
+        selectedFiles[0] = new File("C:/VTT/Data_Netcdf/NewCentroidMouse/cdf/ob_f1a.cdf");
+        selectedFiles[1] = new File("C:/VTT/Data_Netcdf/NewCentroidMouse/cdf/ob_f1b.cdf");
+        ioController.openFiles(selectedFiles, PreloadLevel.NO_PRELOAD);
+         */
+
+        
+///////////////////////////////////////////////////////////        
 
     }
 
