@@ -53,13 +53,17 @@ public abstract class MethodParameters {
 		
 		// Check if the project contains current value for some of the parameters
 		
+		
 		MZmineProject project = MZmineProject.getCurrentProject();
 		for (Parameter p : getParameters()) {
 			ParameterValue pVal = project.getParameterValue(p);
 			if (pVal!=null) { 
 				// Yes, then use the current value to initialize value used in this object
 				values.put(p, pVal);
-			} 
+			} else {
+				// Else use default value
+				values.put(p, p.getDefaultValue());
+			}
 		}
 	}
 	
@@ -79,6 +83,7 @@ public abstract class MethodParameters {
 	 */
 	public void setParameterValue(Parameter parameter, ParameterValue value) {
 		values.put(parameter, value);
+		MZmineProject.getCurrentProject().setParameterValue(parameter, value);
 	}
 	
 	/**

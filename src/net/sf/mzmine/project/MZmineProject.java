@@ -89,14 +89,7 @@ public class MZmineProject {
      */
     public ParameterValue getParameterValue(Parameter parameter) {
     	if (parameter==null) return null;
-    	if (!containsParameterValue(parameter)) 
-    		setParameterValue(parameter, parameter.getDefaultValue());
         return projectParameters.get(parameter);
-    }
-    
-    public boolean containsParameterValue(Parameter parameter) {
-    	if (parameter==null) return false;
-    	return projectParameters.contains(parameter);
     }
 
     /**

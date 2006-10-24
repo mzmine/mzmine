@@ -168,5 +168,9 @@ public class SimpleParameter extends AbstractDataUnit implements Parameter {
     public Parameter getNumberFormatParameter() {
         return numberFormatParameter;
     }
+    
+    public String toString() {
+    	return getName();
+    }
 
 }

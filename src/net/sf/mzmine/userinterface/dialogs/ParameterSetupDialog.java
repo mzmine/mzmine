@@ -139,8 +139,11 @@ public class ParameterSetupDialog extends JDialog implements ActionListener {
 			case STRING:
 			default:
 				Parameter numberFormatParameter = p.getNumberFormatParameter();
-				NumberFormat numberFormat = null;
-				if (numberFormatParameter!=null) numberFormat = (NumberFormat)project.getParameterValue(numberFormatParameter).getValue();
+				ParameterValue pVal = project.getParameterValue(numberFormatParameter);
+				NumberFormat numberFormat = (NumberFormat)numberFormatParameter.getDefaultValue().getValue(); 
+				if (pVal!=null) numberFormat = (NumberFormat)pVal.getValue(); 
+				
+
 				JFormattedTextField txtField = new JFormattedTextField(numberFormat);
 				ParameterValue parameterValue = parameters.getParameterValue(p);
 				Object value=null;
@@ -172,9 +175,8 @@ public class ParameterSetupDialog extends JDialog implements ActionListener {
 			case OBJECT:
 				JComboBox cmbPossibleValues = new JComboBox(p.getPossibleValues());
 				parameterValue = parameters.getParameterValue(p);
-				value=null;
-				if (parameterValue!=null) value = parameterValue.getValue();
-				else value = p.getDefaultValue();
+				if (parameterValue!=null) value = parameterValue;
+				else value=p.getDefaultValue(); 
 				cmbPossibleValues.setSelectedItem(value);
 				cmbPossibleValues.setToolTipText(p.getDescription());
 				parametersAndComponents.put(p, cmbPossibleValues);
@@ -224,44 +226,52 @@ public class ParameterSetupDialog extends JDialog implements ActionListener {
 			while (paramEnum.hasMoreElements()) {
 				Parameter p = paramEnum.nextElement();
 				Component c = parametersAndComponents.get(p);
-				Object value=null;
+				
+				ParameterValue parameterValue = null;
 				
 				switch (p.getType()) {
 				case INTEGER:
 					JFormattedTextField txtField = (JFormattedTextField)parametersAndComponents.get(p); 
-					try { value = (Integer)txtField.getValue(); }
-					catch (Exception e) { e.printStackTrace(); displayMessage("Invalid parameter value for " + p.getName()); return;	}
+					Integer intValue = ((Number)txtField.getValue()).intValue();
+					System.err.println("intValue=" + intValue);
+					try { parameterValue = new SimpleParameterValue(p, intValue); } 
+					catch (SimpleParameterValueInvalidValueException invalidValueException) {				
+						displayMessage(invalidValueException.getMessage()); return;
+					} 					
 					break;
 				case DOUBLE:
 					txtField = (JFormattedTextField)parametersAndComponents.get(p);
-					try { value = (Double)txtField.getValue(); } 
-					catch (Exception e) { e.printStackTrace(); displayMessage("Invalid parameter value for " + p.getName()); return;	}
+					Double doubleValue = ((Number)txtField.getValue()).doubleValue();
+					try { parameterValue = new SimpleParameterValue(p, doubleValue); } 
+					catch (SimpleParameterValueInvalidValueException invalidValueException) {				
+						displayMessage(invalidValueException.getMessage()); return;
+					} 					
 					break;
 				case STRING:
 					txtField = (JFormattedTextField)parametersAndComponents.get(p); 
-					try { value = (String)txtField.getValue(); }
-					catch (Exception e) { e.printStackTrace(); displayMessage("Invalid parameter value for " + p.getName()); return;	}
+					String stringValue = (String)txtField.getValue();
+					try { parameterValue = new SimpleParameterValue(p, stringValue); } 
+					catch (SimpleParameterValueInvalidValueException invalidValueException) {				
+						displayMessage(invalidValueException.getMessage()); return;
+					} 					
 					break;
 				case BOOLEAN:
 					JCheckBox checkBox = (JCheckBox)parametersAndComponents.get(p);
-					if (checkBox.isSelected()) value = new Boolean(true); else value = new Boolean(false);
+					Boolean booleanValue = new Boolean(false);
+					if (checkBox.isSelected()) booleanValue = new Boolean(true);
+					try { parameterValue = new SimpleParameterValue(p, booleanValue); } 
+					catch (SimpleParameterValueInvalidValueException invalidValueException) {				
+						displayMessage(invalidValueException.getMessage()); return;
+					} 					
 					break;
 				case OBJECT:
 					JComboBox comboBox = (JComboBox)parametersAndComponents.get(p);
-					value = comboBox.getSelectedItem();
+					parameterValue = p.getPossibleValues()[comboBox.getSelectedIndex()];
 					break;
 				}
 
-				SimpleParameterValue parameterValue = null;
-				try {
-					parameterValue = new SimpleParameterValue(p, value);
-				} catch (SimpleParameterValueInvalidValueException invalidValueException) {				
-					displayMessage(invalidValueException.getMessage());
-					return;
-				} 
 				if (parameterValue!=null) { 
 					parameters.setParameterValue(p, parameterValue);
-					project.setParameterValue(p, parameterValue);
 				}
 				
 			}
