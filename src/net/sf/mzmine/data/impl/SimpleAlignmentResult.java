@@ -36,13 +36,13 @@ public class SimpleAlignmentResult extends AbstractDataUnit implements Alignment
 
 	private String name;
 	private Vector<OpenedRawDataFile> rawDataFiles;
-	private ArrayList<SimpleAlignmentResultRow> alignmentRows;
+	private ArrayList<AlignmentResultRow> alignmentRows;
 
 
 	public SimpleAlignmentResult(String name) {
 		this.name = name;
 		rawDataFiles = new Vector<OpenedRawDataFile>();
-		alignmentRows = new ArrayList<SimpleAlignmentResultRow>();
+		alignmentRows = new ArrayList<AlignmentResultRow>();
 	}
 
 	@Override
@@ -109,7 +109,7 @@ public class SimpleAlignmentResult extends AbstractDataUnit implements Alignment
 		return alignmentRows.toArray(new AlignmentResultRow[0]);
 	}
 
-	public void addRow(SimpleAlignmentResultRow row) {
+	public void addRow(AlignmentResultRow row) {
 		alignmentRows.add(row);
 	}
 
@@ -121,17 +121,6 @@ public class SimpleAlignmentResult extends AbstractDataUnit implements Alignment
 
 		rawDataFiles.add(openedRawDataFile);
 
-	}
-
-	/**
-	 * Adds peak to the next row
-	 */
-	public void addPeak(OpenedRawDataFile openedRawDataFile, Peak peak) {
-
-		SimpleAlignmentResultRow alignmentRow = new SimpleAlignmentResultRow();
-		alignmentRow.addPeak(openedRawDataFile, peak);
-
-		alignmentRows.add(alignmentRow);
 	}
 
 
