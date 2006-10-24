@@ -24,6 +24,7 @@ import net.sf.mzmine.data.Parameter.ParameterType;
 import net.sf.mzmine.data.impl.SimpleParameter;
 import net.sf.mzmine.data.impl.SimpleParameterValue;
 import net.sf.mzmine.methods.MethodParameters;
+import net.sf.mzmine.userinterface.DesktopParameters;
 
 /**
  * This class represents parameter for the mean filter method
@@ -39,7 +40,7 @@ public class MeanFilterParameters extends MethodParameters {
 			new SimpleParameterValue(0.1),
 			new SimpleParameterValue(0.0),
 			null,
-			null);	
+			DesktopParameters.mzNumberFormatParameter);	
     
 
 

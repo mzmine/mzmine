@@ -24,6 +24,7 @@ import net.sf.mzmine.data.Parameter.ParameterType;
 import net.sf.mzmine.data.impl.SimpleParameter;
 import net.sf.mzmine.data.impl.SimpleParameterValue;
 import net.sf.mzmine.methods.MethodParameters;
+import net.sf.mzmine.userinterface.DesktopParameters;
 
 public class CentroidPickerParameters extends MethodParameters {
 
@@ -34,7 +35,7 @@ public class CentroidPickerParameters extends MethodParameters {
 																	new SimpleParameterValue(0.25),
 																	new SimpleParameterValue(0.05),
 																	null,
-																	null);
+																	DesktopParameters.mzNumberFormatParameter);
     
     protected static final Parameter chromatographicThresholdLevel = new SimpleParameter(	
     																ParameterType.DOUBLE,
@@ -44,7 +45,7 @@ public class CentroidPickerParameters extends MethodParameters {
     																new SimpleParameterValue(0.0),
     																new SimpleParameterValue(0.0),
     																new SimpleParameterValue(1.0),
-    																null);
+    																DesktopParameters.percentFormatParameter);
     
     protected static final Parameter noiseLevel = new SimpleParameter(	
 																	ParameterType.DOUBLE,
@@ -54,7 +55,7 @@ public class CentroidPickerParameters extends MethodParameters {
 																	new SimpleParameterValue(4.0),
 																	new SimpleParameterValue(0.0),
 																	null,
-																	null);
+																	DesktopParameters.decimalFormatParameter);
     
     protected static final Parameter minimumPeakHeight = new SimpleParameter(	
 																	ParameterType.DOUBLE,
@@ -64,7 +65,7 @@ public class CentroidPickerParameters extends MethodParameters {
 																	new SimpleParameterValue(15.0),
 																	new SimpleParameterValue(0.0),
 																	null,
-																	null);
+																	DesktopParameters.decimalFormatParameter);
     
     protected static final Parameter minimumPeakDuration = new SimpleParameter(	
 																	ParameterType.DOUBLE,
@@ -74,7 +75,7 @@ public class CentroidPickerParameters extends MethodParameters {
 																	new SimpleParameterValue(3.0),
 																	new SimpleParameterValue(0.0),
 																	null,
-																	null);
+																	DesktopParameters.decimalFormatParameter);
     
     protected static final Parameter mzTolerance = new SimpleParameter(	
 																	ParameterType.DOUBLE,
@@ -84,7 +85,7 @@ public class CentroidPickerParameters extends MethodParameters {
 																	new SimpleParameterValue(0.050),
 																	new SimpleParameterValue(0.0),
 																	null,
-																	null);
+																	DesktopParameters.mzNumberFormatParameter);
     	
     protected static final Parameter intTolerance = new SimpleParameter(	
 																	ParameterType.DOUBLE,
@@ -94,7 +95,7 @@ public class CentroidPickerParameters extends MethodParameters {
 																	new SimpleParameterValue(0.20), 
 																	new SimpleParameterValue(0.0),
 																	null,
-																	null); 
+																	DesktopParameters.percentFormatParameter); 
     
     
 

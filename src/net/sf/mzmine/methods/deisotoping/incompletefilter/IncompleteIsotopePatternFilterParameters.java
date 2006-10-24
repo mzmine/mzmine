@@ -24,6 +24,7 @@ import net.sf.mzmine.data.Parameter.ParameterType;
 import net.sf.mzmine.data.impl.SimpleParameter;
 import net.sf.mzmine.data.impl.SimpleParameterValue;
 import net.sf.mzmine.methods.MethodParameters;
+import net.sf.mzmine.userinterface.DesktopParameters;
 
 
 public class IncompleteIsotopePatternFilterParameters extends MethodParameters {
@@ -36,7 +37,7 @@ public class IncompleteIsotopePatternFilterParameters extends MethodParameters {
 			new SimpleParameterValue(2),
 			new SimpleParameterValue(1),
 			null,
-			null);
+			DesktopParameters.integerFormatParameter);
 	
 	
 

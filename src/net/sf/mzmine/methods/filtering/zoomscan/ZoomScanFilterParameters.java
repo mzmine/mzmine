@@ -24,6 +24,7 @@ import net.sf.mzmine.data.Parameter.ParameterType;
 import net.sf.mzmine.data.impl.SimpleParameter;
 import net.sf.mzmine.data.impl.SimpleParameterValue;
 import net.sf.mzmine.methods.MethodParameters;
+import net.sf.mzmine.userinterface.DesktopParameters;
 
 /**
  * This class represents parameter for the zoom scan filter method
@@ -38,7 +39,7 @@ public class ZoomScanFilterParameters extends MethodParameters {
 			new SimpleParameterValue(100.0),
 			new SimpleParameterValue(0.0),
 			null,
-			null);
+			DesktopParameters.mzNumberFormatParameter);
     
 	public Parameter[] getParameters() {
 		return new Parameter[] { minMZRange };

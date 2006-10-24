@@ -26,6 +26,7 @@ import net.sf.mzmine.data.Parameter.ParameterType;
 import net.sf.mzmine.data.impl.SimpleParameter;
 import net.sf.mzmine.data.impl.SimpleParameterValue;
 import net.sf.mzmine.methods.MethodParameters;
+import net.sf.mzmine.userinterface.DesktopParameters;
 
 
 public class JoinAlignerParameters extends MethodParameters {
@@ -42,7 +43,7 @@ public class JoinAlignerParameters extends MethodParameters {
 																			new SimpleParameterValue(10.0),
 																			new SimpleParameterValue(0.0),
 																			null,
-																			null);
+																			DesktopParameters.decimalFormatParameter);
 	
 	protected static final Parameter MZTolerance = new SimpleParameter(		ParameterType.DOUBLE,
 																			"M/Z tolerance",
@@ -51,7 +52,7 @@ public class JoinAlignerParameters extends MethodParameters {
 																			new SimpleParameterValue(0.2),
 																			new SimpleParameterValue(0.0),
 																			null,
-																			null);
+																			DesktopParameters.mzNumberFormatParameter);
 	
 	protected static final Parameter RTToleranceType = new SimpleParameter(	ParameterType.OBJECT,
 																			"RT tolerance type",
@@ -67,7 +68,7 @@ public class JoinAlignerParameters extends MethodParameters {
 																			new SimpleParameterValue(15.0),
 																			new SimpleParameterValue(0.0),
 																			null,
-																			null);
+																			DesktopParameters.decimalFormatParameter);
 	
 	protected static final Parameter RTToleranceValuePercent = new SimpleParameter(	
 																			ParameterType.DOUBLE,
@@ -77,7 +78,7 @@ public class JoinAlignerParameters extends MethodParameters {
 																			new SimpleParameterValue(15.0),
 																			new SimpleParameterValue(0.0),
 																			null,
-																			null);
+																			DesktopParameters.percentFormatParameter);
 	
 	
 	public Parameter[] getParameters() {

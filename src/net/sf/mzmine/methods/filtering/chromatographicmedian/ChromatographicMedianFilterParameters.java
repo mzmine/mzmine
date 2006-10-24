@@ -24,6 +24,7 @@ import net.sf.mzmine.data.Parameter.ParameterType;
 import net.sf.mzmine.data.impl.SimpleParameter;
 import net.sf.mzmine.data.impl.SimpleParameterValue;
 import net.sf.mzmine.methods.MethodParameters;
+import net.sf.mzmine.userinterface.DesktopParameters;
 
 /**
  * This class represents parameter for the chromatographic median filter method
@@ -38,7 +39,7 @@ public class ChromatographicMedianFilterParameters extends MethodParameters {
 			new SimpleParameterValue(1),
 			new SimpleParameterValue(1),
 			null,
-			null);
+			DesktopParameters.integerFormatParameter);
 	
 	protected static final Parameter MZTolerance = new SimpleParameter(		
 			ParameterType.DOUBLE,
@@ -48,7 +49,7 @@ public class ChromatographicMedianFilterParameters extends MethodParameters {
 			new SimpleParameterValue(0.1),
 			new SimpleParameterValue(0.0),
 			null,
-			null);
+			DesktopParameters.mzNumberFormatParameter);
     
 
 	public Parameter[] getParameters() {

@@ -24,6 +24,7 @@ import net.sf.mzmine.data.Parameter.ParameterType;
 import net.sf.mzmine.data.impl.SimpleParameter;
 import net.sf.mzmine.data.impl.SimpleParameterValue;
 import net.sf.mzmine.methods.MethodParameters;
+import net.sf.mzmine.userinterface.DesktopParameters;
 
 /**
  * This class represents parameter for the crop filter method
@@ -40,7 +41,7 @@ public class CropFilterParameters extends MethodParameters {
 			new SimpleParameterValue(100.0),
 			new SimpleParameterValue(0.0),
 			null,
-			null);
+			DesktopParameters.mzNumberFormatParameter);
     
 	protected static final Parameter maxMZ = new SimpleParameter(		
 			ParameterType.DOUBLE,
@@ -50,7 +51,7 @@ public class CropFilterParameters extends MethodParameters {
 			new SimpleParameterValue(1000.0),
 			new SimpleParameterValue(0.0),
 			null,
-			null);
+			DesktopParameters.mzNumberFormatParameter);
 
 	protected static final Parameter minRT = new SimpleParameter(		
 			ParameterType.DOUBLE,
@@ -60,7 +61,7 @@ public class CropFilterParameters extends MethodParameters {
 			new SimpleParameterValue(10.0),
 			new SimpleParameterValue(0.0),
 			null,
-			null);
+			DesktopParameters.decimalFormatParameter);
     
 	protected static final Parameter maxRT = new SimpleParameter(		
 			ParameterType.DOUBLE,
@@ -70,7 +71,7 @@ public class CropFilterParameters extends MethodParameters {
 			new SimpleParameterValue(600.0),
 			new SimpleParameterValue(0.0),
 			null,
-			null);	
+			DesktopParameters.decimalFormatParameter);	
 	
 	public Parameter[] getParameters() {
 		return new Parameter[] {minMZ, maxMZ, minRT, maxRT};
