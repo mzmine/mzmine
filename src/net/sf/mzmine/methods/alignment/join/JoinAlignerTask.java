@@ -31,6 +31,7 @@ import net.sf.mzmine.taskcontrol.Task;
 
 import net.sf.mzmine.util.MathUtils;
 
+import net.sf.mzmine.data.ParameterValue;
 import net.sf.mzmine.data.Peak;
 import net.sf.mzmine.data.PeakList;
 import net.sf.mzmine.data.IsotopePattern;
@@ -77,10 +78,12 @@ class JoinAlignerTask implements Task {
 		// Get parameter values for easier use
         MZTolerance = parameters.getParameterValue(JoinAlignerParameters.MZTolerance).getDoubleValue();
         MZvsRTBalance = parameters.getParameterValue(JoinAlignerParameters.MZvsRTBalance).getDoubleValue();
+        
         if (parameters.getParameterValue(JoinAlignerParameters.RTToleranceType) == JoinAlignerParameters.RTToleranceTypeAbsolute) RTToleranceUseAbs = true; else RTToleranceUseAbs = false;  
         RTToleranceValueAbs = parameters.getParameterValue(JoinAlignerParameters.RTToleranceValueAbs).getDoubleValue();
-        RTToleranceValuePercent = parameters.getParameterValue(JoinAlignerParameters.RTToleranceValuePercent).getDoubleValue();     
-
+        RTToleranceValuePercent = parameters.getParameterValue(JoinAlignerParameters.RTToleranceValuePercent).getDoubleValue();
+        
+       
     }
 
     /**
@@ -156,7 +159,12 @@ class JoinAlignerTask implements Task {
 			IsotopePatternUtility isoUtil = new IsotopePatternUtility(peakList);
 			isotopePatternUtils.put(dataFile, isoUtil);
 			IsotopePattern[] isotopePatternList = isoUtil.getAllIsotopePatterns();
-
+			IsotopePatternWrapper[] wrappedIsotopePatternList = new IsotopePatternWrapper[isotopePatternList.length];
+			for (int i=0; i<isotopePatternList.length; i++)
+				wrappedIsotopePatternList[i] = new IsotopePatternWrapper(isotopePatternList[i]);
+	
+				
+			
 			/*
 			 * Calculate scores between all pairs of isotope pattern and master isotope list row
 			 */
@@ -164,9 +172,9 @@ class JoinAlignerTask implements Task {
 			// Reset score tree
 			TreeSet<PatternVsRowScore> scoreTree = new TreeSet<PatternVsRowScore>(new ScoreOrderer());
 
-			for (IsotopePattern isotopePattern : isotopePatternList) {
+			for (IsotopePatternWrapper wrappedIsotopePattern : wrappedIsotopePatternList) {
 				for (MasterIsotopeListRow masterIsotopeListRow : masterIsotopeListRows) {
-					PatternVsRowScore score = new PatternVsRowScore(masterIsotopeListRow, isotopePattern, isoUtil);
+					PatternVsRowScore score = new PatternVsRowScore(masterIsotopeListRow, wrappedIsotopePattern, isoUtil);
 					if (score.isGoodEnough()) scoreTree.add(score);
 				}
 			}
@@ -183,21 +191,22 @@ class JoinAlignerTask implements Task {
 				PatternVsRowScore score = scoreIter.next();
 
 				MasterIsotopeListRow masterIsotopeListRow = score.getMasterIsotopeListRow();
-				IsotopePattern isotopePattern = score.getIsotopePattern();
+				IsotopePatternWrapper wrappedIsotopePattern = score.getWrappedIsotopePattern();
 
 				// Check if master list row is already assigned with an isotope pattern (from this rawDataID)
 				if (masterIsotopeListRow.isAlreadyJoined()) continue;
 
 				// Check if isotope pattern is already assigned to some master isotope list row
-				if (alreadyJoinedIsotopePatterns.contains(isotopePattern)) continue;
-
+				if (wrappedIsotopePattern.isAlreadyJoined()) continue;
+				
 				// Assign isotope pattern to master peak list row
-				masterIsotopeListRow.addIsotopePattern(dataFile, isotopePattern, isoUtil);
+				masterIsotopeListRow.addIsotopePattern(dataFile, wrappedIsotopePattern.getIsotopePattern(), isoUtil);
 
 				// Mark pattern and isotope pattern row as joined
 				masterIsotopeListRow.setJoined(true);
-				alreadyJoinedIsotopePatterns.add(isotopePattern);
+				wrappedIsotopePattern.setAlreadyJoined(true);
 
+				processedPercentage += 1.0f / (float)dataFiles.length / (float)scoreTree.size();
 
 			}
 
@@ -221,7 +230,7 @@ class JoinAlignerTask implements Task {
 
 			}
 
-			processedPercentage += 1.0f / (float)dataFiles.length;
+			
 
 		}
 
@@ -369,47 +378,45 @@ class JoinAlignerTask implements Task {
 	private class PatternVsRowScore {
 
 		MasterIsotopeListRow masterIsotopeListRow;
-		IsotopePattern isotopePattern;
-		double score;
-		boolean goodEnough;
-
-
-		public PatternVsRowScore(MasterIsotopeListRow masterIsotopeListRow, IsotopePattern isotopePattern, IsotopePatternUtility isotopePatternUtil) {
+		IsotopePatternWrapper wrappedIsotopePattern;
+		double score = Double.MAX_VALUE;
+		boolean goodEnough = false;
+		
+		public PatternVsRowScore(MasterIsotopeListRow masterIsotopeListRow, IsotopePatternWrapper wrappedIsotopePattern, IsotopePatternUtility isotopePatternUtil) {
 
 			this.masterIsotopeListRow = masterIsotopeListRow;
-			this.isotopePattern = isotopePattern;
+			this.wrappedIsotopePattern = wrappedIsotopePattern;
 
 			// Check that charge is same
-			if (masterIsotopeListRow.getChargeState()!=isotopePattern.getChargeState()) {
-				score = Double.MAX_VALUE;
-				goodEnough = false;
+			if (masterIsotopeListRow.getChargeState()!=wrappedIsotopePattern.getIsotopePattern().getChargeState()) {
+				return;
 			}
 
 			// Get monoisotopic peak
-			Peak monoPeak = isotopePatternUtil.getMonoisotopicPeak(isotopePattern);
+			Peak monoPeak = isotopePatternUtil.getMonoisotopicPeak(wrappedIsotopePattern.getIsotopePattern());
 
 			// Calculate differences between M/Z and RT values of isotope pattern and median of the row
 			double diffMZ = java.lang.Math.abs(masterIsotopeListRow.getMonoisotopicMZ()-monoPeak.getNormalizedMZ());
-			double diffRT = java.lang.Math.abs(masterIsotopeListRow.getMonoisotopicRT()-monoPeak.getNormalizedRT());
+			score = Double.MAX_VALUE;
+			goodEnough = false;			
+			if ( diffMZ < MZTolerance) {
+				
+				double diffRT = java.lang.Math.abs(masterIsotopeListRow.getMonoisotopicRT()-monoPeak.getNormalizedRT());
 
-			// What type of RT tolerance is used?
-			double rtTolerance=0;
-			if (RTToleranceUseAbs) {
-				rtTolerance = RTToleranceValueAbs;
-			} else {
-				rtTolerance = RTToleranceValuePercent * 0.5 * (masterIsotopeListRow.getMonoisotopicRT()+monoPeak.getNormalizedRT());
+				// What type of RT tolerance is used?
+				double rtTolerance=0;
+				if (RTToleranceUseAbs) {
+					rtTolerance = RTToleranceValueAbs;
+				} else {
+					rtTolerance = RTToleranceValuePercent * 0.5 * (masterIsotopeListRow.getMonoisotopicRT()+monoPeak.getNormalizedRT());
+				}
+				
+				if (diffRT < rtTolerance)  {
+					score = MZvsRTBalance * diffMZ + diffRT;
+					goodEnough = true;
+				}
 			}
-
-			// Calculate score if differences within tolerances
-			if ( (diffMZ < MZTolerance) &&
-				 (diffRT < rtTolerance) ) {
-				score = MZvsRTBalance * diffMZ + diffRT;
-				goodEnough = true;
-			} else {
-				score = Double.MAX_VALUE;
-				goodEnough = false;
-			}
-
+			
 		}
 
 		/**
@@ -420,7 +427,7 @@ class JoinAlignerTask implements Task {
 		/**
 		 * This method return the isotope pattern that is compared in this score
 		 */
-		public IsotopePattern getIsotopePattern() { return isotopePattern; }
+		public IsotopePatternWrapper getWrappedIsotopePattern() { return wrappedIsotopePattern; }
 
 		/**
 		 * This method returns score between the isotope pattern and the row
@@ -448,6 +455,28 @@ class JoinAlignerTask implements Task {
 		}
 
 		public boolean equals(Object obj) { return false; }
+	}
+	
+	
+	private class IsotopePatternWrapper {
+		private IsotopePattern isotopePattern;
+		private boolean alreadyJoined;
+		
+		public IsotopePatternWrapper(IsotopePattern isotopePattern) {
+			this.isotopePattern = isotopePattern;
+		}
+		
+		public IsotopePattern getIsotopePattern() {
+			return isotopePattern;
+		}
+		
+		public boolean isAlreadyJoined() {
+			return alreadyJoined;
+		}
+		
+		public void setAlreadyJoined(boolean alreadyJoined) {
+			this.alreadyJoined = alreadyJoined;
+		}
 	}
 
 

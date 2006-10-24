@@ -135,7 +135,6 @@ public class JoinAligner implements Method,
      * @see javax.swing.event.ListSelectionListener#valueChanged(javax.swing.event.ListSelectionEvent)
      */
     public void valueChanged(ListSelectionEvent e) {
-        //myMenuItem.setEnabled(desktop.isDataFileSelected());
 
         OpenedRawDataFile[] dataFiles = desktop.getSelectedDataFiles();
 

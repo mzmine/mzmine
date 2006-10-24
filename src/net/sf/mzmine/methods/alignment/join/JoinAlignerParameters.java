@@ -57,7 +57,7 @@ public class JoinAlignerParameters extends MethodParameters {
 	protected static final Parameter RTToleranceType = new SimpleParameter(	ParameterType.OBJECT,
 																			"RT tolerance type",
 																			"Maximum RT difference can be defined either using absolute or relative value",
-																			RTToleranceTypePossibleValues[0],
+																			RTToleranceTypeAbsolute,
 																			RTToleranceTypePossibleValues);
 	
 	protected static final Parameter RTToleranceValueAbs = new SimpleParameter(	
@@ -75,7 +75,7 @@ public class JoinAlignerParameters extends MethodParameters {
 																			"Relative RT tolerance",
 																			"Maximum allowed relative RT difference",
 																			"%",
-																			new SimpleParameterValue(15.0),
+																			new SimpleParameterValue(0.15),
 																			new SimpleParameterValue(0.0),
 																			null,
 																			DesktopParameters.percentFormatParameter);
