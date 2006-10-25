@@ -20,58 +20,69 @@
 
 package net.sf.mzmine.methods.gapfilling.simple;
 
-import java.io.Serializable;
+import net.sf.mzmine.data.Parameter;
+import net.sf.mzmine.data.ParameterValue;
+import net.sf.mzmine.data.Parameter.ParameterType;
+import net.sf.mzmine.data.impl.SimpleParameter;
+import net.sf.mzmine.data.impl.SimpleParameterValue;
+import net.sf.mzmine.methods.MethodParameters;
+import net.sf.mzmine.userinterface.DesktopParameters;
 
-import org.xml.sax.Attributes;
+public class SimpleGapFillerParameters extends MethodParameters {
 
-public class SimpleGapFillerParameters implements Serializable {
+	protected static final ParameterValue RTToleranceTypeAbsolute = new SimpleParameterValue("Absolute");
+	protected static final ParameterValue RTToleranceTypeRelative = new SimpleParameterValue("Relative");
+	protected static final ParameterValue[] RTToleranceTypePossibleValues = {RTToleranceTypeAbsolute , RTToleranceTypeRelative}; 
+	
+	
+    protected static final Parameter IntTolerance = new SimpleParameter(	
+			ParameterType.DOUBLE,
+			"Intensity tolerance",
+			"Maximum allowed deviation from expected /\\ shape of a peak in chromatographic direction",
+			"%",
+			new SimpleParameterValue(0.20), 
+			new SimpleParameterValue(0.0),
+			null,
+			DesktopParameters.percentFormatParameter); 
 
-	private static final String myTagName = "SimpleGapFillerParameters";
-	private static final String paramIntensityTolerancePercentAttributeName = "IntensityTolerance";
-	private static final String paramMZToleranceAttributeName = "MZTolerance";
-	private static final String paramRTToleranceUseAbsAttributeName = "RTToleranceUseAbs";
-	private static final String paramRTToleranceAbsAttributeName = "RTToleranceAbs";
-	private static final String paramRTTolerancePercentAttributeName = "RTTolerancePercent";
+    protected static final Parameter MZTolerance = new SimpleParameter(	
+			ParameterType.DOUBLE,
+			"M/Z tolerance",
+			"Search range size in M/Z direction",
+			"Da",
+			new SimpleParameterValue(0.050),
+			new SimpleParameterValue(0.0),
+			null,
+			DesktopParameters.mzNumberFormatParameter);
+    
+	protected static final Parameter RTToleranceType = new SimpleParameter(	ParameterType.OBJECT,
+			"RT range type",
+			"How to determine search range size in RT direction",
+			RTToleranceTypeAbsolute,
+			RTToleranceTypePossibleValues);
 
-	public double paramIntensityTolerancePercent = 0.1;
-	public double paramMZTolerance = (double)0.2;
-	public boolean paramRTToleranceUseAbs = false;
-	public double paramRTToleranceAbs = (double)15;
-	public double paramRTTolerancePercent = 0.01;
+	protected static final Parameter RTToleranceValueAbs = new SimpleParameter(	
+			ParameterType.DOUBLE,
+			"Absolute RT tolerance",
+			"Absolute search range size in RT direction",
+			"seconds",
+			new SimpleParameterValue(15.0),
+			new SimpleParameterValue(0.0),
+			null,
+			DesktopParameters.decimalFormatParameter);
 
+	protected static final Parameter RTToleranceValuePercent = new SimpleParameter(	
+			ParameterType.DOUBLE,
+			"Relative RT tolerance",
+			"Relative search range size in RT direction",
+			"%",
+			new SimpleParameterValue(0.15),
+			new SimpleParameterValue(0.0),
+			null,
+			DesktopParameters.percentFormatParameter);
 
-
-	public Class getGapFillerClass() {
-
-		return SimpleGapFiller.class;
-
+	public Parameter[] getParameters() {
+		return new Parameter[] {IntTolerance, MZTolerance, RTToleranceType, RTToleranceValueAbs, RTToleranceValuePercent};
 	}
-
-	public String writeParameterTag() {
-
-		String s = "<";
-		s = s.concat(myTagName);
-		s = s.concat(" " + paramIntensityTolerancePercentAttributeName + "=\"" + paramIntensityTolerancePercent + "\"");
-		s = s.concat(" " + paramMZToleranceAttributeName + "=\"" + paramMZTolerance + "\"");
-		s = s.concat(" " + paramRTToleranceUseAbsAttributeName + "=\"" + paramRTToleranceUseAbs + "\"");
-		s = s.concat(" " + paramRTToleranceAbsAttributeName + "=\"" + paramRTToleranceAbs + "\"");
-		s = s.concat(" " + paramRTTolerancePercentAttributeName + "=\"" + paramRTTolerancePercent + "\"");
-		s = s.concat("/>");
-		return s;
-
-	}
-
-	public String getParameterTagName() { return myTagName; }
-
-	public boolean loadXMLAttributes(Attributes atr) {
-
-		try { paramIntensityTolerancePercent = Double.parseDouble(atr.getValue(paramIntensityTolerancePercentAttributeName)); } catch (NumberFormatException e) { return false; }
-		try { paramMZTolerance = Double.parseDouble(atr.getValue(paramMZToleranceAttributeName)); } catch (NumberFormatException e) {	return false; }
-		try { paramRTToleranceUseAbs = Boolean.parseBoolean(atr.getValue(paramRTToleranceUseAbsAttributeName)); } catch (NumberFormatException e) {	return false; }
-		try { paramRTToleranceAbs = Double.parseDouble(atr.getValue(paramRTToleranceAbsAttributeName)); } catch (NumberFormatException e) {	return false; }
-		try { paramRTTolerancePercent = Double.parseDouble(atr.getValue(paramRTTolerancePercentAttributeName)); } catch (NumberFormatException e) {	return false; }
-
-		return true;
-	}
-
+	
 }
