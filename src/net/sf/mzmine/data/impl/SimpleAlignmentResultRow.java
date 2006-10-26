@@ -61,6 +61,13 @@ public class SimpleAlignmentResultRow extends AbstractDataUnit implements Alignm
 	}
 
 	/*
+	 * Return opened raw data files with a peak on this row
+	 */
+	public OpenedRawDataFile[] getOpenedRawDataFiles() {
+		return peaks.keySet().toArray(new OpenedRawDataFile[0]);
+	}
+	
+	/*
 	 * Returns peak for given raw data file
 	 */
 	public Peak getPeak(OpenedRawDataFile rawData) {

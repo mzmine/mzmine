@@ -1,18 +1,26 @@
 package net.sf.mzmine.methods.gapfilling.simple;
 
+import java.io.IOException;
+import java.util.Hashtable;
+
 import net.sf.mzmine.data.AlignmentResult;
+import net.sf.mzmine.data.AlignmentResultRow;
+import net.sf.mzmine.data.Scan;
 import net.sf.mzmine.data.impl.SimpleAlignmentResult;
 import net.sf.mzmine.io.OpenedRawDataFile;
+import net.sf.mzmine.io.RawDataFile;
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.methods.MethodParameters;
 import net.sf.mzmine.methods.alignment.join.JoinAlignerParameters;
 import net.sf.mzmine.taskcontrol.Task;
+import net.sf.mzmine.taskcontrol.TaskController;
 import net.sf.mzmine.taskcontrol.Task.TaskStatus;
 
 class SimpleGapFillerTask implements Task {
 
-	private AlignmentResult originalAlignmentResult;
-	private SimpleAlignmentResult processedAlignmentResult;
+	private OpenedRawDataFile openedRawDataFile;
+	
+	private EmptyGap[] emptyGaps;
 	
 	private TaskStatus status;
 	private String errorMessage;
@@ -27,26 +35,50 @@ class SimpleGapFillerTask implements Task {
 	private int processedRawDataFiles;
 	private int totalRawDataFiles;
 	
-	
-	public SimpleGapFillerTask(AlignmentResult alignmentResult,
+	public SimpleGapFillerTask(OpenedRawDataFile openedRawDataFile, EmptyGap[] emptyGaps,
 			SimpleGapFillerParameters parameters) {
 		
-		this.originalAlignmentResult = alignmentResult;
+		status = TaskStatus.WAITING;
+		
+		this.openedRawDataFile = openedRawDataFile;
+		this.emptyGaps = emptyGaps;
 
-        status = TaskStatus.WAITING;
-        this.originalAlignmentResult = alignmentResult;
         this.parameters = parameters;
         intTolerance = parameters.getParameterValue(SimpleGapFillerParameters.IntTolerance).getDoubleValue(); 
         mzTolerance = parameters.getParameterValue(SimpleGapFillerParameters.MZTolerance).getDoubleValue();
         if (parameters.getParameterValue(SimpleGapFillerParameters.RTToleranceType)==SimpleGapFillerParameters.RTToleranceTypeAbsolute) rtToleranceUseAbs = true;
         rtToleranceValueAbs = parameters.getParameterValue(SimpleGapFillerParameters.RTToleranceValueAbs).getDoubleValue();
         rtToleranceValuePercent = parameters.getParameterValue(SimpleGapFillerParameters.RTToleranceValuePercent).getDoubleValue();
-        
 
 	}
 	
 	public void run() {
-		// TODO Auto-generated method stub
+		
+		status = TaskStatus.PROCESSING;
+		
+		RawDataFile rawDataFile = openedRawDataFile.getCurrentFile();
+		int[] scanNumbers = rawDataFile.getScanNumbers(1);
+
+		for (int scanNumber : scanNumbers) {
+			if (status == TaskStatus.CANCELED) return;
+			
+			// Get next scan
+			Scan s=null;
+			try {
+				s = rawDataFile.getScan(scanNumber);
+			} catch (IOException e) {
+				errorMessage = "Error while reading raw data file " + rawDataFile.getFile();
+				status = TaskStatus.ERROR;
+				return;
+			}
+			
+			// Feed this scan to all empty gaps
+			for (EmptyGap emptyGap : emptyGaps) {
+				emptyGap.offerNextScan(s);
+			}
+		}
+		
+		status = TaskStatus.FINISHED;
 		
 	}
 
@@ -67,8 +99,8 @@ class SimpleGapFillerTask implements Task {
 
 	public Object getResult() {
 		Object[] result = new Object[3];
-		result[0] = originalAlignmentResult;
-		result[1] = processedAlignmentResult;
+		result[0] = openedRawDataFile;
+		result[1] = emptyGaps;
 		result[2] = parameters;
 		return result;
 	}

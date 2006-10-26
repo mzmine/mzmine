@@ -60,7 +60,7 @@ import net.sf.mzmine.userinterface.mainwindow.MainWindow;
 // TODO: Code for this method must be rewritten
 
 public class SimpleGapFiller implements Method,
-TaskListener, ListSelectionListener, ActionListener {
+ListSelectionListener, ActionListener {
 
 	private Logger logger = Logger.getLogger(this.getClass().getName());
 	
@@ -99,10 +99,8 @@ TaskListener, ListSelectionListener, ActionListener {
 
         logger.info("Running " + toString() + " on " + alignmentResults.length + " alignment results.");
 
-        for (AlignmentResult alignmentResult : alignmentResults) {
-    		Task alignmentTask = new SimpleGapFillerTask(alignmentResult, (SimpleGapFillerParameters) parameters);
-    		taskController.addTask(alignmentTask, this);        	
-        }
+        SimpleGapFillerMain ruler = new SimpleGapFillerMain(taskController, alignmentResults[0], (SimpleGapFillerParameters) parameters);
+        
         
     }
 
@@ -121,16 +119,6 @@ TaskListener, ListSelectionListener, ActionListener {
 
         
     }
-
-	public void taskFinished(Task task) {
-		// TODO Auto-generated method stub
-		
-	}
-
-	public void taskStarted(Task task) {
-		// TODO Auto-generated method stub
-		
-	}
 
 	public void valueChanged(ListSelectionEvent e) {
 		// TODO Auto-generated method stub

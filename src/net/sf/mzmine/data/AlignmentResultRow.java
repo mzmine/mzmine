@@ -33,6 +33,11 @@ public interface AlignmentResultRow extends DataUnit {
 	public IsotopePattern getIsotopePattern();
 
 	/*
+	 * Return raw datas with peaks on this row
+	 */
+	public OpenedRawDataFile[] getOpenedRawDataFiles();
+	
+	/*
 	 * Return peaks assigned to this row
 	 */
 	public Peak[] getPeaks();
