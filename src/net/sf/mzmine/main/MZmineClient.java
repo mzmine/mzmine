@@ -163,12 +163,12 @@ public class MZmineClient implements Runnable, MZmineCore {
         
         
         // DEBUG open files
-        /*
+        
         File[] selectedFiles = new File[2];
         selectedFiles[0] = new File("C:/VTT/Data_Netcdf/NewCentroidMouse/cdf/ob_f1a.cdf");
         selectedFiles[1] = new File("C:/VTT/Data_Netcdf/NewCentroidMouse/cdf/ob_f1b.cdf");
         ioController.openFiles(selectedFiles, PreloadLevel.NO_PRELOAD);
-         */
+         
 
         
 ///////////////////////////////////////////////////////////        

@@ -5,10 +5,13 @@ import java.util.Vector;
 
 import net.sf.mzmine.data.AlignmentResult;
 import net.sf.mzmine.data.AlignmentResultRow;
+import net.sf.mzmine.data.IsotopePattern;
 import net.sf.mzmine.data.Peak;
 import net.sf.mzmine.data.impl.SimpleAlignmentResult;
 import net.sf.mzmine.data.impl.SimpleAlignmentResultRow;
+import net.sf.mzmine.data.impl.SimpleIsotopePattern;
 import net.sf.mzmine.io.OpenedRawDataFile;
+import net.sf.mzmine.project.MZmineProject;
 import net.sf.mzmine.taskcontrol.Task;
 import net.sf.mzmine.taskcontrol.TaskController;
 import net.sf.mzmine.taskcontrol.TaskListener;
@@ -133,10 +136,17 @@ class SimpleGapFillerMain implements TaskListener {
 		
 		// All results received already?
 		if (completedTasks.size()==startedTasks.size()) {
-			// Yes, then construct new alignment result
+			
+			// Yes, then construct new alignment result & copy opened raw data files from original alignment result to the new one
 			processedAlignmentResult = new SimpleAlignmentResult("Result from gap-filling");
+			for (OpenedRawDataFile loopOpenedRawDataFile : originalAlignmentResult.getRawDataFiles()) {
+				processedAlignmentResult.addOpenedRawDataFile(loopOpenedRawDataFile);
+			}
+			
+			// Add rows to the new alignment result
 			for (AlignmentResultRow alignmentRow : originalAlignmentResult.getRows()) {
-				SimpleAlignmentResultRow processedAlignmentRow = new SimpleAlignmentResultRow();
+				SimpleAlignmentResultRow processedAlignmentRow = new SimpleAlignmentResultRow();	
+				processedAlignmentRow.setIsotopePattern(alignmentRow.getIsotopePattern());
 				
 				// Copy old peaks to new row
 				for (OpenedRawDataFile loopOpenedRawDataFile : alignmentRow.getOpenedRawDataFiles()) {
@@ -145,14 +155,26 @@ class SimpleGapFillerMain implements TaskListener {
 				}
 
 				// Construct new peaks from empty gaps and put them on same row
+				Vector<EmptyGap> filledGaps = gapsForRow.get(alignmentRow);
+				for (EmptyGap filledGap : filledGaps) {
+					Peak p = filledGap.getEstimatedPeak();
+					p.addData(IsotopePattern.class, alignmentRow.getIsotopePattern());
+					OpenedRawDataFile peakRawData = rawDataForGap.get(filledGap);
+					processedAlignmentRow.addPeak(peakRawData, p);
+				}
+				
+				// Add row to the new alignment result
+				processedAlignmentResult.addRow(processedAlignmentRow);
 				
 				
 			}
 			
+			// TODO: Add method and parameters to history of an alignment result
+			
+			// Add new alignment result to the project			
+			MZmineProject.getCurrentProject().addAlignmentResult(processedAlignmentResult);
 			
 		}
-		
-		
 
 	}
 

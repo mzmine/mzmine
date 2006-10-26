@@ -32,8 +32,8 @@ class SimpleGapFillerTask implements Task {
 	private double rtToleranceValueAbs;
 	private double rtToleranceValuePercent;
 	
-	private int processedRawDataFiles;
-	private int totalRawDataFiles;
+	private int processedScans;;
+	private int totalScans;
 	
 	public SimpleGapFillerTask(OpenedRawDataFile openedRawDataFile, EmptyGap[] emptyGaps,
 			SimpleGapFillerParameters parameters) {
@@ -58,7 +58,8 @@ class SimpleGapFillerTask implements Task {
 		
 		RawDataFile rawDataFile = openedRawDataFile.getCurrentFile();
 		int[] scanNumbers = rawDataFile.getScanNumbers(1);
-
+		totalScans = scanNumbers.length;
+		
 		for (int scanNumber : scanNumbers) {
 			if (status == TaskStatus.CANCELED) return;
 			
@@ -76,6 +77,8 @@ class SimpleGapFillerTask implements Task {
 			for (EmptyGap emptyGap : emptyGaps) {
 				emptyGap.offerNextScan(s);
 			}
+			
+			processedScans++;
 		}
 		
 		status = TaskStatus.FINISHED;
@@ -92,8 +95,8 @@ class SimpleGapFillerTask implements Task {
 	}
 
 	public float getFinishedPercentage() {
-		if (totalRawDataFiles==0) return 0;
-		return (float)processedRawDataFiles / (float)totalRawDataFiles;
+		if (totalScans==0) return 0;
+		return (float)processedScans / (float)totalScans;
 
 	}
 
@@ -110,7 +113,7 @@ class SimpleGapFillerTask implements Task {
 	}
 
 	public String getTaskDescription() {
-		return "Simple gap filler";
+		return "Simple gap filler " + openedRawDataFile.toString();
 	}
 
 

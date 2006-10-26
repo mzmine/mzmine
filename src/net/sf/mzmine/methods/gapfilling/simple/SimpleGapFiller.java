@@ -99,8 +99,8 @@ ListSelectionListener, ActionListener {
 
         logger.info("Running " + toString() + " on " + alignmentResults.length + " alignment results.");
 
-        SimpleGapFillerMain ruler = new SimpleGapFillerMain(taskController, alignmentResults[0], (SimpleGapFillerParameters) parameters);
-        
+        SimpleGapFillerMain fillerMain = new SimpleGapFillerMain(taskController, alignmentResults[0], (SimpleGapFillerParameters) parameters);
+        fillerMain.doTasks();
         
     }
 
@@ -112,7 +112,7 @@ ListSelectionListener, ActionListener {
         this.desktop = core.getDesktop();
         
         myMenuItem = desktop.addMenuItem(MZmineMenu.ALIGNMENT,
-                "Peak list aligner", this, null, KeyEvent.VK_A,
+                "Simple gap filler", this, null, KeyEvent.VK_S,
                 false, false);
 
         desktop.addSelectionListener(this);
@@ -121,12 +121,19 @@ ListSelectionListener, ActionListener {
     }
 
 	public void valueChanged(ListSelectionEvent e) {
-		// TODO Auto-generated method stub
+        AlignmentResult[] alignmentResults = desktop.getSelectedAlignmentResults();
+        if ( (alignmentResults==null) || (alignmentResults.length==0) ) myMenuItem.setEnabled(false); else myMenuItem.setEnabled(true); 
+
 		
 	}
 
 	public void actionPerformed(ActionEvent e) {
-		// TODO Auto-generated method stub
+        if (!askParameters()) return;
+        
+        AlignmentResult[] alignmentResults = desktop.getSelectedAlignmentResults();      
+
+        runMethod(parameters, null, alignmentResults);
+
 		
 	}
 
