@@ -16,18 +16,17 @@ class EmptyGap {
 	private double rangeMinRT;
 	private double rangeMaxRT;
 
-	private double averageIntensitySum;
-	private int averageIntensityN;
-
 	// These store information about peak that is currently under construction
 	Vector<Integer> peakScanNumbers;
 	Vector<Double> peakInts;
 	Vector<Double> peakMZs;
 	Vector<Double> peakRTs;
 
-
-	// These store information about the peak inside MZ range and so-far closest to the RT search (not necessary inside it)
 	private Peak bestPeak;
+	
+	private double closestMZ;
+	private double closestRT;
+	private int closestScanNumber;
 
 	private boolean allDone = false;
 
@@ -66,11 +65,16 @@ class EmptyGap {
 			rangeMinRT = (1-rtToleranceValuePercent) * centroidRT;
 			rangeMaxRT = (1+rtToleranceValuePercent) * centroidRT;
 		}
-
+/*
+		System.err.println("intTolerance=" + intTolerance);
+		System.err.println("mzTolerance=" + mzTolerance);
+		System.err.println("rtToleranceUseAbs=" + rtToleranceUseAbs);
+		System.err.println("rtToleranceValueAbs=" + rtToleranceValueAbs);
+		System.err.println("rtToleranceValuePercent=" + rtToleranceValuePercent);
 		
-		averageIntensitySum = 0;
-		averageIntensityN = 0;
-
+		System.err.println("rangeMinRT=" + rangeMinRT);
+		System.err.println("rangeMaxRT=" + rangeMaxRT);
+*/	
 	}
 
 
@@ -83,6 +87,7 @@ class EmptyGap {
 		double[] intensityValues = s.getIntensityValues();
 		double scanRT = s.getRetentionTime();
 		int scanNumber = s.getScanNumber();
+
 
 
 		// Find local intensity maximum inside the M/Z range
@@ -111,14 +116,13 @@ class EmptyGap {
 			currentMZ = centroidMZ;
 		}
 
-
-		// If this scan is inside search range, then include currentIntensity in calcualating average intensity over the area
-		// (average intensity is used for estimating when there isn't any local maximum inside the range)
-		if ( (rangeMinRT<=scanRT) && (scanRT<=rangeMaxRT) ) {
-			averageIntensitySum += currentIntensity;
-			averageIntensityN++;
-		}
-
+		if (	java.lang.Math.abs(scanRT-centroidRT) <= 
+				java.lang.Math.abs(closestRT-centroidRT)) {
+			closestMZ = currentMZ;
+			closestRT = scanRT;
+			closestScanNumber = scanNumber;
+		}		
+		
 
 		// If this is the very first scan offering, then just initialize
 		if (peakInts==null) {
@@ -181,6 +185,12 @@ class EmptyGap {
 	}
 
 	public Peak getEstimatedPeak() {
+		if (bestPeak==null) {
+			SimplePeak zeroPeak = new SimplePeak();
+			zeroPeak.addDatapoint(closestScanNumber, closestMZ, closestRT, 0.0);
+			zeroPeak.finalizedAddingDatapoints();
+			bestPeak = zeroPeak;
+		}
 		return bestPeak;
 	}
 
@@ -224,15 +234,13 @@ class EmptyGap {
 				if ((peakInts.get(ind) >= peakInts.get(nextind)) &&
 					(peakInts.get(ind) >= peakInts.get(prevind))) {
 
-						if (peakInts.get(ind)>=highestMaximumHeight) {
+					if (peakInts.get(ind)>=highestMaximumHeight) {
 
-							highestMaximumHeight = peakInts.get(ind);
-							highestMaximumInd = ind;
-						}
+						highestMaximumHeight = peakInts.get(ind);
+						highestMaximumInd = ind;
+					}
 				}
-
 			}
-
 		}
 
 
@@ -259,7 +267,15 @@ class EmptyGap {
 				if (nextInt<=(currentInt*(1+intTolerance))) {} else { break; }
 				currentInt = nextInt;
 			}
-
+/*
+			System.err.println("'centroidMZ'=" + centroidMZ);
+			System.err.println("'centroidRT'=" + centroidRT);
+			System.err.println("startInd=" + startInd);
+			System.err.println("stopInd=" + stopInd);
+			System.err.println("peakRTs.get(startInd)=" + peakRTs.get(startInd));
+			System.err.println("peakRTs.get(stopInd)=" + peakRTs.get(stopInd));
+*/		
+			
 			// 3) Generate a Peak
 			SimplePeak candidatePeak = new SimplePeak();
 			for (int ind=startInd; ind<=stopInd; ind++) {

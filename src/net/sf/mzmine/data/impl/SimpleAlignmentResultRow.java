@@ -95,7 +95,7 @@ public class SimpleAlignmentResultRow extends AbstractDataUnit implements Alignm
 		Enumeration<Peak> peakEnum = peaks.elements();
 		while (peakEnum.hasMoreElements()) {
 			Peak p = peakEnum.nextElement();
-			rtSum += p.getNormalizedMZ();
+			rtSum += p.getNormalizedRT();
 		}
 		return rtSum / peaks.size();
 	}
