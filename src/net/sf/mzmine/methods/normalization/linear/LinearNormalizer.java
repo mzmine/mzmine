@@ -21,11 +21,28 @@
 
 package net.sf.mzmine.methods.normalization.linear;
 
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.awt.event.KeyEvent;
+import java.util.logging.Logger;
+
+import javax.swing.JMenuItem;
+import javax.swing.event.ListSelectionEvent;
+import javax.swing.event.ListSelectionListener;
+
 import net.sf.mzmine.data.AlignmentResult;
 import net.sf.mzmine.io.OpenedRawDataFile;
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.methods.Method;
 import net.sf.mzmine.methods.MethodParameters;
+import net.sf.mzmine.methods.alignment.join.JoinAlignerParameters;
+import net.sf.mzmine.project.MZmineProject;
+import net.sf.mzmine.taskcontrol.Task;
+import net.sf.mzmine.taskcontrol.TaskController;
+import net.sf.mzmine.taskcontrol.TaskListener;
+import net.sf.mzmine.userinterface.Desktop;
+import net.sf.mzmine.userinterface.Desktop.MZmineMenu;
+import net.sf.mzmine.userinterface.dialogs.ParameterSetupDialog;
 import net.sf.mzmine.userinterface.mainwindow.MainWindow;
 
 
@@ -34,307 +51,122 @@ import net.sf.mzmine.userinterface.mainwindow.MainWindow;
 /**
  *
  */
-public class LinearNormalizer implements Method {
-
-  ///////////////////////////////////////
-  // operations
-
-	private MainWindow mainWin;
-
-	private String NORMALIZATION_AVERAGEINT_STR = "Average intensity";
-	private String NORMALIZATION_AVERAGESQUAREINT_STR = "Average squared intensity";
-	private String NORMALIZATION_MAXPEAK_STR = "Maximum peak intensity";
-	private String NORMALIZATION_TOTRAWSIGNAL_STR = "Total raw signal";
-
-
-	public LinearNormalizerParameters askParameters(MainWindow _mainWin, LinearNormalizerParameters currentValues) {
-
-		mainWin = _mainWin;
-
-		LinearNormalizerParameters myParameters;
-		if (currentValues==null) {
-			myParameters = new LinearNormalizerParameters();
-		} else {
-			myParameters = currentValues;
-		}/*
-
-		Statusbar statBar = _mainWin.getStatusBar();
-
-		// Set labels depending on peak heights / areas setting
-		if (mainWin.getParameterStorage().getGeneralParameters().getPeakMeasuringType() == GeneralParameters.PARAMETERVALUE_PEAKMEASURING_HEIGHT) {
-			NORMALIZATION_AVERAGEINT_STR = "Average peak height";
-			NORMALIZATION_AVERAGESQUAREINT_STR = "Average squared peak height";
-			NORMALIZATION_MAXPEAK_STR = "Maximum peak height";
-			NORMALIZATION_TOTRAWSIGNAL_STR = "Total raw signal";
-		}
-		if (mainWin.getParameterStorage().getGeneralParameters().getPeakMeasuringType() == GeneralParameters.PARAMETERVALUE_PEAKMEASURING_AREA) {
-			NORMALIZATION_AVERAGEINT_STR = "Average peak area";
-			NORMALIZATION_AVERAGESQUAREINT_STR = "Average squared peak area";
-			NORMALIZATION_MAXPEAK_STR = "Maximum peak area";
-			NORMALIZATION_TOTRAWSIGNAL_STR = "Total raw signal";
-		}
-
-		// Array of possible dialog values
-		Object[] possibleValues = {		NORMALIZATION_AVERAGEINT_STR,
-										NORMALIZATION_AVERAGESQUAREINT_STR,
-										NORMALIZATION_MAXPEAK_STR,
-										NORMALIZATION_TOTRAWSIGNAL_STR };
-
-		// Set preselected value for the dialog
-		Object preSelectedValue = possibleValues[0];
-		if ( myParameters.paramNormalizationType == LinearNormalizerParameters.NORMALIZATIONTYPE_AVERAGEINT ) { preSelectedValue = possibleValues[0]; }
-		if ( myParameters.paramNormalizationType == LinearNormalizerParameters.NORMALIZATIONTYPE_AVERAGESQUAREINT ) { preSelectedValue = possibleValues[1]; }
-		if ( myParameters.paramNormalizationType == LinearNormalizerParameters.NORMALIZATIONTYPE_MAXPEAK ) { preSelectedValue = possibleValues[2]; }
-		if ( myParameters.paramNormalizationType == LinearNormalizerParameters.NORMALIZATIONTYPE_TOTRAWSIGNAL ) { preSelectedValue = possibleValues[3]; }
-
-		// Show dialog
-		Object selectedValue = JOptionPane.showInputDialog(null,
-															"Do linear normalization by...",
-															"Linear normalization",
-															JOptionPane.INFORMATION_MESSAGE,
-															null,
-															possibleValues, preSelectedValue);
-
-		if (selectedValue == possibleValues[0]) { myParameters.paramNormalizationType = LinearNormalizerParameters.NORMALIZATIONTYPE_AVERAGEINT;	}
-		if (selectedValue == possibleValues[1]) { myParameters.paramNormalizationType = LinearNormalizerParameters.NORMALIZATIONTYPE_AVERAGESQUAREINT;	}
-		if (selectedValue == possibleValues[2]) { myParameters.paramNormalizationType = LinearNormalizerParameters.NORMALIZATIONTYPE_MAXPEAK;	}
-		if (selectedValue == possibleValues[3]) { myParameters.paramNormalizationType = LinearNormalizerParameters.NORMALIZATIONTYPE_TOTRAWSIGNAL;	}
-		if (selectedValue == null) {
-			statBar.setStatusText("Normalization cancelled.");
-			return null;
-		}*/
-
-		return myParameters;
-	}
-
-
-
-    public AlignmentResult calcNormalization(MainWindow _mainWin, AlignmentResult ar, LinearNormalizerParameters _myParameters) {
-
-		mainWin = _mainWin;
-
-		/*ClientDialog waitDialog = new ClientDialog(mainWin);
-		waitDialog.setTitle("Normalizing, please wait...");
-		Integer jobID = new Integer(1);
-		waitDialog.addJob(jobID, ar.getNiceName(), "client-side", Task.JOBSTATUS_UNDERPROCESSING_STR, new Double(0));
-		waitDialog.showMe();
-		waitDialog.paintNow();*/
-
-		LinearNormalizerParameters myParameters = (LinearNormalizerParameters)_myParameters;
-
-/*		int numOfRawDatas = ar.getNumOfRawDatas();
-
-		//RawDataAtClient r;
-		int rawDataID;
-
-		int[] peakStatuses;
-
-		double[] rawPeakHeights;
-		double[] rawPeakAreas;
-		double normFactor;
-		double relativeFactor = 0;
-
-		AlignmentResult nar = null;
-		String desc = new String("Unknown normalization type!");
-
-		if (myParameters.paramNormalizationType == LinearNormalizerParameters.NORMALIZATIONTYPE_AVERAGEINT) { desc = new String("Results from " + ar.getNiceName() + " normalized by " + NORMALIZATION_AVERAGEINT_STR); }
-		if (myParameters.paramNormalizationType == LinearNormalizerParameters.NORMALIZATIONTYPE_AVERAGESQUAREINT) { desc = new String("Results from " + ar.getNiceName() + " normalized by " + NORMALIZATION_AVERAGESQUAREINT_STR); }
-		if (myParameters.paramNormalizationType == LinearNormalizerParameters.NORMALIZATIONTYPE_MAXPEAK) { desc = new String("Results from " + ar.getNiceName() + " normalized by " + NORMALIZATION_MAXPEAK_STR); }
-		if (myParameters.paramNormalizationType == LinearNormalizerParameters.NORMALIZATIONTYPE_TOTRAWSIGNAL) { desc = new String("Results from " + ar.getNiceName() + " normalized by " + NORMALIZATION_TOTRAWSIGNAL_STR); }
-
-		// nar = new AlignmentResult(numOfRawDatas, desc);
-		nar = new AlignmentResult(ar, desc);
-
-
-		// Loop through all control runs
-		for (int i=0; i<numOfRawDatas; i++) {
-
-		/*	if (waitDialog!=null) {
-				waitDialog.updateJobStatus(jobID, Task.JOBSTATUS_UNDERPROCESSING_STR, new Double((double)(i+1)/(double)(numOfRawDatas)));
-				//waitDialog.paintNow();
-			}
-
-			// Get this control run and raw peak heights and areas
-			//r = ar.getRun(i);
-			rawDataID = ar.getRawDataID(i);
-			peakStatuses = ar.getPeakStatuses(rawDataID);
-			rawPeakHeights = ar.getPeakHeights(rawDataID);
-			rawPeakAreas = ar.getPeakAreas(rawDataID);
-
- 			// Calculate normalization factor
- 			normFactor = 1;
-
-
-			//
- 			if (myParameters.paramNormalizationType == LinearNormalizerParameters.NORMALIZATIONTYPE_AVERAGEINT) {
-
-				// Calc average over all peak heights and areas for this run
-				double sumOfPeakMeasures = 0;
-				int numOfPeakMeasures = 0;
-
-				for (int pi=0; pi<rawPeakHeights.length; pi++) {
-/*
-					if (mainWin.getParameterStorage().getGeneralParameters().getPeakMeasuringType() == GeneralParameters.PARAMETERVALUE_PEAKMEASURING_HEIGHT) {
-						if ((peakStatuses[pi]==AlignmentResult.PEAKSTATUS_DETECTED) ||
-							(peakStatuses[pi]==AlignmentResult.PEAKSTATUS_ESTIMATED)) {
-							sumOfPeakMeasures += rawPeakHeights[pi];
-							numOfPeakMeasures++;
-						}
-					}
-
-					if (mainWin.getParameterStorage().getGeneralParameters().getPeakMeasuringType() == GeneralParameters.PARAMETERVALUE_PEAKMEASURING_AREA) {
-						if (peakStatuses[pi]==AlignmentResult.PEAKSTATUS_DETECTED) {
-							sumOfPeakMeasures += rawPeakAreas[pi];
-							numOfPeakMeasures++;
-						}
-					}
-				}
-
-				normFactor = sumOfPeakMeasures / ((double)numOfPeakMeasures);
-			}
-
-/*
-
-			//
- 			if (myParameters.paramNormalizationType == LinearNormalizerParameters.NORMALIZATIONTYPE_AVERAGESQUAREINT) {
-
-				// Calc average over all peak intensities for this run
-				double sumOfPeakMeasures = 0;
-				int numOfPeakMeasures = 0;
-
-				for (int pi=0; pi<rawPeakHeights.length; pi++) {
-
-					if (mainWin.getParameterStorage().getGeneralParameters().getPeakMeasuringType() == GeneralParameters.PARAMETERVALUE_PEAKMEASURING_HEIGHT) {
-						if ((peakStatuses[pi]==AlignmentResult.PEAKSTATUS_DETECTED) ||
-							(peakStatuses[pi]==AlignmentResult.PEAKSTATUS_ESTIMATED)) {
-							sumOfPeakMeasures += (rawPeakHeights[pi]*rawPeakHeights[pi]);
-							numOfPeakMeasures++;
-						}
-					}
-
-					if (mainWin.getParameterStorage().getGeneralParameters().getPeakMeasuringType() == GeneralParameters.PARAMETERVALUE_PEAKMEASURING_AREA) {
-						if (peakStatuses[pi]==AlignmentResult.PEAKSTATUS_DETECTED) {
-							sumOfPeakMeasures += (rawPeakAreas[pi]*rawPeakAreas[pi]);
-							numOfPeakMeasures++;
-						}
-					}
-				}
-
-				normFactor = (double)java.lang.Math.sqrt(sumOfPeakMeasures / (double)numOfPeakMeasures);
-			}
-
-
-
-			//
-			if (myParameters.paramNormalizationType == LinearNormalizerParameters.NORMALIZATIONTYPE_MAXPEAK) {
-				double maxVal = 1;
-
-				for (int pi=0; pi<rawPeakHeights.length; pi++) {
-					if (mainWin.getParameterStorage().getGeneralParameters().getPeakMeasuringType() == GeneralParameters.PARAMETERVALUE_PEAKMEASURING_HEIGHT) {
-						if (maxVal<rawPeakHeights[pi]) { maxVal = rawPeakHeights[pi]; }
-					}
-					if (mainWin.getParameterStorage().getGeneralParameters().getPeakMeasuringType() == GeneralParameters.PARAMETERVALUE_PEAKMEASURING_AREA) {
-						if (maxVal<rawPeakAreas[pi]) { maxVal = rawPeakAreas[pi]; }
-					}
-				}
-				normFactor = maxVal;
-			}
-
-
-			//
-	/*		if (myParameters.paramNormalizationType == LinearNormalizerParameters.NORMALIZATIONTYPE_TOTRAWSIGNAL) {
-				rawDataID = ar.getRawDataID(i);
-				RawDataAtClient rawData = mainWin.getItemSelector().getRawDataByID(rawDataID);
-				normFactor = rawData.getTotalRawSignal();
-			}
-
-
-
-			// Calculate normalized intensities
-			double[] normPeakHeights = new double[rawPeakHeights.length];
-			double[] normPeakAreas = new double[rawPeakAreas.length];
-
-			for (int pi=0; pi<rawPeakHeights.length; pi++) {
-				normPeakHeights[pi] = rawPeakHeights[pi] / normFactor;
-				normPeakAreas[pi] = rawPeakAreas[pi] / normFactor;
-			}
-
-			// Assign relativeFactor a value if this is the first control run
-			// Idea of this "relativeFactor" is to normalize first control runs maximum peak height to 100000 and rest of the runs correspondingly.
-			double maxVal = 0;
-			if (i==0) {
-				for (int pi=0; pi<normPeakHeights.length; pi++) {
-/*					if (mainWin.getParameterStorage().getGeneralParameters().getPeakMeasuringType() == GeneralParameters.PARAMETERVALUE_PEAKMEASURING_HEIGHT) {
-						if (maxVal<normPeakHeights[pi]) { maxVal = normPeakHeights[pi]; }
-					}
-
-					if (mainWin.getParameterStorage().getGeneralParameters().getPeakMeasuringType() == GeneralParameters.PARAMETERVALUE_PEAKMEASURING_AREA) {
-						if (maxVal<normPeakAreas[pi]) { maxVal = normPeakAreas[pi]; }
-					}
-				}
-
-				relativeFactor = 100000 / maxVal;
-			}
-
-			// Do additional normalization with relativeFactor (this factor is same for all runs)
-			for (int pi=0; pi<normPeakHeights.length; pi++) {
-				normPeakHeights[pi] = relativeFactor * normPeakHeights[pi];
-				normPeakAreas[pi] = relativeFactor * normPeakAreas[pi];
-			}
-
-			// Set normalized heights and areas to the new alignment result object
-			nar.setPeakHeights(rawDataID, normPeakHeights);
-			nar.setPeakAreas(rawDataID, normPeakAreas);
-
-		}
-
-	//	waitDialog.hideMe();
-
-		return nar;
-	}
-
-        }
-        */
-        return null;
-    }
-
-
+public class LinearNormalizer implements Method,
+						TaskListener, ListSelectionListener, ActionListener {
+
+	
+	private Logger logger = Logger.getLogger(this.getClass().getName());
+	
+	private LinearNormalizerParameters parameters;
+	
+	private TaskController taskController;
+    private Desktop desktop;
+    private JMenuItem myMenuItem;
+	
 
     /**
      * @see net.sf.mzmine.methods.Method#askParameters()
      */
     public boolean askParameters() {
-        // TODO Auto-generated method stub
-        return false;
+
+        parameters = new LinearNormalizerParameters();
+
+        ParameterSetupDialog dialog = new ParameterSetupDialog(		
+        				MainWindow.getInstance(),
+        				"Please check parameter values for " + toString(),
+        				parameters
+        		);
+        dialog.setVisible(true);
+        
+		if (dialog.getExitCode()==-1) return false;
+
+		return true;
+
     }
-
-
 
     /**
-     * @see net.sf.mzmine.methods.Method#runMethod(net.sf.mzmine.methods.MethodParameters, net.sf.mzmine.io.OpenedRawDataFile[], net.sf.mzmine.data.AlignmentResult[])
+     * @see net.sf.mzmine.methods.Method#runMethod(net.sf.mzmine.methods.MethodParameters, net.sf.mzmine.io.OpenedRawDataFile[], net.sf.mzmine.methods.alignment.AlignmentResult[])
      */
     public void runMethod(MethodParameters parameters, OpenedRawDataFile[] dataFiles, AlignmentResult[] alignmentResults) {
-        // TODO Auto-generated method stub
-        
-    }
 
+        logger.info("Running " + toString() + " on " + alignmentResults[0].toString());
+
+		Task alignmentTask = new LinearNormalizerTask(alignmentResults[0], (LinearNormalizerParameters) parameters);
+		taskController.addTask(alignmentTask, this);
+
+    }
 
 
     /**
      * @see net.sf.mzmine.main.MZmineModule#initModule(net.sf.mzmine.main.MZmineCore)
      */
     public void initModule(MZmineCore core) {
-        // TODO Auto-generated method stub
+    	
+        this.taskController = core.getTaskController();
+        this.desktop = core.getDesktop();
+        
+        myMenuItem = desktop.addMenuItem(MZmineMenu.NORMALIZATION,
+                "Linear normalizer", this, null, KeyEvent.VK_A,
+                false, false);
+
+        desktop.addSelectionListener(this);
+
         
     }
 
 
 
-    /**
-     * @see net.sf.mzmine.main.MZmineModule#toString()
-     */
-    public String toString() {
-        // TODO Auto-generated method stub
-        return null;
-    }
+	public void actionPerformed(ActionEvent e) {
+		
+        if (!askParameters()) return;
+
+        AlignmentResult[] alignmentResults = desktop.getSelectedAlignmentResults();      
+
+        runMethod(parameters, null, alignmentResults);
+		
+	}
+
+	public void taskStarted(Task task) {
+		// TODO Auto-generated method stub
+		
+	}
+
+	public void taskFinished(Task task) {
+        if (task.getStatus() == Task.TaskStatus.FINISHED) {
+
+			Object[] results = (Object[]) task.getResult();
+			AlignmentResult originalAlignmentResult = (AlignmentResult)results[0];
+			AlignmentResult normalizedAlignmentResult = (AlignmentResult)results[1];
+			LinearNormalizerParameters parameters = (LinearNormalizerParameters)results[2];
+			
+
+			// TODO: Add method and parameters to history of an alignment result
+			
+			MZmineProject.getCurrentProject().addAlignmentResult(normalizedAlignmentResult);
+
+
+        } else if (task.getStatus() == Task.TaskStatus.ERROR) {
+            /* Task encountered an error */
+            String msg = "Error while normalizing alignment result: "
+                    + task.getErrorMessage();
+            logger.severe(msg);
+            desktop.displayErrorMessage(msg);
+        }
+
+		
+	}
+
+
+	public void valueChanged(ListSelectionEvent e) {
+		
+        AlignmentResult[] alignmentResults = desktop.getSelectedAlignmentResults();
+
+        if ( (alignmentResults==null) || (alignmentResults.length!=1) ) {
+        	myMenuItem.setEnabled(false);
+        } else {
+        	myMenuItem.setEnabled(true);
+        }
+		
+	}
+	
 }

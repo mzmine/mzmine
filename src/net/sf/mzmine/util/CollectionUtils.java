@@ -56,5 +56,20 @@ public class CollectionUtils {
         return newArray;
     }
     
+    /**
+     * Returns an array of doubles consisting of the elements of the specified collection.
+     * @param collection Collection of Doubles
+     * @return Array of doubles
+     */
+    public static double[] toDoubleArray(Collection<Double> collection) {
+        double array[] = new double[collection.size()];
+        int index = 0;
+        Iterator<Double> it = collection.iterator();
+        while (it.hasNext()) {
+            array[index++] = it.next();
+        }
+        return array;
+    }    
+    
 
 }

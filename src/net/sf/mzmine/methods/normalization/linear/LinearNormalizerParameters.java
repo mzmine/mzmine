@@ -32,7 +32,7 @@ public class LinearNormalizerParameters extends MethodParameters {
 
 	protected static final ParameterValue NormalizationTypeAverageIntensity = new SimpleParameterValue("Average intensity");
 	protected static final ParameterValue NormalizationTypeAverageSquaredIntensity = new SimpleParameterValue("Average squared intensity");
-	protected static final ParameterValue NormalizationTypeMaximumPeakHeight = new SimpleParameterValue("Maximum peak height");
+	protected static final ParameterValue NormalizationTypeMaximumPeakHeight = new SimpleParameterValue("Maximum peak intensity");
 	protected static final ParameterValue NormalizationTypeTotalRawSignal = new SimpleParameterValue("Total raw signal");
 	
 	protected static final ParameterValue[] NormalizationTypePossibleValues = { NormalizationTypeAverageIntensity, NormalizationTypeAverageSquaredIntensity, NormalizationTypeMaximumPeakHeight, NormalizationTypeTotalRawSignal };

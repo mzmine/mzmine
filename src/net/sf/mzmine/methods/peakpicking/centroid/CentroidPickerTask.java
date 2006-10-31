@@ -20,12 +20,13 @@
 package net.sf.mzmine.methods.peakpicking.centroid;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.TreeSet;
 import java.util.Vector;
 import net.sf.mzmine.data.Scan;
 import net.sf.mzmine.data.IsotopePattern;
-import net.sf.mzmine.data.impl.SimplePeak;
+import net.sf.mzmine.data.impl.ConstructionPeak;
 import net.sf.mzmine.data.impl.SimplePeakList;
 import net.sf.mzmine.data.impl.SimpleIsotopePattern;
 import net.sf.mzmine.io.OpenedRawDataFile;
@@ -208,7 +209,7 @@ class CentroidPickerTask implements Task {
 
 		}
 
-        Vector<SimplePeak> underConstructionPeaks = new Vector<SimplePeak>();
+        Vector<ConstructionPeak> underConstructionPeaks = new Vector<ConstructionPeak>();
         Vector<OneDimPeak> oneDimPeaks = new Vector<OneDimPeak>();
 
         for (int i = 0; i < totalScans; i++) {
@@ -231,8 +232,6 @@ class CentroidPickerTask implements Task {
             double[] intensities = sc.getIntensityValues();
 
             // Find 1D-peaks
-
-            // System.out.print("Find 1D-peaks: ");
 
             for (int j = 0; j < intensities.length; j++) {
 
@@ -261,13 +260,11 @@ class CentroidPickerTask implements Task {
 
             }
 
-            // System.out.print("found " + oneDimPeaks.size() + " 1D-peaks, ");
-
             // Calculate scores between under-construction scores and 1d-peaks
 
             TreeSet<MatchScore> scores = new TreeSet<MatchScore>();
 
-            for (SimplePeak ucPeak : underConstructionPeaks) {
+            for (ConstructionPeak ucPeak : underConstructionPeaks) {
 
                 for (OneDimPeak oneDimPeak : oneDimPeaks) {
                     MatchScore score = new MatchScore(ucPeak, oneDimPeak);
@@ -279,8 +276,6 @@ class CentroidPickerTask implements Task {
             }
 
             // Connect the best scoring pairs of under-construction and 1d peaks
-
-            int DEBUGcounter = 0;
 
             Iterator<MatchScore> scoreIterator = scores.iterator();
 
@@ -299,7 +294,7 @@ class CentroidPickerTask implements Task {
                 }
 
                 // If uc peak is already connected, then move on to next score
-                SimplePeak ucPeak = score.getPeak();
+                ConstructionPeak ucPeak = score.getPeak();
                 if (ucPeak.isGrowing()) {
                     continue;
                 }
@@ -309,18 +304,11 @@ class CentroidPickerTask implements Task {
                         sc.getRetentionTime(), oneDimPeak.intensity);
                 oneDimPeak.setConnected();
 
-                DEBUGcounter++;
-
             }
-
-            // System.out.print("connected " + DEBUGcounter + " uc-1D-pairs, ");
-
-            DEBUGcounter = 0;
-            int DEBUGcounter2 = 0;
 
             // Check if there are any under-construction peaks that were not
             // connected
-            for (SimplePeak ucPeak : underConstructionPeaks) {
+            for (ConstructionPeak ucPeak : underConstructionPeaks) {
 
                 // If nothing was added,
                 if (!ucPeak.isGrowing()) {
@@ -330,32 +318,29 @@ class CentroidPickerTask implements Task {
                     double ucHeight = ucPeak.getRawHeight();
                     if ((ucLength >= minimumPeakDuration) && (ucHeight >= minimumPeakHeight)) {
 
-                        // Good peak
+                        // Good peak, finalize adding data points
+                    	ucPeak.finalizedAddingDatapoints();
 
                         // Since this peak picker doesn't detect isotope patterns, assign this peak to a dummy pattern
                         ucPeak.addData(IsotopePattern.class, new SimpleIsotopePattern(1));
 
                         // Add it to the peak list
                         readyPeakList.addPeak(ucPeak);
-                        DEBUGcounter2++;
+
                     }
 
                     // Remove the peak from under construction peaks
                     int ucInd = underConstructionPeaks.indexOf(ucPeak);
                     underConstructionPeaks.set(ucInd, null);
 
-                    DEBUGcounter++;
                 }
 
             }
 
-            // System.out.print("" + DEBUGcounter + " ending uc-peaks (" +
-            // DEBUGcounter2 + " good ones), " );
-
             // Clean-up empty slots under-construction peaks collection and
             // reset growing statuses for remaining under construction peaks
             for (int ucInd = 0; ucInd < underConstructionPeaks.size(); ucInd++) {
-                SimplePeak ucPeak = underConstructionPeaks.get(ucInd);
+            	ConstructionPeak ucPeak = underConstructionPeaks.get(ucInd);
                 if (ucPeak == null) {
                     underConstructionPeaks.remove(ucInd);
                     ucInd--;
@@ -364,26 +349,20 @@ class CentroidPickerTask implements Task {
                 }
             }
 
-            DEBUGcounter = 0;
-
             // If there are some unconnected 1d-peaks, then start a new
             // under-construction peak for each of them
             for (OneDimPeak oneDimPeak : oneDimPeaks) {
 
                 if (!oneDimPeak.isConnected()) {
 
-                    SimplePeak ucPeak = new SimplePeak();
+                	ConstructionPeak ucPeak = new ConstructionPeak();
                     ucPeak.addDatapoint(sc.getScanNumber(), oneDimPeak.mz,
                             sc.getRetentionTime(), oneDimPeak.intensity);
                     underConstructionPeaks.add(ucPeak);
 
-                    DEBUGcounter++;
-
                 }
 
             }
-
-            // System.out.println("" + DEBUGcounter + " new starting uc-peaks");
 
             oneDimPeaks.clear();
 
@@ -393,14 +372,15 @@ class CentroidPickerTask implements Task {
 
         // Finally process all remaining under-construction peaks
 
-        for (SimplePeak ucPeak : underConstructionPeaks) {
+        for (ConstructionPeak ucPeak : underConstructionPeaks) {
 
             // Check length & height
             double ucLength = ucPeak.getMaxRT() - ucPeak.getMinRT();
             double ucHeight = ucPeak.getRawHeight();
             if ((ucLength >= minimumPeakDuration) && (ucHeight >= minimumPeakHeight)) {
 
-                // Good peak
+                // Good peak, finalize adding datapoints
+            	ucPeak.finalizedAddingDatapoints();
 
 				// Since this peak picker doesn't detect isotope patterns, assign this peak to a dummy pattern
 				ucPeak.addData(IsotopePattern.class, new SimpleIsotopePattern(1));
@@ -455,10 +435,10 @@ class CentroidPickerTask implements Task {
     private class MatchScore implements Comparable<MatchScore> {
 
         private double score;
-        private SimplePeak ucPeak;
+        private ConstructionPeak ucPeak;
         private OneDimPeak oneDimPeak;
 
-        public MatchScore(SimplePeak uc, OneDimPeak od) {
+        public MatchScore(ConstructionPeak uc, OneDimPeak od) {
             ucPeak = uc;
             oneDimPeak = od;
             score = calcScore(uc, od);
@@ -468,7 +448,7 @@ class CentroidPickerTask implements Task {
             return score;
         }
 
-        public SimplePeak getPeak() {
+        public ConstructionPeak getPeak() {
             return ucPeak;
         }
 
@@ -485,7 +465,7 @@ class CentroidPickerTask implements Task {
             return retsig;
         }
 
-        private double calcScore(SimplePeak uc, OneDimPeak od) {
+        private double calcScore(ConstructionPeak uc, OneDimPeak od) {
 
             double ucMZ = uc.getRawMZ();
 
@@ -514,7 +494,7 @@ class CentroidPickerTask implements Task {
          * peak.
          *
          */
-        private double calcScoreForRTShape(SimplePeak uc, OneDimPeak od) {
+        private double calcScoreForRTShape(ConstructionPeak uc, OneDimPeak od) {
 
             double nextIntensity = od.intensity;
             //Hashtable<Integer, Double[]> datapoints = uc.getRawDatapoints();
@@ -526,13 +506,12 @@ class CentroidPickerTask implements Task {
                 return 0;
             }
 
-            //Enumeration<Double[]> triplets = datapoints.elements();
-
+            ArrayList<Double> intensities = uc.getConstructionIntensities();
+            
             // If only one previous m/z peak
             if (scanNumbers.length == 1) {
 
-				double[][] tmp = uc.getRawDatapoints(scanNumbers[0]);
-                double prevIntensity = tmp[0][1];
+                double prevIntensity = intensities.get(0);
 
                 // If it goes up, then give minimum (best) score
                 if ((nextIntensity - prevIntensity) >= 0) {
@@ -562,10 +541,8 @@ class CentroidPickerTask implements Task {
 
 			for (int ind=1; ind<scanNumbers.length; ind++) {
 
-				double[][] tmp = uc.getRawDatapoints(scanNumbers[ind-1]);
-                double prevIntensity = tmp[0][1];
-                tmp = uc.getRawDatapoints(scanNumbers[ind]);
-                double currIntensity = tmp[0][1];
+                double prevIntensity = intensities.get(ind-1);
+                double currIntensity = intensities.get(ind);
 
                 // If peak is currently going up
                 if (derSign == 1) {
@@ -608,8 +585,7 @@ class CentroidPickerTask implements Task {
             // If peak is currently going down
             if (derSign == -1) {
 
-				double tmp[][] = uc.getRawDatapoints(scanNumbers[scanNumbers.length-1]);
-                double lastIntensity = tmp[0][1];
+                double lastIntensity = intensities.get(intensities.size()-1);
 
                 // Then peak must not start going up again
                 double topMargin = lastIntensity

@@ -4,7 +4,7 @@ import java.util.Vector;
 
 import net.sf.mzmine.data.Peak;
 import net.sf.mzmine.data.Scan;
-import net.sf.mzmine.data.impl.SimplePeak;
+import net.sf.mzmine.data.impl.ConstructionPeak;
 
 class EmptyGap {
 
@@ -186,7 +186,7 @@ class EmptyGap {
 
 	public Peak getEstimatedPeak() {
 		if (bestPeak==null) {
-			SimplePeak zeroPeak = new SimplePeak();
+			ConstructionPeak zeroPeak = new ConstructionPeak();
 			zeroPeak.addDatapoint(closestScanNumber, closestMZ, closestRT, 0.0);
 			zeroPeak.finalizedAddingDatapoints();
 			bestPeak = zeroPeak;
@@ -277,7 +277,7 @@ class EmptyGap {
 */		
 			
 			// 3) Generate a Peak
-			SimplePeak candidatePeak = new SimplePeak();
+			ConstructionPeak candidatePeak = new ConstructionPeak();
 			for (int ind=startInd; ind<=stopInd; ind++) {
 				candidatePeak.addDatapoint(peakScanNumbers.get(ind), peakMZs.get(ind), peakRTs.get(ind), peakInts.get(ind));
 			}

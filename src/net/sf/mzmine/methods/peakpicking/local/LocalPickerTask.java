@@ -20,12 +20,13 @@
 package net.sf.mzmine.methods.peakpicking.local;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.TreeSet;
 import java.util.Vector;
 import net.sf.mzmine.data.Scan;
 import net.sf.mzmine.data.IsotopePattern;
-import net.sf.mzmine.data.impl.SimplePeak;
+import net.sf.mzmine.data.impl.ConstructionPeak;
 import net.sf.mzmine.data.impl.SimplePeakList;
 import net.sf.mzmine.data.impl.SimpleIsotopePattern;
 import net.sf.mzmine.io.OpenedRawDataFile;
@@ -205,7 +206,7 @@ class LocalPickerTask implements Task {
 
 		}
 
-        Vector<SimplePeak> underConstructionPeaks = new Vector<SimplePeak>();
+        Vector<ConstructionPeak> underConstructionPeaks = new Vector<ConstructionPeak>();
         Vector<OneDimPeak> oneDimPeaks = new Vector<OneDimPeak>();
         for (int i = 0; i < totalScans; i++) {
 
@@ -263,7 +264,7 @@ class LocalPickerTask implements Task {
 
             TreeSet<MatchScore> scores = new TreeSet<MatchScore>();
 
-            for (SimplePeak ucPeak : underConstructionPeaks) {
+            for (ConstructionPeak ucPeak : underConstructionPeaks) {
 
                 for (OneDimPeak oneDimPeak : oneDimPeaks) {
                     MatchScore score = new MatchScore(ucPeak, oneDimPeak);
@@ -292,7 +293,7 @@ class LocalPickerTask implements Task {
                 }
 
                 // If uc peak is already connected, then move on to next score
-                SimplePeak ucPeak = score.getPeak();
+                ConstructionPeak ucPeak = score.getPeak();
                 if (ucPeak.isGrowing()) {
                     continue;
                 }
@@ -306,7 +307,7 @@ class LocalPickerTask implements Task {
 
             // Check if there are any under-construction peaks that were not
             // connected
-            for (SimplePeak ucPeak : underConstructionPeaks) {
+            for (ConstructionPeak ucPeak : underConstructionPeaks) {
 
                 // If nothing was added,
                 if (!ucPeak.isGrowing()) {
@@ -316,7 +317,8 @@ class LocalPickerTask implements Task {
                     double ucHeight = ucPeak.getRawHeight();
                     if ((ucLength >= minimumPeakDuration) && (ucHeight >= minimumPeakHeight)) {
 
-                        // Good peak,
+                        // Good peak, finalized adding datapoints
+                    	ucPeak.finalizedAddingDatapoints();
 
                         // Since this peak picker doesn't detect isotope patterns, assign this peak to a dummy pattern
                         ucPeak.addData(IsotopePattern.class, new SimpleIsotopePattern(1));
@@ -338,7 +340,7 @@ class LocalPickerTask implements Task {
             // Clean-up empty slots under-construction peaks collection and
             // reset growing statuses for remaining under construction peaks
             for (int ucInd = 0; ucInd < underConstructionPeaks.size(); ucInd++) {
-                SimplePeak ucPeak = underConstructionPeaks.get(ucInd);
+                ConstructionPeak ucPeak = underConstructionPeaks.get(ucInd);
                 if (ucPeak == null) {
                     underConstructionPeaks.remove(ucInd);
                     ucInd--;
@@ -353,7 +355,7 @@ class LocalPickerTask implements Task {
 
                 if (!oneDimPeak.isConnected()) {
 
-                    SimplePeak ucPeak = new SimplePeak();
+                    ConstructionPeak ucPeak = new ConstructionPeak();
                     ucPeak.addDatapoint(sc.getScanNumber(), oneDimPeak.mz,
                             sc.getRetentionTime(), oneDimPeak.intensity);
                     underConstructionPeaks.add(ucPeak);
@@ -370,14 +372,15 @@ class LocalPickerTask implements Task {
 
         // Finally process all remaining under-construction peaks
 
-        for (SimplePeak ucPeak : underConstructionPeaks) {
+        for (ConstructionPeak ucPeak : underConstructionPeaks) {
 
             // Check length & height
             double ucLength = ucPeak.getMaxRT() - ucPeak.getMinRT();
             double ucHeight = ucPeak.getRawHeight();
             if ((ucLength >= minimumPeakDuration) && (ucHeight >= minimumPeakHeight)) {
 
-                // Good peak
+                // Good peak, finalized adding datapoints
+            	ucPeak.finalizedAddingDatapoints();
 
 				// Since this peak picker doesn't detect isotope patterns, assign this peak to a dummy pattern
 				ucPeak.addData(IsotopePattern.class, new SimpleIsotopePattern(1));
@@ -432,10 +435,10 @@ class LocalPickerTask implements Task {
     private class MatchScore implements Comparable<MatchScore> {
 
         private double score;
-        private SimplePeak ucPeak;
+        private ConstructionPeak ucPeak;
         private OneDimPeak oneDimPeak;
 
-        public MatchScore(SimplePeak uc, OneDimPeak od) {
+        public MatchScore(ConstructionPeak uc, OneDimPeak od) {
             ucPeak = uc;
             oneDimPeak = od;
             score = calcScore(uc, od);
@@ -445,7 +448,7 @@ class LocalPickerTask implements Task {
             return score;
         }
 
-        public SimplePeak getPeak() {
+        public ConstructionPeak getPeak() {
             return ucPeak;
         }
 
@@ -462,7 +465,7 @@ class LocalPickerTask implements Task {
             return retsig;
         }
 
-        private double calcScore(SimplePeak uc, OneDimPeak od) {
+        private double calcScore(ConstructionPeak uc, OneDimPeak od) {
 
             double ucMZ = uc.getRawMZ();
 
@@ -490,7 +493,7 @@ class LocalPickerTask implements Task {
          * determines if it is possible to add given m/z peak at the end of the
          * peak.
          */
-        private double calcScoreForRTShape(SimplePeak uc, OneDimPeak od) {
+        private double calcScoreForRTShape(ConstructionPeak uc, OneDimPeak od) {
 
             double nextIntensity = od.intensity;
 
@@ -503,11 +506,12 @@ class LocalPickerTask implements Task {
 
             //Enumeration<Double[]> triplets = datapoints.elements();
 
+            ArrayList<Double> intensities = uc.getConstructionIntensities();
+            
             // If only one previous m/z peak
             if (scanNumbers.length == 1) {
 
-				double[][] tmp = uc.getRawDatapoints(scanNumbers[0]);
-                double prevIntensity = tmp[0][1];
+                double prevIntensity = intensities.get(0);
 
                 // If it goes up, then give minimum (best) score
                 if ((nextIntensity - prevIntensity) >= 0) {
@@ -537,10 +541,8 @@ class LocalPickerTask implements Task {
 
 			for (int ind=1; ind<scanNumbers.length; ind++) {
 
-				double[][] tmp = uc.getRawDatapoints(scanNumbers[ind-1]);
-                double prevIntensity = tmp[0][1];
-                tmp = uc.getRawDatapoints(scanNumbers[ind]);
-                double currIntensity = tmp[0][1];
+                double prevIntensity = intensities.get(ind-1);
+                double currIntensity = intensities.get(ind);
 
                 // If peak is currently going up
                 if (derSign == 1) {
@@ -583,8 +585,7 @@ class LocalPickerTask implements Task {
             // If peak is currently going down
             if (derSign == -1) {
 
-				double tmp[][] = uc.getRawDatapoints(scanNumbers[scanNumbers.length-1]);
-                double lastIntensity = tmp[0][1];
+                double lastIntensity = intensities.get(intensities.size()-1);
 
                 // Then peak must not start going up again
                 double topMargin = lastIntensity

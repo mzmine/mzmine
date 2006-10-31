@@ -20,6 +20,7 @@ import java.util.Arrays;
 import net.sf.mzmine.data.Peak;
 import net.sf.mzmine.data.PeakList;
 import net.sf.mzmine.data.IsotopePattern;
+import net.sf.mzmine.data.impl.SimplePeak;
 import net.sf.mzmine.data.impl.SimplePeakList;
 import net.sf.mzmine.data.impl.SimpleIsotopePattern;
 import net.sf.mzmine.io.OpenedRawDataFile;
@@ -168,7 +169,7 @@ class SimpleIsotopicPeaksGrouperTask implements Task {
             SimpleIsotopePattern isotopePattern = new SimpleIsotopePattern(bestFitCharge);
 
 			for (Peak p : bestFitPeaks.keySet()) {
-				GrouperPeak processedPeak = new GrouperPeak(p);
+				SimplePeak processedPeak = new SimplePeak(p);
 				processedPeak.addData(IsotopePattern.class, isotopePattern);
 				processedPeakList.addPeak(processedPeak);
 			}
