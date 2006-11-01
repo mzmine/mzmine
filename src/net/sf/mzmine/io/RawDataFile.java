@@ -98,5 +98,12 @@ public interface RawDataFile extends Serializable, DataUnit {
     public double getDataMaxBasePeakIntensity(int msLevel);
 
     public double getDataMaxTotalIonCurrent(int msLevel);
+    
+    /**
+     * This method returns the sum of all measurement singal at given msLevel
+     * @param msLevel
+     * @return
+     */
+    public double getDataTotalRawSignal(int msLevel);
 
 }

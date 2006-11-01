@@ -52,7 +52,7 @@ public class NetCDFFile extends AbstractDataUnit implements RawDataFile {
 
     private double dataMinMZ, dataMaxMZ, dataMinRT, dataMaxRT;
 
-    private double dataMaxBasePeakIntensity, dataMaxTIC;
+    private double dataMaxBasePeakIntensity, dataMaxTIC, dataTotalRawSignal;
 
     private Hashtable<Integer, Double> retentionTimes;
 
@@ -227,6 +227,13 @@ public class NetCDFFile extends AbstractDataUnit implements RawDataFile {
         else
             return 0;
     }
+    
+    public double getDataTotalRawSignal(int msLevel) {
+        if (msLevel == 1)
+            return dataTotalRawSignal;
+        else
+            return 0;    	
+    }
 
     /**
      * @see net.sf.mzmine.io.RawDataFile#getPreloadLevel()
@@ -276,6 +283,8 @@ public class NetCDFFile extends AbstractDataUnit implements RawDataFile {
         if ((numOfScans == 0) || (scanTIC > dataMaxTIC))
             dataMaxTIC = scanTIC;
 
+        dataTotalRawSignal += scanTIC;
+        
         scanNumbers.add(newScan.getScanNumber());
 
         numOfScans++;

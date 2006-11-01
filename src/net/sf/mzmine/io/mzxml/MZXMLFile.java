@@ -58,7 +58,7 @@ class MZXMLFile extends AbstractDataUnit implements RawDataFile {
 
     private Hashtable<Integer, Double> dataMinMZ, dataMaxMZ, dataMinRT,
             dataMaxRT;
-    private Hashtable<Integer, Double> dataMaxBasePeakIntensity, dataMaxTIC;
+    private Hashtable<Integer, Double> dataMaxBasePeakIntensity, dataMaxTIC, dataTotalRawSignal;
     private Hashtable<Integer, Double> retentionTimes;
     private Hashtable<Integer, Double> precursorMZ;
 
@@ -98,6 +98,7 @@ class MZXMLFile extends AbstractDataUnit implements RawDataFile {
         dataMaxRT = new Hashtable<Integer, Double>();
         dataMaxBasePeakIntensity = new Hashtable<Integer, Double>();
         dataMaxTIC = new Hashtable<Integer, Double>();
+        dataTotalRawSignal = new Hashtable<Integer, Double>();
         if (preloadLevel != PreloadLevel.NO_PRELOAD)
             scans = new Hashtable<Integer, Scan>();
     }
@@ -283,6 +284,10 @@ class MZXMLFile extends AbstractDataUnit implements RawDataFile {
     public double getDataMaxTotalIonCurrent(int msLevel) {
         return dataMaxTIC.get(msLevel).doubleValue();
     }
+    
+    public double getDataTotalRawSignal(int msLevel) {
+    	return dataTotalRawSignal.get(msLevel).doubleValue();
+    }
 
     void addIndexEntry(Integer scanNumber, Long filePosition) {
         scansIndex.put(scanNumber, filePosition);
@@ -334,6 +339,10 @@ class MZXMLFile extends AbstractDataUnit implements RawDataFile {
                 || (scanTIC > dataMaxTIC.get(newScan.getMSLevel())))
             dataMaxTIC.put(newScan.getMSLevel(), scanTIC);
 
+        Double prevSum = dataTotalRawSignal.get(newScan.getMSLevel());
+        if (prevSum == null) prevSum = 0.0;
+       	dataTotalRawSignal.put(newScan.getMSLevel(), prevSum+scanTIC);      	
+        
         ArrayList<Integer> scanList = scanNumbers.get(new Integer(
                 newScan.getMSLevel()));
         if (scanList == null) {
