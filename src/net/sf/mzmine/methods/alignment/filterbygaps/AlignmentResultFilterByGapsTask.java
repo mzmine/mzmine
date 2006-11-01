@@ -4,9 +4,7 @@ import net.sf.mzmine.data.AlignmentResult;
 import net.sf.mzmine.data.AlignmentResultRow;
 import net.sf.mzmine.data.impl.SimpleAlignmentResult;
 import net.sf.mzmine.io.OpenedRawDataFile;
-import net.sf.mzmine.project.MZmineProject;
 import net.sf.mzmine.taskcontrol.Task;
-import net.sf.mzmine.taskcontrol.Task.TaskStatus;
 
 class AlignmentResultFilterByGapsTask implements Task {
 

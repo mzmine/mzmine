@@ -20,38 +20,21 @@
 
 package net.sf.mzmine.methods.gapfilling.simple;
 
-import java.awt.BorderLayout;
-import java.awt.GridLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
-import java.text.NumberFormat;
-import java.util.Enumeration;
-import java.util.Hashtable;
-import java.util.Vector;
 import java.util.logging.Logger;
 
-import javax.swing.BorderFactory;
-import javax.swing.JButton;
-import javax.swing.JComboBox;
-import javax.swing.JDialog;
-import javax.swing.JFormattedTextField;
-import javax.swing.JLabel;
 import javax.swing.JMenuItem;
-import javax.swing.JPanel;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
 
 import net.sf.mzmine.data.AlignmentResult;
-import net.sf.mzmine.data.Scan;
 import net.sf.mzmine.io.OpenedRawDataFile;
-import net.sf.mzmine.io.RawDataFile;
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.methods.Method;
 import net.sf.mzmine.methods.MethodParameters;
-import net.sf.mzmine.taskcontrol.Task;
 import net.sf.mzmine.taskcontrol.TaskController;
-import net.sf.mzmine.taskcontrol.TaskListener;
 import net.sf.mzmine.userinterface.Desktop;
 import net.sf.mzmine.userinterface.Desktop.MZmineMenu;
 import net.sf.mzmine.userinterface.dialogs.ParameterSetupDialog;

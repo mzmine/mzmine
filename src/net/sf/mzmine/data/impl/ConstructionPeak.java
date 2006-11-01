@@ -3,9 +3,7 @@ package net.sf.mzmine.data.impl;
 import java.util.ArrayList;
 import java.util.Hashtable;
 
-import net.sf.mzmine.data.DataUnit;
 import net.sf.mzmine.data.Peak;
-import net.sf.mzmine.data.Peak.PeakStatus;
 import net.sf.mzmine.util.CollectionUtils;
 import net.sf.mzmine.util.MathUtils;
 

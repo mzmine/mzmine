@@ -23,8 +23,6 @@ import java.util.Hashtable;
 
 import net.sf.mzmine.data.Parameter;
 import net.sf.mzmine.data.ParameterValue;
-import net.sf.mzmine.data.impl.SimpleParameterValue;
-import net.sf.mzmine.data.impl.SimpleParameterValueInvalidValueException;
 import net.sf.mzmine.project.MZmineProject;
 
 

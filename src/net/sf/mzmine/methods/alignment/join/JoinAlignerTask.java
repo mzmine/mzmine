@@ -22,7 +22,6 @@ package net.sf.mzmine.methods.alignment.join;
 import java.util.Hashtable;
 import java.util.Iterator;
 import java.util.TreeSet;
-import java.util.HashSet;
 import java.util.Vector;
 import java.util.Comparator;
 
@@ -31,7 +30,6 @@ import net.sf.mzmine.taskcontrol.Task;
 
 import net.sf.mzmine.util.MathUtils;
 
-import net.sf.mzmine.data.ParameterValue;
 import net.sf.mzmine.data.Peak;
 import net.sf.mzmine.data.PeakList;
 import net.sf.mzmine.data.IsotopePattern;

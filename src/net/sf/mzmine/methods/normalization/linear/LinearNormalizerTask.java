@@ -4,16 +4,13 @@ import java.util.Hashtable;
 
 import net.sf.mzmine.data.AlignmentResult;
 import net.sf.mzmine.data.AlignmentResultRow;
-import net.sf.mzmine.data.IsotopePattern;
 import net.sf.mzmine.data.ParameterValue;
 import net.sf.mzmine.data.Peak;
 import net.sf.mzmine.data.impl.SimpleAlignmentResult;
 import net.sf.mzmine.data.impl.SimpleAlignmentResultRow;
 import net.sf.mzmine.data.impl.SimplePeak;
 import net.sf.mzmine.io.OpenedRawDataFile;
-import net.sf.mzmine.io.RawDataFile;
 import net.sf.mzmine.taskcontrol.Task;
-import net.sf.mzmine.userinterface.mainwindow.MainWindow;
 
 public class LinearNormalizerTask implements Task {
 

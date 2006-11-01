@@ -4,11 +4,9 @@ import java.text.DecimalFormat;
 import java.text.NumberFormat;
 
 import net.sf.mzmine.data.Parameter;
-import net.sf.mzmine.data.ParameterValue;
 import net.sf.mzmine.data.Parameter.ParameterType;
 import net.sf.mzmine.data.impl.SimpleParameter;
 import net.sf.mzmine.data.impl.SimpleParameterValue;
-import net.sf.mzmine.project.MZmineProject;
 import net.sf.mzmine.util.TimeNumberFormat;
 
 public class DesktopParameters {

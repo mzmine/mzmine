@@ -1,20 +1,10 @@
 package net.sf.mzmine.methods.gapfilling.simple;
 
 import java.io.IOException;
-import java.util.Hashtable;
-
-import net.sf.mzmine.data.AlignmentResult;
-import net.sf.mzmine.data.AlignmentResultRow;
 import net.sf.mzmine.data.Scan;
-import net.sf.mzmine.data.impl.SimpleAlignmentResult;
 import net.sf.mzmine.io.OpenedRawDataFile;
 import net.sf.mzmine.io.RawDataFile;
-import net.sf.mzmine.main.MZmineCore;
-import net.sf.mzmine.methods.MethodParameters;
-import net.sf.mzmine.methods.alignment.join.JoinAlignerParameters;
 import net.sf.mzmine.taskcontrol.Task;
-import net.sf.mzmine.taskcontrol.TaskController;
-import net.sf.mzmine.taskcontrol.Task.TaskStatus;
 
 class SimpleGapFillerTask implements Task {
 

@@ -9,7 +9,6 @@ import net.sf.mzmine.data.IsotopePattern;
 import net.sf.mzmine.data.Peak;
 import net.sf.mzmine.data.impl.SimpleAlignmentResult;
 import net.sf.mzmine.data.impl.SimpleAlignmentResultRow;
-import net.sf.mzmine.data.impl.SimpleIsotopePattern;
 import net.sf.mzmine.io.OpenedRawDataFile;
 import net.sf.mzmine.project.MZmineProject;
 import net.sf.mzmine.taskcontrol.Task;

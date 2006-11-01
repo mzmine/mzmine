@@ -19,9 +19,6 @@
 
 package net.sf.mzmine.methods.peakpicking.recursivethreshold;
 
-import java.text.DecimalFormat;
-import java.text.NumberFormat;
-
 import net.sf.mzmine.data.Parameter;
 import net.sf.mzmine.data.Parameter.ParameterType;
 import net.sf.mzmine.data.impl.SimpleParameter;

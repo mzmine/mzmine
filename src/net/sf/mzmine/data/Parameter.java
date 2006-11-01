@@ -19,8 +19,6 @@
 
 package net.sf.mzmine.data;
 
-import java.text.NumberFormat;
-
 /**
  * Parameter interface, represents parameters or variables used in the project
  */

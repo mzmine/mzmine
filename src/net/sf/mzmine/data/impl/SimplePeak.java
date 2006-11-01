@@ -20,16 +20,9 @@
 package net.sf.mzmine.data.impl;
 
 import java.util.Hashtable;
-import java.util.TreeSet;
-import java.util.Iterator;
-import java.util.ArrayList;
-
-
-import net.sf.mzmine.data.IsotopePattern;
 import net.sf.mzmine.data.Peak;
 import net.sf.mzmine.data.impl.AbstractDataUnit;
 import net.sf.mzmine.util.CollectionUtils;
-import net.sf.mzmine.util.MathUtils;
 
 /**
  * This class is a simple implementation of the peak interface.

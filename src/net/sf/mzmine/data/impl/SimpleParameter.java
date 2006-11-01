@@ -19,8 +19,6 @@
 
 package net.sf.mzmine.data.impl;
 
-import java.text.NumberFormat;
-
 import net.sf.mzmine.data.Parameter;
 import net.sf.mzmine.data.ParameterValue;
 
