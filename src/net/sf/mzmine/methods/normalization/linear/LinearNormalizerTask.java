@@ -155,9 +155,8 @@ public class LinearNormalizerTask implements Task {
 
 			// - normalization by total raw signal
 			if (normalizationTypeParameterValue==LinearNormalizerParameters.NormalizationTypeTotalRawSignal) {
-				// TODO: Add a method for calculating total raw signal to RawDataFile interface, and use that method here.
-				normalizationFactor = 1.0;
-			}			
+				normalizationFactor = ord.getCurrentFile().getDataTotalRawSignal(1);
+			}
 			
 			// Find peak with maximum height and calculate scaling the brings height of this peak to
 			
