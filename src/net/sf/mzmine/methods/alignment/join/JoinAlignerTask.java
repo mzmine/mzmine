@@ -183,9 +183,6 @@ class JoinAlignerTask implements Task {
 			 * Browse scores in order of descending goodness-of-fit
 			 */
 
-			// Reset 'joined' information for isotope patterns
-			HashSet<IsotopePattern> alreadyJoinedIsotopePatterns = new HashSet<IsotopePattern>();
-
 			Iterator<PatternVsRowScore> scoreIter = scoreTree.iterator();
 			while (scoreIter.hasNext()) {
 				PatternVsRowScore score = scoreIter.next();
@@ -221,16 +218,13 @@ class JoinAlignerTask implements Task {
 			/*
 			 * Add remaining isotope patterns as new rows to master isotope list
 			 */
-			for (IsotopePattern isotopePattern : isotopePatternList) {
-				if (alreadyJoinedIsotopePatterns.contains(isotopePattern)) continue;
+			for (IsotopePatternWrapper wrappedIsotopePattern : wrappedIsotopePatternList) {
+				if (wrappedIsotopePattern.isAlreadyJoined()) continue;
 
 				MasterIsotopeListRow masterIsotopeListRow = new MasterIsotopeListRow();
-				masterIsotopeListRow.addIsotopePattern(dataFile, isotopePattern, isoUtil);
+				masterIsotopeListRow.addIsotopePattern(dataFile, wrappedIsotopePattern.getIsotopePattern(), isoUtil);
 				masterIsotopeListRows.add(masterIsotopeListRow);
-
 			}
-
-			
 
 		}
 
@@ -449,7 +443,9 @@ class JoinAlignerTask implements Task {
 	private class ScoreOrderer implements Comparator<PatternVsRowScore> {
 		public int compare(PatternVsRowScore score1, PatternVsRowScore score2) {
 
-			if (score1.getScore()>score2.getScore()) return -1;
+			// Smaller score value means smaller M/Z and RT difference 
+			// and therefore smaller score is better and should come first
+			if (score1.getScore()<score2.getScore()) return -1;
 			return 1;
 
 		}
