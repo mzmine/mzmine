@@ -31,10 +31,11 @@ import net.sf.mzmine.userinterface.Desktop;
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.main.MZmineModule;
 import net.sf.mzmine.userinterface.Desktop.MZmineMenu;
+import net.sf.mzmine.visualizers.alignmentresult.AlignmentResultVisualizer;
 import net.sf.mzmine.data.AlignmentResult;
 
 
-public class AlignmentResultTableVisualizer implements MZmineModule, ActionListener, ListSelectionListener {
+public class AlignmentResultTableVisualizer implements AlignmentResultVisualizer, ActionListener, ListSelectionListener {
 
 	private Desktop desktop;
 	private JMenuItem myMenuItem;
