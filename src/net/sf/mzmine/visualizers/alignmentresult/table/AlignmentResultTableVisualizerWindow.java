@@ -34,11 +34,6 @@ import net.sf.mzmine.data.AlignmentResult;
 import net.sf.mzmine.userinterface.dialogs.alignmentresultcolumnselection.AlignmentResultColumnSelectionDialog;
 import net.sf.mzmine.userinterface.mainwindow.MainWindow;
 
-
-/*
-TODO: this should implement AlignmentResultVisualizer
-*/
-
 public class AlignmentResultTableVisualizerWindow extends JInternalFrame implements ActionListener {
 
 	private Logger logger = Logger.getLogger(this.getClass().getName());
