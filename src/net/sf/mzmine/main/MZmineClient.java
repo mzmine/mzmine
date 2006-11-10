@@ -27,6 +27,8 @@ import java.util.logging.Logger;
 
 import javax.swing.SwingUtilities;
 
+import net.sf.mzmine.batchmode.BatchModeController;
+import net.sf.mzmine.batchmode.impl.BatchMode;
 import net.sf.mzmine.io.IOController;
 import net.sf.mzmine.io.IOController.PreloadLevel;
 import net.sf.mzmine.io.impl.IOControllerImpl;
@@ -46,6 +48,7 @@ public class MZmineClient implements Runnable, MZmineCore {
     
     private TaskControllerImpl taskController;
     private IOControllerImpl ioController;
+    private BatchMode batchModeController;
     private MainWindow mainWindow;
 
     /**
@@ -84,6 +87,7 @@ public class MZmineClient implements Runnable, MZmineCore {
         taskController = new TaskControllerImpl(numberOfNodes);
         ioController = new IOControllerImpl();
         mainWindow = new MainWindow();
+        batchModeController = new BatchMode();
         MZmineProject project = new MZmineProject();
 
         logger.finer("Initializing core classes");
@@ -91,6 +95,7 @@ public class MZmineClient implements Runnable, MZmineCore {
         taskController.initModule(this);
         ioController.initModule(this);
         mainWindow.initModule(this);
+        batchModeController.initModule(this);
         project.initModule(this);
 
         logger.finer("Loading modules");
@@ -146,13 +151,16 @@ public class MZmineClient implements Runnable, MZmineCore {
         MainWindow.getInstance().notifySelectionListeners();
         */
         
+        // DEBUG show batch mode dialog
+        batchModeController.actionPerformed(null);
         
         // DEBUG open files
-        
+        /*
         File[] selectedFiles = new File[2];
         selectedFiles[0] = new File("C:/VTT/Data_Netcdf/NewCentroidMouse/cdf/ob_f1a.cdf");
         selectedFiles[1] = new File("C:/VTT/Data_Netcdf/NewCentroidMouse/cdf/ob_f1b.cdf");
         ioController.openFiles(selectedFiles, PreloadLevel.NO_PRELOAD);
+        */
          
 
         
@@ -172,6 +180,10 @@ public class MZmineClient implements Runnable, MZmineCore {
      */
     public TaskController getTaskController() {
         return taskController;
+    }
+    
+    public BatchModeController getBatchModeController() {
+    	return batchModeController;
     }
 
     /**
