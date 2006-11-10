@@ -28,9 +28,8 @@ import net.sf.mzmine.userinterface.dialogs.ParameterSetupDialog;
 import net.sf.mzmine.userinterface.mainwindow.MainWindow;
 
 
-/**
- * This class implements a peak picker based on searching for local maximums in each spectra
- */
+// TODO: Implement this method!
+
 public class IncompleteIsotopePatternFilter implements Method {
 
 	private IncompleteIsotopePatternFilterParameters parameters;

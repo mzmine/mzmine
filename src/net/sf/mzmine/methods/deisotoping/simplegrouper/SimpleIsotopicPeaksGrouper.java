@@ -28,6 +28,7 @@ import javax.swing.JMenuItem;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
 
+import net.sf.mzmine.batchmode.BatchModeController.BatchModeStep;
 import net.sf.mzmine.data.AlignmentResult;
 import net.sf.mzmine.data.PeakList;
 import net.sf.mzmine.io.OpenedRawDataFile;
@@ -75,6 +76,8 @@ public class SimpleIsotopicPeaksGrouper implements Method,
                 false, false);
 
         desktop.addSelectionListener(this);
+        
+        core.getBatchModeController().registerMethod(BatchModeStep.PEAKLISTPROCESSING, this);
 
     }
 

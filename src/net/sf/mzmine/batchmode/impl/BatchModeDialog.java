@@ -138,42 +138,42 @@ class BatchModeDialog extends JDialog implements ActionListener {
 		pnlLabels.add((JLabel)o[1]);
 		
 		// Peak picker
-		o = initializeSingleItem(BatchModeStep.RAWDATAFILTERING, BatchModeParameters.methodPeakPicker); 
+		o = initializeSingleItem(BatchModeStep.PEAKPICKING, BatchModeParameters.methodPeakPicker); 
 		pnlFields.add((JComboBox)o[0]);
 		pnlLabels.add((JLabel)o[1]);
 		
 		// Peak list processor 1
-		o = initializeSingleItem(BatchModeStep.RAWDATAFILTERING, BatchModeParameters.methodPeakListProcessor1); 
+		o = initializeSingleItem(BatchModeStep.PEAKLISTPROCESSING, BatchModeParameters.methodPeakListProcessor1); 
 		pnlFields.add((JComboBox)o[0]);
 		pnlLabels.add((JLabel)o[1]);		
 
 		// Peak list processor 2
-		o = initializeSingleItem(BatchModeStep.RAWDATAFILTERING, BatchModeParameters.methodPeakListProcessor2); 
+		o = initializeSingleItem(BatchModeStep.PEAKLISTPROCESSING, BatchModeParameters.methodPeakListProcessor2); 
 		pnlFields.add((JComboBox)o[0]);
 		pnlLabels.add((JLabel)o[1]);
 		
 		// Peak list processor 3
-		o = initializeSingleItem(BatchModeStep.RAWDATAFILTERING, BatchModeParameters.methodPeakListProcessor3); 
+		o = initializeSingleItem(BatchModeStep.PEAKLISTPROCESSING, BatchModeParameters.methodPeakListProcessor3); 
 		pnlFields.add((JComboBox)o[0]);
 		pnlLabels.add((JLabel)o[1]);		
 
 		// Alignment method
-		o = initializeSingleItem(BatchModeStep.RAWDATAFILTERING, BatchModeParameters.methodAligner); 
+		o = initializeSingleItem(BatchModeStep.ALIGNMENT, BatchModeParameters.methodAligner); 
 		pnlFields.add((JComboBox)o[0]);
 		pnlLabels.add((JLabel)o[1]);		
 
 		// Alignment result processor 1
-		o = initializeSingleItem(BatchModeStep.RAWDATAFILTERING, BatchModeParameters.methodAlignmentProcessor1); 
+		o = initializeSingleItem(BatchModeStep.ALIGNMENTPROCESSING, BatchModeParameters.methodAlignmentProcessor1); 
 		pnlFields.add((JComboBox)o[0]);
 		pnlLabels.add((JLabel)o[1]);			
 
 		// Alignment result processor 2
-		o = initializeSingleItem(BatchModeStep.RAWDATAFILTERING, BatchModeParameters.methodAlignmentProcessor2); 
+		o = initializeSingleItem(BatchModeStep.ALIGNMENTPROCESSING, BatchModeParameters.methodAlignmentProcessor2); 
 		pnlFields.add((JComboBox)o[0]);
 		pnlLabels.add((JLabel)o[1]);		
 
 		// Alignment result processor 3
-		o = initializeSingleItem(BatchModeStep.RAWDATAFILTERING, BatchModeParameters.methodAlignmentProcessor3); 
+		o = initializeSingleItem(BatchModeStep.ALIGNMENTPROCESSING, BatchModeParameters.methodAlignmentProcessor3); 
 		pnlFields.add((JComboBox)o[0]);
 		pnlLabels.add((JLabel)o[1]);		
 		
