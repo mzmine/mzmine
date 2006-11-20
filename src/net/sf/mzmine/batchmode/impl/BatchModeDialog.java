@@ -35,6 +35,7 @@ import javax.swing.JComboBox;
 import javax.swing.JDialog;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
+import javax.swing.SpringLayout;
 
 import net.sf.mzmine.batchmode.BatchModeController;
 import net.sf.mzmine.batchmode.BatchModeController.BatchModeStep;
@@ -118,64 +119,77 @@ class BatchModeDialog extends JDialog implements ActionListener {
 		// Two more panels: one for labels and another for text fields
 		JPanel pnlLabels = new JPanel(new GridLayout(0,1));
 		JPanel pnlFields = new JPanel(new GridLayout(0,1));
+		JPanel pnlParamButtons = new JPanel(new GridLayout(0,1)); // CONTINUE FROM HERE pnlButtons is bad (used) name 
 		
 		pnlLabels.setBorder(BorderFactory.createEmptyBorder(0, 5, 5, 5));
 		pnlFields.setBorder(BorderFactory.createEmptyBorder(0, 5, 5, 5));
+		pnlParamButtons.setBorder(BorderFactory.createEmptyBorder(0, 5, 5, 5));
 		
 		// Raw data filter 1
 		Object[] o 	= initializeSingleItem(BatchModeStep.RAWDATAFILTERING, BatchModeParameters.methodRawDataFilter1); 
 		pnlFields.add((JComboBox)o[0]);
 		pnlLabels.add((JLabel)o[1]);
+		pnlParamButtons.add(new JButton("Parameters..."));
 
 		// Raw data filter 2
 		o = initializeSingleItem(BatchModeStep.RAWDATAFILTERING, BatchModeParameters.methodRawDataFilter2); 
 		pnlFields.add((JComboBox)o[0]);
 		pnlLabels.add((JLabel)o[1]);
+		pnlParamButtons.add(new JButton("Parameters..."));
  
 		// Raw data filter 3
 		o = initializeSingleItem(BatchModeStep.RAWDATAFILTERING, BatchModeParameters.methodRawDataFilter3); 
 		pnlFields.add((JComboBox)o[0]);
 		pnlLabels.add((JLabel)o[1]);
+		pnlParamButtons.add(new JButton("Parameters..."));
 		
 		// Peak picker
 		o = initializeSingleItem(BatchModeStep.PEAKPICKING, BatchModeParameters.methodPeakPicker); 
 		pnlFields.add((JComboBox)o[0]);
 		pnlLabels.add((JLabel)o[1]);
+		pnlParamButtons.add(new JButton("Parameters..."));
 		
 		// Peak list processor 1
 		o = initializeSingleItem(BatchModeStep.PEAKLISTPROCESSING, BatchModeParameters.methodPeakListProcessor1); 
 		pnlFields.add((JComboBox)o[0]);
-		pnlLabels.add((JLabel)o[1]);		
+		pnlLabels.add((JLabel)o[1]);
+		pnlParamButtons.add(new JButton("Parameters..."));
 
 		// Peak list processor 2
 		o = initializeSingleItem(BatchModeStep.PEAKLISTPROCESSING, BatchModeParameters.methodPeakListProcessor2); 
 		pnlFields.add((JComboBox)o[0]);
 		pnlLabels.add((JLabel)o[1]);
+		pnlParamButtons.add(new JButton("Parameters..."));
 		
 		// Peak list processor 3
 		o = initializeSingleItem(BatchModeStep.PEAKLISTPROCESSING, BatchModeParameters.methodPeakListProcessor3); 
 		pnlFields.add((JComboBox)o[0]);
-		pnlLabels.add((JLabel)o[1]);		
+		pnlLabels.add((JLabel)o[1]);
+		pnlParamButtons.add(new JButton("Parameters..."));
 
 		// Alignment method
 		o = initializeSingleItem(BatchModeStep.ALIGNMENT, BatchModeParameters.methodAligner); 
 		pnlFields.add((JComboBox)o[0]);
-		pnlLabels.add((JLabel)o[1]);		
+		pnlLabels.add((JLabel)o[1]);
+		pnlParamButtons.add(new JButton("Parameters..."));	
 
 		// Alignment result processor 1
 		o = initializeSingleItem(BatchModeStep.ALIGNMENTPROCESSING, BatchModeParameters.methodAlignmentProcessor1); 
 		pnlFields.add((JComboBox)o[0]);
-		pnlLabels.add((JLabel)o[1]);			
+		pnlLabels.add((JLabel)o[1]);
+		pnlParamButtons.add(new JButton("Parameters..."));
 
 		// Alignment result processor 2
 		o = initializeSingleItem(BatchModeStep.ALIGNMENTPROCESSING, BatchModeParameters.methodAlignmentProcessor2); 
 		pnlFields.add((JComboBox)o[0]);
-		pnlLabels.add((JLabel)o[1]);		
+		pnlLabels.add((JLabel)o[1]);
+		pnlParamButtons.add(new JButton("Parameters..."));
 
 		// Alignment result processor 3
 		o = initializeSingleItem(BatchModeStep.ALIGNMENTPROCESSING, BatchModeParameters.methodAlignmentProcessor3); 
 		pnlFields.add((JComboBox)o[0]);
-		pnlLabels.add((JLabel)o[1]);		
+		pnlLabels.add((JLabel)o[1]);
+		pnlParamButtons.add(new JButton("Parameters..."));
 		
 		// Setup buttons
         JPanel pnlButtons = new JPanel();
@@ -183,8 +197,22 @@ class BatchModeDialog extends JDialog implements ActionListener {
         btnCancel = GUIUtils.addButton(pnlButtons, "Cancel", null, this);
 
         // Add everything to main panel
-		pnlAll.add(pnlLabels,BorderLayout.CENTER);
+		JPanel pnlTmp = new JPanel();
+		SpringLayout layout = new SpringLayout();
+		pnlTmp.setLayout(new SpringLayout());
+		layout.putConstraint(SpringLayout.WEST, pnlLabels, 5, SpringLayout.WEST, pnlTmp);
+		layout.putConstraint(SpringLayout.NORTH, pnlLabels, 5, SpringLayout.NORTH, pnlTmp);
+		layout.putConstraint(SpringLayout.SOUTH, pnlLabels, 5, SpringLayout.SOUTH, pnlTmp);
+		pnlTmp.add(pnlLabels);
+		pnlTmp.add(pnlFields);
+		pnlTmp.add(pnlParamButtons);
+		pnlAll.add(pnlTmp,BorderLayout.CENTER);
+		/*
+        pnlAll.add(pnlLabels,BorderLayout.CENTER);
 		pnlAll.add(pnlFields,BorderLayout.LINE_END);
+		*/
+		
+		
 		pnlAll.add(pnlButtons,BorderLayout.SOUTH);
         
         

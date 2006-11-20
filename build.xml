@@ -1,8 +1,9 @@
 <?xml version="1.0"?>
 <project name="MZmine" default="jar" basedir=".">
 
-	<property name="src" value="src/net/sf/mzmine" />
+	<property name="src" value="src" />
 	<property name="lib" value="lib" />
+	<property name="conf" value="conf" />
 	<property name="rest" value="rest" />
 	<property name="icons" value="icons" />
 	<property name="build" value="build" />
@@ -41,7 +42,7 @@
 			<fileset file="${rest}/startMZmine.*" />
 		</copy>
 		<copy todir="${dist}/conf">
-			<fileset file="${rest}/*.properties" />
+			<fileset file="${conf}/*.properties" />
 		</copy>
 		<copy todir="${dist}/icons">
 			<fileset file="${icons}/*.png" />
