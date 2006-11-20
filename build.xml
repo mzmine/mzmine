@@ -1,7 +1,7 @@
 <?xml version="1.0"?>
 <project name="MZmine" default="jar" basedir=".">
 	
-	<property name="src" value="src/net/sf/mzmine"/>
+	<property name="src" value="src"/>
 	<property name="lib" value="lib"/>
 	<property name="rest" value="rest"/>
 	
