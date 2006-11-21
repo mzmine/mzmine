@@ -28,6 +28,7 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.util.ArrayList;
 import java.util.Hashtable;
+import java.util.logging.Logger;
 
 import javax.swing.BorderFactory;
 import javax.swing.JButton;
@@ -51,6 +52,8 @@ class BatchModeDialog extends JDialog implements ActionListener {
 
     static final int PADDING_SIZE = 5;
     
+    private Logger logger = Logger.getLogger(this.getClass().getName());
+    
     private BatchMode batchModeModule;
     private Hashtable<BatchModeStep, ArrayList<Method>> registeredMethods;
     
@@ -61,6 +64,15 @@ class BatchModeDialog extends JDialog implements ActionListener {
     private JComboBox methodForPeakListProcessor1;
     private JComboBox methodForPeakListProcessor2;
     private JComboBox methodForPeakListProcessor3;
+    private JComboBox methodForAlignment;
+    private JComboBox methodForAlignmentProcessor1;
+    private JComboBox methodForAlignmentProcessor2;
+    private JComboBox methodForAlignmentProcessor3;
+    
+    
+    
+    private Hashtable<JButton, JComboBox> comboForButton;
+    private Hashtable<JComboBox, JButton> buttonForCombo;
     
     
     
@@ -89,15 +101,66 @@ class BatchModeDialog extends JDialog implements ActionListener {
     public void actionPerformed(ActionEvent event) {
 
         Object src = event.getSource();
-        
-        if (src == btnOK) {
             
-            dispose();
-
+        if (src.getClass() == JButton.class) {
+        	      	
+	        if (comboForButton.containsKey(src)) {
+	        	JComboBox comboBox = comboForButton.get(src);
+	        	Method method = (Method)comboBox.getSelectedItem();
+	        	method.askParameters();	        	
+	        }
+	        
+	        if (src == btnOK) {           
+	            storeParameterValues();
+	            dispose();
+	        }
+	
+	        if (src == btnCancel) {
+	            dispose();
+	        }
+	        
         }
+        
+        if (src.getClass() == JComboBox.class) {
+        	
+        	JComboBox combo = (JComboBox)src;
+        	JButton btn = buttonForCombo.get(combo);
+        	
+        	if (combo.getSelectedIndex()==0) btn.setEnabled(false);
+        	else btn.setEnabled(true);
+        	
+        	if (combo == methodForPeakDetection) {
+        		if (combo.getSelectedIndex()==0) {
+        			methodForPeakListProcessor1.setEnabled(false); methodForPeakListProcessor1.setSelectedIndex(0);
+        			methodForPeakListProcessor2.setEnabled(false); methodForPeakListProcessor2.setSelectedIndex(0);
+        			methodForPeakListProcessor3.setEnabled(false); methodForPeakListProcessor3.setSelectedIndex(0);
+        			methodForAlignment.setEnabled(false); methodForAlignment.setSelectedIndex(0);
+        			methodForAlignmentProcessor1.setEnabled(false); methodForAlignmentProcessor1.setSelectedIndex(0);
+        			methodForAlignmentProcessor2.setEnabled(false); methodForAlignmentProcessor2.setSelectedIndex(0);
+        			methodForAlignmentProcessor3.setEnabled(false); methodForAlignmentProcessor3.setSelectedIndex(0);
+        		} else {
+        			methodForPeakListProcessor1.setEnabled(true);
+        			methodForPeakListProcessor2.setEnabled(true);
+        			methodForPeakListProcessor3.setEnabled(true);
+        			methodForAlignment.setEnabled(true);
+        		}     		
+        	}
+        	
+        	if (combo == methodForAlignment) {
+        		if (combo.getSelectedIndex()==0) {
+        			methodForAlignmentProcessor1.setEnabled(false); methodForAlignmentProcessor1.setSelectedIndex(0);
+        			methodForAlignmentProcessor2.setEnabled(false); methodForAlignmentProcessor2.setSelectedIndex(0);
+        			methodForAlignmentProcessor3.setEnabled(false); methodForAlignmentProcessor3.setSelectedIndex(0);
 
-        if (src == btnCancel) {
-            dispose();
+        		} else {
+        			methodForAlignmentProcessor1.setEnabled(true);
+        			methodForAlignmentProcessor2.setEnabled(true);
+        			methodForAlignmentProcessor3.setEnabled(true);
+        			
+        		}
+        	}
+        	
+        	
         }
         
     }
@@ -110,6 +173,9 @@ class BatchModeDialog extends JDialog implements ActionListener {
         GridBagLayout layout = new GridBagLayout();
         JPanel components = new JPanel(layout);
         */
+    	
+    	comboForButton = new Hashtable<JButton, JComboBox>();
+    	buttonForCombo = new Hashtable<JComboBox, JButton>();
     	
 		// Panel where everything is collected
 		JPanel pnlAll = new JPanel(new BorderLayout());
@@ -126,102 +192,108 @@ class BatchModeDialog extends JDialog implements ActionListener {
 		pnlParamButtons.setBorder(BorderFactory.createEmptyBorder(0, 5, 5, 5));
 		
 		// Raw data filter 1
-		Object[] o 	= initializeSingleItem(BatchModeStep.RAWDATAFILTERING, BatchModeParameters.methodRawDataFilter1); 
-		pnlFields.add((JComboBox)o[0]);
-		pnlLabels.add((JLabel)o[1]);
-		pnlParamButtons.add(new JButton("Parameters..."));
-
+		methodForRawDataFilter1 = initializeSingleItem(BatchModeStep.RAWDATAFILTERING, BatchModeParameters.methodRawDataFilter1, pnlLabels, pnlFields, pnlParamButtons); 
+		
 		// Raw data filter 2
-		o = initializeSingleItem(BatchModeStep.RAWDATAFILTERING, BatchModeParameters.methodRawDataFilter2); 
-		pnlFields.add((JComboBox)o[0]);
-		pnlLabels.add((JLabel)o[1]);
-		pnlParamButtons.add(new JButton("Parameters..."));
- 
+		methodForRawDataFilter2 = initializeSingleItem(BatchModeStep.RAWDATAFILTERING, BatchModeParameters.methodRawDataFilter2, pnlLabels, pnlFields, pnlParamButtons);
+		
 		// Raw data filter 3
-		o = initializeSingleItem(BatchModeStep.RAWDATAFILTERING, BatchModeParameters.methodRawDataFilter3); 
-		pnlFields.add((JComboBox)o[0]);
-		pnlLabels.add((JLabel)o[1]);
-		pnlParamButtons.add(new JButton("Parameters..."));
+		methodForRawDataFilter3 = initializeSingleItem(BatchModeStep.RAWDATAFILTERING, BatchModeParameters.methodRawDataFilter3, pnlLabels, pnlFields, pnlParamButtons);	
 		
 		// Peak picker
-		o = initializeSingleItem(BatchModeStep.PEAKPICKING, BatchModeParameters.methodPeakPicker); 
-		pnlFields.add((JComboBox)o[0]);
-		pnlLabels.add((JLabel)o[1]);
-		pnlParamButtons.add(new JButton("Parameters..."));
+		methodForPeakDetection = initializeSingleItem(BatchModeStep.PEAKPICKING, BatchModeParameters.methodPeakPicker, pnlLabels, pnlFields, pnlParamButtons);	
 		
 		// Peak list processor 1
-		o = initializeSingleItem(BatchModeStep.PEAKLISTPROCESSING, BatchModeParameters.methodPeakListProcessor1); 
-		pnlFields.add((JComboBox)o[0]);
-		pnlLabels.add((JLabel)o[1]);
-		pnlParamButtons.add(new JButton("Parameters..."));
-
+		methodForPeakListProcessor1 = initializeSingleItem(BatchModeStep.PEAKLISTPROCESSING, BatchModeParameters.methodPeakListProcessor1, pnlLabels, pnlFields, pnlParamButtons); 	
+		
 		// Peak list processor 2
-		o = initializeSingleItem(BatchModeStep.PEAKLISTPROCESSING, BatchModeParameters.methodPeakListProcessor2); 
-		pnlFields.add((JComboBox)o[0]);
-		pnlLabels.add((JLabel)o[1]);
-		pnlParamButtons.add(new JButton("Parameters..."));
+		methodForPeakListProcessor2 = initializeSingleItem(BatchModeStep.PEAKLISTPROCESSING, BatchModeParameters.methodPeakListProcessor2, pnlLabels, pnlFields, pnlParamButtons); 		
 		
 		// Peak list processor 3
-		o = initializeSingleItem(BatchModeStep.PEAKLISTPROCESSING, BatchModeParameters.methodPeakListProcessor3); 
-		pnlFields.add((JComboBox)o[0]);
-		pnlLabels.add((JLabel)o[1]);
-		pnlParamButtons.add(new JButton("Parameters..."));
+		methodForPeakListProcessor3 = initializeSingleItem(BatchModeStep.PEAKLISTPROCESSING, BatchModeParameters.methodPeakListProcessor3, pnlLabels, pnlFields, pnlParamButtons); 
 
 		// Alignment method
-		o = initializeSingleItem(BatchModeStep.ALIGNMENT, BatchModeParameters.methodAligner); 
-		pnlFields.add((JComboBox)o[0]);
-		pnlLabels.add((JLabel)o[1]);
-		pnlParamButtons.add(new JButton("Parameters..."));	
+		methodForAlignment = initializeSingleItem(BatchModeStep.ALIGNMENT, BatchModeParameters.methodAligner, pnlLabels, pnlFields, pnlParamButtons); 
 
 		// Alignment result processor 1
-		o = initializeSingleItem(BatchModeStep.ALIGNMENTPROCESSING, BatchModeParameters.methodAlignmentProcessor1); 
-		pnlFields.add((JComboBox)o[0]);
-		pnlLabels.add((JLabel)o[1]);
-		pnlParamButtons.add(new JButton("Parameters..."));
+		methodForAlignmentProcessor1 = initializeSingleItem(BatchModeStep.ALIGNMENTPROCESSING, BatchModeParameters.methodAlignmentProcessor1, pnlLabels, pnlFields, pnlParamButtons); 
 
 		// Alignment result processor 2
-		o = initializeSingleItem(BatchModeStep.ALIGNMENTPROCESSING, BatchModeParameters.methodAlignmentProcessor2); 
-		pnlFields.add((JComboBox)o[0]);
-		pnlLabels.add((JLabel)o[1]);
-		pnlParamButtons.add(new JButton("Parameters..."));
+		methodForAlignmentProcessor2 = initializeSingleItem(BatchModeStep.ALIGNMENTPROCESSING, BatchModeParameters.methodAlignmentProcessor2, pnlLabels, pnlFields, pnlParamButtons); 
 
 		// Alignment result processor 3
-		o = initializeSingleItem(BatchModeStep.ALIGNMENTPROCESSING, BatchModeParameters.methodAlignmentProcessor3); 
-		pnlFields.add((JComboBox)o[0]);
-		pnlLabels.add((JLabel)o[1]);
-		pnlParamButtons.add(new JButton("Parameters..."));
+		methodForAlignmentProcessor3 = initializeSingleItem(BatchModeStep.ALIGNMENTPROCESSING, BatchModeParameters.methodAlignmentProcessor3, pnlLabels, pnlFields, pnlParamButtons); 
+		
+		
 		
 		// Setup buttons
         JPanel pnlButtons = new JPanel();
-        btnOK = GUIUtils.addButton(pnlButtons, "OK", null, this);
-        btnCancel = GUIUtils.addButton(pnlButtons, "Cancel", null, this);
+        btnOK = GUIUtils.addButton(pnlButtons, "Run batch", null, this);
+        btnCancel = GUIUtils.addButton(pnlButtons, "Quit batch mode", null, this);
 
         // Add everything to main panel
 		JPanel pnlTmp = new JPanel();
-		SpringLayout layout = new SpringLayout();
-		pnlTmp.setLayout(new SpringLayout());
-		layout.putConstraint(SpringLayout.WEST, pnlLabels, 5, SpringLayout.WEST, pnlTmp);
-		layout.putConstraint(SpringLayout.NORTH, pnlLabels, 5, SpringLayout.NORTH, pnlTmp);
-		layout.putConstraint(SpringLayout.SOUTH, pnlLabels, 5, SpringLayout.SOUTH, pnlTmp);
-		pnlTmp.add(pnlLabels);
-		pnlTmp.add(pnlFields);
-		pnlTmp.add(pnlParamButtons);
-		pnlAll.add(pnlTmp,BorderLayout.CENTER);
-		/*
-        pnlAll.add(pnlLabels,BorderLayout.CENTER);
-		pnlAll.add(pnlFields,BorderLayout.LINE_END);
-		*/
+		pnlTmp.setLayout(new BorderLayout());
+		pnlTmp.add(pnlLabels, BorderLayout.WEST);
+		pnlTmp.add(pnlFields, BorderLayout.CENTER);
+		pnlTmp.add(pnlParamButtons, BorderLayout.EAST);
 		
-		
+		pnlAll.add(pnlTmp ,BorderLayout.CENTER);
 		pnlAll.add(pnlButtons,BorderLayout.SOUTH);
-        
-        
+              
         //GUIUtils.addMargin(pnlAll, PADDING_SIZE);
         add(pnlAll);
     	
     }
     
-    private Object[] initializeSingleItem(BatchModeStep step, Parameter param) {
+    private void fetchParameterValues() {
+    	// Setup default values    	
+    	methodForRawDataFilter1.setEnabled(true); methodForRawDataFilter1.setSelectedIndex(0);
+    	methodForRawDataFilter2.setEnabled(true); methodForRawDataFilter2.setSelectedIndex(0);
+    	methodForRawDataFilter3.setEnabled(true); methodForRawDataFilter3.setSelectedIndex(0);
+    	methodForPeakDetection.setEnabled(true); methodForPeakDetection.setSelectedIndex(0);
+    	
+    	// Check if there are some parameter values already setup in the project for batch mode, and copy these settings to the dialog if they are present
+    	ParameterValue paramValue = MZmineProject.getCurrentProject().getParameterValue(BatchModeParameters.methodRawDataFilter1);
+    	if (paramValue!=null) methodForRawDataFilter1.setSelectedItem((Method)paramValue.getValue());
+    	
+    	paramValue = MZmineProject.getCurrentProject().getParameterValue(BatchModeParameters.methodRawDataFilter2);
+    	if (paramValue!=null) methodForRawDataFilter2.setSelectedItem((Method)paramValue.getValue());
+
+    	paramValue = MZmineProject.getCurrentProject().getParameterValue(BatchModeParameters.methodRawDataFilter3);
+    	if (paramValue!=null) methodForRawDataFilter3.setSelectedItem((Method)paramValue.getValue());
+    	
+    	paramValue = MZmineProject.getCurrentProject().getParameterValue(BatchModeParameters.methodPeakPicker);
+    	if (paramValue!=null) methodForPeakDetection.setSelectedItem((Method)paramValue.getValue());
+
+    	paramValue = MZmineProject.getCurrentProject().getParameterValue(BatchModeParameters.methodPeakListProcessor1);
+    	if (paramValue!=null) methodForPeakListProcessor1.setSelectedItem((Method)paramValue.getValue());    	
+
+    	paramValue = MZmineProject.getCurrentProject().getParameterValue(BatchModeParameters.methodPeakListProcessor2);
+    	if (paramValue!=null) methodForPeakListProcessor2.setSelectedItem((Method)paramValue.getValue());
+
+    	paramValue = MZmineProject.getCurrentProject().getParameterValue(BatchModeParameters.methodPeakListProcessor3);
+    	if (paramValue!=null) methodForPeakListProcessor3.setSelectedItem((Method)paramValue.getValue());
+
+    	paramValue = MZmineProject.getCurrentProject().getParameterValue(BatchModeParameters.methodAligner);
+    	if (paramValue!=null) methodForAlignment.setSelectedItem((Method)paramValue.getValue());    	
+
+    	paramValue = MZmineProject.getCurrentProject().getParameterValue(BatchModeParameters.methodAlignmentProcessor1);
+    	if (paramValue!=null) methodForAlignmentProcessor1.setSelectedItem((Method)paramValue.getValue());
+    	
+    	paramValue = MZmineProject.getCurrentProject().getParameterValue(BatchModeParameters.methodAlignmentProcessor2);
+    	if (paramValue!=null) methodForAlignmentProcessor2.setSelectedItem((Method)paramValue.getValue());
+    	
+    	paramValue = MZmineProject.getCurrentProject().getParameterValue(BatchModeParameters.methodAlignmentProcessor3);
+    	if (paramValue!=null) methodForAlignmentProcessor3.setSelectedItem((Method)paramValue.getValue());
+    	
+    }
+    
+    private void storeParameterValues() {
+    	
+    }
+    
+    private JComboBox initializeSingleItem(BatchModeStep step, Parameter param, JPanel pnlLabels, JPanel pnlFields, JPanel pnlParamButtons) {
     	
     	JComboBox comboBox = null;
     	JLabel label = null;
@@ -239,10 +311,19 @@ class BatchModeDialog extends JDialog implements ActionListener {
 		label = new JLabel(param.getName());
 		comboBox.setToolTipText(param.getDescription());
 		
-		Object o[] = new Object[2];
-		o[0] = comboBox;
-		o[1] = label;
-		return o;
+		JButton button = new JButton("Parameters...");
+		
+		button.setEnabled(false);
+		pnlFields.add(comboBox);
+		pnlLabels.add(label);		
+		pnlParamButtons.add(button);
+		comboForButton.put(button, comboBox);
+		buttonForCombo.put(comboBox, button);
+		
+		button.addActionListener(this);
+		comboBox.addActionListener(this);
+		
+		return comboBox;
     	
     }
 
