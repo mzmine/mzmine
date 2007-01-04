@@ -42,6 +42,7 @@ class MZXMLScan extends DefaultHandler implements Scan {
     private int msLevel;
     private double mzValues[], intensityValues[];
     private double precursorMZ;
+    private int precursorCharge;
     private double retentionTime;
     private double mzRangeMin, mzRangeMax;
     private double basePeakMZ, basePeakIntensity;
@@ -107,6 +108,13 @@ class MZXMLScan extends DefaultHandler implements Scan {
      */
     public double getPrecursorMZ() {
         return precursorMZ;
+    }
+    
+    /**
+     * @see net.sf.mzmine.data.Scan#getPrecursorCharge()
+     */
+    public int getPrecursorCharge() {
+        return precursorCharge;
     }
 
     /**
@@ -227,6 +235,11 @@ class MZXMLScan extends DefaultHandler implements Scan {
 
         }
 
+        // <precursorMz>
+        if (qName.equalsIgnoreCase("precursorMz")) {
+            precursorCharge = Integer.parseInt(attrs.getValue("precursorCharge"));
+        }
+        
         // <peaks>
         if (qName.equalsIgnoreCase("peaks")) {
             // Get precision of peak data

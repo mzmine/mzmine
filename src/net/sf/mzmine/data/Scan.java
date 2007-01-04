@@ -101,6 +101,12 @@ public interface Scan {
      * @return Precursor m/z or 0 if this is not MSn scan
      */
     public double getPrecursorMZ();
+    
+    /**
+     * 
+     * @return Precursor charge or 0 if this is not MSn scan or charge is unknown
+     */
+    public int getPrecursorCharge();
 
     /**
      * 

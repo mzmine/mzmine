@@ -32,6 +32,7 @@ public class SimpleScan implements Scan {
     private int fragmentScans[];
     private double mzValues[], intensityValues[];
     private double precursorMZ;
+    private int precursorCharge;
     private double retentionTime;
     private double mzRangeMin, mzRangeMax;
     private double basePeakMZ, basePeakIntensity;
@@ -162,6 +163,22 @@ public class SimpleScan implements Scan {
      */
     public void setPrecursorMZ(double precursorMZ) {
         this.precursorMZ = precursorMZ;
+    }
+
+    
+    /**
+     * @return Returns the precursorCharge.
+     */
+    public int getPrecursorCharge() {
+        return precursorCharge;
+    }
+
+    
+    /**
+     * @param precursorCharge The precursorCharge to set.
+     */
+    public void setPrecursorCharge(int precursorCharge) {
+        this.precursorCharge = precursorCharge;
     }
 
     /**
