@@ -42,14 +42,13 @@ class NeutralLossDataPointRenderer extends XYLineAndShapeRenderer {
 
         NeutralLossDataSet nlDataset = (NeutralLossDataSet) dataset;
 
-
         NeutralLossDataPoint point = nlDataset.getDataPoint(item);
 
         if ((point.getPrecursorMZ() < nlPlot.getHighlightedMin())
                 || (point.getPrecursorMZ() > nlPlot.getHighlightedMax()))
-            setPaint(Color.blue);
+            setPaint(Color.blue, false);
         else
-            setPaint(Color.red);
+            setPaint(Color.red, false);
 
         super.drawItem(g2, state, dataArea, info, plot, domainAxis, rangeAxis,
                 dataset, series, item, crosshairState, pass);

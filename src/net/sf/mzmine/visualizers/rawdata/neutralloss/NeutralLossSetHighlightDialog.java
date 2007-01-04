@@ -19,6 +19,7 @@
 
 package net.sf.mzmine.visualizers.rawdata.neutralloss;
 
+import java.awt.Dimension;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.Insets;
@@ -29,18 +30,12 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import javax.swing.JButton;
-import javax.swing.JComboBox;
 import javax.swing.JComponent;
 import javax.swing.JDialog;
 import javax.swing.JFormattedTextField;
-import javax.swing.JLabel;
 import javax.swing.JPanel;
 
-import net.sf.mzmine.io.OpenedRawDataFile;
-import net.sf.mzmine.io.RawDataFile;
-import net.sf.mzmine.taskcontrol.TaskController;
 import net.sf.mzmine.userinterface.Desktop;
-import net.sf.mzmine.util.CollectionUtils;
 import net.sf.mzmine.util.GUIUtils;
 
 /**
@@ -92,6 +87,7 @@ public class NeutralLossSetHighlightDialog extends JDialog implements
 
         constraints.weightx = 1;
         fieldMinMZ = new JFormattedTextField(format);
+        fieldMinMZ.setPreferredSize(new Dimension(50, fieldMinMZ.getPreferredSize().height));
         constraints.gridx = 1;
         components.add(fieldMinMZ, constraints);
         constraints.weightx = 0;
