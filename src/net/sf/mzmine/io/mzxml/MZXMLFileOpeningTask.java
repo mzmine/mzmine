@@ -23,6 +23,7 @@
 package net.sf.mzmine.io.mzxml;
 
 import java.io.File;
+import java.util.LinkedList;
 import java.util.logging.Logger;
 
 import javax.xml.parsers.SAXParser;
@@ -32,6 +33,7 @@ import net.sf.mzmine.io.OpenedRawDataFile;
 import net.sf.mzmine.io.IOController.PreloadLevel;
 import net.sf.mzmine.io.impl.OpenedRawDataFileImpl;
 import net.sf.mzmine.taskcontrol.DistributableTask;
+
 import org.xml.sax.Attributes;
 import org.xml.sax.SAXException;
 import org.xml.sax.helpers.DefaultHandler;
@@ -55,6 +57,8 @@ public class MZXMLFileOpeningTask extends DefaultHandler implements
     private int scanIndexID; // While reading <offset> tag for a scan index,
     private boolean readingIndex;
     private MZXMLScan buildingScan;
+    
+    private LinkedList<Integer> parentStack;
 
     /**
      * 
@@ -65,6 +69,7 @@ public class MZXMLFileOpeningTask extends DefaultHandler implements
         status = TaskStatus.WAITING;
 
         charBuffer = new StringBuilder(2048);
+        parentStack = new LinkedList<Integer>();
 
         buildingFile = new MZXMLFile(fileToOpen, preloadLevel);
 
@@ -179,7 +184,12 @@ public class MZXMLFileOpeningTask extends DefaultHandler implements
                 buildingFile.addScan(buildingScan);
                 parsedScans++;
             }
-            buildingScan = new MZXMLScan();
+            int parent = 0;
+            if (! parentStack.isEmpty()) parent = parentStack.getFirst();
+            buildingScan = new MZXMLScan(parent);
+            int newParent = Integer.parseInt(attrs.getValue("num"));
+            parentStack.addFirst(newParent);
+            
 
         }
 
@@ -249,6 +259,7 @@ public class MZXMLFileOpeningTask extends DefaultHandler implements
                 buildingScan = null;
                 return;
             }
+            parentStack.removeFirst();
 
         }
 

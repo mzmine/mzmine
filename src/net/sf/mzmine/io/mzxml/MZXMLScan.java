@@ -38,7 +38,7 @@ import org.xml.sax.helpers.DefaultHandler;
  */
 class MZXMLScan extends DefaultHandler implements Scan {
 
-    private int scanNumber;
+    private int scanNumber, parentScanNumber;
     private int msLevel;
     private double mzValues[], intensityValues[];
     private double precursorMZ;
@@ -61,8 +61,9 @@ class MZXMLScan extends DefaultHandler implements Scan {
     /**
      * Constructor for empty scan that which will be parsed from XML document
      */
-    MZXMLScan() {
+    MZXMLScan(int parentScan) {
         charBuffer = new StringBuffer(256);
+        this.parentScanNumber = parentScan;
     }
 
 
@@ -336,11 +337,7 @@ class MZXMLScan extends DefaultHandler implements Scan {
      * @see net.sf.mzmine.data.Scan#getParentScanNumber()
      */
     public int getParentScanNumber() {
-        
-        // TODO: temporary for testing
-        if (scanNumber > 100) return scanNumber - 5;
-
-        return 0;
+        return parentScanNumber;
     }
 
 
@@ -348,9 +345,7 @@ class MZXMLScan extends DefaultHandler implements Scan {
      * @see net.sf.mzmine.data.Scan#getFragmentScanNumbers()
      */
     public int[] getFragmentScanNumbers() {
-
-        // TODO: temporary for testing
-        if (scanNumber > 500) return new int[] { scanNumber + 1, scanNumber + 2, scanNumber + 3 };
+        // TODO: not implemented
         return null;
     }
 

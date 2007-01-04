@@ -61,6 +61,7 @@ class MZXMLFile extends AbstractDataUnit implements RawDataFile {
     private Hashtable<Integer, Double> dataMaxBasePeakIntensity, dataMaxTIC, dataTotalRawSignal;
     private Hashtable<Integer, Double> retentionTimes;
     private Hashtable<Integer, Double> precursorMZ;
+    private Hashtable<Integer, Integer> precursorScan;
 
     /**
      * Preloaded scans
@@ -91,6 +92,7 @@ class MZXMLFile extends AbstractDataUnit implements RawDataFile {
         scanNumbers = new Hashtable<Integer, ArrayList<Integer>>();
         retentionTimes = new Hashtable<Integer, Double>();
         precursorMZ = new Hashtable<Integer, Double>();
+        precursorScan = new Hashtable<Integer, Integer>();
 
         dataMinMZ = new Hashtable<Integer, Double>();
         dataMaxMZ = new Hashtable<Integer, Double>();
@@ -127,7 +129,7 @@ class MZXMLFile extends AbstractDataUnit implements RawDataFile {
             throw (new IllegalArgumentException("Scan " + scanNumber
                     + " is not present in file " + realFile));
 
-        MZXMLScan buildingScan = new MZXMLScan();
+        MZXMLScan buildingScan = new MZXMLScan(precursorScan.get(scanNumber));
 
         FileInputStream fileIN = null;
         fileIN = new FileInputStream(realFile);
@@ -329,6 +331,7 @@ class MZXMLFile extends AbstractDataUnit implements RawDataFile {
 
         retentionTimes.put(newScan.getScanNumber(), newScan.getRetentionTime());
         precursorMZ.put(newScan.getScanNumber(), newScan.getPrecursorMZ());
+        precursorScan.put(newScan.getScanNumber(), newScan.getParentScanNumber());
 
         double scanTIC = 0;
 
