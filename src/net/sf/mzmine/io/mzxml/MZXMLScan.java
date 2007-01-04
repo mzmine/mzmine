@@ -237,7 +237,8 @@ class MZXMLScan extends DefaultHandler implements Scan {
 
         // <precursorMz>
         if (qName.equalsIgnoreCase("precursorMz")) {
-            precursorCharge = Integer.parseInt(attrs.getValue("precursorCharge"));
+            if (attrs.getValue("precursorCharge") != null)
+                precursorCharge = Integer.parseInt(attrs.getValue("precursorCharge"));
         }
         
         // <peaks>
