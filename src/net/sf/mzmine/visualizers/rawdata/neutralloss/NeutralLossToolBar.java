@@ -29,14 +29,11 @@ import javax.swing.JToolBar;
 import net.sf.mzmine.util.GUIUtils;
 
 /**
- * 2D visualizer's toolbar class
+ * Neutral loss visualizer's toolbar class
  */
 class NeutralLossToolBar extends JToolBar {
 
-    static final Icon centroidIcon = new ImageIcon("icons/centroidicon.png");
-    static final Icon continuousIcon = new ImageIcon("icons/continuousicon.png");
     static final Icon dataPointsIcon = new ImageIcon("icons/datapointsicon.png");
-    static final Icon annotationsIcon = new ImageIcon("icons/annotationsicon.png");
 
     NeutralLossToolBar(NeutralLossVisualizerWindow masterFrame) {
 
@@ -47,19 +44,9 @@ class NeutralLossToolBar extends JToolBar {
         setMargin(new Insets(5, 5, 5, 5));
         setBackground(Color.white);
 
-        GUIUtils.addButton(this, null, centroidIcon, masterFrame,
-                "TOGGLE_PLOT_MODE", "Toggle centroid/continuous mode");
-        
-        addSeparator();
-        
         GUIUtils.addButton(this, null, dataPointsIcon, masterFrame,
-                "SHOW_DATA_POINTS",
-                "Toggle displaying of data points in continuous mode");
-        
-        addSeparator();
-        
-        GUIUtils.addButton(this, null, annotationsIcon, masterFrame,
-                "SHOW_ANNOTATIONS", "Toggle displaying of peak values");
+                "HIGHLIGHT",
+                "Highlight selected precursor mass range");
 
     }
 

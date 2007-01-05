@@ -35,6 +35,7 @@ import net.sf.mzmine.taskcontrol.Task.TaskStatus;
 import net.sf.mzmine.userinterface.Desktop;
 import net.sf.mzmine.util.CursorPosition;
 import net.sf.mzmine.visualizers.rawdata.RawDataVisualizer;
+import net.sf.mzmine.visualizers.rawdata.spectra.SpectraVisualizerWindow;
 
 /**
  * Neutral loss visualizer using JFreeChart library
@@ -50,6 +51,7 @@ public class NeutralLossVisualizerWindow extends JInternalFrame implements
     private OpenedRawDataFile dataFile;
 
     private Desktop desktop;
+    private TaskController taskController;
 
     public NeutralLossVisualizerWindow(TaskController taskController,
             Desktop desktop, OpenedRawDataFile dataFile, int xAxis,
@@ -59,6 +61,7 @@ public class NeutralLossVisualizerWindow extends JInternalFrame implements
         super(dataFile.toString(), true, true, true, true);
 
         this.desktop = desktop;
+        this.taskController = taskController;
 
         setDefaultCloseOperation(DISPOSE_ON_CLOSE);
         setBackground(Color.white);
@@ -74,6 +77,9 @@ public class NeutralLossVisualizerWindow extends JInternalFrame implements
 
         neutralLossPlot = new NeutralLossPlot(this, dataset, xAxis);
         add(neutralLossPlot, BorderLayout.CENTER);
+        
+        if (xAxis == 1) setDomainRange(rtMin, rtMax);
+        else setDomainRange(mzMin, mzMax);
 
         updateTitle();
 
@@ -82,17 +88,15 @@ public class NeutralLossVisualizerWindow extends JInternalFrame implements
     }
 
     /**
-     * @see net.sf.mzmine.visualizers.rawdata.RawDataVisualizer#setMZRange(double,
-     *      double)
      */
-    public void setMZRange(double mzMin, double mzMax) {
+    public void setRangeRange(double min, double max) {
+        neutralLossPlot.getXYPlot().getRangeAxis().setRange(min, max);
     }
 
     /**
-     * @see net.sf.mzmine.visualizers.rawdata.RawDataVisualizer#setRTRange(double,
-     *      double)
      */
-    public void setRTRange(double rtMin, double rtMax) {
+    public void setDomainRange(double min, double max) {
+        neutralLossPlot.getXYPlot().getDomainAxis().setRange(min, max);
     }
 
     /**
@@ -111,6 +115,13 @@ public class NeutralLossVisualizerWindow extends JInternalFrame implements
         title.append("]: neutral loss");
 
         setTitle(title.toString());
+        
+        NeutralLossDataPoint pos = getCursorPosition();
+        
+        if (pos != null) {
+            title.append(", ");
+            title.append(pos.toString());
+        }
 
         neutralLossPlot.setTitle(title.toString());
 
@@ -124,8 +135,17 @@ public class NeutralLossVisualizerWindow extends JInternalFrame implements
         String command = event.getActionCommand();
 
         if (command.equals("HIGHLIGHT")) {
-            JDialog dialog = new NeutralLossSetHighlightDialog(desktop, neutralLossPlot);
+            JDialog dialog = new NeutralLossSetHighlightDialog(desktop,
+                    neutralLossPlot);
             dialog.setVisible(true);
+        }
+
+        if (command.equals("SHOW_SPECTRUM")) {
+            NeutralLossDataPoint pos = getCursorPosition();
+            if (pos != null) {
+                new SpectraVisualizerWindow(taskController, desktop,
+                        dataFile, pos.getScanNumber());
+            }
         }
 
     }
@@ -151,20 +171,18 @@ public class NeutralLossVisualizerWindow extends JInternalFrame implements
     }
 
     /**
-     * @see net.sf.mzmine.visualizers.rawdata.RawDataVisualizer#getCursorPosition()
+     * 
      */
-    public CursorPosition getCursorPosition() {
-        // TODO Auto-generated method stub
-        return null;
-    }
+    public NeutralLossDataPoint getCursorPosition() {
+        double xValue = neutralLossPlot.getXYPlot().getDomainCrosshairValue();
+        double yValue = neutralLossPlot.getXYPlot().getRangeCrosshairValue();
 
-    /**
-     * @see net.sf.mzmine.visualizers.rawdata.RawDataVisualizer#setCursorPosition(net.sf.mzmine.util.CursorPosition)
-     */
-    public void setCursorPosition(CursorPosition newPosition) {
-        // TODO Auto-generated method stub
+        NeutralLossDataPoint point = dataset.getDataPoint(xValue, yValue);
+
+        return point;
 
     }
+
 
     NeutralLossPlot getPlot() {
         return neutralLossPlot;

@@ -1,9 +1,26 @@
-/**
+/*
+ * Copyright 2006 The MZmine Development Team
  * 
+ * This file is part of MZmine.
+ * 
+ * MZmine is free software; you can redistribute it and/or modify it under the
+ * terms of the GNU General Public License as published by the Free Software
+ * Foundation; either version 2 of the License, or (at your option) any later
+ * version.
+ * 
+ * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY
+ * WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR
+ * A PARTICULAR PURPOSE. See the GNU General Public License for more details.
+ * 
+ * You should have received a copy of the GNU General Public License along with
+ * MZmine; if not, write to the Free Software Foundation, Inc., 51 Franklin St,
+ * Fifth Floor, Boston, MA 02110-1301 USA
  */
+
 package net.sf.mzmine.visualizers.rawdata.neutralloss;
 
 import java.awt.Color;
+import java.awt.Graphics2D;
 import java.awt.Shape;
 import java.awt.geom.Ellipse2D;
 import java.awt.geom.Rectangle2D;
@@ -17,25 +34,27 @@ import org.jfree.chart.renderer.xy.XYLineAndShapeRenderer;
 import org.jfree.data.xy.XYDataset;
 
 /**
- * 
+ * Renderer which highlights selected points
  */
 class NeutralLossDataPointRenderer extends XYLineAndShapeRenderer {
 
-    // data points shape
-    private static final Shape dataPointsShape = new Ellipse2D.Float(-1, -1, 2,
-            2);
+    // small circle
+    private static final Shape dataPointsShape = new Ellipse2D.Float(-1, -1, 2, 2);
 
     private NeutralLossPlot nlPlot;
     
     NeutralLossDataPointRenderer(NeutralLossPlot nlPlot) {
+        
+        // draw shapes, not lines
         super(false, true);
+        
         this.nlPlot = nlPlot;
 
         setShape(dataPointsShape);
 
     }
 
-    public void drawItem(java.awt.Graphics2D g2, XYItemRendererState state,
+    public void drawItem(Graphics2D g2, XYItemRendererState state,
             Rectangle2D dataArea, PlotRenderingInfo info, XYPlot plot,
             ValueAxis domainAxis, ValueAxis rangeAxis, XYDataset dataset,
             int series, int item, CrosshairState crosshairState, int pass) {
@@ -44,6 +63,7 @@ class NeutralLossDataPointRenderer extends XYLineAndShapeRenderer {
 
         NeutralLossDataPoint point = nlDataset.getDataPoint(item);
 
+        // set the color to red for highlighted points
         if ((point.getPrecursorMZ() < nlPlot.getHighlightedMin())
                 || (point.getPrecursorMZ() > nlPlot.getHighlightedMax()))
             setPaint(Color.blue, false);

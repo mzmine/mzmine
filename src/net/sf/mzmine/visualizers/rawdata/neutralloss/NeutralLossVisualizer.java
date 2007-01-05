@@ -35,6 +35,7 @@ import net.sf.mzmine.main.MZmineModule;
 import net.sf.mzmine.taskcontrol.TaskController;
 import net.sf.mzmine.userinterface.Desktop;
 import net.sf.mzmine.userinterface.Desktop.MZmineMenu;
+import net.sf.mzmine.util.CollectionUtils;
 
 /**
  * Neutral loss (MS/MS) visualizer using JFreeChart library
@@ -43,10 +44,10 @@ public class NeutralLossVisualizer implements MZmineModule, ActionListener,
         ListSelectionListener {
 
     private Logger logger = Logger.getLogger(this.getClass().getName());
-    
+
     private TaskController taskController;
     private Desktop desktop;
-    
+
     private JMenuItem nlMenuItem;
 
     /**
@@ -57,8 +58,8 @@ public class NeutralLossVisualizer implements MZmineModule, ActionListener,
         this.taskController = core.getTaskController();
         this.desktop = core.getDesktop();
 
-        nlMenuItem = desktop.addMenuItem(MZmineMenu.VISUALIZATION, "Neutral loss",
-                this, null, KeyEvent.VK_N, false, false);
+        nlMenuItem = desktop.addMenuItem(MZmineMenu.VISUALIZATION,
+                "Neutral loss", this, null, KeyEvent.VK_N, false, false);
         desktop.addSelectionListener(this);
 
     }
@@ -69,10 +70,18 @@ public class NeutralLossVisualizer implements MZmineModule, ActionListener,
     public void actionPerformed(ActionEvent e) {
 
         logger.finest("Opening a new neutral loss visualizer setup dialog");
-        
+
         OpenedRawDataFile dataFiles[] = desktop.getSelectedDataFiles();
 
         for (OpenedRawDataFile dataFile : dataFiles) {
+            int msLevels[] = dataFile.getCurrentFile().getMSLevels();
+            final int neededMSLevels[] = { 1, 2 };
+            
+            if (! CollectionUtils.isSubset(msLevels, neededMSLevels)) {
+                desktop.displayErrorMessage("File " + dataFile
+                        + " does not contain data for MS levels 1 and 2.");
+                continue;
+            }
             JDialog setupDialog = new NeutralLossSetupDialog(taskController,
                     desktop, dataFile);
             setupDialog.setVisible(true);

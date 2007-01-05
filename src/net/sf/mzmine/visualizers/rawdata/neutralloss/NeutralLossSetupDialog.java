@@ -168,7 +168,7 @@ public class NeutralLossSetupDialog extends JDialog implements ActionListener {
         constraints.gridheight = 1;
         layout.setConstraints(comp, constraints);
 
-        comp = GUIUtils.addLabel(components, "Minimum parent m/z");
+        comp = GUIUtils.addLabel(components, "Minimum precursor m/z");
         constraints.gridx = 0;
         constraints.gridy = 4;
         constraints.gridwidth = 1;
@@ -191,7 +191,7 @@ public class NeutralLossSetupDialog extends JDialog implements ActionListener {
         constraints.gridheight = 1;
         layout.setConstraints(comp, constraints);
 
-        comp = GUIUtils.addLabel(components, "Maximum parent m/z");
+        comp = GUIUtils.addLabel(components, "Maximum precursor m/z");
         constraints.gridx = 0;
         constraints.gridy = 5;
         constraints.gridwidth = 1;

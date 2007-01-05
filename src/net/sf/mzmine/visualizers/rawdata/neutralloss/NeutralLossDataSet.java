@@ -21,8 +21,8 @@ package net.sf.mzmine.visualizers.rawdata.neutralloss;
 
 import java.util.Arrays;
 import java.util.Date;
+import java.util.Iterator;
 import java.util.Vector;
-import java.util.logging.Logger;
 
 import net.sf.mzmine.data.Scan;
 import net.sf.mzmine.io.RawDataAcceptor;
@@ -101,10 +101,10 @@ class NeutralLossDataSet extends AbstractXYDataset implements RawDataAcceptor, X
 
             fragmentsCycle: for (int j = 0; j < numOfFragments; j++) {
 
-                if ((topPeaks[j] < 0) || (intensityValues[i] > topPeaks[j])) {
+                if ((topPeaks[j] < 0) || (intensityValues[i] > intensityValues[topPeaks[j]])) {
 
                     // shift the top peaks array
-                    for (int k = j + 1; k < numOfFragments; k++)
+                    for (int k = numOfFragments - 1; k > j; k--)
                         topPeaks[k] = topPeaks[k - 1];
 
                     // add the peak to the appropriate place
@@ -194,6 +194,22 @@ class NeutralLossDataSet extends AbstractXYDataset implements RawDataAcceptor, X
     
     public NeutralLossDataPoint getDataPoint(int item) {
         return dataPoints.get(item);
+    }
+    
+    public NeutralLossDataPoint getDataPoint(double xValue, double yValue) {
+        Vector<NeutralLossDataPoint> dataCopy = new Vector<NeutralLossDataPoint>(dataPoints);
+        Iterator<NeutralLossDataPoint> it = dataCopy.iterator();
+        double currentX, currentY;
+        while (it.hasNext()) {
+            NeutralLossDataPoint point = it.next();
+            if (xAxis == 0) currentX = point.getPrecursorMZ();
+            else currentX = point.getRetentionTime();
+            currentY = point.getNeutralLoss();
+            // check for equality
+            if ((Math.abs(currentX - xValue) < 0.00000001) && (Math.abs(currentY - yValue) < 0.00000001))
+                return point;
+        }
+        return null;
     }
 
     /**

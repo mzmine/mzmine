@@ -24,18 +24,23 @@ import java.awt.Color;
 import java.awt.Cursor;
 import java.awt.Font;
 import java.awt.Shape;
+import java.awt.event.ActionEvent;
+import java.awt.event.MouseEvent;
 import java.awt.geom.Ellipse2D;
 import java.text.DecimalFormat;
 import java.text.NumberFormat;
 
 import javax.swing.JMenuItem;
 import javax.swing.JPopupMenu;
+import javax.swing.KeyStroke;
 
+import net.sf.mzmine.util.GUIUtils;
 import net.sf.mzmine.util.TimeNumberFormat;
 
 import org.jfree.chart.ChartPanel;
 import org.jfree.chart.JFreeChart;
 import org.jfree.chart.axis.NumberAxis;
+import org.jfree.chart.event.ChartProgressEvent;
 import org.jfree.chart.plot.ValueMarker;
 import org.jfree.chart.plot.XYPlot;
 import org.jfree.chart.renderer.xy.XYItemRenderer;
@@ -56,7 +61,9 @@ class NeutralLossPlot extends ChartPanel {
     private static NumberFormat rtFormat = new TimeNumberFormat();
     private static NumberFormat mzFormat = new DecimalFormat("0");
     
-
+    private boolean showSpectrumRequest = false;
+    
+    private NeutralLossVisualizerWindow visualizer;
     
     //  crosshair (selection) color
     private static final Color crossHairColor = Color.gray; 
@@ -72,14 +79,14 @@ class NeutralLossPlot extends ChartPanel {
     
     private double highlightedMin, highlightedMax;
     
- //   private TwoDItemRenderer renderer;
-
     
     NeutralLossPlot(NeutralLossVisualizerWindow visualizer, NeutralLossDataSet dataset, int xAxisType) {
         // superconstructor with no chart yet
         // disable off-screen buffering (makes problems with late drawing of the title)
         super(null, false);
 
+        this.visualizer = visualizer; 
+        
         setBackground(Color.white);
         setCursor(Cursor.getPredefinedCursor(Cursor.CROSSHAIR_CURSOR));
 
@@ -96,6 +103,8 @@ class NeutralLossPlot extends ChartPanel {
             xAxis.setUpperMargin(0);
             xAxis.setLowerMargin(0);
         }
+        
+
 
         // set the Y axis (intensity) properties
         NumberAxis yAxis = new NumberAxis("Neutral loss");
@@ -114,7 +123,7 @@ class NeutralLossPlot extends ChartPanel {
         // set the plot properties
         plot = new XYPlot(dataset, xAxis, yAxis, renderer);
         plot.setBackgroundPaint(Color.white);
-       // TODO plot.setAxisOffset(new RectangleInsets(5.0, 5.0, 5.0, 5.0));
+
         
         // chart properties
         chart = new JFreeChart("", titleFont, plot, false); 
@@ -144,7 +153,12 @@ class NeutralLossPlot extends ChartPanel {
         
         plot.addRangeMarker(new ValueMarker(0));
 
+        // set focusable state to receive key events
+        setFocusable(true);
 
+        // register key handlers
+        GUIUtils.registerKeyHandler(this, KeyStroke.getKeyStroke("SPACE"),
+                visualizer, "SHOW_SPECTRUM");
         
 
         
@@ -201,7 +215,48 @@ class NeutralLossPlot extends ChartPanel {
         this.highlightedMax = highlightedMax;
     }
 
+    /**
+     * @see java.awt.event.MouseListener#mouseClicked(java.awt.event.MouseEvent)
+     */
+    public void mouseClicked(MouseEvent event) {
 
+        // let the parent handle the event (selection etc.)
+        super.mouseClicked(event);
 
+        // request focus to receive key events
+        requestFocus();
+
+        // if user double-clicked left button, place a request to open a
+        // spectrum
+        if ((event.getButton() == MouseEvent.BUTTON1)
+                && (event.getClickCount() == 2)) {
+            showSpectrumRequest = true;
+        }
+
+    }
+
+    /**
+     * @see org.jfree.chart.event.ChartProgressListener#chartProgress(org.jfree.chart.event.ChartProgressEvent)
+     */
+    public void chartProgress(ChartProgressEvent event) {
+
+        super.chartProgress(event);
+
+        if (event.getType() == ChartProgressEvent.DRAWING_FINISHED) {
+
+            visualizer.updateTitle();
+
+            if (showSpectrumRequest) {
+                showSpectrumRequest = false;
+                visualizer.actionPerformed(new ActionEvent(event.getSource(),
+                        ActionEvent.ACTION_PERFORMED, "SHOW_SPECTRUM"));
+            }
+        }
+
+    }
+    
+    XYPlot getXYPlot() {
+        return plot;
+    }
 
 }

@@ -61,7 +61,7 @@ class NeutralLossDataPoint {
         neutralLoss = precursorMass - mzValue;
         
         StringBuffer sb = new StringBuffer();
-        sb.append("Loss: ");
+        sb.append("loss: ");
         sb.append(mzFormat.format(neutralLoss));
         sb.append(", m/z ");
         sb.append(mzFormat.format(mzValue));
@@ -70,7 +70,7 @@ class NeutralLossDataPoint {
         sb.append(", precursor scan #" + precursorScanNumber);
         sb.append(", m/z ");
         sb.append(mzFormat.format(precursorMZ));     
-        if (precursorCharge > 0) sb.append("(chrg " + precursorCharge + ")");
+        if (precursorCharge > 0) sb.append(" (chrg " + precursorCharge + ")");
         label = sb.toString();
         
     }
