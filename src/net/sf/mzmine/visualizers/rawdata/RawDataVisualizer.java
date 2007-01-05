@@ -23,14 +23,14 @@ import net.sf.mzmine.util.CursorPosition;
 
 public interface RawDataVisualizer {
 
-    public void setMZRange(double mzMin, double mzMax);
+//    public void setMZRange(double mzMin, double mzMax);
     
-    public void setRTRange(double rtMin, double rtMax);
+//    public void setRTRange(double rtMin, double rtMax);
     
-    public void setIntensityRange(double intensityMin, double intensityMax);
+//    public void setIntensityRange(double intensityMin, double intensityMax);
     
-    public CursorPosition getCursorPosition();
+//    public CursorPosition getCursorPosition();
     
-    public void setCursorPosition(CursorPosition newPosition);
+//    public void setCursorPosition(CursorPosition newPosition);
     
 }
