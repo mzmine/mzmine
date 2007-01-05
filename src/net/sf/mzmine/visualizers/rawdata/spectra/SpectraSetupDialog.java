@@ -26,6 +26,8 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.text.NumberFormat;
 import java.util.ArrayList;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 import javax.swing.JButton;
 import javax.swing.JComboBox;
@@ -48,6 +50,8 @@ import net.sf.mzmine.util.GUIUtils;
  */
 public class SpectraSetupDialog extends JDialog implements ActionListener {
 
+    private Logger logger = Logger.getLogger(this.getClass().getName());
+    
     static final int PADDING_SIZE = 5;
 
     static final String DEFAULT_MZ_BIN_SIZE = "0.1";
@@ -401,11 +405,12 @@ public class SpectraSetupDialog extends JDialog implements ActionListener {
 
         if (src == btnNumberShow) {
             try {
-                int num = Integer.parseInt(fieldScanNumber.getText());
+                int num = format.parse(fieldScanNumber.getText()).intValue();
                 new SpectraVisualizerWindow(taskController, desktop,
                         dataFile, num);
                 dispose();
             } catch (Exception e) {
+                logger.log(Level.FINE, "Invalid input", e);
                 desktop.displayErrorMessage("Invalid input");
             }
         }
@@ -413,8 +418,8 @@ public class SpectraSetupDialog extends JDialog implements ActionListener {
         if (src == btnNumbersRangeShow) {
             try {
                 int msLevel = (Integer) comboNumbersMSlevel.getSelectedItem();
-                int minNumber = Integer.parseInt(fieldMinScanNumber.getText());
-                int maxNumber = Integer.parseInt(fieldMaxScanNumber.getText());
+                int minNumber = format.parse(fieldMinScanNumber.getText()).intValue();
+                int maxNumber = format.parse(fieldMaxScanNumber.getText()).intValue();
                 double mzBinSize = Double.parseDouble(fieldNumberBinSize.getText());
                 if (mzBinSize <= 0) {
                     desktop.displayErrorMessage("Invalid bin size " + mzBinSize);
