@@ -72,4 +72,20 @@ public class CollectionUtils {
     }    
     
 
+    /**
+     * Checks if the haystack array contains all elements of needles array
+     * @param haystack array of ints
+     * @param needles array of ints
+     * @return true if haystack contains all elements of needles
+     */
+    public static boolean isSubset(int haystack[], int needles[]) {
+        needleTraversal: for (int i = 0; i < needles.length; i++) {
+            for (int j = 0; j < haystack.length; j++) {
+                if (needles[i] == haystack[j]) continue needleTraversal;
+            }
+            return false;
+        }
+        return true;
+    }
+
 }
