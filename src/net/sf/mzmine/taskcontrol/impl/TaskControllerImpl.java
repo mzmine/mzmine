@@ -110,14 +110,15 @@ public class TaskControllerImpl implements TaskController, Runnable {
          */
         MainWindow mainWindow = (MainWindow) desktop;
         if (mainWindow != null) {
-            JInternalFrame selectedFrame = desktop.getSelectedFrame();
+            //JInternalFrame selectedFrame = desktop.getSelectedFrame();
 
             TaskProgressWindow tlc = mainWindow.getTaskList();
             tlc.setVisible(true);
 
             Statusbar sb = mainWindow.getStatusBar();
             sb.setProgressBarVisible(true);
-
+            
+            /*
             if ((selectedFrame != null) && (desktop.getSelectedFrame() == tlc)) {
                 try {
                     selectedFrame.setSelected(true);
@@ -125,6 +126,7 @@ public class TaskControllerImpl implements TaskController, Runnable {
                     // do nothing
                 }
             }
+            */
         }
 
     }
