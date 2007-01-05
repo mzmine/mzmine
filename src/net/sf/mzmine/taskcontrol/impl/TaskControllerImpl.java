@@ -118,7 +118,7 @@ public class TaskControllerImpl implements TaskController, Runnable {
             Statusbar sb = mainWindow.getStatusBar();
             sb.setProgressBarVisible(true);
 
-            if (selectedFrame != null) {
+            if ((selectedFrame != null) && (desktop.getSelectedFrame() == tlc)) {
                 try {
                     selectedFrame.setSelected(true);
                 } catch (PropertyVetoException e) {
