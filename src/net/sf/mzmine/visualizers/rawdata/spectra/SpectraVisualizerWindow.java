@@ -385,7 +385,10 @@ public class SpectraVisualizerWindow extends JInternalFrame implements
                 String labelText = "Parent scan #"
                         + parentNumber
                         + ", RT: "
-                        + rtFormat.format(rawDataFile.getRetentionTime(parentNumber));
+                        + rtFormat.format(rawDataFile.getRetentionTime(parentNumber))
+                        + ", precursor m/z: " 
+                        + mzFormat.format(scan.getPrecursorMZ());
+                if (scan.getPrecursorCharge() > 0) labelText += " (chrg " + scan.getPrecursorCharge() + ")"; 
                 JLabel label = new JLabel(labelText);
                 label.setFont(label.getFont().deriveFont(10f));
                 msmsPanel.add(label, BorderLayout.CENTER);
