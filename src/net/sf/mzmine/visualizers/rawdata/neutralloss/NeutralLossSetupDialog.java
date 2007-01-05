@@ -110,7 +110,7 @@ public class NeutralLossSetupDialog extends JDialog implements ActionListener {
         constraints.gridheight = 1;
         layout.setConstraints(comp, constraints);
 
-        comboXaxis = new JComboBox(new String[] { "Parent mass", "Retention time" });
+        comboXaxis = new JComboBox(new String[] { "Precursor mass", "Retention time" });
         constraints.fill = GridBagConstraints.NONE;
         constraints.gridx = 1;
         constraints.gridy = 1;

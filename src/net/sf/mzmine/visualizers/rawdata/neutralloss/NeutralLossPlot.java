@@ -93,16 +93,15 @@ class NeutralLossPlot extends ChartPanel {
         // set the X axis (retention time) properties
         NumberAxis xAxis;
         if (xAxisType == 0) {
-            xAxis = new NumberAxis("Parent mass");
+            xAxis = new NumberAxis("Precursor mass");
             xAxis.setNumberFormatOverride(mzFormat);
-            xAxis.setUpperMargin(0);
-            xAxis.setLowerMargin(0);
         } else {
             xAxis = new NumberAxis("Retention time");
             xAxis.setNumberFormatOverride(rtFormat);
-            xAxis.setUpperMargin(0);
-            xAxis.setLowerMargin(0);
         }
+        xAxis.setUpperMargin(0);
+        xAxis.setLowerMargin(0);
+        xAxis.setAutoRangeIncludesZero(false);
         
 
 
