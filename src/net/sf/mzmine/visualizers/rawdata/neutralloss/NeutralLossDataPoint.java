@@ -39,6 +39,7 @@ class NeutralLossDataPoint {
     private int precursorCharge;
     private double retentionTime;
     private double neutralLoss;
+    private double precursorMass;
     private String label;
     
     /**
@@ -56,7 +57,7 @@ class NeutralLossDataPoint {
         this.precursorCharge = precursorCharge;
         this.retentionTime = retentionTime;
         
-        double precursorMass = precursorMZ;
+        precursorMass = precursorMZ;
         if (precursorCharge > 0) precursorMass *= precursorCharge;
         neutralLoss = precursorMass - mzValue;
         
@@ -98,6 +99,13 @@ class NeutralLossDataPoint {
      */
     double getPrecursorMZ() {
         return precursorMZ;
+    }
+    
+    /**
+     * @return Returns the precursor mass, or m/z if charge is unknown.
+     */
+    double getPrecursorMass() {
+        return precursorMass;
     }
 
     

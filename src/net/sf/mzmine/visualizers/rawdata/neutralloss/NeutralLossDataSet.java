@@ -92,6 +92,9 @@ class NeutralLossDataSet extends AbstractXYDataset implements RawDataAcceptor, X
         // get m/z and intensity values
         double mzValues[] = scan.getMZValues();
         double intensityValues[] = scan.getIntensityValues();
+        
+        // skip empty scans, or scans that only contain zero intensity peaks
+        if (scan.getBasePeakIntensity() == 0) return;
 
         // topPeaks will contain indexes to mzValues peaks of top intensity
         int topPeaks[] = new int[numOfFragments];
@@ -179,7 +182,7 @@ class NeutralLossDataSet extends AbstractXYDataset implements RawDataAcceptor, X
      */
     public Number getX(int series, int item) {
         if (xAxis == 0)
-            return dataPoints.get(item).getPrecursorMZ();
+            return dataPoints.get(item).getPrecursorMass();
         else
             return dataPoints.get(item).getRetentionTime();
 
@@ -202,7 +205,7 @@ class NeutralLossDataSet extends AbstractXYDataset implements RawDataAcceptor, X
         double currentX, currentY;
         while (it.hasNext()) {
             NeutralLossDataPoint point = it.next();
-            if (xAxis == 0) currentX = point.getPrecursorMZ();
+            if (xAxis == 0) currentX = point.getPrecursorMass();
             else currentX = point.getRetentionTime();
             currentY = point.getNeutralLoss();
             // check for equality
