@@ -56,6 +56,8 @@ public class CentroidPicker implements Method, TaskListener,
     private Desktop desktop;
     private JMenuItem myMenuItem;
     
+    private TaskListener additionalTaskListener;
+    
     private CentroidPickerParameters parameters;
 
     /**
@@ -95,14 +97,19 @@ public class CentroidPicker implements Method, TaskListener,
 
 		return true;
     }
+    
+    public void setParameters(MethodParameters parameters) {
+    	this.parameters = (CentroidPickerParameters)parameters;
+    }
 
     /**
      * @see net.sf.mzmine.methods.Method#runMethod(net.sf.mzmine.methods.MethodParameters,
      *      net.sf.mzmine.io.RawDataFile[],
      *      net.sf.mzmine.methods.alignment.AlignmentResult[])
      */
-    public void runMethod(MethodParameters parameters,
-            OpenedRawDataFile[] dataFiles, AlignmentResult[] alignmentResults) {
+    public void runMethod(OpenedRawDataFile[] dataFiles, AlignmentResult[] alignmentResults) {
+    	
+    	if (parameters==null) parameters = new CentroidPickerParameters();
     	
     	logger.info("Running " + toString() + " on " + dataFiles.length + " raw data files.");
     	
@@ -115,6 +122,11 @@ public class CentroidPicker implements Method, TaskListener,
         }
 
     }
+    
+    public void runMethod(OpenedRawDataFile[] dataFiles, AlignmentResult[] alignmentResults, TaskListener additionalTaskListener) {
+    	this.additionalTaskListener = additionalTaskListener;
+    	runMethod(dataFiles, alignmentResults);
+    }    
 
     /**
      * @see java.awt.event.ActionListener#actionPerformed(java.awt.event.ActionEvent)
@@ -125,7 +137,7 @@ public class CentroidPicker implements Method, TaskListener,
         
         OpenedRawDataFile[] dataFiles = desktop.getSelectedDataFiles();
 
-        runMethod(parameters, dataFiles, null);
+        runMethod(dataFiles, null);
 
     }
 
@@ -166,6 +178,9 @@ public class CentroidPicker implements Method, TaskListener,
             logger.severe(msg);
             desktop.displayErrorMessage(msg);
         }
+        
+        if (additionalTaskListener!=null) additionalTaskListener.taskFinished(task);
+        additionalTaskListener=null;        
 
     }
 

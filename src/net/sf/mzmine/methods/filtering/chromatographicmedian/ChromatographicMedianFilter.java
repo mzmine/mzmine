@@ -50,6 +50,8 @@ public class ChromatographicMedianFilter implements Method,
 
     private ChromatographicMedianFilterParameters parameters;
     
+    private TaskListener additionalTaskListener;
+    
     private TaskController taskController;
     private Desktop desktop;
     private JMenuItem myMenuItem;
@@ -89,15 +91,19 @@ public class ChromatographicMedianFilter implements Method,
 
 		return true;
     }
+    
+    public void setParameters(MethodParameters parameters) {
+    	this.parameters = (ChromatographicMedianFilterParameters)parameters;
+    }
 
     /**
      * @see net.sf.mzmine.methods.Method#runMethod(net.sf.mzmine.methods.MethodParameters,
      *      net.sf.mzmine.io.RawDataFile[],
      *      net.sf.mzmine.methods.alignment.AlignmentResult[])
      */
-    public void runMethod(MethodParameters parameters,
-            OpenedRawDataFile[] dataFiles, AlignmentResult[] alignmentResults) {
+    public void runMethod(OpenedRawDataFile[] dataFiles, AlignmentResult[] alignmentResults) {
 
+    	if (parameters==null) parameters = new ChromatographicMedianFilterParameters();
         logger.info("Running chromatographic median filter");
 
         for (OpenedRawDataFile dataFile : dataFiles) {
@@ -107,6 +113,11 @@ public class ChromatographicMedianFilter implements Method,
         }
 
     }
+    
+    public void runMethod(OpenedRawDataFile[] dataFiles, AlignmentResult[] alignmentResults, TaskListener additionalTaskListener) {
+    	this.additionalTaskListener = additionalTaskListener;
+    	runMethod(dataFiles, alignmentResults);
+    }    
 
     /**
      * @see java.awt.event.ActionListener#actionPerformed(java.awt.event.ActionEvent)
@@ -117,7 +128,7 @@ public class ChromatographicMedianFilter implements Method,
 
         OpenedRawDataFile[] dataFiles = desktop.getSelectedDataFiles();
               
-        runMethod(parameters, dataFiles, null);
+        runMethod(dataFiles, null);
 
     }
 
@@ -151,6 +162,10 @@ public class ChromatographicMedianFilter implements Method,
             desktop.displayErrorMessage(msg);
         }
 
+        if (additionalTaskListener!=null) additionalTaskListener.taskFinished(task);
+        additionalTaskListener=null;
+        
+        
     }
 
     /**
@@ -160,4 +175,6 @@ public class ChromatographicMedianFilter implements Method,
         return "Chromatographic median filter";
     }
 
+    
+    
 }

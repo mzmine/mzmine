@@ -59,6 +59,8 @@ public class LinearNormalizer implements Method,
 	
 	private LinearNormalizerParameters parameters;
 	
+	private TaskListener additionalTaskListener;
+	
 	private TaskController taskController;
     private Desktop desktop;
     private JMenuItem myMenuItem;
@@ -83,18 +85,29 @@ public class LinearNormalizer implements Method,
 		return true;
 
     }
+    
+    public void setParameters(MethodParameters parameters) {
+    	this.parameters = (LinearNormalizerParameters)parameters;
+    }
 
     /**
      * @see net.sf.mzmine.methods.Method#runMethod(net.sf.mzmine.methods.MethodParameters, net.sf.mzmine.io.OpenedRawDataFile[], net.sf.mzmine.methods.alignment.AlignmentResult[])
      */
-    public void runMethod(MethodParameters parameters, OpenedRawDataFile[] dataFiles, AlignmentResult[] alignmentResults) {
+    public void runMethod(OpenedRawDataFile[] dataFiles, AlignmentResult[] alignmentResults) {
 
+    	if (parameters==null) parameters = new LinearNormalizerParameters();
+    	
         logger.info("Running " + toString() + " on " + alignmentResults[0].toString());
 
 		Task alignmentTask = new LinearNormalizerTask(alignmentResults[0], (LinearNormalizerParameters) parameters);
 		taskController.addTask(alignmentTask, this);
 
     }
+    
+    public void runMethod(OpenedRawDataFile[] dataFiles, AlignmentResult[] alignmentResults, TaskListener additionalTaskListener) {
+    	this.additionalTaskListener = additionalTaskListener;
+    	runMethod(dataFiles, alignmentResults);
+    }    
 
 
     /**
@@ -123,7 +136,7 @@ public class LinearNormalizer implements Method,
 
         AlignmentResult[] alignmentResults = desktop.getSelectedAlignmentResults();      
 
-        runMethod(parameters, null, alignmentResults);
+        runMethod(null, alignmentResults);
 		
 	}
 
@@ -153,7 +166,9 @@ public class LinearNormalizer implements Method,
             logger.severe(msg);
             desktop.displayErrorMessage(msg);
         }
-
+        
+        if (additionalTaskListener!=null) additionalTaskListener.taskFinished(task);
+        additionalTaskListener=null;        
 		
 	}
 

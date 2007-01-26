@@ -42,6 +42,7 @@ import net.sf.mzmine.batchmode.BatchModeController;
 import net.sf.mzmine.batchmode.BatchModeController.BatchModeStep;
 import net.sf.mzmine.data.Parameter;
 import net.sf.mzmine.data.ParameterValue;
+import net.sf.mzmine.data.impl.SimpleParameterValue;
 import net.sf.mzmine.io.OpenedRawDataFile;
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.methods.Method;
@@ -74,19 +75,22 @@ class BatchModeDialog extends JDialog implements ActionListener {
     private Hashtable<JButton, JComboBox> comboForButton;
     private Hashtable<JComboBox, JButton> buttonForCombo;
     
-    
+    private BatchModeParameters parameters;
     
     // dialog components
     private JButton btnOK, btnCancel;
     
-    public BatchModeDialog(Frame owner, Hashtable<BatchModeStep, ArrayList<Method>> registeredMethods) {
+    public BatchModeDialog(Frame owner, Hashtable<BatchModeStep, ArrayList<Method>> registeredMethods, BatchModeParameters parameters) {
     	
         // Make dialog modal
         super(owner, "Batch mode setup", true);
-        
+
         this.registeredMethods = registeredMethods;
+        this.parameters = parameters;
         
         initComponents();
+        
+        fetchParameterValues();
         
         // finalize the dialog
 		pack();
@@ -107,7 +111,7 @@ class BatchModeDialog extends JDialog implements ActionListener {
 	        if (comboForButton.containsKey(src)) {
 	        	JComboBox comboBox = comboForButton.get(src);
 	        	Method method = (Method)comboBox.getSelectedItem();
-	        	method.askParameters();	        	
+	        	method.askParameters();
 	        }
 	        
 	        if (src == btnOK) {           
@@ -254,42 +258,86 @@ class BatchModeDialog extends JDialog implements ActionListener {
     	methodForPeakDetection.setEnabled(true); methodForPeakDetection.setSelectedIndex(0);
     	
     	// Check if there are some parameter values already setup in the project for batch mode, and copy these settings to the dialog if they are present
-    	ParameterValue paramValue = MZmineProject.getCurrentProject().getParameterValue(BatchModeParameters.methodRawDataFilter1);
+    	ParameterValue paramValue = parameters.getParameterValue(BatchModeParameters.methodRawDataFilter1);
     	if (paramValue!=null) methodForRawDataFilter1.setSelectedItem((Method)paramValue.getValue());
     	
-    	paramValue = MZmineProject.getCurrentProject().getParameterValue(BatchModeParameters.methodRawDataFilter2);
+    	paramValue = parameters.getParameterValue(BatchModeParameters.methodRawDataFilter2);
     	if (paramValue!=null) methodForRawDataFilter2.setSelectedItem((Method)paramValue.getValue());
 
-    	paramValue = MZmineProject.getCurrentProject().getParameterValue(BatchModeParameters.methodRawDataFilter3);
+    	paramValue = parameters.getParameterValue(BatchModeParameters.methodRawDataFilter3);
     	if (paramValue!=null) methodForRawDataFilter3.setSelectedItem((Method)paramValue.getValue());
     	
-    	paramValue = MZmineProject.getCurrentProject().getParameterValue(BatchModeParameters.methodPeakPicker);
+    	paramValue = parameters.getParameterValue(BatchModeParameters.methodPeakPicker);
     	if (paramValue!=null) methodForPeakDetection.setSelectedItem((Method)paramValue.getValue());
 
-    	paramValue = MZmineProject.getCurrentProject().getParameterValue(BatchModeParameters.methodPeakListProcessor1);
+    	paramValue = parameters.getParameterValue(BatchModeParameters.methodPeakListProcessor1);
     	if (paramValue!=null) methodForPeakListProcessor1.setSelectedItem((Method)paramValue.getValue());    	
 
-    	paramValue = MZmineProject.getCurrentProject().getParameterValue(BatchModeParameters.methodPeakListProcessor2);
+    	paramValue = parameters.getParameterValue(BatchModeParameters.methodPeakListProcessor2);
     	if (paramValue!=null) methodForPeakListProcessor2.setSelectedItem((Method)paramValue.getValue());
 
-    	paramValue = MZmineProject.getCurrentProject().getParameterValue(BatchModeParameters.methodPeakListProcessor3);
+    	paramValue = parameters.getParameterValue(BatchModeParameters.methodPeakListProcessor3);
     	if (paramValue!=null) methodForPeakListProcessor3.setSelectedItem((Method)paramValue.getValue());
 
-    	paramValue = MZmineProject.getCurrentProject().getParameterValue(BatchModeParameters.methodAligner);
+    	paramValue = parameters.getParameterValue(BatchModeParameters.methodAligner);
     	if (paramValue!=null) methodForAlignment.setSelectedItem((Method)paramValue.getValue());    	
 
-    	paramValue = MZmineProject.getCurrentProject().getParameterValue(BatchModeParameters.methodAlignmentProcessor1);
+    	paramValue = parameters.getParameterValue(BatchModeParameters.methodAlignmentProcessor1);
     	if (paramValue!=null) methodForAlignmentProcessor1.setSelectedItem((Method)paramValue.getValue());
     	
-    	paramValue = MZmineProject.getCurrentProject().getParameterValue(BatchModeParameters.methodAlignmentProcessor2);
+    	paramValue = parameters.getParameterValue(BatchModeParameters.methodAlignmentProcessor2);
     	if (paramValue!=null) methodForAlignmentProcessor2.setSelectedItem((Method)paramValue.getValue());
     	
-    	paramValue = MZmineProject.getCurrentProject().getParameterValue(BatchModeParameters.methodAlignmentProcessor3);
+    	paramValue = parameters.getParameterValue(BatchModeParameters.methodAlignmentProcessor3);
     	if (paramValue!=null) methodForAlignmentProcessor3.setSelectedItem((Method)paramValue.getValue());
     	
     }
     
     private void storeParameterValues() {
+    	
+    	if (methodForRawDataFilter1.getSelectedIndex()>0) 
+    		parameters.setParameterValue(BatchModeParameters.methodRawDataFilter1, new SimpleParameterValue((Method)methodForRawDataFilter1.getSelectedItem()));
+    	else parameters.removeParameterValue(BatchModeParameters.methodRawDataFilter1);
+
+    	if (methodForRawDataFilter2.getSelectedIndex()>0) 
+    		parameters.setParameterValue(BatchModeParameters.methodRawDataFilter2, new SimpleParameterValue((Method)methodForRawDataFilter2.getSelectedItem()));
+    	else parameters.removeParameterValue(BatchModeParameters.methodRawDataFilter2);
+    	
+    	if (methodForRawDataFilter3.getSelectedIndex()>0) 
+    		parameters.setParameterValue(BatchModeParameters.methodRawDataFilter3, new SimpleParameterValue((Method)methodForRawDataFilter3.getSelectedItem()));
+    	else parameters.removeParameterValue(BatchModeParameters.methodRawDataFilter3);    	
+
+    	if (methodForPeakDetection.getSelectedIndex()>0) 
+    		parameters.setParameterValue(BatchModeParameters.methodPeakPicker, new SimpleParameterValue((Method)methodForPeakDetection.getSelectedItem()));
+    	else parameters.removeParameterValue(BatchModeParameters.methodPeakPicker);    	
+
+    	if (methodForPeakListProcessor1.getSelectedIndex()>0) 
+    		parameters.setParameterValue(BatchModeParameters.methodPeakListProcessor1, new SimpleParameterValue((Method)methodForPeakListProcessor1.getSelectedItem()));
+    	else parameters.removeParameterValue(BatchModeParameters.methodPeakListProcessor1);
+
+    	if (methodForPeakListProcessor2.getSelectedIndex()>0) 
+    		parameters.setParameterValue(BatchModeParameters.methodPeakListProcessor2, new SimpleParameterValue((Method)methodForPeakListProcessor2.getSelectedItem()));
+    	else parameters.removeParameterValue(BatchModeParameters.methodPeakListProcessor2);
+
+    	if (methodForPeakListProcessor3.getSelectedIndex()>0) 
+    		parameters.setParameterValue(BatchModeParameters.methodPeakListProcessor3, new SimpleParameterValue((Method)methodForPeakListProcessor3.getSelectedItem()));
+    	else parameters.removeParameterValue(BatchModeParameters.methodPeakListProcessor3);
+
+    	if (methodForAlignment.getSelectedIndex()>0) 
+    		parameters.setParameterValue(BatchModeParameters.methodAligner, new SimpleParameterValue((Method)methodForAlignment.getSelectedItem()));
+    	else parameters.removeParameterValue(BatchModeParameters.methodAligner);    	
+
+    	if (methodForAlignmentProcessor1.getSelectedIndex()>0) 
+    		parameters.setParameterValue(BatchModeParameters.methodAlignmentProcessor1, new SimpleParameterValue((Method)methodForAlignmentProcessor1.getSelectedItem()));
+    	else parameters.removeParameterValue(BatchModeParameters.methodAlignmentProcessor1);    	
+
+    	if (methodForAlignmentProcessor2.getSelectedIndex()>0) 
+    		parameters.setParameterValue(BatchModeParameters.methodAlignmentProcessor2, new SimpleParameterValue((Method)methodForAlignmentProcessor2.getSelectedItem()));
+    	else parameters.removeParameterValue(BatchModeParameters.methodAlignmentProcessor2);    	
+
+    	if (methodForAlignmentProcessor3.getSelectedIndex()>0) 
+    		parameters.setParameterValue(BatchModeParameters.methodAlignmentProcessor3, new SimpleParameterValue((Method)methodForAlignmentProcessor3.getSelectedItem()));
+    	else parameters.removeParameterValue(BatchModeParameters.methodAlignmentProcessor3);    	
     	
     }
     

@@ -22,6 +22,7 @@ package net.sf.mzmine.methods;
 import net.sf.mzmine.data.AlignmentResult;
 import net.sf.mzmine.io.OpenedRawDataFile;
 import net.sf.mzmine.main.MZmineModule;
+import net.sf.mzmine.taskcontrol.TaskListener;
 
 /**
  * Interface representing a data processing method
@@ -34,16 +35,34 @@ public interface Method extends MZmineModule {
      * @return true if user clicked "ok", and false if used clicked "cancel"
      */
     public boolean askParameters();
+    
+    /**
+     * This function sets the method to use a given instance of method parameters
+     */
+    public void setParameters(MethodParameters parameters);
 
     /**
      * Runs this method on a given items
      * 
-     * @param parameters Parameter values for the method
      * @param dataFiles Data files to be processed
      * @param alignmentResult AlignmentResults to be processed
      * 
      */
-    public void runMethod(MethodParameters parameters,
-            OpenedRawDataFile[] dataFiles, AlignmentResult[] alignmentResults);
+    public void runMethod(OpenedRawDataFile[] dataFiles, AlignmentResult[] alignmentResults);
+     
 
+    /**
+     * Runs this method on a given items, and calls another task listener after task is complete and results have been processed.
+     * 
+     * @param dataFiles Data files to be processed
+     * @param alignmentResult AlignmentResults to be processed
+     * @param additionalTaskListener A task listener whose taskFinished method is called after task is finished and task results have been processed by the method.
+     * 
+     */    
+    public void runMethod(	OpenedRawDataFile[] dataFiles, 
+            				AlignmentResult[] alignmentResults, 
+            				TaskListener additionalTaskListener);
+
+    
+    
 }

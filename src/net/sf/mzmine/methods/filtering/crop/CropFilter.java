@@ -53,6 +53,8 @@ public class CropFilter implements Method, TaskListener,
     private JMenuItem myMenuItem;
     
     private CropFilterParameters parameters;
+    
+    private TaskListener additionalTaskListener;
 
     /**
      * @see net.sf.mzmine.main.MZmineModule#initModule(net.sf.mzmine.main.MZmineCore)
@@ -88,15 +90,20 @@ public class CropFilter implements Method, TaskListener,
 
 		return true;
     }
+    
+    public void setParameters(MethodParameters parameters) {
+    	this.parameters = (CropFilterParameters)parameters;
+    }
 
     /**
      * @see net.sf.mzmine.methods.Method#runMethod(net.sf.mzmine.methods.MethodParameters,
      *      net.sf.mzmine.io.RawDataFile[],
      *      net.sf.mzmine.methods.alignment.AlignmentResult[])
      */
-    public void runMethod(MethodParameters parameters,
-            OpenedRawDataFile[] dataFiles, AlignmentResult[] alignmentResults) {
+    public void runMethod(OpenedRawDataFile[] dataFiles, AlignmentResult[] alignmentResults) {
 
+    	if (parameters==null) parameters = new CropFilterParameters();
+    	
         logger.info("Running cropping filter");
 
         for (OpenedRawDataFile dataFile : dataFiles) {
@@ -107,6 +114,11 @@ public class CropFilter implements Method, TaskListener,
 
     }
 
+    public void runMethod(OpenedRawDataFile[] dataFiles, AlignmentResult[] alignmentResults, TaskListener additionalTaskListener) {
+    	this.additionalTaskListener = additionalTaskListener;
+    	runMethod(dataFiles, alignmentResults);
+    }    
+    
     /**
      * @see java.awt.event.ActionListener#actionPerformed(java.awt.event.ActionEvent)
      */
@@ -116,7 +128,7 @@ public class CropFilter implements Method, TaskListener,
 
         OpenedRawDataFile[] dataFiles = desktop.getSelectedDataFiles();
               
-        runMethod(parameters, dataFiles, null);
+        runMethod(dataFiles, null);
 
     }
 
@@ -150,6 +162,10 @@ public class CropFilter implements Method, TaskListener,
             desktop.displayErrorMessage(msg);
         }
 
+        if (additionalTaskListener!=null) additionalTaskListener.taskFinished(task);
+        additionalTaskListener=null;
+        
+        
     }
 
     /**

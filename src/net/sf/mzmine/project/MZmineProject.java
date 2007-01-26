@@ -77,15 +77,27 @@ public class MZmineProject {
         return currentProject;
     }
 
+    /**
+     * Sets current value of the parameter in this project
+     * @param parameter
+     * @param value
+     */
     public void setParameterValue(Parameter parameter, ParameterValue value) {
     	projectParameters.put(parameter, value);
     }
 
     /**
-     * Returns current value of the parameter.
-     * If current value is not set in the project, then returns default value of the parameter and sets current value equal to default value.
+     * Removes current value of the parameter
      * @param parameter
-     * @return Current value of the parameter or null if parameter is null
+     */
+    public void removeParameterValue(Parameter parameter) {
+    	projectParameters.remove(parameter);  	
+    }
+    
+    /**
+     * Returns current value of the parameter.
+     * @param parameter
+     * @return Current value of the parameter or null if parameter doesn't have current value
      */
     public ParameterValue getParameterValue(Parameter parameter) {
     	if (parameter==null) return null;

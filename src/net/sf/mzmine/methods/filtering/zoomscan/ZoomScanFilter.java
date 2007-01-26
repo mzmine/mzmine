@@ -50,6 +50,8 @@ public class ZoomScanFilter implements Method, TaskListener,
     
     private ZoomScanFilterParameters parameters;
 
+    private TaskListener additionalTaskListener;
+    
     private TaskController taskController;
     private Desktop desktop;
     private JMenuItem myMenuItem;
@@ -91,15 +93,20 @@ public class ZoomScanFilter implements Method, TaskListener,
 		return true;
 		
     }
+    
+    public void setParameters(MethodParameters parameters) {
+    	this.parameters = (ZoomScanFilterParameters)parameters;
+    }
 
     /**
      * @see net.sf.mzmine.methods.Method#runMethod(net.sf.mzmine.methods.MethodParameters,
      *      net.sf.mzmine.io.RawDataFile[],
      *      net.sf.mzmine.methods.alignment.AlignmentResult[])
      */
-    public void runMethod(MethodParameters parameters,
-            OpenedRawDataFile[] dataFiles, AlignmentResult[] alignmentResults) {
+    public void runMethod(OpenedRawDataFile[] dataFiles, AlignmentResult[] alignmentResults) {
 
+    	if (parameters==null) parameters = new ZoomScanFilterParameters();
+    	
         logger.info("Running " + toString() + " on " + dataFiles.length + " raw data files.");
 
         for (OpenedRawDataFile dataFile : dataFiles) {
@@ -109,6 +116,11 @@ public class ZoomScanFilter implements Method, TaskListener,
         }
 
     }
+    
+    public void runMethod(OpenedRawDataFile[] dataFiles, AlignmentResult[] alignmentResults, TaskListener additionalTaskListener) {
+    	this.additionalTaskListener = additionalTaskListener;
+    	runMethod(dataFiles, alignmentResults);
+    }    
 
     /**
      * @see java.awt.event.ActionListener#actionPerformed(java.awt.event.ActionEvent)
@@ -119,7 +131,7 @@ public class ZoomScanFilter implements Method, TaskListener,
 
         OpenedRawDataFile[] dataFiles = desktop.getSelectedDataFiles();
 
-        runMethod(parameters, dataFiles, null);
+        runMethod(dataFiles, null);
 
     }
 
@@ -153,6 +165,9 @@ public class ZoomScanFilter implements Method, TaskListener,
             desktop.displayErrorMessage(msg);
         }
 
+        if (additionalTaskListener!=null) additionalTaskListener.taskFinished(task);
+        additionalTaskListener=null;        
+        
     }
 
     /**

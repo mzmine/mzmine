@@ -58,6 +58,8 @@ TaskListener, ListSelectionListener, ActionListener {
 	
 	private AlignmentResultFilterByGapsParameters parameters;
 	
+	private TaskListener additionalTaskListener;
+	
     private TaskController taskController;
     private Desktop desktop;
     private JMenuItem myMenuItem;	
@@ -82,6 +84,10 @@ TaskListener, ListSelectionListener, ActionListener {
 		return true;
         
 	}
+	
+	public void setParameters(MethodParameters parameters) {
+		this.parameters = (AlignmentResultFilterByGapsParameters)parameters;
+	}
 
 
 
@@ -89,8 +95,10 @@ TaskListener, ListSelectionListener, ActionListener {
     /**
      * @see net.sf.mzmine.methods.Method#runMethod(net.sf.mzmine.methods.MethodParameters, net.sf.mzmine.io.OpenedRawDataFile[], net.sf.mzmine.data.AlignmentResult[])
      */
-    public void runMethod(MethodParameters parameters, OpenedRawDataFile[] dataFiles, AlignmentResult[] alignmentResults) {
+    public void runMethod(OpenedRawDataFile[] dataFiles, AlignmentResult[] alignmentResults) {
         logger.info("Running " + toString() + " on " + alignmentResults.length + " alignment results.");
+        
+        if (parameters==null) parameters = new AlignmentResultFilterByGapsParameters();
 
         for (AlignmentResult alignmentResult : alignmentResults) {
     		Task alignmentTask = new AlignmentResultFilterByGapsTask(alignmentResult, (AlignmentResultFilterByGapsParameters) parameters);
@@ -98,6 +106,11 @@ TaskListener, ListSelectionListener, ActionListener {
         }
         
     }
+    
+    public void runMethod(OpenedRawDataFile[] dataFiles, AlignmentResult[] alignmentResults, TaskListener additionalTaskListener) {
+    	this.additionalTaskListener = additionalTaskListener;
+    	runMethod(dataFiles, alignmentResults);
+    }    
 
     /**
      * @see net.sf.mzmine.main.MZmineModule#initModule(net.sf.mzmine.main.MZmineCore)
@@ -127,7 +140,7 @@ TaskListener, ListSelectionListener, ActionListener {
         
         AlignmentResult[] alignmentResults = desktop.getSelectedAlignmentResults();      
 
-        runMethod(parameters, null, alignmentResults);
+        runMethod(null, alignmentResults);
 
     }    
 
@@ -169,7 +182,10 @@ TaskListener, ListSelectionListener, ActionListener {
             desktop.displayErrorMessage(msg);
         }
 
-	}
+        if (additionalTaskListener!=null) additionalTaskListener.taskFinished(task);
+        additionalTaskListener=null;
+        
+    }
     
     
 }

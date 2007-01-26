@@ -60,7 +60,7 @@ public class JoinAligner implements Method,
     private Desktop desktop;
     private JMenuItem myMenuItem;
     
-    
+    private TaskListener additionalTaskListener;
 
 
 	public String toString() {
@@ -88,17 +88,26 @@ public class JoinAligner implements Method,
 		return true;
 
     }
+    
+    public void setParameters(MethodParameters parameters) {
+    	this.parameters = (JoinAlignerParameters)parameters;
+    }
 
     /**
      * @see net.sf.mzmine.methods.Method#runMethod(net.sf.mzmine.methods.MethodParameters, net.sf.mzmine.io.OpenedRawDataFile[], net.sf.mzmine.methods.alignment.AlignmentResult[])
      */
-    public void runMethod(MethodParameters parameters, OpenedRawDataFile[] dataFiles, AlignmentResult[] alignmentResults) {
+    public void runMethod(OpenedRawDataFile[] dataFiles, AlignmentResult[] alignmentResults) {
 
         logger.info("Running " + toString() + " on " + dataFiles.length + " peak lists.");
 
 		Task alignmentTask = new JoinAlignerTask(dataFiles, (JoinAlignerParameters) parameters);
 		taskController.addTask(alignmentTask, this);
 
+    }
+    
+    public void runMethod(OpenedRawDataFile[] dataFiles, AlignmentResult[] alignmentResults, TaskListener additionalTaskListener) {
+    	this.additionalTaskListener = additionalTaskListener;
+    	runMethod(dataFiles, alignmentResults);
     }
 
     /**
@@ -128,7 +137,7 @@ public class JoinAligner implements Method,
 
         OpenedRawDataFile[] dataFiles = desktop.getSelectedDataFiles();      
 
-        runMethod(parameters, dataFiles, null);
+        runMethod(dataFiles, null);
 
     }
 
@@ -177,6 +186,9 @@ public class JoinAligner implements Method,
             desktop.displayErrorMessage(msg);
         }
 
+        if (additionalTaskListener!=null) additionalTaskListener.taskFinished(task);
+        additionalTaskListener=null;
+        
 	}
 
 }

@@ -153,6 +153,7 @@ public class MZmineClient implements Runnable, MZmineCore {
         
         // DEBUG show batch mode dialog
         batchModeController.actionPerformed(null);
+        MainWindow.getInstance().notifySelectionListeners();
         
         // DEBUG open files
         /*

@@ -49,6 +49,8 @@ public class SavitzkyGolayFilter implements Method, TaskListener,
     private Logger logger = Logger.getLogger(this.getClass().getName());
     
     private SavitzkyGolayFilterParameters parameters;
+    
+    private TaskListener additionalTaskListener;
 
     private TaskController taskController;
     private Desktop desktop;
@@ -90,15 +92,20 @@ public class SavitzkyGolayFilter implements Method, TaskListener,
 		return true;
 
     }
+    
+    public void setParameters(MethodParameters parameters) {
+    	this.parameters = (SavitzkyGolayFilterParameters)parameters;
+    }
 
     /**
      * @see net.sf.mzmine.methods.Method#runMethod(net.sf.mzmine.methods.MethodParameters,
      *      net.sf.mzmine.io.RawDataFile[],
      *      net.sf.mzmine.methods.alignment.AlignmentResult[])
      */
-    public void runMethod(MethodParameters parameters,
-            OpenedRawDataFile[] dataFiles, AlignmentResult[] alignmentResults) {
+    public void runMethod(OpenedRawDataFile[] dataFiles, AlignmentResult[] alignmentResults) {
 
+    	if (parameters==null) parameters = new SavitzkyGolayFilterParameters();
+    	
         logger.info("Running " + toString());
 
         for (OpenedRawDataFile dataFile : dataFiles) {
@@ -107,6 +114,11 @@ public class SavitzkyGolayFilter implements Method, TaskListener,
             taskController.addTask(filterTask, this);
         }
     }
+    
+    public void runMethod(OpenedRawDataFile[] dataFiles, AlignmentResult[] alignmentResults, TaskListener additionalTaskListener) {
+    	this.additionalTaskListener = additionalTaskListener;
+    	runMethod(dataFiles, alignmentResults);
+    }    
 
     /**
      * @see java.awt.event.ActionListener#actionPerformed(java.awt.event.ActionEvent)
@@ -117,7 +129,7 @@ public class SavitzkyGolayFilter implements Method, TaskListener,
 
         OpenedRawDataFile[] dataFiles = desktop.getSelectedDataFiles();
         
-        runMethod(parameters, dataFiles, null);
+        runMethod(dataFiles, null);
 
     }
 
@@ -151,6 +163,9 @@ public class SavitzkyGolayFilter implements Method, TaskListener,
             desktop.displayErrorMessage(msg);
         }
 
+        if (additionalTaskListener!=null) additionalTaskListener.taskFinished(task);
+        additionalTaskListener=null;        
+        
     }
 
     /**

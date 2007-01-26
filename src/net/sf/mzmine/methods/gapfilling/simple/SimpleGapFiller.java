@@ -36,6 +36,7 @@ import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.methods.Method;
 import net.sf.mzmine.methods.MethodParameters;
 import net.sf.mzmine.taskcontrol.TaskController;
+import net.sf.mzmine.taskcontrol.TaskListener;
 import net.sf.mzmine.userinterface.Desktop;
 import net.sf.mzmine.userinterface.Desktop.MZmineMenu;
 import net.sf.mzmine.userinterface.dialogs.ParameterSetupDialog;
@@ -49,6 +50,8 @@ ListSelectionListener, ActionListener {
 	private Logger logger = Logger.getLogger(this.getClass().getName());
 	
 	private SimpleGapFillerParameters parameters;
+	
+	private TaskListener additionalTaskListener;
 	
     private TaskController taskController;
     private Desktop desktop;
@@ -72,6 +75,10 @@ ListSelectionListener, ActionListener {
 
 	}
 	
+	public void setParameters(MethodParameters parameters) {
+		this.parameters = (SimpleGapFillerParameters)parameters;
+	}
+	
 	public String toString() {
 		return "Simple Gap filler";
 	}
@@ -79,15 +86,22 @@ ListSelectionListener, ActionListener {
     /**
      * @see net.sf.mzmine.methods.Method#runMethod(net.sf.mzmine.methods.MethodParameters, net.sf.mzmine.io.OpenedRawDataFile[], net.sf.mzmine.data.AlignmentResult[])
      */
-    public void runMethod(MethodParameters parameters, OpenedRawDataFile[] dataFiles, AlignmentResult[] alignmentResults) {
+    public void runMethod(OpenedRawDataFile[] dataFiles, AlignmentResult[] alignmentResults) {
 
+    	if (parameters==null) parameters = new SimpleGapFillerParameters();
+    	
         logger.info("Running " + toString() + " on " + alignmentResults.length + " alignment results.");
 
-        SimpleGapFillerMain fillerMain = new SimpleGapFillerMain(taskController, alignmentResults[0], (SimpleGapFillerParameters) parameters);
+        SimpleGapFillerMain fillerMain = new SimpleGapFillerMain(taskController, alignmentResults[0], (SimpleGapFillerParameters) parameters, additionalTaskListener);
         fillerMain.doTasks();
         
     }
 
+    public void runMethod(OpenedRawDataFile[] dataFiles, AlignmentResult[] alignmentResults, TaskListener additionalTaskListener) {
+    	this.additionalTaskListener = additionalTaskListener;
+    	runMethod(dataFiles, alignmentResults);
+    }    
+    
     /**
      * @see net.sf.mzmine.main.MZmineModule#initModule(net.sf.mzmine.main.MZmineCore)
      */
@@ -118,8 +132,7 @@ ListSelectionListener, ActionListener {
         
         AlignmentResult[] alignmentResults = desktop.getSelectedAlignmentResults();      
 
-        runMethod(parameters, null, alignmentResults);
-
+        runMethod(null, alignmentResults);
 		
 	}
 

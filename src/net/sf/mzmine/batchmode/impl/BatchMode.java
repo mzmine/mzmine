@@ -24,6 +24,7 @@ import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
 import java.util.ArrayList;
 import java.util.Hashtable;
+import java.util.Iterator;
 import java.util.logging.Logger;
 
 import javax.swing.JDialog;
@@ -36,6 +37,12 @@ import net.sf.mzmine.io.OpenedRawDataFile;
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.main.MZmineModule;
 import net.sf.mzmine.methods.Method;
+import net.sf.mzmine.methods.MethodParameters;
+import net.sf.mzmine.methods.alignment.join.JoinAlignerParameters;
+import net.sf.mzmine.project.MZmineProject;
+import net.sf.mzmine.taskcontrol.Task;
+import net.sf.mzmine.taskcontrol.TaskListener;
+import net.sf.mzmine.taskcontrol.Task.TaskStatus;
 import net.sf.mzmine.userinterface.Desktop;
 import net.sf.mzmine.userinterface.Desktop.MZmineMenu;
 import net.sf.mzmine.userinterface.mainwindow.MainWindow;
@@ -44,7 +51,7 @@ import net.sf.mzmine.userinterface.mainwindow.MainWindow;
  * Batch mode module
  */
 public class BatchMode implements BatchModeController, ListSelectionListener,
-        ActionListener {
+        ActionListener, TaskListener {
 
 	
     private Logger logger = Logger.getLogger(this.getClass().getName());
@@ -55,6 +62,22 @@ public class BatchMode implements BatchModeController, ListSelectionListener,
     private JMenuItem batchMenuItem;
     
     private Hashtable<BatchModeStep, ArrayList<Method>> registeredMethods;
+    
+    private BatchModeParameters parameters;
+    
+    private enum BatchStep {	 
+    								RawDataFilter1, RawDataFilter2, RawDataFilter3,
+    								PeakPicker,
+    								PeakListProcessor1, PeakListProcessor2, PeakListProcessor3,
+    								Aligner,
+    								AlignmentResultProcessor1, AlignmentResultProcessor2, AlignmentResultProcessor3,
+    								Halt;
+    							 };
+    private int batchStepHaltIndex = BatchStep.values().length-1;
+    							 
+    private BatchStep currentBatchStep = BatchStep.Halt;
+    private int currentBatchStepIndex = batchStepHaltIndex;
+    
 
     /**
      * @see net.sf.mzmine.main.MZmineModule#initModule(net.sf.mzmine.main.MZmineCore)
@@ -77,13 +100,17 @@ public class BatchMode implements BatchModeController, ListSelectionListener,
      * @see java.awt.event.ActionListener#actionPerformed(java.awt.event.ActionEvent)
      */
     public void actionPerformed(ActionEvent e) {
+    	
+    	logger.finest("Showing parameter setup dialog");
 
-        logger.finest("Opening a new batch setup dialog");
-
-        OpenedRawDataFile dataFiles[] = desktop.getSelectedDataFiles();
-
-        JDialog setupDialog = new BatchModeDialog(MainWindow.getInstance(), registeredMethods);
+    	parameters = new BatchModeParameters();
+    	JDialog setupDialog = new BatchModeDialog(MainWindow.getInstance(), registeredMethods, parameters);
         setupDialog.setVisible(true);
+        
+        OpenedRawDataFile dataFiles[] = desktop.getSelectedDataFiles();
+     
+        currentBatchStep = BatchStep.values()[0];
+        currentBatchStepIndex = 0;
 
     }
 
@@ -91,9 +118,7 @@ public class BatchMode implements BatchModeController, ListSelectionListener,
      * @see javax.swing.event.ListSelectionListener#valueChanged(javax.swing.event.ListSelectionEvent)
      */
     public void valueChanged(ListSelectionEvent e) {
-    	batchMenuItem.setEnabled(true);
-    	// TODO: Remove above DEBUG code, uncomment row below
-        //batchMenuItem.setEnabled(desktop.isDataFileSelected());
+    	batchMenuItem.setEnabled(desktop.isDataFileSelected());
     }
 
     /**
@@ -103,7 +128,77 @@ public class BatchMode implements BatchModeController, ListSelectionListener,
         return "Batch mode";
     }
     
-    public void registerMethod(BatchModeStep batchModeStep, Method method) {
+    public void taskFinished(Task task) {
+		// TODO Auto-generated method stub
+    	if (	(task.getStatus() == TaskStatus.ERROR) &&
+    			(task.getStatus() == TaskStatus.CANCELED) ) {
+    		currentBatchStep = BatchStep.Halt;
+    		currentBatchStepIndex = batchStepHaltIndex;
+    		return;
+    	}
+
+    	if (task.getStatus() == TaskStatus.FINISHED) {
+    		
+    		currentBatchStepIndex++;
+    		currentBatchStep = BatchStep.values()[currentBatchStepIndex];
+    		proceedToNextStep();
+    	}
+		
+	}
+    
+    private void proceedToNextStep() {
+    	
+    	// Pickup method for the step
+    	Method m;
+    	MZmineProject project = MZmineProject.getCurrentProject();
+    	switch (currentBatchStep) {
+    	case RawDataFilter1:
+    		m = (Method)project.getParameterValue(BatchModeParameters.methodRawDataFilter1).getValue();
+    		break;
+    	case RawDataFilter2:
+    		m = (Method)project.getParameterValue(BatchModeParameters.methodRawDataFilter2).getValue();
+    		break;
+    	case RawDataFilter3:
+    		m = (Method)project.getParameterValue(BatchModeParameters.methodRawDataFilter3).getValue();
+    		break;
+    	case PeakPicker:
+    		m = (Method)project.getParameterValue(BatchModeParameters.methodPeakPicker).getValue();
+    		break;
+    	case PeakListProcessor1:
+    		m = (Method)project.getParameterValue(BatchModeParameters.methodPeakListProcessor1).getValue();
+    		break;
+    	case PeakListProcessor2:
+    		m = (Method)project.getParameterValue(BatchModeParameters.methodPeakListProcessor2).getValue();
+    		break;
+    	case PeakListProcessor3:
+    		m = (Method)project.getParameterValue(BatchModeParameters.methodPeakListProcessor3).getValue();
+    		break;
+    	case Aligner:
+    		m = (Method)project.getParameterValue(BatchModeParameters.methodAligner).getValue();
+    		break;
+    	case AlignmentResultProcessor1:
+    		m = (Method)project.getParameterValue(BatchModeParameters.methodAlignmentProcessor1).getValue();
+    		break;
+    	case AlignmentResultProcessor2:
+    		m = (Method)project.getParameterValue(BatchModeParameters.methodAlignmentProcessor2).getValue();
+    		break;
+    	case AlignmentResultProcessor3:
+    		m = (Method)project.getParameterValue(BatchModeParameters.methodAlignmentProcessor3).getValue();
+    		break;    		
+    	case Halt:
+    		logger.info("Batch processing done.");
+    		break;
+    	}
+    	
+    	
+    }
+
+	public void taskStarted(Task task) {
+		// TODO Auto-generated method stub
+		
+	}
+
+	public void registerMethod(BatchModeStep batchModeStep, Method method) {
     	ArrayList<Method> methodsForStep = registeredMethods.get(batchModeStep);
     	if (methodsForStep==null) {
     		methodsForStep = new ArrayList<Method>();

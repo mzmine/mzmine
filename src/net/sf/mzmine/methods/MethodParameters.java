@@ -59,8 +59,8 @@ public abstract class MethodParameters {
 				// Yes, then use the current value to initialize value used in this object
 				values.put(p, pVal);
 			} else {
-				// Else use default value
-				values.put(p, p.getDefaultValue());
+				// Else use default value, if it is available
+				if (p.getDefaultValue()!=null) values.put(p, p.getDefaultValue());
 			}
 		}
 	}
@@ -85,6 +85,14 @@ public abstract class MethodParameters {
 	}
 	
 	/**
+	 * Removes value of a parameter
+	 */
+	public void removeParameterValue(Parameter parameter) {
+		values.remove(parameter);
+		MZmineProject.getCurrentProject().removeParameterValue(parameter);
+	}
+	
+	/**
 	 * Represent method's parameters and their values in human-readable format 
 	 */
     public String toString() {
@@ -93,6 +101,6 @@ public abstract class MethodParameters {
 			s = s.concat(p.getName() + values.get(p) + ", ");
 		}
 		return s;
-	}	
+	}
     
 }

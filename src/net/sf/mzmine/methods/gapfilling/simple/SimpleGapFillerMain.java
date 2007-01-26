@@ -43,12 +43,15 @@ class SimpleGapFillerMain implements TaskListener {
 	
 	private TaskStatus overallStatus;
 	
+	private TaskListener additionalTaskListener;
 	
-	public SimpleGapFillerMain(TaskController taskController, AlignmentResult alignmentResult, SimpleGapFillerParameters parameters) {
+	
+	public SimpleGapFillerMain(TaskController taskController, AlignmentResult alignmentResult, SimpleGapFillerParameters parameters, TaskListener additionalTaskListener) {
 		
 		this.taskController = taskController; 
 		this.originalAlignmentResult = alignmentResult;
 		this.parameters = parameters;
+		this.additionalTaskListener = additionalTaskListener;
 		
 		gapsForRawData = new Hashtable<OpenedRawDataFile, Vector<EmptyGap>>();
 		rawDataForGap = new Hashtable<EmptyGap, OpenedRawDataFile>();
@@ -121,6 +124,11 @@ class SimpleGapFillerMain implements TaskListener {
 				if ( 	(t.getStatus()!=TaskStatus.FINISHED) ||
 						(t.getStatus()!=TaskStatus.ERROR) )
 					t.cancel();
+			
+	        if (additionalTaskListener!=null) additionalTaskListener.taskFinished(task);
+	        additionalTaskListener=null;
+	        
+			return;
 		}
 		
 		
@@ -172,6 +180,9 @@ class SimpleGapFillerMain implements TaskListener {
 			
 			// Add new alignment result to the project			
 			MZmineProject.getCurrentProject().addAlignmentResult(processedAlignmentResult);
+			
+	        if (additionalTaskListener!=null) additionalTaskListener.taskFinished(task);
+	        additionalTaskListener=null;
 			
 		}
 
