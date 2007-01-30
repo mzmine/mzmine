@@ -82,6 +82,20 @@ public class NetCDFFileParser {
 	 */
 	public void readGeneralInformation() throws IOException {
 
+		
+		// Find mass_values and intensity_values variables
+		massValueVariable = inputFile.findVariable("mass_values");
+		if (massValueVariable == null) {
+			// Logger.putFatal("Could not find variable mass_values");
+			throw (new IOException("Could not find variable mass_values"));
+		}
+
+		intensityValueVariable = inputFile.findVariable("intensity_values");
+		if (intensityValueVariable == null) {
+			// Logger.putFatal("Could not find variable intensity_values");
+			throw (new IOException("Could not find variable intensity_values"));
+		}				
+		
 		// Read number of scans
 		ucar.nc2.Variable scanIndexVariable = inputFile.findVariable("scan_index");
 		if (scanIndexVariable == null) {
@@ -112,15 +126,7 @@ public class NetCDFFileParser {
 		scanIndexIterator = null; scanIndexArray = null; scanIndexVariable = null;
 
 		// Calc stop position for the last scan
-		ucar.nc2.Variable massValueVariable = inputFile.findVariable("mass_values");
-		if (massValueVariable == null) {
-			// Logger.putFatal("Could not find variable mass_values from file " + originalFile);
-			throw (new IOException("Could not find variable mass_values from file " + originalFile));
-		}
 		scanStartPositions[totalScans] = (int)massValueVariable.getSize();	// This defines the end index of the last scan
-		massValueVariable = null;
-
-
 
 		// Read retention times
 		double[] retentionTimes = new double[totalScans];
@@ -153,18 +159,7 @@ public class NetCDFFileParser {
 		scanTimeIterator = null; scanTimeArray = null; scanTimeVariable = null;
 
 
-		// Find mass_values and intensity_values variables
-		massValueVariable = inputFile.findVariable("mass_values");
-		if (massValueVariable == null) {
-			// Logger.putFatal("Could not find variable mass_values");
-			throw (new IOException("Could not find variable mass_values"));
-		}
 
-		intensityValueVariable = inputFile.findVariable("intensity_values");
-		if (intensityValueVariable == null) {
-			// Logger.putFatal("Could not find variable intensity_values");
-			throw (new IOException("Could not find variable intensity_values"));
-		}		
 
 		
 		
