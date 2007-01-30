@@ -148,6 +148,7 @@ public class NetCDFFile extends AbstractDataUnit implements RawDataFile {
         return numbersArray;
     }
 
+    
     /**
      * @see net.sf.mzmine.io.RawDataFile#getScan(int)
      */
@@ -161,9 +162,9 @@ public class NetCDFFile extends AbstractDataUnit implements RawDataFile {
         }
 
         // Fetch scan from file
-        cdfParser.openFile();
+        //cdfParser.openFile();
         Scan fetchedScan = cdfParser.parseScan(scanNumber);
-        cdfParser.closeFile();
+        //cdfParser.closeFile();
 
         return fetchedScan;
 

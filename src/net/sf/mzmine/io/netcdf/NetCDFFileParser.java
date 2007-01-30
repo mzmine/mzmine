@@ -37,6 +37,8 @@ public class NetCDFFileParser {
 	private Hashtable<Integer, Integer[]> scansIndex;
 	private Hashtable<Integer, Double> scansRetentionTimes;
 
+	private ucar.nc2.Variable massValueVariable;
+	private ucar.nc2.Variable intensityValueVariable;
 
 	NetCDFFileParser(File originalFile) {
 		this.originalFile = originalFile;
@@ -55,6 +57,8 @@ public class NetCDFFileParser {
 			throw (new IOException("Couldn't open input file" + originalFile));
 		}
 
+		
+		
 	}
 
 
@@ -149,7 +153,21 @@ public class NetCDFFileParser {
 		scanTimeIterator = null; scanTimeArray = null; scanTimeVariable = null;
 
 
+		// Find mass_values and intensity_values variables
+		massValueVariable = inputFile.findVariable("mass_values");
+		if (massValueVariable == null) {
+			// Logger.putFatal("Could not find variable mass_values");
+			throw (new IOException("Could not find variable mass_values"));
+		}
 
+		intensityValueVariable = inputFile.findVariable("intensity_values");
+		if (intensityValueVariable == null) {
+			// Logger.putFatal("Could not find variable intensity_values");
+			throw (new IOException("Could not find variable intensity_values"));
+		}		
+
+		
+		
 		// TODO: Read (optional) variable scan_type
 
 
@@ -291,7 +309,7 @@ public class NetCDFFileParser {
             return null;
 		}
 
-
+/*		
 		// Find mass_values and intensity_values variables
 		ucar.nc2.Variable massValueVariable = inputFile.findVariable("mass_values");
 		if (massValueVariable == null) {
@@ -304,7 +322,7 @@ public class NetCDFFileParser {
 			// Logger.putFatal("Could not find variable intensity_values");
 			throw (new IOException("Could not find variable intensity_values"));
 		}
-
+*/
 		// Read mass and intensity values
 		ucar.ma2.Array massValueArray;
 		ucar.ma2.Array intensityValueArray;

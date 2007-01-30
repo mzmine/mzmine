@@ -127,7 +127,7 @@ public class NetCDFFileOpeningTask implements DistributableTask {
             }
 
             // Close netCDF file
-            cdfParser.closeFile();
+            //cdfParser.closeFile();
 
             newMZmineFile = new OpenedRawDataFileImpl(buildingFile,
                     buildingFile.getDataDescription());
