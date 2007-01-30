@@ -19,6 +19,7 @@
 
 package net.sf.mzmine.methods;
 
+import net.sf.mzmine.batchmode.BatchModeController;
 import net.sf.mzmine.data.AlignmentResult;
 import net.sf.mzmine.io.OpenedRawDataFile;
 import net.sf.mzmine.main.MZmineModule;
@@ -56,12 +57,12 @@ public interface Method extends MZmineModule {
      * 
      * @param dataFiles Data files to be processed
      * @param alignmentResult AlignmentResults to be processed
-     * @param additionalTaskListener A task listener whose taskFinished method is called after task is finished and task results have been processed by the method.
+     * @param methodListener A method listener whose methodFinished method is called after whole method has been completed on all given files/results.
      * 
      */    
     public void runMethod(	OpenedRawDataFile[] dataFiles, 
             				AlignmentResult[] alignmentResults, 
-            				TaskListener additionalTaskListener);
+            				MethodListener methodListener);
 
     
     

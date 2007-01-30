@@ -34,7 +34,9 @@ import net.sf.mzmine.data.PeakList;
 import net.sf.mzmine.io.OpenedRawDataFile;
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.methods.Method;
+import net.sf.mzmine.methods.MethodListener;
 import net.sf.mzmine.methods.MethodParameters;
+import net.sf.mzmine.methods.MethodListener.MethodReturnStatus;
 import net.sf.mzmine.project.MZmineProject;
 import net.sf.mzmine.taskcontrol.Task;
 import net.sf.mzmine.taskcontrol.TaskController;
@@ -60,7 +62,8 @@ public class JoinAligner implements Method,
     private Desktop desktop;
     private JMenuItem myMenuItem;
     
-    private TaskListener additionalTaskListener;
+    private MethodListener afterMethodListener;
+    private int taskCount;
 
 
 	public String toString() {
@@ -100,13 +103,14 @@ public class JoinAligner implements Method,
 
         logger.info("Running " + toString() + " on " + dataFiles.length + " peak lists.");
 
+        taskCount = 1;
 		Task alignmentTask = new JoinAlignerTask(dataFiles, (JoinAlignerParameters) parameters);
 		taskController.addTask(alignmentTask, this);
 
     }
     
-    public void runMethod(OpenedRawDataFile[] dataFiles, AlignmentResult[] alignmentResults, TaskListener additionalTaskListener) {
-    	this.additionalTaskListener = additionalTaskListener;
+    public void runMethod(OpenedRawDataFile[] dataFiles, AlignmentResult[] alignmentResults, MethodListener methodListener) {
+    	this.afterMethodListener = methodListener;
     	runMethod(dataFiles, alignmentResults);
     }
 
@@ -177,6 +181,12 @@ public class JoinAligner implements Method,
 			
 			MZmineProject.getCurrentProject().addAlignmentResult(alignmentResult);
 
+			taskCount--;
+			if ((taskCount==0) && (afterMethodListener!=null)) {
+					afterMethodListener.methodFinished(MethodReturnStatus.FINISHED);
+					afterMethodListener=null;
+			}
+			
 
         } else if (task.getStatus() == Task.TaskStatus.ERROR) {
             /* Task encountered an error */
@@ -184,10 +194,21 @@ public class JoinAligner implements Method,
                     + task.getErrorMessage();
             logger.severe(msg);
             desktop.displayErrorMessage(msg);
-        }
 
-        if (additionalTaskListener!=null) additionalTaskListener.taskFinished(task);
-        additionalTaskListener=null;
+			taskCount = 0;
+			if (afterMethodListener!=null) {
+					afterMethodListener.methodFinished(MethodReturnStatus.ERROR);
+					afterMethodListener=null;
+			}            
+            
+        } else if (task.getStatus() == Task.TaskStatus.CANCELED) {
+			taskCount = 0;
+			if (afterMethodListener!=null) {
+					afterMethodListener.methodFinished(MethodReturnStatus.CANCELED);
+					afterMethodListener=null;
+			}            
+        
+        }
         
 	}
 

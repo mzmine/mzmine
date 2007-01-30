@@ -34,7 +34,9 @@ import net.sf.mzmine.io.OpenedRawDataFile;
 import net.sf.mzmine.io.RawDataFile;
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.methods.Method;
+import net.sf.mzmine.methods.MethodListener;
 import net.sf.mzmine.methods.MethodParameters;
+import net.sf.mzmine.methods.MethodListener.MethodReturnStatus;
 import net.sf.mzmine.taskcontrol.Task;
 import net.sf.mzmine.taskcontrol.TaskController;
 import net.sf.mzmine.taskcontrol.TaskListener;
@@ -50,7 +52,8 @@ public class ZoomScanFilter implements Method, TaskListener,
     
     private ZoomScanFilterParameters parameters;
 
-    private TaskListener additionalTaskListener;
+    private MethodListener afterMethodListener;
+    private int taskCount;
     
     private TaskController taskController;
     private Desktop desktop;
@@ -109,6 +112,7 @@ public class ZoomScanFilter implements Method, TaskListener,
     	
         logger.info("Running " + toString() + " on " + dataFiles.length + " raw data files.");
 
+        taskCount = dataFiles.length;
         for (OpenedRawDataFile dataFile : dataFiles) {
             Task filterTask = new ZoomScanFilterTask(dataFile,
                     (ZoomScanFilterParameters) parameters);
@@ -117,8 +121,8 @@ public class ZoomScanFilter implements Method, TaskListener,
 
     }
     
-    public void runMethod(OpenedRawDataFile[] dataFiles, AlignmentResult[] alignmentResults, TaskListener additionalTaskListener) {
-    	this.additionalTaskListener = additionalTaskListener;
+    public void runMethod(OpenedRawDataFile[] dataFiles, AlignmentResult[] alignmentResults, MethodListener methodListener) {
+    	this.afterMethodListener = methodListener;
     	runMethod(dataFiles, alignmentResults);
     }    
 
@@ -156,6 +160,12 @@ public class ZoomScanFilter implements Method, TaskListener,
             MethodParameters cfParam = (MethodParameters) result[2];
 
             openedFile.updateFile(newFile, this, cfParam);
+            
+            taskCount--;
+            if ((taskCount==0) && (afterMethodListener!=null)) {
+            	afterMethodListener.methodFinished(MethodReturnStatus.FINISHED);
+            	afterMethodListener = null;
+            }
 
         } else if (task.getStatus() == Task.TaskStatus.ERROR) {
             /* Task encountered an error */
@@ -163,10 +173,20 @@ public class ZoomScanFilter implements Method, TaskListener,
                     + task.getErrorMessage();
             logger.severe(msg);
             desktop.displayErrorMessage(msg);
-        }
 
-        if (additionalTaskListener!=null) additionalTaskListener.taskFinished(task);
-        additionalTaskListener=null;        
+            taskCount = 0;
+            if (afterMethodListener!=null) {
+            	afterMethodListener.methodFinished(MethodReturnStatus.ERROR);
+            	afterMethodListener = null;
+            }
+            
+        } else if (task.getStatus() == Task.TaskStatus.CANCELED) {
+            taskCount = 0;
+            if (afterMethodListener!=null) {
+            	afterMethodListener.methodFinished(MethodReturnStatus.CANCELED);
+            	afterMethodListener = null;
+            }
+        }
         
     }
 

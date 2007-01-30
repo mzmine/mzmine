@@ -23,6 +23,7 @@ import net.sf.mzmine.data.AlignmentResult;
 import net.sf.mzmine.io.OpenedRawDataFile;
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.methods.Method;
+import net.sf.mzmine.methods.MethodListener;
 import net.sf.mzmine.methods.MethodParameters;
 import net.sf.mzmine.taskcontrol.TaskListener;
 import net.sf.mzmine.userinterface.dialogs.ParameterSetupDialog;
@@ -34,7 +35,8 @@ import net.sf.mzmine.userinterface.mainwindow.MainWindow;
 public class IncompleteIsotopePatternFilter implements Method {
 
 	private IncompleteIsotopePatternFilterParameters parameters;
-	private TaskListener additionalTaskListener;
+	private MethodListener afterMethodListener;
+	private int taskCount;
 	
 	public String toString() {
 		return new String("Incomplete isotope pattern filter");
@@ -72,8 +74,8 @@ public class IncompleteIsotopePatternFilter implements Method {
         
     }
     
-    public void runMethod(OpenedRawDataFile[] dataFiles, AlignmentResult[] alignmentResults, TaskListener additionalTaskListener) {
-    	this.additionalTaskListener = additionalTaskListener;
+    public void runMethod(OpenedRawDataFile[] dataFiles, AlignmentResult[] alignmentResults, MethodListener methodListener) {
+    	this.afterMethodListener = methodListener;
     	runMethod(dataFiles, alignmentResults);
     }    
 

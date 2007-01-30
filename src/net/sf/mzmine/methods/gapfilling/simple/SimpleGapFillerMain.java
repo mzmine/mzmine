@@ -10,6 +10,8 @@ import net.sf.mzmine.data.Peak;
 import net.sf.mzmine.data.impl.SimpleAlignmentResult;
 import net.sf.mzmine.data.impl.SimpleAlignmentResultRow;
 import net.sf.mzmine.io.OpenedRawDataFile;
+import net.sf.mzmine.methods.MethodListener;
+import net.sf.mzmine.methods.MethodListener.MethodReturnStatus;
 import net.sf.mzmine.project.MZmineProject;
 import net.sf.mzmine.taskcontrol.Task;
 import net.sf.mzmine.taskcontrol.TaskController;
@@ -43,15 +45,14 @@ class SimpleGapFillerMain implements TaskListener {
 	
 	private TaskStatus overallStatus;
 	
-	private TaskListener additionalTaskListener;
+	private MethodListener afterMethodListener;
 	
 	
-	public SimpleGapFillerMain(TaskController taskController, AlignmentResult alignmentResult, SimpleGapFillerParameters parameters, TaskListener additionalTaskListener) {
+	public SimpleGapFillerMain(TaskController taskController, AlignmentResult alignmentResult, SimpleGapFillerParameters parameters) {
 		
 		this.taskController = taskController; 
 		this.originalAlignmentResult = alignmentResult;
 		this.parameters = parameters;
-		this.additionalTaskListener = additionalTaskListener;
 		
 		gapsForRawData = new Hashtable<OpenedRawDataFile, Vector<EmptyGap>>();
 		rawDataForGap = new Hashtable<EmptyGap, OpenedRawDataFile>();
@@ -60,8 +61,9 @@ class SimpleGapFillerMain implements TaskListener {
 		
 	}
 	
-	public void doTasks() {
+	public void doTasks(MethodListener afterMethodListener) {
 
+		this.afterMethodListener = afterMethodListener;
 		
 		/*
 		 * Loop rows of original alignment result
@@ -125,9 +127,11 @@ class SimpleGapFillerMain implements TaskListener {
 						(t.getStatus()!=TaskStatus.ERROR) )
 					t.cancel();
 			
-	        if (additionalTaskListener!=null) additionalTaskListener.taskFinished(task);
-	        additionalTaskListener=null;
-	        
+			if (afterMethodListener!=null) {
+				afterMethodListener.methodFinished(MethodReturnStatus.ERROR);
+				afterMethodListener = null;
+			}
+			
 			return;
 		}
 		
@@ -180,9 +184,11 @@ class SimpleGapFillerMain implements TaskListener {
 			
 			// Add new alignment result to the project			
 			MZmineProject.getCurrentProject().addAlignmentResult(processedAlignmentResult);
-			
-	        if (additionalTaskListener!=null) additionalTaskListener.taskFinished(task);
-	        additionalTaskListener=null;
+
+			if (afterMethodListener!=null) {
+				afterMethodListener.methodFinished(MethodReturnStatus.FINISHED);
+				afterMethodListener = null;
+			}
 			
 		}
 

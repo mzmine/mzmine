@@ -34,7 +34,9 @@ import net.sf.mzmine.data.PeakList;
 import net.sf.mzmine.io.OpenedRawDataFile;
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.methods.Method;
+import net.sf.mzmine.methods.MethodListener;
 import net.sf.mzmine.methods.MethodParameters;
+import net.sf.mzmine.methods.MethodListener.MethodReturnStatus;
 import net.sf.mzmine.taskcontrol.Task;
 import net.sf.mzmine.taskcontrol.TaskController;
 import net.sf.mzmine.taskcontrol.TaskListener;
@@ -53,7 +55,8 @@ public class LocalPicker implements Method, TaskListener,
     private Logger logger = Logger.getLogger(this.getClass().getName());
 
     
-    private TaskListener additionalTaskListener;
+    private MethodListener afterMethodListener;
+    private int taskCount;
     
     private TaskController taskController;
     private Desktop desktop;
@@ -114,6 +117,7 @@ public class LocalPicker implements Method, TaskListener,
     	
         logger.info("Running " + toString());
 
+        taskCount = dataFiles.length;
         for (OpenedRawDataFile dataFile : dataFiles) {
             Task pickerTask = new LocalPickerTask(dataFile,
                     (LocalPickerParameters) parameters);
@@ -122,8 +126,8 @@ public class LocalPicker implements Method, TaskListener,
 
     }
     
-    public void runMethod(OpenedRawDataFile[] dataFiles, AlignmentResult[] alignmentResults, TaskListener additionalTaskListener) {
-    	this.additionalTaskListener = additionalTaskListener;
+    public void runMethod(OpenedRawDataFile[] dataFiles, AlignmentResult[] alignmentResults, MethodListener methodListener) {
+    	this.afterMethodListener = methodListener;
     	runMethod(dataFiles, alignmentResults);
     }       
 
@@ -169,6 +173,12 @@ public class LocalPicker implements Method, TaskListener,
 
 			// Notify listeners
             desktop.notifySelectionListeners();
+            
+            taskCount--;
+            if ((taskCount==0) && (afterMethodListener!=null)) {
+            	afterMethodListener.methodFinished(MethodReturnStatus.FINISHED);
+            	afterMethodListener = null;
+            }
 			
         } else if (task.getStatus() == Task.TaskStatus.ERROR) {
             /* Task encountered an error */
@@ -176,10 +186,20 @@ public class LocalPicker implements Method, TaskListener,
                     + task.getErrorMessage();
             logger.severe(msg);
             desktop.displayErrorMessage(msg);
+            
+            taskCount=0;
+            if (afterMethodListener!=null) {
+            	afterMethodListener.methodFinished(MethodReturnStatus.ERROR);
+            	afterMethodListener = null;
+            }            
+        } else if (task.getStatus() == Task.TaskStatus.CANCELED) {
+            taskCount=0;
+            if (afterMethodListener!=null) {
+            	afterMethodListener.methodFinished(MethodReturnStatus.CANCELED);
+            	afterMethodListener = null;
+            }        	
         }
-        
-        if (additionalTaskListener!=null) additionalTaskListener.taskFinished(task);
-        additionalTaskListener=null;          
+      
 
     }
 

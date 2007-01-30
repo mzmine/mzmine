@@ -35,7 +35,9 @@ import net.sf.mzmine.data.AlignmentResult;
 import net.sf.mzmine.io.OpenedRawDataFile;
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.methods.Method;
+import net.sf.mzmine.methods.MethodListener;
 import net.sf.mzmine.methods.MethodParameters;
+import net.sf.mzmine.methods.MethodListener.MethodReturnStatus;
 import net.sf.mzmine.project.MZmineProject;
 import net.sf.mzmine.taskcontrol.Task;
 import net.sf.mzmine.taskcontrol.TaskController;
@@ -59,7 +61,8 @@ public class LinearNormalizer implements Method,
 	
 	private LinearNormalizerParameters parameters;
 	
-	private TaskListener additionalTaskListener;
+	private MethodListener afterMethodListener;
+	private int taskCount;
 	
 	private TaskController taskController;
     private Desktop desktop;
@@ -99,13 +102,14 @@ public class LinearNormalizer implements Method,
     	
         logger.info("Running " + toString() + " on " + alignmentResults[0].toString());
 
+        taskCount = 1;
 		Task alignmentTask = new LinearNormalizerTask(alignmentResults[0], (LinearNormalizerParameters) parameters);
 		taskController.addTask(alignmentTask, this);
 
     }
     
-    public void runMethod(OpenedRawDataFile[] dataFiles, AlignmentResult[] alignmentResults, TaskListener additionalTaskListener) {
-    	this.additionalTaskListener = additionalTaskListener;
+    public void runMethod(OpenedRawDataFile[] dataFiles, AlignmentResult[] alignmentResults, MethodListener methodListener) {
+    	this.afterMethodListener = methodListener;
     	runMethod(dataFiles, alignmentResults);
     }    
 
@@ -157,6 +161,13 @@ public class LinearNormalizer implements Method,
 			// TODO: Add method and parameters to history of an alignment result
 			
 			MZmineProject.getCurrentProject().addAlignmentResult(normalizedAlignmentResult);
+			
+			taskCount--;
+			if ((taskCount==0) && (afterMethodListener!=null)) {
+					afterMethodListener.methodFinished(MethodReturnStatus.FINISHED);
+					afterMethodListener=null;
+			}            
+
 
 
         } else if (task.getStatus() == Task.TaskStatus.ERROR) {
@@ -165,10 +176,21 @@ public class LinearNormalizer implements Method,
                     + task.getErrorMessage();
             logger.severe(msg);
             desktop.displayErrorMessage(msg);
-        }
-        
-        if (additionalTaskListener!=null) additionalTaskListener.taskFinished(task);
-        additionalTaskListener=null;        
+            
+			taskCount = 0;
+			if (afterMethodListener!=null) {
+					afterMethodListener.methodFinished(MethodReturnStatus.ERROR);
+					afterMethodListener=null;
+			}            
+            
+        } else if (task.getStatus() == Task.TaskStatus.CANCELED) {
+			taskCount = 0;
+			if (afterMethodListener!=null) {
+					afterMethodListener.methodFinished(MethodReturnStatus.CANCELED);
+					afterMethodListener=null;
+			}
+			
+        }     
 		
 	}
 

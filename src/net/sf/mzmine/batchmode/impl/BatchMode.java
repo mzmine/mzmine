@@ -33,6 +33,8 @@ import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
 
 import net.sf.mzmine.batchmode.BatchModeController;
+import net.sf.mzmine.data.AlignmentResult;
+import net.sf.mzmine.data.ParameterValue;
 import net.sf.mzmine.io.OpenedRawDataFile;
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.main.MZmineModule;
@@ -51,7 +53,7 @@ import net.sf.mzmine.userinterface.mainwindow.MainWindow;
  * Batch mode module
  */
 public class BatchMode implements BatchModeController, ListSelectionListener,
-        ActionListener, TaskListener {
+        ActionListener {
 
 	
     private Logger logger = Logger.getLogger(this.getClass().getName());
@@ -77,6 +79,9 @@ public class BatchMode implements BatchModeController, ListSelectionListener,
     							 
     private BatchStep currentBatchStep = BatchStep.Halt;
     private int currentBatchStepIndex = batchStepHaltIndex;
+    
+    private OpenedRawDataFile[] selectedDataFiles;
+    private AlignmentResult selectedAlignmentResult;
     
 
     /**
@@ -107,10 +112,19 @@ public class BatchMode implements BatchModeController, ListSelectionListener,
     	JDialog setupDialog = new BatchModeDialog(MainWindow.getInstance(), registeredMethods, parameters);
         setupDialog.setVisible(true);
         
-        OpenedRawDataFile dataFiles[] = desktop.getSelectedDataFiles();
+        selectedDataFiles = desktop.getSelectedDataFiles();
+        
+        if (selectedDataFiles.length!=0) {
+            currentBatchStep = BatchStep.values()[0];
+            currentBatchStepIndex = 0;
+            processStep();
+        } else {
+            currentBatchStep = BatchStep.values()[0];
+            currentBatchStepIndex = 0;        	
+        }
+        
      
-        currentBatchStep = BatchStep.values()[0];
-        currentBatchStepIndex = 0;
+
 
     }
 
@@ -128,62 +142,166 @@ public class BatchMode implements BatchModeController, ListSelectionListener,
         return "Batch mode";
     }
     
-    public void taskFinished(Task task) {
+    public void methodFinished(MethodReturnStatus status) {
+    	
+    	logger.info("Batch mode received taskFinished call");
+    	
 		// TODO Auto-generated method stub
-    	if (	(task.getStatus() == TaskStatus.ERROR) &&
-    			(task.getStatus() == TaskStatus.CANCELED) ) {
+    	if (	(status == MethodReturnStatus.ERROR) &&
+    			(status == MethodReturnStatus.CANCELED) ) {
     		currentBatchStep = BatchStep.Halt;
     		currentBatchStepIndex = batchStepHaltIndex;
     		return;
     	}
 
-    	if (task.getStatus() == TaskStatus.FINISHED) {
+    	if (status == MethodReturnStatus.FINISHED) {
+
+        	switch (currentBatchStep) {
+        	case RawDataFilter1:
+        	case RawDataFilter2:
+        	case RawDataFilter3:
+        	case PeakPicker:
+        	case PeakListProcessor1:
+        	case PeakListProcessor2:
+        	case PeakListProcessor3:        		
+        		break;
+        		
+        	case Aligner:
+        	case AlignmentResultProcessor1:
+        	case AlignmentResultProcessor2:
+        	case AlignmentResultProcessor3:        		
+        		// Pickup last added alignment result from the list
+        		MZmineProject p = MZmineProject.getCurrentProject();
+        		AlignmentResult[] aRess = p.getAlignmentResults();
+        		selectedAlignmentResult =  aRess[aRess.length-1];
+        		break;
+        	}
     		
-    		currentBatchStepIndex++;
-    		currentBatchStep = BatchStep.values()[currentBatchStepIndex];
-    		proceedToNextStep();
+        	advanceToNextStep();
+    		processStep();
     	}
 		
 	}
     
-    private void proceedToNextStep() {
+
+    private void advanceToNextStep() {
+		currentBatchStepIndex++;
+		currentBatchStep = BatchStep.values()[currentBatchStepIndex];    	
+    }
+    
+    private void processStep() {
+    	
+    	logger.info("Batch mode processStep");
     	
     	// Pickup method for the step
     	Method m;
+    	ParameterValue v;
     	MZmineProject project = MZmineProject.getCurrentProject();
     	switch (currentBatchStep) {
     	case RawDataFilter1:
-    		m = (Method)project.getParameterValue(BatchModeParameters.methodRawDataFilter1).getValue();
+    		v = project.getParameterValue(BatchModeParameters.methodRawDataFilter1);
+    		if (v!=null) {
+    			m = (Method)v.getValue();
+    			m.runMethod(selectedDataFiles, null, this);
+    		} else {
+    			advanceToNextStep(); processStep();
+    		}
     		break;
     	case RawDataFilter2:
-    		m = (Method)project.getParameterValue(BatchModeParameters.methodRawDataFilter2).getValue();
+    		v = project.getParameterValue(BatchModeParameters.methodRawDataFilter2);
+    		if (v!=null) {
+    			m = (Method)v.getValue();
+    			m.runMethod(selectedDataFiles, null, this);
+    		} else {
+    			advanceToNextStep(); processStep();
+    		}    		
     		break;
     	case RawDataFilter3:
-    		m = (Method)project.getParameterValue(BatchModeParameters.methodRawDataFilter3).getValue();
+    		v = project.getParameterValue(BatchModeParameters.methodRawDataFilter3);
+    		if (v!=null) {
+    			m = (Method)v.getValue();
+    			m.runMethod(selectedDataFiles, null, this);
+    		} else {
+    			advanceToNextStep(); processStep();
+    		}
     		break;
     	case PeakPicker:
-    		m = (Method)project.getParameterValue(BatchModeParameters.methodPeakPicker).getValue();
+    		v = project.getParameterValue(BatchModeParameters.methodPeakPicker);
+    		if (v!=null) {
+    			m = (Method)v.getValue();
+    			m.runMethod(selectedDataFiles, null, this);
+    		} else {
+    			advanceToNextStep(); processStep();
+    		}    		
     		break;
     	case PeakListProcessor1:
-    		m = (Method)project.getParameterValue(BatchModeParameters.methodPeakListProcessor1).getValue();
+    		v = project.getParameterValue(BatchModeParameters.methodPeakListProcessor1);
+    		if (v!=null) {
+    			m = (Method)v.getValue();
+    			m.runMethod(selectedDataFiles, null, this);
+    		} else {
+    			advanceToNextStep(); processStep();
+    		}    		  		
     		break;
     	case PeakListProcessor2:
-    		m = (Method)project.getParameterValue(BatchModeParameters.methodPeakListProcessor2).getValue();
+    		v = project.getParameterValue(BatchModeParameters.methodPeakListProcessor2);
+    		if (v!=null) {
+    			m = (Method)v.getValue();
+    			m.runMethod(selectedDataFiles, null, this);
+    		} else {
+    			advanceToNextStep(); processStep();
+    		}
     		break;
     	case PeakListProcessor3:
-    		m = (Method)project.getParameterValue(BatchModeParameters.methodPeakListProcessor3).getValue();
+    		v = project.getParameterValue(BatchModeParameters.methodPeakListProcessor3);
+    		if (v!=null) {
+    			m = (Method)v.getValue();
+    			m.runMethod(selectedDataFiles, null, this);
+    		} else {
+    			advanceToNextStep(); processStep();
+    		}
     		break;
     	case Aligner:
-    		m = (Method)project.getParameterValue(BatchModeParameters.methodAligner).getValue();
+    		v = project.getParameterValue(BatchModeParameters.methodAligner);
+    		if (v!=null) {
+    			m = (Method)v.getValue();
+    			m.runMethod(selectedDataFiles, null, this);
+    		} else {
+    			advanceToNextStep(); processStep();
+    		}
     		break;
     	case AlignmentResultProcessor1:
-    		m = (Method)project.getParameterValue(BatchModeParameters.methodAlignmentProcessor1).getValue();
+    		v = project.getParameterValue(BatchModeParameters.methodAlignmentProcessor1);
+    		if (v!=null) {
+    			m = (Method)v.getValue();
+    			AlignmentResult[] aRess = new AlignmentResult[1];
+    			aRess[0] = selectedAlignmentResult;
+    			m.runMethod(null, aRess, this);
+    		} else {
+    			advanceToNextStep(); processStep();
+    		}	
     		break;
     	case AlignmentResultProcessor2:
-    		m = (Method)project.getParameterValue(BatchModeParameters.methodAlignmentProcessor2).getValue();
+    		v = project.getParameterValue(BatchModeParameters.methodAlignmentProcessor2);
+    		if (v!=null) {
+    			m = (Method)v.getValue();
+    			AlignmentResult[] aRess = new AlignmentResult[1];
+    			aRess[0] = selectedAlignmentResult;
+    			m.runMethod(null, aRess, this);
+    		} else {
+    			advanceToNextStep(); processStep();
+    		}
     		break;
     	case AlignmentResultProcessor3:
-    		m = (Method)project.getParameterValue(BatchModeParameters.methodAlignmentProcessor3).getValue();
+    		v = project.getParameterValue(BatchModeParameters.methodAlignmentProcessor3);
+    		if (v!=null) {
+    			m = (Method)v.getValue();
+    			AlignmentResult[] aRess = new AlignmentResult[1];
+    			aRess[0] = selectedAlignmentResult;
+    			m.runMethod(null, aRess, this);
+    		} else {
+    			advanceToNextStep(); processStep();
+    		}
     		break;    		
     	case Halt:
     		logger.info("Batch processing done.");
@@ -193,10 +311,6 @@ public class BatchMode implements BatchModeController, ListSelectionListener,
     	
     }
 
-	public void taskStarted(Task task) {
-		// TODO Auto-generated method stub
-		
-	}
 
 	public void registerMethod(BatchModeStep batchModeStep, Method method) {
     	ArrayList<Method> methodsForStep = registeredMethods.get(batchModeStep);

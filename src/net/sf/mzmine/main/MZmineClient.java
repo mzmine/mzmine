@@ -152,8 +152,10 @@ public class MZmineClient implements Runnable, MZmineCore {
         */
         
         // DEBUG show batch mode dialog
+        /*
         batchModeController.actionPerformed(null);
         MainWindow.getInstance().notifySelectionListeners();
+        */
         
         // DEBUG open files
         /*
@@ -162,6 +164,7 @@ public class MZmineClient implements Runnable, MZmineCore {
         selectedFiles[1] = new File("C:/VTT/Data_Netcdf/NewCentroidMouse/cdf/ob_f1b.cdf");
         ioController.openFiles(selectedFiles, PreloadLevel.NO_PRELOAD);
         */
+        
          
 
         

@@ -34,7 +34,9 @@ import net.sf.mzmine.io.OpenedRawDataFile;
 import net.sf.mzmine.io.RawDataFile;
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.methods.Method;
+import net.sf.mzmine.methods.MethodListener;
 import net.sf.mzmine.methods.MethodParameters;
+import net.sf.mzmine.methods.MethodListener.MethodReturnStatus;
 import net.sf.mzmine.taskcontrol.Task;
 import net.sf.mzmine.taskcontrol.TaskController;
 import net.sf.mzmine.taskcontrol.TaskListener;
@@ -50,7 +52,8 @@ public class SavitzkyGolayFilter implements Method, TaskListener,
     
     private SavitzkyGolayFilterParameters parameters;
     
-    private TaskListener additionalTaskListener;
+    private MethodListener afterMethodListener;
+    private int taskCount;
 
     private TaskController taskController;
     private Desktop desktop;
@@ -104,10 +107,14 @@ public class SavitzkyGolayFilter implements Method, TaskListener,
      */
     public void runMethod(OpenedRawDataFile[] dataFiles, AlignmentResult[] alignmentResults) {
 
-    	if (parameters==null) parameters = new SavitzkyGolayFilterParameters();
+    	if (parameters==null) { 
+    		logger.info("S-G filter initialized a new set of parameters");
+    		parameters = new SavitzkyGolayFilterParameters();
+    	}
     	
         logger.info("Running " + toString());
 
+        taskCount = dataFiles.length;
         for (OpenedRawDataFile dataFile : dataFiles) {
             Task filterTask = new SavitzkyGolayFilterTask(dataFile,
                     (SavitzkyGolayFilterParameters) parameters);
@@ -115,8 +122,8 @@ public class SavitzkyGolayFilter implements Method, TaskListener,
         }
     }
     
-    public void runMethod(OpenedRawDataFile[] dataFiles, AlignmentResult[] alignmentResults, TaskListener additionalTaskListener) {
-    	this.additionalTaskListener = additionalTaskListener;
+    public void runMethod(OpenedRawDataFile[] dataFiles, AlignmentResult[] alignmentResults, MethodListener methodListener) {
+    	this.afterMethodListener = methodListener;
     	runMethod(dataFiles, alignmentResults);
     }    
 
@@ -155,17 +162,33 @@ public class SavitzkyGolayFilter implements Method, TaskListener,
 
             openedFile.updateFile(newFile, this, cfParam);
 
+            taskCount--;
+            if ((taskCount==0) && (afterMethodListener!=null)) {
+            	afterMethodListener.methodFinished(MethodReturnStatus.FINISHED);
+            	afterMethodListener = null;
+            }
+
         } else if (task.getStatus() == Task.TaskStatus.ERROR) {
             /* Task encountered an error */
             String msg = "Error while filtering a file: "
                     + task.getErrorMessage();
             logger.severe(msg);
             desktop.displayErrorMessage(msg);
+            
+            taskCount=0;
+            if (afterMethodListener!=null) {
+            	afterMethodListener.methodFinished(MethodReturnStatus.ERROR);
+            	afterMethodListener = null;
+            }
+            
+        } else if (task.getStatus() == Task.TaskStatus.CANCELED) {
+            taskCount=0;
+            if (afterMethodListener!=null) {  
+            	afterMethodListener.methodFinished(MethodReturnStatus.CANCELED);
+            	afterMethodListener = null;
+            }
         }
-
-        if (additionalTaskListener!=null) additionalTaskListener.taskFinished(task);
-        additionalTaskListener=null;        
-        
+       
     }
 
     /**

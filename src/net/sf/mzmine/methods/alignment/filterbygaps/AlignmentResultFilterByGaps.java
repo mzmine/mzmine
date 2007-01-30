@@ -34,7 +34,9 @@ import net.sf.mzmine.data.AlignmentResult;
 import net.sf.mzmine.io.OpenedRawDataFile;
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.methods.Method;
+import net.sf.mzmine.methods.MethodListener;
 import net.sf.mzmine.methods.MethodParameters;
+import net.sf.mzmine.methods.MethodListener.MethodReturnStatus;
 import net.sf.mzmine.project.MZmineProject;
 import net.sf.mzmine.taskcontrol.Task;
 import net.sf.mzmine.taskcontrol.TaskController;
@@ -58,7 +60,8 @@ TaskListener, ListSelectionListener, ActionListener {
 	
 	private AlignmentResultFilterByGapsParameters parameters;
 	
-	private TaskListener additionalTaskListener;
+	private MethodListener afterMethodListener;
+	private int taskCount;
 	
     private TaskController taskController;
     private Desktop desktop;
@@ -100,6 +103,7 @@ TaskListener, ListSelectionListener, ActionListener {
         
         if (parameters==null) parameters = new AlignmentResultFilterByGapsParameters();
 
+        taskCount = alignmentResults.length;
         for (AlignmentResult alignmentResult : alignmentResults) {
     		Task alignmentTask = new AlignmentResultFilterByGapsTask(alignmentResult, (AlignmentResultFilterByGapsParameters) parameters);
     		taskController.addTask(alignmentTask, this);
@@ -107,8 +111,8 @@ TaskListener, ListSelectionListener, ActionListener {
         
     }
     
-    public void runMethod(OpenedRawDataFile[] dataFiles, AlignmentResult[] alignmentResults, TaskListener additionalTaskListener) {
-    	this.additionalTaskListener = additionalTaskListener;
+    public void runMethod(OpenedRawDataFile[] dataFiles, AlignmentResult[] alignmentResults, MethodListener methodListener) {
+    	this.afterMethodListener = methodListener;
     	runMethod(dataFiles, alignmentResults);
     }    
 
@@ -172,7 +176,12 @@ TaskListener, ListSelectionListener, ActionListener {
 			// TODO: Add method and parameters to history of an alignment result
 			
 			MZmineProject.getCurrentProject().addAlignmentResult(filteredAlignmentResult);
-
+			
+			taskCount--;
+			if ((taskCount==0) && (afterMethodListener!=null)) {
+				afterMethodListener.methodFinished(MethodReturnStatus.FINISHED);
+				afterMethodListener = null;
+			}
 
         } else if (task.getStatus() == Task.TaskStatus.ERROR) {
             /* Task encountered an error */
@@ -180,10 +189,23 @@ TaskListener, ListSelectionListener, ActionListener {
                     + task.getErrorMessage();
             logger.severe(msg);
             desktop.displayErrorMessage(msg);
+
+			taskCount=0;
+			if (afterMethodListener!=null) {
+				afterMethodListener.methodFinished(MethodReturnStatus.ERROR);
+				afterMethodListener = null;
+			}
+          
+            
+        } else if (task.getStatus() == Task.TaskStatus.CANCELED) {
+			taskCount=0;
+			if (afterMethodListener!=null) {
+				afterMethodListener.methodFinished(MethodReturnStatus.CANCELED);
+				afterMethodListener = null;
+			}
+        	
         }
 
-        if (additionalTaskListener!=null) additionalTaskListener.taskFinished(task);
-        additionalTaskListener=null;
         
     }
     

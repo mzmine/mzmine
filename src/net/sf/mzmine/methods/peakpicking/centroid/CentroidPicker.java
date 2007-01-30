@@ -34,7 +34,9 @@ import net.sf.mzmine.data.PeakList;
 import net.sf.mzmine.io.OpenedRawDataFile;
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.methods.Method;
+import net.sf.mzmine.methods.MethodListener;
 import net.sf.mzmine.methods.MethodParameters;
+import net.sf.mzmine.methods.MethodListener.MethodReturnStatus;
 import net.sf.mzmine.taskcontrol.Task;
 import net.sf.mzmine.taskcontrol.TaskController;
 import net.sf.mzmine.taskcontrol.TaskListener;
@@ -56,7 +58,9 @@ public class CentroidPicker implements Method, TaskListener,
     private Desktop desktop;
     private JMenuItem myMenuItem;
     
-    private TaskListener additionalTaskListener;
+    private MethodListener afterMethodListener;
+    private int taskCount;
+    
     
     private CentroidPickerParameters parameters;
 
@@ -112,7 +116,8 @@ public class CentroidPicker implements Method, TaskListener,
     	if (parameters==null) parameters = new CentroidPickerParameters();
     	
     	logger.info("Running " + toString() + " on " + dataFiles.length + " raw data files.");
-    	
+
+    	taskCount = dataFiles.length;
         for (OpenedRawDataFile dataFile : dataFiles) {
 			
 
@@ -123,8 +128,8 @@ public class CentroidPicker implements Method, TaskListener,
 
     }
     
-    public void runMethod(OpenedRawDataFile[] dataFiles, AlignmentResult[] alignmentResults, TaskListener additionalTaskListener) {
-    	this.additionalTaskListener = additionalTaskListener;
+    public void runMethod(OpenedRawDataFile[] dataFiles, AlignmentResult[] alignmentResults, MethodListener methodListener) {
+    	this.afterMethodListener = methodListener;
     	runMethod(dataFiles, alignmentResults);
     }    
 
@@ -149,7 +154,7 @@ public class CentroidPicker implements Method, TaskListener,
     }
 
     public void taskStarted(Task task) {
-        // do nothing
+    
     }
 
     public void taskFinished(Task task) {
@@ -170,6 +175,12 @@ public class CentroidPicker implements Method, TaskListener,
 
 			// Notify listeners
             desktop.notifySelectionListeners();
+            
+            taskCount--;
+            if ((taskCount==0) && (afterMethodListener!=null)) {
+            	afterMethodListener.methodFinished(MethodReturnStatus.FINISHED);
+            	afterMethodListener = null;
+            }
 
         } else if (task.getStatus() == Task.TaskStatus.ERROR) {
             /* Task encountered an error */
@@ -177,10 +188,20 @@ public class CentroidPicker implements Method, TaskListener,
                     + task.getErrorMessage();
             logger.severe(msg);
             desktop.displayErrorMessage(msg);
+
+            taskCount=0;
+            if (afterMethodListener!=null) { 
+            	afterMethodListener.methodFinished(MethodReturnStatus.ERROR);
+            	afterMethodListener = null;
+            }
+            
+        } else if (task.getStatus() == Task.TaskStatus.CANCELED) {
+            taskCount=0;
+            if (afterMethodListener!=null) { 
+            	afterMethodListener.methodFinished(MethodReturnStatus.CANCELED);
+            	afterMethodListener = null;
+            }
         }
-        
-        if (additionalTaskListener!=null) additionalTaskListener.taskFinished(task);
-        additionalTaskListener=null;        
 
     }
 
