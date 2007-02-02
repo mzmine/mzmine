@@ -29,8 +29,8 @@ public class AlignmentResultColumnSelection {
         ROWNUM ("ID", Integer.class),
         AVGMZ ("Average M/Z", Double.class),
         AVGRT ("Average Retention time", Double.class),
-        ISOTOPEID ("Isotope Pattern ID", Integer.class),
-        ISOTOPEPEAK ("Isotope peak number", Integer.class),
+        ISOTOPEID ("Isotope pattern #", Integer.class),
+        ISOTOPEPEAK ("Isotope peak #", Integer.class),
         CHARGE ("Charge state", Integer.class);
 
 		private final String columnName;

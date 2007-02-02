@@ -49,9 +49,12 @@ public class SimpleAlignmentResultRow extends AbstractDataUnit implements Alignm
 	/*
 	 * Return isotope pattern assigned to this row
 	 */
+	/*
 	public IsotopePattern getIsotopePattern() {
 		return isotopePattern;
 	}
+	*/
+	
 
 	/*
 	 * Return peaks assigned to this row
@@ -118,9 +121,11 @@ public class SimpleAlignmentResultRow extends AbstractDataUnit implements Alignm
 
 
 	//////////////
+	/*
 	public void setIsotopePattern(IsotopePattern isotopePattern) {
 		this.isotopePattern = isotopePattern;
 	}
+	*/
 
 	public void addPeak(OpenedRawDataFile rawData, Peak p) {
 		peaks.put(rawData, p);

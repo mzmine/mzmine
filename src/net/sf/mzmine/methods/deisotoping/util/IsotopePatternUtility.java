@@ -90,7 +90,8 @@ public class IsotopePatternUtility {
 		AlignmentResultRow[] rows = alignmentResult.getRows();
 		for (AlignmentResultRow row : rows) {
 
-			IsotopePattern isotopePattern = row.getIsotopePattern();
+			//IsotopePattern isotopePattern = row.getIsotopePattern();
+			IsotopePattern isotopePattern = (IsotopePattern)row.getLastData(IsotopePattern.class);
 			if (isotopePattern == null) continue;
 
 			// Check if this pattern has already been assigned with a number

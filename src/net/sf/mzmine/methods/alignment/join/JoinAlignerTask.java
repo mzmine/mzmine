@@ -30,6 +30,7 @@ import net.sf.mzmine.taskcontrol.Task;
 
 import net.sf.mzmine.util.MathUtils;
 
+import net.sf.mzmine.data.AlignmentResultRow;
 import net.sf.mzmine.data.Peak;
 import net.sf.mzmine.data.PeakList;
 import net.sf.mzmine.data.IsotopePattern;
@@ -251,7 +252,8 @@ class JoinAlignerTask implements Task {
 				SimpleAlignmentResultRow alignmentRow = new SimpleAlignmentResultRow();
 
 				// Tag row with isotope pattern
-				alignmentRow.setIsotopePattern(masterIsotopePattern);
+				//alignmentRow.setIsotopePattern(masterIsotopePattern);
+				alignmentRow.addData(IsotopePattern.class, masterIsotopePattern);
 
 				// Loop through raw data files
 				for (OpenedRawDataFile dataFile : dataFiles) {

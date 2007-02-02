@@ -28,6 +28,7 @@ import java.util.logging.Logger;
 
 import net.sf.mzmine.data.AlignmentResult;
 import net.sf.mzmine.data.AlignmentResultRow;
+import net.sf.mzmine.data.IsotopePattern;
 import net.sf.mzmine.data.Peak;
 import net.sf.mzmine.data.impl.StandardCompoundFlag;
 import net.sf.mzmine.io.OpenedRawDataFile;
@@ -114,13 +115,16 @@ public class AlignmentResultExporter {
 					s += "" + alignmentRow.getAverageRT() + "\t";
 					break;
 				case ISOTOPEID:
-					s += "" + isoUtil.getIsotopePatternNumber(alignmentRow.getIsotopePattern()) + "\t";
+					IsotopePattern isoPatt = (IsotopePattern)alignmentRow.getLastData(IsotopePattern.class);
+					s += "" + isoUtil.getIsotopePatternNumber(isoPatt) + "\t";
 					break;
 				case ISOTOPEPEAK:
-					s += "" + isoUtil.getIsotopePatternNumber(alignmentRow.getIsotopePattern()) + "\t";
+					isoPatt = (IsotopePattern)alignmentRow.getLastData(IsotopePattern.class);
+					s += "" + isoUtil.getIsotopePatternNumber(isoPatt) + "\t";
 					break;
 				case CHARGE:
-					s += "" + alignmentRow.getIsotopePattern().getChargeState() + "\t";
+					isoPatt = (IsotopePattern)alignmentRow.getLastData(IsotopePattern.class);
+					s += "" + isoPatt.getChargeState() + "\t";
 					break;
 				}
 			}

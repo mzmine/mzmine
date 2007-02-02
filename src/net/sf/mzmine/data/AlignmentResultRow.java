@@ -30,7 +30,7 @@ public interface AlignmentResultRow extends DataUnit {
 	/*
 	 * Return isotope pattern assigned to this row
 	 */
-	public IsotopePattern getIsotopePattern();
+	//public IsotopePattern getIsotopePattern();
 
 	/*
 	 * Return raw datas with peaks on this row

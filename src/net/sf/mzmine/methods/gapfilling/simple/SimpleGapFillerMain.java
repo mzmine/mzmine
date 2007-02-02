@@ -157,7 +157,8 @@ class SimpleGapFillerMain implements TaskListener {
 			// Add rows to the new alignment result
 			for (AlignmentResultRow alignmentRow : originalAlignmentResult.getRows()) {
 				SimpleAlignmentResultRow processedAlignmentRow = new SimpleAlignmentResultRow();	
-				processedAlignmentRow.setIsotopePattern(alignmentRow.getIsotopePattern());
+				//processedAlignmentRow.setIsotopePattern(alignmentRow.getIsotopePattern());
+				processedAlignmentRow.addData(IsotopePattern.class, alignmentRow.getLastData(IsotopePattern.class));
 				
 				// Copy old peaks to new row
 				for (OpenedRawDataFile loopOpenedRawDataFile : alignmentRow.getOpenedRawDataFiles()) {
@@ -169,7 +170,7 @@ class SimpleGapFillerMain implements TaskListener {
 				Vector<EmptyGap> filledGaps = gapsForRow.get(alignmentRow);
 				for (EmptyGap filledGap : filledGaps) {
 					Peak p = filledGap.getEstimatedPeak();
-					p.addData(IsotopePattern.class, alignmentRow.getIsotopePattern());
+					p.addData(IsotopePattern.class, alignmentRow.getLastData(IsotopePattern.class));
 					OpenedRawDataFile peakRawData = rawDataForGap.get(filledGap);
 					processedAlignmentRow.addPeak(peakRawData, p);
 				}

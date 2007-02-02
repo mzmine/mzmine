@@ -4,6 +4,7 @@ import java.util.Hashtable;
 
 import net.sf.mzmine.data.AlignmentResult;
 import net.sf.mzmine.data.AlignmentResultRow;
+import net.sf.mzmine.data.IsotopePattern;
 import net.sf.mzmine.data.ParameterValue;
 import net.sf.mzmine.data.Peak;
 import net.sf.mzmine.data.impl.SimpleAlignmentResult;
@@ -178,18 +179,20 @@ public class LinearNormalizerTask implements Task {
 					SimpleAlignmentResultRow normalizedRow = rowMap.get(originalAlignmentRow);
 					if (normalizedRow==null) {
 						normalizedRow = new SimpleAlignmentResultRow();
-						normalizedRow.setIsotopePattern(originalAlignmentRow.getIsotopePattern());
+						//normalizedRow.setIsotopePattern(originalAlignmentRow.getIsotopePattern());
+						normalizedRow.addData(IsotopePattern.class, originalAlignmentRow.getLastData(IsotopePattern.class));
 						rowMap.put(originalAlignmentRow, normalizedRow);
 					}
 				
 					normalizedRow.addPeak(ord, normalizedPeak);
 					
 				}
+
 			}
-			
 			
 			// Progress
 			processedDataFiles++;
+			
 		}
 		
 		// Finally add all normalized rows to normalized alignment result

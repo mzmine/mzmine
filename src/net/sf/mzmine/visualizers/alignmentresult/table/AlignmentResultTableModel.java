@@ -4,6 +4,7 @@ import javax.swing.table.AbstractTableModel;
 
 import net.sf.mzmine.data.AlignmentResult;
 import net.sf.mzmine.data.AlignmentResultRow;
+import net.sf.mzmine.data.IsotopePattern;
 import net.sf.mzmine.data.Peak;
 import net.sf.mzmine.data.impl.StandardCompoundFlag;
 import net.sf.mzmine.io.OpenedRawDataFile;
@@ -85,11 +86,14 @@ public class AlignmentResultTableModel extends AbstractTableModel {
 				case AVGRT:
 					return new Double(alignmentRow.getAverageRT());
 				case ISOTOPEID:
-					return new Integer(isoUtil.getIsotopePatternNumber(alignmentRow.getIsotopePattern()));
+					IsotopePattern isoPatt = (IsotopePattern)alignmentRow.getLastData(IsotopePattern.class);
+					return new Integer(isoUtil.getIsotopePatternNumber(isoPatt));
 				case ISOTOPEPEAK:
-					return new Integer(isoUtil.getIsotopePatternNumber(alignmentRow.getIsotopePattern()));
+					isoPatt = (IsotopePattern)alignmentRow.getLastData(IsotopePattern.class);
+					return new Integer(isoUtil.getIsotopePatternNumber(isoPatt));
 				case CHARGE:
-					return new Integer(alignmentRow.getIsotopePattern().getChargeState());
+					isoPatt = (IsotopePattern)alignmentRow.getLastData(IsotopePattern.class);
+					return new Integer(isoPatt.getChargeState());
 				default:
 					//System.out.println("Illegal common column");
 					return null;
