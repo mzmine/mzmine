@@ -90,7 +90,7 @@ public class AlignmentResultTableModel extends AbstractTableModel {
 					return new Integer(isoUtil.getIsotopePatternNumber(isoPatt));
 				case ISOTOPEPEAK:
 					isoPatt = (IsotopePattern)alignmentRow.getLastData(IsotopePattern.class);
-					return new Integer(isoUtil.getIsotopePatternNumber(isoPatt));
+					return new Integer(isoUtil.getRowNumberWithinPattern(alignmentRow));
 				case CHARGE:
 					isoPatt = (IsotopePattern)alignmentRow.getLastData(IsotopePattern.class);
 					return new Integer(isoPatt.getChargeState());
