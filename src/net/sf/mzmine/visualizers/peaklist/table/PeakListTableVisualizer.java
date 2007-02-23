@@ -77,6 +77,8 @@ public class PeakListTableVisualizer implements MZmineModule, ActionListener, Li
      * @see javax.swing.event.ListSelectionListener#valueChanged(javax.swing.event.ListSelectionEvent)
      */
     public void valueChanged(ListSelectionEvent e) {
+    	peakListViewMenuItem.setEnabled(false);
+    	
 		OpenedRawDataFile[] openedRawDataFiles = desktop.getSelectedDataFiles();
 
 		for (OpenedRawDataFile openedRawDataFile : openedRawDataFiles) {
