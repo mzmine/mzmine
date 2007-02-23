@@ -4,6 +4,7 @@ import java.util.Vector;
 
 import net.sf.mzmine.data.Peak;
 import net.sf.mzmine.data.Scan;
+import net.sf.mzmine.data.Peak.PeakStatus;
 import net.sf.mzmine.data.impl.ConstructionPeak;
 
 class EmptyGap {
@@ -189,6 +190,7 @@ class EmptyGap {
 			ConstructionPeak zeroPeak = new ConstructionPeak();
 			zeroPeak.addDatapoint(closestScanNumber, closestMZ, closestRT, 0.0);
 			zeroPeak.finalizedAddingDatapoints();
+			zeroPeak.setPeakStatus(PeakStatus.ESTIMATED);
 			bestPeak = zeroPeak;
 		}
 		return bestPeak;
@@ -282,6 +284,7 @@ class EmptyGap {
 				candidatePeak.addDatapoint(peakScanNumbers.get(ind), peakMZs.get(ind), peakRTs.get(ind), peakInts.get(ind));
 			}
 			candidatePeak.finalizedAddingDatapoints();
+			candidatePeak.setPeakStatus(PeakStatus.ESTIMATED);
 
 			// 4) Check if this is the best candidate for estimator
 			if (bestPeak!=null) {

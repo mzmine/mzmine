@@ -49,7 +49,8 @@ public class AlignmentResultColumnSelection {
 		MZ ("M/Z", Double.class),
 		RT ("Retention time", Double.class),
 		HEIGHT ("Height", Double.class),
-		AREA ("Area", Double.class);
+		AREA ("Area", Double.class),
+		STATUS ("Status", String.class);
 
 		private final String columnName;
 		private final Class columnClass;
@@ -84,7 +85,8 @@ public class AlignmentResultColumnSelection {
 		selectedRawDataColumns.add(RawDataColumnType.MZ);
 		selectedRawDataColumns.add(RawDataColumnType.RT);
 		selectedRawDataColumns.add(RawDataColumnType.HEIGHT);
-		selectedRawDataColumns.add(RawDataColumnType.AREA);		
+		selectedRawDataColumns.add(RawDataColumnType.AREA);
+		selectedRawDataColumns.add(RawDataColumnType.STATUS);	
 	}
 
 	public int getNumberOfCommonColumns() {

@@ -30,6 +30,7 @@ import net.sf.mzmine.data.AlignmentResult;
 import net.sf.mzmine.data.AlignmentResultRow;
 import net.sf.mzmine.data.IsotopePattern;
 import net.sf.mzmine.data.Peak;
+import net.sf.mzmine.data.Peak.PeakStatus;
 import net.sf.mzmine.data.impl.StandardCompoundFlag;
 import net.sf.mzmine.io.OpenedRawDataFile;
 import net.sf.mzmine.methods.deisotoping.util.IsotopePatternUtility;
@@ -150,7 +151,22 @@ public class AlignmentResultExporter {
 							break;
 						case AREA:
 							s += "" + p.getNormalizedArea() + "\t";
-							break;						
+							break;
+						case STATUS:
+							PeakStatus ps = p.getPeakStatus();
+							if (ps == null) { s+= "" + "N/A" + "\t"; }
+							else {
+								// TODO: Numerical values for DETECTED and ESTIMATED are hard coded here
+								switch(ps) {
+								case DETECTED:
+									s += "1\t";
+									break;
+								case ESTIMATED:
+									s += "2\t";
+									break;
+								}
+							}
+							break;
 						}
 						
 					}

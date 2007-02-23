@@ -6,6 +6,7 @@ import net.sf.mzmine.data.AlignmentResult;
 import net.sf.mzmine.data.AlignmentResultRow;
 import net.sf.mzmine.data.IsotopePattern;
 import net.sf.mzmine.data.Peak;
+import net.sf.mzmine.data.Peak.PeakStatus;
 import net.sf.mzmine.data.impl.StandardCompoundFlag;
 import net.sf.mzmine.io.OpenedRawDataFile;
 import net.sf.mzmine.methods.deisotoping.util.IsotopePatternUtility;
@@ -116,6 +117,9 @@ public class AlignmentResultTableModel extends AbstractTableModel {
 					return new Double(p.getNormalizedHeight());
 				case AREA:
 					return new Double(p.getNormalizedArea());
+				case STATUS:
+					PeakStatus ps = p.getPeakStatus();
+					return ps;
 				default:
 					//System.out.println("Illegal raw data column");
 					return null;

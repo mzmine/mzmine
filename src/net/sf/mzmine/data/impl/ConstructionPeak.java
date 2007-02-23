@@ -63,6 +63,9 @@ public class ConstructionPeak extends AbstractDataUnit implements Peak {
 		return peakStatus;
 	}
 
+	public void setPeakStatus(PeakStatus peakStatus) {
+		this.peakStatus = peakStatus;
+	}
 
 	/* Get methods for basic properties of the peak as defined by the peak picking method */
 

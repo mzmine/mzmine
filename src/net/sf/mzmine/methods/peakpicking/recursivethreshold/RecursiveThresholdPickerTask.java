@@ -26,6 +26,7 @@ import java.util.TreeSet;
 import java.util.Vector;
 import net.sf.mzmine.data.Scan;
 import net.sf.mzmine.data.IsotopePattern;
+import net.sf.mzmine.data.Peak.PeakStatus;
 import net.sf.mzmine.data.impl.ConstructionPeak;
 import net.sf.mzmine.data.impl.SimplePeakList;
 import net.sf.mzmine.data.impl.SimpleIsotopePattern;
@@ -328,6 +329,9 @@ class RecursiveThresholdPickerTask implements Task {
                         // Since this peak picker doesn't detect isotope patterns, assign this peak to a dummy pattern
                         ucPeak.addData(IsotopePattern.class, new SimpleIsotopePattern(1));
 
+                        // Define peak's status
+                        ucPeak.setPeakStatus(PeakStatus.DETECTED);
+                        
                         // add it to the peak list
                         readyPeakList.addPeak(ucPeak);
                     }
@@ -390,6 +394,9 @@ class RecursiveThresholdPickerTask implements Task {
 				// Since this peak picker doesn't detect isotope patterns, assign this peak to a dummy pattern
 				ucPeak.addData(IsotopePattern.class, new SimpleIsotopePattern(1));
 
+                // Define peak's status
+                ucPeak.setPeakStatus(PeakStatus.DETECTED);
+                
                 // add it to the peak list
                 readyPeakList.addPeak(ucPeak);
 
