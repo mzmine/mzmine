@@ -28,6 +28,7 @@ import javax.swing.JMenu;
 import javax.swing.JMenuBar;
 import javax.swing.JMenuItem;
 import javax.swing.KeyStroke;
+import javax.swing.UIManager;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
 
@@ -41,6 +42,7 @@ import net.sf.mzmine.userinterface.dialogs.AboutDialog;
 import net.sf.mzmine.userinterface.dialogs.AlignmentResultExportDialog;
 import net.sf.mzmine.userinterface.dialogs.FileOpenDialog;
 import net.sf.mzmine.util.GUIUtils;
+import net.sf.mzmine.util.LookAndFeelChanger;
 
 /**
  * 
@@ -57,6 +59,7 @@ public class MainMenu extends JMenuBar implements ActionListener,
     private JMenu batchMenu;
     private JMenu visualizationMenu;
     private JMenu toolsMenu;
+    private JMenu lookAndFeelMenu;
     private JMenu windowMenu;
     private JMenu helpMenu;
 
@@ -164,6 +167,16 @@ public class MainMenu extends JMenuBar implements ActionListener,
       
         toolsOptions = GUIUtils.addMenuItem(toolsMenu, "Preferences...", this,
                 KeyEvent.VK_P);
+        
+        lookAndFeelMenu = new JMenu("Look and feel");
+        toolsMenu.add(lookAndFeelMenu);
+        
+        UIManager.LookAndFeelInfo lookAndFeels[] = UIManager.getInstalledLookAndFeels();
+        LookAndFeelChanger lfChanger = new LookAndFeelChanger();
+        
+        for (UIManager.LookAndFeelInfo lfInfo : lookAndFeels) {
+        	GUIUtils.addMenuItem(lookAndFeelMenu, lfInfo.getName(), lfChanger, lfInfo.getClassName());
+        }
 
         windowMenu = new JMenu("Window");
         windowMenu.setMnemonic(KeyEvent.VK_W);
