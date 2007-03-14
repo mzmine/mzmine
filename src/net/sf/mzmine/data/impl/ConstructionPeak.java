@@ -116,6 +116,8 @@ public class ConstructionPeak extends AbstractDataUnit implements Peak {
 
 		ArrayList<double[]> datapoints = datapointsMap.get(scanNumber);
 		
+		if (datapoints == null) return new double[0][0];
+		
 		double[][] res = new double[datapoints.size()][];
 		int ind=0;
 		for (double[] datapoint : datapoints) {
