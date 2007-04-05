@@ -19,6 +19,8 @@
 		<pathelement location="${lib}/jfreechart-1.0.1.jar" />
 		<pathelement location="${lib}/visad.jar" />
 		<pathelement location="${lib}/cdk.jar" />
+		<pathelement location="${lib}/dom4j-1.6.1.jar" />
+		<pathelement location="${lib}/jaxen-1.1.jar" />
 	</path>
 
 
@@ -57,6 +59,8 @@
 			<fileset file="${lib}/jfreechart-1.0.1.jar" />
 			<fileset file="${lib}/visad.jar" />
 			<fileset file="${lib}/cdk.jar" />
+			<fileset file="${lib}/dom4j-11.6.1.jar" />
+     		<fileset file="${lib}/jaxen-1.1.jar" />
 		</copy>
 
 		<jar destfile="${dist}/MZmine.jar" manifest="${rest}/mzminemanifest">
