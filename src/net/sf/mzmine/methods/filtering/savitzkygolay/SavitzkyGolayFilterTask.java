@@ -63,7 +63,7 @@ class SavitzkyGolayFilterTask implements Task {
         this.rawDataFile = dataFile.getCurrentFile();
         this.parameters = parameters;
         
-        numberOfDataPoints = parameters.getParameterValue(SavitzkyGolayFilterParameters.numberOfDatapoints).getIntegerValue();
+        numberOfDataPoints = (Integer) parameters.getParameterValue(SavitzkyGolayFilterParameters.numberOfDatapoints);
     }
 
     /**

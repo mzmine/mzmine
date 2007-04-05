@@ -51,8 +51,8 @@ public class TwoDSetupDialog extends JDialog implements ActionListener {
     private Logger logger = Logger.getLogger(this.getClass().getName());
     
     static final int PADDING_SIZE = 5;
-    static final int DEFAULT_RT_RESOLUTION = 3000;
-    static final int DEFAULT_MZ_RESOLUTION = 3000;
+    static final int DEFAULT_RT_RESOLUTION = 1000;
+    static final int DEFAULT_MZ_RESOLUTION = 1000;
 
     // dialog components
     private JButton btnOK, btnCancel;

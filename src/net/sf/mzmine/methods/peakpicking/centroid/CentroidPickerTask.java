@@ -74,13 +74,13 @@ class CentroidPickerTask implements Task {
         this.parameters = parameters;
 
         // Get parameter values for easier use
-        binSize = parameters.getParameterValue(CentroidPickerParameters.binSize).getDoubleValue();
-        chromatographicThresholdLevel = parameters.getParameterValue(CentroidPickerParameters.chromatographicThresholdLevel).getDoubleValue();
-        intTolerance = parameters.getParameterValue(CentroidPickerParameters.intTolerance).getDoubleValue();
-        minimumPeakDuration = parameters.getParameterValue(CentroidPickerParameters.minimumPeakDuration).getDoubleValue();
-        minimumPeakHeight = parameters.getParameterValue(CentroidPickerParameters.minimumPeakHeight).getDoubleValue();
-        mzTolerance = parameters.getParameterValue(CentroidPickerParameters.mzTolerance).getDoubleValue();
-        noiseLevel = parameters.getParameterValue(CentroidPickerParameters.noiseLevel).getDoubleValue();        
+        binSize = (Double) parameters.getParameterValue(CentroidPickerParameters.binSize);
+        chromatographicThresholdLevel = (Double) parameters.getParameterValue(CentroidPickerParameters.chromatographicThresholdLevel);
+        intTolerance = (Double) parameters.getParameterValue(CentroidPickerParameters.intTolerance);
+        minimumPeakDuration = (Double) parameters.getParameterValue(CentroidPickerParameters.minimumPeakDuration);
+        minimumPeakHeight = (Double) parameters.getParameterValue(CentroidPickerParameters.minimumPeakHeight);
+        mzTolerance = (Double) parameters.getParameterValue(CentroidPickerParameters.mzTolerance);
+        noiseLevel = (Double) parameters.getParameterValue(CentroidPickerParameters.noiseLevel);        
         
         readyPeakList = new SimplePeakList();
     }

@@ -21,16 +21,17 @@ package net.sf.mzmine.util;
 
 import java.util.Collection;
 import java.util.Iterator;
-
+import java.util.Vector;
 
 /**
  * Collection API related utilities
  */
 public class CollectionUtils {
-    
-    
+
     /**
-     * Returns an array of ints consisting of the elements of the specified collection.
+     * Returns an array of ints consisting of the elements of the specified
+     * collection.
+     * 
      * @param collection Collection of Integers
      * @return Array of ints
      */
@@ -43,9 +44,10 @@ public class CollectionUtils {
         }
         return array;
     }
-    
+
     /**
      * Converts an array of ints to an array of Integers
+     * 
      * @param array Array of ints
      * @return Array of Integers
      */
@@ -55,9 +57,11 @@ public class CollectionUtils {
             newArray[i] = new Integer(array[i]);
         return newArray;
     }
-    
+
     /**
-     * Returns an array of doubles consisting of the elements of the specified collection.
+     * Returns an array of doubles consisting of the elements of the specified
+     * collection.
+     * 
      * @param collection Collection of Doubles
      * @return Array of doubles
      */
@@ -69,11 +73,11 @@ public class CollectionUtils {
             array[index++] = it.next();
         }
         return array;
-    }    
-    
+    }
 
     /**
      * Checks if the haystack array contains all elements of needles array
+     * 
      * @param haystack array of ints
      * @param needles array of ints
      * @return true if haystack contains all elements of needles
@@ -81,11 +85,29 @@ public class CollectionUtils {
     public static boolean isSubset(int haystack[], int needles[]) {
         needleTraversal: for (int i = 0; i < needles.length; i++) {
             for (int j = 0; j < haystack.length; j++) {
-                if (needles[i] == haystack[j]) continue needleTraversal;
+                if (needles[i] == haystack[j])
+                    continue needleTraversal;
             }
             return false;
         }
         return true;
     }
+
+    /**
+     * Checks if the haystack array contains a specified element
+     * 
+     * @param haystack array of objects
+     * @param needle object
+     * @return true if haystack contains needle
+     */
+     public static <T> boolean arrayContains(T haystack[], T needle) {
+        for (T test : haystack) {
+            if (needle == test)
+                return true;
+        }
+        return false;
+    }
+    
+
 
 }

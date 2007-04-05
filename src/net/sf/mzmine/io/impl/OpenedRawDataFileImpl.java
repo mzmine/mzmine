@@ -24,12 +24,12 @@ import java.io.IOException;
 import java.util.Vector;
 import java.util.logging.Logger;
 
+import net.sf.mzmine.data.impl.SimpleParameterSet;
 import net.sf.mzmine.io.OpenedRawDataFile;
 import net.sf.mzmine.io.RawDataFile;
 import net.sf.mzmine.io.RawDataFileWriter;
 import net.sf.mzmine.io.mzxml.MZXMLFileWriter;
 import net.sf.mzmine.methods.Method;
-import net.sf.mzmine.methods.MethodParameters;
 
 
 /**
@@ -75,10 +75,10 @@ public class OpenedRawDataFileImpl implements OpenedRawDataFile {
     }
 
     /**
-     * @see net.sf.mzmine.io.OpenedRawDataFile#updateFile(net.sf.mzmine.io.RawDataFile, net.sf.mzmine.methods.Method, net.sf.mzmine.methods.MethodParameters)
+     * @see net.sf.mzmine.io.OpenedRawDataFile#updateFile(net.sf.mzmine.io.RawDataFile, net.sf.mzmine.methods.Method, net.sf.mzmine.data.impl.SimpleParameterSet)
      */
     public synchronized void updateFile(RawDataFile newFile, Method processingMethod,
-            MethodParameters parameters) {
+            SimpleParameterSet parameters) {
         
         Operation op = new Operation();
         op.oldFileName = currentFile.getFile();
@@ -135,9 +135,9 @@ public class OpenedRawDataFileImpl implements OpenedRawDataFile {
 
 
     /**
-     * @see net.sf.mzmine.io.OpenedRawDataFile#addHistoryEntry(net.sf.mzmine.methods.Method, net.sf.mzmine.methods.MethodParameters)
+     * @see net.sf.mzmine.io.OpenedRawDataFile#addHistoryEntry(net.sf.mzmine.methods.Method, net.sf.mzmine.data.impl.SimpleParameterSet)
      */
-    public void addHistoryEntry(File file, Method method, MethodParameters param) {
+    public void addHistoryEntry(File file, Method method, SimpleParameterSet param) {
         Operation op = new Operation();
         op.oldFileName = file;
         op.newFileName = file;

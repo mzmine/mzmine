@@ -31,11 +31,12 @@ import javax.swing.event.ListSelectionListener;
 
 import net.sf.mzmine.batchmode.BatchModeController.BatchModeStep;
 import net.sf.mzmine.data.AlignmentResult;
+import net.sf.mzmine.data.ParameterSet;
+import net.sf.mzmine.data.impl.SimpleParameterSet;
 import net.sf.mzmine.io.OpenedRawDataFile;
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.methods.Method;
 import net.sf.mzmine.methods.MethodListener;
-import net.sf.mzmine.methods.MethodParameters;
 import net.sf.mzmine.taskcontrol.TaskController;
 import net.sf.mzmine.taskcontrol.TaskListener;
 import net.sf.mzmine.userinterface.Desktop;
@@ -77,7 +78,7 @@ ListSelectionListener, ActionListener {
 
 	}
 	
-	public void setParameters(MethodParameters parameters) {
+	public void setParameters(SimpleParameterSet parameters) {
 		this.parameters = (SimpleGapFillerParameters)parameters;
 	}
 	
@@ -86,7 +87,7 @@ ListSelectionListener, ActionListener {
 	}
 
     /**
-     * @see net.sf.mzmine.methods.Method#runMethod(net.sf.mzmine.methods.MethodParameters, net.sf.mzmine.io.OpenedRawDataFile[], net.sf.mzmine.data.AlignmentResult[])
+     * @see net.sf.mzmine.methods.Method#runMethod(net.sf.mzmine.data.impl.SimpleParameterSet, net.sf.mzmine.io.OpenedRawDataFile[], net.sf.mzmine.data.AlignmentResult[])
      */
     public void runMethod(OpenedRawDataFile[] dataFiles, AlignmentResult[] alignmentResults) {
 
@@ -137,5 +138,21 @@ ListSelectionListener, ActionListener {
         runMethod(null, alignmentResults);
 		
 	}
+
+    /**
+     * @see net.sf.mzmine.main.MZmineModule#getCurrentParameters()
+     */
+    public ParameterSet getCurrentParameters() {
+        // TODO Auto-generated method stub
+        return null;
+    }
+
+    /**
+     * @see net.sf.mzmine.main.MZmineModule#setCurrentParameters(net.sf.mzmine.data.ParameterSet)
+     */
+    public void setCurrentParameters(ParameterSet parameterValues) {
+        // TODO Auto-generated method stub
+        
+    }
 
 }

@@ -21,18 +21,16 @@
 package net.sf.mzmine.methods.gapfilling.simple;
 
 import net.sf.mzmine.data.Parameter;
-import net.sf.mzmine.data.ParameterValue;
 import net.sf.mzmine.data.Parameter.ParameterType;
 import net.sf.mzmine.data.impl.SimpleParameter;
-import net.sf.mzmine.data.impl.SimpleParameterValue;
-import net.sf.mzmine.methods.MethodParameters;
+import net.sf.mzmine.data.impl.SimpleParameterSet;
 import net.sf.mzmine.userinterface.DesktopParameters;
 
-public class SimpleGapFillerParameters extends MethodParameters {
+public class SimpleGapFillerParameters extends SimpleParameterSet {
 
-	protected static final ParameterValue RTToleranceTypeAbsolute = new SimpleParameterValue("Absolute");
-	protected static final ParameterValue RTToleranceTypeRelative = new SimpleParameterValue("Relative");
-	protected static final ParameterValue[] RTToleranceTypePossibleValues = {RTToleranceTypeAbsolute , RTToleranceTypeRelative}; 
+	protected static final String RTToleranceTypeAbsolute = "Absolute";
+	protected static final String RTToleranceTypeRelative = "Relative";
+	protected static final Object[] RTToleranceTypePossibleValues = {RTToleranceTypeAbsolute , RTToleranceTypeRelative}; 
 	
 	
     protected static final Parameter IntTolerance = new SimpleParameter(	
@@ -40,8 +38,8 @@ public class SimpleGapFillerParameters extends MethodParameters {
 			"Intensity tolerance",
 			"Maximum allowed deviation from expected /\\ shape of a peak in chromatographic direction",
 			"%",
-			new SimpleParameterValue(0.20), 
-			new SimpleParameterValue(0.0),
+			new Double(0.20), 
+			new Double(0.0),
 			null,
 			DesktopParameters.percentFormatParameter); 
 
@@ -50,12 +48,12 @@ public class SimpleGapFillerParameters extends MethodParameters {
 			"M/Z tolerance",
 			"Search range size in M/Z direction",
 			"Da",
-			new SimpleParameterValue(0.050),
-			new SimpleParameterValue(0.0),
+			new Double(0.050),
+			new Double(0.0),
 			null,
 			DesktopParameters.mzNumberFormatParameter);
     
-	protected static final Parameter RTToleranceType = new SimpleParameter(	ParameterType.OBJECT,
+	protected static final Parameter RTToleranceType = new SimpleParameter(	ParameterType.STRING,
 			"RT range type",
 			"How to determine search range size in RT direction",
 			RTToleranceTypeAbsolute,
@@ -66,8 +64,8 @@ public class SimpleGapFillerParameters extends MethodParameters {
 			"Absolute RT tolerance",
 			"Absolute search range size in RT direction",
 			"seconds",
-			new SimpleParameterValue(15.0),
-			new SimpleParameterValue(0.0),
+			new Double(15.0),
+			new Double(0.0),
 			null,
 			DesktopParameters.decimalFormatParameter);
 
@@ -76,8 +74,8 @@ public class SimpleGapFillerParameters extends MethodParameters {
 			"Relative RT tolerance",
 			"Relative search range size in RT direction",
 			"%",
-			new SimpleParameterValue(0.15),
-			new SimpleParameterValue(0.0),
+			new Double(0.15),
+			new Double(0.0),
 			null,
 			DesktopParameters.percentFormatParameter);
 

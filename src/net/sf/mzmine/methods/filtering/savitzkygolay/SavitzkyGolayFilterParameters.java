@@ -20,37 +20,29 @@
 package net.sf.mzmine.methods.filtering.savitzkygolay;
 
 import net.sf.mzmine.data.Parameter;
-import net.sf.mzmine.data.ParameterValue;
 import net.sf.mzmine.data.Parameter.ParameterType;
 import net.sf.mzmine.data.impl.SimpleParameter;
-import net.sf.mzmine.data.impl.SimpleParameterValue;
-import net.sf.mzmine.methods.MethodParameters;
+import net.sf.mzmine.data.impl.SimpleParameterSet;
 
 /**
  * This class represents parameter for the Savizky-Golay filter
  */
-public class SavitzkyGolayFilterParameters extends MethodParameters {
+public class SavitzkyGolayFilterParameters extends SimpleParameterSet {
     
-	protected static final ParameterValue numberOfDatapoints5 = new SimpleParameterValue(5);
-	protected static final ParameterValue numberOfDatapoints7 = new SimpleParameterValue(7);
-	protected static final ParameterValue numberOfDatapoints9 = new SimpleParameterValue(9);
-	protected static final ParameterValue numberOfDatapoints11 = new SimpleParameterValue(11);
-	protected static final ParameterValue numberOfDatapoints13 = new SimpleParameterValue(13);
-	protected static final ParameterValue numberOfDatapoints15 = new SimpleParameterValue(15);
 	
-    protected static final ParameterValue[] numberOfDatapointsPossibleValues = { 
-    										numberOfDatapoints5, 
-    										numberOfDatapoints7, 
-    										numberOfDatapoints9, 
-    										numberOfDatapoints11, 
-    										numberOfDatapoints13, 
-    										numberOfDatapoints15};
+    protected static final Object[] numberOfDatapointsPossibleValues = { 
+    										5, 
+    										7, 
+    										9, 
+    										11, 
+    										13, 
+    										15};
     
 	protected static final Parameter numberOfDatapoints = new SimpleParameter(	
-			ParameterType.OBJECT,
+			ParameterType.INTEGER,
 			"Number of datapoints",
 			"Number of datapoints",
-			numberOfDatapoints5,
+			5,
 			numberOfDatapointsPossibleValues);
     
 

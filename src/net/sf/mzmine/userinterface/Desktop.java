@@ -29,6 +29,7 @@ import javax.swing.event.ListSelectionListener;
 
 import net.sf.mzmine.data.AlignmentResult;
 import net.sf.mzmine.io.OpenedRawDataFile;
+import net.sf.mzmine.util.NumberFormatProvider;
 
 /**
  * This interface represents the application GUI
@@ -126,7 +127,10 @@ public interface Desktop {
      */
     public void removeAlignmentResult(AlignmentResult alignmentResult);
     
+    public NumberFormatProvider getMZFormatProvider();
 
-    public void exitMZmine();
+    public NumberFormatProvider getRTFormatProvider();
+    
+    public NumberFormatProvider getIntensityFormatProvider();
 
 }

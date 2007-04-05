@@ -34,11 +34,11 @@ class SimpleGapFillerTask implements Task {
 		this.emptyGaps = emptyGaps;
 
         this.parameters = parameters;
-        intTolerance = parameters.getParameterValue(SimpleGapFillerParameters.IntTolerance).getDoubleValue(); 
-        mzTolerance = parameters.getParameterValue(SimpleGapFillerParameters.MZTolerance).getDoubleValue();
+        intTolerance = (Double) parameters.getParameterValue(SimpleGapFillerParameters.IntTolerance); 
+        mzTolerance = (Double) parameters.getParameterValue(SimpleGapFillerParameters.MZTolerance);
         if (parameters.getParameterValue(SimpleGapFillerParameters.RTToleranceType)==SimpleGapFillerParameters.RTToleranceTypeAbsolute) rtToleranceUseAbs = true;
-        rtToleranceValueAbs = parameters.getParameterValue(SimpleGapFillerParameters.RTToleranceValueAbs).getDoubleValue();
-        rtToleranceValuePercent = parameters.getParameterValue(SimpleGapFillerParameters.RTToleranceValuePercent).getDoubleValue();
+        rtToleranceValueAbs = (Double) parameters.getParameterValue(SimpleGapFillerParameters.RTToleranceValueAbs);
+        rtToleranceValuePercent = (Double) parameters.getParameterValue(SimpleGapFillerParameters.RTToleranceValuePercent);
 
 	}
 	

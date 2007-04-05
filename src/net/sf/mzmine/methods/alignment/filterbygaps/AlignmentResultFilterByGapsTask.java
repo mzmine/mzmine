@@ -25,7 +25,7 @@ class AlignmentResultFilterByGapsTask implements Task {
 		this.originalAlignmentResult = alignmentResult;
 		this.parameters = parameters;
 		
-		minPresent = parameters.getParameterValue(AlignmentResultFilterByGapsParameters.minPresent).getIntegerValue();
+		minPresent = (Integer) parameters.getParameterValue(AlignmentResultFilterByGapsParameters.minPresent);
 	}
 	
 	public void cancel() {

@@ -22,19 +22,18 @@ package net.sf.mzmine.methods.peakpicking.recursivethreshold;
 import net.sf.mzmine.data.Parameter;
 import net.sf.mzmine.data.Parameter.ParameterType;
 import net.sf.mzmine.data.impl.SimpleParameter;
-import net.sf.mzmine.data.impl.SimpleParameterValue;
-import net.sf.mzmine.methods.MethodParameters;
+import net.sf.mzmine.data.impl.SimpleParameterSet;
 import net.sf.mzmine.userinterface.DesktopParameters;
 
-public class RecursiveThresholdPickerParameters extends MethodParameters {
+public class RecursiveThresholdPickerParameters extends SimpleParameterSet {
   
     protected static final Parameter binSize = new SimpleParameter(	
     		ParameterType.DOUBLE,
 			"M/Z bin width",
 			"Width of M/Z range for each precalculated XIC",
 			"Da",
-			new SimpleParameterValue(0.25),
-			new SimpleParameterValue(0.05),
+			new Double(0.25),
+			new Double(0.05),
 			null,
 			DesktopParameters.mzNumberFormatParameter);
 
@@ -43,9 +42,9 @@ public class RecursiveThresholdPickerParameters extends MethodParameters {
 			"Chromatographic threshold level",
 			"Used in defining threshold level value from an XIC",
 			"%",
-			new SimpleParameterValue(0.0),
-			new SimpleParameterValue(0.0),
-			new SimpleParameterValue(1.0),
+			new Double(0.0),
+			new Double(0.0),
+			new Double(1.0),
 			DesktopParameters.percentFormatParameter);
 
     protected static final Parameter noiseLevel = new SimpleParameter(	
@@ -53,8 +52,8 @@ public class RecursiveThresholdPickerParameters extends MethodParameters {
 			"Nouse level",
 			"Intensities less than this value are interpreted as noise",
 			"absolute",
-			new SimpleParameterValue(10.0),
-			new SimpleParameterValue(0.0),
+			new Double(10.0),
+			new Double(0.0),
 			null,
 			DesktopParameters.decimalFormatParameter);
 
@@ -63,8 +62,8 @@ public class RecursiveThresholdPickerParameters extends MethodParameters {
 			"Min peak height",
 			"Minimum acceptable peak height",
 			"absolute",
-			new SimpleParameterValue(100.0),
-			new SimpleParameterValue(0.0),
+			new Double(100.0),
+			new Double(0.0),
 			null,
 			DesktopParameters.decimalFormatParameter);
 
@@ -73,8 +72,8 @@ public class RecursiveThresholdPickerParameters extends MethodParameters {
 			"Min peak duration",
 			"Minimum acceptable peak duration",
 			"seconds",
-			new SimpleParameterValue(4.0),
-			new SimpleParameterValue(0.0),
+			new Double(4.0),
+			new Double(0.0),
 			null,
 			DesktopParameters.decimalFormatParameter);
     
@@ -83,8 +82,8 @@ public class RecursiveThresholdPickerParameters extends MethodParameters {
 			"Min M/Z peak width",
 			"Minimum acceptable peak width in M/Z",
 			"Da",
-			new SimpleParameterValue(0.2),
-			new SimpleParameterValue(0.0),
+			new Double(0.2),
+			new Double(0.0),
 			null,
 			DesktopParameters.mzNumberFormatParameter);
 
@@ -93,8 +92,8 @@ public class RecursiveThresholdPickerParameters extends MethodParameters {
 			"Max M/Z peak width",
 			"Maximum acceptable peak width in M/Z",
 			"Da",
-			new SimpleParameterValue(1.00),
-			new SimpleParameterValue(0.0),
+			new Double(1.00),
+			new Double(0.0),
 			null,
 			DesktopParameters.mzNumberFormatParameter);    
     
@@ -103,8 +102,8 @@ public class RecursiveThresholdPickerParameters extends MethodParameters {
 			"M/Z tolerance",
 			"Maximum allowed distance in M/Z between centroid peaks in successive scans",
 			"Da",
-			new SimpleParameterValue(0.1),
-			new SimpleParameterValue(0.0),
+			new Double(0.1),
+			new Double(0.0),
 			null,
 			DesktopParameters.mzNumberFormatParameter);
 
@@ -113,8 +112,8 @@ public class RecursiveThresholdPickerParameters extends MethodParameters {
 			"Intensity tolerance",
 			"Maximum allowed deviation from expected /\\ shape of a peak in chromatographic direction",
 			"%",
-			new SimpleParameterValue(0.15),
-			new SimpleParameterValue(0.0),
+			new Double(0.15),
+			new Double(0.0),
 			null,
 			DesktopParameters.decimalFormatParameter); 
     

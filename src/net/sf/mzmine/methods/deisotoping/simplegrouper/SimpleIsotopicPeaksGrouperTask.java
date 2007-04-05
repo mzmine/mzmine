@@ -65,10 +65,10 @@ class SimpleIsotopicPeaksGrouperTask implements Task {
         processedPeakList = new SimplePeakList();
         
         this.parameters = parameters;
-        mzTolerance = parameters.getParameterValue(SimpleIsotopicPeaksGrouperParameters.mzTolerance).getDoubleValue();
-        rtTolerance = parameters.getParameterValue(SimpleIsotopicPeaksGrouperParameters.rtTolerance).getDoubleValue();
-        monotonicShape = parameters.getParameterValue(SimpleIsotopicPeaksGrouperParameters.monotonicShape).getBooleanValue();
-        maximumCharge = parameters.getParameterValue(SimpleIsotopicPeaksGrouperParameters.maximumCharge).getIntegerValue();
+        mzTolerance = (Double) parameters.getParameterValue(SimpleIsotopicPeaksGrouperParameters.mzTolerance);
+        rtTolerance = (Double) parameters.getParameterValue(SimpleIsotopicPeaksGrouperParameters.rtTolerance);
+        monotonicShape = (Boolean) parameters.getParameterValue(SimpleIsotopicPeaksGrouperParameters.monotonicShape);
+        maximumCharge = (Integer) parameters.getParameterValue(SimpleIsotopicPeaksGrouperParameters.maximumCharge);
 
     }
 

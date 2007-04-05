@@ -16,8 +16,7 @@ package net.sf.mzmine.methods.deisotoping.simplegrouper;
 import net.sf.mzmine.data.Parameter;
 import net.sf.mzmine.data.Parameter.ParameterType;
 import net.sf.mzmine.data.impl.SimpleParameter;
-import net.sf.mzmine.data.impl.SimpleParameterValue;
-import net.sf.mzmine.methods.MethodParameters;
+import net.sf.mzmine.data.impl.SimpleParameterSet;
 import net.sf.mzmine.userinterface.DesktopParameters;
 
 /**
@@ -26,15 +25,15 @@ import net.sf.mzmine.userinterface.DesktopParameters;
  * 
  * @version 31 March 2006
  */
-public class SimpleIsotopicPeaksGrouperParameters extends MethodParameters {
+public class SimpleIsotopicPeaksGrouperParameters extends SimpleParameterSet {
   
 	protected static final Parameter mzTolerance = new SimpleParameter(	
 			ParameterType.DOUBLE,
 			"M/Z tolerance",
 			"Maximum distance in M/Z from the expected location of a peak",
 			"Da",
-			new SimpleParameterValue(0.05),
-			new SimpleParameterValue(0.0),
+			new Double(0.05),
+			new Double(0.0),
 			null,
 			DesktopParameters.mzNumberFormatParameter);
 	
@@ -43,8 +42,8 @@ public class SimpleIsotopicPeaksGrouperParameters extends MethodParameters {
 			"RT tolerance",
 			"Maximum distance in RT from the expected location of a peak",
 			"seconds",
-			new SimpleParameterValue(5.0),
-			new SimpleParameterValue(0.0),
+			new Double(5.0),
+			new Double(0.0),
 			null,
 			DesktopParameters.decimalFormatParameter);
 	
@@ -52,16 +51,15 @@ public class SimpleIsotopicPeaksGrouperParameters extends MethodParameters {
 			ParameterType.BOOLEAN,
 			"Monotonic shape",
 			"If true, then monotonically decreasing height of isotope pattern is required (monoisotopic peak is strongest).",
-			"",
-			new SimpleParameterValue(new Boolean(true)));
+			new Boolean(true));
 
 	protected static final Parameter maximumCharge = new SimpleParameter(	
 			ParameterType.INTEGER,
 			"Maximum charge",
 			"Maximum charge",
 			"",
-			new SimpleParameterValue(1),
-			new SimpleParameterValue(1),
+			new Double(1),
+			new Double(1),
 			null,
 			DesktopParameters.integerFormatParameter);	
     

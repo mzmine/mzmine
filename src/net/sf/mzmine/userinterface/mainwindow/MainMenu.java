@@ -35,6 +35,7 @@ import javax.swing.event.ListSelectionListener;
 import net.sf.mzmine.data.AlignmentResult;
 import net.sf.mzmine.io.IOController;
 import net.sf.mzmine.io.OpenedRawDataFile;
+import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.project.MZmineProject;
 import net.sf.mzmine.userinterface.Desktop;
 import net.sf.mzmine.userinterface.Desktop.MZmineMenu;
@@ -84,21 +85,22 @@ public class MainMenu extends JMenuBar implements ActionListener,
      * private JMenu toolsMenu;
      */
 
-    private JMenuItem batDefine;
     private JMenuItem toolsOptions;
 
     private JMenuItem windowTileWindows, windowCascadeWindows;
     private JMenuItem hlpAbout;
 
+    private MZmineCore core;
     private IOController ioController;
     private Desktop desktop;
     
     private Logger logger = Logger.getLogger(this.getClass().getName());
 
-    MainMenu(IOController ioController, Desktop desktop) {
+    MainMenu(MZmineCore core) {
 
-        this.ioController = ioController;
-        this.desktop = desktop;
+        this.core = core;
+        this.ioController = core.getIOController();
+        this.desktop = core.getDesktop();
 
         fileMenu = new JMenu("File");
         fileMenu.setMnemonic(KeyEvent.VK_F);
@@ -275,7 +277,7 @@ public class MainMenu extends JMenuBar implements ActionListener,
         Object src = e.getSource();
 
         if (src == fileExit) {
-            desktop.exitMZmine();
+            core.exitMZmine();
         }
 
         // File -> Open

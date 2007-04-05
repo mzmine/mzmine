@@ -22,18 +22,17 @@ package net.sf.mzmine.methods.peakpicking.centroid;
 import net.sf.mzmine.data.Parameter;
 import net.sf.mzmine.data.Parameter.ParameterType;
 import net.sf.mzmine.data.impl.SimpleParameter;
-import net.sf.mzmine.data.impl.SimpleParameterValue;
-import net.sf.mzmine.methods.MethodParameters;
+import net.sf.mzmine.data.impl.SimpleParameterSet;
 import net.sf.mzmine.userinterface.DesktopParameters;
 
-public class CentroidPickerParameters extends MethodParameters {
+public class CentroidPickerParameters extends SimpleParameterSet {
 
     protected static final Parameter binSize = new SimpleParameter(	ParameterType.DOUBLE,
 																	"M/Z bin width",
 																	"Width of M/Z range for each precalculated XIC",
 																	"Da",
-																	new SimpleParameterValue(0.25),
-																	new SimpleParameterValue(0.05),
+																	new Double(0.25),
+																	new Double(0.05),
 																	null,
 																	DesktopParameters.mzNumberFormatParameter);
     
@@ -42,9 +41,9 @@ public class CentroidPickerParameters extends MethodParameters {
     																"Chromatographic threshold level",
     																"Used in defining threshold level value from an XIC",
     																"%",
-    																new SimpleParameterValue(0.0),
-    																new SimpleParameterValue(0.0),
-    																new SimpleParameterValue(1.0),
+    																new Double(0.0),
+    																new Double(0.0),
+    																new Double(1.0),
     																DesktopParameters.percentFormatParameter);
     
     protected static final Parameter noiseLevel = new SimpleParameter(	
@@ -52,8 +51,8 @@ public class CentroidPickerParameters extends MethodParameters {
 																	"Nouse level",
 																	"Intensities less than this value are interpreted as noise",
 																	"absolute",
-																	new SimpleParameterValue(4.0),
-																	new SimpleParameterValue(0.0),
+																	new Double(4.0),
+																	new Double(0.0),
 																	null,
 																	DesktopParameters.decimalFormatParameter);
     
@@ -62,8 +61,8 @@ public class CentroidPickerParameters extends MethodParameters {
 																	"Min peak height",
 																	"Minimum acceptable peak height",
 																	"absolute",
-																	new SimpleParameterValue(15.0),
-																	new SimpleParameterValue(0.0),
+																	new Double(15.0),
+																	new Double(0.0),
 																	null,
 																	DesktopParameters.decimalFormatParameter);
     
@@ -72,8 +71,8 @@ public class CentroidPickerParameters extends MethodParameters {
 																	"Min peak duration",
 																	"Minimum acceptable peak duration",
 																	"seconds",
-																	new SimpleParameterValue(3.0),
-																	new SimpleParameterValue(0.0),
+																	new Double(3.0),
+																	new Double(0.0),
 																	null,
 																	DesktopParameters.decimalFormatParameter);
     
@@ -82,8 +81,8 @@ public class CentroidPickerParameters extends MethodParameters {
 																	"M/Z tolerance",
 																	"Maximum allowed distance in M/Z between centroid peaks in successive scans",
 																	"Da",
-																	new SimpleParameterValue(0.050),
-																	new SimpleParameterValue(0.0),
+																	new Double(0.050),
+																	new Double(0.0),
 																	null,
 																	DesktopParameters.mzNumberFormatParameter);
     	
@@ -92,8 +91,8 @@ public class CentroidPickerParameters extends MethodParameters {
 																	"Intensity tolerance",
 																	"Maximum allowed deviation from expected /\\ shape of a peak in chromatographic direction",
 																	"%",
-																	new SimpleParameterValue(0.20), 
-																	new SimpleParameterValue(0.0),
+																	new Double(0.20), 
+																	new Double(0.0),
 																	null,
 																	DesktopParameters.percentFormatParameter); 
     

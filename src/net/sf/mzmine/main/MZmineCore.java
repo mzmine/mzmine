@@ -19,7 +19,6 @@
 
 package net.sf.mzmine.main;
 
-import net.sf.mzmine.batchmode.BatchModeController;
 import net.sf.mzmine.io.IOController;
 import net.sf.mzmine.taskcontrol.TaskController;
 import net.sf.mzmine.userinterface.Desktop;
@@ -53,15 +52,16 @@ public interface MZmineCore {
 
     
     /**
-     * Returns a reference to BatchMode controller. Null if GUI doesn't have batch processing capability.
-     */
-    public BatchModeController getBatchModeController();
-    
-    /**
      * Returns an array of all initialized MZmine modules
      * 
      * @return Array of all initialized MZmine modules
      */
     public MZmineModule[] getAllModules();
+    
+    /**
+     * Saves configuration and exits the application. 
+     *
+     */
+    public void exitMZmine();
 
 }

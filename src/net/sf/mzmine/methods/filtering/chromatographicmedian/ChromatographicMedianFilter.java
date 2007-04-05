@@ -30,12 +30,13 @@ import javax.swing.event.ListSelectionListener;
 
 import net.sf.mzmine.batchmode.BatchModeController.BatchModeStep;
 import net.sf.mzmine.data.AlignmentResult;
+import net.sf.mzmine.data.ParameterSet;
+import net.sf.mzmine.data.impl.SimpleParameterSet;
 import net.sf.mzmine.io.OpenedRawDataFile;
 import net.sf.mzmine.io.RawDataFile;
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.methods.Method;
 import net.sf.mzmine.methods.MethodListener;
-import net.sf.mzmine.methods.MethodParameters;
 import net.sf.mzmine.methods.MethodListener.MethodReturnStatus;
 import net.sf.mzmine.taskcontrol.Task;
 import net.sf.mzmine.taskcontrol.TaskController;
@@ -95,12 +96,12 @@ public class ChromatographicMedianFilter implements Method,
 		return true;
     }
     
-    public void setParameters(MethodParameters parameters) {
+    public void setParameters(SimpleParameterSet parameters) {
     	this.parameters = (ChromatographicMedianFilterParameters)parameters;
     }
 
     /**
-     * @see net.sf.mzmine.methods.Method#runMethod(net.sf.mzmine.methods.MethodParameters,
+     * @see net.sf.mzmine.methods.Method#runMethod(net.sf.mzmine.data.impl.SimpleParameterSet,
      *      net.sf.mzmine.io.RawDataFile[],
      *      net.sf.mzmine.methods.alignment.AlignmentResult[])
      */
@@ -154,7 +155,7 @@ public class ChromatographicMedianFilter implements Method,
             Object[] result = (Object[]) task.getResult();
             OpenedRawDataFile openedFile = (OpenedRawDataFile) result[0];
             RawDataFile newFile = (RawDataFile) result[1];
-            MethodParameters cfParam = (MethodParameters) result[2];
+            SimpleParameterSet cfParam = (SimpleParameterSet) result[2];
 
             openedFile.updateFile(newFile, this, cfParam);
             
@@ -192,6 +193,22 @@ public class ChromatographicMedianFilter implements Method,
      */
     public String toString() {
         return "Chromatographic median filter";
+    }
+
+    /**
+     * @see net.sf.mzmine.main.MZmineModule#getCurrentParameters()
+     */
+    public ParameterSet getCurrentParameters() {
+        // TODO Auto-generated method stub
+        return null;
+    }
+
+    /**
+     * @see net.sf.mzmine.main.MZmineModule#setCurrentParameters(net.sf.mzmine.data.ParameterSet)
+     */
+    public void setCurrentParameters(ParameterSet parameterValues) {
+        // TODO Auto-generated method stub
+        
     }
 
     

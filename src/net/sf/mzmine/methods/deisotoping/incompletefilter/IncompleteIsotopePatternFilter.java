@@ -20,11 +20,12 @@
 package net.sf.mzmine.methods.deisotoping.incompletefilter;
 
 import net.sf.mzmine.data.AlignmentResult;
+import net.sf.mzmine.data.ParameterSet;
+import net.sf.mzmine.data.impl.SimpleParameterSet;
 import net.sf.mzmine.io.OpenedRawDataFile;
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.methods.Method;
 import net.sf.mzmine.methods.MethodListener;
-import net.sf.mzmine.methods.MethodParameters;
 import net.sf.mzmine.taskcontrol.TaskListener;
 import net.sf.mzmine.userinterface.dialogs.ParameterSetupDialog;
 import net.sf.mzmine.userinterface.mainwindow.MainWindow;
@@ -61,13 +62,13 @@ public class IncompleteIsotopePatternFilter implements Method {
 		return true;
 	}
 	
-	public void setParameters(MethodParameters parameters) {
+	public void setParameters(SimpleParameterSet parameters) {
 		this.parameters = (IncompleteIsotopePatternFilterParameters)parameters;
 	}
 
 
     /**
-     * @see net.sf.mzmine.methods.Method#runMethod(net.sf.mzmine.methods.MethodParameters, net.sf.mzmine.io.OpenedRawDataFile[], net.sf.mzmine.methods.alignment.AlignmentResult[])
+     * @see net.sf.mzmine.methods.Method#runMethod(net.sf.mzmine.data.impl.SimpleParameterSet, net.sf.mzmine.io.OpenedRawDataFile[], net.sf.mzmine.methods.alignment.AlignmentResult[])
      */
     public void runMethod(OpenedRawDataFile[] dataFiles, AlignmentResult[] alignmentResults) {
         // TODO Auto-generated method stub
@@ -83,6 +84,22 @@ public class IncompleteIsotopePatternFilter implements Method {
      * @see net.sf.mzmine.main.MZmineModule#initModule(net.sf.mzmine.main.MZmineCore)
      */
     public void initModule(MZmineCore core) {
+        // TODO Auto-generated method stub
+        
+    }
+
+    /**
+     * @see net.sf.mzmine.main.MZmineModule#getCurrentParameters()
+     */
+    public ParameterSet getCurrentParameters() {
+        // TODO Auto-generated method stub
+        return null;
+    }
+
+    /**
+     * @see net.sf.mzmine.main.MZmineModule#setCurrentParameters(net.sf.mzmine.data.ParameterSet)
+     */
+    public void setCurrentParameters(ParameterSet parameterValues) {
         // TODO Auto-generated method stub
         
     }

@@ -5,7 +5,6 @@ import java.util.Hashtable;
 import net.sf.mzmine.data.AlignmentResult;
 import net.sf.mzmine.data.AlignmentResultRow;
 import net.sf.mzmine.data.IsotopePattern;
-import net.sf.mzmine.data.ParameterValue;
 import net.sf.mzmine.data.Peak;
 import net.sf.mzmine.data.impl.SimpleAlignmentResult;
 import net.sf.mzmine.data.impl.SimpleAlignmentResultRow;
@@ -20,8 +19,7 @@ public class LinearNormalizerTask implements Task {
 	private AlignmentResult originalAlignmentResult;
 	private LinearNormalizerParameters parameters;
 	private String normalizationTypeString;
-	private ParameterValue normalizationTypeParameterValue;
-	
+
 	private TaskStatus status;
 	private String errorMessage;
 	
@@ -35,8 +33,7 @@ public class LinearNormalizerTask implements Task {
 		this.originalAlignmentResult = alignmentResult;
 		this.parameters = parameters;
 		
-		normalizationTypeParameterValue = parameters.getParameterValue(LinearNormalizerParameters.NormalizationType);
-		normalizationTypeString = normalizationTypeParameterValue.getStringValue(); 
+		normalizationTypeString = (String) parameters.getParameterValue(LinearNormalizerParameters.NormalizationType); 
 		
 	}
 	
@@ -111,7 +108,7 @@ public class LinearNormalizerTask implements Task {
 			double normalizationFactor = 1.0;
 			
 			// - normalization by average squared peak intensity
-			if (normalizationTypeParameterValue==LinearNormalizerParameters.NormalizationTypeAverageIntensity) {
+			if (normalizationTypeString==LinearNormalizerParameters.NormalizationTypeAverageIntensity) {
 				double intensitySum = 0.0;
 				int intensityCount = 0;
 				for (AlignmentResultRow alignmentRow : originalAlignmentResult.getRows()) {
@@ -126,7 +123,7 @@ public class LinearNormalizerTask implements Task {
 			}
 
 			// - normalization by average squared peak intensity
-			if (normalizationTypeParameterValue==LinearNormalizerParameters.NormalizationTypeAverageSquaredIntensity) {
+			if (normalizationTypeString==LinearNormalizerParameters.NormalizationTypeAverageSquaredIntensity) {
 				double intensitySum = 0.0;
 				int intensityCount = 0;
 				for (AlignmentResultRow alignmentRow : originalAlignmentResult.getRows()) {			
@@ -141,7 +138,7 @@ public class LinearNormalizerTask implements Task {
 			}
 			
 			// - normalization by maximum peak intensity
-			if (normalizationTypeParameterValue==LinearNormalizerParameters.NormalizationTypeMaximumPeakHeight) {
+			if (normalizationTypeString==LinearNormalizerParameters.NormalizationTypeMaximumPeakHeight) {
 				double maximumIntensity = 0.0;
 				for (AlignmentResultRow alignmentRow : originalAlignmentResult.getRows()) {			
 					Peak p = alignmentRow.getPeak(ord);
@@ -155,7 +152,7 @@ public class LinearNormalizerTask implements Task {
 			}		
 
 			// - normalization by total raw signal
-			if (normalizationTypeParameterValue==LinearNormalizerParameters.NormalizationTypeTotalRawSignal) {
+			if (normalizationTypeString==LinearNormalizerParameters.NormalizationTypeTotalRawSignal) {
 				normalizationFactor = ord.getCurrentFile().getDataTotalRawSignal(1);
 			}
 			

@@ -1,312 +1,267 @@
 /*
  * Copyright 2006 The MZmine Development Team
- *
+ * 
  * This file is part of MZmine.
- *
+ * 
  * MZmine is free software; you can redistribute it and/or modify it under the
  * terms of the GNU General Public License as published by the Free Software
  * Foundation; either version 2 of the License, or (at your option) any later
  * version.
- *
+ * 
  * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY
  * WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR
  * A PARTICULAR PURPOSE. See the GNU General Public License for more details.
- *
+ * 
  * You should have received a copy of the GNU General Public License along with
  * MZmine; if not, write to the Free Software Foundation, Inc., 51 Franklin St,
  * Fifth Floor, Boston, MA 02110-1301 USA
  */
+
 package net.sf.mzmine.userinterface.dialogs;
+
 import java.awt.BorderLayout;
-import java.awt.Component;
-import java.awt.GridLayout;
-import java.awt.event.ActionListener;
 import java.awt.Frame;
+import java.awt.GridLayout;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.text.NumberFormat;
-import java.util.Enumeration;
 import java.util.Hashtable;
+import java.util.Iterator;
 import java.util.logging.Logger;
 
 import javax.swing.BorderFactory;
 import javax.swing.JButton;
 import javax.swing.JCheckBox;
 import javax.swing.JComboBox;
+import javax.swing.JComponent;
 import javax.swing.JDialog;
 import javax.swing.JFormattedTextField;
 import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
+import javax.swing.JTextField;
 
 import net.sf.mzmine.data.Parameter;
-import net.sf.mzmine.data.ParameterValue;
-import net.sf.mzmine.data.impl.SimpleParameterValue;
-import net.sf.mzmine.data.impl.SimpleParameterValueInvalidValueException;
-import net.sf.mzmine.methods.MethodParameters;
-import net.sf.mzmine.project.MZmineProject;
-
-
+import net.sf.mzmine.data.ParameterSet;
 
 /**
- * This class represents the parameter setup dialog shown to the user before processing
+ * This class represents the parameter setup dialog shown to the user before
+ * processing
  */
 public class ParameterSetupDialog extends JDialog implements ActionListener {
 
-	private Logger logger = Logger.getLogger(this.getClass().getName());
-	
-	// Array for Text fields
-	private JFormattedTextField[] textFields;
+    public static enum ExitCode { OK, CANCEL };
+    private ExitCode exitCode = ExitCode.CANCEL;
+    
+    private Logger logger = Logger.getLogger(this.getClass().getName());
 
-	// Number formatting used in text fields
-	private NumberFormat decimalNumberFormat;
+    // Parameters and their representation in the dialog
+    private Hashtable<Parameter, JComponent> parametersAndComponents;
 
-	// Labels
-	private JLabel[] labels;
+    // Buttons
+    private JButton btnOK;
+    private JButton btnCancel;
 
-	// Parameters and their representation in the dialog
-	private Hashtable<Parameter, Component> parametersAndComponents;
-	
-	// Buttons
-	private JButton btnOK;
-	private JButton btnCancel;
+    // Panels for all above
+    private JPanel pnlAll;
+    private JPanel pnlLabels;
+    private JPanel pnlFields;
+    private JPanel pnlButtons;
 
-	// Panels for all above
-	private JPanel pnlAll;
-	private JPanel pnlLabels;
-	private JPanel pnlFields;
-	private JPanel pnlButtons;
-
-	private MethodParameters parameters;
-	
-	// Exit code for controlling ok/cancel response
-	private int exitCode = -1;
+    private ParameterSet parameters;
 
 
-	/**
-	 * Constructor
-	 */
-	public ParameterSetupDialog(Frame owner, String title, MethodParameters methodParameters) {
+    /**
+     * Constructor
+     */
+    public ParameterSetupDialog(Frame owner, String title,
+            ParameterSet parameters) {
 
-		// Make dialog modal
-		super(owner, true);
-		
-		this.parameters = methodParameters;
-		
-		exitCode = -1;
+        // Make dialog modal
+        super(owner, true);
 
-		// Check if there are any parameters
-		Parameter[] allParameters = methodParameters.getParameters();
-		if ( (allParameters==null) || (allParameters.length==0) ) {
-			exitCode = 1;
-			dispose();		
-		}
-		
-		// Allocate arrays
-		textFields = new JFormattedTextField[methodParameters.getParameters().length];
-		labels = new JLabel[methodParameters.getParameters().length];
-		parametersAndComponents = new Hashtable<Parameter, Component>();
+        this.parameters = parameters;
 
-		// Panel where everything is collected
-		pnlAll = new JPanel(new BorderLayout());
-		pnlAll.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
-		getContentPane().add(pnlAll);
+        // Check if there are any parameters
+        Parameter[] allParameters = parameters.getParameters();
+        if ((allParameters == null) || (allParameters.length == 0)) {
+            dispose();
+        }
 
-		// Two more panels: one for labels and another for text fields
-		pnlLabels = new JPanel(new GridLayout(0,1));
-		pnlFields = new JPanel(new GridLayout(0,1));
-		
-		pnlFields.setBorder(BorderFactory.createEmptyBorder(0, 5, 5, 5));
-		pnlLabels.setBorder(BorderFactory.createEmptyBorder(0, 5, 5, 5));
+        parametersAndComponents = new Hashtable<Parameter, JComponent>();
 
-		// Setup number format for text fields
-		decimalNumberFormat = NumberFormat.getNumberInstance();
-		decimalNumberFormat.setMinimumFractionDigits(1);
+        // Panel where everything is collected
+        pnlAll = new JPanel(new BorderLayout());
+        pnlAll.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
+        add(pnlAll);
 
-		// Create labels and components for each parameter
-		MZmineProject project = MZmineProject.getCurrentProject();
-		for (int i=0; i<methodParameters.getParameters().length; i++) {
-			Parameter p = methodParameters.getParameters()[i];
+        // Two more panels: one for labels and another for text fields
+        pnlLabels = new JPanel(new GridLayout(0, 1));
+        pnlFields = new JPanel(new GridLayout(0, 1));
 
-			// Create label
-			String labelString = p.getName();
-			if ((p.getUnits()!=null) && (p.getUnits().length()>0)) labelString = labelString.concat(" (" + p.getUnits() + ")");
-			JLabel lbl = new JLabel(labelString);
-			
-			pnlLabels.add(lbl);
-			
-			switch (p.getType()) {
-			case INTEGER:
-			case DOUBLE:
-			case STRING:
-			default:
-				Parameter numberFormatParameter = p.getNumberFormatParameter();
-				ParameterValue pVal = project.getParameterValue(numberFormatParameter);
-				NumberFormat numberFormat = (NumberFormat)numberFormatParameter.getDefaultValue().getValue(); 
-				if (pVal!=null) numberFormat = (NumberFormat)pVal.getValue(); 
-				
+        pnlFields.setBorder(BorderFactory.createEmptyBorder(0, 5, 5, 5));
+        pnlLabels.setBorder(BorderFactory.createEmptyBorder(0, 5, 5, 5));
 
-				JFormattedTextField txtField = new JFormattedTextField(numberFormat);
-				ParameterValue parameterValue = parameters.getParameterValue(p);
-				Object value=null;
-				if (parameterValue!=null) value = parameterValue.getValue();
-				else value = p.getDefaultValue();
-				txtField.setValue(value);
-				txtField.setColumns(8);
-				txtField.setToolTipText(p.getDescription());
-				parametersAndComponents.put(p, txtField);
-				
-				lbl.setLabelFor(txtField);
-				
-				pnlFields.add(txtField);
-				
-				break;
-				
-			case BOOLEAN:
-				JCheckBox checkBox = new JCheckBox();
-				checkBox.setSelected(parameters.getParameterValue(p).getBooleanValue());
-				checkBox.setToolTipText(p.getDescription());
-				parametersAndComponents.put(p, checkBox);
-				
-				lbl.setLabelFor(checkBox);
-				
-				pnlFields.add(checkBox);
-				
-				break;
-				
-			case OBJECT:
-				JComboBox cmbPossibleValues = new JComboBox(p.getPossibleValues());
-				parameterValue = parameters.getParameterValue(p);
-				if (parameterValue!=null) value = parameterValue;
-				else value=p.getDefaultValue(); 
-				cmbPossibleValues.setSelectedItem(value);
-				cmbPossibleValues.setToolTipText(p.getDescription());
-				parametersAndComponents.put(p, cmbPossibleValues);
-				
-				lbl.setLabelFor(cmbPossibleValues);
+        // Create labels and components for each parameter
 
- 				pnlFields.add(cmbPossibleValues);
- 				
- 				break;
-				
-			}
-			
-		}
+        for (int i = 0; i < allParameters.length; i++) {
+            Parameter p = allParameters[i];
 
-		// Buttons
-		pnlButtons = new JPanel();
-		btnOK = new JButton("OK");
-		btnOK.addActionListener(this);
-		btnCancel = new JButton("Cancel");
-		btnCancel.addActionListener(this);
-		pnlButtons.add(btnOK);
-		pnlButtons.add(btnCancel);
+            // Create label
+            String labelString = p.getName();
+            if ((p.getUnits() != null) && (p.getUnits().length() > 0))
+                labelString = labelString.concat(" (" + p.getUnits() + ")");
+            JLabel lbl = new JLabel(labelString);
 
-		pnlAll.add(pnlLabels,BorderLayout.CENTER);
-		pnlAll.add(pnlFields,BorderLayout.LINE_END);
-		pnlAll.add(pnlButtons,BorderLayout.SOUTH);
+            pnlLabels.add(lbl);
 
-		getContentPane().add(pnlAll);
+            Object[] possibleValues = p.getPossibleValues();
+            if (possibleValues != null) {
+                JComboBox combo = new JComboBox();
+                for (Object value : possibleValues)
+                    combo.addItem(value);
+                combo.setToolTipText(p.getDescription());
+                parametersAndComponents.put(p, combo);
+                lbl.setLabelFor(combo);
+                pnlFields.add(combo);
+                continue;
+            }
 
-		setTitle(title);
+            JComponent comp = null;
+            
+            switch (p.getType()) {
+            case STRING:
+                JTextField strField = new JTextField();
+                String strValue = (String) parameters.getParameterValue(p);
+                if (strValue != null) strField.setText(strValue);
+                comp = strField;
+                break;
+            case INTEGER:
+            case DOUBLE:
+                NumberFormat format = p.getNumberFormat();
+                if (format == null) format = NumberFormat.getNumberInstance();
+                JFormattedTextField txtField = new JFormattedTextField(format);
+                Object numValue = parameters.getParameterValue(p);
+                if (numValue != null) txtField.setValue(numValue);
+                txtField.setColumns(10);
+                comp = txtField;
+                break;
 
-		pack();
+            case BOOLEAN:
+                JCheckBox checkBox = new JCheckBox();
+                Boolean selected = (Boolean) parameters.getParameterValue(p);
+                if (selected != null)
+                    checkBox.setSelected(selected);
+                comp = checkBox; 
+                break;
 
-		setLocationRelativeTo(owner);
-	}
+            }
+            
+            comp.setToolTipText(p.getDescription());
+            parametersAndComponents.put(p, comp);
+            lbl.setLabelFor(comp);
+            pnlFields.add(comp);
 
-	/**
-	 * Implementation for ActionListener interface
-	 */
-	public void actionPerformed(java.awt.event.ActionEvent ae) {
-		Object src = ae.getSource();
-		if (src==btnOK) {
-			
-			// Copy values from form, validate them, and set them to project
-			Enumeration<Parameter> paramEnum = parametersAndComponents.keys();
-			MZmineProject project = MZmineProject.getCurrentProject();
-			while (paramEnum.hasMoreElements()) {
-				Parameter p = paramEnum.nextElement();
-				Component c = parametersAndComponents.get(p);
-				
-				ParameterValue parameterValue = null;
-				
-				switch (p.getType()) {
-				case INTEGER:
-					JFormattedTextField txtField = (JFormattedTextField)parametersAndComponents.get(p); 
-					Integer intValue = ((Number)txtField.getValue()).intValue();
-					System.err.println("intValue=" + intValue);
-					try { parameterValue = new SimpleParameterValue(p, intValue); } 
-					catch (SimpleParameterValueInvalidValueException invalidValueException) {				
-						displayMessage(invalidValueException.getMessage()); return;
-					} 					
-					break;
-				case DOUBLE:
-					txtField = (JFormattedTextField)parametersAndComponents.get(p);
-					Double doubleValue = ((Number)txtField.getValue()).doubleValue();
-					try { parameterValue = new SimpleParameterValue(p, doubleValue); } 
-					catch (SimpleParameterValueInvalidValueException invalidValueException) {				
-						displayMessage(invalidValueException.getMessage()); return;
-					} 					
-					break;
-				case STRING:
-					txtField = (JFormattedTextField)parametersAndComponents.get(p); 
-					String stringValue = (String)txtField.getValue();
-					try { parameterValue = new SimpleParameterValue(p, stringValue); } 
-					catch (SimpleParameterValueInvalidValueException invalidValueException) {				
-						displayMessage(invalidValueException.getMessage()); return;
-					} 					
-					break;
-				case BOOLEAN:
-					JCheckBox checkBox = (JCheckBox)parametersAndComponents.get(p);
-					Boolean booleanValue = new Boolean(false);
-					if (checkBox.isSelected()) booleanValue = new Boolean(true);
-					try { parameterValue = new SimpleParameterValue(p, booleanValue); } 
-					catch (SimpleParameterValueInvalidValueException invalidValueException) {				
-						displayMessage(invalidValueException.getMessage()); return;
-					} 					
-					break;
-				case OBJECT:
-					JComboBox comboBox = (JComboBox)parametersAndComponents.get(p);
-					parameterValue = p.getPossibleValues()[comboBox.getSelectedIndex()];
-					break;
-				}
+        }
 
-				if (parameterValue!=null) { 
-					parameters.setParameterValue(p, parameterValue);
-				}
-				
-			}
-			
-			
-			exitCode = 1;
-			dispose();
-			//setVisible(false);
-		}
-		if (src==btnCancel) {
-			exitCode = -1;
-			dispose();
-			//setVisible(false);
-		}
-	}
+        // Buttons
+        pnlButtons = new JPanel();
+        btnOK = new JButton("OK");
+        btnOK.addActionListener(this);
+        btnCancel = new JButton("Cancel");
+        btnCancel.addActionListener(this);
+        pnlButtons.add(btnOK);
+        pnlButtons.add(btnCancel);
 
-	
-	private void displayMessage(String msg) {
-		try {
-			logger.info(msg);
-			JOptionPane.showMessageDialog(
-										this,
-										msg,
-										"Error",
-										JOptionPane.ERROR_MESSAGE
-									 );
-		} catch (Exception exce ) {}
-	}
-	
-	/**
-	 * Method for reading exit code
-	 * @return	1=OK clicked, -1=cancel clicked
-	 */
-	public int getExitCode() {
-		return exitCode;
-	}
+        pnlAll.add(pnlLabels, BorderLayout.WEST);
+        pnlAll.add(pnlFields, BorderLayout.CENTER);
+        pnlAll.add(pnlButtons, BorderLayout.SOUTH);
+
+        setTitle(title);
+
+        pack();
+
+        setLocationRelativeTo(owner);
+
+    }
+
+    /**
+     * Implementation for ActionListener interface
+     */
+    public void actionPerformed(ActionEvent ae) {
+        Object src = ae.getSource();
+        if (src == btnOK) {
+
+            // Copy values from form, validate them, and set them to project
+            Iterator<Parameter> paramIter = parametersAndComponents.keySet().iterator();
+            while (paramIter.hasNext()) {
+                Parameter p = paramIter.next();
+
+                try {
+
+                    Object[] possibleValues = p.getPossibleValues();
+                    if (possibleValues != null) {
+                        JComboBox combo = (JComboBox) parametersAndComponents.get(p);
+                        parameters.setParameterValue(p,
+                                possibleValues[combo.getSelectedIndex()]);
+                        continue;
+                    }
+
+                    switch (p.getType()) {
+                    case INTEGER:
+                        JFormattedTextField intField = (JFormattedTextField) parametersAndComponents.get(p);
+                        Integer newIntValue = ((Number) intField.getValue()).intValue();
+                        parameters.setParameterValue(p, newIntValue);
+                        break;
+                    case DOUBLE:
+                        JFormattedTextField doubleField = (JFormattedTextField) parametersAndComponents.get(p);
+                        Double newDoubleValue = ((Number) doubleField.getValue()).doubleValue();
+                        parameters.setParameterValue(p, newDoubleValue);
+                        break;
+                    case STRING:
+                        JTextField stringField = (JTextField) parametersAndComponents.get(p);
+                        parameters.setParameterValue(p, stringField.getText());
+                        break;
+                    case BOOLEAN:
+                        JCheckBox checkBox = (JCheckBox) parametersAndComponents.get(p);
+                        Boolean newBoolValue = checkBox.isSelected();
+                        parameters.setParameterValue(p, newBoolValue);
+                        break;
+                    }
+
+                } catch (Exception invalidValueException) {
+                    displayMessage(invalidValueException.getMessage());
+                    invalidValueException.printStackTrace();
+                    return;
+                }
+
+            }
+
+            exitCode = ExitCode.OK;
+            dispose();
+        }
+        
+        if (src == btnCancel) {
+            exitCode = ExitCode.CANCEL;
+            dispose();
+        }
+    }
+
+    private void displayMessage(String msg) {
+        try {
+            logger.info(msg);
+            JOptionPane.showMessageDialog(this, msg, "Error",
+                    JOptionPane.ERROR_MESSAGE);
+        } catch (Exception exce) {
+        }
+    }
+
+    /**
+     * Method for reading exit code
+     * 
+     */
+    public ExitCode getExitCode() {
+        return exitCode;
+    }
 
 }

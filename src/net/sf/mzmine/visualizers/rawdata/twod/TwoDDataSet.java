@@ -30,6 +30,7 @@ import java.awt.image.Raster;
 import java.awt.image.SampleModel;
 import java.awt.image.WritableRaster;
 import java.util.Date;
+import java.util.logging.Logger;
 
 import net.sf.mzmine.data.Scan;
 import net.sf.mzmine.io.RawDataAcceptor;
@@ -38,6 +39,8 @@ import net.sf.mzmine.io.util.RawDataRetrievalTask;
 import net.sf.mzmine.taskcontrol.Task;
 import net.sf.mzmine.taskcontrol.TaskController;
 import net.sf.mzmine.taskcontrol.Task.TaskPriority;
+import net.sf.mzmine.util.ScanUtils;
+import net.sf.mzmine.util.ScanUtils.BinningType;
 
 import org.jfree.chart.event.PlotChangeEvent;
 import org.jfree.chart.event.PlotChangeListener;
@@ -50,6 +53,8 @@ import org.jfree.data.xy.AbstractXYZDataset;
 class TwoDDataSet extends AbstractXYZDataset implements RawDataAcceptor,
         PlotChangeListener {
 
+    private Logger logger = Logger.getLogger(this.getClass().getName());
+    
     // redraw the chart every 100 ms while updating
     private static final int REDRAW_INTERVAL = 100;
 
@@ -117,6 +122,8 @@ class TwoDDataSet extends AbstractXYZDataset implements RawDataAcceptor,
         double intensityMatrix[][];
         int bitmapSizeX, bitmapSizeY;
 
+        logger.finest("Adding scan " + scan);
+        
         if (totalDataLoaded) {
             rtMin = currentRTMin;
             rtMax = currentRTMax;
@@ -146,25 +153,19 @@ class TwoDDataSet extends AbstractXYZDataset implements RawDataAcceptor,
 
         int xIndex = (int) Math.floor((scan.getRetentionTime() - rtMin)
                 / rtStep);
-        int yIndex;
 
         double mzValues[] = scan.getMZValues();
         double intensityValues[] = scan.getIntensityValues();
 
-        for (int i = 0; i < mzValues.length; i++) {
+        double binnedIntensities[] = ScanUtils.binValues(mzValues, intensityValues, mzMin, mzMax, bitmapSizeY, false, BinningType.SUM);
+        
+        for (int i = 0; i < bitmapSizeY; i++) {
 
-            if (mzValues[i] < mzMin)
-                continue;
-            if (mzValues[i] > mzMax)
-                break;
-            yIndex = bitmapSizeY - 1
-                    - (int) Math.floor((mzValues[i] - mzMin) / mzStep);
-            intensityMatrix[xIndex][yIndex] += intensityValues[i];
+            intensityMatrix[xIndex][i] += binnedIntensities[i];
 
-            if (totalDataLoaded) {
-                if (intensityMatrix[xIndex][yIndex] > currentMaxIntensity)
-                    currentMaxIntensity = intensityMatrix[xIndex][yIndex];
-            }
+            if (intensityMatrix[xIndex][i] > currentMaxIntensity)
+                currentMaxIntensity = intensityMatrix[xIndex][i];
+            
         }
 
         // redraw every REDRAW_INTERVAL ms
@@ -206,28 +207,29 @@ class TwoDDataSet extends AbstractXYZDataset implements RawDataAcceptor,
      * @see org.jfree.data.xy.XYDataset#getItemCount(int)
      */
     public int getItemCount(int series) {
-        return 0;
+        // return 2 points - the lower left and upper right bounds
+        return 2;
     }
 
     /**
      * @see org.jfree.data.xy.XYDataset#getX(int, int)
      */
     public Number getX(int series, int item) {
-        return null;
+        if (item == 0) return currentRTMin; else return currentRTMax;
     }
 
     /**
      * @see org.jfree.data.xy.XYDataset#getY(int, int)
      */
     public Number getY(int series, int item) {
-        return null;
+        if (item == 0) return currentMZMin; else return currentMZMax;
     }
 
     /**
      * @see org.jfree.data.xy.XYZDataset#getZ(int, int)
      */
     public Number getZ(int series, int item) {
-        return null;
+        if (item == 0) return 0; else return currentMaxIntensity;
     }
 
     BufferedImage getCurrentImage() {
@@ -292,18 +294,23 @@ class TwoDDataSet extends AbstractXYZDataset implements RawDataAcceptor,
     public void plotChanged(PlotChangeEvent event) {
         System.out.println(event);
         XYPlot plot = (XYPlot) event.getPlot();
-        currentRTMin = plot.getDomainAxis().getLowerBound();
-        currentRTMax = plot.getDomainAxis().getUpperBound();
-        currentMZMin = plot.getRangeAxis().getLowerBound();
-        currentMZMax = plot.getRangeAxis().getUpperBound();
-        int rtResolution = currentIntensityMatrix.length;
-        int mzResolution = currentIntensityMatrix[0].length;
+        double newRTMin = plot.getDomainAxis().getLowerBound();
+        double newRTMax = plot.getDomainAxis().getUpperBound();
+        double newMZMin = plot.getRangeAxis().getLowerBound();
+        double newMZMax = plot.getRangeAxis().getUpperBound();
+        
+        // int rtResolution = currentIntensityMatrix.length;
+        // int mzResolution = currentIntensityMatrix[0].length;
 
-        currentRTStep = (currentRTMax - currentRTMin) / (rtResolution - 1);
-        currentMZStep = (currentMZMax - currentMZMin) / (mzResolution - 1);
-        currentIntensityMatrix = new double[rtResolution][mzResolution];
+        //currentRTStep = (currentRTMax - currentRTMin) / (rtResolution - 1);
+        //currentMZStep = (currentMZMax - currentMZMin) / (mzResolution - 1);
+        //currentIntensityMatrix = new double[rtResolution][mzResolution];
         // TODO copy data
 
     }
 
+    
+    void setDataLoaded() {
+        totalDataLoaded = true;
+    }
 }

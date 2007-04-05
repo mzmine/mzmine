@@ -30,12 +30,13 @@ import javax.swing.event.ListSelectionListener;
 
 import net.sf.mzmine.batchmode.BatchModeController.BatchModeStep;
 import net.sf.mzmine.data.AlignmentResult;
+import net.sf.mzmine.data.ParameterSet;
 import net.sf.mzmine.data.PeakList;
+import net.sf.mzmine.data.impl.SimpleParameterSet;
 import net.sf.mzmine.io.OpenedRawDataFile;
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.methods.Method;
 import net.sf.mzmine.methods.MethodListener;
-import net.sf.mzmine.methods.MethodParameters;
 import net.sf.mzmine.methods.MethodListener.MethodReturnStatus;
 import net.sf.mzmine.taskcontrol.Task;
 import net.sf.mzmine.taskcontrol.TaskController;
@@ -108,12 +109,12 @@ public class SimpleIsotopicPeaksGrouper implements Method,
 
     }
     
-    public void setParameters(MethodParameters parameters) {
+    public void setParameters(SimpleParameterSet parameters) {
     	this.parameters = (SimpleIsotopicPeaksGrouperParameters)parameters;
     }
 
     /**
-     * @see net.sf.mzmine.methods.Method#runMethod(net.sf.mzmine.methods.MethodParameters,
+     * @see net.sf.mzmine.methods.Method#runMethod(net.sf.mzmine.data.impl.SimpleParameterSet,
      *      net.sf.mzmine.io.RawDataFile[],
      *      net.sf.mzmine.methods.alignment.AlignmentResult[])
      */
@@ -182,7 +183,7 @@ public class SimpleIsotopicPeaksGrouper implements Method,
             Object[] result = (Object[]) task.getResult();
             OpenedRawDataFile dataFile = (OpenedRawDataFile) result[0];
             PeakList peakList = (PeakList) result[1];
-            MethodParameters params = (MethodParameters) result[2];
+            SimpleParameterSet params = (SimpleParameterSet) result[2];
 
             dataFile.addHistoryEntry(dataFile.getCurrentFile().getFile(), this,
                     params);
@@ -227,6 +228,22 @@ public class SimpleIsotopicPeaksGrouper implements Method,
      */
     public String toString() {
         return "Simple isotopic peaks grouper";
+    }
+
+    /**
+     * @see net.sf.mzmine.main.MZmineModule#getCurrentParameters()
+     */
+    public ParameterSet getCurrentParameters() {
+        // TODO Auto-generated method stub
+        return null;
+    }
+
+    /**
+     * @see net.sf.mzmine.main.MZmineModule#setCurrentParameters(net.sf.mzmine.data.ParameterSet)
+     */
+    public void setCurrentParameters(ParameterSet parameterValues) {
+        // TODO Auto-generated method stub
+        
     }
 
 }

@@ -21,7 +21,6 @@ package net.sf.mzmine.main;
 
 import java.rmi.Remote;
 
-import net.sf.mzmine.batchmode.BatchModeController;
 import net.sf.mzmine.io.IOController;
 import net.sf.mzmine.taskcontrol.DistributableTask;
 import net.sf.mzmine.taskcontrol.Task;
@@ -56,11 +55,6 @@ public class MZmineClusterNode implements MZmineCore, Remote {
         return null;
     }
  
-    public BatchModeController getBatchModeController() {
-		// TODO Auto-generated method stub
-		return null;
-	}
-
 	/**
      * @see net.sf.mzmine.main.MZmineCore#getDesktop()
      */
@@ -75,6 +69,14 @@ public class MZmineClusterNode implements MZmineCore, Remote {
     public MZmineModule[] getAllModules() {
         // TODO Auto-generated method stub
         return null;
+    }
+
+    /**
+     * @see net.sf.mzmine.main.MZmineCore#exitMZmine()
+     */
+    public void exitMZmine() {
+        // TODO Auto-generated method stub
+        
     }
 
 }

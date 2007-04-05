@@ -58,7 +58,7 @@ class MeanFilterTask implements Task {
         this.rawDataFile = dataFile.getCurrentFile();
         this.parameters = parameters;
         
-        oneSidedWindowLength = parameters.getParameterValue(MeanFilterParameters.oneSidedWindowLength).getDoubleValue();
+        oneSidedWindowLength = (Double) parameters.getParameterValue(MeanFilterParameters.oneSidedWindowLength);
     }
 
     /**

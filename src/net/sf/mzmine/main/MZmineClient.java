@@ -20,17 +20,18 @@
 package net.sf.mzmine.main;
 
 import java.io.File;
-import java.util.HashSet;
-import java.util.ResourceBundle;
+import java.io.FileWriter;
+import java.util.Iterator;
+import java.util.Vector;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import javax.swing.JOptionPane;
 import javax.swing.SwingUtilities;
 
-import net.sf.mzmine.batchmode.BatchModeController;
-import net.sf.mzmine.batchmode.impl.BatchMode;
+import net.sf.mzmine.batchmode.BatchMode;
+import net.sf.mzmine.data.ParameterSet;
 import net.sf.mzmine.io.IOController;
-import net.sf.mzmine.io.IOController.PreloadLevel;
 import net.sf.mzmine.io.impl.IOControllerImpl;
 import net.sf.mzmine.project.MZmineProject;
 import net.sf.mzmine.taskcontrol.TaskController;
@@ -38,17 +39,34 @@ import net.sf.mzmine.taskcontrol.impl.TaskControllerImpl;
 import net.sf.mzmine.userinterface.Desktop;
 import net.sf.mzmine.userinterface.mainwindow.MainWindow;
 
+import org.dom4j.Document;
+import org.dom4j.Element;
+import org.dom4j.io.OutputFormat;
+import org.dom4j.io.SAXReader;
+import org.dom4j.io.XMLWriter;
+
+/*
+ * 
+ */
+
 public class MZmineClient implements Runnable, MZmineCore {
 
-    private static final String CONFIG_PROPERTIES = "conf/config";
+    private static final File CONFIG_FILE = new File("conf/config.xml");
+
+    public static final String PARAMETER_ELEMENT_NAME = "parameter";
+    public static final String PARAMETERS_ELEMENT_NAME = "parameters";
+    public static final String MODULES_ELEMENT_NAME = "modules";
+    public static final String MODULE_ELEMENT_NAME = "module";
+    public static final String CLASS_ATTRIBUTE_NAME = "class";
+    public static final String NODES_ELEMENT_NAME = "nodes";
+    public static final String LOCAL_ATTRIBUTE_NAME = "local";
 
     private Logger logger = Logger.getLogger(this.getClass().getName());
-    
-    private HashSet<MZmineModule> moduleSet;
-    
+
+    private Vector<MZmineModule> moduleSet;
+
     private TaskControllerImpl taskController;
     private IOControllerImpl ioController;
-    private BatchMode batchModeController;
     private MainWindow mainWindow;
 
     /**
@@ -67,108 +85,104 @@ public class MZmineClient implements Runnable, MZmineCore {
      */
     public void run() {
 
-        // configuration properties
-        ResourceBundle configBundle = ResourceBundle.getBundle(CONFIG_PROPERTIES);
-
-        // get the configured number of computation nodes
-        int numberOfNodes;
+        // load configuration from XML
+        Document configuration = null;
         try {
-            String numberOfNodesConfigEntry = configBundle.getString("NumberOfNodes");
-            numberOfNodes = Integer.parseInt(numberOfNodesConfigEntry);
-        } catch (Exception e) {
-            numberOfNodes = Runtime.getRuntime().availableProcessors();
-        }
+            SAXReader reader = new SAXReader();
+            configuration = reader.read(CONFIG_FILE);
 
-        logger.info("MZmine starting with " + numberOfNodes
-                + " computation nodes");
+            // get the configured number of computation nodes
+            int numberOfNodes;
 
-        logger.finer("Loading core classes");
+            Element nodes = configuration.getRootElement().element(
+                    NODES_ELEMENT_NAME);
+            String numberOfNodesConfigEntry = nodes.attributeValue(LOCAL_ATTRIBUTE_NAME);
+            if (numberOfNodesConfigEntry != null) {
+                numberOfNodes = Integer.parseInt(numberOfNodesConfigEntry);
+            } else
+                numberOfNodes = Runtime.getRuntime().availableProcessors();
 
-        taskController = new TaskControllerImpl(numberOfNodes);
-        ioController = new IOControllerImpl();
-        mainWindow = new MainWindow();
-        batchModeController = new BatchMode();
-        MZmineProject project = new MZmineProject();
+            logger.info("MZmine starting with " + numberOfNodes
+                    + " computation nodes");
 
-        logger.finer("Initializing core classes");
+            logger.finer("Loading core classes");
 
-        taskController.initModule(this);
-        ioController.initModule(this);
-        mainWindow.initModule(this);
-        batchModeController.initModule(this);
-        project.initModule(this);
+            taskController = new TaskControllerImpl(numberOfNodes);
+            ioController = new IOControllerImpl();
+            mainWindow = new MainWindow();
+            MZmineProject project = new MZmineProject();
 
-        logger.finer("Loading modules");
-        
-        moduleSet = new HashSet<MZmineModule>();
+            logger.finer("Initializing core classes");
 
-        // get module classes and trim spaces from their names
-        String[] modules = configBundle.getString("Modules").split(" *[,;:] *");
+            taskController.initModule(this);
+            ioController.initModule(this);
+            mainWindow.initModule(this);
+            project.initModule(this);
 
-        for (String className : modules) {
+            logger.finer("Loading modules");
 
-            try {
+            moduleSet = new Vector<MZmineModule>();
 
-                logger.finest("Loading module " + className);
-                
-                // load the module class
-                Class moduleClass = Class.forName(className);
+            Iterator modIter = configuration.getRootElement().element(
+                    MODULES_ELEMENT_NAME).elementIterator(MODULE_ELEMENT_NAME);
 
-                // create instance
-                MZmineModule moduleInstance = (MZmineModule) moduleClass.newInstance();
+            while (modIter.hasNext()) {
+                Element moduleElement = (Element) modIter.next();
+                String className = moduleElement.attributeValue(CLASS_ATTRIBUTE_NAME);
 
-                // init module
-                moduleInstance.initModule(this);
-                
-                // add to the module set
-                moduleSet.add(moduleInstance);
+                MZmineModule newModule = loadModule(className);
 
-            } catch (Exception e) {
-                logger.log(Level.SEVERE, "Could not load module "
-                        + className, e);
+                if (newModule != null) {
+                    Element parametersElement = moduleElement.element(PARAMETERS_ELEMENT_NAME);
+                    if (parametersElement != null) {
+                        ParameterSet moduleParameters = newModule.getParameterSet();
+                        if (moduleParameters != null)
+                            moduleParameters.importValuesFromXML(parametersElement);
+                    }
+                }
+
             }
 
+        } catch (Exception e) {
+            logger.log(Level.SEVERE, "Could not parse configuration file "
+                    + CONFIG_FILE, e);
+            System.exit(1);
         }
 
         // show the GUI
-        logger.finer("Showing main window");
+        logger.finest("Showing main window");
         mainWindow.setVisible(true);
-        
+
         // show the welcome message
         mainWindow.setStatusBarText("Welcome to MZmine!");
-        
-        
-///////////////////////////////////////////////////////////        
-        // DEBUG test one dialog
-         /*
-        ParameterSetupDialog psdialog 
-        = new ParameterSetupDialog
-        		(		MainWindow.getInstance(),
-        				"Testing...",
-        				new JoinAlignerParameters()
-        		);
-        psdialog.setVisible(true);
-        MainWindow.getInstance().notifySelectionListeners();
-        */
-        
-        // DEBUG show batch mode dialog
-        /*
-        batchModeController.actionPerformed(null);
-        MainWindow.getInstance().notifySelectionListeners();
-        */
-        
-        // DEBUG open files
-        /*
-        File[] selectedFiles = new File[1];
-        selectedFiles[0] = new File("C:/VTT/Data_Netcdf/CRoseusExample/Control2.CDF");
-        ioController.openFiles(selectedFiles, PreloadLevel.NO_PRELOAD);
-        */
-        
-        
-         
 
-        
-///////////////////////////////////////////////////////////        
+    }
+
+    public MZmineModule loadModule(String moduleClassName) {
+
+        try {
+
+            logger.finest("Loading module " + moduleClassName);
+
+            // load the module class
+            Class moduleClass = Class.forName(moduleClassName);
+
+            // create instance
+            MZmineModule moduleInstance = (MZmineModule) moduleClass.newInstance();
+
+            // init module
+            moduleInstance.initModule(this);
+
+            // add to the module set
+            moduleSet.add(moduleInstance);
+
+            return moduleInstance;
+
+        } catch (Exception e) {
+            logger.log(Level.SEVERE,
+                    "Could not load module " + moduleClassName, e);
+            return null;
+        }
 
     }
 
@@ -185,10 +199,6 @@ public class MZmineClient implements Runnable, MZmineCore {
     public TaskController getTaskController() {
         return taskController;
     }
-    
-    public BatchModeController getBatchModeController() {
-    	return batchModeController;
-    }
 
     /**
      * @see net.sf.mzmine.main.MZmineCore#getDesktop()
@@ -204,4 +214,66 @@ public class MZmineClient implements Runnable, MZmineCore {
         return moduleSet.toArray(new MZmineModule[0]);
     }
 
+    /**
+     * Prepares everything for quit and then shutdowns the application
+     */
+    public void exitMZmine() {
+
+        // Ask if use really wants to quit
+        int selectedValue = JOptionPane.showInternalConfirmDialog(
+                mainWindow.getDesktopPane(),
+                "Are you sure you want to exit MZmine?", "Exiting...",
+                JOptionPane.YES_NO_OPTION, JOptionPane.WARNING_MESSAGE);
+
+        if (selectedValue != JOptionPane.YES_OPTION)
+            return;
+
+        logger.info("Exiting MZmine");
+        mainWindow.dispose();
+
+        try {
+
+            // load current configuration from XML
+            SAXReader reader = new SAXReader();
+            Document configuration = reader.read(CONFIG_FILE);
+
+            // traverse modules
+            Iterator<MZmineModule> iterator = moduleSet.iterator();
+            while (iterator.hasNext()) {
+                MZmineModule module = iterator.next();
+                ParameterSet currentParameters = module.getParameterSet();
+                if (currentParameters == null)
+                    continue;
+
+                String className = module.getClass().getName();
+                String xpathLocation = "//configuration/modules/module[@class='"
+                        + className + "']";
+                Element moduleElement = (Element) configuration.selectSingleNode(xpathLocation);
+
+                Element parametersElement = moduleElement.element(PARAMETERS_ELEMENT_NAME);
+                if (parametersElement == null)
+                    parametersElement = moduleElement.addElement(PARAMETERS_ELEMENT_NAME);
+                else
+                    parametersElement.clearContent();
+
+                currentParameters.exportValuesToXML(parametersElement);
+
+            }
+
+            // write the config file
+            OutputFormat format = OutputFormat.createPrettyPrint();
+            XMLWriter writer = new XMLWriter(new FileWriter(CONFIG_FILE),
+                    format);
+            writer.write(configuration);
+            writer.close();
+
+        } catch (Exception e) {
+            logger.log(Level.SEVERE, "Could not update configuration file "
+                    + CONFIG_FILE, e);
+            System.exit(1);
+        }
+
+        System.exit(0);
+
+    }
 }

@@ -26,6 +26,8 @@ import java.awt.Rectangle;
 import java.awt.event.ActionListener;
 import java.awt.event.WindowEvent;
 import java.awt.event.WindowListener;
+import java.text.DecimalFormat;
+import java.text.NumberFormat;
 import java.util.ArrayList;
 import java.util.Vector;
 import java.util.logging.Logger;
@@ -47,6 +49,8 @@ import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.taskcontrol.impl.TaskControllerImpl;
 import net.sf.mzmine.userinterface.Desktop;
 import net.sf.mzmine.userinterface.components.TaskProgressWindow;
+import net.sf.mzmine.util.NumberFormatProvider;
+import net.sf.mzmine.util.TimeNumberFormat;
 
 /**
  * This class is the main window of application
@@ -55,6 +59,8 @@ import net.sf.mzmine.userinterface.components.TaskProgressWindow;
 public class MainWindow extends JFrame implements Desktop, WindowListener {
 
     private Logger logger = Logger.getLogger(this.getClass().getName());
+    
+    private MZmineCore core;
 
     private JDesktopPane desktopPane;
 
@@ -152,7 +158,7 @@ public class MainWindow extends JFrame implements Desktop, WindowListener {
     }
 
     public void windowClosing(WindowEvent e) {
-        exitMZmine();
+        core.exitMZmine();
     }
 
     public void windowClosed(WindowEvent e) {
@@ -170,24 +176,7 @@ public class MainWindow extends JFrame implements Desktop, WindowListener {
     public void windowDeactivated(WindowEvent e) {
     }
 
-    /**
-     * Prepares everything for quit and then shutdowns the application
-     */
-    public void exitMZmine() {
 
-        // Ask if use really wants to quit
-        int selectedValue = JOptionPane.showInternalConfirmDialog(desktopPane,
-                "Are you sure you want to exit MZmine?", "Exiting...",
-                JOptionPane.YES_NO_OPTION, JOptionPane.WARNING_MESSAGE);
-
-        if (selectedValue != JOptionPane.YES_OPTION)
-            return;
-
-        logger.info("Exiting MZmine");
-        dispose();
-        System.exit(0);
-
-    }
 
     public void setStatusBarText(String text) {
         setStatusBarText(text, Color.black);
@@ -258,13 +247,15 @@ public class MainWindow extends JFrame implements Desktop, WindowListener {
 
         assert myInstance == null;
         myInstance = this;
+        
+        this.core = core;
 
         // Initialize item selector
         itemSelector = new ItemSelector(this);
 
         // Construct menu
 
-        menuBar = new MainMenu(core.getIOController(), this);
+        menuBar = new MainMenu(core);
 
         setJMenuBar(menuBar);
 
@@ -381,6 +372,42 @@ public class MainWindow extends JFrame implements Desktop, WindowListener {
 
     public Statusbar getStatusBar() {
         return statusBar;
+    }
+
+    /**
+     * @see net.sf.mzmine.userinterface.Desktop#getMZFormatProvider()
+     */
+    public NumberFormatProvider getMZFormatProvider() {
+        return new NumberFormatProvider() {
+            NumberFormat fmt = new DecimalFormat("0.000");
+            public NumberFormat getCurrentNumberFormat() {
+                return fmt;
+            }
+        };
+    }
+
+    /**
+     * @see net.sf.mzmine.userinterface.Desktop#getRTFormatProvider()
+     */
+    public NumberFormatProvider getRTFormatProvider() {
+        return new NumberFormatProvider() {
+            NumberFormat fmt = new TimeNumberFormat();
+            public NumberFormat getCurrentNumberFormat() {
+                return fmt;
+            }
+        };
+    }
+
+    /**
+     * @see net.sf.mzmine.userinterface.Desktop#getIntensityFormatProvider()
+     */
+    public NumberFormatProvider getIntensityFormatProvider() {
+        return new NumberFormatProvider() {
+            NumberFormat fmt = new DecimalFormat("0.00E0");
+            public NumberFormat getCurrentNumberFormat() {
+                return fmt;
+            }
+        };
     }
 
 }

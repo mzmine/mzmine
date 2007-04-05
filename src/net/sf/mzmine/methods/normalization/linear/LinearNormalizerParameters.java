@@ -21,23 +21,21 @@
 package net.sf.mzmine.methods.normalization.linear;
 
 import net.sf.mzmine.data.Parameter;
-import net.sf.mzmine.data.ParameterValue;
 import net.sf.mzmine.data.Parameter.ParameterType;
 import net.sf.mzmine.data.impl.SimpleParameter;
-import net.sf.mzmine.data.impl.SimpleParameterValue;
-import net.sf.mzmine.methods.MethodParameters;
+import net.sf.mzmine.data.impl.SimpleParameterSet;
 
 
-public class LinearNormalizerParameters extends MethodParameters {
+public class LinearNormalizerParameters extends SimpleParameterSet {
 
-	protected static final ParameterValue NormalizationTypeAverageIntensity = new SimpleParameterValue("Average intensity");
-	protected static final ParameterValue NormalizationTypeAverageSquaredIntensity = new SimpleParameterValue("Average squared intensity");
-	protected static final ParameterValue NormalizationTypeMaximumPeakHeight = new SimpleParameterValue("Maximum peak intensity");
-	protected static final ParameterValue NormalizationTypeTotalRawSignal = new SimpleParameterValue("Total raw signal");
+	protected static final String NormalizationTypeAverageIntensity = "Average intensity";
+	protected static final String NormalizationTypeAverageSquaredIntensity = "Average squared intensity";
+	protected static final String NormalizationTypeMaximumPeakHeight = "Maximum peak intensity";
+	protected static final String NormalizationTypeTotalRawSignal = "Total raw signal";
 	
-	protected static final ParameterValue[] NormalizationTypePossibleValues = { NormalizationTypeAverageIntensity, NormalizationTypeAverageSquaredIntensity, NormalizationTypeMaximumPeakHeight, NormalizationTypeTotalRawSignal };
+	protected static final Object[] NormalizationTypePossibleValues = { NormalizationTypeAverageIntensity, NormalizationTypeAverageSquaredIntensity, NormalizationTypeMaximumPeakHeight, NormalizationTypeTotalRawSignal };
 
-	protected static final Parameter NormalizationType = new SimpleParameter(	ParameterType.OBJECT,
+	protected static final Parameter NormalizationType = new SimpleParameter(	ParameterType.STRING,
 			"Normalization type",
 			"Normalize intensities by...",
 			NormalizationTypeAverageIntensity,

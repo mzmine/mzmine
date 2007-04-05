@@ -155,6 +155,8 @@ public class TwoDVisualizerWindow extends JInternalFrame implements
             desktop.displayErrorMessage("Error while updating 2D visualizer: "
                     + task.getErrorMessage());
         }
+        
+        dataset.setDataLoaded();
 
     }
 

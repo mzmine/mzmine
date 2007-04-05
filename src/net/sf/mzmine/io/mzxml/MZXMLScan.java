@@ -363,4 +363,12 @@ class MZXMLScan extends DefaultHandler implements Scan {
         return null;
     }
 
+
+    /**
+     * @see net.sf.mzmine.data.Scan#getMassTolerance()
+     */
+    public double getMassTolerance() {
+        return 0.5;
+    }
+
 }

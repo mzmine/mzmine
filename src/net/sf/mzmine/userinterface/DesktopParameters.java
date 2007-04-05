@@ -6,11 +6,11 @@ import java.text.NumberFormat;
 import net.sf.mzmine.data.Parameter;
 import net.sf.mzmine.data.Parameter.ParameterType;
 import net.sf.mzmine.data.impl.SimpleParameter;
-import net.sf.mzmine.data.impl.SimpleParameterValue;
 import net.sf.mzmine.util.TimeNumberFormat;
 
 public class DesktopParameters {
 
+    /*
 	public final static Parameter retentionTimeNumberFormatParameter 
 		= new SimpleParameter( ParameterType.OBJECT,
 								"Retention time format",
@@ -46,5 +46,5 @@ public class DesktopParameters {
 			"",
 			new SimpleParameterValue(new DecimalFormat("0.0")));
 	
-	
+	*/
 }

@@ -19,11 +19,11 @@
 
 package net.sf.mzmine.methods;
 
-import net.sf.mzmine.batchmode.BatchModeController;
 import net.sf.mzmine.data.AlignmentResult;
+import net.sf.mzmine.data.ParameterSet;
+import net.sf.mzmine.data.impl.SimpleParameterSet;
 import net.sf.mzmine.io.OpenedRawDataFile;
 import net.sf.mzmine.main.MZmineModule;
-import net.sf.mzmine.taskcontrol.TaskListener;
 
 /**
  * Interface representing a data processing method
@@ -33,25 +33,20 @@ public interface Method extends MZmineModule {
     /**
      * This function displays a modal dialog to define method parameters
      * 
-     * @return true if user clicked "ok", and false if used clicked "cancel"
+     * @return parameter set or null if used clicked "cancel"
      */
-    public boolean askParameters();
-    
-    /**
-     * This function sets the method to use a given instance of method parameters
-     */
-    public void setParameters(MethodParameters parameters);
+    public ParameterSet setupParameters(ParameterSet current);
 
     /**
-     * Runs this method on a given items
+     * Runs this method on a given items, and calls another task listener after task is complete and results have been processed.
      * 
      * @param dataFiles Data files to be processed
      * @param alignmentResult AlignmentResults to be processed
-     * 
-     */
-    public void runMethod(OpenedRawDataFile[] dataFiles, AlignmentResult[] alignmentResults);
-     
-
+     */    
+    public void runMethod(	OpenedRawDataFile[] dataFiles, 
+            				AlignmentResult[] alignmentResults, 
+                          ParameterSet parameters);
+    
     /**
      * Runs this method on a given items, and calls another task listener after task is complete and results have been processed.
      * 
@@ -60,9 +55,10 @@ public interface Method extends MZmineModule {
      * @param methodListener A method listener whose methodFinished method is called after whole method has been completed on all given files/results.
      * 
      */    
-    public void runMethod(	OpenedRawDataFile[] dataFiles, 
-            				AlignmentResult[] alignmentResults, 
-            				MethodListener methodListener);
+    public void runMethod(  OpenedRawDataFile[] dataFiles, 
+                            AlignmentResult[] alignmentResults, 
+                            ParameterSet parameters,
+                            MethodListener methodListener);
 
     
     

@@ -19,6 +19,8 @@
 
 package net.sf.mzmine.main;
 
+import net.sf.mzmine.data.ParameterSet;
+
 /**
  * This interface represents MZmine module.
  */
@@ -32,11 +34,23 @@ public interface MZmineModule {
     public void initModule(MZmineCore core);
 
     /**
-     * Returns a short textual desription of this module. Returned string must
-     * be XML-friendly - no <,>,",' characters
+     * Returns module name 
      * 
-     * @return Module description
+     * @return Module name
      */
     public String toString();
+    
+    /**
+     * Returns module's current parameters and their values
+     * @return Parameter values as ParameterSet or null if module has no parameters
+     */
+    public ParameterSet getParameterSet();
+    
+    
+    /**
+     * Sets current parameters and their values
+     * @param parameterValues New parameter values
+     */
+    public void setParameters(ParameterSet parameterValues);
 
 }

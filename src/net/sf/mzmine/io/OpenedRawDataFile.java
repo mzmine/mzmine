@@ -23,8 +23,8 @@ import java.io.File;
 import java.io.IOException;
 import java.util.Vector;
 
+import net.sf.mzmine.data.impl.SimpleParameterSet;
 import net.sf.mzmine.methods.Method;
-import net.sf.mzmine.methods.MethodParameters;
 
 
 /**
@@ -36,12 +36,12 @@ public interface OpenedRawDataFile {
         public File oldFileName;
         public File newFileName;
         public Method processingMethod;
-        public MethodParameters parameters;
+        public SimpleParameterSet parameters;
     }
     
     public Vector<Operation> getProcessingHistory();
 
-    public void addHistoryEntry(File file, Method method, MethodParameters param);
+    public void addHistoryEntry(File file, Method method, SimpleParameterSet param);
     public void addHistoryEntry(Operation op);
     
     /**
@@ -57,7 +57,7 @@ public interface OpenedRawDataFile {
     
     public RawDataFileWriter createNewTemporaryFile() throws IOException;
     
-    public void updateFile(RawDataFile newFile, Method processingMethod, MethodParameters parameters);
+    public void updateFile(RawDataFile newFile, Method processingMethod, SimpleParameterSet parameters);
     
     public void addFileChangedListener(); // TODO, how to remove listeners?
     

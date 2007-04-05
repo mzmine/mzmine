@@ -33,6 +33,7 @@ import net.sf.mzmine.main.MZmineModule;
 import net.sf.mzmine.userinterface.Desktop.MZmineMenu;
 import net.sf.mzmine.visualizers.alignmentresult.AlignmentResultVisualizer;
 import net.sf.mzmine.data.AlignmentResult;
+import net.sf.mzmine.data.ParameterSet;
 
 
 public class AlignmentResultTableVisualizer implements AlignmentResultVisualizer, ActionListener, ListSelectionListener {
@@ -82,6 +83,46 @@ public class AlignmentResultTableVisualizer implements AlignmentResultVisualizer
 		AlignmentResult[] alignmentResults = desktop.getSelectedAlignmentResults();
 		if (alignmentResults.length>0) myMenuItem.setEnabled(true);
 
+    }
+
+    /**
+     * @see net.sf.mzmine.main.MZmineModule#toString()
+     */
+    public String toString() {
+        // TODO Auto-generated method stub
+        return null;
+    }
+
+    /**
+     * @see net.sf.mzmine.main.MZmineModule#getCurrentParameters()
+     */
+    public ParameterSet getCurrentParameters() {
+        // TODO Auto-generated method stub
+        return null;
+    }
+
+    /**
+     * @see net.sf.mzmine.main.MZmineModule#setCurrentParameters(net.sf.mzmine.data.ParameterSet)
+     */
+    public void setCurrentParameters(ParameterSet parameterValues) {
+        // TODO Auto-generated method stub
+        
+    }
+
+    /**
+     * @see net.sf.mzmine.main.MZmineModule#getParameterSet()
+     */
+    public ParameterSet getParameterSet() {
+        // TODO Auto-generated method stub
+        return null;
+    }
+
+    /**
+     * @see net.sf.mzmine.main.MZmineModule#setParameters(net.sf.mzmine.data.ParameterSet)
+     */
+    public void setParameters(ParameterSet parameterValues) {
+        // TODO Auto-generated method stub
+        
     }
 
 

@@ -21,6 +21,7 @@ package net.sf.mzmine.methods.filtering.crop;
 
 import java.io.IOException;
 
+import net.sf.mzmine.data.ParameterSet;
 import net.sf.mzmine.data.Scan;
 import net.sf.mzmine.data.impl.SimpleScan;
 import net.sf.mzmine.io.OpenedRawDataFile;
@@ -42,7 +43,7 @@ class CropFilterTask implements Task {
     private int filteredScans;
     private int totalScans;
     
-    private CropFilterParameters parameters;
+    private ParameterSet parameters;
     private double minMZ;
     private double maxMZ;
     private double minRT;
@@ -54,15 +55,15 @@ class CropFilterTask implements Task {
      * @param rawDataFile
      * @param parameters
      */
-    CropFilterTask(OpenedRawDataFile dataFile, CropFilterParameters parameters) {
+    CropFilterTask(OpenedRawDataFile dataFile, ParameterSet parameters) {
         status = TaskStatus.WAITING;
         this.dataFile = dataFile;
         this.rawDataFile = dataFile.getCurrentFile();
         this.parameters = parameters;
-        minMZ = parameters.getParameterValue(CropFilterParameters.minMZ).getDoubleValue();
-        maxMZ = parameters.getParameterValue(CropFilterParameters.maxMZ).getDoubleValue();
-        minRT = parameters.getParameterValue(CropFilterParameters.minRT).getDoubleValue();
-        maxRT = parameters.getParameterValue(CropFilterParameters.maxRT).getDoubleValue();
+        minMZ = (Double)  parameters.getParameterValue(CropFilter.parameterMinMZ);
+        minRT = (Double)  parameters.getParameterValue(CropFilter.parameterMinRT);
+        maxMZ = (Double)  parameters.getParameterValue(CropFilter.parameterMaxMZ);
+        maxRT = (Double) parameters.getParameterValue(CropFilter.parameterMaxRT);
     }
 
     /**

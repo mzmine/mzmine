@@ -23,19 +23,18 @@ package net.sf.mzmine.methods.alignment.filterbygaps;
 import net.sf.mzmine.data.Parameter;
 import net.sf.mzmine.data.Parameter.ParameterType;
 import net.sf.mzmine.data.impl.SimpleParameter;
-import net.sf.mzmine.data.impl.SimpleParameterValue;
-import net.sf.mzmine.methods.MethodParameters;
+import net.sf.mzmine.data.impl.SimpleParameterSet;
 import net.sf.mzmine.userinterface.DesktopParameters;
 
 
-public class AlignmentResultFilterByGapsParameters extends MethodParameters {
+public class AlignmentResultFilterByGapsParameters extends SimpleParameterSet {
 
 	protected static final Parameter minPresent = new SimpleParameter(	ParameterType.INTEGER,
 																	"Minimum present",
 																	"Minimum number of peak detections required for keeping a row",
 																	"",
-																	new SimpleParameterValue(1),
-																	new SimpleParameterValue(1),
+																	new Integer(1),
+																	new Integer(1),
 																	null,
 																	DesktopParameters.integerFormatParameter);
 	

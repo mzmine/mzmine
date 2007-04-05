@@ -57,7 +57,7 @@ class ZoomScanFilterTask implements Task {
         this.dataFile = dataFile;
         this.rawDataFile = dataFile.getCurrentFile();
         this.parameters = parameters;
-        minMZRange = parameters.getParameterValue(ZoomScanFilterParameters.minMZRange).getDoubleValue();
+        minMZRange =(Double)parameters.getParameterValue(ZoomScanFilterParameters.minMZRange);
     }
 
     /**
