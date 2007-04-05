@@ -35,6 +35,12 @@ public interface Scan {
      * @return MS level
      */
     public int getMSLevel();
+    
+    /**
+     * 
+     * @return Mass tolerance in m/z, depending on instrument precision
+     */
+    public double getMassTolerance();
 
     /**
      * 

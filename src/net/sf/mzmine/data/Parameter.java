@@ -19,13 +19,38 @@
 
 package net.sf.mzmine.data;
 
+import java.text.NumberFormat;
+
+/*
+ * 
+ * Parameters have multiple purposes:
+ * - each module can create its own set of parameters and use a common ParameterSetupDialog to set their values
+ * - project can contain a set of experimental parameters and their values per file
+ * - visualizers can remember their settings
+ * 
+ * Different types of parameters require different storage:
+ * - user-interface parameters 
+ * - per project parameters
+ * - per file parameters
+ * - per method parameters
+ * - per module parameters
+ * 
+ * Per module parameters and user-interface parameters have to be saved automatically when exiting, and reloaded when starting MZmine.
+ * 
+ * When saving parameters, we have to identify them.
+ * 
+ * Parameter is immutable.
+ * 
+ */
+
+
 /**
  * Parameter interface, represents parameters or variables used in the project
  */
-public interface Parameter extends DataUnit {
+public interface Parameter {
 
     public enum ParameterType {
-        STRING, INTEGER, DOUBLE, BOOLEAN, OBJECT
+        STRING, INTEGER, DOUBLE, BOOLEAN
     };
 
     /**
@@ -36,6 +61,7 @@ public interface Parameter extends DataUnit {
     public ParameterType getType();
     
     /**
+     * Returns this parameter's name. The name must be unique within one ParameterSet.
      * 
      * @return Parameter name
      */
@@ -57,31 +83,30 @@ public interface Parameter extends DataUnit {
      * 
      * @return Default value of this parameter or null
      */
-    public ParameterValue getDefaultValue();
+    public Object getDefaultValue();
     
     /**
      * 
      * @return Array of possible values of this parameter or null
      */
-    public ParameterValue[] getPossibleValues();
+    public Object[] getPossibleValues();
 
     /**
      * 
      * @return Minimum possible value of this parameter or null
      */
-    public ParameterValue getMinimumValue();
+    public Object getMinimumValue();
 
     /**
      * 
      * @return Maximum possible value of this parameter or null
      */
-    public ParameterValue getMaximumValue();
+    public Object getMaximumValue();
     
     /**
      * 
      * @return Parameter for the NumberFormat suitable for this parameter or null
      */
-    public Parameter getNumberFormatParameter();
-
+    public NumberFormat getNumberFormat();
     
 }

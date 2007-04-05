@@ -293,4 +293,11 @@ public class SimpleScan implements Scan {
         this.centroided = centroided;
     }
 
+    /**
+     * @see net.sf.mzmine.data.Scan#getMassTolerance()
+     */
+    public double getMassTolerance() {
+        return 0.5;
+    }
+
 }
