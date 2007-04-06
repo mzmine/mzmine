@@ -80,13 +80,11 @@ class BatchModeDialog extends JDialog implements ActionListener {
                 methodsCombo.addItem(mod);
         }
 
-        // Add everything to main panel
         JPanel pnlRight = new JPanel();
         pnlRight.setLayout(new BoxLayout(pnlRight, BoxLayout.Y_AXIS));
         btnConfig = GUIUtils.addButton(pnlRight, "Configure", null, this);
         btnRemove = GUIUtils.addButton(pnlRight, "Remove", null, this);
 
-        // Add everything to main panel
         JPanel pnlCenter = new JPanel(new BorderLayout());
         pnlCenter.add(new JLabel("Current batch:"), BorderLayout.NORTH);
         pnlCenter.add(new JScrollPane(currentStepsList), BorderLayout.CENTER);
@@ -132,6 +130,7 @@ class BatchModeDialog extends JDialog implements ActionListener {
                 core.getDesktop().displayErrorMessage("Please select at least one method");
                 return;
             }
+            
             exitCode = ExitCode.OK;
             dispose();
             return;

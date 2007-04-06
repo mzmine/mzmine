@@ -1,17 +1,17 @@
 /*
- * Copyright 2006 The MZmine Development Team
- *
+ * Copyright 2006-2007 The MZmine Development Team
+ * 
  * This file is part of MZmine.
- *
+ * 
  * MZmine is free software; you can redistribute it and/or modify it under the
  * terms of the GNU General Public License as published by the Free Software
  * Foundation; either version 2 of the License, or (at your option) any later
  * version.
- *
+ * 
  * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY
  * WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR
  * A PARTICULAR PURPOSE. See the GNU General Public License for more details.
- *
+ * 
  * You should have received a copy of the GNU General Public License along with
  * MZmine; if not, write to the Free Software Foundation, Inc., 51 Franklin St,
  * Fifth Floor, Boston, MA 02110-1301 USA
@@ -22,6 +22,7 @@ package net.sf.mzmine.methods.filtering.savitzkygolay;
 import java.io.IOException;
 import java.util.Hashtable;
 
+import net.sf.mzmine.data.ParameterSet;
 import net.sf.mzmine.data.Scan;
 import net.sf.mzmine.data.impl.SimpleScan;
 import net.sf.mzmine.io.OpenedRawDataFile;
@@ -36,34 +37,29 @@ class SavitzkyGolayFilterTask implements Task {
 
     private OpenedRawDataFile dataFile;
     private RawDataFile rawDataFile;
-    
-    private TaskStatus status;
+
+    private TaskStatus status = TaskStatus.WAITING;
     private String errorMessage;
 
     private int filteredScans;
     private int totalScans;
 
     private RawDataFile filteredRawDataFile;
-    
+
     private Hashtable<Integer, Integer> Hvalues;
     private Hashtable<Integer, int[]> Avalues;
-    
-    private SavitzkyGolayFilterParameters parameters;
-    int numberOfDataPoints; 
-    
+
+    int numberOfDataPoints;
 
     /**
      * @param rawDataFile
      * @param parameters
      */
-    SavitzkyGolayFilterTask(OpenedRawDataFile dataFile,
-            SavitzkyGolayFilterParameters parameters) {
-        status = TaskStatus.WAITING;
+    SavitzkyGolayFilterTask(OpenedRawDataFile dataFile, ParameterSet parameters) {
         this.dataFile = dataFile;
         this.rawDataFile = dataFile.getCurrentFile();
-        this.parameters = parameters;
-        
-        numberOfDataPoints = (Integer) parameters.getParameterValue(SavitzkyGolayFilterParameters.numberOfDatapoints);
+
+        numberOfDataPoints = (Integer) parameters.getParameterValue(SavitzkyGolayFilter.parameterDatapoints);
     }
 
     /**
@@ -100,12 +96,7 @@ class SavitzkyGolayFilterTask implements Task {
      * @see net.sf.mzmine.taskcontrol.Task#getResult()
      */
     public Object getResult() {
-        Object[] results = new Object[3];
-        results[0] = dataFile;
-        results[1] = filteredRawDataFile;
-        results[2] = parameters;
-
-        return results;
+        return filteredRawDataFile;
     }
 
     /**
@@ -137,7 +128,7 @@ class SavitzkyGolayFilterTask implements Task {
         int[] aVals = Avalues.get(new Integer(numberOfDataPoints));
         int h = Hvalues.get(new Integer(numberOfDataPoints)).intValue();
 
-        int[] scanNumbers = rawDataFile.getScanNumbers(1);
+        int[] scanNumbers = rawDataFile.getScanNumbers();
         totalScans = scanNumbers.length;
 
         Scan oldScan;
@@ -149,16 +140,12 @@ class SavitzkyGolayFilterTask implements Task {
 
             try {
                 oldScan = rawDataFile.getScan(scanNumbers[i]);
-                processOneScan(	rawDataFileWriter, oldScan,
-                        		numberOfDataPoints, h, aVals);
+                processOneScan(rawDataFileWriter, oldScan, numberOfDataPoints,
+                        h, aVals);
 
             } catch (IOException e) {
                 status = TaskStatus.ERROR;
                 errorMessage = e.toString();
-                try {
-                    filteredRawDataFile = rawDataFileWriter.finishWriting();
-                } catch (IOException e2) {
-                }
                 return;
             }
 
@@ -180,6 +167,12 @@ class SavitzkyGolayFilterTask implements Task {
 
     private void processOneScan(RawDataFileWriter writer, Scan sc,
             int numOfDataPoints, int h, int[] aVals) throws IOException {
+
+        // only process MS level 1 scans
+        if (sc.getMSLevel() != 1) {
+            writer.addScan(sc);
+            return;
+        }
 
         int marginSize = (numOfDataPoints + 1) / 2 - 1;
         double sumOfInts;

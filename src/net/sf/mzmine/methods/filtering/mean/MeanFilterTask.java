@@ -1,17 +1,17 @@
 /*
- * Copyright 2006 The MZmine Development Team
- *
+ * Copyright 2006-2007 The MZmine Development Team
+ * 
  * This file is part of MZmine.
- *
+ * 
  * MZmine is free software; you can redistribute it and/or modify it under the
  * terms of the GNU General Public License as published by the Free Software
  * Foundation; either version 2 of the License, or (at your option) any later
  * version.
- *
+ * 
  * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY
  * WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR
  * A PARTICULAR PURPOSE. See the GNU General Public License for more details.
- *
+ * 
  * You should have received a copy of the GNU General Public License along with
  * MZmine; if not, write to the Free Software Foundation, Inc., 51 Franklin St,
  * Fifth Floor, Boston, MA 02110-1301 USA
@@ -29,6 +29,7 @@ import net.sf.mzmine.io.OpenedRawDataFile;
 import net.sf.mzmine.io.RawDataFile;
 import net.sf.mzmine.io.RawDataFileWriter;
 import net.sf.mzmine.taskcontrol.Task;
+import net.sf.mzmine.taskcontrol.Task.TaskStatus;
 
 /**
  * 
@@ -37,16 +38,15 @@ class MeanFilterTask implements Task {
 
     private OpenedRawDataFile dataFile;
     private RawDataFile rawDataFile;
-    
-    private TaskStatus status;
+
+    private TaskStatus status = TaskStatus.WAITING;
     private String errorMessage;
 
     private int filteredScans;
     private int totalScans;
 
     private RawDataFile filteredRawDataFile;
-    
-   // private MeanFilterParameters parameters;
+
     private double oneSidedWindowLength;
 
     /**
@@ -54,12 +54,9 @@ class MeanFilterTask implements Task {
      * @param parameters
      */
     MeanFilterTask(OpenedRawDataFile dataFile, ParameterSet parameters) {
-        status = TaskStatus.WAITING;
         this.dataFile = dataFile;
         this.rawDataFile = dataFile.getCurrentFile();
-      // this.parameters = parameters;
-        
-      //  oneSidedWindowLength = (Double) parameters.getParameterValue(MeanFilterParameters.oneSidedWindowLength);
+        oneSidedWindowLength = (Double) parameters.getParameterValue(MeanFilter.parameterOneSidedWindowLength);
     }
 
     /**
@@ -96,12 +93,7 @@ class MeanFilterTask implements Task {
      * @see net.sf.mzmine.taskcontrol.Task#getResult()
      */
     public Object getResult() {
-        Object[] results = new Object[3];
-        results[0] = dataFile;
-        results[1] = filteredRawDataFile;
-        //results[2] = parameters;
-
-        return results;
+        return filteredRawDataFile;
     }
 
     /**
@@ -128,7 +120,7 @@ class MeanFilterTask implements Task {
             return;
         }
 
-        int[] scanNumbers = rawDataFile.getScanNumbers(1);
+        int[] scanNumbers = rawDataFile.getScanNumbers();
         totalScans = scanNumbers.length;
 
         Scan oldScan;
@@ -145,10 +137,6 @@ class MeanFilterTask implements Task {
             } catch (IOException e) {
                 status = TaskStatus.ERROR;
                 errorMessage = e.toString();
-                try {
-                    filteredRawDataFile = rawDataFileWriter.finishWriting();
-                } catch (IOException e2) {
-                }
                 return;
             }
 
@@ -170,6 +158,12 @@ class MeanFilterTask implements Task {
 
     private void processOneScan(RawDataFileWriter writer, Scan sc,
             double windowLength) throws IOException {
+
+        // only process MS level 1 scans
+        if (sc.getMSLevel() != 1) {
+            writer.addScan(sc);
+            return;
+        }
 
         Vector<Double> massWindow = new Vector<Double>();
         Vector<Double> intensityWindow = new Vector<Double>();

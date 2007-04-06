@@ -17,7 +17,7 @@
  * Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-package net.sf.mzmine.methods.filtering.crop;
+package net.sf.mzmine.methods.filtering.savitzkygolay;
 
 import java.util.Hashtable;
 import java.util.logging.Logger;
@@ -33,20 +33,19 @@ import net.sf.mzmine.taskcontrol.TaskListener;
 import net.sf.mzmine.userinterface.Desktop;
 
 /**
- * This class represents a single run of cropping filter. Run is a sequence of
- * tasks to crop data files.
+ * 
  */
-class CropFilterRun implements TaskListener, Runnable {
+class SavitzkyGolayFilterRun implements TaskListener, Runnable {
 
     private Logger logger = Logger.getLogger(this.getClass().getName());
 
-    private CropFilter moduleInstance;
+    private SavitzkyGolayFilter moduleInstance;
     private ParameterSet parameters;
-    private CropFilterTask tasks[];
+    private SavitzkyGolayFilterTask tasks[];
     private MethodListener methodListener;
     private Desktop desktop;
     private TaskController taskController;
-    private Hashtable<CropFilterTask, OpenedRawDataFile> taskToFile;
+    private Hashtable<SavitzkyGolayFilterTask, OpenedRawDataFile> taskToFile;
     private int taskCount;
 
     private MethodReturnStatus returnStatus = null;
@@ -56,21 +55,22 @@ class CropFilterRun implements TaskListener, Runnable {
      * @param methodListener
      * @param taskController
      */
-    CropFilterRun(CropFilter moduleInstance, OpenedRawDataFile[] dataFiles,
-            ParameterSet parameters, MethodListener methodListener,
-            Desktop desktop, TaskController taskController) {
+    SavitzkyGolayFilterRun(SavitzkyGolayFilter moduleInstance,
+            OpenedRawDataFile[] dataFiles, ParameterSet parameters,
+            MethodListener methodListener, Desktop desktop,
+            TaskController taskController) {
 
         this.moduleInstance = moduleInstance;
         this.methodListener = methodListener;
         this.desktop = desktop;
         this.taskController = taskController;
 
-        taskToFile = new Hashtable<CropFilterTask, OpenedRawDataFile>();
+        taskToFile = new Hashtable<SavitzkyGolayFilterTask, OpenedRawDataFile>();
 
         taskCount = dataFiles.length;
-        tasks = new CropFilterTask[taskCount];
+        tasks = new SavitzkyGolayFilterTask[taskCount];
         for (int i = 0; i < dataFiles.length; i++) {
-            tasks[i] = new CropFilterTask(dataFiles[i], parameters);
+            tasks[i] = new SavitzkyGolayFilterTask(dataFiles[i], parameters);
             taskToFile.put(tasks[i], dataFiles[i]);
         }
 
@@ -120,9 +120,9 @@ class CropFilterRun implements TaskListener, Runnable {
      */
     public void run() {
 
-        logger.info("Running cropping filter");
+        logger.info("Running Savitzky-Golay filter");
 
-        for (CropFilterTask filterTask : tasks) {
+        for (SavitzkyGolayFilterTask filterTask : tasks) {
             taskController.addTask(filterTask, this);
         }
 

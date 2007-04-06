@@ -52,27 +52,27 @@ import net.sf.mzmine.userinterface.mainwindow.MainWindow;
 public class CropFilter implements Method, ListSelectionListener,
         ActionListener {
 
-    static final Parameter parameterMSlevel = new SimpleParameter(
+    public static final Parameter parameterMSlevel = new SimpleParameter(
             ParameterType.INTEGER, "MS level",
             "MS level of scans to be filtered", null, new Object[] { 1, 2, 3,
                     4, 5, 6, 7, 8, 9, 10 });
 
-    static final Parameter parameterMinMZ = new SimpleParameter(
+    public static final Parameter parameterMinMZ = new SimpleParameter(
             ParameterType.DOUBLE, "Minimum M/Z",
             "Lower M/Z boundary of the cropped region", "Da",
             new Double(100.0), new Double(0.0), null);
 
-    static final Parameter parameterMaxMZ = new SimpleParameter(
+    public static final Parameter parameterMaxMZ = new SimpleParameter(
             ParameterType.DOUBLE, "Maximum M/Z",
             "Upper M/Z boundary of the cropped region", "Da",
             new Double(1000.0), new Double(0.0), null);
 
-    static final Parameter parameterMinRT = new SimpleParameter(
+    public static final Parameter parameterMinRT = new SimpleParameter(
             ParameterType.DOUBLE, "Minimum Retention time",
             "Lower RT boundary of the cropped region", "seconds", new Double(
                     0.0), new Double(0.0), null);
 
-    static final Parameter parameterMaxRT = new SimpleParameter(
+    public static final Parameter parameterMaxRT = new SimpleParameter(
             ParameterType.DOUBLE, "Maximum Retention time",
             "Upper RT boundary of the cropped region", "seconds", new Double(
                     600.0), new Double(0.0), null);
@@ -106,18 +106,13 @@ public class CropFilter implements Method, ListSelectionListener,
      * @see java.awt.event.ActionListener#actionPerformed(java.awt.event.ActionEvent)
      */
     public void actionPerformed(ActionEvent e) {
-
         if (e.getSource() == myMenuItem) {
             ParameterSet param = setupParameters(parameters);
-
             if (param == null)
                 return;
-
             OpenedRawDataFile[] dataFiles = desktop.getSelectedDataFiles();
-
             runMethod(dataFiles, null, param);
         }
-
     }
 
     /**
@@ -190,7 +185,6 @@ public class CropFilter implements Method, ListSelectionListener,
      */
     public void setParameters(ParameterSet parameters) {
         this.parameters = parameters;
-
     }
 
 }

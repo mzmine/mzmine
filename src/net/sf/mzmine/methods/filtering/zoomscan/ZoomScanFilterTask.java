@@ -1,17 +1,17 @@
 /*
- * Copyright 2006 The MZmine Development Team
- *
+ * Copyright 2006-2007 The MZmine Development Team
+ * 
  * This file is part of MZmine.
- *
+ * 
  * MZmine is free software; you can redistribute it and/or modify it under the
  * terms of the GNU General Public License as published by the Free Software
  * Foundation; either version 2 of the License, or (at your option) any later
  * version.
- *
+ * 
  * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY
  * WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR
  * A PARTICULAR PURPOSE. See the GNU General Public License for more details.
- *
+ * 
  * You should have received a copy of the GNU General Public License along with
  * MZmine; if not, write to the Free Software Foundation, Inc., 51 Franklin St,
  * Fifth Floor, Boston, MA 02110-1301 USA
@@ -21,6 +21,7 @@ package net.sf.mzmine.methods.filtering.zoomscan;
 
 import java.io.IOException;
 
+import net.sf.mzmine.data.ParameterSet;
 import net.sf.mzmine.data.Scan;
 import net.sf.mzmine.io.OpenedRawDataFile;
 import net.sf.mzmine.io.RawDataFile;
@@ -34,30 +35,26 @@ class ZoomScanFilterTask implements Task {
 
     private OpenedRawDataFile dataFile;
     private RawDataFile rawDataFile;
-    
-    private TaskStatus status;
+
+    private TaskStatus status = TaskStatus.WAITING;
     private String errorMessage;
 
     private int filteredScans;
     private int totalScans;
 
     private RawDataFile filteredRawDataFile;
-    
-    private ZoomScanFilterParameters parameters;
+
     private double minMZRange;
-    
 
     /**
      * @param rawDataFile
      * @param parameters
      */
-    ZoomScanFilterTask(OpenedRawDataFile dataFile,
-            ZoomScanFilterParameters parameters) {
-        status = TaskStatus.WAITING;
+    ZoomScanFilterTask(OpenedRawDataFile dataFile, ParameterSet parameters) {
         this.dataFile = dataFile;
         this.rawDataFile = dataFile.getCurrentFile();
-        this.parameters = parameters;
-        minMZRange =(Double)parameters.getParameterValue(ZoomScanFilterParameters.minMZRange);
+
+        minMZRange = (Double) parameters.getParameterValue(ZoomScanFilter.parameterMinMZRange);
     }
 
     /**
@@ -94,12 +91,7 @@ class ZoomScanFilterTask implements Task {
      * @see net.sf.mzmine.taskcontrol.Task#getResult()
      */
     public Object getResult() {
-        Object[] results = new Object[3];
-        results[0] = dataFile;
-        results[1] = filteredRawDataFile;
-        results[2] = parameters;
-
-        return results;
+        return filteredRawDataFile;
     }
 
     /**
@@ -149,7 +141,6 @@ class ZoomScanFilterTask implements Task {
 
             try {
                 rawDataFileWriter.addScan(sc);
-
             } catch (IOException e) {
                 status = TaskStatus.ERROR;
                 errorMessage = e.toString();

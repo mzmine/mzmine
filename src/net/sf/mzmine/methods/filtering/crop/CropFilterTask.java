@@ -150,7 +150,7 @@ class CropFilterTask implements Task {
 
             // if the scan is our target MS level, do the filtering
             if (oldScan.getMSLevel() == msLevel) {
-                
+
                 // Is this scan within the RT range?
                 if ((oldScan.getRetentionTime() >= minRT)
                         && (oldScan.getRetentionTime() <= maxRT)) {

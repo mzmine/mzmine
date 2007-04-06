@@ -1,5 +1,5 @@
 /*
- * Copyright 2006 The MZmine Development Team
+ * Copyright 2006-2007 The MZmine Development Team
  * 
  * This file is part of MZmine.
  * 
@@ -22,38 +22,36 @@ package net.sf.mzmine.methods.filtering.savitzkygolay;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
-import java.util.logging.Logger;
 
 import javax.swing.JMenuItem;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
 
 import net.sf.mzmine.data.AlignmentResult;
+import net.sf.mzmine.data.Parameter;
 import net.sf.mzmine.data.ParameterSet;
+import net.sf.mzmine.data.Parameter.ParameterType;
+import net.sf.mzmine.data.impl.SimpleParameter;
 import net.sf.mzmine.data.impl.SimpleParameterSet;
 import net.sf.mzmine.io.OpenedRawDataFile;
-import net.sf.mzmine.io.RawDataFile;
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.methods.Method;
 import net.sf.mzmine.methods.MethodListener;
-import net.sf.mzmine.methods.MethodListener.MethodReturnStatus;
-import net.sf.mzmine.taskcontrol.Task;
 import net.sf.mzmine.taskcontrol.TaskController;
 import net.sf.mzmine.taskcontrol.TaskListener;
 import net.sf.mzmine.userinterface.Desktop;
 import net.sf.mzmine.userinterface.Desktop.MZmineMenu;
 import net.sf.mzmine.userinterface.dialogs.ParameterSetupDialog;
-import net.sf.mzmine.userinterface.mainwindow.MainWindow;
+import net.sf.mzmine.userinterface.dialogs.ParameterSetupDialog.ExitCode;
 
-public class SavitzkyGolayFilter implements Method, TaskListener,
-        ListSelectionListener, ActionListener {
+public class SavitzkyGolayFilter implements Method, ListSelectionListener,
+        ActionListener {
 
-    private Logger logger = Logger.getLogger(this.getClass().getName());
-    
-    private SavitzkyGolayFilterParameters parameters;
-    
-    private MethodListener afterMethodListener;
-    private int taskCount;
+    public static final Parameter parameterDatapoints = new SimpleParameter(
+            ParameterType.INTEGER, "Number of datapoints",
+            "Number of datapoints", 5, new Object[] { 5, 7, 9, 11, 13, 15 });
+
+    private ParameterSet parameters;
 
     private TaskController taskController;
     private Desktop desktop;
@@ -67,76 +65,28 @@ public class SavitzkyGolayFilter implements Method, TaskListener,
         this.taskController = core.getTaskController();
         this.desktop = core.getDesktop();
 
+        parameters = new SimpleParameterSet(
+                new Parameter[] { parameterDatapoints });
+
         myMenuItem = desktop.addMenuItem(MZmineMenu.FILTERING,
                 "Savitzky-Golay filter spectra", this, null, KeyEvent.VK_S,
                 false, false);
 
         desktop.addSelectionListener(this);
-        
-    }
-
-    /**
-     * @see net.sf.mzmine.methods.Method#askParameters()
-     */
-    public boolean askParameters() {
-
-        parameters = new SavitzkyGolayFilterParameters();   	
-
-        ParameterSetupDialog dialog = new ParameterSetupDialog(		
-        				MainWindow.getInstance(),
-        				"Please check parameter values for " + toString(),
-        				parameters
-        		);
-        dialog.setVisible(true);
-        
-//		if (dialog.getExitCode()==-1) return false;
-
-		return true;
 
     }
-    
-    public void setParameters(SimpleParameterSet parameters) {
-    	this.parameters = (SavitzkyGolayFilterParameters)parameters;
-    }
-
-    /**
-     * @see net.sf.mzmine.methods.Method#runMethod(net.sf.mzmine.data.impl.SimpleParameterSet,
-     *      net.sf.mzmine.io.RawDataFile[],
-     *      net.sf.mzmine.methods.alignment.AlignmentResult[])
-     */
-    public void runMethod(OpenedRawDataFile[] dataFiles, AlignmentResult[] alignmentResults) {
-
-    	if (parameters==null) { 
-    		logger.info("S-G filter initialized a new set of parameters");
-    		parameters = new SavitzkyGolayFilterParameters();
-    	}
-    	
-        logger.info("Running " + toString());
-
-        taskCount = dataFiles.length;
-        for (OpenedRawDataFile dataFile : dataFiles) {
-            Task filterTask = new SavitzkyGolayFilterTask(dataFile,
-                    (SavitzkyGolayFilterParameters) parameters);
-            taskController.addTask(filterTask, this);
-        }
-    }
-    
-    public void runMethod(OpenedRawDataFile[] dataFiles, AlignmentResult[] alignmentResults, MethodListener methodListener) {
-    	this.afterMethodListener = methodListener;
-    	runMethod(dataFiles, alignmentResults);
-    }    
 
     /**
      * @see java.awt.event.ActionListener#actionPerformed(java.awt.event.ActionEvent)
      */
     public void actionPerformed(ActionEvent e) {
-
-        if (!askParameters()) return;
-
-        OpenedRawDataFile[] dataFiles = desktop.getSelectedDataFiles();
-        
-        runMethod(dataFiles, null);
-
+        if (e.getSource() == myMenuItem) {
+            ParameterSet param = setupParameters(parameters);
+            if (param == null)
+                return;
+            OpenedRawDataFile[] dataFiles = desktop.getSelectedDataFiles();
+            runMethod(dataFiles, null, param);
+        }
     }
 
     /**
@@ -144,50 +94,6 @@ public class SavitzkyGolayFilter implements Method, TaskListener,
      */
     public void valueChanged(ListSelectionEvent e) {
         myMenuItem.setEnabled(desktop.isDataFileSelected());
-    }
-
-    public void taskStarted(Task task) {
-        // do nothing
-    }
-
-    public void taskFinished(Task task) {
-
-        if (task.getStatus() == Task.TaskStatus.FINISHED) {
-
-            Object[] result = (Object[]) task.getResult();
-            OpenedRawDataFile openedFile = (OpenedRawDataFile) result[0];
-            RawDataFile newFile = (RawDataFile) result[1];
-            SimpleParameterSet cfParam = (SimpleParameterSet) result[2];
-
-            openedFile.updateFile(newFile, this, cfParam);
-
-            taskCount--;
-            if ((taskCount==0) && (afterMethodListener!=null)) {
-            	afterMethodListener.methodFinished(MethodReturnStatus.FINISHED);
-            	afterMethodListener = null;
-            }
-
-        } else if (task.getStatus() == Task.TaskStatus.ERROR) {
-            /* Task encountered an error */
-            String msg = "Error while filtering a file: "
-                    + task.getErrorMessage();
-            logger.severe(msg);
-            desktop.displayErrorMessage(msg);
-            
-            taskCount=0;
-            if (afterMethodListener!=null) {
-            	afterMethodListener.methodFinished(MethodReturnStatus.ERROR);
-            	afterMethodListener = null;
-            }
-            
-        } else if (task.getStatus() == Task.TaskStatus.CANCELED) {
-            taskCount=0;
-            if (afterMethodListener!=null) {  
-            	afterMethodListener.methodFinished(MethodReturnStatus.CANCELED);
-            	afterMethodListener = null;
-            }
-        }
-       
     }
 
     /**
@@ -198,59 +104,62 @@ public class SavitzkyGolayFilter implements Method, TaskListener,
     }
 
     /**
-     * @see net.sf.mzmine.main.MZmineModule#getCurrentParameters()
+     * @see net.sf.mzmine.methods.Method#setupParameters()
      */
-    public ParameterSet getCurrentParameters() {
-        // TODO Auto-generated method stub
-        return null;
+    public ParameterSet setupParameters(ParameterSet currentParameters) {
+        ParameterSetupDialog dialog = new ParameterSetupDialog(
+                desktop.getMainFrame(), "Please check parameter values for "
+                        + toString(), currentParameters);
+        dialog.setVisible(true);
+        if (dialog.getExitCode() == ExitCode.CANCEL)
+            return null;
+        return currentParameters.clone();
     }
 
     /**
-     * @see net.sf.mzmine.main.MZmineModule#setCurrentParameters(net.sf.mzmine.data.ParameterSet)
+     * @see net.sf.mzmine.methods.Method#runMethod(net.sf.mzmine.io.OpenedRawDataFile[],
+     *      net.sf.mzmine.data.AlignmentResult[],
+     *      net.sf.mzmine.data.ParameterSet)
      */
-    public void setCurrentParameters(ParameterSet parameterValues) {
-        // TODO Auto-generated method stub
-        
+    public void runMethod(OpenedRawDataFile[] dataFiles,
+            AlignmentResult[] alignmentResults, ParameterSet parameters) {
+
+        runMethod(dataFiles, alignmentResults, parameters, null);
+
     }
 
     /**
-     * @see net.sf.mzmine.methods.Method#setupParameters(net.sf.mzmine.data.ParameterSet)
+     * @see net.sf.mzmine.methods.Method#runMethod(net.sf.mzmine.io.OpenedRawDataFile[],
+     *      net.sf.mzmine.data.AlignmentResult[],
+     *      net.sf.mzmine.data.ParameterSet,
+     *      net.sf.mzmine.methods.MethodListener)
      */
-    public ParameterSet setupParameters(ParameterSet current) {
-        // TODO Auto-generated method stub
-        return null;
-    }
+    public void runMethod(OpenedRawDataFile[] dataFiles,
+            AlignmentResult[] alignmentResults, ParameterSet parameters,
+            MethodListener methodListener) {
 
-    /**
-     * @see net.sf.mzmine.methods.Method#runMethod(net.sf.mzmine.io.OpenedRawDataFile[], net.sf.mzmine.data.AlignmentResult[], net.sf.mzmine.data.ParameterSet)
-     */
-    public void runMethod(OpenedRawDataFile[] dataFiles, AlignmentResult[] alignmentResults, ParameterSet parameters) {
-        // TODO Auto-generated method stub
-        
-    }
+        // prepare a new sequence of tasks
+        SavitzkyGolayFilterRun newRun = new SavitzkyGolayFilterRun(this,
+                dataFiles, parameters, methodListener, desktop, taskController);
 
-    /**
-     * @see net.sf.mzmine.methods.Method#runMethod(net.sf.mzmine.io.OpenedRawDataFile[], net.sf.mzmine.data.AlignmentResult[], net.sf.mzmine.data.ParameterSet, net.sf.mzmine.methods.MethodListener)
-     */
-    public void runMethod(OpenedRawDataFile[] dataFiles, AlignmentResult[] alignmentResults, ParameterSet parameters, MethodListener methodListener) {
-        // TODO Auto-generated method stub
-        
+        // execute the sequence
+        newRun.run();
+
     }
 
     /**
      * @see net.sf.mzmine.main.MZmineModule#getParameterSet()
      */
     public ParameterSet getParameterSet() {
-        // TODO Auto-generated method stub
-        return null;
+        return parameters;
     }
 
     /**
      * @see net.sf.mzmine.main.MZmineModule#setParameters(net.sf.mzmine.data.ParameterSet)
      */
-    public void setParameters(ParameterSet parameterValues) {
-        // TODO Auto-generated method stub
-        
+    public void setParameters(ParameterSet parameters) {
+        this.parameters = parameters;
+
     }
 
 }

@@ -100,6 +100,7 @@ public class BatchMode implements MZmineModule, ListSelectionListener,
         setupDialog.setVisible(true);
 
         if (setupDialog.getExitCode() == ExitCode.OK) {
+            batchRunning = true;
             currentStep = 0;
             runNextStep();
         }
