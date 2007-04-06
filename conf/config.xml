@@ -11,7 +11,7 @@
         <parameter name="Minimum Retention time" type="DOUBLE">310.0</parameter>
         <parameter name="Maximum Retention time" type="DOUBLE">600.0</parameter>
       </parameters> 
-    </module> 
+    </module>  
     <module class="net.sf.mzmine.visualizers.rawdata.tic.TICVisualizer"/>  
     <module class="net.sf.mzmine.visualizers.rawdata.spectra.SpectraVisualizer"/>  
     <module class="net.sf.mzmine.visualizers.rawdata.twod.TwoDVisualizer"/>  
@@ -19,6 +19,6 @@
     <module class="net.sf.mzmine.visualizers.rawdata.neutralloss.NeutralLossVisualizer"/>  
     <module class="net.sf.mzmine.visualizers.peaklist.table.PeakListTableVisualizer"/>  
     <module class="net.sf.mzmine.visualizers.alignmentresult.table.AlignmentResultTableVisualizer"/>  
-    <module class="net.sf.mzmine.visualizers.alignmentresult.logratio.AlignmentResultLogratioVisualizer"/>  
+    <module class="net.sf.mzmine.visualizers.alignmentresult.logratio.AlignmentResultLogratioVisualizer"/> 
   </modules> 
 </configuration>
