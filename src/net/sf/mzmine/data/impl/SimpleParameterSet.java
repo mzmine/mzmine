@@ -124,11 +124,13 @@ public class SimpleParameterSet implements ParameterSet {
     /**
      * @see net.sf.mzmine.data.ParameterSet#getParameterValue(net.sf.mzmine.data.Parameter)
      */
-public Object getParameterValue(Parameter parameter) {
+    public Object getParameterValue(Parameter parameter) {
         Object value = values.get(parameter);
-        if (value == null) value = parameter.getDefaultValue();
+        if (value == null)
+            value = parameter.getDefaultValue();
         return value;
     }
+
     /**
      */
     public void setParameterValue(Parameter parameter, Object value)
@@ -224,7 +226,8 @@ public Object getParameterValue(Parameter parameter) {
 
                 ParameterType paramType = ParameterType.valueOf(paramElem.attributeValue(PARAMETER_TYPE_ATTRIBUTE));
                 String valueText = paramElem.getText();
-                if ((valueText == null) || (valueText.length() == 0)) continue;
+                if ((valueText == null) || (valueText.length() == 0))
+                    continue;
                 Object value = null;
                 switch (paramType) {
                 case BOOLEAN:
@@ -247,13 +250,14 @@ public Object getParameterValue(Parameter parameter) {
         }
 
     }
-    
+
     public SimpleParameterSet clone() {
         Parameter params[] = getParameters();
         SimpleParameterSet newSet = new SimpleParameterSet(params);
         for (Parameter p : params) {
             Object v = values.get(p);
-            if (v != null) newSet.setParameterValue(p, v);
+            if (v != null)
+                newSet.setParameterValue(p, v);
         }
         return newSet;
     }

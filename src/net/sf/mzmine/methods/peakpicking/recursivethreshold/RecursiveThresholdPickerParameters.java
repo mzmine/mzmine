@@ -23,7 +23,6 @@ import net.sf.mzmine.data.Parameter;
 import net.sf.mzmine.data.Parameter.ParameterType;
 import net.sf.mzmine.data.impl.SimpleParameter;
 import net.sf.mzmine.data.impl.SimpleParameterSet;
-import net.sf.mzmine.userinterface.DesktopParameters;
 
 public class RecursiveThresholdPickerParameters extends SimpleParameterSet {
   
@@ -34,8 +33,7 @@ public class RecursiveThresholdPickerParameters extends SimpleParameterSet {
 			"Da",
 			new Double(0.25),
 			new Double(0.05),
-			null,
-			DesktopParameters.mzNumberFormatParameter);
+			null);
 
     protected static final Parameter chromatographicThresholdLevel = new SimpleParameter(	
 			ParameterType.DOUBLE,
@@ -44,8 +42,7 @@ public class RecursiveThresholdPickerParameters extends SimpleParameterSet {
 			"%",
 			new Double(0.0),
 			new Double(0.0),
-			new Double(1.0),
-			DesktopParameters.percentFormatParameter);
+			new Double(1.0));
 
     protected static final Parameter noiseLevel = new SimpleParameter(	
 			ParameterType.DOUBLE,
@@ -54,8 +51,7 @@ public class RecursiveThresholdPickerParameters extends SimpleParameterSet {
 			"absolute",
 			new Double(10.0),
 			new Double(0.0),
-			null,
-			DesktopParameters.decimalFormatParameter);
+			null);
 
     protected static final Parameter minimumPeakHeight = new SimpleParameter(	
 			ParameterType.DOUBLE,
@@ -64,8 +60,7 @@ public class RecursiveThresholdPickerParameters extends SimpleParameterSet {
 			"absolute",
 			new Double(100.0),
 			new Double(0.0),
-			null,
-			DesktopParameters.decimalFormatParameter);
+			null);
 
     protected static final Parameter minimumPeakDuration = new SimpleParameter(	
 			ParameterType.DOUBLE,
@@ -74,8 +69,7 @@ public class RecursiveThresholdPickerParameters extends SimpleParameterSet {
 			"seconds",
 			new Double(4.0),
 			new Double(0.0),
-			null,
-			DesktopParameters.decimalFormatParameter);
+			null);
     
     protected static final Parameter minimumMZPeakWidth = new SimpleParameter(	
 			ParameterType.DOUBLE,
@@ -84,8 +78,7 @@ public class RecursiveThresholdPickerParameters extends SimpleParameterSet {
 			"Da",
 			new Double(0.2),
 			new Double(0.0),
-			null,
-			DesktopParameters.mzNumberFormatParameter);
+			null);
 
     protected static final Parameter maximumMZPeakWidth = new SimpleParameter(	
 			ParameterType.DOUBLE,
@@ -94,8 +87,7 @@ public class RecursiveThresholdPickerParameters extends SimpleParameterSet {
 			"Da",
 			new Double(1.00),
 			new Double(0.0),
-			null,
-			DesktopParameters.mzNumberFormatParameter);    
+			null);    
     
     protected static final Parameter mzTolerance = new SimpleParameter(	
 			ParameterType.DOUBLE,
@@ -104,8 +96,7 @@ public class RecursiveThresholdPickerParameters extends SimpleParameterSet {
 			"Da",
 			new Double(0.1),
 			new Double(0.0),
-			null,
-			DesktopParameters.mzNumberFormatParameter);
+			null);
 
     protected static final Parameter intTolerance = new SimpleParameter(	
 			ParameterType.DOUBLE,
@@ -114,8 +105,7 @@ public class RecursiveThresholdPickerParameters extends SimpleParameterSet {
 			"%",
 			new Double(0.15),
 			new Double(0.0),
-			null,
-			DesktopParameters.decimalFormatParameter); 
+			null); 
     
     
 	public Parameter[] getParameters() {

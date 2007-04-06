@@ -24,7 +24,6 @@ import net.sf.mzmine.data.Parameter;
 import net.sf.mzmine.data.Parameter.ParameterType;
 import net.sf.mzmine.data.impl.SimpleParameter;
 import net.sf.mzmine.data.impl.SimpleParameterSet;
-import net.sf.mzmine.userinterface.DesktopParameters;
 
 public class SimpleGapFillerParameters extends SimpleParameterSet {
 
@@ -40,8 +39,8 @@ public class SimpleGapFillerParameters extends SimpleParameterSet {
 			"%",
 			new Double(0.20), 
 			new Double(0.0),
-			null,
-			DesktopParameters.percentFormatParameter); 
+			null
+			); 
 
     protected static final Parameter MZTolerance = new SimpleParameter(	
 			ParameterType.DOUBLE,
@@ -50,8 +49,8 @@ public class SimpleGapFillerParameters extends SimpleParameterSet {
 			"Da",
 			new Double(0.050),
 			new Double(0.0),
-			null,
-			DesktopParameters.mzNumberFormatParameter);
+			null
+			);
     
 	protected static final Parameter RTToleranceType = new SimpleParameter(	ParameterType.STRING,
 			"RT range type",
@@ -66,8 +65,8 @@ public class SimpleGapFillerParameters extends SimpleParameterSet {
 			"seconds",
 			new Double(15.0),
 			new Double(0.0),
-			null,
-			DesktopParameters.decimalFormatParameter);
+			null
+			);
 
 	protected static final Parameter RTToleranceValuePercent = new SimpleParameter(	
 			ParameterType.DOUBLE,
@@ -76,8 +75,8 @@ public class SimpleGapFillerParameters extends SimpleParameterSet {
 			"%",
 			new Double(0.15),
 			new Double(0.0),
-			null,
-			DesktopParameters.percentFormatParameter);
+			null
+			);
 
 	public Parameter[] getParameters() {
 		return new Parameter[] {IntTolerance, MZTolerance, RTToleranceType, RTToleranceValueAbs, RTToleranceValuePercent};

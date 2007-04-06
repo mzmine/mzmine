@@ -23,7 +23,6 @@ import net.sf.mzmine.data.Parameter;
 import net.sf.mzmine.data.Parameter.ParameterType;
 import net.sf.mzmine.data.impl.SimpleParameter;
 import net.sf.mzmine.data.impl.SimpleParameterSet;
-import net.sf.mzmine.userinterface.DesktopParameters;
 
 public class LocalPickerParameters extends SimpleParameterSet {
 
@@ -33,8 +32,8 @@ public class LocalPickerParameters extends SimpleParameterSet {
 			"Da",
 			new Double(0.25),
 			new Double(0.01),
-			null,
-			DesktopParameters.mzNumberFormatParameter);
+			null
+			);
 
     protected static final Parameter chromatographicThresholdLevel = new SimpleParameter(	
 			ParameterType.DOUBLE,
@@ -43,8 +42,8 @@ public class LocalPickerParameters extends SimpleParameterSet {
 			"%",
 			new Double(0.0),
 			new Double(1.0),
-			null,
-			DesktopParameters.percentFormatParameter);
+			null
+			);
 
     protected static final Parameter noiseLevel = new SimpleParameter(	
 			ParameterType.DOUBLE,
@@ -53,8 +52,7 @@ public class LocalPickerParameters extends SimpleParameterSet {
 			"absolute",
 			new Double(4.0),
 			new Double(0.0),
-			null,
-			DesktopParameters.decimalFormatParameter);
+			null);
 
     protected static final Parameter minimumPeakHeight = new SimpleParameter(	
 			ParameterType.DOUBLE,
@@ -63,8 +61,7 @@ public class LocalPickerParameters extends SimpleParameterSet {
 			"absolute",
 			new Double(15.0),
 			new Double(0.0),
-			null,
-			DesktopParameters.decimalFormatParameter);
+			null);
 
     protected static final Parameter minimumPeakDuration = new SimpleParameter(	
 			ParameterType.DOUBLE,
@@ -73,8 +70,7 @@ public class LocalPickerParameters extends SimpleParameterSet {
 			"seconds",
 			new Double(3.0),
 			new Double(0.0),
-			null,
-			DesktopParameters.decimalFormatParameter);
+			null);
 
     protected static final Parameter mzTolerance = new SimpleParameter(	
 			ParameterType.DOUBLE,
@@ -83,8 +79,7 @@ public class LocalPickerParameters extends SimpleParameterSet {
 			"Da",
 			new Double(0.050),
 			new Double(0.0),
-			null,
-			DesktopParameters.mzNumberFormatParameter);
+			null);
 
     protected static final Parameter intTolerance = new SimpleParameter(	
 			ParameterType.DOUBLE,
@@ -93,8 +88,7 @@ public class LocalPickerParameters extends SimpleParameterSet {
 			"%",
 			new Double(0.20),
 			new Double(0.0),
-			null,
-			DesktopParameters.percentFormatParameter); 
+			null); 
     
     
 	public Parameter[] getParameters() {

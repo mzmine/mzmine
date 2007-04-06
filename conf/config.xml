@@ -3,15 +3,6 @@
 <configuration> 
   <nodes local="4"/>  
   <modules> 
-    <module class="net.sf.mzmine.batchmode.BatchMode"/>  
-    <module class="net.sf.mzmine.methods.filtering.crop.CropFilter"> 
-      <parameters>
-        <parameter name="Minimum M/Z" type="DOUBLE">100.0</parameter>
-        <parameter name="Maximum M/Z" type="DOUBLE">900.0</parameter>
-        <parameter name="Minimum Retention time" type="DOUBLE">310.0</parameter>
-        <parameter name="Maximum Retention time" type="DOUBLE">600.0</parameter>
-      </parameters> 
-    </module>  
     <module class="net.sf.mzmine.visualizers.rawdata.tic.TICVisualizer"/>  
     <module class="net.sf.mzmine.visualizers.rawdata.spectra.SpectraVisualizer"/>  
     <module class="net.sf.mzmine.visualizers.rawdata.twod.TwoDVisualizer"/>  
@@ -19,6 +10,29 @@
     <module class="net.sf.mzmine.visualizers.rawdata.neutralloss.NeutralLossVisualizer"/>  
     <module class="net.sf.mzmine.visualizers.peaklist.table.PeakListTableVisualizer"/>  
     <module class="net.sf.mzmine.visualizers.alignmentresult.table.AlignmentResultTableVisualizer"/>  
-    <module class="net.sf.mzmine.visualizers.alignmentresult.logratio.AlignmentResultLogratioVisualizer"/> 
+    <module class="net.sf.mzmine.visualizers.alignmentresult.logratio.AlignmentResultLogratioVisualizer"/>  
+    <module class="net.sf.mzmine.batchmode.BatchMode"/>  
+    <module class="net.sf.mzmine.methods.filtering.crop.CropFilter"> 
+      <parameters>
+        <parameter name="MS level" type="INTEGER"/>
+        <parameter name="Minimum M/Z" type="DOUBLE">100.0</parameter>
+        <parameter name="Maximum M/Z" type="DOUBLE">1000.0</parameter>
+        <parameter name="Minimum Retention time" type="DOUBLE">0.0</parameter>
+        <parameter name="Maximum Retention time" type="DOUBLE">600.0</parameter>
+      </parameters> 
+    </module>  
+    <module class="net.sf.mzmine.methods.filtering.mean.MeanFilter"/>  
+    <module class="net.sf.mzmine.methods.filtering.savitzkygolay.SavitzkyGolayFilter"/>  
+    <module class="net.sf.mzmine.methods.filtering.chromatographicmedian.ChromatographicMedianFilter"/>  
+    <module class="net.sf.mzmine.methods.filtering.crop.CropFilter"/>  
+    <module class="net.sf.mzmine.methods.filtering.zoomscan.ZoomScanFilter"/>  
+    <module class="net.sf.mzmine.methods.peakpicking.recursivethreshold.RecursiveThresholdPicker"/>  
+    <module class="net.sf.mzmine.methods.peakpicking.local.LocalPicker"/>  
+    <module class="net.sf.mzmine.methods.peakpicking.centroid.CentroidPicker"/>  
+    <module class="net.sf.mzmine.methods.deisotoping.simplegrouper.SimpleIsotopicPeaksGrouper"/>  
+    <module class="net.sf.mzmine.methods.alignment.join.JoinAligner"/>  
+    <module class="net.sf.mzmine.methods.alignment.filterbygaps.AlignmentResultFilterByGaps"/>  
+    <module class="net.sf.mzmine.methods.gapfilling.simple.SimpleGapFiller"/>  
+    <module class="net.sf.mzmine.methods.normalization.linear.LinearNormalizer"/> 
   </modules> 
 </configuration>

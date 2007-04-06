@@ -135,7 +135,7 @@ public class BatchMode implements MZmineModule, ListSelectionListener,
             if (currentStep < currentBatchSteps.size())
                 runNextStep();
             else {
-                desktop.displayErrorMessage("Batch processing done.");
+                desktop.displayMessage("Batch processing done.");
                 batchRunning = false;
             }
         }

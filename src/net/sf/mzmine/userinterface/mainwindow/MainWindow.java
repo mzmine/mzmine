@@ -182,8 +182,15 @@ public class MainWindow extends JFrame implements Desktop, WindowListener {
         setStatusBarText(text, Color.black);
     }
 
+    /**
+     * @see net.sf.mzmine.userinterface.Desktop#displayMessage(java.lang.String)
+     */
+    public void displayMessage(String msg) {
+        JOptionPane.showMessageDialog(this, msg, "Message",
+                JOptionPane.INFORMATION_MESSAGE);
+    }
+    
     public void displayErrorMessage(String msg) {
-        // statBar.setStatusText(msg);
         JOptionPane.showMessageDialog(this, msg, "Sorry",
                 JOptionPane.ERROR_MESSAGE);
     }
@@ -409,5 +416,7 @@ public class MainWindow extends JFrame implements Desktop, WindowListener {
             }
         };
     }
+
+
 
 }

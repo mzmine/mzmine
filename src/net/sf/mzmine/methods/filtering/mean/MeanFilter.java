@@ -28,9 +28,11 @@ import javax.swing.JMenuItem;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
 
-import net.sf.mzmine.batchmode.BatchModeController.BatchModeStep;
 import net.sf.mzmine.data.AlignmentResult;
+import net.sf.mzmine.data.Parameter;
 import net.sf.mzmine.data.ParameterSet;
+import net.sf.mzmine.data.Parameter.ParameterType;
+import net.sf.mzmine.data.impl.SimpleParameter;
 import net.sf.mzmine.data.impl.SimpleParameterSet;
 import net.sf.mzmine.io.OpenedRawDataFile;
 import net.sf.mzmine.io.RawDataFile;
@@ -55,7 +57,18 @@ public class MeanFilter implements Method, TaskListener,
 
     private Logger logger = Logger.getLogger(this.getClass().getName());
 
-    private MeanFilterParameters parameters;
+    protected static final Parameter oneSidedWindowLength = new SimpleParameter(        
+            ParameterType.DOUBLE,
+            "Window length",
+            "One-sided length of the smoothing window",
+            "Da",
+            new Double(0.1),
+            new Double(0.0),
+            null
+            ); 
+    
+    
+    private SimpleParameterSet parameters;
     
     private MethodListener afterMethodListener;
     private int taskCount;
@@ -77,7 +90,6 @@ public class MeanFilter implements Method, TaskListener,
 
         desktop.addSelectionListener(this);
         
-        core.getBatchModeController().registerMethod(BatchModeStep.RAWDATAFILTERING, this);
 
     }
 
@@ -88,7 +100,7 @@ public class MeanFilter implements Method, TaskListener,
      */
     public boolean askParameters() {
 
-        parameters = new MeanFilterParameters();  	
+        //parameters = new MeanFilterParameters();  	
 
         ParameterSetupDialog dialog = new ParameterSetupDialog(		
         				MainWindow.getInstance(),
@@ -97,13 +109,13 @@ public class MeanFilter implements Method, TaskListener,
         		);
         dialog.setVisible(true);
         
-		if (dialog.getExitCode()==-1) return false;
+//		if (dialog.getExitCode()==-1) return false;
 
 		return true;
     }
 
     public void setParameters(SimpleParameterSet parameters) {
-    	this.parameters = (MeanFilterParameters)parameters;
+   // 	this.parameters = (MeanFilterParameters)parameters;
     }
     
     /**
@@ -113,15 +125,15 @@ public class MeanFilter implements Method, TaskListener,
      */
     public void runMethod(OpenedRawDataFile[] dataFiles, AlignmentResult[] alignmentResults) {
 
-    	if (parameters==null) parameters = new MeanFilterParameters();
+    	//if (parameters==null) parameters = new MeanFilterParameters();
     	
         logger.info("Running " + toString() + " on " + dataFiles.length + " raw data files.");
 
         taskCount = dataFiles.length;
         for (OpenedRawDataFile dataFile : dataFiles) {
-            Task filterTask = new MeanFilterTask(dataFile,
-                    (MeanFilterParameters) parameters);
-            taskController.addTask(filterTask, this);
+         //   Task filterTask = new MeanFilterTask(dataFile,
+             //        parameters);
+          //  taskController.addTask(filterTask, this);
         }
 
     }
@@ -216,6 +228,46 @@ public class MeanFilter implements Method, TaskListener,
      * @see net.sf.mzmine.main.MZmineModule#setCurrentParameters(net.sf.mzmine.data.ParameterSet)
      */
     public void setCurrentParameters(ParameterSet parameterValues) {
+        // TODO Auto-generated method stub
+        
+    }
+
+    /**
+     * @see net.sf.mzmine.methods.Method#setupParameters(net.sf.mzmine.data.ParameterSet)
+     */
+    public ParameterSet setupParameters(ParameterSet current) {
+        // TODO Auto-generated method stub
+        return null;
+    }
+
+    /**
+     * @see net.sf.mzmine.methods.Method#runMethod(net.sf.mzmine.io.OpenedRawDataFile[], net.sf.mzmine.data.AlignmentResult[], net.sf.mzmine.data.ParameterSet)
+     */
+    public void runMethod(OpenedRawDataFile[] dataFiles, AlignmentResult[] alignmentResults, ParameterSet parameters) {
+        // TODO Auto-generated method stub
+        
+    }
+
+    /**
+     * @see net.sf.mzmine.methods.Method#runMethod(net.sf.mzmine.io.OpenedRawDataFile[], net.sf.mzmine.data.AlignmentResult[], net.sf.mzmine.data.ParameterSet, net.sf.mzmine.methods.MethodListener)
+     */
+    public void runMethod(OpenedRawDataFile[] dataFiles, AlignmentResult[] alignmentResults, ParameterSet parameters, MethodListener methodListener) {
+        // TODO Auto-generated method stub
+        
+    }
+
+    /**
+     * @see net.sf.mzmine.main.MZmineModule#getParameterSet()
+     */
+    public ParameterSet getParameterSet() {
+        // TODO Auto-generated method stub
+        return null;
+    }
+
+    /**
+     * @see net.sf.mzmine.main.MZmineModule#setParameters(net.sf.mzmine.data.ParameterSet)
+     */
+    public void setParameters(ParameterSet parameterValues) {
         // TODO Auto-generated method stub
         
     }

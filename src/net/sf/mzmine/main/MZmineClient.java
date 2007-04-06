@@ -49,7 +49,7 @@ import org.dom4j.io.XMLWriter;
  * 
  */
 
-public class MZmineClient implements Runnable, MZmineCore {
+public class MZmineClient extends Thread implements Runnable, MZmineCore {
 
     private static final File CONFIG_FILE = new File("conf/config.xml");
 
@@ -148,6 +148,9 @@ public class MZmineClient implements Runnable, MZmineCore {
                     + CONFIG_FILE, e);
             System.exit(1);
         }
+        
+        // register the shutdown hook
+        Runtime.getRuntime().addShutdownHook(this);
 
         // show the GUI
         logger.finest("Showing main window");
@@ -230,6 +233,18 @@ public class MZmineClient implements Runnable, MZmineCore {
 
         logger.info("Exiting MZmine");
         mainWindow.dispose();
+        
+        System.exit(0);
+
+    
+    }
+    
+    /**
+     * Shutdown hook - invoked on JRE shutdown.
+     * This method saves current configuration to XML.
+     * @see java.lang.Thread#start()
+     */
+    public void start() {
 
         try {
 
@@ -270,10 +285,9 @@ public class MZmineClient implements Runnable, MZmineCore {
         } catch (Exception e) {
             logger.log(Level.SEVERE, "Could not update configuration file "
                     + CONFIG_FILE, e);
-            System.exit(1);
         }
 
-        System.exit(0);
 
     }
+    
 }

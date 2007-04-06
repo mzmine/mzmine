@@ -24,7 +24,6 @@ import net.sf.mzmine.data.Parameter;
 import net.sf.mzmine.data.Parameter.ParameterType;
 import net.sf.mzmine.data.impl.SimpleParameter;
 import net.sf.mzmine.data.impl.SimpleParameterSet;
-import net.sf.mzmine.userinterface.DesktopParameters;
 
 
 public class JoinAlignerParameters extends SimpleParameterSet {
@@ -40,8 +39,8 @@ public class JoinAlignerParameters extends SimpleParameterSet {
 																			"",
 																			new Double(10.0),
 																			new Double(0.0),
-																			null,
-																			DesktopParameters.decimalFormatParameter);
+																			null
+																			);
 	
 	protected static final Parameter MZTolerance = new SimpleParameter(		ParameterType.DOUBLE,
 																			"M/Z tolerance",
@@ -49,8 +48,8 @@ public class JoinAlignerParameters extends SimpleParameterSet {
 																			"Da",
 																			new Double(0.2),
 																			new Double(0.0),
-																			null,
-																			DesktopParameters.mzNumberFormatParameter);
+																			null
+																			);
 	
 	protected static final Parameter RTToleranceType = new SimpleParameter(	ParameterType.STRING,
 																			"RT tolerance type",
@@ -65,8 +64,8 @@ public class JoinAlignerParameters extends SimpleParameterSet {
 																			"seconds",
 																			new Double(15.0),
 																			new Double(0.0),
-																			null,
-																			DesktopParameters.decimalFormatParameter);
+																			null
+																			);
 	
 	protected static final Parameter RTToleranceValuePercent = new SimpleParameter(	
 																			ParameterType.DOUBLE,
@@ -75,8 +74,8 @@ public class JoinAlignerParameters extends SimpleParameterSet {
 																			"%",
 																			new Double(0.15),
 																			new Double(0.0),
-																			null,
-																			DesktopParameters.percentFormatParameter);
+																			null
+																			);
 	
 	
 	public Parameter[] getParameters() {

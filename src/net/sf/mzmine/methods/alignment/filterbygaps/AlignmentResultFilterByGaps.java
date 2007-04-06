@@ -29,7 +29,6 @@ import javax.swing.JMenuItem;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
 
-import net.sf.mzmine.batchmode.BatchModeController.BatchModeStep;
 import net.sf.mzmine.data.AlignmentResult;
 import net.sf.mzmine.data.ParameterSet;
 import net.sf.mzmine.data.impl.SimpleParameterSet;
@@ -83,7 +82,7 @@ TaskListener, ListSelectionListener, ActionListener {
         		);
         dialog.setVisible(true);
         
-		if (dialog.getExitCode()==-1) return false;
+//		if (dialog.getExitCode()==-1) return false;
 
 		return true;
         
@@ -133,7 +132,6 @@ TaskListener, ListSelectionListener, ActionListener {
 
         desktop.addSelectionListener(this);
      
-        core.getBatchModeController().registerMethod(BatchModeStep.ALIGNMENTPROCESSING, this);
     }
 
     /**
@@ -222,6 +220,46 @@ TaskListener, ListSelectionListener, ActionListener {
      * @see net.sf.mzmine.main.MZmineModule#setCurrentParameters(net.sf.mzmine.data.ParameterSet)
      */
     public void setCurrentParameters(ParameterSet parameterValues) {
+        // TODO Auto-generated method stub
+        
+    }
+
+    /**
+     * @see net.sf.mzmine.methods.Method#setupParameters(net.sf.mzmine.data.ParameterSet)
+     */
+    public ParameterSet setupParameters(ParameterSet current) {
+        // TODO Auto-generated method stub
+        return null;
+    }
+
+    /**
+     * @see net.sf.mzmine.methods.Method#runMethod(net.sf.mzmine.io.OpenedRawDataFile[], net.sf.mzmine.data.AlignmentResult[], net.sf.mzmine.data.ParameterSet)
+     */
+    public void runMethod(OpenedRawDataFile[] dataFiles, AlignmentResult[] alignmentResults, ParameterSet parameters) {
+        // TODO Auto-generated method stub
+        
+    }
+
+    /**
+     * @see net.sf.mzmine.methods.Method#runMethod(net.sf.mzmine.io.OpenedRawDataFile[], net.sf.mzmine.data.AlignmentResult[], net.sf.mzmine.data.ParameterSet, net.sf.mzmine.methods.MethodListener)
+     */
+    public void runMethod(OpenedRawDataFile[] dataFiles, AlignmentResult[] alignmentResults, ParameterSet parameters, MethodListener methodListener) {
+        // TODO Auto-generated method stub
+        
+    }
+
+    /**
+     * @see net.sf.mzmine.main.MZmineModule#getParameterSet()
+     */
+    public ParameterSet getParameterSet() {
+        // TODO Auto-generated method stub
+        return null;
+    }
+
+    /**
+     * @see net.sf.mzmine.main.MZmineModule#setParameters(net.sf.mzmine.data.ParameterSet)
+     */
+    public void setParameters(ParameterSet parameterValues) {
         // TODO Auto-generated method stub
         
     }

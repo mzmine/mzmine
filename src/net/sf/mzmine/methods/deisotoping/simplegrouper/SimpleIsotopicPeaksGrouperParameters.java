@@ -17,7 +17,6 @@ import net.sf.mzmine.data.Parameter;
 import net.sf.mzmine.data.Parameter.ParameterType;
 import net.sf.mzmine.data.impl.SimpleParameter;
 import net.sf.mzmine.data.impl.SimpleParameterSet;
-import net.sf.mzmine.userinterface.DesktopParameters;
 
 /**
  * This class represents parameter settings for the simple isotopic peaks
@@ -34,8 +33,8 @@ public class SimpleIsotopicPeaksGrouperParameters extends SimpleParameterSet {
 			"Da",
 			new Double(0.05),
 			new Double(0.0),
-			null,
-			DesktopParameters.mzNumberFormatParameter);
+			null
+			);
 	
 	protected static final Parameter rtTolerance = new SimpleParameter(	
 			ParameterType.DOUBLE,
@@ -44,8 +43,8 @@ public class SimpleIsotopicPeaksGrouperParameters extends SimpleParameterSet {
 			"seconds",
 			new Double(5.0),
 			new Double(0.0),
-			null,
-			DesktopParameters.decimalFormatParameter);
+			null
+			);
 	
 	protected static final Parameter monotonicShape = new SimpleParameter(	
 			ParameterType.BOOLEAN,
@@ -60,8 +59,8 @@ public class SimpleIsotopicPeaksGrouperParameters extends SimpleParameterSet {
 			"",
 			new Double(1),
 			new Double(1),
-			null,
-			DesktopParameters.integerFormatParameter);	
+			null
+			);	
     
     
 	public Parameter[] getParameters() {   

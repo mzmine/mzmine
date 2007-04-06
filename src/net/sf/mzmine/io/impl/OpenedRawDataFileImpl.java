@@ -24,6 +24,7 @@ import java.io.IOException;
 import java.util.Vector;
 import java.util.logging.Logger;
 
+import net.sf.mzmine.data.ParameterSet;
 import net.sf.mzmine.data.impl.SimpleParameterSet;
 import net.sf.mzmine.io.OpenedRawDataFile;
 import net.sf.mzmine.io.RawDataFile;
@@ -78,7 +79,7 @@ public class OpenedRawDataFileImpl implements OpenedRawDataFile {
      * @see net.sf.mzmine.io.OpenedRawDataFile#updateFile(net.sf.mzmine.io.RawDataFile, net.sf.mzmine.methods.Method, net.sf.mzmine.data.impl.SimpleParameterSet)
      */
     public synchronized void updateFile(RawDataFile newFile, Method processingMethod,
-            SimpleParameterSet parameters) {
+            ParameterSet parameters) {
         
         Operation op = new Operation();
         op.oldFileName = currentFile.getFile();

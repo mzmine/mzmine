@@ -24,7 +24,6 @@ import net.sf.mzmine.data.Parameter;
 import net.sf.mzmine.data.Parameter.ParameterType;
 import net.sf.mzmine.data.impl.SimpleParameter;
 import net.sf.mzmine.data.impl.SimpleParameterSet;
-import net.sf.mzmine.userinterface.DesktopParameters;
 
 
 public class AlignmentResultFilterByGapsParameters extends SimpleParameterSet {
@@ -35,8 +34,8 @@ public class AlignmentResultFilterByGapsParameters extends SimpleParameterSet {
 																	"",
 																	new Integer(1),
 																	new Integer(1),
-																	null,
-																	DesktopParameters.integerFormatParameter);
+																	null
+																	);
 	
 	public Parameter[] getParameters() {
 		return new Parameter[] {minPresent};

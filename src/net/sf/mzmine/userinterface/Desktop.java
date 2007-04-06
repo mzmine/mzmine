@@ -83,6 +83,7 @@ public interface Desktop {
     public void setStatusBarText(String text);
     public void setStatusBarText(String text, Color textColor);
 
+    public void displayMessage(String msg);
     public void displayErrorMessage(String msg);
 
     public boolean isDataFileSelected();
