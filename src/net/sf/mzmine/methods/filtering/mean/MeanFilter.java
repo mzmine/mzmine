@@ -35,11 +35,14 @@ import net.sf.mzmine.data.Parameter.ParameterType;
 import net.sf.mzmine.data.impl.SimpleParameter;
 import net.sf.mzmine.data.impl.SimpleParameterSet;
 import net.sf.mzmine.io.OpenedRawDataFile;
+import net.sf.mzmine.io.RawDataFile;
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.methods.Method;
-import net.sf.mzmine.methods.MethodListener;
+import net.sf.mzmine.taskcontrol.Task;
 import net.sf.mzmine.taskcontrol.TaskController;
 import net.sf.mzmine.taskcontrol.TaskListener;
+import net.sf.mzmine.taskcontrol.TaskSequence;
+import net.sf.mzmine.taskcontrol.TaskSequenceListener;
 import net.sf.mzmine.userinterface.Desktop;
 import net.sf.mzmine.userinterface.Desktop.MZmineMenu;
 import net.sf.mzmine.userinterface.dialogs.ParameterSetupDialog;
@@ -49,7 +52,7 @@ import net.sf.mzmine.userinterface.dialogs.ParameterSetupDialog.ExitCode;
  * This class represent a method for filtering scans in raw data file with
  * moving average filter.
  */
-public class MeanFilter implements Method, ListSelectionListener,
+public class MeanFilter implements Method, TaskListener, ListSelectionListener,
         ActionListener {
 
     public static final Parameter parameterOneSidedWindowLength = new SimpleParameter(
@@ -58,6 +61,8 @@ public class MeanFilter implements Method, ListSelectionListener,
             new Double(0.0), null);
 
     private ParameterSet parameters;
+
+    private Logger logger = Logger.getLogger(this.getClass().getName());
 
     private TaskController taskController;
     private Desktop desktop;
@@ -90,7 +95,7 @@ public class MeanFilter implements Method, ListSelectionListener,
             if (param == null)
                 return;
             OpenedRawDataFile[] dataFiles = desktop.getSelectedDataFiles();
-            runMethod(dataFiles, null, param);
+            runMethod(dataFiles, null, param, null);
         }
     }
 
@@ -124,31 +129,22 @@ public class MeanFilter implements Method, ListSelectionListener,
     /**
      * @see net.sf.mzmine.methods.Method#runMethod(net.sf.mzmine.io.OpenedRawDataFile[],
      *      net.sf.mzmine.data.AlignmentResult[],
-     *      net.sf.mzmine.data.ParameterSet)
-     */
-    public void runMethod(OpenedRawDataFile[] dataFiles,
-            AlignmentResult[] alignmentResults, ParameterSet parameters) {
-
-        runMethod(dataFiles, alignmentResults, parameters, null);
-
-    }
-
-    /**
-     * @see net.sf.mzmine.methods.Method#runMethod(net.sf.mzmine.io.OpenedRawDataFile[],
-     *      net.sf.mzmine.data.AlignmentResult[],
      *      net.sf.mzmine.data.ParameterSet,
-     *      net.sf.mzmine.methods.MethodListener)
+     *      net.sf.mzmine.taskcontrol.TaskSequenceListener)
      */
     public void runMethod(OpenedRawDataFile[] dataFiles,
             AlignmentResult[] alignmentResults, ParameterSet parameters,
-            MethodListener methodListener) {
+            TaskSequenceListener methodListener) {
 
         // prepare a new sequence of tasks
-        MeanFilterRun newRun = new MeanFilterRun(this, dataFiles, parameters,
-                methodListener, desktop, taskController);
+        Task tasks[] = new MeanFilterTask[dataFiles.length];
+        for (int i = 0; i < dataFiles.length; i++) {
+            tasks[i] = new MeanFilterTask(dataFiles[i], parameters);
+        }
+        TaskSequence newSequence = new TaskSequence(tasks, this, taskController);
 
         // execute the sequence
-        newRun.run();
+        newSequence.run();
 
     }
 
@@ -164,7 +160,39 @@ public class MeanFilter implements Method, ListSelectionListener,
      */
     public void setParameters(ParameterSet parameters) {
         this.parameters = parameters;
-
     }
 
+    /**
+     * @see net.sf.mzmine.taskcontrol.TaskListener#taskStarted(net.sf.mzmine.taskcontrol.Task)
+     */
+    public void taskStarted(Task task) {
+        logger.info("Running mean filter on "
+                + ((MeanFilterTask) task).getDataFile());
+    }
+
+    /**
+     * @see net.sf.mzmine.taskcontrol.TaskListener#taskFinished(net.sf.mzmine.taskcontrol.Task)
+     */
+    public void taskFinished(Task task) {
+
+        if (task.getStatus() == Task.TaskStatus.FINISHED) {
+
+            logger.info("Finished mean filter on "
+                    + ((MeanFilterTask) task).getDataFile());
+
+            OpenedRawDataFile openedFile = ((MeanFilterTask) task).getDataFile();
+            RawDataFile newFile = (RawDataFile) task.getResult();
+
+            openedFile.updateFile(newFile, this, parameters);
+
+        } else if (task.getStatus() == Task.TaskStatus.ERROR) {
+            /* Task encountered an error */
+            String msg = "Error while filtering a file: "
+                    + task.getErrorMessage();
+            logger.severe(msg);
+            desktop.displayErrorMessage(msg);
+
+        }
+
+    }
 }

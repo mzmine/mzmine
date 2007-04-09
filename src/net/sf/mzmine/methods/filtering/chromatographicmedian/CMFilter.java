@@ -22,6 +22,7 @@ package net.sf.mzmine.methods.filtering.chromatographicmedian;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
+import java.util.logging.Logger;
 
 import javax.swing.JMenuItem;
 import javax.swing.event.ListSelectionEvent;
@@ -34,16 +35,21 @@ import net.sf.mzmine.data.Parameter.ParameterType;
 import net.sf.mzmine.data.impl.SimpleParameter;
 import net.sf.mzmine.data.impl.SimpleParameterSet;
 import net.sf.mzmine.io.OpenedRawDataFile;
+import net.sf.mzmine.io.RawDataFile;
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.methods.Method;
-import net.sf.mzmine.methods.MethodListener;
+import net.sf.mzmine.taskcontrol.Task;
 import net.sf.mzmine.taskcontrol.TaskController;
+import net.sf.mzmine.taskcontrol.TaskListener;
+import net.sf.mzmine.taskcontrol.TaskSequence;
+import net.sf.mzmine.taskcontrol.TaskSequenceListener;
 import net.sf.mzmine.userinterface.Desktop;
 import net.sf.mzmine.userinterface.Desktop.MZmineMenu;
 import net.sf.mzmine.userinterface.dialogs.ParameterSetupDialog;
 import net.sf.mzmine.userinterface.dialogs.ParameterSetupDialog.ExitCode;
 
-public class CMFilter implements Method, ListSelectionListener, ActionListener {
+public class CMFilter implements Method, TaskListener, ListSelectionListener,
+        ActionListener {
 
     public static final Parameter parameterOneSidedWindowLength = new SimpleParameter(
             ParameterType.INTEGER, "Window length",
@@ -56,6 +62,8 @@ public class CMFilter implements Method, ListSelectionListener, ActionListener {
             new Double(0.0), null);
 
     private ParameterSet parameters;
+
+    private Logger logger = Logger.getLogger(this.getClass().getName());
 
     private TaskController taskController;
     private Desktop desktop;
@@ -89,7 +97,7 @@ public class CMFilter implements Method, ListSelectionListener, ActionListener {
             if (param == null)
                 return;
             OpenedRawDataFile[] dataFiles = desktop.getSelectedDataFiles();
-            runMethod(dataFiles, null, param);
+            runMethod(dataFiles, null, param, null);
         }
     }
 
@@ -123,31 +131,22 @@ public class CMFilter implements Method, ListSelectionListener, ActionListener {
     /**
      * @see net.sf.mzmine.methods.Method#runMethod(net.sf.mzmine.io.OpenedRawDataFile[],
      *      net.sf.mzmine.data.AlignmentResult[],
-     *      net.sf.mzmine.data.ParameterSet)
-     */
-    public void runMethod(OpenedRawDataFile[] dataFiles,
-            AlignmentResult[] alignmentResults, ParameterSet parameters) {
-
-        runMethod(dataFiles, alignmentResults, parameters, null);
-
-    }
-
-    /**
-     * @see net.sf.mzmine.methods.Method#runMethod(net.sf.mzmine.io.OpenedRawDataFile[],
-     *      net.sf.mzmine.data.AlignmentResult[],
      *      net.sf.mzmine.data.ParameterSet,
-     *      net.sf.mzmine.methods.MethodListener)
+     *      net.sf.mzmine.taskcontrol.TaskSequenceListener)
      */
     public void runMethod(OpenedRawDataFile[] dataFiles,
             AlignmentResult[] alignmentResults, ParameterSet parameters,
-            MethodListener methodListener) {
+            TaskSequenceListener methodListener) {
 
         // prepare a new sequence of tasks
-        CMFilterRun newRun = new CMFilterRun(this, dataFiles, parameters,
-                methodListener, desktop, taskController);
+        Task tasks[] = new CMFilterTask[dataFiles.length];
+        for (int i = 0; i < dataFiles.length; i++) {
+            tasks[i] = new CMFilterTask(dataFiles[i], parameters);
+        }
+        TaskSequence newSequence = new TaskSequence(tasks, this, taskController);
 
         // execute the sequence
-        newRun.run();
+        newSequence.run();
 
     }
 
@@ -163,6 +162,40 @@ public class CMFilter implements Method, ListSelectionListener, ActionListener {
      */
     public void setParameters(ParameterSet parameters) {
         this.parameters = parameters;
+    }
+
+    /**
+     * @see net.sf.mzmine.taskcontrol.TaskListener#taskStarted(net.sf.mzmine.taskcontrol.Task)
+     */
+    public void taskStarted(Task task) {
+        logger.info("Running chromatographic median filter on "
+                + ((CMFilterTask) task).getDataFile());
+    }
+
+    /**
+     * @see net.sf.mzmine.taskcontrol.TaskListener#taskFinished(net.sf.mzmine.taskcontrol.Task)
+     */
+    public void taskFinished(Task task) {
+
+        if (task.getStatus() == Task.TaskStatus.FINISHED) {
+
+            logger.info("Finished chromatographic median filter on "
+                    + ((CMFilterTask) task).getDataFile());
+
+            OpenedRawDataFile openedFile = ((CMFilterTask) task).getDataFile();
+            RawDataFile newFile = (RawDataFile) task.getResult();
+
+            openedFile.updateFile(newFile, this, parameters);
+
+        } else if (task.getStatus() == Task.TaskStatus.ERROR) {
+            /* Task encountered an error */
+            String msg = "Error while filtering a file: "
+                    + task.getErrorMessage();
+            logger.severe(msg);
+            desktop.displayErrorMessage(msg);
+
+        }
+
     }
 
 }

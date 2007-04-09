@@ -25,7 +25,6 @@ import java.awt.event.KeyEvent;
 import java.util.Vector;
 import java.util.logging.Logger;
 
-import javax.swing.JDialog;
 import javax.swing.JMenuItem;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
@@ -37,8 +36,10 @@ import net.sf.mzmine.io.OpenedRawDataFile;
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.main.MZmineModule;
 import net.sf.mzmine.methods.Method;
-import net.sf.mzmine.methods.MethodListener;
 import net.sf.mzmine.project.MZmineProject;
+import net.sf.mzmine.taskcontrol.TaskSequence;
+import net.sf.mzmine.taskcontrol.TaskSequenceListener;
+import net.sf.mzmine.taskcontrol.TaskSequence.TaskSequenceStatus;
 import net.sf.mzmine.userinterface.Desktop;
 import net.sf.mzmine.userinterface.Desktop.MZmineMenu;
 
@@ -46,7 +47,7 @@ import net.sf.mzmine.userinterface.Desktop.MZmineMenu;
  * Batch mode module
  */
 public class BatchMode implements MZmineModule, ListSelectionListener,
-        MethodListener, ActionListener {
+        TaskSequenceListener, ActionListener {
 
     private Logger logger = Logger.getLogger(this.getClass().getName());
 
@@ -121,18 +122,22 @@ public class BatchMode implements MZmineModule, ListSelectionListener,
         return "Batch mode";
     }
 
-    public void methodFinished(MethodReturnStatus status) {
+    public void taskSequenceStarted(TaskSequence sequence) {
+        logger.finest("Batch mode received task sequence started call");
+    }
+    
+    public void taskSequenceFinished(TaskSequence sequence) {
 
-        logger.finest("Batch mode received methodFinished call");
+        logger.finest("Batch mode received task sequence finished call");
 
-        if ((status == MethodReturnStatus.ERROR)
-                || (status == MethodReturnStatus.CANCELED)) {
+        if ((sequence.getStatus() == TaskSequenceStatus.ERROR)
+                || (sequence.getStatus() == TaskSequenceStatus.CANCELED)) {
             desktop.displayErrorMessage("Batch processing canceled.");
             batchRunning = false;
             return;
         }
 
-        if (status == MethodReturnStatus.FINISHED) {
+        if (sequence.getStatus() == TaskSequenceStatus.FINISHED) {
             if (currentStep < currentBatchSteps.size())
                 runNextStep();
             else {

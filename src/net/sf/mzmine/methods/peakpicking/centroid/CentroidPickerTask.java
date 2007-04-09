@@ -24,12 +24,14 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.TreeSet;
 import java.util.Vector;
-import net.sf.mzmine.data.Scan;
+
 import net.sf.mzmine.data.IsotopePattern;
+import net.sf.mzmine.data.ParameterSet;
+import net.sf.mzmine.data.Scan;
 import net.sf.mzmine.data.Peak.PeakStatus;
 import net.sf.mzmine.data.impl.ConstructionPeak;
-import net.sf.mzmine.data.impl.SimplePeakList;
 import net.sf.mzmine.data.impl.SimpleIsotopePattern;
+import net.sf.mzmine.data.impl.SimplePeakList;
 import net.sf.mzmine.io.OpenedRawDataFile;
 import net.sf.mzmine.io.RawDataFile;
 import net.sf.mzmine.taskcontrol.Task;
@@ -52,7 +54,7 @@ class CentroidPickerTask implements Task {
 
     private SimplePeakList readyPeakList;
 
-    private CentroidPickerParameters parameters;
+    private ParameterSet parameters;
     private double binSize;
     private double chromatographicThresholdLevel;
     private double intTolerance;
@@ -67,20 +69,20 @@ class CentroidPickerTask implements Task {
      * @param parameters
      */
     CentroidPickerTask(OpenedRawDataFile dataFile,
-            CentroidPickerParameters parameters) {
+            ParameterSet parameters) {
         status = TaskStatus.WAITING;
         this.dataFile = dataFile;
         this.rawDataFile = dataFile.getCurrentFile();
         this.parameters = parameters;
 
         // Get parameter values for easier use
-        binSize = (Double) parameters.getParameterValue(CentroidPickerParameters.binSize);
-        chromatographicThresholdLevel = (Double) parameters.getParameterValue(CentroidPickerParameters.chromatographicThresholdLevel);
-        intTolerance = (Double) parameters.getParameterValue(CentroidPickerParameters.intTolerance);
-        minimumPeakDuration = (Double) parameters.getParameterValue(CentroidPickerParameters.minimumPeakDuration);
-        minimumPeakHeight = (Double) parameters.getParameterValue(CentroidPickerParameters.minimumPeakHeight);
-        mzTolerance = (Double) parameters.getParameterValue(CentroidPickerParameters.mzTolerance);
-        noiseLevel = (Double) parameters.getParameterValue(CentroidPickerParameters.noiseLevel);        
+        binSize = (Double) parameters.getParameterValue(CentroidPicker.binSize);
+        chromatographicThresholdLevel = (Double) parameters.getParameterValue(CentroidPicker.chromatographicThresholdLevel);
+        intTolerance = (Double) parameters.getParameterValue(CentroidPicker.intTolerance);
+        minimumPeakDuration = (Double) parameters.getParameterValue(CentroidPicker.minimumPeakDuration);
+        minimumPeakHeight = (Double) parameters.getParameterValue(CentroidPicker.minimumPeakHeight);
+        mzTolerance = (Double) parameters.getParameterValue(CentroidPicker.mzTolerance);
+        noiseLevel = (Double) parameters.getParameterValue(CentroidPicker.noiseLevel);        
         
         readyPeakList = new SimplePeakList();
     }

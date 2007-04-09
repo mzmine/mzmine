@@ -35,11 +35,11 @@ import net.sf.mzmine.data.impl.SimpleParameterSet;
 import net.sf.mzmine.io.OpenedRawDataFile;
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.methods.Method;
-import net.sf.mzmine.methods.MethodListener;
-import net.sf.mzmine.methods.MethodListener.MethodReturnStatus;
 import net.sf.mzmine.taskcontrol.Task;
 import net.sf.mzmine.taskcontrol.TaskController;
 import net.sf.mzmine.taskcontrol.TaskListener;
+import net.sf.mzmine.taskcontrol.TaskSequenceListener;
+import net.sf.mzmine.taskcontrol.TaskSequence.TaskSequenceStatus;
 import net.sf.mzmine.userinterface.Desktop;
 import net.sf.mzmine.userinterface.Desktop.MZmineMenu;
 import net.sf.mzmine.userinterface.dialogs.ParameterSetupDialog;
@@ -50,7 +50,7 @@ public class RecursiveThresholdPicker implements Method,
 
     private Logger logger = Logger.getLogger(this.getClass().getName());
 
-    private MethodListener afterMethodListener;
+    private TaskSequenceListener afterMethodListener;
     private int taskCount;
     
     private TaskController taskController;
@@ -120,7 +120,7 @@ public class RecursiveThresholdPicker implements Method,
 
     }
     
-    public void runMethod(OpenedRawDataFile[] dataFiles, AlignmentResult[] alignmentResults, MethodListener methodListener) {
+    public void runMethod(OpenedRawDataFile[] dataFiles, AlignmentResult[] alignmentResults, TaskSequenceListener methodListener) {
     	this.afterMethodListener = methodListener;
     	runMethod(dataFiles, alignmentResults);
     }    
@@ -170,7 +170,7 @@ public class RecursiveThresholdPicker implements Method,
             
             taskCount--;
             if ((taskCount==0) && (afterMethodListener!=null)) {
-            	afterMethodListener.methodFinished(MethodReturnStatus.FINISHED);
+            //	afterMethodListener.taskSequenceFinished(TaskSequenceStatus.FINISHED);
             	afterMethodListener = null;
             }
 
@@ -183,13 +183,13 @@ public class RecursiveThresholdPicker implements Method,
             
             taskCount = 0;
             if (afterMethodListener!=null) {
-            	afterMethodListener.methodFinished(MethodReturnStatus.ERROR);
+         //   	afterMethodListener.taskSequenceFinished(TaskSequenceStatus.ERROR);
             	afterMethodListener = null;
             }            
         } else if (task.getStatus() == Task.TaskStatus.CANCELED) {
             taskCount = 0;
             if (afterMethodListener!=null) {
-            	afterMethodListener.methodFinished(MethodReturnStatus.CANCELED);
+            //	afterMethodListener.taskSequenceFinished(TaskSequenceStatus.CANCELED);
             	afterMethodListener = null;
             }            
         
@@ -237,9 +237,9 @@ public class RecursiveThresholdPicker implements Method,
     }
 
     /**
-     * @see net.sf.mzmine.methods.Method#runMethod(net.sf.mzmine.io.OpenedRawDataFile[], net.sf.mzmine.data.AlignmentResult[], net.sf.mzmine.data.ParameterSet, net.sf.mzmine.methods.MethodListener)
+     * @see net.sf.mzmine.methods.Method#runMethod(net.sf.mzmine.io.OpenedRawDataFile[], net.sf.mzmine.data.AlignmentResult[], net.sf.mzmine.data.ParameterSet, net.sf.mzmine.taskcontrol.TaskSequenceListener)
      */
-    public void runMethod(OpenedRawDataFile[] dataFiles, AlignmentResult[] alignmentResults, ParameterSet parameters, MethodListener methodListener) {
+    public void runMethod(OpenedRawDataFile[] dataFiles, AlignmentResult[] alignmentResults, ParameterSet parameters, TaskSequenceListener methodListener) {
         // TODO Auto-generated method stub
         
     }

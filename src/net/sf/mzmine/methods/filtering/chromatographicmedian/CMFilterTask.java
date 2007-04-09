@@ -98,6 +98,10 @@ class CMFilterTask implements Task {
     public Object getResult() {
         return filteredRawDataFile;
     }
+    
+    public OpenedRawDataFile getDataFile() {
+        return dataFile;
+    }
 
     /**
      * @see net.sf.mzmine.taskcontrol.Task#cancel()

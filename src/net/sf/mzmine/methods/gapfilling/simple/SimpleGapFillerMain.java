@@ -10,13 +10,13 @@ import net.sf.mzmine.data.Peak;
 import net.sf.mzmine.data.impl.SimpleAlignmentResult;
 import net.sf.mzmine.data.impl.SimpleAlignmentResultRow;
 import net.sf.mzmine.io.OpenedRawDataFile;
-import net.sf.mzmine.methods.MethodListener;
-import net.sf.mzmine.methods.MethodListener.MethodReturnStatus;
 import net.sf.mzmine.project.MZmineProject;
 import net.sf.mzmine.taskcontrol.Task;
 import net.sf.mzmine.taskcontrol.TaskController;
 import net.sf.mzmine.taskcontrol.TaskListener;
+import net.sf.mzmine.taskcontrol.TaskSequenceListener;
 import net.sf.mzmine.taskcontrol.Task.TaskStatus;
+import net.sf.mzmine.taskcontrol.TaskSequence.TaskSequenceStatus;
 
 class SimpleGapFillerMain implements TaskListener {
 
@@ -45,7 +45,7 @@ class SimpleGapFillerMain implements TaskListener {
 	
 	private TaskStatus overallStatus;
 	
-	private MethodListener afterMethodListener;
+	private TaskSequenceListener afterMethodListener;
 	
 	
 	public SimpleGapFillerMain(TaskController taskController, AlignmentResult alignmentResult, SimpleGapFillerParameters parameters) {
@@ -61,7 +61,7 @@ class SimpleGapFillerMain implements TaskListener {
 		
 	}
 	
-	public void doTasks(MethodListener afterMethodListener) {
+	public void doTasks(TaskSequenceListener afterMethodListener) {
 
 		this.afterMethodListener = afterMethodListener;
 		
@@ -128,7 +128,7 @@ class SimpleGapFillerMain implements TaskListener {
 					t.cancel();
 			
 			if (afterMethodListener!=null) {
-				afterMethodListener.methodFinished(MethodReturnStatus.ERROR);
+			//	afterMethodListener.taskSequenceFinished(TaskSequenceStatus.ERROR);
 				afterMethodListener = null;
 			}
 			
@@ -187,7 +187,7 @@ class SimpleGapFillerMain implements TaskListener {
 			MZmineProject.getCurrentProject().addAlignmentResult(processedAlignmentResult);
 
 			if (afterMethodListener!=null) {
-				afterMethodListener.methodFinished(MethodReturnStatus.FINISHED);
+				//afterMethodListener.taskSequenceFinished(TaskSequenceStatus.FINISHED);
 				afterMethodListener = null;
 			}
 			

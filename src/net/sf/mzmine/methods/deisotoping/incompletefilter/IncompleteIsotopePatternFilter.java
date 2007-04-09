@@ -25,7 +25,7 @@ import net.sf.mzmine.data.impl.SimpleParameterSet;
 import net.sf.mzmine.io.OpenedRawDataFile;
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.methods.Method;
-import net.sf.mzmine.methods.MethodListener;
+import net.sf.mzmine.taskcontrol.TaskSequenceListener;
 import net.sf.mzmine.userinterface.dialogs.ParameterSetupDialog;
 import net.sf.mzmine.userinterface.mainwindow.MainWindow;
 
@@ -35,7 +35,7 @@ import net.sf.mzmine.userinterface.mainwindow.MainWindow;
 public class IncompleteIsotopePatternFilter implements Method {
 
 	private IncompleteIsotopePatternFilterParameters parameters;
-	private MethodListener afterMethodListener;
+	private TaskSequenceListener afterMethodListener;
 	private int taskCount;
 	
 	public String toString() {
@@ -74,7 +74,7 @@ public class IncompleteIsotopePatternFilter implements Method {
         
     }
     
-    public void runMethod(OpenedRawDataFile[] dataFiles, AlignmentResult[] alignmentResults, MethodListener methodListener) {
+    public void runMethod(OpenedRawDataFile[] dataFiles, AlignmentResult[] alignmentResults, TaskSequenceListener methodListener) {
     	this.afterMethodListener = methodListener;
     	runMethod(dataFiles, alignmentResults);
     }    
@@ -120,9 +120,9 @@ public class IncompleteIsotopePatternFilter implements Method {
     }
 
     /**
-     * @see net.sf.mzmine.methods.Method#runMethod(net.sf.mzmine.io.OpenedRawDataFile[], net.sf.mzmine.data.AlignmentResult[], net.sf.mzmine.data.ParameterSet, net.sf.mzmine.methods.MethodListener)
+     * @see net.sf.mzmine.methods.Method#runMethod(net.sf.mzmine.io.OpenedRawDataFile[], net.sf.mzmine.data.AlignmentResult[], net.sf.mzmine.data.ParameterSet, net.sf.mzmine.taskcontrol.TaskSequenceListener)
      */
-    public void runMethod(OpenedRawDataFile[] dataFiles, AlignmentResult[] alignmentResults, ParameterSet parameters, MethodListener methodListener) {
+    public void runMethod(OpenedRawDataFile[] dataFiles, AlignmentResult[] alignmentResults, ParameterSet parameters, TaskSequenceListener methodListener) {
         // TODO Auto-generated method stub
         
     }

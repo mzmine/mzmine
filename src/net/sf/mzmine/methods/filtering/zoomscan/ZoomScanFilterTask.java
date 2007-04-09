@@ -94,6 +94,10 @@ class ZoomScanFilterTask implements Task {
         return filteredRawDataFile;
     }
 
+    public OpenedRawDataFile getDataFile() {
+        return dataFile;
+    }
+
     /**
      * @see net.sf.mzmine.taskcontrol.Task#cancel()
      */

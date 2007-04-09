@@ -17,7 +17,7 @@
  * Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-package net.sf.mzmine.methods.filtering.zoomscan;
+package net.sf.mzmine.methods.filtering.savitzkygolay;
 
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -48,16 +48,15 @@ import net.sf.mzmine.userinterface.Desktop.MZmineMenu;
 import net.sf.mzmine.userinterface.dialogs.ParameterSetupDialog;
 import net.sf.mzmine.userinterface.dialogs.ParameterSetupDialog.ExitCode;
 
-public class ZoomScanFilter implements Method, TaskListener,
+public class SGFilter implements Method, TaskListener,
         ListSelectionListener, ActionListener {
 
-    protected static final Parameter parameterMinMZRange = new SimpleParameter(
-            ParameterType.DOUBLE, "Minimum M/Z range",
-            "Required minimum M/Z range for a full scan", "Da", new Double(
-                    100.0), new Double(0.0), null);
+    public static final Parameter parameterDatapoints = new SimpleParameter(
+            ParameterType.INTEGER, "Number of datapoints",
+            "Number of datapoints", 5, new Object[] { 5, 7, 9, 11, 13, 15 });
 
     private ParameterSet parameters;
-
+    
     private Logger logger = Logger.getLogger(this.getClass().getName());
 
     private TaskController taskController;
@@ -73,10 +72,11 @@ public class ZoomScanFilter implements Method, TaskListener,
         this.desktop = core.getDesktop();
 
         parameters = new SimpleParameterSet(
-                new Parameter[] { parameterMinMZRange });
+                new Parameter[] { parameterDatapoints });
 
         myMenuItem = desktop.addMenuItem(MZmineMenu.FILTERING,
-                "Zoom scan filter", this, null, KeyEvent.VK_Z, false, false);
+                "Savitzky-Golay filter spectra", this, null, KeyEvent.VK_S,
+                false, false);
 
         desktop.addSelectionListener(this);
 
@@ -106,7 +106,7 @@ public class ZoomScanFilter implements Method, TaskListener,
      * @see net.sf.mzmine.methods.Method#toString()
      */
     public String toString() {
-        return "Zoom scan filter";
+        return "Savitzky-Golay filter";
     }
 
     /**
@@ -133,9 +133,9 @@ public class ZoomScanFilter implements Method, TaskListener,
             TaskSequenceListener methodListener) {
 
         // prepare a new sequence of tasks
-        Task tasks[] = new ZoomScanFilterTask[dataFiles.length];
+        Task tasks[] = new SGFilterTask[dataFiles.length];
         for (int i = 0; i < dataFiles.length; i++) {
-            tasks[i] = new ZoomScanFilterTask(dataFiles[i], parameters);
+            tasks[i] = new SGFilterTask(dataFiles[i], parameters);
         }
         TaskSequence newSequence = new TaskSequence(tasks, this, taskController);
 
@@ -157,13 +157,13 @@ public class ZoomScanFilter implements Method, TaskListener,
     public void setParameters(ParameterSet parameters) {
         this.parameters = parameters;
     }
-
+    
     /**
      * @see net.sf.mzmine.taskcontrol.TaskListener#taskStarted(net.sf.mzmine.taskcontrol.Task)
      */
     public void taskStarted(Task task) {
-        logger.info("Running zoom scan filter on "
-                + ((ZoomScanFilterTask) task).getDataFile());
+        logger.info("Running Savitzky-Golay filter on "
+                + ((SGFilterTask) task).getDataFile());
     }
 
     /**
@@ -173,10 +173,10 @@ public class ZoomScanFilter implements Method, TaskListener,
 
         if (task.getStatus() == Task.TaskStatus.FINISHED) {
 
-            logger.info("Finished zoom scan filter on "
-                    + ((ZoomScanFilterTask) task).getDataFile());
+            logger.info("Finished Savitzky-Golay filter on "
+                    + ((SGFilterTask) task).getDataFile());
 
-            OpenedRawDataFile openedFile = ((ZoomScanFilterTask) task).getDataFile();
+            OpenedRawDataFile openedFile = ((SGFilterTask) task).getDataFile();
             RawDataFile newFile = (RawDataFile) task.getResult();
 
             openedFile.updateFile(newFile, this, parameters);
