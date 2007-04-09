@@ -48,15 +48,15 @@ import net.sf.mzmine.userinterface.Desktop.MZmineMenu;
 import net.sf.mzmine.userinterface.dialogs.ParameterSetupDialog;
 import net.sf.mzmine.userinterface.dialogs.ParameterSetupDialog.ExitCode;
 
-public class SGFilter implements Method, TaskListener,
-        ListSelectionListener, ActionListener {
+public class SGFilter implements Method, TaskListener, ListSelectionListener,
+        ActionListener {
 
     public static final Parameter parameterDatapoints = new SimpleParameter(
             ParameterType.INTEGER, "Number of datapoints",
             "Number of datapoints", 5, new Object[] { 5, 7, 9, 11, 13, 15 });
 
     private ParameterSet parameters;
-    
+
     private Logger logger = Logger.getLogger(this.getClass().getName());
 
     private TaskController taskController;
@@ -137,7 +137,8 @@ public class SGFilter implements Method, TaskListener,
         for (int i = 0; i < dataFiles.length; i++) {
             tasks[i] = new SGFilterTask(dataFiles[i], parameters);
         }
-        TaskSequence newSequence = new TaskSequence(tasks, this, taskController);
+        TaskSequence newSequence = new TaskSequence(tasks, this,
+                methodListener, taskController);
 
         // execute the sequence
         newSequence.run();
@@ -157,7 +158,7 @@ public class SGFilter implements Method, TaskListener,
     public void setParameters(ParameterSet parameters) {
         this.parameters = parameters;
     }
-    
+
     /**
      * @see net.sf.mzmine.taskcontrol.TaskListener#taskStarted(net.sf.mzmine.taskcontrol.Task)
      */

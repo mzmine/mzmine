@@ -96,6 +96,9 @@ public class TaskSequence implements TaskListener, Runnable {
                 sequenceListener.taskSequenceFinished(this);
 
         }
+        
+        logger.finest("Task sequence: finished " + finishedTasks + " tasks, status " + status);
+
 
     }
 

@@ -141,7 +141,8 @@ public class MeanFilter implements Method, TaskListener, ListSelectionListener,
         for (int i = 0; i < dataFiles.length; i++) {
             tasks[i] = new MeanFilterTask(dataFiles[i], parameters);
         }
-        TaskSequence newSequence = new TaskSequence(tasks, this, taskController);
+        TaskSequence newSequence = new TaskSequence(tasks, this,
+                methodListener, taskController);
 
         // execute the sequence
         newSequence.run();
