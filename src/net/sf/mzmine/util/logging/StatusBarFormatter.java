@@ -1,5 +1,5 @@
 /*
- * Copyright 2006 The MZmine Development Team
+ * Copyright 2006-2007 The MZmine Development Team
  * 
  * This file is part of MZmine.
  * 
@@ -19,6 +19,9 @@
 
 package net.sf.mzmine.util.logging;
 
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.logging.Formatter;
 import java.util.logging.LogRecord;
 
@@ -27,13 +30,22 @@ import java.util.logging.LogRecord;
  */
 public class StatusBarFormatter extends Formatter {
 
+    private static final DateFormat timeFormat = DateFormat.getTimeInstance();
+
     /**
      * Simply return the log record message and ignore all other fields
      * 
      * @see java.util.logging.Formatter#format(java.util.logging.LogRecord)
      */
     public String format(LogRecord record) {
-        return record.getMessage();
+
+        Date recordTime = new Date(record.getMillis());
+
+        String statusBarMessage = "[" + timeFormat.format(recordTime) + "]: "
+                + record.getMessage();
+
+        return statusBarMessage;
+
     }
 
 }

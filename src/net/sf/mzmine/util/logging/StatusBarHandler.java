@@ -57,9 +57,6 @@ public class StatusBarHandler extends Handler {
             // display severe errors in red
             if (record.getLevel().equals(Level.SEVERE)) messageColor = Color.red;
             
-            // display warnings in blue
-            if (record.getLevel().equals(Level.WARNING)) messageColor = Color.blue;
-
             // set status bar text
             desktop.setStatusBarText(formattedMessage, messageColor);
         }
