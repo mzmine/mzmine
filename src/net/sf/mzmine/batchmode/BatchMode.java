@@ -149,12 +149,12 @@ public class BatchMode implements MZmineModule, ListSelectionListener,
         BatchStep newStep = currentBatchSteps.get(currentStep);
         Method method = newStep.getMethod();
 
-        AlignmentResult[] lastResult = null;
+        AlignmentResult[] lastResultOnly = null;
         AlignmentResult[] allResults = MZmineProject.getCurrentProject().getAlignmentResults();
         if (allResults.length > 0)
-            lastResult = new AlignmentResult[] { allResults[allResults.length - 1] };
+            lastResultOnly = new AlignmentResult[] { allResults[allResults.length - 1] };
 
-        method.runMethod(selectedDataFiles, lastResult,
+        method.runMethod(selectedDataFiles, lastResultOnly,
                 newStep.getParameters(), this);
 
         currentStep++;

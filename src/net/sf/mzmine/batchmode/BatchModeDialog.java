@@ -170,6 +170,7 @@ class BatchModeDialog extends JDialog implements ActionListener {
         if (src == btnConfig) {
 
             BatchStep selected = (BatchStep) currentStepsList.getSelectedValue();
+            if (selected == null) return;
             logger.finest("Configuring " + selected);
             selected.getMethod().setupParameters(selected.getParameters());
             return;
