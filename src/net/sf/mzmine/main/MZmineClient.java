@@ -148,7 +148,7 @@ public class MZmineClient extends Thread implements Runnable, MZmineCore {
                     + CONFIG_FILE, e);
             System.exit(1);
         }
-        
+
         // register the shutdown hook
         Runtime.getRuntime().addShutdownHook(this);
 
@@ -233,15 +233,15 @@ public class MZmineClient extends Thread implements Runnable, MZmineCore {
 
         logger.info("Exiting MZmine");
         mainWindow.dispose();
-        
+
         System.exit(0);
 
-    
     }
-    
+
     /**
-     * Shutdown hook - invoked on JRE shutdown.
-     * This method saves current configuration to XML.
+     * Shutdown hook - invoked on JRE shutdown. This method saves current
+     * configuration to XML.
+     * 
      * @see java.lang.Thread#start()
      */
     public void start() {
@@ -264,14 +264,16 @@ public class MZmineClient extends Thread implements Runnable, MZmineCore {
                 String xpathLocation = "//configuration/modules/module[@class='"
                         + className + "']";
                 Element moduleElement = (Element) configuration.selectSingleNode(xpathLocation);
+                if (moduleElement != null) {
 
-                Element parametersElement = moduleElement.element(PARAMETERS_ELEMENT_NAME);
-                if (parametersElement == null)
-                    parametersElement = moduleElement.addElement(PARAMETERS_ELEMENT_NAME);
-                else
-                    parametersElement.clearContent();
+                    Element parametersElement = moduleElement.element(PARAMETERS_ELEMENT_NAME);
+                    if (parametersElement == null)
+                        parametersElement = moduleElement.addElement(PARAMETERS_ELEMENT_NAME);
+                    else
+                        parametersElement.clearContent();
 
-                currentParameters.exportValuesToXML(parametersElement);
+                    currentParameters.exportValuesToXML(parametersElement);
+                }
 
             }
 
@@ -287,7 +289,6 @@ public class MZmineClient extends Thread implements Runnable, MZmineCore {
                     + CONFIG_FILE, e);
         }
 
-
     }
-    
+
 }
