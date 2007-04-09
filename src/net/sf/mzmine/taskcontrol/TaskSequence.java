@@ -87,8 +87,6 @@ public class TaskSequence implements TaskListener, Runnable {
 
         if (finishedTasks == tasks.length) {
 
-            logger.finest("Task sequence finished");
-
             if (status == TaskSequenceStatus.RUNNING)
                 status = TaskSequenceStatus.FINISHED;
 
@@ -97,7 +95,7 @@ public class TaskSequence implements TaskListener, Runnable {
 
         }
         
-        logger.finest("Task sequence: finished " + finishedTasks + " tasks, status " + status);
+        logger.finest("Task sequence: finished " + finishedTasks + "/" + tasks.length + " tasks, status " + status);
 
 
     }
@@ -107,7 +105,7 @@ public class TaskSequence implements TaskListener, Runnable {
      */
     public void run() {
 
-        logger.finest("Running " + tasks.length + " task sequence");
+        logger.finest("Starting " + tasks.length + " task sequence");
 
         status = TaskSequenceStatus.RUNNING;
 
