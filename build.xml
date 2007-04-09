@@ -15,15 +15,13 @@
 		<pathelement location="${lib}/jmprojection.jar" />
 		<pathelement location="${lib}/netcdf.jar" />
 		<pathelement location="${lib}/sunutils.jar" />
-		<pathelement location="${lib}/jcommon-1.0.0.jar" />
-		<pathelement location="${lib}/jfreechart-1.0.1.jar" />
+		<pathelement location="${lib}/jcommon-1.0.9.jar" />
+		<pathelement location="${lib}/jfreechart-1.0.5.jar" />
 		<pathelement location="${lib}/visad.jar" />
-		<pathelement location="${lib}/cdk.jar" />
+		<pathelement location="${lib}/cdk-0.99.1.jar" />
 		<pathelement location="${lib}/dom4j-1.6.1.jar" />
 		<pathelement location="${lib}/jaxen-1.1.jar" />
 	</path>
-
-
 
 	<target name="compile">
 		<mkdir dir="${build}" />
@@ -45,22 +43,13 @@
 		</copy>
 		<copy todir="${dist}/conf">
 			<fileset file="${conf}/*.properties" />
+			<fileset file="${conf}/*.xml" />
 		</copy>
 		<copy todir="${dist}/icons">
 			<fileset file="${icons}/*.png" />
 		</copy>
 		<copy todir="${dist}/lib">
-			<fileset file="${lib}/base64.jar" />
-			<fileset file="${lib}/danby.jar" />
-			<fileset file="${lib}/jmprojection.jar" />
-			<fileset file="${lib}/netcdf.jar" />
-			<fileset file="${lib}/sunutils.jar" />
-			<fileset file="${lib}/jcommon-1.0.0.jar" />
-			<fileset file="${lib}/jfreechart-1.0.1.jar" />
-			<fileset file="${lib}/visad.jar" />
-			<fileset file="${lib}/cdk.jar" />
-			<fileset file="${lib}/dom4j-11.6.1.jar" />
-     		<fileset file="${lib}/jaxen-1.1.jar" />
+			<fileset file="${lib}/*.jar" />
 		</copy>
 
 		<jar destfile="${dist}/MZmine.jar" manifest="${rest}/mzminemanifest">
