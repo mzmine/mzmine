@@ -155,11 +155,11 @@ public class SimpleParameterSet implements ParameterSet {
                 throw (new IllegalArgumentException("Value type mismatch"));
             Integer minIValue = (Integer) parameter.getMinimumValue();
             if ((minIValue != null) && (minIValue.compareTo((Integer) value) > 0))
-                throw (new IllegalArgumentException("Minimum value is "
+                throw (new IllegalArgumentException("Minimum value of parameter " + parameter + " is "
                         + minIValue));
             Integer maxIValue = (Integer) parameter.getMaximumValue();
             if ((maxIValue != null) && (maxIValue.compareTo((Integer) value) < 0))
-                throw (new IllegalArgumentException("Maximum value is "
+                throw (new IllegalArgumentException("Maximum value of parameter " + parameter + "  is "
                         + maxIValue));
 
             break;
@@ -169,11 +169,11 @@ public class SimpleParameterSet implements ParameterSet {
                 throw (new IllegalArgumentException("Value type mismatch"));
             Double minDValue = (Double) parameter.getMinimumValue();
             if ((minDValue != null) && (minDValue.compareTo((Double) value) > 0))
-                throw (new IllegalArgumentException("Minimum value is "
+                throw (new IllegalArgumentException("Minimum value of parameter " + parameter + "  is "
                         + minDValue));
             Double maxDValue = (Double) parameter.getMaximumValue();
             if ((maxDValue != null) && (maxDValue.compareTo((Double) value) < 0))
-                throw (new IllegalArgumentException("Maximum value is "
+                throw (new IllegalArgumentException("Maximum value of parameter " + parameter + "  is "
                         + maxDValue));
             break;
         case STRING:

@@ -17,7 +17,7 @@
  * Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-package net.sf.mzmine.methods.deisotoping.simplegrouper;
+package net.sf.mzmine.methods.deisotoping.incompletefilter;
 
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -48,34 +48,13 @@ import net.sf.mzmine.userinterface.Desktop.MZmineMenu;
 import net.sf.mzmine.userinterface.dialogs.ParameterSetupDialog;
 import net.sf.mzmine.userinterface.dialogs.ParameterSetupDialog.ExitCode;
 
-/**
- * This class implements a simple isotopic peaks grouper method based on
- * searhing for neighbouring peaks from expected locations.
- * 
- */
-
-public class SimpleGrouper implements Method, TaskListener,
+public class IncompleteFilter implements Method, TaskListener,
         ListSelectionListener, ActionListener {
 
-    public static final Parameter mzTolerance = new SimpleParameter(
-            ParameterType.DOUBLE, "M/Z tolerance",
-            "Maximum distance in M/Z from the expected location of a peak",
-            "Da", new Double(0.05), new Double(0.0), null);
-
-    public static final Parameter rtTolerance = new SimpleParameter(
-            ParameterType.DOUBLE, "RT tolerance",
-            "Maximum distance in RT from the expected location of a peak",
-            "seconds", new Double(5.0), new Double(0.0), null);
-
-    public static final Parameter monotonicShape = new SimpleParameter(
-            ParameterType.BOOLEAN,
-            "Monotonic shape",
-            "If true, then monotonically decreasing height of isotope pattern is required (monoisotopic peak is strongest).",
-            new Boolean(true));
-
-    public static final Parameter maximumCharge = new SimpleParameter(
-            ParameterType.INTEGER, "Maximum charge", "Maximum charge", "",
-            new Integer(1), new Integer(1), null);
+    public static final Parameter minimumNumberOfPeaks = new SimpleParameter(
+            ParameterType.INTEGER, "Minimum number of peaks",
+            "Minimum acceptable number of peaks per isotope pattern", "",
+            new Integer(2), new Integer(1), null);
 
     private ParameterSet parameters;
 
@@ -93,15 +72,19 @@ public class SimpleGrouper implements Method, TaskListener,
         this.taskController = core.getTaskController();
         this.desktop = core.getDesktop();
 
-        parameters = new SimpleParameterSet(new Parameter[] { mzTolerance,
-                rtTolerance, monotonicShape, maximumCharge });
+        parameters = new SimpleParameterSet(
+                new Parameter[] { minimumNumberOfPeaks, });
 
         myMenuItem = desktop.addMenuItem(MZmineMenu.PEAKPICKING,
-                "Simple isotopic peaks grouper", this, null, KeyEvent.VK_S,
-                false, false);
+                "Incomplete isotopic pattern filter", this, null,
+                KeyEvent.VK_I, false, false);
 
         desktop.addSelectionListener(this);
 
+    }
+
+    public String toString() {
+        return new String("Incomplete isotope pattern filter");
     }
 
     public void setParameters(ParameterSet parameters) {
@@ -122,6 +105,12 @@ public class SimpleGrouper implements Method, TaskListener,
     }
 
     /**
+     * 
+     * 
+     * 
+     * 
+     * /**
+     * 
      * @see javax.swing.event.ListSelectionListener#valueChanged(javax.swing.event.ListSelectionEvent)
      */
     public void valueChanged(ListSelectionEvent e) {
@@ -138,16 +127,16 @@ public class SimpleGrouper implements Method, TaskListener,
     }
 
     public void taskStarted(Task task) {
-        logger.info("Running simple peak grouper on "
-                + ((SimpleGrouperTask) task).getDataFile());
+        logger.info("Running incomplete isotope pattern filter on "
+                + ((IncompleteFilterTask) task).getDataFile());
     }
 
     public void taskFinished(Task task) {
 
         if (task.getStatus() == Task.TaskStatus.FINISHED) {
-            
-            logger.info("Finished simple peak grouper on "
-                    + ((SimpleGrouperTask) task).getDataFile());
+
+            logger.info("Finished incomplete isotope pattern filter on "
+                    + ((IncompleteFilterTask) task).getDataFile());
 
             Object[] result = (Object[]) task.getResult();
             OpenedRawDataFile dataFile = (OpenedRawDataFile) result[0];
@@ -172,13 +161,6 @@ public class SimpleGrouper implements Method, TaskListener,
 
         }
 
-    }
-
-    /**
-     * @see net.sf.mzmine.methods.Method#toString()
-     */
-    public String toString() {
-        return "Simple isotopic peaks grouper";
     }
 
     /**
@@ -212,7 +194,7 @@ public class SimpleGrouper implements Method, TaskListener,
             TaskSequenceListener methodListener) {
 
         // prepare a new sequence of tasks
-        Task tasks[] = new SimpleGrouperTask[dataFiles.length];
+        Task tasks[] = new IncompleteFilterTask[dataFiles.length];
         for (int i = 0; i < dataFiles.length; i++) {
             PeakList currentPeakList = (PeakList) dataFiles[i].getCurrentFile().getData(
                     PeakList.class)[0];
@@ -223,7 +205,7 @@ public class SimpleGrouper implements Method, TaskListener,
                 desktop.displayErrorMessage(msg);
                 return;
             }
-            tasks[i] = new SimpleGrouperTask(dataFiles[i], currentPeakList,
+            tasks[i] = new IncompleteFilterTask(dataFiles[i], currentPeakList,
                     parameters);
         }
 

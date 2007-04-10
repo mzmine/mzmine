@@ -235,7 +235,6 @@ public class ParameterSetupDialog extends JDialog implements ActionListener {
 
                 } catch (Exception invalidValueException) {
                     displayMessage(invalidValueException.getMessage());
-                    invalidValueException.printStackTrace();
                     return;
                 }
 

@@ -119,6 +119,10 @@ class SimpleGrouperTask implements Task {
         results[2] = parameters;
         return results;
     }
+    
+    public OpenedRawDataFile getDataFile() {
+        return dataFile;
+    }
 
     /**
      * @see net.sf.mzmine.taskcontrol.Task#cancel()

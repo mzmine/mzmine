@@ -156,6 +156,9 @@ public class LocalPicker implements Method, TaskListener,
     public void taskFinished(Task task) {
 
         if (task.getStatus() == Task.TaskStatus.FINISHED) {
+            
+            logger.info("Finished local maxima peak picker on "
+                    + ((LocalPickerTask) task).getDataFile());
 
             Object[] result = (Object[]) task.getResult();
             OpenedRawDataFile dataFile = (OpenedRawDataFile) result[0];
