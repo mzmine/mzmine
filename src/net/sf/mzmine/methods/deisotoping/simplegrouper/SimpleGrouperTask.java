@@ -34,14 +34,14 @@ import net.sf.mzmine.io.OpenedRawDataFile;
 import net.sf.mzmine.taskcontrol.Task;
 
 /**
- *
+ * 
  */
 class SimpleGrouperTask implements Task {
 
     private static final double neutronMW = 1.008665;
 
     private OpenedRawDataFile dataFile;
-    
+
     private TaskStatus status;
     private String errorMessage;
 
@@ -50,7 +50,7 @@ class SimpleGrouperTask implements Task {
 
     private PeakList currentPeakList;
     private SimplePeakList processedPeakList;
-    
+
     private ParameterSet parameters;
     private double mzTolerance;
     private double rtTolerance;
@@ -61,16 +61,15 @@ class SimpleGrouperTask implements Task {
      * @param rawDataFile
      * @param parameters
      */
-    SimpleGrouperTask(OpenedRawDataFile dataFile,
-            PeakList currentPeakList,
-            ParameterSet parameters) {
+    SimpleGrouperTask(OpenedRawDataFile dataFile, ParameterSet parameters) {
         status = TaskStatus.WAITING;
         this.dataFile = dataFile;
-        
-        this.currentPeakList = currentPeakList;
+
+        currentPeakList = (PeakList) dataFile.getCurrentFile().getData(
+                PeakList.class)[0];
 
         processedPeakList = new SimplePeakList();
-        
+
         this.parameters = parameters;
         mzTolerance = (Double) parameters.getParameterValue(SimpleGrouper.mzTolerance);
         rtTolerance = (Double) parameters.getParameterValue(SimpleGrouper.rtTolerance);
@@ -119,7 +118,7 @@ class SimpleGrouperTask implements Task {
         results[2] = parameters;
         return results;
     }
-    
+
     public OpenedRawDataFile getDataFile() {
         return dataFile;
     }
@@ -132,7 +131,7 @@ class SimpleGrouperTask implements Task {
     }
 
     /**
-     * @see java.lang.Runnable#run()
+     * @see Runnable#run()
      */
     public void run() {
 
@@ -140,7 +139,8 @@ class SimpleGrouperTask implements Task {
 
         // Collect all selected charge states
         int charges[] = new int[maximumCharge];
-        for (int i=0; i<maximumCharge; i++) charges[i] = (i+1);
+        for (int i = 0; i < maximumCharge; i++)
+            charges[i] = (i + 1);
 
         Peak[] sortedPeaks = currentPeakList.getPeaks();
         Arrays.sort(sortedPeaks, new PeakSorterByDescendingHeight());
@@ -148,13 +148,15 @@ class SimpleGrouperTask implements Task {
         // Loop through all peaks in the order of descending intensity
         totalPeaks = sortedPeaks.length;
 
-        for (int ind=0; ind<sortedPeaks.length; ind++) {
+        for (int ind = 0; ind < sortedPeaks.length; ind++) {
 
-			Peak aPeak = sortedPeaks[ind];
+            Peak aPeak = sortedPeaks[ind];
 
-            if (status == TaskStatus.CANCELED) return;
+            if (status == TaskStatus.CANCELED)
+                return;
 
-            if (aPeak == null) continue;
+            if (aPeak == null)
+                continue;
 
             // Check which charge state fits best around this peak
             int bestFitCharge = 0;
@@ -177,14 +179,17 @@ class SimpleGrouperTask implements Task {
             }
 
             // Assign peaks in best fitted pattern to same isotope pattern
-            SimpleIsotopePattern isotopePattern = new SimpleIsotopePattern(bestFitCharge);
+            SimpleIsotopePattern isotopePattern = new SimpleIsotopePattern(
+                    bestFitCharge);
 
-			for (Peak p : bestFitPeaks.keySet()) {
-				SimplePeak processedPeak = new SimplePeak(p);
-				processedPeak.addData(IsotopePattern.class, isotopePattern);
-				processedPeakList.addPeak(processedPeak);
-			}
-			for (Integer ind2 : bestFitPeaks.values()) { sortedPeaks[ind2] = null;}
+            for (Peak p : bestFitPeaks.keySet()) {
+                SimplePeak processedPeak = new SimplePeak(p);
+                processedPeak.addData(IsotopePattern.class, isotopePattern);
+                processedPeakList.addPeak(processedPeak);
+            }
+            for (Integer ind2 : bestFitPeaks.values()) {
+                sortedPeaks[ind2] = null;
+            }
 
             // Update completion rate
             processedPeaks++;
@@ -197,7 +202,7 @@ class SimpleGrouperTask implements Task {
 
     /**
      * Fits isotope pattern around one peak.
-     *
+     * 
      * @param p Pattern is fitted around this peak
      * @param charge Charge state of the fitted pattern
      * @param parameters User-defined parameters
@@ -207,7 +212,8 @@ class SimpleGrouperTask implements Task {
      *            pattern.
      * @return Array of peaks in same pattern
      */
-    private void fitPattern(Hashtable<Peak, Integer> fittedPeaks, Peak p, int charge, Peak[] sortedPeaks) {
+    private void fitPattern(Hashtable<Peak, Integer> fittedPeaks, Peak p,
+            int charge, Peak[] sortedPeaks) {
 
         if (charge == 0) {
             return;
@@ -225,7 +231,7 @@ class SimpleGrouperTask implements Task {
 
     /**
      * Helper method for fitPattern. Fits only one half of the pattern.
-     *
+     * 
      * @param p Pattern is fitted around this peak
      * @param charge Charge state of the fitted pattern
      * @param direction Defines which half to fit: -1=fit to peaks before start
@@ -234,8 +240,7 @@ class SimpleGrouperTask implements Task {
      * @param fittedPeaks All matching peaks will be added to this set
      */
     private void fitHalfPattern(Peak p, int charge, int direction,
-            Hashtable<Peak, Integer> fittedPeaks,
-            Peak[] sortedPeaks) {
+            Hashtable<Peak, Integer> fittedPeaks, Peak[] sortedPeaks) {
 
         // Use M/Z and RT of the strongest peak of the pattern (peak 'p')
         double currentMZ = p.getNormalizedMZ();
@@ -257,11 +262,12 @@ class SimpleGrouperTask implements Task {
             // Loop through all peaks, and collect candidates for the n:th peak
             // in the pattern
             Hashtable<Peak, Integer> goodCandidates = new Hashtable<Peak, Integer>();
-			for (int ind=0; ind<sortedPeaks.length; ind++) {
+            for (int ind = 0; ind < sortedPeaks.length; ind++) {
 
-				Peak candidatePeak = sortedPeaks[ind];
+                Peak candidatePeak = sortedPeaks[ind];
 
-                if (candidatePeak==null) continue;
+                if (candidatePeak == null)
+                    continue;
 
                 // Get properties of the candidate peak
                 double candidatePeakMZ = candidatePeak.getNormalizedMZ();
@@ -274,17 +280,20 @@ class SimpleGrouperTask implements Task {
                 // - within tolerances from the expected location (M/Z and RT)
                 // - not already a fitted peak (only necessary to avoid
                 // conflicts when parameters are set too wide)
-                
-                if (java.lang.Math.abs((candidatePeakMZ - direction * n * neutronMW / (double) charge) - currentMZ) < mzTolerance) {
-                	if (java.lang.Math.abs(candidatePeakRT - currentRT) < rtTolerance) {
-                		if (candidatePeakIntensity < currentHeight) {
-                			if (!fittedPeaks.contains(candidatePeak)) {
-                				goodCandidates.put(candidatePeak, new Integer(ind));
-                			}
-                		}
-                	}
+
+                if (Math.abs((candidatePeakMZ - direction * n * neutronMW
+                        / (double) charge)
+                        - currentMZ) < mzTolerance) {
+                    if (Math.abs(candidatePeakRT - currentRT) < rtTolerance) {
+                        if (candidatePeakIntensity < currentHeight) {
+                            if (!fittedPeaks.contains(candidatePeak)) {
+                                goodCandidates.put(candidatePeak, new Integer(
+                                        ind));
+                            }
+                        }
+                    }
                 }
-              
+
             }
 
             // If there are some candidates for n:th peak, then select the one
@@ -311,7 +320,8 @@ class SimpleGrouperTask implements Task {
             if (bestCandidate != null) {
 
                 // Add best candidate to fitted peaks of the pattern
-                fittedPeaks.put(bestCandidate, goodCandidates.get(bestCandidate));
+                fittedPeaks.put(bestCandidate,
+                        goodCandidates.get(bestCandidate));
 
                 // Update height limit
                 currentHeight = bestCandidate.getNormalizedHeight();
@@ -325,7 +335,5 @@ class SimpleGrouperTask implements Task {
         }
 
     }
-
-
 
 }

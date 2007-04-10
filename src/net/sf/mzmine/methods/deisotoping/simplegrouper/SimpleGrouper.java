@@ -145,7 +145,7 @@ public class SimpleGrouper implements Method, TaskListener,
     public void taskFinished(Task task) {
 
         if (task.getStatus() == Task.TaskStatus.FINISHED) {
-            
+
             logger.info("Finished simple peak grouper on "
                     + ((SimpleGrouperTask) task).getDataFile());
 
@@ -214,17 +214,15 @@ public class SimpleGrouper implements Method, TaskListener,
         // prepare a new sequence of tasks
         Task tasks[] = new SimpleGrouperTask[dataFiles.length];
         for (int i = 0; i < dataFiles.length; i++) {
-            PeakList currentPeakList = (PeakList) dataFiles[i].getCurrentFile().getData(
-                    PeakList.class)[0];
-            if (currentPeakList == null) {
+
+            if (dataFiles[i].getCurrentFile().getData(PeakList.class).length == 0) {
                 String msg = "Cannot start deisotoping of " + dataFiles[i]
                         + ", please run peak picking first.";
                 logger.severe(msg);
                 desktop.displayErrorMessage(msg);
                 return;
             }
-            tasks[i] = new SimpleGrouperTask(dataFiles[i], currentPeakList,
-                    parameters);
+            tasks[i] = new SimpleGrouperTask(dataFiles[i], parameters);
         }
 
         TaskSequence newSequence = new TaskSequence(tasks, this,

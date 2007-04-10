@@ -23,7 +23,6 @@ import java.util.Comparator;
 
 import net.sf.mzmine.data.Peak;
 
-
 /**
  * This is a helper class required for TreeSet to sorting peaks in order of
  * decreasing intensity.
@@ -31,7 +30,8 @@ import net.sf.mzmine.data.Peak;
 class PeakSorterByDescendingHeight implements Comparator<Peak> {
 
     public int compare(Peak p1, Peak p2) {
-        if (p1==p2) return 0;
+        if (p1 == p2)
+            return 0;
         if (p1.getNormalizedHeight() <= p2.getNormalizedHeight()) {
             return 1;
         } else {
