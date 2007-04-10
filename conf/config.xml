@@ -8,6 +8,7 @@
     <module class="net.sf.mzmine.visualizers.rawdata.twod.TwoDVisualizer"/>  
     <module class="net.sf.mzmine.visualizers.rawdata.threed.ThreeDVisualizer"/>  
     <module class="net.sf.mzmine.visualizers.rawdata.neutralloss.NeutralLossVisualizer"/>  
+    <module class="net.sf.mzmine.util.menu.VisualizationMenuSeparator"/>
     <module class="net.sf.mzmine.visualizers.peaklist.table.PeakListTableVisualizer"/>  
     <module class="net.sf.mzmine.visualizers.alignmentresult.table.AlignmentResultTableVisualizer"/>  
     <module class="net.sf.mzmine.visualizers.alignmentresult.logratio.AlignmentResultLogratioVisualizer"/>  
