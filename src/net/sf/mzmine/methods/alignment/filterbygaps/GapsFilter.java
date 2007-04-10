@@ -141,14 +141,14 @@ public class GapsFilter implements Method, TaskListener, ListSelectionListener,
     }
 
     public void taskStarted(Task task) {
-        logger.info("Running alignment list filter by gaps");
+        logger.info("Running alignment result filter by gaps");
     }
 
     public void taskFinished(Task task) {
 
         if (task.getStatus() == Task.TaskStatus.FINISHED) {
 
-            logger.info("Finished alignment list filter by gaps");
+            logger.info("Finished alignment result filter by gaps");
 
             AlignmentResult filteredAlignmentResult = (AlignmentResult) task.getResult();
 
