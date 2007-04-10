@@ -25,7 +25,7 @@
     <module class="net.sf.mzmine.methods.deisotoping.simplegrouper.SimpleGrouper"/>  
     <module class="net.sf.mzmine.methods.deisotoping.incompletefilter.IncompleteFilter"/>  
     <module class="net.sf.mzmine.methods.alignment.join.JoinAligner"/>  
-    <module class="net.sf.mzmine.methods.alignment.filterbygaps.AlignmentResultFilterByGaps"/>  
+    <module class="net.sf.mzmine.methods.alignment.filterbygaps.GapsFilter"/>  
     <module class="net.sf.mzmine.methods.gapfilling.simple.SimpleGapFiller"/>  
     <module class="net.sf.mzmine.methods.normalization.linear.LinearNormalizer"/> 
   </modules> 
