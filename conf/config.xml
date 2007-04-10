@@ -20,6 +20,7 @@
     <module class="net.sf.mzmine.methods.peakpicking.recursivethreshold.RecursivePicker"/>  
     <module class="net.sf.mzmine.methods.peakpicking.local.LocalPicker"/>  
     <module class="net.sf.mzmine.methods.peakpicking.centroid.CentroidPicker"/>  
+    <module class="net.sf.mzmine.util.menu.PeakPickingMenuSeparator"/>  
     <module class="net.sf.mzmine.methods.deisotoping.simplegrouper.SimpleGrouper"/>  
     <module class="net.sf.mzmine.methods.deisotoping.incompletefilter.IncompleteFilter"/>  
     <module class="net.sf.mzmine.methods.alignment.join.JoinAligner"/>  
