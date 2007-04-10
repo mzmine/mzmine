@@ -41,17 +41,17 @@ import net.sf.mzmine.methods.Method;
 import net.sf.mzmine.taskcontrol.Task;
 import net.sf.mzmine.taskcontrol.TaskController;
 import net.sf.mzmine.taskcontrol.TaskListener;
+import net.sf.mzmine.taskcontrol.TaskSequence;
 import net.sf.mzmine.taskcontrol.TaskSequenceListener;
 import net.sf.mzmine.userinterface.Desktop;
 import net.sf.mzmine.userinterface.Desktop.MZmineMenu;
 import net.sf.mzmine.userinterface.dialogs.ParameterSetupDialog;
-import net.sf.mzmine.userinterface.mainwindow.MainWindow;
+import net.sf.mzmine.userinterface.dialogs.ParameterSetupDialog.ExitCode;
 
 /**
  * This class implements a simple isotopic peaks grouper method based on
  * searhing for neighbouring peaks from expected locations.
  * 
- * @version 31 March 2006
  */
 
 public class SimpleGrouper implements Method, TaskListener,
@@ -106,48 +106,30 @@ public class SimpleGrouper implements Method, TaskListener,
 
     }
 
-
-    public void setParameters(SimpleParameterSet parameters) {
+    public void setParameters(ParameterSet parameters) {
         this.parameters = parameters;
-    }
-
-    /**
-     * @see net.sf.mzmine.methods.Method#runMethod(net.sf.mzmine.data.impl.SimpleParameterSet,
-     *      net.sf.mzmine.io.RawDataFile[],
-     *      net.sf.mzmine.methods.alignment.AlignmentResult[])
-     */
-    public void runMethod(OpenedRawDataFile[] dataFiles,
-            AlignmentResult[] alignmentResults) {
-
-
-        logger.finest("Running " + toString());
-
-
-        for (OpenedRawDataFile dataFile : dataFiles) {
-            PeakList currentPeakList = (PeakList) dataFile.getCurrentFile().getData(
-                    PeakList.class)[0];
-            if (currentPeakList == null)
-                continue;
-            Task peaklistProcessorTask = new SimpleGrouperTask(
-                    dataFile, currentPeakList, parameters);
-            taskController.addTask(peaklistProcessorTask, this);
-        }
-
     }
 
     /**
      * @see java.awt.event.ActionListener#actionPerformed(java.awt.event.ActionEvent)
      */
     public void actionPerformed(ActionEvent e) {
-
-
-        OpenedRawDataFile[] dataFiles = desktop.getSelectedDataFiles();
-
-        runMethod(dataFiles, null);
-
+        if (e.getSource() == myMenuItem) {
+            ParameterSet param = setupParameters(parameters);
+            if (param == null)
+                return;
+            OpenedRawDataFile[] dataFiles = desktop.getSelectedDataFiles();
+            runMethod(dataFiles, null, param, null);
+        }
     }
 
     /**
+     * 
+     * 
+     * 
+     * 
+     * /**
+     * 
      * @see javax.swing.event.ListSelectionListener#valueChanged(javax.swing.event.ListSelectionEvent)
      */
     public void valueChanged(ListSelectionEvent e) {
@@ -203,14 +185,28 @@ public class SimpleGrouper implements Method, TaskListener,
         return "Simple isotopic peaks grouper";
     }
 
+
+
     /**
      * @see net.sf.mzmine.methods.Method#setupParameters(net.sf.mzmine.data.ParameterSet)
      */
-    public ParameterSet setupParameters(ParameterSet current) {
-        // TODO Auto-generated method stub
-        return null;
+    public ParameterSet setupParameters(ParameterSet currentParameters) {
+        ParameterSetupDialog dialog = new ParameterSetupDialog(
+                desktop.getMainFrame(), "Please check parameter values for "
+                        + toString(), currentParameters);
+        dialog.setVisible(true);
+        if (dialog.getExitCode() == ExitCode.CANCEL)
+            return null;
+        return currentParameters.clone();
     }
 
+    /**
+     * @see net.sf.mzmine.main.MZmineModule#getParameterSet()
+     */
+    public ParameterSet getParameterSet() {
+        return parameters;
+    }
+    
     /**
      * @see net.sf.mzmine.methods.Method#runMethod(net.sf.mzmine.io.OpenedRawDataFile[],
      *      net.sf.mzmine.data.AlignmentResult[],
@@ -220,24 +216,28 @@ public class SimpleGrouper implements Method, TaskListener,
     public void runMethod(OpenedRawDataFile[] dataFiles,
             AlignmentResult[] alignmentResults, ParameterSet parameters,
             TaskSequenceListener methodListener) {
-        // TODO Auto-generated method stub
+
+        // prepare a new sequence of tasks
+        Task tasks[] = new SimpleGrouperTask[dataFiles.length];
+        for (int i = 0; i < dataFiles.length; i++) {
+            PeakList currentPeakList = (PeakList) dataFiles[i].getCurrentFile().getData(
+                    PeakList.class)[0];
+            if (currentPeakList == null) {
+                String msg = "Cannot start deisotoping of " + dataFiles[i]
+                        + ", please run peak picking first.";
+                logger.severe(msg);
+                desktop.displayErrorMessage(msg);
+                return;
+            }
+            tasks[i] = new SimpleGrouperTask(dataFiles[i], currentPeakList,
+                    parameters);
+        }
+        
+        TaskSequence newSequence = new TaskSequence(tasks, this,
+                methodListener, taskController);
+
+        // execute the sequence
+        newSequence.run();
 
     }
-
-    /**
-     * @see net.sf.mzmine.main.MZmineModule#getParameterSet()
-     */
-    public ParameterSet getParameterSet() {
-        // TODO Auto-generated method stub
-        return null;
-    }
-
-    /**
-     * @see net.sf.mzmine.main.MZmineModule#setParameters(net.sf.mzmine.data.ParameterSet)
-     */
-    public void setParameters(ParameterSet parameterValues) {
-        // TODO Auto-generated method stub
-
-    }
-
 }
