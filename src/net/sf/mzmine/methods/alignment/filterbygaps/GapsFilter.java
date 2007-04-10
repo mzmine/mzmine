@@ -1,5 +1,5 @@
 /*
- * Copyright 2005-2006 VTT Biotechnology
+ * Copyright 2006-2007 The MZmine Development Team
  * 
  * This file is part of MZmine.
  * 
