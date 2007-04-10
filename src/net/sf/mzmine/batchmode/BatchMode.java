@@ -159,8 +159,13 @@ public class BatchMode implements MZmineModule, ListSelectionListener,
         if (allResults.length > 0)
             lastResultOnly = new AlignmentResult[] { allResults[allResults.length - 1] };
 
-        method.runMethod(selectedDataFiles, lastResultOnly,
+        TaskSequence newSequence = method.runMethod(selectedDataFiles, lastResultOnly,
                 newStep.getParameters(), this);
+        
+        if (newSequence == null)  {
+            desktop.displayErrorMessage("Batch processing cannot continue.");
+            batchRunning = false;
+        }
 
         currentStep++;
 

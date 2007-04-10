@@ -180,13 +180,13 @@ public class LinearNormalizer implements Method, TaskListener,
      *      net.sf.mzmine.data.ParameterSet,
      *      net.sf.mzmine.taskcontrol.TaskSequenceListener)
      */
-    public void runMethod(OpenedRawDataFile[] dataFiles,
+    public TaskSequence runMethod(OpenedRawDataFile[] dataFiles,
             AlignmentResult[] alignmentResults, ParameterSet parameters,
             TaskSequenceListener methodListener) {
 
         // prepare a new sequence of tasks
-        Task tasks[] = new LinearNormalizerTask[dataFiles.length];
-        for (int i = 0; i < dataFiles.length; i++) {
+        Task tasks[] = new LinearNormalizerTask[alignmentResults.length];
+        for (int i = 0; i < alignmentResults.length; i++) {
             tasks[i] = new LinearNormalizerTask(alignmentResults[i], parameters);
         }
         TaskSequence newSequence = new TaskSequence(tasks, this,
@@ -194,6 +194,8 @@ public class LinearNormalizer implements Method, TaskListener,
 
         // execute the sequence
         newSequence.run();
+        
+        return newSequence;
 
     }
 

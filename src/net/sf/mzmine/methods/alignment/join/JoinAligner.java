@@ -44,6 +44,7 @@ import net.sf.mzmine.taskcontrol.TaskController;
 import net.sf.mzmine.taskcontrol.TaskListener;
 import net.sf.mzmine.taskcontrol.TaskSequence;
 import net.sf.mzmine.taskcontrol.TaskSequenceListener;
+import net.sf.mzmine.taskcontrol.TaskSequence.TaskSequenceStatus;
 import net.sf.mzmine.userinterface.Desktop;
 import net.sf.mzmine.userinterface.Desktop.MZmineMenu;
 import net.sf.mzmine.userinterface.dialogs.ParameterSetupDialog;
@@ -206,7 +207,7 @@ public class JoinAligner implements Method, TaskListener,
      *      net.sf.mzmine.data.ParameterSet,
      *      net.sf.mzmine.taskcontrol.TaskSequenceListener)
      */
-    public void runMethod(OpenedRawDataFile[] dataFiles,
+    public TaskSequence runMethod(OpenedRawDataFile[] dataFiles,
             AlignmentResult[] alignmentResults, ParameterSet parameters,
             TaskSequenceListener methodListener) {
 
@@ -217,7 +218,7 @@ public class JoinAligner implements Method, TaskListener,
                         + ", please run peak picking first.";
                 logger.severe(msg);
                 desktop.displayErrorMessage(msg);
-                return;
+                return null;
             }
         }
 
@@ -229,6 +230,8 @@ public class JoinAligner implements Method, TaskListener,
 
         // execute the sequence
         newSequence.run();
+        
+        return newSequence;
 
     }
 

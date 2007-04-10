@@ -102,7 +102,7 @@ public class CollectionUtils {
      */
      public static <T> boolean arrayContains(T haystack[], T needle) {
         for (T test : haystack) {
-            if (needle == test)
+            if (needle.equals(test))
                 return true;
         }
         return false;

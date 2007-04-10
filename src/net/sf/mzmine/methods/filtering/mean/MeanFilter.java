@@ -132,7 +132,7 @@ public class MeanFilter implements Method, TaskListener, ListSelectionListener,
      *      net.sf.mzmine.data.ParameterSet,
      *      net.sf.mzmine.taskcontrol.TaskSequenceListener)
      */
-    public void runMethod(OpenedRawDataFile[] dataFiles,
+    public TaskSequence runMethod(OpenedRawDataFile[] dataFiles,
             AlignmentResult[] alignmentResults, ParameterSet parameters,
             TaskSequenceListener methodListener) {
 
@@ -146,6 +146,8 @@ public class MeanFilter implements Method, TaskListener, ListSelectionListener,
 
         // execute the sequence
         newSequence.run();
+        
+        return newSequence;
 
     }
 

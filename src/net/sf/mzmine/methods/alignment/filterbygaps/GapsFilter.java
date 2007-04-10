@@ -172,13 +172,13 @@ public class GapsFilter implements Method, TaskListener, ListSelectionListener,
      *      net.sf.mzmine.data.ParameterSet,
      *      net.sf.mzmine.taskcontrol.TaskSequenceListener)
      */
-    public void runMethod(OpenedRawDataFile[] dataFiles,
+    public TaskSequence runMethod(OpenedRawDataFile[] dataFiles,
             AlignmentResult[] alignmentResults, ParameterSet parameters,
             TaskSequenceListener methodListener) {
 
         // prepare a new sequence of tasks
-        Task tasks[] = new GapsFilterTask[dataFiles.length];
-        for (int i = 0; i < dataFiles.length; i++) {
+        Task tasks[] = new GapsFilterTask[alignmentResults.length];
+        for (int i = 0; i < alignmentResults.length; i++) {
             tasks[i] = new GapsFilterTask(alignmentResults[i], parameters);
         }
         TaskSequence newSequence = new TaskSequence(tasks, this,
@@ -186,6 +186,8 @@ public class GapsFilter implements Method, TaskListener, ListSelectionListener,
 
         // execute the sequence
         newSequence.run();
+        
+        return newSequence;
 
     }
 

@@ -142,7 +142,7 @@ public class SimpleParameterSet implements ParameterSet {
         Object[] possibleValues = parameter.getPossibleValues();
         if (possibleValues != null) {
             if (!CollectionUtils.arrayContains(possibleValues, value))
-                throw (new IllegalArgumentException("Illegal value"));
+                throw (new IllegalArgumentException("Illegal value " + value + " of parameter " + parameter));
         }
 
         switch (parameter.getType()) {

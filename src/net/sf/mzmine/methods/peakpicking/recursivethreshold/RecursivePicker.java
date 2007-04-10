@@ -230,7 +230,7 @@ public class RecursivePicker implements Method, TaskListener,
      *      net.sf.mzmine.data.ParameterSet,
      *      net.sf.mzmine.taskcontrol.TaskSequenceListener)
      */
-    public void runMethod(OpenedRawDataFile[] dataFiles,
+    public TaskSequence runMethod(OpenedRawDataFile[] dataFiles,
             AlignmentResult[] alignmentResults, ParameterSet parameters,
             TaskSequenceListener methodListener) {
 
@@ -245,6 +245,8 @@ public class RecursivePicker implements Method, TaskListener,
 
         // execute the sequence
         newSequence.run();
+        
+        return newSequence;
 
     }
 

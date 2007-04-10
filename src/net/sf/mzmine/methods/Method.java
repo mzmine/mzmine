@@ -21,9 +21,9 @@ package net.sf.mzmine.methods;
 
 import net.sf.mzmine.data.AlignmentResult;
 import net.sf.mzmine.data.ParameterSet;
-import net.sf.mzmine.data.impl.SimpleParameterSet;
 import net.sf.mzmine.io.OpenedRawDataFile;
 import net.sf.mzmine.main.MZmineModule;
+import net.sf.mzmine.taskcontrol.TaskSequence;
 import net.sf.mzmine.taskcontrol.TaskSequenceListener;
 
 /**
@@ -49,7 +49,7 @@ public interface Method extends MZmineModule {
      *            files/results.
      * 
      */
-    public void runMethod(OpenedRawDataFile[] dataFiles,
+    public TaskSequence runMethod(OpenedRawDataFile[] dataFiles,
             AlignmentResult[] alignmentResults, ParameterSet parameters,
             TaskSequenceListener methodListener);
 

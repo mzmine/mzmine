@@ -36,6 +36,7 @@ import net.sf.mzmine.io.OpenedRawDataFile;
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.methods.Method;
 import net.sf.mzmine.taskcontrol.TaskController;
+import net.sf.mzmine.taskcontrol.TaskSequence;
 import net.sf.mzmine.taskcontrol.TaskSequenceListener;
 import net.sf.mzmine.userinterface.Desktop;
 import net.sf.mzmine.userinterface.Desktop.MZmineMenu;
@@ -168,13 +169,7 @@ ListSelectionListener, ActionListener {
         
     }
 
-    /**
-     * @see net.sf.mzmine.methods.Method#runMethod(net.sf.mzmine.io.OpenedRawDataFile[], net.sf.mzmine.data.AlignmentResult[], net.sf.mzmine.data.ParameterSet, net.sf.mzmine.taskcontrol.TaskSequenceListener)
-     */
-    public void runMethod(OpenedRawDataFile[] dataFiles, AlignmentResult[] alignmentResults, ParameterSet parameters, TaskSequenceListener methodListener) {
-        // TODO Auto-generated method stub
-        
-    }
+
 
     /**
      * @see net.sf.mzmine.main.MZmineModule#getParameterSet()
@@ -190,6 +185,14 @@ ListSelectionListener, ActionListener {
     public void setParameters(ParameterSet parameterValues) {
         // TODO Auto-generated method stub
         
+    }
+
+    /**
+     * @see net.sf.mzmine.methods.Method#runMethod(net.sf.mzmine.io.OpenedRawDataFile[], net.sf.mzmine.data.AlignmentResult[], net.sf.mzmine.data.ParameterSet, net.sf.mzmine.taskcontrol.TaskSequenceListener)
+     */
+    public TaskSequence runMethod(OpenedRawDataFile[] dataFiles, AlignmentResult[] alignmentResults, ParameterSet parameters, TaskSequenceListener methodListener) {
+        // TODO Auto-generated method stub
+        return null;
     }
 
 }
