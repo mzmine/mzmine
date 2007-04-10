@@ -35,8 +35,7 @@ import net.sf.mzmine.userinterface.mainwindow.MainWindow;
 public class IncompleteIsotopePatternFilter implements Method {
 
 	private IncompleteIsotopePatternFilterParameters parameters;
-	private TaskSequenceListener afterMethodListener;
-	private int taskCount;
+
 	
 	public String toString() {
 		return new String("Incomplete isotope pattern filter");
@@ -66,42 +65,8 @@ public class IncompleteIsotopePatternFilter implements Method {
 	}
 
 
-    /**
-     * @see net.sf.mzmine.methods.Method#runMethod(net.sf.mzmine.data.impl.SimpleParameterSet, net.sf.mzmine.io.OpenedRawDataFile[], net.sf.mzmine.methods.alignment.AlignmentResult[])
-     */
-    public void runMethod(OpenedRawDataFile[] dataFiles, AlignmentResult[] alignmentResults) {
-        // TODO Auto-generated method stub
-        
-    }
     
-    public void runMethod(OpenedRawDataFile[] dataFiles, AlignmentResult[] alignmentResults, TaskSequenceListener methodListener) {
-    	this.afterMethodListener = methodListener;
-    	runMethod(dataFiles, alignmentResults);
-    }    
 
-    /**
-     * @see net.sf.mzmine.main.MZmineModule#initModule(net.sf.mzmine.main.MZmineCore)
-     */
-    public void initModule(MZmineCore core) {
-        // TODO Auto-generated method stub
-        
-    }
-
-    /**
-     * @see net.sf.mzmine.main.MZmineModule#getCurrentParameters()
-     */
-    public ParameterSet getCurrentParameters() {
-        // TODO Auto-generated method stub
-        return null;
-    }
-
-    /**
-     * @see net.sf.mzmine.main.MZmineModule#setCurrentParameters(net.sf.mzmine.data.ParameterSet)
-     */
-    public void setCurrentParameters(ParameterSet parameterValues) {
-        // TODO Auto-generated method stub
-        
-    }
 
     /**
      * @see net.sf.mzmine.methods.Method#setupParameters(net.sf.mzmine.data.ParameterSet)
@@ -112,17 +77,17 @@ public class IncompleteIsotopePatternFilter implements Method {
     }
 
     /**
-     * @see net.sf.mzmine.methods.Method#runMethod(net.sf.mzmine.io.OpenedRawDataFile[], net.sf.mzmine.data.AlignmentResult[], net.sf.mzmine.data.ParameterSet)
+     * @see net.sf.mzmine.methods.Method#runMethod(net.sf.mzmine.io.OpenedRawDataFile[], net.sf.mzmine.data.AlignmentResult[], net.sf.mzmine.data.ParameterSet, net.sf.mzmine.taskcontrol.TaskSequenceListener)
      */
-    public void runMethod(OpenedRawDataFile[] dataFiles, AlignmentResult[] alignmentResults, ParameterSet parameters) {
+    public void runMethod(OpenedRawDataFile[] dataFiles, AlignmentResult[] alignmentResults, ParameterSet parameters, TaskSequenceListener methodListener) {
         // TODO Auto-generated method stub
         
     }
 
     /**
-     * @see net.sf.mzmine.methods.Method#runMethod(net.sf.mzmine.io.OpenedRawDataFile[], net.sf.mzmine.data.AlignmentResult[], net.sf.mzmine.data.ParameterSet, net.sf.mzmine.taskcontrol.TaskSequenceListener)
+     * @see net.sf.mzmine.main.MZmineModule#initModule(net.sf.mzmine.main.MZmineCore)
      */
-    public void runMethod(OpenedRawDataFile[] dataFiles, AlignmentResult[] alignmentResults, ParameterSet parameters, TaskSequenceListener methodListener) {
+    public void initModule(MZmineCore core) {
         // TODO Auto-generated method stub
         
     }
@@ -141,7 +106,9 @@ public class IncompleteIsotopePatternFilter implements Method {
     public void setParameters(ParameterSet parameterValues) {
         // TODO Auto-generated method stub
         
-    }
+    }    
+
+
 
 
 }

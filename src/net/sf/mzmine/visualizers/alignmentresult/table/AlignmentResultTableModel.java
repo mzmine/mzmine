@@ -9,15 +9,15 @@ import net.sf.mzmine.data.Peak;
 import net.sf.mzmine.data.Peak.PeakStatus;
 import net.sf.mzmine.data.impl.StandardCompoundFlag;
 import net.sf.mzmine.io.OpenedRawDataFile;
-import net.sf.mzmine.methods.deisotoping.util.IsotopePatternUtility;
 import net.sf.mzmine.userinterface.dialogs.alignmentresultcolumnselection.AlignmentResultColumnSelection;
+import net.sf.mzmine.util.IsotopePatternUtils;
 
 public class AlignmentResultTableModel extends AbstractTableModel {
 
 	private AlignmentResult alignmentResult;
 	private AlignmentResultColumnSelection columnSelection;
 
-	private IsotopePatternUtility isoUtil;
+	private IsotopePatternUtils isoUtil;
 
 
 	/**
@@ -27,7 +27,7 @@ public class AlignmentResultTableModel extends AbstractTableModel {
 		this.alignmentResult = alignmentResult;
 		this.columnSelection = columnSelection;
 
-		isoUtil = new IsotopePatternUtility(alignmentResult);
+		isoUtil = new IsotopePatternUtils(alignmentResult);
 
 	}
 

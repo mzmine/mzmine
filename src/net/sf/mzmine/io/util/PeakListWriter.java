@@ -28,8 +28,8 @@ import net.sf.mzmine.data.IsotopePattern;
 import net.sf.mzmine.data.Peak;
 import net.sf.mzmine.data.PeakList;
 import net.sf.mzmine.io.OpenedRawDataFile;
-import net.sf.mzmine.methods.deisotoping.util.IsotopePatternUtility;
 import net.sf.mzmine.project.MZmineProject;
+import net.sf.mzmine.util.IsotopePatternUtils;
 
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
@@ -79,7 +79,7 @@ public class PeakListWriter {
 		PeakList peakList = (PeakList)rawData.getCurrentFile().getData(PeakList.class)[0];
 
 		// Group peaks by their isotope pattern
-		IsotopePatternUtility isotopeUtility = new IsotopePatternUtility(peakList);
+		IsotopePatternUtils isotopeUtility = new IsotopePatternUtils(peakList);
 
 
 		// Loop through peaks

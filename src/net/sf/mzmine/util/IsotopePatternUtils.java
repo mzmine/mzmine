@@ -16,7 +16,7 @@
  * MZmine; if not, write to the Free Software Foundation, Inc., 51 Franklin St,
  * Fifth Floor, Boston, MA 02110-1301 USA
  */
-package net.sf.mzmine.methods.deisotoping.util;
+package net.sf.mzmine.util;
 
 import net.sf.mzmine.data.IsotopePattern;
 import net.sf.mzmine.data.Peak;
@@ -34,7 +34,7 @@ import java.util.Iterator;
  * This helper class is used to group peaks by their isotope pattern.
  */
 
-public class IsotopePatternUtility {
+public class IsotopePatternUtils {
 
 	private Hashtable<IsotopePattern, Integer> isotopePatternNumbers;
 	private Hashtable<IsotopePattern, SortedSet<Peak>> isotopePatternPeaks;
@@ -43,7 +43,7 @@ public class IsotopePatternUtility {
 	/**
 	 * Constructor: groups peaks of a peak list by their isotope pattern
 	 */
-	public IsotopePatternUtility(PeakList peakList) {
+	public IsotopePatternUtils(PeakList peakList) {
 
 		isotopePatternNumbers = new Hashtable<IsotopePattern, Integer>();
 		isotopePatternPeaks = new Hashtable<IsotopePattern, SortedSet<Peak>>();
@@ -80,7 +80,7 @@ public class IsotopePatternUtility {
 	/**
 	 * Constructor: groups alignment rows of an alignment result by their isotope pattern
 	 */
-	public IsotopePatternUtility(AlignmentResult alignmentResult) {
+	public IsotopePatternUtils(AlignmentResult alignmentResult) {
 
 		isotopePatternNumbers = new Hashtable<IsotopePattern, Integer>();
 		isotopePatternRows = new Hashtable<IsotopePattern, SortedSet<AlignmentResultRow>>();

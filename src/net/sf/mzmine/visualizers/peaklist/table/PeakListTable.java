@@ -30,8 +30,8 @@ import net.sf.mzmine.data.PeakList;
 import net.sf.mzmine.data.DataUnit;
 import net.sf.mzmine.data.impl.StandardCompoundFlag;
 import net.sf.mzmine.io.OpenedRawDataFile;
-import net.sf.mzmine.methods.deisotoping.util.IsotopePatternUtility;
 import net.sf.mzmine.util.GUIUtils;
+import net.sf.mzmine.util.IsotopePatternUtils;
 import sunutils.TableSorter;
 
 
@@ -98,11 +98,11 @@ public class PeakListTable extends JTable {
 		private final String unassignedValue = new String("N/A");
 
 		private PeakList peakList;
-		private IsotopePatternUtility isotopePatternUtility;
+		private IsotopePatternUtils isotopePatternUtility;
 
 		public MyTableModel(PeakList peakList) {
 			this.peakList = peakList;
-			isotopePatternUtility = new IsotopePatternUtility(peakList);
+			isotopePatternUtility = new IsotopePatternUtils(peakList);
 		}
 
 		public int getColumnCount() {

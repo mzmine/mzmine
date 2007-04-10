@@ -33,10 +33,10 @@ import net.sf.mzmine.data.Peak;
 import net.sf.mzmine.data.Peak.PeakStatus;
 import net.sf.mzmine.data.impl.StandardCompoundFlag;
 import net.sf.mzmine.io.OpenedRawDataFile;
-import net.sf.mzmine.methods.deisotoping.util.IsotopePatternUtility;
 import net.sf.mzmine.userinterface.dialogs.alignmentresultcolumnselection.AlignmentResultColumnSelection;
 import net.sf.mzmine.userinterface.dialogs.alignmentresultcolumnselection.AlignmentResultColumnSelection.CommonColumnType;
 import net.sf.mzmine.userinterface.dialogs.alignmentresultcolumnselection.AlignmentResultColumnSelection.RawDataColumnType;
+import net.sf.mzmine.util.IsotopePatternUtils;
 
 
 public class AlignmentResultExporter {
@@ -56,7 +56,7 @@ public class AlignmentResultExporter {
 	 */
 	public boolean exportToFile(AlignmentResult alignmentResult, File outputFile, AlignmentResultColumnSelection columnSelection) {
 
-		IsotopePatternUtility isoUtil = new IsotopePatternUtility(alignmentResult);
+		IsotopePatternUtils isoUtil = new IsotopePatternUtils(alignmentResult);
 		
 		// Open file
 		FileWriter fw;
