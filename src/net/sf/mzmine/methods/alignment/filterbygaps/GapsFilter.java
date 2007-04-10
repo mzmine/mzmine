@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2007 The MZmine Development Team
+ * Copyright 2005-2006 VTT Biotechnology
  * 
  * This file is part of MZmine.
  * 
@@ -17,7 +17,7 @@
  * Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-package net.sf.mzmine.methods.alignment.join;
+package net.sf.mzmine.methods.alignment.filterbygaps;
 
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -31,7 +31,6 @@ import javax.swing.event.ListSelectionListener;
 import net.sf.mzmine.data.AlignmentResult;
 import net.sf.mzmine.data.Parameter;
 import net.sf.mzmine.data.ParameterSet;
-import net.sf.mzmine.data.PeakList;
 import net.sf.mzmine.data.Parameter.ParameterType;
 import net.sf.mzmine.data.impl.SimpleParameter;
 import net.sf.mzmine.data.impl.SimpleParameterSet;
@@ -50,42 +49,17 @@ import net.sf.mzmine.userinterface.dialogs.ParameterSetupDialog;
 import net.sf.mzmine.userinterface.dialogs.ParameterSetupDialog.ExitCode;
 
 /**
+ * This class implements a filter for alignment results Filter removes rows
+ * which have less than defined number of peaks detected
  * 
  */
-public class JoinAligner implements Method, TaskListener,
-        ListSelectionListener, ActionListener {
+public class GapsFilter implements Method, TaskListener, ListSelectionListener,
+        ActionListener {
 
-    public static final String RTToleranceTypeAbsolute = "Absolute";
-    public static final String RTToleranceTypeRelative = "Relative";
-
-    public static final Object[] RTToleranceTypePossibleValues = {
-            RTToleranceTypeAbsolute, RTToleranceTypeRelative };
-
-    public static final Parameter MZvsRTBalance = new SimpleParameter(
-            ParameterType.DOUBLE, "M/Z vs RT balance",
-            "Used in distance measuring as multiplier of M/Z difference", "",
-            new Double(10.0), new Double(0.0), null);
-
-    public static final Parameter MZTolerance = new SimpleParameter(
-            ParameterType.DOUBLE, "M/Z tolerance",
-            "Maximum allowed M/Z difference", "Da", new Double(0.2),
-            new Double(0.0), null);
-
-    public static final Parameter RTToleranceType = new SimpleParameter(
-            ParameterType.STRING,
-            "RT tolerance type",
-            "Maximum RT difference can be defined either using absolute or relative value",
-            RTToleranceTypeAbsolute, RTToleranceTypePossibleValues);
-
-    public static final Parameter RTToleranceValueAbs = new SimpleParameter(
-            ParameterType.DOUBLE, "Absolute RT tolerance",
-            "Maximum allowed absolute RT difference", "seconds", new Double(
-                    15.0), new Double(0.0), null);
-
-    public static final Parameter RTToleranceValuePercent = new SimpleParameter(
-            ParameterType.DOUBLE, "Relative RT tolerance",
-            "Maximum allowed relative RT difference", "%", new Double(0.15),
-            new Double(0.0), null);
+    public static final Parameter minPresent = new SimpleParameter(
+            ParameterType.INTEGER, "Minimum present",
+            "Minimum number of peak detections required for keeping a row", "",
+            new Integer(1), new Integer(1), null);
 
     private Logger logger = Logger.getLogger(this.getClass().getName());
 
@@ -103,19 +77,17 @@ public class JoinAligner implements Method, TaskListener,
         this.taskController = core.getTaskController();
         this.desktop = core.getDesktop();
 
-        parameters = new SimpleParameterSet(new Parameter[] { MZvsRTBalance,
-                MZTolerance, RTToleranceType, RTToleranceValueAbs,
-                RTToleranceValuePercent });
+        parameters = new SimpleParameterSet(new Parameter[] { minPresent });
 
-        myMenuItem = desktop.addMenuItem(MZmineMenu.ALIGNMENT,
-                "Peak list aligner", this, null, KeyEvent.VK_A, false, false);
+        myMenuItem = desktop.addMenuItem(MZmineMenu.ALIGNMENT, toString(),
+                this, null, KeyEvent.VK_A, false, false);
 
         desktop.addSelectionListener(this);
 
     }
 
     public String toString() {
-        return new String("Join Aligner");
+        return new String("Filter alignment result rows by gaps");
     }
 
     /**
@@ -150,8 +122,8 @@ public class JoinAligner implements Method, TaskListener,
             ParameterSet param = setupParameters(parameters);
             if (param == null)
                 return;
-            OpenedRawDataFile[] dataFiles = desktop.getSelectedDataFiles();
-            runMethod(dataFiles, null, param, null);
+            AlignmentResult[] alignmentResults = desktop.getSelectedAlignmentResults();
+            runMethod(null, alignmentResults, param, null);
         }
     }
 
@@ -160,38 +132,32 @@ public class JoinAligner implements Method, TaskListener,
      */
     public void valueChanged(ListSelectionEvent e) {
 
-        OpenedRawDataFile[] dataFiles = desktop.getSelectedDataFiles();
-
-        boolean allOk = true;
-
-        for (OpenedRawDataFile file : dataFiles) {
-            if (!file.getCurrentFile().hasData(PeakList.class)) {
-                allOk = false;
-                break;
-            }
-        }
-        myMenuItem.setEnabled(allOk);
+        AlignmentResult[] alignmentResults = desktop.getSelectedAlignmentResults();
+        if ((alignmentResults == null) || (alignmentResults.length == 0))
+            myMenuItem.setEnabled(false);
+        else
+            myMenuItem.setEnabled(true);
 
     }
 
     public void taskStarted(Task task) {
-        logger.info("Running join aligner");
+        logger.info("Running alignment list filter by gaps");
     }
 
     public void taskFinished(Task task) {
 
         if (task.getStatus() == Task.TaskStatus.FINISHED) {
 
-            logger.info("Finished join aligner");
+            logger.info("Finished alignment list filter by gaps");
 
-            AlignmentResult alignmentResult = (AlignmentResult) task.getResult();
+            AlignmentResult filteredAlignmentResult = (AlignmentResult) task.getResult();
 
             MZmineProject.getCurrentProject().addAlignmentResult(
-                    alignmentResult);
+                    filteredAlignmentResult);
 
         } else if (task.getStatus() == Task.TaskStatus.ERROR) {
             /* Task encountered an error */
-            String msg = "Error while aligning peak lists: "
+            String msg = "Error while filtering alignment result(s): "
                     + task.getErrorMessage();
             logger.severe(msg);
             desktop.displayErrorMessage(msg);
@@ -210,20 +176,11 @@ public class JoinAligner implements Method, TaskListener,
             AlignmentResult[] alignmentResults, ParameterSet parameters,
             TaskSequenceListener methodListener) {
 
-        // check peaklists
+        // prepare a new sequence of tasks
+        Task tasks[] = new GapsFilterTask[dataFiles.length];
         for (int i = 0; i < dataFiles.length; i++) {
-            if (dataFiles[i].getCurrentFile().getData(PeakList.class).length == 0) {
-                String msg = "Cannot start deisotoping of " + dataFiles[i]
-                        + ", please run peak picking first.";
-                logger.severe(msg);
-                desktop.displayErrorMessage(msg);
-                return;
-            }
+            tasks[i] = new GapsFilterTask(alignmentResults[i], parameters);
         }
-
-        // prepare a new sequence with just one task
-        Task tasks[] = new JoinAlignerTask[1];
-        tasks[0] = new JoinAlignerTask(dataFiles, parameters);
         TaskSequence newSequence = new TaskSequence(tasks, this,
                 methodListener, taskController);
 
