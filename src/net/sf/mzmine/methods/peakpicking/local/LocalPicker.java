@@ -22,6 +22,7 @@ package net.sf.mzmine.methods.peakpicking.local;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
+import java.text.NumberFormat;
 import java.util.logging.Logger;
 
 import javax.swing.JMenuItem;
@@ -55,6 +56,8 @@ import net.sf.mzmine.userinterface.dialogs.ParameterSetupDialog.ExitCode;
 public class LocalPicker implements Method, TaskListener,
         ListSelectionListener, ActionListener {
 
+    public static final NumberFormat percentFormat = NumberFormat.getPercentInstance();
+    
     public static final Parameter binSize = new SimpleParameter(
             ParameterType.DOUBLE, "M/Z bin width",
             "Width of M/Z range for each precalculated XIC", "Da", new Double(
@@ -90,7 +93,7 @@ public class LocalPicker implements Method, TaskListener,
             ParameterType.DOUBLE,
             "Intensity tolerance",
             "Maximum allowed deviation from expected /\\ shape of a peak in chromatographic direction",
-            "%", new Double(0.20), new Double(0.0), null);
+            "%", new Double(0.20), new Double(0.0), null, percentFormat);
 
     private ParameterSet parameters;
 

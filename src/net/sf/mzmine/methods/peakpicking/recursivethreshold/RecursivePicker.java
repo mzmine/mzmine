@@ -52,7 +52,6 @@ import net.sf.mzmine.userinterface.dialogs.ParameterSetupDialog.ExitCode;
 public class RecursivePicker implements Method, TaskListener,
         ListSelectionListener, ActionListener {
 
-    
     public static final NumberFormat percentFormat = NumberFormat.getPercentInstance();
     
     public static final Parameter binSize = new SimpleParameter(
