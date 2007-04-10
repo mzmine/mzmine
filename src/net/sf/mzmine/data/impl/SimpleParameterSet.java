@@ -1,5 +1,5 @@
 /*
- * Copyright 2006 The MZmine Development Team
+ * Copyright 2006-2007 The MZmine Development Team
  * 
  * This file is part of MZmine.
  * 
@@ -137,12 +137,19 @@ public class SimpleParameterSet implements ParameterSet {
             throws IllegalArgumentException {
 
         if (!parameters.contains(parameter))
-            throw (new IllegalArgumentException("Unknown parameter"));
+            throw (new IllegalArgumentException("Unknown parameter " + parameter));
 
-        Object[] possibleValues = parameter.getPossibleValues();
+        Object possibleValues[] = parameter.getPossibleValues();
         if (possibleValues != null) {
-            if (!CollectionUtils.arrayContains(possibleValues, value))
-                throw (new IllegalArgumentException("Illegal value " + value + " of parameter " + parameter));
+            for (Object possibleValue : possibleValues) {
+                if (possibleValue.equals(value)) {
+                    values.put(parameter, possibleValue);
+                    return;
+                }
+            }
+            // value not found
+            throw (new IllegalArgumentException("Invalid value " + value + " for parameter " + parameter));
+
         }
 
         switch (parameter.getType()) {
@@ -190,7 +197,6 @@ public class SimpleParameterSet implements ParameterSet {
      */
     public void removeParameterValue(Parameter parameter) {
         values.remove(parameter);
-
     }
 
     /**

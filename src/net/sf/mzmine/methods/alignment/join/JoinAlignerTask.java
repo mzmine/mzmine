@@ -78,7 +78,7 @@ class JoinAlignerTask implements Task {
      * @see net.sf.mzmine.taskcontrol.Task#getTaskDescription()
      */
     public String getTaskDescription() {
-        return "Join aligner, " + dataFiles.length + " peak lists.";
+        return "Join aligner, " + dataFiles.length + " peak lists";
     }
 
     /**
@@ -162,6 +162,10 @@ class JoinAlignerTask implements Task {
 
             for (IsotopePatternWrapper wrappedIsotopePattern : wrappedIsotopePatternList) {
                 for (MasterIsotopeListRow masterIsotopeListRow : masterIsotopeListRows) {
+                    
+                    if (status == TaskStatus.CANCELED)
+                        return;
+                    
                     PatternVsRowScore score = new PatternVsRowScore(
                             masterIsotopeListRow, wrappedIsotopePattern,
                             isoUtil, MZTolerance, RTToleranceUseAbs,
@@ -179,6 +183,9 @@ class JoinAlignerTask implements Task {
             Iterator<PatternVsRowScore> scoreIter = scoreTree.iterator();
             while (scoreIter.hasNext()) {
                 PatternVsRowScore score = scoreIter.next();
+                
+                if (status == TaskStatus.CANCELED)
+                    return;
 
                 MasterIsotopeListRow masterIsotopeListRow = score.getMasterIsotopeListRow();
                 IsotopePatternWrapper wrappedIsotopePattern = score.getWrappedIsotopePattern();
@@ -217,6 +224,10 @@ class JoinAlignerTask implements Task {
              * Add remaining isotope patterns as new rows to master isotope list
              */
             for (IsotopePatternWrapper wrappedIsotopePattern : wrappedIsotopePatternList) {
+                
+                if (status == TaskStatus.CANCELED)
+                    return;
+                
                 if (wrappedIsotopePattern.isAlreadyJoined())
                     continue;
 
@@ -252,6 +263,9 @@ class JoinAlignerTask implements Task {
 
             // Loop through peaks on this master isotope list row
             for (int peakRow = 0; peakRow < masterIsotopeListRow.getNumberOfPeaksOnRow(); peakRow++) {
+                
+                if (status == TaskStatus.CANCELED)
+                    return;
 
                 // Create alignment result row
                 SimpleAlignmentResultRow alignmentRow = new SimpleAlignmentResultRow();

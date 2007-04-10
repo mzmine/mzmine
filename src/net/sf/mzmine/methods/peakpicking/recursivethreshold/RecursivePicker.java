@@ -22,6 +22,7 @@ package net.sf.mzmine.methods.peakpicking.recursivethreshold;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
+import java.text.NumberFormat;
 import java.util.logging.Logger;
 
 import javax.swing.JMenuItem;
@@ -51,6 +52,9 @@ import net.sf.mzmine.userinterface.dialogs.ParameterSetupDialog.ExitCode;
 public class RecursivePicker implements Method, TaskListener,
         ListSelectionListener, ActionListener {
 
+    
+    public static final NumberFormat percentFormat = NumberFormat.getPercentInstance();
+    
     public static final Parameter binSize = new SimpleParameter(
             ParameterType.DOUBLE, "M/Z bin width",
             "Width of M/Z range for each precalculated XIC", "Da", new Double(
@@ -59,10 +63,10 @@ public class RecursivePicker implements Method, TaskListener,
     public static final Parameter chromatographicThresholdLevel = new SimpleParameter(
             ParameterType.DOUBLE, "Chromatographic threshold level",
             "Used in defining threshold level value from an XIC", "%",
-            new Double(0.0), new Double(0.0), new Double(1.0));
+            new Double(0.0), new Double(0.0), new Double(1.0), percentFormat);
 
     public static final Parameter noiseLevel = new SimpleParameter(
-            ParameterType.DOUBLE, "Nouse level",
+            ParameterType.DOUBLE, "Noise level",
             "Intensities less than this value are interpreted as noise",
             "absolute", new Double(10.0), new Double(0.0), null);
 
@@ -96,7 +100,7 @@ public class RecursivePicker implements Method, TaskListener,
             ParameterType.DOUBLE,
             "Intensity tolerance",
             "Maximum allowed deviation from expected /\\ shape of a peak in chromatographic direction",
-            "%", new Double(0.15), new Double(0.0), null);
+            "%", new Double(0.15), new Double(0.0), null, percentFormat);
 
     private Logger logger = Logger.getLogger(this.getClass().getName());
 

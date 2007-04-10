@@ -1,5 +1,5 @@
 /*
- * Copyright 2006 The MZmine Development Team
+ * Copyright 2006-2007 The MZmine Development Team
  * 
  * This file is part of MZmine.
  * 
@@ -50,26 +50,25 @@ import net.sf.mzmine.data.ParameterSet;
  */
 public class ParameterSetupDialog extends JDialog implements ActionListener {
 
-    public static enum ExitCode { OK, CANCEL };
+    public static final int TEXTFIELD_COLUMNS = 8;
+
+    public static enum ExitCode {
+        OK, CANCEL
+    };
+
     private ExitCode exitCode = ExitCode.CANCEL;
-    
+
     private Logger logger = Logger.getLogger(this.getClass().getName());
 
     // Parameters and their representation in the dialog
     private Hashtable<Parameter, JComponent> parametersAndComponents;
 
     // Buttons
-    private JButton btnOK;
-    private JButton btnCancel;
+    private JButton btnOK, btnCancel;
 
-    // Panels for all above
-    private JPanel pnlAll;
-    private JPanel pnlLabels;
-    private JPanel pnlFields;
-    private JPanel pnlButtons;
+    private JPanel pnlAll, pnlLabels, pnlFields, pnlUnits, pnlButtons;
 
     private ParameterSet parameters;
-
 
     /**
      * Constructor
@@ -95,57 +94,66 @@ public class ParameterSetupDialog extends JDialog implements ActionListener {
         pnlAll.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
         add(pnlAll);
 
-        // Two more panels: one for labels and another for text fields
+        // panels for labels, text fields and units
         pnlLabels = new JPanel(new GridLayout(0, 1));
         pnlFields = new JPanel(new GridLayout(0, 1));
+        pnlUnits = new JPanel(new GridLayout(0, 1));
 
         pnlFields.setBorder(BorderFactory.createEmptyBorder(0, 5, 5, 5));
         pnlLabels.setBorder(BorderFactory.createEmptyBorder(0, 5, 5, 5));
+        pnlUnits.setBorder(BorderFactory.createEmptyBorder(0, 5, 5, 5));
 
         // Create labels and components for each parameter
 
         for (int i = 0; i < allParameters.length; i++) {
             Parameter p = allParameters[i];
 
-            // Create label
-            String labelString = p.getName();
-            if ((p.getUnits() != null) && (p.getUnits().length() > 0))
-                labelString = labelString.concat(" (" + p.getUnits() + ")");
-            JLabel lbl = new JLabel(labelString);
+            // create labels
+            JLabel lblLabel = new JLabel(p.getName());
+            pnlLabels.add(lblLabel);
 
-            pnlLabels.add(lbl);
+            String unitStr = "";
+            if (p.getUnits() != null) {
+                unitStr = p.getUnits();
+            }
+            JLabel unitLabel = new JLabel(unitStr);
+            pnlUnits.add(unitLabel);
 
             Object[] possibleValues = p.getPossibleValues();
             if (possibleValues != null) {
                 JComboBox combo = new JComboBox();
                 for (Object value : possibleValues) {
                     combo.addItem(value);
-                    if (value == parameters.getParameterValue(p)) combo.setSelectedItem(value);
+                    if (value == parameters.getParameterValue(p))
+                        combo.setSelectedItem(value);
                 }
                 combo.setToolTipText(p.getDescription());
                 parametersAndComponents.put(p, combo);
-                lbl.setLabelFor(combo);
+                lblLabel.setLabelFor(combo);
                 pnlFields.add(combo);
                 continue;
             }
 
             JComponent comp = null;
-            
+
             switch (p.getType()) {
             case STRING:
                 JTextField strField = new JTextField();
                 String strValue = (String) parameters.getParameterValue(p);
-                if (strValue != null) strField.setText(strValue);
+                if (strValue != null)
+                    strField.setText(strValue);
                 comp = strField;
                 break;
             case INTEGER:
             case DOUBLE:
                 NumberFormat format = p.getNumberFormat();
-                if (format == null) format = NumberFormat.getNumberInstance();
+                if (format == null)
+                    format = NumberFormat.getNumberInstance();
                 JFormattedTextField txtField = new JFormattedTextField(format);
                 Object numValue = parameters.getParameterValue(p);
-                if (numValue != null) txtField.setValue(numValue);
-                txtField.setColumns(10);
+                if (numValue != null)
+                    txtField.setValue(numValue);
+                txtField.setColumns(TEXTFIELD_COLUMNS);
                 comp = txtField;
                 break;
 
@@ -154,14 +162,14 @@ public class ParameterSetupDialog extends JDialog implements ActionListener {
                 Boolean selected = (Boolean) parameters.getParameterValue(p);
                 if (selected != null)
                     checkBox.setSelected(selected);
-                comp = checkBox; 
+                comp = checkBox;
                 break;
 
             }
-            
+
             comp.setToolTipText(p.getDescription());
             parametersAndComponents.put(p, comp);
-            lbl.setLabelFor(comp);
+            lblLabel.setLabelFor(comp);
             pnlFields.add(comp);
 
         }
@@ -177,12 +185,12 @@ public class ParameterSetupDialog extends JDialog implements ActionListener {
 
         pnlAll.add(pnlLabels, BorderLayout.WEST);
         pnlAll.add(pnlFields, BorderLayout.CENTER);
+        pnlAll.add(pnlUnits, BorderLayout.EAST);
         pnlAll.add(pnlButtons, BorderLayout.SOUTH);
 
-        setTitle(title);
-
         pack();
-
+        setTitle(title);
+        setResizable(false);
         setLocationRelativeTo(owner);
 
     }
@@ -191,9 +199,9 @@ public class ParameterSetupDialog extends JDialog implements ActionListener {
      * Implementation for ActionListener interface
      */
     public void actionPerformed(ActionEvent ae) {
-        
+
         Object src = ae.getSource();
-        
+
         if (src == btnOK) {
 
             // Copy values from form, validate them, and set them to project
@@ -243,12 +251,12 @@ public class ParameterSetupDialog extends JDialog implements ActionListener {
             exitCode = ExitCode.OK;
             dispose();
         }
-        
+
         if (src == btnCancel) {
             exitCode = ExitCode.CANCEL;
             dispose();
         }
-        
+
     }
 
     private void displayMessage(String msg) {
