@@ -122,7 +122,7 @@ public class SimpleParameter extends AbstractDataUnit implements Parameter {
         this.possibleValues = possibleValues;
         this.numberFormatProvider = numberFormatProvider;
         this.defaultNumberFormat = defaultNumberFormat;
-
+        
         if ((possibleValues != null) && (possibleValues.length == 0))
             throw new IllegalArgumentException("Possible values array must not be 0 size");
         

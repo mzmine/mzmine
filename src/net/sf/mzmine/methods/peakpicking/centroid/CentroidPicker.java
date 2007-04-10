@@ -41,11 +41,12 @@ import net.sf.mzmine.methods.Method;
 import net.sf.mzmine.taskcontrol.Task;
 import net.sf.mzmine.taskcontrol.TaskController;
 import net.sf.mzmine.taskcontrol.TaskListener;
+import net.sf.mzmine.taskcontrol.TaskSequence;
 import net.sf.mzmine.taskcontrol.TaskSequenceListener;
 import net.sf.mzmine.userinterface.Desktop;
 import net.sf.mzmine.userinterface.Desktop.MZmineMenu;
 import net.sf.mzmine.userinterface.dialogs.ParameterSetupDialog;
-import net.sf.mzmine.userinterface.mainwindow.MainWindow;
+import net.sf.mzmine.userinterface.dialogs.ParameterSetupDialog.ExitCode;
 
 /**
  * This class implements a peak picker based on searching for local maximums in
@@ -99,9 +100,6 @@ public class CentroidPicker implements Method, TaskListener,
     private Desktop desktop;
     private JMenuItem myMenuItem;
 
-    private TaskSequenceListener afterMethodListener;
-    private int taskCount;
-
     /**
      * @see net.sf.mzmine.main.MZmineModule#initModule(net.sf.mzmine.main.MZmineCore)
      */
@@ -122,66 +120,21 @@ public class CentroidPicker implements Method, TaskListener,
 
     }
 
-    /**
-     * This function displays a modal dialog to define method parameters
-     * 
-     * @see net.sf.mzmine.methods.Method#askParameters()
-     */
-    public boolean askParameters() {
-
-        ParameterSetupDialog dialog = new ParameterSetupDialog(
-                MainWindow.getInstance(), "Please check parameter values for "
-                        + toString(), parameters);
-        dialog.setVisible(true);
-
-        // if (dialog.getExitCode()==-1) return false;
-
-        return true;
-    }
-
     public void setParameters(ParameterSet parameters) {
         this.parameters = parameters;
-    }
-
-    /**
-     * @see net.sf.mzmine.methods.Method#runMethod(net.sf.mzmine.data.impl.SimpleParameterSet,
-     *      net.sf.mzmine.io.RawDataFile[],
-     *      net.sf.mzmine.methods.alignment.AlignmentResult[])
-     */
-    public void runMethod(OpenedRawDataFile[] dataFiles,
-            AlignmentResult[] alignmentResults) {
-
-        logger.info("Running " + toString() + " on " + dataFiles.length
-                + " raw data files.");
-
-        taskCount = dataFiles.length;
-        for (OpenedRawDataFile dataFile : dataFiles) {
-
-            Task pickerTask = new CentroidPickerTask(dataFile,
-                    parameters);
-            taskController.addTask(pickerTask, this);
-        }
-
-    }
-
-    public void runMethod(OpenedRawDataFile[] dataFiles,
-            AlignmentResult[] alignmentResults, TaskSequenceListener methodListener) {
-        this.afterMethodListener = methodListener;
-        runMethod(dataFiles, alignmentResults);
     }
 
     /**
      * @see java.awt.event.ActionListener#actionPerformed(java.awt.event.ActionEvent)
      */
     public void actionPerformed(ActionEvent e) {
-
-        if (!askParameters())
-            return;
-
-        OpenedRawDataFile[] dataFiles = desktop.getSelectedDataFiles();
-
-        runMethod(dataFiles, null);
-
+        if (e.getSource() == myMenuItem) {
+            ParameterSet param = setupParameters(parameters);
+            if (param == null)
+                return;
+            OpenedRawDataFile[] dataFiles = desktop.getSelectedDataFiles();
+            runMethod(dataFiles, null, param, null);
+        }
     }
 
     /**
@@ -192,6 +145,8 @@ public class CentroidPicker implements Method, TaskListener,
     }
 
     public void taskStarted(Task task) {
+        logger.info("Running centroid peak picker on "
+                + ((CentroidPickerTask) task).getDataFile());
 
     }
 
@@ -199,6 +154,9 @@ public class CentroidPicker implements Method, TaskListener,
 
         if (task.getStatus() == Task.TaskStatus.FINISHED) {
 
+            logger.info("Finished centroid peak picker on "
+                    + ((CentroidPickerTask) task).getDataFile());
+            
             Object[] result = (Object[]) task.getResult();
             OpenedRawDataFile dataFile = (OpenedRawDataFile) result[0];
             PeakList peakList = (PeakList) result[1];
@@ -214,12 +172,6 @@ public class CentroidPicker implements Method, TaskListener,
             // Notify listeners
             desktop.notifySelectionListeners();
 
-            taskCount--;
-            if ((taskCount == 0) && (afterMethodListener != null)) {
-          //      afterMethodListener.taskSequenceFinished(TaskSequenceStatus.FINISHED);
-                afterMethodListener = null;
-            }
-
         } else if (task.getStatus() == Task.TaskStatus.ERROR) {
             /* Task encountered an error */
             String msg = "Error while peak picking a file: "
@@ -227,18 +179,6 @@ public class CentroidPicker implements Method, TaskListener,
             logger.severe(msg);
             desktop.displayErrorMessage(msg);
 
-            taskCount = 0;
-            if (afterMethodListener != null) {
-                //afterMethodListener.taskSequenceFinished(TaskSequenceStatus.ERROR);
-                afterMethodListener = null;
-            }
-
-        } else if (task.getStatus() == Task.TaskStatus.CANCELED) {
-            taskCount = 0;
-            if (afterMethodListener != null) {
-                //afterMethodListener.taskSequenceFinished(TaskSequenceStatus.CANCELED);
-                afterMethodListener = null;
-            }
         }
 
     }
@@ -251,38 +191,30 @@ public class CentroidPicker implements Method, TaskListener,
     }
 
     /**
-     * @see net.sf.mzmine.main.MZmineModule#getCurrentParameters()
-     */
-    public ParameterSet getCurrentParameters() {
-        // TODO Auto-generated method stub
-        return null;
-    }
-
-    /**
      * @see net.sf.mzmine.main.MZmineModule#setCurrentParameters(net.sf.mzmine.data.ParameterSet)
      */
-    public void setCurrentParameters(ParameterSet parameterValues) {
-        // TODO Auto-generated method stub
-
+    public void setCurrentParameters(ParameterSet parameters) {
+        this.parameters = parameters;
     }
 
     /**
      * @see net.sf.mzmine.methods.Method#setupParameters(net.sf.mzmine.data.ParameterSet)
      */
-    public ParameterSet setupParameters(ParameterSet current) {
-        // TODO Auto-generated method stub
-        return null;
+    public ParameterSet setupParameters(ParameterSet currentParameters) {
+        ParameterSetupDialog dialog = new ParameterSetupDialog(
+                desktop.getMainFrame(), "Please check parameter values for "
+                        + toString(), currentParameters);
+        dialog.setVisible(true);
+        if (dialog.getExitCode() == ExitCode.CANCEL)
+            return null;
+        return currentParameters.clone();
     }
 
     /**
-     * @see net.sf.mzmine.methods.Method#runMethod(net.sf.mzmine.io.OpenedRawDataFile[],
-     *      net.sf.mzmine.data.AlignmentResult[],
-     *      net.sf.mzmine.data.ParameterSet)
+     * @see net.sf.mzmine.main.MZmineModule#getParameterSet()
      */
-    public void runMethod(OpenedRawDataFile[] dataFiles,
-            AlignmentResult[] alignmentResults, ParameterSet parameters) {
-        // TODO Auto-generated method stub
-
+    public ParameterSet getParameterSet() {
+        return parameters;
     }
 
     /**
@@ -294,17 +226,18 @@ public class CentroidPicker implements Method, TaskListener,
     public void runMethod(OpenedRawDataFile[] dataFiles,
             AlignmentResult[] alignmentResults, ParameterSet parameters,
             TaskSequenceListener methodListener) {
-        // TODO Auto-generated method stub
+
+        // prepare a new sequence of tasks
+        Task tasks[] = new CentroidPickerTask[dataFiles.length];
+        for (int i = 0; i < dataFiles.length; i++) {
+            tasks[i] = new CentroidPickerTask(dataFiles[i], parameters);
+        }
+        TaskSequence newSequence = new TaskSequence(tasks, this,
+                methodListener, taskController);
+
+        // execute the sequence
+        newSequence.run();
 
     }
-
-    /**
-     * @see net.sf.mzmine.main.MZmineModule#getParameterSet()
-     */
-    public ParameterSet getParameterSet() {
-        // TODO Auto-generated method stub
-        return null;
-    }
-
 
 }

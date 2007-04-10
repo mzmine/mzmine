@@ -20,16 +20,17 @@
 package net.sf.mzmine.methods.peakpicking.local;
 
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.TreeSet;
 import java.util.Vector;
-import net.sf.mzmine.data.Scan;
+
 import net.sf.mzmine.data.IsotopePattern;
+import net.sf.mzmine.data.ParameterSet;
+import net.sf.mzmine.data.Scan;
 import net.sf.mzmine.data.Peak.PeakStatus;
 import net.sf.mzmine.data.impl.ConstructionPeak;
-import net.sf.mzmine.data.impl.SimplePeakList;
 import net.sf.mzmine.data.impl.SimpleIsotopePattern;
+import net.sf.mzmine.data.impl.SimplePeakList;
 import net.sf.mzmine.io.OpenedRawDataFile;
 import net.sf.mzmine.io.RawDataFile;
 import net.sf.mzmine.taskcontrol.Task;
@@ -52,7 +53,7 @@ class LocalPickerTask implements Task {
 
     private SimplePeakList readyPeakList;
     
-    private LocalPickerParameters parameters;
+    private ParameterSet parameters;
     private double binSize;
     private double chromatographicThresholdLevel;
     private double intTolerance;
@@ -66,20 +67,20 @@ class LocalPickerTask implements Task {
      * @param rawDataFile
      * @param parameters
      */
-    LocalPickerTask(OpenedRawDataFile dataFile, LocalPickerParameters parameters) {
+    LocalPickerTask(OpenedRawDataFile dataFile, ParameterSet parameters) {
         status = TaskStatus.WAITING;
         this.dataFile = dataFile;
         this.rawDataFile = dataFile.getCurrentFile();
 
         this.parameters = parameters;
         // Get parameter values for easier use
-        binSize = (Double) parameters.getParameterValue(LocalPickerParameters.binSize);
-        chromatographicThresholdLevel = (Double) parameters.getParameterValue(LocalPickerParameters.chromatographicThresholdLevel);
-        intTolerance = (Double) parameters.getParameterValue(LocalPickerParameters.intTolerance);
-        minimumPeakDuration = (Double) parameters.getParameterValue(LocalPickerParameters.minimumPeakDuration);
-        minimumPeakHeight = (Double) parameters.getParameterValue(LocalPickerParameters.minimumPeakHeight);
-        mzTolerance = (Double) parameters.getParameterValue(LocalPickerParameters.mzTolerance);
-        noiseLevel = (Double) parameters.getParameterValue(LocalPickerParameters.noiseLevel);        
+        binSize = (Double) parameters.getParameterValue(LocalPicker.binSize);
+        chromatographicThresholdLevel = (Double) parameters.getParameterValue(LocalPicker.chromatographicThresholdLevel);
+        intTolerance = (Double) parameters.getParameterValue(LocalPicker.intTolerance);
+        minimumPeakDuration = (Double) parameters.getParameterValue(LocalPicker.minimumPeakDuration);
+        minimumPeakHeight = (Double) parameters.getParameterValue(LocalPicker.minimumPeakHeight);
+        mzTolerance = (Double) parameters.getParameterValue(LocalPicker.mzTolerance);
+        noiseLevel = (Double) parameters.getParameterValue(LocalPicker.noiseLevel);        
         
         readyPeakList = new SimplePeakList();
     }
@@ -124,6 +125,11 @@ class LocalPickerTask implements Task {
         results[2] = parameters;
         return results;
     }
+    
+    public OpenedRawDataFile getDataFile() {
+        return dataFile;
+    }
+
 
     /**
      * @see net.sf.mzmine.taskcontrol.Task#cancel()
@@ -268,7 +274,7 @@ class LocalPickerTask implements Task {
             for (ConstructionPeak ucPeak : underConstructionPeaks) {
 
                 for (OneDimPeak oneDimPeak : oneDimPeaks) {
-                    MatchScore score = new MatchScore(ucPeak, oneDimPeak);
+                    MatchScore score = new MatchScore(ucPeak, oneDimPeak, mzTolerance, intTolerance);
                     if (score.getScore() < Double.MAX_VALUE) {
                         scores.add(score);
                     }

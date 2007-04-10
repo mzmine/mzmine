@@ -32,7 +32,7 @@ import net.sf.mzmine.methods.Method;
  *
  */
 public interface OpenedRawDataFile {
-    
+
     class Operation {
         public File oldFileName;
         public File newFileName;
@@ -41,8 +41,8 @@ public interface OpenedRawDataFile {
     }
     
     public Vector<Operation> getProcessingHistory();
-
-    public void addHistoryEntry(File file, Method method, SimpleParameterSet param);
+    
+    public void addHistoryEntry(File file, Method method, ParameterSet param);
     public void addHistoryEntry(Operation op);
     
     /**

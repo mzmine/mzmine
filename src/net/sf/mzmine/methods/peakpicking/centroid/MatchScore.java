@@ -1,23 +1,23 @@
 /*
  * Copyright 2006-2007 The MZmine Development Team
- *
+ * 
  * This file is part of MZmine.
- *
+ * 
  * MZmine is free software; you can redistribute it and/or modify it under the
  * terms of the GNU General Public License as published by the Free Software
  * Foundation; either version 2 of the License, or (at your option) any later
  * version.
- *
+ * 
  * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY
  * WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR
  * A PARTICULAR PURPOSE. See the GNU General Public License for more details.
- *
+ * 
  * You should have received a copy of the GNU General Public License along with
  * MZmine; if not, write to the Free Software Foundation, Inc., 51 Franklin St,
  * Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-package net.sf.mzmine.methods.peakpicking.local;
+package net.sf.mzmine.methods.peakpicking.centroid;
 
 import java.util.ArrayList;
 
@@ -90,10 +90,12 @@ class MatchScore implements Comparable<MatchScore> {
      * This function check for the shape of the peak in RT direction, and
      * determines if it is possible to add given m/z peak at the end of the
      * peak.
+     *
      */
     private double calcScoreForRTShape(ConstructionPeak uc, OneDimPeak od) {
 
         double nextIntensity = od.intensity;
+        //Hashtable<Integer, Double[]> datapoints = uc.getRawDatapoints();
 
         int[] scanNumbers = uc.getScanNumbers();
 
@@ -101,8 +103,6 @@ class MatchScore implements Comparable<MatchScore> {
         if (scanNumbers.length == 0) {
             return 0;
         }
-
-        //Enumeration<Double[]> triplets = datapoints.elements();
 
         ArrayList<Double> intensities = uc.getConstructionIntensities();
         

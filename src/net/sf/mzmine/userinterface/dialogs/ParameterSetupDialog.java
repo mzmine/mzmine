@@ -191,7 +191,9 @@ public class ParameterSetupDialog extends JDialog implements ActionListener {
      * Implementation for ActionListener interface
      */
     public void actionPerformed(ActionEvent ae) {
+        
         Object src = ae.getSource();
+        
         if (src == btnOK) {
 
             // Copy values from form, validate them, and set them to project
@@ -247,6 +249,7 @@ public class ParameterSetupDialog extends JDialog implements ActionListener {
             exitCode = ExitCode.CANCEL;
             dispose();
         }
+        
     }
 
     private void displayMessage(String msg) {

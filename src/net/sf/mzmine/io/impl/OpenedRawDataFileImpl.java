@@ -138,7 +138,7 @@ public class OpenedRawDataFileImpl implements OpenedRawDataFile {
     /**
      * @see net.sf.mzmine.io.OpenedRawDataFile#addHistoryEntry(net.sf.mzmine.methods.Method, net.sf.mzmine.data.impl.SimpleParameterSet)
      */
-    public void addHistoryEntry(File file, Method method, SimpleParameterSet param) {
+    public void addHistoryEntry(File file, Method method, ParameterSet param) {
         Operation op = new Operation();
         op.oldFileName = file;
         op.newFileName = file;
@@ -160,5 +160,8 @@ public class OpenedRawDataFileImpl implements OpenedRawDataFile {
 	public String toString() {
         return originalFile.getName();
     }
+
+
+
 
 }

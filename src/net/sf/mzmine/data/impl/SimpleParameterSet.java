@@ -153,20 +153,28 @@ public class SimpleParameterSet implements ParameterSet {
         case INTEGER:
             if (!(value instanceof Integer))
                 throw (new IllegalArgumentException("Value type mismatch"));
-            Integer minValue = (Integer) parameter.getMinimumValue();
-            if ((minValue != null) && (minValue.compareTo((Integer) value) > 0))
+            Integer minIValue = (Integer) parameter.getMinimumValue();
+            if ((minIValue != null) && (minIValue.compareTo((Integer) value) > 0))
                 throw (new IllegalArgumentException("Minimum value is "
-                        + minValue));
-            Integer maxValue = (Integer) parameter.getMaximumValue();
-            if ((maxValue != null) && (maxValue.compareTo((Integer) value) < 0))
+                        + minIValue));
+            Integer maxIValue = (Integer) parameter.getMaximumValue();
+            if ((maxIValue != null) && (maxIValue.compareTo((Integer) value) < 0))
                 throw (new IllegalArgumentException("Maximum value is "
-                        + maxValue));
+                        + maxIValue));
 
             break;
 
         case DOUBLE:
             if (!(value instanceof Double))
                 throw (new IllegalArgumentException("Value type mismatch"));
+            Double minDValue = (Double) parameter.getMinimumValue();
+            if ((minDValue != null) && (minDValue.compareTo((Double) value) > 0))
+                throw (new IllegalArgumentException("Minimum value is "
+                        + minDValue));
+            Double maxDValue = (Double) parameter.getMaximumValue();
+            if ((maxDValue != null) && (maxDValue.compareTo((Double) value) < 0))
+                throw (new IllegalArgumentException("Maximum value is "
+                        + maxDValue));
             break;
         case STRING:
             if (!(value instanceof String))
