@@ -8,25 +8,109 @@
     <module class="net.sf.mzmine.visualizers.rawdata.twod.TwoDVisualizer"/>  
     <module class="net.sf.mzmine.visualizers.rawdata.threed.ThreeDVisualizer"/>  
     <module class="net.sf.mzmine.visualizers.rawdata.neutralloss.NeutralLossVisualizer"/>  
-    <module class="net.sf.mzmine.util.menu.VisualizationMenuSeparator"/>
+    <module class="net.sf.mzmine.util.menu.VisualizationMenuSeparator"/>  
     <module class="net.sf.mzmine.visualizers.peaklist.table.PeakListTableVisualizer"/>  
     <module class="net.sf.mzmine.visualizers.alignmentresult.table.AlignmentResultTableVisualizer"/>  
     <module class="net.sf.mzmine.visualizers.alignmentresult.logratio.AlignmentResultLogratioVisualizer"/>  
     <module class="net.sf.mzmine.batchmode.BatchMode"/>  
-    <module class="net.sf.mzmine.methods.filtering.crop.CropFilter"/> 
-    <module class="net.sf.mzmine.methods.filtering.mean.MeanFilter"/> 
-    <module class="net.sf.mzmine.methods.filtering.savitzkygolay.SGFilter"/> 
-    <module class="net.sf.mzmine.methods.filtering.chromatographicmedian.CMFilter"/> 
-    <module class="net.sf.mzmine.methods.filtering.zoomscan.ZoomScanFilter"/> 
-    <module class="net.sf.mzmine.methods.peakpicking.recursivethreshold.RecursivePicker"/>  
-    <module class="net.sf.mzmine.methods.peakpicking.local.LocalPicker"/>  
-    <module class="net.sf.mzmine.methods.peakpicking.centroid.CentroidPicker"/>  
+    <module class="net.sf.mzmine.methods.filtering.crop.CropFilter"> 
+      <parameters>
+        <parameter name="MS level" type="INTEGER"/>
+        <parameter name="Minimum M/Z" type="DOUBLE">100.0</parameter>
+        <parameter name="Maximum M/Z" type="DOUBLE">1000.0</parameter>
+        <parameter name="Minimum Retention time" type="DOUBLE">0.0</parameter>
+        <parameter name="Maximum Retention time" type="DOUBLE">600.0</parameter>
+      </parameters> 
+    </module>  
+    <module class="net.sf.mzmine.methods.filtering.mean.MeanFilter"> 
+      <parameters>
+        <parameter name="Window length" type="DOUBLE">0.1</parameter>
+      </parameters> 
+    </module>  
+    <module class="net.sf.mzmine.methods.filtering.savitzkygolay.SGFilter"> 
+      <parameters>
+        <parameter name="Number of datapoints" type="INTEGER">7</parameter>
+      </parameters> 
+    </module>  
+    <module class="net.sf.mzmine.methods.filtering.chromatographicmedian.CMFilter"> 
+      <parameters>
+        <parameter name="Window length" type="INTEGER">1</parameter>
+        <parameter name="M/Z tolerance" type="DOUBLE">0.2</parameter>
+      </parameters> 
+    </module>  
+    <module class="net.sf.mzmine.methods.filtering.zoomscan.ZoomScanFilter"> 
+      <parameters>
+        <parameter name="Minimum M/Z range" type="DOUBLE">100.0</parameter>
+      </parameters> 
+    </module>  
+    <module class="net.sf.mzmine.methods.peakpicking.recursivethreshold.RecursivePicker"> 
+      <parameters>
+        <parameter name="M/Z bin width" type="DOUBLE">0.5</parameter>
+        <parameter name="Chromatographic threshold level" type="DOUBLE">0.0</parameter>
+        <parameter name="Noise level" type="DOUBLE">10.0</parameter>
+        <parameter name="Min peak height" type="DOUBLE">100.0</parameter>
+        <parameter name="Min peak duration" type="DOUBLE">5.0</parameter>
+        <parameter name="Min M/Z peak width" type="DOUBLE">0.2</parameter>
+        <parameter name="Max M/Z peak width" type="DOUBLE">1.0</parameter>
+        <parameter name="M/Z tolerance" type="DOUBLE">0.1</parameter>
+        <parameter name="Intensity tolerance" type="DOUBLE">0.15</parameter>
+      </parameters> 
+    </module>  
+    <module class="net.sf.mzmine.methods.peakpicking.local.LocalPicker"> 
+      <parameters>
+        <parameter name="M/Z bin width" type="DOUBLE">0.25</parameter>
+        <parameter name="Chromatographic threshold level" type="DOUBLE">0.0</parameter>
+        <parameter name="Nouse level" type="DOUBLE">4.0</parameter>
+        <parameter name="Min peak height" type="DOUBLE">15.0</parameter>
+        <parameter name="Min peak duration" type="DOUBLE">3.0</parameter>
+        <parameter name="M/Z tolerance" type="DOUBLE">0.05</parameter>
+        <parameter name="Intensity tolerance" type="DOUBLE">0.2</parameter>
+      </parameters> 
+    </module>  
+    <module class="net.sf.mzmine.methods.peakpicking.centroid.CentroidPicker"> 
+      <parameters>
+        <parameter name="M/Z bin width" type="DOUBLE">0.25</parameter>
+        <parameter name="Chromatographic threshold level" type="DOUBLE">0.0</parameter>
+        <parameter name="Nouse level" type="DOUBLE">4.0</parameter>
+        <parameter name="Min peak height" type="DOUBLE">15.0</parameter>
+        <parameter name="Min peak duration" type="DOUBLE">3.0</parameter>
+        <parameter name="M/Z tolerance" type="DOUBLE">0.05</parameter>
+        <parameter name="Intensity tolerance" type="DOUBLE">0.2</parameter>
+      </parameters> 
+    </module>  
     <module class="net.sf.mzmine.util.menu.PeakPickingMenuSeparator"/>  
-    <module class="net.sf.mzmine.methods.deisotoping.simplegrouper.SimpleGrouper"/>  
-    <module class="net.sf.mzmine.methods.deisotoping.incompletefilter.IncompleteFilter"/>  
-    <module class="net.sf.mzmine.methods.alignment.join.JoinAligner"/>  
-    <module class="net.sf.mzmine.methods.alignment.filterbygaps.GapsFilter"/>  
+    <module class="net.sf.mzmine.methods.deisotoping.simplegrouper.SimpleGrouper"> 
+      <parameters>
+        <parameter name="M/Z tolerance" type="DOUBLE">0.05</parameter>
+        <parameter name="RT tolerance" type="DOUBLE">15.0</parameter>
+        <parameter name="Monotonic shape" type="BOOLEAN">true</parameter>
+        <parameter name="Maximum charge" type="INTEGER">1</parameter>
+      </parameters> 
+    </module>  
+    <module class="net.sf.mzmine.methods.deisotoping.incompletefilter.IncompleteFilter"> 
+      <parameters>
+        <parameter name="Minimum number of peaks" type="INTEGER">3</parameter>
+      </parameters> 
+    </module>  
+    <module class="net.sf.mzmine.methods.alignment.join.JoinAligner"> 
+      <parameters>
+        <parameter name="M/Z vs RT balance" type="DOUBLE">10.0</parameter>
+        <parameter name="M/Z tolerance" type="DOUBLE">0.2</parameter>
+        <parameter name="RT tolerance type" type="STRING">Absolute</parameter>
+        <parameter name="Absolute RT tolerance" type="DOUBLE">15.0</parameter>
+        <parameter name="Relative RT tolerance" type="DOUBLE">0.15</parameter>
+      </parameters> 
+    </module>  
+    <module class="net.sf.mzmine.methods.alignment.filterbygaps.GapsFilter"> 
+      <parameters>
+        <parameter name="Minimum present" type="INTEGER">1</parameter>
+      </parameters> 
+    </module>  
     <module class="net.sf.mzmine.methods.gapfilling.simple.SimpleGapFiller"/>  
-    <module class="net.sf.mzmine.methods.normalization.linear.LinearNormalizer"/> 
+    <module class="net.sf.mzmine.methods.normalization.linear.LinearNormalizer"> 
+      <parameters>
+        <parameter name="Normalization type" type="STRING">Average squared intensity</parameter>
+      </parameters> 
+    </module> 
   </modules> 
 </configuration>
