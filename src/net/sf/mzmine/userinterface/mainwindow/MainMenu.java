@@ -44,6 +44,8 @@ import net.sf.mzmine.userinterface.dialogs.AlignmentResultExportDialog;
 import net.sf.mzmine.userinterface.dialogs.FileOpenDialog;
 import net.sf.mzmine.util.GUIUtils;
 import net.sf.mzmine.util.LookAndFeelChanger;
+import ca.guydavis.swing.desktop.CascadingWindowPositioner;
+import ca.guydavis.swing.desktop.JWindowsMenu;
 
 /**
  * 
@@ -61,7 +63,7 @@ public class MainMenu extends JMenuBar implements ActionListener,
     private JMenu visualizationMenu;
     private JMenu toolsMenu;
     private JMenu lookAndFeelMenu;
-    private JMenu windowMenu;
+    private JWindowsMenu windowsMenu;
     private JMenu helpMenu;
 
     private JMenuItem editCopy;
@@ -87,7 +89,6 @@ public class MainMenu extends JMenuBar implements ActionListener,
 
     private JMenuItem toolsOptions;
 
-    private JMenuItem windowTileWindows, windowCascadeWindows;
     private JMenuItem hlpAbout;
 
     private MZmineCore core;
@@ -180,14 +181,11 @@ public class MainMenu extends JMenuBar implements ActionListener,
         	GUIUtils.addMenuItem(lookAndFeelMenu, lfInfo.getName(), lfChanger, lfInfo.getClassName());
         }
 
-        windowMenu = new JMenu("Window");
-        windowMenu.setMnemonic(KeyEvent.VK_W);
-        this.add(windowMenu);
+        windowsMenu = new JWindowsMenu(((MainWindow) desktop).getDesktopPane());
+        windowsMenu.setWindowPositioner(new CascadingWindowPositioner(((MainWindow) desktop).getDesktopPane()));
+        windowsMenu.setMnemonic(KeyEvent.VK_W);
+        this.add(windowsMenu);
 
-        windowTileWindows = GUIUtils.addMenuItem(windowMenu, "Tile windows",
-                this, KeyEvent.VK_T, true);
-        windowCascadeWindows = GUIUtils.addMenuItem(windowMenu,
-                "Cascade windows", this, KeyEvent.VK_A, true);
 
         helpMenu = new JMenu("Help");
         helpMenu.setMnemonic(KeyEvent.VK_H);
@@ -314,18 +312,6 @@ public class MainMenu extends JMenuBar implements ActionListener,
         if (src == toolsOptions) {
         	// TODO: Implement Preferences dialog
         	logger.severe("Preferences dialog unimplemented");
-        }
-
-        // Window->Tile
-        if (src == windowTileWindows) {
-            MainWindow mainWindow = (MainWindow) desktop;
-            mainWindow.tileInternalFrames();
-        }
-
-        // Window->Cascade
-        if (src == windowCascadeWindows) {
-            MainWindow mainWindow = (MainWindow) desktop;
-            mainWindow.cascadeInternalFrames();
         }
 
         // Help->About

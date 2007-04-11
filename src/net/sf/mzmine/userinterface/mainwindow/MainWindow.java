@@ -100,56 +100,7 @@ public class MainWindow extends JFrame implements Desktop, WindowListener {
         return desktopPane;
     }
 
-    void tileInternalFrames() {
-        logger.info("Tiling windows");
-        JInternalFrame[] frames = getVisibleFrames();
-        if (frames.length == 0)
-            return;
-        Rectangle dBounds = desktopPane.getBounds();
-
-        int cols = (int) Math.sqrt(frames.length);
-        int rows = (int) (Math.ceil(((double) frames.length) / cols));
-        int lastRow = frames.length - cols * (rows - 1);
-        int width, height;
-
-        if (lastRow == 0) {
-            rows--;
-            height = dBounds.height / rows;
-        } else {
-            height = dBounds.height / rows;
-            if (lastRow < cols) {
-                rows--;
-                width = dBounds.width / lastRow;
-                for (int i = 0; i < lastRow; i++) {
-                    frames[cols * rows + i].setBounds(i * width, rows * height,
-                            width, height);
-                }
-            }
-        }
-
-        width = dBounds.width / cols;
-        for (int j = 0; j < rows; j++) {
-            for (int i = 0; i < cols; i++) {
-                frames[i + j * cols].setBounds(i * width, j * height, width,
-                        height);
-            }
-        }
-    }
-
-    void cascadeInternalFrames() {
-        logger.info("Cascading windows");
-        JInternalFrame[] frames = getVisibleFrames();
-        if (frames.length == 0)
-            return;
-        Rectangle dBounds = desktopPane.getBounds();
-        int separation = 24;
-        int margin = (frames.length - 1) * separation;
-        int width = dBounds.width - margin;
-        int height = dBounds.height - margin;
-        for (int i = 0; i < frames.length; i++) {
-            frames[i].setBounds(i * separation, i * separation, width, height);
-        }
-    }
+    
 
     /**
      * WindowListener interface implementation
@@ -260,12 +211,6 @@ public class MainWindow extends JFrame implements Desktop, WindowListener {
         // Initialize item selector
         itemSelector = new ItemSelector(this);
 
-        // Construct menu
-
-        menuBar = new MainMenu(core);
-
-        setJMenuBar(menuBar);
-
         // Place objects on main window
         desktopPane = new JDesktopPane();
 
@@ -282,6 +227,11 @@ public class MainWindow extends JFrame implements Desktop, WindowListener {
         statusBar = new Statusbar(core);
         c.add(statusBar, BorderLayout.SOUTH);
 
+        // Construct menu
+        menuBar = new MainMenu(core);
+        setJMenuBar(menuBar);
+
+        
         // Initialize window listener for responding to user events
         addWindowListener(this);
 
