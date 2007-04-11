@@ -1,5 +1,5 @@
 /*
- * Copyright 2006 The MZmine Development Team
+ * Copyright 2006-2007 The MZmine Development Team
  * 
  * This file is part of MZmine.
  * 
@@ -24,6 +24,7 @@ import java.awt.Dimension;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.beans.PropertyVetoException;
+import java.util.logging.Logger;
 
 import javax.swing.BoundedRangeModel;
 import javax.swing.Box;
@@ -37,17 +38,22 @@ import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.taskcontrol.impl.TaskControllerImpl;
 import net.sf.mzmine.userinterface.components.TaskProgressWindow;
 
-public class Statusbar extends JPanel implements MouseListener {
+public class Statusbar extends JPanel implements MouseListener, Runnable {
 
-    private JPanel statusTextPanel;
-    private JLabel statusTextLabel;
+    // frequency in milliseconds how often to update free memory label
+    public static final int MEMORY_LABEL_UPDATE_FREQUENCY = 1000;
+
+    private Logger logger = Logger.getLogger(this.getClass().getName());
+
+    private JPanel statusTextPanel, memoryPanel;
+    private JLabel statusTextLabel, memoryLabel;
     private JProgressBar statusProgBar;
-    private MainWindow mainWin; 
+    private MainWindow mainWin;
 
     private final int statusBarHeight = 25;
 
     Statusbar(MZmineCore core) {
-        
+
         mainWin = (MainWindow) core.getDesktop();
 
         setLayout(new BoxLayout(this, BoxLayout.X_AXIS));
@@ -66,7 +72,7 @@ public class Statusbar extends JPanel implements MouseListener {
         statusProgBar.setToolTipText("Overall progress of all scheduled tasks");
         statusProgBar.setVisible(false);
         statusProgBar.addMouseListener(this);
-        
+
         statusTextLabel = new JLabel();
         statusTextLabel.setMinimumSize(new Dimension(100, statusBarHeight));
         statusTextLabel.setPreferredSize(new Dimension(3200, statusBarHeight));
@@ -74,11 +80,28 @@ public class Statusbar extends JPanel implements MouseListener {
         statusTextPanel.add(Box.createRigidArea(new Dimension(5,
                 statusBarHeight)));
         statusTextPanel.add(statusTextLabel);
+        statusTextPanel.add(Box.createRigidArea(new Dimension(10,
+                statusBarHeight)));
         statusTextPanel.add(statusProgBar);
-        statusTextPanel.add(Box.createRigidArea(new Dimension(5,
+        statusTextPanel.add(Box.createRigidArea(new Dimension(10,
                 statusBarHeight)));
 
         add(statusTextPanel);
+
+        memoryLabel = new JLabel("");
+        memoryLabel.addMouseListener(this);
+        memoryPanel = new JPanel();
+        memoryPanel.setLayout(new BoxLayout(memoryPanel, BoxLayout.X_AXIS));
+        memoryPanel.setBorder(new EtchedBorder(EtchedBorder.RAISED));
+        memoryPanel.add(Box.createRigidArea(new Dimension(10, statusBarHeight)));
+        memoryPanel.add(memoryLabel);
+        memoryPanel.add(Box.createRigidArea(new Dimension(10, statusBarHeight)));
+
+        add(memoryPanel);
+
+        Thread memoryLabelUpdaterThread = new Thread(this,
+                "Memory label updater thread");
+        memoryLabelUpdaterThread.start();
 
     }
 
@@ -92,7 +115,7 @@ public class Statusbar extends JPanel implements MouseListener {
         statusTextLabel.setText(statusText);
         statusTextLabel.setForeground(textColor);
     }
-    
+
     public void setProgressBarVisible(boolean visible) {
         statusProgBar.setVisible(visible);
     }
@@ -101,9 +124,9 @@ public class Statusbar extends JPanel implements MouseListener {
      * @see java.awt.event.MouseListener#mouseClicked(java.awt.event.MouseEvent)
      */
     public void mouseClicked(MouseEvent event) {
-        
+
         Object src = event.getSource();
-        
+
         if (src == statusProgBar) {
             TaskProgressWindow taskProgressWindow = mainWin.getTaskList();
             taskProgressWindow.setVisible(true);
@@ -113,6 +136,12 @@ public class Statusbar extends JPanel implements MouseListener {
                 // do nothing
             }
         }
+
+        if (src == memoryLabel) {
+            logger.finest("Running garbage collector");
+            System.gc();
+        }
+
     }
 
     /**
@@ -120,7 +149,7 @@ public class Statusbar extends JPanel implements MouseListener {
      */
     public void mousePressed(MouseEvent event) {
         // do nothing
-        
+
     }
 
     /**
@@ -128,7 +157,7 @@ public class Statusbar extends JPanel implements MouseListener {
      */
     public void mouseReleased(MouseEvent event) {
         // do nothing
-        
+
     }
 
     /**
@@ -136,7 +165,7 @@ public class Statusbar extends JPanel implements MouseListener {
      */
     public void mouseEntered(MouseEvent event) {
         // do nothing
-        
+
     }
 
     /**
@@ -144,8 +173,31 @@ public class Statusbar extends JPanel implements MouseListener {
      */
     public void mouseExited(MouseEvent event) {
         // do nothing
-        
+
     }
 
+    /**
+     * @see java.lang.Runnable#run()
+     */
+    public synchronized void run() {
+
+        while (true) {
+
+            // get free memory in megabytes
+            long freeMem = Runtime.getRuntime().freeMemory() / (1024 * 1024);
+            long totalMem = Runtime.getRuntime().totalMemory() / (1024 * 1024);
+            
+            memoryLabel.setText(freeMem + "MB free");
+            memoryLabel.setToolTipText("JVM memory: " + freeMem + "MB free, " + totalMem + "MB total");
+            
+            try {
+                wait(MEMORY_LABEL_UPDATE_FREQUENCY);
+            } catch (InterruptedException e) {
+                // ignore
+            }
+
+        }
+
+    }
 
 }
