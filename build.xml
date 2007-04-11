@@ -21,6 +21,7 @@
 		<pathelement location="${lib}/cdk-0.99.1.jar" />
 		<pathelement location="${lib}/dom4j-1.6.1.jar" />
 		<pathelement location="${lib}/jaxen-1.1.jar" />
+		<pathelement location="${lib}/gdswing.jar" />
 	</path>
 
 	<target name="compile">
