@@ -104,13 +104,8 @@ public class IncompleteFilter implements Method, TaskListener,
         }
     }
 
-    /**
-     * 
-     * 
-     * 
-     * 
-     * /**
-     * 
+
+    /** 
      * @see javax.swing.event.ListSelectionListener#valueChanged(javax.swing.event.ListSelectionEvent)
      */
     public void valueChanged(ListSelectionEvent e) {
