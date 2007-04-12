@@ -214,7 +214,7 @@ public class JoinAligner implements Method, TaskListener,
         // check peaklists
         for (int i = 0; i < dataFiles.length; i++) {
             if (dataFiles[i].getCurrentFile().getData(PeakList.class).length == 0) {
-                String msg = "Cannot start deisotoping of " + dataFiles[i]
+                String msg = "Cannot start alignment of " + dataFiles[i]
                         + ", please run peak picking first.";
                 logger.severe(msg);
                 desktop.displayErrorMessage(msg);
