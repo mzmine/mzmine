@@ -32,10 +32,9 @@ import java.text.NumberFormat;
  * - user-interface parameters 
  * - per project parameters
  * - per file parameters
- * - per method parameters
  * - per module parameters
  * 
- * Per module parameters and user-interface parameters have to be saved automatically when exiting, and reloaded when starting MZmine.
+ * Per module parameters and user-interface parameters have to be saved automatically when exiting and reloaded when starting MZmine.
  * 
  * When saving parameters, we have to identify them.
  * 

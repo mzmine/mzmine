@@ -41,8 +41,8 @@ import net.sf.mzmine.methods.Method;
 import net.sf.mzmine.taskcontrol.Task;
 import net.sf.mzmine.taskcontrol.TaskController;
 import net.sf.mzmine.taskcontrol.TaskListener;
-import net.sf.mzmine.taskcontrol.TaskSequence;
-import net.sf.mzmine.taskcontrol.TaskSequenceListener;
+import net.sf.mzmine.taskcontrol.TaskGroup;
+import net.sf.mzmine.taskcontrol.TaskGroupListener;
 import net.sf.mzmine.userinterface.Desktop;
 import net.sf.mzmine.userinterface.Desktop.MZmineMenu;
 import net.sf.mzmine.userinterface.dialogs.ParameterSetupDialog;
@@ -205,11 +205,11 @@ public class SimpleGrouper implements Method, TaskListener,
      * @see net.sf.mzmine.methods.Method#runMethod(net.sf.mzmine.io.OpenedRawDataFile[],
      *      net.sf.mzmine.data.AlignmentResult[],
      *      net.sf.mzmine.data.ParameterSet,
-     *      net.sf.mzmine.taskcontrol.TaskSequenceListener)
+     *      net.sf.mzmine.taskcontrol.TaskGroupListener)
      */
-    public TaskSequence runMethod(OpenedRawDataFile[] dataFiles,
+    public TaskGroup runMethod(OpenedRawDataFile[] dataFiles,
             AlignmentResult[] alignmentResults, ParameterSet parameters,
-            TaskSequenceListener methodListener) {
+            TaskGroupListener methodListener) {
 
         // prepare a new sequence of tasks
         Task tasks[] = new SimpleGrouperTask[dataFiles.length];
@@ -225,7 +225,7 @@ public class SimpleGrouper implements Method, TaskListener,
             tasks[i] = new SimpleGrouperTask(dataFiles[i], parameters);
         }
 
-        TaskSequence newSequence = new TaskSequence(tasks, this,
+        TaskGroup newSequence = new TaskGroup(tasks, this,
                 methodListener, taskController);
 
         // execute the sequence

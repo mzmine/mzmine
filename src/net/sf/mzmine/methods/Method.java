@@ -23,8 +23,8 @@ import net.sf.mzmine.data.AlignmentResult;
 import net.sf.mzmine.data.ParameterSet;
 import net.sf.mzmine.io.OpenedRawDataFile;
 import net.sf.mzmine.main.MZmineModule;
-import net.sf.mzmine.taskcontrol.TaskSequence;
-import net.sf.mzmine.taskcontrol.TaskSequenceListener;
+import net.sf.mzmine.taskcontrol.TaskGroup;
+import net.sf.mzmine.taskcontrol.TaskGroupListener;
 
 /**
  * Interface representing a data processing method
@@ -49,8 +49,8 @@ public interface Method extends MZmineModule {
      *            files/results.
      * 
      */
-    public TaskSequence runMethod(OpenedRawDataFile[] dataFiles,
+    public TaskGroup runMethod(OpenedRawDataFile[] dataFiles,
             AlignmentResult[] alignmentResults, ParameterSet parameters,
-            TaskSequenceListener methodListener);
+            TaskGroupListener methodListener);
 
 }

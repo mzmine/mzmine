@@ -37,9 +37,9 @@ import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.main.MZmineModule;
 import net.sf.mzmine.methods.Method;
 import net.sf.mzmine.project.MZmineProject;
-import net.sf.mzmine.taskcontrol.TaskSequence;
-import net.sf.mzmine.taskcontrol.TaskSequenceListener;
-import net.sf.mzmine.taskcontrol.TaskSequence.TaskSequenceStatus;
+import net.sf.mzmine.taskcontrol.TaskGroup;
+import net.sf.mzmine.taskcontrol.TaskGroupListener;
+import net.sf.mzmine.taskcontrol.TaskGroup.TaskGroupStatus;
 import net.sf.mzmine.userinterface.Desktop;
 import net.sf.mzmine.userinterface.Desktop.MZmineMenu;
 
@@ -47,7 +47,7 @@ import net.sf.mzmine.userinterface.Desktop.MZmineMenu;
  * Batch mode module
  */
 public class BatchMode implements MZmineModule, ListSelectionListener,
-        TaskSequenceListener, ActionListener {
+        TaskGroupListener, ActionListener {
 
     private Logger logger = Logger.getLogger(this.getClass().getName());
 
@@ -122,22 +122,22 @@ public class BatchMode implements MZmineModule, ListSelectionListener,
         return "Batch mode";
     }
 
-    public void taskSequenceStarted(TaskSequence sequence) {
+    public void taskGroupStarted(TaskGroup sequence) {
         logger.finest("Batch mode received task sequence started call");
     }
     
-    public void taskSequenceFinished(TaskSequence sequence) {
+    public void taskGroupFinished(TaskGroup sequence) {
 
         logger.finest("Batch mode received task sequence finished call");
 
-        if ((sequence.getStatus() == TaskSequenceStatus.ERROR)
-                || (sequence.getStatus() == TaskSequenceStatus.CANCELED)) {
+        if ((sequence.getStatus() == TaskGroupStatus.ERROR)
+                || (sequence.getStatus() == TaskGroupStatus.CANCELED)) {
             desktop.displayErrorMessage("Batch processing canceled.");
             batchRunning = false;
             return;
         }
 
-        if (sequence.getStatus() == TaskSequenceStatus.FINISHED) {
+        if (sequence.getStatus() == TaskGroupStatus.FINISHED) {
             if (currentStep < currentBatchSteps.size())
                 runNextStep();
             else {
@@ -159,7 +159,7 @@ public class BatchMode implements MZmineModule, ListSelectionListener,
         if (allResults.length > 0)
             lastResultOnly = new AlignmentResult[] { allResults[allResults.length - 1] };
 
-        TaskSequence newSequence = method.runMethod(selectedDataFiles, lastResultOnly,
+        TaskGroup newSequence = method.runMethod(selectedDataFiles, lastResultOnly,
                 newStep.getParameters(), this);
         
         if (newSequence == null)  {
