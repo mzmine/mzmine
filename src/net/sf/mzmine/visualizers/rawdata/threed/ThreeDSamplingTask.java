@@ -338,6 +338,22 @@ class ThreeDSamplingTask implements Task {
             FlatField intensityValuesFlatField = new FlatField(intensityFunction, domainSet);
             intensityValuesFlatField.setSamples(intensityValues, false);
 
+            // create mapping for X,Y,Z axes and color
+            ScalarMap retentionTimeMap = new ScalarMap(retentionTimeType, Display.XAxis);
+            ScalarMap mzMap = new ScalarMap(mzType, Display.YAxis);
+            ScalarMap intensityMap = new ScalarMap(intensityType, Display.ZAxis);
+            ScalarMap heightMap = new ScalarMap(peakHeightType, Display.ZAxis);
+            ScalarMap colorMap = new ScalarMap(intensityType, Display.RGB);
+            ScalarMap annotationMap = new ScalarMap(annotationType, Display.Text);
+
+
+            // add maps to display
+            display.addMap(retentionTimeMap);
+            display.addMap(mzMap);
+            display.addMap(intensityMap);
+            display.addMap(heightMap);
+            display.addMap(colorMap);
+            display.addMap(annotationMap);
 
             // create a DataReference connecting data to display
             DataReference dataReference = new DataReferenceImpl("data");
@@ -395,17 +411,17 @@ class ThreeDSamplingTask implements Task {
                     PickManipulationRendererJ3D pickRenderer = new PickManipulationRendererJ3D();
 
                     // color of text annotations
-                    ConstantMap[] colorMap = {
+                    ConstantMap[] constColorMap = {
                             new ConstantMap(0.8, Display.Red),
                             new ConstantMap(0.8, Display.Green),
                             new ConstantMap(0.0f, Display.Blue) };
 
                     // add the reference to the display
                     display.addReferences(pickRenderer, peaksReference,
-                            colorMap);
+                            constColorMap);
 
                     visualizer.setPeaksDataReference(pickRenderer,
-                            peaksReference, colorMap);
+                            peaksReference, constColorMap);
 
                     // add the reference to the cell - the cell is activated by
                     // shift+right mouse click
@@ -429,22 +445,7 @@ class ThreeDSamplingTask implements Task {
 
 
 
-            // create mapping for X,Y,Z axes and color
-            ScalarMap retentionTimeMap = new ScalarMap(retentionTimeType, Display.XAxis);
-            ScalarMap mzMap = new ScalarMap(mzType, Display.YAxis);
-            ScalarMap intensityMap = new ScalarMap(intensityType, Display.ZAxis);
-            ScalarMap heightMap = new ScalarMap(peakHeightType, Display.ZAxis);
-            ScalarMap colorMap = new ScalarMap(intensityType, Display.RGB);
-            ScalarMap annotationMap = new ScalarMap(annotationType, Display.Text);
 
-
-            // add maps to display
-            display.addMap(retentionTimeMap);
-            display.addMap(mzMap);
-            display.addMap(intensityMap);
-            display.addMap(heightMap);
-            display.addMap(colorMap);
-            display.addMap(annotationMap);
 
 
             float ticks;
