@@ -269,6 +269,13 @@ public class MainWindow extends JFrame implements Desktop, WindowListener {
     public boolean isDataFileSelected() {
         return itemSelector.getSelectedRawData().length > 0;
     }
+    
+    /**
+     * @see net.sf.mzmine.userinterface.Desktop#isDataFileSelected()
+     */
+    public boolean isAlignmentResultSelected() {
+        return itemSelector.getSelectedAlignmentResults().length > 0;
+    }
 
     /**
      * @see net.sf.mzmine.userinterface.Desktop#addMenuItem(net.sf.mzmine.userinterface.Desktop.MZmineMenu,

@@ -87,6 +87,8 @@ public interface Desktop {
     public void displayErrorMessage(String msg);
 
     public boolean isDataFileSelected();
+    
+    public boolean isAlignmentResultSelected();
 
     /**
      * Returns array of currently selected raw data files in GUI
