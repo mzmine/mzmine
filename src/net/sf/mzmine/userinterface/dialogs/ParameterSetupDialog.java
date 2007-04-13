@@ -43,6 +43,7 @@ import javax.swing.JTextField;
 
 import net.sf.mzmine.data.Parameter;
 import net.sf.mzmine.data.ParameterSet;
+import net.sf.mzmine.data.impl.SimpleParameterSet;
 
 /**
  * This class represents the parameter setup dialog shown to the user before
@@ -68,13 +69,13 @@ public class ParameterSetupDialog extends JDialog implements ActionListener {
 
     private JPanel pnlAll, pnlLabels, pnlFields, pnlUnits, pnlButtons;
 
-    private ParameterSet parameters;
+    private SimpleParameterSet parameters;
 
     /**
      * Constructor
      */
     public ParameterSetupDialog(Frame owner, String title,
-            ParameterSet parameters) {
+            SimpleParameterSet parameters) {
 
         // Make dialog modal
         super(owner, true);

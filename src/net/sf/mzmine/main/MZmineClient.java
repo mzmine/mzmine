@@ -29,8 +29,8 @@ import java.util.logging.Logger;
 import javax.swing.JOptionPane;
 import javax.swing.SwingUtilities;
 
-import net.sf.mzmine.batchmode.BatchMode;
 import net.sf.mzmine.data.ParameterSet;
+import net.sf.mzmine.data.StorableParameterSet;
 import net.sf.mzmine.io.IOController;
 import net.sf.mzmine.io.impl.IOControllerImpl;
 import net.sf.mzmine.project.MZmineProject;
@@ -136,8 +136,8 @@ public class MZmineClient extends Thread implements Runnable, MZmineCore {
                     Element parametersElement = moduleElement.element(PARAMETERS_ELEMENT_NAME);
                     if (parametersElement != null) {
                         ParameterSet moduleParameters = newModule.getParameterSet();
-                        if (moduleParameters != null)
-                            moduleParameters.importValuesFromXML(parametersElement);
+                        if ((moduleParameters != null) && (moduleParameters instanceof StorableParameterSet))
+                            ((StorableParameterSet) moduleParameters).importValuesFromXML(parametersElement);
                     }
                 }
 
@@ -257,7 +257,7 @@ public class MZmineClient extends Thread implements Runnable, MZmineCore {
             while (iterator.hasNext()) {
                 MZmineModule module = iterator.next();
                 ParameterSet currentParameters = module.getParameterSet();
-                if (currentParameters == null)
+                if ((currentParameters == null) || (!(currentParameters instanceof StorableParameterSet)))
                     continue;
 
                 String className = module.getClass().getName();
@@ -272,7 +272,7 @@ public class MZmineClient extends Thread implements Runnable, MZmineCore {
                     else
                         parametersElement.clearContent();
 
-                    currentParameters.exportValuesToXML(parametersElement);
+                    ((StorableParameterSet) currentParameters).exportValuesToXML(parametersElement);
                 }
 
             }

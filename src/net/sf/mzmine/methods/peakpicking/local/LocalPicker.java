@@ -209,7 +209,7 @@ public class LocalPicker implements Method, TaskListener,
     public ParameterSet setupParameters(ParameterSet currentParameters) {
         ParameterSetupDialog dialog = new ParameterSetupDialog(
                 desktop.getMainFrame(), "Please check parameter values for "
-                        + toString(), currentParameters);
+                        + toString(), (SimpleParameterSet) currentParameters);
         dialog.setVisible(true);
         if (dialog.getExitCode() == ExitCode.CANCEL)
             return null;

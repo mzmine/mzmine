@@ -96,7 +96,7 @@ public class BatchMode implements MZmineModule, ListSelectionListener,
 
         logger.finest("Showing parameter setup dialog");
 
-        BatchModeDialog setupDialog = new BatchModeDialog(desktop.getMainFrame(), core,
+        BatchModeDialog setupDialog = new BatchModeDialog(core,
                 currentBatchSteps);
         setupDialog.setVisible(true);
 
@@ -125,7 +125,7 @@ public class BatchMode implements MZmineModule, ListSelectionListener,
     public void taskGroupStarted(TaskGroup sequence) {
         logger.finest("Batch mode received task sequence started call");
     }
-    
+
     public void taskGroupFinished(TaskGroup sequence) {
 
         logger.finest("Batch mode received task sequence finished call");
@@ -159,10 +159,10 @@ public class BatchMode implements MZmineModule, ListSelectionListener,
         if (allResults.length > 0)
             lastResultOnly = new AlignmentResult[] { allResults[allResults.length - 1] };
 
-        TaskGroup newSequence = method.runMethod(selectedDataFiles, lastResultOnly,
-                newStep.getParameters(), this);
-        
-        if (newSequence == null)  {
+        TaskGroup newSequence = method.runMethod(selectedDataFiles,
+                lastResultOnly, newStep.getParameters(), this);
+
+        if (newSequence == null) {
             desktop.displayErrorMessage("Batch processing cannot continue.");
             batchRunning = false;
         }

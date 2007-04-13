@@ -24,18 +24,17 @@ import org.dom4j.Element;
 /**
  * 
  */
-public interface ParameterSet {
+public interface StorableParameterSet extends ParameterSet {
 
     /**
+     * Export parameter values to XML representation.
+     * 
      */
-    public Object getParameterValue(Parameter parameter);
+    public void exportValuesToXML(Element element);
 
-    
-    public ParameterSet clone();
-    
     /**
-     * Represent method's parameters and their values in human-readable format
+     * 
      */
-    public String toString();
+    public void importValuesFromXML(Element element);
 
 }

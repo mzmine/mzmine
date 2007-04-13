@@ -62,11 +62,11 @@ class BatchModeDialog extends JDialog implements ActionListener {
     private JList currentStepsList;
     private JButton btnAdd, btnConfig, btnRemove, btnOK, btnCancel;
 
-    public BatchModeDialog(Frame owner, MZmineCore core,
+    public BatchModeDialog(MZmineCore core,
             Vector<BatchStep> batchSteps) {
 
         // make dialog modal
-        super(owner, "Batch mode setup", true);
+        super(core.getDesktop().getMainFrame(), "Batch mode setup", true);
 
         this.core = core;
         this.batchSteps = batchSteps;
@@ -113,7 +113,8 @@ class BatchModeDialog extends JDialog implements ActionListener {
 
         // finalize the dialog
         pack();
-        setLocationRelativeTo(owner);
+        setResizable(false);
+        setLocationRelativeTo(core.getDesktop().getMainFrame());
 
     }
 
