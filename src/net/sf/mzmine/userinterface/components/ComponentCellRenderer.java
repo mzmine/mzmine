@@ -1,5 +1,5 @@
 /*
- * Copyright 2006 The MZmine Development Team
+ * Copyright 2006-2007 The MZmine Development Team
  * 
  * This file is part of MZmine.
  * 
@@ -22,13 +22,16 @@ package net.sf.mzmine.userinterface.components;
 import java.awt.Component;
 
 import javax.swing.JComponent;
+import javax.swing.JList;
 import javax.swing.JTable;
+import javax.swing.ListCellRenderer;
 import javax.swing.table.TableCellRenderer;
 
 /**
  * Simple table cell renderer that renders only JComponents
  */
-public class ComponentTableCellRenderer implements TableCellRenderer {
+public class ComponentCellRenderer implements TableCellRenderer,
+        ListCellRenderer {
 
     /**
      * @see javax.swing.table.TableCellRenderer#getTableCellRendererComponent(javax.swing.JTable,
@@ -42,6 +45,19 @@ public class ComponentTableCellRenderer implements TableCellRenderer {
 
         return null;
 
+    }
+
+    /**
+     * @see javax.swing.ListCellRenderer#getListCellRendererComponent(javax.swing.JList,
+     *      java.lang.Object, int, boolean, boolean)
+     */
+    public Component getListCellRendererComponent(JList list, Object value,
+            int index, boolean isSelected, boolean hasFocus) {
+
+        if (value instanceof JComponent)
+            return (Component) value;
+
+        return null;
     }
 
 }
