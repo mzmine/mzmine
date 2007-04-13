@@ -25,15 +25,14 @@ import java.util.Vector;
 import java.util.logging.Logger;
 
 import net.sf.mzmine.data.Parameter;
-import net.sf.mzmine.data.ParameterSet;
+import net.sf.mzmine.data.StorableParameterSet;
 import net.sf.mzmine.data.Parameter.ParameterType;
-import net.sf.mzmine.util.CollectionUtils;
 
 import org.dom4j.Element;
 
 /**
  */
-public class SimpleParameterSet implements ParameterSet {
+public class SimpleParameterSet implements StorableParameterSet {
 
     public static final String PARAMETER_ELEMENT_NAME = "parameter";
     public static final String PARAMETER_NAME_ATTRIBUTE = "name";
