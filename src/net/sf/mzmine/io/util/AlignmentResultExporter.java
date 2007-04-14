@@ -103,9 +103,11 @@ public class AlignmentResultExporter {
 			selectedCommonColumns = columnSelection.getSelectedCommonColumns();
 			for (CommonColumnType c : selectedCommonColumns) {
 				switch (c) {
+				/*
 				case STDCOMPOUND:
 					if (alignmentRow.hasData(StandardCompoundFlag.class)) s += "1\t"; else s+="0\t";
 					break;
+					*/
 				case ROWNUM:
 					s += "" + (row+1) + "\t";
 					break;

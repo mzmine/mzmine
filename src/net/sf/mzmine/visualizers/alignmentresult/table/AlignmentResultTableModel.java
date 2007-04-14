@@ -78,8 +78,10 @@ public class AlignmentResultTableModel extends AbstractTableModel {
 			AlignmentResultRow alignmentRow = alignmentResult.getRow(row);
 
 			switch(columnSelection.getSelectedCommonColumn(groupOffset[1])) {
+			/*
 				case STDCOMPOUND:
 					return alignmentRow.hasData(StandardCompoundFlag.class);
+					*/
 				case ROWNUM:
 					return new Integer(row+1);
 				case AVGMZ:
@@ -171,6 +173,7 @@ public class AlignmentResultTableModel extends AbstractTableModel {
 
 
 	public boolean isCellEditable(int row, int col) {
+		/*
 		int[] groupOffset = getColumnGroupAndOffset(col);
 		
 		if (groupOffset[0]<0) {
@@ -181,10 +184,12 @@ public class AlignmentResultTableModel extends AbstractTableModel {
 					return false;
 			}
 		}
+		*/
 		return false;	
 	}
 
 	public void setValueAt(Object value, int row, int col) {
+		/*
 		int[] groupOffset = getColumnGroupAndOffset(col);
 		
 		if (groupOffset[0]<0) {
@@ -201,6 +206,7 @@ public class AlignmentResultTableModel extends AbstractTableModel {
 					break;
 			}
 		}	
+		*/
 	}
 
 
