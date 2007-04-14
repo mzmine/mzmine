@@ -122,7 +122,7 @@ public class PeakListTable extends JTable {
 			Peak p = peakList.getPeak(row);
 
 			switch (columnSelection.getSelectedColumn(col)) {
-				case STDCOMPOUND: return p.hasData(StandardCompoundFlag.class);
+				//case STDCOMPOUND: return p.hasData(StandardCompoundFlag.class);
 				
 				case MZ: return p.getRawMZ();
 				case RT: return p.getRawRT();
@@ -160,15 +160,18 @@ public class PeakListTable extends JTable {
 		}
 
 		public boolean isCellEditable(int row, int col) {
+			return false;
+			/*
 			switch (columnSelection.getSelectedColumn(col)) {
 				case STDCOMPOUND:
 					return true;
 				default:
 					return false;
 			}
+			*/
 		}
 		public void setValueAt(Object value, int row, int col) {
-			
+			/*
 			Peak p = peakList.getPeak(row);
 			
 			switch (columnSelection.getSelectedColumn(col)) {
@@ -180,7 +183,7 @@ public class PeakListTable extends JTable {
 					}
 				default:
 			}
-
+			*/
 		}
 
 	}

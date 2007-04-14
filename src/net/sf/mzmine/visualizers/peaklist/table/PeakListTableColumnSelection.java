@@ -5,7 +5,7 @@ import java.util.Vector;
 public class PeakListTableColumnSelection {
 	
     public enum PeakListColumnType {
-    	STDCOMPOUND ("Std", Boolean.class),
+    	/*STDCOMPOUND ("Std", Boolean.class),*/
     	MZ ("M/Z", Double.class),
         RT ("RT", Double.class),
         HEIGHT ("Height", Double.class),
@@ -35,7 +35,7 @@ public class PeakListTableColumnSelection {
 	public PeakListTableColumnSelection() {
 
 		selectedColumns = new Vector<PeakListColumnType>();
-		selectedColumns.add(PeakListColumnType.STDCOMPOUND);
+		//selectedColumns.add(PeakListColumnType.STDCOMPOUND);
 		selectedColumns.add(PeakListColumnType.MZ);
 		selectedColumns.add(PeakListColumnType.RT);
 		selectedColumns.add(PeakListColumnType.HEIGHT);
