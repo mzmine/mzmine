@@ -8,7 +8,6 @@
     <module class="net.sf.mzmine.visualizers.rawdata.twod.TwoDVisualizer"/>  
     <module class="net.sf.mzmine.visualizers.rawdata.threed.ThreeDVisualizer"/>  
     <module class="net.sf.mzmine.visualizers.rawdata.neutralloss.NeutralLossVisualizer"/>  
-    <module class="net.sf.mzmine.util.menu.VisualizationMenuSeparator"/>  
     <module class="net.sf.mzmine.visualizers.peaklist.table.PeakListTableVisualizer"/>  
     <module class="net.sf.mzmine.visualizers.alignmentresult.table.AlignmentResultTableVisualizer"/>  
     <module class="net.sf.mzmine.visualizers.alignmentresult.logratio.AlignmentResultLogratioVisualizer"/>  
@@ -106,7 +105,15 @@
         <parameter name="Minimum present" type="INTEGER">1</parameter>
       </parameters> 
     </module>  
-    <module class="net.sf.mzmine.methods.gapfilling.simple.SimpleGapFiller"/>  
+    <module class="net.sf.mzmine.methods.gapfilling.simple.SimpleGapFiller"> 
+      <parameters>
+        <parameter name="Intensity tolerance" type="DOUBLE">0.2</parameter>
+        <parameter name="M/Z tolerance" type="DOUBLE">0.05</parameter>
+        <parameter name="RT range type" type="STRING">Absolute</parameter>
+        <parameter name="Absolute RT tolerance" type="DOUBLE">15.0</parameter>
+        <parameter name="Relative RT tolerance" type="DOUBLE">0.15</parameter>
+      </parameters> 
+    </module>  
     <module class="net.sf.mzmine.methods.normalization.linear.LinearNormalizer"> 
       <parameters>
         <parameter name="Normalization type" type="STRING">Average squared intensity</parameter>

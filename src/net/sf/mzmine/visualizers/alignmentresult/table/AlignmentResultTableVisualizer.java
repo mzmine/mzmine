@@ -50,7 +50,7 @@ public class AlignmentResultTableVisualizer implements AlignmentResultVisualizer
 
         this.desktop = core.getDesktop();
 
-        myMenuItem = desktop.addMenuItem(MZmineMenu.VISUALIZATION, "Alignment result list view", this, null, KeyEvent.VK_A, false, false);
+        myMenuItem = desktop.addMenuItem(MZmineMenu.ANALYSIS, "Alignment result list view", this, null, KeyEvent.VK_A, false, false);
         desktop.addSelectionListener(this);
 
     }

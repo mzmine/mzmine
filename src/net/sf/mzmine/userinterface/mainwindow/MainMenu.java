@@ -60,7 +60,8 @@ public class MainMenu extends JMenuBar implements ActionListener,
     private JMenu alignmentMenu;
     private JMenu normalizationMenu;
     private JMenu batchMenu;
-    private JMenu visualizationMenu;
+    private JMenu rawDataVisualizationMenu;
+    private JMenu dataAnalysisMenu; 
     private JMenu toolsMenu;
     private JMenu lookAndFeelMenu;
     private JWindowsMenu windowsMenu;
@@ -160,10 +161,14 @@ public class MainMenu extends JMenuBar implements ActionListener,
         batchMenu.setMnemonic(KeyEvent.VK_B);
         this.add(batchMenu);
 
-        visualizationMenu = new JMenu("Visualization");
-        visualizationMenu.setMnemonic(KeyEvent.VK_V);
-        this.add(visualizationMenu);
+        rawDataVisualizationMenu = new JMenu("Visualization");
+        rawDataVisualizationMenu.setMnemonic(KeyEvent.VK_V);
+        this.add(rawDataVisualizationMenu);
 
+        dataAnalysisMenu = new JMenu("Data analysis");
+        dataAnalysisMenu.setMnemonic(KeyEvent.VK_S);
+        this.add(dataAnalysisMenu);
+        
         toolsMenu = new JMenu("Configure");
         toolsMenu.setMnemonic(KeyEvent.VK_C);
         this.add(toolsMenu);
@@ -216,9 +221,11 @@ public class MainMenu extends JMenuBar implements ActionListener,
             batchMenu.add(newItem);
             break;
         case VISUALIZATION:
-            visualizationMenu.add(newItem);
+            rawDataVisualizationMenu.add(newItem);
             break;
-
+        case ANALYSIS:
+        	dataAnalysisMenu.add(newItem);
+        	break;
         }
     }
 
@@ -260,8 +267,11 @@ public class MainMenu extends JMenuBar implements ActionListener,
             batchMenu.addSeparator();
             break;
         case VISUALIZATION:
-            visualizationMenu.addSeparator();
+            rawDataVisualizationMenu.addSeparator();
             break;
+        case ANALYSIS:
+        	dataAnalysisMenu.addSeparator();
+        	break;
             
 
         }

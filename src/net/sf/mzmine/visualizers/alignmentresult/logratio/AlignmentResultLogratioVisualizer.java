@@ -29,7 +29,7 @@ public class AlignmentResultLogratioVisualizer implements
 
         this.desktop = core.getDesktop();
 
-        myMenuItem = desktop.addMenuItem(MZmineMenu.VISUALIZATION, "Alignment result logratio plot", this, null, KeyEvent.VK_L, false, false);
+        myMenuItem = desktop.addMenuItem(MZmineMenu.ANALYSIS, "Alignment result logratio plot", this, null, KeyEvent.VK_L, false, false);
         desktop.addSelectionListener(this);
 
 	}

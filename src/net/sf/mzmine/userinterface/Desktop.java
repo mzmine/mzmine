@@ -38,7 +38,7 @@ import net.sf.mzmine.util.NumberFormatProvider;
 public interface Desktop {
 
     public enum MZmineMenu {
-        FILTERING, PEAKPICKING, ALIGNMENT, NORMALIZATION, BATCH, VISUALIZATION
+        FILTERING, PEAKPICKING, ALIGNMENT, NORMALIZATION, BATCH, VISUALIZATION, ANALYSIS
     };
 
     /**
