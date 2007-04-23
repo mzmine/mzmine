@@ -24,9 +24,6 @@ import net.sf.mzmine.main.MZmineModule;
 
 public interface AlignmentResultVisualizer extends MZmineModule {
 
-	// TODO: Decide the logic of selecting a row in alignment.
-/*
-	public void selectRowWithPeak(Peak p);
-*/
+
 
 }
