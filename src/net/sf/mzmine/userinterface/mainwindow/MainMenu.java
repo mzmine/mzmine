@@ -19,9 +19,11 @@
 
 package net.sf.mzmine.userinterface.mainwindow;
 
+import java.awt.Font;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
+import java.util.Enumeration;
 import java.util.logging.Logger;
 
 import javax.swing.JMenu;
@@ -31,6 +33,7 @@ import javax.swing.KeyStroke;
 import javax.swing.UIManager;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
+import javax.swing.plaf.FontUIResource;
 
 import net.sf.mzmine.data.AlignmentResult;
 import net.sf.mzmine.io.IOController;
@@ -95,7 +98,7 @@ public class MainMenu extends JMenuBar implements ActionListener,
     private MZmineCore core;
     private IOController ioController;
     private Desktop desktop;
-    
+
     private Logger logger = Logger.getLogger(this.getClass().getName());
 
     MainMenu(MZmineCore core) {
@@ -103,7 +106,7 @@ public class MainMenu extends JMenuBar implements ActionListener,
         this.core = core;
         this.ioController = core.getIOController();
         this.desktop = core.getDesktop();
-
+        
         fileMenu = new JMenu("File");
         fileMenu.setMnemonic(KeyEvent.VK_F);
         add(fileMenu);
@@ -199,6 +202,11 @@ public class MainMenu extends JMenuBar implements ActionListener,
         hlpAbout = GUIUtils.addMenuItem(helpMenu, "About MZmine...", this,
                 KeyEvent.VK_A);
 
+
+         
+    
+        
+        
         desktop.addSelectionListener(this);
 
     }

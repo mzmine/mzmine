@@ -43,8 +43,6 @@ public class Statusbar extends JPanel implements MouseListener, Runnable {
     // frequency in milliseconds how often to update free memory label
     public static final int MEMORY_LABEL_UPDATE_FREQUENCY = 1000;
 
-    private Logger logger = Logger.getLogger(this.getClass().getName());
-
     private JPanel statusTextPanel, memoryPanel;
     private JLabel statusTextLabel, memoryLabel;
     private JProgressBar statusProgBar;
@@ -135,11 +133,6 @@ public class Statusbar extends JPanel implements MouseListener, Runnable {
             } catch (PropertyVetoException e) {
                 // do nothing
             }
-        }
-
-        if (src == memoryLabel) {
-            logger.finest("Running garbage collector");
-            System.gc();
         }
 
     }

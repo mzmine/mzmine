@@ -73,7 +73,7 @@ public class ItemSelector extends JPanel implements ListSelectionListener,
         rawDataObjects = new DefaultListModel();
         rawDataList = new JList(rawDataObjects);
         rawDataScroll = new JScrollPane(rawDataList);
-
+        
         rawDataPanel.setLayout(new BorderLayout());
         rawDataPanel.add(rawDataTitle, BorderLayout.NORTH);
         rawDataPanel.add(rawDataScroll, BorderLayout.CENTER);

@@ -19,15 +19,17 @@
 
 package net.sf.mzmine.data.impl;
 
-import java.util.Hashtable;
+import java.text.Format;
 import java.util.Enumeration;
+import java.util.Hashtable;
 import java.util.Vector;
 
-import net.sf.mzmine.data.Peak;
 import net.sf.mzmine.data.AlignmentResultRow;
 import net.sf.mzmine.data.CompoundIdentity;
 import net.sf.mzmine.data.IsotopePattern;
+import net.sf.mzmine.data.Peak;
 import net.sf.mzmine.io.OpenedRawDataFile;
+import net.sf.mzmine.userinterface.mainwindow.MainWindow;
 
 
 
@@ -40,8 +42,7 @@ public class SimpleAlignmentResultRow extends AbstractDataUnit implements Alignm
 	private Hashtable<OpenedRawDataFile, Peak> peaks;
 	private Vector<CompoundIdentity> compoundIdentities;
 
-
-	public SimpleAlignmentResultRow() {
+    public SimpleAlignmentResultRow() {
 		compoundIdentities = new Vector<CompoundIdentity>();
 		peaks = new Hashtable<OpenedRawDataFile, Peak>();
 	}
@@ -135,5 +136,10 @@ public class SimpleAlignmentResultRow extends AbstractDataUnit implements Alignm
 		compoundIdentities.add(compoundIdentity);
 	}
 
+    public String toString() {
+        Format mzFormat = MainWindow.getInstance().getMZFormatProvider().getCurrentNumberFormat();
+        Format timeFormat = MainWindow.getInstance().getRTFormatProvider().getCurrentNumberFormat();
+        return mzFormat.format(getAverageMZ()) + " m/z @" + timeFormat.format(getAverageRT());
+    }
 
 }

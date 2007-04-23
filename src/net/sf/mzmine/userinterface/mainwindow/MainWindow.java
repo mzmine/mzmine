@@ -22,16 +22,18 @@ package net.sf.mzmine.userinterface.mainwindow;
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Container;
-import java.awt.Rectangle;
+import java.awt.Font;
 import java.awt.event.ActionListener;
 import java.awt.event.WindowEvent;
 import java.awt.event.WindowListener;
 import java.text.DecimalFormat;
 import java.text.NumberFormat;
 import java.util.ArrayList;
+import java.util.Enumeration;
 import java.util.Vector;
 import java.util.logging.Logger;
 
+import javax.swing.DefaultListCellRenderer;
 import javax.swing.JDesktopPane;
 import javax.swing.JFrame;
 import javax.swing.JInternalFrame;
@@ -39,9 +41,11 @@ import javax.swing.JLayeredPane;
 import javax.swing.JMenuItem;
 import javax.swing.JOptionPane;
 import javax.swing.JSplitPane;
+import javax.swing.UIManager;
 import javax.swing.border.EtchedBorder;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
+import javax.swing.table.DefaultTableCellRenderer;
 
 import net.sf.mzmine.data.AlignmentResult;
 import net.sf.mzmine.io.OpenedRawDataFile;
@@ -59,7 +63,7 @@ import net.sf.mzmine.util.TimeNumberFormat;
 public class MainWindow extends JFrame implements Desktop, WindowListener {
 
     private Logger logger = Logger.getLogger(this.getClass().getName());
-    
+
     private MZmineCore core;
 
     private JDesktopPane desktopPane;
@@ -69,7 +73,7 @@ public class MainWindow extends JFrame implements Desktop, WindowListener {
     private ItemSelector itemSelector;
 
     private TaskProgressWindow taskList;
-    
+
     private Vector<ListSelectionListener> selectionListeners = new Vector<ListSelectionListener>();
 
     public TaskProgressWindow getTaskList() {
@@ -100,8 +104,6 @@ public class MainWindow extends JFrame implements Desktop, WindowListener {
         return desktopPane;
     }
 
-    
-
     /**
      * WindowListener interface implementation
      */
@@ -127,8 +129,6 @@ public class MainWindow extends JFrame implements Desktop, WindowListener {
     public void windowDeactivated(WindowEvent e) {
     }
 
-
-
     public void setStatusBarText(String text) {
         setStatusBarText(text, Color.black);
     }
@@ -140,7 +140,7 @@ public class MainWindow extends JFrame implements Desktop, WindowListener {
         JOptionPane.showMessageDialog(this, msg, "Message",
                 JOptionPane.INFORMATION_MESSAGE);
     }
-    
+
     public void displayErrorMessage(String msg) {
         JOptionPane.showMessageDialog(this, msg, "Sorry",
                 JOptionPane.ERROR_MESSAGE);
@@ -156,36 +156,36 @@ public class MainWindow extends JFrame implements Desktop, WindowListener {
     public OpenedRawDataFile[] getSelectedDataFiles() {
         return itemSelector.getSelectedRawData();
     }
-    
+
     public AlignmentResult[] getSelectedAlignmentResults() {
-    	return itemSelector.getSelectedAlignmentResults();
+        return itemSelector.getSelectedAlignmentResults();
     }
- 
+
     public void setSelectedAlignmentResult(AlignmentResult alignmentResult) {
-    	itemSelector.setActiveAlignmentResult(alignmentResult);
-	}
+        itemSelector.setActiveAlignmentResult(alignmentResult);
+    }
 
-	public void setSelectedDataFile(OpenedRawDataFile dataFile) {
-		itemSelector.setActiveRawData(dataFile);
-	}
+    public void setSelectedDataFile(OpenedRawDataFile dataFile) {
+        itemSelector.setActiveRawData(dataFile);
+    }
 
-	public void addAlignmentResult(AlignmentResult alignmentResult) {
-    	itemSelector.addAlignmentResult(alignmentResult);
-	}
+    public void addAlignmentResult(AlignmentResult alignmentResult) {
+        itemSelector.addAlignmentResult(alignmentResult);
+    }
 
-	public void addDataFile(OpenedRawDataFile dataFile) {
-		itemSelector.addRawData(dataFile);
-	}
+    public void addDataFile(OpenedRawDataFile dataFile) {
+        itemSelector.addRawData(dataFile);
+    }
 
-	public void removeAlignmentResult(AlignmentResult alignmentResult) {
-		itemSelector.removeAlignmentResult(alignmentResult);
-	}
+    public void removeAlignmentResult(AlignmentResult alignmentResult) {
+        itemSelector.removeAlignmentResult(alignmentResult);
+    }
 
-	public void removeDataFile(OpenedRawDataFile dataFile) {
-		itemSelector.removeRawData(dataFile);
-	}
+    public void removeDataFile(OpenedRawDataFile dataFile) {
+        itemSelector.removeRawData(dataFile);
+    }
 
-	/**
+    /**
      * @see net.sf.mzmine.userinterface.Desktop#addSelectionListener(javax.swing.event.ListSelectionListener)
      */
     public void addSelectionListener(ListSelectionListener listener) {
@@ -194,19 +194,34 @@ public class MainWindow extends JFrame implements Desktop, WindowListener {
     }
 
     public void notifySelectionListeners() {
-    	for (ListSelectionListener listener : selectionListeners) {
-    		listener.valueChanged(new ListSelectionEvent(this,0,0,false));
-    	}
+        for (ListSelectionListener listener : selectionListeners) {
+            listener.valueChanged(new ListSelectionEvent(this, 0, 0, false));
+        }
     }
-    
+
     /**
      */
     public void initModule(MZmineCore core) {
 
         assert myInstance == null;
         myInstance = this;
-        
+
         this.core = core;
+
+        
+        Font defaultFont = new Font("SansSerif", Font.PLAIN, 13);
+        Font smallFont = new Font("SansSerif", Font.PLAIN, 11);
+        Enumeration keys = UIManager.getDefaults().keys();
+        while (keys.hasMoreElements()) {
+            Object key = keys.nextElement();
+            Object value = UIManager.get(key);
+            if (value instanceof Font)
+                UIManager.put(key, defaultFont);
+        }
+        UIManager.put("List.font", smallFont);
+        UIManager.put("Table.font", smallFont);
+
+
 
         // Initialize item selector
         itemSelector = new ItemSelector(this);
@@ -231,7 +246,6 @@ public class MainWindow extends JFrame implements Desktop, WindowListener {
         menuBar = new MainMenu(core);
         setJMenuBar(menuBar);
 
-        
         // Initialize window listener for responding to user events
         addWindowListener(this);
 
@@ -269,7 +283,7 @@ public class MainWindow extends JFrame implements Desktop, WindowListener {
     public boolean isDataFileSelected() {
         return itemSelector.getSelectedRawData().length > 0;
     }
-    
+
     /**
      * @see net.sf.mzmine.userinterface.Desktop#isDataFileSelected()
      */
@@ -343,7 +357,9 @@ public class MainWindow extends JFrame implements Desktop, WindowListener {
      */
     public NumberFormatProvider getMZFormatProvider() {
         return new NumberFormatProvider() {
+
             NumberFormat fmt = new DecimalFormat("0.000");
+
             public NumberFormat getCurrentNumberFormat() {
                 return fmt;
             }
@@ -355,7 +371,9 @@ public class MainWindow extends JFrame implements Desktop, WindowListener {
      */
     public NumberFormatProvider getRTFormatProvider() {
         return new NumberFormatProvider() {
+
             NumberFormat fmt = new TimeNumberFormat();
+
             public NumberFormat getCurrentNumberFormat() {
                 return fmt;
             }
@@ -367,13 +385,13 @@ public class MainWindow extends JFrame implements Desktop, WindowListener {
      */
     public NumberFormatProvider getIntensityFormatProvider() {
         return new NumberFormatProvider() {
+
             NumberFormat fmt = new DecimalFormat("0.00E0");
+
             public NumberFormat getCurrentNumberFormat() {
                 return fmt;
             }
         };
     }
-
-
 
 }

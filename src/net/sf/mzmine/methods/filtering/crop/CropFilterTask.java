@@ -196,20 +196,23 @@ class CropFilterTask implements Task {
                     newScan = tmpScan;
 
                 } else {
-                    newScan = oldScan;
+                    // ignore this scan
+                    continue;
                 }
+            } else {
+                // TODO: check if the parent scan is included into new file
+                newScan = oldScan;
+            }
 
-                // Write the modified scan to file
-                try {
+            // Write the modified scan to file
+            try {
 
-                    rawDataFileWriter.addScan(newScan);
+                rawDataFileWriter.addScan(newScan);
 
-                } catch (IOException e) {
-                    status = TaskStatus.ERROR;
-                    errorMessage = e.toString();
-                    return;
-                }
-
+            } catch (IOException e) {
+                status = TaskStatus.ERROR;
+                errorMessage = e.toString();
+                return;
             }
 
             filteredScans++;

@@ -20,8 +20,10 @@
 package net.sf.mzmine.userinterface.components;
 
 import java.awt.Component;
+import java.awt.Font;
 
 import javax.swing.JComponent;
+import javax.swing.JLabel;
 import javax.swing.JList;
 import javax.swing.JTable;
 import javax.swing.ListCellRenderer;
@@ -33,6 +35,21 @@ import javax.swing.table.TableCellRenderer;
 public class ComponentCellRenderer implements TableCellRenderer,
         ListCellRenderer {
 
+    private Font font;
+
+    /**
+     * @param font
+     */
+    public ComponentCellRenderer() {
+    }
+
+    /**
+     * @param font
+     */
+    public ComponentCellRenderer(Font font) {
+        this.font = font;
+    }
+
     /**
      * @see javax.swing.table.TableCellRenderer#getTableCellRendererComponent(javax.swing.JTable,
      *      java.lang.Object, boolean, boolean, int, int)
@@ -43,7 +60,10 @@ public class ComponentCellRenderer implements TableCellRenderer,
         if (value instanceof JComponent)
             return (Component) value;
 
-        return null;
+        JLabel newLabel = new JLabel(value.toString());
+        if (font != null)
+            newLabel.setFont(font);
+        return newLabel;
 
     }
 
@@ -57,7 +77,11 @@ public class ComponentCellRenderer implements TableCellRenderer,
         if (value instanceof JComponent)
             return (Component) value;
 
-        return null;
+        JLabel newLabel = new JLabel(value.toString());
+        if (font != null)
+            newLabel.setFont(font);
+        return newLabel;
+
     }
 
 }

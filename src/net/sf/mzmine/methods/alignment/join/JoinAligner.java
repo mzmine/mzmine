@@ -162,8 +162,8 @@ public class JoinAligner implements Method, TaskListener,
     public void valueChanged(ListSelectionEvent e) {
 
         OpenedRawDataFile[] dataFiles = desktop.getSelectedDataFiles();
-
-        boolean allOk = true;
+        
+        boolean allOk = (dataFiles.length > 0);
 
         for (OpenedRawDataFile file : dataFiles) {
             if (!file.getCurrentFile().hasData(PeakList.class)) {
