@@ -39,10 +39,10 @@ import javax.swing.event.ListSelectionListener;
 
 import net.sf.mzmine.data.AlignmentResult;
 import net.sf.mzmine.io.OpenedRawDataFile;
+import net.sf.mzmine.modules.visualization.rawdata.RawDataVisualizer;
 import net.sf.mzmine.project.MZmineProject;
 import net.sf.mzmine.userinterface.Desktop;
 import net.sf.mzmine.util.GUIUtils;
-import net.sf.mzmine.visualizers.rawdata.RawDataVisualizer;
 
 /**
  * This class implements a selector of raw data files and alignment results
