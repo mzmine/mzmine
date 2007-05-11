@@ -3,31 +3,31 @@
 <configuration> 
   <nodes local="4"/>  
   <modules> 
-    <module class="net.sf.mzmine.visualizers.rawdata.tic.TICVisualizer"/>  
-    <module class="net.sf.mzmine.visualizers.rawdata.spectra.SpectraVisualizer"/>  
-    <module class="net.sf.mzmine.visualizers.rawdata.twod.TwoDVisualizer"/>  
-    <module class="net.sf.mzmine.visualizers.rawdata.threed.ThreeDVisualizer"/>  
-    <module class="net.sf.mzmine.visualizers.rawdata.neutralloss.NeutralLossVisualizer"/>  
+    <module class="net.sf.mzmine.modules.visualization.rawdata.tic.TICVisualizer"/>  
+    <module class="net.sf.mzmine.modules.visualization.rawdata.spectra.SpectraVisualizer"/>  
+    <module class="net.sf.mzmine.modules.visualization.rawdata.twod.TwoDVisualizer"/>  
+    <module class="net.sf.mzmine.modules.visualization.rawdata.threed.ThreeDVisualizer"/>  
+    <module class="net.sf.mzmine.modules.visualization.rawdata.neutralloss.NeutralLossVisualizer"/>  
     <module class="net.sf.mzmine.util.menu.VisualizationMenuSeparator"/>  
-    <module class="net.sf.mzmine.visualizers.peaklist.table.PeakListTableVisualizer"/>  
-    <module class="net.sf.mzmine.visualizers.alignmentresult.table.AlignmentResultTableVisualizer"/>  
-    <module class="net.sf.mzmine.visualizers.alignmentresult.logratio.AlignmentResultLogratioVisualizer"/>  
-    <module class="net.sf.mzmine.batchmode.BatchMode"/>  
-    <module class="net.sf.mzmine.methods.filtering.crop.CropFilter"/> 
-    <module class="net.sf.mzmine.methods.filtering.mean.MeanFilter"/> 
-    <module class="net.sf.mzmine.methods.filtering.savitzkygolay.SGFilter"/> 
-    <module class="net.sf.mzmine.methods.filtering.chromatographicmedian.CMFilter"/> 
-    <module class="net.sf.mzmine.methods.filtering.zoomscan.ZoomScanFilter"/> 
-    <module class="net.sf.mzmine.methods.peakpicking.recursivethreshold.RecursivePicker"/> 
-    <module class="net.sf.mzmine.methods.peakpicking.local.LocalPicker"/> 
-    <module class="net.sf.mzmine.methods.peakpicking.centroid.CentroidPicker"/> 
+    <module class="net.sf.mzmine.modules.visualization.peaklist.table.PeakListTableVisualizer"/>  
+    <module class="net.sf.mzmine.modules.visualization.alignmentresult.table.AlignmentResultTableVisualizer"/>  
+    <module class="net.sf.mzmine.modules.visualization.alignmentresult.logratio.AlignmentResultLogratioVisualizer"/>  
+    <module class="net.sf.mzmine.modules.batchmode.BatchMode"/>  
+    <module class="net.sf.mzmine.modules.filtering.crop.CropFilter"/>
+    <module class="net.sf.mzmine.modules.filtering.mean.MeanFilter"/>
+    <module class="net.sf.mzmine.modules.filtering.savitzkygolay.SGFilter"/>
+    <module class="net.sf.mzmine.modules.filtering.chromatographicmedian.CMFilter"/>
+    <module class="net.sf.mzmine.modules.filtering.zoomscan.ZoomScanFilter"/>
+    <module class="net.sf.mzmine.modules.peakpicking.recursivethreshold.RecursivePicker"/>
+    <module class="net.sf.mzmine.modules.peakpicking.local.LocalPicker"/>
+    <module class="net.sf.mzmine.modules.peakpicking.centroid.CentroidPicker"/>
     <module class="net.sf.mzmine.util.menu.PeakPickingMenuSeparator"/>  
-    <module class="net.sf.mzmine.methods.deisotoping.simplegrouper.SimpleGrouper"/> 
-    <module class="net.sf.mzmine.methods.deisotoping.incompletefilter.IncompleteFilter"/> 
-    <module class="net.sf.mzmine.methods.alignment.join.JoinAligner"/> 
-    <module class="net.sf.mzmine.methods.alignment.filterbygaps.GapsFilter"/> 
-    <module class="net.sf.mzmine.methods.gapfilling.simple.SimpleGapFiller"/> 
-    <module class="net.sf.mzmine.methods.normalization.linear.LinearNormalizer"/> 
-    <module class="net.sf.mzmine.dataanalysis.intensityplot.IntensityPlot"/> 
+    <module class="net.sf.mzmine.modules.deisotoping.simplegrouper.SimpleGrouper"/>
+    <module class="net.sf.mzmine.modules.deisotoping.incompletefilter.IncompleteFilter"/>
+    <module class="net.sf.mzmine.modules.alignment.join.JoinAligner"/> 
+    <module class="net.sf.mzmine.modules.alignment.filterbygaps.GapsFilter"/> 
+    <module class="net.sf.mzmine.modules.gapfilling.simple.SimpleGapFiller"/> 
+    <module class="net.sf.mzmine.modules.normalization.linear.LinearNormalizer"/> 
+    <module class="net.sf.mzmine.modules.dataanalysis.intensityplot.IntensityPlot"/> 
   </modules> 
 </configuration>
