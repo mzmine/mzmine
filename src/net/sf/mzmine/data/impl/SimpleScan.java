@@ -99,20 +99,29 @@ public class SimpleScan implements Scan {
         this.intensityValues = intensityValues;
 
         // find m/z range and base peak
-        mzRangeMin = mzValues[0];
-        mzRangeMax = mzValues[0];
-        basePeakMZ = mzValues[0];
-        basePeakIntensity = intensityValues[0];
-        for (int i = 1; i < mzValues.length; i++) {
-            if (mzRangeMin > mzValues[i])
-                mzRangeMin = mzValues[i];
-            if (mzRangeMax < mzValues[i])
-                mzRangeMax = mzValues[i];
-            if (basePeakIntensity < intensityValues[i]) {
-                basePeakIntensity = intensityValues[i];
-                basePeakMZ = mzValues[i];
-            }
+        if (mzValues.length>0) {
+	        mzRangeMin = mzValues[0];
+	        mzRangeMax = mzValues[0];
+	        basePeakMZ = mzValues[0];
+	        basePeakIntensity = intensityValues[0];
+	        for (int i = 1; i < mzValues.length; i++) {
+	            if (mzRangeMin > mzValues[i])
+	                mzRangeMin = mzValues[i];
+	            if (mzRangeMax < mzValues[i])
+	                mzRangeMax = mzValues[i];
+	            if (basePeakIntensity < intensityValues[i]) {
+	                basePeakIntensity = intensityValues[i];
+	                basePeakMZ = mzValues[i];
+	            }
+	        }
+        } else {
+        	// Empty scan, so no m/z range or base peak
+        	mzRangeMin = 0;
+        	mzRangeMax = mzRangeMin;
+	        basePeakMZ = 0;
+	        basePeakIntensity = 0;        	
         }
+        
 
     }
 

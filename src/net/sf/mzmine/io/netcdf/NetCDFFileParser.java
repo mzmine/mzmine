@@ -301,7 +301,7 @@ public class NetCDFFileParser {
 
 		// An empty scan needs some special attention..
 		if (scanLength[0]==0) {
-            return null;
+			return new SimpleScan(scanNum, 1, retentionTime, -1, 0, null, new double[0], new double[0], false);
 		}
 
 /*		
