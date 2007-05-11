@@ -1,5 +1,5 @@
 /*
- * Copyright 2006 The MZmine Development Team
+ * Copyright 2006-2007 The MZmine Development Team
  * 
  * This file is part of MZmine.
  * 
@@ -18,6 +18,11 @@
  */
 
 package net.sf.mzmine.main;
+
+import gov.nih.nlm.ncbi.www.soap.eutils.EUtilsServiceLocator;
+import gov.nih.nlm.ncbi.www.soap.eutils.EUtilsServiceSoap;
+import gov.nih.nlm.ncbi.www.soap.eutils.esearch.ESearchRequest;
+import gov.nih.nlm.ncbi.www.soap.eutils.esearch.ESearchResult;
 
 import java.io.File;
 import java.io.FileWriter;
@@ -39,6 +44,7 @@ import net.sf.mzmine.taskcontrol.impl.TaskControllerImpl;
 import net.sf.mzmine.userinterface.Desktop;
 import net.sf.mzmine.userinterface.mainwindow.MainWindow;
 
+import org.apache.axis.transport.http.HTTPConstants;
 import org.dom4j.Document;
 import org.dom4j.Element;
 import org.dom4j.io.OutputFormat;
