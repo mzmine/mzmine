@@ -20,20 +20,15 @@
 		<fileset refid="jars" />
 	</path>
 
-	<path id="currentdirpath">
-		<pathelement location="." />
-	</path>
-	<property name="currentdir" refid="currentdirpath"/>
-	
 	<pathconvert property="classpath" refid="cppath" pathsep=" " dirsep="/">
-	      <map from="${currentdir}/" to="" />
+	      <map from="${basedir}${file.separator}" to="" />
     </pathconvert>
 	
 	<target name="manifest">
 	   		<manifest file="${manifest}" mode="replace">
 	  			<attribute name="Built-By" value="${user.name}"/>
 	  			<attribute name="Main-Class" value="${mainclass}"/>
-	   			<attribute name="Class-Path" value="${classpath}"/>	  	
+	   			<attribute name="Class-Path" value=". ${classpath}"/>	  	
 	  		</manifest>
 	</target>
 	
