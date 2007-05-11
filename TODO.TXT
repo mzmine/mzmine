@@ -18,6 +18,11 @@ Whole method is missing, but it is not top priority. Instead of the old simple s
 - At least 2D visualizer is not yet finished. It should show detected peaks on top of the visualization.
 - 3D-visualizer is not top priority.
 
+* Peak list and alignment result table views
+- Proper formatting to all columns
+- Peak list should have capability for deleting bad peaks
+- These visualizers could be merged in the future
+
 * From peak list & alignment result table it should be possible to open raw data visualizers showing the detected or estimated peak:
 - 2D visualizer with an overview of the region around the peak
 - Spectrum showing scan at the highest position of the peak 
