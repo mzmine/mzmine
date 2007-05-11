@@ -1,22 +1,21 @@
 /*
-    Copyright 2005 VTT Biotechnology
-
-    This file is part of MZmine.
-
-    MZmine is free software; you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
-    the Free Software Foundation; either version 2 of the License, or
-    (at your option) any later version.
-
-    MZmine is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
-
-    You should have received a copy of the GNU General Public License
-    along with MZmine; if not, write to the Free Software
-    Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
-*/
+ * Copyright 2006-2007 The MZmine Development Team
+ * 
+ * This file is part of MZmine.
+ * 
+ * MZmine is free software; you can redistribute it and/or modify it under the
+ * terms of the GNU General Public License as published by the Free Software
+ * Foundation; either version 2 of the License, or (at your option) any later
+ * version.
+ * 
+ * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY
+ * WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR
+ * A PARTICULAR PURPOSE. See the GNU General Public License for more details.
+ * 
+ * You should have received a copy of the GNU General Public License along with
+ * MZmine; if not, write to the Free Software Foundation, Inc., 51 Franklin St,
+ * Fifth Floor, Boston, MA 02110-1301 USA
+ */
 
 package net.sf.mzmine.io.util;
 
@@ -28,141 +27,102 @@ import net.sf.mzmine.data.IsotopePattern;
 import net.sf.mzmine.data.Peak;
 import net.sf.mzmine.data.PeakList;
 import net.sf.mzmine.io.OpenedRawDataFile;
-import net.sf.mzmine.project.MZmineProject;
 import net.sf.mzmine.util.IsotopePatternUtils;
-
-import org.w3c.dom.Document;
-import org.w3c.dom.Element;
-
-
-
 
 /**
  * IO for peak list data
  */
 public class PeakListWriter {
 
-	/**
-	 * Exports peak list to a tab-delimitted text file
-	 */
-	public static void exportPeakListToFile(OpenedRawDataFile rawData, File outputfile) throws IOException {
+    /**
+     * Exports peak list to a tab-delimitted text file
+     */
+    public static void exportPeakListToFile(OpenedRawDataFile rawData,
+            File outputfile) throws IOException {
 
+        // Open file
+        FileWriter fw = new FileWriter(outputfile);
 
-		// Open file
-		FileWriter fw = new FileWriter(outputfile);
+        // Write column headers
 
-		// Write column headers
+        String s = "" + "M/Z" + "\t" + "RT" + "\t" + "Raw Height" + "\t"
+                + "Raw Area" + "\t"
+                + "Normalized M/Z" + "\t" + "Normalized RT" + "\t"
+                + "Normalized Height" + "\t" + "Normalized Area" + "\t"
+                + "Duration" + "\t" + "M/Z diff" + "\t"
+                + "Isotope Pattern Number" + "\t" + "Isotope Peak Number"
+                + "\t" + "Charge" + "\t"
+                + "\n";
 
-		String s = "" 	+ "M/Z" + "\t"
-						+ "RT" + "\t"
-						+ "Raw Height" + "\t"
-						+ "Raw Area" + "\t"
+        fw.write(s);
 
-						+ "Normalized M/Z" + "\t"
-						+ "Normalized RT" + "\t"
-						+ "Normalized Height" + "\t"
-						+ "Normalized Area" + "\t"
+        // Get peak list
+        PeakList peakList = (PeakList) rawData.getCurrentFile().getData(
+                PeakList.class)[0];
 
-						+ "Duration" + "\t"
-						+ "M/Z diff" + "\t"
+        // Group peaks by their isotope pattern
+        IsotopePatternUtils isotopeUtility = new IsotopePatternUtils(peakList);
 
-						+ "Isotope Pattern Number" + "\t"
-						+ "Isotope Peak Number" + "\t"
-						+ "Charge" + "\t"
+        // Loop through peaks
 
-						+ "\n";
+        if (peakList != null) {
+            Peak[] peaks = peakList.getPeaks();
 
-		fw.write(s);
+            for (Peak p : peaks) {
 
-		// Get peak list
-		MZmineProject proj = MZmineProject.getCurrentProject();
-		PeakList peakList = (PeakList)rawData.getCurrentFile().getData(PeakList.class)[0];
+                double mz = p.getRawMZ();
+                double rt = p.getRawRT();
+                double height = p.getRawHeight();
+                double area = p.getRawArea();
 
-		// Group peaks by their isotope pattern
-		IsotopePatternUtils isotopeUtility = new IsotopePatternUtils(peakList);
+                double normalizedMZ = p.getNormalizedMZ();
+                double normalizedRT = p.getNormalizedRT();
+                double normalizedHeight = p.getNormalizedHeight();
+                double normalizedArea = p.getNormalizedArea();
 
+                double duration = p.getMaxRT() - p.getMinRT();
+                double mzDiff = p.getMaxMZ() - p.getMinMZ();
 
-		// Loop through peaks
+                s = "" + mz + "\t" + rt + "\t" + height + "\t" + area + "\t"
 
-		if (peakList!=null) {
-			Peak[] peaks = peakList.getPeaks();
+                + normalizedMZ + "\t" + normalizedRT + "\t" + normalizedHeight
+                        + "\t" + normalizedArea + "\t"
 
-			for (Peak p : peaks) {
+                        + duration + "\t" + mzDiff + "\t";
 
-				double mz = p.getRawMZ();
-				double rt = p.getRawRT();
-				double height = p.getRawHeight();
-				double area = p.getRawArea();
+                // Is this peak assigned to some isotope pattern?
 
-				double normalizedMZ = p.getNormalizedMZ();
-				double normalizedRT = p.getNormalizedRT();
-				double normalizedHeight = p.getNormalizedHeight();
-				double normalizedArea = p.getNormalizedArea();
+                if (p.hasData(IsotopePattern.class)) {
 
-				double duration = p.getMaxRT() - p.getMinRT();
-				double mzDiff = p.getMaxMZ() - p.getMinMZ();
+                    IsotopePattern isotopePattern = (IsotopePattern) (p.getData(IsotopePattern.class)[0]);
 
-				s = ""	+ mz + "\t"
-						+ rt + "\t"
-						+ height + "\t"
-						+ area + "\t"
+                    int isotopePatternNumber = isotopeUtility.getIsotopePatternNumber(isotopePattern);
+                    int isotopePeakNumber = isotopeUtility.getPeakNumberWithinPattern(p);
+                    int charge = isotopePattern.getChargeState();
 
-						+ normalizedMZ + "\t"
-						+ normalizedRT + "\t"
-						+ normalizedHeight + "\t"
-						+ normalizedArea + "\t"
+                    s += "" + isotopePatternNumber + "\t" + isotopePeakNumber
+                            + "\t" + charge + "\t";
 
-						+ duration + "\t"
-						+ mzDiff + "\t";
+                } else {
 
+                    // No isotope pattern assigned for the peak
+                    s += "" + "N/A" + "\t" + "N/A" + "\t" + "N/A" + "\t";
 
-				// Is this peak assigned to some isotope pattern?
+                }
 
-				if (p.hasData(IsotopePattern.class)) {
+                s += "\n";
 
-					IsotopePattern isotopePattern = (IsotopePattern)(p.getData(IsotopePattern.class)[0]);
+                // Write row
+                fw.write(s);
 
-					int isotopePatternNumber =  isotopeUtility.getIsotopePatternNumber(isotopePattern);
-					int isotopePeakNumber = isotopeUtility.getPeakNumberWithinPattern(p);
-					int charge = isotopePattern.getChargeState();
+            }
 
-					s += "" + isotopePatternNumber + "\t"
-							+ isotopePeakNumber + "\t"
-							+ charge + "\t";
+        }
 
+        // Close file
 
-				} else {
+        fw.close();
 
-					// No isotope pattern assigned for the peak
-					s += "" + "N/A" + "\t"
-							+ "N/A" + "\t"
-							+ "N/A" + "\t";
-
-				}
-
-				s += "\n";
-
-				// Write row
-				fw.write(s);
-
-			}
-
-		}
-
-		// Close file
-
-		fw.close();
-
-	}
-
-
-	public Element addToXML(Document doc) {
-		// TODO
-		return null;
-	}
-
-	public void readFromXML(Element element) {
-		// TODO
-	}
+    }
 
 }
