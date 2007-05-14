@@ -261,6 +261,29 @@ public class TICSetupDialog extends JDialog implements ActionListener {
     }
 
     /**
+     * Constructor for showing the dialog with pre-defined minimum and maximum M/Z range
+     * @param taskController
+     * @param desktop
+     * @param dataFile
+     */
+    public TICSetupDialog(TaskController taskController, Desktop desktop,
+            OpenedRawDataFile dataFile, double minMZ, double maxMZ) {
+    
+    	this(taskController, desktop, dataFile);
+    	
+    	int msLevel = (Integer) comboMSlevel.getSelectedItem();
+  	
+    	if ( 	(minMZ>=rawDataFile.getDataMinMZ(msLevel)) &&
+    			(minMZ<=rawDataFile.getDataMaxMZ(msLevel)) ) 
+    		fieldMinMZ.setValue(minMZ);
+    	
+    	if ( 	(maxMZ>=rawDataFile.getDataMinMZ(msLevel)) &&
+    			(maxMZ<=rawDataFile.getDataMaxMZ(msLevel)) ) 
+    		fieldMaxMZ.setValue(maxMZ);
+    }
+    
+    
+    /**
      * @see java.awt.event.ActionListener#actionPerformed(java.awt.event.ActionEvent)
      */
     public void actionPerformed(ActionEvent ae) {

@@ -22,6 +22,7 @@ package net.sf.mzmine.modules.visualization.peaklist.table;
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.event.ActionListener;
+import java.util.logging.Logger;
 
 import javax.swing.JInternalFrame;
 import javax.swing.JScrollPane;
@@ -31,6 +32,7 @@ import net.sf.mzmine.data.Peak;
 import net.sf.mzmine.io.OpenedRawDataFile;
 import net.sf.mzmine.modules.visualization.peaklist.PeakListVisualizer;
 import net.sf.mzmine.modules.visualization.rawdata.spectra.SpectraVisualizerWindow;
+import net.sf.mzmine.modules.visualization.rawdata.tic.TICSetupDialog;
 import net.sf.mzmine.taskcontrol.TaskController;
 import net.sf.mzmine.userinterface.Desktop;
 
@@ -40,6 +42,9 @@ import net.sf.mzmine.userinterface.Desktop;
  */
 public class PeakListTableViewWindow extends JInternalFrame implements PeakListVisualizer, ActionListener {
 
+	
+	private Logger logger = Logger.getLogger(this.getClass().getName());
+	
 	private PeakListTable table;
 
 	private TaskController taskController;
@@ -89,11 +94,20 @@ public class PeakListTableViewWindow extends JInternalFrame implements PeakListV
 		}
 
         if (command.equals("SHOW_XIC_FOR_PEAK")) {
-
+        	
+        	logger.fine("Show XIC for a peak");
+      	
+        	
 			Peak p = getSelectedPeak();
 			
 			// Open a new chromatographic visualizer showing XIC around peak's M/Z and filled area for peaks duration
 			if (p != null) {
+				
+				logger.fine("Show setup dialog");
+				
+				// TODO: Use mass accuracy to define XIC width
+				TICSetupDialog setupDialog = new TICSetupDialog(taskController, desktop, rawData, p.getMinMZ(), p.getMaxMZ());
+				setupDialog.setVisible(true);
 				
 			}
 		}
