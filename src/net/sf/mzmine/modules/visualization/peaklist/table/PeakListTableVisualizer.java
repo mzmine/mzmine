@@ -27,6 +27,7 @@ import java.awt.event.ActionEvent;
 import java.awt.event.KeyEvent;
 import java.util.logging.Logger;
 
+import net.sf.mzmine.taskcontrol.TaskController;
 import net.sf.mzmine.userinterface.Desktop;
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.main.MZmineModule;
@@ -38,6 +39,7 @@ import net.sf.mzmine.data.PeakList;
 
 public class PeakListTableVisualizer implements MZmineModule, ActionListener, ListSelectionListener {
 
+	private TaskController taskController;
 	private Desktop desktop;
 	private JMenuItem peakListViewMenuItem;
 
@@ -48,6 +50,7 @@ public class PeakListTableVisualizer implements MZmineModule, ActionListener, Li
      */
     public void initModule(MZmineCore core) {
 
+        this.taskController = core.getTaskController();
         this.desktop = core.getDesktop();
 
         peakListViewMenuItem = desktop.addMenuItem(MZmineMenu.VISUALIZATION, "Peak list view",
@@ -68,7 +71,7 @@ public class PeakListTableVisualizer implements MZmineModule, ActionListener, Li
 
 				logger.finest("Showing a new peak list view");
 
-            	PeakListTableViewWindow peakListTable = new PeakListTableViewWindow(dataFile);
+            	PeakListTableViewWindow peakListTable = new PeakListTableViewWindow(taskController, desktop, dataFile);
             	desktop.addInternalFrame(peakListTable);
 			}
         }

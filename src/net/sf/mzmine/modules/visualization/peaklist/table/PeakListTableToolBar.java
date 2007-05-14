@@ -31,11 +31,12 @@ import javax.swing.JToolBar;
  *
  */
 class PeakListTableToolBar extends JToolBar {
+ 
+    private JButton showSpectrumButton;
+    private JButton showXICButton;
 
-    private JButton zoomToPeakButton, findInAlignmentsButton;
-
-    static final Icon zoomToPeakIcon = new ImageIcon("icons/annotationsicon.png");
-    static final Icon findInAlignmentsIcon = new ImageIcon("icons/tableselectionicon.png");
+    static final Icon showSpectrumIcon = new ImageIcon("icons/spectrumicon.png");
+    static final Icon showXICIcon = new ImageIcon("icons/xicicon.png");
 
     PeakListTableToolBar(PeakListTableViewWindow masterFrame) {
 
@@ -45,21 +46,21 @@ class PeakListTableToolBar extends JToolBar {
         setMargin(new Insets(5, 5, 5, 5));
         setBackground(Color.white);
 
-        zoomToPeakButton = new JButton(zoomToPeakIcon);
-        zoomToPeakButton.setActionCommand("ZOOM_TO_PEAK");
-        zoomToPeakButton.setToolTipText("Zoom visualizers to selected peak");
-        zoomToPeakButton.setEnabled(true);
-        zoomToPeakButton.addActionListener(masterFrame);
+        showSpectrumButton = new JButton(showSpectrumIcon);
+        showSpectrumButton.setActionCommand("SHOW_SPECTRUM_FOR_PEAK");
+        showSpectrumButton.setToolTipText("Show spectrum for selected peak");
+        showSpectrumButton.setEnabled(true);
+        showSpectrumButton.addActionListener(masterFrame);
 
-        findInAlignmentsButton = new JButton(findInAlignmentsIcon);
-        findInAlignmentsButton.setActionCommand("FIND_IN_ALIGNMENTS");
-        findInAlignmentsButton.setToolTipText("Find peak in alignments");
-        findInAlignmentsButton.setEnabled(true);
-        findInAlignmentsButton.addActionListener(masterFrame);
+        showXICButton = new JButton(showXICIcon);
+        showXICButton.setActionCommand("SHOW_XIC_FOR_PEAK");
+        showXICButton.setToolTipText("Show XIC for selected peak");
+        showXICButton.setEnabled(true);
+        showXICButton.addActionListener(masterFrame);
 
-        add(zoomToPeakButton);
+        add(showSpectrumButton);
         addSeparator();
-        add(findInAlignmentsButton);
+        add(showXICButton);
 
     }
 

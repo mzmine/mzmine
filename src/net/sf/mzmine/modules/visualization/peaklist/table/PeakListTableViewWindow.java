@@ -30,6 +30,9 @@ import javax.swing.JTable;
 import net.sf.mzmine.data.Peak;
 import net.sf.mzmine.io.OpenedRawDataFile;
 import net.sf.mzmine.modules.visualization.peaklist.PeakListVisualizer;
+import net.sf.mzmine.modules.visualization.rawdata.spectra.SpectraVisualizerWindow;
+import net.sf.mzmine.taskcontrol.TaskController;
+import net.sf.mzmine.userinterface.Desktop;
 
 
 /**
@@ -39,10 +42,18 @@ public class PeakListTableViewWindow extends JInternalFrame implements PeakListV
 
 	private PeakListTable table;
 
-
-	public PeakListTableViewWindow(OpenedRawDataFile rawData) {
+	private TaskController taskController;
+	private Desktop desktop;
+	
+	private OpenedRawDataFile rawData;
+	
+	public PeakListTableViewWindow(TaskController taskController, Desktop desktop, OpenedRawDataFile rawData) {
 
 		super(rawData.toString() + " Peak list", true, true, true, true);
+		
+		this.taskController = taskController;
+		this.desktop = desktop;
+		this.rawData = rawData;
 
 		setDefaultCloseOperation(DISPOSE_ON_CLOSE);
         setBackground(Color.white);
@@ -67,18 +78,24 @@ public class PeakListTableViewWindow extends JInternalFrame implements PeakListV
         String command = event.getActionCommand();
 
 
-        if (command.equals("ZOOM_TO_PEAK")) {
+        if (command.equals("SHOW_SPECTRUM_FOR_PEAK")) {
 
 			Peak p = getSelectedPeak();
-			// TODO: Update cursor position on all(?) raw data visualizers showing this rawData
-			// Requires solution for raw data visualizer interaction.
+			
+			if (p != null)
+				// TODO: M/Z bin size is hard coded here
+                new SpectraVisualizerWindow(taskController, desktop, rawData, p.getScanNumbers(), 0.01);			
+			
 		}
 
-        if (command.equals("FIND_IN_ALIGNMENTS")) {
+        if (command.equals("SHOW_XIC_FOR_PEAK")) {
 
 			Peak p = getSelectedPeak();
-			// TODO: Update selected row on visualizers for all(?) alignment result where this peakList is participating
-			// Requires implementing  alignment results and their visualizers.
+			
+			// Open a new chromatographic visualizer showing XIC around peak's M/Z and filled area for peaks duration
+			if (p != null) {
+				
+			}
 		}
 
 	}

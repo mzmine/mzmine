@@ -183,6 +183,9 @@ class JoinAlignerTask implements Task {
             Iterator<PatternVsRowScore> scoreIter = scoreTree.iterator();
             while (scoreIter.hasNext()) {
                 PatternVsRowScore score = scoreIter.next();
+
+                processedPercentage += 1.0f / (float) dataFiles.length
+                / (float) scoreTree.size();
                 
                 if (status == TaskStatus.CANCELED)
                     return;
@@ -207,9 +210,6 @@ class JoinAlignerTask implements Task {
                 // Mark pattern and isotope pattern row as joined
                 masterIsotopeListRow.setJoined(true);
                 wrappedIsotopePattern.setAlreadyJoined(true);
-
-                processedPercentage += 1.0f / (float) dataFiles.length
-                        / (float) scoreTree.size();
 
             }
 
