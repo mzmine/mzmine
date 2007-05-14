@@ -22,6 +22,7 @@ Whole method is missing, but it is not top priority. Instead of the old simple s
 - Proper formatting to all columns
 - Peak list should have capability for deleting bad peaks
 - These visualizers could be merged in the future
+- User should be able to write&edit comments to peaks
 
 * From peak list & alignment result table it should be possible to open raw data visualizers showing the detected or estimated peak:
 - 2D visualizer with an overview of the region around the peak
