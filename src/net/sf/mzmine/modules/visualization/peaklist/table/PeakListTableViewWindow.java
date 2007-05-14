@@ -37,7 +37,6 @@ import net.sf.mzmine.modules.visualization.peaklist.PeakListVisualizer;
  */
 public class PeakListTableViewWindow extends JInternalFrame implements PeakListVisualizer, ActionListener {
 
-	private OpenedRawDataFile rawData;
 	private PeakListTable table;
 
 
@@ -45,9 +44,7 @@ public class PeakListTableViewWindow extends JInternalFrame implements PeakListV
 
 		super(rawData.toString() + " Peak list", true, true, true, true);
 
-		this.rawData = rawData;
-
-        setDefaultCloseOperation(DISPOSE_ON_CLOSE);
+		setDefaultCloseOperation(DISPOSE_ON_CLOSE);
         setBackground(Color.white);
 
 		// Build toolbar

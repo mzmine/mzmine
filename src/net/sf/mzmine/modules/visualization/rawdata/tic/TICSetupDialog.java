@@ -295,7 +295,7 @@ public class TICSetupDialog extends JDialog implements ActionListener {
                     return;
                 }
 
-                PlotType plotType = plotType = PlotType.TIC;
+                PlotType plotType = PlotType.TIC;
 
                 if (comboPlotType.getSelectedIndex() == 1)
                     plotType = PlotType.BASE_PEAK;

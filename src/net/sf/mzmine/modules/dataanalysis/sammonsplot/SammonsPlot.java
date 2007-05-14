@@ -61,7 +61,7 @@ import net.sf.mzmine.util.TransferableImage;
 //public class AlignmentResultVisualizerSammonsPlotView extends JInternalFrame implements Printable, AlignmentResultVisualizer, InternalFrameListener {
 public class SammonsPlot extends JInternalFrame implements Printable, InternalFrameListener {
 
-	private static final double marginSize = (double)0.02; // How much extra margin is added to the axis in full zoom
+    // private static final double marginSize = (double)0.02; // How much extra margin is added to the axis in full zoom
 
 	private MainWindow mainWin;
 	// private Statusbar statBar;
@@ -70,10 +70,10 @@ public class SammonsPlot extends JInternalFrame implements Printable, InternalFr
 
 	private int[] sampleClasses;			// 0 = unassigned, 1,2,3,...= classes
 
-	private PlotYAxis leftPnl;
+	/*private PlotYAxis leftPnl;
 	private PlotXAxis bottomPnl;
 	private PlotArea plotArea;
-
+	 */
 	private int retval;
 
 	private AlignmentResultVisualizerSammonsPlotViewParameters myParameters;
@@ -91,7 +91,7 @@ public class SammonsPlot extends JInternalFrame implements Printable, InternalFr
 		// Build this visualizer
 		getContentPane().setLayout(new BorderLayout());
 
-		bottomPnl = new PlotXAxis(); //TICXAxis();
+	/*	bottomPnl = new PlotXAxis(); //TICXAxis();
 		bottomPnl.setMinimumSize(new Dimension(getWidth(),25));
 		bottomPnl.setPreferredSize(new Dimension(getWidth(),25));
 		bottomPnl.setBackground(Color.white);
@@ -106,7 +106,7 @@ public class SammonsPlot extends JInternalFrame implements Printable, InternalFr
 		plotArea = new PlotArea(this);
 		plotArea.setBackground(Color.white);
 		getContentPane().add(plotArea, java.awt.BorderLayout.CENTER);
-
+*/
 		setResizable( true );
 		setIconifiable( true );
 
@@ -309,9 +309,9 @@ public class SammonsPlot extends JInternalFrame implements Printable, InternalFr
 	 * Implementation of AlignmentResultVisualizer interface
 	 */
 	public void updateSelectedRow() {
-		int rowNum = 0; //alignmentResult.getSelectedRow();
+		//int rowNum = 0; //alignmentResult.getSelectedRow();
 		// Actual selection (cursor movement) is done in the plot panel
-		plotArea.selectAlignmentRow(rowNum);
+	//	plotArea.selectAlignmentRow(rowNum);
 	}
 
 	/**
@@ -386,10 +386,9 @@ public class SammonsPlot extends JInternalFrame implements Printable, InternalFr
 
 
 
-
+/*
 	/**
 	 * This class is the panel where plot is drawn
-	 */
 	private class PlotArea extends JPanel implements ActionListener, java.awt.event.MouseListener , java.awt.event.MouseMotionListener {
 
 
@@ -438,7 +437,6 @@ public class SammonsPlot extends JInternalFrame implements Printable, InternalFr
 		 * Constructor: initializes panel
 		 *
 		 * @param	_masterFrame	SpatialLogratioPlotView frame where this panel is located
-		 */
 		public PlotArea(SammonsPlot _masterFrame) {
 			masterFrame = _masterFrame;
 		    popupMenu = new JPopupMenu();
@@ -463,7 +461,6 @@ public class SammonsPlot extends JInternalFrame implements Printable, InternalFr
 
 		/**
 		 * Implementation of ActionListener interface
-		 */
 		public void actionPerformed(java.awt.event.ActionEvent e) {
 
 			Object src = e.getSource();
@@ -506,13 +503,11 @@ public class SammonsPlot extends JInternalFrame implements Printable, InternalFr
 
 		/**
 		 * This method moves cursor over the given alignment result list item
-		 */
 		public void selectAlignmentRow(int rowNum) {
 		}
 
 		/**
 		 * Zooms out little from the current view
-		 */
 		private void zoomOutLittle() {
 			double midX = (zoomMinComp1+zoomMaxComp1)/(double)2.0;
 			double midY = (zoomMinComp2+zoomMaxComp2)/(double)2.0;
@@ -553,7 +548,6 @@ public class SammonsPlot extends JInternalFrame implements Printable, InternalFr
 
 		/**
 		 * This method paints the plot to this panel
-		 */
 		public void paint(Graphics g) {
 			super.paint(g);
 
@@ -662,7 +656,6 @@ public class SammonsPlot extends JInternalFrame implements Printable, InternalFr
 
 		/**
 		 * Sets data for plotting
-		 */
 		public void setData(double[] _comp1Values, double[] _comp2Values, int[] _sampleClasses, String[] _sampleLabels) {
 
 			// Store datapoints and their labels
@@ -713,7 +706,6 @@ public class SammonsPlot extends JInternalFrame implements Printable, InternalFr
 
 		/**
 		 * Implementation of MouseListener interface
-		 */
 		public void mouseClicked(MouseEvent e) {}
 		public void mouseEntered(MouseEvent e) {}
 		public void mouseExited(MouseEvent e) {}
@@ -737,7 +729,6 @@ public class SammonsPlot extends JInternalFrame implements Printable, InternalFr
 		private int lastPressedButtonWas;
 		/**
 		 * Implementation of MouseMotionListener interface
-		 */
 		public void mousePressed(MouseEvent e) {
 
 			lastPressedButtonWas = e.getButton();
@@ -839,7 +830,6 @@ public class SammonsPlot extends JInternalFrame implements Printable, InternalFr
 
 		/**
 		 * Implementation of MouseMotionListener interface
-		 */
 		public void mouseMoved(MouseEvent e) {}
 
 	}
@@ -921,7 +911,6 @@ public class SammonsPlot extends JInternalFrame implements Printable, InternalFr
 
 	/**
 	 * This class is used to draw y-axis for the plot
-	 */
 	private class PlotYAxis extends JPanel {
 
 		private final double bottomMargin = (double)0.0;
@@ -987,26 +976,7 @@ public class SammonsPlot extends JInternalFrame implements Printable, InternalFr
 		}
 
 	}
+     */
 
-
-
-
-	private class RawDataPlaceHolder {
-		private String niceName;
-		private int rawDataID;
-
-		public RawDataPlaceHolder(String _niceName, int _rawDataID) {
-			niceName = _niceName;
-			rawDataID = _rawDataID;
-		}
-
-		public String toString() {
-			return niceName;
-		}
-
-		public int getRawDataID() {
-			return rawDataID;
-		}
-	}
 
 }

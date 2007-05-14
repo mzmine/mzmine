@@ -25,8 +25,7 @@ public class AlignmentResultColumnSelectionDialog extends JInternalFrame impleme
 	
 	private AlignmentResultColumnSelection currentColumnSelection;
 	private AlignmentResultColumnSelectionAcceptor columnSelectionAcceptor;
-	private String title;
-	
+    
 	private Hashtable<CommonColumnType, JCheckBox> commonColumnCheckBoxes;
 	private Hashtable<RawDataColumnType, JCheckBox> rawDataColumnCheckBoxes;
 	

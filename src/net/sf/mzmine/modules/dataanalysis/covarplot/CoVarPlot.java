@@ -257,7 +257,9 @@ import net.sf.mzmine.util.TransferableImage;
 		double minRT = Double.MAX_VALUE;
 		double maxMZ = Double.MIN_VALUE;
 		double maxRT = Double.MIN_VALUE;
-		double tmpMZ, tmpRT;
+		
+        /*
+        double tmpMZ, tmpRT;
 
 		int numOfGoodPeaks;
 
@@ -270,7 +272,7 @@ import net.sf.mzmine.util.TransferableImage;
 
 
 		// Loop through all peaks
-		/*for (int rowInd=0; rowInd<alignmentResult.getNumOfRows(); rowInd++) {
+		for (int rowInd=0; rowInd<alignmentResult.getNumOfRows(); rowInd++) {
 
 			// Collect peak's height/area values among the group of runs
 			groupOneMeasurementsVector = new Vector();

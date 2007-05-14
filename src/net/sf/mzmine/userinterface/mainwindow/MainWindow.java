@@ -91,7 +91,6 @@ public class MainWindow extends JFrame implements Desktop, WindowListener {
     public void addInternalFrame(JInternalFrame frame) {
         desktopPane.add(frame, JLayeredPane.DEFAULT_LAYER);
         // TODO: adjust frame position
-        frame.addInternalFrameListener(itemSelector);
         frame.setVisible(true);
     }
 

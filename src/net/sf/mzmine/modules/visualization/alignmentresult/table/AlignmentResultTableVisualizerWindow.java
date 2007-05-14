@@ -38,18 +38,17 @@ public class AlignmentResultTableVisualizerWindow extends JInternalFrame impleme
 
 	private Logger logger = Logger.getLogger(this.getClass().getName());
 
-	private AlignmentResult alignmentResult;
-
 	private JScrollPane scrollPane;
 
+    /*
 	private JPopupMenu popupMenu;
 	private JMenuItem changeFormattingMenuItem;
 	private JMenuItem zoomToPeakMenuItem;
-
+    */
+    
 	private AlignmentResultTable table;
 	
-	private boolean compactMode = true;
-
+	
 
 
 	/**
