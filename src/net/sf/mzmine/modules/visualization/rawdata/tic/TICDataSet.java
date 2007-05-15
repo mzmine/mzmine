@@ -45,7 +45,7 @@ class TICDataSet extends DefaultTableXYDataset implements RawDataAcceptor {
 
     private TICVisualizerWindow visualizer;
     private OpenedRawDataFile dataFile;
-    private RawDataFile rawDataFile;
+    //private RawDataFile rawDataFile;
     private int[] scanNumbers;
     private double[] mzValues;
     private XYSeries series;
@@ -53,7 +53,7 @@ class TICDataSet extends DefaultTableXYDataset implements RawDataAcceptor {
 
     private static Date lastRedrawTime = new Date();
 
-    TICDataSet(TaskController taskController, OpenedRawDataFile dataFile,
+    TICDataSet(/* TaskController taskController, */ OpenedRawDataFile dataFile,
             int scanNumbers[], double mzMin, double mzMax,
             TICVisualizerWindow visualizer) {
 
@@ -61,7 +61,7 @@ class TICDataSet extends DefaultTableXYDataset implements RawDataAcceptor {
         this.mzMin = mzMin;
         this.mzMax = mzMax;
         this.dataFile = dataFile;
-        this.rawDataFile = dataFile.getCurrentFile();
+//        this.rawDataFile = dataFile.getCurrentFile();
         this.scanNumbers = scanNumbers;
 
         series = new XYSeries(dataFile.toString(), false, false);
@@ -70,12 +70,12 @@ class TICDataSet extends DefaultTableXYDataset implements RawDataAcceptor {
 
         if (visualizer.getPlotType() == PlotType.BASE_PEAK)
             mzValues = new double[scanNumbers.length];
-
+/*
         Task updateTask = new RawDataRetrievalTask(rawDataFile, scanNumbers,
                 "Updating TIC visualizer of " + dataFile, this);
 
         taskController.addTask(updateTask, TaskPriority.HIGH, visualizer);
-
+*/
     }
 
     int getSeriesIndex(double retentionTime, double intensity) {

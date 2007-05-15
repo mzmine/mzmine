@@ -27,10 +27,13 @@ import java.text.DecimalFormat;
 import java.text.NumberFormat;
 import java.util.Enumeration;
 import java.util.Hashtable;
+import java.util.Vector;
 
 import javax.swing.JInternalFrame;
 
+import net.sf.mzmine.data.Peak;
 import net.sf.mzmine.io.OpenedRawDataFile;
+import net.sf.mzmine.io.RawDataAcceptor;
 import net.sf.mzmine.modules.visualization.rawdata.MultipleRawDataVisualizer;
 import net.sf.mzmine.modules.visualization.rawdata.spectra.SpectraSetupDialog;
 import net.sf.mzmine.modules.visualization.rawdata.spectra.SpectraVisualizerWindow;
@@ -58,6 +61,8 @@ public class TICVisualizerWindow extends JInternalFrame implements
     private int msLevel;
     private double rtMin, rtMax, mzMin, mzMax;
     
+    private Peak peak;
+    
     // TODO: get these from parameter storage
     private static NumberFormat rtFormat = new TimeNumberFormat();
     private static NumberFormat intensityFormat = new DecimalFormat("0.00E0");
@@ -75,7 +80,7 @@ public class TICVisualizerWindow extends JInternalFrame implements
     public TICVisualizerWindow(TaskController taskController, Desktop desktop, OpenedRawDataFile dataFile, PlotType plotType,
             int msLevel,
             double rtMin, double rtMax,
-            double mzMin, double mzMax) {
+            double mzMin, double mzMax, Peak peak) {
         
         super(null, true, true, true, true);
         
@@ -88,6 +93,7 @@ public class TICVisualizerWindow extends JInternalFrame implements
         this.rtMax = rtMax;
         this.mzMin = mzMin;
         this.mzMax = mzMax;
+        this.peak = peak;
         
         setDefaultCloseOperation(DISPOSE_ON_CLOSE);
         setBackground(Color.white);
@@ -182,9 +188,25 @@ public class TICVisualizerWindow extends JInternalFrame implements
             return;
         }
         
-        TICDataSet dataset = new TICDataSet(taskController, newFile, scanNumbers, mzMin, mzMax, this);
-        dataFiles.put(newFile, dataset);
-        plot.addDataset(dataset);
+        Vector<RawDataAcceptor> dataSets = new Vector<RawDataAcceptor>();
+        
+        // Initialize data sets
+        
+        // i) Normal TIC
+        TICDataSet ticDataset = new TICDataSet(newFile, scanNumbers, mzMin, mzMax, this);
+        dataSets.add(ticDataset);
+        dataFiles.put(newFile, ticDataset);
+        plot.addTICDataset(ticDataset);
+
+        // ii) Another dataset for integrated peak area, if peak is given
+        if (peak!=null) {
+        	IntegratedPeakAreaDataSet integratedPeakAreaDataSet = new IntegratedPeakAreaDataSet(newFile, peak.getScanNumbers(), mzMin, mzMax, this);
+        	dataSets.add(integratedPeakAreaDataSet);
+        	plot.addIntegratedPeakAreaDataset(integratedPeakAreaDataSet);
+        }
+        
+        // Start-up the refresh task
+        TICRawDataAcceptor ticRawDataAcceptor = new TICRawDataAcceptor(taskController, newFile, scanNumbers, dataSets.toArray(new RawDataAcceptor[0]), this);
         
         if (dataFiles.size() > 1) {
             // when displaying more than one file, show a legend

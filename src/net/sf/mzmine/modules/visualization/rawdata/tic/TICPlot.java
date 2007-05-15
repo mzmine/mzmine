@@ -51,6 +51,8 @@ import org.jfree.chart.labels.XYItemLabelGenerator;
 import org.jfree.chart.labels.XYToolTipGenerator;
 import org.jfree.chart.plot.PlotOrientation;
 import org.jfree.chart.plot.XYPlot;
+import org.jfree.chart.renderer.category.AreaRenderer;
+import org.jfree.chart.renderer.xy.XYAreaRenderer;
 import org.jfree.chart.renderer.xy.XYLineAndShapeRenderer;
 import org.jfree.chart.title.LegendTitle;
 import org.jfree.chart.title.TextTitle;
@@ -108,6 +110,8 @@ class TICPlot extends ChartPanel {
     private LegendTitle legend;
 
     XYLineAndShapeRenderer defaultRenderer;
+    
+    XYAreaRenderer defaultAreaRenderer;
 
     /**
      * Indicates whether we have a request to show spectra visualizer for
@@ -195,6 +199,9 @@ class TICPlot extends ChartPanel {
         defaultRenderer.setUseFillPaint(true);
         defaultRenderer.setItemLabelPaint(labelsColor);
         defaultRenderer.setShape(dataPointsShape);
+        
+        defaultAreaRenderer = new XYAreaRenderer(XYAreaRenderer.AREA);
+       
 
         // set label generator
         XYItemLabelGenerator labelGenerator;
@@ -301,10 +308,12 @@ class TICPlot extends ChartPanel {
         XYLineAndShapeRenderer renderer = (XYLineAndShapeRenderer) plot.getRenderer();
         boolean dataPointsVisible = renderer.getBaseShapesVisible();
         for (int i = 0; i < numberOfDataSets; i++) {
-            renderer = (XYLineAndShapeRenderer) plot.getRenderer(i);
-            if (renderer != null) {
-                renderer.setBaseShapesVisible(!dataPointsVisible);
-            }
+        	if (plot.getRenderer(i).getClass() == XYLineAndShapeRenderer.class) {
+	            renderer = (XYLineAndShapeRenderer) plot.getRenderer(i);
+	            if (renderer != null) {
+	                renderer.setBaseShapesVisible(!dataPointsVisible);
+	            }
+        	}
         }
     }
 
@@ -312,7 +321,7 @@ class TICPlot extends ChartPanel {
         return plot;
     }
 
-    synchronized void addDataset(TICDataSet newSet) {
+    synchronized void addTICDataset(TICDataSet newSet) {
 
         plot.setDataset(numberOfDataSets, newSet);
 
@@ -329,6 +338,23 @@ class TICPlot extends ChartPanel {
 
         numberOfDataSets++;
 
+    }
+    
+    synchronized void addIntegratedPeakAreaDataset(IntegratedPeakAreaDataSet newSet) {
+    	plot.setDataset(numberOfDataSets, newSet);
+
+        try {
+            XYAreaRenderer newRenderer = (XYAreaRenderer) defaultAreaRenderer.clone();
+            //Color rendererColor = plotColors[numberOfDataSets % plotColors.length];
+            newRenderer.setPaint(Color.gray);
+            //newRenderer.setFillPaint(Color.gray);
+            plot.setRenderer(numberOfDataSets, newRenderer);
+        } catch (CloneNotSupportedException e) {
+            e.printStackTrace();
+        }
+    	
+    	
+    	numberOfDataSets++;
     }
 
     void showLegend(boolean show) {

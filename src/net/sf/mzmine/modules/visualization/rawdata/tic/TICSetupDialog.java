@@ -34,6 +34,7 @@ import javax.swing.JFormattedTextField;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 
+import net.sf.mzmine.data.Peak;
 import net.sf.mzmine.io.OpenedRawDataFile;
 import net.sf.mzmine.io.RawDataFile;
 import net.sf.mzmine.modules.visualization.rawdata.tic.TICVisualizerWindow.PlotType;
@@ -62,6 +63,8 @@ public class TICSetupDialog extends JDialog implements ActionListener {
     private TaskController taskController;
     private OpenedRawDataFile dataFile;
     private RawDataFile rawDataFile;
+    
+    private Peak peak = null;
 
     public TICSetupDialog(TaskController taskController, Desktop desktop,
             OpenedRawDataFile dataFile) {
@@ -267,9 +270,11 @@ public class TICSetupDialog extends JDialog implements ActionListener {
      * @param dataFile
      */
     public TICSetupDialog(TaskController taskController, Desktop desktop,
-            OpenedRawDataFile dataFile, double minMZ, double maxMZ) {
+            OpenedRawDataFile dataFile, double minMZ, double maxMZ, Peak peak) {
     
     	this(taskController, desktop, dataFile);
+    	
+    	this.peak = peak;
     	
     	int msLevel = (Integer) comboMSlevel.getSelectedItem();
   	
@@ -324,7 +329,7 @@ public class TICSetupDialog extends JDialog implements ActionListener {
                     plotType = PlotType.BASE_PEAK;
 
                 new TICVisualizerWindow(taskController, desktop, dataFile,
-                        plotType, msLevel, rtMin, rtMax, mzMin, mzMax);
+                        plotType, msLevel, rtMin, rtMax, mzMin, mzMax, peak);
 
                 dispose();
 

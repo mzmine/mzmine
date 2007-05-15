@@ -106,7 +106,7 @@ public class PeakListTableViewWindow extends JInternalFrame implements PeakListV
 				logger.fine("Show setup dialog");
 				
 				// TODO: Use mass accuracy to define XIC width
-				TICSetupDialog setupDialog = new TICSetupDialog(taskController, desktop, rawData, p.getMinMZ(), p.getMaxMZ());
+				TICSetupDialog setupDialog = new TICSetupDialog(taskController, desktop, rawData, p.getMinMZ(), p.getMaxMZ(), p);
 				setupDialog.setVisible(true);
 				
 			}
