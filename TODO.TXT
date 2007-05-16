@@ -62,6 +62,11 @@ Code
 - Printing
 - Undo
 
+
+* Experimental parameters
+- User should be able to define experimental parameters in the project and set their values for each data file (e.g. sample concentration, injection volume etc.)
+- The IntensityPlot should be able to use parameter values for X axis (e.g. plot peak intensity dependance on sample amount)
+
 Other
 
 
