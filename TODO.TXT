@@ -2,13 +2,13 @@ Code
 
 
 * Import & export for parameter values
-Save/load values to/from config.xml at exit/startup already works, so this is quick to add.
+- Save/load values to/from config.xml at exit/startup already works, so this is quick to add.
 
 * Statistical plots
-Visualizers for ploting alignment results are missing. 
+- Visualizers for ploting alignment results are missing. 
 
 * Standard compound normalizer
-Whole method is missing, but it is not top priority. Instead of the old simple standard compound normalizer, we should implement also the new NOMIS method.
+- Instead of the old simple standard compound normalizer, we should implement also the new NOMIS method.
 
 * Many methods are really slow
 - Join aligner is very slow although it is really simple. Speed it up if possible or change the whole method to a quicker one.
@@ -16,7 +16,10 @@ Whole method is missing, but it is not top priority. Instead of the old simple s
 
 * Finish raw data visualizers
 - At least 2D visualizer is not yet finished. It should show detected peaks on top of the visualization.
-- 3D-visualizer is not top priority.
+- TIC, Spectra and 2D visualizer need a common dialog to set X/Y axis range
+- 3D-visualizer needs a setting for peak annotation threshold (annotate only peaks above given level), threshold in % or absolute
+- TIC/2D/3D visualizer setup dialog should remember last range values and offer either default values (depending on file) or last values
+- Datasets of JFreeChart library have to be updated in swing event-dispatching thread, otherwise exceptions can be thrown
 
 * Peak list and alignment result table views
 - Proper formatting to all columns
@@ -32,7 +35,8 @@ Whole method is missing, but it is not top priority. Instead of the old simple s
 * From raw data it should be possible to find nearest peak to cursor position and show it on a peak list and available alignment results.
 
 * Update visualizers after data or peak list has been modified.
-Currently it is necessary to open another visualizer to show updated data
+- Currently it is necessary to open another visualizer to show updated data
+- It should be possible to add a listener to a data file and get a notification when data file is changed
 
 * Design and implementation of isotope pattern information handling needs to be re-thinked
 - Especially the IsotopePatternUtils class is quite confusing right now.
@@ -40,12 +44,23 @@ Currently it is necessary to open another visualizer to show updated data
 * Each module should provide a detailed description of all its parameters. 
 - Parameter descriptions should be detailed enough to make software understandable.
 
-* Writing the MZXML files is slow. Plan:
-- Rewrite the IO
+* IO
+- When reading scans the IO should autodetect whether scan is centroided or continuous
+- User should be able to set mass precision per each file/MS level
 - Use the ProteomeCommons IO framework for reading all kinds of mass spec formats
 - Keep scan headers in memory (scan number, retention time, mass range etc.)
 - Write mz/intensity data to a very simple temporary binary data file, from which the data can be quickly loaded when needed
 
+* Peak picking
+- Peak should include peak duration
+- Peak picking method should limit detected peaks with minimum/maximum duration
+
+
+* User interface
+- Remember last opened directory as desktop parameter
+- Copy/paste
+- Printing
+- Undo
 
 Other
 
