@@ -154,7 +154,7 @@ public class TICVisualizerWindow extends JInternalFrame implements
         if (peaks != null) {
         	title.append(", peaks @m/z: ");
         	for (Peak p : peaks) {
-        		title.append("" + mzFormat.format(p.getRawMZ()) + " ");
+        		title.append("" + mzFormat.format(p.getMZ()) + " ");
         	}
         }
 
