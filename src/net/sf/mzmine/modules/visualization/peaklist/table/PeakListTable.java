@@ -25,6 +25,7 @@ import javax.swing.JTable;
 import javax.swing.table.AbstractTableModel;
 
 import net.sf.mzmine.data.DataUnit;
+import net.sf.mzmine.data.IsotopePattern;
 import net.sf.mzmine.data.Peak;
 import net.sf.mzmine.data.PeakList;
 import net.sf.mzmine.io.OpenedRawDataFile;
@@ -138,8 +139,10 @@ public class PeakListTable extends JTable {
 				
 				
 				case CHARGE:
-					// TODO return isotopePattern.getChargeState();
-                    return null;
+					if (p.getClass() == IsotopePattern.class)
+						return ((IsotopePattern)p).getCharge();
+					else
+						return unassignedValue;
 			}
 
 			return unassignedValue;

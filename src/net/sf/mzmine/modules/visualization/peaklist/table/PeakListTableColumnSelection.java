@@ -12,12 +12,14 @@ public class PeakListTableColumnSelection {
         AREA ("Area", Double.class),
         DURATION ("Duration", Double.class),
         MZDIFF ("M/Z difference", Double.class),
+        /*
         NORMMZ ("Norm. M/Z", Double.class),
     	NORMRT ("Norm. RT", Double.class),
     	NORMHEIGHT ("Norm. Height", Double.class),
     	NORMAREA ("Norm. Area", Double.class),
     	ISOTOPEPATTERNNUMBER ("Isotope pattern #", Integer.class),
     	ISOTOPEPEAKNUMBER ("Isotope peak #", Integer.class),
+    	*/
     	CHARGE ("Charge", Integer.class);
 
 		private final String columnName;
@@ -42,12 +44,14 @@ public class PeakListTableColumnSelection {
 		selectedColumns.add(PeakListColumnType.AREA);
 		selectedColumns.add(PeakListColumnType.DURATION);
 		selectedColumns.add(PeakListColumnType.MZDIFF);
+		/*
 		selectedColumns.add(PeakListColumnType.NORMMZ);
 		selectedColumns.add(PeakListColumnType.NORMRT);
 		selectedColumns.add(PeakListColumnType.NORMHEIGHT);
 		selectedColumns.add(PeakListColumnType.NORMAREA);
 		selectedColumns.add(PeakListColumnType.ISOTOPEPATTERNNUMBER);
 		selectedColumns.add(PeakListColumnType.ISOTOPEPEAKNUMBER);
+		*/
 		selectedColumns.add(PeakListColumnType.CHARGE);
 		
 	}
