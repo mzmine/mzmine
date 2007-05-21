@@ -378,15 +378,15 @@ class ThreeDSamplingTask implements Task {
 
                     for (int i = 0; i < peaks.length; i++) {
 
-                        peaksDomainPoints[0][i] = (float) peaks[i].getRawRT();
-                        peaksDomainPoints[1][i] = (float) peaks[i].getRawMZ();
+                        peaksDomainPoints[0][i] = (float) peaks[i].getRT();
+                        peaksDomainPoints[1][i] = (float) peaks[i].getMZ();
 
                         Data[] peakData = new Data[2];
                         peakData[0] = new Real(peakHeightType,
-                                peaks[i].getRawHeight()
+                                peaks[i].getHeight()
                                         + (maxBinnedIntensity * 0.03));
                         peakData[1] = new Text(annotationType,
-                                mzFormat.format(peaks[i].getRawMZ()));
+                                mzFormat.format(peaks[i].getMZ()));
 
                         peakValues[i] = new Tuple(annotationTupleType,
                                 peakData, false);

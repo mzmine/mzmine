@@ -196,7 +196,7 @@ class EmptyGap {
 
     public Peak getEstimatedPeak() {
         if (bestPeak == null) {
-            ConstructionPeak zeroPeak = new ConstructionPeak();
+            ConstructionPeak zeroPeak = new ConstructionPeak(null); // TODO
             zeroPeak.addDatapoint(closestScanNumber, closestMZ, closestRT, 0.0);
             zeroPeak.finalizedAddingDatapoints();
             zeroPeak.setPeakStatus(PeakStatus.ESTIMATED);
@@ -305,7 +305,7 @@ class EmptyGap {
             }
 
             // 3) Generate a Peak
-            ConstructionPeak candidatePeak = new ConstructionPeak();
+            ConstructionPeak candidatePeak = new ConstructionPeak(null); // TODO
             for (int ind = startInd; ind <= stopInd; ind++) {
                 candidatePeak.addDatapoint(peakScanNumbers.get(ind),
                         peakMZs.get(ind), peakRTs.get(ind), peakInts.get(ind));
@@ -315,7 +315,7 @@ class EmptyGap {
 
             // 4) Check if this is the best candidate for estimator
             if (bestPeak != null) {
-                if (bestPeak.getRawHeight() <= candidatePeak.getRawHeight()) {
+                if (bestPeak.getHeight() <= candidatePeak.getHeight()) {
                     bestPeak = candidatePeak;
                 }
             } else {

@@ -1,5 +1,5 @@
 /*
- * Copyright 2006 The MZmine Development Team
+ * Copyright 2006-2007 The MZmine Development Team
  *
  * This file is part of MZmine.
  *
@@ -21,13 +21,23 @@ package net.sf.mzmine.data;
 
 
 /**
- * This interface defines the properties of a detected peak
+ * This interface defines the properties of a deisotoped peak
  */
-public interface IsotopePattern extends DataUnit {
+public interface IsotopePattern extends Peak {
+
+    /**
+     * Returns peaks that form this isotopic pattern
+     */
+    public Peak[] getOriginalPeaks();
+
+    /**
+     * Returns representative peak of this pattern
+     */
+    public Peak getRepresentativePeak();
 
 	/**
-	 * Returns the charge state of peaks in the pattern
+	 * Returns the charge of peaks in the pattern
 	 */
-	public int getChargeState();
+	public int getCharge();
 
 }

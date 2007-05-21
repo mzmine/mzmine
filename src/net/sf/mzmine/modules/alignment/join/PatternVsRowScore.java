@@ -19,8 +19,6 @@
 
 package net.sf.mzmine.modules.alignment.join;
 
-import net.sf.mzmine.data.Peak;
-import net.sf.mzmine.util.IsotopePatternUtils;
 
 /**
  * This class represents a score between master peak list row and isotope
@@ -35,29 +33,29 @@ class PatternVsRowScore {
 
     public PatternVsRowScore(MasterIsotopeListRow masterIsotopeListRow,
             IsotopePatternWrapper wrappedIsotopePattern,
-            IsotopePatternUtils isotopePatternUtil, double MZTolerance, boolean RTToleranceUseAbs, double RTToleranceValueAbs, double RTToleranceValuePercent, double MZvsRTBalance) {
+             double MZTolerance, boolean RTToleranceUseAbs, double RTToleranceValueAbs, double RTToleranceValuePercent, double MZvsRTBalance) {
 
         this.masterIsotopeListRow = masterIsotopeListRow;
         this.wrappedIsotopePattern = wrappedIsotopePattern;
-
+/*
         // Check that charge is same
         if (masterIsotopeListRow.getChargeState() != wrappedIsotopePattern.getIsotopePattern().getChargeState()) {
             return;
         }
 
         // Get monoisotopic peak
-        Peak monoPeak = isotopePatternUtil.getMonoisotopicPeak(wrappedIsotopePattern.getIsotopePattern());
+        //Peak monoPeak = isotopePatternUtil.getMonoisotopicPeak(wrappedIsotopePattern.getIsotopePattern());
 
         // Calculate differences between M/Z and RT values of isotope pattern
         // and median of the row
-        double diffMZ = java.lang.Math.abs(masterIsotopeListRow.getMonoisotopicMZ()
-                - monoPeak.getNormalizedMZ());
+        double diffMZ = Math.abs(masterIsotopeListRow.getMonoisotopicMZ()
+                - monoPeak.getMZ());
         score = Double.MAX_VALUE;
         goodEnough = false;
         if (diffMZ < MZTolerance) {
 
-            double diffRT = java.lang.Math.abs(masterIsotopeListRow.getMonoisotopicRT()
-                    - monoPeak.getNormalizedRT());
+            //double diffRT = Math.abs(masterIsotopeListRow.getMonoisotopicRT()
+            //        - monoPeak.getRT());
 
             // What type of RT tolerance is used?
             double rtTolerance = 0;
@@ -66,7 +64,7 @@ class PatternVsRowScore {
             } else {
                 rtTolerance = RTToleranceValuePercent
                         * 0.5
-                        * (masterIsotopeListRow.getMonoisotopicRT() + monoPeak.getNormalizedRT());
+                        * (masterIsotopeListRow.getMonoisotopicRT() + monoPeak.getRT());
             }
 
             if (diffRT < rtTolerance) {
@@ -74,6 +72,7 @@ class PatternVsRowScore {
                 goodEnough = true;
             }
         }
+        */
     }
 
     /**

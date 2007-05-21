@@ -38,24 +38,15 @@ import net.sf.mzmine.userinterface.mainwindow.MainWindow;
  */
 public class SimpleAlignmentResultRow extends AbstractDataUnit implements AlignmentResultRow  {
 
-	private IsotopePattern isotopePattern;
 	private Hashtable<OpenedRawDataFile, Peak> peaks;
-	private Vector<CompoundIdentity> compoundIdentities;
+    private Hashtable<OpenedRawDataFile, Peak> originalPeaks;
+    private String comment;
 
     public SimpleAlignmentResultRow() {
-		compoundIdentities = new Vector<CompoundIdentity>();
 		peaks = new Hashtable<OpenedRawDataFile, Peak>();
+        originalPeaks = new Hashtable<OpenedRawDataFile, Peak>();
 	}
 
-	/*
-	 * Return isotope pattern assigned to this row
-	 */
-	/*
-	public IsotopePattern getIsotopePattern() {
-		return isotopePattern;
-	}
-	*/
-	
 
 	/*
 	 * Return peaks assigned to this row
@@ -77,6 +68,22 @@ public class SimpleAlignmentResultRow extends AbstractDataUnit implements Alignm
 	public Peak getPeak(OpenedRawDataFile rawData) {
 		return peaks.get(rawData);
 	}
+    
+    public void setPeak(OpenedRawDataFile rawData, Peak p) {
+        peaks.put(rawData, p);
+    }
+    
+    /**
+     * @see net.sf.mzmine.data.AlignmentResultRow#getOriginalPeakListEntry(net.sf.mzmine.io.OpenedRawDataFile)
+     */
+    public Peak getOriginalPeakListEntry(OpenedRawDataFile rawData) {
+        return originalPeaks.get(rawData);
+    }
+    
+    public void addPeak(OpenedRawDataFile rawData, Peak original, Peak current) {
+        peaks.put(rawData, current);
+        peaks.put(rawData, original);
+    }
 
 	/*
 	 * Returns average normalized M/Z for peaks on this row
@@ -86,7 +93,7 @@ public class SimpleAlignmentResultRow extends AbstractDataUnit implements Alignm
 		Enumeration<Peak> peakEnum = peaks.elements();
 		while (peakEnum.hasMoreElements()) {
 			Peak p = peakEnum.nextElement();
-			mzSum += p.getNormalizedMZ();
+			mzSum += p.getMZ();
 		}
 		return mzSum / peaks.size();
 	}
@@ -99,7 +106,7 @@ public class SimpleAlignmentResultRow extends AbstractDataUnit implements Alignm
 		Enumeration<Peak> peakEnum = peaks.elements();
 		while (peakEnum.hasMoreElements()) {
 			Peak p = peakEnum.nextElement();
-			rtSum += p.getNormalizedRT();
+			rtSum += p.getRT();
 		}
 		return rtSum / peaks.size();
 	}
@@ -111,35 +118,34 @@ public class SimpleAlignmentResultRow extends AbstractDataUnit implements Alignm
 		return peaks.size();
 	}
 
-	/**
-	 * Returns all identification results assigned to a single row of the alignment result
-	 * One row can have zero, one or any number of identifications.
-	 */
-	public CompoundIdentity[] getIdentificationResults(int row) {
-		return compoundIdentities.toArray(new CompoundIdentity[0]);
-	}
 
 
 
-	//////////////
-	/*
-	public void setIsotopePattern(IsotopePattern isotopePattern) {
-		this.isotopePattern = isotopePattern;
-	}
-	*/
 
-	public void addPeak(OpenedRawDataFile rawData, Peak p) {
-		peaks.put(rawData, p);
-	}
-
-	public void addCompoundIdentity(CompoundIdentity compoundIdentity) {
-		compoundIdentities.add(compoundIdentity);
-	}
 
     public String toString() {
         Format mzFormat = MainWindow.getInstance().getMZFormatProvider().getCurrentNumberFormat();
         Format timeFormat = MainWindow.getInstance().getRTFormatProvider().getCurrentNumberFormat();
         return mzFormat.format(getAverageMZ()) + " m/z @" + timeFormat.format(getAverageRT());
+    }
+
+
+    /**
+     * @see net.sf.mzmine.data.AlignmentResultRow#getComment()
+     */
+    public String getComment() {
+        return comment;
+    }
+
+
+
+
+
+    /**
+     * @see net.sf.mzmine.data.AlignmentResultRow#setComment(java.lang.String)
+     */
+    public void setComment(String comment) {
+        this.comment = comment;
     }
 
 }

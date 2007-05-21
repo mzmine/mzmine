@@ -65,7 +65,7 @@ class MatchScore implements Comparable<MatchScore> {
 
     private double calcScore(ConstructionPeak uc, OneDimPeak od) {
 
-        double ucMZ = uc.getRawMZ();
+        double ucMZ = uc.getMZ();
 
         // If mz difference is too big? (do this first for optimal
         // performance)
@@ -75,9 +75,9 @@ class MatchScore implements Comparable<MatchScore> {
         } else {
 
             // Calculate score components and total score
-            double scoreMZComponent = java.lang.Math.abs(ucMZ - od.mz);
+            double scoreMZComponent = Math.abs(ucMZ - od.mz);
             double scoreRTComponent = calcScoreForRTShape(uc, od);
-            double totalScore = java.lang.Math.sqrt(scoreMZComponent
+            double totalScore = Math.sqrt(scoreMZComponent
                     * scoreMZComponent + scoreRTComponent
                     * scoreRTComponent);
 

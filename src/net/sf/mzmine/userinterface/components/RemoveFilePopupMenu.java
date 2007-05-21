@@ -29,7 +29,7 @@ import javax.swing.event.MenuEvent;
 import javax.swing.event.MenuListener;
 
 import net.sf.mzmine.io.OpenedRawDataFile;
-import net.sf.mzmine.modules.visualization.rawdata.MultipleRawDataVisualizer;
+import net.sf.mzmine.modules.MultipleRawDataVisualizer;
 
 /**
  * 

@@ -180,8 +180,9 @@ class SimpleGrouperTask implements Task {
 
             // Assign peaks in best fitted pattern to same isotope pattern
             SimpleIsotopePattern isotopePattern = new SimpleIsotopePattern(
-                    bestFitCharge);
-
+                    );
+            isotopePattern.setCharge(bestFitCharge);
+            
             for (Peak p : bestFitPeaks.keySet()) {
                 SimplePeak processedPeak = new SimplePeak(p);
                 processedPeak.addData(IsotopePattern.class, isotopePattern);
@@ -243,11 +244,11 @@ class SimpleGrouperTask implements Task {
             Hashtable<Peak, Integer> fittedPeaks, Peak[] sortedPeaks) {
 
         // Use M/Z and RT of the strongest peak of the pattern (peak 'p')
-        double currentMZ = p.getNormalizedMZ();
-        double currentRT = p.getNormalizedRT();
+        double currentMZ = p.getMZ();
+        double currentRT = p.getRT();
 
         // Also, use height of the strongest peak as initial height limit
-        double currentHeight = p.getNormalizedHeight();
+        double currentHeight = p.getHeight();
 
         // Variable n is the number of peak we are currently searching. 1=first
         // peak before/after start peak, 2=peak before/after previous, 3=...
@@ -270,9 +271,9 @@ class SimpleGrouperTask implements Task {
                     continue;
 
                 // Get properties of the candidate peak
-                double candidatePeakMZ = candidatePeak.getNormalizedMZ();
-                double candidatePeakRT = candidatePeak.getNormalizedRT();
-                double candidatePeakIntensity = candidatePeak.getNormalizedHeight();
+                double candidatePeakMZ = candidatePeak.getMZ();
+                double candidatePeakRT = candidatePeak.getRT();
+                double candidatePeakIntensity = candidatePeak.getHeight();
 
                 // Does this peak fill all requirements of a candidate?
                 // - intensity less than intensity of previous peak in the
@@ -306,7 +307,7 @@ class SimpleGrouperTask implements Task {
             Peak bestCandidate = null;
             for (Peak candidatePeak : goodCandidates.keySet()) {
                 if (bestCandidate != null) {
-                    if (bestCandidate.getNormalizedHeight() < candidatePeak.getNormalizedHeight()) {
+                    if (bestCandidate.getHeight() < candidatePeak.getHeight()) {
                         bestCandidate = candidatePeak;
                     }
                 } else {
@@ -324,7 +325,7 @@ class SimpleGrouperTask implements Task {
                         goodCandidates.get(bestCandidate));
 
                 // Update height limit
-                currentHeight = bestCandidate.getNormalizedHeight();
+                currentHeight = bestCandidate.getHeight();
 
                 // n:th peak was found, so let's move on to n+1
                 n++;

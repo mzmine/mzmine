@@ -325,17 +325,12 @@ class RecursivePickerTask implements Task {
 
                     // Check length
                     double ucLength = ucPeak.getMaxRT() - ucPeak.getMinRT();
-                    double ucHeight = ucPeak.getRawHeight();
+                    double ucHeight = ucPeak.getHeight();
                     if ((ucLength >= minimumPeakDuration)
                             && (ucHeight >= minimumPeakHeight)) {
 
                         // Good peak, finalized adding datapoints
                         ucPeak.finalizedAddingDatapoints();
-
-                        // Since this peak picker doesn't detect isotope
-                        // patterns, assign this peak to a dummy pattern
-                        ucPeak.addData(IsotopePattern.class,
-                                new SimpleIsotopePattern(1));
 
                         // Define peak's status
                         ucPeak.setPeakStatus(PeakStatus.DETECTED);
@@ -372,7 +367,7 @@ class RecursivePickerTask implements Task {
 
                 if (!oneDimPeak.isConnected()) {
 
-                    ConstructionPeak ucPeak = new ConstructionPeak();
+                    ConstructionPeak ucPeak = new ConstructionPeak(dataFile);
                     ucPeak.addDatapoint(sc.getScanNumber(), oneDimPeak.mz,
                             sc.getRetentionTime(), oneDimPeak.intensity);
                     underConstructionPeaks.add(ucPeak);
@@ -393,17 +388,12 @@ class RecursivePickerTask implements Task {
 
             // Check length & height
             double ucLength = ucPeak.getMaxRT() - ucPeak.getMinRT();
-            double ucHeight = ucPeak.getRawHeight();
+            double ucHeight = ucPeak.getHeight();
             if ((ucLength >= minimumPeakDuration)
                     && (ucHeight >= minimumPeakHeight)) {
 
                 // Good peak. finalized adding datapoints
                 ucPeak.finalizedAddingDatapoints();
-
-                // Since this peak picker doesn't detect isotope patterns,
-                // assign this peak to a dummy pattern
-                ucPeak.addData(IsotopePattern.class,
-                        new SimpleIsotopePattern(1));
 
                 // Define peak's status
                 ucPeak.setPeakStatus(PeakStatus.DETECTED);

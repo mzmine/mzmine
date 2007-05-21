@@ -32,7 +32,7 @@ class PeakSorterByDescendingHeight implements Comparator<Peak> {
     public int compare(Peak p1, Peak p2) {
         if (p1 == p2)
             return 0;
-        if (p1.getNormalizedHeight() <= p2.getNormalizedHeight()) {
+        if (p1.getHeight() <= p2.getHeight()) {
             return 1;
         } else {
             return -1;

@@ -35,8 +35,8 @@ import javax.swing.JInternalFrame;
 import net.sf.mzmine.data.Peak;
 import net.sf.mzmine.io.OpenedRawDataFile;
 import net.sf.mzmine.io.RawDataAcceptor;
+import net.sf.mzmine.modules.MultipleRawDataVisualizer;
 import net.sf.mzmine.io.RawDataFile;
-import net.sf.mzmine.modules.visualization.rawdata.MultipleRawDataVisualizer;
 import net.sf.mzmine.modules.visualization.rawdata.spectra.SpectraSetupDialog;
 import net.sf.mzmine.modules.visualization.rawdata.spectra.SpectraVisualizerWindow;
 import net.sf.mzmine.taskcontrol.Task;
@@ -171,7 +171,7 @@ public class TICVisualizerWindow extends JInternalFrame implements
     }
 
     /**
-     * @see net.sf.mzmine.modules.visualization.rawdata.RawDataVisualizer#setMZRange(double,
+     * @see net.sf.mzmine.modules.RawDataVisualizer#setMZRange(double,
      *      double)
      */
     public void setMZRange(double mzMin, double mzMax) {
@@ -179,7 +179,7 @@ public class TICVisualizerWindow extends JInternalFrame implements
     }
 
     /**
-     * @see net.sf.mzmine.modules.visualization.rawdata.RawDataVisualizer#setRTRange(double,
+     * @see net.sf.mzmine.modules.RawDataVisualizer#setRTRange(double,
      *      double)
      */
     public void setRTRange(double rtMin, double rtMax) {
@@ -187,7 +187,7 @@ public class TICVisualizerWindow extends JInternalFrame implements
     }
 
     /**
-     * @see net.sf.mzmine.modules.visualization.rawdata.RawDataVisualizer#setIntensityRange(double,
+     * @see net.sf.mzmine.modules.RawDataVisualizer#setIntensityRange(double,
      *      double)
      */
     public void setIntensityRange(double intensityMin, double intensityMax) {
@@ -195,7 +195,7 @@ public class TICVisualizerWindow extends JInternalFrame implements
     }
 
     /**
-     * @see net.sf.mzmine.modules.visualization.rawdata.RawDataVisualizer#getRawDataFiles()
+     * @see net.sf.mzmine.modules.RawDataVisualizer#getRawDataFiles()
      */
     public OpenedRawDataFile[] getRawDataFiles() {
         return dataFiles.keySet().toArray(new OpenedRawDataFile[0]);

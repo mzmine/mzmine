@@ -32,7 +32,6 @@ import net.sf.mzmine.io.OpenedRawDataFile;
 import net.sf.mzmine.userinterface.dialogs.alignmentresultcolumnselection.AlignmentResultColumnSelection;
 import net.sf.mzmine.userinterface.dialogs.alignmentresultcolumnselection.AlignmentResultColumnSelection.CommonColumnType;
 import net.sf.mzmine.userinterface.dialogs.alignmentresultcolumnselection.AlignmentResultColumnSelection.RawDataColumnType;
-import net.sf.mzmine.util.IsotopePatternUtils;
 
 public class AlignmentResultExporter {
 
@@ -50,8 +49,6 @@ public class AlignmentResultExporter {
      */
     public boolean exportToFile(AlignmentResult alignmentResult,
             File outputFile, AlignmentResultColumnSelection columnSelection) {
-
-        IsotopePatternUtils isoUtil = new IsotopePatternUtils(alignmentResult);
 
         // Open file
         FileWriter fw;
@@ -112,17 +109,8 @@ public class AlignmentResultExporter {
                 case AVGRT:
                     s += "" + alignmentRow.getAverageRT() + "\t";
                     break;
-                case ISOTOPEID:
-                    IsotopePattern isoPatt = (IsotopePattern) alignmentRow.getLastData(IsotopePattern.class);
-                    s += "" + isoUtil.getIsotopePatternNumber(isoPatt) + "\t";
-                    break;
-                case ISOTOPEPEAK:
-                    isoPatt = (IsotopePattern) alignmentRow.getLastData(IsotopePattern.class);
-                    s += "" + isoUtil.getIsotopePatternNumber(isoPatt) + "\t";
-                    break;
                 case CHARGE:
-                    isoPatt = (IsotopePattern) alignmentRow.getLastData(IsotopePattern.class);
-                    s += "" + isoPatt.getChargeState() + "\t";
+                    //s += "" + isoPatt.getChargeState() + "\t";
                     break;
                 }
             }
@@ -139,16 +127,16 @@ public class AlignmentResultExporter {
                     } else {
                         switch (c) {
                         case MZ:
-                            s += "" + p.getNormalizedMZ() + "\t";
+                            s += "" + p.getMZ() + "\t";
                             break;
                         case RT:
-                            s += "" + p.getNormalizedRT() + "\t";
+                            s += "" + p.getRT() + "\t";
                             break;
                         case HEIGHT:
-                            s += "" + p.getNormalizedHeight() + "\t";
+                            s += "" + p.getHeight() + "\t";
                             break;
                         case AREA:
-                            s += "" + p.getNormalizedArea() + "\t";
+                            s += "" + p.getArea() + "\t";
                             break;
                         case STATUS:
                             PeakStatus ps = p.getPeakStatus();

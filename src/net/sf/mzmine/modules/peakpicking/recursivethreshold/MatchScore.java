@@ -65,7 +65,7 @@ class MatchScore implements Comparable<MatchScore> {
 
     private double calcScore(ConstructionPeak uc, OneDimPeak od) {
 
-        double ucMZ = uc.getRawMZ();
+        double ucMZ = uc.getMZ();
 
         // If mz difference is too big? (do this first for optimal
         // performance)

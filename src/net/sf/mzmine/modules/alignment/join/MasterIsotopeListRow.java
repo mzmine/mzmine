@@ -23,10 +23,7 @@ import java.util.Hashtable;
 import java.util.Vector;
 
 import net.sf.mzmine.data.IsotopePattern;
-import net.sf.mzmine.data.Peak;
 import net.sf.mzmine.io.OpenedRawDataFile;
-import net.sf.mzmine.util.IsotopePatternUtils;
-import net.sf.mzmine.util.MathUtils;
 
 
 /**
@@ -54,19 +51,19 @@ class MasterIsotopeListRow {
         rtVals = new Vector<Double>();
     }
 
-    public void addIsotopePattern(OpenedRawDataFile dataFile, IsotopePattern isotopePattern, IsotopePatternUtils util) {
+    public void addIsotopePattern(OpenedRawDataFile dataFile, IsotopePattern isotopePattern) {
 
         isotopePatterns.put(dataFile, isotopePattern);
 
         // Get monoisotopic peak
-        Peak[] peaks = util.getPeaksInPattern(isotopePattern);
-        Peak monoPeak = peaks[0];
+        /* Peak[] peaks = util.getPeaksInPattern(isotopePattern);
+       //  Peak monoPeak = peaks[0];
 
         if (numberOfPeaksOnRow<peaks.length) numberOfPeaksOnRow = peaks.length;
 
         // Add M/Z and RT
-        mzVals.add(monoPeak.getNormalizedMZ());
-        rtVals.add(monoPeak.getNormalizedRT());
+        mzVals.add(monoPeak.getMZ());
+        rtVals.add(monoPeak.getRT());
 
         // Update medians
         Double[] mzValsArray = mzVals.toArray(new Double[0]);
@@ -80,10 +77,10 @@ class MasterIsotopeListRow {
         for (int i=0; i<rtValsArray.length; i++)
             rtValsArrayN[i] = rtValsArray[i];
         monoRT = MathUtils.calcQuantile(rtValsArrayN, 0.5);
-
+*/
 
         // Set charge state
-        chargeState = isotopePattern.getChargeState();
+        // chargeState = isotopePattern.getChargeState();
 
     }
 

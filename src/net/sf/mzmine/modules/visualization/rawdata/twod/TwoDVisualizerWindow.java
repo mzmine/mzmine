@@ -28,7 +28,7 @@ import javax.swing.JCheckBox;
 import javax.swing.JInternalFrame;
 
 import net.sf.mzmine.io.OpenedRawDataFile;
-import net.sf.mzmine.modules.visualization.rawdata.RawDataVisualizer;
+import net.sf.mzmine.modules.RawDataVisualizer;
 import net.sf.mzmine.taskcontrol.Task;
 import net.sf.mzmine.taskcontrol.TaskController;
 import net.sf.mzmine.taskcontrol.TaskListener;
@@ -94,7 +94,7 @@ public class TwoDVisualizerWindow extends JInternalFrame implements
     }
 
     /**
-     * @see net.sf.mzmine.modules.visualization.rawdata.RawDataVisualizer#setMZRange(double,
+     * @see net.sf.mzmine.modules.RawDataVisualizer#setMZRange(double,
      *      double)
      */
     public void setMZRange(double mzMin, double mzMax) {
@@ -102,7 +102,7 @@ public class TwoDVisualizerWindow extends JInternalFrame implements
     }
 
     /**
-     * @see net.sf.mzmine.modules.visualization.rawdata.RawDataVisualizer#setRTRange(double,
+     * @see net.sf.mzmine.modules.RawDataVisualizer#setRTRange(double,
      *      double)
      */
     public void setRTRange(double rtMin, double rtMax) {
@@ -111,7 +111,7 @@ public class TwoDVisualizerWindow extends JInternalFrame implements
     }
 
     /**
-     * @see net.sf.mzmine.modules.visualization.rawdata.RawDataVisualizer#setIntensityRange(double,
+     * @see net.sf.mzmine.modules.RawDataVisualizer#setIntensityRange(double,
      *      double)
      */
     public void setIntensityRange(double intensityMin, double intensityMax) {
@@ -170,7 +170,7 @@ public class TwoDVisualizerWindow extends JInternalFrame implements
     }
 
     /**
-     * @see net.sf.mzmine.modules.visualization.rawdata.RawDataVisualizer#getCursorPosition()
+     * @see net.sf.mzmine.modules.RawDataVisualizer#getCursorPosition()
      */
     public CursorPosition getCursorPosition() {
         // TODO Auto-generated method stub
@@ -178,7 +178,7 @@ public class TwoDVisualizerWindow extends JInternalFrame implements
     }
 
     /**
-     * @see net.sf.mzmine.modules.visualization.rawdata.RawDataVisualizer#setCursorPosition(net.sf.mzmine.util.CursorPosition)
+     * @see net.sf.mzmine.modules.RawDataVisualizer#setCursorPosition(net.sf.mzmine.util.CursorPosition)
      */
     public void setCursorPosition(CursorPosition newPosition) {
         // TODO Auto-generated method stub

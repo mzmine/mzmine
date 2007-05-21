@@ -108,8 +108,8 @@ public class LinearNormalizerTask implements Task {
             for (AlignmentResultRow originalAlignmentRow : originalAlignmentResult.getRows()) {
                 Peak p = originalAlignmentRow.getPeak(ord);
                 if (p != null)
-                    if (maxOriginalHeight <= p.getNormalizedHeight())
-                        maxOriginalHeight = p.getNormalizedHeight();
+                    if (maxOriginalHeight <= p.getHeight())
+                        maxOriginalHeight = p.getHeight();
             }
         }
 
@@ -136,7 +136,7 @@ public class LinearNormalizerTask implements Task {
                     if (p != null) {
                         // TODO: Use global parameter to determine whether to
                         // use height or area
-                        intensitySum += p.getNormalizedHeight();
+                        intensitySum += p.getHeight();
                         intensityCount++;
                     }
                 }
@@ -152,7 +152,7 @@ public class LinearNormalizerTask implements Task {
                     if (p != null) {
                         // TODO: Use global parameter to determine whether to
                         // use height or area
-                        intensitySum += (p.getNormalizedHeight() * p.getNormalizedHeight());
+                        intensitySum += (p.getHeight() * p.getHeight());
                         intensityCount++;
                     }
                 }
@@ -167,8 +167,8 @@ public class LinearNormalizerTask implements Task {
                     if (p != null) {
                         // TODO: Use global parameter to determine whether to
                         // use height or area
-                        if (maximumIntensity < p.getNormalizedHeight())
-                            maximumIntensity = p.getNormalizedHeight();
+                        if (maximumIntensity < p.getHeight())
+                            maximumIntensity = p.getHeight();
                     }
                 }
                 normalizationFactor = maximumIntensity;
@@ -196,12 +196,12 @@ public class LinearNormalizerTask implements Task {
                 Peak originalPeak = originalAlignmentRow.getPeak(ord);
                 if (originalPeak != null) {
                     SimplePeak normalizedPeak = new SimplePeak(originalPeak);
-                    double normalizedHeight = originalPeak.getNormalizedHeight()
+                    double normalizedHeight = originalPeak.getHeight()
                             / normalizationFactor;
-                    double normalizedArea = originalPeak.getNormalizedArea()
+                    double normalizedArea = originalPeak.getArea()
                             / normalizationFactor;
-                    normalizedPeak.setNormalizedHeight(normalizedHeight);
-                    normalizedPeak.setNormalizedArea(normalizedArea);
+                    normalizedPeak.setHeight(normalizedHeight);
+                    normalizedPeak.setArea(normalizedArea);
 
                     SimpleAlignmentResultRow normalizedRow = rowMap.get(originalAlignmentRow);
                     if (normalizedRow == null) {
@@ -212,7 +212,7 @@ public class LinearNormalizerTask implements Task {
                         rowMap.put(originalAlignmentRow, normalizedRow);
                     }
 
-                    normalizedRow.addPeak(ord, normalizedPeak);
+                    normalizedRow.addPeak(ord, originalPeak, normalizedPeak);
 
                 }
 

@@ -27,7 +27,6 @@ import net.sf.mzmine.data.IsotopePattern;
 import net.sf.mzmine.data.Peak;
 import net.sf.mzmine.data.PeakList;
 import net.sf.mzmine.io.OpenedRawDataFile;
-import net.sf.mzmine.util.IsotopePatternUtils;
 
 /**
  * IO for peak list data
@@ -45,23 +44,15 @@ public class PeakListWriter {
 
         // Write column headers
 
-        String s = "" + "M/Z" + "\t" + "RT" + "\t" + "Raw Height" + "\t"
-                + "Raw Area" + "\t"
-                + "Normalized M/Z" + "\t" + "Normalized RT" + "\t"
-                + "Normalized Height" + "\t" + "Normalized Area" + "\t"
-                + "Duration" + "\t" + "M/Z diff" + "\t"
-                + "Isotope Pattern Number" + "\t" + "Isotope Peak Number"
-                + "\t" + "Charge" + "\t"
-                + "\n";
+        String s = "\"m/z\"\t\"RT\"\t\"Height\"\t\"Raw Area\"\"Duration\""
+                + "\t" + "M/Z diff" + "\t" + "Isotope Pattern Number" + "\t"
+                + "Isotope Peak Number" + "\t" + "Charge" + "\t" + "\n";
 
         fw.write(s);
 
         // Get peak list
         PeakList peakList = (PeakList) rawData.getCurrentFile().getData(
                 PeakList.class)[0];
-
-        // Group peaks by their isotope pattern
-        IsotopePatternUtils isotopeUtility = new IsotopePatternUtils(peakList);
 
         // Loop through peaks
 
@@ -70,43 +61,36 @@ public class PeakListWriter {
 
             for (Peak p : peaks) {
 
-                double mz = p.getRawMZ();
-                double rt = p.getRawRT();
-                double height = p.getRawHeight();
-                double area = p.getRawArea();
-
-                double normalizedMZ = p.getNormalizedMZ();
-                double normalizedRT = p.getNormalizedRT();
-                double normalizedHeight = p.getNormalizedHeight();
-                double normalizedArea = p.getNormalizedArea();
+                double mz = p.getMZ();
+                double rt = p.getRT();
+                double height = p.getHeight();
+                double area = p.getArea();
 
                 double duration = p.getMaxRT() - p.getMinRT();
                 double mzDiff = p.getMaxMZ() - p.getMinMZ();
 
                 s = "" + mz + "\t" + rt + "\t" + height + "\t" + area + "\t"
 
-                + normalizedMZ + "\t" + normalizedRT + "\t" + normalizedHeight
-                        + "\t" + normalizedArea + "\t"
-
-                        + duration + "\t" + mzDiff + "\t";
+                + duration + "\t" + mzDiff + "\t";
 
                 // Is this peak assigned to some isotope pattern?
 
-                if (p.hasData(IsotopePattern.class)) {
+                if (p instanceof IsotopePattern) {
 
-                    IsotopePattern isotopePattern = (IsotopePattern) (p.getData(IsotopePattern.class)[0]);
-
-                    int isotopePatternNumber = isotopeUtility.getIsotopePatternNumber(isotopePattern);
-                    int isotopePeakNumber = isotopeUtility.getPeakNumberWithinPattern(p);
-                    int charge = isotopePattern.getChargeState();
-
-                    s += "" + isotopePatternNumber + "\t" + isotopePeakNumber
-                            + "\t" + charge + "\t";
+                    /*
+                     * int isotopePatternNumber =
+                     * isotopeUtility.getIsotopePatternNumber(isotopePattern);
+                     * int isotopePeakNumber =
+                     * isotopeUtility.getPeakNumberWithinPattern(p); int charge =
+                     * isotopePattern.getChargeState();
+                     * 
+                     * s += "" + isotopePatternNumber + "\t" + isotopePeakNumber +
+                     * "\t" + charge + "\t";
+                     */
 
                 } else {
 
                     // No isotope pattern assigned for the peak
-                    s += "" + "N/A" + "\t" + "N/A" + "\t" + "N/A" + "\t";
 
                 }
 

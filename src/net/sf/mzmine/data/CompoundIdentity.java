@@ -1,5 +1,5 @@
 /*
- * Copyright 2006 The MZmine Development Team
+ * Copyright 2006-2007 The MZmine Development Team
  * 
  * This file is part of MZmine.
  * 
@@ -41,19 +41,11 @@ public interface CompoundIdentity {
     public String getCompoundID();
 
     /**
-     * Returns short (a few characters) compound name, which can be displayed in
-     * the visualizers.
+     * Returns compound name
      * 
-     * @return Short compound name
+     * @return Compound name
      */
-    public String getShortCompoundName();
-
-    /**
-     * Returns a full name of this compound
-     * 
-     * @return Full compound name
-     */
-    public String getFullCompoundName();
+    public String getCompoundName();
 
     /**
      * Returns alternate names of this compound
@@ -61,17 +53,6 @@ public interface CompoundIdentity {
      * @return Array of alternate names
      */
     public String[] getAlternateNames();
-
-    /**
-     * Returns a relative degree of trust that the identified peak really
-     * corresponds to this compound. Each identification method may use its own
-     * scale of this value, therefore these values are only comparable if they
-     * come from the same identification method.
-     * 
-     * @return Relative degree of trust that this identification is correct, in
-     *         range 0.0 - 1.0
-     */
-    public float getCredibility();
 
     /**
      * Returns an URL for a WWW database entry covering this compound.

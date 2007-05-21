@@ -41,7 +41,7 @@ import net.sf.mzmine.io.OpenedRawDataFile;
 import net.sf.mzmine.io.RawDataAcceptor;
 import net.sf.mzmine.io.RawDataFile;
 import net.sf.mzmine.io.util.RawDataRetrievalTask;
-import net.sf.mzmine.modules.visualization.rawdata.RawDataVisualizer;
+import net.sf.mzmine.modules.RawDataVisualizer;
 import net.sf.mzmine.modules.visualization.rawdata.spectra.SpectraPlot.PlotMode;
 import net.sf.mzmine.taskcontrol.Task;
 import net.sf.mzmine.taskcontrol.TaskController;
@@ -169,7 +169,7 @@ public class SpectraVisualizerWindow extends JInternalFrame implements
     }
 
     /**
-     * @see net.sf.mzmine.modules.visualization.rawdata.RawDataVisualizer#setMZRange(double,
+     * @see net.sf.mzmine.modules.RawDataVisualizer#setMZRange(double,
      *      double)
      */
     public void setMZRange(double mzMin, double mzMax) {
@@ -177,7 +177,7 @@ public class SpectraVisualizerWindow extends JInternalFrame implements
     }
 
     /**
-     * @see net.sf.mzmine.modules.visualization.rawdata.RawDataVisualizer#setRTRange(double,
+     * @see net.sf.mzmine.modules.RawDataVisualizer#setRTRange(double,
      *      double)
      */
     public void setRTRange(double rtMin, double rtMax) {
@@ -186,7 +186,7 @@ public class SpectraVisualizerWindow extends JInternalFrame implements
     }
 
     /**
-     * @see net.sf.mzmine.modules.visualization.rawdata.RawDataVisualizer#setIntensityRange(double,
+     * @see net.sf.mzmine.modules.RawDataVisualizer#setIntensityRange(double,
      *      double)
      */
     public void setIntensityRange(double intensityMin, double intensityMax) {
@@ -314,7 +314,7 @@ public class SpectraVisualizerWindow extends JInternalFrame implements
     }
 
     /**
-     * @see net.sf.mzmine.modules.visualization.rawdata.RawDataVisualizer#getRawDataFiles()
+     * @see net.sf.mzmine.modules.RawDataVisualizer#getRawDataFiles()
      */
     public RawDataFile[] getRawDataFiles() {
         return new RawDataFile[] { rawDataFile };
@@ -483,8 +483,8 @@ public class SpectraVisualizerWindow extends JInternalFrame implements
                             peaksSeries.add(dataPoint[0], dataPoint[1], false);
                         }
                     } else {
-                        double mz = peaks[i].getRawMZ();
-                        double intensity = peaks[i].getRawHeight();
+                        double mz = peaks[i].getMZ();
+                        double intensity = peaks[i].getHeight();
 
                         int index = peaksSeries.indexOf(mz);
 
@@ -541,14 +541,14 @@ public class SpectraVisualizerWindow extends JInternalFrame implements
     }
 
     /**
-     * @see net.sf.mzmine.modules.visualization.rawdata.RawDataVisualizer#getCursorPosition()
+     * @see net.sf.mzmine.modules.RawDataVisualizer#getCursorPosition()
      */
     public CursorPosition getCursorPosition() {
         return null;
     }
 
     /**
-     * @see net.sf.mzmine.modules.visualization.rawdata.RawDataVisualizer#setCursorPosition(net.sf.mzmine.util.CursorPosition)
+     * @see net.sf.mzmine.modules.RawDataVisualizer#setCursorPosition(net.sf.mzmine.util.CursorPosition)
      */
     public void setCursorPosition(CursorPosition newPosition) {
         // do nothing

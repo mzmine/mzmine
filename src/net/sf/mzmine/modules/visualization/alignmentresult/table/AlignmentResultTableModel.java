@@ -4,20 +4,15 @@ import javax.swing.table.AbstractTableModel;
 
 import net.sf.mzmine.data.AlignmentResult;
 import net.sf.mzmine.data.AlignmentResultRow;
-import net.sf.mzmine.data.IsotopePattern;
 import net.sf.mzmine.data.Peak;
 import net.sf.mzmine.data.Peak.PeakStatus;
-import net.sf.mzmine.data.impl.StandardCompoundFlag;
 import net.sf.mzmine.io.OpenedRawDataFile;
 import net.sf.mzmine.userinterface.dialogs.alignmentresultcolumnselection.AlignmentResultColumnSelection;
-import net.sf.mzmine.util.IsotopePatternUtils;
 
 public class AlignmentResultTableModel extends AbstractTableModel {
 
 	private AlignmentResult alignmentResult;
 	private AlignmentResultColumnSelection columnSelection;
-
-	private IsotopePatternUtils isoUtil;
 
 
 	/**
@@ -26,8 +21,6 @@ public class AlignmentResultTableModel extends AbstractTableModel {
 	public AlignmentResultTableModel(AlignmentResult alignmentResult, AlignmentResultColumnSelection columnSelection) {
 		this.alignmentResult = alignmentResult;
 		this.columnSelection = columnSelection;
-
-		isoUtil = new IsotopePatternUtils(alignmentResult);
 
 	}
 
@@ -88,15 +81,10 @@ public class AlignmentResultTableModel extends AbstractTableModel {
 					return new Double(alignmentRow.getAverageMZ());
 				case AVGRT:
 					return new Double(alignmentRow.getAverageRT());
-				case ISOTOPEID:
-					IsotopePattern isoPatt = (IsotopePattern)alignmentRow.getLastData(IsotopePattern.class);
-					return new Integer(isoUtil.getIsotopePatternNumber(isoPatt));
-				case ISOTOPEPEAK:
-					isoPatt = (IsotopePattern)alignmentRow.getLastData(IsotopePattern.class);
-					return new Integer(isoUtil.getRowNumberWithinPattern(alignmentRow));
+
 				case CHARGE:
-					isoPatt = (IsotopePattern)alignmentRow.getLastData(IsotopePattern.class);
-					return new Integer(isoPatt.getChargeState());
+                    // TODO
+					// return new Integer(isoPatt.getChargeState());
 				default:
 					//System.out.println("Illegal common column");
 					return null;
@@ -112,13 +100,13 @@ public class AlignmentResultTableModel extends AbstractTableModel {
 
 			switch(columnSelection.getSelectedRawDataColumn(groupOffset[1])) {
 				case MZ:
-					return new Double(p.getNormalizedMZ());
+					return new Double(p.getMZ());
 				case RT:
-					return new Double(p.getNormalizedRT());
+					return new Double(p.getRT());
 				case HEIGHT:
-					return new Double(p.getNormalizedHeight());
+					return new Double(p.getHeight());
 				case AREA:
-					return new Double(p.getNormalizedArea());
+					return new Double(p.getArea());
 				case STATUS:
 					PeakStatus ps = p.getPeakStatus();
 					return ps;

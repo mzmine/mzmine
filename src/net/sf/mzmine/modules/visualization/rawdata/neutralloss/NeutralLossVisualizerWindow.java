@@ -28,7 +28,7 @@ import javax.swing.JDialog;
 import javax.swing.JInternalFrame;
 
 import net.sf.mzmine.io.OpenedRawDataFile;
-import net.sf.mzmine.modules.visualization.rawdata.RawDataVisualizer;
+import net.sf.mzmine.modules.RawDataVisualizer;
 import net.sf.mzmine.modules.visualization.rawdata.spectra.SpectraVisualizerWindow;
 import net.sf.mzmine.taskcontrol.Task;
 import net.sf.mzmine.taskcontrol.TaskController;
@@ -100,7 +100,7 @@ public class NeutralLossVisualizerWindow extends JInternalFrame implements
     }
 
     /**
-     * @see net.sf.mzmine.modules.visualization.rawdata.RawDataVisualizer#setIntensityRange(double,
+     * @see net.sf.mzmine.modules.RawDataVisualizer#setIntensityRange(double,
      *      double)
      */
     public void setIntensityRange(double intensityMin, double intensityMax) {

@@ -24,14 +24,11 @@ import javax.swing.JPopupMenu;
 import javax.swing.JTable;
 import javax.swing.table.AbstractTableModel;
 
-import net.sf.mzmine.data.IsotopePattern;
+import net.sf.mzmine.data.DataUnit;
 import net.sf.mzmine.data.Peak;
 import net.sf.mzmine.data.PeakList;
-import net.sf.mzmine.data.DataUnit;
-import net.sf.mzmine.data.impl.StandardCompoundFlag;
 import net.sf.mzmine.io.OpenedRawDataFile;
 import net.sf.mzmine.util.GUIUtils;
-import net.sf.mzmine.util.IsotopePatternUtils;
 import sunutils.TableSorter;
 
 
@@ -107,11 +104,9 @@ public class PeakListTable extends JTable {
 		private final String unassignedValue = new String("N/A");
 
 		private PeakList peakList;
-		private IsotopePatternUtils isotopePatternUtility;
 
 		public MyTableModel(PeakList peakList) {
 			this.peakList = peakList;
-			isotopePatternUtility = new IsotopePatternUtils(peakList);
 		}
 
 		public int getColumnCount() {
@@ -133,32 +128,18 @@ public class PeakListTable extends JTable {
 			switch (columnSelection.getSelectedColumn(col)) {
 				//case STDCOMPOUND: return p.hasData(StandardCompoundFlag.class);
 				
-				case MZ: return p.getRawMZ();
-				case RT: return p.getRawRT();
-				case HEIGHT: return p.getRawHeight();
-				case AREA: return p.getRawArea();
+				case MZ: return p.getMZ();
+				case RT: return p.getRT();
+				case HEIGHT: return p.getHeight();
+				case AREA: return p.getArea();
 				
 				case DURATION: return p.getMaxRT() - p.getMinRT();
 				case MZDIFF: return p.getMaxMZ() - p.getMinMZ();
 				
-				case NORMMZ: return p.getNormalizedMZ();
-				case NORMRT: return p.getNormalizedRT();
-				case NORMHEIGHT: return p.getNormalizedHeight();
-				case NORMAREA: return p.getNormalizedArea();
-				
-				case ISOTOPEPATTERNNUMBER: 
-					if (!p.hasData(IsotopePattern.class)) return unassignedValue;
-					IsotopePattern isotopePattern = (IsotopePattern)p.getData(IsotopePattern.class)[0];
-					return isotopePatternUtility.getIsotopePatternNumber(isotopePattern);
-					
-				case ISOTOPEPEAKNUMBER:
-					if (!p.hasData(IsotopePattern.class)) return unassignedValue;
-					return isotopePatternUtility.getPeakNumberWithinPattern(p);
 				
 				case CHARGE:
-					if (!p.hasData(IsotopePattern.class)) return unassignedValue;
-					isotopePattern = (IsotopePattern)p.getData(IsotopePattern.class)[0];
-					return isotopePattern.getChargeState();
+					// TODO return isotopePattern.getChargeState();
+                    return null;
 			}
 
 			return unassignedValue;
