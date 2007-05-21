@@ -20,6 +20,7 @@ Code
 - 3D-visualizer needs a setting for peak annotation threshold (annotate only peaks above given level), threshold in % or absolute
 - TIC/2D/3D visualizer setup dialog should remember last range values and offer either default values (depending on file) or last values
 - Datasets of JFreeChart library have to be updated in swing event-dispatching thread, otherwise exceptions can be thrown
+- TIC: Change title to XIC when m/z range is limitted. Peak area shading should use raw datapoints for area height. Shading of more than one peak.
 
 * Peak list and alignment result table views
 - Proper formatting to all columns
