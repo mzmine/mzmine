@@ -34,9 +34,11 @@ class PeakListTableToolBar extends JToolBar {
  
     private JButton showSpectrumButton;
     private JButton showXICButton;
+    private JButton showAlignmentRowsButton;
 
     static final Icon showSpectrumIcon = new ImageIcon("icons/spectrumicon.png");
     static final Icon showXICIcon = new ImageIcon("icons/xicicon.png");
+    static final Icon showAlignmentRowsIcon = new ImageIcon("icons/tableselectionicon.png");
 
     PeakListTableToolBar(PeakListTableViewWindow masterFrame) {
 
@@ -58,9 +60,17 @@ class PeakListTableToolBar extends JToolBar {
         showXICButton.setEnabled(true);
         showXICButton.addActionListener(masterFrame);
 
+        showAlignmentRowsButton = new JButton(showAlignmentRowsIcon);
+        showAlignmentRowsButton.setActionCommand("SHOW_ALIGNMENTS_FOR_PEAK");
+        showAlignmentRowsButton.setToolTipText("Show peak in alignment result table(s)");
+        showAlignmentRowsButton.setEnabled(true);
+        showAlignmentRowsButton.addActionListener(masterFrame);
+        
         add(showSpectrumButton);
         addSeparator();
         add(showXICButton);
+        addSeparator();
+        add(showAlignmentRowsButton);
 
     }
 

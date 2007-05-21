@@ -26,6 +26,8 @@ public interface PeakListVisualizer {
 
 	public void setSelectedPeak(Peak p);
 
-	public Peak getSelectedPeak();
+	//public Peak getSelectedPeak();
+	
+	public Peak[] getSelectedPeaks();
 
 }

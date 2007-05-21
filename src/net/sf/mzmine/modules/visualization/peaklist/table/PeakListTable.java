@@ -69,13 +69,22 @@ public class PeakListTable extends JTable {
 	}
 
 	protected Peak getSelectedPeak() {
-
-
 		int row = getSelectedRow();
 		if (row<0) return null;
 		int unsortedrow = sorter.getUnsortedRowIndex(row);
 		Peak p = peakList.getPeak(unsortedrow);
 		return p;
+	}
+	
+	protected Peak[] getSelectedPeaks() {
+		int[] rows = getSelectedRows();
+		if (rows.length<1) return null;
+		Peak[] peaks = new Peak[rows.length];
+		for (int i=0; i<rows.length; i++) {
+			int unsortedrow = sorter.getUnsortedRowIndex(rows[i]);
+			peaks[i] = peakList.getPeak(unsortedrow);
+		}
+		return peaks;
 	}
 
 	protected void setSelectedPeak(Peak p) {

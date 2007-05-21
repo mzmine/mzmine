@@ -28,11 +28,13 @@ import javax.swing.JInternalFrame;
 import javax.swing.JScrollPane;
 import javax.swing.JTable;
 
+import net.sf.mzmine.data.AlignmentResult;
 import net.sf.mzmine.data.Peak;
 import net.sf.mzmine.io.OpenedRawDataFile;
 import net.sf.mzmine.modules.visualization.peaklist.PeakListVisualizer;
 import net.sf.mzmine.modules.visualization.rawdata.spectra.SpectraVisualizerWindow;
 import net.sf.mzmine.modules.visualization.rawdata.tic.TICSetupDialog;
+import net.sf.mzmine.project.MZmineProject;
 import net.sf.mzmine.taskcontrol.TaskController;
 import net.sf.mzmine.userinterface.Desktop;
 
@@ -60,6 +62,8 @@ public class PeakListTableViewWindow extends JInternalFrame implements PeakListV
 		this.desktop = desktop;
 		this.rawData = rawData;
 
+		
+		
 		setDefaultCloseOperation(DISPOSE_ON_CLOSE);
         setBackground(Color.white);
 
@@ -69,6 +73,7 @@ public class PeakListTableViewWindow extends JInternalFrame implements PeakListV
 		// Build table
 		table = new PeakListTable(this, rawData);
 		table.setAutoResizeMode( JTable.AUTO_RESIZE_OFF );
+		
 		JScrollPane tableScroll = new JScrollPane(table);
 
 		add(toolBar, BorderLayout.EAST);
@@ -85,41 +90,67 @@ public class PeakListTableViewWindow extends JInternalFrame implements PeakListV
 
         if (command.equals("SHOW_SPECTRUM_FOR_PEAK")) {
 
-			Peak p = getSelectedPeak();
-			
-			if (p != null)
+        	Peak[] peaks = getSelectedPeaks();
+        	if (peaks==null) return;
+        	
+        	for (Peak p : peaks) {	
 				// TODO: M/Z bin size is hard coded here
-                new SpectraVisualizerWindow(taskController, desktop, rawData, p.getScanNumbers(), 0.01);			
+                new SpectraVisualizerWindow(taskController, desktop, rawData, p.getScanNumbers(), 0.01);
+        	}
 			
 		}
 
         if (command.equals("SHOW_XIC_FOR_PEAK")) {
         	
-        	logger.fine("Show XIC for a peak");
-      	
+			// Open a new chromatographic visualizer showing XIC with all selected peaks shaded
         	
-			Peak p = getSelectedPeak();
-			
-			// Open a new chromatographic visualizer showing XIC around peak's M/Z and filled area for peaks duration
-			if (p != null) {
-				
-				logger.fine("Show setup dialog");
-				
-				// TODO: Use mass accuracy to define XIC width
-				TICSetupDialog setupDialog = new TICSetupDialog(taskController, desktop, rawData, p.getMinMZ(), p.getMaxMZ(), p);
-				setupDialog.setVisible(true);
-				
-			}
+        	Peak[] peaks = getSelectedPeaks();
+        	if (peaks==null) return;
+        	
+        	// Determine m/z range for XIC (use minimum and maximum m/z of all peaks)
+			// TODO: Use mass accuracy to define XIC width
+        	double minMZ = Double.MAX_VALUE;
+        	double maxMZ = Double.MIN_VALUE;
+        	for (Peak p : peaks) {
+        		if (p.getMinMZ()<minMZ) 
+        			minMZ = p.getMinMZ();
+        		if (p.getMaxMZ()>maxMZ) 
+        			maxMZ = p.getMaxMZ();
+        	}
+        		
+			TICSetupDialog setupDialog = new TICSetupDialog(taskController, desktop, rawData, minMZ, maxMZ, peaks);
+			setupDialog.setVisible(true);	
+     	       	
 		}
+        
+        if (command.equals("SHOW_ALIGNMENTS_FOR_PEAK")) {
+        	Peak[] peaks = getSelectedPeaks();
+        	if (peaks != null) {
+        		
+        		for (Peak p : peaks) {
+	        		MZmineProject project = MZmineProject.getCurrentProject();      		
+	        		AlignmentResult[] alignmentResults = project.getAlignmentResults();
+	        		for (AlignmentResult alignmentResult : alignmentResults) {
+	        			// TODO: Must implement function to AlignmentResult for checking if peak is there 
+	        			//if (alignmentResult.containsPeak(p)) {}
+	        		}
+        		}
+        		
+        	}
+        }
 
 	}
 
 	public void setSelectedPeak(Peak p) {
 		table.setSelectedPeak(p);
 	}
-
+/*
 	public Peak getSelectedPeak() {
 		return table.getSelectedPeak();
+	}
+	*/
+	public Peak[] getSelectedPeaks() {
+		return table.getSelectedPeaks();
 	}
 
 

@@ -27,6 +27,7 @@ import java.text.DecimalFormat;
 import java.text.NumberFormat;
 import java.util.Enumeration;
 import java.util.Hashtable;
+import java.util.Set;
 import java.util.Vector;
 
 import javax.swing.JInternalFrame;
@@ -34,6 +35,7 @@ import javax.swing.JInternalFrame;
 import net.sf.mzmine.data.Peak;
 import net.sf.mzmine.io.OpenedRawDataFile;
 import net.sf.mzmine.io.RawDataAcceptor;
+import net.sf.mzmine.io.RawDataFile;
 import net.sf.mzmine.modules.visualization.rawdata.MultipleRawDataVisualizer;
 import net.sf.mzmine.modules.visualization.rawdata.spectra.SpectraSetupDialog;
 import net.sf.mzmine.modules.visualization.rawdata.spectra.SpectraVisualizerWindow;
@@ -61,7 +63,7 @@ public class TICVisualizerWindow extends JInternalFrame implements
     private int msLevel;
     private double rtMin, rtMax, mzMin, mzMax;
     
-    private Peak peak;
+    private Peak[] peaks;
     
     // TODO: get these from parameter storage
     private static NumberFormat rtFormat = new TimeNumberFormat();
@@ -80,7 +82,7 @@ public class TICVisualizerWindow extends JInternalFrame implements
     public TICVisualizerWindow(TaskController taskController, Desktop desktop, OpenedRawDataFile dataFile, PlotType plotType,
             int msLevel,
             double rtMin, double rtMax,
-            double mzMin, double mzMax, Peak peak) {
+            double mzMin, double mzMax, Peak[] peaks) {
         
         super(null, true, true, true, true);
         
@@ -93,7 +95,7 @@ public class TICVisualizerWindow extends JInternalFrame implements
         this.rtMax = rtMax;
         this.mzMin = mzMin;
         this.mzMax = mzMax;
-        this.peak = peak;
+        this.peaks = peaks;
         
         setDefaultCloseOperation(DISPOSE_ON_CLOSE);
         setBackground(Color.white);
@@ -116,7 +118,19 @@ public class TICVisualizerWindow extends JInternalFrame implements
         title.append(dataFiles.keySet().toString());
         title.append(": ");
         if (plotType == PlotType.BASE_PEAK) title.append("base peak");
-            else title.append("TIC"); 
+            else { 
+            	// If all datafiles have m/z range less than or equal to range of the plot (mzMin, mzMax), then call this TIC, otherwise XIC 
+            	Set<OpenedRawDataFile> fileSet = dataFiles.keySet();
+            	String ticOrXIC = "TIC";
+            	for (OpenedRawDataFile orf : fileSet) {
+            		RawDataFile rf = orf.getCurrentFile();
+            		if ( (rf.getDataMinMZ(msLevel)<mzMin) || (rf.getDataMinMZ(msLevel)>mzMax) ) {
+            			ticOrXIC = "XIC";
+            			break;
+            		}
+            	}
+            	title.append(ticOrXIC); 
+            }
         
         title.append(" MS" + msLevel);
 
@@ -135,6 +149,13 @@ public class TICVisualizerWindow extends JInternalFrame implements
             if (plotType == PlotType.BASE_PEAK)
                 title.append(", base peak: " + mzFormat.format(pos.getMzValue()) + " m/z");
             title.append(", IC: " + intensityFormat.format(pos.getIntensityValue()));
+        }
+        
+        if (peaks != null) {
+        	title.append(", peaks @m/z: ");
+        	for (Peak p : peaks) {
+        		title.append("" + mzFormat.format(p.getRawMZ()) + " ");
+        	}
         }
 
         plot.setTitle(title.toString());
@@ -199,10 +220,13 @@ public class TICVisualizerWindow extends JInternalFrame implements
         plot.addTICDataset(ticDataset);
 
         // ii) Another dataset for integrated peak area, if peak is given
-        if (peak!=null) {
+        if (peaks!=null) {
+        	// TODO: Needs work for multi-peak
+        	/*
         	IntegratedPeakAreaDataSet integratedPeakAreaDataSet = new IntegratedPeakAreaDataSet(newFile, peak.getScanNumbers(), mzMin, mzMax, this);
         	dataSets.add(integratedPeakAreaDataSet);
         	plot.addIntegratedPeakAreaDataset(integratedPeakAreaDataSet);
+        	*/
         }
         
         // Start-up the refresh task

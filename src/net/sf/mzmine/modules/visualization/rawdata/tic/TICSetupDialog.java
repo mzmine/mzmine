@@ -64,7 +64,7 @@ public class TICSetupDialog extends JDialog implements ActionListener {
     private OpenedRawDataFile dataFile;
     private RawDataFile rawDataFile;
     
-    private Peak peak = null;
+    private Peak[] peaks = null;
 
     public TICSetupDialog(TaskController taskController, Desktop desktop,
             OpenedRawDataFile dataFile) {
@@ -270,11 +270,11 @@ public class TICSetupDialog extends JDialog implements ActionListener {
      * @param dataFile
      */
     public TICSetupDialog(TaskController taskController, Desktop desktop,
-            OpenedRawDataFile dataFile, double minMZ, double maxMZ, Peak peak) {
+            OpenedRawDataFile dataFile, double minMZ, double maxMZ, Peak[] peaks) {
     
     	this(taskController, desktop, dataFile);
     	
-    	this.peak = peak;
+    	this.peaks = peaks;
     	
     	int msLevel = (Integer) comboMSlevel.getSelectedItem();
   	
@@ -329,7 +329,7 @@ public class TICSetupDialog extends JDialog implements ActionListener {
                     plotType = PlotType.BASE_PEAK;
 
                 new TICVisualizerWindow(taskController, desktop, dataFile,
-                        plotType, msLevel, rtMin, rtMax, mzMin, mzMax, peak);
+                        plotType, msLevel, rtMin, rtMax, mzMin, mzMax, peaks);
 
                 dispose();
 
