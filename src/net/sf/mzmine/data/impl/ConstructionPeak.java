@@ -20,7 +20,7 @@
 package net.sf.mzmine.data.impl;
 
 import java.util.ArrayList;
-import java.util.Hashtable;
+import java.util.TreeMap;
 
 import net.sf.mzmine.data.Peak;
 import net.sf.mzmine.io.OpenedRawDataFile;
@@ -36,7 +36,7 @@ public class ConstructionPeak extends AbstractDataUnit implements Peak {
     private PeakStatus peakStatus;
 
     // This table maps a scanNumber to an array of m/z and intensity pairs
-    private Hashtable<Integer, ArrayList<double[]>> datapointsMap;
+    private TreeMap<Integer, ArrayList<double[]>> datapointsMap;
 
     private OpenedRawDataFile dataFile;
 
@@ -189,7 +189,7 @@ public class ConstructionPeak extends AbstractDataUnit implements Peak {
 
     private void intializeAddingDatapoints() {
 
-        datapointsMap = new Hashtable<Integer, ArrayList<double[]>>();
+        datapointsMap = new TreeMap<Integer, ArrayList<double[]>>();
 
         precalcRequiredMZ = true;
         precalcRequiredRT = true;

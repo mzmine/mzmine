@@ -32,6 +32,8 @@ import java.util.Vector;
 
 import javax.swing.JInternalFrame;
 
+import org.jfree.data.xy.DefaultXYDataset;
+
 import net.sf.mzmine.data.Peak;
 import net.sf.mzmine.io.OpenedRawDataFile;
 import net.sf.mzmine.io.RawDataAcceptor;
@@ -152,7 +154,7 @@ public class TICVisualizerWindow extends JInternalFrame implements
         }
         
         if (peaks != null) {
-        	title.append(", peaks @m/z: ");
+        	title.append(", peaks m/z: ");
         	for (Peak p : peaks) {
         		title.append("" + mzFormat.format(p.getMZ()) + " ");
         	}
@@ -222,6 +224,43 @@ public class TICVisualizerWindow extends JInternalFrame implements
         // ii) Another dataset for integrated peak area, if peak is given
         if (peaks!=null) {
         	// TODO: Needs work for multi-peak
+        	
+            DefaultXYDataset integratedPeakAreaDataset = new DefaultXYDataset();
+            
+            int peakNumber = 0;
+            for (Peak p : peaks) {
+            
+            	// TODO: getScanNumbers() must return numbers in ascending order. 
+            	// When Peak interface stuff is working again, fix that, and continue from here.
+            	/*
+            	int[] peakScanNumbers = p.getScanNumbers();
+            	double[][] data = new double[2][peakScanNumbers.length];
+            	
+            	for (int i=0; i< peakScanNumbers.length; i++) {
+            		
+            		int scanNumber = peakScanNumbers[i];
+
+            		double rt = newFile.getCurrentFile().getRetentionTime(scanNumber);
+            		double[][] datapoints = p.getRawDatapoints(scanNumber);
+            		// Choose maximum height data point
+            		double height = 0.0;
+            		for (double[] mzHeight : datapoints)
+            			if (mzHeight[1]>height) height = mzHeight[1];
+           		
+           			
+            		data[i][0] = rt;
+            		data[i][1] = height;
+            		
+            		
+            	}
+            	
+            	
+            	integratedPeakAreaDataset.addSeries(peakNumber, data);
+            	peakNumber++;
+            	 */
+            }
+            
+        	
         	/*
         	IntegratedPeakAreaDataSet integratedPeakAreaDataSet = new IntegratedPeakAreaDataSet(newFile, peak.getScanNumbers(), mzMin, mzMax, this);
         	dataSets.add(integratedPeakAreaDataSet);
