@@ -227,6 +227,10 @@ public class TICVisualizerWindow extends JInternalFrame implements
         	
             DefaultXYDataset integratedPeakAreaDataset = new DefaultXYDataset();
             
+            double[] peakLabelsX = new double[peaks.length];
+            double[] peakLabelsY = new double[peaks.length];
+            String[] peakLabelsString = new String[peaks.length];
+            
             int peakNumber = 0;
             for (Peak p : peaks) {
             
@@ -235,9 +239,9 @@ public class TICVisualizerWindow extends JInternalFrame implements
             	
             	int[] peakScanNumbers = p.getScanNumbers();
             	double[][] data = new double[2][peakScanNumbers.length];
-            	
-            	//System.out.println("--- start a new peak ---");
-            	
+            	          	
+            	double maxHeight = 0.0;
+            	double maxHeightRT = 0.0;
             	for (int i=0; i< peakScanNumbers.length; i++) {
             		
             		int scanNumber = peakScanNumbers[i];
@@ -252,20 +256,34 @@ public class TICVisualizerWindow extends JInternalFrame implements
             		data[0][i] = rt;
             		data[1][i] = height;
             		
-            		//System.out.println("scanNumber=" + scanNumber + ", rt=" + rt + ", height=" + height);
-            	
+            		if (height>=maxHeight) {
+            			maxHeight = height;
+            			maxHeightRT = rt;
+            		}
+            		           	
             	}
             	
-            	//System.out.println("--- end of the peak ---");
+            	peakLabelsX[peakNumber] = maxHeightRT;
+            	peakLabelsY[peakNumber] = maxHeight;
+            	peakLabelsString[peakNumber] = mzFormat.format(p.getMZ());           	
             	
             	integratedPeakAreaDataset.addSeries(peakNumber, data);
             	peakNumber++;
             	
             }
             
-            plot.addIntegratedPeakAreaDataset(integratedPeakAreaDataset);      	
+            
+            DefaultXYDataset peakAreaLabelDataset = new DefaultXYDataset();
+            double[][] labelData = new double[2][peakLabelsX.length];
+            labelData[0] = peakLabelsX;
+            labelData[1] = peakLabelsY;
+            peakAreaLabelDataset.addSeries(0, labelData);
+            
+            plot.addIntegratedPeakAreaDataset(integratedPeakAreaDataset, peakAreaLabelDataset, peakLabelsString);      	
         	
         }
+        
+        
         
         // Start-up the refresh task
         TICRawDataAcceptor ticRawDataAcceptor = new TICRawDataAcceptor(taskController, newFile, scanNumbers, dataSets.toArray(new RawDataAcceptor[0]), this);

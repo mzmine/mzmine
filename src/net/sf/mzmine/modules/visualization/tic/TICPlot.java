@@ -51,7 +51,10 @@ import org.jfree.chart.labels.XYItemLabelGenerator;
 import org.jfree.chart.labels.XYToolTipGenerator;
 import org.jfree.chart.plot.PlotOrientation;
 import org.jfree.chart.plot.XYPlot;
+import org.jfree.chart.renderer.xy.StandardXYItemRenderer;
 import org.jfree.chart.renderer.xy.XYAreaRenderer;
+import org.jfree.chart.renderer.xy.XYBarRenderer;
+import org.jfree.chart.renderer.xy.XYDotRenderer;
 import org.jfree.chart.renderer.xy.XYLineAndShapeRenderer;
 import org.jfree.chart.title.LegendTitle;
 import org.jfree.chart.title.TextTitle;
@@ -340,22 +343,37 @@ class TICPlot extends ChartPanel {
 
     }
     
-    synchronized void addIntegratedPeakAreaDataset(DefaultXYDataset newSet) {
+    synchronized void addIntegratedPeakAreaDataset(DefaultXYDataset newSet, DefaultXYDataset labelsSet, String[] labelsString) {
     	plot.setDataset(numberOfDataSets, newSet);
+    	
 
         try {
             XYAreaRenderer newRenderer = (XYAreaRenderer) defaultAreaRenderer.clone();
             Color rendererColor = plotColors[numberOfDataSets % plotColors.length];
-            //newRenderer.setPaint(Color.gray);
             for (int seriesIndex=0; seriesIndex<newSet.getSeriesCount(); seriesIndex++)
             	newRenderer.setSeriesFillPaint(seriesIndex, rendererColor);
             plot.setRenderer(numberOfDataSets, newRenderer);
+            
+        	
         } catch (CloneNotSupportedException e) {
             e.printStackTrace();
         }
     	
+        numberOfDataSets++;
+        
+    	plot.setDataset(numberOfDataSets, labelsSet);
     	
+        StandardXYItemRenderer labelRenderer = new StandardXYItemRenderer(StandardXYItemRenderer.SHAPES);
+        labelRenderer.setBaseShape(dataPointsShape);
+        labelRenderer.setBaseShapesVisible(false);
+    	labelRenderer.setItemLabelsVisible(true);
+    	labelRenderer.setItemLabelPaint(new Color(0,0,0));
+    	labelRenderer.setItemLabelGenerator(new PeakAreaItemLabelGenerator(labelsString));
+    	plot.setRenderer(numberOfDataSets, labelRenderer);
+    	
+	
     	numberOfDataSets++;
+    	
     }
 
     void showLegend(boolean show) {
