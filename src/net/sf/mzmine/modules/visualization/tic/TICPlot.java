@@ -55,6 +55,7 @@ import org.jfree.chart.renderer.xy.XYAreaRenderer;
 import org.jfree.chart.renderer.xy.XYLineAndShapeRenderer;
 import org.jfree.chart.title.LegendTitle;
 import org.jfree.chart.title.TextTitle;
+import org.jfree.data.xy.DefaultXYDataset;
 import org.jfree.ui.RectangleInsets;
 
 /**
@@ -339,14 +340,15 @@ class TICPlot extends ChartPanel {
 
     }
     
-    synchronized void addIntegratedPeakAreaDataset(IntegratedPeakAreaDataSet newSet) {
+    synchronized void addIntegratedPeakAreaDataset(DefaultXYDataset newSet) {
     	plot.setDataset(numberOfDataSets, newSet);
 
         try {
             XYAreaRenderer newRenderer = (XYAreaRenderer) defaultAreaRenderer.clone();
-            //Color rendererColor = plotColors[numberOfDataSets % plotColors.length];
-            newRenderer.setPaint(Color.gray);
-            //newRenderer.setFillPaint(Color.gray);
+            Color rendererColor = plotColors[numberOfDataSets % plotColors.length];
+            //newRenderer.setPaint(Color.gray);
+            for (int seriesIndex=0; seriesIndex<newSet.getSeriesCount(); seriesIndex++)
+            	newRenderer.setSeriesFillPaint(seriesIndex, rendererColor);
             plot.setRenderer(numberOfDataSets, newRenderer);
         } catch (CloneNotSupportedException e) {
             e.printStackTrace();

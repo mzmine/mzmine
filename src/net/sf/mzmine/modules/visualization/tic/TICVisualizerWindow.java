@@ -232,9 +232,11 @@ public class TICVisualizerWindow extends JInternalFrame implements
             
             	// TODO: getScanNumbers() must return numbers in ascending order. 
             	// When Peak interface stuff is working again, fix that, and continue from here.
-            	/*
+            	
             	int[] peakScanNumbers = p.getScanNumbers();
             	double[][] data = new double[2][peakScanNumbers.length];
+            	
+            	//System.out.println("--- start a new peak ---");
             	
             	for (int i=0; i< peakScanNumbers.length; i++) {
             		
@@ -246,26 +248,23 @@ public class TICVisualizerWindow extends JInternalFrame implements
             		double height = 0.0;
             		for (double[] mzHeight : datapoints)
             			if (mzHeight[1]>height) height = mzHeight[1];
-           		
-           			
-            		data[i][0] = rt;
-            		data[i][1] = height;
+           		    
+            		data[0][i] = rt;
+            		data[1][i] = height;
             		
-            		
+            		//System.out.println("scanNumber=" + scanNumber + ", rt=" + rt + ", height=" + height);
+            	
             	}
             	
+            	//System.out.println("--- end of the peak ---");
             	
             	integratedPeakAreaDataset.addSeries(peakNumber, data);
             	peakNumber++;
-            	 */
+            	
             }
             
+            plot.addIntegratedPeakAreaDataset(integratedPeakAreaDataset);      	
         	
-        	/*
-        	IntegratedPeakAreaDataSet integratedPeakAreaDataSet = new IntegratedPeakAreaDataSet(newFile, peak.getScanNumbers(), mzMin, mzMax, this);
-        	dataSets.add(integratedPeakAreaDataSet);
-        	plot.addIntegratedPeakAreaDataset(integratedPeakAreaDataSet);
-        	*/
         }
         
         // Start-up the refresh task
