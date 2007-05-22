@@ -3,15 +3,14 @@
 <configuration> 
   <nodes local="4"/>  
   <modules> 
-    <module class="net.sf.mzmine.modules.visualization.rawdata.tic.TICVisualizer"/>  
-    <module class="net.sf.mzmine.modules.visualization.rawdata.spectra.SpectraVisualizer"/>  
-    <module class="net.sf.mzmine.modules.visualization.rawdata.twod.TwoDVisualizer"/>  
-    <module class="net.sf.mzmine.modules.visualization.rawdata.threed.ThreeDVisualizer"/>  
-    <module class="net.sf.mzmine.modules.visualization.rawdata.neutralloss.NeutralLossVisualizer"/>  
+    <module class="net.sf.mzmine.modules.visualization.tic.TICVisualizer"/>  
+    <module class="net.sf.mzmine.modules.visualization.spectra.SpectraVisualizer"/>  
+    <module class="net.sf.mzmine.modules.visualization.twod.TwoDVisualizer"/>  
+    <module class="net.sf.mzmine.modules.visualization.threed.ThreeDVisualizer"/>  
+    <module class="net.sf.mzmine.modules.visualization.neutralloss.NeutralLossVisualizer"/>  
     <module class="net.sf.mzmine.util.menu.VisualizationMenuSeparator"/>  
-    <module class="net.sf.mzmine.modules.visualization.peaklist.table.PeakListTableVisualizer"/>  
-    <module class="net.sf.mzmine.modules.visualization.alignmentresult.table.AlignmentResultTableVisualizer"/>  
-    <module class="net.sf.mzmine.modules.visualization.alignmentresult.logratio.AlignmentResultLogratioVisualizer"/>  
+    <module class="net.sf.mzmine.modules.visualization.peaklist.PeakListTableVisualizer"/>  
+    <module class="net.sf.mzmine.modules.visualization.alignmentresult.AlignmentResultTableVisualizer"/>  
     <module class="net.sf.mzmine.modules.batchmode.BatchMode"/>  
     <module class="net.sf.mzmine.modules.filtering.crop.CropFilter"/>
     <module class="net.sf.mzmine.modules.filtering.mean.MeanFilter"/>
@@ -27,6 +26,10 @@
     <module class="net.sf.mzmine.modules.alignment.filterbygaps.GapsFilter"/> 
     <module class="net.sf.mzmine.modules.gapfilling.simple.SimpleGapFiller"/> 
     <module class="net.sf.mzmine.modules.normalization.linear.LinearNormalizer"/> 
+    <module class="net.sf.mzmine.modules.dataanalysis.logratioplot.LogratioPlot"/>
+    <module class="net.sf.mzmine.modules.dataanalysis.covarplot.CoVarPlot"/>
+    <module class="net.sf.mzmine.modules.dataanalysis.cdaplot.CDAPlot"/>
+    <module class="net.sf.mzmine.modules.dataanalysis.sammonsplot.SammonsPlot"/>   
     <module class="net.sf.mzmine.modules.dataanalysis.intensityplot.IntensityPlot"/> 
   </modules> 
 </configuration>
