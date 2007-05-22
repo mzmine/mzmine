@@ -51,9 +51,8 @@ public class PeakListWriter {
         fw.write(s);
 
         // Get peak list
-        PeakList peakList = (PeakList) rawData.getCurrentFile().getData(
-                PeakList.class)[0];
-
+        PeakList peakList = rawData.getPeakList();
+        
         // Loop through peaks
 
         if (peakList != null) {

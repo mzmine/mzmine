@@ -140,7 +140,7 @@ class CentroidPickerTask implements Task {
     }
 
     /**
-     * @see java.lang.Runnable#run()
+     * @see Runnable#run()
      */
     public void run() {
 
@@ -160,7 +160,7 @@ class CentroidPickerTask implements Task {
                                                         // the raw data file
         double endMZ = rawDataFile.getDataMaxMZ(1); // maximum m/z value in the
                                                     // raw data file
-        int numOfBins = (int) (java.lang.Math.ceil((endMZ - startMZ) / binSize));
+        int numOfBins = (int) (Math.ceil((endMZ - startMZ) / binSize));
 
 		double[] chromatographicThresholds = new double[numOfBins];
 
@@ -207,7 +207,6 @@ class CentroidPickerTask implements Task {
 			}
 
 			binInts = null;
-			System.gc();
 
 		} else {
 			processedScans += totalScans;
@@ -246,7 +245,7 @@ class CentroidPickerTask implements Task {
                 if (intensities[j] >= noiseLevel) {
 
                     // Determine correct bin
-                    int bin = (int) java.lang.Math.floor((masses[j] - startMZ) / binSize);
+                    int bin = (int) Math.floor((masses[j] - startMZ) / binSize);
                     if (bin < 0) {
                         bin = 0;
                     }

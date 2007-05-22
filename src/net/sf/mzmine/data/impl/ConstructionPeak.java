@@ -31,7 +31,7 @@ import net.sf.mzmine.util.MathUtils;
  * This class is an implementation of the peak interface for peak picking
  * methods.
  */
-public class ConstructionPeak extends AbstractDataUnit implements Peak {
+public class ConstructionPeak implements Peak {
 
     private PeakStatus peakStatus;
 

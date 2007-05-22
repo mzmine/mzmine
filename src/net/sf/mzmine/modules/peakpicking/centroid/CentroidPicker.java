@@ -69,7 +69,7 @@ public class CentroidPicker implements DataProcessingMethod, TaskListener,
             new Double(0.0), new Double(0.0), new Double(1.0));
 
     public static final Parameter noiseLevel = new SimpleParameter(
-            ParameterType.DOUBLE, "Nouse level",
+            ParameterType.DOUBLE, "Noise level",
             "Intensities less than this value are interpreted as noise",
             "absolute", new Double(4.0), new Double(0.0), null);
 
@@ -170,7 +170,7 @@ public class CentroidPicker implements DataProcessingMethod, TaskListener,
                     params);
 
             // Add peak list as data unit to current file
-            dataFile.getCurrentFile().addData(PeakList.class, peakList);
+            dataFile.setPeakList(peakList);
 
             // Notify listeners
             desktop.notifySelectionListeners();

@@ -27,7 +27,7 @@ import net.sf.mzmine.util.NumberFormatProvider;
 /**
  * Simple Parameter implementation
  */
-public class SimpleParameter extends AbstractDataUnit implements Parameter {
+public class SimpleParameter implements Parameter {
 
     private ParameterType type;
     private String name, description, units;

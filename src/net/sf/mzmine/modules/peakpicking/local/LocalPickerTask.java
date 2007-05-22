@@ -139,7 +139,7 @@ class LocalPickerTask implements Task {
     }
 
     /**
-     * @see java.lang.Runnable#run()
+     * @see Runnable#run()
      */
     public void run() {
 
@@ -244,7 +244,7 @@ class LocalPickerTask implements Task {
                 if (intensities[j] >= noiseLevel) {
 
                     // Determine correct bin
-                    int bin = (int) java.lang.Math.floor((masses[j] - startMZ) / binSize);
+                    int bin = (int) Math.floor((masses[j] - startMZ) / binSize);
                     if (bin < 0) {
                         bin = 0;
                     }

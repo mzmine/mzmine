@@ -166,7 +166,7 @@ public class JoinAligner implements DataProcessingMethod, TaskListener,
         boolean allOk = (dataFiles.length > 0);
 
         for (OpenedRawDataFile file : dataFiles) {
-            if (!file.getCurrentFile().hasData(PeakList.class)) {
+            if (file.getPeakList() == null) {
                 allOk = false;
                 break;
             }
@@ -213,7 +213,7 @@ public class JoinAligner implements DataProcessingMethod, TaskListener,
 
         // check peaklists
         for (int i = 0; i < dataFiles.length; i++) {
-            if (dataFiles[i].getCurrentFile().getData(PeakList.class).length == 0) {
+            if (dataFiles[i].getPeakList() == null) {
                 String msg = "Cannot start alignment of " + dataFiles[i]
                         + ", please run peak picking first.";
                 logger.severe(msg);

@@ -65,8 +65,7 @@ class SimpleGrouperTask implements Task {
         status = TaskStatus.WAITING;
         this.dataFile = dataFile;
 
-        currentPeakList = (PeakList) dataFile.getCurrentFile().getData(
-                PeakList.class)[0];
+        currentPeakList = dataFile.getPeakList();
 
         processedPeakList = new SimplePeakList();
 
@@ -152,11 +151,11 @@ class SimpleGrouperTask implements Task {
 
             Peak aPeak = sortedPeaks[ind];
 
-            if (status == TaskStatus.CANCELED)
-                return;
-
             if (aPeak == null)
                 continue;
+
+            if (status == TaskStatus.CANCELED)
+                return;
 
             // Check which charge state fits best around this peak
             int bestFitCharge = 0;
@@ -179,15 +178,22 @@ class SimpleGrouperTask implements Task {
             }
 
             // Assign peaks in best fitted pattern to same isotope pattern
-            SimpleIsotopePattern isotopePattern = new SimpleIsotopePattern(
-                    );
+            SimpleIsotopePattern isotopePattern = new SimpleIsotopePattern();
             isotopePattern.setCharge(bestFitCharge);
-            
+
+            // TODO: let the user choose whether he wants top intensity peak or
+            // lowest m/z peak as representative
+            double maxHeight = 0;
+
             for (Peak p : bestFitPeaks.keySet()) {
-                SimplePeak processedPeak = new SimplePeak(p);
-                processedPeak.addData(IsotopePattern.class, isotopePattern);
-                processedPeakList.addPeak(processedPeak);
+                isotopePattern.addPeak(p);
+                if (p.getHeight() > maxHeight) {
+                    isotopePattern.setRepresentativePeak(p);
+                    maxHeight = p.getHeight();
+                }
             }
+            processedPeakList.addPeak(isotopePattern);
+
             for (Integer ind2 : bestFitPeaks.values()) {
                 sortedPeaks[ind2] = null;
             }
@@ -300,10 +306,9 @@ class SimpleGrouperTask implements Task {
             // If there are some candidates for n:th peak, then select the one
             // with biggest intensity
             // We collect all candidates, because we might want to do something
-            // more sophisticated at
-            // this step. For example, we might want to remove all other
-            // candidates. However, currently
-            // nothing is done with other candidates.
+            // more sophisticated at this step. For example, we might want to
+            // remove all other candidates. However, currently nothing is done
+            // with other candidates.
             Peak bestCandidate = null;
             for (Peak candidatePeak : goodCandidates.keySet()) {
                 if (bestCandidate != null) {

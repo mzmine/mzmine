@@ -21,16 +21,13 @@ package net.sf.mzmine.modules.alignment.join;
 
 import java.util.Iterator;
 import java.util.TreeSet;
-import java.util.Vector;
 
-import net.sf.mzmine.data.IsotopePattern;
+import net.sf.mzmine.data.AlignmentResultRow;
 import net.sf.mzmine.data.ParameterSet;
 import net.sf.mzmine.data.Peak;
 import net.sf.mzmine.data.PeakList;
 import net.sf.mzmine.data.impl.SimpleAlignmentResult;
 import net.sf.mzmine.data.impl.SimpleAlignmentResultRow;
-import net.sf.mzmine.data.impl.SimpleIsotopePattern;
-import net.sf.mzmine.data.impl.StandardCompoundFlag;
 import net.sf.mzmine.io.OpenedRawDataFile;
 import net.sf.mzmine.taskcontrol.Task;
 
@@ -62,6 +59,7 @@ class JoinAlignerTask implements Task {
 
         status = TaskStatus.WAITING;
         this.dataFiles = dataFiles;
+
         // Get parameter values for easier use
         MZTolerance = (Double) parameters.getParameterValue(JoinAligner.MZTolerance);
         MZvsRTBalance = (Double) parameters.getParameterValue(JoinAligner.MZvsRTBalance);
@@ -124,7 +122,11 @@ class JoinAlignerTask implements Task {
         /*
          * Initialize master isotope list and isotope pattern utility vector
          */
-        Vector<MasterIsotopeListRow> masterIsotopeListRows = new Vector<MasterIsotopeListRow>();
+        alignmentResult = new SimpleAlignmentResult("Result from Join Aligner");
+
+        // Add openedrawdatafiles to alignment result
+        for (OpenedRawDataFile dataFile : dataFiles)
+            alignmentResult.addOpenedRawDataFile(dataFile);
 
         /*
          * Loop through all data files
@@ -135,12 +137,14 @@ class JoinAlignerTask implements Task {
                 return;
 
             /*
-             * Pickup peak list for this file and generate list of isotope
-             * patterns
+             * Pickup peak list for this file and generate list of wrapped peaks
              */
-            PeakList peakList = (PeakList) dataFile.getCurrentFile().getLastData(
-                    PeakList.class);
-
+            PeakList peakList = dataFile.getPeakList();
+            PeakWrapper wrappedPeakList[] = new PeakWrapper[peakList.getNumberOfPeaks()];
+            for (int i = 0; i < peakList.getNumberOfPeaks(); i++) {
+                Peak peakToWrap = peakList.getPeak(i);
+                wrappedPeakList[i] = new PeakWrapper(peakToWrap);
+            }
 
             /*
              * Calculate scores between all pairs of isotope pattern and master
@@ -148,152 +152,74 @@ class JoinAlignerTask implements Task {
              */
 
             // Reset score tree
-            TreeSet<PatternVsRowScore> scoreTree = new TreeSet<PatternVsRowScore>(
+            TreeSet<PeakVsRowScore> scoreTree = new TreeSet<PeakVsRowScore>(
                     new ScoreSorter());
-/*
-            for (IsotopePatternWrapper wrappedIsotopePattern : wrappedIsotopePatternList) {
-                for (MasterIsotopeListRow masterIsotopeListRow : masterIsotopeListRows) {
-                    
+
+            for (PeakWrapper wrappedPeak : wrappedPeakList) {
+                for (AlignmentResultRow row : alignmentResult.getRows()) {
+
                     if (status == TaskStatus.CANCELED)
                         return;
-                    
-                    PatternVsRowScore score = new PatternVsRowScore(
-                            masterIsotopeListRow, wrappedIsotopePattern,
-                            isoUtil, MZTolerance, RTToleranceUseAbs,
+
+                    PeakVsRowScore score = new PeakVsRowScore(
+                            (SimpleAlignmentResultRow) row, wrappedPeak,
+                            MZTolerance, RTToleranceUseAbs,
                             RTToleranceValueAbs, RTToleranceValuePercent,
                             MZvsRTBalance);
+
                     if (score.isGoodEnough())
                         scoreTree.add(score);
                 }
             }
-
             /*
              * Browse scores in order of descending goodness-of-fit
              */
-
-            Iterator<PatternVsRowScore> scoreIter = scoreTree.iterator();
+            Iterator<PeakVsRowScore> scoreIter = scoreTree.iterator();
             while (scoreIter.hasNext()) {
-                PatternVsRowScore score = scoreIter.next();
+                PeakVsRowScore score = scoreIter.next();
 
                 processedPercentage += 1.0f / (float) dataFiles.length
-                / (float) scoreTree.size();
-                
+                        / (float) scoreTree.size();
+
                 if (status == TaskStatus.CANCELED)
                     return;
 
-                MasterIsotopeListRow masterIsotopeListRow = score.getMasterIsotopeListRow();
-                IsotopePatternWrapper wrappedIsotopePattern = score.getWrappedIsotopePattern();
+                SimpleAlignmentResultRow row = score.getRow();
+                PeakWrapper wrappedPeak = score.getPeakWrapper();
 
                 // Check if master list row is already assigned with an isotope
                 // pattern (from this rawDataID)
-                if (masterIsotopeListRow.isAlreadyJoined())
+                if (row.getPeak(dataFile) != null)
                     continue;
 
-                // Check if isotope pattern is already assigned to some master
-                // isotope list row
-                if (wrappedIsotopePattern.isAlreadyJoined())
+                // Check if peak is already assigned to some alignment result row
+                if (wrappedPeak.isAlreadyJoined())
                     continue;
 
-                // Assign isotope pattern to master peak list row
-                /*
-                masterIsotopeListRow.addIsotopePattern(dataFile,
-                        wrappedIsotopePattern.getIsotopePattern(), isoUtil);
+                // Assign peak pattern to alignment result row
+                row.addPeak(dataFile, wrappedPeak.getPeak(), wrappedPeak.getPeak());
+                wrappedPeak.setAlreadyJoined(true);
 
-                // Mark pattern and isotope pattern row as joined
-                masterIsotopeListRow.setJoined(true);
-                wrappedIsotopePattern.setAlreadyJoined(true);
-             */
             }
 
             /*
-             * Remove 'joined' from all master isotope list rows
+             * Add remaining peaks as new rows to alignment result
              */
-            for (MasterIsotopeListRow masterIsotopeListRow : masterIsotopeListRows) {
-                masterIsotopeListRow.setJoined(false);
-            }
+            for (PeakWrapper wrappedPeak : wrappedPeakList) {
 
-            /*
-             * Add remaining isotope patterns as new rows to master isotope list
-
-            for (IsotopePatternWrapper wrappedIsotopePattern : wrappedIsotopePatternList) {
-                
-                if (status == TaskStatus.CANCELED)
-                    return;
-                
-                if (wrappedIsotopePattern.isAlreadyJoined())
-                    continue;
-
-                MasterIsotopeListRow masterIsotopeListRow = new MasterIsotopeListRow();
-                masterIsotopeListRow.addIsotopePattern(dataFile,
-                        wrappedIsotopePattern.getIsotopePattern(), isoUtil);
-                masterIsotopeListRows.add(masterIsotopeListRow);
-            }
-             */
-        }
-
-        /*
-         * Convert master isotope list to alignment result (master peak list)
-         */
-
-        // Get number of peak rows
-        int numberOfRows = 0;
-        for (MasterIsotopeListRow masterIsotopeListRow : masterIsotopeListRows) {
-            numberOfRows += masterIsotopeListRow.getNumberOfPeaksOnRow();
-        }
-
-        alignmentResult = new SimpleAlignmentResult("Result from Join Aligner");
-
-        // Add openedrawdatafiles to alignment result
-        for (OpenedRawDataFile dataFile : dataFiles)
-            alignmentResult.addOpenedRawDataFile(dataFile);
-
-        // Loop through master isotope list rows
-        for (MasterIsotopeListRow masterIsotopeListRow : masterIsotopeListRows) {
-
-            /*
-            SimpleIsotopePattern masterIsotopePattern = new SimpleIsotopePattern(
-                    masterIsotopeListRow.getChargeState());
-
-            // Loop through peaks on this master isotope list row
-            for (int peakRow = 0; peakRow < masterIsotopeListRow.getNumberOfPeaksOnRow(); peakRow++) {
-                
                 if (status == TaskStatus.CANCELED)
                     return;
 
-                // Create alignment result row
-                SimpleAlignmentResultRow alignmentRow = new SimpleAlignmentResultRow();
+                if (wrappedPeak.isAlreadyJoined())
+                    continue;
 
-                // Tag row with isotope pattern
-                // alignmentRow.setIsotopePattern(masterIsotopePattern);
-                alignmentRow.addData(IsotopePattern.class, masterIsotopePattern);
-
-                // Loop through raw data files
-                for (OpenedRawDataFile dataFile : dataFiles) {
-
-                    IsotopePattern isotopePattern = masterIsotopeListRow.getIsotopePattern(dataFile);
-                    if (isotopePattern == null)
-                        continue;
-                    IsotopePatternUtils isoUtil = isotopePatternUtils.get(dataFile);
-
-                    // Add peak to alignment row
-                    Peak[] isotopePeaks = isoUtil.getPeaksInPattern(isotopePattern);
-                    if (peakRow < isotopePeaks.length) {
-                        alignmentRow.addPeak(dataFile, isotopePeaks[peakRow]);
-                        if (isotopePeaks[peakRow].hasData(StandardCompoundFlag.class)) {
-                            if (!alignmentRow.hasData(StandardCompoundFlag.class)) {
-                                alignmentRow.addData(
-                                        StandardCompoundFlag.class,
-                                        new StandardCompoundFlag());
-                            }
-                        }
-                    }
-                }
-
-                alignmentResult.addRow(alignmentRow);
-
+                SimpleAlignmentResultRow row = new SimpleAlignmentResultRow();
+                row.addPeak(dataFile, wrappedPeak.getPeak(), wrappedPeak.getPeak());
+                alignmentResult.addRow(row);
             }
-             */
+
         }
+
         status = TaskStatus.FINISHED;
 
     }

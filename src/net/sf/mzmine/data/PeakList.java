@@ -20,12 +20,11 @@
 
 package net.sf.mzmine.data;
 
-import net.sf.mzmine.data.DataUnit;
 
 /**
  * 
  */
-public interface PeakList extends DataUnit {
+public interface PeakList {
 
     /**
      * Returns number of peaks on the list

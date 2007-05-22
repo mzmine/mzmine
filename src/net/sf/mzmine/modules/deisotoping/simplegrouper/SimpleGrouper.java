@@ -129,7 +129,7 @@ public class SimpleGrouper implements DataProcessingMethod, TaskListener,
         OpenedRawDataFile[] dataFiles = desktop.getSelectedDataFiles();
 
         for (OpenedRawDataFile file : dataFiles) {
-            if (file.getCurrentFile().hasData(PeakList.class)) {
+            if (file.getPeakList() != null) {
                 myMenuItem.setEnabled(true);
                 return;
             }
@@ -158,7 +158,7 @@ public class SimpleGrouper implements DataProcessingMethod, TaskListener,
                     params);
 
             // Add peak list to MZmineProject
-            dataFile.getCurrentFile().addData(PeakList.class, peakList);
+            dataFile.setPeakList(peakList);
 
             // Notify listeners
             desktop.notifySelectionListeners();
@@ -215,7 +215,7 @@ public class SimpleGrouper implements DataProcessingMethod, TaskListener,
         Task tasks[] = new SimpleGrouperTask[dataFiles.length];
         for (int i = 0; i < dataFiles.length; i++) {
 
-            if (dataFiles[i].getCurrentFile().getData(PeakList.class).length == 0) {
+            if (dataFiles[i].getPeakList() == null) {
                 String msg = "Cannot start deisotoping of " + dataFiles[i]
                         + ", please run peak picking first.";
                 logger.severe(msg);
@@ -225,12 +225,12 @@ public class SimpleGrouper implements DataProcessingMethod, TaskListener,
             tasks[i] = new SimpleGrouperTask(dataFiles[i], parameters);
         }
 
-        TaskGroup newSequence = new TaskGroup(tasks, this,
-                methodListener, taskController);
+        TaskGroup newSequence = new TaskGroup(tasks, this, methodListener,
+                taskController);
 
         // execute the sequence
         newSequence.run();
-        
+
         return newSequence;
 
     }

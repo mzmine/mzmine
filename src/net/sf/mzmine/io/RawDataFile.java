@@ -24,10 +24,9 @@ import java.io.IOException;
 import java.io.Serializable;
 
 import net.sf.mzmine.data.Scan;
-import net.sf.mzmine.data.DataUnit;
 import net.sf.mzmine.io.IOController.PreloadLevel;
 
-public interface RawDataFile extends Serializable, DataUnit {
+public interface RawDataFile extends Serializable {
 
     public File getFile();
 

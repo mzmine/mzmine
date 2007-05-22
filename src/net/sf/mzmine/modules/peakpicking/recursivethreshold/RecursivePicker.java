@@ -53,7 +53,7 @@ public class RecursivePicker implements DataProcessingMethod, TaskListener,
         ListSelectionListener, ActionListener {
 
     public static final NumberFormat percentFormat = NumberFormat.getPercentInstance();
-    
+
     public static final Parameter binSize = new SimpleParameter(
             ParameterType.DOUBLE, "M/Z bin width",
             "Width of M/Z range for each precalculated XIC", "Da", new Double(
@@ -177,7 +177,7 @@ public class RecursivePicker implements DataProcessingMethod, TaskListener,
                     params);
 
             // Add peak list as data unit to current file
-            dataFile.getCurrentFile().addData(PeakList.class, peakList);
+            dataFile.setPeakList(peakList);
 
             // Notify listeners
             desktop.notifySelectionListeners();
@@ -240,15 +240,14 @@ public class RecursivePicker implements DataProcessingMethod, TaskListener,
         // prepare a new sequence of tasks
         Task tasks[] = new RecursivePickerTask[dataFiles.length];
         for (int i = 0; i < dataFiles.length; i++) {
-            tasks[i] = new RecursivePickerTask(dataFiles[i],
-                    parameters);
+            tasks[i] = new RecursivePickerTask(dataFiles[i], parameters);
         }
-        TaskGroup newSequence = new TaskGroup(tasks, this,
-                methodListener, taskController);
+        TaskGroup newSequence = new TaskGroup(tasks, this, methodListener,
+                taskController);
 
         // execute the sequence
         newSequence.run();
-        
+
         return newSequence;
 
     }

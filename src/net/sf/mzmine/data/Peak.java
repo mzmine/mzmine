@@ -24,7 +24,7 @@ import net.sf.mzmine.io.OpenedRawDataFile;
 /**
  * This interface defines the properties of a detected peak
  */
-public interface Peak extends DataUnit {
+public interface Peak {
 
     /**
      * DETECTED - peak was found in primary peak picking 

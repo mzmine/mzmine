@@ -1,5 +1,5 @@
 /*
- * Copyright 2006 The MZmine Development Team
+ * Copyright 2006-2007 The MZmine Development Team
  *
  * This file is part of MZmine.
  *
@@ -24,7 +24,6 @@ import javax.swing.JPopupMenu;
 import javax.swing.JTable;
 import javax.swing.table.AbstractTableModel;
 
-import net.sf.mzmine.data.DataUnit;
 import net.sf.mzmine.data.IsotopePattern;
 import net.sf.mzmine.data.Peak;
 import net.sf.mzmine.data.PeakList;
@@ -40,9 +39,8 @@ public class PeakListTable extends JTable {
 
 	protected PeakListTable(PeakListTableViewWindow masterFrame, OpenedRawDataFile rawData) {
 
-		DataUnit[] peakLists = (DataUnit[])rawData.getCurrentFile().getData(PeakList.class);
-		peakList = (PeakList)peakLists[peakLists.length-1];
-
+		peakList = rawData.getPeakList();
+        
 		if (peakList!=null) {
 			AbstractTableModel mtm = new MyTableModel(peakList);
 

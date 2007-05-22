@@ -25,9 +25,9 @@ import java.util.Comparator;
  * This is a helper class required for TreeSet to sorting scores in order of
  * descending goodness of fit.
  */
-class ScoreSorter implements Comparator<PatternVsRowScore> {
+class ScoreSorter implements Comparator<PeakVsRowScore> {
 
-    public int compare(PatternVsRowScore score1, PatternVsRowScore score2) {
+    public int compare(PeakVsRowScore score1, PeakVsRowScore score2) {
 
         // Smaller score value means smaller M/Z and RT difference
         // and therefore smaller score is better and should come first

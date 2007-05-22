@@ -1,5 +1,5 @@
 /*
- * Copyright 2006 The MZmine Development Team
+ * Copyright 2006-2007 The MZmine Development Team
  *
  * This file is part of MZmine.
  *
@@ -26,7 +26,6 @@ import java.text.NumberFormat;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import net.sf.mzmine.data.DataUnit;
 import net.sf.mzmine.data.Peak;
 import net.sf.mzmine.data.PeakList;
 import net.sf.mzmine.data.Scan;
@@ -362,12 +361,8 @@ class ThreeDSamplingTask implements Task {
 
 
             // if we have peak data, connect them to the display, too
-            DataUnit peakLists[] = dataFile.getCurrentFile().getData(PeakList.class);
-            
-            if (peakLists.length > 0) {
-                
-                // get the last peaklist
-                PeakList peakList = (PeakList) peakLists[peakLists.length - 1];
+            PeakList peakList = dataFile.getPeakList();
+            if (peakList != null) {
 
                 Peak peaks[] = peakList.getPeaksInsideScanAndMZRange(rtMin, rtMax, mzMin, mzMax);
 

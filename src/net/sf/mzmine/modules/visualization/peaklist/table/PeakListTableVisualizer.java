@@ -67,7 +67,7 @@ public class PeakListTableVisualizer implements MZmineModule, ActionListener, Li
         OpenedRawDataFile dataFiles[] = desktop.getSelectedDataFiles();
 
         for (OpenedRawDataFile dataFile : dataFiles) {
-			if (dataFile.getCurrentFile().hasData(PeakList.class)) {
+			if (dataFile.hasPeakList()) {
 
 				logger.finest("Showing a new peak list view");
 
@@ -86,7 +86,7 @@ public class PeakListTableVisualizer implements MZmineModule, ActionListener, Li
 		OpenedRawDataFile[] openedRawDataFiles = desktop.getSelectedDataFiles();
 
 		for (OpenedRawDataFile openedRawDataFile : openedRawDataFiles) {
-			if (openedRawDataFile.getCurrentFile().hasData(PeakList.class)) {
+			if (openedRawDataFile.hasPeakList()) {
 				peakListViewMenuItem.setEnabled(true);
 				break;
 			}

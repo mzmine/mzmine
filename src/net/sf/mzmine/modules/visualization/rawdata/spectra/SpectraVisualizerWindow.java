@@ -465,9 +465,7 @@ public class SpectraVisualizerWindow extends JInternalFrame implements
         if (scanIndex == total - 1) {
 
             // if we have a peak list, add the eligible peaks
-            Object[] peakLists = dataFile.getCurrentFile().getData(PeakList.class);
-            PeakList peakList = null;
-            if (peakLists.length > 0) peakList = (PeakList)peakLists[0];
+            PeakList peakList = dataFile.getPeakList();
             if (peakList != null) {
 
                 toolBar.setPeaksButtonEnabled(true);

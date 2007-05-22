@@ -25,6 +25,7 @@ import java.util.Vector;
 import java.util.logging.Logger;
 
 import net.sf.mzmine.data.ParameterSet;
+import net.sf.mzmine.data.PeakList;
 import net.sf.mzmine.data.impl.SimpleParameterSet;
 import net.sf.mzmine.io.OpenedRawDataFile;
 import net.sf.mzmine.io.RawDataFile;
@@ -44,6 +45,7 @@ public class OpenedRawDataFileImpl implements OpenedRawDataFile {
     private String dataDescription;
     private RawDataFile currentFile;
     private File originalFile;
+    private PeakList peakList;
     
     public OpenedRawDataFileImpl(RawDataFile rawDataFile, String dataDescription) {
         processingHistory = new Vector<Operation>();
@@ -88,6 +90,9 @@ public class OpenedRawDataFileImpl implements OpenedRawDataFile {
         op.parameters = parameters;
         processingHistory.add(op);
         currentFile = newFile;
+        
+        // discard current peaklist
+        peakList = null;
         
     }
 
@@ -159,6 +164,33 @@ public class OpenedRawDataFileImpl implements OpenedRawDataFile {
     @Override
 	public String toString() {
         return originalFile.getName();
+    }
+
+
+
+    /**
+     * @see net.sf.mzmine.io.OpenedRawDataFile#getPeakList()
+     */
+    public PeakList getPeakList() {
+        return peakList;
+    }
+
+
+
+    /**
+     * @see net.sf.mzmine.io.OpenedRawDataFile#setPeakList(net.sf.mzmine.data.PeakList)
+     */
+    public void setPeakList(PeakList p) {
+        this.peakList = p;
+    }
+
+
+
+    /**
+     * @see net.sf.mzmine.io.OpenedRawDataFile#hasPeakList()
+     */
+    public boolean hasPeakList() {
+        return (peakList != null);
     }
 
 

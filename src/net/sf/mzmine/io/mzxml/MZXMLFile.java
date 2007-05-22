@@ -39,7 +39,6 @@ import javax.xml.parsers.SAXParser;
 import javax.xml.parsers.SAXParserFactory;
 
 import net.sf.mzmine.data.Scan;
-import net.sf.mzmine.data.impl.AbstractDataUnit;
 import net.sf.mzmine.io.RawDataFile;
 import net.sf.mzmine.io.IOController.PreloadLevel;
 import net.sf.mzmine.util.CollectionUtils;
@@ -48,7 +47,7 @@ import net.sf.mzmine.util.CollectionUtils;
  * Class representing raw data file in MZXML format.
  *
  */
-class MZXMLFile extends AbstractDataUnit implements RawDataFile {
+class MZXMLFile implements RawDataFile {
 
     private Logger logger = Logger.getLogger(this.getClass().getName());
 

@@ -20,15 +20,15 @@
 package net.sf.mzmine.data.impl;
 
 import java.util.Hashtable;
+
 import net.sf.mzmine.data.Peak;
-import net.sf.mzmine.data.impl.AbstractDataUnit;
 import net.sf.mzmine.io.OpenedRawDataFile;
 import net.sf.mzmine.util.CollectionUtils;
 
 /**
  * This class is a simple implementation of the peak interface.
  */
-public class SimplePeak extends AbstractDataUnit implements Peak {
+public class SimplePeak implements Peak {
 
     private PeakStatus peakStatus;
     private OpenedRawDataFile dataFile;

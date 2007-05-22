@@ -206,9 +206,6 @@ public class LinearNormalizerTask implements Task {
                     SimpleAlignmentResultRow normalizedRow = rowMap.get(originalAlignmentRow);
                     if (normalizedRow == null) {
                         normalizedRow = new SimpleAlignmentResultRow();
-                        normalizedRow.addData(
-                                IsotopePattern.class,
-                                originalAlignmentRow.getLastData(IsotopePattern.class));
                         rowMap.put(originalAlignmentRow, normalizedRow);
                     }
 

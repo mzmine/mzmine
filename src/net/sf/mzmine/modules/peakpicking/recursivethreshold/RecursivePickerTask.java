@@ -1,5 +1,5 @@
 /*
- * Copyright 2006 The MZmine Development Team
+ * Copyright 2006-2007 The MZmine Development Team
  * 
  * This file is part of MZmine.
  * 
@@ -68,8 +68,7 @@ class RecursivePickerTask implements Task {
      * @param rawDataFile
      * @param parameters
      */
-    RecursivePickerTask(OpenedRawDataFile dataFile,
-            ParameterSet parameters) {
+    RecursivePickerTask(OpenedRawDataFile dataFile, ParameterSet parameters) {
         status = TaskStatus.WAITING;
         this.dataFile = dataFile;
         this.rawDataFile = dataFile.getCurrentFile();
@@ -141,7 +140,7 @@ class RecursivePickerTask implements Task {
     }
 
     /**
-     * @see java.lang.Runnable#run()
+     * @see Runnable#run()
      */
     public void run() {
 
@@ -159,7 +158,7 @@ class RecursivePickerTask implements Task {
         // the raw data file
         double endMZ = rawDataFile.getDataMaxMZ(1); // maximum m/z value in the
         // raw data file
-        int numOfBins = (int) (java.lang.Math.ceil((endMZ - startMZ) / binSize));
+        int numOfBins = (int) (Math.ceil((endMZ - startMZ) / binSize));
         double[] chromatographicThresholds = new double[numOfBins];
 
         if (chromatographicThresholdLevel > 0) {
@@ -249,8 +248,7 @@ class RecursivePickerTask implements Task {
                 if (intensities[j] >= noiseLevel) {
 
                     // Determine correct bin
-                    int bin = (int) java.lang.Math.floor((masses[j] - startMZ)
-                            / binSize);
+                    int bin = (int) Math.floor((masses[j] - startMZ) / binSize);
                     if (bin < 0) {
                         bin = 0;
                     }
@@ -278,7 +276,8 @@ class RecursivePickerTask implements Task {
             for (ConstructionPeak ucPeak : underConstructionPeaks) {
 
                 for (OneDimPeak oneDimPeak : oneDimPeaks) {
-                    MatchScore score = new MatchScore(ucPeak, oneDimPeak, mzTolerance, intTolerance);
+                    MatchScore score = new MatchScore(ucPeak, oneDimPeak,
+                            mzTolerance, intTolerance);
                     if (score.getScore() < Double.MAX_VALUE) {
                         scores.add(score);
                     }

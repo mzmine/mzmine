@@ -29,7 +29,7 @@ import net.sf.mzmine.io.OpenedRawDataFile;
 /**
  * 
  */
-public class SimpleIsotopePattern extends AbstractDataUnit implements
+public class SimpleIsotopePattern implements
         IsotopePattern {
 
     private int charge;
