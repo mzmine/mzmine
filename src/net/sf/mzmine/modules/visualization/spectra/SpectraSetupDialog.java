@@ -17,7 +17,7 @@
  * Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-package net.sf.mzmine.modules.visualization.rawdata.spectra;
+package net.sf.mzmine.modules.visualization.spectra;
 
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;

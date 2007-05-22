@@ -17,7 +17,7 @@
  * Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-package net.sf.mzmine.modules.visualization.rawdata.spectra;
+package net.sf.mzmine.modules.visualization.spectra;
 
 import java.awt.BorderLayout;
 import java.awt.Color;
@@ -42,7 +42,7 @@ import net.sf.mzmine.io.RawDataAcceptor;
 import net.sf.mzmine.io.RawDataFile;
 import net.sf.mzmine.io.util.RawDataRetrievalTask;
 import net.sf.mzmine.modules.RawDataVisualizer;
-import net.sf.mzmine.modules.visualization.rawdata.spectra.SpectraPlot.PlotMode;
+import net.sf.mzmine.modules.visualization.spectra.SpectraPlot.PlotMode;
 import net.sf.mzmine.taskcontrol.Task;
 import net.sf.mzmine.taskcontrol.TaskController;
 import net.sf.mzmine.taskcontrol.TaskListener;

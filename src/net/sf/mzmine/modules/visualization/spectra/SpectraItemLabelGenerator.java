@@ -20,7 +20,7 @@
 /**
  * 
  */
-package net.sf.mzmine.modules.visualization.rawdata.spectra;
+package net.sf.mzmine.modules.visualization.spectra;
 
 import java.text.DecimalFormat;
 import java.text.NumberFormat;

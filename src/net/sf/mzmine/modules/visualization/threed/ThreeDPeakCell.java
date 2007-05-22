@@ -17,7 +17,7 @@
  * Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-package net.sf.mzmine.modules.visualization.rawdata.threed;
+package net.sf.mzmine.modules.visualization.threed;
 
 import java.rmi.RemoteException;
 

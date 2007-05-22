@@ -20,22 +20,19 @@
 /**
  * 
  */
-package net.sf.mzmine.modules.visualization.rawdata.tic;
+package net.sf.mzmine.modules.visualization.spectra;
 
 import java.text.DecimalFormat;
 import java.text.NumberFormat;
-import net.sf.mzmine.util.TimeNumberFormat;
-
 import org.jfree.chart.labels.XYToolTipGenerator;
 import org.jfree.data.xy.XYDataset;
 
 /**
  * 
  */
-class BasePeakToolTipGenerator implements XYToolTipGenerator {
+class SpectraToolTipGenerator implements XYToolTipGenerator {
 
     // TODO: get these from parameter storage
-    private static NumberFormat rtFormat = new TimeNumberFormat();
     private static NumberFormat intensityFormat = new DecimalFormat("0.00E0");
     private static NumberFormat mzFormat = new DecimalFormat("0.00");
 
@@ -44,10 +41,9 @@ class BasePeakToolTipGenerator implements XYToolTipGenerator {
      *      int, int)
      */
     public String generateToolTip(XYDataset dataset, int series, int item) {
-        double rtValue = dataset.getXValue(series, item);
         double intValue = dataset.getYValue(series, item);
-        double mzValue = ((TICDataSet) dataset).getMZValue(item);
-        return "Retention time: " + rtFormat.format(rtValue) + ", base peak m/z: " + mzFormat.format(mzValue) + ", base peak intensity: "
+        double mzValue = dataset.getXValue(series, item);        
+        return "m/z: " + mzFormat.format(mzValue) + ", intensity: "
                 + intensityFormat.format(intValue);
     }
 

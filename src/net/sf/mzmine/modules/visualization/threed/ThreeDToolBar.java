@@ -17,7 +17,7 @@
  * Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-package net.sf.mzmine.modules.visualization.rawdata.tic;
+package net.sf.mzmine.modules.visualization.threed;
 
 import java.awt.Color;
 import java.awt.Insets;
@@ -25,33 +25,29 @@ import java.awt.Insets;
 import javax.swing.Icon;
 import javax.swing.ImageIcon;
 import javax.swing.JToolBar;
+import javax.swing.plaf.metal.MetalIconFactory;
 
 import net.sf.mzmine.util.GUIUtils;
 
 /**
- * TIC visualizer's toolbar class
+ * 3D visualizer's toolbar class
  */
-class TICToolBar extends JToolBar {
+class ThreeDToolBar extends JToolBar {
 
-    static final Icon showSpectrumIcon = new ImageIcon("icons/spectrumicon.png");
-    static final Icon dataPointsIcon = new ImageIcon("icons/datapointsicon.png");
+    static final Icon propertiesIcon = MetalIconFactory.getTreeComputerIcon();
     static final Icon annotationsIcon = new ImageIcon("icons/annotationsicon.png");
 
-    TICToolBar(TICVisualizerWindow masterFrame) {
+    ThreeDToolBar(ThreeDVisualizerWindow masterFrame) {
 
         super(JToolBar.VERTICAL);
 
         setFloatable(false);
+        setFocusable(false);
         setMargin(new Insets(5, 5, 5, 5));
         setBackground(Color.white);
 
-        GUIUtils.addButton(this, null, showSpectrumIcon, masterFrame,
-                "SHOW_SPECTRUM", "Show spectrum of selected scan");
-
-        addSeparator();
-
-        GUIUtils.addButton(this, null, dataPointsIcon, masterFrame,
-                "SHOW_DATA_POINTS", "Toggle displaying of data points");
+        GUIUtils.addButton(this, null, propertiesIcon, masterFrame,
+                "PROPERTIES", "Set properties");
 
         addSeparator();
 

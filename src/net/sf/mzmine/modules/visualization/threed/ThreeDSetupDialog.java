@@ -17,7 +17,7 @@
  * Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-package net.sf.mzmine.modules.visualization.rawdata.twod;
+package net.sf.mzmine.modules.visualization.threed;
 
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
@@ -25,8 +25,6 @@ import java.awt.Insets;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.text.NumberFormat;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
 import javax.swing.JButton;
 import javax.swing.JComboBox;
@@ -44,15 +42,12 @@ import net.sf.mzmine.util.CollectionUtils;
 import net.sf.mzmine.util.GUIUtils;
 
 /**
- * Setup dialog for 2D visualizer
+ * Setup dialog for 3D visualizer
  */
-public class TwoDSetupDialog extends JDialog implements ActionListener {
+public class ThreeDSetupDialog extends JDialog implements ActionListener {
 
-    private Logger logger = Logger.getLogger(this.getClass().getName());
-    
     static final int PADDING_SIZE = 5;
-    static final int DEFAULT_RT_RESOLUTION = 1000;
-    static final int DEFAULT_MZ_RESOLUTION = 1000;
+    static final int DEFAULT_MAX_RT_RESOLUTION = 2000;
 
     // dialog components
     private JButton btnOK, btnCancel;
@@ -65,11 +60,11 @@ public class TwoDSetupDialog extends JDialog implements ActionListener {
     private OpenedRawDataFile dataFile;
     private RawDataFile rawDataFile;
 
-    public TwoDSetupDialog(TaskController taskController, Desktop desktop,
+    public ThreeDSetupDialog(TaskController taskController, Desktop desktop,
             OpenedRawDataFile dataFile) {
 
         // Make dialog modal
-        super(desktop.getMainFrame(), "2D visualizer parameters", true);
+        super(desktop.getMainFrame(), "3D visualizer parameters", true);
 
         this.taskController = taskController;
         this.desktop = desktop;
@@ -112,6 +107,7 @@ public class TwoDSetupDialog extends JDialog implements ActionListener {
         layout.setConstraints(comp, constraints);
 
         Integer msLevels[] = CollectionUtils.toIntegerArray(rawDataFile.getMSLevels());
+
         comboMSlevel = new JComboBox(msLevels);
         comboMSlevel.addActionListener(this);
         constraints.fill = GridBagConstraints.NONE;
@@ -217,7 +213,8 @@ public class TwoDSetupDialog extends JDialog implements ActionListener {
         constraints.gridheight = 1;
         layout.setConstraints(comp, constraints);
 
-        comp = GUIUtils.addLabel(components, "Bitmap retention time resolution");
+        comp = GUIUtils.addLabel(components,
+                "Maximum retention time resolution");
         constraints.gridx = 0;
         constraints.gridy = 6;
         constraints.gridwidth = 1;
@@ -225,7 +222,7 @@ public class TwoDSetupDialog extends JDialog implements ActionListener {
         layout.setConstraints(comp, constraints);
 
         fieldResolutionRT = new JFormattedTextField(format);
-        fieldResolutionRT.setValue(DEFAULT_RT_RESOLUTION);
+        fieldResolutionRT.setValue(DEFAULT_MAX_RT_RESOLUTION);
         constraints.weightx = 1;
         constraints.gridx = 1;
         constraints.gridy = 6;
@@ -241,7 +238,7 @@ public class TwoDSetupDialog extends JDialog implements ActionListener {
         constraints.gridheight = 1;
         layout.setConstraints(comp, constraints);
 
-        comp = GUIUtils.addLabel(components, "Bitmap m/z resolution");
+        comp = GUIUtils.addLabel(components, "Maximum m/z resolution");
         constraints.gridx = 0;
         constraints.gridy = 7;
         constraints.gridwidth = 1;
@@ -249,7 +246,6 @@ public class TwoDSetupDialog extends JDialog implements ActionListener {
         layout.setConstraints(comp, constraints);
 
         fieldResolutionMZ = new JFormattedTextField(format);
-        fieldResolutionMZ.setValue(DEFAULT_MZ_RESOLUTION);
         constraints.weightx = 1;
         constraints.gridx = 1;
         constraints.gridy = 7;
@@ -311,6 +307,11 @@ public class TwoDSetupDialog extends JDialog implements ActionListener {
             fieldMinMZ.setValue(rawDataFile.getDataMinMZ(msLevel));
             fieldMaxMZ.setValue(rawDataFile.getDataMaxMZ(msLevel));
 
+            int resMZ = (int) Math.round(rawDataFile.getDataMaxMZ(msLevel)
+                    - rawDataFile.getDataMinMZ(msLevel));
+
+            fieldResolutionMZ.setValue(resMZ);
+
         }
 
         if (src == btnOK) {
@@ -343,14 +344,13 @@ public class TwoDSetupDialog extends JDialog implements ActionListener {
                     return;
                 }
 
-                new TwoDVisualizerWindow(taskController, desktop, dataFile,
-                        msLevel, rtMin, rtMax, mzMin, mzMax, rtResolution,
-                        mzResolution);
+                new ThreeDVisualizerWindow(taskController, desktop,
+                        dataFile, msLevel, rtMin, rtMax, mzMin, mzMax,
+                        rtResolution, mzResolution);
 
                 dispose();
 
             } catch (Exception e) {
-                logger.log(Level.FINE, "Error while opening 2D visualizer window", e);
                 desktop.displayErrorMessage("Invalid input");
             }
         }
