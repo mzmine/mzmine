@@ -1,4 +1,4 @@
-package net.sf.mzmine.modules.visualization.alignmentresult.logratio;
+package net.sf.mzmine.modules.dataanalysis.logratioplot;
 
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -12,13 +12,13 @@ import javax.swing.event.ListSelectionListener;
 import net.sf.mzmine.data.AlignmentResult;
 import net.sf.mzmine.data.ParameterSet;
 import net.sf.mzmine.main.MZmineCore;
-import net.sf.mzmine.modules.visualization.alignmentresult.AlignmentResultVisualizer;
-import net.sf.mzmine.modules.visualization.alignmentresult.table.AlignmentResultTableVisualizerWindow;
+import net.sf.mzmine.main.MZmineModule;
+import net.sf.mzmine.modules.visualization.alignmentresult.AlignmentResultTableVisualizerWindow;
 import net.sf.mzmine.userinterface.Desktop;
 import net.sf.mzmine.userinterface.Desktop.MZmineMenu;
 
-public class AlignmentResultLogratioVisualizer implements
-		AlignmentResultVisualizer, ActionListener, ListSelectionListener {
+public class LogratioPlot implements MZmineModule, 
+		 ActionListener, ListSelectionListener {
 
 	private Desktop desktop;
 	private JMenuItem myMenuItem;

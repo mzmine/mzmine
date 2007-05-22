@@ -89,6 +89,7 @@ class IntensityPlotFrame extends JInternalFrame {
         // set renderer
         CategoryPlot plot = (CategoryPlot) chart.getPlot();
         LineAndShapeRenderer renderer = new LineAndShapeRenderer(true, true);
+        renderer.setLinesVisible(false);
         plot.setRenderer(renderer);
 
         // set tooltip generator

@@ -1,4 +1,4 @@
-package net.sf.mzmine.modules.visualization.alignmentresult.table;
+package net.sf.mzmine.modules.visualization.alignmentresult;
 
 import javax.swing.table.AbstractTableModel;
 

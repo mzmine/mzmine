@@ -36,6 +36,7 @@ import java.awt.print.PageFormat;
 import java.awt.print.Printable;
 import java.awt.print.PrinterJob;
 import java.text.DecimalFormat;
+
 import javax.print.attribute.HashPrintRequestAttributeSet;
 import javax.swing.JInternalFrame;
 import javax.swing.JMenuItem;
@@ -46,6 +47,9 @@ import javax.swing.event.InternalFrameEvent;
 import javax.swing.event.InternalFrameListener;
 
 import net.sf.mzmine.data.AlignmentResult;
+import net.sf.mzmine.data.ParameterSet;
+import net.sf.mzmine.main.MZmineCore;
+import net.sf.mzmine.main.MZmineModule;
 import net.sf.mzmine.userinterface.mainwindow.MainWindow;
 import net.sf.mzmine.util.TransferableImage;
 
@@ -55,7 +59,7 @@ import net.sf.mzmine.util.TransferableImage;
  *
  */
 //public class AlignmentResultVisualizerCDAPlotView extends JInternalFrame implements Printable, AlignmentResultVisualizer, InternalFrameListener {
-public class CDAPlot extends JInternalFrame implements Printable, InternalFrameListener {
+public class CDAPlot extends JInternalFrame implements MZmineModule, Printable, InternalFrameListener {
 
 	private static final double marginSize = (double)0.02; // How much extra margin is added to the axis in full zoom
 
@@ -1024,5 +1028,34 @@ public class CDAPlot extends JInternalFrame implements Printable, InternalFrameL
 			return rawDataID;
 		}
 	}
+
+
+
+
+    /**
+     * @see net.sf.mzmine.main.MZmineModule#getParameterSet()
+     */
+    public ParameterSet getParameterSet() {
+        // TODO Auto-generated method stub
+        return null;
+    }
+
+
+    /**
+     * @see net.sf.mzmine.main.MZmineModule#initModule(net.sf.mzmine.main.MZmineCore)
+     */
+    public void initModule(MZmineCore core) {
+        // TODO Auto-generated method stub
+        
+    }
+
+
+    /**
+     * @see net.sf.mzmine.main.MZmineModule#setParameters(net.sf.mzmine.data.ParameterSet)
+     */
+    public void setParameters(ParameterSet parameterValues) {
+        // TODO Auto-generated method stub
+        
+    }
 
 }

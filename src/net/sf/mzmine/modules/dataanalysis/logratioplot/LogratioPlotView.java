@@ -19,7 +19,7 @@
 */
 
 
-package net.sf.mzmine.modules.visualization.alignmentresult.logratio;
+package net.sf.mzmine.modules.dataanalysis.logratioplot;
 
 import java.awt.BorderLayout;
 import java.awt.Color;
@@ -67,7 +67,7 @@ import net.sf.mzmine.util.TransferableImage;
  *
  */
 //public class AlignmentResultVisualizerLogratioPlotView extends JInternalFrame implements Printable, AlignmentResultVisualizer, InternalFrameListener {
-public class AlignmentResultVisualizerLogratioPlotView extends JInternalFrame implements Printable, InternalFrameListener {
+public class LogratioPlotView extends JInternalFrame implements Printable, InternalFrameListener {
 
 	private static final double marginSize = (double)0.02; // How much extra margin is added to the axis in full zoom
 
@@ -106,7 +106,7 @@ public class AlignmentResultVisualizerLogratioPlotView extends JInternalFrame im
 	 *
 	 * @param _mainWin	Main window of Masso
 	 */
-	public AlignmentResultVisualizerLogratioPlotView(MainWindow _mainWin) {
+	public LogratioPlotView(MainWindow _mainWin) {
 		mainWin = _mainWin;
 		//statBar = mainWin.getStatusBar();
 
@@ -501,7 +501,7 @@ public class AlignmentResultVisualizerLogratioPlotView extends JInternalFrame im
 	private class PlotArea extends JPanel implements ActionListener, java.awt.event.MouseListener , java.awt.event.MouseMotionListener {
 
 
-		private AlignmentResultVisualizerLogratioPlotView masterFrame;
+		private LogratioPlotView masterFrame;
 		private double minMZ;
 		private double maxMZ;
 		private double minRT;
@@ -545,7 +545,7 @@ public class AlignmentResultVisualizerLogratioPlotView extends JInternalFrame im
 		 *
 		 * @param	_masterFrame	SpatialLogratioPlotView frame where this panel is located
 		 */
-		public PlotArea(AlignmentResultVisualizerLogratioPlotView _masterFrame) {
+		public PlotArea(LogratioPlotView _masterFrame) {
 			masterFrame = _masterFrame;
 		    popupMenu = new JPopupMenu();
 		    zoomToSelectionMenuItem = new JMenuItem("Zoom to selection");

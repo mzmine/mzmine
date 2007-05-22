@@ -1,5 +1,5 @@
 /*
- * Copyright 2006 The MZmine Development Team
+ * Copyright 2006-2007 The MZmine Development Team
  *
  * This file is part of MZmine.
  *
@@ -17,26 +17,25 @@
  * Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-package net.sf.mzmine.modules.visualization.alignmentresult.table;
+package net.sf.mzmine.modules.visualization.alignmentresult;
+
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.awt.event.KeyEvent;
+import java.util.logging.Logger;
 
 import javax.swing.JMenuItem;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
-import java.awt.event.ActionListener;
-import java.awt.event.ActionEvent;
-import java.awt.event.KeyEvent;
-import java.util.logging.Logger;
 
-import net.sf.mzmine.userinterface.Desktop;
-import net.sf.mzmine.main.MZmineCore;
-import net.sf.mzmine.main.MZmineModule;
-import net.sf.mzmine.modules.visualization.alignmentresult.AlignmentResultVisualizer;
-import net.sf.mzmine.userinterface.Desktop.MZmineMenu;
 import net.sf.mzmine.data.AlignmentResult;
 import net.sf.mzmine.data.ParameterSet;
+import net.sf.mzmine.main.MZmineCore;
+import net.sf.mzmine.userinterface.Desktop;
+import net.sf.mzmine.userinterface.Desktop.MZmineMenu;
 
 
-public class AlignmentResultTableVisualizer implements AlignmentResultVisualizer, ActionListener, ListSelectionListener {
+public class AlignmentResultTableVisualizer implements  ActionListener, ListSelectionListener {
 
 	private Desktop desktop;
 	private JMenuItem myMenuItem;

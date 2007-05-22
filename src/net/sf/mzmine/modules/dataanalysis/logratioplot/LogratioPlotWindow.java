@@ -1,4 +1,4 @@
-package net.sf.mzmine.modules.visualization.alignmentresult.logratio;
+package net.sf.mzmine.modules.dataanalysis.logratioplot;
 
 import java.awt.BorderLayout;
 import java.awt.Color;
@@ -13,7 +13,7 @@ import javax.swing.JTable;
 import net.sf.mzmine.data.AlignmentResult;
 
 
-class AlignmentResultLogratioVisualizerWindow extends JInternalFrame implements
+class LogratioPlotWindow extends JInternalFrame implements
 		ActionListener {
 
 	private Logger logger = Logger.getLogger(this.getClass().getName());
@@ -22,7 +22,7 @@ class AlignmentResultLogratioVisualizerWindow extends JInternalFrame implements
 	
 	
 	
-	public AlignmentResultLogratioVisualizerWindow(AlignmentResult alignmentResult) {
+	public LogratioPlotWindow(AlignmentResult alignmentResult) {
 
 		super(alignmentResult.toString(), true, true, true, true);
 		
