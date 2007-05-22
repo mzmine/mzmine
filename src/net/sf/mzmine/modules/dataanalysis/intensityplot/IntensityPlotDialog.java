@@ -28,7 +28,6 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.util.Arrays;
 import java.util.Vector;
-import java.util.logging.Logger;
 
 import javax.swing.BoxLayout;
 import javax.swing.JButton;
@@ -46,7 +45,6 @@ import net.sf.mzmine.io.OpenedRawDataFile;
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.userinterface.components.AlignmentRowCheckBox;
 import net.sf.mzmine.userinterface.components.DataFileCheckBox;
-import net.sf.mzmine.util.AlignmentResultRowSorter;
 import net.sf.mzmine.util.GUIUtils;
 
 class IntensityPlotDialog extends JDialog implements ActionListener {
@@ -160,7 +158,7 @@ class IntensityPlotDialog extends JDialog implements ActionListener {
         peakCheckBoxes = new AlignmentRowCheckBox[alignmentResult.getNumberOfRows()];
         minimumHorizSize = 0;
         AlignmentResultRow rows[] = alignmentResult.getRows();
-        Arrays.sort(rows, new AlignmentResultRowSorter());
+        Arrays.sort(rows, new AlignmentResultSorterByMZ());
         for (int i = 0; i < rows.length; i++) {
             peakCheckBoxes[i] = new AlignmentRowCheckBox(rows[i]);
             minimumHorizSize = Math.max(minimumHorizSize,

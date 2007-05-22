@@ -17,7 +17,7 @@
  * Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-package net.sf.mzmine.util;
+package net.sf.mzmine.modules.dataanalysis.intensityplot;
 
 import java.util.Comparator;
 
@@ -25,7 +25,7 @@ import net.sf.mzmine.data.AlignmentResultRow;
 
 /**
  */
-public class AlignmentResultRowSorter implements Comparator<AlignmentResultRow> {
+public class AlignmentResultSorterByMZ implements Comparator<AlignmentResultRow> {
 
     public int compare(AlignmentResultRow row1, AlignmentResultRow row2) {
         Double mz1 = row1.getAverageMZ();

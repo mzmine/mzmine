@@ -77,7 +77,7 @@ public interface Peak {
      */
 
     /**
-     * 
+     * Returns raw data file where this peak is present
      */
     public OpenedRawDataFile getDataFile();
 
