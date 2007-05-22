@@ -31,11 +31,12 @@ import javax.swing.event.ListSelectionListener;
 import net.sf.mzmine.data.AlignmentResult;
 import net.sf.mzmine.data.ParameterSet;
 import net.sf.mzmine.main.MZmineCore;
+import net.sf.mzmine.main.MZmineModule;
 import net.sf.mzmine.userinterface.Desktop;
 import net.sf.mzmine.userinterface.Desktop.MZmineMenu;
 
 
-public class AlignmentResultTableVisualizer implements  ActionListener, ListSelectionListener {
+public class AlignmentResultTableVisualizer implements MZmineModule, ActionListener, ListSelectionListener {
 
 	private Desktop desktop;
 	private JMenuItem myMenuItem;

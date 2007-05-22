@@ -87,8 +87,8 @@ public class CDAPlot extends JInternalFrame implements MZmineModule, Printable, 
 	 *
 	 * @param _mainWin	Main window of Masso
 	 */
-	public CDAPlot(MainWindow _mainWin) {
-		mainWin = _mainWin;
+	public CDAPlot() {
+		mainWin = null;
 
 
 		// Build this visualizer

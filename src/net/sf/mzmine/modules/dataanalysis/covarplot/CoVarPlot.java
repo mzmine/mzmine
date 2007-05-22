@@ -67,8 +67,7 @@ import net.sf.mzmine.util.TransferableImage;
  * This class is used to draw a spatial cv plot between two groups of runs in one alignment result
  *
  */
-//public class AlignmentResultVisualizerCoVarPlotView extends JInternalFrame implements Printable, AlignmentResultVisualizer, InternalFrameListener {
-	public class CoVarPlot extends JInternalFrame implements MZmineModule, Printable, InternalFrameListener {
+public class CoVarPlot extends JInternalFrame implements MZmineModule, Printable, InternalFrameListener {
 
 	private static final double marginSize = (double)0.02; // How much extra margin is added to the axis in full zoom
 
@@ -114,8 +113,8 @@ import net.sf.mzmine.util.TransferableImage;
 	 *
 	 * @param _mainWin	Main window of Masso
 	 */
-	public CoVarPlot(MainWindow _mainWin) {
-		mainWin = _mainWin;
+	public CoVarPlot() {
+		mainWin = null;
 //		statBar = mainWin.getStatusBar();
 
 		heatMap = new HeatMapColorPicker(heatmap_pal_waypoints[paramCVSetting], heatmap_pal_waypointRGBs);

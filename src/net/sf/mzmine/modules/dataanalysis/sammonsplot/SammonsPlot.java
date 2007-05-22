@@ -79,8 +79,8 @@ public class SammonsPlot extends JInternalFrame implements MZmineModule, Printab
 	 *
 	 * @param _mainWin	Main window of Masso
 	 */
-	public SammonsPlot(MainWindow _mainWin) {
-		mainWin = _mainWin;
+	public SammonsPlot() {
+		mainWin = null;
 	//	statBar = mainWin.getStatusBar();
 
 		// Build this visualizer
