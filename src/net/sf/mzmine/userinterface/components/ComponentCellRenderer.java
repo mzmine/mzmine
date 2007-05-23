@@ -19,15 +19,23 @@
 
 package net.sf.mzmine.userinterface.components;
 
+import java.awt.Color;
 import java.awt.Component;
+import java.awt.Dimension;
 import java.awt.Font;
 
+import javax.swing.BorderFactory;
 import javax.swing.JComponent;
 import javax.swing.JLabel;
 import javax.swing.JList;
+import javax.swing.JPanel;
 import javax.swing.JTable;
 import javax.swing.ListCellRenderer;
+import javax.swing.UIManager;
+import javax.swing.border.Border;
 import javax.swing.table.TableCellRenderer;
+
+import org.jfree.ui.OverlayLayout;
 
 /**
  * Simple table cell renderer that renders only JComponents
@@ -38,7 +46,6 @@ public class ComponentCellRenderer implements TableCellRenderer,
     private Font font;
 
     /**
-     * @param font
      */
     public ComponentCellRenderer() {
     }
@@ -57,15 +64,38 @@ public class ComponentCellRenderer implements TableCellRenderer,
     public Component getTableCellRendererComponent(JTable table, Object value,
             boolean isSelected, boolean hasFocus, int row, int column) {
 
-        if (value == null) return null;
+        JPanel newPanel = new JPanel(new OverlayLayout());
+        Color bgColor;
+        if (isSelected) bgColor = table.getSelectionBackground();
+        else bgColor = table.getBackground();
+
+        newPanel.setBackground(bgColor);
         
-        if (value instanceof JComponent)
-            return (Component) value;
-        
-        JLabel newLabel = new JLabel(value.toString());
-        if (font != null)
-            newLabel.setFont(font);
-        return newLabel;
+        if (hasFocus) {
+            Border border = null;
+            if (isSelected) border = UIManager.getBorder("Table.focusSelectedCellHighlightBorder");
+            if (border == null) border = UIManager.getBorder("Table.focusCellHighlightBorder");
+            newPanel.setBorder(border);
+        }
+
+        if (value != null) {
+
+            if (value instanceof JComponent) {
+
+                newPanel.add((JComponent) value);
+
+            } else {
+
+                JLabel newLabel = new JLabel(value.toString());
+
+                if (font != null)
+                    newLabel.setFont(font);
+
+                newPanel.add(newLabel);
+            }
+        }
+
+        return newPanel;
 
     }
 

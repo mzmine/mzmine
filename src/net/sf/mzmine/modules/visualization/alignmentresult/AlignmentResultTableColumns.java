@@ -42,7 +42,7 @@ public class AlignmentResultTableColumns implements ColumnSet,
     public enum CommonColumnType implements ColumnType {
         ROWNUM("ID", Integer.class), 
         AVGMZ("Average M/Z", Double.class), 
-        AVGRT("Average Retention time", Double.class),
+        AVGRT("Average retention time", Double.class),
         COMMENT("Comment", String.class);
 
         private final String columnName;

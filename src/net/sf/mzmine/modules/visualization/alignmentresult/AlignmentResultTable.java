@@ -20,30 +20,56 @@
 package net.sf.mzmine.modules.visualization.alignmentresult;
 
 import javax.swing.JTable;
+import javax.swing.event.ChangeEvent;
+import javax.swing.event.ListSelectionEvent;
+import javax.swing.event.TableColumnModelEvent;
+import javax.swing.event.TableColumnModelListener;
+import javax.swing.table.TableColumnModel;
 
-import net.sf.mzmine.data.AlignmentResult;
+import net.sf.mzmine.userinterface.components.ColumnGroup;
 import net.sf.mzmine.userinterface.components.ComponentCellRenderer;
+import net.sf.mzmine.userinterface.components.GroupableTableHeader;
 import sunutils.TableSorter;
 
 public class AlignmentResultTable extends JTable {
 
     private TableSorter sorter;
+    private AlignmentResultTableModel tableModel;
+    private GroupableTableHeader header;
 
     public AlignmentResultTable(
             AlignmentResultTableVisualizerWindow masterFrame,
             AlignmentResultTableModel tableModel) {
 
+        ComponentCellRenderer rend = new ComponentCellRenderer();
+        setDefaultRenderer(Object.class, rend);
+        
+        
+        this.tableModel = tableModel;
         // Initialize sorter
         sorter = new TableSorter(tableModel);
 
-        getTableHeader().setReorderingAllowed(false);
-        sorter.addMouseListenerToHeaderInTable(this);
         setModel(sorter);
 
-        ComponentCellRenderer rend = new ComponentCellRenderer();
-        setDefaultRenderer(Object.class, rend);
+        TableColumnModel cm = this.getColumnModel();
+
+        header = new GroupableTableHeader(cm);
+
+        this.setTableHeader(header);
+        
+        tableModel.createGroups(header, columnModel);
+
+        sorter.addMouseListenerToHeaderInTable(this);
 
         setRowHeight(20);
+
+    }
+
+    public void createDefaultColumnsFromModel() {
+        super.createDefaultColumnsFromModel();
+        TableColumnModel columnModel = this.getColumnModel();
+        if ((tableModel != null) && (header!= null)) tableModel.createGroups(header, columnModel);
+
 
     }
 

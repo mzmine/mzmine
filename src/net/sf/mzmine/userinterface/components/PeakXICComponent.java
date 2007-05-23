@@ -83,6 +83,8 @@ public class PeakXICComponent extends JComponent {
 
         }
 
+        
+
         for (int i = 0; i < xValues.length - 1; i++) {
             g2.drawLine(xValues[i], yValues[i], xValues[i + 1], yValues[i + 1]);
         }
@@ -94,12 +96,15 @@ public class PeakXICComponent extends JComponent {
     }
 
     public void paint(Graphics g) {
+        
         Dimension size = getSize();
         if ((myOldSize == null) || (! size.equals(myOldSize))) {
             scaledImage = bigImage.getScaledInstance(size.width, size.height,
                     Image.SCALE_SMOOTH);
             myOldSize = size;
         }
+        g.setColor(this.getBackground());
+        g.fillRect(0, 0, size.width, size.height);
         g.drawImage(scaledImage, 0, 0, null);
     }
 

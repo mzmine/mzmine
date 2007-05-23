@@ -24,20 +24,25 @@ import java.awt.Font;
 import java.util.Hashtable;
 
 import javax.swing.JLabel;
+import javax.swing.SwingConstants;
 import javax.swing.table.AbstractTableModel;
+import javax.swing.table.TableColumnModel;
 
 import net.sf.mzmine.data.AlignmentResult;
 import net.sf.mzmine.data.AlignmentResultRow;
 import net.sf.mzmine.data.Peak;
 import net.sf.mzmine.io.OpenedRawDataFile;
+import net.sf.mzmine.modules.visualization.alignmentresult.AlignmentResultTableColumns.RawDataColumnType;
+import net.sf.mzmine.userinterface.components.ColumnGroup;
+import net.sf.mzmine.userinterface.components.GroupableTableHeader;
 import net.sf.mzmine.userinterface.components.PeakXICComponent;
 
 public class AlignmentResultTableModel extends AbstractTableModel {
 
     private AlignmentResult alignmentResult;
     private AlignmentResultTableColumns columnSelection;
-    private Hashtable<Peak,PeakXICComponent> XICcomponents;
-    
+    private Hashtable<Peak, PeakXICComponent> XICcomponents;
+
     private static final Font statusFont = new Font("SansSerif", Font.PLAIN, 10);
 
     /**
@@ -47,13 +52,12 @@ public class AlignmentResultTableModel extends AbstractTableModel {
             AlignmentResultTableColumns columnSelection) {
         this.alignmentResult = alignmentResult;
         this.columnSelection = columnSelection;
-        XICcomponents = new Hashtable<Peak,PeakXICComponent>();
+        XICcomponents = new Hashtable<Peak, PeakXICComponent>();
 
     }
 
-
     public int getColumnCount() {
-        return  columnSelection.getNumberOfSelectedCommonColumns()
+        return columnSelection.getNumberOfSelectedCommonColumns()
                 + alignmentResult.getNumberOfRawDataFiles()
                 * columnSelection.getNumberOfSelectedRawDataColumns();
     }
@@ -72,11 +76,7 @@ public class AlignmentResultTableModel extends AbstractTableModel {
         }
 
         if (groupOffset[0] >= 0) {
-            OpenedRawDataFile rawData = alignmentResult.getRawDataFile(groupOffset[0]);
-            String rawDataName = rawData.toString();
-            return rawDataName
-                    + ": "
-                    + columnSelection.getSelectedRawDataColumns()[groupOffset[1]].getColumnName();
+            return  columnSelection.getSelectedRawDataColumns()[groupOffset[1]].getColumnName();
         }
 
         return new String("No Name");
@@ -98,10 +98,7 @@ public class AlignmentResultTableModel extends AbstractTableModel {
             AlignmentResultRow alignmentRow = alignmentResult.getRow(row);
 
             switch (columnSelection.getSelectedCommonColumns()[groupOffset[1]]) {
-            /*
-             * case STDCOMPOUND: return
-             * alignmentRow.hasData(StandardCompoundFlag.class);
-             */
+
             case ROWNUM:
                 return new Integer(row + 1);
             case AVGMZ:
@@ -120,8 +117,18 @@ public class AlignmentResultTableModel extends AbstractTableModel {
 
             OpenedRawDataFile rawData = alignmentResult.getRawDataFile(groupOffset[0]);
             Peak p = alignmentResult.getPeak(row, rawData);
-            if (p == null)
+            if (p == null) {
+                if (columnSelection.getSelectedRawDataColumns()[groupOffset[1]] == RawDataColumnType.STATUS) {
+                    JLabel statusLabel = new JLabel("N");
+                    statusLabel.setHorizontalAlignment(SwingConstants.CENTER);
+                    statusLabel.setOpaque(true);
+                    statusLabel.setFont(statusFont);
+                    statusLabel.setBackground(Color.red);
+                    return statusLabel;
+                }
+
                 return null;
+            }
 
             switch (columnSelection.getSelectedRawDataColumns()[groupOffset[1]]) {
             case MZ:
@@ -140,25 +147,25 @@ public class AlignmentResultTableModel extends AbstractTableModel {
                 }
                 return pc;
             case STATUS:
-                JLabel statusLabel = new JLabel(p.getPeakStatus().toString());
+                JLabel statusLabel = new JLabel();
+                statusLabel.setHorizontalAlignment(SwingConstants.CENTER);
                 statusLabel.setOpaque(true);
                 statusLabel.setFont(statusFont);
-                switch(p.getPeakStatus()) {
+                switch (p.getPeakStatus()) {
                 case DETECTED:
+                    statusLabel.setText("D");
                     statusLabel.setBackground(Color.green);
                     break;
                 case ESTIMATED:
+                    statusLabel.setText("E");
                     statusLabel.setBackground(Color.yellow);
-                    break;
-                default:
-                    statusLabel.setBackground(Color.red);
                     break;
                 }
                 return statusLabel;
 
             default:
                 return null;
-                
+
             }
 
         }
@@ -190,44 +197,64 @@ public class AlignmentResultTableModel extends AbstractTableModel {
             res[1] = col;
             return res;
         }
-        
+
         // This is a raw data specific column.
 
         // Calc number of raw data
         int[] res = new int[2];
         res[0] = (int) Math.floor((double) (col - columnSelection.getNumberOfSelectedCommonColumns())
                 / (double) columnSelection.getNumberOfSelectedRawDataColumns());
-        res[1] = col - columnSelection.getNumberOfSelectedCommonColumns() - res[0]
-                * columnSelection.getNumberOfSelectedRawDataColumns();
-        
+        res[1] = col - columnSelection.getNumberOfSelectedCommonColumns()
+                - res[0] * columnSelection.getNumberOfSelectedRawDataColumns();
+
         return res;
 
     }
 
     public boolean isCellEditable(int row, int col) {
-        /*
-         * int[] groupOffset = getColumnGroupAndOffset(col);
-         * 
-         * if (groupOffset[0]<0) {
-         * switch(columnSelection.getSelectedCommonColumn(groupOffset[1])) {
-         * case STDCOMPOUND: return true; default: return false; } }
-         */
+
+        int[] groupOffset = getColumnGroupAndOffset(col);
+
+        if (groupOffset[0] < 0) {
+            switch (columnSelection.getSelectedCommonColumns()[groupOffset[1]]) {
+            case COMMENT:
+                return true;
+            }
+        }
         return false;
+
     }
 
     public void setValueAt(Object value, int row, int col) {
-        /*
-         * int[] groupOffset = getColumnGroupAndOffset(col);
-         * 
-         * if (groupOffset[0]<0) {
-         * switch(columnSelection.getSelectedCommonColumn(groupOffset[1])) {
-         * case STDCOMPOUND: AlignmentResultRow alignmentRow =
-         * alignmentResult.getRow(row); if
-         * (alignmentRow.hasData(StandardCompoundFlag.class)) {
-         * alignmentRow.removeAllData(StandardCompoundFlag.class); } else {
-         * alignmentRow.addData(StandardCompoundFlag.class, new
-         * StandardCompoundFlag()); } break; default: break; } }
-         */
+        int[] groupOffset = getColumnGroupAndOffset(col);
+
+        if (groupOffset[0] < 0) {
+            switch (columnSelection.getSelectedCommonColumns()[groupOffset[1]]) {
+            case COMMENT:
+                AlignmentResultRow alignmentRow = alignmentResult.getRow(row);
+                alignmentRow.setComment((String) value);
+            }
+        }
+
     }
+    
+    void createGroups(GroupableTableHeader header, TableColumnModel cm) {
+        
+        ColumnGroup groups[] = new ColumnGroup[alignmentResult.getNumberOfRawDataFiles()]; 
+        
+        for (int i = 0; i < alignmentResult.getNumberOfRawDataFiles(); i++) {
+            groups[i] = new ColumnGroup(alignmentResult.getRawDataFile(i).toString());
+            header.addColumnGroup(groups[i]);
+        }
+        
+        for (int i = 0; i < cm.getColumnCount(); i++) {
+            int[] off = getColumnGroupAndOffset(i);
+            if (off[0] >= 0) { 
+                groups[off[0]].add(cm.getColumn(i));
+            }
+        }
+        
+    }
+    
 
 }
