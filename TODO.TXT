@@ -10,10 +10,6 @@ Code
 * Standard compound normalizer
 - Instead of the old simple standard compound normalizer, we should implement also the new NOMIS method.
 
-* Many methods are really slow
-- Join aligner is very slow although it is really simple. Speed it up if possible or change the whole method to a quicker one.
-- Need to check what else is slow
-
 * Finish raw data visualizers
 - At least 2D visualizer is not yet finished. It should show detected peaks on top of the visualization.
 - TIC, Spectra and 2D visualizer need a common dialog to set X/Y axis range
