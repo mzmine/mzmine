@@ -66,15 +66,19 @@ public class ComponentCellRenderer implements TableCellRenderer,
 
         JPanel newPanel = new JPanel(new OverlayLayout());
         Color bgColor;
-        if (isSelected) bgColor = table.getSelectionBackground();
-        else bgColor = table.getBackground();
+        if (isSelected)
+            bgColor = table.getSelectionBackground();
+        else
+            bgColor = table.getBackground();
 
         newPanel.setBackground(bgColor);
-        
+
         if (hasFocus) {
             Border border = null;
-            if (isSelected) border = UIManager.getBorder("Table.focusSelectedCellHighlightBorder");
-            if (border == null) border = UIManager.getBorder("Table.focusCellHighlightBorder");
+            if (isSelected)
+                border = UIManager.getBorder("Table.focusSelectedCellHighlightBorder");
+            if (border == null)
+                border = UIManager.getBorder("Table.focusCellHighlightBorder");
             newPanel.setBorder(border);
         }
 
@@ -90,6 +94,8 @@ public class ComponentCellRenderer implements TableCellRenderer,
 
                 if (font != null)
                     newLabel.setFont(font);
+                else if (table.getFont() != null)
+                    newLabel.setFont(table.getFont());
 
                 newPanel.add(newLabel);
             }

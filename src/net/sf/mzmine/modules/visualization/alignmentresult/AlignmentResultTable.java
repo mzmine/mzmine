@@ -26,6 +26,8 @@ import javax.swing.event.TableColumnModelEvent;
 import javax.swing.event.TableColumnModelListener;
 import javax.swing.table.TableColumnModel;
 
+import net.sf.mzmine.modules.visualization.alignmentresult.AlignmentResultTableColumns.CommonColumnType;
+import net.sf.mzmine.modules.visualization.alignmentresult.AlignmentResultTableColumns.RawDataColumnType;
 import net.sf.mzmine.userinterface.components.ColumnGroup;
 import net.sf.mzmine.userinterface.components.ComponentCellRenderer;
 import net.sf.mzmine.userinterface.components.GroupableTableHeader;
@@ -56,6 +58,8 @@ public class AlignmentResultTable extends JTable {
         header = new GroupableTableHeader(cm);
 
         this.setTableHeader(header);
+        cm.setColumnMargin(0);
+
         
         tableModel.createGroups(header, columnModel);
 
@@ -68,6 +72,12 @@ public class AlignmentResultTable extends JTable {
     public void createDefaultColumnsFromModel() {
         super.createDefaultColumnsFromModel();
         TableColumnModel columnModel = this.getColumnModel();
+        if ((columnModel != null) && (tableModel != null)){
+            for (int i = 0; i < tableModel.getColumnCount(); i++) {
+                if (tableModel.getColumnName(i).equals(RawDataColumnType.STATUS.getColumnName()))
+                    columnModel.getColumn(i).setWidth(50);
+            }
+        }
         if ((tableModel != null) && (header!= null)) tableModel.createGroups(header, columnModel);
 
 

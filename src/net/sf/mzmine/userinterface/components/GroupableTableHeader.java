@@ -59,7 +59,7 @@ public class GroupableTableHeader extends JTableHeader {
     Enumeration en = columnGroups.elements();
     while (en.hasMoreElements()) {
       ColumnGroup cGroup = (ColumnGroup)en.nextElement();
-      Vector v_ret = (Vector)cGroup.getColumnGroups(col,new Vector());
+      Vector v_ret = (Vector)cGroup.getColumnGroups(col,new Vector<ColumnGroup>());
       if (v_ret != null) { 
         return v_ret.elements();
       }

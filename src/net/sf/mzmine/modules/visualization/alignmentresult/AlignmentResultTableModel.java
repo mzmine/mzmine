@@ -32,6 +32,7 @@ import net.sf.mzmine.data.AlignmentResult;
 import net.sf.mzmine.data.AlignmentResultRow;
 import net.sf.mzmine.data.Peak;
 import net.sf.mzmine.io.OpenedRawDataFile;
+import net.sf.mzmine.modules.visualization.alignmentresult.AlignmentResultTableColumns.CommonColumnType;
 import net.sf.mzmine.modules.visualization.alignmentresult.AlignmentResultTableColumns.RawDataColumnType;
 import net.sf.mzmine.userinterface.components.ColumnGroup;
 import net.sf.mzmine.userinterface.components.GroupableTableHeader;
@@ -76,7 +77,7 @@ public class AlignmentResultTableModel extends AbstractTableModel {
         }
 
         if (groupOffset[0] >= 0) {
-            return  columnSelection.getSelectedRawDataColumns()[groupOffset[1]].getColumnName();
+            return columnSelection.getSelectedRawDataColumns()[groupOffset[1]].getColumnName();
         }
 
         return new String("No Name");
@@ -142,7 +143,7 @@ public class AlignmentResultTableModel extends AbstractTableModel {
             case SHAPE:
                 PeakXICComponent pc = XICcomponents.get(p);
                 if (pc == null) {
-                    pc = new PeakXICComponent(p, 100, 30);
+                    pc = new PeakXICComponent(p, 120, 30);
                     XICcomponents.put(p, pc);
                 }
                 return pc;
@@ -237,24 +238,33 @@ public class AlignmentResultTableModel extends AbstractTableModel {
         }
 
     }
-    
+
     void createGroups(GroupableTableHeader header, TableColumnModel cm) {
-        
-        ColumnGroup groups[] = new ColumnGroup[alignmentResult.getNumberOfRawDataFiles()]; 
-        
+
+        ColumnGroup averageGroup = new ColumnGroup("Average");
+        header.addColumnGroup(averageGroup);
+
+        ColumnGroup groups[] = new ColumnGroup[alignmentResult.getNumberOfRawDataFiles()];
+
         for (int i = 0; i < alignmentResult.getNumberOfRawDataFiles(); i++) {
-            groups[i] = new ColumnGroup(alignmentResult.getRawDataFile(i).toString());
+            groups[i] = new ColumnGroup(
+                    alignmentResult.getRawDataFile(i).toString());
             header.addColumnGroup(groups[i]);
         }
-        
+
         for (int i = 0; i < cm.getColumnCount(); i++) {
             int[] off = getColumnGroupAndOffset(i);
-            if (off[0] >= 0) { 
+            if (off[0] < 0) {
+                if ((getColumnName(i).equals(CommonColumnType.AVGMZ.getColumnName())) ||
+                        (getColumnName(i).equals(CommonColumnType.AVGRT.getColumnName()))) {
+                    averageGroup.add(cm.getColumn(i));
+                }
+            }
+            if (off[0] >= 0) {
                 groups[off[0]].add(cm.getColumn(i));
             }
         }
-        
+
     }
-    
 
 }

@@ -23,7 +23,6 @@ import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.util.logging.Logger;
 
 import javax.swing.JInternalFrame;
 import javax.swing.JScrollPane;
@@ -31,8 +30,8 @@ import javax.swing.JTable;
 
 import net.sf.mzmine.data.AlignmentResult;
 import net.sf.mzmine.userinterface.dialogs.alignmentresultcolumnselection.ColumnSelectionDialog;
+import net.sf.mzmine.userinterface.dialogs.alignmentresultcolumnselection.ColumnSelectionDialog.ExitCode;
 import net.sf.mzmine.userinterface.mainwindow.MainWindow;
-import sunutils.TableSorter;
 
 public class AlignmentResultTableVisualizerWindow extends JInternalFrame
         implements ActionListener {
@@ -72,9 +71,8 @@ public class AlignmentResultTableVisualizerWindow extends JInternalFrame
                 this);
         add(toolBar, BorderLayout.EAST);
 
-        model = new AlignmentResultTableModel(alignmentResult,
-                columnSelection);
-        
+        model = new AlignmentResultTableModel(alignmentResult, columnSelection);
+
         // Build table
         table = new AlignmentResultTable(this, model);
         table.setAutoResizeMode(JTable.AUTO_RESIZE_OFF);
@@ -103,7 +101,9 @@ public class AlignmentResultTableVisualizerWindow extends JInternalFrame
                     MainWindow.getInstance(), columnSelection);
             visualizer.setParameters(columnSelection.clone());
             dialog.setVisible(true);
-            model.fireTableStructureChanged();
+            if (dialog.getExitCode() == ExitCode.OK) {
+                model.fireTableStructureChanged();
+            }
         }
 
     }
