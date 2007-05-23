@@ -51,10 +51,12 @@ import org.jfree.chart.labels.XYItemLabelGenerator;
 import org.jfree.chart.labels.XYToolTipGenerator;
 import org.jfree.chart.plot.PlotOrientation;
 import org.jfree.chart.plot.XYPlot;
+import org.jfree.chart.renderer.xy.AbstractXYItemRenderer;
 import org.jfree.chart.renderer.xy.StandardXYItemRenderer;
 import org.jfree.chart.renderer.xy.XYAreaRenderer;
 import org.jfree.chart.renderer.xy.XYBarRenderer;
 import org.jfree.chart.renderer.xy.XYDotRenderer;
+import org.jfree.chart.renderer.xy.XYItemRenderer;
 import org.jfree.chart.renderer.xy.XYLineAndShapeRenderer;
 import org.jfree.chart.title.LegendTitle;
 import org.jfree.chart.title.TextTitle;
@@ -295,11 +297,11 @@ class TICPlot extends ChartPanel {
 
     void switchItemLabelsVisible() {
 
-        XYLineAndShapeRenderer renderer = (XYLineAndShapeRenderer) plot
+    	XYItemRenderer renderer = (XYLineAndShapeRenderer) plot
                 .getRenderer();
         boolean itemLabelsVisible = renderer.isSeriesItemLabelsVisible(0);
         for (int i = 0; i < numberOfDataSets; i++) {
-            renderer = (XYLineAndShapeRenderer) plot.getRenderer(i);
+            renderer = (XYItemRenderer) plot.getRenderer(i);
             if (renderer != null) {
                 renderer.setItemLabelsVisible(!itemLabelsVisible);
             }
@@ -308,12 +310,11 @@ class TICPlot extends ChartPanel {
 
     void switchDataPointsVisible() {
 
-        XYLineAndShapeRenderer renderer = (XYLineAndShapeRenderer) plot.getRenderer();
-        boolean dataPointsVisible = renderer.getBaseShapesVisible();
-        for (int i = 0; i < numberOfDataSets; i++) {
+    	for (int i = 0; i < numberOfDataSets; i++) {
         	if (plot.getRenderer(i).getClass() == XYLineAndShapeRenderer.class) {
-	            renderer = (XYLineAndShapeRenderer) plot.getRenderer(i);
+        		XYLineAndShapeRenderer renderer = (XYLineAndShapeRenderer) plot.getRenderer(i);
 	            if (renderer != null) {
+	            	boolean dataPointsVisible = renderer.getBaseShapesVisible();
 	                renderer.setBaseShapesVisible(!dataPointsVisible);
 	            }
         	}
@@ -344,9 +345,22 @@ class TICPlot extends ChartPanel {
     }
     
     synchronized void addIntegratedPeakAreaDataset(DefaultXYDataset newSet, DefaultXYDataset labelsSet, String[] labelsString) {
+    	
+    	plot.setDataset(numberOfDataSets, labelsSet);
+
+        StandardXYItemRenderer labelRenderer = new StandardXYItemRenderer(StandardXYItemRenderer.SHAPES);
+        labelRenderer.setBaseShape(dataPointsShape);
+        labelRenderer.setBaseShapesVisible(false);
+    	labelRenderer.setItemLabelsVisible(true);
+    	labelRenderer.setItemLabelPaint(new Color(0,0,0));
+    	labelRenderer.setItemLabelGenerator(new PeakAreaItemLabelGenerator(labelsString));
+    	plot.setRenderer(numberOfDataSets, labelRenderer);  	
+	
+    	numberOfDataSets++;
+    	
+    	
     	plot.setDataset(numberOfDataSets, newSet);
     	
-
         try {
             XYAreaRenderer newRenderer = (XYAreaRenderer) defaultAreaRenderer.clone();
             Color rendererColor = plotColors[numberOfDataSets % plotColors.length];
@@ -361,18 +375,8 @@ class TICPlot extends ChartPanel {
     	
         numberOfDataSets++;
         
-    	plot.setDataset(numberOfDataSets, labelsSet);
     	
-        StandardXYItemRenderer labelRenderer = new StandardXYItemRenderer(StandardXYItemRenderer.SHAPES);
-        labelRenderer.setBaseShape(dataPointsShape);
-        labelRenderer.setBaseShapesVisible(false);
-    	labelRenderer.setItemLabelsVisible(true);
-    	labelRenderer.setItemLabelPaint(new Color(0,0,0));
-    	labelRenderer.setItemLabelGenerator(new PeakAreaItemLabelGenerator(labelsString));
-    	plot.setRenderer(numberOfDataSets, labelRenderer);
     	
-	
-    	numberOfDataSets++;
     	
     }
 

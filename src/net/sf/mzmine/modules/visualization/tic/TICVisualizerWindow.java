@@ -154,10 +154,12 @@ public class TICVisualizerWindow extends JInternalFrame implements
         }
         
         if (peaks != null) {
-        	title.append(", peaks m/z: ");
-        	for (Peak p : peaks) {
-        		title.append("" + mzFormat.format(p.getMZ()) + " ");
+        	if (peaks.length>1) {
+        		title.append(", " + peaks.length + " peaks");
+        	} else {
+            	title.append(", peak m/z: " + mzFormat.format(peaks[0].getMZ()));
         	}
+
         }
 
         plot.setTitle(title.toString());
@@ -264,7 +266,7 @@ public class TICVisualizerWindow extends JInternalFrame implements
             	}
             	
             	peakLabelsX[peakNumber] = maxHeightRT;
-            	peakLabelsY[peakNumber] = maxHeight;
+            	peakLabelsY[peakNumber] = (0.90)*maxHeight;
             	peakLabelsString[peakNumber] = mzFormat.format(p.getMZ());           	
             	
             	integratedPeakAreaDataset.addSeries(peakNumber, data);

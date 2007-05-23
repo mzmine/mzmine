@@ -24,6 +24,7 @@ import java.awt.GridBagLayout;
 import java.awt.Insets;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.text.DecimalFormat;
 import java.text.NumberFormat;
 
 import javax.swing.JButton;
@@ -58,7 +59,7 @@ public class TICSetupDialog extends JDialog implements ActionListener {
     private JComboBox comboPlotType, comboMSlevel;
 
     private static final NumberFormat format = NumberFormat.getNumberInstance();
-
+    
     private Desktop desktop;
     private TaskController taskController;
     private OpenedRawDataFile dataFile;
@@ -272,9 +273,15 @@ public class TICSetupDialog extends JDialog implements ActionListener {
     public TICSetupDialog(TaskController taskController, Desktop desktop,
             OpenedRawDataFile dataFile, double minMZ, double maxMZ, Peak[] peaks) {
     
-    	this(taskController, desktop, dataFile);
     	
+    	this(taskController, desktop, dataFile);
     	this.peaks = peaks;
+    	if (peaks!=null) {
+    		if (peaks.length>1) 
+    			this.setTitle("XIC (" + peaks.length + " peaks) visualizer parameters");
+    		else 
+    			this.setTitle("XIC (peak " + format.format(peaks[0].getMZ()) + ") visualizer parameters");
+    	}
     	
     	int msLevel = (Integer) comboMSlevel.getSelectedItem();
   	
