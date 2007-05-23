@@ -19,6 +19,7 @@
 
 package net.sf.mzmine.modules.alignment.join;
 
+import java.util.Arrays;
 import java.util.Iterator;
 import java.util.TreeSet;
 
@@ -145,6 +146,8 @@ class JoinAlignerTask implements Task {
                 Peak peakToWrap = peakList.getPeak(i);
                 wrappedPeakList[i] = new PeakWrapper(peakToWrap);
             }
+                      
+            Arrays.sort(wrappedPeakList, new PeakWrapperComparator());
 
             /*
              * Calculate scores between all pairs of isotope pattern and master
@@ -155,8 +158,33 @@ class JoinAlignerTask implements Task {
             TreeSet<PeakVsRowScore> scoreTree = new TreeSet<PeakVsRowScore>(
                     new ScoreSorter());
 
+        	AlignmentResultRow[] rows = alignmentResult.getRows();
+        	Arrays.sort(rows, new AlignmentResultRowComparator());
+            Integer nextStartingRowIndex = 0;
             for (PeakWrapper wrappedPeak : wrappedPeakList) {
-                for (AlignmentResultRow row : alignmentResult.getRows()) {
+            	
+            	if (nextStartingRowIndex==null) nextStartingRowIndex=0;
+            	int startingRowIndex = nextStartingRowIndex;
+            	nextStartingRowIndex = null;
+
+            	for (int alignmentResultRowIndex = startingRowIndex; alignmentResultRowIndex<rows.length; alignmentResultRowIndex++) {
+            		
+            		AlignmentResultRow row = rows[alignmentResultRowIndex];
+
+            		// Check m/z difference for optimization
+            		double mzDiff = row.getAverageMZ() - wrappedPeak.getPeak().getMZ();
+            		// If alignment reuslt row's m/z is too small then jump to next row
+            		if ( (java.lang.Math.signum(mzDiff)<0.0) &&
+            				(java.lang.Math.abs(mzDiff)>MZTolerance) )
+            			continue;
+            		
+            		// If alignment result row's m/z is too big then break
+            		if ( (java.lang.Math.signum(mzDiff)>0.0) &&
+            				(java.lang.Math.abs(mzDiff)>MZTolerance) )
+            			break;
+            			
+            		if (nextStartingRowIndex==null)
+            			nextStartingRowIndex = alignmentResultRowIndex; 
 
                     if (status == TaskStatus.CANCELED)
                         return;
