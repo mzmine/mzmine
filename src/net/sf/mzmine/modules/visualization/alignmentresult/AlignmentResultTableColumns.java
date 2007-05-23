@@ -94,6 +94,13 @@ public class AlignmentResultTableColumns implements ColumnSet,
     AlignmentResultTableColumns() {
         selectedCommonColumns = new TreeSet<CommonColumnType>();
         selectedRawDataColumns = new TreeSet<RawDataColumnType>();
+        
+        selectedCommonColumns.add(CommonColumnType.ROWNUM);
+        selectedCommonColumns.add(CommonColumnType.AVGMZ);
+        selectedCommonColumns.add(CommonColumnType.AVGRT);
+        selectedCommonColumns.add(CommonColumnType.COMMENT);
+        selectedRawDataColumns.add(RawDataColumnType.SHAPE);
+        
     }
 
     public int getNumberOfCommonColumns() {

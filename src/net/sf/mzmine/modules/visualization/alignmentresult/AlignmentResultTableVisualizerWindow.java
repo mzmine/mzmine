@@ -37,8 +37,6 @@ import sunutils.TableSorter;
 public class AlignmentResultTableVisualizerWindow extends JInternalFrame
         implements ActionListener {
 
-    private Logger logger = Logger.getLogger(this.getClass().getName());
-
     AlignmentResultTableVisualizer visualizer;
     private AlignmentResultTableColumns columnSelection;
     private JScrollPane scrollPane;
