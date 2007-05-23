@@ -19,39 +19,43 @@
 
 package net.sf.mzmine.modules.visualization.alignmentresult;
 
+import java.awt.Color;
+import java.awt.Font;
+import java.util.Hashtable;
+
+import javax.swing.JLabel;
 import javax.swing.table.AbstractTableModel;
 
 import net.sf.mzmine.data.AlignmentResult;
 import net.sf.mzmine.data.AlignmentResultRow;
 import net.sf.mzmine.data.Peak;
-import net.sf.mzmine.data.Peak.PeakStatus;
 import net.sf.mzmine.io.OpenedRawDataFile;
-import net.sf.mzmine.userinterface.components.PeakComponent;
-import net.sf.mzmine.userinterface.dialogs.alignmentresultcolumnselection.AlignmentResultColumnSelection;
+import net.sf.mzmine.userinterface.components.PeakXICComponent;
 
 public class AlignmentResultTableModel extends AbstractTableModel {
 
     private AlignmentResult alignmentResult;
-    private AlignmentResultColumnSelection columnSelection;
+    private AlignmentResultTableColumns columnSelection;
+    private Hashtable<Peak,PeakXICComponent> XICcomponents;
+    
+    private static final Font statusFont = new Font("SansSerif", Font.PLAIN, 8);
 
     /**
      * Constructor, assign given dataset to this table
      */
     public AlignmentResultTableModel(AlignmentResult alignmentResult,
-            AlignmentResultColumnSelection columnSelection) {
+            AlignmentResultTableColumns columnSelection) {
         this.alignmentResult = alignmentResult;
         this.columnSelection = columnSelection;
+        XICcomponents = new Hashtable<Peak,PeakXICComponent>();
 
     }
 
-    public AlignmentResultColumnSelection getColumnSelection() {
-        return columnSelection;
-    }
 
     public int getColumnCount() {
-        return  columnSelection.getNumberOfCommonColumns()
+        return  columnSelection.getNumberOfSelectedCommonColumns()
                 + alignmentResult.getNumberOfRawDataFiles()
-                * columnSelection.getNumberOfRawDataColumns();
+                * columnSelection.getNumberOfSelectedRawDataColumns();
     }
 
     public int getRowCount() {
@@ -64,7 +68,7 @@ public class AlignmentResultTableModel extends AbstractTableModel {
 
         // Common column
         if (groupOffset[0] < 0) {
-            return columnSelection.getSelectedCommonColumn(groupOffset[1]).getColumnName();
+            return columnSelection.getSelectedCommonColumns()[groupOffset[1]].getColumnName();
         }
 
         if (groupOffset[0] >= 0) {
@@ -72,7 +76,7 @@ public class AlignmentResultTableModel extends AbstractTableModel {
             String rawDataName = rawData.toString();
             return rawDataName
                     + ": "
-                    + columnSelection.getSelectedRawDataColumn(groupOffset[1]).getColumnName();
+                    + columnSelection.getSelectedRawDataColumns()[groupOffset[1]].getColumnName();
         }
 
         return new String("No Name");
@@ -93,7 +97,7 @@ public class AlignmentResultTableModel extends AbstractTableModel {
 
             AlignmentResultRow alignmentRow = alignmentResult.getRow(row);
 
-            switch (columnSelection.getSelectedCommonColumn(groupOffset[1])) {
+            switch (columnSelection.getSelectedCommonColumns()[groupOffset[1]]) {
             /*
              * case STDCOMPOUND: return
              * alignmentRow.hasData(StandardCompoundFlag.class);
@@ -104,12 +108,9 @@ public class AlignmentResultTableModel extends AbstractTableModel {
                 return new Double(alignmentRow.getAverageMZ());
             case AVGRT:
                 return new Double(alignmentRow.getAverageRT());
-
-            case CHARGE:
-                // TODO
-                // return new Integer(isoPatt.getChargeState());
+            case COMMENT:
+                return alignmentRow.getComment();
             default:
-                // System.out.println("Illegal common column");
                 return null;
             }
 
@@ -122,7 +123,7 @@ public class AlignmentResultTableModel extends AbstractTableModel {
             if (p == null)
                 return null;
 
-            switch (columnSelection.getSelectedRawDataColumn(groupOffset[1])) {
+            switch (columnSelection.getSelectedRawDataColumns()[groupOffset[1]]) {
             case MZ:
                 return new Double(p.getMZ());
             case RT:
@@ -131,10 +132,30 @@ public class AlignmentResultTableModel extends AbstractTableModel {
                 return new Double(p.getHeight());
             case AREA:
                 return new Double(p.getArea());
+            case SHAPE:
+                PeakXICComponent pc = XICcomponents.get(p);
+                if (pc == null) {
+                    pc = new PeakXICComponent(p, 100, 30);
+                    XICcomponents.put(p, pc);
+                }
+                return pc;
             case STATUS:
-                return new PeakComponent(p);
-                //PeakStatus ps = p.getPeakStatus();
-                //return ps;
+                JLabel statusLabel = new JLabel(p.getPeakStatus().toString());
+                statusLabel.setOpaque(true);
+                statusLabel.setFont(statusFont);
+                switch(p.getPeakStatus()) {
+                case DETECTED:
+                    statusLabel.setBackground(Color.green);
+                    break;
+                case ESTIMATED:
+                    statusLabel.setBackground(Color.yellow);
+                    break;
+                default:
+                    statusLabel.setBackground(Color.red);
+                    break;
+                }
+                return statusLabel;
+
             default:
                 return null;
                 
@@ -147,15 +168,15 @@ public class AlignmentResultTableModel extends AbstractTableModel {
     /**
      * This method returns the class of the objects in this column of the table
      */
-    public Class getColumnClass(int col) {
+    public Class<?> getColumnClass(int col) {
 
         int[] groupOffset = getColumnGroupAndOffset(col);
 
         // Common column
         if (groupOffset[0] < 0) {
-            return columnSelection.getSelectedCommonColumn(groupOffset[1]).getColumnClass();
+            return columnSelection.getSelectedCommonColumns()[groupOffset[1]].getColumnClass();
         } else { // if (groupOffset[0]>=0)
-            return columnSelection.getSelectedRawDataColumn(groupOffset[1]).getColumnClass();
+            return columnSelection.getSelectedRawDataColumns()[groupOffset[1]].getColumnClass();
         }
 
     }
@@ -163,22 +184,22 @@ public class AlignmentResultTableModel extends AbstractTableModel {
     private int[] getColumnGroupAndOffset(int col) {
 
         // Is this a common column?
-        if (col < columnSelection.getNumberOfCommonColumns()) {
+        if (col < columnSelection.getNumberOfSelectedCommonColumns()) {
             int[] res = new int[2];
             res[0] = -1;
             res[1] = col;
             return res;
         }
-
+        
         // This is a raw data specific column.
 
         // Calc number of raw data
         int[] res = new int[2];
-        res[0] = (int) java.lang.Math.floor((double) (col - columnSelection.getNumberOfCommonColumns())
-                / (double) columnSelection.getNumberOfRawDataColumns());
-        res[1] = col - columnSelection.getNumberOfCommonColumns() - res[0]
-                * columnSelection.getNumberOfRawDataColumns();
-
+        res[0] = (int) Math.floor((double) (col - columnSelection.getNumberOfSelectedCommonColumns())
+                / (double) columnSelection.getNumberOfSelectedRawDataColumns());
+        res[1] = col - columnSelection.getNumberOfSelectedCommonColumns() - res[0]
+                * columnSelection.getNumberOfSelectedRawDataColumns();
+        
         return res;
 
     }

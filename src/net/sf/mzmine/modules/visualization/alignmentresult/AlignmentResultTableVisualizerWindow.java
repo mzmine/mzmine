@@ -26,19 +26,21 @@ import java.awt.event.ActionListener;
 import java.util.logging.Logger;
 
 import javax.swing.JInternalFrame;
-import javax.swing.JMenuItem;
-import javax.swing.JPopupMenu;
 import javax.swing.JScrollPane;
 import javax.swing.JTable;
+
 import net.sf.mzmine.data.AlignmentResult;
-import net.sf.mzmine.userinterface.dialogs.alignmentresultcolumnselection.AlignmentResultColumnSelectionDialog;
+import net.sf.mzmine.userinterface.dialogs.alignmentresultcolumnselection.ColumnSelectionDialog;
 import net.sf.mzmine.userinterface.mainwindow.MainWindow;
+import sunutils.TableSorter;
 
 public class AlignmentResultTableVisualizerWindow extends JInternalFrame
         implements ActionListener {
 
     private Logger logger = Logger.getLogger(this.getClass().getName());
 
+    AlignmentResultTableVisualizer visualizer;
+    private AlignmentResultTableColumns columnSelection;
     private JScrollPane scrollPane;
 
     /*
@@ -46,12 +48,15 @@ public class AlignmentResultTableVisualizerWindow extends JInternalFrame
      * private JMenuItem zoomToPeakMenuItem;
      */
 
+    private AlignmentResultTableModel model;
     private AlignmentResultTable table;
 
     /**
      * Constructor: initializes an empty visualizer
      */
-    public AlignmentResultTableVisualizerWindow(AlignmentResult alignmentResult) {
+    public AlignmentResultTableVisualizerWindow(
+            AlignmentResultTableVisualizer visualizer,
+            AlignmentResult alignmentResult) {
 
         super(alignmentResult.toString(), true, true, true, true);
 
@@ -61,13 +66,19 @@ public class AlignmentResultTableVisualizerWindow extends JInternalFrame
         setDefaultCloseOperation(DISPOSE_ON_CLOSE);
         setBackground(Color.white);
 
+        this.visualizer = visualizer;
+        this.columnSelection = visualizer.getParameterSet().clone();
+
         // Build toolbar
         AlignmentResultTableVisualizerToolBar toolBar = new AlignmentResultTableVisualizerToolBar(
                 this);
         add(toolBar, BorderLayout.EAST);
 
+        model = new AlignmentResultTableModel(alignmentResult,
+                columnSelection);
+        
         // Build table
-        table = new AlignmentResultTable(this, alignmentResult);
+        table = new AlignmentResultTable(this, model);
         table.setAutoResizeMode(JTable.AUTO_RESIZE_OFF);
         scrollPane = new JScrollPane(table);
 
@@ -90,9 +101,11 @@ public class AlignmentResultTableVisualizerWindow extends JInternalFrame
 
         if (command.equals("CHANGE_FORMAT")) {
 
-            AlignmentResultColumnSelectionDialog dialog = new AlignmentResultColumnSelectionDialog(
-                    table.getColumnSelection(), table);
-            MainWindow.getInstance().addInternalFrame(dialog);
+            ColumnSelectionDialog dialog = new ColumnSelectionDialog(
+                    MainWindow.getInstance(), columnSelection);
+            visualizer.setParameters(columnSelection.clone());
+            dialog.setVisible(true);
+            model.fireTableStructureChanged();
         }
 
     }

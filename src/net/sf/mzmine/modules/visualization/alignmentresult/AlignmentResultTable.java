@@ -23,54 +23,28 @@ import javax.swing.JTable;
 
 import net.sf.mzmine.data.AlignmentResult;
 import net.sf.mzmine.userinterface.components.ComponentCellRenderer;
-import net.sf.mzmine.userinterface.dialogs.alignmentresultcolumnselection.AlignmentResultColumnSelection;
-import net.sf.mzmine.userinterface.dialogs.alignmentresultcolumnselection.AlignmentResultColumnSelectionAcceptor;
 import sunutils.TableSorter;
 
-public class AlignmentResultTable extends JTable implements
-        AlignmentResultColumnSelectionAcceptor {
+public class AlignmentResultTable extends JTable {
 
-    private AlignmentResult alignmentResult;
-    private AlignmentResultTableModel tableModel;
     private TableSorter sorter;
 
     public AlignmentResultTable(
             AlignmentResultTableVisualizerWindow masterFrame,
-            AlignmentResult alignmentResult) {
-        this.alignmentResult = alignmentResult;
-
-        AlignmentResultColumnSelection columnSelection = new AlignmentResultColumnSelection();
-        columnSelection.setAllColumns();
-
-        initializeTableModel(columnSelection);
-        
-        ComponentCellRenderer rend = new ComponentCellRenderer();
-        setDefaultRenderer(Object.class, rend);
-        
-        setRowHeight(32);
-    }
-
-    private void initializeTableModel(
-            AlignmentResultColumnSelection columnSelection) {
-
-        tableModel = new AlignmentResultTableModel(alignmentResult,
-                columnSelection);
+            AlignmentResultTableModel tableModel) {
 
         // Initialize sorter
         sorter = new TableSorter(tableModel);
+
         getTableHeader().setReorderingAllowed(false);
         sorter.addMouseListenerToHeaderInTable(this);
         setModel(sorter);
 
-    }
+        ComponentCellRenderer rend = new ComponentCellRenderer();
+        setDefaultRenderer(Object.class, rend);
 
-    public void setColumnSelection(
-            AlignmentResultColumnSelection columnSelection) {
-        initializeTableModel(columnSelection);
-    }
+        setRowHeight(20);
 
-    public AlignmentResultColumnSelection getColumnSelection() {
-        return tableModel.getColumnSelection();
     }
 
 }

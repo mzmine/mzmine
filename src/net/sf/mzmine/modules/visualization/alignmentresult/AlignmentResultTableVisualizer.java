@@ -40,6 +40,7 @@ public class AlignmentResultTableVisualizer implements MZmineModule,
 
     private Desktop desktop;
     private JMenuItem myMenuItem;
+    private AlignmentResultTableColumns columnSelection;
 
     private Logger logger = Logger.getLogger(this.getClass().getName());
 
@@ -50,6 +51,8 @@ public class AlignmentResultTableVisualizer implements MZmineModule,
 
         this.desktop = core.getDesktop();
 
+        columnSelection = new AlignmentResultTableColumns();
+        
         myMenuItem = desktop.addMenuItem(MZmineMenu.ANALYSIS,
                 "Alignment result list view", this, null, KeyEvent.VK_A, false,
                 false);
@@ -68,7 +71,7 @@ public class AlignmentResultTableVisualizer implements MZmineModule,
 
             logger.finest("Showing a new alignment result list view");
 
-            AlignmentResultTableVisualizerWindow alignmentResultView = new AlignmentResultTableVisualizerWindow(
+            AlignmentResultTableVisualizerWindow alignmentResultView = new AlignmentResultTableVisualizerWindow(this, 
                     alignmentResult);
             desktop.addInternalFrame(alignmentResultView);
 
@@ -97,14 +100,15 @@ public class AlignmentResultTableVisualizer implements MZmineModule,
     /**
      * @see net.sf.mzmine.main.MZmineModule#getParameterSet()
      */
-    public ParameterSet getParameterSet() {
-        return null;
+    public AlignmentResultTableColumns getParameterSet() {
+        return columnSelection;
     }
 
     /**
      * @see net.sf.mzmine.main.MZmineModule#setParameters(net.sf.mzmine.data.ParameterSet)
      */
     public void setParameters(ParameterSet parameterValues) {
+        columnSelection = (AlignmentResultTableColumns) parameterValues;
     }
 
 }

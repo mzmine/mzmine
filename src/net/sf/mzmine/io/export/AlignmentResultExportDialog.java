@@ -1,38 +1,45 @@
-package net.sf.mzmine.userinterface.dialogs;
+/*
+ * Copyright 2006-2007 The MZmine Development Team
+ * 
+ * This file is part of MZmine.
+ * 
+ * MZmine is free software; you can redistribute it and/or modify it under the
+ * terms of the GNU General Public License as published by the Free Software
+ * Foundation; either version 2 of the License, or (at your option) any later
+ * version.
+ * 
+ * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY
+ * WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR
+ * A PARTICULAR PURPOSE. See the GNU General Public License for more details.
+ * 
+ * You should have received a copy of the GNU General Public License along with
+ * MZmine; if not, write to the Free Software Foundation, Inc., 51 Franklin St,
+ * Fifth Floor, Boston, MA 02110-1301 USA
+ */
+
+package net.sf.mzmine.io.export;
 
 import java.io.File;
 
 import javax.swing.JFileChooser;
 
+import net.sf.mzmine.data.AlignmentResult;
+import net.sf.mzmine.userinterface.dialogs.alignmentresultcolumnselection.ColumnSelectionDialog;
+import net.sf.mzmine.userinterface.dialogs.alignmentresultcolumnselection.ColumnSelectionDialog.ExitCode;
+import net.sf.mzmine.userinterface.mainwindow.MainWindow;
 import sunutils.ExampleFileFilter;
 
-import net.sf.mzmine.data.AlignmentResult;
-import net.sf.mzmine.io.util.AlignmentResultExporter;
-import net.sf.mzmine.userinterface.dialogs.alignmentresultcolumnselection.AlignmentResultColumnSelection;
-import net.sf.mzmine.userinterface.dialogs.alignmentresultcolumnselection.AlignmentResultColumnSelectionAcceptor;
-import net.sf.mzmine.userinterface.dialogs.alignmentresultcolumnselection.AlignmentResultColumnSelectionDialog;
-import net.sf.mzmine.userinterface.mainwindow.MainWindow;
+public class AlignmentResultExportDialog {
 
-public class AlignmentResultExportDialog implements AlignmentResultColumnSelectionAcceptor {
-
-	private AlignmentResult[] alignmentResults;
-	
 	public AlignmentResultExportDialog(AlignmentResult[] alignmentResults) {
 		
-		this.alignmentResults = alignmentResults;
-	
 		// Show column selection dialog
-		AlignmentResultColumnSelection columnSelection = new AlignmentResultColumnSelection();
-		columnSelection.setAllColumns();
-		AlignmentResultColumnSelectionDialog dialog = new AlignmentResultColumnSelectionDialog(columnSelection, this);
-		MainWindow.getInstance().addInternalFrame(dialog);
+		AlignmentResultExportColumns columnSelection = new AlignmentResultExportColumns();
+
+		ColumnSelectionDialog dialog = new ColumnSelectionDialog(MainWindow.getInstance(), columnSelection);
 		dialog.setVisible(true);
-	}
-	
-	/*
-	 * This is the call-back method for column selection dialog
-	 */
-	public void setColumnSelection(AlignmentResultColumnSelection columnSelection) {
+        
+        if (dialog.getExitCode() == ExitCode.CANCEL) return;
 		
 		// Ask file names for all alignment result(s)
 		File[] alignmentResultFiles = new File[alignmentResults.length];

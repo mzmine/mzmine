@@ -42,8 +42,8 @@ public class LogratioPlot implements MZmineModule,
 
 			logger.finest("Showing a new alignment result logratio plot");
 
-            AlignmentResultTableVisualizerWindow alignmentResultView = new AlignmentResultTableVisualizerWindow(alignmentResult);
-            desktop.addInternalFrame(alignmentResultView);
+            //AlignmentResultTableVisualizerWindow alignmentResultView = new AlignmentResultTableVisualizerWindow(alignmentResult);
+            //desktop.addInternalFrame(alignmentResultView);
         }
         
 	}

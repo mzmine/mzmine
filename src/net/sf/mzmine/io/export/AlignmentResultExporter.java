@@ -17,7 +17,7 @@
  * Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-package net.sf.mzmine.io.util;
+package net.sf.mzmine.io.export;
 
 import java.io.File;
 import java.io.FileWriter;
@@ -25,13 +25,11 @@ import java.util.logging.Logger;
 
 import net.sf.mzmine.data.AlignmentResult;
 import net.sf.mzmine.data.AlignmentResultRow;
-import net.sf.mzmine.data.IsotopePattern;
 import net.sf.mzmine.data.Peak;
 import net.sf.mzmine.data.Peak.PeakStatus;
 import net.sf.mzmine.io.OpenedRawDataFile;
-import net.sf.mzmine.userinterface.dialogs.alignmentresultcolumnselection.AlignmentResultColumnSelection;
-import net.sf.mzmine.userinterface.dialogs.alignmentresultcolumnselection.AlignmentResultColumnSelection.CommonColumnType;
-import net.sf.mzmine.userinterface.dialogs.alignmentresultcolumnselection.AlignmentResultColumnSelection.RawDataColumnType;
+import net.sf.mzmine.io.export.AlignmentResultExportColumns.CommonColumnType;
+import net.sf.mzmine.io.export.AlignmentResultExportColumns.RawDataColumnType;
 
 public class AlignmentResultExporter {
 
@@ -48,7 +46,7 @@ public class AlignmentResultExporter {
      * @return true if successfully exported, otherwise false
      */
     public boolean exportToFile(AlignmentResult alignmentResult,
-            File outputFile, AlignmentResultColumnSelection columnSelection) {
+            File outputFile, AlignmentResultExportColumns columnSelection) {
 
         // Open file
         FileWriter fw;
@@ -109,8 +107,8 @@ public class AlignmentResultExporter {
                 case AVGRT:
                     s += "" + alignmentRow.getAverageRT() + "\t";
                     break;
-                case CHARGE:
-                    //s += "" + isoPatt.getChargeState() + "\t";
+                case COMMENT:
+                    s += "\"" + alignmentRow.getComment() + "\"\t";
                     break;
                 }
             }

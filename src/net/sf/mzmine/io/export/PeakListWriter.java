@@ -17,7 +17,7 @@
  * Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-package net.sf.mzmine.io.util;
+package net.sf.mzmine.io.export;
 
 import java.io.File;
 import java.io.FileWriter;
