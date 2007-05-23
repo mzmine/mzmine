@@ -151,8 +151,11 @@ class SimpleGrouperTask implements Task {
 
             Peak aPeak = sortedPeaks[ind];
 
-            if (aPeak == null)
+            if (aPeak == null) {
+                // Update completion rate
+                processedPeaks++;
                 continue;
+            }
 
             if (status == TaskStatus.CANCELED)
                 return;

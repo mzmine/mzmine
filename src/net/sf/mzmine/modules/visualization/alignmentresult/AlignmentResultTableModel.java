@@ -38,7 +38,7 @@ public class AlignmentResultTableModel extends AbstractTableModel {
     private AlignmentResultTableColumns columnSelection;
     private Hashtable<Peak,PeakXICComponent> XICcomponents;
     
-    private static final Font statusFont = new Font("SansSerif", Font.PLAIN, 8);
+    private static final Font statusFont = new Font("SansSerif", Font.PLAIN, 10);
 
     /**
      * Constructor, assign given dataset to this table
