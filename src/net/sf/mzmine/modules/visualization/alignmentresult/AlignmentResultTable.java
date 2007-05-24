@@ -19,16 +19,11 @@
 
 package net.sf.mzmine.modules.visualization.alignmentresult;
 
+import javax.swing.JComponent;
 import javax.swing.JTable;
-import javax.swing.event.ChangeEvent;
-import javax.swing.event.ListSelectionEvent;
-import javax.swing.event.TableColumnModelEvent;
-import javax.swing.event.TableColumnModelListener;
 import javax.swing.table.TableColumnModel;
 
-import net.sf.mzmine.modules.visualization.alignmentresult.AlignmentResultTableColumns.CommonColumnType;
 import net.sf.mzmine.modules.visualization.alignmentresult.AlignmentResultTableColumns.RawDataColumnType;
-import net.sf.mzmine.userinterface.components.ColumnGroup;
 import net.sf.mzmine.userinterface.components.ComponentCellRenderer;
 import net.sf.mzmine.userinterface.components.GroupableTableHeader;
 import sunutils.TableSorter;
@@ -44,7 +39,7 @@ public class AlignmentResultTable extends JTable {
             AlignmentResultTableModel tableModel) {
 
         ComponentCellRenderer rend = new ComponentCellRenderer();
-        setDefaultRenderer(Object.class, rend);
+        setDefaultRenderer(JComponent.class, rend);
         
         
         this.tableModel = tableModel;

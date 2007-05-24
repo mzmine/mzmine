@@ -34,6 +34,7 @@ import net.sf.mzmine.data.Peak;
 import net.sf.mzmine.io.OpenedRawDataFile;
 import net.sf.mzmine.modules.visualization.alignmentresult.AlignmentResultTableColumns.CommonColumnType;
 import net.sf.mzmine.modules.visualization.alignmentresult.AlignmentResultTableColumns.RawDataColumnType;
+import net.sf.mzmine.userinterface.components.ColorCircle;
 import net.sf.mzmine.userinterface.components.ColumnGroup;
 import net.sf.mzmine.userinterface.components.GroupableTableHeader;
 import net.sf.mzmine.userinterface.components.PeakXICComponent;
@@ -43,8 +44,10 @@ public class AlignmentResultTableModel extends AbstractTableModel {
     private AlignmentResult alignmentResult;
     private AlignmentResultTableColumns columnSelection;
     private Hashtable<Peak, PeakXICComponent> XICcomponents;
-
-    private static final Font statusFont = new Font("SansSerif", Font.PLAIN, 10);
+    
+    private static final ColorCircle greenCircle = new ColorCircle(Color.green);
+    private static final ColorCircle redCircle = new ColorCircle(Color.red);
+    private static final ColorCircle yellowCircle = new ColorCircle(Color.yellow);
 
     /**
      * Constructor, assign given dataset to this table
@@ -120,12 +123,7 @@ public class AlignmentResultTableModel extends AbstractTableModel {
             Peak p = alignmentResult.getPeak(row, rawData);
             if (p == null) {
                 if (columnSelection.getSelectedRawDataColumns()[groupOffset[1]] == RawDataColumnType.STATUS) {
-                    JLabel statusLabel = new JLabel("N");
-                    statusLabel.setHorizontalAlignment(SwingConstants.CENTER);
-                    statusLabel.setOpaque(true);
-                    statusLabel.setFont(statusFont);
-                    statusLabel.setBackground(Color.red);
-                    return statusLabel;
+                    return redCircle;
                 }
 
                 return null;
@@ -143,26 +141,17 @@ public class AlignmentResultTableModel extends AbstractTableModel {
             case SHAPE:
                 PeakXICComponent pc = XICcomponents.get(p);
                 if (pc == null) {
-                    pc = new PeakXICComponent(p, 120, 30);
+                    pc = new PeakXICComponent(p, 200, 30);
                     XICcomponents.put(p, pc);
                 }
                 return pc;
             case STATUS:
-                JLabel statusLabel = new JLabel();
-                statusLabel.setHorizontalAlignment(SwingConstants.CENTER);
-                statusLabel.setOpaque(true);
-                statusLabel.setFont(statusFont);
                 switch (p.getPeakStatus()) {
                 case DETECTED:
-                    statusLabel.setText("D");
-                    statusLabel.setBackground(Color.green);
-                    break;
+                    return greenCircle;
                 case ESTIMATED:
-                    statusLabel.setText("E");
-                    statusLabel.setBackground(Color.yellow);
-                    break;
+                    return yellowCircle;
                 }
-                return statusLabel;
 
             default:
                 return null;
