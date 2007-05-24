@@ -23,8 +23,8 @@ import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
-import java.awt.Image;
-import java.awt.image.BufferedImage;
+import java.awt.RenderingHints;
+import java.awt.geom.GeneralPath;
 
 import javax.swing.JComponent;
 
@@ -36,20 +36,24 @@ import net.sf.mzmine.io.OpenedRawDataFile;
  */
 public class PeakXICComponent extends JComponent {
 
-    private BufferedImage bigImage;
-    private Image scaledImage;
-    private Dimension myOldSize;
-
+    private Peak peak;
     
     /**
      * @param peak
-     * @param width
-     * @param height
      */
-    public PeakXICComponent(Peak peak, int width, int height) {
+    public PeakXICComponent(Peak peak) {
+        this.peak = peak;
+    }
 
-        bigImage = new BufferedImage(width, height, BufferedImage.TYPE_INT_ARGB);
-        Graphics2D g2 = bigImage.createGraphics();
+    public void paint(Graphics g) {
+        
+        Dimension size = getSize();
+
+        Graphics2D g2 = (Graphics2D) g;
+        
+        g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING,
+                RenderingHints.VALUE_ANTIALIAS_ON);
+        
         g2.setColor(Color.blue);
         
         OpenedRawDataFile dataFile = peak.getDataFile();
@@ -77,35 +81,29 @@ public class PeakXICComponent extends JComponent {
                     scanNumbers[i]);
 
             xValues[i] = (int) Math.floor((retentionTime - minRT) / rtSpan
-                    * (width - 1));
-            yValues[i] = height
-                    - (int) Math.floor(intensity / peakHeight * (height - 1));
+                    * (size.width - 1));
+            yValues[i] = size.height
+                    - (int) Math.floor(intensity / peakHeight * (size.height - 1));
 
         }
 
+        GeneralPath path = new GeneralPath(GeneralPath.WIND_EVEN_ODD);
         
-
+        path.moveTo(xValues[0], size.height - 1);
         for (int i = 0; i < xValues.length - 1; i++) {
-            g2.drawLine(xValues[i], yValues[i], xValues[i + 1], yValues[i + 1]);
+            
+            path.lineTo(xValues[i + 1], yValues[i + 1]);
+            // g2.drawLine(xValues[i], yValues[i], xValues[i + 1], yValues[i + 1]);
         }
+        path.lineTo(xValues[xValues.length - 1], size.height - 1);
+        path.closePath();
         
-        g2.setColor(Color.darkGray);
-        g2.drawLine(0, 0, 0, height - 1);
-        g2.drawLine(0, height - 1, width - 1, height - 1);
-
-    }
-
-    public void paint(Graphics g) {
+        g2.fill(path);
         
-        Dimension size = getSize();
-        if ((myOldSize == null) || (! size.equals(myOldSize))) {
-            scaledImage = bigImage.getScaledInstance(size.width, size.height,
-                    Image.SCALE_SMOOTH);
-            myOldSize = size;
-        }
-        g.setColor(this.getBackground());
-        g.fillRect(0, 0, size.width, size.height);
-        g.drawImage(scaledImage, 0, 0, null);
+        g2.setColor(Color.gray);
+       // g2.drawLine(0,0,0, size.height - 1);
+        g2.drawLine(0,size.height - 1, size.width - 1, size.height - 1);
+        
     }
 
 }

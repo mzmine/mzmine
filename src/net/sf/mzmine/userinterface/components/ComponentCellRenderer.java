@@ -66,6 +66,7 @@ public class ComponentCellRenderer implements TableCellRenderer,
 
         JPanel newPanel = new JPanel(new OverlayLayout());
         Color bgColor;
+        
         if (isSelected)
             bgColor = table.getSelectionBackground();
         else

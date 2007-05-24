@@ -43,7 +43,6 @@ public class AlignmentResultTableModel extends AbstractTableModel {
 
     private AlignmentResult alignmentResult;
     private AlignmentResultTableColumns columnSelection;
-    private Hashtable<Peak, PeakXICComponent> XICcomponents;
     
     private static final ColorCircle greenCircle = new ColorCircle(Color.green);
     private static final ColorCircle redCircle = new ColorCircle(Color.red);
@@ -56,7 +55,6 @@ public class AlignmentResultTableModel extends AbstractTableModel {
             AlignmentResultTableColumns columnSelection) {
         this.alignmentResult = alignmentResult;
         this.columnSelection = columnSelection;
-        XICcomponents = new Hashtable<Peak, PeakXICComponent>();
 
     }
 
@@ -139,12 +137,7 @@ public class AlignmentResultTableModel extends AbstractTableModel {
             case AREA:
                 return new Double(p.getArea());
             case SHAPE:
-                PeakXICComponent pc = XICcomponents.get(p);
-                if (pc == null) {
-                    pc = new PeakXICComponent(p, 200, 30);
-                    XICcomponents.put(p, pc);
-                }
-                return pc;
+                return new PeakXICComponent(p);
             case STATUS:
                 switch (p.getPeakStatus()) {
                 case DETECTED:
