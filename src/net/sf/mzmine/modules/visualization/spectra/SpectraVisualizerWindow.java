@@ -21,6 +21,7 @@ package net.sf.mzmine.modules.visualization.spectra;
 
 import java.awt.BorderLayout;
 import java.awt.Color;
+import java.awt.Frame;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.text.DecimalFormat;
@@ -49,6 +50,7 @@ import net.sf.mzmine.taskcontrol.TaskListener;
 import net.sf.mzmine.taskcontrol.Task.TaskPriority;
 import net.sf.mzmine.taskcontrol.Task.TaskStatus;
 import net.sf.mzmine.userinterface.Desktop;
+import net.sf.mzmine.userinterface.dialogs.AxesSetupDialog;
 import net.sf.mzmine.util.CursorPosition;
 import net.sf.mzmine.util.GUIUtils;
 import net.sf.mzmine.util.ScanUtils;
@@ -252,6 +254,11 @@ public class SpectraVisualizerWindow extends JInternalFrame implements
 
         if (command.equals("SHOW_PICKED_PEAKS")) {
             spectrumPlot.switchPickedPeaksVisible();
+        }
+        
+        if (command.equals("SETUP_AXES")) {
+        	AxesSetupDialog dialog = new AxesSetupDialog((Frame)desktop, "Please set ranges for axes", spectrumPlot.getChart());
+        	dialog.setVisible(true);
         }
 
         if (command.equals("TOGGLE_PLOT_MODE")) {

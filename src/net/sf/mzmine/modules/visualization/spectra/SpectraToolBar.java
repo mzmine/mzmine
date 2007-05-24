@@ -39,8 +39,9 @@ class SpectraToolBar extends JToolBar {
     static final Icon dataPointsIcon = new ImageIcon("icons/datapointsicon.png");
     static final Icon annotationsIcon = new ImageIcon("icons/annotationsicon.png");
     static final Icon pickedPeakIcon = new ImageIcon("icons/pickedpeakicon.png");
-
-    private JButton centroidContinuousButton, dataPointsButton, peaksButton;
+    static final Icon axesIcon = new ImageIcon("icons/axesicon.png");
+    
+    private JButton centroidContinuousButton, dataPointsButton, peaksButton, axesButton;
 
     SpectraToolBar(SpectraVisualizerWindow masterFrame) {
 
@@ -70,6 +71,12 @@ class SpectraToolBar extends JToolBar {
 
         peaksButton = GUIUtils.addButton(this, null, pickedPeakIcon, masterFrame,
                 "SHOW_PICKED_PEAKS", "Toggle displaying of picked peaks");
+        
+        addSeparator();
+        
+        axesButton = GUIUtils.addButton(this, null, axesIcon, masterFrame,
+                "SETUP_AXES", "Setup ranges for axes");
+        
 
     }
 
