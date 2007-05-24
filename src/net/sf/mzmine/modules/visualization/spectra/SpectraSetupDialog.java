@@ -395,6 +395,44 @@ public class SpectraSetupDialog extends JDialog implements ActionListener {
         fieldMaxScanTime.setText(retentionTimeString);
 
     }
+    
+    public SpectraSetupDialog(TaskController taskController, Desktop desktop,
+            OpenedRawDataFile dataFile, int msLevel, int[] scanNumbers, double mzBinSize) {
+
+        this(taskController, desktop, dataFile);
+
+        int minScanNumber = scanNumbers[0];
+        int midScanNumber = scanNumbers[(int)java.lang.Math.floor(scanNumbers.length/2.0)];
+        int maxScanNumber = scanNumbers[scanNumbers.length-1];
+        for (int index=0; index<scanNumbers.length; index++) {
+        	if (scanNumbers[index]<minScanNumber) minScanNumber = scanNumbers[index];
+        	if (scanNumbers[index]>maxScanNumber) maxScanNumber = scanNumbers[index];
+        }
+        String minScanNumberString = String.valueOf(minScanNumber);
+        String minRetentionTimeString = format.format(dataFile.getCurrentFile().getRetentionTime(minScanNumber));
+        String midScanNumberString = String.valueOf(midScanNumber);
+        String maxScanNumberString = String.valueOf(maxScanNumber);
+        String maxRetentionTimeString = format.format(dataFile.getCurrentFile().getRetentionTime(maxScanNumber));
+
+        
+        for (int i = 0; i < comboNumbersMSlevel.getItemCount(); i++) {
+            Object item = comboNumbersMSlevel.getItemAt(i);
+            if (item.equals(msLevel)) {
+                comboNumbersMSlevel.setSelectedIndex(i);
+                comboTimeMSlevel.setSelectedIndex(i);
+                break;
+            }
+        }
+
+        fieldScanNumber.setText(midScanNumberString);
+        fieldMinScanNumber.setText(minScanNumberString);
+        fieldMaxScanNumber.setText(maxScanNumberString);
+        fieldMinScanTime.setText(minRetentionTimeString);
+        fieldMaxScanTime.setText(maxRetentionTimeString);
+    	
+    	
+    }
+    
 
     /**
      * @see java.awt.event.ActionListener#actionPerformed(java.awt.event.ActionEvent)

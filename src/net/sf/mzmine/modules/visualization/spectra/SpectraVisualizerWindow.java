@@ -79,11 +79,12 @@ public class SpectraVisualizerWindow extends JInternalFrame implements
     private Scan[] scans;
     private int loadedScans = 0;
 
-    // mzMin, mzMax and mzBinSize/numOfBins are only used when we plot multiple
+    // mzMin, mzMax and mzBinSize/numOfBins and binnedTemplate are only used when we plot multiple
     // scans
     private double mzMin, mzMax, mzBinSize;
     private int numOfBins;
     private double rtMin, rtMax;
+    private double[] binnedTemplate;
 
     // TODO: get these from parameter storage
     private static NumberFormat rtFormat = new TimeNumberFormat();
@@ -320,6 +321,7 @@ public class SpectraVisualizerWindow extends JInternalFrame implements
         return new RawDataFile[] { rawDataFile };
     }
 
+    
     /**
      * @see net.sf.mzmine.io.RawDataAcceptor#addScan(net.sf.mzmine.data.Scan)
      */
@@ -358,6 +360,7 @@ public class SpectraVisualizerWindow extends JInternalFrame implements
                 // count the number of bins and update the bin size accordingly
                 numOfBins = (int) Math.round((mzMax - mzMin) / mzBinSize);
                 mzBinSize = (mzMax - mzMin) / numOfBins;
+                binnedTemplate = new double[numOfBins];
             }
 
         } else {
@@ -438,31 +441,31 @@ public class SpectraVisualizerWindow extends JInternalFrame implements
             // plotting multiple scans - we have to bin the peaks
             double binnedIntValues[] = ScanUtils.binValues(mzValues, intValues,
                     mzMin, mzMax, numOfBins, false, BinningType.SUM);
-
+            
             for (int j = 0; j < binnedIntValues.length; j++) {
-
-                if (binnedIntValues[j] == 0)
-                    continue;
-
-                double mz = mzMin + (j * mzBinSize);
-
-                int index = rawDataSeries.indexOf(mz);
-
-                // if we don't have this m/z value yet, add it.
-                // otherwise make a max of intensities
-                if (index < 0) {
-                    rawDataSeries.add(mz, binnedIntValues[j], false);
-                } else {
-                    double newVal = Math.max(rawDataSet.getYValue(0, index),
-                            binnedIntValues[j]);
-                    rawDataSeries.updateByIndex(index, newVal);
-                }
-
+            	
+            	if (binnedTemplate[j]<binnedIntValues[j])
+            		binnedTemplate[j] = binnedIntValues[j];
             }
+
         }
 
         // check if we added last scan
         if (scanIndex == total - 1) {
+        	
+        	// Make a data series of binned template
+        	if (scans.length>1) {
+                for (int j = 0; j < binnedTemplate.length; j++) {
+
+                    if (binnedTemplate[j] == 0)
+                        continue;
+
+                    double mz = mzMin + (j * mzBinSize);
+                    rawDataSeries.add(mz, binnedTemplate[j], false);
+
+                }
+        		
+        	}
 
             // if we have a peak list, add the eligible peaks
             PeakList peakList = dataFile.getPeakList();
@@ -505,12 +508,13 @@ public class SpectraVisualizerWindow extends JInternalFrame implements
                 // no peaklist
                 toolBar.setPeaksButtonEnabled(false);
             }
+
+            rawDataSeries.fireSeriesChanged();
+            
         }
 
         // update the counter of loaded scans
         loadedScans++;
-
-        rawDataSeries.fireSeriesChanged();
 
         updateTitle();
 

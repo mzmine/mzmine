@@ -31,6 +31,8 @@ import javax.swing.JTable;
 import net.sf.mzmine.data.AlignmentResult;
 import net.sf.mzmine.data.Peak;
 import net.sf.mzmine.io.OpenedRawDataFile;
+import net.sf.mzmine.io.RawDataFile;
+import net.sf.mzmine.modules.visualization.spectra.SpectraSetupDialog;
 import net.sf.mzmine.modules.visualization.spectra.SpectraVisualizerWindow;
 import net.sf.mzmine.modules.visualization.tic.TICSetupDialog;
 import net.sf.mzmine.project.MZmineProject;
@@ -93,8 +95,8 @@ public class PeakListTableViewWindow extends JInternalFrame implements ActionLis
         	if (peaks==null) return;
         	
         	for (Peak p : peaks) {	
-				// TODO: M/Z bin size is hard coded here
-                new SpectraVisualizerWindow(taskController, desktop, rawData, p.getScanNumbers(), 0.01);
+        		SpectraSetupDialog dialog = new SpectraSetupDialog(taskController, desktop, rawData, 1, p.getScanNumbers(), 0.01);
+        		dialog.setVisible(true);
         	}
 			
 		}
