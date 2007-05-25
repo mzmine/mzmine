@@ -28,6 +28,8 @@ import javax.swing.JMenuItem;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
 
+import org.jfree.report.JFreeReportBoot;
+
 import net.sf.mzmine.data.AlignmentResult;
 import net.sf.mzmine.data.ParameterSet;
 import net.sf.mzmine.main.MZmineCore;
@@ -36,10 +38,9 @@ import net.sf.mzmine.userinterface.Desktop;
 import net.sf.mzmine.userinterface.Desktop.MZmineMenu;
 
 public class AlignmentResultTableVisualizer implements MZmineModule,
-        ActionListener, ListSelectionListener {
+        ActionListener {
 
     private Desktop desktop;
-    private JMenuItem myMenuItem;
     private AlignmentResultTableColumns columnSelection;
 
     private Logger logger = Logger.getLogger(this.getClass().getName());
@@ -52,11 +53,11 @@ public class AlignmentResultTableVisualizer implements MZmineModule,
         this.desktop = core.getDesktop();
 
         columnSelection = new AlignmentResultTableColumns();
-        
-        myMenuItem = desktop.addMenuItem(MZmineMenu.ANALYSIS,
-                "Alignment result list view", this, null, KeyEvent.VK_A, false,
-                false);
-        desktop.addSelectionListener(this);
+
+        JFreeReportBoot.getInstance().start();
+
+        desktop.addMenuItem(MZmineMenu.ANALYSIS, "Alignment result list view",
+                this, null, KeyEvent.VK_A, false, true);
 
     }
 
@@ -67,26 +68,22 @@ public class AlignmentResultTableVisualizer implements MZmineModule,
 
         AlignmentResult[] alignmentResults = desktop.getSelectedAlignmentResults();
 
+        AlignmentResult selectedAlignmentResults[] = desktop.getSelectedAlignmentResults();
+
+        if (selectedAlignmentResults.length == 0) {
+            desktop.displayErrorMessage("Please select at least one alignment result");
+            return;
+        }
+
         for (AlignmentResult alignmentResult : alignmentResults) {
 
             logger.finest("Showing a new alignment result list view");
 
-            AlignmentResultTableVisualizerWindow alignmentResultView = new AlignmentResultTableVisualizerWindow(this, 
-                    alignmentResult);
+            AlignmentResultTableVisualizerWindow alignmentResultView = new AlignmentResultTableVisualizerWindow(
+                    this, alignmentResult);
             desktop.addInternalFrame(alignmentResultView);
 
         }
-
-    }
-
-    /**
-     * @see javax.swing.event.ListSelectionListener#valueChanged(javax.swing.event.ListSelectionEvent)
-     */
-    public void valueChanged(ListSelectionEvent e) {
-
-        AlignmentResult[] alignmentResults = desktop.getSelectedAlignmentResults();
-        if (alignmentResults.length > 0)
-            myMenuItem.setEnabled(true);
 
     }
 

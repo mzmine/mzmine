@@ -26,6 +26,7 @@ import java.util.logging.Logger;
 import javax.swing.Icon;
 import javax.swing.ImageIcon;
 import javax.swing.JToolBar;
+import javax.swing.plaf.metal.MetalIconFactory;
 
 import net.sf.mzmine.util.GUIUtils;
 
@@ -38,6 +39,7 @@ class AlignmentResultTableVisualizerToolBar extends JToolBar {
 	
     static final Icon zoomToPeakIcon = new ImageIcon("icons/annotationsicon.png");
     static final Icon changeFormatIcon = new ImageIcon("icons/tableselectionicon.png");
+    static final Icon printIcon = new ImageIcon("icons/printicon.png");
 
     AlignmentResultTableVisualizerToolBar(AlignmentResultTableVisualizerWindow masterFrame) {
     	
@@ -56,6 +58,11 @@ class AlignmentResultTableVisualizerToolBar extends JToolBar {
         
         GUIUtils.addButton(this, null, changeFormatIcon, masterFrame,
                 "CHANGE_FORMAT", "Change table column format");
+        
+        addSeparator();
+        
+        GUIUtils.addButton(this, null, printIcon, masterFrame,
+                "PRINT", "Print");
         
 
     }

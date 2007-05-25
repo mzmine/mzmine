@@ -23,10 +23,18 @@ import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.net.URL;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
+import javax.swing.JDialog;
 import javax.swing.JInternalFrame;
 import javax.swing.JScrollPane;
 import javax.swing.JTable;
+
+import org.jfree.report.JFreeReport;
+import org.jfree.report.modules.gui.base.PreviewDialog;
+import org.jfree.report.modules.parser.base.ReportGenerator;
 
 import net.sf.mzmine.data.AlignmentResult;
 import net.sf.mzmine.userinterface.dialogs.alignmentresultcolumnselection.ColumnSelectionDialog;
@@ -35,6 +43,8 @@ import net.sf.mzmine.userinterface.mainwindow.MainWindow;
 
 public class AlignmentResultTableVisualizerWindow extends JInternalFrame
         implements ActionListener {
+    
+    private Logger logger = Logger.getLogger(this.getClass().getName());
 
     AlignmentResultTableVisualizer visualizer;
     private AlignmentResultTableColumns columnSelection;
@@ -105,6 +115,25 @@ public class AlignmentResultTableVisualizerWindow extends JInternalFrame
                 model.fireTableStructureChanged();
             }
         }
+        
+        if (command.equals("PRINT")) {
+            try {
+                ReportGenerator gener = ReportGenerator.getInstance();
+                JFreeReport report;
+                URL def = this.getClass().getResource("print-report-definition.xml");
+                logger.finest("report definition: "+ def);
+                    report = gener.parseReport(def);
+            report.setData(model);
+            JDialog dial;
+                dial = new PreviewDialog(report);
+                dial.pack();
+                dial.setLocationRelativeTo(null);
+                dial.setVisible(true);
+            } catch (Exception ex) {
+                logger.log(Level.WARNING, "Could not generate report for printing", ex);
+            }
+        }
+            
 
     }
 

@@ -91,7 +91,7 @@ public class AlignmentResultTableColumns implements ColumnSet,
     private Set<CommonColumnType> selectedCommonColumns;
     private Set<RawDataColumnType> selectedRawDataColumns;
 
-    AlignmentResultTableColumns() {
+    public AlignmentResultTableColumns() {
         selectedCommonColumns = new TreeSet<CommonColumnType>();
         selectedRawDataColumns = new TreeSet<RawDataColumnType>();
         
