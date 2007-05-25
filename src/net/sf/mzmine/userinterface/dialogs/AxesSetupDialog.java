@@ -159,14 +159,15 @@ public class AxesSetupDialog extends JDialog implements ActionListener {
         Object src = ae.getSource();
 
         if (src == btnOK) {
-            exitCode = ExitCode.OK;
-            setValuesToPlot();
-            dispose();
+        	if (setValuesToPlot()) {
+        		exitCode = ExitCode.OK;
+                dispose();
+        	}
         }
         
         if (src == btnApply) {
-        	setValuesToPlot();
-        	getValuesToControls();
+        	if (setValuesToPlot()) 
+        		getValuesToControls();
         }
 
         if (src == btnCancel) {
@@ -211,25 +212,34 @@ public class AxesSetupDialog extends JDialog implements ActionListener {
     	
     }
     
-    private void setValuesToPlot() {
+    private boolean setValuesToPlot() {
     	if (checkXAutoRange.isSelected()) {
     		xAxis.setAutoRange(true);
     	} else {
-    		xAxis.setAutoRange(false);
+    		
     		double lower = ((Number)fieldXMin.getValue()).doubleValue();
     		double upper = ((Number)fieldXMax.getValue()).doubleValue();
+    		if (lower>upper) {
+    			displayMessage("Invalid " + xAxis.getLabel() + " range.");
+    			return false;
+    		}
+    		xAxis.setAutoRange(false);
     		xAxis.setRange(lower,upper);
     	}
     	
     	if (checkYAutoRange.isSelected()) {
     		yAxis.setAutoRange(true);
     	} else {
-    		yAxis.setAutoRange(false);
     		double lower = ((Number)fieldYMin.getValue()).doubleValue();
     		double upper = ((Number)fieldYMax.getValue()).doubleValue();
+    		if (lower>upper) {
+    			displayMessage("Invalid " + yAxis.getLabel() + " range.");
+    			return false;
+    		}
+    		yAxis.setAutoRange(false);
     		yAxis.setRange(lower,upper);
     	}
-
+    	return true;
     }
 
     private void displayMessage(String msg) {
