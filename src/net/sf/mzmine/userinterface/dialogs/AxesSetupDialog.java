@@ -30,6 +30,7 @@ import net.sf.mzmine.userinterface.dialogs.ParameterSetupDialog.ExitCode;
 
 import org.jfree.chart.JFreeChart;
 import org.jfree.chart.axis.NumberAxis;
+import org.jfree.chart.axis.NumberTickUnit;
 import org.jfree.chart.axis.ValueAxis;
 import org.jfree.chart.plot.XYPlot;
 import org.jfree.data.Range;
@@ -40,25 +41,24 @@ public class AxesSetupDialog extends JDialog implements ActionListener {
 	private ValueAxis xAxis;
 	private ValueAxis yAxis;
 	
-    public static final int TEXTFIELD_COLUMNS = 8;
-
-    public static enum ExitCode {
+	public static enum ExitCode {
         OK, CANCEL
     };
 
     private ExitCode exitCode = ExitCode.CANCEL;
-
+    
     private Logger logger = Logger.getLogger(this.getClass().getName());
 
     // Buttons
     private JButton btnOK, btnApply, btnCancel;
 
-    private JPanel pnlAll, pnlLabels, pnlFields, pnlButtons;
-    
     private JFormattedTextField fieldXMin;
     private JFormattedTextField fieldXMax;
+    private JFormattedTextField fieldXTick;
+    
     private JFormattedTextField fieldYMin;
-    private JFormattedTextField fieldYMax;    
+    private JFormattedTextField fieldYMax;
+    private JFormattedTextField fieldYTick;
     
     private JCheckBox checkXAutoRange;
     private JCheckBox checkYAutoRange;
@@ -75,79 +75,89 @@ public class AxesSetupDialog extends JDialog implements ActionListener {
         
         this.plot = plot;
 
-        // Panel where everything is collected
-        pnlAll = new JPanel(new BorderLayout());
-        pnlAll.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
-        add(pnlAll);
-
-        // panels for labels, text fields and units
-        pnlLabels = new JPanel(new GridLayout(0, 1));
-        pnlFields = new JPanel(new GridLayout(0, 1));
-
-        pnlFields.setBorder(BorderFactory.createEmptyBorder(0, 5, 5, 5));
-        pnlLabels.setBorder(BorderFactory.createEmptyBorder(0, 5, 5, 5));
-
         xAxis = plot.getDomainAxis();
         yAxis = plot.getRangeAxis();
-        
-        JLabel lblXAuto = new JLabel("" + xAxis.getLabel() + " auto range"); pnlLabels.add(lblXAuto);
-        JLabel lblXMin = new JLabel("" + xAxis.getLabel() + " minimum"); pnlLabels.add(lblXMin);
-        JLabel lblXMax = new JLabel("" + xAxis.getLabel() + " maximum"); pnlLabels.add(lblXMax);
-        
-        pnlLabels.add(new JPanel());
-        
-        JLabel lblYAuto = new JLabel("" + yAxis.getLabel() + " auto range"); pnlLabels.add(lblYAuto);
-        JLabel lblYMin = new JLabel("" + yAxis.getLabel() + " minimum"); pnlLabels.add(lblYMin);
-        JLabel lblYMax = new JLabel("" + yAxis.getLabel() + " maximum"); pnlLabels.add(lblYMax);
-                    
+
         NumberFormat defaultFormatter = NumberFormat.getNumberInstance();
         NumberFormat xAxisFormatter = defaultFormatter;
         if (xAxis instanceof NumberAxis) xAxisFormatter = ((NumberAxis)xAxis).getNumberFormatOverride();
         NumberFormat yAxisFormatter = defaultFormatter;
         if (yAxis instanceof NumberAxis) yAxisFormatter = ((NumberAxis)yAxis).getNumberFormatOverride();
+
+        // Create labels and fields
+        JLabel lblXAuto = new JLabel("" + xAxis.getLabel() + " auto range"); 
+        JLabel lblXMin = new JLabel("" + xAxis.getLabel() + " minimum");
+        JLabel lblXMax = new JLabel("" + xAxis.getLabel() + " maximum"); 
+        JLabel lblXTick = new JLabel("" + xAxis.getLabel() + " tick size");
         
-        
+        JLabel lblYAuto = new JLabel("" + yAxis.getLabel() + " auto range");
+        JLabel lblYMin = new JLabel("" + yAxis.getLabel() + " minimum");
+        JLabel lblYMax = new JLabel("" + yAxis.getLabel() + " maximum");
+        JLabel lblYTick = new JLabel("" + yAxis.getLabel() + " tick size");
+
         checkXAutoRange = new JCheckBox();
         checkXAutoRange.addActionListener(this);
-        pnlFields.add(checkXAutoRange);
         fieldXMin = new JFormattedTextField(xAxisFormatter);
-        pnlFields.add(fieldXMin);
-        fieldXMax = new JFormattedTextField(xAxisFormatter); 
-        pnlFields.add(fieldXMax);
-        
-        pnlFields.add(new JPanel());
+        fieldXMax = new JFormattedTextField(xAxisFormatter);
+        fieldXTick = new JFormattedTextField(xAxisFormatter);
 
         checkYAutoRange = new JCheckBox();
         checkYAutoRange.addActionListener(this);
-        pnlFields.add(checkYAutoRange);
-        fieldYMin = new JFormattedTextField(yAxisFormatter);
-        pnlFields.add(fieldYMin);
-        
+        fieldYMin = new JFormattedTextField(yAxisFormatter);           
         fieldYMax = new JFormattedTextField(yAxisFormatter); 
-        pnlFields.add(fieldYMax);
+       	fieldYTick = new JFormattedTextField(yAxisFormatter);
 
-        getValuesToControls();
+       	// Create a panel for labels and fields
+        int numRows = 7;
+        if (xAxis instanceof NumberAxis) numRows++;
+        if (yAxis instanceof NumberAxis) numRows++;
         
-        // Buttons
-        pnlButtons = new JPanel();
+        JPanel pnlLabelsAndFields = new JPanel(new GridLayout(numRows, 2));
+       	
+        pnlLabelsAndFields.add(lblXAuto);  pnlLabelsAndFields.add(checkXAutoRange);
+        pnlLabelsAndFields.add(lblXMin);  pnlLabelsAndFields.add(fieldXMin);
+        pnlLabelsAndFields.add(lblXMax);  pnlLabelsAndFields.add(fieldXMax);
+        if (xAxis instanceof NumberAxis) {
+        	pnlLabelsAndFields.add(lblXTick);  pnlLabelsAndFields.add(fieldXTick); }
+        
+        pnlLabelsAndFields.add(new JPanel());  pnlLabelsAndFields.add(new JPanel());
+        
+        pnlLabelsAndFields.add(lblYAuto);  pnlLabelsAndFields.add(checkYAutoRange);
+        pnlLabelsAndFields.add(lblYMin);  pnlLabelsAndFields.add(fieldYMin);
+        pnlLabelsAndFields.add(lblYMax);  pnlLabelsAndFields.add(fieldYMax);
+        if (yAxis instanceof NumberAxis) {
+        	pnlLabelsAndFields.add(lblYTick);  pnlLabelsAndFields.add(fieldYTick); }
+        
+        
+        // Create buttons
+        JPanel pnlButtons = new JPanel();
         btnOK = new JButton("OK");
         btnOK.addActionListener(this);
         btnApply = new JButton("Apply");
         btnApply.addActionListener(this);
         btnCancel = new JButton("Cancel");
         btnCancel.addActionListener(this);
+        
         pnlButtons.add(btnOK);
         pnlButtons.add(btnApply);
         pnlButtons.add(btnCancel);
 
-        pnlAll.add(pnlLabels, BorderLayout.WEST);
-        pnlAll.add(pnlFields, BorderLayout.CENTER);
+
+        // Put everything into a main panel
+        JPanel pnlAll = new JPanel(new BorderLayout());
+        pnlAll.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
+        add(pnlAll);      
+        
+        pnlAll.add(pnlLabelsAndFields, BorderLayout.CENTER);
         pnlAll.add(pnlButtons, BorderLayout.SOUTH);
 
         pack();
+        
         setTitle("Please set ranges for axes");
         setResizable(false);
         setLocationRelativeTo(owner);
+        
+        getValuesToControls();
 
     }
 
@@ -185,10 +195,14 @@ public class AxesSetupDialog extends JDialog implements ActionListener {
     	checkXAutoRange.setSelected(xAxis.isAutoRange());
     	fieldXMin.setValue(xAxis.getRange().getLowerBound());
         fieldXMax.setValue(xAxis.getRange().getUpperBound());
+        if (xAxis instanceof NumberAxis) 
+        	fieldXTick.setValue(((NumberAxis)xAxis).getTickUnit().getSize());
         
         checkYAutoRange.setSelected(yAxis.isAutoRange());
         fieldYMin.setValue(yAxis.getRange().getLowerBound());
         fieldYMax.setValue(yAxis.getRange().getUpperBound());
+        if (yAxis instanceof NumberAxis) 
+        	fieldYTick.setValue(((NumberAxis)yAxis).getTickUnit().getSize());
         
         updateAutoRangeAvailability();        
     }
@@ -196,25 +210,33 @@ public class AxesSetupDialog extends JDialog implements ActionListener {
     private void updateAutoRangeAvailability() {
         if (checkXAutoRange.isSelected()) {
         	fieldXMax.setEnabled(false);
-        	fieldXMin.setEnabled(false);      	
+        	fieldXMin.setEnabled(false);
+        	fieldXTick.setEnabled(false);
         } else {
         	fieldXMax.setEnabled(true);
-        	fieldXMin.setEnabled(true);        	
+        	fieldXMin.setEnabled(true);
+        	fieldXTick.setEnabled(true);
         }
         
         if (checkYAutoRange.isSelected()) {
         	fieldYMax.setEnabled(false);
         	fieldYMin.setEnabled(false);
+        	fieldYTick.setEnabled(false);
         } else {
         	fieldYMax.setEnabled(true);
-        	fieldYMin.setEnabled(true);        	
+        	fieldYMin.setEnabled(true);
+        	fieldYTick.setEnabled(true);
         }        
     	
     }
     
     private boolean setValuesToPlot() {
     	if (checkXAutoRange.isSelected()) {
-    		xAxis.setAutoRange(true);
+    		
+    		xAxis.setAutoRange(true);   		
+    		if (xAxis instanceof NumberAxis)
+    			xAxis.setAutoTickUnitSelection(true);
+    		
     	} else {
     		
     		double lower = ((Number)fieldXMin.getValue()).doubleValue();
@@ -224,12 +246,22 @@ public class AxesSetupDialog extends JDialog implements ActionListener {
     			return false;
     		}
     		xAxis.setAutoRange(false);
-    		xAxis.setRange(lower,upper);
+    		xAxis.setRange(lower,upper); 
+    		if (xAxis instanceof NumberAxis) {
+    			double tickSize = ((Number)fieldXTick.getValue()).doubleValue();
+    			((NumberAxis)xAxis).setTickUnit(new NumberTickUnit(tickSize));
+    		}
+    		
     	}
     	
     	if (checkYAutoRange.isSelected()) {
+    		
     		yAxis.setAutoRange(true);
+    		if (yAxis instanceof NumberAxis)
+    			yAxis.setAutoTickUnitSelection(true);
+    		
     	} else {
+    		
     		double lower = ((Number)fieldYMin.getValue()).doubleValue();
     		double upper = ((Number)fieldYMax.getValue()).doubleValue();
     		if (lower>upper) {
@@ -238,6 +270,11 @@ public class AxesSetupDialog extends JDialog implements ActionListener {
     		}
     		yAxis.setAutoRange(false);
     		yAxis.setRange(lower,upper);
+    		if (yAxis instanceof NumberAxis) {
+    			double tickSize = ((Number)fieldYTick.getValue()).doubleValue();
+    			((NumberAxis)yAxis).setTickUnit(new NumberTickUnit(tickSize));
+    		}
+    		
     	}
     	return true;
     }
