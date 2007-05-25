@@ -257,7 +257,7 @@ public class SpectraVisualizerWindow extends JInternalFrame implements
         }
         
         if (command.equals("SETUP_AXES")) {
-        	AxesSetupDialog dialog = new AxesSetupDialog((Frame)desktop, "Please set ranges for axes", spectrumPlot.getChart());
+        	AxesSetupDialog dialog = new AxesSetupDialog((Frame)desktop, spectrumPlot.getChart().getXYPlot());
         	dialog.setVisible(true);
         }
 
