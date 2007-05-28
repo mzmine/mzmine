@@ -54,6 +54,7 @@ public class NumberFormatter extends NumberFormat implements Cloneable {
     }
 
     public void setFormat(FormatterType type, String pattern) {
+        this.embeddedFormatterType = type;
         switch (type) {
         case TIME:
             embeddedFormatter = new SimpleDateFormat(pattern);

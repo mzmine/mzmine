@@ -46,7 +46,7 @@ public class AxesSetupDialog extends JDialog implements ActionListener {
     private ValueAxis xAxis;
     private ValueAxis yAxis;
 
-    private ExitCode exitCode = ExitCode.CANCEL;
+    private ExitCode exitCode = ExitCode.UNKNOWN;
 
     private Logger logger = Logger.getLogger(this.getClass().getName());
 

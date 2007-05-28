@@ -46,7 +46,7 @@ import org.dom4j.io.SAXReader;
 import org.dom4j.io.XMLWriter;
 
 /**
- * Main client class 
+ * Main client class
  */
 public class MZmineClient extends Thread implements Runnable, MZmineCore {
 
@@ -59,6 +59,7 @@ public class MZmineClient extends Thread implements Runnable, MZmineCore {
     public static final String CLASS_ATTRIBUTE_NAME = "class";
     public static final String NODES_ELEMENT_NAME = "nodes";
     public static final String LOCAL_ATTRIBUTE_NAME = "local";
+    public static final String DESKTOP_ELEMENT_NAME = "desktop";
 
     private Logger logger = Logger.getLogger(this.getClass().getName());
 
@@ -89,12 +90,12 @@ public class MZmineClient extends Thread implements Runnable, MZmineCore {
         try {
             SAXReader reader = new SAXReader();
             configuration = reader.read(CONFIG_FILE);
+            Element configRoot = configuration.getRootElement();
 
             // get the configured number of computation nodes
             int numberOfNodes;
 
-            Element nodes = configuration.getRootElement().element(
-                    NODES_ELEMENT_NAME);
+            Element nodes = configRoot.element(NODES_ELEMENT_NAME);
             String numberOfNodesConfigEntry = nodes.attributeValue(LOCAL_ATTRIBUTE_NAME);
             if (numberOfNodesConfigEntry != null) {
                 numberOfNodes = Integer.parseInt(numberOfNodesConfigEntry);
@@ -118,12 +119,19 @@ public class MZmineClient extends Thread implements Runnable, MZmineCore {
             mainWindow.initModule(this);
             project.initModule(this);
 
+            logger.finer("Loading desktop configuration");
+
+            StorableParameterSet desktopParameters = mainWindow.getParameterSet();
+            Element desktopConfigElement = configRoot.element(DESKTOP_ELEMENT_NAME);
+            if (desktopConfigElement != null)
+                desktopParameters.importValuesFromXML(desktopConfigElement);
+
             logger.finer("Loading modules");
 
             moduleSet = new Vector<MZmineModule>();
 
-            Iterator modIter = configuration.getRootElement().element(
-                    MODULES_ELEMENT_NAME).elementIterator(MODULE_ELEMENT_NAME);
+            Iterator modIter = configRoot.element(MODULES_ELEMENT_NAME).elementIterator(
+                    MODULE_ELEMENT_NAME);
 
             while (modIter.hasNext()) {
                 Element moduleElement = (Element) modIter.next();
@@ -135,7 +143,8 @@ public class MZmineClient extends Thread implements Runnable, MZmineCore {
                     Element parametersElement = moduleElement.element(PARAMETERS_ELEMENT_NAME);
                     if (parametersElement != null) {
                         ParameterSet moduleParameters = newModule.getParameterSet();
-                        if ((moduleParameters != null) && (moduleParameters instanceof StorableParameterSet))
+                        if ((moduleParameters != null)
+                                && (moduleParameters instanceof StorableParameterSet))
                             ((StorableParameterSet) moduleParameters).importValuesFromXML(parametersElement);
                     }
                 }
@@ -250,13 +259,24 @@ public class MZmineClient extends Thread implements Runnable, MZmineCore {
             // load current configuration from XML
             SAXReader reader = new SAXReader();
             Document configuration = reader.read(CONFIG_FILE);
+            Element configRoot = configuration.getRootElement();
+
+            // save desktop configuration
+            StorableParameterSet desktopParameters = mainWindow.getParameterSet();
+            Element desktopConfigElement = configRoot.element(DESKTOP_ELEMENT_NAME);
+            if (desktopConfigElement == null) {
+                desktopConfigElement = configRoot.addElement(DESKTOP_ELEMENT_NAME);
+            }
+            desktopConfigElement.clearContent();
+            desktopParameters.exportValuesToXML(desktopConfigElement);
 
             // traverse modules
             Iterator<MZmineModule> iterator = moduleSet.iterator();
             while (iterator.hasNext()) {
                 MZmineModule module = iterator.next();
                 ParameterSet currentParameters = module.getParameterSet();
-                if ((currentParameters == null) || (!(currentParameters instanceof StorableParameterSet)))
+                if ((currentParameters == null)
+                        || (!(currentParameters instanceof StorableParameterSet)))
                     continue;
 
                 String className = module.getClass().getName();

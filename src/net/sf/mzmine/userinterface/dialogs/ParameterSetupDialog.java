@@ -52,7 +52,7 @@ public class ParameterSetupDialog extends JDialog implements ActionListener {
 
     public static final int TEXTFIELD_COLUMNS = 8;
 
-    private ExitCode exitCode = ExitCode.CANCEL;
+    private ExitCode exitCode = ExitCode.UNKNOWN;
 
     private Logger logger = Logger.getLogger(this.getClass().getName());
 

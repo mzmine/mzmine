@@ -23,5 +23,5 @@ package net.sf.mzmine.userinterface.dialogs;
  * Simple enum for for dialog exit code
  */
 public enum ExitCode {
-    OK, CANCEL
+    UNKNOWN, OK, CANCEL
 }

@@ -26,12 +26,9 @@ import java.awt.Font;
 import java.awt.event.ActionListener;
 import java.awt.event.WindowEvent;
 import java.awt.event.WindowListener;
-import java.text.DecimalFormat;
-import java.text.NumberFormat;
 import java.util.ArrayList;
 import java.util.Enumeration;
 import java.util.Vector;
-import java.util.logging.Logger;
 
 import javax.swing.JDesktopPane;
 import javax.swing.JFrame;
@@ -46,27 +43,25 @@ import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
 
 import net.sf.mzmine.data.AlignmentResult;
+import net.sf.mzmine.data.ParameterSet;
 import net.sf.mzmine.io.OpenedRawDataFile;
 import net.sf.mzmine.main.MZmineCore;
+import net.sf.mzmine.main.MZmineModule;
 import net.sf.mzmine.taskcontrol.impl.TaskControllerImpl;
 import net.sf.mzmine.userinterface.Desktop;
 import net.sf.mzmine.userinterface.components.TaskProgressWindow;
 import net.sf.mzmine.util.NumberFormatter;
-import net.sf.mzmine.util.NumberFormatter.FormatterType;
 
 /**
  * This class is the main window of application
  * 
  */
-public class MainWindow extends JFrame implements Desktop, WindowListener {
-
-    private Logger logger = Logger.getLogger(this.getClass().getName());
-    
-    private NumberFormatter mzFormat = new NumberFormatter(FormatterType.NUMBER, "0.000");
-    private NumberFormatter rtFormat = new NumberFormatter(FormatterType.TIME, "m:ss");
-    private NumberFormatter intensityFormat = new NumberFormatter(FormatterType.NUMBER, "0.00E0");
+public class MainWindow extends JFrame implements MZmineModule, Desktop,
+        WindowListener {
 
     private MZmineCore core;
+
+    private DesktopParameters parameters;
 
     private JDesktopPane desktopPane;
 
@@ -208,8 +203,9 @@ public class MainWindow extends JFrame implements Desktop, WindowListener {
         myInstance = this;
 
         this.core = core;
-
         
+        parameters = new DesktopParameters();
+
         Font defaultFont = new Font("SansSerif", Font.PLAIN, 13);
         Font smallFont = new Font("SansSerif", Font.PLAIN, 11);
         Enumeration keys = UIManager.getDefaults().keys();
@@ -221,8 +217,6 @@ public class MainWindow extends JFrame implements Desktop, WindowListener {
         }
         UIManager.put("List.font", smallFont);
         UIManager.put("Table.font", smallFont);
-
-
 
         // Initialize item selector
         itemSelector = new ItemSelector(this);
@@ -357,21 +351,35 @@ public class MainWindow extends JFrame implements Desktop, WindowListener {
      * @see net.sf.mzmine.userinterface.Desktop#getMZFormatProvider()
      */
     public NumberFormatter getMZFormat() {
-        return mzFormat;
+        return parameters.getMZFormat();
     }
 
     /**
      * @see net.sf.mzmine.userinterface.Desktop#getRTFormatProvider()
      */
     public NumberFormatter getRTFormat() {
-        return rtFormat;
+        return parameters.getRTFormat();
     }
 
     /**
      * @see net.sf.mzmine.userinterface.Desktop#getIntensityFormatProvider()
      */
     public NumberFormatter getIntensityFormat() {
-        return intensityFormat;
+        return parameters.getIntensityFormat();
+    }
+
+    /**
+     * @see net.sf.mzmine.main.MZmineModule#getParameterSet()
+     */
+    public DesktopParameters getParameterSet() {
+        return parameters;
+    }
+
+    /**
+     * @see net.sf.mzmine.main.MZmineModule#setParameters(net.sf.mzmine.data.ParameterSet)
+     */
+    public void setParameters(ParameterSet parameterValues) {
+        this.parameters = (DesktopParameters) parameterValues;
     }
 
 }

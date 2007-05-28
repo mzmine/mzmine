@@ -42,6 +42,7 @@ import net.sf.mzmine.userinterface.Desktop;
 import net.sf.mzmine.userinterface.Desktop.MZmineMenu;
 import net.sf.mzmine.userinterface.dialogs.AboutDialog;
 import net.sf.mzmine.userinterface.dialogs.FileOpenDialog;
+import net.sf.mzmine.userinterface.dialogs.FormatSetupDialog;
 import net.sf.mzmine.util.GUIUtils;
 import net.sf.mzmine.util.LookAndFeelChanger;
 import ca.guydavis.swing.desktop.CascadingWindowPositioner;
@@ -61,7 +62,7 @@ public class MainMenu extends JMenuBar implements ActionListener,
     private JMenu normalizationMenu;
     private JMenu batchMenu;
     private JMenu rawDataVisualizationMenu;
-    private JMenu dataAnalysisMenu; 
+    private JMenu dataAnalysisMenu;
     private JMenu toolsMenu;
     private JMenu lookAndFeelMenu;
     private JWindowsMenu windowsMenu;
@@ -72,23 +73,8 @@ public class MainMenu extends JMenuBar implements ActionListener,
     private JMenuItem fileOpen, fileClose, fileExportPeakList,
             fileExportAlignmentResult, fileSaveParameters, fileLoadParameters,
             filePrint, fileExit;
-             
-    /*
-     * private JMenu filterMenu; private JMenuItem ssMeanFilter, ssSGFilter,
-     * ssChromatographicMedianFilter, ssCropFilter, ssZoomScanFilter; private
-     * JMenu peakMenu; private JMenuItem ssRecursiveThresholdPicker,
-     * ssLocalPicker, ssCentroidPicker, ssSimpleIsotopicPeaksGrouper,
-     * ssCombinatorialDeisotoping, ssIncompleteIsotopePatternFilter; private
-     * JMenu alignmentMenu; private JMenuItem tsJoinAligner, tsFastAligner,
-     * tsAlignmentFilter, tsEmptySlotFiller; private JMenu normalizationMenu;
-     * private JMenuItem normLinear, normStdComp; private JMenu batchMenu;
-     * private JMenu visualizationMenu; private JMenuItem visOpenTIC,
-     * visOpenSpectra, visOpenTwoD, visOpenThreeD; private JMenuItem
-     * visOpenSRView, visOpenSCVView, visOpenCDAView, visOpenSammonsView;
-     * private JMenu toolsMenu;
-     */
 
-    private JMenuItem toolsOptions;
+    private JMenuItem toolsFormat;
 
     private JMenuItem hlpAbout;
 
@@ -103,7 +89,7 @@ public class MainMenu extends JMenuBar implements ActionListener,
         this.core = core;
         this.ioController = core.getIOController();
         this.desktop = core.getDesktop();
-        
+
         fileMenu = new JMenu("File");
         fileMenu.setMnemonic(KeyEvent.VK_F);
         add(fileMenu);
@@ -121,25 +107,23 @@ public class MainMenu extends JMenuBar implements ActionListener,
                 "Save parameters...", this, KeyEvent.VK_S);
         fileLoadParameters = GUIUtils.addMenuItem(fileMenu,
                 "Load parameters...", this, KeyEvent.VK_S);
-        
+
         /*
-        fileMenu.addSeparator();
-        filePrint = GUIUtils.addMenuItem(fileMenu, "Print figure...", this,
-                KeyEvent.VK_P, true);
+         * fileMenu.addSeparator(); filePrint = GUIUtils.addMenuItem(fileMenu,
+         * "Print figure...", this, KeyEvent.VK_P, true);
          */
         fileMenu.addSeparator();
         fileExit = GUIUtils.addMenuItem(fileMenu, "Exit", this, KeyEvent.VK_X,
                 true);
 
-        
         editMenu = new JMenu("Edit");
         editMenu.setMnemonic(KeyEvent.VK_E);
         this.add(editMenu);
 
         /*
-        editCopy = GUIUtils.addMenuItem(editMenu, "Copy", this, KeyEvent.VK_C,
-                true);
-                */
+         * editCopy = GUIUtils.addMenuItem(editMenu, "Copy", this,
+         * KeyEvent.VK_C, true);
+         */
 
         filterMenu = new JMenu("Raw data filtering");
         filterMenu.setMnemonic(KeyEvent.VK_R);
@@ -168,29 +152,30 @@ public class MainMenu extends JMenuBar implements ActionListener,
         dataAnalysisMenu = new JMenu("Data analysis");
         dataAnalysisMenu.setMnemonic(KeyEvent.VK_S);
         this.add(dataAnalysisMenu);
-        
+
         toolsMenu = new JMenu("Configure");
         toolsMenu.setMnemonic(KeyEvent.VK_C);
         this.add(toolsMenu);
-      
-        toolsOptions = GUIUtils.addMenuItem(toolsMenu, "Preferences...", this,
-                KeyEvent.VK_P);
-        
+
+        toolsFormat = GUIUtils.addMenuItem(toolsMenu, "Set number formats...",
+                this, KeyEvent.VK_F);
+
         lookAndFeelMenu = new JMenu("Look and feel");
         toolsMenu.add(lookAndFeelMenu);
-        
+
         UIManager.LookAndFeelInfo lookAndFeels[] = UIManager.getInstalledLookAndFeels();
         LookAndFeelChanger lfChanger = new LookAndFeelChanger();
-        
+
         for (UIManager.LookAndFeelInfo lfInfo : lookAndFeels) {
-        	GUIUtils.addMenuItem(lookAndFeelMenu, lfInfo.getName(), lfChanger, lfInfo.getClassName());
+            GUIUtils.addMenuItem(lookAndFeelMenu, lfInfo.getName(), lfChanger,
+                    lfInfo.getClassName());
         }
 
         windowsMenu = new JWindowsMenu(((MainWindow) desktop).getDesktopPane());
-        windowsMenu.setWindowPositioner(new CascadingWindowPositioner(((MainWindow) desktop).getDesktopPane()));
+        windowsMenu.setWindowPositioner(new CascadingWindowPositioner(
+                ((MainWindow) desktop).getDesktopPane()));
         windowsMenu.setMnemonic(KeyEvent.VK_W);
         this.add(windowsMenu);
-
 
         helpMenu = new JMenu("Help");
         helpMenu.setMnemonic(KeyEvent.VK_H);
@@ -199,11 +184,6 @@ public class MainMenu extends JMenuBar implements ActionListener,
         hlpAbout = GUIUtils.addMenuItem(helpMenu, "About MZmine...", this,
                 KeyEvent.VK_A);
 
-
-         
-    
-        
-        
         desktop.addSelectionListener(this);
 
     }
@@ -229,8 +209,8 @@ public class MainMenu extends JMenuBar implements ActionListener,
             rawDataVisualizationMenu.add(newItem);
             break;
         case ANALYSIS:
-        	dataAnalysisMenu.add(newItem);
-        	break;
+            dataAnalysisMenu.add(newItem);
+            break;
         }
     }
 
@@ -275,9 +255,8 @@ public class MainMenu extends JMenuBar implements ActionListener,
             rawDataVisualizationMenu.addSeparator();
             break;
         case ANALYSIS:
-        	dataAnalysisMenu.addSeparator();
-        	break;
-            
+            dataAnalysisMenu.addSeparator();
+            break;
 
         }
     }
@@ -310,23 +289,27 @@ public class MainMenu extends JMenuBar implements ActionListener,
                 MZmineProject.getCurrentProject().removeFile(file);
 
         }
-               
+
         if (src == fileExportPeakList) {
-        	// TODO: Implement peak list exporting
-        	logger.severe("Peak list export unimplemented");
+            // TODO: Implement peak list exporting
+            logger.severe("Peak list export unimplemented");
         }
-        
+
         if (src == fileExportAlignmentResult) {
 
-        	AlignmentResult[] alignmentResults = desktop.getSelectedAlignmentResults();
-        	if (alignmentResults.length>0) 
-        		new AlignmentResultExportDialog(alignmentResults);
-        	
+            AlignmentResult[] alignmentResults = desktop.getSelectedAlignmentResults();
+            if (alignmentResults.length > 0)
+                new AlignmentResultExportDialog(alignmentResults);
+
         }
-        
-        if (src == toolsOptions) {
-        	// TODO: Implement Preferences dialog
-        	logger.severe("Preferences dialog unimplemented");
+
+        if (src == toolsFormat) {
+            FormatSetupDialog formatDialog = new FormatSetupDialog(
+                    MainWindow.getInstance(),
+                    MainWindow.getInstance().getMZFormat(),
+                    MainWindow.getInstance().getRTFormat(),
+                    MainWindow.getInstance().getIntensityFormat());
+            formatDialog.setVisible(true);
         }
 
         // Help->About
@@ -343,6 +326,5 @@ public class MainMenu extends JMenuBar implements ActionListener,
     public void valueChanged(ListSelectionEvent e) {
         fileClose.setEnabled(desktop.isDataFileSelected());
     }
-
 
 }
