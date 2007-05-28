@@ -21,7 +21,6 @@ package net.sf.mzmine.modules.visualization.threed;
 
 import java.awt.Color;
 import java.awt.event.KeyEvent;
-import java.text.DecimalFormat;
 import java.text.NumberFormat;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -32,8 +31,9 @@ import net.sf.mzmine.data.Scan;
 import net.sf.mzmine.io.OpenedRawDataFile;
 import net.sf.mzmine.io.RawDataFile;
 import net.sf.mzmine.taskcontrol.Task;
+import net.sf.mzmine.userinterface.Desktop;
+import net.sf.mzmine.userinterface.mainwindow.MainWindow;
 import net.sf.mzmine.util.ScanUtils;
-import net.sf.mzmine.util.TimeNumberFormat;
 import net.sf.mzmine.util.ScanUtils.BinningType;
 import visad.AxisScale;
 import visad.ConstantMap;
@@ -112,12 +112,6 @@ class ThreeDSamplingTask implements Task {
 
     // axes aspect ratio X:Y:Z
     private static final double[] ASPECT_RATIO = new double[] { 1, 0.8, 0.3 };
-
-
-    // TODO: get these from parameter storage
-    private static NumberFormat rtFormat = new TimeNumberFormat();
-    private static NumberFormat mzFormat = new DecimalFormat("0.##");
-    private static NumberFormat intensityFormat = new DecimalFormat("0.00E0");
 
 
     /**
@@ -358,6 +352,11 @@ class ThreeDSamplingTask implements Task {
             DataReference dataReference = new DataReferenceImpl("data");
             dataReference.setData(intensityValuesFlatField);
             display.addReference(dataReference);
+            
+            Desktop desktop = MainWindow.getInstance();
+            NumberFormat rtFormat = desktop.getRTFormat();
+            NumberFormat mzFormat = desktop.getMZFormat();
+            NumberFormat intensityFormat = desktop.getIntensityFormat();
 
 
             // if we have peak data, connect them to the display, too

@@ -22,9 +22,10 @@
  */
 package net.sf.mzmine.modules.visualization.twod;
 
-import java.text.DecimalFormat;
 import java.text.NumberFormat;
-import net.sf.mzmine.util.TimeNumberFormat;
+
+import net.sf.mzmine.userinterface.Desktop;
+import net.sf.mzmine.userinterface.mainwindow.MainWindow;
 
 import org.jfree.chart.labels.XYZToolTipGenerator;
 import org.jfree.data.xy.XYDataset;
@@ -34,11 +35,6 @@ import org.jfree.data.xy.XYZDataset;
  * 
  */
 class TwoDToolTipGenerator implements XYZToolTipGenerator {
-
-    // TODO: get these from parameter storage
-    private static NumberFormat intensityFormat = new DecimalFormat("0.00E0");
-    private static NumberFormat mzFormat = new DecimalFormat("0.00");
-    private static NumberFormat rtFormat = new TimeNumberFormat();
 
     /**
      * @see org.jfree.chart.labels.XYZToolTipGenerator#generateToolTip(org.jfree.data.xy.XYZDataset,
@@ -53,7 +49,12 @@ class TwoDToolTipGenerator implements XYZToolTipGenerator {
      *      int, int)
      */
     public String generateToolTip(XYZDataset dataset, int series, int item) {
-        System.out.println("generating tooltip");
+        
+        Desktop desktop = MainWindow.getInstance();
+        NumberFormat rtFormat = desktop.getRTFormat();
+        NumberFormat mzFormat = desktop.getMZFormat();
+        NumberFormat intensityFormat = desktop.getIntensityFormat();
+        
         double rtValue = dataset.getXValue(series, item);
         double mzValue = dataset.getYValue(series, item);
         double intValue = dataset.getZValue(series, item);

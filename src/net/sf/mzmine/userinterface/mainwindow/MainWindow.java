@@ -33,7 +33,6 @@ import java.util.Enumeration;
 import java.util.Vector;
 import java.util.logging.Logger;
 
-import javax.swing.DefaultListCellRenderer;
 import javax.swing.JDesktopPane;
 import javax.swing.JFrame;
 import javax.swing.JInternalFrame;
@@ -45,7 +44,6 @@ import javax.swing.UIManager;
 import javax.swing.border.EtchedBorder;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
-import javax.swing.table.DefaultTableCellRenderer;
 
 import net.sf.mzmine.data.AlignmentResult;
 import net.sf.mzmine.io.OpenedRawDataFile;
@@ -53,8 +51,8 @@ import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.taskcontrol.impl.TaskControllerImpl;
 import net.sf.mzmine.userinterface.Desktop;
 import net.sf.mzmine.userinterface.components.TaskProgressWindow;
-import net.sf.mzmine.util.NumberFormatProvider;
-import net.sf.mzmine.util.TimeNumberFormat;
+import net.sf.mzmine.util.NumberFormatter;
+import net.sf.mzmine.util.NumberFormatter.FormatterType;
 
 /**
  * This class is the main window of application
@@ -63,6 +61,10 @@ import net.sf.mzmine.util.TimeNumberFormat;
 public class MainWindow extends JFrame implements Desktop, WindowListener {
 
     private Logger logger = Logger.getLogger(this.getClass().getName());
+    
+    private NumberFormatter mzFormat = new NumberFormatter(FormatterType.NUMBER, "0.000");
+    private NumberFormatter rtFormat = new NumberFormatter(FormatterType.TIME, "m:ss");
+    private NumberFormatter intensityFormat = new NumberFormatter(FormatterType.NUMBER, "0.00E0");
 
     private MZmineCore core;
 
@@ -354,43 +356,22 @@ public class MainWindow extends JFrame implements Desktop, WindowListener {
     /**
      * @see net.sf.mzmine.userinterface.Desktop#getMZFormatProvider()
      */
-    public NumberFormatProvider getMZFormatProvider() {
-        return new NumberFormatProvider() {
-
-            NumberFormat fmt = new DecimalFormat("0.000");
-
-            public NumberFormat getCurrentNumberFormat() {
-                return fmt;
-            }
-        };
+    public NumberFormatter getMZFormat() {
+        return mzFormat;
     }
 
     /**
      * @see net.sf.mzmine.userinterface.Desktop#getRTFormatProvider()
      */
-    public NumberFormatProvider getRTFormatProvider() {
-        return new NumberFormatProvider() {
-
-            NumberFormat fmt = new TimeNumberFormat();
-
-            public NumberFormat getCurrentNumberFormat() {
-                return fmt;
-            }
-        };
+    public NumberFormatter getRTFormat() {
+        return rtFormat;
     }
 
     /**
      * @see net.sf.mzmine.userinterface.Desktop#getIntensityFormatProvider()
      */
-    public NumberFormatProvider getIntensityFormatProvider() {
-        return new NumberFormatProvider() {
-
-            NumberFormat fmt = new DecimalFormat("0.00E0");
-
-            public NumberFormat getCurrentNumberFormat() {
-                return fmt;
-            }
-        };
+    public NumberFormatter getIntensityFormat() {
+        return intensityFormat;
     }
 
 }

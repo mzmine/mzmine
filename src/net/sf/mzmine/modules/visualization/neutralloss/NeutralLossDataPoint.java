@@ -22,7 +22,8 @@ package net.sf.mzmine.modules.visualization.neutralloss;
 import java.text.DecimalFormat;
 import java.text.NumberFormat;
 
-import net.sf.mzmine.util.TimeNumberFormat;
+import net.sf.mzmine.userinterface.Desktop;
+import net.sf.mzmine.userinterface.mainwindow.MainWindow;
 
 
 /**
@@ -30,9 +31,6 @@ import net.sf.mzmine.util.TimeNumberFormat;
  */
 class NeutralLossDataPoint {
 
-    private static NumberFormat rtFormat = new TimeNumberFormat();
-    private static NumberFormat mzFormat = new DecimalFormat("0.00");
-    
     private double mzValue;
     private int scanNumber, precursorScanNumber;
     private double precursorMZ;
@@ -50,6 +48,11 @@ class NeutralLossDataPoint {
      * @param retentionTime
      */
     NeutralLossDataPoint(double mzValue, int scanNumber, int precursorScanNumber, double precursorMZ, int precursorCharge, double retentionTime) {
+        
+        Desktop desktop = MainWindow.getInstance();
+        NumberFormat rtFormat = desktop.getRTFormat();
+        NumberFormat mzFormat = desktop.getMZFormat();
+        
         this.mzValue = mzValue;
         this.scanNumber = scanNumber;
         this.precursorScanNumber = precursorScanNumber;

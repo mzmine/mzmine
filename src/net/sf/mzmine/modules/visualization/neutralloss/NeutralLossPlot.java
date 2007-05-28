@@ -23,19 +23,17 @@ import java.awt.BasicStroke;
 import java.awt.Color;
 import java.awt.Cursor;
 import java.awt.Font;
-import java.awt.Shape;
 import java.awt.event.ActionEvent;
 import java.awt.event.MouseEvent;
-import java.awt.geom.Ellipse2D;
-import java.text.DecimalFormat;
 import java.text.NumberFormat;
 
 import javax.swing.JMenuItem;
 import javax.swing.JPopupMenu;
 import javax.swing.KeyStroke;
 
+import net.sf.mzmine.userinterface.Desktop;
+import net.sf.mzmine.userinterface.mainwindow.MainWindow;
 import net.sf.mzmine.util.GUIUtils;
-import net.sf.mzmine.util.TimeNumberFormat;
 
 import org.jfree.chart.ChartPanel;
 import org.jfree.chart.JFreeChart;
@@ -44,7 +42,6 @@ import org.jfree.chart.event.ChartProgressEvent;
 import org.jfree.chart.plot.ValueMarker;
 import org.jfree.chart.plot.XYPlot;
 import org.jfree.chart.renderer.xy.XYItemRenderer;
-import org.jfree.chart.renderer.xy.XYLineAndShapeRenderer;
 import org.jfree.chart.title.TextTitle;
 
 /**
@@ -57,10 +54,6 @@ class NeutralLossPlot extends ChartPanel {
     private XYPlot plot;
     private XYItemRenderer renderer;
 
-    // TODO: get these from parameter storage
-    private static NumberFormat rtFormat = new TimeNumberFormat();
-    private static NumberFormat mzFormat = new DecimalFormat("0");
-    
     private boolean showSpectrumRequest = false;
     
     private NeutralLossVisualizerWindow visualizer;
@@ -89,6 +82,11 @@ class NeutralLossPlot extends ChartPanel {
         
         setBackground(Color.white);
         setCursor(Cursor.getPredefinedCursor(Cursor.CROSSHAIR_CURSOR));
+        
+        Desktop desktop = MainWindow.getInstance();
+        NumberFormat rtFormat = desktop.getRTFormat();
+        NumberFormat mzFormat = desktop.getMZFormat();
+        
 
         // set the X axis (retention time) properties
         NumberAxis xAxis;

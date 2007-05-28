@@ -23,7 +23,6 @@ import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.text.DecimalFormat;
 import java.text.NumberFormat;
 import java.util.Enumeration;
 import java.util.Hashtable;
@@ -44,8 +43,8 @@ import net.sf.mzmine.taskcontrol.TaskController;
 import net.sf.mzmine.taskcontrol.TaskListener;
 import net.sf.mzmine.taskcontrol.Task.TaskStatus;
 import net.sf.mzmine.userinterface.Desktop;
+import net.sf.mzmine.userinterface.mainwindow.MainWindow;
 import net.sf.mzmine.util.CursorPosition;
-import net.sf.mzmine.util.TimeNumberFormat;
 
 import org.jfree.data.xy.DefaultXYDataset;
 
@@ -67,11 +66,6 @@ public class TICVisualizerWindow extends JInternalFrame implements
     
     private Peak[] peaks;
     
-    // TODO: get these from parameter storage
-    private static NumberFormat rtFormat = new TimeNumberFormat();
-    private static NumberFormat intensityFormat = new DecimalFormat("0.00E0");
-    private static NumberFormat mzFormat = new DecimalFormat("0.00");
-
     private static final double zoomCoefficient = 1.2;
 
     private Desktop desktop;
@@ -116,6 +110,11 @@ public class TICVisualizerWindow extends JInternalFrame implements
     
     void updateTitle() {
 
+        Desktop desktop = MainWindow.getInstance();
+        NumberFormat rtFormat = desktop.getRTFormat();
+        NumberFormat mzFormat = desktop.getMZFormat();
+        NumberFormat intensityFormat = desktop.getIntensityFormat();
+        
         StringBuffer title = new StringBuffer();
         title.append(dataFiles.keySet().toString());
         title.append(": ");
@@ -222,6 +221,9 @@ public class TICVisualizerWindow extends JInternalFrame implements
         dataSets.add(ticDataset);
         dataFiles.put(newFile, ticDataset);
         plot.addTICDataset(ticDataset);
+        
+        Desktop desktop = MainWindow.getInstance();
+        NumberFormat mzFormat = desktop.getMZFormat();
 
         // ii) Another dataset for integrated peak area, if peak is given
         if (peaks!=null) {

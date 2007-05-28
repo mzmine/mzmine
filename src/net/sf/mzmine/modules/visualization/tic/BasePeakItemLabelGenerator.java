@@ -25,6 +25,9 @@ package net.sf.mzmine.modules.visualization.tic;
 import java.text.DecimalFormat;
 import java.text.NumberFormat;
 
+import net.sf.mzmine.userinterface.Desktop;
+import net.sf.mzmine.userinterface.mainwindow.MainWindow;
+
 import org.jfree.chart.labels.XYItemLabelGenerator;
 import org.jfree.data.xy.XYDataset;
 
@@ -34,9 +37,6 @@ import org.jfree.data.xy.XYDataset;
 class BasePeakItemLabelGenerator implements XYItemLabelGenerator {
 
     private TICPlot plot;
-
-    // TODO: get this from parameter storage
-    private static NumberFormat mzFormat = new DecimalFormat("0.00");
 
     BasePeakItemLabelGenerator(TICPlot plot) {
         this.plot = plot;
@@ -84,6 +84,10 @@ class BasePeakItemLabelGenerator implements XYItemLabelGenerator {
         }
 
         double mz = ((TICDataSet) dataset).getMZValue(item);
+        
+        Desktop desktop = MainWindow.getInstance();
+        NumberFormat mzFormat = desktop.getMZFormat();
+        
         return mzFormat.format(mz);
 
     }

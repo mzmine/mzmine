@@ -23,6 +23,7 @@ import java.text.Format;
 
 import net.sf.mzmine.data.AlignmentResultRow;
 import net.sf.mzmine.io.OpenedRawDataFile;
+import net.sf.mzmine.userinterface.Desktop;
 import net.sf.mzmine.userinterface.mainwindow.MainWindow;
 
 import org.jfree.chart.labels.CategoryToolTipGenerator;
@@ -38,9 +39,10 @@ class IntensityPlotTooltipGenerator implements CategoryToolTipGenerator {
      *      int, int)
      */
     public String generateToolTip(CategoryDataset dataset, int row, int column) {
-        Format mzFormat = MainWindow.getInstance().getMZFormatProvider().getCurrentNumberFormat();
-        Format timeFormat = MainWindow.getInstance().getRTFormatProvider().getCurrentNumberFormat();
-        Format intensityFormat = MainWindow.getInstance().getIntensityFormatProvider().getCurrentNumberFormat();
+        Desktop desktop = MainWindow.getInstance();
+        Format mzFormat = desktop.getMZFormat();
+        Format timeFormat = desktop.getRTFormat();
+        Format intensityFormat = desktop.getIntensityFormat();
         AlignmentResultRow alignmentRow = ((IntensityPlotDataset) dataset).getRow(row);
         OpenedRawDataFile dataFile = ((IntensityPlotDataset) dataset).getFile(column);
         return mzFormat.format(alignmentRow.getAverageMZ())

@@ -31,6 +31,8 @@ import java.text.NumberFormat;
 import javax.swing.JPopupMenu;
 import javax.swing.KeyStroke;
 
+import net.sf.mzmine.userinterface.Desktop;
+import net.sf.mzmine.userinterface.mainwindow.MainWindow;
 import net.sf.mzmine.util.GUIUtils;
 
 import org.jfree.chart.ChartFactory;
@@ -55,10 +57,6 @@ class SpectraPlot extends ChartPanel {
     private JFreeChart chart;
 
     private XYPlot plot;
-
-    // TODO: get these from parameter storage
-    private static NumberFormat intensityFormat = new DecimalFormat("0.00E0");
-    private static NumberFormat mzFormat = new DecimalFormat("0.00");
 
     static enum PlotMode {
         CENTROID, CONTINUOUS
@@ -140,6 +138,10 @@ class SpectraPlot extends ChartPanel {
         plot.setDomainCrosshairVisible(false);
         plot.setRangeCrosshairVisible(false);
 
+        Desktop desktop = MainWindow.getInstance();
+        NumberFormat mzFormat = desktop.getMZFormat();
+        NumberFormat intensityFormat = desktop.getIntensityFormat();
+        
         // set the X axis (retention time) properties
         NumberAxis xAxis = (NumberAxis) plot.getDomainAxis();
         xAxis.setNumberFormatOverride(mzFormat);

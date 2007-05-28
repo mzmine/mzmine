@@ -22,7 +22,6 @@ package net.sf.mzmine.data.impl;
 import java.text.NumberFormat;
 
 import net.sf.mzmine.data.Parameter;
-import net.sf.mzmine.util.NumberFormatProvider;
 
 /**
  * Simple Parameter implementation
@@ -32,27 +31,26 @@ public class SimpleParameter implements Parameter {
     private ParameterType type;
     private String name, description, units;
     private Object defaultValue, minValue, maxValue, possibleValues[];
-    private NumberFormatProvider numberFormatProvider;
     private NumberFormat defaultNumberFormat;
 
     public SimpleParameter(ParameterType type, String name, String description) {
-        this(type, name, description, null, null, null, null, null, null, null);
+        this(type, name, description, null, null, null, null, null, null);
     }
 
     public SimpleParameter(ParameterType type, String name, String description,
             String units) {
-        this(type, name, description, units, null, null, null, null, null, null);
+        this(type, name, description, units, null, null, null, null, null);
     }
 
     public SimpleParameter(ParameterType type, String name, String description,
             String units, NumberFormat format) {
-        this(type, name, description, units, null, null, null, null, null,
+        this(type, name, description, units, null, null, null, null,
                 format);
     }
 
     public SimpleParameter(ParameterType type, String name, String description,
             String units, Object defaultValue, NumberFormat format) {
-        this(type, name, description, units, defaultValue, null, null, null,
+        this(type, name, description, units, defaultValue, null, null,
                 null, format);
     }
 
@@ -60,39 +58,32 @@ public class SimpleParameter implements Parameter {
             String units, Object defaultValue, Object possibleValues[],
             NumberFormat format) {
         this(type, name, description, units, defaultValue, null, null,
-                possibleValues, null, format);
+                possibleValues, format);
     }
 
     public SimpleParameter(ParameterType type, String name, String description,
             Object defaultValue) {
         this(type, name, description, null, defaultValue, null, null, null,
-                null, null);
+                null);
     }
 
     public SimpleParameter(ParameterType type, String name, String description,
             Object defaultValue, Object possibleValues[]) {
         this(type, name, description, null, defaultValue, null, null,
-                possibleValues, null, null);
+                possibleValues, null);
     }
 
     public SimpleParameter(ParameterType type, String name, String description,
             String units, Object defaultValue, Object minValue, Object maxValue) {
         this(type, name, description, units, defaultValue, minValue, maxValue,
-                null, null, null);
-    }
-
-    public SimpleParameter(ParameterType type, String name, String description,
-            String units, Object defaultValue, Object minValue,
-            Object maxValue, NumberFormatProvider numberFormatProvider) {
-        this(type, name, description, units, defaultValue, minValue, maxValue,
-                null, numberFormatProvider, null);
+                null);
     }
 
     public SimpleParameter(ParameterType type, String name, String description,
             String units, Object defaultValue, Object minValue,
             Object maxValue, NumberFormat format) {
         this(type, name, description, units, defaultValue, minValue, maxValue,
-                null, null, format);
+                null, format);
     }
 
     /**
@@ -110,7 +101,6 @@ public class SimpleParameter implements Parameter {
     private SimpleParameter(ParameterType type, String name,
             String description, String units, Object defaultValue,
             Object minValue, Object maxValue, Object[] possibleValues,
-            NumberFormatProvider numberFormatProvider,
             NumberFormat defaultNumberFormat) {
         this.type = type;
         this.name = name;
@@ -120,7 +110,6 @@ public class SimpleParameter implements Parameter {
         this.minValue = minValue;
         this.maxValue = maxValue;
         this.possibleValues = possibleValues;
-        this.numberFormatProvider = numberFormatProvider;
         this.defaultNumberFormat = defaultNumberFormat;
         
         if ((possibleValues != null) && (possibleValues.length == 0))
@@ -229,10 +218,7 @@ public class SimpleParameter implements Parameter {
      * @see net.sf.mzmine.data.Parameter#getNumberFormat()
      */
     public NumberFormat getNumberFormat() {
-        if (numberFormatProvider != null)
-            return numberFormatProvider.getCurrentNumberFormat();
-        else
-            return defaultNumberFormat;
+        return defaultNumberFormat;
     }
 
 }

@@ -24,7 +24,6 @@ import java.awt.Color;
 import java.awt.Frame;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.text.DecimalFormat;
 import java.text.NumberFormat;
 import java.util.Arrays;
 import java.util.logging.Logger;
@@ -51,10 +50,10 @@ import net.sf.mzmine.taskcontrol.Task.TaskPriority;
 import net.sf.mzmine.taskcontrol.Task.TaskStatus;
 import net.sf.mzmine.userinterface.Desktop;
 import net.sf.mzmine.userinterface.dialogs.AxesSetupDialog;
+import net.sf.mzmine.userinterface.mainwindow.MainWindow;
 import net.sf.mzmine.util.CursorPosition;
 import net.sf.mzmine.util.GUIUtils;
 import net.sf.mzmine.util.ScanUtils;
-import net.sf.mzmine.util.TimeNumberFormat;
 import net.sf.mzmine.util.ScanUtils.BinningType;
 
 import org.jfree.data.xy.DefaultTableXYDataset;
@@ -87,11 +86,6 @@ public class SpectraVisualizerWindow extends JInternalFrame implements
     private int numOfBins;
     private double rtMin, rtMax;
     private double[] binnedTemplate;
-
-    // TODO: get these from parameter storage
-    private static NumberFormat rtFormat = new TimeNumberFormat();
-    private static NumberFormat mzFormat = new DecimalFormat("0.00");
-    private static NumberFormat intensityFormat = new DecimalFormat("0.00E0");
 
     private static final double zoomCoefficient = 1.2;
 
@@ -201,6 +195,11 @@ public class SpectraVisualizerWindow extends JInternalFrame implements
 
         if (loadedScans == 0)
             return;
+        
+        Desktop desktop = MainWindow.getInstance();
+        NumberFormat rtFormat = desktop.getRTFormat();
+        NumberFormat mzFormat = desktop.getMZFormat();
+        NumberFormat intensityFormat = desktop.getIntensityFormat();
 
         StringBuffer title = new StringBuffer();
         title.append("[");
@@ -388,6 +387,10 @@ public class SpectraVisualizerWindow extends JInternalFrame implements
             }
 
             remove(msmsPanel);
+            
+            Desktop desktop = MainWindow.getInstance();
+            NumberFormat rtFormat = desktop.getRTFormat();
+            NumberFormat mzFormat = desktop.getMZFormat();
 
             int parentNumber = scan.getParentScanNumber();
             if ((scan.getMSLevel() > 1) && (parentNumber > 0)) {

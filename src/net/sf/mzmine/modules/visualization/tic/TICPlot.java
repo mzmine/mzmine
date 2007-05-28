@@ -30,17 +30,17 @@ import java.awt.Shape;
 import java.awt.event.ActionEvent;
 import java.awt.event.MouseEvent;
 import java.awt.geom.Ellipse2D;
-import java.text.DecimalFormat;
 import java.text.NumberFormat;
 
 import javax.swing.JPopupMenu;
 import javax.swing.KeyStroke;
 
 import net.sf.mzmine.modules.visualization.tic.TICVisualizerWindow.PlotType;
+import net.sf.mzmine.userinterface.Desktop;
 import net.sf.mzmine.userinterface.components.AddFilePopupMenu;
 import net.sf.mzmine.userinterface.components.RemoveFilePopupMenu;
+import net.sf.mzmine.userinterface.mainwindow.MainWindow;
 import net.sf.mzmine.util.GUIUtils;
-import net.sf.mzmine.util.TimeNumberFormat;
 
 import org.jfree.chart.ChartFactory;
 import org.jfree.chart.ChartPanel;
@@ -51,11 +51,8 @@ import org.jfree.chart.labels.XYItemLabelGenerator;
 import org.jfree.chart.labels.XYToolTipGenerator;
 import org.jfree.chart.plot.PlotOrientation;
 import org.jfree.chart.plot.XYPlot;
-import org.jfree.chart.renderer.xy.AbstractXYItemRenderer;
 import org.jfree.chart.renderer.xy.StandardXYItemRenderer;
 import org.jfree.chart.renderer.xy.XYAreaRenderer;
-import org.jfree.chart.renderer.xy.XYBarRenderer;
-import org.jfree.chart.renderer.xy.XYDotRenderer;
 import org.jfree.chart.renderer.xy.XYItemRenderer;
 import org.jfree.chart.renderer.xy.XYLineAndShapeRenderer;
 import org.jfree.chart.title.LegendTitle;
@@ -72,9 +69,6 @@ class TICPlot extends ChartPanel {
 
     private XYPlot plot;
 
-    // TODO: get these from parameter storage
-    private static NumberFormat rtFormat = new TimeNumberFormat();
-    private static NumberFormat intensityFormat = new DecimalFormat("0.00E0");
 
     private TICVisualizerWindow visualizer;
 
@@ -186,6 +180,10 @@ class TICPlot extends ChartPanel {
         plot.setRangeCrosshairPaint(crossHairColor);
         plot.setDomainCrosshairStroke(crossHairStroke);
         plot.setRangeCrosshairStroke(crossHairStroke);
+        
+        Desktop desktop = MainWindow.getInstance();
+        NumberFormat rtFormat = desktop.getRTFormat();
+        NumberFormat intensityFormat = desktop.getIntensityFormat();
 
         // set the X axis (retention time) properties
         NumberAxis xAxis = (NumberAxis) plot.getDomainAxis();

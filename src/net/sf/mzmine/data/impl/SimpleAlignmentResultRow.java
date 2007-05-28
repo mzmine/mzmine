@@ -114,8 +114,8 @@ public class SimpleAlignmentResultRow implements AlignmentResultRow {
 
     public String toString() {
         StringBuffer buf = new StringBuffer();
-        Format mzFormat = MainWindow.getInstance().getMZFormatProvider().getCurrentNumberFormat();
-        Format timeFormat = MainWindow.getInstance().getRTFormatProvider().getCurrentNumberFormat();
+        Format mzFormat = MainWindow.getInstance().getMZFormat();
+        Format timeFormat = MainWindow.getInstance().getRTFormat();
         buf.append(mzFormat.format(getAverageMZ()));
         buf.append(" m/z @");
         buf.append(timeFormat.format(getAverageRT()));

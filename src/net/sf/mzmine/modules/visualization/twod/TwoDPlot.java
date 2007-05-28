@@ -23,12 +23,13 @@ import java.awt.BasicStroke;
 import java.awt.Color;
 import java.awt.Cursor;
 import java.awt.Font;
-import java.text.DecimalFormat;
 import java.text.NumberFormat;
+
 import javax.swing.JMenuItem;
 import javax.swing.JPopupMenu;
 
-import net.sf.mzmine.util.TimeNumberFormat;
+import net.sf.mzmine.userinterface.Desktop;
+import net.sf.mzmine.userinterface.mainwindow.MainWindow;
 
 import org.jfree.chart.ChartPanel;
 import org.jfree.chart.JFreeChart;
@@ -48,10 +49,7 @@ class TwoDPlot extends ChartPanel {
     private XYPlot plot;
     private XYItemRenderer renderer;
 
-    // TODO: get these from parameter storage
-    private static NumberFormat rtFormat = new TimeNumberFormat();
-    private static NumberFormat mzFormat = new DecimalFormat("0.00");
-    
+   
     //  crosshair (selection) color
     private static final Color crossHairColor = Color.gray; 
     
@@ -75,6 +73,10 @@ class TwoDPlot extends ChartPanel {
         setBackground(Color.white);
         setCursor(Cursor.getPredefinedCursor(Cursor.CROSSHAIR_CURSOR));
 
+        Desktop desktop = MainWindow.getInstance();
+        NumberFormat rtFormat = desktop.getRTFormat();
+        NumberFormat mzFormat = desktop.getMZFormat();
+        
         // set the X axis (retention time) properties
         NumberAxis xAxis = new NumberAxis();
         xAxis.setNumberFormatOverride(rtFormat);

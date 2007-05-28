@@ -98,7 +98,7 @@ class IntensityPlotFrame extends JInternalFrame {
 
         // set y axis properties
         NumberAxis yAxis = (NumberAxis) plot.getRangeAxis();
-        yAxis.setNumberFormatOverride(desktop.getIntensityFormatProvider().getCurrentNumberFormat());
+        yAxis.setNumberFormatOverride(desktop.getIntensityFormat());
 
         setTitle(title);
         setDefaultCloseOperation(JInternalFrame.DISPOSE_ON_CLOSE);

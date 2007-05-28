@@ -22,9 +22,10 @@
  */
 package net.sf.mzmine.modules.visualization.tic;
 
-import java.text.DecimalFormat;
 import java.text.NumberFormat;
-import net.sf.mzmine.util.TimeNumberFormat;
+
+import net.sf.mzmine.userinterface.Desktop;
+import net.sf.mzmine.userinterface.mainwindow.MainWindow;
 
 import org.jfree.chart.labels.XYToolTipGenerator;
 import org.jfree.data.xy.XYDataset;
@@ -34,15 +35,16 @@ import org.jfree.data.xy.XYDataset;
  */
 class TICToolTipGenerator implements XYToolTipGenerator {
 
-    // TODO: get these from parameter storage
-    private static NumberFormat rtFormat = new TimeNumberFormat();
-    private static NumberFormat intensityFormat = new DecimalFormat("0.00E0");
-
     /**
      * @see org.jfree.chart.labels.XYToolTipGenerator#generateToolTip(org.jfree.data.xy.XYDataset,
      *      int, int)
      */
     public String generateToolTip(XYDataset dataset, int series, int item) {
+        
+        Desktop desktop = MainWindow.getInstance();
+        NumberFormat rtFormat = desktop.getRTFormat();
+        NumberFormat intensityFormat = desktop.getIntensityFormat();
+        
         double rtValue = dataset.getXValue(series, item);
         double intValue = dataset.getYValue(series, item);
         return "Retention time: " + rtFormat.format(rtValue) + ", TIC: "

@@ -24,6 +24,10 @@ package net.sf.mzmine.modules.visualization.tic;
 
 import java.text.DecimalFormat;
 import java.text.NumberFormat;
+
+import net.sf.mzmine.userinterface.Desktop;
+import net.sf.mzmine.userinterface.mainwindow.MainWindow;
+
 import org.jfree.chart.labels.XYItemLabelGenerator;
 import org.jfree.data.xy.XYDataset;
 
@@ -33,9 +37,6 @@ import org.jfree.data.xy.XYDataset;
 class TICItemLabelGenerator implements XYItemLabelGenerator {
 
     private TICPlot plot;
-
-    // TODO: get this from parameter storage
-    private static NumberFormat intensityFormat = new DecimalFormat("0.00E0");
 
     TICItemLabelGenerator(TICPlot plot) {
         this.plot = plot;
@@ -78,6 +79,9 @@ class TICItemLabelGenerator implements XYItemLabelGenerator {
 
         }
 
+        Desktop desktop = MainWindow.getInstance();
+        NumberFormat intensityFormat = desktop.getIntensityFormat();
+        
         return intensityFormat.format(dataset.getYValue(series, item));
 
     }
