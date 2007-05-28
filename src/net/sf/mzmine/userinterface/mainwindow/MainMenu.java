@@ -274,9 +274,14 @@ public class MainMenu extends JMenuBar implements ActionListener,
 
         // File -> Open
         if (src == fileOpen) {
+            
+            MainWindow mainWindow = MainWindow.getInstance();
+            DesktopParameters parameters = (DesktopParameters) mainWindow.getParameterSet();
+            String lastPath = parameters.getLastOpenPath();
             FileOpenDialog fileOpenDialog = new FileOpenDialog(ioController,
-                    desktop);
+                    desktop, lastPath);
             fileOpenDialog.setVisible(true);
+            parameters.setLastOpenPath(fileOpenDialog.getCurrentDirectory());
 
         }
 

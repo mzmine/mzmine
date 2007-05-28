@@ -48,9 +48,11 @@ public class DesktopParameters implements StorableParameterSet,
     public static final String Y_ELEMENT_NAME = "y";
     public static final String WIDTH_ELEMENT_NAME = "width";
     public static final String HEIGHT_ELEMENT_NAME = "height";
+    public static final String LASTPATH_ELEMENT_NAME = "lastdirectory";
 
     private NumberFormatter mzFormat, rtFormat, intensityFormat;
     private int mainWindowX, mainWindowY, mainWindowWidth, mainWindowHeight;
+    private String lastOpenPath;
 
     DesktopParameters() {
         this(new NumberFormatter(FormatterType.NUMBER, "0.000"),
@@ -147,6 +149,20 @@ public class DesktopParameters implements StorableParameterSet,
     }
 
     /**
+     * @return Returns the lastOpenPath.
+     */
+    String getLastOpenPath() {
+        return lastOpenPath;
+    }
+
+    /**
+     * @param lastOpenPath The lastOpenPath to set.
+     */
+    void setLastOpenPath(String lastOpenPath) {
+        this.lastOpenPath = lastOpenPath;
+    }
+
+    /**
      * @see net.sf.mzmine.data.StorableParameterSet#exportValuesToXML(org.dom4j.Element)
      */
     public void exportValuesToXML(Element element) {
@@ -174,6 +190,8 @@ public class DesktopParameters implements StorableParameterSet,
                 String.valueOf(mainWindowWidth));
         mainWindowElement.addElement(HEIGHT_ELEMENT_NAME).setText(
                 String.valueOf(mainWindowHeight));
+
+        element.addElement(LASTPATH_ELEMENT_NAME).setText(lastOpenPath);
 
     }
 
@@ -208,6 +226,8 @@ public class DesktopParameters implements StorableParameterSet,
             mainWindow.setLocation(mainWindowX, mainWindowY);
         if (mainWindowWidth > 0)
             mainWindow.setSize(mainWindowWidth, mainWindowHeight);
+
+        lastOpenPath = element.elementText(LASTPATH_ELEMENT_NAME);
 
     }
 

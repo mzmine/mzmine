@@ -45,7 +45,7 @@ public class FileOpenDialog extends JDialog implements ActionListener {
     private JFileChooser fileChooser;
     private JCheckBox preloadCheckBox;
     private IOController ioController;
-    public FileOpenDialog(IOController ioController, Desktop desktop) {
+    public FileOpenDialog(IOController ioController, Desktop desktop, String path) {
 
         super(desktop.getMainFrame(), "Please select data files to open",
                 true);
@@ -54,7 +54,7 @@ public class FileOpenDialog extends JDialog implements ActionListener {
         
         this.ioController = ioController;
         fileChooser = new JFileChooser();
-
+        if (path != null) fileChooser.setCurrentDirectory(new File(path));
         fileChooser.setMultiSelectionEnabled(true);
         fileChooser.addActionListener(this);
 
@@ -113,6 +113,10 @@ public class FileOpenDialog extends JDialog implements ActionListener {
         // discard this dialog
         dispose();
 
+    }
+    
+    public String getCurrentDirectory() {
+        return fileChooser.getCurrentDirectory().toString();
     }
 
 }
