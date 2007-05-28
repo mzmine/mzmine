@@ -17,7 +17,7 @@
  * Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-package net.sf.mzmine.util;
+package net.sf.mzmine.userinterface.dialogs;
 
 /**
  * Simple enum for for dialog exit code

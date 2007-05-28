@@ -45,7 +45,7 @@ import net.sf.mzmine.io.OpenedRawDataFile;
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.userinterface.components.AlignmentRowCheckBox;
 import net.sf.mzmine.userinterface.components.DataFileCheckBox;
-import net.sf.mzmine.util.ExitCode;
+import net.sf.mzmine.userinterface.dialogs.ExitCode;
 import net.sf.mzmine.util.GUIUtils;
 
 class IntensityPlotDialog extends JDialog implements ActionListener {

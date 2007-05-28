@@ -43,7 +43,6 @@ import javax.swing.JTextField;
 
 import net.sf.mzmine.data.Parameter;
 import net.sf.mzmine.data.impl.SimpleParameterSet;
-import net.sf.mzmine.util.ExitCode;
 
 /**
  * This class represents the parameter setup dialog shown to the user before

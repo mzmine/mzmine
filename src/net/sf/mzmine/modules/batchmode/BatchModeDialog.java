@@ -40,7 +40,7 @@ import net.sf.mzmine.data.ParameterSet;
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.main.MZmineModule;
 import net.sf.mzmine.modules.DataProcessingMethod;
-import net.sf.mzmine.util.ExitCode;
+import net.sf.mzmine.userinterface.dialogs.ExitCode;
 import net.sf.mzmine.util.GUIUtils;
 
 class BatchModeDialog extends JDialog implements ActionListener {

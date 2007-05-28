@@ -41,7 +41,7 @@ import net.sf.mzmine.taskcontrol.TaskGroupListener;
 import net.sf.mzmine.taskcontrol.TaskGroup.TaskGroupStatus;
 import net.sf.mzmine.userinterface.Desktop;
 import net.sf.mzmine.userinterface.Desktop.MZmineMenu;
-import net.sf.mzmine.util.ExitCode;
+import net.sf.mzmine.userinterface.dialogs.ExitCode;
 
 /**
  * Batch mode module

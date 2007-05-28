@@ -33,9 +33,9 @@ import javax.swing.JScrollPane;
 import javax.swing.JTable;
 
 import net.sf.mzmine.data.AlignmentResult;
+import net.sf.mzmine.userinterface.dialogs.ExitCode;
 import net.sf.mzmine.userinterface.dialogs.alignmentresultcolumnselection.ColumnSelectionDialog;
 import net.sf.mzmine.userinterface.mainwindow.MainWindow;
-import net.sf.mzmine.util.ExitCode;
 
 import org.jfree.report.JFreeReport;
 import org.jfree.report.modules.gui.base.PreviewDialog;

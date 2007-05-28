@@ -37,7 +37,7 @@ import javax.swing.JDialog;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 
-import net.sf.mzmine.util.ExitCode;
+import net.sf.mzmine.userinterface.dialogs.ExitCode;
 
 
 public class ColumnSelectionDialog extends JDialog
