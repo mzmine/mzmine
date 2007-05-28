@@ -37,16 +37,11 @@ import javax.swing.JDialog;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 
-import net.sf.mzmine.data.impl.SimpleParameterSet;
-import net.sf.mzmine.userinterface.dialogs.ParameterSetupDialog.ExitCode;
+import net.sf.mzmine.util.ExitCode;
 
 
 public class ColumnSelectionDialog extends JDialog
         implements ActionListener {
-
-    public static enum ExitCode {
-        OK, CANCEL
-    };
 
     private ExitCode exitCode = ExitCode.CANCEL;
     

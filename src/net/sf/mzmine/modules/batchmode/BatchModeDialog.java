@@ -20,7 +20,6 @@
 package net.sf.mzmine.modules.batchmode;
 
 import java.awt.BorderLayout;
-import java.awt.Frame;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.util.Vector;
@@ -41,12 +40,11 @@ import net.sf.mzmine.data.ParameterSet;
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.main.MZmineModule;
 import net.sf.mzmine.modules.DataProcessingMethod;
+import net.sf.mzmine.util.ExitCode;
 import net.sf.mzmine.util.GUIUtils;
 
 class BatchModeDialog extends JDialog implements ActionListener {
 
-    public static enum ExitCode { OK, CANCEL };
-    
     static final int PADDING_SIZE = 5;
 
     private Logger logger = Logger.getLogger(this.getClass().getName());

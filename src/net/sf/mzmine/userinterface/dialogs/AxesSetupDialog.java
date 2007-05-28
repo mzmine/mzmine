@@ -1,3 +1,22 @@
+/*
+ * Copyright 2006-2007 The MZmine Development Team
+ *
+ * This file is part of MZmine.
+ *
+ * MZmine is free software; you can redistribute it and/or modify it under the
+ * terms of the GNU General Public License as published by the Free Software
+ * Foundation; either version 2 of the License, or (at your option) any later
+ * version.
+ *
+ * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY
+ * WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR
+ * A PARTICULAR PURPOSE. See the GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License along with
+ * MZmine; if not, write to the Free Software Foundation, Inc., 51 Franklin St,
+ * Fifth Floor, Boston, MA 02110-1301 USA
+ */
+
 package net.sf.mzmine.userinterface.dialogs;
 
 import java.awt.BorderLayout;
@@ -6,45 +25,29 @@ import java.awt.GridLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.text.NumberFormat;
-import java.util.Hashtable;
-import java.util.Iterator;
 import java.util.logging.Logger;
 
 import javax.swing.BorderFactory;
-import javax.swing.Icon;
-import javax.swing.ImageIcon;
 import javax.swing.JButton;
 import javax.swing.JCheckBox;
-import javax.swing.JComboBox;
-import javax.swing.JComponent;
 import javax.swing.JDialog;
 import javax.swing.JFormattedTextField;
 import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
-import javax.swing.JTextField;
 
-import net.sf.mzmine.data.Parameter;
-import net.sf.mzmine.data.impl.SimpleParameterSet;
-import net.sf.mzmine.userinterface.dialogs.ParameterSetupDialog.ExitCode;
+import net.sf.mzmine.util.ExitCode;
 
-import org.jfree.chart.JFreeChart;
 import org.jfree.chart.axis.NumberAxis;
 import org.jfree.chart.axis.NumberTickUnit;
 import org.jfree.chart.axis.ValueAxis;
 import org.jfree.chart.plot.XYPlot;
-import org.jfree.data.Range;
 
 public class AxesSetupDialog extends JDialog implements ActionListener {
 
-	private XYPlot plot;
 	private ValueAxis xAxis;
 	private ValueAxis yAxis;
 	
-	public static enum ExitCode {
-        OK, CANCEL
-    };
-
     private ExitCode exitCode = ExitCode.CANCEL;
     
     private Logger logger = Logger.getLogger(this.getClass().getName());
@@ -73,8 +76,6 @@ public class AxesSetupDialog extends JDialog implements ActionListener {
         // Make dialog modal
         super(owner, true);
         
-        this.plot = plot;
-
         xAxis = plot.getDomainAxis();
         yAxis = plot.getRangeAxis();
 

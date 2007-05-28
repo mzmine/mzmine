@@ -25,8 +25,8 @@ import javax.swing.JFileChooser;
 
 import net.sf.mzmine.data.AlignmentResult;
 import net.sf.mzmine.userinterface.dialogs.alignmentresultcolumnselection.ColumnSelectionDialog;
-import net.sf.mzmine.userinterface.dialogs.alignmentresultcolumnselection.ColumnSelectionDialog.ExitCode;
 import net.sf.mzmine.userinterface.mainwindow.MainWindow;
+import net.sf.mzmine.util.ExitCode;
 import sunutils.ExampleFileFilter;
 
 public class AlignmentResultExportDialog {

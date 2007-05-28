@@ -42,8 +42,8 @@ import javax.swing.JPanel;
 import javax.swing.JTextField;
 
 import net.sf.mzmine.data.Parameter;
-import net.sf.mzmine.data.ParameterSet;
 import net.sf.mzmine.data.impl.SimpleParameterSet;
+import net.sf.mzmine.util.ExitCode;
 
 /**
  * This class represents the parameter setup dialog shown to the user before
@@ -52,10 +52,6 @@ import net.sf.mzmine.data.impl.SimpleParameterSet;
 public class ParameterSetupDialog extends JDialog implements ActionListener {
 
     public static final int TEXTFIELD_COLUMNS = 8;
-
-    public static enum ExitCode {
-        OK, CANCEL
-    };
 
     private ExitCode exitCode = ExitCode.CANCEL;
 

@@ -39,34 +39,45 @@ public class PeakXICComponent extends JComponent {
     private Peak peak;
     
     /**
-     * @param peak
+     * @param peak Picked peak to plot
      */
     public PeakXICComponent(Peak peak) {
         this.peak = peak;
     }
 
     public void paint(Graphics g) {
-        
-        Dimension size = getSize();
 
+        // use Graphics2D for antialiasing
         Graphics2D g2 = (Graphics2D) g;
-        
+
+        // turn on antialiasing
         g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING,
                 RenderingHints.VALUE_ANTIALIAS_ON);
+
+        // get canvas size
+        Dimension size = getSize();
+
         
-        g2.setColor(Color.blue);
         
         OpenedRawDataFile dataFile = peak.getDataFile();
+        
+        // get
         int scanNumbers[] = peak.getScanNumbers();
 
+        // for each datapoint, find [X:Y] coordinates of its point in painted image
         int xValues[] = new int[scanNumbers.length];
         int yValues[] = new int[scanNumbers.length];
 
+        
+        // X axis range is minRT..maxRT
         double minRT = dataFile.getCurrentFile().getDataMinRT(1);
         double maxRT = dataFile.getCurrentFile().getDataMaxRT(1);
         double rtSpan = maxRT - minRT;
+        
+        // Y axis range is 0..peakHeight
         double peakHeight = peak.getHeight();
 
+        
         for (int i = 0; i < scanNumbers.length; i++) {
 
             double dataPoints[][] = peak.getRawDatapoints(scanNumbers[i]);
@@ -87,21 +98,24 @@ public class PeakXICComponent extends JComponent {
 
         }
 
+        
         GeneralPath path = new GeneralPath(GeneralPath.WIND_EVEN_ODD);
         
         path.moveTo(xValues[0], size.height - 1);
-        for (int i = 0; i < xValues.length - 1; i++) {
-            
+        for (int i = 0; i < (xValues.length - 1); i++) {
             path.lineTo(xValues[i + 1], yValues[i + 1]);
-            // g2.drawLine(xValues[i], yValues[i], xValues[i + 1], yValues[i + 1]);
         }
         path.lineTo(xValues[xValues.length - 1], size.height - 1);
+        
+        // close the path to form a polygon
         path.closePath();
         
+        // fill the peak area
+        g2.setColor(Color.blue);
         g2.fill(path);
-        
+    
+        // draw base line
         g2.setColor(Color.gray);
-       // g2.drawLine(0,0,0, size.height - 1);
         g2.drawLine(0,size.height - 1, size.width - 1, size.height - 1);
         
     }

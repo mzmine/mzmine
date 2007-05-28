@@ -32,14 +32,14 @@ import javax.swing.JInternalFrame;
 import javax.swing.JScrollPane;
 import javax.swing.JTable;
 
+import net.sf.mzmine.data.AlignmentResult;
+import net.sf.mzmine.userinterface.dialogs.alignmentresultcolumnselection.ColumnSelectionDialog;
+import net.sf.mzmine.userinterface.mainwindow.MainWindow;
+import net.sf.mzmine.util.ExitCode;
+
 import org.jfree.report.JFreeReport;
 import org.jfree.report.modules.gui.base.PreviewDialog;
 import org.jfree.report.modules.parser.base.ReportGenerator;
-
-import net.sf.mzmine.data.AlignmentResult;
-import net.sf.mzmine.userinterface.dialogs.alignmentresultcolumnselection.ColumnSelectionDialog;
-import net.sf.mzmine.userinterface.dialogs.alignmentresultcolumnselection.ColumnSelectionDialog.ExitCode;
-import net.sf.mzmine.userinterface.mainwindow.MainWindow;
 
 public class AlignmentResultTableVisualizerWindow extends JInternalFrame
         implements ActionListener {
