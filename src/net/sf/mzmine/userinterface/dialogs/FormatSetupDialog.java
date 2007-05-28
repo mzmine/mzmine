@@ -32,14 +32,20 @@ import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JRadioButton;
 import javax.swing.JTextField;
+import javax.swing.JTextPane;
 
-import net.sf.mzmine.userinterface.Desktop;
 import net.sf.mzmine.userinterface.mainwindow.MainWindow;
 import net.sf.mzmine.util.GUIUtils;
 import net.sf.mzmine.util.NumberFormatter;
 import net.sf.mzmine.util.NumberFormatter.FormatterType;
 
 public class FormatSetupDialog extends JDialog implements ActionListener {
+
+    public static final String helpText = "Number formatting:\n\n"
+            + "0 Digit\n" + "# Digit (zero absent)\n" + ". Decimal separator\n"
+            + ", Grouping separator\n" + "E Exponent\n" + "% Percentage\n\n"
+            + "Time formatting:\n\n" + "H Hour\n" + "m Minute\n" + "s Second\n"
+            + "S Millisecond";
 
     public static final int TEXTFIELD_COLUMNS = 12;
 
@@ -49,7 +55,7 @@ public class FormatSetupDialog extends JDialog implements ActionListener {
     private NumberFormatter mzFormat, rtFormat, intensityFormat;
 
     // Dialog controles
-    private JButton btnOK, btnCancel;
+    private JButton btnOK, btnCancel, btnHelp;
     private JTextField mzFormatField, rtFormatField, intensityFormatField;
     private JRadioButton timeRadioButton, numberRadioButton;
 
@@ -104,6 +110,7 @@ public class FormatSetupDialog extends JDialog implements ActionListener {
         JPanel pnlButtons = new JPanel();
         btnOK = GUIUtils.addButton(pnlButtons, "OK", null, this);
         btnCancel = GUIUtils.addButton(pnlButtons, "Cancel", null, this);
+        btnHelp = GUIUtils.addButton(pnlButtons, "Help", null, this);
 
         // Put everything into a main panel
         JPanel pnlAll = new JPanel(new BorderLayout());
@@ -134,7 +141,7 @@ public class FormatSetupDialog extends JDialog implements ActionListener {
     public void actionPerformed(ActionEvent ae) {
 
         Object src = ae.getSource();
-        Desktop desktop = MainWindow.getInstance();
+        MainWindow desktop = MainWindow.getInstance();
 
         if (src == btnOK) {
 
@@ -172,11 +179,19 @@ public class FormatSetupDialog extends JDialog implements ActionListener {
 
             exitCode = ExitCode.OK;
             dispose();
+
+            // repaint to update all formatted numbers
+            desktop.repaint();
+
         }
 
         if (src == btnCancel) {
             exitCode = ExitCode.CANCEL;
             dispose();
+        }
+
+        if (src == btnHelp) {
+            desktop.displayMessage(helpText);
         }
 
     }

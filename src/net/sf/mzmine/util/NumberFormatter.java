@@ -100,7 +100,11 @@ public class NumberFormatter extends NumberFormat implements Cloneable {
      */
     public synchronized StringBuffer format(double arg0, StringBuffer arg1,
             FieldPosition arg2) {
-        return embeddedFormatter.format(arg0 * 1000, arg1, arg2);
+        
+        // conversion to msec
+        if (embeddedFormatterType == FormatterType.TIME) arg0 *= 1000;
+        
+        return embeddedFormatter.format(arg0, arg1, arg2);
     }
 
     /**
@@ -108,7 +112,11 @@ public class NumberFormatter extends NumberFormat implements Cloneable {
      *      java.text.FieldPosition)
      */
     public synchronized StringBuffer format(long arg0, StringBuffer arg1, FieldPosition arg2) {
-        return embeddedFormatter.format(arg0 * 1000, arg1, arg2);
+        
+        // conversion to msec
+        if (embeddedFormatterType == FormatterType.TIME) arg0 *= 1000;
+        
+        return embeddedFormatter.format(arg0, arg1, arg2);
     }
 
     /**
