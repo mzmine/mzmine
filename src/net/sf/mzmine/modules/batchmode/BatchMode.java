@@ -94,7 +94,7 @@ public class BatchMode implements MZmineModule, ListSelectionListener,
             return;
         }
 
-        logger.finest("Showing parameter setup dialog");
+        logger.finest("Showing batch mode setup dialog");
 
         BatchModeDialog setupDialog = new BatchModeDialog(core,
                 currentBatchSteps);
