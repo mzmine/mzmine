@@ -42,10 +42,11 @@ import net.sf.mzmine.util.NumberFormatter.FormatterType;
 public class FormatSetupDialog extends JDialog implements ActionListener {
 
     public static final String helpText = "Number formatting:\n\n"
-            + "0 Digit\n" + "# Digit (zero absent)\n" + ". Decimal separator\n"
-            + ", Grouping separator\n" + "E Exponent\n" + "% Percentage\n\n"
-            + "Time formatting:\n\n" + "H Hour\n" + "m Minute\n" + "s Second\n"
-            + "S Millisecond";
+            + "0 = Digit\n" + "# = Digit (zero absent)\n"
+            + ". = Decimal separator\n" + ", = Grouping separator\n"
+            + "E = Exponent\n" + "% = Percentage\n\n" + "Time formatting:\n\n"
+            + "H = Hour\n" + "m = Minute\n" + "s = Second\n"
+            + "S = Millisecond";
 
     public static final int TEXTFIELD_COLUMNS = 12;
 
