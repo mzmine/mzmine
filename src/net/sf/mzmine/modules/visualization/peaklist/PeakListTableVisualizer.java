@@ -37,11 +37,10 @@ import net.sf.mzmine.data.ParameterSet;
 import net.sf.mzmine.data.PeakList;
 
 
-public class PeakListTableVisualizer implements MZmineModule, ActionListener, ListSelectionListener {
+public class PeakListTableVisualizer implements MZmineModule, ActionListener {
 
 	private TaskController taskController;
 	private Desktop desktop;
-	private JMenuItem peakListViewMenuItem;
 
 	private Logger logger = Logger.getLogger(this.getClass().getName());
 
@@ -53,9 +52,8 @@ public class PeakListTableVisualizer implements MZmineModule, ActionListener, Li
         this.taskController = core.getTaskController();
         this.desktop = core.getDesktop();
 
-        peakListViewMenuItem = desktop.addMenuItem(MZmineMenu.VISUALIZATION, "Peak list view",
-                this, null, KeyEvent.VK_P, false, false);
-        desktop.addSelectionListener(this);
+         desktop.addMenuItem(MZmineMenu.VISUALIZATION, "Peak list view",
+                this, null, KeyEvent.VK_P, false, true);
 
     }
 
@@ -77,21 +75,7 @@ public class PeakListTableVisualizer implements MZmineModule, ActionListener, Li
         }
     }
 
-    /**
-     * @see javax.swing.event.ListSelectionListener#valueChanged(javax.swing.event.ListSelectionEvent)
-     */
-    public void valueChanged(ListSelectionEvent e) {
-    	peakListViewMenuItem.setEnabled(false);
-    	
-		OpenedRawDataFile[] openedRawDataFiles = desktop.getSelectedDataFiles();
-
-		for (OpenedRawDataFile openedRawDataFile : openedRawDataFiles) {
-			if (openedRawDataFile.hasPeakList()) {
-				peakListViewMenuItem.setEnabled(true);
-				break;
-			}
-		}
-    }
+    
 
     /**
      * @see net.sf.mzmine.main.MZmineModule#toString()

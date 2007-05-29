@@ -49,7 +49,7 @@ import net.sf.mzmine.userinterface.dialogs.ExitCode;
 import net.sf.mzmine.userinterface.dialogs.ParameterSetupDialog;
 
 public class ZoomScanFilter implements DataProcessingMethod, TaskListener,
-        ListSelectionListener, ActionListener {
+        ActionListener {
 
     protected static final Parameter parameterMinMZRange = new SimpleParameter(
             ParameterType.DOUBLE, "Minimum M/Z range",
@@ -62,7 +62,6 @@ public class ZoomScanFilter implements DataProcessingMethod, TaskListener,
 
     private TaskController taskController;
     private Desktop desktop;
-    private JMenuItem myMenuItem;
 
     /**
      * @see net.sf.mzmine.main.MZmineModule#initModule(net.sf.mzmine.main.MZmineCore)
@@ -75,10 +74,8 @@ public class ZoomScanFilter implements DataProcessingMethod, TaskListener,
         parameters = new SimpleParameterSet(
                 new Parameter[] { parameterMinMZRange });
 
-        myMenuItem = desktop.addMenuItem(MZmineMenu.FILTERING,
-                "Zoom scan filter", this, null, KeyEvent.VK_Z, false, false);
-
-        desktop.addSelectionListener(this);
+        desktop.addMenuItem(MZmineMenu.FILTERING, "Zoom scan filter", this,
+                null, KeyEvent.VK_Z, false, true);
 
     }
 
@@ -86,20 +83,19 @@ public class ZoomScanFilter implements DataProcessingMethod, TaskListener,
      * @see java.awt.event.ActionListener#actionPerformed(java.awt.event.ActionEvent)
      */
     public void actionPerformed(ActionEvent e) {
-        if (e.getSource() == myMenuItem) {
-            ParameterSet param = setupParameters(parameters);
-            if (param == null)
-                return;
-            OpenedRawDataFile[] dataFiles = desktop.getSelectedDataFiles();
-            runMethod(dataFiles, null, param, null);
-        }
-    }
 
-    /**
-     * @see javax.swing.event.ListSelectionListener#valueChanged(javax.swing.event.ListSelectionEvent)
-     */
-    public void valueChanged(ListSelectionEvent e) {
-        myMenuItem.setEnabled(desktop.isDataFileSelected());
+        OpenedRawDataFile[] dataFiles = desktop.getSelectedDataFiles();
+        if (dataFiles.length == 0) {
+            desktop.displayErrorMessage("Please select at least one data file");
+            return;
+        }
+
+        ParameterSet param = setupParameters(parameters);
+        if (param == null)
+            return;
+
+        runMethod(dataFiles, null, param, null);
+
     }
 
     /**
@@ -137,12 +133,12 @@ public class ZoomScanFilter implements DataProcessingMethod, TaskListener,
         for (int i = 0; i < dataFiles.length; i++) {
             tasks[i] = new ZoomScanFilterTask(dataFiles[i], parameters);
         }
-        TaskGroup newSequence = new TaskGroup(tasks, this,
-                methodListener, taskController);
+        TaskGroup newSequence = new TaskGroup(tasks, this, methodListener,
+                taskController);
 
         // execute the sequence
         newSequence.run();
-        
+
         return newSequence;
 
     }

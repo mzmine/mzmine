@@ -24,10 +24,6 @@ import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
 import java.util.logging.Logger;
 
-import javax.swing.JMenuItem;
-import javax.swing.event.ListSelectionEvent;
-import javax.swing.event.ListSelectionListener;
-
 import net.sf.mzmine.data.AlignmentResult;
 import net.sf.mzmine.data.ParameterSet;
 import net.sf.mzmine.main.MZmineCore;
@@ -39,16 +35,13 @@ import net.sf.mzmine.userinterface.dialogs.ExitCode;
 /**
  * Peak intensity plot module
  */
-public class IntensityPlot implements MZmineModule, ListSelectionListener,
-        ActionListener {
+public class IntensityPlot implements MZmineModule, ActionListener {
 
     private Logger logger = Logger.getLogger(this.getClass().getName());
 
     private MZmineCore core;
     private Desktop desktop;
     private IntensityPlotParameters parameters;
-
-    private JMenuItem intensityPlotMenuItem;
 
     /**
      * @see net.sf.mzmine.main.MZmineModule#initModule(net.sf.mzmine.main.MZmineCore)
@@ -60,9 +53,8 @@ public class IntensityPlot implements MZmineModule, ListSelectionListener,
 
         parameters = new IntensityPlotParameters();
 
-        intensityPlotMenuItem = desktop.addMenuItem(MZmineMenu.ANALYSIS,
-                "Peak intensity plot", this, null, KeyEvent.VK_D, false, false);
-        desktop.addSelectionListener(this);
+        desktop.addMenuItem(MZmineMenu.ANALYSIS, "Peak intensity plot", this,
+                null, KeyEvent.VK_D, false, true);
 
     }
 
@@ -100,13 +92,6 @@ public class IntensityPlot implements MZmineModule, ListSelectionListener,
             desktop.addInternalFrame(newFrame);
         }
 
-    }
-
-    /**
-     * @see javax.swing.event.ListSelectionListener#valueChanged(javax.swing.event.ListSelectionEvent)
-     */
-    public void valueChanged(ListSelectionEvent e) {
-        intensityPlotMenuItem.setEnabled(desktop.isAlignmentResultSelected());
     }
 
     /**

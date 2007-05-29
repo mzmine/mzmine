@@ -1,17 +1,17 @@
 /*
  * Copyright 2006 The MZmine Development Team
- *
+ * 
  * This file is part of MZmine.
- *
+ * 
  * MZmine is free software; you can redistribute it and/or modify it under the
  * terms of the GNU General Public License as published by the Free Software
  * Foundation; either version 2 of the License, or (at your option) any later
  * version.
- *
+ * 
  * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY
  * WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR
  * A PARTICULAR PURPOSE. See the GNU General Public License for more details.
- *
+ * 
  * You should have received a copy of the GNU General Public License along with
  * MZmine; if not, write to the Free Software Foundation, Inc., 51 Franklin St,
  * Fifth Floor, Boston, MA 02110-1301 USA
@@ -40,15 +40,12 @@ import net.sf.mzmine.userinterface.Desktop.MZmineMenu;
 /**
  * Spectrum visualizer using JFreeChart library
  */
-public class SpectraVisualizer implements MZmineModule, ListSelectionListener,
-        ActionListener {
+public class SpectraVisualizer implements MZmineModule, ActionListener {
 
     private Logger logger = Logger.getLogger(this.getClass().getName());
 
     private TaskController taskController;
     private Desktop desktop;
-
-    private JMenuItem spectraMenuItem;
 
     /**
      * @see net.sf.mzmine.main.MZmineModule#initModule(net.sf.mzmine.main.MZmineCore)
@@ -58,9 +55,8 @@ public class SpectraVisualizer implements MZmineModule, ListSelectionListener,
         this.taskController = core.getTaskController();
         this.desktop = core.getDesktop();
 
-        spectraMenuItem = desktop.addMenuItem(MZmineMenu.VISUALIZATION,
-                "Spectra plot", this, null, KeyEvent.VK_S, false, false);
-        desktop.addSelectionListener(this);
+        desktop.addMenuItem(MZmineMenu.VISUALIZATION, "Spectra plot", this,
+                null, KeyEvent.VK_S, false, true);
 
     }
 
@@ -72,6 +68,10 @@ public class SpectraVisualizer implements MZmineModule, ListSelectionListener,
         logger.finest("Opening a new spectra visualizer setup dialog");
 
         OpenedRawDataFile dataFiles[] = desktop.getSelectedDataFiles();
+        if (dataFiles.length == 0) {
+            desktop.displayErrorMessage("Please select at least one data file");
+            return;
+        }
 
         for (OpenedRawDataFile dataFile : dataFiles) {
             JDialog setupDialog = new SpectraSetupDialog(taskController,
@@ -82,13 +82,6 @@ public class SpectraVisualizer implements MZmineModule, ListSelectionListener,
     }
 
     /**
-     * @see javax.swing.event.ListSelectionListener#valueChanged(javax.swing.event.ListSelectionEvent)
-     */
-    public void valueChanged(ListSelectionEvent e) {
-        spectraMenuItem.setEnabled(desktop.isDataFileSelected());
-    }
-
-    /**
      * @see net.sf.mzmine.main.MZmineModule#toString()
      */
     public String toString() {
@@ -96,26 +89,9 @@ public class SpectraVisualizer implements MZmineModule, ListSelectionListener,
     }
 
     /**
-     * @see net.sf.mzmine.main.MZmineModule#getCurrentParameters()
-     */
-    public ParameterSet getCurrentParameters() {
-        // TODO Auto-generated method stub
-        return null;
-    }
-
-    /**
-     * @see net.sf.mzmine.main.MZmineModule#setCurrentParameters(net.sf.mzmine.data.ParameterSet)
-     */
-    public void setCurrentParameters(ParameterSet parameterValues) {
-        // TODO Auto-generated method stub
-        
-    }
-
-    /**
      * @see net.sf.mzmine.main.MZmineModule#getParameterSet()
      */
     public ParameterSet getParameterSet() {
-        // TODO Auto-generated method stub
         return null;
     }
 
@@ -123,8 +99,6 @@ public class SpectraVisualizer implements MZmineModule, ListSelectionListener,
      * @see net.sf.mzmine.main.MZmineModule#setParameters(net.sf.mzmine.data.ParameterSet)
      */
     public void setParameters(ParameterSet parameterValues) {
-        // TODO Auto-generated method stub
-        
     }
 
 }

@@ -40,28 +40,23 @@ import net.sf.mzmine.userinterface.Desktop.MZmineMenu;
 /**
  * 3D visualizer using VisAD library
  */
-public class ThreeDVisualizer implements MZmineModule, ListSelectionListener,
-        ActionListener {
+public class ThreeDVisualizer implements MZmineModule, ActionListener {
 
     private Logger logger = Logger.getLogger(this.getClass().getName());
 
     private TaskController taskController;
     private Desktop desktop;
 
-    private JMenuItem threeDMenuItem;
-
-
     /**
      * @see net.sf.mzmine.main.MZmineModule#initModule(net.sf.mzmine.main.MZmineCore)
      */
     public void initModule(MZmineCore core) {
-        
+
         this.taskController = core.getTaskController();
         this.desktop = core.getDesktop();
 
-        threeDMenuItem = desktop.addMenuItem(MZmineMenu.VISUALIZATION,
-                "3D plot", this, null, KeyEvent.VK_3, false, false);
-        desktop.addSelectionListener(this);
+        desktop.addMenuItem(MZmineMenu.VISUALIZATION, "3D plot", this, null,
+                KeyEvent.VK_3, false, true);
 
     }
 
@@ -73,6 +68,10 @@ public class ThreeDVisualizer implements MZmineModule, ListSelectionListener,
         logger.finest("Opening a new 3D visualizer setup dialog");
 
         OpenedRawDataFile dataFiles[] = desktop.getSelectedDataFiles();
+        if (dataFiles.length == 0) {
+            desktop.displayErrorMessage("Please select at least one data file");
+            return;
+        }
 
         for (OpenedRawDataFile dataFile : dataFiles) {
             JDialog setupDialog = new ThreeDSetupDialog(taskController,
@@ -83,13 +82,6 @@ public class ThreeDVisualizer implements MZmineModule, ListSelectionListener,
     }
 
     /**
-     * @see javax.swing.event.ListSelectionListener#valueChanged(javax.swing.event.ListSelectionEvent)
-     */
-    public void valueChanged(ListSelectionEvent e) {
-        threeDMenuItem.setEnabled(desktop.isDataFileSelected());
-    }
-
-    /**
      * @see net.sf.mzmine.main.MZmineModule#toString()
      */
     public String toString() {
@@ -97,26 +89,9 @@ public class ThreeDVisualizer implements MZmineModule, ListSelectionListener,
     }
 
     /**
-     * @see net.sf.mzmine.main.MZmineModule#getCurrentParameters()
-     */
-    public ParameterSet getCurrentParameters() {
-        // TODO Auto-generated method stub
-        return null;
-    }
-
-    /**
-     * @see net.sf.mzmine.main.MZmineModule#setCurrentParameters(net.sf.mzmine.data.ParameterSet)
-     */
-    public void setCurrentParameters(ParameterSet parameterValues) {
-        // TODO Auto-generated method stub
-        
-    }
-
-    /**
      * @see net.sf.mzmine.main.MZmineModule#getParameterSet()
      */
     public ParameterSet getParameterSet() {
-        // TODO Auto-generated method stub
         return null;
     }
 
@@ -124,8 +99,6 @@ public class ThreeDVisualizer implements MZmineModule, ListSelectionListener,
      * @see net.sf.mzmine.main.MZmineModule#setParameters(net.sf.mzmine.data.ParameterSet)
      */
     public void setParameters(ParameterSet parameterValues) {
-        // TODO Auto-generated method stub
-        
     }
 
 }

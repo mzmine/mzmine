@@ -48,7 +48,7 @@ import net.sf.mzmine.userinterface.Desktop.MZmineMenu;
 import net.sf.mzmine.userinterface.dialogs.ExitCode;
 import net.sf.mzmine.userinterface.dialogs.ParameterSetupDialog;
 
-public class CropFilter implements DataProcessingMethod, TaskListener, ListSelectionListener,
+public class CropFilter implements DataProcessingMethod, TaskListener,
         ActionListener {
 
     public static final Parameter parameterMSlevel = new SimpleParameter(
@@ -82,7 +82,6 @@ public class CropFilter implements DataProcessingMethod, TaskListener, ListSelec
 
     private TaskController taskController;
     private Desktop desktop;
-    private JMenuItem myMenuItem;
 
     /**
      * @see net.sf.mzmine.main.MZmineModule#initModule(net.sf.mzmine.main.MZmineCore)
@@ -96,10 +95,8 @@ public class CropFilter implements DataProcessingMethod, TaskListener, ListSelec
                 new Parameter[] { parameterMSlevel, parameterMinMZ,
                         parameterMaxMZ, parameterMinRT, parameterMaxRT });
 
-        myMenuItem = desktop.addMenuItem(MZmineMenu.FILTERING, "Crop filter",
-                this, null, KeyEvent.VK_C, false, false);
-
-        desktop.addSelectionListener(this);
+        desktop.addMenuItem(MZmineMenu.FILTERING, "Crop filter", this, null,
+                KeyEvent.VK_C, false, true);
 
     }
 
@@ -107,20 +104,19 @@ public class CropFilter implements DataProcessingMethod, TaskListener, ListSelec
      * @see java.awt.event.ActionListener#actionPerformed(java.awt.event.ActionEvent)
      */
     public void actionPerformed(ActionEvent e) {
-        if (e.getSource() == myMenuItem) {
-            ParameterSet param = setupParameters(parameters);
-            if (param == null)
-                return;
-            OpenedRawDataFile[] dataFiles = desktop.getSelectedDataFiles();
-            runMethod(dataFiles, null, param, null);
-        }
-    }
 
-    /**
-     * @see javax.swing.event.ListSelectionListener#valueChanged(javax.swing.event.ListSelectionEvent)
-     */
-    public void valueChanged(ListSelectionEvent e) {
-        myMenuItem.setEnabled(desktop.isDataFileSelected());
+        OpenedRawDataFile[] dataFiles = desktop.getSelectedDataFiles();
+        if (dataFiles.length == 0) {
+            desktop.displayErrorMessage("Please select at least one data file");
+            return;
+        }
+
+        ParameterSet param = setupParameters(parameters);
+        if (param == null)
+            return;
+
+        runMethod(dataFiles, null, param, null);
+
     }
 
     /**
@@ -158,12 +154,12 @@ public class CropFilter implements DataProcessingMethod, TaskListener, ListSelec
         for (int i = 0; i < dataFiles.length; i++) {
             tasks[i] = new CropFilterTask(dataFiles[i], parameters);
         }
-        TaskGroup newSequence = new TaskGroup(tasks, this,
-                methodListener, taskController);
+        TaskGroup newSequence = new TaskGroup(tasks, this, methodListener,
+                taskController);
 
         // execute the sequence
         newSequence.run();
-        
+
         return newSequence;
 
     }

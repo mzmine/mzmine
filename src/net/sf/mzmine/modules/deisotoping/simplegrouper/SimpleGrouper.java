@@ -55,7 +55,7 @@ import net.sf.mzmine.userinterface.dialogs.ParameterSetupDialog;
  */
 
 public class SimpleGrouper implements DataProcessingMethod, TaskListener,
-        ListSelectionListener, ActionListener {
+        ActionListener {
 
     public static final Parameter mzTolerance = new SimpleParameter(
             ParameterType.DOUBLE, "M/Z tolerance",
@@ -83,7 +83,6 @@ public class SimpleGrouper implements DataProcessingMethod, TaskListener,
 
     private TaskController taskController;
     private Desktop desktop;
-    private JMenuItem myMenuItem;
 
     /**
      * @see net.sf.mzmine.main.MZmineModule#initModule(net.sf.mzmine.main.MZmineCore)
@@ -96,11 +95,9 @@ public class SimpleGrouper implements DataProcessingMethod, TaskListener,
         parameters = new SimpleParameterSet(new Parameter[] { mzTolerance,
                 rtTolerance, monotonicShape, maximumCharge });
 
-        myMenuItem = desktop.addMenuItem(MZmineMenu.PEAKPICKING,
+        desktop.addMenuItem(MZmineMenu.PEAKPICKING,
                 "Simple isotopic peaks grouper", this, null, KeyEvent.VK_S,
-                false, false);
-
-        desktop.addSelectionListener(this);
+                false, true);
 
     }
 
@@ -112,29 +109,26 @@ public class SimpleGrouper implements DataProcessingMethod, TaskListener,
      * @see java.awt.event.ActionListener#actionPerformed(java.awt.event.ActionEvent)
      */
     public void actionPerformed(ActionEvent e) {
-        if (e.getSource() == myMenuItem) {
-            ParameterSet param = setupParameters(parameters);
-            if (param == null)
-                return;
-            OpenedRawDataFile[] dataFiles = desktop.getSelectedDataFiles();
-            runMethod(dataFiles, null, param, null);
-        }
-    }
-
-    /**
-     * @see javax.swing.event.ListSelectionListener#valueChanged(javax.swing.event.ListSelectionEvent)
-     */
-    public void valueChanged(ListSelectionEvent e) {
 
         OpenedRawDataFile[] dataFiles = desktop.getSelectedDataFiles();
 
-        for (OpenedRawDataFile file : dataFiles) {
-            if (file.getPeakList() != null) {
-                myMenuItem.setEnabled(true);
+        if (dataFiles.length == 0) {
+            desktop.displayErrorMessage("Please select at least one data file");
+            return;
+        }
+
+        for (OpenedRawDataFile dataFile : dataFiles) {
+            if (dataFile.getPeakList() == null) {
+                desktop.displayErrorMessage(dataFile
+                        + " has no peak list. Please run peak picking first.");
                 return;
             }
         }
-        myMenuItem.setEnabled(false);
+
+        ParameterSet param = setupParameters(parameters);
+        if (param == null)
+            return;
+        runMethod(dataFiles, null, param, null);
     }
 
     public void taskStarted(Task task) {

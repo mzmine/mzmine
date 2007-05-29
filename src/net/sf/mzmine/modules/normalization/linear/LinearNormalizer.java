@@ -52,7 +52,7 @@ import net.sf.mzmine.userinterface.dialogs.ParameterSetupDialog;
  * 
  */
 public class LinearNormalizer implements DataProcessingMethod, TaskListener,
-        ListSelectionListener, ActionListener {
+        ActionListener {
 
     protected static final String NormalizationTypeAverageIntensity = "Average intensity";
     protected static final String NormalizationTypeAverageSquaredIntensity = "Average squared intensity";
@@ -75,7 +75,6 @@ public class LinearNormalizer implements DataProcessingMethod, TaskListener,
 
     private TaskController taskController;
     private Desktop desktop;
-    private JMenuItem myMenuItem;
 
     /**
      * @see net.sf.mzmine.main.MZmineModule#initModule(net.sf.mzmine.main.MZmineCore)
@@ -88,10 +87,8 @@ public class LinearNormalizer implements DataProcessingMethod, TaskListener,
         parameters = new SimpleParameterSet(
                 new Parameter[] { normalizationType });
 
-        myMenuItem = desktop.addMenuItem(MZmineMenu.NORMALIZATION,
-                "Linear normalizer", this, null, KeyEvent.VK_A, false, false);
-
-        desktop.addSelectionListener(this);
+        desktop.addMenuItem(MZmineMenu.NORMALIZATION, "Linear normalizer",
+                this, null, KeyEvent.VK_A, false, true);
 
     }
 
@@ -127,13 +124,18 @@ public class LinearNormalizer implements DataProcessingMethod, TaskListener,
      * @see java.awt.event.ActionListener#actionPerformed(java.awt.event.ActionEvent)
      */
     public void actionPerformed(ActionEvent e) {
-        if (e.getSource() == myMenuItem) {
-            ParameterSet param = setupParameters(parameters);
-            if (param == null)
-                return;
-            AlignmentResult[] alignmentResults = desktop.getSelectedAlignmentResults();
-            runMethod(null, alignmentResults, param, null);
+
+        AlignmentResult[] selectedAlignmentResults = desktop.getSelectedAlignmentResults();
+        if (selectedAlignmentResults.length < 1) {
+            desktop.displayErrorMessage("Please select alignment result");
+            return;
         }
+
+        ParameterSet param = setupParameters(parameters);
+        if (param == null)
+            return;
+        runMethod(null, selectedAlignmentResults, param, null);
+
     }
 
     public void taskStarted(Task task) {
@@ -162,18 +164,6 @@ public class LinearNormalizer implements DataProcessingMethod, TaskListener,
 
     }
 
-    public void valueChanged(ListSelectionEvent e) {
-
-        AlignmentResult[] alignmentResults = desktop.getSelectedAlignmentResults();
-
-        if ((alignmentResults == null) || (alignmentResults.length == 0)) {
-            myMenuItem.setEnabled(false);
-        } else {
-            myMenuItem.setEnabled(true);
-        }
-
-    }
-
     /**
      * @see net.sf.mzmine.modules.DataProcessingMethod#runMethod(net.sf.mzmine.io.OpenedRawDataFile[],
      *      net.sf.mzmine.data.AlignmentResult[],
@@ -189,12 +179,12 @@ public class LinearNormalizer implements DataProcessingMethod, TaskListener,
         for (int i = 0; i < alignmentResults.length; i++) {
             tasks[i] = new LinearNormalizerTask(alignmentResults[i], parameters);
         }
-        TaskGroup newSequence = new TaskGroup(tasks, this,
-                methodListener, taskController);
+        TaskGroup newSequence = new TaskGroup(tasks, this, methodListener,
+                taskController);
 
         // execute the sequence
         newSequence.run();
-        
+
         return newSequence;
 
     }

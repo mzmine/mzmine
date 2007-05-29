@@ -54,10 +54,10 @@ import net.sf.mzmine.userinterface.dialogs.ParameterSetupDialog;
  * each spectra
  */
 public class LocalPicker implements DataProcessingMethod, TaskListener,
-        ListSelectionListener, ActionListener {
+        ActionListener {
 
     public static final NumberFormat percentFormat = NumberFormat.getPercentInstance();
-    
+
     public static final Parameter binSize = new SimpleParameter(
             ParameterType.DOUBLE, "M/Z bin width",
             "Width of M/Z range for each precalculated XIC", "Da", new Double(
@@ -101,7 +101,6 @@ public class LocalPicker implements DataProcessingMethod, TaskListener,
 
     private TaskController taskController;
     private Desktop desktop;
-    private JMenuItem myMenuItem;
 
     /**
      * @see net.sf.mzmine.main.MZmineModule#initModule(net.sf.mzmine.main.MZmineCore)
@@ -115,15 +114,11 @@ public class LocalPicker implements DataProcessingMethod, TaskListener,
                 chromatographicThresholdLevel, noiseLevel, minimumPeakHeight,
                 minimumPeakDuration, mzTolerance, intTolerance });
 
-        myMenuItem = desktop.addMenuItem(MZmineMenu.PEAKPICKING,
+        desktop.addMenuItem(MZmineMenu.PEAKPICKING,
                 "Local maxima peak detector", this, null, KeyEvent.VK_L, false,
-                false);
-
-        desktop.addSelectionListener(this);
+                true);
 
     }
-
-
 
     public void setParameters(ParameterSet parameters) {
         this.parameters = parameters;
@@ -133,20 +128,19 @@ public class LocalPicker implements DataProcessingMethod, TaskListener,
      * @see java.awt.event.ActionListener#actionPerformed(java.awt.event.ActionEvent)
      */
     public void actionPerformed(ActionEvent e) {
-        if (e.getSource() == myMenuItem) {
-            ParameterSet param = setupParameters(parameters);
-            if (param == null)
-                return;
-            OpenedRawDataFile[] dataFiles = desktop.getSelectedDataFiles();
-            runMethod(dataFiles, null, param, null);
-        }
-    }
 
-    /**
-     * @see javax.swing.event.ListSelectionListener#valueChanged(javax.swing.event.ListSelectionEvent)
-     */
-    public void valueChanged(ListSelectionEvent e) {
-        myMenuItem.setEnabled(desktop.isDataFileSelected());
+        OpenedRawDataFile[] dataFiles = desktop.getSelectedDataFiles();
+        if (dataFiles.length == 0) {
+            desktop.displayErrorMessage("Please select at least one data file");
+            return;
+        }
+
+        ParameterSet param = setupParameters(parameters);
+        if (param == null)
+            return;
+
+        runMethod(dataFiles, null, param, null);
+
     }
 
     public void taskStarted(Task task) {
@@ -154,12 +148,11 @@ public class LocalPicker implements DataProcessingMethod, TaskListener,
                 + ((LocalPickerTask) task).getDataFile());
 
     }
-    
 
     public void taskFinished(Task task) {
 
         if (task.getStatus() == Task.TaskStatus.FINISHED) {
-            
+
             logger.info("Finished local maxima peak picker on "
                     + ((LocalPickerTask) task).getDataFile());
 
@@ -238,12 +231,12 @@ public class LocalPicker implements DataProcessingMethod, TaskListener,
         for (int i = 0; i < dataFiles.length; i++) {
             tasks[i] = new LocalPickerTask(dataFiles[i], parameters);
         }
-        TaskGroup newSequence = new TaskGroup(tasks, this,
-                methodListener, taskController);
+        TaskGroup newSequence = new TaskGroup(tasks, this, methodListener,
+                taskController);
 
         // execute the sequence
         newSequence.run();
-        
+
         return newSequence;
 
     }

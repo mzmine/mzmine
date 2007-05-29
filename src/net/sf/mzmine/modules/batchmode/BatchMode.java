@@ -25,10 +25,6 @@ import java.awt.event.KeyEvent;
 import java.util.Vector;
 import java.util.logging.Logger;
 
-import javax.swing.JMenuItem;
-import javax.swing.event.ListSelectionEvent;
-import javax.swing.event.ListSelectionListener;
-
 import net.sf.mzmine.data.AlignmentResult;
 import net.sf.mzmine.data.ParameterSet;
 import net.sf.mzmine.io.OpenedRawDataFile;
@@ -46,15 +42,13 @@ import net.sf.mzmine.userinterface.dialogs.ExitCode;
 /**
  * Batch mode module
  */
-public class BatchMode implements MZmineModule, ListSelectionListener,
-        TaskGroupListener, ActionListener {
+public class BatchMode implements MZmineModule, TaskGroupListener,
+        ActionListener {
 
     private Logger logger = Logger.getLogger(this.getClass().getName());
 
     private MZmineCore core;
     private Desktop desktop;
-
-    private JMenuItem batchMenuItem;
 
     private Vector<BatchStep> currentBatchSteps;
     private boolean batchRunning = false;
@@ -71,10 +65,8 @@ public class BatchMode implements MZmineModule, ListSelectionListener,
 
         currentBatchSteps = new Vector<BatchStep>();
 
-        batchMenuItem = desktop.addMenuItem(MZmineMenu.BATCH,
-                "Define batch operations", this, null, KeyEvent.VK_D, false,
-                false);
-        desktop.addSelectionListener(this);
+        desktop.addMenuItem(MZmineMenu.BATCH, "Define batch operations", this,
+                null, KeyEvent.VK_D, false, true);
 
     }
 
@@ -106,13 +98,6 @@ public class BatchMode implements MZmineModule, ListSelectionListener,
             runNextStep();
         }
 
-    }
-
-    /**
-     * @see javax.swing.event.ListSelectionListener#valueChanged(javax.swing.event.ListSelectionEvent)
-     */
-    public void valueChanged(ListSelectionEvent e) {
-        batchMenuItem.setEnabled(desktop.isDataFileSelected());
     }
 
     /**

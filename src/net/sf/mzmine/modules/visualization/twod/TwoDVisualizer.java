@@ -40,15 +40,12 @@ import net.sf.mzmine.userinterface.Desktop.MZmineMenu;
 /**
  * 2D visualizer using JFreeChart library
  */
-public class TwoDVisualizer implements MZmineModule, ActionListener,
-        ListSelectionListener {
+public class TwoDVisualizer implements MZmineModule, ActionListener {
 
     private Logger logger = Logger.getLogger(this.getClass().getName());
-    
+
     private TaskController taskController;
     private Desktop desktop;
-    
-    private JMenuItem twoDMenuItem;
 
     /**
      * @see net.sf.mzmine.main.MZmineModule#initModule(net.sf.mzmine.main.MZmineCore)
@@ -58,9 +55,8 @@ public class TwoDVisualizer implements MZmineModule, ActionListener,
         this.taskController = core.getTaskController();
         this.desktop = core.getDesktop();
 
-        twoDMenuItem = desktop.addMenuItem(MZmineMenu.VISUALIZATION, "2D plot",
-                this, null, KeyEvent.VK_2, false, false);
-        desktop.addSelectionListener(this);
+        desktop.addMenuItem(MZmineMenu.VISUALIZATION, "2D plot", this, null,
+                KeyEvent.VK_2, false, true);
 
     }
 
@@ -70,22 +66,19 @@ public class TwoDVisualizer implements MZmineModule, ActionListener,
     public void actionPerformed(ActionEvent e) {
 
         logger.finest("Opening a new 2D visualizer setup dialog");
-        
+
         OpenedRawDataFile dataFiles[] = desktop.getSelectedDataFiles();
+        if (dataFiles.length == 0) {
+            desktop.displayErrorMessage("Please select at least one data file");
+            return;
+        }
 
         for (OpenedRawDataFile dataFile : dataFiles) {
-            JDialog setupDialog = new TwoDSetupDialog(taskController,
-                    desktop, dataFile);
+            JDialog setupDialog = new TwoDSetupDialog(taskController, desktop,
+                    dataFile);
             setupDialog.setVisible(true);
         }
 
-    }
-
-    /**
-     * @see javax.swing.event.ListSelectionListener#valueChanged(javax.swing.event.ListSelectionEvent)
-     */
-    public void valueChanged(ListSelectionEvent e) {
-        twoDMenuItem.setEnabled(desktop.isDataFileSelected());
     }
 
     /**
@@ -96,26 +89,9 @@ public class TwoDVisualizer implements MZmineModule, ActionListener,
     }
 
     /**
-     * @see net.sf.mzmine.main.MZmineModule#getCurrentParameters()
-     */
-    public ParameterSet getCurrentParameters() {
-        // TODO Auto-generated method stub
-        return null;
-    }
-
-    /**
-     * @see net.sf.mzmine.main.MZmineModule#setCurrentParameters(net.sf.mzmine.data.ParameterSet)
-     */
-    public void setCurrentParameters(ParameterSet parameterValues) {
-        // TODO Auto-generated method stub
-        
-    }
-
-    /**
      * @see net.sf.mzmine.main.MZmineModule#getParameterSet()
      */
     public ParameterSet getParameterSet() {
-        // TODO Auto-generated method stub
         return null;
     }
 
@@ -123,8 +99,6 @@ public class TwoDVisualizer implements MZmineModule, ActionListener,
      * @see net.sf.mzmine.main.MZmineModule#setParameters(net.sf.mzmine.data.ParameterSet)
      */
     public void setParameters(ParameterSet parameterValues) {
-        // TODO Auto-generated method stub
-        
     }
 
 }

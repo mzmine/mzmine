@@ -53,7 +53,7 @@ import net.sf.mzmine.userinterface.dialogs.ParameterSetupDialog;
  * which have less than defined number of peaks detected
  * 
  */
-public class GapsFilter implements DataProcessingMethod, TaskListener, ListSelectionListener,
+public class GapsFilter implements DataProcessingMethod, TaskListener,
         ActionListener {
 
     public static final Parameter minPresent = new SimpleParameter(
@@ -67,7 +67,6 @@ public class GapsFilter implements DataProcessingMethod, TaskListener, ListSelec
 
     private TaskController taskController;
     private Desktop desktop;
-    private JMenuItem myMenuItem;
 
     /**
      * @see net.sf.mzmine.main.MZmineModule#initModule(net.sf.mzmine.main.MZmineCore)
@@ -79,10 +78,8 @@ public class GapsFilter implements DataProcessingMethod, TaskListener, ListSelec
 
         parameters = new SimpleParameterSet(new Parameter[] { minPresent });
 
-        myMenuItem = desktop.addMenuItem(MZmineMenu.ALIGNMENT, toString(),
-                this, null, KeyEvent.VK_A, false, false);
-
-        desktop.addSelectionListener(this);
+        desktop.addMenuItem(MZmineMenu.ALIGNMENT, toString(), this, null,
+                KeyEvent.VK_A, false, true);
 
     }
 
@@ -118,25 +115,17 @@ public class GapsFilter implements DataProcessingMethod, TaskListener, ListSelec
      * @see java.awt.event.ActionListener#actionPerformed(java.awt.event.ActionEvent)
      */
     public void actionPerformed(ActionEvent e) {
-        if (e.getSource() == myMenuItem) {
-            ParameterSet param = setupParameters(parameters);
-            if (param == null)
-                return;
-            AlignmentResult[] alignmentResults = desktop.getSelectedAlignmentResults();
-            runMethod(null, alignmentResults, param, null);
-        }
-    }
-
-    /**
-     * @see javax.swing.event.ListSelectionListener#valueChanged(javax.swing.event.ListSelectionEvent)
-     */
-    public void valueChanged(ListSelectionEvent e) {
 
         AlignmentResult[] alignmentResults = desktop.getSelectedAlignmentResults();
-        if ((alignmentResults == null) || (alignmentResults.length == 0))
-            myMenuItem.setEnabled(false);
-        else
-            myMenuItem.setEnabled(true);
+        if (alignmentResults.length == 0) {
+            desktop.displayErrorMessage("Please select at least one alignment result.");
+            return;
+        }
+
+        ParameterSet param = setupParameters(parameters);
+        if (param == null)
+            return;
+        runMethod(null, alignmentResults, param, null);
 
     }
 
@@ -181,12 +170,12 @@ public class GapsFilter implements DataProcessingMethod, TaskListener, ListSelec
         for (int i = 0; i < alignmentResults.length; i++) {
             tasks[i] = new GapsFilterTask(alignmentResults[i], parameters);
         }
-        TaskGroup newSequence = new TaskGroup(tasks, this,
-                methodListener, taskController);
+        TaskGroup newSequence = new TaskGroup(tasks, this, methodListener,
+                taskController);
 
         // execute the sequence
         newSequence.run();
-        
+
         return newSequence;
 
     }

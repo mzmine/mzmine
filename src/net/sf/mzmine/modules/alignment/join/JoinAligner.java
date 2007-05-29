@@ -52,7 +52,7 @@ import net.sf.mzmine.userinterface.dialogs.ParameterSetupDialog;
  * 
  */
 public class JoinAligner implements DataProcessingMethod, TaskListener,
-        ListSelectionListener, ActionListener {
+        ActionListener {
 
     public static final String RTToleranceTypeAbsolute = "Absolute";
     public static final String RTToleranceTypeRelative = "Relative";
@@ -92,7 +92,6 @@ public class JoinAligner implements DataProcessingMethod, TaskListener,
 
     private TaskController taskController;
     private Desktop desktop;
-    private JMenuItem myMenuItem;
 
     /**
      * @see net.sf.mzmine.main.MZmineModule#initModule(net.sf.mzmine.main.MZmineCore)
@@ -106,10 +105,8 @@ public class JoinAligner implements DataProcessingMethod, TaskListener,
                 MZTolerance, RTToleranceType, RTToleranceValueAbs,
                 RTToleranceValuePercent });
 
-        myMenuItem = desktop.addMenuItem(MZmineMenu.ALIGNMENT,
-                "Peak list aligner", this, null, KeyEvent.VK_A, false, false);
-
-        desktop.addSelectionListener(this);
+        desktop.addMenuItem(MZmineMenu.ALIGNMENT, "Peak list aligner", this,
+                null, KeyEvent.VK_A, false, true);
 
     }
 
@@ -145,31 +142,27 @@ public class JoinAligner implements DataProcessingMethod, TaskListener,
      * @see java.awt.event.ActionListener#actionPerformed(java.awt.event.ActionEvent)
      */
     public void actionPerformed(ActionEvent e) {
-        if (e.getSource() == myMenuItem) {
-            ParameterSet param = setupParameters(parameters);
-            if (param == null)
-                return;
-            OpenedRawDataFile[] dataFiles = desktop.getSelectedDataFiles();
-            runMethod(dataFiles, null, param, null);
-        }
-    }
-
-    /**
-     * @see javax.swing.event.ListSelectionListener#valueChanged(javax.swing.event.ListSelectionEvent)
-     */
-    public void valueChanged(ListSelectionEvent e) {
 
         OpenedRawDataFile[] dataFiles = desktop.getSelectedDataFiles();
-        
-        boolean allOk = (dataFiles.length > 0);
 
-        for (OpenedRawDataFile file : dataFiles) {
-            if (file.getPeakList() == null) {
-                allOk = false;
-                break;
+        if (dataFiles.length == 0) {
+            desktop.displayErrorMessage("Please select at least one data file");
+            return;
+        }
+
+        for (OpenedRawDataFile dataFile : dataFiles) {
+            if (dataFile.getPeakList() == null) {
+                desktop.displayErrorMessage(dataFile
+                        + " has no peak list. Please run peak picking first.");
+                return;
             }
         }
-        myMenuItem.setEnabled(allOk);
+
+        ParameterSet param = setupParameters(parameters);
+        if (param == null)
+            return;
+
+        runMethod(dataFiles, null, param, null);
 
     }
 
@@ -223,12 +216,12 @@ public class JoinAligner implements DataProcessingMethod, TaskListener,
         // prepare a new sequence with just one task
         Task tasks[] = new JoinAlignerTask[1];
         tasks[0] = new JoinAlignerTask(dataFiles, parameters);
-        TaskGroup newSequence = new TaskGroup(tasks, this,
-                methodListener, taskController);
+        TaskGroup newSequence = new TaskGroup(tasks, this, methodListener,
+                taskController);
 
         // execute the sequence
         newSequence.run();
-        
+
         return newSequence;
 
     }

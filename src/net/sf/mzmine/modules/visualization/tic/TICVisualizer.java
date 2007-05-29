@@ -40,15 +40,12 @@ import net.sf.mzmine.userinterface.Desktop.MZmineMenu;
 /**
  * TIC visualizer using JFreeChart library
  */
-public class TICVisualizer implements MZmineModule, ActionListener,
-        ListSelectionListener {
+public class TICVisualizer implements MZmineModule, ActionListener {
 
     private Logger logger = Logger.getLogger(this.getClass().getName());
-    
+
     private TaskController taskController;
     private Desktop desktop;
-
-    private JMenuItem ticMenuItem;
 
     /**
      * @see net.sf.mzmine.main.MZmineModule#initModule(net.sf.mzmine.main.MZmineCore)
@@ -57,10 +54,9 @@ public class TICVisualizer implements MZmineModule, ActionListener,
 
         this.taskController = core.getTaskController();
         this.desktop = core.getDesktop();
-        
-        ticMenuItem = desktop.addMenuItem(MZmineMenu.VISUALIZATION, "TIC plot",
-                this, null, KeyEvent.VK_T, false, false);
-        desktop.addSelectionListener(this);
+
+        desktop.addMenuItem(MZmineMenu.VISUALIZATION, "TIC plot", this, null,
+                KeyEvent.VK_T, false, true);
 
     }
 
@@ -72,19 +68,16 @@ public class TICVisualizer implements MZmineModule, ActionListener,
         logger.finest("Opening a new TIC visualizer setup dialog");
 
         OpenedRawDataFile dataFiles[] = desktop.getSelectedDataFiles();
+        if (dataFiles.length == 0) {
+            desktop.displayErrorMessage("Please select at least one data file");
+            return;
+        }
 
         for (OpenedRawDataFile dataFile : dataFiles) {
-            JDialog setupDialog = new TICSetupDialog(taskController,
-                    desktop, dataFile);
+            JDialog setupDialog = new TICSetupDialog(taskController, desktop,
+                    dataFile);
             setupDialog.setVisible(true);
         }
-    }
-
-    /**
-     * @see javax.swing.event.ListSelectionListener#valueChanged(javax.swing.event.ListSelectionEvent)
-     */
-    public void valueChanged(ListSelectionEvent e) {
-        ticMenuItem.setEnabled(desktop.isDataFileSelected());
     }
 
     /**
@@ -95,26 +88,9 @@ public class TICVisualizer implements MZmineModule, ActionListener,
     }
 
     /**
-     * @see net.sf.mzmine.main.MZmineModule#getCurrentParameters()
-     */
-    public ParameterSet getCurrentParameters() {
-        // TODO Auto-generated method stub
-        return null;
-    }
-
-    /**
-     * @see net.sf.mzmine.main.MZmineModule#setCurrentParameters(net.sf.mzmine.data.ParameterSet)
-     */
-    public void setCurrentParameters(ParameterSet parameterValues) {
-        // TODO Auto-generated method stub
-        
-    }
-
-    /**
      * @see net.sf.mzmine.main.MZmineModule#getParameterSet()
      */
     public ParameterSet getParameterSet() {
-        // TODO Auto-generated method stub
         return null;
     }
 
@@ -122,8 +98,6 @@ public class TICVisualizer implements MZmineModule, ActionListener,
      * @see net.sf.mzmine.main.MZmineModule#setParameters(net.sf.mzmine.data.ParameterSet)
      */
     public void setParameters(ParameterSet parameterValues) {
-        // TODO Auto-generated method stub
-        
     }
 
 }

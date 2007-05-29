@@ -52,7 +52,7 @@ import net.sf.mzmine.userinterface.dialogs.ParameterSetupDialog;
 
 // TODO: Code for this method must be rewritten
 
-public class SimpleGapFiller implements DataProcessingMethod, TaskListener,  ListSelectionListener,
+public class SimpleGapFiller implements DataProcessingMethod, TaskListener,
         ActionListener {
 
     public static final String RTToleranceTypeAbsolute = "Absolute";
@@ -92,7 +92,6 @@ public class SimpleGapFiller implements DataProcessingMethod, TaskListener,  Lis
 
     private TaskController taskController;
     private Desktop desktop;
-    private JMenuItem myMenuItem;
 
     // Maps raw data files to an array of gaps which must be filled from the raw
     // data. Used when distributing tasks.
@@ -108,7 +107,6 @@ public class SimpleGapFiller implements DataProcessingMethod, TaskListener,  Lis
 
     // Maps raw data file to results of processing task (array of empty gaps)
     private Hashtable<OpenedRawDataFile, EmptyGap[]> resultsForRawData;
-    
 
     /**
      * @see net.sf.mzmine.main.MZmineModule#initModule(net.sf.mzmine.main.MZmineCore)
@@ -121,18 +119,16 @@ public class SimpleGapFiller implements DataProcessingMethod, TaskListener,  Lis
         rawDataForGap = new Hashtable<EmptyGap, OpenedRawDataFile>();
         gapsForRow = new Hashtable<AlignmentResultRow, Vector<EmptyGap>>();
         resultsForRawData = new Hashtable<OpenedRawDataFile, EmptyGap[]>();
-        
+
         parameters = new SimpleParameterSet(new Parameter[] { IntTolerance,
                 MZTolerance, RTToleranceType, RTToleranceValueAbs,
                 RTToleranceValuePercent });
 
-        myMenuItem = desktop.addMenuItem(MZmineMenu.ALIGNMENT,
-                "Simple gap filler", this, null, KeyEvent.VK_S, false, false);
-
-        desktop.addSelectionListener(this);
+        desktop.addMenuItem(MZmineMenu.ALIGNMENT, "Simple gap filler", this,
+                null, KeyEvent.VK_S, false, true);
 
     }
-    
+
     public String toString() {
         return "Simple Gap filler";
     }
@@ -145,108 +141,81 @@ public class SimpleGapFiller implements DataProcessingMethod, TaskListener,  Lis
      * @see java.awt.event.ActionListener#actionPerformed(java.awt.event.ActionEvent)
      */
     public void actionPerformed(ActionEvent e) {
-        if (e.getSource() == myMenuItem) {
-            ParameterSet param = setupParameters(parameters);
-            if (param == null)
-                return;
-            AlignmentResult[] alRes = desktop.getSelectedAlignmentResults();
-            runMethod(null, alRes, param, null);
+
+        AlignmentResult[] selectedAlignmentResults = desktop.getSelectedAlignmentResults();
+        if (selectedAlignmentResults.length < 1) {
+            desktop.displayErrorMessage("Please select alignment result");
+            return;
         }
-    }
-    
-    public void valueChanged(ListSelectionEvent e) {
-        AlignmentResult[] alignmentResults = desktop.getSelectedAlignmentResults();
-        if ((alignmentResults == null) || (alignmentResults.length == 0))
-            myMenuItem.setEnabled(false);
-        else
-            myMenuItem.setEnabled(true);
+
+        ParameterSet param = setupParameters(parameters);
+        if (param == null)
+            return;
+
+        runMethod(null, selectedAlignmentResults, param, null);
 
     }
-    
+
     public void taskStarted(Task task) {
         logger.info("Running simple gap filter");
     }
-    
+
     public void taskFinished(Task task) {
 
         /*
-          
-                // Did the task fail?
-                if (task.getStatus() == TaskStatus.ERROR) {
-                    overallStatus = TaskStatus.ERROR;
-                    // Cancel all remaining tasks
-                    for (Task t : startedTasks)
-                        if ((t.getStatus() != TaskStatus.FINISHED)
-                                || (t.getStatus() != TaskStatus.ERROR))
-                            t.cancel();
+         *  // Did the task fail? if (task.getStatus() == TaskStatus.ERROR) {
+         * overallStatus = TaskStatus.ERROR; // Cancel all remaining tasks for
+         * (Task t : startedTasks) if ((t.getStatus() != TaskStatus.FINISHED) ||
+         * (t.getStatus() != TaskStatus.ERROR)) t.cancel();
+         *  }
+         * 
+         * return; }
+         *  // Pickup results Object[] results = (Object[]) task.getResult();
+         * OpenedRawDataFile openedRawDataFile = (OpenedRawDataFile) results[0];
+         * EmptyGap[] emptyGaps = (EmptyGap[]) results[1];
+         * resultsForRawData.put(openedRawDataFile, emptyGaps);
+         * 
+         * completedTasks.add(task);
+         *  // All results received already? if (completedTasks.size() ==
+         * startedTasks.size()) {
+         *  // Yes, then construct new alignment result & copy opened raw data //
+         * files from original alignment result to the new one
+         * processedAlignmentResult = new SimpleAlignmentResult( "Result from
+         * gap-filling"); for (OpenedRawDataFile loopOpenedRawDataFile :
+         * originalAlignmentResult.getRawDataFiles()) {
+         * processedAlignmentResult.addOpenedRawDataFile(loopOpenedRawDataFile); }
+         *  // Add rows to the new alignment result for (AlignmentResultRow
+         * alignmentRow : originalAlignmentResult.getRows()) {
+         * SimpleAlignmentResultRow processedAlignmentRow = new
+         * SimpleAlignmentResultRow(); //
+         * processedAlignmentRow.setIsotopePattern(alignmentRow.getIsotopePattern());
+         * processedAlignmentRow.addData(IsotopePattern.class,
+         * alignmentRow.getLastData(IsotopePattern.class));
+         *  // Copy old peaks to new row for (OpenedRawDataFile
+         * loopOpenedRawDataFile : alignmentRow.getOpenedRawDataFiles()) { Peak
+         * p = alignmentRow.getPeak(loopOpenedRawDataFile);
+         * processedAlignmentRow.addPeak(loopOpenedRawDataFile, p); }
+         *  // Construct new peaks from empty gaps and put them on same row
+         * Vector<EmptyGap> filledGaps = gapsForRow.get(alignmentRow); for
+         * (EmptyGap filledGap : filledGaps) { Peak p =
+         * filledGap.getEstimatedPeak(); p.addData(IsotopePattern.class,
+         * alignmentRow.getLastData(IsotopePattern.class)); OpenedRawDataFile
+         * peakRawData = rawDataForGap.get(filledGap);
+         * processedAlignmentRow.addPeak(peakRawData, p); }
+         *  // Add row to the new alignment result
+         * processedAlignmentResult.addRow(processedAlignmentRow);
+         *  }
+         *  // TODO: Add method and parameters to history of an alignment result
+         *  // Add new alignment result to the project
+         * MZmineProject.getCurrentProject().addAlignmentResult(
+         * processedAlignmentResult);
+         * 
+         * 
+         *  }
+         */
 
-                    }
+    }
 
-                    return;
-                }
-
-                // Pickup results
-                Object[] results = (Object[]) task.getResult();
-                OpenedRawDataFile openedRawDataFile = (OpenedRawDataFile) results[0];
-                EmptyGap[] emptyGaps = (EmptyGap[]) results[1];
-                resultsForRawData.put(openedRawDataFile, emptyGaps);
-
-                completedTasks.add(task);
-
-                // All results received already?
-                if (completedTasks.size() == startedTasks.size()) {
-
-                    // Yes, then construct new alignment result & copy opened raw data
-                    // files from original alignment result to the new one
-                    processedAlignmentResult = new SimpleAlignmentResult(
-                            "Result from gap-filling");
-                    for (OpenedRawDataFile loopOpenedRawDataFile : originalAlignmentResult.getRawDataFiles()) {
-                        processedAlignmentResult.addOpenedRawDataFile(loopOpenedRawDataFile);
-                    }
-
-                    // Add rows to the new alignment result
-                    for (AlignmentResultRow alignmentRow : originalAlignmentResult.getRows()) {
-                        SimpleAlignmentResultRow processedAlignmentRow = new SimpleAlignmentResultRow();
-                        // processedAlignmentRow.setIsotopePattern(alignmentRow.getIsotopePattern());
-                        processedAlignmentRow.addData(IsotopePattern.class,
-                                alignmentRow.getLastData(IsotopePattern.class));
-
-                        // Copy old peaks to new row
-                        for (OpenedRawDataFile loopOpenedRawDataFile : alignmentRow.getOpenedRawDataFiles()) {
-                            Peak p = alignmentRow.getPeak(loopOpenedRawDataFile);
-                            processedAlignmentRow.addPeak(loopOpenedRawDataFile, p);
-                        }
-
-                        // Construct new peaks from empty gaps and put them on same row
-                        Vector<EmptyGap> filledGaps = gapsForRow.get(alignmentRow);
-                        for (EmptyGap filledGap : filledGaps) {
-                            Peak p = filledGap.getEstimatedPeak();
-                            p.addData(IsotopePattern.class,
-                                    alignmentRow.getLastData(IsotopePattern.class));
-                            OpenedRawDataFile peakRawData = rawDataForGap.get(filledGap);
-                            processedAlignmentRow.addPeak(peakRawData, p);
-                        }
-
-                        // Add row to the new alignment result
-                        processedAlignmentResult.addRow(processedAlignmentRow);
-
-                    }
-
-                    // TODO: Add method and parameters to history of an alignment result
-
-                    // Add new alignment result to the project
-                    MZmineProject.getCurrentProject().addAlignmentResult(
-                            processedAlignmentResult);
-
-
-
-                }
-                */
-
-            }
-            
-
-    
     /**
      * @see net.sf.mzmine.modules.DataProcessingMethod#setupParameters(net.sf.mzmine.data.ParameterSet)
      */
@@ -277,68 +246,50 @@ public class SimpleGapFiller implements DataProcessingMethod, TaskListener,  Lis
             AlignmentResult[] alignmentResults, ParameterSet parameters,
             TaskGroupListener methodListener) {
 
-
         logger.info("Running " + toString() + " on " + alignmentResults.length
                 + " alignment results.");
 
-        
         /*
          * Loop rows of original alignment result For each row with some missing
          * peaks, generate "a working row" containing EmptyGap objects for each
          * missing peak
-         
-        OpenedRawDataFile[] rawDataFiles = originalAlignmentResult.getRawDataFiles();
-        int i = 0;
-        for (AlignmentResultRow alignmentRow : originalAlignmentResult.getRows()) {
+         * 
+         * OpenedRawDataFile[] rawDataFiles =
+         * originalAlignmentResult.getRawDataFiles(); int i = 0; for
+         * (AlignmentResultRow alignmentRow : originalAlignmentResult.getRows()) {
+         * 
+         * Vector<EmptyGap> gapsOfTheCurrentRow = gapsForRow.get(alignmentRow);
+         * if (gapsOfTheCurrentRow == null) { gapsOfTheCurrentRow = new Vector<EmptyGap>();
+         * gapsForRow.put(alignmentRow, gapsOfTheCurrentRow); }
+         * 
+         * double mz = alignmentRow.getAverageMZ(); double rt =
+         * alignmentRow.getAverageRT(); for (OpenedRawDataFile openedRawDataFile :
+         * rawDataFiles) { if (alignmentRow.getPeak(openedRawDataFile) == null) {
+         * EmptyGap emptyGap = new EmptyGap(mz, rt, parameters);
+         * 
+         * Vector<EmptyGap> emptyGaps = gapsForRawData.get(openedRawDataFile);
+         * if (emptyGaps == null) { emptyGaps = new Vector<EmptyGap>();
+         * gapsForRawData.put(openedRawDataFile, emptyGaps); }
+         * emptyGaps.add(emptyGap);
+         * 
+         * rawDataForGap.put(emptyGap, openedRawDataFile);
+         * gapsOfTheCurrentRow.add(emptyGap);
+         *  } } i++; }
+         *  // Start a task for filling gaps in each raw data file
+         * 
+         * startedTasks = new Vector<Task>(); completedTasks = new Vector<Task>();
+         * for (OpenedRawDataFile openedRawDataFile : rawDataFiles) {
+         * 
+         * Vector<EmptyGap> emptyGapsV = gapsForRawData.get(openedRawDataFile);
+         * if (emptyGapsV == null) continue; if (emptyGapsV.size() == 0)
+         * continue; EmptyGap[] emptyGaps = emptyGapsV.toArray(new EmptyGap[0]);
+         * 
+         * Task gapFillingTask = new SimpleGapFillerTask(openedRawDataFile,
+         * emptyGaps, parameters); startedTasks.add(gapFillingTask);
+         * taskController.addTask(gapFillingTask, this);
+         *  }
+         */
 
-            Vector<EmptyGap> gapsOfTheCurrentRow = gapsForRow.get(alignmentRow);
-            if (gapsOfTheCurrentRow == null) {
-                gapsOfTheCurrentRow = new Vector<EmptyGap>();
-                gapsForRow.put(alignmentRow, gapsOfTheCurrentRow);
-            }
-
-            double mz = alignmentRow.getAverageMZ();
-            double rt = alignmentRow.getAverageRT();
-            for (OpenedRawDataFile openedRawDataFile : rawDataFiles) {
-                if (alignmentRow.getPeak(openedRawDataFile) == null) {
-                    EmptyGap emptyGap = new EmptyGap(mz, rt, parameters);
-
-                    Vector<EmptyGap> emptyGaps = gapsForRawData.get(openedRawDataFile);
-                    if (emptyGaps == null) {
-                        emptyGaps = new Vector<EmptyGap>();
-                        gapsForRawData.put(openedRawDataFile, emptyGaps);
-                    }
-                    emptyGaps.add(emptyGap);
-
-                    rawDataForGap.put(emptyGap, openedRawDataFile);
-                    gapsOfTheCurrentRow.add(emptyGap);
-
-                }
-            }
-            i++;
-        }
-        
-        // Start a task for filling gaps in each raw data file
-
-        startedTasks = new Vector<Task>();
-        completedTasks = new Vector<Task>();
-        for (OpenedRawDataFile openedRawDataFile : rawDataFiles) {
-
-            Vector<EmptyGap> emptyGapsV = gapsForRawData.get(openedRawDataFile);
-            if (emptyGapsV == null)
-                continue;
-            if (emptyGapsV.size() == 0)
-                continue;
-            EmptyGap[] emptyGaps = emptyGapsV.toArray(new EmptyGap[0]);
-
-            Task gapFillingTask = new SimpleGapFillerTask(openedRawDataFile,
-                    emptyGaps, parameters);
-            startedTasks.add(gapFillingTask);
-            taskController.addTask(gapFillingTask, this);
-
-        }
-        */
-        
         return null;
 
     }

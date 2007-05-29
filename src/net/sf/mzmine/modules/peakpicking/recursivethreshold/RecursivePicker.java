@@ -50,7 +50,7 @@ import net.sf.mzmine.userinterface.dialogs.ExitCode;
 import net.sf.mzmine.userinterface.dialogs.ParameterSetupDialog;
 
 public class RecursivePicker implements DataProcessingMethod, TaskListener,
-        ListSelectionListener, ActionListener {
+        ActionListener {
 
     public static final NumberFormat percentFormat = NumberFormat.getPercentInstance();
 
@@ -107,7 +107,6 @@ public class RecursivePicker implements DataProcessingMethod, TaskListener,
 
     private TaskController taskController;
     private Desktop desktop;
-    private JMenuItem myMenuItem;
 
     /**
      * @see net.sf.mzmine.main.MZmineModule#initModule(net.sf.mzmine.main.MZmineCore)
@@ -122,11 +121,9 @@ public class RecursivePicker implements DataProcessingMethod, TaskListener,
                 minimumPeakDuration, minimumMZPeakWidth, maximumMZPeakWidth,
                 mzTolerance, intTolerance });
 
-        myMenuItem = desktop.addMenuItem(MZmineMenu.PEAKPICKING,
+        desktop.addMenuItem(MZmineMenu.PEAKPICKING,
                 "Recursive threshold peak detector", this, null, KeyEvent.VK_R,
-                false, false);
-
-        desktop.addSelectionListener(this);
+                false, true);
 
     }
 
@@ -138,20 +135,19 @@ public class RecursivePicker implements DataProcessingMethod, TaskListener,
      * @see java.awt.event.ActionListener#actionPerformed(java.awt.event.ActionEvent)
      */
     public void actionPerformed(ActionEvent e) {
-        if (e.getSource() == myMenuItem) {
-            ParameterSet param = setupParameters(parameters);
-            if (param == null)
-                return;
-            OpenedRawDataFile[] dataFiles = desktop.getSelectedDataFiles();
-            runMethod(dataFiles, null, param, null);
-        }
-    }
 
-    /**
-     * @see javax.swing.event.ListSelectionListener#valueChanged(javax.swing.event.ListSelectionEvent)
-     */
-    public void valueChanged(ListSelectionEvent e) {
-        myMenuItem.setEnabled(desktop.isDataFileSelected());
+        OpenedRawDataFile[] dataFiles = desktop.getSelectedDataFiles();
+        if (dataFiles.length == 0) {
+            desktop.displayErrorMessage("Please select at least one data file");
+            return;
+        }
+
+        ParameterSet param = setupParameters(parameters);
+        if (param == null)
+            return;
+
+        runMethod(dataFiles, null, param, null);
+
     }
 
     public void taskStarted(Task task) {

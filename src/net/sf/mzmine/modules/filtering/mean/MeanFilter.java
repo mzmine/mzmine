@@ -52,7 +52,7 @@ import net.sf.mzmine.userinterface.dialogs.ParameterSetupDialog;
  * This class represent a method for filtering scans in raw data file with
  * moving average filter.
  */
-public class MeanFilter implements DataProcessingMethod, TaskListener, ListSelectionListener,
+public class MeanFilter implements DataProcessingMethod, TaskListener,
         ActionListener {
 
     public static final Parameter parameterOneSidedWindowLength = new SimpleParameter(
@@ -66,7 +66,6 @@ public class MeanFilter implements DataProcessingMethod, TaskListener, ListSelec
 
     private TaskController taskController;
     private Desktop desktop;
-    private JMenuItem myMenuItem;
 
     /**
      * @see net.sf.mzmine.main.MZmineModule#initModule(net.sf.mzmine.main.MZmineCore)
@@ -79,10 +78,8 @@ public class MeanFilter implements DataProcessingMethod, TaskListener, ListSelec
         parameters = new SimpleParameterSet(
                 new Parameter[] { parameterOneSidedWindowLength });
 
-        myMenuItem = desktop.addMenuItem(MZmineMenu.FILTERING,
-                "Mean filter spectra", this, null, KeyEvent.VK_M, false, false);
-
-        desktop.addSelectionListener(this);
+        desktop.addMenuItem(MZmineMenu.FILTERING, "Mean filter spectra", this,
+                null, KeyEvent.VK_M, false, true);
 
     }
 
@@ -90,20 +87,19 @@ public class MeanFilter implements DataProcessingMethod, TaskListener, ListSelec
      * @see java.awt.event.ActionListener#actionPerformed(java.awt.event.ActionEvent)
      */
     public void actionPerformed(ActionEvent e) {
-        if (e.getSource() == myMenuItem) {
-            ParameterSet param = setupParameters(parameters);
-            if (param == null)
-                return;
-            OpenedRawDataFile[] dataFiles = desktop.getSelectedDataFiles();
-            runMethod(dataFiles, null, param, null);
-        }
-    }
 
-    /**
-     * @see javax.swing.event.ListSelectionListener#valueChanged(javax.swing.event.ListSelectionEvent)
-     */
-    public void valueChanged(ListSelectionEvent e) {
-        myMenuItem.setEnabled(desktop.isDataFileSelected());
+        OpenedRawDataFile[] dataFiles = desktop.getSelectedDataFiles();
+        if (dataFiles.length == 0) {
+            desktop.displayErrorMessage("Please select at least one data file");
+            return;
+        }
+
+        ParameterSet param = setupParameters(parameters);
+        if (param == null)
+            return;
+
+        runMethod(dataFiles, null, param, null);
+
     }
 
     /**
@@ -141,12 +137,12 @@ public class MeanFilter implements DataProcessingMethod, TaskListener, ListSelec
         for (int i = 0; i < dataFiles.length; i++) {
             tasks[i] = new MeanFilterTask(dataFiles[i], parameters);
         }
-        TaskGroup newSequence = new TaskGroup(tasks, this,
-                methodListener, taskController);
+        TaskGroup newSequence = new TaskGroup(tasks, this, methodListener,
+                taskController);
 
         // execute the sequence
         newSequence.run();
-        
+
         return newSequence;
 
     }

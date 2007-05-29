@@ -48,7 +48,7 @@ import net.sf.mzmine.userinterface.Desktop.MZmineMenu;
 import net.sf.mzmine.userinterface.dialogs.ExitCode;
 import net.sf.mzmine.userinterface.dialogs.ParameterSetupDialog;
 
-public class CMFilter implements DataProcessingMethod, TaskListener, ListSelectionListener,
+public class CMFilter implements DataProcessingMethod, TaskListener,
         ActionListener {
 
     public static final Parameter parameterOneSidedWindowLength = new SimpleParameter(
@@ -67,7 +67,6 @@ public class CMFilter implements DataProcessingMethod, TaskListener, ListSelecti
 
     private TaskController taskController;
     private Desktop desktop;
-    private JMenuItem myMenuItem;
 
     /**
      * @see net.sf.mzmine.main.MZmineModule#initModule(net.sf.mzmine.main.MZmineCore)
@@ -80,11 +79,9 @@ public class CMFilter implements DataProcessingMethod, TaskListener, ListSelecti
         parameters = new SimpleParameterSet(new Parameter[] {
                 parameterOneSidedWindowLength, parameterMZTolerance });
 
-        myMenuItem = desktop.addMenuItem(MZmineMenu.FILTERING,
+        desktop.addMenuItem(MZmineMenu.FILTERING,
                 "Chromatographic median filter", this, null, KeyEvent.VK_H,
-                false, false);
-
-        desktop.addSelectionListener(this);
+                false, true);
 
     }
 
@@ -92,20 +89,19 @@ public class CMFilter implements DataProcessingMethod, TaskListener, ListSelecti
      * @see java.awt.event.ActionListener#actionPerformed(java.awt.event.ActionEvent)
      */
     public void actionPerformed(ActionEvent e) {
-        if (e.getSource() == myMenuItem) {
-            ParameterSet param = setupParameters(parameters);
-            if (param == null)
-                return;
-            OpenedRawDataFile[] dataFiles = desktop.getSelectedDataFiles();
-            runMethod(dataFiles, null, param, null);
-        }
-    }
 
-    /**
-     * @see javax.swing.event.ListSelectionListener#valueChanged(javax.swing.event.ListSelectionEvent)
-     */
-    public void valueChanged(ListSelectionEvent e) {
-        myMenuItem.setEnabled(desktop.isDataFileSelected());
+        OpenedRawDataFile[] dataFiles = desktop.getSelectedDataFiles();
+        if (dataFiles.length == 0) {
+            desktop.displayErrorMessage("Please select at least one data file");
+            return;
+        }
+
+        ParameterSet param = setupParameters(parameters);
+        if (param == null)
+            return;
+
+        runMethod(dataFiles, null, param, null);
+
     }
 
     /**
@@ -143,12 +139,12 @@ public class CMFilter implements DataProcessingMethod, TaskListener, ListSelecti
         for (int i = 0; i < dataFiles.length; i++) {
             tasks[i] = new CMFilterTask(dataFiles[i], parameters);
         }
-        TaskGroup newSequence = new TaskGroup(tasks, this,
-                methodListener, taskController);
+        TaskGroup newSequence = new TaskGroup(tasks, this, methodListener,
+                taskController);
 
         // execute the sequence
         newSequence.run();
-        
+
         return newSequence;
 
     }

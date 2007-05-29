@@ -41,15 +41,12 @@ import net.sf.mzmine.util.CollectionUtils;
 /**
  * Neutral loss (MS/MS) visualizer using JFreeChart library
  */
-public class NeutralLossVisualizer implements MZmineModule, ActionListener,
-        ListSelectionListener {
+public class NeutralLossVisualizer implements MZmineModule, ActionListener {
 
     private Logger logger = Logger.getLogger(this.getClass().getName());
 
     private TaskController taskController;
     private Desktop desktop;
-
-    private JMenuItem nlMenuItem;
 
     /**
      * @see net.sf.mzmine.main.MZmineModule#initModule(net.sf.mzmine.main.MZmineCore)
@@ -59,9 +56,8 @@ public class NeutralLossVisualizer implements MZmineModule, ActionListener,
         this.taskController = core.getTaskController();
         this.desktop = core.getDesktop();
 
-        nlMenuItem = desktop.addMenuItem(MZmineMenu.VISUALIZATION,
-                "Neutral loss", this, null, KeyEvent.VK_N, false, false);
-        desktop.addSelectionListener(this);
+        desktop.addMenuItem(MZmineMenu.VISUALIZATION, "Neutral loss", this,
+                null, KeyEvent.VK_N, false, true);
 
     }
 
@@ -73,12 +69,16 @@ public class NeutralLossVisualizer implements MZmineModule, ActionListener,
         logger.finest("Opening a new neutral loss visualizer setup dialog");
 
         OpenedRawDataFile dataFiles[] = desktop.getSelectedDataFiles();
+        if (dataFiles.length == 0) {
+            desktop.displayErrorMessage("Please select at least one data file");
+            return;
+        }
 
         for (OpenedRawDataFile dataFile : dataFiles) {
             int msLevels[] = dataFile.getCurrentFile().getMSLevels();
             final int neededMSLevels[] = { 1, 2 };
-            
-            if (! CollectionUtils.isSubset(msLevels, neededMSLevels)) {
+
+            if (!CollectionUtils.isSubset(msLevels, neededMSLevels)) {
                 desktop.displayErrorMessage("File " + dataFile
                         + " does not contain data for MS levels 1 and 2.");
                 continue;
@@ -88,13 +88,6 @@ public class NeutralLossVisualizer implements MZmineModule, ActionListener,
             setupDialog.setVisible(true);
         }
 
-    }
-
-    /**
-     * @see javax.swing.event.ListSelectionListener#valueChanged(javax.swing.event.ListSelectionEvent)
-     */
-    public void valueChanged(ListSelectionEvent e) {
-        nlMenuItem.setEnabled(desktop.isDataFileSelected());
     }
 
     /**
@@ -116,6 +109,5 @@ public class NeutralLossVisualizer implements MZmineModule, ActionListener,
      */
     public void setParameters(ParameterSet parameterValues) {
     }
-
 
 }

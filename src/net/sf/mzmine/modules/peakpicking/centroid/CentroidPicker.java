@@ -54,7 +54,7 @@ import net.sf.mzmine.userinterface.dialogs.ParameterSetupDialog;
  * each spectra
  */
 public class CentroidPicker implements DataProcessingMethod, TaskListener,
-        ListSelectionListener, ActionListener {
+        ActionListener {
 
     public static final NumberFormat percentFormat = NumberFormat.getPercentInstance();
 
@@ -101,7 +101,6 @@ public class CentroidPicker implements DataProcessingMethod, TaskListener,
 
     private TaskController taskController;
     private Desktop desktop;
-    private JMenuItem myMenuItem;
 
     /**
      * @see net.sf.mzmine.main.MZmineModule#initModule(net.sf.mzmine.main.MZmineCore)
@@ -115,11 +114,8 @@ public class CentroidPicker implements DataProcessingMethod, TaskListener,
                 chromatographicThresholdLevel, noiseLevel, minimumPeakHeight,
                 minimumPeakDuration, mzTolerance, intTolerance });
 
-        myMenuItem = desktop.addMenuItem(MZmineMenu.PEAKPICKING,
-                "Centroid peak detector", this, null, KeyEvent.VK_C, false,
-                false);
-
-        desktop.addSelectionListener(this);
+        desktop.addMenuItem(MZmineMenu.PEAKPICKING, "Centroid peak detector",
+                this, null, KeyEvent.VK_C, false, true);
 
     }
 
@@ -131,20 +127,19 @@ public class CentroidPicker implements DataProcessingMethod, TaskListener,
      * @see java.awt.event.ActionListener#actionPerformed(java.awt.event.ActionEvent)
      */
     public void actionPerformed(ActionEvent e) {
-        if (e.getSource() == myMenuItem) {
-            ParameterSet param = setupParameters(parameters);
-            if (param == null)
-                return;
-            OpenedRawDataFile[] dataFiles = desktop.getSelectedDataFiles();
-            runMethod(dataFiles, null, param, null);
-        }
-    }
 
-    /**
-     * @see javax.swing.event.ListSelectionListener#valueChanged(javax.swing.event.ListSelectionEvent)
-     */
-    public void valueChanged(ListSelectionEvent e) {
-        myMenuItem.setEnabled(desktop.isDataFileSelected());
+        OpenedRawDataFile[] dataFiles = desktop.getSelectedDataFiles();
+        if (dataFiles.length == 0) {
+            desktop.displayErrorMessage("Please select at least one data file");
+            return;
+        }
+
+        ParameterSet param = setupParameters(parameters);
+        if (param == null)
+            return;
+
+        runMethod(dataFiles, null, param, null);
+
     }
 
     public void taskStarted(Task task) {
@@ -235,8 +230,8 @@ public class CentroidPicker implements DataProcessingMethod, TaskListener,
         for (int i = 0; i < dataFiles.length; i++) {
             tasks[i] = new CentroidPickerTask(dataFiles[i], parameters);
         }
-        TaskGroup newSequence = new TaskGroup(tasks, this,
-                methodListener, taskController);
+        TaskGroup newSequence = new TaskGroup(tasks, this, methodListener,
+                taskController);
 
         // execute the sequence
         newSequence.run();
