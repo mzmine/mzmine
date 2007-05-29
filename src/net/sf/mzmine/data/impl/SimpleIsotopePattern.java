@@ -29,10 +29,9 @@ import net.sf.mzmine.io.OpenedRawDataFile;
 /**
  * 
  */
-public class SimpleIsotopePattern implements
-        IsotopePattern {
+public class SimpleIsotopePattern implements IsotopePattern {
 
-    private int charge;
+    private int charge = UNKNOWN_CHARGE;
     private Set<Peak> peaks;
     private Peak representativePeak;
 

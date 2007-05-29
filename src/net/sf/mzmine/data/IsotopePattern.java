@@ -25,6 +25,8 @@ package net.sf.mzmine.data;
  */
 public interface IsotopePattern extends Peak {
 
+    public static final int UNKNOWN_CHARGE = -1;
+    
     /**
      * Returns peaks that form this isotopic pattern
      */
