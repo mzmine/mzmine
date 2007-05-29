@@ -4,41 +4,43 @@ Code
 * Import & export for parameter values
 - Save/load values to/from config.xml at exit/startup already works, so this is quick to add.
 
-* Statistical plots
+
+* Data analysis
 - Visualizers for ploting alignment results are missing. 
+
 
 * Standard compound normalizer
 - Instead of the old simple standard compound normalizer, we should implement also the new NOMIS method.
 
+
 * Finish raw data visualizers
-- At least 2D visualizer is not yet finished. It should show detected peaks on top of the visualization.
+- 2D visualizer is not yet finished. It should show detected peaks on top of the visualization.
 - TIC, Spectra and 2D visualizer need a common dialog to set X/Y axis range
+- "Set same axis range to other visualizers" menu item
 - 3D-visualizer needs a setting for peak annotation threshold (annotate only peaks above given level), threshold in % or absolute
 - TIC/2D/3D visualizer setup dialog should remember last range values and offer either default values (depending on file) or last values
 - Datasets of JFreeChart library have to be updated in swing event-dispatching thread, otherwise exceptions can be thrown
+- From raw data it should be possible to find nearest peak to cursor position and show it on a peak list and available alignment results
+- Update visualizers after data or peak list has been modified.
 
-* Peak list and alignment result table views
-- Proper formatting to all columns
-- Peak list should have capability for deleting bad peaks
-- These visualizers could be merged in the future
-- User should be able to write&edit comments to peaks
+
+* Alignment result table visualizer
+- Proper formatting to all columns, remember column selection and column width in configuration
+- Display isotope pattern and charge of deisotoped peaks
+- Deleting bad peaks
+- Merge with peak list visualizer
+- Export and print using JFreeReport library
+
 
 * From peak list & alignment result table it should be possible to open raw data visualizers showing the detected or estimated peak:
 - 2D visualizer with an overview of the region around the peak
 - Spectrum showing scan at the highest position of the peak 
 - XIC with area for the peak shaded (new feature)
 
-* From raw data it should be possible to find nearest peak to cursor position and show it on a peak list and available alignment results.
-
-* Update visualizers after data or peak list has been modified.
-- Currently it is necessary to open another visualizer to show updated data
-- It should be possible to add a listener to a data file and get a notification when data file is changed
-
-* Design and implementation of isotope pattern information handling needs to be re-thinked
-- Especially the IsotopePatternUtils class is quite confusing right now.
 
 * Each module should provide a detailed description of all its parameters. 
 - Parameter descriptions should be detailed enough to make software understandable.
+
 
 * IO
 - When reading scans the IO should autodetect whether scan is centroided or continuous
@@ -47,13 +49,13 @@ Code
 - Keep scan headers in memory (scan number, retention time, mass range etc.)
 - Write mz/intensity data to a very simple temporary binary data file, from which the data can be quickly loaded when needed
 
+
 * Peak picking
-- Peak should include peak duration
 - Peak picking method should limit detected peaks with minimum/maximum duration
+- Check the algorithm for calculating peak area
 
 
 * User interface
-- Remember last opened directory as desktop parameter
 - Copy/paste
 - Printing
 - Undo
@@ -63,12 +65,16 @@ Code
 - User should be able to define experimental parameters in the project and set their values for each data file (e.g. sample concentration, injection volume etc.)
 - The IntensityPlot should be able to use parameter values for X axis (e.g. plot peak intensity dependance on sample amount)
 
-Other
 
+* Compound identification
+- Implement basic identification methods using KEGG/PubChem/custom database
+- Implement in-source fragment identification
+- Display identification results in alignment result visualizer
+
+
+Other
 
 * Write documentation for the new code
 
 * Rewrite User's manual.
-
-
 
