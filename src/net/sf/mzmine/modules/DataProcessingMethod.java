@@ -19,7 +19,7 @@
 
 package net.sf.mzmine.modules;
 
-import net.sf.mzmine.data.AlignmentResult;
+import net.sf.mzmine.data.PeakList;
 import net.sf.mzmine.data.ParameterSet;
 import net.sf.mzmine.io.OpenedRawDataFile;
 import net.sf.mzmine.main.MZmineModule;
@@ -50,7 +50,7 @@ public interface DataProcessingMethod extends MZmineModule {
      * 
      */
     public TaskGroup runMethod(OpenedRawDataFile[] dataFiles,
-            AlignmentResult[] alignmentResults, ParameterSet parameters,
+            PeakList[] alignmentResults, ParameterSet parameters,
             TaskGroupListener methodListener);
 
 }

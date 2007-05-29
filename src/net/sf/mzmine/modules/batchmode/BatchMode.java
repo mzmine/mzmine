@@ -25,7 +25,7 @@ import java.awt.event.KeyEvent;
 import java.util.Vector;
 import java.util.logging.Logger;
 
-import net.sf.mzmine.data.AlignmentResult;
+import net.sf.mzmine.data.PeakList;
 import net.sf.mzmine.data.ParameterSet;
 import net.sf.mzmine.io.OpenedRawDataFile;
 import net.sf.mzmine.main.MZmineCore;
@@ -139,10 +139,10 @@ public class BatchMode implements MZmineModule, TaskGroupListener,
         BatchStep newStep = currentBatchSteps.get(currentStep);
         DataProcessingMethod method = newStep.getMethod();
 
-        AlignmentResult[] lastResultOnly = null;
-        AlignmentResult[] allResults = MZmineProject.getCurrentProject().getAlignmentResults();
+        PeakList[] lastResultOnly = null;
+        PeakList[] allResults = MZmineProject.getCurrentProject().getAlignmentResults();
         if (allResults.length > 0)
-            lastResultOnly = new AlignmentResult[] { allResults[allResults.length - 1] };
+            lastResultOnly = new PeakList[] { allResults[allResults.length - 1] };
 
         TaskGroup newSequence = method.runMethod(selectedDataFiles,
                 lastResultOnly, newStep.getParameters(), this);

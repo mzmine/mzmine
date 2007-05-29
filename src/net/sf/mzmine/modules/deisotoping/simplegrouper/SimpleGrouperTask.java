@@ -20,16 +20,15 @@
 package net.sf.mzmine.modules.deisotoping.simplegrouper;
 
 import java.util.Arrays;
-import java.util.Comparator;
 import java.util.Hashtable;
 
-import net.sf.mzmine.data.IsotopePattern;
 import net.sf.mzmine.data.ParameterSet;
 import net.sf.mzmine.data.Peak;
 import net.sf.mzmine.data.PeakList;
+import net.sf.mzmine.data.PeakListRow;
 import net.sf.mzmine.data.impl.SimpleIsotopePattern;
-import net.sf.mzmine.data.impl.SimplePeak;
 import net.sf.mzmine.data.impl.SimplePeakList;
+import net.sf.mzmine.data.impl.SimplePeakListRow;
 import net.sf.mzmine.io.OpenedRawDataFile;
 import net.sf.mzmine.taskcontrol.Task;
 
@@ -141,7 +140,7 @@ class SimpleGrouperTask implements Task {
         for (int i = 0; i < maximumCharge; i++)
             charges[i] = (i + 1);
 
-        Peak[] sortedPeaks = currentPeakList.getPeaks();
+        Peak[] sortedPeaks = currentPeakList.getPeaks(dataFile);
         Arrays.sort(sortedPeaks, new PeakSorterByDescendingHeight());
 
         // Loop through all peaks in the order of descending intensity
@@ -195,8 +194,11 @@ class SimpleGrouperTask implements Task {
                     maxHeight = p.getHeight();
                 }
             }
-            processedPeakList.addPeak(isotopePattern);
-
+            SimplePeakListRow newRow = new SimplePeakListRow();
+            
+            newRow.addPeak(dataFile, isotopePattern,isotopePattern);
+            
+            processedPeakList.addRow(newRow);
             for (Integer ind2 : bestFitPeaks.values()) {
                 sortedPeaks[ind2] = null;
             }

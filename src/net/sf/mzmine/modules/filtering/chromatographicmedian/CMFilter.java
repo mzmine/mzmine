@@ -24,13 +24,9 @@ import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
 import java.util.logging.Logger;
 
-import javax.swing.JMenuItem;
-import javax.swing.event.ListSelectionEvent;
-import javax.swing.event.ListSelectionListener;
-
-import net.sf.mzmine.data.AlignmentResult;
 import net.sf.mzmine.data.Parameter;
 import net.sf.mzmine.data.ParameterSet;
+import net.sf.mzmine.data.PeakList;
 import net.sf.mzmine.data.Parameter.ParameterType;
 import net.sf.mzmine.data.impl.SimpleParameter;
 import net.sf.mzmine.data.impl.SimpleParameterSet;
@@ -131,7 +127,7 @@ public class CMFilter implements DataProcessingMethod, TaskListener,
      *      net.sf.mzmine.taskcontrol.TaskGroupListener)
      */
     public TaskGroup runMethod(OpenedRawDataFile[] dataFiles,
-            AlignmentResult[] alignmentResults, ParameterSet parameters,
+            PeakList[] alignmentResults, ParameterSet parameters,
             TaskGroupListener methodListener) {
 
         // prepare a new sequence of tasks

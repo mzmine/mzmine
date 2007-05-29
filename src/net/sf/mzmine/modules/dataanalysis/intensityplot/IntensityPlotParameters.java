@@ -21,8 +21,8 @@ package net.sf.mzmine.modules.dataanalysis.intensityplot;
 
 import java.util.logging.Logger;
 
-import net.sf.mzmine.data.AlignmentResult;
-import net.sf.mzmine.data.AlignmentResultRow;
+import net.sf.mzmine.data.PeakList;
+import net.sf.mzmine.data.PeakListRow;
 import net.sf.mzmine.data.Parameter;
 import net.sf.mzmine.data.ParameterSet;
 import net.sf.mzmine.io.OpenedRawDataFile;
@@ -38,19 +38,19 @@ class IntensityPlotParameters implements ParameterSet {
     public static final String PeakAreaOption = "Peak area";
     public static final String PeakRTOption = "Peak retention time";
 
-    private AlignmentResult sourceAlignmentResult;
+    private PeakList sourcePeakList;
 
     private Object xAxisValueSource;
     private Object yAxisValueSource;
 
     private OpenedRawDataFile selectedDataFiles[];
-    private AlignmentResultRow selectedRows[];
+    private PeakListRow selectedRows[];
 
     IntensityPlotParameters() {
     }
 
-    IntensityPlotParameters(AlignmentResult sourceAlignmentResult) {
-        this.sourceAlignmentResult = sourceAlignmentResult;
+    IntensityPlotParameters(PeakList sourcePeakList) {
+        this.sourcePeakList = sourcePeakList;
     }
 
     /**
@@ -59,11 +59,11 @@ class IntensityPlotParameters implements ParameterSet {
      * @param datafiles
      * @param selectedRows
      */
-    IntensityPlotParameters(AlignmentResult sourceAlignmentResult,
+    IntensityPlotParameters(PeakList sourcePeakList,
             Object xAxisValueSource, Object yAxisValueSource,
             OpenedRawDataFile[] selectedDataFiles,
-            AlignmentResultRow[] selectedRows) {
-        this.sourceAlignmentResult = sourceAlignmentResult;
+            PeakListRow[] selectedRows) {
+        this.sourcePeakList = sourcePeakList;
         this.xAxisValueSource = xAxisValueSource;
         this.yAxisValueSource = yAxisValueSource;
         this.selectedDataFiles = selectedDataFiles;
@@ -87,29 +87,29 @@ class IntensityPlotParameters implements ParameterSet {
     /**
      * @return Returns the selectedRows.
      */
-    AlignmentResultRow[] getSelectedRows() {
+    PeakListRow[] getSelectedRows() {
         return selectedRows;
     }
 
     /**
      * @param selectedRows The selectedRows to set.
      */
-    void setSelectedRows(AlignmentResultRow[] selectedRows) {
+    void setSelectedRows(PeakListRow[] selectedRows) {
         this.selectedRows = selectedRows;
     }
 
     /**
-     * @return Returns the sourceAlignmentResult.
+     * @return Returns the sourcePeakList.
      */
-    AlignmentResult getSourceAlignmentResult() {
-        return sourceAlignmentResult;
+    PeakList getSourcePeakList() {
+        return sourcePeakList;
     }
 
     /**
-     * @param sourceAlignmentResult The sourceAlignmentResult to set.
+     * @param sourcePeakList The sourcePeakList to set.
      */
-    void setSourceAlignmentResult(AlignmentResult sourceAlignmentResult) {
-        this.sourceAlignmentResult = sourceAlignmentResult;
+    void setSourcePeakList(PeakList sourcePeakList) {
+        this.sourcePeakList = sourcePeakList;
     }
 
     /**
@@ -162,7 +162,7 @@ class IntensityPlotParameters implements ParameterSet {
      * @see net.sf.mzmine.data.ParameterSet#clone()
      */
     public IntensityPlotParameters clone() {
-        return new IntensityPlotParameters(sourceAlignmentResult,
+        return new IntensityPlotParameters(sourcePeakList,
                 xAxisValueSource, yAxisValueSource, selectedDataFiles,
                 selectedRows);
     }

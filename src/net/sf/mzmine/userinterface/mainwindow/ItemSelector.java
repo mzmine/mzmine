@@ -28,14 +28,13 @@ import java.awt.event.MouseListener;
 
 import javax.swing.DefaultListModel;
 import javax.swing.JLabel;
-import javax.swing.JList;
 import javax.swing.JPanel;
 import javax.swing.JPopupMenu;
 import javax.swing.JScrollPane;
 import javax.swing.JSplitPane;
 import javax.swing.event.ListSelectionListener;
 
-import net.sf.mzmine.data.AlignmentResult;
+import net.sf.mzmine.data.PeakList;
 import net.sf.mzmine.io.OpenedRawDataFile;
 import net.sf.mzmine.project.MZmineProject;
 import net.sf.mzmine.userinterface.Desktop;
@@ -76,7 +75,7 @@ public class ItemSelector extends JPanel implements MouseListener,
 
         // Create panel for alignment results
         JPanel resultsPanel = new JPanel();
-        JLabel resultsTitle = new JLabel(new String("Alignment results"));
+        JLabel resultsTitle = new JLabel("Aligned peak lists");
 
         resultObjects = new DefaultListModel();
         resultList = new DragOrderedJList(resultObjects);
@@ -211,28 +210,28 @@ public class ItemSelector extends JPanel implements MouseListener,
     // METHODS FOR MAINTAINING LIST OF RESULTS
     // ---------------------------------------
 
-    public void addAlignmentResult(AlignmentResult a) {
+    public void addAlignmentResult(PeakList a) {
         resultObjects.addElement(a);
     }
 
-    public boolean removeAlignmentResult(AlignmentResult a) {
+    public boolean removeAlignmentResult(PeakList a) {
         boolean ans = resultObjects.removeElement(a);
         return ans;
     }
 
-    public void replaceAlignmentResult(AlignmentResult oldResult,
-            AlignmentResult newResult) {
+    public void replaceAlignmentResult(PeakList oldResult,
+            PeakList newResult) {
         resultObjects.setElementAt(newResult, resultObjects.indexOf(oldResult));
     }
 
-    public AlignmentResult[] getSelectedAlignmentResults() {
+    public PeakList[] getSelectedAlignmentResults() {
 
         Object o[] = resultList.getSelectedValues();
 
-        AlignmentResult res[] = new AlignmentResult[o.length];
+        PeakList res[] = new PeakList[o.length];
 
         for (int i = 0; i < o.length; i++) {
-            res[i] = (AlignmentResult) (o[i]);
+            res[i] = (PeakList) (o[i]);
         }
 
         return res;
@@ -242,11 +241,11 @@ public class ItemSelector extends JPanel implements MouseListener,
     /**
      * Returns first selected raw data file
      */
-    public AlignmentResult getFirstSelectedAlignmentResult() {
-        return (AlignmentResult) resultList.getSelectedValue();
+    public PeakList getFirstSelectedAlignmentResult() {
+        return (PeakList) resultList.getSelectedValue();
     }
 
-    public void setActiveAlignmentResult(AlignmentResult ar) {
+    public void setActiveAlignmentResult(PeakList ar) {
         resultList.setSelectedValue(ar, true);
     }
 

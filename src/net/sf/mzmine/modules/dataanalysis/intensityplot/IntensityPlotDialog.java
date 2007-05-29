@@ -39,11 +39,11 @@ import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.ScrollPaneConstants;
 
-import net.sf.mzmine.data.AlignmentResult;
-import net.sf.mzmine.data.AlignmentResultRow;
+import net.sf.mzmine.data.PeakList;
+import net.sf.mzmine.data.PeakListRow;
 import net.sf.mzmine.io.OpenedRawDataFile;
 import net.sf.mzmine.main.MZmineCore;
-import net.sf.mzmine.userinterface.components.AlignmentRowCheckBox;
+import net.sf.mzmine.userinterface.components.PeakListRowCheckBox;
 import net.sf.mzmine.userinterface.components.DataFileCheckBox;
 import net.sf.mzmine.userinterface.dialogs.ExitCode;
 import net.sf.mzmine.util.GUIUtils;
@@ -55,18 +55,18 @@ class IntensityPlotDialog extends JDialog implements ActionListener {
     private ExitCode exitCode = ExitCode.CANCEL;
 
     private MZmineCore core;
-    private AlignmentResult alignmentResult;
+    private PeakList alignmentResult;
     private IntensityPlotParameters parameterSet;
 
     // dialog components
     private JComboBox xAxisValueSourceCombo, yAxisValueSourceCombo;
     private DataFileCheckBox rawDataFileCheckBoxes[];
-    private AlignmentRowCheckBox peakCheckBoxes[];
+    private PeakListRowCheckBox peakCheckBoxes[];
     private JButton btnSelectAllFiles, btnDeselectAllFiles, btnSelectAllPeaks,
             btnDeselectAllPeaks, btnOK, btnCancel;
 
     public IntensityPlotDialog(MZmineCore core,
-            AlignmentResult alignmentResult,
+            PeakList alignmentResult,
             IntensityPlotParameters parameterSet) {
 
         // make dialog modal
@@ -152,12 +152,12 @@ class IntensityPlotDialog extends JDialog implements ActionListener {
         peakCheckBoxesPanel.setBackground(Color.white);
         peakCheckBoxesPanel.setLayout(new BoxLayout(peakCheckBoxesPanel,
                 BoxLayout.Y_AXIS));
-        peakCheckBoxes = new AlignmentRowCheckBox[alignmentResult.getNumberOfRows()];
+        peakCheckBoxes = new PeakListRowCheckBox[alignmentResult.getNumberOfRows()];
         minimumHorizSize = 0;
-        AlignmentResultRow rows[] = alignmentResult.getRows();
+        PeakListRow rows[] = alignmentResult.getRows();
         Arrays.sort(rows, new AlignmentResultSorterByMZ());
         for (int i = 0; i < rows.length; i++) {
-            peakCheckBoxes[i] = new AlignmentRowCheckBox(rows[i]);
+            peakCheckBoxes[i] = new PeakListRowCheckBox(rows[i]);
             minimumHorizSize = Math.max(minimumHorizSize,
                     peakCheckBoxes[i].getPreferredWidth());
             peakCheckBoxesPanel.add(peakCheckBoxes[i]);
@@ -210,14 +210,14 @@ class IntensityPlotDialog extends JDialog implements ActionListener {
         if (src == btnOK) {
 
             Vector<OpenedRawDataFile> selectedFiles = new Vector<OpenedRawDataFile>();
-            Vector<AlignmentResultRow> selectedPeaks = new Vector<AlignmentResultRow>();
+            Vector<PeakListRow> selectedPeaks = new Vector<PeakListRow>();
 
             for (DataFileCheckBox box : rawDataFileCheckBoxes) {
                 if (box.isSelected())
                     selectedFiles.add(box.getDataFile());
             }
 
-            for (AlignmentRowCheckBox box : peakCheckBoxes) {
+            for (PeakListRowCheckBox box : peakCheckBoxes) {
                 if (box.isSelected())
                     selectedPeaks.add(box.getAlignmentRow());
             }
@@ -234,9 +234,9 @@ class IntensityPlotDialog extends JDialog implements ActionListener {
                 return;
             }
 
-            parameterSet.setSourceAlignmentResult(alignmentResult);
+            parameterSet.setSourcePeakList(alignmentResult);
             parameterSet.setSelectedDataFiles(selectedFiles.toArray(new OpenedRawDataFile[0]));
-            parameterSet.setSelectedRows(selectedPeaks.toArray(new AlignmentResultRow[0]));
+            parameterSet.setSelectedRows(selectedPeaks.toArray(new PeakListRow[0]));
             parameterSet.setXAxisValueSource(xAxisValueSourceCombo.getSelectedItem());
             parameterSet.setYAxisValueSource(yAxisValueSourceCombo.getSelectedItem());
 

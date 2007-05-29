@@ -22,7 +22,7 @@ package net.sf.mzmine.modules.dataanalysis.intensityplot;
 import java.util.ArrayList;
 import java.util.List;
 
-import net.sf.mzmine.data.AlignmentResultRow;
+import net.sf.mzmine.data.PeakListRow;
 import net.sf.mzmine.data.Peak;
 import net.sf.mzmine.io.OpenedRawDataFile;
 
@@ -37,7 +37,7 @@ class IntensityPlotDataset extends AbstractDataset implements CategoryDataset {
     private Object yAxisValueSource;
 
     private OpenedRawDataFile selectedFiles[];
-    private AlignmentResultRow selectedRows[];
+    private PeakListRow selectedRows[];
 
     IntensityPlotDataset(IntensityPlotParameters parameters) {
         this.yAxisValueSource = parameters.getYAxisValueSource();
@@ -61,7 +61,7 @@ class IntensityPlotDataset extends AbstractDataset implements CategoryDataset {
      */
     public List getRowKeys() {
         ArrayList<Object> rowKeys = new ArrayList<Object>();
-        for (AlignmentResultRow row : selectedRows) {
+        for (PeakListRow row : selectedRows) {
             rowKeys.add(row.toString());
         }
         return rowKeys;
@@ -166,7 +166,7 @@ class IntensityPlotDataset extends AbstractDataset implements CategoryDataset {
     /**
      * @see org.jfree.data.KeyedValues2D#getRowKey(int)
      */
-    public AlignmentResultRow getRow(int row) {
+    public PeakListRow getRow(int row) {
         return selectedRows[row];
     }
     

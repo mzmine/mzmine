@@ -21,7 +21,7 @@ package net.sf.mzmine.modules.alignment.join;
 
 import net.sf.mzmine.data.IsotopePattern;
 import net.sf.mzmine.data.Peak;
-import net.sf.mzmine.data.impl.SimpleAlignmentResultRow;
+import net.sf.mzmine.data.impl.SimplePeakListRow;
 
 /**
  * This class represents a score between master peak list row and isotope
@@ -29,12 +29,12 @@ import net.sf.mzmine.data.impl.SimpleAlignmentResultRow;
  */
 class PeakVsRowScore {
 
-    SimpleAlignmentResultRow masterListRow;
+    SimplePeakListRow masterListRow;
     PeakWrapper peak;
     double score = Double.MAX_VALUE;
     boolean goodEnough = false;
 
-    public PeakVsRowScore(SimpleAlignmentResultRow masterListRow, PeakWrapper peak,
+    public PeakVsRowScore(SimplePeakListRow masterListRow, PeakWrapper peak,
             double MZTolerance, boolean RTToleranceUseAbs,
             double RTToleranceValueAbs, double RTToleranceValuePercent,
             double MZvsRTBalance) {
@@ -80,7 +80,7 @@ class PeakVsRowScore {
     /**
      * This method return the master peak list that is compared in this score
      */
-    public SimpleAlignmentResultRow getRow() {
+    public SimplePeakListRow getRow() {
         return masterListRow;
     }
 

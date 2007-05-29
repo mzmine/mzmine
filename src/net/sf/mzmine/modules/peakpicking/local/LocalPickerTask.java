@@ -31,6 +31,7 @@ import net.sf.mzmine.data.Peak.PeakStatus;
 import net.sf.mzmine.data.impl.ConstructionPeak;
 import net.sf.mzmine.data.impl.SimpleIsotopePattern;
 import net.sf.mzmine.data.impl.SimplePeakList;
+import net.sf.mzmine.data.impl.SimplePeakListRow;
 import net.sf.mzmine.io.OpenedRawDataFile;
 import net.sf.mzmine.io.RawDataFile;
 import net.sf.mzmine.taskcontrol.Task;
@@ -331,7 +332,9 @@ class LocalPickerTask implements Task {
                         ucPeak.setPeakStatus(PeakStatus.DETECTED);
                         
                         //add it to the peak list
-                        readyPeakList.addPeak(ucPeak);
+                        SimplePeakListRow newRow = new SimplePeakListRow();
+                        newRow.addPeak(dataFile, ucPeak, ucPeak);
+                        readyPeakList.addRow(newRow);
                     }
 
                     // Remove the peak from under construction peaks
@@ -393,7 +396,9 @@ class LocalPickerTask implements Task {
                 ucPeak.setPeakStatus(PeakStatus.DETECTED);
                 
                 //add it to the peak list
-                readyPeakList.addPeak(ucPeak);
+                SimplePeakListRow newRow = new SimplePeakListRow();
+                newRow.addPeak(dataFile, ucPeak, ucPeak);
+                readyPeakList.addRow(newRow);
 
             }
 

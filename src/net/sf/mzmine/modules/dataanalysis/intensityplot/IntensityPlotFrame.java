@@ -55,7 +55,7 @@ class IntensityPlotFrame extends JInternalFrame {
         super("", true, true, true, true);
 
         String title = "Intensity plot ["
-                + parameters.getSourceAlignmentResult() + "]";
+                + parameters.getSourcePeakList() + "]";
         String xAxisLabel = parameters.getXAxisValueSource().toString();
         String yAxisLabel = parameters.getYAxisValueSource().toString();
 

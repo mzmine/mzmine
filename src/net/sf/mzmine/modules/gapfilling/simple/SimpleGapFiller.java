@@ -30,8 +30,8 @@ import javax.swing.JMenuItem;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
 
-import net.sf.mzmine.data.AlignmentResult;
-import net.sf.mzmine.data.AlignmentResultRow;
+import net.sf.mzmine.data.PeakList;
+import net.sf.mzmine.data.PeakList;
 import net.sf.mzmine.data.Parameter;
 import net.sf.mzmine.data.ParameterSet;
 import net.sf.mzmine.data.Parameter.ParameterType;
@@ -103,7 +103,7 @@ public class SimpleGapFiller implements DataProcessingMethod, TaskListener,
 
     // Maps an alignment row to an array of all empty gaps on that row. Used
     // when constructing new alignment result
-    private Hashtable<AlignmentResultRow, Vector<EmptyGap>> gapsForRow;
+    private Hashtable<PeakList, Vector<EmptyGap>> gapsForRow;
 
     // Maps raw data file to results of processing task (array of empty gaps)
     private Hashtable<OpenedRawDataFile, EmptyGap[]> resultsForRawData;
@@ -117,7 +117,7 @@ public class SimpleGapFiller implements DataProcessingMethod, TaskListener,
 
         gapsForRawData = new Hashtable<OpenedRawDataFile, Vector<EmptyGap>>();
         rawDataForGap = new Hashtable<EmptyGap, OpenedRawDataFile>();
-        gapsForRow = new Hashtable<AlignmentResultRow, Vector<EmptyGap>>();
+        gapsForRow = new Hashtable<PeakList, Vector<EmptyGap>>();
         resultsForRawData = new Hashtable<OpenedRawDataFile, EmptyGap[]>();
 
         parameters = new SimpleParameterSet(new Parameter[] { IntTolerance,
@@ -142,8 +142,8 @@ public class SimpleGapFiller implements DataProcessingMethod, TaskListener,
      */
     public void actionPerformed(ActionEvent e) {
 
-        AlignmentResult[] selectedAlignmentResults = desktop.getSelectedAlignmentResults();
-        if (selectedAlignmentResults.length < 1) {
+        PeakList[] selectedPeakLists = desktop.getSelectedAlignmentResults();
+        if (selectedPeakLists.length < 1) {
             desktop.displayErrorMessage("Please select alignment result");
             return;
         }
@@ -152,7 +152,7 @@ public class SimpleGapFiller implements DataProcessingMethod, TaskListener,
         if (param == null)
             return;
 
-        runMethod(null, selectedAlignmentResults, param, null);
+        runMethod(null, selectedPeakLists, param, null);
 
     }
 
@@ -180,14 +180,14 @@ public class SimpleGapFiller implements DataProcessingMethod, TaskListener,
          * startedTasks.size()) {
          *  // Yes, then construct new alignment result & copy opened raw data //
          * files from original alignment result to the new one
-         * processedAlignmentResult = new SimpleAlignmentResult( "Result from
+         * processedPeakList = new SimplePeakList( "Result from
          * gap-filling"); for (OpenedRawDataFile loopOpenedRawDataFile :
-         * originalAlignmentResult.getRawDataFiles()) {
-         * processedAlignmentResult.addOpenedRawDataFile(loopOpenedRawDataFile); }
-         *  // Add rows to the new alignment result for (AlignmentResultRow
-         * alignmentRow : originalAlignmentResult.getRows()) {
-         * SimpleAlignmentResultRow processedAlignmentRow = new
-         * SimpleAlignmentResultRow(); //
+         * originalPeakList.getRawDataFiles()) {
+         * processedPeakList.addOpenedRawDataFile(loopOpenedRawDataFile); }
+         *  // Add rows to the new alignment result for (PeakList
+         * alignmentRow : originalPeakList.getRows()) {
+         * SimplePeakList processedAlignmentRow = new
+         * SimplePeakList(); //
          * processedAlignmentRow.setIsotopePattern(alignmentRow.getIsotopePattern());
          * processedAlignmentRow.addData(IsotopePattern.class,
          * alignmentRow.getLastData(IsotopePattern.class));
@@ -203,12 +203,12 @@ public class SimpleGapFiller implements DataProcessingMethod, TaskListener,
          * peakRawData = rawDataForGap.get(filledGap);
          * processedAlignmentRow.addPeak(peakRawData, p); }
          *  // Add row to the new alignment result
-         * processedAlignmentResult.addRow(processedAlignmentRow);
+         * processedPeakList.addRow(processedAlignmentRow);
          *  }
          *  // TODO: Add method and parameters to history of an alignment result
          *  // Add new alignment result to the project
-         * MZmineProject.getCurrentProject().addAlignmentResult(
-         * processedAlignmentResult);
+         * MZmineProject.getCurrentProject().addPeakList(
+         * processedPeakList);
          * 
          * 
          *  }
@@ -238,12 +238,12 @@ public class SimpleGapFiller implements DataProcessingMethod, TaskListener,
 
     /**
      * @see net.sf.mzmine.modules.DataProcessingMethod#runMethod(net.sf.mzmine.io.OpenedRawDataFile[],
-     *      net.sf.mzmine.data.AlignmentResult[],
+     *      net.sf.mzmine.data.PeakList[],
      *      net.sf.mzmine.data.ParameterSet,
      *      net.sf.mzmine.taskcontrol.TaskGroupListener)
      */
     public TaskGroup runMethod(OpenedRawDataFile[] dataFiles,
-            AlignmentResult[] alignmentResults, ParameterSet parameters,
+            PeakList[] alignmentResults, ParameterSet parameters,
             TaskGroupListener methodListener) {
 
         logger.info("Running " + toString() + " on " + alignmentResults.length
@@ -255,8 +255,8 @@ public class SimpleGapFiller implements DataProcessingMethod, TaskListener,
          * missing peak
          * 
          * OpenedRawDataFile[] rawDataFiles =
-         * originalAlignmentResult.getRawDataFiles(); int i = 0; for
-         * (AlignmentResultRow alignmentRow : originalAlignmentResult.getRows()) {
+         * originalPeakList.getRawDataFiles(); int i = 0; for
+         * (PeakList alignmentRow : originalPeakList.getRows()) {
          * 
          * Vector<EmptyGap> gapsOfTheCurrentRow = gapsForRow.get(alignmentRow);
          * if (gapsOfTheCurrentRow == null) { gapsOfTheCurrentRow = new Vector<EmptyGap>();

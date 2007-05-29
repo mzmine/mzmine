@@ -21,13 +21,13 @@ package net.sf.mzmine.modules.dataanalysis.intensityplot;
 
 import java.util.Comparator;
 
-import net.sf.mzmine.data.AlignmentResultRow;
+import net.sf.mzmine.data.PeakListRow;
 
 /**
  */
-public class AlignmentResultSorterByMZ implements Comparator<AlignmentResultRow> {
+public class AlignmentResultSorterByMZ implements Comparator<PeakListRow> {
 
-    public int compare(AlignmentResultRow row1, AlignmentResultRow row2) {
+    public int compare(PeakListRow row1, PeakListRow row2) {
         Double mz1 = row1.getAverageMZ();
         Double mz2 = row2.getAverageMZ();
         return mz1.compareTo(mz2); 

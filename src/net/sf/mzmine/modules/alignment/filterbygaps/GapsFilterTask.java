@@ -19,17 +19,17 @@
 
 package net.sf.mzmine.modules.alignment.filterbygaps;
 
-import net.sf.mzmine.data.AlignmentResult;
-import net.sf.mzmine.data.AlignmentResultRow;
+import net.sf.mzmine.data.PeakList;
+import net.sf.mzmine.data.PeakListRow;
 import net.sf.mzmine.data.ParameterSet;
-import net.sf.mzmine.data.impl.SimpleAlignmentResult;
+import net.sf.mzmine.data.impl.SimplePeakList;
 import net.sf.mzmine.io.OpenedRawDataFile;
 import net.sf.mzmine.taskcontrol.Task;
 
 class GapsFilterTask implements Task {
 
-    private AlignmentResult originalAlignmentResult;
-    private SimpleAlignmentResult processedAlignmentResult;
+    private PeakList originalPeakList;
+    private SimplePeakList processedPeakList;
     private TaskStatus status;
     private String errorMessage;
 
@@ -38,10 +38,10 @@ class GapsFilterTask implements Task {
 
     private int minPresent;
 
-    public GapsFilterTask(AlignmentResult alignmentResult,
+    public GapsFilterTask(PeakList alignmentResult,
             ParameterSet parameters) {
         status = TaskStatus.WAITING;
-        originalAlignmentResult = alignmentResult;
+        originalPeakList = alignmentResult;
         minPresent = (Integer) parameters.getParameterValue(GapsFilter.minPresent);
     }
 
@@ -58,7 +58,7 @@ class GapsFilterTask implements Task {
     }
 
     public Object getResult() {
-        return processedAlignmentResult;
+        return processedPeakList;
     }
 
     public TaskStatus getStatus() {
@@ -73,25 +73,25 @@ class GapsFilterTask implements Task {
 
         status = TaskStatus.PROCESSING;
 
-        totalAlignmentRows = originalAlignmentResult.getNumberOfRows();
+        totalAlignmentRows = originalPeakList.getNumberOfRows();
         processedAlignmentRows = 0;
 
         // Create new alignment result and add opened raw data files to it
-        processedAlignmentResult = new SimpleAlignmentResult(
+        processedPeakList = new SimplePeakList(
                 "Result after filtering by gaps");
         
-        for (OpenedRawDataFile rawData : originalAlignmentResult.getRawDataFiles()) {
-            processedAlignmentResult.addOpenedRawDataFile(rawData);
+        for (OpenedRawDataFile rawData : originalPeakList.getRawDataFiles()) {
+            processedPeakList.addOpenedRawDataFile(rawData);
         }
 
         // Copy rows with enough peaks to new alignment result
-        for (AlignmentResultRow alignmentRow : originalAlignmentResult.getRows()) {
+        for (PeakListRow alignmentRow : originalPeakList.getRows()) {
             
             if (status == TaskStatus.CANCELED)
                 return;
             
             if (alignmentRow.getNumberOfPeaks() >= minPresent)
-                processedAlignmentResult.addRow(alignmentRow);
+                processedPeakList.addRow(alignmentRow);
             
             processedAlignmentRows++;
             

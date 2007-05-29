@@ -17,7 +17,7 @@
  * Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-package net.sf.mzmine.modules.visualization.alignmentresult;
+package net.sf.mzmine.modules.visualization.peaklist;
 
 import java.awt.BorderLayout;
 import java.awt.Color;
@@ -32,7 +32,7 @@ import javax.swing.JInternalFrame;
 import javax.swing.JScrollPane;
 import javax.swing.JTable;
 
-import net.sf.mzmine.data.AlignmentResult;
+import net.sf.mzmine.data.PeakList;
 import net.sf.mzmine.userinterface.dialogs.ExitCode;
 import net.sf.mzmine.userinterface.dialogs.alignmentresultcolumnselection.ColumnSelectionDialog;
 import net.sf.mzmine.userinterface.mainwindow.MainWindow;
@@ -41,13 +41,13 @@ import org.jfree.report.JFreeReport;
 import org.jfree.report.modules.gui.base.PreviewDialog;
 import org.jfree.report.modules.parser.base.ReportGenerator;
 
-public class AlignmentResultTableVisualizerWindow extends JInternalFrame
+public class PeakListTableWindow extends JInternalFrame
         implements ActionListener {
     
     private Logger logger = Logger.getLogger(this.getClass().getName());
 
-    AlignmentResultTableVisualizer visualizer;
-    private AlignmentResultTableColumns columnSelection;
+    PeakListTableVisualizer visualizer;
+    private PeakListTableColumns columnSelection;
     private JScrollPane scrollPane;
 
     /*
@@ -55,15 +55,15 @@ public class AlignmentResultTableVisualizerWindow extends JInternalFrame
      * private JMenuItem zoomToPeakMenuItem;
      */
 
-    private AlignmentResultTableModel model;
-    private AlignmentResultTable table;
+    private PeakListTableModel model;
+    private PeakListTable table;
 
     /**
      * Constructor: initializes an empty visualizer
      */
-    public AlignmentResultTableVisualizerWindow(
-            AlignmentResultTableVisualizer visualizer,
-            AlignmentResult alignmentResult) {
+    public PeakListTableWindow(
+            PeakListTableVisualizer visualizer,
+            PeakList alignmentResult) {
 
         super(alignmentResult.toString(), true, true, true, true);
 
@@ -77,14 +77,14 @@ public class AlignmentResultTableVisualizerWindow extends JInternalFrame
         this.columnSelection = visualizer.getParameterSet().clone();
 
         // Build toolbar
-        AlignmentResultTableVisualizerToolBar toolBar = new AlignmentResultTableVisualizerToolBar(
+        PeakListTableToolBar toolBar = new PeakListTableToolBar(
                 this);
         add(toolBar, BorderLayout.EAST);
 
-        model = new AlignmentResultTableModel(alignmentResult, columnSelection);
+        model = new PeakListTableModel(alignmentResult, columnSelection);
 
         // Build table
-        table = new AlignmentResultTable(this, model);
+        table = new PeakListTable(this, model);
         table.setAutoResizeMode(JTable.AUTO_RESIZE_OFF);
         scrollPane = new JScrollPane(table);
 

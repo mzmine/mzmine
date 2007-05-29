@@ -32,10 +32,10 @@ import javax.swing.UIManager;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
 
-import net.sf.mzmine.data.AlignmentResult;
+import net.sf.mzmine.data.PeakList;
 import net.sf.mzmine.io.IOController;
 import net.sf.mzmine.io.OpenedRawDataFile;
-import net.sf.mzmine.io.export.AlignmentResultExportDialog;
+import net.sf.mzmine.io.export.PeakListExportDialog;
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.project.MZmineProject;
 import net.sf.mzmine.userinterface.Desktop;
@@ -302,9 +302,9 @@ public class MainMenu extends JMenuBar implements ActionListener,
 
         if (src == fileExportAlignmentResult) {
 
-            AlignmentResult[] alignmentResults = desktop.getSelectedAlignmentResults();
+            PeakList[] alignmentResults = desktop.getSelectedAlignmentResults();
             if (alignmentResults.length > 0)
-                new AlignmentResultExportDialog(alignmentResults);
+                new PeakListExportDialog(alignmentResults);
 
         }
 

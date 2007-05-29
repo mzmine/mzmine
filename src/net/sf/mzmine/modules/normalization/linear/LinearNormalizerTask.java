@@ -21,13 +21,13 @@ package net.sf.mzmine.modules.normalization.linear;
 
 import java.util.Hashtable;
 
-import net.sf.mzmine.data.AlignmentResult;
-import net.sf.mzmine.data.AlignmentResultRow;
+import net.sf.mzmine.data.PeakList;
+import net.sf.mzmine.data.PeakListRow;
 import net.sf.mzmine.data.IsotopePattern;
 import net.sf.mzmine.data.ParameterSet;
 import net.sf.mzmine.data.Peak;
-import net.sf.mzmine.data.impl.SimpleAlignmentResult;
-import net.sf.mzmine.data.impl.SimpleAlignmentResultRow;
+import net.sf.mzmine.data.impl.SimplePeakList;
+import net.sf.mzmine.data.impl.SimplePeakListRow;
 import net.sf.mzmine.data.impl.SimplePeak;
 import net.sf.mzmine.io.OpenedRawDataFile;
 import net.sf.mzmine.taskcontrol.Task;
@@ -36,7 +36,7 @@ public class LinearNormalizerTask implements Task {
 
     static final double maximumOverallPeakHeightAfterNormalization = 100000.0;
 
-    private AlignmentResult originalAlignmentResult;
+    private PeakList originalPeakList;
     private String normalizationTypeString;
 
     private TaskStatus status;
@@ -45,11 +45,11 @@ public class LinearNormalizerTask implements Task {
     private int processedDataFiles;
     private int totalDataFiles;
 
-    private SimpleAlignmentResult normalizedAlignmentResult;
+    private SimplePeakList normalizedPeakList;
 
-    public LinearNormalizerTask(AlignmentResult alignmentResult,
+    public LinearNormalizerTask(PeakList alignmentResult,
             ParameterSet parameters) {
-        this.originalAlignmentResult = alignmentResult;
+        this.originalPeakList = alignmentResult;
 
         normalizationTypeString = (String) parameters.getParameterValue(LinearNormalizer.normalizationType);
 
@@ -69,7 +69,7 @@ public class LinearNormalizerTask implements Task {
     }
 
     public Object getResult() {
-        return normalizedAlignmentResult;
+        return normalizedPeakList;
     }
 
     public TaskStatus getStatus() {
@@ -77,7 +77,7 @@ public class LinearNormalizerTask implements Task {
     }
 
     public String getTaskDescription() {
-        return "Linear normalization of " + originalAlignmentResult + " by "
+        return "Linear normalization of " + originalPeakList + " by "
                 + normalizationTypeString;
     }
 
@@ -85,27 +85,27 @@ public class LinearNormalizerTask implements Task {
 
         status = TaskStatus.PROCESSING;
 
-        totalDataFiles = originalAlignmentResult.getNumberOfRawDataFiles();
+        totalDataFiles = originalPeakList.getNumberOfRawDataFiles();
 
         // This hashtable maps rows from original alignment result to rows of
         // the normalized alignment
-        Hashtable<AlignmentResultRow, SimpleAlignmentResultRow> rowMap = new Hashtable<AlignmentResultRow, SimpleAlignmentResultRow>();
+        Hashtable<PeakListRow, SimplePeakListRow> rowMap = new Hashtable<PeakListRow, SimplePeakListRow>();
 
         // Initialize new alignment result for to normalized result
-        normalizedAlignmentResult = new SimpleAlignmentResult(
+        normalizedPeakList = new SimplePeakList(
                 "Result from Linear Normalization by "
                         + normalizationTypeString);
 
         // Copy raw data files from original alignment result to new alignment
         // result
-        for (OpenedRawDataFile ord : originalAlignmentResult.getRawDataFiles())
-            normalizedAlignmentResult.addOpenedRawDataFile(ord);
+        for (OpenedRawDataFile ord : originalPeakList.getRawDataFiles())
+            normalizedPeakList.addOpenedRawDataFile(ord);
 
         // Loop through all raw data files, and find the peak with biggest
         // height
         double maxOriginalHeight = 0.0;
-        for (OpenedRawDataFile ord : originalAlignmentResult.getRawDataFiles()) {
-            for (AlignmentResultRow originalAlignmentRow : originalAlignmentResult.getRows()) {
+        for (OpenedRawDataFile ord : originalPeakList.getRawDataFiles()) {
+            for (PeakListRow originalAlignmentRow : originalPeakList.getRows()) {
                 Peak p = originalAlignmentRow.getPeak(ord);
                 if (p != null)
                     if (maxOriginalHeight <= p.getHeight())
@@ -114,10 +114,10 @@ public class LinearNormalizerTask implements Task {
         }
 
         // Loop through all raw data files, and normalize peak values
-        for (OpenedRawDataFile ord : originalAlignmentResult.getRawDataFiles()) {
+        for (OpenedRawDataFile ord : originalPeakList.getRawDataFiles()) {
 
             if (status == TaskStatus.CANCELED) {
-                normalizedAlignmentResult = null;
+                normalizedPeakList = null;
                 rowMap.clear();
                 rowMap = null;
                 return;
@@ -131,7 +131,7 @@ public class LinearNormalizerTask implements Task {
             if (normalizationTypeString == LinearNormalizer.NormalizationTypeAverageIntensity) {
                 double intensitySum = 0.0;
                 int intensityCount = 0;
-                for (AlignmentResultRow alignmentRow : originalAlignmentResult.getRows()) {
+                for (PeakListRow alignmentRow : originalPeakList.getRows()) {
                     Peak p = alignmentRow.getPeak(ord);
                     if (p != null) {
                         // TODO: Use global parameter to determine whether to
@@ -147,7 +147,7 @@ public class LinearNormalizerTask implements Task {
             if (normalizationTypeString == LinearNormalizer.NormalizationTypeAverageSquaredIntensity) {
                 double intensitySum = 0.0;
                 int intensityCount = 0;
-                for (AlignmentResultRow alignmentRow : originalAlignmentResult.getRows()) {
+                for (PeakListRow alignmentRow : originalPeakList.getRows()) {
                     Peak p = alignmentRow.getPeak(ord);
                     if (p != null) {
                         // TODO: Use global parameter to determine whether to
@@ -162,7 +162,7 @@ public class LinearNormalizerTask implements Task {
             // - normalization by maximum peak intensity
             if (normalizationTypeString == LinearNormalizer.NormalizationTypeMaximumPeakHeight) {
                 double maximumIntensity = 0.0;
-                for (AlignmentResultRow alignmentRow : originalAlignmentResult.getRows()) {
+                for (PeakListRow alignmentRow : originalPeakList.getRows()) {
                     Peak p = alignmentRow.getPeak(ord);
                     if (p != null) {
                         // TODO: Use global parameter to determine whether to
@@ -192,7 +192,7 @@ public class LinearNormalizerTask implements Task {
                     / maximumOverallPeakHeightAfterNormalization;
 
             // Normalize all peak intenisities using the normalization factor
-            for (AlignmentResultRow originalAlignmentRow : originalAlignmentResult.getRows()) {
+            for (PeakListRow originalAlignmentRow : originalPeakList.getRows()) {
                 Peak originalPeak = originalAlignmentRow.getPeak(ord);
                 if (originalPeak != null) {
                     SimplePeak normalizedPeak = new SimplePeak(originalPeak);
@@ -203,9 +203,9 @@ public class LinearNormalizerTask implements Task {
                     normalizedPeak.setHeight(normalizedHeight);
                     normalizedPeak.setArea(normalizedArea);
 
-                    SimpleAlignmentResultRow normalizedRow = rowMap.get(originalAlignmentRow);
+                    SimplePeakListRow normalizedRow = rowMap.get(originalAlignmentRow);
                     if (normalizedRow == null) {
-                        normalizedRow = new SimpleAlignmentResultRow();
+                        normalizedRow = new SimplePeakListRow();
                         rowMap.put(originalAlignmentRow, normalizedRow);
                     }
 
@@ -221,9 +221,9 @@ public class LinearNormalizerTask implements Task {
         }
 
         // Finally add all normalized rows to normalized alignment result
-        for (AlignmentResultRow originalAlignmentRow : originalAlignmentResult.getRows()) {
-            SimpleAlignmentResultRow normalizedRow = rowMap.get(originalAlignmentRow);
-            normalizedAlignmentResult.addRow(normalizedRow);
+        for (PeakListRow originalAlignmentRow : originalPeakList.getRows()) {
+            SimplePeakListRow normalizedRow = rowMap.get(originalAlignmentRow);
+            normalizedPeakList.addRow(normalizedRow);
         }
 
         status = TaskStatus.FINISHED;

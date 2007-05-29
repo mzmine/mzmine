@@ -9,11 +9,10 @@ import javax.swing.JMenuItem;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
 
-import net.sf.mzmine.data.AlignmentResult;
 import net.sf.mzmine.data.ParameterSet;
+import net.sf.mzmine.data.PeakList;
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.main.MZmineModule;
-import net.sf.mzmine.modules.visualization.alignmentresult.AlignmentResultTableVisualizerWindow;
 import net.sf.mzmine.userinterface.Desktop;
 import net.sf.mzmine.userinterface.Desktop.MZmineMenu;
 
@@ -36,13 +35,13 @@ public class LogratioPlot implements MZmineModule,
 
 	public void actionPerformed(ActionEvent e) {
 		
-        AlignmentResult[] alignmentResults = desktop.getSelectedAlignmentResults();
+        PeakList[] alignmentResults = desktop.getSelectedAlignmentResults();
 
-        for (AlignmentResult alignmentResult : alignmentResults) {
+        for (PeakList alignmentResult : alignmentResults) {
 
 			logger.finest("Showing a new alignment result logratio plot");
 
-            //AlignmentResultTableVisualizerWindow alignmentResultView = new AlignmentResultTableVisualizerWindow(alignmentResult);
+            //PeakListTableVisualizerWindow alignmentResultView = new PeakListTableVisualizerWindow(alignmentResult);
             //desktop.addInternalFrame(alignmentResultView);
         }
         
@@ -50,7 +49,7 @@ public class LogratioPlot implements MZmineModule,
 
 	public void valueChanged(ListSelectionEvent e) {
 
-		AlignmentResult[] alignmentResults = desktop.getSelectedAlignmentResults();
+		PeakList[] alignmentResults = desktop.getSelectedAlignmentResults();
 		if (alignmentResults.length>0) myMenuItem.setEnabled(true);
 
 	}

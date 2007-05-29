@@ -27,7 +27,7 @@ import javax.swing.JInternalFrame;
 import javax.swing.JMenuItem;
 import javax.swing.event.ListSelectionListener;
 
-import net.sf.mzmine.data.AlignmentResult;
+import net.sf.mzmine.data.PeakList;
 import net.sf.mzmine.io.OpenedRawDataFile;
 import net.sf.mzmine.util.NumberFormatter;
 
@@ -98,7 +98,7 @@ public interface Desktop {
     /**
      * Returns array of currently selected alignment results in GUI 
      */
-    public AlignmentResult[] getSelectedAlignmentResults();
+    public PeakList[] getSelectedAlignmentResults();
 
     /**
      * Selects one raw data file in GUI
@@ -108,7 +108,7 @@ public interface Desktop {
     /**
      * Selects one alignment result in GUI
      */
-    public void setSelectedAlignmentResult(AlignmentResult alignmentResult);
+    public void setSelectedAlignmentResult(PeakList alignmentResult);
     
     /**
      * Adds a new raw data file to GUI
@@ -118,7 +118,7 @@ public interface Desktop {
     /**
      * Adds a new alignment result to GUI
      */
-    public void addAlignmentResult(AlignmentResult alignmentResult);
+    public void addAlignmentResult(PeakList alignmentResult);
     
     /**
      * Removes raw data file from GUI
@@ -128,7 +128,7 @@ public interface Desktop {
     /**
      * Removes alignment result from GUI
      */
-    public void removeAlignmentResult(AlignmentResult alignmentResult);
+    public void removeAlignmentResult(PeakList alignmentResult);
     
     public NumberFormatter getMZFormat();
 

@@ -52,7 +52,7 @@ import javax.swing.event.ChangeListener;
 import javax.swing.event.InternalFrameEvent;
 import javax.swing.event.InternalFrameListener;
 
-import net.sf.mzmine.data.AlignmentResult;
+import net.sf.mzmine.data.PeakList;
 import net.sf.mzmine.userinterface.components.Colorbar;
 import net.sf.mzmine.userinterface.components.HeatMapColorPicker;
 import net.sf.mzmine.userinterface.mainwindow.MainWindow;
@@ -66,7 +66,7 @@ import net.sf.mzmine.util.TransferableImage;
  * This class is used to draw a spatial logratio plot between two groups of runs in one alignment result
  *
  */
-//public class AlignmentResultVisualizerLogratioPlotView extends JInternalFrame implements Printable, AlignmentResultVisualizer, InternalFrameListener {
+//public class PeakListVisualizerLogratioPlotView extends JInternalFrame implements Printable, PeakListVisualizer, InternalFrameListener {
 public class LogratioPlotView extends JInternalFrame implements Printable, InternalFrameListener {
 
 	private static final double marginSize = (double)0.02; // How much extra margin is added to the axis in full zoom
@@ -82,7 +82,7 @@ public class LogratioPlotView extends JInternalFrame implements Printable, Inter
 	private MainWindow mainWin;
 	//private Statusbar statBar;
 
-	private AlignmentResult alignmentResult;
+	private PeakList alignmentResult;
 
 	private int[] groupOneIDs;
 	private int[] groupTwoIDs;
@@ -165,7 +165,7 @@ public class LogratioPlotView extends JInternalFrame implements Printable, Inter
 	 * @param	_alignmentResult	Alignment result to be displayed by this visualizer
 	 * @return	RETVAL_OK if user selected two groups of samples, RETVAL_CANCEL if didn't
 	 */
-	public int askParameters(AlignmentResult _alignmentResult) {
+	public int askParameters(PeakList _alignmentResult) {
 		alignmentResult = _alignmentResult;
 		/*setTitle(alignmentResult.getNiceName() + ": logratio plot");
 
@@ -216,7 +216,7 @@ public class LogratioPlotView extends JInternalFrame implements Printable, Inter
 
 	}
 
-	public void setAlignmentResult(AlignmentResult alignmentResult) {
+	public void setPeakList(PeakList alignmentResult) {
 		// Logratio plot doesn't use this method
 		// Required data is given by user in parameter setup dialog
 	}
@@ -227,7 +227,7 @@ public class LogratioPlotView extends JInternalFrame implements Printable, Inter
 	 */
 	public void refreshVisualizer(int changeType) {
 		/*
-		if (changeType == AlignmentResultVisualizer.CHANGETYPE_PEAK_MEASURING_SETTING) {
+		if (changeType == PeakListVisualizer.CHANGETYPE_PEAK_MEASURING_SETTING) {
 			preparePlot();
 		}
 		*/
@@ -279,8 +279,8 @@ public class LogratioPlotView extends JInternalFrame implements Printable, Inter
             /*
 			if (mainWin.getParameterStorage().getGeneralParameters().getPeakMeasuringType() == GeneralParameters.PARAMETERVALUE_PEAKMEASURING_HEIGHT) {
 				for (int runInd : groupOneIDs) {
-					if ((alignmentResult.getPeakStatus(runInd, rowInd)==AlignmentResult.PEAKSTATUS_DETECTED) ||
-					 	(alignmentResult.getPeakStatus(runInd, rowInd)==AlignmentResult.PEAKSTATUS_ESTIMATED)) {
+					if ((alignmentResult.getPeakStatus(runInd, rowInd)==PeakList.PEAKSTATUS_DETECTED) ||
+					 	(alignmentResult.getPeakStatus(runInd, rowInd)==PeakList.PEAKSTATUS_ESTIMATED)) {
 						 	groupOneMeasurementNum++;
 							groupOneMeasurementSum += alignmentResult.getPeakHeight(runInd, rowInd);
 					}
@@ -289,7 +289,7 @@ public class LogratioPlotView extends JInternalFrame implements Printable, Inter
 
 			if (mainWin.getParameterStorage().getGeneralParameters().getPeakMeasuringType() == GeneralParameters.PARAMETERVALUE_PEAKMEASURING_AREA) {
 				for (int runInd : groupOneIDs) {
-					if (alignmentResult.getPeakStatus(runInd, rowInd)==AlignmentResult.PEAKSTATUS_DETECTED) {
+					if (alignmentResult.getPeakStatus(runInd, rowInd)==PeakList.PEAKSTATUS_DETECTED) {
 						 	groupOneMeasurementNum++;
 							groupOneMeasurementSum += alignmentResult.getPeakArea(runInd, rowInd);
 					}
@@ -300,8 +300,8 @@ public class LogratioPlotView extends JInternalFrame implements Printable, Inter
 			// Average among "target" group
 			if (mainWin.getParameterStorage().getGeneralParameters().getPeakMeasuringType() == GeneralParameters.PARAMETERVALUE_PEAKMEASURING_HEIGHT) {
 				for (int runInd : groupTwoIDs) {
-					if ((alignmentResult.getPeakStatus(runInd, rowInd)==AlignmentResult.PEAKSTATUS_DETECTED) ||
-					 	(alignmentResult.getPeakStatus(runInd, rowInd)==AlignmentResult.PEAKSTATUS_ESTIMATED)) {
+					if ((alignmentResult.getPeakStatus(runInd, rowInd)==PeakList.PEAKSTATUS_DETECTED) ||
+					 	(alignmentResult.getPeakStatus(runInd, rowInd)==PeakList.PEAKSTATUS_ESTIMATED)) {
 						 	groupTwoMeasurementNum++;
 							groupTwoMeasurementSum += alignmentResult.getPeakHeight(runInd, rowInd);
 					}
@@ -310,7 +310,7 @@ public class LogratioPlotView extends JInternalFrame implements Printable, Inter
 
 			if (mainWin.getParameterStorage().getGeneralParameters().getPeakMeasuringType() == GeneralParameters.PARAMETERVALUE_PEAKMEASURING_AREA) {
 				for (int runInd : groupTwoIDs) {
-					if (alignmentResult.getPeakStatus(runInd, rowInd)==AlignmentResult.PEAKSTATUS_DETECTED) {
+					if (alignmentResult.getPeakStatus(runInd, rowInd)==PeakList.PEAKSTATUS_DETECTED) {
 						 	groupTwoMeasurementNum++;
 							groupTwoMeasurementSum += alignmentResult.getPeakArea(runInd, rowInd);
 					}
@@ -394,7 +394,7 @@ public class LogratioPlotView extends JInternalFrame implements Printable, Inter
 		// - Set this as active visualizer for the alignment result
 		//alignmentResult.setActiveVisualizer(this);
 		// - Select the alignment result in the menu
-		mainWin.setSelectedAlignmentResult(alignmentResult);
+		//mainWin.setSelectedPeakList(alignmentResult);
 	}
 	public void internalFrameClosed(InternalFrameEvent e) {	}
 	public void internalFrameClosing(InternalFrameEvent e) { }
@@ -405,7 +405,7 @@ public class LogratioPlotView extends JInternalFrame implements Printable, Inter
 
 
 	/**
-	 * Implementation of AlignmentResultVisualizer interface
+	 * Implementation of PeakListVisualizer interface
 	 */
 	public void updateSelectedRow() {
 		int rowNum = 0; // alignmentResult.getSelectedRow();
@@ -414,7 +414,7 @@ public class LogratioPlotView extends JInternalFrame implements Printable, Inter
 	}
 
 	/**
-	 * Implementation of AlignmentResultVisualizer interface
+	 * Implementation of PeakListVisualizer interface
 	 */
 	public void printMe() {
 		PrinterJob printJob = PrinterJob.getPrinterJob();
@@ -464,7 +464,7 @@ public class LogratioPlotView extends JInternalFrame implements Printable, Inter
 	 }
 
 	/**
-	 * Implementation of AlignmentResultVisualizer interface
+	 * Implementation of PeakListVisualizer interface
 	 */
 	 public void copyMe() {
 		// Initialize clipboard
@@ -485,7 +485,7 @@ public class LogratioPlotView extends JInternalFrame implements Printable, Inter
 
 
 	/**
-	 * Implementation of AlignmentResultVisualizer interface
+	 * Implementation of PeakListVisualizer interface
 	 */
 	 /*
 	public void closeMe() {
@@ -656,7 +656,7 @@ public class LogratioPlotView extends JInternalFrame implements Printable, Inter
 
 				// And select this item in all other visualizers diplaying this same alignment result
 				//alignmentResult.setSelectedRow(alignmentRowValues[nearestInd]);
-		//		mainWin.updateAlignmentResultVisualizers(alignmentResult.getAlignmentResultID());
+		//		mainWin.updatePeakListVisualizers(alignmentResult.getPeakListID());
 				repaint();
 			}
 

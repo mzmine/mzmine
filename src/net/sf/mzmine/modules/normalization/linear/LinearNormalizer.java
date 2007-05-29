@@ -28,7 +28,7 @@ import javax.swing.JMenuItem;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
 
-import net.sf.mzmine.data.AlignmentResult;
+import net.sf.mzmine.data.PeakList;
 import net.sf.mzmine.data.Parameter;
 import net.sf.mzmine.data.ParameterSet;
 import net.sf.mzmine.data.Parameter.ParameterType;
@@ -125,8 +125,8 @@ public class LinearNormalizer implements DataProcessingMethod, TaskListener,
      */
     public void actionPerformed(ActionEvent e) {
 
-        AlignmentResult[] selectedAlignmentResults = desktop.getSelectedAlignmentResults();
-        if (selectedAlignmentResults.length < 1) {
+        PeakList[] selectedPeakLists = desktop.getSelectedAlignmentResults();
+        if (selectedPeakLists.length < 1) {
             desktop.displayErrorMessage("Please select alignment result");
             return;
         }
@@ -134,7 +134,7 @@ public class LinearNormalizer implements DataProcessingMethod, TaskListener,
         ParameterSet param = setupParameters(parameters);
         if (param == null)
             return;
-        runMethod(null, selectedAlignmentResults, param, null);
+        runMethod(null, selectedPeakLists, param, null);
 
     }
 
@@ -148,10 +148,10 @@ public class LinearNormalizer implements DataProcessingMethod, TaskListener,
 
             logger.info("Finished linear normalizer");
 
-            AlignmentResult normalizedAlignmentResult = (AlignmentResult) task.getResult();
+            PeakList normalizedPeakList = (PeakList) task.getResult();
 
             MZmineProject.getCurrentProject().addAlignmentResult(
-                    normalizedAlignmentResult);
+                    normalizedPeakList);
 
         } else if (task.getStatus() == Task.TaskStatus.ERROR) {
             /* Task encountered an error */
@@ -166,12 +166,12 @@ public class LinearNormalizer implements DataProcessingMethod, TaskListener,
 
     /**
      * @see net.sf.mzmine.modules.DataProcessingMethod#runMethod(net.sf.mzmine.io.OpenedRawDataFile[],
-     *      net.sf.mzmine.data.AlignmentResult[],
+     *      net.sf.mzmine.data.PeakList[],
      *      net.sf.mzmine.data.ParameterSet,
      *      net.sf.mzmine.taskcontrol.TaskGroupListener)
      */
     public TaskGroup runMethod(OpenedRawDataFile[] dataFiles,
-            AlignmentResult[] alignmentResults, ParameterSet parameters,
+            PeakList[] alignmentResults, ParameterSet parameters,
             TaskGroupListener methodListener) {
 
         // prepare a new sequence of tasks

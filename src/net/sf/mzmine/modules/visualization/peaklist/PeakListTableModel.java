@@ -17,32 +17,30 @@
  * Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-package net.sf.mzmine.modules.visualization.alignmentresult;
+package net.sf.mzmine.modules.visualization.peaklist;
 
 import java.awt.Color;
-import java.awt.Font;
-import java.util.Hashtable;
 
-import javax.swing.JLabel;
-import javax.swing.SwingConstants;
 import javax.swing.table.AbstractTableModel;
 import javax.swing.table.TableColumnModel;
 
-import net.sf.mzmine.data.AlignmentResult;
-import net.sf.mzmine.data.AlignmentResultRow;
 import net.sf.mzmine.data.Peak;
+import net.sf.mzmine.data.PeakList;
+import net.sf.mzmine.data.PeakListRow;
 import net.sf.mzmine.io.OpenedRawDataFile;
-import net.sf.mzmine.modules.visualization.alignmentresult.AlignmentResultTableColumns.CommonColumnType;
-import net.sf.mzmine.modules.visualization.alignmentresult.AlignmentResultTableColumns.RawDataColumnType;
+import net.sf.mzmine.modules.visualization.peaklist.PeakListTableColumns.CommonColumnType;
+import net.sf.mzmine.modules.visualization.peaklist.PeakListTableColumns.RawDataColumnType;
 import net.sf.mzmine.userinterface.components.ColorCircle;
 import net.sf.mzmine.userinterface.components.ColumnGroup;
 import net.sf.mzmine.userinterface.components.GroupableTableHeader;
 import net.sf.mzmine.userinterface.components.PeakXICComponent;
 
-public class AlignmentResultTableModel extends AbstractTableModel {
 
-    private AlignmentResult alignmentResult;
-    private AlignmentResultTableColumns columnSelection;
+
+public class PeakListTableModel extends AbstractTableModel {
+
+    private PeakList alignmentResult;
+    private PeakListTableColumns columnSelection;
     
     private static final ColorCircle greenCircle = new ColorCircle(Color.green);
     private static final ColorCircle redCircle = new ColorCircle(Color.red);
@@ -51,8 +49,8 @@ public class AlignmentResultTableModel extends AbstractTableModel {
     /**
      * Constructor, assign given dataset to this table
      */
-    public AlignmentResultTableModel(AlignmentResult alignmentResult,
-            AlignmentResultTableColumns columnSelection) {
+    public PeakListTableModel(PeakList alignmentResult,
+            PeakListTableColumns columnSelection) {
         this.alignmentResult = alignmentResult;
         this.columnSelection = columnSelection;
 
@@ -97,7 +95,7 @@ public class AlignmentResultTableModel extends AbstractTableModel {
         // Common column
         if (groupOffset[0] < 0) {
 
-            AlignmentResultRow alignmentRow = alignmentResult.getRow(row);
+            PeakListRow alignmentRow = alignmentResult.getRow(row);
 
             switch (columnSelection.getSelectedCommonColumns()[groupOffset[1]]) {
 
@@ -214,7 +212,7 @@ public class AlignmentResultTableModel extends AbstractTableModel {
         if (groupOffset[0] < 0) {
             switch (columnSelection.getSelectedCommonColumns()[groupOffset[1]]) {
             case COMMENT:
-                AlignmentResultRow alignmentRow = alignmentResult.getRow(row);
+                PeakListRow alignmentRow = alignmentResult.getRow(row);
                 alignmentRow.setComment((String) value);
             }
         }

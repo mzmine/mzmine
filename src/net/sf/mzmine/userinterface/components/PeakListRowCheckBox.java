@@ -23,33 +23,31 @@ import java.awt.Font;
 
 import javax.swing.JCheckBox;
 
-import net.sf.mzmine.data.AlignmentResultRow;
-
+import net.sf.mzmine.data.PeakListRow;
 
 /**
  * Checkbox wrapper class
  */
-public class AlignmentRowCheckBox extends JCheckBox {
-    
+public class PeakListRowCheckBox extends JCheckBox {
+
     static final Font checkBoxFont = new Font("SansSerif", Font.PLAIN, 11);
-    
-    private AlignmentResultRow row;
-    
-    public AlignmentRowCheckBox(AlignmentResultRow row) {
+
+    private PeakListRow row;
+
+    public PeakListRowCheckBox(PeakListRow row) {
         super(row.toString(), false);
         this.row = row;
         setOpaque(false);
         setFont(checkBoxFont);
     }
 
-    
     /**
      * @return Returns the row.
      */
-    public AlignmentResultRow getAlignmentRow() {
+    public PeakListRow getAlignmentRow() {
         return row;
     }
-    
+
     public int getPreferredWidth() {
         return ((int) getPreferredSize().getWidth()) + 30;
     }

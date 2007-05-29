@@ -24,7 +24,7 @@ import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
 import java.util.logging.Logger;
 
-import net.sf.mzmine.data.AlignmentResult;
+import net.sf.mzmine.data.PeakList;
 import net.sf.mzmine.data.ParameterSet;
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.main.MZmineModule;
@@ -63,7 +63,7 @@ public class IntensityPlot implements MZmineModule, ActionListener {
      */
     public void actionPerformed(ActionEvent e) {
 
-        AlignmentResult selectedAlignmentResults[] = desktop.getSelectedAlignmentResults();
+        PeakList selectedAlignmentResults[] = desktop.getSelectedAlignmentResults();
         if (selectedAlignmentResults.length != 1) {
             desktop.displayErrorMessage("Please select a single alignment result to plot");
             return;
@@ -76,7 +76,7 @@ public class IntensityPlot implements MZmineModule, ActionListener {
 
         logger.finest("Showing intensity plot setup dialog");
 
-        if (selectedAlignmentResults[0] != parameters.getSourceAlignmentResult()) {
+        if (selectedAlignmentResults[0] != parameters.getSourcePeakList()) {
             parameters = new IntensityPlotParameters(
                     selectedAlignmentResults[0]);
         }

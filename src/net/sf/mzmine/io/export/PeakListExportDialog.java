@@ -23,18 +23,18 @@ import java.io.File;
 
 import javax.swing.JFileChooser;
 
-import net.sf.mzmine.data.AlignmentResult;
+import net.sf.mzmine.data.PeakList;
 import net.sf.mzmine.userinterface.dialogs.ExitCode;
 import net.sf.mzmine.userinterface.dialogs.alignmentresultcolumnselection.ColumnSelectionDialog;
 import net.sf.mzmine.userinterface.mainwindow.MainWindow;
 import sunutils.ExampleFileFilter;
 
-public class AlignmentResultExportDialog {
+public class PeakListExportDialog {
 
-	public AlignmentResultExportDialog(AlignmentResult[] alignmentResults) {
+	public PeakListExportDialog(PeakList[] peakLists) {
 		
 		// Show column selection dialog
-		AlignmentResultExportColumns columnSelection = new AlignmentResultExportColumns();
+		PeakListExportColumns columnSelection = new PeakListExportColumns();
 
 		ColumnSelectionDialog dialog = new ColumnSelectionDialog(MainWindow.getInstance(), columnSelection);
 		dialog.setVisible(true);
@@ -42,26 +42,26 @@ public class AlignmentResultExportDialog {
         if (dialog.getExitCode() == ExitCode.CANCEL) return;
 		
 		// Ask file names for all alignment result(s)
-		File[] alignmentResultFiles = new File[alignmentResults.length];
+		File[] peakListFiles = new File[peakLists.length];
 		int i = 0;
-		for (AlignmentResult alignmentResult : alignmentResults) {
-			File file = askFileName(alignmentResult);
+		for (PeakList peakList : peakLists) {
+			File file = askFileName(peakList);
 			if (file==null) return; // Cancel?
 			
-			alignmentResultFiles[i] = file;
+			peakListFiles[i] = file;
 			i++;
 		}
 		
 		// Export alignment result(s)
-		AlignmentResultExporter exporter = new AlignmentResultExporter();
+		PeakListExporter exporter = new PeakListExporter();
 		i=0;
-		for (AlignmentResult alignmentResult : alignmentResults) {
-			exporter.exportToFile(alignmentResult, alignmentResultFiles[i], columnSelection);
+		for (PeakList peakList : peakLists) {
+			exporter.exportToFile(peakList, peakListFiles[i], columnSelection);
 			i++;
 		}
 	}
 	
-	private File askFileName(AlignmentResult alignmentResult) {
+	private File askFileName(PeakList peakList) {
 		
 		JFileChooser chooser = new JFileChooser();
 	    // Note: source for ExampleFileFilter can be found in FileChooserDemo,
@@ -70,7 +70,7 @@ public class AlignmentResultExportDialog {
 	    filter.addExtension("txt");
 	    filter.setDescription("Tab-delimitted text file");
 	    chooser.setFileFilter(filter);
-	    chooser.setDialogTitle("Please give file name for \"" + alignmentResult.toString() + "\"");
+	    chooser.setDialogTitle("Please give file name for \"" + peakList.toString() + "\"");
 	    int returnVal = chooser.showSaveDialog(MainWindow.getInstance().getMainFrame());
 	    if(returnVal == JFileChooser.APPROVE_OPTION)
 	       return chooser.getSelectedFile();

@@ -44,7 +44,7 @@ import javax.swing.border.EtchedBorder;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
 
-import net.sf.mzmine.data.AlignmentResult;
+import net.sf.mzmine.data.PeakList;
 import net.sf.mzmine.data.ParameterSet;
 import net.sf.mzmine.io.OpenedRawDataFile;
 import net.sf.mzmine.main.MZmineCore;
@@ -155,11 +155,11 @@ public class MainWindow extends JFrame implements MZmineModule, Desktop,
         return itemSelector.getSelectedRawData();
     }
 
-    public AlignmentResult[] getSelectedAlignmentResults() {
+    public PeakList[] getSelectedAlignmentResults() {
         return itemSelector.getSelectedAlignmentResults();
     }
 
-    public void setSelectedAlignmentResult(AlignmentResult alignmentResult) {
+    public void setSelectedAlignmentResult(PeakList alignmentResult) {
         itemSelector.setActiveAlignmentResult(alignmentResult);
     }
 
@@ -167,7 +167,7 @@ public class MainWindow extends JFrame implements MZmineModule, Desktop,
         itemSelector.setActiveRawData(dataFile);
     }
 
-    public void addAlignmentResult(AlignmentResult alignmentResult) {
+    public void addAlignmentResult(PeakList alignmentResult) {
         itemSelector.addAlignmentResult(alignmentResult);
     }
 
@@ -175,7 +175,7 @@ public class MainWindow extends JFrame implements MZmineModule, Desktop,
         itemSelector.addRawData(dataFile);
     }
 
-    public void removeAlignmentResult(AlignmentResult alignmentResult) {
+    public void removeAlignmentResult(PeakList alignmentResult) {
         itemSelector.removeAlignmentResult(alignmentResult);
     }
 

@@ -25,11 +25,6 @@ import java.awt.event.KeyEvent;
 import java.text.NumberFormat;
 import java.util.logging.Logger;
 
-import javax.swing.JMenuItem;
-import javax.swing.event.ListSelectionEvent;
-import javax.swing.event.ListSelectionListener;
-
-import net.sf.mzmine.data.AlignmentResult;
 import net.sf.mzmine.data.Parameter;
 import net.sf.mzmine.data.ParameterSet;
 import net.sf.mzmine.data.PeakList;
@@ -230,7 +225,7 @@ public class RecursivePicker implements DataProcessingMethod, TaskListener,
      *      net.sf.mzmine.taskcontrol.TaskGroupListener)
      */
     public TaskGroup runMethod(OpenedRawDataFile[] dataFiles,
-            AlignmentResult[] alignmentResults, ParameterSet parameters,
+            PeakList[] alignmentResults, ParameterSet parameters,
             TaskGroupListener methodListener) {
 
         // prepare a new sequence of tasks

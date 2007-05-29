@@ -363,7 +363,7 @@ class ThreeDSamplingTask implements Task {
             PeakList peakList = dataFile.getPeakList();
             if (peakList != null) {
 
-                Peak peaks[] = peakList.getPeaksInsideScanAndMZRange(rtMin, rtMax, mzMin, mzMax);
+                Peak peaks[] = peakList.getPeaksInsideScanAndMZRange(dataFile, rtMin, rtMax, mzMin, mzMax);
 
                 if (peaks.length > 0) {
 

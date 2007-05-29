@@ -27,6 +27,8 @@ import javax.swing.ImageIcon;
 import javax.swing.JButton;
 import javax.swing.JToolBar;
 
+import net.sf.mzmine.util.GUIUtils;
+
 /**
  *
  */
@@ -36,11 +38,14 @@ class PeakListTableToolBar extends JToolBar {
     private JButton showXICButton;
     private JButton showAlignmentRowsButton;
 
+    static final Icon zoomToPeakIcon = new ImageIcon("icons/annotationsicon.png");
+    static final Icon changeFormatIcon = new ImageIcon("icons/tableselectionicon.png");
+    static final Icon printIcon = new ImageIcon("icons/printicon.png");
     static final Icon showSpectrumIcon = new ImageIcon("icons/spectrumicon.png");
     static final Icon showXICIcon = new ImageIcon("icons/xicicon.png");
     static final Icon showAlignmentRowsIcon = new ImageIcon("icons/tableselectionicon.png");
 
-    PeakListTableToolBar(PeakListTableViewWindow masterFrame) {
+    PeakListTableToolBar(PeakListTableWindow masterFrame) {
 
         super(JToolBar.VERTICAL);
 
@@ -48,6 +53,19 @@ class PeakListTableToolBar extends JToolBar {
         setMargin(new Insets(5, 5, 5, 5));
         setBackground(Color.white);
 
+        GUIUtils.addButton(this, null, zoomToPeakIcon, masterFrame,
+                "ZOOM_TO_PEAK", "Zoom visualizers to selected peak");
+        
+        addSeparator();
+        
+        GUIUtils.addButton(this, null, changeFormatIcon, masterFrame,
+                "CHANGE_FORMAT", "Change table column format");
+        
+        addSeparator();
+        
+        GUIUtils.addButton(this, null, printIcon, masterFrame,
+                "PRINT", "Print");
+        
         showSpectrumButton = new JButton(showSpectrumIcon);
         showSpectrumButton.setActionCommand("SHOW_SPECTRUM_FOR_PEAK");
         showSpectrumButton.setToolTipText("Show spectrum for selected peak");

@@ -24,7 +24,7 @@ import net.sf.mzmine.io.OpenedRawDataFile;
 /**
  * 
  */
-public interface AlignmentResultRow {
+public interface PeakListRow {
 
     /**
      * Return raw datas with peaks on this row

@@ -25,7 +25,7 @@ import java.util.TreeSet;
 import net.sf.mzmine.userinterface.dialogs.alignmentresultcolumnselection.ColumnSet;
 import net.sf.mzmine.userinterface.dialogs.alignmentresultcolumnselection.ColumnType;
 
-public class AlignmentResultExportColumns implements ColumnSet {
+public class PeakListExportColumns implements ColumnSet {
 
     
     // type for common columns
@@ -80,7 +80,7 @@ public class AlignmentResultExportColumns implements ColumnSet {
     private Set<CommonColumnType> selectedCommonColumns;
     private Set<RawDataColumnType> selectedRawDataColumns;
 
-    AlignmentResultExportColumns() {
+    PeakListExportColumns() {
         selectedCommonColumns = new TreeSet<CommonColumnType>();
         selectedRawDataColumns = new TreeSet<RawDataColumnType>();
     }

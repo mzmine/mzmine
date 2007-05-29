@@ -23,12 +23,12 @@ import java.util.Arrays;
 import java.util.Iterator;
 import java.util.TreeSet;
 
-import net.sf.mzmine.data.AlignmentResultRow;
+import net.sf.mzmine.data.PeakListRow;
 import net.sf.mzmine.data.ParameterSet;
 import net.sf.mzmine.data.Peak;
 import net.sf.mzmine.data.PeakList;
-import net.sf.mzmine.data.impl.SimpleAlignmentResult;
-import net.sf.mzmine.data.impl.SimpleAlignmentResultRow;
+import net.sf.mzmine.data.impl.SimplePeakList;
+import net.sf.mzmine.data.impl.SimplePeakListRow;
 import net.sf.mzmine.io.OpenedRawDataFile;
 import net.sf.mzmine.taskcontrol.Task;
 
@@ -44,7 +44,7 @@ class JoinAlignerTask implements Task {
 
     private float processedPercentage;
 
-    private SimpleAlignmentResult alignmentResult;
+    private SimplePeakList alignmentResult;
 
     private double MZTolerance;
     private double MZvsRTBalance;
@@ -123,7 +123,7 @@ class JoinAlignerTask implements Task {
         /*
          * Initialize master isotope list and isotope pattern utility vector
          */
-        alignmentResult = new SimpleAlignmentResult("Result from Join Aligner");
+        alignmentResult = new SimplePeakList("Result from Join Aligner");
 
         // Add openedrawdatafiles to alignment result
         for (OpenedRawDataFile dataFile : dataFiles)
@@ -141,9 +141,9 @@ class JoinAlignerTask implements Task {
              * Pickup peak list for this file and generate list of wrapped peaks
              */
             PeakList peakList = dataFile.getPeakList();
-            PeakWrapper wrappedPeakList[] = new PeakWrapper[peakList.getNumberOfPeaks()];
-            for (int i = 0; i < peakList.getNumberOfPeaks(); i++) {
-                Peak peakToWrap = peakList.getPeak(i);
+            PeakWrapper wrappedPeakList[] = new PeakWrapper[peakList.getNumberOfRows()];
+            for (int i = 0; i < peakList.getNumberOfRows(); i++) {
+                Peak peakToWrap = peakList.getPeak(i, dataFile);
                 wrappedPeakList[i] = new PeakWrapper(peakToWrap);
             }
                       
@@ -158,8 +158,8 @@ class JoinAlignerTask implements Task {
             TreeSet<PeakVsRowScore> scoreTree = new TreeSet<PeakVsRowScore>(
                     new ScoreSorter());
 
-        	AlignmentResultRow[] rows = alignmentResult.getRows();
-        	Arrays.sort(rows, new AlignmentResultRowComparator());
+        	PeakListRow[] rows = alignmentResult.getRows();
+        	Arrays.sort(rows, new PeakListRowComparator());
             Integer nextStartingRowIndex = 0;
             for (PeakWrapper wrappedPeak : wrappedPeakList) {
             	
@@ -169,7 +169,7 @@ class JoinAlignerTask implements Task {
 
             	for (int alignmentResultRowIndex = startingRowIndex; alignmentResultRowIndex<rows.length; alignmentResultRowIndex++) {
             		
-            		AlignmentResultRow row = rows[alignmentResultRowIndex];
+            		PeakListRow row = rows[alignmentResultRowIndex];
 
             		// Check m/z difference for optimization
             		double mzDiff = row.getAverageMZ() - wrappedPeak.getPeak().getMZ();
@@ -190,7 +190,7 @@ class JoinAlignerTask implements Task {
                         return;
 
                     PeakVsRowScore score = new PeakVsRowScore(
-                            (SimpleAlignmentResultRow) row, wrappedPeak,
+                            (SimplePeakListRow) row, wrappedPeak,
                             MZTolerance, RTToleranceUseAbs,
                             RTToleranceValueAbs, RTToleranceValuePercent,
                             MZvsRTBalance);
@@ -212,7 +212,7 @@ class JoinAlignerTask implements Task {
                 if (status == TaskStatus.CANCELED)
                     return;
 
-                SimpleAlignmentResultRow row = score.getRow();
+                SimplePeakListRow row = score.getRow();
                 PeakWrapper wrappedPeak = score.getPeakWrapper();
 
                 // Check if master list row is already assigned with an isotope
@@ -241,7 +241,7 @@ class JoinAlignerTask implements Task {
                 if (wrappedPeak.isAlreadyJoined())
                     continue;
 
-                SimpleAlignmentResultRow row = new SimpleAlignmentResultRow();
+                SimplePeakListRow row = new SimplePeakListRow();
                 row.addPeak(dataFile, wrappedPeak.getPeak(), wrappedPeak.getPeak());
                 alignmentResult.addRow(row);
             }

@@ -37,7 +37,7 @@ import javax.xml.transform.TransformerFactory;
 import javax.xml.transform.dom.DOMSource;
 import javax.xml.transform.stream.StreamResult;
 
-import net.sf.mzmine.data.AlignmentResult;
+import net.sf.mzmine.data.PeakList;
 import net.sf.mzmine.data.Parameter;
 import net.sf.mzmine.io.OpenedRawDataFile;
 import net.sf.mzmine.main.MZmineCore;
@@ -57,14 +57,14 @@ public class MZmineProject {
     private static MZmineProject currentProject;
 
     private Vector<OpenedRawDataFile> projectFiles;
-    private Vector<AlignmentResult> projectResults;
+    private Vector<PeakList> projectResults;
     private Vector<Parameter> projectParameters;
 
     public MZmineProject() {
     	currentProject = this;
     	
         projectFiles = new Vector<OpenedRawDataFile>();
-        projectResults = new Vector<AlignmentResult>();
+        projectResults = new Vector<PeakList>();
         projectParameters = new Vector<Parameter>();
         
     }
@@ -103,18 +103,18 @@ public class MZmineProject {
         return projectFiles.toArray(new OpenedRawDataFile[0]);
     }
 
-    public void addAlignmentResult(AlignmentResult newResult) {
+    public void addAlignmentResult(PeakList newResult) {
 		projectResults.add(newResult);
 		desktop.addAlignmentResult(newResult);
 	}
 
-	public void removeAlignmentResult(AlignmentResult result) {
+	public void removeAlignmentResult(PeakList result) {
 		projectResults.remove(result);
 		desktop.removeAlignmentResult(result);
 	}
 
-    public AlignmentResult[] getAlignmentResults() {
-        return projectResults.toArray(new AlignmentResult[0]);
+    public PeakList[] getAlignmentResults() {
+        return projectResults.toArray(new PeakList[0]);
     }
 
     /**

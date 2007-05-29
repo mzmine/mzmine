@@ -10,7 +10,7 @@ import javax.swing.JInternalFrame;
 import javax.swing.JScrollPane;
 import javax.swing.JTable;
 
-import net.sf.mzmine.data.AlignmentResult;
+import net.sf.mzmine.data.PeakList;
 
 
 class LogratioPlotWindow extends JInternalFrame implements
@@ -18,11 +18,11 @@ class LogratioPlotWindow extends JInternalFrame implements
 
 	private Logger logger = Logger.getLogger(this.getClass().getName());
 	
-	private AlignmentResult alignmentResult;
+	private PeakList alignmentResult;
 	
 	
 	
-	public LogratioPlotWindow(AlignmentResult alignmentResult) {
+	public LogratioPlotWindow(PeakList alignmentResult) {
 
 		super(alignmentResult.toString(), true, true, true, true);
 		
@@ -36,13 +36,13 @@ class LogratioPlotWindow extends JInternalFrame implements
 
 		// Build toolbar
         /*
-        AlignmentResultTableVisualizerToolBar toolBar = new AlignmentResultTableVisualizerToolBar(this);
+        PeakListTableVisualizerToolBar toolBar = new PeakListTableVisualizerToolBar(this);
         add(toolBar, BorderLayout.EAST);
         */
 
 		// Build table
         /*
-		table = new AlignmentResultTable(this, alignmentResult);
+		table = new PeakListTable(this, alignmentResult);
 		table.setAutoResizeMode( JTable.AUTO_RESIZE_OFF );
 		scrollPane = new JScrollPane(table);
 		

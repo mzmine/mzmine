@@ -46,7 +46,7 @@ import javax.swing.RepaintManager;
 import javax.swing.event.InternalFrameEvent;
 import javax.swing.event.InternalFrameListener;
 
-import net.sf.mzmine.data.AlignmentResult;
+import net.sf.mzmine.data.PeakList;
 import net.sf.mzmine.data.ParameterSet;
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.main.MZmineModule;
@@ -58,7 +58,7 @@ import net.sf.mzmine.util.TransferableImage;
  * This class is used to draw a spatial logratio plot between two groups of runs in one alignment result
  *
  */
-//public class AlignmentResultVisualizerCDAPlotView extends JInternalFrame implements Printable, AlignmentResultVisualizer, InternalFrameListener {
+//public class PeakListVisualizerCDAPlotView extends JInternalFrame implements Printable, PeakListVisualizer, InternalFrameListener {
 public class CDAPlot extends JInternalFrame implements MZmineModule, Printable, InternalFrameListener {
 
 	private static final double marginSize = (double)0.02; // How much extra margin is added to the axis in full zoom
@@ -68,7 +68,7 @@ public class CDAPlot extends JInternalFrame implements MZmineModule, Printable, 
 
 	private MainWindow mainWin;
 
-	private AlignmentResult alignmentResult;
+	private PeakList alignmentResult;
 
 	private int[] sampleClasses;			// 0 = unassigned, 1,2,3,...= classes
 
@@ -125,7 +125,7 @@ public class CDAPlot extends JInternalFrame implements MZmineModule, Printable, 
 	 * @param	_alignmentResult	Alignment result to be displayed by this visualizer
 	 * @return	RETVAL_OK if user selected two groups of samples, RETVAL_CANCEL if didn't
 	 */
-	public AlignmentResultVisualizerCDAPlotViewParameters askParameters(AlignmentResult _alignmentResult, AlignmentResultVisualizerCDAPlotViewParameters _myParameters) {
+	public AlignmentResultVisualizerCDAPlotViewParameters askParameters(PeakList _alignmentResult, AlignmentResultVisualizerCDAPlotViewParameters _myParameters) {
 
 		alignmentResult = _alignmentResult;
 		myParameters = _myParameters;
@@ -188,7 +188,7 @@ public class CDAPlot extends JInternalFrame implements MZmineModule, Printable, 
 
 	}
 
-	public void setAlignmentResult(AlignmentResult alignmentResult) {
+	public void setPeakList(PeakList alignmentResult) {
 		// Logratio plot doesn't use this method
 		// Required data is given by user in parameter setup dialog
 	}
@@ -199,7 +199,7 @@ public class CDAPlot extends JInternalFrame implements MZmineModule, Printable, 
 	 */
 	public void refreshVisualizer(int changeType) {
 		/*
-		if (changeType == AlignmentResultVisualizer.CHANGETYPE_PEAK_MEASURING_SETTING) {
+		if (changeType == PeakListVisualizer.CHANGETYPE_PEAK_MEASURING_SETTING) {
 			preparePlot();
 		}
 		*/
@@ -316,7 +316,7 @@ public class CDAPlot extends JInternalFrame implements MZmineModule, Printable, 
 		// - Set this as active visualizer for the alignment result
 		//alignmentResult.setActiveVisualizer(this);
 		// - Select the alignment result in the menu
-		mainWin.setSelectedAlignmentResult(alignmentResult);
+	    //mainWin.setSelectedPeakList(alignmentResult);
 	}
 	public void internalFrameClosed(InternalFrameEvent e) {	}
 	public void internalFrameClosing(InternalFrameEvent e) { }
@@ -327,7 +327,7 @@ public class CDAPlot extends JInternalFrame implements MZmineModule, Printable, 
 
 
 	/**
-	 * Implementation of AlignmentResultVisualizer interface
+	 * Implementation of PeakListVisualizer interface
 	 */
 	public void updateSelectedRow() {
 		int rowNum = 0; // alignmentResult.getSelectedRow();
@@ -336,7 +336,7 @@ public class CDAPlot extends JInternalFrame implements MZmineModule, Printable, 
 	}
 
 	/**
-	 * Implementation of AlignmentResultVisualizer interface
+	 * Implementation of PeakListVisualizer interface
 	 */
 	public void printMe() {
 		PrinterJob printJob = PrinterJob.getPrinterJob();
@@ -386,7 +386,7 @@ public class CDAPlot extends JInternalFrame implements MZmineModule, Printable, 
 	 }
 
 	/**
-	 * Implementation of AlignmentResultVisualizer interface
+	 * Implementation of PeakListVisualizer interface
 	 */
 	 public void copyMe() {
 		// Initialize clipboard

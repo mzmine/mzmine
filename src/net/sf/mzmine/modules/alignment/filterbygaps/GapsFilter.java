@@ -28,7 +28,7 @@ import javax.swing.JMenuItem;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
 
-import net.sf.mzmine.data.AlignmentResult;
+import net.sf.mzmine.data.PeakList;
 import net.sf.mzmine.data.Parameter;
 import net.sf.mzmine.data.ParameterSet;
 import net.sf.mzmine.data.Parameter.ParameterType;
@@ -116,7 +116,7 @@ public class GapsFilter implements DataProcessingMethod, TaskListener,
      */
     public void actionPerformed(ActionEvent e) {
 
-        AlignmentResult[] alignmentResults = desktop.getSelectedAlignmentResults();
+        PeakList[] alignmentResults = desktop.getSelectedAlignmentResults();
         if (alignmentResults.length == 0) {
             desktop.displayErrorMessage("Please select at least one alignment result.");
             return;
@@ -139,10 +139,10 @@ public class GapsFilter implements DataProcessingMethod, TaskListener,
 
             logger.info("Finished alignment result filter by gaps");
 
-            AlignmentResult filteredAlignmentResult = (AlignmentResult) task.getResult();
+            PeakList filteredPeakList = (PeakList) task.getResult();
 
             MZmineProject.getCurrentProject().addAlignmentResult(
-                    filteredAlignmentResult);
+                    filteredPeakList);
 
         } else if (task.getStatus() == Task.TaskStatus.ERROR) {
             /* Task encountered an error */
@@ -157,12 +157,12 @@ public class GapsFilter implements DataProcessingMethod, TaskListener,
 
     /**
      * @see net.sf.mzmine.modules.DataProcessingMethod#runMethod(net.sf.mzmine.io.OpenedRawDataFile[],
-     *      net.sf.mzmine.data.AlignmentResult[],
+     *      net.sf.mzmine.data.PeakList[],
      *      net.sf.mzmine.data.ParameterSet,
      *      net.sf.mzmine.taskcontrol.TaskGroupListener)
      */
     public TaskGroup runMethod(OpenedRawDataFile[] dataFiles,
-            AlignmentResult[] alignmentResults, ParameterSet parameters,
+            PeakList[] alignmentResults, ParameterSet parameters,
             TaskGroupListener methodListener) {
 
         // prepare a new sequence of tasks

@@ -483,7 +483,7 @@ public class SpectraVisualizerWindow extends JInternalFrame implements
 
                 toolBar.setPeaksButtonEnabled(true);
 
-                Peak[] peaks = peakList.getPeaksInsideScanAndMZRange(rtMin,
+                Peak[] peaks = peakList.getPeaksInsideScanAndMZRange(dataFile, rtMin,
                         rtMax, mzMin, mzMax);
 
                 for (int i = 0; i < peaks.length; i++) {

@@ -23,15 +23,15 @@ import java.io.File;
 import java.io.FileWriter;
 import java.util.logging.Logger;
 
-import net.sf.mzmine.data.AlignmentResult;
-import net.sf.mzmine.data.AlignmentResultRow;
+import net.sf.mzmine.data.PeakList;
+import net.sf.mzmine.data.PeakListRow;
 import net.sf.mzmine.data.Peak;
 import net.sf.mzmine.data.Peak.PeakStatus;
 import net.sf.mzmine.io.OpenedRawDataFile;
-import net.sf.mzmine.io.export.AlignmentResultExportColumns.CommonColumnType;
-import net.sf.mzmine.io.export.AlignmentResultExportColumns.RawDataColumnType;
+import net.sf.mzmine.io.export.PeakListExportColumns.CommonColumnType;
+import net.sf.mzmine.io.export.PeakListExportColumns.RawDataColumnType;
 
-public class AlignmentResultExporter {
+public class PeakListExporter {
 
     private Logger logger = Logger.getLogger(this.getClass().getName());
 
@@ -45,8 +45,8 @@ public class AlignmentResultExporter {
      * 
      * @return true if successfully exported, otherwise false
      */
-    public boolean exportToFile(AlignmentResult alignmentResult,
-            File outputFile, AlignmentResultExportColumns columnSelection) {
+    public boolean exportToFile(PeakList alignmentResult,
+            File outputFile, PeakListExportColumns columnSelection) {
 
         // Open file
         FileWriter fw;
@@ -85,7 +85,7 @@ public class AlignmentResultExporter {
         // Write data rows
 
         int row = 0;
-        for (AlignmentResultRow alignmentRow : alignmentResult.getRows()) {
+        for (PeakListRow alignmentRow : alignmentResult.getRows()) {
 
             s = "";
 

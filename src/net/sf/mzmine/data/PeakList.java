@@ -20,6 +20,8 @@
 
 package net.sf.mzmine.data;
 
+import net.sf.mzmine.io.OpenedRawDataFile;
+
 
 /**
  * 
@@ -27,36 +29,61 @@ package net.sf.mzmine.data;
 public interface PeakList {
 
     /**
-     * Returns number of peaks on the list
+     * @return Short descriptive name for the alignment result
      */
-    public int getNumberOfPeaks();
+    public String toString();
 
     /**
-     * Returns all peaks in the peak list
+     * Returns number of raw data files participating in the alignment
      */
-    public Peak[] getPeaks();
+    public int getNumberOfRawDataFiles();
 
     /**
-     * Returns peak at defined position
-     * 
-     * @param index Position of peak
+     * Returns all raw data files participating in the alignment
      */
-    public Peak getPeak(int index);
+    public OpenedRawDataFile[] getRawDataFiles();
 
     /**
-     * Returns the index of a peak on the peak list
-     * 
-     * @param peak Peak to be searched
+     * Returns a raw data file
+     * @param position  Position of the raw data file in the matrix (running numbering from left 0,1,2,...)
      */
-    public int indexOf(Peak peak);
+    public OpenedRawDataFile getRawDataFile(int position);
 
+    /**
+     * Returns number of rows in the alignment result
+     */
+    public int getNumberOfRows();
+
+    /**
+     * Returns the peak of a given raw data file on a give row of the alignment result
+     * @param   row Row of the alignment result
+     * @param   rawDataFile Raw data file where the peak is detected/estimated
+     */
+    public Peak getPeak(int row, OpenedRawDataFile rawDataFile);
+
+    /**
+     * Returns all peaks for a raw data file
+     */
+    public Peak[] getPeaks(OpenedRawDataFile rawDataFile);
+
+    /**
+     * Returns all peaks on one row
+     */
+    public PeakListRow getRow(int row);
+
+    /**
+     * Returns all alignment result rows
+     */
+    public PeakListRow[] getRows();
+
+    
     /**
      * Returns all peaks overlapping with a retention time range
      * 
      * @param startRT Start of the retention time range
      * @param endRT End of the retention time range
      */
-    public Peak[] getPeaksInsideScanRange(double startRT, double endRT);
+    public Peak[] getPeaksInsideScanRange(OpenedRawDataFile file, double startRT, double endRT);
 
     /**
      * Returns all peaks in a given m/z range
@@ -64,7 +91,7 @@ public interface PeakList {
      * @param startMZ Start of the m/z range
      * @param endMZ End of the m/z range
      */
-    public Peak[] getPeaksInsideMZRange(double startMZ, double endMZ);
+    public Peak[] getPeaksInsideMZRange(OpenedRawDataFile file, double startMZ, double endMZ);
 
     /**
      * Returns all peaks in a given m/z & retention time ranges
@@ -74,14 +101,13 @@ public interface PeakList {
      * @param startMZ Start of the m/z range
      * @param endMZ End of the m/z range
      */
-    public Peak[] getPeaksInsideScanAndMZRange(double startRT, double endRT,
+    public Peak[] getPeaksInsideScanAndMZRange(OpenedRawDataFile file, double startRT, double endRT,
             double startMZ, double endMZ);
 
     /**
-     * Removes a peak from this peak list
+     * Removes a row from this peak list
      * 
-     * @param peak Peak to remove
      */
-    public void removePeak(Peak peak);
+    public void removeRow(PeakListRow row);
 
 }

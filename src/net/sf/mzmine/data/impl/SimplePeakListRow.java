@@ -23,7 +23,7 @@ import java.text.Format;
 import java.util.Enumeration;
 import java.util.Hashtable;
 
-import net.sf.mzmine.data.AlignmentResultRow;
+import net.sf.mzmine.data.PeakListRow;
 import net.sf.mzmine.data.Peak;
 import net.sf.mzmine.io.OpenedRawDataFile;
 import net.sf.mzmine.userinterface.mainwindow.MainWindow;
@@ -31,13 +31,13 @@ import net.sf.mzmine.userinterface.mainwindow.MainWindow;
 /**
  * 
  */
-public class SimpleAlignmentResultRow implements AlignmentResultRow {
+public class SimplePeakListRow implements PeakListRow {
 
     private Hashtable<OpenedRawDataFile, Peak> peaks;
     private Hashtable<OpenedRawDataFile, Peak> originalPeaks;
     private String comment;
 
-    public SimpleAlignmentResultRow() {
+    public SimplePeakListRow() {
         peaks = new Hashtable<OpenedRawDataFile, Peak>();
         originalPeaks = new Hashtable<OpenedRawDataFile, Peak>();
     }
@@ -68,7 +68,7 @@ public class SimpleAlignmentResultRow implements AlignmentResultRow {
     }
 
     /**
-     * @see net.sf.mzmine.data.AlignmentResultRow#getOriginalPeakListEntry(net.sf.mzmine.io.OpenedRawDataFile)
+     * @see net.sf.mzmine.data.PeakListRow#getOriginalPeakListEntry(net.sf.mzmine.io.OpenedRawDataFile)
      */
     public Peak getOriginalPeakListEntry(OpenedRawDataFile rawData) {
         return originalPeaks.get(rawData);
@@ -76,7 +76,7 @@ public class SimpleAlignmentResultRow implements AlignmentResultRow {
 
     public void addPeak(OpenedRawDataFile rawData, Peak original, Peak current) {
         peaks.put(rawData, current);
-        peaks.put(rawData, original);
+        originalPeaks.put(rawData, original);
     }
 
     /*
@@ -124,14 +124,14 @@ public class SimpleAlignmentResultRow implements AlignmentResultRow {
     }
 
     /**
-     * @see net.sf.mzmine.data.AlignmentResultRow#getComment()
+     * @see net.sf.mzmine.data.PeakListRow#getComment()
      */
     public String getComment() {
         return comment;
     }
 
     /**
-     * @see net.sf.mzmine.data.AlignmentResultRow#setComment(java.lang.String)
+     * @see net.sf.mzmine.data.PeakListRow#setComment(java.lang.String)
      */
     public void setComment(String comment) {
         this.comment = comment;

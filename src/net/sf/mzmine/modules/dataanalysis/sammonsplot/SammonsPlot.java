@@ -40,7 +40,7 @@ import javax.swing.RepaintManager;
 import javax.swing.event.InternalFrameEvent;
 import javax.swing.event.InternalFrameListener;
 
-import net.sf.mzmine.data.AlignmentResult;
+import net.sf.mzmine.data.PeakList;
 import net.sf.mzmine.data.ParameterSet;
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.main.MZmineModule;
@@ -53,7 +53,7 @@ import net.sf.mzmine.util.TransferableImage;
  * This class is used to draw a spatial logratio plot between two groups of runs in one alignment result
  *
  */
-//public class AlignmentResultVisualizerSammonsPlotView extends JInternalFrame implements Printable, AlignmentResultVisualizer, InternalFrameListener {
+//public class PeakListVisualizerSammonsPlotView extends JInternalFrame implements Printable, PeakListVisualizer, InternalFrameListener {
 public class SammonsPlot extends JInternalFrame implements MZmineModule, Printable, InternalFrameListener {
 
     // private static final double marginSize = (double)0.02; // How much extra margin is added to the axis in full zoom
@@ -61,7 +61,7 @@ public class SammonsPlot extends JInternalFrame implements MZmineModule, Printab
 	private MainWindow mainWin;
 	// private Statusbar statBar;
 
-	private AlignmentResult alignmentResult;
+	private PeakList alignmentResult;
 
 	private int[] sampleClasses;			// 0 = unassigned, 1,2,3,...= classes
 
@@ -117,7 +117,7 @@ public class SammonsPlot extends JInternalFrame implements MZmineModule, Printab
 	 * @param	_alignmentResult	Alignment result to be displayed by this visualizer
 	 * @return	RETVAL_OK if user selected two groups of samples, RETVAL_CANCEL if didn't
 	 */
-	public AlignmentResultVisualizerSammonsPlotViewParameters askParameters(AlignmentResult _alignmentResult, AlignmentResultVisualizerSammonsPlotViewParameters _myParameters) {
+	public AlignmentResultVisualizerSammonsPlotViewParameters askParameters(PeakList _alignmentResult, AlignmentResultVisualizerSammonsPlotViewParameters _myParameters) {
 
 		alignmentResult = _alignmentResult;
 		myParameters = _myParameters;
@@ -163,7 +163,7 @@ public class SammonsPlot extends JInternalFrame implements MZmineModule, Printab
 
 	}
 
-	public void setAlignmentResult(AlignmentResult alignmentResult) {
+	public void setPeakList(PeakList alignmentResult) {
 		// Logratio plot doesn't use this method
 		// Required data is given by user in parameter setup dialog
 	}
@@ -174,7 +174,7 @@ public class SammonsPlot extends JInternalFrame implements MZmineModule, Printab
 	 */
 	public void refreshVisualizer(int changeType) {
 		/*
-		if (changeType == AlignmentResultVisualizer.CHANGETYPE_PEAK_MEASURING_SETTING) {
+		if (changeType == PeakListVisualizer.CHANGETYPE_PEAK_MEASURING_SETTING) {
 			preparePlot();
 		}
 		*/
@@ -290,7 +290,7 @@ public class SammonsPlot extends JInternalFrame implements MZmineModule, Printab
 		// - Set this as active visualizer for the alignment result
 		//alignmentResult.setActiveVisualizer(this);
 		// - Select the alignment result in the menu
-		mainWin.setSelectedAlignmentResult(alignmentResult);
+		//mainWin.setSelectedPeakList(alignmentResult);
 	}
 	public void internalFrameClosed(InternalFrameEvent e) {	}
 	public void internalFrameClosing(InternalFrameEvent e) { }
@@ -301,7 +301,7 @@ public class SammonsPlot extends JInternalFrame implements MZmineModule, Printab
 
 
 	/**
-	 * Implementation of AlignmentResultVisualizer interface
+	 * Implementation of PeakListVisualizer interface
 	 */
 	public void updateSelectedRow() {
 		//int rowNum = 0; //alignmentResult.getSelectedRow();
@@ -310,7 +310,7 @@ public class SammonsPlot extends JInternalFrame implements MZmineModule, Printab
 	}
 
 	/**
-	 * Implementation of AlignmentResultVisualizer interface
+	 * Implementation of PeakListVisualizer interface
 	 */
 	public void printMe() {
 		PrinterJob printJob = PrinterJob.getPrinterJob();
@@ -360,7 +360,7 @@ public class SammonsPlot extends JInternalFrame implements MZmineModule, Printab
 	 }
 
 	/**
-	 * Implementation of AlignmentResultVisualizer interface
+	 * Implementation of PeakListVisualizer interface
 	 */
 	 public void copyMe() {
 		// Initialize clipboard
