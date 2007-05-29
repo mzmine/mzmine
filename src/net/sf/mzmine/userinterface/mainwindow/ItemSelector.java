@@ -39,6 +39,7 @@ import net.sf.mzmine.data.AlignmentResult;
 import net.sf.mzmine.io.OpenedRawDataFile;
 import net.sf.mzmine.project.MZmineProject;
 import net.sf.mzmine.userinterface.Desktop;
+import net.sf.mzmine.userinterface.components.DragOrderedJList;
 import net.sf.mzmine.util.GUIUtils;
 
 /**
@@ -48,11 +49,11 @@ public class ItemSelector extends JPanel implements MouseListener,
         ActionListener {
 
     private DefaultListModel rawDataObjects;
-    private JList rawDataList;
+    private DragOrderedJList rawDataList;
     private JScrollPane rawDataScroll;
 
     private DefaultListModel resultObjects;
-    private JList resultList;
+    private DragOrderedJList resultList;
     private JScrollPane resultScroll;
 
     /**
@@ -65,7 +66,7 @@ public class ItemSelector extends JPanel implements MouseListener,
         JLabel rawDataTitle = new JLabel(new String("Raw data files"));
 
         rawDataObjects = new DefaultListModel();
-        rawDataList = new JList(rawDataObjects);
+        rawDataList = new DragOrderedJList(rawDataObjects);
         rawDataScroll = new JScrollPane(rawDataList);
 
         rawDataPanel.setLayout(new BorderLayout());
@@ -78,7 +79,7 @@ public class ItemSelector extends JPanel implements MouseListener,
         JLabel resultsTitle = new JLabel(new String("Alignment results"));
 
         resultObjects = new DefaultListModel();
-        resultList = new JList(resultObjects);
+        resultList = new DragOrderedJList(resultObjects);
         resultScroll = new JScrollPane(resultList);
 
         resultsPanel.setLayout(new BorderLayout());
