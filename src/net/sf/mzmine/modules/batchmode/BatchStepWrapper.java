@@ -25,7 +25,7 @@ import net.sf.mzmine.modules.DataProcessingMethod;
 /**
  * 
  */
-class BatchStep {
+class BatchStepWrapper {
 
     private DataProcessingMethod method;
     private ParameterSet parameters;
@@ -34,7 +34,7 @@ class BatchStep {
      * @param method
      * @param parameters
      */
-    BatchStep(DataProcessingMethod method, ParameterSet parameters) {
+    BatchStepWrapper(DataProcessingMethod method, ParameterSet parameters) {
         this.method = method;
         this.parameters = parameters;
     }

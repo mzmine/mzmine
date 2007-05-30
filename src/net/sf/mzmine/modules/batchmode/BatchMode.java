@@ -50,7 +50,7 @@ public class BatchMode implements MZmineModule, TaskGroupListener,
     private MZmineCore core;
     private Desktop desktop;
 
-    private Vector<BatchStep> currentBatchSteps;
+    private Vector<BatchStepWrapper> currentBatchSteps;
     private boolean batchRunning = false;
     private int currentStep;
     private OpenedRawDataFile[] selectedDataFiles;
@@ -63,7 +63,7 @@ public class BatchMode implements MZmineModule, TaskGroupListener,
         this.core = core;
         this.desktop = core.getDesktop();
 
-        currentBatchSteps = new Vector<BatchStep>();
+        currentBatchSteps = new Vector<BatchStepWrapper>();
 
         desktop.addMenuItem(MZmineMenu.BATCH, "Define batch...", this,
                 null, KeyEvent.VK_D, false, true);
@@ -136,7 +136,7 @@ public class BatchMode implements MZmineModule, TaskGroupListener,
 
         logger.finest("Batch mode runNextStep");
 
-        BatchStep newStep = currentBatchSteps.get(currentStep);
+        BatchStepWrapper newStep = currentBatchSteps.get(currentStep);
         DataProcessingMethod method = newStep.getMethod();
 
         PeakList[] lastResultOnly = null;

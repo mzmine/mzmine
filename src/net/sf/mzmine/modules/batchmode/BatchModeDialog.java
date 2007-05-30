@@ -53,7 +53,7 @@ class BatchModeDialog extends JDialog implements ActionListener {
     
     private MZmineCore core;
 
-    private Vector<BatchStep> batchSteps;
+    private Vector<BatchStepWrapper> batchSteps;
 
     // dialog components
     private JComboBox methodsCombo;
@@ -61,7 +61,7 @@ class BatchModeDialog extends JDialog implements ActionListener {
     private JButton btnAdd, btnConfig, btnRemove, btnOK, btnCancel;
 
     public BatchModeDialog(MZmineCore core,
-            Vector<BatchStep> batchSteps) {
+            Vector<BatchStepWrapper> batchSteps) {
 
         // make dialog modal
         super(core.getDesktop().getMainFrame(), "Batch mode setup", true);
@@ -151,7 +151,7 @@ class BatchModeDialog extends JDialog implements ActionListener {
             if (params == null)
                 return;
             
-            BatchStep newStep = new BatchStep(selectedMethod, params);
+            BatchStepWrapper newStep = new BatchStepWrapper(selectedMethod, params);
             batchSteps.add(newStep);
             currentStepsList.setListData(batchSteps);
             return;
@@ -159,7 +159,7 @@ class BatchModeDialog extends JDialog implements ActionListener {
         
         if (src == btnRemove) {
 
-            BatchStep selected = (BatchStep) currentStepsList.getSelectedValue();
+            BatchStepWrapper selected = (BatchStepWrapper) currentStepsList.getSelectedValue();
             logger.finest("Removing " + selected);
             batchSteps.remove(selected);
             currentStepsList.setListData(batchSteps);
@@ -168,7 +168,7 @@ class BatchModeDialog extends JDialog implements ActionListener {
         
         if (src == btnConfig) {
 
-            BatchStep selected = (BatchStep) currentStepsList.getSelectedValue();
+            BatchStepWrapper selected = (BatchStepWrapper) currentStepsList.getSelectedValue();
             if (selected == null) return;
             logger.finest("Configuring " + selected);
             selected.getMethod().setupParameters(selected.getParameters());
