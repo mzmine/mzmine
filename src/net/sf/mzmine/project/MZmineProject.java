@@ -105,12 +105,12 @@ public class MZmineProject {
 
     public void addAlignmentResult(PeakList newResult) {
 		projectResults.add(newResult);
-		desktop.addAlignmentResult(newResult);
+		desktop.addAlignedPeakList(newResult);
 	}
 
 	public void removeAlignmentResult(PeakList result) {
 		projectResults.remove(result);
-		desktop.removeAlignmentResult(result);
+		desktop.removeAlignedPeakList(result);
 	}
 
     public PeakList[] getAlignmentResults() {

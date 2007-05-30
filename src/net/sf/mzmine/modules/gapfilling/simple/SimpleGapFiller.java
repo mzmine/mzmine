@@ -142,7 +142,7 @@ public class SimpleGapFiller implements DataProcessingMethod, TaskListener,
      */
     public void actionPerformed(ActionEvent e) {
 
-        PeakList[] selectedPeakLists = desktop.getSelectedAlignmentResults();
+        PeakList[] selectedPeakLists = desktop.getSelectedAlignedPeakLists();
         if (selectedPeakLists.length < 1) {
             desktop.displayErrorMessage("Please select alignment result");
             return;

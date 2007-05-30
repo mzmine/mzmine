@@ -70,7 +70,7 @@ public class PeakListTableVisualizer implements MZmineModule, ActionListener {
     public void actionPerformed(ActionEvent e) {
 
         OpenedRawDataFile dataFiles[] = desktop.getSelectedDataFiles();
-        PeakList alignmentResults[] = desktop.getSelectedAlignmentResults();
+        PeakList alignmentResults[] = desktop.getSelectedAlignedPeakLists();
 
         Object src = e.getSource();
 

@@ -125,9 +125,9 @@ public class LinearNormalizer implements DataProcessingMethod, TaskListener,
      */
     public void actionPerformed(ActionEvent e) {
 
-        PeakList[] selectedPeakLists = desktop.getSelectedAlignmentResults();
+        PeakList[] selectedPeakLists = desktop.getSelectedAlignedPeakLists();
         if (selectedPeakLists.length < 1) {
-            desktop.displayErrorMessage("Please select alignment result");
+            desktop.displayErrorMessage("Please select aligned peaklist");
             return;
         }
 

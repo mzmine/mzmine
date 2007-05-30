@@ -65,7 +65,7 @@ public class BatchMode implements MZmineModule, TaskGroupListener,
 
         currentBatchSteps = new Vector<BatchStep>();
 
-        desktop.addMenuItem(MZmineMenu.BATCH, "Define batch operations", this,
+        desktop.addMenuItem(MZmineMenu.BATCH, "Define batch...", this,
                 null, KeyEvent.VK_D, false, true);
 
     }

@@ -46,6 +46,13 @@ public interface CompoundIdentity {
      * @return Compound name
      */
     public String getCompoundName();
+    
+    /**
+     * Returns compound formula
+     * 
+     * @return Formula
+     */
+    public String getCompoundFormula();
 
     /**
      * Returns alternate names of this compound

@@ -51,8 +51,8 @@ import ca.guydavis.swing.desktop.JWindowsMenu;
 /**
  * 
  */
-public class MainMenu extends JMenuBar implements ActionListener,
-        ListSelectionListener {
+public class MainMenu extends JMenuBar implements ActionListener
+         {
 
     private JMenu fileMenu;
     private JMenu editMenu;
@@ -60,6 +60,7 @@ public class MainMenu extends JMenuBar implements ActionListener,
     private JMenu peakMenu;
     private JMenu alignmentMenu;
     private JMenu normalizationMenu;
+    private JMenu identificationMenu;
     private JMenu batchMenu;
     private JMenu rawDataVisualizationMenu;
     private JMenu dataAnalysisMenu;
@@ -90,11 +91,11 @@ public class MainMenu extends JMenuBar implements ActionListener,
         this.ioController = core.getIOController();
         this.desktop = core.getDesktop();
 
-        fileMenu = new JMenu("File");
+        fileMenu = new JMenu("Project");
         fileMenu.setMnemonic(KeyEvent.VK_F);
         add(fileMenu);
 
-        fileOpen = GUIUtils.addMenuItem(fileMenu, "Open...", this,
+        fileOpen = GUIUtils.addMenuItem(fileMenu, "Import raw data...", this,
                 KeyEvent.VK_O, true);
         fileClose = GUIUtils.addMenuItem(fileMenu, "Close", this, KeyEvent.VK_C);
         fileMenu.addSeparator();
@@ -140,6 +141,10 @@ public class MainMenu extends JMenuBar implements ActionListener,
         normalizationMenu = new JMenu("Normalization");
         normalizationMenu.setMnemonic(KeyEvent.VK_N);
         this.add(normalizationMenu);
+        
+        identificationMenu = new JMenu("Identification");
+        identificationMenu.setMnemonic(KeyEvent.VK_I);
+        this.add(identificationMenu);
 
         batchMenu = new JMenu("Batch mode");
         batchMenu.setMnemonic(KeyEvent.VK_B);
@@ -184,7 +189,7 @@ public class MainMenu extends JMenuBar implements ActionListener,
         hlpAbout = GUIUtils.addMenuItem(helpMenu, "About MZmine...", this,
                 KeyEvent.VK_A);
 
-        desktop.addSelectionListener(this);
+        //desktop.addSelectionListener(this);
 
     }
 
@@ -201,6 +206,9 @@ public class MainMenu extends JMenuBar implements ActionListener,
             break;
         case NORMALIZATION:
             normalizationMenu.add(newItem);
+            break;
+        case IDENTIFICATION:
+            identificationMenu.add(newItem);
             break;
         case BATCH:
             batchMenu.add(newItem);
@@ -247,6 +255,9 @@ public class MainMenu extends JMenuBar implements ActionListener,
             break;
         case NORMALIZATION:
             normalizationMenu.addSeparator();
+            break;
+        case IDENTIFICATION:
+            identificationMenu.addSeparator();
             break;
         case BATCH:
             batchMenu.addSeparator();
@@ -302,7 +313,7 @@ public class MainMenu extends JMenuBar implements ActionListener,
 
         if (src == fileExportAlignmentResult) {
 
-            PeakList[] alignmentResults = desktop.getSelectedAlignmentResults();
+            PeakList[] alignmentResults = desktop.getSelectedAlignedPeakLists();
             if (alignmentResults.length > 0)
                 new PeakListExportDialog(alignmentResults);
 
@@ -325,11 +336,6 @@ public class MainMenu extends JMenuBar implements ActionListener,
 
     }
 
-    /**
-     * @see javax.swing.event.ListSelectionListener#valueChanged(javax.swing.event.ListSelectionEvent)
-     */
-    public void valueChanged(ListSelectionEvent e) {
-        fileClose.setEnabled(desktop.isDataFileSelected());
-    }
+
 
 }

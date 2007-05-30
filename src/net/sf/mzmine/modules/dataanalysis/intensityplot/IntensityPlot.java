@@ -63,7 +63,7 @@ public class IntensityPlot implements MZmineModule, ActionListener {
      */
     public void actionPerformed(ActionEvent e) {
 
-        PeakList selectedAlignmentResults[] = desktop.getSelectedAlignmentResults();
+        PeakList selectedAlignmentResults[] = desktop.getSelectedAlignedPeakLists();
         if (selectedAlignmentResults.length != 1) {
             desktop.displayErrorMessage("Please select a single alignment result to plot");
             return;

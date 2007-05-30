@@ -20,6 +20,7 @@
 package net.sf.mzmine.modules.visualization.peaklist;
 
 import java.awt.Color;
+import java.text.NumberFormat;
 
 import javax.swing.table.AbstractTableModel;
 import javax.swing.table.TableColumnModel;
@@ -30,10 +31,12 @@ import net.sf.mzmine.data.PeakListRow;
 import net.sf.mzmine.io.OpenedRawDataFile;
 import net.sf.mzmine.modules.visualization.peaklist.PeakListTableColumns.CommonColumnType;
 import net.sf.mzmine.modules.visualization.peaklist.PeakListTableColumns.RawDataColumnType;
+import net.sf.mzmine.userinterface.Desktop;
 import net.sf.mzmine.userinterface.components.ColorCircle;
 import net.sf.mzmine.userinterface.components.ColumnGroup;
 import net.sf.mzmine.userinterface.components.GroupableTableHeader;
 import net.sf.mzmine.userinterface.components.PeakXICComponent;
+import net.sf.mzmine.userinterface.mainwindow.MainWindow;
 
 
 
@@ -92,6 +95,11 @@ public class PeakListTableModel extends AbstractTableModel {
 
         int[] groupOffset = getColumnGroupAndOffset(col);
 
+        Desktop desktop = MainWindow.getInstance();
+        NumberFormat mzFormat = desktop.getMZFormat();
+        NumberFormat rtFormat = desktop.getRTFormat();
+        NumberFormat intensityFormat = desktop.getIntensityFormat();
+
         // Common column
         if (groupOffset[0] < 0) {
 
@@ -102,9 +110,9 @@ public class PeakListTableModel extends AbstractTableModel {
             case ROWNUM:
                 return new Integer(row + 1);
             case AVGMZ:
-                return new Double(alignmentRow.getAverageMZ());
+                return mzFormat.format(alignmentRow.getAverageMZ());
             case AVGRT:
-                return new Double(alignmentRow.getAverageRT());
+                return rtFormat.format(alignmentRow.getAverageRT());
             case COMMENT:
                 return alignmentRow.getComment();
             default:
@@ -127,13 +135,13 @@ public class PeakListTableModel extends AbstractTableModel {
 
             switch (columnSelection.getSelectedRawDataColumns()[groupOffset[1]]) {
             case MZ:
-                return new Double(p.getMZ());
+                return mzFormat.format(p.getMZ());
             case RT:
-                return new Double(p.getRT());
+                return rtFormat.format(p.getRT());
             case HEIGHT:
-                return new Double(p.getHeight());
+                return intensityFormat.format(p.getHeight());
             case AREA:
-                return new Double(p.getArea());
+                return intensityFormat.format(p.getArea());
             case SHAPE:
                 return new PeakXICComponent(p);
             case STATUS:

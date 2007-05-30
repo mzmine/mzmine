@@ -116,7 +116,7 @@ public class GapsFilter implements DataProcessingMethod, TaskListener,
      */
     public void actionPerformed(ActionEvent e) {
 
-        PeakList[] alignmentResults = desktop.getSelectedAlignmentResults();
+        PeakList[] alignmentResults = desktop.getSelectedAlignedPeakLists();
         if (alignmentResults.length == 0) {
             desktop.displayErrorMessage("Please select at least one alignment result.");
             return;

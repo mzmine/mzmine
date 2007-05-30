@@ -38,7 +38,7 @@ import net.sf.mzmine.util.NumberFormatter;
 public interface Desktop {
 
     public enum MZmineMenu {
-        FILTERING, PEAKPICKING, ALIGNMENT, NORMALIZATION, BATCH, VISUALIZATION, ANALYSIS
+        FILTERING, PEAKPICKING, ALIGNMENT, NORMALIZATION, IDENTIFICATION, BATCH, VISUALIZATION, ANALYSIS
     };
 
     /**
@@ -88,7 +88,7 @@ public interface Desktop {
 
     public boolean isDataFileSelected();
     
-    public boolean isAlignmentResultSelected();
+    public boolean isAlignedPeakListSelected();
 
     /**
      * Returns array of currently selected raw data files in GUI
@@ -96,20 +96,10 @@ public interface Desktop {
     public OpenedRawDataFile[] getSelectedDataFiles();
     
     /**
-     * Returns array of currently selected alignment results in GUI 
+     * Returns array of currently selected alignned peaklists in GUI 
      */
-    public PeakList[] getSelectedAlignmentResults();
+    public PeakList[] getSelectedAlignedPeakLists();
 
-    /**
-     * Selects one raw data file in GUI
-     */
-    public void setSelectedDataFile(OpenedRawDataFile dataFile);
-    
-    /**
-     * Selects one alignment result in GUI
-     */
-    public void setSelectedAlignmentResult(PeakList alignmentResult);
-    
     /**
      * Adds a new raw data file to GUI
      */
@@ -118,7 +108,7 @@ public interface Desktop {
     /**
      * Adds a new alignment result to GUI
      */
-    public void addAlignmentResult(PeakList alignmentResult);
+    public void addAlignedPeakList(PeakList alignmentResult);
     
     /**
      * Removes raw data file from GUI
@@ -126,9 +116,9 @@ public interface Desktop {
     public void removeDataFile(OpenedRawDataFile dataFile);
     
     /**
-     * Removes alignment result from GUI
+     * Removes aligned peaklist from GUI
      */
-    public void removeAlignmentResult(PeakList alignmentResult);
+    public void removeAlignedPeakList(PeakList alignedPeakList);
     
     public NumberFormatter getMZFormat();
 

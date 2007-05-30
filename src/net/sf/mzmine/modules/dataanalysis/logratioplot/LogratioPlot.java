@@ -35,7 +35,7 @@ public class LogratioPlot implements MZmineModule,
 
 	public void actionPerformed(ActionEvent e) {
 		
-        PeakList[] alignmentResults = desktop.getSelectedAlignmentResults();
+        PeakList[] alignmentResults = desktop.getSelectedAlignedPeakLists();
 
         for (PeakList alignmentResult : alignmentResults) {
 
@@ -49,7 +49,7 @@ public class LogratioPlot implements MZmineModule,
 
 	public void valueChanged(ListSelectionEvent e) {
 
-		PeakList[] alignmentResults = desktop.getSelectedAlignmentResults();
+		PeakList[] alignmentResults = desktop.getSelectedAlignedPeakLists();
 		if (alignmentResults.length>0) myMenuItem.setEnabled(true);
 
 	}
