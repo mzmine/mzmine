@@ -37,7 +37,7 @@ import net.sf.mzmine.data.impl.SimpleParameterSet;
 import net.sf.mzmine.io.OpenedRawDataFile;
 import net.sf.mzmine.io.RawDataFile;
 import net.sf.mzmine.main.MZmineCore;
-import net.sf.mzmine.modules.DataProcessingMethod;
+import net.sf.mzmine.modules.BatchStep;
 import net.sf.mzmine.taskcontrol.Task;
 import net.sf.mzmine.taskcontrol.TaskController;
 import net.sf.mzmine.taskcontrol.TaskGroup;
@@ -48,7 +48,7 @@ import net.sf.mzmine.userinterface.Desktop.MZmineMenu;
 import net.sf.mzmine.userinterface.dialogs.ExitCode;
 import net.sf.mzmine.userinterface.dialogs.ParameterSetupDialog;
 
-public class SGFilter implements DataProcessingMethod, TaskListener,
+public class SGFilter implements BatchStep, TaskListener,
         ActionListener {
 
     public static final Parameter parameterDatapoints = new SimpleParameter(
@@ -94,19 +94,19 @@ public class SGFilter implements DataProcessingMethod, TaskListener,
         if (param == null)
             return;
 
-        runMethod(dataFiles, null, param, null);
+        runModule(dataFiles, null, param, null);
 
     }
 
     /**
-     * @see net.sf.mzmine.modules.DataProcessingMethod#toString()
+     * @see net.sf.mzmine.modules.BatchStep#toString()
      */
     public String toString() {
         return "Savitzky-Golay filter";
     }
 
     /**
-     * @see net.sf.mzmine.modules.DataProcessingMethod#setupParameters()
+     * @see net.sf.mzmine.modules.BatchStep#setupParameters()
      */
     public ParameterSet setupParameters(ParameterSet currentParameters) {
         ParameterSetupDialog dialog = new ParameterSetupDialog(
@@ -119,12 +119,12 @@ public class SGFilter implements DataProcessingMethod, TaskListener,
     }
 
     /**
-     * @see net.sf.mzmine.modules.DataProcessingMethod#runMethod(net.sf.mzmine.io.OpenedRawDataFile[],
+     * @see net.sf.mzmine.modules.BatchStep#runModule(net.sf.mzmine.io.OpenedRawDataFile[],
      *      net.sf.mzmine.data.PeakList[],
      *      net.sf.mzmine.data.ParameterSet,
      *      net.sf.mzmine.taskcontrol.TaskGroupListener)
      */
-    public TaskGroup runMethod(OpenedRawDataFile[] dataFiles,
+    public TaskGroup runModule(OpenedRawDataFile[] dataFiles,
             PeakList[] alignmentResults, ParameterSet parameters,
             TaskGroupListener methodListener) {
 

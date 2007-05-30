@@ -37,7 +37,7 @@ import net.sf.mzmine.data.impl.SimpleParameter;
 import net.sf.mzmine.data.impl.SimpleParameterSet;
 import net.sf.mzmine.io.OpenedRawDataFile;
 import net.sf.mzmine.main.MZmineCore;
-import net.sf.mzmine.modules.DataProcessingMethod;
+import net.sf.mzmine.modules.BatchStep;
 import net.sf.mzmine.taskcontrol.Task;
 import net.sf.mzmine.taskcontrol.TaskController;
 import net.sf.mzmine.taskcontrol.TaskGroup;
@@ -54,7 +54,7 @@ import net.sf.mzmine.userinterface.dialogs.ParameterSetupDialog;
  * 
  */
 
-public class SimpleGrouper implements DataProcessingMethod, TaskListener,
+public class SimpleGrouper implements BatchStep, TaskListener,
         ActionListener {
 
     public static final Parameter mzTolerance = new SimpleParameter(
@@ -128,7 +128,7 @@ public class SimpleGrouper implements DataProcessingMethod, TaskListener,
         ParameterSet param = setupParameters(parameters);
         if (param == null)
             return;
-        runMethod(dataFiles, null, param, null);
+        runModule(dataFiles, null, param, null);
     }
 
     public void taskStarted(Task task) {
@@ -169,14 +169,14 @@ public class SimpleGrouper implements DataProcessingMethod, TaskListener,
     }
 
     /**
-     * @see net.sf.mzmine.modules.DataProcessingMethod#toString()
+     * @see net.sf.mzmine.modules.BatchStep#toString()
      */
     public String toString() {
         return "Simple isotopic peaks grouper";
     }
 
     /**
-     * @see net.sf.mzmine.modules.DataProcessingMethod#setupParameters(net.sf.mzmine.data.ParameterSet)
+     * @see net.sf.mzmine.modules.BatchStep#setupParameters(net.sf.mzmine.data.ParameterSet)
      */
     public ParameterSet setupParameters(ParameterSet currentParameters) {
         ParameterSetupDialog dialog = new ParameterSetupDialog(
@@ -196,12 +196,12 @@ public class SimpleGrouper implements DataProcessingMethod, TaskListener,
     }
 
     /**
-     * @see net.sf.mzmine.modules.DataProcessingMethod#runMethod(net.sf.mzmine.io.OpenedRawDataFile[],
+     * @see net.sf.mzmine.modules.BatchStep#runModule(net.sf.mzmine.io.OpenedRawDataFile[],
      *      net.sf.mzmine.data.PeakList[],
      *      net.sf.mzmine.data.ParameterSet,
      *      net.sf.mzmine.taskcontrol.TaskGroupListener)
      */
-    public TaskGroup runMethod(OpenedRawDataFile[] dataFiles,
+    public TaskGroup runModule(OpenedRawDataFile[] dataFiles,
             PeakList[] alignmentResults, ParameterSet parameters,
             TaskGroupListener methodListener) {
 

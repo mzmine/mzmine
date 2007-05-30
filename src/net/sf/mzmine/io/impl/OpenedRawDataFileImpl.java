@@ -31,7 +31,7 @@ import net.sf.mzmine.io.OpenedRawDataFile;
 import net.sf.mzmine.io.RawDataFile;
 import net.sf.mzmine.io.RawDataFileWriter;
 import net.sf.mzmine.io.mzxml.MZXMLFileWriter;
-import net.sf.mzmine.modules.DataProcessingMethod;
+import net.sf.mzmine.modules.BatchStep;
 
 
 /**
@@ -78,9 +78,9 @@ public class OpenedRawDataFileImpl implements OpenedRawDataFile {
     }
 
     /**
-     * @see net.sf.mzmine.io.OpenedRawDataFile#updateFile(net.sf.mzmine.io.RawDataFile, net.sf.mzmine.modules.DataProcessingMethod, net.sf.mzmine.data.impl.SimpleParameterSet)
+     * @see net.sf.mzmine.io.OpenedRawDataFile#updateFile(net.sf.mzmine.io.RawDataFile, net.sf.mzmine.modules.BatchStep, net.sf.mzmine.data.impl.SimpleParameterSet)
      */
-    public synchronized void updateFile(RawDataFile newFile, DataProcessingMethod processingMethod,
+    public synchronized void updateFile(RawDataFile newFile, BatchStep processingMethod,
             ParameterSet parameters) {
         
         Operation op = new Operation();
@@ -141,9 +141,9 @@ public class OpenedRawDataFileImpl implements OpenedRawDataFile {
 
 
     /**
-     * @see net.sf.mzmine.io.OpenedRawDataFile#addHistoryEntry(net.sf.mzmine.modules.DataProcessingMethod, net.sf.mzmine.data.impl.SimpleParameterSet)
+     * @see net.sf.mzmine.io.OpenedRawDataFile#addHistoryEntry(net.sf.mzmine.modules.BatchStep, net.sf.mzmine.data.impl.SimpleParameterSet)
      */
-    public void addHistoryEntry(File file, DataProcessingMethod method, ParameterSet param) {
+    public void addHistoryEntry(File file, BatchStep method, ParameterSet param) {
         Operation op = new Operation();
         op.oldFileName = file;
         op.newFileName = file;

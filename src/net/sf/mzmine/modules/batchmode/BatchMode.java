@@ -30,7 +30,7 @@ import net.sf.mzmine.data.ParameterSet;
 import net.sf.mzmine.io.OpenedRawDataFile;
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.main.MZmineModule;
-import net.sf.mzmine.modules.DataProcessingMethod;
+import net.sf.mzmine.modules.BatchStep;
 import net.sf.mzmine.project.MZmineProject;
 import net.sf.mzmine.taskcontrol.TaskGroup;
 import net.sf.mzmine.taskcontrol.TaskGroupListener;
@@ -137,14 +137,14 @@ public class BatchMode implements MZmineModule, TaskGroupListener,
         logger.finest("Batch mode runNextStep");
 
         BatchStepWrapper newStep = currentBatchSteps.get(currentStep);
-        DataProcessingMethod method = newStep.getMethod();
+        BatchStep method = newStep.getMethod();
 
         PeakList[] lastResultOnly = null;
         PeakList[] allResults = MZmineProject.getCurrentProject().getAlignmentResults();
         if (allResults.length > 0)
             lastResultOnly = new PeakList[] { allResults[allResults.length - 1] };
 
-        TaskGroup newSequence = method.runMethod(selectedDataFiles,
+        TaskGroup newSequence = method.runModule(selectedDataFiles,
                 lastResultOnly, newStep.getParameters(), this);
 
         if (newSequence == null) {

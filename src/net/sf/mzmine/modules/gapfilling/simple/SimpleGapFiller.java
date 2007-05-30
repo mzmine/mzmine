@@ -39,7 +39,7 @@ import net.sf.mzmine.data.impl.SimpleParameter;
 import net.sf.mzmine.data.impl.SimpleParameterSet;
 import net.sf.mzmine.io.OpenedRawDataFile;
 import net.sf.mzmine.main.MZmineCore;
-import net.sf.mzmine.modules.DataProcessingMethod;
+import net.sf.mzmine.modules.BatchStep;
 import net.sf.mzmine.taskcontrol.Task;
 import net.sf.mzmine.taskcontrol.TaskController;
 import net.sf.mzmine.taskcontrol.TaskGroup;
@@ -52,7 +52,7 @@ import net.sf.mzmine.userinterface.dialogs.ParameterSetupDialog;
 
 // TODO: Code for this method must be rewritten
 
-public class SimpleGapFiller implements DataProcessingMethod, TaskListener,
+public class SimpleGapFiller implements BatchStep, TaskListener,
         ActionListener {
 
     public static final String RTToleranceTypeAbsolute = "Absolute";
@@ -152,7 +152,7 @@ public class SimpleGapFiller implements DataProcessingMethod, TaskListener,
         if (param == null)
             return;
 
-        runMethod(null, selectedPeakLists, param, null);
+        runModule(null, selectedPeakLists, param, null);
 
     }
 
@@ -217,7 +217,7 @@ public class SimpleGapFiller implements DataProcessingMethod, TaskListener,
     }
 
     /**
-     * @see net.sf.mzmine.modules.DataProcessingMethod#setupParameters(net.sf.mzmine.data.ParameterSet)
+     * @see net.sf.mzmine.modules.BatchStep#setupParameters(net.sf.mzmine.data.ParameterSet)
      */
     public ParameterSet setupParameters(ParameterSet currentParameters) {
         ParameterSetupDialog dialog = new ParameterSetupDialog(
@@ -237,12 +237,12 @@ public class SimpleGapFiller implements DataProcessingMethod, TaskListener,
     }
 
     /**
-     * @see net.sf.mzmine.modules.DataProcessingMethod#runMethod(net.sf.mzmine.io.OpenedRawDataFile[],
+     * @see net.sf.mzmine.modules.BatchStep#runModule(net.sf.mzmine.io.OpenedRawDataFile[],
      *      net.sf.mzmine.data.PeakList[],
      *      net.sf.mzmine.data.ParameterSet,
      *      net.sf.mzmine.taskcontrol.TaskGroupListener)
      */
-    public TaskGroup runMethod(OpenedRawDataFile[] dataFiles,
+    public TaskGroup runModule(OpenedRawDataFile[] dataFiles,
             PeakList[] alignmentResults, ParameterSet parameters,
             TaskGroupListener methodListener) {
 

@@ -39,7 +39,7 @@ import javax.swing.ListSelectionModel;
 import net.sf.mzmine.data.ParameterSet;
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.main.MZmineModule;
-import net.sf.mzmine.modules.DataProcessingMethod;
+import net.sf.mzmine.modules.BatchStep;
 import net.sf.mzmine.userinterface.dialogs.ExitCode;
 import net.sf.mzmine.util.GUIUtils;
 
@@ -74,7 +74,7 @@ class BatchModeDialog extends JDialog implements ActionListener {
 
         methodsCombo = new JComboBox();
         for (MZmineModule mod : core.getAllModules()) {
-            if (mod instanceof DataProcessingMethod)
+            if (mod instanceof BatchStep)
                 methodsCombo.addItem(mod);
         }
 
@@ -143,7 +143,7 @@ class BatchModeDialog extends JDialog implements ActionListener {
 
         if (src == btnAdd) {
 
-            DataProcessingMethod selectedMethod = (DataProcessingMethod) methodsCombo.getSelectedItem();
+            BatchStep selectedMethod = (BatchStep) methodsCombo.getSelectedItem();
             logger.finest("Adding " + selectedMethod);
             
             ParameterSet params = selectedMethod.getParameterSet();

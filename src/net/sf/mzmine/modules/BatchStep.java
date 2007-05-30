@@ -27,9 +27,9 @@ import net.sf.mzmine.taskcontrol.TaskGroup;
 import net.sf.mzmine.taskcontrol.TaskGroupListener;
 
 /**
- * Interface representing a data processing method
+ * Interface representing a data processing method which can be executed in a batch
  */
-public interface DataProcessingMethod extends MZmineModule {
+public interface BatchStep extends MZmineModule {
 
     /**
      * This function displays a modal dialog to define method parameters
@@ -46,10 +46,10 @@ public interface DataProcessingMethod extends MZmineModule {
      * @param alignmentResult AlignmentResults to be processed
      * @param methodListener A method listener whose methodFinished method is
      *            called after whole method has been completed on all given
-     *            files/results.
+     *            files/peak lists.
      * 
      */
-    public TaskGroup runMethod(OpenedRawDataFile[] dataFiles,
+    public TaskGroup runModule(OpenedRawDataFile[] dataFiles,
             PeakList[] alignmentResults, ParameterSet parameters,
             TaskGroupListener methodListener);
 

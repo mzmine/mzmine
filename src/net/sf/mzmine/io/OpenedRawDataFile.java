@@ -25,7 +25,7 @@ import java.util.Vector;
 
 import net.sf.mzmine.data.ParameterSet;
 import net.sf.mzmine.data.PeakList;
-import net.sf.mzmine.modules.DataProcessingMethod;
+import net.sf.mzmine.modules.BatchStep;
 
 
 /**
@@ -36,13 +36,13 @@ public interface OpenedRawDataFile {
     class Operation {
         public File oldFileName;
         public File newFileName;
-        public DataProcessingMethod processingMethod;
+        public BatchStep processingMethod;
         public ParameterSet parameters;
     }
     
     public Vector<Operation> getProcessingHistory();
     
-    public void addHistoryEntry(File file, DataProcessingMethod method, ParameterSet param);
+    public void addHistoryEntry(File file, BatchStep method, ParameterSet param);
     public void addHistoryEntry(Operation op);
     
     /**
@@ -58,7 +58,7 @@ public interface OpenedRawDataFile {
     
     public RawDataFileWriter createNewTemporaryFile() throws IOException;
     
-    public void updateFile(RawDataFile newFile, DataProcessingMethod processingMethod, ParameterSet parameters);
+    public void updateFile(RawDataFile newFile, BatchStep processingMethod, ParameterSet parameters);
     
     public PeakList getPeakList();
     

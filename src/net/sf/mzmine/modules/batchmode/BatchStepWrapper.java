@@ -20,21 +20,21 @@
 package net.sf.mzmine.modules.batchmode;
 
 import net.sf.mzmine.data.ParameterSet;
-import net.sf.mzmine.modules.DataProcessingMethod;
+import net.sf.mzmine.modules.BatchStep;
 
 /**
  * 
  */
 class BatchStepWrapper {
 
-    private DataProcessingMethod method;
+    private BatchStep method;
     private ParameterSet parameters;
 
     /**
      * @param method
      * @param parameters
      */
-    BatchStepWrapper(DataProcessingMethod method, ParameterSet parameters) {
+    BatchStepWrapper(BatchStep method, ParameterSet parameters) {
         this.method = method;
         this.parameters = parameters;
     }
@@ -42,7 +42,7 @@ class BatchStepWrapper {
     /**
      * @return Returns the method.
      */
-    DataProcessingMethod getMethod() {
+    BatchStep getMethod() {
         return method;
     }
 
