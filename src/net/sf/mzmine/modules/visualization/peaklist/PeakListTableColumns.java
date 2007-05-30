@@ -41,8 +41,8 @@ public class PeakListTableColumns implements ColumnSet,
     // type for common columns
     public enum CommonColumnType implements ColumnType {
         ROWNUM("ID", Integer.class), 
-        AVGMZ("m/z", Double.class), 
-        AVGRT("RT", Double.class),
+        AVGMZ("m/z", String.class), 
+        AVGRT("RT", String.class),
         COMMENT("Comment", String.class);
 
         private final String columnName;
@@ -66,10 +66,10 @@ public class PeakListTableColumns implements ColumnSet,
     public enum RawDataColumnType implements ColumnType {
         STATUS("Status", JComponent.class),
         SHAPE("Peak shape", JComponent.class),
-        MZ("M/Z", Double.class), 
-        RT("Retention time", Double.class),
-        HEIGHT("Height", Double.class),
-        AREA("Area", Double.class);
+        MZ("M/Z", String.class), 
+        RT("Retention time", String.class),
+        HEIGHT("Height", String.class),
+        AREA("Area", String.class);
 
         private final String columnName;
         private final Class columnClass;
