@@ -20,6 +20,7 @@
 package net.sf.mzmine.userinterface.mainwindow;
 
 import java.awt.Dimension;
+import java.awt.Frame;
 import java.awt.Point;
 import java.awt.event.ComponentEvent;
 import java.awt.event.ComponentListener;
@@ -49,6 +50,8 @@ public class DesktopParameters implements StorableParameterSet,
     public static final String WIDTH_ELEMENT_NAME = "width";
     public static final String HEIGHT_ELEMENT_NAME = "height";
     public static final String LASTPATH_ELEMENT_NAME = "lastdirectory";
+
+    public static final int MAXIMIZED = -1;
 
     private NumberFormatter mzFormat, rtFormat, intensityFormat;
     private int mainWindowX, mainWindowY, mainWindowWidth, mainWindowHeight;
@@ -224,9 +227,20 @@ public class DesktopParameters implements StorableParameterSet,
         MainWindow mainWindow = MainWindow.getInstance();
         if (mainWindowX > 0)
             mainWindow.setLocation(mainWindowX, mainWindowY);
-        if (mainWindowWidth > 0)
+        
+        if ((mainWindowWidth > 0) || (mainWindowHeight > 0))
             mainWindow.setSize(mainWindowWidth, mainWindowHeight);
+        
+        int newState = Frame.NORMAL;
+        if (mainWindowWidth == MAXIMIZED)
+            newState |= Frame.MAXIMIZED_HORIZ;
+        
+        if (mainWindowHeight == MAXIMIZED)
+            newState |= Frame.MAXIMIZED_VERT;
 
+        mainWindow.setExtendedState(newState);
+        
+        
         lastOpenPath = element.elementText(LASTPATH_ELEMENT_NAME);
 
     }
@@ -264,9 +278,16 @@ public class DesktopParameters implements StorableParameterSet,
      */
     public void componentResized(ComponentEvent arg0) {
         MainWindow mainWindow = MainWindow.getInstance();
+        int state = mainWindow.getExtendedState();
         Dimension size = mainWindow.getSize();
-        mainWindowWidth = size.width;
-        mainWindowHeight = size.height;
+        if ((state & Frame.MAXIMIZED_HORIZ) != 0)
+            mainWindowWidth = MAXIMIZED;
+        else
+            mainWindowWidth = size.width;
+        if ((state & Frame.MAXIMIZED_VERT) != 0)
+            mainWindowHeight = MAXIMIZED;
+        else
+            mainWindowHeight = size.height;
     }
 
     /**
