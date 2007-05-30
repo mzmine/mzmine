@@ -110,12 +110,12 @@ public class CVSetupDialog extends JDialog implements java.awt.event.ActionListe
 		// Select to group one button
 		if (src == buttonSelectFiles) {
 			// Get selected items in source list
-			OpenedRawDataFile[] selected = (OpenedRawDataFile[])listAvailableFiles.getSelectedValues();
+			Object[] selected = listAvailableFiles.getSelectedValues();
 
 			// Put them to g1 target and remove from source list
-			for (OpenedRawDataFile rf : selected) {
-				selectedRawDataFiles.add(rf);
-				availableRawDataFiles.remove(rf);
+			for (Object rf : selected) {
+				selectedRawDataFiles.add((OpenedRawDataFile)rf);
+				availableRawDataFiles.remove((OpenedRawDataFile)rf);
 			}
 
 			listAvailableFiles.setListData(availableRawDataFiles);
@@ -126,12 +126,12 @@ public class CVSetupDialog extends JDialog implements java.awt.event.ActionListe
 		// Remove from group one button
 		if (src == buttonUnselectFiles) {
 			// Get selected items in source list
-			OpenedRawDataFile[] selected = (OpenedRawDataFile[])listSelectedFiles.getSelectedValues();
+			Object[] selected = listSelectedFiles.getSelectedValues();
 
 			// Put them to g1 target and remove from source list
-			for (OpenedRawDataFile rf : selected) {
-				selectedRawDataFiles.add(rf);
-				availableRawDataFiles.remove(rf);
+			for (Object rf : selected) {
+				selectedRawDataFiles.add((OpenedRawDataFile)rf);
+				availableRawDataFiles.remove((OpenedRawDataFile)rf);
 			}
 
 			listAvailableFiles.setListData(availableRawDataFiles);
@@ -225,10 +225,12 @@ public class CVSetupDialog extends JDialog implements java.awt.event.ActionListe
         panelLists.add(panelSelectedFiles, java.awt.BorderLayout.EAST);
 
         // Top: Caption for selection
+        /*
         panelSelectionCaption.setLayout(new java.awt.FlowLayout(java.awt.FlowLayout.LEFT));
         labelSelectionCaption.setText("Selected raw data files");
         panelSelectionCaption.add(labelSelectionCaption);
         panelLists.add(panelSelectionCaption, java.awt.BorderLayout.NORTH);
+        */
 
         panelAll.add(panelLists, java.awt.BorderLayout.NORTH);
 
@@ -238,30 +240,27 @@ public class CVSetupDialog extends JDialog implements java.awt.event.ActionListe
         setDefaultCloseOperation(javax.swing.WindowConstants.HIDE_ON_CLOSE);
 
         pack();
+        setLocationRelativeTo(desktop.getMainFrame());
+        setResizable(false);        
         
     }
 
 
 
 	/**
-	 * Method for retrieving items selected to the group
-	 * @return	Vector containing items selected to the group
+	 * Return selected raw data files
 	 */
-	public Vector<OpenedRawDataFile> getSelectedItems() {
-		return selectedRawDataFiles;
+	public OpenedRawDataFile[] getSelectedFiles() {
+		return selectedRawDataFiles.toArray(new OpenedRawDataFile[0]);
 	}
 
 
 	/**
-	 * Method for reading exit code
-	 * @return	1=OK clicked, -1=cancel clicked
+	 * Returns the exit code
 	 */
 	public ExitCode getExitCode() {
 		return exitCode;
 	}
-
-
-    // Variables declaration - do not modify//GEN-BEGIN:variables
 
 	private javax.swing.JPanel panelAll;	// contains everything
 
@@ -283,8 +282,6 @@ public class CVSetupDialog extends JDialog implements java.awt.event.ActionListe
 		private javax.swing.JPanel panelOKCancelButtons;
 			private javax.swing.JButton buttonOK;
 			private javax.swing.JButton buttonCancel;
-
-    // End of variables declaration//GEN-END:variables
 
 }
 

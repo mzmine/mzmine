@@ -91,6 +91,8 @@ public class MathUtils {
 		double sum=0;
 		for (double d : values) { sum+=d; }
 		avg = sum / values.length;
+		
+		if (avg==0) return Double.NaN;
 
 		sum = 0;
 		for (double d: values) { sum+=(d-avg)*(d-avg); }

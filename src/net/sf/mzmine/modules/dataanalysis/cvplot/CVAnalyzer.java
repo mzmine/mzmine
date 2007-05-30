@@ -16,6 +16,7 @@ import net.sf.mzmine.modules.visualization.tic.TICSetupDialog;
 import net.sf.mzmine.taskcontrol.TaskController;
 import net.sf.mzmine.userinterface.Desktop;
 import net.sf.mzmine.userinterface.Desktop.MZmineMenu;
+import net.sf.mzmine.userinterface.dialogs.ExitCode;
 import net.sf.mzmine.userinterface.mainwindow.MainWindow;
 
 public class CVAnalyzer implements MZmineModule, ActionListener {
@@ -57,18 +58,37 @@ public class CVAnalyzer implements MZmineModule, ActionListener {
         logger.finest("Opening a new CV analysis setup dialog");
 
         PeakList[] alignedPeakLists = desktop.getSelectedAlignedPeakLists();
+        
+        if (alignedPeakLists.length==0) {
+        	desktop.displayErrorMessage("Please select at least one aligned peak list.");
+        }
 
         for (PeakList pl : alignedPeakLists) {
-        	if (pl.getRawDataFiles().length<3) {
-        		desktop.displayErrorMessage("Alignment " + pl.toString() + " must have at least three aligned peak lists");
+        	
+        	if (pl.getRawDataFiles().length<2) {
+        		desktop.displayErrorMessage("Alignment " + pl.toString() + " contains less than two peak lists.");
         		continue;
         	}
         	
         	CVSetupDialog setupDialog = new CVSetupDialog(desktop, pl.getRawDataFiles());
         	setupDialog.setVisible(true);
+        	
+        	if (setupDialog.getExitCode() == ExitCode.CANCEL) {
+        		logger.info("Coefficient of variation analysis cancelled.");
+        		return;
+        	}
+        	
+        	
+        	logger.info("Showing coefficient of variation analysis window.");
+        	CVDataset dataset = new CVDataset(pl, setupDialog.getSelectedFiles());
+        	CVAnalyzerWindow window = new CVAnalyzerWindow(desktop, dataset);
+        	window.setVisible(true);
+        	
+        	
         }
         
-
 	}
+	
+	
 
 }

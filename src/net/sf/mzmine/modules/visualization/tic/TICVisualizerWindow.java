@@ -21,6 +21,7 @@ package net.sf.mzmine.modules.visualization.tic;
 
 import java.awt.BorderLayout;
 import java.awt.Color;
+import java.awt.Frame;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.text.NumberFormat;
@@ -43,6 +44,7 @@ import net.sf.mzmine.taskcontrol.TaskController;
 import net.sf.mzmine.taskcontrol.TaskListener;
 import net.sf.mzmine.taskcontrol.Task.TaskStatus;
 import net.sf.mzmine.userinterface.Desktop;
+import net.sf.mzmine.userinterface.dialogs.AxesSetupDialog;
 import net.sf.mzmine.userinterface.mainwindow.MainWindow;
 import net.sf.mzmine.util.CursorPosition;
 
@@ -237,10 +239,7 @@ public class TICVisualizerWindow extends JInternalFrame implements
             
             int peakNumber = 0;
             for (Peak p : peaks) {
-            
-            	// TODO: getScanNumbers() must return numbers in ascending order. 
-            	// When Peak interface stuff is working again, fix that, and continue from here.
-            	
+                     	
             	int[] peakScanNumbers = p.getScanNumbers();
             	double[][] data = new double[2][peakScanNumbers.length];
             	          	
@@ -437,7 +436,7 @@ public class TICVisualizerWindow extends JInternalFrame implements
                 SpectraSetupDialog dialog = new SpectraSetupDialog(taskController, desktop, pos.getDataFile(), msLevel, pos.getScanNumber());
                 dialog.setVisible(true);
             }
-        }
+        }        
 
     }
 
