@@ -25,6 +25,7 @@ import java.text.Format;
 import java.text.NumberFormat;
 import java.text.ParsePosition;
 import java.text.SimpleDateFormat;
+import java.util.TimeZone;
 
 import org.dom4j.Element;
 
@@ -57,7 +58,11 @@ public class NumberFormatter extends NumberFormat implements Cloneable {
         this.embeddedFormatterType = type;
         switch (type) {
         case TIME:
-            embeddedFormatter = new SimpleDateFormat(pattern);
+            SimpleDateFormat sdf = new SimpleDateFormat(pattern);
+            // important for handling low values, otherwise in different time zones we may get to negative numbers 
+            sdf.setTimeZone(TimeZone.getTimeZone("GMT+0:00"));
+            embeddedFormatter = sdf;
+            
             break;
         case NUMBER:
             embeddedFormatter = new DecimalFormat(pattern);
@@ -124,10 +129,12 @@ public class NumberFormatter extends NumberFormat implements Cloneable {
      *      java.text.ParsePosition)
      */
     public synchronized Number parse(String str, ParsePosition pos) {
+        System.out.println("parsing " + str);
+
         switch (embeddedFormatterType) {
         case TIME:
             SimpleDateFormat sdf = (SimpleDateFormat) embeddedFormatter;
-            return sdf.parse(str, pos).getTime() / 1000;
+            return ((sdf.parse(str, pos).getTime()) / 1000l);
         case NUMBER:
             DecimalFormat df = (DecimalFormat) embeddedFormatter;
             return df.parse(str, pos);

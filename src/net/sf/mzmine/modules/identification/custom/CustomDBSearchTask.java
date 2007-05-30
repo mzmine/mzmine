@@ -19,42 +19,66 @@
 
 package net.sf.mzmine.modules.identification.custom;
 
+import java.io.File;
+import java.io.FileReader;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+
+import net.sf.mzmine.data.PeakList;
+import net.sf.mzmine.data.PeakListRow;
+import net.sf.mzmine.data.impl.SimpleCompoundIdentity;
 import net.sf.mzmine.taskcontrol.Task;
+import net.sf.mzmine.userinterface.mainwindow.MainWindow;
+
+import com.Ostermiller.util.CSVParser;
 
 /**
  * 
  */
 class CustomDBSearchTask implements Task {
 
+    private Logger logger = Logger.getLogger(this.getClass().getName());
+
+    private PeakList peakList;
+    private CustomDBSearchParameters parameters;
+
+    private TaskStatus status;
+    private String errorMessage;
+    private String[][] databaseValues;
+    private int finishedLines = 0;
+
+    CustomDBSearchTask(PeakList peakList, CustomDBSearchParameters parameters) {
+        this.peakList = peakList;
+        this.parameters = parameters;
+    }
+
     /**
      * @see net.sf.mzmine.taskcontrol.Task#cancel()
      */
     public void cancel() {
-        // TODO Auto-generated method stub
-        
+        status = TaskStatus.CANCELED;
     }
 
     /**
      * @see net.sf.mzmine.taskcontrol.Task#getErrorMessage()
      */
     public String getErrorMessage() {
-        // TODO Auto-generated method stub
-        return null;
+        return errorMessage;
     }
 
     /**
      * @see net.sf.mzmine.taskcontrol.Task#getFinishedPercentage()
      */
     public float getFinishedPercentage() {
-        // TODO Auto-generated method stub
-        return 0;
+        if (databaseValues == null)
+            return 0;
+        return finishedLines / databaseValues.length;
     }
 
     /**
      * @see net.sf.mzmine.taskcontrol.Task#getResult()
      */
     public Object getResult() {
-        // TODO Auto-generated method stub
         return null;
     }
 
@@ -62,27 +86,90 @@ class CustomDBSearchTask implements Task {
      * @see net.sf.mzmine.taskcontrol.Task#getStatus()
      */
     public TaskStatus getStatus() {
-        // TODO Auto-generated method stub
-        return null;
+        return status;
     }
 
     /**
      * @see net.sf.mzmine.taskcontrol.Task#getTaskDescription()
      */
     public String getTaskDescription() {
-        // TODO Auto-generated method stub
-        return null;
+        return "Peak identification of " + peakList + " using database "
+                + parameters.getDataBaseFile();
     }
 
     /**
      * @see java.lang.Runnable#run()
      */
     public void run() {
-        // TODO Auto-generated method stub
-        
+
+        File dbFile = new File(parameters.getDataBaseFile());
+
+        try {
+            // read database contents in memory
+            FileReader dbFileReader = new FileReader(dbFile);
+            databaseValues = CSVParser.parse(dbFileReader);
+            int line = 0;
+            if (parameters.isIgnoreFirstLine())
+                line++;
+            for (; line < databaseValues.length; line++) {
+                processOneLine(databaseValues[line]);
+            }
+
+        } catch (Exception e) {
+            logger.log(Level.WARNING, "Could not read file " + dbFile, e);
+            status = TaskStatus.ERROR;
+            errorMessage = e.toString();
+            return;
+        }
+
     }
 
+    private void processOneLine(String values[]) {
 
+        Object fieldOrder[] = parameters.getFieldOrder();
+        int numOfColumns = Math.min(fieldOrder.length, values.length);
 
+        String lineID = null, lineName = null, lineFormula = null;
+        double lineMZ = 0, lineRT = 0;
+
+        for (int i = 0; i < numOfColumns; i++) {
+            if (fieldOrder[i].equals(CustomDBSearchParameters.fieldID))
+                lineID = values[i];
+            if (fieldOrder[i].equals(CustomDBSearchParameters.fieldName))
+                lineName = values[i];
+            if (fieldOrder[i].equals(CustomDBSearchParameters.fieldFormula))
+                lineFormula = values[i];
+            if (fieldOrder[i].equals(CustomDBSearchParameters.fieldMZ))
+                lineMZ = Double.parseDouble(values[i]);
+            if (fieldOrder[i].equals(CustomDBSearchParameters.fieldRT))
+                lineRT = Double.parseDouble(values[i]) * 60;
+        }
+
+        SimpleCompoundIdentity newIdentity = new SimpleCompoundIdentity(lineID,
+                lineName, null, lineFormula, null, "Custom database "
+                        + parameters.getDataBaseFile());
+
+        for (PeakListRow peakRow : peakList.getRows()) {
+            
+            boolean mzOK = (Math.abs(peakRow.getAverageMZ() - lineMZ) < parameters.getMzTolerance());
+            boolean rtOK = (Math.abs(peakRow.getAverageRT() - lineRT) < parameters.getRtTolerance());
+            if (mzOK && rtOK) {
+                
+                logger.finest("Found compound " + lineName + " (m/z " + lineMZ + ", RT " + lineRT + ")");
+                // TODO: add the newIdentity
+                if (parameters.isUpdateRowComment()) {
+                    String currentComment = peakRow.getComment();
+                    if (currentComment == null)
+                        peakRow.setComment(lineName);
+                    else
+                        peakRow.setComment(currentComment + "; " + lineName);
+                }
+
+            }
+        }
+
+        finishedLines++;
+
+    }
 
 }

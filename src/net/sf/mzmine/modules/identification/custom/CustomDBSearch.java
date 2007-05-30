@@ -29,6 +29,8 @@ import net.sf.mzmine.io.OpenedRawDataFile;
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.main.MZmineModule;
 import net.sf.mzmine.modules.BatchStep;
+import net.sf.mzmine.taskcontrol.Task;
+import net.sf.mzmine.taskcontrol.TaskController;
 import net.sf.mzmine.taskcontrol.TaskGroup;
 import net.sf.mzmine.taskcontrol.TaskGroupListener;
 import net.sf.mzmine.userinterface.Desktop;
@@ -100,10 +102,25 @@ public class CustomDBSearch implements MZmineModule, BatchStep, ActionListener {
      *      net.sf.mzmine.taskcontrol.TaskGroupListener)
      */
     public TaskGroup runModule(OpenedRawDataFile[] dataFiles,
-            PeakList[] alignmentResults, ParameterSet parameters,
+            PeakList[] peakLists, ParameterSet parameters,
             TaskGroupListener methodListener) {
-        // TODO Auto-generated method stub
-        return null;
+
+        TaskController taskController = core.getTaskController();
+
+        // prepare a new sequence of tasks
+        Task tasks[] = new CustomDBSearchTask[peakLists.length];
+        for (int i = 0; i < peakLists.length; i++) {
+            tasks[i] = new CustomDBSearchTask(peakLists[i],
+                    (CustomDBSearchParameters) parameters);
+        }
+        TaskGroup newSequence = new TaskGroup(tasks, null, methodListener,
+                taskController);
+
+        // execute the sequence
+        newSequence.run();
+
+        return newSequence;
+
     }
 
     /**

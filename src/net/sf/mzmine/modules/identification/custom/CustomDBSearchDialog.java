@@ -23,6 +23,11 @@ import java.awt.BorderLayout;
 import java.awt.GridLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.io.File;
+import java.text.NumberFormat;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.TimeZone;
 
 import javax.swing.DefaultListModel;
 import javax.swing.JButton;
@@ -32,10 +37,9 @@ import javax.swing.JFileChooser;
 import javax.swing.JFormattedTextField;
 import javax.swing.JPanel;
 import javax.swing.JTextField;
+import javax.swing.text.NumberFormatter;
 
-import net.sf.mzmine.data.PeakList;
 import net.sf.mzmine.main.MZmineCore;
-import net.sf.mzmine.taskcontrol.TaskController;
 import net.sf.mzmine.userinterface.Desktop;
 import net.sf.mzmine.userinterface.components.DragOrderedJList;
 import net.sf.mzmine.userinterface.dialogs.ExitCode;
@@ -51,7 +55,6 @@ class CustomDBSearchDialog extends JDialog implements ActionListener {
     private ExitCode exitCode = ExitCode.UNKNOWN;
 
     private Desktop desktop;
-    private TaskController taskController;
     private CustomDBSearchParameters parameters;
 
     // Dialog controles
@@ -71,7 +74,6 @@ class CustomDBSearchDialog extends JDialog implements ActionListener {
         // Make dialog modal
         super(core.getDesktop().getMainFrame(), "DB search parameters", true);
 
-        this.taskController = core.getTaskController();
         this.desktop = core.getDesktop();
         this.parameters = parameters;
 
@@ -81,6 +83,7 @@ class CustomDBSearchDialog extends JDialog implements ActionListener {
         // Database file name
         GUIUtils.addLabel(pnlLabelsAndFields, "Database file");
         fileNameField = new JTextField(TEXTFIELD_COLUMNS);
+        fileNameField.setText(parameters.getDataBaseFile());
         JPanel fileNamePanel = new JPanel();
         fileNamePanel.add(fileNameField);
         btnBrowse = GUIUtils.addButton(fileNamePanel, "Browse..", null, this);
@@ -89,32 +92,41 @@ class CustomDBSearchDialog extends JDialog implements ActionListener {
         // Field separator
         GUIUtils.addLabel(pnlLabelsAndFields, "Field separator");
         fieldSeparatorField = new JTextField(TEXTFIELD_COLUMNS);
+        fieldSeparatorField.setText(String.valueOf(parameters.getFieldSeparator()));
         pnlLabelsAndFields.add(fieldSeparatorField);
 
         // Field order
         GUIUtils.addLabel(pnlLabelsAndFields, "Field order");
         fieldOrderModel = new DefaultListModel();
+        for (Object item : parameters.getFieldOrder())
+            fieldOrderModel.addElement(item);
         fieldOrderList = new DragOrderedJList(fieldOrderModel);
         pnlLabelsAndFields.add(fieldOrderList);
 
         // Ignore first line
         GUIUtils.addLabel(pnlLabelsAndFields, "Ignore first line");
         ignoreFirstLineBox = new JCheckBox();
+        ignoreFirstLineBox.setSelected(parameters.isIgnoreFirstLine());
         pnlLabelsAndFields.add(ignoreFirstLineBox);
 
         // m/z tolerance
         GUIUtils.addLabel(pnlLabelsAndFields, "m/z tolerance");
-        mzToleranceField = new JFormattedTextField(desktop.getMZFormat());
+        NumberFormat mzFormat = desktop.getMZFormat();
+        mzToleranceField = new JFormattedTextField(mzFormat);
+        mzToleranceField.setValue((Double) parameters.getMzTolerance());
         pnlLabelsAndFields.add(mzToleranceField);
 
         // Retention time tolerance
-        GUIUtils.addLabel(pnlLabelsAndFields, "Retention time tolerance");
-        rtToleranceField = new JFormattedTextField(desktop.getRTFormat());
+        GUIUtils.addLabel(pnlLabelsAndFields, "Retention time tolerance (sec)");
+        NumberFormat rtFormat = desktop.getRTFormat();
+        rtToleranceField = new JFormattedTextField(rtFormat);
+        rtToleranceField.setValue((Double) parameters.getRtTolerance());
         pnlLabelsAndFields.add(rtToleranceField);
 
         // Update row comment
         GUIUtils.addLabel(pnlLabelsAndFields, "Update row comment");
         updateRowCommentBox = new JCheckBox();
+        updateRowCommentBox.setSelected(parameters.isUpdateRowComment());
         pnlLabelsAndFields.add(updateRowCommentBox);
 
         // Buttons
@@ -144,7 +156,27 @@ class CustomDBSearchDialog extends JDialog implements ActionListener {
         Object src = ae.getSource();
 
         if (src == btnOK) {
-
+            
+            String dataFilePath = fileNameField.getText();
+            if (dataFilePath.length() == 0) {
+                desktop.displayErrorMessage("Please select database file");
+                return;
+            }
+            
+            File dataFile = new File(dataFilePath);
+            if (! dataFile.exists()) {
+                desktop.displayErrorMessage("File " + dataFile + " does not exist");
+                return;                
+            }
+            
+            parameters.setDataBaseFile(dataFilePath);
+            parameters.setFieldSeparator(fieldSeparatorField.getText().charAt(0));
+            parameters.setFieldOrder(fieldOrderModel.toArray());
+            parameters.setIgnoreFirstLine(ignoreFirstLineBox.isSelected());
+            parameters.setMzTolerance(((Number) mzToleranceField.getValue()).doubleValue());
+            parameters.setRtTolerance(((Number) rtToleranceField.getValue()).doubleValue());
+            parameters.setUpdateRowComment(updateRowCommentBox.isSelected());
+            
             exitCode = ExitCode.OK;
             dispose();
 
