@@ -25,23 +25,22 @@ import java.awt.event.KeyEvent;
 import java.util.logging.Logger;
 
 import javax.swing.JMenuItem;
-import javax.swing.event.ListSelectionEvent;
-import javax.swing.event.ListSelectionListener;
 
-import org.jfree.report.JFreeReportBoot;
-
-import net.sf.mzmine.data.PeakList;
 import net.sf.mzmine.data.ParameterSet;
+import net.sf.mzmine.data.PeakList;
+import net.sf.mzmine.io.OpenedRawDataFile;
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.main.MZmineModule;
 import net.sf.mzmine.userinterface.Desktop;
 import net.sf.mzmine.userinterface.Desktop.MZmineMenu;
 
-public class PeakListTableVisualizer implements MZmineModule,
-        ActionListener {
+import org.jfree.report.JFreeReportBoot;
+
+public class PeakListTableVisualizer implements MZmineModule, ActionListener {
 
     private Desktop desktop;
     private PeakListTableColumns columnSelection;
+    private JMenuItem peakListTable, alignedPeakListTable;
 
     private Logger logger = Logger.getLogger(this.getClass().getName());
 
@@ -56,8 +55,12 @@ public class PeakListTableVisualizer implements MZmineModule,
 
         JFreeReportBoot.getInstance().start();
 
-        desktop.addMenuItem(MZmineMenu.ANALYSIS, "Alignment result list view",
-                this, null, KeyEvent.VK_A, false, true);
+        peakListTable = desktop.addMenuItem(MZmineMenu.VISUALIZATION,
+                "Peak list table view", this, null, KeyEvent.VK_P, false, true);
+
+        alignedPeakListTable = desktop.addMenuItem(MZmineMenu.VISUALIZATION,
+                "Aligned peak list table view", this, null, KeyEvent.VK_A,
+                false, true);
 
     }
 
@@ -66,21 +69,45 @@ public class PeakListTableVisualizer implements MZmineModule,
      */
     public void actionPerformed(ActionEvent e) {
 
+        OpenedRawDataFile dataFiles[] = desktop.getSelectedDataFiles();
         PeakList alignmentResults[] = desktop.getSelectedAlignmentResults();
 
-        if (alignmentResults.length == 0) {
-            desktop.displayErrorMessage("Please select at least one alignment result");
-            return;
+        Object src = e.getSource();
+
+        if (src == peakListTable) {
+
+                if (dataFiles.length == 0) {
+                    desktop.displayErrorMessage("Please select data file");
+                    return;
+                }
+
+                for (OpenedRawDataFile dataFile : dataFiles) {
+
+                    logger.finest("Showing new peak list view");
+
+                    PeakListTableWindow alignmentResultView = new PeakListTableWindow(
+                            this, dataFile.getPeakList());
+                    desktop.addInternalFrame(alignmentResultView);
+
+                }
         }
 
-        for (PeakList alignmentResult : alignmentResults) {
+        if (src == alignedPeakListTable) {
 
-            logger.finest("Showing a new alignment result list view");
+            if (alignmentResults.length == 0) {
+                desktop.displayErrorMessage("Please select aligned peak list");
+                return;
+            }
 
-            PeakListTableWindow alignmentResultView = new PeakListTableWindow(
-                    this, alignmentResult);
-            desktop.addInternalFrame(alignmentResultView);
+            for (PeakList alignmentResult : alignmentResults) {
 
+                logger.finest("Showing a new alignment result list view");
+
+                PeakListTableWindow alignmentResultView = new PeakListTableWindow(
+                        this, alignmentResult);
+                desktop.addInternalFrame(alignmentResultView);
+
+            }
         }
 
     }
