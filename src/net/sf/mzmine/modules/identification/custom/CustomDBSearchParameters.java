@@ -30,15 +30,50 @@ class CustomDBSearchParameters implements StorableParameterSet {
 
     public static final String fieldID = "ID";
     public static final String fieldMZ = "m/z";
-    public static final String fieldRT = "Retention time";
+    public static final String fieldRT = "Retention time (s)";
     public static final String fieldName = "Name";
-        
+
+    private String dataBaseFile = "";
+    private String fieldSeparator = "\\t";
+    private String[] fieldOrder = { fieldID, fieldMZ, fieldRT, fieldName };
+    private boolean ignoreFirstLine = false;
+    private double mzTolerance = 1;
+    private double rtTolerance = 60;
+    private boolean updateRowComment = true;
+
+    /**
+     * 
+     */
+    CustomDBSearchParameters() {
+    }
+
+    /**
+     * @param dataBaseFile
+     * @param fieldSeparator
+     * @param fieldOrder
+     * @param ignoreFirstLine
+     * @param mzTolerance
+     * @param rtTolerance
+     * @param updateRowComment
+     */
+    CustomDBSearchParameters(String dataBaseFile, String fieldSeparator,
+            String[] fieldOrder, boolean ignoreFirstLine, double mzTolerance,
+            double rtTolerance, boolean updateRowComment) {
+        this.dataBaseFile = dataBaseFile;
+        this.fieldSeparator = fieldSeparator;
+        this.fieldOrder = fieldOrder;
+        this.ignoreFirstLine = ignoreFirstLine;
+        this.mzTolerance = mzTolerance;
+        this.rtTolerance = rtTolerance;
+        this.updateRowComment = updateRowComment;
+    }
+
     /**
      * @see net.sf.mzmine.data.StorableParameterSet#exportValuesToXML(org.dom4j.Element)
      */
     public void exportValuesToXML(Element element) {
         // TODO Auto-generated method stub
-        
+
     }
 
     /**
@@ -46,16 +81,28 @@ class CustomDBSearchParameters implements StorableParameterSet {
      */
     public void importValuesFromXML(Element element) {
         // TODO Auto-generated method stub
-        
+
     }
-    
+
     public CustomDBSearchParameters clone() {
-        return null;
+        return new CustomDBSearchParameters(dataBaseFile, fieldSeparator,
+                fieldOrder, ignoreFirstLine, mzTolerance, rtTolerance,
+                updateRowComment);
     }
 
     public String toString() {
-        return null;
+        
+        StringBuffer paramString = new StringBuffer();
+        
+        paramString.append("Database file: " + dataBaseFile + "\n");
+        paramString.append("Field separator: " + fieldSeparator + "\n");
+        paramString.append("Field order: " + fieldOrder + "\n");
+        paramString.append("Ignore first line: " + ignoreFirstLine + "\n");
+        paramString.append("m/z tolerance: " + mzTolerance + "\n");
+        paramString.append("Retention time tolerance: " + rtTolerance + "\n");
+        paramString.append("Update row comment: " + updateRowComment + "\n");
+        
+        return paramString.toString();
     }
-
 
 }

@@ -123,7 +123,7 @@ public class GapsFilter implements BatchStep, TaskListener,
         ExitCode exitCode = setupParameters(parameters);
         if (exitCode != ExitCode.OK)
             return;
-        runModule(null, alignmentResults, parameters, null);
+        runModule(null, alignmentResults, parameters.clone(), null);
 
     }
 

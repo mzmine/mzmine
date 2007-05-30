@@ -133,7 +133,7 @@ public class LinearNormalizer implements BatchStep, TaskListener,
         if (exitCode != ExitCode.OK)
             return;
         
-        runModule(null, selectedPeakLists, parameters, null);
+        runModule(null, selectedPeakLists, parameters.clone(), null);
 
     }
 

@@ -98,7 +98,7 @@ public class MeanFilter implements BatchStep, TaskListener,
         if (exitCode != ExitCode.OK)
             return;
 
-        runModule(dataFiles, null, parameters, null);
+        runModule(dataFiles, null, parameters.clone(), null);
 
     }
 

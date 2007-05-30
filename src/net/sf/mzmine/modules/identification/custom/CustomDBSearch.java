@@ -41,24 +41,24 @@ import net.sf.mzmine.userinterface.dialogs.ExitCode;
 public class CustomDBSearch implements MZmineModule, BatchStep, ActionListener {
 
     public static final String MODULE_NAME = "Custom database search";
-    
+
     private MZmineCore core;
     private Desktop desktop;
-    
+
     private CustomDBSearchParameters parameters;
 
     /**
      * @see net.sf.mzmine.main.MZmineModule#initModule(net.sf.mzmine.main.MZmineCore)
      */
     public void initModule(MZmineCore core) {
-        
+
         this.core = core;
         this.desktop = core.getDesktop();
-        
+
         parameters = new CustomDBSearchParameters();
-       
-        desktop.addMenuItem(MZmineMenu.IDENTIFICATION, MODULE_NAME, this,
-                null, KeyEvent.VK_C, false, true);
+
+        desktop.addMenuItem(MZmineMenu.IDENTIFICATION, MODULE_NAME, this, null,
+                KeyEvent.VK_C, false, true);
     }
 
     /**
@@ -79,24 +79,29 @@ public class CustomDBSearch implements MZmineModule, BatchStep, ActionListener {
      * @see java.awt.event.ActionListener#actionPerformed(java.awt.event.ActionEvent)
      */
     public void actionPerformed(ActionEvent e) {
-        
+
         PeakList[] selectedPeakLists = desktop.getSelectedAlignedPeakLists();
         if (selectedPeakLists.length < 1) {
             desktop.displayErrorMessage("Please select aligned peak list");
             return;
         }
-        
-        for (PeakList peakList : selectedPeakLists) {
-            CustomDBSearchDialog dialog = new CustomDBSearchDialog(core, peakList);
-            dialog.setVisible(true);
-        }
-        
+
+        ExitCode exitCode = setupParameters(parameters);
+        if (exitCode != ExitCode.OK)
+            return;
+
+        runModule(null, selectedPeakLists, parameters.clone(), null);
+
     }
 
     /**
-     * @see net.sf.mzmine.modules.BatchStep#runModule(net.sf.mzmine.io.OpenedRawDataFile[], net.sf.mzmine.data.PeakList[], net.sf.mzmine.data.ParameterSet, net.sf.mzmine.taskcontrol.TaskGroupListener)
+     * @see net.sf.mzmine.modules.BatchStep#runModule(net.sf.mzmine.io.OpenedRawDataFile[],
+     *      net.sf.mzmine.data.PeakList[], net.sf.mzmine.data.ParameterSet,
+     *      net.sf.mzmine.taskcontrol.TaskGroupListener)
      */
-    public TaskGroup runModule(OpenedRawDataFile[] dataFiles, PeakList[] alignmentResults, ParameterSet parameters, TaskGroupListener methodListener) {
+    public TaskGroup runModule(OpenedRawDataFile[] dataFiles,
+            PeakList[] alignmentResults, ParameterSet parameters,
+            TaskGroupListener methodListener) {
         // TODO Auto-generated method stub
         return null;
     }
@@ -104,16 +109,15 @@ public class CustomDBSearch implements MZmineModule, BatchStep, ActionListener {
     /**
      * @see net.sf.mzmine.modules.BatchStep#setupParameters(net.sf.mzmine.data.ParameterSet)
      */
-    public ExitCode setupParameters(ParameterSet current) {
-        // TODO Auto-generated method stub
-        return null;
+    public ExitCode setupParameters(ParameterSet parameters) {
+        CustomDBSearchDialog dialog = new CustomDBSearchDialog(core,
+                (CustomDBSearchParameters) parameters);
+        dialog.setVisible(true);
+        return dialog.getExitCode();
     }
-    
+
     public String toString() {
         return MODULE_NAME;
     }
-
-
-
 
 }

@@ -52,6 +52,7 @@ class CustomDBSearchDialog extends JDialog implements ActionListener {
 
     private Desktop desktop;
     private TaskController taskController;
+    private CustomDBSearchParameters parameters;
 
     // Dialog controles
     private JButton btnOK, btnCancel, btnBrowse;
@@ -65,13 +66,14 @@ class CustomDBSearchDialog extends JDialog implements ActionListener {
     /**
      * Constructor
      */
-    public CustomDBSearchDialog(MZmineCore core, PeakList peakList) {
+    public CustomDBSearchDialog(MZmineCore core, CustomDBSearchParameters parameters) {
 
         // Make dialog modal
         super(core.getDesktop().getMainFrame(), "DB search parameters", true);
 
         this.taskController = core.getTaskController();
         this.desktop = core.getDesktop();
+        this.parameters = parameters;
 
         // Create panel with controls
         JPanel pnlLabelsAndFields = new JPanel(new GridLayout(7, 2));

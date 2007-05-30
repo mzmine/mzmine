@@ -150,13 +150,6 @@ class IntensityPlotParameters implements ParameterSet {
                 + selectedRows;
     }
 
-    /**
-     * @see net.sf.mzmine.data.ParameterSet#getParameterValue(net.sf.mzmine.data.Parameter)
-     */
-    public Object getParameterValue(Parameter parameter) {
-        // ignore
-        return null;
-    }
 
     /**
      * @see net.sf.mzmine.data.ParameterSet#clone()
