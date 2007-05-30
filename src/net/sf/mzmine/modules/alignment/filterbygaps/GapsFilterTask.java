@@ -21,7 +21,7 @@ package net.sf.mzmine.modules.alignment.filterbygaps;
 
 import net.sf.mzmine.data.PeakList;
 import net.sf.mzmine.data.PeakListRow;
-import net.sf.mzmine.data.ParameterSet;
+import net.sf.mzmine.data.impl.SimpleParameterSet;
 import net.sf.mzmine.data.impl.SimplePeakList;
 import net.sf.mzmine.io.OpenedRawDataFile;
 import net.sf.mzmine.taskcontrol.Task;
@@ -39,7 +39,7 @@ class GapsFilterTask implements Task {
     private int minPresent;
 
     public GapsFilterTask(PeakList alignmentResult,
-            ParameterSet parameters) {
+            SimpleParameterSet parameters) {
         status = TaskStatus.WAITING;
         originalPeakList = alignmentResult;
         minPresent = (Integer) parameters.getParameterValue(GapsFilter.minPresent);

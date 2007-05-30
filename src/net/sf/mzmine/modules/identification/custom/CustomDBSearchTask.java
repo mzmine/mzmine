@@ -24,7 +24,7 @@ import net.sf.mzmine.taskcontrol.Task;
 /**
  * 
  */
-public class CustomDBSearchTask implements Task {
+class CustomDBSearchTask implements Task {
 
     /**
      * @see net.sf.mzmine.taskcontrol.Task#cancel()

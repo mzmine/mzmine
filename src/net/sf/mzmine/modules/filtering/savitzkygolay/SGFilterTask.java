@@ -22,8 +22,8 @@ package net.sf.mzmine.modules.filtering.savitzkygolay;
 import java.io.IOException;
 import java.util.Hashtable;
 
-import net.sf.mzmine.data.ParameterSet;
 import net.sf.mzmine.data.Scan;
+import net.sf.mzmine.data.impl.SimpleParameterSet;
 import net.sf.mzmine.data.impl.SimpleScan;
 import net.sf.mzmine.io.OpenedRawDataFile;
 import net.sf.mzmine.io.RawDataFile;
@@ -55,7 +55,7 @@ class SGFilterTask implements Task {
      * @param rawDataFile
      * @param parameters
      */
-    SGFilterTask(OpenedRawDataFile dataFile, ParameterSet parameters) {
+    SGFilterTask(OpenedRawDataFile dataFile, SimpleParameterSet parameters) {
         this.dataFile = dataFile;
         this.rawDataFile = dataFile.getCurrentFile();
 

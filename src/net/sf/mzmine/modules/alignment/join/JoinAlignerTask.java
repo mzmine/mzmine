@@ -23,10 +23,10 @@ import java.util.Arrays;
 import java.util.Iterator;
 import java.util.TreeSet;
 
-import net.sf.mzmine.data.PeakListRow;
-import net.sf.mzmine.data.ParameterSet;
 import net.sf.mzmine.data.Peak;
 import net.sf.mzmine.data.PeakList;
+import net.sf.mzmine.data.PeakListRow;
+import net.sf.mzmine.data.impl.SimpleParameterSet;
 import net.sf.mzmine.data.impl.SimplePeakList;
 import net.sf.mzmine.data.impl.SimplePeakListRow;
 import net.sf.mzmine.io.OpenedRawDataFile;
@@ -56,7 +56,7 @@ class JoinAlignerTask implements Task {
      * @param rawDataFile
      * @param parameters
      */
-    JoinAlignerTask(OpenedRawDataFile[] dataFiles, ParameterSet parameters) {
+    JoinAlignerTask(OpenedRawDataFile[] dataFiles, SimpleParameterSet parameters) {
 
         status = TaskStatus.WAITING;
         this.dataFiles = dataFiles;

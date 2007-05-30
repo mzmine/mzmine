@@ -146,12 +146,14 @@ class BatchModeDialog extends JDialog implements ActionListener {
             BatchStep selectedMethod = (BatchStep) methodsCombo.getSelectedItem();
             logger.finest("Adding " + selectedMethod);
             
-            ParameterSet params = selectedMethod.getParameterSet();
-            params = selectedMethod.setupParameters(params);
-            if (params == null)
+            // clone the parameters to  
+            ParameterSet paramsCopy = selectedMethod.getParameterSet().clone();
+            ExitCode exitCode = selectedMethod.setupParameters(paramsCopy);
+            if (exitCode != ExitCode.OK)
                 return;
+            selectedMethod.setParameters(paramsCopy);
             
-            BatchStepWrapper newStep = new BatchStepWrapper(selectedMethod, params);
+            BatchStepWrapper newStep = new BatchStepWrapper(selectedMethod, paramsCopy);
             batchSteps.add(newStep);
             currentStepsList.setListData(batchSteps);
             return;

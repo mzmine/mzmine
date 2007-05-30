@@ -28,6 +28,7 @@ import net.sf.mzmine.data.ParameterSet;
 import net.sf.mzmine.data.Scan;
 import net.sf.mzmine.data.Peak.PeakStatus;
 import net.sf.mzmine.data.impl.ConstructionPeak;
+import net.sf.mzmine.data.impl.SimpleParameterSet;
 import net.sf.mzmine.data.impl.SimplePeakList;
 import net.sf.mzmine.data.impl.SimplePeakListRow;
 import net.sf.mzmine.io.OpenedRawDataFile;
@@ -67,7 +68,7 @@ class CentroidPickerTask implements Task {
      * @param parameters
      */
     CentroidPickerTask(OpenedRawDataFile dataFile,
-            ParameterSet parameters) {
+            SimpleParameterSet parameters) {
         status = TaskStatus.WAITING;
         this.dataFile = dataFile;
         this.rawDataFile = dataFile.getCurrentFile();

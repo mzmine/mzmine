@@ -101,14 +101,12 @@ public class GapsFilter implements BatchStep, TaskListener,
     /**
      * @see net.sf.mzmine.modules.BatchStep#setupParameters(net.sf.mzmine.data.ParameterSet)
      */
-    public ParameterSet setupParameters(ParameterSet currentParameters) {
+    public ExitCode setupParameters(ParameterSet currentParameters) {
         ParameterSetupDialog dialog = new ParameterSetupDialog(
                 desktop.getMainFrame(), "Please check parameter values for "
                         + toString(), (SimpleParameterSet) currentParameters);
         dialog.setVisible(true);
-        if (dialog.getExitCode() == ExitCode.CANCEL)
-            return null;
-        return currentParameters.clone();
+        return dialog.getExitCode();
     }
 
     /**
@@ -122,10 +120,10 @@ public class GapsFilter implements BatchStep, TaskListener,
             return;
         }
 
-        ParameterSet param = setupParameters(parameters);
-        if (param == null)
+        ExitCode exitCode = setupParameters(parameters);
+        if (exitCode != ExitCode.OK)
             return;
-        runModule(null, alignmentResults, param, null);
+        runModule(null, alignmentResults, parameters, null);
 
     }
 
@@ -168,7 +166,7 @@ public class GapsFilter implements BatchStep, TaskListener,
         // prepare a new sequence of tasks
         Task tasks[] = new GapsFilterTask[alignmentResults.length];
         for (int i = 0; i < alignmentResults.length; i++) {
-            tasks[i] = new GapsFilterTask(alignmentResults[i], parameters);
+            tasks[i] = new GapsFilterTask(alignmentResults[i], (SimpleParameterSet) parameters);
         }
         TaskGroup newSequence = new TaskGroup(tasks, this, methodListener,
                 taskController);

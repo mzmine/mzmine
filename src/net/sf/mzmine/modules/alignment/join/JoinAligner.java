@@ -128,14 +128,12 @@ public class JoinAligner implements BatchStep, TaskListener,
     /**
      * @see net.sf.mzmine.modules.BatchStep#setupParameters(net.sf.mzmine.data.ParameterSet)
      */
-    public ParameterSet setupParameters(ParameterSet currentParameters) {
+    public ExitCode setupParameters(ParameterSet currentParameters) {
         ParameterSetupDialog dialog = new ParameterSetupDialog(
                 desktop.getMainFrame(), "Please check parameter values for "
                         + toString(), (SimpleParameterSet) currentParameters);
         dialog.setVisible(true);
-        if (dialog.getExitCode() == ExitCode.CANCEL)
-            return null;
-        return currentParameters.clone();
+        return dialog.getExitCode();
     }
 
     /**
@@ -158,11 +156,11 @@ public class JoinAligner implements BatchStep, TaskListener,
             }
         }
 
-        ParameterSet param = setupParameters(parameters);
-        if (param == null)
+        ExitCode exitCode = setupParameters(parameters);
+        if (exitCode != ExitCode.OK)
             return;
 
-        runModule(dataFiles, null, param, null);
+        runModule(dataFiles, null, parameters, null);
 
     }
 
@@ -215,7 +213,7 @@ public class JoinAligner implements BatchStep, TaskListener,
 
         // prepare a new sequence with just one task
         Task tasks[] = new JoinAlignerTask[1];
-        tasks[0] = new JoinAlignerTask(dataFiles, parameters);
+        tasks[0] = new JoinAlignerTask(dataFiles, (SimpleParameterSet) parameters);
         TaskGroup newSequence = new TaskGroup(tasks, this, methodListener,
                 taskController);
 

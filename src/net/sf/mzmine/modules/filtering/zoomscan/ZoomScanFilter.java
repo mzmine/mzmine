@@ -24,13 +24,9 @@ import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
 import java.util.logging.Logger;
 
-import javax.swing.JMenuItem;
-import javax.swing.event.ListSelectionEvent;
-import javax.swing.event.ListSelectionListener;
-
-import net.sf.mzmine.data.PeakList;
 import net.sf.mzmine.data.Parameter;
 import net.sf.mzmine.data.ParameterSet;
+import net.sf.mzmine.data.PeakList;
 import net.sf.mzmine.data.Parameter.ParameterType;
 import net.sf.mzmine.data.impl.SimpleParameter;
 import net.sf.mzmine.data.impl.SimpleParameterSet;
@@ -90,11 +86,11 @@ public class ZoomScanFilter implements BatchStep, TaskListener,
             return;
         }
 
-        ParameterSet param = setupParameters(parameters);
-        if (param == null)
+        ExitCode exitCode = setupParameters(parameters);
+        if (exitCode != ExitCode.OK)
             return;
 
-        runModule(dataFiles, null, param, null);
+        runModule(dataFiles, null, parameters, null);
 
     }
 
@@ -108,14 +104,12 @@ public class ZoomScanFilter implements BatchStep, TaskListener,
     /**
      * @see net.sf.mzmine.modules.BatchStep#setupParameters()
      */
-    public ParameterSet setupParameters(ParameterSet currentParameters) {
+    public ExitCode setupParameters(ParameterSet currentParameters) {
         ParameterSetupDialog dialog = new ParameterSetupDialog(
                 desktop.getMainFrame(), "Please check parameter values for "
                         + toString(), (SimpleParameterSet) currentParameters);
         dialog.setVisible(true);
-        if (dialog.getExitCode() == ExitCode.CANCEL)
-            return null;
-        return currentParameters.clone();
+        return dialog.getExitCode();
     }
 
     /**
@@ -131,7 +125,7 @@ public class ZoomScanFilter implements BatchStep, TaskListener,
         // prepare a new sequence of tasks
         Task tasks[] = new ZoomScanFilterTask[dataFiles.length];
         for (int i = 0; i < dataFiles.length; i++) {
-            tasks[i] = new ZoomScanFilterTask(dataFiles[i], parameters);
+            tasks[i] = new ZoomScanFilterTask(dataFiles[i], (SimpleParameterSet) parameters);
         }
         TaskGroup newSequence = new TaskGroup(tasks, this, methodListener,
                 taskController);

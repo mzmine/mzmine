@@ -21,14 +21,13 @@ package net.sf.mzmine.modules.normalization.linear;
 
 import java.util.Hashtable;
 
+import net.sf.mzmine.data.Peak;
 import net.sf.mzmine.data.PeakList;
 import net.sf.mzmine.data.PeakListRow;
-import net.sf.mzmine.data.IsotopePattern;
-import net.sf.mzmine.data.ParameterSet;
-import net.sf.mzmine.data.Peak;
+import net.sf.mzmine.data.impl.SimpleParameterSet;
+import net.sf.mzmine.data.impl.SimplePeak;
 import net.sf.mzmine.data.impl.SimplePeakList;
 import net.sf.mzmine.data.impl.SimplePeakListRow;
-import net.sf.mzmine.data.impl.SimplePeak;
 import net.sf.mzmine.io.OpenedRawDataFile;
 import net.sf.mzmine.taskcontrol.Task;
 
@@ -48,7 +47,7 @@ public class LinearNormalizerTask implements Task {
     private SimplePeakList normalizedPeakList;
 
     public LinearNormalizerTask(PeakList alignmentResult,
-            ParameterSet parameters) {
+            SimpleParameterSet parameters) {
         this.originalPeakList = alignmentResult;
 
         normalizationTypeString = (String) parameters.getParameterValue(LinearNormalizer.normalizationType);

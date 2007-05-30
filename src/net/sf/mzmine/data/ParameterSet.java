@@ -26,11 +26,6 @@ import org.dom4j.Element;
  */
 public interface ParameterSet {
 
-    /**
-     */
-    public Object getParameterValue(Parameter parameter);
-
-    
     public ParameterSet clone();
     
     /**

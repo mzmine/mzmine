@@ -148,11 +148,11 @@ public class SimpleGapFiller implements BatchStep, TaskListener,
             return;
         }
 
-        ParameterSet param = setupParameters(parameters);
-        if (param == null)
+        ExitCode exitCode = setupParameters(parameters);
+        if (exitCode != ExitCode.OK)
             return;
 
-        runModule(null, selectedPeakLists, param, null);
+        runModule(null, selectedPeakLists, parameters, null);
 
     }
 
@@ -219,14 +219,12 @@ public class SimpleGapFiller implements BatchStep, TaskListener,
     /**
      * @see net.sf.mzmine.modules.BatchStep#setupParameters(net.sf.mzmine.data.ParameterSet)
      */
-    public ParameterSet setupParameters(ParameterSet currentParameters) {
+    public ExitCode setupParameters(ParameterSet currentParameters) {
         ParameterSetupDialog dialog = new ParameterSetupDialog(
                 desktop.getMainFrame(), "Please check parameter values for "
                         + toString(), (SimpleParameterSet) currentParameters);
         dialog.setVisible(true);
-        if (dialog.getExitCode() == ExitCode.CANCEL)
-            return null;
-        return currentParameters.clone();
+        return dialog.getExitCode();
     }
 
     /**

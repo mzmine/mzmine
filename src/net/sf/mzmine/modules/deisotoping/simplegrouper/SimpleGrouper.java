@@ -24,11 +24,6 @@ import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
 import java.util.logging.Logger;
 
-import javax.swing.JMenuItem;
-import javax.swing.event.ListSelectionEvent;
-import javax.swing.event.ListSelectionListener;
-
-import net.sf.mzmine.data.PeakList;
 import net.sf.mzmine.data.Parameter;
 import net.sf.mzmine.data.ParameterSet;
 import net.sf.mzmine.data.PeakList;
@@ -125,10 +120,11 @@ public class SimpleGrouper implements BatchStep, TaskListener,
             }
         }
 
-        ParameterSet param = setupParameters(parameters);
-        if (param == null)
+        ExitCode exitCode = setupParameters(parameters);
+        if (exitCode != ExitCode.OK)
             return;
-        runModule(dataFiles, null, param, null);
+        
+        runModule(dataFiles, null, parameters, null);
     }
 
     public void taskStarted(Task task) {
@@ -178,14 +174,12 @@ public class SimpleGrouper implements BatchStep, TaskListener,
     /**
      * @see net.sf.mzmine.modules.BatchStep#setupParameters(net.sf.mzmine.data.ParameterSet)
      */
-    public ParameterSet setupParameters(ParameterSet currentParameters) {
+    public ExitCode setupParameters(ParameterSet currentParameters) {
         ParameterSetupDialog dialog = new ParameterSetupDialog(
                 desktop.getMainFrame(), "Please check parameter values for "
                         + toString(), (SimpleParameterSet) currentParameters);
         dialog.setVisible(true);
-        if (dialog.getExitCode() == ExitCode.CANCEL)
-            return null;
-        return currentParameters.clone();
+        return dialog.getExitCode();
     }
 
     /**
@@ -216,7 +210,7 @@ public class SimpleGrouper implements BatchStep, TaskListener,
                 desktop.displayErrorMessage(msg);
                 return null;
             }
-            tasks[i] = new SimpleGrouperTask(dataFiles[i], parameters);
+            tasks[i] = new SimpleGrouperTask(dataFiles[i], (SimpleParameterSet) parameters);
         }
 
         TaskGroup newSequence = new TaskGroup(tasks, this, methodListener,

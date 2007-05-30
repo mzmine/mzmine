@@ -59,7 +59,7 @@ public class TaskProgressWindow extends JInternalFrame implements
      */
     public TaskProgressWindow(TaskControllerImpl taskController) {
         super("Tasks in progress...", true, true, true, true);
-        setDefaultCloseOperation(HIDE_ON_CLOSE);
+        setDefaultCloseOperation(DO_NOTHING_ON_CLOSE);
         this.taskController = taskController;
         taskTable = new JTable(taskController.getTaskQueue());
         taskTable.setCellSelectionEnabled(false);

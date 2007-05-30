@@ -33,14 +33,19 @@ import net.sf.mzmine.taskcontrol.TaskGroup;
 import net.sf.mzmine.taskcontrol.TaskGroupListener;
 import net.sf.mzmine.userinterface.Desktop;
 import net.sf.mzmine.userinterface.Desktop.MZmineMenu;
+import net.sf.mzmine.userinterface.dialogs.ExitCode;
 
 /**
  * 
  */
 public class CustomDBSearch implements MZmineModule, BatchStep, ActionListener {
 
+    public static final String MODULE_NAME = "Custom database search";
+    
     private MZmineCore core;
     private Desktop desktop;
+    
+    private CustomDBSearchParameters parameters;
 
     /**
      * @see net.sf.mzmine.main.MZmineModule#initModule(net.sf.mzmine.main.MZmineCore)
@@ -50,7 +55,9 @@ public class CustomDBSearch implements MZmineModule, BatchStep, ActionListener {
         this.core = core;
         this.desktop = core.getDesktop();
         
-        desktop.addMenuItem(MZmineMenu.IDENTIFICATION, "Custom database", this,
+        parameters = new CustomDBSearchParameters();
+       
+        desktop.addMenuItem(MZmineMenu.IDENTIFICATION, MODULE_NAME, this,
                 null, KeyEvent.VK_C, false, true);
     }
 
@@ -58,27 +65,30 @@ public class CustomDBSearch implements MZmineModule, BatchStep, ActionListener {
      * @see net.sf.mzmine.main.MZmineModule#getParameterSet()
      */
     public ParameterSet getParameterSet() {
-        // TODO Auto-generated method stub
-        return null;
+        return parameters;
     }
 
     /**
      * @see net.sf.mzmine.main.MZmineModule#setParameters(net.sf.mzmine.data.ParameterSet)
      */
     public void setParameters(ParameterSet parameterValues) {
-        // TODO Auto-generated method stub
-        
+        this.parameters = (CustomDBSearchParameters) parameterValues;
     }
 
     /**
      * @see java.awt.event.ActionListener#actionPerformed(java.awt.event.ActionEvent)
      */
-    public void actionPerformed(ActionEvent arg0) {
+    public void actionPerformed(ActionEvent e) {
         
         PeakList[] selectedPeakLists = desktop.getSelectedAlignedPeakLists();
         if (selectedPeakLists.length < 1) {
             desktop.displayErrorMessage("Please select aligned peak list");
             return;
+        }
+        
+        for (PeakList peakList : selectedPeakLists) {
+            CustomDBSearchDialog dialog = new CustomDBSearchDialog(core, peakList);
+            dialog.setVisible(true);
         }
         
     }
@@ -94,11 +104,14 @@ public class CustomDBSearch implements MZmineModule, BatchStep, ActionListener {
     /**
      * @see net.sf.mzmine.modules.BatchStep#setupParameters(net.sf.mzmine.data.ParameterSet)
      */
-    public ParameterSet setupParameters(ParameterSet current) {
+    public ExitCode setupParameters(ParameterSet current) {
         // TODO Auto-generated method stub
         return null;
     }
-
+    
+    public String toString() {
+        return MODULE_NAME;
+    }
 
 
 

@@ -21,8 +21,8 @@ package net.sf.mzmine.modules.filtering.crop;
 
 import java.io.IOException;
 
-import net.sf.mzmine.data.ParameterSet;
 import net.sf.mzmine.data.Scan;
+import net.sf.mzmine.data.impl.SimpleParameterSet;
 import net.sf.mzmine.data.impl.SimpleScan;
 import net.sf.mzmine.io.OpenedRawDataFile;
 import net.sf.mzmine.io.RawDataFile;
@@ -55,7 +55,7 @@ class CropFilterTask implements Task {
      * @param rawDataFile
      * @param parameters
      */
-    CropFilterTask(OpenedRawDataFile dataFile, ParameterSet parameters) {
+    CropFilterTask(OpenedRawDataFile dataFile, SimpleParameterSet parameters) {
         this.dataFile = dataFile;
         this.rawDataFile = dataFile.getCurrentFile();
         msLevel = (Integer) parameters.getParameterValue(CropFilter.parameterMSlevel);

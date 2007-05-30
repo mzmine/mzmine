@@ -21,11 +21,11 @@ package net.sf.mzmine.modules.gapfilling.simple;
 
 import java.util.Vector;
 
-import net.sf.mzmine.data.ParameterSet;
 import net.sf.mzmine.data.Peak;
 import net.sf.mzmine.data.Scan;
 import net.sf.mzmine.data.Peak.PeakStatus;
 import net.sf.mzmine.data.impl.ConstructionPeak;
+import net.sf.mzmine.data.impl.SimpleParameterSet;
 
 class EmptyGap {
 
@@ -63,7 +63,7 @@ class EmptyGap {
      * @param mz M/Z coordinate of this empty gap
      * @param rt RT coordinate of this empty gap
      */
-    EmptyGap(double mz, double rt, ParameterSet parameters) {
+    EmptyGap(double mz, double rt, SimpleParameterSet parameters) {
 
         this.centroidMZ = mz;
         this.centroidRT = rt;

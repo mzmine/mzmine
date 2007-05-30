@@ -19,12 +19,13 @@
 
 package net.sf.mzmine.modules;
 
-import net.sf.mzmine.data.PeakList;
 import net.sf.mzmine.data.ParameterSet;
+import net.sf.mzmine.data.PeakList;
 import net.sf.mzmine.io.OpenedRawDataFile;
 import net.sf.mzmine.main.MZmineModule;
 import net.sf.mzmine.taskcontrol.TaskGroup;
 import net.sf.mzmine.taskcontrol.TaskGroupListener;
+import net.sf.mzmine.userinterface.dialogs.ExitCode;
 
 /**
  * Interface representing a data processing method which can be executed in a batch
@@ -32,11 +33,11 @@ import net.sf.mzmine.taskcontrol.TaskGroupListener;
 public interface BatchStep extends MZmineModule {
 
     /**
-     * This function displays a modal dialog to define method parameters
+     * Show a setup dialog for the module parameter set
      * 
-     * @return parameter set or null if used clicked "cancel"
+     * @return ExitCode.OK or ExitCode.CANCEL depending how user closed the dialog 
      */
-    public ParameterSet setupParameters(ParameterSet current);
+    public ExitCode setupParameters(ParameterSet parameters);
 
     /**
      * Runs this method on a given items, and calls another task listener after
