@@ -21,10 +21,9 @@ package net.sf.mzmine.userinterface.components;
 
 import java.awt.Color;
 import java.awt.Component;
-import java.awt.Dimension;
 import java.awt.Font;
+import java.text.NumberFormat;
 
-import javax.swing.BorderFactory;
 import javax.swing.JComponent;
 import javax.swing.JLabel;
 import javax.swing.JList;
@@ -38,22 +37,25 @@ import javax.swing.table.TableCellRenderer;
 import org.jfree.ui.OverlayLayout;
 
 /**
- * Simple table cell renderer that renders only JComponents
+ * Simple table cell renderer that renders Numbers using given NumberFormat
  */
-public class ComponentCellRenderer implements TableCellRenderer,
+public class FormattedCellRenderer implements TableCellRenderer,
         ListCellRenderer {
 
     private Font font;
+    private NumberFormat format;
 
     /**
      */
-    public ComponentCellRenderer() {
+    public FormattedCellRenderer(NumberFormat format) {
+        this.format = format;
     }
 
     /**
      * @param font
      */
-    public ComponentCellRenderer(Font font) {
+    public FormattedCellRenderer(NumberFormat format, Font font) {
+        this.format = format;
         this.font = font;
     }
 
@@ -66,7 +68,7 @@ public class ComponentCellRenderer implements TableCellRenderer,
 
         JPanel newPanel = new JPanel(new OverlayLayout());
         Color bgColor;
-        
+
         if (isSelected)
             bgColor = table.getSelectionBackground();
         else
@@ -85,21 +87,22 @@ public class ComponentCellRenderer implements TableCellRenderer,
 
         if (value != null) {
 
-            if (value instanceof JComponent) {
+            String text;
 
-                newPanel.add((JComponent) value);
+            if (value instanceof Number)
+                text = format.format((Number) value);
+            else
+                text = value.toString();
 
-            } else {
+            JLabel newLabel = new JLabel(text);
 
-                JLabel newLabel = new JLabel(value.toString());
+            if (font != null)
+                newLabel.setFont(font);
+            else if (table.getFont() != null)
+                newLabel.setFont(table.getFont());
 
-                if (font != null)
-                    newLabel.setFont(font);
-                else if (table.getFont() != null)
-                    newLabel.setFont(table.getFont());
+            newPanel.add(newLabel);
 
-                newPanel.add(newLabel);
-            }
         }
 
         return newPanel;
@@ -115,7 +118,7 @@ public class ComponentCellRenderer implements TableCellRenderer,
 
         JPanel newPanel = new JPanel(new OverlayLayout());
         Color bgColor;
-        
+
         if (isSelected)
             bgColor = list.getSelectionBackground();
         else
@@ -131,26 +134,27 @@ public class ComponentCellRenderer implements TableCellRenderer,
                 border = UIManager.getBorder("List.focusCellHighlightBorder");
             newPanel.setBorder(border);
         }
-
+        
         if (value != null) {
 
-            if (value instanceof JComponent) {
+            String text;
 
-                newPanel.add((JComponent) value);
+            if (value instanceof Number)
+                text = format.format((Number) value);
+            else
+                text = value.toString();
 
-            } else {
+            JLabel newLabel = new JLabel(text);
 
-                JLabel newLabel = new JLabel(value.toString());
+            if (font != null)
+                newLabel.setFont(font);
+            else if (list.getFont() != null)
+                newLabel.setFont(list.getFont());
 
-                if (font != null)
-                    newLabel.setFont(font);
-                else if (list.getFont() != null)
-                    newLabel.setFont(list.getFont());
+            newPanel.add(newLabel);
 
-                newPanel.add(newLabel);
-            }
         }
-
+        
         return newPanel;
 
     }

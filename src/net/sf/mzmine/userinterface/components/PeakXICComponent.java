@@ -40,12 +40,30 @@ public class PeakXICComponent extends JComponent {
     public static final Color baseLineColor = Color.gray;
 
     private Peak peak;
+    
+    private double minRT, maxRT, rtSpan, maxIntensity;
 
     /**
      * @param peak Picked peak to plot
      */
     public PeakXICComponent(Peak peak) {
+        this(peak, peak.getDataPointMaxIntensity());
+    }
+    
+    /**
+     * @param peak Picked peak to plot
+     */
+    public PeakXICComponent(Peak peak, double maxIntensity) {
+        
         this.peak = peak;
+        
+        // find data boundaries
+        OpenedRawDataFile dataFile = peak.getDataFile();
+        this.minRT = dataFile.getCurrentFile().getDataMinRT(1);
+        this.maxRT = dataFile.getCurrentFile().getDataMaxRT(1);
+        this.rtSpan = maxRT - minRT;
+        this.maxIntensity = maxIntensity;
+        
     }
 
     public void paint(Graphics g) {
@@ -69,13 +87,7 @@ public class PeakXICComponent extends JComponent {
         int xValues[] = new int[scanNumbers.length];
         int yValues[] = new int[scanNumbers.length];
 
-        // X axis range is minRT..maxRT
-        double minRT = dataFile.getCurrentFile().getDataMinRT(1);
-        double maxRT = dataFile.getCurrentFile().getDataMaxRT(1);
-        double rtSpan = maxRT - minRT;
 
-        // Y axis range is 0..peakHeight
-        double peakHeight = peak.getHeight();
 
         // find one datapoint with maximum intensity in each scan
         for (int i = 0; i < scanNumbers.length; i++) {
@@ -96,7 +108,7 @@ public class PeakXICComponent extends JComponent {
             xValues[i] = (int) Math.floor((retentionTime - minRT) / rtSpan
                     * (size.width - 1));
             yValues[i] = size.height
-                    - (int) Math.floor(intensity / peakHeight
+                    - (int) Math.floor(intensity / maxIntensity
                             * (size.height - 1));
 
         }
