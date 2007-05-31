@@ -221,7 +221,8 @@ class CustomDBSearchParameters implements StorableParameterSet {
     public void importValuesFromXML(Element element) {
 
         dataBaseFile = element.elementText(DATABASEFILE_ELEMENT);
-        fieldSeparator = element.elementText(FIELDSEPARATOR_ELEMENT).charAt(0);
+        String fieldSeparatorString = element.elementText(FIELDSEPARATOR_ELEMENT);
+        if (fieldSeparatorString.length() > 0) fieldSeparator = fieldSeparatorString.charAt(0);
         Element orderElement = element.element(FIELDORDER_ELEMENT);
         List fields = orderElement.elements(FIELD_ELEMENT);
         if (fields.size() == fieldOrder.length) {
