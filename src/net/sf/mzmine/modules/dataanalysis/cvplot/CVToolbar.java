@@ -14,8 +14,9 @@ public class CVToolbar extends JToolBar {
 
 	
 	static final Icon axesIcon = new ImageIcon("icons/axesicon.png");
+	static final Icon colorbarIcon = new ImageIcon("icons/colorbaricon.png");
 	
-	private JButton axesButton;
+	private JButton axesButton, colorbarButton;
 	
 	public CVToolbar(CVAnalyzerWindow masterFrame) {
         super(JToolBar.VERTICAL);
@@ -28,6 +29,12 @@ public class CVToolbar extends JToolBar {
         axesButton = GUIUtils.addButton(this, null, axesIcon, masterFrame,
                 "SETUP_AXES", "Setup ranges for axes");
 	
+        addSeparator();
+        
+        colorbarButton = GUIUtils.addButton(this, null, colorbarIcon, masterFrame,
+                "SETUP_COLORS", "Setup color palette");
+        
+        
 	}
 	
 	

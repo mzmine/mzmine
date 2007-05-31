@@ -48,6 +48,11 @@ public class InterpolatingLookupPaintScale implements PaintScale, PublicCloneabl
 		lookupTable.put(value, rgb);
 	}
 	
+	public Double[] getLookupValues() {
+		return lookupTable.keySet().toArray(new Double[0]);
+	}
+	
+	
 	public Paint getPaint(double value) {
 		Entry<Double, int[]> floor = lookupTable.floorEntry(value);
 		Entry<Double, int[]> ceil = lookupTable.ceilingEntry(value);

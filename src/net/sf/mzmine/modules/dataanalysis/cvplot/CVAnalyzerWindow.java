@@ -9,6 +9,7 @@ import javax.swing.JInternalFrame;
 
 import net.sf.mzmine.userinterface.Desktop;
 import net.sf.mzmine.userinterface.dialogs.AxesSetupDialog;
+import net.sf.mzmine.userinterface.dialogs.ExitCode;
 
 public class CVAnalyzerWindow extends JInternalFrame implements ActionListener {
 
@@ -41,7 +42,16 @@ public class CVAnalyzerWindow extends JInternalFrame implements ActionListener {
         	AxesSetupDialog dialog = new AxesSetupDialog((Frame)desktop, plot.getChart().getXYPlot());
         	dialog.setVisible(true);
         }
-
+        
+        if (command.equals("SETUP_COLORS")) {
+            CVPaintScaleSetupDialog colorDialog = new CVPaintScaleSetupDialog(desktop, plot.getPaintScale());
+            colorDialog.setVisible(true);
+              	
+        	if (colorDialog.getExitCode()==ExitCode.OK) {
+        		plot.setPaintScale(colorDialog.getPaintScale());
+        	}
+        }
+        
 	}
 
 }

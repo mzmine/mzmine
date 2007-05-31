@@ -23,24 +23,30 @@ import org.jfree.chart.title.TextTitle;
 import org.jfree.ui.RectangleInsets;
 
 public class CVPlot extends ChartPanel {
-	
-	private JFreeChart chart;
-	private XYPlot plot;
 
     private static final Color gridColor = Color.lightGray;
     private static final Color crossHairColor = Color.gray;
     private static final Font titleFont = new Font("SansSerif", Font.PLAIN, 11); 
-
     // crosshair stroke
     private static final BasicStroke crossHairStroke = new BasicStroke(1,
             BasicStroke.CAP_BUTT, BasicStroke.JOIN_BEVEL,
             1.0f, new float[] { 5, 3 }, 0);
 
+	private JFreeChart chart;
+	private XYPlot plot;
+	private ValueAxis paintScaleAxis;
+	private PaintScaleLegend paintScaleLegend;
 	
 	private XYItemRenderer spotRenderer;
 	
+	private InterpolatingLookupPaintScale paintScale;
+	
+	private CVDataset dataset;
+	
 	public CVPlot(CVAnalyzerWindow masterFrame, CVDataset dataset) {
 		super(null);
+		
+		this.dataset = dataset;
 		
 		chart = ChartFactory.createXYAreaChart(
 				"Coefficient of variation",
@@ -98,7 +104,7 @@ public class CVPlot extends ChartPanel {
 			
        
         // Create paint scale with default color slide
-        InterpolatingLookupPaintScale paintScale = new InterpolatingLookupPaintScale();
+        paintScale = new InterpolatingLookupPaintScale();
         paintScale.addLookupValue(0.00, new int[]{  0,  0,  0});
         paintScale.addLookupValue(0.15, new int[]{102,255,102});
         paintScale.addLookupValue(0.30, new int[]{ 51,102,255});
@@ -109,16 +115,30 @@ public class CVPlot extends ChartPanel {
 		plot.setRenderer(spotRenderer);
 		
 		// Add a paintScaleLegend to chart
-		ValueAxis paintScaleAxis = new NumberAxis("CV");
+		
+		paintScaleAxis = new NumberAxis("CV");
 		paintScaleAxis.setRange(paintScale.getLowerBound(), paintScale.getUpperBound());
 		
-		PaintScaleLegend paintScaleLegend = new PaintScaleLegend(paintScale, paintScaleAxis);
+		paintScaleLegend = new PaintScaleLegend(paintScale, paintScaleAxis);
 		paintScaleLegend.setPosition(plot.getDomainAxisEdge());
 		paintScaleLegend.setMargin(5,25,5,25);
 		
 		chart.addSubtitle(paintScaleLegend);
 
 	
+	}
+	
+	public InterpolatingLookupPaintScale getPaintScale() {
+		return paintScale;
+	}
+	
+	public void setPaintScale(InterpolatingLookupPaintScale paintScale) {
+		spotRenderer = new CVRenderer(dataset, paintScale);
+		plot.setRenderer(spotRenderer);
+
+		this.paintScale = paintScale;
+		paintScaleAxis.setRange(paintScale.getLowerBound(), paintScale.getUpperBound());
+		paintScaleLegend.setScale(paintScale);
 	}
 	
 }

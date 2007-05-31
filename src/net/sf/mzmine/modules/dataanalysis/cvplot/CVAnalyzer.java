@@ -56,7 +56,7 @@ public class CVAnalyzer implements MZmineModule, ActionListener {
 
 	public void actionPerformed(ActionEvent arg0) {
         logger.finest("Opening a new CV analysis setup dialog");
-
+        
         PeakList[] alignedPeakLists = desktop.getSelectedAlignedPeakLists();
         
         if (alignedPeakLists.length==0) {
@@ -86,7 +86,7 @@ public class CVAnalyzer implements MZmineModule, ActionListener {
         	
         	
         }
-        
+     
 	}
 	
 	
