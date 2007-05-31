@@ -165,5 +165,12 @@ public class SimplePeakList implements PeakList {
     public void removeRow(PeakListRow row) {
         peakListRows.remove(row);
     }
+    
+    /**
+     * @see net.sf.mzmine.data.PeakList#removeRow(net.sf.mzmine.data.PeakListRow)
+     */
+    public void removeRow(int row) {
+        peakListRows.remove(row);
+    }
 
 }

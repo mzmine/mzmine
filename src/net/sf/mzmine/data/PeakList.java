@@ -108,6 +108,12 @@ public interface PeakList {
      * Removes a row from this peak list
      * 
      */
+    public void removeRow(int row);
+    
+    /**
+     * Removes a row from this peak list
+     * 
+     */
     public void removeRow(PeakListRow row);
 
 }

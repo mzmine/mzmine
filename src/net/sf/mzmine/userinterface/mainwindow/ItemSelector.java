@@ -39,12 +39,13 @@ import net.sf.mzmine.io.OpenedRawDataFile;
 import net.sf.mzmine.project.MZmineProject;
 import net.sf.mzmine.userinterface.Desktop;
 import net.sf.mzmine.userinterface.components.DragOrderedJList;
+import net.sf.mzmine.userinterface.components.PopupListener;
 import net.sf.mzmine.util.GUIUtils;
 
 /**
  * This class implements a selector of raw data files and alignment results
  */
-public class ItemSelector extends JPanel implements MouseListener,
+public class ItemSelector extends JPanel implements 
         ActionListener {
 
     private DefaultListModel rawDataObjects;
@@ -96,9 +97,11 @@ public class ItemSelector extends JPanel implements MouseListener,
 
         rawAndResultsSplit.setDividerLocation(230);
 
-        // Add listeners to both lists
-        rawDataList.addMouseListener(this);
-        resultList.addMouseListener(this);
+        JPopupMenu popupMenu = new JPopupMenu();
+        GUIUtils.addMenuItem(popupMenu, "Close", this, "CLOSE");
+        rawDataList.addMouseListener(new PopupListener(popupMenu));
+        
+
 
     }
 
@@ -107,37 +110,6 @@ public class ItemSelector extends JPanel implements MouseListener,
         resultList.addListSelectionListener(listener);
     }
 
-    // Implementation of mouse listener interface
-
-    public void mouseClicked(MouseEvent e) {
-    }
-
-    public void mouseEntered(MouseEvent e) {
-    }
-
-    public void mouseExited(MouseEvent e) {
-    }
-
-    public void mousePressed(MouseEvent e) {
-        if (e.isPopupTrigger())
-            showPopupMenu(e);
-    }
-
-    public void mouseReleased(MouseEvent e) {
-        if (e.isPopupTrigger())
-            showPopupMenu(e);
-    }
-
-    private void showPopupMenu(MouseEvent e) {
-        JPopupMenu popupMenu = new JPopupMenu();
-        if (e.getComponent() == rawDataList) {
-            if (rawDataList.locationToIndex(e.getPoint()) == -1)
-                return;
-            GUIUtils.addMenuItem(popupMenu, "Close", this, "CLOSE");
-
-        }
-        popupMenu.show(e.getComponent(), e.getX(), e.getY());
-    }
 
     // Implementation of action listener interface
 

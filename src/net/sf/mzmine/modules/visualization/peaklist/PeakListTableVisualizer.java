@@ -83,10 +83,16 @@ public class PeakListTableVisualizer implements MZmineModule, ActionListener {
 
                 for (OpenedRawDataFile dataFile : dataFiles) {
 
+                    PeakList peakList = dataFile.getPeakList();
+                    
+                    if (peakList == null) {
+                        desktop.displayErrorMessage(dataFile + " has no peak list, please run peak picking first");
+                        return;
+                    }
+                    
                     logger.finest("Showing new peak list view");
-
                     PeakListTableWindow alignmentResultView = new PeakListTableWindow(
-                            this, dataFile.getPeakList());
+                            this, peakList);
                     desktop.addInternalFrame(alignmentResultView);
 
                 }

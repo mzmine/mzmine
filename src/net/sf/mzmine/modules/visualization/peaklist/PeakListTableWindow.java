@@ -63,9 +63,9 @@ public class PeakListTableWindow extends JInternalFrame
      */
     public PeakListTableWindow(
             PeakListTableVisualizer visualizer,
-            PeakList alignmentResult) {
+            PeakList peakList) {
 
-        super(alignmentResult.toString(), true, true, true, true);
+        super(peakList.toString(), true, true, true, true);
 
         setResizable(true);
         setIconifiable(true);
@@ -81,10 +81,10 @@ public class PeakListTableWindow extends JInternalFrame
                 this);
         add(toolBar, BorderLayout.EAST);
 
-        model = new PeakListTableModel(alignmentResult, columnSelection);
+        model = new PeakListTableModel(peakList, columnSelection);
 
         // Build table
-        table = new PeakListTable(this, model);
+        table = new PeakListTable(this, model, peakList);
         table.setAutoResizeMode(JTable.AUTO_RESIZE_OFF);
         scrollPane = new JScrollPane(table);
 

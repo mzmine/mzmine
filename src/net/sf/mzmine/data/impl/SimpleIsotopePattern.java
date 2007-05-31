@@ -189,5 +189,12 @@ public class SimpleIsotopePattern implements IsotopePattern {
     public int[] getScanNumbers() {
         return representativePeak.getScanNumbers();
     }
+    
+    /**
+     * @see java.lang.Object#toString()
+     */
+    public String toString() {
+        return representativePeak.toString();
+    }
 
 }

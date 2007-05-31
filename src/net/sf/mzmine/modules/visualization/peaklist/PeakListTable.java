@@ -23,9 +23,11 @@ import javax.swing.JComponent;
 import javax.swing.JTable;
 import javax.swing.table.TableColumnModel;
 
+import net.sf.mzmine.data.PeakList;
 import net.sf.mzmine.io.export.PeakListExportColumns.RawDataColumnType;
 import net.sf.mzmine.userinterface.components.ComponentCellRenderer;
 import net.sf.mzmine.userinterface.components.GroupableTableHeader;
+import net.sf.mzmine.userinterface.components.PopupListener;
 import sunutils.TableSorter;
 
 public class PeakListTable extends JTable {
@@ -36,7 +38,8 @@ public class PeakListTable extends JTable {
 
     public PeakListTable(
             PeakListTableWindow masterFrame,
-            PeakListTableModel tableModel) {
+            PeakListTableModel tableModel,
+            PeakList peakList) {
 
         ComponentCellRenderer rend = new ComponentCellRenderer();
         setDefaultRenderer(JComponent.class, rend);
@@ -59,6 +62,9 @@ public class PeakListTable extends JTable {
         tableModel.createGroups(header, columnModel);
 
         sorter.addMouseListenerToHeaderInTable(this);
+        
+        PeakListTablePopupMenu popupMenu = new PeakListTablePopupMenu(this, peakList);
+        addMouseListener(new PopupListener(popupMenu));
 
         setRowHeight(20);
 
@@ -75,7 +81,10 @@ public class PeakListTable extends JTable {
         }
         if ((tableModel != null) && (header!= null)) tableModel.createGroups(header, columnModel);
 
-
+    }
+    
+    public PeakListTableModel getModel() {
+        return tableModel;
     }
 
 }
