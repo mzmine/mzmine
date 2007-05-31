@@ -268,7 +268,12 @@ public class MZmineClient extends Thread implements Runnable, MZmineCore {
                 desktopConfigElement = configRoot.addElement(DESKTOP_ELEMENT_NAME);
             }
             desktopConfigElement.clearContent();
-            desktopParameters.exportValuesToXML(desktopConfigElement);
+            try {
+                desktopParameters.exportValuesToXML(desktopConfigElement);
+            } catch (Exception e) {
+                logger.log(Level.SEVERE,
+                        "Could not save desktop configuration", e);
+            }
 
             // traverse modules
             Iterator<MZmineModule> iterator = moduleSet.iterator();
@@ -291,7 +296,13 @@ public class MZmineClient extends Thread implements Runnable, MZmineCore {
                     else
                         parametersElement.clearContent();
 
-                    ((StorableParameterSet) currentParameters).exportValuesToXML(parametersElement);
+                    try {
+                        ((StorableParameterSet) currentParameters).exportValuesToXML(parametersElement);
+                    } catch (Exception e) {
+                        logger.log(Level.SEVERE,
+                                "Could not save configuration of module "
+                                        + module, e);
+                    }
                 }
 
             }

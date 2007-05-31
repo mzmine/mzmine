@@ -55,7 +55,7 @@ public class DesktopParameters implements StorableParameterSet,
 
     private NumberFormatter mzFormat, rtFormat, intensityFormat;
     private int mainWindowX, mainWindowY, mainWindowWidth, mainWindowHeight;
-    private String lastOpenPath;
+    private String lastOpenPath = "";
 
     DesktopParameters() {
         this(new NumberFormatter(FormatterType.NUMBER, "0.000"),
