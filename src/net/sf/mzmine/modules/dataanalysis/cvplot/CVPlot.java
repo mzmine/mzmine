@@ -5,8 +5,6 @@ import java.awt.Color;
 import java.awt.Font;
 import java.text.NumberFormat;
 
-import javax.swing.JLabel;
-
 import net.sf.mzmine.userinterface.Desktop;
 import net.sf.mzmine.userinterface.mainwindow.MainWindow;
 
@@ -16,9 +14,8 @@ import org.jfree.chart.JFreeChart;
 import org.jfree.chart.axis.NumberAxis;
 import org.jfree.chart.plot.PlotOrientation;
 import org.jfree.chart.plot.XYPlot;
-import org.jfree.chart.renderer.category.LineAndShapeRenderer;
+import org.jfree.chart.renderer.xy.XYBlockRenderer;
 import org.jfree.chart.renderer.xy.XYItemRenderer;
-import org.jfree.chart.renderer.xy.XYLineAndShapeRenderer;
 import org.jfree.chart.title.TextTitle;
 import org.jfree.ui.RectangleInsets;
 
@@ -96,9 +93,16 @@ public class CVPlot extends ChartPanel {
         NumberAxis yAxis = (NumberAxis) plot.getRangeAxis();
         yAxis.setNumberFormatOverride(mzFormat);
 			
-		spotRenderer = new CVRenderer(dataset);
+       
+        // Create paint scale with default color slide
+        InterpolatingLookupPaintScale paintScale = new InterpolatingLookupPaintScale();
+        paintScale.addLookupValue(0.00, new int[]{  0,  0,  0});
+        paintScale.addLookupValue(0.15, new int[]{102,255,102});
+        paintScale.addLookupValue(0.30, new int[]{ 51,102,255});
+        paintScale.addLookupValue(0.45, new int[]{255,  0,  0});
 		
 		plot.setDataset(dataset);
+		spotRenderer = new CVRenderer(dataset, paintScale);
 		plot.setRenderer(spotRenderer);
 	
 	}

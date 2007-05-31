@@ -29,12 +29,6 @@ public class CVAnalyzerWindow extends JInternalFrame implements ActionListener {
         
         pack();
 
-        System.out.println();
-        for (int i=0; i<dataset.getItemCount(0); i++) {
-        	System.out.println("row #" + i + ": " + dataset.getXValue(0,i) + ", " + dataset.getYValue(0,i) + ", " + dataset.getZValue(0,i));  
-        }
-        System.out.println();
-
         desktop.addInternalFrame(this);
 		
 	}

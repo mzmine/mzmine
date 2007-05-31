@@ -50,7 +50,6 @@ public class CVDataset extends AbstractXYZDataset {
 				yCoordsV.add(mz);
 				colorCoordsV.add(cv);
 				
-				System.out.println("mz=" + mz + ", rt=" + rt + ", cv=" + cv);
 			} 
 	
 		}
