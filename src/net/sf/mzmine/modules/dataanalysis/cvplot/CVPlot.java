@@ -12,10 +12,13 @@ import org.jfree.chart.ChartFactory;
 import org.jfree.chart.ChartPanel;
 import org.jfree.chart.JFreeChart;
 import org.jfree.chart.axis.NumberAxis;
+import org.jfree.chart.axis.StandardTickUnitSource;
+import org.jfree.chart.axis.ValueAxis;
 import org.jfree.chart.plot.PlotOrientation;
 import org.jfree.chart.plot.XYPlot;
 import org.jfree.chart.renderer.xy.XYBlockRenderer;
 import org.jfree.chart.renderer.xy.XYItemRenderer;
+import org.jfree.chart.title.PaintScaleLegend;
 import org.jfree.chart.title.TextTitle;
 import org.jfree.ui.RectangleInsets;
 
@@ -104,6 +107,17 @@ public class CVPlot extends ChartPanel {
 		plot.setDataset(dataset);
 		spotRenderer = new CVRenderer(dataset, paintScale);
 		plot.setRenderer(spotRenderer);
+		
+		// Add a paintScaleLegend to chart
+		ValueAxis paintScaleAxis = new NumberAxis("CV");
+		paintScaleAxis.setRange(paintScale.getLowerBound(), paintScale.getUpperBound());
+		
+		PaintScaleLegend paintScaleLegend = new PaintScaleLegend(paintScale, paintScaleAxis);
+		paintScaleLegend.setPosition(plot.getDomainAxisEdge());
+		paintScaleLegend.setMargin(5,25,5,25);
+		
+		chart.addSubtitle(paintScaleLegend);
+
 	
 	}
 	

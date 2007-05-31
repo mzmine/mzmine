@@ -3,6 +3,7 @@ package net.sf.mzmine.modules.dataanalysis.cvplot;
 import java.awt.Color;
 import java.awt.Paint;
 import java.io.Serializable;
+import java.util.AbstractMap;
 import java.util.TreeMap;
 import java.util.TreeSet;
 import java.util.Map.Entry;
@@ -12,10 +13,35 @@ import org.jfree.util.PublicCloneable;
 
 public class InterpolatingLookupPaintScale implements PaintScale, PublicCloneable, Serializable {
 
-	private TreeMap<Double, int[]> lookupTable;
+	private class CompatibleTreeMap extends TreeMap<Double, int[]> {
+		
+		public Entry<Double, int[]> floorEntry(double value) {
+			
+			Double previousKey = null;
+			for (Double currentKey : this.keySet()) {
+				if (currentKey > value)
+					break;
+				previousKey = currentKey;
+			}		
+			if (previousKey==null) return null;
+			return new AbstractMap.SimpleEntry<Double, int[]>(previousKey, this.get(previousKey));
+			
+		}
+		
+		public Entry<Double, int[]> ceilingEntry(double value) {
+			for (Double currentKey : this.keySet()) {
+				if (currentKey > value)
+					return new AbstractMap.SimpleEntry<Double, int[]>(currentKey, this.get(currentKey));
+			}
+			return null;
+		}
+		
+	}
+	
+	private CompatibleTreeMap lookupTable;
 	
 	public InterpolatingLookupPaintScale() {
-		lookupTable = new TreeMap<Double, int[]>();
+		lookupTable = new CompatibleTreeMap();
 	}
 	
 	public void addLookupValue(double value, int[] rgb) {
