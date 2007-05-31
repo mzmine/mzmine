@@ -151,8 +151,8 @@ public class SimplePeakList implements PeakList {
 
         Peak[] peaks = getPeaks(file);
         for (Peak p : peaks) {
-            if ((p.getMinRT() <= endRT) && (p.getMaxRT() >= startRT)
-                    && (p.getMinMZ() <= endMZ) && (p.getMaxMZ() >= startMZ))
+            if ((p.getDataPointMinRT() <= endRT) && (p.getDataPointMaxRT() >= startRT)
+                    && (p.getDataPointMinMZ() <= endMZ) && (p.getDataPointMaxMZ() >= startMZ))
                 peaksInside.add(p);
         }
 

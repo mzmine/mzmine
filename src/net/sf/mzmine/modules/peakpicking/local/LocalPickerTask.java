@@ -320,7 +320,7 @@ class LocalPickerTask implements Task {
                 if (!ucPeak.isGrowing()) {
 
                     // Check length
-                    double ucLength = ucPeak.getMaxRT() - ucPeak.getMinRT();
+                    double ucLength = ucPeak.getDataPointMaxRT() - ucPeak.getDataPointMinRT();
                     double ucHeight = ucPeak.getHeight();
                     if ((ucLength >= minimumPeakDuration) && (ucHeight >= minimumPeakHeight)) {
 
@@ -384,7 +384,7 @@ class LocalPickerTask implements Task {
         for (ConstructionPeak ucPeak : underConstructionPeaks) {
 
             // Check length & height
-            double ucLength = ucPeak.getMaxRT() - ucPeak.getMinRT();
+            double ucLength = ucPeak.getDataPointMaxRT() - ucPeak.getDataPointMinRT();
             double ucHeight = ucPeak.getHeight();
             if ((ucLength >= minimumPeakDuration) && (ucHeight >= minimumPeakHeight)) {
 

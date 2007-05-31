@@ -1,17 +1,17 @@
 /*
  * Copyright 2006-2007 The MZmine Development Team
- *
+ * 
  * This file is part of MZmine.
- *
+ * 
  * MZmine is free software; you can redistribute it and/or modify it under the
  * terms of the GNU General Public License as published by the Free Software
  * Foundation; either version 2 of the License, or (at your option) any later
  * version.
- *
+ * 
  * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY
  * WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR
  * A PARTICULAR PURPOSE. See the GNU General Public License for more details.
- *
+ * 
  * You should have received a copy of the GNU General Public License along with
  * MZmine; if not, write to the Free Software Foundation, Inc., 51 Franklin St,
  * Fifth Floor, Boston, MA 02110-1301 USA
@@ -51,6 +51,7 @@ public class ConstructionPeak implements Peak {
     private double maxRT;
     private double minMZ;
     private double maxMZ;
+    private double maxIntensity;
 
     // These are used for constructing the peak
     private boolean precalcRequiredMZ;
@@ -154,7 +155,7 @@ public class ConstructionPeak implements Peak {
     /**
      * Returns the first scan number of all datapoints
      */
-    public double getMinRT() {
+    public double getDataPointMinRT() {
         if (precalcRequiredMins)
             precalculateMins();
         return minRT;
@@ -163,7 +164,7 @@ public class ConstructionPeak implements Peak {
     /**
      * Returns the last scan number of all datapoints
      */
-    public double getMaxRT() {
+    public double getDataPointMaxRT() {
         if (precalcRequiredMins)
             precalculateMins();
         return maxRT;
@@ -172,7 +173,7 @@ public class ConstructionPeak implements Peak {
     /**
      * Returns minimum M/Z value of all datapoints
      */
-    public double getMinMZ() {
+    public double getDataPointMinMZ() {
         if (precalcRequiredMins)
             precalculateMins();
         return minMZ;
@@ -181,10 +182,19 @@ public class ConstructionPeak implements Peak {
     /**
      * Returns maximum M/Z value of all datapoints
      */
-    public double getMaxMZ() {
+    public double getDataPointMaxMZ() {
         if (precalcRequiredMins)
             precalculateMins();
         return maxMZ;
+    }
+
+    /**
+     * Returns maximum M/Z value of all datapoints
+     */
+    public double getDataPointMaxIntensity() {
+        if (precalcRequiredMins)
+            precalculateMins();
+        return maxIntensity;
     }
 
     private void intializeAddingDatapoints() {
@@ -239,6 +249,7 @@ public class ConstructionPeak implements Peak {
         maxMZ = Double.MIN_VALUE;
         minRT = Double.MAX_VALUE;
         maxRT = Double.MIN_VALUE;
+        maxIntensity = 0;
 
         for (int ind = 0; ind < datapointsMZs.size(); ind++) {
             if (datapointsMZs.get(ind) < minMZ)
@@ -249,6 +260,9 @@ public class ConstructionPeak implements Peak {
                 minRT = datapointsRTs.get(ind);
             if (datapointsRTs.get(ind) > maxRT)
                 maxRT = datapointsRTs.get(ind);
+            if (datapointsIntensities.get(ind) > maxIntensity)
+                maxIntensity = datapointsIntensities.get(ind);
+
         }
         precalcRequiredMins = false;
     }

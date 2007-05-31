@@ -95,21 +95,26 @@ public interface Peak {
     /**
      * Returns the minimum RT of all datapoints
      */
-    public double getMinRT();
+    public double getDataPointMinRT();
 
     /**
      * Returns the maximum RT of all datapoints
      */
-    public double getMaxRT();
+    public double getDataPointMaxRT();
 
     /**
      * Returns minimum M/Z value of all datapoints
      */
-    public double getMinMZ();
+    public double getDataPointMinMZ();
 
     /**
      * Returns maximum M/Z value of all datapoints
      */
-    public double getMaxMZ();
+    public double getDataPointMaxMZ();
+    
+    /**
+     * Returns maximum intensity value of all datapoints
+     */
+    public double getDataPointMaxIntensity();
 
 }

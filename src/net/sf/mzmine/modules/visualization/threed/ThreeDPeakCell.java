@@ -81,10 +81,10 @@ class ThreeDPeakCell extends CellImpl {
         }
 
         // peak box bounds
-        final float rtMin = (float) peaks[index].getMinRT();
-        final float rtMax = (float) peaks[index].getMaxRT();
-        final float mzMin = (float) Math.min(peaks[index].getMZ() - mzStep, peaks[index].getMinMZ());
-        final float mzMax = (float) Math.max(peaks[index].getMZ() + mzStep, peaks[index].getMaxMZ());
+        final float rtMin = (float) peaks[index].getDataPointMinRT();
+        final float rtMax = (float) peaks[index].getDataPointMaxRT();
+        final float mzMin = (float) Math.min(peaks[index].getMZ() - mzStep, peaks[index].getDataPointMinMZ());
+        final float mzMax = (float) Math.max(peaks[index].getMZ() + mzStep, peaks[index].getDataPointMaxMZ());
         final float heightMin = 0;
         final float heightMax = (float) peaks[index].getHeight();
 

@@ -43,10 +43,11 @@ public class SimplePeak implements Peak {
     private double area;
 
     // Boundaries of the peak
-    private double minRT;
-    private double maxRT;
-    private double minMZ;
-    private double maxMZ;
+    private double minRT = Double.MAX_VALUE;
+    private double maxRT = Double.MIN_VALUE;
+    private double minMZ = Double.MAX_VALUE;
+    private double maxMZ = Double.MIN_VALUE;
+    private double maxIntensity = Double.MIN_VALUE;
 
     /**
      * Initializes a new peak using given values
@@ -56,8 +57,8 @@ public class SimplePeak implements Peak {
      *            dimension is 2: index value 0=M/Z, 1=Intensity of data point
      */
     public SimplePeak(OpenedRawDataFile dataFile, double MZ, double RT,
-            double height, double area, double minMZ, double maxMZ,
-            double minRT, double maxRT, int[] scanNumbers,
+            double height, double area, 
+            int[] scanNumbers,
             double[][][] datapointsPerScan, PeakStatus peakStatus) {
 
         this.dataFile = dataFile;
@@ -67,13 +68,23 @@ public class SimplePeak implements Peak {
         this.height = height;
         this.area = area;
 
-        this.minMZ = minMZ;
-        this.maxMZ = maxMZ;
-        this.minRT = minRT;
-        this.maxRT = maxRT;
-
         datapointsMap = new Hashtable<Integer, double[][]>();
         for (int ind = 0; ind < scanNumbers.length; ind++) {
+            
+            double dataPointRT = dataFile.getCurrentFile().getRetentionTime(scanNumbers[ind]);
+            if (dataPointRT < minRT) minRT = dataPointRT;
+            if (dataPointRT > maxRT) maxRT = dataPointRT;
+            
+            // update boundaries
+            for (int dataPointInd = 0; dataPointInd < datapointsPerScan[ind].length; dataPointInd++) {
+                double dataPointMZ = datapointsPerScan[ind][dataPointInd][0];
+                double dataPointIntensity = datapointsPerScan[ind][dataPointInd][1];
+                if (dataPointMZ < minMZ) minMZ = dataPointMZ;
+                if (dataPointMZ > maxMZ) maxMZ = dataPointMZ;
+                if (dataPointIntensity > maxIntensity) maxIntensity = dataPointIntensity;
+            }
+            
+            // add data point to hashtable
             datapointsMap.put(scanNumbers[ind], datapointsPerScan[ind]);
         }
 
@@ -90,10 +101,10 @@ public class SimplePeak implements Peak {
         this.height = p.getHeight();
         this.area = p.getArea();
 
-        this.minMZ = p.getMinMZ();
-        this.maxMZ = p.getMaxMZ();
-        this.minRT = p.getMinRT();
-        this.maxRT = p.getMaxRT();
+        this.minMZ = p.getDataPointMinMZ();
+        this.maxMZ = p.getDataPointMaxMZ();
+        this.minRT = p.getDataPointMinRT();
+        this.maxRT = p.getDataPointMaxRT();
 
         datapointsMap = new Hashtable<Integer, double[][]>();
         for (int scanNumber : p.getScanNumbers())
@@ -181,29 +192,36 @@ public class SimplePeak implements Peak {
     /**
      * Returns the first scan number of all datapoints
      */
-    public double getMinRT() {
+    public double getDataPointMinRT() {
         return minRT;
     }
 
     /**
      * Returns the last scan number of all datapoints
      */
-    public double getMaxRT() {
+    public double getDataPointMaxRT() {
         return maxRT;
     }
 
     /**
      * Returns minimum M/Z value of all datapoints
      */
-    public double getMinMZ() {
+    public double getDataPointMinMZ() {
         return minMZ;
     }
 
     /**
      * Returns maximum M/Z value of all datapoints
      */
-    public double getMaxMZ() {
+    public double getDataPointMaxMZ() {
         return maxMZ;
+    }
+    
+    /**
+     * Returns maximum intensity value of all datapoints
+     */
+    public double getDataPointMaxIntensity() {
+        return maxIntensity;
     }
 
     /**
