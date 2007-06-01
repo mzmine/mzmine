@@ -43,8 +43,7 @@ import net.sf.mzmine.data.PeakList;
 import net.sf.mzmine.data.PeakListRow;
 import net.sf.mzmine.io.OpenedRawDataFile;
 import net.sf.mzmine.main.MZmineCore;
-import net.sf.mzmine.userinterface.components.PeakListRowCheckBox;
-import net.sf.mzmine.userinterface.components.DataFileCheckBox;
+import net.sf.mzmine.userinterface.components.ExtendedCheckBox;
 import net.sf.mzmine.userinterface.dialogs.ExitCode;
 import net.sf.mzmine.util.GUIUtils;
 
@@ -60,8 +59,8 @@ class IntensityPlotDialog extends JDialog implements ActionListener {
 
     // dialog components
     private JComboBox xAxisValueSourceCombo, yAxisValueSourceCombo;
-    private DataFileCheckBox rawDataFileCheckBoxes[];
-    private PeakListRowCheckBox peakCheckBoxes[];
+    private ExtendedCheckBox<OpenedRawDataFile> rawDataFileCheckBoxes[];
+    private ExtendedCheckBox<PeakListRow> peakCheckBoxes[];
     private JButton btnSelectAllFiles, btnDeselectAllFiles, btnSelectAllPeaks,
             btnDeselectAllPeaks, btnOK, btnCancel;
 
@@ -101,11 +100,11 @@ class IntensityPlotDialog extends JDialog implements ActionListener {
         dataFileCheckBoxesPanel.setBackground(Color.white);
         dataFileCheckBoxesPanel.setLayout(new BoxLayout(
                 dataFileCheckBoxesPanel, BoxLayout.Y_AXIS));
-        rawDataFileCheckBoxes = new DataFileCheckBox[alignmentResult.getNumberOfRawDataFiles()];
+        rawDataFileCheckBoxes = new ExtendedCheckBox[alignmentResult.getNumberOfRawDataFiles()];
         int minimumHorizSize = 0;
         OpenedRawDataFile files[] = alignmentResult.getRawDataFiles();
         for (int i = 0; i < files.length; i++) {
-            rawDataFileCheckBoxes[i] = new DataFileCheckBox(files[i]);
+            rawDataFileCheckBoxes[i] = new ExtendedCheckBox<OpenedRawDataFile>(files[i]);
             minimumHorizSize = Math.max(minimumHorizSize,
                     rawDataFileCheckBoxes[i].getPreferredWidth());
             dataFileCheckBoxesPanel.add(rawDataFileCheckBoxes[i]);
@@ -152,12 +151,12 @@ class IntensityPlotDialog extends JDialog implements ActionListener {
         peakCheckBoxesPanel.setBackground(Color.white);
         peakCheckBoxesPanel.setLayout(new BoxLayout(peakCheckBoxesPanel,
                 BoxLayout.Y_AXIS));
-        peakCheckBoxes = new PeakListRowCheckBox[alignmentResult.getNumberOfRows()];
+        peakCheckBoxes = new ExtendedCheckBox[alignmentResult.getNumberOfRows()];
         minimumHorizSize = 0;
         PeakListRow rows[] = alignmentResult.getRows();
         Arrays.sort(rows, new AlignmentResultSorterByMZ());
         for (int i = 0; i < rows.length; i++) {
-            peakCheckBoxes[i] = new PeakListRowCheckBox(rows[i]);
+            peakCheckBoxes[i] = new ExtendedCheckBox<PeakListRow>(rows[i]);
             minimumHorizSize = Math.max(minimumHorizSize,
                     peakCheckBoxes[i].getPreferredWidth());
             peakCheckBoxesPanel.add(peakCheckBoxes[i]);
@@ -212,14 +211,14 @@ class IntensityPlotDialog extends JDialog implements ActionListener {
             Vector<OpenedRawDataFile> selectedFiles = new Vector<OpenedRawDataFile>();
             Vector<PeakListRow> selectedPeaks = new Vector<PeakListRow>();
 
-            for (DataFileCheckBox box : rawDataFileCheckBoxes) {
+            for (ExtendedCheckBox<OpenedRawDataFile> box : rawDataFileCheckBoxes) {
                 if (box.isSelected())
-                    selectedFiles.add(box.getDataFile());
+                    selectedFiles.add(box.getObject());
             }
 
-            for (PeakListRowCheckBox box : peakCheckBoxes) {
+            for (ExtendedCheckBox<PeakListRow> box : peakCheckBoxes) {
                 if (box.isSelected())
-                    selectedPeaks.add(box.getAlignmentRow());
+                    selectedPeaks.add(box.getObject());
             }
 
             if (selectedFiles.size() == 0) {

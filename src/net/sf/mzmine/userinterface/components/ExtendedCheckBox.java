@@ -28,15 +28,15 @@ import net.sf.mzmine.io.OpenedRawDataFile;
 /**
  * Checkbox wrapper class
  */
-public class DataFileCheckBox extends JCheckBox {
+public class ExtendedCheckBox<Type> extends JCheckBox {
 
     static final Font checkBoxFont = new Font("SansSerif", Font.PLAIN, 11);
 
-    private OpenedRawDataFile dataFile;
+    private Type object;
 
-    public DataFileCheckBox(OpenedRawDataFile dataFile) {
-        super(dataFile.toString(), true);
-        this.dataFile = dataFile;
+    public ExtendedCheckBox(Type object) {
+        super(object.toString(), true);
+        this.object = object;
         setOpaque(false);
         setFont(checkBoxFont);
     }
@@ -44,8 +44,8 @@ public class DataFileCheckBox extends JCheckBox {
     /**
      * @return Returns the dataFile.
      */
-    public OpenedRawDataFile getDataFile() {
-        return dataFile;
+    public Type getObject() {
+        return object;
     }
 
     public int getPreferredWidth() {
