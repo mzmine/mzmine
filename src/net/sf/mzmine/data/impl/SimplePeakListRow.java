@@ -21,10 +21,12 @@ package net.sf.mzmine.data.impl;
 
 import java.text.Format;
 import java.util.Enumeration;
+import java.util.HashSet;
 import java.util.Hashtable;
 
-import net.sf.mzmine.data.PeakListRow;
+import net.sf.mzmine.data.CompoundIdentity;
 import net.sf.mzmine.data.Peak;
+import net.sf.mzmine.data.PeakListRow;
 import net.sf.mzmine.io.OpenedRawDataFile;
 import net.sf.mzmine.userinterface.mainwindow.MainWindow;
 
@@ -35,11 +37,14 @@ public class SimplePeakListRow implements PeakListRow {
 
     private Hashtable<OpenedRawDataFile, Peak> peaks;
     private Hashtable<OpenedRawDataFile, Peak> originalPeaks;
+    private HashSet<CompoundIdentity> identities;
+    private CompoundIdentity preferredIdentity;
     private String comment;
 
     public SimplePeakListRow() {
         peaks = new Hashtable<OpenedRawDataFile, Peak>();
         originalPeaks = new Hashtable<OpenedRawDataFile, Peak>();
+        identities = new HashSet<CompoundIdentity>();
     }
 
     /*
@@ -119,7 +124,8 @@ public class SimplePeakListRow implements PeakListRow {
         buf.append(mzFormat.format(getAverageMZ()));
         buf.append(" m/z @");
         buf.append(timeFormat.format(getAverageRT()));
-        if (comment != null) buf.append(" (" + comment + ")");
+        if (comment != null)
+            buf.append(" (" + comment + ")");
         return buf.toString();
     }
 
@@ -135,6 +141,36 @@ public class SimplePeakListRow implements PeakListRow {
      */
     public void setComment(String comment) {
         this.comment = comment;
+    }
+
+    /**
+     * @see net.sf.mzmine.data.PeakListRow#addCompoundIdentity(net.sf.mzmine.data.CompoundIdentity)
+     */
+    public void addCompoundIdentity(CompoundIdentity identity) {
+        identities.add(identity);
+        if (preferredIdentity == null)
+            setPreferredCompoundIdentity(identity);
+    }
+
+    /**
+     * @see net.sf.mzmine.data.PeakListRow#getCompoundIdentities()
+     */
+    public CompoundIdentity[] getCompoundIdentities() {
+        return identities.toArray(new CompoundIdentity[0]);
+    }
+
+    /**
+     * @see net.sf.mzmine.data.PeakListRow#getPreferredCompoundIdentity()
+     */
+    public CompoundIdentity getPreferredCompoundIdentity() {
+        return preferredIdentity;
+    }
+
+    /**
+     * @see net.sf.mzmine.data.PeakListRow#setPreferredCompoundIdentity(net.sf.mzmine.data.CompoundIdentity)
+     */
+    public void setPreferredCompoundIdentity(CompoundIdentity identity) {
+        preferredIdentity = identity;
     }
 
 }

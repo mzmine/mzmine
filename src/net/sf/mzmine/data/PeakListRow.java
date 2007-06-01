@@ -70,5 +70,33 @@ public interface PeakListRow {
      * Sets comment for this row
      */
     public void setComment(String comment);
+    
+    /**
+     * Add a new identity candidate (result of identification method)
+     *  
+     * @param identity New compound identity
+     */
+    public void addCompoundIdentity(CompoundIdentity identity);
+    
+    /**
+     * Returns all candidates for this compound's identity
+     * 
+     * @return Identity candidates
+     */
+    public CompoundIdentity[] getCompoundIdentities();
+    
+    /**
+     * Returns preferred compound identity among candidates
+     * 
+     * @return Preferred identity 
+     */
+    public CompoundIdentity getPreferredCompoundIdentity();
+    
+    /**
+     * Sets a preferred compound identity among candidates
+     * 
+     * @param identity Preferred identity 
+     */
+    public void setPreferredCompoundIdentity(CompoundIdentity identity);
 
 }
