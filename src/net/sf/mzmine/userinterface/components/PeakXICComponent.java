@@ -37,7 +37,6 @@ import net.sf.mzmine.io.OpenedRawDataFile;
 public class PeakXICComponent extends JComponent {
 
     public static final Color XICColor = Color.blue;
-    public static final Color baseLineColor = Color.gray;
 
     private Peak peak;
     
@@ -129,10 +128,6 @@ public class PeakXICComponent extends JComponent {
         // fill the peak area
         g2.setColor(XICColor);
         g2.fill(path);
-
-        // draw base line
-        g2.setColor(baseLineColor);
-        g2.drawLine(0, size.height - 1, size.width - 1, size.height - 1);
 
     }
 
