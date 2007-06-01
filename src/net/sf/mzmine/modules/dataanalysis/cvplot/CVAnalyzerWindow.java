@@ -7,6 +7,7 @@ import java.awt.event.ActionListener;
 
 import javax.swing.JInternalFrame;
 
+import net.sf.mzmine.data.PeakList;
 import net.sf.mzmine.userinterface.Desktop;
 import net.sf.mzmine.userinterface.dialogs.AxesSetupDialog;
 import net.sf.mzmine.userinterface.dialogs.ExitCode;
@@ -17,7 +18,7 @@ public class CVAnalyzerWindow extends JInternalFrame implements ActionListener {
 	private CVToolbar toolbar;
 	private CVPlot plot;
 	
-	public CVAnalyzerWindow(Desktop desktop, CVDataset dataset) {
+	public CVAnalyzerWindow(Desktop desktop, CVDataset dataset, PeakList peakList) {
 		super(null, true, true, true, true);
 		
 		this.desktop = desktop;
@@ -27,6 +28,8 @@ public class CVAnalyzerWindow extends JInternalFrame implements ActionListener {
         
         plot = new CVPlot(this, dataset);
         add(plot, BorderLayout.CENTER);
+        
+        this.setTitle("" + peakList.toString() + ": Coefficient of variation plot");
         
         pack();
 
@@ -44,12 +47,11 @@ public class CVAnalyzerWindow extends JInternalFrame implements ActionListener {
         }
         
         if (command.equals("SETUP_COLORS")) {
-            CVPaintScaleSetupDialog colorDialog = new CVPaintScaleSetupDialog(desktop, plot.getPaintScale());
+            CVPaintScaleSetupDialog colorDialog = new CVPaintScaleSetupDialog((Frame)desktop, plot.getPaintScale());
             colorDialog.setVisible(true);
-              	
-        	if (colorDialog.getExitCode()==ExitCode.OK) {
+            	
+        	if (colorDialog.getExitCode()==ExitCode.OK)
         		plot.setPaintScale(colorDialog.getPaintScale());
-        	}
         }
         
 	}

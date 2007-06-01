@@ -49,7 +49,7 @@ public class CVPlot extends ChartPanel {
 		this.dataset = dataset;
 		
 		chart = ChartFactory.createXYAreaChart(
-				"Coefficient of variation",
+				"",
 				"Retention time",
 				"m/z",
 				dataset,
@@ -62,9 +62,11 @@ public class CVPlot extends ChartPanel {
 		setChart(chart);
 		
         // title
+		
         TextTitle chartTitle = chart.getTitle();
         chartTitle.setMargin(5, 0, 0, 0);
         chartTitle.setFont(titleFont);
+        chart.removeSubtitle(chartTitle);
 
         // disable maximum size (we don't want scaling)
         setMaximumDrawWidth(Integer.MAX_VALUE);
@@ -105,10 +107,10 @@ public class CVPlot extends ChartPanel {
        
         // Create paint scale with default color slide
         paintScale = new InterpolatingLookupPaintScale();
-        paintScale.addLookupValue(0.00, new int[]{  0,  0,  0});
-        paintScale.addLookupValue(0.15, new int[]{102,255,102});
-        paintScale.addLookupValue(0.30, new int[]{ 51,102,255});
-        paintScale.addLookupValue(0.45, new int[]{255,  0,  0});
+        paintScale.add(0.00, new Color(0,  0,  0));
+        paintScale.add(0.15, new Color(102,255,102));
+        paintScale.add(0.30, new Color( 51,102,255));
+        paintScale.add(0.45, new Color(255,  0,  0));
 		
 		plot.setDataset(dataset);
 		spotRenderer = new CVRenderer(dataset, paintScale);

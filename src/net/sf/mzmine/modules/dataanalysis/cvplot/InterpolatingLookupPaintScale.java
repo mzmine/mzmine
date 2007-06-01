@@ -7,27 +7,29 @@ import java.util.Map;
 import java.util.TreeMap;
 import java.util.Map.Entry;
 
+import org.jfree.chart.renderer.LookupPaintScale;
 import org.jfree.chart.renderer.PaintScale;
 import org.jfree.util.PublicCloneable;
 
 public class InterpolatingLookupPaintScale implements PaintScale, PublicCloneable, Serializable {
 
-	private class CompatibleEntry implements Map.Entry<Double, int[]> {
+	private class CompatibleEntry implements Map.Entry<Double, Color> {
+		
 		private Double key;
-		private int[] value;
-		public CompatibleEntry(Double key, int[] value) {
+		private Color value;
+		
+		public CompatibleEntry(Double key, Color value) {
 			this.key = key;
 			this.value = value;
 		}
 		public Double getKey() { return key; }
-		public int[] getValue() { return value; }
-		public int[] setValue(int[] value) { int[] prevValue = value; this.value = value; return prevValue; }
-		
+		public Color getValue() { return value; }
+		public Color setValue(Color value) { Color prevValue = value; this.value = value; return prevValue; }
 	}
 	
-	private class CompatibleTreeMap extends TreeMap<Double, int[]> {
+	private class CompatibleTreeMap extends TreeMap<Double, Color> {
 		
-		public Entry<Double, int[]> floorEntry(double value) {
+		public Entry<Double, Color> floorEntry(Double value) {
 			
 			Double previousKey = null;
 			for (Double currentKey : this.keySet()) {
@@ -40,7 +42,7 @@ public class InterpolatingLookupPaintScale implements PaintScale, PublicCloneabl
 			
 		}
 		
-		public Entry<Double, int[]> ceilingEntry(double value) {
+		public Entry<Double, Color> ceilingEntry(Double value) {
 			for (Double currentKey : this.keySet()) {
 				if (currentKey > value)
 					return new CompatibleEntry(currentKey, this.get(currentKey));
@@ -51,44 +53,42 @@ public class InterpolatingLookupPaintScale implements PaintScale, PublicCloneabl
 	}
 	
 	private CompatibleTreeMap lookupTable;
+
 	
 	public InterpolatingLookupPaintScale() {
 		lookupTable = new CompatibleTreeMap();
 	}
 	
-	public void addLookupValue(double value, int[] rgb) {
-		lookupTable.put(value, rgb);
+	public void add(double value, Color color) {
+		lookupTable.put(value, color);
 	}
-	
+
 	public Double[] getLookupValues() {
 		return lookupTable.keySet().toArray(new Double[0]);
 	}
 	
+	public Paint getDefaultPaint() {
+		return new Color(0,0,0);
+	}
 	
 	public Paint getPaint(double value) {
-		Entry<Double, int[]> floor = lookupTable.floorEntry(value);
-		Entry<Double, int[]> ceil = lookupTable.ceilingEntry(value);
+		Entry<Double, Color> floor = lookupTable.floorEntry(value);
+		Entry<Double, Color> ceil = lookupTable.ceilingEntry(value);
 
 		// Special cases, no floor, ceil or both available for given value
-		if ( (floor==null) && (ceil==null) ) return new Color(0,0,0);
-		if (floor==null) {
-			int[] rgb = ceil.getValue();
-			return new Color(rgb[0], rgb[1], rgb[2]);
-		}
-		if (ceil==null) {
-			int[] rgb = floor.getValue();
-			return new Color(rgb[0], rgb[1], rgb[2]);
-		}
+		if ((floor==null) && (ceil==null)) getDefaultPaint();
+		if (floor==null) return ceil.getValue();
+		if (ceil==null) return floor.getValue();
 
 		// Normal case, interpolate between floor and ceil 
 		double floorValue = floor.getKey();
-		int[] floorRGB = floor.getValue();
+		float[] floorRGB = floor.getValue().getRGBColorComponents(null);
 		double ceilValue = ceil.getKey();
-		int[] ceilRGB = ceil.getValue();
+		float[] ceilRGB = ceil.getValue().getRGBColorComponents(null);
 		
-		int[] rgb = new int[3];
+		float[] rgb = new float[3];
 		for (int i=0; i<3; i++)
-			rgb[i] = floorRGB[i] + (int)java.lang.Math.round( (double)(ceilRGB[i]-floorRGB[i]) * (double)(value-floorValue)/(double)(ceilValue-floorValue) );
+			rgb[i] = (float)(floorRGB[i] + (ceilRGB[i]-floorRGB[i]) * (value-floorValue)/(ceilValue-floorValue));
 		
 		return new Color(rgb[0], rgb[1], rgb[2]);
 

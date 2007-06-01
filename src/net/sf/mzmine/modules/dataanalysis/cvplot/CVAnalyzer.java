@@ -81,7 +81,7 @@ public class CVAnalyzer implements MZmineModule, ActionListener {
         	
         	logger.info("Showing coefficient of variation analysis window.");
         	CVDataset dataset = new CVDataset(pl, setupDialog.getSelectedFiles());
-        	CVAnalyzerWindow window = new CVAnalyzerWindow(desktop, dataset);
+        	CVAnalyzerWindow window = new CVAnalyzerWindow(desktop, dataset, pl);
         	window.setVisible(true);
         	
         	

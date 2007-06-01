@@ -4,6 +4,7 @@ import java.awt.BorderLayout;
 import java.awt.Canvas;
 import java.awt.Color;
 import java.awt.FlowLayout;
+import java.awt.Frame;
 import java.awt.GridLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -11,6 +12,7 @@ import java.awt.geom.RoundRectangle2D;
 import java.text.NumberFormat;
 import java.util.TreeMap;
 import java.util.Vector;
+import java.util.logging.Logger;
 
 import javax.swing.JButton;
 import javax.swing.JColorChooser;
@@ -19,6 +21,7 @@ import javax.swing.JFormattedTextField;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JList;
+import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTable;
@@ -37,7 +40,9 @@ public class CVPaintScaleSetupDialog extends JDialog implements ActionListener, 
 
 	public static final int VALUEFIELD_COLUMNS = 4;
 	
-	private Desktop desktop; 
+	private Logger logger = Logger.getLogger(this.getClass().getName());
+	
+	private Frame owner; 
 	
 	private JFormattedTextField fieldValue;
 
@@ -53,13 +58,11 @@ public class CVPaintScaleSetupDialog extends JDialog implements ActionListener, 
 	private JButton buttonOK;
 	private JButton buttonCancel;
 	
-	private JPanel panelLegend;
-	
 	private ExitCode exitCode  = ExitCode.CANCEL;
 	
-	public CVPaintScaleSetupDialog(Desktop desktop, InterpolatingLookupPaintScale paintScale) {
-    	super(desktop.getMainFrame(), "Select colors for paint scale", true);
-    	this.desktop = desktop;
+	public CVPaintScaleSetupDialog(Frame owner, InterpolatingLookupPaintScale paintScale) {
+    	super(owner, "Select colors for paint scale", true);
+    	this.owner = owner;
     	
 		// Build the form
         initComponents();
@@ -98,7 +101,6 @@ public class CVPaintScaleSetupDialog extends JDialog implements ActionListener, 
 		panelValueAndColor.add(buttonColor);
 		
 		//JPanel panelAddRemoveButtons = new JPanel(new FlowLayout(FlowLayout.LEFT));
-		//panelControls.add(panelAddRemoveButtons, BorderLayout.SOUTH);
 		buttonAddModify = new JButton("Add/Modify");
 		buttonAddModify.addActionListener(this);
 		buttonDelete = new JButton("Delete");
@@ -133,12 +135,10 @@ public class CVPaintScaleSetupDialog extends JDialog implements ActionListener, 
 		panelControlsAndList.add(panelOKCancelButtons, BorderLayout.SOUTH);
 		
 		pack();
-        setLocationRelativeTo(desktop.getMainFrame());
+        setLocationRelativeTo(owner);
         setResizable(false);
         
 	}
-	
-	
 	
     public void valueChanged(ListSelectionEvent event) {
     	
@@ -166,13 +166,12 @@ public class CVPaintScaleSetupDialog extends JDialog implements ActionListener, 
     	
     	if (src == buttonAddModify) {
     		if (fieldValue.getValue()==null) {
-    			desktop.displayErrorMessage("Please enter value first.");
+    			displayMessage("Please enter value first.");
     			return;
     		}
     		
     		Double d = ((Number)fieldValue.getValue()).doubleValue();    		
     		lookupTable.put(d, buttonColor.getBackground());
-    		//tableModel.fireTableChanged(new TableModelEvent(tableModel));
     		tableModel.fireTableDataChanged();
     		scrollpaneLookupValues.repaint();
     	}
@@ -206,14 +205,18 @@ public class CVPaintScaleSetupDialog extends JDialog implements ActionListener, 
 	public InterpolatingLookupPaintScale getPaintScale() {
 		InterpolatingLookupPaintScale paintScale = new InterpolatingLookupPaintScale();
 		for (Double value : lookupTable.keySet()) {
-			Color color = lookupTable.get(value);
-			int[] rgb = new int[3];
-			rgb[0] = color.getRed();
-			rgb[1] = color.getGreen();
-			rgb[2] = color.getBlue();
-			paintScale.addLookupValue(value, rgb);
+			paintScale.add(value, lookupTable.get(value));
 		}
 		return paintScale;
 	}
+
+    private void displayMessage(String msg) {
+        try {
+            logger.info(msg);
+            JOptionPane.showMessageDialog(this, msg, "Error",
+                    JOptionPane.ERROR_MESSAGE);
+        } catch (Exception exce) {
+        }
+    }	
 	
 }

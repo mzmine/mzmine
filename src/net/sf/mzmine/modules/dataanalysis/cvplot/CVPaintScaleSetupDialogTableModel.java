@@ -8,7 +8,7 @@ import javax.swing.table.AbstractTableModel;
 
 public class CVPaintScaleSetupDialogTableModel extends AbstractTableModel {
 
-	private static String[] columnNames = {"CV value", "Color"};
+	private static String[] columnNames = {"Value", "Color"};
 	
 	private TreeMap<Double, Color> lookupTable;
 	
