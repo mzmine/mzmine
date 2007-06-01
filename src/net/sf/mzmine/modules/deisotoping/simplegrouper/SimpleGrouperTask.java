@@ -194,7 +194,10 @@ class SimpleGrouperTask implements Task {
                     maxHeight = p.getHeight();
                 }
             }
-            SimplePeakListRow newRow = new SimplePeakListRow();
+            
+            // keep old ID
+            int oldRepresentativeRowID = currentPeakList.getPeakRow(isotopePattern.getRepresentativePeak());
+            SimplePeakListRow newRow = new SimplePeakListRow(oldRepresentativeRowID);
             
             newRow.addPeak(dataFile, isotopePattern,isotopePattern);
             

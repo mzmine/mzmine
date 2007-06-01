@@ -40,12 +40,21 @@ public class SimplePeakListRow implements PeakListRow {
     private HashSet<CompoundIdentity> identities;
     private CompoundIdentity preferredIdentity;
     private String comment;
+    private int myID;
 
-    public SimplePeakListRow() {
+    public SimplePeakListRow(int myID) {
+        this.myID = myID;
         peaks = new Hashtable<OpenedRawDataFile, Peak>();
         originalPeaks = new Hashtable<OpenedRawDataFile, Peak>();
         identities = new HashSet<CompoundIdentity>();
         preferredIdentity = CompoundIdentity.UNKNOWN_IDENTITY;
+    }
+
+    /**
+     * @see net.sf.mzmine.data.PeakListRow#getID()
+     */
+    public int getID() {
+        return myID;
     }
 
     /*

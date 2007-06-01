@@ -39,7 +39,7 @@ public class SimplePeakList implements PeakList {
     public SimplePeakList() {
         this(null);
     }
-    
+
     public SimplePeakList(String name) {
         this.name = name;
         rawDataFiles = new Vector<OpenedRawDataFile>();
@@ -151,8 +151,10 @@ public class SimplePeakList implements PeakList {
 
         Peak[] peaks = getPeaks(file);
         for (Peak p : peaks) {
-            if ((p.getDataPointMinRT() <= endRT) && (p.getDataPointMaxRT() >= startRT)
-                    && (p.getDataPointMinMZ() <= endMZ) && (p.getDataPointMaxMZ() >= startMZ))
+            if ((p.getDataPointMinRT() <= endRT)
+                    && (p.getDataPointMaxRT() >= startRT)
+                    && (p.getDataPointMinMZ() <= endMZ)
+                    && (p.getDataPointMaxMZ() >= startMZ))
                 peaksInside.add(p);
         }
 
@@ -165,12 +167,30 @@ public class SimplePeakList implements PeakList {
     public void removeRow(PeakListRow row) {
         peakListRows.remove(row);
     }
-    
+
     /**
      * @see net.sf.mzmine.data.PeakList#removeRow(net.sf.mzmine.data.PeakListRow)
      */
     public void removeRow(int row) {
         peakListRows.remove(row);
+    }
+
+    /**
+     * @see net.sf.mzmine.data.PeakList#getPeakRow(net.sf.mzmine.data.Peak)
+     */
+    public int getPeakRow(Peak peak) {
+
+        PeakListRow rows[] = getRows();
+
+        for (int i = 0; i < rows.length; i++) {
+            Peak rowPeaks[] = rows[i].getPeaks();
+            for (Peak p : rowPeaks) {
+                if (p == peak)
+                    return i;
+            }
+        }
+
+        return -1;
     }
 
 }

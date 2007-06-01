@@ -204,7 +204,7 @@ public class LinearNormalizerTask implements Task {
 
                     SimplePeakListRow normalizedRow = rowMap.get(originalAlignmentRow);
                     if (normalizedRow == null) {
-                        normalizedRow = new SimplePeakListRow();
+                        normalizedRow = new SimplePeakListRow(originalAlignmentRow.getID());
                         rowMap.put(originalAlignmentRow, normalizedRow);
                     }
 

@@ -149,7 +149,7 @@ class CentroidPickerTask implements Task {
 
         totalScans = scanNumbers.length;
 
-
+        int newPeakID = 1;
         
         /*
          * Calculate M/Z binning
@@ -330,7 +330,8 @@ class CentroidPickerTask implements Task {
                         ucPeak.setPeakStatus(PeakStatus.DETECTED);
                         
                         // Add it to the peak list
-                        SimplePeakListRow newRow = new SimplePeakListRow();
+                        SimplePeakListRow newRow = new SimplePeakListRow(newPeakID);
+                        newPeakID++;
                         newRow.addPeak(dataFile, ucPeak, ucPeak);
                         readyPeakList.addRow(newRow);
 
@@ -393,7 +394,8 @@ class CentroidPickerTask implements Task {
                 ucPeak.setPeakStatus(PeakStatus.DETECTED);
 
                 // Add it to the peak list
-                SimplePeakListRow newRow = new SimplePeakListRow();
+                SimplePeakListRow newRow = new SimplePeakListRow(newPeakID);
+                newPeakID++;
                 newRow.addPeak(dataFile, ucPeak, ucPeak);
                 readyPeakList.addRow(newRow);
 

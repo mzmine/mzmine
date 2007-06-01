@@ -149,6 +149,8 @@ class LocalPickerTask implements Task {
 
         totalScans = scanNumbers.length;
 
+        int newPeakID = 1;
+        
         /*
          * Calculate M/Z binning
          */
@@ -331,7 +333,8 @@ class LocalPickerTask implements Task {
                         ucPeak.setPeakStatus(PeakStatus.DETECTED);
                         
                         //add it to the peak list
-                        SimplePeakListRow newRow = new SimplePeakListRow();
+                        SimplePeakListRow newRow = new SimplePeakListRow(newPeakID);
+                        newPeakID++;
                         newRow.addPeak(dataFile, ucPeak, ucPeak);
                         readyPeakList.addRow(newRow);
                     }
@@ -395,7 +398,8 @@ class LocalPickerTask implements Task {
                 ucPeak.setPeakStatus(PeakStatus.DETECTED);
                 
                 //add it to the peak list
-                SimplePeakListRow newRow = new SimplePeakListRow();
+                SimplePeakListRow newRow = new SimplePeakListRow(newPeakID);
+                newPeakID++;
                 newRow.addPeak(dataFile, ucPeak, ucPeak);
                 readyPeakList.addRow(newRow);
 

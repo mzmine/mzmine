@@ -115,5 +115,10 @@ public interface PeakList {
      * 
      */
     public void removeRow(PeakListRow row);
+    
+    /**
+     * Returns a row number of given peak
+     */
+    public int getPeakRow(Peak peak);
 
 }

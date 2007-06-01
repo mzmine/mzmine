@@ -114,7 +114,7 @@ class JoinAlignerTask implements Task {
     }
 
     /**
-     * @see java.lang.Runnable#run()
+     * @see Runnable#run()
      */
     public void run() {
 
@@ -129,6 +129,8 @@ class JoinAlignerTask implements Task {
         for (OpenedRawDataFile dataFile : dataFiles)
             alignmentResult.addOpenedRawDataFile(dataFile);
 
+        int newRowID = 1;
+        
         /*
          * Loop through all data files
          */
@@ -174,13 +176,13 @@ class JoinAlignerTask implements Task {
             		// Check m/z difference for optimization
             		double mzDiff = row.getAverageMZ() - wrappedPeak.getPeak().getMZ();
             		// If alignment reuslt row's m/z is too small then jump to next row
-            		if ( (java.lang.Math.signum(mzDiff)<0.0) &&
-            				(java.lang.Math.abs(mzDiff)>MZTolerance) )
+            		if ( (Math.signum(mzDiff)<0.0) &&
+            				(Math.abs(mzDiff)>MZTolerance) )
             			continue;
             		
             		// If alignment result row's m/z is too big then break
-            		if ( (java.lang.Math.signum(mzDiff)>0.0) &&
-            				(java.lang.Math.abs(mzDiff)>MZTolerance) )
+            		if ( (Math.signum(mzDiff)>0.0) &&
+            				(Math.abs(mzDiff)>MZTolerance) )
             			break;
             			
             		if (nextStartingRowIndex==null)
@@ -241,9 +243,12 @@ class JoinAlignerTask implements Task {
                 if (wrappedPeak.isAlreadyJoined())
                     continue;
 
-                SimplePeakListRow row = new SimplePeakListRow();
+                SimplePeakListRow row = new SimplePeakListRow(newRowID);
+                newRowID++;
+                
                 row.addPeak(dataFile, wrappedPeak.getPeak(), wrappedPeak.getPeak());
                 alignmentResult.addRow(row);
+                
             }
 
         }
