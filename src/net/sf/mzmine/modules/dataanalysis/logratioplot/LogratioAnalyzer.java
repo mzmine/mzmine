@@ -109,10 +109,8 @@ public class LogratioAnalyzer implements MZmineModule, ActionListener {
         	
         	logger.info("Showing coefficient of variation analysis window.");
         	LogratioDataset dataset = new LogratioDataset(pl, setupDialog.getGroupOneSelectedFiles(), setupDialog.getGroupTwoSelectedFiles(), parameters);
-        	/*
         	LogratioAnalyzerWindow window = new LogratioAnalyzerWindow(desktop, dataset, pl, parameters);
         	window.setVisible(true);
-        	*/
         	
         	
         }
