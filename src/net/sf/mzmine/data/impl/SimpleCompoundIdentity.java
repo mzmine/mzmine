@@ -131,5 +131,12 @@ public class SimpleCompoundIdentity implements CompoundIdentity {
     public void setIdentificationMethod(String identificationMethod) {
         this.identificationMethod = identificationMethod;
     }
+    
+    /**
+     * @see java.lang.Object#toString()
+     */
+    public String toString() {
+        return compoundName + " (" + identificationMethod + ")";
+    }
 
 }
