@@ -203,7 +203,7 @@ public class SpectraVisualizerWindow extends JInternalFrame implements
 
         StringBuffer title = new StringBuffer();
         title.append("[");
-        title.append(rawDataFile.toString());
+        title.append(dataFile.toString());
         title.append("]: ");
 
         if (loadedScans == 1) {
