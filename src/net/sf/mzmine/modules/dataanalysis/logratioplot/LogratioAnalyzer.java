@@ -79,7 +79,12 @@ public class LogratioAnalyzer implements MZmineModule, ActionListener {
 
 	public void actionPerformed(ActionEvent arg0) {
         logger.finest("Opening a new logratio analysis setup dialog");
-              
+            
+        /*
+        LogratioSetupDialog setupDialog = new LogratioSetupDialog(desktop, new OpenedRawDataFile[0], parameters);
+        setupDialog.setVisible(true);
+        */
+        
         PeakList[] alignedPeakLists = desktop.getSelectedAlignedPeakLists();
         
         if (alignedPeakLists.length==0) {
@@ -92,24 +97,25 @@ public class LogratioAnalyzer implements MZmineModule, ActionListener {
         		desktop.displayErrorMessage("Alignment " + pl.toString() + " contains less than two peak lists.");
         		continue;
         	}
-        	/*
+        	
         	LogratioSetupDialog setupDialog = new LogratioSetupDialog(desktop, pl.getRawDataFiles(), parameters);
         	setupDialog.setVisible(true);
         	
         	if (setupDialog.getExitCode() != ExitCode.OK) {
-        		logger.info("Coefficient of variation analysis cancelled.");
+        		logger.info("Logratio analysis cancelled.");
         		return;
         	}
         	
-        	
+        	/*
         	logger.info("Showing coefficient of variation analysis window.");
-        	CVDataset dataset = new CVDataset(pl, setupDialog.getSelectedFiles(), parameters);
-        	CVAnalyzerWindow window = new CVAnalyzerWindow(desktop, dataset, pl, parameters);
+        	LogratioDataset dataset = new LogratioDataset(pl, setupDialog.getGroupOneSelectedFiles(), setupDialog.getGroupTwoSelectedFiles(), parameters);
+        	LogratioAnalyzerWindow window = new LogratioAnalyzerWindow(desktop, dataset, pl, parameters);
         	window.setVisible(true);
         	*/
         	
         	
         }
+
      
 	}
 
