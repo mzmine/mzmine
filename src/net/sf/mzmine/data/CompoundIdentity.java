@@ -24,6 +24,8 @@ package net.sf.mzmine.data;
  */
 public interface CompoundIdentity {
 
+    public static final CompoundIdentity UNKNOWN_IDENTITY = null;
+    
     /**
      * Returns description of identification method, e.g. which database was
      * searched.

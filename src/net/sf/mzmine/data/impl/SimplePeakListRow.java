@@ -45,6 +45,7 @@ public class SimplePeakListRow implements PeakListRow {
         peaks = new Hashtable<OpenedRawDataFile, Peak>();
         originalPeaks = new Hashtable<OpenedRawDataFile, Peak>();
         identities = new HashSet<CompoundIdentity>();
+        preferredIdentity = CompoundIdentity.UNKNOWN_IDENTITY;
     }
 
     /*
