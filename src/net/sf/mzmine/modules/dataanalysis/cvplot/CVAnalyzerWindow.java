@@ -8,6 +8,7 @@ import java.awt.event.ActionListener;
 import javax.swing.JInternalFrame;
 
 import net.sf.mzmine.data.PeakList;
+import net.sf.mzmine.data.impl.SimpleParameterSet;
 import net.sf.mzmine.userinterface.Desktop;
 import net.sf.mzmine.userinterface.components.interpolatinglookuppaintscale.InterpolatingLookupPaintScaleSetupDialog;
 import net.sf.mzmine.userinterface.dialogs.AxesSetupDialog;
@@ -19,7 +20,7 @@ public class CVAnalyzerWindow extends JInternalFrame implements ActionListener {
 	private CVToolbar toolbar;
 	private CVPlot plot;
 	
-	public CVAnalyzerWindow(Desktop desktop, CVDataset dataset, PeakList peakList) {
+	public CVAnalyzerWindow(Desktop desktop, CVDataset dataset, PeakList peakList, SimpleParameterSet parameters) {
 		super(null, true, true, true, true);
 		
 		this.desktop = desktop;
@@ -30,7 +31,13 @@ public class CVAnalyzerWindow extends JInternalFrame implements ActionListener {
         plot = new CVPlot(this, dataset);
         add(plot, BorderLayout.CENTER);
         
-        this.setTitle("" + peakList.toString() + ": Coefficient of variation plot");
+        String title = peakList.toString();
+        title = title.concat(" : Coefficient of variation ");
+        if (parameters.getParameterValue(CVAnalyzer.MeasurementType)==CVAnalyzer.MeasurementTypeArea)
+        	title = title.concat("(peak area)");
+        if (parameters.getParameterValue(CVAnalyzer.MeasurementType)==CVAnalyzer.MeasurementTypeHeight)
+        	title = title.concat("(peak height)");        
+        this.setTitle(title);
         
         pack();
 

@@ -7,8 +7,12 @@ import java.util.logging.Logger;
 
 import javax.swing.JDialog;
 
+import net.sf.mzmine.data.Parameter;
 import net.sf.mzmine.data.ParameterSet;
 import net.sf.mzmine.data.PeakList;
+import net.sf.mzmine.data.Parameter.ParameterType;
+import net.sf.mzmine.data.impl.SimpleParameter;
+import net.sf.mzmine.data.impl.SimpleParameterSet;
 import net.sf.mzmine.io.OpenedRawDataFile;
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.main.MZmineModule;
@@ -22,15 +26,26 @@ import net.sf.mzmine.userinterface.mainwindow.MainWindow;
 public class CVAnalyzer implements MZmineModule, ActionListener {
 
     private Logger logger = Logger.getLogger(this.getClass().getName());
+    
+    public static final String MeasurementTypeArea = "Area";
+    public static final String MeasurementTypeHeight = "Height";
+
+    public static final Object[] MeasurementTypePossibleValues = {
+    	MeasurementTypeArea, MeasurementTypeHeight };    
+    
+    public static final Parameter MeasurementType = new SimpleParameter(
+            ParameterType.STRING,
+            "Peak measurement type",
+            "Whether peak's area or height is used in computing coefficient of variance",
+            MeasurementTypeArea, MeasurementTypePossibleValues);    
+    
 
     private TaskController taskController;
     private Desktop desktop;
+
+    private SimpleParameterSet parameters;
 	
-	
-	public ParameterSet getParameterSet() {
-		// TODO Auto-generated method stub
-		return null;
-	}
+
 
     /**
      * @see net.sf.mzmine.main.MZmineModule#initModule(net.sf.mzmine.main.MZmineCore)
@@ -40,6 +55,10 @@ public class CVAnalyzer implements MZmineModule, ActionListener {
         this.taskController = core.getTaskController();
         this.desktop = core.getDesktop();
 
+        parameters = new SimpleParameterSet(
+                new Parameter[] { MeasurementType });
+        
+        
         desktop.addMenuItem(MZmineMenu.ANALYSIS, "Coefficient of variation (CV) analysis", this, null,
                 KeyEvent.VK_C, false, true);
 
@@ -50,13 +69,17 @@ public class CVAnalyzer implements MZmineModule, ActionListener {
     }    
     
 	public void setParameters(ParameterSet parameterValues) {
-		// TODO Auto-generated method stub
-
+		this.parameters = (SimpleParameterSet)parameterValues;
 	}
+
+	public ParameterSet getParameterSet() {
+		return parameters;
+	}
+	
 
 	public void actionPerformed(ActionEvent arg0) {
         logger.finest("Opening a new CV analysis setup dialog");
-        
+              
         PeakList[] alignedPeakLists = desktop.getSelectedAlignedPeakLists();
         
         if (alignedPeakLists.length==0) {
@@ -70,25 +93,23 @@ public class CVAnalyzer implements MZmineModule, ActionListener {
         		continue;
         	}
         	
-        	CVSetupDialog setupDialog = new CVSetupDialog(desktop, pl.getRawDataFiles());
+        	CVSetupDialog setupDialog = new CVSetupDialog(desktop, pl.getRawDataFiles(), parameters);
         	setupDialog.setVisible(true);
         	
-        	if (setupDialog.getExitCode() == ExitCode.CANCEL) {
+        	if (setupDialog.getExitCode() != ExitCode.OK) {
         		logger.info("Coefficient of variation analysis cancelled.");
         		return;
         	}
         	
         	
         	logger.info("Showing coefficient of variation analysis window.");
-        	CVDataset dataset = new CVDataset(pl, setupDialog.getSelectedFiles());
-        	CVAnalyzerWindow window = new CVAnalyzerWindow(desktop, dataset, pl);
+        	CVDataset dataset = new CVDataset(pl, setupDialog.getSelectedFiles(), parameters);
+        	CVAnalyzerWindow window = new CVAnalyzerWindow(desktop, dataset, pl, parameters);
         	window.setVisible(true);
         	
         	
         }
      
 	}
-	
-	
 
 }

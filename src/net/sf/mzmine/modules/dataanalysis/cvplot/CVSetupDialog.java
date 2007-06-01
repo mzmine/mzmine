@@ -18,15 +18,22 @@
     Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 */
 package net.sf.mzmine.modules.dataanalysis.cvplot;
+import java.awt.BorderLayout;
+import java.awt.Dimension;
+import java.awt.FlowLayout;
 import java.util.Vector;
 
+import javax.swing.ButtonGroup;
 import javax.swing.JButton;
 import javax.swing.JDialog;
 import javax.swing.JLabel;
 import javax.swing.JList;
 import javax.swing.JPanel;
+import javax.swing.JRadioButton;
 import javax.swing.JScrollPane;
 
+import net.sf.mzmine.data.ParameterSet;
+import net.sf.mzmine.data.impl.SimpleParameterSet;
 import net.sf.mzmine.io.OpenedRawDataFile;
 import net.sf.mzmine.io.RawDataFile;
 import net.sf.mzmine.userinterface.Desktop;
@@ -46,17 +53,20 @@ public class CVSetupDialog extends JDialog implements java.awt.event.ActionListe
 
 	private Desktop desktop;
 	
+	private SimpleParameterSet parameters;
+	
 	private ExitCode exitCode = ExitCode.UNKNOWN;
 
 
     /**
      * Constructor: creates new form SelectOneGroupDialog
      */
-    public CVSetupDialog(Desktop desktop, OpenedRawDataFile[] dataFiles) {
+    public CVSetupDialog(Desktop desktop, OpenedRawDataFile[] dataFiles, SimpleParameterSet parameters) {
 
     	super(desktop.getMainFrame(), "Select raw data files for CV analysis", true);
     	
     	this.desktop = desktop;
+    	this.parameters = parameters;
     	
 		availableRawDataFiles = new Vector<OpenedRawDataFile>();
 		for (OpenedRawDataFile rf : dataFiles) 
@@ -86,7 +96,12 @@ public class CVSetupDialog extends JDialog implements java.awt.event.ActionListe
 				desktop.displayErrorMessage("Please select at least three raw data files.");
 				return;
 			}
-
+			
+			if (radioButtonHeight.isSelected()) 
+				parameters.setParameterValue(CVAnalyzer.MeasurementType, CVAnalyzer.MeasurementTypeHeight);
+			if (radioButtonArea.isSelected()) 
+				parameters.setParameterValue(CVAnalyzer.MeasurementType, CVAnalyzer.MeasurementTypeArea);
+			
 			// Set exit code
 			exitCode = ExitCode.OK;
 
@@ -144,98 +159,114 @@ public class CVSetupDialog extends JDialog implements java.awt.event.ActionListe
 
 
     private void initComponents() {
-
-		panelAll = new JPanel();
-
-		panelLists = new JPanel();
-		panelSelectionCaption = new JPanel();
-		labelSelectionCaption = new JLabel();
-		panelAvailableFiles = new JPanel();
-		scrollAvailableFiles = new JScrollPane();
-		listAvailableFiles = new JList();
-		panelSelectionButtons = new JPanel();
-		panelSelectionFillMidUpper = new JPanel();
-		buttonSelectFiles = new JButton();
-		buttonUnselectFiles = new JButton();
-		panelSelectionFillMidLower = new JPanel();
-		panelSelectedFiles = new JPanel();
-		scrollSelectedFiles = new JScrollPane();
-		listSelectedFiles = new JList();
-
-		panelOKCancelButtons = new JPanel();
-		buttonOK = new JButton();
-		buttonCancel = new JButton();
-        
-
-        panelAll.setLayout(new java.awt.BorderLayout());
-
-        // Buttons
-		buttonOK.setText("OK");
-		buttonCancel.setText("Cancel");
-		buttonOK.addActionListener(this);
-		buttonCancel.addActionListener(this);
-		panelOKCancelButtons.setLayout(new java.awt.FlowLayout(java.awt.FlowLayout.RIGHT));
-		panelOKCancelButtons.add(buttonOK);
-		panelOKCancelButtons.add(buttonCancel);
-
-        panelAll.add(panelOKCancelButtons, java.awt.BorderLayout.SOUTH);
-
-        
-		//	Raw data file selection
-
-        panelLists.setLayout(new java.awt.BorderLayout());
+		
+		
 
         // Left: list of available files
-        panelAvailableFiles.setLayout(new java.awt.BorderLayout());
-        panelAvailableFiles.setBorder(new javax.swing.border.EmptyBorder(new java.awt.Insets(5, 5, 5, 5)));
+		listAvailableFiles = new JList();
+		scrollAvailableFiles = new JScrollPane();
         scrollAvailableFiles.setViewportView(listAvailableFiles);
-        scrollAvailableFiles.setMinimumSize(new java.awt.Dimension(LISTBOXWIDTH,LISTBOXHEIGHT));
-        scrollAvailableFiles.setPreferredSize(new java.awt.Dimension(LISTBOXWIDTH,LISTBOXHEIGHT));
-        panelAvailableFiles.add(scrollAvailableFiles, java.awt.BorderLayout.CENTER);
-        panelLists.add(panelAvailableFiles, java.awt.BorderLayout.WEST);
+        scrollAvailableFiles.setMinimumSize(new Dimension(LISTBOXWIDTH,LISTBOXHEIGHT));
+        scrollAvailableFiles.setPreferredSize(new Dimension(LISTBOXWIDTH,LISTBOXHEIGHT));
+        
+        panelAvailableFiles = new JPanel();
+        panelAvailableFiles.setLayout(new BorderLayout());
+        panelAvailableFiles.setBorder(new javax.swing.border.EmptyBorder(new java.awt.Insets(5, 5, 5, 5)));
+        panelAvailableFiles.add(scrollAvailableFiles, BorderLayout.CENTER);
+        
 
         // Mid: selection buttons
+		panelSelectionFillMidUpper = new JPanel();
+		
+		buttonSelectFiles = new JButton();
+        buttonSelectFiles.setText(">");
+        buttonSelectFiles.addActionListener(this);
+        buttonSelectFiles.setMinimumSize(new Dimension(BUTTONWIDTH, BUTTONHEIGHT));
+        buttonSelectFiles.setPreferredSize(new Dimension(BUTTONWIDTH, BUTTONHEIGHT));
+
+        buttonUnselectFiles = new JButton();
+        buttonUnselectFiles.setText("<");
+        buttonUnselectFiles.addActionListener(this);
+        buttonUnselectFiles.setMinimumSize(new Dimension(BUTTONWIDTH, BUTTONHEIGHT));
+        buttonUnselectFiles.setPreferredSize(new Dimension(BUTTONWIDTH, BUTTONHEIGHT));
+        
+        panelSelectionFillMidLower = new JPanel();
+        
+        panelSelectionButtons = new JPanel();
         panelSelectionButtons.setLayout(new java.awt.GridLayout(4, 1));
         panelSelectionButtons.setBorder(new javax.swing.border.EmptyBorder(new java.awt.Insets(5, 1, 1, 5)));
         panelSelectionButtons.add(panelSelectionFillMidUpper);
-
-        buttonSelectFiles.setText(">");
-        buttonSelectFiles.addActionListener(this);
-        buttonSelectFiles.setMinimumSize(new java.awt.Dimension(BUTTONWIDTH, BUTTONHEIGHT));
-        buttonSelectFiles.setPreferredSize(new java.awt.Dimension(BUTTONWIDTH, BUTTONHEIGHT));
         panelSelectionButtons.add(buttonSelectFiles);
-
-        buttonUnselectFiles.setText("<");
-        buttonUnselectFiles.addActionListener(this);
-        buttonUnselectFiles.setMinimumSize(new java.awt.Dimension(BUTTONWIDTH, BUTTONHEIGHT));
-        buttonUnselectFiles.setPreferredSize(new java.awt.Dimension(BUTTONWIDTH, BUTTONHEIGHT));
         panelSelectionButtons.add(buttonUnselectFiles);
-
         panelSelectionButtons.add(panelSelectionFillMidLower);
 
-        panelLists.add(panelSelectionButtons, java.awt.BorderLayout.CENTER);
+        
 
         // Right: list of selected files
-        panelSelectedFiles.setLayout(new java.awt.BorderLayout());
-        panelSelectedFiles.setBorder(new javax.swing.border.EmptyBorder(new java.awt.Insets(5, 5, 5, 5)));
+        listSelectedFiles = new JList();
+        scrollSelectedFiles = new JScrollPane();
         scrollSelectedFiles.setViewportView(listSelectedFiles);
-        scrollSelectedFiles.setMinimumSize(new java.awt.Dimension(LISTBOXWIDTH,LISTBOXHEIGHT));
-        scrollSelectedFiles.setPreferredSize(new java.awt.Dimension(LISTBOXWIDTH,LISTBOXHEIGHT));
-        panelSelectedFiles.add(scrollSelectedFiles, java.awt.BorderLayout.CENTER);
-        panelLists.add(panelSelectedFiles, java.awt.BorderLayout.EAST);
+        scrollSelectedFiles.setMinimumSize(new Dimension(LISTBOXWIDTH,LISTBOXHEIGHT));
+        scrollSelectedFiles.setPreferredSize(new Dimension(LISTBOXWIDTH,LISTBOXHEIGHT));
+        
+        panelSelectedFiles = new JPanel();
+        panelSelectedFiles.setLayout(new BorderLayout());
+        panelSelectedFiles.setBorder(new javax.swing.border.EmptyBorder(new java.awt.Insets(5, 5, 5, 5)));        
+        panelSelectedFiles.add(scrollSelectedFiles, BorderLayout.CENTER);
+        
+		panelLists = new JPanel();
+        panelLists.setLayout(new BorderLayout());        
+        panelLists.add(panelAvailableFiles, BorderLayout.WEST);
+        panelLists.add(panelSelectionButtons, BorderLayout.CENTER);
+        panelLists.add(panelSelectedFiles, BorderLayout.EAST);
 
-        // Top: Caption for selection
-        /*
-        panelSelectionCaption.setLayout(new java.awt.FlowLayout(java.awt.FlowLayout.LEFT));
-        labelSelectionCaption.setText("Selected raw data files");
-        panelSelectionCaption.add(labelSelectionCaption);
-        panelLists.add(panelSelectionCaption, java.awt.BorderLayout.NORTH);
-        */
+        
+        // Additional method parameters
+        labelHeightAreaParamCaption = new JLabel("For computing CV, use peak's ");
+        buttonGroupHeightArea = new ButtonGroup();
+        radioButtonHeight = new JRadioButton("height");
+        buttonGroupHeightArea.add(radioButtonHeight);
+        radioButtonArea = new JRadioButton("area");
+        buttonGroupHeightArea.add(radioButtonArea);
+        if (parameters.getParameterValue(CVAnalyzer.MeasurementType)==CVAnalyzer.MeasurementTypeArea)
+        	radioButtonArea.setSelected(true);
+        if (parameters.getParameterValue(CVAnalyzer.MeasurementType)==CVAnalyzer.MeasurementTypeHeight)
+        	radioButtonHeight.setSelected(true);
+        
+        panelParameters = new JPanel(new FlowLayout(FlowLayout.LEFT));
+        panelParameters.add(labelHeightAreaParamCaption);
+        panelParameters.add(radioButtonHeight);
+        panelParameters.add(radioButtonArea);
+        panelParameters.add(radioButtonArea);
 
-        panelAll.add(panelLists, java.awt.BorderLayout.NORTH);
+      
+        panelListsAndParameters = new JPanel(new BorderLayout());
+        panelListsAndParameters.add(panelParameters, BorderLayout.SOUTH);
+        panelListsAndParameters.add(panelLists, BorderLayout.CENTER);
+        
+        
+        
+        // OK & Cancel Buttons
+		buttonOK = new JButton();
+		buttonCancel = new JButton();
+        buttonOK.setText("OK");
+		buttonCancel.setText("Cancel");
+		buttonOK.addActionListener(this);
+		buttonCancel.addActionListener(this);
+
+		panelOKCancelButtons = new JPanel();
+		panelOKCancelButtons.setLayout(new java.awt.FlowLayout(java.awt.FlowLayout.RIGHT));
+		panelOKCancelButtons.add(buttonOK);
+		panelOKCancelButtons.add(buttonCancel);
+        
+        
+        panelAll = new JPanel();
+        panelAll.setLayout(new BorderLayout());
+        panelAll.add(panelListsAndParameters, BorderLayout.CENTER);
+        panelAll.add(panelOKCancelButtons, BorderLayout.SOUTH);        
 
 		// - Finally add everything to the main pane
-        getContentPane().add(panelAll, java.awt.BorderLayout.CENTER);
+        getContentPane().add(panelAll, BorderLayout.CENTER);
         
         setDefaultCloseOperation(javax.swing.WindowConstants.HIDE_ON_CLOSE);
 
@@ -262,26 +293,35 @@ public class CVSetupDialog extends JDialog implements java.awt.event.ActionListe
 		return exitCode;
 	}
 
-	private javax.swing.JPanel panelAll;	// contains everything
+	private JPanel panelAll;	// contains everything
 
-		private javax.swing.JPanel panelLists;	// contains all stuff needed for selecting items to the first group (G1)
-			private javax.swing.JPanel panelSelectionCaption;	// contains question for the first group
-				private javax.swing.JLabel labelSelectionCaption;
-			private javax.swing.JPanel panelAvailableFiles;	// contains source list for the first group
-				private javax.swing.JScrollPane scrollAvailableFiles;
-					private javax.swing.JList listAvailableFiles;
-			private javax.swing.JPanel panelSelectionButtons;	// contains buttons for moving items between source and target in the first group
-				private javax.swing.JPanel panelSelectionFillMidUpper;	// fillers used in mid panel
-				private javax.swing.JButton buttonSelectFiles;
-				private javax.swing.JButton buttonUnselectFiles;
-				private javax.swing.JPanel panelSelectionFillMidLower;
-			private javax.swing.JPanel panelSelectedFiles;	// contains target list for the first group
-				private javax.swing.JScrollPane scrollSelectedFiles;
-					private javax.swing.JList listSelectedFiles;
+		private JPanel panelListsAndParameters;
+		
+			private JPanel panelLists;	// contains all stuff needed for selecting items to the first group (G1)
 
-		private javax.swing.JPanel panelOKCancelButtons;
-			private javax.swing.JButton buttonOK;
-			private javax.swing.JButton buttonCancel;
+				private JPanel panelAvailableFiles;	// contains source list for the first group
+					private JScrollPane scrollAvailableFiles;
+						private JList listAvailableFiles;
+				private JPanel panelSelectionButtons;	// contains buttons for moving items between source and target in the first group
+					private JPanel panelSelectionFillMidUpper;	// fillers used in mid panel
+					private JButton buttonSelectFiles;
+					private JButton buttonUnselectFiles;
+					private JPanel panelSelectionFillMidLower;
+				private JPanel panelSelectedFiles;	// contains target list for the first group
+					private JScrollPane scrollSelectedFiles;
+						private JList listSelectedFiles;
+						
+			private JPanel panelParameters;
+				private JLabel labelHeightAreaParamCaption;
+				private ButtonGroup buttonGroupHeightArea;
+				private JRadioButton radioButtonHeight;
+				private JRadioButton radioButtonArea;
+				
+			
+
+		private JPanel panelOKCancelButtons;
+			private JButton buttonOK;
+			private JButton buttonCancel;
 
 }
 

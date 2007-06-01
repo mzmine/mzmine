@@ -1,10 +1,12 @@
 package net.sf.mzmine.modules.dataanalysis.cvplot;
 
 import java.util.Vector;
+import java.util.logging.Logger;
 
 import net.sf.mzmine.data.Peak;
 import net.sf.mzmine.data.PeakList;
 import net.sf.mzmine.data.PeakListRow;
+import net.sf.mzmine.data.impl.SimpleParameterSet;
 import net.sf.mzmine.io.OpenedRawDataFile;
 import net.sf.mzmine.util.CollectionUtils;
 import net.sf.mzmine.util.MathUtils;
@@ -13,12 +15,23 @@ import org.jfree.data.xy.AbstractXYZDataset;
 
 public class CVDataset extends AbstractXYZDataset {
 
+	private Logger logger = Logger.getLogger(this.getClass().getName());
+	
 	private double[] xCoords = new double[0];
 	private double[] yCoords = new double[0];
 	private double[] colorCoords = new double[0];
 	
-	public CVDataset(PeakList alignedPeakList, OpenedRawDataFile[] selectedFiles) {
+	public CVDataset(PeakList alignedPeakList, OpenedRawDataFile[] selectedFiles, SimpleParameterSet parameters) {
 		int numOfRows = alignedPeakList.getNumberOfRows();
+		
+		boolean useArea = true;
+		if (parameters.getParameterValue(CVAnalyzer.MeasurementType)==CVAnalyzer.MeasurementTypeHeight)
+			useArea = false;
+			
+		String msg = "Computing CV dataset using peak ";
+		if (useArea) msg=msg.concat("area "); else msg=msg.concat("height ");
+		msg=msg.concat("for " + selectedFiles.length + " raw data files");
+		logger.finest(msg);
 
 		Vector<Double> xCoordsV = new Vector<Double>();
 		Vector<Double> yCoordsV = new Vector<Double>();
@@ -33,8 +46,10 @@ public class CVDataset extends AbstractXYZDataset {
 			for (int fileIndex=0; fileIndex<selectedFiles.length; fileIndex++) {
 				Peak p = row.getPeak(selectedFiles[fileIndex]);
 				if (p!=null) {
-					// TODO: Perhaps there should be a method specific parameter for switching between computation using heights / areas.
-					peakIntensities.add(p.getArea());
+					if (useArea)
+						peakIntensities.add(p.getArea());
+					else 
+						peakIntensities.add(p.getHeight());
 				}
 			}
 			
