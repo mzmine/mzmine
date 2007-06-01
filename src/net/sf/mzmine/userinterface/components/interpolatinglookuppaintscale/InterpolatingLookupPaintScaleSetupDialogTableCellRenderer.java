@@ -1,4 +1,4 @@
-package net.sf.mzmine.modules.dataanalysis.cvplot;
+package net.sf.mzmine.userinterface.components.interpolatinglookuppaintscale;
 
 import java.awt.Color;
 import java.awt.Component;
@@ -8,12 +8,12 @@ import java.util.Vector;
 import javax.swing.JTable;
 import javax.swing.table.DefaultTableCellRenderer;
 
-public class CVPaintScaleSetupDialogTableCellRenderer extends
+public class InterpolatingLookupPaintScaleSetupDialogTableCellRenderer extends
 		DefaultTableCellRenderer {
 
 	private TreeMap<Double, Color> lookupTable;
 	
-	public CVPaintScaleSetupDialogTableCellRenderer(TreeMap<Double, Color> lookupTable) {
+	public InterpolatingLookupPaintScaleSetupDialogTableCellRenderer(TreeMap<Double, Color> lookupTable) {
 		this.lookupTable = lookupTable;
 	}
 	

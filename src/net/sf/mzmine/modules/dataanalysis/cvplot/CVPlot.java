@@ -6,6 +6,7 @@ import java.awt.Font;
 import java.text.NumberFormat;
 
 import net.sf.mzmine.userinterface.Desktop;
+import net.sf.mzmine.userinterface.components.interpolatinglookuppaintscale.InterpolatingLookupPaintScale;
 import net.sf.mzmine.userinterface.mainwindow.MainWindow;
 
 import org.jfree.chart.ChartFactory;

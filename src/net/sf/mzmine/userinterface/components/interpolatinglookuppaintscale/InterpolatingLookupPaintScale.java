@@ -1,4 +1,4 @@
-package net.sf.mzmine.modules.dataanalysis.cvplot;
+package net.sf.mzmine.userinterface.components.interpolatinglookuppaintscale;
 
 import java.awt.Color;
 import java.awt.Paint;

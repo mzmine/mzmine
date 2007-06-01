@@ -1,4 +1,4 @@
-package net.sf.mzmine.modules.dataanalysis.cvplot;
+package net.sf.mzmine.userinterface.components.interpolatinglookuppaintscale;
 
 import java.awt.BorderLayout;
 import java.awt.Canvas;
@@ -36,7 +36,7 @@ import javax.swing.event.TableModelEvent;
 import net.sf.mzmine.userinterface.Desktop;
 import net.sf.mzmine.userinterface.dialogs.ExitCode;
 
-public class CVPaintScaleSetupDialog extends JDialog implements ActionListener, ListSelectionListener {
+public class InterpolatingLookupPaintScaleSetupDialog extends JDialog implements ActionListener, ListSelectionListener {
 
 	public static final int VALUEFIELD_COLUMNS = 4;
 	
@@ -48,7 +48,7 @@ public class CVPaintScaleSetupDialog extends JDialog implements ActionListener, 
 
 	private JScrollPane scrollpaneLookupValues;
 	private JTable tableLookupValues;
-	private CVPaintScaleSetupDialogTableModel tableModel;
+	private InterpolatingLookupPaintScaleSetupDialogTableModel tableModel;
 	
 	private TreeMap<Double, Color>lookupTable;
 
@@ -60,7 +60,7 @@ public class CVPaintScaleSetupDialog extends JDialog implements ActionListener, 
 	
 	private ExitCode exitCode  = ExitCode.CANCEL;
 	
-	public CVPaintScaleSetupDialog(Frame owner, InterpolatingLookupPaintScale paintScale) {
+	public InterpolatingLookupPaintScaleSetupDialog(Frame owner, InterpolatingLookupPaintScale paintScale) {
     	super(owner, "Select colors for paint scale", true);
     	this.owner = owner;
     	
@@ -114,9 +114,9 @@ public class CVPaintScaleSetupDialog extends JDialog implements ActionListener, 
 		JPanel panelList = new JPanel();
 		lookupTable = new TreeMap<Double, Color>();
 				
-		tableModel = new CVPaintScaleSetupDialogTableModel(lookupTable);
+		tableModel = new InterpolatingLookupPaintScaleSetupDialogTableModel(lookupTable);
 		tableLookupValues = new JTable(tableModel);
-		tableLookupValues.getColumnModel().getColumn(1).setCellRenderer(new CVPaintScaleSetupDialogTableCellRenderer(lookupTable));
+		tableLookupValues.getColumnModel().getColumn(1).setCellRenderer(new InterpolatingLookupPaintScaleSetupDialogTableCellRenderer(lookupTable));
 		tableLookupValues.getSelectionModel().addListSelectionListener(this);
 		
 		panelControlsAndList.add(panelList, BorderLayout.CENTER);

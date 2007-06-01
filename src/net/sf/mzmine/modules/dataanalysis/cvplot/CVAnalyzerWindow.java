@@ -9,6 +9,7 @@ import javax.swing.JInternalFrame;
 
 import net.sf.mzmine.data.PeakList;
 import net.sf.mzmine.userinterface.Desktop;
+import net.sf.mzmine.userinterface.components.interpolatinglookuppaintscale.InterpolatingLookupPaintScaleSetupDialog;
 import net.sf.mzmine.userinterface.dialogs.AxesSetupDialog;
 import net.sf.mzmine.userinterface.dialogs.ExitCode;
 
@@ -47,7 +48,7 @@ public class CVAnalyzerWindow extends JInternalFrame implements ActionListener {
         }
         
         if (command.equals("SETUP_COLORS")) {
-            CVPaintScaleSetupDialog colorDialog = new CVPaintScaleSetupDialog((Frame)desktop, plot.getPaintScale());
+        	InterpolatingLookupPaintScaleSetupDialog colorDialog = new InterpolatingLookupPaintScaleSetupDialog((Frame)desktop, plot.getPaintScale());
             colorDialog.setVisible(true);
             	
         	if (colorDialog.getExitCode()==ExitCode.OK)
