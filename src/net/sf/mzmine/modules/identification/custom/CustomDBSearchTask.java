@@ -28,7 +28,6 @@ import net.sf.mzmine.data.PeakList;
 import net.sf.mzmine.data.PeakListRow;
 import net.sf.mzmine.data.impl.SimpleCompoundIdentity;
 import net.sf.mzmine.taskcontrol.Task;
-import net.sf.mzmine.userinterface.mainwindow.MainWindow;
 
 import com.Ostermiller.util.CSVParser;
 
@@ -156,7 +155,10 @@ class CustomDBSearchTask implements Task {
             if (mzOK && rtOK) {
                 
                 logger.finest("Found compound " + lineName + " (m/z " + lineMZ + ", RT " + lineRT + ")");
-                // TODO: add the newIdentity
+
+                // add new identity to the row
+                peakRow.addCompoundIdentity(newIdentity);
+                
                 if (parameters.isUpdateRowComment()) {
                     String currentComment = peakRow.getComment();
                     if (currentComment == null)
