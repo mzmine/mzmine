@@ -3,9 +3,8 @@ package net.sf.mzmine.modules.dataanalysis.cvplot;
 import java.awt.Color;
 import java.awt.Paint;
 import java.io.Serializable;
-import java.util.AbstractMap;
+import java.util.Map;
 import java.util.TreeMap;
-import java.util.TreeSet;
 import java.util.Map.Entry;
 
 import org.jfree.chart.renderer.PaintScale;
@@ -13,6 +12,19 @@ import org.jfree.util.PublicCloneable;
 
 public class InterpolatingLookupPaintScale implements PaintScale, PublicCloneable, Serializable {
 
+	private class CompatibleEntry implements Map.Entry<Double, int[]> {
+		private Double key;
+		private int[] value;
+		public CompatibleEntry(Double key, int[] value) {
+			this.key = key;
+			this.value = value;
+		}
+		public Double getKey() { return key; }
+		public int[] getValue() { return value; }
+		public int[] setValue(int[] value) { int[] prevValue = value; this.value = value; return prevValue; }
+		
+	}
+	
 	private class CompatibleTreeMap extends TreeMap<Double, int[]> {
 		
 		public Entry<Double, int[]> floorEntry(double value) {
@@ -24,14 +36,14 @@ public class InterpolatingLookupPaintScale implements PaintScale, PublicCloneabl
 				previousKey = currentKey;
 			}		
 			if (previousKey==null) return null;
-			return new AbstractMap.SimpleEntry<Double, int[]>(previousKey, this.get(previousKey));
+			return new CompatibleEntry(previousKey, this.get(previousKey));
 			
 		}
 		
 		public Entry<Double, int[]> ceilingEntry(double value) {
 			for (Double currentKey : this.keySet()) {
 				if (currentKey > value)
-					return new AbstractMap.SimpleEntry<Double, int[]>(currentKey, this.get(currentKey));
+					return new CompatibleEntry(currentKey, this.get(currentKey));
 			}
 			return null;
 		}
