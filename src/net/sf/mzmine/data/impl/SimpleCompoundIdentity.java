@@ -24,7 +24,7 @@ import net.sf.mzmine.data.CompoundIdentity;
 /**
  * Simple CompoundIdentity implementation;
  */
-public class SimpleCompoundIdentity implements CompoundIdentity {
+public class SimpleCompoundIdentity implements CompoundIdentity, Comparable {
 
     private String compoundID, compoundName, alternateNames[], compoundFormula;
     private String databaseEntryURL, identificationMethod;
@@ -137,6 +137,19 @@ public class SimpleCompoundIdentity implements CompoundIdentity {
      */
     public String toString() {
         return compoundName + " (" + identificationMethod + ")";
+    }
+
+    /**
+     * @see java.lang.Comparable#compareTo(java.lang.Object)
+     */
+    public int compareTo(Object value) {
+        
+        if (value == UNKNOWN_IDENTITY) return 1;
+        
+        CompoundIdentity identityValue = (CompoundIdentity) value;
+        String valueName = identityValue.getCompoundName();
+        if (valueName == null) return 1;
+        return valueName.compareTo(compoundName);
     }
 
 }
