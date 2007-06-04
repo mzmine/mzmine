@@ -94,7 +94,7 @@ public class FormattedCellRenderer implements TableCellRenderer,
             else
                 text = value.toString();
 
-            JLabel newLabel = new JLabel(text);
+            JLabel newLabel = new JLabel(text, JLabel.RIGHT);
 
             if (font != null)
                 newLabel.setFont(font);
