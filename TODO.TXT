@@ -72,6 +72,15 @@ Code
 - Display identification results in alignment result visualizer
 
 
+* Batch processing
+- Sometimes batch processing hangs between two methods, like Centroid picker and Join aligner. A race condition bug?
+
+
+* Dialogs
+- Problems in entering acceptable values to formatted fields. For example retention times shown in AxesSetupDialog.
+
+
+
 Other
 
 * Write documentation for the new code
