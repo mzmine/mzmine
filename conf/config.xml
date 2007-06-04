@@ -25,7 +25,7 @@
     <module class="net.sf.mzmine.modules.alignment.filterbygaps.GapsFilter"/> 
     <module class="net.sf.mzmine.modules.gapfilling.simple.SimpleGapFiller"/> 
     <module class="net.sf.mzmine.modules.normalization.linear.LinearNormalizer"/> 
-    <module class="net.sf.mzmine.modules.normalization.standardcompound.StandardCompoundNormalizer"/> 
+    <module class="net.sf.mzmine.modules.normalization.simplestandardcompound.SimpleStandardCompoundNormalizer"/> 
     <module class="net.sf.mzmine.modules.dataanalysis.logratioplot.LogratioAnalyzer"/>
     <module class="net.sf.mzmine.modules.dataanalysis.cvplot.CVAnalyzer"/>
     <module class="net.sf.mzmine.modules.dataanalysis.cdaplot.CDAPlot"/>
