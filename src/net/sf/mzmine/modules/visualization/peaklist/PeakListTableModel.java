@@ -20,69 +20,53 @@
 package net.sf.mzmine.modules.visualization.peaklist;
 
 import java.awt.Color;
-import java.text.NumberFormat;
 
 import javax.swing.table.AbstractTableModel;
-import javax.swing.table.TableColumnModel;
 
+import net.sf.mzmine.data.CompoundIdentity;
 import net.sf.mzmine.data.Peak;
 import net.sf.mzmine.data.PeakList;
 import net.sf.mzmine.data.PeakListRow;
 import net.sf.mzmine.io.OpenedRawDataFile;
-import net.sf.mzmine.modules.visualization.peaklist.PeakListTableColumns.CommonColumnType;
-import net.sf.mzmine.modules.visualization.peaklist.PeakListTableColumns.RawDataColumnType;
-import net.sf.mzmine.userinterface.Desktop;
+import net.sf.mzmine.modules.visualization.peaklist.PeakListTableColumnModel.CommonColumns;
+import net.sf.mzmine.modules.visualization.peaklist.PeakListTableColumnModel.DataFileColumns;
 import net.sf.mzmine.userinterface.components.ColorCircle;
-import net.sf.mzmine.userinterface.components.ColumnGroup;
-import net.sf.mzmine.userinterface.components.GroupableTableHeader;
 import net.sf.mzmine.userinterface.components.PeakXICComponent;
-import net.sf.mzmine.userinterface.mainwindow.MainWindow;
-
-
 
 public class PeakListTableModel extends AbstractTableModel {
 
-    private PeakList alignmentResult;
-    private PeakListTableColumns columnSelection;
-    
-    private static final ColorCircle greenCircle = new ColorCircle(Color.green);
-    private static final ColorCircle redCircle = new ColorCircle(Color.red);
-    private static final ColorCircle yellowCircle = new ColorCircle(Color.yellow);
+    private PeakList peakList;
+
+    static final ColorCircle greenCircle = new ColorCircle(Color.green);
+    static final ColorCircle redCircle = new ColorCircle(Color.red);
+    static final ColorCircle yellowCircle = new ColorCircle(Color.yellow);
 
     /**
      * Constructor, assign given dataset to this table
      */
-    public PeakListTableModel(PeakList alignmentResult,
-            PeakListTableColumns columnSelection) {
-        this.alignmentResult = alignmentResult;
-        this.columnSelection = columnSelection;
-
+    public PeakListTableModel(PeakList peakList) {
+        this.peakList = peakList;
     }
 
     public int getColumnCount() {
-        return columnSelection.getNumberOfSelectedCommonColumns()
-                + alignmentResult.getNumberOfRawDataFiles()
-                * columnSelection.getNumberOfSelectedRawDataColumns();
+        return CommonColumns.values().length
+                + peakList.getNumberOfRawDataFiles()
+                * DataFileColumns.values().length;
     }
 
     public int getRowCount() {
-        return alignmentResult.getNumberOfRows();
+        return peakList.getNumberOfRows();
     }
 
     public String getColumnName(int col) {
 
-        int[] groupOffset = getColumnGroupAndOffset(col);
-
-        // Common column
-        if (groupOffset[0] < 0) {
-            return columnSelection.getSelectedCommonColumns()[groupOffset[1]].getColumnName();
+        if (isCommonColumn(col)) {
+            CommonColumns commonColumn = getCommonColumn(col);
+            return commonColumn.getColumnName();
+        } else {
+            DataFileColumns dataFileColumn = getDataFileColumn(col);
+            return dataFileColumn.getColumnName();
         }
-
-        if (groupOffset[0] >= 0) {
-            return columnSelection.getSelectedRawDataColumns()[groupOffset[1]].getColumnName();
-        }
-
-        return new String("No Name");
 
     }
 
@@ -93,71 +77,71 @@ public class PeakListTableModel extends AbstractTableModel {
 
     public Object getValueAt(int row, int col) {
 
-        int[] groupOffset = getColumnGroupAndOffset(col);
+        PeakListRow peakListRow = peakList.getRow(row);
 
-        Desktop desktop = MainWindow.getInstance();
-        NumberFormat mzFormat = desktop.getMZFormat();
-        NumberFormat rtFormat = desktop.getRTFormat();
-        NumberFormat intensityFormat = desktop.getIntensityFormat();
+        if (isCommonColumn(col)) {
+            CommonColumns commonColumn = getCommonColumn(col);
 
-        // Common column
-        if (groupOffset[0] < 0) {
-
-            PeakListRow alignmentRow = alignmentResult.getRow(row);
-
-            switch (columnSelection.getSelectedCommonColumns()[groupOffset[1]]) {
-
-            case ROWNUM:
-                return new Integer(row + 1);
-            case AVGMZ:
-                return mzFormat.format(alignmentRow.getAverageMZ());
-            case AVGRT:
-                return rtFormat.format(alignmentRow.getAverageRT());
+            switch (commonColumn) {
+            case ROWID:
+                return new Integer(peakListRow.getID());
+            case AVERAGEMZ:
+                return new Double(peakListRow.getAverageMZ());
+            case AVERAGERT:
+                return new Double(peakListRow.getAverageRT());
             case COMMENT:
-                return alignmentRow.getComment();
-            default:
-                return null;
+                return peakListRow.getComment();
+            case IDENTITY:
+                CompoundIdentity preferredIdentity = peakListRow.getPreferredCompoundIdentity();
+                if (preferredIdentity != CompoundIdentity.UNKNOWN_IDENTITY)
+                    return preferredIdentity.toString();
+                else {
+                    CompoundIdentity identities[] = peakListRow.getCompoundIdentities();
+                    if ((identities != null) && (identities.length > 0)) return "..."; 
+                    return null;
+                }
             }
 
         }
 
-        else { // if (groupOffset[0]>=0)
+        if (!isCommonColumn(col)) {
+            DataFileColumns dataFileColumn = getDataFileColumn(col);
+            OpenedRawDataFile file = getColumnDataFile(col);
+            Peak peak = peakListRow.getPeak(file);
 
-            OpenedRawDataFile rawData = alignmentResult.getRawDataFile(groupOffset[0]);
-            Peak p = alignmentResult.getPeak(row, rawData);
-            if (p == null) {
-                if (columnSelection.getSelectedRawDataColumns()[groupOffset[1]] == RawDataColumnType.STATUS) {
+            if (peak == null) {
+                if (dataFileColumn == DataFileColumns.STATUS)
                     return redCircle;
-                }
-
-                return null;
+                else
+                    return null;
             }
 
-            switch (columnSelection.getSelectedRawDataColumns()[groupOffset[1]]) {
-            case MZ:
-                return mzFormat.format(p.getMZ());
-            case RT:
-                return rtFormat.format(p.getRT());
-            case HEIGHT:
-                return intensityFormat.format(p.getHeight());
-            case AREA:
-                return intensityFormat.format(p.getArea());
-            case SHAPE:
-                return new PeakXICComponent(p);
+            switch (dataFileColumn) {
             case STATUS:
-                switch (p.getPeakStatus()) {
+                switch (peak.getPeakStatus()) {
                 case DETECTED:
                     return greenCircle;
                 case ESTIMATED:
                     return yellowCircle;
                 }
-
-            default:
-                return null;
+            case PEAKSHAPE:
+                return new PeakXICComponent(peak);
+            case MZ:
+                return new Double(peak.getMZ());
+            case RT:
+                return new Double(peak.getRT());
+            case HEIGHT:
+                return new Double(peak.getHeight());
+            case AREA:
+                return new Double(peak.getArea());
+            case DURATION:
+                return new Double(peak.getDuration());
 
             }
 
         }
+
+        return null;
 
     }
 
@@ -166,92 +150,102 @@ public class PeakListTableModel extends AbstractTableModel {
      */
     public Class<?> getColumnClass(int col) {
 
-        int[] groupOffset = getColumnGroupAndOffset(col);
-
-        // Common column
-        if (groupOffset[0] < 0) {
-            return columnSelection.getSelectedCommonColumns()[groupOffset[1]].getColumnClass();
-        } else { // if (groupOffset[0]>=0)
-            return columnSelection.getSelectedRawDataColumns()[groupOffset[1]].getColumnClass();
+        if (isCommonColumn(col)) {
+            CommonColumns commonColumn = getCommonColumn(col);
+            return commonColumn.getColumnClass();
+        } else {
+            DataFileColumns dataFileColumn = getDataFileColumn(col);
+            return dataFileColumn.getColumnClass();
         }
-
-    }
-
-    private int[] getColumnGroupAndOffset(int col) {
-
-        // Is this a common column?
-        if (col < columnSelection.getNumberOfSelectedCommonColumns()) {
-            int[] res = new int[2];
-            res[0] = -1;
-            res[1] = col;
-            return res;
-        }
-
-        // This is a raw data specific column.
-
-        // Calc number of raw data
-        int[] res = new int[2];
-        res[0] = (int) Math.floor((double) (col - columnSelection.getNumberOfSelectedCommonColumns())
-                / (double) columnSelection.getNumberOfSelectedRawDataColumns());
-        res[1] = col - columnSelection.getNumberOfSelectedCommonColumns()
-                - res[0] * columnSelection.getNumberOfSelectedRawDataColumns();
-
-        return res;
 
     }
 
     public boolean isCellEditable(int row, int col) {
 
-        int[] groupOffset = getColumnGroupAndOffset(col);
+        CommonColumns columnType = getCommonColumn(col);
 
-        if (groupOffset[0] < 0) {
-            switch (columnSelection.getSelectedCommonColumns()[groupOffset[1]]) {
-            case COMMENT:
-                return true;
-            }
+        if (columnType == CommonColumns.COMMENT)
+            return true;
+
+        if (columnType == CommonColumns.IDENTITY) {
+            PeakListRow peakListRow = peakList.getRow(row);
+            CompoundIdentity identities[] = peakListRow.getCompoundIdentities();
+            if ((identities == null) || (identities.length == 0))
+                return false;
+            return true;
         }
+
         return false;
 
     }
 
     public void setValueAt(Object value, int row, int col) {
-        int[] groupOffset = getColumnGroupAndOffset(col);
 
-        if (groupOffset[0] < 0) {
-            switch (columnSelection.getSelectedCommonColumns()[groupOffset[1]]) {
-            case COMMENT:
-                PeakListRow alignmentRow = alignmentResult.getRow(row);
-                alignmentRow.setComment((String) value);
-            }
+        CommonColumns columnType = getCommonColumn(col);
+
+        PeakListRow peakListRow = peakList.getRow(row);
+
+        if (columnType == CommonColumns.COMMENT) {
+            peakListRow.setComment((String) value);
+        }
+
+        if (columnType == CommonColumns.IDENTITY) {
+            if (value instanceof CompoundIdentity)
+                peakListRow.setPreferredCompoundIdentity((CompoundIdentity) value);
+            else
+                peakListRow.setPreferredCompoundIdentity(CompoundIdentity.UNKNOWN_IDENTITY);
         }
 
     }
 
-    void createGroups(GroupableTableHeader header, TableColumnModel cm) {
+    boolean isCommonColumn(int col) {
+        return col < CommonColumns.values().length;
+    }
 
-        ColumnGroup averageGroup = new ColumnGroup("Average");
-        header.addColumnGroup(averageGroup);
+    CommonColumns getCommonColumn(int col) {
 
-        ColumnGroup groups[] = new ColumnGroup[alignmentResult.getNumberOfRawDataFiles()];
+        CommonColumns commonColumns[] = CommonColumns.values();
 
-        for (int i = 0; i < alignmentResult.getNumberOfRawDataFiles(); i++) {
-            groups[i] = new ColumnGroup(
-                    alignmentResult.getRawDataFile(i).toString());
-            header.addColumnGroup(groups[i]);
-        }
+        if (col < commonColumns.length)
+            return commonColumns[col];
 
-        for (int i = 0; i < cm.getColumnCount(); i++) {
-            int[] off = getColumnGroupAndOffset(i);
-            if (off[0] < 0) {
-                if ((getColumnName(i).equals(CommonColumnType.AVGMZ.getColumnName())) ||
-                        (getColumnName(i).equals(CommonColumnType.AVGRT.getColumnName()))) {
-                    averageGroup.add(cm.getColumn(i));
-                }
-            }
-            if (off[0] >= 0) {
-                groups[off[0]].add(cm.getColumn(i));
-            }
-        }
+        return null;
+
+    }
+
+    DataFileColumns getDataFileColumn(int col) {
+
+        CommonColumns commonColumns[] = CommonColumns.values();
+        DataFileColumns dataFileColumns[] = DataFileColumns.values();
+
+        if (col < commonColumns.length)
+            return null;
+
+        // substract common columns from the index
+        col -= commonColumns.length;
+
+        // divide by number of data file columns
+        col %= dataFileColumns.length;
+
+        return dataFileColumns[col];
+
+    }
+
+    OpenedRawDataFile getColumnDataFile(int col) {
+
+        CommonColumns commonColumns[] = CommonColumns.values();
+        DataFileColumns dataFileColumns[] = DataFileColumns.values();
+
+        if (col < commonColumns.length)
+            return null;
+
+        // substract common columns from the index
+        col -= commonColumns.length;
+
+        // divide by number of data file columns
+        int fileIndex = (col / dataFileColumns.length);
+
+        return peakList.getRawDataFile(fileIndex);
 
     }
 

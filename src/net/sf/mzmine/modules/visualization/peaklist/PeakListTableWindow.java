@@ -47,7 +47,7 @@ public class PeakListTableWindow extends JInternalFrame
     private Logger logger = Logger.getLogger(this.getClass().getName());
 
     PeakListTableVisualizer visualizer;
-    private PeakListTableColumns columnSelection;
+    private PeakListTableParameters columnSelection;
     private JScrollPane scrollPane;
 
     /*
@@ -81,10 +81,10 @@ public class PeakListTableWindow extends JInternalFrame
                 this);
         add(toolBar, BorderLayout.EAST);
 
-        model = new PeakListTableModel(peakList, columnSelection);
+        
 
         // Build table
-        table = new PeakListTable(this, model, peakList);
+        table = new PeakListTable(visualizer.getParameterSet(), peakList);
         table.setAutoResizeMode(JTable.AUTO_RESIZE_OFF);
         scrollPane = new JScrollPane(table);
 
@@ -107,13 +107,13 @@ public class PeakListTableWindow extends JInternalFrame
 
         if (command.equals("CHANGE_FORMAT")) {
 
-            ColumnSelectionDialog dialog = new ColumnSelectionDialog(
-                    MainWindow.getInstance(), columnSelection);
-            visualizer.setParameters(columnSelection.clone());
-            dialog.setVisible(true);
-            if (dialog.getExitCode() == ExitCode.OK) {
-                model.fireTableStructureChanged();
-            }
+            //ColumnSelectionDialog dialog = new ColumnSelectionDialog(
+            //        MainWindow.getInstance(), columnSelection);
+            //visualizer.setParameters(columnSelection.clone());
+            //dialog.setVisible(true);
+            //if (dialog.getExitCode() == ExitCode.OK) {
+            //    model.fireTableStructureChanged();
+            //}
         }
         
         if (command.equals("PRINT")) {

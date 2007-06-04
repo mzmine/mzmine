@@ -33,7 +33,8 @@ import javax.swing.JFileChooser;
 import net.sf.mzmine.io.IOController;
 import net.sf.mzmine.io.IOController.PreloadLevel;
 import net.sf.mzmine.userinterface.Desktop;
-import sunutils.ExampleFileFilter;
+
+import com.sun.java.ExampleFileFilter;
 
 /**
  * File open dialog

@@ -39,7 +39,7 @@ import org.jfree.report.JFreeReportBoot;
 public class PeakListTableVisualizer implements MZmineModule, ActionListener {
 
     private Desktop desktop;
-    private PeakListTableColumns columnSelection;
+    private PeakListTableParameters columnSelection;
     private JMenuItem peakListTable, alignedPeakListTable;
 
     private Logger logger = Logger.getLogger(this.getClass().getName());
@@ -51,7 +51,7 @@ public class PeakListTableVisualizer implements MZmineModule, ActionListener {
 
         this.desktop = core.getDesktop();
 
-        columnSelection = new PeakListTableColumns();
+        columnSelection = new PeakListTableParameters();
 
         JFreeReportBoot.getInstance().start();
 
@@ -128,7 +128,7 @@ public class PeakListTableVisualizer implements MZmineModule, ActionListener {
     /**
      * @see net.sf.mzmine.main.MZmineModule#getParameterSet()
      */
-    public PeakListTableColumns getParameterSet() {
+    public PeakListTableParameters getParameterSet() {
         return columnSelection;
     }
 
@@ -136,7 +136,7 @@ public class PeakListTableVisualizer implements MZmineModule, ActionListener {
      * @see net.sf.mzmine.main.MZmineModule#setParameters(net.sf.mzmine.data.ParameterSet)
      */
     public void setParameters(ParameterSet parameterValues) {
-        columnSelection = (PeakListTableColumns) parameterValues;
+        columnSelection = (PeakListTableParameters) parameterValues;
     }
 
 }

@@ -43,17 +43,35 @@ import org.jfree.ui.OverlayLayout;
 public class ComponentCellRenderer implements TableCellRenderer,
         ListCellRenderer {
 
+    private boolean createTooltips;
     private Font font;
 
     /**
      */
     public ComponentCellRenderer() {
+        this(false, null);
     }
-
+    
+    
     /**
      * @param font
      */
     public ComponentCellRenderer(Font font) {
+        this(false, font);
+    }
+    
+    /**
+     * @param font
+     */
+    public ComponentCellRenderer(boolean createTooltips) {
+        this(createTooltips, null);
+    }
+    
+    /**
+     * @param font
+     */
+    public ComponentCellRenderer(boolean createTooltips, Font font) {
+        this.createTooltips = createTooltips;
         this.font = font;
     }
 
@@ -100,6 +118,9 @@ public class ComponentCellRenderer implements TableCellRenderer,
 
                 newPanel.add(newLabel);
             }
+            
+            if (createTooltips) newPanel.setToolTipText(value.toString());
+            
         }
 
         return newPanel;

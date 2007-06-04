@@ -19,72 +19,99 @@
 
 package net.sf.mzmine.modules.visualization.peaklist;
 
-import javax.swing.JComponent;
+import javax.swing.DefaultCellEditor;
+import javax.swing.JComboBox;
 import javax.swing.JTable;
-import javax.swing.table.TableColumnModel;
+import javax.swing.table.TableCellEditor;
 
+import net.sf.mzmine.data.CompoundIdentity;
 import net.sf.mzmine.data.PeakList;
-import net.sf.mzmine.io.export.PeakListExportColumns.RawDataColumnType;
-import net.sf.mzmine.userinterface.components.ComponentCellRenderer;
-import net.sf.mzmine.userinterface.components.GroupableTableHeader;
+import net.sf.mzmine.data.PeakListRow;
+import net.sf.mzmine.modules.visualization.peaklist.PeakListTableColumnModel.CommonColumns;
 import net.sf.mzmine.userinterface.components.PopupListener;
-import sunutils.TableSorter;
+
+import com.sun.java.TableSorter;
 
 public class PeakListTable extends JTable {
 
+    static final String UNKNOWN_IDENTITY = "Unknown";
+    
     private TableSorter sorter;
     private PeakListTableModel tableModel;
-    private GroupableTableHeader header;
-
+    private PeakList peakList;
+    private PeakListTableColumnModel cm;
+    
     public PeakListTable(
-            PeakListTableWindow masterFrame,
-            PeakListTableModel tableModel,
+            PeakListTableParameters parameters,
             PeakList peakList) {
 
-        ComponentCellRenderer rend = new ComponentCellRenderer();
-        setDefaultRenderer(JComponent.class, rend);
+        //ComponentCellRenderer rend = new ComponentCellRenderer();
+        //setDefaultRenderer(JComponent.class, rend);
+        
+        this.peakList = peakList;
+
+        cm = new PeakListTableColumnModel(this, parameters, peakList);
+        cm.setColumnMargin(0);
+        this.setColumnModel(cm);
+
+        
+        this.setAutoCreateColumnsFromModel(false);
+        
+        this.tableModel = new PeakListTableModel(peakList);
         
         
-        this.tableModel = tableModel;
         // Initialize sorter
-        sorter = new TableSorter(tableModel);
+        sorter = new TableSorter(tableModel, cm.getTableHeader());
 
         setModel(sorter);
 
-        TableColumnModel cm = this.getColumnModel();
 
-        header = new GroupableTableHeader(cm);
 
-        this.setTableHeader(header);
-        cm.setColumnMargin(0);
 
+        //sorter.addMouseListenerToHeaderInTable(this);
         
-        tableModel.createGroups(header, columnModel);
 
-        sorter.addMouseListenerToHeaderInTable(this);
         
         PeakListTablePopupMenu popupMenu = new PeakListTablePopupMenu(this, peakList);
         addMouseListener(new PopupListener(popupMenu));
 
         setRowHeight(20);
+        
 
-    }
-
-    public void createDefaultColumnsFromModel() {
-        super.createDefaultColumnsFromModel();
-        TableColumnModel columnModel = this.getColumnModel();
-        if ((columnModel != null) && (tableModel != null)){
-            for (int i = 0; i < tableModel.getColumnCount(); i++) {
-                if (tableModel.getColumnName(i).equals(RawDataColumnType.STATUS.getColumnName()))
-                    columnModel.getColumn(i).setWidth(50);
-            }
-        }
-        if ((tableModel != null) && (header!= null)) tableModel.createGroups(header, columnModel);
 
     }
     
-    public PeakListTableModel getModel() {
-        return tableModel;
+    public TableSorter getModel() {
+        return sorter;
+    }
+    
+    public PeakList getPeakList() {
+        return peakList;
+    }
+    
+    public TableCellEditor getCellEditor(int row,
+            int column) {
+        
+        CommonColumns commonColumn = tableModel.getCommonColumn(column);
+        if (commonColumn == CommonColumns.IDENTITY) {
+            int peakListRowIndex = sorter.modelIndex(row);
+            PeakListRow peakListRow = peakList.getRow(peakListRowIndex);
+            
+            CompoundIdentity identities[] = peakListRow.getCompoundIdentities();
+            CompoundIdentity preferredIdentity = peakListRow.getPreferredCompoundIdentity();
+            if ((identities == null) || (identities.length == 0)) return null;
+            JComboBox combo = new JComboBox(identities);
+            combo.addItem(UNKNOWN_IDENTITY);
+            if (preferredIdentity == null) {
+                combo.setSelectedItem(UNKNOWN_IDENTITY);
+            } else combo.setSelectedItem(preferredIdentity);
+            
+            DefaultCellEditor cellEd = new DefaultCellEditor(combo);
+            return cellEd;
+        }
+        
+        return super.getCellEditor(row, column);
+    
     }
 
 }

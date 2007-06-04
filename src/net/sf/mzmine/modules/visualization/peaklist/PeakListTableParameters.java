@@ -24,74 +24,32 @@ import java.util.List;
 import java.util.Set;
 import java.util.TreeSet;
 
-import javax.swing.JComponent;
-
 import net.sf.mzmine.data.Parameter;
 import net.sf.mzmine.data.StorableParameterSet;
-import net.sf.mzmine.userinterface.dialogs.alignmentresultcolumnselection.ColumnSet;
-import net.sf.mzmine.userinterface.dialogs.alignmentresultcolumnselection.ColumnType;
+import net.sf.mzmine.io.export.PeakListExportColumns.CommonColumnType;
+import net.sf.mzmine.io.export.PeakListExportColumns.RawDataColumnType;
+import net.sf.mzmine.modules.visualization.peaklist.PeakListTableColumnModel.CommonColumns;
+import net.sf.mzmine.modules.visualization.peaklist.PeakListTableColumnModel.DataFileColumns;
 
 import org.dom4j.Element;
 
-public class PeakListTableColumns implements ColumnSet,
+public class PeakListTableParameters implements 
         StorableParameterSet {
 
     private static final String SELECTED_COLUMN_ELEMENT = "selectedcolumn";
     
-    // type for common columns
-    public enum CommonColumnType implements ColumnType {
-        ROWNUM("ID", Integer.class), 
-        AVGMZ("m/z", String.class), 
-        AVGRT("RT", String.class),
-        COMMENT("Comment", String.class);
 
-        private final String columnName;
-        private final Class columnClass;
-
-        CommonColumnType(String columnName, Class columnClass) {
-            this.columnName = columnName;
-            this.columnClass = columnClass;
-        }
-
-        public String getColumnName() {
-            return columnName;
-        }
-
-        public Class getColumnClass() {
-            return columnClass;
-        }
+    
+    public enum PeakShapeMaximum {
+        PEAKMAX,
+        ROWMAX,
+        GLOBALMAX
     };
-
-    // type for raw data specific columns
-    public enum RawDataColumnType implements ColumnType {
-        STATUS("Status", JComponent.class),
-        SHAPE("Peak shape", JComponent.class),
-        MZ("M/Z", String.class), 
-        RT("Retention time", String.class),
-        HEIGHT("Height", String.class),
-        AREA("Area", String.class);
-
-        private final String columnName;
-        private final Class columnClass;
-
-        RawDataColumnType(String columnName, Class columnClass) {
-            this.columnName = columnName;
-            this.columnClass = columnClass;
-        }
-
-        public String getColumnName() {
-            return columnName;
-        }
-
-        public Class getColumnClass() {
-            return columnClass;
-        }
-    }
 
     private Set<CommonColumnType> selectedCommonColumns;
     private Set<RawDataColumnType> selectedRawDataColumns;
 
-    public PeakListTableColumns() {
+    public PeakListTableParameters() {
         selectedCommonColumns = new TreeSet<CommonColumnType>();
         selectedRawDataColumns = new TreeSet<RawDataColumnType>();
         
@@ -99,7 +57,7 @@ public class PeakListTableColumns implements ColumnSet,
         selectedCommonColumns.add(CommonColumnType.AVGMZ);
         selectedCommonColumns.add(CommonColumnType.AVGRT);
         selectedCommonColumns.add(CommonColumnType.COMMENT);
-        selectedRawDataColumns.add(RawDataColumnType.SHAPE);
+        //selectedRawDataColumns.add(RawDataColumnType.SHAPE);
         
     }
 
@@ -139,39 +97,12 @@ public class PeakListTableColumns implements ColumnSet,
         return selectedRawDataColumns.toArray(new RawDataColumnType[0]);
     }
 
-    /**
-     * @see net.sf.mzmine.userinterface.dialogs.alignmentresultcolumnselection.ColumnSet#isColumnSelected(net.sf.mzmine.userinterface.dialogs.alignmentresultcolumnselection.ColumnType)
-     */
-    public boolean isColumnSelected(ColumnType c) {
-        if (c instanceof CommonColumnType) return selectedCommonColumns.contains(c);
-        if (c instanceof RawDataColumnType) return selectedRawDataColumns.contains(c);
-        return false;
-    }
-
-    /**
-     * @see net.sf.mzmine.userinterface.dialogs.alignmentresultcolumnselection.ColumnSet#setColumnSelected(net.sf.mzmine.userinterface.dialogs.alignmentresultcolumnselection.ColumnType,
-     *      boolean)
-     */
-    public void setColumnSelected(ColumnType c, boolean selected) {
-        if (c instanceof CommonColumnType) {
-            if (selected)
-                selectedCommonColumns.add((CommonColumnType) c);
-            else
-                selectedCommonColumns.remove((CommonColumnType) c);
-        }
-        if (c instanceof RawDataColumnType) {
-            if (selected)
-                selectedRawDataColumns.add((RawDataColumnType) c);
-            else
-                selectedRawDataColumns.remove((RawDataColumnType) c);
-        }
-    }
 
     /**
      * @see net.sf.mzmine.data.StorableParameterSet#exportValuesToXML(org.dom4j.Element)
      */
     public void exportValuesToXML(Element element) {
-        for (ColumnType col : selectedCommonColumns) {
+/*        for (ColumnType col : selectedCommonColumns) {
             Element newElement = element.addElement(SELECTED_COLUMN_ELEMENT);
             newElement.addAttribute("type", "common");
             newElement.addAttribute("name", col.getColumnName());
@@ -181,7 +112,7 @@ public class PeakListTableColumns implements ColumnSet,
             newElement.addAttribute("type", "rawdata");
             newElement.addAttribute("name", col.getColumnName());
         }
-
+*/
     }
 
     /**
@@ -216,27 +147,31 @@ public class PeakListTableColumns implements ColumnSet,
         return null;
     }
 
-    public PeakListTableColumns clone() {
-        PeakListTableColumns newSelection = new PeakListTableColumns();
-        for (ColumnType col : selectedCommonColumns)
+    public PeakListTableParameters clone() {
+        PeakListTableParameters newSelection = new PeakListTableParameters();
+        /* for (ColumnType col : selectedCommonColumns)
             newSelection.setColumnSelected(col, true);
         for (ColumnType col : selectedRawDataColumns)
-            newSelection.setColumnSelected(col, true);
+            newSelection.setColumnSelected(col, true);*/
         return newSelection;
     }
 
-    /**
-     * @see net.sf.mzmine.userinterface.dialogs.alignmentresultcolumnselection.ColumnSet#getNumberOfSelectedCommonColumns()
-     */
-    public int getNumberOfSelectedCommonColumns() {
-        return selectedCommonColumns.size();
-    }
 
-    /**
-     * @see net.sf.mzmine.userinterface.dialogs.alignmentresultcolumnselection.ColumnSet#getNumberOfSelectedRawDataColumns()
-     */
-    public int getNumberOfSelectedRawDataColumns() {
-        return selectedRawDataColumns.size();
+    
+    boolean isColumnVisible(CommonColumns type) {
+        return true;
+    }
+    
+    int getColumnWidth(CommonColumns type) {
+        return 100;
+    }
+    
+    boolean isColumnVisible(DataFileColumns type) {
+        return true;
+    }
+    
+    int getColumnWidth(DataFileColumns type) {
+        return 100;
     }
 
 }
