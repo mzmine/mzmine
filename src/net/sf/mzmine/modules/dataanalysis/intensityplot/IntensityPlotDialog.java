@@ -46,6 +46,7 @@ import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.userinterface.components.ExtendedCheckBox;
 import net.sf.mzmine.userinterface.dialogs.ExitCode;
 import net.sf.mzmine.util.GUIUtils;
+import net.sf.mzmine.util.AlignmentResultSorterByMZ;
 
 class IntensityPlotDialog extends JDialog implements ActionListener {
 

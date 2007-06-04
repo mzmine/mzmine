@@ -31,6 +31,7 @@ import net.sf.mzmine.data.impl.SimplePeakList;
 import net.sf.mzmine.data.impl.SimplePeakListRow;
 import net.sf.mzmine.io.OpenedRawDataFile;
 import net.sf.mzmine.taskcontrol.Task;
+import net.sf.mzmine.util.AlignmentResultSorterByMZ;
 
 /**
  * 
@@ -161,7 +162,8 @@ class JoinAlignerTask implements Task {
                     new ScoreSorter());
 
         	PeakListRow[] rows = alignmentResult.getRows();
-        	Arrays.sort(rows, new PeakListRowComparator());
+        	//Arrays.sort(rows, new PeakListRowComparator());
+        	Arrays.sort(rows, new AlignmentResultSorterByMZ());
             Integer nextStartingRowIndex = 0;
             for (PeakWrapper wrappedPeak : wrappedPeakList) {
             	
