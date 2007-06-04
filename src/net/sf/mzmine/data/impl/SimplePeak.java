@@ -19,10 +19,12 @@
 
 package net.sf.mzmine.data.impl;
 
+import java.text.Format;
 import java.util.Hashtable;
 
 import net.sf.mzmine.data.Peak;
 import net.sf.mzmine.io.OpenedRawDataFile;
+import net.sf.mzmine.userinterface.mainwindow.MainWindow;
 import net.sf.mzmine.util.CollectionUtils;
 
 /**
@@ -236,6 +238,16 @@ public class SimplePeak implements Peak {
      */
     public double getDuration() {
         return maxRT - minRT;
+    }
+    
+    public String toString() {
+        StringBuffer buf = new StringBuffer();
+        Format mzFormat = MainWindow.getInstance().getMZFormat();
+        Format timeFormat = MainWindow.getInstance().getRTFormat();
+        buf.append(mzFormat.format(getMZ()));
+        buf.append(" m/z @");
+        buf.append(timeFormat.format(getRT()));
+        return buf.toString();
     }
 
 }
