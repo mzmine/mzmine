@@ -144,9 +144,9 @@ class CustomDBSearchTask implements Task {
                 lineRT = Double.parseDouble(values[i]) * 60;
         }
 
+        File dbFile = new File(parameters.getDataBaseFile());
         SimpleCompoundIdentity newIdentity = new SimpleCompoundIdentity(lineID,
-                lineName, null, lineFormula, null, "Custom database "
-                        + parameters.getDataBaseFile());
+                lineName, null, lineFormula, null, dbFile.getName());
 
         for (PeakListRow peakRow : peakList.getRows()) {
             
@@ -158,14 +158,6 @@ class CustomDBSearchTask implements Task {
 
                 // add new identity to the row
                 peakRow.addCompoundIdentity(newIdentity);
-                
-                if (parameters.isUpdateRowComment()) {
-                    String currentComment = peakRow.getComment();
-                    if (currentComment == null)
-                        peakRow.setComment(lineName);
-                    else
-                        peakRow.setComment(currentComment + "; " + lineName);
-                }
 
             }
         }

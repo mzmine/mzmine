@@ -37,7 +37,6 @@ class CustomDBSearchParameters implements StorableParameterSet {
     public static final String IGNOREFIRSTLINE_ELEMENT = "ignorefirstline";
     public static final String MZTOLERANCE_ELEMENT = "mztolerance";
     public static final String RTTOLERANCE_ELEMENT = "rttolerance";
-    public static final String UPDATEROWCOMMENT_ELEMENT = "updaterowcomment";
 
     public static final String fieldID = "ID";
     public static final String fieldMZ = "m/z";
@@ -47,11 +46,11 @@ class CustomDBSearchParameters implements StorableParameterSet {
 
     private String dataBaseFile = "";
     private char fieldSeparator = '\t';
-    private Object[] fieldOrder = { fieldID, fieldMZ, fieldRT, fieldName, fieldFormula };
+    private Object[] fieldOrder = { fieldID, fieldMZ, fieldRT, fieldName,
+            fieldFormula };
     private boolean ignoreFirstLine = false;
     private double mzTolerance = 1;
     private double rtTolerance = 60;
-    private boolean updateRowComment = true;
 
     /**
      * 
@@ -70,19 +69,15 @@ class CustomDBSearchParameters implements StorableParameterSet {
      */
     CustomDBSearchParameters(String dataBaseFile, char fieldSeparator,
             Object[] fieldOrder, boolean ignoreFirstLine, double mzTolerance,
-            double rtTolerance, boolean updateRowComment) {
+            double rtTolerance) {
         this.dataBaseFile = dataBaseFile;
         this.fieldSeparator = fieldSeparator;
         this.fieldOrder = fieldOrder;
         this.ignoreFirstLine = ignoreFirstLine;
         this.mzTolerance = mzTolerance;
         this.rtTolerance = rtTolerance;
-        this.updateRowComment = updateRowComment;
     }
 
-    
-    
-    
     /**
      * @return Returns the dataBaseFile.
      */
@@ -90,7 +85,6 @@ class CustomDBSearchParameters implements StorableParameterSet {
         return dataBaseFile;
     }
 
-    
     /**
      * @param dataBaseFile The dataBaseFile to set.
      */
@@ -98,7 +92,6 @@ class CustomDBSearchParameters implements StorableParameterSet {
         this.dataBaseFile = dataBaseFile;
     }
 
-    
     /**
      * @return Returns the fieldOrder.
      */
@@ -106,7 +99,6 @@ class CustomDBSearchParameters implements StorableParameterSet {
         return fieldOrder;
     }
 
-    
     /**
      * @param fieldOrder The fieldOrder to set.
      */
@@ -114,7 +106,6 @@ class CustomDBSearchParameters implements StorableParameterSet {
         this.fieldOrder = fieldOrder;
     }
 
-    
     /**
      * @return Returns the fieldSeparator.
      */
@@ -122,7 +113,6 @@ class CustomDBSearchParameters implements StorableParameterSet {
         return fieldSeparator;
     }
 
-    
     /**
      * @param fieldSeparator The fieldSeparator to set.
      */
@@ -130,7 +120,6 @@ class CustomDBSearchParameters implements StorableParameterSet {
         this.fieldSeparator = fieldSeparator;
     }
 
-    
     /**
      * @return Returns the ignoreFirstLine.
      */
@@ -138,7 +127,6 @@ class CustomDBSearchParameters implements StorableParameterSet {
         return ignoreFirstLine;
     }
 
-    
     /**
      * @param ignoreFirstLine The ignoreFirstLine to set.
      */
@@ -146,7 +134,6 @@ class CustomDBSearchParameters implements StorableParameterSet {
         this.ignoreFirstLine = ignoreFirstLine;
     }
 
-    
     /**
      * @return Returns the mzTolerance.
      */
@@ -154,7 +141,6 @@ class CustomDBSearchParameters implements StorableParameterSet {
         return mzTolerance;
     }
 
-    
     /**
      * @param mzTolerance The mzTolerance to set.
      */
@@ -162,7 +148,6 @@ class CustomDBSearchParameters implements StorableParameterSet {
         this.mzTolerance = mzTolerance;
     }
 
-    
     /**
      * @return Returns the rtTolerance.
      */
@@ -170,28 +155,11 @@ class CustomDBSearchParameters implements StorableParameterSet {
         return rtTolerance;
     }
 
-    
     /**
      * @param rtTolerance The rtTolerance to set.
      */
     void setRtTolerance(double rtTolerance) {
         this.rtTolerance = rtTolerance;
-    }
-
-    
-    /**
-     * @return Returns the updateRowComment.
-     */
-    boolean isUpdateRowComment() {
-        return updateRowComment;
-    }
-
-    
-    /**
-     * @param updateRowComment The updateRowComment to set.
-     */
-    void setUpdateRowComment(boolean updateRowComment) {
-        this.updateRowComment = updateRowComment;
     }
 
     /**
@@ -200,7 +168,8 @@ class CustomDBSearchParameters implements StorableParameterSet {
     public void exportValuesToXML(Element element) {
 
         element.addElement(DATABASEFILE_ELEMENT).setText(dataBaseFile);
-        element.addElement(FIELDSEPARATOR_ELEMENT).setText(String.valueOf(fieldSeparator));
+        element.addElement(FIELDSEPARATOR_ELEMENT).setText(
+                String.valueOf(fieldSeparator));
         Element orderElement = element.addElement(FIELDORDER_ELEMENT);
         for (Object field : fieldOrder)
             orderElement.addElement(FIELD_ELEMENT).setText((String) field);
@@ -210,8 +179,6 @@ class CustomDBSearchParameters implements StorableParameterSet {
                 String.valueOf(mzTolerance));
         element.addElement(RTTOLERANCE_ELEMENT).setText(
                 String.valueOf(rtTolerance));
-        element.addElement(UPDATEROWCOMMENT_ELEMENT).setText(
-                String.valueOf(updateRowComment));
 
     }
 
@@ -222,7 +189,8 @@ class CustomDBSearchParameters implements StorableParameterSet {
 
         dataBaseFile = element.elementText(DATABASEFILE_ELEMENT);
         String fieldSeparatorString = element.elementText(FIELDSEPARATOR_ELEMENT);
-        if (fieldSeparatorString.length() > 0) fieldSeparator = fieldSeparatorString.charAt(0);
+        if (fieldSeparatorString.length() > 0)
+            fieldSeparator = fieldSeparatorString.charAt(0);
         Element orderElement = element.element(FIELDORDER_ELEMENT);
         List fields = orderElement.elements(FIELD_ELEMENT);
         if (fields.size() == fieldOrder.length) {
@@ -235,14 +203,12 @@ class CustomDBSearchParameters implements StorableParameterSet {
         ignoreFirstLine = Boolean.parseBoolean(element.elementText(IGNOREFIRSTLINE_ELEMENT));
         mzTolerance = Double.parseDouble(element.elementText(MZTOLERANCE_ELEMENT));
         rtTolerance = Double.parseDouble(element.elementText(RTTOLERANCE_ELEMENT));
-        updateRowComment = Boolean.parseBoolean(element.elementText(UPDATEROWCOMMENT_ELEMENT));
 
     }
 
     public CustomDBSearchParameters clone() {
         return new CustomDBSearchParameters(dataBaseFile, fieldSeparator,
-                fieldOrder, ignoreFirstLine, mzTolerance, rtTolerance,
-                updateRowComment);
+                fieldOrder, ignoreFirstLine, mzTolerance, rtTolerance);
     }
 
     public String toString() {
@@ -255,7 +221,6 @@ class CustomDBSearchParameters implements StorableParameterSet {
         paramString.append("Ignore first line: " + ignoreFirstLine + "\n");
         paramString.append("m/z tolerance: " + mzTolerance + "\n");
         paramString.append("Retention time tolerance: " + rtTolerance + "\n");
-        paramString.append("Update row comment: " + updateRowComment + "\n");
 
         return paramString.toString();
     }

@@ -61,7 +61,7 @@ class CustomDBSearchDialog extends JDialog implements ActionListener {
     private JButton btnOK, btnCancel, btnBrowse;
     private JTextField fileNameField, fieldSeparatorField;
     private JFormattedTextField mzToleranceField, rtToleranceField;
-    private JCheckBox ignoreFirstLineBox, updateRowCommentBox;
+    private JCheckBox ignoreFirstLineBox;
 
     private DefaultListModel fieldOrderModel;
     private DragOrderedJList fieldOrderList;
@@ -123,11 +123,6 @@ class CustomDBSearchDialog extends JDialog implements ActionListener {
         rtToleranceField.setValue((Double) parameters.getRtTolerance());
         pnlLabelsAndFields.add(rtToleranceField);
 
-        // Update row comment
-        GUIUtils.addLabel(pnlLabelsAndFields, "Update row comment");
-        updateRowCommentBox = new JCheckBox();
-        updateRowCommentBox.setSelected(parameters.isUpdateRowComment());
-        pnlLabelsAndFields.add(updateRowCommentBox);
 
         // Buttons
         JPanel pnlButtons = new JPanel();
@@ -175,7 +170,6 @@ class CustomDBSearchDialog extends JDialog implements ActionListener {
             parameters.setIgnoreFirstLine(ignoreFirstLineBox.isSelected());
             parameters.setMzTolerance(((Number) mzToleranceField.getValue()).doubleValue());
             parameters.setRtTolerance(((Number) rtToleranceField.getValue()).doubleValue());
-            parameters.setUpdateRowComment(updateRowCommentBox.isSelected());
             
             exitCode = ExitCode.OK;
             dispose();
