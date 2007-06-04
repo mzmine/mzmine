@@ -50,24 +50,13 @@ import net.sf.mzmine.userinterface.dialogs.ParameterSetupDialog;
 /**
  *
  */
-public class SimpleStandardCompoundNormalizer implements BatchStep, TaskListener,
+public class SimpleStandardCompoundNormalizer implements MZmineModule, TaskListener,
 ActionListener {
 
-    protected static final String NormalizationTypeNearest = "Nearest standard";
-    protected static final String NormalizationTypeWeighted = "Weighted contribution of all standards";
-
-    protected static final Object[] normalizationTypePossibleValues = {
-    	NormalizationTypeNearest,
-    	NormalizationTypeWeighted};
-
-    protected static final Parameter normalizationType = new SimpleParameter(
-            ParameterType.STRING, "Normalization type",
-            "Normalize intensities using ", NormalizationTypeNearest,
-            normalizationTypePossibleValues);
     
     private Logger logger = Logger.getLogger(this.getClass().getName());
 
-    private ParameterSet parameters;
+    private SimpleStandardCompoundNormalizerParameterSet parameters;
 
     private TaskController taskController;
     private Desktop desktop;
@@ -81,9 +70,8 @@ ActionListener {
         this.taskController = core.getTaskController();
         this.desktop = core.getDesktop();
 
-        parameters = new SimpleParameterSet(
-                new Parameter[] { normalizationType });
-
+        parameters = new SimpleStandardCompoundNormalizerParameterSet(); 
+        	
         desktop.addMenuItem(MZmineMenu.NORMALIZATION, "Simple standard compound normalizer",
                 this, null, KeyEvent.VK_A, false, true);
 
@@ -103,36 +91,35 @@ ActionListener {
     }
 
     public void setParameters(ParameterSet parameters) {
-        this.parameters = parameters;
-    }
-
-    /**
-     * @see net.sf.mzmine.modules.BatchStep#setupParameters(net.sf.mzmine.data.ParameterSet)
-     */
-    public ExitCode setupParameters(ParameterSet currentParameters) {
-        ParameterSetupDialog dialog = new ParameterSetupDialog(
-                desktop.getMainFrame(), "Please check parameter values for "
-                        + toString(), (SimpleParameterSet) currentParameters);
-        dialog.setVisible(true);
-        return dialog.getExitCode();
+    	if (parameters instanceof SimpleStandardCompoundNormalizerParameterSet)
+    		this.parameters = (SimpleStandardCompoundNormalizerParameterSet)parameters;
     }
 
     /**
      * @see java.awt.event.ActionListener#actionPerformed(java.awt.event.ActionEvent)
      */
     public void actionPerformed(ActionEvent e) {
-
+    	
         PeakList[] selectedPeakLists = desktop.getSelectedAlignedPeakLists();
         if (selectedPeakLists.length < 1) {
             desktop.displayErrorMessage("Please select aligned peaklist");
             return;
         }
-
-        ExitCode exitCode = setupParameters(parameters);
-        if (exitCode != ExitCode.OK)
-            return;
         
-        runModule(null, selectedPeakLists, parameters.clone(), null);
+        for (PeakList pl : selectedPeakLists) {
+        	SimpleStandardCompoundNormalizerDialog dialog 
+        		= new SimpleStandardCompoundNormalizerDialog(desktop, pl, parameters);
+        	dialog.setVisible(true);
+        	
+        	if (dialog.getExitCode()==ExitCode.CANCEL) {
+        		logger.info("Simple standard compound normalization cancelled.");
+        		return;
+        	}
+        	
+        	runModule(null, new PeakList[] {pl}, (SimpleStandardCompoundNormalizerParameterSet)parameters.clone(), null);	
+        }
+       
+        
 
     }
 
@@ -170,14 +157,14 @@ ActionListener {
      *      net.sf.mzmine.taskcontrol.TaskGroupListener)
      */
     public TaskGroup runModule(OpenedRawDataFile[] dataFiles,
-            PeakList[] alignmentResults, ParameterSet parameters,
+            PeakList[] alignmentResults, SimpleStandardCompoundNormalizerParameterSet parameters,
             TaskGroupListener methodListener) {
 
         // prepare a new sequence of tasks
-    	/*
-        Task tasks[] = new StandardCompoundNormalizerTask[alignmentResults.length];
+    	
+        Task tasks[] = new SimpleStandardCompoundNormalizerTask[alignmentResults.length];
         for (int i = 0; i < alignmentResults.length; i++) {
-            tasks[i] = new StandardCompoundNormalizerTask(alignmentResults[i], (SimpleParameterSet) parameters);
+            tasks[i] = new SimpleStandardCompoundNormalizerTask(alignmentResults[i], parameters);
         }
         TaskGroup newSequence = new TaskGroup(tasks, this, methodListener,
                 taskController);
@@ -186,8 +173,6 @@ ActionListener {
         newSequence.run();
 
         return newSequence;
-        */
-    	return null;
 
     }
     
