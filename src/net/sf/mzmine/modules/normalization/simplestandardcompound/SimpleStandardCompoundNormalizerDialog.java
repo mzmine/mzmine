@@ -102,7 +102,7 @@ class SimpleStandardCompoundNormalizerDialog extends JDialog implements ActionLi
         constraints.gridy = 1;
         layout.setConstraints(comp, constraints);
 
-        Object[] availableNormalizationTypes = SimpleStandardCompoundNormalizerParameterSet.normalizationTypePossibleValues;
+        Object[] availableNormalizationTypes = SimpleStandardCompoundNormalizerParameterSet.StandardUsageTypePossibleValues;
         availableNormalizationTypesCombo = new JComboBox(availableNormalizationTypes);
         constraints.gridx = 1;
         components.add(availableNormalizationTypesCombo, constraints);
@@ -171,11 +171,11 @@ class SimpleStandardCompoundNormalizerDialog extends JDialog implements ActionLi
 
         if (src == btnOK) {
 
-        	if (availableNormalizationTypesCombo.getSelectedItem()==SimpleStandardCompoundNormalizerParameterSet.NormalizationTypeNearest)
-        		parameters.getParameters().setParameterValue(SimpleStandardCompoundNormalizerParameterSet.normalizationType, SimpleStandardCompoundNormalizerParameterSet.NormalizationTypeNearest);
+        	if (availableNormalizationTypesCombo.getSelectedItem()==SimpleStandardCompoundNormalizerParameterSet.StandardUsageTypeNearest)
+        		parameters.getParameters().setParameterValue(SimpleStandardCompoundNormalizerParameterSet.StandardUsageType, SimpleStandardCompoundNormalizerParameterSet.StandardUsageTypeNearest);
         
-        	if (availableNormalizationTypesCombo.getSelectedItem()==SimpleStandardCompoundNormalizerParameterSet.NormalizationTypeWeighted)
-        		parameters.getParameters().setParameterValue(SimpleStandardCompoundNormalizerParameterSet.normalizationType, SimpleStandardCompoundNormalizerParameterSet.NormalizationTypeWeighted);
+        	if (availableNormalizationTypesCombo.getSelectedItem()==SimpleStandardCompoundNormalizerParameterSet.StandardUsageTypeWeighted)
+        		parameters.getParameters().setParameterValue(SimpleStandardCompoundNormalizerParameterSet.StandardUsageType, SimpleStandardCompoundNormalizerParameterSet.StandardUsageTypeWeighted);
         	
         	
             selectedPeaks = new Vector<PeakListRow>();
@@ -192,7 +192,7 @@ class SimpleStandardCompoundNormalizerDialog extends JDialog implements ActionLi
                 return;
             }
 
-            parameters.setSelectedPeaks(selectedPeaks.toArray(new PeakListRow[0]));
+            parameters.setSelectedStandardPeakListRows(selectedPeaks.toArray(new PeakListRow[0]));
             
             exitCode = ExitCode.OK;
             dispose();

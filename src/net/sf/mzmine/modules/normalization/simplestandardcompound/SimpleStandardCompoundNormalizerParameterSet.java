@@ -12,26 +12,43 @@ import net.sf.mzmine.data.impl.SimpleParameterSet;
  */
 public class SimpleStandardCompoundNormalizerParameterSet implements ParameterSet {
 
-    protected static final String NormalizationTypeNearest = "Nearest standard";
-    protected static final String NormalizationTypeWeighted = "Weighted contribution of all standards";
+    protected static final String StandardUsageTypeNearest = "Nearest standard";
+    protected static final String StandardUsageTypeWeighted = "Weighted contribution of all standards";
 
-    protected static final Object[] normalizationTypePossibleValues = {
-    	NormalizationTypeNearest,
-    	NormalizationTypeWeighted};
+    protected static final Object[] StandardUsageTypePossibleValues = {
+    	StandardUsageTypeNearest, StandardUsageTypeWeighted};
 
-    protected static final Parameter normalizationType = new SimpleParameter(
+    protected static final Parameter StandardUsageType = new SimpleParameter(
             ParameterType.STRING, "Normalization type",
-            "Normalize intensities using ", NormalizationTypeNearest,
-            normalizationTypePossibleValues);
+            "Normalize intensities using ", StandardUsageTypeNearest,
+            StandardUsageTypePossibleValues);
+
+    
+    protected static final String PeakMeasurementTypeHeight = "Peak height";
+    protected static final String PeakMeasurementTypeArea = "Peak area";
+
+    protected static final Object[] PeakMeasurementTypePossibleValues = {
+    	PeakMeasurementTypeHeight, PeakMeasurementTypeArea};
+    
+    protected static final Parameter PeakMeasurementType = new SimpleParameter(
+            ParameterType.STRING, "Peak measurement type",
+            "Measure peaks using ", PeakMeasurementTypeArea,
+            PeakMeasurementTypePossibleValues);
+    
+    
+    public static final Parameter MZvsRTBalance = new SimpleParameter(
+            ParameterType.DOUBLE, "M/Z vs RT balance",
+            "Used in distance measuring as multiplier of M/Z difference", "",
+            new Double(10.0), new Double(0.0), null);
 	
-	
-	private SimpleParameterSet parameters;
-	
+
+    private SimpleParameterSet parameters;
+    
 	private PeakListRow[] selectedPeaks;
 
 	public SimpleStandardCompoundNormalizerParameterSet() {
 		parameters = new SimpleParameterSet(
-                new Parameter[] { normalizationType });
+                new Parameter[] { StandardUsageType, PeakMeasurementType, MZvsRTBalance });
  
 	}
 	
@@ -41,11 +58,11 @@ public class SimpleStandardCompoundNormalizerParameterSet implements ParameterSe
 		
 		clone.setParameters(parameters.clone());
 		
-		if (getSelectedPeaks()!=null) {
-			PeakListRow[] cloneSelectedPeaks = new PeakListRow[getSelectedPeaks().length];
+		if (getSelectedStandardPeakListRows()!=null) {
+			PeakListRow[] cloneSelectedPeaks = new PeakListRow[getSelectedStandardPeakListRows().length];
 			for (int ind=0; ind<selectedPeaks.length; ind++) 
-				cloneSelectedPeaks[ind] = getSelectedPeaks()[ind]; 
-			clone.setSelectedPeaks(cloneSelectedPeaks);
+				cloneSelectedPeaks[ind] = getSelectedStandardPeakListRows()[ind]; 
+			clone.setSelectedStandardPeakListRows(cloneSelectedPeaks);
 		}
 		
 		return clone;
@@ -56,13 +73,15 @@ public class SimpleStandardCompoundNormalizerParameterSet implements ParameterSe
 	
 	public SimpleParameterSet getParameters() { return parameters; }
 	
-	public void setSelectedPeaks(PeakListRow[] selectedPeaks) { this.selectedPeaks = selectedPeaks; }
+	public void setSelectedStandardPeakListRows(PeakListRow[] selectedPeaks) { this.selectedPeaks = selectedPeaks; }
 	
-	public PeakListRow[] getSelectedPeaks() { return selectedPeaks; }
+	public PeakListRow[] getSelectedStandardPeakListRows() { return selectedPeaks; }
 	
     public String toString() {
         String s = "";
-        s = s.concat(normalizationType.getName() + ": " + parameters.getParameterValue(normalizationType));
+        s = s.concat(StandardUsageType.getName() + ": " + parameters.getParameterValue(StandardUsageType) + ", ");
+        s = s.concat(PeakMeasurementType.getName() + ": " + parameters.getParameterValue(PeakMeasurementType) + ", ");
+        s = s.concat(MZvsRTBalance.getName() + ": " + parameters.getParameterValue(MZvsRTBalance));
         return s;
     }	
 }
