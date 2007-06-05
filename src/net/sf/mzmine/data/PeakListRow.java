@@ -103,5 +103,12 @@ public interface PeakListRow {
      * @param identity Preferred identity
      */
     public void setPreferredCompoundIdentity(CompoundIdentity identity);
+    
+    /**
+     * Returns maximum raw data point intensity among all peaks in this row 
+     * 
+     * @return Maximum intensity 
+     */
+    public double getDataPointMaxIntensity();
 
 }

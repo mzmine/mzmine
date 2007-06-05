@@ -35,6 +35,7 @@ public class SimplePeakList implements PeakList {
     private String name;
     private Vector<OpenedRawDataFile> rawDataFiles;
     private ArrayList<PeakListRow> peakListRows;
+    private double maxDataPointIntensity = 0;
 
     public SimplePeakList() {
         this(null);
@@ -110,6 +111,8 @@ public class SimplePeakList implements PeakList {
 
     public void addRow(PeakListRow row) {
         peakListRows.add(row);
+        if (row.getDataPointMaxIntensity() > maxDataPointIntensity)
+            maxDataPointIntensity = row.getDataPointMaxIntensity();
     }
 
     /**
@@ -191,6 +194,13 @@ public class SimplePeakList implements PeakList {
         }
 
         return -1;
+    }
+
+    /**
+     * @see net.sf.mzmine.data.PeakList#getDataPointMaxIntensity()
+     */
+    public double getDataPointMaxIntensity() {
+        return maxDataPointIntensity;
     }
 
 }

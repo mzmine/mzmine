@@ -41,6 +41,7 @@ public class SimplePeakListRow implements PeakListRow {
     private CompoundIdentity preferredIdentity;
     private String comment;
     private int myID;
+    private double maxDataPointIntensity = 0;
 
     public SimplePeakListRow(int myID) {
         this.myID = myID;
@@ -92,6 +93,8 @@ public class SimplePeakListRow implements PeakListRow {
     public void addPeak(OpenedRawDataFile rawData, Peak original, Peak current) {
         peaks.put(rawData, current);
         originalPeaks.put(rawData, original);
+        if (current.getDataPointMaxIntensity() > maxDataPointIntensity)
+            maxDataPointIntensity = current.getDataPointMaxIntensity();
     }
 
     /*
@@ -183,6 +186,13 @@ public class SimplePeakListRow implements PeakListRow {
      */
     public void setPreferredCompoundIdentity(CompoundIdentity identity) {
         preferredIdentity = identity;
+    }
+
+    /**
+     * @see net.sf.mzmine.data.PeakListRow#getDataPointMaxIntensity()
+     */
+    public double getDataPointMaxIntensity() {
+        return maxDataPointIntensity;
     }
 
 }

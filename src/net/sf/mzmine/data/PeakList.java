@@ -105,6 +105,13 @@ public interface PeakList {
             double startMZ, double endMZ);
 
     /**
+     * Returns maximum raw data point intensity among all peaks in this peak list 
+     * 
+     * @return Maximum intensity 
+     */
+    public double getDataPointMaxIntensity();
+    
+    /**
      * Removes a row from this peak list
      * 
      */
