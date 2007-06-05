@@ -49,6 +49,7 @@ public class ColorCircle extends JComponent {
     }
 
     public void paint(Graphics g) {
+        super.paint(g);
         Dimension size = getSize();
         g.setColor(circleColor);
         int diameter = Math.min(size.width, size.height) - (2 * margin);

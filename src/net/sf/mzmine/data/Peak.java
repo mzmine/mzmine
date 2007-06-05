@@ -27,12 +27,15 @@ import net.sf.mzmine.io.OpenedRawDataFile;
 public interface Peak {
 
     /**
+     * UNKNOWN - peak was not found
      * DETECTED - peak was found in primary peak picking 
      * ESTIMATED - peak was estimated in secondary peak picking (after alignment)
      * 
      */
     public static enum PeakStatus {
-        DETECTED, ESTIMATED
+        UNKNOWN,
+        DETECTED, 
+        ESTIMATED
     };
 
     /**

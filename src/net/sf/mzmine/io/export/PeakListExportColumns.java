@@ -22,9 +22,6 @@ package net.sf.mzmine.io.export;
 import java.util.Set;
 import java.util.TreeSet;
 
-import net.sf.mzmine.userinterface.dialogs.alignmentresultcolumnselection.ColumnSet;
-import net.sf.mzmine.userinterface.dialogs.alignmentresultcolumnselection.ColumnType;
-
 public class PeakListExportColumns implements ColumnSet {
 
     

@@ -17,7 +17,7 @@
  * Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-package net.sf.mzmine.userinterface.dialogs.alignmentresultcolumnselection;
+package net.sf.mzmine.io.export;
 
 import java.awt.BorderLayout;
 import java.awt.Component;

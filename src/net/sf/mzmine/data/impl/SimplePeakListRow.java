@@ -136,7 +136,7 @@ public class SimplePeakListRow implements PeakListRow {
         buf.append(timeFormat.format(getAverageRT()));
         if (preferredIdentity != null)
             buf.append(" " + preferredIdentity.getCompoundName());
-        if (comment != null)
+        if ((comment != null) && (comment.length() > 0))
             buf.append(" (" + comment + ")");
         return buf.toString();
     }

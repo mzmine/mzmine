@@ -25,7 +25,6 @@ import javax.swing.JFileChooser;
 
 import net.sf.mzmine.data.PeakList;
 import net.sf.mzmine.userinterface.dialogs.ExitCode;
-import net.sf.mzmine.userinterface.dialogs.alignmentresultcolumnselection.ColumnSelectionDialog;
 import net.sf.mzmine.userinterface.mainwindow.MainWindow;
 
 import com.sun.java.ExampleFileFilter;

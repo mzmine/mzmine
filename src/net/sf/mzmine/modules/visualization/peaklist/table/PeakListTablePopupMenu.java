@@ -17,7 +17,7 @@
  * Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-package net.sf.mzmine.modules.visualization.peaklist;
+package net.sf.mzmine.modules.visualization.peaklist.table;
 
 import java.awt.Component;
 import java.awt.Point;
@@ -30,6 +30,8 @@ import javax.swing.JMenuItem;
 import javax.swing.JPopupMenu;
 
 import net.sf.mzmine.data.PeakList;
+import net.sf.mzmine.modules.visualization.peaklist.table.PeakListTable;
+import net.sf.mzmine.modules.visualization.peaklist.table.PeakListTableModel;
 import net.sf.mzmine.userinterface.components.PeakXICComponent;
 import net.sf.mzmine.util.GUIUtils;
 
@@ -53,7 +55,7 @@ public class PeakListTablePopupMenu extends JPopupMenu implements
     private JMenuItem globalMaximumItem;
     private JMenuItem showXICItem;
 
-    PeakListTablePopupMenu(PeakListTable table, PeakList peakList) {
+    public PeakListTablePopupMenu(PeakListTable table, PeakList peakList) {
 
         this.table = table;
         this.peakList = peakList;

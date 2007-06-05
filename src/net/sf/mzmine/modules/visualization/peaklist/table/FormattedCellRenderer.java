@@ -17,7 +17,7 @@
  * Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-package net.sf.mzmine.userinterface.components;
+package net.sf.mzmine.modules.visualization.peaklist.table;
 
 import java.awt.Color;
 import java.awt.Component;
@@ -39,22 +39,21 @@ import org.jfree.ui.OverlayLayout;
 /**
  * Simple table cell renderer that renders Numbers using given NumberFormat
  */
-public class FormattedCellRenderer implements TableCellRenderer,
-        ListCellRenderer {
+class FormattedCellRenderer implements TableCellRenderer {
 
     private Font font;
     private NumberFormat format;
 
     /**
      */
-    public FormattedCellRenderer(NumberFormat format) {
+    FormattedCellRenderer(NumberFormat format) {
         this.format = format;
     }
 
     /**
      * @param font
      */
-    public FormattedCellRenderer(NumberFormat format, Font font) {
+    FormattedCellRenderer(NumberFormat format, Font font) {
         this.format = format;
         this.font = font;
     }
@@ -108,55 +107,5 @@ public class FormattedCellRenderer implements TableCellRenderer,
         return newPanel;
 
     }
-
-    /**
-     * @see javax.swing.ListCellRenderer#getListCellRendererComponent(javax.swing.JList,
-     *      java.lang.Object, int, boolean, boolean)
-     */
-    public Component getListCellRendererComponent(JList list, Object value,
-            int index, boolean isSelected, boolean hasFocus) {
-
-        JPanel newPanel = new JPanel(new OverlayLayout());
-        Color bgColor;
-
-        if (isSelected)
-            bgColor = list.getSelectionBackground();
-        else
-            bgColor = list.getBackground();
-
-        newPanel.setBackground(bgColor);
-
-        if (hasFocus) {
-            Border border = null;
-            if (isSelected)
-                border = UIManager.getBorder("List.focusSelectedCellHighlightBorder");
-            if (border == null)
-                border = UIManager.getBorder("List.focusCellHighlightBorder");
-            newPanel.setBorder(border);
-        }
-        
-        if (value != null) {
-
-            String text;
-
-            if (value instanceof Number)
-                text = format.format((Number) value);
-            else
-                text = value.toString();
-
-            JLabel newLabel = new JLabel(text);
-
-            if (font != null)
-                newLabel.setFont(font);
-            else if (list.getFont() != null)
-                newLabel.setFont(list.getFont());
-
-            newPanel.add(newLabel);
-
-        }
-        
-        return newPanel;
-
-    }
-
+ 
 }

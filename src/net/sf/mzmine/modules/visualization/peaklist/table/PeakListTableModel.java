@@ -17,9 +17,7 @@
  * Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-package net.sf.mzmine.modules.visualization.peaklist;
-
-import java.awt.Color;
+package net.sf.mzmine.modules.visualization.peaklist.table;
 
 import javax.swing.table.AbstractTableModel;
 
@@ -27,31 +25,26 @@ import net.sf.mzmine.data.CompoundIdentity;
 import net.sf.mzmine.data.Peak;
 import net.sf.mzmine.data.PeakList;
 import net.sf.mzmine.data.PeakListRow;
+import net.sf.mzmine.data.Peak.PeakStatus;
 import net.sf.mzmine.io.OpenedRawDataFile;
-import net.sf.mzmine.modules.visualization.peaklist.PeakListTableColumnModel.CommonColumns;
-import net.sf.mzmine.modules.visualization.peaklist.PeakListTableColumnModel.DataFileColumns;
-import net.sf.mzmine.userinterface.components.ColorCircle;
 import net.sf.mzmine.userinterface.components.PeakXICComponent;
 
 public class PeakListTableModel extends AbstractTableModel {
 
     private PeakList peakList;
 
-    static final ColorCircle greenCircle = new ColorCircle(Color.green);
-    static final ColorCircle redCircle = new ColorCircle(Color.red);
-    static final ColorCircle yellowCircle = new ColorCircle(Color.yellow);
-
     /**
      * Constructor, assign given dataset to this table
      */
     public PeakListTableModel(PeakList peakList) {
         this.peakList = peakList;
+
     }
 
     public int getColumnCount() {
-        return CommonColumns.values().length
+        return CommonColumnType.values().length
                 + peakList.getNumberOfRawDataFiles()
-                * DataFileColumns.values().length;
+                * DataFileColumnType.values().length;
     }
 
     public int getRowCount() {
@@ -61,10 +54,10 @@ public class PeakListTableModel extends AbstractTableModel {
     public String getColumnName(int col) {
 
         if (isCommonColumn(col)) {
-            CommonColumns commonColumn = getCommonColumn(col);
+            CommonColumnType commonColumn = getCommonColumn(col);
             return commonColumn.getColumnName();
         } else {
-            DataFileColumns dataFileColumn = getDataFileColumn(col);
+            DataFileColumnType dataFileColumn = getDataFileColumn(col);
             return dataFileColumn.getColumnName();
         }
 
@@ -80,7 +73,7 @@ public class PeakListTableModel extends AbstractTableModel {
         PeakListRow peakListRow = peakList.getRow(row);
 
         if (isCommonColumn(col)) {
-            CommonColumns commonColumn = getCommonColumn(col);
+            CommonColumnType commonColumn = getCommonColumn(col);
 
             switch (commonColumn) {
             case ROWID:
@@ -92,40 +85,28 @@ public class PeakListTableModel extends AbstractTableModel {
             case COMMENT:
                 return peakListRow.getComment();
             case IDENTITY:
-                CompoundIdentity preferredIdentity = peakListRow.getPreferredCompoundIdentity();
-                if (preferredIdentity != CompoundIdentity.UNKNOWN_IDENTITY)
-                    return preferredIdentity.toString();
-                else {
-                    CompoundIdentity identities[] = peakListRow.getCompoundIdentities();
-                    if ((identities != null) && (identities.length > 0)) return "..."; 
-                    return null;
-                }
+                return peakListRow.getPreferredCompoundIdentity();
             }
 
         }
 
         if (!isCommonColumn(col)) {
-            DataFileColumns dataFileColumn = getDataFileColumn(col);
+            DataFileColumnType dataFileColumn = getDataFileColumn(col);
             OpenedRawDataFile file = getColumnDataFile(col);
             Peak peak = peakListRow.getPeak(file);
 
             if (peak == null) {
-                if (dataFileColumn == DataFileColumns.STATUS)
-                    return redCircle;
+                if (dataFileColumn == DataFileColumnType.STATUS)
+                    return PeakStatus.UNKNOWN;
                 else
                     return null;
             }
 
             switch (dataFileColumn) {
             case STATUS:
-                switch (peak.getPeakStatus()) {
-                case DETECTED:
-                    return greenCircle;
-                case ESTIMATED:
-                    return yellowCircle;
-                }
+                return peak.getPeakStatus();
             case PEAKSHAPE:
-                return new PeakXICComponent(peak);
+                return peak;
             case MZ:
                 return new Double(peak.getMZ());
             case RT:
@@ -145,51 +126,25 @@ public class PeakListTableModel extends AbstractTableModel {
 
     }
 
-    /**
-     * This method returns the class of the objects in this column of the table
-     */
-    public Class<?> getColumnClass(int col) {
-
-        if (isCommonColumn(col)) {
-            CommonColumns commonColumn = getCommonColumn(col);
-            return commonColumn.getColumnClass();
-        } else {
-            DataFileColumns dataFileColumn = getDataFileColumn(col);
-            return dataFileColumn.getColumnClass();
-        }
-
-    }
-
     public boolean isCellEditable(int row, int col) {
 
-        CommonColumns columnType = getCommonColumn(col);
+        CommonColumnType columnType = getCommonColumn(col);
 
-        if (columnType == CommonColumns.COMMENT)
-            return true;
-
-        if (columnType == CommonColumns.IDENTITY) {
-            PeakListRow peakListRow = peakList.getRow(row);
-            CompoundIdentity identities[] = peakListRow.getCompoundIdentities();
-            if ((identities == null) || (identities.length == 0))
-                return false;
-            return true;
-        }
-
-        return false;
+        return ((columnType == CommonColumnType.COMMENT) || (columnType == CommonColumnType.IDENTITY));
 
     }
 
     public void setValueAt(Object value, int row, int col) {
 
-        CommonColumns columnType = getCommonColumn(col);
+        CommonColumnType columnType = getCommonColumn(col);
 
         PeakListRow peakListRow = peakList.getRow(row);
 
-        if (columnType == CommonColumns.COMMENT) {
+        if (columnType == CommonColumnType.COMMENT) {
             peakListRow.setComment((String) value);
         }
 
-        if (columnType == CommonColumns.IDENTITY) {
+        if (columnType == CommonColumnType.IDENTITY) {
             if (value instanceof CompoundIdentity)
                 peakListRow.setPreferredCompoundIdentity((CompoundIdentity) value);
             else
@@ -199,12 +154,12 @@ public class PeakListTableModel extends AbstractTableModel {
     }
 
     boolean isCommonColumn(int col) {
-        return col < CommonColumns.values().length;
+        return col < CommonColumnType.values().length;
     }
 
-    CommonColumns getCommonColumn(int col) {
+    CommonColumnType getCommonColumn(int col) {
 
-        CommonColumns commonColumns[] = CommonColumns.values();
+        CommonColumnType commonColumns[] = CommonColumnType.values();
 
         if (col < commonColumns.length)
             return commonColumns[col];
@@ -213,10 +168,10 @@ public class PeakListTableModel extends AbstractTableModel {
 
     }
 
-    DataFileColumns getDataFileColumn(int col) {
+    DataFileColumnType getDataFileColumn(int col) {
 
-        CommonColumns commonColumns[] = CommonColumns.values();
-        DataFileColumns dataFileColumns[] = DataFileColumns.values();
+        CommonColumnType commonColumns[] = CommonColumnType.values();
+        DataFileColumnType dataFileColumns[] = DataFileColumnType.values();
 
         if (col < commonColumns.length)
             return null;
@@ -233,8 +188,8 @@ public class PeakListTableModel extends AbstractTableModel {
 
     OpenedRawDataFile getColumnDataFile(int col) {
 
-        CommonColumns commonColumns[] = CommonColumns.values();
-        DataFileColumns dataFileColumns[] = DataFileColumns.values();
+        CommonColumnType commonColumns[] = CommonColumnType.values();
+        DataFileColumnType dataFileColumns[] = DataFileColumnType.values();
 
         if (col < commonColumns.length)
             return null;

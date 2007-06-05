@@ -26,100 +26,55 @@ import java.util.TreeSet;
 
 import net.sf.mzmine.data.Parameter;
 import net.sf.mzmine.data.StorableParameterSet;
-import net.sf.mzmine.io.export.PeakListExportColumns.CommonColumnType;
-import net.sf.mzmine.io.export.PeakListExportColumns.RawDataColumnType;
-import net.sf.mzmine.modules.visualization.peaklist.PeakListTableColumnModel.CommonColumns;
-import net.sf.mzmine.modules.visualization.peaklist.PeakListTableColumnModel.DataFileColumns;
+import net.sf.mzmine.modules.visualization.peaklist.table.CommonColumnType;
+import net.sf.mzmine.modules.visualization.peaklist.table.DataFileColumnType;
 
 import org.dom4j.Element;
 
-public class PeakListTableParameters implements 
-        StorableParameterSet {
+public class PeakListTableParameters implements StorableParameterSet {
 
-    private static final String SELECTED_COLUMN_ELEMENT = "selectedcolumn";
-    
+    private static final String COLUMN_ELEMENT = "column";
 
-    
-    public enum PeakShapeMaximum {
-        PEAKMAX,
-        ROWMAX,
-        GLOBALMAX
+    enum PeakShapeMaximum {
+        PEAKMAX, ROWMAX, GLOBALMAX
     };
 
     private Set<CommonColumnType> selectedCommonColumns;
-    private Set<RawDataColumnType> selectedRawDataColumns;
+    private Set<DataFileColumnType> selectedRawDataColumns;
 
     public PeakListTableParameters() {
         selectedCommonColumns = new TreeSet<CommonColumnType>();
-        selectedRawDataColumns = new TreeSet<RawDataColumnType>();
-        
-        selectedCommonColumns.add(CommonColumnType.ROWNUM);
-        selectedCommonColumns.add(CommonColumnType.AVGMZ);
-        selectedCommonColumns.add(CommonColumnType.AVGRT);
+        selectedRawDataColumns = new TreeSet<DataFileColumnType>();
+
+        // selectedCommonColumns.add(CommonColumnType.ROWNUM);
+        // selectedCommonColumns.add(CommonColumnType.AVGMZ);
+        // selectedCommonColumns.add(CommonColumnType.AVGRT);
         selectedCommonColumns.add(CommonColumnType.COMMENT);
-        //selectedRawDataColumns.add(RawDataColumnType.SHAPE);
-        
-    }
+        // selectedRawDataColumns.add(DataFileColumnType.SHAPE);
 
-    public int getNumberOfCommonColumns() {
-        return CommonColumnType.values().length;
     }
-
-    public int getNumberOfRawDataColumns() {
-        return RawDataColumnType.values().length;
-    }
-
-    /**
-     * @see net.sf.mzmine.userinterface.dialogs.alignmentresultcolumnselection.ColumnSet#getCommonColumns()
-     */
-    public CommonColumnType[] getCommonColumns() {
-        return CommonColumnType.values();
-    }
-
-    /**
-     * @see net.sf.mzmine.userinterface.dialogs.alignmentresultcolumnselection.ColumnSet#getRawDataColumns()
-     */
-    public RawDataColumnType[] getRawDataColumns() {
-        return RawDataColumnType.values();
-    }
-
-    /**
-     * @see net.sf.mzmine.userinterface.dialogs.alignmentresultcolumnselection.ColumnSet#getSelectedCommonColumns()
-     */
-    public CommonColumnType[] getSelectedCommonColumns() {
-        return selectedCommonColumns.toArray(new CommonColumnType[0]);
-    }
-
-    /**
-     * @see net.sf.mzmine.userinterface.dialogs.alignmentresultcolumnselection.ColumnSet#getSelectedRawDataColumns()
-     */
-    public RawDataColumnType[] getSelectedRawDataColumns() {
-        return selectedRawDataColumns.toArray(new RawDataColumnType[0]);
-    }
-
 
     /**
      * @see net.sf.mzmine.data.StorableParameterSet#exportValuesToXML(org.dom4j.Element)
      */
     public void exportValuesToXML(Element element) {
-/*        for (ColumnType col : selectedCommonColumns) {
-            Element newElement = element.addElement(SELECTED_COLUMN_ELEMENT);
-            newElement.addAttribute("type", "common");
-            newElement.addAttribute("name", col.getColumnName());
-        }
-        for (ColumnType col : selectedRawDataColumns) {
-            Element newElement = element.addElement(SELECTED_COLUMN_ELEMENT);
-            newElement.addAttribute("type", "rawdata");
-            newElement.addAttribute("name", col.getColumnName());
-        }
-*/
+        /*
+         * for (ColumnType col : selectedCommonColumns) { Element newElement =
+         * element.addElement(SELECTED_COLUMN_ELEMENT);
+         * newElement.addAttribute("type", "common");
+         * newElement.addAttribute("name", col.getColumnName()); } for
+         * (ColumnType col : selectedRawDataColumns) { Element newElement =
+         * element.addElement(SELECTED_COLUMN_ELEMENT);
+         * newElement.addAttribute("type", "rawdata");
+         * newElement.addAttribute("name", col.getColumnName()); }
+         */
     }
 
     /**
      * @see net.sf.mzmine.data.StorableParameterSet#importValuesFromXML(org.dom4j.Element)
      */
     public void importValuesFromXML(Element element) {
-        List elementsList = element.elements(SELECTED_COLUMN_ELEMENT);
+        List elementsList = element.elements(COLUMN_ELEMENT);
         Iterator elementsIterator = elementsList.iterator();
 
         while (elementsIterator.hasNext()) {
@@ -128,49 +83,67 @@ public class PeakListTableParameters implements
             String colName = nextElement.attributeValue("name");
             if (colType.equals("common")) {
                 for (CommonColumnType col : CommonColumnType.values()) {
-                    if (col.getColumnName().equals(colName)) selectedCommonColumns.add(col);
+                    if (col.getColumnName().equals(colName))
+                        selectedCommonColumns.add(col);
                 }
             }
             if (colType.equals("rawdata")) {
-                for (RawDataColumnType col : RawDataColumnType.values()) {
-                    if (col.getColumnName().equals(colName)) selectedRawDataColumns.add(col);
+                for (DataFileColumnType col : DataFileColumnType.values()) {
+                    if (col.getColumnName().equals(colName))
+                        selectedRawDataColumns.add(col);
                 }
             }
         }
 
     }
 
-    /**
-     * @see net.sf.mzmine.data.ParameterSet#getParameterValue(net.sf.mzmine.data.Parameter)
-     */
-    public Object getParameterValue(Parameter parameter) {
-        return null;
-    }
-
     public PeakListTableParameters clone() {
         PeakListTableParameters newSelection = new PeakListTableParameters();
-        /* for (ColumnType col : selectedCommonColumns)
-            newSelection.setColumnSelected(col, true);
-        for (ColumnType col : selectedRawDataColumns)
-            newSelection.setColumnSelected(col, true);*/
+        /*
+         * for (ColumnType col : selectedCommonColumns)
+         * newSelection.setColumnSelected(col, true); for (ColumnType col :
+         * selectedRawDataColumns) newSelection.setColumnSelected(col, true);
+         */
         return newSelection;
     }
-
-
     
-    boolean isColumnVisible(CommonColumns type) {
-        return true;
+    public PeakShapeMaximum getPeakShapeMaximum() {
+        return PeakShapeMaximum.PEAKMAX;
     }
     
-    int getColumnWidth(CommonColumns type) {
+    void setPeakShapeMaximum(PeakShapeMaximum max) {
+        
+    }
+    
+    public int getRowHeight() {
+        return 20;
+    }
+    
+    void setRowHeight(int height) {
+        
+    }
+
+    public boolean isColumnVisible(CommonColumnType type) {
+        return true;
+    }
+
+    void setColumnVisible(CommonColumnType type, boolean visible) {
+
+    }
+
+    public int getColumnWidth(CommonColumnType type) {
         return 100;
     }
-    
-    boolean isColumnVisible(DataFileColumns type) {
+
+    public boolean isColumnVisible(DataFileColumnType type) {
         return true;
     }
-    
-    int getColumnWidth(DataFileColumns type) {
+
+    void setColumnVisible(DataFileColumnType type, boolean visible) {
+
+    }
+
+    public int getColumnWidth(DataFileColumnType type) {
         return 100;
     }
 

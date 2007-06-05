@@ -16,23 +16,16 @@
  * MZmine; if not, write to the Free Software Foundation, Inc., 51 Franklin St,
  * Fifth Floor, Boston, MA 02110-1301 USA
  */
-
-package net.sf.mzmine.data;
-
+ 
+package net.sf.mzmine.io.export;
 
 /**
  * 
  */
-public interface ParameterSet {
+public interface ColumnType {
 
-    /**
-     * Create a copy of this parameter set, all referenced objects must be cloned. 
-     */
-    public ParameterSet clone();
+    public String getColumnName();
+
+    public Class getColumnClass();
     
-    /**
-     * Represent method's parameters and their values in human-readable format
-     */
-    public String toString();
-
 }

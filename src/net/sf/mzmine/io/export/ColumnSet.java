@@ -17,22 +17,28 @@
  * Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-package net.sf.mzmine.data;
+package net.sf.mzmine.io.export;
 
+public interface ColumnSet {
 
-/**
- * 
- */
-public interface ParameterSet {
+    public int getNumberOfCommonColumns();
 
-    /**
-     * Create a copy of this parameter set, all referenced objects must be cloned. 
-     */
-    public ParameterSet clone();
+    public int getNumberOfRawDataColumns();
     
-    /**
-     * Represent method's parameters and their values in human-readable format
-     */
-    public String toString();
+    public int getNumberOfSelectedCommonColumns();
+
+    public int getNumberOfSelectedRawDataColumns();
+
+    public ColumnType[] getCommonColumns();
+    
+    public ColumnType[] getSelectedCommonColumns();
+
+    public ColumnType[] getRawDataColumns();
+    
+    public ColumnType[] getSelectedRawDataColumns();
+    
+    public boolean isColumnSelected(ColumnType c);
+    
+    public void setColumnSelected(ColumnType c, boolean selected);
 
 }

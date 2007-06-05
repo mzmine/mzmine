@@ -17,7 +17,9 @@
  * Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-package net.sf.mzmine.modules.visualization.peaklist;
+package net.sf.mzmine.modules.visualization.peaklist.table;
+
+import java.awt.Font;
 
 import javax.swing.DefaultCellEditor;
 import javax.swing.JComboBox;
@@ -27,7 +29,8 @@ import javax.swing.table.TableCellEditor;
 import net.sf.mzmine.data.CompoundIdentity;
 import net.sf.mzmine.data.PeakList;
 import net.sf.mzmine.data.PeakListRow;
-import net.sf.mzmine.modules.visualization.peaklist.PeakListTableColumnModel.CommonColumns;
+import net.sf.mzmine.modules.visualization.peaklist.PeakListTableParameters;
+import net.sf.mzmine.userinterface.components.GroupableTableHeader;
 import net.sf.mzmine.userinterface.components.PopupListener;
 
 import com.sun.java.TableSorter;
@@ -35,6 +38,8 @@ import com.sun.java.TableSorter;
 public class PeakListTable extends JTable {
 
     static final String UNKNOWN_IDENTITY = "Unknown";
+    // title font
+    private static final Font comboFont = new Font("SansSerif", Font.PLAIN, 10);
     
     private TableSorter sorter;
     private PeakListTableModel tableModel;
@@ -50,10 +55,19 @@ public class PeakListTable extends JTable {
         
         this.peakList = peakList;
 
-        cm = new PeakListTableColumnModel(this, parameters, peakList);
+        cm = new PeakListTableColumnModel();
+        
+        
+        
+        
         cm.setColumnMargin(0);
-        this.setColumnModel(cm);
+        setColumnModel(cm);
+        
+        GroupableTableHeader header = new GroupableTableHeader(cm);
+        setTableHeader(header);
 
+        // create default columns
+        cm.createColumns(this, parameters, peakList, header);
         
         this.setAutoCreateColumnsFromModel(false);
         
@@ -61,14 +75,10 @@ public class PeakListTable extends JTable {
         
         
         // Initialize sorter
-        sorter = new TableSorter(tableModel, cm.getTableHeader());
+        sorter = new TableSorter(tableModel, header);
 
         setModel(sorter);
 
-
-
-
-        //sorter.addMouseListenerToHeaderInTable(this);
         
 
         
@@ -76,8 +86,6 @@ public class PeakListTable extends JTable {
         addMouseListener(new PopupListener(popupMenu));
 
         setRowHeight(20);
-        
-
 
     }
     
@@ -92,16 +100,26 @@ public class PeakListTable extends JTable {
     public TableCellEditor getCellEditor(int row,
             int column) {
         
-        CommonColumns commonColumn = tableModel.getCommonColumn(column);
-        if (commonColumn == CommonColumns.IDENTITY) {
+        CommonColumnType commonColumn = tableModel.getCommonColumn(column);
+        if (commonColumn == CommonColumnType.IDENTITY) {
             int peakListRowIndex = sorter.modelIndex(row);
             PeakListRow peakListRow = peakList.getRow(peakListRowIndex);
             
             CompoundIdentity identities[] = peakListRow.getCompoundIdentities();
             CompoundIdentity preferredIdentity = peakListRow.getPreferredCompoundIdentity();
-            if ((identities == null) || (identities.length == 0)) return null;
-            JComboBox combo = new JComboBox(identities);
+            JComboBox combo;
+            
+            if ((identities != null) && (identities.length > 0)) {
+                combo = new JComboBox(identities);
+                combo.addItem("--------------");
+            } else {
+                combo = new JComboBox();
+            }
+            
+            combo.setFont(comboFont);
+            
             combo.addItem(UNKNOWN_IDENTITY);
+            combo.addItem("Add new...");
             if (preferredIdentity == null) {
                 combo.setSelectedItem(UNKNOWN_IDENTITY);
             } else combo.setSelectedItem(preferredIdentity);

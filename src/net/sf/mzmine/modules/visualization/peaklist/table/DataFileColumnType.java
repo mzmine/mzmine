@@ -16,16 +16,30 @@
  * MZmine; if not, write to the Free Software Foundation, Inc., 51 Franklin St,
  * Fifth Floor, Boston, MA 02110-1301 USA
  */
- 
-package net.sf.mzmine.userinterface.dialogs.alignmentresultcolumnselection;
 
-/**
- * 
- */
-public interface ColumnType {
+package net.sf.mzmine.modules.visualization.peaklist.table;
 
-    public String getColumnName();
+import net.sf.mzmine.data.Peak;
+import net.sf.mzmine.data.Peak.PeakStatus;
 
-    public Class getColumnClass();
-    
+public enum DataFileColumnType {
+
+    STATUS(""),
+    PEAKSHAPE("Peak shape"),
+    MZ("m/z"),
+    RT("Retention time"),
+    DURATION("Duration"),
+    HEIGHT("Height"),
+    AREA("Area");
+
+    private final String columnName;
+
+    DataFileColumnType(String columnName) {
+        this.columnName = columnName;
+    }
+
+    public String getColumnName() {
+        return columnName;
+    }
+
 }

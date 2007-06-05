@@ -17,28 +17,25 @@
  * Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-package net.sf.mzmine.userinterface.dialogs.alignmentresultcolumnselection;
+package net.sf.mzmine.modules.visualization.peaklist.table;
 
-public interface ColumnSet {
+public enum CommonColumnType {
 
-    public int getNumberOfCommonColumns();
+    ROWID("ID"),
+    AVERAGEMZ("m/z"),
+    AVERAGERT("Retention time"),
+    IDENTITY("Identity"),
+    COMMENT("Comment");
 
-    public int getNumberOfRawDataColumns();
-    
-    public int getNumberOfSelectedCommonColumns();
+    private final String columnName;
 
-    public int getNumberOfSelectedRawDataColumns();
 
-    public ColumnType[] getCommonColumns();
-    
-    public ColumnType[] getSelectedCommonColumns();
+    CommonColumnType(String columnName) {
+        this.columnName = columnName;
+    }
 
-    public ColumnType[] getRawDataColumns();
-    
-    public ColumnType[] getSelectedRawDataColumns();
-    
-    public boolean isColumnSelected(ColumnType c);
-    
-    public void setColumnSelected(ColumnType c, boolean selected);
+    public String getColumnName() {
+        return columnName;
+    }
 
 }

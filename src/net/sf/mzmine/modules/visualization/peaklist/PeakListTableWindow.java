@@ -33,9 +33,8 @@ import javax.swing.JScrollPane;
 import javax.swing.JTable;
 
 import net.sf.mzmine.data.PeakList;
-import net.sf.mzmine.userinterface.dialogs.ExitCode;
-import net.sf.mzmine.userinterface.dialogs.alignmentresultcolumnselection.ColumnSelectionDialog;
-import net.sf.mzmine.userinterface.mainwindow.MainWindow;
+import net.sf.mzmine.modules.visualization.peaklist.table.PeakListTable;
+import net.sf.mzmine.modules.visualization.peaklist.table.PeakListTableModel;
 
 import org.jfree.report.JFreeReport;
 import org.jfree.report.modules.gui.base.PreviewDialog;
@@ -47,13 +46,8 @@ public class PeakListTableWindow extends JInternalFrame
     private Logger logger = Logger.getLogger(this.getClass().getName());
 
     PeakListTableVisualizer visualizer;
-    private PeakListTableParameters columnSelection;
     private JScrollPane scrollPane;
 
-    /*
-     * private JPopupMenu popupMenu; private JMenuItem changeFormattingMenuItem;
-     * private JMenuItem zoomToPeakMenuItem;
-     */
 
     private PeakListTableModel model;
     private PeakListTable table;
@@ -74,7 +68,6 @@ public class PeakListTableWindow extends JInternalFrame
         setBackground(Color.white);
 
         this.visualizer = visualizer;
-        this.columnSelection = visualizer.getParameterSet().clone();
 
         // Build toolbar
         PeakListTableToolBar toolBar = new PeakListTableToolBar(

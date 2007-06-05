@@ -26,7 +26,9 @@ import java.awt.Graphics2D;
 import java.awt.RenderingHints;
 import java.awt.geom.GeneralPath;
 
+import javax.swing.BorderFactory;
 import javax.swing.JComponent;
+import javax.swing.border.Border;
 
 import net.sf.mzmine.data.Peak;
 import net.sf.mzmine.io.OpenedRawDataFile;
@@ -37,7 +39,8 @@ import net.sf.mzmine.io.OpenedRawDataFile;
 public class PeakXICComponent extends JComponent {
 
     public static final Color XICColor = Color.blue;
-
+    public static final Border componentBorder = BorderFactory.createLineBorder(Color.lightGray);
+    
     private Peak peak;
     
     private double minRT, maxRT, rtSpan, maxIntensity;
@@ -63,10 +66,14 @@ public class PeakXICComponent extends JComponent {
         this.rtSpan = maxRT - minRT;
         this.maxIntensity = maxIntensity;
         
+        this.setBorder(componentBorder);
+        
     }
 
     public void paint(Graphics g) {
 
+        super.paint(g);
+        
         // use Graphics2D for antialiasing
         Graphics2D g2 = (Graphics2D) g;
 
@@ -128,6 +135,7 @@ public class PeakXICComponent extends JComponent {
         // fill the peak area
         g2.setColor(XICColor);
         g2.fill(path);
+       
 
     }
 
