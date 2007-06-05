@@ -107,7 +107,7 @@ class SimpleStandardCompoundNormalizerDialog extends JDialog implements ActionLi
         constraints.gridx = 1;
         components.add(availableNormalizationTypesCombo, constraints);
 
-        comp = GUIUtils.addLabel(components, "Peaks");
+        comp = GUIUtils.addLabel(components, "Select standard peaks");
         constraints.gridx = 0;
         constraints.gridy = 3;
         layout.setConstraints(comp, constraints);
@@ -116,18 +116,31 @@ class SimpleStandardCompoundNormalizerDialog extends JDialog implements ActionLi
         peakCheckBoxesPanel.setBackground(Color.white);
         peakCheckBoxesPanel.setLayout(new BoxLayout(peakCheckBoxesPanel,
                 BoxLayout.Y_AXIS));
-        peakCheckBoxes = new ExtendedCheckBox[alignmentResult.getNumberOfRows()];
+        
+        Vector<ExtendedCheckBox<PeakListRow>> peakCheckBoxesVector = new Vector<ExtendedCheckBox<PeakListRow>>(); 
         int minimumHorizSize = 0;
         PeakListRow rows[] = alignmentResult.getRows();
         Arrays.sort(rows, new AlignmentResultSorterByMZ());
         for (int i = 0; i < rows.length; i++) {
-            peakCheckBoxes[i] = new ExtendedCheckBox<PeakListRow>(rows[i]);
-            peakCheckBoxes[i].setSelected(false);
-            minimumHorizSize = Math.max(minimumHorizSize,
-                    peakCheckBoxes[i].getPreferredWidth());
-            peakCheckBoxesPanel.add(peakCheckBoxes[i]);
+        	// Add only fully detected peaks to list of potential standard peaks
+        	if (rows[i].getNumberOfPeaks()==alignmentResult.getNumberOfRawDataFiles()) {
+        		ExtendedCheckBox ecb = new ExtendedCheckBox<PeakListRow>(rows[i]);
+        		ecb.setSelected(false);
+	            peakCheckBoxesVector.add(ecb);
+	            minimumHorizSize = Math.max(minimumHorizSize,
+	                    ecb.getPreferredWidth());
+	            peakCheckBoxesPanel.add(ecb);
+        	}
         }
-        int minimumVertSize = (int) peakCheckBoxes[0].getPreferredSize().getHeight() * 6;
+        // If there are no peaks that are fully detected, then std compound normalization is not possible
+        if (peakCheckBoxesVector.size()==0) {
+        	desktop.displayErrorMessage("Aligned peak list does not contain any peaks that are detected in each raw data file.");
+        }
+        
+        peakCheckBoxes = peakCheckBoxesVector.toArray(new ExtendedCheckBox[0]);
+        int minimumVertSize = new JCheckBox().getHeight();
+        if ((peakCheckBoxes!=null) && (peakCheckBoxes.length>0))
+        	minimumVertSize = (int) peakCheckBoxes[0].getPreferredSize().getHeight() * 6;
         JScrollPane peakPanelScroll = new JScrollPane(peakCheckBoxesPanel,
                 ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED,
                 ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER);

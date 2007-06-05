@@ -63,6 +63,7 @@ public class SimpleStandardCompoundNormalizerTask implements Task {
 		taskStatus = TaskStatus.PROCESSING;
 	
 		Object normalizationType = parameters.getParameters().getParameterValue(SimpleStandardCompoundNormalizerParameterSet.StandardUsageType);
+		Object peakMeasurementType = parameters.getParameters().getParameterValue(SimpleStandardCompoundNormalizerParameterSet.PeakMeasurementType);
 		double MZvsRTBalance = (Double)parameters.getParameters().getParameterValue(SimpleStandardCompoundNormalizerParameterSet.MZvsRTBalance);
 		
 		logger.fine("Starting Simple standard compound normlization of " + originalPeakList.toString() + " using " + normalizationType.toString() + " (total " + parameters.getSelectedStandardPeakListRows().length +  " standard peaks)");
@@ -127,8 +128,11 @@ public class SimpleStandardCompoundNormalizerTask implements Task {
 	        		// Calc and store a single normalization factor
 	        		normalizationFactors = new double[1];
 	        		normalizationFactorWeights = new double[1];
-	        		// TODO: Determine normalization factor using data on the nearestStandardRow	        		
-	        		normalizationFactors[0] = 1.0;
+	        		Peak standardPeak = nearestStandardRow.getPeak(ord);
+    				if (peakMeasurementType == SimpleStandardCompoundNormalizerParameterSet.PeakMeasurementTypeHeight)
+    					normalizationFactors[0] = standardPeak.getHeight();
+    				if (peakMeasurementType == SimpleStandardCompoundNormalizerParameterSet.PeakMeasurementTypeArea)
+    					normalizationFactors[0] = standardPeak.getArea();	        		
 	        		normalizationFactorWeights[0] = 1.0;
 	        		
 	        	}
@@ -147,10 +151,19 @@ public class SimpleStandardCompoundNormalizerTask implements Task {
 	        			double stdRT = standardRow.getAverageRT();
 	        			double distance = MZvsRTBalance * java.lang.Math.abs(mz-stdMZ) + java.lang.Math.abs(rt-stdRT);
 
-	        			// TODO: Determine normalization factor using data on the current standardRow and weight using distance
-	        			normalizationFactors[standardRowIndex] = 1.0;
-	        			normalizationFactorWeights[standardRowIndex] = 1.0 / (double)standardRows.length;
-	        			// normalizationFactorWeights[standardRowIndex] = distance;
+
+	        			Peak standardPeak = standardRow.getPeak(ord);
+	        			if (standardPeak==null) {
+		        			// TODO: What to do if standard peak is not available? (Currently this is ruled out by the setup dialog, which shows only peaks that are present in all samples)
+	        				normalizationFactors[standardRowIndex] = 1.0;
+	        				normalizationFactorWeights[standardRowIndex] = 0.0;	        			
+	        			} else {
+	        				if (peakMeasurementType == SimpleStandardCompoundNormalizerParameterSet.PeakMeasurementTypeHeight)
+	        					normalizationFactors[standardRowIndex] = standardPeak.getHeight();
+	        				if (peakMeasurementType == SimpleStandardCompoundNormalizerParameterSet.PeakMeasurementTypeArea)
+	        					normalizationFactors[standardRowIndex] = standardPeak.getArea();
+	        				normalizationFactorWeights[standardRowIndex] = distance;
+	        			}
 	        		}
 	        		
 	        	}
@@ -161,12 +174,13 @@ public class SimpleStandardCompoundNormalizerTask implements Task {
 	        	for (int factorIndex=0; factorIndex<normalizationFactors.length; factorIndex++) {
 	        		weightedSum += normalizationFactors[factorIndex] * normalizationFactorWeights[factorIndex];
 	        		sumOfWeights += normalizationFactorWeights[factorIndex];
+	        		System.out.println("normalizationFactors[factorIndex]=" + normalizationFactors[factorIndex] + " normalizationFactorWeights[factorIndex]=" + normalizationFactorWeights[factorIndex]);
 	        	}
 	        	double normalizationFactor = weightedSum / sumOfWeights;
+	        	System.out.println("normalizationFactor=" + normalizationFactor);
 	        	
 	        	// TODO: How to handle zero normalization factor?
-	        	if (normalizationFactor==0.0) normalizationFactor = Double.MIN_VALUE;
-	        	
+	        	if (normalizationFactor==0.0) normalizationFactor = Double.MIN_VALUE;   	
 	        	
 	        	// Normalize peak 	        	
                 Peak originalPeak = row.getPeak(ord);
@@ -191,15 +205,15 @@ public class SimpleStandardCompoundNormalizerTask implements Task {
         	}   	
         	
         }
-        
-        // TODO: Scale all normalized values
-        
+              
         // Finally add all normalized rows to normalized alignment result
-        for (PeakListRow originalAlignmentRow : originalPeakList.getRows()) {
-            SimplePeakListRow normalizedRow = rowMap.get(originalAlignmentRow);
+        for (PeakListRow row : originalPeakList.getRows()) {
+            SimplePeakListRow normalizedRow = rowMap.get(row);
             normalizedPeakList.addRow(normalizedRow);
         }
-
+        
+        // TODO: Scale all normalized values?
+        
         taskStatus = TaskStatus.FINISHED;
 		
 	}

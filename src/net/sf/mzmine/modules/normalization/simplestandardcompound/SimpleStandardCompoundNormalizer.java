@@ -111,7 +111,7 @@ ActionListener {
         		= new SimpleStandardCompoundNormalizerDialog(desktop, pl, parameters);
         	dialog.setVisible(true);
         	
-        	if (dialog.getExitCode()==ExitCode.CANCEL) {
+        	if (dialog.getExitCode()!=ExitCode.OK) {
         		logger.info("Simple standard compound normalization cancelled.");
         		return;
         	}
