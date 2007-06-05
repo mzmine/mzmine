@@ -45,11 +45,14 @@ public class PeakListTable extends JTable {
     private PeakListTableModel tableModel;
     private PeakList peakList;
     private PeakListTableColumnModel cm;
+    private PeakListTableParameters parameters;
     
     public PeakListTable(
             PeakListTableParameters parameters,
             PeakList peakList) {
 
+        this.parameters = parameters;
+        
         //ComponentCellRenderer rend = new ComponentCellRenderer();
         //setDefaultRenderer(JComponent.class, rend);
         
@@ -80,12 +83,10 @@ public class PeakListTable extends JTable {
         setModel(sorter);
 
         
-
-        
         PeakListTablePopupMenu popupMenu = new PeakListTablePopupMenu(this, peakList);
         addMouseListener(new PopupListener(popupMenu));
 
-        setRowHeight(20);
+        setRowHeight(parameters.getRowHeight());
 
     }
     

@@ -62,6 +62,18 @@ public class PeakListTableModel extends AbstractTableModel {
         }
 
     }
+    
+    public Class<?> getColumnClass(int col) {
+
+        if (isCommonColumn(col)) {
+            CommonColumnType commonColumn = getCommonColumn(col);
+            return commonColumn.getColumnClass();
+        } else {
+            DataFileColumnType dataFileColumn = getDataFileColumn(col);
+            return dataFileColumn.getColumnClass();
+        }
+
+    }
 
     /**
      * This method returns the value at given coordinates of the dataset or null
@@ -88,9 +100,8 @@ public class PeakListTableModel extends AbstractTableModel {
                 return peakListRow.getPreferredCompoundIdentity();
             }
 
-        }
+        } else {
 
-        if (!isCommonColumn(col)) {
             DataFileColumnType dataFileColumn = getDataFileColumn(col);
             OpenedRawDataFile file = getColumnDataFile(col);
             Peak peak = peakListRow.getPeak(file);

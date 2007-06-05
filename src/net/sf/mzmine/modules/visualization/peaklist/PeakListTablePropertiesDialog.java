@@ -19,10 +19,10 @@
 
 package net.sf.mzmine.modules.visualization.peaklist;
 
-import java.awt.BorderLayout;
 import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.Frame;
+import java.awt.GridLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.util.Enumeration;
@@ -33,14 +33,16 @@ import javax.swing.Box;
 import javax.swing.BoxLayout;
 import javax.swing.JButton;
 import javax.swing.JCheckBox;
+import javax.swing.JComboBox;
 import javax.swing.JDialog;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
+import javax.swing.JTextField;
 
-import net.sf.mzmine.io.export.ColumnType;
 import net.sf.mzmine.modules.visualization.peaklist.table.CommonColumnType;
 import net.sf.mzmine.modules.visualization.peaklist.table.DataFileColumnType;
 import net.sf.mzmine.userinterface.dialogs.ExitCode;
+import net.sf.mzmine.util.GUIUtils;
 
 
 public class PeakListTablePropertiesDialog extends JDialog
@@ -51,8 +53,9 @@ public class PeakListTablePropertiesDialog extends JDialog
     private Hashtable<CommonColumnType, JCheckBox> commonColumnCheckBoxes;
     private Hashtable<DataFileColumnType, JCheckBox> rawDataColumnCheckBoxes;
 
-    private JButton btnOk;
-    private JButton btnCancel;
+    private JButton btnOk, btnCancel;
+    private JComboBox peakShapeMaxCombo;
+    private JTextField rowHeightField;
     
     private PeakListTableParameters parameters;
 
@@ -65,15 +68,16 @@ public class PeakListTablePropertiesDialog extends JDialog
         this.parameters = parameters;
 
         setTitle("Peak list table properties");
-        setLayout(new BorderLayout());
+        
 
+        
         // Generate label and check box for each possible common column
         JPanel pnlCommon = new JPanel();
-        pnlCommon.setLayout(new BoxLayout(pnlCommon, BoxLayout.PAGE_AXIS));
+        pnlCommon.setLayout(new BoxLayout(pnlCommon, BoxLayout.Y_AXIS));
 
         commonColumnCheckBoxes = new Hashtable<CommonColumnType, JCheckBox>();
 
-        JLabel commonColsTitle = new JLabel("Available common columns");
+        JLabel commonColsTitle = new JLabel("Common columns");
         pnlCommon.add(commonColsTitle);
 
         pnlCommon.add(Box.createRigidArea(new Dimension(0, 5)));
@@ -83,9 +87,7 @@ public class PeakListTablePropertiesDialog extends JDialog
             JCheckBox commonColumnCheckBox = new JCheckBox();
             commonColumnCheckBox.setText(c.getColumnName());
             commonColumnCheckBoxes.put(c, commonColumnCheckBox);
-
             commonColumnCheckBox.setSelected(parameters.isColumnVisible(c));
-
             commonColumnCheckBox.setAlignmentX(Component.LEFT_ALIGNMENT);
             pnlCommon.add(commonColumnCheckBox);
 
@@ -95,11 +97,11 @@ public class PeakListTablePropertiesDialog extends JDialog
 
         // Generate label and check box for each possible raw data column
         JPanel pnlRaw = new JPanel();
-        pnlRaw.setLayout(new BoxLayout(pnlRaw, BoxLayout.PAGE_AXIS));
+        pnlRaw.setLayout(new BoxLayout(pnlRaw, BoxLayout.Y_AXIS));
 
         rawDataColumnCheckBoxes = new Hashtable<DataFileColumnType, JCheckBox>();
 
-        JLabel rawDataColsTitle = new JLabel("Available raw data columns");
+        JLabel rawDataColsTitle = new JLabel("Data file columns");
         pnlRaw.add(rawDataColsTitle);
 
         for (DataFileColumnType c : DataFileColumnType.values()) {
@@ -107,9 +109,7 @@ public class PeakListTablePropertiesDialog extends JDialog
             JCheckBox rawDataColumnCheckBox = new JCheckBox();
             rawDataColumnCheckBox.setText(c.getColumnName());
             rawDataColumnCheckBoxes.put(c, rawDataColumnCheckBox);
-
             rawDataColumnCheckBox.setSelected(parameters.isColumnVisible(c));
-
             rawDataColumnCheckBox.setAlignmentX(Component.LEFT_ALIGNMENT);
             pnlRaw.add(rawDataColumnCheckBox);
 
@@ -118,30 +118,51 @@ public class PeakListTablePropertiesDialog extends JDialog
         pnlRaw.add(Box.createVerticalGlue());
 
         // Create and add buttons
-        btnOk = new JButton("OK");
-        btnOk.addActionListener(this);
-        btnCancel = new JButton("Cancel");
-        btnCancel.addActionListener(this);
-
         JPanel buttonPanel = new JPanel();
-        buttonPanel.setLayout(new BoxLayout(buttonPanel, BoxLayout.LINE_AXIS));
+        buttonPanel.setLayout(new BoxLayout(buttonPanel, BoxLayout.X_AXIS));
         buttonPanel.setBorder(BorderFactory.createEmptyBorder(0, 10, 10, 10));
-
+        
         buttonPanel.add(Box.createHorizontalGlue());
-        buttonPanel.add(btnOk);
+        btnOk = GUIUtils.addButton(buttonPanel, "OK", null, this);
         buttonPanel.add(Box.createRigidArea(new Dimension(10, 0)));
-        buttonPanel.add(btnCancel);
+        btnCancel = GUIUtils.addButton(buttonPanel, "Cancel", null, this);
 
         JPanel mainPanel = new JPanel();
-        mainPanel.setLayout(new BoxLayout(mainPanel, BoxLayout.LINE_AXIS));
-
+        mainPanel.setLayout(new BoxLayout(mainPanel, BoxLayout.X_AXIS));
         mainPanel.setBorder(BorderFactory.createEmptyBorder(10, 10, 0, 10));
         mainPanel.add(pnlCommon);
         mainPanel.add(Box.createRigidArea(new Dimension(10, 0)));
         mainPanel.add(pnlRaw);
-        add(mainPanel, BorderLayout.CENTER);
-        add(buttonPanel, BorderLayout.PAGE_END);
+        
+        JPanel propertiesPanel = new JPanel();
+        propertiesPanel.setLayout(new GridLayout(2, 2, 5, 5));
+        
+        
+        GUIUtils.addLabel(propertiesPanel, "Peak shape maximum");
+        peakShapeMaxCombo = new JComboBox(PeakShapeMaximum.values());
+        peakShapeMaxCombo.setSelectedItem(parameters.getPeakShapeMaximum());
+        propertiesPanel.add(peakShapeMaxCombo);
+        GUIUtils.addLabel(propertiesPanel, "Row height");
+        rowHeightField = new JTextField();
+        rowHeightField.setText(String.valueOf(parameters.getRowHeight()));
+        propertiesPanel.add(rowHeightField);
+        
+        JPanel allPanel = new JPanel();
+        allPanel.setLayout(new BoxLayout(allPanel, BoxLayout.Y_AXIS));
 
+        GUIUtils.addMargin(mainPanel, 10);
+        GUIUtils.addMargin(propertiesPanel, 10);
+        GUIUtils.addMargin(buttonPanel, 10);
+        
+        allPanel.add(mainPanel);
+        GUIUtils.addSeparator(allPanel);
+        allPanel.add(propertiesPanel);
+        GUIUtils.addSeparator(allPanel);
+        allPanel.add(buttonPanel);
+        
+        add(allPanel);
+        
+        setResizable(false);
         pack();
         setLocationRelativeTo(owner);
         
@@ -166,6 +187,13 @@ public class PeakListTablePropertiesDialog extends JDialog
                 JCheckBox rcBox = rawDataColumnCheckBoxes.get(rcType);
                 parameters.setColumnVisible(rcType, rcBox.isSelected());
             }
+            
+            PeakShapeMaximum maxSelected = (PeakShapeMaximum) peakShapeMaxCombo.getSelectedItem();
+            if (maxSelected != null) parameters.setPeakShapeMaximum(maxSelected);
+            
+            int newRowHeight = Integer.parseInt(rowHeightField.getText());
+            if (newRowHeight > 0) parameters.setRowHeight(newRowHeight);
+            
             exitCode = ExitCode.OK;
             dispose();
 

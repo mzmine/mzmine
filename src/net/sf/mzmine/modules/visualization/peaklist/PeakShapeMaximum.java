@@ -17,34 +17,22 @@
  * Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-package net.sf.mzmine.modules.visualization.peaklist.table;
+package net.sf.mzmine.modules.visualization.peaklist;
 
-import net.sf.mzmine.data.CompoundIdentity;
 
-public enum CommonColumnType {
-
-    ROWID("ID", Integer.class),
-    AVERAGEMZ("m/z", Double.class),
-    AVERAGERT("Retention time", Double.class),
-    IDENTITY("Identity", CompoundIdentity.class),
-    COMMENT("Comment", String.class);
-
-    private final String columnName;
-    private final Class columnClass;
-
-    CommonColumnType(String columnName, Class columnClass) {
-        this.columnName = columnName;
-        this.columnClass = columnClass;
+public enum PeakShapeMaximum {
+    PEAKMAX("Peak maximum"),
+    ROWMAX("Row maximum"),
+    GLOBALMAX("Global maximum");
+    
+    private final String displayName;
+    
+    PeakShapeMaximum(final String displayName) {
+        this.displayName = displayName;
     }
-
-    public String getColumnName() {
-        return columnName;
-    }
-
-    public Class getColumnClass() {
-        return columnClass;
+    
+    public String toString() {
+        return displayName;
     }
 
 }
-
-

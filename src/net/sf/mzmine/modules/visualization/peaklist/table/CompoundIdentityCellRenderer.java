@@ -69,7 +69,6 @@ public class CompoundIdentityCellRenderer implements TableCellRenderer {
             newLabel.setBorder(border);
         }
 
-        // if we have no value, finish here
         if (value instanceof CompoundIdentity) {
 
             CompoundIdentity identity = (CompoundIdentity) value;

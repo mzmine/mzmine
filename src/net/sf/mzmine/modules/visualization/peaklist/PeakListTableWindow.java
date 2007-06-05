@@ -35,6 +35,8 @@ import javax.swing.JTable;
 import net.sf.mzmine.data.PeakList;
 import net.sf.mzmine.modules.visualization.peaklist.table.PeakListTable;
 import net.sf.mzmine.modules.visualization.peaklist.table.PeakListTableModel;
+import net.sf.mzmine.userinterface.dialogs.ExitCode;
+import net.sf.mzmine.userinterface.mainwindow.MainWindow;
 
 import org.jfree.report.JFreeReport;
 import org.jfree.report.modules.gui.base.PreviewDialog;
@@ -51,6 +53,7 @@ public class PeakListTableWindow extends JInternalFrame
 
     private PeakListTableModel model;
     private PeakListTable table;
+    private PeakListTableParameters myParameters;
 
     /**
      * Constructor: initializes an empty visualizer
@@ -75,9 +78,10 @@ public class PeakListTableWindow extends JInternalFrame
         add(toolBar, BorderLayout.EAST);
 
         
-
+        myParameters = visualizer.getParameterSet().clone();
+        
         // Build table
-        table = new PeakListTable(visualizer.getParameterSet(), peakList);
+        table = new PeakListTable(myParameters, peakList);
         table.setAutoResizeMode(JTable.AUTO_RESIZE_OFF);
         scrollPane = new JScrollPane(table);
 
@@ -100,13 +104,12 @@ public class PeakListTableWindow extends JInternalFrame
 
         if (command.equals("CHANGE_FORMAT")) {
 
-            //ColumnSelectionDialog dialog = new ColumnSelectionDialog(
-            //        MainWindow.getInstance(), columnSelection);
-            //visualizer.setParameters(columnSelection.clone());
-            //dialog.setVisible(true);
-            //if (dialog.getExitCode() == ExitCode.OK) {
-            //    model.fireTableStructureChanged();
-            //}
+            PeakListTablePropertiesDialog dialog = new PeakListTablePropertiesDialog(MainWindow.getInstance(), myParameters);
+            dialog.setVisible(true);
+            if (dialog.getExitCode() == ExitCode.OK) {
+                table.setRowHeight(myParameters.getRowHeight());
+                //model.fireTableStructureChanged();
+            }
         }
         
         if (command.equals("PRINT")) {

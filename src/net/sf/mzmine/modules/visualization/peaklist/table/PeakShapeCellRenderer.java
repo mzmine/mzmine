@@ -29,6 +29,8 @@ import javax.swing.border.Border;
 import javax.swing.table.TableCellRenderer;
 
 import net.sf.mzmine.data.Peak;
+import net.sf.mzmine.data.PeakList;
+import net.sf.mzmine.modules.visualization.peaklist.PeakListTableParameters;
 import net.sf.mzmine.userinterface.components.PeakXICComponent;
 
 import org.jfree.ui.OverlayLayout;
@@ -37,6 +39,17 @@ import org.jfree.ui.OverlayLayout;
  * 
  */
 class PeakShapeCellRenderer implements TableCellRenderer {
+
+    private PeakList peakList;
+    private PeakListTableParameters parameters;
+    
+    /**
+     * 
+     */
+    PeakShapeCellRenderer(PeakList peakList, PeakListTableParameters parameters) {
+        this.peakList = peakList;
+        this.parameters = parameters;
+    }
 
     /**
      * @see javax.swing.table.TableCellRenderer#getTableCellRendererComponent(javax.swing.JTable,
@@ -68,11 +81,27 @@ class PeakShapeCellRenderer implements TableCellRenderer {
         if (value instanceof Peak) {
 
             Peak peak = (Peak) value;
-            PeakXICComponent xic = new PeakXICComponent(peak);
+            double maxHeight = 0;
+            
+            switch (parameters.getPeakShapeMaximum()) {
+            case GLOBALMAX:
+                maxHeight = peakList.getDataPointMaxIntensity();
+                break;
+            case ROWMAX:
+                int rowNumber = peakList.getPeakRow(peak);
+                maxHeight = peakList.getRow(rowNumber).getDataPointMaxIntensity();
+                break;
+            default:
+                maxHeight = peak.getDataPointMaxIntensity();
+                break;
+            }
+            
+            PeakXICComponent xic = new PeakXICComponent(peak, maxHeight);
 
             newPanel.add(xic);
 
             newPanel.setToolTipText(peak.toString());
+           
         }
 
         return newPanel;

@@ -62,7 +62,7 @@ public class PeakListTableColumnModel extends DefaultTableColumnModel {
         mzRenderer = new FormattedCellRenderer(mzFormat);
         rtRenderer = new FormattedCellRenderer(rtFormat);
         intensityRenderer = new FormattedCellRenderer(intensityFormat);
-        peakShapeRenderer = new PeakShapeCellRenderer();
+        peakShapeRenderer = new PeakShapeCellRenderer(peakList, parameters);
         identityRenderer = new CompoundIdentityCellRenderer();
         peakStatusRenderer = new PeakStatusCellRenderer();
         defaultRenderer = new DefaultTableCellRenderer();
