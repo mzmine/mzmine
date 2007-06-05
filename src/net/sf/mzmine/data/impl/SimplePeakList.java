@@ -111,8 +111,9 @@ public class SimplePeakList implements PeakList {
 
     public void addRow(PeakListRow row) {
         peakListRows.add(row);
-        if (row.getDataPointMaxIntensity() > maxDataPointIntensity)
+        if (row.getDataPointMaxIntensity() > maxDataPointIntensity) {
             maxDataPointIntensity = row.getDataPointMaxIntensity();
+        }
     }
 
     /**
@@ -169,6 +170,7 @@ public class SimplePeakList implements PeakList {
      */
     public void removeRow(PeakListRow row) {
         peakListRows.remove(row);
+        updateMaxIntensity();
     }
 
     /**
@@ -176,8 +178,16 @@ public class SimplePeakList implements PeakList {
      */
     public void removeRow(int row) {
         peakListRows.remove(row);
+        updateMaxIntensity();
     }
 
+    private void updateMaxIntensity() {
+        maxDataPointIntensity = 0;
+        for (PeakListRow peakListRow: peakListRows) {
+            if (peakListRow.getDataPointMaxIntensity() > maxDataPointIntensity) maxDataPointIntensity = peakListRow.getDataPointMaxIntensity();
+        }
+    }
+    
     /**
      * @see net.sf.mzmine.data.PeakList#getPeakRow(net.sf.mzmine.data.Peak)
      */
