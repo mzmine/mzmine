@@ -1,5 +1,6 @@
 package net.sf.mzmine.modules.dataanalysis.rtmzplots;
 
+import java.awt.Color;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
@@ -22,6 +23,7 @@ import net.sf.mzmine.modules.visualization.tic.TICSetupDialog;
 import net.sf.mzmine.taskcontrol.TaskController;
 import net.sf.mzmine.userinterface.Desktop;
 import net.sf.mzmine.userinterface.Desktop.MZmineMenu;
+import net.sf.mzmine.userinterface.components.interpolatinglookuppaintscale.InterpolatingLookupPaintScale;
 import net.sf.mzmine.userinterface.dialogs.ExitCode;
 import net.sf.mzmine.userinterface.mainwindow.MainWindow;
 
@@ -107,7 +109,6 @@ public class RTMZAnalyzer implements MZmineModule, ActionListener {
             if (command.equals("LOGRATIO_PLOT"))
             	setupDialog = new RTMZSetupDialog(desktop, pl.getRawDataFiles(), parameters, RTMZSetupDialog.SelectionMode.TwoGroups);
 
-            if (setupDialog == null) return;
             setupDialog.setVisible(true);
             
         	if (setupDialog.getExitCode() != ExitCode.OK) {
@@ -115,21 +116,33 @@ public class RTMZAnalyzer implements MZmineModule, ActionListener {
         		return;
         	}
         	
-        	// Create dataset
+        	// Create dataset & paint scale
         	AbstractXYZDataset dataset = null;
-        	if (command.equals("CV_PLOT"))
+        	InterpolatingLookupPaintScale paintScale = null;
+        	if (command.equals("CV_PLOT")) {
         		dataset = new CVDataset(pl, setupDialog.getGroupOneSelectedFiles(), parameters);
         	
-        	if (command.equals("LOGRATIO_PLOT"))
+	    		paintScale = new InterpolatingLookupPaintScale();
+	            paintScale.add(0.00, new Color(0,  0,  0));
+	            paintScale.add(0.15, new Color(102,255,102));
+	            paintScale.add(0.30, new Color( 51,102,255));
+	            paintScale.add(0.45, new Color(255,  0,  0));
+        	}
+        	
+        	
+        	if (command.equals("LOGRATIO_PLOT")) {
         		dataset = new LogratioDataset(pl, setupDialog.getGroupOneSelectedFiles(), setupDialog.getGroupTwoSelectedFiles(), parameters);
+        		
+        		paintScale = new InterpolatingLookupPaintScale();
+        		paintScale.add(-1.00, new Color(0,255,0));
+        		paintScale.add(0.00, new Color(0,0,0));
+        		paintScale.add(1.00, new Color(255,0,0));
+        	}        		
 
-        	// Show window
-        	/*
-        	logger.info("Showing coefficient of variation analysis window.");
-        	CVDataset dataset = new CVDataset(pl, setupDialog.getSelectedFiles(), parameters);
-        	CVAnalyzerWindow window = new CVAnalyzerWindow(desktop, dataset, pl, parameters);
+        	        	
+        	// Create & show window
+        	RTMZAnalyzerWindow window = new RTMZAnalyzerWindow(desktop, dataset, pl, parameters, paintScale);
         	window.setVisible(true);
-        	*/
         	
         }
      

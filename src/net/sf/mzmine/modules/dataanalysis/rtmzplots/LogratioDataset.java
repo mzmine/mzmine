@@ -21,6 +21,8 @@ public class LogratioDataset extends AbstractXYZDataset {
 	private double[] yCoords = new double[0];
 	private double[] colorCoords = new double[0];
 	
+	private String datasetTitle;
+	
 	public LogratioDataset(PeakList alignedPeakList, OpenedRawDataFile[] groupOneSelectedFiles, OpenedRawDataFile[] groupTwoSelectedFiles, SimpleParameterSet parameters) {
 		int numOfRows = alignedPeakList.getNumberOfRows();
 		
@@ -28,10 +30,16 @@ public class LogratioDataset extends AbstractXYZDataset {
 		if (parameters.getParameterValue(RTMZAnalyzer.MeasurementType)==RTMZAnalyzer.MeasurementTypeHeight)
 			useArea = false;
 			
-		String msg = "Computing logratio dataset using peak ";
-		if (useArea) msg=msg.concat("area "); else msg=msg.concat("height ");
-		msg=msg.concat("for " + groupOneSelectedFiles.length + " vs. " + groupTwoSelectedFiles.length + " raw data files");
-		logger.finest(msg);
+		// Generate title for the dataset
+		datasetTitle = "Logratio analysis";
+		datasetTitle = datasetTitle.concat(" (");
+		if (useArea) 
+			datasetTitle = datasetTitle.concat("Logratio of average peak areas");
+		else
+			datasetTitle = datasetTitle.concat("Logratio of average peak heights");
+		datasetTitle = datasetTitle.concat(" in " + groupOneSelectedFiles.length + " vs. " + groupTwoSelectedFiles.length + " files");
+		datasetTitle = datasetTitle.concat(")");
+		logger.finest("Computing: " + datasetTitle);
 
 		Vector<Double> xCoordsV = new Vector<Double>();
 		Vector<Double> yCoordsV = new Vector<Double>();
@@ -93,6 +101,9 @@ public class LogratioDataset extends AbstractXYZDataset {
 		
 	}
 	
+	public String toString() {
+		return datasetTitle;
+	}	
 	
 	@Override
 	public int getSeriesCount() {

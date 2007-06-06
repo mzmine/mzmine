@@ -21,6 +21,8 @@ public class CVDataset extends AbstractXYZDataset {
 	private double[] yCoords = new double[0];
 	private double[] colorCoords = new double[0];
 	
+	private String datasetTitle;
+	
 	public CVDataset(PeakList alignedPeakList, OpenedRawDataFile[] selectedFiles, SimpleParameterSet parameters) {
 		int numOfRows = alignedPeakList.getNumberOfRows();
 		
@@ -28,15 +30,23 @@ public class CVDataset extends AbstractXYZDataset {
 		if (parameters.getParameterValue(RTMZAnalyzer.MeasurementType)==RTMZAnalyzer.MeasurementTypeHeight)
 			useArea = false;
 			
-		String msg = "Computing CV dataset using peak ";
-		if (useArea) msg=msg.concat("area "); else msg=msg.concat("height ");
-		msg=msg.concat("for " + selectedFiles.length + " raw data files");
-		logger.finest(msg);
+		// Generate title for the dataset
+		datasetTitle = "Correlation of variation analysis";
+		datasetTitle = datasetTitle.concat(" (");
+		if (useArea) 
+			datasetTitle = datasetTitle.concat("CV of peak areas");
+		else
+			datasetTitle = datasetTitle.concat("CV of peak heights");
+		datasetTitle = datasetTitle.concat(" in " + selectedFiles.length + " files");
+		datasetTitle = datasetTitle.concat(")");
+		
+		logger.finest("Computing: " + datasetTitle);
 
+		// Loop through rows of aligned peak list
 		Vector<Double> xCoordsV = new Vector<Double>();
 		Vector<Double> yCoordsV = new Vector<Double>();
 		Vector<Double> colorCoordsV = new Vector<Double>();
-		
+
 		for (int rowIndex=0; rowIndex<numOfRows; rowIndex++) {
 			
 			PeakListRow row = alignedPeakList.getRow(rowIndex);
@@ -76,6 +86,9 @@ public class CVDataset extends AbstractXYZDataset {
 		
 	}
 	
+	public String toString() {
+		return datasetTitle;
+	}
 	
 	@Override
 	public int getSeriesCount() {
