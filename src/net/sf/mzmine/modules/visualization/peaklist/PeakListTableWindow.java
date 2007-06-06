@@ -34,6 +34,7 @@ import javax.swing.JTable;
 
 import net.sf.mzmine.data.PeakList;
 import net.sf.mzmine.modules.visualization.peaklist.table.PeakListTable;
+import net.sf.mzmine.modules.visualization.peaklist.table.PeakListTableColumnModel;
 import net.sf.mzmine.modules.visualization.peaklist.table.PeakListTableModel;
 import net.sf.mzmine.userinterface.dialogs.ExitCode;
 import net.sf.mzmine.userinterface.mainwindow.MainWindow;
@@ -82,7 +83,7 @@ public class PeakListTableWindow extends JInternalFrame
         
         // Build table
         table = new PeakListTable(myParameters, peakList);
-        table.setAutoResizeMode(JTable.AUTO_RESIZE_OFF);
+        
         scrollPane = new JScrollPane(table);
 
         add(scrollPane, BorderLayout.CENTER);
@@ -109,6 +110,8 @@ public class PeakListTableWindow extends JInternalFrame
             if (dialog.getExitCode() == ExitCode.OK) {
                 table.setRowHeight(myParameters.getRowHeight());
                 //model.fireTableStructureChanged();
+                PeakListTableColumnModel cm = table.getColumnModel();
+                cm.createColumns();
             }
         }
         

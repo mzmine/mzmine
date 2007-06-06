@@ -20,6 +20,7 @@
 package net.sf.mzmine.modules.visualization.peaklist.table;
 
 import java.awt.Font;
+import java.util.Enumeration;
 
 import javax.swing.DefaultCellEditor;
 import javax.swing.JTextField;
@@ -46,9 +47,33 @@ public class PeakListTableColumnModel extends DefaultTableColumnModel {
             peakShapeRenderer, identityRenderer, peakStatusRenderer;
     private DefaultTableCellRenderer defaultRenderer;
 
-    void createColumns(PeakListTable table, PeakListTableParameters parameters,
-            PeakList peakList, GroupableTableHeader header) {
+    
+    private PeakListTable table;
+    private PeakListTableParameters parameters;
+    private PeakList peakList;
+    
+    /**
 
+     */
+    PeakListTableColumnModel(PeakListTable table, PeakListTableParameters parameters,
+            PeakList peakList) {
+            this.table = table;
+            this.parameters = parameters;
+            this.peakList = peakList;
+    }
+
+    public void createColumns() {
+
+        // clear the column model
+        Enumeration<TableColumn> currentColumns = this.getColumns(); 
+        while (currentColumns.hasMoreElements()) {
+            removeColumn(currentColumns.nextElement());
+        }
+        
+        // clear the header
+        GroupableTableHeader header = (GroupableTableHeader) table.getTableHeader();
+        header.removeAll();
+        
         ColumnGroup averageGroup = new ColumnGroup("Average");
         header.addColumnGroup(averageGroup);
 
@@ -72,10 +97,14 @@ public class PeakListTableColumnModel extends DefaultTableColumnModel {
         editorField.setFont(editFont);
         DefaultCellEditor defaultEditor = new DefaultCellEditor(editorField);
         // defaultEditor.setClickCountToStart(1);
+
         
         int modelIndex = 0;
 
         for (CommonColumnType commonColumn : CommonColumnType.values()) {
+            
+            if (! parameters.isColumnVisible(commonColumn)) continue;
+            
             int width = parameters.getColumnWidth(commonColumn);
             TableColumn newColumn = new TableColumn(modelIndex, width);
             newColumn.setHeaderValue(commonColumn.getColumnName());
@@ -109,6 +138,9 @@ public class PeakListTableColumnModel extends DefaultTableColumnModel {
             header.addColumnGroup(fileGroup);
 
             for (DataFileColumnType dataFileColumn : DataFileColumnType.values()) {
+                
+                if (! parameters.isColumnVisible(dataFileColumn)) continue;
+                
                 int width = parameters.getColumnWidth(dataFileColumn);
                 TableColumn newColumn = new TableColumn(modelIndex, width);
                 newColumn.setHeaderValue(dataFileColumn.getColumnName());
@@ -143,37 +175,5 @@ public class PeakListTableColumnModel extends DefaultTableColumnModel {
 
     }
 
-    boolean isCommonColumn(int col) {
-        return col < CommonColumnType.values().length;
-    }
-
-    CommonColumnType getCommonColumn(int col) {
-
-        CommonColumnType commonColumns[] = CommonColumnType.values();
-
-        if (col < commonColumns.length)
-            return commonColumns[col];
-
-        return null;
-
-    }
-
-    DataFileColumnType getDataFileColumn(int col) {
-
-        CommonColumnType commonColumns[] = CommonColumnType.values();
-        DataFileColumnType dataFileColumns[] = DataFileColumnType.values();
-
-        if (col < commonColumns.length)
-            return null;
-
-        // substract common columns from the index
-        col -= commonColumns.length;
-
-        // divide by number of data file columns
-        col %= dataFileColumns.length;
-
-        return dataFileColumns[col];
-
-    }
-
+    
 }

@@ -38,30 +38,25 @@ import com.sun.java.TableSorter;
 public class PeakListTable extends JTable {
 
     static final String UNKNOWN_IDENTITY = "Unknown";
-    // title font
+   
     private static final Font comboFont = new Font("SansSerif", Font.PLAIN, 10);
     
     private TableSorter sorter;
-    private PeakListTableModel tableModel;
+    private PeakListTableModel pkTableModel;
     private PeakList peakList;
     private PeakListTableColumnModel cm;
-    private PeakListTableParameters parameters;
     
     public PeakListTable(
             PeakListTableParameters parameters,
             PeakList peakList) {
 
-        this.parameters = parameters;
-        
-        //ComponentCellRenderer rend = new ComponentCellRenderer();
-        //setDefaultRenderer(JComponent.class, rend);
-        
         this.peakList = peakList;
 
-        cm = new PeakListTableColumnModel();
+        this.setAutoResizeMode(JTable.AUTO_RESIZE_OFF);
+        cm = new PeakListTableColumnModel(this, parameters, peakList);
         
         
-        
+        this.setAutoCreateColumnsFromModel(false);
         
         cm.setColumnMargin(0);
         setColumnModel(cm);
@@ -70,15 +65,14 @@ public class PeakListTable extends JTable {
         setTableHeader(header);
 
         // create default columns
-        cm.createColumns(this, parameters, peakList, header);
+        cm.createColumns();
         
-        this.setAutoCreateColumnsFromModel(false);
         
-        this.tableModel = new PeakListTableModel(peakList);
+        this.pkTableModel = new PeakListTableModel(peakList);
         
         
         // Initialize sorter
-        sorter = new TableSorter(tableModel, header);
+        sorter = new TableSorter(pkTableModel, header);
 
         setModel(sorter);
 
@@ -94,6 +88,10 @@ public class PeakListTable extends JTable {
         return sorter;
     }
     
+    public PeakListTableColumnModel getColumnModel() {
+        return cm;
+    }
+    
     public PeakList getPeakList() {
         return peakList;
     }
@@ -101,7 +99,7 @@ public class PeakListTable extends JTable {
     public TableCellEditor getCellEditor(int row,
             int column) {
         
-        CommonColumnType commonColumn = tableModel.getCommonColumn(column);
+        CommonColumnType commonColumn = pkTableModel.getCommonColumn(column);
         if (commonColumn == CommonColumnType.IDENTITY) {
             int peakListRowIndex = sorter.modelIndex(row);
             PeakListRow peakListRow = peakList.getRow(peakListRowIndex);
