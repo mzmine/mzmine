@@ -27,8 +27,7 @@
     <module class="net.sf.mzmine.modules.normalization.linear.LinearNormalizer"/> 
     <module class="net.sf.mzmine.modules.normalization.simplestandardcompound.SimpleStandardCompoundNormalizer"/> 
     <module class="net.sf.mzmine.modules.dataanalysis.rtmzplots.RTMZAnalyzer"/>
-    <module class="net.sf.mzmine.modules.dataanalysis.cdaplot.CDAPlot"/>
-    <module class="net.sf.mzmine.modules.dataanalysis.sammonsplot.SammonsPlot"/>   
+    <module class="net.sf.mzmine.modules.dataanalysis.projectionplots.ProjectionPlot"/>
     <module class="net.sf.mzmine.modules.dataanalysis.intensityplot.IntensityPlot"/> 
     <module class="net.sf.mzmine.modules.identification.custom.CustomDBSearch"/> 
     <module class="net.sf.mzmine.modules.identification.fragmentation.InSourceFragmentationSearch"/> 
