@@ -70,7 +70,19 @@ public class RTMZSetupDialog extends JDialog implements java.awt.event.ActionLis
      */
     public RTMZSetupDialog(Desktop desktop, OpenedRawDataFile[] dataFiles, SimpleParameterSet parameters, SelectionMode mode) {
 
-    	super(desktop.getMainFrame(), "Select two groups of raw data files for logratio analysis", true);
+    	super(desktop.getMainFrame(), null, true);
+    	
+    	String title=null;
+    	if (mode == SelectionMode.SingleGroup) {
+    		title = "Select files for analysis";
+    	}
+
+    	if (mode == SelectionMode.TwoGroups) {
+    		title = "Select two groups of files for analysis";
+    	}
+    	
+   	   	setTitle(title);
+    	
 
     	
     	this.desktop = desktop;
