@@ -40,7 +40,7 @@ public class RTMZAnalyzer implements MZmineModule, ActionListener {
     public static final Parameter MeasurementType = new SimpleParameter(
             ParameterType.STRING,
             "Peak measurement type",
-            "Whether peak's area or height is used in computing coefficient of variance",
+            "Determines whether peak's area or height is used in computations.",
             MeasurementTypeArea, MeasurementTypePossibleValues);    
     
 
@@ -63,10 +63,10 @@ public class RTMZAnalyzer implements MZmineModule, ActionListener {
                 new Parameter[] { MeasurementType });
         
         
-        desktop.addMenuItem(MZmineMenu.ANALYSIS, "Coefficient of variation (CV) analysis (NEW)", this, "CV_PLOT",
+        desktop.addMenuItem(MZmineMenu.ANALYSIS, "Coefficient of variation (CV) analysis", this, "CV_PLOT",
                 KeyEvent.VK_C, false, true);
         
-        desktop.addMenuItem(MZmineMenu.ANALYSIS, "Logratio analysis (NEW)", this, "LOGRATIO_PLOT",
+        desktop.addMenuItem(MZmineMenu.ANALYSIS, "Logratio analysis", this, "LOGRATIO_PLOT",
                 KeyEvent.VK_C, false, true);        
 
     }
