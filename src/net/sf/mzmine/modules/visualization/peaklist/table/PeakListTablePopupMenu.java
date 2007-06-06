@@ -109,7 +109,7 @@ public class PeakListTablePopupMenu extends JPopupMenu implements
             int rowsToDelete[] = table.getSelectedRows();
             // sort row indices
             Arrays.sort(rowsToDelete);
-            TableSorter sorterModel = table.getModel();
+            TableSorter sorterModel = (TableSorter) table.getModel();
             PeakListTableModel originalModel = (PeakListTableModel) sorterModel.getTableModel();
 
             // delete the rows starting from last

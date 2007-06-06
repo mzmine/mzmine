@@ -110,7 +110,7 @@ public class PeakListTableWindow extends JInternalFrame
             if (dialog.getExitCode() == ExitCode.OK) {
                 table.setRowHeight(myParameters.getRowHeight());
                 //model.fireTableStructureChanged();
-                PeakListTableColumnModel cm = table.getColumnModel();
+                PeakListTableColumnModel cm = (PeakListTableColumnModel) table.getColumnModel();
                 cm.createColumns();
             }
         }

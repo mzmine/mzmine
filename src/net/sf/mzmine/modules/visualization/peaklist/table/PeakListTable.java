@@ -84,13 +84,9 @@ public class PeakListTable extends JTable {
 
     }
     
-    public TableSorter getModel() {
-        return sorter;
-    }
+
     
-    public PeakListTableColumnModel getColumnModel() {
-        return cm;
-    }
+
     
     public PeakList getPeakList() {
         return peakList;
