@@ -13,7 +13,7 @@ import net.sf.mzmine.util.MathUtils;
 
 import org.jfree.data.xy.AbstractXYZDataset;
 
-public class LogratioDataset extends RTMZDataset {
+public class LogratioDataset extends AbstractXYZDataset implements RTMZDataset  {
 
 	private Logger logger = Logger.getLogger(this.getClass().getName());
 	

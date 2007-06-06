@@ -91,8 +91,7 @@ public class RTMZPlot extends ChartPanel {
         plot.setRangeCrosshairPaint(crossHairColor);
         plot.setDomainCrosshairStroke(crossHairStroke);
         plot.setRangeCrosshairStroke(crossHairStroke);
-        
-       
+  
         Desktop desktop = MainWindow.getInstance();
         NumberFormat rtFormat = desktop.getRTFormat();
         NumberFormat mzFormat = desktop.getMZFormat();
@@ -110,6 +109,7 @@ public class RTMZPlot extends ChartPanel {
 		plot.setDataset(dataset);
 		spotRenderer = new RTMZRenderer(dataset, paintScale);
 		plot.setRenderer(spotRenderer);
+		spotRenderer.setToolTipGenerator(new RTMZToolTipGenerator());
 		
 		// Add a paintScaleLegend to chart
 		
