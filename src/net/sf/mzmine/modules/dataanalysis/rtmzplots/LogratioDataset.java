@@ -13,13 +13,14 @@ import net.sf.mzmine.util.MathUtils;
 
 import org.jfree.data.xy.AbstractXYZDataset;
 
-public class LogratioDataset extends AbstractXYZDataset {
+public class LogratioDataset extends RTMZDataset {
 
 	private Logger logger = Logger.getLogger(this.getClass().getName());
 	
 	private double[] xCoords = new double[0];
 	private double[] yCoords = new double[0];
 	private double[] colorCoords = new double[0];
+	private PeakListRow[] peakListRows = new PeakListRow[0];
 	
 	private String datasetTitle;
 	
@@ -44,6 +45,7 @@ public class LogratioDataset extends AbstractXYZDataset {
 		Vector<Double> xCoordsV = new Vector<Double>();
 		Vector<Double> yCoordsV = new Vector<Double>();
 		Vector<Double> colorCoordsV = new Vector<Double>();
+		Vector<PeakListRow> peakListRowsV = new Vector<PeakListRow>();
 		
 		for (int rowIndex=0; rowIndex<numOfRows; rowIndex++) {
 			
@@ -89,6 +91,7 @@ public class LogratioDataset extends AbstractXYZDataset {
 				xCoordsV.add(rt);
 				yCoordsV.add(mz);
 				colorCoordsV.add(logratio);
+				peakListRowsV.add(row);
 				
 			} 
 	
@@ -98,6 +101,7 @@ public class LogratioDataset extends AbstractXYZDataset {
 		xCoords = CollectionUtils.toDoubleArray(xCoordsV);
 		yCoords = CollectionUtils.toDoubleArray(yCoordsV);
 		colorCoords = CollectionUtils.toDoubleArray(colorCoordsV);
+		peakListRows = peakListRowsV.toArray(new PeakListRow[0]);
 		
 	}
 	
@@ -135,6 +139,10 @@ public class LogratioDataset extends AbstractXYZDataset {
 		if (series!=0) return null;
 		if ((yCoords.length-1)<item) return null;
 		return yCoords[item];	
+	}
+	
+	public PeakListRow getPeakListRow(int item) {
+		return peakListRows[item];
 	}
 
 }
