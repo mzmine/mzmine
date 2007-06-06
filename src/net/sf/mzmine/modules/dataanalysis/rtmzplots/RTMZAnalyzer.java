@@ -7,6 +7,8 @@ import java.util.logging.Logger;
 
 import javax.swing.JDialog;
 
+import org.jfree.data.xy.AbstractXYZDataset;
+
 import net.sf.mzmine.data.Parameter;
 import net.sf.mzmine.data.ParameterSet;
 import net.sf.mzmine.data.PeakList;
@@ -97,6 +99,7 @@ public class RTMZAnalyzer implements MZmineModule, ActionListener {
         		continue;
         	}
 
+        	// Show opened raw data file selection and parameter setup dialog 
         	RTMZSetupDialog setupDialog = null;
             if (command.equals("CV_PLOT"))
             	setupDialog = new RTMZSetupDialog(desktop, pl.getRawDataFiles(), parameters, RTMZSetupDialog.SelectionMode.SingleGroup); 
@@ -105,7 +108,6 @@ public class RTMZAnalyzer implements MZmineModule, ActionListener {
             	setupDialog = new RTMZSetupDialog(desktop, pl.getRawDataFiles(), parameters, RTMZSetupDialog.SelectionMode.TwoGroups);
 
             if (setupDialog == null) return;
-            
             setupDialog.setVisible(true);
             
         	if (setupDialog.getExitCode() != ExitCode.OK) {
@@ -113,8 +115,15 @@ public class RTMZAnalyzer implements MZmineModule, ActionListener {
         		return;
         	}
         	
-        	// TODO: Create dataset and plot window
+        	// Create dataset
+        	AbstractXYZDataset dataset = null;
+        	if (command.equals("CV_PLOT"))
+        		dataset = new CVDataset(pl, setupDialog.getGroupOneSelectedFiles(), parameters);
         	
+        	if (command.equals("LOGRATIO_PLOT"))
+        		dataset = new LogratioDataset(pl, setupDialog.getGroupOneSelectedFiles(), setupDialog.getGroupTwoSelectedFiles(), parameters);
+
+        	// Show window
         	/*
         	logger.info("Showing coefficient of variation analysis window.");
         	CVDataset dataset = new CVDataset(pl, setupDialog.getSelectedFiles(), parameters);
