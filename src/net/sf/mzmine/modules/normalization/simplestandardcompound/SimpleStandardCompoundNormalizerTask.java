@@ -162,7 +162,7 @@ public class SimpleStandardCompoundNormalizerTask implements Task {
 	        					normalizationFactors[standardRowIndex] = standardPeak.getHeight();
 	        				if (peakMeasurementType == SimpleStandardCompoundNormalizerParameterSet.PeakMeasurementTypeArea)
 	        					normalizationFactors[standardRowIndex] = standardPeak.getArea();
-	        				normalizationFactorWeights[standardRowIndex] = distance;
+	        				normalizationFactorWeights[standardRowIndex] = 1/distance;
 	        			}
 	        		}
 	        		
@@ -174,13 +174,14 @@ public class SimpleStandardCompoundNormalizerTask implements Task {
 	        	for (int factorIndex=0; factorIndex<normalizationFactors.length; factorIndex++) {
 	        		weightedSum += normalizationFactors[factorIndex] * normalizationFactorWeights[factorIndex];
 	        		sumOfWeights += normalizationFactorWeights[factorIndex];
-	        		System.out.println("normalizationFactors[factorIndex]=" + normalizationFactors[factorIndex] + " normalizationFactorWeights[factorIndex]=" + normalizationFactorWeights[factorIndex]);
 	        	}
 	        	double normalizationFactor = weightedSum / sumOfWeights;
-	        	System.out.println("normalizationFactor=" + normalizationFactor);
+	        	
+	        	// For simple scaling of the normalized values
+	        	normalizationFactor = normalizationFactor / 100.0;
 	        	
 	        	// TODO: How to handle zero normalization factor?
-	        	if (normalizationFactor==0.0) normalizationFactor = Double.MIN_VALUE;   	
+	        	if (normalizationFactor==0.0) normalizationFactor = Double.MIN_VALUE;
 	        	
 	        	// Normalize peak 	        	
                 Peak originalPeak = row.getPeak(ord);
@@ -211,9 +212,7 @@ public class SimpleStandardCompoundNormalizerTask implements Task {
             SimplePeakListRow normalizedRow = rowMap.get(row);
             normalizedPeakList.addRow(normalizedRow);
         }
-        
-        // TODO: Scale all normalized values?
-        
+               
         taskStatus = TaskStatus.FINISHED;
 		
 	}
