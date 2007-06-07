@@ -19,9 +19,11 @@
 
 package net.sf.mzmine.modules.visualization.peaklist;
 
+import java.util.EnumSet;
 import java.util.Hashtable;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Set;
 
 import net.sf.mzmine.data.StorableParameterSet;
 import net.sf.mzmine.modules.visualization.peaklist.table.CommonColumnType;
@@ -33,152 +35,202 @@ public class PeakListTableParameters implements StorableParameterSet {
 
     private static final int DEFAULT_COLUMN_WIDTH = 100;
     private static final int DEFAULT_ROW_HEIGHT = 20;
-    
+
     private static final String COLUMN_ELEMENT = "column";
-
-
+    private static final String TYPE_ATTRIBUTE = "type";
+    private static final String TYPE_COMMON = "common";
+    private static final String TYPE_DATAFILE = "datafile";
+    private static final String NAME_ATTRIBUTE = "name";
+    private static final String VISIBLE_ELEMENT = "visible";
+    private static final String WIDTH_ELEMENT = "width";
+    private static final String ROWHEIGHT_ELEMENT = "rowheight";
+    private static final String PEAKSHAPENORM_ELEMENT = "peakshapenormalization";
 
     private Hashtable<CommonColumnType, Boolean> commonColumnsVisibility;
     private Hashtable<DataFileColumnType, Boolean> dataFileColumnsVisibility;
     private Hashtable<CommonColumnType, Integer> commonColumnsWidth;
     private Hashtable<DataFileColumnType, Integer> dataFileColumnsWidth;
-    
-    private PeakShapeMaximum peakShapeMaximum;
-    
+
+    private PeakShapeNormalization peakShapeNormalization;
+
     private int rowHeight;
-    
+
     public PeakListTableParameters() {
-        
+
         commonColumnsVisibility = new Hashtable<CommonColumnType, Boolean>();
         dataFileColumnsVisibility = new Hashtable<DataFileColumnType, Boolean>();
         commonColumnsWidth = new Hashtable<CommonColumnType, Integer>();
         dataFileColumnsWidth = new Hashtable<DataFileColumnType, Integer>();
-        
-        peakShapeMaximum = PeakShapeMaximum.PEAKMAX;
-        
+
+        peakShapeNormalization = PeakShapeNormalization.PEAKMAX;
+
         rowHeight = DEFAULT_ROW_HEIGHT;
-        
+
     }
 
     /**
      * @see net.sf.mzmine.data.StorableParameterSet#exportValuesToXML(org.dom4j.Element)
      */
     public void exportValuesToXML(Element element) {
-        /*
-         * for (ColumnType col : selectedCommonColumns) { Element newElement =
-         * element.addElement(SELECTED_COLUMN_ELEMENT);
-         * newElement.addAttribute("type", "common");
-         * newElement.addAttribute("name", col.getColumnName()); } for
-         * (ColumnType col : selectedRawDataColumns) { Element newElement =
-         * element.addElement(SELECTED_COLUMN_ELEMENT);
-         * newElement.addAttribute("type", "rawdata");
-         * newElement.addAttribute("name", col.getColumnName()); }
-         */
+
+        EnumSet<CommonColumnType> commonColumns = EnumSet.noneOf(CommonColumnType.class);
+        commonColumns.addAll(commonColumnsVisibility.keySet());
+        commonColumns.addAll(commonColumnsWidth.keySet());
+
+        for (CommonColumnType column : commonColumns) {
+            Element newElement = element.addElement(COLUMN_ELEMENT);
+            newElement.addAttribute(TYPE_ATTRIBUTE, TYPE_COMMON);
+            newElement.addAttribute(NAME_ATTRIBUTE, column.toString());
+            newElement.addElement(VISIBLE_ELEMENT).setText(
+                    String.valueOf(isColumnVisible(column)));
+            newElement.addElement(WIDTH_ELEMENT).setText(
+                    String.valueOf(getColumnWidth(column)));
+        }
+
+        EnumSet<DataFileColumnType> dataFileColumns = EnumSet.noneOf(DataFileColumnType.class);
+        dataFileColumns.addAll(dataFileColumnsVisibility.keySet());
+        dataFileColumns.addAll(dataFileColumnsWidth.keySet());
+
+        for (DataFileColumnType column : dataFileColumns) {
+            Element newElement = element.addElement(COLUMN_ELEMENT);
+            newElement.addAttribute(TYPE_ATTRIBUTE, TYPE_DATAFILE);
+            newElement.addAttribute(NAME_ATTRIBUTE, column.toString());
+            newElement.addElement(VISIBLE_ELEMENT).setText(
+                    String.valueOf(isColumnVisible(column)));
+            newElement.addElement(WIDTH_ELEMENT).setText(
+                    String.valueOf(getColumnWidth(column)));
+        }
+
+        element.addElement(ROWHEIGHT_ELEMENT).setText(String.valueOf(rowHeight));
+        element.addElement(PEAKSHAPENORM_ELEMENT).setText(peakShapeNormalization.name());
+
     }
 
     /**
      * @see net.sf.mzmine.data.StorableParameterSet#importValuesFromXML(org.dom4j.Element)
      */
     public void importValuesFromXML(Element element) {
+
         List elementsList = element.elements(COLUMN_ELEMENT);
         Iterator elementsIterator = elementsList.iterator();
 
         while (elementsIterator.hasNext()) {
-            Element nextElement = (Element) elementsIterator.next();
-            String colType = nextElement.attributeValue("type");
-            String colName = nextElement.attributeValue("name");
-            if (colType.equals("common")) {
-                for (CommonColumnType col : CommonColumnType.values()) {
-                }
+            Element columnElement = (Element) elementsIterator.next();
+            String colType = columnElement.attributeValue(TYPE_ATTRIBUTE);
+            String colName = columnElement.attributeValue(NAME_ATTRIBUTE);
+            int colWidth = Integer.parseInt(columnElement.elementText(WIDTH_ELEMENT));
+            boolean colVisible = Boolean.parseBoolean(columnElement.elementText(VISIBLE_ELEMENT));
+
+            if (colType.equals(TYPE_COMMON)) {
+                CommonColumnType column = CommonColumnType.valueOf(colName);
+                setColumnWidth(column, colWidth);
+                setColumnVisible(column, colVisible);
             }
-            if (colType.equals("rawdata")) {
-                for (DataFileColumnType col : DataFileColumnType.values()) {
-                }
+            if (colType.equals(TYPE_DATAFILE)) {
+                DataFileColumnType column = DataFileColumnType.valueOf(colName);
+                setColumnWidth(column, colWidth);
+                setColumnVisible(column, colVisible);
             }
         }
+
+        String rowHeightStr = element.elementText(ROWHEIGHT_ELEMENT);
+        if (rowHeightStr != null)
+            rowHeight = Integer.parseInt(rowHeightStr);
+
+        String peakShapeStr = element.elementText(PEAKSHAPENORM_ELEMENT);
+        if (peakShapeStr != null)
+            peakShapeNormalization = PeakShapeNormalization.valueOf(peakShapeStr);
 
     }
 
     public PeakListTableParameters clone() {
-        
+
         PeakListTableParameters newParameters = new PeakListTableParameters();
-        
+
         for (CommonColumnType commonColumn : commonColumnsVisibility.keySet()) {
-            newParameters.setColumnVisible(commonColumn, commonColumnsVisibility.get(commonColumn));
+            newParameters.setColumnVisible(commonColumn,
+                    commonColumnsVisibility.get(commonColumn));
         }
-        
+
         for (CommonColumnType commonColumn : commonColumnsWidth.keySet()) {
-            newParameters.setColumnWidth(commonColumn, commonColumnsWidth.get(commonColumn));
+            newParameters.setColumnWidth(commonColumn,
+                    commonColumnsWidth.get(commonColumn));
         }
-        
+
         for (DataFileColumnType dataFileColumn : dataFileColumnsVisibility.keySet()) {
-            newParameters.setColumnVisible(dataFileColumn, dataFileColumnsVisibility.get(dataFileColumn));
+            newParameters.setColumnVisible(dataFileColumn,
+                    dataFileColumnsVisibility.get(dataFileColumn));
         }
-        
+
         for (DataFileColumnType dataFileColumn : dataFileColumnsWidth.keySet()) {
-            newParameters.setColumnWidth(dataFileColumn, dataFileColumnsWidth.get(dataFileColumn));
+            newParameters.setColumnWidth(dataFileColumn,
+                    dataFileColumnsWidth.get(dataFileColumn));
         }
-        
+
         newParameters.setRowHeight(rowHeight);
-        newParameters.setPeakShapeMaximum(peakShapeMaximum);
-        
+        newParameters.setPeakShapeNormalization(peakShapeNormalization);
+
         return newParameters;
-        
+
     }
-    
-    public PeakShapeMaximum getPeakShapeMaximum() {
-        return peakShapeMaximum;
+
+    public PeakShapeNormalization getPeakShapeNormalization() {
+        return peakShapeNormalization;
     }
-    
-    void setPeakShapeMaximum(PeakShapeMaximum max) {
-        this.peakShapeMaximum = max;
+
+    void setPeakShapeNormalization(PeakShapeNormalization max) {
+        this.peakShapeNormalization = max;
     }
-    
+
     public int getRowHeight() {
         return rowHeight;
     }
-    
+
     void setRowHeight(int height) {
         this.rowHeight = height;
     }
 
     public boolean isColumnVisible(CommonColumnType type) {
         Boolean visible = commonColumnsVisibility.get(type);
-        if (visible == null) return true;
+        if (visible == null)
+            return true;
         return visible;
     }
 
-    void setColumnVisible(CommonColumnType type, boolean visible) {
+    public void setColumnVisible(CommonColumnType type, boolean visible) {
         commonColumnsVisibility.put(type, visible);
     }
 
     public int getColumnWidth(CommonColumnType type) {
         Integer width = commonColumnsWidth.get(type);
-        if (width == null) return DEFAULT_COLUMN_WIDTH;
+        if (width == null)
+            return DEFAULT_COLUMN_WIDTH;
         return width;
     }
-    
-    void setColumnWidth(CommonColumnType type, int width) {
+
+    public void setColumnWidth(CommonColumnType type, int width) {
         commonColumnsWidth.put(type, width);
     }
-    
+
     public boolean isColumnVisible(DataFileColumnType type) {
         Boolean visible = dataFileColumnsVisibility.get(type);
-        if (visible == null) return true;
+        if (visible == null)
+            return true;
         return visible;
     }
 
-    void setColumnVisible(DataFileColumnType type, boolean visible) {
+    public void setColumnVisible(DataFileColumnType type, boolean visible) {
         dataFileColumnsVisibility.put(type, visible);
     }
 
     public int getColumnWidth(DataFileColumnType type) {
         Integer width = dataFileColumnsWidth.get(type);
-        if (width == null) return DEFAULT_COLUMN_WIDTH;
+        if (width == null)
+            return DEFAULT_COLUMN_WIDTH;
         return width;
     }
 
-    void setColumnWidth(DataFileColumnType type, int width) {
+    public void setColumnWidth(DataFileColumnType type, int width) {
         dataFileColumnsWidth.put(type, width);
     }
 

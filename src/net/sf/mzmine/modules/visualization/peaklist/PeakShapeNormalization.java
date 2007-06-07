@@ -20,14 +20,14 @@
 package net.sf.mzmine.modules.visualization.peaklist;
 
 
-public enum PeakShapeMaximum {
+public enum PeakShapeNormalization {
     PEAKMAX("Peak maximum"),
     ROWMAX("Row maximum"),
     GLOBALMAX("Global maximum");
     
     private final String displayName;
     
-    PeakShapeMaximum(final String displayName) {
+    PeakShapeNormalization(final String displayName) {
         this.displayName = displayName;
     }
     

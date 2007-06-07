@@ -30,6 +30,9 @@ import net.sf.mzmine.data.CompoundIdentity;
 import net.sf.mzmine.data.PeakList;
 import net.sf.mzmine.data.PeakListRow;
 import net.sf.mzmine.modules.visualization.peaklist.PeakListTableParameters;
+import net.sf.mzmine.modules.visualization.peaklist.PeakListTablePopupMenu;
+import net.sf.mzmine.modules.visualization.peaklist.PeakListTableVisualizer;
+import net.sf.mzmine.modules.visualization.peaklist.PeakListTableWindow;
 import net.sf.mzmine.userinterface.components.GroupableTableHeader;
 import net.sf.mzmine.userinterface.components.PopupListener;
 
@@ -38,93 +41,85 @@ import com.sun.java.TableSorter;
 public class PeakListTable extends JTable {
 
     static final String UNKNOWN_IDENTITY = "Unknown";
-   
+
     private static final Font comboFont = new Font("SansSerif", Font.PLAIN, 10);
-    
+
     private TableSorter sorter;
     private PeakListTableModel pkTableModel;
     private PeakList peakList;
     private PeakListTableColumnModel cm;
-    
-    public PeakListTable(
-            PeakListTableParameters parameters,
+
+    public PeakListTable(PeakListTableVisualizer visualizer,
+            PeakListTableWindow window, PeakListTableParameters parameters,
             PeakList peakList) {
 
         this.peakList = peakList;
 
         this.setAutoResizeMode(JTable.AUTO_RESIZE_OFF);
-        cm = new PeakListTableColumnModel(this, parameters, peakList);
-        
-        
         this.setAutoCreateColumnsFromModel(false);
-        
+
+        this.pkTableModel = new PeakListTableModel(peakList);
+
+        GroupableTableHeader header = new GroupableTableHeader();
+        setTableHeader(header);
+
+        cm = new PeakListTableColumnModel(visualizer, header, pkTableModel,
+                parameters, peakList);
         cm.setColumnMargin(0);
         setColumnModel(cm);
-        
-        GroupableTableHeader header = new GroupableTableHeader(cm);
-        setTableHeader(header);
 
         // create default columns
         cm.createColumns();
-        
-        
-        this.pkTableModel = new PeakListTableModel(peakList);
-        
-        
+
         // Initialize sorter
         sorter = new TableSorter(pkTableModel, header);
-
         setModel(sorter);
 
-        
-        PeakListTablePopupMenu popupMenu = new PeakListTablePopupMenu(this, peakList);
+        PeakListTablePopupMenu popupMenu = new PeakListTablePopupMenu(window,
+                this, peakList);
         addMouseListener(new PopupListener(popupMenu));
 
         setRowHeight(parameters.getRowHeight());
 
     }
-    
 
-    
-
-    
     public PeakList getPeakList() {
         return peakList;
     }
-    
-    public TableCellEditor getCellEditor(int row,
-            int column) {
-        
+
+    public TableCellEditor getCellEditor(int row, int column) {
+
         CommonColumnType commonColumn = pkTableModel.getCommonColumn(column);
         if (commonColumn == CommonColumnType.IDENTITY) {
             int peakListRowIndex = sorter.modelIndex(row);
             PeakListRow peakListRow = peakList.getRow(peakListRowIndex);
-            
+
             CompoundIdentity identities[] = peakListRow.getCompoundIdentities();
             CompoundIdentity preferredIdentity = peakListRow.getPreferredCompoundIdentity();
             JComboBox combo;
-            
+
             if ((identities != null) && (identities.length > 0)) {
                 combo = new JComboBox(identities);
                 combo.addItem("--------------");
             } else {
                 combo = new JComboBox();
             }
-            
+
             combo.setFont(comboFont);
-            
+
             combo.addItem(UNKNOWN_IDENTITY);
             combo.addItem("Add new...");
             if (preferredIdentity == null) {
                 combo.setSelectedItem(UNKNOWN_IDENTITY);
-            } else combo.setSelectedItem(preferredIdentity);
-            
+            } else
+                combo.setSelectedItem(preferredIdentity);
+
             DefaultCellEditor cellEd = new DefaultCellEditor(combo);
             return cellEd;
         }
-        
+
         return super.getCellEditor(row, column);
-    
+
     }
 
 }

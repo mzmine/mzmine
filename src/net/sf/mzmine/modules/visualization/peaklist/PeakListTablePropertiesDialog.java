@@ -69,8 +69,6 @@ public class PeakListTablePropertiesDialog extends JDialog
 
         setTitle("Peak list table properties");
         
-
-        
         // Generate label and check box for each possible common column
         JPanel pnlCommon = new JPanel();
         pnlCommon.setLayout(new BoxLayout(pnlCommon, BoxLayout.Y_AXIS));
@@ -138,9 +136,9 @@ public class PeakListTablePropertiesDialog extends JDialog
         propertiesPanel.setLayout(new GridLayout(2, 2, 5, 5));
         
         
-        GUIUtils.addLabel(propertiesPanel, "Peak shape maximum");
-        peakShapeMaxCombo = new JComboBox(PeakShapeMaximum.values());
-        peakShapeMaxCombo.setSelectedItem(parameters.getPeakShapeMaximum());
+        GUIUtils.addLabel(propertiesPanel, "Peak shape normalization");
+        peakShapeMaxCombo = new JComboBox(PeakShapeNormalization.values());
+        peakShapeMaxCombo.setSelectedItem(parameters.getPeakShapeNormalization());
         propertiesPanel.add(peakShapeMaxCombo);
         GUIUtils.addLabel(propertiesPanel, "Row height");
         rowHeightField = new JTextField();
@@ -188,8 +186,8 @@ public class PeakListTablePropertiesDialog extends JDialog
                 parameters.setColumnVisible(rcType, rcBox.isSelected());
             }
             
-            PeakShapeMaximum maxSelected = (PeakShapeMaximum) peakShapeMaxCombo.getSelectedItem();
-            if (maxSelected != null) parameters.setPeakShapeMaximum(maxSelected);
+            PeakShapeNormalization maxSelected = (PeakShapeNormalization) peakShapeMaxCombo.getSelectedItem();
+            if (maxSelected != null) parameters.setPeakShapeNormalization(maxSelected);
             
             int newRowHeight = Integer.parseInt(rowHeightField.getText());
             if (newRowHeight > 0) parameters.setRowHeight(newRowHeight);

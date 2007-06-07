@@ -83,7 +83,7 @@ class PeakShapeCellRenderer implements TableCellRenderer {
             Peak peak = (Peak) value;
             double maxHeight = 0;
             
-            switch (parameters.getPeakShapeMaximum()) {
+            switch (parameters.getPeakShapeNormalization()) {
             case GLOBALMAX:
                 maxHeight = peakList.getDataPointMaxIntensity();
                 break;

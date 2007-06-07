@@ -43,14 +43,15 @@ import org.jfree.report.JFreeReport;
 import org.jfree.report.modules.gui.base.PreviewDialog;
 import org.jfree.report.modules.parser.base.ReportGenerator;
 
-public class PeakListTableWindow extends JInternalFrame
-        implements ActionListener {
-    
+import com.sun.java.swing.plaf.windows.resources.windows;
+
+public class PeakListTableWindow extends JInternalFrame implements
+        ActionListener {
+
     private Logger logger = Logger.getLogger(this.getClass().getName());
 
     PeakListTableVisualizer visualizer;
     private JScrollPane scrollPane;
-
 
     private PeakListTableModel model;
     private PeakListTable table;
@@ -59,8 +60,7 @@ public class PeakListTableWindow extends JInternalFrame
     /**
      * Constructor: initializes an empty visualizer
      */
-    public PeakListTableWindow(
-            PeakListTableVisualizer visualizer,
+    public PeakListTableWindow(PeakListTableVisualizer visualizer,
             PeakList peakList) {
 
         super(peakList.toString(), true, true, true, true);
@@ -74,16 +74,14 @@ public class PeakListTableWindow extends JInternalFrame
         this.visualizer = visualizer;
 
         // Build toolbar
-        PeakListTableToolBar toolBar = new PeakListTableToolBar(
-                this);
+        PeakListTableToolBar toolBar = new PeakListTableToolBar(this);
         add(toolBar, BorderLayout.EAST);
 
-        
         myParameters = visualizer.getParameterSet().clone();
-        
+
         // Build table
-        table = new PeakListTable(myParameters, peakList);
-        
+        table = new PeakListTable(visualizer, this, myParameters, peakList);
+
         scrollPane = new JScrollPane(table);
 
         add(scrollPane, BorderLayout.CENTER);
@@ -103,36 +101,37 @@ public class PeakListTableWindow extends JInternalFrame
             // TODO
         }
 
-        if (command.equals("CHANGE_FORMAT")) {
+        if (command.equals("PROPERTIES")) {
 
-            PeakListTablePropertiesDialog dialog = new PeakListTablePropertiesDialog(MainWindow.getInstance(), myParameters);
+            PeakListTablePropertiesDialog dialog = new PeakListTablePropertiesDialog(
+                    MainWindow.getInstance(), myParameters);
             dialog.setVisible(true);
             if (dialog.getExitCode() == ExitCode.OK) {
                 table.setRowHeight(myParameters.getRowHeight());
-                //model.fireTableStructureChanged();
                 PeakListTableColumnModel cm = (PeakListTableColumnModel) table.getColumnModel();
                 cm.createColumns();
             }
         }
-        
+
         if (command.equals("PRINT")) {
             try {
                 ReportGenerator gener = ReportGenerator.getInstance();
                 JFreeReport report;
-                URL def = this.getClass().getResource("print-report-definition.xml");
-                logger.finest("report definition: "+ def);
-                    report = gener.parseReport(def);
-            report.setData(model);
-            JDialog dial;
+                URL def = this.getClass().getResource(
+                        "print-report-definition.xml");
+                logger.finest("report definition: " + def);
+                report = gener.parseReport(def);
+                report.setData(model);
+                JDialog dial;
                 dial = new PreviewDialog(report);
                 dial.pack();
                 dial.setLocationRelativeTo(null);
                 dial.setVisible(true);
             } catch (Exception ex) {
-                logger.log(Level.WARNING, "Could not generate report for printing", ex);
+                logger.log(Level.WARNING,
+                        "Could not generate report for printing", ex);
             }
         }
-            
 
     }
 
