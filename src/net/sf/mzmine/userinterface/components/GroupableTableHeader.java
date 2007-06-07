@@ -37,6 +37,12 @@ public class GroupableTableHeader extends JTableHeader {
 
     protected Vector<ColumnGroup> columnGroups = null;
 
+    public GroupableTableHeader() {
+        super();
+        setUI(new GroupableTableHeaderUI());
+        setReorderingAllowed(false);
+    }
+    
     public GroupableTableHeader(TableColumnModel model) {
         super(model);
         setUI(new GroupableTableHeaderUI());
