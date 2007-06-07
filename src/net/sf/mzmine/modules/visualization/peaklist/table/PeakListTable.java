@@ -76,7 +76,7 @@ public class PeakListTable extends JTable {
         setModel(sorter);
 
         PeakListTablePopupMenu popupMenu = new PeakListTablePopupMenu(window,
-                this, peakList);
+                this, cm, peakList);
         addMouseListener(new PopupListener(popupMenu));
 
         setRowHeight(parameters.getRowHeight());

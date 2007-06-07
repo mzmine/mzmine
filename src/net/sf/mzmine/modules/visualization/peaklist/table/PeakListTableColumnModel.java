@@ -43,6 +43,9 @@ import net.sf.mzmine.userinterface.components.GroupableTableHeader;
 import net.sf.mzmine.userinterface.mainwindow.MainWindow;
 import net.sf.mzmine.util.NumberFormatter;
 
+/**
+ *
+ */
 public class PeakListTableColumnModel extends DefaultTableColumnModel implements
         MouseListener {
 
@@ -191,8 +194,8 @@ public class PeakListTableColumnModel extends DefaultTableColumnModel implements
                 this.addColumn(allColumns[modelIndex]);
                 allColumns[modelIndex].setPreferredWidth(parameters.getColumnWidth(commonColumn));
             } else {
-                // set width to 0 so that table header doesn't count include the
-                // column with in grouped columns
+                // set width to 0 so that table header doesn't include the
+                // column width in grouped columns
                 allColumns[modelIndex].setWidth(0);
             }
 
@@ -208,8 +211,8 @@ public class PeakListTableColumnModel extends DefaultTableColumnModel implements
                     this.addColumn(allColumns[modelIndex]);
                     allColumns[modelIndex].setPreferredWidth(parameters.getColumnWidth(dataFileColumn));
                 } else {
-                    // set width to 0 so that table header doesn't count include
-                    // the column with in grouped columns
+                    // set width to 0 so that table header doesn't include the
+                    // column width in grouped columns
                     allColumns[modelIndex].setWidth(0);
                 }
 

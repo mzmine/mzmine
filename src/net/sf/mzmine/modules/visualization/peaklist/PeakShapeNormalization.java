@@ -19,8 +19,11 @@
 
 package net.sf.mzmine.modules.visualization.peaklist;
 
-
+/**
+ *
+ */
 public enum PeakShapeNormalization {
+    
     PEAKMAX("Peak maximum"),
     ROWMAX("Row maximum"),
     GLOBALMAX("Global maximum");
