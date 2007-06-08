@@ -22,8 +22,7 @@ package net.sf.mzmine.modules.visualization.peaklist.table;
 import java.awt.Font;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
-import java.beans.PropertyChangeEvent;
-import java.util.logging.Logger;
+import java.util.Enumeration;
 
 import javax.swing.DefaultCellEditor;
 import javax.swing.JTextField;
@@ -44,7 +43,7 @@ import net.sf.mzmine.userinterface.mainwindow.MainWindow;
 import net.sf.mzmine.util.NumberFormatter;
 
 /**
- *
+ * 
  */
 public class PeakListTableColumnModel extends DefaultTableColumnModel implements
         MouseListener {
@@ -52,7 +51,8 @@ public class PeakListTableColumnModel extends DefaultTableColumnModel implements
     private static final Font editFont = new Font("SansSerif", Font.PLAIN, 10);
 
     private FormattedCellRenderer mzRenderer, rtRenderer, intensityRenderer;
-    private TableCellRenderer peakShapeRenderer, identityRenderer, peakStatusRenderer;
+    private TableCellRenderer peakShapeRenderer, identityRenderer,
+            peakStatusRenderer;
     private DefaultTableCellRenderer defaultRenderer;
 
     private PeakListTableVisualizer visualizer;
@@ -83,9 +83,6 @@ public class PeakListTableColumnModel extends DefaultTableColumnModel implements
 
         header.addMouseListener(this);
 
-        ColumnGroup averageGroup = new ColumnGroup("Average");
-        header.addColumnGroup(averageGroup);
-
         // prepare formatters
         Desktop desktop = MainWindow.getInstance();
         NumberFormatter mzFormat = desktop.getMZFormat();
@@ -115,11 +112,9 @@ public class PeakListTableColumnModel extends DefaultTableColumnModel implements
             switch (commonColumn) {
             case AVERAGEMZ:
                 newColumn.setCellRenderer(mzRenderer);
-                averageGroup.add(newColumn);
                 break;
             case AVERAGERT:
                 newColumn.setCellRenderer(rtRenderer);
-                averageGroup.add(newColumn);
                 break;
             case IDENTITY:
                 newColumn.setCellRenderer(identityRenderer);
@@ -138,15 +133,12 @@ public class PeakListTableColumnModel extends DefaultTableColumnModel implements
 
         }
 
-        for (OpenedRawDataFile dataFile : peakList.getRawDataFiles()) {
-            ColumnGroup fileGroup = new ColumnGroup(dataFile.toString());
-            header.addColumnGroup(fileGroup);
+        for (int i = 0; i < peakList.getNumberOfRawDataFiles(); i++) {
 
             for (DataFileColumnType dataFileColumn : DataFileColumnType.values()) {
 
                 TableColumn newColumn = new TableColumn(modelIndex);
                 newColumn.setHeaderValue(dataFileColumn.getColumnName());
-                fileGroup.add(newColumn);
 
                 if (dataFileColumn == DataFileColumnType.MZ) {
                     newColumn.setCellRenderer(mzRenderer);
@@ -180,6 +172,14 @@ public class PeakListTableColumnModel extends DefaultTableColumnModel implements
 
     public void createColumns() {
 
+        // clear column groups
+        ColumnGroup groups[] = header.getColumnGroups();
+        if (groups != null) {
+            for (ColumnGroup group : groups) {
+                header.removeColumnGroup(group);
+            }
+        }
+        
         // clear the column model
         while (getColumnCount() > 0) {
             TableColumn col = getColumn(0);
@@ -188,32 +188,33 @@ public class PeakListTableColumnModel extends DefaultTableColumnModel implements
 
         int modelIndex = 0;
 
+        ColumnGroup averageGroup = new ColumnGroup("Average");
+        header.addColumnGroup(averageGroup);
+        
         for (CommonColumnType commonColumn : CommonColumnType.values()) {
 
             if (parameters.isColumnVisible(commonColumn)) {
                 this.addColumn(allColumns[modelIndex]);
                 allColumns[modelIndex].setPreferredWidth(parameters.getColumnWidth(commonColumn));
-            } else {
-                // set width to 0 so that table header doesn't include the
-                // column width in grouped columns
-                allColumns[modelIndex].setWidth(0);
             }
+            
+            if ((commonColumn == CommonColumnType.AVERAGEMZ) || (commonColumn == CommonColumnType.AVERAGERT)) averageGroup.add(commonColumn);
 
             modelIndex++;
 
         }
 
-        for (int i = 0; i < peakList.getNumberOfRawDataFiles(); i++) {
+        for (OpenedRawDataFile dataFile : peakList.getRawDataFiles()) {
 
+            ColumnGroup fileGroup = new ColumnGroup(dataFile.toString());
+            header.addColumnGroup(fileGroup);
+            
             for (DataFileColumnType dataFileColumn : DataFileColumnType.values()) {
 
                 if (parameters.isColumnVisible(dataFileColumn)) {
                     this.addColumn(allColumns[modelIndex]);
+                    fileGroup.add(allColumns[modelIndex]);
                     allColumns[modelIndex].setPreferredWidth(parameters.getColumnWidth(dataFileColumn));
-                } else {
-                    // set width to 0 so that table header doesn't include the
-                    // column width in grouped columns
-                    allColumns[modelIndex].setWidth(0);
                 }
 
                 modelIndex++;

@@ -59,6 +59,17 @@ public class GroupableTableHeader extends JTableHeader {
         }
         columnGroups.addElement(g);
     }
+    
+    public void removeColumnGroup(ColumnGroup g) {
+        if (columnGroups == null) return;
+        columnGroups.remove(g);
+    }
+    
+    public ColumnGroup[] getColumnGroups() {
+        if (columnGroups == null) return null;
+        return columnGroups.toArray(new ColumnGroup[0]);
+    }
+
 
     public Enumeration getColumnGroups(TableColumn col) {
     if (columnGroups == null) return null;
