@@ -92,7 +92,7 @@ class WorkerThread extends Thread {
 
                 // this should never happen!
 
-                logger.log(Level.SEVERE, "Unhandled exception while processing task "
+                logger.log(Level.SEVERE, "Unhandled exception " + e + " while processing task "
                         + currentTask, e);
 
                 if (desktop != null) {
