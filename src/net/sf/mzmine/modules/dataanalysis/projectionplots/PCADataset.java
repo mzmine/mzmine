@@ -1,6 +1,12 @@
 package net.sf.mzmine.modules.dataanalysis.projectionplots;
 
+import java.io.BufferedWriter;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.io.PrintWriter;
+
 import jmprojection.PCA;
+import jmprojection.Preprocess;
 import net.sf.mzmine.data.Peak;
 import net.sf.mzmine.data.PeakList;
 import net.sf.mzmine.data.impl.SimpleParameterSet;
@@ -10,12 +16,19 @@ import org.jfree.data.xy.AbstractXYDataset;
 
 public class PCADataset extends AbstractXYDataset implements ProjectionPlotDataset {
 
-	double[] component1Coords;
-	double[] component2Coords;
-	OpenedRawDataFile[] openedRawDataFiles;
+	private double[] component1Coords;
+	private double[] component2Coords;
+	private OpenedRawDataFile[] openedRawDataFiles;
+	
+	private String datasetTitle;
+	private int xAxisPC;
+	private int yAxisPC;
 	
 	
-	public PCADataset(PeakList peakList, SimpleParameterSet parameters) {
+	public PCADataset(PeakList peakList, SimpleParameterSet parameters, int xAxisPC, int yAxisPC) {
+		this.xAxisPC = xAxisPC;
+		this.yAxisPC = yAxisPC;
+		
 		int numOfRawData = peakList.getNumberOfRawDataFiles();
 		int numOfRows = peakList.getNumberOfRows();
 		
@@ -23,10 +36,14 @@ public class PCADataset extends AbstractXYDataset implements ProjectionPlotDatas
 		if (parameters.getParameterValue(ProjectionPlot.MeasurementType)==ProjectionPlot.MeasurementTypeHeight)
 			useArea = false;
 		
+		datasetTitle = "Principal component analysis";
+		
 		// Pickup opened raw data files
 		openedRawDataFiles = new OpenedRawDataFile[numOfRawData];
 		for (int fileIndex=0; fileIndex<numOfRawData; fileIndex++) 
 			openedRawDataFiles[fileIndex] = peakList.getRawDataFile(fileIndex);
+		
+		
 		
 		// Generate matrix of raw data (input to PCA)
 		double[][] rawData = new double[numOfRawData][numOfRows];
@@ -43,14 +60,78 @@ public class PCADataset extends AbstractXYDataset implements ProjectionPlotDatas
 			}
 		}
 		
-		PCA pcaProj = new PCA(rawData);
+		int numComponents = xAxisPC;
+		if (yAxisPC>numComponents) numComponents = yAxisPC;
+		
+		// Scale data and do PCA
+		Preprocess.scaleToUnityVariance(rawData);
+		PCA pcaProj = new PCA(rawData, numComponents);
 		
 		double[][] result = pcaProj.getState();
 
-		component1Coords = result[0];
-		component2Coords = result[1];		
+		component1Coords = result[xAxisPC-1];
+		component2Coords = result[yAxisPC-1];
+		
+		//// DEBUG
+		/*
+		PrintWriter writer = null;
+		try {
+			writer = new PrintWriter(new BufferedWriter(new FileWriter("C:\\temp\\inputtopca.txt")));
+		} catch (IOException ex) {
+			System.err.println("" + ex.toString());
+		}
+		
+		for (int fileIndex=0; fileIndex<numOfRawData; fileIndex++) {
+			for (int rowIndex=0; rowIndex<numOfRows; rowIndex++) {
+				writer.print(rawData[fileIndex][rowIndex]);
+				if (rowIndex<(numOfRows-1))
+					writer.print("\t");
+			}
+			writer.println();
+		}
+		writer.flush();
+		writer.close();
+		
+		writer = null;
+		try {
+			writer = new PrintWriter(new BufferedWriter(new FileWriter("C:\\temp\\outputfrompca.txt")));
+		} catch (IOException ex) {
+			System.err.println("" + ex.toString());
+		}
+		
+		for (int componentIndex=0; componentIndex<2; componentIndex++) {
+			for (int fileIndex=0; fileIndex<numOfRawData; fileIndex++) {
+				writer.print(result[componentIndex][fileIndex]);
+				if (fileIndex<(numOfRows-1))
+					writer.print("\t");
+			}
+			writer.println();
+		}
+		writer.flush();
+		writer.close();		
+		*/
+		//// DEBUG
 				
 	}
+	
+	public String toString() {
+		return datasetTitle;
+	}
+	
+	public String getXLabel() {
+		if (xAxisPC==1) return "1st PC";
+		if (xAxisPC==2) return "2nd PC";
+		if (xAxisPC==3) return "3rd PC";
+		return "" + xAxisPC + "th PC";
+	}
+
+	public String getYLabel() {
+		if (yAxisPC==1) return "1st PC";
+		if (yAxisPC==2) return "2nd PC";
+		if (yAxisPC==3) return "3rd PC";
+		return "" + yAxisPC + "th PC";
+	}
+	
 	
 	@Override
 	public int getSeriesCount() {

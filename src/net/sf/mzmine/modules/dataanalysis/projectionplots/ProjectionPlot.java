@@ -116,19 +116,18 @@ public class ProjectionPlot implements MZmineModule, ActionListener {
         	
         	
         	// Create dataset & paint scale
-        	XYDataset dataset = null;
+        	ProjectionPlotDataset dataset = null;
         	if (command.equals("PCA_PLOT"))
-        		dataset = new PCADataset(pl, parameters);
+        		dataset = new PCADataset(pl, parameters,1,2);
         	/*
         	if (command.equals("CDA_PLOT"))
         		dataset = new CDADataset(pl, parameters);
         	*/
         	        	
         	// Create & show window
-        	/*
         	ProjectionPlotWindow window = new ProjectionPlotWindow(desktop, dataset, pl, parameters);
         	window.setVisible(true);
-        	*/
+        	
         	
         }
      
