@@ -44,7 +44,6 @@ public class TICVisualizer implements MZmineModule, ActionListener {
 
     private Logger logger = Logger.getLogger(this.getClass().getName());
 
-    private TaskController taskController;
     private Desktop desktop;
 
     /**
@@ -52,7 +51,6 @@ public class TICVisualizer implements MZmineModule, ActionListener {
      */
     public void initModule(MZmineCore core) {
 
-        this.taskController = core.getTaskController();
         this.desktop = core.getDesktop();
 
         desktop.addMenuItem(MZmineMenu.VISUALIZATION, "TIC plot", this, null,
@@ -74,8 +72,7 @@ public class TICVisualizer implements MZmineModule, ActionListener {
         }
 
         for (OpenedRawDataFile dataFile : dataFiles) {
-            JDialog setupDialog = new TICSetupDialog(taskController, desktop,
-                    dataFile);
+            JDialog setupDialog = new TICSetupDialog(dataFile);
             setupDialog.setVisible(true);
         }
     }

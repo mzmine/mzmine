@@ -42,19 +42,20 @@ import javax.swing.ScrollPaneConstants;
 import net.sf.mzmine.data.PeakList;
 import net.sf.mzmine.data.PeakListRow;
 import net.sf.mzmine.io.OpenedRawDataFile;
-import net.sf.mzmine.main.MZmineCore;
+import net.sf.mzmine.userinterface.Desktop;
 import net.sf.mzmine.userinterface.components.ExtendedCheckBox;
 import net.sf.mzmine.userinterface.dialogs.ExitCode;
-import net.sf.mzmine.util.GUIUtils;
+import net.sf.mzmine.userinterface.mainwindow.MainWindow;
 import net.sf.mzmine.util.AlignmentResultSorterByMZ;
+import net.sf.mzmine.util.GUIUtils;
 
-class IntensityPlotDialog extends JDialog implements ActionListener {
+public class IntensityPlotDialog extends JDialog implements ActionListener {
 
     static final int PADDING_SIZE = 5;
 
     private ExitCode exitCode = ExitCode.CANCEL;
 
-    private MZmineCore core;
+    private Desktop desktop;
     private PeakList alignmentResult;
     private IntensityPlotParameters parameterSet;
 
@@ -65,15 +66,13 @@ class IntensityPlotDialog extends JDialog implements ActionListener {
     private JButton btnSelectAllFiles, btnDeselectAllFiles, btnSelectAllPeaks,
             btnDeselectAllPeaks, btnOK, btnCancel;
 
-    public IntensityPlotDialog(MZmineCore core,
-            PeakList alignmentResult,
-            IntensityPlotParameters parameterSet) {
+    public IntensityPlotDialog(IntensityPlotParameters parameterSet) {
 
         // make dialog modal
-        super(core.getDesktop().getMainFrame(), "Intensity plot setup", true);
+        super(MainWindow.getInstance(), "Intensity plot setup", true);
 
-        this.core = core;
-        this.alignmentResult = alignmentResult;
+        this.desktop = MainWindow.getInstance();
+        this.alignmentResult = parameterSet.getSourcePeakList();
         this.parameterSet = parameterSet;
 
         GridBagConstraints constraints = new GridBagConstraints();
@@ -105,7 +104,8 @@ class IntensityPlotDialog extends JDialog implements ActionListener {
         int minimumHorizSize = 0;
         OpenedRawDataFile files[] = alignmentResult.getRawDataFiles();
         for (int i = 0; i < files.length; i++) {
-            rawDataFileCheckBoxes[i] = new ExtendedCheckBox<OpenedRawDataFile>(files[i]);
+            rawDataFileCheckBoxes[i] = new ExtendedCheckBox<OpenedRawDataFile>(
+                    files[i]);
             minimumHorizSize = Math.max(minimumHorizSize,
                     rawDataFileCheckBoxes[i].getPreferredWidth());
             dataFileCheckBoxesPanel.add(rawDataFileCheckBoxes[i]);
@@ -136,7 +136,7 @@ class IntensityPlotDialog extends JDialog implements ActionListener {
         layout.setConstraints(comp, constraints);
 
         String yAxisSourceValues[] = new String[] {
-                IntensityPlotParameters.PeakIntensityOption,
+                IntensityPlotParameters.PeakHeightOption,
                 IntensityPlotParameters.PeakAreaOption,
                 IntensityPlotParameters.PeakRTOption };
         yAxisValueSourceCombo = new JComboBox(yAxisSourceValues);
@@ -195,7 +195,7 @@ class IntensityPlotDialog extends JDialog implements ActionListener {
 
         // finalize the dialog
         pack();
-        setLocationRelativeTo(core.getDesktop().getMainFrame());
+        setLocationRelativeTo(desktop.getMainFrame());
         setResizable(true);
 
     }
@@ -223,14 +223,12 @@ class IntensityPlotDialog extends JDialog implements ActionListener {
             }
 
             if (selectedFiles.size() == 0) {
-                core.getDesktop().displayErrorMessage(
-                        "Please select at least one data file");
+                desktop.displayErrorMessage("Please select at least one data file");
                 return;
             }
 
             if (selectedPeaks.size() == 0) {
-                core.getDesktop().displayErrorMessage(
-                        "Please select at least one peak");
+                desktop.displayErrorMessage("Please select at least one peak");
                 return;
             }
 

@@ -130,7 +130,7 @@ class IntensityPlotDataset extends AbstractDataset implements CategoryDataset {
         Peak peak = getPeak(row, column);
         if (peak == null) return null;
 
-        if (yAxisValueSource == IntensityPlotParameters.PeakIntensityOption)
+        if (yAxisValueSource == IntensityPlotParameters.PeakHeightOption)
             value = peak.getHeight();
 
         if (yAxisValueSource == IntensityPlotParameters.PeakAreaOption)

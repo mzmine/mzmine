@@ -69,15 +69,6 @@ class PeakShapeCellRenderer implements TableCellRenderer {
 
         newPanel.setBackground(bgColor);
 
-        if (hasFocus) {
-            Border border = null;
-            if (isSelected)
-                border = UIManager.getBorder("Table.focusSelectedCellHighlightBorder");
-            if (border == null)
-                border = UIManager.getBorder("Table.focusCellHighlightBorder");
-            newPanel.setBorder(border);
-        }
-
         if (value instanceof Peak) {
 
             Peak peak = (Peak) value;

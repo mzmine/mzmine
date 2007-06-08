@@ -40,7 +40,9 @@ import net.sf.mzmine.io.OpenedRawDataFile;
 import net.sf.mzmine.io.RawDataFile;
 import net.sf.mzmine.modules.visualization.tic.TICVisualizerWindow.PlotType;
 import net.sf.mzmine.taskcontrol.TaskController;
+import net.sf.mzmine.taskcontrol.impl.TaskControllerImpl;
 import net.sf.mzmine.userinterface.Desktop;
+import net.sf.mzmine.userinterface.mainwindow.MainWindow;
 import net.sf.mzmine.util.CollectionUtils;
 import net.sf.mzmine.util.GUIUtils;
 
@@ -59,22 +61,21 @@ public class TICSetupDialog extends JDialog implements ActionListener {
     private JComboBox comboPlotType, comboMSlevel;
 
     private static final NumberFormat format = NumberFormat.getNumberInstance();
-    
+
     private Desktop desktop;
     private TaskController taskController;
     private OpenedRawDataFile dataFile;
     private RawDataFile rawDataFile;
-    
+
     private Peak[] peaks = null;
 
-    public TICSetupDialog(TaskController taskController, Desktop desktop,
-            OpenedRawDataFile dataFile) {
+    public TICSetupDialog(OpenedRawDataFile dataFile) {
 
         // Make dialog modal
-        super(desktop.getMainFrame(), "TIC visualizer parameters", true);
+        super(MainWindow.getInstance(), "TIC visualizer parameters", true);
 
-        this.taskController = taskController;
-        this.desktop = desktop;
+        this.taskController = TaskControllerImpl.getInstance();
+        this.desktop = MainWindow.getInstance();
         this.dataFile = dataFile;
         this.rawDataFile = dataFile.getCurrentFile();
 
@@ -98,8 +99,7 @@ public class TICSetupDialog extends JDialog implements ActionListener {
         constraints.gridheight = 1;
         layout.setConstraints(comp, constraints);
 
-        comp = GUIUtils.addLabel(components, dataFile.toString(),
-                JLabel.LEFT);
+        comp = GUIUtils.addLabel(components, dataFile.toString(), JLabel.LEFT);
         constraints.gridx = 1;
         constraints.gridy = 0;
         constraints.gridwidth = 2;
@@ -256,7 +256,7 @@ public class TICSetupDialog extends JDialog implements ActionListener {
 
         // to activate the selection listener
         comboMSlevel.setSelectedIndex(0);
-        
+
         // finalize the dialog
         pack();
         setLocationRelativeTo(desktop.getMainFrame());
@@ -265,36 +265,38 @@ public class TICSetupDialog extends JDialog implements ActionListener {
     }
 
     /**
-     * Constructor for showing the dialog with pre-defined minimum and maximum M/Z range
+     * Constructor for showing the dialog with pre-defined minimum and maximum
+     * M/Z range
+     * 
      * @param taskController
      * @param desktop
      * @param dataFile
      */
-    public TICSetupDialog(TaskController taskController, Desktop desktop,
-            OpenedRawDataFile dataFile, double minMZ, double maxMZ, Peak[] peaks) {
-    
-    	
-    	this(taskController, desktop, dataFile);
-    	this.peaks = peaks;
-    	if (peaks!=null) {
-    		if (peaks.length>1) 
-    			this.setTitle("XIC (" + peaks.length + " peaks) visualizer parameters");
-    		else 
-    			this.setTitle("XIC (peak " + format.format(peaks[0].getMZ()) + ") visualizer parameters");
-    	}
-    	
-    	int msLevel = (Integer) comboMSlevel.getSelectedItem();
-  	
-    	if ( 	(minMZ>=rawDataFile.getDataMinMZ(msLevel)) &&
-    			(minMZ<=rawDataFile.getDataMaxMZ(msLevel)) ) 
-    		fieldMinMZ.setValue(minMZ);
-    	
-    	if ( 	(maxMZ>=rawDataFile.getDataMinMZ(msLevel)) &&
-    			(maxMZ<=rawDataFile.getDataMaxMZ(msLevel)) ) 
-    		fieldMaxMZ.setValue(maxMZ);
+    public TICSetupDialog(OpenedRawDataFile dataFile, double minMZ,
+            double maxMZ, Peak[] peaks) {
+
+        this(dataFile);
+        this.peaks = peaks;
+        if (peaks != null) {
+            if (peaks.length > 1)
+                this.setTitle("XIC (" + peaks.length
+                        + " peaks) visualizer parameters");
+            else
+                this.setTitle("XIC (peak " + format.format(peaks[0].getMZ())
+                        + ") visualizer parameters");
+        }
+
+        int msLevel = (Integer) comboMSlevel.getSelectedItem();
+
+        if ((minMZ >= rawDataFile.getDataMinMZ(msLevel))
+                && (minMZ <= rawDataFile.getDataMaxMZ(msLevel)))
+            fieldMinMZ.setValue(minMZ);
+
+        if ((maxMZ >= rawDataFile.getDataMinMZ(msLevel))
+                && (maxMZ <= rawDataFile.getDataMaxMZ(msLevel)))
+            fieldMaxMZ.setValue(maxMZ);
     }
-    
-    
+
     /**
      * @see java.awt.event.ActionListener#actionPerformed(java.awt.event.ActionEvent)
      */

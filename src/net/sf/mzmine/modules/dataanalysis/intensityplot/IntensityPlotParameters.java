@@ -31,10 +31,10 @@ import org.dom4j.Element;
 
 /**
  */
-class IntensityPlotParameters implements ParameterSet {
+public class IntensityPlotParameters implements ParameterSet {
 
     public static final String DataFileOption = "Raw data file";
-    public static final String PeakIntensityOption = "Peak intensity";
+    public static final String PeakHeightOption = "Peak height";
     public static final String PeakAreaOption = "Peak area";
     public static final String PeakRTOption = "Peak retention time";
 
@@ -46,10 +46,10 @@ class IntensityPlotParameters implements ParameterSet {
     private OpenedRawDataFile selectedDataFiles[];
     private PeakListRow selectedRows[];
 
-    IntensityPlotParameters() {
+    public IntensityPlotParameters() {
     }
 
-    IntensityPlotParameters(PeakList sourcePeakList) {
+    public IntensityPlotParameters(PeakList sourcePeakList) {
         this.sourcePeakList = sourcePeakList;
     }
 
@@ -59,7 +59,7 @@ class IntensityPlotParameters implements ParameterSet {
      * @param datafiles
      * @param selectedRows
      */
-    IntensityPlotParameters(PeakList sourcePeakList,
+    public IntensityPlotParameters(PeakList sourcePeakList,
             Object xAxisValueSource, Object yAxisValueSource,
             OpenedRawDataFile[] selectedDataFiles,
             PeakListRow[] selectedRows) {

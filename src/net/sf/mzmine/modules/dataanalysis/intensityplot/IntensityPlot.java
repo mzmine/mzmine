@@ -39,7 +39,6 @@ public class IntensityPlot implements MZmineModule, ActionListener {
 
     private Logger logger = Logger.getLogger(this.getClass().getName());
 
-    private MZmineCore core;
     private Desktop desktop;
     private IntensityPlotParameters parameters;
 
@@ -48,7 +47,6 @@ public class IntensityPlot implements MZmineModule, ActionListener {
      */
     public void initModule(MZmineCore core) {
 
-        this.core = core;
         this.desktop = core.getDesktop();
 
         parameters = new IntensityPlotParameters();
@@ -81,8 +79,7 @@ public class IntensityPlot implements MZmineModule, ActionListener {
                     selectedAlignmentResults[0]);
         }
 
-        IntensityPlotDialog setupDialog = new IntensityPlotDialog(core,
-                selectedAlignmentResults[0], parameters);
+        IntensityPlotDialog setupDialog = new IntensityPlotDialog(parameters);
         setupDialog.setVisible(true);
 
         if (setupDialog.getExitCode() == ExitCode.OK) {

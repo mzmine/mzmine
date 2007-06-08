@@ -230,5 +230,9 @@ public class TaskControllerImpl implements TaskController, Runnable {
         this.desktop = core.getDesktop();
 
     }
+    
+    public static TaskController getInstance() {
+        return myInstance;
+    }
 
 }

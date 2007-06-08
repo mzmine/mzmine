@@ -31,14 +31,16 @@ import javax.swing.JPopupMenu;
 
 import net.sf.mzmine.data.Peak;
 import net.sf.mzmine.data.PeakList;
+import net.sf.mzmine.data.PeakListRow;
 import net.sf.mzmine.io.OpenedRawDataFile;
+import net.sf.mzmine.modules.dataanalysis.intensityplot.IntensityPlotDialog;
+import net.sf.mzmine.modules.dataanalysis.intensityplot.IntensityPlotParameters;
 import net.sf.mzmine.modules.visualization.peaklist.table.CommonColumnType;
 import net.sf.mzmine.modules.visualization.peaklist.table.DataFileColumnType;
 import net.sf.mzmine.modules.visualization.peaklist.table.PeakListTable;
 import net.sf.mzmine.modules.visualization.peaklist.table.PeakListTableColumnModel;
 import net.sf.mzmine.modules.visualization.peaklist.table.PeakListTableModel;
 import net.sf.mzmine.modules.visualization.tic.TICSetupDialog;
-import net.sf.mzmine.taskcontrol.TaskController;
 import net.sf.mzmine.util.GUIUtils;
 
 import com.sun.java.TableSorter;
@@ -56,11 +58,12 @@ public class PeakListTablePopupMenu extends JPopupMenu implements
     private JMenuItem deleteRowsItem;
     private JMenuItem plotRowsItem;
     private JMenuItem showXICItem;
-    
+
     private Peak clickedPeak;
 
     public PeakListTablePopupMenu(PeakListTableWindow window,
-            PeakListTable table, PeakListTableColumnModel columnModel, PeakList peakList) {
+            PeakListTable table, PeakListTableColumnModel columnModel,
+            PeakList peakList) {
 
         this.table = table;
         this.peakList = peakList;
@@ -87,10 +90,12 @@ public class PeakListTablePopupMenu extends JPopupMenu implements
 
         Point clickedPoint = new Point(x, y);
         int clickedRow = table.rowAtPoint(clickedPoint);
-        int clickedColumn = columnModel.getColumn(table.columnAtPoint(clickedPoint)).getModelIndex();
+        int clickedColumn = columnModel.getColumn(
+                table.columnAtPoint(clickedPoint)).getModelIndex();
         if ((clickedRow >= 0) && (clickedColumn >= 0)) {
             showXICItem.setEnabled(clickedColumn >= CommonColumnType.values().length);
-            int dataFileIndex = (clickedColumn - CommonColumnType.values().length) / DataFileColumnType.values().length;
+            int dataFileIndex = (clickedColumn - CommonColumnType.values().length)
+                    / DataFileColumnType.values().length;
             OpenedRawDataFile dataFile = peakList.getRawDataFile(dataFileIndex);
             TableSorter sorter = (TableSorter) table.getModel();
             int peakListRow = sorter.modelIndex(clickedRow);
@@ -107,7 +112,7 @@ public class PeakListTablePopupMenu extends JPopupMenu implements
 
         Object src = event.getSource();
 
-        if (src == plotRowsItem) {
+        if (src == deleteRowsItem) {
 
             int rowsToDelete[] = table.getSelectedRows();
             // sort row indices
@@ -127,15 +132,26 @@ public class PeakListTablePopupMenu extends JPopupMenu implements
         }
 
         if (src == plotRowsItem) {
-
             
+            int selectedTableRows[] = table.getSelectedRows();
+            TableSorter sorterModel = (TableSorter) table.getModel();
+            PeakListRow selectedPeakListRows[] = new PeakListRow[selectedTableRows.length];
+            for (int i = 0; i < selectedTableRows.length; i++) {
+                int unsortedIndex = sorterModel.modelIndex(selectedTableRows[i]);
+                selectedPeakListRows[i] = peakList.getRow(unsortedIndex);
+            }
+            IntensityPlotParameters parameters = new IntensityPlotParameters(peakList, IntensityPlotParameters.DataFileOption, IntensityPlotParameters.PeakHeightOption, peakList.getRawDataFiles(), selectedPeakListRows);
+            IntensityPlotDialog setupDialog = new IntensityPlotDialog(parameters);
+            setupDialog.setVisible(true);
 
         }
 
         if (src == showXICItem) {
 
-            // JDialog TICsetupDialog = new TICSetupDialog(TaskController.getInstance(), null, null, alignmentX, alignmentX, null);
-
+            JDialog setupDialog = new TICSetupDialog(
+                    clickedPeak.getDataFile(), clickedPeak.getDataPointMinMZ(),
+                    clickedPeak.getDataPointMaxMZ(), new Peak[] { clickedPeak });
+            setupDialog.setVisible(true);
 
         }
 
