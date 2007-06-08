@@ -1,9 +1,11 @@
 package net.sf.mzmine.modules.dataanalysis.projectionplots;
 
+import java.awt.Color;
 import java.io.BufferedWriter;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.util.Hashtable;
 
 import jmprojection.PCA;
 import jmprojection.Preprocess;
@@ -19,15 +21,17 @@ public class PCADataset extends AbstractXYDataset implements ProjectionPlotDatas
 	private double[] component1Coords;
 	private double[] component2Coords;
 	private OpenedRawDataFile[] openedRawDataFiles;
+	private Hashtable<OpenedRawDataFile, Color> rawDataColors;
 	
 	private String datasetTitle;
 	private int xAxisPC;
 	private int yAxisPC;
 	
 	
-	public PCADataset(PeakList peakList, SimpleParameterSet parameters, int xAxisPC, int yAxisPC) {
+	public PCADataset(PeakList peakList, Hashtable<OpenedRawDataFile, Color> rawDataColors, SimpleParameterSet parameters, int xAxisPC, int yAxisPC) {
 		this.xAxisPC = xAxisPC;
 		this.yAxisPC = yAxisPC;
+		this.rawDataColors = rawDataColors;
 		
 		int numOfRawData = peakList.getNumberOfRawDataFiles();
 		int numOfRows = peakList.getNumberOfRows();
@@ -116,6 +120,10 @@ public class PCADataset extends AbstractXYDataset implements ProjectionPlotDatas
 	
 	public String toString() {
 		return datasetTitle;
+	}
+	
+	public Color getColor(int item) {
+		return rawDataColors.get(openedRawDataFiles[item]);
 	}
 	
 	public String getXLabel() {

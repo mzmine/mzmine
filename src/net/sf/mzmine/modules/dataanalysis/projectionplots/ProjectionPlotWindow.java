@@ -38,6 +38,10 @@ public class ProjectionPlotWindow extends JInternalFrame implements ActionListen
         String title = peakList.toString();
         title = title.concat(" : ");
         title = title.concat(dataset.toString());
+        if (parameters.getParameterValue(ProjectionPlot.MeasurementType)==ProjectionPlot.MeasurementTypeArea)
+        	title = title.concat(" (using peak areas)");
+        else
+        	title = title.concat(" (using peak heights)");
         this.setTitle(title);
         
         pack();

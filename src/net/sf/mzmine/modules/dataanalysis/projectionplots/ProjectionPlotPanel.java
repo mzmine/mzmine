@@ -97,15 +97,13 @@ public class ProjectionPlotPanel extends ChartPanel {
         // set the X axis (component 1) properties
         NumberAxis xAxis = (NumberAxis) plot.getDomainAxis();
         xAxis.setNumberFormatOverride(numberFormat);
-        xAxis.setUpperMargin(0.001);
-        xAxis.setLowerMargin(0.001);
 
         // set the Y axis (component 2) properties
         NumberAxis yAxis = (NumberAxis) plot.getRangeAxis();
         yAxis.setNumberFormatOverride(numberFormat);
 			
 		plot.setDataset(dataset);
-		spotRenderer = new ProjectionPlotRenderer();
+		spotRenderer = new ProjectionPlotRenderer(dataset);
 		plot.setRenderer(spotRenderer);
 		spotRenderer.setToolTipGenerator(new ProjectionPlotToolTipGenerator());
 		

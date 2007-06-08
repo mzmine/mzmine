@@ -4,6 +4,9 @@ import java.awt.Color;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
+import java.io.File;
+import java.io.IOException;
+import java.util.Vector;
 import java.util.logging.Logger;
 
 import javax.swing.JDialog;
@@ -18,8 +21,12 @@ import net.sf.mzmine.data.Parameter.ParameterType;
 import net.sf.mzmine.data.impl.SimpleParameter;
 import net.sf.mzmine.data.impl.SimpleParameterSet;
 import net.sf.mzmine.io.OpenedRawDataFile;
+import net.sf.mzmine.io.RawDataFile;
+import net.sf.mzmine.io.RawDataFileWriter;
+import net.sf.mzmine.io.OpenedRawDataFile.Operation;
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.main.MZmineModule;
+import net.sf.mzmine.modules.BatchStep;
 import net.sf.mzmine.modules.visualization.tic.TICSetupDialog;
 import net.sf.mzmine.taskcontrol.TaskController;
 import net.sf.mzmine.userinterface.Desktop;
@@ -87,7 +94,13 @@ public class ProjectionPlot implements MZmineModule, ActionListener {
 	
 
 	public void actionPerformed(ActionEvent event) {
-		              
+		  
+		
+		/*
+    	ProjectionPlotSetupDialog debugSetupDialog = new ProjectionPlotSetupDialog(desktop, null, parameters); 
+    	debugSetupDialog.setVisible(true);
+    	*/
+		
         PeakList[] alignedPeakLists = desktop.getSelectedAlignedPeakLists();
         
         if (alignedPeakLists.length==0) {
@@ -104,7 +117,8 @@ public class ProjectionPlot implements MZmineModule, ActionListener {
         	}
 
         	// Show opened raw data file selection and parameter setup dialog 
-        	ParameterSetupDialog setupDialog = new ParameterSetupDialog(desktop.getMainFrame(), "Please set projection plot parameters", parameters);   	
+        	//ParameterSetupDialog setupDialog = new ParameterSetupDialog(desktop.getMainFrame(), "Please set projection plot parameters", parameters);
+        	ProjectionPlotSetupDialog setupDialog = new ProjectionPlotSetupDialog(desktop, pl, parameters); 
 
             setupDialog.setVisible(true);
             
@@ -113,22 +127,19 @@ public class ProjectionPlot implements MZmineModule, ActionListener {
         		return;
         	}
         	
-        	
-        	
         	// Create dataset & paint scale
         	ProjectionPlotDataset dataset = null;
         	if (command.equals("PCA_PLOT"))
-        		dataset = new PCADataset(pl, parameters,1,2);
+        		dataset = new PCADataset(pl, setupDialog.getRawDataColors(), parameters, 1, 2);
         	/*
         	if (command.equals("CDA_PLOT"))
         		dataset = new CDADataset(pl, parameters);
         	*/
-        	        	
+
         	// Create & show window
         	ProjectionPlotWindow window = new ProjectionPlotWindow(desktop, dataset, pl, parameters);
         	window.setVisible(true);
-        	
-        	
+
         }
      
 	}
