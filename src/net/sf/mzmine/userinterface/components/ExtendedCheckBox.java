@@ -35,7 +35,11 @@ public class ExtendedCheckBox<Type> extends JCheckBox {
     private Type object;
 
     public ExtendedCheckBox(Type object) {
-        super(object.toString(), true);
+        this(object, false);
+    }
+    
+    public ExtendedCheckBox(Type object, boolean selected) {
+        super(object.toString(), selected);
         this.object = object;
         setOpaque(false);
         setFont(checkBoxFont);

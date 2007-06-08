@@ -51,6 +51,8 @@ public class IntensityPlotParameters implements ParameterSet {
 
     public IntensityPlotParameters(PeakList sourcePeakList) {
         this.sourcePeakList = sourcePeakList;
+        this.selectedDataFiles = sourcePeakList.getRawDataFiles();
+        this.selectedRows = new PeakListRow[0];
     }
 
     /**

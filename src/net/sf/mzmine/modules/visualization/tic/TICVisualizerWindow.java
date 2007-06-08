@@ -289,7 +289,7 @@ public class TICVisualizerWindow extends JInternalFrame implements
         
         
         // Start-up the refresh task
-        TICRawDataAcceptor ticRawDataAcceptor = new TICRawDataAcceptor(taskController, newFile, scanNumbers, dataSets.toArray(new RawDataAcceptor[0]), this);
+        new TICRawDataAcceptor(taskController, newFile, scanNumbers, dataSets.toArray(new RawDataAcceptor[0]), this);
         
         if (dataFiles.size() > 1) {
             // when displaying more than one file, show a legend

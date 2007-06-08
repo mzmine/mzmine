@@ -124,7 +124,7 @@ class SimpleStandardCompoundNormalizerDialog extends JDialog implements ActionLi
         for (int i = 0; i < rows.length; i++) {
         	// Add only fully detected peaks to list of potential standard peaks
         	if (rows[i].getNumberOfPeaks()==alignmentResult.getNumberOfRawDataFiles()) {
-        		ExtendedCheckBox ecb = new ExtendedCheckBox<PeakListRow>(rows[i]);
+        		ExtendedCheckBox ecb = new ExtendedCheckBox<PeakListRow>(rows[i], true);
         		ecb.setSelected(false);
 	            peakCheckBoxesVector.add(ecb);
 	            minimumHorizSize = Math.max(minimumHorizSize,

@@ -84,8 +84,7 @@ public class IntensityPlot implements MZmineModule, ActionListener {
 
         if (setupDialog.getExitCode() == ExitCode.OK) {
             logger.info("Opening new intensity plot");
-            IntensityPlotFrame newFrame = new IntensityPlotFrame(parameters,
-                    desktop);
+            IntensityPlotFrame newFrame = new IntensityPlotFrame(parameters);
             desktop.addInternalFrame(newFrame);
         }
 

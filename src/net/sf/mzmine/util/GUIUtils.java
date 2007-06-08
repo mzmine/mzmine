@@ -224,7 +224,8 @@ public class GUIUtils {
             button.setMnemonic(mnemonic);
         if (toolTip != null)
             button.setToolTipText(toolTip);
-        component.add(button);
+        if (component != null)
+            component.add(button);
         return button;
     }
 
@@ -261,7 +262,8 @@ public class GUIUtils {
         if (actionCommand != null)
             button.setActionCommand(actionCommand);
         panel.add(button);
-        component.add(panel);
+        if (component != null)
+            component.add(panel);
         return button;
     }
 
@@ -303,7 +305,8 @@ public class GUIUtils {
     public static JLabel addLabel(Container component, String text, Icon icon,
             int horizontalAlignment) {
         JLabel label = new JLabel(text, icon, horizontalAlignment);
-        component.add(label);
+        if (component != null)
+            component.add(label);
         return label;
     }
 
@@ -341,7 +344,8 @@ public class GUIUtils {
         JSeparator separator = new JSeparator();
         if (margin > 0)
             addMargin(separator, margin);
-        component.add(separator);
+        if (component != null)
+            component.add(separator);
         return separator;
     }
 

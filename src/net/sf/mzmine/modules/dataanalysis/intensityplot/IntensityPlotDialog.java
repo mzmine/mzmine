@@ -27,8 +27,10 @@ import java.awt.Insets;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.util.Arrays;
+import java.util.List;
 import java.util.Vector;
 
+import javax.swing.Box;
 import javax.swing.BoxLayout;
 import javax.swing.JButton;
 import javax.swing.JCheckBox;
@@ -74,6 +76,9 @@ public class IntensityPlotDialog extends JDialog implements ActionListener {
         this.desktop = MainWindow.getInstance();
         this.alignmentResult = parameterSet.getSourcePeakList();
         this.parameterSet = parameterSet;
+        
+        List<OpenedRawDataFile> selectedDataFiles = Arrays.asList(parameterSet.getSelectedDataFiles());
+        List<PeakListRow> selectedRows = Arrays.asList(parameterSet.getSelectedRows());
 
         GridBagConstraints constraints = new GridBagConstraints();
 
@@ -105,7 +110,7 @@ public class IntensityPlotDialog extends JDialog implements ActionListener {
         OpenedRawDataFile files[] = alignmentResult.getRawDataFiles();
         for (int i = 0; i < files.length; i++) {
             rawDataFileCheckBoxes[i] = new ExtendedCheckBox<OpenedRawDataFile>(
-                    files[i]);
+                    files[i], selectedDataFiles.contains(files[i]));
             minimumHorizSize = Math.max(minimumHorizSize,
                     rawDataFileCheckBoxes[i].getPreferredWidth());
             dataFileCheckBoxesPanel.add(rawDataFileCheckBoxes[i]);
@@ -119,6 +124,18 @@ public class IntensityPlotDialog extends JDialog implements ActionListener {
                 minimumVertSize));
         constraints.gridx = 1;
         components.add(dataFilePanelScroll, constraints);
+
+        JPanel dataFileButtonsPanel = new JPanel();
+        dataFileButtonsPanel.setLayout(new BoxLayout(dataFileButtonsPanel,
+                BoxLayout.Y_AXIS));
+        btnSelectAllFiles = GUIUtils.addButton(dataFileButtonsPanel,
+                "Select all", null, this);
+        btnDeselectAllFiles = GUIUtils.addButton(dataFileButtonsPanel,
+                "Deselect all", null, this);
+        dataFileButtonsPanel.add(Box.createGlue());
+        constraints.gridx = 2;
+        components.add(dataFileButtonsPanel);
+        layout.setConstraints(dataFileButtonsPanel, constraints);
 
         comp = GUIUtils.addLabel(components, "X axis value");
         constraints.gridx = 0;
@@ -157,7 +174,7 @@ public class IntensityPlotDialog extends JDialog implements ActionListener {
         PeakListRow rows[] = alignmentResult.getRows();
         Arrays.sort(rows, new AlignmentResultSorterByMZ());
         for (int i = 0; i < rows.length; i++) {
-            peakCheckBoxes[i] = new ExtendedCheckBox<PeakListRow>(rows[i]);
+            peakCheckBoxes[i] = new ExtendedCheckBox<PeakListRow>(rows[i], selectedRows.contains(rows[i]));
             minimumHorizSize = Math.max(minimumHorizSize,
                     peakCheckBoxes[i].getPreferredWidth());
             peakCheckBoxesPanel.add(peakCheckBoxes[i]);
@@ -173,13 +190,25 @@ public class IntensityPlotDialog extends JDialog implements ActionListener {
         constraints.weighty = 1;
         components.add(peakPanelScroll, constraints);
 
+        JPanel peakButtonsPanel = new JPanel();
+        peakButtonsPanel.setLayout(new BoxLayout(peakButtonsPanel,
+                BoxLayout.Y_AXIS));
+        btnSelectAllPeaks = GUIUtils.addButton(peakButtonsPanel, "Select all",
+                null, this);
+        btnDeselectAllPeaks = GUIUtils.addButton(peakButtonsPanel,
+                "Deselect all", null, this);
+        peakButtonsPanel.add(Box.createGlue());
+        constraints.gridx = 2;
+        components.add(peakButtonsPanel);
+        layout.setConstraints(peakButtonsPanel, constraints);
+
         comp = GUIUtils.addSeparator(components, PADDING_SIZE);
         constraints.gridx = 0;
         constraints.gridy = 4;
         constraints.weightx = 0;
         constraints.weighty = 0;
         constraints.gridheight = 1;
-        constraints.gridwidth = 2;
+        constraints.gridwidth = 3;
         layout.setConstraints(comp, constraints);
 
         JPanel buttonsPanel = new JPanel();
@@ -187,7 +216,7 @@ public class IntensityPlotDialog extends JDialog implements ActionListener {
         btnCancel = GUIUtils.addButton(buttonsPanel, "Cancel", null, this);
         constraints.gridx = 0;
         constraints.gridy = 5;
-        constraints.gridwidth = 2;
+        constraints.gridwidth = 3;
         components.add(buttonsPanel, constraints);
 
         GUIUtils.addMargin(components, PADDING_SIZE);

@@ -24,6 +24,7 @@ import java.awt.Point;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.util.Arrays;
+import java.util.logging.Logger;
 
 import javax.swing.JDialog;
 import javax.swing.JMenuItem;
@@ -34,6 +35,7 @@ import net.sf.mzmine.data.PeakList;
 import net.sf.mzmine.data.PeakListRow;
 import net.sf.mzmine.io.OpenedRawDataFile;
 import net.sf.mzmine.modules.dataanalysis.intensityplot.IntensityPlotDialog;
+import net.sf.mzmine.modules.dataanalysis.intensityplot.IntensityPlotFrame;
 import net.sf.mzmine.modules.dataanalysis.intensityplot.IntensityPlotParameters;
 import net.sf.mzmine.modules.visualization.peaklist.table.CommonColumnType;
 import net.sf.mzmine.modules.visualization.peaklist.table.DataFileColumnType;
@@ -41,6 +43,9 @@ import net.sf.mzmine.modules.visualization.peaklist.table.PeakListTable;
 import net.sf.mzmine.modules.visualization.peaklist.table.PeakListTableColumnModel;
 import net.sf.mzmine.modules.visualization.peaklist.table.PeakListTableModel;
 import net.sf.mzmine.modules.visualization.tic.TICSetupDialog;
+import net.sf.mzmine.userinterface.Desktop;
+import net.sf.mzmine.userinterface.dialogs.ExitCode;
+import net.sf.mzmine.userinterface.mainwindow.MainWindow;
 import net.sf.mzmine.util.GUIUtils;
 
 import com.sun.java.TableSorter;
@@ -50,6 +55,8 @@ import com.sun.java.TableSorter;
  */
 public class PeakListTablePopupMenu extends JPopupMenu implements
         ActionListener {
+
+    private Logger logger = Logger.getLogger(this.getClass().getName());
 
     private PeakListTable table;
     private PeakList peakList;
@@ -132,7 +139,7 @@ public class PeakListTablePopupMenu extends JPopupMenu implements
         }
 
         if (src == plotRowsItem) {
-            
+
             int selectedTableRows[] = table.getSelectedRows();
             TableSorter sorterModel = (TableSorter) table.getModel();
             PeakListRow selectedPeakListRows[] = new PeakListRow[selectedTableRows.length];
@@ -140,16 +147,26 @@ public class PeakListTablePopupMenu extends JPopupMenu implements
                 int unsortedIndex = sorterModel.modelIndex(selectedTableRows[i]);
                 selectedPeakListRows[i] = peakList.getRow(unsortedIndex);
             }
-            IntensityPlotParameters parameters = new IntensityPlotParameters(peakList, IntensityPlotParameters.DataFileOption, IntensityPlotParameters.PeakHeightOption, peakList.getRawDataFiles(), selectedPeakListRows);
-            IntensityPlotDialog setupDialog = new IntensityPlotDialog(parameters);
+            IntensityPlotParameters parameters = new IntensityPlotParameters(
+                    peakList, IntensityPlotParameters.DataFileOption,
+                    IntensityPlotParameters.PeakHeightOption,
+                    peakList.getRawDataFiles(), selectedPeakListRows);
+            IntensityPlotDialog setupDialog = new IntensityPlotDialog(
+                    parameters);
             setupDialog.setVisible(true);
+            if (setupDialog.getExitCode() == ExitCode.OK) {
+                Desktop desktop = MainWindow.getInstance();
+                logger.info("Opening new intensity plot");
+                IntensityPlotFrame newFrame = new IntensityPlotFrame(parameters);
+                desktop.addInternalFrame(newFrame);
+            }
 
         }
 
         if (src == showXICItem) {
 
-            JDialog setupDialog = new TICSetupDialog(
-                    clickedPeak.getDataFile(), clickedPeak.getDataPointMinMZ(),
+            JDialog setupDialog = new TICSetupDialog(clickedPeak.getDataFile(),
+                    clickedPeak.getDataPointMinMZ(),
                     clickedPeak.getDataPointMaxMZ(), new Peak[] { clickedPeak });
             setupDialog.setVisible(true);
 

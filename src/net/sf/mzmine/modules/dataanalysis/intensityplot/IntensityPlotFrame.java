@@ -26,6 +26,8 @@ import java.util.logging.Logger;
 import javax.swing.JInternalFrame;
 
 import net.sf.mzmine.userinterface.Desktop;
+import net.sf.mzmine.userinterface.mainwindow.MainWindow;
+import net.sf.mzmine.util.NumberFormatter;
 
 import org.jfree.chart.ChartFactory;
 import org.jfree.chart.ChartPanel;
@@ -41,7 +43,7 @@ import org.jfree.chart.title.TextTitle;
 /**
  * 
  */
-class IntensityPlotFrame extends JInternalFrame {
+public class IntensityPlotFrame extends JInternalFrame {
 
     static final Font legendFont = new Font("SansSerif", Font.PLAIN, 10);
     static final Font titleFont = new Font("SansSerif", Font.PLAIN, 11);
@@ -50,7 +52,7 @@ class IntensityPlotFrame extends JInternalFrame {
 
     private IntensityPlotDataset dataset;
 
-    IntensityPlotFrame(IntensityPlotParameters parameters, Desktop desktop) {
+    public IntensityPlotFrame(IntensityPlotParameters parameters) {
         super("", true, true, true, true);
 
         String title = "Intensity plot ["
@@ -97,7 +99,10 @@ class IntensityPlotFrame extends JInternalFrame {
 
         // set y axis properties
         NumberAxis yAxis = (NumberAxis) plot.getRangeAxis();
-        yAxis.setNumberFormatOverride(desktop.getIntensityFormat());
+        Desktop desktop = MainWindow.getInstance();
+        NumberFormatter yAxisFormat = desktop.getIntensityFormat();
+        if (parameters.getYAxisValueSource() == IntensityPlotParameters.PeakRTOption) yAxisFormat = desktop.getRTFormat();
+        yAxis.setNumberFormatOverride(yAxisFormat);
 
         setTitle(title);
         setDefaultCloseOperation(JInternalFrame.DISPOSE_ON_CLOSE);
