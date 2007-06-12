@@ -41,6 +41,7 @@ import net.sf.mzmine.project.MZmineProject;
 import net.sf.mzmine.userinterface.Desktop;
 import net.sf.mzmine.userinterface.Desktop.MZmineMenu;
 import net.sf.mzmine.userinterface.dialogs.AboutDialog;
+import net.sf.mzmine.userinterface.dialogs.ExperimentalParametersSetupDialog;
 import net.sf.mzmine.userinterface.dialogs.FileOpenDialog;
 import net.sf.mzmine.userinterface.dialogs.FormatSetupDialog;
 import net.sf.mzmine.util.GUIUtils;
@@ -72,7 +73,8 @@ public class MainMenu extends JMenuBar implements ActionListener
     private JMenuItem editCopy;
 
     private JMenuItem fileOpen, fileClose, fileExportPeakList,
-            fileExportAlignmentResult, fileSaveParameters, fileLoadParameters,
+            fileExportAlignmentResult, 
+            fileSaveParameters, fileLoadParameters, fileSetupExperimentalParameters, 
             filePrint, fileExit;
 
     private JMenuItem toolsFormat;
@@ -92,7 +94,7 @@ public class MainMenu extends JMenuBar implements ActionListener
         this.desktop = core.getDesktop();
 
         fileMenu = new JMenu("Project");
-        fileMenu.setMnemonic(KeyEvent.VK_F);
+        fileMenu.setMnemonic(KeyEvent.VK_P);
         add(fileMenu);
 
         fileOpen = GUIUtils.addMenuItem(fileMenu, "Import raw data...", this,
@@ -107,7 +109,9 @@ public class MainMenu extends JMenuBar implements ActionListener
         fileSaveParameters = GUIUtils.addMenuItem(fileMenu,
                 "Save parameters...", this, KeyEvent.VK_S);
         fileLoadParameters = GUIUtils.addMenuItem(fileMenu,
-                "Load parameters...", this, KeyEvent.VK_S);
+                "Load parameters...", this, KeyEvent.VK_L);
+        fileSetupExperimentalParameters = GUIUtils.addMenuItem(fileMenu,
+        		"Setup experimental parameters...", this, KeyEvent.VK_P);
 
         /*
          * fileMenu.addSeparator(); filePrint = GUIUtils.addMenuItem(fileMenu,
@@ -317,6 +321,11 @@ public class MainMenu extends JMenuBar implements ActionListener
             if (alignmentResults.length > 0)
                 new PeakListExportDialog(alignmentResults);
 
+        }
+        
+        if (src == fileSetupExperimentalParameters) {
+        	ExperimentalParametersSetupDialog dialog = new ExperimentalParametersSetupDialog(desktop.getMainFrame());
+        	dialog.setVisible(true);
         }
 
         if (src == toolsFormat) {
