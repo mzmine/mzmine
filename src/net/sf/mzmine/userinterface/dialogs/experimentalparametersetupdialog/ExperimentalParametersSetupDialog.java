@@ -141,7 +141,7 @@ public class ExperimentalParametersSetupDialog extends JDialog implements Action
 	private void copyParameterValuesToTable() {
 		MZmineProject project = MZmineProject.getCurrentProject();
 		OpenedRawDataFile[] files = project.getDataFiles();
-		
+
 		
 	}
 	
@@ -152,7 +152,6 @@ public class ExperimentalParametersSetupDialog extends JDialog implements Action
 			panelParameterInformation = new JPanel(new BorderLayout());
 			
 				labelAddNewParameter = new JLabel("Add experimental parameter");
-	
 				
 				panelName = new JPanel(new FlowLayout(FlowLayout.LEFT));
 					labelName = new JLabel("Name");

@@ -46,9 +46,11 @@ public class OpenedRawDataFileImpl implements OpenedRawDataFile {
     private RawDataFile currentFile;
     private File originalFile;
     private PeakList peakList;
+    private SimpleParameterSet parameters;
     
     public OpenedRawDataFileImpl(RawDataFile rawDataFile, String dataDescription) {
         processingHistory = new Vector<Operation>();
+        parameters = new SimpleParameterSet();
         this.dataDescription = dataDescription;
         this.currentFile = rawDataFile;
         this.originalFile = rawDataFile.getFile();
@@ -193,7 +195,9 @@ public class OpenedRawDataFileImpl implements OpenedRawDataFile {
         return (peakList != null);
     }
 
-
+	public SimpleParameterSet getParameters() {
+		return parameters;
+	}
 
 
 }

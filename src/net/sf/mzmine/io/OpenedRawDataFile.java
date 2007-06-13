@@ -25,6 +25,7 @@ import java.util.Vector;
 
 import net.sf.mzmine.data.ParameterSet;
 import net.sf.mzmine.data.PeakList;
+import net.sf.mzmine.data.impl.SimpleParameterSet;
 import net.sf.mzmine.modules.BatchStep;
 
 
@@ -65,6 +66,10 @@ public interface OpenedRawDataFile {
     public void setPeakList(PeakList p);
     
     public boolean hasPeakList();
+    
+    public SimpleParameterSet getParameters();
+    
+    
     
     
 }
