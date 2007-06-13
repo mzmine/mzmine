@@ -1,4 +1,4 @@
-package net.sf.mzmine.userinterface.dialogs;
+package net.sf.mzmine.userinterface.dialogs.experimentalparametersetupdialog;
 
 import java.awt.BorderLayout;
 import java.awt.FlowLayout;
@@ -22,6 +22,10 @@ import javax.swing.JTextField;
 import javax.swing.border.Border;
 import javax.swing.border.EtchedBorder;
 
+import net.sf.mzmine.io.OpenedRawDataFile;
+import net.sf.mzmine.project.MZmineProject;
+import net.sf.mzmine.userinterface.dialogs.ExitCode;
+
 public class ExperimentalParametersSetupDialog extends JDialog implements ActionListener {
 
 	private JPanel panelAddNewParameter;
@@ -29,19 +33,16 @@ public class ExperimentalParametersSetupDialog extends JDialog implements Action
 		private JLabel labelAddNewParameter;
 	
 		private JPanel panelParameterInformation;
-			private JPanel panelNameAndType;
 			
-				private JPanel panelName;
-					private JLabel labelName;
-					private JTextField fieldName;
-			
-				private JPanel panelType;
-					private ButtonGroup buttongroupType;
-					private JRadioButton radiobuttonNumerical;
-					private JRadioButton radiobuttonCathegorical;
-			
+			private JPanel panelName;
+				private JLabel labelName;
+				private JTextField fieldName;
 					
 			private JPanel panelFields;
+
+				private ButtonGroup buttongroupType;
+				private JRadioButton radiobuttonNumerical;
+				private JRadioButton radiobuttonCathegorical;
 			
 				private JPanel panelNumerical;
 
@@ -108,6 +109,40 @@ public class ExperimentalParametersSetupDialog extends JDialog implements Action
 			dispose();
 		}
 		
+		if ((src == radiobuttonNumerical) ||(src == radiobuttonCathegorical)) {
+			if (radiobuttonNumerical.isSelected()) {
+				switchNumericalFields(true);
+				switchCathegoricalFields(false);
+			} else {
+				switchNumericalFields(false);
+				switchCathegoricalFields(true);
+			}
+		}
+		
+		
+		
+	}
+	
+	private void switchNumericalFields(boolean enabled) {
+		labelMinValue.setEnabled(enabled);
+		fieldMinValue.setEnabled(enabled);
+		labelDefaultValue.setEnabled(enabled);
+		fieldDefaultValue.setEnabled(enabled);
+		labelMaxValue.setEnabled(enabled);
+		fieldMaxValue.setEnabled(enabled);
+	}
+	
+	private void switchCathegoricalFields(boolean enabled) {
+		tableCathegories.setEnabled(enabled);
+		buttonAddCathegory.setEnabled(enabled);
+		buttonRemoveCathegory.setEnabled(enabled);
+	}
+	
+	private void copyParameterValuesToTable() {
+		MZmineProject project = MZmineProject.getCurrentProject();
+		OpenedRawDataFile[] files = project.getDataFiles();
+		
+		
 	}
 	
 	private void initComponents() {
@@ -128,6 +163,8 @@ public class ExperimentalParametersSetupDialog extends JDialog implements Action
 					buttongroupType = new ButtonGroup();
 					radiobuttonNumerical = new JRadioButton("Numerical values");
 					radiobuttonCathegorical = new JRadioButton("Cathegorical values");
+					radiobuttonNumerical.addActionListener(this);
+					radiobuttonCathegorical.addActionListener(this);
 					buttongroupType.add(radiobuttonNumerical);
 					buttongroupType.add(radiobuttonCathegorical);
 						
@@ -189,8 +226,6 @@ public class ExperimentalParametersSetupDialog extends JDialog implements Action
 				buttonRemoveParameter = new JButton("Remove parameter");
 				panelAddParameterButtons.add(buttonAddParameter);
 				panelAddParameterButtons.add(buttonRemoveParameter);
-				
-			
 				
 			panelAddNewParameter.add(labelAddNewParameter, BorderLayout.NORTH);
 			panelAddNewParameter.add(panelParameterInformation, BorderLayout.CENTER);

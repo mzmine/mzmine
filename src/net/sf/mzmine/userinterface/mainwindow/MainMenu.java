@@ -41,7 +41,7 @@ import net.sf.mzmine.project.MZmineProject;
 import net.sf.mzmine.userinterface.Desktop;
 import net.sf.mzmine.userinterface.Desktop.MZmineMenu;
 import net.sf.mzmine.userinterface.dialogs.AboutDialog;
-import net.sf.mzmine.userinterface.dialogs.ExperimentalParametersSetupDialog;
+import net.sf.mzmine.userinterface.dialogs.experimentalparametersetupdialog.ExperimentalParametersSetupDialog;
 import net.sf.mzmine.userinterface.dialogs.FileOpenDialog;
 import net.sf.mzmine.userinterface.dialogs.FormatSetupDialog;
 import net.sf.mzmine.util.GUIUtils;
