@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
 <configuration> 
-  <nodes local="1"/>  
+  <nodes local="4"/>  
   <modules> 
     <module class="net.sf.mzmine.modules.visualization.tic.TICVisualizer"/>  
     <module class="net.sf.mzmine.modules.visualization.spectra.SpectraVisualizer"/>  
@@ -9,166 +9,29 @@
     <module class="net.sf.mzmine.modules.visualization.threed.ThreeDVisualizer"/>  
     <module class="net.sf.mzmine.modules.visualization.neutralloss.NeutralLossVisualizer"/>  
     <module class="net.sf.mzmine.util.menu.VisualizationMenuSeparator"/>  
-    <module class="net.sf.mzmine.modules.visualization.peaklist.PeakListTableVisualizer"> 
-      <parameters>
-        <rowheight>20</rowheight>
-        <peakshapenormalization>PEAKMAX</peakshapenormalization>
-      </parameters> 
-    </module>  
+    <module class="net.sf.mzmine.modules.visualization.peaklist.PeakListTableVisualizer"/>  
     <module class="net.sf.mzmine.modules.batchmode.BatchMode"/>  
-    <module class="net.sf.mzmine.modules.filtering.crop.CropFilter"> 
-      <parameters>
-        <parameter name="MS level" type="INTEGER"/>
-        <parameter name="Minimum M/Z" type="DOUBLE">100.0</parameter>
-        <parameter name="Maximum M/Z" type="DOUBLE">1000.0</parameter>
-        <parameter name="Minimum Retention time" type="DOUBLE">0.0</parameter>
-        <parameter name="Maximum Retention time" type="DOUBLE">600.0</parameter>
-      </parameters> 
-    </module>  
-    <module class="net.sf.mzmine.modules.filtering.mean.MeanFilter"> 
-      <parameters>
-        <parameter name="Window length" type="DOUBLE">0.1</parameter>
-      </parameters> 
-    </module>  
-    <module class="net.sf.mzmine.modules.filtering.savitzkygolay.SGFilter"> 
-      <parameters>
-        <parameter name="Number of datapoints" type="INTEGER">5</parameter>
-      </parameters> 
-    </module>  
-    <module class="net.sf.mzmine.modules.filtering.chromatographicmedian.CMFilter"> 
-      <parameters>
-        <parameter name="Window length" type="INTEGER">1</parameter>
-        <parameter name="M/Z tolerance" type="DOUBLE">0.1</parameter>
-      </parameters> 
-    </module>  
-    <module class="net.sf.mzmine.modules.filtering.zoomscan.ZoomScanFilter"> 
-      <parameters>
-        <parameter name="Minimum M/Z range" type="DOUBLE">100.0</parameter>
-      </parameters> 
-    </module>  
-    <module class="net.sf.mzmine.modules.peakpicking.recursivethreshold.RecursivePicker"> 
-      <parameters>
-        <parameter name="M/Z bin width" type="DOUBLE">0.25</parameter>
-        <parameter name="Chromatographic threshold level" type="DOUBLE">0.0</parameter>
-        <parameter name="Noise level" type="DOUBLE">10.0</parameter>
-        <parameter name="Min peak height" type="DOUBLE">100.0</parameter>
-        <parameter name="Min peak duration" type="DOUBLE">4.0</parameter>
-        <parameter name="Min M/Z peak width" type="DOUBLE">0.2</parameter>
-        <parameter name="Max M/Z peak width" type="DOUBLE">1.0</parameter>
-        <parameter name="M/Z tolerance" type="DOUBLE">0.1</parameter>
-        <parameter name="Intensity tolerance" type="DOUBLE">0.15</parameter>
-      </parameters> 
-    </module>  
-    <module class="net.sf.mzmine.modules.peakpicking.local.LocalPicker"> 
-      <parameters>
-        <parameter name="M/Z bin width" type="DOUBLE">0.25</parameter>
-        <parameter name="Chromatographic threshold level" type="DOUBLE">0.0</parameter>
-        <parameter name="Noise level" type="DOUBLE">4.0</parameter>
-        <parameter name="Min peak height" type="DOUBLE">15.0</parameter>
-        <parameter name="Min peak duration" type="DOUBLE">3.0</parameter>
-        <parameter name="M/Z tolerance" type="DOUBLE">0.05</parameter>
-        <parameter name="Intensity tolerance" type="DOUBLE">0.2</parameter>
-      </parameters> 
-    </module>  
-    <module class="net.sf.mzmine.modules.peakpicking.centroid.CentroidPicker"> 
-      <parameters>
-        <parameter name="M/Z bin width" type="DOUBLE">0.25</parameter>
-        <parameter name="Chromatographic threshold level" type="DOUBLE">0.95</parameter>
-        <parameter name="Noise level" type="DOUBLE">4000.0</parameter>
-        <parameter name="Min peak height" type="DOUBLE">15000.0</parameter>
-        <parameter name="Min peak duration" type="DOUBLE">3.0</parameter>
-        <parameter name="M/Z tolerance" type="DOUBLE">0.05</parameter>
-        <parameter name="Intensity tolerance" type="DOUBLE">0.2</parameter>
-      </parameters> 
-    </module>  
+    <module class="net.sf.mzmine.modules.filtering.crop.CropFilter"/>
+    <module class="net.sf.mzmine.modules.filtering.mean.MeanFilter"/>
+    <module class="net.sf.mzmine.modules.filtering.savitzkygolay.SGFilter"/>
+    <module class="net.sf.mzmine.modules.filtering.chromatographicmedian.CMFilter"/>
+    <module class="net.sf.mzmine.modules.filtering.zoomscan.ZoomScanFilter"/>
+    <module class="net.sf.mzmine.modules.peakpicking.recursivethreshold.RecursivePicker"/>
+    <module class="net.sf.mzmine.modules.peakpicking.local.LocalPicker"/>
+    <module class="net.sf.mzmine.modules.peakpicking.centroid.CentroidPicker"/>
     <module class="net.sf.mzmine.util.menu.PeakPickingMenuSeparator"/>  
-    <module class="net.sf.mzmine.modules.deisotoping.simplegrouper.SimpleGrouper"> 
-      <parameters>
-        <parameter name="M/Z tolerance" type="DOUBLE">0.05</parameter>
-        <parameter name="RT tolerance" type="DOUBLE">5.0</parameter>
-        <parameter name="Monotonic shape" type="BOOLEAN">true</parameter>
-        <parameter name="Maximum charge" type="INTEGER">1</parameter>
-      </parameters> 
-    </module>  
-    <module class="net.sf.mzmine.modules.alignment.join.JoinAligner"> 
-      <parameters>
-        <parameter name="M/Z vs RT balance" type="DOUBLE">10.0</parameter>
-        <parameter name="M/Z tolerance" type="DOUBLE">0.2</parameter>
-        <parameter name="RT tolerance type" type="STRING">Absolute</parameter>
-        <parameter name="Absolute RT tolerance" type="DOUBLE">15.0</parameter>
-        <parameter name="Relative RT tolerance" type="DOUBLE">0.15</parameter>
-      </parameters> 
-    </module>  
-    <module class="net.sf.mzmine.modules.alignment.filterbygaps.GapsFilter"> 
-      <parameters>
-        <parameter name="Minimum present" type="INTEGER">1</parameter>
-      </parameters> 
-    </module>  
-    <module class="net.sf.mzmine.modules.gapfilling.simple.SimpleGapFiller"> 
-      <parameters>
-        <parameter name="Intensity tolerance" type="DOUBLE">0.2</parameter>
-        <parameter name="M/Z tolerance" type="DOUBLE">0.05</parameter>
-        <parameter name="RT range type" type="STRING">Absolute</parameter>
-        <parameter name="Absolute RT tolerance" type="DOUBLE">15.0</parameter>
-        <parameter name="Relative RT tolerance" type="DOUBLE">0.15</parameter>
-      </parameters> 
-    </module>  
-    <module class="net.sf.mzmine.modules.normalization.linear.LinearNormalizer"> 
-      <parameters>
-        <parameter name="Normalization type" type="STRING">Average intensity</parameter>
-      </parameters> 
-    </module>  
-    <module class="net.sf.mzmine.modules.normalization.simplestandardcompound.SimpleStandardCompoundNormalizer"/>  
-    <module class="net.sf.mzmine.modules.dataanalysis.rtmzplots.RTMZAnalyzer"> 
-      <parameters>
-        <parameter name="Peak measurement type" type="STRING">Area</parameter>
-      </parameters> 
-    </module>  
-    <module class="net.sf.mzmine.modules.dataanalysis.projectionplots.ProjectionPlot"> 
-      <parameters>
-        <parameter name="Peak measurement type" type="STRING">Height</parameter>
-      </parameters> 
-    </module>  
-    <module class="net.sf.mzmine.modules.dataanalysis.intensityplot.IntensityPlot"/>  
-    <module class="net.sf.mzmine.modules.identification.custom.CustomDBSearch"> 
-      <parameters>
-        <databasefile></databasefile>
-        <fieldseparator></fieldseparator>
-        <fieldorder>
-          <field>ID</field>
-          <field>m/z</field>
-          <field>Retention time (s)</field>
-          <field>Name</field>
-          <field>Formula</field>
-        </fieldorder>
-        <ignorefirstline>false</ignorefirstline>
-        <mztolerance>1.0</mztolerance>
-        <rttolerance>60.0</rttolerance>
-      </parameters> 
-    </module>  
-    <module class="net.sf.mzmine.modules.identification.fragmentation.InSourceFragmentationSearch"/>  
-    <module class="net.sf.mzmine.modules.identification.kegg.KEGGSearch"/>  
+    <module class="net.sf.mzmine.modules.deisotoping.simplegrouper.SimpleGrouper"/>
+    <module class="net.sf.mzmine.modules.alignment.join.JoinAligner"/> 
+    <module class="net.sf.mzmine.modules.alignment.filterbygaps.GapsFilter"/> 
+    <module class="net.sf.mzmine.modules.gapfilling.simple.SimpleGapFiller"/> 
+    <module class="net.sf.mzmine.modules.normalization.linear.LinearNormalizer"/> 
+    <module class="net.sf.mzmine.modules.normalization.simplestandardcompound.SimpleStandardCompoundNormalizer"/> 
+    <module class="net.sf.mzmine.modules.dataanalysis.rtmzplots.RTMZAnalyzer"/>
+    <module class="net.sf.mzmine.modules.dataanalysis.projectionplots.ProjectionPlot"/>
+    <module class="net.sf.mzmine.modules.dataanalysis.intensityplot.IntensityPlot"/> 
+    <module class="net.sf.mzmine.modules.identification.custom.CustomDBSearch"/> 
+    <module class="net.sf.mzmine.modules.identification.fragmentation.InSourceFragmentationSearch"/> 
+    <module class="net.sf.mzmine.modules.identification.kegg.KEGGSearch"/> 
     <module class="net.sf.mzmine.modules.identification.pubchem.PubChemSearch"/> 
-  </modules>  
-  <desktop>
-    <format type="m/z">
-      <type>NUMBER</type>
-      <pattern>#0.000</pattern>
-    </format>
-    <format type="Retention time">
-      <type>TIME</type>
-      <pattern>m:ss</pattern>
-    </format>
-    <format type="Intensity">
-      <type>NUMBER</type>
-      <pattern>0.00E0</pattern>
-    </format>
-    <mainwindow>
-      <x>24</x>
-      <y>29</y>
-      <width>1000</width>
-      <height>700</height>
-    </mainwindow>
-    <lastdirectory>C:\VTT\Data_Netcdf\NewCentroidMouse\cdf</lastdirectory>
-  </desktop> 
+  </modules> 
 </configuration>
