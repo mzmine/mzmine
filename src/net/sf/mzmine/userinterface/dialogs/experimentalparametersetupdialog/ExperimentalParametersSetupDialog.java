@@ -16,11 +16,13 @@ import java.util.Vector;
 
 import javax.swing.BorderFactory;
 import javax.swing.ButtonGroup;
+import javax.swing.DefaultListModel;
 import javax.swing.JButton;
 import javax.swing.JDialog;
 import javax.swing.JFormattedTextField;
 import javax.swing.JLabel;
 import javax.swing.JList;
+import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JRadioButton;
 import javax.swing.JScrollPane;
@@ -79,19 +81,17 @@ public class ExperimentalParametersSetupDialog extends JDialog implements Action
 	
 	private ExitCode exitCode = ExitCode.UNKNOWN;
 	
-	private HashSet<String> categories;
+	private DefaultListModel categories;
 	private OpenedRawDataFile[] dataFiles;
 	private Hashtable<Parameter, Object[]> parameterValues;
-	private Vector<Parameter> removedParameters;
 	
 	private Desktop desktop;
 	
 	public ExperimentalParametersSetupDialog(Desktop desktop, OpenedRawDataFile[] dataFiles) {
 		super(desktop.getMainFrame(), true);
 		 
-		categories = new HashSet<String>();
+		categories = new DefaultListModel();
 		parameterValues = new Hashtable<Parameter, Object[]>();
-		removedParameters = new Vector<Parameter>();
 		
 		this.desktop = desktop;
 		this.dataFiles = dataFiles;
@@ -159,7 +159,9 @@ public class ExperimentalParametersSetupDialog extends JDialog implements Action
 			}
 			if (radiobuttonCategorical.isSelected()) {
 				Parameter.ParameterType paramType = Parameter.ParameterType.STRING;
-				String[] possibleValues = categories.toArray(new String[0]);
+				String[] possibleValues = new String[categories.size()];
+				for (int valueIndex=0; valueIndex<categories.size(); valueIndex++)
+					possibleValues[valueIndex] = (String)categories.get(valueIndex);
 				parameter = new SimpleParameter(paramType, paramName, null, possibleValues[0], possibleValues);
 			}
 			
@@ -201,7 +203,10 @@ public class ExperimentalParametersSetupDialog extends JDialog implements Action
 		}
 		
 		if (src == buttonAddCategory) {
-			categories.add(new String("Value 1"));
+			String inputValue = JOptionPane.showInputDialog("Please input a new value");
+			// TODO: Check if given parameter value already exists
+			
+			((DefaultListModel)listCategories.getModel()).addElement(inputValue);
 		}
 		
 		if (src == buttonRemoveCategory) {
@@ -361,11 +366,13 @@ public class ExperimentalParametersSetupDialog extends JDialog implements Action
 						// List of values for categorical
 						panelCategoricalFields = new JPanel(new BorderLayout());
 							scrollCategories = new JScrollPane();
-							listCategories = new JList();
-							scrollCategories.add(listCategories);
+							listCategories = new JList(categories);
+							scrollCategories.setViewportView(listCategories);
 							panelAddCategoryButtons = new JPanel(new FlowLayout(FlowLayout.LEFT));
 								buttonAddCategory = new JButton("Add value");
+								buttonAddCategory.addActionListener(this);
 								buttonRemoveCategory = new JButton("Remove value");
+								buttonRemoveCategory.addActionListener(this);
 								panelAddCategoryButtons.add(buttonAddCategory);
 								panelAddCategoryButtons.add(buttonRemoveCategory);
 							panelCategoricalFields.add(scrollCategories, BorderLayout.CENTER);
