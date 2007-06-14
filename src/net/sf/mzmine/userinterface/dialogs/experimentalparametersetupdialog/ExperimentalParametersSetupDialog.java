@@ -1,12 +1,18 @@
 package net.sf.mzmine.userinterface.dialogs.experimentalparametersetupdialog;
 
 import java.awt.BorderLayout;
+import java.awt.Dimension;
 import java.awt.FlowLayout;
 import java.awt.Frame;
 import java.awt.GridLayout;
 import java.awt.Insets;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.text.NumberFormat;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Hashtable;
+import java.util.Vector;
 
 import javax.swing.BorderFactory;
 import javax.swing.ButtonGroup;
@@ -14,6 +20,7 @@ import javax.swing.JButton;
 import javax.swing.JDialog;
 import javax.swing.JFormattedTextField;
 import javax.swing.JLabel;
+import javax.swing.JList;
 import javax.swing.JPanel;
 import javax.swing.JRadioButton;
 import javax.swing.JScrollPane;
@@ -22,70 +29,82 @@ import javax.swing.JTextField;
 import javax.swing.border.Border;
 import javax.swing.border.EtchedBorder;
 
+import net.sf.mzmine.data.Parameter;
+import net.sf.mzmine.data.impl.SimpleParameter;
 import net.sf.mzmine.io.OpenedRawDataFile;
 import net.sf.mzmine.project.MZmineProject;
+import net.sf.mzmine.userinterface.Desktop;
 import net.sf.mzmine.userinterface.dialogs.ExitCode;
 
 public class ExperimentalParametersSetupDialog extends JDialog implements ActionListener {
 
 	private JPanel panelAddNewParameter;
-	
 		private JLabel labelAddNewParameter;
-	
 		private JPanel panelParameterInformation;
-			
 			private JPanel panelName;
 				private JLabel labelName;
-				private JTextField fieldName;
-					
+				private JTextField fieldName;		
 			private JPanel panelFields;
-
 				private ButtonGroup buttongroupType;
 				private JRadioButton radiobuttonNumerical;
 				private JRadioButton radiobuttonCathegorical;
-			
 				private JPanel panelNumerical;
-
 					private JPanel panelNumericalFields;
 						private JLabel labelMinValue;
-						private JFormattedTextField fieldMinValue;
+						private JFormattedTextField fieldMinValue;					
 						private JLabel labelDefaultValue;
 						private JFormattedTextField fieldDefaultValue;
 						private JLabel labelMaxValue;
 						private JFormattedTextField fieldMaxValue;
-					
-
 				private JPanel panelCathegorical;
-				
 					private JPanel panelCathegoricalFields;
 						private JScrollPane scrollCathegories;
-						private JTable tableCathegories;
+						private JList listCathegories;
 						private JPanel panelAddCathegoryButtons;
 							private JButton buttonAddCathegory;
 							private JButton buttonRemoveCathegory;
-				
-		private JPanel panelAddParameterButtons;
+		private JPanel panelAddParameterButton;
 			private JButton buttonAddParameter;
-			private JButton buttonRemoveParameter;
 			
 	private JPanel panelParameterValues;
 		private JLabel labelParameterValues;
 		private JScrollPane scrollParameterValues;
 		private JTable tableParameterValues;
-	
+		private ExperimentalParametersSetupDialogTableModel tablemodelParameterValues;
+		private JPanel panelRemoveParameterButton;
+		private JButton buttonRemoveParameter;
 	private JPanel panelOKCancelButtons;
 		private JButton buttonOK;
 		private JButton buttonCancel;
 	
 	private ExitCode exitCode = ExitCode.UNKNOWN;
 	
+	private HashSet<String> cathegories;
+	private OpenedRawDataFile[] dataFiles;
+	private Hashtable<Parameter, Object[]> parameterValues;
+	private Vector<Parameter> removedParameters;
 	
-	public ExperimentalParametersSetupDialog(Frame owner) {
-
+	private Desktop desktop;
+	
+	public ExperimentalParametersSetupDialog(Desktop desktop, OpenedRawDataFile[] dataFiles) {
+		super(desktop.getMainFrame(), true);
+		 
+		cathegories = new HashSet<String>();
+		parameterValues = new Hashtable<Parameter, Object[]>();
+		removedParameters = new Vector<Parameter>();
+		
+		this.desktop = desktop;
+		this.dataFiles = dataFiles;
+		
 		setTitle("Setup experimental parameters and values");
 		initComponents();
 		
-		setLocationRelativeTo(owner);
+		copyParameterValuesFromRawDataFiles();
+		
+		setupTableModel();
+		
+		setLocationRelativeTo(desktop.getMainFrame());
+		
 	}
 
 	public ExitCode getExitCode() {
@@ -96,9 +115,8 @@ public class ExperimentalParametersSetupDialog extends JDialog implements Action
 
 		Object src = actionEvent.getSource();
 		if (src == buttonOK) {
-			// Add new parameters to project
-			
-			// Set parameter values to OpenedRawDataFiles
+			// Add parameters to data files if they do not exist already, and set values
+			copyParameterValuesToRawDataFiles();
 			
 			exitCode = ExitCode.OK;
 			dispose();
@@ -107,6 +125,69 @@ public class ExperimentalParametersSetupDialog extends JDialog implements Action
 		if (src == buttonCancel) {
 			exitCode = ExitCode.CANCEL;
 			dispose();
+		}
+		
+		if (src == buttonAddParameter) {
+			if (fieldName.getText().length()==0) {
+				desktop.displayErrorMessage("Give a name for the parameter first.");
+				return;
+			}
+			String paramName = fieldName.getText();
+			
+			SimpleParameter parameter = null;
+			if (radiobuttonNumerical.isSelected()) {
+				Parameter.ParameterType paramType = Parameter.ParameterType.DOUBLE;
+				
+				Double minValue = Double.NEGATIVE_INFINITY;
+				if (fieldMinValue.getValue()!=null)
+					minValue = ((Number)fieldMinValue.getValue()).doubleValue();
+				
+				Double defaultValue = 0.0;
+				if (fieldDefaultValue.getValue()!=null) {
+					
+					defaultValue = ((Number)fieldDefaultValue.getValue()).doubleValue();
+					System.out.println("Read default value " + defaultValue + " from the form.");
+				} else {
+					System.out.println("fieldDefaultValue.getValue()==null");
+				}
+				
+				Double maxValue = Double.POSITIVE_INFINITY;
+				if (fieldMaxValue.getValue()!=null)
+					maxValue = ((Number)fieldMaxValue.getValue()).doubleValue();
+				
+				parameter = new SimpleParameter(paramType, paramName, null, null, defaultValue, minValue, maxValue);
+			}
+			if (radiobuttonCathegorical.isSelected()) {
+				Parameter.ParameterType paramType = Parameter.ParameterType.STRING;
+				String[] possibleValues = cathegories.toArray(new String[0]);
+				parameter = new SimpleParameter(paramType, paramName, null, possibleValues[0], possibleValues);
+			}
+			
+			// Initialize with default value
+			Object[] values = new Object[dataFiles.length];
+			for (int dataFileIndex=0; dataFileIndex<dataFiles.length; dataFileIndex++) 
+				values[dataFileIndex] = parameter.getDefaultValue();
+			
+			System.out.println("Initialized values with " + values[0]);
+			
+			
+			// Add this newly created parameter to hashtable
+			parameterValues.put(parameter, values);
+			setupTableModel();
+			
+			
+		}
+		
+		if (src == buttonRemoveParameter) {
+			int selectedColumn = tableParameterValues.getSelectedColumn();
+			Parameter parameter = tablemodelParameterValues.getParameter(selectedColumn);
+			if (parameter==null) {
+				desktop.displayErrorMessage("Select a parameter column from the table first.");
+				return;
+			}
+			parameterValues.remove(parameter);
+			setupTableModel();
+			
 		}
 		
 		if ((src == radiobuttonNumerical) ||(src == radiobuttonCathegorical)) {
@@ -119,7 +200,13 @@ public class ExperimentalParametersSetupDialog extends JDialog implements Action
 			}
 		}
 		
+		if (src == buttonAddCathegory) {
+			desktop.displayErrorMessage("Not yet implemented.");
+		}
 		
+		if (src == buttonRemoveCathegory) {
+			desktop.displayErrorMessage("Not yet implemented.");
+		}		
 		
 	}
 	
@@ -133,17 +220,92 @@ public class ExperimentalParametersSetupDialog extends JDialog implements Action
 	}
 	
 	private void switchCathegoricalFields(boolean enabled) {
-		tableCathegories.setEnabled(enabled);
+		listCathegories.setEnabled(enabled);
 		buttonAddCathegory.setEnabled(enabled);
 		buttonRemoveCathegory.setEnabled(enabled);
 	}
 	
-	private void copyParameterValuesToTable() {
-		MZmineProject project = MZmineProject.getCurrentProject();
-		OpenedRawDataFile[] files = project.getDataFiles();
+	private void copyParameterValuesToRawDataFiles() {
+		
+		// Remove all old parameters
+		for (int dataFileIndex=0; dataFileIndex<dataFiles.length; dataFileIndex++) {
+			OpenedRawDataFile file = dataFiles[dataFileIndex];
+			
+			for (Parameter p : file.getParameters().getParameters()) {
+				file.getParameters().removeParameter(p);
+			}
+		}
+		
+		// Create new parameters and set values
+		for (int columnIndex=0; columnIndex<parameterValues.keySet().size(); columnIndex++) {
+			Parameter parameter = tablemodelParameterValues.getParameter(columnIndex+1);
+			
+			for (int dataFileIndex=0; dataFileIndex<dataFiles.length; dataFileIndex++) {
+				OpenedRawDataFile file = dataFiles[dataFileIndex];
+				
+				file.getParameters().addParameter(parameter);
+				Object value = tablemodelParameterValues.getValueAt(dataFileIndex, columnIndex+1);
+				if (parameter.getType()==Parameter.ParameterType.DOUBLE) {
+					Double doubleValue=null;
+					if (value instanceof Double)
+						doubleValue = (Double)value;
+					if (value instanceof String) 
+						doubleValue = Double.parseDouble((String)value);
+					file.getParameters().setParameterValue(parameter, doubleValue);
+				}
+				if (parameter.getType()==Parameter.ParameterType.STRING) {
+					file.getParameters().setParameterValue(parameter, (String)value);
+				}
+				
+			}
 
+		}
 		
 	}
+	
+	private void copyParameterValuesFromRawDataFiles() {
+
+		
+		for (int dataFileIndex=0; dataFileIndex<dataFiles.length; dataFileIndex++) {
+			
+			OpenedRawDataFile file = dataFiles[dataFileIndex];
+			
+			// Loop through all experimental paramters defined for this file
+			for (Parameter p : file.getParameters().getParameters()) {
+				
+				// Check if this parameter has been seen before?
+				Object[] values;
+				if (!(parameterValues.containsKey(p))) {
+					// No, initialize a new array of values for this parameter
+					values = new Object[dataFiles.length];
+					for (int i=0; i<values.length; i++) 
+						values[i] = p.getDefaultValue();
+					parameterValues.put(p, values);
+				} else {
+					values = parameterValues.get(p);
+				}
+				
+				// Set value of this parameter for the current raw data file 
+				values[dataFileIndex] = file.getParameters().getParameterValue(p);
+				
+			}
+			
+		}
+		
+	}
+	
+	
+	private void setupTableModel() {
+		
+		tablemodelParameterValues = new ExperimentalParametersSetupDialogTableModel(dataFiles, parameterValues);
+		tableParameterValues.setModel(tablemodelParameterValues);
+		
+		radiobuttonNumerical.setSelected(true);
+		switchNumericalFields(true);
+		switchCathegoricalFields(false);
+		
+	}
+	
 	
 	private void initComponents() {
 		
@@ -176,11 +338,11 @@ public class ExperimentalParametersSetupDialog extends JDialog implements Action
 
 						panelNumericalFields = new JPanel(new GridLayout(3,2,5,2));
 							labelMinValue = new JLabel("Minimum value");
-							fieldMinValue = new JFormattedTextField();
+							fieldMinValue = new JFormattedTextField(NumberFormat.getNumberInstance());
 							labelDefaultValue = new JLabel("Default value");
-							fieldDefaultValue = new JFormattedTextField();
+							fieldDefaultValue = new JFormattedTextField(NumberFormat.getNumberInstance());
 							labelMaxValue = new JLabel("Maximum value");
-							fieldMaxValue = new JFormattedTextField();
+							fieldMaxValue = new JFormattedTextField(NumberFormat.getNumberInstance());
 							panelNumericalFields.add(labelMinValue);
 							panelNumericalFields.add(fieldMinValue);
 							panelNumericalFields.add(labelDefaultValue);
@@ -199,8 +361,8 @@ public class ExperimentalParametersSetupDialog extends JDialog implements Action
 						// List of values for cathegorical
 						panelCathegoricalFields = new JPanel(new BorderLayout());
 							scrollCathegories = new JScrollPane();
-							tableCathegories = new JTable();
-							scrollCathegories.add(tableCathegories);
+							listCathegories = new JList();
+							scrollCathegories.add(listCathegories);
 							panelAddCathegoryButtons = new JPanel(new FlowLayout(FlowLayout.LEFT));
 								buttonAddCathegory = new JButton("Add cathegory");
 								buttonRemoveCathegory = new JButton("Remove cathegory");
@@ -220,25 +382,40 @@ public class ExperimentalParametersSetupDialog extends JDialog implements Action
 			panelParameterInformation.add(panelName, BorderLayout.NORTH);
 			panelParameterInformation.add(panelFields, BorderLayout.CENTER);
 							
-			panelAddParameterButtons = new JPanel(new FlowLayout(FlowLayout.LEFT));
+			panelAddParameterButton = new JPanel(new FlowLayout(FlowLayout.LEFT));
 				buttonAddParameter = new JButton("Add parameter");
-				buttonRemoveParameter = new JButton("Remove parameter");
-				panelAddParameterButtons.add(buttonAddParameter);
-				panelAddParameterButtons.add(buttonRemoveParameter);
+				buttonAddParameter.addActionListener(this);
+				panelAddParameterButton.add(buttonAddParameter);
 				
 			panelAddNewParameter.add(labelAddNewParameter, BorderLayout.NORTH);
 			panelAddNewParameter.add(panelParameterInformation, BorderLayout.CENTER);
-			panelAddNewParameter.add(panelAddParameterButtons, BorderLayout.SOUTH);
+			panelAddNewParameter.add(panelAddParameterButton, BorderLayout.SOUTH);
 			panelAddNewParameter.setBorder(BorderFactory.createEmptyBorder(5, 5, 25, 5));
 			
 		panelParameterValues = new JPanel(new BorderLayout());
 			labelParameterValues = new JLabel("Values for experimental parameters");
 			scrollParameterValues = new JScrollPane();
-			tableParameterValues = new JTable();
-			scrollParameterValues.add(tableParameterValues);
+			tablemodelParameterValues = new ExperimentalParametersSetupDialogTableModel(new OpenedRawDataFile[0], new Hashtable<Parameter, Object[]>());
+			tableParameterValues = new JTable(tablemodelParameterValues);
+			tableParameterValues.setColumnSelectionAllowed(true);
+			tableParameterValues.setRowSelectionAllowed(false);
+			scrollParameterValues.setViewportView(tableParameterValues);
+			scrollParameterValues.setMinimumSize(new Dimension(100,100));
+			scrollParameterValues.setPreferredSize(new Dimension(100,100));
+			panelRemoveParameterButton = new JPanel(new FlowLayout(FlowLayout.LEFT));
+				buttonRemoveParameter = new JButton("Remove parameter");
+				buttonRemoveParameter.addActionListener(this);
+				panelRemoveParameterButton.add(buttonRemoveParameter);
+			
 			panelParameterValues.add(labelParameterValues, BorderLayout.NORTH);
 			panelParameterValues.add(scrollParameterValues, BorderLayout.CENTER);
-		
+			panelParameterValues.add(panelRemoveParameterButton, BorderLayout.SOUTH);
+			panelParameterValues.setBorder(BorderFactory.createEmptyBorder(5, 5, 5, 5));
+			
+			
+			
+			
+			
 		panelOKCancelButtons = new JPanel(new FlowLayout(FlowLayout.RIGHT));
 			buttonOK = new JButton("OK");
 			buttonOK.addActionListener(this);
@@ -246,7 +423,6 @@ public class ExperimentalParametersSetupDialog extends JDialog implements Action
 			buttonCancel.addActionListener(this);
 			panelOKCancelButtons.add(buttonOK);
 			panelOKCancelButtons.add(buttonCancel);
-			
 			
 		setLayout(new BorderLayout());
 		

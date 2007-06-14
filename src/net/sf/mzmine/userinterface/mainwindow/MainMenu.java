@@ -74,7 +74,7 @@ public class MainMenu extends JMenuBar implements ActionListener
 
     private JMenuItem fileOpen, fileClose, fileExportPeakList,
             fileExportAlignmentResult, 
-            fileSaveParameters, fileLoadParameters, fileSetupExperimentalParameters, 
+            fileSaveParameters, fileLoadParameters, editExperimentalParameters, 
             filePrint, fileExit;
 
     private JMenuItem toolsFormat;
@@ -110,8 +110,6 @@ public class MainMenu extends JMenuBar implements ActionListener
                 "Save parameters...", this, KeyEvent.VK_S);
         fileLoadParameters = GUIUtils.addMenuItem(fileMenu,
                 "Load parameters...", this, KeyEvent.VK_L);
-        fileSetupExperimentalParameters = GUIUtils.addMenuItem(fileMenu,
-        		"Setup experimental parameters...", this, KeyEvent.VK_P);
 
         /*
          * fileMenu.addSeparator(); filePrint = GUIUtils.addMenuItem(fileMenu,
@@ -125,6 +123,10 @@ public class MainMenu extends JMenuBar implements ActionListener
         editMenu.setMnemonic(KeyEvent.VK_E);
         this.add(editMenu);
 
+        editExperimentalParameters = GUIUtils.addMenuItem(editMenu,
+        		"Set experimental parameters...", this, KeyEvent.VK_P);
+        
+        
         /*
          * editCopy = GUIUtils.addMenuItem(editMenu, "Copy", this,
          * KeyEvent.VK_C, true);
@@ -323,8 +325,13 @@ public class MainMenu extends JMenuBar implements ActionListener
 
         }
         
-        if (src == fileSetupExperimentalParameters) {
-        	ExperimentalParametersSetupDialog dialog = new ExperimentalParametersSetupDialog(desktop.getMainFrame());
+        if (src == editExperimentalParameters) {
+        	OpenedRawDataFile[] selectedFiles = desktop.getSelectedDataFiles();
+        	if ( (selectedFiles==null) || (selectedFiles.length==0) ) {
+        		desktop.displayErrorMessage("Select at least one raw data file.");
+        		return;
+        	}
+        	ExperimentalParametersSetupDialog dialog = new ExperimentalParametersSetupDialog(desktop, desktop.getSelectedDataFiles());
         	dialog.setVisible(true);
         }
 
@@ -344,7 +351,5 @@ public class MainMenu extends JMenuBar implements ActionListener
         }
 
     }
-
-
 
 }
