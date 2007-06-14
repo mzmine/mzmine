@@ -47,7 +47,7 @@ public class ExperimentalParametersSetupDialog extends JDialog implements Action
 			private JPanel panelFields;
 				private ButtonGroup buttongroupType;
 				private JRadioButton radiobuttonNumerical;
-				private JRadioButton radiobuttonCathegorical;
+				private JRadioButton radiobuttonCategorical;
 				private JPanel panelNumerical;
 					private JPanel panelNumericalFields;
 						private JLabel labelMinValue;
@@ -56,13 +56,13 @@ public class ExperimentalParametersSetupDialog extends JDialog implements Action
 						private JFormattedTextField fieldDefaultValue;
 						private JLabel labelMaxValue;
 						private JFormattedTextField fieldMaxValue;
-				private JPanel panelCathegorical;
-					private JPanel panelCathegoricalFields;
-						private JScrollPane scrollCathegories;
-						private JList listCathegories;
-						private JPanel panelAddCathegoryButtons;
-							private JButton buttonAddCathegory;
-							private JButton buttonRemoveCathegory;
+				private JPanel panelCategorical;
+					private JPanel panelCategoricalFields;
+						private JScrollPane scrollCategories;
+						private JList listCategories;
+						private JPanel panelAddCategoryButtons;
+							private JButton buttonAddCategory;
+							private JButton buttonRemoveCategory;
 		private JPanel panelAddParameterButton;
 			private JButton buttonAddParameter;
 			
@@ -79,7 +79,7 @@ public class ExperimentalParametersSetupDialog extends JDialog implements Action
 	
 	private ExitCode exitCode = ExitCode.UNKNOWN;
 	
-	private HashSet<String> cathegories;
+	private HashSet<String> categories;
 	private OpenedRawDataFile[] dataFiles;
 	private Hashtable<Parameter, Object[]> parameterValues;
 	private Vector<Parameter> removedParameters;
@@ -89,7 +89,7 @@ public class ExperimentalParametersSetupDialog extends JDialog implements Action
 	public ExperimentalParametersSetupDialog(Desktop desktop, OpenedRawDataFile[] dataFiles) {
 		super(desktop.getMainFrame(), true);
 		 
-		cathegories = new HashSet<String>();
+		categories = new HashSet<String>();
 		parameterValues = new Hashtable<Parameter, Object[]>();
 		removedParameters = new Vector<Parameter>();
 		
@@ -157,9 +157,9 @@ public class ExperimentalParametersSetupDialog extends JDialog implements Action
 				
 				parameter = new SimpleParameter(paramType, paramName, null, null, defaultValue, minValue, maxValue);
 			}
-			if (radiobuttonCathegorical.isSelected()) {
+			if (radiobuttonCategorical.isSelected()) {
 				Parameter.ParameterType paramType = Parameter.ParameterType.STRING;
-				String[] possibleValues = cathegories.toArray(new String[0]);
+				String[] possibleValues = categories.toArray(new String[0]);
 				parameter = new SimpleParameter(paramType, paramName, null, possibleValues[0], possibleValues);
 			}
 			
@@ -190,23 +190,23 @@ public class ExperimentalParametersSetupDialog extends JDialog implements Action
 			
 		}
 		
-		if ((src == radiobuttonNumerical) ||(src == radiobuttonCathegorical)) {
+		if ((src == radiobuttonNumerical) ||(src == radiobuttonCategorical)) {
 			if (radiobuttonNumerical.isSelected()) {
 				switchNumericalFields(true);
-				switchCathegoricalFields(false);
+				switchCategoricalFields(false);
 			} else {
 				switchNumericalFields(false);
-				switchCathegoricalFields(true);
+				switchCategoricalFields(true);
 			}
 		}
 		
-		if (src == buttonAddCathegory) {
-			desktop.displayErrorMessage("Not yet implemented.");
+		if (src == buttonAddCategory) {
+			categories.add(new String("Value 1"));
 		}
 		
-		if (src == buttonRemoveCathegory) {
+		if (src == buttonRemoveCategory) {
 			desktop.displayErrorMessage("Not yet implemented.");
-		}		
+		}
 		
 	}
 	
@@ -219,10 +219,10 @@ public class ExperimentalParametersSetupDialog extends JDialog implements Action
 		fieldMaxValue.setEnabled(enabled);
 	}
 	
-	private void switchCathegoricalFields(boolean enabled) {
-		listCathegories.setEnabled(enabled);
-		buttonAddCathegory.setEnabled(enabled);
-		buttonRemoveCathegory.setEnabled(enabled);
+	private void switchCategoricalFields(boolean enabled) {
+		listCategories.setEnabled(enabled);
+		buttonAddCategory.setEnabled(enabled);
+		buttonRemoveCategory.setEnabled(enabled);
 	}
 	
 	private void copyParameterValuesToRawDataFiles() {
@@ -302,7 +302,7 @@ public class ExperimentalParametersSetupDialog extends JDialog implements Action
 		
 		radiobuttonNumerical.setSelected(true);
 		switchNumericalFields(true);
-		switchCathegoricalFields(false);
+		switchCategoricalFields(false);
 		
 	}
 	
@@ -323,11 +323,11 @@ public class ExperimentalParametersSetupDialog extends JDialog implements Action
 						
 					buttongroupType = new ButtonGroup();
 					radiobuttonNumerical = new JRadioButton("Numerical values");
-					radiobuttonCathegorical = new JRadioButton("Cathegorical values");
+					radiobuttonCategorical = new JRadioButton("Set of values");
 					radiobuttonNumerical.addActionListener(this);
-					radiobuttonCathegorical.addActionListener(this);
+					radiobuttonCategorical.addActionListener(this);
 					buttongroupType.add(radiobuttonNumerical);
-					buttongroupType.add(radiobuttonCathegorical);
+					buttongroupType.add(radiobuttonCategorical);
 						
 				// Fields for different types of parameters
 				panelFields = new JPanel(new GridLayout(1,2));
@@ -356,28 +356,28 @@ public class ExperimentalParametersSetupDialog extends JDialog implements Action
 						panelNumerical.add(panelNumericalFields, BorderLayout.CENTER);
 						panelNumerical.setBorder(BorderFactory.createEtchedBorder());
 						
-					panelCathegorical = new JPanel(new BorderLayout());
+					panelCategorical = new JPanel(new BorderLayout());
 					
-						// List of values for cathegorical
-						panelCathegoricalFields = new JPanel(new BorderLayout());
-							scrollCathegories = new JScrollPane();
-							listCathegories = new JList();
-							scrollCathegories.add(listCathegories);
-							panelAddCathegoryButtons = new JPanel(new FlowLayout(FlowLayout.LEFT));
-								buttonAddCathegory = new JButton("Add cathegory");
-								buttonRemoveCathegory = new JButton("Remove cathegory");
-								panelAddCathegoryButtons.add(buttonAddCathegory);
-								panelAddCathegoryButtons.add(buttonRemoveCathegory);
-							panelCathegoricalFields.add(scrollCathegories, BorderLayout.CENTER);
-							panelCathegoricalFields.add(panelAddCathegoryButtons, BorderLayout.SOUTH);
-							panelCathegoricalFields.setBorder(BorderFactory.createEmptyBorder(5,5,5,5));
+						// List of values for categorical
+						panelCategoricalFields = new JPanel(new BorderLayout());
+							scrollCategories = new JScrollPane();
+							listCategories = new JList();
+							scrollCategories.add(listCategories);
+							panelAddCategoryButtons = new JPanel(new FlowLayout(FlowLayout.LEFT));
+								buttonAddCategory = new JButton("Add value");
+								buttonRemoveCategory = new JButton("Remove value");
+								panelAddCategoryButtons.add(buttonAddCategory);
+								panelAddCategoryButtons.add(buttonRemoveCategory);
+							panelCategoricalFields.add(scrollCategories, BorderLayout.CENTER);
+							panelCategoricalFields.add(panelAddCategoryButtons, BorderLayout.SOUTH);
+							panelCategoricalFields.setBorder(BorderFactory.createEmptyBorder(5,5,5,5));
 
-						panelCathegorical.add(radiobuttonCathegorical, BorderLayout.NORTH);
-						panelCathegorical.add(panelCathegoricalFields, BorderLayout.CENTER);
-						panelCathegorical.setBorder(BorderFactory.createEtchedBorder());
+						panelCategorical.add(radiobuttonCategorical, BorderLayout.NORTH);
+						panelCategorical.add(panelCategoricalFields, BorderLayout.CENTER);
+						panelCategorical.setBorder(BorderFactory.createEtchedBorder());
 					
 					panelFields.add(panelNumerical);
-					panelFields.add(panelCathegorical);
+					panelFields.add(panelCategorical);
 					
 			panelParameterInformation.add(panelName, BorderLayout.NORTH);
 			panelParameterInformation.add(panelFields, BorderLayout.CENTER);
