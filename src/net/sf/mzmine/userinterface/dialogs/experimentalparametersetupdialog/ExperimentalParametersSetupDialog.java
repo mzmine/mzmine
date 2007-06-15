@@ -1,6 +1,7 @@
 package net.sf.mzmine.userinterface.dialogs.experimentalparametersetupdialog;
 
 import java.awt.BorderLayout;
+import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.FlowLayout;
 import java.awt.Frame;
@@ -16,8 +17,10 @@ import java.util.Vector;
 
 import javax.swing.BorderFactory;
 import javax.swing.ButtonGroup;
+import javax.swing.DefaultCellEditor;
 import javax.swing.DefaultListModel;
 import javax.swing.JButton;
+import javax.swing.JComboBox;
 import javax.swing.JDialog;
 import javax.swing.JFormattedTextField;
 import javax.swing.JLabel;
@@ -30,10 +33,12 @@ import javax.swing.JTable;
 import javax.swing.JTextField;
 import javax.swing.border.Border;
 import javax.swing.border.EtchedBorder;
+import javax.swing.table.TableCellEditor;
 
 import net.sf.mzmine.data.Parameter;
 import net.sf.mzmine.data.impl.SimpleParameter;
 import net.sf.mzmine.io.OpenedRawDataFile;
+import net.sf.mzmine.modules.dataanalysis.projectionplots.ProjectionPlotSetupDialogComboBox;
 import net.sf.mzmine.project.MZmineProject;
 import net.sf.mzmine.userinterface.Desktop;
 import net.sf.mzmine.userinterface.dialogs.ExitCode;
@@ -102,6 +107,10 @@ public class ExperimentalParametersSetupDialog extends JDialog implements Action
 		copyParameterValuesFromRawDataFiles();
 		
 		setupTableModel();
+
+		radiobuttonNumerical.setSelected(true);
+		switchNumericalFields(true);
+		switchCategoricalFields(false);
 		
 		setLocationRelativeTo(desktop.getMainFrame());
 		
@@ -305,13 +314,15 @@ public class ExperimentalParametersSetupDialog extends JDialog implements Action
 		tablemodelParameterValues = new ExperimentalParametersSetupDialogTableModel(dataFiles, parameterValues);
 		tableParameterValues.setModel(tablemodelParameterValues);
 		
-		radiobuttonNumerical.setSelected(true);
-		switchNumericalFields(true);
-		switchCategoricalFields(false);
+		for (int columnIndex=0; columnIndex<(tablemodelParameterValues.getColumnCount()-1); columnIndex++) {
+			Parameter parameter = tablemodelParameterValues.getParameter(columnIndex+1);
+			if (parameter.getPossibleValues()!=null)
+				tableParameterValues.getColumnModel().getColumn(columnIndex+1).setCellEditor(new DefaultCellEditor(new JComboBox(parameter.getPossibleValues())));
+		}
+		
 		
 	}
-	
-	
+		
 	private void initComponents() {
 		
 		panelAddNewParameter = new JPanel(new BorderLayout());
@@ -439,5 +450,7 @@ public class ExperimentalParametersSetupDialog extends JDialog implements Action
 		
 		pack();
 	}
+	
+	
 	
 }
