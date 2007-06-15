@@ -31,9 +31,11 @@ import javax.swing.JRadioButton;
 import javax.swing.JScrollPane;
 import javax.swing.JTable;
 import javax.swing.JTextField;
+import javax.swing.JFormattedTextField.AbstractFormatter;
 import javax.swing.border.Border;
 import javax.swing.border.EtchedBorder;
 import javax.swing.table.TableCellEditor;
+import javax.swing.text.NumberFormatter;
 
 import net.sf.mzmine.data.Parameter;
 import net.sf.mzmine.data.impl.SimpleParameter;
@@ -124,7 +126,11 @@ public class ExperimentalParametersSetupDialog extends JDialog implements Action
 
 		Object src = actionEvent.getSource();
 		if (src == buttonOK) {
-			// Add parameters to data files if they do not exist already, and set values
+			
+			// Validate parameter values  
+			if (!validateParameterValues()) return;
+			
+			// Copy paramter values to raw data files
 			copyParameterValuesToRawDataFiles();
 			
 			exitCode = ExitCode.OK;
@@ -144,21 +150,17 @@ public class ExperimentalParametersSetupDialog extends JDialog implements Action
 			String paramName = fieldName.getText();
 			
 			SimpleParameter parameter = null;
+
 			if (radiobuttonNumerical.isSelected()) {
 				Parameter.ParameterType paramType = Parameter.ParameterType.DOUBLE;
-				
 				Double minValue = Double.NEGATIVE_INFINITY;
 				if (fieldMinValue.getValue()!=null)
 					minValue = ((Number)fieldMinValue.getValue()).doubleValue();
 				
 				Double defaultValue = 0.0;
 				if (fieldDefaultValue.getValue()!=null) {
-					
 					defaultValue = ((Number)fieldDefaultValue.getValue()).doubleValue();
-					System.out.println("Read default value " + defaultValue + " from the form.");
-				} else {
-					System.out.println("fieldDefaultValue.getValue()==null");
-				}
+				} 
 				
 				Double maxValue = Double.POSITIVE_INFINITY;
 				if (fieldMaxValue.getValue()!=null)
@@ -178,9 +180,6 @@ public class ExperimentalParametersSetupDialog extends JDialog implements Action
 			Object[] values = new Object[dataFiles.length];
 			for (int dataFileIndex=0; dataFileIndex<dataFiles.length; dataFileIndex++) 
 				values[dataFileIndex] = parameter.getDefaultValue();
-			
-			System.out.println("Initialized values with " + values[0]);
-			
 			
 			// Add this newly created parameter to hashtable
 			parameterValues.put(parameter, values);
@@ -237,6 +236,47 @@ public class ExperimentalParametersSetupDialog extends JDialog implements Action
 		listCategories.setEnabled(enabled);
 		buttonAddCategory.setEnabled(enabled);
 		buttonRemoveCategory.setEnabled(enabled);
+	}
+	
+	private boolean validateParameterValues() {
+		// Create new parameters and set values
+		for (int columnIndex=0; columnIndex<parameterValues.keySet().size(); columnIndex++) {
+			Parameter parameter = tablemodelParameterValues.getParameter(columnIndex+1);
+			
+			if (parameter.getType()==Parameter.ParameterType.DOUBLE) {
+				Double minValue = null;
+				Double maxValue = null;
+				if (parameter.getMinimumValue()!=null)
+					minValue = (Double)(parameter.getMinimumValue());
+				if (parameter.getMaximumValue()!=null)
+					maxValue = (Double)(parameter.getMaximumValue());
+	
+				for (int dataFileIndex=0; dataFileIndex<dataFiles.length; dataFileIndex++) {
+					Object objValue = tablemodelParameterValues.getValueAt(dataFileIndex, columnIndex+1);
+					Double value = null;
+					if (objValue instanceof Double) value = (Double)objValue;
+					if (objValue instanceof String) {
+						try {
+							value = Double.parseDouble((String)objValue);
+						} catch (NumberFormatException ex) {
+							desktop.displayErrorMessage("Incorrect value (" + (String)objValue + ") for parameter " + parameter.getName() + " in data file " + dataFiles[dataFileIndex].toString() + ".");
+							return false;
+						}
+					}
+					if ((minValue!=null) && (minValue>value)) {
+						desktop.displayErrorMessage("Too small value (" + value + ") for parameter " + parameter.getName() + " in data file " + dataFiles[dataFileIndex].toString() + ".");
+						return false;
+					}
+					if ((maxValue!=null) && (maxValue<value)) {
+						desktop.displayErrorMessage("Too big value (" + value + ") for parameter " + parameter.getName() + " in data file " + dataFiles[dataFileIndex].toString() + ".");
+						return false;
+					}				
+				}
+			}
+		}
+		
+		return true;
+		
 	}
 	
 	private void copyParameterValuesToRawDataFiles() {
@@ -319,7 +359,7 @@ public class ExperimentalParametersSetupDialog extends JDialog implements Action
 			if (parameter.getPossibleValues()!=null)
 				tableParameterValues.getColumnModel().getColumn(columnIndex+1).setCellEditor(new DefaultCellEditor(new JComboBox(parameter.getPossibleValues())));
 		}
-		
+
 		
 	}
 		
