@@ -30,14 +30,39 @@ import net.sf.mzmine.io.RawDataFile;
 public interface MZmineProject {
 
     /**
+     * Adds a new experimental parameter to the project
      * @param parameter
      */
     public void addParameter(Parameter parameter);
 
     /**
+     * Removes an experimental parameter from the project
      * @param parameter
      */
     public void removeParameter(Parameter parameter);
+    
+    /**
+     * Returns true if project contains the experimental parameter
+     */
+    public boolean hasParameter(Parameter parameter);
+    
+    /**
+     * Returns all experimental parameter defined in the project
+     */
+    public Parameter[] getParameters();
+    
+    /**
+     * Sets the value of the parameter in the given raw data file.
+     * If experimental parameter does not exists in the project, it is added to the project
+     * If parameter has previous value in the given file, the previous value is replaced
+     */
+    public void setParameterValue(Parameter parameter, RawDataFile rawDataFile, Object value);
+    
+    /**
+	 * Returns the value of an experimental parameter in the given raw data file
+     * @param newFile
+     */
+    public Object getParameterValue(Parameter parameter, RawDataFile rawDataFile);
 
     public void addFile(RawDataFile newFile);
 

@@ -38,21 +38,38 @@ public class MZmineProjectImpl implements MZmineProject {
 
     private Vector<RawDataFile> projectFiles;
     private Vector<PeakList> projectResults;
-    private Vector<Parameter> projectParameters;
+    //private Vector<Parameter> projectParameters;
+    private Hashtable<Parameter, Hashtable<RawDataFile, Object>> projectParametersAndValues;
     private Hashtable<RawDataFile, PeakList> peakLists;
 
-    /**
-     * @param parameter
-     */
     public void addParameter(Parameter parameter) {
-        projectParameters.add(parameter);
+        if (projectParametersAndValues.containsKey(parameter)) return;
+        
+        Hashtable<RawDataFile, Object> parameterValues = new Hashtable<RawDataFile, Object>();
+        projectParametersAndValues.put(parameter, parameterValues);
+        
     }
-
-    /**
-     * @param parameter
-     */
     public void removeParameter(Parameter parameter) {
-        projectParameters.remove(parameter);
+    	projectParametersAndValues.remove(parameter);
+    }
+    
+    public boolean hasParameter(Parameter parameter) {
+    	if (projectParametersAndValues.containsKey(parameter)) return true; else return false; 
+    }
+    
+    public Parameter[] getParameters() {	
+    	return projectParametersAndValues.keySet().toArray(new Parameter[0]);
+    }
+    
+    public void setParameterValue(Parameter parameter, RawDataFile rawDataFile, Object value) {
+    	if (!(hasParameter(parameter))) addParameter(parameter);
+    	Hashtable<RawDataFile, Object> parameterValues = projectParametersAndValues.get(parameter);
+    	parameterValues.put(rawDataFile, value);
+    }
+    
+    public Object getParameterValue(Parameter parameter, RawDataFile rawDataFile) {
+    	if (!(hasParameter(parameter))) return null;
+    	return projectParametersAndValues.get(parameter).get(rawDataFile);
     }
 
     public void addFile(RawDataFile newFile) {
@@ -115,8 +132,10 @@ public class MZmineProjectImpl implements MZmineProject {
 
         projectFiles = new Vector<RawDataFile>();
         projectResults = new Vector<PeakList>();
-        projectParameters = new Vector<Parameter>();
+        //projectParameters = new Vector<Parameter>();
+        projectParametersAndValues = new Hashtable<Parameter, Hashtable<RawDataFile, Object>>();
         peakLists = new Hashtable<RawDataFile, PeakList>();
+        
 
     }
 
