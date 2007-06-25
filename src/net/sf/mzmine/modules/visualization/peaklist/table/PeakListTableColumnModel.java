@@ -22,7 +22,6 @@ package net.sf.mzmine.modules.visualization.peaklist.table;
 import java.awt.Font;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
-import java.util.Enumeration;
 
 import javax.swing.DefaultCellEditor;
 import javax.swing.JTextField;
@@ -33,7 +32,8 @@ import javax.swing.table.TableCellRenderer;
 import javax.swing.table.TableColumn;
 
 import net.sf.mzmine.data.PeakList;
-import net.sf.mzmine.io.OpenedRawDataFile;
+import net.sf.mzmine.io.RawDataFile;
+import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.modules.visualization.peaklist.PeakListTableParameters;
 import net.sf.mzmine.modules.visualization.peaklist.PeakListTableVisualizer;
 import net.sf.mzmine.userinterface.Desktop;
@@ -84,7 +84,7 @@ public class PeakListTableColumnModel extends DefaultTableColumnModel implements
         header.addMouseListener(this);
 
         // prepare formatters
-        Desktop desktop = MainWindow.getInstance();
+        Desktop desktop = MZmineCore.getDesktop();
         NumberFormatter mzFormat = desktop.getMZFormat();
         NumberFormatter rtFormat = desktop.getRTFormat();
         NumberFormatter intensityFormat = desktop.getIntensityFormat();
@@ -204,7 +204,7 @@ public class PeakListTableColumnModel extends DefaultTableColumnModel implements
 
         }
 
-        for (OpenedRawDataFile dataFile : peakList.getRawDataFiles()) {
+        for (RawDataFile dataFile : peakList.getRawDataFiles()) {
 
             ColumnGroup fileGroup = new ColumnGroup(dataFile.toString());
             header.addColumnGroup(fileGroup);

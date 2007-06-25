@@ -29,16 +29,18 @@ import net.sf.mzmine.data.PeakListRow;
 import net.sf.mzmine.data.impl.SimpleParameterSet;
 import net.sf.mzmine.data.impl.SimplePeakList;
 import net.sf.mzmine.data.impl.SimplePeakListRow;
-import net.sf.mzmine.io.OpenedRawDataFile;
+import net.sf.mzmine.io.RawDataFile;
+import net.sf.mzmine.main.MZmineCore;
+import net.sf.mzmine.project.MZmineProject;
 import net.sf.mzmine.taskcontrol.Task;
-import net.sf.mzmine.util.AlignmentResultSorterByMZ;
+import net.sf.mzmine.util.PeakListRowSorterByMZ;
 
 /**
  * 
  */
 class JoinAlignerTask implements Task {
 
-    private OpenedRawDataFile[] dataFiles;
+    private RawDataFile[] dataFiles;
 
     private TaskStatus status;
     private String errorMessage;
@@ -57,7 +59,7 @@ class JoinAlignerTask implements Task {
      * @param rawDataFile
      * @param parameters
      */
-    JoinAlignerTask(OpenedRawDataFile[] dataFiles, SimpleParameterSet parameters) {
+    JoinAlignerTask(RawDataFile[] dataFiles, SimpleParameterSet parameters) {
 
         status = TaskStatus.WAITING;
         this.dataFiles = dataFiles;
@@ -127,23 +129,25 @@ class JoinAlignerTask implements Task {
         alignmentResult = new SimplePeakList("Result from Join Aligner");
 
         // Add openedrawdatafiles to alignment result
-        for (OpenedRawDataFile dataFile : dataFiles)
-            alignmentResult.addOpenedRawDataFile(dataFile);
+        for (RawDataFile dataFile : dataFiles)
+            alignmentResult.addRawDataFile(dataFile);
 
         int newRowID = 1;
         
         /*
          * Loop through all data files
          */
-        for (OpenedRawDataFile dataFile : dataFiles) {
+        for (RawDataFile dataFile : dataFiles) {
 
             if (status == TaskStatus.CANCELED)
                 return;
+            
+            MZmineProject currentProject = MZmineCore.getCurrentProject();
 
             /*
              * Pickup peak list for this file and generate list of wrapped peaks
              */
-            PeakList peakList = dataFile.getPeakList();
+            PeakList peakList = currentProject.getFilePeakList(dataFile);
             PeakWrapper wrappedPeakList[] = new PeakWrapper[peakList.getNumberOfRows()];
             for (int i = 0; i < peakList.getNumberOfRows(); i++) {
                 Peak peakToWrap = peakList.getPeak(i, dataFile);
@@ -163,7 +167,7 @@ class JoinAlignerTask implements Task {
 
         	PeakListRow[] rows = alignmentResult.getRows();
         	//Arrays.sort(rows, new PeakListRowComparator());
-        	Arrays.sort(rows, new AlignmentResultSorterByMZ());
+        	Arrays.sort(rows, new PeakListRowSorterByMZ());
             Integer nextStartingRowIndex = 0;
             for (PeakWrapper wrappedPeak : wrappedPeakList) {
             	

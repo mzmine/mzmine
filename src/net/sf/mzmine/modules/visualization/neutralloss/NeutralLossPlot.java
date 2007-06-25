@@ -31,6 +31,7 @@ import javax.swing.JMenuItem;
 import javax.swing.JPopupMenu;
 import javax.swing.KeyStroke;
 
+import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.userinterface.Desktop;
 import net.sf.mzmine.userinterface.mainwindow.MainWindow;
 import net.sf.mzmine.util.GUIUtils;
@@ -83,7 +84,7 @@ class NeutralLossPlot extends ChartPanel {
         setBackground(Color.white);
         setCursor(Cursor.getPredefinedCursor(Cursor.CROSSHAIR_CURSOR));
         
-        Desktop desktop = MainWindow.getInstance();
+        Desktop desktop = MZmineCore.getDesktop();
         NumberFormat rtFormat = desktop.getRTFormat();
         NumberFormat mzFormat = desktop.getMZFormat();
         

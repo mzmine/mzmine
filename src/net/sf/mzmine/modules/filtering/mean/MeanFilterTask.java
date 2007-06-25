@@ -25,9 +25,10 @@ import java.util.Vector;
 import net.sf.mzmine.data.Scan;
 import net.sf.mzmine.data.impl.SimpleParameterSet;
 import net.sf.mzmine.data.impl.SimpleScan;
-import net.sf.mzmine.io.OpenedRawDataFile;
+import net.sf.mzmine.io.RawDataFile;
 import net.sf.mzmine.io.RawDataFile;
 import net.sf.mzmine.io.RawDataFileWriter;
+import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.taskcontrol.Task;
 
 /**
@@ -35,8 +36,7 @@ import net.sf.mzmine.taskcontrol.Task;
  */
 class MeanFilterTask implements Task {
 
-    private OpenedRawDataFile dataFile;
-    private RawDataFile rawDataFile;
+    private RawDataFile dataFile;
 
     private TaskStatus status = TaskStatus.WAITING;
     private String errorMessage;
@@ -46,16 +46,15 @@ class MeanFilterTask implements Task {
 
     private RawDataFile filteredRawDataFile;
 
-    private double oneSidedWindowLength;
+    private float oneSidedWindowLength;
 
     /**
      * @param rawDataFile
      * @param parameters
      */
-    MeanFilterTask(OpenedRawDataFile dataFile, SimpleParameterSet parameters) {
+    MeanFilterTask(RawDataFile dataFile, SimpleParameterSet parameters) {
         this.dataFile = dataFile;
-        this.rawDataFile = dataFile.getCurrentFile();
-        oneSidedWindowLength = (Double) parameters.getParameterValue(MeanFilter.parameterOneSidedWindowLength);
+        oneSidedWindowLength = ((Double) parameters.getParameterValue(MeanFilter.parameterOneSidedWindowLength)).floatValue();
     }
 
     /**
@@ -95,7 +94,7 @@ class MeanFilterTask implements Task {
         return filteredRawDataFile;
     }
     
-    public OpenedRawDataFile getDataFile() {
+    public RawDataFile getDataFile() {
         return dataFile;
     }
 
@@ -116,14 +115,14 @@ class MeanFilterTask implements Task {
         // Create new temporary copy
         RawDataFileWriter rawDataFileWriter;
         try {
-            rawDataFileWriter = dataFile.createNewTemporaryFile();
+            rawDataFileWriter = MZmineCore.getIOController().createNewFile(dataFile);
         } catch (IOException e) {
             status = TaskStatus.ERROR;
             errorMessage = e.toString();
             return;
         }
 
-        int[] scanNumbers = rawDataFile.getScanNumbers();
+        int[] scanNumbers = dataFile.getScanNumbers();
         totalScans = scanNumbers.length;
 
         Scan oldScan;
@@ -134,7 +133,7 @@ class MeanFilterTask implements Task {
                 return;
 
             try {
-                oldScan = rawDataFile.getScan(scanNumbers[i]);
+                oldScan = dataFile.getScan(scanNumbers[i]);
                 processOneScan(rawDataFileWriter, oldScan, oneSidedWindowLength);
 
             } catch (IOException e) {
@@ -160,7 +159,7 @@ class MeanFilterTask implements Task {
     }
 
     private void processOneScan(RawDataFileWriter writer, Scan sc,
-            double windowLength) throws IOException {
+            float windowLength) throws IOException {
 
         // only process MS level 1 scans
         if (sc.getMSLevel() != 1) {
@@ -171,16 +170,16 @@ class MeanFilterTask implements Task {
         Vector<Double> massWindow = new Vector<Double>();
         Vector<Double> intensityWindow = new Vector<Double>();
 
-        double currentMass;
-        double lowLimit;
-        double hiLimit;
-        double mzVal;
+        float currentMass;
+        float lowLimit;
+        float hiLimit;
+        float mzVal;
 
-        double elSum;
+        float elSum;
 
-        double[] masses = sc.getMZValues();
-        double[] intensities = sc.getIntensityValues();
-        double[] newIntensities = new double[masses.length];
+        float[] masses = sc.getMZValues();
+        float[] intensities = sc.getIntensityValues();
+        float[] newIntensities = new float[masses.length];
 
         int addi = 0;
         for (int i = 0; i < masses.length; i++) {
@@ -192,12 +191,12 @@ class MeanFilterTask implements Task {
             // Remove all elements from window whose m/z value is less than the
             // low limit
             if (massWindow.size() > 0) {
-                mzVal = massWindow.get(0).doubleValue();
+                mzVal = massWindow.get(0).floatValue();
                 while ((massWindow.size() > 0) && (mzVal < lowLimit)) {
                     massWindow.remove(0);
                     intensityWindow.remove(0);
                     if (massWindow.size() > 0) {
-                        mzVal = massWindow.get(0).doubleValue();
+                        mzVal = massWindow.get(0).floatValue();
                     }
                 }
             }
@@ -215,7 +214,7 @@ class MeanFilterTask implements Task {
                 elSum += ((Double) (intensityWindow.get(j))).doubleValue();
             }
 
-            newIntensities[i] = elSum / (double) intensityWindow.size();
+            newIntensities[i] = elSum / (float) intensityWindow.size();
 
         }
 

@@ -28,9 +28,10 @@ import javax.swing.JMenuItem;
 
 import net.sf.mzmine.data.ParameterSet;
 import net.sf.mzmine.data.PeakList;
-import net.sf.mzmine.io.OpenedRawDataFile;
+import net.sf.mzmine.io.RawDataFile;
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.main.MZmineModule;
+import net.sf.mzmine.project.MZmineProject;
 import net.sf.mzmine.userinterface.Desktop;
 import net.sf.mzmine.userinterface.Desktop.MZmineMenu;
 
@@ -47,9 +48,9 @@ public class PeakListTableVisualizer implements MZmineModule, ActionListener {
     /**
      * @see net.sf.mzmine.main.MZmineModule#initModule(net.sf.mzmine.main.MZmineCore)
      */
-    public void initModule(MZmineCore core) {
+    public void initModule() {
 
-        this.desktop = core.getDesktop();
+        this.desktop = MZmineCore.getDesktop();
 
         parameters = new PeakListTableParameters();
 
@@ -69,9 +70,10 @@ public class PeakListTableVisualizer implements MZmineModule, ActionListener {
      */
     public void actionPerformed(ActionEvent e) {
 
-        OpenedRawDataFile dataFiles[] = desktop.getSelectedDataFiles();
+        RawDataFile dataFiles[] = desktop.getSelectedDataFiles();
         PeakList alignmentResults[] = desktop.getSelectedAlignedPeakLists();
-
+        MZmineProject currentProject = MZmineCore.getCurrentProject();
+        
         Object src = e.getSource();
 
         if (src == peakListTable) {
@@ -81,9 +83,9 @@ public class PeakListTableVisualizer implements MZmineModule, ActionListener {
                     return;
                 }
 
-                for (OpenedRawDataFile dataFile : dataFiles) {
+                for (RawDataFile dataFile : dataFiles) {
 
-                    PeakList peakList = dataFile.getPeakList();
+                    PeakList peakList = currentProject.getFilePeakList(dataFile);
                     
                     if (peakList == null) {
                         desktop.displayErrorMessage(dataFile + " has no peak list, please run peak picking first");

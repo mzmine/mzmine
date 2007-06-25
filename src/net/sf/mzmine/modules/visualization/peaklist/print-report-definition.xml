@@ -395,66 +395,6 @@
             <template references="horizontal-line"/>
           </element>
 
-
-
-          <element type="text/plain">
-            <style>
-              <basic-key name="font-size">8</basic-key>
-              <basic-key name="font-bold">false</basic-key>
-              <basic-key name="font-italic">true</basic-key>
-              <compound-key name="absolute_pos">
-                <basic-object name="x">0.0</basic-object>
-                <basic-object name="y">20.0</basic-object>
-              </compound-key>
-              <compound-key name="min-size">
-                <basic-object name="height">9.0</basic-object>
-                <basic-object name="width">-50.0</basic-object>
-              </compound-key>
-            </style>
-            <template references="label">
-              <basic-object name="content">Retention time:</basic-object>
-            </template>
-          </element>
-
-          <element type="text/plain">
-            <style>
-              <basic-key name="font-size">8</basic-key>
-              <basic-key name="font-bold">false</basic-key>
-              <basic-key name="font-italic">true</basic-key>
-              <basic-key name="paint">black</basic-key>
-              <compound-key name="absolute_pos">
-                <basic-object name="x">-50.0</basic-object>
-                <basic-object name="y">20.0</basic-object>
-              </compound-key>
-              <compound-key name="min-size">
-                <basic-object name="height">9.0</basic-object>
-                <basic-object name="width">-30.0</basic-object>
-              </compound-key>
-            </style>
-            <template references="label">
-              <basic-object name="content">m/z:</basic-object>
-            </template>
-          </element>
-
-          <element type="text/plain">
-            <style>
-              <basic-key name="font-size">8</basic-key>
-              <basic-key name="font-bold">false</basic-key>
-              <basic-key name="font-italic">true</basic-key>
-              <basic-key name="alignment">right</basic-key>
-              <compound-key name="absolute_pos">
-                <basic-object name="x">-80.0</basic-object>
-                <basic-object name="y">20.0</basic-object>
-              </compound-key>
-              <compound-key name="min-size">
-                <basic-object name="height">9.0</basic-object>
-                <basic-object name="width">-20.0</basic-object>
-              </compound-key>
-            </style>
-            <template references="label">
-              <basic-object name="content">Name:</basic-object>
-            </template>
-          </element>
         </group-header>
 
         <group-footer>
@@ -560,21 +500,6 @@
         <template references="horizontal-line"/>
       </element>
       
-      <element type="shape/generic">
-        <style>
-          <extends name="medium-line"/>
-          <basic-key name="stroke" class="java.awt.BasicStroke">0.1</basic-key>
-          <compound-key name="absolute_pos">
-            <basic-object name="x">0.0</basic-object>
-            <basic-object name="y">26.0</basic-object>
-          </compound-key>
-          <basic-key name="paint">#dfdfdf</basic-key>
-        </style>
-        <template references="string-field">
-          <basic-object name="nullValue">-</basic-object>
-          <basic-object name="field">Shape</basic-object>
-        </template>
-      </element>
 
       <!-- element to display the name from the TableModel -->
       <element type="text/plain">
@@ -591,47 +516,13 @@
         </style>
         <template references="string-field">
           <basic-object name="nullValue">-</basic-object>
-          <basic-object name="field">Comment</basic-object>
+          <basic-object name="field">ID</basic-object>
         </template>
       </element>
       
-            <!-- element to display the name from the TableModel -->
-      <element type="text/plain">
-        <style>
-          <compound-key name="absolute_pos">
-            <basic-object name="x">0.0</basic-object>
-            <basic-object name="y">8.0</basic-object>
-          </compound-key>
-          <compound-key name="min-size">
-            <basic-object name="height">10.0</basic-object>
-            <basic-object name="width">-50.0</basic-object>
-          </compound-key>
-          <basic-key name="alignment">left</basic-key>
-        </style>
-        <template references="string-field">
-          <basic-object name="nullValue">-</basic-object>
-          <basic-object name="field">RT</basic-object>
-        </template>
-      </element>
 
-      <!-- element to display icon from the TableModel -->
-      <element type="image/generic">
-        <style>
-          <compound-key name="absolute_pos">
-            <basic-object name="x">-50.0</basic-object>
-            <basic-object name="y">1.0</basic-object>
-          </compound-key>
-          <compound-key name="min-size">
-            <basic-object name="height">24.0</basic-object>
-            <basic-object name="width">-30.0</basic-object>
-          </compound-key>
-          <basic-key name="alignment">center</basic-key>
-          <basic-key name="valignment">middle</basic-key>
-        </style>
-        <template references="image-field">
-          <basic-object name="field">Peak shape</basic-object>
-        </template>
-      </element>
+
+
 
       <!-- element to display the file size from the TableModel -->
       <element type="text/plain">

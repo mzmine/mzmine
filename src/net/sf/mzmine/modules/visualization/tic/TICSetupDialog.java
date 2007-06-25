@@ -24,7 +24,6 @@ import java.awt.GridBagLayout;
 import java.awt.Insets;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.text.DecimalFormat;
 import java.text.NumberFormat;
 
 import javax.swing.JButton;
@@ -36,8 +35,8 @@ import javax.swing.JLabel;
 import javax.swing.JPanel;
 
 import net.sf.mzmine.data.Peak;
-import net.sf.mzmine.io.OpenedRawDataFile;
 import net.sf.mzmine.io.RawDataFile;
+import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.modules.visualization.tic.TICVisualizerWindow.PlotType;
 import net.sf.mzmine.taskcontrol.TaskController;
 import net.sf.mzmine.taskcontrol.impl.TaskControllerImpl;
@@ -63,21 +62,18 @@ public class TICSetupDialog extends JDialog implements ActionListener {
     private static final NumberFormat format = NumberFormat.getNumberInstance();
 
     private Desktop desktop;
-    private TaskController taskController;
-    private OpenedRawDataFile dataFile;
-    private RawDataFile rawDataFile;
+    private RawDataFile dataFile;
 
     private Peak[] peaks = null;
 
-    public TICSetupDialog(OpenedRawDataFile dataFile) {
+    public TICSetupDialog(RawDataFile dataFile) {
 
         // Make dialog modal
-        super(MainWindow.getInstance(), "TIC visualizer parameters", true);
+        super(MZmineCore.getDesktop().getMainFrame(),
+                "TIC visualizer parameters", true);
 
-        this.taskController = TaskControllerImpl.getInstance();
-        this.desktop = MainWindow.getInstance();
+        this.desktop = MZmineCore.getDesktop();
         this.dataFile = dataFile;
-        this.rawDataFile = dataFile.getCurrentFile();
 
         GridBagConstraints constraints = new GridBagConstraints();
 
@@ -113,7 +109,7 @@ public class TICSetupDialog extends JDialog implements ActionListener {
         constraints.gridheight = 1;
         layout.setConstraints(comp, constraints);
 
-        Integer msLevels[] = CollectionUtils.toIntegerArray(rawDataFile.getMSLevels());
+        Integer msLevels[] = CollectionUtils.toIntegerArray(dataFile.getMSLevels());
 
         comboMSlevel = new JComboBox(msLevels);
         comboMSlevel.addActionListener(this);
@@ -272,8 +268,8 @@ public class TICSetupDialog extends JDialog implements ActionListener {
      * @param desktop
      * @param dataFile
      */
-    public TICSetupDialog(OpenedRawDataFile dataFile, double minMZ,
-            double maxMZ, Peak[] peaks) {
+    public TICSetupDialog(RawDataFile dataFile, double minMZ, double maxMZ,
+            Peak[] peaks) {
 
         this(dataFile);
         this.peaks = peaks;
@@ -288,12 +284,12 @@ public class TICSetupDialog extends JDialog implements ActionListener {
 
         int msLevel = (Integer) comboMSlevel.getSelectedItem();
 
-        if ((minMZ >= rawDataFile.getDataMinMZ(msLevel))
-                && (minMZ <= rawDataFile.getDataMaxMZ(msLevel)))
+        if ((minMZ >= dataFile.getDataMinMZ(msLevel))
+                && (minMZ <= dataFile.getDataMaxMZ(msLevel)))
             fieldMinMZ.setValue(minMZ);
 
-        if ((maxMZ >= rawDataFile.getDataMinMZ(msLevel))
-                && (maxMZ <= rawDataFile.getDataMaxMZ(msLevel)))
+        if ((maxMZ >= dataFile.getDataMinMZ(msLevel))
+                && (maxMZ <= dataFile.getDataMaxMZ(msLevel)))
             fieldMaxMZ.setValue(maxMZ);
     }
 
@@ -309,10 +305,10 @@ public class TICSetupDialog extends JDialog implements ActionListener {
 
             int msLevel = (Integer) comboMSlevel.getSelectedItem();
 
-            fieldMinRT.setValue(rawDataFile.getDataMinRT(msLevel));
-            fieldMaxRT.setValue(rawDataFile.getDataMaxRT(msLevel));
-            fieldMinMZ.setValue(rawDataFile.getDataMinMZ(msLevel));
-            fieldMaxMZ.setValue(rawDataFile.getDataMaxMZ(msLevel));
+            fieldMinRT.setValue(dataFile.getDataMinRT(msLevel));
+            fieldMaxRT.setValue(dataFile.getDataMaxRT(msLevel));
+            fieldMinMZ.setValue(dataFile.getDataMinMZ(msLevel));
+            fieldMaxMZ.setValue(dataFile.getDataMaxMZ(msLevel));
 
         }
 
@@ -322,10 +318,10 @@ public class TICSetupDialog extends JDialog implements ActionListener {
 
                 int msLevel = (Integer) comboMSlevel.getSelectedItem();
 
-                double rtMin = ((Number) fieldMinRT.getValue()).doubleValue();
-                double rtMax = ((Number) fieldMaxRT.getValue()).doubleValue();
-                double mzMin = ((Number) fieldMinMZ.getValue()).doubleValue();
-                double mzMax = ((Number) fieldMaxMZ.getValue()).doubleValue();
+                float rtMin = ((Number) fieldMinRT.getValue()).floatValue();
+                float rtMax = ((Number) fieldMaxRT.getValue()).floatValue();
+                float mzMin = ((Number) fieldMinMZ.getValue()).floatValue();
+                float mzMax = ((Number) fieldMaxMZ.getValue()).floatValue();
 
                 if ((rtMax <= rtMin) || (mzMax <= mzMin)) {
                     desktop.displayErrorMessage("Invalid bounds");
@@ -337,8 +333,8 @@ public class TICSetupDialog extends JDialog implements ActionListener {
                 if (comboPlotType.getSelectedIndex() == 1)
                     plotType = PlotType.BASE_PEAK;
 
-                new TICVisualizerWindow(taskController, desktop, dataFile,
-                        plotType, msLevel, rtMin, rtMax, mzMin, mzMax, peaks);
+                new TICVisualizerWindow(dataFile, plotType, msLevel, rtMin,
+                        rtMax, mzMin, mzMax, peaks);
 
                 dispose();
 

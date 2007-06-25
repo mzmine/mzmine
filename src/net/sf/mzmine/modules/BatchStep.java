@@ -21,7 +21,7 @@ package net.sf.mzmine.modules;
 
 import net.sf.mzmine.data.ParameterSet;
 import net.sf.mzmine.data.PeakList;
-import net.sf.mzmine.io.OpenedRawDataFile;
+import net.sf.mzmine.io.RawDataFile;
 import net.sf.mzmine.main.MZmineModule;
 import net.sf.mzmine.taskcontrol.TaskGroup;
 import net.sf.mzmine.taskcontrol.TaskGroupListener;
@@ -50,7 +50,7 @@ public interface BatchStep extends MZmineModule {
      *            files/peak lists.
      * 
      */
-    public TaskGroup runModule(OpenedRawDataFile[] dataFiles,
+    public TaskGroup runModule(RawDataFile[] dataFiles,
             PeakList[] alignmentResults, ParameterSet parameters,
             TaskGroupListener methodListener);
 

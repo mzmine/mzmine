@@ -32,8 +32,9 @@ import javax.swing.BorderFactory;
 import javax.swing.JInternalFrame;
 import javax.swing.JLabel;
 
-import net.sf.mzmine.io.OpenedRawDataFile;
 import net.sf.mzmine.io.RawDataFile;
+import net.sf.mzmine.io.RawDataFile;
+import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.modules.RawDataVisualizer;
 import net.sf.mzmine.taskcontrol.Task;
 import net.sf.mzmine.taskcontrol.TaskController;
@@ -58,12 +59,12 @@ public class ThreeDVisualizerWindow extends JInternalFrame implements
     private ThreeDToolBar toolBar;
     private JLabel titleLabel;
 
-    private OpenedRawDataFile dataFile;
+    private RawDataFile dataFile;
     private RawDataFile rawDataFile;
     private int msLevel;
 
     private DisplayImpl display;
-    
+
     // reference to a peak data
     private DataReference peaksDataReference;
     private boolean peaksShown = false;
@@ -71,10 +72,9 @@ public class ThreeDVisualizerWindow extends JInternalFrame implements
     private PickManipulationRendererJ3D peakRenderer;
 
     private Desktop desktop;
-    
-    public ThreeDVisualizerWindow(TaskController taskController, Desktop desktop, OpenedRawDataFile dataFile, int msLevel,
-            double rtMin, double rtMax,
-            double mzMin, double mzMax,
+
+    public ThreeDVisualizerWindow(RawDataFile dataFile, int msLevel,
+            float rtMin, float rtMax, float mzMin, float mzMax,
             int rtResolution, int mzResolution) {
 
         super(dataFile.toString(), true, true, true, true);
@@ -82,9 +82,9 @@ public class ThreeDVisualizerWindow extends JInternalFrame implements
         setDefaultCloseOperation(DISPOSE_ON_CLOSE);
         setBackground(Color.white);
 
-        this.desktop = desktop;
+        this.desktop = MZmineCore.getDesktop();
         this.dataFile = dataFile;
-        this.rawDataFile = dataFile.getCurrentFile();
+        this.rawDataFile = dataFile;
         this.msLevel = msLevel;
 
         toolBar = new ThreeDToolBar(this);
@@ -95,34 +95,31 @@ public class ThreeDVisualizerWindow extends JInternalFrame implements
         titleLabel.setBorder(BorderFactory.createEmptyBorder(5, 5, 5, 5));
         titleLabel.setHorizontalAlignment(JLabel.CENTER);
         add(titleLabel, BorderLayout.NORTH);
-        
+
         int scanNumbers[] = rawDataFile.getScanNumbers(msLevel, rtMin, rtMax);
         if (scanNumbers.length == 0) {
-            desktop.displayErrorMessage("No scans found at MS level " + msLevel + " within given retention time range.");
+            desktop.displayErrorMessage("No scans found at MS level " + msLevel
+                    + " within given retention time range.");
             return;
         }
 
-        Task updateTask = new ThreeDSamplingTask(dataFile, scanNumbers,
-                rtMin, rtMax, mzMin, mzMax, 
-                rtResolution, mzResolution,
-                this);
+        Task updateTask = new ThreeDSamplingTask(dataFile, scanNumbers, rtMin,
+                rtMax, mzMin, mzMax, rtResolution, mzResolution, this);
 
-        taskController.addTask(updateTask, TaskPriority.HIGH,
+        MZmineCore.getTaskController().addTask(updateTask, TaskPriority.HIGH,
                 this);
 
     }
 
     /**
-     * @see net.sf.mzmine.modules.RawDataVisualizer#setMZRange(double,
-     *      double)
+     * @see net.sf.mzmine.modules.RawDataVisualizer#setMZRange(double, double)
      */
     public void setMZRange(double mzMin, double mzMax) {
         // do nothing
     }
 
     /**
-     * @see net.sf.mzmine.modules.RawDataVisualizer#setRTRange(double,
-     *      double)
+     * @see net.sf.mzmine.modules.RawDataVisualizer#setRTRange(double, double)
      */
     public void setRTRange(double rtMin, double rtMax) {
         // do nothing
@@ -152,19 +149,19 @@ public class ThreeDVisualizerWindow extends JInternalFrame implements
         titleLabel.setText(title.toString());
 
     }
-    
+
     /**
-     * @param peakRenderer 
+     * @param peakRenderer
      * @param peaksDataReference The peaksDataReference to set.
-     * @param peakColorMap 
+     * @param peakColorMap
      */
-    void setPeaksDataReference(PickManipulationRendererJ3D peakRenderer, DataReference peaksDataReference, ConstantMap[] peakColorMap) {
+    void setPeaksDataReference(PickManipulationRendererJ3D peakRenderer,
+            DataReference peaksDataReference, ConstantMap[] peakColorMap) {
         this.peakRenderer = peakRenderer;
         this.peaksDataReference = peaksDataReference;
         this.peakColorMap = peakColorMap;
         this.peaksShown = true;
     }
-    
 
     /**
      * @see net.sf.mzmine.modules.RawDataVisualizer#getCursorPosition()
@@ -186,9 +183,8 @@ public class ThreeDVisualizerWindow extends JInternalFrame implements
     public void taskFinished(Task task) {
 
         if (task.getStatus() == TaskStatus.ERROR) {
-            desktop.displayErrorMessage(
-                    "Error while updating 3D visualizer: "
-                            + task.getErrorMessage());
+            desktop.displayErrorMessage("Error while updating 3D visualizer: "
+                    + task.getErrorMessage());
             return;
         }
 
@@ -222,13 +218,13 @@ public class ThreeDVisualizerWindow extends JInternalFrame implements
 
         int rot = event.getWheelRotation();
         try {
-            
+
             ProjectionControl pControl = display.getProjectionControl();
             double[] pControlMatrix = pControl.getMatrix();
 
             // scale depending on wheel rotation direction
             double scale = (rot < 0 ? 1.03 : 0.97);
-            
+
             double[] mult = MouseBehaviorJ3D.static_make_matrix(0.0, 0.0, 0.0,
                     scale, 0.0, 0.0, 0.0);
 
@@ -236,13 +232,12 @@ public class ThreeDVisualizerWindow extends JInternalFrame implements
                     pControlMatrix);
 
             pControl.setMatrix(newMatrix);
-            
+
         } catch (Exception e) {
             e.printStackTrace();
         }
 
     }
-
 
     /**
      * @see java.awt.event.ActionListener#actionPerformed(java.awt.event.ActionEvent)
@@ -252,29 +247,32 @@ public class ThreeDVisualizerWindow extends JInternalFrame implements
         String command = event.getActionCommand();
 
         if (command.equals("PROPERTIES")) {
-            ThreeDPropertiesDialog dialog = new ThreeDPropertiesDialog(desktop, display);
+            ThreeDPropertiesDialog dialog = new ThreeDPropertiesDialog(desktop,
+                    display);
             dialog.setVisible(true);
         }
-        
+
         if (command.equals("SHOW_ANNOTATIONS")) {
-            
-            if (peaksDataReference == null) return;
-            
+
+            if (peaksDataReference == null)
+                return;
+
             try {
-                
+
                 if (peaksShown) {
                     display.removeReference(peaksDataReference);
                     peaksShown = false;
                 } else {
-                    display.addReferences(peakRenderer, peaksDataReference, peakColorMap);
+                    display.addReferences(peakRenderer, peaksDataReference,
+                            peakColorMap);
                     peaksShown = true;
                 }
-                
+
             } catch (Exception e) {
                 e.printStackTrace();
             }
         }
-        
+
     }
 
 }

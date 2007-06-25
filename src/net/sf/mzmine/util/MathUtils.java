@@ -26,36 +26,36 @@ public class MathUtils {
 	 * q=0.5 => median
 	 *
 	 */
-	public static double calcQuantile(double[] values, double q) {
+	public static float calcQuantile(float[] values, float q) {
 
 		if (values.length==0) { return 0; }
 		if (values.length==1) { return values[0]; }
 
 		if (q>1) { q = 1; }
 		if (q<0) { q = 0; }
-		double[] vals = (double[])values.clone();
+		float[] vals = (float[])values.clone();
 
 		Arrays.sort(vals);
 
 		int ind1 = (int)Math.floor((vals.length-1)*q);
 		int ind2 = (int)Math.ceil((vals.length-1)*q);
 
-		return ( vals[ind1] + vals[ind2] ) / (double)2;
+		return ( vals[ind1] + vals[ind2] ) / (float)2;
 
 	}
 
-	public static double[] calcQuantile(double[] values, double[] qs) {
+	public static float[] calcQuantile(float[] values, float[] qs) {
 
 
-		double[] retVals = new double[qs.length];
+		float[] retVals = new float[qs.length];
 
 		if (values.length==0) { for (int qInd=0; qInd<qs.length; qInd++) { retVals[qInd] = 0; } return retVals; }
 		if (values.length==1) { for (int qInd=0; qInd<qs.length; qInd++) { retVals[qInd] = values[0]; } return retVals; }
 
-		double[] vals = (double[])values.clone();
+		float[] vals = (float[])values.clone();
 		Arrays.sort(vals);
 
-		double q;
+		float q;
 		int ind1, ind2;
 		for (int qInd=0; qInd<qs.length; qInd++) {
 			q = qs[qInd];
@@ -66,47 +66,47 @@ public class MathUtils {
 			ind1 = (int)Math.floor((vals.length-1)*q);
 			ind2 = (int)Math.ceil((vals.length-1)*q);
 
-			retVals[qInd] = ( vals[ind1] + vals[ind2] ) / (double)2;
+			retVals[qInd] = ( vals[ind1] + vals[ind2] ) / (float)2;
 		}
 
 		return retVals;
 	}
 
 
-	public static double calcStd(double[] values) {
-		double avg, stdev;
-		double sum=0;
-		for (double d : values) { sum+=d; }
+	public static float calcStd(float[] values) {
+		float avg, stdev;
+		float sum=0;
+		for (float d : values) { sum+=d; }
 		avg = sum / values.length;
 
 		sum = 0;
-		for (double d: values) { sum+=(d-avg)*(d-avg); }
+		for (float d: values) { sum+=(d-avg)*(d-avg); }
 
-		stdev = (double)Math.sqrt((double)sum/(double)(values.length-1));
+		stdev = (float)Math.sqrt((float)sum/(float)(values.length-1));
 		return stdev;
 	}
 
-	public static double calcCV(double[] values) {
-		double avg, stdev;
-		double sum=0;
-		for (double d : values) { sum+=d; }
+	public static float calcCV(float[] values) {
+		float avg, stdev;
+		float sum=0;
+		for (float d : values) { sum+=d; }
 		avg = sum / values.length;
 		
-		if (avg==0) return Double.NaN;
+		if (avg==0) return Float.NaN;
 
 		sum = 0;
-		for (double d: values) { sum+=(d-avg)*(d-avg); }
+		for (float d: values) { sum+=(d-avg)*(d-avg); }
 
-		stdev = (double)Math.sqrt((double)sum/(double)(values.length-1));
+		stdev = (float)Math.sqrt((float)sum/(float)(values.length-1));
 
 		return stdev/avg;
 	}
 
-	public static double calcAvg(double[] values) {
-		if (values.length==0) return Double.NaN;
+	public static float calcAvg(float[] values) {
+		if (values.length==0) return Float.NaN;
 		
-		double sum=0;
-		for (double d : values) { sum+=d; }
+		float sum=0;
+		for (float d : values) { sum+=d; }
 		return sum / values.length;
 		
 	}

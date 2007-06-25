@@ -25,7 +25,7 @@ import java.util.Vector;
 import net.sf.mzmine.data.Peak;
 import net.sf.mzmine.data.PeakList;
 import net.sf.mzmine.data.PeakListRow;
-import net.sf.mzmine.io.OpenedRawDataFile;
+import net.sf.mzmine.io.RawDataFile;
 
 /**
  * Simple implementation of the PeakList interface.
@@ -33,9 +33,9 @@ import net.sf.mzmine.io.OpenedRawDataFile;
 public class SimplePeakList implements PeakList {
 
     private String name;
-    private Vector<OpenedRawDataFile> rawDataFiles;
+    private Vector<RawDataFile> rawDataFiles;
     private ArrayList<PeakListRow> peakListRows;
-    private double maxDataPointIntensity = 0;
+    private float maxDataPointIntensity = 0;
 
     public SimplePeakList() {
         this(null);
@@ -43,7 +43,7 @@ public class SimplePeakList implements PeakList {
 
     public SimplePeakList(String name) {
         this.name = name;
-        rawDataFiles = new Vector<OpenedRawDataFile>();
+        rawDataFiles = new Vector<RawDataFile>();
         peakListRows = new ArrayList<PeakListRow>();
     }
 
@@ -61,11 +61,11 @@ public class SimplePeakList implements PeakList {
     /**
      * Returns all raw data files participating in the alignment
      */
-    public OpenedRawDataFile[] getRawDataFiles() {
-        return rawDataFiles.toArray(new OpenedRawDataFile[0]);
+    public RawDataFile[] getRawDataFiles() {
+        return rawDataFiles.toArray(new RawDataFile[0]);
     }
 
-    public OpenedRawDataFile getRawDataFile(int position) {
+    public RawDataFile getRawDataFile(int position) {
         return rawDataFiles.get(position);
     }
 
@@ -83,14 +83,14 @@ public class SimplePeakList implements PeakList {
      * @param row Row of the alignment result
      * @param rawDataFile Raw data file where the peak is detected/estimated
      */
-    public Peak getPeak(int row, OpenedRawDataFile rawDataFile) {
+    public Peak getPeak(int row, RawDataFile rawDataFile) {
         return peakListRows.get(row).getPeak(rawDataFile);
     }
 
     /**
      * Returns all peaks for a raw data file
      */
-    public Peak[] getPeaks(OpenedRawDataFile rawDataFile) {
+    public Peak[] getPeaks(RawDataFile rawDataFile) {
         Peak[] peaks = new Peak[getNumberOfRows()];
         for (int row = 0; row < getNumberOfRows(); row++) {
             peaks[row] = peakListRows.get(row).getPeak(rawDataFile);
@@ -119,7 +119,7 @@ public class SimplePeakList implements PeakList {
     /**
      * Adds a new opened raw data to the alignment result
      */
-    public void addOpenedRawDataFile(OpenedRawDataFile openedRawDataFile) {
+    public void addRawDataFile(RawDataFile openedRawDataFile) {
         rawDataFiles.add(openedRawDataFile);
     }
 
@@ -130,27 +130,27 @@ public class SimplePeakList implements PeakList {
      * @param endRT End of the retention time range
      * @return
      */
-    public Peak[] getPeaksInsideScanRange(OpenedRawDataFile file,
-            double startRT, double endRT) {
+    public Peak[] getPeaksInsideScanRange(RawDataFile file,
+            float startRT, float endRT) {
         return getPeaksInsideScanAndMZRange(file, startRT, endRT,
-                Double.MIN_VALUE, Double.MAX_VALUE);
+                Float.MIN_VALUE, Float.MAX_VALUE);
     }
 
     /**
-     * @see net.sf.mzmine.data.PeakList#getPeaksInsideMZRange(double, double)
+     * @see net.sf.mzmine.data.PeakList#getPeaksInsideMZRange(float, float)
      */
-    public Peak[] getPeaksInsideMZRange(OpenedRawDataFile file, double startMZ,
-            double endMZ) {
-        return getPeaksInsideScanAndMZRange(file, Double.MIN_VALUE,
-                Double.MAX_VALUE, startMZ, endMZ);
+    public Peak[] getPeaksInsideMZRange(RawDataFile file, float startMZ,
+            float endMZ) {
+        return getPeaksInsideScanAndMZRange(file, Float.MIN_VALUE,
+                Float.MAX_VALUE, startMZ, endMZ);
     }
 
     /**
-     * @see net.sf.mzmine.data.PeakList#getPeaksInsideScanAndMZRange(double,
-     *      double, double, double)
+     * @see net.sf.mzmine.data.PeakList#getPeaksInsideScanAndMZRange(float,
+     *      float, float, float)
      */
-    public Peak[] getPeaksInsideScanAndMZRange(OpenedRawDataFile file,
-            double startRT, double endRT, double startMZ, double endMZ) {
+    public Peak[] getPeaksInsideScanAndMZRange(RawDataFile file,
+            float startRT, float endRT, float startMZ, float endMZ) {
         Vector<Peak> peaksInside = new Vector<Peak>();
 
         Peak[] peaks = getPeaks(file);
@@ -209,7 +209,7 @@ public class SimplePeakList implements PeakList {
     /**
      * @see net.sf.mzmine.data.PeakList#getDataPointMaxIntensity()
      */
-    public double getDataPointMaxIntensity() {
+    public float getDataPointMaxIntensity() {
         return maxDataPointIntensity;
     }
 

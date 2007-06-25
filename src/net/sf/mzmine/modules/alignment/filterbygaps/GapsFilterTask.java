@@ -23,7 +23,7 @@ import net.sf.mzmine.data.PeakList;
 import net.sf.mzmine.data.PeakListRow;
 import net.sf.mzmine.data.impl.SimpleParameterSet;
 import net.sf.mzmine.data.impl.SimplePeakList;
-import net.sf.mzmine.io.OpenedRawDataFile;
+import net.sf.mzmine.io.RawDataFile;
 import net.sf.mzmine.taskcontrol.Task;
 
 class GapsFilterTask implements Task {
@@ -80,8 +80,8 @@ class GapsFilterTask implements Task {
         processedPeakList = new SimplePeakList(
                 "Result after filtering by gaps");
         
-        for (OpenedRawDataFile rawData : originalPeakList.getRawDataFiles()) {
-            processedPeakList.addOpenedRawDataFile(rawData);
+        for (RawDataFile rawData : originalPeakList.getRawDataFiles()) {
+            processedPeakList.addRawDataFile(rawData);
         }
 
         // Copy rows with enough peaks to new alignment result

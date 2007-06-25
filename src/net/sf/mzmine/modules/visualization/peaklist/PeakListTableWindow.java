@@ -33,6 +33,7 @@ import javax.swing.JScrollPane;
 import javax.swing.JTable;
 
 import net.sf.mzmine.data.PeakList;
+import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.modules.visualization.peaklist.table.PeakListTable;
 import net.sf.mzmine.modules.visualization.peaklist.table.PeakListTableColumnModel;
 import net.sf.mzmine.modules.visualization.peaklist.table.PeakListTableModel;
@@ -104,7 +105,7 @@ public class PeakListTableWindow extends JInternalFrame implements
         if (command.equals("PROPERTIES")) {
 
             PeakListTablePropertiesDialog dialog = new PeakListTablePropertiesDialog(
-                    MainWindow.getInstance(), myParameters);
+                    myParameters);
             dialog.setVisible(true);
             if (dialog.getExitCode() == ExitCode.OK) {
                 table.setRowHeight(myParameters.getRowHeight());

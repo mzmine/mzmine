@@ -29,9 +29,8 @@ public interface MZmineModule {
     /**
      * Initialize this module.
      * 
-     * @param core Reference to MZmine core modules
      */
-    public void initModule(MZmineCore core);
+    public void initModule();
 
     /**
      * Returns module name 

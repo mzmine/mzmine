@@ -27,7 +27,8 @@ import java.util.Hashtable;
 import net.sf.mzmine.data.CompoundIdentity;
 import net.sf.mzmine.data.Peak;
 import net.sf.mzmine.data.PeakListRow;
-import net.sf.mzmine.io.OpenedRawDataFile;
+import net.sf.mzmine.io.RawDataFile;
+import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.userinterface.mainwindow.MainWindow;
 
 /**
@@ -35,18 +36,18 @@ import net.sf.mzmine.userinterface.mainwindow.MainWindow;
  */
 public class SimplePeakListRow implements PeakListRow {
 
-    private Hashtable<OpenedRawDataFile, Peak> peaks;
-    private Hashtable<OpenedRawDataFile, Peak> originalPeaks;
+    private Hashtable<RawDataFile, Peak> peaks;
+    private Hashtable<RawDataFile, Peak> originalPeaks;
     private HashSet<CompoundIdentity> identities;
     private CompoundIdentity preferredIdentity;
     private String comment;
     private int myID;
-    private double maxDataPointIntensity = 0;
+    private float maxDataPointIntensity = 0;
 
     public SimplePeakListRow(int myID) {
         this.myID = myID;
-        peaks = new Hashtable<OpenedRawDataFile, Peak>();
-        originalPeaks = new Hashtable<OpenedRawDataFile, Peak>();
+        peaks = new Hashtable<RawDataFile, Peak>();
+        originalPeaks = new Hashtable<RawDataFile, Peak>();
         identities = new HashSet<CompoundIdentity>();
         preferredIdentity = CompoundIdentity.UNKNOWN_IDENTITY;
     }
@@ -68,29 +69,29 @@ public class SimplePeakListRow implements PeakListRow {
     /*
      * Return opened raw data files with a peak on this row
      */
-    public OpenedRawDataFile[] getOpenedRawDataFiles() {
-        return peaks.keySet().toArray(new OpenedRawDataFile[0]);
+    public RawDataFile[] getRawDataFiles() {
+        return peaks.keySet().toArray(new RawDataFile[0]);
     }
 
     /*
      * Returns peak for given raw data file
      */
-    public Peak getPeak(OpenedRawDataFile rawData) {
+    public Peak getPeak(RawDataFile rawData) {
         return peaks.get(rawData);
     }
 
-    public void setPeak(OpenedRawDataFile rawData, Peak p) {
+    public void setPeak(RawDataFile rawData, Peak p) {
         peaks.put(rawData, p);
     }
 
     /**
-     * @see net.sf.mzmine.data.PeakListRow#getOriginalPeakListEntry(net.sf.mzmine.io.OpenedRawDataFile)
+     * @see net.sf.mzmine.data.PeakListRow#getOriginalPeakListEntry(net.sf.mzmine.io.RawDataFile)
      */
-    public Peak getOriginalPeakListEntry(OpenedRawDataFile rawData) {
+    public Peak getOriginalPeakListEntry(RawDataFile rawData) {
         return originalPeaks.get(rawData);
     }
 
-    public void addPeak(OpenedRawDataFile rawData, Peak original, Peak current) {
+    public void addPeak(RawDataFile rawData, Peak original, Peak current) {
         peaks.put(rawData, current);
         originalPeaks.put(rawData, original);
         if (current.getDataPointMaxIntensity() > maxDataPointIntensity)
@@ -100,8 +101,8 @@ public class SimplePeakListRow implements PeakListRow {
     /*
      * Returns average normalized M/Z for peaks on this row
      */
-    public double getAverageMZ() {
-        double mzSum = 0.0;
+    public float getAverageMZ() {
+        float mzSum = 0.0f;
         Enumeration<Peak> peakEnum = peaks.elements();
         while (peakEnum.hasMoreElements()) {
             Peak p = peakEnum.nextElement();
@@ -113,8 +114,8 @@ public class SimplePeakListRow implements PeakListRow {
     /*
      * Returns average normalized RT for peaks on this row
      */
-    public double getAverageRT() {
-        double rtSum = 0.0;
+    public float getAverageRT() {
+        float rtSum = 0.0f;
         Enumeration<Peak> peakEnum = peaks.elements();
         while (peakEnum.hasMoreElements()) {
             Peak p = peakEnum.nextElement();
@@ -132,8 +133,8 @@ public class SimplePeakListRow implements PeakListRow {
 
     public String toString() {
         StringBuffer buf = new StringBuffer();
-        Format mzFormat = MainWindow.getInstance().getMZFormat();
-        Format timeFormat = MainWindow.getInstance().getRTFormat();
+        Format mzFormat = MZmineCore.getDesktop().getMZFormat();
+        Format timeFormat = MZmineCore.getDesktop().getRTFormat();
         buf.append(mzFormat.format(getAverageMZ()));
         buf.append(" m/z @");
         buf.append(timeFormat.format(getAverageRT()));
@@ -191,7 +192,7 @@ public class SimplePeakListRow implements PeakListRow {
     /**
      * @see net.sf.mzmine.data.PeakListRow#getDataPointMaxIntensity()
      */
-    public double getDataPointMaxIntensity() {
+    public float getDataPointMaxIntensity() {
         return maxDataPointIntensity;
     }
 

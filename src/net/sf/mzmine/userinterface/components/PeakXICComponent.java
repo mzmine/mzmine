@@ -31,7 +31,7 @@ import javax.swing.JComponent;
 import javax.swing.border.Border;
 
 import net.sf.mzmine.data.Peak;
-import net.sf.mzmine.io.OpenedRawDataFile;
+import net.sf.mzmine.io.RawDataFile;
 
 /**
  * Simple lightweight component for plotting peak shape
@@ -43,7 +43,7 @@ public class PeakXICComponent extends JComponent {
     
     private Peak peak;
     
-    private double minRT, maxRT, rtSpan, maxIntensity;
+    private float minRT, maxRT, rtSpan, maxIntensity;
 
     /**
      * @param peak Picked peak to plot
@@ -55,14 +55,14 @@ public class PeakXICComponent extends JComponent {
     /**
      * @param peak Picked peak to plot
      */
-    public PeakXICComponent(Peak peak, double maxIntensity) {
+    public PeakXICComponent(Peak peak, float maxIntensity) {
         
         this.peak = peak;
         
         // find data boundaries
-        OpenedRawDataFile dataFile = peak.getDataFile();
-        this.minRT = dataFile.getCurrentFile().getDataMinRT(1);
-        this.maxRT = dataFile.getCurrentFile().getDataMaxRT(1);
+        RawDataFile dataFile = peak.getDataFile();
+        this.minRT = dataFile.getDataMinRT(1);
+        this.maxRT = dataFile.getDataMaxRT(1);
         this.rtSpan = maxRT - minRT;
         this.maxIntensity = maxIntensity;
         
@@ -85,7 +85,7 @@ public class PeakXICComponent extends JComponent {
         Dimension size = getSize();
 
         // get scan numbers, one data point per each scan
-        OpenedRawDataFile dataFile = peak.getDataFile();
+        RawDataFile dataFile = peak.getDataFile();
         int scanNumbers[] = peak.getScanNumbers();
 
         // for each datapoint, find [X:Y] coordinates of its point in painted
@@ -98,17 +98,16 @@ public class PeakXICComponent extends JComponent {
         // find one datapoint with maximum intensity in each scan
         for (int i = 0; i < scanNumbers.length; i++) {
 
-            double dataPoints[][] = peak.getRawDatapoints(scanNumbers[i]);
+            float dataPoints[][] = peak.getRawDatapoints(scanNumbers[i]);
             // find maximum intensity (Y value)
-            double intensity = 0;
+            float intensity = 0;
             for (int j = 0; j < dataPoints.length; j++) {
-                double[] point = dataPoints[j];
+                float[] point = dataPoints[j];
                 if (point[1] > intensity)
                     intensity = point[1];
             }
             // get retention time (X value)
-            double retentionTime = dataFile.getCurrentFile().getRetentionTime(
-                    scanNumbers[i]);
+            float retentionTime = dataFile.getScan(scanNumbers[i]).getRetentionTime();
 
             // calculate [X:Y] coordinates
             xValues[i] = (int) Math.floor((retentionTime - minRT) / rtSpan

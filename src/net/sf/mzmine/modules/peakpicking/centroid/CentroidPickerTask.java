@@ -1,17 +1,17 @@
 /*
  * Copyright 2006-2007 The MZmine Development Team
- *
+ * 
  * This file is part of MZmine.
- *
+ * 
  * MZmine is free software; you can redistribute it and/or modify it under the
  * terms of the GNU General Public License as published by the Free Software
  * Foundation; either version 2 of the License, or (at your option) any later
  * version.
- *
+ * 
  * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY
  * WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR
  * A PARTICULAR PURPOSE. See the GNU General Public License for more details.
- *
+ * 
  * You should have received a copy of the GNU General Public License along with
  * MZmine; if not, write to the Free Software Foundation, Inc., 51 Franklin St,
  * Fifth Floor, Boston, MA 02110-1301 USA
@@ -31,20 +31,19 @@ import net.sf.mzmine.data.impl.ConstructionPeak;
 import net.sf.mzmine.data.impl.SimpleParameterSet;
 import net.sf.mzmine.data.impl.SimplePeakList;
 import net.sf.mzmine.data.impl.SimplePeakListRow;
-import net.sf.mzmine.io.OpenedRawDataFile;
 import net.sf.mzmine.io.RawDataFile;
 import net.sf.mzmine.taskcontrol.Task;
 import net.sf.mzmine.util.MathUtils;
 import net.sf.mzmine.util.ScanUtils;
 
 /**
- *
+ * 
  */
 class CentroidPickerTask implements Task {
 
-    private OpenedRawDataFile dataFile;
+    private RawDataFile dataFile;
     private RawDataFile rawDataFile;
-    
+
     private TaskStatus status;
     private String errorMessage;
 
@@ -54,35 +53,33 @@ class CentroidPickerTask implements Task {
     private SimplePeakList readyPeakList;
 
     private ParameterSet parameters;
-    private double binSize;
-    private double chromatographicThresholdLevel;
-    private double intTolerance;
-    private double minimumPeakDuration;
-    private double minimumPeakHeight;
-    private double mzTolerance;
-    private double noiseLevel;        
+    private float binSize;
+    private float chromatographicThresholdLevel;
+    private float intTolerance;
+    private float minimumPeakDuration;
+    private float minimumPeakHeight;
+    private float mzTolerance;
+    private float noiseLevel;
 
-    
     /**
      * @param rawDataFile
      * @param parameters
      */
-    CentroidPickerTask(OpenedRawDataFile dataFile,
-            SimpleParameterSet parameters) {
+    CentroidPickerTask(RawDataFile dataFile, SimpleParameterSet parameters) {
         status = TaskStatus.WAITING;
         this.dataFile = dataFile;
-        this.rawDataFile = dataFile.getCurrentFile();
+        this.rawDataFile = dataFile;
         this.parameters = parameters;
 
         // Get parameter values for easier use
-        binSize = (Double) parameters.getParameterValue(CentroidPicker.binSize);
-        chromatographicThresholdLevel = (Double) parameters.getParameterValue(CentroidPicker.chromatographicThresholdLevel);
-        intTolerance = (Double) parameters.getParameterValue(CentroidPicker.intTolerance);
-        minimumPeakDuration = (Double) parameters.getParameterValue(CentroidPicker.minimumPeakDuration);
-        minimumPeakHeight = (Double) parameters.getParameterValue(CentroidPicker.minimumPeakHeight);
-        mzTolerance = (Double) parameters.getParameterValue(CentroidPicker.mzTolerance);
-        noiseLevel = (Double) parameters.getParameterValue(CentroidPicker.noiseLevel);        
-        
+        binSize = (Float) parameters.getParameterValue(CentroidPicker.binSize);
+        chromatographicThresholdLevel = (Float) parameters.getParameterValue(CentroidPicker.chromatographicThresholdLevel);
+        intTolerance = (Float) parameters.getParameterValue(CentroidPicker.intTolerance);
+        minimumPeakDuration = (Float) parameters.getParameterValue(CentroidPicker.minimumPeakDuration);
+        minimumPeakHeight = (Float) parameters.getParameterValue(CentroidPicker.minimumPeakHeight);
+        mzTolerance = (Float) parameters.getParameterValue(CentroidPicker.mzTolerance);
+        noiseLevel = (Float) parameters.getParameterValue(CentroidPicker.noiseLevel);
+
         readyPeakList = new SimplePeakList();
     }
 
@@ -126,8 +123,8 @@ class CentroidPickerTask implements Task {
         results[2] = parameters;
         return results;
     }
-    
-    public OpenedRawDataFile getDataFile() {
+
+    public RawDataFile getDataFile() {
         return dataFile;
     }
 
@@ -150,69 +147,64 @@ class CentroidPickerTask implements Task {
         totalScans = scanNumbers.length;
 
         int newPeakID = 1;
-        
+
         /*
          * Calculate M/Z binning
          */
 
-        double startMZ = rawDataFile.getDataMinMZ(1); // minimum m/z value in
-                                                        // the raw data file
-        double endMZ = rawDataFile.getDataMaxMZ(1); // maximum m/z value in the
-                                                    // raw data file
+        float startMZ = rawDataFile.getDataMinMZ(1); // minimum m/z value in
+        // the raw data file
+        float endMZ = rawDataFile.getDataMaxMZ(1); // maximum m/z value in the
+        // raw data file
         int numOfBins = (int) (Math.ceil((endMZ - startMZ) / binSize));
 
-		double[] chromatographicThresholds = new double[numOfBins];
+        float[] chromatographicThresholds = new float[numOfBins];
 
-		if (chromatographicThresholdLevel>0) {
+        if (chromatographicThresholdLevel > 0) {
 
-			double[][] binInts = new double[numOfBins][totalScans];
+            float[][] binInts = new float[numOfBins][totalScans];
 
-			// Loop through scans and calculate binned maximum intensities
-			for (int i = 0; i < totalScans; i++) {
+            // Loop through scans and calculate binned maximum intensities
+            for (int i = 0; i < totalScans; i++) {
 
-				if (status == TaskStatus.CANCELED)
-					return;
+                if (status == TaskStatus.CANCELED)
+                    return;
 
-				try {
-					Scan sc = rawDataFile.getScan(scanNumbers[i]);
+                Scan sc = rawDataFile.getScan(scanNumbers[i]);
 
-					double[] mzValues = sc.getMZValues();
-					double[] intensityValues = sc.getIntensityValues();
-					double[] tmpInts = ScanUtils.binValues(mzValues,
-							intensityValues, startMZ, endMZ, numOfBins, true,
-							ScanUtils.BinningType.MAX);
-					for (int bini = 0; bini < numOfBins; bini++) {
-						binInts[bini][i] = tmpInts[bini];
-					}
+                float[] mzValues = sc.getMZValues();
+                float[] intensityValues = sc.getIntensityValues();
+                float[] tmpInts = ScanUtils.binValues(mzValues,
+                        intensityValues, startMZ, endMZ, numOfBins, true,
+                        ScanUtils.BinningType.MAX);
+                for (int bini = 0; bini < numOfBins; bini++) {
+                    binInts[bini][i] = tmpInts[bini];
+                }
 
-				} catch (IOException e) {
-					status = TaskStatus.ERROR;
-					errorMessage = e.toString();
-				}
+                processedScans++;
 
-				processedScans++;
+            }
 
-			}
+            // Calculate filtering threshold from each RIC
+            float initialThreshold = Float.MAX_VALUE;
 
-			// Calculate filtering threshold from each RIC
-			double initialThreshold = Double.MAX_VALUE;
+            for (int bini = 0; bini < numOfBins; bini++) {
 
-			for (int bini = 0; bini < numOfBins; bini++) {
+                chromatographicThresholds[bini] = MathUtils.calcQuantile(
+                        binInts[bini], chromatographicThresholdLevel);
+                if (chromatographicThresholds[bini] < initialThreshold) {
+                    initialThreshold = chromatographicThresholds[bini];
+                }
+            }
 
-				chromatographicThresholds[bini] = MathUtils.calcQuantile(binInts[bini], chromatographicThresholdLevel);
-				if (chromatographicThresholds[bini] < initialThreshold) {
-					initialThreshold = chromatographicThresholds[bini];
-				}
-			}
+            binInts = null;
 
-			binInts = null;
+        } else {
+            processedScans += totalScans;
+            for (int bini = 0; bini < numOfBins; bini++)
+                chromatographicThresholds[bini] = 0;
 
-		} else {
-			processedScans += totalScans;
-			for (int bini = 0; bini < numOfBins; bini++)
-				chromatographicThresholds[bini] = 0;
-
-		}
+        }
 
         Vector<ConstructionPeak> underConstructionPeaks = new Vector<ConstructionPeak>();
         Vector<OneDimPeak> oneDimPeaks = new Vector<OneDimPeak>();
@@ -224,17 +216,10 @@ class CentroidPickerTask implements Task {
 
             // Get next scan
 
-            Scan sc = null;
-            try {
-                sc = rawDataFile.getScan(scanNumbers[i]);
-            } catch (IOException e) {
-                status = TaskStatus.ERROR;
-                errorMessage = e.toString();
-                return;
-            }
+            Scan sc = rawDataFile.getScan(scanNumbers[i]);
 
-            double[] masses = sc.getMZValues();
-            double[] intensities = sc.getIntensityValues();
+            float[] masses = sc.getMZValues();
+            float[] intensities = sc.getIntensityValues();
 
             // Find 1D-peaks
 
@@ -272,8 +257,9 @@ class CentroidPickerTask implements Task {
             for (ConstructionPeak ucPeak : underConstructionPeaks) {
 
                 for (OneDimPeak oneDimPeak : oneDimPeaks) {
-                    MatchScore score = new MatchScore(ucPeak, oneDimPeak, mzTolerance, intTolerance);
-                    if (score.getScore() < Double.MAX_VALUE) {
+                    MatchScore score = new MatchScore(ucPeak, oneDimPeak,
+                            mzTolerance, intTolerance);
+                    if (score.getScore() < Float.MAX_VALUE) {
                         scores.add(score);
                     }
                 }
@@ -288,7 +274,7 @@ class CentroidPickerTask implements Task {
                 MatchScore score = scoreIterator.next();
 
                 // If score is too high for connecting, then stop the loop
-                if (score.getScore() >= Double.MAX_VALUE) {
+                if (score.getScore() >= Float.MAX_VALUE) {
                     break;
                 }
 
@@ -319,18 +305,21 @@ class CentroidPickerTask implements Task {
                 if (!ucPeak.isGrowing()) {
 
                     // Check length
-                    double ucLength = ucPeak.getDataPointMaxRT() - ucPeak.getDataPointMinRT();
-                    double ucHeight = ucPeak.getHeight();
-                    if ((ucLength >= minimumPeakDuration) && (ucHeight >= minimumPeakHeight)) {
+                    float ucLength = ucPeak.getDataPointMaxRT()
+                            - ucPeak.getDataPointMinRT();
+                    float ucHeight = ucPeak.getHeight();
+                    if ((ucLength >= minimumPeakDuration)
+                            && (ucHeight >= minimumPeakHeight)) {
 
                         // Good peak, finalize adding data points
-                    	ucPeak.finalizedAddingDatapoints();
+                        ucPeak.finalizedAddingDatapoints();
 
                         // Define peak's status
                         ucPeak.setPeakStatus(PeakStatus.DETECTED);
-                        
+
                         // Add it to the peak list
-                        SimplePeakListRow newRow = new SimplePeakListRow(newPeakID);
+                        SimplePeakListRow newRow = new SimplePeakListRow(
+                                newPeakID);
                         newPeakID++;
                         newRow.addPeak(dataFile, ucPeak, ucPeak);
                         readyPeakList.addRow(newRow);
@@ -348,7 +337,7 @@ class CentroidPickerTask implements Task {
             // Clean-up empty slots under-construction peaks collection and
             // reset growing statuses for remaining under construction peaks
             for (int ucInd = 0; ucInd < underConstructionPeaks.size(); ucInd++) {
-            	ConstructionPeak ucPeak = underConstructionPeaks.get(ucInd);
+                ConstructionPeak ucPeak = underConstructionPeaks.get(ucInd);
                 if (ucPeak == null) {
                     underConstructionPeaks.remove(ucInd);
                     ucInd--;
@@ -363,7 +352,7 @@ class CentroidPickerTask implements Task {
 
                 if (!oneDimPeak.isConnected()) {
 
-                	ConstructionPeak ucPeak = new ConstructionPeak(dataFile);
+                    ConstructionPeak ucPeak = new ConstructionPeak(dataFile);
                     ucPeak.addDatapoint(sc.getScanNumber(), oneDimPeak.mz,
                             sc.getRetentionTime(), oneDimPeak.intensity);
                     underConstructionPeaks.add(ucPeak);
@@ -383,12 +372,14 @@ class CentroidPickerTask implements Task {
         for (ConstructionPeak ucPeak : underConstructionPeaks) {
 
             // Check length & height
-            double ucLength = ucPeak.getDataPointMaxRT() - ucPeak.getDataPointMinRT();
-            double ucHeight = ucPeak.getHeight();
-            if ((ucLength >= minimumPeakDuration) && (ucHeight >= minimumPeakHeight)) {
+            float ucLength = ucPeak.getDataPointMaxRT()
+                    - ucPeak.getDataPointMinRT();
+            float ucHeight = ucPeak.getHeight();
+            if ((ucLength >= minimumPeakDuration)
+                    && (ucHeight >= minimumPeakHeight)) {
 
                 // Good peak, finalize adding datapoints
-            	ucPeak.finalizedAddingDatapoints();
+                ucPeak.finalizedAddingDatapoints();
 
                 // Define peak's status
                 ucPeak.setPeakStatus(PeakStatus.DETECTED);
@@ -406,7 +397,5 @@ class CentroidPickerTask implements Task {
         status = TaskStatus.FINISHED;
 
     }
-
- 
 
 }

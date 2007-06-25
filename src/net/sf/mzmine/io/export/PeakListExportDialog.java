@@ -24,6 +24,7 @@ import java.io.File;
 import javax.swing.JFileChooser;
 
 import net.sf.mzmine.data.PeakList;
+import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.userinterface.dialogs.ExitCode;
 import net.sf.mzmine.userinterface.mainwindow.MainWindow;
 
@@ -36,7 +37,7 @@ public class PeakListExportDialog {
 		// Show column selection dialog
 		PeakListExportColumns columnSelection = new PeakListExportColumns();
 
-		ColumnSelectionDialog dialog = new ColumnSelectionDialog(MainWindow.getInstance(), columnSelection);
+		ColumnSelectionDialog dialog = new ColumnSelectionDialog(MZmineCore.getDesktop().getMainFrame(), columnSelection);
 		dialog.setVisible(true);
         
         if (dialog.getExitCode() == ExitCode.CANCEL) return;
@@ -71,7 +72,7 @@ public class PeakListExportDialog {
 	    filter.setDescription("Tab-delimitted text file");
 	    chooser.setFileFilter(filter);
 	    chooser.setDialogTitle("Please give file name for \"" + peakList.toString() + "\"");
-	    int returnVal = chooser.showSaveDialog(MainWindow.getInstance().getMainFrame());
+	    int returnVal = chooser.showSaveDialog(MZmineCore.getDesktop().getMainFrame());
 	    if(returnVal == JFileChooser.APPROVE_OPTION)
 	       return chooser.getSelectedFile();
 	    

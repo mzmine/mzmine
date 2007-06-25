@@ -1,5 +1,5 @@
 /*
- * Copyright 2006 The MZmine Development Team
+ * Copyright 2006-2007 The MZmine Development Team
  * 
  * This file is part of MZmine.
  * 
@@ -25,15 +25,11 @@ import java.awt.event.KeyEvent;
 import java.util.logging.Logger;
 
 import javax.swing.JDialog;
-import javax.swing.JMenuItem;
-import javax.swing.event.ListSelectionEvent;
-import javax.swing.event.ListSelectionListener;
 
 import net.sf.mzmine.data.ParameterSet;
-import net.sf.mzmine.io.OpenedRawDataFile;
+import net.sf.mzmine.io.RawDataFile;
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.main.MZmineModule;
-import net.sf.mzmine.taskcontrol.TaskController;
 import net.sf.mzmine.userinterface.Desktop;
 import net.sf.mzmine.userinterface.Desktop.MZmineMenu;
 
@@ -44,16 +40,14 @@ public class SpectraVisualizer implements MZmineModule, ActionListener {
 
     private Logger logger = Logger.getLogger(this.getClass().getName());
 
-    private TaskController taskController;
     private Desktop desktop;
 
     /**
      * @see net.sf.mzmine.main.MZmineModule#initModule(net.sf.mzmine.main.MZmineCore)
      */
-    public void initModule(MZmineCore core) {
+    public void initModule() {
 
-        this.taskController = core.getTaskController();
-        this.desktop = core.getDesktop();
+        this.desktop = MZmineCore.getDesktop();
 
         desktop.addMenuItem(MZmineMenu.VISUALIZATION, "Spectra plot", this,
                 null, KeyEvent.VK_S, false, true);
@@ -67,15 +61,14 @@ public class SpectraVisualizer implements MZmineModule, ActionListener {
 
         logger.finest("Opening a new spectra visualizer setup dialog");
 
-        OpenedRawDataFile dataFiles[] = desktop.getSelectedDataFiles();
+        RawDataFile dataFiles[] = desktop.getSelectedDataFiles();
         if (dataFiles.length == 0) {
             desktop.displayErrorMessage("Please select at least one data file");
             return;
         }
 
-        for (OpenedRawDataFile dataFile : dataFiles) {
-            JDialog setupDialog = new SpectraSetupDialog(taskController,
-                    desktop, dataFile);
+        for (RawDataFile dataFile : dataFiles) {
+            JDialog setupDialog = new SpectraSetupDialog(dataFile);
             setupDialog.setVisible(true);
         }
 

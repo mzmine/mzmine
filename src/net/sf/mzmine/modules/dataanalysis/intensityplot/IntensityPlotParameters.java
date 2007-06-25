@@ -19,15 +19,10 @@
 
 package net.sf.mzmine.modules.dataanalysis.intensityplot;
 
-import java.util.logging.Logger;
-
+import net.sf.mzmine.data.ParameterSet;
 import net.sf.mzmine.data.PeakList;
 import net.sf.mzmine.data.PeakListRow;
-import net.sf.mzmine.data.Parameter;
-import net.sf.mzmine.data.ParameterSet;
-import net.sf.mzmine.io.OpenedRawDataFile;
-
-import org.dom4j.Element;
+import net.sf.mzmine.io.RawDataFile;
 
 /**
  */
@@ -43,7 +38,7 @@ public class IntensityPlotParameters implements ParameterSet {
     private Object xAxisValueSource;
     private Object yAxisValueSource;
 
-    private OpenedRawDataFile selectedDataFiles[];
+    private RawDataFile selectedDataFiles[];
     private PeakListRow selectedRows[];
 
     public IntensityPlotParameters() {
@@ -63,7 +58,7 @@ public class IntensityPlotParameters implements ParameterSet {
      */
     public IntensityPlotParameters(PeakList sourcePeakList,
             Object xAxisValueSource, Object yAxisValueSource,
-            OpenedRawDataFile[] selectedDataFiles,
+            RawDataFile[] selectedDataFiles,
             PeakListRow[] selectedRows) {
         this.sourcePeakList = sourcePeakList;
         this.xAxisValueSource = xAxisValueSource;
@@ -75,14 +70,14 @@ public class IntensityPlotParameters implements ParameterSet {
     /**
      * @return Returns the selectedDataFiles.
      */
-    OpenedRawDataFile[] getSelectedDataFiles() {
+    RawDataFile[] getSelectedDataFiles() {
         return selectedDataFiles;
     }
 
     /**
      * @param selectedDataFiles The selectedDataFiles to set.
      */
-    void setSelectedDataFiles(OpenedRawDataFile[] selectedDataFiles) {
+    void setSelectedDataFiles(RawDataFile[] selectedDataFiles) {
         this.selectedDataFiles = selectedDataFiles;
     }
 

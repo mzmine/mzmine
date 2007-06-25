@@ -1,5 +1,5 @@
 /*
- * Copyright 2006 The MZmine Development Team
+ * Copyright 2006-2007 The MZmine Development Team
  * 
  * This file is part of MZmine.
  * 
@@ -19,28 +19,41 @@
 
 package net.sf.mzmine.main;
 
+import javax.swing.JOptionPane;
+
 import net.sf.mzmine.io.IOController;
+import net.sf.mzmine.project.MZmineProject;
 import net.sf.mzmine.taskcontrol.TaskController;
 import net.sf.mzmine.userinterface.Desktop;
 
 /**
  * This interface represents MZmine core modules - I/O, task controller and GUI.
  */
-public interface MZmineCore {
+public abstract class MZmineCore {
+
+    protected static IOController ioController;
+    protected static TaskController taskController;
+    protected static Desktop desktop;
+    protected static MZmineProject currentProject;
+    protected static MZmineModule[] initializedModules;
 
     /**
      * Returns a reference to local IO controller.
      * 
      * @return IO controller reference
      */
-    public IOController getIOController();
+    public static IOController getIOController() {
+        return ioController;
+    }
 
     /**
      * Returns a reference to local task controller.
      * 
      * @return TaskController reference
      */
-    public TaskController getTaskController();
+    public static TaskController getTaskController() {
+        return taskController;
+    }
 
     /**
      * Returns a reference to Desktop. May return null on MZmine nodes with no
@@ -48,20 +61,47 @@ public interface MZmineCore {
      * 
      * @return Desktop reference or null
      */
-    public Desktop getDesktop();
+    public static Desktop getDesktop() {
+        return desktop;
+    }
 
-    
+    /**
+     * 
+     */
+    public static MZmineProject getCurrentProject() {
+        return currentProject;
+    }
+
     /**
      * Returns an array of all initialized MZmine modules
      * 
      * @return Array of all initialized MZmine modules
      */
-    public MZmineModule[] getAllModules();
-    
+    public static MZmineModule[] getAllModules() {
+        return initializedModules;
+    }
+
     /**
-     * Saves configuration and exits the application. 
-     *
+     * Saves configuration and exits the application.
+     * 
      */
-    public void exitMZmine();
+    public static void exitMZmine() {
+
+        // If we have GUI, ask if use really wants to quit
+        if (desktop != null) {
+            int selectedValue = JOptionPane.showInternalConfirmDialog(
+                    desktop.getMainFrame(),
+                    "Are you sure you want to exit MZmine?", "Exiting...",
+                    JOptionPane.YES_NO_OPTION, JOptionPane.WARNING_MESSAGE);
+
+            if (selectedValue != JOptionPane.YES_OPTION)
+                return;
+
+            desktop.getMainFrame().dispose();
+        }
+
+        System.exit(0);
+
+    }
 
 }

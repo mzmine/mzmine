@@ -69,12 +69,12 @@ class CustomDBSearchDialog extends JDialog implements ActionListener {
     /**
      * Constructor
      */
-    public CustomDBSearchDialog(MZmineCore core, CustomDBSearchParameters parameters) {
+    public CustomDBSearchDialog(CustomDBSearchParameters parameters) {
 
         // Make dialog modal
-        super(core.getDesktop().getMainFrame(), "DB search parameters", true);
+        super(MZmineCore.getDesktop().getMainFrame(), "DB search parameters", true);
 
-        this.desktop = core.getDesktop();
+        this.desktop = MZmineCore.getDesktop();
         this.parameters = parameters;
 
         // Create panel with controls

@@ -19,7 +19,7 @@
 
 package net.sf.mzmine.data;
 
-import net.sf.mzmine.io.OpenedRawDataFile;
+import net.sf.mzmine.io.RawDataFile;
 
 /**
  * 
@@ -29,7 +29,7 @@ public interface PeakListRow {
     /**
      * Return raw datas with peaks on this row
      */
-    public OpenedRawDataFile[] getOpenedRawDataFiles();
+    public RawDataFile[] getRawDataFiles();
 
     /**
      * Returns ID of this row
@@ -49,22 +49,22 @@ public interface PeakListRow {
     /**
      * Returns peak for given raw data file
      */
-    public Peak getPeak(OpenedRawDataFile rawData);
+    public Peak getPeak(RawDataFile rawData);
 
     /**
      * Returns peak for given raw data file
      */
-    public Peak getOriginalPeakListEntry(OpenedRawDataFile rawData);
+    public Peak getOriginalPeakListEntry(RawDataFile rawData);
 
     /**
      * Returns average M/Z for peaks on this row
      */
-    public double getAverageMZ();
+    public float getAverageMZ();
 
     /**
      * Returns average RT for peaks on this row
      */
-    public double getAverageRT();
+    public float getAverageRT();
 
     /**
      * Returns comment for this row
@@ -103,12 +103,12 @@ public interface PeakListRow {
      * @param identity Preferred identity
      */
     public void setPreferredCompoundIdentity(CompoundIdentity identity);
-    
+
     /**
-     * Returns maximum raw data point intensity among all peaks in this row 
+     * Returns maximum raw data point intensity among all peaks in this row
      * 
-     * @return Maximum intensity 
+     * @return Maximum intensity
      */
-    public double getDataPointMaxIntensity();
+    public float getDataPointMaxIntensity();
 
 }

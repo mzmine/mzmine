@@ -72,7 +72,7 @@ class PeakShapeCellRenderer implements TableCellRenderer {
         if (value instanceof Peak) {
 
             Peak peak = (Peak) value;
-            double maxHeight = 0;
+            float maxHeight = 0;
             
             switch (parameters.getPeakShapeNormalization()) {
             case GLOBALMAX:

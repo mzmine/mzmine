@@ -33,7 +33,8 @@ import javax.swing.JPopupMenu;
 import net.sf.mzmine.data.Peak;
 import net.sf.mzmine.data.PeakList;
 import net.sf.mzmine.data.PeakListRow;
-import net.sf.mzmine.io.OpenedRawDataFile;
+import net.sf.mzmine.io.RawDataFile;
+import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.modules.dataanalysis.intensityplot.IntensityPlotDialog;
 import net.sf.mzmine.modules.dataanalysis.intensityplot.IntensityPlotFrame;
 import net.sf.mzmine.modules.dataanalysis.intensityplot.IntensityPlotParameters;
@@ -103,7 +104,7 @@ public class PeakListTablePopupMenu extends JPopupMenu implements
             showXICItem.setEnabled(clickedColumn >= CommonColumnType.values().length);
             int dataFileIndex = (clickedColumn - CommonColumnType.values().length)
                     / DataFileColumnType.values().length;
-            OpenedRawDataFile dataFile = peakList.getRawDataFile(dataFileIndex);
+            RawDataFile dataFile = peakList.getRawDataFile(dataFileIndex);
             TableSorter sorter = (TableSorter) table.getModel();
             int peakListRow = sorter.modelIndex(clickedRow);
             clickedPeak = peakList.getPeak(peakListRow, dataFile);
@@ -155,7 +156,7 @@ public class PeakListTablePopupMenu extends JPopupMenu implements
                     parameters);
             setupDialog.setVisible(true);
             if (setupDialog.getExitCode() == ExitCode.OK) {
-                Desktop desktop = MainWindow.getInstance();
+                Desktop desktop = MZmineCore.getDesktop();
                 logger.info("Opening new intensity plot");
                 IntensityPlotFrame newFrame = new IntensityPlotFrame(parameters);
                 desktop.addInternalFrame(newFrame);

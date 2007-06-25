@@ -28,6 +28,7 @@ import java.text.NumberFormat;
 import javax.swing.JMenuItem;
 import javax.swing.JPopupMenu;
 
+import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.userinterface.Desktop;
 import net.sf.mzmine.userinterface.mainwindow.MainWindow;
 
@@ -73,7 +74,7 @@ class TwoDPlot extends ChartPanel {
         setBackground(Color.white);
         setCursor(Cursor.getPredefinedCursor(Cursor.CROSSHAIR_CURSOR));
 
-        Desktop desktop = MainWindow.getInstance();
+        Desktop desktop = MZmineCore.getDesktop();
         NumberFormat rtFormat = desktop.getRTFormat();
         NumberFormat mzFormat = desktop.getMZFormat();
         

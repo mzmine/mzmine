@@ -29,12 +29,12 @@ import net.sf.mzmine.data.impl.ConstructionPeak;
  */
 class MatchScore implements Comparable<MatchScore> {
 
-    private double score;
+    private float score;
     private ConstructionPeak ucPeak;
     private OneDimPeak oneDimPeak;
-    private double mzTolerance, intTolerance;
+    private float mzTolerance, intTolerance;
 
-    MatchScore(ConstructionPeak uc, OneDimPeak od, double mzTolerance, double intTolerance) {
+    MatchScore(ConstructionPeak uc, OneDimPeak od, float mzTolerance, float intTolerance) {
         this.mzTolerance = mzTolerance;
         this.intTolerance = intTolerance;
         ucPeak = uc;
@@ -42,7 +42,7 @@ class MatchScore implements Comparable<MatchScore> {
         score = calcScore(uc, od);
     }
 
-    public double getScore() {
+    public float getScore() {
         return score;
     }
 
@@ -63,21 +63,21 @@ class MatchScore implements Comparable<MatchScore> {
         return retsig;
     }
 
-    private double calcScore(ConstructionPeak uc, OneDimPeak od) {
+    private float calcScore(ConstructionPeak uc, OneDimPeak od) {
 
-        double ucMZ = uc.getMZ();
+        float ucMZ = uc.getMZ();
 
         // If mz difference is too big? (do this first for optimal
         // performance)
         if (java.lang.Math.abs(ucMZ - od.mz) > mzTolerance) {
-            return Double.MAX_VALUE;
+            return Float.MAX_VALUE;
 
         } else {
 
             // Calculate score components and total score
-            double scoreMZComponent = Math.abs(ucMZ - od.mz);
-            double scoreRTComponent = calcScoreForRTShape(uc, od);
-            double totalScore = Math.sqrt(scoreMZComponent
+            float scoreMZComponent = Math.abs(ucMZ - od.mz);
+            float scoreRTComponent = calcScoreForRTShape(uc, od);
+            float totalScore = (float) Math.sqrt(scoreMZComponent
                     * scoreMZComponent + scoreRTComponent
                     * scoreRTComponent);
 
@@ -92,10 +92,10 @@ class MatchScore implements Comparable<MatchScore> {
      * peak.
      *
      */
-    private double calcScoreForRTShape(ConstructionPeak uc, OneDimPeak od) {
+    private float calcScoreForRTShape(ConstructionPeak uc, OneDimPeak od) {
 
-        double nextIntensity = od.intensity;
-        //Hashtable<Integer, Double[]> datapoints = uc.getRawDatapoints();
+        float nextIntensity = od.intensity;
+        //Hashtable<Integer, Float[]> datapoints = uc.getRawDatapoints();
 
         int[] scanNumbers = uc.getScanNumbers();
 
@@ -104,12 +104,12 @@ class MatchScore implements Comparable<MatchScore> {
             return 0;
         }
 
-        ArrayList<Double> intensities = uc.getConstructionIntensities();
+        ArrayList<Float> intensities = uc.getConstructionIntensities();
         
         // If only one previous m/z peak
         if (scanNumbers.length == 1) {
 
-            double prevIntensity = intensities.get(0);
+            float prevIntensity = intensities.get(0);
 
             // If it goes up, then give minimum (best) score
             if ((nextIntensity - prevIntensity) >= 0) {
@@ -117,10 +117,10 @@ class MatchScore implements Comparable<MatchScore> {
             }
 
             // If it goes too much down, then give MAX_VALUE
-            double bottomMargin = prevIntensity
+            float bottomMargin = prevIntensity
                     * (1 - intTolerance);
             if (nextIntensity <= bottomMargin) {
-                return Double.MAX_VALUE;
+                return Float.MAX_VALUE;
             }
 
             // If it goes little bit down, but within marginal, then give
@@ -139,14 +139,14 @@ class MatchScore implements Comparable<MatchScore> {
 
         for (int ind=1; ind<scanNumbers.length; ind++) {
 
-            double prevIntensity = intensities.get(ind-1);
-            double currIntensity = intensities.get(ind);
+            float prevIntensity = intensities.get(ind-1);
+            float currIntensity = intensities.get(ind);
 
             // If peak is currently going up
             if (derSign == 1) {
                 // Then next intensity must be above bottomMargin or derSign
                 // changes
-                double bottomMargin = prevIntensity
+                float bottomMargin = prevIntensity
                         * (1 - intTolerance);
 
                 if (currIntensity <= bottomMargin) {
@@ -159,11 +159,11 @@ class MatchScore implements Comparable<MatchScore> {
             if (derSign == -1) {
                 // Then next intensity should be less than topMargin or peak
                 // ends
-                double topMargin = prevIntensity
+                float topMargin = prevIntensity
                         * (1 + intTolerance);
 
                 if (currIntensity >= topMargin) {
-                    return Double.MAX_VALUE;
+                    return Float.MAX_VALUE;
                 }
 
             }
@@ -183,14 +183,14 @@ class MatchScore implements Comparable<MatchScore> {
         // If peak is currently going down
         if (derSign == -1) {
 
-            double lastIntensity = intensities.get(intensities.size()-1);
+            float lastIntensity = intensities.get(intensities.size()-1);
 
             // Then peak must not start going up again
-            double topMargin = lastIntensity
+            float topMargin = lastIntensity
                     * (1 + intTolerance);
 
             if (nextIntensity >= topMargin) {
-                return Double.MAX_VALUE;
+                return Float.MAX_VALUE;
             }
 
             if (nextIntensity < lastIntensity) {
@@ -203,7 +203,7 @@ class MatchScore implements Comparable<MatchScore> {
         }
 
         // Should never go here
-        return Double.MAX_VALUE;
+        return Float.MAX_VALUE;
 
     }
 

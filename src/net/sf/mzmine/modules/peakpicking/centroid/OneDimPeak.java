@@ -27,14 +27,14 @@ class OneDimPeak {
 
     public int scanNum;
 
-    public double mz;
-    public double intensity;
+    public float mz;
+    public float intensity;
     public int datapointIndex;
 
     private boolean connected;
 
-    public OneDimPeak(int _scanNum, int _datapointIndex, double _mz,
-            double _intensity) {
+    public OneDimPeak(int _scanNum, int _datapointIndex, float _mz,
+            float _intensity) {
         scanNum = _scanNum;
         datapointIndex = _datapointIndex;
         mz = _mz;

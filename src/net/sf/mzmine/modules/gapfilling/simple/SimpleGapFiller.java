@@ -37,7 +37,7 @@ import net.sf.mzmine.data.ParameterSet;
 import net.sf.mzmine.data.Parameter.ParameterType;
 import net.sf.mzmine.data.impl.SimpleParameter;
 import net.sf.mzmine.data.impl.SimpleParameterSet;
-import net.sf.mzmine.io.OpenedRawDataFile;
+import net.sf.mzmine.io.RawDataFile;
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.modules.BatchStep;
 import net.sf.mzmine.taskcontrol.Task;
@@ -90,35 +90,34 @@ public class SimpleGapFiller implements BatchStep, TaskListener,
 
     private ParameterSet parameters;
 
-    private TaskController taskController;
     private Desktop desktop;
 
     // Maps raw data files to an array of gaps which must be filled from the raw
     // data. Used when distributing tasks.
-    private Hashtable<OpenedRawDataFile, Vector<EmptyGap>> gapsForRawData;
+    private Hashtable<RawDataFile, Vector<EmptyGap>> gapsForRawData;
 
     // Maps an empty gap to a opened raw data file. Used when constructing a
     // peak from an empty gap and placing it on alignment row.
-    private Hashtable<EmptyGap, OpenedRawDataFile> rawDataForGap;
+    private Hashtable<EmptyGap, RawDataFile> rawDataForGap;
 
     // Maps an alignment row to an array of all empty gaps on that row. Used
     // when constructing new alignment result
     private Hashtable<PeakList, Vector<EmptyGap>> gapsForRow;
 
     // Maps raw data file to results of processing task (array of empty gaps)
-    private Hashtable<OpenedRawDataFile, EmptyGap[]> resultsForRawData;
+    private Hashtable<RawDataFile, EmptyGap[]> resultsForRawData;
 
     /**
      * @see net.sf.mzmine.main.MZmineModule#initModule(net.sf.mzmine.main.MZmineCore)
      */
-    public void initModule(MZmineCore core) {
-        this.taskController = core.getTaskController();
-        this.desktop = core.getDesktop();
+    public void initModule() {
+        
+        this.desktop = MZmineCore.getDesktop();
 
-        gapsForRawData = new Hashtable<OpenedRawDataFile, Vector<EmptyGap>>();
-        rawDataForGap = new Hashtable<EmptyGap, OpenedRawDataFile>();
+        gapsForRawData = new Hashtable<RawDataFile, Vector<EmptyGap>>();
+        rawDataForGap = new Hashtable<EmptyGap, RawDataFile>();
         gapsForRow = new Hashtable<PeakList, Vector<EmptyGap>>();
-        resultsForRawData = new Hashtable<OpenedRawDataFile, EmptyGap[]>();
+        resultsForRawData = new Hashtable<RawDataFile, EmptyGap[]>();
 
         parameters = new SimpleParameterSet(new Parameter[] { IntTolerance,
                 MZTolerance, RTToleranceType, RTToleranceValueAbs,
@@ -171,7 +170,7 @@ public class SimpleGapFiller implements BatchStep, TaskListener,
          * 
          * return; }
          *  // Pickup results Object[] results = (Object[]) task.getResult();
-         * OpenedRawDataFile openedRawDataFile = (OpenedRawDataFile) results[0];
+         * RawDataFile openedRawDataFile = (RawDataFile) results[0];
          * EmptyGap[] emptyGaps = (EmptyGap[]) results[1];
          * resultsForRawData.put(openedRawDataFile, emptyGaps);
          * 
@@ -181,9 +180,9 @@ public class SimpleGapFiller implements BatchStep, TaskListener,
          *  // Yes, then construct new alignment result & copy opened raw data //
          * files from original alignment result to the new one
          * processedPeakList = new SimplePeakList( "Result from
-         * gap-filling"); for (OpenedRawDataFile loopOpenedRawDataFile :
+         * gap-filling"); for (RawDataFile loopRawDataFile :
          * originalPeakList.getRawDataFiles()) {
-         * processedPeakList.addOpenedRawDataFile(loopOpenedRawDataFile); }
+         * processedPeakList.addRawDataFile(loopRawDataFile); }
          *  // Add rows to the new alignment result for (PeakList
          * alignmentRow : originalPeakList.getRows()) {
          * SimplePeakList processedAlignmentRow = new
@@ -191,15 +190,15 @@ public class SimpleGapFiller implements BatchStep, TaskListener,
          * processedAlignmentRow.setIsotopePattern(alignmentRow.getIsotopePattern());
          * processedAlignmentRow.addData(IsotopePattern.class,
          * alignmentRow.getLastData(IsotopePattern.class));
-         *  // Copy old peaks to new row for (OpenedRawDataFile
-         * loopOpenedRawDataFile : alignmentRow.getOpenedRawDataFiles()) { Peak
-         * p = alignmentRow.getPeak(loopOpenedRawDataFile);
-         * processedAlignmentRow.addPeak(loopOpenedRawDataFile, p); }
+         *  // Copy old peaks to new row for (RawDataFile
+         * loopRawDataFile : alignmentRow.getRawDataFiles()) { Peak
+         * p = alignmentRow.getPeak(loopRawDataFile);
+         * processedAlignmentRow.addPeak(loopRawDataFile, p); }
          *  // Construct new peaks from empty gaps and put them on same row
          * Vector<EmptyGap> filledGaps = gapsForRow.get(alignmentRow); for
          * (EmptyGap filledGap : filledGaps) { Peak p =
          * filledGap.getEstimatedPeak(); p.addData(IsotopePattern.class,
-         * alignmentRow.getLastData(IsotopePattern.class)); OpenedRawDataFile
+         * alignmentRow.getLastData(IsotopePattern.class)); RawDataFile
          * peakRawData = rawDataForGap.get(filledGap);
          * processedAlignmentRow.addPeak(peakRawData, p); }
          *  // Add row to the new alignment result
@@ -235,12 +234,12 @@ public class SimpleGapFiller implements BatchStep, TaskListener,
     }
 
     /**
-     * @see net.sf.mzmine.modules.BatchStep#runModule(net.sf.mzmine.io.OpenedRawDataFile[],
+     * @see net.sf.mzmine.modules.BatchStep#runModule(net.sf.mzmine.io.RawDataFile[],
      *      net.sf.mzmine.data.PeakList[],
      *      net.sf.mzmine.data.ParameterSet,
      *      net.sf.mzmine.taskcontrol.TaskGroupListener)
      */
-    public TaskGroup runModule(OpenedRawDataFile[] dataFiles,
+    public TaskGroup runModule(RawDataFile[] dataFiles,
             PeakList[] alignmentResults, ParameterSet parameters,
             TaskGroupListener methodListener) {
 
@@ -252,7 +251,7 @@ public class SimpleGapFiller implements BatchStep, TaskListener,
          * peaks, generate "a working row" containing EmptyGap objects for each
          * missing peak
          * 
-         * OpenedRawDataFile[] rawDataFiles =
+         * RawDataFile[] rawDataFiles =
          * originalPeakList.getRawDataFiles(); int i = 0; for
          * (PeakList alignmentRow : originalPeakList.getRows()) {
          * 
@@ -261,7 +260,7 @@ public class SimpleGapFiller implements BatchStep, TaskListener,
          * gapsForRow.put(alignmentRow, gapsOfTheCurrentRow); }
          * 
          * double mz = alignmentRow.getAverageMZ(); double rt =
-         * alignmentRow.getAverageRT(); for (OpenedRawDataFile openedRawDataFile :
+         * alignmentRow.getAverageRT(); for (RawDataFile openedRawDataFile :
          * rawDataFiles) { if (alignmentRow.getPeak(openedRawDataFile) == null) {
          * EmptyGap emptyGap = new EmptyGap(mz, rt, parameters);
          * 
@@ -276,7 +275,7 @@ public class SimpleGapFiller implements BatchStep, TaskListener,
          *  // Start a task for filling gaps in each raw data file
          * 
          * startedTasks = new Vector<Task>(); completedTasks = new Vector<Task>();
-         * for (OpenedRawDataFile openedRawDataFile : rawDataFiles) {
+         * for (RawDataFile openedRawDataFile : rawDataFiles) {
          * 
          * Vector<EmptyGap> emptyGapsV = gapsForRawData.get(openedRawDataFile);
          * if (emptyGapsV == null) continue; if (emptyGapsV.size() == 0)

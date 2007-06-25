@@ -33,9 +33,10 @@ import java.util.Date;
 import java.util.logging.Logger;
 
 import net.sf.mzmine.data.Scan;
-import net.sf.mzmine.io.RawDataAcceptor;
 import net.sf.mzmine.io.RawDataFile;
+import net.sf.mzmine.io.util.RawDataAcceptor;
 import net.sf.mzmine.io.util.RawDataRetrievalTask;
+import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.taskcontrol.Task;
 import net.sf.mzmine.taskcontrol.TaskController;
 import net.sf.mzmine.taskcontrol.Task.TaskPriority;
@@ -60,19 +61,19 @@ class TwoDDataSet extends AbstractXYZDataset implements RawDataAcceptor,
 
     private RawDataFile rawDataFile;
 
-    private double totalIntensityMatrix[][];
-    private double currentIntensityMatrix[][];
+    private float totalIntensityMatrix[][];
+    private float currentIntensityMatrix[][];
 
     // bounds for the total (zoom-out) image
-    private double totalRTMin, totalRTMax, totalMZMin, totalMZMax;
-    private double totalRTStep, totalMZStep;
+    private float totalRTMin, totalRTMax, totalMZMin, totalMZMax;
+    private float totalRTStep, totalMZStep;
 
     // bounds for current zoom image
-    private double currentRTMin, currentRTMax, currentMZMin, currentMZMax;
-    private double currentRTStep, currentMZStep;
+    private float currentRTMin, currentRTMax, currentMZMin, currentMZMax;
+    private float currentRTStep, currentMZStep;
 
     // max intensity in current image
-    private double currentMaxIntensity;
+    private float currentMaxIntensity;
 
     private BufferedImage currentImage;
 
@@ -80,9 +81,9 @@ class TwoDDataSet extends AbstractXYZDataset implements RawDataAcceptor,
 
     private boolean totalDataLoaded = false;
 
-    TwoDDataSet(TaskController taskController, RawDataFile rawDataFile,
-            int msLevel, double rtMin, double rtMax, double mzMin,
-            double mzMax, int rtResolution, int mzResolution,
+    TwoDDataSet(RawDataFile rawDataFile,
+            int msLevel, float rtMin, float rtMax, float mzMin,
+            float mzMax, int rtResolution, int mzResolution,
             TwoDVisualizerWindow visualizer) {
 
         this.rawDataFile = rawDataFile;
@@ -93,7 +94,7 @@ class TwoDDataSet extends AbstractXYZDataset implements RawDataAcceptor,
         totalMZMax = mzMax;
         totalRTStep = (rtMax - rtMin) / (rtResolution - 1);
         totalMZStep = (mzMax - mzMin) / (mzResolution - 1);
-        totalIntensityMatrix = new double[rtResolution][mzResolution];
+        totalIntensityMatrix = new float[rtResolution][mzResolution];
 
         currentRTMin = rtMin;
         currentRTMax = rtMax;
@@ -109,7 +110,7 @@ class TwoDDataSet extends AbstractXYZDataset implements RawDataAcceptor,
         Task updateTask = new RawDataRetrievalTask(rawDataFile, scanNumbers,
                 "Updating 2D visualizer of " + rawDataFile, this);
 
-        taskController.addTask(updateTask, TaskPriority.HIGH, visualizer);
+        MZmineCore.getTaskController().addTask(updateTask, TaskPriority.HIGH, visualizer);
 
     }
 
@@ -118,8 +119,8 @@ class TwoDDataSet extends AbstractXYZDataset implements RawDataAcceptor,
      */
     public synchronized void addScan(Scan scan, int index, int total) {
 
-        double rtMin, rtMax, rtStep, mzMin, mzMax, mzStep;
-        double intensityMatrix[][];
+        float rtMin, rtMax, rtStep, mzMin, mzMax, mzStep;
+        float intensityMatrix[][];
         int bitmapSizeX, bitmapSizeY;
 
         logger.finest("Adding scan " + scan);
@@ -154,10 +155,10 @@ class TwoDDataSet extends AbstractXYZDataset implements RawDataAcceptor,
         int xIndex = (int) Math.floor((scan.getRetentionTime() - rtMin)
                 / rtStep);
 
-        double mzValues[] = scan.getMZValues();
-        double intensityValues[] = scan.getIntensityValues();
+        float mzValues[] = scan.getMZValues();
+        float intensityValues[] = scan.getIntensityValues();
 
-        double binnedIntensities[] = ScanUtils.binValues(mzValues, intensityValues, mzMin, mzMax, bitmapSizeY, false, BinningType.SUM);
+        float binnedIntensities[] = ScanUtils.binValues(mzValues, intensityValues, mzMin, mzMax, bitmapSizeY, false, BinningType.SUM);
         
         for (int i = 0; i < bitmapSizeY; i++) {
 
@@ -239,7 +240,7 @@ class TwoDDataSet extends AbstractXYZDataset implements RawDataAcceptor,
     synchronized void renderCurrentImage() {
 
         ColorSpace cs = null;
-        double dataImgMax = Double.MAX_VALUE;
+        float dataImgMax = Float.MAX_VALUE;
 
         cs = ColorSpace.getInstance(ColorSpace.CS_GRAY);
 
@@ -265,13 +266,13 @@ class TwoDDataSet extends AbstractXYZDataset implements RawDataAcceptor,
 
         byte count = 0;
         byte[] b = new byte[nComp];
-        double bb;
-        double fac;
+        float bb;
+        float fac;
         for (int xpos = 0; xpos < bitmapSizeX; xpos++) {
             for (int ypos = 0; ypos < bitmapSizeY; ypos++) {
 
                 bb = 0;
-                bb = (double) ((0.20 * dataImgMax - currentIntensityMatrix[xpos][ypos]) / (0.20 * dataImgMax));
+                bb = (float) ((0.20 * dataImgMax - currentIntensityMatrix[xpos][ypos]) / (0.20 * dataImgMax));
                 if (bb < 0) {
                     bb = 0;
                 }
@@ -294,17 +295,17 @@ class TwoDDataSet extends AbstractXYZDataset implements RawDataAcceptor,
     public void plotChanged(PlotChangeEvent event) {
         System.out.println(event);
         XYPlot plot = (XYPlot) event.getPlot();
-        double newRTMin = plot.getDomainAxis().getLowerBound();
-        double newRTMax = plot.getDomainAxis().getUpperBound();
-        double newMZMin = plot.getRangeAxis().getLowerBound();
-        double newMZMax = plot.getRangeAxis().getUpperBound();
+        float newRTMin = (float) plot.getDomainAxis().getLowerBound();
+        float newRTMax = (float) plot.getDomainAxis().getUpperBound();
+        float newMZMin = (float) plot.getRangeAxis().getLowerBound();
+        float newMZMax = (float) plot.getRangeAxis().getUpperBound();
         
         // int rtResolution = currentIntensityMatrix.length;
         // int mzResolution = currentIntensityMatrix[0].length;
 
         //currentRTStep = (currentRTMax - currentRTMin) / (rtResolution - 1);
         //currentMZStep = (currentMZMax - currentMZMin) / (mzResolution - 1);
-        //currentIntensityMatrix = new double[rtResolution][mzResolution];
+        //currentIntensityMatrix = new float[rtResolution][mzResolution];
         // TODO copy data
 
     }

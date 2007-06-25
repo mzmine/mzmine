@@ -19,7 +19,8 @@
 
 package net.sf.mzmine.data;
 
-import net.sf.mzmine.io.OpenedRawDataFile;
+import net.sf.mzmine.io.RawDataFile;
+
 
 /**
  * This interface defines the properties of a detected peak
@@ -52,27 +53,27 @@ public interface Peak {
     /**
      * This method returns raw M/Z value of the peak
      */
-    public double getMZ();
+    public float getMZ();
 
     /**
      * This method returns raw retention time of the peak
      */
-    public double getRT();
+    public float getRT();
 
     /**
      * This method returns the raw height of the peak
      */
-    public double getHeight();
+    public float getHeight();
 
     /**
      * This method returns the raw area of the peak
      */
-    public double getArea();
+    public float getArea();
 
     /**
      * Returns peak duration in seconds
      */
-    public double getDuration();
+    public float getDuration();
 
     /*
      * Get methods for accessing the raw datapoints that construct the peak.
@@ -82,7 +83,7 @@ public interface Peak {
     /**
      * Returns raw data file where this peak is present
      */
-    public OpenedRawDataFile getDataFile();
+    public RawDataFile getDataFile();
 
     /**
      * This method returns numbers of scans that contain this peak
@@ -90,34 +91,34 @@ public interface Peak {
     public int[] getScanNumbers();
 
     /**
-     * This method returns an array of double[2] (mz and intensity) points for a
+     * This method returns an array of float[2] (mz and intensity) points for a
      * given scan number
      */
-    public double[][] getRawDatapoints(int scanNumber);
+    public float[][] getRawDatapoints(int scanNumber);
 
     /**
      * Returns the minimum RT of all datapoints
      */
-    public double getDataPointMinRT();
+    public float getDataPointMinRT();
 
     /**
      * Returns the maximum RT of all datapoints
      */
-    public double getDataPointMaxRT();
+    public float getDataPointMaxRT();
 
     /**
      * Returns minimum M/Z value of all datapoints
      */
-    public double getDataPointMinMZ();
+    public float getDataPointMinMZ();
 
     /**
      * Returns maximum M/Z value of all datapoints
      */
-    public double getDataPointMaxMZ();
+    public float getDataPointMaxMZ();
     
     /**
      * Returns maximum intensity value of all datapoints
      */
-    public double getDataPointMaxIntensity();
+    public float getDataPointMaxIntensity();
 
 }

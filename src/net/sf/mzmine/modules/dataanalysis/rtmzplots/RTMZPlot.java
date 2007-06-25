@@ -5,6 +5,7 @@ import java.awt.Color;
 import java.awt.Font;
 import java.text.NumberFormat;
 
+import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.userinterface.Desktop;
 import net.sf.mzmine.userinterface.components.interpolatinglookuppaintscale.InterpolatingLookupPaintScale;
 import net.sf.mzmine.userinterface.mainwindow.MainWindow;
@@ -92,7 +93,7 @@ public class RTMZPlot extends ChartPanel {
         plot.setDomainCrosshairStroke(crossHairStroke);
         plot.setRangeCrosshairStroke(crossHairStroke);
   
-        Desktop desktop = MainWindow.getInstance();
+        Desktop desktop = MZmineCore.getDesktop();
         NumberFormat rtFormat = desktop.getRTFormat();
         NumberFormat mzFormat = desktop.getMZFormat();
 

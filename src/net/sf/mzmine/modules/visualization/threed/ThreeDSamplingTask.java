@@ -28,8 +28,10 @@ import java.util.logging.Logger;
 import net.sf.mzmine.data.Peak;
 import net.sf.mzmine.data.PeakList;
 import net.sf.mzmine.data.Scan;
-import net.sf.mzmine.io.OpenedRawDataFile;
 import net.sf.mzmine.io.RawDataFile;
+import net.sf.mzmine.io.RawDataFile;
+import net.sf.mzmine.main.MZmineCore;
+import net.sf.mzmine.project.MZmineProject;
 import net.sf.mzmine.taskcontrol.Task;
 import net.sf.mzmine.userinterface.Desktop;
 import net.sf.mzmine.userinterface.mainwindow.MainWindow;
@@ -75,10 +77,9 @@ class ThreeDSamplingTask implements Task {
     private Logger logger = Logger.getLogger(this.getClass().getName());
 
     private ThreeDVisualizerWindow visualizer;
-    private OpenedRawDataFile dataFile;
-    private RawDataFile rawDataFile;
+    private RawDataFile dataFile;
     private int scanNumbers[];
-    private double rtMin, rtMax, mzMin, mzMax;
+    private float rtMin, rtMax, mzMin, mzMax;
 
     // data resolution on m/z and retention time axis
     private int rtResolution, mzResolution;
@@ -116,20 +117,19 @@ class ThreeDSamplingTask implements Task {
 
     /**
      * Task constructor
-     * @param rawDataFile
+     * @param dataFile
      * @param msLevel
      * @param visualizer
      */
-    ThreeDSamplingTask(OpenedRawDataFile dataFile, int scanNumbers[],
-            double rtMin, double rtMax,
-            double mzMin, double mzMax,
+    ThreeDSamplingTask(RawDataFile dataFile, int scanNumbers[],
+            float rtMin, float rtMax,
+            float mzMin, float mzMax,
             int rtResolution, int mzResolution,
             ThreeDVisualizerWindow visualizer) {
 
         status = TaskStatus.WAITING;
 
         this.dataFile = dataFile;
-        this.rawDataFile = dataFile.getCurrentFile();
         this.scanNumbers = scanNumbers;
 
         this.rtMin = rtMin;
@@ -201,7 +201,7 @@ class ThreeDSamplingTask implements Task {
 
 
             // create 3D display
-            display = new DisplayImplJ3D(rawDataFile.toString());
+            display = new DisplayImplJ3D(dataFile.toString());
 
             // basic types
             // we have to use "RT", "Retention time" returns null(?)
@@ -257,7 +257,7 @@ class ThreeDSamplingTask implements Task {
                     for (int i = 0; i < rtResolution; i++) {
 
                         // set the point's X coordinate
-                        domainPoints[0][(rtResolution * j) + i] = (float) rawDataFile.getRetentionTime(scanNumbers[i]);
+                        domainPoints[0][(rtResolution * j) + i] = (float) dataFile.getScan(scanNumbers[i]).getRetentionTime();
 
                         // set the point's Y coordinate
                         domainPoints[1][(rtResolution * j) + i] = (float) mzMin + (j * mzStep);
@@ -282,9 +282,9 @@ class ThreeDSamplingTask implements Task {
                 if (status == TaskStatus.CANCELED)
                     return;
 
-                scan = rawDataFile.getScan(scanNumbers[scanIndex]);
+                scan = dataFile.getScan(scanNumbers[scanIndex]);
 
-                double[] binnedIntensities = ScanUtils.binValues(scan.getMZValues(),
+                float[] binnedIntensities = ScanUtils.binValues(scan.getMZValues(),
                         scan.getIntensityValues(),
                         mzMin,
                         mzMax,
@@ -353,14 +353,16 @@ class ThreeDSamplingTask implements Task {
             dataReference.setData(intensityValuesFlatField);
             display.addReference(dataReference);
             
-            Desktop desktop = MainWindow.getInstance();
+            Desktop desktop = MZmineCore.getDesktop();
             NumberFormat rtFormat = desktop.getRTFormat();
             NumberFormat mzFormat = desktop.getMZFormat();
             NumberFormat intensityFormat = desktop.getIntensityFormat();
 
 
+            MZmineProject currentProject = MZmineCore.getCurrentProject();
+            
             // if we have peak data, connect them to the display, too
-            PeakList peakList = dataFile.getPeakList();
+            PeakList peakList = currentProject.getFilePeakList(dataFile);
             if (peakList != null) {
 
                 Peak peaks[] = peakList.getPeaksInsideScanAndMZRange(dataFile, rtMin, rtMax, mzMin, mzMax);

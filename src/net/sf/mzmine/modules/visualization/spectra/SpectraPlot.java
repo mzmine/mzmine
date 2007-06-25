@@ -31,6 +31,7 @@ import java.text.NumberFormat;
 import javax.swing.JPopupMenu;
 import javax.swing.KeyStroke;
 
+import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.userinterface.Desktop;
 import net.sf.mzmine.userinterface.mainwindow.MainWindow;
 import net.sf.mzmine.util.GUIUtils;
@@ -138,7 +139,7 @@ class SpectraPlot extends ChartPanel {
         plot.setDomainCrosshairVisible(false);
         plot.setRangeCrosshairVisible(false);
 
-        Desktop desktop = MainWindow.getInstance();
+        Desktop desktop = MZmineCore.getDesktop();
         NumberFormat mzFormat = desktop.getMZFormat();
         NumberFormat intensityFormat = desktop.getIntensityFormat();
         

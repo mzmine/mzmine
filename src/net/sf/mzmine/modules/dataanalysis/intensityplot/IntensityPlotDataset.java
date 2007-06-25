@@ -22,9 +22,9 @@ package net.sf.mzmine.modules.dataanalysis.intensityplot;
 import java.util.ArrayList;
 import java.util.List;
 
-import net.sf.mzmine.data.PeakListRow;
 import net.sf.mzmine.data.Peak;
-import net.sf.mzmine.io.OpenedRawDataFile;
+import net.sf.mzmine.data.PeakListRow;
+import net.sf.mzmine.io.RawDataFile;
 
 import org.jfree.data.category.CategoryDataset;
 import org.jfree.data.general.AbstractDataset;
@@ -36,7 +36,7 @@ class IntensityPlotDataset extends AbstractDataset implements CategoryDataset {
 
     private Object yAxisValueSource;
 
-    private OpenedRawDataFile selectedFiles[];
+    private RawDataFile selectedFiles[];
     private PeakListRow selectedRows[];
 
     IntensityPlotDataset(IntensityPlotParameters parameters) {
@@ -90,7 +90,7 @@ class IntensityPlotDataset extends AbstractDataset implements CategoryDataset {
      */
     public List getColumnKeys() {
         ArrayList<Object> columnKeys = new ArrayList<Object>();
-        for (OpenedRawDataFile file : selectedFiles) {
+        for (RawDataFile file : selectedFiles) {
             columnKeys.add(file.toString());
         }
         return columnKeys;
@@ -125,7 +125,7 @@ class IntensityPlotDataset extends AbstractDataset implements CategoryDataset {
      */
     public Number getValue(int row, int column) {
 
-        Double value = null;
+        Float value = null;
         
         Peak peak = getPeak(row, column);
         if (peak == null) return null;
@@ -151,7 +151,7 @@ class IntensityPlotDataset extends AbstractDataset implements CategoryDataset {
     }
 
     public Peak getPeak(int row, int column) {
-        OpenedRawDataFile file = selectedFiles[column];
+        RawDataFile file = selectedFiles[column];
         return selectedRows[row].getPeak(file);
 
     }
@@ -159,7 +159,7 @@ class IntensityPlotDataset extends AbstractDataset implements CategoryDataset {
     /**
      * @see org.jfree.data.KeyedValues2D#getRowKey(int)
      */
-    public OpenedRawDataFile getFile(int column) {
+    public RawDataFile getFile(int column) {
         return selectedFiles[column];
     }
 

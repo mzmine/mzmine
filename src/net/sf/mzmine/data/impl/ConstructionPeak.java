@@ -24,7 +24,8 @@ import java.util.ArrayList;
 import java.util.TreeMap;
 
 import net.sf.mzmine.data.Peak;
-import net.sf.mzmine.io.OpenedRawDataFile;
+import net.sf.mzmine.io.RawDataFile;
+import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.userinterface.mainwindow.MainWindow;
 import net.sf.mzmine.util.CollectionUtils;
 import net.sf.mzmine.util.MathUtils;
@@ -38,38 +39,38 @@ public class ConstructionPeak implements Peak {
     private PeakStatus peakStatus;
 
     // This table maps a scanNumber to an array of m/z and intensity pairs
-    private TreeMap<Integer, ArrayList<double[]>> datapointsMap;
+    private TreeMap<Integer, ArrayList<float[]>> datapointsMap;
 
-    private OpenedRawDataFile dataFile;
+    private RawDataFile dataFile;
 
     // Raw M/Z, RT, Height and Area
-    private double mz;
-    private double rt;
-    private double height;
-    private double area;
+    private float mz;
+    private float rt;
+    private float height;
+    private float area;
 
     // Boundaries of the peak
-    private double minRT;
-    private double maxRT;
-    private double minMZ;
-    private double maxMZ;
-    private double maxIntensity;
+    private float minRT;
+    private float maxRT;
+    private float minMZ;
+    private float maxMZ;
+    private float maxIntensity;
 
     // These are used for constructing the peak
     private boolean precalcRequiredMZ;
     private boolean precalcRequiredRT;
     private boolean precalcRequiredMins;
     private boolean precalcRequiredArea;
-    private ArrayList<Double> datapointsMZs;
-    private ArrayList<Double> datapointsRTs;
-    private ArrayList<Double> datapointsIntensities;
+    private ArrayList<Float> datapointsMZs;
+    private ArrayList<Float> datapointsRTs;
+    private ArrayList<Float> datapointsIntensities;
 
     private boolean growing;
 
     /**
      * Initializes empty peak for adding data points to
      */
-    public ConstructionPeak(OpenedRawDataFile dataFile) {
+    public ConstructionPeak(RawDataFile dataFile) {
         this.dataFile = dataFile;
         intializeAddingDatapoints();
     }
@@ -93,7 +94,7 @@ public class ConstructionPeak implements Peak {
     /**
      * This method returns M/Z value of the peak
      */
-    public double getMZ() {
+    public float getMZ() {
         if (precalcRequiredMZ)
             precalculateMZ();
         return mz;
@@ -102,7 +103,7 @@ public class ConstructionPeak implements Peak {
     /**
      * This method returns retention time of the peak
      */
-    public double getRT() {
+    public float getRT() {
         if (precalcRequiredRT)
             precalculateRT();
         return rt;
@@ -111,7 +112,7 @@ public class ConstructionPeak implements Peak {
     /**
      * This method returns the raw height of the peak
      */
-    public double getHeight() {
+    public float getHeight() {
         if (precalcRequiredRT)
             precalculateRT();
         return height;
@@ -120,7 +121,7 @@ public class ConstructionPeak implements Peak {
     /**
      * This method returns the raw area of the peak
      */
-    public double getArea() {
+    public float getArea() {
         if (precalcRequiredArea)
             precalculateArea();
         return area;
@@ -134,19 +135,19 @@ public class ConstructionPeak implements Peak {
     }
 
     /**
-     * This method returns an array of double[2] (mz and intensity) points for a
+     * This method returns an array of float[2] (mz and intensity) points for a
      * given scan number
      */
-    public double[][] getRawDatapoints(int scanNumber) {
+    public float[][] getRawDatapoints(int scanNumber) {
 
-        ArrayList<double[]> datapoints = datapointsMap.get(scanNumber);
+        ArrayList<float[]> datapoints = datapointsMap.get(scanNumber);
 
         if (datapoints == null)
-            return new double[0][0];
+            return new float[0][0];
 
-        double[][] res = new double[datapoints.size()][];
+        float[][] res = new float[datapoints.size()][];
         int ind = 0;
-        for (double[] datapoint : datapoints) {
+        for (float[] datapoint : datapoints) {
             res[ind] = datapoint;
             ind++;
         }
@@ -157,7 +158,7 @@ public class ConstructionPeak implements Peak {
     /**
      * Returns the first scan number of all datapoints
      */
-    public double getDataPointMinRT() {
+    public float getDataPointMinRT() {
         if (precalcRequiredMins)
             precalculateMins();
         return minRT;
@@ -166,7 +167,7 @@ public class ConstructionPeak implements Peak {
     /**
      * Returns the last scan number of all datapoints
      */
-    public double getDataPointMaxRT() {
+    public float getDataPointMaxRT() {
         if (precalcRequiredMins)
             precalculateMins();
         return maxRT;
@@ -175,7 +176,7 @@ public class ConstructionPeak implements Peak {
     /**
      * Returns minimum M/Z value of all datapoints
      */
-    public double getDataPointMinMZ() {
+    public float getDataPointMinMZ() {
         if (precalcRequiredMins)
             precalculateMins();
         return minMZ;
@@ -184,7 +185,7 @@ public class ConstructionPeak implements Peak {
     /**
      * Returns maximum M/Z value of all datapoints
      */
-    public double getDataPointMaxMZ() {
+    public float getDataPointMaxMZ() {
         if (precalcRequiredMins)
             precalculateMins();
         return maxMZ;
@@ -193,7 +194,7 @@ public class ConstructionPeak implements Peak {
     /**
      * Returns maximum M/Z value of all datapoints
      */
-    public double getDataPointMaxIntensity() {
+    public float getDataPointMaxIntensity() {
         if (precalcRequiredMins)
             precalculateMins();
         return maxIntensity;
@@ -201,7 +202,7 @@ public class ConstructionPeak implements Peak {
 
     private void intializeAddingDatapoints() {
 
-        datapointsMap = new TreeMap<Integer, ArrayList<double[]>>();
+        datapointsMap = new TreeMap<Integer, ArrayList<float[]>>();
 
         precalcRequiredMZ = true;
         precalcRequiredRT = true;
@@ -210,22 +211,22 @@ public class ConstructionPeak implements Peak {
 
         growing = false;
 
-        datapointsMZs = new ArrayList<Double>();
-        datapointsRTs = new ArrayList<Double>();
-        datapointsIntensities = new ArrayList<Double>();
+        datapointsMZs = new ArrayList<Float>();
+        datapointsRTs = new ArrayList<Float>();
+        datapointsIntensities = new ArrayList<Float>();
 
     }
 
     private void precalculateMZ() {
         // Calculate median MZ
         mz = MathUtils.calcQuantile(
-                CollectionUtils.toDoubleArray(datapointsMZs), 0.5);
+                CollectionUtils.toFloatArray(datapointsMZs), 0.5f);
         precalcRequiredMZ = false;
     }
 
     private void precalculateRT() {
         // Find maximum intensity datapoint and use its RT
-        double maxIntensity = 0.0;
+        float maxIntensity = 0.0f;
         for (int ind = 0; ind < datapointsIntensities.size(); ind++) {
             if (maxIntensity <= datapointsIntensities.get(ind)) {
                 maxIntensity = datapointsIntensities.get(ind);
@@ -237,8 +238,8 @@ public class ConstructionPeak implements Peak {
     }
 
     private void precalculateArea() {
-        double sum = 0.0;
-        for (Double intensity : datapointsIntensities)
+        float sum = 0.0f;
+        for (Float intensity : datapointsIntensities)
             sum += intensity;
 
         area = sum;
@@ -247,10 +248,10 @@ public class ConstructionPeak implements Peak {
     }
 
     private void precalculateMins() {
-        minMZ = Double.MAX_VALUE;
-        maxMZ = Double.MIN_VALUE;
-        minRT = Double.MAX_VALUE;
-        maxRT = Double.MIN_VALUE;
+        minMZ = Float.MAX_VALUE;
+        maxMZ = Float.MIN_VALUE;
+        minRT = Float.MAX_VALUE;
+        maxRT = Float.MIN_VALUE;
         maxIntensity = 0;
 
         for (int ind = 0; ind < datapointsMZs.size(); ind++) {
@@ -269,8 +270,7 @@ public class ConstructionPeak implements Peak {
         precalcRequiredMins = false;
     }
 
-    public void addDatapoint(int scanNumber, double mz, double rt,
-            double intensity) {
+    public void addDatapoint(int scanNumber, float mz, float rt, float intensity) {
 
         growing = true;
         precalcRequiredMZ = true;
@@ -279,13 +279,13 @@ public class ConstructionPeak implements Peak {
         precalcRequiredArea = true;
 
         // Add datapoint
-        ArrayList<double[]> datapoints = datapointsMap.get(scanNumber);
+        ArrayList<float[]> datapoints = datapointsMap.get(scanNumber);
         if (datapoints == null) {
-            datapoints = new ArrayList<double[]>();
+            datapoints = new ArrayList<float[]>();
             datapointsMap.put(scanNumber, datapoints);
         }
 
-        double[] datapoint = new double[2];
+        float[] datapoint = new float[2];
         datapoint[0] = mz;
         datapoint[1] = intensity;
 
@@ -323,28 +323,28 @@ public class ConstructionPeak implements Peak {
 
     }
 
-    public ArrayList<Double> getConstructionIntensities() {
+    public ArrayList<Float> getConstructionIntensities() {
         return datapointsIntensities;
     }
 
     /**
      * @see net.sf.mzmine.data.Peak#getDataFile()
      */
-    public OpenedRawDataFile getDataFile() {
+    public RawDataFile getDataFile() {
         return dataFile;
     }
 
     /**
      * @see net.sf.mzmine.data.Peak#getDuration()
      */
-    public double getDuration() {
+    public float getDuration() {
         return maxRT - minRT;
     }
-    
+
     public String toString() {
         StringBuffer buf = new StringBuffer();
-        Format mzFormat = MainWindow.getInstance().getMZFormat();
-        Format timeFormat = MainWindow.getInstance().getRTFormat();
+        Format mzFormat = MZmineCore.getDesktop().getMZFormat();
+        Format timeFormat = MZmineCore.getDesktop().getRTFormat();
         buf.append(mzFormat.format(getMZ()));
         buf.append(" m/z @");
         buf.append(timeFormat.format(getRT()));

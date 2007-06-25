@@ -29,7 +29,9 @@ import net.sf.mzmine.data.impl.SimpleIsotopePattern;
 import net.sf.mzmine.data.impl.SimpleParameterSet;
 import net.sf.mzmine.data.impl.SimplePeakList;
 import net.sf.mzmine.data.impl.SimplePeakListRow;
-import net.sf.mzmine.io.OpenedRawDataFile;
+import net.sf.mzmine.io.RawDataFile;
+import net.sf.mzmine.main.MZmineCore;
+import net.sf.mzmine.project.MZmineProject;
 import net.sf.mzmine.taskcontrol.Task;
 
 /**
@@ -39,7 +41,7 @@ class SimpleGrouperTask implements Task {
 
     private static final double neutronMW = 1.008665;
 
-    private OpenedRawDataFile dataFile;
+    private RawDataFile dataFile;
 
     private TaskStatus status;
     private String errorMessage;
@@ -60,11 +62,13 @@ class SimpleGrouperTask implements Task {
      * @param rawDataFile
      * @param parameters
      */
-    SimpleGrouperTask(OpenedRawDataFile dataFile, SimpleParameterSet parameters) {
+    SimpleGrouperTask(RawDataFile dataFile, SimpleParameterSet parameters) {
         status = TaskStatus.WAITING;
         this.dataFile = dataFile;
 
-        currentPeakList = dataFile.getPeakList();
+        MZmineProject currentProject = MZmineCore.getCurrentProject();
+        
+        currentPeakList = currentProject.getFilePeakList(dataFile);
 
         processedPeakList = new SimplePeakList();
 
@@ -117,7 +121,7 @@ class SimpleGrouperTask implements Task {
         return results;
     }
 
-    public OpenedRawDataFile getDataFile() {
+    public RawDataFile getDataFile() {
         return dataFile;
     }
 

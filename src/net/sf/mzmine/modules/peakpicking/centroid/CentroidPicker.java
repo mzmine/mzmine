@@ -31,11 +31,11 @@ import net.sf.mzmine.data.PeakList;
 import net.sf.mzmine.data.Parameter.ParameterType;
 import net.sf.mzmine.data.impl.SimpleParameter;
 import net.sf.mzmine.data.impl.SimpleParameterSet;
-import net.sf.mzmine.io.OpenedRawDataFile;
+import net.sf.mzmine.io.RawDataFile;
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.modules.BatchStep;
+import net.sf.mzmine.project.MZmineProject;
 import net.sf.mzmine.taskcontrol.Task;
-import net.sf.mzmine.taskcontrol.TaskController;
 import net.sf.mzmine.taskcontrol.TaskGroup;
 import net.sf.mzmine.taskcontrol.TaskGroupListener;
 import net.sf.mzmine.taskcontrol.TaskListener;
@@ -48,8 +48,7 @@ import net.sf.mzmine.userinterface.dialogs.ParameterSetupDialog;
  * This class implements a peak picker based on searching for local maximums in
  * each spectra
  */
-public class CentroidPicker implements BatchStep, TaskListener,
-        ActionListener {
+public class CentroidPicker implements BatchStep, TaskListener, ActionListener {
 
     public static final NumberFormat percentFormat = NumberFormat.getPercentInstance();
 
@@ -94,16 +93,14 @@ public class CentroidPicker implements BatchStep, TaskListener,
 
     private Logger logger = Logger.getLogger(this.getClass().getName());
 
-    private TaskController taskController;
     private Desktop desktop;
 
     /**
      * @see net.sf.mzmine.main.MZmineModule#initModule(net.sf.mzmine.main.MZmineCore)
      */
-    public void initModule(MZmineCore core) {
+    public void initModule() {
 
-        this.taskController = core.getTaskController();
-        this.desktop = core.getDesktop();
+        this.desktop = MZmineCore.getDesktop();
 
         parameters = new SimpleParameterSet(new Parameter[] { binSize,
                 chromatographicThresholdLevel, noiseLevel, minimumPeakHeight,
@@ -123,7 +120,7 @@ public class CentroidPicker implements BatchStep, TaskListener,
      */
     public void actionPerformed(ActionEvent e) {
 
-        OpenedRawDataFile[] dataFiles = desktop.getSelectedDataFiles();
+        RawDataFile[] dataFiles = desktop.getSelectedDataFiles();
         if (dataFiles.length == 0) {
             desktop.displayErrorMessage("Please select at least one data file");
             return;
@@ -151,16 +148,13 @@ public class CentroidPicker implements BatchStep, TaskListener,
                     + ((CentroidPickerTask) task).getDataFile());
 
             Object[] result = (Object[]) task.getResult();
-            OpenedRawDataFile dataFile = (OpenedRawDataFile) result[0];
+            RawDataFile dataFile = (RawDataFile) result[0];
             PeakList peakList = (PeakList) result[1];
-            SimpleParameterSet params = (SimpleParameterSet) result[2];
 
-            // Add peak picking to the history of the file
-            dataFile.addHistoryEntry(dataFile.getCurrentFile().getFile(), this,
-                    params);
+            MZmineProject currentProject = MZmineCore.getCurrentProject();
 
             // Add peak list as data unit to current file
-            dataFile.setPeakList(peakList);
+            currentProject.setFilePeakList(dataFile, peakList);
 
             // Notify listeners
             desktop.notifySelectionListeners();
@@ -209,22 +203,22 @@ public class CentroidPicker implements BatchStep, TaskListener,
     }
 
     /**
-     * @see net.sf.mzmine.modules.BatchStep#runModule(net.sf.mzmine.io.OpenedRawDataFile[],
+     * @see net.sf.mzmine.modules.BatchStep#runModule(net.sf.mzmine.io.RawDataFile[],
      *      net.sf.mzmine.data.AlignmentResult[],
      *      net.sf.mzmine.data.ParameterSet,
      *      net.sf.mzmine.taskcontrol.TaskGroupListener)
      */
-    public TaskGroup runModule(OpenedRawDataFile[] dataFiles,
+    public TaskGroup runModule(RawDataFile[] dataFiles,
             PeakList[] alignmentResults, ParameterSet parameters,
             TaskGroupListener methodListener) {
 
         // prepare a new sequence of tasks
         Task tasks[] = new CentroidPickerTask[dataFiles.length];
         for (int i = 0; i < dataFiles.length; i++) {
-            tasks[i] = new CentroidPickerTask(dataFiles[i], (SimpleParameterSet) parameters);
+            tasks[i] = new CentroidPickerTask(dataFiles[i],
+                    (SimpleParameterSet) parameters);
         }
-        TaskGroup newSequence = new TaskGroup(tasks, this, methodListener,
-                taskController);
+        TaskGroup newSequence = new TaskGroup(tasks, this, methodListener);
 
         // execute the sequence
         newSequence.run();

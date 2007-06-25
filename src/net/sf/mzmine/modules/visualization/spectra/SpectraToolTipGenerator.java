@@ -25,6 +25,7 @@ package net.sf.mzmine.modules.visualization.spectra;
 import java.text.DecimalFormat;
 import java.text.NumberFormat;
 
+import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.userinterface.Desktop;
 import net.sf.mzmine.userinterface.mainwindow.MainWindow;
 
@@ -42,7 +43,7 @@ class SpectraToolTipGenerator implements XYToolTipGenerator {
      */
     public String generateToolTip(XYDataset dataset, int series, int item) {
         
-        Desktop desktop = MainWindow.getInstance();
+        Desktop desktop = MZmineCore.getDesktop();
         NumberFormat mzFormat = desktop.getMZFormat();
         NumberFormat intensityFormat = desktop.getIntensityFormat();
         

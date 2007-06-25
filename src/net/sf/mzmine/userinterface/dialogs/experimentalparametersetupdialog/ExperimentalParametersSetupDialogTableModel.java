@@ -1,21 +1,20 @@
 package net.sf.mzmine.userinterface.dialogs.experimentalparametersetupdialog;
 
 import java.util.Hashtable;
-import java.util.Vector;
 
 import javax.swing.table.AbstractTableModel;
 
 import net.sf.mzmine.data.Parameter;
-import net.sf.mzmine.io.OpenedRawDataFile;
+import net.sf.mzmine.io.RawDataFile;
 
 public class ExperimentalParametersSetupDialogTableModel extends
 		AbstractTableModel {
 
-	private OpenedRawDataFile[] files;
+	private RawDataFile[] files;
 	private Hashtable<Parameter, Object[]> parameterValues;
 	private Parameter[] parameters;
 	
-	public ExperimentalParametersSetupDialogTableModel(OpenedRawDataFile[] files, Hashtable<Parameter, Object[]> parameterValues) {
+	public ExperimentalParametersSetupDialogTableModel(RawDataFile[] files, Hashtable<Parameter, Object[]> parameterValues) {
 		System.out.println("Initializing new table model with " + files.length  + " files and " + parameterValues.size() + " parameters");
 		this.files = files;
 		parameters = parameterValues.keySet().toArray(new Parameter[0]);

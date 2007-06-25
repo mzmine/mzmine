@@ -34,8 +34,9 @@ import javax.swing.JFormattedTextField;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 
-import net.sf.mzmine.io.OpenedRawDataFile;
 import net.sf.mzmine.io.RawDataFile;
+import net.sf.mzmine.io.RawDataFile;
+import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.taskcontrol.TaskController;
 import net.sf.mzmine.userinterface.Desktop;
 import net.sf.mzmine.util.CollectionUtils;
@@ -56,20 +57,16 @@ public class ThreeDSetupDialog extends JDialog implements ActionListener {
     private JComboBox comboMSlevel;
 
     private Desktop desktop;
-    private TaskController taskController;
-    private OpenedRawDataFile dataFile;
-    private RawDataFile rawDataFile;
+    private RawDataFile dataFile;
 
-    public ThreeDSetupDialog(TaskController taskController, Desktop desktop,
-            OpenedRawDataFile dataFile) {
+    public ThreeDSetupDialog(RawDataFile dataFile) {
 
         // Make dialog modal
-        super(desktop.getMainFrame(), "3D visualizer parameters", true);
+        super(MZmineCore.getDesktop().getMainFrame(),
+                "3D visualizer parameters", true);
 
-        this.taskController = taskController;
-        this.desktop = desktop;
+        this.desktop = MZmineCore.getDesktop();
         this.dataFile = dataFile;
-        this.rawDataFile = dataFile.getCurrentFile();
 
         GridBagConstraints constraints = new GridBagConstraints();
 
@@ -91,8 +88,7 @@ public class ThreeDSetupDialog extends JDialog implements ActionListener {
         constraints.gridheight = 1;
         layout.setConstraints(comp, constraints);
 
-        comp = GUIUtils.addLabel(components, dataFile.toString(),
-                JLabel.LEFT);
+        comp = GUIUtils.addLabel(components, dataFile.toString(), JLabel.LEFT);
         constraints.gridx = 1;
         constraints.gridy = 0;
         constraints.gridwidth = 2;
@@ -106,7 +102,7 @@ public class ThreeDSetupDialog extends JDialog implements ActionListener {
         constraints.gridheight = 1;
         layout.setConstraints(comp, constraints);
 
-        Integer msLevels[] = CollectionUtils.toIntegerArray(rawDataFile.getMSLevels());
+        Integer msLevels[] = CollectionUtils.toIntegerArray(dataFile.getMSLevels());
 
         comboMSlevel = new JComboBox(msLevels);
         comboMSlevel.addActionListener(this);
@@ -302,13 +298,13 @@ public class ThreeDSetupDialog extends JDialog implements ActionListener {
 
             int msLevel = (Integer) comboMSlevel.getSelectedItem();
 
-            fieldMinRT.setValue(rawDataFile.getDataMinRT(msLevel));
-            fieldMaxRT.setValue(rawDataFile.getDataMaxRT(msLevel));
-            fieldMinMZ.setValue(rawDataFile.getDataMinMZ(msLevel));
-            fieldMaxMZ.setValue(rawDataFile.getDataMaxMZ(msLevel));
+            fieldMinRT.setValue(dataFile.getDataMinRT(msLevel));
+            fieldMaxRT.setValue(dataFile.getDataMaxRT(msLevel));
+            fieldMinMZ.setValue(dataFile.getDataMinMZ(msLevel));
+            fieldMaxMZ.setValue(dataFile.getDataMaxMZ(msLevel));
 
-            int resMZ = (int) Math.round(rawDataFile.getDataMaxMZ(msLevel)
-                    - rawDataFile.getDataMinMZ(msLevel));
+            int resMZ = (int) Math.round(dataFile.getDataMaxMZ(msLevel)
+                    - dataFile.getDataMinMZ(msLevel));
 
             fieldResolutionMZ.setValue(resMZ);
 
@@ -320,10 +316,10 @@ public class ThreeDSetupDialog extends JDialog implements ActionListener {
 
                 int msLevel = (Integer) comboMSlevel.getSelectedItem();
 
-                double rtMin = ((Number) fieldMinRT.getValue()).doubleValue();
-                double rtMax = ((Number) fieldMaxRT.getValue()).doubleValue();
-                double mzMin = ((Number) fieldMinMZ.getValue()).doubleValue();
-                double mzMax = ((Number) fieldMaxMZ.getValue()).doubleValue();
+                float rtMin = ((Number) fieldMinRT.getValue()).floatValue();
+                float rtMax = ((Number) fieldMaxRT.getValue()).floatValue();
+                float mzMin = ((Number) fieldMinMZ.getValue()).floatValue();
+                float mzMax = ((Number) fieldMaxMZ.getValue()).floatValue();
 
                 if ((rtMax <= rtMin) || (mzMax <= mzMin)) {
                     desktop.displayErrorMessage("Invalid bounds");
@@ -344,9 +340,8 @@ public class ThreeDSetupDialog extends JDialog implements ActionListener {
                     return;
                 }
 
-                new ThreeDVisualizerWindow(taskController, desktop,
-                        dataFile, msLevel, rtMin, rtMax, mzMin, mzMax,
-                        rtResolution, mzResolution);
+                new ThreeDVisualizerWindow(dataFile, msLevel, rtMin, rtMax,
+                        mzMin, mzMax, rtResolution, mzResolution);
 
                 dispose();
 

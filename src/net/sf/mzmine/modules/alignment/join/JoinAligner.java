@@ -24,17 +24,13 @@ import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
 import java.util.logging.Logger;
 
-import javax.swing.JMenuItem;
-import javax.swing.event.ListSelectionEvent;
-import javax.swing.event.ListSelectionListener;
-
-import net.sf.mzmine.data.PeakList;
 import net.sf.mzmine.data.Parameter;
 import net.sf.mzmine.data.ParameterSet;
+import net.sf.mzmine.data.PeakList;
 import net.sf.mzmine.data.Parameter.ParameterType;
 import net.sf.mzmine.data.impl.SimpleParameter;
 import net.sf.mzmine.data.impl.SimpleParameterSet;
-import net.sf.mzmine.io.OpenedRawDataFile;
+import net.sf.mzmine.io.RawDataFile;
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.modules.BatchStep;
 import net.sf.mzmine.project.MZmineProject;
@@ -51,8 +47,7 @@ import net.sf.mzmine.userinterface.dialogs.ParameterSetupDialog;
 /**
  * 
  */
-public class JoinAligner implements BatchStep, TaskListener,
-        ActionListener {
+public class JoinAligner implements BatchStep, TaskListener, ActionListener {
 
     public static final String RTToleranceTypeAbsolute = "Absolute";
     public static final String RTToleranceTypeRelative = "Relative";
@@ -90,16 +85,14 @@ public class JoinAligner implements BatchStep, TaskListener,
 
     private ParameterSet parameters;
 
-    private TaskController taskController;
     private Desktop desktop;
 
     /**
      * @see net.sf.mzmine.main.MZmineModule#initModule(net.sf.mzmine.main.MZmineCore)
      */
-    public void initModule(MZmineCore core) {
+    public void initModule() {
 
-        this.taskController = core.getTaskController();
-        this.desktop = core.getDesktop();
+        this.desktop = MZmineCore.getDesktop();
 
         parameters = new SimpleParameterSet(new Parameter[] { MZvsRTBalance,
                 MZTolerance, RTToleranceType, RTToleranceValueAbs,
@@ -141,15 +134,16 @@ public class JoinAligner implements BatchStep, TaskListener,
      */
     public void actionPerformed(ActionEvent e) {
 
-        OpenedRawDataFile[] dataFiles = desktop.getSelectedDataFiles();
+        RawDataFile[] dataFiles = desktop.getSelectedDataFiles();
+        MZmineProject currentProject = MZmineCore.getCurrentProject();
 
         if (dataFiles.length == 0) {
             desktop.displayErrorMessage("Please select at least one data file");
             return;
         }
 
-        for (OpenedRawDataFile dataFile : dataFiles) {
-            if (dataFile.getPeakList() == null) {
+        for (RawDataFile dataFile : dataFiles) {
+            if (currentProject.getFilePeakList(dataFile) == null) {
                 desktop.displayErrorMessage(dataFile
                         + " has no peak list. Please run peak picking first.");
                 return;
@@ -176,8 +170,7 @@ public class JoinAligner implements BatchStep, TaskListener,
 
             PeakList alignmentResult = (PeakList) task.getResult();
 
-            MZmineProject.getCurrentProject().addAlignmentResult(
-                    alignmentResult);
+            MZmineCore.getCurrentProject().addAlignedPeakList(alignmentResult);
 
         } else if (task.getStatus() == Task.TaskStatus.ERROR) {
             /* Task encountered an error */
@@ -191,18 +184,19 @@ public class JoinAligner implements BatchStep, TaskListener,
     }
 
     /**
-     * @see net.sf.mzmine.modules.BatchStep#runModule(net.sf.mzmine.io.OpenedRawDataFile[],
-     *      net.sf.mzmine.data.PeakList[],
-     *      net.sf.mzmine.data.ParameterSet,
+     * @see net.sf.mzmine.modules.BatchStep#runModule(net.sf.mzmine.io.RawDataFile[],
+     *      net.sf.mzmine.data.PeakList[], net.sf.mzmine.data.ParameterSet,
      *      net.sf.mzmine.taskcontrol.TaskGroupListener)
      */
-    public TaskGroup runModule(OpenedRawDataFile[] dataFiles,
+    public TaskGroup runModule(RawDataFile[] dataFiles,
             PeakList[] alignmentResults, ParameterSet parameters,
             TaskGroupListener methodListener) {
 
+        MZmineProject currentProject = MZmineCore.getCurrentProject();
+
         // check peaklists
         for (int i = 0; i < dataFiles.length; i++) {
-            if (dataFiles[i].getPeakList() == null) {
+            if (currentProject.getFilePeakList(dataFiles[i]) == null) {
                 String msg = "Cannot start alignment of " + dataFiles[i]
                         + ", please run peak picking first.";
                 logger.severe(msg);
@@ -213,9 +207,9 @@ public class JoinAligner implements BatchStep, TaskListener,
 
         // prepare a new sequence with just one task
         Task tasks[] = new JoinAlignerTask[1];
-        tasks[0] = new JoinAlignerTask(dataFiles, (SimpleParameterSet) parameters);
-        TaskGroup newSequence = new TaskGroup(tasks, this, methodListener,
-                taskController);
+        tasks[0] = new JoinAlignerTask(dataFiles,
+                (SimpleParameterSet) parameters);
+        TaskGroup newSequence = new TaskGroup(tasks, this, methodListener);
 
         // execute the sequence
         newSequence.run();

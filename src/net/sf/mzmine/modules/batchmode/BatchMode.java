@@ -25,9 +25,9 @@ import java.awt.event.KeyEvent;
 import java.util.Vector;
 import java.util.logging.Logger;
 
-import net.sf.mzmine.data.PeakList;
 import net.sf.mzmine.data.ParameterSet;
-import net.sf.mzmine.io.OpenedRawDataFile;
+import net.sf.mzmine.data.PeakList;
+import net.sf.mzmine.io.RawDataFile;
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.main.MZmineModule;
 import net.sf.mzmine.modules.BatchStep;
@@ -47,26 +47,24 @@ public class BatchMode implements MZmineModule, TaskGroupListener,
 
     private Logger logger = Logger.getLogger(this.getClass().getName());
 
-    private MZmineCore core;
     private Desktop desktop;
 
     private Vector<BatchStepWrapper> currentBatchSteps;
     private boolean batchRunning = false;
     private int currentStep;
-    private OpenedRawDataFile[] selectedDataFiles;
+    private RawDataFile[] selectedDataFiles;
 
     /**
      * @see net.sf.mzmine.main.MZmineModule#initModule(net.sf.mzmine.main.MZmineCore)
      */
-    public void initModule(MZmineCore core) {
+    public void initModule() {
 
-        this.core = core;
-        this.desktop = core.getDesktop();
+        this.desktop = MZmineCore.getDesktop();
 
         currentBatchSteps = new Vector<BatchStepWrapper>();
 
-        desktop.addMenuItem(MZmineMenu.BATCH, "Define batch...", this,
-                null, KeyEvent.VK_D, false, true);
+        desktop.addMenuItem(MZmineMenu.BATCH, "Define batch...", this, null,
+                KeyEvent.VK_D, false, true);
 
     }
 
@@ -88,8 +86,7 @@ public class BatchMode implements MZmineModule, TaskGroupListener,
 
         logger.finest("Showing batch mode setup dialog");
 
-        BatchModeDialog setupDialog = new BatchModeDialog(core,
-                currentBatchSteps);
+        BatchModeDialog setupDialog = new BatchModeDialog(currentBatchSteps);
         setupDialog.setVisible(true);
 
         if (setupDialog.getExitCode() == ExitCode.OK) {
@@ -140,7 +137,7 @@ public class BatchMode implements MZmineModule, TaskGroupListener,
         BatchStep method = newStep.getMethod();
 
         PeakList[] lastResultOnly = null;
-        PeakList[] allResults = MZmineProject.getCurrentProject().getAlignmentResults();
+        PeakList[] allResults = MZmineCore.getCurrentProject().getAlignedPeakLists();
         if (allResults.length > 0)
             lastResultOnly = new PeakList[] { allResults[allResults.length - 1] };
 

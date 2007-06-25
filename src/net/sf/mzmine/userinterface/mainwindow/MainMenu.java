@@ -29,21 +29,19 @@ import javax.swing.JMenuBar;
 import javax.swing.JMenuItem;
 import javax.swing.KeyStroke;
 import javax.swing.UIManager;
-import javax.swing.event.ListSelectionEvent;
-import javax.swing.event.ListSelectionListener;
 
 import net.sf.mzmine.data.PeakList;
 import net.sf.mzmine.io.IOController;
-import net.sf.mzmine.io.OpenedRawDataFile;
+import net.sf.mzmine.io.RawDataFile;
 import net.sf.mzmine.io.export.PeakListExportDialog;
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.project.MZmineProject;
 import net.sf.mzmine.userinterface.Desktop;
 import net.sf.mzmine.userinterface.Desktop.MZmineMenu;
 import net.sf.mzmine.userinterface.dialogs.AboutDialog;
-import net.sf.mzmine.userinterface.dialogs.experimentalparametersetupdialog.ExperimentalParametersSetupDialog;
 import net.sf.mzmine.userinterface.dialogs.FileOpenDialog;
 import net.sf.mzmine.userinterface.dialogs.FormatSetupDialog;
+import net.sf.mzmine.userinterface.dialogs.experimentalparametersetupdialog.ExperimentalParametersSetupDialog;
 import net.sf.mzmine.util.GUIUtils;
 import net.sf.mzmine.util.LookAndFeelChanger;
 import ca.guydavis.swing.desktop.CascadingWindowPositioner;
@@ -81,17 +79,16 @@ public class MainMenu extends JMenuBar implements ActionListener
 
     private JMenuItem hlpAbout;
 
-    private MZmineCore core;
+
     private IOController ioController;
     private Desktop desktop;
 
     private Logger logger = Logger.getLogger(this.getClass().getName());
 
-    MainMenu(MZmineCore core) {
+    MainMenu() {
 
-        this.core = core;
-        this.ioController = core.getIOController();
-        this.desktop = core.getDesktop();
+        this.ioController = MZmineCore.getIOController();
+        this.desktop = MZmineCore.getDesktop();
 
         fileMenu = new JMenu("Project");
         fileMenu.setMnemonic(KeyEvent.VK_P);
@@ -286,13 +283,13 @@ public class MainMenu extends JMenuBar implements ActionListener
         Object src = e.getSource();
 
         if (src == fileExit) {
-            core.exitMZmine();
+            MZmineCore.exitMZmine();
         }
 
         // File -> Open
         if (src == fileOpen) {
             
-            MainWindow mainWindow = MainWindow.getInstance();
+            MainWindow mainWindow = (MainWindow) MZmineCore.getDesktop();
             DesktopParameters parameters = (DesktopParameters) mainWindow.getParameterSet();
             String lastPath = parameters.getLastOpenPath();
             FileOpenDialog fileOpenDialog = new FileOpenDialog(ioController,
@@ -306,9 +303,9 @@ public class MainMenu extends JMenuBar implements ActionListener
         if (src == fileClose) {
 
             // Grab selected raw data files
-            OpenedRawDataFile[] selectedFiles = desktop.getSelectedDataFiles();
-            for (OpenedRawDataFile file : selectedFiles)
-                MZmineProject.getCurrentProject().removeFile(file);
+            RawDataFile[] selectedFiles = desktop.getSelectedDataFiles();
+            for (RawDataFile file : selectedFiles)
+                MZmineCore.getCurrentProject().removeFile(file);
 
         }
 
@@ -326,7 +323,7 @@ public class MainMenu extends JMenuBar implements ActionListener
         }
         
         if (src == editExperimentalParameters) {
-        	OpenedRawDataFile[] selectedFiles = desktop.getSelectedDataFiles();
+        	RawDataFile[] selectedFiles = desktop.getSelectedDataFiles();
         	if ( (selectedFiles==null) || (selectedFiles.length==0) ) {
         		desktop.displayErrorMessage("Select at least one raw data file.");
         		return;
@@ -336,11 +333,12 @@ public class MainMenu extends JMenuBar implements ActionListener
         }
 
         if (src == toolsFormat) {
+            Desktop desktop = MZmineCore.getDesktop();
             FormatSetupDialog formatDialog = new FormatSetupDialog(
-                    MainWindow.getInstance(),
-                    MainWindow.getInstance().getMZFormat(),
-                    MainWindow.getInstance().getRTFormat(),
-                    MainWindow.getInstance().getIntensityFormat());
+                    desktop.getMainFrame(),
+                    desktop.getMZFormat(),
+                    desktop.getRTFormat(),
+                    desktop.getIntensityFormat());
             formatDialog.setVisible(true);
         }
 

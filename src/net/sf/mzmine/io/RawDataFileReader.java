@@ -17,20 +17,23 @@
  * Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-package net.sf.mzmine.util;
+package net.sf.mzmine.io;
 
-import java.util.Comparator;
+import java.io.IOException;
 
-import net.sf.mzmine.data.PeakListRow;
+import net.sf.mzmine.data.Scan;
 
 /**
+ * 
  */
-public class AlignmentResultSorterByMZ implements Comparator<PeakListRow> {
+public interface RawDataFileReader {
 
-    public int compare(PeakListRow row1, PeakListRow row2) {
-        Double mz1 = row1.getAverageMZ();
-        Double mz2 = row2.getAverageMZ();
-        return mz1.compareTo(mz2); 
-    }
+    public void startReading() throws IOException;
 
+    public Scan readNextScan() throws IOException;
+    
+    public void finishReading() throws IOException;
+    
+    public int getNumberOfScans();
+    
 }

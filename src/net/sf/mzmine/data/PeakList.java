@@ -20,7 +20,8 @@
 
 package net.sf.mzmine.data;
 
-import net.sf.mzmine.io.OpenedRawDataFile;
+import net.sf.mzmine.io.RawDataFile;
+
 
 
 /**
@@ -41,13 +42,13 @@ public interface PeakList {
     /**
      * Returns all raw data files participating in the alignment
      */
-    public OpenedRawDataFile[] getRawDataFiles();
+    public RawDataFile[] getRawDataFiles();
 
     /**
      * Returns a raw data file
      * @param position  Position of the raw data file in the matrix (running numbering from left 0,1,2,...)
      */
-    public OpenedRawDataFile getRawDataFile(int position);
+    public RawDataFile getRawDataFile(int position);
 
     /**
      * Returns number of rows in the alignment result
@@ -59,12 +60,12 @@ public interface PeakList {
      * @param   row Row of the alignment result
      * @param   rawDataFile Raw data file where the peak is detected/estimated
      */
-    public Peak getPeak(int row, OpenedRawDataFile rawDataFile);
+    public Peak getPeak(int row, RawDataFile rawDataFile);
 
     /**
      * Returns all peaks for a raw data file
      */
-    public Peak[] getPeaks(OpenedRawDataFile rawDataFile);
+    public Peak[] getPeaks(RawDataFile rawDataFile);
 
     /**
      * Returns all peaks on one row
@@ -83,7 +84,7 @@ public interface PeakList {
      * @param startRT Start of the retention time range
      * @param endRT End of the retention time range
      */
-    public Peak[] getPeaksInsideScanRange(OpenedRawDataFile file, double startRT, double endRT);
+    public Peak[] getPeaksInsideScanRange(RawDataFile file, float startRT, float endRT);
 
     /**
      * Returns all peaks in a given m/z range
@@ -91,7 +92,7 @@ public interface PeakList {
      * @param startMZ Start of the m/z range
      * @param endMZ End of the m/z range
      */
-    public Peak[] getPeaksInsideMZRange(OpenedRawDataFile file, double startMZ, double endMZ);
+    public Peak[] getPeaksInsideMZRange(RawDataFile file, float startMZ, float endMZ);
 
     /**
      * Returns all peaks in a given m/z & retention time ranges
@@ -101,15 +102,15 @@ public interface PeakList {
      * @param startMZ Start of the m/z range
      * @param endMZ End of the m/z range
      */
-    public Peak[] getPeaksInsideScanAndMZRange(OpenedRawDataFile file, double startRT, double endRT,
-            double startMZ, double endMZ);
+    public Peak[] getPeaksInsideScanAndMZRange(RawDataFile file, float startRT, float endRT,
+            float startMZ, float endMZ);
 
     /**
      * Returns maximum raw data point intensity among all peaks in this peak list 
      * 
      * @return Maximum intensity 
      */
-    public double getDataPointMaxIntensity();
+    public float getDataPointMaxIntensity();
     
     /**
      * Removes a row from this peak list

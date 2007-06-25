@@ -24,9 +24,9 @@ import java.io.IOException;
 import net.sf.mzmine.data.Scan;
 import net.sf.mzmine.data.impl.SimpleParameterSet;
 import net.sf.mzmine.data.impl.SimpleScan;
-import net.sf.mzmine.io.OpenedRawDataFile;
 import net.sf.mzmine.io.RawDataFile;
 import net.sf.mzmine.io.RawDataFileWriter;
+import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.taskcontrol.Task;
 
 /**
@@ -34,8 +34,7 @@ import net.sf.mzmine.taskcontrol.Task;
  */
 class CropFilterTask implements Task {
 
-    private OpenedRawDataFile dataFile;
-    private RawDataFile rawDataFile;
+    private RawDataFile dataFile;
 
     private TaskStatus status = TaskStatus.WAITING;
     private String errorMessage;
@@ -55,9 +54,8 @@ class CropFilterTask implements Task {
      * @param rawDataFile
      * @param parameters
      */
-    CropFilterTask(OpenedRawDataFile dataFile, SimpleParameterSet parameters) {
+    CropFilterTask(RawDataFile dataFile, SimpleParameterSet parameters) {
         this.dataFile = dataFile;
-        this.rawDataFile = dataFile.getCurrentFile();
         msLevel = (Integer) parameters.getParameterValue(CropFilter.parameterMSlevel);
         minMZ = (Double) parameters.getParameterValue(CropFilter.parameterMinMZ);
         minRT = (Double) parameters.getParameterValue(CropFilter.parameterMinRT);
@@ -102,7 +100,7 @@ class CropFilterTask implements Task {
         return filteredRawDataFile;
     }
 
-    public OpenedRawDataFile getDataFile() {
+    public RawDataFile getDataFile() {
         return dataFile;
     }
 
@@ -123,7 +121,8 @@ class CropFilterTask implements Task {
         // Create new temporary copy
         RawDataFileWriter rawDataFileWriter;
         try {
-            rawDataFileWriter = dataFile.createNewTemporaryFile();
+            rawDataFileWriter = MZmineCore.getIOController().createNewFile(
+                    dataFile);
         } catch (IOException e) {
             status = TaskStatus.ERROR;
             errorMessage = e.toString();
@@ -133,7 +132,7 @@ class CropFilterTask implements Task {
         Scan oldScan, newScan;
 
         // Get all scans
-        int[] scanNumbers = rawDataFile.getScanNumbers();
+        int[] scanNumbers = dataFile.getScanNumbers();
         totalScans = scanNumbers.length;
 
         // Loop through all scans
@@ -144,13 +143,7 @@ class CropFilterTask implements Task {
                 return;
 
             // Get scan
-            try {
-                oldScan = rawDataFile.getScan(scanNumbers[scani]);
-            } catch (IOException e) {
-                status = TaskStatus.ERROR;
-                errorMessage = e.toString();
-                return;
-            }
+            oldScan = dataFile.getScan(scanNumbers[scani]);
 
             // if the scan is our target MS level, do the filtering
             if (oldScan.getMSLevel() == msLevel) {
@@ -160,8 +153,8 @@ class CropFilterTask implements Task {
                         && (oldScan.getRetentionTime() <= maxRT)) {
 
                     // Pickup datapoints inside the M/Z range
-                    double originalMassValues[] = oldScan.getMZValues();
-                    double originalIntensityValues[] = oldScan.getIntensityValues();
+                    float originalMassValues[] = oldScan.getMZValues();
+                    float originalIntensityValues[] = oldScan.getIntensityValues();
 
                     int numSmallerThanMin = 0;
                     for (int ind = 0; ind < originalMassValues.length; ind++) {
@@ -179,9 +172,9 @@ class CropFilterTask implements Task {
                         numBiggerThanMax++;
                     }
 
-                    double newMassValues[] = new double[originalMassValues.length
+                    float newMassValues[] = new float[originalMassValues.length
                             - numSmallerThanMin - numBiggerThanMax];
-                    double newIntensityValues[] = new double[originalMassValues.length
+                    float newIntensityValues[] = new float[originalMassValues.length
                             - numSmallerThanMin - numBiggerThanMax];
 
                     int newInd = 0;

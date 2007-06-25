@@ -23,13 +23,12 @@ import java.io.IOException;
 
 import net.sf.mzmine.data.ParameterSet;
 import net.sf.mzmine.data.Scan;
-import net.sf.mzmine.io.OpenedRawDataFile;
 import net.sf.mzmine.io.RawDataFile;
 import net.sf.mzmine.taskcontrol.Task;
 
 class SimpleGapFillerTask implements Task {
 
-    private OpenedRawDataFile openedRawDataFile;
+    private RawDataFile rawDataFile;
 
     private EmptyGap[] emptyGaps;
 
@@ -40,12 +39,12 @@ class SimpleGapFillerTask implements Task {
     private int processedScans;;
     private int totalScans;
 
-    public SimpleGapFillerTask(OpenedRawDataFile openedRawDataFile,
+    public SimpleGapFillerTask(RawDataFile rawDataFile,
             EmptyGap[] emptyGaps, ParameterSet parameters) {
 
         status = TaskStatus.WAITING;
 
-        this.openedRawDataFile = openedRawDataFile;
+        this.rawDataFile = rawDataFile;
         this.emptyGaps = emptyGaps;
 
         this.parameters = parameters;
@@ -56,7 +55,6 @@ class SimpleGapFillerTask implements Task {
 
         status = TaskStatus.PROCESSING;
 
-        RawDataFile rawDataFile = openedRawDataFile.getCurrentFile();
         int[] scanNumbers = rawDataFile.getScanNumbers(1);
         totalScans = scanNumbers.length;
 
@@ -66,15 +64,7 @@ class SimpleGapFillerTask implements Task {
                 return;
 
             // Get next scan
-            Scan s = null;
-            try {
-                s = rawDataFile.getScan(scanNumber);
-            } catch (IOException e) {
-                errorMessage = "Error while reading raw data file "
-                        + rawDataFile.getFile();
-                status = TaskStatus.ERROR;
-                return;
-            }
+            Scan s = rawDataFile.getScan(scanNumber);
 
             // Feed this scan to all empty gaps
             for (EmptyGap emptyGap : emptyGaps) {
@@ -106,7 +96,7 @@ class SimpleGapFillerTask implements Task {
 
     public Object getResult() {
         Object[] result = new Object[3];
-        result[0] = openedRawDataFile;
+        result[0] = rawDataFile;
         result[1] = emptyGaps;
         result[2] = parameters;
         return result;
@@ -117,7 +107,7 @@ class SimpleGapFillerTask implements Task {
     }
 
     public String getTaskDescription() {
-        return "Simple gap filler " + openedRawDataFile.toString();
+        return "Simple gap filler " + rawDataFile.toString();
     }
 
 }

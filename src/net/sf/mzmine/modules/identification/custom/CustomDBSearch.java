@@ -25,7 +25,7 @@ import java.awt.event.KeyEvent;
 
 import net.sf.mzmine.data.ParameterSet;
 import net.sf.mzmine.data.PeakList;
-import net.sf.mzmine.io.OpenedRawDataFile;
+import net.sf.mzmine.io.RawDataFile;
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.main.MZmineModule;
 import net.sf.mzmine.modules.BatchStep;
@@ -44,7 +44,6 @@ public class CustomDBSearch implements MZmineModule, BatchStep, ActionListener {
 
     public static final String MODULE_NAME = "Custom database search";
 
-    private MZmineCore core;
     private Desktop desktop;
 
     private CustomDBSearchParameters parameters;
@@ -52,10 +51,9 @@ public class CustomDBSearch implements MZmineModule, BatchStep, ActionListener {
     /**
      * @see net.sf.mzmine.main.MZmineModule#initModule(net.sf.mzmine.main.MZmineCore)
      */
-    public void initModule(MZmineCore core) {
+    public void initModule() {
 
-        this.core = core;
-        this.desktop = core.getDesktop();
+        this.desktop = MZmineCore.getDesktop();
 
         parameters = new CustomDBSearchParameters();
 
@@ -97,15 +95,12 @@ public class CustomDBSearch implements MZmineModule, BatchStep, ActionListener {
     }
 
     /**
-     * @see net.sf.mzmine.modules.BatchStep#runModule(net.sf.mzmine.io.OpenedRawDataFile[],
+     * @see net.sf.mzmine.modules.BatchStep#runModule(net.sf.mzmine.io.RawDataFile[],
      *      net.sf.mzmine.data.PeakList[], net.sf.mzmine.data.ParameterSet,
      *      net.sf.mzmine.taskcontrol.TaskGroupListener)
      */
-    public TaskGroup runModule(OpenedRawDataFile[] dataFiles,
-            PeakList[] peakLists, ParameterSet parameters,
-            TaskGroupListener methodListener) {
-
-        TaskController taskController = core.getTaskController();
+    public TaskGroup runModule(RawDataFile[] dataFiles, PeakList[] peakLists,
+            ParameterSet parameters, TaskGroupListener methodListener) {
 
         // prepare a new sequence of tasks
         Task tasks[] = new CustomDBSearchTask[peakLists.length];
@@ -113,8 +108,7 @@ public class CustomDBSearch implements MZmineModule, BatchStep, ActionListener {
             tasks[i] = new CustomDBSearchTask(peakLists[i],
                     (CustomDBSearchParameters) parameters);
         }
-        TaskGroup newSequence = new TaskGroup(tasks, null, methodListener,
-                taskController);
+        TaskGroup newSequence = new TaskGroup(tasks, null, methodListener);
 
         // execute the sequence
         newSequence.run();
@@ -127,7 +121,7 @@ public class CustomDBSearch implements MZmineModule, BatchStep, ActionListener {
      * @see net.sf.mzmine.modules.BatchStep#setupParameters(net.sf.mzmine.data.ParameterSet)
      */
     public ExitCode setupParameters(ParameterSet parameters) {
-        CustomDBSearchDialog dialog = new CustomDBSearchDialog(core,
+        CustomDBSearchDialog dialog = new CustomDBSearchDialog(
                 (CustomDBSearchParameters) parameters);
         dialog.setVisible(true);
         return dialog.getExitCode();

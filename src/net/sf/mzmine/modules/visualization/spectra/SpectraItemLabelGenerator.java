@@ -25,6 +25,7 @@ package net.sf.mzmine.modules.visualization.spectra;
 import java.text.DecimalFormat;
 import java.text.NumberFormat;
 
+import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.userinterface.Desktop;
 import net.sf.mzmine.userinterface.mainwindow.MainWindow;
 
@@ -83,7 +84,7 @@ class SpectraItemLabelGenerator implements XYItemLabelGenerator {
 
         }
 
-        Desktop desktop = MainWindow.getInstance();
+        Desktop desktop = MZmineCore.getDesktop();
         NumberFormat mzFormat = desktop.getMZFormat();
         
         return mzFormat.format(dataset.getXValue(series, item));

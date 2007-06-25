@@ -1,5 +1,5 @@
 /*
- * Copyright 2006 The MZmine Development Team
+ * Copyright 2006-2007 The MZmine Development Team
  *
  * This file is part of MZmine.
  *
@@ -31,52 +31,8 @@ import net.sf.mzmine.userinterface.Desktop;
 /**
  *
  */
-public class MZmineClusterNode implements MZmineCore, Remote {
+public class MZmineClusterNode extends MZmineCore implements Remote {
 
 
-    public Task addTask(DistributableTask task) {
-        
-        return null;
-    }
-
-    /**
-     * @see net.sf.mzmine.main.MZmineCore#getIOController()
-     */
-    public IOController getIOController() {
-        // TODO Auto-generated method stub
-        return null;
-    }
-
-    /**
-     * @see net.sf.mzmine.main.MZmineCore#getTaskController()
-     */
-    public TaskController getTaskController() {
-        // TODO Auto-generated method stub
-        return null;
-    }
- 
-	/**
-     * @see net.sf.mzmine.main.MZmineCore#getDesktop()
-     */
-    public Desktop getDesktop() {
-        // TODO Auto-generated method stub
-        return null;
-    }
-
-    /**
-     * @see net.sf.mzmine.main.MZmineCore#getAllModules()
-     */
-    public MZmineModule[] getAllModules() {
-        // TODO Auto-generated method stub
-        return null;
-    }
-
-    /**
-     * @see net.sf.mzmine.main.MZmineCore#exitMZmine()
-     */
-    public void exitMZmine() {
-        // TODO Auto-generated method stub
-        
-    }
 
 }

@@ -22,6 +22,7 @@ package net.sf.mzmine.modules.visualization.neutralloss;
 import java.text.DecimalFormat;
 import java.text.NumberFormat;
 
+import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.userinterface.Desktop;
 import net.sf.mzmine.userinterface.mainwindow.MainWindow;
 
@@ -31,13 +32,13 @@ import net.sf.mzmine.userinterface.mainwindow.MainWindow;
  */
 class NeutralLossDataPoint {
 
-    private double mzValue;
+    private float mzValue;
     private int scanNumber, precursorScanNumber;
-    private double precursorMZ;
+    private float precursorMZ;
     private int precursorCharge;
-    private double retentionTime;
-    private double neutralLoss;
-    private double precursorMass;
+    private float retentionTime;
+    private float neutralLoss;
+    private float precursorMass;
     private String label;
     
     /**
@@ -47,9 +48,9 @@ class NeutralLossDataPoint {
      * @param precursorCharge
      * @param retentionTime
      */
-    NeutralLossDataPoint(double mzValue, int scanNumber, int precursorScanNumber, double precursorMZ, int precursorCharge, double retentionTime) {
+    NeutralLossDataPoint(float mzValue, int scanNumber, int precursorScanNumber, float precursorMZ, int precursorCharge, float retentionTime) {
         
-        Desktop desktop = MainWindow.getInstance();
+        Desktop desktop = MZmineCore.getDesktop();
         NumberFormat rtFormat = desktop.getRTFormat();
         NumberFormat mzFormat = desktop.getMZFormat();
         
@@ -84,7 +85,7 @@ class NeutralLossDataPoint {
     /**
      * @return Returns the mzValue.
      */
-    double getMzValue() {
+    float getMzValue() {
         return mzValue;
     }
 
@@ -100,14 +101,14 @@ class NeutralLossDataPoint {
     /**
      * @return Returns the precursorMZ.
      */
-    double getPrecursorMZ() {
+    float getPrecursorMZ() {
         return precursorMZ;
     }
     
     /**
      * @return Returns the precursor mass, or m/z if charge is unknown.
      */
-    double getPrecursorMass() {
+    float getPrecursorMass() {
         return precursorMass;
     }
 
@@ -123,7 +124,7 @@ class NeutralLossDataPoint {
     /**
      * @return Returns the retentionTime.
      */
-    double getRetentionTime() {
+    float getRetentionTime() {
         return retentionTime;
     }
 
@@ -135,7 +136,7 @@ class NeutralLossDataPoint {
         return scanNumber;
     }
     
-    double getNeutralLoss() {
+    float getNeutralLoss() {
         return neutralLoss;
     }
     

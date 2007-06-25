@@ -30,7 +30,7 @@ import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
 
 import net.sf.mzmine.data.ParameterSet;
-import net.sf.mzmine.io.OpenedRawDataFile;
+import net.sf.mzmine.io.RawDataFile;
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.main.MZmineModule;
 import net.sf.mzmine.taskcontrol.TaskController;
@@ -49,10 +49,10 @@ public class TICVisualizer implements MZmineModule, ActionListener {
     /**
      * @see net.sf.mzmine.main.MZmineModule#initModule(net.sf.mzmine.main.MZmineCore)
      */
-    public void initModule(MZmineCore core) {
+    public void initModule() {
 
-        this.desktop = core.getDesktop();
-
+        this.desktop = MZmineCore.getDesktop();
+        
         desktop.addMenuItem(MZmineMenu.VISUALIZATION, "TIC plot", this, null,
                 KeyEvent.VK_T, false, true);
 
@@ -65,13 +65,13 @@ public class TICVisualizer implements MZmineModule, ActionListener {
 
         logger.finest("Opening a new TIC visualizer setup dialog");
 
-        OpenedRawDataFile dataFiles[] = desktop.getSelectedDataFiles();
+        RawDataFile dataFiles[] = desktop.getSelectedDataFiles();
         if (dataFiles.length == 0) {
             desktop.displayErrorMessage("Please select at least one data file");
             return;
         }
 
-        for (OpenedRawDataFile dataFile : dataFiles) {
+        for (RawDataFile dataFile : dataFiles) {
             JDialog setupDialog = new TICSetupDialog(dataFile);
             setupDialog.setVisible(true);
         }

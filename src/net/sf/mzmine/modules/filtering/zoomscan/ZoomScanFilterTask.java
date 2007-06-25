@@ -23,9 +23,10 @@ import java.io.IOException;
 
 import net.sf.mzmine.data.Scan;
 import net.sf.mzmine.data.impl.SimpleParameterSet;
-import net.sf.mzmine.io.OpenedRawDataFile;
+import net.sf.mzmine.io.RawDataFile;
 import net.sf.mzmine.io.RawDataFile;
 import net.sf.mzmine.io.RawDataFileWriter;
+import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.taskcontrol.Task;
 
 /**
@@ -33,8 +34,7 @@ import net.sf.mzmine.taskcontrol.Task;
  */
 class ZoomScanFilterTask implements Task {
 
-    private OpenedRawDataFile dataFile;
-    private RawDataFile rawDataFile;
+    private RawDataFile dataFile;
 
     private TaskStatus status = TaskStatus.WAITING;
     private String errorMessage;
@@ -50,9 +50,8 @@ class ZoomScanFilterTask implements Task {
      * @param rawDataFile
      * @param parameters
      */
-    ZoomScanFilterTask(OpenedRawDataFile dataFile, SimpleParameterSet parameters) {
+    ZoomScanFilterTask(RawDataFile dataFile, SimpleParameterSet parameters) {
         this.dataFile = dataFile;
-        this.rawDataFile = dataFile.getCurrentFile();
 
         minMZRange = (Double) parameters.getParameterValue(ZoomScanFilter.parameterMinMZRange);
     }
@@ -94,7 +93,7 @@ class ZoomScanFilterTask implements Task {
         return filteredRawDataFile;
     }
 
-    public OpenedRawDataFile getDataFile() {
+    public RawDataFile getDataFile() {
         return dataFile;
     }
 
@@ -115,26 +114,20 @@ class ZoomScanFilterTask implements Task {
         // Create new temporary copy
         RawDataFileWriter rawDataFileWriter;
         try {
-            rawDataFileWriter = dataFile.createNewTemporaryFile();
+            rawDataFileWriter = MZmineCore.getIOController().createNewFile(dataFile);
         } catch (IOException e) {
             status = TaskStatus.ERROR;
             errorMessage = e.toString();
             return;
         }
 
-        int[] scanNumbers = rawDataFile.getScanNumbers();
+        int[] scanNumbers = dataFile.getScanNumbers();
         totalScans = scanNumbers.length;
 
         // Loop through all scans
         for (int scani = 0; scani < totalScans; scani++) {
-            Scan sc;
-            try {
-                sc = rawDataFile.getScan(scanNumbers[scani]);
-            } catch (IOException e) {
-                status = TaskStatus.ERROR;
-                errorMessage = e.toString();
-                return;
-            }
+            
+            Scan sc = dataFile.getScan(scanNumbers[scani]);
 
             // Check if mz range is wide enough
             double mzMin = sc.getMZRangeMin();

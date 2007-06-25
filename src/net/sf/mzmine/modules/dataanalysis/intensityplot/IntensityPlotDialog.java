@@ -43,12 +43,13 @@ import javax.swing.ScrollPaneConstants;
 
 import net.sf.mzmine.data.PeakList;
 import net.sf.mzmine.data.PeakListRow;
-import net.sf.mzmine.io.OpenedRawDataFile;
+import net.sf.mzmine.io.RawDataFile;
+import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.userinterface.Desktop;
 import net.sf.mzmine.userinterface.components.ExtendedCheckBox;
 import net.sf.mzmine.userinterface.dialogs.ExitCode;
 import net.sf.mzmine.userinterface.mainwindow.MainWindow;
-import net.sf.mzmine.util.AlignmentResultSorterByMZ;
+import net.sf.mzmine.util.PeakListRowSorterByMZ;
 import net.sf.mzmine.util.GUIUtils;
 
 public class IntensityPlotDialog extends JDialog implements ActionListener {
@@ -63,7 +64,7 @@ public class IntensityPlotDialog extends JDialog implements ActionListener {
 
     // dialog components
     private JComboBox xAxisValueSourceCombo, yAxisValueSourceCombo;
-    private ExtendedCheckBox<OpenedRawDataFile> rawDataFileCheckBoxes[];
+    private ExtendedCheckBox<RawDataFile> rawDataFileCheckBoxes[];
     private ExtendedCheckBox<PeakListRow> peakCheckBoxes[];
     private JButton btnSelectAllFiles, btnDeselectAllFiles, btnSelectAllPeaks,
             btnDeselectAllPeaks, btnOK, btnCancel;
@@ -71,13 +72,13 @@ public class IntensityPlotDialog extends JDialog implements ActionListener {
     public IntensityPlotDialog(IntensityPlotParameters parameterSet) {
 
         // make dialog modal
-        super(MainWindow.getInstance(), "Intensity plot setup", true);
+        super(MZmineCore.getDesktop().getMainFrame(), "Intensity plot setup", true);
 
-        this.desktop = MainWindow.getInstance();
+        this.desktop = MZmineCore.getDesktop();
         this.alignmentResult = parameterSet.getSourcePeakList();
         this.parameterSet = parameterSet;
         
-        List<OpenedRawDataFile> selectedDataFiles = Arrays.asList(parameterSet.getSelectedDataFiles());
+        List<RawDataFile> selectedDataFiles = Arrays.asList(parameterSet.getSelectedDataFiles());
         List<PeakListRow> selectedRows = Arrays.asList(parameterSet.getSelectedRows());
 
         GridBagConstraints constraints = new GridBagConstraints();
@@ -107,9 +108,9 @@ public class IntensityPlotDialog extends JDialog implements ActionListener {
                 dataFileCheckBoxesPanel, BoxLayout.Y_AXIS));
         rawDataFileCheckBoxes = new ExtendedCheckBox[alignmentResult.getNumberOfRawDataFiles()];
         int minimumHorizSize = 0;
-        OpenedRawDataFile files[] = alignmentResult.getRawDataFiles();
+        RawDataFile files[] = alignmentResult.getRawDataFiles();
         for (int i = 0; i < files.length; i++) {
-            rawDataFileCheckBoxes[i] = new ExtendedCheckBox<OpenedRawDataFile>(
+            rawDataFileCheckBoxes[i] = new ExtendedCheckBox<RawDataFile>(
                     files[i], selectedDataFiles.contains(files[i]));
             minimumHorizSize = Math.max(minimumHorizSize,
                     rawDataFileCheckBoxes[i].getPreferredWidth());
@@ -172,7 +173,7 @@ public class IntensityPlotDialog extends JDialog implements ActionListener {
         peakCheckBoxes = new ExtendedCheckBox[alignmentResult.getNumberOfRows()];
         minimumHorizSize = 0;
         PeakListRow rows[] = alignmentResult.getRows();
-        Arrays.sort(rows, new AlignmentResultSorterByMZ());
+        Arrays.sort(rows, new PeakListRowSorterByMZ());
         for (int i = 0; i < rows.length; i++) {
             peakCheckBoxes[i] = new ExtendedCheckBox<PeakListRow>(rows[i], selectedRows.contains(rows[i]));
             minimumHorizSize = Math.max(minimumHorizSize,
@@ -238,10 +239,10 @@ public class IntensityPlotDialog extends JDialog implements ActionListener {
 
         if (src == btnOK) {
 
-            Vector<OpenedRawDataFile> selectedFiles = new Vector<OpenedRawDataFile>();
+            Vector<RawDataFile> selectedFiles = new Vector<RawDataFile>();
             Vector<PeakListRow> selectedPeaks = new Vector<PeakListRow>();
 
-            for (ExtendedCheckBox<OpenedRawDataFile> box : rawDataFileCheckBoxes) {
+            for (ExtendedCheckBox<RawDataFile> box : rawDataFileCheckBoxes) {
                 if (box.isSelected())
                     selectedFiles.add(box.getObject());
             }
@@ -262,7 +263,7 @@ public class IntensityPlotDialog extends JDialog implements ActionListener {
             }
 
             parameterSet.setSourcePeakList(alignmentResult);
-            parameterSet.setSelectedDataFiles(selectedFiles.toArray(new OpenedRawDataFile[0]));
+            parameterSet.setSelectedDataFiles(selectedFiles.toArray(new RawDataFile[0]));
             parameterSet.setSelectedRows(selectedPeaks.toArray(new PeakListRow[0]));
             parameterSet.setXAxisValueSource(xAxisValueSourceCombo.getSelectedItem());
             parameterSet.setYAxisValueSource(yAxisValueSourceCombo.getSelectedItem());

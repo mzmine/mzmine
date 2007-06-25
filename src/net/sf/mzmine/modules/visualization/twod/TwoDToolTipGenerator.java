@@ -24,6 +24,7 @@ package net.sf.mzmine.modules.visualization.twod;
 
 import java.text.NumberFormat;
 
+import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.userinterface.Desktop;
 import net.sf.mzmine.userinterface.mainwindow.MainWindow;
 
@@ -50,7 +51,7 @@ class TwoDToolTipGenerator implements XYZToolTipGenerator {
      */
     public String generateToolTip(XYZDataset dataset, int series, int item) {
         
-        Desktop desktop = MainWindow.getInstance();
+        Desktop desktop = MZmineCore.getDesktop();
         NumberFormat rtFormat = desktop.getRTFormat();
         NumberFormat mzFormat = desktop.getMZFormat();
         NumberFormat intensityFormat = desktop.getIntensityFormat();

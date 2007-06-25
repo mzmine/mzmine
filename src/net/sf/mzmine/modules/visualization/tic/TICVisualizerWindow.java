@@ -21,7 +21,6 @@ package net.sf.mzmine.modules.visualization.tic;
 
 import java.awt.BorderLayout;
 import java.awt.Color;
-import java.awt.Frame;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.text.NumberFormat;
@@ -33,9 +32,9 @@ import java.util.Vector;
 import javax.swing.JInternalFrame;
 
 import net.sf.mzmine.data.Peak;
-import net.sf.mzmine.io.OpenedRawDataFile;
-import net.sf.mzmine.io.RawDataAcceptor;
 import net.sf.mzmine.io.RawDataFile;
+import net.sf.mzmine.io.util.RawDataAcceptor;
+import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.modules.MultipleRawDataVisualizer;
 import net.sf.mzmine.modules.visualization.spectra.SpectraSetupDialog;
 import net.sf.mzmine.modules.visualization.spectra.SpectraVisualizerWindow;
@@ -44,7 +43,6 @@ import net.sf.mzmine.taskcontrol.TaskController;
 import net.sf.mzmine.taskcontrol.TaskListener;
 import net.sf.mzmine.taskcontrol.Task.TaskStatus;
 import net.sf.mzmine.userinterface.Desktop;
-import net.sf.mzmine.userinterface.dialogs.AxesSetupDialog;
 import net.sf.mzmine.userinterface.mainwindow.MainWindow;
 import net.sf.mzmine.util.CursorPosition;
 
@@ -61,34 +59,32 @@ public class TICVisualizerWindow extends JInternalFrame implements
     private TICToolBar toolBar;
     private TICPlot plot;
 
-    private Hashtable<OpenedRawDataFile, TICDataSet> dataFiles;
+    private Hashtable<RawDataFile, TICDataSet> dataFiles;
     private PlotType plotType;
     private int msLevel;
-    private double rtMin, rtMax, mzMin, mzMax;
+    private float rtMin, rtMax, mzMin, mzMax;
     
     private Peak[] peaks;
     
     private static final double zoomCoefficient = 1.2;
 
     private Desktop desktop;
-    private TaskController taskController;
     
     /**
      * Constructor for total ion chromatogram visualizer
      * 
      */
-    public TICVisualizerWindow(TaskController taskController, Desktop desktop, OpenedRawDataFile dataFile, PlotType plotType,
+    public TICVisualizerWindow(RawDataFile dataFile, PlotType plotType,
             int msLevel,
-            double rtMin, double rtMax,
-            double mzMin, double mzMax, Peak[] peaks) {
+            float rtMin, float rtMax,
+            float mzMin, float mzMax, Peak[] peaks) {
         
         super(null, true, true, true, true);
         
-        this.taskController = taskController;
-        this.desktop = desktop;
+        this.desktop = MZmineCore.getDesktop();
         this.plotType = plotType;
         this.msLevel = msLevel;
-        this.dataFiles = new Hashtable<OpenedRawDataFile, TICDataSet>();
+        this.dataFiles = new Hashtable<RawDataFile, TICDataSet>();
         this.rtMin = rtMin;
         this.rtMax = rtMax;
         this.mzMin = mzMin;
@@ -112,7 +108,6 @@ public class TICVisualizerWindow extends JInternalFrame implements
     
     void updateTitle() {
 
-        Desktop desktop = MainWindow.getInstance();
         NumberFormat rtFormat = desktop.getRTFormat();
         NumberFormat mzFormat = desktop.getMZFormat();
         NumberFormat intensityFormat = desktop.getIntensityFormat();
@@ -123,11 +118,10 @@ public class TICVisualizerWindow extends JInternalFrame implements
         if (plotType == PlotType.BASE_PEAK) title.append("base peak");
             else { 
             	// If all datafiles have m/z range less than or equal to range of the plot (mzMin, mzMax), then call this TIC, otherwise XIC 
-            	Set<OpenedRawDataFile> fileSet = dataFiles.keySet();
+            	Set<RawDataFile> fileSet = dataFiles.keySet();
             	String ticOrXIC = "TIC";
-            	for (OpenedRawDataFile orf : fileSet) {
-            		RawDataFile rf = orf.getCurrentFile();
-            		if ( (rf.getDataMinMZ(msLevel)<mzMin) || (rf.getDataMinMZ(msLevel)>mzMax) ) {
+            	for (RawDataFile orf : fileSet) {
+            		if ( (orf.getDataMinMZ(msLevel)<mzMin) || (orf.getDataMinMZ(msLevel)>mzMax) ) {
             			ticOrXIC = "XIC";
             			break;
             		}
@@ -202,13 +196,13 @@ public class TICVisualizerWindow extends JInternalFrame implements
     /**
      * @see net.sf.mzmine.modules.RawDataVisualizer#getRawDataFiles()
      */
-    public OpenedRawDataFile[] getRawDataFiles() {
-        return dataFiles.keySet().toArray(new OpenedRawDataFile[0]);
+    public RawDataFile[] getRawDataFiles() {
+        return dataFiles.keySet().toArray(new RawDataFile[0]);
     }
 
-    public void addRawDataFile(OpenedRawDataFile newFile) {
+    public void addRawDataFile(RawDataFile newFile) {
         
-        int scanNumbers[] = newFile.getCurrentFile().getScanNumbers(msLevel, rtMin, rtMax);
+        int scanNumbers[] = newFile.getScanNumbers(msLevel, rtMin, rtMax);
         if (scanNumbers.length == 0) {
             desktop.displayErrorMessage("No scans found at MS level " + msLevel + " within given retention time range.");
             return;
@@ -224,7 +218,7 @@ public class TICVisualizerWindow extends JInternalFrame implements
         dataFiles.put(newFile, ticDataset);
         plot.addTICDataset(ticDataset);
         
-        Desktop desktop = MainWindow.getInstance();
+        Desktop desktop = MZmineCore.getDesktop();
         NumberFormat mzFormat = desktop.getMZFormat();
 
         // ii) Another dataset for integrated peak area, if peak is given
@@ -249,11 +243,11 @@ public class TICVisualizerWindow extends JInternalFrame implements
             		
             		int scanNumber = peakScanNumbers[i];
 
-            		double rt = newFile.getCurrentFile().getRetentionTime(scanNumber);
-            		double[][] datapoints = p.getRawDatapoints(scanNumber);
+                    float rt = newFile.getScan(scanNumber).getRetentionTime();
+            		float[][] datapoints = p.getRawDatapoints(scanNumber);
             		// Choose maximum height data point
             		double height = 0.0;
-            		for (double[] mzHeight : datapoints)
+            		for (float[] mzHeight : datapoints)
             			if (mzHeight[1]>height) height = mzHeight[1];
            		    
             		data[0][i] = rt;
@@ -289,7 +283,7 @@ public class TICVisualizerWindow extends JInternalFrame implements
         
         
         // Start-up the refresh task
-        new TICRawDataAcceptor(taskController, newFile, scanNumbers, dataSets.toArray(new RawDataAcceptor[0]), this);
+        new TICRawDataAcceptor(newFile, scanNumbers, dataSets.toArray(new RawDataAcceptor[0]), this);
         
         if (dataFiles.size() > 1) {
             // when displaying more than one file, show a legend
@@ -301,7 +295,7 @@ public class TICVisualizerWindow extends JInternalFrame implements
 
     }
 
-    public void removeRawDataFile(OpenedRawDataFile file) {
+    public void removeRawDataFile(RawDataFile file) {
         TICDataSet dataset = dataFiles.get(file);
         plot.getXYPlot().setDataset(plot.getXYPlot().indexOf(dataset), null);
         dataFiles.remove(file);
@@ -318,14 +312,14 @@ public class TICVisualizerWindow extends JInternalFrame implements
      * @return current cursor position
      */
     public CursorPosition getCursorPosition() {
-        double selectedRT = plot.getXYPlot().getDomainCrosshairValue();
-        double selectedIT = plot.getXYPlot().getRangeCrosshairValue();
+        float selectedRT = (float) plot.getXYPlot().getDomainCrosshairValue();
+        float selectedIT = (float) plot.getXYPlot().getRangeCrosshairValue();
         Enumeration<TICDataSet> e = dataFiles.elements();
         while (e.hasMoreElements()) {
             TICDataSet dataSet = e.nextElement();
             int index = dataSet.getSeriesIndex(selectedRT, selectedIT);
             if (index >= 0) {
-                double mz = 0;
+                float mz = 0;
                 if (plotType == PlotType.BASE_PEAK) mz = dataSet.getMZValue(index);
                 CursorPosition pos = new CursorPosition(selectedRT, mz,
                         selectedIT, dataSet.getDataFile(), dataSet.getScanNumber(index));
@@ -384,7 +378,7 @@ public class TICVisualizerWindow extends JInternalFrame implements
         if (command.equals("SHOW_SPECTRUM")) {
             CursorPosition pos = getCursorPosition();
             if (pos != null) {
-                new SpectraVisualizerWindow(taskController, desktop, pos.getDataFile(), pos
+                new SpectraVisualizerWindow(pos.getDataFile(), pos
                         .getScanNumber());
             }
         }
@@ -397,8 +391,8 @@ public class TICVisualizerWindow extends JInternalFrame implements
                         .getIntensityValue());
                 if (index > 0) {
                     index--;
-                    pos.setRetentionTime(dataSet.getXValue(0, index));
-                    pos.setIntensityValue(dataSet.getYValue(0, index));
+                    pos.setRetentionTime((float) dataSet.getXValue(0, index));
+                    pos.setIntensityValue((float) dataSet.getYValue(0, index));
                     setCursorPosition(pos);
 
                 }
@@ -414,8 +408,8 @@ public class TICVisualizerWindow extends JInternalFrame implements
                 if (index >= 0) {
                     index++;
                     if (index < dataSet.getItemCount(0)) {
-                        pos.setRetentionTime(dataSet.getXValue(0, index));
-                        pos.setIntensityValue(dataSet.getYValue(0, index));
+                        pos.setRetentionTime((float) dataSet.getXValue(0, index));
+                        pos.setIntensityValue((float) dataSet.getYValue(0, index));
                         setCursorPosition(pos);
                     }
                 }
@@ -433,7 +427,7 @@ public class TICVisualizerWindow extends JInternalFrame implements
         if (command.equals("SHOW_MULTIPLE_SPECTRA")) {
             CursorPosition pos = getCursorPosition();
             if (pos != null) {
-                SpectraSetupDialog dialog = new SpectraSetupDialog(taskController, desktop, pos.getDataFile(), msLevel, pos.getScanNumber());
+                SpectraSetupDialog dialog = new SpectraSetupDialog(pos.getDataFile(), msLevel, pos.getScanNumber());
                 dialog.setVisible(true);
             }
         }        

@@ -42,11 +42,11 @@ public class TaskControllerImpl implements TaskController, Runnable {
 
     private Logger logger = Logger.getLogger(this.getClass().getName());
 
-    private Desktop desktop;
+
 
     // TODO: always create a worker thread for high priority tasks
 
-    private static TaskControllerImpl myInstance;
+
 
     private final int TASKCONTROLLER_THREAD_SLEEP = 100;
 
@@ -61,8 +61,7 @@ public class TaskControllerImpl implements TaskController, Runnable {
      */
     public TaskControllerImpl(int numberOfThreads) {
 
-        assert myInstance == null;
-        myInstance = this;
+
 
         taskQueue = new TaskQueue();
 
@@ -72,7 +71,7 @@ public class TaskControllerImpl implements TaskController, Runnable {
 
         workerThreads = new WorkerThread[numberOfThreads];
         for (int i = 0; i < numberOfThreads; i++) {
-            workerThreads[i] = new WorkerThread(i + 1, desktop);
+            workerThreads[i] = new WorkerThread(i + 1);
             workerThreads[i].start();
         }
 
@@ -108,7 +107,7 @@ public class TaskControllerImpl implements TaskController, Runnable {
         /*
          * show the task list component
          */
-        MainWindow mainWindow = (MainWindow) desktop;
+        MainWindow mainWindow = (MainWindow) MZmineCore.getDesktop();
         if (mainWindow != null) {
             //JInternalFrame selectedFrame = desktop.getSelectedFrame();
 
@@ -179,7 +178,7 @@ public class TaskControllerImpl implements TaskController, Runnable {
             // check if all tasks are finished
             if (taskQueue.allTasksFinished()) {
 
-                MainWindow mainWindow = (MainWindow) desktop;
+                MainWindow mainWindow = (MainWindow) MZmineCore.getDesktop();
 
                 if (mainWindow != null) {
                     TaskProgressWindow tlc = mainWindow.getTaskList();
@@ -226,13 +225,10 @@ public class TaskControllerImpl implements TaskController, Runnable {
 
     /**
      */
-    public void initModule(MZmineCore core) {
-        this.desktop = core.getDesktop();
+    public void initModule() {
 
     }
     
-    public static TaskController getInstance() {
-        return myInstance;
-    }
+
 
 }

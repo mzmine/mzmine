@@ -30,9 +30,10 @@ import net.sf.mzmine.data.PeakList;
 import net.sf.mzmine.data.Parameter.ParameterType;
 import net.sf.mzmine.data.impl.SimpleParameter;
 import net.sf.mzmine.data.impl.SimpleParameterSet;
-import net.sf.mzmine.io.OpenedRawDataFile;
+import net.sf.mzmine.io.RawDataFile;
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.modules.BatchStep;
+import net.sf.mzmine.project.MZmineProject;
 import net.sf.mzmine.taskcontrol.Task;
 import net.sf.mzmine.taskcontrol.TaskController;
 import net.sf.mzmine.taskcontrol.TaskGroup;
@@ -49,8 +50,7 @@ import net.sf.mzmine.userinterface.dialogs.ParameterSetupDialog;
  * 
  */
 
-public class SimpleGrouper implements BatchStep, TaskListener,
-        ActionListener {
+public class SimpleGrouper implements BatchStep, TaskListener, ActionListener {
 
     public static final Parameter mzTolerance = new SimpleParameter(
             ParameterType.DOUBLE, "M/Z tolerance",
@@ -76,16 +76,14 @@ public class SimpleGrouper implements BatchStep, TaskListener,
 
     private Logger logger = Logger.getLogger(this.getClass().getName());
 
-    private TaskController taskController;
     private Desktop desktop;
 
     /**
      * @see net.sf.mzmine.main.MZmineModule#initModule(net.sf.mzmine.main.MZmineCore)
      */
-    public void initModule(MZmineCore core) {
+    public void initModule() {
 
-        this.taskController = core.getTaskController();
-        this.desktop = core.getDesktop();
+        this.desktop = MZmineCore.getDesktop();
 
         parameters = new SimpleParameterSet(new Parameter[] { mzTolerance,
                 rtTolerance, monotonicShape, maximumCharge });
@@ -105,15 +103,16 @@ public class SimpleGrouper implements BatchStep, TaskListener,
      */
     public void actionPerformed(ActionEvent e) {
 
-        OpenedRawDataFile[] dataFiles = desktop.getSelectedDataFiles();
+        RawDataFile[] dataFiles = desktop.getSelectedDataFiles();
+        MZmineProject currentProject = MZmineCore.getCurrentProject();
 
         if (dataFiles.length == 0) {
             desktop.displayErrorMessage("Please select at least one data file");
             return;
         }
 
-        for (OpenedRawDataFile dataFile : dataFiles) {
-            if (dataFile.getPeakList() == null) {
+        for (RawDataFile dataFile : dataFiles) {
+            if (currentProject.getFilePeakList(dataFile) == null) {
                 desktop.displayErrorMessage(dataFile
                         + " has no peak list. Please run peak picking first.");
                 return;
@@ -123,7 +122,7 @@ public class SimpleGrouper implements BatchStep, TaskListener,
         ExitCode exitCode = setupParameters(parameters);
         if (exitCode != ExitCode.OK)
             return;
-        
+
         runModule(dataFiles, null, parameters.clone(), null);
     }
 
@@ -140,15 +139,13 @@ public class SimpleGrouper implements BatchStep, TaskListener,
                     + ((SimpleGrouperTask) task).getDataFile());
 
             Object[] result = (Object[]) task.getResult();
-            OpenedRawDataFile dataFile = (OpenedRawDataFile) result[0];
+            RawDataFile dataFile = (RawDataFile) result[0];
             PeakList peakList = (PeakList) result[1];
-            SimpleParameterSet params = (SimpleParameterSet) result[2];
 
-            dataFile.addHistoryEntry(dataFile.getCurrentFile().getFile(), this,
-                    params);
+            MZmineProject currentProject = MZmineCore.getCurrentProject();
 
             // Add peak list to MZmineProject
-            dataFile.setPeakList(peakList);
+            currentProject.setFilePeakList(dataFile, peakList);
 
             // Notify listeners
             desktop.notifySelectionListeners();
@@ -190,31 +187,32 @@ public class SimpleGrouper implements BatchStep, TaskListener,
     }
 
     /**
-     * @see net.sf.mzmine.modules.BatchStep#runModule(net.sf.mzmine.io.OpenedRawDataFile[],
-     *      net.sf.mzmine.data.PeakList[],
-     *      net.sf.mzmine.data.ParameterSet,
+     * @see net.sf.mzmine.modules.BatchStep#runModule(net.sf.mzmine.io.RawDataFile[],
+     *      net.sf.mzmine.data.PeakList[], net.sf.mzmine.data.ParameterSet,
      *      net.sf.mzmine.taskcontrol.TaskGroupListener)
      */
-    public TaskGroup runModule(OpenedRawDataFile[] dataFiles,
+    public TaskGroup runModule(RawDataFile[] dataFiles,
             PeakList[] alignmentResults, ParameterSet parameters,
             TaskGroupListener methodListener) {
+
+        MZmineProject currentProject = MZmineCore.getCurrentProject();
 
         // prepare a new sequence of tasks
         Task tasks[] = new SimpleGrouperTask[dataFiles.length];
         for (int i = 0; i < dataFiles.length; i++) {
 
-            if (dataFiles[i].getPeakList() == null) {
+            if (currentProject.getFilePeakList(dataFiles[i]) == null) {
                 String msg = "Cannot start deisotoping of " + dataFiles[i]
                         + ", please run peak picking first.";
                 logger.severe(msg);
                 desktop.displayErrorMessage(msg);
                 return null;
             }
-            tasks[i] = new SimpleGrouperTask(dataFiles[i], (SimpleParameterSet) parameters);
+            tasks[i] = new SimpleGrouperTask(dataFiles[i],
+                    (SimpleParameterSet) parameters);
         }
 
-        TaskGroup newSequence = new TaskGroup(tasks, this, methodListener,
-                taskController);
+        TaskGroup newSequence = new TaskGroup(tasks, this, methodListener);
 
         // execute the sequence
         newSequence.run();

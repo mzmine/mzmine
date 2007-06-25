@@ -7,18 +7,18 @@ import org.jfree.data.xy.XYZDataset;
 public class ProjectionPlotToolTipGenerator implements XYZToolTipGenerator {
 
 	public String generateToolTip(ProjectionPlotDataset dataset, int series, int item) {
-		return dataset.getOpenedRawDataFile(item).toString();
+		return dataset.getRawDataFile(item).toString();
 	}
 
 	public String generateToolTip(XYDataset dataset, int series, int item) {
 		if (dataset instanceof ProjectionPlotDataset) 
-			return ((ProjectionPlotDataset)dataset).getOpenedRawDataFile(item).toString();
+			return ((ProjectionPlotDataset)dataset).getRawDataFile(item).toString();
 		return null;
 	}	
 
 	public String generateToolTip(XYZDataset dataset, int series, int item) {
 		if (dataset instanceof ProjectionPlotDataset) 
-			return ((ProjectionPlotDataset)dataset).getOpenedRawDataFile(item).toString();
+			return ((ProjectionPlotDataset)dataset).getRawDataFile(item).toString();
 		return null;
 	}	
 }

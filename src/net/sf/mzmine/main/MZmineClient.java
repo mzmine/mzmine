@@ -26,17 +26,13 @@ import java.util.Vector;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import javax.swing.JOptionPane;
 import javax.swing.SwingUtilities;
 
 import net.sf.mzmine.data.ParameterSet;
 import net.sf.mzmine.data.StorableParameterSet;
-import net.sf.mzmine.io.IOController;
 import net.sf.mzmine.io.impl.IOControllerImpl;
-import net.sf.mzmine.project.MZmineProject;
-import net.sf.mzmine.taskcontrol.TaskController;
+import net.sf.mzmine.project.impl.MZmineProjectImpl;
 import net.sf.mzmine.taskcontrol.impl.TaskControllerImpl;
-import net.sf.mzmine.userinterface.Desktop;
 import net.sf.mzmine.userinterface.mainwindow.MainWindow;
 
 import org.dom4j.Document;
@@ -48,7 +44,7 @@ import org.dom4j.io.XMLWriter;
 /**
  * Main client class
  */
-public class MZmineClient extends Thread implements Runnable, MZmineCore {
+public class MZmineClient extends MZmineCore implements Runnable {
 
     private static final File CONFIG_FILE = new File("conf/config.xml");
 
@@ -64,10 +60,6 @@ public class MZmineClient extends Thread implements Runnable, MZmineCore {
     private Logger logger = Logger.getLogger(this.getClass().getName());
 
     private Vector<MZmineModule> moduleSet;
-
-    private TaskControllerImpl taskController;
-    private IOControllerImpl ioController;
-    private MainWindow mainWindow;
 
     /**
      * Main method
@@ -107,21 +99,29 @@ public class MZmineClient extends Thread implements Runnable, MZmineCore {
 
             logger.finer("Loading core classes");
 
-            taskController = new TaskControllerImpl(numberOfNodes);
-            ioController = new IOControllerImpl();
-            mainWindow = new MainWindow();
-            MZmineProject project = new MZmineProject();
+            // create instances of core modules
+            TaskControllerImpl taskController = new TaskControllerImpl(
+                    numberOfNodes);
+            IOControllerImpl ioController = new IOControllerImpl();
+            MainWindow desktop = new MainWindow();
+            MZmineProjectImpl project = new MZmineProjectImpl();
+
+            // save static references to MZmineCore
+            MZmineCore.taskController = taskController;
+            MZmineCore.ioController = ioController;
+            MZmineCore.desktop = desktop;
+            MZmineCore.currentProject = project;
 
             logger.finer("Initializing core classes");
 
-            taskController.initModule(this);
-            ioController.initModule(this);
-            mainWindow.initModule(this);
-            project.initModule(this);
+            taskController.initModule();
+            ioController.initModule();
+            desktop.initModule();
+            project.initModule();
 
             logger.finer("Loading desktop configuration");
 
-            StorableParameterSet desktopParameters = mainWindow.getParameterSet();
+            StorableParameterSet desktopParameters = desktop.getParameterSet();
             Element desktopConfigElement = configRoot.element(DESKTOP_ELEMENT_NAME);
             if (desktopConfigElement != null)
                 desktopParameters.importValuesFromXML(desktopConfigElement);
@@ -151,21 +151,24 @@ public class MZmineClient extends Thread implements Runnable, MZmineCore {
 
             }
 
+            MZmineCore.initializedModules = moduleSet.toArray(new MZmineModule[0]);
+
+            // register the shutdown hook
+            ShutDownHook shutDownHook = new ShutDownHook();
+            Runtime.getRuntime().addShutdownHook(shutDownHook);
+
+            // show the GUI
+            logger.finest("Showing main window");
+            desktop.setVisible(true);
+
+            // show the welcome message
+            desktop.setStatusBarText("Welcome to MZmine!");
+
         } catch (Exception e) {
             logger.log(Level.SEVERE, "Could not parse configuration file "
                     + CONFIG_FILE, e);
             System.exit(1);
         }
-
-        // register the shutdown hook
-        Runtime.getRuntime().addShutdownHook(this);
-
-        // show the GUI
-        logger.finest("Showing main window");
-        mainWindow.setVisible(true);
-
-        // show the welcome message
-        mainWindow.setStatusBarText("Welcome to MZmine!");
 
     }
 
@@ -182,7 +185,7 @@ public class MZmineClient extends Thread implements Runnable, MZmineCore {
             MZmineModule moduleInstance = (MZmineModule) moduleClass.newInstance();
 
             // init module
-            moduleInstance.initModule(this);
+            moduleInstance.initModule();
 
             // add to the module set
             moduleSet.add(moduleInstance);
@@ -198,127 +201,80 @@ public class MZmineClient extends Thread implements Runnable, MZmineCore {
     }
 
     /**
-     * @see net.sf.mzmine.main.MZmineCore#getIOController()
-     */
-    public IOController getIOController() {
-        return ioController;
-    }
-
-    /**
-     * @see net.sf.mzmine.main.MZmineCore#getTaskController()
-     */
-    public TaskController getTaskController() {
-        return taskController;
-    }
-
-    /**
-     * @see net.sf.mzmine.main.MZmineCore#getDesktop()
-     */
-    public Desktop getDesktop() {
-        return mainWindow;
-    }
-
-    /**
-     * @see net.sf.mzmine.main.MZmineCore#getAllModules()
-     */
-    public MZmineModule[] getAllModules() {
-        return moduleSet.toArray(new MZmineModule[0]);
-    }
-
-    /**
-     * Prepares everything for quit and then shutdowns the application
-     */
-    public void exitMZmine() {
-
-        // Ask if use really wants to quit
-        int selectedValue = JOptionPane.showInternalConfirmDialog(
-                mainWindow.getDesktopPane(),
-                "Are you sure you want to exit MZmine?", "Exiting...",
-                JOptionPane.YES_NO_OPTION, JOptionPane.WARNING_MESSAGE);
-
-        if (selectedValue != JOptionPane.YES_OPTION)
-            return;
-
-        logger.info("Exiting MZmine");
-        mainWindow.dispose();
-
-        System.exit(0);
-
-    }
-
-    /**
      * Shutdown hook - invoked on JRE shutdown. This method saves current
      * configuration to XML.
      * 
-     * @see java.lang.Thread#start()
      */
-    public void start() {
+    private class ShutDownHook extends Thread {
 
-        try {
+        public void start() {
 
-            // load current configuration from XML
-            SAXReader reader = new SAXReader();
-            Document configuration = reader.read(CONFIG_FILE);
-            Element configRoot = configuration.getRootElement();
-
-            // save desktop configuration
-            StorableParameterSet desktopParameters = mainWindow.getParameterSet();
-            Element desktopConfigElement = configRoot.element(DESKTOP_ELEMENT_NAME);
-            if (desktopConfigElement == null) {
-                desktopConfigElement = configRoot.addElement(DESKTOP_ELEMENT_NAME);
-            }
-            desktopConfigElement.clearContent();
             try {
-                desktopParameters.exportValuesToXML(desktopConfigElement);
-            } catch (Exception e) {
-                logger.log(Level.SEVERE,
-                        "Could not save desktop configuration", e);
-            }
 
-            // traverse modules
-            Iterator<MZmineModule> iterator = moduleSet.iterator();
-            while (iterator.hasNext()) {
-                MZmineModule module = iterator.next();
-                ParameterSet currentParameters = module.getParameterSet();
-                if ((currentParameters == null)
-                        || (!(currentParameters instanceof StorableParameterSet)))
-                    continue;
+                // load current configuration from XML
+                SAXReader reader = new SAXReader();
+                Document configuration = reader.read(CONFIG_FILE);
+                Element configRoot = configuration.getRootElement();
 
-                String className = module.getClass().getName();
-                String xpathLocation = "//configuration/modules/module[@class='"
-                        + className + "']";
-                Element moduleElement = (Element) configuration.selectSingleNode(xpathLocation);
-                if (moduleElement != null) {
-
-                    Element parametersElement = moduleElement.element(PARAMETERS_ELEMENT_NAME);
-                    if (parametersElement == null)
-                        parametersElement = moduleElement.addElement(PARAMETERS_ELEMENT_NAME);
-                    else
-                        parametersElement.clearContent();
-
-                    try {
-                        ((StorableParameterSet) currentParameters).exportValuesToXML(parametersElement);
-                    } catch (Exception e) {
-                        logger.log(Level.SEVERE,
-                                "Could not save configuration of module "
-                                        + module, e);
-                    }
+                // save desktop configuration
+                StorableParameterSet desktopParameters = ((MainWindow) desktop).getParameterSet();
+                Element desktopConfigElement = configRoot.element(DESKTOP_ELEMENT_NAME);
+                if (desktopConfigElement == null) {
+                    desktopConfigElement = configRoot.addElement(DESKTOP_ELEMENT_NAME);
+                }
+                desktopConfigElement.clearContent();
+                try {
+                    desktopParameters.exportValuesToXML(desktopConfigElement);
+                } catch (Exception e) {
+                    logger.log(Level.SEVERE,
+                            "Could not save desktop configuration", e);
                 }
 
+                // traverse modules
+                Iterator<MZmineModule> iterator = moduleSet.iterator();
+                while (iterator.hasNext()) {
+                    MZmineModule module = iterator.next();
+                    ParameterSet currentParameters = module.getParameterSet();
+                    if ((currentParameters == null)
+                            || (!(currentParameters instanceof StorableParameterSet)))
+                        continue;
+
+                    String className = module.getClass().getName();
+                    String xpathLocation = "//configuration/modules/module[@class='"
+                            + className + "']";
+                    Element moduleElement = (Element) configuration.selectSingleNode(xpathLocation);
+                    if (moduleElement != null) {
+
+                        Element parametersElement = moduleElement.element(PARAMETERS_ELEMENT_NAME);
+                        if (parametersElement == null)
+                            parametersElement = moduleElement.addElement(PARAMETERS_ELEMENT_NAME);
+                        else
+                            parametersElement.clearContent();
+
+                        try {
+                            ((StorableParameterSet) currentParameters).exportValuesToXML(parametersElement);
+                        } catch (Exception e) {
+                            logger.log(Level.SEVERE,
+                                    "Could not save configuration of module "
+                                            + module, e);
+                        }
+                    }
+
+                }
+
+                // write the config file
+                OutputFormat format = OutputFormat.createPrettyPrint();
+                XMLWriter writer = new XMLWriter(new FileWriter(CONFIG_FILE),
+                        format);
+                writer.write(configuration);
+                writer.close();
+
+            } catch (Exception e) {
+                logger.log(Level.SEVERE, "Could not update configuration file "
+                        + CONFIG_FILE, e);
             }
 
-            // write the config file
-            OutputFormat format = OutputFormat.createPrettyPrint();
-            XMLWriter writer = new XMLWriter(new FileWriter(CONFIG_FILE),
-                    format);
-            writer.write(configuration);
-            writer.close();
-
-        } catch (Exception e) {
-            logger.log(Level.SEVERE, "Could not update configuration file "
-                    + CONFIG_FILE, e);
         }
-
     }
 
 }

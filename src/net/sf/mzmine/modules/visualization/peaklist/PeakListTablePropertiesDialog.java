@@ -39,36 +39,35 @@ import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JTextField;
 
+import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.modules.visualization.peaklist.table.CommonColumnType;
 import net.sf.mzmine.modules.visualization.peaklist.table.DataFileColumnType;
 import net.sf.mzmine.userinterface.dialogs.ExitCode;
 import net.sf.mzmine.util.GUIUtils;
 
-
-public class PeakListTablePropertiesDialog extends JDialog
-        implements ActionListener {
+public class PeakListTablePropertiesDialog extends JDialog implements
+        ActionListener {
 
     private ExitCode exitCode = ExitCode.CANCEL;
-    
+
     private Hashtable<CommonColumnType, JCheckBox> commonColumnCheckBoxes;
     private Hashtable<DataFileColumnType, JCheckBox> rawDataColumnCheckBoxes;
 
     private JButton btnOk, btnCancel;
     private JComboBox peakShapeMaxCombo;
     private JTextField rowHeightField;
-    
+
     private PeakListTableParameters parameters;
 
-    public PeakListTablePropertiesDialog(Frame owner,
-            PeakListTableParameters parameters) {
-        
+    public PeakListTablePropertiesDialog(PeakListTableParameters parameters) {
+
         // Make dialog modal
-        super(owner, true);
-    
+        super(MZmineCore.getDesktop().getMainFrame(), true);
+
         this.parameters = parameters;
 
         setTitle("Peak list table properties");
-        
+
         // Generate label and check box for each possible common column
         JPanel pnlCommon = new JPanel();
         pnlCommon.setLayout(new BoxLayout(pnlCommon, BoxLayout.Y_AXIS));
@@ -119,7 +118,7 @@ public class PeakListTablePropertiesDialog extends JDialog
         JPanel buttonPanel = new JPanel();
         buttonPanel.setLayout(new BoxLayout(buttonPanel, BoxLayout.X_AXIS));
         buttonPanel.setBorder(BorderFactory.createEmptyBorder(0, 10, 10, 10));
-        
+
         buttonPanel.add(Box.createHorizontalGlue());
         btnOk = GUIUtils.addButton(buttonPanel, "OK", null, this);
         buttonPanel.add(Box.createRigidArea(new Dimension(10, 0)));
@@ -131,11 +130,10 @@ public class PeakListTablePropertiesDialog extends JDialog
         mainPanel.add(pnlCommon);
         mainPanel.add(Box.createRigidArea(new Dimension(10, 0)));
         mainPanel.add(pnlRaw);
-        
+
         JPanel propertiesPanel = new JPanel();
         propertiesPanel.setLayout(new GridLayout(2, 2, 5, 5));
-        
-        
+
         GUIUtils.addLabel(propertiesPanel, "Peak shape normalization");
         peakShapeMaxCombo = new JComboBox(PeakShapeNormalization.values());
         peakShapeMaxCombo.setSelectedItem(parameters.getPeakShapeNormalization());
@@ -144,32 +142,32 @@ public class PeakListTablePropertiesDialog extends JDialog
         rowHeightField = new JTextField();
         rowHeightField.setText(String.valueOf(parameters.getRowHeight()));
         propertiesPanel.add(rowHeightField);
-        
+
         JPanel allPanel = new JPanel();
         allPanel.setLayout(new BoxLayout(allPanel, BoxLayout.Y_AXIS));
 
         GUIUtils.addMargin(mainPanel, 10);
         GUIUtils.addMargin(propertiesPanel, 10);
         GUIUtils.addMargin(buttonPanel, 10);
-        
+
         allPanel.add(mainPanel);
         GUIUtils.addSeparator(allPanel);
         allPanel.add(propertiesPanel);
         GUIUtils.addSeparator(allPanel);
         allPanel.add(buttonPanel);
-        
+
         add(allPanel);
-        
+
         setResizable(false);
         pack();
-        setLocationRelativeTo(owner);
-        
+        setLocationRelativeTo(MZmineCore.getDesktop().getMainFrame());
+
     }
 
     public void actionPerformed(ActionEvent e) {
 
         Object src = e.getSource();
-        
+
         if (src == btnOk) {
 
             Enumeration<CommonColumnType> ccEnum = commonColumnCheckBoxes.keys();
@@ -185,13 +183,15 @@ public class PeakListTablePropertiesDialog extends JDialog
                 JCheckBox rcBox = rawDataColumnCheckBoxes.get(rcType);
                 parameters.setColumnVisible(rcType, rcBox.isSelected());
             }
-            
+
             PeakShapeNormalization maxSelected = (PeakShapeNormalization) peakShapeMaxCombo.getSelectedItem();
-            if (maxSelected != null) parameters.setPeakShapeNormalization(maxSelected);
-            
+            if (maxSelected != null)
+                parameters.setPeakShapeNormalization(maxSelected);
+
             int newRowHeight = Integer.parseInt(rowHeightField.getText());
-            if (newRowHeight > 0) parameters.setRowHeight(newRowHeight);
-            
+            if (newRowHeight > 0)
+                parameters.setRowHeight(newRowHeight);
+
             exitCode = ExitCode.OK;
             dispose();
 
@@ -203,7 +203,7 @@ public class PeakListTablePropertiesDialog extends JDialog
         }
 
     }
-    
+
     /**
      * Method for reading exit code
      * 

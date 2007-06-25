@@ -19,17 +19,17 @@
 
 package net.sf.mzmine.modules;
 
-import net.sf.mzmine.io.OpenedRawDataFile;
+import net.sf.mzmine.io.RawDataFile;
 
 /**
  * 
  */
 public interface MultipleRawDataVisualizer extends RawDataVisualizer {
 
-    public OpenedRawDataFile[] getRawDataFiles();
+    public RawDataFile[] getRawDataFiles();
 
-    public void addRawDataFile(OpenedRawDataFile newFile);
+    public void addRawDataFile(RawDataFile newFile);
 
-    public void removeRawDataFile(OpenedRawDataFile file);
+    public void removeRawDataFile(RawDataFile file);
 
 }

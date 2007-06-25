@@ -1,5 +1,5 @@
 /*
- * Copyright 2006 The MZmine Development Team
+ * Copyright 2006-2007 The MZmine Development Team
  *
  * This file is part of MZmine.
  *
@@ -19,20 +19,8 @@
 
 package net.sf.mzmine.io;
 
-import net.sf.mzmine.data.Scan;
-
-
-/**
- * Interface for classes that accept scans for processing, visualization etc.
- */
-public interface RawDataAcceptor {
-
-    /**
-     * Process a scan
-     * @param scan Scan to process 
-     * @param index Index of this scan in the array of requested scans (0..total - 1)
-     * @param total Total number of requested scans
-     */
-    void addScan(Scan scan, int index, int total);
-    
+public enum PreloadLevel {
+    NO_PRELOAD, 
+    PRELOAD_FULL_SCANS,
+    PRELOAD_ALL_SCANS
 }

@@ -22,9 +22,7 @@ package net.sf.mzmine.userinterface.mainwindow;
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Container;
-import java.awt.Dimension;
 import java.awt.Font;
-import java.awt.Point;
 import java.awt.event.ActionListener;
 import java.awt.event.WindowEvent;
 import java.awt.event.WindowListener;
@@ -44,9 +42,9 @@ import javax.swing.border.EtchedBorder;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
 
-import net.sf.mzmine.data.PeakList;
 import net.sf.mzmine.data.ParameterSet;
-import net.sf.mzmine.io.OpenedRawDataFile;
+import net.sf.mzmine.data.PeakList;
+import net.sf.mzmine.io.RawDataFile;
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.main.MZmineModule;
 import net.sf.mzmine.taskcontrol.impl.TaskControllerImpl;
@@ -61,7 +59,6 @@ import net.sf.mzmine.util.NumberFormatter;
 public class MainWindow extends JFrame implements MZmineModule, Desktop,
         WindowListener {
 
-    private MZmineCore core;
 
     private DesktopParameters parameters;
 
@@ -93,7 +90,6 @@ public class MainWindow extends JFrame implements MZmineModule, Desktop,
         frame.setVisible(true);
     }
 
-    private static MainWindow myInstance;
 
     /**
      * This method returns the desktop
@@ -109,7 +105,7 @@ public class MainWindow extends JFrame implements MZmineModule, Desktop,
     }
 
     public void windowClosing(WindowEvent e) {
-        core.exitMZmine();
+        MZmineCore.exitMZmine();
     }
 
     public void windowClosed(WindowEvent e) {
@@ -151,7 +147,7 @@ public class MainWindow extends JFrame implements MZmineModule, Desktop,
     /**
      * @see net.sf.mzmine.userinterface.Desktop#getSelectedDataFiles()
      */
-    public OpenedRawDataFile[] getSelectedDataFiles() {
+    public RawDataFile[] getSelectedDataFiles() {
         return itemSelector.getSelectedRawData();
     }
 
@@ -163,7 +159,7 @@ public class MainWindow extends JFrame implements MZmineModule, Desktop,
         itemSelector.setActiveAlignmentResult(alignmentResult);
     }
 
-    public void setSelectedDataFile(OpenedRawDataFile dataFile) {
+    public void setSelectedDataFile(RawDataFile dataFile) {
         itemSelector.setActiveRawData(dataFile);
     }
 
@@ -171,7 +167,7 @@ public class MainWindow extends JFrame implements MZmineModule, Desktop,
         itemSelector.addAlignmentResult(alignmentResult);
     }
 
-    public void addDataFile(OpenedRawDataFile dataFile) {
+    public void addDataFile(RawDataFile dataFile) {
         itemSelector.addRawData(dataFile);
     }
 
@@ -179,7 +175,7 @@ public class MainWindow extends JFrame implements MZmineModule, Desktop,
         itemSelector.removeAlignmentResult(alignmentResult);
     }
 
-    public void removeDataFile(OpenedRawDataFile dataFile) {
+    public void removeDataFile(RawDataFile dataFile) {
         itemSelector.removeRawData(dataFile);
     }
 
@@ -199,13 +195,8 @@ public class MainWindow extends JFrame implements MZmineModule, Desktop,
 
     /**
      */
-    public void initModule(MZmineCore core) {
+    public void initModule() {
 
-        assert myInstance == null;
-        myInstance = this;
-
-        this.core = core;
-        
         parameters = new DesktopParameters();
 
         Font defaultFont = new Font("SansSerif", Font.PLAIN, 13);
@@ -236,11 +227,11 @@ public class MainWindow extends JFrame implements MZmineModule, Desktop,
         c.setLayout(new BorderLayout());
         c.add(split, BorderLayout.CENTER);
 
-        statusBar = new Statusbar(core);
+        statusBar = new Statusbar();
         c.add(statusBar, BorderLayout.SOUTH);
 
         // Construct menu
-        menuBar = new MainMenu(core);
+        menuBar = new MainMenu();
         setJMenuBar(menuBar);
 
         // Initialize window listener for responding to user events
@@ -258,14 +249,12 @@ public class MainWindow extends JFrame implements MZmineModule, Desktop,
         setTitle("MZmine");
 
         taskList = new TaskProgressWindow(
-                (TaskControllerImpl) core.getTaskController());
+                (TaskControllerImpl) MZmineCore.getTaskController());
         desktopPane.add(taskList, JLayeredPane.DEFAULT_LAYER);
 
     }
 
-    public static MainWindow getInstance() {
-        return myInstance;
-    }
+
 
     /**
      * @see net.sf.mzmine.userinterface.Desktop#getMainFrame()
@@ -383,5 +372,11 @@ public class MainWindow extends JFrame implements MZmineModule, Desktop,
     public void setParameters(ParameterSet parameterValues) {
         this.parameters = (DesktopParameters) parameterValues;
     }
+    
+    public ItemSelector getItemSelector() {
+        return itemSelector;
+    }
+
+
 
 }

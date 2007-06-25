@@ -32,13 +32,13 @@ public class ScanUtils {
      * @param scan Scan to search
      * @param mzMin m/z range minimum
      * @param mzMax m/z range maximum
-     * @return double[2] containing base peak m/z and intensity
+     * @return float[2] containing base peak m/z and intensity
      */
-    public static double[] findBasePeak(Scan scan, double mzMin, double mzMax) {
+    public static float[] findBasePeak(Scan scan, float mzMin, float mzMax) {
 
-        double mzValues[] = scan.getMZValues();
-        double intensityValues[] = scan.getIntensityValues();
-        double basePeak[] = new double[2];
+        float mzValues[] = scan.getMZValues();
+        float intensityValues[] = scan.getIntensityValues();
+        float basePeak[] = new float[2];
 
         for (int i = 1; i < mzValues.length; i++) {
 
@@ -75,17 +75,17 @@ public class ScanUtils {
      *            'y', min of 'y')
      * @return Values for each bin
      */
-    public static double[] binValues(double[] x, double[] y,
-            double firstBinStart, double lastBinStop, int numberOfBins,
+    public static float[] binValues(float[] x, float[] y,
+            float firstBinStart, float lastBinStop, int numberOfBins,
             boolean interpolate, BinningType binningType) {
 
-        Double[] binValues = new Double[numberOfBins];
-        double binWidth = (lastBinStop - firstBinStart) / numberOfBins;
+        Float[] binValues = new Float[numberOfBins];
+        float binWidth = (lastBinStop - firstBinStart) / numberOfBins;
 
-        double beforeX = Double.MIN_VALUE;
-        double beforeY = 0.0;
-        double afterX = Double.MAX_VALUE;
-        double afterY = 0.0;
+        float beforeX = Float.MIN_VALUE;
+        float beforeY = 0.0f;
+        float afterX = Float.MAX_VALUE;
+        float afterY = 0.0f;
 
         // Binnings
         for (int valueIndex = 0; valueIndex < x.length; valueIndex++) {
@@ -154,7 +154,7 @@ public class ScanUtils {
                 if (binValues[binIndex] == null) {
 
                     // Find exisiting left neighbour
-                    double leftNeighbourValue = beforeY;
+                    float leftNeighbourValue = beforeY;
                     int leftNeighbourBinIndex = (int) java.lang.Math.floor((beforeX - firstBinStart)
                             / binWidth);
                     for (int anotherBinIndex = binIndex - 1; anotherBinIndex >= 0; anotherBinIndex--) {
@@ -166,7 +166,7 @@ public class ScanUtils {
                     }
 
                     // Find existing right neighbour
-                    double rightNeighbourValue = afterY;
+                    float rightNeighbourValue = afterY;
                     int rightNeighbourBinIndex = (binValues.length - 1)
                             + (int) java.lang.Math.ceil((afterX - lastBinStop)
                                     / binWidth);
@@ -178,9 +178,9 @@ public class ScanUtils {
                         }
                     }
 
-                    double slope = (rightNeighbourValue - leftNeighbourValue)
+                    float slope = (rightNeighbourValue - leftNeighbourValue)
                             / (rightNeighbourBinIndex - leftNeighbourBinIndex);
-                    binValues[binIndex] = new Double(leftNeighbourValue + slope
+                    binValues[binIndex] = new Float(leftNeighbourValue + slope
                             * (binIndex - leftNeighbourBinIndex));
 
                 }
@@ -189,7 +189,7 @@ public class ScanUtils {
 
         }
 
-        double[] res = new double[binValues.length];
+        float[] res = new float[binValues.length];
         for (int binIndex = 0; binIndex < binValues.length; binIndex++) {
             res[binIndex] = binValues[binIndex] == null ? 0 : binValues[binIndex];
         }

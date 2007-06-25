@@ -29,33 +29,33 @@ import net.sf.mzmine.data.impl.SimpleParameterSet;
 
 class EmptyGap {
 
-    private double centroidMZ;
-    private double centroidRT;
+    private float centroidMZ;
+    private float centroidRT;
 
-    private double rangeMinMZ;
-    private double rangeMaxMZ;
-    private double rangeMinRT;
-    private double rangeMaxRT;
+    private float rangeMinMZ;
+    private float rangeMaxMZ;
+    private float rangeMinRT;
+    private float rangeMaxRT;
 
     // These store information about peak that is currently under construction
     Vector<Integer> peakScanNumbers;
-    Vector<Double> peakInts;
-    Vector<Double> peakMZs;
-    Vector<Double> peakRTs;
+    Vector<Float> peakInts;
+    Vector<Float> peakMZs;
+    Vector<Float> peakRTs;
 
     private Peak bestPeak;
 
-    private double closestMZ;
-    private double closestRT;
+    private float closestMZ;
+    private float closestRT;
     private int closestScanNumber;
 
     private boolean allDone = false;
 
-    private double intTolerance;
-    private double mzTolerance;
+    private float intTolerance;
+    private float mzTolerance;
     private boolean rtToleranceUseAbs;
-    private double rtToleranceValueAbs;
-    private double rtToleranceValuePercent;
+    private float rtToleranceValueAbs;
+    private float rtToleranceValuePercent;
 
     /**
      * Constructor: Initializes an empty gap
@@ -63,16 +63,16 @@ class EmptyGap {
      * @param mz M/Z coordinate of this empty gap
      * @param rt RT coordinate of this empty gap
      */
-    EmptyGap(double mz, double rt, SimpleParameterSet parameters) {
+    EmptyGap(float mz, float rt, SimpleParameterSet parameters) {
 
         this.centroidMZ = mz;
         this.centroidRT = rt;
-        intTolerance = (Double) parameters.getParameterValue(SimpleGapFiller.IntTolerance);
-        mzTolerance = (Double) parameters.getParameterValue(SimpleGapFiller.MZTolerance);
+        intTolerance = (Float) parameters.getParameterValue(SimpleGapFiller.IntTolerance);
+        mzTolerance = (Float) parameters.getParameterValue(SimpleGapFiller.MZTolerance);
         if (parameters.getParameterValue(SimpleGapFiller.RTToleranceType) == SimpleGapFiller.RTToleranceTypeAbsolute)
             rtToleranceUseAbs = true;
-        rtToleranceValueAbs = (Double) parameters.getParameterValue(SimpleGapFiller.RTToleranceValueAbs);
-        rtToleranceValuePercent = (Double) parameters.getParameterValue(SimpleGapFiller.RTToleranceValuePercent);
+        rtToleranceValueAbs = (Float) parameters.getParameterValue(SimpleGapFiller.RTToleranceValueAbs);
+        rtToleranceValuePercent = (Float) parameters.getParameterValue(SimpleGapFiller.RTToleranceValuePercent);
 
         rangeMinMZ = centroidMZ - mzTolerance;
         rangeMaxMZ = centroidMZ + mzTolerance;
@@ -95,14 +95,14 @@ class EmptyGap {
             return false;
         }
 
-        double[] massValues = s.getMZValues();
-        double[] intensityValues = s.getIntensityValues();
-        double scanRT = s.getRetentionTime();
+        float[] massValues = s.getMZValues();
+        float[] intensityValues = s.getIntensityValues();
+        float scanRT = s.getRetentionTime();
         int scanNumber = s.getScanNumber();
 
         // Find local intensity maximum inside the M/Z range
-        double currentIntensity = -1;
-        double currentMZ = -1;
+        float currentIntensity = -1;
+        float currentMZ = -1;
         for (int i = 0; i < massValues.length; i++) {
 
             // Not yet in the mz range
@@ -142,13 +142,13 @@ class EmptyGap {
         if (peakInts == null) {
             // New peak starts
             peakScanNumbers = new Vector<Integer>();
-            peakInts = new Vector<Double>();
-            peakMZs = new Vector<Double>();
-            peakRTs = new Vector<Double>();
+            peakInts = new Vector<Float>();
+            peakMZs = new Vector<Float>();
+            peakRTs = new Vector<Float>();
             peakScanNumbers.add(new Integer(scanNumber));
-            peakInts.add(new Double(currentIntensity));
-            peakMZs.add(new Double(currentMZ));
-            peakRTs.add(new Double(scanRT));
+            peakInts.add(new Float(currentIntensity));
+            peakMZs.add(new Float(currentMZ));
+            peakRTs.add(new Float(scanRT));
             return true;
         }
 
@@ -156,9 +156,9 @@ class EmptyGap {
         if (checkRTShape(scanRT, currentIntensity, rangeMinRT, rangeMaxRT)) {
             // Yes, it is. Just continue this peak.
             peakScanNumbers.add(new Integer(scanNumber));
-            peakInts.add(new Double(currentIntensity));
-            peakMZs.add(new Double(currentMZ));
-            peakRTs.add(new Double(scanRT));
+            peakInts.add(new Float(currentIntensity));
+            peakMZs.add(new Float(currentMZ));
+            peakRTs.add(new Float(scanRT));
         } else {
 
             // No it is not
@@ -178,9 +178,9 @@ class EmptyGap {
             peakMZs.clear();
             peakRTs.clear();
             peakScanNumbers.add(new Integer(scanNumber));
-            peakInts.add(new Double(currentIntensity));
-            peakMZs.add(new Double(currentMZ));
-            peakRTs.add(new Double(scanRT));
+            peakInts.add(new Float(currentIntensity));
+            peakMZs.add(new Float(currentMZ));
+            peakRTs.add(new Float(scanRT));
 
         }
 
@@ -197,7 +197,7 @@ class EmptyGap {
     public Peak getEstimatedPeak() {
         if (bestPeak == null) {
             ConstructionPeak zeroPeak = new ConstructionPeak(null); // TODO
-            zeroPeak.addDatapoint(closestScanNumber, closestMZ, closestRT, 0.0);
+            zeroPeak.addDatapoint(closestScanNumber, closestMZ, closestRT, 0.0f);
             zeroPeak.finalizedAddingDatapoints();
             zeroPeak.setPeakStatus(PeakStatus.ESTIMATED);
             bestPeak = zeroPeak;
@@ -210,11 +210,11 @@ class EmptyGap {
      * determines if it is possible to add given m/z peak at the end of the
      * peak.
      */
-    private boolean checkRTShape(double nextRT, double nextInt,
-            double rangeMinRT, double rangeMaxRT) {
+    private boolean checkRTShape(float nextRT, float nextInt,
+            float rangeMinRT, float rangeMaxRT) {
 
         if (nextRT < rangeMinRT) {
-            double prevInt = peakInts.get(peakInts.size() - 1);
+            float prevInt = peakInts.get(peakInts.size() - 1);
             if (nextInt > (prevInt * (1 - intTolerance))) {
                 return true;
             }
@@ -225,7 +225,7 @@ class EmptyGap {
         }
 
         if (nextRT > rangeMaxRT) {
-            double prevInt = peakInts.get(peakInts.size() - 1);
+            float prevInt = peakInts.get(peakInts.size() - 1);
             if (nextInt < (prevInt * (1 + intTolerance))) {
                 return true;
             }
@@ -239,7 +239,7 @@ class EmptyGap {
 
         // 1) Check if previous peak has a local maximum inside the search range
         int highestMaximumInd = -1;
-        double highestMaximumHeight = 0;
+        float highestMaximumHeight = 0;
         for (int ind = 0; ind < peakRTs.size(); ind++) {
 
             if (peakRTs.get(ind) > rangeMaxRT) {
@@ -275,13 +275,13 @@ class EmptyGap {
             // 2) Find elution start and stop
 
             int startInd = highestMaximumInd;
-            double currentInt = peakInts.get(startInd);
+            float currentInt = peakInts.get(startInd);
             while (true) {
                 if (startInd == 0) {
                     break;
                 }
                 startInd--;
-                double nextInt = peakInts.get(startInd);
+                float nextInt = peakInts.get(startInd);
                 if (currentInt >= (nextInt * (1 - intTolerance))) {
                 } else {
                     break;
@@ -296,7 +296,7 @@ class EmptyGap {
                     break;
                 }
                 stopInd++;
-                double nextInt = peakInts.get(stopInd);
+                float nextInt = peakInts.get(stopInd);
                 if (nextInt <= (currentInt * (1 + intTolerance))) {
                 } else {
                     break;

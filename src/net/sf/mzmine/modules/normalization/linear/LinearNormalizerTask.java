@@ -28,12 +28,12 @@ import net.sf.mzmine.data.impl.SimpleParameterSet;
 import net.sf.mzmine.data.impl.SimplePeak;
 import net.sf.mzmine.data.impl.SimplePeakList;
 import net.sf.mzmine.data.impl.SimplePeakListRow;
-import net.sf.mzmine.io.OpenedRawDataFile;
+import net.sf.mzmine.io.RawDataFile;
 import net.sf.mzmine.taskcontrol.Task;
 
 public class LinearNormalizerTask implements Task {
 
-    static final double maximumOverallPeakHeightAfterNormalization = 100000.0;
+    static final float maximumOverallPeakHeightAfterNormalization = 100000.0f;
 
     private PeakList originalPeakList;
     private String normalizationTypeString;
@@ -97,13 +97,13 @@ public class LinearNormalizerTask implements Task {
 
         // Copy raw data files from original alignment result to new alignment
         // result
-        for (OpenedRawDataFile ord : originalPeakList.getRawDataFiles())
-            normalizedPeakList.addOpenedRawDataFile(ord);
+        for (RawDataFile ord : originalPeakList.getRawDataFiles())
+            normalizedPeakList.addRawDataFile(ord);
 
         // Loop through all raw data files, and find the peak with biggest
         // height
-        double maxOriginalHeight = 0.0;
-        for (OpenedRawDataFile ord : originalPeakList.getRawDataFiles()) {
+        float maxOriginalHeight = 0.0f;
+        for (RawDataFile ord : originalPeakList.getRawDataFiles()) {
             for (PeakListRow originalAlignmentRow : originalPeakList.getRows()) {
                 Peak p = originalAlignmentRow.getPeak(ord);
                 if (p != null)
@@ -113,7 +113,7 @@ public class LinearNormalizerTask implements Task {
         }
 
         // Loop through all raw data files, and normalize peak values
-        for (OpenedRawDataFile ord : originalPeakList.getRawDataFiles()) {
+        for (RawDataFile ord : originalPeakList.getRawDataFiles()) {
 
             if (status == TaskStatus.CANCELED) {
                 normalizedPeakList = null;
@@ -124,11 +124,11 @@ public class LinearNormalizerTask implements Task {
 
             // Determine normalization type and calculate normalization factor
             // accordingly
-            double normalizationFactor = 1.0;
+            float normalizationFactor = 1.0f;
 
             // - normalization by average squared peak intensity
             if (normalizationTypeString == LinearNormalizer.NormalizationTypeAverageIntensity) {
-                double intensitySum = 0.0;
+                float intensitySum = 0.0f;
                 int intensityCount = 0;
                 for (PeakListRow alignmentRow : originalPeakList.getRows()) {
                     Peak p = alignmentRow.getPeak(ord);
@@ -139,12 +139,12 @@ public class LinearNormalizerTask implements Task {
                         intensityCount++;
                     }
                 }
-                normalizationFactor = intensitySum / (double) intensityCount;
+                normalizationFactor = intensitySum / (float) intensityCount;
             }
 
             // - normalization by average squared peak intensity
             if (normalizationTypeString == LinearNormalizer.NormalizationTypeAverageSquaredIntensity) {
-                double intensitySum = 0.0;
+                float intensitySum = 0.0f;
                 int intensityCount = 0;
                 for (PeakListRow alignmentRow : originalPeakList.getRows()) {
                     Peak p = alignmentRow.getPeak(ord);
@@ -155,12 +155,12 @@ public class LinearNormalizerTask implements Task {
                         intensityCount++;
                     }
                 }
-                normalizationFactor = intensitySum / (double) intensityCount;
+                normalizationFactor = intensitySum / (float) intensityCount;
             }
 
             // - normalization by maximum peak intensity
             if (normalizationTypeString == LinearNormalizer.NormalizationTypeMaximumPeakHeight) {
-                double maximumIntensity = 0.0;
+                float maximumIntensity = 0.0f;
                 for (PeakListRow alignmentRow : originalPeakList.getRows()) {
                     Peak p = alignmentRow.getPeak(ord);
                     if (p != null) {
@@ -175,7 +175,7 @@ public class LinearNormalizerTask implements Task {
 
             // - normalization by total raw signal
             if (normalizationTypeString == LinearNormalizer.NormalizationTypeTotalRawSignal) {
-                normalizationFactor = ord.getCurrentFile().getDataTotalRawSignal(
+                normalizationFactor = ord.getDataTotalRawSignal(
                         1);
             }
 
@@ -185,7 +185,7 @@ public class LinearNormalizerTask implements Task {
             // Readjust normalization factor so that maximum height will be
             // equal to maximumOverallPeakHeightAfterNormalization after
             // normalization
-            double maxNormalizedHeight = maxOriginalHeight
+            float maxNormalizedHeight = maxOriginalHeight
                     / normalizationFactor;
             normalizationFactor = normalizationFactor * maxNormalizedHeight
                     / maximumOverallPeakHeightAfterNormalization;
@@ -195,9 +195,9 @@ public class LinearNormalizerTask implements Task {
                 Peak originalPeak = originalAlignmentRow.getPeak(ord);
                 if (originalPeak != null) {
                     SimplePeak normalizedPeak = new SimplePeak(originalPeak);
-                    double normalizedHeight = originalPeak.getHeight()
+                    float normalizedHeight = originalPeak.getHeight()
                             / normalizationFactor;
-                    double normalizedArea = originalPeak.getArea()
+                    float normalizedArea = originalPeak.getArea()
                             / normalizationFactor;
                     normalizedPeak.setHeight(normalizedHeight);
                     normalizedPeak.setArea(normalizedArea);

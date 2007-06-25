@@ -1044,7 +1044,7 @@ public class CDAPlot extends JInternalFrame implements MZmineModule, Printable, 
     /**
      * @see net.sf.mzmine.main.MZmineModule#initModule(net.sf.mzmine.main.MZmineCore)
      */
-    public void initModule(MZmineCore core) {
+    public void initModule() {
         // TODO Auto-generated method stub
         
     }

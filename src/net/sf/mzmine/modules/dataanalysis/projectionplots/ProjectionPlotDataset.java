@@ -2,13 +2,13 @@ package net.sf.mzmine.modules.dataanalysis.projectionplots;
 
 import java.awt.Color;
 
-import net.sf.mzmine.io.OpenedRawDataFile;
+import net.sf.mzmine.io.RawDataFile;
 
 import org.jfree.data.xy.XYDataset;
 
 public interface ProjectionPlotDataset extends XYDataset {
 
-	public OpenedRawDataFile getOpenedRawDataFile(int item);
+	public RawDataFile getRawDataFile(int item);
 	
 	public Color getColor(int item);
 	

@@ -27,7 +27,7 @@ import net.sf.mzmine.data.PeakList;
 import net.sf.mzmine.data.PeakListRow;
 import net.sf.mzmine.data.Peak;
 import net.sf.mzmine.data.Peak.PeakStatus;
-import net.sf.mzmine.io.OpenedRawDataFile;
+import net.sf.mzmine.io.RawDataFile;
 import net.sf.mzmine.io.export.PeakListExportColumns.CommonColumnType;
 import net.sf.mzmine.io.export.PeakListExportColumns.RawDataColumnType;
 
@@ -67,7 +67,7 @@ public class PeakListExporter {
         }
 
         RawDataColumnType[] selectedRawDataColumns = columnSelection.getSelectedRawDataColumns();
-        for (OpenedRawDataFile rawData : alignmentResult.getRawDataFiles()) {
+        for (RawDataFile rawData : alignmentResult.getRawDataFiles()) {
             for (RawDataColumnType c : selectedRawDataColumns) {
                 s += "\"" + rawData.toString() + ": " + c.getColumnName() + "\"\t";
             }
@@ -114,7 +114,7 @@ public class PeakListExporter {
             }
 
             // Loop through raw data files
-            for (OpenedRawDataFile rawData : alignmentResult.getRawDataFiles()) {
+            for (RawDataFile rawData : alignmentResult.getRawDataFiles()) {
                 Peak p = alignmentRow.getPeak(rawData);
 
                 selectedRawDataColumns = columnSelection.getSelectedRawDataColumns();

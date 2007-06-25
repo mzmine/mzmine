@@ -20,14 +20,14 @@
 package net.sf.mzmine.io.impl;
 
 import java.io.File;
+import java.io.IOException;
 import java.util.logging.Logger;
 
 import net.sf.mzmine.io.IOController;
-import net.sf.mzmine.io.OpenedRawDataFile;
-import net.sf.mzmine.io.mzxml.MZXMLFileOpeningTask;
-import net.sf.mzmine.io.netcdf.NetCDFFileOpeningTask;
+import net.sf.mzmine.io.PreloadLevel;
+import net.sf.mzmine.io.RawDataFile;
+import net.sf.mzmine.io.RawDataFileWriter;
 import net.sf.mzmine.main.MZmineCore;
-import net.sf.mzmine.project.MZmineProject;
 import net.sf.mzmine.taskcontrol.Task;
 import net.sf.mzmine.taskcontrol.TaskController;
 import net.sf.mzmine.taskcontrol.TaskListener;
@@ -53,41 +53,9 @@ public class IOControllerImpl implements IOController, TaskListener {
 
         for (File file : files) {
 
-            FileType fileType = determineFileType(file);
-
-            switch (fileType) {
-            case MZXML:
-                openTask = new MZXMLFileOpeningTask(file, preloadLevel);
-                taskController.addTask(openTask, this);
-                break;
-            case NETCDF:
-                openTask = new NetCDFFileOpeningTask(file, preloadLevel);
-                taskController.addTask(openTask, this);
-                break;
-            default:
-                logger.warning("Unknown file format of file " + file);
-                desktop.displayErrorMessage("Unknown file format of file "
-                        + file);
-                break;
-            }
-
+            openTask = new FileOpeningTask(file, preloadLevel);
+            taskController.addTask(openTask, this);
         }
-
-    }
-
-    public FileType determineFileType(File file) {
-
-        String extension;
-
-        extension = file.getName().substring(
-                file.getName().lastIndexOf(".") + 1).toLowerCase();
-        if (extension.endsWith("xml")) {
-            return FileType.MZXML;
-        }
-        if (extension.equals("cdf")) {
-            return FileType.NETCDF;
-        }
-        return FileType.UNKNOWN;
 
     }
 
@@ -100,8 +68,8 @@ public class IOControllerImpl implements IOController, TaskListener {
 
         if (task.getStatus() == Task.TaskStatus.FINISHED) {
 
-            OpenedRawDataFile newFile = (OpenedRawDataFile) task.getResult();
-            MZmineProject.getCurrentProject().addFile(newFile);
+            RawDataFile newFile = (RawDataFile) task.getResult();
+            MZmineCore.getCurrentProject().addFile(newFile);
 
         } else if (task.getStatus() == Task.TaskStatus.ERROR) {
             /* Task encountered an error */
@@ -122,8 +90,24 @@ public class IOControllerImpl implements IOController, TaskListener {
     /**
      * @see net.sf.mzmine.main.MZmineModule#initModule(net.sf.mzmine.main.MZmineCore)
      */
-    public void initModule(MZmineCore core) {
-        this.taskController = core.getTaskController();
-        this.desktop = core.getDesktop();
+    public void initModule() {
+        this.taskController = MZmineCore.getTaskController();
+        this.desktop = MZmineCore.getDesktop();
+    }
+
+    /**
+     * @see net.sf.mzmine.io.IOController#createNewFile(java.lang.String,
+     *      net.sf.mzmine.io.PreloadLevel)
+     */
+    public RawDataFileWriter createNewFile(String name,
+            PreloadLevel preloadLevel) throws IOException {
+        return new RawDataFileImpl(name, preloadLevel);
+    }
+
+    /**
+     * @see net.sf.mzmine.io.IOController#createNewFile(net.sf.mzmine.io.RawDataFile)
+     */
+    public RawDataFileWriter createNewFile(RawDataFile file) throws IOException {
+        return createNewFile(file.toString(), file.getPreloadLevel());
     }
 }

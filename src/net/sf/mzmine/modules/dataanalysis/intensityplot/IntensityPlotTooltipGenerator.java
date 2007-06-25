@@ -22,7 +22,8 @@ package net.sf.mzmine.modules.dataanalysis.intensityplot;
 import java.text.Format;
 
 import net.sf.mzmine.data.Peak;
-import net.sf.mzmine.io.OpenedRawDataFile;
+import net.sf.mzmine.io.RawDataFile;
+import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.userinterface.Desktop;
 import net.sf.mzmine.userinterface.mainwindow.MainWindow;
 
@@ -39,10 +40,10 @@ class IntensityPlotTooltipGenerator implements CategoryToolTipGenerator {
      *      int, int)
      */
     public String generateToolTip(CategoryDataset dataset, int row, int column) {
-        Desktop desktop = MainWindow.getInstance();
+        Desktop desktop = MZmineCore.getDesktop();
         Format intensityFormat = desktop.getIntensityFormat();
         Peak peak = ((IntensityPlotDataset) dataset).getPeak(row, column);
-        OpenedRawDataFile dataFile = ((IntensityPlotDataset) dataset).getFile(column);
+        RawDataFile dataFile = ((IntensityPlotDataset) dataset).getFile(column);
         return peak.toString() + ", " + dataFile.toString() + ", value: "
                 + intensityFormat.format(dataset.getValue(row, column));
     }

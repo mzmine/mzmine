@@ -26,8 +26,7 @@ import net.sf.mzmine.data.Peak;
 import net.sf.mzmine.data.PeakList;
 import net.sf.mzmine.data.PeakListRow;
 import net.sf.mzmine.data.Peak.PeakStatus;
-import net.sf.mzmine.io.OpenedRawDataFile;
-import net.sf.mzmine.userinterface.components.PeakXICComponent;
+import net.sf.mzmine.io.RawDataFile;
 
 public class PeakListTableModel extends AbstractTableModel {
 
@@ -103,7 +102,7 @@ public class PeakListTableModel extends AbstractTableModel {
         } else {
 
             DataFileColumnType dataFileColumn = getDataFileColumn(col);
-            OpenedRawDataFile file = getColumnDataFile(col);
+            RawDataFile file = getColumnDataFile(col);
             Peak peak = peakListRow.getPeak(file);
 
             if (peak == null) {
@@ -197,7 +196,7 @@ public class PeakListTableModel extends AbstractTableModel {
 
     }
 
-    OpenedRawDataFile getColumnDataFile(int col) {
+    RawDataFile getColumnDataFile(int col) {
 
         CommonColumnType commonColumns[] = CommonColumnType.values();
         DataFileColumnType dataFileColumns[] = DataFileColumnType.values();

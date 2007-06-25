@@ -1,10 +1,6 @@
 package net.sf.mzmine.modules.dataanalysis.projectionplots;
 
 import java.awt.Color;
-import java.io.BufferedWriter;
-import java.io.FileWriter;
-import java.io.IOException;
-import java.io.PrintWriter;
 import java.util.Hashtable;
 
 import jmprojection.PCA;
@@ -12,7 +8,7 @@ import jmprojection.Preprocess;
 import net.sf.mzmine.data.Peak;
 import net.sf.mzmine.data.PeakList;
 import net.sf.mzmine.data.impl.SimpleParameterSet;
-import net.sf.mzmine.io.OpenedRawDataFile;
+import net.sf.mzmine.io.RawDataFile;
 
 import org.jfree.data.xy.AbstractXYDataset;
 
@@ -20,15 +16,15 @@ public class PCADataset extends AbstractXYDataset implements ProjectionPlotDatas
 
 	private double[] component1Coords;
 	private double[] component2Coords;
-	private OpenedRawDataFile[] openedRawDataFiles;
-	private Hashtable<OpenedRawDataFile, Color> rawDataColors;
+	private RawDataFile[] openedRawDataFiles;
+	private Hashtable<RawDataFile, Color> rawDataColors;
 	
 	private String datasetTitle;
 	private int xAxisPC;
 	private int yAxisPC;
 	
 	
-	public PCADataset(PeakList peakList, Hashtable<OpenedRawDataFile, Color> rawDataColors, SimpleParameterSet parameters, int xAxisPC, int yAxisPC) {
+	public PCADataset(PeakList peakList, Hashtable<RawDataFile, Color> rawDataColors, SimpleParameterSet parameters, int xAxisPC, int yAxisPC) {
 		this.xAxisPC = xAxisPC;
 		this.yAxisPC = yAxisPC;
 		this.rawDataColors = rawDataColors;
@@ -43,7 +39,7 @@ public class PCADataset extends AbstractXYDataset implements ProjectionPlotDatas
 		datasetTitle = "Principal component analysis";
 		
 		// Pickup opened raw data files
-		openedRawDataFiles = new OpenedRawDataFile[numOfRawData];
+		openedRawDataFiles = new RawDataFile[numOfRawData];
 		for (int fileIndex=0; fileIndex<numOfRawData; fileIndex++) 
 			openedRawDataFiles[fileIndex] = peakList.getRawDataFile(fileIndex);
 		
@@ -53,7 +49,7 @@ public class PCADataset extends AbstractXYDataset implements ProjectionPlotDatas
 		double[][] rawData = new double[numOfRawData][numOfRows];
 		for (int rowIndex=0; rowIndex<numOfRows; rowIndex++) {
 			for (int fileIndex=0; fileIndex<numOfRawData; fileIndex++) {
-				OpenedRawDataFile orf = openedRawDataFiles[fileIndex];
+				RawDataFile orf = openedRawDataFiles[fileIndex];
 				Peak p = peakList.getPeak(rowIndex, orf);
 				if (p!=null) {
 					if (useArea)
@@ -163,7 +159,7 @@ public class PCADataset extends AbstractXYDataset implements ProjectionPlotDatas
 		return component2Coords[item];
 	}
 
-	public OpenedRawDataFile getOpenedRawDataFile(int item) {
+	public RawDataFile getRawDataFile(int item) {
 		return openedRawDataFiles[item];
 	}
 	

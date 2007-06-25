@@ -26,6 +26,7 @@ import java.util.logging.Logger;
 
 import javax.swing.UIManager;
 
+import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.userinterface.mainwindow.MainWindow;
 
 /**
@@ -48,7 +49,7 @@ public class LookAndFeelChanger implements ActionListener {
 			
 			UIManager.setLookAndFeel(event.getActionCommand());
 			
-			MainWindow.getInstance().repaint();
+			MZmineCore.getDesktop().getMainFrame().repaint();
 			
 		} catch (Exception e) {
 			logger.log(Level.WARNING, "L&F change failed", e);

@@ -35,6 +35,7 @@ import java.text.NumberFormat;
 import javax.swing.JPopupMenu;
 import javax.swing.KeyStroke;
 
+import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.modules.visualization.tic.TICVisualizerWindow.PlotType;
 import net.sf.mzmine.userinterface.Desktop;
 import net.sf.mzmine.userinterface.components.AddFilePopupMenu;
@@ -181,7 +182,7 @@ class TICPlot extends ChartPanel {
         plot.setDomainCrosshairStroke(crossHairStroke);
         plot.setRangeCrosshairStroke(crossHairStroke);
         
-        Desktop desktop = MainWindow.getInstance();
+        Desktop desktop = MZmineCore.getDesktop();
         NumberFormat rtFormat = desktop.getRTFormat();
         NumberFormat intensityFormat = desktop.getIntensityFormat();
 

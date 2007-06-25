@@ -25,6 +25,7 @@ package net.sf.mzmine.modules.visualization.tic;
 import java.text.DecimalFormat;
 import java.text.NumberFormat;
 
+import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.userinterface.Desktop;
 import net.sf.mzmine.userinterface.mainwindow.MainWindow;
 
@@ -79,7 +80,7 @@ class TICItemLabelGenerator implements XYItemLabelGenerator {
 
         }
 
-        Desktop desktop = MainWindow.getInstance();
+        Desktop desktop = MZmineCore.getDesktop();
         NumberFormat intensityFormat = desktop.getIntensityFormat();
         
         return intensityFormat.format(dataset.getYValue(series, item));

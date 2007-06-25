@@ -48,10 +48,8 @@ class BatchModeDialog extends JDialog implements ActionListener {
     static final int PADDING_SIZE = 5;
 
     private Logger logger = Logger.getLogger(this.getClass().getName());
-    
+
     private ExitCode exitCode = ExitCode.CANCEL;
-    
-    private MZmineCore core;
 
     private Vector<BatchStepWrapper> batchSteps;
 
@@ -60,20 +58,18 @@ class BatchModeDialog extends JDialog implements ActionListener {
     private JList currentStepsList;
     private JButton btnAdd, btnConfig, btnRemove, btnOK, btnCancel;
 
-    public BatchModeDialog(MZmineCore core,
-            Vector<BatchStepWrapper> batchSteps) {
+    public BatchModeDialog(Vector<BatchStepWrapper> batchSteps) {
 
         // make dialog modal
-        super(core.getDesktop().getMainFrame(), "Batch mode setup", true);
+        super(MZmineCore.getDesktop().getMainFrame(), "Batch mode setup", true);
 
-        this.core = core;
         this.batchSteps = batchSteps;
 
         currentStepsList = new JList(batchSteps);
         currentStepsList.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
 
         methodsCombo = new JComboBox();
-        for (MZmineModule mod : core.getAllModules()) {
+        for (MZmineModule mod : MZmineCore.getAllModules()) {
             if (mod instanceof BatchStep)
                 methodsCombo.addItem(mod);
         }
@@ -112,7 +108,7 @@ class BatchModeDialog extends JDialog implements ActionListener {
         // finalize the dialog
         pack();
         setResizable(false);
-        setLocationRelativeTo(core.getDesktop().getMainFrame());
+        setLocationRelativeTo(MZmineCore.getDesktop().getMainFrame());
 
     }
 
@@ -124,17 +120,18 @@ class BatchModeDialog extends JDialog implements ActionListener {
         Object src = event.getSource();
 
         if (src == btnOK) {
-            
+
             if (batchSteps.size() == 0) {
-                core.getDesktop().displayErrorMessage("Please select at least one method");
+                MZmineCore.getDesktop().displayErrorMessage(
+                        "Please select at least one method");
                 return;
             }
-            
+
             exitCode = ExitCode.OK;
             dispose();
             return;
         }
-        
+
         if (src == btnCancel) {
             exitCode = ExitCode.CANCEL;
             dispose();
@@ -145,20 +142,21 @@ class BatchModeDialog extends JDialog implements ActionListener {
 
             BatchStep selectedMethod = (BatchStep) methodsCombo.getSelectedItem();
             logger.finest("Adding " + selectedMethod);
-            
-            // clone the parameters to  
+
+            // clone the parameters to
             ParameterSet paramsCopy = selectedMethod.getParameterSet().clone();
             ExitCode exitCode = selectedMethod.setupParameters(paramsCopy);
             if (exitCode != ExitCode.OK)
                 return;
             selectedMethod.setParameters(paramsCopy);
-            
-            BatchStepWrapper newStep = new BatchStepWrapper(selectedMethod, paramsCopy);
+
+            BatchStepWrapper newStep = new BatchStepWrapper(selectedMethod,
+                    paramsCopy);
             batchSteps.add(newStep);
             currentStepsList.setListData(batchSteps);
             return;
         }
-        
+
         if (src == btnRemove) {
 
             BatchStepWrapper selected = (BatchStepWrapper) currentStepsList.getSelectedValue();
@@ -167,18 +165,19 @@ class BatchModeDialog extends JDialog implements ActionListener {
             currentStepsList.setListData(batchSteps);
             return;
         }
-        
+
         if (src == btnConfig) {
 
             BatchStepWrapper selected = (BatchStepWrapper) currentStepsList.getSelectedValue();
-            if (selected == null) return;
+            if (selected == null)
+                return;
             logger.finest("Configuring " + selected);
             selected.getMethod().setupParameters(selected.getParameters());
             return;
         }
 
     }
-    
+
     public ExitCode getExitCode() {
         return exitCode;
     }

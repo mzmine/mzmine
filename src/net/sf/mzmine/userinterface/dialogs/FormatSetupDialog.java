@@ -32,9 +32,9 @@ import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JRadioButton;
 import javax.swing.JTextField;
-import javax.swing.JTextPane;
 
-import net.sf.mzmine.userinterface.mainwindow.MainWindow;
+import net.sf.mzmine.main.MZmineCore;
+import net.sf.mzmine.userinterface.Desktop;
 import net.sf.mzmine.util.GUIUtils;
 import net.sf.mzmine.util.NumberFormatter;
 import net.sf.mzmine.util.NumberFormatter.FormatterType;
@@ -142,7 +142,7 @@ public class FormatSetupDialog extends JDialog implements ActionListener {
     public void actionPerformed(ActionEvent ae) {
 
         Object src = ae.getSource();
-        MainWindow desktop = MainWindow.getInstance();
+        Desktop desktop = MZmineCore.getDesktop();
 
         if (src == btnOK) {
 
@@ -182,7 +182,7 @@ public class FormatSetupDialog extends JDialog implements ActionListener {
             dispose();
 
             // repaint to update all formatted numbers
-            desktop.repaint();
+            desktop.getMainFrame().repaint();
 
         }
 

@@ -22,8 +22,8 @@ package net.sf.mzmine.modules.visualization.tic;
 import java.util.Date;
 
 import net.sf.mzmine.data.Scan;
-import net.sf.mzmine.io.OpenedRawDataFile;
-import net.sf.mzmine.io.RawDataAcceptor;
+import net.sf.mzmine.io.RawDataFile;
+import net.sf.mzmine.io.util.RawDataAcceptor;
 import net.sf.mzmine.modules.visualization.tic.TICVisualizerWindow.PlotType;
 import net.sf.mzmine.util.ScanUtils;
 
@@ -39,24 +39,23 @@ class TICDataSet extends DefaultTableXYDataset implements RawDataAcceptor {
     private static final int REDRAW_INTERVAL = 100;
 
     private TICVisualizerWindow visualizer;
-    private OpenedRawDataFile dataFile;
+    private RawDataFile dataFile;
     //private RawDataFile rawDataFile;
     private int[] scanNumbers;
-    private double[] mzValues;
+    private float[] mzValues;
     private XYSeries series;
-    private double mzMin, mzMax;
+    private float mzMin, mzMax;
 
     private static Date lastRedrawTime = new Date();
 
-    TICDataSet(/* TaskController taskController, */ OpenedRawDataFile dataFile,
-            int scanNumbers[], double mzMin, double mzMax,
+    TICDataSet(/* TaskController taskController, */ RawDataFile dataFile,
+            int scanNumbers[], float mzMin, float mzMax,
             TICVisualizerWindow visualizer) {
 
         this.visualizer = visualizer;
         this.mzMin = mzMin;
         this.mzMax = mzMax;
         this.dataFile = dataFile;
-//        this.rawDataFile = dataFile.getCurrentFile();
         this.scanNumbers = scanNumbers;
 
         series = new XYSeries(dataFile.toString(), false, false);
@@ -64,7 +63,7 @@ class TICDataSet extends DefaultTableXYDataset implements RawDataAcceptor {
         addSeries(series);
 
         if (visualizer.getPlotType() == PlotType.BASE_PEAK)
-            mzValues = new double[scanNumbers.length];
+            mzValues = new float[scanNumbers.length];
 /*
         Task updateTask = new RawDataRetrievalTask(rawDataFile, scanNumbers,
                 "Updating TIC visualizer of " + dataFile, this);
@@ -73,7 +72,7 @@ class TICDataSet extends DefaultTableXYDataset implements RawDataAcceptor {
 */
     }
 
-    int getSeriesIndex(double retentionTime, double intensity) {
+    int getSeriesIndex(float retentionTime, float intensity) {
         int seriesIndex = series.indexOf(retentionTime);
         if (seriesIndex < 0)
             return -1;
@@ -86,11 +85,11 @@ class TICDataSet extends DefaultTableXYDataset implements RawDataAcceptor {
         return scanNumbers[index];
     }
 
-    double getMZValue(int index) {
+    float getMZValue(int index) {
         return mzValues[index];
     }
 
-    OpenedRawDataFile getDataFile() {
+    RawDataFile getDataFile() {
         return dataFile;
     }
 
@@ -99,14 +98,14 @@ class TICDataSet extends DefaultTableXYDataset implements RawDataAcceptor {
      */
     public void addScan(Scan scan, int index, int total) {
 
-        double intensityValues[] = scan.getIntensityValues();
+        float intensityValues[] = scan.getIntensityValues();
 
-        double totalIntensity = 0;
+        float totalIntensity = 0;
 
         switch (visualizer.getPlotType()) {
 
         case TIC:
-            double mzValues[] = scan.getMZValues();
+            float mzValues[] = scan.getMZValues();
             for (int j = 0; j < intensityValues.length; j++) {
                 if ((mzValues[j] >= mzMin) && (mzValues[j] <= mzMax))
                     totalIntensity += intensityValues[j];
@@ -114,7 +113,7 @@ class TICDataSet extends DefaultTableXYDataset implements RawDataAcceptor {
             break;
 
         case BASE_PEAK:
-            double basePeak[] = ScanUtils.findBasePeak(scan, mzMin, mzMax);
+            float basePeak[] = ScanUtils.findBasePeak(scan, mzMin, mzMax);
             this.mzValues[series.getItemCount()] = basePeak[0];
             totalIntensity = basePeak[1];
             break;

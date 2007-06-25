@@ -25,6 +25,7 @@ import java.util.logging.Handler;
 import java.util.logging.Level;
 import java.util.logging.LogRecord;
 
+import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.userinterface.Desktop;
 import net.sf.mzmine.userinterface.mainwindow.MainWindow;
 
@@ -45,7 +46,7 @@ public class StatusBarHandler extends Handler {
         if (record.getLevel().intValue() < infoLevel) return;
         
         // get Desktop instance from MainWindow
-        Desktop desktop = MainWindow.getInstance();
+        Desktop desktop = MZmineCore.getDesktop();
         if (desktop != null) {
 
             // format the message

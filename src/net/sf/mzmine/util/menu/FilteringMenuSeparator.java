@@ -32,8 +32,8 @@ public class FilteringMenuSeparator implements MZmineModule {
     /**
      * @see net.sf.mzmine.main.MZmineModule#initModule(net.sf.mzmine.main.MZmineCore)
      */
-    public void initModule(MZmineCore core) {
-        core.getDesktop().addMenuSeparator(MZmineMenu.FILTERING);
+    public void initModule() {
+        MZmineCore.getDesktop().addMenuSeparator(MZmineMenu.FILTERING);
     }
 
     /**

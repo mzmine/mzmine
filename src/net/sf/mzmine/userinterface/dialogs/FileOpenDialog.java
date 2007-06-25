@@ -31,7 +31,7 @@ import javax.swing.JDialog;
 import javax.swing.JFileChooser;
 
 import net.sf.mzmine.io.IOController;
-import net.sf.mzmine.io.IOController.PreloadLevel;
+import net.sf.mzmine.io.PreloadLevel;
 import net.sf.mzmine.userinterface.Desktop;
 
 import com.sun.java.ExampleFileFilter;

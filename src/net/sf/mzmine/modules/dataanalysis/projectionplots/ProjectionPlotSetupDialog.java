@@ -1,16 +1,11 @@
 package net.sf.mzmine.modules.dataanalysis.projectionplots;
 
 import java.awt.Color;
-import java.awt.Frame;
 import java.awt.event.ActionListener;
-import java.io.File;
-import java.io.IOException;
 import java.util.Hashtable;
-import java.util.Vector;
 
 import javax.swing.ButtonGroup;
 import javax.swing.DefaultCellEditor;
-import javax.swing.JComboBox;
 import javax.swing.JDialog;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
@@ -18,16 +13,10 @@ import javax.swing.JRadioButton;
 import javax.swing.JTable;
 import javax.swing.table.AbstractTableModel;
 
-import net.sf.mzmine.data.ParameterSet;
 import net.sf.mzmine.data.PeakList;
 import net.sf.mzmine.data.impl.SimpleParameterSet;
-import net.sf.mzmine.io.OpenedRawDataFile;
 import net.sf.mzmine.io.RawDataFile;
-import net.sf.mzmine.io.RawDataFileWriter;
-import net.sf.mzmine.io.OpenedRawDataFile.Operation;
-import net.sf.mzmine.modules.BatchStep;
 import net.sf.mzmine.userinterface.Desktop;
-import net.sf.mzmine.userinterface.components.interpolatinglookuppaintscale.InterpolatingLookupPaintScaleSetupDialogTableCellRenderer;
 import net.sf.mzmine.userinterface.dialogs.ExitCode;
 
 public class ProjectionPlotSetupDialog extends JDialog implements ActionListener {
@@ -38,9 +27,9 @@ public class ProjectionPlotSetupDialog extends JDialog implements ActionListener
 	
 	private SimpleParameterSet parameters;
 
-	private OpenedRawDataFile[] rawDataFiles;
+	private RawDataFile[] rawDataFiles;
 	
-	private Hashtable<OpenedRawDataFile, Color> rawDataColors;	
+	private Hashtable<RawDataFile, Color> rawDataColors;	
 
 	private ExitCode exitCode = ExitCode.UNKNOWN;
 	
@@ -59,8 +48,8 @@ public class ProjectionPlotSetupDialog extends JDialog implements ActionListener
 		this.parameters = parameters;
 		rawDataFiles = peakList.getRawDataFiles();
 		
-		rawDataColors = new Hashtable<OpenedRawDataFile, Color>();
-		for (OpenedRawDataFile rdf : rawDataFiles)
+		rawDataColors = new Hashtable<RawDataFile, Color>();
+		for (RawDataFile rdf : rawDataFiles)
 			rawDataColors.put(rdf, colors[0]);
 			
 
@@ -184,7 +173,7 @@ public class ProjectionPlotSetupDialog extends JDialog implements ActionListener
 		
 	}
 	
-	public Hashtable<OpenedRawDataFile, Color> getRawDataColors() {
+	public Hashtable<RawDataFile, Color> getRawDataColors() {
 		return rawDataColors;
 	}
 	
@@ -227,11 +216,11 @@ public class ProjectionPlotSetupDialog extends JDialog implements ActionListener
 
 		String[] colNames = { "File", "Color" };
 
-		private OpenedRawDataFile[] files;
+		private RawDataFile[] files;
 		private Color[] colors;
 		private JTable table;
 
-		public ColorTableModel(JTable table, OpenedRawDataFile[] files, Color[] colors) {
+		public ColorTableModel(JTable table, RawDataFile[] files, Color[] colors) {
 			this.table = table;
 			this.files = files;
 			this.colors = colors;

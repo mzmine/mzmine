@@ -23,8 +23,6 @@ import java.awt.BorderLayout;
 import java.awt.Dimension;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.awt.event.MouseEvent;
-import java.awt.event.MouseListener;
 
 import javax.swing.DefaultListModel;
 import javax.swing.JLabel;
@@ -35,8 +33,8 @@ import javax.swing.JSplitPane;
 import javax.swing.event.ListSelectionListener;
 
 import net.sf.mzmine.data.PeakList;
-import net.sf.mzmine.io.OpenedRawDataFile;
-import net.sf.mzmine.project.MZmineProject;
+import net.sf.mzmine.io.RawDataFile;
+import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.userinterface.Desktop;
 import net.sf.mzmine.userinterface.components.DragOrderedJList;
 import net.sf.mzmine.userinterface.components.PopupListener;
@@ -118,9 +116,9 @@ public class ItemSelector extends JPanel implements
         String command = e.getActionCommand();
 
         if (command.equals("CLOSE")) {
-            OpenedRawDataFile[] selectedFiles = getSelectedRawData();
-            for (OpenedRawDataFile file : selectedFiles)
-                MZmineProject.getCurrentProject().removeFile(file);
+            RawDataFile[] selectedFiles = getSelectedRawData();
+            for (RawDataFile file : selectedFiles)
+                MZmineCore.getCurrentProject().removeFile(file);
         }
 
     }
@@ -128,14 +126,14 @@ public class ItemSelector extends JPanel implements
     /**
      * Adds a raw data object to storage
      */
-    public void addRawData(OpenedRawDataFile r) {
+    public void addRawData(RawDataFile r) {
         rawDataObjects.addElement(r);
     }
 
     /**
      * Removes a raw data object from storage
      */
-    public boolean removeRawData(OpenedRawDataFile r) {
+    public boolean removeRawData(RawDataFile r) {
         boolean ans = rawDataObjects.removeElement(r);
         return ans;
     }
@@ -143,22 +141,22 @@ public class ItemSelector extends JPanel implements
     /**
      * Replaces a raw data object in the list with a new file
      */
-    public void replaceRawData(OpenedRawDataFile oldFile,
-            OpenedRawDataFile newFile) {
+    public void replaceRawData(RawDataFile oldFile,
+            RawDataFile newFile) {
         rawDataObjects.setElementAt(newFile, rawDataObjects.indexOf(oldFile));
     }
 
     /**
      * Returns selected raw data objects in an array
      */
-    public OpenedRawDataFile[] getSelectedRawData() {
+    public RawDataFile[] getSelectedRawData() {
 
         Object o[] = rawDataList.getSelectedValues();
 
-        OpenedRawDataFile res[] = new OpenedRawDataFile[o.length];
+        RawDataFile res[] = new RawDataFile[o.length];
 
         for (int i = 0; i < o.length; i++) {
-            res[i] = (OpenedRawDataFile) (o[i]);
+            res[i] = (RawDataFile) (o[i]);
         }
 
         return res;
@@ -168,14 +166,14 @@ public class ItemSelector extends JPanel implements
     /**
      * Returns first selected raw data file
      */
-    public OpenedRawDataFile getFirstSelectedRawData() {
-        return (OpenedRawDataFile) rawDataList.getSelectedValue();
+    public RawDataFile getFirstSelectedRawData() {
+        return (RawDataFile) rawDataList.getSelectedValue();
     }
 
     /**
      * Sets the active raw data item in the list
      */
-    public void setActiveRawData(OpenedRawDataFile rawData) {
+    public void setActiveRawData(RawDataFile rawData) {
         rawDataList.setSelectedValue(rawData, true);
     }
 

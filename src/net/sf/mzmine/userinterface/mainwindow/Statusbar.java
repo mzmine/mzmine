@@ -50,9 +50,8 @@ public class Statusbar extends JPanel implements MouseListener, Runnable {
 
     private final int statusBarHeight = 25;
 
-    Statusbar(MZmineCore core) {
+    Statusbar() {
 
-        mainWin = (MainWindow) core.getDesktop();
 
         setLayout(new BoxLayout(this, BoxLayout.X_AXIS));
         setBorder(new EtchedBorder());
@@ -62,7 +61,7 @@ public class Statusbar extends JPanel implements MouseListener, Runnable {
                 BoxLayout.X_AXIS));
         statusTextPanel.setBorder(new EtchedBorder(EtchedBorder.RAISED));
 
-        TaskControllerImpl tc = (TaskControllerImpl) core.getTaskController();
+        TaskControllerImpl tc = (TaskControllerImpl) MZmineCore.getTaskController();
         BoundedRangeModel progressModel = tc.getTaskQueue();
         statusProgBar = new JProgressBar(progressModel);
         statusProgBar.setMinimumSize(new Dimension(100, statusBarHeight));

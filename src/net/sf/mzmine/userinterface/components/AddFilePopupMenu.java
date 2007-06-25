@@ -29,9 +29,9 @@ import javax.swing.JMenuItem;
 import javax.swing.event.MenuEvent;
 import javax.swing.event.MenuListener;
 
-import net.sf.mzmine.io.OpenedRawDataFile;
+import net.sf.mzmine.io.RawDataFile;
+import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.modules.MultipleRawDataVisualizer;
-import net.sf.mzmine.project.MZmineProject;
 
 /**
  * 
@@ -39,7 +39,7 @@ import net.sf.mzmine.project.MZmineProject;
 public class AddFilePopupMenu extends JMenu implements MenuListener,
         ActionListener {
 
-    private Hashtable<JMenuItem, OpenedRawDataFile> menuItemFiles;
+    private Hashtable<JMenuItem, RawDataFile> menuItemFiles;
     private MultipleRawDataVisualizer visualizer;
 
     public AddFilePopupMenu(MultipleRawDataVisualizer visualizer) {
@@ -54,13 +54,13 @@ public class AddFilePopupMenu extends JMenu implements MenuListener,
     public void menuSelected(MenuEvent event) {
 
         removeAll();
-        OpenedRawDataFile[] openFiles = MZmineProject.getCurrentProject().getDataFiles();
-        HashSet<OpenedRawDataFile> visualizedFiles = new HashSet<OpenedRawDataFile>();
-        for (OpenedRawDataFile file : visualizer.getRawDataFiles())
+        RawDataFile[] openFiles = MZmineCore.getCurrentProject().getDataFiles();
+        HashSet<RawDataFile> visualizedFiles = new HashSet<RawDataFile>();
+        for (RawDataFile file : visualizer.getRawDataFiles())
             visualizedFiles.add(file);
 
-        menuItemFiles = new Hashtable<JMenuItem, OpenedRawDataFile>();
-        for (OpenedRawDataFile file : openFiles) {
+        menuItemFiles = new Hashtable<JMenuItem, RawDataFile>();
+        for (RawDataFile file : openFiles) {
             if (visualizedFiles.contains(file))
                 continue;
 
@@ -91,7 +91,7 @@ public class AddFilePopupMenu extends JMenu implements MenuListener,
      */
     public void actionPerformed(ActionEvent event) {
         Object src = event.getSource();
-        OpenedRawDataFile file = menuItemFiles.get(src);
+        RawDataFile file = menuItemFiles.get(src);
         if (file != null)
             visualizer.addRawDataFile(file);
     }

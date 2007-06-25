@@ -24,7 +24,7 @@ import java.util.Set;
 
 import net.sf.mzmine.data.IsotopePattern;
 import net.sf.mzmine.data.Peak;
-import net.sf.mzmine.io.OpenedRawDataFile;
+import net.sf.mzmine.io.RawDataFile;
 
 /**
  * 
@@ -102,63 +102,63 @@ public class SimpleIsotopePattern implements IsotopePattern {
     /**
      * @see net.sf.mzmine.data.Peak#getArea()
      */
-    public double getArea() {
+    public float getArea() {
         return representativePeak.getArea();
     }
 
     /**
      * @see net.sf.mzmine.data.Peak#getDataFile()
      */
-    public OpenedRawDataFile getDataFile() {
+    public RawDataFile getDataFile() {
         return representativePeak.getDataFile();
     }
 
     /**
      * @see net.sf.mzmine.data.Peak#getDuration()
      */
-    public double getDuration() {
+    public float getDuration() {
         return representativePeak.getDuration();
     }
 
     /**
      * @see net.sf.mzmine.data.Peak#getHeight()
      */
-    public double getHeight() {
+    public float getHeight() {
         return representativePeak.getHeight();
     }
 
     /**
      * @see net.sf.mzmine.data.Peak#getMZ()
      */
-    public double getMZ() {
+    public float getMZ() {
         return representativePeak.getMZ();
     }
 
     /**
      * @see net.sf.mzmine.data.Peak#getDataPointMaxMZ()
      */
-    public double getDataPointMaxMZ() {
+    public float getDataPointMaxMZ() {
         return representativePeak.getDataPointMaxMZ();
     }
 
     /**
      * @see net.sf.mzmine.data.Peak#getDataPointMaxRT()
      */
-    public double getDataPointMaxRT() {
+    public float getDataPointMaxRT() {
         return representativePeak.getDataPointMaxRT();
     }
 
     /**
      * @see net.sf.mzmine.data.Peak#getDataPointMinMZ()
      */
-    public double getDataPointMinMZ() {
+    public float getDataPointMinMZ() {
         return representativePeak.getDataPointMinMZ();
     }
 
     /**
      * @see net.sf.mzmine.data.Peak#getDataPointMinRT()
      */
-    public double getDataPointMinRT() {
+    public float getDataPointMinRT() {
         return representativePeak.getDataPointMinRT();
     }
 
@@ -172,14 +172,14 @@ public class SimpleIsotopePattern implements IsotopePattern {
     /**
      * @see net.sf.mzmine.data.Peak#getRT()
      */
-    public double getRT() {
+    public float getRT() {
         return representativePeak.getRT();
     }
 
     /**
      * @see net.sf.mzmine.data.Peak#getRawDatapoints(int)
      */
-    public double[][] getRawDatapoints(int scanNumber) {
+    public float[][] getRawDatapoints(int scanNumber) {
         return representativePeak.getRawDatapoints(scanNumber);
     }
 
@@ -200,7 +200,7 @@ public class SimpleIsotopePattern implements IsotopePattern {
     /**
      * @see net.sf.mzmine.data.Peak#getDataPointMaxIntensity()
      */
-    public double getDataPointMaxIntensity() {
+    public float getDataPointMaxIntensity() {
         return representativePeak.getDataPointMaxIntensity();
     }
 

@@ -23,8 +23,6 @@ import java.awt.Font;
 
 import javax.swing.JCheckBox;
 
-import net.sf.mzmine.io.OpenedRawDataFile;
-
 /**
  * Checkbox wrapper class
  */

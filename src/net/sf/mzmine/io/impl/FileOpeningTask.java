@@ -17,22 +17,28 @@
  * Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-package net.sf.mzmine.io.netcdf;
+package net.sf.mzmine.io.impl;
 
 import java.io.File;
+import java.io.IOException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import net.sf.mzmine.data.Scan;
-import net.sf.mzmine.io.OpenedRawDataFile;
-import net.sf.mzmine.io.IOController.PreloadLevel;
-import net.sf.mzmine.io.impl.OpenedRawDataFileImpl;
+import net.sf.mzmine.io.IOController;
+import net.sf.mzmine.io.PreloadLevel;
+import net.sf.mzmine.io.RawDataFile;
+import net.sf.mzmine.io.RawDataFileReader;
+import net.sf.mzmine.io.RawDataFileWriter;
+import net.sf.mzmine.io.readers.MzXMLv1_1_1Reader;
+import net.sf.mzmine.io.readers.NetCDFFileReader;
+import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.taskcontrol.DistributableTask;
 
 /**
  * 
  */
-public class NetCDFFileOpeningTask implements DistributableTask {
+public class FileOpeningTask implements DistributableTask {
 
     private Logger logger = Logger.getLogger(this.getClass().getName());
 
@@ -41,20 +47,21 @@ public class NetCDFFileOpeningTask implements DistributableTask {
     private String errorMessage;
 
     private int parsedScans;
-    private int totalScans;
 
-    private NetCDFFile buildingFile;
-    private OpenedRawDataFile newMZmineFile;
-    private Scan buildingScan;
-
+    private RawDataFileWriter buildingFile;
+    private RawDataFileReader reader;
+    private RawDataFile resultFile;
+    private PreloadLevel preloadLevel;
+    
     /**
      * 
      */
-    public NetCDFFileOpeningTask(File fileToOpen, PreloadLevel preloadLevel) {
+    public FileOpeningTask(File fileToOpen, PreloadLevel preloadLevel) {
+        
         originalFile = fileToOpen;
+        this.preloadLevel = preloadLevel;
         status = TaskStatus.WAITING;
-
-        buildingFile = new NetCDFFile(fileToOpen, preloadLevel);
+        
     }
 
     /**
@@ -68,7 +75,9 @@ public class NetCDFFileOpeningTask implements DistributableTask {
      * @see net.sf.mzmine.taskcontrol.Task#getFinishedPercentage()
      */
     public float getFinishedPercentage() {
-        return totalScans == 0 ? 0 : (float) parsedScans / totalScans;
+        if (reader == null) return 0;
+        int totalScans = reader.getNumberOfScans();
+        return totalScans <= 0 ? 0 : (float) parsedScans / totalScans;
     }
 
     /**
@@ -88,8 +97,8 @@ public class NetCDFFileOpeningTask implements DistributableTask {
     /**
      * @see net.sf.mzmine.taskcontrol.Task#getResult()
      */
-    public OpenedRawDataFile getResult() {
-        return newMZmineFile;
+    public RawDataFile getResult() {
+        return resultFile;
     }
 
     /**
@@ -98,39 +107,55 @@ public class NetCDFFileOpeningTask implements DistributableTask {
     public void run() {
 
         // Update task status
-        status = TaskStatus.PROCESSING;
         logger.info("Started parsing file " + originalFile);
+        status = TaskStatus.PROCESSING;
 
         try {
+            
+            String fileName = originalFile.getName();
+            IOController ioController = MZmineCore.getIOController();
+            
+            // Create new RawDataFile instance 
+            buildingFile = ioController.createNewFile(fileName, preloadLevel);
 
-            // Initialize parser
-            NetCDFFileParser cdfParser = new NetCDFFileParser(originalFile);
-            buildingFile.addParser(cdfParser);
-
-            // Open netCDF file and read general information
-            cdfParser.openFile();
-            cdfParser.readGeneralInformation();
-
-            // Parse scans
-            totalScans = cdfParser.getTotalScans();
-            for (int i = 0; i < totalScans; i++) {
-                buildingScan = cdfParser.parseScan(i);
-                buildingFile.addScan(buildingScan);
-                parsedScans++;
-
-                // Check if cancel is requested
-                if (status == TaskStatus.CANCELED) {
-                    // Close netCDF file
-                    cdfParser.closeFile();
-                    return;
-                }
+            // Determine parser
+            String extension = fileName.substring(
+                    fileName.lastIndexOf(".") + 1).toLowerCase();
+            
+            if (extension.endsWith("xml")) {
+                reader = new MzXMLv1_1_1Reader(originalFile);
+            }
+            
+            if (extension.endsWith("cdf")) {
+                reader = new NetCDFFileReader(originalFile);
             }
 
-            // Close netCDF file
-            //cdfParser.closeFile();
+            if (reader == null) {
+                throw(new IOException("Cannot determine file type of file " + originalFile)); 
+            }
 
-            newMZmineFile = new OpenedRawDataFileImpl(buildingFile,
-                    buildingFile.getDataDescription());
+            // Open file
+            reader.startReading();
+
+            // Parse scans
+            Scan scan;
+            while ((scan = reader.readNextScan()) != null) {
+            
+                // Check if cancel is requested
+                if (status == TaskStatus.CANCELED) {
+                    return;
+                }
+            
+                buildingFile.addScan(scan);
+                parsedScans++;
+
+            }
+            
+            // Close file
+            reader.finishReading();
+            
+            resultFile = buildingFile.finishWriting();
+
 
         } catch (Throwable e) {
             logger.log(Level.SEVERE, "Could not open file "
@@ -143,7 +168,6 @@ public class NetCDFFileOpeningTask implements DistributableTask {
         logger.info("Finished parsing " + originalFile + ", parsed "
                 + parsedScans + " scans");
         
-        // Update task status
         status = TaskStatus.FINISHED;
 
     }
@@ -152,7 +176,7 @@ public class NetCDFFileOpeningTask implements DistributableTask {
      * @see net.sf.mzmine.taskcontrol.Task#cancel()
      */
     public void cancel() {
-        logger.info("Cancelling opening of NETCDF file " + originalFile);
+        logger.info("Cancelling opening of file " + originalFile);
         status = TaskStatus.CANCELED;
     }
 

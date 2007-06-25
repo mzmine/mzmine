@@ -1,5 +1,5 @@
 /*
- * Copyright 2006 The MZmine Development Team
+ * Copyright 2006-2007 The MZmine Development Team
  * 
  * This file is part of MZmine.
  * 
@@ -18,6 +18,8 @@
  */
 
 package net.sf.mzmine.data;
+
+import java.io.IOException;
 
 /**
  * This class represent one spectrum of a raw data file.
@@ -40,49 +42,49 @@ public interface Scan {
      * 
      * @return Mass tolerance in m/z, depending on instrument precision
      */
-    public double getMassTolerance();
+    public float getMassTolerance();
 
     /**
      * 
      * @return Retention time of this scan
      */
-    public double getRetentionTime();
+    public float getRetentionTime();
 
     /**
      * 
      * @return Minimum m/z of this scan
      */
-    public double getMZRangeMin();
+    public float getMZRangeMin();
 
     /**
      * 
      * @return Maxmimum m/z of this scan
      */
-    public double getMZRangeMax();
+    public float getMZRangeMax();
 
     /**
      * 
      * @return Base peak m/z
      */
-    public double getBasePeakMZ();
+    public float getBasePeakMZ();
 
     /**
      * 
      * @return Base peak intensity
      */
-    public double getBasePeakIntensity();
+    public float getBasePeakIntensity();
 
     /**
      * 
      * @return m/z values of this scan
      */
-    public double[] getMZValues();
+    public float[] getMZValues();
 
     /**
      * 
      * @return Intensity values of this scan
      */
-    public double[] getIntensityValues();
+    public float[] getIntensityValues();
 
     /**
      * 
@@ -106,7 +108,7 @@ public interface Scan {
      * 
      * @return Precursor m/z or 0 if this is not MSn scan
      */
-    public double getPrecursorMZ();
+    public float getPrecursorMZ();
     
     /**
      * 

@@ -38,8 +38,8 @@ import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JTextField;
 
-import net.sf.mzmine.io.OpenedRawDataFile;
 import net.sf.mzmine.io.RawDataFile;
+import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.taskcontrol.TaskController;
 import net.sf.mzmine.userinterface.Desktop;
 import net.sf.mzmine.util.CollectionUtils;
@@ -51,7 +51,7 @@ import net.sf.mzmine.util.GUIUtils;
 public class SpectraSetupDialog extends JDialog implements ActionListener {
 
     private Logger logger = Logger.getLogger(this.getClass().getName());
-    
+
     static final int PADDING_SIZE = 5;
 
     static final String DEFAULT_MZ_BIN_SIZE = "0.1";
@@ -66,20 +66,17 @@ public class SpectraSetupDialog extends JDialog implements ActionListener {
 
     private static final NumberFormat format = NumberFormat.getNumberInstance();
 
-    private TaskController taskController;
     private Desktop desktop;
-    private OpenedRawDataFile dataFile;
+    private RawDataFile dataFile;
 
-    public SpectraSetupDialog(TaskController taskController, Desktop desktop,
-            OpenedRawDataFile dataFile) {
+    public SpectraSetupDialog(RawDataFile dataFile) {
 
         // Make dialog modal
-        super(desktop.getMainFrame(), "Spectra visualizer parameters", true);
+        super(MZmineCore.getDesktop().getMainFrame(),
+                "Spectra visualizer parameters", true);
 
-        this.taskController = taskController;
-        this.desktop = desktop;
+        this.desktop = MZmineCore.getDesktop();
         this.dataFile = dataFile;
-        RawDataFile rawDataFile = dataFile.getCurrentFile();
 
         GridBagConstraints constraints = new GridBagConstraints();
 
@@ -101,8 +98,7 @@ public class SpectraSetupDialog extends JDialog implements ActionListener {
         constraints.gridheight = 1;
         layout.setConstraints(comp, constraints);
 
-        comp = GUIUtils.addLabel(components, dataFile.toString(),
-                JLabel.LEFT);
+        comp = GUIUtils.addLabel(components, dataFile.toString(), JLabel.LEFT);
         constraints.gridx = 1;
         constraints.gridy = 0;
         constraints.gridwidth = 2;
@@ -162,7 +158,7 @@ public class SpectraSetupDialog extends JDialog implements ActionListener {
         constraints.gridheight = 1;
         layout.setConstraints(comp, constraints);
 
-        Integer msLevels[] = CollectionUtils.toIntegerArray(rawDataFile.getMSLevels());
+        Integer msLevels[] = CollectionUtils.toIntegerArray(dataFile.getMSLevels());
 
         comboNumbersMSlevel = new JComboBox(msLevels);
         comboNumbersMSlevel.addActionListener(this);
@@ -371,13 +367,12 @@ public class SpectraSetupDialog extends JDialog implements ActionListener {
 
     }
 
-    public SpectraSetupDialog(TaskController taskController, Desktop desktop,
-            OpenedRawDataFile dataFile, int msLevel, int scanNumber) {
+    public SpectraSetupDialog(RawDataFile dataFile, int msLevel, int scanNumber) {
 
-        this(taskController, desktop, dataFile);
+        this(dataFile);
 
         String scanNumberString = String.valueOf(scanNumber);
-        String retentionTimeString = String.valueOf(dataFile.getCurrentFile().getRetentionTime(scanNumber));
+        String retentionTimeString = String.valueOf(dataFile.getScan(scanNumber).getRetentionTime());
 
         for (int i = 0; i < comboNumbersMSlevel.getItemCount(); i++) {
             Object item = comboNumbersMSlevel.getItemAt(i);
@@ -395,26 +390,27 @@ public class SpectraSetupDialog extends JDialog implements ActionListener {
         fieldMaxScanTime.setText(retentionTimeString);
 
     }
-    
-    public SpectraSetupDialog(TaskController taskController, Desktop desktop,
-            OpenedRawDataFile dataFile, int msLevel, int[] scanNumbers, double mzBinSize) {
 
-        this(taskController, desktop, dataFile);
+    public SpectraSetupDialog(RawDataFile dataFile, int msLevel,
+            int[] scanNumbers, float mzBinSize) {
+
+        this(dataFile);
 
         int minScanNumber = scanNumbers[0];
-        int midScanNumber = scanNumbers[(int)java.lang.Math.floor(scanNumbers.length/2.0)];
-        int maxScanNumber = scanNumbers[scanNumbers.length-1];
-        for (int index=0; index<scanNumbers.length; index++) {
-        	if (scanNumbers[index]<minScanNumber) minScanNumber = scanNumbers[index];
-        	if (scanNumbers[index]>maxScanNumber) maxScanNumber = scanNumbers[index];
+        int midScanNumber = scanNumbers[(int) java.lang.Math.floor(scanNumbers.length / 2.0)];
+        int maxScanNumber = scanNumbers[scanNumbers.length - 1];
+        for (int index = 0; index < scanNumbers.length; index++) {
+            if (scanNumbers[index] < minScanNumber)
+                minScanNumber = scanNumbers[index];
+            if (scanNumbers[index] > maxScanNumber)
+                maxScanNumber = scanNumbers[index];
         }
         String minScanNumberString = String.valueOf(minScanNumber);
-        String minRetentionTimeString = format.format(dataFile.getCurrentFile().getRetentionTime(minScanNumber));
+        String minRetentionTimeString = format.format(dataFile.getScan(minScanNumber).getRetentionTime());
         String midScanNumberString = String.valueOf(midScanNumber);
         String maxScanNumberString = String.valueOf(maxScanNumber);
-        String maxRetentionTimeString = format.format(dataFile.getCurrentFile().getRetentionTime(maxScanNumber));
+        String maxRetentionTimeString = format.format(dataFile.getScan(maxScanNumber).getRetentionTime());
 
-        
         for (int i = 0; i < comboNumbersMSlevel.getItemCount(); i++) {
             Object item = comboNumbersMSlevel.getItemAt(i);
             if (item.equals(msLevel)) {
@@ -429,10 +425,8 @@ public class SpectraSetupDialog extends JDialog implements ActionListener {
         fieldMaxScanNumber.setText(maxScanNumberString);
         fieldMinScanTime.setText(minRetentionTimeString);
         fieldMaxScanTime.setText(maxRetentionTimeString);
-    	
-    	
+
     }
-    
 
     /**
      * @see java.awt.event.ActionListener#actionPerformed(java.awt.event.ActionEvent)
@@ -444,8 +438,7 @@ public class SpectraSetupDialog extends JDialog implements ActionListener {
         if (src == btnNumberShow) {
             try {
                 int num = format.parse(fieldScanNumber.getText()).intValue();
-                new SpectraVisualizerWindow(taskController, desktop,
-                        dataFile, num);
+                new SpectraVisualizerWindow(dataFile, num);
                 dispose();
             } catch (Exception e) {
                 logger.log(Level.FINE, "Invalid input", e);
@@ -458,12 +451,12 @@ public class SpectraSetupDialog extends JDialog implements ActionListener {
                 int msLevel = (Integer) comboNumbersMSlevel.getSelectedItem();
                 int minNumber = format.parse(fieldMinScanNumber.getText()).intValue();
                 int maxNumber = format.parse(fieldMaxScanNumber.getText()).intValue();
-                double mzBinSize = Double.parseDouble(fieldNumberBinSize.getText());
+                float mzBinSize = Float.parseFloat(fieldNumberBinSize.getText());
                 if (mzBinSize <= 0) {
                     desktop.displayErrorMessage("Invalid bin size " + mzBinSize);
                     return;
                 }
-                int scanNums[] = dataFile.getCurrentFile().getScanNumbers(msLevel);
+                int scanNums[] = dataFile.getScanNumbers(msLevel);
                 ArrayList<Integer> eligibleScans = new ArrayList<Integer>();
                 for (int i = 0; i < scanNums.length; i++) {
                     if ((scanNums[i] >= minNumber)
@@ -476,8 +469,8 @@ public class SpectraSetupDialog extends JDialog implements ActionListener {
                             + msLevel + " within given number range.");
                     return;
                 }
-                new SpectraVisualizerWindow(taskController, desktop,
-                        dataFile, eligibleScanNums, mzBinSize);
+                new SpectraVisualizerWindow(dataFile, eligibleScanNums,
+                        mzBinSize);
                 dispose();
             } catch (Exception e) {
                 desktop.displayErrorMessage("Invalid input");
@@ -487,22 +480,20 @@ public class SpectraSetupDialog extends JDialog implements ActionListener {
         if (src == btnTimeRangeShow) {
             try {
                 int msLevel = (Integer) comboTimeMSlevel.getSelectedItem();
-                double minRT = Double.parseDouble(fieldMinScanTime.getText());
-                double maxRT = Double.parseDouble(fieldMaxScanTime.getText());
-                double mzBinSize = Double.parseDouble(fieldTimeBinSize.getText());
+                float minRT = Float.parseFloat(fieldMinScanTime.getText());
+                float maxRT = Float.parseFloat(fieldMaxScanTime.getText());
+                float mzBinSize = Float.parseFloat(fieldTimeBinSize.getText());
                 if (mzBinSize <= 0) {
                     desktop.displayErrorMessage("Invalid bin size " + mzBinSize);
                     return;
                 }
-                int scanNums[] = dataFile.getCurrentFile().getScanNumbers(msLevel, minRT,
-                        maxRT);
+                int scanNums[] = dataFile.getScanNumbers(msLevel, minRT, maxRT);
                 if (scanNums.length == 0) {
                     desktop.displayErrorMessage("No scans found at MS level "
                             + msLevel + " within given retention time range.");
                     return;
                 }
-                new SpectraVisualizerWindow(taskController, desktop,
-                        dataFile, scanNums, mzBinSize);
+                new SpectraVisualizerWindow(dataFile, scanNums, mzBinSize);
                 dispose();
             } catch (Exception e) {
                 desktop.displayErrorMessage("Invalid input");

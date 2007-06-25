@@ -28,6 +28,7 @@ import java.util.Iterator;
 
 import net.sf.mzmine.data.Parameter;
 import net.sf.mzmine.data.StorableParameterSet;
+import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.util.NumberFormatter;
 import net.sf.mzmine.util.NumberFormatter.FormatterType;
 
@@ -69,7 +70,7 @@ public class DesktopParameters implements StorableParameterSet,
         this.rtFormat = rtFormat;
         this.intensityFormat = intensityFormat;
 
-        MainWindow mainWindow = MainWindow.getInstance();
+        MainWindow mainWindow = (MainWindow) MZmineCore.getDesktop();
         mainWindow.addComponentListener(this);
 
     }
@@ -224,7 +225,7 @@ public class DesktopParameters implements StorableParameterSet,
             mainWindowHeight = Integer.parseInt(mainWindowElement.elementText(HEIGHT_ELEMENT_NAME));
         }
 
-        MainWindow mainWindow = MainWindow.getInstance();
+        MainWindow mainWindow = (MainWindow) MZmineCore.getDesktop();
         if (mainWindowX > 0)
             mainWindow.setLocation(mainWindowX, mainWindowY);
         
@@ -267,7 +268,7 @@ public class DesktopParameters implements StorableParameterSet,
      * @see java.awt.event.ComponentListener#componentMoved(java.awt.event.ComponentEvent)
      */
     public void componentMoved(ComponentEvent arg0) {
-        MainWindow mainWindow = MainWindow.getInstance();
+        MainWindow mainWindow = (MainWindow) MZmineCore.getDesktop();
         Point location = mainWindow.getLocation();
         mainWindowX = location.x;
         mainWindowY = location.y;
@@ -277,7 +278,7 @@ public class DesktopParameters implements StorableParameterSet,
      * @see java.awt.event.ComponentListener#componentResized(java.awt.event.ComponentEvent)
      */
     public void componentResized(ComponentEvent arg0) {
-        MainWindow mainWindow = MainWindow.getInstance();
+        MainWindow mainWindow = (MainWindow) MZmineCore.getDesktop();
         int state = mainWindow.getExtendedState();
         Dimension size = mainWindow.getSize();
         if ((state & Frame.MAXIMIZED_HORIZ) != 0)

@@ -7,16 +7,10 @@ import java.awt.event.ActionListener;
 
 import javax.swing.JInternalFrame;
 
-import org.jfree.data.xy.AbstractXYZDataset;
-import org.jfree.data.xy.XYDataset;
-
 import net.sf.mzmine.data.PeakList;
 import net.sf.mzmine.data.impl.SimpleParameterSet;
 import net.sf.mzmine.userinterface.Desktop;
-import net.sf.mzmine.userinterface.components.interpolatinglookuppaintscale.InterpolatingLookupPaintScale;
-import net.sf.mzmine.userinterface.components.interpolatinglookuppaintscale.InterpolatingLookupPaintScaleSetupDialog;
 import net.sf.mzmine.userinterface.dialogs.AxesSetupDialog;
-import net.sf.mzmine.userinterface.dialogs.ExitCode;
 
 public class ProjectionPlotWindow extends JInternalFrame implements ActionListener {
 

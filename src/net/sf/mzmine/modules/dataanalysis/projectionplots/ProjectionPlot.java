@@ -1,18 +1,9 @@
 package net.sf.mzmine.modules.dataanalysis.projectionplots;
 
-import java.awt.Color;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
-import java.io.File;
-import java.io.IOException;
-import java.util.Vector;
 import java.util.logging.Logger;
-
-import javax.swing.JDialog;
-
-import org.jfree.data.xy.AbstractXYZDataset;
-import org.jfree.data.xy.XYDataset;
 
 import net.sf.mzmine.data.Parameter;
 import net.sf.mzmine.data.ParameterSet;
@@ -20,21 +11,12 @@ import net.sf.mzmine.data.PeakList;
 import net.sf.mzmine.data.Parameter.ParameterType;
 import net.sf.mzmine.data.impl.SimpleParameter;
 import net.sf.mzmine.data.impl.SimpleParameterSet;
-import net.sf.mzmine.io.OpenedRawDataFile;
-import net.sf.mzmine.io.RawDataFile;
-import net.sf.mzmine.io.RawDataFileWriter;
-import net.sf.mzmine.io.OpenedRawDataFile.Operation;
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.main.MZmineModule;
-import net.sf.mzmine.modules.BatchStep;
-import net.sf.mzmine.modules.visualization.tic.TICSetupDialog;
 import net.sf.mzmine.taskcontrol.TaskController;
 import net.sf.mzmine.userinterface.Desktop;
 import net.sf.mzmine.userinterface.Desktop.MZmineMenu;
-import net.sf.mzmine.userinterface.components.interpolatinglookuppaintscale.InterpolatingLookupPaintScale;
 import net.sf.mzmine.userinterface.dialogs.ExitCode;
-import net.sf.mzmine.userinterface.dialogs.ParameterSetupDialog;
-import net.sf.mzmine.userinterface.mainwindow.MainWindow;
 
 public class ProjectionPlot implements MZmineModule, ActionListener {
 
@@ -53,7 +35,6 @@ public class ProjectionPlot implements MZmineModule, ActionListener {
             MeasurementTypeArea, MeasurementTypePossibleValues);    
     
 
-    private TaskController taskController;
     private Desktop desktop;
 
     private SimpleParameterSet parameters;
@@ -63,10 +44,9 @@ public class ProjectionPlot implements MZmineModule, ActionListener {
     /**
      * @see net.sf.mzmine.main.MZmineModule#initModule(net.sf.mzmine.main.MZmineCore)
      */
-    public void initModule(MZmineCore core) {
+    public void initModule() {
 
-        this.taskController = core.getTaskController();
-        this.desktop = core.getDesktop();
+        this.desktop = MZmineCore.getDesktop();
 
         parameters = new SimpleParameterSet(
                 new Parameter[] { MeasurementType });

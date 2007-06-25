@@ -7,7 +7,7 @@ import net.sf.mzmine.data.Peak;
 import net.sf.mzmine.data.PeakList;
 import net.sf.mzmine.data.PeakListRow;
 import net.sf.mzmine.data.impl.SimpleParameterSet;
-import net.sf.mzmine.io.OpenedRawDataFile;
+import net.sf.mzmine.io.RawDataFile;
 import net.sf.mzmine.util.CollectionUtils;
 import net.sf.mzmine.util.MathUtils;
 
@@ -17,14 +17,14 @@ public class CVDataset extends AbstractXYZDataset implements RTMZDataset {
 
 	private Logger logger = Logger.getLogger(this.getClass().getName());
 	
-	private double[] xCoords = new double[0];
-	private double[] yCoords = new double[0];
-	private double[] colorCoords = new double[0];
+	private float[] xCoords = new float[0];
+	private float[] yCoords = new float[0];
+	private float[] colorCoords = new float[0];
 	private PeakListRow[] peakListRows = new PeakListRow[0];
 	
 	private String datasetTitle;
 	
-	public CVDataset(PeakList alignedPeakList, OpenedRawDataFile[] selectedFiles, SimpleParameterSet parameters) {
+	public CVDataset(PeakList alignedPeakList, RawDataFile[] selectedFiles, SimpleParameterSet parameters) {
 		int numOfRows = alignedPeakList.getNumberOfRows();
 		
 		boolean useArea = true;
@@ -44,9 +44,9 @@ public class CVDataset extends AbstractXYZDataset implements RTMZDataset {
 		logger.finest("Computing: " + datasetTitle);
 
 		// Loop through rows of aligned peak list
-		Vector<Double> xCoordsV = new Vector<Double>();
-		Vector<Double> yCoordsV = new Vector<Double>();
-		Vector<Double> colorCoordsV = new Vector<Double>();
+		Vector<Float> xCoordsV = new Vector<Float>();
+		Vector<Float> yCoordsV = new Vector<Float>();
+		Vector<Float> colorCoordsV = new Vector<Float>();
 		Vector<PeakListRow> peakListRowsV = new Vector<PeakListRow>();
 
 		for (int rowIndex=0; rowIndex<numOfRows; rowIndex++) {
@@ -54,7 +54,7 @@ public class CVDataset extends AbstractXYZDataset implements RTMZDataset {
 			PeakListRow row = alignedPeakList.getRow(rowIndex);
 			
 			// Collect available peak intensities for selected files
-			Vector<Double> peakIntensities = new Vector<Double>(); 
+			Vector<Float> peakIntensities = new Vector<Float>(); 
 			for (int fileIndex=0; fileIndex<selectedFiles.length; fileIndex++) {
 				Peak p = row.getPeak(selectedFiles[fileIndex]);
 				if (p!=null) {
@@ -67,11 +67,11 @@ public class CVDataset extends AbstractXYZDataset implements RTMZDataset {
 			
 			// If there are at least two measurements available for this peak then calc CV and include this peak in the plot
 			if (peakIntensities.size()>1) {
-				double[] ints = CollectionUtils.toDoubleArray(peakIntensities);
-				Double cv = MathUtils.calcCV(ints);
+				float[] ints = CollectionUtils.toFloatArray(peakIntensities);
+				Float cv = MathUtils.calcCV(ints);
 				
-				Double rt = row.getAverageRT();
-				Double mz = row.getAverageMZ();
+				Float rt = row.getAverageRT();
+				Float mz = row.getAverageMZ();
 				
 				xCoordsV.add(rt);
 				yCoordsV.add(mz);
@@ -83,9 +83,9 @@ public class CVDataset extends AbstractXYZDataset implements RTMZDataset {
 		}
 
 		// Finally store all collected values in arrays
-		xCoords = CollectionUtils.toDoubleArray(xCoordsV);
-		yCoords = CollectionUtils.toDoubleArray(yCoordsV);
-		colorCoords = CollectionUtils.toDoubleArray(colorCoordsV);
+		xCoords = CollectionUtils.toFloatArray(xCoordsV);
+		yCoords = CollectionUtils.toFloatArray(yCoordsV);
+		colorCoords = CollectionUtils.toFloatArray(colorCoordsV);
 		peakListRows = peakListRowsV.toArray(new PeakListRow[0]);
 		
 	}

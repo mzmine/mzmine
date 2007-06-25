@@ -34,13 +34,10 @@ import javax.swing.JRadioButton;
 import javax.swing.JScrollPane;
 import javax.swing.border.EmptyBorder;
 
-import net.sf.mzmine.data.ParameterSet;
 import net.sf.mzmine.data.impl.SimpleParameterSet;
-import net.sf.mzmine.io.OpenedRawDataFile;
 import net.sf.mzmine.io.RawDataFile;
 import net.sf.mzmine.userinterface.Desktop;
 import net.sf.mzmine.userinterface.dialogs.ExitCode;
-import net.sf.mzmine.userinterface.mainwindow.MainWindow;
 
 public class RTMZSetupDialog extends JDialog implements java.awt.event.ActionListener {
 
@@ -52,9 +49,9 @@ public class RTMZSetupDialog extends JDialog implements java.awt.event.ActionLis
 	private static final int BUTTONHEIGHT = 35;
 
 	// Selections
-	Vector<OpenedRawDataFile> availableRawDataFiles;
-	Vector<OpenedRawDataFile> groupOneSelectedRawDataFiles;
-	Vector<OpenedRawDataFile> groupTwoSelectedRawDataFiles;
+	Vector<RawDataFile> availableRawDataFiles;
+	Vector<RawDataFile> groupOneSelectedRawDataFiles;
+	Vector<RawDataFile> groupTwoSelectedRawDataFiles;
 
 	private SelectionMode mode;
 	
@@ -68,7 +65,7 @@ public class RTMZSetupDialog extends JDialog implements java.awt.event.ActionLis
     /**
      * Constructor: creates new form SelectOneGroupDialog
      */
-    public RTMZSetupDialog(Desktop desktop, OpenedRawDataFile[] dataFiles, SimpleParameterSet parameters, SelectionMode mode) {
+    public RTMZSetupDialog(Desktop desktop, RawDataFile[] dataFiles, SimpleParameterSet parameters, SelectionMode mode) {
 
     	super(desktop.getMainFrame(), null, true);
     	
@@ -89,16 +86,16 @@ public class RTMZSetupDialog extends JDialog implements java.awt.event.ActionLis
     	this.parameters = parameters;
     	this.mode = mode;
     	
-		availableRawDataFiles = new Vector<OpenedRawDataFile>();
-		for (OpenedRawDataFile rf : dataFiles) 
+		availableRawDataFiles = new Vector<RawDataFile>();
+		for (RawDataFile rf : dataFiles) 
 			availableRawDataFiles.add(rf);
 		
 		// Build the form
         initComponents();
 
 		// Put items to list boxes
-        groupOneSelectedRawDataFiles = new Vector<OpenedRawDataFile>();
-        groupTwoSelectedRawDataFiles = new Vector<OpenedRawDataFile>();
+        groupOneSelectedRawDataFiles = new Vector<RawDataFile>();
+        groupTwoSelectedRawDataFiles = new Vector<RawDataFile>();
         
 		listAvailableFiles.setListData(availableRawDataFiles);
 		listGroupOneSelectedFiles.setListData(groupOneSelectedRawDataFiles);
@@ -163,8 +160,8 @@ public class RTMZSetupDialog extends JDialog implements java.awt.event.ActionLis
 
 			// Put them to g1 target and remove from source list
 			for (Object rf : selected) {
-				groupOneSelectedRawDataFiles.add((OpenedRawDataFile)rf);
-				availableRawDataFiles.remove((OpenedRawDataFile)rf);
+				groupOneSelectedRawDataFiles.add((RawDataFile)rf);
+				availableRawDataFiles.remove((RawDataFile)rf);
 			}
 
 			listAvailableFiles.setListData(availableRawDataFiles);
@@ -179,8 +176,8 @@ public class RTMZSetupDialog extends JDialog implements java.awt.event.ActionLis
 
 			// Put them to g1 target and remove from source list
 			for (Object rf : selected) {
-				groupOneSelectedRawDataFiles.remove((OpenedRawDataFile)rf);
-				availableRawDataFiles.add((OpenedRawDataFile)rf);
+				groupOneSelectedRawDataFiles.remove((RawDataFile)rf);
+				availableRawDataFiles.add((RawDataFile)rf);
 			}
 
 			listAvailableFiles.setListData(availableRawDataFiles);
@@ -196,8 +193,8 @@ public class RTMZSetupDialog extends JDialog implements java.awt.event.ActionLis
 
 			// Put them to g1 target and remove from source list
 			for (Object rf : selected) {
-				groupTwoSelectedRawDataFiles.add((OpenedRawDataFile)rf);
-				availableRawDataFiles.remove((OpenedRawDataFile)rf);
+				groupTwoSelectedRawDataFiles.add((RawDataFile)rf);
+				availableRawDataFiles.remove((RawDataFile)rf);
 			}
 
 			listAvailableFiles.setListData(availableRawDataFiles);
@@ -212,8 +209,8 @@ public class RTMZSetupDialog extends JDialog implements java.awt.event.ActionLis
 
 			// Put them to g1 target and remove from source list
 			for (Object rf : selected) {
-				groupTwoSelectedRawDataFiles.remove((OpenedRawDataFile)rf);
-				availableRawDataFiles.add((OpenedRawDataFile)rf);
+				groupTwoSelectedRawDataFiles.remove((RawDataFile)rf);
+				availableRawDataFiles.add((RawDataFile)rf);
 			}
 
 			listAvailableFiles.setListData(availableRawDataFiles);
@@ -393,12 +390,12 @@ public class RTMZSetupDialog extends JDialog implements java.awt.event.ActionLis
 	/**
 	 * Return selected raw data files
 	 */
-	public OpenedRawDataFile[] getGroupOneSelectedFiles() {
-		return groupOneSelectedRawDataFiles.toArray(new OpenedRawDataFile[0]);
+	public RawDataFile[] getGroupOneSelectedFiles() {
+		return groupOneSelectedRawDataFiles.toArray(new RawDataFile[0]);
 	}
 	
-	public OpenedRawDataFile[] getGroupTwoSelectedFiles() {
-		return groupTwoSelectedRawDataFiles.toArray(new OpenedRawDataFile[0]);
+	public RawDataFile[] getGroupTwoSelectedFiles() {
+		return groupTwoSelectedRawDataFiles.toArray(new RawDataFile[0]);
 	}
 
 	/**

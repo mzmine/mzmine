@@ -23,11 +23,13 @@ import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+
 import javax.swing.BorderFactory;
 import javax.swing.JCheckBox;
 import javax.swing.JInternalFrame;
 
-import net.sf.mzmine.io.OpenedRawDataFile;
+import net.sf.mzmine.io.RawDataFile;
+import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.modules.RawDataVisualizer;
 import net.sf.mzmine.taskcontrol.Task;
 import net.sf.mzmine.taskcontrol.TaskController;
@@ -48,19 +50,18 @@ public class TwoDVisualizerWindow extends JInternalFrame implements
 
     private TwoDDataSet dataset;
 
-    private OpenedRawDataFile dataFile;
+    private RawDataFile dataFile;
     private int msLevel;
 
     private Desktop desktop;
 
-    public TwoDVisualizerWindow(TaskController taskController, Desktop desktop,
-            OpenedRawDataFile dataFile, int msLevel, double rtMin,
-            double rtMax, double mzMin, double mzMax, int rtResolution,
+    public TwoDVisualizerWindow(RawDataFile dataFile, int msLevel, float rtMin,
+            float rtMax, float mzMin, float mzMax, int rtResolution,
             int mzResolution) {
 
         super(dataFile.toString(), true, true, true, true);
 
-        this.desktop = desktop;
+        this.desktop = MZmineCore.getDesktop();
 
         setDefaultCloseOperation(DISPOSE_ON_CLOSE);
         setBackground(Color.white);
@@ -68,9 +69,8 @@ public class TwoDVisualizerWindow extends JInternalFrame implements
         this.dataFile = dataFile;
         this.msLevel = msLevel;
 
-        dataset = new TwoDDataSet(taskController, dataFile.getCurrentFile(),
-                msLevel, rtMin, rtMax, mzMin, mzMax, rtResolution,
-                mzResolution, this);
+        dataset = new TwoDDataSet(dataFile, msLevel, rtMin, rtMax, mzMin,
+                mzMax, rtResolution, mzResolution, this);
 
         toolBar = new TwoDToolBar(this);
         add(toolBar, BorderLayout.EAST);
@@ -94,16 +94,14 @@ public class TwoDVisualizerWindow extends JInternalFrame implements
     }
 
     /**
-     * @see net.sf.mzmine.modules.RawDataVisualizer#setMZRange(double,
-     *      double)
+     * @see net.sf.mzmine.modules.RawDataVisualizer#setMZRange(double, double)
      */
     public void setMZRange(double mzMin, double mzMax) {
         twoDPlot.getXYPlot().getRangeAxis().setRange(mzMin, mzMax);
     }
 
     /**
-     * @see net.sf.mzmine.modules.RawDataVisualizer#setRTRange(double,
-     *      double)
+     * @see net.sf.mzmine.modules.RawDataVisualizer#setRTRange(double, double)
      */
     public void setRTRange(double rtMin, double rtMax) {
         twoDPlot.getXYPlot().getDomainAxis().setRange(rtMin, rtMax);
@@ -155,7 +153,7 @@ public class TwoDVisualizerWindow extends JInternalFrame implements
             desktop.displayErrorMessage("Error while updating 2D visualizer: "
                     + task.getErrorMessage());
         }
-        
+
         dataset.setDataLoaded();
 
     }
@@ -184,7 +182,7 @@ public class TwoDVisualizerWindow extends JInternalFrame implements
         // TODO Auto-generated method stub
 
     }
-    
+
     TwoDPlot getPlot() {
         return twoDPlot;
     }

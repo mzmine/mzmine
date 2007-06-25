@@ -21,6 +21,8 @@ package net.sf.mzmine.taskcontrol;
 
 import java.util.logging.Logger;
 
+import net.sf.mzmine.main.MZmineCore;
+
 /**
  * 
  */
@@ -35,7 +37,6 @@ public class TaskGroup implements TaskListener, Runnable {
     private Task tasks[];
     private TaskListener taskListener;
     private TaskGroupListener taskGroupListener;
-    private TaskController taskController;
     private int finishedTasks = 0;
 
     private TaskGroupStatus status = TaskGroupStatus.WAITING;
@@ -44,9 +45,8 @@ public class TaskGroup implements TaskListener, Runnable {
      * @param tasks
      * @param taskController
      */
-    public TaskGroup(Task[] tasks, TaskListener taskListener,
-            TaskController taskController) {
-        this(tasks, taskListener, null, taskController);
+    public TaskGroup(Task[] tasks, TaskListener taskListener) {
+        this(tasks, taskListener, null);
     }
 
     /**
@@ -54,12 +54,11 @@ public class TaskGroup implements TaskListener, Runnable {
      * @param taskController
      */
     public TaskGroup(Task[] tasks, TaskListener taskListener,
-            TaskGroupListener groupListener, TaskController taskController) {
+            TaskGroupListener groupListener) {
 
         this.tasks = tasks;
         this.taskListener = taskListener;
         this.taskGroupListener = groupListener;
-        this.taskController = taskController;
 
     }
 
@@ -110,7 +109,7 @@ public class TaskGroup implements TaskListener, Runnable {
         status = TaskGroupStatus.RUNNING;
 
         for (Task t : tasks) {
-            taskController.addTask(t, this);
+            MZmineCore.getTaskController().addTask(t, this);
         }
 
     }

@@ -25,9 +25,10 @@ import java.util.Iterator;
 import java.util.Vector;
 
 import net.sf.mzmine.data.Scan;
-import net.sf.mzmine.io.RawDataAcceptor;
 import net.sf.mzmine.io.RawDataFile;
+import net.sf.mzmine.io.util.RawDataAcceptor;
 import net.sf.mzmine.io.util.RawDataRetrievalTask;
+import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.taskcontrol.Task;
 import net.sf.mzmine.taskcontrol.TaskController;
 import net.sf.mzmine.taskcontrol.Task.TaskPriority;
@@ -46,15 +47,15 @@ class NeutralLossDataSet extends AbstractXYDataset implements RawDataAcceptor, X
 
     private RawDataFile rawDataFile;
 
-    private double totalMZMin, totalMZMax;
+    private float totalMZMin, totalMZMax;
     private int numOfFragments, xAxis;
 
     private Date lastRedrawTime = new Date();
 
     private Vector<NeutralLossDataPoint> dataPoints;
 
-    NeutralLossDataSet(TaskController taskController, RawDataFile rawDataFile,
-            int xAxis, double rtMin, double rtMax, double mzMin, double mzMax,
+    NeutralLossDataSet(RawDataFile rawDataFile,
+            int xAxis, float rtMin, float rtMax, float mzMin, float mzMax,
             int numOfFragments, NeutralLossVisualizerWindow visualizer) {
 
         this.rawDataFile = rawDataFile;
@@ -73,7 +74,7 @@ class NeutralLossDataSet extends AbstractXYDataset implements RawDataAcceptor, X
         Task updateTask = new RawDataRetrievalTask(rawDataFile, scanNumbers,
                 "Updating neutral loss visualizer of " + rawDataFile, this);
 
-        taskController.addTask(updateTask, TaskPriority.HIGH, visualizer);
+        MZmineCore.getTaskController().addTask(updateTask, TaskPriority.HIGH, visualizer);
 
     }
 
@@ -90,8 +91,8 @@ class NeutralLossDataSet extends AbstractXYDataset implements RawDataAcceptor, X
             return;
 
         // get m/z and intensity values
-        double mzValues[] = scan.getMZValues();
-        double intensityValues[] = scan.getIntensityValues();
+        float mzValues[] = scan.getMZValues();
+        float intensityValues[] = scan.getIntensityValues();
         
         // skip empty scans, or scans that only contain zero intensity peaks
         if (scan.getBasePeakIntensity() == 0) return;
@@ -199,10 +200,10 @@ class NeutralLossDataSet extends AbstractXYDataset implements RawDataAcceptor, X
         return dataPoints.get(item);
     }
     
-    public NeutralLossDataPoint getDataPoint(double xValue, double yValue) {
+    public NeutralLossDataPoint getDataPoint(float xValue, float yValue) {
         Vector<NeutralLossDataPoint> dataCopy = new Vector<NeutralLossDataPoint>(dataPoints);
         Iterator<NeutralLossDataPoint> it = dataCopy.iterator();
-        double currentX, currentY;
+        float currentX, currentY;
         while (it.hasNext()) {
             NeutralLossDataPoint point = it.next();
             if (xAxis == 0) currentX = point.getPrecursorMass();

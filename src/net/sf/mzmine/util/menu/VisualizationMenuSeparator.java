@@ -32,8 +32,8 @@ public class VisualizationMenuSeparator implements MZmineModule {
     /**
      * @see net.sf.mzmine.main.MZmineModule#initModule(net.sf.mzmine.main.MZmineCore)
      */
-    public void initModule(MZmineCore core) {
-        core.getDesktop().addMenuSeparator(MZmineMenu.VISUALIZATION);
+    public void initModule() {
+        MZmineCore.getDesktop().addMenuSeparator(MZmineMenu.VISUALIZATION);
     }
 
     /**

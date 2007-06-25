@@ -24,20 +24,16 @@ import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
 import java.util.logging.Logger;
 
-import javax.swing.JMenuItem;
-import javax.swing.event.ListSelectionEvent;
-import javax.swing.event.ListSelectionListener;
-
-import net.sf.mzmine.data.PeakList;
 import net.sf.mzmine.data.Parameter;
 import net.sf.mzmine.data.ParameterSet;
+import net.sf.mzmine.data.PeakList;
 import net.sf.mzmine.data.Parameter.ParameterType;
 import net.sf.mzmine.data.impl.SimpleParameter;
 import net.sf.mzmine.data.impl.SimpleParameterSet;
-import net.sf.mzmine.io.OpenedRawDataFile;
 import net.sf.mzmine.io.RawDataFile;
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.modules.BatchStep;
+import net.sf.mzmine.project.MZmineProject;
 import net.sf.mzmine.taskcontrol.Task;
 import net.sf.mzmine.taskcontrol.TaskController;
 import net.sf.mzmine.taskcontrol.TaskGroup;
@@ -48,8 +44,7 @@ import net.sf.mzmine.userinterface.Desktop.MZmineMenu;
 import net.sf.mzmine.userinterface.dialogs.ExitCode;
 import net.sf.mzmine.userinterface.dialogs.ParameterSetupDialog;
 
-public class CropFilter implements BatchStep, TaskListener,
-        ActionListener {
+public class CropFilter implements BatchStep, TaskListener, ActionListener {
 
     public static final Parameter parameterMSlevel = new SimpleParameter(
             ParameterType.INTEGER, "MS level",
@@ -80,16 +75,14 @@ public class CropFilter implements BatchStep, TaskListener,
 
     private Logger logger = Logger.getLogger(this.getClass().getName());
 
-    private TaskController taskController;
     private Desktop desktop;
 
     /**
      * @see net.sf.mzmine.main.MZmineModule#initModule(net.sf.mzmine.main.MZmineCore)
      */
-    public void initModule(MZmineCore core) {
+    public void initModule() {
 
-        this.taskController = core.getTaskController();
-        this.desktop = core.getDesktop();
+        this.desktop = MZmineCore.getDesktop();
 
         parameters = new SimpleParameterSet(
                 new Parameter[] { parameterMSlevel, parameterMinMZ,
@@ -105,7 +98,7 @@ public class CropFilter implements BatchStep, TaskListener,
      */
     public void actionPerformed(ActionEvent e) {
 
-        OpenedRawDataFile[] dataFiles = desktop.getSelectedDataFiles();
+        RawDataFile[] dataFiles = desktop.getSelectedDataFiles();
         if (dataFiles.length == 0) {
             desktop.displayErrorMessage("Please select at least one data file");
             return;
@@ -138,22 +131,21 @@ public class CropFilter implements BatchStep, TaskListener,
     }
 
     /**
-     * @see net.sf.mzmine.modules.BatchStep#runModule(net.sf.mzmine.io.OpenedRawDataFile[],
-     *      net.sf.mzmine.data.PeakList[],
-     *      net.sf.mzmine.data.ParameterSet,
+     * @see net.sf.mzmine.modules.BatchStep#runModule(net.sf.mzmine.io.RawDataFile[],
+     *      net.sf.mzmine.data.PeakList[], net.sf.mzmine.data.ParameterSet,
      *      net.sf.mzmine.taskcontrol.TaskGroupListener)
      */
-    public TaskGroup runModule(OpenedRawDataFile[] dataFiles,
+    public TaskGroup runModule(RawDataFile[] dataFiles,
             PeakList[] alignmentResults, ParameterSet parameters,
             TaskGroupListener methodListener) {
 
         // prepare a new sequence of tasks
         Task tasks[] = new CropFilterTask[dataFiles.length];
         for (int i = 0; i < dataFiles.length; i++) {
-            tasks[i] = new CropFilterTask(dataFiles[i], (SimpleParameterSet) parameters);
+            tasks[i] = new CropFilterTask(dataFiles[i],
+                    (SimpleParameterSet) parameters);
         }
-        TaskGroup newSequence = new TaskGroup(tasks, this, methodListener,
-                taskController);
+        TaskGroup newSequence = new TaskGroup(tasks, this, methodListener);
 
         // execute the sequence
         newSequence.run();
@@ -194,10 +186,12 @@ public class CropFilter implements BatchStep, TaskListener,
             logger.info("Finished cropping filter on "
                     + ((CropFilterTask) task).getDataFile());
 
-            OpenedRawDataFile openedFile = ((CropFilterTask) task).getDataFile();
+            RawDataFile openedFile = ((CropFilterTask) task).getDataFile();
             RawDataFile newFile = (RawDataFile) task.getResult();
 
-            openedFile.updateFile(newFile, this, parameters);
+            MZmineProject currentProject = MZmineCore.getCurrentProject();
+
+            currentProject.updateFile(openedFile, newFile);
 
         } else if (task.getStatus() == Task.TaskStatus.ERROR) {
             /* Task encountered an error */

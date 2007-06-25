@@ -1,19 +1,13 @@
 package net.sf.mzmine.userinterface.dialogs.experimentalparametersetupdialog;
 
 import java.awt.BorderLayout;
-import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.FlowLayout;
-import java.awt.Frame;
 import java.awt.GridLayout;
-import java.awt.Insets;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.text.NumberFormat;
-import java.util.HashMap;
-import java.util.HashSet;
 import java.util.Hashtable;
-import java.util.Vector;
 
 import javax.swing.BorderFactory;
 import javax.swing.ButtonGroup;
@@ -31,16 +25,11 @@ import javax.swing.JRadioButton;
 import javax.swing.JScrollPane;
 import javax.swing.JTable;
 import javax.swing.JTextField;
-import javax.swing.JFormattedTextField.AbstractFormatter;
-import javax.swing.border.Border;
-import javax.swing.border.EtchedBorder;
-import javax.swing.table.TableCellEditor;
-import javax.swing.text.NumberFormatter;
 
 import net.sf.mzmine.data.Parameter;
 import net.sf.mzmine.data.impl.SimpleParameter;
-import net.sf.mzmine.io.OpenedRawDataFile;
-import net.sf.mzmine.modules.dataanalysis.projectionplots.ProjectionPlotSetupDialogComboBox;
+import net.sf.mzmine.io.RawDataFile;
+import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.project.MZmineProject;
 import net.sf.mzmine.userinterface.Desktop;
 import net.sf.mzmine.userinterface.dialogs.ExitCode;
@@ -89,12 +78,12 @@ public class ExperimentalParametersSetupDialog extends JDialog implements Action
 	private ExitCode exitCode = ExitCode.UNKNOWN;
 	
 	private DefaultListModel categories;
-	private OpenedRawDataFile[] dataFiles;
+	private RawDataFile[] dataFiles;
 	private Hashtable<Parameter, Object[]> parameterValues;
 	
 	private Desktop desktop;
 	
-	public ExperimentalParametersSetupDialog(Desktop desktop, OpenedRawDataFile[] dataFiles) {
+	public ExperimentalParametersSetupDialog(Desktop desktop, RawDataFile[] dataFiles) {
 		super(desktop.getMainFrame(), true);
 		 
 		categories = new DefaultListModel();
@@ -281,23 +270,16 @@ public class ExperimentalParametersSetupDialog extends JDialog implements Action
 	
 	private void copyParameterValuesToRawDataFiles() {
 		
-		// Remove all old parameters
-		for (int dataFileIndex=0; dataFileIndex<dataFiles.length; dataFileIndex++) {
-			OpenedRawDataFile file = dataFiles[dataFileIndex];
-			
-			for (Parameter p : file.getParameters().getParameters()) {
-				file.getParameters().removeParameter(p);
-			}
-		}
+        MZmineProject currentProject = MZmineCore.getCurrentProject();
+
 		
 		// Create new parameters and set values
 		for (int columnIndex=0; columnIndex<parameterValues.keySet().size(); columnIndex++) {
 			Parameter parameter = tablemodelParameterValues.getParameter(columnIndex+1);
 			
 			for (int dataFileIndex=0; dataFileIndex<dataFiles.length; dataFileIndex++) {
-				OpenedRawDataFile file = dataFiles[dataFileIndex];
+				RawDataFile file = dataFiles[dataFileIndex];
 				
-				file.getParameters().addParameter(parameter);
 				Object value = tablemodelParameterValues.getValueAt(dataFileIndex, columnIndex+1);
 				if (parameter.getType()==Parameter.ParameterType.DOUBLE) {
 					Double doubleValue=null;
@@ -305,11 +287,13 @@ public class ExperimentalParametersSetupDialog extends JDialog implements Action
 						doubleValue = (Double)value;
 					if (value instanceof String) 
 						doubleValue = Double.parseDouble((String)value);
-					file.getParameters().setParameterValue(parameter, doubleValue);
+                    value = doubleValue;
+					// TODO file.getParameters().setParameterValue(parameter, doubleValue);
 				}
 				if (parameter.getType()==Parameter.ParameterType.STRING) {
-					file.getParameters().setParameterValue(parameter, (String)value);
+//                TODO file.getParameters().setParameterValue(parameter, (String)value);
 				}
+                
 				
 			}
 
@@ -322,10 +306,10 @@ public class ExperimentalParametersSetupDialog extends JDialog implements Action
 		
 		for (int dataFileIndex=0; dataFileIndex<dataFiles.length; dataFileIndex++) {
 			
-			OpenedRawDataFile file = dataFiles[dataFileIndex];
+			RawDataFile file = dataFiles[dataFileIndex];
 			
 			// Loop through all experimental paramters defined for this file
-			for (Parameter p : file.getParameters().getParameters()) {
+			/*for (Parameter p : file.getParameters().getParameters()) {
 				
 				// Check if this parameter has been seen before?
 				Object[] values;
@@ -342,7 +326,7 @@ public class ExperimentalParametersSetupDialog extends JDialog implements Action
 				// Set value of this parameter for the current raw data file 
 				values[dataFileIndex] = file.getParameters().getParameterValue(p);
 				
-			}
+			}*/
 			
 		}
 		
@@ -453,7 +437,7 @@ public class ExperimentalParametersSetupDialog extends JDialog implements Action
 		panelParameterValues = new JPanel(new BorderLayout());
 			labelParameterValues = new JLabel("Values for experimental parameters");
 			scrollParameterValues = new JScrollPane();
-			tablemodelParameterValues = new ExperimentalParametersSetupDialogTableModel(new OpenedRawDataFile[0], new Hashtable<Parameter, Object[]>());
+			tablemodelParameterValues = new ExperimentalParametersSetupDialogTableModel(new RawDataFile[0], new Hashtable<Parameter, Object[]>());
 			tableParameterValues = new JTable(tablemodelParameterValues);
 			tableParameterValues.setColumnSelectionAllowed(true);
 			tableParameterValues.setRowSelectionAllowed(false);

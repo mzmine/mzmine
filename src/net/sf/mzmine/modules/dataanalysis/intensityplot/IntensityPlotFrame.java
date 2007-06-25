@@ -25,6 +25,7 @@ import java.util.logging.Logger;
 
 import javax.swing.JInternalFrame;
 
+import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.userinterface.Desktop;
 import net.sf.mzmine.userinterface.mainwindow.MainWindow;
 import net.sf.mzmine.util.NumberFormatter;
@@ -99,7 +100,7 @@ public class IntensityPlotFrame extends JInternalFrame {
 
         // set y axis properties
         NumberAxis yAxis = (NumberAxis) plot.getRangeAxis();
-        Desktop desktop = MainWindow.getInstance();
+        Desktop desktop = MZmineCore.getDesktop();
         NumberFormatter yAxisFormat = desktop.getIntensityFormat();
         if (parameters.getYAxisValueSource() == IntensityPlotParameters.PeakRTOption) yAxisFormat = desktop.getRTFormat();
         yAxis.setNumberFormatOverride(yAxisFormat);

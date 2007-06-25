@@ -36,8 +36,9 @@ import javax.swing.JFormattedTextField;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 
-import net.sf.mzmine.io.OpenedRawDataFile;
 import net.sf.mzmine.io.RawDataFile;
+import net.sf.mzmine.io.RawDataFile;
+import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.taskcontrol.TaskController;
 import net.sf.mzmine.userinterface.Desktop;
 import net.sf.mzmine.util.CollectionUtils;
@@ -49,7 +50,7 @@ import net.sf.mzmine.util.GUIUtils;
 public class NeutralLossSetupDialog extends JDialog implements ActionListener {
 
     private Logger logger = Logger.getLogger(this.getClass().getName());
-    
+
     static final int PADDING_SIZE = 5;
     static final int DEFAULT_FRAGMENTS = 5;
 
@@ -59,21 +60,15 @@ public class NeutralLossSetupDialog extends JDialog implements ActionListener {
             numOfFragments;
     private JComboBox comboXaxis;
 
-    private Desktop desktop;
-    private TaskController taskController;
-    private OpenedRawDataFile dataFile;
-    private RawDataFile rawDataFile;
+    private RawDataFile dataFile;
 
-    public NeutralLossSetupDialog(TaskController taskController, Desktop desktop,
-            OpenedRawDataFile dataFile) {
+    public NeutralLossSetupDialog(RawDataFile dataFile) {
 
         // Make dialog modal
-        super(desktop.getMainFrame(), "Neutral loss visualizer parameters", true);
+        super(MZmineCore.getDesktop().getMainFrame(),
+                "Neutral loss visualizer parameters", true);
 
-        this.taskController = taskController;
-        this.desktop = desktop;
         this.dataFile = dataFile;
-        this.rawDataFile = dataFile.getCurrentFile();
 
         GridBagConstraints constraints = new GridBagConstraints();
 
@@ -95,8 +90,7 @@ public class NeutralLossSetupDialog extends JDialog implements ActionListener {
         constraints.gridheight = 1;
         layout.setConstraints(comp, constraints);
 
-        comp = GUIUtils.addLabel(components, dataFile.toString(),
-                JLabel.LEFT);
+        comp = GUIUtils.addLabel(components, dataFile.toString(), JLabel.LEFT);
         constraints.gridx = 1;
         constraints.gridy = 0;
         constraints.gridwidth = 2;
@@ -110,7 +104,8 @@ public class NeutralLossSetupDialog extends JDialog implements ActionListener {
         constraints.gridheight = 1;
         layout.setConstraints(comp, constraints);
 
-        comboXaxis = new JComboBox(new String[] { "Precursor mass", "Retention time" });
+        comboXaxis = new JComboBox(new String[] { "Precursor mass",
+                "Retention time" });
         constraints.fill = GridBagConstraints.NONE;
         constraints.gridx = 1;
         constraints.gridy = 1;
@@ -259,15 +254,15 @@ public class NeutralLossSetupDialog extends JDialog implements ActionListener {
 
         // to activate the selection listener
         comboXaxis.setSelectedIndex(0);
-        
-        fieldMinRT.setValue(rawDataFile.getDataMinRT(2));
-        fieldMaxRT.setValue(rawDataFile.getDataMaxRT(2));
-        fieldMinMZ.setValue(rawDataFile.getDataMinMZ(1));
-        fieldMaxMZ.setValue(rawDataFile.getDataMaxMZ(1));
+
+        fieldMinRT.setValue(dataFile.getDataMinRT(2));
+        fieldMaxRT.setValue(dataFile.getDataMaxRT(2));
+        fieldMinMZ.setValue(dataFile.getDataMinMZ(1));
+        fieldMaxMZ.setValue(dataFile.getDataMaxMZ(1));
 
         // finalize the dialog
         pack();
-        setLocationRelativeTo(desktop.getMainFrame());
+        setLocationRelativeTo(MZmineCore.getDesktop().getMainFrame());
         setResizable(false);
 
     }
@@ -278,15 +273,17 @@ public class NeutralLossSetupDialog extends JDialog implements ActionListener {
     public void actionPerformed(ActionEvent ae) {
 
         Object src = ae.getSource();
+        Desktop desktop = MZmineCore.getDesktop();
+        
 
         if (src == btnOK) {
 
             try {
 
-                double rtMin = ((Number) fieldMinRT.getValue()).doubleValue();
-                double rtMax = ((Number) fieldMaxRT.getValue()).doubleValue();
-                double mzMin = ((Number) fieldMinMZ.getValue()).doubleValue();
-                double mzMax = ((Number) fieldMaxMZ.getValue()).doubleValue();
+                float rtMin = ((Number) fieldMinRT.getValue()).floatValue();
+                float rtMax = ((Number) fieldMaxRT.getValue()).floatValue();
+                float mzMin = ((Number) fieldMinMZ.getValue()).floatValue();
+                float mzMax = ((Number) fieldMaxMZ.getValue()).floatValue();
 
                 if ((rtMax <= rtMin) || (mzMax <= mzMin)) {
                     desktop.displayErrorMessage("Invalid bounds");
@@ -302,13 +299,14 @@ public class NeutralLossSetupDialog extends JDialog implements ActionListener {
 
                 int xAxis = comboXaxis.getSelectedIndex();
 
-                new NeutralLossVisualizerWindow(taskController, desktop, dataFile,
-                        xAxis, rtMin, rtMax, mzMin, mzMax, fragments);
-                        
+                new NeutralLossVisualizerWindow(dataFile, xAxis, rtMin, rtMax,
+                        mzMin, mzMax, fragments);
+
                 dispose();
 
             } catch (Exception e) {
-                logger.log(Level.FINE, "Error while opening neutral loss visualizer window", e);
+                logger.log(Level.FINE,
+                        "Error while opening neutral loss visualizer window", e);
                 desktop.displayErrorMessage("Invalid input");
             }
         }

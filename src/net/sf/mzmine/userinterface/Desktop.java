@@ -28,7 +28,7 @@ import javax.swing.JMenuItem;
 import javax.swing.event.ListSelectionListener;
 
 import net.sf.mzmine.data.PeakList;
-import net.sf.mzmine.io.OpenedRawDataFile;
+import net.sf.mzmine.io.RawDataFile;
 import net.sf.mzmine.util.NumberFormatter;
 
 /**
@@ -93,32 +93,13 @@ public interface Desktop {
     /**
      * Returns array of currently selected raw data files in GUI
      */
-    public OpenedRawDataFile[] getSelectedDataFiles();
+    public RawDataFile[] getSelectedDataFiles();
     
     /**
      * Returns array of currently selected alignned peaklists in GUI 
      */
     public PeakList[] getSelectedAlignedPeakLists();
 
-    /**
-     * Adds a new raw data file to GUI
-     */
-    public void addDataFile(OpenedRawDataFile dataFile);
-    
-    /**
-     * Adds a new alignment result to GUI
-     */
-    public void addAlignedPeakList(PeakList alignmentResult);
-    
-    /**
-     * Removes raw data file from GUI
-     */
-    public void removeDataFile(OpenedRawDataFile dataFile);
-    
-    /**
-     * Removes aligned peaklist from GUI
-     */
-    public void removeAlignedPeakList(PeakList alignedPeakList);
     
     public NumberFormatter getMZFormat();
 

@@ -30,7 +30,7 @@ import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
 
 import net.sf.mzmine.data.ParameterSet;
-import net.sf.mzmine.io.OpenedRawDataFile;
+import net.sf.mzmine.io.RawDataFile;
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.main.MZmineModule;
 import net.sf.mzmine.taskcontrol.TaskController;
@@ -45,16 +45,14 @@ public class NeutralLossVisualizer implements MZmineModule, ActionListener {
 
     private Logger logger = Logger.getLogger(this.getClass().getName());
 
-    private TaskController taskController;
     private Desktop desktop;
 
     /**
      * @see net.sf.mzmine.main.MZmineModule#initModule(net.sf.mzmine.main.MZmineCore)
      */
-    public void initModule(MZmineCore core) {
+    public void initModule() {
 
-        this.taskController = core.getTaskController();
-        this.desktop = core.getDesktop();
+        this.desktop = MZmineCore.getDesktop();
 
         desktop.addMenuItem(MZmineMenu.VISUALIZATION, "Neutral loss", this,
                 null, KeyEvent.VK_N, false, true);
@@ -68,14 +66,14 @@ public class NeutralLossVisualizer implements MZmineModule, ActionListener {
 
         logger.finest("Opening a new neutral loss visualizer setup dialog");
 
-        OpenedRawDataFile dataFiles[] = desktop.getSelectedDataFiles();
+        RawDataFile dataFiles[] = desktop.getSelectedDataFiles();
         if (dataFiles.length == 0) {
             desktop.displayErrorMessage("Please select at least one data file");
             return;
         }
 
-        for (OpenedRawDataFile dataFile : dataFiles) {
-            int msLevels[] = dataFile.getCurrentFile().getMSLevels();
+        for (RawDataFile dataFile : dataFiles) {
+            int msLevels[] = dataFile.getMSLevels();
             final int neededMSLevels[] = { 1, 2 };
 
             if (!CollectionUtils.isSubset(msLevels, neededMSLevels)) {
@@ -83,8 +81,7 @@ public class NeutralLossVisualizer implements MZmineModule, ActionListener {
                         + " does not contain data for MS levels 1 and 2.");
                 continue;
             }
-            JDialog setupDialog = new NeutralLossSetupDialog(taskController,
-                    desktop, dataFile);
+            JDialog setupDialog = new NeutralLossSetupDialog(dataFile);
             setupDialog.setVisible(true);
         }
 

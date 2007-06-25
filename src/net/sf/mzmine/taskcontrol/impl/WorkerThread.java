@@ -22,6 +22,7 @@ package net.sf.mzmine.taskcontrol.impl;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.taskcontrol.TaskListener;
 import net.sf.mzmine.userinterface.Desktop;
 
@@ -33,11 +34,9 @@ class WorkerThread extends Thread {
     private Logger logger = Logger.getLogger(this.getClass().getName());
     
     private WrappedTask currentTask;
-    private Desktop desktop;
 
-    WorkerThread(int workerNumber, Desktop desktop) {
+    WorkerThread(int workerNumber) {
         super("Worker thread #" + workerNumber);
-        this.desktop = desktop;
     }
 
     /**
@@ -95,12 +94,12 @@ class WorkerThread extends Thread {
                 logger.log(Level.SEVERE, "Unhandled exception " + e + " while processing task "
                         + currentTask, e);
 
-                if (desktop != null) {
+                if (MZmineCore.getDesktop() != null) {
                     
                     String errorMessage = "Unhandled exception while processing task "
                         + currentTask + ": " + e;
 
-                    desktop.displayErrorMessage(errorMessage);
+                    MZmineCore.getDesktop().displayErrorMessage(errorMessage);
                 }
 
             }

@@ -40,7 +40,7 @@ public class KEGGSearch implements MZmineModule {
     /**
      * @see net.sf.mzmine.main.MZmineModule#initModule(net.sf.mzmine.main.MZmineCore)
      */
-    public void initModule(MZmineCore core) {
+    public void initModule() {
         
     }
 

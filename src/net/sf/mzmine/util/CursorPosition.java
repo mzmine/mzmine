@@ -19,15 +19,15 @@
 
 package net.sf.mzmine.util;
 
-import net.sf.mzmine.io.OpenedRawDataFile;
+import net.sf.mzmine.io.RawDataFile;
 
 /**
  * 
  */
 public class CursorPosition {
 
-    private double retentionTime, mzValue, intensityValue;
-    private OpenedRawDataFile dataFile;
+    private float retentionTime, mzValue, intensityValue;
+    private RawDataFile dataFile;
     private int scanNumber;
 
     /**
@@ -37,8 +37,8 @@ public class CursorPosition {
      * @param rawDataFile
      * @param scanNumber
      */
-    public CursorPosition(double retentionTime, double mzValue,
-            double intensityValue, OpenedRawDataFile dataFile, int scanNumber) {
+    public CursorPosition(float retentionTime, float mzValue,
+            float intensityValue, RawDataFile dataFile, int scanNumber) {
         this.retentionTime = retentionTime;
         this.mzValue = mzValue;
         this.intensityValue = intensityValue;
@@ -49,56 +49,56 @@ public class CursorPosition {
     /**
      * @return Returns the intensityValue.
      */
-    public double getIntensityValue() {
+    public float getIntensityValue() {
         return intensityValue;
     }
 
     /**
      * @param intensityValue The intensityValue to set.
      */
-    public void setIntensityValue(double intensityValue) {
+    public void setIntensityValue(float intensityValue) {
         this.intensityValue = intensityValue;
     }
 
     /**
      * @return Returns the mzValue.
      */
-    public double getMzValue() {
+    public float getMzValue() {
         return mzValue;
     }
 
     /**
      * @param mzValue The mzValue to set.
      */
-    public void setMzValue(double mzValue) {
+    public void setMzValue(float mzValue) {
         this.mzValue = mzValue;
     }
 
     /**
      * @return Returns the retentionTime.
      */
-    public double getRetentionTime() {
+    public float getRetentionTime() {
         return retentionTime;
     }
 
     /**
      * @param retentionTime The retentionTime to set.
      */
-    public void setRetentionTime(double retentionTime) {
+    public void setRetentionTime(float retentionTime) {
         this.retentionTime = retentionTime;
     }
 
     /**
      * @return Returns the dataFile.
      */
-    public OpenedRawDataFile getDataFile() {
+    public RawDataFile getDataFile() {
         return dataFile;
     }
 
     /**
      * @param dataFile The dataFile to set.
      */
-    public void setDataFile(OpenedRawDataFile dataFile) {
+    public void setDataFile(RawDataFile dataFile) {
         this.dataFile = dataFile;
     }
 

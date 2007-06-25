@@ -30,12 +30,12 @@ public class SimpleScan implements Scan {
     private int msLevel;
     private int parentScan;
     private int fragmentScans[];
-    private double mzValues[], intensityValues[];
-    private double precursorMZ;
+    private float mzValues[], intensityValues[];
+    private float precursorMZ;
     private int precursorCharge;
-    private double retentionTime;
-    private double mzRangeMin, mzRangeMax;
-    private double basePeakMZ, basePeakIntensity;
+    private float retentionTime;
+    private float mzRangeMin, mzRangeMax;
+    private float basePeakMZ, basePeakIntensity;
     private boolean centroided;
 
     /**
@@ -51,9 +51,9 @@ public class SimpleScan implements Scan {
     /**
      * Constructor for creating scan with given data
      */
-    public SimpleScan(int scanNumber, int msLevel, double retentionTime,
-            int parentScan, double precursorMZ, int fragmentScans[],
-            double[] mzValues, double[] intensityValues, boolean centroided) {
+    public SimpleScan(int scanNumber, int msLevel, float retentionTime,
+            int parentScan, float precursorMZ, int fragmentScans[],
+            float[] mzValues, float[] intensityValues, boolean centroided) {
 
         // check assumptions about proper scan data
         assert (msLevel == 1) || (parentScan > 0);
@@ -74,14 +74,14 @@ public class SimpleScan implements Scan {
     /**
      * @return Returns the intensityValues.
      */
-    public double[] getIntensityValues() {
+    public float[] getIntensityValues() {
         return intensityValues;
     }
 
     /**
      * @return Returns the mZValues.
      */
-    public double[] getMZValues() {
+    public float[] getMZValues() {
         return mzValues;
     }
 
@@ -89,10 +89,9 @@ public class SimpleScan implements Scan {
      * @param mzValues m/z values to set
      * @param intensityValues Intensity values to set
      */
-    public void setData(double[] mzValues, double[] intensityValues) {
+    public void setData(float[] mzValues, float[] intensityValues) {
 
         // check assumptions
-        assert mzValues.length > 0;
         assert mzValues.length == intensityValues.length;
 
         this.mzValues = mzValues;
@@ -163,14 +162,14 @@ public class SimpleScan implements Scan {
     /**
      * @see net.sf.mzmine.data.Scan#getPrecursorMZ()
      */
-    public double getPrecursorMZ() {
+    public float getPrecursorMZ() {
         return precursorMZ;
     }
 
     /**
      * @param precursorMZ The precursorMZ to set.
      */
-    public void setPrecursorMZ(double precursorMZ) {
+    public void setPrecursorMZ(float precursorMZ) {
         this.precursorMZ = precursorMZ;
     }
 
@@ -193,70 +192,70 @@ public class SimpleScan implements Scan {
     /**
      * @see net.sf.mzmine.data.Scan#getScanAcquisitionTime()
      */
-    public double getRetentionTime() {
+    public float getRetentionTime() {
         return retentionTime;
     }
 
     /**
      * @param retentionTime The retentionTime to set.
      */
-    public void setRetentionTime(double retentionTime) {
+    public void setRetentionTime(float retentionTime) {
         this.retentionTime = retentionTime;
     }
 
     /**
      * @see net.sf.mzmine.data.Scan#getMZRangeMin()
      */
-    public double getMZRangeMin() {
+    public float getMZRangeMin() {
         return mzRangeMin;
     }
 
     /**
      * @param mzRangeMin The mzRangeMin to set.
      */
-    public void setMZRangeMin(double mzRangeMin) {
+    public void setMZRangeMin(float mzRangeMin) {
         this.mzRangeMin = mzRangeMin;
     }
 
     /**
      * @see net.sf.mzmine.data.Scan#getMZRangeMax()
      */
-    public double getMZRangeMax() {
+    public float getMZRangeMax() {
         return mzRangeMax;
     }
 
     /**
      * @param mzRangeMax The mzRangeMax to set.
      */
-    public void setMZRangeMax(double mzRangeMax) {
+    public void setMZRangeMax(float mzRangeMax) {
         this.mzRangeMax = mzRangeMax;
     }
 
     /**
      * @see net.sf.mzmine.data.Scan#getBasePeakMZ()
      */
-    public double getBasePeakMZ() {
+    public float getBasePeakMZ() {
         return basePeakMZ;
     }
 
     /**
      * @param basePeakMZ The basePeakMZ to set.
      */
-    public void setBasePeakMZ(double basePeakMZ) {
+    public void setBasePeakMZ(float basePeakMZ) {
         this.basePeakMZ = basePeakMZ;
     }
 
     /**
      * @see net.sf.mzmine.data.Scan#getBasePeakIntensity()
      */
-    public double getBasePeakIntensity() {
+    public float getBasePeakIntensity() {
         return basePeakIntensity;
     }
 
     /**
      * @param basePeakIntensity The basePeakIntensity to set.
      */
-    public void setBasePeakIntensity(double basePeakIntensity) {
+    public void setBasePeakIntensity(float basePeakIntensity) {
         this.basePeakIntensity = basePeakIntensity;
     }
 
@@ -305,8 +304,8 @@ public class SimpleScan implements Scan {
     /**
      * @see net.sf.mzmine.data.Scan#getMassTolerance()
      */
-    public double getMassTolerance() {
-        return 0.5;
+    public float getMassTolerance() {
+        return 0.5f;
     }
 
 }

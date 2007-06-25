@@ -43,12 +43,12 @@ import javax.swing.ScrollPaneConstants;
 import net.sf.mzmine.data.PeakList;
 import net.sf.mzmine.data.PeakListRow;
 import net.sf.mzmine.data.impl.SimpleParameterSet;
-import net.sf.mzmine.io.OpenedRawDataFile;
+import net.sf.mzmine.io.RawDataFile;
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.userinterface.Desktop;
 import net.sf.mzmine.userinterface.components.ExtendedCheckBox;
 import net.sf.mzmine.userinterface.dialogs.ExitCode;
-import net.sf.mzmine.util.AlignmentResultSorterByMZ;
+import net.sf.mzmine.util.PeakListRowSorterByMZ;
 import net.sf.mzmine.util.GUIUtils;
 
 class SimpleStandardCompoundNormalizerDialog extends JDialog implements ActionListener {
@@ -120,7 +120,7 @@ class SimpleStandardCompoundNormalizerDialog extends JDialog implements ActionLi
         Vector<ExtendedCheckBox<PeakListRow>> peakCheckBoxesVector = new Vector<ExtendedCheckBox<PeakListRow>>(); 
         int minimumHorizSize = 0;
         PeakListRow rows[] = alignmentResult.getRows();
-        Arrays.sort(rows, new AlignmentResultSorterByMZ());
+        Arrays.sort(rows, new PeakListRowSorterByMZ());
         for (int i = 0; i < rows.length; i++) {
         	// Add only fully detected peaks to list of potential standard peaks
         	if (rows[i].getNumberOfPeaks()==alignmentResult.getNumberOfRawDataFiles()) {
