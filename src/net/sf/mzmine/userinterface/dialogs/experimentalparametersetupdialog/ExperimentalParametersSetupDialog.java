@@ -201,8 +201,10 @@ public class ExperimentalParametersSetupDialog extends JDialog implements Action
 		
 		if (src == buttonAddCategory) {
 			String inputValue = JOptionPane.showInputDialog("Please input a new value");
-			// TODO: Check if given parameter value already exists
-			
+			if (	((DefaultListModel)listCategories.getModel()).contains(inputValue)	) {
+				desktop.displayErrorMessage("Value already exists.");
+				return;
+			}
 			((DefaultListModel)listCategories.getModel()).addElement(inputValue);
 		}
 		
@@ -272,6 +274,11 @@ public class ExperimentalParametersSetupDialog extends JDialog implements Action
 		
         MZmineProject currentProject = MZmineCore.getCurrentProject();
 
+        // Remove all previous experimental parameters from project
+        Parameter[] parameters = currentProject.getParameters();
+        for (Parameter parameter : parameters) {
+        	currentProject.removeParameter(parameter);
+        }
 		
 		// Create new parameters and set values
 		for (int columnIndex=0; columnIndex<parameterValues.keySet().size(); columnIndex++) {
@@ -287,11 +294,10 @@ public class ExperimentalParametersSetupDialog extends JDialog implements Action
 						doubleValue = (Double)value;
 					if (value instanceof String) 
 						doubleValue = Double.parseDouble((String)value);
-                    value = doubleValue;
-					// TODO file.getParameters().setParameterValue(parameter, doubleValue);
+                    currentProject.setParameterValue(parameter, file, doubleValue);
 				}
 				if (parameter.getType()==Parameter.ParameterType.STRING) {
-//                TODO file.getParameters().setParameterValue(parameter, (String)value);
+					currentProject.setParameterValue(parameter, file, (String)value);
 				}
                 
 				
@@ -306,10 +312,13 @@ public class ExperimentalParametersSetupDialog extends JDialog implements Action
 		
 		for (int dataFileIndex=0; dataFileIndex<dataFiles.length; dataFileIndex++) {
 			
+			MZmineProject currentProject = MZmineCore.getCurrentProject();
+			
 			RawDataFile file = dataFiles[dataFileIndex];
+			Parameter[] parameters = currentProject.getParameters();
 			
 			// Loop through all experimental paramters defined for this file
-			/*for (Parameter p : file.getParameters().getParameters()) {
+			for (Parameter p : parameters) {
 				
 				// Check if this parameter has been seen before?
 				Object[] values;
@@ -324,9 +333,9 @@ public class ExperimentalParametersSetupDialog extends JDialog implements Action
 				}
 				
 				// Set value of this parameter for the current raw data file 
-				values[dataFileIndex] = file.getParameters().getParameterValue(p);
+				values[dataFileIndex] = currentProject.getParameterValue(p, file); 
 				
-			}*/
+			}
 			
 		}
 		
