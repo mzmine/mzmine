@@ -1,10 +1,12 @@
 package net.sf.mzmine.modules.dataanalysis.projectionplots;
 
 import java.awt.Color;
+import java.util.HashMap;
 import java.util.Hashtable;
 
 import jmprojection.PCA;
 import jmprojection.Preprocess;
+import net.sf.mzmine.data.Parameter;
 import net.sf.mzmine.data.Peak;
 import net.sf.mzmine.data.PeakList;
 import net.sf.mzmine.data.impl.SimpleParameterSet;
@@ -18,33 +20,41 @@ public class PCADataset extends AbstractXYDataset implements ProjectionPlotDatas
 	private double[] component2Coords;
 	private RawDataFile[] openedRawDataFiles;
 	private Hashtable<RawDataFile, Color> rawDataColors;
-	
+
 	private String datasetTitle;
 	private int xAxisPC;
 	private int yAxisPC;
-	
-	
-	public PCADataset(PeakList peakList, Hashtable<RawDataFile, Color> rawDataColors, SimpleParameterSet parameters, int xAxisPC, int yAxisPC) {
+
+
+	public PCADataset(PeakList peakList, Parameter coloringParameter, HashMap<Object, Color> colorsForParameterValues, SimpleParameterSet parameters, int xAxisPC, int yAxisPC) {
+
 		this.xAxisPC = xAxisPC;
 		this.yAxisPC = yAxisPC;
 		this.rawDataColors = rawDataColors;
-		
+
 		int numOfRawData = peakList.getNumberOfRawDataFiles();
 		int numOfRows = peakList.getNumberOfRows();
-		
+
 		boolean useArea = true;
 		if (parameters.getParameterValue(ProjectionPlot.MeasurementType)==ProjectionPlot.MeasurementTypeHeight)
 			useArea = false;
-		
+
 		datasetTitle = "Principal component analysis";
-		
-		// Pickup opened raw data files
+
+		// Pickup opened raw data files & setup colors according to parameter values
+		/*
+		 * TODO: Get experimental parameters from project instead of raw data file
 		openedRawDataFiles = new RawDataFile[numOfRawData];
-		for (int fileIndex=0; fileIndex<numOfRawData; fileIndex++) 
+		for (int fileIndex=0; fileIndex<numOfRawData; fileIndex++) {
 			openedRawDataFiles[fileIndex] = peakList.getRawDataFile(fileIndex);
-		
-		
-		
+			Object paramValue = openedRawDataFiles[fileIndex].getParameters().getParameterValue(coloringParameter);
+			Color color = Color.black;
+			if (paramValue!=null) color = colorsForParameterValues.get(paramValue);
+		}
+		*/
+
+
+
 		// Generate matrix of raw data (input to PCA)
 		double[][] rawData = new double[numOfRawData][numOfRows];
 		for (int rowIndex=0; rowIndex<numOfRows; rowIndex++) {
@@ -59,19 +69,19 @@ public class PCADataset extends AbstractXYDataset implements ProjectionPlotDatas
 				}
 			}
 		}
-		
+
 		int numComponents = xAxisPC;
 		if (yAxisPC>numComponents) numComponents = yAxisPC;
-		
+
 		// Scale data and do PCA
 		Preprocess.scaleToUnityVariance(rawData);
 		PCA pcaProj = new PCA(rawData, numComponents);
-		
+
 		double[][] result = pcaProj.getState();
 
 		component1Coords = result[xAxisPC-1];
 		component2Coords = result[yAxisPC-1];
-		
+
 		//// DEBUG
 		/*
 		PrintWriter writer = null;
@@ -80,7 +90,7 @@ public class PCADataset extends AbstractXYDataset implements ProjectionPlotDatas
 		} catch (IOException ex) {
 			System.err.println("" + ex.toString());
 		}
-		
+
 		for (int fileIndex=0; fileIndex<numOfRawData; fileIndex++) {
 			for (int rowIndex=0; rowIndex<numOfRows; rowIndex++) {
 				writer.print(rawData[fileIndex][rowIndex]);
@@ -91,14 +101,14 @@ public class PCADataset extends AbstractXYDataset implements ProjectionPlotDatas
 		}
 		writer.flush();
 		writer.close();
-		
+
 		writer = null;
 		try {
 			writer = new PrintWriter(new BufferedWriter(new FileWriter("C:\\temp\\outputfrompca.txt")));
 		} catch (IOException ex) {
 			System.err.println("" + ex.toString());
 		}
-		
+
 		for (int componentIndex=0; componentIndex<2; componentIndex++) {
 			for (int fileIndex=0; fileIndex<numOfRawData; fileIndex++) {
 				writer.print(result[componentIndex][fileIndex]);
@@ -108,20 +118,20 @@ public class PCADataset extends AbstractXYDataset implements ProjectionPlotDatas
 			writer.println();
 		}
 		writer.flush();
-		writer.close();		
+		writer.close();
 		*/
 		//// DEBUG
-				
+
 	}
-	
+
 	public String toString() {
 		return datasetTitle;
 	}
-	
+
 	public Color getColor(int item) {
 		return rawDataColors.get(openedRawDataFiles[item]);
 	}
-	
+
 	public String getXLabel() {
 		if (xAxisPC==1) return "1st PC";
 		if (xAxisPC==2) return "2nd PC";
@@ -135,8 +145,8 @@ public class PCADataset extends AbstractXYDataset implements ProjectionPlotDatas
 		if (yAxisPC==3) return "3rd PC";
 		return "" + yAxisPC + "th PC";
 	}
-	
-	
+
+
 	@Override
 	public int getSeriesCount() {
 		return 1;
@@ -162,5 +172,5 @@ public class PCADataset extends AbstractXYDataset implements ProjectionPlotDatas
 	public RawDataFile getRawDataFile(int item) {
 		return openedRawDataFiles[item];
 	}
-	
+
 }

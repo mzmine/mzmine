@@ -110,7 +110,7 @@ public class ProjectionPlot implements MZmineModule, ActionListener {
         	// Create dataset & paint scale
         	ProjectionPlotDataset dataset = null;
         	if (command.equals("PCA_PLOT"))
-        		dataset = new PCADataset(pl, setupDialog.getRawDataColors(), parameters, 1, 2);
+        		dataset = new PCADataset(pl, setupDialog.getColoringParameter(), setupDialog.getColorsForParameterValues(), parameters, 1, 2);
         	/*
         	if (command.equals("CDA_PLOT"))
         		dataset = new CDADataset(pl, parameters);
