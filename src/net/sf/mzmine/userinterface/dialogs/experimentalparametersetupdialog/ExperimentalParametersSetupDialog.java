@@ -45,15 +45,21 @@ public class ExperimentalParametersSetupDialog extends JDialog implements Action
 			private JPanel panelFields;
 				private ButtonGroup buttongroupType;
 				private JRadioButton radiobuttonNumerical;
+				private JRadioButton radiobuttonFreeText;
 				private JRadioButton radiobuttonCategorical;
-				private JPanel panelNumerical;
-					private JPanel panelNumericalFields;
-						private JLabel labelMinValue;
-						private JFormattedTextField fieldMinValue;					
-						private JLabel labelDefaultValue;
-						private JFormattedTextField fieldDefaultValue;
-						private JLabel labelMaxValue;
-						private JFormattedTextField fieldMaxValue;
+				private JPanel panelNumericalAndFreeText;
+					private JPanel panelNumerical;
+						private JPanel panelNumericalFields;
+							private JLabel labelNumericalMinValue;
+							private JFormattedTextField fieldNumericalMinValue;					
+							private JLabel labelNumericalDefaultValue;
+							private JFormattedTextField fieldNumericalDefaultValue;
+							private JLabel labelNumericalMaxValue;
+							private JFormattedTextField fieldNumericalMaxValue;
+					private JPanel panelFreeText;
+						private JPanel panelFreeTextFields;
+							private JLabel labelFreeTextDefaultValue;
+							private JTextField fieldFreeTextDefaultValue;
 				private JPanel panelCategorical;
 					private JPanel panelCategoricalFields;
 						private JScrollPane scrollCategories;
@@ -143,29 +149,45 @@ public class ExperimentalParametersSetupDialog extends JDialog implements Action
 			if (radiobuttonNumerical.isSelected()) {
 				Parameter.ParameterType paramType = Parameter.ParameterType.DOUBLE;
 				Double minValue = Double.NEGATIVE_INFINITY;
-				if (fieldMinValue.getValue()!=null)
-					minValue = ((Number)fieldMinValue.getValue()).doubleValue();
+				if (fieldNumericalMinValue.getValue()!=null)
+					minValue = ((Number)fieldNumericalMinValue.getValue()).doubleValue();
 				
 				Double defaultValue = 0.0;
-				if (fieldDefaultValue.getValue()!=null) {
-					defaultValue = ((Number)fieldDefaultValue.getValue()).doubleValue();
+				if (fieldNumericalDefaultValue.getValue()!=null) {
+					defaultValue = ((Number)fieldNumericalDefaultValue.getValue()).doubleValue();
 				} 
 				
 				Double maxValue = Double.POSITIVE_INFINITY;
-				if (fieldMaxValue.getValue()!=null)
-					maxValue = ((Number)fieldMaxValue.getValue()).doubleValue();
+				if (fieldNumericalMaxValue.getValue()!=null)
+					maxValue = ((Number)fieldNumericalMaxValue.getValue()).doubleValue();
 				
 				parameter = new SimpleParameter(paramType, paramName, null, null, defaultValue, minValue, maxValue);
 			}
+			
+			if (radiobuttonFreeText.isSelected()) {
+				Parameter.ParameterType paramType = Parameter.ParameterType.STRING;
+				String defaultValue = "";
+				if (fieldFreeTextDefaultValue.getText()!=null)
+					defaultValue = fieldFreeTextDefaultValue.getText();
+				System.out.println("Creating a free-text parameter " + paramName + ", with default value " + defaultValue);
+				parameter = new SimpleParameter(paramType, paramName, null, (Object)defaultValue);
+				System.out.println("parameter.getDefaultValue()=" + parameter.getDefaultValue());
+			}
+			
 			if (radiobuttonCategorical.isSelected()) {
 				Parameter.ParameterType paramType = Parameter.ParameterType.STRING;
 				String[] possibleValues = new String[categories.size()];
+				if (possibleValues.length==0) {
+					desktop.displayErrorMessage("Give at least a single parameter value.");
+					return;
+				}
 				for (int valueIndex=0; valueIndex<categories.size(); valueIndex++)
 					possibleValues[valueIndex] = (String)categories.get(valueIndex);
 				parameter = new SimpleParameter(paramType, paramName, null, possibleValues[0], possibleValues);
 			}
 			
 			// Initialize with default value
+			System.out.println("Initializing with default parameter value " + parameter.getDefaultValue());
 			Object[] values = new Object[dataFiles.length];
 			for (int dataFileIndex=0; dataFileIndex<dataFiles.length; dataFileIndex++) 
 				values[dataFileIndex] = parameter.getDefaultValue();
@@ -189,14 +211,21 @@ public class ExperimentalParametersSetupDialog extends JDialog implements Action
 			
 		}
 		
-		if ((src == radiobuttonNumerical) ||(src == radiobuttonCategorical)) {
+		if ( (src == radiobuttonNumerical) ||
+			 (src == radiobuttonCategorical) ||
+			 (src == radiobuttonFreeText) ) {
 			if (radiobuttonNumerical.isSelected()) {
 				switchNumericalFields(true);
 				switchCategoricalFields(false);
-			} else {
+			} 			
+			if (radiobuttonFreeText.isSelected()) {
+				switchNumericalFields(false);
+				switchCategoricalFields(false);
+			}
+			if (radiobuttonCategorical.isSelected()) {
 				switchNumericalFields(false);
 				switchCategoricalFields(true);
-			}
+			} 			
 		}
 		
 		if (src == buttonAddCategory) {
@@ -215,12 +244,12 @@ public class ExperimentalParametersSetupDialog extends JDialog implements Action
 	}
 	
 	private void switchNumericalFields(boolean enabled) {
-		labelMinValue.setEnabled(enabled);
-		fieldMinValue.setEnabled(enabled);
-		labelDefaultValue.setEnabled(enabled);
-		fieldDefaultValue.setEnabled(enabled);
-		labelMaxValue.setEnabled(enabled);
-		fieldMaxValue.setEnabled(enabled);
+		labelNumericalMinValue.setEnabled(enabled);
+		fieldNumericalMinValue.setEnabled(enabled);
+		labelNumericalDefaultValue.setEnabled(enabled);
+		fieldNumericalDefaultValue.setEnabled(enabled);
+		labelNumericalMaxValue.setEnabled(enabled);
+		fieldNumericalMaxValue.setEnabled(enabled);
 	}
 	
 	private void switchCategoricalFields(boolean enabled) {
@@ -228,6 +257,7 @@ public class ExperimentalParametersSetupDialog extends JDialog implements Action
 		buttonAddCategory.setEnabled(enabled);
 		buttonRemoveCategory.setEnabled(enabled);
 	}
+	
 	
 	private boolean validateParameterValues() {
 		// Create new parameters and set values
@@ -297,9 +327,9 @@ public class ExperimentalParametersSetupDialog extends JDialog implements Action
                     currentProject.setParameterValue(parameter, file, doubleValue);
 				}
 				if (parameter.getType()==Parameter.ParameterType.STRING) {
+					if (value==null) value = "";
 					currentProject.setParameterValue(parameter, file, (String)value);
 				}
-                
 				
 			}
 
@@ -372,38 +402,65 @@ public class ExperimentalParametersSetupDialog extends JDialog implements Action
 						
 					buttongroupType = new ButtonGroup();
 					radiobuttonNumerical = new JRadioButton("Numerical values");
+					radiobuttonFreeText = new JRadioButton("Free text");
 					radiobuttonCategorical = new JRadioButton("Set of values");
 					radiobuttonNumerical.addActionListener(this);
+					radiobuttonFreeText.addActionListener(this);
 					radiobuttonCategorical.addActionListener(this);
 					buttongroupType.add(radiobuttonNumerical);
+					buttongroupType.add(radiobuttonFreeText);
 					buttongroupType.add(radiobuttonCategorical);
 						
 				// Fields for different types of parameters
 				panelFields = new JPanel(new GridLayout(1,2));
 					
+					panelNumericalAndFreeText = new JPanel(new BorderLayout());
 				
-					// Min, default and max for numerical				
-					panelNumerical = new JPanel(new BorderLayout());				
-
-						panelNumericalFields = new JPanel(new GridLayout(3,2,5,2));
-							labelMinValue = new JLabel("Minimum value");
-							fieldMinValue = new JFormattedTextField(NumberFormat.getNumberInstance());
-							labelDefaultValue = new JLabel("Default value");
-							fieldDefaultValue = new JFormattedTextField(NumberFormat.getNumberInstance());
-							labelMaxValue = new JLabel("Maximum value");
-							fieldMaxValue = new JFormattedTextField(NumberFormat.getNumberInstance());
-							panelNumericalFields.add(labelMinValue);
-							panelNumericalFields.add(fieldMinValue);
-							panelNumericalFields.add(labelDefaultValue);
-							panelNumericalFields.add(fieldDefaultValue);
-							panelNumericalFields.add(labelMaxValue);
-							panelNumericalFields.add(fieldMaxValue);
-							panelNumericalFields.setBorder(BorderFactory.createEmptyBorder(5,5,5,5));
+						// Min, default and max for numerical				
+						panelNumerical = new JPanel(new BorderLayout());				
+	
+							panelNumericalFields = new JPanel(new GridLayout(3,2,5,2));
+								labelNumericalMinValue = new JLabel("Minimum value");
+								fieldNumericalMinValue = new JFormattedTextField(NumberFormat.getNumberInstance());
+								labelNumericalDefaultValue = new JLabel("Default value");
+								fieldNumericalDefaultValue = new JFormattedTextField(NumberFormat.getNumberInstance());
+								labelNumericalMaxValue = new JLabel("Maximum value");
+								fieldNumericalMaxValue = new JFormattedTextField(NumberFormat.getNumberInstance());
+								panelNumericalFields.add(labelNumericalMinValue);
+								panelNumericalFields.add(fieldNumericalMinValue);
+								panelNumericalFields.add(labelNumericalDefaultValue);
+								panelNumericalFields.add(fieldNumericalDefaultValue);
+								panelNumericalFields.add(labelNumericalMaxValue);
+								panelNumericalFields.add(fieldNumericalMaxValue);
+								panelNumericalFields.setBorder(BorderFactory.createEmptyBorder(5,5,5,5));
+							
 						
-					
-						panelNumerical.add(radiobuttonNumerical, BorderLayout.NORTH);
-						panelNumerical.add(panelNumericalFields, BorderLayout.CENTER);
-						panelNumerical.setBorder(BorderFactory.createEtchedBorder());
+							panelNumerical.add(radiobuttonNumerical, BorderLayout.NORTH);
+							panelNumerical.add(panelNumericalFields, BorderLayout.CENTER);
+							panelNumerical.setBorder(BorderFactory.createEtchedBorder());
+							
+						panelFreeText = new JPanel(new BorderLayout());
+						panelFreeText.setPreferredSize(panelNumerical.getPreferredSize());				
+						panelFreeText.setBorder(BorderFactory.createEtchedBorder());
+
+							panelFreeTextFields = new JPanel(new GridLayout(3,2,5,2));
+							labelFreeTextDefaultValue = new JLabel("Default value");
+							fieldFreeTextDefaultValue = new JTextField();
+							panelFreeTextFields.add(labelFreeTextDefaultValue);
+							panelFreeTextFields.add(fieldFreeTextDefaultValue);
+							panelFreeTextFields.add(new JPanel());
+							panelFreeTextFields.add(new JPanel());
+							panelFreeTextFields.add(new JPanel());
+							panelFreeTextFields.add(new JPanel());
+							
+						panelFreeText.add(radiobuttonFreeText, BorderLayout.NORTH);
+						panelFreeText.add(panelFreeTextFields, BorderLayout.CENTER);
+							
+							
+							
+					panelNumericalAndFreeText.add(panelNumerical, BorderLayout.NORTH);
+					panelNumericalAndFreeText.add(panelFreeText, BorderLayout.SOUTH);
+							
 						
 					panelCategorical = new JPanel(new BorderLayout());
 					
@@ -427,7 +484,7 @@ public class ExperimentalParametersSetupDialog extends JDialog implements Action
 						panelCategorical.add(panelCategoricalFields, BorderLayout.CENTER);
 						panelCategorical.setBorder(BorderFactory.createEtchedBorder());
 					
-					panelFields.add(panelNumerical);
+					panelFields.add(panelNumericalAndFreeText);
 					panelFields.add(panelCategorical);
 					
 			panelParameterInformation.add(panelName, BorderLayout.NORTH);
