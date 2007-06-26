@@ -1,5 +1,5 @@
 /*
- * Copyright 2006 The MZmine Development Team
+ * Copyright 2006-2007 The MZmine Development Team
  * 
  * This file is part of MZmine.
  * 
@@ -19,8 +19,11 @@
 
 package net.sf.mzmine.io.impl;
 
+import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileReader;
 import java.io.IOException;
+import java.nio.CharBuffer;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -30,10 +33,16 @@ import net.sf.mzmine.io.PreloadLevel;
 import net.sf.mzmine.io.RawDataFile;
 import net.sf.mzmine.io.RawDataFileReader;
 import net.sf.mzmine.io.RawDataFileWriter;
+import net.sf.mzmine.io.readers.MzDatav1_0_5Reader;
 import net.sf.mzmine.io.readers.MzXMLv1_1_1Reader;
+import net.sf.mzmine.io.readers.MzXMLv2_0Reader;
+import net.sf.mzmine.io.readers.MzXMLv2_1Reader;
 import net.sf.mzmine.io.readers.NetCDFFileReader;
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.taskcontrol.DistributableTask;
+
+import org.proteomecommons.io.PeakListReader;
+import org.proteomecommons.io.xml.GenericXMLPeakListReaderFactory;
 
 /**
  * 
@@ -52,16 +61,16 @@ public class FileOpeningTask implements DistributableTask {
     private RawDataFileReader reader;
     private RawDataFile resultFile;
     private PreloadLevel preloadLevel;
-    
+
     /**
      * 
      */
     public FileOpeningTask(File fileToOpen, PreloadLevel preloadLevel) {
-        
+
         originalFile = fileToOpen;
         this.preloadLevel = preloadLevel;
         status = TaskStatus.WAITING;
-        
+
     }
 
     /**
@@ -75,7 +84,8 @@ public class FileOpeningTask implements DistributableTask {
      * @see net.sf.mzmine.taskcontrol.Task#getFinishedPercentage()
      */
     public float getFinishedPercentage() {
-        if (reader == null) return 0;
+        if (reader == null)
+            return 0;
         int totalScans = reader.getNumberOfScans();
         return totalScans <= 0 ? 0 : (float) parsedScans / totalScans;
     }
@@ -111,51 +121,83 @@ public class FileOpeningTask implements DistributableTask {
         status = TaskStatus.PROCESSING;
 
         try {
-            
+
             String fileName = originalFile.getName();
             IOController ioController = MZmineCore.getIOController();
-            
-            // Create new RawDataFile instance 
+
+            logger.finest("1");
+            // Create new RawDataFile instance
             buildingFile = ioController.createNewFile(fileName, preloadLevel);
 
+            logger.finest("2");
+
             // Determine parser
-            String extension = fileName.substring(
-                    fileName.lastIndexOf(".") + 1).toLowerCase();
-            
+            String extension = fileName.substring(fileName.lastIndexOf(".") + 1).toLowerCase();
+
             if (extension.endsWith("xml")) {
-                reader = new MzXMLv1_1_1Reader(originalFile);
+
+                FileReader fileReader = new FileReader(originalFile);
+                BufferedReader lineReader = new BufferedReader(fileReader);
+
+                // read first 20 lines
+                for (int i = 0; i < 20; i++) {
+
+                    String line = lineReader.readLine();
+                    if (line == null)
+                        break;
+
+                    if (line.matches(new org.proteomecommons.io.mzxml.v1_1_1.MzXMLPeakListReaderFactory().getSchemaURIRegex()))
+                        reader = new MzXMLv1_1_1Reader(originalFile);
+
+                    if (line.matches(new org.proteomecommons.io.mzxml.v2_0.MzXMLPeakListReaderFactory().getSchemaURIRegex()))
+                        reader = new MzXMLv2_0Reader(originalFile);
+
+                    if (line.matches(new org.proteomecommons.io.mzxml.v2_1.MzXMLPeakListReaderFactory().getSchemaURIRegex()))
+                        reader = new MzXMLv2_1Reader(originalFile);
+
+                    if (line.matches(new org.proteomecommons.io.mzdata.v1_05.MzDataPeakListReaderFactory().getSchemaURIRegex()))
+                        reader = new MzDatav1_0_5Reader(originalFile);
+                    
+                }
+
             }
-            
+
             if (extension.endsWith("cdf")) {
                 reader = new NetCDFFileReader(originalFile);
             }
 
             if (reader == null) {
-                throw(new IOException("Cannot determine file type of file " + originalFile)); 
+                throw (new IOException("Cannot determine file type of file "
+                        + originalFile));
             }
+
+            logger.finest("before startreading");
 
             // Open file
             reader.startReading();
 
+            logger.finest("after startreading");
+
             // Parse scans
             Scan scan;
             while ((scan = reader.readNextScan()) != null) {
-            
+
                 // Check if cancel is requested
                 if (status == TaskStatus.CANCELED) {
                     return;
                 }
-            
+
+                logger.finest("parsed scan #" + scan.getScanNumber());
+
                 buildingFile.addScan(scan);
                 parsedScans++;
 
             }
-            
+
             // Close file
             reader.finishReading();
-            
-            resultFile = buildingFile.finishWriting();
 
+            resultFile = buildingFile.finishWriting();
 
         } catch (Throwable e) {
             logger.log(Level.SEVERE, "Could not open file "
@@ -167,7 +209,7 @@ public class FileOpeningTask implements DistributableTask {
 
         logger.info("Finished parsing " + originalFile + ", parsed "
                 + parsedScans + " scans");
-        
+
         status = TaskStatus.FINISHED;
 
     }

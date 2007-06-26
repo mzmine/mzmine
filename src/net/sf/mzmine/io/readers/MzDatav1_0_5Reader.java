@@ -33,22 +33,23 @@ import net.sf.mzmine.data.Scan;
 import net.sf.mzmine.data.impl.SimpleScan;
 import net.sf.mzmine.io.RawDataFileReader;
 
-import org.proteomecommons.io.mzxml.v1_1_1.MzXMLPeakList;
-import org.proteomecommons.io.mzxml.v1_1_1.MzXMLPeakListReader;
+import org.proteomecommons.io.mzdata.v1_05.MzDataPeakList;
+import org.proteomecommons.io.mzdata.v1_05.MzDataPeakListReader;
+
 
 /**
  * 
  */
-public class MzXMLv1_1_1Reader implements RawDataFileReader {
+public class MzDatav1_0_5Reader implements RawDataFileReader {
 
     private Logger logger = Logger.getLogger(this.getClass().getName());
 
     private File originalFile;
-    private MzXMLPeakListReader parser;
+    private MzDataPeakListReader parser;
 
     int totalScans = -1;
 
-    public MzXMLv1_1_1Reader(File originalFile) {
+    public MzDatav1_0_5Reader(File originalFile) {
         this.originalFile = originalFile;
     }
 
@@ -58,7 +59,7 @@ public class MzXMLv1_1_1Reader implements RawDataFileReader {
     public void startReading() throws IOException {
 
         try {
-            parser = new MzXMLPeakListReader(originalFile.getPath());
+            parser = new MzDataPeakListReader(originalFile.getPath());
         } catch (Exception e) {
             logger.severe(e.toString());
             throw (new IOException("Couldn't open input file" + originalFile));
@@ -79,12 +80,13 @@ public class MzXMLv1_1_1Reader implements RawDataFileReader {
      */
     public Scan readNextScan() throws IOException {
 
-        MzXMLPeakList peakList = (MzXMLPeakList) parser.getPeakList();
+        MzDataPeakList peakList = (MzDataPeakList) parser.getPeakList();
 
         // End of file
         if (peakList == null)
             return null;
 
+/*
         // Set total scans if we haven's set it yet
         if (totalScans <= 0)
             totalScans = Integer.parseInt(peakList.getMsRun().getScanCount());
@@ -110,7 +112,7 @@ public class MzXMLv1_1_1Reader implements RawDataFileReader {
         }
 
         // Parse precursor scan details
-        if (peakList.getPrecursorScanNum() != null) {
+        if (peakList.getPrecursorList().getPrecursors() != null) {
             parentScan = Integer.parseInt(peakList.getPrecursorScanNum());
             org.proteomecommons.io.Peak precursorPeak = peakList.getParentPeak();
             precursorMZ = (float) precursorPeak.getMassOverCharge();
@@ -157,7 +159,8 @@ public class MzXMLv1_1_1Reader implements RawDataFileReader {
                 centroided);
 
         return newScan;
-
+*/
+        return null;
     }
 
     /**

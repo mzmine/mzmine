@@ -90,7 +90,7 @@ public abstract class MZmineCore {
         // If we have GUI, ask if use really wants to quit
         if (desktop != null) {
             int selectedValue = JOptionPane.showInternalConfirmDialog(
-                    desktop.getMainFrame(),
+                    desktop.getMainFrame().getContentPane(),
                     "Are you sure you want to exit MZmine?", "Exiting...",
                     JOptionPane.YES_NO_OPTION, JOptionPane.WARNING_MESSAGE);
 

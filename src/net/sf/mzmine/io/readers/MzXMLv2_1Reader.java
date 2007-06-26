@@ -33,13 +33,13 @@ import net.sf.mzmine.data.Scan;
 import net.sf.mzmine.data.impl.SimpleScan;
 import net.sf.mzmine.io.RawDataFileReader;
 
-import org.proteomecommons.io.mzxml.v1_1_1.MzXMLPeakList;
-import org.proteomecommons.io.mzxml.v1_1_1.MzXMLPeakListReader;
+import org.proteomecommons.io.mzxml.v2_1.MzXMLPeakList;
+import org.proteomecommons.io.mzxml.v2_1.MzXMLPeakListReader;
 
 /**
  * 
  */
-public class MzXMLv1_1_1Reader implements RawDataFileReader {
+public class MzXMLv2_1Reader implements RawDataFileReader {
 
     private Logger logger = Logger.getLogger(this.getClass().getName());
 
@@ -48,7 +48,7 @@ public class MzXMLv1_1_1Reader implements RawDataFileReader {
 
     int totalScans = -1;
 
-    public MzXMLv1_1_1Reader(File originalFile) {
+    public MzXMLv2_1Reader(File originalFile) {
         this.originalFile = originalFile;
     }
 
