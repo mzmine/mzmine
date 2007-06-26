@@ -125,11 +125,8 @@ public class FileOpeningTask implements DistributableTask {
             String fileName = originalFile.getName();
             IOController ioController = MZmineCore.getIOController();
 
-            logger.finest("1");
             // Create new RawDataFile instance
             buildingFile = ioController.createNewFile(fileName, preloadLevel);
-
-            logger.finest("2");
 
             // Determine parser
             String extension = fileName.substring(fileName.lastIndexOf(".") + 1).toLowerCase();
@@ -139,6 +136,11 @@ public class FileOpeningTask implements DistributableTask {
                 FileReader fileReader = new FileReader(originalFile);
                 BufferedReader lineReader = new BufferedReader(fileReader);
 
+                final String MzXMLv1_1_1Regex = new org.proteomecommons.io.mzxml.v1_1_1.MzXMLPeakListReaderFactory().getSchemaURIRegex();
+                final String MzXMLv2_0Regex = new org.proteomecommons.io.mzxml.v2_0.MzXMLPeakListReaderFactory().getSchemaURIRegex();
+                final String MzXMLv2_1Regex = new org.proteomecommons.io.mzxml.v2_1.MzXMLPeakListReaderFactory().getSchemaURIRegex();
+                final String MzDatav1_0_5Regex = new org.proteomecommons.io.mzdata.v1_05.MzDataPeakListReaderFactory().getSchemaURIRegex();
+
                 // read first 20 lines
                 for (int i = 0; i < 20; i++) {
 
@@ -146,18 +148,18 @@ public class FileOpeningTask implements DistributableTask {
                     if (line == null)
                         break;
 
-                    if (line.matches(new org.proteomecommons.io.mzxml.v1_1_1.MzXMLPeakListReaderFactory().getSchemaURIRegex()))
+                    if (line.matches(MzXMLv1_1_1Regex))
                         reader = new MzXMLv1_1_1Reader(originalFile);
 
-                    if (line.matches(new org.proteomecommons.io.mzxml.v2_0.MzXMLPeakListReaderFactory().getSchemaURIRegex()))
+                    if (line.matches(MzXMLv2_0Regex))
                         reader = new MzXMLv2_0Reader(originalFile);
 
-                    if (line.matches(new org.proteomecommons.io.mzxml.v2_1.MzXMLPeakListReaderFactory().getSchemaURIRegex()))
+                    if (line.matches(MzXMLv2_1Regex))
                         reader = new MzXMLv2_1Reader(originalFile);
 
-                    if (line.matches(new org.proteomecommons.io.mzdata.v1_05.MzDataPeakListReaderFactory().getSchemaURIRegex()))
+                    if (line.matches(MzDatav1_0_5Regex))
                         reader = new MzDatav1_0_5Reader(originalFile);
-                    
+
                 }
 
             }
@@ -171,12 +173,8 @@ public class FileOpeningTask implements DistributableTask {
                         + originalFile));
             }
 
-            logger.finest("before startreading");
-
             // Open file
             reader.startReading();
-
-            logger.finest("after startreading");
 
             // Parse scans
             Scan scan;
@@ -186,8 +184,6 @@ public class FileOpeningTask implements DistributableTask {
                 if (status == TaskStatus.CANCELED) {
                     return;
                 }
-
-                logger.finest("parsed scan #" + scan.getScanNumber());
 
                 buildingFile.addScan(scan);
                 parsedScans++;
