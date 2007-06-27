@@ -19,7 +19,9 @@
 
 package net.sf.mzmine.io.impl;
 
+import java.io.File;
 import java.io.IOException;
+import java.io.RandomAccessFile;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Enumeration;
@@ -50,6 +52,8 @@ class RawDataFileImpl implements RawDataFile, RawDataFileWriter {
     private Hashtable<Integer, Float> dataMinMZ, dataMaxMZ, dataMinRT,
             dataMaxRT, dataMaxBasePeakIntensity, dataMaxTIC,
             dataTotalRawSignal;
+    
+    private RandomAccessFile scanDataFile;
 
     /**
      * Preloaded scans
@@ -66,7 +70,7 @@ class RawDataFileImpl implements RawDataFile, RawDataFileWriter {
     /**
      * 
      */
-    RawDataFileImpl(String name, PreloadLevel preloadLevel) {
+    RawDataFileImpl(String name, PreloadLevel preloadLevel) throws IOException {
         this.fileName = name;
         this.preloadLevel = preloadLevel;
 
@@ -81,6 +85,10 @@ class RawDataFileImpl implements RawDataFile, RawDataFileWriter {
         dataTotalRawSignal = new Hashtable<Integer, Float>();
 
         scans = new Hashtable<Integer, Scan>();
+        
+        File newTempFile = File.createTempFile("mzmine", null);
+        scanDataFile = new RandomAccessFile(newTempFile, "rw");
+        
     }
 
     /**
@@ -208,7 +216,7 @@ class RawDataFileImpl implements RawDataFile, RawDataFileWriter {
         // Store the scan data
         switch (preloadLevel) {
         case NO_PRELOAD:
-            StorableScan storedScan = new StorableScan(newScan);
+            StorableScan storedScan = new StorableScan(newScan, scanDataFile);
             scans.put(scanNumber, storedScan);
             break;
         case PRELOAD_ALL_SCANS:
@@ -218,7 +226,7 @@ class RawDataFileImpl implements RawDataFile, RawDataFileWriter {
             if (msLevel == 1) {
                 scans.put(scanNumber, newScan);
             } else {
-                StorableScan storedFullScan = new StorableScan(newScan);
+                StorableScan storedFullScan = new StorableScan(newScan, scanDataFile);
                 scans.put(scanNumber, storedFullScan);
             }
             break;
@@ -335,6 +343,14 @@ class RawDataFileImpl implements RawDataFile, RawDataFileWriter {
     public RawDataFile finishWriting() throws IOException {
         logger.finest("Writing of file " + fileName + " finished");
         return this;
+    }
+    
+    public void finalize() {
+        try {
+            scanDataFile.close();
+        } catch (IOException e) {
+            // ignore
+        }
     }
 
 }

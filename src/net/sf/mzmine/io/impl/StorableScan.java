@@ -1,5 +1,5 @@
 /*
- * Copyright 2006 The MZmine Development Team
+ * Copyright 2006-2007 The MZmine Development Team
  * 
  * This file is part of MZmine.
  * 
@@ -19,6 +19,13 @@
 
 package net.sf.mzmine.io.impl;
 
+import java.io.IOException;
+import java.io.RandomAccessFile;
+import java.nio.ByteBuffer;
+import java.nio.FloatBuffer;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+
 import net.sf.mzmine.data.Scan;
 
 /**
@@ -26,26 +33,29 @@ import net.sf.mzmine.data.Scan;
  */
 public class StorableScan implements Scan {
 
-    private int scanNumber;
-    private int msLevel;
-    private int parentScan;
-    private int fragmentScans[];
-    private float mzValues[], intensityValues[];
+    private Logger logger = Logger.getLogger(this.getClass().getName());
+    
+    private int scanNumber, msLevel, parentScan, fragmentScans[];
     private float precursorMZ;
     private int precursorCharge;
     private float retentionTime;
     private float mzRangeMin, mzRangeMax;
     private float basePeakMZ, basePeakIntensity;
     private boolean centroided;
+    
+    private RandomAccessFile storageFile;
+    private long storageFileOffset;
+    private int storageArrayByteLength;
+    private int numberOfDataPoints;
 
     /**
      * Clone constructor
      */
-    public StorableScan(Scan sc) {
+    public StorableScan(Scan sc, RandomAccessFile storageFile) {
         this(sc.getScanNumber(), sc.getMSLevel(), sc.getRetentionTime(),
                 sc.getParentScanNumber(), sc.getPrecursorMZ(),
                 sc.getFragmentScanNumbers(), sc.getMZValues(),
-                sc.getIntensityValues(), sc.isCentroided());
+                sc.getIntensityValues(), sc.isCentroided(), storageFile);
     }
 
     /**
@@ -53,10 +63,13 @@ public class StorableScan implements Scan {
      */
     public StorableScan(int scanNumber, int msLevel, float retentionTime,
             int parentScan, float precursorMZ, int fragmentScans[],
-            float[] mzValues, float[] intensityValues, boolean centroided) {
+            float[] mzValues, float[] intensityValues, boolean centroided, RandomAccessFile storageFile) {
 
         // check assumptions about proper scan data
         assert (msLevel == 1) || (parentScan > 0);
+        
+        // save storage file reference
+        this.storageFile = storageFile;
 
         // save scan data
         this.scanNumber = scanNumber;
@@ -75,6 +88,19 @@ public class StorableScan implements Scan {
      * @return Returns the intensityValues.
      */
     public float[] getIntensityValues() {
+        ByteBuffer buffer = ByteBuffer.allocate(storageArrayByteLength);
+        synchronized(storageFile) {
+            try {
+            storageFile.seek(storageFileOffset + storageArrayByteLength);
+            storageFile.read(buffer.array(), 0, storageArrayByteLength);
+            } catch (IOException e) {
+                logger.log(Level.WARNING, "Could not read data from temporary file", e);
+                return new float[0];
+            }
+        }
+        float intensityValues[] = new float[numberOfDataPoints];
+        FloatBuffer floatBuffer = buffer.asFloatBuffer();
+        floatBuffer.get(intensityValues);
         return intensityValues;
     }
 
@@ -82,6 +108,19 @@ public class StorableScan implements Scan {
      * @return Returns the mZValues.
      */
     public float[] getMZValues() {
+        ByteBuffer buffer = ByteBuffer.allocate(storageArrayByteLength);
+        synchronized(storageFile) {
+            try {
+            storageFile.seek(storageFileOffset);
+            storageFile.read(buffer.array(), 0, storageArrayByteLength);
+            } catch (IOException e) {
+                logger.log(Level.WARNING, "Could not read data from temporary file", e);
+                return new float[0];
+            }
+        }
+        float mzValues[] = new float[numberOfDataPoints];
+        FloatBuffer floatBuffer = buffer.asFloatBuffer();
+        floatBuffer.get(mzValues);
         return mzValues;
     }
 
@@ -94,8 +133,31 @@ public class StorableScan implements Scan {
         // check assumptions
         assert mzValues.length == intensityValues.length;
 
-        this.mzValues = mzValues;
-        this.intensityValues = intensityValues;
+        numberOfDataPoints = mzValues.length;
+        
+        
+        // every float needs 4 bytes
+        storageArrayByteLength = numberOfDataPoints * 4;
+        
+        ByteBuffer buffer = ByteBuffer.allocate(storageArrayByteLength);
+        FloatBuffer floatBuffer = buffer.asFloatBuffer();
+        
+        synchronized(storageFile) {
+            try {
+                
+                storageFileOffset = storageFile.length();
+                
+                storageFile.seek(storageFileOffset);
+                floatBuffer.put(mzValues);
+                storageFile.write(buffer.array());
+                floatBuffer.clear();
+                floatBuffer.put(intensityValues);
+                storageFile.write(buffer.array());
+            
+            } catch (IOException e) {
+                logger.log(Level.WARNING, "Could not write data to temporary file", e);
+            }
+        }
 
         // find m/z range and base peak
         if (mzValues.length>0) {
@@ -128,7 +190,7 @@ public class StorableScan implements Scan {
      * @see net.sf.mzmine.data.Scan#getNumberOfDataPoints()
      */
     public int getNumberOfDataPoints() {
-        return mzValues.length;
+        return numberOfDataPoints;
     }
 
     /**
@@ -295,7 +357,7 @@ public class StorableScan implements Scan {
     }
 
     /**
-     * @param centroided The centroided to set.
+     * @param centroided Is scan centroided?
      */
     public void setCentroided(boolean centroided) {
         this.centroided = centroided;
