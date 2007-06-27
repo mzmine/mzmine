@@ -53,6 +53,7 @@ class RawDataFileImpl implements RawDataFile, RawDataFileWriter {
             dataMaxRT, dataMaxBasePeakIntensity, dataMaxTIC,
             dataTotalRawSignal;
     
+    private File scanDataFileName;
     private RandomAccessFile scanDataFile;
 
     /**
@@ -86,8 +87,10 @@ class RawDataFileImpl implements RawDataFile, RawDataFileWriter {
 
         scans = new Hashtable<Integer, Scan>();
         
-        File newTempFile = File.createTempFile("mzmine", null);
-        scanDataFile = new RandomAccessFile(newTempFile, "rw");
+        // create temporary file for scan data
+        scanDataFileName = File.createTempFile("mzmine", null);
+        scanDataFile = new RandomAccessFile(scanDataFileName, "rw");
+        scanDataFileName.deleteOnExit();
         
     }
 
@@ -347,7 +350,9 @@ class RawDataFileImpl implements RawDataFile, RawDataFileWriter {
     
     public void finalize() {
         try {
+            logger.finest("Removing temporary file" + scanDataFileName.getPath());
             scanDataFile.close();
+            scanDataFileName.delete();
         } catch (IOException e) {
             // ignore
         }

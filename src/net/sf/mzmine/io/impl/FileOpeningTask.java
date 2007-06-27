@@ -131,7 +131,7 @@ public class FileOpeningTask implements DistributableTask {
             // Determine parser
             String extension = fileName.substring(fileName.lastIndexOf(".") + 1).toLowerCase();
 
-            if (extension.endsWith("xml")) {
+            if (extension.endsWith("xml") || extension.endsWith("mzdata")) {
 
                 FileReader fileReader = new FileReader(originalFile);
                 BufferedReader lineReader = new BufferedReader(fileReader);

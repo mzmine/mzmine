@@ -43,7 +43,7 @@ public class NetCDFFileReader implements RawDataFileReader {
 	private File originalFile;
 	private NetcdfFile inputFile;
 
-	private int totalScans = -1, scanNum;
+	private int totalScans = -1, numberOfGoodScans, scanNum = 0;
 	private Hashtable<Integer, Integer[]> scansIndex;
 	private Hashtable<Integer, Double> scansRetentionTimes;
 
@@ -156,7 +156,7 @@ public class NetCDFFileReader implements RawDataFileReader {
         // -    scan_index: fill with following good value
 
         // Calculate number of good scans
-        int numberOfGoodScans = 0;
+        numberOfGoodScans = 0;
         for (int i=0; i<totalScans; i++) {
             if (scanStartPositions[i]>=0) { numberOfGoodScans++; }
         }
@@ -250,7 +250,6 @@ public class NetCDFFileReader implements RawDataFileReader {
 
         scanStartPositions = null;
         retentionTimes = null;
-        scanNum = 1;
         
     }
 
@@ -376,7 +375,7 @@ public class NetCDFFileReader implements RawDataFileReader {
      * Returns total number of scans
      */
     public int getNumberOfScans() {
-        return totalScans;
+        return numberOfGoodScans;
     }
 
 }
