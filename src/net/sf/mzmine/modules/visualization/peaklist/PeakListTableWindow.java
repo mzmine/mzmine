@@ -111,6 +111,7 @@ public class PeakListTableWindow extends JInternalFrame implements
                 table.setRowHeight(myParameters.getRowHeight());
                 PeakListTableColumnModel cm = (PeakListTableColumnModel) table.getColumnModel();
                 cm.createColumns();
+                visualizer.setParameters(myParameters);
             }
         }
 
