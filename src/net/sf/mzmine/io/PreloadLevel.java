@@ -20,7 +20,19 @@
 package net.sf.mzmine.io;
 
 public enum PreloadLevel {
-    NO_PRELOAD, 
-    PRELOAD_FULL_SCANS,
-    PRELOAD_ALL_SCANS
+    
+    NO_PRELOAD("Store data in temporary file"), 
+    PRELOAD_FULL_SCANS("Load only full scans to memory"),
+    PRELOAD_ALL_SCANS("Load all scans to memory");
+    
+    private final String name;
+
+    PreloadLevel(String name) {
+        this.name = name;
+    }
+    
+    public String toString() {
+        return name;
+    }
+    
 }

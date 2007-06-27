@@ -20,19 +20,21 @@
 package net.sf.mzmine.userinterface.dialogs;
 
 import java.awt.BorderLayout;
+import java.awt.FlowLayout;
 import java.awt.Insets;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.File;
 import java.util.logging.Logger;
 
-import javax.swing.JCheckBox;
+import javax.swing.JComboBox;
 import javax.swing.JDialog;
 import javax.swing.JFileChooser;
+import javax.swing.JPanel;
 
-import net.sf.mzmine.io.IOController;
 import net.sf.mzmine.io.PreloadLevel;
-import net.sf.mzmine.userinterface.Desktop;
+import net.sf.mzmine.main.MZmineCore;
+import net.sf.mzmine.util.GUIUtils;
 
 import com.sun.java.ExampleFileFilter;
 
@@ -44,16 +46,15 @@ public class FileOpenDialog extends JDialog implements ActionListener {
     private Logger logger = Logger.getLogger(this.getClass().getName());
     
     private JFileChooser fileChooser;
-    private JCheckBox preloadCheckBox;
-    private IOController ioController;
-    public FileOpenDialog(IOController ioController, Desktop desktop, String path) {
+    private JComboBox preloadChooser;
+    
+    public FileOpenDialog(String path) {
 
-        super(desktop.getMainFrame(), "Please select data files to open",
+        super(MZmineCore.getDesktop().getMainFrame(), "Please select data files to open",
                 true);
         
         logger.finest("Displaying file open dialog");
         
-        this.ioController = ioController;
         fileChooser = new JFileChooser();
         if (path != null) fileChooser.setCurrentDirectory(new File(path));
         fileChooser.setMultiSelectionEnabled(true);
@@ -79,16 +80,18 @@ public class FileOpenDialog extends JDialog implements ActionListener {
         filter.setDescription("All raw data files");
         fileChooser.setFileFilter(filter);
 
-        preloadCheckBox = new JCheckBox(
-                "Preload all data into memory? (use with caution)");
-        preloadCheckBox.setMargin(new Insets(10, 10, 10, 10));
-
+        JPanel preloadChooserPanel = new JPanel(new FlowLayout());
+        preloadChooser = new JComboBox(PreloadLevel.values());
+        GUIUtils.addLabel(preloadChooserPanel, "Data storage:");
+        preloadChooserPanel.add(preloadChooser);
+        GUIUtils.addMargin(preloadChooserPanel, 10);
+        
         add(fileChooser, BorderLayout.CENTER);
-        add(preloadCheckBox, BorderLayout.SOUTH);
+        add(preloadChooserPanel, BorderLayout.SOUTH);
 
         pack();
 
-        setLocationRelativeTo(desktop.getMainFrame());
+        setLocationRelativeTo(MZmineCore.getDesktop().getMainFrame());
 
     }
 
@@ -103,11 +106,8 @@ public class FileOpenDialog extends JDialog implements ActionListener {
         if (command.equals("ApproveSelection")) {
 
             File[] selectedFiles = fileChooser.getSelectedFiles();
-
-            PreloadLevel preloadLevel = PreloadLevel.NO_PRELOAD;
-            if (preloadCheckBox.isSelected())
-                preloadLevel = PreloadLevel.PRELOAD_ALL_SCANS;
-            ioController.openFiles(selectedFiles, preloadLevel);
+            PreloadLevel preloadLevel = (PreloadLevel) preloadChooser.getSelectedItem();
+            MZmineCore.getIOController().openFiles(selectedFiles, preloadLevel);
 
         }
 

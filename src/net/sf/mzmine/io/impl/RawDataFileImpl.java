@@ -52,7 +52,7 @@ class RawDataFileImpl implements RawDataFile, RawDataFileWriter {
     private Hashtable<Integer, Float> dataMinMZ, dataMaxMZ, dataMinRT,
             dataMaxRT, dataMaxBasePeakIntensity, dataMaxTIC,
             dataTotalRawSignal;
-    
+
     private File scanDataFileName;
     private RandomAccessFile scanDataFile;
 
@@ -86,12 +86,14 @@ class RawDataFileImpl implements RawDataFile, RawDataFileWriter {
         dataTotalRawSignal = new Hashtable<Integer, Float>();
 
         scans = new Hashtable<Integer, Scan>();
-        
+
         // create temporary file for scan data
-        scanDataFileName = File.createTempFile("mzmine", null);
-        scanDataFile = new RandomAccessFile(scanDataFileName, "rw");
-        scanDataFileName.deleteOnExit();
-        
+        if (preloadLevel != PreloadLevel.PRELOAD_ALL_SCANS) {
+            scanDataFileName = File.createTempFile("mzmine", null);
+            scanDataFile = new RandomAccessFile(scanDataFileName, "rw");
+            scanDataFileName.deleteOnExit();
+        }
+
     }
 
     /**
@@ -229,7 +231,8 @@ class RawDataFileImpl implements RawDataFile, RawDataFileWriter {
             if (msLevel == 1) {
                 scans.put(scanNumber, newScan);
             } else {
-                StorableScan storedFullScan = new StorableScan(newScan, scanDataFile);
+                StorableScan storedFullScan = new StorableScan(newScan,
+                        scanDataFile);
                 scans.put(scanNumber, storedFullScan);
             }
             break;
@@ -347,15 +350,20 @@ class RawDataFileImpl implements RawDataFile, RawDataFileWriter {
         logger.finest("Writing of file " + fileName + " finished");
         return this;
     }
-    
+
     public void finalize() {
-        try {
-            logger.finest("Removing temporary file" + scanDataFileName.getPath());
-            scanDataFile.close();
-            scanDataFileName.delete();
-        } catch (IOException e) {
-            // ignore
+        
+        if (preloadLevel != PreloadLevel.PRELOAD_ALL_SCANS) {
+            try {
+                logger.finest("Removing temporary file"
+                        + scanDataFileName.getPath());
+                scanDataFile.close();
+                scanDataFileName.delete();
+            } catch (IOException e) {
+                // ignore
+            }
         }
+        
     }
 
 }

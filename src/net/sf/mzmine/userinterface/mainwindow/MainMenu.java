@@ -80,14 +80,12 @@ public class MainMenu extends JMenuBar implements ActionListener
     private JMenuItem hlpAbout;
 
 
-    private IOController ioController;
     private Desktop desktop;
 
     private Logger logger = Logger.getLogger(this.getClass().getName());
 
     MainMenu() {
 
-        this.ioController = MZmineCore.getIOController();
         this.desktop = MZmineCore.getDesktop();
 
         fileMenu = new JMenu("Project");
@@ -292,8 +290,7 @@ public class MainMenu extends JMenuBar implements ActionListener
             MainWindow mainWindow = (MainWindow) MZmineCore.getDesktop();
             DesktopParameters parameters = (DesktopParameters) mainWindow.getParameterSet();
             String lastPath = parameters.getLastOpenPath();
-            FileOpenDialog fileOpenDialog = new FileOpenDialog(ioController,
-                    desktop, lastPath);
+            FileOpenDialog fileOpenDialog = new FileOpenDialog(lastPath);
             fileOpenDialog.setVisible(true);
             parameters.setLastOpenPath(fileOpenDialog.getCurrentDirectory());
 
