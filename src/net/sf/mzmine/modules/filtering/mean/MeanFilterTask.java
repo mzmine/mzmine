@@ -54,7 +54,7 @@ class MeanFilterTask implements Task {
      */
     MeanFilterTask(RawDataFile dataFile, SimpleParameterSet parameters) {
         this.dataFile = dataFile;
-        oneSidedWindowLength = ((Double) parameters.getParameterValue(MeanFilter.parameterOneSidedWindowLength)).floatValue();
+        oneSidedWindowLength = ((Float) parameters.getParameterValue(MeanFilter.parameterOneSidedWindowLength)).floatValue();
     }
 
     /**
@@ -167,8 +167,8 @@ class MeanFilterTask implements Task {
             return;
         }
 
-        Vector<Double> massWindow = new Vector<Double>();
-        Vector<Double> intensityWindow = new Vector<Double>();
+        Vector<Float> massWindow = new Vector<Float>();
+        Vector<Float> intensityWindow = new Vector<Float>();
 
         float currentMass;
         float lowLimit;
@@ -204,14 +204,14 @@ class MeanFilterTask implements Task {
             // Add new elements as long as their m/z values are less than the hi
             // limit
             while ((addi < masses.length) && (masses[addi] <= hiLimit)) {
-                massWindow.add(new Double(masses[addi]));
-                intensityWindow.add(new Double(intensities[addi]));
+                massWindow.add(new Float(masses[addi]));
+                intensityWindow.add(new Float(intensities[addi]));
                 addi++;
             }
 
             elSum = 0;
             for (int j = 0; j < intensityWindow.size(); j++) {
-                elSum += ((Double) (intensityWindow.get(j))).doubleValue();
+                elSum += ((Float) (intensityWindow.get(j))).floatValue();
             }
 
             newIntensities[i] = elSum / (float) intensityWindow.size();

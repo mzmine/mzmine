@@ -48,9 +48,9 @@ import net.sf.mzmine.userinterface.dialogs.ParameterSetupDialog;
 public class ZoomScanFilter implements BatchStep, TaskListener, ActionListener {
 
     protected static final Parameter parameterMinMZRange = new SimpleParameter(
-            ParameterType.DOUBLE, "Minimum M/Z range",
-            "Required minimum M/Z range for a full scan", "Da", new Double(
-                    100.0), new Double(0.0), null);
+            ParameterType.FLOAT, "Minimum M/Z range",
+            "Required minimum M/Z range for a full scan", "Da", new Float(
+                    100.0), new Float(0.0), null);
 
     private ParameterSet parameters;
 

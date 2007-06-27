@@ -53,41 +53,41 @@ public class CentroidPicker implements BatchStep, TaskListener, ActionListener {
     public static final NumberFormat percentFormat = NumberFormat.getPercentInstance();
 
     public static final Parameter binSize = new SimpleParameter(
-            ParameterType.DOUBLE, "M/Z bin width",
-            "Width of M/Z range for each precalculated XIC", "Da", new Double(
-                    0.25), new Double(0.05), null);
+            ParameterType.FLOAT, "M/Z bin width",
+            "Width of M/Z range for each precalculated XIC", "Da", new Float(
+                    0.25), new Float(0.05), null);
 
     public static final Parameter chromatographicThresholdLevel = new SimpleParameter(
-            ParameterType.DOUBLE, "Chromatographic threshold level",
+            ParameterType.FLOAT, "Chromatographic threshold level",
             "Used in defining threshold level value from an XIC", "%",
-            new Double(0.0), new Double(0.0), new Double(1.0));
+            new Float(0.0), new Float(0.0), new Float(1.0));
 
     public static final Parameter noiseLevel = new SimpleParameter(
-            ParameterType.DOUBLE, "Noise level",
+            ParameterType.FLOAT, "Noise level",
             "Intensities less than this value are interpreted as noise",
-            "absolute", new Double(4.0), new Double(0.0), null);
+            "absolute", new Float(4.0), new Float(0.0), null);
 
     public static final Parameter minimumPeakHeight = new SimpleParameter(
-            ParameterType.DOUBLE, "Min peak height",
-            "Minimum acceptable peak height", "absolute", new Double(15.0),
-            new Double(0.0), null);
+            ParameterType.FLOAT, "Min peak height",
+            "Minimum acceptable peak height", "absolute", new Float(15.0),
+            new Float(0.0), null);
 
     public static final Parameter minimumPeakDuration = new SimpleParameter(
-            ParameterType.DOUBLE, "Min peak duration",
-            "Minimum acceptable peak duration", "seconds", new Double(3.0),
-            new Double(0.0), null);
+            ParameterType.FLOAT, "Min peak duration",
+            "Minimum acceptable peak duration", "seconds", new Float(3.0),
+            new Float(0.0), null);
 
     public static final Parameter mzTolerance = new SimpleParameter(
-            ParameterType.DOUBLE,
+            ParameterType.FLOAT,
             "M/Z tolerance",
             "Maximum allowed distance in M/Z between centroid peaks in successive scans",
-            "Da", new Double(0.050), new Double(0.0), null);
+            "Da", new Float(0.050), new Float(0.0), null);
 
     public static final Parameter intTolerance = new SimpleParameter(
-            ParameterType.DOUBLE,
+            ParameterType.FLOAT,
             "Intensity tolerance",
             "Maximum allowed deviation from expected /\\ shape of a peak in chromatographic direction",
-            "%", new Double(0.20), new Double(0.0), null, percentFormat);
+            "%", new Float(0.20), new Float(0.0), null, percentFormat);
 
     private ParameterSet parameters;
 

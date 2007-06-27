@@ -141,7 +141,7 @@ public class ParameterSetupDialog extends JDialog implements ActionListener {
                 comp = strField;
                 break;
             case INTEGER:
-            case DOUBLE:
+            case FLOAT:
                 NumberFormat format = p.getNumberFormat();
                 if (format == null)
                     format = NumberFormat.getNumberInstance();
@@ -221,10 +221,10 @@ public class ParameterSetupDialog extends JDialog implements ActionListener {
                         Integer newIntValue = ((Number) intField.getValue()).intValue();
                         parameters.setParameterValue(p, newIntValue);
                         break;
-                    case DOUBLE:
+                    case FLOAT:
                         JFormattedTextField doubleField = (JFormattedTextField) parametersAndComponents.get(p);
-                        Double newDoubleValue = ((Number) doubleField.getValue()).doubleValue();
-                        parameters.setParameterValue(p, newDoubleValue);
+                        Float newFloatValue = ((Number) doubleField.getValue()).floatValue();
+                        parameters.setParameterValue(p, newFloatValue);
                         break;
                     case STRING:
                         JTextField stringField = (JTextField) parametersAndComponents.get(p);

@@ -53,9 +53,9 @@ public class CMFilter implements BatchStep, TaskListener, ActionListener {
             new Integer(1), null);
 
     public static final Parameter parameterMZTolerance = new SimpleParameter(
-            ParameterType.DOUBLE, "M/Z tolerance",
-            "Maximum allowed M/Z difference", "Da", new Double(0.1),
-            new Double(0.0), null);
+            ParameterType.FLOAT, "M/Z tolerance",
+            "Maximum allowed M/Z difference", "Da", new Float(0.1),
+            new Float(0.0), null);
 
     private ParameterSet parameters;
 

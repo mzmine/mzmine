@@ -49,7 +49,7 @@ import java.text.NumberFormat;
 public interface Parameter {
 
     public enum ParameterType {
-        STRING, INTEGER, DOUBLE, BOOLEAN
+        STRING, INTEGER, FLOAT, BOOLEAN
     };
 
     /**

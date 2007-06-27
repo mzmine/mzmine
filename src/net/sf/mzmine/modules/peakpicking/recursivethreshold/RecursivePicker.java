@@ -50,57 +50,56 @@ public class RecursivePicker implements BatchStep, TaskListener, ActionListener 
     public static final NumberFormat percentFormat = NumberFormat.getPercentInstance();
 
     public static final Parameter binSize = new SimpleParameter(
-            ParameterType.DOUBLE, "M/Z bin width",
-            "Width of M/Z range for each precalculated XIC", "Da", new Double(
-                    0.25), new Double(0.05), null);
+            ParameterType.FLOAT, "M/Z bin width",
+            "Width of M/Z range for each precalculated XIC", "Da", new Float(
+                    0.25), new Float(0.05), null);
 
     public static final Parameter chromatographicThresholdLevel = new SimpleParameter(
-            ParameterType.DOUBLE, "Chromatographic threshold level",
+            ParameterType.FLOAT, "Chromatographic threshold level",
             "Used in defining threshold level value from an XIC", "%",
-            new Double(0.0), new Double(0.0), new Double(1.0), percentFormat);
+            new Float(0.0), new Float(0.0), new Float(1.0), percentFormat);
 
     public static final Parameter noiseLevel = new SimpleParameter(
-            ParameterType.DOUBLE, "Noise level",
+            ParameterType.FLOAT, "Noise level",
             "Intensities less than this value are interpreted as noise",
-            "absolute", new Double(10.0), new Double(0.0), null);
+            "absolute", new Float(10.0), new Float(0.0), null);
 
     public static final Parameter minimumPeakHeight = new SimpleParameter(
-            ParameterType.DOUBLE, "Min peak height",
-            "Minimum acceptable peak height", "absolute", new Double(100.0),
-            new Double(0.0), null);
+            ParameterType.FLOAT, "Min peak height",
+            "Minimum acceptable peak height", "absolute", new Float(100.0),
+            new Float(0.0), null);
 
     public static final Parameter minimumPeakDuration = new SimpleParameter(
-            ParameterType.DOUBLE, "Min peak duration",
-            "Minimum acceptable peak duration", "seconds", new Double(4.0),
-            new Double(0.0), null);
+            ParameterType.FLOAT, "Min peak duration",
+            "Minimum acceptable peak duration", "seconds", new Float(4.0),
+            new Float(0.0), null);
 
     public static final Parameter minimumMZPeakWidth = new SimpleParameter(
-            ParameterType.DOUBLE, "Min M/Z peak width",
-            "Minimum acceptable peak width in M/Z", "Da", new Double(0.2),
-            new Double(0.0), null);
+            ParameterType.FLOAT, "Min M/Z peak width",
+            "Minimum acceptable peak width in M/Z", "Da", new Float(0.2),
+            new Float(0.0), null);
 
     public static final Parameter maximumMZPeakWidth = new SimpleParameter(
-            ParameterType.DOUBLE, "Max M/Z peak width",
-            "Maximum acceptable peak width in M/Z", "Da", new Double(1.00),
-            new Double(0.0), null);
+            ParameterType.FLOAT, "Max M/Z peak width",
+            "Maximum acceptable peak width in M/Z", "Da", new Float(1.00),
+            new Float(0.0), null);
 
     public static final Parameter mzTolerance = new SimpleParameter(
-            ParameterType.DOUBLE,
+            ParameterType.FLOAT,
             "M/Z tolerance",
             "Maximum allowed distance in M/Z between centroid peaks in successive scans",
-            "Da", new Double(0.1), new Double(0.0), null);
+            "Da", new Float(0.1), new Float(0.0), null);
 
     public static final Parameter intTolerance = new SimpleParameter(
-            ParameterType.DOUBLE,
+            ParameterType.FLOAT,
             "Intensity tolerance",
             "Maximum allowed deviation from expected /\\ shape of a peak in chromatographic direction",
-            "%", new Double(0.15), new Double(0.0), null, percentFormat);
+            "%", new Float(0.15), new Float(0.0), null, percentFormat);
 
     private Logger logger = Logger.getLogger(this.getClass().getName());
 
     private ParameterSet parameters;
 
-    private TaskController taskController;
     private Desktop desktop;
 
     /**

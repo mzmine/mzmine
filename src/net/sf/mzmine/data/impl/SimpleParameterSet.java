@@ -170,15 +170,15 @@ public class SimpleParameterSet implements StorableParameterSet {
 
             break;
 
-        case DOUBLE:
-            if (!(value instanceof Double))
+        case FLOAT:
+            if (!(value instanceof Float))
                 throw (new IllegalArgumentException("Value type mismatch"));
-            Double minDValue = (Double) parameter.getMinimumValue();
-            if ((minDValue != null) && (minDValue.compareTo((Double) value) > 0))
+            Float minDValue = (Float) parameter.getMinimumValue();
+            if ((minDValue != null) && (minDValue.compareTo((Float) value) > 0))
                 throw (new IllegalArgumentException("Minimum value of parameter " + parameter + "  is "
                         + minDValue));
-            Double maxDValue = (Double) parameter.getMaximumValue();
-            if ((maxDValue != null) && (maxDValue.compareTo((Double) value) < 0))
+            Float maxDValue = (Float) parameter.getMaximumValue();
+            if ((maxDValue != null) && (maxDValue.compareTo((Float) value) < 0))
                 throw (new IllegalArgumentException("Maximum value of parameter " + parameter + "  is "
                         + maxDValue));
             break;
@@ -249,8 +249,8 @@ public class SimpleParameterSet implements StorableParameterSet {
                 case INTEGER:
                     value = Integer.parseInt(valueText);
                     break;
-                case DOUBLE:
-                    value = Double.parseDouble(valueText);
+                case FLOAT:
+                    value = Float.parseFloat(valueText);
                     break;
                 case STRING:
                     value = valueText;

@@ -52,24 +52,24 @@ public class CropFilter implements BatchStep, TaskListener, ActionListener {
                     4, 5, 6, 7, 8, 9, 10 });
 
     public static final Parameter parameterMinMZ = new SimpleParameter(
-            ParameterType.DOUBLE, "Minimum M/Z",
+            ParameterType.FLOAT, "Minimum M/Z",
             "Lower M/Z boundary of the cropped region", "Da",
-            new Double(100.0), new Double(0.0), null);
+            new Float(100.0), new Float(0.0), null);
 
     public static final Parameter parameterMaxMZ = new SimpleParameter(
-            ParameterType.DOUBLE, "Maximum M/Z",
+            ParameterType.FLOAT, "Maximum M/Z",
             "Upper M/Z boundary of the cropped region", "Da",
-            new Double(1000.0), new Double(0.0), null);
+            new Float(1000.0), new Float(0.0), null);
 
     public static final Parameter parameterMinRT = new SimpleParameter(
-            ParameterType.DOUBLE, "Minimum Retention time",
-            "Lower RT boundary of the cropped region", "seconds", new Double(
-                    0.0), new Double(0.0), null);
+            ParameterType.FLOAT, "Minimum Retention time",
+            "Lower RT boundary of the cropped region", "seconds", new Float(
+                    0.0), new Float(0.0), null);
 
     public static final Parameter parameterMaxRT = new SimpleParameter(
-            ParameterType.DOUBLE, "Maximum Retention time",
-            "Upper RT boundary of the cropped region", "seconds", new Double(
-                    600.0), new Double(0.0), null);
+            ParameterType.FLOAT, "Maximum Retention time",
+            "Upper RT boundary of the cropped region", "seconds", new Float(
+                    600.0), new Float(0.0), null);
 
     private ParameterSet parameters;
 

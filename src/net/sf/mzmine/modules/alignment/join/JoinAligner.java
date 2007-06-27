@@ -56,14 +56,14 @@ public class JoinAligner implements BatchStep, TaskListener, ActionListener {
             RTToleranceTypeAbsolute, RTToleranceTypeRelative };
 
     public static final Parameter MZvsRTBalance = new SimpleParameter(
-            ParameterType.DOUBLE, "M/Z vs RT balance",
+            ParameterType.FLOAT, "M/Z vs RT balance",
             "Used in distance measuring as multiplier of M/Z difference", "",
-            new Double(10.0), new Double(0.0), null);
+            new Float(10.0), new Float(0.0), null);
 
     public static final Parameter MZTolerance = new SimpleParameter(
-            ParameterType.DOUBLE, "M/Z tolerance",
-            "Maximum allowed M/Z difference", "Da", new Double(0.2),
-            new Double(0.0), null);
+            ParameterType.FLOAT, "M/Z tolerance",
+            "Maximum allowed M/Z difference", "Da", new Float(0.2),
+            new Float(0.0), null);
 
     public static final Parameter RTToleranceType = new SimpleParameter(
             ParameterType.STRING,
@@ -72,14 +72,14 @@ public class JoinAligner implements BatchStep, TaskListener, ActionListener {
             RTToleranceTypeAbsolute, RTToleranceTypePossibleValues);
 
     public static final Parameter RTToleranceValueAbs = new SimpleParameter(
-            ParameterType.DOUBLE, "Absolute RT tolerance",
-            "Maximum allowed absolute RT difference", "seconds", new Double(
-                    15.0), new Double(0.0), null);
+            ParameterType.FLOAT, "Absolute RT tolerance",
+            "Maximum allowed absolute RT difference", "seconds", new Float(
+                    15.0), new Float(0.0), null);
 
     public static final Parameter RTToleranceValuePercent = new SimpleParameter(
-            ParameterType.DOUBLE, "Relative RT tolerance",
-            "Maximum allowed relative RT difference", "%", new Double(0.15),
-            new Double(0.0), null);
+            ParameterType.FLOAT, "Relative RT tolerance",
+            "Maximum allowed relative RT difference", "%", new Float(0.15),
+            new Float(0.0), null);
 
     private Logger logger = Logger.getLogger(this.getClass().getName());
 

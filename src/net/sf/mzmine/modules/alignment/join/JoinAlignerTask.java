@@ -65,12 +65,12 @@ class JoinAlignerTask implements Task {
         this.dataFiles = dataFiles;
 
         // Get parameter values for easier use
-        MZTolerance = (Double) parameters.getParameterValue(JoinAligner.MZTolerance);
-        MZvsRTBalance = (Double) parameters.getParameterValue(JoinAligner.MZvsRTBalance);
+        MZTolerance = (Float) parameters.getParameterValue(JoinAligner.MZTolerance);
+        MZvsRTBalance = (Float) parameters.getParameterValue(JoinAligner.MZvsRTBalance);
 
         RTToleranceUseAbs = (parameters.getParameterValue(JoinAligner.RTToleranceType) == JoinAligner.RTToleranceTypeAbsolute);
-        RTToleranceValueAbs = (Double) parameters.getParameterValue(JoinAligner.RTToleranceValueAbs);
-        RTToleranceValuePercent = (Double) parameters.getParameterValue(JoinAligner.RTToleranceValuePercent);
+        RTToleranceValueAbs = (Float) parameters.getParameterValue(JoinAligner.RTToleranceValueAbs);
+        RTToleranceValuePercent = (Float) parameters.getParameterValue(JoinAligner.RTToleranceValuePercent);
 
     }
 

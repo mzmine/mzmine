@@ -61,15 +61,15 @@ public class SimpleGapFiller implements BatchStep, TaskListener,
             RTToleranceTypeAbsolute, RTToleranceTypeRelative };
 
     public static final Parameter IntTolerance = new SimpleParameter(
-            ParameterType.DOUBLE,
+            ParameterType.FLOAT,
             "Intensity tolerance",
             "Maximum allowed deviation from expected /\\ shape of a peak in chromatographic direction",
-            "%", new Double(0.20), new Double(0.0), null);
+            "%", new Float(0.20), new Float(0.0), null);
 
     public static final Parameter MZTolerance = new SimpleParameter(
-            ParameterType.DOUBLE, "M/Z tolerance",
-            "Search range size in M/Z direction", "Da", new Double(0.050),
-            new Double(0.0), null);
+            ParameterType.FLOAT, "M/Z tolerance",
+            "Search range size in M/Z direction", "Da", new Float(0.050),
+            new Float(0.0), null);
 
     public static final Parameter RTToleranceType = new SimpleParameter(
             ParameterType.STRING, "RT range type",
@@ -77,14 +77,14 @@ public class SimpleGapFiller implements BatchStep, TaskListener,
             RTToleranceTypeAbsolute, RTToleranceTypePossibleValues);
 
     public static final Parameter RTToleranceValueAbs = new SimpleParameter(
-            ParameterType.DOUBLE, "Absolute RT tolerance",
+            ParameterType.FLOAT, "Absolute RT tolerance",
             "Absolute search range size in RT direction", "seconds",
-            new Double(15.0), new Double(0.0), null);
+            new Float(15.0), new Float(0.0), null);
 
     public static final Parameter RTToleranceValuePercent = new SimpleParameter(
-            ParameterType.DOUBLE, "Relative RT tolerance",
+            ParameterType.FLOAT, "Relative RT tolerance",
             "Relative search range size in RT direction", "%",
-            new Double(0.15), new Double(0.0), null);
+            new Float(0.15), new Float(0.0), null);
 
     private Logger logger = Logger.getLogger(this.getClass().getName());
 

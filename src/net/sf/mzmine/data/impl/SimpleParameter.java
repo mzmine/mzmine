@@ -135,16 +135,16 @@ public class SimpleParameter implements Parameter {
                 }
             }
             break;
-        case DOUBLE:
-            if ((defaultValue != null) && (!(defaultValue instanceof Double)))
+        case FLOAT:
+            if ((defaultValue != null) && (!(defaultValue instanceof Float)))
                 throw new IllegalArgumentException("Invalid default value type");
-            if ((minValue != null) && (!(minValue instanceof Double)))
+            if ((minValue != null) && (!(minValue instanceof Float)))
                 throw new IllegalArgumentException("Invalid min value type");
-            if ((maxValue != null) && (!(maxValue instanceof Double)))
+            if ((maxValue != null) && (!(maxValue instanceof Float)))
                 throw new IllegalArgumentException("Invalid max value type");
             if (possibleValues != null) {
                 for (Object posVal : possibleValues) {
-                    if (!(posVal instanceof Double))
+                    if (!(posVal instanceof Float))
                         throw new IllegalArgumentException(
                                 "Invalid possible values type");
                 }

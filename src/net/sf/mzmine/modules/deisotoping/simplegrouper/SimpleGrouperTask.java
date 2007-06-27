@@ -73,8 +73,8 @@ class SimpleGrouperTask implements Task {
         processedPeakList = new SimplePeakList();
 
         this.parameters = parameters;
-        mzTolerance = (Double) parameters.getParameterValue(SimpleGrouper.mzTolerance);
-        rtTolerance = (Double) parameters.getParameterValue(SimpleGrouper.rtTolerance);
+        mzTolerance = (Float) parameters.getParameterValue(SimpleGrouper.mzTolerance);
+        rtTolerance = (Float) parameters.getParameterValue(SimpleGrouper.rtTolerance);
         monotonicShape = (Boolean) parameters.getParameterValue(SimpleGrouper.monotonicShape);
         maximumCharge = (Integer) parameters.getParameterValue(SimpleGrouper.maximumCharge);
 

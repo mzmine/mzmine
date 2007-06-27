@@ -50,9 +50,9 @@ import net.sf.mzmine.userinterface.dialogs.ParameterSetupDialog;
 public class MeanFilter implements BatchStep, TaskListener, ActionListener {
 
     public static final Parameter parameterOneSidedWindowLength = new SimpleParameter(
-            ParameterType.DOUBLE, "Window length",
-            "One-sided length of the smoothing window", "Da", new Double(0.1),
-            new Double(0.0), null);
+            ParameterType.FLOAT, "Window length",
+            "One-sided length of the smoothing window", "Da", new Float(0.1),
+            new Float(0.0), null);
 
     private ParameterSet parameters;
 

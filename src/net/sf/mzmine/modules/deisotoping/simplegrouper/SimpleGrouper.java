@@ -53,14 +53,14 @@ import net.sf.mzmine.userinterface.dialogs.ParameterSetupDialog;
 public class SimpleGrouper implements BatchStep, TaskListener, ActionListener {
 
     public static final Parameter mzTolerance = new SimpleParameter(
-            ParameterType.DOUBLE, "M/Z tolerance",
+            ParameterType.FLOAT, "M/Z tolerance",
             "Maximum distance in M/Z from the expected location of a peak",
-            "Da", new Double(0.05), new Double(0.0), null);
+            "Da", new Float(0.05), new Float(0.0), null);
 
     public static final Parameter rtTolerance = new SimpleParameter(
-            ParameterType.DOUBLE, "RT tolerance",
+            ParameterType.FLOAT, "RT tolerance",
             "Maximum distance in RT from the expected location of a peak",
-            "seconds", new Double(5.0), new Double(0.0), null);
+            "seconds", new Float(5.0), new Float(0.0), null);
 
     public static final Parameter monotonicShape = new SimpleParameter(
             ParameterType.BOOLEAN,

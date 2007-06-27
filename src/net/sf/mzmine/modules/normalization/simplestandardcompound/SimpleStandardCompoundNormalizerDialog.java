@@ -59,7 +59,6 @@ class SimpleStandardCompoundNormalizerDialog extends JDialog implements ActionLi
 
     private Desktop desktop;
     
-    private PeakList alignmentResult;
     private SimpleStandardCompoundNormalizerParameterSet parameters;
     
     private Vector<PeakListRow> selectedPeaks;
@@ -78,7 +77,6 @@ class SimpleStandardCompoundNormalizerDialog extends JDialog implements ActionLi
 
         this.desktop = desktop;
         
-        this.alignmentResult = alignmentResult;
         this.parameters = parameters;
 
         GridBagConstraints constraints = new GridBagConstraints();

@@ -57,10 +57,10 @@ class CropFilterTask implements Task {
     CropFilterTask(RawDataFile dataFile, SimpleParameterSet parameters) {
         this.dataFile = dataFile;
         msLevel = (Integer) parameters.getParameterValue(CropFilter.parameterMSlevel);
-        minMZ = (Double) parameters.getParameterValue(CropFilter.parameterMinMZ);
-        minRT = (Double) parameters.getParameterValue(CropFilter.parameterMinRT);
-        maxMZ = (Double) parameters.getParameterValue(CropFilter.parameterMaxMZ);
-        maxRT = (Double) parameters.getParameterValue(CropFilter.parameterMaxRT);
+        minMZ = (Float) parameters.getParameterValue(CropFilter.parameterMinMZ);
+        minRT = (Float) parameters.getParameterValue(CropFilter.parameterMinRT);
+        maxMZ = (Float) parameters.getParameterValue(CropFilter.parameterMaxMZ);
+        maxRT = (Float) parameters.getParameterValue(CropFilter.parameterMaxRT);
     }
 
     /**

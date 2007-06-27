@@ -37,9 +37,9 @@ public class SimpleStandardCompoundNormalizerParameterSet implements ParameterSe
     
     
     public static final Parameter MZvsRTBalance = new SimpleParameter(
-            ParameterType.DOUBLE, "M/Z vs RT balance",
+            ParameterType.FLOAT, "M/Z vs RT balance",
             "Used in distance measuring as multiplier of M/Z difference", "",
-            new Double(10.0), new Double(0.0), null);
+            new Float(10.0), new Float(0.0), null);
 	
 
     private SimpleParameterSet parameters;
