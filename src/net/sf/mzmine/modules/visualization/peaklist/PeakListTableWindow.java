@@ -54,7 +54,6 @@ public class PeakListTableWindow extends JInternalFrame implements
     PeakListTableVisualizer visualizer;
     private JScrollPane scrollPane;
 
-    private PeakListTableModel model;
     private PeakListTable table;
     private PeakListTableParameters myParameters;
 
@@ -121,11 +120,9 @@ public class PeakListTableWindow extends JInternalFrame implements
                 JFreeReport report;
                 URL def = this.getClass().getResource(
                         "print-report-definition.xml");
-                logger.finest("report definition: " + def);
                 report = gener.parseReport(def);
-                report.setData(model);
-                JDialog dial;
-                dial = new PreviewDialog(report);
+                report.setData(table.getModel());
+                JDialog dial = new PreviewDialog(report);
                 dial.pack();
                 dial.setLocationRelativeTo(null);
                 dial.setVisible(true);

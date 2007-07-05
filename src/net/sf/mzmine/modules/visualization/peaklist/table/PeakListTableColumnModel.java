@@ -196,9 +196,8 @@ public class PeakListTableColumnModel extends DefaultTableColumnModel implements
             if (parameters.isColumnVisible(commonColumn)) {
                 this.addColumn(allColumns[modelIndex]);
                 allColumns[modelIndex].setPreferredWidth(parameters.getColumnWidth(commonColumn));
+                if ((commonColumn == CommonColumnType.AVERAGEMZ) || (commonColumn == CommonColumnType.AVERAGERT)) averageGroup.add(commonColumn);
             }
-            
-            if ((commonColumn == CommonColumnType.AVERAGEMZ) || (commonColumn == CommonColumnType.AVERAGERT)) averageGroup.add(commonColumn);
 
             modelIndex++;
 

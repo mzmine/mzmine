@@ -23,6 +23,7 @@ import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.Map;
 import java.util.logging.Logger;
 
 import javax.xml.datatype.DatatypeConfigurationException;
@@ -35,6 +36,7 @@ import net.sf.mzmine.io.RawDataFileReader;
 
 import org.proteomecommons.io.mzdata.v1_05.MzDataPeakList;
 import org.proteomecommons.io.mzdata.v1_05.MzDataPeakListReader;
+import org.proteomecommons.io.mzdata.v1_05.MzDataPeakListSpectrumSettings;
 
 
 /**
@@ -86,10 +88,15 @@ public class MzDatav1_0_5Reader implements RawDataFileReader {
         if (peakList == null)
             return null;
 
-/*
+        MzDataPeakListSpectrumSettings spectrumSettings = peakList.getSpectrumSettings();
+        Map spectrumInstrumentParamaters = spectrumSettings.getSpectrumInstrumentParamaters();
+        
         // Set total scans if we haven's set it yet
-        if (totalScans <= 0)
-            totalScans = Integer.parseInt(peakList.getMsRun().getScanCount());
+        if (totalScans <= 0) {
+            totalScans = -1; // TODO
+            
+        }
+            
 
         // Prepare variables
         int scanNumber, msLevel, parentScan;
@@ -97,23 +104,19 @@ public class MzDatav1_0_5Reader implements RawDataFileReader {
         boolean centroided;
 
         // Get scan number and MS level
-        scanNumber = Integer.parseInt(peakList.getNum());
-        msLevel = Integer.parseInt(peakList.getMsLevel());
+        scanNumber = spectrumSettings.acqNumber();
+        msLevel = spectrumSettings.msLevel();
 
         // Parse retention time
-        String retentionTimeStr = peakList.getRetentionTime();
-        Date currentDate = new Date();
-        try {
-            DatatypeFactory dataTypeFactory = DatatypeFactory.newInstance();
-            Duration dur = dataTypeFactory.newDuration(retentionTimeStr);
-            retentionTime = dur.getTimeInMillis(currentDate) / 1000f;
-        } catch (DatatypeConfigurationException e) {
-            throw new IOException("Could not read next scan: " + e);
+        if (spectrumInstrumentParamaters != null) {
+            String retentionTimeStr = (String) spectrumInstrumentParamaters.get("TimeInMinutes");
+            
         }
-
+        retentionTime = 0;
+        
         // Parse precursor scan details
         if (peakList.getPrecursorList().getPrecursors() != null) {
-            parentScan = Integer.parseInt(peakList.getPrecursorScanNum());
+            parentScan = 0; //Integer.parseInt(peakList.getPrecursorScanNum());
             org.proteomecommons.io.Peak precursorPeak = peakList.getParentPeak();
             precursorMZ = (float) precursorPeak.getMassOverCharge();
         } else {
@@ -159,8 +162,7 @@ public class MzDatav1_0_5Reader implements RawDataFileReader {
                 centroided);
 
         return newScan;
-*/
-        return null;
+        
     }
 
     /**

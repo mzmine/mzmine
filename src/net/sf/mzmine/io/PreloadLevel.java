@@ -21,7 +21,7 @@ package net.sf.mzmine.io;
 
 public enum PreloadLevel {
     
-    NO_PRELOAD("Store data in temporary file"), 
+    NO_PRELOAD("Store scan data in temporary file"), 
     PRELOAD_FULL_SCANS("Load only full scans to memory"),
     PRELOAD_ALL_SCANS("Load all scans to memory");
     
