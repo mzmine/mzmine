@@ -136,7 +136,7 @@ public class SimpleCompoundIdentity implements CompoundIdentity, Comparable {
      * @see java.lang.Object#toString()
      */
     public String toString() {
-        return compoundName + " (" + identificationMethod + ")";
+        return compoundName;
     }
 
     /**

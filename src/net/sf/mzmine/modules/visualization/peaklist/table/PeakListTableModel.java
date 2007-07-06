@@ -51,17 +51,11 @@ public class PeakListTableModel extends AbstractTableModel {
     }
 
     public String getColumnName(int col) {
-
-        if (isCommonColumn(col)) {
-            CommonColumnType commonColumn = getCommonColumn(col);
-            return commonColumn.getColumnName();
-        } else {
-            DataFileColumnType dataFileColumn = getDataFileColumn(col);
-            return dataFileColumn.getColumnName();
-        }
-
+        // we need a unique identifier for each column, because the JFreeReport
+        // library is using it
+        return "column" + col;
     }
-    
+
     public Class<?> getColumnClass(int col) {
 
         if (isCommonColumn(col)) {

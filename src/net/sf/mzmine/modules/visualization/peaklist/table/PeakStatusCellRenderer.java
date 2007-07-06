@@ -38,9 +38,9 @@ import net.sf.mzmine.userinterface.components.ColorCircle;
  */
 class PeakStatusCellRenderer implements TableCellRenderer {
 
-    final ColorCircle greenCircle = new ColorCircle(Color.green);
-    final ColorCircle redCircle = new ColorCircle(Color.red);
-    final ColorCircle yellowCircle = new ColorCircle(Color.yellow);
+    private static final ColorCircle greenCircle = new ColorCircle(Color.green);
+    private static final ColorCircle redCircle = new ColorCircle(Color.red);
+    private static final ColorCircle yellowCircle = new ColorCircle(Color.yellow);
 
     /**
      * @see javax.swing.table.TableCellRenderer#getTableCellRendererComponent(javax.swing.JTable,

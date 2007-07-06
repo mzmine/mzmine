@@ -24,10 +24,10 @@ import net.sf.mzmine.data.Peak.PeakStatus;
 
 public enum DataFileColumnType {
 
-    STATUS("Status", PeakStatus.class), 
+    STATUS("?", PeakStatus.class), 
     PEAKSHAPE("Peak shape", Peak.class),
     MZ("m/z", Double.class), 
-    RT("Retention time", Double.class),
+    RT("RT", Double.class),
     DURATION("Duration", Double.class),
     HEIGHT("Height", Double.class),
     AREA("Area", Double.class);

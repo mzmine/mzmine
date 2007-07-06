@@ -30,12 +30,8 @@ import javax.swing.JMenuItem;
 import javax.swing.KeyStroke;
 import javax.swing.UIManager;
 
-import net.sf.mzmine.data.PeakList;
-import net.sf.mzmine.io.IOController;
 import net.sf.mzmine.io.RawDataFile;
-import net.sf.mzmine.io.export.PeakListExportDialog;
 import net.sf.mzmine.main.MZmineCore;
-import net.sf.mzmine.project.MZmineProject;
 import net.sf.mzmine.userinterface.Desktop;
 import net.sf.mzmine.userinterface.Desktop.MZmineMenu;
 import net.sf.mzmine.userinterface.dialogs.AboutDialog;
@@ -70,8 +66,7 @@ public class MainMenu extends JMenuBar implements ActionListener
 
     private JMenuItem editCopy;
 
-    private JMenuItem fileOpen, fileClose, fileExportPeakList,
-            fileExportAlignmentResult, 
+    private JMenuItem fileOpen, fileClose,
             fileSaveParameters, fileLoadParameters, editExperimentalParameters, 
             filePrint, fileExit;
 
@@ -96,10 +91,7 @@ public class MainMenu extends JMenuBar implements ActionListener
                 KeyEvent.VK_O, true);
         fileClose = GUIUtils.addMenuItem(fileMenu, "Close", this, KeyEvent.VK_C);
         fileMenu.addSeparator();
-        fileExportPeakList = GUIUtils.addMenuItem(fileMenu,
-                "Export peak  list(s)...", this, KeyEvent.VK_E);
-        fileExportAlignmentResult = GUIUtils.addMenuItem(fileMenu,
-                "Export alignment result(s)...", this, KeyEvent.VK_A);
+        
         fileMenu.addSeparator();
         fileSaveParameters = GUIUtils.addMenuItem(fileMenu,
                 "Save parameters...", this, KeyEvent.VK_S);
@@ -306,18 +298,9 @@ public class MainMenu extends JMenuBar implements ActionListener
 
         }
 
-        if (src == fileExportPeakList) {
-            // TODO: Implement peak list exporting
-            logger.severe("Peak list export unimplemented");
-        }
 
-        if (src == fileExportAlignmentResult) {
 
-            PeakList[] alignmentResults = desktop.getSelectedAlignedPeakLists();
-            if (alignmentResults.length > 0)
-                new PeakListExportDialog(alignmentResults);
 
-        }
         
         if (src == editExperimentalParameters) {
         	RawDataFile[] selectedFiles = desktop.getSelectedDataFiles();

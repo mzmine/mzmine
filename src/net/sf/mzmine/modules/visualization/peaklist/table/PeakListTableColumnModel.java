@@ -109,6 +109,8 @@ public class PeakListTableColumnModel extends DefaultTableColumnModel implements
 
             TableColumn newColumn = new TableColumn(modelIndex);
             newColumn.setHeaderValue(commonColumn.getColumnName());
+            newColumn.setIdentifier(commonColumn);
+            
             switch (commonColumn) {
             case AVERAGEMZ:
                 newColumn.setCellRenderer(mzRenderer);
@@ -139,27 +141,30 @@ public class PeakListTableColumnModel extends DefaultTableColumnModel implements
 
                 TableColumn newColumn = new TableColumn(modelIndex);
                 newColumn.setHeaderValue(dataFileColumn.getColumnName());
+                newColumn.setIdentifier(dataFileColumn);
 
-                if (dataFileColumn == DataFileColumnType.MZ) {
+                switch (dataFileColumn) {
+                case MZ:
                     newColumn.setCellRenderer(mzRenderer);
-                }
-                if (dataFileColumn == DataFileColumnType.PEAKSHAPE) {
+                    break;
+                case PEAKSHAPE:
                     newColumn.setCellRenderer(peakShapeRenderer);
-                }
-                if (dataFileColumn == DataFileColumnType.STATUS) {
+                    break;
+                case STATUS:
                     newColumn.setCellRenderer(peakStatusRenderer);
-                }
-                if (dataFileColumn == DataFileColumnType.RT) {
+                    break;
+                case RT:
                     newColumn.setCellRenderer(rtRenderer);
-                }
-                if (dataFileColumn == DataFileColumnType.DURATION) {
+                    break;
+                case DURATION:
                     newColumn.setCellRenderer(rtRenderer);
-                }
-                if (dataFileColumn == DataFileColumnType.HEIGHT) {
+                    break;
+                case HEIGHT:
                     newColumn.setCellRenderer(intensityRenderer);
-                }
-                if (dataFileColumn == DataFileColumnType.AREA) {
+                    break;
+                case AREA:
                     newColumn.setCellRenderer(intensityRenderer);
+                    break;
                 }
 
                 allColumns[modelIndex] = newColumn;
@@ -179,7 +184,7 @@ public class PeakListTableColumnModel extends DefaultTableColumnModel implements
                 header.removeColumnGroup(group);
             }
         }
-        
+
         // clear the column model
         while (getColumnCount() > 0) {
             TableColumn col = getColumn(0);
@@ -190,13 +195,16 @@ public class PeakListTableColumnModel extends DefaultTableColumnModel implements
 
         ColumnGroup averageGroup = new ColumnGroup("Average");
         header.addColumnGroup(averageGroup);
-        
+
         for (CommonColumnType commonColumn : CommonColumnType.values()) {
 
             if (parameters.isColumnVisible(commonColumn)) {
                 this.addColumn(allColumns[modelIndex]);
                 allColumns[modelIndex].setPreferredWidth(parameters.getColumnWidth(commonColumn));
-                if ((commonColumn == CommonColumnType.AVERAGEMZ) || (commonColumn == CommonColumnType.AVERAGERT)) averageGroup.add(commonColumn);
+                if ((commonColumn == CommonColumnType.AVERAGEMZ)
+                        || (commonColumn == CommonColumnType.AVERAGERT)) {
+                    averageGroup.add(allColumns[modelIndex]);
+                }
             }
 
             modelIndex++;
@@ -207,7 +215,7 @@ public class PeakListTableColumnModel extends DefaultTableColumnModel implements
 
             ColumnGroup fileGroup = new ColumnGroup(dataFile.toString());
             header.addColumnGroup(fileGroup);
-            
+
             for (DataFileColumnType dataFileColumn : DataFileColumnType.values()) {
 
                 if (parameters.isColumnVisible(dataFileColumn)) {
