@@ -57,10 +57,9 @@ import org.jfree.xml.ElementDefinitionException;
  */
 class PeakListReportGenerator {
 
-    private static final ColorCircle greenCircle = new ColorCircle(Color.green);
-    private static final ColorCircle redCircle = new ColorCircle(Color.red);
-    private static final ColorCircle yellowCircle = new ColorCircle(
-            Color.yellow);
+    static final ColorCircle greenCircle = new ColorCircle(Color.green);
+    static final ColorCircle redCircle = new ColorCircle(Color.red);
+    static final ColorCircle yellowCircle = new ColorCircle(Color.yellow);
 
     private PeakListTable table;
 
@@ -81,7 +80,7 @@ class PeakListReportGenerator {
 
         TableModel tableModel = table.getModel();
         report.setData(tableModel);
-        
+
         xPosition = 0;
         rowHeight = table.getRowHeight();
 
@@ -109,7 +108,7 @@ class PeakListReportGenerator {
         xPosition += columnWidth;
 
         ElementFactory newElementFac = null;
-        
+
         // add label to header
         GroupHeader header = report.getGroup(0).getHeader();
         LabelElementFactory labelFac = new LabelElementFactory();
