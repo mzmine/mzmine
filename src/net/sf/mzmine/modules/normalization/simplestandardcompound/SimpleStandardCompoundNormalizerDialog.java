@@ -64,7 +64,7 @@ class SimpleStandardCompoundNormalizerDialog extends JDialog implements ActionLi
     private Vector<PeakListRow> selectedPeaks;
 
     // dialog components
-    private JComboBox availableNormalizationTypesCombo;
+    private JComboBox availableNormalizationTypesCombo, peakMeasurementCombo;
     private ExtendedCheckBox<PeakListRow> peakCheckBoxes[];
     private JButton btnDeselectAllPeaks, btnOK, btnCancel;
 
@@ -100,11 +100,19 @@ class SimpleStandardCompoundNormalizerDialog extends JDialog implements ActionLi
         constraints.gridy = 1;
         layout.setConstraints(comp, constraints);
 
-        Object[] availableNormalizationTypes = SimpleStandardCompoundNormalizerParameterSet.StandardUsageTypePossibleValues;
-        availableNormalizationTypesCombo = new JComboBox(availableNormalizationTypes);
+        availableNormalizationTypesCombo = new JComboBox(SimpleStandardCompoundNormalizerParameterSet.StandardUsageTypePossibleValues);
         constraints.gridx = 1;
         components.add(availableNormalizationTypesCombo, constraints);
 
+        comp = GUIUtils.addLabel(components, "Peak measurement using ");
+        constraints.gridx = 0;
+        constraints.gridy = 2;
+        layout.setConstraints(comp, constraints);
+        
+        peakMeasurementCombo = new JComboBox(SimpleStandardCompoundNormalizerParameterSet.PeakMeasurementTypePossibleValues);
+        constraints.gridx = 1;
+        components.add(peakMeasurementCombo, constraints);
+        
         comp = GUIUtils.addLabel(components, "Select standard peaks");
         constraints.gridx = 0;
         constraints.gridy = 3;
@@ -120,25 +128,25 @@ class SimpleStandardCompoundNormalizerDialog extends JDialog implements ActionLi
         PeakListRow rows[] = alignmentResult.getRows();
         Arrays.sort(rows, new PeakListRowSorterByMZ());
         for (int i = 0; i < rows.length; i++) {
-        	// Add only fully detected peaks to list of potential standard peaks
-        	if (rows[i].getNumberOfPeaks()==alignmentResult.getNumberOfRawDataFiles()) {
-        		ExtendedCheckBox ecb = new ExtendedCheckBox<PeakListRow>(rows[i], true);
-        		ecb.setSelected(false);
-	            peakCheckBoxesVector.add(ecb);
-	            minimumHorizSize = Math.max(minimumHorizSize,
-	                    ecb.getPreferredWidth());
-	            peakCheckBoxesPanel.add(ecb);
-        	}
+            // Add only fully detected peaks to list of potential standard peaks
+            if (rows[i].getNumberOfPeaks()==alignmentResult.getNumberOfRawDataFiles()) {
+                ExtendedCheckBox ecb = new ExtendedCheckBox<PeakListRow>(rows[i], true);
+                ecb.setSelected(false);
+                peakCheckBoxesVector.add(ecb);
+                minimumHorizSize = Math.max(minimumHorizSize,
+                        ecb.getPreferredWidth());
+                peakCheckBoxesPanel.add(ecb);
+            }
         }
         // If there are no peaks that are fully detected, then std compound normalization is not possible
         if (peakCheckBoxesVector.size()==0) {
-        	desktop.displayErrorMessage("Aligned peak list does not contain any peaks that are detected in each raw data file.");
+            desktop.displayErrorMessage("Aligned peak list does not contain any peaks that are detected in each raw data file.");
         }
         
         peakCheckBoxes = peakCheckBoxesVector.toArray(new ExtendedCheckBox[0]);
         int minimumVertSize = new JCheckBox().getHeight();
         if ((peakCheckBoxes!=null) && (peakCheckBoxes.length>0))
-        	minimumVertSize = (int) peakCheckBoxes[0].getPreferredSize().getHeight() * 6;
+            minimumVertSize = (int) peakCheckBoxes[0].getPreferredSize().getHeight() * 6;
         JScrollPane peakPanelScroll = new JScrollPane(peakCheckBoxesPanel,
                 ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED,
                 ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER);
@@ -182,13 +190,9 @@ class SimpleStandardCompoundNormalizerDialog extends JDialog implements ActionLi
 
         if (src == btnOK) {
 
-        	if (availableNormalizationTypesCombo.getSelectedItem()==SimpleStandardCompoundNormalizerParameterSet.StandardUsageTypeNearest)
-        		parameters.getParameters().setParameterValue(SimpleStandardCompoundNormalizerParameterSet.StandardUsageType, SimpleStandardCompoundNormalizerParameterSet.StandardUsageTypeNearest);
-        
-        	if (availableNormalizationTypesCombo.getSelectedItem()==SimpleStandardCompoundNormalizerParameterSet.StandardUsageTypeWeighted)
-        		parameters.getParameters().setParameterValue(SimpleStandardCompoundNormalizerParameterSet.StandardUsageType, SimpleStandardCompoundNormalizerParameterSet.StandardUsageTypeWeighted);
-        	
-        	
+            parameters.getParameters().setParameterValue(SimpleStandardCompoundNormalizerParameterSet.StandardUsageType, availableNormalizationTypesCombo.getSelectedItem());
+            parameters.getParameters().setParameterValue(SimpleStandardCompoundNormalizerParameterSet.PeakMeasurementType, peakMeasurementCombo.getSelectedItem());  
+            
             selectedPeaks = new Vector<PeakListRow>();
 
             for (ExtendedCheckBox<PeakListRow> box : peakCheckBoxes) {
@@ -229,13 +233,13 @@ class SimpleStandardCompoundNormalizerDialog extends JDialog implements ActionLi
     }
     
     public SimpleStandardCompoundNormalizerParameterSet getParameters() {
-    	
-    		
-    	return parameters;
+        
+            
+        return parameters;
     }
     
     public PeakListRow[] getSelectedStandardPeakListRows() {
-    	return selectedPeaks.toArray(new PeakListRow[0]);
+        return selectedPeaks.toArray(new PeakListRow[0]);
     }
 
 }
