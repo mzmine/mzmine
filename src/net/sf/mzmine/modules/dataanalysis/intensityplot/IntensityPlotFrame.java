@@ -27,12 +27,13 @@ import javax.swing.JInternalFrame;
 
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.userinterface.Desktop;
-import net.sf.mzmine.userinterface.mainwindow.MainWindow;
 import net.sf.mzmine.util.NumberFormatter;
 
 import org.jfree.chart.ChartFactory;
 import org.jfree.chart.ChartPanel;
 import org.jfree.chart.JFreeChart;
+import org.jfree.chart.axis.CategoryAxis;
+import org.jfree.chart.axis.CategoryLabelPositions;
 import org.jfree.chart.axis.NumberAxis;
 import org.jfree.chart.labels.CategoryToolTipGenerator;
 import org.jfree.chart.plot.CategoryPlot;
@@ -90,8 +91,8 @@ public class IntensityPlotFrame extends JInternalFrame {
 
         // set renderer
         CategoryPlot plot = (CategoryPlot) chart.getPlot();
-        LineAndShapeRenderer renderer = new LineAndShapeRenderer(true, true);
-        renderer.setLinesVisible(false);
+        LineAndShapeRenderer renderer = new LineAndShapeRenderer(false, true);
+        
         plot.setRenderer(renderer);
 
         // set tooltip generator
@@ -104,6 +105,9 @@ public class IntensityPlotFrame extends JInternalFrame {
         NumberFormatter yAxisFormat = desktop.getIntensityFormat();
         if (parameters.getYAxisValueSource() == IntensityPlotParameters.PeakRTOption) yAxisFormat = desktop.getRTFormat();
         yAxis.setNumberFormatOverride(yAxisFormat);
+        
+        CategoryAxis xAxis = (CategoryAxis) plot.getDomainAxis();
+        xAxis.setCategoryLabelPositions(CategoryLabelPositions.UP_45);
 
         setTitle(title);
         setDefaultCloseOperation(JInternalFrame.DISPOSE_ON_CLOSE);

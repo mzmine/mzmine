@@ -30,6 +30,7 @@ import javax.swing.table.TableColumnModel;
 import javax.swing.table.TableModel;
 
 import net.sf.mzmine.data.Peak;
+import net.sf.mzmine.data.PeakList;
 import net.sf.mzmine.data.Peak.PeakStatus;
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.modules.visualization.peaklist.table.CommonColumnType;
@@ -62,12 +63,14 @@ class PeakListReportGenerator {
     static final ColorCircle yellowCircle = new ColorCircle(Color.yellow);
 
     private PeakListTable table;
+    private PeakListTableParameters parameters;
 
     private int xPosition;
     private int rowHeight;
 
-    PeakListReportGenerator(PeakListTable table) {
+    PeakListReportGenerator(PeakListTable table, PeakListTableParameters parameters) {
         this.table = table;
+        this.parameters = parameters;
     }
 
     JFreeReport generateReport() throws IOException, ElementDefinitionException {
@@ -183,10 +186,27 @@ class PeakListReportGenerator {
                 Expression peakShapeExpression = new AbstractExpression() {
 
                     public Object getValue() {
+                        
                         Peak peak = (Peak) getDataRow().get(fieldName);
                         if (peak == null)
                             return null;
-                        return new PeakXICComponent(peak);
+                        
+                        float maxHeight;
+                        PeakList peakList = table.getPeakList();
+                        switch (parameters.getPeakShapeNormalization()) {
+                        case GLOBALMAX:
+                            maxHeight = peakList.getDataPointMaxIntensity();
+                            break;
+                        case ROWMAX:
+                            int rowNumber = peakList.getPeakRow(peak);
+                            maxHeight = peakList.getRow(rowNumber).getDataPointMaxIntensity();
+                            break;
+                        default:
+                            maxHeight = peak.getDataPointMaxIntensity();
+                            break;
+                        }
+                        
+                        return new PeakXICComponent(peak, maxHeight);
 
                     }
                 };

@@ -108,7 +108,7 @@ public class PeakListTableWindow extends JInternalFrame implements
 
         if (command.equals("PRINT")) {
             try {
-                PeakListReportGenerator reportGenerator = new PeakListReportGenerator(table);
+                PeakListReportGenerator reportGenerator = new PeakListReportGenerator(table, myParameters);
                 JFreeReport report = reportGenerator.generateReport();
 
                 JDialog dial = new PreviewDialog(report);
