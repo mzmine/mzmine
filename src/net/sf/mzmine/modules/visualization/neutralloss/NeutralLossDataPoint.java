@@ -19,12 +19,10 @@
 
 package net.sf.mzmine.modules.visualization.neutralloss;
 
-import java.text.DecimalFormat;
 import java.text.NumberFormat;
 
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.userinterface.Desktop;
-import net.sf.mzmine.userinterface.mainwindow.MainWindow;
 
 
 /**

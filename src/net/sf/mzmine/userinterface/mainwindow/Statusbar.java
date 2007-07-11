@@ -24,7 +24,6 @@ import java.awt.Dimension;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.beans.PropertyVetoException;
-import java.util.logging.Logger;
 
 import javax.swing.BoundedRangeModel;
 import javax.swing.Box;

@@ -25,9 +25,6 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.File;
 import java.text.NumberFormat;
-import java.text.ParseException;
-import java.text.SimpleDateFormat;
-import java.util.TimeZone;
 
 import javax.swing.DefaultListModel;
 import javax.swing.JButton;
@@ -37,7 +34,6 @@ import javax.swing.JFileChooser;
 import javax.swing.JFormattedTextField;
 import javax.swing.JPanel;
 import javax.swing.JTextField;
-import javax.swing.text.NumberFormatter;
 
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.userinterface.Desktop;

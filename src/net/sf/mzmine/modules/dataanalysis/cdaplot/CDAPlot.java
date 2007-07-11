@@ -46,9 +46,8 @@ import javax.swing.RepaintManager;
 import javax.swing.event.InternalFrameEvent;
 import javax.swing.event.InternalFrameListener;
 
-import net.sf.mzmine.data.PeakList;
 import net.sf.mzmine.data.ParameterSet;
-import net.sf.mzmine.main.MZmineCore;
+import net.sf.mzmine.data.PeakList;
 import net.sf.mzmine.main.MZmineModule;
 import net.sf.mzmine.userinterface.mainwindow.MainWindow;
 import net.sf.mzmine.util.TransferableImage;

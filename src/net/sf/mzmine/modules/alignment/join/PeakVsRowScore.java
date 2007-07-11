@@ -20,7 +20,6 @@
 package net.sf.mzmine.modules.alignment.join;
 
 import net.sf.mzmine.data.IsotopePattern;
-import net.sf.mzmine.data.Peak;
 import net.sf.mzmine.data.impl.SimplePeakListRow;
 
 /**

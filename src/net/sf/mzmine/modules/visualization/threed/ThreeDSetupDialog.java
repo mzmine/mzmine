@@ -35,9 +35,7 @@ import javax.swing.JLabel;
 import javax.swing.JPanel;
 
 import net.sf.mzmine.io.RawDataFile;
-import net.sf.mzmine.io.RawDataFile;
 import net.sf.mzmine.main.MZmineCore;
-import net.sf.mzmine.taskcontrol.TaskController;
 import net.sf.mzmine.userinterface.Desktop;
 import net.sf.mzmine.util.CollectionUtils;
 import net.sf.mzmine.util.GUIUtils;

@@ -39,11 +39,9 @@ import net.sf.mzmine.modules.MultipleRawDataVisualizer;
 import net.sf.mzmine.modules.visualization.spectra.SpectraSetupDialog;
 import net.sf.mzmine.modules.visualization.spectra.SpectraVisualizerWindow;
 import net.sf.mzmine.taskcontrol.Task;
-import net.sf.mzmine.taskcontrol.TaskController;
 import net.sf.mzmine.taskcontrol.TaskListener;
 import net.sf.mzmine.taskcontrol.Task.TaskStatus;
 import net.sf.mzmine.userinterface.Desktop;
-import net.sf.mzmine.userinterface.mainwindow.MainWindow;
 import net.sf.mzmine.util.CursorPosition;
 
 import org.jfree.data.xy.DefaultXYDataset;

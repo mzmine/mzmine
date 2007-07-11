@@ -23,7 +23,6 @@ import java.util.EnumSet;
 import java.util.Hashtable;
 import java.util.Iterator;
 import java.util.List;
-import java.util.Set;
 
 import net.sf.mzmine.data.StorableParameterSet;
 import net.sf.mzmine.modules.visualization.peaklist.table.CommonColumnType;

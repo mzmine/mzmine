@@ -27,7 +27,6 @@ import java.util.logging.LogRecord;
 
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.userinterface.Desktop;
-import net.sf.mzmine.userinterface.mainwindow.MainWindow;
 
 /**
  * java.util.logging handler that displays last logged message on the status bar

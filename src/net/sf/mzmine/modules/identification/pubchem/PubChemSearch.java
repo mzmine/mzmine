@@ -24,7 +24,6 @@ import gov.nih.nlm.ncbi.www.soap.eutils.EUtilsServiceSoap;
 import gov.nih.nlm.ncbi.www.soap.eutils.esearch.ESearchRequest;
 import gov.nih.nlm.ncbi.www.soap.eutils.esearch.ESearchResult;
 import net.sf.mzmine.data.ParameterSet;
-import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.main.MZmineModule;
 
 /**

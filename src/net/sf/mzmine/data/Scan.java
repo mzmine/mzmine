@@ -19,7 +19,6 @@
 
 package net.sf.mzmine.data;
 
-import java.io.IOException;
 
 /**
  * This class represent one spectrum of a raw data file.

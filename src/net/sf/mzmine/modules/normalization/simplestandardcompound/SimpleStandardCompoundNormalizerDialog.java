@@ -21,7 +21,6 @@ package net.sf.mzmine.modules.normalization.simplestandardcompound;
 
 import java.awt.Color;
 import java.awt.Dimension;
-import java.awt.Frame;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.Insets;
@@ -42,14 +41,11 @@ import javax.swing.ScrollPaneConstants;
 
 import net.sf.mzmine.data.PeakList;
 import net.sf.mzmine.data.PeakListRow;
-import net.sf.mzmine.data.impl.SimpleParameterSet;
-import net.sf.mzmine.io.RawDataFile;
-import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.userinterface.Desktop;
 import net.sf.mzmine.userinterface.components.ExtendedCheckBox;
 import net.sf.mzmine.userinterface.dialogs.ExitCode;
-import net.sf.mzmine.util.PeakListRowSorterByMZ;
 import net.sf.mzmine.util.GUIUtils;
+import net.sf.mzmine.util.PeakListRowSorterByMZ;
 
 class SimpleStandardCompoundNormalizerDialog extends JDialog implements ActionListener {
 
@@ -130,7 +126,7 @@ class SimpleStandardCompoundNormalizerDialog extends JDialog implements ActionLi
         for (int i = 0; i < rows.length; i++) {
             // Add only fully detected peaks to list of potential standard peaks
             if (rows[i].getNumberOfPeaks()==alignmentResult.getNumberOfRawDataFiles()) {
-                ExtendedCheckBox ecb = new ExtendedCheckBox<PeakListRow>(rows[i], true);
+                ExtendedCheckBox<PeakListRow> ecb = new ExtendedCheckBox<PeakListRow>(rows[i], true);
                 ecb.setSelected(false);
                 peakCheckBoxesVector.add(ecb);
                 minimumHorizSize = Math.max(minimumHorizSize,

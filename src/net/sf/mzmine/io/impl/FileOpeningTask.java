@@ -23,7 +23,6 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
-import java.nio.CharBuffer;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -40,9 +39,6 @@ import net.sf.mzmine.io.readers.MzXMLv2_1Reader;
 import net.sf.mzmine.io.readers.NetCDFFileReader;
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.taskcontrol.DistributableTask;
-
-import org.proteomecommons.io.PeakListReader;
-import org.proteomecommons.io.xml.GenericXMLPeakListReaderFactory;
 
 /**
  * 

@@ -3,8 +3,6 @@ package net.sf.mzmine.userinterface.components.interpolatinglookuppaintscale;
 import java.awt.Color;
 import java.awt.Component;
 import java.util.TreeMap;
-import java.util.Vector;
-
 import javax.swing.JTable;
 import javax.swing.table.DefaultTableCellRenderer;
 

@@ -20,7 +20,6 @@
 package net.sf.mzmine.modules.identification.kegg;
 
 import net.sf.mzmine.data.ParameterSet;
-import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.main.MZmineModule;
 
 

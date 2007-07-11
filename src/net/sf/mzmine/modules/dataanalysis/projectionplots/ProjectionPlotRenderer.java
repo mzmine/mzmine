@@ -1,14 +1,10 @@
 package net.sf.mzmine.modules.dataanalysis.projectionplots;
 
-import java.awt.Color;
 import java.awt.Paint;
 import java.awt.Shape;
 import java.awt.geom.Ellipse2D;
 
-import org.jfree.chart.plot.ColorPalette;
-import org.jfree.chart.renderer.PaintScale;
 import org.jfree.chart.renderer.xy.XYLineAndShapeRenderer;
-import org.jfree.data.xy.AbstractXYZDataset;
 
 public class ProjectionPlotRenderer extends XYLineAndShapeRenderer {
 

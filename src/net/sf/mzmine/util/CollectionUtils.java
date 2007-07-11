@@ -21,7 +21,6 @@ package net.sf.mzmine.util;
 
 import java.util.Collection;
 import java.util.Iterator;
-import java.util.Vector;
 
 /**
  * Collection API related utilities

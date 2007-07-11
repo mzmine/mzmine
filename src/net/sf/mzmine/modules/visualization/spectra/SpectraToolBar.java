@@ -41,7 +41,7 @@ class SpectraToolBar extends JToolBar {
     static final Icon pickedPeakIcon = new ImageIcon("icons/pickedpeakicon.png");
     static final Icon axesIcon = new ImageIcon("icons/axesicon.png");
     
-    private JButton centroidContinuousButton, dataPointsButton, peaksButton, axesButton;
+    private JButton centroidContinuousButton, dataPointsButton, peaksButton;
 
     SpectraToolBar(SpectraVisualizerWindow masterFrame) {
 
@@ -74,7 +74,7 @@ class SpectraToolBar extends JToolBar {
         
         addSeparator();
         
-        axesButton = GUIUtils.addButton(this, null, axesIcon, masterFrame,
+        GUIUtils.addButton(this, null, axesIcon, masterFrame,
                 "SETUP_AXES", "Setup ranges for axes");
         
 

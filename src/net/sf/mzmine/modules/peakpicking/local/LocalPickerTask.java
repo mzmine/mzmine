@@ -19,7 +19,6 @@
 
 package net.sf.mzmine.modules.peakpicking.local;
 
-import java.io.IOException;
 import java.util.Iterator;
 import java.util.TreeSet;
 import java.util.Vector;
@@ -31,7 +30,6 @@ import net.sf.mzmine.data.impl.ConstructionPeak;
 import net.sf.mzmine.data.impl.SimpleParameterSet;
 import net.sf.mzmine.data.impl.SimplePeakList;
 import net.sf.mzmine.data.impl.SimplePeakListRow;
-import net.sf.mzmine.io.RawDataFile;
 import net.sf.mzmine.io.RawDataFile;
 import net.sf.mzmine.taskcontrol.Task;
 import net.sf.mzmine.util.MathUtils;

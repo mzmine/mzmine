@@ -48,7 +48,6 @@ import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.userinterface.Desktop;
 import net.sf.mzmine.userinterface.components.ExtendedCheckBox;
 import net.sf.mzmine.userinterface.dialogs.ExitCode;
-import net.sf.mzmine.userinterface.mainwindow.MainWindow;
 import net.sf.mzmine.util.PeakListRowSorterByMZ;
 import net.sf.mzmine.util.GUIUtils;
 

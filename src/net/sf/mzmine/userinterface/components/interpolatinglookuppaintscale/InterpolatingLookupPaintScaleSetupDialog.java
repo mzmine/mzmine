@@ -1,39 +1,27 @@
 package net.sf.mzmine.userinterface.components.interpolatinglookuppaintscale;
 
 import java.awt.BorderLayout;
-import java.awt.Canvas;
 import java.awt.Color;
 import java.awt.FlowLayout;
 import java.awt.Frame;
-import java.awt.GridLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.awt.geom.RoundRectangle2D;
 import java.text.NumberFormat;
 import java.util.TreeMap;
-import java.util.Vector;
 import java.util.logging.Logger;
 
 import javax.swing.JButton;
 import javax.swing.JColorChooser;
 import javax.swing.JDialog;
 import javax.swing.JFormattedTextField;
-import javax.swing.JFrame;
 import javax.swing.JLabel;
-import javax.swing.JList;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTable;
 import javax.swing.ListSelectionModel;
-import javax.swing.colorchooser.DefaultColorSelectionModel;
-import javax.swing.event.ChangeEvent;
-import javax.swing.event.ChangeListener;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
-import javax.swing.event.TableModelEvent;
-
-import net.sf.mzmine.userinterface.Desktop;
 import net.sf.mzmine.userinterface.dialogs.ExitCode;
 
 public class InterpolatingLookupPaintScaleSetupDialog extends JDialog implements ActionListener, ListSelectionListener {

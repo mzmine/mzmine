@@ -2,8 +2,6 @@ package net.sf.mzmine.userinterface.components.interpolatinglookuppaintscale;
 
 import java.awt.Color;
 import java.util.TreeMap;
-import java.util.Vector;
-
 import javax.swing.table.AbstractTableModel;
 
 public class InterpolatingLookupPaintScaleSetupDialogTableModel extends AbstractTableModel {

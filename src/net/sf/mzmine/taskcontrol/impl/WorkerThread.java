@@ -24,7 +24,6 @@ import java.util.logging.Logger;
 
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.taskcontrol.TaskListener;
-import net.sf.mzmine.userinterface.Desktop;
 
 /**
  * Task controller worker thread

@@ -33,7 +33,6 @@ import javax.swing.KeyStroke;
 
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.userinterface.Desktop;
-import net.sf.mzmine.userinterface.mainwindow.MainWindow;
 import net.sf.mzmine.util.GUIUtils;
 
 import org.jfree.chart.ChartPanel;

@@ -27,7 +27,6 @@ import java.util.logging.Logger;
 import javax.swing.UIManager;
 
 import net.sf.mzmine.main.MZmineCore;
-import net.sf.mzmine.userinterface.mainwindow.MainWindow;
 
 /**
  * Simple ActionListener handler to change the application Look&Feel

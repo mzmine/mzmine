@@ -30,7 +30,6 @@ import net.sf.mzmine.io.util.RawDataAcceptor;
 import net.sf.mzmine.io.util.RawDataRetrievalTask;
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.taskcontrol.Task;
-import net.sf.mzmine.taskcontrol.TaskController;
 import net.sf.mzmine.taskcontrol.Task.TaskPriority;
 
 import org.jfree.chart.labels.XYToolTipGenerator;

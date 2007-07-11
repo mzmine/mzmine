@@ -19,8 +19,6 @@
 
 package net.sf.mzmine.modules.gapfilling.simple;
 
-import java.io.IOException;
-
 import net.sf.mzmine.data.ParameterSet;
 import net.sf.mzmine.data.Scan;
 import net.sf.mzmine.io.RawDataFile;

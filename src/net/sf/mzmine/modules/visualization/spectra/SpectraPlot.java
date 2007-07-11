@@ -25,7 +25,6 @@ import java.awt.Font;
 import java.awt.Shape;
 import java.awt.event.MouseEvent;
 import java.awt.geom.Ellipse2D;
-import java.text.DecimalFormat;
 import java.text.NumberFormat;
 
 import javax.swing.JPopupMenu;
@@ -33,7 +32,6 @@ import javax.swing.KeyStroke;
 
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.userinterface.Desktop;
-import net.sf.mzmine.userinterface.mainwindow.MainWindow;
 import net.sf.mzmine.util.GUIUtils;
 
 import org.jfree.chart.ChartFactory;

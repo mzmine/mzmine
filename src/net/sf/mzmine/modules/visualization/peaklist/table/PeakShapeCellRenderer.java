@@ -24,8 +24,6 @@ import java.awt.Component;
 
 import javax.swing.JPanel;
 import javax.swing.JTable;
-import javax.swing.UIManager;
-import javax.swing.border.Border;
 import javax.swing.table.TableCellRenderer;
 
 import net.sf.mzmine.data.Peak;

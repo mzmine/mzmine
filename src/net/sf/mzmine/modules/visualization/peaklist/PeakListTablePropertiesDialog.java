@@ -21,7 +21,6 @@ package net.sf.mzmine.modules.visualization.peaklist;
 
 import java.awt.Component;
 import java.awt.Dimension;
-import java.awt.Frame;
 import java.awt.GridLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;

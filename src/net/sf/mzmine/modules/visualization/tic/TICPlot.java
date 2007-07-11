@@ -40,7 +40,6 @@ import net.sf.mzmine.modules.visualization.tic.TICVisualizerWindow.PlotType;
 import net.sf.mzmine.userinterface.Desktop;
 import net.sf.mzmine.userinterface.components.AddFilePopupMenu;
 import net.sf.mzmine.userinterface.components.RemoveFilePopupMenu;
-import net.sf.mzmine.userinterface.mainwindow.MainWindow;
 import net.sf.mzmine.util.GUIUtils;
 
 import org.jfree.chart.ChartFactory;
