@@ -25,9 +25,7 @@ Code
 
 
 * Alignment result table visualizer
-- Proper formatting to all columns, remember column selection and column width in configuration
 - Display isotope pattern and charge of deisotoped peaks
-- Export and print using JFreeReport library
 
 
 * From peak list & alignment result table it should be possible to open raw data visualizers showing the detected or estimated peak:
@@ -44,8 +42,6 @@ Code
 - When reading scans the IO should autodetect whether scan is centroided or continuous
 - User should be able to set mass precision per each file/MS level
 - Use the ProteomeCommons IO framework for reading all kinds of mass spec formats
-- Keep scan headers in memory (scan number, retention time, mass range etc.)
-- Write mz/intensity data to a very simple temporary binary data file, from which the data can be quickly loaded when needed
 
 
 * Peak picking
@@ -74,6 +70,7 @@ Code
 - Sometimes batch processing hangs between two methods, like Centroid picker and Join aligner. A race condition bug?
 - Batch module should save current batch in configuration
 - Listing of batch steps should separate items by category (Peak detection, Deisotoping, Alignment, etc.)
+- when running filter in batch, next step has to use filtered raw data
 
 
 * Dialogs
