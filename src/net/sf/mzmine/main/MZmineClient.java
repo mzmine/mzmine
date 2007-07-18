@@ -34,12 +34,14 @@ import net.sf.mzmine.io.impl.IOControllerImpl;
 import net.sf.mzmine.project.impl.MZmineProjectImpl;
 import net.sf.mzmine.taskcontrol.impl.TaskControllerImpl;
 import net.sf.mzmine.userinterface.mainwindow.MainWindow;
+import net.sf.mzmine.util.logging.JCommonLogHandler;
 
 import org.dom4j.Document;
 import org.dom4j.Element;
 import org.dom4j.io.OutputFormat;
 import org.dom4j.io.SAXReader;
 import org.dom4j.io.XMLWriter;
+import org.jfree.report.JFreeReportBoot;
 
 /**
  * Main client class
