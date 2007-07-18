@@ -237,9 +237,25 @@ public class ConstructionPeak implements Peak {
     }
 
     private void precalculateArea() {
+        
         float sum = 0.0f;
-        for (Float intensity : datapointsIntensities)
-            sum += intensity;
+
+        // process all datapoints
+        for (int i = 0; i < (datapointsIntensities.size() - 1); i++) {
+        
+            // X axis interval length
+            final float rtDifference = datapointsRTs.get(i + 1) - datapointsRTs.get(i);
+            
+            // intensity at the beginning of the interval
+            final float intensityStart = datapointsIntensities.get(i);
+            
+            // intensity at the end of the interval
+            final float intensityEnd = datapointsIntensities.get(i + 1);
+            
+            // calculate area of the interval
+            sum += (rtDifference * (intensityStart + intensityEnd) / 2);
+        
+        }
 
         area = sum;
 
