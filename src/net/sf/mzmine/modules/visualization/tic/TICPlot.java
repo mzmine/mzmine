@@ -69,7 +69,6 @@ class TICPlot extends ChartPanel {
 
     private XYPlot plot;
 
-
     private TICVisualizerWindow visualizer;
 
     private int numberOfDataSets = 0;
@@ -200,8 +199,7 @@ class TICPlot extends ChartPanel {
         defaultRenderer.setShapesFilled(true);
         defaultRenderer.setDrawOutlines(false);
         defaultRenderer.setUseFillPaint(true);
-        defaultRenderer.setItemLabelPaint(labelsColor);
-        defaultRenderer.setShape(dataPointsShape);
+        defaultRenderer.setBaseItemLabelPaint(labelsColor);
         
         defaultAreaRenderer = new XYAreaRenderer(XYAreaRenderer.AREA);
        
@@ -210,14 +208,12 @@ class TICPlot extends ChartPanel {
         XYItemLabelGenerator labelGenerator;
         if (visualizer.getPlotType() == PlotType.BASE_PEAK) labelGenerator = new BasePeakItemLabelGenerator(this);
             else labelGenerator = new TICItemLabelGenerator(this);
-        defaultRenderer.setItemLabelGenerator(labelGenerator);
-        defaultRenderer.setItemLabelsVisible(true);
+        defaultRenderer.setBaseItemLabelGenerator(labelGenerator);
+        defaultRenderer.setBaseItemLabelsVisible(true);
 
         // set toolTipGenerator
-        XYToolTipGenerator toolTipGenerator;
-        if (visualizer.getPlotType() == PlotType.BASE_PEAK) toolTipGenerator = new BasePeakToolTipGenerator();
-            else toolTipGenerator = new TICToolTipGenerator();
-        defaultRenderer.setToolTipGenerator(toolTipGenerator);
+        XYToolTipGenerator toolTipGenerator = new TICToolTipGenerator();
+        defaultRenderer.setBaseToolTipGenerator(toolTipGenerator);
 
         // set focusable state to receive key events
         setFocusable(true);
@@ -301,7 +297,7 @@ class TICPlot extends ChartPanel {
         for (int i = 0; i < numberOfDataSets; i++) {
             renderer = (XYItemRenderer) plot.getRenderer(i);
             if (renderer != null) {
-                renderer.setItemLabelsVisible(!itemLabelsVisible);
+                renderer.setBaseItemLabelsVisible(!itemLabelsVisible);
             }
         }
     }
@@ -331,8 +327,9 @@ class TICPlot extends ChartPanel {
             XYLineAndShapeRenderer newRenderer = (XYLineAndShapeRenderer) defaultRenderer.clone();
             Color rendererColor = plotColors[numberOfDataSets
                     % plotColors.length];
-            newRenderer.setPaint(rendererColor);
-            newRenderer.setFillPaint(rendererColor);
+            newRenderer.setSeriesPaint(0, rendererColor);
+            newRenderer.setSeriesFillPaint(0, rendererColor);
+            newRenderer.setSeriesShape(0, dataPointsShape);
             plot.setRenderer(numberOfDataSets, newRenderer);
         } catch (CloneNotSupportedException e) {
             e.printStackTrace();
@@ -349,9 +346,9 @@ class TICPlot extends ChartPanel {
         StandardXYItemRenderer labelRenderer = new StandardXYItemRenderer(StandardXYItemRenderer.SHAPES);
         labelRenderer.setBaseShape(dataPointsShape);
         labelRenderer.setBaseShapesVisible(false);
-    	labelRenderer.setItemLabelsVisible(true);
-    	labelRenderer.setItemLabelPaint(new Color(0,0,0));
-    	labelRenderer.setItemLabelGenerator(new PeakAreaItemLabelGenerator(labelsString));
+    	labelRenderer.setBaseItemLabelsVisible(true);
+    	labelRenderer.setBaseItemLabelPaint(new Color(0,0,0));
+    	labelRenderer.setBaseItemLabelGenerator(new PeakAreaItemLabelGenerator(labelsString));
     	plot.setRenderer(numberOfDataSets, labelRenderer);  	
 	
     	numberOfDataSets++;
@@ -373,8 +370,6 @@ class TICPlot extends ChartPanel {
     	
         numberOfDataSets++;
         
-    	
-    	
     	
     }
 

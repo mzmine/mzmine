@@ -81,7 +81,7 @@ class BasePeakItemLabelGenerator implements XYItemLabelGenerator {
 
         }
 
-        double mz = ((TICDataSet) dataset).getMZValue(item);
+        double mz = ((TICDataSet) dataset).getZValue(series, item);
         
         Desktop desktop = MZmineCore.getDesktop();
         NumberFormat mzFormat = desktop.getMZFormat();

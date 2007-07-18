@@ -315,10 +315,10 @@ public class TICVisualizerWindow extends JInternalFrame implements
         Enumeration<TICDataSet> e = dataFiles.elements();
         while (e.hasMoreElements()) {
             TICDataSet dataSet = e.nextElement();
-            int index = dataSet.getSeriesIndex(selectedRT, selectedIT);
+            int index = dataSet.getIndex(selectedRT, selectedIT);
             if (index >= 0) {
                 float mz = 0;
-                if (plotType == PlotType.BASE_PEAK) mz = dataSet.getMZValue(index);
+                if (plotType == PlotType.BASE_PEAK) mz = (float) dataSet.getZValue(0, index);
                 CursorPosition pos = new CursorPosition(selectedRT, mz,
                         selectedIT, dataSet.getDataFile(), dataSet.getScanNumber(index));
                 return pos;
@@ -385,7 +385,7 @@ public class TICVisualizerWindow extends JInternalFrame implements
             CursorPosition pos = getCursorPosition();
             if (pos != null) {
                 TICDataSet dataSet = dataFiles.get(pos.getDataFile());
-                int index = dataSet.getSeriesIndex(pos.getRetentionTime(), pos
+                int index = dataSet.getIndex(pos.getRetentionTime(), pos
                         .getIntensityValue());
                 if (index > 0) {
                     index--;
@@ -401,7 +401,7 @@ public class TICVisualizerWindow extends JInternalFrame implements
             CursorPosition pos = getCursorPosition();
             if (pos != null) {
                 TICDataSet dataSet = dataFiles.get(pos.getDataFile());
-                int index = dataSet.getSeriesIndex(pos.getRetentionTime(), pos
+                int index = dataSet.getIndex(pos.getRetentionTime(), pos
                         .getIntensityValue());
                 if (index >= 0) {
                     index++;

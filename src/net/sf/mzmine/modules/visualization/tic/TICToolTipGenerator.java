@@ -1,5 +1,5 @@
 /*
- * Copyright 2006 The MZmine Development Team
+ * Copyright 2006-2007 The MZmine Development Team
  * 
  * This file is part of MZmine.
  * 
@@ -17,9 +17,6 @@
  * Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-/**
- * 
- */
 package net.sf.mzmine.modules.visualization.tic;
 
 import java.text.NumberFormat;
@@ -39,15 +36,19 @@ class TICToolTipGenerator implements XYToolTipGenerator {
      *      int, int)
      */
     public String generateToolTip(XYDataset dataset, int series, int item) {
-        
+
         Desktop desktop = MZmineCore.getDesktop();
         NumberFormat rtFormat = desktop.getRTFormat();
+        NumberFormat mzFormat = desktop.getMZFormat();
         NumberFormat intensityFormat = desktop.getIntensityFormat();
-        
+
         double rtValue = dataset.getXValue(series, item);
         double intValue = dataset.getYValue(series, item);
-        return "Retention time: " + rtFormat.format(rtValue) + ", TIC: "
-                + intensityFormat.format(intValue);
+        double mzValue = ((TICDataSet) dataset).getZValue(series, item);
+        return "<html>Retention time: " + rtFormat.format(rtValue)
+                + "<br>Base peak m/z: " + mzFormat.format(mzValue)
+                + "<br>Intensity: " + intensityFormat.format(intValue)
+                + "</html>";
     }
 
 }
