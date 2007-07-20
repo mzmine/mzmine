@@ -42,6 +42,7 @@ import net.sf.mzmine.taskcontrol.Task;
 import net.sf.mzmine.taskcontrol.TaskListener;
 import net.sf.mzmine.taskcontrol.Task.TaskStatus;
 import net.sf.mzmine.userinterface.Desktop;
+import net.sf.mzmine.userinterface.dialogs.AxesSetupDialog;
 import net.sf.mzmine.util.CursorPosition;
 
 import org.jfree.data.xy.DefaultXYDataset;
@@ -379,6 +380,11 @@ public class TICVisualizerWindow extends JInternalFrame implements
                 new SpectraVisualizerWindow(pos.getDataFile(), pos
                         .getScanNumber());
             }
+        }
+        
+        if (command.equals("SETUP_AXES")) {
+            AxesSetupDialog dialog = new AxesSetupDialog(desktop.getMainFrame(), plot.getChart().getXYPlot());
+            dialog.setVisible(true);
         }
 
         if (command.equals("MOVE_CURSOR_LEFT")) {

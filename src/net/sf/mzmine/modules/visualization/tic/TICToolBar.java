@@ -36,6 +36,7 @@ class TICToolBar extends JToolBar {
     static final Icon showSpectrumIcon = new ImageIcon("icons/spectrumicon.png");
     static final Icon dataPointsIcon = new ImageIcon("icons/datapointsicon.png");
     static final Icon annotationsIcon = new ImageIcon("icons/annotationsicon.png");
+    static final Icon axesIcon = new ImageIcon("icons/axesicon.png");
 
     TICToolBar(TICVisualizerWindow masterFrame) {
 
@@ -57,6 +58,11 @@ class TICToolBar extends JToolBar {
 
         GUIUtils.addButton(this, null, annotationsIcon, masterFrame,
                 "SHOW_ANNOTATIONS", "Toggle displaying of peak values");
+        
+        addSeparator();
+        
+        GUIUtils.addButton(this, null, axesIcon, masterFrame,
+                "SETUP_AXES", "Setup ranges for axes");
 
     }
 
