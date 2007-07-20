@@ -38,7 +38,7 @@ class PeakSorterByDescendingHeight implements Comparator<Peak> {
             return -1;
         }
     }
-
+    
     public boolean equals(Object obj) {
         return (obj == this);
     }
