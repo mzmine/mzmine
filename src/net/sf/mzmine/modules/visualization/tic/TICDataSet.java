@@ -24,6 +24,7 @@ import java.util.Date;
 import net.sf.mzmine.data.Scan;
 import net.sf.mzmine.io.RawDataFile;
 import net.sf.mzmine.io.util.RawDataAcceptor;
+import net.sf.mzmine.util.ScanUtils;
 
 import org.jfree.data.xy.AbstractXYZDataset;
 
@@ -86,25 +87,33 @@ class TICDataSet extends AbstractXYZDataset implements RawDataAcceptor {
 
         case TIC:
             float intensityValues[] = scan.getIntensityValues();
-            float mzValues[] = scan.getMZValues();
+            float scanMzValues[] = scan.getMZValues();
             for (int j = 0; j < intensityValues.length; j++) {
-                if ((mzValues[j] >= mzMin) && (mzValues[j] <= mzMax))
+                if ((scanMzValues[j] >= mzMin) && (scanMzValues[j] <= mzMax))
                     totalIntensity += intensityValues[j];
             }
+            mzValues[index] = scan.getBasePeakMZ();
             break;
 
         case BASE_PEAK:
-            totalIntensity = scan.getBasePeakIntensity();
+            if ((mzMin <= scan.getMZRangeMin())
+                    && (mzMax >= scan.getMZRangeMax())) {
+                mzValues[index] = scan.getBasePeakMZ();
+                totalIntensity = scan.getBasePeakIntensity();
+            } else {
+                float basePeak[] = ScanUtils.findBasePeak(scan, mzMin, mzMax);
+                mzValues[index] = basePeak[0];
+                totalIntensity = basePeak[1];
+            }
             break;
 
         }
 
-        mzValues[index] = scan.getBasePeakMZ();
         intensityValues[index] = totalIntensity;
         rtValues[index] = scan.getRetentionTime();
 
         loadedScans++;
-        
+
         // redraw every REDRAW_INTERVAL ms
         boolean notify = false;
         Date currentTime = new Date();
@@ -116,7 +125,7 @@ class TICDataSet extends AbstractXYZDataset implements RawDataAcceptor {
         // always redraw when we add last value
         if (index == total - 1)
             notify = true;
-        
+
         if (notify)
             this.fireDatasetChanged();
 

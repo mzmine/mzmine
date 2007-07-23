@@ -347,7 +347,7 @@ class TICPlot extends ChartPanel {
         labelRenderer.setBaseShape(dataPointsShape);
         labelRenderer.setBaseShapesVisible(false);
     	labelRenderer.setBaseItemLabelsVisible(true);
-    	labelRenderer.setBaseItemLabelPaint(new Color(0,0,0));
+    	labelRenderer.setBaseItemLabelPaint(Color.black);
     	labelRenderer.setBaseItemLabelGenerator(new PeakAreaItemLabelGenerator(labelsString));
     	plot.setRenderer(numberOfDataSets, labelRenderer);  	
 	
