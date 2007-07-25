@@ -58,7 +58,7 @@ public class IntensityPlotDialog extends JDialog implements ActionListener {
     private ExitCode exitCode = ExitCode.CANCEL;
 
     private Desktop desktop;
-    private PeakList alignmentResult;
+    private PeakList alignedPeakList;
     private IntensityPlotParameters parameterSet;
 
     // dialog components
@@ -68,13 +68,13 @@ public class IntensityPlotDialog extends JDialog implements ActionListener {
     private JButton btnSelectAllFiles, btnDeselectAllFiles, btnSelectAllPeaks,
             btnDeselectAllPeaks, btnOK, btnCancel;
 
-    public IntensityPlotDialog(IntensityPlotParameters parameterSet) {
+    public IntensityPlotDialog(PeakList peakList, IntensityPlotParameters parameterSet) {
 
         // make dialog modal
         super(MZmineCore.getDesktop().getMainFrame(), "Intensity plot setup", true);
 
         this.desktop = MZmineCore.getDesktop();
-        this.alignmentResult = parameterSet.getSourcePeakList();
+        this.alignedPeakList = peakList;
         this.parameterSet = parameterSet;
         
         List<RawDataFile> selectedDataFiles = Arrays.asList(parameterSet.getSelectedDataFiles());
@@ -105,9 +105,9 @@ public class IntensityPlotDialog extends JDialog implements ActionListener {
         dataFileCheckBoxesPanel.setBackground(Color.white);
         dataFileCheckBoxesPanel.setLayout(new BoxLayout(
                 dataFileCheckBoxesPanel, BoxLayout.Y_AXIS));
-        rawDataFileCheckBoxes = new ExtendedCheckBox[alignmentResult.getNumberOfRawDataFiles()];
+        rawDataFileCheckBoxes = new ExtendedCheckBox[alignedPeakList.getNumberOfRawDataFiles()];
         int minimumHorizSize = 0;
-        RawDataFile files[] = alignmentResult.getRawDataFiles();
+        RawDataFile files[] = alignedPeakList.getRawDataFiles();
         for (int i = 0; i < files.length; i++) {
             rawDataFileCheckBoxes[i] = new ExtendedCheckBox<RawDataFile>(
                     files[i], selectedDataFiles.contains(files[i]));
@@ -169,9 +169,9 @@ public class IntensityPlotDialog extends JDialog implements ActionListener {
         peakCheckBoxesPanel.setBackground(Color.white);
         peakCheckBoxesPanel.setLayout(new BoxLayout(peakCheckBoxesPanel,
                 BoxLayout.Y_AXIS));
-        peakCheckBoxes = new ExtendedCheckBox[alignmentResult.getNumberOfRows()];
+        peakCheckBoxes = new ExtendedCheckBox[alignedPeakList.getNumberOfRows()];
         minimumHorizSize = 0;
-        PeakListRow rows[] = alignmentResult.getRows();
+        PeakListRow rows[] = alignedPeakList.getRows();
         Arrays.sort(rows, new PeakListRowSorterByMZ());
         for (int i = 0; i < rows.length; i++) {
             peakCheckBoxes[i] = new ExtendedCheckBox<PeakListRow>(rows[i], selectedRows.contains(rows[i]));
@@ -261,7 +261,7 @@ public class IntensityPlotDialog extends JDialog implements ActionListener {
                 return;
             }
 
-            parameterSet.setSourcePeakList(alignmentResult);
+            parameterSet.setSourcePeakList(alignedPeakList);
             parameterSet.setSelectedDataFiles(selectedFiles.toArray(new RawDataFile[0]));
             parameterSet.setSelectedRows(selectedPeaks.toArray(new PeakListRow[0]));
             parameterSet.setXAxisValueSource(xAxisValueSourceCombo.getSelectedItem());

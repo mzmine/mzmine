@@ -151,7 +151,7 @@ public class PeakListTablePopupMenu extends JPopupMenu implements
                     peakList, IntensityPlotParameters.DataFileOption,
                     IntensityPlotParameters.PeakHeightOption,
                     peakList.getRawDataFiles(), selectedPeakListRows);
-            IntensityPlotDialog setupDialog = new IntensityPlotDialog(
+            IntensityPlotDialog setupDialog = new IntensityPlotDialog(peakList, 
                     parameters);
             setupDialog.setVisible(true);
             if (setupDialog.getExitCode() == ExitCode.OK) {

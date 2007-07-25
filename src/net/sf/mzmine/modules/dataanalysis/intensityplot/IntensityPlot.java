@@ -61,25 +61,25 @@ public class IntensityPlot implements MZmineModule, ActionListener {
      */
     public void actionPerformed(ActionEvent e) {
 
-        PeakList selectedAlignmentResults[] = desktop.getSelectedAlignedPeakLists();
-        if (selectedAlignmentResults.length != 1) {
-            desktop.displayErrorMessage("Please select a single alignment result to plot");
+        PeakList selectedAlignedPeakLists[] = desktop.getSelectedAlignedPeakLists();
+        if (selectedAlignedPeakLists.length != 1) {
+            desktop.displayErrorMessage("Please select a single alignment result");
             return;
         }
 
-        if (selectedAlignmentResults[0].getNumberOfRows() == 0) {
+        if (selectedAlignedPeakLists[0].getNumberOfRows() == 0) {
             desktop.displayErrorMessage("Selected alignment result is empty");
             return;
         }
 
         logger.finest("Showing intensity plot setup dialog");
 
-        if (selectedAlignmentResults[0] != parameters.getSourcePeakList()) {
+        if (selectedAlignedPeakLists[0] != parameters.getSourcePeakList()) {
             parameters = new IntensityPlotParameters(
-                    selectedAlignmentResults[0]);
+                    selectedAlignedPeakLists[0]);
         }
 
-        IntensityPlotDialog setupDialog = new IntensityPlotDialog(parameters);
+        IntensityPlotDialog setupDialog = new IntensityPlotDialog(selectedAlignedPeakLists[0], parameters);
         setupDialog.setVisible(true);
 
         if (setupDialog.getExitCode() == ExitCode.OK) {
