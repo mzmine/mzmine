@@ -22,6 +22,7 @@ package net.sf.mzmine.modules.normalization.simplestandardcompound;
 import java.util.Hashtable;
 import java.util.logging.Logger;
 
+import net.sf.mzmine.data.CompoundIdentity;
 import net.sf.mzmine.data.Peak;
 import net.sf.mzmine.data.PeakList;
 import net.sf.mzmine.data.PeakListRow;
@@ -235,6 +236,9 @@ public class SimpleStandardCompoundNormalizerTask implements Task {
                     SimplePeakListRow normalizedRow = rowMap.get(row);
                     if (normalizedRow == null) {
                         normalizedRow = new SimplePeakListRow(row.getID());
+                        normalizedRow.setComment(row.getComment());
+                        for (CompoundIdentity ident : row.getCompoundIdentities())
+                            normalizedRow.addCompoundIdentity(ident);
                         rowMap.put(row, normalizedRow);
                     }
 
