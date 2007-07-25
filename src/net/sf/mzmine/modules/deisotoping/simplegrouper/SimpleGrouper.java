@@ -88,7 +88,7 @@ public class SimpleGrouper implements BatchStep, TaskListener, ActionListener {
                 rtTolerance, monotonicShape, maximumCharge });
 
         desktop.addMenuItem(MZmineMenu.PEAKPICKING,
-                "Simple isotopic peaks grouper", this, null, KeyEvent.VK_S,
+                "Isotopic peaks grouper", this, null, KeyEvent.VK_I,
                 false, true);
 
     }
@@ -106,7 +106,7 @@ public class SimpleGrouper implements BatchStep, TaskListener, ActionListener {
         MZmineProject currentProject = MZmineCore.getCurrentProject();
 
         if (dataFiles.length == 0) {
-            desktop.displayErrorMessage("Please select at least one data file");
+            desktop.displayErrorMessage("Please select data file");
             return;
         }
 
@@ -126,7 +126,7 @@ public class SimpleGrouper implements BatchStep, TaskListener, ActionListener {
     }
 
     public void taskStarted(Task task) {
-        logger.info("Running simple peak grouper on "
+        logger.info("Running isotopic peak grouper on "
                 + ((SimpleGrouperTask) task).getDataFile());
     }
 
@@ -134,7 +134,7 @@ public class SimpleGrouper implements BatchStep, TaskListener, ActionListener {
 
         if (task.getStatus() == Task.TaskStatus.FINISHED) {
 
-            logger.info("Finished simple peak grouper on "
+            logger.info("Finished isotopic peak grouper on "
                     + ((SimpleGrouperTask) task).getDataFile());
 
             Object[] result = (Object[]) task.getResult();
@@ -164,7 +164,7 @@ public class SimpleGrouper implements BatchStep, TaskListener, ActionListener {
      * @see net.sf.mzmine.modules.BatchStep#toString()
      */
     public String toString() {
-        return "Simple isotopic peaks grouper";
+        return "Isotopic peaks grouper";
     }
 
     /**

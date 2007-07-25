@@ -71,6 +71,7 @@ class SimpleGrouperTask implements Task {
         currentPeakList = currentProject.getFilePeakList(dataFile);
 
         processedPeakList = new SimplePeakList(currentProject.getFilePeakList(dataFile).toString() + " deisotoped");
+        processedPeakList.addRawDataFile(dataFile);
 
         this.parameters = parameters;
         mzTolerance = (Float) parameters.getParameterValue(SimpleGrouper.mzTolerance);
@@ -84,7 +85,7 @@ class SimpleGrouperTask implements Task {
      * @see net.sf.mzmine.taskcontrol.Task#getTaskDescription()
      */
     public String getTaskDescription() {
-        return "Simple isotopic peaks grouper on " + dataFile;
+        return "Isotopic peaks grouper on " + dataFile;
     }
 
     /**
