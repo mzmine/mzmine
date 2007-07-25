@@ -43,6 +43,7 @@ public class PeakListTableVisualizer implements MZmineModule, ActionListener {
     private Desktop desktop;
     private PeakListTableParameters parameters;
     private JMenuItem peakListTable, alignedPeakListTable;
+    private static PeakListTableVisualizer myInstance;
 
     private Logger logger = Logger.getLogger(this.getClass().getName());
 
@@ -52,7 +53,8 @@ public class PeakListTableVisualizer implements MZmineModule, ActionListener {
     public void initModule() {
 
         this.desktop = MZmineCore.getDesktop();
-
+        myInstance = this;
+        
         // boot the JFreeReport library and register our logging handler,
         // to get a rid of JCommon debug messages on the console
         JFreeReportBoot.getInstance().start();
@@ -98,7 +100,7 @@ public class PeakListTableVisualizer implements MZmineModule, ActionListener {
                     
                     logger.finest("Showing new peak list view");
                     PeakListTableWindow alignmentResultView = new PeakListTableWindow(
-                            this, peakList);
+                            peakList);
                     desktop.addInternalFrame(alignmentResultView);
 
                 }
@@ -116,7 +118,7 @@ public class PeakListTableVisualizer implements MZmineModule, ActionListener {
                 logger.finest("Showing a new alignment result list view");
 
                 PeakListTableWindow alignmentResultView = new PeakListTableWindow(
-                        this, alignmentResult);
+                        alignmentResult);
                 desktop.addInternalFrame(alignmentResultView);
 
             }
@@ -143,6 +145,10 @@ public class PeakListTableVisualizer implements MZmineModule, ActionListener {
      */
     public void setParameters(ParameterSet parameterValues) {
         parameters = (PeakListTableParameters) parameterValues;
+    }
+    
+    public static PeakListTableVisualizer getInstance() {
+        return myInstance;
     }
 
 }

@@ -22,35 +22,24 @@ package net.sf.mzmine.userinterface.mainwindow;
 import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.event.MouseEvent;
-import java.awt.event.MouseListener;
-import java.beans.PropertyVetoException;
 
-import javax.swing.BoundedRangeModel;
 import javax.swing.Box;
 import javax.swing.BoxLayout;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
-import javax.swing.JProgressBar;
 import javax.swing.border.EtchedBorder;
 
-import net.sf.mzmine.main.MZmineCore;
-import net.sf.mzmine.taskcontrol.impl.TaskControllerImpl;
-import net.sf.mzmine.userinterface.components.TaskProgressWindow;
-
-public class Statusbar extends JPanel implements MouseListener, Runnable {
+public class Statusbar extends JPanel implements Runnable {
 
     // frequency in milliseconds how often to update free memory label
     public static final int MEMORY_LABEL_UPDATE_FREQUENCY = 1000;
 
     private JPanel statusTextPanel, memoryPanel;
     private JLabel statusTextLabel, memoryLabel;
-    private JProgressBar statusProgBar;
-    private MainWindow mainWin;
 
     private final int statusBarHeight = 25;
 
     Statusbar() {
-
 
         setLayout(new BoxLayout(this, BoxLayout.X_AXIS));
         setBorder(new EtchedBorder());
@@ -60,15 +49,6 @@ public class Statusbar extends JPanel implements MouseListener, Runnable {
                 BoxLayout.X_AXIS));
         statusTextPanel.setBorder(new EtchedBorder(EtchedBorder.RAISED));
 
-        TaskControllerImpl tc = (TaskControllerImpl) MZmineCore.getTaskController();
-        BoundedRangeModel progressModel = tc.getTaskQueue();
-        statusProgBar = new JProgressBar(progressModel);
-        statusProgBar.setMinimumSize(new Dimension(100, statusBarHeight));
-        statusProgBar.setPreferredSize(new Dimension(500, statusBarHeight));
-        statusProgBar.setToolTipText("Overall progress of all scheduled tasks");
-        statusProgBar.setVisible(false);
-        statusProgBar.addMouseListener(this);
-
         statusTextLabel = new JLabel();
         statusTextLabel.setMinimumSize(new Dimension(100, statusBarHeight));
         statusTextLabel.setPreferredSize(new Dimension(3200, statusBarHeight));
@@ -76,16 +56,10 @@ public class Statusbar extends JPanel implements MouseListener, Runnable {
         statusTextPanel.add(Box.createRigidArea(new Dimension(5,
                 statusBarHeight)));
         statusTextPanel.add(statusTextLabel);
-        statusTextPanel.add(Box.createRigidArea(new Dimension(10,
-                statusBarHeight)));
-        statusTextPanel.add(statusProgBar);
-        statusTextPanel.add(Box.createRigidArea(new Dimension(10,
-                statusBarHeight)));
 
         add(statusTextPanel);
 
         memoryLabel = new JLabel("");
-        memoryLabel.addMouseListener(this);
         memoryPanel = new JPanel();
         memoryPanel.setLayout(new BoxLayout(memoryPanel, BoxLayout.X_AXIS));
         memoryPanel.setBorder(new EtchedBorder(EtchedBorder.RAISED));
@@ -112,28 +86,6 @@ public class Statusbar extends JPanel implements MouseListener, Runnable {
         statusTextLabel.setForeground(textColor);
     }
 
-    public void setProgressBarVisible(boolean visible) {
-        statusProgBar.setVisible(visible);
-    }
-
-    /**
-     * @see java.awt.event.MouseListener#mouseClicked(java.awt.event.MouseEvent)
-     */
-    public void mouseClicked(MouseEvent event) {
-
-        Object src = event.getSource();
-
-        if (src == statusProgBar) {
-            TaskProgressWindow taskProgressWindow = mainWin.getTaskList();
-            taskProgressWindow.setVisible(true);
-            try {
-                taskProgressWindow.setSelected(true);
-            } catch (PropertyVetoException e) {
-                // do nothing
-            }
-        }
-
-    }
 
     /**
      * @see java.awt.event.MouseListener#mousePressed(java.awt.event.MouseEvent)
@@ -177,10 +129,11 @@ public class Statusbar extends JPanel implements MouseListener, Runnable {
             // get free memory in megabytes
             long freeMem = Runtime.getRuntime().freeMemory() / (1024 * 1024);
             long totalMem = Runtime.getRuntime().totalMemory() / (1024 * 1024);
-            
+
             memoryLabel.setText(freeMem + "MB free");
-            memoryLabel.setToolTipText("JVM memory: " + freeMem + "MB free, " + totalMem + "MB total");
-            
+            memoryLabel.setToolTipText("JVM memory: " + freeMem + "MB free, "
+                    + totalMem + "MB total");
+
             try {
                 wait(MEMORY_LABEL_UPDATE_FREQUENCY);
             } catch (InterruptedException e) {

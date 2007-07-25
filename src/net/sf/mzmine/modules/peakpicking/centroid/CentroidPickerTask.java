@@ -79,7 +79,8 @@ class CentroidPickerTask implements Task {
         mzTolerance = (Float) parameters.getParameterValue(CentroidPicker.mzTolerance);
         noiseLevel = (Float) parameters.getParameterValue(CentroidPicker.noiseLevel);
 
-        readyPeakList = new SimplePeakList();
+        readyPeakList = new SimplePeakList(dataFile.toString() + " peak list");
+        readyPeakList.addRawDataFile(dataFile);
     }
 
     /**

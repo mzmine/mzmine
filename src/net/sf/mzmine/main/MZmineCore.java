@@ -223,6 +223,8 @@ public abstract class MZmineCore {
                         + className + "']";
                 
                 Element moduleElement = (Element) configuration.selectSingleNode(xpathLocation);
+                if (moduleElement == null) continue;
+                
                 Element parametersElement = moduleElement.element(PARAMETERS_ELEMENT_NAME);
                 
                 if (parametersElement != null) {

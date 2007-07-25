@@ -20,6 +20,7 @@
 package net.sf.mzmine.data.impl;
 
 import java.text.Format;
+import java.util.Arrays;
 import java.util.Hashtable;
 
 import net.sf.mzmine.data.Peak;
@@ -107,10 +108,12 @@ public class SimplePeak implements Peak {
         this.maxMZ = p.getDataPointMaxMZ();
         this.minRT = p.getDataPointMinRT();
         this.maxRT = p.getDataPointMaxRT();
+        this.maxIntensity = p.getDataPointMaxIntensity();
 
         datapointsMap = new Hashtable<Integer, float[][]>();
-        for (int scanNumber : p.getScanNumbers())
+        for (int scanNumber : p.getScanNumbers()) {
             datapointsMap.put(scanNumber, p.getRawDatapoints(scanNumber));
+        }
 
         this.peakStatus = p.getPeakStatus();
 
@@ -174,7 +177,9 @@ public class SimplePeak implements Peak {
      * This method returns numbers of scans that contain this peak
      */
     public int[] getScanNumbers() {
-        return CollectionUtils.toIntArray(datapointsMap.keySet());
+        int scanNumbers[] = CollectionUtils.toIntArray(datapointsMap.keySet());
+        Arrays.sort(scanNumbers);
+        return scanNumbers;
     }
 
     /**

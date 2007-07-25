@@ -79,7 +79,8 @@ class LocalPickerTask implements Task {
         mzTolerance = (Float) parameters.getParameterValue(LocalPicker.mzTolerance);
         noiseLevel = (Float) parameters.getParameterValue(LocalPicker.noiseLevel);
 
-        readyPeakList = new SimplePeakList();
+        readyPeakList = new SimplePeakList(dataFile.toString() + " peak list");
+        readyPeakList.addRawDataFile(dataFile);
     }
 
     /**

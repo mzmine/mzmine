@@ -82,7 +82,9 @@ class RecursivePickerTask implements Task {
         mzTolerance = (Float) parameters.getParameterValue(RecursivePicker.mzTolerance);
         noiseLevel = (Float) parameters.getParameterValue(RecursivePicker.noiseLevel);
 
-        readyPeakList = new SimplePeakList();
+        readyPeakList = new SimplePeakList(dataFile.toString() + " peak list");
+        readyPeakList.addRawDataFile(dataFile);
+        
     }
 
     /**

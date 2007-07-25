@@ -21,6 +21,7 @@ package net.sf.mzmine.modules.normalization.linear;
 
 import java.util.Hashtable;
 
+import net.sf.mzmine.data.CompoundIdentity;
 import net.sf.mzmine.data.Peak;
 import net.sf.mzmine.data.PeakList;
 import net.sf.mzmine.data.PeakListRow;
@@ -91,9 +92,8 @@ public class LinearNormalizerTask implements Task {
         Hashtable<PeakListRow, SimplePeakListRow> rowMap = new Hashtable<PeakListRow, SimplePeakListRow>();
 
         // Initialize new alignment result for to normalized result
-        normalizedPeakList = new SimplePeakList(
-                "Result from Linear Normalization by "
-                        + normalizationTypeString);
+        normalizedPeakList = new SimplePeakList(originalPeakList.toString()
+                + " normalized by " + normalizationTypeString);
 
         // Copy raw data files from original alignment result to new alignment
         // result
@@ -175,8 +175,7 @@ public class LinearNormalizerTask implements Task {
 
             // - normalization by total raw signal
             if (normalizationTypeString == LinearNormalizer.NormalizationTypeTotalRawSignal) {
-                normalizationFactor = ord.getDataTotalRawSignal(
-                        1);
+                normalizationFactor = ord.getDataTotalRawSignal(1);
             }
 
             // Find peak with maximum height and calculate scaling the brings
@@ -185,8 +184,7 @@ public class LinearNormalizerTask implements Task {
             // Readjust normalization factor so that maximum height will be
             // equal to maximumOverallPeakHeightAfterNormalization after
             // normalization
-            float maxNormalizedHeight = maxOriginalHeight
-                    / normalizationFactor;
+            float maxNormalizedHeight = maxOriginalHeight / normalizationFactor;
             normalizationFactor = normalizationFactor * maxNormalizedHeight
                     / maximumOverallPeakHeightAfterNormalization;
 
@@ -204,7 +202,11 @@ public class LinearNormalizerTask implements Task {
 
                     SimplePeakListRow normalizedRow = rowMap.get(originalAlignmentRow);
                     if (normalizedRow == null) {
-                        normalizedRow = new SimplePeakListRow(originalAlignmentRow.getID());
+                        normalizedRow = new SimplePeakListRow(
+                                originalAlignmentRow.getID());
+                        normalizedRow.setComment(originalAlignmentRow.getComment());
+                        for (CompoundIdentity ident : originalAlignmentRow.getCompoundIdentities())
+                            normalizedRow.addCompoundIdentity(ident);
                         rowMap.put(originalAlignmentRow, normalizedRow);
                     }
 

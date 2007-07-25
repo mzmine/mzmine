@@ -1,5 +1,5 @@
 /*
- * Copyright 2006 The MZmine Development Team
+ * Copyright 2006-2007 The MZmine Development Team
  * 
  * This file is part of MZmine.
  * 
@@ -184,9 +184,6 @@ class SpectraPlot extends ChartPanel {
         centroidRenderer.setItemLabelGenerator(labelGenerator);
         centroidRenderer.setItemLabelsVisible(true);
         centroidRenderer.setItemLabelPaint(labelsColor);
-        peakListRenderer.setItemLabelGenerator(labelGenerator);
-        peakListRenderer.setItemLabelsVisible(true);
-        peakListRenderer.setItemLabelPaint(pickedPeaksLabelsColor);
         
 
         // set toolTipGenerator

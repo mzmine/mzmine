@@ -37,10 +37,6 @@ public class SimplePeakList implements PeakList {
     private ArrayList<PeakListRow> peakListRows;
     private float maxDataPointIntensity = 0;
 
-    public SimplePeakList() {
-        this(null);
-    }
-
     public SimplePeakList(String name) {
         this.name = name;
         rawDataFiles = new Vector<RawDataFile>();

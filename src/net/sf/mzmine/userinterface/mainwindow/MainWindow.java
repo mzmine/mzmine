@@ -152,16 +152,10 @@ public class MainWindow extends JFrame implements MZmineModule, Desktop,
     }
 
     public PeakList[] getSelectedAlignedPeakLists() {
-        return itemSelector.getSelectedAlignmentResults();
+        return itemSelector.getSelectedAlignedPeakLists();
     }
 
-    public void setSelectedAlignmentResult(PeakList alignmentResult) {
-        itemSelector.setActiveAlignmentResult(alignmentResult);
-    }
 
-    public void setSelectedDataFile(RawDataFile dataFile) {
-        itemSelector.setActiveRawData(dataFile);
-    }
 
     public void addAlignedPeakList(PeakList alignmentResult) {
         itemSelector.addAlignmentResult(alignmentResult);
@@ -172,7 +166,7 @@ public class MainWindow extends JFrame implements MZmineModule, Desktop,
     }
 
     public void removeAlignedPeakList(PeakList alignmentResult) {
-        itemSelector.removeAlignmentResult(alignmentResult);
+        itemSelector.removeAlignedPeakList(alignmentResult);
     }
 
     public void removeDataFile(RawDataFile dataFile) {
@@ -274,7 +268,7 @@ public class MainWindow extends JFrame implements MZmineModule, Desktop,
      * @see net.sf.mzmine.userinterface.Desktop#isDataFileSelected()
      */
     public boolean isAlignedPeakListSelected() {
-        return itemSelector.getSelectedAlignmentResults().length > 0;
+        return itemSelector.getSelectedAlignedPeakLists().length > 0;
     }
 
     /**

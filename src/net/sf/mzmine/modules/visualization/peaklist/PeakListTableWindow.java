@@ -43,7 +43,6 @@ public class PeakListTableWindow extends JInternalFrame implements
 
     private Logger logger = Logger.getLogger(this.getClass().getName());
 
-    PeakListTableVisualizer visualizer;
     private JScrollPane scrollPane;
 
     private PeakListTable table;
@@ -52,8 +51,7 @@ public class PeakListTableWindow extends JInternalFrame implements
     /**
      * Constructor: initializes an empty visualizer
      */
-    public PeakListTableWindow(PeakListTableVisualizer visualizer,
-            PeakList peakList) {
+    public PeakListTableWindow(PeakList peakList) {
 
         super(peakList.toString(), true, true, true, true);
 
@@ -63,12 +61,12 @@ public class PeakListTableWindow extends JInternalFrame implements
         setDefaultCloseOperation(DISPOSE_ON_CLOSE);
         setBackground(Color.white);
 
-        this.visualizer = visualizer;
-
         // Build toolbar
         PeakListTableToolBar toolBar = new PeakListTableToolBar(this);
         add(toolBar, BorderLayout.EAST);
 
+        PeakListTableVisualizer visualizer = PeakListTableVisualizer.getInstance();
+        
         myParameters = visualizer.getParameterSet().clone();
 
         // Build table
@@ -102,13 +100,15 @@ public class PeakListTableWindow extends JInternalFrame implements
                 table.setRowHeight(myParameters.getRowHeight());
                 PeakListTableColumnModel cm = (PeakListTableColumnModel) table.getColumnModel();
                 cm.createColumns();
+                PeakListTableVisualizer visualizer = PeakListTableVisualizer.getInstance();
                 visualizer.setParameters(myParameters);
             }
         }
 
         if (command.equals("PRINT")) {
             try {
-                PeakListReportGenerator reportGenerator = new PeakListReportGenerator(table, myParameters);
+                PeakListReportGenerator reportGenerator = new PeakListReportGenerator(
+                        table, myParameters);
                 JFreeReport report = reportGenerator.generateReport();
 
                 JDialog dial = new PreviewDialog(report);

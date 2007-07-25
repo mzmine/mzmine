@@ -1,5 +1,5 @@
 /*
- * Copyright 2006 The MZmine Development Team
+ * Copyright 2006-2007 The MZmine Development Team
  * 
  * This file is part of MZmine.
  * 
@@ -23,9 +23,12 @@ import java.awt.BorderLayout;
 import java.awt.Dimension;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.MouseEvent;
+import java.awt.event.MouseListener;
 
 import javax.swing.DefaultListModel;
 import javax.swing.JLabel;
+import javax.swing.JList;
 import javax.swing.JPanel;
 import javax.swing.JPopupMenu;
 import javax.swing.JScrollPane;
@@ -35,24 +38,25 @@ import javax.swing.event.ListSelectionListener;
 import net.sf.mzmine.data.PeakList;
 import net.sf.mzmine.io.RawDataFile;
 import net.sf.mzmine.main.MZmineCore;
+import net.sf.mzmine.modules.visualization.peaklist.PeakListTableWindow;
+import net.sf.mzmine.modules.visualization.tic.TICSetupDialog;
+import net.sf.mzmine.project.MZmineProject;
 import net.sf.mzmine.userinterface.Desktop;
 import net.sf.mzmine.userinterface.components.DragOrderedJList;
-import net.sf.mzmine.userinterface.components.PopupListener;
 import net.sf.mzmine.util.GUIUtils;
 
 /**
  * This class implements a selector of raw data files and alignment results
  */
-public class ItemSelector extends JPanel implements 
-        ActionListener {
+public class ItemSelector extends JPanel implements ActionListener,
+        MouseListener {
 
-    private DefaultListModel rawDataObjects;
+    private DefaultListModel rawDataFiles;
     private DragOrderedJList rawDataList;
-    private JScrollPane rawDataScroll;
 
-    private DefaultListModel resultObjects;
-    private DragOrderedJList resultList;
-    private JScrollPane resultScroll;
+    private DefaultListModel alignedPeakLists;
+    private JList alignedPeakListList;
+    private JPopupMenu dataFilePopupMenu, peakListPopupMenu;
 
     /**
      * Constructor
@@ -63,9 +67,10 @@ public class ItemSelector extends JPanel implements
         JPanel rawDataPanel = new JPanel();
         JLabel rawDataTitle = new JLabel(new String("Raw data files"));
 
-        rawDataObjects = new DefaultListModel();
-        rawDataList = new DragOrderedJList(rawDataObjects);
-        rawDataScroll = new JScrollPane(rawDataList);
+        rawDataFiles = new DefaultListModel();
+        rawDataList = new DragOrderedJList(rawDataFiles);
+        rawDataList.addMouseListener(this);
+        JScrollPane rawDataScroll = new JScrollPane(rawDataList);
 
         rawDataPanel.setLayout(new BorderLayout());
         rawDataPanel.add(rawDataTitle, BorderLayout.NORTH);
@@ -76,9 +81,10 @@ public class ItemSelector extends JPanel implements
         JPanel resultsPanel = new JPanel();
         JLabel resultsTitle = new JLabel("Aligned peak lists");
 
-        resultObjects = new DefaultListModel();
-        resultList = new DragOrderedJList(resultObjects);
-        resultScroll = new JScrollPane(resultList);
+        alignedPeakLists = new DefaultListModel();
+        alignedPeakListList = new JList(alignedPeakLists);
+        alignedPeakListList.addMouseListener(this);
+        JScrollPane resultScroll = new JScrollPane(alignedPeakListList);
 
         resultsPanel.setLayout(new BorderLayout());
         resultsPanel.add(resultsTitle, BorderLayout.NORTH);
@@ -95,19 +101,24 @@ public class ItemSelector extends JPanel implements
 
         rawAndResultsSplit.setDividerLocation(230);
 
-        JPopupMenu popupMenu = new JPopupMenu();
-        GUIUtils.addMenuItem(popupMenu, "Close", this, "CLOSE");
-        rawDataList.addMouseListener(new PopupListener(popupMenu));
-        
+        dataFilePopupMenu = new JPopupMenu();
+        GUIUtils.addMenuItem(dataFilePopupMenu, "Show TIC", this, "SHOW_TIC");
+        GUIUtils.addMenuItem(dataFilePopupMenu, "Show peak list", this,
+                "SHOW_FILE_PEAKLIST");
+        GUIUtils.addMenuItem(dataFilePopupMenu, "Remove", this, "REMOVE_FILE");
 
+        peakListPopupMenu = new JPopupMenu();
+        GUIUtils.addMenuItem(peakListPopupMenu, "Show peak list", this,
+                "SHOW_ALIGNED_PEAKLIST");
+        GUIUtils.addMenuItem(peakListPopupMenu, "Remove", this,
+        "REMOVE_PEAKLIST");
 
     }
 
     void addSelectionListener(ListSelectionListener listener) {
         rawDataList.addListSelectionListener(listener);
-        resultList.addListSelectionListener(listener);
+        alignedPeakListList.addListSelectionListener(listener);
     }
-
 
     // Implementation of action listener interface
 
@@ -115,10 +126,50 @@ public class ItemSelector extends JPanel implements
 
         String command = e.getActionCommand();
 
-        if (command.equals("CLOSE")) {
+        if (command.equals("REMOVE_FILE")) {
             RawDataFile[] selectedFiles = getSelectedRawData();
             for (RawDataFile file : selectedFiles)
                 MZmineCore.getCurrentProject().removeFile(file);
+        }
+
+        if (command.equals("SHOW_TIC")) {
+            RawDataFile[] selectedFiles = getSelectedRawData();
+            for (RawDataFile file : selectedFiles) {
+                TICSetupDialog dialog = new TICSetupDialog(file);
+                dialog.setVisible(true);
+            }
+        }
+
+        if (command.equals("SHOW_FILE_PEAKLIST")) {
+            RawDataFile[] selectedFiles = getSelectedRawData();
+            Desktop desktop = MZmineCore.getDesktop();
+            MZmineProject currentProject = MZmineCore.getCurrentProject();
+            for (RawDataFile file : selectedFiles) {
+                PeakList filePeakList = currentProject.getFilePeakList(file);
+                if (filePeakList == null) {
+                    desktop.displayErrorMessage(file
+                            + " has no peak list, please run peak picking first");
+                    continue;
+                }
+                PeakListTableWindow window = new PeakListTableWindow(
+                        filePeakList);
+                desktop.addInternalFrame(window);
+            }
+        }
+
+        if (command.equals("REMOVE_PEAKLIST")) {
+            PeakList[] selectedPeakLists = getSelectedAlignedPeakLists();
+            for (PeakList peakList : selectedPeakLists)
+                MZmineCore.getCurrentProject().removeAlignedPeakList(peakList);
+        }
+
+        if (command.equals("SHOW_ALIGNED_PEAKLIST")) {
+            PeakList[] selectedPeakLists = getSelectedAlignedPeakLists();
+            Desktop desktop = MZmineCore.getDesktop();
+            for (PeakList peakList : selectedPeakLists) {
+                PeakListTableWindow window = new PeakListTableWindow(peakList);
+                desktop.addInternalFrame(window);
+            }
         }
 
     }
@@ -127,23 +178,21 @@ public class ItemSelector extends JPanel implements
      * Adds a raw data object to storage
      */
     public void addRawData(RawDataFile r) {
-        rawDataObjects.addElement(r);
+        rawDataFiles.addElement(r);
     }
 
     /**
      * Removes a raw data object from storage
      */
     public boolean removeRawData(RawDataFile r) {
-        boolean ans = rawDataObjects.removeElement(r);
-        return ans;
+        return rawDataFiles.removeElement(r);
     }
 
     /**
      * Replaces a raw data object in the list with a new file
      */
-    public void replaceRawData(RawDataFile oldFile,
-            RawDataFile newFile) {
-        rawDataObjects.setElementAt(newFile, rawDataObjects.indexOf(oldFile));
+    public void replaceRawData(RawDataFile oldFile, RawDataFile newFile) {
+        rawDataFiles.setElementAt(newFile, rawDataFiles.indexOf(oldFile));
     }
 
     /**
@@ -164,13 +213,6 @@ public class ItemSelector extends JPanel implements
     }
 
     /**
-     * Returns first selected raw data file
-     */
-    public RawDataFile getFirstSelectedRawData() {
-        return (RawDataFile) rawDataList.getSelectedValue();
-    }
-
-    /**
      * Sets the active raw data item in the list
      */
     public void setActiveRawData(RawDataFile rawData) {
@@ -181,22 +223,16 @@ public class ItemSelector extends JPanel implements
     // ---------------------------------------
 
     public void addAlignmentResult(PeakList a) {
-        resultObjects.addElement(a);
+        alignedPeakLists.addElement(a);
     }
 
-    public boolean removeAlignmentResult(PeakList a) {
-        boolean ans = resultObjects.removeElement(a);
-        return ans;
+    public boolean removeAlignedPeakList(PeakList a) {
+        return alignedPeakLists.removeElement(a);
     }
 
-    public void replaceAlignmentResult(PeakList oldResult,
-            PeakList newResult) {
-        resultObjects.setElementAt(newResult, resultObjects.indexOf(oldResult));
-    }
+    public PeakList[] getSelectedAlignedPeakLists() {
 
-    public PeakList[] getSelectedAlignmentResults() {
-
-        Object o[] = resultList.getSelectedValues();
+        Object o[] = alignedPeakListList.getSelectedValues();
 
         PeakList res[] = new PeakList[o.length];
 
@@ -208,15 +244,61 @@ public class ItemSelector extends JPanel implements
 
     }
 
-    /**
-     * Returns first selected raw data file
-     */
-    public PeakList getFirstSelectedAlignmentResult() {
-        return (PeakList) resultList.getSelectedValue();
+    public void mouseClicked(MouseEvent e) {
+
+        if ((e.getClickCount() == 2) && (e.getButton() == MouseEvent.BUTTON1)) {
+
+            if (e.getSource() == rawDataList) {
+                int clickedIndex = rawDataList.locationToIndex(e.getPoint());
+                if (clickedIndex < 0)
+                    return;
+                RawDataFile clickedFile = (RawDataFile) rawDataFiles.get(clickedIndex);
+                TICSetupDialog dialog = new TICSetupDialog(clickedFile);
+                dialog.setVisible(true);
+            }
+
+            if (e.getSource() == alignedPeakListList) {
+                int clickedIndex = alignedPeakListList.locationToIndex(e.getPoint());
+                if (clickedIndex < 0)
+                    return;
+                PeakList clickedPeakList = (PeakList) alignedPeakLists.get(clickedIndex);
+                PeakListTableWindow window = new PeakListTableWindow(
+                        clickedPeakList);
+                Desktop desktop = MZmineCore.getDesktop();
+                desktop.addInternalFrame(window);
+            }
+
+        }
+
     }
 
-    public void setActiveAlignmentResult(PeakList ar) {
-        resultList.setSelectedValue(ar, true);
+    public void mouseEntered(MouseEvent e) {
+        // ignore
+
+    }
+
+    public void mouseExited(MouseEvent e) {
+        // ignore
+    }
+
+    public void mousePressed(MouseEvent e) {
+
+        if (e.isPopupTrigger()) {
+            if (e.getSource() == rawDataList)
+                dataFilePopupMenu.show(e.getComponent(), e.getX(), e.getY());
+            if (e.getSource() == alignedPeakListList)
+                peakListPopupMenu.show(e.getComponent(), e.getX(), e.getY());
+        }
+
+    }
+
+    public void mouseReleased(MouseEvent e) {
+        if (e.isPopupTrigger()) {
+            if (e.getSource() == rawDataList)
+                dataFilePopupMenu.show(e.getComponent(), e.getX(), e.getY());
+            if (e.getSource() == alignedPeakListList)
+                peakListPopupMenu.show(e.getComponent(), e.getX(), e.getY());
+        }
     }
 
 }

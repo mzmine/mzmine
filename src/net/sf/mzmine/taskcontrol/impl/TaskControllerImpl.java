@@ -29,7 +29,6 @@ import net.sf.mzmine.taskcontrol.Task.TaskPriority;
 import net.sf.mzmine.taskcontrol.Task.TaskStatus;
 import net.sf.mzmine.userinterface.components.TaskProgressWindow;
 import net.sf.mzmine.userinterface.mainwindow.MainWindow;
-import net.sf.mzmine.userinterface.mainwindow.Statusbar;
 
 /**
  * Task controller implementation
@@ -110,8 +109,6 @@ public class TaskControllerImpl implements TaskController, Runnable {
             TaskProgressWindow tlc = mainWindow.getTaskList();
             tlc.setVisible(true);
 
-            Statusbar sb = mainWindow.getStatusBar();
-            sb.setProgressBarVisible(true);
             
             /*
             if ((selectedFrame != null) && (desktop.getSelectedFrame() == tlc)) {
@@ -179,8 +176,6 @@ public class TaskControllerImpl implements TaskController, Runnable {
                 if (mainWindow != null) {
                     TaskProgressWindow tlc = mainWindow.getTaskList();
                     tlc.setVisible(false);
-                    Statusbar sb = mainWindow.getStatusBar();
-                    sb.setProgressBarVisible(false);
                     taskQueue.clear();
                 }
 

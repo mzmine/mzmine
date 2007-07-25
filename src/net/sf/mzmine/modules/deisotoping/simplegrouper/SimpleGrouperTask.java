@@ -70,7 +70,7 @@ class SimpleGrouperTask implements Task {
         
         currentPeakList = currentProject.getFilePeakList(dataFile);
 
-        processedPeakList = new SimplePeakList();
+        processedPeakList = new SimplePeakList(currentProject.getFilePeakList(dataFile).toString() + " deisotoped");
 
         this.parameters = parameters;
         mzTolerance = (Float) parameters.getParameterValue(SimpleGrouper.mzTolerance);

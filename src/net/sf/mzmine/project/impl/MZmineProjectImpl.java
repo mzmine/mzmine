@@ -110,7 +110,7 @@ public class MZmineProjectImpl implements MZmineProject {
         MainWindow mainWindow = (MainWindow) MZmineCore.getDesktop();
         ItemSelector itemSelector = mainWindow.getItemSelector();
         projectResults.remove(result);
-        itemSelector.removeAlignmentResult(result);
+        itemSelector.removeAlignedPeakList(result);
     }
 
     public PeakList[] getAlignedPeakLists() {

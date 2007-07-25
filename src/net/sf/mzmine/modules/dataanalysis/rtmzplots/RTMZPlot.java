@@ -59,12 +59,9 @@ public class RTMZPlot extends ChartPanel {
 	
 	private InterpolatingLookupPaintScale paintScale;
 	
-	private AbstractXYZDataset dataset;
-	
 	public RTMZPlot(RTMZAnalyzerWindow masterFrame, AbstractXYZDataset dataset, InterpolatingLookupPaintScale paintScale) {
 		super(null);
 		
-		this.dataset = dataset;
 		this.paintScale = paintScale;
 		
 		chart = ChartFactory.createXYAreaChart(
@@ -120,6 +117,7 @@ public class RTMZPlot extends ChartPanel {
 
         // set the Y axis (intensity) properties
         NumberAxis yAxis = (NumberAxis) plot.getRangeAxis();
+        yAxis.setAutoRangeIncludesZero(false);
         yAxis.setNumberFormatOverride(mzFormat);
 			
 		plot.setDataset(dataset);
