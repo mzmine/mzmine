@@ -1,5 +1,5 @@
 /*
- * Copyright 2006 The MZmine Development Team
+ * Copyright 2006-2007 The MZmine Development Team
  * 
  * This file is part of MZmine.
  * 
@@ -31,7 +31,7 @@ import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.border.MatteBorder;
 
-import net.sf.mzmine.userinterface.Desktop;
+import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.util.GUIUtils;
 
 /**
@@ -47,9 +47,9 @@ public class AboutDialog extends JDialog implements ActionListener {
     /**
      * Creates new form AboutDialog
      */
-    public AboutDialog(Desktop desktop) {
+    public AboutDialog() {
 
-        super(desktop.getMainFrame(), "About MZmine", true);
+        super(MZmineCore.getDesktop().getMainFrame(), "About MZmine", true);
 
         JPanel buttonPanel = new JPanel();
         GUIUtils.addButtonInPanel(buttonPanel, "OK!", this);
@@ -69,7 +69,7 @@ public class AboutDialog extends JDialog implements ActionListener {
 
         pack();
         setBounds(0, 0, 600, 300);
-        setLocationRelativeTo(desktop.getMainFrame());
+        setLocationRelativeTo(MZmineCore.getDesktop().getMainFrame());
     }
 
     /**

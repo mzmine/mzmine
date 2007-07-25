@@ -20,7 +20,6 @@
 package net.sf.mzmine.userinterface.dialogs;
 
 import java.awt.BorderLayout;
-import java.awt.Frame;
 import java.awt.GridLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -63,15 +62,16 @@ public class FormatSetupDialog extends JDialog implements ActionListener {
     /**
      * Constructor
      */
-    public FormatSetupDialog(Frame owner, NumberFormatter mzFormat,
-            NumberFormatter rtFormat, NumberFormatter intensityFormat) {
+    public FormatSetupDialog() {
 
         // Make dialog modal
-        super(owner, "Format setting", true);
+        super(MZmineCore.getDesktop().getMainFrame(), "Format setting", true);
 
-        this.mzFormat = mzFormat;
-        this.rtFormat = rtFormat;
-        this.intensityFormat = intensityFormat;
+        Desktop desktop = MZmineCore.getDesktop();
+        
+        this.mzFormat = desktop.getMZFormat();
+        this.rtFormat = desktop.getRTFormat();
+        this.intensityFormat = desktop.getIntensityFormat();
 
         JLabel mzFormatLabel = new JLabel("m/z format");
         JLabel rtFormatLabel = new JLabel("Retention time format");
@@ -132,7 +132,7 @@ public class FormatSetupDialog extends JDialog implements ActionListener {
         pack();
 
         setResizable(false);
-        setLocationRelativeTo(owner);
+        setLocationRelativeTo(desktop.getMainFrame());
 
     }
 

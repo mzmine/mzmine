@@ -1,5 +1,5 @@
 /*
- * Copyright 2006 The MZmine Development Team
+ * Copyright 2006-2007 The MZmine Development Team
  * 
  * This file is part of MZmine.
  * 
@@ -22,102 +22,69 @@ package net.sf.mzmine.userinterface.mainwindow;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
-import java.util.logging.Logger;
+import java.io.File;
 
+import javax.swing.JDesktopPane;
+import javax.swing.JFileChooser;
 import javax.swing.JMenu;
 import javax.swing.JMenuBar;
 import javax.swing.JMenuItem;
 import javax.swing.KeyStroke;
-import javax.swing.UIManager;
 
-import net.sf.mzmine.io.RawDataFile;
 import net.sf.mzmine.main.MZmineCore;
-import net.sf.mzmine.userinterface.Desktop;
 import net.sf.mzmine.userinterface.Desktop.MZmineMenu;
 import net.sf.mzmine.userinterface.dialogs.AboutDialog;
 import net.sf.mzmine.userinterface.dialogs.FileOpenDialog;
 import net.sf.mzmine.userinterface.dialogs.FormatSetupDialog;
 import net.sf.mzmine.userinterface.dialogs.experimentalparametersetupdialog.ExperimentalParametersSetupDialog;
 import net.sf.mzmine.util.GUIUtils;
-import net.sf.mzmine.util.LookAndFeelChanger;
 import ca.guydavis.swing.desktop.CascadingWindowPositioner;
 import ca.guydavis.swing.desktop.JWindowsMenu;
 
 /**
  * 
  */
-public class MainMenu extends JMenuBar implements ActionListener
-         {
+class MainMenu extends JMenuBar implements ActionListener {
 
-    private JMenu fileMenu;
-    private JMenu editMenu;
-    private JMenu filterMenu;
-    private JMenu peakMenu;
-    private JMenu alignmentMenu;
-    private JMenu normalizationMenu;
-    private JMenu identificationMenu;
-    private JMenu batchMenu;
-    private JMenu rawDataVisualizationMenu;
-    private JMenu dataAnalysisMenu;
-    private JMenu toolsMenu;
-    private JMenu lookAndFeelMenu;
+    private JMenu projectMenu, filterMenu, peakMenu, alignmentMenu,
+            normalizationMenu, identificationMenu, rawDataVisualizationMenu,
+            dataAnalysisMenu, helpMenu;
+
     private JWindowsMenu windowsMenu;
-    private JMenu helpMenu;
 
-    private JMenuItem editCopy;
-
-    private JMenuItem fileOpen, fileClose,
-            fileSaveParameters, fileLoadParameters, editExperimentalParameters, 
-            filePrint, fileExit;
-
-    private JMenuItem toolsFormat;
-
-    private JMenuItem hlpAbout;
-
-
-    private Desktop desktop;
-
-    private Logger logger = Logger.getLogger(this.getClass().getName());
+    private JMenuItem projectOpen, projectExperimentalParameters,
+            projectFormats, projectSaveParameters, projectLoadParameters,
+            projectExit, hlpAbout;
 
     MainMenu() {
 
-        this.desktop = MZmineCore.getDesktop();
+        projectMenu = new JMenu("Project");
+        projectMenu.setMnemonic(KeyEvent.VK_P);
+        add(projectMenu);
 
-        fileMenu = new JMenu("Project");
-        fileMenu.setMnemonic(KeyEvent.VK_P);
-        add(fileMenu);
+        projectOpen = GUIUtils.addMenuItem(projectMenu, "Import raw data...",
+                this, KeyEvent.VK_O, true);
 
-        fileOpen = GUIUtils.addMenuItem(fileMenu, "Import raw data...", this,
-                KeyEvent.VK_O, true);
-        fileClose = GUIUtils.addMenuItem(fileMenu, "Close", this, KeyEvent.VK_C);
-        fileMenu.addSeparator();
-        
-        fileMenu.addSeparator();
-        fileSaveParameters = GUIUtils.addMenuItem(fileMenu,
-                "Save parameters...", this, KeyEvent.VK_S);
-        fileLoadParameters = GUIUtils.addMenuItem(fileMenu,
-                "Load parameters...", this, KeyEvent.VK_L);
+        projectMenu.addSeparator();
 
-        /*
-         * fileMenu.addSeparator(); filePrint = GUIUtils.addMenuItem(fileMenu,
-         * "Print figure...", this, KeyEvent.VK_P, true);
-         */
-        fileMenu.addSeparator();
-        fileExit = GUIUtils.addMenuItem(fileMenu, "Exit", this, KeyEvent.VK_X,
-                true);
+        projectExperimentalParameters = GUIUtils.addMenuItem(projectMenu,
+                "Set project parameters...", this, KeyEvent.VK_P);
 
-        editMenu = new JMenu("Edit");
-        editMenu.setMnemonic(KeyEvent.VK_E);
-        this.add(editMenu);
+        projectFormats = GUIUtils.addMenuItem(projectMenu,
+                "Set number formats...", this, KeyEvent.VK_F);
 
-        editExperimentalParameters = GUIUtils.addMenuItem(editMenu,
-        		"Set experimental parameters...", this, KeyEvent.VK_P);
-        
-        
-        /*
-         * editCopy = GUIUtils.addMenuItem(editMenu, "Copy", this,
-         * KeyEvent.VK_C, true);
-         */
+        projectMenu.addSeparator();
+        // module items go here (e.g. batch mode)
+        projectMenu.addSeparator();
+
+        projectSaveParameters = GUIUtils.addMenuItem(projectMenu,
+                "Save MZmine parameters...", this, KeyEvent.VK_S);
+        projectLoadParameters = GUIUtils.addMenuItem(projectMenu,
+                "Load MZmine parameters...", this, KeyEvent.VK_L);
+
+        projectMenu.addSeparator();
+        projectExit = GUIUtils.addMenuItem(projectMenu, "Exit", this,
+                KeyEvent.VK_X, true);
 
         filterMenu = new JMenu("Raw data filtering");
         filterMenu.setMnemonic(KeyEvent.VK_R);
@@ -134,14 +101,10 @@ public class MainMenu extends JMenuBar implements ActionListener
         normalizationMenu = new JMenu("Normalization");
         normalizationMenu.setMnemonic(KeyEvent.VK_N);
         this.add(normalizationMenu);
-        
+
         identificationMenu = new JMenu("Identification");
         identificationMenu.setMnemonic(KeyEvent.VK_I);
         this.add(identificationMenu);
-
-        batchMenu = new JMenu("Batch mode");
-        batchMenu.setMnemonic(KeyEvent.VK_B);
-        this.add(batchMenu);
 
         rawDataVisualizationMenu = new JMenu("Visualization");
         rawDataVisualizationMenu.setMnemonic(KeyEvent.VK_V);
@@ -151,27 +114,11 @@ public class MainMenu extends JMenuBar implements ActionListener
         dataAnalysisMenu.setMnemonic(KeyEvent.VK_S);
         this.add(dataAnalysisMenu);
 
-        toolsMenu = new JMenu("Configure");
-        toolsMenu.setMnemonic(KeyEvent.VK_C);
-        this.add(toolsMenu);
-
-        toolsFormat = GUIUtils.addMenuItem(toolsMenu, "Set number formats...",
-                this, KeyEvent.VK_F);
-
-        lookAndFeelMenu = new JMenu("Look and feel");
-        toolsMenu.add(lookAndFeelMenu);
-
-        UIManager.LookAndFeelInfo lookAndFeels[] = UIManager.getInstalledLookAndFeels();
-        LookAndFeelChanger lfChanger = new LookAndFeelChanger();
-
-        for (UIManager.LookAndFeelInfo lfInfo : lookAndFeels) {
-            GUIUtils.addMenuItem(lookAndFeelMenu, lfInfo.getName(), lfChanger,
-                    lfInfo.getClassName());
-        }
-
-        windowsMenu = new JWindowsMenu(((MainWindow) desktop).getDesktopPane());
-        windowsMenu.setWindowPositioner(new CascadingWindowPositioner(
-                ((MainWindow) desktop).getDesktopPane()));
+        JDesktopPane mainDesktopPane = ((MainWindow) MZmineCore.getDesktop()).getDesktopPane();
+        windowsMenu = new JWindowsMenu(mainDesktopPane);
+        CascadingWindowPositioner positioner = new CascadingWindowPositioner(
+                mainDesktopPane);
+        windowsMenu.setWindowPositioner(positioner);
         windowsMenu.setMnemonic(KeyEvent.VK_W);
         this.add(windowsMenu);
 
@@ -182,12 +129,13 @@ public class MainMenu extends JMenuBar implements ActionListener
         hlpAbout = GUIUtils.addMenuItem(helpMenu, "About MZmine...", this,
                 KeyEvent.VK_A);
 
-        //desktop.addSelectionListener(this);
-
     }
 
     public void addMenuItem(MZmineMenu parentMenu, JMenuItem newItem) {
         switch (parentMenu) {
+        case PROJECT:
+            projectMenu.add(newItem, 5);
+            break;
         case FILTERING:
             filterMenu.add(newItem);
             break;
@@ -203,9 +151,7 @@ public class MainMenu extends JMenuBar implements ActionListener
         case IDENTIFICATION:
             identificationMenu.add(newItem);
             break;
-        case BATCH:
-            batchMenu.add(newItem);
-            break;
+
         case VISUALIZATION:
             rawDataVisualizationMenu.add(newItem);
             break;
@@ -252,9 +198,7 @@ public class MainMenu extends JMenuBar implements ActionListener
         case IDENTIFICATION:
             identificationMenu.addSeparator();
             break;
-        case BATCH:
-            batchMenu.addSeparator();
-            break;
+
         case VISUALIZATION:
             rawDataVisualizationMenu.addSeparator();
             break;
@@ -272,59 +216,49 @@ public class MainMenu extends JMenuBar implements ActionListener
 
         Object src = e.getSource();
 
-        if (src == fileExit) {
+        if (src == projectExit) {
             MZmineCore.exitMZmine();
         }
 
-        // File -> Open
-        if (src == fileOpen) {
-            
-            MainWindow mainWindow = (MainWindow) MZmineCore.getDesktop();
-            DesktopParameters parameters = (DesktopParameters) mainWindow.getParameterSet();
+        if (src == projectOpen) {
+            DesktopParameters parameters = (DesktopParameters) MZmineCore.getDesktop().getParameterSet();
             String lastPath = parameters.getLastOpenPath();
             FileOpenDialog fileOpenDialog = new FileOpenDialog(lastPath);
             fileOpenDialog.setVisible(true);
             parameters.setLastOpenPath(fileOpenDialog.getCurrentDirectory());
-
         }
 
-        // File->Close
-        if (src == fileClose) {
-
-            // Grab selected raw data files
-            RawDataFile[] selectedFiles = desktop.getSelectedDataFiles();
-            for (RawDataFile file : selectedFiles)
-                MZmineCore.getCurrentProject().removeFile(file);
-
+        if (src == projectSaveParameters) {
+            JFileChooser chooser = new JFileChooser();
+            int returnVal = chooser.showSaveDialog(MZmineCore.getDesktop().getMainFrame());
+            if (returnVal == JFileChooser.APPROVE_OPTION) {
+                File configFile = chooser.getSelectedFile();
+                MZmineCore.saveConfiguration(configFile);
+            }
         }
 
-
-
-
-        
-        if (src == editExperimentalParameters) {
-        	RawDataFile[] selectedFiles = desktop.getSelectedDataFiles();
-        	if ( (selectedFiles==null) || (selectedFiles.length==0) ) {
-        		desktop.displayErrorMessage("Select at least one raw data file.");
-        		return;
-        	}
-        	ExperimentalParametersSetupDialog dialog = new ExperimentalParametersSetupDialog(desktop, desktop.getSelectedDataFiles());
-        	dialog.setVisible(true);
+        if (src == projectLoadParameters) {
+            JFileChooser chooser = new JFileChooser();
+            int returnVal = chooser.showOpenDialog(MZmineCore.getDesktop().getMainFrame());
+            if (returnVal == JFileChooser.APPROVE_OPTION) {
+                File configFile = chooser.getSelectedFile();
+                MZmineCore.loadConfiguration(configFile);
+            }
         }
 
-        if (src == toolsFormat) {
-            Desktop desktop = MZmineCore.getDesktop();
-            FormatSetupDialog formatDialog = new FormatSetupDialog(
-                    desktop.getMainFrame(),
-                    desktop.getMZFormat(),
-                    desktop.getRTFormat(),
-                    desktop.getIntensityFormat());
+        if (src == projectExperimentalParameters) {
+            ExperimentalParametersSetupDialog dialog = new ExperimentalParametersSetupDialog();
+            dialog.setVisible(true);
+        }
+
+        if (src == projectFormats) {
+            FormatSetupDialog formatDialog = new FormatSetupDialog();
             formatDialog.setVisible(true);
         }
 
         // Help->About
         if (src == hlpAbout) {
-            AboutDialog dialog = new AboutDialog(desktop);
+            AboutDialog dialog = new AboutDialog();
             dialog.setVisible(true);
         }
 

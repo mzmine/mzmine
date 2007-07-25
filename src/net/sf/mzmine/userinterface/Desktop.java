@@ -29,16 +29,17 @@ import javax.swing.event.ListSelectionListener;
 
 import net.sf.mzmine.data.PeakList;
 import net.sf.mzmine.io.RawDataFile;
+import net.sf.mzmine.main.MZmineModule;
 import net.sf.mzmine.util.NumberFormatter;
 
 /**
  * This interface represents the application GUI
  *
  */
-public interface Desktop {
+public interface Desktop extends MZmineModule {
 
     public enum MZmineMenu {
-        FILTERING, PEAKPICKING, ALIGNMENT, NORMALIZATION, IDENTIFICATION, BATCH, VISUALIZATION, ANALYSIS
+        PROJECT, FILTERING, PEAKPICKING, ALIGNMENT, NORMALIZATION, IDENTIFICATION, VISUALIZATION, ANALYSIS
     };
 
     /**
