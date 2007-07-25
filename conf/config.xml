@@ -8,7 +8,6 @@
     <module class="net.sf.mzmine.modules.visualization.twod.TwoDVisualizer"/>  
     <module class="net.sf.mzmine.modules.visualization.threed.ThreeDVisualizer"/>  
     <module class="net.sf.mzmine.modules.visualization.neutralloss.NeutralLossVisualizer"/>  
-    <module class="net.sf.mzmine.util.menu.VisualizationMenuSeparator"/>  
     <module class="net.sf.mzmine.modules.visualization.peaklist.PeakListTableVisualizer"/>  
     <module class="net.sf.mzmine.modules.batchmode.BatchMode"/>  
     <module class="net.sf.mzmine.modules.filtering.crop.CropFilter"/>
