@@ -54,6 +54,9 @@ class JoinAlignerTask implements Task {
     private boolean RTToleranceUseAbs;
     private double RTToleranceValueAbs;
     private double RTToleranceValuePercent;
+    
+    private String peakListName;
+    private static int peakListNumber = 1;
 
     /**
      * @param rawDataFile
@@ -71,7 +74,9 @@ class JoinAlignerTask implements Task {
         RTToleranceUseAbs = (parameters.getParameterValue(JoinAligner.RTToleranceType) == JoinAligner.RTToleranceTypeAbsolute);
         RTToleranceValueAbs = (Float) parameters.getParameterValue(JoinAligner.RTToleranceValueAbs);
         RTToleranceValuePercent = (Float) parameters.getParameterValue(JoinAligner.RTToleranceValuePercent);
-
+        peakListName = "#" + peakListNumber + " " + parameters.getParameterValue(JoinAligner.PeakListName);
+        peakListNumber++;
+        
     }
 
     /**
@@ -126,7 +131,7 @@ class JoinAlignerTask implements Task {
         /*
          * Initialize master isotope list and isotope pattern utility vector
          */
-        alignmentResult = new SimplePeakList("Result from Join Aligner");
+        alignmentResult = new SimplePeakList(peakListName);
 
         // Add openedrawdatafiles to alignment result
         for (RawDataFile dataFile : dataFiles)

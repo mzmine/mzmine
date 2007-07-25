@@ -54,6 +54,9 @@ public class JoinAligner implements BatchStep, TaskListener, ActionListener {
     public static final Object[] RTToleranceTypePossibleValues = {
             RTToleranceTypeAbsolute, RTToleranceTypeRelative };
 
+    public static final Parameter PeakListName = new SimpleParameter(
+            ParameterType.STRING, "Peaklist name", "Peak list name");
+
     public static final Parameter MZvsRTBalance = new SimpleParameter(
             ParameterType.FLOAT, "M/Z vs RT balance",
             "Used in distance measuring as multiplier of M/Z difference", "",
@@ -61,8 +64,8 @@ public class JoinAligner implements BatchStep, TaskListener, ActionListener {
 
     public static final Parameter MZTolerance = new SimpleParameter(
             ParameterType.FLOAT, "M/Z tolerance",
-            "Maximum allowed M/Z difference", "Da", new Float(0.2),
-            new Float(0.0), null);
+            "Maximum allowed M/Z difference", "Da", new Float(0.2), new Float(
+                    0.0), null);
 
     public static final Parameter RTToleranceType = new SimpleParameter(
             ParameterType.STRING,
@@ -72,8 +75,8 @@ public class JoinAligner implements BatchStep, TaskListener, ActionListener {
 
     public static final Parameter RTToleranceValueAbs = new SimpleParameter(
             ParameterType.FLOAT, "Absolute RT tolerance",
-            "Maximum allowed absolute RT difference", "seconds", new Float(
-                    15.0), new Float(0.0), null);
+            "Maximum allowed absolute RT difference", "seconds",
+            new Float(15.0), new Float(0.0), null);
 
     public static final Parameter RTToleranceValuePercent = new SimpleParameter(
             ParameterType.FLOAT, "Relative RT tolerance",
@@ -93,9 +96,9 @@ public class JoinAligner implements BatchStep, TaskListener, ActionListener {
 
         this.desktop = MZmineCore.getDesktop();
 
-        parameters = new SimpleParameterSet(new Parameter[] { MZvsRTBalance,
-                MZTolerance, RTToleranceType, RTToleranceValueAbs,
-                RTToleranceValuePercent });
+        parameters = new SimpleParameterSet(new Parameter[] { PeakListName,
+                MZvsRTBalance, MZTolerance, RTToleranceType,
+                RTToleranceValueAbs, RTToleranceValuePercent });
 
         desktop.addMenuItem(MZmineMenu.ALIGNMENT, "Peak list aligner", this,
                 null, KeyEvent.VK_A, false, true);
