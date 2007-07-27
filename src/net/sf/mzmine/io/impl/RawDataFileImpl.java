@@ -161,12 +161,88 @@ class RawDataFileImpl implements RawDataFile, RawDataFileWriter {
     }
 
     /**
+     * @see net.sf.mzmine.io.RawDataFile#getDataMinRT()
+     */
+    public float getDataMinRT(int msLevel) {
+
+        // if there is no cache table, create one
+        if (dataMinRT == null)
+            dataMinRT = new Hashtable<Integer, Float>();
+
+        // check if we have this value already cached
+        Float minRT = dataMinRT.get(msLevel);
+        if (minRT != null)
+            return minRT.floatValue();
+
+        // find the value
+        Enumeration<Scan> scansEnum = scans.elements();
+        while (scansEnum.hasMoreElements()) {
+            Scan scan = scansEnum.nextElement();
+
+            // ignore scans of other ms levels
+            if (scan.getMSLevel() != msLevel)
+                continue;
+
+            if ((minRT == null) || (scan.getRetentionTime() < minRT))
+                minRT = scan.getRetentionTime();
+
+        }
+
+        // return -1 if no scan at this MS level
+        if (minRT == null)
+            minRT = -1f;
+
+        // cache the value
+        dataMinRT.put(msLevel, minRT);
+
+        return minRT;
+
+    }
+
+    /**
+     * @see net.sf.mzmine.io.RawDataFile#getDataMaxRT()
+     */
+    public float getDataMaxRT(int msLevel) {
+
+        // if there is no cache table, create one
+        if (dataMaxRT == null)
+            dataMaxRT = new Hashtable<Integer, Float>();
+
+        // check if we have this value already cached
+        Float maxRT = dataMaxRT.get(msLevel);
+        if (maxRT != null)
+            return maxRT.floatValue();
+
+        // find the value
+        Enumeration<Scan> scansEnum = scans.elements();
+        while (scansEnum.hasMoreElements()) {
+            Scan scan = scansEnum.nextElement();
+
+            // ignore scans of other ms levels
+            if (scan.getMSLevel() != msLevel)
+                continue;
+
+            if ((maxRT == null) || (scan.getRetentionTime() > maxRT))
+                maxRT = scan.getRetentionTime();
+
+        }
+
+        // return -1 if no scan at this MS level
+        if (maxRT == null)
+            maxRT = -1f;
+
+        // cache the value
+        dataMaxRT.put(msLevel, maxRT);
+
+        return maxRT;
+    }
+
+    /**
      * @see net.sf.mzmine.io.RawDataFile#getScanNumbers(int)
      */
     public int[] getScanNumbers(int msLevel) {
 
-        return getScanNumbers(msLevel, Float.MIN_VALUE,
-                Float.MAX_VALUE);
+        return getScanNumbers(msLevel, Float.MIN_VALUE, Float.MAX_VALUE);
     }
 
     /**
@@ -180,7 +256,9 @@ class RawDataFileImpl implements RawDataFile, RawDataFileWriter {
         while (scansEnum.hasMoreElements()) {
             Scan scan = scansEnum.nextElement();
 
-            if ((scan.getMSLevel() == msLevel) && (scan.getRetentionTime() >= rtMin) && (scan.getRetentionTime() <= rtMax))
+            if ((scan.getMSLevel() == msLevel)
+                    && (scan.getRetentionTime() >= rtMin)
+                    && (scan.getRetentionTime() <= rtMax))
                 eligibleScanNumbers.add(scan.getScanNumber());
         }
 
@@ -216,13 +294,13 @@ class RawDataFileImpl implements RawDataFile, RawDataFileWriter {
     public int[] getMSLevels() {
 
         Set<Integer> msLevelsSet = new HashSet<Integer>();
-        
+
         Enumeration<Scan> scansEnum = scans.elements();
         while (scansEnum.hasMoreElements()) {
             Scan scan = scansEnum.nextElement();
             msLevelsSet.add(scan.getMSLevel());
         }
-        
+
         int[] msLevels = CollectionUtils.toIntArray(msLevelsSet);
         Arrays.sort(msLevels);
         return msLevels;
@@ -233,7 +311,7 @@ class RawDataFileImpl implements RawDataFile, RawDataFileWriter {
      * @see net.sf.mzmine.io.RawDataFile#getDataMaxBasePeakIntensity()
      */
     public float getDataMaxBasePeakIntensity(int msLevel) {
-        
+
         // if there is no cache table, create one
         if (dataMaxBasePeakIntensity == null)
             dataMaxBasePeakIntensity = new Hashtable<Integer, Float>();
@@ -252,7 +330,8 @@ class RawDataFileImpl implements RawDataFile, RawDataFileWriter {
             if (scan.getMSLevel() != msLevel)
                 continue;
 
-            if ((maxBasePeak == null) || (scan.getBasePeakIntensity() > maxBasePeak))
+            if ((maxBasePeak == null)
+                    || (scan.getBasePeakIntensity() > maxBasePeak))
                 maxBasePeak = scan.getBasePeakIntensity();
 
         }
@@ -265,14 +344,14 @@ class RawDataFileImpl implements RawDataFile, RawDataFileWriter {
         dataMaxBasePeakIntensity.put(msLevel, maxBasePeak);
 
         return maxBasePeak;
-        
+
     }
 
     /**
      * @see net.sf.mzmine.io.RawDataFile#getDataMaxTotalIonCurrent()
      */
     public float getDataMaxTotalIonCurrent(int msLevel) {
-        
+
         // if there is no cache table, create one
         if (dataMaxTIC == null)
             dataMaxTIC = new Hashtable<Integer, Float>();
@@ -290,7 +369,7 @@ class RawDataFileImpl implements RawDataFile, RawDataFileWriter {
             // ignore scans of other ms levels
             if (scan.getMSLevel() != msLevel)
                 continue;
-            
+
             if ((maxTIC == null) || (scan.getTIC() > maxTIC))
                 maxTIC = scan.getTIC();
 
@@ -306,8 +385,6 @@ class RawDataFileImpl implements RawDataFile, RawDataFileWriter {
         return maxTIC;
     }
 
-
-
     /**
      * 
      */
@@ -319,7 +396,8 @@ class RawDataFileImpl implements RawDataFile, RawDataFileWriter {
         // Store the scan data
         switch (preloadLevel) {
         case NO_PRELOAD:
-            StorableScan storedScan = new StorableScan(newScan, writingScanDataFile);
+            StorableScan storedScan = new StorableScan(newScan,
+                    writingScanDataFile);
             writingScans.put(scanNumber, storedScan);
             break;
         case PRELOAD_ALL_SCANS:
@@ -378,83 +456,6 @@ class RawDataFileImpl implements RawDataFile, RawDataFileWriter {
     }
 
     /**
-     * @see net.sf.mzmine.io.RawDataFile#getDataMinRT()
-     */
-    public float getDataMinRT(int msLevel) {
-        
-        // if there is no cache table, create one
-        if (dataMinRT == null)
-            dataMinRT = new Hashtable<Integer, Float>();
-
-        // check if we have this value already cached
-        Float minRT = dataMinRT.get(msLevel);
-        if (minRT != null)
-            return minRT.floatValue();
-
-        // find the value
-        Enumeration<Scan> scansEnum = scans.elements();
-        while (scansEnum.hasMoreElements()) {
-            Scan scan = scansEnum.nextElement();
-
-            // ignore scans of other ms levels
-            if (scan.getMSLevel() != msLevel)
-                continue;
-
-            if ((minRT == null) || (scan.getRetentionTime() < minRT))
-                minRT = scan.getRetentionTime();
-
-        }
-
-        // return -1 if no scan at this MS level
-        if (minRT == null)
-            minRT = -1f;
-
-        // cache the value
-        dataMinRT.put(msLevel, minRT);
-
-        return minRT;
-
-    }
-
-    /**
-     * @see net.sf.mzmine.io.RawDataFile#getDataMaxRT()
-     */
-    public float getDataMaxRT(int msLevel) {
-        
-        // if there is no cache table, create one
-        if (dataMaxRT == null)
-            dataMaxRT = new Hashtable<Integer, Float>();
-
-        // check if we have this value already cached
-        Float maxRT = dataMaxRT.get(msLevel);
-        if (maxRT != null)
-            return maxRT.floatValue();
-
-        // find the value
-        Enumeration<Scan> scansEnum = scans.elements();
-        while (scansEnum.hasMoreElements()) {
-            Scan scan = scansEnum.nextElement();
-
-            // ignore scans of other ms levels
-            if (scan.getMSLevel() != msLevel)
-                continue;
-
-            if ((maxRT == null) || (scan.getRetentionTime() > maxRT))
-                maxRT = scan.getRetentionTime();
-
-        }
-
-        // return -1 if no scan at this MS level
-        if (maxRT == null)
-            maxRT = -1f;
-
-        // cache the value
-        dataMaxRT.put(msLevel, maxRT);
-
-        return maxRT;
-    }
-
-    /**
      * @see net.sf.mzmine.io.RawDataFile#getPreloadLevel()
      */
     public PreloadLevel getPreloadLevel() {
@@ -467,7 +468,7 @@ class RawDataFileImpl implements RawDataFile, RawDataFileWriter {
     public void finishWriting() throws IOException {
 
         logger.finest("Writing of scans to file " + fileName + " finished");
-        
+
         // close temporary file and current data file
         if (scanDataFile != null) {
             scanDataFile.close();

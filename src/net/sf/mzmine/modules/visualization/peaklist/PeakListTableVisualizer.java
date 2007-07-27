@@ -24,14 +24,10 @@ import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
 import java.util.logging.Logger;
 
-import javax.swing.JMenuItem;
-
 import net.sf.mzmine.data.ParameterSet;
 import net.sf.mzmine.data.PeakList;
-import net.sf.mzmine.io.RawDataFile;
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.main.MZmineModule;
-import net.sf.mzmine.project.MZmineProject;
 import net.sf.mzmine.userinterface.Desktop;
 import net.sf.mzmine.userinterface.Desktop.MZmineMenu;
 import net.sf.mzmine.util.logging.JCommonLogHandler;
@@ -42,7 +38,6 @@ public class PeakListTableVisualizer implements MZmineModule, ActionListener {
 
     private Desktop desktop;
     private PeakListTableParameters parameters;
-    private JMenuItem peakListTable, alignedPeakListTable;
     private static PeakListTableVisualizer myInstance;
 
     private Logger logger = Logger.getLogger(this.getClass().getName());
@@ -54,20 +49,17 @@ public class PeakListTableVisualizer implements MZmineModule, ActionListener {
 
         this.desktop = MZmineCore.getDesktop();
         myInstance = this;
-        
+
         // boot the JFreeReport library and register our logging handler,
         // to get a rid of JCommon debug messages on the console
         JFreeReportBoot.getInstance().start();
         JCommonLogHandler.register();
-        
+
         parameters = new PeakListTableParameters();
 
-        peakListTable = desktop.addMenuItem(MZmineMenu.VISUALIZATION,
-                "Peak list table view", this, null, KeyEvent.VK_P, false, true);
-
-        alignedPeakListTable = desktop.addMenuItem(MZmineMenu.VISUALIZATION,
-                "Aligned peak list table view", this, null, KeyEvent.VK_A,
-                false, true);
+        desktop.addMenuItem(MZmineMenu.VISUALIZATION,
+                "Aligned peak list table", this, null, KeyEvent.VK_A, false,
+                true);
 
     }
 
@@ -76,54 +68,22 @@ public class PeakListTableVisualizer implements MZmineModule, ActionListener {
      */
     public void actionPerformed(ActionEvent e) {
 
-        RawDataFile dataFiles[] = desktop.getSelectedDataFiles();
-        PeakList alignmentResults[] = desktop.getSelectedAlignedPeakLists();
-        MZmineProject currentProject = MZmineCore.getCurrentProject();
-        
-        Object src = e.getSource();
+        PeakList peakLists[] = desktop.getSelectedAlignedPeakLists();
 
-        if (src == peakListTable) {
-
-                if (dataFiles.length == 0) {
-                    desktop.displayErrorMessage("Please select data file");
-                    return;
-                }
-
-                for (RawDataFile dataFile : dataFiles) {
-
-                    PeakList peakList = currentProject.getFilePeakList(dataFile);
-                    
-                    if (peakList == null) {
-                        desktop.displayErrorMessage(dataFile + " has no peak list, please run peak picking first");
-                        return;
-                    }
-                    
-                    logger.finest("Showing new peak list view");
-                    PeakListTableWindow alignmentResultView = new PeakListTableWindow(
-                            peakList);
-                    desktop.addInternalFrame(alignmentResultView);
-
-                }
+        if (peakLists.length == 0) {
+            desktop.displayErrorMessage("Please select aligned peak list");
+            return;
         }
 
-        if (src == alignedPeakListTable) {
+        for (PeakList peakList : peakLists) {
 
-            if (alignmentResults.length == 0) {
-                desktop.displayErrorMessage("Please select aligned peak list");
-                return;
-            }
+            logger.finest("Showing a new aligned peak list table view");
 
-            for (PeakList alignmentResult : alignmentResults) {
+            PeakListTableWindow alignmentResultView = new PeakListTableWindow(
+                    peakList);
+            desktop.addInternalFrame(alignmentResultView);
 
-                logger.finest("Showing a new alignment result list view");
-
-                PeakListTableWindow alignmentResultView = new PeakListTableWindow(
-                        alignmentResult);
-                desktop.addInternalFrame(alignmentResultView);
-
-            }
         }
-
     }
 
     /**
@@ -146,7 +106,7 @@ public class PeakListTableVisualizer implements MZmineModule, ActionListener {
     public void setParameters(ParameterSet parameterValues) {
         parameters = (PeakListTableParameters) parameterValues;
     }
-    
+
     public static PeakListTableVisualizer getInstance() {
         return myInstance;
     }
