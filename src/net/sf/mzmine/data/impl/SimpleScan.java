@@ -35,7 +35,7 @@ public class SimpleScan implements Scan {
     private int precursorCharge;
     private float retentionTime;
     private float mzRangeMin, mzRangeMax;
-    private float basePeakMZ, basePeakIntensity;
+    private float basePeakMZ, basePeakIntensity, totalIonCurrent;
     private boolean centroided;
 
     /**
@@ -113,12 +113,18 @@ public class SimpleScan implements Scan {
 	                basePeakMZ = mzValues[i];
 	            }
 	        }
+            
+            // calculate TIC
+            totalIonCurrent = 0;
+            for (float intensity : intensityValues) totalIonCurrent += intensity;
+            
         } else {
         	// Empty scan, so no m/z range or base peak
         	mzRangeMin = 0;
         	mzRangeMax = mzRangeMin;
 	        basePeakMZ = 0;
-	        basePeakIntensity = 0;        	
+	        basePeakIntensity = 0;    
+            totalIonCurrent = 0;
         }
         
 
@@ -306,6 +312,10 @@ public class SimpleScan implements Scan {
      */
     public float getMassTolerance() {
         return 0.5f;
+    }
+    
+    public float getTIC() {
+        return totalIonCurrent;
     }
 
 }

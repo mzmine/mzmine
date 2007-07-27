@@ -22,7 +22,6 @@ package net.sf.mzmine.modules.batchmode;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
-import java.util.Vector;
 import java.util.logging.Logger;
 
 import net.sf.mzmine.data.ParameterSet;
@@ -30,7 +29,6 @@ import net.sf.mzmine.data.PeakList;
 import net.sf.mzmine.io.RawDataFile;
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.main.MZmineModule;
-import net.sf.mzmine.modules.BatchStep;
 import net.sf.mzmine.taskcontrol.TaskGroup;
 import net.sf.mzmine.taskcontrol.TaskGroupListener;
 import net.sf.mzmine.taskcontrol.TaskGroup.TaskGroupStatus;
@@ -48,7 +46,7 @@ public class BatchMode implements MZmineModule, TaskGroupListener,
 
     private Desktop desktop;
 
-    private Vector<BatchStepWrapper> currentBatchSteps;
+    private BatchQueue currentBatchSteps;
     private boolean batchRunning = false;
     private int currentStep;
     private RawDataFile[] selectedDataFiles;
@@ -60,7 +58,7 @@ public class BatchMode implements MZmineModule, TaskGroupListener,
 
         this.desktop = MZmineCore.getDesktop();
 
-        currentBatchSteps = new Vector<BatchStepWrapper>();
+        currentBatchSteps = new BatchQueue();
 
         desktop.addMenuItem(MZmineMenu.PROJECT, "Run batch...", this, null,
                 KeyEvent.VK_R, false, true);
@@ -79,7 +77,7 @@ public class BatchMode implements MZmineModule, TaskGroupListener,
 
         selectedDataFiles = desktop.getSelectedDataFiles();
         if (selectedDataFiles.length == 0) {
-            desktop.displayErrorMessage("Please select at least one data file");
+            desktop.displayErrorMessage("Please select data files");
             return;
         }
 
@@ -156,13 +154,14 @@ public class BatchMode implements MZmineModule, TaskGroupListener,
      * @see net.sf.mzmine.main.MZmineModule#getParameterSet()
      */
     public ParameterSet getParameterSet() {
-        return null;
+        return currentBatchSteps;
     }
 
     /**
      * @see net.sf.mzmine.main.MZmineModule#setParameters(net.sf.mzmine.data.ParameterSet)
      */
-    public void setParameters(ParameterSet parameterValues) {
+    public void setParameters(ParameterSet parameters) {
+        currentBatchSteps = (BatchQueue) parameters;
     }
 
 }

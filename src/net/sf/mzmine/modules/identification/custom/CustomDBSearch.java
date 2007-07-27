@@ -27,8 +27,7 @@ import net.sf.mzmine.data.ParameterSet;
 import net.sf.mzmine.data.PeakList;
 import net.sf.mzmine.io.RawDataFile;
 import net.sf.mzmine.main.MZmineCore;
-import net.sf.mzmine.main.MZmineModule;
-import net.sf.mzmine.modules.BatchStep;
+import net.sf.mzmine.modules.batchmode.BatchStepIdentification;
 import net.sf.mzmine.taskcontrol.Task;
 import net.sf.mzmine.taskcontrol.TaskGroup;
 import net.sf.mzmine.taskcontrol.TaskGroupListener;
@@ -39,7 +38,7 @@ import net.sf.mzmine.userinterface.dialogs.ExitCode;
 /**
  * 
  */
-public class CustomDBSearch implements MZmineModule, BatchStep, ActionListener {
+public class CustomDBSearch implements BatchStepIdentification, ActionListener {
 
     public static final String MODULE_NAME = "Custom database search";
 
@@ -101,6 +100,10 @@ public class CustomDBSearch implements MZmineModule, BatchStep, ActionListener {
     public TaskGroup runModule(RawDataFile[] dataFiles, PeakList[] peakLists,
             ParameterSet parameters, TaskGroupListener methodListener) {
 
+        if (peakLists == null) {
+            throw new IllegalArgumentException("Cannot run identification without aligned peak list");
+        }
+        
         // prepare a new sequence of tasks
         Task tasks[] = new CustomDBSearchTask[peakLists.length];
         for (int i = 0; i < peakLists.length; i++) {

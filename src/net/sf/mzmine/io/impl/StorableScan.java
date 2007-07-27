@@ -40,7 +40,7 @@ public class StorableScan implements Scan {
     private int precursorCharge;
     private float retentionTime;
     private float mzRangeMin, mzRangeMax;
-    private float basePeakMZ, basePeakIntensity;
+    private float basePeakMZ, basePeakIntensity, totalIonCurrent;
     private boolean centroided;
     
     private RandomAccessFile storageFile;
@@ -175,12 +175,18 @@ public class StorableScan implements Scan {
 	                basePeakMZ = mzValues[i];
 	            }
 	        }
+            
+            // calculate TIC
+            totalIonCurrent = 0;
+            for (float intensity : intensityValues) totalIonCurrent += intensity;
+            
         } else {
         	// Empty scan, so no m/z range or base peak
         	mzRangeMin = 0;
         	mzRangeMax = mzRangeMin;
 	        basePeakMZ = 0;
-	        basePeakIntensity = 0;        	
+	        basePeakIntensity = 0;
+            totalIonCurrent = 0;
         }
         
 
@@ -368,6 +374,10 @@ public class StorableScan implements Scan {
      */
     public float getMassTolerance() {
         return 0.5f;
+    }
+
+    public float getTIC() {
+        return totalIonCurrent;
     }
 
 }

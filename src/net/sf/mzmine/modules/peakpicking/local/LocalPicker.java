@@ -33,7 +33,7 @@ import net.sf.mzmine.data.impl.SimpleParameter;
 import net.sf.mzmine.data.impl.SimpleParameterSet;
 import net.sf.mzmine.io.RawDataFile;
 import net.sf.mzmine.main.MZmineCore;
-import net.sf.mzmine.modules.BatchStep;
+import net.sf.mzmine.modules.batchmode.BatchStepPeakPicking;
 import net.sf.mzmine.project.MZmineProject;
 import net.sf.mzmine.taskcontrol.Task;
 import net.sf.mzmine.taskcontrol.TaskGroup;
@@ -48,7 +48,7 @@ import net.sf.mzmine.userinterface.dialogs.ParameterSetupDialog;
  * This class implements a peak picker based on searching for local maximums in
  * each spectra
  */
-public class LocalPicker implements BatchStep, TaskListener, ActionListener {
+public class LocalPicker implements BatchStepPeakPicking, TaskListener, ActionListener {
 
     public static final NumberFormat percentFormat = NumberFormat.getPercentInstance();
 

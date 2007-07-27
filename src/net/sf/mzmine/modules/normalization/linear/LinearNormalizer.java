@@ -32,7 +32,7 @@ import net.sf.mzmine.data.impl.SimpleParameter;
 import net.sf.mzmine.data.impl.SimpleParameterSet;
 import net.sf.mzmine.io.RawDataFile;
 import net.sf.mzmine.main.MZmineCore;
-import net.sf.mzmine.modules.BatchStep;
+import net.sf.mzmine.modules.batchmode.BatchStepNormalization;
 import net.sf.mzmine.taskcontrol.Task;
 import net.sf.mzmine.taskcontrol.TaskGroup;
 import net.sf.mzmine.taskcontrol.TaskGroupListener;
@@ -45,7 +45,7 @@ import net.sf.mzmine.userinterface.dialogs.ParameterSetupDialog;
 /**
  * 
  */
-public class LinearNormalizer implements BatchStep, TaskListener,
+public class LinearNormalizer implements BatchStepNormalization, TaskListener,
         ActionListener {
 
     protected static final String NormalizationTypeAverageIntensity = "Average intensity";
@@ -164,6 +164,10 @@ public class LinearNormalizer implements BatchStep, TaskListener,
             PeakList[] alignmentResults, ParameterSet parameters,
             TaskGroupListener methodListener) {
 
+        if (alignmentResults == null) {
+            throw new IllegalArgumentException("Cannot run normalization without aligned peak list");
+        }
+        
         // prepare a new sequence of tasks
         Task tasks[] = new LinearNormalizerTask[alignmentResults.length];
         for (int i = 0; i < alignmentResults.length; i++) {

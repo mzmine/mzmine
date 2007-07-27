@@ -175,7 +175,10 @@ public class LinearNormalizerTask implements Task {
 
             // - normalization by total raw signal
             if (normalizationTypeString == LinearNormalizer.NormalizationTypeTotalRawSignal) {
-                normalizationFactor = ord.getDataTotalRawSignal(1);
+                normalizationFactor = 0;
+                for (int scanNumber : ord.getScanNumbers(1)) {
+                    normalizationFactor += ord.getScan(scanNumber).getTIC();
+                }
             }
 
             // Find peak with maximum height and calculate scaling the brings

@@ -27,7 +27,6 @@ import java.util.Arrays;
 import java.util.Enumeration;
 import java.util.HashSet;
 import java.util.Hashtable;
-import java.util.Iterator;
 import java.util.Set;
 import java.util.logging.Logger;
 
@@ -47,52 +46,27 @@ class RawDataFileImpl implements RawDataFile, RawDataFileWriter {
     private Logger logger = Logger.getLogger(this.getClass().getName());
 
     private String fileName;
-    private int numOfScans = 0;
 
     private Hashtable<Integer, Float> dataMinMZ, dataMaxMZ, dataMinRT,
-            dataMaxRT, dataMaxBasePeakIntensity, dataMaxTIC,
-            dataTotalRawSignal;
+            dataMaxRT, dataMaxBasePeakIntensity, dataMaxTIC;
 
-    private File scanDataFileName;
-    private RandomAccessFile scanDataFile;
+    private File scanDataFileName, writingScanDataFileName;
+    private RandomAccessFile scanDataFile, writingScanDataFile;
 
     /**
      * Preloaded scans
      */
-    private Hashtable<Integer, Scan> scans;
+    private Hashtable<Integer, Scan> scans, writingScans;
 
     private PreloadLevel preloadLevel;
-
-    /**
-     * Maps scan MS level to a list of scan numbers in that level
-     */
-    private Hashtable<Integer, ArrayList<Integer>> scanNumbers;
 
     /**
      * 
      */
     RawDataFileImpl(String name, PreloadLevel preloadLevel) throws IOException {
+
         this.fileName = name;
         this.preloadLevel = preloadLevel;
-
-        scanNumbers = new Hashtable<Integer, ArrayList<Integer>>();
-
-        dataMinMZ = new Hashtable<Integer, Float>();
-        dataMaxMZ = new Hashtable<Integer, Float>();
-        dataMinRT = new Hashtable<Integer, Float>();
-        dataMaxRT = new Hashtable<Integer, Float>();
-        dataMaxBasePeakIntensity = new Hashtable<Integer, Float>();
-        dataMaxTIC = new Hashtable<Integer, Float>();
-        dataTotalRawSignal = new Hashtable<Integer, Float>();
-
-        scans = new Hashtable<Integer, Scan>();
-
-        // create temporary file for scan data
-        if (preloadLevel != PreloadLevel.PRELOAD_ALL_SCANS) {
-            scanDataFileName = File.createTempFile("mzmine", null);
-            scanDataFile = new RandomAccessFile(scanDataFileName, "rw");
-            scanDataFileName.deleteOnExit();
-        }
 
     }
 
@@ -100,7 +74,7 @@ class RawDataFileImpl implements RawDataFile, RawDataFileWriter {
      * @see net.sf.mzmine.io.RawDataFile#getNumOfScans()
      */
     public int getNumOfScans() {
-        return numOfScans;
+        return scans.size();
     }
 
     /**
@@ -114,49 +88,103 @@ class RawDataFileImpl implements RawDataFile, RawDataFileWriter {
      * @see net.sf.mzmine.io.RawDataFile#getDataMinMZ()
      */
     public float getDataMinMZ(int msLevel) {
-        if (!scanNumbers.containsKey(msLevel))
-            return -1;
-        return dataMinMZ.get(msLevel);
+
+        // if there is no cache table, create one
+        if (dataMinMZ == null)
+            dataMinMZ = new Hashtable<Integer, Float>();
+
+        // check if we have this value already cached
+        Float minMZ = dataMinMZ.get(msLevel);
+        if (minMZ != null)
+            return minMZ.floatValue();
+
+        // find the value
+        Enumeration<Scan> scansEnum = scans.elements();
+        while (scansEnum.hasMoreElements()) {
+            Scan scan = scansEnum.nextElement();
+
+            // ignore scans of other ms levels
+            if (scan.getMSLevel() != msLevel)
+                continue;
+
+            if ((minMZ == null) || (scan.getMZRangeMin() < minMZ))
+                minMZ = scan.getMZRangeMin();
+
+        }
+
+        // return -1 if no scan at this MS level
+        if (minMZ == null)
+            minMZ = -1f;
+
+        // cache the value
+        dataMinMZ.put(msLevel, minMZ);
+
+        return minMZ;
     }
 
     /**
      * @see net.sf.mzmine.io.RawDataFile#getDataMaxMZ()
      */
     public float getDataMaxMZ(int msLevel) {
-        if (!scanNumbers.containsKey(msLevel))
-            return -1;
-        return dataMaxMZ.get(msLevel);
+
+        // if there is no cache table, create one
+        if (dataMaxMZ == null)
+            dataMaxMZ = new Hashtable<Integer, Float>();
+
+        // check if we have this value already cached
+        Float maxMZ = dataMaxMZ.get(msLevel);
+        if (maxMZ != null)
+            return maxMZ.floatValue();
+
+        // find the value
+        Enumeration<Scan> scansEnum = scans.elements();
+        while (scansEnum.hasMoreElements()) {
+            Scan scan = scansEnum.nextElement();
+
+            // ignore scans of other ms levels
+            if (scan.getMSLevel() != msLevel)
+                continue;
+
+            if ((maxMZ == null) || (scan.getMZRangeMax() > maxMZ))
+                maxMZ = scan.getMZRangeMax();
+
+        }
+
+        // return -1 if no scan at this MS level
+        if (maxMZ == null)
+            maxMZ = -1f;
+
+        // cache the value
+        dataMaxMZ.put(msLevel, maxMZ);
+
+        return maxMZ;
     }
 
     /**
      * @see net.sf.mzmine.io.RawDataFile#getScanNumbers(int)
      */
     public int[] getScanNumbers(int msLevel) {
-        if (!scanNumbers.containsKey(msLevel))
-            return new int[0];
-        return getScanNumbers(msLevel, dataMinRT.get(msLevel),
-                dataMaxRT.get(msLevel));
+
+        return getScanNumbers(msLevel, Float.MIN_VALUE,
+                Float.MAX_VALUE);
     }
 
     /**
      * @see net.sf.mzmine.io.RawDataFile#getScanNumbers(int, float, float)
      */
     public int[] getScanNumbers(int msLevel, float rtMin, float rtMax) {
-        ArrayList<Integer> numbersList = scanNumbers.get(msLevel);
-        if (numbersList == null)
-            return new int[0];
 
-        ArrayList<Integer> eligibleScans = new ArrayList<Integer>();
+        ArrayList<Integer> eligibleScanNumbers = new ArrayList<Integer>();
 
-        Iterator<Integer> iter = numbersList.iterator();
-        while (iter.hasNext()) {
-            Integer scanNumber = iter.next();
-            float rt = scans.get(scanNumber).getRetentionTime();
-            if ((rt >= rtMin) && (rt <= rtMax))
-                eligibleScans.add(scanNumber);
+        Enumeration<Scan> scansEnum = scans.elements();
+        while (scansEnum.hasMoreElements()) {
+            Scan scan = scansEnum.nextElement();
+
+            if ((scan.getMSLevel() == msLevel) && (scan.getRetentionTime() >= rtMin) && (scan.getRetentionTime() <= rtMax))
+                eligibleScanNumbers.add(scan.getScanNumber());
         }
 
-        int[] numbersArray = CollectionUtils.toIntArray(eligibleScans);
+        int[] numbersArray = CollectionUtils.toIntArray(eligibleScanNumbers);
         Arrays.sort(numbersArray);
 
         return numbersArray;
@@ -167,11 +195,13 @@ class RawDataFileImpl implements RawDataFile, RawDataFileWriter {
      */
     public int[] getScanNumbers() {
 
-        Set<Integer> allScanNumbers = new HashSet<Integer>();
-        Enumeration<ArrayList<Integer>> scanNumberLists = scanNumbers.elements();
+        ArrayList<Integer> allScanNumbers = new ArrayList<Integer>();
 
-        while (scanNumberLists.hasMoreElements())
-            allScanNumbers.addAll(scanNumberLists.nextElement());
+        Enumeration<Scan> scansEnum = scans.elements();
+        while (scansEnum.hasMoreElements()) {
+            Scan scan = scansEnum.nextElement();
+            allScanNumbers.add(scan.getScanNumber());
+        }
 
         int[] numbersArray = CollectionUtils.toIntArray(allScanNumbers);
         Arrays.sort(numbersArray);
@@ -185,7 +215,14 @@ class RawDataFileImpl implements RawDataFile, RawDataFileWriter {
      */
     public int[] getMSLevels() {
 
-        Set<Integer> msLevelsSet = scanNumbers.keySet();
+        Set<Integer> msLevelsSet = new HashSet<Integer>();
+        
+        Enumeration<Scan> scansEnum = scans.elements();
+        while (scansEnum.hasMoreElements()) {
+            Scan scan = scansEnum.nextElement();
+            msLevelsSet.add(scan.getMSLevel());
+        }
+        
         int[] msLevels = CollectionUtils.toIntArray(msLevelsSet);
         Arrays.sort(msLevels);
         return msLevels;
@@ -196,19 +233,80 @@ class RawDataFileImpl implements RawDataFile, RawDataFileWriter {
      * @see net.sf.mzmine.io.RawDataFile#getDataMaxBasePeakIntensity()
      */
     public float getDataMaxBasePeakIntensity(int msLevel) {
-        return dataMaxBasePeakIntensity.get(msLevel).floatValue();
+        
+        // if there is no cache table, create one
+        if (dataMaxBasePeakIntensity == null)
+            dataMaxBasePeakIntensity = new Hashtable<Integer, Float>();
+
+        // check if we have this value already cached
+        Float maxBasePeak = dataMaxBasePeakIntensity.get(msLevel);
+        if (maxBasePeak != null)
+            return maxBasePeak.floatValue();
+
+        // find the value
+        Enumeration<Scan> scansEnum = scans.elements();
+        while (scansEnum.hasMoreElements()) {
+            Scan scan = scansEnum.nextElement();
+
+            // ignore scans of other ms levels
+            if (scan.getMSLevel() != msLevel)
+                continue;
+
+            if ((maxBasePeak == null) || (scan.getBasePeakIntensity() > maxBasePeak))
+                maxBasePeak = scan.getBasePeakIntensity();
+
+        }
+
+        // return -1 if no scan at this MS level
+        if (maxBasePeak == null)
+            maxBasePeak = -1f;
+
+        // cache the value
+        dataMaxBasePeakIntensity.put(msLevel, maxBasePeak);
+
+        return maxBasePeak;
+        
     }
 
     /**
      * @see net.sf.mzmine.io.RawDataFile#getDataMaxTotalIonCurrent()
      */
     public float getDataMaxTotalIonCurrent(int msLevel) {
-        return dataMaxTIC.get(msLevel).floatValue();
+        
+        // if there is no cache table, create one
+        if (dataMaxTIC == null)
+            dataMaxTIC = new Hashtable<Integer, Float>();
+
+        // check if we have this value already cached
+        Float maxTIC = dataMaxTIC.get(msLevel);
+        if (maxTIC != null)
+            return maxTIC.floatValue();
+
+        // find the value
+        Enumeration<Scan> scansEnum = scans.elements();
+        while (scansEnum.hasMoreElements()) {
+            Scan scan = scansEnum.nextElement();
+
+            // ignore scans of other ms levels
+            if (scan.getMSLevel() != msLevel)
+                continue;
+            
+            if ((maxTIC == null) || (scan.getTIC() > maxTIC))
+                maxTIC = scan.getTIC();
+
+        }
+
+        // return -1 if no scan at this MS level
+        if (maxTIC == null)
+            maxTIC = -1f;
+
+        // cache the value
+        dataMaxTIC.put(msLevel, maxTIC);
+
+        return maxTIC;
     }
 
-    public float getDataTotalRawSignal(int msLevel) {
-        return dataTotalRawSignal.get(msLevel).floatValue();
-    }
+
 
     /**
      * 
@@ -221,69 +319,28 @@ class RawDataFileImpl implements RawDataFile, RawDataFileWriter {
         // Store the scan data
         switch (preloadLevel) {
         case NO_PRELOAD:
-            StorableScan storedScan = new StorableScan(newScan, scanDataFile);
-            scans.put(scanNumber, storedScan);
+            StorableScan storedScan = new StorableScan(newScan, writingScanDataFile);
+            writingScans.put(scanNumber, storedScan);
             break;
         case PRELOAD_ALL_SCANS:
-            scans.put(scanNumber, newScan);
+            writingScans.put(scanNumber, newScan);
             break;
         case PRELOAD_FULL_SCANS:
             if (msLevel == 1) {
-                scans.put(scanNumber, newScan);
+                writingScans.put(scanNumber, newScan);
             } else {
                 StorableScan storedFullScan = new StorableScan(newScan,
-                        scanDataFile);
-                scans.put(scanNumber, storedFullScan);
+                        writingScanDataFile);
+                writingScans.put(scanNumber, storedFullScan);
             }
             break;
 
         }
 
-        // Update global information
-
-        if ((dataMinMZ.get(msLevel) == null)
-                || (dataMinMZ.get(msLevel) > newScan.getMZRangeMin()))
-            dataMinMZ.put(msLevel, newScan.getMZRangeMin());
-        if ((dataMaxMZ.get(msLevel) == null)
-                || (dataMaxMZ.get(msLevel) < newScan.getMZRangeMax()))
-            dataMaxMZ.put(msLevel, newScan.getMZRangeMax());
-        if ((dataMinRT.get(msLevel) == null)
-                || (dataMinRT.get(msLevel) > newScan.getRetentionTime()))
-            dataMinRT.put(msLevel, newScan.getRetentionTime());
-        if ((dataMaxRT.get(msLevel) == null)
-                || (dataMaxRT.get(msLevel) < newScan.getRetentionTime()))
-            dataMaxRT.put(msLevel, newScan.getRetentionTime());
-        if ((dataMaxBasePeakIntensity.get(msLevel) == null)
-                || (dataMaxBasePeakIntensity.get(msLevel) < newScan.getBasePeakIntensity()))
-            dataMaxBasePeakIntensity.put(msLevel,
-                    newScan.getBasePeakIntensity());
-
-        float scanTIC = 0;
-
-        for (float intensity : newScan.getIntensityValues())
-            scanTIC += intensity;
-
-        if ((dataMaxTIC.get(msLevel) == null)
-                || (scanTIC > dataMaxTIC.get(msLevel)))
-            dataMaxTIC.put(msLevel, scanTIC);
-
-        Float prevSum = dataTotalRawSignal.get(msLevel);
-        if (prevSum == null)
-            prevSum = 0.0f;
-        dataTotalRawSignal.put(msLevel, prevSum + scanTIC);
-
-        ArrayList<Integer> scanList = scanNumbers.get(msLevel);
-        if (scanList == null) {
-            scanList = new ArrayList<Integer>(64);
-            scanNumbers.put(msLevel, scanList);
-        }
-
-        scanList.add(newScan.getScanNumber());
-
         // If this is a gragment scan, update the fragmentScans[] array of its
         // parent
         if (newScan.getParentScanNumber() > 0) {
-            Scan parentScan = scans.get(newScan.getParentScanNumber());
+            Scan parentScan = writingScans.get(newScan.getParentScanNumber());
             if (parentScan != null) {
                 if (parentScan instanceof StorableScan) {
                     int fragmentScans[] = ((StorableScan) parentScan).getFragmentScanNumbers();
@@ -314,8 +371,6 @@ class RawDataFileImpl implements RawDataFile, RawDataFileWriter {
             }
         }
 
-        numOfScans++;
-
     }
 
     public String toString() {
@@ -326,14 +381,77 @@ class RawDataFileImpl implements RawDataFile, RawDataFileWriter {
      * @see net.sf.mzmine.io.RawDataFile#getDataMinRT()
      */
     public float getDataMinRT(int msLevel) {
-        return dataMinRT.get(msLevel);
+        
+        // if there is no cache table, create one
+        if (dataMinRT == null)
+            dataMinRT = new Hashtable<Integer, Float>();
+
+        // check if we have this value already cached
+        Float minRT = dataMinRT.get(msLevel);
+        if (minRT != null)
+            return minRT.floatValue();
+
+        // find the value
+        Enumeration<Scan> scansEnum = scans.elements();
+        while (scansEnum.hasMoreElements()) {
+            Scan scan = scansEnum.nextElement();
+
+            // ignore scans of other ms levels
+            if (scan.getMSLevel() != msLevel)
+                continue;
+
+            if ((minRT == null) || (scan.getRetentionTime() < minRT))
+                minRT = scan.getRetentionTime();
+
+        }
+
+        // return -1 if no scan at this MS level
+        if (minRT == null)
+            minRT = -1f;
+
+        // cache the value
+        dataMinRT.put(msLevel, minRT);
+
+        return minRT;
+
     }
 
     /**
      * @see net.sf.mzmine.io.RawDataFile#getDataMaxRT()
      */
     public float getDataMaxRT(int msLevel) {
-        return dataMaxRT.get(msLevel);
+        
+        // if there is no cache table, create one
+        if (dataMaxRT == null)
+            dataMaxRT = new Hashtable<Integer, Float>();
+
+        // check if we have this value already cached
+        Float maxRT = dataMaxRT.get(msLevel);
+        if (maxRT != null)
+            return maxRT.floatValue();
+
+        // find the value
+        Enumeration<Scan> scansEnum = scans.elements();
+        while (scansEnum.hasMoreElements()) {
+            Scan scan = scansEnum.nextElement();
+
+            // ignore scans of other ms levels
+            if (scan.getMSLevel() != msLevel)
+                continue;
+
+            if ((maxRT == null) || (scan.getRetentionTime() > maxRT))
+                maxRT = scan.getRetentionTime();
+
+        }
+
+        // return -1 if no scan at this MS level
+        if (maxRT == null)
+            maxRT = -1f;
+
+        // cache the value
+        dataMaxRT.put(msLevel, maxRT);
+
+        return maxRT;
     }
 
     /**
@@ -346,13 +464,38 @@ class RawDataFileImpl implements RawDataFile, RawDataFileWriter {
     /**
      * @see net.sf.mzmine.io.RawDataFileWriter#finishWriting()
      */
-    public RawDataFile finishWriting() throws IOException {
-        logger.finest("Writing of file " + fileName + " finished");
-        return this;
+    public void finishWriting() throws IOException {
+
+        logger.finest("Writing of scans to file " + fileName + " finished");
+        
+        // close temporary file and current data file
+        if (scanDataFile != null) {
+            scanDataFile.close();
+            scanDataFileName.delete();
+        }
+
+        // switch temporary file to current datafile and reopen it for reading
+        scanDataFile = writingScanDataFile;
+        scanDataFileName = writingScanDataFileName;
+        scans = writingScans;
+
+        // discard temporary file
+        writingScanDataFile = null;
+        writingScanDataFileName = null;
+        writingScans = null;
+
+        // discard cached information
+        dataMinMZ = null;
+        dataMaxMZ = null;
+        dataMinRT = null;
+        dataMaxRT = null;
+        dataMaxBasePeakIntensity = null;
+        dataMaxTIC = null;
+
     }
 
     public void finalize() {
-        
+
         if (preloadLevel != PreloadLevel.PRELOAD_ALL_SCANS) {
             try {
                 logger.finest("Removing temporary file"
@@ -363,7 +506,30 @@ class RawDataFileImpl implements RawDataFile, RawDataFileWriter {
                 // ignore
             }
         }
-        
+
+    }
+
+    public RawDataFileWriter updateFile() throws IOException {
+
+        // check if we are already writing
+        if (writingScanDataFile != null) {
+            throw new IOException("File " + fileName
+                    + " is already being updated");
+        }
+
+        // create temporary file for scan data
+        if (preloadLevel != PreloadLevel.PRELOAD_ALL_SCANS) {
+            writingScanDataFileName = File.createTempFile("mzmine", null);
+            writingScanDataFile = new RandomAccessFile(writingScanDataFileName,
+                    "rw");
+            writingScanDataFileName.deleteOnExit();
+        }
+
+        // prepare new Hashtable for scans
+        writingScans = new Hashtable<Integer, Scan>();
+
+        return this;
+
     }
 
 }

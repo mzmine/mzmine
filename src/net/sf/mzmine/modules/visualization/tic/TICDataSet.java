@@ -86,11 +86,17 @@ class TICDataSet extends AbstractXYZDataset implements RawDataAcceptor {
         switch (visualizer.getPlotType()) {
 
         case TIC:
-            float intensityValues[] = scan.getIntensityValues();
-            float scanMzValues[] = scan.getMZValues();
-            for (int j = 0; j < intensityValues.length; j++) {
-                if ((scanMzValues[j] >= mzMin) && (scanMzValues[j] <= mzMax))
-                    totalIntensity += intensityValues[j];
+            if ((mzMin <= scan.getMZRangeMin())
+                    && (mzMax >= scan.getMZRangeMax())) {
+                totalIntensity = scan.getTIC();
+            } else {
+                float intensityValues[] = scan.getIntensityValues();
+                float scanMzValues[] = scan.getMZValues();
+                for (int j = 0; j < intensityValues.length; j++) {
+                    if ((scanMzValues[j] >= mzMin)
+                            && (scanMzValues[j] <= mzMax))
+                        totalIntensity += intensityValues[j];
+                }
             }
             mzValues[index] = scan.getBasePeakMZ();
             break;

@@ -122,8 +122,9 @@ public class FileOpeningTask implements DistributableTask {
             IOController ioController = MZmineCore.getIOController();
 
             // Create new RawDataFile instance
-            buildingFile = ioController.createNewFile(fileName, preloadLevel);
-
+            resultFile = ioController.createNewFile(fileName, preloadLevel);
+            buildingFile = resultFile.updateFile();
+                
             // Determine parser
             String extension = fileName.substring(fileName.lastIndexOf(".") + 1).toLowerCase();
 
@@ -188,8 +189,7 @@ public class FileOpeningTask implements DistributableTask {
 
             // Close file
             reader.finishReading();
-
-            resultFile = buildingFile.finishWriting();
+            buildingFile.finishWriting();
 
         } catch (Throwable e) {
             logger.log(Level.SEVERE, "Could not open file "

@@ -26,15 +26,15 @@ import java.util.Hashtable;
 import java.util.Vector;
 import java.util.logging.Logger;
 
-import net.sf.mzmine.data.PeakList;
 import net.sf.mzmine.data.Parameter;
 import net.sf.mzmine.data.ParameterSet;
+import net.sf.mzmine.data.PeakList;
 import net.sf.mzmine.data.Parameter.ParameterType;
 import net.sf.mzmine.data.impl.SimpleParameter;
 import net.sf.mzmine.data.impl.SimpleParameterSet;
 import net.sf.mzmine.io.RawDataFile;
 import net.sf.mzmine.main.MZmineCore;
-import net.sf.mzmine.modules.BatchStep;
+import net.sf.mzmine.modules.batchmode.BatchStepAlignment;
 import net.sf.mzmine.taskcontrol.Task;
 import net.sf.mzmine.taskcontrol.TaskGroup;
 import net.sf.mzmine.taskcontrol.TaskGroupListener;
@@ -46,7 +46,7 @@ import net.sf.mzmine.userinterface.dialogs.ParameterSetupDialog;
 
 // TODO: Code for this method must be rewritten
 
-public class SimpleGapFiller implements BatchStep, TaskListener,
+public class SimpleGapFiller implements BatchStepAlignment, TaskListener,
         ActionListener {
 
     public static final String RTToleranceTypeAbsolute = "Absolute";
@@ -234,12 +234,17 @@ public class SimpleGapFiller implements BatchStep, TaskListener,
      *      net.sf.mzmine.taskcontrol.TaskGroupListener)
      */
     public TaskGroup runModule(RawDataFile[] dataFiles,
-            PeakList[] alignmentResults, ParameterSet parameters,
+            PeakList[] peakLists, ParameterSet parameters,
             TaskGroupListener methodListener) {
 
-        logger.info("Running " + toString() + " on " + alignmentResults.length
-                + " alignment results.");
+        if (peakLists == null) {
+            throw new IllegalArgumentException("Cannot run identification without aligned peak list");
+        }
+        
+        logger.info("Running " + toString() + " on " + peakLists.length
+                + " aligned peak lists.");
 
+        
         /*
          * Loop rows of original alignment result For each row with some missing
          * peaks, generate "a working row" containing EmptyGap objects for each

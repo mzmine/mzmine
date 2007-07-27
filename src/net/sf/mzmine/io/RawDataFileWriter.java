@@ -40,6 +40,6 @@ public interface RawDataFileWriter {
      * 
      * @return newly written file as RawDataFile
      */
-    public RawDataFile finishWriting() throws IOException;
+    public void finishWriting() throws IOException;
 
 }

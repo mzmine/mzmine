@@ -39,7 +39,6 @@ import javax.swing.ListSelectionModel;
 import net.sf.mzmine.data.ParameterSet;
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.main.MZmineModule;
-import net.sf.mzmine.modules.BatchStep;
 import net.sf.mzmine.userinterface.dialogs.ExitCode;
 import net.sf.mzmine.util.GUIUtils;
 
@@ -69,8 +68,30 @@ class BatchModeDialog extends JDialog implements ActionListener {
         currentStepsList.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
 
         methodsCombo = new JComboBox();
-        for (MZmineModule mod : MZmineCore.getAllModules()) {
-            if (mod instanceof BatchStep)
+        MZmineModule allModules[] = MZmineCore.getAllModules();
+        methodsCombo.addItem("--- Raw data filtering ---");
+        for (MZmineModule mod : allModules) {
+            if (mod instanceof BatchStepFiltering)
+                methodsCombo.addItem(mod);
+        }
+        methodsCombo.addItem("--- Peak picking ---");
+        for (MZmineModule mod : allModules) {
+            if (mod instanceof BatchStepPeakPicking)
+                methodsCombo.addItem(mod);
+        }
+        methodsCombo.addItem("--- Alignment ---");
+        for (MZmineModule mod : allModules) {
+            if (mod instanceof BatchStepAlignment)
+                methodsCombo.addItem(mod);
+        }
+        methodsCombo.addItem("--- Normalization ---");
+        for (MZmineModule mod : allModules) {
+            if (mod instanceof BatchStepNormalization)
+                methodsCombo.addItem(mod);
+        }
+        methodsCombo.addItem("--- Identification ---");
+        for (MZmineModule mod : allModules) {
+            if (mod instanceof BatchStepIdentification)
                 methodsCombo.addItem(mod);
         }
 
@@ -140,6 +161,7 @@ class BatchModeDialog extends JDialog implements ActionListener {
 
         if (src == btnAdd) {
 
+            if (!(methodsCombo.getSelectedItem() instanceof BatchStep)) return;
             BatchStep selectedMethod = (BatchStep) methodsCombo.getSelectedItem();
             logger.finest("Adding " + selectedMethod);
 

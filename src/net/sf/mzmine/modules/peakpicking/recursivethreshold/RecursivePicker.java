@@ -33,7 +33,7 @@ import net.sf.mzmine.data.impl.SimpleParameter;
 import net.sf.mzmine.data.impl.SimpleParameterSet;
 import net.sf.mzmine.io.RawDataFile;
 import net.sf.mzmine.main.MZmineCore;
-import net.sf.mzmine.modules.BatchStep;
+import net.sf.mzmine.modules.batchmode.BatchStepPeakPicking;
 import net.sf.mzmine.project.MZmineProject;
 import net.sf.mzmine.taskcontrol.Task;
 import net.sf.mzmine.taskcontrol.TaskGroup;
@@ -44,7 +44,7 @@ import net.sf.mzmine.userinterface.Desktop.MZmineMenu;
 import net.sf.mzmine.userinterface.dialogs.ExitCode;
 import net.sf.mzmine.userinterface.dialogs.ParameterSetupDialog;
 
-public class RecursivePicker implements BatchStep, TaskListener, ActionListener {
+public class RecursivePicker implements BatchStepPeakPicking, TaskListener, ActionListener {
 
     public static final NumberFormat percentFormat = NumberFormat.getPercentInstance();
 

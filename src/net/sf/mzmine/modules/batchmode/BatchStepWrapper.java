@@ -20,7 +20,6 @@
 package net.sf.mzmine.modules.batchmode;
 
 import net.sf.mzmine.data.ParameterSet;
-import net.sf.mzmine.modules.BatchStep;
 
 /**
  * 

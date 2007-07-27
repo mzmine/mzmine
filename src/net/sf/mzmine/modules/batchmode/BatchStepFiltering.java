@@ -17,29 +17,12 @@
  * Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-package net.sf.mzmine.io;
-
-import java.io.File;
-import java.io.IOException;
+package net.sf.mzmine.modules.batchmode;
 
 /**
- * IO controller
- * 
+ * Interface representing a data processing method which can be executed in a
+ * batch
  */
-public interface IOController {
-
-    /**
-     * This method is non-blocking, it places a request to open these files and
-     * exits immediately.
-     */
-    public void openFiles(File[] files, PreloadLevel preloadLevel);
-
-    /**
-     * 
-     * @param name
-     * @return
-     * @throws IOException
-     */
-    public RawDataFile createNewFile(String name, PreloadLevel preloadLevel) throws IOException;
+public interface BatchStepFiltering extends BatchStep {
 
 }

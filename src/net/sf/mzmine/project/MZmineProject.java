@@ -68,8 +68,6 @@ public interface MZmineProject {
 
     public void removeFile(RawDataFile file);
 
-    public void updateFile(RawDataFile oldFile, RawDataFile newFile);
-
     public RawDataFile[] getDataFiles();
 
     public void addAlignedPeakList(PeakList newResult);

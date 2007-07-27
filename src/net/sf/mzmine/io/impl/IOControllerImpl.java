@@ -26,7 +26,6 @@ import java.util.logging.Logger;
 import net.sf.mzmine.io.IOController;
 import net.sf.mzmine.io.PreloadLevel;
 import net.sf.mzmine.io.RawDataFile;
-import net.sf.mzmine.io.RawDataFileWriter;
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.taskcontrol.Task;
 import net.sf.mzmine.taskcontrol.TaskController;
@@ -99,15 +98,9 @@ public class IOControllerImpl implements IOController, TaskListener {
      * @see net.sf.mzmine.io.IOController#createNewFile(java.lang.String,
      *      net.sf.mzmine.io.PreloadLevel)
      */
-    public RawDataFileWriter createNewFile(String name,
+    public RawDataFile createNewFile(String name,
             PreloadLevel preloadLevel) throws IOException {
         return new RawDataFileImpl(name, preloadLevel);
     }
 
-    /**
-     * @see net.sf.mzmine.io.IOController#createNewFile(net.sf.mzmine.io.RawDataFile)
-     */
-    public RawDataFileWriter createNewFile(RawDataFile file) throws IOException {
-        return createNewFile(file.toString(), file.getPreloadLevel());
-    }
 }

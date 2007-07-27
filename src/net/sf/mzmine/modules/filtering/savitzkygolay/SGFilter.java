@@ -32,8 +32,7 @@ import net.sf.mzmine.data.impl.SimpleParameter;
 import net.sf.mzmine.data.impl.SimpleParameterSet;
 import net.sf.mzmine.io.RawDataFile;
 import net.sf.mzmine.main.MZmineCore;
-import net.sf.mzmine.modules.BatchStep;
-import net.sf.mzmine.project.MZmineProject;
+import net.sf.mzmine.modules.batchmode.BatchStepFiltering;
 import net.sf.mzmine.taskcontrol.Task;
 import net.sf.mzmine.taskcontrol.TaskGroup;
 import net.sf.mzmine.taskcontrol.TaskGroupListener;
@@ -43,7 +42,7 @@ import net.sf.mzmine.userinterface.Desktop.MZmineMenu;
 import net.sf.mzmine.userinterface.dialogs.ExitCode;
 import net.sf.mzmine.userinterface.dialogs.ParameterSetupDialog;
 
-public class SGFilter implements BatchStep, TaskListener, ActionListener {
+public class SGFilter implements BatchStepFiltering, TaskListener, ActionListener {
 
     public static final Parameter parameterDatapoints = new SimpleParameter(
             ParameterType.INTEGER, "Number of datapoints",
@@ -163,13 +162,6 @@ public class SGFilter implements BatchStep, TaskListener, ActionListener {
 
             logger.info("Finished Savitzky-Golay filter on "
                     + ((SGFilterTask) task).getDataFile());
-
-            RawDataFile openedFile = ((SGFilterTask) task).getDataFile();
-            RawDataFile newFile = (RawDataFile) task.getResult();
-
-            MZmineProject currentProject = MZmineCore.getCurrentProject();
-
-            currentProject.updateFile(openedFile, newFile);
 
         } else if (task.getStatus() == Task.TaskStatus.ERROR) {
             /* Task encountered an error */

@@ -32,8 +32,7 @@ import net.sf.mzmine.data.impl.SimpleParameter;
 import net.sf.mzmine.data.impl.SimpleParameterSet;
 import net.sf.mzmine.io.RawDataFile;
 import net.sf.mzmine.main.MZmineCore;
-import net.sf.mzmine.modules.BatchStep;
-import net.sf.mzmine.project.MZmineProject;
+import net.sf.mzmine.modules.batchmode.BatchStepFiltering;
 import net.sf.mzmine.taskcontrol.Task;
 import net.sf.mzmine.taskcontrol.TaskGroup;
 import net.sf.mzmine.taskcontrol.TaskGroupListener;
@@ -47,7 +46,7 @@ import net.sf.mzmine.userinterface.dialogs.ParameterSetupDialog;
  * This class represent a method for filtering scans in raw data file with
  * moving average filter.
  */
-public class MeanFilter implements BatchStep, TaskListener, ActionListener {
+public class MeanFilter implements BatchStepFiltering, TaskListener, ActionListener {
 
     public static final Parameter parameterOneSidedWindowLength = new SimpleParameter(
             ParameterType.FLOAT, "Window length",
@@ -167,13 +166,6 @@ public class MeanFilter implements BatchStep, TaskListener, ActionListener {
 
             logger.info("Finished mean filter on "
                     + ((MeanFilterTask) task).getDataFile());
-
-            RawDataFile openedFile = ((MeanFilterTask) task).getDataFile();
-            RawDataFile newFile = (RawDataFile) task.getResult();
-
-            MZmineProject currentProject = MZmineCore.getCurrentProject();
-
-            currentProject.updateFile(openedFile, newFile);
 
         } else if (task.getStatus() == Task.TaskStatus.ERROR) {
             /* Task encountered an error */

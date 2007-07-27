@@ -27,7 +27,6 @@ import net.sf.mzmine.data.impl.SimpleParameterSet;
 import net.sf.mzmine.data.impl.SimpleScan;
 import net.sf.mzmine.io.RawDataFile;
 import net.sf.mzmine.io.RawDataFileWriter;
-import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.taskcontrol.Task;
 import net.sf.mzmine.util.MathUtils;
 
@@ -117,8 +116,7 @@ class CMFilterTask implements Task {
         // Create new temporary copy
         RawDataFileWriter rawDataFileWriter;
         try {
-            rawDataFileWriter = MZmineCore.getIOController().createNewFile(
-                    dataFile);
+            rawDataFileWriter = dataFile.updateFile();
         } catch (IOException e) {
             status = TaskStatus.ERROR;
             errorMessage = e.toString();
@@ -232,7 +230,7 @@ class CMFilterTask implements Task {
         }
 
         try {
-            filteredRawDataFile = rawDataFileWriter.finishWriting();
+            rawDataFileWriter.finishWriting();
         } catch (IOException e) {
             status = TaskStatus.ERROR;
             errorMessage = e.toString();

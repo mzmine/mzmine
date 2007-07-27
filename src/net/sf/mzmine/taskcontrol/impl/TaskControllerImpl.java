@@ -37,11 +37,7 @@ public class TaskControllerImpl implements TaskController, Runnable {
 
     private Logger logger = Logger.getLogger(this.getClass().getName());
 
-
-
     // TODO: always create a worker thread for high priority tasks
-
-
 
     private final int TASKCONTROLLER_THREAD_SLEEP = 100;
 
@@ -55,8 +51,6 @@ public class TaskControllerImpl implements TaskController, Runnable {
      * 
      */
     public TaskControllerImpl(int numberOfThreads) {
-
-
 
         taskQueue = new TaskQueue();
 
@@ -104,21 +98,16 @@ public class TaskControllerImpl implements TaskController, Runnable {
          */
         MainWindow mainWindow = (MainWindow) MZmineCore.getDesktop();
         if (mainWindow != null) {
-            //JInternalFrame selectedFrame = desktop.getSelectedFrame();
+            // JInternalFrame selectedFrame = desktop.getSelectedFrame();
 
             TaskProgressWindow tlc = mainWindow.getTaskList();
             tlc.setVisible(true);
 
-            
             /*
-            if ((selectedFrame != null) && (desktop.getSelectedFrame() == tlc)) {
-                try {
-                    selectedFrame.setSelected(true);
-                } catch (PropertyVetoException e) {
-                    // do nothing
-                }
-            }
-            */
+             * if ((selectedFrame != null) && (desktop.getSelectedFrame() ==
+             * tlc)) { try { selectedFrame.setSelected(true); } catch
+             * (PropertyVetoException e) { // do nothing } }
+             */
         }
 
     }
@@ -133,11 +122,12 @@ public class TaskControllerImpl implements TaskController, Runnable {
         while (true) {
 
             /* if the queue is empty, we can sleep */
-            while (taskQueue.isEmpty()) {
-                synchronized (this) {
+            synchronized (this) {
+                while (taskQueue.isEmpty()) {
                     try {
                         this.wait();
                     } catch (InterruptedException e) {
+                        break;
                     }
                 }
             }
@@ -147,7 +137,8 @@ public class TaskControllerImpl implements TaskController, Runnable {
             // for each task, check if it's assigned and not canceled
             for (WrappedTask task : queueSnapshot) {
 
-                if (!task.isAssigned() && (task.getTask().getStatus() != TaskStatus.CANCELED)) {
+                if (!task.isAssigned()
+                        && (task.getTask().getStatus() != TaskStatus.CANCELED)) {
                     // poll local threads
 
                     for (WorkerThread worker : workerThreads) {
@@ -219,7 +210,5 @@ public class TaskControllerImpl implements TaskController, Runnable {
     public void initModule() {
 
     }
-    
-
 
 }

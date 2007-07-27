@@ -32,8 +32,7 @@ import net.sf.mzmine.data.impl.SimpleParameter;
 import net.sf.mzmine.data.impl.SimpleParameterSet;
 import net.sf.mzmine.io.RawDataFile;
 import net.sf.mzmine.main.MZmineCore;
-import net.sf.mzmine.modules.BatchStep;
-import net.sf.mzmine.project.MZmineProject;
+import net.sf.mzmine.modules.batchmode.BatchStepFiltering;
 import net.sf.mzmine.taskcontrol.Task;
 import net.sf.mzmine.taskcontrol.TaskGroup;
 import net.sf.mzmine.taskcontrol.TaskGroupListener;
@@ -43,7 +42,8 @@ import net.sf.mzmine.userinterface.Desktop.MZmineMenu;
 import net.sf.mzmine.userinterface.dialogs.ExitCode;
 import net.sf.mzmine.userinterface.dialogs.ParameterSetupDialog;
 
-public class CropFilter implements BatchStep, TaskListener, ActionListener {
+public class CropFilter implements BatchStepFiltering, TaskListener,
+        ActionListener {
 
     public static final Parameter parameterMSlevel = new SimpleParameter(
             ParameterType.INTEGER, "MS level",
@@ -52,8 +52,8 @@ public class CropFilter implements BatchStep, TaskListener, ActionListener {
 
     public static final Parameter parameterMinMZ = new SimpleParameter(
             ParameterType.FLOAT, "Minimum M/Z",
-            "Lower M/Z boundary of the cropped region", "Da",
-            new Float(100.0), new Float(0.0), null);
+            "Lower M/Z boundary of the cropped region", "Da", new Float(100.0),
+            new Float(0.0), null);
 
     public static final Parameter parameterMaxMZ = new SimpleParameter(
             ParameterType.FLOAT, "Maximum M/Z",
@@ -62,8 +62,8 @@ public class CropFilter implements BatchStep, TaskListener, ActionListener {
 
     public static final Parameter parameterMinRT = new SimpleParameter(
             ParameterType.FLOAT, "Minimum Retention time",
-            "Lower RT boundary of the cropped region", "seconds", new Float(
-                    0.0), new Float(0.0), null);
+            "Lower RT boundary of the cropped region", "seconds",
+            new Float(0.0), new Float(0.0), null);
 
     public static final Parameter parameterMaxRT = new SimpleParameter(
             ParameterType.FLOAT, "Maximum Retention time",
@@ -184,13 +184,6 @@ public class CropFilter implements BatchStep, TaskListener, ActionListener {
 
             logger.info("Finished cropping filter on "
                     + ((CropFilterTask) task).getDataFile());
-
-            RawDataFile openedFile = ((CropFilterTask) task).getDataFile();
-            RawDataFile newFile = (RawDataFile) task.getResult();
-
-            MZmineProject currentProject = MZmineCore.getCurrentProject();
-
-            currentProject.updateFile(openedFile, newFile);
 
         } else if (task.getStatus() == Task.TaskStatus.ERROR) {
             /* Task encountered an error */

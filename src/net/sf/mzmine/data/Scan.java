@@ -75,6 +75,12 @@ public interface Scan {
 
     /**
      * 
+     * @return Total ion current
+     */
+    public float getTIC();
+    
+    /**
+     * 
      * @return m/z values of this scan
      */
     public float[] getMZValues();

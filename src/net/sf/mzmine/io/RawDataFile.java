@@ -19,6 +19,8 @@
 
 package net.sf.mzmine.io;
 
+import java.io.IOException;
+
 import net.sf.mzmine.data.Scan;
 
 public interface RawDataFile {
@@ -56,8 +58,6 @@ public interface RawDataFile {
     public int[] getScanNumbers(int msLevel, float rtMin, float rtMax);
 
 
-
-
     /**
      * 
      * @param scan Desired scan number
@@ -77,15 +77,8 @@ public interface RawDataFile {
 
     public float getDataMaxTotalIonCurrent(int msLevel);
 
-    /**
-     * This method returns the sum of all measurement signal at given msLevel
-     * 
-     * @param msLevel
-     * @return
-     */
-    public float getDataTotalRawSignal(int msLevel);
-
-
     public String toString();
+    
+    public RawDataFileWriter updateFile() throws IOException;
 
 }
