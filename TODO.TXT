@@ -2,9 +2,10 @@ Code
 
 * Data analysis
 - CDA and Sammons plots are not implemented. 
+- RT/mz plot's color axis needs more informative title - instead of "Logratio" it should say e.g. "log2(avg peak area(file1, file2) / avg peak area (file3, file4))"
 
 * Standard compound normalizer
-- Instead of the old simple standard compound normalizer, we should implement also the new NOMIS method.
+- NOMIS method
 
 * Gap filler
 - Secondary peak picking is not implemented
@@ -59,16 +60,9 @@ Code
 - Display identification results in alignment result visualizer
 
 
-* Batch processing
-- Sometimes batch processing hangs between two methods, like Centroid picker and Join aligner. A race condition bug?
-- Batch module should save current batch in configuration
-- Listing of batch steps should separate items by category (Peak detection, Deisotoping, Alignment, etc.)
-- When running raw data filter in batch, next step has to use filtered raw data
-
 
 * Dialogs
 - Problems in entering acceptable values to formatted fields. For example retention times shown in AxesSetupDialog.
-
 
 
 Other
@@ -76,4 +70,3 @@ Other
 * Write documentation for the new code
 
 * Rewrite User's manual.
-
