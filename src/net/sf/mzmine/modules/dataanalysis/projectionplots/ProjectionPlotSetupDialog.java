@@ -25,6 +25,8 @@ import net.sf.mzmine.data.Parameter;
 import net.sf.mzmine.data.PeakList;
 import net.sf.mzmine.data.impl.SimpleParameterSet;
 import net.sf.mzmine.io.RawDataFile;
+import net.sf.mzmine.main.MZmineCore;
+import net.sf.mzmine.project.MZmineProject;
 import net.sf.mzmine.userinterface.Desktop;
 import net.sf.mzmine.userinterface.dialogs.ExitCode;
 
@@ -62,6 +64,8 @@ public class ProjectionPlotSetupDialog extends JDialog implements ActionListener
 	public ProjectionPlotSetupDialog(Desktop desktop, PeakList peakList, SimpleParameterSet parameters) {
 
         super(desktop.getMainFrame(), "Set parameter values for the plot", true);
+        
+        MZmineProject currentProject = MZmineCore.getCurrentProject();
 
 		this.desktop = desktop;
 		this.parameters = parameters;
@@ -71,10 +75,8 @@ public class ProjectionPlotSetupDialog extends JDialog implements ActionListener
 
 		for (RawDataFile rdf : peakList.getRawDataFiles()) {
 
-			/*
-			 * TODO: Get experimental parameter from project, not raw data file.
-			 * 
-			for (Parameter p : rdf.getParameters().getParameters()) {
+			Parameter[] experimentalParameters = currentProject.getParameters();
+			for (Parameter p : experimentalParameters) {
 				// Check if this parameter has been seen already
 				HashSet<Object> values;
 				if (!(experimentalParameterValues.containsKey(p))) {
@@ -84,10 +86,10 @@ public class ProjectionPlotSetupDialog extends JDialog implements ActionListener
 
 				// Store value of this parameter if it is a new one
 				values = experimentalParameterValues.get(p);
-				Object value = rdf.getParameters().getParameterValue(p);
+				Object value = currentProject.getParameterValue(p, rdf);
 				values.add(value);
 			}
-			 */
+			
 		}
 
 		// Build the form

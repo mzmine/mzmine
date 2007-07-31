@@ -43,7 +43,6 @@ public class PCADataset extends AbstractXYDataset implements ProjectionPlotDatas
 
 		// Pickup opened raw data files & setup colors according to parameter values
 		/*
-		 * TODO: Get experimental parameters from project instead of raw data file
 		openedRawDataFiles = new RawDataFile[numOfRawData];
 		for (int fileIndex=0; fileIndex<numOfRawData; fileIndex++) {
 			openedRawDataFiles[fileIndex] = peakList.getRawDataFile(fileIndex);
