@@ -69,7 +69,9 @@ public class MZmineProjectImpl implements MZmineProject {
     
     public Object getParameterValue(Parameter parameter, RawDataFile rawDataFile) {
     	if (!(hasParameter(parameter))) return null;
-    	return projectParametersAndValues.get(parameter).get(rawDataFile);
+        Object value = projectParametersAndValues.get(parameter).get(rawDataFile);
+        if (value == null) return parameter.getDefaultValue();
+    	return value;
     }
 
     public void addFile(RawDataFile newFile) {
