@@ -127,6 +127,7 @@ public class ExperimentalParametersSetupDialog extends JDialog implements Action
 
 		radiobuttonNumerical.setSelected(true);
 		switchNumericalFields(true);
+		switchFreeTextFields(false);
 		switchCategoricalFields(false);
 		
 		setLocationRelativeTo(desktop.getMainFrame());
@@ -189,9 +190,7 @@ public class ExperimentalParametersSetupDialog extends JDialog implements Action
 				String defaultValue = "";
 				if (fieldFreeTextDefaultValue.getText()!=null)
 					defaultValue = fieldFreeTextDefaultValue.getText();
-				System.out.println("Creating a free-text parameter " + paramName + ", with default value " + defaultValue);
 				parameter = new SimpleParameter(paramType, paramName, null, (Object)defaultValue);
-				System.out.println("parameter.getDefaultValue()=" + parameter.getDefaultValue());
 			}
 			
 			if (radiobuttonCategorical.isSelected()) {
@@ -207,7 +206,6 @@ public class ExperimentalParametersSetupDialog extends JDialog implements Action
 			}
 			
 			// Initialize with default value
-			System.out.println("Initializing with default parameter value " + parameter.getDefaultValue());
 			Object[] values = new Object[dataFiles.length];
 			for (int dataFileIndex=0; dataFileIndex<dataFiles.length; dataFileIndex++) 
 				values[dataFileIndex] = parameter.getDefaultValue();
@@ -237,14 +235,17 @@ public class ExperimentalParametersSetupDialog extends JDialog implements Action
 			if (radiobuttonNumerical.isSelected()) {
 				switchNumericalFields(true);
 				switchCategoricalFields(false);
+				switchFreeTextFields(false);
 			} 			
 			if (radiobuttonFreeText.isSelected()) {
 				switchNumericalFields(false);
 				switchCategoricalFields(false);
+				switchFreeTextFields(true);
 			}
 			if (radiobuttonCategorical.isSelected()) {
 				switchNumericalFields(false);
 				switchCategoricalFields(true);
+				switchFreeTextFields(false);
 			} 			
 		}
 		
@@ -258,7 +259,16 @@ public class ExperimentalParametersSetupDialog extends JDialog implements Action
 		}
 		
 		if (src == buttonRemoveCategory) {
-			desktop.displayErrorMessage("Not yet implemented.");
+			
+			int[] selectedIndices = listCategories.getSelectedIndices();
+			if ((selectedIndices==null) || (selectedIndices.length==0)) {
+				desktop.displayErrorMessage("Select at least one value first.");	
+			}
+			
+			for (int selectedIndex : selectedIndices) {
+				((DefaultListModel)listCategories.getModel()).removeElementAt(selectedIndex);
+			}
+			
 		}
 		
 	}
@@ -276,6 +286,11 @@ public class ExperimentalParametersSetupDialog extends JDialog implements Action
 		listCategories.setEnabled(enabled);
 		buttonAddCategory.setEnabled(enabled);
 		buttonRemoveCategory.setEnabled(enabled);
+	}
+	
+	private void switchFreeTextFields(boolean enabled) {
+		labelFreeTextDefaultValue.setEnabled(enabled);
+		fieldFreeTextDefaultValue.setEnabled(enabled);
 	}
 	
 	
