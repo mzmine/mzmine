@@ -77,24 +77,24 @@ class GapsFilterTask implements Task {
         processedAlignmentRows = 0;
 
         // Create new alignment result and add opened raw data files to it
-        processedPeakList = new SimplePeakList(
-                "Result after filtering by gaps");
-        
+        processedPeakList = new SimplePeakList(originalPeakList.toString()
+                + " filtered");
+
         for (RawDataFile rawData : originalPeakList.getRawDataFiles()) {
             processedPeakList.addRawDataFile(rawData);
         }
 
         // Copy rows with enough peaks to new alignment result
         for (PeakListRow alignmentRow : originalPeakList.getRows()) {
-            
+
             if (status == TaskStatus.CANCELED)
                 return;
-            
+
             if (alignmentRow.getNumberOfPeaks() >= minPresent)
                 processedPeakList.addRow(alignmentRow);
-            
+
             processedAlignmentRows++;
-            
+
         }
 
         status = TaskStatus.FINISHED;

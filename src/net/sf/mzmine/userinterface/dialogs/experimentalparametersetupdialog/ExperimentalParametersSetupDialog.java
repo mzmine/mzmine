@@ -46,6 +46,7 @@ import javax.swing.JTable;
 import javax.swing.JTextField;
 
 import net.sf.mzmine.data.Parameter;
+import net.sf.mzmine.data.ParameterType;
 import net.sf.mzmine.data.impl.SimpleParameter;
 import net.sf.mzmine.io.RawDataFile;
 import net.sf.mzmine.main.MZmineCore;
@@ -166,7 +167,7 @@ public class ExperimentalParametersSetupDialog extends JDialog implements Action
 			SimpleParameter parameter = null;
 
 			if (radiobuttonNumerical.isSelected()) {
-				Parameter.ParameterType paramType = Parameter.ParameterType.FLOAT;
+				ParameterType paramType = ParameterType.FLOAT;
 				Double minValue = Double.NEGATIVE_INFINITY;
 				if (fieldNumericalMinValue.getValue()!=null)
 					minValue = ((Number)fieldNumericalMinValue.getValue()).doubleValue();
@@ -184,7 +185,7 @@ public class ExperimentalParametersSetupDialog extends JDialog implements Action
 			}
 			
 			if (radiobuttonFreeText.isSelected()) {
-				Parameter.ParameterType paramType = Parameter.ParameterType.STRING;
+				ParameterType paramType = ParameterType.STRING;
 				String defaultValue = "";
 				if (fieldFreeTextDefaultValue.getText()!=null)
 					defaultValue = fieldFreeTextDefaultValue.getText();
@@ -194,7 +195,7 @@ public class ExperimentalParametersSetupDialog extends JDialog implements Action
 			}
 			
 			if (radiobuttonCategorical.isSelected()) {
-				Parameter.ParameterType paramType = Parameter.ParameterType.STRING;
+				ParameterType paramType = ParameterType.STRING;
 				String[] possibleValues = new String[categories.size()];
 				if (possibleValues.length==0) {
 					desktop.displayErrorMessage("Give at least a single parameter value.");
@@ -283,7 +284,7 @@ public class ExperimentalParametersSetupDialog extends JDialog implements Action
 		for (int columnIndex=0; columnIndex<parameterValues.keySet().size(); columnIndex++) {
 			Parameter parameter = tablemodelParameterValues.getParameter(columnIndex+1);
 			
-			if (parameter.getType()==Parameter.ParameterType.FLOAT) {
+			if (parameter.getType()==ParameterType.FLOAT) {
 				Double minValue = null;
 				Double maxValue = null;
 				if (parameter.getMinimumValue()!=null)
@@ -337,7 +338,7 @@ public class ExperimentalParametersSetupDialog extends JDialog implements Action
 				RawDataFile file = dataFiles[dataFileIndex];
 				
 				Object value = tablemodelParameterValues.getValueAt(dataFileIndex, columnIndex+1);
-				if (parameter.getType()==Parameter.ParameterType.FLOAT) {
+				if (parameter.getType()==ParameterType.FLOAT) {
 					Double doubleValue=null;
 					if (value instanceof Double)
 						doubleValue = (Double)value;
@@ -345,7 +346,7 @@ public class ExperimentalParametersSetupDialog extends JDialog implements Action
 						doubleValue = Double.parseDouble((String)value);
                     currentProject.setParameterValue(parameter, file, doubleValue);
 				}
-				if (parameter.getType()==Parameter.ParameterType.STRING) {
+				if (parameter.getType()==ParameterType.STRING) {
 					if (value==null) value = "";
 					currentProject.setParameterValue(parameter, file, (String)value);
 				}

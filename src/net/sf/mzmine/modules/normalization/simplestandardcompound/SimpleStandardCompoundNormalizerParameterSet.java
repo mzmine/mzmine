@@ -21,8 +21,8 @@ package net.sf.mzmine.modules.normalization.simplestandardcompound;
 
 import net.sf.mzmine.data.Parameter;
 import net.sf.mzmine.data.ParameterSet;
+import net.sf.mzmine.data.ParameterType;
 import net.sf.mzmine.data.PeakListRow;
-import net.sf.mzmine.data.Parameter.ParameterType;
 import net.sf.mzmine.data.impl.SimpleParameter;
 import net.sf.mzmine.data.impl.SimpleParameterSet;
 

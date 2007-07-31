@@ -25,8 +25,8 @@ import java.util.Vector;
 import java.util.logging.Logger;
 
 import net.sf.mzmine.data.Parameter;
+import net.sf.mzmine.data.ParameterType;
 import net.sf.mzmine.data.StorableParameterSet;
-import net.sf.mzmine.data.Parameter.ParameterType;
 
 import org.dom4j.Element;
 

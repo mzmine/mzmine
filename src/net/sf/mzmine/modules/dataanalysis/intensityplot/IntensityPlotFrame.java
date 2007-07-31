@@ -19,12 +19,15 @@
 
 package net.sf.mzmine.modules.dataanalysis.intensityplot;
 
+import java.awt.BasicStroke;
 import java.awt.Color;
 import java.awt.Font;
 import java.util.logging.Logger;
 
 import javax.swing.JInternalFrame;
 
+import net.sf.mzmine.data.Parameter;
+import net.sf.mzmine.data.ParameterType;
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.userinterface.Desktop;
 import net.sf.mzmine.util.NumberFormatter;
@@ -36,9 +39,13 @@ import org.jfree.chart.axis.CategoryAxis;
 import org.jfree.chart.axis.CategoryLabelPositions;
 import org.jfree.chart.axis.NumberAxis;
 import org.jfree.chart.labels.CategoryToolTipGenerator;
+import org.jfree.chart.labels.XYToolTipGenerator;
 import org.jfree.chart.plot.CategoryPlot;
+import org.jfree.chart.plot.Plot;
 import org.jfree.chart.plot.PlotOrientation;
-import org.jfree.chart.renderer.category.LineAndShapeRenderer;
+import org.jfree.chart.plot.XYPlot;
+import org.jfree.chart.renderer.category.StatisticalLineAndShapeRenderer;
+import org.jfree.chart.renderer.xy.XYErrorRenderer;
 import org.jfree.chart.title.LegendTitle;
 import org.jfree.chart.title.TextTitle;
 
@@ -57,8 +64,8 @@ public class IntensityPlotFrame extends JInternalFrame {
     public IntensityPlotFrame(IntensityPlotParameters parameters) {
         super("", true, true, true, true);
 
-        String title = "Intensity plot ["
-                + parameters.getSourcePeakList() + "]";
+        String title = "Intensity plot [" + parameters.getSourcePeakList()
+                + "]";
         String xAxisLabel = parameters.getXAxisValueSource().toString();
         String yAxisLabel = parameters.getYAxisValueSource().toString();
 
@@ -67,9 +74,45 @@ public class IntensityPlotFrame extends JInternalFrame {
 
         // create new JFreeChart
         logger.finest("Creating new chart instance");
-        JFreeChart chart = ChartFactory.createLineChart(title, xAxisLabel,
-                yAxisLabel, dataset, PlotOrientation.VERTICAL, true, true,
-                false);
+        Object xAxisValueSource = parameters.getXAxisValueSource();
+        JFreeChart chart;
+        if ((xAxisValueSource == IntensityPlotParameters.DataFileOption)
+                || (((Parameter) xAxisValueSource).getType() == ParameterType.STRING)) {
+            chart = ChartFactory.createLineChart(title, xAxisLabel, yAxisLabel,
+                    dataset, PlotOrientation.VERTICAL, true, true, false);
+
+            CategoryPlot plot = (CategoryPlot) chart.getPlot();
+
+            // set renderer
+            StatisticalLineAndShapeRenderer renderer = new StatisticalLineAndShapeRenderer(false,
+                    true);
+            renderer.setBaseStroke(new BasicStroke(2));
+            plot.setRenderer(renderer);
+
+            // set tooltip generator
+            CategoryToolTipGenerator toolTipGenerator = new IntensityPlotTooltipGenerator();
+            renderer.setBaseToolTipGenerator(toolTipGenerator);
+
+            CategoryAxis xAxis = (CategoryAxis) plot.getDomainAxis();
+            xAxis.setCategoryLabelPositions(CategoryLabelPositions.UP_45);
+
+        } else {
+            chart = ChartFactory.createXYLineChart(title, xAxisLabel,
+                    yAxisLabel, dataset, PlotOrientation.VERTICAL, true, true,
+                    false);
+
+            XYPlot plot = (XYPlot) chart.getPlot();
+
+            XYErrorRenderer renderer = new XYErrorRenderer();
+            renderer.setBaseStroke(new BasicStroke(2));
+            plot.setRenderer(renderer);
+            
+            // set tooltip generator
+            XYToolTipGenerator toolTipGenerator = new IntensityPlotTooltipGenerator();
+            renderer.setBaseToolTipGenerator(toolTipGenerator);
+            
+        }
+
         chart.setBackgroundPaint(Color.white);
 
         // create chart JPanel
@@ -89,25 +132,23 @@ public class IntensityPlotFrame extends JInternalFrame {
         legend.setItemFont(legendFont);
         legend.setBorder(0, 0, 0, 0);
 
-        // set renderer
-        CategoryPlot plot = (CategoryPlot) chart.getPlot();
-        LineAndShapeRenderer renderer = new LineAndShapeRenderer(false, true);
-        
-        plot.setRenderer(renderer);
+        Plot plot = chart.getPlot();
 
-        // set tooltip generator
-        CategoryToolTipGenerator toolTipGenerator = new IntensityPlotTooltipGenerator();
-        renderer.setToolTipGenerator(toolTipGenerator);
+        // set shape provider
+        IntensityPlotDrawingSupplier shapeSupplier = new IntensityPlotDrawingSupplier();
+        plot.setDrawingSupplier(shapeSupplier);
 
         // set y axis properties
-        NumberAxis yAxis = (NumberAxis) plot.getRangeAxis();
+        NumberAxis yAxis;
+        if (plot instanceof CategoryPlot)
+            yAxis = (NumberAxis) ((CategoryPlot) plot).getRangeAxis();
+        else
+            yAxis = (NumberAxis) ((XYPlot) plot).getRangeAxis();
         Desktop desktop = MZmineCore.getDesktop();
         NumberFormatter yAxisFormat = desktop.getIntensityFormat();
-        if (parameters.getYAxisValueSource() == IntensityPlotParameters.PeakRTOption) yAxisFormat = desktop.getRTFormat();
+        if (parameters.getYAxisValueSource() == IntensityPlotParameters.PeakRTOption)
+            yAxisFormat = desktop.getRTFormat();
         yAxis.setNumberFormatOverride(yAxisFormat);
-        
-        CategoryAxis xAxis = (CategoryAxis) plot.getDomainAxis();
-        xAxis.setCategoryLabelPositions(CategoryLabelPositions.UP_45);
 
         setTitle(title);
         setDefaultCloseOperation(JInternalFrame.DISPOSE_ON_CLOSE);

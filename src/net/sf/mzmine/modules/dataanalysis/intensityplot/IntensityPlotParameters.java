@@ -19,15 +19,19 @@
 
 package net.sf.mzmine.modules.dataanalysis.intensityplot;
 
-import net.sf.mzmine.data.ParameterSet;
+import org.dom4j.Element;
+
 import net.sf.mzmine.data.PeakList;
 import net.sf.mzmine.data.PeakListRow;
+import net.sf.mzmine.data.StorableParameterSet;
 import net.sf.mzmine.io.RawDataFile;
 
 /**
  */
-public class IntensityPlotParameters implements ParameterSet {
+public class IntensityPlotParameters implements StorableParameterSet {
 
+    public static final String yValueSourceElement = "yValueSource"; 
+    
     public static final String DataFileOption = "Raw data file";
     public static final String PeakHeightOption = "Peak height";
     public static final String PeakAreaOption = "Peak area";
@@ -155,6 +159,17 @@ public class IntensityPlotParameters implements ParameterSet {
         return new IntensityPlotParameters(sourcePeakList,
                 xAxisValueSource, yAxisValueSource, selectedDataFiles,
                 selectedRows);
+    }
+
+    public void exportValuesToXML(Element element) {
+        element.addElement(yValueSourceElement).setText(yAxisValueSource.toString());
+    }
+
+    public void importValuesFromXML(Element element) {
+        String yValueSource = element.elementText(yValueSourceElement);
+        if (PeakHeightOption.equals(yValueSource)) yAxisValueSource = PeakHeightOption;
+        if (PeakAreaOption.equals(yValueSource)) yAxisValueSource = PeakAreaOption;
+        if (PeakRTOption.equals(yValueSource)) yAxisValueSource = PeakRTOption;
     }
 
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2006 The MZmine Development Team
+ * Copyright 2006-2007 The MZmine Development Team
  * 
  * This file is part of MZmine.
  * 
@@ -47,10 +47,6 @@ import java.text.NumberFormat;
  * Parameter interface, represents parameters or variables used in the project
  */
 public interface Parameter {
-
-    public enum ParameterType {
-        STRING, INTEGER, FLOAT, BOOLEAN
-    };
 
     /**
      * Returns the parameter type

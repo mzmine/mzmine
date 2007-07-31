@@ -41,6 +41,9 @@ import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.ScrollPaneConstants;
 
+import org.apache.axis.wsdl.symbolTable.Parameters;
+
+import net.sf.mzmine.data.Parameter;
 import net.sf.mzmine.data.PeakList;
 import net.sf.mzmine.data.PeakListRow;
 import net.sf.mzmine.io.RawDataFile;
@@ -48,8 +51,9 @@ import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.userinterface.Desktop;
 import net.sf.mzmine.userinterface.components.ExtendedCheckBox;
 import net.sf.mzmine.userinterface.dialogs.ExitCode;
-import net.sf.mzmine.util.PeakListRowSorterByMZ;
+import net.sf.mzmine.util.CollectionUtils;
 import net.sf.mzmine.util.GUIUtils;
+import net.sf.mzmine.util.PeakListRowSorterByMZ;
 
 public class IntensityPlotDialog extends JDialog implements ActionListener {
 
@@ -68,15 +72,17 @@ public class IntensityPlotDialog extends JDialog implements ActionListener {
     private JButton btnSelectAllFiles, btnDeselectAllFiles, btnSelectAllPeaks,
             btnDeselectAllPeaks, btnOK, btnCancel;
 
-    public IntensityPlotDialog(PeakList peakList, IntensityPlotParameters parameterSet) {
+    public IntensityPlotDialog(PeakList peakList,
+            IntensityPlotParameters parameterSet) {
 
         // make dialog modal
-        super(MZmineCore.getDesktop().getMainFrame(), "Intensity plot setup", true);
+        super(MZmineCore.getDesktop().getMainFrame(), "Intensity plot setup",
+                true);
 
         this.desktop = MZmineCore.getDesktop();
         this.alignedPeakList = peakList;
         this.parameterSet = parameterSet;
-        
+
         List<RawDataFile> selectedDataFiles = Arrays.asList(parameterSet.getSelectedDataFiles());
         List<PeakListRow> selectedRows = Arrays.asList(parameterSet.getSelectedRows());
 
@@ -142,8 +148,14 @@ public class IntensityPlotDialog extends JDialog implements ActionListener {
         constraints.gridy = 1;
         layout.setConstraints(comp, constraints);
 
-        String xAxisSourceValues[] = new String[] { IntensityPlotParameters.DataFileOption };
+        Parameter projectParameters[] = MZmineCore.getCurrentProject().getParameters();
+        Object xAxisSourceValues[] = new Object[projectParameters.length + 1];
+        xAxisSourceValues[0] = IntensityPlotParameters.DataFileOption;
+        for (int i = 0; i < projectParameters.length; i++)
+            xAxisSourceValues[i + 1] = projectParameters[i];
         xAxisValueSourceCombo = new JComboBox(xAxisSourceValues);
+        if (parameterSet.getXAxisValueSource() != null)
+            xAxisValueSourceCombo.setSelectedItem(parameterSet.getXAxisValueSource());
         constraints.gridx = 1;
         components.add(xAxisValueSourceCombo, constraints);
 
@@ -157,6 +169,8 @@ public class IntensityPlotDialog extends JDialog implements ActionListener {
                 IntensityPlotParameters.PeakAreaOption,
                 IntensityPlotParameters.PeakRTOption };
         yAxisValueSourceCombo = new JComboBox(yAxisSourceValues);
+        if (parameterSet.getYAxisValueSource() != null)
+            yAxisValueSourceCombo.setSelectedItem(parameterSet.getYAxisValueSource());
         constraints.gridx = 1;
         components.add(yAxisValueSourceCombo, constraints);
 
@@ -174,7 +188,8 @@ public class IntensityPlotDialog extends JDialog implements ActionListener {
         PeakListRow rows[] = alignedPeakList.getRows();
         Arrays.sort(rows, new PeakListRowSorterByMZ());
         for (int i = 0; i < rows.length; i++) {
-            peakCheckBoxes[i] = new ExtendedCheckBox<PeakListRow>(rows[i], selectedRows.contains(rows[i]));
+            peakCheckBoxes[i] = new ExtendedCheckBox<PeakListRow>(rows[i],
+                    selectedRows.contains(rows[i]));
             minimumHorizSize = Math.max(minimumHorizSize,
                     peakCheckBoxes[i].getPreferredWidth());
             peakCheckBoxesPanel.add(peakCheckBoxes[i]);

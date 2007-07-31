@@ -25,13 +25,17 @@ import net.sf.mzmine.data.Peak;
 import net.sf.mzmine.io.RawDataFile;
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.userinterface.Desktop;
+
 import org.jfree.chart.labels.CategoryToolTipGenerator;
+import org.jfree.chart.labels.XYToolTipGenerator;
 import org.jfree.data.category.CategoryDataset;
+import org.jfree.data.xy.XYDataset;
 
 /**
  * 
  */
-class IntensityPlotTooltipGenerator implements CategoryToolTipGenerator {
+class IntensityPlotTooltipGenerator implements CategoryToolTipGenerator,
+        XYToolTipGenerator {
 
     /**
      * @see org.jfree.chart.labels.CategoryToolTipGenerator#generateToolTip(org.jfree.data.category.CategoryDataset,
@@ -40,10 +44,31 @@ class IntensityPlotTooltipGenerator implements CategoryToolTipGenerator {
     public String generateToolTip(CategoryDataset dataset, int row, int column) {
         Desktop desktop = MZmineCore.getDesktop();
         Format intensityFormat = desktop.getIntensityFormat();
-        Peak peak = ((IntensityPlotDataset) dataset).getPeak(row, column);
-        RawDataFile dataFile = ((IntensityPlotDataset) dataset).getFile(column);
-        return peak.toString() + ", " + dataFile.toString() + ", value: "
-                + intensityFormat.format(dataset.getValue(row, column));
+        Peak peaks[] = ((IntensityPlotDataset) dataset).getPeaks(row, column);
+        RawDataFile files[] = ((IntensityPlotDataset) dataset).getFiles(column);
+
+        StringBuffer sb = new StringBuffer();
+        sb.append("<html>");
+        for (int i = 0; i < files.length; i++) {
+            sb.append(files[i].toString());
+            sb.append(": ");
+            if (peaks[i] != null) {
+                sb.append(peaks[i].toString());
+                sb.append(", height: ");
+                sb.append(intensityFormat.format(peaks[i].getHeight()));
+            } else {
+                sb.append("N/A");
+            }
+            sb.append("<br>");
+        }
+
+        sb.append("</html>");
+
+        return sb.toString();
+    }
+
+    public String generateToolTip(XYDataset dataset, int series, int item) {
+        return generateToolTip((CategoryDataset) dataset, series, item);
     }
 
 }
