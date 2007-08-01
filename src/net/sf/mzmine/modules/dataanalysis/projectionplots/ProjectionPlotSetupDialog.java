@@ -2,318 +2,334 @@ package net.sf.mzmine.modules.dataanalysis.projectionplots;
 
 import java.awt.BorderLayout;
 import java.awt.Color;
+import java.awt.Dimension;
+import java.awt.FlowLayout;
+import java.awt.GridBagConstraints;
+import java.awt.GridBagLayout;
+import java.awt.Insets;
+import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
+import java.util.Vector;
 
 import javax.swing.BorderFactory;
+import javax.swing.Box;
+import javax.swing.BoxLayout;
 import javax.swing.ButtonGroup;
 import javax.swing.DefaultCellEditor;
 import javax.swing.JButton;
+import javax.swing.JCheckBox;
 import javax.swing.JComboBox;
+import javax.swing.JComponent;
 import javax.swing.JDialog;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JRadioButton;
 import javax.swing.JScrollPane;
 import javax.swing.JTable;
+import javax.swing.ScrollPaneConstants;
 import javax.swing.table.AbstractTableModel;
 
 import net.sf.mzmine.data.Parameter;
 import net.sf.mzmine.data.PeakList;
+import net.sf.mzmine.data.PeakListRow;
 import net.sf.mzmine.data.impl.SimpleParameterSet;
 import net.sf.mzmine.io.RawDataFile;
 import net.sf.mzmine.main.MZmineCore;
+import net.sf.mzmine.modules.dataanalysis.intensityplot.IntensityPlotParameters;
 import net.sf.mzmine.project.MZmineProject;
 import net.sf.mzmine.userinterface.Desktop;
+import net.sf.mzmine.userinterface.components.ExtendedCheckBox;
 import net.sf.mzmine.userinterface.dialogs.ExitCode;
+import net.sf.mzmine.util.GUIUtils;
+import net.sf.mzmine.util.PeakListRowSorterByMZ;
 
-public class ProjectionPlotSetupDialog extends JDialog implements ActionListener, ItemListener {
+public class ProjectionPlotSetupDialog extends JDialog implements ActionListener {
 
 	private static final Color[] colors = { Color.lightGray, Color.red, Color.green, Color.blue, Color.magenta, Color.orange};
 
-	private Desktop desktop;
+    static final int PADDING_SIZE = 5;
 
-	private SimpleParameterSet parameters;
+    private ExitCode exitCode = ExitCode.CANCEL;
 
-	private HashMap<Parameter, HashSet<Object>> experimentalParameterValues;
-	private Parameter selectedExperimentalParameter;
-	private HashMap<Object, Color> colorsForExperimentalParameterValues;
+    private Desktop desktop;
+    private PeakList alignedPeakList;
+    private ProjectionPlotParameters parameterSet;
 
-	private ExitCode exitCode = ExitCode.UNKNOWN;
+    // dialog components
+    
+    private JComboBox comboColoringMethod;
+    private JComboBox comboPeakMeasuringMethod;
+    
+    private ExtendedCheckBox<RawDataFile> rawDataFileCheckBoxes[];
+    private ExtendedCheckBox<PeakListRow> peakCheckBoxes[];
+    private JButton btnSelectAllFiles, btnDeselectAllFiles, btnSelectAllPeaks,
+            btnDeselectAllPeaks, btnOK, btnCancel;
 
-	private JComboBox comboExperimentalParameter;
+    public ProjectionPlotSetupDialog(PeakList peakList,
+            ProjectionPlotParameters parameterSet) {
 
-	private JTable table;
+        // make dialog modal
+        super(MZmineCore.getDesktop().getMainFrame(), "Projection plot setup",
+                true);
 
-	private JRadioButton radiobuttonPeakMeasurementTypeArea;
-	private JRadioButton radiobuttonPeakMeasurementTypeHeight;
+        this.desktop = MZmineCore.getDesktop();
+        this.alignedPeakList = peakList;
+        this.parameterSet = parameterSet;
 
-	private JPanel pnlButtons;
-	private JButton btnOK;
-	private JButton btnCancel;
+        List<RawDataFile> selectedDataFiles = Arrays.asList(parameterSet.getSelectedDataFiles());
+        List<PeakListRow> selectedRows = Arrays.asList(parameterSet.getSelectedRows());
 
-	private ColorTableModel tableModel;
+        GridBagConstraints constraints = new GridBagConstraints();
 
+        // set default layout constraints
+        constraints.fill = GridBagConstraints.BOTH;
+        constraints.anchor = GridBagConstraints.WEST;
+        constraints.insets = new Insets(PADDING_SIZE, PADDING_SIZE,
+                PADDING_SIZE, PADDING_SIZE);
 
-	/**
-	 * Constructor: creates new form SelectOneGroupDialog
-	 */
-	public ProjectionPlotSetupDialog(Desktop desktop, PeakList peakList, SimpleParameterSet parameters) {
+        constraints.gridwidth = 1;
+        constraints.gridheight = 1;
 
-        super(desktop.getMainFrame(), "Set parameter values for the plot", true);
+        JComponent comp;
+        GridBagLayout layout = new GridBagLayout();
+
+        JPanel components = new JPanel(layout);
+
+        comp = GUIUtils.addLabel(components, "Data files");
+        constraints.gridx = 0;
+        constraints.gridy = 0;
+        layout.setConstraints(comp, constraints);
+
+        JPanel dataFileCheckBoxesPanel = new JPanel();
+        dataFileCheckBoxesPanel.setBackground(Color.white);
+        dataFileCheckBoxesPanel.setLayout(new BoxLayout(
+                dataFileCheckBoxesPanel, BoxLayout.Y_AXIS));
+        rawDataFileCheckBoxes = new ExtendedCheckBox[alignedPeakList.getNumberOfRawDataFiles()];
+        int minimumHorizSize = 0;
+        RawDataFile files[] = alignedPeakList.getRawDataFiles();
+        for (int i = 0; i < files.length; i++) {
+            rawDataFileCheckBoxes[i] = new ExtendedCheckBox<RawDataFile>(
+                    files[i], selectedDataFiles.contains(files[i]));
+            minimumHorizSize = Math.max(minimumHorizSize,
+                    rawDataFileCheckBoxes[i].getPreferredWidth());
+            dataFileCheckBoxesPanel.add(rawDataFileCheckBoxes[i]);
+        }
+        int minimumVertSize = (int) rawDataFileCheckBoxes[0].getPreferredSize().getHeight() * 3;
+        JScrollPane dataFilePanelScroll = new JScrollPane(
+                dataFileCheckBoxesPanel,
+                ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED,
+                ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER);
+        dataFilePanelScroll.setPreferredSize(new Dimension(minimumHorizSize,
+                minimumVertSize));
+        constraints.gridx = 1;
+        components.add(dataFilePanelScroll, constraints);
+
+        JPanel dataFileButtonsPanel = new JPanel();
+        dataFileButtonsPanel.setLayout(new BoxLayout(dataFileButtonsPanel,
+                BoxLayout.Y_AXIS));
+        btnSelectAllFiles = GUIUtils.addButton(dataFileButtonsPanel,
+                "Select all", null, this);
+        btnDeselectAllFiles = GUIUtils.addButton(dataFileButtonsPanel,
+                "Deselect all", null, this);
+        dataFileButtonsPanel.add(Box.createGlue());
+        constraints.gridx = 2;
+        components.add(dataFileButtonsPanel);
+        layout.setConstraints(dataFileButtonsPanel, constraints);
+
+        comp = GUIUtils.addLabel(components, "Coloring style");
+        constraints.gridx = 0;
+        constraints.gridy = 1;
+        layout.setConstraints(comp, constraints);
+
+        Parameter projectParameters[] = MZmineCore.getCurrentProject().getParameters();
+        Object availableColoringStyles[] = new Object[projectParameters.length + 1];
+        availableColoringStyles[0] = ProjectionPlotParameters.ColoringByFileOption;
+        for (int i = 0; i < projectParameters.length; i++)
+        	availableColoringStyles[i + 1] = "Color by parameter " + projectParameters[i].getName();
+        comboColoringMethod = new JComboBox(availableColoringStyles);
+        if (parameterSet.getColoringMode() == parameterSet.ColoringByFileOption)
+        	comboColoringMethod.setSelectedItem(availableColoringStyles[0]);
+        if ( (parameterSet.getColoringMode() == parameterSet.ColoringByParameterValueOption) &&
+        	 (parameterSet.getSelectedParameter()!=null) ) 
+        	comboColoringMethod.setSelectedItem(parameterSet.getSelectedParameter());
+        constraints.gridx = 1;
+        components.add(comboColoringMethod, constraints);
+
+        comp = GUIUtils.addLabel(components, "Peak measuring approach");
+        constraints.gridx = 0;
+        constraints.gridy = 2;
+        layout.setConstraints(comp, constraints);
+
+        String availablePeakMeasuringStyles[] = new String[] {
+                ProjectionPlotParameters.PeakHeightOption,
+                ProjectionPlotParameters.PeakAreaOption };
+        comboPeakMeasuringMethod = new JComboBox(availablePeakMeasuringStyles);
+        if (parameterSet.getPeakMeasuringMode() == parameterSet.PeakHeightOption)
+        	comboPeakMeasuringMethod.setSelectedItem(parameterSet.PeakHeightOption);
+        if (parameterSet.getPeakMeasuringMode() == parameterSet.PeakAreaOption)
+        	comboPeakMeasuringMethod.setSelectedItem(parameterSet.PeakAreaOption);
         
-        MZmineProject currentProject = MZmineCore.getCurrentProject();
-
-		this.desktop = desktop;
-		this.parameters = parameters;
-
-		// Collect different experimental parameters and their values
-		experimentalParameterValues = new HashMap<Parameter, HashSet<Object>>();
-
-		for (RawDataFile rdf : peakList.getRawDataFiles()) {
-
-			Parameter[] experimentalParameters = currentProject.getParameters();
-			for (Parameter p : experimentalParameters) {
-				// Check if this parameter has been seen already
-				HashSet<Object> values;
-				if (!(experimentalParameterValues.containsKey(p))) {
-					values = new HashSet<Object>();
-					experimentalParameterValues.put(p, values);
-				}
-
-				// Store value of this parameter if it is a new one
-				values = experimentalParameterValues.get(p);
-				Object value = currentProject.getParameterValue(p, rdf);
-				values.add(value);
-			}
-			
-		}
-
-		// Build the form
-		initComponents();
-
-		if (parameters.getParameterValue(ProjectionPlot.MeasurementType)==ProjectionPlot.MeasurementTypeArea)
-			radiobuttonPeakMeasurementTypeArea.setSelected(true);
-		else
-			radiobuttonPeakMeasurementTypeHeight.setSelected(true);
-
-	}
-
-
-	/**
-	 * Implementation of ActionListener interface
-	 */
-	public void actionPerformed(java.awt.event.ActionEvent e) {
-		Object src = e.getSource();
-
-		// OK button
-		if (src == btnOK) {
-
-			// Store information about height/area selection
-			if (radiobuttonPeakMeasurementTypeArea.isSelected())
-				parameters.setParameterValue(ProjectionPlot.MeasurementType, ProjectionPlot.MeasurementTypeArea);
-			else
-				parameters.setParameterValue(ProjectionPlot.MeasurementType, ProjectionPlot.MeasurementTypeHeight);
-
-			// TODO: Construct a table mapping parameter values of selectedExperimentalParameter to selected colors
-
-			exitCode = ExitCode.OK;
-			dispose();
-
-		}
-
-		// Cancel button
-		if (src == btnCancel) {
-
-			exitCode = ExitCode.CANCEL;
-			dispose();
-
-		}
-
-	}
-
-	public void itemStateChanged(ItemEvent event) {
-
-		if (event.getStateChange() == ItemEvent.SELECTED) {
-			// Set selected parameter
-			selectedExperimentalParameter = (Parameter)event.getItem();
-
-			// Assign default colors to parameter's values
-			colorsForExperimentalParameterValues = new HashMap<Object, Color>();
-			Object[] values = experimentalParameterValues.get(selectedExperimentalParameter).toArray(new Object[0]);
-			for (int ind=0; ind<values.length; ind++) {
-
-				colorsForExperimentalParameterValues.put(values[ind], colors[ind % colors.length]);
-			}
-
-			// Initialize table for changing default colors
-			tableModel = new ColorTableModel(table, values, colorsForExperimentalParameterValues.values().toArray(new Color[0]) );
-			table.setModel(tableModel);
-			table.getColumnModel().getColumn(1).setCellRenderer(new ProjectionPlotSetupDialogTableCellRenderer());
-			table.getColumnModel().getColumn(1).setCellEditor(new ColorComboBoxEditor(colors));
-
-		}
-
-	}
-
-	private void initComponents() {
-
-
-		// This one should be removed/modified
-		setDefaultCloseOperation(javax.swing.WindowConstants.HIDE_ON_CLOSE);
-
-		// Place components to frame
-
-		JPanel pnlTop = new JPanel(new BorderLayout());
-		JLabel labelExperimentalParameter = new JLabel("Choose which experimental parameter is used for coloring the plot");
-		comboExperimentalParameter = new JComboBox(experimentalParameterValues.keySet().toArray(new Parameter[0]));
-		comboExperimentalParameter.addItemListener(this);
-		pnlTop.add(labelExperimentalParameter, BorderLayout.NORTH);
-		pnlTop.add(comboExperimentalParameter, BorderLayout.CENTER);
-		pnlTop.setBorder(BorderFactory.createEmptyBorder(5,5,5,5));
-
-
-
-
-		// - Middle panel (scroll & table)
-		JPanel pnlMiddle = new javax.swing.JPanel();
-		pnlMiddle.setLayout(new BorderLayout());
-
-		table = new JTable();
-		JScrollPane scrSamples = new javax.swing.JScrollPane(table);
-		scrSamples.setPreferredSize(new java.awt.Dimension(350,200));
-
-		pnlMiddle.add(scrSamples, BorderLayout.CENTER);
-
-
-		// - Bottom panel (buttons)
-		JPanel pnlBottom = new javax.swing.JPanel();
-		pnlBottom.setBorder(new javax.swing.border.EmptyBorder(new java.awt.Insets(5, 5, 5, 5)));
-		pnlButtons = new javax.swing.JPanel();
-		btnOK = new javax.swing.JButton();
-		btnCancel = new javax.swing.JButton();
-
-
-		pnlBottom.setLayout(new BorderLayout());
-
-		btnOK.setText("OK");
-		btnCancel.setText("Cancel");
-		btnOK.addActionListener(this);
-		btnCancel.addActionListener(this);
-		pnlButtons.setLayout(new java.awt.FlowLayout(java.awt.FlowLayout.RIGHT));
-		pnlButtons.add(btnOK);
-		pnlButtons.add(btnCancel);
-
-		pnlBottom.add(pnlButtons, BorderLayout.SOUTH);
-
-		//	Parameter values
-
-		JPanel panelPeakMeasurement = new JPanel();
-		JLabel labelPeakMeasurementType = new JLabel("Peak measurement type: ");
-		panelPeakMeasurement.add(labelPeakMeasurementType);
-		ButtonGroup buttongroupPeakMeasurementType = new ButtonGroup();
-		radiobuttonPeakMeasurementTypeArea = new JRadioButton("Peak area");
-		panelPeakMeasurement.add(radiobuttonPeakMeasurementTypeArea);
-		buttongroupPeakMeasurementType.add(radiobuttonPeakMeasurementTypeArea);
-		radiobuttonPeakMeasurementTypeHeight = new JRadioButton("Peak height");
-		panelPeakMeasurement.add(radiobuttonPeakMeasurementTypeHeight);
-		buttongroupPeakMeasurementType.add(radiobuttonPeakMeasurementTypeHeight);
-
-		pnlBottom.add(panelPeakMeasurement, BorderLayout.NORTH);
-
-		// - Finally add everything to the main pane
-		JPanel pnlAll = new javax.swing.JPanel();
-		pnlAll.setLayout(new BorderLayout());
-		pnlAll.add(pnlBottom, BorderLayout.SOUTH);
-		pnlAll.add(pnlMiddle, BorderLayout.CENTER);
-		pnlAll.add(pnlTop, BorderLayout.NORTH);
-
-		getContentPane().add(pnlAll, BorderLayout.CENTER);
-
-		pack();
-		setResizable(false);
-		setLocationRelativeTo(desktop.getMainFrame());
-
-	}
-
-	public Parameter getColoringParameter() {
-		return selectedExperimentalParameter;
-	}
-
-	public HashMap<Object, Color> getColorsForParameterValues() {
-		return colorsForExperimentalParameterValues;
-	}
-
-	/**
-	 * Method for reading exit code
-	 */
-	public ExitCode getExitCode() {
-		return exitCode;
-	}
-
-
-
-
-
-	public class ColorComboBoxEditor extends DefaultCellEditor {
-
-
-		public ColorComboBoxEditor(Color[] colors) {
-			super(new ProjectionPlotSetupDialogComboBox(colors));
-		}
-	}
-
-
-	private class ColorTableModel extends AbstractTableModel {
-
-		String[] colNames = { "Parameter value", "Color" };
-
-		private Object[] values;
-		private Color[] colors;
-		private JTable table;
-
-		public ColorTableModel(JTable table, Object[] values, Color[] colors) {
-			this.table = table;
-			this.values = values;
-			this.colors = colors;
-		}
-
-		public int getColumnCount() {
-			return 2;
-		}
-
-		public int getRowCount() {
-			return values.length;
-		}
-
-		public Object getValueAt(int row, int column) {
-			if (column == 0) { return values[row].toString(); }
-			if (column == 1) { return colors[row]; }
-			return null;
-		}
-
-		public void setValueAt(Object aValue, int row, int column) {
-			if (column==0) { return; }
-
-			int[] rows = table.getSelectedRows();
-			for (int r : rows) { colors[r]=(Color)aValue; }
-			table.repaint();
-			return;
-		}
-
-		public String getColumnName(int colInd) {
-			return colNames[colInd];
-		}
-
-		public boolean isCellEditable(int rowIndex, int colIndex) {
-			if (colIndex==0) { return false; }
-			if (colIndex==1) { return true; }
-			return false;
-		}
-
-	}
+        constraints.gridx = 1;
+        components.add(comboPeakMeasuringMethod, constraints);
+
+        comp = GUIUtils.addLabel(components, "Peaks");
+        constraints.gridx = 0;
+        constraints.gridy = 3;
+        layout.setConstraints(comp, constraints);
+
+        JPanel peakCheckBoxesPanel = new JPanel();
+        peakCheckBoxesPanel.setBackground(Color.white);
+        peakCheckBoxesPanel.setLayout(new BoxLayout(peakCheckBoxesPanel,
+                BoxLayout.Y_AXIS));
+        peakCheckBoxes = new ExtendedCheckBox[alignedPeakList.getNumberOfRows()];
+        minimumHorizSize = 0;
+        PeakListRow rows[] = alignedPeakList.getRows();
+        Arrays.sort(rows, new PeakListRowSorterByMZ());
+        for (int i = 0; i < rows.length; i++) {
+            peakCheckBoxes[i] = new ExtendedCheckBox<PeakListRow>(rows[i],
+                    selectedRows.contains(rows[i]));
+            minimumHorizSize = Math.max(minimumHorizSize,
+                    peakCheckBoxes[i].getPreferredWidth());
+            peakCheckBoxesPanel.add(peakCheckBoxes[i]);
+        }
+        minimumVertSize = (int) peakCheckBoxes[0].getPreferredSize().getHeight() * 6;
+        JScrollPane peakPanelScroll = new JScrollPane(peakCheckBoxesPanel,
+                ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED,
+                ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER);
+        peakPanelScroll.setPreferredSize(new Dimension(minimumHorizSize,
+                minimumVertSize));
+        constraints.gridx = 1;
+        constraints.weightx = 1;
+        constraints.weighty = 1;
+        components.add(peakPanelScroll, constraints);
+
+        JPanel peakButtonsPanel = new JPanel();
+        peakButtonsPanel.setLayout(new BoxLayout(peakButtonsPanel,
+                BoxLayout.Y_AXIS));
+        btnSelectAllPeaks = GUIUtils.addButton(peakButtonsPanel, "Select all",
+                null, this);
+        btnDeselectAllPeaks = GUIUtils.addButton(peakButtonsPanel,
+                "Deselect all", null, this);
+        peakButtonsPanel.add(Box.createGlue());
+        constraints.gridx = 2;
+        components.add(peakButtonsPanel);
+        layout.setConstraints(peakButtonsPanel, constraints);
+
+        comp = GUIUtils.addSeparator(components, PADDING_SIZE);
+        constraints.gridx = 0;
+        constraints.gridy = 4;
+        constraints.weightx = 0;
+        constraints.weighty = 0;
+        constraints.gridheight = 1;
+        constraints.gridwidth = 3;
+        layout.setConstraints(comp, constraints);
+
+        JPanel buttonsPanel = new JPanel();
+        btnOK = GUIUtils.addButton(buttonsPanel, "OK", null, this);
+        btnCancel = GUIUtils.addButton(buttonsPanel, "Cancel", null, this);
+        constraints.gridx = 0;
+        constraints.gridy = 5;
+        constraints.gridwidth = 3;
+        components.add(buttonsPanel, constraints);
+
+        GUIUtils.addMargin(components, PADDING_SIZE);
+        add(components);
+
+        // finalize the dialog
+        pack();
+        setLocationRelativeTo(desktop.getMainFrame());
+        setResizable(true);
+
+    }
+
+    /**
+     * @see java.awt.event.ActionListener#actionPerformed(java.awt.event.ActionEvent)
+     */
+    public void actionPerformed(ActionEvent event) {
+
+        Object src = event.getSource();
+
+        if (src == btnOK) {
+
+            Vector<RawDataFile> selectedFiles = new Vector<RawDataFile>();
+            Vector<PeakListRow> selectedPeaks = new Vector<PeakListRow>();
+
+            for (ExtendedCheckBox<RawDataFile> box : rawDataFileCheckBoxes) {
+                if (box.isSelected())
+                    selectedFiles.add(box.getObject());
+            }
+
+            for (ExtendedCheckBox<PeakListRow> box : peakCheckBoxes) {
+                if (box.isSelected())
+                    selectedPeaks.add(box.getObject());
+            }
+
+            if (selectedFiles.size() == 0) {
+                desktop.displayErrorMessage("Please select at least one data file");
+                return;
+            }
+
+            if (selectedPeaks.size() == 0) {
+                desktop.displayErrorMessage("Please select at least one peak");
+                return;
+            }
+
+            parameterSet.setSourcePeakList(alignedPeakList);
+            parameterSet.setSelectedDataFiles(selectedFiles.toArray(new RawDataFile[0]));
+            parameterSet.setSelectedRows(selectedPeaks.toArray(new PeakListRow[0]));
+            if (comboColoringMethod.getSelectedIndex()<=0) 
+            	parameterSet.setColoringMode(parameterSet.ColoringByFileOption);
+            if (comboColoringMethod.getSelectedIndex()>0) {
+            	parameterSet.setColoringMode(parameterSet.ColoringByParameterValueOption);
+            	parameterSet.setSelectedParameter((Parameter)comboColoringMethod.getSelectedItem());
+            }
+            parameterSet.setPeakMeasuringMode(comboPeakMeasuringMethod.getSelectedItem());
+
+            exitCode = ExitCode.OK;
+            dispose();
+            return;
+        }
+
+        if (src == btnCancel) {
+            exitCode = ExitCode.CANCEL;
+            dispose();
+            return;
+        }
+
+        if (src == btnSelectAllFiles) {
+            for (JCheckBox box : rawDataFileCheckBoxes)
+                box.setSelected(true);
+            return;
+        }
+
+        if (src == btnDeselectAllFiles) {
+            for (JCheckBox box : rawDataFileCheckBoxes)
+                box.setSelected(false);
+            return;
+        }
+
+        if (src == btnSelectAllPeaks) {
+            for (JCheckBox box : peakCheckBoxes)
+                box.setSelected(true);
+            return;
+        }
+
+        if (src == btnDeselectAllPeaks) {
+            for (JCheckBox box : peakCheckBoxes)
+                box.setSelected(false);
+            return;
+        }
+
+    }
+
+    public ExitCode getExitCode() {
+        return exitCode;
+    }
 
 }

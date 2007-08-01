@@ -97,7 +97,8 @@ public class ProjectionPlot implements MZmineModule, ActionListener {
 
         	// Show opened raw data file selection and parameter setup dialog 
         	//ParameterSetupDialog setupDialog = new ParameterSetupDialog(desktop.getMainFrame(), "Please set projection plot parameters", parameters);
-        	ProjectionPlotSetupDialog setupDialog = new ProjectionPlotSetupDialog(desktop, pl, parameters); 
+        	ProjectionPlotParameters parameterSet = new ProjectionPlotParameters(pl); 
+        	ProjectionPlotSetupDialog setupDialog = new ProjectionPlotSetupDialog(pl, parameterSet); 
 
             setupDialog.setVisible(true);
             
@@ -108,9 +109,11 @@ public class ProjectionPlot implements MZmineModule, ActionListener {
         	
         	// Create dataset & paint scale
         	ProjectionPlotDataset dataset = null;
+        	/*
         	if (command.equals("PCA_PLOT"))
         		dataset = new PCADataset(pl, setupDialog.getColoringParameter(), setupDialog.getColorsForParameterValues(), parameters, 1, 2);
-        	/*
+        	
+        	
         	if (command.equals("CDA_PLOT"))
         		dataset = new CDADataset(pl, parameters);
         	*/
