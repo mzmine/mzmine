@@ -11,6 +11,7 @@ Code
 - Secondary peak picking is not implemented
 
 * Finish raw data visualizers
+- TIC can be activated only when just 1 data file is selected
 - 2D visualizer is not yet finished. It should show detected peaks on top of the visualization.
 - TIC, Spectra and 2D visualizer need a common dialog to set X/Y axis range
 - "Set same axis range to other visualizers" menu item
@@ -25,7 +26,7 @@ Code
 - Display isotope pattern and charge of deisotoped peaks
 
 
-* From peak list & alignment result table it should be possible to open raw data visualizers showing the detected or estimated peak:
+* From peak list table it should be possible to open raw data visualizers showing the detected or estimated peak:
 - 2D visualizer with an overview of the region around the peak
 - Spectrum showing scan at the highest position of the peak 
 - XIC with area for the peak shaded (new feature)
@@ -50,15 +51,11 @@ Code
 - Undo
 
 
-* Experimental parameters
-- The IntensityPlot should be able to use parameter values for X axis (e.g. plot peak intensity dependance on sample amount)
-
 
 * Compound identification
 - Implement basic identification methods using KEGG/PubChem/custom database
 - Implement in-source fragment identification
 - Display identification results in alignment result visualizer
-
 
 
 * Dialogs
