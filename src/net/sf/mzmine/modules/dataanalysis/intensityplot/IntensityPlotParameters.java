@@ -74,70 +74,70 @@ public class IntensityPlotParameters implements StorableParameterSet {
     /**
      * @return Returns the selectedDataFiles.
      */
-    RawDataFile[] getSelectedDataFiles() {
+    public RawDataFile[] getSelectedDataFiles() {
         return selectedDataFiles;
     }
 
     /**
      * @param selectedDataFiles The selectedDataFiles to set.
      */
-    void setSelectedDataFiles(RawDataFile[] selectedDataFiles) {
+    public void setSelectedDataFiles(RawDataFile[] selectedDataFiles) {
         this.selectedDataFiles = selectedDataFiles;
     }
 
     /**
      * @return Returns the selectedRows.
      */
-    PeakListRow[] getSelectedRows() {
+    public PeakListRow[] getSelectedRows() {
         return selectedRows;
     }
 
     /**
      * @param selectedRows The selectedRows to set.
      */
-    void setSelectedRows(PeakListRow[] selectedRows) {
+    public void setSelectedRows(PeakListRow[] selectedRows) {
         this.selectedRows = selectedRows;
     }
 
     /**
      * @return Returns the sourcePeakList.
      */
-    PeakList getSourcePeakList() {
+    public PeakList getSourcePeakList() {
         return sourcePeakList;
     }
 
     /**
      * @param sourcePeakList The sourcePeakList to set.
      */
-    void setSourcePeakList(PeakList sourcePeakList) {
+    public void setSourcePeakList(PeakList sourcePeakList) {
         this.sourcePeakList = sourcePeakList;
     }
 
     /**
      * @return Returns the xAxisValueSource.
      */
-    Object getXAxisValueSource() {
+    public Object getXAxisValueSource() {
         return xAxisValueSource;
     }
 
     /**
      * @param axisValueSource The xAxisValueSource to set.
      */
-    void setXAxisValueSource(Object axisValueSource) {
+    public void setXAxisValueSource(Object axisValueSource) {
         xAxisValueSource = axisValueSource;
     }
 
     /**
      * @return Returns the yAxisValueSource.
      */
-    Object getYAxisValueSource() {
+    public Object getYAxisValueSource() {
         return yAxisValueSource;
     }
 
     /**
      * @param axisValueSource The yAxisValueSource to set.
      */
-    void setYAxisValueSource(Object axisValueSource) {
+    public void setYAxisValueSource(Object axisValueSource) {
         yAxisValueSource = axisValueSource;
     }
 

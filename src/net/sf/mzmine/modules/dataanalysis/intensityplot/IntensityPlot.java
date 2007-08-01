@@ -41,6 +41,7 @@ public class IntensityPlot implements MZmineModule, ActionListener {
 
     private Desktop desktop;
     private IntensityPlotParameters parameters;
+    private static IntensityPlot myInstance;
 
     /**
      * @see net.sf.mzmine.main.MZmineModule#initModule(net.sf.mzmine.main.MZmineCore)
@@ -50,6 +51,8 @@ public class IntensityPlot implements MZmineModule, ActionListener {
         this.desktop = MZmineCore.getDesktop();
 
         parameters = new IntensityPlotParameters();
+        
+        myInstance = this;
 
         desktop.addMenuItem(MZmineMenu.ANALYSIS, "Peak intensity plot", this,
                 null, KeyEvent.VK_D, false, true);
@@ -63,7 +66,7 @@ public class IntensityPlot implements MZmineModule, ActionListener {
 
         PeakList selectedAlignedPeakLists[] = desktop.getSelectedAlignedPeakLists();
         if (selectedAlignedPeakLists.length != 1) {
-            desktop.displayErrorMessage("Please select a single alignment result");
+            desktop.displayErrorMessage("Please select a single aligned peaklist");
             return;
         }
 
@@ -79,7 +82,8 @@ public class IntensityPlot implements MZmineModule, ActionListener {
                     selectedAlignedPeakLists[0]);
         }
 
-        IntensityPlotDialog setupDialog = new IntensityPlotDialog(selectedAlignedPeakLists[0], parameters);
+        IntensityPlotDialog setupDialog = new IntensityPlotDialog(
+                selectedAlignedPeakLists[0], parameters);
         setupDialog.setVisible(true);
 
         if (setupDialog.getExitCode() == ExitCode.OK) {
@@ -100,7 +104,7 @@ public class IntensityPlot implements MZmineModule, ActionListener {
     /**
      * @see net.sf.mzmine.main.MZmineModule#getParameterSet()
      */
-    public ParameterSet getParameterSet() {
+    public IntensityPlotParameters getParameterSet() {
         return parameters;
     }
 
@@ -108,8 +112,11 @@ public class IntensityPlot implements MZmineModule, ActionListener {
      * @see net.sf.mzmine.main.MZmineModule#setParameters(net.sf.mzmine.data.ParameterSet)
      */
     public void setParameters(ParameterSet parameterValues) {
-        if (parameterValues instanceof IntensityPlotParameters)
-            this.parameters = (IntensityPlotParameters) parameterValues;
+        this.parameters = (IntensityPlotParameters) parameterValues;
+    }
+    
+    public static IntensityPlot getInstance() {
+        return myInstance;
     }
 
 }

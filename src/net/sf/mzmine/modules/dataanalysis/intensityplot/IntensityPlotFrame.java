@@ -20,6 +20,7 @@
 package net.sf.mzmine.modules.dataanalysis.intensityplot;
 
 import java.awt.BasicStroke;
+import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Font;
 import java.util.logging.Logger;
@@ -60,6 +61,7 @@ public class IntensityPlotFrame extends JInternalFrame {
     private Logger logger = Logger.getLogger(this.getClass().getName());
 
     private IntensityPlotDataset dataset;
+    private JFreeChart chart;
 
     public IntensityPlotFrame(IntensityPlotParameters parameters) {
         super("", true, true, true, true);
@@ -75,9 +77,10 @@ public class IntensityPlotFrame extends JInternalFrame {
         // create new JFreeChart
         logger.finest("Creating new chart instance");
         Object xAxisValueSource = parameters.getXAxisValueSource();
-        JFreeChart chart;
+        
         if ((xAxisValueSource == IntensityPlotParameters.DataFileOption)
                 || (((Parameter) xAxisValueSource).getType() == ParameterType.STRING)) {
+            
             chart = ChartFactory.createLineChart(title, xAxisLabel, yAxisLabel,
                     dataset, PlotOrientation.VERTICAL, true, true, false);
 
@@ -97,6 +100,7 @@ public class IntensityPlotFrame extends JInternalFrame {
             xAxis.setCategoryLabelPositions(CategoryLabelPositions.UP_45);
 
         } else {
+            
             chart = ChartFactory.createXYLineChart(title, xAxisLabel,
                     yAxisLabel, dataset, PlotOrientation.VERTICAL, true, true,
                     false);
@@ -117,7 +121,10 @@ public class IntensityPlotFrame extends JInternalFrame {
 
         // create chart JPanel
         ChartPanel chartPanel = new ChartPanel(chart);
-        add(chartPanel);
+        add(chartPanel, BorderLayout.CENTER);
+        
+        IntensityPlotToolBar toolBar = new IntensityPlotToolBar(this);
+        add(toolBar, BorderLayout.EAST);
 
         // disable maximum size (we don't want scaling)
         chartPanel.setMaximumDrawWidth(Integer.MAX_VALUE);
@@ -155,6 +162,10 @@ public class IntensityPlotFrame extends JInternalFrame {
         setBackground(Color.white);
         pack();
 
+    }
+
+    JFreeChart getChart() {
+        return chart;
     }
 
 }

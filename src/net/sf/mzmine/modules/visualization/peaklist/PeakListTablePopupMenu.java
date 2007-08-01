@@ -35,6 +35,7 @@ import net.sf.mzmine.data.PeakList;
 import net.sf.mzmine.data.PeakListRow;
 import net.sf.mzmine.io.RawDataFile;
 import net.sf.mzmine.main.MZmineCore;
+import net.sf.mzmine.modules.dataanalysis.intensityplot.IntensityPlot;
 import net.sf.mzmine.modules.dataanalysis.intensityplot.IntensityPlotDialog;
 import net.sf.mzmine.modules.dataanalysis.intensityplot.IntensityPlotFrame;
 import net.sf.mzmine.modules.dataanalysis.intensityplot.IntensityPlotParameters;
@@ -147,17 +148,20 @@ public class PeakListTablePopupMenu extends JPopupMenu implements
                 int unsortedIndex = sorterModel.modelIndex(selectedTableRows[i]);
                 selectedPeakListRows[i] = peakList.getRow(unsortedIndex);
             }
-            IntensityPlotParameters parameters = new IntensityPlotParameters(
-                    peakList, IntensityPlotParameters.DataFileOption,
-                    IntensityPlotParameters.PeakHeightOption,
+            IntensityPlot intensityPlotModule = IntensityPlot.getInstance();
+            IntensityPlotParameters currentParameters = intensityPlotModule.getParameterSet();
+            IntensityPlotParameters newParameters = new IntensityPlotParameters(
+                    peakList, currentParameters.getXAxisValueSource(),
+                    currentParameters.getYAxisValueSource(),
                     peakList.getRawDataFiles(), selectedPeakListRows);
             IntensityPlotDialog setupDialog = new IntensityPlotDialog(peakList, 
-                    parameters);
+                    newParameters);
             setupDialog.setVisible(true);
             if (setupDialog.getExitCode() == ExitCode.OK) {
+                intensityPlotModule.setParameters(newParameters);
                 Desktop desktop = MZmineCore.getDesktop();
                 logger.info("Opening new intensity plot");
-                IntensityPlotFrame newFrame = new IntensityPlotFrame(parameters);
+                IntensityPlotFrame newFrame = new IntensityPlotFrame(newParameters);
                 desktop.addInternalFrame(newFrame);
             }
 
