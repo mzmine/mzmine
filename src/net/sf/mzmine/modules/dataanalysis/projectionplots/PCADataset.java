@@ -9,6 +9,7 @@ import jmprojection.Preprocess;
 import net.sf.mzmine.data.Parameter;
 import net.sf.mzmine.data.Peak;
 import net.sf.mzmine.data.PeakList;
+import net.sf.mzmine.data.PeakListRow;
 import net.sf.mzmine.data.impl.SimpleParameterSet;
 import net.sf.mzmine.io.RawDataFile;
 
@@ -18,48 +19,50 @@ public class PCADataset extends AbstractXYDataset implements ProjectionPlotDatas
 
 	private double[] component1Coords;
 	private double[] component2Coords;
-	private RawDataFile[] openedRawDataFiles;
-	private Hashtable<RawDataFile, Color> rawDataColors;
+	private Color[] colors;
+	private RawDataFile[] selectedRawDataFiles;
 
 	private String datasetTitle;
 	private int xAxisPC;
 	private int yAxisPC;
 
 
-	public PCADataset(PeakList peakList, Parameter coloringParameter, HashMap<Object, Color> colorsForParameterValues, SimpleParameterSet parameters, int xAxisPC, int yAxisPC) {
+	public PCADataset(ProjectionPlotParameters parameters, int xAxisPC, int yAxisPC) {
 
 		this.xAxisPC = xAxisPC;
 		this.yAxisPC = yAxisPC;
-		this.rawDataColors = rawDataColors;
 
-		int numOfRawData = peakList.getNumberOfRawDataFiles();
-		int numOfRows = peakList.getNumberOfRows();
+		int numOfRawData = parameters.getSelectedDataFiles().length;
+		int numOfRows = parameters.getSelectedRows().length;
 
 		boolean useArea = true;
-		if (parameters.getParameterValue(ProjectionPlot.MeasurementType)==ProjectionPlot.MeasurementTypeHeight)
+		if (parameters.getPeakMeasuringMode()==parameters.PeakAreaOption)
+			useArea = true;
+		if (parameters.getPeakMeasuringMode()==parameters.PeakHeightOption)
 			useArea = false;
-
+		
 		datasetTitle = "Principal component analysis";
 
-		// Pickup opened raw data files & setup colors according to parameter values
-		/*
-		openedRawDataFiles = new RawDataFile[numOfRawData];
+		
+		selectedRawDataFiles = parameters.getSelectedDataFiles();
+		
+		// Set colors for files
+		Hashtable<RawDataFile, Color> colorsForFiles = parameters.getColorsForSelectedFiles();
+		colors = new Color[parameters.getSelectedDataFiles().length];
 		for (int fileIndex=0; fileIndex<numOfRawData; fileIndex++) {
-			openedRawDataFiles[fileIndex] = peakList.getRawDataFile(fileIndex);
-			Object paramValue = openedRawDataFiles[fileIndex].getParameters().getParameterValue(coloringParameter);
-			Color color = Color.black;
-			if (paramValue!=null) color = colorsForParameterValues.get(paramValue);
+			Color color = colorsForFiles.get(selectedRawDataFiles[fileIndex]);
+			colors[fileIndex] = color;
 		}
-		*/
 
-
-
+		PeakListRow[] selectedPeakListRows = parameters.getSelectedRows();
+		
 		// Generate matrix of raw data (input to PCA)
 		double[][] rawData = new double[numOfRawData][numOfRows];
 		for (int rowIndex=0; rowIndex<numOfRows; rowIndex++) {
 			for (int fileIndex=0; fileIndex<numOfRawData; fileIndex++) {
-				RawDataFile orf = openedRawDataFiles[fileIndex];
-				Peak p = peakList.getPeak(rowIndex, orf);
+				RawDataFile rawDataFile = selectedRawDataFiles[fileIndex];
+				PeakListRow peakListRow = selectedPeakListRows[fileIndex];
+				Peak p = peakListRow.getPeak(rawDataFile);
 				if (p!=null) {
 					if (useArea)
 						rawData[fileIndex][rowIndex] = p.getArea();
@@ -128,7 +131,7 @@ public class PCADataset extends AbstractXYDataset implements ProjectionPlotDatas
 	}
 
 	public Color getColor(int item) {
-		return rawDataColors.get(openedRawDataFiles[item]);
+		return colors[item];
 	}
 
 	public String getXLabel() {
@@ -169,7 +172,7 @@ public class PCADataset extends AbstractXYDataset implements ProjectionPlotDatas
 	}
 
 	public RawDataFile getRawDataFile(int item) {
-		return openedRawDataFiles[item];
+		return selectedRawDataFiles[item];
 	}
 
 }

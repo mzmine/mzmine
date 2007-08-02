@@ -18,7 +18,7 @@ public class ProjectionPlotWindow extends JInternalFrame implements ActionListen
 	private ProjectionPlotToolbar toolbar;
 	private ProjectionPlotPanel plot;
 	
-	public ProjectionPlotWindow(Desktop desktop, ProjectionPlotDataset dataset, PeakList peakList, SimpleParameterSet parameters) {
+	public ProjectionPlotWindow(Desktop desktop, ProjectionPlotDataset dataset, ProjectionPlotParameters parameters) {
 		super(null, true, true, true, true);
 		
 		this.desktop = desktop;
@@ -29,18 +29,18 @@ public class ProjectionPlotWindow extends JInternalFrame implements ActionListen
         plot = new ProjectionPlotPanel(this, dataset);
         add(plot, BorderLayout.CENTER);
         
-        String title = peakList.toString();
+        String title = parameters.getSourcePeakList().toString();
         title = title.concat(" : ");
         title = title.concat(dataset.toString());
-        if (parameters.getParameterValue(ProjectionPlot.MeasurementType)==ProjectionPlot.MeasurementTypeArea)
+        if (parameters.getPeakMeasuringMode()==parameters.PeakAreaOption)
         	title = title.concat(" (using peak areas)");
-        else
+        if (parameters.getPeakMeasuringMode()==parameters.PeakHeightOption)
         	title = title.concat(" (using peak heights)");
         this.setTitle(title);
         
         pack();
 
-        desktop.addInternalFrame(this);
+
 		
 	}
 	

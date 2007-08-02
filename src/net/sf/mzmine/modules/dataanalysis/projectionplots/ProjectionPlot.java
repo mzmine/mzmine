@@ -13,6 +13,9 @@ import net.sf.mzmine.data.impl.SimpleParameter;
 import net.sf.mzmine.data.impl.SimpleParameterSet;
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.main.MZmineModule;
+import net.sf.mzmine.modules.dataanalysis.intensityplot.IntensityPlotDialog;
+import net.sf.mzmine.modules.dataanalysis.intensityplot.IntensityPlotFrame;
+import net.sf.mzmine.modules.dataanalysis.intensityplot.IntensityPlotParameters;
 import net.sf.mzmine.userinterface.Desktop;
 import net.sf.mzmine.userinterface.Desktop.MZmineMenu;
 import net.sf.mzmine.userinterface.dialogs.ExitCode;
@@ -21,6 +24,7 @@ public class ProjectionPlot implements MZmineModule, ActionListener {
 
     private Logger logger = Logger.getLogger(this.getClass().getName());
     
+/*
     public static final String MeasurementTypeArea = "Area";
     public static final String MeasurementTypeHeight = "Height";
 
@@ -32,11 +36,11 @@ public class ProjectionPlot implements MZmineModule, ActionListener {
             "Peak measurement type",
             "Whether peak's area or height is used in computations",
             MeasurementTypeArea, MeasurementTypePossibleValues);    
-    
+*/    
 
     private Desktop desktop;
 
-    private SimpleParameterSet parameters;
+    private ProjectionPlotParameters parameters;
 	
 
 
@@ -45,11 +49,7 @@ public class ProjectionPlot implements MZmineModule, ActionListener {
      */
     public void initModule() {
 
-        this.desktop = MZmineCore.getDesktop();
-
-        parameters = new SimpleParameterSet(
-                new Parameter[] { MeasurementType });
-        
+        this.desktop = MZmineCore.getDesktop();       
         
         desktop.addMenuItem(MZmineMenu.ANALYSIS, "Principal component analysis (PCA)", this, "PCA_PLOT",
                 KeyEvent.VK_C, false, true);
@@ -63,66 +63,60 @@ public class ProjectionPlot implements MZmineModule, ActionListener {
         return "Projection plot analyzer";
     }    
     
-	public void setParameters(ParameterSet parameterValues) {
-		this.parameters = (SimpleParameterSet)parameterValues;
+	public void setParameters(ParameterSet parameters) {
+		this.parameters = (ProjectionPlotParameters)parameters;
 	}
 
-	public ParameterSet getParameterSet() {
+	public ProjectionPlotParameters getParameterSet() {
 		return parameters;
 	}
 	
 
 	public void actionPerformed(ActionEvent event) {
-		  
+	
 		
-		/*
-    	ProjectionPlotSetupDialog debugSetupDialog = new ProjectionPlotSetupDialog(desktop, null, parameters); 
-    	debugSetupDialog.setVisible(true);
-    	*/
-		
-        PeakList[] alignedPeakLists = desktop.getSelectedAlignedPeakLists();
-        
-        if (alignedPeakLists.length==0) {
-        	desktop.displayErrorMessage("Please select at least one aligned peak list.");
+        PeakList selectedAlignedPeakLists[] = desktop.getSelectedAlignedPeakLists();
+        if (selectedAlignedPeakLists.length != 1) {
+            desktop.displayErrorMessage("Please select a single aligned peaklist");
+            return;
         }
-        
-        String command = event.getActionCommand();
 
-        for (PeakList pl : alignedPeakLists) {
-        	
-        	if (pl.getRawDataFiles().length<2) {
-        		desktop.displayErrorMessage("Alignment " + pl.toString() + " contains less than two peak lists.");
-        		continue;
-        	}
+        if (selectedAlignedPeakLists[0].getNumberOfRows() == 0) {
+            desktop.displayErrorMessage("Selected alignment result is empty");
+            return;
+        }
 
-        	// Show opened raw data file selection and parameter setup dialog 
-        	//ParameterSetupDialog setupDialog = new ParameterSetupDialog(desktop.getMainFrame(), "Please set projection plot parameters", parameters);
-        	ProjectionPlotParameters parameterSet = new ProjectionPlotParameters(pl); 
-        	ProjectionPlotSetupDialog setupDialog = new ProjectionPlotSetupDialog(pl, parameterSet); 
+        logger.finest("Showing projection plot setup dialog");
 
-            setupDialog.setVisible(true);
+        if ((parameters==null) || (selectedAlignedPeakLists[0] != parameters.getSourcePeakList())) {
+            parameters = new ProjectionPlotParameters(
+                    selectedAlignedPeakLists[0]);
+        }
+
+        ProjectionPlotSetupDialog setupDialog = new ProjectionPlotSetupDialog(
+                selectedAlignedPeakLists[0], parameters);
+        setupDialog.setVisible(true);
+
+        if (setupDialog.getExitCode() == ExitCode.OK) {
+            logger.info("Opening new projection plot");
             
-        	if (setupDialog.getExitCode() != ExitCode.OK) {
-        		logger.info("Analysis cancelled.");
-        		return;
-        	}
-        	
-        	// Create dataset & paint scale
-        	ProjectionPlotDataset dataset = null;
-        	/*
+            ProjectionPlotDataset dataset = null;
+            
+            String command = event.getActionCommand();
         	if (command.equals("PCA_PLOT"))
-        		dataset = new PCADataset(pl, setupDialog.getColoringParameter(), setupDialog.getColorsForParameterValues(), parameters, 1, 2);
+        		dataset = new PCADataset(parameters, 1, 2);
         	
-        	
+        	/*
         	if (command.equals("CDA_PLOT"))
-        		dataset = new CDADataset(pl, parameters);
+        		dataset = new CDADataset();
         	*/
-
-        	// Create & show window
-        	ProjectionPlotWindow window = new ProjectionPlotWindow(desktop, dataset, pl, parameters);
-        	window.setVisible(true);
-
+        	          
+        	ProjectionPlotWindow newFrame = new ProjectionPlotWindow(desktop, dataset, parameters);       	
+            desktop.addInternalFrame(newFrame);
+            
         }
+		
+		
      
 	}
 

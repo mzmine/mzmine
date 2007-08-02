@@ -148,11 +148,14 @@ public class ProjectionPlotSetupDialog extends JDialog implements ActionListener
         layout.setConstraints(comp, constraints);
 
         Parameter projectParameters[] = MZmineCore.getCurrentProject().getParameters();
-        Object availableColoringStyles[] = new Object[projectParameters.length + 1];
-        availableColoringStyles[0] = ProjectionPlotParameters.ColoringByFileOption;
+        Object availableColoringStyles[] = new Object[projectParameters.length + 2];
+        availableColoringStyles[0] = ProjectionPlotParameters.ColoringSingleOption;
+        availableColoringStyles[1] = ProjectionPlotParameters.ColoringByFileOption;
         for (int i = 0; i < projectParameters.length; i++)
-        	availableColoringStyles[i + 1] = "Color by parameter " + projectParameters[i].getName();
+        	availableColoringStyles[i + 2] = "Color by parameter " + projectParameters[i].getName();
         comboColoringMethod = new JComboBox(availableColoringStyles);
+        if (parameterSet.getColoringMode() == parameterSet.ColoringSingleOption)
+        	comboColoringMethod.setSelectedItem(availableColoringStyles[0]);
         if (parameterSet.getColoringMode() == parameterSet.ColoringByFileOption)
         	comboColoringMethod.setSelectedItem(availableColoringStyles[0]);
         if ( (parameterSet.getColoringMode() == parameterSet.ColoringByParameterValueOption) &&
@@ -283,9 +286,12 @@ public class ProjectionPlotSetupDialog extends JDialog implements ActionListener
             parameterSet.setSourcePeakList(alignedPeakList);
             parameterSet.setSelectedDataFiles(selectedFiles.toArray(new RawDataFile[0]));
             parameterSet.setSelectedRows(selectedPeaks.toArray(new PeakListRow[0]));
-            if (comboColoringMethod.getSelectedIndex()<=0) 
+
+            if (comboColoringMethod.getSelectedItem()==parameterSet.ColoringSingleOption)
+            	parameterSet.setColoringMode(parameterSet.ColoringSingleOption);
+            if (comboColoringMethod.getSelectedItem()==parameterSet.ColoringByFileOption)
             	parameterSet.setColoringMode(parameterSet.ColoringByFileOption);
-            if (comboColoringMethod.getSelectedIndex()>0) {
+            if (comboColoringMethod.getSelectedIndex()>1) {
             	parameterSet.setColoringMode(parameterSet.ColoringByParameterValueOption);
             	parameterSet.setSelectedParameter((Parameter)comboColoringMethod.getSelectedItem());
             }
