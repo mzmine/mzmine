@@ -164,7 +164,7 @@ public class ProjectionPlotParameters implements StorableParameterSet {
 			int colorInd = 0;
 			for (RawDataFile rawDataFile : getSelectedDataFiles()) {
 				Object paramValue = currentProject.getParameterValue(selectedParameter, rawDataFile);
-				if (!colorsForParameterValues.containsKey(rawDataFile)) {
+				if (!colorsForParameterValues.containsKey(paramValue)) {
 					colorsForParameterValues.put(paramValue, colors[colorInd % colors.length]);
 					colorInd++;
 				}

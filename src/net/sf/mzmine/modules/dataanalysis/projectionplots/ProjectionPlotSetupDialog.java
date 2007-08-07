@@ -66,6 +66,8 @@ public class ProjectionPlotSetupDialog extends JDialog implements ActionListener
     private JComboBox comboColoringMethod;
     private JComboBox comboPeakMeasuringMethod;
     
+    private Parameter[] parametersInCombo;
+    
     private ExtendedCheckBox<RawDataFile> rawDataFileCheckBoxes[];
     private ExtendedCheckBox<PeakListRow> peakCheckBoxes[];
     private JButton btnSelectAllFiles, btnDeselectAllFiles, btnSelectAllPeaks,
@@ -149,10 +151,15 @@ public class ProjectionPlotSetupDialog extends JDialog implements ActionListener
 
         Parameter projectParameters[] = MZmineCore.getCurrentProject().getParameters();
         Object availableColoringStyles[] = new Object[projectParameters.length + 2];
+        parametersInCombo = new Parameter[projectParameters.length + 2];
         availableColoringStyles[0] = ProjectionPlotParameters.ColoringSingleOption;
         availableColoringStyles[1] = ProjectionPlotParameters.ColoringByFileOption;
-        for (int i = 0; i < projectParameters.length; i++)
+        parametersInCombo[0] = null;
+        parametersInCombo[1] = null;
+        for (int i = 0; i < projectParameters.length; i++) {
         	availableColoringStyles[i + 2] = "Color by parameter " + projectParameters[i].getName();
+        	parametersInCombo[i+2] = projectParameters[i];
+        }
         comboColoringMethod = new JComboBox(availableColoringStyles);
         if (parameterSet.getColoringMode() == parameterSet.ColoringSingleOption)
         	comboColoringMethod.setSelectedItem(availableColoringStyles[0]);
@@ -293,7 +300,8 @@ public class ProjectionPlotSetupDialog extends JDialog implements ActionListener
             	parameterSet.setColoringMode(parameterSet.ColoringByFileOption);
             if (comboColoringMethod.getSelectedIndex()>1) {
             	parameterSet.setColoringMode(parameterSet.ColoringByParameterValueOption);
-            	parameterSet.setSelectedParameter((Parameter)comboColoringMethod.getSelectedItem());
+            	Parameter selectedParameter = parametersInCombo[comboColoringMethod.getSelectedIndex()];
+            	parameterSet.setSelectedParameter(selectedParameter);
             }
             parameterSet.setPeakMeasuringMode(comboPeakMeasuringMethod.getSelectedItem());
 

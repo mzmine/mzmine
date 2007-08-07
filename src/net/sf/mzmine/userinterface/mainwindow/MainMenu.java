@@ -87,11 +87,11 @@ class MainMenu extends JMenuBar implements ActionListener {
                 KeyEvent.VK_X, true);
 
         filterMenu = new JMenu("Raw data filtering");
-        filterMenu.setMnemonic(KeyEvent.VK_R);
+        filterMenu.setMnemonic(KeyEvent.VK_F);
         this.add(filterMenu);
 
         peakMenu = new JMenu("Peak detection");
-        peakMenu.setMnemonic(KeyEvent.VK_P);
+        peakMenu.setMnemonic(KeyEvent.VK_D);
         this.add(peakMenu);
 
         alignmentMenu = new JMenu("Alignment");

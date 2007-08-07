@@ -1,6 +1,10 @@
 package net.sf.mzmine.modules.dataanalysis.projectionplots;
 
 import java.awt.Color;
+import java.io.BufferedWriter;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.io.PrintWriter;
 import java.util.HashMap;
 import java.util.Hashtable;
 
@@ -59,9 +63,9 @@ public class PCADataset extends AbstractXYDataset implements ProjectionPlotDatas
 		// Generate matrix of raw data (input to PCA)
 		double[][] rawData = new double[numOfRawData][numOfRows];
 		for (int rowIndex=0; rowIndex<numOfRows; rowIndex++) {
+			PeakListRow peakListRow = selectedPeakListRows[rowIndex];
 			for (int fileIndex=0; fileIndex<numOfRawData; fileIndex++) {
 				RawDataFile rawDataFile = selectedRawDataFiles[fileIndex];
-				PeakListRow peakListRow = selectedPeakListRows[fileIndex];
 				Peak p = peakListRow.getPeak(rawDataFile);
 				if (p!=null) {
 					if (useArea)
@@ -93,8 +97,8 @@ public class PCADataset extends AbstractXYDataset implements ProjectionPlotDatas
 			System.err.println("" + ex.toString());
 		}
 
-		for (int fileIndex=0; fileIndex<numOfRawData; fileIndex++) {
-			for (int rowIndex=0; rowIndex<numOfRows; rowIndex++) {
+		for (int rowIndex=0; rowIndex<numOfRows; rowIndex++) {
+			for (int fileIndex=0; fileIndex<numOfRawData; fileIndex++) {
 				writer.print(rawData[fileIndex][rowIndex]);
 				if (rowIndex<(numOfRows-1))
 					writer.print("\t");
