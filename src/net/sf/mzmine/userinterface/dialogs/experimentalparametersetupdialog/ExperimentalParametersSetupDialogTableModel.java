@@ -34,7 +34,6 @@ public class ExperimentalParametersSetupDialogTableModel extends
 	private Parameter[] parameters;
 	
 	public ExperimentalParametersSetupDialogTableModel(RawDataFile[] files, Hashtable<Parameter, Object[]> parameterValues) {
-		System.out.println("Initializing new table model with " + files.length  + " files and " + parameterValues.size() + " parameters");
 		this.files = files;
 		parameters = parameterValues.keySet().toArray(new Parameter[0]);
 		this.parameterValues = parameterValues;
@@ -54,12 +53,10 @@ public class ExperimentalParametersSetupDialogTableModel extends
 	}	
 	
 	public int getRowCount() {
-		System.out.println("getRowCount() is going to return " + files.length);
 		return files.length;
 	}
 
 	public Object getValueAt(int row, int col) {
-		System.out.println("Get value at row,col " + row + ", " + col);
 		if (col==0) return files[row].toString();
 		if (col>0) {
 			Parameter p = parameters[col-1];

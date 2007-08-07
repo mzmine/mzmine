@@ -111,7 +111,7 @@ public class ExperimentalParametersSetupDialog extends JDialog implements Action
     
 	public ExperimentalParametersSetupDialog() {
 		super(MZmineCore.getDesktop().getMainFrame(), true);
-		 
+		
 		categories = new DefaultListModel();
 		parameterValues = new Hashtable<Parameter, Object[]>();
 		
@@ -344,8 +344,14 @@ public class ExperimentalParametersSetupDialog extends JDialog implements Action
         for (Parameter parameter : parameters) {
         	currentProject.removeParameter(parameter);
         }
-		
-		// Create new parameters and set values
+        
+        // Add new experimental parameters
+		parameters = parameterValues.keySet().toArray(new Parameter[0]);
+		for (Parameter parameter : parameters) {
+			currentProject.addParameter(parameter);
+		}		
+        
+		// Set values for new parameters
 		for (int columnIndex=0; columnIndex<parameterValues.keySet().size(); columnIndex++) {
 			Parameter parameter = tablemodelParameterValues.getParameter(columnIndex+1);
 			
@@ -487,6 +493,7 @@ public class ExperimentalParametersSetupDialog extends JDialog implements Action
 							panelFreeTextFields.add(new JPanel());
 							panelFreeTextFields.add(new JPanel());
 							panelFreeTextFields.add(new JPanel());
+							panelFreeTextFields.setBorder(BorderFactory.createEmptyBorder(5,5,5,5));
 							
 						panelFreeText.add(radiobuttonFreeText, BorderLayout.NORTH);
 						panelFreeText.add(panelFreeTextFields, BorderLayout.CENTER);
