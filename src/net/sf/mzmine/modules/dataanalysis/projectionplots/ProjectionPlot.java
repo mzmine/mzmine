@@ -106,10 +106,8 @@ public class ProjectionPlot implements MZmineModule, ActionListener {
         	if (command.equals("PCA_PLOT"))
         		dataset = new PCADataset(parameters, 1, 2);
         	
-        	/*
         	if (command.equals("CDA_PLOT"))
-        		dataset = new CDADataset();
-        	*/
+        		dataset = new CDADataset(parameters, 1, 2);
         	          
         	ProjectionPlotWindow newFrame = new ProjectionPlotWindow(desktop, dataset, parameters);       	
             desktop.addInternalFrame(newFrame);
