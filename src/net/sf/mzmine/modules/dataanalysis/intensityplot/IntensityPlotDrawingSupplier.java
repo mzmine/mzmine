@@ -32,8 +32,8 @@ import org.jfree.chart.plot.DefaultDrawingSupplier;
  */
 class IntensityPlotDrawingSupplier extends DefaultDrawingSupplier {
 
-    // use shapes 1.5 times bigger than default
-    private final AffineTransform resizeTransform = AffineTransform.getScaleInstance(1.5, 1.5);
+    // use shapes 1.75 times bigger than default
+    private final AffineTransform resizeTransform = AffineTransform.getScaleInstance(1.75, 1.75);
     
     public Shape getNextShape() {
         Shape baseShape = super.getNextShape();
