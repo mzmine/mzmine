@@ -10,10 +10,16 @@ public interface ProjectionPlotDataset extends XYDataset {
 
 	public RawDataFile getRawDataFile(int item);
 	
-	public Color getColor(int item);
+	public int getGroupNumber(int item);
+	
+	public Object getGroupParameterValue(int groupNumber);
+	
+	public int getNumberOfGroups();
 	
 	public String getXLabel();
 	
 	public String getYLabel();
+	
+	
 	
 }

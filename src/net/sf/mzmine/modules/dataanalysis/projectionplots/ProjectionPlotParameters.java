@@ -15,8 +15,6 @@ import net.sf.mzmine.project.MZmineProject;
 
 public class ProjectionPlotParameters implements StorableParameterSet {
 
-	private static final Color[] colors = { Color.red, Color.green, Color.blue, Color.magenta, Color.lightGray, Color.orange};
-	
     private PeakList sourcePeakList;
 	
 	// XML elements
@@ -135,50 +133,5 @@ public class ProjectionPlotParameters implements StorableParameterSet {
 	public void setSourcePeakList(PeakList sourcePeakList) {
 		this.sourcePeakList = sourcePeakList;
 	}
-	
-	public Hashtable<RawDataFile, Color> getColorsForSelectedFiles() {
-		
-		/* 
-		 * Projection plot colors are automatically picked here according to the current coloring mode. 
-		 */
-				
-		Hashtable<RawDataFile, Color> colorsForSelectedFiles = new Hashtable<RawDataFile, Color>();
-		
-		if (coloringMode == this.ColoringSingleOption) {
-			for (RawDataFile rawDataFile : getSelectedDataFiles()) {
-				colorsForSelectedFiles.put(rawDataFile, colors[0]);
-			}
-		}
-		
-		if (coloringMode == ColoringByFileOption) {
-			int colorInd = 0;
-			for (RawDataFile rawDataFile : getSelectedDataFiles()) {
-				colorsForSelectedFiles.put(rawDataFile, colors[colorInd % colors.length]);
-				colorInd++;
-			}
-		}
-		if (coloringMode == ColoringByParameterValueOption) {
-			// Collect all parameter values
-			MZmineProject currentProject = MZmineCore.getCurrentProject();
-			Hashtable<Object, Color> colorsForParameterValues = new Hashtable<Object, Color>();
-			int colorInd = 0;
-			for (RawDataFile rawDataFile : getSelectedDataFiles()) {
-				Object paramValue = currentProject.getParameterValue(selectedParameter, rawDataFile);
-				if (!colorsForParameterValues.containsKey(paramValue)) {
-					colorsForParameterValues.put(paramValue, colors[colorInd % colors.length]);
-					colorInd++;
-				}
-				Color color = colorsForParameterValues.get(paramValue);
-				colorsForSelectedFiles.put(rawDataFile, color);
-			}
-			
-			
-		}
-		
-		return colorsForSelectedFiles;
-		
-	}
-
-	
 	
 }

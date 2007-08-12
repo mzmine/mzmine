@@ -7,6 +7,8 @@ import java.awt.event.ActionListener;
 
 import javax.swing.JInternalFrame;
 
+import org.jfree.chart.renderer.xy.XYItemRenderer;
+
 import net.sf.mzmine.data.PeakList;
 import net.sf.mzmine.data.impl.SimpleParameterSet;
 import net.sf.mzmine.userinterface.Desktop;
@@ -52,7 +54,12 @@ public class ProjectionPlotWindow extends JInternalFrame implements ActionListen
         	AxesSetupDialog dialog = new AxesSetupDialog((Frame)desktop, plot.getChart().getXYPlot());
         	dialog.setVisible(true);
         }
-               
+       
+        if (command.equals("TOGGLE_LABELS")) {
+        	XYItemRenderer rend = plot.getChart().getXYPlot().getRenderer();
+        	rend.setBaseItemLabelsVisible(!rend.getBaseItemLabelsVisible());
+        }
+
 	}
 
 }

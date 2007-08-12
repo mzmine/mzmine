@@ -15,7 +15,10 @@ public class ProjectionPlotToolbar extends JToolBar {
 	
 	static final Icon axesIcon = new ImageIcon("icons/axesicon.png");
 	
+	static final Icon labelsIcon = new ImageIcon("icons/annotationsicon.png");
+	
 	private JButton axesButton;
+	private JButton labelsButton;
 	
 	public ProjectionPlotToolbar(ProjectionPlotWindow masterFrame) {
         super(JToolBar.VERTICAL);
@@ -27,7 +30,12 @@ public class ProjectionPlotToolbar extends JToolBar {
       
         axesButton = GUIUtils.addButton(this, null, axesIcon, masterFrame,
                 "SETUP_AXES", "Setup ranges for axes");
-	        
+        
+        addSeparator();
+        
+        labelsButton = GUIUtils.addButton(this, null, labelsIcon, masterFrame,
+                "TOGGLE_LABELS", "Toggle sample names");
+
 	}
 	
 	

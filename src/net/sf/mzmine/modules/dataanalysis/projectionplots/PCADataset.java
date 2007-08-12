@@ -6,7 +6,9 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Hashtable;
+import java.util.Vector;
 
 import jmprojection.PCA;
 import jmprojection.Preprocess;
@@ -16,6 +18,8 @@ import net.sf.mzmine.data.PeakList;
 import net.sf.mzmine.data.PeakListRow;
 import net.sf.mzmine.data.impl.SimpleParameterSet;
 import net.sf.mzmine.io.RawDataFile;
+import net.sf.mzmine.main.MZmineCore;
+import net.sf.mzmine.project.MZmineProject;
 
 import org.jfree.data.xy.AbstractXYDataset;
 
@@ -23,9 +27,16 @@ public class PCADataset extends AbstractXYDataset implements ProjectionPlotDatas
 
 	private double[] component1Coords;
 	private double[] component2Coords;
-	private Color[] colors;
-	private RawDataFile[] selectedRawDataFiles;
 
+	private Parameter selectedParameter;
+	
+	private RawDataFile[] selectedRawDataFiles;
+	private PeakListRow[] selectedRows;
+	
+	private int[] groupsForSelectedRawDataFiles;
+	private Object[] parameterValuesForGroups;
+	int numberOfGroups;
+	
 	private String datasetTitle;
 	private int xAxisPC;
 	private int yAxisPC;
@@ -36,8 +47,9 @@ public class PCADataset extends AbstractXYDataset implements ProjectionPlotDatas
 		this.xAxisPC = xAxisPC;
 		this.yAxisPC = yAxisPC;
 
-		int numOfRawData = parameters.getSelectedDataFiles().length;
-		int numOfRows = parameters.getSelectedRows().length;
+		selectedParameter = parameters.getSelectedParameter();
+		selectedRawDataFiles = parameters.getSelectedDataFiles();
+		selectedRows = parameters.getSelectedRows();
 
 		boolean useArea = true;
 		if (parameters.getPeakMeasuringMode()==parameters.PeakAreaOption)
@@ -48,23 +60,50 @@ public class PCADataset extends AbstractXYDataset implements ProjectionPlotDatas
 		datasetTitle = "Principal component analysis";
 
 		
-		selectedRawDataFiles = parameters.getSelectedDataFiles();
+		// Determine groups for selected raw data files
+		groupsForSelectedRawDataFiles = new int[selectedRawDataFiles.length];
 		
-		// Set colors for files
-		Hashtable<RawDataFile, Color> colorsForFiles = parameters.getColorsForSelectedFiles();
-		colors = new Color[parameters.getSelectedDataFiles().length];
-		for (int fileIndex=0; fileIndex<numOfRawData; fileIndex++) {
-			Color color = colorsForFiles.get(selectedRawDataFiles[fileIndex]);
-			colors[fileIndex] = color;
+		if (parameters.getColoringMode()==parameters.ColoringSingleOption) {
+			// All files to a single group
+			for (int ind=0; ind<selectedRawDataFiles.length; ind++)
+				groupsForSelectedRawDataFiles[ind] = 0;
+			
+			numberOfGroups = 1;	
 		}
 
-		PeakListRow[] selectedPeakListRows = parameters.getSelectedRows();
+		if (parameters.getColoringMode()==parameters.ColoringByFileOption) {
+			// Each file to own group
+			for (int ind=0; ind<selectedRawDataFiles.length; ind++)
+				groupsForSelectedRawDataFiles[ind] = ind;
+			
+			numberOfGroups = selectedRawDataFiles.length;
+		}		
+		
+		if (parameters.getColoringMode()==parameters.ColoringByParameterValueOption) {
+			// Group files with same parameter value to same group
+			MZmineProject project = MZmineCore.getCurrentProject();
+			Vector<Object> availableParameterValues = new Vector<Object>(); 
+			for (RawDataFile rawDataFile : selectedRawDataFiles) {
+				Object paramValue = project.getParameterValue(selectedParameter, rawDataFile);
+				if (!availableParameterValues.contains(paramValue))
+					availableParameterValues.add(paramValue);
+			}
+			
+			for (int ind=0; ind<selectedRawDataFiles.length; ind++) {
+				Object paramValue = project.getParameterValue(selectedParameter, selectedRawDataFiles[ind]);
+				groupsForSelectedRawDataFiles[ind] = availableParameterValues.indexOf(paramValue);  
+			}
+			parameterValuesForGroups = availableParameterValues.toArray();
+			
+			numberOfGroups = parameterValuesForGroups.length;
+		}
+
 		
 		// Generate matrix of raw data (input to PCA)
-		double[][] rawData = new double[numOfRawData][numOfRows];
-		for (int rowIndex=0; rowIndex<numOfRows; rowIndex++) {
-			PeakListRow peakListRow = selectedPeakListRows[rowIndex];
-			for (int fileIndex=0; fileIndex<numOfRawData; fileIndex++) {
+		double[][] rawData = new double[selectedRawDataFiles.length][selectedRows.length];
+		for (int rowIndex=0; rowIndex<selectedRows.length; rowIndex++) {
+			PeakListRow peakListRow = selectedRows[rowIndex];
+			for (int fileIndex=0; fileIndex<selectedRawDataFiles.length; fileIndex++) {
 				RawDataFile rawDataFile = selectedRawDataFiles[fileIndex];
 				Peak p = peakListRow.getPeak(rawDataFile);
 				if (p!=null) {
@@ -134,9 +173,6 @@ public class PCADataset extends AbstractXYDataset implements ProjectionPlotDatas
 		return datasetTitle;
 	}
 
-	public Color getColor(int item) {
-		return colors[item];
-	}
 
 	public String getXLabel() {
 		if (xAxisPC==1) return "1st PC";
@@ -179,4 +215,21 @@ public class PCADataset extends AbstractXYDataset implements ProjectionPlotDatas
 		return selectedRawDataFiles[item];
 	}
 
+	public int getGroupNumber(int item) {
+		return groupsForSelectedRawDataFiles[item];
+	}
+
+	public Object getGroupParameterValue(int groupNumber) {
+		if (parameterValuesForGroups==null) return null;
+		if ((parameterValuesForGroups.length-1)<groupNumber) return null;
+		return parameterValuesForGroups[groupNumber];
+	}
+
+	public int getNumberOfGroups() {
+		return numberOfGroups;
+	}
+	
+	
+
+	
 }
