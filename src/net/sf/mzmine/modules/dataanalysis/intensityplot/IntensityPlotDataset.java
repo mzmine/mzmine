@@ -21,6 +21,7 @@ package net.sf.mzmine.modules.dataanalysis.intensityplot;
 
 import java.util.Arrays;
 import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.List;
 
 import net.sf.mzmine.data.Parameter;
@@ -60,7 +61,7 @@ class IntensityPlotDataset extends AbstractDataset implements
         if (xAxisValueSource instanceof Parameter) {
             MZmineProject project = MZmineCore.getCurrentProject();
             Parameter xAxisParameter = (Parameter) xAxisValueSource;
-            HashSet<Comparable> parameterValues = new HashSet<Comparable>();
+            LinkedHashSet<Comparable> parameterValues = new LinkedHashSet<Comparable>();
             for (RawDataFile file : selectedFiles) {
                 Object value = project.getParameterValue(xAxisParameter, file);
                 parameterValues.add((Comparable) value);
@@ -78,7 +79,7 @@ class IntensityPlotDataset extends AbstractDataset implements
     Peak[] getPeaks(int row, int column) {
         return getPeaks(xValues[column], selectedRows[row]);
     }
-    
+
     Peak[] getPeaks(Comparable xValue, PeakListRow row) {
         RawDataFile files[] = getFiles(xValue);
         Peak[] peaks = new Peak[files.length];
@@ -87,12 +88,11 @@ class IntensityPlotDataset extends AbstractDataset implements
         }
         return peaks;
     }
-    
+
     RawDataFile[] getFiles(int column) {
         return getFiles(xValues[column]);
     }
-    
-    
+
     RawDataFile[] getFiles(Comparable xValue) {
         if (xAxisValueSource == IntensityPlotParameters.DataFileOption) {
             RawDataFile columnFile = selectedFiles[getColumnIndex(xValue)];
@@ -117,7 +117,8 @@ class IntensityPlotDataset extends AbstractDataset implements
         Peak[] peaks = getPeaks(xValues[column], selectedRows[row]);
         HashSet<Float> values = new HashSet<Float>();
         for (int i = 0; i < peaks.length; i++) {
-            if (peaks[i] == null) continue;
+            if (peaks[i] == null)
+                continue;
             if (yAxisValueSource == IntensityPlotParameters.PeakHeightOption)
                 values.add(peaks[i].getHeight());
             if (yAxisValueSource == IntensityPlotParameters.PeakAreaOption)
@@ -126,7 +127,8 @@ class IntensityPlotDataset extends AbstractDataset implements
                 values.add(peaks[i].getRT());
         }
         float floatValues[] = CollectionUtils.toFloatArray(values);
-        if (floatValues.length == 0) return 0;
+        if (floatValues.length == 0)
+            return 0;
         float mean = MathUtils.calcAvg(floatValues);
         return mean;
     }
@@ -137,13 +139,15 @@ class IntensityPlotDataset extends AbstractDataset implements
 
     public Number getStdDevValue(int row, int column) {
         Peak[] peaks = getPeaks(xValues[column], selectedRows[row]);
-        
+
         // if we have only 1 peak, there is no standard deviation
-        if (peaks.length == 1) return 0;
-        
+        if (peaks.length == 1)
+            return 0;
+
         HashSet<Float> values = new HashSet<Float>();
         for (int i = 0; i < peaks.length; i++) {
-            if (peaks[i] == null) continue;
+            if (peaks[i] == null)
+                continue;
             if (yAxisValueSource == IntensityPlotParameters.PeakHeightOption)
                 values.add(peaks[i].getHeight());
             if (yAxisValueSource == IntensityPlotParameters.PeakAreaOption)
