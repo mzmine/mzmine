@@ -110,11 +110,11 @@ public class OldTwoDPlot extends JPanel implements ActionListener, MouseListener
 	public void datasetUpdating() {
 			
 		// Check scale
-		imageScaleMinMZ = dataset.getCurrentMinMZ();
-		imageScaleMaxMZ = dataset.getCurrentMaxMZ();
+		imageScaleMinMZ = dataset.getMinMZ();
+		imageScaleMaxMZ = dataset.getMaxMZ();
 		
-		imageScaleMinRT = dataset.getCurrentMinRT();
-		imageScaleMaxRT = dataset.getCurrentMaxRT();		
+		imageScaleMinRT = dataset.getMinRT();
+		imageScaleMaxRT = dataset.getMaxRT();		
 		
 		// Check time since last bitmap construction
 		if (false) {
@@ -125,14 +125,13 @@ public class OldTwoDPlot extends JPanel implements ActionListener, MouseListener
 	
 	
 	public void datasetUpdateReady() {
-		System.out.println("Plot: dataset update is ready.");
 		
 		// Check scale
-		imageScaleMinMZ = dataset.getCurrentMinMZ();
-		imageScaleMaxMZ = dataset.getCurrentMaxMZ();
+		imageScaleMinMZ = dataset.getMinMZ();
+		imageScaleMaxMZ = dataset.getMaxMZ();
 		
-		imageScaleMinRT = dataset.getCurrentMinRT();
-		imageScaleMaxRT = dataset.getCurrentMaxRT();
+		imageScaleMinRT = dataset.getMinRT();
+		imageScaleMaxRT = dataset.getMaxRT();
 		
 		// Update bitmap
 		bitmapImage = constructBitmap();
@@ -153,9 +152,7 @@ public class OldTwoDPlot extends JPanel implements ActionListener, MouseListener
 		// Get suitable color space and maximum intensity value
 		ColorSpace cs = ColorSpace.getInstance(ColorSpace.CS_GRAY);
 		float dataImgMax = dataset.getMaxIntensity();
-
-		//System.out.println("dataImgMax=" + dataImgMax);
-		
+	
 		// How many 8-bit components are used for representing shade of color in this color space?
 		int nComp = cs.getNumComponents();
 		int[] nBits = new int[nComp];
@@ -178,16 +175,13 @@ public class OldTwoDPlot extends JPanel implements ActionListener, MouseListener
 				
 				bb = 0;
 				bb = (double)((0.20*dataImgMax-bitmapMatrix[xpos][ypos])/(0.20*dataImgMax));
-				//System.out.print("" + bb + ", ");
 				if (bb<0) { bb = 0; }
 				b[0] = (byte)(255*bb);
 
 				sampleModel.setDataElements(xpos,ypos,b,dataBuffer);
 			}
-			//System.out.println();
 
 		}
-		//System.out.println();
 
 		WritableRaster wr = Raster.createWritableRaster(sampleModel,dataBuffer, new Point(0,0));
 		BufferedImage bi = new BufferedImage(colorModel, wr,true,null);
@@ -210,11 +204,6 @@ public class OldTwoDPlot extends JPanel implements ActionListener, MouseListener
 		
 		if (bitmapImage != null) {
 
-			/*
-			System.out.println("plot, width=" + getWidth() + ", height=" + getHeight());
-			System.out.println("Bitmap image, width=" + bitmapImage.getWidth() + ", height=" + bitmapImage.getHeight());
-			 */
-			
 			Graphics2D g2d = (Graphics2D)g;
 			g2d.drawRenderedImage(bitmapImage, AffineTransform.getScaleInstance(w/bitmapImage.getWidth(),h/bitmapImage.getHeight()));
 

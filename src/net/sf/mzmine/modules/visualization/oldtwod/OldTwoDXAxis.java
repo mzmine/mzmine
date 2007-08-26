@@ -32,8 +32,8 @@ public class OldTwoDXAxis extends JPanel {
         int minX = 0;
         int maxX = 0;
         if (desktop!=null) {
-        	minX = dataset.getCurrentMinScan();
-        	maxX = dataset.getCurrentMaxScan();
+        	minX = dataset.getMinScan();
+        	maxX = dataset.getMaxScan();
         }
         
 		int w = getWidth();

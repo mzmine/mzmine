@@ -125,19 +125,37 @@ public class OldTwoDVisualizerWindow extends JInternalFrame implements
     	
     }
 
+    
+    public void switchCentroidContinousMode() {
+    	boolean interpolate = dataset.isInterpolated();
+
+    	dataset.resampleIntensityMatrix(!interpolate);
+    	   	
+    }
+    
     public void setFullZoom(int msLevel) {
     	
         // if we have not added this frame before, do it now
         if (getParent() == null)
             desktop.addInternalFrame(this);
         
+        // Determine maximum zoom settings
     	float rtMin = dataFile.getDataMinRT(msLevel);
     	float rtMax = dataFile.getDataMaxRT(msLevel);
-    	
     	float mzMin = dataFile.getDataMinMZ(msLevel);
     	float mzMax = dataFile.getDataMaxMZ(msLevel);
+
+        // Determine x resolution (rt resolution)
+        int xResolution = twoDPlot.getWidth();
+        int[] scanNumbers = dataFile.getScanNumbers(msLevel, rtMin, rtMax);
+        if (scanNumbers.length < xResolution) xResolution = scanNumbers.length;
+
+        // Use previous interpolate setting (default to no interpolation)
+        boolean interpolate = false;
+        if (dataset!=null) interpolate = dataset.isInterpolated();
+
     	
-    	dataset.resampleIntensityMatrix(msLevel, rtMin, rtMax, mzMin, mzMax, twoDPlot.getWidth(), twoDPlot.getHeight());
+    	dataset.resampleIntensityMatrix(msLevel, rtMin, rtMax, mzMin, mzMax, twoDPlot.getWidth(), twoDPlot.getHeight(), interpolate);
     }
     
     public void setZoomRange(int msLevel, float rtMin, float rtMax, float mzMin, float mzMax) {
@@ -145,25 +163,17 @@ public class OldTwoDVisualizerWindow extends JInternalFrame implements
         // if we have not added this frame before, do it now
         if (getParent() == null)
             desktop.addInternalFrame(this);
-        
-        
-        System.out.println("zooming to range");
-        System.out.println("rtMin=" + rtMin);
-        System.out.println("rtMax=" + rtMax);
-        System.out.println("mzMin=" + mzMin);
-        System.out.println("mzMax=" + mzMax);       
-        
+      
+        // Determine x resolution (rt resolution)
         int xResolution = twoDPlot.getWidth();
         int[] scanNumbers = dataFile.getScanNumbers(msLevel, rtMin, rtMax);
-        
-        System.out.println("twoDPlot.getWidth() = " + twoDPlot.getWidth());
-        System.out.println("scanNumbers.length = " + scanNumbers.length);
-        
         if (scanNumbers.length < xResolution) xResolution = scanNumbers.length;
-        
-        System.out.println("xResolution = " + xResolution);
 
-        dataset.resampleIntensityMatrix(msLevel, rtMin, rtMax, mzMin, mzMax, xResolution, twoDPlot.getHeight());
+        // Use previous interpolate setting (default to no interpolation)
+        boolean interpolate = false;
+        if (dataset!=null) interpolate = dataset.isInterpolated();
+        
+        dataset.resampleIntensityMatrix(msLevel, rtMin, rtMax, mzMin, mzMax, xResolution, twoDPlot.getHeight(), interpolate);
     	
     }
     
@@ -188,8 +198,8 @@ public class OldTwoDVisualizerWindow extends JInternalFrame implements
 
         String command = event.getActionCommand();
 
-        if (command.equals("SHOW_DATA_POINTS")) {
-            // TODO
+        if (command.equals("TOGGLE_PLOT_MODE")) {
+        	switchCentroidContinousMode();
         }
 
     }
@@ -202,6 +212,8 @@ public class OldTwoDVisualizerWindow extends JInternalFrame implements
             desktop.displayErrorMessage("Error while updating 2D visualizer: "
                     + task.getErrorMessage());
         }
+        
+        repaint();
 
     }
 

@@ -51,15 +51,12 @@ public class OldTwoDToolBar extends JToolBar {
                 "TOGGLE_PLOT_MODE", "Toggle centroid/continuous mode");
         
         addSeparator();
-        
-        GUIUtils.addButton(this, null, dataPointsIcon, masterFrame,
-                "SHOW_DATA_POINTS",
-                "Toggle displaying of data points in continuous mode");
-        
-        addSeparator();
-        
+             
         GUIUtils.addButton(this, null, annotationsIcon, masterFrame,
                 "SHOW_ANNOTATIONS", "Toggle displaying of peak values");
+        
+        
+        // TODO: Add button(s) for selecting palette mode (and palette setup?)
 
     }
 

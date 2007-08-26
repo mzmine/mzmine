@@ -30,8 +30,8 @@ public class OldTwoDYAxis extends JPanel {
 		double minY = 0.0;
 		double maxY = 0.0;
 		if (dataset!=null) {
-			minY = dataset.getCurrentMinMZ();
-			maxY = dataset.getCurrentMaxMZ();
+			minY = dataset.getMinMZ();
+			maxY = dataset.getMaxMZ();
 		}	
 
 		Desktop desktop = MZmineCore.getDesktop();

@@ -65,11 +65,15 @@ public class OldTwoDDataSet implements RawDataAcceptor {
     private OldTwoDVisualizerWindow visualizer;
 
     private float intensityMatrix[][];
+    private int mzResolution, rtResolution; 
+    
+    private boolean interpolate;
        
     // bounds for rendered data range
     private int scanMin, scanMax;
     private float rtMin, rtMax, rtStep;
     private float mzMin, mzMax, mzStep;
+    private int msLevel;
 
     // max intensity in current image
     private float maxIntensity;
@@ -85,23 +89,26 @@ public class OldTwoDDataSet implements RawDataAcceptor {
 
     }
     
+    public void resampleIntensityMatrix(boolean interpolate) {
+    	resampleIntensityMatrix(this.msLevel, this.rtMin, this.rtMax, this.mzMin,
+				this.mzMax, this.rtResolution, this.mzResolution, interpolate);
+    }
+    
     public void resampleIntensityMatrix(int msLevel, float rtMin, float rtMax, float mzMin,
-            							float mzMax, int rtResolution, int mzResolution) {
-
-    	System.out.println("resampleIntensityMatrix");
-    	System.out.println("msLevel=" + msLevel);
-    	System.out.println("rtMin=" + rtMin);
-    	System.out.println("rtMax=" + rtMax);
-    	System.out.println("mzMin=" + mzMin);
-    	System.out.println("mzMax=" + mzMax);
+            							float mzMax, int rtResolution, int mzResolution, boolean interpolate) {
     	
-    	
+    	this.msLevel = msLevel;
     	this.rtMin = rtMin;
         this.rtMax = rtMax;
         this.mzMin = mzMin;
         this.mzMax = mzMax;
+        this.mzResolution = mzResolution;
+        this.rtResolution = rtResolution; 
+        this.interpolate = interpolate;
+        
         this.rtStep = (rtMax - rtMin) / (rtResolution - 1);
         this.mzStep = (mzMax - mzMin) / (mzResolution - 1);
+
         intensityMatrix = new float[rtResolution][mzResolution];
       
         int scanNumbers[] = rawDataFile.getScanNumbers(msLevel, rtMin, rtMax);
@@ -112,7 +119,6 @@ public class OldTwoDDataSet implements RawDataAcceptor {
         	if (scanNumber<scanMin) scanMin = scanNumber;
         	if (scanNumber>scanMax) scanMax = scanNumber;
         }
-        
 
         currentTask = new RawDataRetrievalTask(rawDataFile, scanNumbers,
                 "Updating 2D visualizer of " + rawDataFile, this);
@@ -144,7 +150,7 @@ public class OldTwoDDataSet implements RawDataAcceptor {
         float mzValues[] = scan.getMZValues();
         float intensityValues[] = scan.getIntensityValues();
 
-        float binnedIntensities[] = ScanUtils.binValues(mzValues, intensityValues, mzMin, mzMax, bitmapSizeY, false, BinningType.SUM);
+        float binnedIntensities[] = ScanUtils.binValues(mzValues, intensityValues, mzMin, mzMax, bitmapSizeY, interpolate, BinningType.SUM);
         
         for (int i = 0; i < bitmapSizeY; i++) {
 
@@ -168,6 +174,10 @@ public class OldTwoDDataSet implements RawDataAcceptor {
     public float[][] getCurrentIntensityMatrix() {
         return intensityMatrix;
     }
+    
+    public boolean isInterpolated() {
+    	return interpolate;
+    }
 
     /*
     public float getRetentionTime(int xIndex) {
@@ -189,27 +199,31 @@ public class OldTwoDDataSet implements RawDataAcceptor {
     	return rawDataFile.getScan(scanNumber).getRetentionTime();
     }
     
-    public int getCurrentMinScan() { 
+    public int getMSLevel() {
+    	return msLevel;
+    }
+    
+    public int getMinScan() { 
     	return scanMin;
     }
     
-    public int getCurrentMaxScan() {
+    public int getMaxScan() {
     	return scanMax;
     }
     
-    public float getCurrentMinRT() {
+    public float getMinRT() {
     	return rtMin;
     }
     
-    public float getCurrentMaxRT() {
+    public float getMaxRT() {
     	return rtMax;
     }
     
-    public float getCurrentMinMZ() {
+    public float getMinMZ() {
     	return mzMin;
     }
     
-    public float getCurrentMaxMZ() {
+    public float getMaxMZ() {
     	return mzMax;
     }
     
