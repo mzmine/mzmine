@@ -6,6 +6,7 @@
     <module class="net.sf.mzmine.modules.visualization.tic.TICVisualizer"/>  
     <module class="net.sf.mzmine.modules.visualization.spectra.SpectraVisualizer"/>  
     <module class="net.sf.mzmine.modules.visualization.twod.TwoDVisualizer"/>  
+    <module class="net.sf.mzmine.modules.visualization.oldtwod.OldTwoDVisualizer"/>  
     <module class="net.sf.mzmine.modules.visualization.threed.ThreeDVisualizer"/>  
     <module class="net.sf.mzmine.modules.visualization.neutralloss.NeutralLossVisualizer"/>  
     <module class="net.sf.mzmine.util.menu.VisualizationMenuSeparator"/>  
