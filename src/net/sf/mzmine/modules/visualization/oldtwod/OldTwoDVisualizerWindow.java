@@ -149,13 +149,13 @@ public class OldTwoDVisualizerWindow extends JInternalFrame implements
         int xResolution = twoDPlot.getWidth();
         int[] scanNumbers = dataFile.getScanNumbers(msLevel, rtMin, rtMax);
         if (scanNumbers.length < xResolution) xResolution = scanNumbers.length;
-
+        
         // Use previous interpolate setting (default to no interpolation)
         boolean interpolate = false;
         if (dataset!=null) interpolate = dataset.isInterpolated();
 
     	
-    	dataset.resampleIntensityMatrix(msLevel, rtMin, rtMax, mzMin, mzMax, twoDPlot.getWidth(), twoDPlot.getHeight(), interpolate);
+    	dataset.resampleIntensityMatrix(msLevel, rtMin, rtMax, mzMin, mzMax, xResolution, twoDPlot.getHeight(), interpolate);
     }
     
     public void setZoomRange(int msLevel, float rtMin, float rtMax, float mzMin, float mzMax) {
