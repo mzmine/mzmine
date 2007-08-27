@@ -12,7 +12,7 @@ import net.sf.mzmine.userinterface.Desktop;
 public class OldTwoDXAxis extends JPanel {
 
 	private final int leftMargin = 100;
-	private final int rightMargin = 5;
+	private final int rightMargin = 50;
 
 	private OldTwoDDataSet dataset;
 
@@ -31,14 +31,9 @@ public class OldTwoDXAxis extends JPanel {
 
         float minRT = 0;
         float maxRT = 0;
-        int minScan = 0;
-        int maxScan = 0;
         if (dataset!=null) {
         	minRT = dataset.getMinRT();
         	maxRT = dataset.getMaxRT();
-        	
-        	minScan = dataset.getMinScan();
-        	maxScan = dataset.getMaxScan();
         }
         
 		int w = getWidth();

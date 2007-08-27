@@ -30,6 +30,8 @@ import java.awt.image.Raster;
 import java.awt.image.SampleModel;
 import java.awt.image.WritableRaster;
 import java.util.Date;
+import java.util.Hashtable;
+import java.util.Vector;
 import java.util.logging.Logger;
 
 import net.sf.mzmine.data.PeakList;
@@ -65,14 +67,13 @@ public class OldTwoDDataSet implements RawDataAcceptor {
     private OldTwoDVisualizerWindow visualizer;
 
     private float intensityMatrix[][];
-    private int mzResolution, rtResolution; 
-    
+    private int mzResolution, rtResolution;
+
     private boolean interpolate;
        
     // bounds for rendered data range
-    private int scanMin, scanMax;
-    private float rtMin, rtMax, rtStep;
-    private float mzMin, mzMax, mzStep;
+    private double rtMin, rtMax, rtStep;
+    private double mzMin, mzMax, mzStep;
     private int msLevel;
 
     // max intensity in current image
@@ -94,33 +95,40 @@ public class OldTwoDDataSet implements RawDataAcceptor {
 				this.mzMax, this.rtResolution, this.mzResolution, interpolate);
     }
     
-    public void resampleIntensityMatrix(int msLevel, float rtMin, float rtMax, float mzMin,
-            							float mzMax, int rtResolution, int mzResolution, boolean interpolate) {
+    public void resampleIntensityMatrix(int msLevel, double desiredRTMin, double desiredRTMax, double mzMin,
+            							double mzMax, int desiredRTResolution, int mzResolution, boolean interpolate) {
     	
     	this.msLevel = msLevel;
-    	this.rtMin = rtMin;
-        this.rtMax = rtMax;
         this.mzMin = mzMin;
         this.mzMax = mzMax;
         this.mzResolution = mzResolution;
-        this.rtResolution = rtResolution; 
         this.interpolate = interpolate;
+
+        // Pickup scan number within given rt range
+        int[] scanNumbersForRetrieval = rawDataFile.getScanNumbers(msLevel, (float)desiredRTMin, (float)desiredRTMax);
         
-        this.rtStep = (rtMax - rtMin) / (rtResolution - 1);
-        this.mzStep = (mzMax - mzMin) / (mzResolution - 1);
-
-        intensityMatrix = new float[rtResolution][mzResolution];
-      
-        int scanNumbers[] = rawDataFile.getScanNumbers(msLevel, rtMin, rtMax);
-        assert scanNumbers != null;
-        scanMin = scanNumbers[0];
-        scanMax = scanNumbers[scanNumbers.length-1];
-        for (int scanNumber : scanNumbers) {
-        	if (scanNumber<scanMin) scanMin = scanNumber;
-        	if (scanNumber>scanMax) scanMax = scanNumber;
+        // Adjust rt resolution if there are less scans that desired resolution
+        rtResolution = desiredRTResolution;
+        if (scanNumbersForRetrieval.length<rtResolution) rtResolution = scanNumbersForRetrieval.length; 
+        
+        // Find minimum and maximum RT of scans within range 
+        rtMin = Float.MAX_VALUE;
+        rtMax = Float.MIN_VALUE;
+        for (int scanNumber : scanNumbersForRetrieval) {
+        	float rt = rawDataFile.getScan(scanNumber).getRetentionTime();
+        	if (rtMin>rt) rtMin=rt;
+        	if (rtMax<rt) rtMax=rt;
         }
+        
+        // Initialize intensity matrix
+        intensityMatrix = new float[rtResolution][mzResolution];
 
-        currentTask = new RawDataRetrievalTask(rawDataFile, scanNumbers,
+        // Bin sizes
+        this.rtStep = (rtMax - rtMin) / (rtResolution-1);
+        this.mzStep = (mzMax - mzMin) / mzResolution;
+
+        
+        currentTask = new RawDataRetrievalTask(rawDataFile, scanNumbersForRetrieval,
                 "Updating 2D visualizer of " + rawDataFile, this);
 
         MZmineCore.getTaskController().addTask(currentTask, TaskPriority.HIGH, visualizer);
@@ -139,18 +147,24 @@ public class OldTwoDDataSet implements RawDataAcceptor {
         bitmapSizeX = intensityMatrix.length;
         bitmapSizeY = intensityMatrix[0].length;
 
+        System.out.print("Adding scan with scan.getRetentionTime()=" + scan.getRetentionTime());
+        System.out.println(", rtMin=" + rtMin + ", rtMax=" + rtMax);
+        
         if ((scan.getRetentionTime() < rtMin)
                 || (scan.getRetentionTime() > rtMax))
             return;
+        
+        System.out.println("scan.getRetentionTime() - rtMin = " + ((scan.getRetentionTime() - rtMin)/rtStep));
 
         int xIndex = (int) Math.floor((scan.getRetentionTime() - rtMin)
                 / rtStep);
 
-      
+        System.out.println("xIndex=" + xIndex);
+              
         float mzValues[] = scan.getMZValues();
         float intensityValues[] = scan.getIntensityValues();
 
-        float binnedIntensities[] = ScanUtils.binValues(mzValues, intensityValues, mzMin, mzMax, bitmapSizeY, interpolate, BinningType.SUM);
+        float binnedIntensities[] = ScanUtils.binValues(mzValues, intensityValues, (float)mzMin, (float)mzMax, bitmapSizeY, interpolate, BinningType.SUM);
         
         for (int i = 0; i < bitmapSizeY; i++) {
 
@@ -171,7 +185,7 @@ public class OldTwoDDataSet implements RawDataAcceptor {
     }
 
 
-    public float[][] getCurrentIntensityMatrix() {
+    public float[][] getIntensityMatrix() {
         return intensityMatrix;
     }
     
@@ -179,59 +193,30 @@ public class OldTwoDDataSet implements RawDataAcceptor {
     	return interpolate;
     }
 
-    /*
-    public float getRetentionTime(int xIndex) {
-    	return retentionTimes[xIndex];
-    }
-    
-    public float getXIndex(float retentionTime) {
-
-    	for (int xIndex=0; xIndex<(retentionTimes.length-1); xIndex++) {
-    		if (retentionTimes[xIndex+1]>retentionTime)
-    			return xIndex;
-    	}
-    	
-    	return (retentionTimes.length-1);
-    		
-    }
-    */
-    public float getRetentionTime(int scanNumber) {
-    	return rawDataFile.getScan(scanNumber).getRetentionTime();
-    }
-    
     public int getMSLevel() {
     	return msLevel;
     }
     
-    public int getMinScan() { 
-    	return scanMin;
-    }
-    
-    public int getMaxScan() {
-    	return scanMax;
-    }
-    
     public float getMinRT() {
-    	return rtMin;
+    	return (float)rtMin;
     }
     
     public float getMaxRT() {
-    	return rtMax;
+    	return (float)rtMax;
     }
     
     public float getMinMZ() {
-    	return mzMin;
+    	return (float)mzMin;
     }
     
     public float getMaxMZ() {
-    	return mzMax;
+    	return (float)mzMax;
     }
     
     public float getMaxIntensity() {
     	return maxIntensity;
     }
-    
-    
+       
     public int getStatus() {
     	if (currentTask == null) return NO_DATA;
     	if ((currentTask.getStatus() == Task.TaskStatus.FINISHED) ||

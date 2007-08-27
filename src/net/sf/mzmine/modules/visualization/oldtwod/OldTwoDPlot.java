@@ -29,46 +29,34 @@ import net.sf.mzmine.data.PeakListRow;
 
 public class OldTwoDPlot extends JPanel implements ActionListener, MouseListener, MouseMotionListener {
 
-	
-	
 	private OldTwoDDataSet dataset;
 	
-	private Vector<PeakListRow> peakListRows;
-
-	private float selectionFirstClickRT;
-	private float selectionFirstClickMZ;
-	private float selectionLastClickRT;
-	private float selectionLastClickMZ;
-
 	private JPopupMenu popupMenu;
 
 	private JMenuItem zoomToSelectionMenuItem;
 	private JMenuItem zoomOutMenuItem;
 	private JMenuItem zoomOutLittleMenuItem;
-	private JMenuItem zoomSameToOthersMenuItem;
 
 	private JMenuItem selectNearestPeakMenuItem;
 
-	private JMenuItem setPalLin1MenuItem;
-	private JMenuItem setPalLin2MenuItem;
-	private JMenuItem setPalLin3MenuItem;
-	private JMenuItem setPalLogMenuItem;
-	private JMenuItem setPalHeatmapMenuItem;
-
 	private OldTwoDVisualizerWindow visualizerWindow;
-
-	private float mouseCursorPositionRT;
-	private float mouseCursorPositionMZ;
 	
-	private float mouseAreaStartRT;
-	private float mouseAreaEndRT;
-	private float mouseAreaStartMZ;
-	private float mouseAreaEndMZ;
+	private int mouseCursorPositionX;
+	private int mouseCursorPositionY;
+	
+	private int selectionFirstClickX = -1;
+	private int selectionFirstClickY = -1;
+	private int selectionLastClickX = -1;
+	private int selectionLastClickY = -1;
+	
+	private int mouseAreaStartX;
+	private int mouseAreaStartY;
+	private int mouseAreaStopX;
+	private int mouseAreaStopY;
 	
 	private BufferedImage bitmapImage;
-	private float imageScaleMinRT,imageScaleMaxRT;
-	private float imageScaleMinMZ, imageScaleMaxMZ;
 
+	
 	public OldTwoDPlot(OldTwoDVisualizerWindow visualizerWindow, OldTwoDDataSet dataset) {
 
 		this.visualizerWindow = visualizerWindow;
@@ -97,43 +85,19 @@ public class OldTwoDPlot extends JPanel implements ActionListener, MouseListener
 
 	    popupMenu.addSeparator();
 
-	    selectionFirstClickRT = -1;
-	    selectionFirstClickMZ = -1;
-	    selectionLastClickRT = -1;
-	    selectionLastClickMZ = -1;
-
 	    addMouseListener(this);
 	    addMouseMotionListener(this);
 
 	}
 
 	public void datasetUpdating() {
-			
-		// Check scale
-		imageScaleMinMZ = dataset.getMinMZ();
-		imageScaleMaxMZ = dataset.getMaxMZ();
-		
-		imageScaleMinRT = dataset.getMinRT();
-		imageScaleMaxRT = dataset.getMaxRT();		
-		
-		// Check time since last bitmap construction
-		if (false) {
-			// Update bitmap
-			// Update timestamp
-		}
+		// TODO
 	}
 	
 	
 	public void datasetUpdateReady() {
 		
-		// Check scale
-		imageScaleMinMZ = dataset.getMinMZ();
-		imageScaleMaxMZ = dataset.getMaxMZ();
-		
-		imageScaleMinRT = dataset.getMinRT();
-		imageScaleMaxRT = dataset.getMaxRT();
-		
-		// Update bitmap
+		// Update bitmap			
 		bitmapImage = constructBitmap();
 		
 	}
@@ -143,9 +107,10 @@ public class OldTwoDPlot extends JPanel implements ActionListener, MouseListener
 	private BufferedImage constructBitmap() {
 
 		
-		float[][] bitmapMatrix = dataset.getCurrentIntensityMatrix();
-		int bitmapYSize = bitmapMatrix[0].length;;
+		float[][] bitmapMatrix = dataset.getIntensityMatrix();
 		int bitmapXSize = bitmapMatrix.length;
+		int bitmapYSize = bitmapMatrix[0].length;;
+		
 		
 		
 		
@@ -206,13 +171,9 @@ public class OldTwoDPlot extends JPanel implements ActionListener, MouseListener
 
 			Graphics2D g2d = (Graphics2D)g;
 			g2d.drawRenderedImage(bitmapImage, AffineTransform.getScaleInstance(w/bitmapImage.getWidth(),h/bitmapImage.getHeight()));
-
-			float x,y;
-			int y1,y2,x1,x2;
-
-			
-
+	
 			// Draw peaks
+			/*
 			g.setColor(Color.green);
 			if (peakListRows!=null) {
 
@@ -255,53 +216,80 @@ public class OldTwoDPlot extends JPanel implements ActionListener, MouseListener
 				}
 
 			}
-
-			// Draw Scan cursor position
-			x = mouseCursorPositionRT;
-			x2 = (int)java.lang.Math.round((double)w * ((double)(x-imageScaleMinRT) / (double)(imageScaleMaxRT-imageScaleMinRT+1)));
-			g.setColor(Color.red);
-			g.drawLine(x2,0,x2,(int)h);
+			*/
 			
-
-			// Draw MZ cursor position
-			y = mouseCursorPositionMZ;
-			y2 = (int)java.lang.Math.round((double)h * ((double)(y-imageScaleMinMZ) / (double)(imageScaleMaxMZ-imageScaleMinMZ)));
+			// Draw cursor position x-coordinate => scan
 			g.setColor(Color.red);
-			g.drawLine(0,(int)(h-y2),(int)w,(int)(h-y2));
+			g.drawLine(mouseCursorPositionX, 0, mouseCursorPositionX, (int)h);
+			
+			// Draw cursor position y-coordinate => m/z
+			g.setColor(Color.red);
+			g.drawLine(0, mouseCursorPositionY, (int)w, mouseCursorPositionY);
 			
 			// Draw selection
-			x = mouseAreaStartRT;
-			x1 = (int)java.lang.Math.round((double)w * ((double)(x-imageScaleMinRT) / (double)(imageScaleMaxRT-imageScaleMinRT+1)));
-			x = mouseAreaEndRT;
-			x2 = (int)java.lang.Math.round((double)w * ((double)(x-imageScaleMinRT) / (double)(imageScaleMaxRT-imageScaleMinRT+1)));
-			y = mouseAreaStartMZ;
-			y1 = (int)java.lang.Math.round((double)h * ((double)(y-imageScaleMinMZ) / (double)(imageScaleMaxMZ-imageScaleMinMZ)));
-			y = mouseAreaEndMZ;
-			y2 = (int)java.lang.Math.round((double)h * ((double)(y-imageScaleMinMZ) / (double)(imageScaleMaxMZ-imageScaleMinMZ)));
 			g.setColor(Color.blue);
-			g.drawRect(x1,(int)(h-y2),x2-x1,(int)(y2-y1));
-
-
+			g.drawRect(mouseAreaStartX, mouseAreaStartY, mouseAreaStopX-mouseAreaStartX, mouseAreaStopY-mouseAreaStartY);
+			
 		}
 	}
 
 
-
+	private int convertPlotXCoordinateToIntensityMatrixXIndex(int xCoordinate) {
+		return (int)java.lang.Math.floor( ((float)xCoordinate / (float)getWidth()) * (float)dataset.getIntensityMatrix().length);
+	}
+	
+	private float convertPlotYCoordinateToMZ(int yCoordinate) {
+		float dataMZRangeWidth = dataset.getMaxMZ()-dataset.getMinMZ();
+		return ( ( (float)getHeight()-(float)yCoordinate ) / (float)getHeight() ) * dataMZRangeWidth + dataset.getMinMZ(); 
+	}
+	
+	private float convertPlotXCoordinateToRT(int xCoordinate) {
+		float dataRTRangeWidth = dataset.getMaxRT()-dataset.getMinRT();
+		return ( (float)xCoordinate / (float)getWidth() ) * dataRTRangeWidth + dataset.getMinRT(); 
+	}	
+	
+	private int quantizePlotXCoordinateToIntensityMatrixXIndex(int xCoordinate) {
+		int xSteps = dataset.getIntensityMatrix().length;
+		double xStepInPixels = (double)getWidth() / (double)xSteps;
+		
+		int nearestStep = 0;
+		for (int xStep=0; xStep<xSteps; xStep++)
+			if (
+					java.lang.Math.abs(xStep*xStepInPixels-xCoordinate) <
+					java.lang.Math.abs(nearestStep*xStepInPixels-xCoordinate)
+					) nearestStep = xStep;
+					
+		return (int)java.lang.Math.round(nearestStep * xStepInPixels);
+		
+	}
+	
 	public void actionPerformed(java.awt.event.ActionEvent e) {
 
 		Object src = e.getSource();
 
 		if (src == zoomToSelectionMenuItem) {
-
-
-			float rangeMinMZ = mouseAreaStartMZ;
-			float rangeMaxMZ = mouseAreaEndMZ;
 			
-			float rangeMinRT = mouseAreaStartRT;
-			float rangeMaxRT = mouseAreaEndRT;
+			
+			
+			float rangeMaxMZ = convertPlotYCoordinateToMZ(mouseAreaStartY);
+			float rangeMinMZ = convertPlotYCoordinateToMZ(mouseAreaStopY);
+			
+			float rangeMinRT = convertPlotXCoordinateToRT(mouseAreaStartX);
+			float rangeMaxRT = convertPlotXCoordinateToRT(mouseAreaStopX);
+
+			System.out.println("zoomToSelectionMenuItem");
+			System.out.println("mouseAreaStartY=" + mouseAreaStartY);
+			System.out.println("mouseAreaStopY=" + mouseAreaStopY);
+			System.out.println("mouseAreaStartX=" + mouseAreaStartX);
+			System.out.println("mouseAreaStopX=" + mouseAreaStopX);			
+
+			System.out.println("rangeMinMZ=" + rangeMinMZ);
+			System.out.println("rangeMaxMZ=" + rangeMaxMZ);
+			System.out.println("rangeMinRT=" + rangeMinRT);
+			System.out.println("rangeMaxRT=" + rangeMaxRT);			
 			
 			visualizerWindow.setZoomRange(1, rangeMinRT, rangeMaxRT, rangeMinMZ, rangeMaxMZ);
-			
+
 		}
 
 		if (src == zoomOutMenuItem) {
@@ -327,10 +315,10 @@ public class OldTwoDPlot extends JPanel implements ActionListener, MouseListener
 	    if (e.getButton()!=MouseEvent.BUTTON1) {
 			popupMenu.show(e.getComponent(), e.getX(), e.getY());
 	    } else {
-			selectionFirstClickRT = -1;
-			selectionFirstClickMZ = -1;
-			selectionLastClickRT = -1;
-			selectionLastClickMZ = -1;
+			selectionFirstClickX = -1;
+			selectionFirstClickY = -1;
+			selectionLastClickX = -1;
+			selectionLastClickY = -1;
 	    }
 
 	}
@@ -341,29 +329,20 @@ public class OldTwoDPlot extends JPanel implements ActionListener, MouseListener
 		lastPressedButtonWas = e.getButton();
 
 	    if (e.getButton()==MouseEvent.BUTTON1) {
-			int w = getWidth();
-			double diff_x_dat = imageScaleMaxRT - imageScaleMinRT;
-			double diff_x_scr = w;
-			double xpos = java.lang.Math.round((imageScaleMinRT + diff_x_dat*e.getX()/diff_x_scr));
-
-			int h = getHeight();
-			double diff_y_dat = imageScaleMaxMZ - imageScaleMinMZ;
-			double diff_y_scr = h;
-			double ypos = (imageScaleMinMZ + diff_y_dat*(double)(h - e.getY())/diff_y_scr);
-
-			selectionFirstClickRT = (float)xpos;
-			selectionFirstClickMZ = (float)ypos;
-
-			mouseCursorPositionRT = (float)xpos;
-			mouseCursorPositionMZ = (float)ypos;
-			
-			mouseAreaStartRT = (float)xpos;
-			mouseAreaEndRT = (float)xpos;
-			mouseAreaStartMZ = (float)ypos;
-			mouseAreaEndMZ = (float)ypos;
-
-			zoomToSelectionMenuItem.setEnabled(false);
-				
+	    	
+	    	int w = getWidth();
+	    	int h = getHeight();
+	    	
+	    	mouseCursorPositionX = quantizePlotXCoordinateToIntensityMatrixXIndex(e.getX());
+	    	mouseCursorPositionY = e.getY();
+	    	
+	    	zoomToSelectionMenuItem.setEnabled(false);
+	    	
+	    	mouseAreaStartX = -1;
+	    	mouseAreaStartY = -1;
+	    	mouseAreaStopX = -1;
+	    	mouseAreaStopY = -1;
+	    	
 			repaint();
 			
 	    }
@@ -374,56 +353,43 @@ public class OldTwoDPlot extends JPanel implements ActionListener, MouseListener
 
 		if (lastPressedButtonWas!=MouseEvent.BUTTON1) { return; }
 
-		int w = getWidth();
-		double diff_x_dat = imageScaleMaxRT - imageScaleMinRT;
-		double diff_x_scr = w;
-		int xpos = (int)java.lang.Math.round((imageScaleMinRT + diff_x_dat*e.getX()/diff_x_scr));
-
-		int h = getHeight();
-		double diff_y_dat = imageScaleMaxMZ - imageScaleMinMZ;
-		double diff_y_scr = h;
-		double ypos = (imageScaleMinMZ + diff_y_dat*(double)(h - e.getY())/diff_y_scr);
-
-
-		if (selectionFirstClickRT == -1) {
-			selectionFirstClickRT = xpos;
-			selectionFirstClickMZ = (float)ypos;
-			//rawData.setCursorPosition(xpos,ypos);
+		if (selectionFirstClickX == -1) {
+			
+			selectionFirstClickX = quantizePlotXCoordinateToIntensityMatrixXIndex(e.getX());
+			selectionFirstClickY = e.getY();
+			mouseCursorPositionX = selectionFirstClickX;
+			mouseCursorPositionY = selectionFirstClickY;
+			
 		} else {
-			selectionLastClickRT = xpos;
-			selectionLastClickMZ = (float)ypos;
+			
+			selectionLastClickX = quantizePlotXCoordinateToIntensityMatrixXIndex(e.getX());
+			selectionLastClickY = e.getY();
 
-			if (selectionLastClickRT<imageScaleMinRT) { selectionLastClickRT = imageScaleMinRT; }
-			if (selectionLastClickRT>imageScaleMaxRT) { selectionLastClickRT = imageScaleMaxRT; }
-
-			if (selectionLastClickMZ<imageScaleMinMZ) { selectionLastClickMZ = imageScaleMinMZ; }
-			if (selectionLastClickMZ>imageScaleMaxMZ) { selectionLastClickMZ = imageScaleMaxMZ; }
-
-
-			if (selectionLastClickRT>selectionFirstClickRT) {
-				mouseAreaStartRT = selectionFirstClickRT;
-				mouseAreaEndRT = selectionLastClickRT;
+			if (selectionLastClickX>selectionFirstClickX) {
+				mouseAreaStartX = selectionFirstClickX;
+				mouseAreaStopX = selectionLastClickX;
 			} else {
-				mouseAreaStartRT = selectionLastClickRT;
-				mouseAreaEndRT = selectionFirstClickRT;
+				mouseAreaStartX = selectionLastClickX;
+				mouseAreaStopX = selectionFirstClickX;
 			}
 
-			if (selectionLastClickMZ>selectionFirstClickMZ) {
-				mouseAreaStartMZ = selectionFirstClickMZ;
-				mouseAreaEndMZ = selectionLastClickMZ;
+			if (selectionLastClickY>selectionFirstClickY) {
+				mouseAreaStartY = selectionFirstClickY;
+				mouseAreaStopY = selectionLastClickY;
 			} else {
-				mouseAreaStartMZ = selectionLastClickMZ;
-				mouseAreaEndMZ = selectionFirstClickMZ;
+				mouseAreaStartY = selectionLastClickY;
+				mouseAreaStopY = selectionFirstClickY;
 			}
 
 			zoomToSelectionMenuItem.setEnabled(true);
 
 			repaint();
+			
 		}
-
+				
 	}
 
-
 	public void mouseMoved(MouseEvent e) {}
+
 }
 
