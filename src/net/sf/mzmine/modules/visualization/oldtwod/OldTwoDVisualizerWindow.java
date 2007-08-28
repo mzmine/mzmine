@@ -45,7 +45,8 @@ import net.sf.mzmine.util.CursorPosition;
 public class OldTwoDVisualizerWindow extends JInternalFrame implements
         RawDataVisualizer, ActionListener, TaskListener {
 
-    private OldTwoDToolBar toolBar;
+	private OldTwoDTitlePanel twoDTitle;
+	private OldTwoDToolBar toolBar;
     private OldTwoDPlot twoDPlot;
     private OldTwoDXAxis twoDXAxis;
     private OldTwoDYAxis twoDYAxis;
@@ -74,11 +75,13 @@ public class OldTwoDVisualizerWindow extends JInternalFrame implements
         dataset = new OldTwoDDataSet(dataFile, this);
         
 
-		JPanel topPnl = new JPanel();
-		topPnl.setMinimumSize(new Dimension(getWidth(),5));
-		topPnl.setPreferredSize(new Dimension(getWidth(),5));
-		topPnl.setBackground(Color.white);
-		getContentPane().add(topPnl, java.awt.BorderLayout.NORTH);
+        twoDTitle = new OldTwoDTitlePanel(); 
+        /*
+        twoDTitle.setMinimumSize(new Dimension(getWidth(),5));
+        twoDTitle.setPreferredSize(new Dimension(getWidth(),5));
+        */
+        twoDTitle.setBackground(Color.white);
+		getContentPane().add(twoDTitle, java.awt.BorderLayout.NORTH);
 		
         twoDXAxis = new OldTwoDXAxis(dataset);
         twoDXAxis.setMinimumSize(new Dimension(getWidth(),25));
@@ -167,6 +170,18 @@ public class OldTwoDVisualizerWindow extends JInternalFrame implements
         
         dataset.resampleIntensityMatrix(msLevel, rtMin, rtMax, mzMin, mzMax, twoDPlot.getWidth(), twoDPlot.getHeight(), interpolate);
     	
+    }
+    
+    public void setCursorPosition(float mz, float rt) {
+    	twoDTitle.setCursorPosition(mz,rt);
+    }
+    
+    public void setRangePosition(float mz, float rt) {
+    	twoDTitle.setRangePosition(mz, rt);
+    }
+    
+    public void clearRangePosition() {
+    	twoDTitle.clearRangePosition();
     }
     
     void updateTitle() {

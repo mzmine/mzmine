@@ -20,15 +20,21 @@ import java.awt.image.SampleModel;
 import java.awt.image.WritableRaster;
 import java.util.Vector;
 
+import javax.swing.JDialog;
 import javax.swing.JMenuItem;
 import javax.swing.JPanel;
 import javax.swing.JPopupMenu;
 
 import net.sf.mzmine.data.Peak;
 import net.sf.mzmine.data.PeakListRow;
+import net.sf.mzmine.modules.visualization.tic.TICSetupDialog;
 
 public class OldTwoDPlot extends JPanel implements ActionListener, MouseListener, MouseMotionListener {
 
+	private static final float zoomOutLittleFactor = 1.5f;
+	
+	private static final float defaultOneSidedXICWidth = 0.05f;
+	
 	private OldTwoDDataSet dataset;
 	
 	private JPopupMenu popupMenu;
@@ -37,7 +43,8 @@ public class OldTwoDPlot extends JPanel implements ActionListener, MouseListener
 	private JMenuItem zoomOutMenuItem;
 	private JMenuItem zoomOutLittleMenuItem;
 
-	private JMenuItem selectNearestPeakMenuItem;
+	private JMenuItem showSpectrumPlotMenuItem;
+	private JMenuItem showXICPlotMenuItem;
 
 	private OldTwoDVisualizerWindow visualizerWindow;
 	
@@ -79,10 +86,14 @@ public class OldTwoDPlot extends JPanel implements ActionListener, MouseListener
 
 	    popupMenu.addSeparator();
 
-	    selectNearestPeakMenuItem = new JMenuItem("Select nearest peak");
-	    selectNearestPeakMenuItem.addActionListener(this);
-	    popupMenu.add(selectNearestPeakMenuItem);
+	    showSpectrumPlotMenuItem = new JMenuItem("Open a spectrum plot");
+	    showSpectrumPlotMenuItem.addActionListener(this);
+	    popupMenu.add(showSpectrumPlotMenuItem);
 
+	    showXICPlotMenuItem = new JMenuItem("Open an XIC plot");
+	    showXICPlotMenuItem.addActionListener(this);
+	    popupMenu.add(showXICPlotMenuItem);	    
+	    
 	    popupMenu.addSeparator();
 
 	    addMouseListener(this);
@@ -268,28 +279,22 @@ public class OldTwoDPlot extends JPanel implements ActionListener, MouseListener
 		Object src = e.getSource();
 
 		if (src == zoomToSelectionMenuItem) {
-			
-			
-			
+					
 			float rangeMaxMZ = convertPlotYCoordinateToMZ(mouseAreaStartY);
 			float rangeMinMZ = convertPlotYCoordinateToMZ(mouseAreaStopY);
 			
 			float rangeMinRT = convertPlotXCoordinateToRT(mouseAreaStartX);
 			float rangeMaxRT = convertPlotXCoordinateToRT(mouseAreaStopX);
-
-			System.out.println("zoomToSelectionMenuItem");
-			System.out.println("mouseAreaStartY=" + mouseAreaStartY);
-			System.out.println("mouseAreaStopY=" + mouseAreaStopY);
-			System.out.println("mouseAreaStartX=" + mouseAreaStartX);
-			System.out.println("mouseAreaStopX=" + mouseAreaStopX);			
-
-			System.out.println("rangeMinMZ=" + rangeMinMZ);
-			System.out.println("rangeMaxMZ=" + rangeMaxMZ);
-			System.out.println("rangeMinRT=" + rangeMinRT);
-			System.out.println("rangeMaxRT=" + rangeMaxRT);			
 			
 			visualizerWindow.setZoomRange(1, rangeMinRT, rangeMaxRT, rangeMinMZ, rangeMaxMZ);
 
+			mouseCursorPositionX = 0;
+			mouseCursorPositionY = 0;
+			
+	    	float mz = convertPlotYCoordinateToMZ(mouseCursorPositionY);
+	    	float rt = convertPlotXCoordinateToRT(mouseCursorPositionX);
+	    	visualizerWindow.setCursorPosition(mz, rt);
+			
 		}
 
 		if (src == zoomOutMenuItem) {
@@ -297,13 +302,37 @@ public class OldTwoDPlot extends JPanel implements ActionListener, MouseListener
 		}
 
 		if (src == zoomOutLittleMenuItem) {
-			// TODO
+
+			float currentRangeMidMZ = 0.5f * (dataset.getMinMZ() + dataset.getMaxMZ());
+			float newRangeMinMZ = currentRangeMidMZ - zoomOutLittleFactor * (currentRangeMidMZ-dataset.getMinMZ());
+			float newRangeMaxMZ = currentRangeMidMZ + zoomOutLittleFactor * (dataset.getMaxMZ()-currentRangeMidMZ);
+
+			float currentRangeMidRT = 0.5f * (dataset.getMinRT() + dataset.getMaxRT());
+			float newRangeMinRT = currentRangeMidRT - zoomOutLittleFactor * (currentRangeMidRT-dataset.getMinRT());
+			float newRangeMaxRT = currentRangeMidRT + zoomOutLittleFactor * (dataset.getMaxRT()-currentRangeMidRT);
+
+			visualizerWindow.setZoomRange(1, newRangeMinRT, newRangeMaxRT, newRangeMinMZ, newRangeMaxMZ);
 		}
 
-		if (src == selectNearestPeakMenuItem) {
-			// TODO 
+		if (src == showSpectrumPlotMenuItem) { 
+			float cursorRT = convertPlotXCoordinateToRT(mouseCursorPositionX);
+			System.out.println("About to open spectrum dialog with RT=" + cursorRT);
+
 		}
 
+		if (src == showXICPlotMenuItem) {
+			float cursorMZ = convertPlotYCoordinateToMZ(mouseCursorPositionY);
+			System.out.println("About to open XIC setup dialog with m/z=" + cursorMZ);
+
+			
+            JDialog setupDialog = new TICSetupDialog(dataset.getRawDataFile(),
+                    cursorMZ-defaultOneSidedXICWidth,
+                    cursorMZ+defaultOneSidedXICWidth, null);
+            setupDialog.setVisible(true);
+			
+		}
+		
+		
 	}
 
 	public void mouseClicked(MouseEvent e) {}
@@ -319,6 +348,8 @@ public class OldTwoDPlot extends JPanel implements ActionListener, MouseListener
 			selectionFirstClickY = -1;
 			selectionLastClickX = -1;
 			selectionLastClickY = -1;
+			
+			visualizerWindow.clearRangePosition();
 	    }
 
 	}
@@ -335,6 +366,10 @@ public class OldTwoDPlot extends JPanel implements ActionListener, MouseListener
 	    	
 	    	mouseCursorPositionX = quantizePlotXCoordinateToIntensityMatrixXIndex(e.getX());
 	    	mouseCursorPositionY = e.getY();
+	    	
+	    	float mz = convertPlotYCoordinateToMZ(mouseCursorPositionY);
+	    	float rt = convertPlotXCoordinateToRT(mouseCursorPositionX);
+	    	visualizerWindow.setCursorPosition(mz, rt);
 	    	
 	    	zoomToSelectionMenuItem.setEnabled(false);
 	    	
@@ -359,6 +394,11 @@ public class OldTwoDPlot extends JPanel implements ActionListener, MouseListener
 			selectionFirstClickY = e.getY();
 			mouseCursorPositionX = selectionFirstClickX;
 			mouseCursorPositionY = selectionFirstClickY;
+
+			float mz = convertPlotYCoordinateToMZ(mouseCursorPositionY);
+	    	float rt = convertPlotXCoordinateToRT(mouseCursorPositionX);
+	    	visualizerWindow.setCursorPosition(mz, rt);
+			
 			
 		} else {
 			
@@ -380,6 +420,11 @@ public class OldTwoDPlot extends JPanel implements ActionListener, MouseListener
 				mouseAreaStartY = selectionLastClickY;
 				mouseAreaStopY = selectionFirstClickY;
 			}
+			
+			
+			float mz = convertPlotYCoordinateToMZ(selectionLastClickY);
+	    	float rt = convertPlotXCoordinateToRT(selectionLastClickX);
+	    	visualizerWindow.setRangePosition(mz, rt);
 
 			zoomToSelectionMenuItem.setEnabled(true);
 

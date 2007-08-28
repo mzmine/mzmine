@@ -146,21 +146,14 @@ public class OldTwoDDataSet implements RawDataAcceptor {
         
         bitmapSizeX = intensityMatrix.length;
         bitmapSizeY = intensityMatrix[0].length;
-
-        System.out.print("Adding scan with scan.getRetentionTime()=" + scan.getRetentionTime());
-        System.out.println(", rtMin=" + rtMin + ", rtMax=" + rtMax);
         
         if ((scan.getRetentionTime() < rtMin)
                 || (scan.getRetentionTime() > rtMax))
             return;
         
-        System.out.println("scan.getRetentionTime() - rtMin = " + ((scan.getRetentionTime() - rtMin)/rtStep));
-
         int xIndex = (int) Math.floor((scan.getRetentionTime() - rtMin)
                 / rtStep);
 
-        System.out.println("xIndex=" + xIndex);
-              
         float mzValues[] = scan.getMZValues();
         float intensityValues[] = scan.getIntensityValues();
 
@@ -228,5 +221,8 @@ public class OldTwoDDataSet implements RawDataAcceptor {
     	
     	return LOADING_DATA;
     }
-    
+
+    public RawDataFile getRawDataFile() {
+    	return rawDataFile;
+    }
 }
