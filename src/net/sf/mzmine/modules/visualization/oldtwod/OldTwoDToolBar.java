@@ -53,7 +53,7 @@ public class OldTwoDToolBar extends JToolBar {
         addSeparator();
              
         GUIUtils.addButton(this, null, annotationsIcon, masterFrame,
-                "SHOW_ANNOTATIONS", "Toggle displaying of peak values");
+                "SHOW_ANNOTATIONS", "Toggle displaying of peaks");
         
         
         // TODO: Add button(s) for selecting palette mode (and palette setup?)

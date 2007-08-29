@@ -68,6 +68,8 @@ public class OldTwoDDataSet implements RawDataAcceptor {
 
     private float intensityMatrix[][];
     private int mzResolution, rtResolution;
+    
+    private Hashtable<Integer, Vector<Integer>> scanNumbers;
 
     private boolean interpolate;
        
@@ -112,20 +114,24 @@ public class OldTwoDDataSet implements RawDataAcceptor {
         if (scanNumbersForRetrieval.length<rtResolution) rtResolution = scanNumbersForRetrieval.length; 
         
         // Find minimum and maximum RT of scans within range 
-        rtMin = Float.MAX_VALUE;
-        rtMax = Float.MIN_VALUE;
+        rtMin = Double.MAX_VALUE;
+        rtMax = Double.MIN_VALUE;
         for (int scanNumber : scanNumbersForRetrieval) {
-        	float rt = rawDataFile.getScan(scanNumber).getRetentionTime();
+        	double rt = rawDataFile.getScan(scanNumber).getRetentionTime();
         	if (rtMin>rt) rtMin=rt;
         	if (rtMax<rt) rtMax=rt;
         }
         
         // Initialize intensity matrix
         intensityMatrix = new float[rtResolution][mzResolution];
+        
+        scanNumbers = new Hashtable<Integer, Vector<Integer>>();
+        for (int xIndex=0; xIndex<rtResolution; xIndex++)
+        	scanNumbers.put(xIndex, new Vector<Integer>());
 
         // Bin sizes
-        this.rtStep = (rtMax - rtMin) / (rtResolution-1);
-        this.mzStep = (mzMax - mzMin) / mzResolution;
+        this.rtStep = (rtMax - rtMin) / ((double)rtResolution-1);
+        this.mzStep = (mzMax - mzMin) / (double)mzResolution;
 
         
         currentTask = new RawDataRetrievalTask(rawDataFile, scanNumbersForRetrieval,
@@ -151,8 +157,15 @@ public class OldTwoDDataSet implements RawDataAcceptor {
                 || (scan.getRetentionTime() > rtMax))
             return;
         
-        int xIndex = (int) Math.floor((scan.getRetentionTime() - rtMin)
-                / rtStep);
+        int xIndex = (int) Math.round(((double)scan.getRetentionTime() - (double)rtMin)
+                / (double)rtStep);
+        
+        System.out.println("Adding scan @rt=" + scan.getRetentionTime());
+        System.out.println("(scan.getRetentionTime() - rtMin) / rtStep = " + ( (scan.getRetentionTime() - rtMin) / rtStep ));
+        System.out.println("xIndex=" + xIndex);
+
+        Vector<Integer> scanNumbersForXIndex = scanNumbers.get(xIndex);
+        scanNumbersForXIndex.add(scan.getScanNumber());
 
         float mzValues[] = scan.getMZValues();
         float intensityValues[] = scan.getIntensityValues();
@@ -180,6 +193,28 @@ public class OldTwoDDataSet implements RawDataAcceptor {
 
     public float[][] getIntensityMatrix() {
         return intensityMatrix;
+    }
+    
+    /**
+     * Return the smallest scan number mapped to xIndex
+     */
+    public Integer getScanNumber(int xIndex) {
+    	Vector<Integer> scanNumbersForXIndex = scanNumbers.get(xIndex);
+    	if (scanNumbersForXIndex==null) return null;
+    	if (scanNumbersForXIndex.size()==0) return null;
+    	Integer minValue = scanNumbersForXIndex.get(0);
+    	for (Integer value : scanNumbersForXIndex)
+    		if (value<minValue) minValue = value;
+    	return minValue;
+    }
+    
+    /**
+     * Returns all scan numbers mapped to xIndex
+     */
+    public Integer[] getScanNumbers(int xIndex) {
+    	Vector<Integer> scanNumbersForXIndex = scanNumbers.get(xIndex);
+    	if (scanNumbersForXIndex==null) return null;
+    	return scanNumbersForXIndex.toArray(new Integer[0]);
     }
     
     public boolean isInterpolated() {

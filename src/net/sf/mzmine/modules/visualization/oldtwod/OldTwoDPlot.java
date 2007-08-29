@@ -27,7 +27,10 @@ import javax.swing.JPopupMenu;
 
 import net.sf.mzmine.data.Peak;
 import net.sf.mzmine.data.PeakListRow;
+import net.sf.mzmine.io.RawDataFile;
+import net.sf.mzmine.modules.visualization.spectra.SpectraVisualizerWindow;
 import net.sf.mzmine.modules.visualization.tic.TICSetupDialog;
+import net.sf.mzmine.util.CursorPosition;
 
 public class OldTwoDPlot extends JPanel implements ActionListener, MouseListener, MouseMotionListener {
 
@@ -259,7 +262,22 @@ public class OldTwoDPlot extends JPanel implements ActionListener, MouseListener
 		return ( (float)xCoordinate / (float)getWidth() ) * dataRTRangeWidth + dataset.getMinRT(); 
 	}	
 	
-	private int quantizePlotXCoordinateToIntensityMatrixXIndex(int xCoordinate) {
+	private int convertPlotXCoordinateToXIndex(int xCoordinate) {
+		int xSteps = dataset.getIntensityMatrix().length;
+		double xStepInPixels = (double)getWidth() / (double)xSteps;
+		
+		int nearestStep = 0;
+		for (int xStep=0; xStep<xSteps; xStep++)
+			if (
+					java.lang.Math.abs(xStep*xStepInPixels-xCoordinate) <
+					java.lang.Math.abs(nearestStep*xStepInPixels-xCoordinate)
+					) nearestStep = xStep;
+
+		return nearestStep;
+		
+	}
+	
+	private int quantizePlotXCoordinate(int xCoordinate) {
 		int xSteps = dataset.getIntensityMatrix().length;
 		double xStepInPixels = (double)getWidth() / (double)xSteps;
 		
@@ -293,8 +311,15 @@ public class OldTwoDPlot extends JPanel implements ActionListener, MouseListener
 			
 	    	float mz = convertPlotYCoordinateToMZ(mouseCursorPositionY);
 	    	float rt = convertPlotXCoordinateToRT(mouseCursorPositionX);
-	    	visualizerWindow.setCursorPosition(mz, rt);
-			
+	    	int xIndex = convertPlotXCoordinateToXIndex(mouseCursorPositionX);
+	    	int scanNumber = -1;
+	    	if (dataset.getScanNumber(xIndex)!=null)
+	    		scanNumber = dataset.getScanNumber(xIndex);
+
+	    	
+	    	CursorPosition curPos = new CursorPosition(rt,mz,0,dataset.getRawDataFile(),scanNumber);
+	    	visualizerWindow.setCursorPosition(curPos);
+	    				
 		}
 
 		if (src == zoomOutMenuItem) {
@@ -316,8 +341,13 @@ public class OldTwoDPlot extends JPanel implements ActionListener, MouseListener
 
 		if (src == showSpectrumPlotMenuItem) { 
 			float cursorRT = convertPlotXCoordinateToRT(mouseCursorPositionX);
-			System.out.println("About to open spectrum dialog with RT=" + cursorRT);
+			int xIndex = convertPlotXCoordinateToXIndex(mouseCursorPositionX);
+			int scanNumber = dataset.getScanNumber(xIndex);
+			System.out.println("About to open spectrum dialog for scan #" + scanNumber + ", with RT=" + cursorRT);
 
+            new SpectraVisualizerWindow(dataset.getRawDataFile(), scanNumber);
+
+			
 		}
 
 		if (src == showXICPlotMenuItem) {
@@ -349,7 +379,7 @@ public class OldTwoDPlot extends JPanel implements ActionListener, MouseListener
 			selectionLastClickX = -1;
 			selectionLastClickY = -1;
 			
-			visualizerWindow.clearRangePosition();
+			visualizerWindow.setRangeCursorPosition(null);
 	    }
 
 	}
@@ -364,12 +394,19 @@ public class OldTwoDPlot extends JPanel implements ActionListener, MouseListener
 	    	int w = getWidth();
 	    	int h = getHeight();
 	    	
-	    	mouseCursorPositionX = quantizePlotXCoordinateToIntensityMatrixXIndex(e.getX());
+	    	mouseCursorPositionX = quantizePlotXCoordinate(e.getX());
 	    	mouseCursorPositionY = e.getY();
 	    	
 	    	float mz = convertPlotYCoordinateToMZ(mouseCursorPositionY);
 	    	float rt = convertPlotXCoordinateToRT(mouseCursorPositionX);
-	    	visualizerWindow.setCursorPosition(mz, rt);
+	    	int xIndex = convertPlotXCoordinateToXIndex(mouseCursorPositionX);
+	    	int scanNumber = -1;
+	    	if (dataset.getScanNumber(xIndex)!=null)
+	    		scanNumber = dataset.getScanNumber(xIndex);
+
+	    	
+	    	CursorPosition curPos = new CursorPosition(rt,mz,0,dataset.getRawDataFile(),scanNumber);
+	    	visualizerWindow.setCursorPosition(curPos);
 	    	
 	    	zoomToSelectionMenuItem.setEnabled(false);
 	    	
@@ -390,19 +427,26 @@ public class OldTwoDPlot extends JPanel implements ActionListener, MouseListener
 
 		if (selectionFirstClickX == -1) {
 			
-			selectionFirstClickX = quantizePlotXCoordinateToIntensityMatrixXIndex(e.getX());
+			selectionFirstClickX = quantizePlotXCoordinate(e.getX());
 			selectionFirstClickY = e.getY();
 			mouseCursorPositionX = selectionFirstClickX;
 			mouseCursorPositionY = selectionFirstClickY;
 
 			float mz = convertPlotYCoordinateToMZ(mouseCursorPositionY);
 	    	float rt = convertPlotXCoordinateToRT(mouseCursorPositionX);
-	    	visualizerWindow.setCursorPosition(mz, rt);
+	    	int xIndex = convertPlotXCoordinateToXIndex(mouseCursorPositionX);
+	    	int scanNumber = -1;
+	    	if (dataset.getScanNumber(xIndex)!=null)
+	    		scanNumber = dataset.getScanNumber(xIndex);
+
+	    	
+	    	CursorPosition curPos = new CursorPosition(rt,mz,0,dataset.getRawDataFile(),scanNumber);
+	    	visualizerWindow.setCursorPosition(curPos);
 			
 			
 		} else {
 			
-			selectionLastClickX = quantizePlotXCoordinateToIntensityMatrixXIndex(e.getX());
+			selectionLastClickX = quantizePlotXCoordinate(e.getX());
 			selectionLastClickY = e.getY();
 
 			if (selectionLastClickX>selectionFirstClickX) {
@@ -424,7 +468,13 @@ public class OldTwoDPlot extends JPanel implements ActionListener, MouseListener
 			
 			float mz = convertPlotYCoordinateToMZ(selectionLastClickY);
 	    	float rt = convertPlotXCoordinateToRT(selectionLastClickX);
-	    	visualizerWindow.setRangePosition(mz, rt);
+	    	int xIndex = convertPlotXCoordinateToXIndex(selectionLastClickX);
+	    	int scanNumber = -1;
+	    	if (dataset.getScanNumber(xIndex)!=null)
+	    		scanNumber = dataset.getScanNumber(xIndex);
+	    	
+	    	CursorPosition curPos = new CursorPosition(rt,mz,0,dataset.getRawDataFile(),scanNumber);
+	    	visualizerWindow.setRangeCursorPosition(curPos);
 
 			zoomToSelectionMenuItem.setEnabled(true);
 

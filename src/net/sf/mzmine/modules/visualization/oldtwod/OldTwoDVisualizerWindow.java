@@ -59,6 +59,9 @@ public class OldTwoDVisualizerWindow extends JInternalFrame implements
     private int msLevel;
 
     private Desktop desktop;
+    
+    private CursorPosition cursorPosition;
+    private CursorPosition rangeCursorPosition;
 
     public OldTwoDVisualizerWindow(RawDataFile dataFile) {
 
@@ -74,12 +77,7 @@ public class OldTwoDVisualizerWindow extends JInternalFrame implements
 
         dataset = new OldTwoDDataSet(dataFile, this);
         
-
-        twoDTitle = new OldTwoDTitlePanel(); 
-        /*
-        twoDTitle.setMinimumSize(new Dimension(getWidth(),5));
-        twoDTitle.setPreferredSize(new Dimension(getWidth(),5));
-        */
+        twoDTitle = new OldTwoDTitlePanel(this); 
         twoDTitle.setBackground(Color.white);
 		getContentPane().add(twoDTitle, java.awt.BorderLayout.NORTH);
 		
@@ -172,17 +170,24 @@ public class OldTwoDVisualizerWindow extends JInternalFrame implements
     	
     }
     
-    public void setCursorPosition(float mz, float rt) {
-    	twoDTitle.setCursorPosition(mz,rt);
+    public void setCursorPosition(CursorPosition cursorPosition) {
+    	this.cursorPosition = cursorPosition;
+    	twoDTitle.updateTitle();
     }
     
-    public void setRangePosition(float mz, float rt) {
-    	twoDTitle.setRangePosition(mz, rt);
+    public CursorPosition getCursorPosition() {
+    	return cursorPosition;
     }
     
-    public void clearRangePosition() {
-    	twoDTitle.clearRangePosition();
+    public void setRangeCursorPosition(CursorPosition cursorPosition) {
+    	this.rangeCursorPosition = cursorPosition;
+    	twoDTitle.updateTitle();
     }
+    
+    public CursorPosition getRangeCursorPosition() {
+    	return rangeCursorPosition;
+    }
+    
     
     void updateTitle() {
 
