@@ -376,7 +376,12 @@ public class SpectraVisualizerWindow extends JInternalFrame implements
         if (scans.length == 1) {
             // plotting single scan - just add values
             for (int j = 0; j < mzValues.length; j++) {
-                rawDataSeries.add(mzValues[j], intValues[j], false);
+            	
+            	try {rawDataSeries.add(mzValues[j], intValues[j], false); }
+            	catch (Exception duplicateException) {
+            		// TODO: Improve processing of duplicate m/z values?
+            	}
+
             }
 
             remove(msmsPanel);
