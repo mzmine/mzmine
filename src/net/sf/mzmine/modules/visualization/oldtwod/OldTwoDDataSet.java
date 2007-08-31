@@ -137,6 +137,8 @@ public class OldTwoDDataSet implements RawDataAcceptor {
         currentTask = new RawDataRetrievalTask(rawDataFile, scanNumbersForRetrieval,
                 "Updating 2D visualizer of " + rawDataFile, this);
 
+        maxIntensity = 0.0f;
+        
         MZmineCore.getTaskController().addTask(currentTask, TaskPriority.HIGH, visualizer);
     	
     }
@@ -160,10 +162,6 @@ public class OldTwoDDataSet implements RawDataAcceptor {
         int xIndex = (int) Math.round(((double)scan.getRetentionTime() - (double)rtMin)
                 / (double)rtStep);
         
-        System.out.println("Adding scan @rt=" + scan.getRetentionTime());
-        System.out.println("(scan.getRetentionTime() - rtMin) / rtStep = " + ( (scan.getRetentionTime() - rtMin) / rtStep ));
-        System.out.println("xIndex=" + xIndex);
-
         Vector<Integer> scanNumbersForXIndex = scanNumbers.get(xIndex);
         scanNumbersForXIndex.add(scan.getScanNumber());
 

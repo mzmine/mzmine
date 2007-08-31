@@ -30,6 +30,7 @@ import net.sf.mzmine.data.PeakListRow;
 import net.sf.mzmine.io.RawDataFile;
 import net.sf.mzmine.modules.visualization.spectra.SpectraVisualizerWindow;
 import net.sf.mzmine.modules.visualization.tic.TICSetupDialog;
+import net.sf.mzmine.userinterface.components.interpolatinglookuppaintscale.InterpolatingLookupPaintScale;
 import net.sf.mzmine.util.CursorPosition;
 
 public class OldTwoDPlot extends JPanel implements ActionListener, MouseListener, MouseMotionListener {
@@ -65,12 +66,15 @@ public class OldTwoDPlot extends JPanel implements ActionListener, MouseListener
 	private int mouseAreaStopY;
 	
 	private BufferedImage bitmapImage;
+	
+	private InterpolatingLookupPaintScale paintScale;
 
 	
-	public OldTwoDPlot(OldTwoDVisualizerWindow visualizerWindow, OldTwoDDataSet dataset) {
+	public OldTwoDPlot(OldTwoDVisualizerWindow visualizerWindow, OldTwoDDataSet dataset, InterpolatingLookupPaintScale paintScale) {
 
 		this.visualizerWindow = visualizerWindow;
 		this.dataset = dataset;
+		this.paintScale = paintScale;
 
 	    // Create popup-menu
 	    popupMenu = new JPopupMenu();
@@ -116,7 +120,13 @@ public class OldTwoDPlot extends JPanel implements ActionListener, MouseListener
 		
 	}
 	
-
+	public InterpolatingLookupPaintScale getPaintScale() {
+		return paintScale;
+	}
+	
+	public void setPaintScale(InterpolatingLookupPaintScale paintScale) {
+		this.paintScale = paintScale;
+	}
 	
 	private BufferedImage constructBitmap() {
 
@@ -129,7 +139,7 @@ public class OldTwoDPlot extends JPanel implements ActionListener, MouseListener
 		
 		
 		// Get suitable color space and maximum intensity value
-		ColorSpace cs = ColorSpace.getInstance(ColorSpace.CS_GRAY);
+		ColorSpace cs = ColorSpace.getInstance(ColorSpace.CS_sRGB);
 		float dataImgMax = dataset.getMaxIntensity();
 	
 		// How many 8-bit components are used for representing shade of color in this color space?
@@ -150,13 +160,22 @@ public class OldTwoDPlot extends JPanel implements ActionListener, MouseListener
 		for (int xpos=0; xpos<bitmapXSize; xpos++) {
 			for (int ypos=0; ypos<bitmapYSize; ypos++) {
 
+				/*
+				double tmp = (double)((0.20*dataImgMax-bitmapMatrix[xpos][ypos])/(0.20*dataImgMax));
+				if (tmp<0) { tmp = 0; }
+				*/
+				Color color = (Color)paintScale.getPaint(bitmapMatrix[xpos][ypos]);
 				
-				
-				bb = 0;
-				bb = (double)((0.20*dataImgMax-bitmapMatrix[xpos][ypos])/(0.20*dataImgMax));
-				if (bb<0) { bb = 0; }
-				b[0] = (byte)(255*bb);
+				b[0] = (byte)color.getRed();
+				b[1] = (byte)color.getGreen();
+				b[2] = (byte)color.getBlue();
 
+				/*
+				bb = 65535*(bitmapMatrix[xpos][ypos]/dataImgMax);
+				b = heatMap.getColorB((int)java.lang.Math.round(bb));
+				*/
+				
+				
 				sampleModel.setDataElements(xpos,ypos,b,dataBuffer);
 			}
 

@@ -37,6 +37,7 @@ import net.sf.mzmine.taskcontrol.Task;
 import net.sf.mzmine.taskcontrol.TaskListener;
 import net.sf.mzmine.taskcontrol.Task.TaskStatus;
 import net.sf.mzmine.userinterface.Desktop;
+import net.sf.mzmine.userinterface.components.interpolatinglookuppaintscale.InterpolatingLookupPaintScale;
 import net.sf.mzmine.util.CursorPosition;
 
 /**
@@ -62,6 +63,13 @@ public class OldTwoDVisualizerWindow extends JInternalFrame implements
     
     private CursorPosition cursorPosition;
     private CursorPosition rangeCursorPosition;
+    
+    
+    private static final int PALETTE_GRAY20 = 1;
+    private static final int PALETTE_GRAY5 = 2;
+    private static final int PALETTE_RAINBOW = 3;
+    private int currentPaletteType = PALETTE_GRAY20;
+    private float maximumIntensity = 0.0f;
 
     public OldTwoDVisualizerWindow(RawDataFile dataFile) {
 
@@ -98,7 +106,9 @@ public class OldTwoDVisualizerWindow extends JInternalFrame implements
         toolBar.setPreferredSize(new Dimension(50, getHeight()));
         add(toolBar, BorderLayout.EAST);
         
-        twoDPlot = new OldTwoDPlot(this, dataset);
+        InterpolatingLookupPaintScale paintScale = createPaintScale(currentPaletteType, maximumIntensity);
+        
+        twoDPlot = new OldTwoDPlot(this, dataset, paintScale);
         add(twoDPlot, BorderLayout.CENTER);
         
 /*
@@ -123,9 +133,40 @@ public class OldTwoDVisualizerWindow extends JInternalFrame implements
     }
     
     public void datasetUpdateReady() {
+    	
+    	
+    	float newMax = dataset.getMaxIntensity();
+    	
+    	if (newMax>maximumIntensity) {
+    		maximumIntensity = newMax;
+    		InterpolatingLookupPaintScale paintScale = createPaintScale(currentPaletteType, maximumIntensity);
+    		twoDPlot.setPaintScale(paintScale);
+    	}
+    		   	
     	if (twoDPlot!=null)
     		twoDPlot.datasetUpdateReady();
     	
+    }
+    
+    private InterpolatingLookupPaintScale createPaintScale(int paletteMode, float maxIntensity) {
+    	InterpolatingLookupPaintScale paintScale = new InterpolatingLookupPaintScale();
+   	
+    	if (paletteMode == PALETTE_GRAY20) {
+	    	paintScale.add(0.0, new Color(255,255,255));
+	    	paintScale.add(0.2*maxIntensity, new Color(0,0,0));
+    	}
+    	
+    	if (paletteMode == PALETTE_RAINBOW) {
+    		paintScale.add(000.0f/256.0f * maxIntensity, new Color(255,255,255));
+    		paintScale.add(002.0f/256.0f * maxIntensity, new Color(255,000,000));
+    		paintScale.add(016.0f/256.0f * maxIntensity, new Color(255,253,000));
+    		paintScale.add(032.0f/256.0f * maxIntensity, new Color(000,192,000));
+    		paintScale.add(064.0f/256.0f * maxIntensity, new Color(000,128,188));
+    		paintScale.add(128.0f/256.0f * maxIntensity, new Color(000,000,250));
+    		paintScale.add(256.0f/256.0f * maxIntensity, new Color(000,000,000));
+    	}
+    	
+    	return paintScale;
     }
 
     
@@ -212,6 +253,23 @@ public class OldTwoDVisualizerWindow extends JInternalFrame implements
 
         if (command.equals("TOGGLE_PLOT_MODE")) {
         	switchCentroidContinousMode();
+        }
+        
+        if (command.equals("SWITCH_PALETTE")) {
+        	switch (currentPaletteType) {
+	        	case PALETTE_GRAY20:
+	        		currentPaletteType = PALETTE_RAINBOW; 
+	        		break;
+	        	case PALETTE_RAINBOW:
+	        		currentPaletteType = PALETTE_GRAY20;
+	        		break;
+        	}
+
+        	InterpolatingLookupPaintScale paintScale = createPaintScale(currentPaletteType, maximumIntensity);
+        	twoDPlot.setPaintScale(paintScale);
+        	twoDPlot.datasetUpdateReady();
+        	repaint();
+        	
         }
 
     }

@@ -37,6 +37,7 @@ public class OldTwoDToolBar extends JToolBar {
     static final Icon continuousIcon = new ImageIcon("icons/continuousicon.png");
     static final Icon dataPointsIcon = new ImageIcon("icons/datapointsicon.png");
     static final Icon annotationsIcon = new ImageIcon("icons/annotationsicon.png");
+    static final Icon paletteIcon = new ImageIcon("icons/colorbaricon.png");
 
     public OldTwoDToolBar(OldTwoDVisualizerWindow masterFrame) {
 
@@ -56,7 +57,10 @@ public class OldTwoDToolBar extends JToolBar {
                 "SHOW_ANNOTATIONS", "Toggle displaying of peaks");
         
         
-        // TODO: Add button(s) for selecting palette mode (and palette setup?)
+        addSeparator();
+        
+        GUIUtils.addButton(this, null, paletteIcon, masterFrame,
+                "SWITCH_PALETTE", "Switch between grayscale/rainbow palette");        
 
     }
 
