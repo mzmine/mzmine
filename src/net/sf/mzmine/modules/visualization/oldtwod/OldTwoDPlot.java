@@ -26,10 +26,14 @@ import javax.swing.JPanel;
 import javax.swing.JPopupMenu;
 
 import net.sf.mzmine.data.Peak;
+import net.sf.mzmine.data.PeakList;
 import net.sf.mzmine.data.PeakListRow;
 import net.sf.mzmine.io.RawDataFile;
+import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.modules.visualization.spectra.SpectraVisualizerWindow;
 import net.sf.mzmine.modules.visualization.tic.TICSetupDialog;
+import net.sf.mzmine.project.MZmineProject;
+import net.sf.mzmine.userinterface.Desktop;
 import net.sf.mzmine.userinterface.components.interpolatinglookuppaintscale.InterpolatingLookupPaintScale;
 import net.sf.mzmine.util.CursorPosition;
 
@@ -68,6 +72,8 @@ public class OldTwoDPlot extends JPanel implements ActionListener, MouseListener
 	private BufferedImage bitmapImage;
 	
 	private InterpolatingLookupPaintScale paintScale;
+	
+	private MZmineProject project;
 
 	
 	public OldTwoDPlot(OldTwoDVisualizerWindow visualizerWindow, OldTwoDDataSet dataset, InterpolatingLookupPaintScale paintScale) {
@@ -75,6 +81,8 @@ public class OldTwoDPlot extends JPanel implements ActionListener, MouseListener
 		this.visualizerWindow = visualizerWindow;
 		this.dataset = dataset;
 		this.paintScale = paintScale;
+		
+		project = MZmineCore.getCurrentProject();
 
 	    // Create popup-menu
 	    popupMenu = new JPopupMenu();
@@ -115,8 +123,9 @@ public class OldTwoDPlot extends JPanel implements ActionListener, MouseListener
 	
 	public void datasetUpdateReady() {
 		
-		// Update bitmap			
+		// Update bitmap
 		bitmapImage = constructBitmap();
+		
 		
 	}
 	
@@ -189,13 +198,10 @@ public class OldTwoDPlot extends JPanel implements ActionListener, MouseListener
 	}
 
 	public void paint(Graphics g) {
-
 		
 		if (dataset==null) {
 			return; 
 		}
-		
-
 		
 		double w = getWidth();
 		double h = getHeight();
@@ -206,17 +212,20 @@ public class OldTwoDPlot extends JPanel implements ActionListener, MouseListener
 			g2d.drawRenderedImage(bitmapImage, AffineTransform.getScaleInstance(w/bitmapImage.getWidth(),h/bitmapImage.getHeight()));
 	
 			// Draw peaks
-			/*
+			
 			g.setColor(Color.green);
-			if (peakListRows!=null) {
+			RawDataFile rawDataFile = dataset.getRawDataFile();
+			PeakList peakList = project.getFilePeakList(rawDataFile);
+			
+			if (peakList!=null) {
 
-				
+				PeakListRow[] rows = peakList.getRows();
 				float[] mzs;
 				float[] rts;
-				for (PeakListRow row : peakListRows) {
-
+				for (PeakListRow row : rows) {
+					
 					Peak p = row.getPeaks()[0];
-
+					
 					if (p==null) continue;
 					
 					int[] scanNumbers = p.getScanNumbers();
@@ -226,30 +235,29 @@ public class OldTwoDPlot extends JPanel implements ActionListener, MouseListener
 					int ind=0;
 					for (int scanNumber : scanNumbers) {					
 						mzs[ind] = p.getRawDatapoints(scanNumber)[0][0];
-						rts[ind] = dataset.getRetentionTime(scanNumber);
+						rts[ind] = rawDataFile.getScan(scanNumber).getRetentionTime();						
 						ind++;
 					}
-
-					int prevx = (int)java.lang.Math.round((double)w * ((double)(rts[0]-imageScaleMinRT) / (double)(imageScaleMaxRT-imageScaleMinRT+1)));
-					int prevy = (int)java.lang.Math.round((double)h * ((double)(mzs[0]-imageScaleMinMZ) / (double)(imageScaleMaxMZ-imageScaleMinMZ)));
 					
-					for (ind=0; ind<=mzs.length; ind++) {
-						int currx = (int)java.lang.Math.round((double)w * ((double)(rts[ind]-imageScaleMinRT) / (double)(imageScaleMaxRT-imageScaleMinRT+1)));
-						int curry = (int)java.lang.Math.round((double)h * ((double)(mzs[ind]-imageScaleMinMZ) / (double)(imageScaleMaxMZ-imageScaleMinMZ)));
-						
-						g.drawLine(prevx,(int)(h-prevy),currx,(int)(h-prevy));
-						g.drawLine(currx,(int)(h-prevy),currx,(int)(h-curry));
+					int prevx = convertRTToPlotXCoordinate(rts[0]);
+					int prevy = convertMZToPlotYCoordinate(mzs[0]);
+										
+					for (ind=0; ind<mzs.length; ind++) {
+						int currx = convertRTToPlotXCoordinate(rts[ind]);
+						int curry = convertMZToPlotYCoordinate(mzs[ind]); 
+													
+						g.drawLine(prevx,prevy,currx,prevy);
+						g.drawLine(currx,prevy,currx,curry);
 						
 						prevx = currx;
 						prevy = curry;
-
 					}
-					int nextx = (int)java.lang.Math.round((double)w * ((double)(rts[rts.length-1]-imageScaleMinRT) / (double)(imageScaleMaxRT-imageScaleMinRT+1)));
-					g.drawLine(prevx,(int)(h-prevy),nextx,(int)(h-prevy));
-				}
+					int nextx = convertRTToPlotXCoordinate(rts[rts.length-1]); 
+					g.drawLine(prevx,prevy,nextx,prevy);
+
+				}		
 
 			}
-			*/
 			
 			// Draw cursor position x-coordinate => scan
 			g.setColor(Color.red);
@@ -276,10 +284,21 @@ public class OldTwoDPlot extends JPanel implements ActionListener, MouseListener
 		return ( ( (float)getHeight()-(float)yCoordinate ) / (float)getHeight() ) * dataMZRangeWidth + dataset.getMinMZ(); 
 	}
 	
+	private int convertMZToPlotYCoordinate(float mz) {
+		float dataMZRangeWidth = dataset.getMaxMZ()-dataset.getMinMZ();
+		return java.lang.Math.round(getHeight() - ( (mz-dataset.getMinMZ()) / dataMZRangeWidth) * (float)getHeight() ); 
+		
+	}
+	
 	private float convertPlotXCoordinateToRT(int xCoordinate) {
 		float dataRTRangeWidth = dataset.getMaxRT()-dataset.getMinRT();
 		return ( (float)xCoordinate / (float)getWidth() ) * dataRTRangeWidth + dataset.getMinRT(); 
-	}	
+	}
+	
+	private int convertRTToPlotXCoordinate(float rt) {
+		float dataRTRangeWidth = dataset.getMaxRT()-dataset.getMinRT();
+		return java.lang.Math.round( ((rt-dataset.getMinRT()) / dataRTRangeWidth) * (float)getWidth() );
+	}
 	
 	private int convertPlotXCoordinateToXIndex(int xCoordinate) {
 		int xSteps = dataset.getIntensityMatrix().length;
