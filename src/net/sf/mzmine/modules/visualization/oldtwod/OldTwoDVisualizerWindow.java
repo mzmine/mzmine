@@ -67,7 +67,8 @@ public class OldTwoDVisualizerWindow extends JInternalFrame implements
     
     private static final int PALETTE_GRAY20 = 1;
     private static final int PALETTE_GRAY5 = 2;
-    private static final int PALETTE_RAINBOW = 3;
+    private static final int PALETTE_GRAY1 = 3;
+    private static final int PALETTE_RAINBOW = 4;
     private int currentPaletteType = PALETTE_GRAY20;
     private float maximumIntensity = 0.0f;
 
@@ -155,6 +156,16 @@ public class OldTwoDVisualizerWindow extends JInternalFrame implements
 	    	paintScale.add(0.0, new Color(255,255,255));
 	    	paintScale.add(0.2*maxIntensity, new Color(0,0,0));
     	}
+    	
+    	if (paletteMode == PALETTE_GRAY5) {
+	    	paintScale.add(0.0, new Color(255,255,255));
+	    	paintScale.add(0.05*maxIntensity, new Color(0,0,0));
+    	}
+
+    	if (paletteMode == PALETTE_GRAY1) {
+	    	paintScale.add(0.0, new Color(255,255,255));
+	    	paintScale.add(0.01*maxIntensity, new Color(0,0,0));
+    	}    	
     	
     	if (paletteMode == PALETTE_RAINBOW) {
     		paintScale.add(000.0f/256.0f * maxIntensity, new Color(255,255,255));
@@ -258,6 +269,12 @@ public class OldTwoDVisualizerWindow extends JInternalFrame implements
         if (command.equals("SWITCH_PALETTE")) {
         	switch (currentPaletteType) {
 	        	case PALETTE_GRAY20:
+	        		currentPaletteType = PALETTE_GRAY5; 
+	        		break;
+	        	case PALETTE_GRAY5:
+	        		currentPaletteType = PALETTE_GRAY1; 
+	        		break;
+	        	case PALETTE_GRAY1:
 	        		currentPaletteType = PALETTE_RAINBOW; 
 	        		break;
 	        	case PALETTE_RAINBOW:
