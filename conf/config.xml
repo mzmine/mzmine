@@ -21,7 +21,8 @@
     <module class="net.sf.mzmine.modules.peakpicking.local.LocalPicker"/>
     <module class="net.sf.mzmine.modules.peakpicking.centroid.CentroidPicker"/>
     <module class="net.sf.mzmine.util.menu.PeakPickingMenuSeparator"/>  
-    <module class="net.sf.mzmine.modules.deisotoping.simplegrouper.SimpleGrouper"/>
+    <module class="net.sf.mzmine.modules.peakpicking.deisotoper.SimpleIsotopeGrouper"/>
+    <module class="net.sf.mzmine.modules.peakpicking.ftmsfilter.FTMSFilter"/>
     <module class="net.sf.mzmine.modules.alignment.join.JoinAligner"/> 
     <module class="net.sf.mzmine.modules.alignment.filterbygaps.GapsFilter"/> 
     <module class="net.sf.mzmine.modules.gapfilling.simple.SimpleGapFiller"/> 
