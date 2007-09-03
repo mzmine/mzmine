@@ -1,5 +1,6 @@
 package net.sf.mzmine.modules.visualization.oldtwod;
 
+import java.awt.BasicStroke;
 import java.awt.Color;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
@@ -11,6 +12,8 @@ import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.awt.event.MouseMotionListener;
 import java.awt.geom.AffineTransform;
+import java.awt.geom.Line2D;
+import java.awt.geom.Rectangle2D;
 import java.awt.image.BufferedImage;
 import java.awt.image.ColorModel;
 import java.awt.image.ComponentColorModel;
@@ -169,22 +172,12 @@ public class OldTwoDPlot extends JPanel implements ActionListener, MouseListener
 		for (int xpos=0; xpos<bitmapXSize; xpos++) {
 			for (int ypos=0; ypos<bitmapYSize; ypos++) {
 
-				/*
-				double tmp = (double)((0.20*dataImgMax-bitmapMatrix[xpos][ypos])/(0.20*dataImgMax));
-				if (tmp<0) { tmp = 0; }
-				*/
 				Color color = (Color)paintScale.getPaint(bitmapMatrix[xpos][ypos]);
 				
 				b[0] = (byte)color.getRed();
 				b[1] = (byte)color.getGreen();
 				b[2] = (byte)color.getBlue();
-
-				/*
-				bb = 65535*(bitmapMatrix[xpos][ypos]/dataImgMax);
-				b = heatMap.getColorB((int)java.lang.Math.round(bb));
-				*/
-				
-				
+			
 				sampleModel.setDataElements(xpos,ypos,b,dataBuffer);
 			}
 
@@ -260,16 +253,19 @@ public class OldTwoDPlot extends JPanel implements ActionListener, MouseListener
 			}
 			
 			// Draw cursor position x-coordinate => scan
-			g.setColor(Color.red);
-			g.drawLine(mouseCursorPositionX, 0, mouseCursorPositionX, (int)h);
+			g2d.setColor(Color.red);
+			g2d.setStroke(new BasicStroke(0.0f, BasicStroke.CAP_BUTT, BasicStroke.JOIN_MITER, 10.0f, new float[]{10.0f}, 0.0f));
+			g2d.draw(new Line2D.Double(mouseCursorPositionX, 0, mouseCursorPositionX, (int)h));
 			
 			// Draw cursor position y-coordinate => m/z
-			g.setColor(Color.red);
-			g.drawLine(0, mouseCursorPositionY, (int)w, mouseCursorPositionY);
+			g2d.draw(new Line2D.Double(0, mouseCursorPositionY, (int)w, mouseCursorPositionY));
 			
 			// Draw selection
-			g.setColor(Color.blue);
-			g.drawRect(mouseAreaStartX, mouseAreaStartY, mouseAreaStopX-mouseAreaStartX, mouseAreaStopY-mouseAreaStartY);
+			g2d.setColor(Color.blue);
+			g2d.setStroke(new BasicStroke(0.0f));
+			g2d.setPaint(new Color(0, 0, 1, 0.1f));
+			g2d.fill(new Rectangle2D.Double(mouseAreaStartX, mouseAreaStartY, mouseAreaStopX-mouseAreaStartX, mouseAreaStopY-mouseAreaStartY));			
+			
 			
 		}
 	}
