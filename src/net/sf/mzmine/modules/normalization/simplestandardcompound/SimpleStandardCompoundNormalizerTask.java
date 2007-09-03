@@ -42,13 +42,16 @@ public class SimpleStandardCompoundNormalizerTask implements Task {
     private TaskStatus taskStatus;
     private String errorMessage;
 
-    private int processedDataFiles;
-    private int totalDataFiles;
+    private int processedRows;
+    private int totalRows;
 
     private SimplePeakList normalizedPeakList;
 
     public SimpleStandardCompoundNormalizerTask(PeakList peakList,
             SimpleStandardCompoundNormalizerParameterSet parameters) {
+        
+        taskStatus = TaskStatus.WAITING;
+
         this.originalPeakList = peakList;
         this.parameters = parameters;
     }
@@ -62,7 +65,8 @@ public class SimpleStandardCompoundNormalizerTask implements Task {
     }
 
     public float getFinishedPercentage() {
-        return (float) processedDataFiles / (float) totalDataFiles;
+        if (totalRows == 0) return 0;
+        return (float) processedRows / (float) totalRows;
     }
 
     public Object getResult() {
@@ -105,7 +109,7 @@ public class SimpleStandardCompoundNormalizerTask implements Task {
 
         // Copy raw data files from original alignment result to new alignment
         // result
-        totalDataFiles = originalPeakList.getRawDataFiles().length;
+        totalRows = originalPeakList.getNumberOfRows();
         for (RawDataFile ord : originalPeakList.getRawDataFiles())
             normalizedPeakList.addRawDataFile(ord);
 
@@ -246,6 +250,8 @@ public class SimpleStandardCompoundNormalizerTask implements Task {
                 }
 
             }
+            
+            processedRows++;
 
         }
 

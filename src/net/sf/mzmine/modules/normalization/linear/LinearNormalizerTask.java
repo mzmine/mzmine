@@ -49,6 +49,9 @@ public class LinearNormalizerTask implements Task {
 
     public LinearNormalizerTask(PeakList alignmentResult,
             SimpleParameterSet parameters) {
+        
+        status = TaskStatus.WAITING;
+
         this.originalPeakList = alignmentResult;
 
         normalizationTypeString = (String) parameters.getParameterValue(LinearNormalizer.normalizationType);
