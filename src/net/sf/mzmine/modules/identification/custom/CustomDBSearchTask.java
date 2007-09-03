@@ -47,6 +47,7 @@ class CustomDBSearchTask implements Task {
     private int finishedLines = 0;
 
     CustomDBSearchTask(PeakList peakList, CustomDBSearchParameters parameters) {
+        status = TaskStatus.WAITING;
         this.peakList = peakList;
         this.parameters = parameters;
     }
@@ -101,6 +102,8 @@ class CustomDBSearchTask implements Task {
      */
     public void run() {
 
+        status = TaskStatus.PROCESSING;
+        
         File dbFile = new File(parameters.getDataBaseFile());
 
         try {
@@ -120,6 +123,8 @@ class CustomDBSearchTask implements Task {
             errorMessage = e.toString();
             return;
         }
+        
+        status = TaskStatus.FINISHED;
 
     }
 
