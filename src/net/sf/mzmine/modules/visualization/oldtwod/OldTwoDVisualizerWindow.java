@@ -107,7 +107,9 @@ public class OldTwoDVisualizerWindow extends JInternalFrame implements
         toolBar.setPreferredSize(new Dimension(50, getHeight()));
         add(toolBar, BorderLayout.EAST);
         
-        InterpolatingLookupPaintScale paintScale = createPaintScale(currentPaletteType, maximumIntensity);
+        
+        Object[] tmp = createPaintScale(currentPaletteType, maximumIntensity);
+        InterpolatingLookupPaintScale paintScale =  (InterpolatingLookupPaintScale)tmp[0];
         
         twoDPlot = new OldTwoDPlot(this, dataset, paintScale);
         add(twoDPlot, BorderLayout.CENTER);
@@ -140,8 +142,8 @@ public class OldTwoDVisualizerWindow extends JInternalFrame implements
     	
     	if (newMax>maximumIntensity) {
     		maximumIntensity = newMax;
-    		InterpolatingLookupPaintScale paintScale = createPaintScale(currentPaletteType, maximumIntensity);
-    		twoDPlot.setPaintScale(paintScale);
+    		Object[] tmp = createPaintScale(currentPaletteType, maximumIntensity);
+    		twoDPlot.setPaintScale((InterpolatingLookupPaintScale)tmp[0], (Color)tmp[1], (Color)tmp[2], (Color)tmp[3]);
     	}
     		   	
     	if (twoDPlot!=null)
@@ -149,25 +151,45 @@ public class OldTwoDVisualizerWindow extends JInternalFrame implements
     	
     }
     
-    private InterpolatingLookupPaintScale createPaintScale(int paletteMode, float maxIntensity) {
-    	InterpolatingLookupPaintScale paintScale = new InterpolatingLookupPaintScale();
+    private Object[] createPaintScale(int paletteMode, float maxIntensity) {
+    	
+    	Object[] res = new Object[4];
    	
     	if (paletteMode == PALETTE_GRAY20) {
+    		InterpolatingLookupPaintScale paintScale = new InterpolatingLookupPaintScale();
 	    	paintScale.add(0.0, new Color(255,255,255));
 	    	paintScale.add(0.2*maxIntensity, new Color(0,0,0));
+
+	    	res[0] = paintScale;
+			res[1] = new Color(0.5f, 0.5f, 1.0f);
+			res[2] = new Color(0.5f, 0.5f, 0.75f);
+			res[3] = new Color(0.25f, 1.0f, 0.25f);
     	}
     	
     	if (paletteMode == PALETTE_GRAY5) {
+    		InterpolatingLookupPaintScale paintScale = new InterpolatingLookupPaintScale();
 	    	paintScale.add(0.0, new Color(255,255,255));
 	    	paintScale.add(0.05*maxIntensity, new Color(0,0,0));
+
+	    	res[0] = paintScale;
+			res[1] = new Color(0.5f, 0.5f, 1.0f);
+			res[2] = new Color(0.5f, 0.5f, 0.75f);
+			res[3] = new Color(0.25f, 1.0f, 0.25f);    	
     	}
 
     	if (paletteMode == PALETTE_GRAY1) {
+    		InterpolatingLookupPaintScale paintScale = new InterpolatingLookupPaintScale();
 	    	paintScale.add(0.0, new Color(255,255,255));
 	    	paintScale.add(0.01*maxIntensity, new Color(0,0,0));
+
+	    	res[0] = paintScale;
+			res[1] = new Color(0.5f, 0.5f, 1.0f);
+			res[2] = new Color(0.5f, 0.5f, 0.75f);
+			res[3] = new Color(0.25f, 1.0f, 0.25f);	    	
     	}    	
     	
     	if (paletteMode == PALETTE_RAINBOW) {
+    		InterpolatingLookupPaintScale paintScale = new InterpolatingLookupPaintScale();
     		paintScale.add(000.0f/256.0f * maxIntensity, new Color(255,255,255));
     		paintScale.add(002.0f/256.0f * maxIntensity, new Color(255,000,000));
     		paintScale.add(016.0f/256.0f * maxIntensity, new Color(255,253,000));
@@ -175,9 +197,15 @@ public class OldTwoDVisualizerWindow extends JInternalFrame implements
     		paintScale.add(064.0f/256.0f * maxIntensity, new Color(000,128,188));
     		paintScale.add(128.0f/256.0f * maxIntensity, new Color(000,000,250));
     		paintScale.add(256.0f/256.0f * maxIntensity, new Color(000,000,000));
+
+    		res[0] = paintScale;
+			res[1] = new Color(0.25f, 0.25f, 0.25f);
+			res[2] = new Color(0.25f, 0.25f, 0.25f);
+			res[3] = new Color(0.0f, 0.0f, 0.0f);    		
     	}
     	
-    	return paintScale;
+    	return res;
+    	
     }
 
     
@@ -249,7 +277,7 @@ public class OldTwoDVisualizerWindow extends JInternalFrame implements
         title.append("]: 2D view");
 
         title.append(", MS");
-        title.append(msLevel);     
+        title.append(msLevel+1);     
         
         setTitle(title.toString());
 
@@ -282,8 +310,9 @@ public class OldTwoDVisualizerWindow extends JInternalFrame implements
 	        		break;
         	}
 
-        	InterpolatingLookupPaintScale paintScale = createPaintScale(currentPaletteType, maximumIntensity);
-        	twoDPlot.setPaintScale(paintScale);
+    		Object[] tmp = createPaintScale(currentPaletteType, maximumIntensity);
+    		twoDPlot.setPaintScale((InterpolatingLookupPaintScale)tmp[0], (Color)tmp[1], (Color)tmp[2], (Color)tmp[3]);    	
+        	
         	twoDPlot.datasetUpdateReady();
         	repaint();
         	

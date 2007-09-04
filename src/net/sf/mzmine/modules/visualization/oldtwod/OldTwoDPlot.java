@@ -75,6 +75,10 @@ public class OldTwoDPlot extends JPanel implements ActionListener, MouseListener
 	private BufferedImage bitmapImage;
 	
 	private InterpolatingLookupPaintScale paintScale;
+	private Color cursorColor;
+	private Color selectionColor;
+	private Color peakColor;
+	
 	
 	private MZmineProject project;
 
@@ -136,8 +140,11 @@ public class OldTwoDPlot extends JPanel implements ActionListener, MouseListener
 		return paintScale;
 	}
 	
-	public void setPaintScale(InterpolatingLookupPaintScale paintScale) {
+	public void setPaintScale(InterpolatingLookupPaintScale paintScale, Color cursorColor, Color selectionColor, Color peakColor) {
 		this.paintScale = paintScale;
+		this.cursorColor = cursorColor;
+		this.selectionColor = selectionColor;
+		this.peakColor = peakColor;
 	}
 	
 	private BufferedImage constructBitmap() {
@@ -206,7 +213,7 @@ public class OldTwoDPlot extends JPanel implements ActionListener, MouseListener
 	
 			// Draw peaks
 			
-			g.setColor(Color.green);
+			g.setColor(peakColor);
 			RawDataFile rawDataFile = dataset.getRawDataFile();
 			PeakList peakList = project.getFilePeakList(rawDataFile);
 			
@@ -251,19 +258,26 @@ public class OldTwoDPlot extends JPanel implements ActionListener, MouseListener
 				}		
 
 			}
+
+			
 			
 			// Draw cursor position x-coordinate => scan
-			g2d.setColor(Color.red);
-			g2d.setStroke(new BasicStroke(0.0f, BasicStroke.CAP_BUTT, BasicStroke.JOIN_MITER, 10.0f, new float[]{10.0f}, 0.0f));
-			g2d.draw(new Line2D.Double(mouseCursorPositionX, 0, mouseCursorPositionX, (int)h));
+			g2d.setColor(cursorColor);
+			g2d.setStroke(new BasicStroke(0.0f, BasicStroke.CAP_BUTT, BasicStroke.JOIN_MITER, 10.0f, new float[]{6.0f, 3.0f}, 0.0f));
+			//g2d.draw(new Line2D.Double(mouseCursorPositionX, 0, mouseCursorPositionX, (int)h));
+			g2d.draw(new Line2D.Double(mouseCursorPositionX, mouseCursorPositionY, mouseCursorPositionX, (int)h));
+			g2d.draw(new Line2D.Double(mouseCursorPositionX, mouseCursorPositionY, mouseCursorPositionX, 0));
+			
 			
 			// Draw cursor position y-coordinate => m/z
-			g2d.draw(new Line2D.Double(0, mouseCursorPositionY, (int)w, mouseCursorPositionY));
+			//g2d.draw(new Line2D.Double(0, mouseCursorPositionY, (int)w, mouseCursorPositionY));
+			g2d.draw(new Line2D.Double(mouseCursorPositionX, mouseCursorPositionY, (int)w, mouseCursorPositionY));
+			g2d.draw(new Line2D.Double(mouseCursorPositionX, mouseCursorPositionY, 0, mouseCursorPositionY));
 			
 			// Draw selection
-			g2d.setColor(Color.blue);
+			g2d.setColor(selectionColor);
 			g2d.setStroke(new BasicStroke(0.0f));
-			g2d.setPaint(new Color(0, 0, 1, 0.1f));
+			g2d.setPaint(new Color((float)selectionColor.getRed()/255.0f, (float)selectionColor.getGreen()/255.0f, (float)selectionColor.getBlue()/255.0f, 0.25f));
 			g2d.fill(new Rectangle2D.Double(mouseAreaStartX, mouseAreaStartY, mouseAreaStopX-mouseAreaStartX, mouseAreaStopY-mouseAreaStartY));			
 			
 			
