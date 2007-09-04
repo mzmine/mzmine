@@ -72,7 +72,7 @@ class CustomDBSearchTask implements Task {
     public float getFinishedPercentage() {
         if (databaseValues == null)
             return 0;
-        return finishedLines / databaseValues.length;
+        return ((float) finishedLines) / databaseValues.length;
     }
 
     /**
@@ -110,11 +110,10 @@ class CustomDBSearchTask implements Task {
             // read database contents in memory
             FileReader dbFileReader = new FileReader(dbFile);
             databaseValues = CSVParser.parse(dbFileReader);
-            int line = 0;
             if (parameters.isIgnoreFirstLine())
-                line++;
-            for (; line < databaseValues.length; line++) {
-                processOneLine(databaseValues[line]);
+                finishedLines++;
+            for (; finishedLines < databaseValues.length; finishedLines++) {
+                processOneLine(databaseValues[finishedLines]);
             }
 
         } catch (Exception e) {
@@ -166,8 +165,6 @@ class CustomDBSearchTask implements Task {
 
             }
         }
-
-        finishedLines++;
 
     }
 
