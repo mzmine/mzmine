@@ -76,8 +76,7 @@ public class TwoDVisualizerWindow extends JInternalFrame implements
 
         twoDPlot = new TwoDPlot(this, dataset);
         add(twoDPlot, BorderLayout.CENTER);
-        // make sure the dataset knows about zooming events
-        twoDPlot.getXYPlot().addChangeListener(dataset);
+        
 
         resampleCheckBox = new JCheckBox("Resample when zooming", true);
         resampleCheckBox.setBackground(Color.white);
@@ -152,9 +151,6 @@ public class TwoDVisualizerWindow extends JInternalFrame implements
             desktop.displayErrorMessage("Error while updating 2D visualizer: "
                     + task.getErrorMessage());
         }
-
-        dataset.setDataLoaded();
-
     }
 
     /**

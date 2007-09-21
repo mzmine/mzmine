@@ -19,16 +19,17 @@
 
 package net.sf.mzmine.modules.visualization.twod;
 
+import java.awt.Color;
 import java.awt.Graphics2D;
-import java.awt.geom.AffineTransform;
 import java.awt.geom.Rectangle2D;
 import java.awt.image.BufferedImage;
+
+import net.sf.mzmine.userinterface.components.interpolatinglookuppaintscale.InterpolatingLookupPaintScale;
 
 import org.jfree.chart.axis.ValueAxis;
 import org.jfree.chart.plot.CrosshairState;
 import org.jfree.chart.plot.PlotRenderingInfo;
 import org.jfree.chart.plot.XYPlot;
-import org.jfree.chart.renderer.xy.XYItemRenderer;
 
 /**
  * This class is responsible for drawing the actual data points.
@@ -37,36 +38,82 @@ class TwoDXYPlot extends XYPlot {
 
     TwoDDataSet dataset;
 
-    TwoDXYPlot(TwoDDataSet dataset, ValueAxis domainAxis, ValueAxis rangeAxis,
-            XYItemRenderer renderer) {
-        super(dataset, domainAxis, rangeAxis, renderer);
+    TwoDXYPlot(TwoDDataSet dataset, ValueAxis domainAxis, ValueAxis rangeAxis) {
+        super(dataset, domainAxis, rangeAxis, null);
         this.dataset = dataset;
-    }
-
-    public boolean render(Graphics2D g2, Rectangle2D area, int index,
-            PlotRenderingInfo info, CrosshairState crosshairState) {
-
-        BufferedImage image = dataset.getCurrentImage();
-
-        if (image != null) {
-
-            AffineTransform transform = AffineTransform.getTranslateInstance(
-                    area.getX(), area.getY());
-
-            AffineTransform scaleTransform = AffineTransform.getScaleInstance(
-                    area.getWidth() / image.getWidth(), 
-                    area.getHeight() / image.getHeight());
-
-            transform.concatenate(scaleTransform);
-
-            g2.drawRenderedImage(image, transform);
-            
-            return true;
-            
-        }
         
-        return false;
-
+        
     }
+    
+    public boolean render(Graphics2D g2,
+            Rectangle2D dataArea,
+            int index,
+            PlotRenderingInfo info,
+            CrosshairState crosshairState)
+    {
+     
+        //super.render(g2, dataArea, index, info, crosshairState);
+        
+        // only render the image once
+        if (index != 0) return false;
+        
+        // prepare some necessary constants
+        final int x = (int) dataArea.getX();
+        final int y = (int) dataArea.getY();
+        final int width = (int) dataArea.getWidth();
+        final int height = (int) dataArea.getHeight();
+        
+        final float imageRTMin = (float) getDomainAxis().getRange().getLowerBound();
+        final float imageRTMax = (float) getDomainAxis().getRange().getUpperBound();
+        final float imageRTStep = (imageRTMax - imageRTMin) / height;
+        final float imageMZMin = (float) getRangeAxis().getRange().getLowerBound();
+        final float imageMZMax = (float) getRangeAxis().getRange().getUpperBound();
+        final float imageMZStep = (imageMZMax - imageMZMin) / height;
+        
+        // prepare a float array of summed intensities 
+        float summedValues[][] = new float[width][height];
+        float maxValue = 0;
+        
+        for (int i = 0; i < width; i++)
+            for (int j = 0; j < height; j++) {
+                
+                float pointRTMin = imageRTMin + (i * imageRTStep);
+                float pointRTMax = pointRTMin + imageRTStep;
+                float pointMZMin = imageMZMin + (j * imageMZStep);
+                float pointMZMax = pointMZMin + imageMZStep;
+                
+                summedValues[i][j] = dataset.getSummedIntensity(pointRTMin, pointRTMax, pointMZMin, pointMZMax);
+                
+                if (summedValues[i][j] > maxValue) maxValue = summedValues[i][j];
+                
+            }
+        
+        // if we have no data points, bail out
+        if (maxValue == 0) return false;
+
+        InterpolatingLookupPaintScale paintScale = new InterpolatingLookupPaintScale();
+        paintScale.add(0.0, Color.white);
+        paintScale.add(0.2*maxValue, Color.black);
+        
+        // prepare a bitmap of required size
+        BufferedImage image = new BufferedImage(width,
+                height, BufferedImage.TYPE_INT_RGB);
+        
+        // draw image points
+        for (int i = 0; i < width; i++)
+            for (int j = 0; j < height; j++)
+            {
+                Color pointColor = (Color) paintScale.getPaint(summedValues[i][j]);
+                image.setRGB(i, height - j - 1, pointColor.getRGB());
+            }
+        
+        // paint image
+        g2.drawImage(image, x, y, null);
+    
+        return true;
+    }
+
+
+    
 
 }

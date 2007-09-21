@@ -30,13 +30,15 @@ import javax.swing.JPopupMenu;
 
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.userinterface.Desktop;
+
 import org.jfree.chart.ChartPanel;
 import org.jfree.chart.JFreeChart;
 import org.jfree.chart.axis.NumberAxis;
 import org.jfree.chart.plot.XYPlot;
-import org.jfree.chart.renderer.xy.XYDotRenderer;
-import org.jfree.chart.renderer.xy.XYItemRenderer;
+import org.jfree.chart.renderer.GrayPaintScale;
+import org.jfree.chart.renderer.xy.XYBlockRenderer;
 import org.jfree.chart.title.TextTitle;
+import org.jfree.ui.RectangleAnchor;
 
 /**
  * 
@@ -46,7 +48,6 @@ class TwoDPlot extends ChartPanel {
     private JFreeChart chart;
 
     private XYPlot plot;
-    private XYItemRenderer renderer;
 
    
     //  crosshair (selection) color
@@ -89,13 +90,14 @@ class TwoDPlot extends ChartPanel {
         yAxis.setUpperMargin(0);
         yAxis.setLowerMargin(0);
         
-        // set the renderer properties
-        renderer = new XYDotRenderer();
+
         
         // set the plot properties
-        plot = new TwoDXYPlot(dataset, xAxis, yAxis, renderer);
+        plot = new TwoDXYPlot(dataset, xAxis, yAxis);
         plot.setBackgroundPaint(Color.white);
-       // TODO plot.setAxisOffset(new RectangleInsets(5.0, 5.0, 5.0, 5.0));
+        plot.setDomainGridlinesVisible(false);
+        plot.setRangeGridlinesVisible(false);
+        // TODO plot.setAxisOffset(new RectangleInsets(5.0, 5.0, 5.0, 5.0));
         
         // chart properties
         chart = new JFreeChart("", titleFont, plot, false); 
@@ -125,12 +127,6 @@ class TwoDPlot extends ChartPanel {
         
 
 
-
-        
-        // set toolTipGenerator
-        TwoDToolTipGenerator toolTipGenerator = new TwoDToolTipGenerator();
-        renderer.setToolTipGenerator(toolTipGenerator);
-        
 
         
         // add items to popup menu
