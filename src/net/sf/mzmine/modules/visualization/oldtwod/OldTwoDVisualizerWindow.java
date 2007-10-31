@@ -294,6 +294,11 @@ public class OldTwoDVisualizerWindow extends JInternalFrame implements
         	switchCentroidContinousMode();
         }
         
+        if (command.equals("SHOW_ANNOTATIONS")) {
+        	twoDPlot.togglePeakDisplay();
+        	repaint();
+        }
+        
         if (command.equals("SWITCH_PALETTE")) {
         	switch (currentPaletteType) {
 	        	case PALETTE_GRAY20:

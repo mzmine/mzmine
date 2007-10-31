@@ -79,6 +79,7 @@ public class OldTwoDPlot extends JPanel implements ActionListener, MouseListener
 	private Color selectionColor;
 	private Color peakColor;
 	
+	private boolean showPeaks = true;
 	
 	private MZmineProject project;
 
@@ -123,6 +124,7 @@ public class OldTwoDPlot extends JPanel implements ActionListener, MouseListener
 
 	}
 
+
 	public void datasetUpdating() {
 		// TODO
 	}
@@ -136,15 +138,19 @@ public class OldTwoDPlot extends JPanel implements ActionListener, MouseListener
 		
 	}
 	
-	public InterpolatingLookupPaintScale getPaintScale() {
+	protected InterpolatingLookupPaintScale getPaintScale() {
 		return paintScale;
 	}
 	
-	public void setPaintScale(InterpolatingLookupPaintScale paintScale, Color cursorColor, Color selectionColor, Color peakColor) {
+	protected void setPaintScale(InterpolatingLookupPaintScale paintScale, Color cursorColor, Color selectionColor, Color peakColor) {
 		this.paintScale = paintScale;
 		this.cursorColor = cursorColor;
 		this.selectionColor = selectionColor;
 		this.peakColor = peakColor;
+	}
+	
+	protected void togglePeakDisplay() {
+		showPeaks = !showPeaks;
 	}
 	
 	private BufferedImage constructBitmap() {
@@ -217,7 +223,7 @@ public class OldTwoDPlot extends JPanel implements ActionListener, MouseListener
 			RawDataFile rawDataFile = dataset.getRawDataFile();
 			PeakList peakList = project.getFilePeakList(rawDataFile);
 			
-			if (peakList!=null) {
+			if ((peakList!=null) && (showPeaks)) {
 
 				PeakListRow[] rows = peakList.getRows();
 				float[] mzs;
