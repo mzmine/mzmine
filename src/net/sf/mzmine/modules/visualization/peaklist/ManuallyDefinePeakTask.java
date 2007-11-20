@@ -85,8 +85,11 @@ class ManuallyDefinePeakTask implements Task {
             Scan scan = selectedFile.getScan(scanNumbers[i]);
             
             float basePeak[] = ScanUtils.findBasePeak(scan, minMZ, maxMZ);
-            ucPeak.addDatapoint(scan.getScanNumber(), basePeak[0],
+            
+            if (basePeak != null) {
+                ucPeak.addDatapoint(scan.getScanNumber(), basePeak[0],
                     scan.getRetentionTime(), basePeak[1]);
+            }
             
             processedScans++;
             
