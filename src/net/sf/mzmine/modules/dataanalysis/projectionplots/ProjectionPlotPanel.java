@@ -128,7 +128,7 @@ public class ProjectionPlotPanel extends ChartPanel {
 	        			if (dataset.getGroupNumber(itemNumber)==groupNumber)
 	        				fileNames = fileNames.concat(rawDataFile.toString());
 	        		}
-	        		if (fileNames.isEmpty())
+	        		if (fileNames.length() == 0)
 	        			fileNames = "Empty group";
 	        		
 	        		paramValue = fileNames;
