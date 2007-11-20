@@ -190,9 +190,17 @@ public class PeakListTablePopupMenu extends JPopupMenu implements
                         new Peak[] { clickedPeak });
 
             } else {
-                setupDialog = new TICSetupDialog(clickedDataFile,
-                        clickedPeakListRow.getAverageMZ(),
-                        clickedPeakListRow.getAverageMZ());
+                float minMZ = clickedPeakListRow.getAverageMZ();
+                float maxMZ = clickedPeakListRow.getAverageMZ();
+                for (Peak peak : clickedPeakListRow.getPeaks()) {
+                    if (peak == null)
+                        continue;
+                    if (peak.getDataPointMinMZ() < minMZ)
+                        minMZ = peak.getDataPointMinMZ();
+                    if (peak.getDataPointMaxMZ() > maxMZ)
+                        maxMZ = peak.getDataPointMaxMZ();
+                }
+                setupDialog = new TICSetupDialog(clickedDataFile, minMZ, maxMZ);
             }
             setupDialog.setVisible(true);
 
@@ -213,8 +221,7 @@ public class PeakListTablePopupMenu extends JPopupMenu implements
                 minMZ = clickedPeakListRow.getAverageMZ();
                 maxMZ = clickedPeakListRow.getAverageMZ();
 
-                Peak[] peaks = clickedPeakListRow.getPeaks();
-                for (Peak peak : peaks) {
+                for (Peak peak : clickedPeakListRow.getPeaks()) {
                     if (peak == null)
                         continue;
                     if (peak.getDataPointMinRT() < minRT)
