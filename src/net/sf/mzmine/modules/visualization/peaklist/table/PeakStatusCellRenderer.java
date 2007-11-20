@@ -41,6 +41,7 @@ class PeakStatusCellRenderer implements TableCellRenderer {
     private static final ColorCircle greenCircle = new ColorCircle(Color.green);
     private static final ColorCircle redCircle = new ColorCircle(Color.red);
     private static final ColorCircle yellowCircle = new ColorCircle(Color.yellow);
+    private static final ColorCircle orangeCircle = new ColorCircle(Color.orange);
 
     /**
      * @see javax.swing.table.TableCellRenderer#getTableCellRendererComponent(javax.swing.JTable,
@@ -78,6 +79,9 @@ class PeakStatusCellRenderer implements TableCellRenderer {
                 break;
             case ESTIMATED:
                 newPanel.add(yellowCircle);
+                break;
+            case MANUAL:
+                newPanel.add(orangeCircle);
                 break;
             default:
                 newPanel.add(redCircle);

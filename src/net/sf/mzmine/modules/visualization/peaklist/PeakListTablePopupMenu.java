@@ -37,6 +37,7 @@ import net.sf.mzmine.data.PeakList;
 import net.sf.mzmine.data.PeakListRow;
 import net.sf.mzmine.data.impl.SimpleParameter;
 import net.sf.mzmine.data.impl.SimpleParameterSet;
+import net.sf.mzmine.data.impl.SimplePeakListRow;
 import net.sf.mzmine.io.RawDataFile;
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.modules.dataanalysis.intensityplot.IntensityPlot;
@@ -69,10 +70,8 @@ public class PeakListTablePopupMenu extends JPopupMenu implements
     private PeakList peakList;
     private PeakListTableColumnModel columnModel;
 
-    private JMenuItem deleteRowsItem;
-    private JMenuItem plotRowsItem;
-    private JMenuItem showXICItem;
-    private JMenuItem manuallyDefineItem;
+    private JMenuItem deleteRowsItem, addNewRowItem, plotRowsItem, showXICItem,
+            manuallyDefineItem;
 
     private RawDataFile clickedDataFile;
     private PeakListRow clickedPeakListRow;
@@ -89,6 +88,8 @@ public class PeakListTablePopupMenu extends JPopupMenu implements
 
         deleteRowsItem = GUIUtils.addMenuItem(this, "Delete selected rows",
                 this);
+
+        addNewRowItem = GUIUtils.addMenuItem(this, "Add new row", this);
 
         plotRowsItem = GUIUtils.addMenuItem(this,
                 "Plot selected rows using Intensity Plot module", this);
@@ -278,6 +279,64 @@ public class PeakListTablePopupMenu extends JPopupMenu implements
                     maxMZ);
 
             MZmineCore.getTaskController().addTask(task);
+        }
+
+        if (src == addNewRowItem) {
+
+            NumberFormatter mzFormat = MZmineCore.getDesktop().getMZFormat();
+            NumberFormatter rtFormat = MZmineCore.getDesktop().getRTFormat();
+
+            Parameter minRTparam = new SimpleParameter(ParameterType.FLOAT,
+                    "Retention time min", "Retention time min", "s",
+                    (Float) 0f, (Float) 0f, null, rtFormat);
+            Parameter maxRTparam = new SimpleParameter(ParameterType.FLOAT,
+                    "Retention time max", "Retention time max", "s",
+                    (Float) 0f, (Float) 0f, null, rtFormat);
+            Parameter minMZparam = new SimpleParameter(ParameterType.FLOAT,
+                    "m/z min", "m/z min", "Da", (Float) 0f, (Float) 0f, null,
+                    mzFormat);
+            Parameter maxMZparam = new SimpleParameter(ParameterType.FLOAT,
+                    "m/z max", "m/z max", "Da", (Float) 0f, (Float) 0f, null,
+                    mzFormat);
+            Parameter[] params = { minRTparam, maxRTparam, minMZparam,
+                    maxMZparam };
+
+            SimpleParameterSet parameterSet = new SimpleParameterSet(params);
+
+            ParameterSetupDialog parameterSetupDialog = new ParameterSetupDialog(
+                    MZmineCore.getDesktop().getMainFrame(),
+                    "Please set peak boundaries", parameterSet);
+
+            parameterSetupDialog.setVisible(true);
+
+            if (parameterSetupDialog.getExitCode() != ExitCode.OK)
+                return;
+
+            float minRT = (Float) parameterSet.getParameterValue(minRTparam);
+            float maxRT = (Float) parameterSet.getParameterValue(maxRTparam);
+            float minMZ = (Float) parameterSet.getParameterValue(minMZparam);
+            float maxMZ = (Float) parameterSet.getParameterValue(maxMZparam);
+
+            // find maximum ID and add 1
+            int newID = 1;
+            for (PeakListRow row : peakList.getRows()) {
+                if (row.getID() >= newID) newID = row.getID() + 1;
+            }
+            
+            // create new row
+            SimplePeakListRow newRow = new SimplePeakListRow(newID);
+            peakList.addRow(newRow);
+            TableSorter sorterModel = (TableSorter) table.getModel();
+            PeakListTableModel originalModel = (PeakListTableModel) sorterModel.getTableModel();
+            originalModel.fireTableDataChanged();
+            
+            
+            // find peaks for new row
+            for (RawDataFile dataFile : peakList.getRawDataFiles()) {
+                ManuallyDefinePeakTask task = new ManuallyDefinePeakTask(
+                        newRow, dataFile, minRT, maxRT, minMZ, maxMZ);
+                MZmineCore.getTaskController().addTask(task);
+            }
         }
 
     }
