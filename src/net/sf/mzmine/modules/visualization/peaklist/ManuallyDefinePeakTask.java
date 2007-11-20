@@ -4,6 +4,7 @@ import java.util.logging.Logger;
 
 import net.sf.mzmine.data.PeakListRow;
 import net.sf.mzmine.data.Scan;
+import net.sf.mzmine.data.Peak.PeakStatus;
 import net.sf.mzmine.data.impl.ConstructionPeak;
 import net.sf.mzmine.io.RawDataFile;
 import net.sf.mzmine.taskcontrol.Task;
@@ -96,6 +97,7 @@ class ManuallyDefinePeakTask implements Task {
         }
         
         ucPeak.finalizedAddingDatapoints();
+        ucPeak.setPeakStatus(PeakStatus.MANUAL);
         
         selectedRow.addPeak(selectedFile, ucPeak, ucPeak);
 
