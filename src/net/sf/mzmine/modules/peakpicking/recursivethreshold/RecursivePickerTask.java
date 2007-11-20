@@ -201,7 +201,6 @@ class RecursivePickerTask implements Task {
             }
 
             binInts = null;
-            System.gc();
 
         } else {
             processedScans += totalScans;
@@ -225,8 +224,6 @@ class RecursivePickerTask implements Task {
             float[] intensities = sc.getIntensityValues();
 
             // Find 1D-peaks
-
-            // System.out.print("Find 1D-peaks: ");
 
             Vector<Integer> inds = new Vector<Integer>();
             recursiveThreshold(masses, intensities, 0, masses.length - 1,
@@ -255,9 +252,19 @@ class RecursivePickerTask implements Task {
                 }
 
             }
-
-            // System.out.println("Found " + oneDimPeaks.size() + " 1D-peaks.");
-
+            
+            // Clean-up empty slots under-construction peaks collection and
+            // reset growing statuses for remaining under construction peaks
+            for (int ucInd = 0; ucInd < underConstructionPeaks.size(); ucInd++) {
+                ConstructionPeak ucPeak = underConstructionPeaks.get(ucInd);
+                if (ucPeak == null) {
+                    underConstructionPeaks.remove(ucInd);
+                    ucInd--;
+                } else {
+                    ucPeak.resetGrowingState();
+                }
+            }
+            
             // Calculate scores between under-construction scores and 1d-peaks
 
             TreeSet<MatchScore> scores = new TreeSet<MatchScore>();
@@ -280,10 +287,11 @@ class RecursivePickerTask implements Task {
             while (scoreIterator.hasNext()) {
                 MatchScore score = scoreIterator.next();
 
+                /* doesn't make sense?
                 // If score is too high for connecting, then stop the loop
                 if (score.getScore() >= Float.MAX_VALUE) {
                     break;
-                }
+                }*/
 
                 // If 1d peak is already connected, then move to next score
                 OneDimPeak oneDimPeak = score.getOneDimPeak();
@@ -337,21 +345,6 @@ class RecursivePickerTask implements Task {
                     underConstructionPeaks.set(ucInd, null);
                 }
 
-            }
-
-            // System.out.println("" + readyPeakList.getNumberOfPeaks() + "
-            // ready peaks.");
-
-            // Clean-up empty slots under-construction peaks collection and
-            // reset growing statuses for remaining under construction peaks
-            for (int ucInd = 0; ucInd < underConstructionPeaks.size(); ucInd++) {
-                ConstructionPeak ucPeak = underConstructionPeaks.get(ucInd);
-                if (ucPeak == null) {
-                    underConstructionPeaks.remove(ucInd);
-                    ucInd--;
-                } else {
-                    ucPeak.resetGrowingState();
-                }
             }
 
             // If there are some unconnected 1d-peaks, then start a new
