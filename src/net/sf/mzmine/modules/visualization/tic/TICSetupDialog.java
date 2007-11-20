@@ -257,6 +257,10 @@ public class TICSetupDialog extends JDialog implements ActionListener {
 
     }
 
+    public TICSetupDialog(RawDataFile dataFile, float minMZ, float maxMZ) {
+        this(dataFile, minMZ, maxMZ, null);
+    }
+    
     /**
      * Constructor for showing the dialog with pre-defined minimum and maximum
      * M/Z range
@@ -265,7 +269,7 @@ public class TICSetupDialog extends JDialog implements ActionListener {
      * @param desktop
      * @param dataFile
      */
-    public TICSetupDialog(RawDataFile dataFile, double minMZ, double maxMZ,
+    public TICSetupDialog(RawDataFile dataFile, float minMZ, float maxMZ,
             Peak[] peaks) {
 
         this(dataFile);
