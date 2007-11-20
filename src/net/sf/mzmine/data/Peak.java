@@ -29,13 +29,15 @@ public interface Peak {
 
     /**
      * UNKNOWN - peak was not found
-     * DETECTED - peak was found in primary peak picking 
+     * DETECTED - peak was found in primary peak picking
+     * MANUAL - peak was set manually 
      * ESTIMATED - peak was estimated in secondary peak picking (after alignment)
      * 
      */
     public static enum PeakStatus {
         UNKNOWN,
-        DETECTED, 
+        DETECTED,
+        MANUAL,
         ESTIMATED
     };
 
