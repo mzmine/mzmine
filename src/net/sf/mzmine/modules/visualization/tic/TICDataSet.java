@@ -108,8 +108,12 @@ class TICDataSet extends AbstractXYZDataset implements RawDataAcceptor {
                 totalIntensity = scan.getBasePeakIntensity();
             } else {
                 float basePeak[] = ScanUtils.findBasePeak(scan, mzMin, mzMax);
-                mzValues[index] = basePeak[0];
-                totalIntensity = basePeak[1];
+                if (basePeak != null) {
+                    mzValues[index] = basePeak[0];
+                    totalIntensity = basePeak[1];
+                } else {
+                    totalIntensity = 0;
+                }
             }
             break;
 
