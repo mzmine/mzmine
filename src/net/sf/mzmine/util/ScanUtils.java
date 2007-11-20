@@ -19,6 +19,8 @@
 
 package net.sf.mzmine.util;
 
+import java.util.Arrays;
+
 import net.sf.mzmine.data.Scan;
 
 /**
@@ -39,17 +41,26 @@ public class ScanUtils {
         float mzValues[] = scan.getMZValues();
         float intensityValues[] = scan.getIntensityValues();
         float basePeak[] = new float[2];
+        boolean foundPoint = false;
 
-        for (int i = 1; i < mzValues.length; i++) {
+        int searchStart = Arrays.binarySearch(mzValues, mzMin);
+        if (searchStart < 0) {
+            searchStart++;
+            searchStart *= -1;
+        }
+        for (int i = searchStart; i < mzValues.length; i++) {
 
-            if ((mzValues[i] >= mzMin) && (mzValues[i] <= mzMax)
-                    && (intensityValues[i] > basePeak[1])) {
+            if (mzValues[i] > mzMax) break;
+            
+            if (intensityValues[i] > basePeak[1]) {
+                foundPoint = true;
                 basePeak[0] = mzValues[i];
                 basePeak[1] = intensityValues[i];
             }
 
         }
 
+        if (foundPoint == false) return null;
         return basePeak;
     }
 
