@@ -52,6 +52,11 @@ public interface PeakListRow {
     public Peak getPeak(RawDataFile rawData);
 
     /**
+     * Add a peak
+     */
+    public void addPeak(RawDataFile rawData, Peak original, Peak current);
+        
+    /**
      * Returns peak for given raw data file
      */
     public Peak getOriginalPeakListEntry(RawDataFile rawData);
