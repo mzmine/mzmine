@@ -162,7 +162,8 @@ public class IntensityPlotParameters implements StorableParameterSet {
     }
 
     public void exportValuesToXML(Element element) {
-        element.addElement(yValueSourceElement).setText(yAxisValueSource.toString());
+        if (yAxisValueSource != null)
+            element.addElement(yValueSourceElement).setText(yAxisValueSource.toString());
     }
 
     public void importValuesFromXML(Element element) {
