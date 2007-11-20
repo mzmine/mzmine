@@ -31,8 +31,8 @@ import org.dom4j.Element;
 
 /**
  * NumberFormat extension to provide both number-style and date-style
- * formatting, with XML import/export of format definition.
- * This class is synchronized, so it can be used by multiple threads.
+ * formatting, with XML import/export of format definition. This class is
+ * synchronized, so it can be used by multiple threads.
  */
 public class NumberFormatter extends NumberFormat implements Cloneable {
 
@@ -49,7 +49,7 @@ public class NumberFormatter extends NumberFormat implements Cloneable {
     public NumberFormatter(FormatterType type, String pattern) {
         setFormat(type, pattern);
     }
-    
+
     public NumberFormatter(Element xmlElement) {
         importFromXML(xmlElement);
     }
@@ -59,10 +59,11 @@ public class NumberFormatter extends NumberFormat implements Cloneable {
         switch (type) {
         case TIME:
             SimpleDateFormat sdf = new SimpleDateFormat(pattern);
-            // important for handling low values, otherwise in different time zones we may get to negative numbers 
+            // important for handling low values, otherwise in different time
+            // zones we may get to negative numbers
             sdf.setTimeZone(TimeZone.getTimeZone("GMT+0:00"));
             embeddedFormatter = sdf;
-            
+
             break;
         case NUMBER:
             embeddedFormatter = new DecimalFormat(pattern);
@@ -73,7 +74,7 @@ public class NumberFormatter extends NumberFormat implements Cloneable {
     public FormatterType getType() {
         return embeddedFormatterType;
     }
-    
+
     public String getPattern() {
         switch (embeddedFormatterType) {
         case TIME:
@@ -83,8 +84,6 @@ public class NumberFormatter extends NumberFormat implements Cloneable {
         }
         return null;
     }
-
-
 
     public void importFromXML(Element xmlElement) {
         String pattern = xmlElement.elementText(PATTERN_ELEMENT_NAME);
@@ -105,10 +104,11 @@ public class NumberFormatter extends NumberFormat implements Cloneable {
      */
     public synchronized StringBuffer format(double arg0, StringBuffer arg1,
             FieldPosition arg2) {
-        
+
         // conversion to msec
-        if (embeddedFormatterType == FormatterType.TIME) arg0 *= 1000;
-        
+        if (embeddedFormatterType == FormatterType.TIME)
+            arg0 *= 1000;
+
         return embeddedFormatter.format(arg0, arg1, arg2);
     }
 
@@ -116,11 +116,13 @@ public class NumberFormatter extends NumberFormat implements Cloneable {
      * @see java.text.NumberFormat#format(long, java.lang.StringBuffer,
      *      java.text.FieldPosition)
      */
-    public synchronized StringBuffer format(long arg0, StringBuffer arg1, FieldPosition arg2) {
-        
+    public synchronized StringBuffer format(long arg0, StringBuffer arg1,
+            FieldPosition arg2) {
+
         // conversion to msec
-        if (embeddedFormatterType == FormatterType.TIME) arg0 *= 1000;
-        
+        if (embeddedFormatterType == FormatterType.TIME)
+            arg0 *= 1000;
+
         return embeddedFormatter.format(arg0, arg1, arg2);
     }
 
@@ -129,20 +131,20 @@ public class NumberFormatter extends NumberFormat implements Cloneable {
      *      java.text.ParsePosition)
      */
     public synchronized Number parse(String str, ParsePosition pos) {
-        System.out.println("parsing " + str);
-
-        switch (embeddedFormatterType) {
-        case TIME:
-            SimpleDateFormat sdf = (SimpleDateFormat) embeddedFormatter;
-            return ((sdf.parse(str, pos).getTime()) / 1000l);
-        case NUMBER:
-            DecimalFormat df = (DecimalFormat) embeddedFormatter;
-            return df.parse(str, pos);
+        try {
+            switch (embeddedFormatterType) {
+            case TIME:
+                SimpleDateFormat sdf = (SimpleDateFormat) embeddedFormatter;
+                return ((sdf.parse(str, pos).getTime()) / 1000l);
+            case NUMBER:
+                DecimalFormat df = (DecimalFormat) embeddedFormatter;
+                return df.parse(str, pos);
+            }
+        } catch (Exception e) {
         }
         return null;
     }
-    
-    
+
     /**
      * @see java.text.NumberFormat#clone()
      */
