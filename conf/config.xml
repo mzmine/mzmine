@@ -24,8 +24,8 @@
     <module class="net.sf.mzmine.modules.peakpicking.deisotoper.SimpleIsotopeGrouper"/>
     <module class="net.sf.mzmine.modules.peakpicking.ftmsfilter.FTMSFilter"/>
     <module class="net.sf.mzmine.modules.alignment.join.JoinAligner"/> 
-    <module class="net.sf.mzmine.modules.alignment.filterbygaps.GapsFilter"/> 
-    <module class="net.sf.mzmine.modules.gapfilling.simple.SimpleGapFiller"/> 
+    <module class="net.sf.mzmine.modules.alignment.rowsfilter.RowsFilter"/> 
+    <module class="net.sf.mzmine.modules.alignment.gapfiller.SimpleGapFiller"/> 
     <module class="net.sf.mzmine.modules.normalization.linear.LinearNormalizer"/> 
     <module class="net.sf.mzmine.modules.normalization.simplestandardcompound.SimpleStandardCompoundNormalizer"/> 
     <module class="net.sf.mzmine.modules.dataanalysis.rtmzplots.RTMZAnalyzer"/>
