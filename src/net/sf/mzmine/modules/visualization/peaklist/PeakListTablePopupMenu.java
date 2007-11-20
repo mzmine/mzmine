@@ -30,9 +30,13 @@ import javax.swing.JDialog;
 import javax.swing.JMenuItem;
 import javax.swing.JPopupMenu;
 
+import net.sf.mzmine.data.Parameter;
+import net.sf.mzmine.data.ParameterType;
 import net.sf.mzmine.data.Peak;
 import net.sf.mzmine.data.PeakList;
 import net.sf.mzmine.data.PeakListRow;
+import net.sf.mzmine.data.impl.SimpleParameter;
+import net.sf.mzmine.data.impl.SimpleParameterSet;
 import net.sf.mzmine.io.RawDataFile;
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.modules.dataanalysis.intensityplot.IntensityPlot;
@@ -47,7 +51,9 @@ import net.sf.mzmine.modules.visualization.peaklist.table.PeakListTableModel;
 import net.sf.mzmine.modules.visualization.tic.TICSetupDialog;
 import net.sf.mzmine.userinterface.Desktop;
 import net.sf.mzmine.userinterface.dialogs.ExitCode;
+import net.sf.mzmine.userinterface.dialogs.ParameterSetupDialog;
 import net.sf.mzmine.util.GUIUtils;
+import net.sf.mzmine.util.NumberFormatter;
 
 import com.sun.java.TableSorter;
 
@@ -66,8 +72,10 @@ public class PeakListTablePopupMenu extends JPopupMenu implements
     private JMenuItem deleteRowsItem;
     private JMenuItem plotRowsItem;
     private JMenuItem showXICItem;
+    private JMenuItem manuallyDefineItem;
 
-    private Peak clickedPeak;
+    private RawDataFile clickedDataFile;
+    private PeakListRow clickedPeakListRow;
 
     public PeakListTablePopupMenu(PeakListTableWindow window,
             PeakListTable table, PeakListTableColumnModel columnModel,
@@ -87,6 +95,9 @@ public class PeakListTablePopupMenu extends JPopupMenu implements
 
         showXICItem = GUIUtils.addMenuItem(this, "Show XIC of this peak", this);
 
+        manuallyDefineItem = GUIUtils.addMenuItem(this, "Manually define peak",
+                this);
+
     }
 
     public void show(Component invoker, int x, int y) {
@@ -102,12 +113,12 @@ public class PeakListTablePopupMenu extends JPopupMenu implements
                 table.columnAtPoint(clickedPoint)).getModelIndex();
         if ((clickedRow >= 0) && (clickedColumn >= 0)) {
             showXICItem.setEnabled(clickedColumn >= CommonColumnType.values().length);
+            manuallyDefineItem.setEnabled(clickedColumn >= CommonColumnType.values().length);
             int dataFileIndex = (clickedColumn - CommonColumnType.values().length)
                     / DataFileColumnType.values().length;
-            RawDataFile dataFile = peakList.getRawDataFile(dataFileIndex);
+            clickedDataFile = peakList.getRawDataFile(dataFileIndex);
             TableSorter sorter = (TableSorter) table.getModel();
-            int peakListRow = sorter.modelIndex(clickedRow);
-            clickedPeak = peakList.getPeak(peakListRow, dataFile);
+            clickedPeakListRow = peakList.getRow(sorter.modelIndex(clickedRow));
         }
 
         super.show(invoker, x, y);
@@ -154,14 +165,15 @@ public class PeakListTablePopupMenu extends JPopupMenu implements
                     peakList, currentParameters.getXAxisValueSource(),
                     currentParameters.getYAxisValueSource(),
                     peakList.getRawDataFiles(), selectedPeakListRows);
-            IntensityPlotDialog setupDialog = new IntensityPlotDialog(peakList, 
+            IntensityPlotDialog setupDialog = new IntensityPlotDialog(peakList,
                     newParameters);
             setupDialog.setVisible(true);
             if (setupDialog.getExitCode() == ExitCode.OK) {
                 intensityPlotModule.setParameters(newParameters);
                 Desktop desktop = MZmineCore.getDesktop();
                 logger.info("Opening new intensity plot");
-                IntensityPlotFrame newFrame = new IntensityPlotFrame(newParameters);
+                IntensityPlotFrame newFrame = new IntensityPlotFrame(
+                        newParameters);
                 desktop.addInternalFrame(newFrame);
             }
 
@@ -169,11 +181,96 @@ public class PeakListTablePopupMenu extends JPopupMenu implements
 
         if (src == showXICItem) {
 
-            JDialog setupDialog = new TICSetupDialog(clickedPeak.getDataFile(),
-                    clickedPeak.getDataPointMinMZ(),
-                    clickedPeak.getDataPointMaxMZ(), new Peak[] { clickedPeak });
+            Peak clickedPeak = clickedPeakListRow.getPeak(clickedDataFile);
+            JDialog setupDialog;
+            if (clickedPeak != null) {
+                setupDialog = new TICSetupDialog(clickedDataFile,
+                        clickedPeak.getDataPointMinMZ(),
+                        clickedPeak.getDataPointMaxMZ(),
+                        new Peak[] { clickedPeak });
+
+            } else {
+                setupDialog = new TICSetupDialog(clickedDataFile,
+                        clickedPeakListRow.getAverageMZ(),
+                        clickedPeakListRow.getAverageMZ());
+            }
             setupDialog.setVisible(true);
 
+        }
+
+        if (src == manuallyDefineItem) {
+
+            Peak clickedPeak = clickedPeakListRow.getPeak(clickedDataFile);
+            float minRT, maxRT, minMZ, maxMZ;
+            if (clickedPeak != null) {
+                minRT = clickedPeak.getDataPointMinRT();
+                maxRT = clickedPeak.getDataPointMaxRT();
+                minMZ = clickedPeak.getDataPointMinMZ();
+                maxMZ = clickedPeak.getDataPointMaxMZ();
+            } else {
+                minRT = clickedPeakListRow.getAverageRT();
+                maxRT = clickedPeakListRow.getAverageRT();
+                minMZ = clickedPeakListRow.getAverageMZ();
+                maxMZ = clickedPeakListRow.getAverageMZ();
+
+                Peak[] peaks = clickedPeakListRow.getPeaks();
+                for (Peak peak : peaks) {
+                    if (peak == null)
+                        continue;
+                    if (peak.getDataPointMinRT() < minRT)
+                        minRT = peak.getDataPointMinRT();
+                    if (peak.getDataPointMaxRT() > maxRT)
+                        maxRT = peak.getDataPointMaxRT();
+                    if (peak.getDataPointMinMZ() < minMZ)
+                        minMZ = peak.getDataPointMinMZ();
+                    if (peak.getDataPointMaxMZ() > maxMZ)
+                        maxMZ = peak.getDataPointMaxMZ();
+                }
+            }
+
+            NumberFormatter mzFormat = MZmineCore.getDesktop().getMZFormat();
+            NumberFormatter rtFormat = MZmineCore.getDesktop().getRTFormat();
+
+            Parameter minRTparam = new SimpleParameter(ParameterType.FLOAT,
+                    "Retention time min", "Retention time min", "s", minRT,
+                    clickedDataFile.getDataMinRT(1),
+                    clickedDataFile.getDataMaxRT(1), rtFormat);
+            Parameter maxRTparam = new SimpleParameter(ParameterType.FLOAT,
+                    "Retention time max", "Retention time max", "s", maxRT,
+                    clickedDataFile.getDataMinRT(1),
+                    clickedDataFile.getDataMaxRT(1), rtFormat);
+            Parameter minMZparam = new SimpleParameter(ParameterType.FLOAT,
+                    "m/z min", "m/z min", "Da", minMZ,
+                    clickedDataFile.getDataMinMZ(1),
+                    clickedDataFile.getDataMaxMZ(1), mzFormat);
+            Parameter maxMZparam = new SimpleParameter(ParameterType.FLOAT,
+                    "m/z max", "m/z max", "Da", maxMZ,
+                    clickedDataFile.getDataMinMZ(1),
+                    clickedDataFile.getDataMaxMZ(1), mzFormat);
+            Parameter[] params = { minRTparam, maxRTparam, minMZparam,
+                    maxMZparam };
+
+            SimpleParameterSet parameterSet = new SimpleParameterSet(params);
+
+            ParameterSetupDialog parameterSetupDialog = new ParameterSetupDialog(
+                    MZmineCore.getDesktop().getMainFrame(),
+                    "Please set peak boundaries", parameterSet);
+
+            parameterSetupDialog.setVisible(true);
+
+            if (parameterSetupDialog.getExitCode() != ExitCode.OK)
+                return;
+
+            minRT = (Float) parameterSet.getParameterValue(minRTparam);
+            maxRT = (Float) parameterSet.getParameterValue(maxRTparam);
+            minMZ = (Float) parameterSet.getParameterValue(minMZparam);
+            maxMZ = (Float) parameterSet.getParameterValue(maxMZparam);
+
+            ManuallyDefinePeakTask task = new ManuallyDefinePeakTask(
+                    clickedPeakListRow, clickedDataFile, minRT, maxRT, minMZ,
+                    maxMZ);
+
+            MZmineCore.getTaskController().addTask(task);
         }
 
     }

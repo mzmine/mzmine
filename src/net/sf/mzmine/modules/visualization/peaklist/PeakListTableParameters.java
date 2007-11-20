@@ -177,7 +177,7 @@ public class PeakListTableParameters implements StorableParameterSet {
         return peakShapeNormalization;
     }
 
-    void setPeakShapeNormalization(PeakShapeNormalization max) {
+    public void setPeakShapeNormalization(PeakShapeNormalization max) {
         this.peakShapeNormalization = max;
     }
 
@@ -185,7 +185,7 @@ public class PeakListTableParameters implements StorableParameterSet {
         return rowHeight;
     }
 
-    void setRowHeight(int height) {
+    public void setRowHeight(int height) {
         this.rowHeight = height;
     }
 
