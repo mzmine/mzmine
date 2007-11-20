@@ -26,7 +26,7 @@ import net.sf.mzmine.data.impl.SimplePeakList;
 import net.sf.mzmine.io.RawDataFile;
 import net.sf.mzmine.taskcontrol.Task;
 
-class GapsFilterTask implements Task {
+class RowsFilterTask implements Task {
 
     private PeakList originalPeakList;
     private SimplePeakList processedPeakList;
@@ -37,12 +37,22 @@ class GapsFilterTask implements Task {
     private float totalAlignmentRows;
 
     private int minPresent;
+    private String newName;
+    private float minMZ, maxMZ, minRT, maxRT;
+    private boolean identified;
 
-    public GapsFilterTask(PeakList alignmentResult,
+    public RowsFilterTask(PeakList alignmentResult,
             SimpleParameterSet parameters) {
         status = TaskStatus.WAITING;
         originalPeakList = alignmentResult;
-        minPresent = (Integer) parameters.getParameterValue(RowsFilter.minPresent);
+        minPresent = (Integer) parameters.getParameterValue(RowsFilter.minPeaksParam);
+        newName = (String) parameters.getParameterValue(RowsFilter.nameParam);
+        minMZ = (Float) parameters.getParameterValue(RowsFilter.minMZParam);
+        maxMZ = (Float) parameters.getParameterValue(RowsFilter.maxMZParam);
+        minRT = (Float) parameters.getParameterValue(RowsFilter.minRTParam);
+        maxRT = (Float) parameters.getParameterValue(RowsFilter.maxRTParam);
+        identified = (Boolean) parameters.getParameterValue(RowsFilter.identifiedParam);
+
     }
 
     public void cancel() {
@@ -66,7 +76,7 @@ class GapsFilterTask implements Task {
     }
 
     public String getTaskDescription() {
-        return "Filter alignment result by gaps.";
+        return "Filtering peaklist rows";
     }
 
     public void run() {
@@ -77,21 +87,31 @@ class GapsFilterTask implements Task {
         processedAlignmentRows = 0;
 
         // Create new alignment result and add opened raw data files to it
-        processedPeakList = new SimplePeakList(originalPeakList.toString()
-                + " filtered");
+        processedPeakList = new SimplePeakList(newName);
 
         for (RawDataFile rawData : originalPeakList.getRawDataFiles()) {
             processedPeakList.addRawDataFile(rawData);
         }
 
         // Copy rows with enough peaks to new alignment result
-        for (PeakListRow alignmentRow : originalPeakList.getRows()) {
+        for (PeakListRow row : originalPeakList.getRows()) {
 
             if (status == TaskStatus.CANCELED)
                 return;
 
-            if (alignmentRow.getNumberOfPeaks() >= minPresent)
-                processedPeakList.addRow(alignmentRow);
+            boolean rowIsGood = true;
+
+            if (row.getNumberOfPeaks() < minPresent)
+                rowIsGood = false;
+            if ((identified) && (row.getPreferredCompoundIdentity() == null))
+                rowIsGood = false;
+            if ((row.getAverageMZ() > maxMZ) || (row.getAverageMZ() < minMZ))
+                rowIsGood = false;
+            if ((row.getAverageRT() > maxRT) || (row.getAverageRT() < minRT))
+                rowIsGood = false;
+
+            if (rowIsGood)
+                processedPeakList.addRow(row);
 
             processedAlignmentRows++;
 

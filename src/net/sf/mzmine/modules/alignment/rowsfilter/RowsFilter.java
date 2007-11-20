@@ -47,12 +47,41 @@ import net.sf.mzmine.userinterface.dialogs.ParameterSetupDialog;
  * which have less than defined number of peaks detected
  * 
  */
-public class GapsFilter implements BatchStepAlignment, TaskListener, ActionListener {
+public class RowsFilter implements BatchStepAlignment, TaskListener,
+        ActionListener {
 
-    public static final Parameter minPresent = new SimpleParameter(
-            ParameterType.INTEGER, "Minimum present",
-            "Minimum number of peak detections required for keeping a row", "",
+    public static final Parameter nameParam = new SimpleParameter(
+            ParameterType.STRING, "Filtered peaklist name",
+            "Specify a name for the new peaklist");
+
+    public static final Parameter minPeaksParam = new SimpleParameter(
+            ParameterType.INTEGER, "Minimum peaks in a row",
+            "Minimum number of peak detections required to select a row", "",
             new Integer(1), new Integer(1), null);
+
+    public static final Parameter minMZParam = new SimpleParameter(
+            ParameterType.FLOAT, "Minimum m/z",
+            "Minimum average m/z value of a row", "Da",
+            MZmineCore.getDesktop().getMZFormat());
+
+    public static final Parameter maxMZParam = new SimpleParameter(
+            ParameterType.FLOAT, "Maximum m/z",
+            "Maximum average m/z value of a row", "Da",
+            MZmineCore.getDesktop().getMZFormat());
+
+    public static final Parameter minRTParam = new SimpleParameter(
+            ParameterType.FLOAT, "Minimum retention time",
+            "Maximum average retention time of a row", "s",
+            MZmineCore.getDesktop().getRTFormat());
+
+    public static final Parameter maxRTParam = new SimpleParameter(
+            ParameterType.FLOAT, "Maximum retention time",
+            "Maximum average retention time of a row", "s",
+            MZmineCore.getDesktop().getRTFormat());
+
+    public static final Parameter identifiedParam = new SimpleParameter(
+            ParameterType.BOOLEAN, "Compound identified?",
+            "Select to filter only identified compounds");
 
     private Logger logger = Logger.getLogger(this.getClass().getName());
 
@@ -67,7 +96,9 @@ public class GapsFilter implements BatchStepAlignment, TaskListener, ActionListe
 
         this.desktop = MZmineCore.getDesktop();
 
-        parameters = new SimpleParameterSet(new Parameter[] { minPresent });
+        parameters = new SimpleParameterSet(new Parameter[] { nameParam,
+                minPeaksParam, minMZParam, maxMZParam, minRTParam, maxRTParam,
+                identifiedParam });
 
         desktop.addMenuItem(MZmineMenu.ALIGNMENT, toString(), this, null,
                 KeyEvent.VK_A, false, true);
@@ -75,7 +106,7 @@ public class GapsFilter implements BatchStepAlignment, TaskListener, ActionListe
     }
 
     public String toString() {
-        return new String("Filter alignment result rows by gaps");
+        return new String("Peaklist rows filter");
     }
 
     /**
@@ -107,7 +138,7 @@ public class GapsFilter implements BatchStepAlignment, TaskListener, ActionListe
 
         PeakList[] alignmentResults = desktop.getSelectedAlignedPeakLists();
         if (alignmentResults.length == 0) {
-            desktop.displayErrorMessage("Please select at least one alignment result.");
+            desktop.displayErrorMessage("Please select aligned peaklist");
             return;
         }
 
@@ -119,14 +150,14 @@ public class GapsFilter implements BatchStepAlignment, TaskListener, ActionListe
     }
 
     public void taskStarted(Task task) {
-        logger.info("Running alignment result filter by gaps");
+        logger.info("Running peaklist rows filter");
     }
 
     public void taskFinished(Task task) {
 
         if (task.getStatus() == Task.TaskStatus.FINISHED) {
 
-            logger.info("Finished alignment result filter by gaps");
+            logger.info("Finished peaklist rows filter");
 
             PeakList filteredPeakList = (PeakList) task.getResult();
 
@@ -134,7 +165,7 @@ public class GapsFilter implements BatchStepAlignment, TaskListener, ActionListe
 
         } else if (task.getStatus() == Task.TaskStatus.ERROR) {
             /* Task encountered an error */
-            String msg = "Error while filtering alignment result(s): "
+            String msg = "Error while filtering peaklist: "
                     + task.getErrorMessage();
             logger.severe(msg);
             desktop.displayErrorMessage(msg);
@@ -153,9 +184,9 @@ public class GapsFilter implements BatchStepAlignment, TaskListener, ActionListe
             TaskGroupListener methodListener) {
 
         // prepare a new sequence of tasks
-        Task tasks[] = new GapsFilterTask[alignmentResults.length];
+        Task tasks[] = new RowsFilterTask[alignmentResults.length];
         for (int i = 0; i < alignmentResults.length; i++) {
-            tasks[i] = new GapsFilterTask(alignmentResults[i],
+            tasks[i] = new RowsFilterTask(alignmentResults[i],
                     (SimpleParameterSet) parameters);
         }
         TaskGroup newSequence = new TaskGroup(tasks, this, methodListener);
