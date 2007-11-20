@@ -33,18 +33,20 @@ class RowsFilterTask implements Task {
     private TaskStatus status;
     private String errorMessage;
 
-    private float processedAlignmentRows;
-    private float totalAlignmentRows;
+    private float processedRows;
+    private float totalRows;
 
     private int minPresent;
     private String newName;
     private float minMZ, maxMZ, minRT, maxRT;
     private boolean identified;
 
-    public RowsFilterTask(PeakList alignmentResult,
+    public RowsFilterTask(PeakList peakList,
             SimpleParameterSet parameters) {
+        
         status = TaskStatus.WAITING;
-        originalPeakList = alignmentResult;
+        
+        originalPeakList = peakList;
         minPresent = (Integer) parameters.getParameterValue(RowsFilter.minPeaksParam);
         newName = (String) parameters.getParameterValue(RowsFilter.nameParam);
         minMZ = (Float) parameters.getParameterValue(RowsFilter.minMZParam);
@@ -64,7 +66,7 @@ class RowsFilterTask implements Task {
     }
 
     public float getFinishedPercentage() {
-        return processedAlignmentRows / totalAlignmentRows;
+        return processedRows / totalRows;
     }
 
     public Object getResult() {
@@ -76,15 +78,15 @@ class RowsFilterTask implements Task {
     }
 
     public String getTaskDescription() {
-        return "Filtering peaklist rows";
+        return "Filtering peak list rows";
     }
 
     public void run() {
 
         status = TaskStatus.PROCESSING;
 
-        totalAlignmentRows = originalPeakList.getNumberOfRows();
-        processedAlignmentRows = 0;
+        totalRows = originalPeakList.getNumberOfRows();
+        processedRows = 0;
 
         // Create new alignment result and add opened raw data files to it
         processedPeakList = new SimplePeakList(newName);
@@ -113,7 +115,7 @@ class RowsFilterTask implements Task {
             if (rowIsGood)
                 processedPeakList.addRow(row);
 
-            processedAlignmentRows++;
+            processedRows++;
 
         }
 

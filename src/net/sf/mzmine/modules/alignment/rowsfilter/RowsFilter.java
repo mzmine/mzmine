@@ -52,31 +52,31 @@ public class RowsFilter implements BatchStepAlignment, TaskListener,
 
     public static final Parameter nameParam = new SimpleParameter(
             ParameterType.STRING, "Filtered peaklist name",
-            "Specify a name for the new peaklist");
+            "Specify a name for the new peaklist", (Object) "Filtered");
 
     public static final Parameter minPeaksParam = new SimpleParameter(
             ParameterType.INTEGER, "Minimum peaks in a row",
-            "Minimum number of peak detections required to select a row", "",
-            new Integer(1), new Integer(1), null);
+            "Minimum number of peak detections required to select a row",
+            "peaks", new Integer(1), new Integer(1), null);
 
     public static final Parameter minMZParam = new SimpleParameter(
             ParameterType.FLOAT, "Minimum m/z",
-            "Minimum average m/z value of a row", "Da",
+            "Minimum average m/z value of a row", "Da", (Float) 0f,
             MZmineCore.getDesktop().getMZFormat());
 
     public static final Parameter maxMZParam = new SimpleParameter(
             ParameterType.FLOAT, "Maximum m/z",
-            "Maximum average m/z value of a row", "Da",
+            "Maximum average m/z value of a row", "Da", (Float) 0f,
             MZmineCore.getDesktop().getMZFormat());
 
     public static final Parameter minRTParam = new SimpleParameter(
             ParameterType.FLOAT, "Minimum retention time",
-            "Maximum average retention time of a row", "s",
+            "Maximum average retention time of a row", "s", (Float) 0f,
             MZmineCore.getDesktop().getRTFormat());
 
     public static final Parameter maxRTParam = new SimpleParameter(
             ParameterType.FLOAT, "Maximum retention time",
-            "Maximum average retention time of a row", "s",
+            "Maximum average retention time of a row", "s", (Float) 0f,
             MZmineCore.getDesktop().getRTFormat());
 
     public static final Parameter identifiedParam = new SimpleParameter(
@@ -138,7 +138,7 @@ public class RowsFilter implements BatchStepAlignment, TaskListener,
 
         PeakList[] alignmentResults = desktop.getSelectedAlignedPeakLists();
         if (alignmentResults.length == 0) {
-            desktop.displayErrorMessage("Please select aligned peaklist");
+            desktop.displayErrorMessage("Please select aligned peak list");
             return;
         }
 
@@ -150,14 +150,14 @@ public class RowsFilter implements BatchStepAlignment, TaskListener,
     }
 
     public void taskStarted(Task task) {
-        logger.info("Running peaklist rows filter");
+        logger.info("Running peak list rows filter");
     }
 
     public void taskFinished(Task task) {
 
         if (task.getStatus() == Task.TaskStatus.FINISHED) {
 
-            logger.info("Finished peaklist rows filter");
+            logger.info("Finished peak list rows filter");
 
             PeakList filteredPeakList = (PeakList) task.getResult();
 
@@ -165,7 +165,7 @@ public class RowsFilter implements BatchStepAlignment, TaskListener,
 
         } else if (task.getStatus() == Task.TaskStatus.ERROR) {
             /* Task encountered an error */
-            String msg = "Error while filtering peaklist: "
+            String msg = "Error while filtering peak list: "
                     + task.getErrorMessage();
             logger.severe(msg);
             desktop.displayErrorMessage(msg);
