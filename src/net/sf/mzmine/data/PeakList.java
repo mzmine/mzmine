@@ -113,6 +113,11 @@ public interface PeakList {
     public float getDataPointMaxIntensity();
     
     /**
+     * Add a new row to the peak list
+     */
+    public void addRow(PeakListRow row);
+    
+    /**
      * Removes a row from this peak list
      * 
      */
