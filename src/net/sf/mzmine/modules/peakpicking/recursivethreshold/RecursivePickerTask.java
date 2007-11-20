@@ -253,18 +253,6 @@ class RecursivePickerTask implements Task {
 
             }
             
-            // Clean-up empty slots under-construction peaks collection and
-            // reset growing statuses for remaining under construction peaks
-            for (int ucInd = 0; ucInd < underConstructionPeaks.size(); ucInd++) {
-                ConstructionPeak ucPeak = underConstructionPeaks.get(ucInd);
-                if (ucPeak == null) {
-                    underConstructionPeaks.remove(ucInd);
-                    ucInd--;
-                } else {
-                    ucPeak.resetGrowingState();
-                }
-            }
-            
             // Calculate scores between under-construction scores and 1d-peaks
 
             TreeSet<MatchScore> scores = new TreeSet<MatchScore>();
@@ -346,6 +334,18 @@ class RecursivePickerTask implements Task {
                 }
 
             }
+            
+            // Clean-up empty slots under-construction peaks collection and
+            // reset growing statuses for remaining under construction peaks
+            for (int ucInd = 0; ucInd < underConstructionPeaks.size(); ucInd++) {
+                ConstructionPeak ucPeak = underConstructionPeaks.get(ucInd);
+                if (ucPeak == null) {
+                    underConstructionPeaks.remove(ucInd);
+                    ucInd--;
+                } else {
+                    ucPeak.resetGrowingState();
+                }
+            }
 
             // If there are some unconnected 1d-peaks, then start a new
             // under-construction peak for each of them
@@ -356,8 +356,8 @@ class RecursivePickerTask implements Task {
                     ConstructionPeak ucPeak = new ConstructionPeak(dataFile);
                     ucPeak.addDatapoint(sc.getScanNumber(), oneDimPeak.mz,
                             sc.getRetentionTime(), oneDimPeak.intensity);
+                    ucPeak.resetGrowingState();
                     underConstructionPeaks.add(ucPeak);
-
                 }
 
             }
