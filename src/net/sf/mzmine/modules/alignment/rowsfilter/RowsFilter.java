@@ -106,7 +106,7 @@ public class RowsFilter implements BatchStepAlignment, TaskListener,
     }
 
     public String toString() {
-        return new String("Peaklist rows filter");
+        return new String("Peak list rows filter");
     }
 
     /**
