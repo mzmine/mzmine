@@ -76,6 +76,7 @@ class ManuallyDefinePeakTask implements Task {
         totalScans = scanNumbers.length;
         
         ConstructionPeak ucPeak = new ConstructionPeak(selectedFile);
+        boolean dataPointFound = false;
         
         for (int i = 0; i < totalScans; i++) {
 
@@ -88,6 +89,7 @@ class ManuallyDefinePeakTask implements Task {
             float basePeak[] = ScanUtils.findBasePeak(scan, minMZ, maxMZ);
             
             if (basePeak != null) {
+                dataPointFound = true;
                 ucPeak.addDatapoint(scan.getScanNumber(), basePeak[0],
                     scan.getRetentionTime(), basePeak[1]);
             }
@@ -95,11 +97,13 @@ class ManuallyDefinePeakTask implements Task {
             processedScans++;
             
         }
-        
+
         ucPeak.finalizedAddingDatapoints();
         ucPeak.setPeakStatus(PeakStatus.MANUAL);
-        
-        selectedRow.addPeak(selectedFile, ucPeak, ucPeak);
+
+        if (dataPointFound) {
+            selectedRow.addPeak(selectedFile, ucPeak, ucPeak);
+        }
 
         logger.finest("Finished manual peak picker, " + processedScans + " scans processed");
 
