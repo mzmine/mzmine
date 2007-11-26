@@ -48,6 +48,10 @@ class SimpleGapFillerTask implements Task {
         this.parameters = parameters;
 
     }
+    
+    public RawDataFile getDataFile() {
+    	return rawDataFile;
+    }
 
     public void run() {
 
@@ -66,11 +70,18 @@ class SimpleGapFillerTask implements Task {
 
             // Feed this scan to all empty gaps
             for (EmptyGap emptyGap : emptyGaps) {
-                emptyGap.offerNextScan(s);
+            	if (emptyGap!=null)
+            		emptyGap.offerNextScan(s);
             }
 
             processedScans++;
         }
+        
+        // 
+        for (EmptyGap emptyGap : emptyGaps) {
+        	if (emptyGap!=null)
+        		emptyGap.noMoreOffers();
+        }        
 
         status = TaskStatus.FINISHED;
 

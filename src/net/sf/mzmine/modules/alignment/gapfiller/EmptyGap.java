@@ -67,12 +67,12 @@ class EmptyGap {
 
         this.centroidMZ = mz;
         this.centroidRT = rt;
-        intTolerance = (Float) parameters.getParameterValue(SimpleGapFiller.IntTolerance);
-        mzTolerance = (Float) parameters.getParameterValue(SimpleGapFiller.MZTolerance);
-        if (parameters.getParameterValue(SimpleGapFiller.RTToleranceType) == SimpleGapFiller.RTToleranceTypeAbsolute)
+        intTolerance = (Float) parameters.getParameterValue(SimpleGapFiller.intTolerance);
+        mzTolerance = (Float) parameters.getParameterValue(SimpleGapFiller.mzTolerance);
+        if (parameters.getParameterValue(SimpleGapFiller.rtToleranceType) == SimpleGapFiller.RTToleranceTypeAbsolute)
             rtToleranceUseAbs = true;
-        rtToleranceValueAbs = (Float) parameters.getParameterValue(SimpleGapFiller.RTToleranceValueAbs);
-        rtToleranceValuePercent = (Float) parameters.getParameterValue(SimpleGapFiller.RTToleranceValuePercent);
+        rtToleranceValueAbs = (Float) parameters.getParameterValue(SimpleGapFiller.rtToleranceValueAbs);
+        rtToleranceValuePercent = (Float) parameters.getParameterValue(SimpleGapFiller.rtToleranceValuePercent);
 
         rangeMinMZ = centroidMZ - mzTolerance;
         rangeMaxMZ = centroidMZ + mzTolerance;
@@ -89,15 +89,17 @@ class EmptyGap {
 
     public boolean offerNextScan(Scan s) {
 
-        // If this empty gap s already filled, there is no need to analyse
-        // anymore scans
+        // If this empty gap s already filled, then do not process any more scans
         if (allDone) {
             return false;
         }
 
-        float[] massValues = s.getMZValues();
-        float[] intensityValues = s.getIntensityValues();
         float scanRT = s.getRetentionTime();
+        // If not yet inside range, then do not process this scan
+        if (scanRT<rangeMinRT) return true;
+        
+        float[] massValues = s.getMZValues();
+        float[] intensityValues = s.getIntensityValues();        
         int scanNumber = s.getScanNumber();
 
         // Find local intensity maximum inside the M/Z range
@@ -125,7 +127,7 @@ class EmptyGap {
 
         // If there are no datapoints inside the range, then assume intensity is
         // zero.
-        // (Interpolation is not fair because data maybe centroided)
+        // (Interpolation does not work if data is centroided)
         if (currentIntensity < 0) {
             currentIntensity = 0;
             currentMZ = centroidMZ;
@@ -154,25 +156,25 @@ class EmptyGap {
 
         // Check if this continues previous peak?
         if (checkRTShape(scanRT, currentIntensity, rangeMinRT, rangeMaxRT)) {
-            // Yes, it is. Just continue this peak.
+            // Yes, continue this peak.
             peakScanNumbers.add(new Integer(scanNumber));
             peakInts.add(new Float(currentIntensity));
             peakMZs.add(new Float(currentMZ));
             peakRTs.add(new Float(scanRT));
         } else {
 
-            // No it is not
+            // No, new peak is starting
 
-            // Check previous peak as a candidate for estimator
-
+            // Check peak formed so far
             checkPeak();
 
-            // New peak starts
+            // Check if already out of range
             if (scanRT > rangeMaxRT) {
                 allDone = true;
                 return false;
             }
 
+            // Initialize new peak
             peakScanNumbers.clear();
             peakInts.clear();
             peakMZs.clear();
