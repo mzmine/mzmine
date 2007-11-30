@@ -37,6 +37,7 @@ import javax.swing.JLayeredPane;
 import javax.swing.JMenuItem;
 import javax.swing.JOptionPane;
 import javax.swing.JSplitPane;
+import javax.swing.ToolTipManager;
 import javax.swing.UIManager;
 import javax.swing.border.EtchedBorder;
 import javax.swing.event.ListSelectionEvent;
@@ -59,6 +60,8 @@ import net.sf.mzmine.util.NumberFormatter;
 public class MainWindow extends JFrame implements MZmineModule, Desktop,
         WindowListener {
 
+    // default tooltip displaying delay in ms
+    public static final int DEFAULT_TOOLTIP_DELAY = 50;
 
     private DesktopParameters parameters;
 
@@ -245,6 +248,9 @@ public class MainWindow extends JFrame implements MZmineModule, Desktop,
         taskList = new TaskProgressWindow(
                 (TaskControllerImpl) MZmineCore.getTaskController());
         desktopPane.add(taskList, JLayeredPane.DEFAULT_LAYER);
+        
+        ToolTipManager tooltipManager = ToolTipManager.sharedInstance();
+        tooltipManager.setInitialDelay(DEFAULT_TOOLTIP_DELAY);
 
     }
 

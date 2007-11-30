@@ -22,6 +22,8 @@ package net.sf.mzmine.userinterface.mainwindow;
 import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.event.MouseEvent;
+import java.awt.event.MouseListener;
+import java.util.logging.Logger;
 
 import javax.swing.Box;
 import javax.swing.BoxLayout;
@@ -29,10 +31,12 @@ import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.border.EtchedBorder;
 
-public class Statusbar extends JPanel implements Runnable {
+public class Statusbar extends JPanel implements Runnable, MouseListener {
 
     // frequency in milliseconds how often to update free memory label
     public static final int MEMORY_LABEL_UPDATE_FREQUENCY = 1000;
+    
+    private Logger logger = Logger.getLogger(this.getClass().getName());
 
     private JPanel statusTextPanel, memoryPanel;
     private JLabel statusTextLabel, memoryLabel;
@@ -67,7 +71,10 @@ public class Statusbar extends JPanel implements Runnable {
         memoryPanel.add(memoryLabel);
         memoryPanel.add(Box.createRigidArea(new Dimension(10, statusBarHeight)));
 
+        memoryLabel.addMouseListener(this);
+        
         add(memoryPanel);
+        
 
         Thread memoryLabelUpdaterThread = new Thread(this,
                 "Memory label updater thread");
@@ -142,6 +149,12 @@ public class Statusbar extends JPanel implements Runnable {
 
         }
 
+    }
+
+    public void mouseClicked(MouseEvent arg0) {
+        logger.info("Running garbage collector");
+        System.gc();
+        
     }
 
 }
