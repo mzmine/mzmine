@@ -56,8 +56,6 @@ public class TICSetupDialog extends JDialog implements ActionListener {
     private JFormattedTextField fieldMinRT, fieldMaxRT, fieldMinMZ, fieldMaxMZ;
     private JComboBox comboPlotType, comboMSlevel;
 
-    private static final NumberFormat format = NumberFormat.getNumberInstance();
-
     private Desktop desktop;
     private RawDataFile dataFile;
 
@@ -143,7 +141,7 @@ public class TICSetupDialog extends JDialog implements ActionListener {
         constraints.gridheight = 1;
         layout.setConstraints(comp, constraints);
 
-        fieldMinRT = new JFormattedTextField(format);
+        fieldMinRT = new JFormattedTextField(desktop.getRTFormat());
         constraints.weightx = 1;
         constraints.gridx = 1;
         constraints.gridy = 3;
@@ -166,7 +164,7 @@ public class TICSetupDialog extends JDialog implements ActionListener {
         constraints.gridheight = 1;
         layout.setConstraints(comp, constraints);
 
-        fieldMaxRT = new JFormattedTextField(format);
+        fieldMaxRT = new JFormattedTextField(desktop.getRTFormat());
         constraints.weightx = 1;
         constraints.gridx = 1;
         constraints.gridy = 4;
@@ -189,7 +187,7 @@ public class TICSetupDialog extends JDialog implements ActionListener {
         constraints.gridheight = 1;
         layout.setConstraints(comp, constraints);
 
-        fieldMinMZ = new JFormattedTextField(format);
+        fieldMinMZ = new JFormattedTextField(desktop.getMZFormat());
         constraints.weightx = 1;
         constraints.gridx = 1;
         constraints.gridy = 5;
@@ -212,7 +210,7 @@ public class TICSetupDialog extends JDialog implements ActionListener {
         constraints.gridheight = 1;
         layout.setConstraints(comp, constraints);
 
-        fieldMaxMZ = new JFormattedTextField(format);
+        fieldMaxMZ = new JFormattedTextField(desktop.getMZFormat());
         constraints.weightx = 1;
         constraints.gridx = 1;
         constraints.gridy = 6;
@@ -273,13 +271,18 @@ public class TICSetupDialog extends JDialog implements ActionListener {
             Peak[] peaks) {
 
         this(dataFile);
+        
+        // force the "base peak plot" type
+        comboPlotType.setSelectedItem(plotTypes[1]);
+        comboPlotType.setEnabled(false);
+        
         this.peaks = peaks;
         if (peaks != null) {
             if (peaks.length > 1)
                 this.setTitle("XIC (" + peaks.length
                         + " peaks) visualizer parameters");
             else
-                this.setTitle("XIC (peak " + format.format(peaks[0].getMZ())
+                this.setTitle("XIC (peak " + peaks[0].toString()
                         + ") visualizer parameters");
         }
 
@@ -324,7 +327,7 @@ public class TICSetupDialog extends JDialog implements ActionListener {
                 float mzMin = ((Number) fieldMinMZ.getValue()).floatValue();
                 float mzMax = ((Number) fieldMaxMZ.getValue()).floatValue();
 
-                if ((rtMax <= rtMin) || (mzMax <= mzMin)) {
+                if ((rtMax < rtMin) || (mzMax < mzMin)) {
                     desktop.displayErrorMessage("Invalid bounds");
                     return;
                 }
