@@ -24,60 +24,117 @@ import net.sf.mzmine.data.PeakList;
 import net.sf.mzmine.io.RawDataFile;
 
 /**
- * This class represents a MZmine project. That includes raw data files,
- * processed raw data files, peak lists, alignment results....
+ * 
+ * MZmineProject collects all items user has opened or created during an MZmine
+ * session. This includes
+ * <ul>
+ * <li> Experimental parameters and their values for each RawDataFile.
+ * Experimental parameters are available for defining any properties of the
+ * sample, for instance concentration or a class label.
+ * <li> Opened RawDataFiles
+ * <li> PeakLists of each RawDataFile. A peak list represents results of peak
+ * detection on a single RawDataFile or a processed version of a preceding
+ * PeakList.
+ * <li> PeakLists of multiple aligned PeakLists. An aligned peak list represent
+ * results of aligning multiple PeakLists of individual runs or a processed
+ * version of a preceding aligned PeakList.
+ * </ul>
+ * 
+ * @see Parameter
+ * @see ParameterValue
+ * @see RawDataFile
+ * @see PeakList
+ * 
  */
 public interface MZmineProject {
 
-    /**
-     * Adds a new experimental parameter to the project
-     * @param parameter
-     */
-    public void addParameter(Parameter parameter);
+	/**
+	 * Adds a new experimental parameter to the project
+	 * 
+	 * @param parameter
+	 */
+	public void addParameter(Parameter parameter);
 
-    /**
-     * Removes an experimental parameter from the project
-     * @param parameter
-     */
-    public void removeParameter(Parameter parameter);
-    
-    /**
-     * Returns true if project contains the experimental parameter
-     */
-    public boolean hasParameter(Parameter parameter);
-    
-    /**
-     * Returns all experimental parameter defined in the project
-     */
-    public Parameter[] getParameters();
-    
-    /**
-     * Sets the value of the parameter in the given raw data file.
-     * If experimental parameter does not exists in the project, it is added to the project
-     * If parameter has previous value in the given file, the previous value is replaced
-     */
-    public void setParameterValue(Parameter parameter, RawDataFile rawDataFile, Object value);
-    
-    /**
-	 * Returns the value of an experimental parameter in the given raw data file
-     * @param newFile
-     */
-    public Object getParameterValue(Parameter parameter, RawDataFile rawDataFile);
+	/**
+	 * Removes an experimental parameter from the project
+	 * 
+	 * @param parameter
+	 */
+	public void removeParameter(Parameter parameter);
 
-    public void addFile(RawDataFile newFile);
+	/**
+	 * Returns true if project contains the experimental parameter
+	 */
+	public boolean hasParameter(Parameter parameter);
 
-    public void removeFile(RawDataFile file);
+	/**
+	 * Returns all experimental parameter of the project
+	 */
+	public Parameter[] getParameters();
 
-    public RawDataFile[] getDataFiles();
+	/**
+	 * Sets experimental parameter's value corresponding to a RawDataFile.
+	 * <p>
+	 * If the parameter does not exists in the project, it is added to the
+	 * project. If parameter already has a value corresponding the given file,
+	 * previous value is replaced.
+	 * 
+	 */
+	public void setParameterValue(Parameter parameter, RawDataFile rawDataFile,
+			Object value);
 
-    public void addAlignedPeakList(PeakList newResult);
+	/**
+	 * Returns experimental parameter's value corresponding to a RawDataFile.
+	 * 
+	 */
+	public Object getParameterValue(Parameter parameter, RawDataFile rawDataFile);
 
-    public void removeAlignedPeakList(PeakList result);
+	/**
+	 * Adds a new RawDataFile to the project.
+	 * 
+	 */
+	public void addFile(RawDataFile newFile);
 
-    public PeakList[] getAlignedPeakLists();
+	/**
+	 * Removes a RawDataFile from the project.
+	 * 
+	 */
+	public void removeFile(RawDataFile file);
 
-    public PeakList getFilePeakList(RawDataFile file);
+	/**
+	 * Returns all RawDataFiles of the project.
+	 * 
+	 */
+	public RawDataFile[] getDataFiles();
 
-    public void setFilePeakList(RawDataFile file, PeakList peakList);
+	/**
+	 * Adds aligned PeakList to the project
+	 * 
+	 */
+	public void addAlignedPeakList(PeakList newResult);
+
+	/**
+	 * Removes aligned PeakList from the project
+	 * 
+	 */
+	public void removeAlignedPeakList(PeakList result);
+
+	/**
+	 * Returns all aligned PeakLists of the project.
+	 * 
+	 */
+	public PeakList[] getAlignedPeakLists();
+
+	/**
+	 * Returns PeakList for a RawDataFile
+	 * 
+	 */
+	public PeakList getFilePeakList(RawDataFile file);
+
+	/**
+	 * Sets PeakList for a RawDataFile
+	 * 
+	 */
+	public void setFilePeakList(RawDataFile file, PeakList peakList);
 
 }
