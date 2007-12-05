@@ -26,9 +26,12 @@ import net.sf.mzmine.data.Scan;
 import net.sf.mzmine.data.Peak.PeakStatus;
 import net.sf.mzmine.data.impl.ConstructionPeak;
 import net.sf.mzmine.data.impl.SimpleParameterSet;
+import net.sf.mzmine.io.RawDataFile;
 
 class EmptyGap {
 
+    private RawDataFile rawDataFile;
+    
     private float centroidMZ;
     private float centroidRT;
 
@@ -63,8 +66,9 @@ class EmptyGap {
      * @param mz M/Z coordinate of this empty gap
      * @param rt RT coordinate of this empty gap
      */
-    EmptyGap(float mz, float rt, SimpleParameterSet parameters) {
+    EmptyGap(RawDataFile rawDataFile, float mz, float rt, SimpleParameterSet parameters) {
 
+        this.rawDataFile = rawDataFile;
         this.centroidMZ = mz;
         this.centroidRT = rt;
         intTolerance = (Float) parameters.getParameterValue(SimpleGapFiller.intTolerance);
@@ -198,7 +202,7 @@ class EmptyGap {
 
     public Peak getEstimatedPeak() {
         if (bestPeak == null) {
-            ConstructionPeak zeroPeak = new ConstructionPeak(null); // TODO
+            ConstructionPeak zeroPeak = new ConstructionPeak(rawDataFile);
             zeroPeak.addDatapoint(closestScanNumber, closestMZ, closestRT, 0.0f);
             zeroPeak.finalizedAddingDatapoints();
             zeroPeak.setPeakStatus(PeakStatus.ESTIMATED);
@@ -307,7 +311,7 @@ class EmptyGap {
             }
 
             // 3) Generate a Peak
-            ConstructionPeak candidatePeak = new ConstructionPeak(null); // TODO
+            ConstructionPeak candidatePeak = new ConstructionPeak(rawDataFile);
             for (int ind = startInd; ind <= stopInd; ind++) {
                 candidatePeak.addDatapoint(peakScanNumbers.get(ind),
                         peakMZs.get(ind), peakRTs.get(ind), peakInts.get(ind));
