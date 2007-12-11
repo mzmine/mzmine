@@ -56,8 +56,14 @@ public class OldTwoDPlot extends JPanel implements ActionListener, MouseListener
 
 	private JMenuItem showSpectrumPlotMenuItem;
 	private JMenuItem showXICPlotMenuItem;
+	
+	private JMenuItem finalizePrePeaksMenuItem;
+	private JMenuItem deleteNearestPeakMenuItem;
 
 	private OldTwoDVisualizerWindow visualizerWindow;
+	
+	
+	private int lastPressedMouseButton;
 	
 	private int mouseCursorPositionX;
 	private int mouseCursorPositionY;
@@ -82,6 +88,8 @@ public class OldTwoDPlot extends JPanel implements ActionListener, MouseListener
 	private boolean showPeaks = true;
 	
 	private MZmineProject project;
+	
+	private Vector<PreConstructionPeak> prePeaks;
 
 	
 	public OldTwoDPlot(OldTwoDVisualizerWindow visualizerWindow, OldTwoDDataSet dataset, InterpolatingLookupPaintScale paintScale) {
@@ -118,6 +126,17 @@ public class OldTwoDPlot extends JPanel implements ActionListener, MouseListener
 	    popupMenu.add(showXICPlotMenuItem);	    
 	    
 	    popupMenu.addSeparator();
+	    
+	    finalizePrePeaksMenuItem = new JMenuItem("Finalize pre-peaks");
+	    finalizePrePeaksMenuItem.addActionListener(this);
+	    popupMenu.add(finalizePrePeaksMenuItem);
+	    
+	    deleteNearestPeakMenuItem = new JMenuItem("Delete nearest (pre-)peak");
+	    deleteNearestPeakMenuItem.addActionListener(this);
+	    popupMenu.add(deleteNearestPeakMenuItem);
+ 
+	    
+	    prePeaks = new Vector<PreConstructionPeak>();
 
 	    addMouseListener(this);
 	    addMouseMotionListener(this);
@@ -134,7 +153,6 @@ public class OldTwoDPlot extends JPanel implements ActionListener, MouseListener
 		
 		// Update bitmap
 		bitmapImage = constructBitmap();
-		
 		
 	}
 	
@@ -264,30 +282,67 @@ public class OldTwoDPlot extends JPanel implements ActionListener, MouseListener
 				}		
 
 			}
+			
+			// Draw pre-peaks if present
+			if ( (prePeaks!=null) && (prePeaks.size()>0) ) {
+				for (PreConstructionPeak prePeak : prePeaks) {
+					int startx = convertRTToPlotXCoordinate(prePeak.getPreStartRT());
+					int stopx = convertRTToPlotXCoordinate(prePeak.getPreStopRT());
+					int y = convertMZToPlotYCoordinate(prePeak.getPreMZ());
+					
+					g.setColor(peakColor);
+					g.drawLine(startx,y,stopx,y);
+				}
+			}
 
 			
+	    	// Reset previous selected area and initialize new selection to start from current position
+	    	
+			// If no area selected, then draw normal cursor
+			if (	(mouseAreaStartX<0) &&
+					(mouseAreaStartY<0) &&
+					(mouseAreaStopX<0) &&
+					(mouseAreaStopY<0) ) {
+				    	
+				// Draw cursor position x-coordinate => scan
+				g2d.setColor(cursorColor);
+				g2d.setStroke(new BasicStroke(0.0f, BasicStroke.CAP_BUTT, BasicStroke.JOIN_MITER, 10.0f, new float[]{6.0f, 3.0f}, 0.0f));
+				g2d.draw(new Line2D.Double(mouseCursorPositionX, mouseCursorPositionY, mouseCursorPositionX, (int)h));
+				g2d.draw(new Line2D.Double(mouseCursorPositionX, mouseCursorPositionY, mouseCursorPositionX, 0));
+				
+				// Draw cursor position y-coordinate => m/z
+				g2d.draw(new Line2D.Double(mouseCursorPositionX, mouseCursorPositionY, (int)w, mouseCursorPositionY));
+				g2d.draw(new Line2D.Double(mouseCursorPositionX, mouseCursorPositionY, 0, mouseCursorPositionY));
+				
+			} else {
+				
+				// When area is selected then do not draw a cursor  
 			
-			// Draw cursor position x-coordinate => scan
-			g2d.setColor(cursorColor);
-			g2d.setStroke(new BasicStroke(0.0f, BasicStroke.CAP_BUTT, BasicStroke.JOIN_MITER, 10.0f, new float[]{6.0f, 3.0f}, 0.0f));
-			//g2d.draw(new Line2D.Double(mouseCursorPositionX, 0, mouseCursorPositionX, (int)h));
-			g2d.draw(new Line2D.Double(mouseCursorPositionX, mouseCursorPositionY, mouseCursorPositionX, (int)h));
-			g2d.draw(new Line2D.Double(mouseCursorPositionX, mouseCursorPositionY, mouseCursorPositionX, 0));
-			
-			
-			// Draw cursor position y-coordinate => m/z
-			//g2d.draw(new Line2D.Double(0, mouseCursorPositionY, (int)w, mouseCursorPositionY));
-			g2d.draw(new Line2D.Double(mouseCursorPositionX, mouseCursorPositionY, (int)w, mouseCursorPositionY));
-			g2d.draw(new Line2D.Double(mouseCursorPositionX, mouseCursorPositionY, 0, mouseCursorPositionY));
-			
-			// Draw selection
-			g2d.setColor(selectionColor);
-			g2d.setStroke(new BasicStroke(0.0f));
-			g2d.setPaint(new Color((float)selectionColor.getRed()/255.0f, (float)selectionColor.getGreen()/255.0f, (float)selectionColor.getBlue()/255.0f, 0.25f));
-			g2d.fill(new Rectangle2D.Double(mouseAreaStartX, mouseAreaStartY, mouseAreaStopX-mouseAreaStartX, mouseAreaStopY-mouseAreaStartY));			
-			
-			
+				switch (visualizerWindow.getZoomPeakEditMode()) {
+					case OldTwoDVisualizerWindow.ZOOMPEAKEDIT_PEAKEDITMODE:
+						
+						// Draw the current pre-pre-peak
+						g2d.setColor(selectionColor);
+						g2d.setStroke(new BasicStroke(2.0f));
+						g2d.draw(new Line2D.Double(mouseAreaStartX, selectionLastClickY, mouseAreaStopX, selectionLastClickY));
+	
+						break;
+						
+					case OldTwoDVisualizerWindow.ZOOMPEAKEDIT_ZOOMMODE:
+						
+						// Draw rectangle over the selected area
+						g2d.setColor(selectionColor);
+						g2d.setStroke(new BasicStroke(0.0f));
+						g2d.setPaint(new Color((float)selectionColor.getRed()/255.0f, (float)selectionColor.getGreen()/255.0f, (float)selectionColor.getBlue()/255.0f, 0.25f));
+						g2d.fill(new Rectangle2D.Double(mouseAreaStartX, mouseAreaStartY, mouseAreaStopX-mouseAreaStartX, mouseAreaStopY-mouseAreaStartY));			
+	
+				    	break;
+				}
+				
+			}
+
 		}
+		
 	}
 
 
@@ -357,7 +412,7 @@ public class OldTwoDPlot extends JPanel implements ActionListener, MouseListener
 			
 			float rangeMinRT = convertPlotXCoordinateToRT(mouseAreaStartX);
 			float rangeMaxRT = convertPlotXCoordinateToRT(mouseAreaStopX);
-			
+					
 			visualizerWindow.setZoomRange(1, rangeMinRT, rangeMaxRT, rangeMinMZ, rangeMaxMZ);
 
 			mouseCursorPositionX = 0;
@@ -373,11 +428,23 @@ public class OldTwoDPlot extends JPanel implements ActionListener, MouseListener
 	    	
 	    	CursorPosition curPos = new CursorPosition(rt,mz,0,dataset.getRawDataFile(),scanNumber);
 	    	visualizerWindow.setCursorPosition(curPos);
+	    	
+	    	// Reset selected area
+	    	mouseAreaStartX = -1;
+	    	mouseAreaStartY = -1;
+	    	mouseAreaStopX = -1;
+	    	mouseAreaStopY = -1;
 	    				
 		}
 
 		if (src == zoomOutMenuItem) {
 			visualizerWindow.setFullZoom(1);
+			
+	    	// Reset selected area
+	    	mouseAreaStartX = -1;
+	    	mouseAreaStartY = -1;
+	    	mouseAreaStopX = -1;
+	    	mouseAreaStopY = -1;
 		}
 
 		if (src == zoomOutLittleMenuItem) {
@@ -391,13 +458,18 @@ public class OldTwoDPlot extends JPanel implements ActionListener, MouseListener
 			float newRangeMaxRT = currentRangeMidRT + zoomOutLittleFactor * (dataset.getMaxRT()-currentRangeMidRT);
 
 			visualizerWindow.setZoomRange(1, newRangeMinRT, newRangeMaxRT, newRangeMinMZ, newRangeMaxMZ);
+			
+	    	// Reset selected area
+	    	mouseAreaStartX = -1;
+	    	mouseAreaStartY = -1;
+	    	mouseAreaStopX = -1;
+	    	mouseAreaStopY = -1;
 		}
 
 		if (src == showSpectrumPlotMenuItem) { 
 			float cursorRT = convertPlotXCoordinateToRT(mouseCursorPositionX);
 			int xIndex = convertPlotXCoordinateToXIndex(mouseCursorPositionX);
 			int scanNumber = dataset.getScanNumber(xIndex);
-			System.out.println("About to open spectrum dialog for scan #" + scanNumber + ", with RT=" + cursorRT);
 
             new SpectraVisualizerWindow(dataset.getRawDataFile(), scanNumber);
 
@@ -406,8 +478,6 @@ public class OldTwoDPlot extends JPanel implements ActionListener, MouseListener
 
 		if (src == showXICPlotMenuItem) {
 			float cursorMZ = convertPlotYCoordinateToMZ(mouseCursorPositionY);
-			System.out.println("About to open XIC setup dialog with m/z=" + cursorMZ);
-
 			
             JDialog setupDialog = new TICSetupDialog(dataset.getRawDataFile(),
                     cursorMZ-defaultOneSidedXICWidth,
@@ -425,115 +495,130 @@ public class OldTwoDPlot extends JPanel implements ActionListener, MouseListener
 
 	public void mouseReleased(MouseEvent e) {
 
+		// Right-mouse button? => show pop-up menu
 	    if (e.getButton()!=MouseEvent.BUTTON1) {
 			popupMenu.show(e.getComponent(), e.getX(), e.getY());
-	    } else {
-			selectionFirstClickX = -1;
-			selectionFirstClickY = -1;
-			selectionLastClickX = -1;
-			selectionLastClickY = -1;
-			
-			visualizerWindow.setRangeCursorPosition(null);
 	    }
 
-	}
-
-	private int lastPressedButtonWas;
-	public void mousePressed(MouseEvent e) {
-
-		lastPressedButtonWas = e.getButton();
-
+		// Left-mouse button 
 	    if (e.getButton()==MouseEvent.BUTTON1) {
-	    	
-	    	int w = getWidth();
-	    	int h = getHeight();
-	    	
-	    	mouseCursorPositionX = quantizePlotXCoordinate(e.getX());
-	    	mouseCursorPositionY = e.getY();
-	    	
-	    	float mz = convertPlotYCoordinateToMZ(mouseCursorPositionY);
-	    	float rt = convertPlotXCoordinateToRT(mouseCursorPositionX);
-	    	int xIndex = convertPlotXCoordinateToXIndex(mouseCursorPositionX);
-	    	int scanNumber = -1;
-	    	if (dataset.getScanNumber(xIndex)!=null)
-	    		scanNumber = dataset.getScanNumber(xIndex);
+    	
+			switch (visualizerWindow.getZoomPeakEditMode()) {
+				case OldTwoDVisualizerWindow.ZOOMPEAKEDIT_PEAKEDITMODE:
+					
+					// Create a new PreConstructionPeak
+			    	float mz = convertPlotYCoordinateToMZ(selectionLastClickY);
+			    	float minRT = convertPlotXCoordinateToRT(mouseAreaStartX);
+			    	float maxRT = convertPlotXCoordinateToRT(mouseAreaStopX);
+					
+					PreConstructionPeak prePeak = new PreConstructionPeak(visualizerWindow.getDataFile(), mz, minRT, maxRT);
+					prePeaks.add(prePeak);
+					break;
+					
+				case OldTwoDVisualizerWindow.ZOOMPEAKEDIT_ZOOMMODE:
+			    	break;
+			}
 
-	    	
-	    	CursorPosition curPos = new CursorPosition(rt,mz,0,dataset.getRawDataFile(),scanNumber);
-	    	visualizerWindow.setCursorPosition(curPos);
-	    	
-	    	zoomToSelectionMenuItem.setEnabled(false);
-	    	
-	    	mouseAreaStartX = -1;
-	    	mouseAreaStartY = -1;
-	    	mouseAreaStopX = -1;
-	    	mouseAreaStopY = -1;
-	    	
-			repaint();
-			
 	    }
 
+	}		
+		
+	
+	
+	
+	public void mousePressed(MouseEvent e) {
+		
+		// Store info about pressed button
+		lastPressedMouseButton = e.getButton();
+		
+		// If not the first mouse button pressed, then do nothing
+		if (e.getButton()!=MouseEvent.BUTTON1) { return; }
+
+		// Get x,y position of the cursor on the 2d-plot
+    	mouseCursorPositionX = quantizePlotXCoordinate(e.getX());
+    	mouseCursorPositionY = e.getY();
+
+		// Compute m/z, RT and scan number of the position    	
+    	float mz = convertPlotYCoordinateToMZ(mouseCursorPositionY);
+    	float rt = convertPlotXCoordinateToRT(mouseCursorPositionX);
+    	int xIndex = convertPlotXCoordinateToXIndex(mouseCursorPositionX);
+    	int scanNumber = -1;
+    	if (dataset.getScanNumber(xIndex)!=null)
+    		scanNumber = dataset.getScanNumber(xIndex);
+
+    	// Set data cursor position on the clicked position
+    	CursorPosition curPos = new CursorPosition(rt,mz,0,dataset.getRawDataFile(),scanNumber);
+    	visualizerWindow.setCursorPosition(curPos);
+    	
+    	// Reset previous selected area and initialize new selection to start from current position
+    	mouseAreaStartX = -1;
+    	mouseAreaStartY = -1;
+    	mouseAreaStopX = -1;
+    	mouseAreaStopY = -1;
+		selectionFirstClickX = mouseCursorPositionX;
+		selectionFirstClickY = mouseCursorPositionY;
+   	
+		switch (visualizerWindow.getZoomPeakEditMode()) {
+			case OldTwoDVisualizerWindow.ZOOMPEAKEDIT_PEAKEDITMODE:
+				break;
+				
+			case OldTwoDVisualizerWindow.ZOOMPEAKEDIT_ZOOMMODE:
+		    	// Disable zoom option in pop-up menu (no selected area at the moment) 
+	    		zoomToSelectionMenuItem.setEnabled(false);
+		    	break;
+		}
+		
+		repaint();
+	
 	}
 
 	public void mouseDragged(MouseEvent e) {
+		
+		// If not the first mouse button pressed, then do nothing
+		if (lastPressedMouseButton!=MouseEvent.BUTTON1) { return; }
 
-		if (lastPressedButtonWas!=MouseEvent.BUTTON1) { return; }
+		// Get x,y position of the cursor on the 2d-plot
+		selectionLastClickX = quantizePlotXCoordinate(e.getX());
+		selectionLastClickY = e.getY();
 
-		if (selectionFirstClickX == -1) {
-			
-			selectionFirstClickX = quantizePlotXCoordinate(e.getX());
-			selectionFirstClickY = e.getY();
-			mouseCursorPositionX = selectionFirstClickX;
-			mouseCursorPositionY = selectionFirstClickY;
-
-			float mz = convertPlotYCoordinateToMZ(mouseCursorPositionY);
-	    	float rt = convertPlotXCoordinateToRT(mouseCursorPositionX);
-	    	int xIndex = convertPlotXCoordinateToXIndex(mouseCursorPositionX);
-	    	int scanNumber = -1;
-	    	if (dataset.getScanNumber(xIndex)!=null)
-	    		scanNumber = dataset.getScanNumber(xIndex);
-
-	    	
-	    	CursorPosition curPos = new CursorPosition(rt,mz,0,dataset.getRawDataFile(),scanNumber);
-	    	visualizerWindow.setCursorPosition(curPos);
-			
-			
+		// Define selected area using the first and last (current) clicked position
+		if (selectionLastClickX>selectionFirstClickX) {
+			mouseAreaStartX = selectionFirstClickX;
+			mouseAreaStopX = selectionLastClickX;
 		} else {
-			
-			selectionLastClickX = quantizePlotXCoordinate(e.getX());
-			selectionLastClickY = e.getY();
+			mouseAreaStartX = selectionLastClickX;
+			mouseAreaStopX = selectionFirstClickX;
+		}
+		if (selectionLastClickY>selectionFirstClickY) {
+			mouseAreaStartY = selectionFirstClickY;
+			mouseAreaStopY = selectionLastClickY;
+		} else {
+			mouseAreaStartY = selectionLastClickY;
+			mouseAreaStopY = selectionFirstClickY;
+		}
+				
+		// Compute m/z, RT and scan number of the position		
+		float mz = convertPlotYCoordinateToMZ(selectionLastClickY);
+    	float rt = convertPlotXCoordinateToRT(selectionLastClickX);
+    	int xIndex = convertPlotXCoordinateToXIndex(selectionLastClickX);
+    	int scanNumber = -1;
+    	if (dataset.getScanNumber(xIndex)!=null)
+    		scanNumber = dataset.getScanNumber(xIndex);
+    	
+    	// Set data cursor position on the clicked position    	
+    	CursorPosition curPos = new CursorPosition(rt,mz,0,dataset.getRawDataFile(),scanNumber);
+    	visualizerWindow.setRangeCursorPosition(curPos);
 
-			if (selectionLastClickX>selectionFirstClickX) {
-				mouseAreaStartX = selectionFirstClickX;
-				mouseAreaStopX = selectionLastClickX;
-			} else {
-				mouseAreaStartX = selectionLastClickX;
-				mouseAreaStopX = selectionFirstClickX;
-			}
-
-			if (selectionLastClickY>selectionFirstClickY) {
-				mouseAreaStartY = selectionFirstClickY;
-				mouseAreaStopY = selectionLastClickY;
-			} else {
-				mouseAreaStartY = selectionLastClickY;
-				mouseAreaStopY = selectionFirstClickY;
-			}
+		repaint();
 			
-			
-			float mz = convertPlotYCoordinateToMZ(selectionLastClickY);
-	    	float rt = convertPlotXCoordinateToRT(selectionLastClickX);
-	    	int xIndex = convertPlotXCoordinateToXIndex(selectionLastClickX);
-	    	int scanNumber = -1;
-	    	if (dataset.getScanNumber(xIndex)!=null)
-	    		scanNumber = dataset.getScanNumber(xIndex);
-	    	
-	    	CursorPosition curPos = new CursorPosition(rt,mz,0,dataset.getRawDataFile(),scanNumber);
-	    	visualizerWindow.setRangeCursorPosition(curPos);
-
-			zoomToSelectionMenuItem.setEnabled(true);
-
-			repaint();
-			
+		switch (visualizerWindow.getZoomPeakEditMode()) {
+			case OldTwoDVisualizerWindow.ZOOMPEAKEDIT_PEAKEDITMODE:
+				break;
+				
+			case OldTwoDVisualizerWindow.ZOOMPEAKEDIT_ZOOMMODE:
+		    	// Enable zoom option in pop-up menu (selected area is available now) 
+	    		zoomToSelectionMenuItem.setEnabled(true);				
+				break;
 		}
 				
 	}

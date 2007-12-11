@@ -41,7 +41,7 @@ import net.sf.mzmine.userinterface.components.interpolatinglookuppaintscale.Inte
 import net.sf.mzmine.util.CursorPosition;
 
 /**
- * 2D visualizer using JFreeChart library
+ * 2D visualizer 
  */
 public class OldTwoDVisualizerWindow extends JInternalFrame implements
         RawDataVisualizer, ActionListener, TaskListener {
@@ -70,6 +70,11 @@ public class OldTwoDVisualizerWindow extends JInternalFrame implements
     private static final int PALETTE_GRAY1 = 3;
     private static final int PALETTE_RAINBOW = 4;
     private int currentPaletteType = PALETTE_GRAY20;
+    
+    protected static final int ZOOMPEAKEDIT_ZOOMMODE = 1;
+    protected static final int ZOOMPEAKEDIT_PEAKEDITMODE = 2;
+    private int currentZoomPeakEditMode = ZOOMPEAKEDIT_ZOOMMODE;
+    
     private float maximumIntensity = 0.0f;
 
     public OldTwoDVisualizerWindow(RawDataFile dataFile) {
@@ -114,14 +119,6 @@ public class OldTwoDVisualizerWindow extends JInternalFrame implements
         twoDPlot = new OldTwoDPlot(this, dataset, paintScale);
         add(twoDPlot, BorderLayout.CENTER);
         
-/*
-        resampleCheckBox = new JCheckBox("Resample when zooming", true);
-        resampleCheckBox.setBackground(Color.white);
-        resampleCheckBox.setFont(resampleCheckBox.getFont().deriveFont(10f));
-        resampleCheckBox.setHorizontalAlignment(JCheckBox.CENTER);
-        resampleCheckBox.setBorder(BorderFactory.createEmptyBorder(5, 5, 5, 5));
-        add(resampleCheckBox, BorderLayout.SOUTH);
-*/
         updateTitle();
         
         pack();
@@ -149,6 +146,10 @@ public class OldTwoDVisualizerWindow extends JInternalFrame implements
     	if (twoDPlot!=null)
     		twoDPlot.datasetUpdateReady();
     	
+    }
+    
+    protected RawDataFile getDataFile() {
+    	return dataFile;
     }
     
     private Object[] createPaintScale(int paletteMode, float maxIntensity) {
@@ -209,14 +210,14 @@ public class OldTwoDVisualizerWindow extends JInternalFrame implements
     }
 
     
-    public void switchCentroidContinousMode() {
+    private void switchCentroidContinousMode() {
     	boolean interpolate = dataset.isInterpolated();
 
     	dataset.resampleIntensityMatrix(!interpolate);
     	   	
     }
     
-    public void setFullZoom(int msLevel) {
+    protected void setFullZoom(int msLevel) {
     	
         // if we have not added this frame before, do it now
         if (getParent() == null)
@@ -236,7 +237,7 @@ public class OldTwoDVisualizerWindow extends JInternalFrame implements
 
     }
     
-    public void setZoomRange(int msLevel, float rtMin, float rtMax, float mzMin, float mzMax) {
+    protected void setZoomRange(int msLevel, float rtMin, float rtMax, float mzMin, float mzMax) {
     	
         // if we have not added this frame before, do it now
         if (getParent() == null)
@@ -250,26 +251,52 @@ public class OldTwoDVisualizerWindow extends JInternalFrame implements
     	
     }
     
-    public void setCursorPosition(CursorPosition cursorPosition) {
+    protected void setCursorPosition(CursorPosition cursorPosition) {
     	this.cursorPosition = cursorPosition;
     	twoDTitle.updateTitle();
     }
     
-    public CursorPosition getCursorPosition() {
+    protected CursorPosition getCursorPosition() {
     	return cursorPosition;
     }
     
-    public void setRangeCursorPosition(CursorPosition cursorPosition) {
+    protected void setRangeCursorPosition(CursorPosition cursorPosition) {
     	this.rangeCursorPosition = cursorPosition;
     	twoDTitle.updateTitle();
     }
     
-    public CursorPosition getRangeCursorPosition() {
+    protected CursorPosition getRangeCursorPosition() {
     	return rangeCursorPosition;
     }
     
+    protected int getZoomPeakEditMode() {
+    	return currentZoomPeakEditMode;
+    }
     
-    void updateTitle() {
+    protected void setZoomPeakEditMode(int mode) {
+    	
+    	switch (currentZoomPeakEditMode) {
+    	
+			case ZOOMPEAKEDIT_ZOOMMODE:
+				
+				currentZoomPeakEditMode = ZOOMPEAKEDIT_PEAKEDITMODE;	
+				toolBar.zoomPeakEditModeButton.setToolTipText("Switch to Zoom mode");
+				toolBar.zoomPeakEditModeButton.setIcon(OldTwoDToolBar.zoomIcon);
+				break;
+				
+			case ZOOMPEAKEDIT_PEAKEDITMODE:
+				
+				currentZoomPeakEditMode = ZOOMPEAKEDIT_ZOOMMODE;
+				toolBar.zoomPeakEditModeButton.setToolTipText("Switch to Peak edit mode");
+				toolBar.zoomPeakEditModeButton.setIcon(OldTwoDToolBar.peakEditIcon);        			
+				break;
+			
+    	}
+    	
+    }
+    
+    
+    private void updateTitle() {
 
         StringBuffer title = new StringBuffer();
         title.append("[");
@@ -321,6 +348,19 @@ public class OldTwoDVisualizerWindow extends JInternalFrame implements
         	twoDPlot.datasetUpdateReady();
         	repaint();
         	
+        }
+        
+        
+        if (command.equals("SWITCH_ZOOMPEAKDETECTION")) {
+        	
+        	switch (currentZoomPeakEditMode) {
+	        	case ZOOMPEAKEDIT_ZOOMMODE:
+	        		setZoomPeakEditMode(ZOOMPEAKEDIT_PEAKEDITMODE);
+	        		break;
+	        	case ZOOMPEAKEDIT_PEAKEDITMODE:
+	        		setZoomPeakEditMode(ZOOMPEAKEDIT_ZOOMMODE);
+	        		break;
+        	}	        
         }
 
     }

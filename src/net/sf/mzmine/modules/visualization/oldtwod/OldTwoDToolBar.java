@@ -24,6 +24,7 @@ import java.awt.Insets;
 
 import javax.swing.Icon;
 import javax.swing.ImageIcon;
+import javax.swing.JButton;
 import javax.swing.JToolBar;
 
 import net.sf.mzmine.util.GUIUtils;
@@ -38,6 +39,13 @@ public class OldTwoDToolBar extends JToolBar {
     static final Icon dataPointsIcon = new ImageIcon("icons/datapointsicon.png");
     static final Icon annotationsIcon = new ImageIcon("icons/annotationsicon.png");
     static final Icon paletteIcon = new ImageIcon("icons/colorbaricon.png");
+    static final Icon zoomIcon = new ImageIcon("icons/zoomouticon.png");
+    static final Icon peakEditIcon = new ImageIcon("icons/xicicon.png");
+    
+    JButton centroidContinuousButton;
+    JButton showPeakButton;
+    JButton paletteButton;
+    JButton zoomPeakEditModeButton;
 
     public OldTwoDToolBar(OldTwoDVisualizerWindow masterFrame) {
 
@@ -48,20 +56,24 @@ public class OldTwoDToolBar extends JToolBar {
         setMargin(new Insets(5, 5, 5, 5));
         setBackground(Color.white);
 
-        GUIUtils.addButton(this, null, centroidIcon, masterFrame,
-                "TOGGLE_PLOT_MODE", "Toggle centroid/continuous mode");
+        centroidContinuousButton = GUIUtils.addButton(this, null, centroidIcon, masterFrame,
+                "TOGGLE_PLOT_MODE", "Switch between centroid/continuous modes");
         
         addSeparator();
              
-        GUIUtils.addButton(this, null, annotationsIcon, masterFrame,
+        showPeakButton = GUIUtils.addButton(this, null, annotationsIcon, masterFrame,
                 "SHOW_ANNOTATIONS", "Toggle displaying of peaks");
         
         
         addSeparator();
         
-        GUIUtils.addButton(this, null, paletteIcon, masterFrame,
-                "SWITCH_PALETTE", "Switch between grayscale/rainbow palette");        
+        paletteButton = GUIUtils.addButton(this, null, paletteIcon, masterFrame,
+                "SWITCH_PALETTE", "Switch between grayscale/rainbow palette");
+        
+        addSeparator();
 
+        zoomPeakEditModeButton = GUIUtils.addButton(this, null, peakEditIcon, masterFrame,
+                "SWITCH_ZOOMPEAKDETECTION", "Switch between zoom / peak edit modes");        
     }
 
 }
