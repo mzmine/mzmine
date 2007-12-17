@@ -62,6 +62,7 @@ public class MZmineClient extends MZmineCore implements Runnable {
 
         // load configuration from XML
         Document configuration = null;
+        MainWindow desktop = null;
         try {
             SAXReader reader = new SAXReader();
             configuration = reader.read(CONFIG_FILE);
@@ -86,7 +87,7 @@ public class MZmineClient extends MZmineCore implements Runnable {
             TaskControllerImpl taskController = new TaskControllerImpl(
                     numberOfNodes);
             IOControllerImpl ioController = new IOControllerImpl();
-            MainWindow desktop = new MainWindow();
+            desktop = new MainWindow();
             MZmineProjectImpl project = new MZmineProjectImpl();
 
             // save static references to MZmineCore
@@ -119,23 +120,23 @@ public class MZmineClient extends MZmineCore implements Runnable {
 
             // load module configuration
             loadConfiguration(CONFIG_FILE);
-            
-            // register the shutdown hook
-            ShutDownHook shutDownHook = new ShutDownHook();
-            Runtime.getRuntime().addShutdownHook(shutDownHook);
-
-            // show the GUI
-            logger.finest("Showing main window");
-            desktop.setVisible(true);
-
-            // show the welcome message
-            desktop.setStatusBarText("Welcome to MZmine!");
 
         } catch (Exception e) {
             logger.log(Level.SEVERE, "Could not parse configuration file "
                     + CONFIG_FILE, e);
             System.exit(1);
         }
+        
+        // register the shutdown hook
+        ShutDownHook shutDownHook = new ShutDownHook();
+        Runtime.getRuntime().addShutdownHook(shutDownHook);
+
+        // show the GUI
+        logger.finest("Showing main window");
+        desktop.setVisible(true);
+        
+        // show the welcome message
+        desktop.setStatusBarText("Welcome to MZmine!");
 
     }
 
