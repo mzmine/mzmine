@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
 <configuration> 
-  <nodes local="4"/>  
+  <nodes local="2"/>  
   <modules> 
     <module class="net.sf.mzmine.modules.visualization.tic.TICVisualizer"/>  
     <module class="net.sf.mzmine.modules.visualization.spectra.SpectraVisualizer"/>  
@@ -21,7 +21,7 @@
     <module class="net.sf.mzmine.modules.peakpicking.local.LocalPicker"/>
     <module class="net.sf.mzmine.modules.peakpicking.centroid.CentroidPicker"/>
     <module class="net.sf.mzmine.util.menu.PeakPickingMenuSeparator"/>  
-    <module class="net.sf.mzmine.modules.peakpicking.deisotoper.SimpleIsotopeGrouper"/>
+    <module class="net.sf.mzmine.modules.peakpicking.deisotoper.IsotopeGrouper"/>
     <module class="net.sf.mzmine.modules.peakpicking.ftmsfilter.FTMSFilter"/>
     <module class="net.sf.mzmine.modules.alignment.join.JoinAligner"/> 
     <module class="net.sf.mzmine.modules.alignment.rowsfilter.RowsFilter"/> 
