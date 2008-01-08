@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2007 The MZmine Development Team
+ * Copyright 2006-2008 The MZmine Development Team
  * 
  * This file is part of MZmine.
  * 
@@ -19,11 +19,11 @@
 
 package net.sf.mzmine.modules.peakpicking.ftmsfilter;
 
-import java.util.logging.Logger;
-
 import net.sf.mzmine.data.Peak;
 import net.sf.mzmine.data.PeakList;
 import net.sf.mzmine.data.impl.SimpleParameterSet;
+import net.sf.mzmine.data.impl.SimplePeakList;
+import net.sf.mzmine.data.impl.SimplePeakListRow;
 import net.sf.mzmine.io.RawDataFile;
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.project.MZmineProject;
@@ -34,35 +34,34 @@ import net.sf.mzmine.taskcontrol.Task;
  */
 class FTMSFilterTask implements Task {
 
-    private Logger logger = Logger.getLogger(this.getClass().getName());
+    private PeakList peaklist;
 
-    private RawDataFile dataFile;
-
-    private TaskStatus status;
+    private TaskStatus status = TaskStatus.WAITING;
     private String errorMessage;
 
+    // peaks counter
     private int processedPeaks, totalPeaks;
 
-    private PeakList peakList;
+    // parameter values
+    private String suffix;
     private float mzDifferenceMin, mzDifferenceMax, rtDifferenceMax, heightMax;
+    private boolean removeOriginal;
 
     /**
      * @param rawDataFile
      * @param parameters
      */
-    FTMSFilterTask(RawDataFile dataFile, SimpleParameterSet parameters) {
+    FTMSFilterTask(PeakList peaklist, SimpleParameterSet parameters) {
 
-        status = TaskStatus.WAITING;
+        this.peaklist = peaklist;
 
-        this.dataFile = dataFile;
-
-        MZmineProject currentProject = MZmineCore.getCurrentProject();
-        this.peakList = currentProject.getFilePeakList(dataFile);
-
-        mzDifferenceMin = (Float) parameters.getParameterValue(FTMSFilter.mzDifferenceMin);
-        mzDifferenceMax = (Float) parameters.getParameterValue(FTMSFilter.mzDifferenceMax);
-        rtDifferenceMax = (Float) parameters.getParameterValue(FTMSFilter.rtDifferenceMax);
-        heightMax = (Float) parameters.getParameterValue(FTMSFilter.heightMax);
+        // Get parameter values for easier use
+        suffix = (String) parameters.getParameterValue(FTMSFilterParameters.suffix);
+        mzDifferenceMin = (Float) parameters.getParameterValue(FTMSFilterParameters.mzDifferenceMin);
+        mzDifferenceMax = (Float) parameters.getParameterValue(FTMSFilterParameters.mzDifferenceMax);
+        rtDifferenceMax = (Float) parameters.getParameterValue(FTMSFilterParameters.rtDifferenceMax);
+        heightMax = (Float) parameters.getParameterValue(FTMSFilterParameters.heightMax);
+        removeOriginal = (Boolean) parameters.getParameterValue(FTMSFilterParameters.autoRemove);
 
     }
 
@@ -70,7 +69,7 @@ class FTMSFilterTask implements Task {
      * @see net.sf.mzmine.taskcontrol.Task#getTaskDescription()
      */
     public String getTaskDescription() {
-        return "FTMS shoulder peak filter on " + dataFile;
+        return "FTMS shoulder peak filter on " + peaklist;
     }
 
     /**
@@ -96,15 +95,8 @@ class FTMSFilterTask implements Task {
         return errorMessage;
     }
 
-    /**
-     * @see net.sf.mzmine.taskcontrol.Task#getResult()
-     */
-    public Object getResult() {
-        return null;
-    }
-
-    public RawDataFile getDataFile() {
-        return dataFile;
+    public PeakList getPeakList() {
+        return peaklist;
     }
 
     /**
@@ -121,47 +113,71 @@ class FTMSFilterTask implements Task {
 
         status = TaskStatus.PROCESSING;
 
-        Peak[] allPeaks = peakList.getPeaks(dataFile);
+        // We assume source peaklist contains one datafile
+        RawDataFile dataFile = peaklist.getRawDataFile(0);
 
-        // Loop through all peaks
+        // Create new deisotoped peaklist
+        SimplePeakList filteredPeakList = new SimplePeakList(peaklist + " "
+                + suffix);
+        filteredPeakList.addRawDataFile(dataFile);
+
+        Peak[] allPeaks = peaklist.getPeaks(dataFile);
+
         totalPeaks = allPeaks.length;
 
-        for (Peak mainPeak : allPeaks) {
+        // Loop through all peaks
+        for (int candidatePeakIndex = 0; candidatePeakIndex < allPeaks.length; candidatePeakIndex++) {
 
-            for (Peak candidateShoulderPeak : allPeaks) {
+            Peak candidatePeak = allPeaks[candidatePeakIndex];
+            float candidatePeakMZ = candidatePeak.getMZ();
+            float candidatePeakRT = candidatePeak.getRT();
+            float candidatePeakHeight = candidatePeak.getHeight();
+
+            for (int comparedPeakIndex = candidatePeakIndex + 1; comparedPeakIndex < allPeaks.length; comparedPeakIndex++) {
 
                 // check if we're not canceled
                 if (status == TaskStatus.CANCELED)
                     return;
 
-                // do not compare peak to itself
-                if (mainPeak == candidateShoulderPeak)
-                    continue;
+                Peak comparedPeak = allPeaks[comparedPeakIndex];
 
-                float mzDifference = Math.abs(candidateShoulderPeak.getMZ()
-                        - mainPeak.getMZ());
-                float rtDifference = Math.abs(candidateShoulderPeak.getRT()
-                        - mainPeak.getRT());
+                float comparedPeakMZ = comparedPeak.getMZ();
+                float comparedPeakRT = comparedPeak.getRT();
+                float comparedPeakHeight = comparedPeak.getHeight();
+
+                float mzDifference = Math.abs(comparedPeakMZ - candidatePeakMZ);
+                float rtDifference = Math.abs(comparedPeakRT - candidatePeakRT);
 
                 if ((mzDifference >= mzDifferenceMin)
                         && (mzDifference <= mzDifferenceMax)
                         && (rtDifference <= rtDifferenceMax)
-                        && (candidateShoulderPeak.getHeight() <= (mainPeak.getHeight() * heightMax))) {
-                    // found a shoulder peak, remove it
-                    int shoulderPeakRow = peakList.getPeakRow(candidateShoulderPeak);
-                    if (shoulderPeakRow < 0) continue;
-                    logger.finest("Found shoulder peak: main peak " + mainPeak
-                            + ", shoulder peak " + candidateShoulderPeak);
-                    peakList.removeRow(shoulderPeakRow);
-
+                        && (candidatePeakHeight <= (comparedPeakHeight * heightMax))) {
+                    // Found a shoulder peak, skip it
+                    processedPeaks++;
+                    continue;
                 }
 
             }
+            
+            // Add new row to the filtered peak list
+            int oldRowID = peaklist.getPeakRow(candidatePeak).getID();
+            SimplePeakListRow newRow = new SimplePeakListRow(oldRowID);
+            newRow.addPeak(dataFile, candidatePeak, candidatePeak);
+            filteredPeakList.addRow(newRow);
+
 
             // Update completion rate
             processedPeaks++;
 
         }
+
+        // Add new peaklist to the project
+        MZmineProject currentProject = MZmineCore.getCurrentProject();
+        currentProject.addPeakList(filteredPeakList);
+
+        // Remove the original peaklist if requested
+        if (removeOriginal)
+            MZmineCore.getCurrentProject().removePeakList(peaklist);
 
         status = TaskStatus.FINISHED;
 

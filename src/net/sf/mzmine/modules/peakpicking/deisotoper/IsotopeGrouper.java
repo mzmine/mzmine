@@ -17,12 +17,11 @@
  * Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-package net.sf.mzmine.modules.alignment.join;
+package net.sf.mzmine.modules.peakpicking.deisotoper;
 
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
-import java.util.HashSet;
 import java.util.logging.Logger;
 
 import net.sf.mzmine.data.ParameterSet;
@@ -30,7 +29,7 @@ import net.sf.mzmine.data.PeakList;
 import net.sf.mzmine.data.impl.SimpleParameterSet;
 import net.sf.mzmine.io.RawDataFile;
 import net.sf.mzmine.main.MZmineCore;
-import net.sf.mzmine.modules.batchmode.BatchStepAlignment;
+import net.sf.mzmine.modules.batchmode.BatchStepPeakPicking;
 import net.sf.mzmine.taskcontrol.Task;
 import net.sf.mzmine.taskcontrol.TaskGroup;
 import net.sf.mzmine.taskcontrol.TaskGroupListener;
@@ -41,14 +40,17 @@ import net.sf.mzmine.userinterface.dialogs.ExitCode;
 import net.sf.mzmine.userinterface.dialogs.ParameterSetupDialog;
 
 /**
+ * This class implements a simple isotopic peaks grouper method based on
+ * searhing for neighbouring peaks from expected locations.
  * 
  */
-public class JoinAligner implements BatchStepAlignment, TaskListener,
+
+public class IsotopeGrouper implements BatchStepPeakPicking, TaskListener,
         ActionListener {
 
-    private Logger logger = Logger.getLogger(this.getClass().getName());
-
     private ParameterSet parameters;
+
+    private Logger logger = Logger.getLogger(this.getClass().getName());
 
     private Desktop desktop;
 
@@ -59,26 +61,73 @@ public class JoinAligner implements BatchStepAlignment, TaskListener,
 
         this.desktop = MZmineCore.getDesktop();
 
-        parameters = new JoinAlignerParameters();
+        parameters = new IsotopeGrouperParameters();
 
-        desktop.addMenuItem(MZmineMenu.ALIGNMENT, "Peak list aligner", this,
-                null, KeyEvent.VK_A, false, true);
+        desktop.addMenuItem(MZmineMenu.PEAKPICKING, "Isotopic peaks grouper",
+                this, null, KeyEvent.VK_I, false, true);
 
-    }
-
-    public String toString() {
-        return "Join Aligner";
-    }
-
-    /**
-     * @see net.sf.mzmine.main.MZmineModule#getParameterSet()
-     */
-    public ParameterSet getParameterSet() {
-        return parameters;
     }
 
     public void setParameters(ParameterSet parameters) {
         this.parameters = parameters;
+    }
+
+    /**
+     * @see java.awt.event.ActionListener#actionPerformed(java.awt.event.ActionEvent)
+     */
+    public void actionPerformed(ActionEvent e) {
+
+        PeakList[] peaklists = desktop.getSelectedPeakLists();
+
+        if (peaklists.length == 0) {
+            desktop.displayErrorMessage("Please select peak lists to deisotope");
+            return;
+        }
+
+        for (PeakList peaklist : peaklists) {
+            if (peaklist.getNumberOfRawDataFiles() > 1) {
+                desktop.displayErrorMessage("Peak list "
+                        + peaklist
+                        + " cannot be deisotoped, because it contains more than one data file");
+                return;
+            }
+        }
+
+        ExitCode exitCode = setupParameters(parameters);
+        if (exitCode != ExitCode.OK)
+            return;
+
+        runModule(null, peaklists, parameters.clone(), null);
+    }
+
+    public void taskStarted(Task task) {
+        IsotopeGrouperTask igTask = (IsotopeGrouperTask) task;
+        logger.info("Running isotopic peak grouper on " + igTask.getPeakList());
+    }
+
+    public void taskFinished(Task task) {
+
+        IsotopeGrouperTask igTask = (IsotopeGrouperTask) task;
+
+        if (task.getStatus() == Task.TaskStatus.FINISHED) {
+            logger.info("Finished isotopic peak grouper on "
+                    + igTask.getPeakList());
+        }
+
+        if (task.getStatus() == Task.TaskStatus.ERROR) {
+            String msg = "Error while deisotoping peaklist "
+                    + igTask.getPeakList() + ": " + task.getErrorMessage();
+            logger.severe(msg);
+            desktop.displayErrorMessage(msg);
+        }
+
+    }
+
+    /**
+     * @see net.sf.mzmine.modules.BatchStep#toString()
+     */
+    public String toString() {
+        return "Isotopic peaks grouper";
     }
 
     /**
@@ -93,44 +142,10 @@ public class JoinAligner implements BatchStepAlignment, TaskListener,
     }
 
     /**
-     * @see java.awt.event.ActionListener#actionPerformed(java.awt.event.ActionEvent)
+     * @see net.sf.mzmine.main.MZmineModule#getParameterSet()
      */
-    public void actionPerformed(ActionEvent e) {
-
-        PeakList[] peakLists = desktop.getSelectedPeakLists();
-
-        if (peakLists.length == 0) {
-            desktop.displayErrorMessage("Please select peak lists for alignment");
-            return;
-        }
-
-        // Setup parameters
-        ExitCode exitCode = setupParameters(parameters);
-        if (exitCode != ExitCode.OK)
-            return;
-
-        runModule(null, peakLists, parameters.clone(), null);
-
-    }
-
-    public void taskStarted(Task task) {
-        logger.info("Running join aligner");
-    }
-
-    public void taskFinished(Task task) {
-
-        if (task.getStatus() == Task.TaskStatus.FINISHED) {
-            logger.info("Finished join aligner");
-        }
-
-        if (task.getStatus() == Task.TaskStatus.ERROR) {
-            String msg = "Error while aligning peak lists: "
-                    + task.getErrorMessage();
-            logger.severe(msg);
-            desktop.displayErrorMessage(msg);
-
-        }
-
+    public ParameterSet getParameterSet() {
+        return parameters;
     }
 
     /**
@@ -141,10 +156,13 @@ public class JoinAligner implements BatchStepAlignment, TaskListener,
     public TaskGroup runModule(RawDataFile[] dataFiles, PeakList[] peakLists,
             ParameterSet parameters, TaskGroupListener taskGroupListener) {
 
-        // prepare a new group with just one task
-        Task tasks[] = new JoinAlignerTask[1];
-        tasks[0] = new JoinAlignerTask(peakLists,
-                (SimpleParameterSet) parameters);
+        // prepare a new group of tasks
+        Task tasks[] = new IsotopeGrouperTask[peakLists.length];
+        for (int i = 0; i < peakLists.length; i++) {
+            tasks[i] = new IsotopeGrouperTask(peakLists[i],
+                    (SimpleParameterSet) parameters);
+        }
+
         TaskGroup newGroup = new TaskGroup(tasks, this, taskGroupListener);
 
         // start the group

@@ -55,6 +55,11 @@ public interface PeakListRow {
      * Add a peak
      */
     public void addPeak(RawDataFile rawData, Peak original, Peak current);
+    
+    /**
+     * Has a peak?
+     */
+    public boolean hasPeak(Peak peak);
         
     /**
      * Returns peak for given raw data file

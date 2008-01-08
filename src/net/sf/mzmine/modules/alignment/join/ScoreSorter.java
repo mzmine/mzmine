@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2007 The MZmine Development Team
+ * Copyright 2006-2008 The MZmine Development Team
  * 
  * This file is part of MZmine.
  * 
@@ -37,7 +37,4 @@ class ScoreSorter implements Comparator<PeakVsRowScore> {
 
     }
 
-    public boolean equals(Object obj) {
-        return obj == this;
-    }
 }

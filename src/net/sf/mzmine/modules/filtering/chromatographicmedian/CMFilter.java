@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2007 The MZmine Development Team
+ * Copyright 2006-2008 The MZmine Development Team
  * 
  * This file is part of MZmine.
  * 
@@ -24,11 +24,8 @@ import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
 import java.util.logging.Logger;
 
-import net.sf.mzmine.data.Parameter;
 import net.sf.mzmine.data.ParameterSet;
-import net.sf.mzmine.data.ParameterType;
 import net.sf.mzmine.data.PeakList;
-import net.sf.mzmine.data.impl.SimpleParameter;
 import net.sf.mzmine.data.impl.SimpleParameterSet;
 import net.sf.mzmine.io.RawDataFile;
 import net.sf.mzmine.main.MZmineCore;
@@ -42,17 +39,8 @@ import net.sf.mzmine.userinterface.Desktop.MZmineMenu;
 import net.sf.mzmine.userinterface.dialogs.ExitCode;
 import net.sf.mzmine.userinterface.dialogs.ParameterSetupDialog;
 
-public class CMFilter implements BatchStepFiltering, TaskListener, ActionListener {
-
-    public static final Parameter parameterOneSidedWindowLength = new SimpleParameter(
-            ParameterType.INTEGER, "Window length",
-            "One-sided width of the smoothing window", "scans", new Integer(1),
-            new Integer(1), null);
-
-    public static final Parameter parameterMZTolerance = new SimpleParameter(
-            ParameterType.FLOAT, "M/Z tolerance",
-            "Maximum allowed M/Z difference", "Da", new Float(0.1),
-            new Float(0.0), null);
+public class CMFilter implements BatchStepFiltering, TaskListener,
+        ActionListener {
 
     private ParameterSet parameters;
 
@@ -67,8 +55,7 @@ public class CMFilter implements BatchStepFiltering, TaskListener, ActionListene
 
         this.desktop = MZmineCore.getDesktop();
 
-        parameters = new SimpleParameterSet(new Parameter[] {
-                parameterOneSidedWindowLength, parameterMZTolerance });
+        parameters = new CMFilterParameters();
 
         desktop.addMenuItem(MZmineMenu.FILTERING,
                 "Chromatographic median filter", this, null, KeyEvent.VK_H,
@@ -107,7 +94,7 @@ public class CMFilter implements BatchStepFiltering, TaskListener, ActionListene
      */
     public ExitCode setupParameters(ParameterSet currentParameters) {
         ParameterSetupDialog dialog = new ParameterSetupDialog(
-                desktop.getMainFrame(), "Please check parameter values for "
+                desktop.getMainFrame(), "Please set parameter values for "
                         + toString(), (SimpleParameterSet) currentParameters);
         dialog.setVisible(true);
         return dialog.getExitCode();
@@ -121,20 +108,20 @@ public class CMFilter implements BatchStepFiltering, TaskListener, ActionListene
      */
     public TaskGroup runModule(RawDataFile[] dataFiles,
             PeakList[] alignmentResults, ParameterSet parameters,
-            TaskGroupListener methodListener) {
+            TaskGroupListener taskGroupListener) {
 
-        // prepare a new sequence of tasks
+        // prepare a new task group
         Task tasks[] = new CMFilterTask[dataFiles.length];
         for (int i = 0; i < dataFiles.length; i++) {
             tasks[i] = new CMFilterTask(dataFiles[i],
                     (SimpleParameterSet) parameters);
         }
-        TaskGroup newSequence = new TaskGroup(tasks, this, methodListener);
+        TaskGroup newGroup = new TaskGroup(tasks, this, taskGroupListener);
 
-        // execute the sequence
-        newSequence.run();
+        // start this group
+        newGroup.start();
 
-        return newSequence;
+        return newGroup;
 
     }
 
@@ -156,8 +143,9 @@ public class CMFilter implements BatchStepFiltering, TaskListener, ActionListene
      * @see net.sf.mzmine.taskcontrol.TaskListener#taskStarted(net.sf.mzmine.taskcontrol.Task)
      */
     public void taskStarted(Task task) {
+        CMFilterTask cmTask = (CMFilterTask) task;
         logger.info("Running chromatographic median filter on "
-                + ((CMFilterTask) task).getDataFile());
+                + cmTask.getDataFile());
     }
 
     /**
@@ -165,18 +153,18 @@ public class CMFilter implements BatchStepFiltering, TaskListener, ActionListene
      */
     public void taskFinished(Task task) {
 
+        CMFilterTask cmTask = (CMFilterTask) task;
+
         if (task.getStatus() == Task.TaskStatus.FINISHED) {
-
             logger.info("Finished chromatographic median filter on "
-                    + ((CMFilterTask) task).getDataFile());
+                    + cmTask.getDataFile());
+        }
 
-        } else if (task.getStatus() == Task.TaskStatus.ERROR) {
-            /* Task encountered an error */
-            String msg = "Error while filtering a file: "
-                    + task.getErrorMessage();
+        if (task.getStatus() == Task.TaskStatus.ERROR) {
+            String msg = "Error while running chromatographic median filter on "
+                    + cmTask.getDataFile() + ": " + task.getErrorMessage();
             logger.severe(msg);
             desktop.displayErrorMessage(msg);
-
         }
 
     }

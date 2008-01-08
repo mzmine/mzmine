@@ -103,7 +103,7 @@ class SimpleGapFillerTask implements Task {
 
     }
 
-    public Object getResult() {
+    public Object[] getResult() {
         Object[] result = new Object[3];
         result[0] = rawDataFile;
         result[1] = emptyGaps;

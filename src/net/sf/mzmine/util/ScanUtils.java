@@ -50,8 +50,9 @@ public class ScanUtils {
         }
         for (int i = searchStart; i < mzValues.length; i++) {
 
-            if (mzValues[i] > mzMax) break;
-            
+            if (mzValues[i] > mzMax)
+                break;
+
             if (intensityValues[i] > basePeak[1]) {
                 foundPoint = true;
                 basePeak[0] = mzValues[i];
@@ -60,7 +61,8 @@ public class ScanUtils {
 
         }
 
-        if (foundPoint == false) return null;
+        if (foundPoint == false)
+            return null;
         return basePeak;
     }
 
@@ -86,9 +88,9 @@ public class ScanUtils {
      *            'y', min of 'y')
      * @return Values for each bin
      */
-    public static float[] binValues(float[] x, float[] y,
-            float firstBinStart, float lastBinStop, int numberOfBins,
-            boolean interpolate, BinningType binningType) {
+    public static float[] binValues(float[] x, float[] y, float firstBinStart,
+            float lastBinStop, int numberOfBins, boolean interpolate,
+            BinningType binningType) {
 
         Float[] binValues = new Float[numberOfBins];
         float binWidth = (lastBinStop - firstBinStart) / numberOfBins;
@@ -208,4 +210,38 @@ public class ScanUtils {
 
     }
 
+    /**
+     * Returns index of m/z value in a given array, which is closest to given
+     * value, limited by given m/z tolerance. We assume the m/z array is sorted.
+     * 
+     * @return index of best match, or -1 if no datapoint was found
+     */
+    public static int findClosestDatapoint(float key, float mzValues[],
+            float mzTolerance) {
+
+        int index = Arrays.binarySearch(mzValues, key);
+
+        if (index >= 0)
+            return index;
+
+        // Get "insertion point"
+        index = (index * -1) - 1;
+
+        // If key value is bigger than biggest m/z value in array
+        if (index == mzValues.length) index--;
+        else 
+            if (index > 0) {
+                // Check insertion point value and previous one, see which one
+                // is closer
+                if (Math.abs(mzValues[index - 1] - key) < Math.abs(mzValues[index] - key)) index--;
+            }
+
+        // Check m/z tolerancee
+        if (Math.abs(mzValues[index] - key) <= mzTolerance)
+            return index;
+            
+        // Nothing was found
+        return -1;
+
+    }
 }

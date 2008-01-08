@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2007 The MZmine Development Team
+ * Copyright 2006-2008 The MZmine Development Team
  * 
  * This file is part of MZmine.
  * 
@@ -127,7 +127,7 @@ public class SimpleGapFiller implements BatchStepAlignment, TaskListener,
      */
     public void actionPerformed(ActionEvent e) {
 
-        PeakList[] selectedPeakLists = desktop.getSelectedAlignedPeakLists();
+        PeakList[] selectedPeakLists = desktop.getSelectedPeakLists();
         if (selectedPeakLists.length < 1) {
             desktop.displayErrorMessage("Please select alignment result");
             return;
@@ -152,7 +152,7 @@ public class SimpleGapFiller implements BatchStepAlignment, TaskListener,
             logger.info("Finished gap-filling on "
                     + ((SimpleGapFillerTask) task).getDataFile());
 
-            Object[] result = (Object[]) task.getResult();
+            Object[] result = ((SimpleGapFillerTask) task).getResult();
             RawDataFile dataFile = (RawDataFile) result[0];
             EmptyGap[] emptyGaps = (EmptyGap[]) result[1];
             ParameterSet parameters = (ParameterSet) result[2];
@@ -204,18 +204,15 @@ public class SimpleGapFiller implements BatchStepAlignment, TaskListener,
 
                 // Append aligned peak list to project
                 MZmineProject currentProject = MZmineCore.getCurrentProject();
-                currentProject.addAlignedPeakList(processedPeakList);
+                currentProject.addPeakList(processedPeakList);
 
-                // Notify listeners
-                desktop.notifySelectionListeners();
             }
 
-        } else if (task.getStatus() == Task.TaskStatus.ERROR) {
+        }
+        
+        if (task.getStatus() == Task.TaskStatus.ERROR) {
 
-            // TODO: Cancel all running tasks
-
-            /* Task encountered an error */
-            String msg = "Error while peak picking a file: "
+            String msg = "Error while gap filling peak list " + sourcePeakList + ": "
                     + task.getErrorMessage();
             logger.severe(msg);
             desktop.displayErrorMessage(msg);
@@ -289,7 +286,7 @@ public class SimpleGapFiller implements BatchStepAlignment, TaskListener,
 
         // execute the sequence
         TaskGroup newSequence = new TaskGroup(tasks, this, methodListener);
-        newSequence.run();
+        newSequence.start();
 
         return newSequence;
 

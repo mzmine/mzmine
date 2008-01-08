@@ -1,5 +1,5 @@
 /*
- * Copyright 2006 The MZmine Development Team
+ * Copyright 2006-2008 The MZmine Development Team
  * 
  * This file is part of MZmine.
  * 
@@ -38,9 +38,7 @@ public class MZmineProjectImpl implements MZmineProject {
 
     private Vector<RawDataFile> projectFiles;
     private Vector<PeakList> projectResults;
-    //private Vector<Parameter> projectParameters;
     private Hashtable<Parameter, Hashtable<RawDataFile, Object>> projectParametersAndValues;
-    private Hashtable<RawDataFile, PeakList> peakLists;
 
     public void addParameter(Parameter parameter) {
         if (projectParametersAndValues.containsKey(parameter)) return;
@@ -92,7 +90,6 @@ public class MZmineProjectImpl implements MZmineProject {
         MainWindow mainWindow = (MainWindow) MZmineCore.getDesktop();
         ItemSelector itemSelector = mainWindow.getItemSelector();
         projectFiles.remove(oldFile);
-        peakLists.remove(oldFile);
         projectFiles.add(newFile);
         itemSelector.replaceRawData(oldFile, newFile);
     }
@@ -101,30 +98,22 @@ public class MZmineProjectImpl implements MZmineProject {
         return projectFiles.toArray(new RawDataFile[0]);
     }
 
-    public void addAlignedPeakList(PeakList newResult) {
+    public void addPeakList(PeakList newResult) {
         MainWindow mainWindow = (MainWindow) MZmineCore.getDesktop();
         ItemSelector itemSelector = mainWindow.getItemSelector();
         projectResults.add(newResult);
         itemSelector.addAlignmentResult(newResult);
     }
 
-    public void removeAlignedPeakList(PeakList result) {
+    public void removePeakList(PeakList result) {
         MainWindow mainWindow = (MainWindow) MZmineCore.getDesktop();
         ItemSelector itemSelector = mainWindow.getItemSelector();
         projectResults.remove(result);
         itemSelector.removeAlignedPeakList(result);
     }
 
-    public PeakList[] getAlignedPeakLists() {
+    public PeakList[] getPeakLists() {
         return projectResults.toArray(new PeakList[0]);
-    }
-
-    public PeakList getFilePeakList(RawDataFile file) {
-        return peakLists.get(file);
-    }
-
-    public void setFilePeakList(RawDataFile file, PeakList peakList) {
-        peakLists.put(file, peakList);
     }
 
     /**
@@ -134,9 +123,7 @@ public class MZmineProjectImpl implements MZmineProject {
 
         projectFiles = new Vector<RawDataFile>();
         projectResults = new Vector<PeakList>();
-        //projectParameters = new Vector<Parameter>();
         projectParametersAndValues = new Hashtable<Parameter, Hashtable<RawDataFile, Object>>();
-        peakLists = new Hashtable<RawDataFile, PeakList>();
         
 
     }

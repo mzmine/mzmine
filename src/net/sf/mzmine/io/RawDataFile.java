@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2007 The MZmine Development Team
+ * Copyright 2006-2008 The MZmine Development Team
  * 
  * This file is part of MZmine.
  * 
@@ -18,8 +18,6 @@
  */
 
 package net.sf.mzmine.io;
-
-import java.io.IOException;
 
 import net.sf.mzmine.data.Scan;
 
@@ -65,6 +63,14 @@ public interface RawDataFile {
      */
     public Scan getScan(int scan);
 
+    public float getDataMinMZ();
+
+    public float getDataMaxMZ();
+
+    public float getDataMinRT();
+
+    public float getDataMaxRT();
+    
     public float getDataMinMZ(int msLevel);
 
     public float getDataMaxMZ(int msLevel);
@@ -78,7 +84,5 @@ public interface RawDataFile {
     public float getDataMaxTotalIonCurrent(int msLevel);
 
     public String toString();
-    
-    public RawDataFileWriter updateFile() throws IOException;
 
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2007 The MZmine Development Team
+ * Copyright 2006-2008 The MZmine Development Team
  * 
  * This file is part of MZmine.
  * 
@@ -22,7 +22,6 @@ package net.sf.mzmine.modules.peakpicking.deisotoper;
 import java.util.Arrays;
 import java.util.Hashtable;
 
-import net.sf.mzmine.data.ParameterSet;
 import net.sf.mzmine.data.Peak;
 import net.sf.mzmine.data.PeakList;
 import net.sf.mzmine.data.impl.SimpleIsotopePattern;
@@ -37,47 +36,40 @@ import net.sf.mzmine.taskcontrol.Task;
 /**
  * 
  */
-class SimpleIsotopeGrouperTask implements Task {
+class IsotopeGrouperTask implements Task {
 
-    private static final double neutronMW = 1.008665;
+    private static final float neutronMW = 1.008665f;
 
-    private RawDataFile dataFile;
+    private PeakList peaklist;
 
-    private TaskStatus status;
+    private TaskStatus status = TaskStatus.WAITING;
     private String errorMessage;
 
-    private int processedPeaks;
-    private int totalPeaks;
+    // peaks counter
+    private int processedPeaks, totalPeaks;
 
-    private PeakList currentPeakList;
-    private SimplePeakList processedPeakList;
-
-    private ParameterSet parameters;
-    private double mzTolerance;
-    private double rtTolerance;
+    // parameter values
+    private String suffix;
+    private float mzTolerance, rtTolerance;
     private boolean monotonicShape;
     private int maximumCharge;
+    private boolean removeOriginal;
 
     /**
      * @param rawDataFile
      * @param parameters
      */
-    SimpleIsotopeGrouperTask(RawDataFile dataFile, SimpleParameterSet parameters) {
-        status = TaskStatus.WAITING;
-        this.dataFile = dataFile;
+    IsotopeGrouperTask(PeakList peaklist, SimpleParameterSet parameters) {
 
-        MZmineProject currentProject = MZmineCore.getCurrentProject();
-        
-        currentPeakList = currentProject.getFilePeakList(dataFile);
+        this.peaklist = peaklist;
 
-        processedPeakList = new SimplePeakList(currentProject.getFilePeakList(dataFile).toString() + " deisotoped");
-        processedPeakList.addRawDataFile(dataFile);
-
-        this.parameters = parameters;
-        mzTolerance = (Float) parameters.getParameterValue(SimpleIsotopeGrouper.mzTolerance);
-        rtTolerance = (Float) parameters.getParameterValue(SimpleIsotopeGrouper.rtTolerance);
-        monotonicShape = (Boolean) parameters.getParameterValue(SimpleIsotopeGrouper.monotonicShape);
-        maximumCharge = (Integer) parameters.getParameterValue(SimpleIsotopeGrouper.maximumCharge);
+        // Get parameter values for easier use
+        suffix = (String) parameters.getParameterValue(IsotopeGrouperParameters.suffix);
+        mzTolerance = (Float) parameters.getParameterValue(IsotopeGrouperParameters.mzTolerance);
+        rtTolerance = (Float) parameters.getParameterValue(IsotopeGrouperParameters.rtTolerance);
+        monotonicShape = (Boolean) parameters.getParameterValue(IsotopeGrouperParameters.monotonicShape);
+        maximumCharge = (Integer) parameters.getParameterValue(IsotopeGrouperParameters.maximumCharge);
+        removeOriginal = (Boolean) parameters.getParameterValue(IsotopeGrouperParameters.autoRemove);
 
     }
 
@@ -85,7 +77,7 @@ class SimpleIsotopeGrouperTask implements Task {
      * @see net.sf.mzmine.taskcontrol.Task#getTaskDescription()
      */
     public String getTaskDescription() {
-        return "Isotopic peaks grouper on " + dataFile;
+        return "Isotopic peaks grouper on " + peaklist;
     }
 
     /**
@@ -111,19 +103,8 @@ class SimpleIsotopeGrouperTask implements Task {
         return errorMessage;
     }
 
-    /**
-     * @see net.sf.mzmine.taskcontrol.Task#getResult()
-     */
-    public Object getResult() {
-        Object[] results = new Object[3];
-        results[0] = dataFile;
-        results[1] = processedPeakList;
-        results[2] = parameters;
-        return results;
-    }
-
-    public RawDataFile getDataFile() {
-        return dataFile;
+    public PeakList getPeakList() {
+        return peaklist;
     }
 
     /**
@@ -140,29 +121,38 @@ class SimpleIsotopeGrouperTask implements Task {
 
         status = TaskStatus.PROCESSING;
 
+        // We assume source peaklist contains one datafile
+        RawDataFile dataFile = peaklist.getRawDataFile(0);
+
+        // Create new deisotoped peaklist
+        SimplePeakList deisotopedPeakList = new SimplePeakList(peaklist + " "
+                + suffix);
+        deisotopedPeakList.addRawDataFile(dataFile);
+
         // Collect all selected charge states
         int charges[] = new int[maximumCharge];
         for (int i = 0; i < maximumCharge; i++)
             charges[i] = (i + 1);
 
-        Peak[] sortedPeaks = currentPeakList.getPeaks(dataFile);
+        // Sort peaks
+        Peak[] sortedPeaks = peaklist.getPeaks(dataFile);
         Arrays.sort(sortedPeaks, new PeakSorterByDescendingHeight());
 
         // Loop through all peaks in the order of descending intensity
         totalPeaks = sortedPeaks.length;
 
-        for (int ind = 0; ind < sortedPeaks.length; ind++) {
-
-            Peak aPeak = sortedPeaks[ind];
-
-            if (aPeak == null) {
-                // Update completion rate
-                processedPeaks++;
-                continue;
-            }
+        for (int ind = 0; ind < totalPeaks; ind++) {
 
             if (status == TaskStatus.CANCELED)
                 return;
+
+            Peak aPeak = sortedPeaks[ind];
+
+            // Check if peak was already deleted
+            if (aPeak == null) {
+                processedPeaks++;
+                continue;
+            }
 
             // Check which charge state fits best around this peak
             int bestFitCharge = 0;
@@ -199,14 +189,14 @@ class SimpleIsotopeGrouperTask implements Task {
                     maxHeight = p.getHeight();
                 }
             }
-            
+
             // keep old ID
-            int oldRepresentativeRowID = currentPeakList.getPeakRow(isotopePattern.getRepresentativePeak());
-            SimplePeakListRow newRow = new SimplePeakListRow(oldRepresentativeRowID);
-            
-            newRow.addPeak(dataFile, isotopePattern,isotopePattern);
-            
-            processedPeakList.addRow(newRow);
+            int oldID = peaklist.getPeakRow(
+                    isotopePattern.getRepresentativePeak()).getID();
+            SimplePeakListRow newRow = new SimplePeakListRow(oldID);
+            newRow.addPeak(dataFile, isotopePattern, isotopePattern);
+
+            deisotopedPeakList.addRow(newRow);
             for (Integer ind2 : bestFitPeaks.values()) {
                 sortedPeaks[ind2] = null;
             }
@@ -215,6 +205,14 @@ class SimpleIsotopeGrouperTask implements Task {
             processedPeaks++;
 
         }
+
+        // Add new peaklist to the project
+        MZmineProject currentProject = MZmineCore.getCurrentProject();
+        currentProject.addPeakList(deisotopedPeakList);
+
+        // Remove the original peaklist if requested
+        if (removeOriginal)
+            MZmineCore.getCurrentProject().removePeakList(peaklist);
 
         status = TaskStatus.FINISHED;
 

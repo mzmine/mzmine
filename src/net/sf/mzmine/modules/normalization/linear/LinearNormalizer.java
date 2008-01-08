@@ -115,7 +115,7 @@ public class LinearNormalizer implements BatchStepNormalization, TaskListener,
      */
     public void actionPerformed(ActionEvent e) {
 
-        PeakList[] selectedPeakLists = desktop.getSelectedAlignedPeakLists();
+        PeakList[] selectedPeakLists = desktop.getSelectedPeakLists();
         if (selectedPeakLists.length < 1) {
             desktop.displayErrorMessage("Please select aligned peaklist");
             return;
@@ -139,9 +139,9 @@ public class LinearNormalizer implements BatchStepNormalization, TaskListener,
 
             logger.info("Finished linear normalizer");
 
-            PeakList normalizedPeakList = (PeakList) task.getResult();
+            PeakList normalizedPeakList = ((LinearNormalizerTask) task).getResult();
 
-            MZmineCore.getCurrentProject().addAlignedPeakList(
+            MZmineCore.getCurrentProject().addPeakList(
                     normalizedPeakList);
 
         } else if (task.getStatus() == Task.TaskStatus.ERROR) {
@@ -177,7 +177,7 @@ public class LinearNormalizer implements BatchStepNormalization, TaskListener,
         TaskGroup newSequence = new TaskGroup(tasks, this, methodListener);
 
         // execute the sequence
-        newSequence.run();
+        newSequence.start();
 
         return newSequence;
 

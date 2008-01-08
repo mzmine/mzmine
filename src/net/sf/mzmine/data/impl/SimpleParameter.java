@@ -48,7 +48,7 @@ public class SimpleParameter implements Parameter {
         this(type, name, description, units, null, null, null, null,
                 format);
     }
-
+    
     public SimpleParameter(ParameterType type, String name, String description,
             String units, Object defaultValue, NumberFormat format) {
         this(type, name, description, units, defaultValue, null, null,

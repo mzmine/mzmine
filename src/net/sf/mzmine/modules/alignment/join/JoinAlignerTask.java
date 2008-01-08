@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2007 The MZmine Development Team
+ * Copyright 2006-2008 The MZmine Development Team
  * 
  * This file is part of MZmine.
  * 
@@ -40,50 +40,41 @@ import net.sf.mzmine.util.PeakListRowSorterByMZ;
  */
 class JoinAlignerTask implements Task {
 
-    private RawDataFile[] dataFiles;
+    private PeakList[] peakLists;
 
-    private TaskStatus status;
+    private TaskStatus status = TaskStatus.WAITING;
     private String errorMessage;
 
-    private float processedPercentage;
+    private float processedPercentage = 0;
 
-    private SimplePeakList alignmentResult;
-
-    private double MZTolerance;
-    private double MZvsRTBalance;
-    private boolean RTToleranceUseAbs;
-    private double RTToleranceValueAbs;
-    private double RTToleranceValuePercent;
-    
     private String peakListName;
-    private static int peakListNumber = 1;
+    private float MZTolerance, MZvsRTBalance;
+    private boolean RTToleranceUseAbs;
+    private float RTToleranceValueAbs, RTToleranceValuePercent;
 
     /**
      * @param rawDataFile
      * @param parameters
      */
-    JoinAlignerTask(RawDataFile[] dataFiles, SimpleParameterSet parameters) {
+    JoinAlignerTask(PeakList[] peakLists, SimpleParameterSet parameters) {
 
-        status = TaskStatus.WAITING;
-        this.dataFiles = dataFiles;
+        this.peakLists = peakLists;
 
         // Get parameter values for easier use
-        MZTolerance = (Float) parameters.getParameterValue(JoinAligner.MZTolerance);
-        MZvsRTBalance = (Float) parameters.getParameterValue(JoinAligner.MZvsRTBalance);
+        peakListName = (String) parameters.getParameterValue(JoinAlignerParameters.peakListName);
+        MZTolerance = (Float) parameters.getParameterValue(JoinAlignerParameters.MZTolerance);
+        MZvsRTBalance = (Float) parameters.getParameterValue(JoinAlignerParameters.MZvsRTBalance);
+        RTToleranceUseAbs = (parameters.getParameterValue(JoinAlignerParameters.RTToleranceType) == JoinAlignerParameters.RTToleranceTypeAbsolute);
+        RTToleranceValueAbs = (Float) parameters.getParameterValue(JoinAlignerParameters.RTToleranceValueAbs);
+        RTToleranceValuePercent = (Float) parameters.getParameterValue(JoinAlignerParameters.RTToleranceValuePercent);
 
-        RTToleranceUseAbs = (parameters.getParameterValue(JoinAligner.RTToleranceType) == JoinAligner.RTToleranceTypeAbsolute);
-        RTToleranceValueAbs = (Float) parameters.getParameterValue(JoinAligner.RTToleranceValueAbs);
-        RTToleranceValuePercent = (Float) parameters.getParameterValue(JoinAligner.RTToleranceValuePercent);
-        peakListName = "#" + peakListNumber + " " + parameters.getParameterValue(JoinAligner.PeakListName);
-        peakListNumber++;
-        
     }
 
     /**
      * @see net.sf.mzmine.taskcontrol.Task#getTaskDescription()
      */
     public String getTaskDescription() {
-        return "Join aligner, " + dataFiles.length + " peak lists";
+        return "Join aligner, " + peakListName + " (" + peakLists.length + " peak lists)";
     }
 
     /**
@@ -108,13 +99,6 @@ class JoinAlignerTask implements Task {
     }
 
     /**
-     * @see net.sf.mzmine.taskcontrol.Task#getResult()
-     */
-    public Object getResult() {
-        return alignmentResult;
-    }
-
-    /**
      * @see net.sf.mzmine.taskcontrol.Task#cancel()
      */
     public void cancel() {
@@ -128,141 +112,156 @@ class JoinAlignerTask implements Task {
 
         status = TaskStatus.PROCESSING;
 
-        /*
-         * Initialize master isotope list and isotope pattern utility vector
-         */
-        alignmentResult = new SimplePeakList(peakListName);
+        // Create a new aligned peak list
+        SimplePeakList alignedPeakList = new SimplePeakList(peakListName);
 
-        // Add openedrawdatafiles to alignment result
-        for (RawDataFile dataFile : dataFiles)
-            alignmentResult.addRawDataFile(dataFile);
+        // Add raw data files to aligned peak list
+        for (PeakList peakList : peakLists)
+            for (RawDataFile dataFile : peakList.getRawDataFiles()) {
 
-        int newRowID = 1;
-        
-        /*
-         * Loop through all data files
-         */
-        for (RawDataFile dataFile : dataFiles) {
+                // Check if the file is already present
+                if (alignedPeakList.hasRawDataFile(dataFile)) {
+                    status = TaskStatus.ERROR;
+                    errorMessage = "Cannot run alignment, because file "
+                            + dataFile + " is present in multiple peak lists";
+                    return;
+                }
 
-            if (status == TaskStatus.CANCELED)
-                return;
-            
-            MZmineProject currentProject = MZmineCore.getCurrentProject();
-
-            /*
-             * Pickup peak list for this file and generate list of wrapped peaks
-             */
-            PeakList peakList = currentProject.getFilePeakList(dataFile);
-            PeakWrapper wrappedPeakList[] = new PeakWrapper[peakList.getNumberOfRows()];
-            for (int i = 0; i < peakList.getNumberOfRows(); i++) {
-                Peak peakToWrap = peakList.getPeak(i, dataFile);
-                wrappedPeakList[i] = new PeakWrapper(peakToWrap);
+                // If not, add the file
+                alignedPeakList.addRawDataFile(dataFile);
             }
-                      
-            Arrays.sort(wrappedPeakList, new PeakWrapperComparator());
 
-            /*
-             * Calculate scores between all pairs of isotope pattern and master
-             * isotope list row
-             */
+        // ID counter for the new peaklist
+        int newRowID = 1;
 
-            // Reset score tree
-            TreeSet<PeakVsRowScore> scoreTree = new TreeSet<PeakVsRowScore>(
-                    new ScoreSorter());
+        // Loop through all data files
+        for (PeakList peakList : peakLists)
+            for (RawDataFile dataFile : peakList.getRawDataFiles()) {
 
-        	PeakListRow[] rows = alignmentResult.getRows();
-        	//Arrays.sort(rows, new PeakListRowComparator());
-        	Arrays.sort(rows, new PeakListRowSorterByMZ());
-            Integer nextStartingRowIndex = 0;
-            for (PeakWrapper wrappedPeak : wrappedPeakList) {
-            	
-            	if (nextStartingRowIndex==null) nextStartingRowIndex=0;
-            	int startingRowIndex = nextStartingRowIndex;
-            	nextStartingRowIndex = null;
+                if (status == TaskStatus.CANCELED)
+                    return;
 
-            	for (int alignmentResultRowIndex = startingRowIndex; alignmentResultRowIndex<rows.length; alignmentResultRowIndex++) {
-            		
-            		PeakListRow row = rows[alignmentResultRowIndex];
+                Peak[] dataFilePeaks = peakList.getPeaks(dataFile);
+                PeakWrapper wrappedPeakList[] = new PeakWrapper[dataFilePeaks.length];
+                for (int i = 0; i < dataFilePeaks.length; i++) {
+                    wrappedPeakList[i] = new PeakWrapper(dataFilePeaks[i]);
+                }
 
-            		// Check m/z difference for optimization
-            		double mzDiff = row.getAverageMZ() - wrappedPeak.getPeak().getMZ();
-            		// If alignment reuslt row's m/z is too small then jump to next row
-            		if ( (Math.signum(mzDiff)<0.0) &&
-            				(Math.abs(mzDiff)>MZTolerance) )
-            			continue;
-            		
-            		// If alignment result row's m/z is too big then break
-            		if ( (Math.signum(mzDiff)>0.0) &&
-            				(Math.abs(mzDiff)>MZTolerance) )
-            			break;
-            			
-            		if (nextStartingRowIndex==null)
-            			nextStartingRowIndex = alignmentResultRowIndex; 
+                Arrays.sort(wrappedPeakList, new PeakWrapperComparator());
+
+                /*
+                 * Calculate scores between all pairs of isotope pattern and
+                 * master isotope list row
+                 */
+
+                // Reset score tree
+                TreeSet<PeakVsRowScore> scoreTree = new TreeSet<PeakVsRowScore>(
+                        new ScoreSorter());
+
+                PeakListRow[] rows = alignedPeakList.getRows();
+                Arrays.sort(rows, new PeakListRowSorterByMZ());
+                
+                Integer nextStartingRowIndex = 0;
+                for (PeakWrapper wrappedPeak : wrappedPeakList) {
+
+                    if (nextStartingRowIndex == null)
+                        nextStartingRowIndex = 0;
+                    int startingRowIndex = nextStartingRowIndex;
+                    nextStartingRowIndex = null;
+
+                    for (int rowIndex = startingRowIndex; rowIndex < rows.length; rowIndex++) {
+
+                        PeakListRow row = rows[rowIndex];
+
+                        // Check m/z difference for optimization
+                        double mzDiff = row.getAverageMZ()
+                                - wrappedPeak.getPeak().getMZ();
+                        // If alignment result row's m/z is too small then jump
+                        // to next row
+                        if ((Math.signum(mzDiff) < 0.0)
+                                && (Math.abs(mzDiff) > MZTolerance))
+                            continue;
+
+                        // If alignment result row's m/z is too big then break
+                        if ((Math.signum(mzDiff) > 0.0)
+                                && (Math.abs(mzDiff) > MZTolerance))
+                            break;
+
+                        if (nextStartingRowIndex == null)
+                            nextStartingRowIndex = rowIndex;
+
+                        if (status == TaskStatus.CANCELED)
+                            return;
+
+                        PeakVsRowScore score = new PeakVsRowScore(
+                                (SimplePeakListRow) row, wrappedPeak,
+                                MZTolerance, RTToleranceUseAbs,
+                                RTToleranceValueAbs, RTToleranceValuePercent,
+                                MZvsRTBalance);
+
+                        if (score.isGoodEnough())
+                            scoreTree.add(score);
+                    }
+                }
+                /*
+                 * Browse scores in order of descending goodness-of-fit
+                 */
+                Iterator<PeakVsRowScore> scoreIter = scoreTree.iterator();
+                while (scoreIter.hasNext()) {
+                    PeakVsRowScore score = scoreIter.next();
+
+                    processedPercentage += 1.0f
+                            / (float) alignedPeakList.getNumberOfRawDataFiles()
+                            / (float) scoreTree.size();
 
                     if (status == TaskStatus.CANCELED)
                         return;
 
-                    PeakVsRowScore score = new PeakVsRowScore(
-                            (SimplePeakListRow) row, wrappedPeak,
-                            MZTolerance, RTToleranceUseAbs,
-                            RTToleranceValueAbs, RTToleranceValuePercent,
-                            MZvsRTBalance);
+                    SimplePeakListRow row = score.getRow();
+                    PeakWrapper wrappedPeak = score.getPeakWrapper();
 
-                    if (score.isGoodEnough())
-                        scoreTree.add(score);
+                    // Check if master list row is already assigned with an
+                    // isotope pattern (from this rawDataID)
+                    if (row.getPeak(dataFile) != null)
+                        continue;
+
+                    // Check if peak is already assigned to some alignment
+                    // result row
+                    if (wrappedPeak.isAlreadyJoined())
+                        continue;
+
+                    // Assign peak pattern to alignment result row
+                    row.addPeak(dataFile, wrappedPeak.getPeak(),
+                            wrappedPeak.getPeak());
+                    wrappedPeak.setAlreadyJoined(true);
+
                 }
-            }
-            /*
-             * Browse scores in order of descending goodness-of-fit
-             */
-            Iterator<PeakVsRowScore> scoreIter = scoreTree.iterator();
-            while (scoreIter.hasNext()) {
-                PeakVsRowScore score = scoreIter.next();
 
-                processedPercentage += 1.0f / (float) dataFiles.length
-                        / (float) scoreTree.size();
+                /*
+                 * Add remaining peaks as new rows to alignment result
+                 */
+                for (PeakWrapper wrappedPeak : wrappedPeakList) {
 
-                if (status == TaskStatus.CANCELED)
-                    return;
+                    if (status == TaskStatus.CANCELED)
+                        return;
 
-                SimplePeakListRow row = score.getRow();
-                PeakWrapper wrappedPeak = score.getPeakWrapper();
+                    if (wrappedPeak.isAlreadyJoined())
+                        continue;
 
-                // Check if master list row is already assigned with an isotope
-                // pattern (from this rawDataID)
-                if (row.getPeak(dataFile) != null)
-                    continue;
+                    // Create new row in aligned peak list
+                    SimplePeakListRow row = new SimplePeakListRow(newRowID);
+                    row.addPeak(dataFile, wrappedPeak.getPeak(),
+                            wrappedPeak.getPeak());
+                    alignedPeakList.addRow(row);
+                    newRowID++;
 
-                // Check if peak is already assigned to some alignment result row
-                if (wrappedPeak.isAlreadyJoined())
-                    continue;
-
-                // Assign peak pattern to alignment result row
-                row.addPeak(dataFile, wrappedPeak.getPeak(), wrappedPeak.getPeak());
-                wrappedPeak.setAlreadyJoined(true);
+                }
 
             }
 
-            /*
-             * Add remaining peaks as new rows to alignment result
-             */
-            for (PeakWrapper wrappedPeak : wrappedPeakList) {
-
-                if (status == TaskStatus.CANCELED)
-                    return;
-
-                if (wrappedPeak.isAlreadyJoined())
-                    continue;
-
-                SimplePeakListRow row = new SimplePeakListRow(newRowID);
-                newRowID++;
-                
-                row.addPeak(dataFile, wrappedPeak.getPeak(), wrappedPeak.getPeak());
-                alignmentResult.addRow(row);
-                
-            }
-
-        }
+        // Add new peaklist to the project
+        MZmineProject currentProject = MZmineCore.getCurrentProject();
+        currentProject.addPeakList(alignedPeakList);
 
         status = TaskStatus.FINISHED;
 

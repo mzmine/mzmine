@@ -1,5 +1,5 @@
 /*
- * Copyright 2006 The MZmine Development Team
+ * Copyright 2006-2008 The MZmine Development Team
  *
  * This file is part of MZmine.
  *
@@ -22,7 +22,6 @@ package net.sf.mzmine.taskcontrol;
 
 public interface Task extends Runnable {
 
-    
     /**
      * WAITING - task is ready and waiting to start
      * PROCESSING - task is running
@@ -47,8 +46,6 @@ public interface Task extends Runnable {
 
     public String getErrorMessage();
 
-    public Object getResult();
-    
     /**
      * Cancel a running task by user request.
      * This method must clean up everything and return to 

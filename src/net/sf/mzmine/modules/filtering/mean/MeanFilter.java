@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2007 The MZmine Development Team
+ * Copyright 2006-2008 The MZmine Development Team
  * 
  * This file is part of MZmine.
  * 
@@ -24,11 +24,8 @@ import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
 import java.util.logging.Logger;
 
-import net.sf.mzmine.data.Parameter;
 import net.sf.mzmine.data.ParameterSet;
-import net.sf.mzmine.data.ParameterType;
 import net.sf.mzmine.data.PeakList;
-import net.sf.mzmine.data.impl.SimpleParameter;
 import net.sf.mzmine.data.impl.SimpleParameterSet;
 import net.sf.mzmine.io.RawDataFile;
 import net.sf.mzmine.main.MZmineCore;
@@ -46,12 +43,8 @@ import net.sf.mzmine.userinterface.dialogs.ParameterSetupDialog;
  * This class represent a method for filtering scans in raw data file with
  * moving average filter.
  */
-public class MeanFilter implements BatchStepFiltering, TaskListener, ActionListener {
-
-    public static final Parameter parameterOneSidedWindowLength = new SimpleParameter(
-            ParameterType.FLOAT, "Window length",
-            "One-sided length of the smoothing window", "Da", new Float(0.1),
-            new Float(0.0), null);
+public class MeanFilter implements BatchStepFiltering, TaskListener,
+        ActionListener {
 
     private ParameterSet parameters;
 
@@ -66,8 +59,7 @@ public class MeanFilter implements BatchStepFiltering, TaskListener, ActionListe
 
         this.desktop = MZmineCore.getDesktop();
 
-        parameters = new SimpleParameterSet(
-                new Parameter[] { parameterOneSidedWindowLength });
+        parameters = new MeanFilterParameters();
 
         desktop.addMenuItem(MZmineMenu.FILTERING, "Mean filter spectra", this,
                 null, KeyEvent.VK_M, false, true);
@@ -104,10 +96,13 @@ public class MeanFilter implements BatchStepFiltering, TaskListener, ActionListe
      * @see net.sf.mzmine.modules.BatchStep#setupParameters()
      */
     public ExitCode setupParameters(ParameterSet currentParameters) {
+
         ParameterSetupDialog dialog = new ParameterSetupDialog(
-                desktop.getMainFrame(), "Please check parameter values for "
+                desktop.getMainFrame(), "Please set parameter values for "
                         + toString(), (SimpleParameterSet) currentParameters);
+
         dialog.setVisible(true);
+
         return dialog.getExitCode();
     }
 
@@ -118,20 +113,20 @@ public class MeanFilter implements BatchStepFiltering, TaskListener, ActionListe
      */
     public TaskGroup runModule(RawDataFile[] dataFiles,
             PeakList[] alignmentResults, ParameterSet parameters,
-            TaskGroupListener methodListener) {
+            TaskGroupListener taskGroupListener) {
 
-        // prepare a new sequence of tasks
+        // prepare a new task group
         Task tasks[] = new MeanFilterTask[dataFiles.length];
         for (int i = 0; i < dataFiles.length; i++) {
             tasks[i] = new MeanFilterTask(dataFiles[i],
                     (SimpleParameterSet) parameters);
         }
-        TaskGroup newSequence = new TaskGroup(tasks, this, methodListener);
+        TaskGroup newGroup = new TaskGroup(tasks, this, taskGroupListener);
 
-        // execute the sequence
-        newSequence.run();
+        // start this group
+        newGroup.start();
 
-        return newSequence;
+        return newGroup;
 
     }
 
@@ -153,8 +148,8 @@ public class MeanFilter implements BatchStepFiltering, TaskListener, ActionListe
      * @see net.sf.mzmine.taskcontrol.TaskListener#taskStarted(net.sf.mzmine.taskcontrol.Task)
      */
     public void taskStarted(Task task) {
-        logger.info("Running mean filter on "
-                + ((MeanFilterTask) task).getDataFile());
+        MeanFilterTask meanTask = (MeanFilterTask) task;
+        logger.info("Running mean filter on " + meanTask.getDataFile());
     }
 
     /**
@@ -162,19 +157,18 @@ public class MeanFilter implements BatchStepFiltering, TaskListener, ActionListe
      */
     public void taskFinished(Task task) {
 
+        MeanFilterTask meanTask = (MeanFilterTask) task;
+
         if (task.getStatus() == Task.TaskStatus.FINISHED) {
-
-            logger.info("Finished mean filter on "
-                    + ((MeanFilterTask) task).getDataFile());
-
-        } else if (task.getStatus() == Task.TaskStatus.ERROR) {
-            /* Task encountered an error */
-            String msg = "Error while filtering a file: "
-                    + task.getErrorMessage();
-            logger.severe(msg);
-            desktop.displayErrorMessage(msg);
-
+            logger.info("Finished mean filter on " + meanTask.getDataFile());
         }
 
+        if (task.getStatus() == Task.TaskStatus.ERROR) {
+            String msg = "Error while running mean filter on "
+                    + meanTask.getDataFile() + ": " + task.getErrorMessage();
+            logger.severe(msg);
+            desktop.displayErrorMessage(msg);
+        }
+                
     }
 }

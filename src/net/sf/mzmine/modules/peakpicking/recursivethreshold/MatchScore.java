@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2007 The MZmine Development Team
+ * Copyright 2006-2008 The MZmine Development Team
  * 
  * This file is part of MZmine.
  * 
@@ -55,7 +55,7 @@ class MatchScore implements Comparable<MatchScore> {
     }
 
     public int compareTo(MatchScore m) {
-        int retsig = (int) java.lang.Math.signum(score - m.getScore());
+        int retsig = (int) Math.signum(score - m.getScore());
         if (retsig == 0) {
             retsig = -1;
         } // Must never return 0, because treeset can't hold equal
@@ -69,7 +69,7 @@ class MatchScore implements Comparable<MatchScore> {
 
         // If mz difference is too big? (do this first for optimal
         // performance)
-        if (java.lang.Math.abs(ucMZ - od.mz) > mzTolerance) {
+        if (Math.abs(ucMZ - od.mz) > mzTolerance) {
             return Float.MAX_VALUE;
 
         } else {

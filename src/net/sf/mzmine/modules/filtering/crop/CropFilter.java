@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2007 The MZmine Development Team
+ * Copyright 2006-2008 The MZmine Development Team
  * 
  * This file is part of MZmine.
  * 
@@ -22,13 +22,12 @@ package net.sf.mzmine.modules.filtering.crop;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
+import java.util.Hashtable;
 import java.util.logging.Logger;
 
 import net.sf.mzmine.data.Parameter;
 import net.sf.mzmine.data.ParameterSet;
-import net.sf.mzmine.data.ParameterType;
 import net.sf.mzmine.data.PeakList;
-import net.sf.mzmine.data.impl.SimpleParameter;
 import net.sf.mzmine.data.impl.SimpleParameterSet;
 import net.sf.mzmine.io.RawDataFile;
 import net.sf.mzmine.main.MZmineCore;
@@ -45,34 +44,9 @@ import net.sf.mzmine.userinterface.dialogs.ParameterSetupDialog;
 public class CropFilter implements BatchStepFiltering, TaskListener,
         ActionListener {
 
-    public static final Parameter parameterMSlevel = new SimpleParameter(
-            ParameterType.INTEGER, "MS level",
-            "MS level of scans to be filtered", null, new Object[] { 1, 2, 3,
-                    4, 5, 6, 7, 8, 9, 10 });
-
-    public static final Parameter parameterMinMZ = new SimpleParameter(
-            ParameterType.FLOAT, "Minimum M/Z",
-            "Lower M/Z boundary of the cropped region", "Da", new Float(100.0),
-            new Float(0.0), null);
-
-    public static final Parameter parameterMaxMZ = new SimpleParameter(
-            ParameterType.FLOAT, "Maximum M/Z",
-            "Upper M/Z boundary of the cropped region", "Da",
-            new Float(1000.0), new Float(0.0), null);
-
-    public static final Parameter parameterMinRT = new SimpleParameter(
-            ParameterType.FLOAT, "Minimum Retention time",
-            "Lower RT boundary of the cropped region", "seconds",
-            new Float(0.0), new Float(0.0), null);
-
-    public static final Parameter parameterMaxRT = new SimpleParameter(
-            ParameterType.FLOAT, "Maximum Retention time",
-            "Upper RT boundary of the cropped region", "seconds", new Float(
-                    600.0), new Float(0.0), null);
+    private Logger logger = Logger.getLogger(this.getClass().getName());
 
     private ParameterSet parameters;
-
-    private Logger logger = Logger.getLogger(this.getClass().getName());
 
     private Desktop desktop;
 
@@ -83,9 +57,7 @@ public class CropFilter implements BatchStepFiltering, TaskListener,
 
         this.desktop = MZmineCore.getDesktop();
 
-        parameters = new SimpleParameterSet(
-                new Parameter[] { parameterMSlevel, parameterMinMZ,
-                        parameterMaxMZ, parameterMinRT, parameterMaxRT });
+        parameters = new CropFilterParameters();
 
         desktop.addMenuItem(MZmineMenu.FILTERING, "Crop filter", this, null,
                 KeyEvent.VK_C, false, true);
@@ -122,10 +94,30 @@ public class CropFilter implements BatchStepFiltering, TaskListener,
      * @see net.sf.mzmine.modules.BatchStep#setupParameters()
      */
     public ExitCode setupParameters(ParameterSet currentParameters) {
+
+        Hashtable<Parameter, Object> autoValues = null;
+
+        // If we have 1 selected data file, set the automatic parameter values
+        RawDataFile[] dataFiles = desktop.getSelectedDataFiles();
+        if (dataFiles.length == 1) {
+            autoValues = new Hashtable<Parameter, Object>();
+            autoValues.put(CropFilterParameters.minRT,
+                    dataFiles[0].getDataMinRT(1));
+            autoValues.put(CropFilterParameters.maxRT,
+                    dataFiles[0].getDataMaxRT(1));
+            autoValues.put(CropFilterParameters.minMZ,
+                    dataFiles[0].getDataMinMZ(1));
+            autoValues.put(CropFilterParameters.maxMZ,
+                    dataFiles[0].getDataMaxMZ(1));
+        }
+
+        // Show dialog
         ParameterSetupDialog dialog = new ParameterSetupDialog(
-                desktop.getMainFrame(), "Please check parameter values for "
-                        + toString(), (SimpleParameterSet) currentParameters);
+                desktop.getMainFrame(), "Please set parameter values for "
+                        + toString(), (SimpleParameterSet) currentParameters,
+                autoValues);
         dialog.setVisible(true);
+
         return dialog.getExitCode();
     }
 
@@ -134,22 +126,21 @@ public class CropFilter implements BatchStepFiltering, TaskListener,
      *      net.sf.mzmine.data.PeakList[], net.sf.mzmine.data.ParameterSet,
      *      net.sf.mzmine.taskcontrol.TaskGroupListener)
      */
-    public TaskGroup runModule(RawDataFile[] dataFiles,
-            PeakList[] alignmentResults, ParameterSet parameters,
-            TaskGroupListener methodListener) {
+    public TaskGroup runModule(RawDataFile[] dataFiles, PeakList[] peakLists,
+            ParameterSet parameters, TaskGroupListener taskGroupListener) {
 
-        // prepare a new sequence of tasks
+        // prepare a new task group
         Task tasks[] = new CropFilterTask[dataFiles.length];
         for (int i = 0; i < dataFiles.length; i++) {
             tasks[i] = new CropFilterTask(dataFiles[i],
                     (SimpleParameterSet) parameters);
         }
-        TaskGroup newSequence = new TaskGroup(tasks, this, methodListener);
+        TaskGroup newGroup = new TaskGroup(tasks, this, taskGroupListener);
 
-        // execute the sequence
-        newSequence.run();
+        // start this group
+        newGroup.start();
 
-        return newSequence;
+        return newGroup;
 
     }
 
@@ -171,8 +162,8 @@ public class CropFilter implements BatchStepFiltering, TaskListener,
      * @see net.sf.mzmine.taskcontrol.TaskListener#taskStarted(net.sf.mzmine.taskcontrol.Task)
      */
     public void taskStarted(Task task) {
-        logger.info("Running cropping filter on "
-                + ((CropFilterTask) task).getDataFile());
+        CropFilterTask cropTask = (CropFilterTask) task;
+        logger.info("Running cropping filter on " + cropTask.getDataFile());
     }
 
     /**
@@ -180,18 +171,17 @@ public class CropFilter implements BatchStepFiltering, TaskListener,
      */
     public void taskFinished(Task task) {
 
+        CropFilterTask cropTask = (CropFilterTask) task;
+
         if (task.getStatus() == Task.TaskStatus.FINISHED) {
+            logger.info("Finished cropping filter on " + cropTask.getDataFile());
+        }
 
-            logger.info("Finished cropping filter on "
-                    + ((CropFilterTask) task).getDataFile());
-
-        } else if (task.getStatus() == Task.TaskStatus.ERROR) {
-            /* Task encountered an error */
-            String msg = "Error while filtering a file: "
-                    + task.getErrorMessage();
+        if (task.getStatus() == Task.TaskStatus.ERROR) {
+            String msg = "Error while running cropping filter on "
+                    + cropTask.getDataFile() + ": " + task.getErrorMessage();
             logger.severe(msg);
             desktop.displayErrorMessage(msg);
-
         }
 
     }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2007 The MZmine Development Team
+ * Copyright 2006-2008 The MZmine Development Team
  * 
  * This file is part of MZmine.
  * 
@@ -23,7 +23,6 @@ import java.util.Iterator;
 import java.util.TreeSet;
 import java.util.Vector;
 
-import net.sf.mzmine.data.ParameterSet;
 import net.sf.mzmine.data.Scan;
 import net.sf.mzmine.data.Peak.PeakStatus;
 import net.sf.mzmine.data.impl.ConstructionPeak;
@@ -31,6 +30,8 @@ import net.sf.mzmine.data.impl.SimpleParameterSet;
 import net.sf.mzmine.data.impl.SimplePeakList;
 import net.sf.mzmine.data.impl.SimplePeakListRow;
 import net.sf.mzmine.io.RawDataFile;
+import net.sf.mzmine.main.MZmineCore;
+import net.sf.mzmine.project.MZmineProject;
 import net.sf.mzmine.taskcontrol.Task;
 import net.sf.mzmine.util.MathUtils;
 import net.sf.mzmine.util.ScanUtils;
@@ -41,50 +42,40 @@ import net.sf.mzmine.util.ScanUtils;
 class RecursivePickerTask implements Task {
 
     private RawDataFile dataFile;
-    private RawDataFile rawDataFile;
 
-    private TaskStatus status;
+    private TaskStatus status = TaskStatus.WAITING;
     private String errorMessage;
 
-    private int processedScans;
-    private int totalScans;
+    // scan counter
+    private int processedScans, totalScans;
 
-    private SimplePeakList readyPeakList;
+    // parameter values
+    private String suffix;
+    private float binSize, chromatographicThresholdLevel, intTolerance;
+    private float noiseLevel, minimumPeakHeight, mzTolerance;
+    private float minimumMZPeakWidth, maximumMZPeakWidth, minimumPeakDuration;
 
-    private ParameterSet parameters;
-    private float binSize;
-    private float chromatographicThresholdLevel;
-    private float intTolerance;
-    private float minimumPeakDuration;
-    private float minimumPeakHeight;
-    private float minimumMZPeakWidth;
-    private float maximumMZPeakWidth;
-    private float mzTolerance;
-    private float noiseLevel;
+    // peak id counter
+    private int newPeakID = 1;
 
     /**
-     * @param rawDataFile
+     * @param dataFile
      * @param parameters
      */
     RecursivePickerTask(RawDataFile dataFile, SimpleParameterSet parameters) {
-        status = TaskStatus.WAITING;
+
         this.dataFile = dataFile;
-        this.rawDataFile = dataFile;
+        suffix = (String) parameters.getParameterValue(RecursivePickerParameters.suffix);
+        binSize = (Float) parameters.getParameterValue(RecursivePickerParameters.binSize);
+        chromatographicThresholdLevel = (Float) parameters.getParameterValue(RecursivePickerParameters.chromatographicThresholdLevel);
+        intTolerance = (Float) parameters.getParameterValue(RecursivePickerParameters.intTolerance);
+        minimumPeakDuration = (Float) parameters.getParameterValue(RecursivePickerParameters.minimumPeakDuration);
+        minimumPeakHeight = (Float) parameters.getParameterValue(RecursivePickerParameters.minimumPeakHeight);
+        minimumMZPeakWidth = (Float) parameters.getParameterValue(RecursivePickerParameters.minimumMZPeakWidth);
+        maximumMZPeakWidth = (Float) parameters.getParameterValue(RecursivePickerParameters.maximumMZPeakWidth);
+        mzTolerance = (Float) parameters.getParameterValue(RecursivePickerParameters.mzTolerance);
+        noiseLevel = (Float) parameters.getParameterValue(RecursivePickerParameters.noiseLevel);
 
-        this.parameters = parameters;
-        binSize = (Float) parameters.getParameterValue(RecursivePicker.binSize);
-        chromatographicThresholdLevel = (Float) parameters.getParameterValue(RecursivePicker.chromatographicThresholdLevel);
-        intTolerance = (Float) parameters.getParameterValue(RecursivePicker.intTolerance);
-        minimumPeakDuration = (Float) parameters.getParameterValue(RecursivePicker.minimumPeakDuration);
-        minimumPeakHeight = (Float) parameters.getParameterValue(RecursivePicker.minimumPeakHeight);
-        minimumMZPeakWidth = (Float) parameters.getParameterValue(RecursivePicker.minimumMZPeakWidth);
-        maximumMZPeakWidth = (Float) parameters.getParameterValue(RecursivePicker.maximumMZPeakWidth);
-        mzTolerance = (Float) parameters.getParameterValue(RecursivePicker.mzTolerance);
-        noiseLevel = (Float) parameters.getParameterValue(RecursivePicker.noiseLevel);
-
-        readyPeakList = new SimplePeakList(dataFile.toString() + " peak list");
-        readyPeakList.addRawDataFile(dataFile);
-        
     }
 
     /**
@@ -100,7 +91,7 @@ class RecursivePickerTask implements Task {
     public float getFinishedPercentage() {
         if (totalScans == 0)
             return 0.0f;
-        return (float) processedScans / (2.0f * totalScans);
+        return (float) processedScans / (float) (2 * totalScans);
     }
 
     /**
@@ -115,17 +106,6 @@ class RecursivePickerTask implements Task {
      */
     public String getErrorMessage() {
         return errorMessage;
-    }
-
-    /**
-     * @see net.sf.mzmine.taskcontrol.Task#getResult()
-     */
-    public Object getResult() {
-        Object[] results = new Object[3];
-        results[0] = dataFile;
-        results[1] = readyPeakList;
-        results[2] = parameters;
-        return results;
     }
 
     public RawDataFile getDataFile() {
@@ -146,20 +126,23 @@ class RecursivePickerTask implements Task {
 
         status = TaskStatus.PROCESSING;
 
-        int[] scanNumbers = rawDataFile.getScanNumbers(1);
+        // Create new peak list
+        SimplePeakList newPeakList = new SimplePeakList(dataFile.toString()
+                + " " + suffix);
+        newPeakList.addRawDataFile(dataFile);
 
+        // Get all scans of MS level 1
+        int[] scanNumbers = dataFile.getScanNumbers(1);
         totalScans = scanNumbers.length;
-
-        int newPeakID = 1;
 
         /*
          * Calculate M/Z binning
          */
 
-        float startMZ = rawDataFile.getDataMinMZ(1); // minimum m/z value in
-        // the raw data file
-        float endMZ = rawDataFile.getDataMaxMZ(1); // maximum m/z value in the
-        // raw data file
+        // Get minimum and maximum m/z values
+        float startMZ = dataFile.getDataMinMZ(1);
+        float endMZ = dataFile.getDataMaxMZ(1);
+
         int numOfBins = (int) (Math.ceil((endMZ - startMZ) / binSize));
         float[] chromatographicThresholds = new float[numOfBins];
 
@@ -173,8 +156,8 @@ class RecursivePickerTask implements Task {
                 if (status == TaskStatus.CANCELED)
                     return;
 
-                Scan sc = rawDataFile.getScan(scanNumbers[i]);
-
+                Scan sc = dataFile.getScan(scanNumbers[i]);
+                
                 float[] mzValues = sc.getMZValues();
                 float[] intensityValues = sc.getIntensityValues();
                 float[] tmpInts = ScanUtils.binValues(mzValues,
@@ -192,6 +175,9 @@ class RecursivePickerTask implements Task {
             float initialThreshold = Float.MAX_VALUE;
 
             for (int bini = 0; bini < numOfBins; bini++) {
+
+                if (status == TaskStatus.CANCELED)
+                    return;
 
                 chromatographicThresholds[bini] = MathUtils.calcQuantile(
                         binInts[bini], chromatographicThresholdLevel);
@@ -217,8 +203,7 @@ class RecursivePickerTask implements Task {
                 return;
 
             // Get next scan
-
-            Scan sc = rawDataFile.getScan(scanNumbers[i]);
+            Scan sc = dataFile.getScan(scanNumbers[i]);
 
             float[] masses = sc.getMZValues();
             float[] intensities = sc.getIntensityValues();
@@ -252,7 +237,7 @@ class RecursivePickerTask implements Task {
                 }
 
             }
-            
+
             // Calculate scores between under-construction scores and 1d-peaks
 
             TreeSet<MatchScore> scores = new TreeSet<MatchScore>();
@@ -274,12 +259,6 @@ class RecursivePickerTask implements Task {
             Iterator<MatchScore> scoreIterator = scores.iterator();
             while (scoreIterator.hasNext()) {
                 MatchScore score = scoreIterator.next();
-
-                /* doesn't make sense?
-                // If score is too high for connecting, then stop the loop
-                if (score.getScore() >= Float.MAX_VALUE) {
-                    break;
-                }*/
 
                 // If 1d peak is already connected, then move to next score
                 OneDimPeak oneDimPeak = score.getOneDimPeak();
@@ -325,7 +304,7 @@ class RecursivePickerTask implements Task {
                                 newPeakID);
                         newPeakID++;
                         newRow.addPeak(dataFile, ucPeak, ucPeak);
-                        readyPeakList.addRow(newRow);
+                        newPeakList.addRow(newRow);
                     }
 
                     // Remove the peak from under construction peaks
@@ -334,7 +313,7 @@ class RecursivePickerTask implements Task {
                 }
 
             }
-            
+
             // Clean-up empty slots under-construction peaks collection and
             // reset growing statuses for remaining under construction peaks
             for (int ucInd = 0; ucInd < underConstructionPeaks.size(); ucInd++) {
@@ -389,11 +368,15 @@ class RecursivePickerTask implements Task {
                 SimplePeakListRow newRow = new SimplePeakListRow(newPeakID);
                 newPeakID++;
                 newRow.addPeak(dataFile, ucPeak, ucPeak);
-                readyPeakList.addRow(newRow);
+                newPeakList.addRow(newRow);
 
             }
 
         }
+
+        // Add new peaklist to the project
+        MZmineProject currentProject = MZmineCore.getCurrentProject();
+        currentProject.addPeakList(newPeakList);
 
         status = TaskStatus.FINISHED;
 

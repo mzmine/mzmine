@@ -78,7 +78,7 @@ public class CustomDBSearch implements BatchStepIdentification, ActionListener {
      */
     public void actionPerformed(ActionEvent e) {
 
-        PeakList[] selectedPeakLists = desktop.getSelectedAlignedPeakLists();
+        PeakList[] selectedPeakLists = desktop.getSelectedPeakLists();
         if (selectedPeakLists.length < 1) {
             desktop.displayErrorMessage("Please select aligned peak list");
             return;
@@ -113,7 +113,7 @@ public class CustomDBSearch implements BatchStepIdentification, ActionListener {
         TaskGroup newSequence = new TaskGroup(tasks, null, methodListener);
 
         // execute the sequence
-        newSequence.run();
+        newSequence.start();
 
         return newSequence;
 

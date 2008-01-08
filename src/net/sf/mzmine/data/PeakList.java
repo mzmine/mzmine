@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2007 The MZmine Development Team
+ * Copyright 2006-2008 The MZmine Development Team
  * 
  * This file is part of MZmine.
  * 
@@ -22,31 +22,36 @@ package net.sf.mzmine.data;
 
 import net.sf.mzmine.io.RawDataFile;
 
-
-
 /**
  * 
  */
 public interface PeakList {
 
     /**
-     * @return Short descriptive name for the alignment result
+     * @return Short descriptive name for the peak list
      */
     public String toString();
 
     /**
-     * Returns number of raw data files participating in the alignment
+     * Returns number of raw data files participating in the peak list
      */
     public int getNumberOfRawDataFiles();
 
     /**
-     * Returns all raw data files participating in the alignment
+     * Returns all raw data files participating in the peak list
      */
     public RawDataFile[] getRawDataFiles();
 
     /**
+     * Returns true if this peak list contains given file
+     */
+    public boolean hasRawDataFile(RawDataFile file);
+
+    /**
      * Returns a raw data file
-     * @param position  Position of the raw data file in the matrix (running numbering from left 0,1,2,...)
+     * 
+     * @param position Position of the raw data file in the matrix (running
+     *            numbering from left 0,1,2,...)
      */
     public RawDataFile getRawDataFile(int position);
 
@@ -56,9 +61,10 @@ public interface PeakList {
     public int getNumberOfRows();
 
     /**
-     * Returns the peak of a given raw data file on a give row of the alignment result
-     * @param   row Row of the alignment result
-     * @param   rawDataFile Raw data file where the peak is detected/estimated
+     * Returns the peak of a given raw data file on a give row of the peak list
+     * 
+     * @param row Row of the peak list
+     * @param rawDataFile Raw data file where the peak is detected/estimated
      */
     public Peak getPeak(int row, RawDataFile rawDataFile);
 
@@ -73,18 +79,18 @@ public interface PeakList {
     public PeakListRow getRow(int row);
 
     /**
-     * Returns all alignment result rows
+     * Returns all peak list rows
      */
     public PeakListRow[] getRows();
 
-    
     /**
      * Returns all peaks overlapping with a retention time range
      * 
      * @param startRT Start of the retention time range
      * @param endRT End of the retention time range
      */
-    public Peak[] getPeaksInsideScanRange(RawDataFile file, float startRT, float endRT);
+    public Peak[] getPeaksInsideScanRange(RawDataFile file, float startRT,
+            float endRT);
 
     /**
      * Returns all peaks in a given m/z range
@@ -92,7 +98,8 @@ public interface PeakList {
      * @param startMZ Start of the m/z range
      * @param endMZ End of the m/z range
      */
-    public Peak[] getPeaksInsideMZRange(RawDataFile file, float startMZ, float endMZ);
+    public Peak[] getPeaksInsideMZRange(RawDataFile file, float startMZ,
+            float endMZ);
 
     /**
      * Returns all peaks in a given m/z & retention time ranges
@@ -102,36 +109,42 @@ public interface PeakList {
      * @param startMZ Start of the m/z range
      * @param endMZ End of the m/z range
      */
-    public Peak[] getPeaksInsideScanAndMZRange(RawDataFile file, float startRT, float endRT,
-            float startMZ, float endMZ);
+    public Peak[] getPeaksInsideScanAndMZRange(RawDataFile file, float startRT,
+            float endRT, float startMZ, float endMZ);
 
     /**
-     * Returns maximum raw data point intensity among all peaks in this peak list 
+     * Returns maximum raw data point intensity among all peaks in this peak
+     * list
      * 
-     * @return Maximum intensity 
+     * @return Maximum intensity
      */
     public float getDataPointMaxIntensity();
-    
+
     /**
      * Add a new row to the peak list
      */
     public void addRow(PeakListRow row);
-    
+
     /**
      * Removes a row from this peak list
      * 
      */
     public void removeRow(int row);
-    
+
     /**
      * Removes a row from this peak list
      * 
      */
     public void removeRow(PeakListRow row);
-    
+
     /**
      * Returns a row number of given peak
      */
-    public int getPeakRow(Peak peak);
+    public int getPeakRowNum(Peak peak);
+    
+    /**
+     * Returns a row containing given peak
+     */
+    public PeakListRow getPeakRow(Peak peak);
 
 }

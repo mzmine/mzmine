@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2007 The MZmine Development Team
+ * Copyright 2006-2008 The MZmine Development Team
  * 
  * This file is part of MZmine.
  * 
@@ -38,12 +38,12 @@ import net.sf.mzmine.io.readers.MzXMLv2_0Reader;
 import net.sf.mzmine.io.readers.MzXMLv2_1Reader;
 import net.sf.mzmine.io.readers.NetCDFFileReader;
 import net.sf.mzmine.main.MZmineCore;
-import net.sf.mzmine.taskcontrol.DistributableTask;
+import net.sf.mzmine.taskcontrol.Task;
 
 /**
  * 
  */
-public class FileOpeningTask implements DistributableTask {
+public class FileOpeningTask implements Task {
 
     private Logger logger = Logger.getLogger(this.getClass().getName());
 
@@ -122,8 +122,7 @@ public class FileOpeningTask implements DistributableTask {
             IOController ioController = MZmineCore.getIOController();
 
             // Create new RawDataFile instance
-            resultFile = ioController.createNewFile(fileName, preloadLevel);
-            buildingFile = resultFile.updateFile();
+            buildingFile = ioController.createNewFile(fileName, preloadLevel);
                 
             // Determine parser
             String extension = fileName.substring(fileName.lastIndexOf(".") + 1).toLowerCase();
@@ -189,7 +188,7 @@ public class FileOpeningTask implements DistributableTask {
 
             // Close file
             reader.finishReading();
-            buildingFile.finishWriting();
+            resultFile = buildingFile.finishWriting();
 
         } catch (Throwable e) {
             logger.log(Level.SEVERE, "Could not open file "

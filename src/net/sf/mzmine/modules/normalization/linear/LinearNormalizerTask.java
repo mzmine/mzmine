@@ -32,7 +32,7 @@ import net.sf.mzmine.data.impl.SimplePeakListRow;
 import net.sf.mzmine.io.RawDataFile;
 import net.sf.mzmine.taskcontrol.Task;
 
-public class LinearNormalizerTask implements Task {
+class LinearNormalizerTask implements Task {
 
     static final float maximumOverallPeakHeightAfterNormalization = 100000.0f;
 
@@ -71,7 +71,7 @@ public class LinearNormalizerTask implements Task {
         return (float) processedDataFiles / (float) totalDataFiles;
     }
 
-    public Object getResult() {
+    public PeakList getResult() {
         return normalizedPeakList;
     }
 

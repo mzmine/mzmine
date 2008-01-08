@@ -75,7 +75,7 @@ public class ProjectionPlot implements MZmineModule, ActionListener {
 	public void actionPerformed(ActionEvent event) {
 	
 		
-        PeakList selectedAlignedPeakLists[] = desktop.getSelectedAlignedPeakLists();
+        PeakList selectedAlignedPeakLists[] = desktop.getSelectedPeakLists();
         if (selectedAlignedPeakLists.length != 1) {
             desktop.displayErrorMessage("Please select a single aligned peaklist");
             return;

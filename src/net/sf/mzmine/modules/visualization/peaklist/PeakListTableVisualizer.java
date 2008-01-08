@@ -68,7 +68,7 @@ public class PeakListTableVisualizer implements MZmineModule, ActionListener {
      */
     public void actionPerformed(ActionEvent e) {
 
-        PeakList peakLists[] = desktop.getSelectedAlignedPeakLists();
+        PeakList peakLists[] = desktop.getSelectedPeakLists();
 
         if (peakLists.length == 0) {
             desktop.displayErrorMessage("Please select aligned peak list");

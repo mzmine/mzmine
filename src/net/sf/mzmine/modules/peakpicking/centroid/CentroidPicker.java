@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2007 The MZmine Development Team
+ * Copyright 2006-2008 The MZmine Development Team
  * 
  * This file is part of MZmine.
  * 
@@ -22,19 +22,14 @@ package net.sf.mzmine.modules.peakpicking.centroid;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
-import java.text.NumberFormat;
 import java.util.logging.Logger;
 
-import net.sf.mzmine.data.Parameter;
 import net.sf.mzmine.data.ParameterSet;
-import net.sf.mzmine.data.ParameterType;
 import net.sf.mzmine.data.PeakList;
-import net.sf.mzmine.data.impl.SimpleParameter;
 import net.sf.mzmine.data.impl.SimpleParameterSet;
 import net.sf.mzmine.io.RawDataFile;
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.modules.batchmode.BatchStepPeakPicking;
-import net.sf.mzmine.project.MZmineProject;
 import net.sf.mzmine.taskcontrol.Task;
 import net.sf.mzmine.taskcontrol.TaskGroup;
 import net.sf.mzmine.taskcontrol.TaskGroupListener;
@@ -48,46 +43,8 @@ import net.sf.mzmine.userinterface.dialogs.ParameterSetupDialog;
  * This class implements a peak picker based on searching for local maximums in
  * each spectra
  */
-public class CentroidPicker implements BatchStepPeakPicking, TaskListener, ActionListener {
-
-    public static final NumberFormat percentFormat = NumberFormat.getPercentInstance();
-
-    public static final Parameter binSize = new SimpleParameter(
-            ParameterType.FLOAT, "M/Z bin width",
-            "Width of M/Z range for each precalculated XIC", "Da", new Float(
-                    0.25), new Float(0.05), null);
-
-    public static final Parameter chromatographicThresholdLevel = new SimpleParameter(
-            ParameterType.FLOAT, "Chromatographic threshold level",
-            "Used in defining threshold level value from an XIC", "%",
-            new Float(0.0), new Float(0.0), new Float(1.0));
-
-    public static final Parameter noiseLevel = new SimpleParameter(
-            ParameterType.FLOAT, "Noise level",
-            "Intensities less than this value are interpreted as noise",
-            "absolute", new Float(4.0), new Float(0.0), null);
-
-    public static final Parameter minimumPeakHeight = new SimpleParameter(
-            ParameterType.FLOAT, "Min peak height",
-            "Minimum acceptable peak height", "absolute", new Float(15.0),
-            new Float(0.0), null);
-
-    public static final Parameter minimumPeakDuration = new SimpleParameter(
-            ParameterType.FLOAT, "Min peak duration",
-            "Minimum acceptable peak duration", "seconds", new Float(3.0),
-            new Float(0.0), null);
-
-    public static final Parameter mzTolerance = new SimpleParameter(
-            ParameterType.FLOAT,
-            "M/Z tolerance",
-            "Maximum allowed distance in M/Z between centroid peaks in successive scans",
-            "Da", new Float(0.050), new Float(0.0), null);
-
-    public static final Parameter intTolerance = new SimpleParameter(
-            ParameterType.FLOAT,
-            "Intensity tolerance",
-            "Maximum allowed deviation from expected /\\ shape of a peak in chromatographic direction",
-            "%", new Float(0.20), new Float(0.0), null, percentFormat);
+public class CentroidPicker implements BatchStepPeakPicking, TaskListener,
+        ActionListener {
 
     private ParameterSet parameters;
 
@@ -102,9 +59,7 @@ public class CentroidPicker implements BatchStepPeakPicking, TaskListener, Actio
 
         this.desktop = MZmineCore.getDesktop();
 
-        parameters = new SimpleParameterSet(new Parameter[] { binSize,
-                chromatographicThresholdLevel, noiseLevel, minimumPeakHeight,
-                minimumPeakDuration, mzTolerance, intTolerance });
+        parameters = new CentroidPickerParameters();
 
         desktop.addMenuItem(MZmineMenu.PEAKPICKING, "Centroid peak detector",
                 this, null, KeyEvent.VK_C, false, true);
@@ -135,37 +90,26 @@ public class CentroidPicker implements BatchStepPeakPicking, TaskListener, Actio
     }
 
     public void taskStarted(Task task) {
-        logger.info("Running centroid peak picker on "
-                + ((CentroidPickerTask) task).getDataFile());
-
+        CentroidPickerTask centTask = (CentroidPickerTask) task;
+        logger.info("Running centroid peak picker on " + centTask.getDataFile());
     }
 
     public void taskFinished(Task task) {
 
+        CentroidPickerTask centTask = (CentroidPickerTask) task;
+
         if (task.getStatus() == Task.TaskStatus.FINISHED) {
 
             logger.info("Finished centroid peak picker on "
-                    + ((CentroidPickerTask) task).getDataFile());
+                    + centTask.getDataFile());
 
-            Object[] result = (Object[]) task.getResult();
-            RawDataFile dataFile = (RawDataFile) result[0];
-            PeakList peakList = (PeakList) result[1];
+        }
 
-            MZmineProject currentProject = MZmineCore.getCurrentProject();
-
-            // Add peak list as data unit to current file
-            currentProject.setFilePeakList(dataFile, peakList);
-
-            // Notify listeners
-            desktop.notifySelectionListeners();
-
-        } else if (task.getStatus() == Task.TaskStatus.ERROR) {
-            /* Task encountered an error */
-            String msg = "Error while peak picking a file: "
-                    + task.getErrorMessage();
+        if (task.getStatus() == Task.TaskStatus.ERROR) {
+            String msg = "Error while running centroid peak picker on file "
+                    + centTask.getDataFile() + ": " + task.getErrorMessage();
             logger.severe(msg);
             desktop.displayErrorMessage(msg);
-
         }
 
     }
@@ -189,7 +133,7 @@ public class CentroidPicker implements BatchStepPeakPicking, TaskListener, Actio
      */
     public ExitCode setupParameters(ParameterSet currentParameters) {
         ParameterSetupDialog dialog = new ParameterSetupDialog(
-                desktop.getMainFrame(), "Please check parameter values for "
+                desktop.getMainFrame(), "Please set parameter values for "
                         + toString(), (SimpleParameterSet) currentParameters);
         dialog.setVisible(true);
         return dialog.getExitCode();
@@ -210,7 +154,7 @@ public class CentroidPicker implements BatchStepPeakPicking, TaskListener, Actio
      */
     public TaskGroup runModule(RawDataFile[] dataFiles,
             PeakList[] alignmentResults, ParameterSet parameters,
-            TaskGroupListener methodListener) {
+            TaskGroupListener taskGroupListener) {
 
         // prepare a new sequence of tasks
         Task tasks[] = new CentroidPickerTask[dataFiles.length];
@@ -218,12 +162,12 @@ public class CentroidPicker implements BatchStepPeakPicking, TaskListener, Actio
             tasks[i] = new CentroidPickerTask(dataFiles[i],
                     (SimpleParameterSet) parameters);
         }
-        TaskGroup newSequence = new TaskGroup(tasks, this, methodListener);
+        TaskGroup newGroup = new TaskGroup(tasks, this, taskGroupListener);
 
         // execute the sequence
-        newSequence.run();
+        newGroup.start();
 
-        return newSequence;
+        return newGroup;
 
     }
 

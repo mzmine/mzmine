@@ -40,6 +40,6 @@ public interface IOController {
      * @return
      * @throws IOException
      */
-    public RawDataFile createNewFile(String name, PreloadLevel preloadLevel) throws IOException;
+    public RawDataFileWriter createNewFile(String name, PreloadLevel preloadLevel) throws IOException;
 
 }

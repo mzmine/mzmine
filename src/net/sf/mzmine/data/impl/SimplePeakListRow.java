@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2007 The MZmine Development Team
+ * Copyright 2006-2008 The MZmine Development Team
  * 
  * This file is part of MZmine.
  * 
@@ -193,6 +193,10 @@ public class SimplePeakListRow implements PeakListRow {
      */
     public float getDataPointMaxIntensity() {
         return maxDataPointIntensity;
+    }
+
+    public boolean hasPeak(Peak peak) {
+        return peaks.containsValue(peak);
     }
 
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2007 The MZmine Development Team
+ * Copyright 2006-2008 The MZmine Development Team
  * 
  * This file is part of MZmine.
  * 
@@ -108,33 +108,20 @@ public interface MZmineProject {
 	public RawDataFile[] getDataFiles();
 
 	/**
-	 * Adds aligned PeakList to the project
+	 * Adds a peak list to the project
 	 * 
 	 */
-	public void addAlignedPeakList(PeakList newResult);
+    public void addPeakList(PeakList peaklist);
 
 	/**
-	 * Removes aligned PeakList from the project
+	 * Removes a peak list from the project
 	 * 
 	 */
-	public void removeAlignedPeakList(PeakList result);
+    public void removePeakList(PeakList peaklist);
 
 	/**
-	 * Returns all aligned PeakLists of the project.
-	 * 
-	 */
-	public PeakList[] getAlignedPeakLists();
-
-	/**
-	 * Returns PeakList for a RawDataFile
-	 * 
-	 */
-	public PeakList getFilePeakList(RawDataFile file);
-
-	/**
-	 * Sets PeakList for a RawDataFile
-	 * 
-	 */
-	public void setFilePeakList(RawDataFile file, PeakList peakList);
+	 * Returns all peak lists of the project
+     */
+    public PeakList[] getPeakLists();
 
 }

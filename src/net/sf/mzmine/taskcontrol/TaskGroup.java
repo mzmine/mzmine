@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2007 The MZmine Development Team
+ * Copyright 2006-2008 The MZmine Development Team
  * 
  * This file is part of MZmine.
  * 
@@ -26,7 +26,7 @@ import net.sf.mzmine.main.MZmineCore;
 /**
  * 
  */
-public class TaskGroup implements TaskListener, Runnable {
+public class TaskGroup implements TaskListener {
 
     public enum TaskGroupStatus {
         WAITING, RUNNING, ERROR, CANCELED, FINISHED
@@ -93,16 +93,15 @@ public class TaskGroup implements TaskListener, Runnable {
                 taskGroupListener.taskGroupFinished(this);
 
         }
-        
-        logger.finest("Task group: finished " + finishedTasks + "/" + tasks.length + " tasks, status " + status);
 
+        logger.finest("Task group: finished " + finishedTasks + "/"
+                + tasks.length + " tasks, status " + status);
 
     }
 
     /**
-     * @see java.lang.Runnable#run()
      */
-    public void run() {
+    public void start() {
 
         logger.finest("Starting " + tasks.length + " task group");
 
@@ -113,7 +112,7 @@ public class TaskGroup implements TaskListener, Runnable {
         }
 
     }
-    
+
     public String toString() {
         return "Task group: " + tasks;
     }

@@ -189,7 +189,7 @@ public class ThreeDVisualizerWindow extends JInternalFrame implements
         if (task.getStatus() == TaskStatus.FINISHED) {
 
             // add the 3D component
-            display = (DisplayImpl) task.getResult();
+            display = ((ThreeDSamplingTask) task).getResult();
             Component threeDPlot = display.getComponent();
             threeDPlot.setPreferredSize(new Dimension(700, 500));
             threeDPlot.addMouseWheelListener(this);

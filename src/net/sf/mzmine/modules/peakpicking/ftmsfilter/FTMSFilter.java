@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2007 The MZmine Development Team
+ * Copyright 2006-2008 The MZmine Development Team
  * 
  * This file is part of MZmine.
  * 
@@ -22,19 +22,14 @@ package net.sf.mzmine.modules.peakpicking.ftmsfilter;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
-import java.text.NumberFormat;
 import java.util.logging.Logger;
 
-import net.sf.mzmine.data.Parameter;
 import net.sf.mzmine.data.ParameterSet;
-import net.sf.mzmine.data.ParameterType;
 import net.sf.mzmine.data.PeakList;
-import net.sf.mzmine.data.impl.SimpleParameter;
 import net.sf.mzmine.data.impl.SimpleParameterSet;
 import net.sf.mzmine.io.RawDataFile;
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.modules.batchmode.BatchStepPeakPicking;
-import net.sf.mzmine.project.MZmineProject;
 import net.sf.mzmine.taskcontrol.Task;
 import net.sf.mzmine.taskcontrol.TaskGroup;
 import net.sf.mzmine.taskcontrol.TaskGroupListener;
@@ -57,27 +52,6 @@ import net.sf.mzmine.userinterface.dialogs.ParameterSetupDialog;
 public class FTMSFilter implements BatchStepPeakPicking, TaskListener,
         ActionListener {
 
-    public static final Parameter mzDifferenceMin = new SimpleParameter(
-            ParameterType.FLOAT, "M/Z difference minimum",
-            "Minimum m/z difference between real peak and shoulder peak", "Da",
-            new Float(0.001), new Float(0.0), null);
-
-    public static final Parameter mzDifferenceMax = new SimpleParameter(
-            ParameterType.FLOAT, "M/Z difference maximum",
-            "Maximum m/z difference between real peak and shoulder peak", "Da",
-            new Float(0.005), new Float(0.0), null);
-
-    public static final Parameter rtDifferenceMax = new SimpleParameter(
-            ParameterType.FLOAT,
-            "RT difference maximum",
-            "Maximum retention time difference between real peak and shoulder peak",
-            "seconds", new Float(5.0), new Float(0.0), null);
-
-    public static final Parameter heightMax = new SimpleParameter(
-            ParameterType.FLOAT, "Maximum height",
-            "Maximum height of shoulder peak", "%", new Float(0.05), new Float(
-                    0.0), null, NumberFormat.getPercentInstance());
-
     private ParameterSet parameters;
 
     private Logger logger = Logger.getLogger(this.getClass().getName());
@@ -91,8 +65,7 @@ public class FTMSFilter implements BatchStepPeakPicking, TaskListener,
 
         this.desktop = MZmineCore.getDesktop();
 
-        parameters = new SimpleParameterSet(new Parameter[] { mzDifferenceMin,
-                mzDifferenceMax, rtDifferenceMax, heightMax });
+        parameters = new FTMSFilterParameters();
 
         desktop.addMenuItem(MZmineMenu.PEAKPICKING,
                 "FTMS shoulder peak filter", this, null, KeyEvent.VK_F, false,
@@ -109,18 +82,18 @@ public class FTMSFilter implements BatchStepPeakPicking, TaskListener,
      */
     public void actionPerformed(ActionEvent e) {
 
-        RawDataFile[] dataFiles = desktop.getSelectedDataFiles();
-        MZmineProject currentProject = MZmineCore.getCurrentProject();
+        PeakList[] peaklists = desktop.getSelectedPeakLists();
 
-        if (dataFiles.length == 0) {
-            desktop.displayErrorMessage("Please select data file");
+        if (peaklists.length == 0) {
+            desktop.displayErrorMessage("Please select peak lists to filter");
             return;
         }
 
-        for (RawDataFile dataFile : dataFiles) {
-            if (currentProject.getFilePeakList(dataFile) == null) {
-                desktop.displayErrorMessage(dataFile
-                        + " has no peak list. Please run peak picking first.");
+        for (PeakList peaklist : peaklists) {
+            if (peaklist.getNumberOfRawDataFiles() > 1) {
+                desktop.displayErrorMessage("Peak list "
+                        + peaklist
+                        + " cannot be filtered, because it contains more than one data file");
                 return;
             }
         }
@@ -129,28 +102,29 @@ public class FTMSFilter implements BatchStepPeakPicking, TaskListener,
         if (exitCode != ExitCode.OK)
             return;
 
-        runModule(dataFiles, null, parameters.clone(), null);
+        runModule(null, peaklists, parameters.clone(), null);
     }
 
     public void taskStarted(Task task) {
+        FTMSFilterTask ftTask = (FTMSFilterTask) task;
         logger.info("Running FTMS shoulder peak filter on "
-                + ((FTMSFilterTask) task).getDataFile());
+                + ftTask.getPeakList());
     }
 
     public void taskFinished(Task task) {
 
+        FTMSFilterTask ftTask = (FTMSFilterTask) task;
+
         if (task.getStatus() == Task.TaskStatus.FINISHED) {
-
             logger.info("Finished FTMS shoulder peak filter on "
-                    + ((FTMSFilterTask) task).getDataFile());
+                    + ftTask.getPeakList());
+        }
 
-        } else if (task.getStatus() == Task.TaskStatus.ERROR) {
-            /* Task encountered an error */
-            String msg = "Error while filtering file: "
-                    + task.getErrorMessage();
+        if (task.getStatus() == Task.TaskStatus.ERROR) {
+            String msg = "Error while filtering peaklist "
+                    + ftTask.getPeakList() + ": " + task.getErrorMessage();
             logger.severe(msg);
             desktop.displayErrorMessage(msg);
-
         }
 
     }
@@ -167,7 +141,7 @@ public class FTMSFilter implements BatchStepPeakPicking, TaskListener,
      */
     public ExitCode setupParameters(ParameterSet currentParameters) {
         ParameterSetupDialog dialog = new ParameterSetupDialog(
-                desktop.getMainFrame(), "Please check parameter values for "
+                desktop.getMainFrame(), "Please set parameter values for "
                         + toString(), (SimpleParameterSet) currentParameters);
         dialog.setVisible(true);
         return dialog.getExitCode();
@@ -185,33 +159,22 @@ public class FTMSFilter implements BatchStepPeakPicking, TaskListener,
      *      net.sf.mzmine.data.PeakList[], net.sf.mzmine.data.ParameterSet,
      *      net.sf.mzmine.taskcontrol.TaskGroupListener)
      */
-    public TaskGroup runModule(RawDataFile[] dataFiles,
-            PeakList[] alignmentResults, ParameterSet parameters,
-            TaskGroupListener methodListener) {
+    public TaskGroup runModule(RawDataFile[] dataFiles, PeakList[] peakLists,
+            ParameterSet parameters, TaskGroupListener taskGroupListener) {
 
-        MZmineProject currentProject = MZmineCore.getCurrentProject();
-
-        // prepare a new sequence of tasks
-        Task tasks[] = new FTMSFilterTask[dataFiles.length];
-        for (int i = 0; i < dataFiles.length; i++) {
-
-            if (currentProject.getFilePeakList(dataFiles[i]) == null) {
-                String msg = "Cannot start filtering of " + dataFiles[i]
-                        + ", please run peak picking first.";
-                logger.severe(msg);
-                desktop.displayErrorMessage(msg);
-                return null;
-            }
-            tasks[i] = new FTMSFilterTask(dataFiles[i],
+        // prepare a new group of tasks
+        Task tasks[] = new FTMSFilterTask[peakLists.length];
+        for (int i = 0; i < peakLists.length; i++) {
+            tasks[i] = new FTMSFilterTask(peakLists[i],
                     (SimpleParameterSet) parameters);
         }
 
-        TaskGroup newSequence = new TaskGroup(tasks, this, methodListener);
+        TaskGroup newGroup = new TaskGroup(tasks, this, taskGroupListener);
 
-        // execute the sequence
-        newSequence.run();
+        // start the group
+        newGroup.start();
 
-        return newSequence;
+        return newGroup;
 
     }
 

@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2007 The MZmine Development Team
+ * Copyright 2006-2008 The MZmine Development Team
  * 
  * This file is part of MZmine.
  * 
@@ -19,7 +19,6 @@
 
 package net.sf.mzmine.modules.peakpicking.centroid;
 
-
 /**
  * This class represent a 1D peak
  */
@@ -27,19 +26,17 @@ class OneDimPeak {
 
     public int scanNum;
 
-    public float mz;
-    public float intensity;
+    public float mz, intensity;
     public int datapointIndex;
 
     private boolean connected;
 
-    public OneDimPeak(int _scanNum, int _datapointIndex, float _mz,
-            float _intensity) {
-        scanNum = _scanNum;
-        datapointIndex = _datapointIndex;
-        mz = _mz;
-        intensity = _intensity;
-
+    public OneDimPeak(int scanNum, int datapointIndex, float mz,
+            float intensity) {
+        this.scanNum = scanNum;
+        this.datapointIndex = datapointIndex;
+        this.mz = mz;
+        this.intensity = intensity;
         connected = false;
     }
 

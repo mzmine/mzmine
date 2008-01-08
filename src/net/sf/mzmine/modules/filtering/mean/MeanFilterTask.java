@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2007 The MZmine Development Team
+ * Copyright 2006-2008 The MZmine Development Team
  * 
  * This file is part of MZmine.
  * 
@@ -27,6 +27,7 @@ import net.sf.mzmine.data.impl.SimpleParameterSet;
 import net.sf.mzmine.data.impl.SimpleScan;
 import net.sf.mzmine.io.RawDataFile;
 import net.sf.mzmine.io.RawDataFileWriter;
+import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.taskcontrol.Task;
 
 /**
@@ -39,12 +40,13 @@ class MeanFilterTask implements Task {
     private TaskStatus status = TaskStatus.WAITING;
     private String errorMessage;
 
-    private int filteredScans;
-    private int totalScans;
+    // scan counter
+    private int filteredScans, totalScans;
 
-    private RawDataFile filteredRawDataFile;
-
+    // parameter values
+    private String suffix;
     private float oneSidedWindowLength;
+    private boolean removeOriginal;
 
     /**
      * @param rawDataFile
@@ -52,7 +54,9 @@ class MeanFilterTask implements Task {
      */
     MeanFilterTask(RawDataFile dataFile, SimpleParameterSet parameters) {
         this.dataFile = dataFile;
-        oneSidedWindowLength = ((Float) parameters.getParameterValue(MeanFilter.parameterOneSidedWindowLength)).floatValue();
+        suffix = (String) parameters.getParameterValue(MeanFilterParameters.suffix);
+        oneSidedWindowLength = ((Float) parameters.getParameterValue(MeanFilterParameters.oneSidedWindowLength)).floatValue();
+        removeOriginal = (Boolean) parameters.getParameterValue(MeanFilterParameters.autoRemove);
     }
 
     /**
@@ -85,13 +89,6 @@ class MeanFilterTask implements Task {
         return errorMessage;
     }
 
-    /**
-     * @see net.sf.mzmine.taskcontrol.Task#getResult()
-     */
-    public Object getResult() {
-        return filteredRawDataFile;
-    }
-    
     public RawDataFile getDataFile() {
         return dataFile;
     }
@@ -110,60 +107,58 @@ class MeanFilterTask implements Task {
 
         status = TaskStatus.PROCESSING;
 
-        // Create new temporary copy
-        RawDataFileWriter rawDataFileWriter;
         try {
-            rawDataFileWriter = dataFile.updateFile();
-        } catch (IOException e) {
-            status = TaskStatus.ERROR;
-            errorMessage = e.toString();
-            return;
-        }
 
-        int[] scanNumbers = dataFile.getScanNumbers();
-        totalScans = scanNumbers.length;
+            // Create new temporary file
+            String newName = dataFile.toString() + " " + suffix;
+            RawDataFileWriter rawDataFileWriter = MZmineCore.getIOController().createNewFile(
+                    newName, dataFile.getPreloadLevel());
 
-        Scan oldScan;
+            // Get all scans
+            int[] scanNumbers = dataFile.getScanNumbers();
+            totalScans = scanNumbers.length;
 
-        for (int i = 0; i < scanNumbers.length; i++) {
+            // Loop through all scans
+            for (int i = 0; i < scanNumbers.length; i++) {
 
-            if (status == TaskStatus.CANCELED)
-                return;
+                if (status == TaskStatus.CANCELED)
+                    return;
 
-            try {
-                oldScan = dataFile.getScan(scanNumbers[i]);
+                Scan oldScan = dataFile.getScan(scanNumbers[i]);
+
+                // ignore scans of MS level other than 1
+                if (oldScan.getMSLevel() != 1) {
+                    rawDataFileWriter.addScan(oldScan);
+                    filteredScans++;
+                    continue;
+                }
+
                 processOneScan(rawDataFileWriter, oldScan, oneSidedWindowLength);
 
-            } catch (IOException e) {
-                status = TaskStatus.ERROR;
-                errorMessage = e.toString();
-                return;
+                filteredScans++;
+
             }
 
-            filteredScans++;
+            // Finalize writing
+            RawDataFile filteredRawDataFile = rawDataFileWriter.finishWriting();
+            MZmineCore.getCurrentProject().addFile(filteredRawDataFile);
 
-        }
+            // Remove the original file if requested
+            if (removeOriginal)
+                MZmineCore.getCurrentProject().removeFile(dataFile);
 
-        try {
-            rawDataFileWriter.finishWriting();
+            status = TaskStatus.FINISHED;
+
         } catch (IOException e) {
             status = TaskStatus.ERROR;
             errorMessage = e.toString();
             return;
         }
-
-        status = TaskStatus.FINISHED;
 
     }
 
     private void processOneScan(RawDataFileWriter writer, Scan sc,
             float windowLength) throws IOException {
-
-        // only process MS level 1 scans
-        if (sc.getMSLevel() != 1) {
-            writer.addScan(sc);
-            return;
-        }
 
         Vector<Float> massWindow = new Vector<Float>();
         Vector<Float> intensityWindow = new Vector<Float>();
@@ -216,11 +211,13 @@ class MeanFilterTask implements Task {
 
         }
 
+        // Create filtered scan
         Scan newScan = new SimpleScan(sc.getScanNumber(), sc.getMSLevel(),
                 sc.getRetentionTime(), sc.getParentScanNumber(),
                 sc.getPrecursorMZ(), sc.getFragmentScanNumbers(),
                 sc.getMZValues(), newIntensities, sc.isCentroided());
 
+        // Write the scan to new file
         writer.addScan(newScan);
 
     }

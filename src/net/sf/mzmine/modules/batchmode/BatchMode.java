@@ -134,7 +134,7 @@ public class BatchMode implements MZmineModule, TaskGroupListener,
         BatchStep method = newStep.getMethod();
 
         PeakList[] lastResultOnly = null;
-        PeakList[] allResults = MZmineCore.getCurrentProject().getAlignedPeakLists();
+        PeakList[] allResults = MZmineCore.getCurrentProject().getPeakLists();
         if (allResults.length > 0)
             lastResultOnly = new PeakList[] { allResults[allResults.length - 1] };
 

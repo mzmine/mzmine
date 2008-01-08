@@ -39,7 +39,7 @@ public class TaskControllerImpl implements TaskController, Runnable {
 
     // TODO: always create a worker thread for high priority tasks
 
-    private final int TASKCONTROLLER_THREAD_SLEEP = 100;
+    private final int TASKCONTROLLER_THREAD_SLEEP = 200;
 
     private Thread taskControllerThread;
 

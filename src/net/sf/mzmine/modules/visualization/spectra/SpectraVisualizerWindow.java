@@ -478,7 +478,7 @@ public class SpectraVisualizerWindow extends JInternalFrame implements
             MZmineProject currentProject = MZmineCore.getCurrentProject();
             
             // if we have a peak list, add the eligible peaks
-            PeakList peakList = currentProject.getFilePeakList(dataFile);
+            PeakList peakList = null; // TODO currentProject.getFilePeakList(dataFile);
             if (peakList != null) {
 
                 toolBar.setPeaksButtonEnabled(true);

@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2007 The MZmine Development Team
+ * Copyright 2006-2008 The MZmine Development Team
  * 
  * This file is part of MZmine.
  * 
@@ -39,7 +39,9 @@ import javax.swing.JFormattedTextField;
 import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
+import javax.swing.JSeparator;
 import javax.swing.JTextField;
+import javax.swing.SwingConstants;
 
 import net.sf.mzmine.data.Parameter;
 import net.sf.mzmine.data.impl.SimpleParameterSet;
@@ -60,22 +62,33 @@ public class ParameterSetupDialog extends JDialog implements ActionListener {
     private Hashtable<Parameter, JComponent> parametersAndComponents;
 
     // Buttons
-    private JButton btnOK, btnCancel;
+    private JButton btnOK, btnCancel, btnAuto;
 
     private JPanel pnlAll, pnlLabels, pnlFields, pnlUnits, pnlButtons;
 
     private SimpleParameterSet parameters;
+    private Hashtable<Parameter, Object> autoValues;
 
     /**
      * Constructor
      */
     public ParameterSetupDialog(Frame owner, String title,
             SimpleParameterSet parameters) {
+        this(owner, title, parameters, null);
+    }
+
+    /**
+     * Constructor
+     */
+    public ParameterSetupDialog(Frame owner, String title,
+            SimpleParameterSet parameters,
+            Hashtable<Parameter, Object> autoValues) {
 
         // Make dialog modal
         super(owner, true);
 
         this.parameters = parameters;
+        this.autoValues = autoValues;
 
         // Check if there are any parameters
         Parameter[] allParameters = parameters.getParameters();
@@ -134,11 +147,7 @@ public class ParameterSetupDialog extends JDialog implements ActionListener {
 
             switch (p.getType()) {
             case STRING:
-                JTextField strField = new JTextField();
-                String strValue = (String) parameters.getParameterValue(p);
-                if (strValue != null)
-                    strField.setText(strValue);
-                comp = strField;
+                comp = new JTextField();
                 break;
             case INTEGER:
             case FLOAT:
@@ -146,19 +155,12 @@ public class ParameterSetupDialog extends JDialog implements ActionListener {
                 if (format == null)
                     format = NumberFormat.getNumberInstance();
                 JFormattedTextField txtField = new JFormattedTextField(format);
-                Object numValue = parameters.getParameterValue(p);
-                if (numValue != null)
-                    txtField.setValue(numValue);
                 txtField.setColumns(TEXTFIELD_COLUMNS);
                 comp = txtField;
                 break;
 
             case BOOLEAN:
-                JCheckBox checkBox = new JCheckBox();
-                Boolean selected = (Boolean) parameters.getParameterValue(p);
-                if (selected != null)
-                    checkBox.setSelected(selected);
-                comp = checkBox;
+                comp = new JCheckBox();
                 break;
 
             }
@@ -167,6 +169,9 @@ public class ParameterSetupDialog extends JDialog implements ActionListener {
             parametersAndComponents.put(p, comp);
             lblLabel.setLabelFor(comp);
             pnlFields.add(comp);
+            
+            // set the value of the component
+            setValue(p, parameters.getParameterValue(p));
 
         }
 
@@ -178,6 +183,12 @@ public class ParameterSetupDialog extends JDialog implements ActionListener {
         btnCancel.addActionListener(this);
         pnlButtons.add(btnOK);
         pnlButtons.add(btnCancel);
+
+        if (autoValues != null) {
+            btnAuto = new JButton("Set automatically");
+            btnAuto.addActionListener(this);
+            pnlButtons.add(btnAuto);
+        }
 
         pnlAll.add(pnlLabels, BorderLayout.WEST);
         pnlAll.add(pnlFields, BorderLayout.CENTER);
@@ -253,6 +264,14 @@ public class ParameterSetupDialog extends JDialog implements ActionListener {
             dispose();
         }
 
+        if (src == btnAuto) {
+
+            for (Parameter p : autoValues.keySet()) {
+                setValue(p, autoValues.get(p));
+            }
+
+        }
+
     }
 
     private void displayMessage(String msg) {
@@ -270,6 +289,37 @@ public class ParameterSetupDialog extends JDialog implements ActionListener {
      */
     public ExitCode getExitCode() {
         return exitCode;
+    }
+
+    void setValue(Parameter p, Object value) {
+
+        JComponent component = parametersAndComponents.get(p);
+        if ((component == null) || (value == null))
+            return;
+        
+        if (component instanceof JComboBox) {
+            JComboBox combo = (JComboBox) component;
+            combo.setSelectedItem(value);
+            
+        }
+
+        switch (p.getType()) {
+        case STRING:
+            JTextField strField = (JTextField) component;
+            String strValue = (String) value;
+            strField.setText(strValue);
+            break;
+        case INTEGER:
+        case FLOAT:
+            JFormattedTextField txtField = (JFormattedTextField) component;
+            txtField.setValue(value);
+            break;
+        case BOOLEAN:
+            JCheckBox checkBox = (JCheckBox) component;
+            Boolean selected = (Boolean) value;
+            checkBox.setSelected(selected);
+            break;
+        }
     }
 
 }

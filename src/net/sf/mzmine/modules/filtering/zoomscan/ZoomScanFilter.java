@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2007 The MZmine Development Team
+ * Copyright 2006-2008 The MZmine Development Team
  * 
  * This file is part of MZmine.
  * 
@@ -24,11 +24,8 @@ import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
 import java.util.logging.Logger;
 
-import net.sf.mzmine.data.Parameter;
 import net.sf.mzmine.data.ParameterSet;
-import net.sf.mzmine.data.ParameterType;
 import net.sf.mzmine.data.PeakList;
-import net.sf.mzmine.data.impl.SimpleParameter;
 import net.sf.mzmine.data.impl.SimpleParameterSet;
 import net.sf.mzmine.io.RawDataFile;
 import net.sf.mzmine.main.MZmineCore;
@@ -42,12 +39,8 @@ import net.sf.mzmine.userinterface.Desktop.MZmineMenu;
 import net.sf.mzmine.userinterface.dialogs.ExitCode;
 import net.sf.mzmine.userinterface.dialogs.ParameterSetupDialog;
 
-public class ZoomScanFilter implements BatchStepFiltering, TaskListener, ActionListener {
-
-    protected static final Parameter parameterMinMZRange = new SimpleParameter(
-            ParameterType.FLOAT, "Minimum M/Z range",
-            "Required minimum M/Z range for a full scan", "Da", new Float(
-                    100.0), new Float(0.0), null);
+public class ZoomScanFilter implements BatchStepFiltering, TaskListener,
+        ActionListener {
 
     private ParameterSet parameters;
 
@@ -62,8 +55,7 @@ public class ZoomScanFilter implements BatchStepFiltering, TaskListener, ActionL
 
         this.desktop = MZmineCore.getDesktop();
 
-        parameters = new SimpleParameterSet(
-                new Parameter[] { parameterMinMZRange });
+        parameters = new ZoomScanFilterParameters();
 
         desktop.addMenuItem(MZmineMenu.FILTERING, "Zoom scan filter", this,
                 null, KeyEvent.VK_Z, false, true);
@@ -101,7 +93,7 @@ public class ZoomScanFilter implements BatchStepFiltering, TaskListener, ActionL
      */
     public ExitCode setupParameters(ParameterSet currentParameters) {
         ParameterSetupDialog dialog = new ParameterSetupDialog(
-                desktop.getMainFrame(), "Please check parameter values for "
+                desktop.getMainFrame(), "Please set parameter values for "
                         + toString(), (SimpleParameterSet) currentParameters);
         dialog.setVisible(true);
         return dialog.getExitCode();
@@ -114,20 +106,20 @@ public class ZoomScanFilter implements BatchStepFiltering, TaskListener, ActionL
      */
     public TaskGroup runModule(RawDataFile[] dataFiles,
             PeakList[] alignmentResults, ParameterSet parameters,
-            TaskGroupListener methodListener) {
+            TaskGroupListener taskGroupListener) {
 
-        // prepare a new sequence of tasks
+        // prepare a new task group
         Task tasks[] = new ZoomScanFilterTask[dataFiles.length];
         for (int i = 0; i < dataFiles.length; i++) {
             tasks[i] = new ZoomScanFilterTask(dataFiles[i],
                     (SimpleParameterSet) parameters);
         }
-        TaskGroup newSequence = new TaskGroup(tasks, this, methodListener);
+        TaskGroup newGroup = new TaskGroup(tasks, this, taskGroupListener);
 
-        // execute the sequence
-        newSequence.run();
+        // start this group
+        newGroup.start();
 
-        return newSequence;
+        return newGroup;
 
     }
 
@@ -149,8 +141,8 @@ public class ZoomScanFilter implements BatchStepFiltering, TaskListener, ActionL
      * @see net.sf.mzmine.taskcontrol.TaskListener#taskStarted(net.sf.mzmine.taskcontrol.Task)
      */
     public void taskStarted(Task task) {
-        logger.info("Running zoom scan filter on "
-                + ((ZoomScanFilterTask) task).getDataFile());
+        ZoomScanFilterTask zoomTask = (ZoomScanFilterTask) task;
+        logger.info("Running zoom scan filter on " + zoomTask.getDataFile());
     }
 
     /**
@@ -158,18 +150,18 @@ public class ZoomScanFilter implements BatchStepFiltering, TaskListener, ActionL
      */
     public void taskFinished(Task task) {
 
+        ZoomScanFilterTask zoomTask = (ZoomScanFilterTask) task;
+
         if (task.getStatus() == Task.TaskStatus.FINISHED) {
-
             logger.info("Finished zoom scan filter on "
-                    + ((ZoomScanFilterTask) task).getDataFile());
+                    + zoomTask.getDataFile());
+        }
 
-        } else if (task.getStatus() == Task.TaskStatus.ERROR) {
-            /* Task encountered an error */
-            String msg = "Error while filtering a file: "
-                    + task.getErrorMessage();
+        if (task.getStatus() == Task.TaskStatus.ERROR) {
+            String msg = "Error while running zoom scan filter on "
+                    + zoomTask.getDataFile() + ": " + task.getErrorMessage();
             logger.severe(msg);
             desktop.displayErrorMessage(msg);
-
         }
 
     }

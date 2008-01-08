@@ -198,7 +198,7 @@ class PeakListReportGenerator {
                             maxHeight = peakList.getDataPointMaxIntensity();
                             break;
                         case ROWMAX:
-                            int rowNumber = peakList.getPeakRow(peak);
+                            int rowNumber = peakList.getPeakRowNum(peak);
                             maxHeight = peakList.getRow(rowNumber).getDataPointMaxIntensity();
                             break;
                         default:

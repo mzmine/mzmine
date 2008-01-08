@@ -173,7 +173,7 @@ class ThreeDSamplingTask implements Task {
     /**
      * @see net.sf.mzmine.taskcontrol.Task#getResult()
      */
-    public Object getResult() {
+    public DisplayImplJ3D getResult() {
         return display;
     }
 
@@ -360,7 +360,7 @@ class ThreeDSamplingTask implements Task {
             MZmineProject currentProject = MZmineCore.getCurrentProject();
             
             // if we have peak data, connect them to the display, too
-            PeakList peakList = currentProject.getFilePeakList(dataFile);
+            PeakList peakList = null; // TODO currentProject.getFilePeakList(dataFile);
             if (peakList != null) {
 
                 Peak peaks[] = peakList.getPeaksInsideScanAndMZRange(dataFile, rtMin, rtMax, mzMin, mzMax);

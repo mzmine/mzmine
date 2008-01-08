@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2007 The MZmine Development Team
+ * Copyright 2006-2008 The MZmine Development Team
  * 
  * This file is part of MZmine.
  * 
@@ -27,6 +27,7 @@ import net.sf.mzmine.data.impl.SimpleParameterSet;
 import net.sf.mzmine.data.impl.SimpleScan;
 import net.sf.mzmine.io.RawDataFile;
 import net.sf.mzmine.io.RawDataFileWriter;
+import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.taskcontrol.Task;
 
 /**
@@ -39,15 +40,16 @@ class SGFilterTask implements Task {
     private TaskStatus status = TaskStatus.WAITING;
     private String errorMessage;
 
-    private int filteredScans;
-    private int totalScans;
+    // scan counter
+    private int filteredScans, totalScans;
 
-    private RawDataFile filteredRawDataFile;
+    // parameter values
+    private String suffix;
+    private int numberOfDataPoints;;
+    private boolean removeOriginal;
 
     private Hashtable<Integer, Integer> Hvalues;
     private Hashtable<Integer, int[]> Avalues;
-
-    int numberOfDataPoints;
 
     /**
      * @param rawDataFile
@@ -56,7 +58,9 @@ class SGFilterTask implements Task {
     SGFilterTask(RawDataFile dataFile, SimpleParameterSet parameters) {
         this.dataFile = dataFile;
 
-        numberOfDataPoints = (Integer) parameters.getParameterValue(SGFilter.parameterDatapoints);
+        suffix = (String) parameters.getParameterValue(SGFilterParameters.suffix);
+        numberOfDataPoints = (Integer) parameters.getParameterValue(SGFilterParameters.datapoints);
+        removeOriginal = (Boolean) parameters.getParameterValue(SGFilterParameters.autoRemove);
     }
 
     /**
@@ -89,13 +93,6 @@ class SGFilterTask implements Task {
         return errorMessage;
     }
 
-    /**
-     * @see net.sf.mzmine.taskcontrol.Task#getResult()
-     */
-    public Object getResult() {
-        return filteredRawDataFile;
-    }
-    
     public RawDataFile getDataFile() {
         return dataFile;
     }
@@ -114,55 +111,49 @@ class SGFilterTask implements Task {
 
         status = TaskStatus.PROCESSING;
 
-        initializeAHValues();
-
-        // Create new temporary copy
-        RawDataFileWriter rawDataFileWriter;
         try {
-            rawDataFileWriter = dataFile.updateFile();
-        } catch (IOException e) {
-            status = TaskStatus.ERROR;
-            errorMessage = e.toString();
-            return;
-        }
 
-        int[] aVals = Avalues.get(new Integer(numberOfDataPoints));
-        int h = Hvalues.get(new Integer(numberOfDataPoints)).intValue();
+            // Create new temporary file
+            String newName = dataFile.toString() + " " + suffix;
+            RawDataFileWriter rawDataFileWriter = MZmineCore.getIOController().createNewFile(
+                    newName, dataFile.getPreloadLevel());
 
-        int[] scanNumbers = dataFile.getScanNumbers();
-        totalScans = scanNumbers.length;
+            // Get all scans
+            int[] scanNumbers = dataFile.getScanNumbers();
+            totalScans = scanNumbers.length;
 
-        Scan oldScan;
+            initializeAHValues();
+            int[] aVals = Avalues.get(new Integer(numberOfDataPoints));
+            int h = Hvalues.get(new Integer(numberOfDataPoints)).intValue();
 
-        for (int i = 0; i < scanNumbers.length; i++) {
+            for (int i = 0; i < scanNumbers.length; i++) {
 
-            if (status == TaskStatus.CANCELED)
-                return;
+                if (status == TaskStatus.CANCELED)
+                    return;
 
-            try {
-                oldScan = dataFile.getScan(scanNumbers[i]);
+                Scan oldScan = dataFile.getScan(scanNumbers[i]);
                 processOneScan(rawDataFileWriter, oldScan, numberOfDataPoints,
                         h, aVals);
 
-            } catch (IOException e) {
-                status = TaskStatus.ERROR;
-                errorMessage = e.toString();
-                return;
+                filteredScans++;
+
             }
 
-            filteredScans++;
+            // Finalize writing
+            RawDataFile filteredRawDataFile = rawDataFileWriter.finishWriting();
+            MZmineCore.getCurrentProject().addFile(filteredRawDataFile);
 
-        }
+            // Remove the original file if requested
+            if (removeOriginal)
+                MZmineCore.getCurrentProject().removeFile(dataFile);
 
-        try {
-            rawDataFileWriter.finishWriting();
+            status = TaskStatus.FINISHED;
+
         } catch (IOException e) {
             status = TaskStatus.ERROR;
             errorMessage = e.toString();
             return;
         }
-
-        status = TaskStatus.FINISHED;
 
     }
 
@@ -208,61 +199,50 @@ class SGFilterTask implements Task {
     }
 
     /**
-     * Initialize Avalues and Hvalues These are actually constants, but it is
-     * difficult to define them as static final
+     * Initialize Avalues and Hvalues
      */
     private void initializeAHValues() {
+        
         Avalues = new Hashtable<Integer, int[]>();
         Hvalues = new Hashtable<Integer, Integer>();
 
         int[] a5Ints = { 17, 12, -3, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
-        Avalues.put(new Integer(5), a5Ints);
+        Avalues.put(5, a5Ints);
         int[] a7Ints = { 7, 6, 3, -2, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
-        Avalues.put(new Integer(7), a7Ints);
+        Avalues.put(7, a7Ints);
         int[] a9Ints = { 59, 54, 39, 14, -21, 0, 0, 0, 0, 0, 0, 0, 0 };
-        Avalues.put(new Integer(9), a9Ints);
+        Avalues.put(9, a9Ints);
         int[] a11Ints = { 89, 84, 69, 44, 9, -36, 0, 0, 0, 0, 0, 0, 0 };
-        Avalues.put(new Integer(11), a11Ints);
+        Avalues.put(11, a11Ints);
         int[] a13Ints = { 25, 24, 21, 16, 9, 0, -11, 0, 0, 0, 0, 0, 0 };
-        Avalues.put(new Integer(13), a13Ints);
+        Avalues.put(13, a13Ints);
         int[] a15Ints = { 167, 162, 147, 122, 87, 42, -13, -78, 0, 0, 0, 0, 0 };
-        Avalues.put(new Integer(15), a15Ints);
+        Avalues.put(15, a15Ints);
         int[] a17Ints = { 43, 42, 39, 34, 27, 18, 7, -6, -21, 0, 0, 0, 0 };
-        Avalues.put(new Integer(17), a17Ints);
+        Avalues.put(17, a17Ints);
         int[] a19Ints = { 269, 264, 249, 224, 189, 144, 89, 24, -51, -136, 0,
                 0, 0 };
-        Avalues.put(new Integer(19), a19Ints);
+        Avalues.put(19, a19Ints);
         int[] a21Ints = { 329, 324, 309, 284, 249, 204, 149, 84, 9, -76, -171,
                 0, 0 };
-        Avalues.put(new Integer(21), a21Ints);
+        Avalues.put(21, a21Ints);
         int[] a23Ints = { 79, 78, 75, 70, 63, 54, 43, 30, 15, -2, -21, -42, 0 };
-        Avalues.put(new Integer(23), a23Ints);
+        Avalues.put(23, a23Ints);
         int[] a25Ints = { 467, 462, 447, 422, 387, 343, 287, 222, 147, 62, -33,
                 -138, -253 };
-        Avalues.put(new Integer(25), a25Ints);
+        Avalues.put(25, a25Ints);
 
-        Integer h5Int = new Integer(35);
-        Hvalues.put(new Integer(5), h5Int);
-        Integer h7Int = new Integer(21);
-        Hvalues.put(new Integer(7), h7Int);
-        Integer h9Int = new Integer(231);
-        Hvalues.put(new Integer(9), h9Int);
-        Integer h11Int = new Integer(429);
-        Hvalues.put(new Integer(11), h11Int);
-        Integer h13Int = new Integer(143);
-        Hvalues.put(new Integer(13), h13Int);
-        Integer h15Int = new Integer(1105);
-        Hvalues.put(new Integer(15), h15Int);
-        Integer h17Int = new Integer(323);
-        Hvalues.put(new Integer(17), h17Int);
-        Integer h19Int = new Integer(2261);
-        Hvalues.put(new Integer(19), h19Int);
-        Integer h21Int = new Integer(3059);
-        Hvalues.put(new Integer(21), h21Int);
-        Integer h23Int = new Integer(805);
-        Hvalues.put(new Integer(23), h23Int);
-        Integer h25Int = new Integer(5175);
-        Hvalues.put(new Integer(25), h25Int);
+        Hvalues.put(5, 35);
+        Hvalues.put(7, 21);
+        Hvalues.put(9, 231);
+        Hvalues.put(11, 429);
+        Hvalues.put(13, 143);
+        Hvalues.put(15, 1105);
+        Hvalues.put(17, 323);
+        Hvalues.put(19, 2261);
+        Hvalues.put(21, 3059);
+        Hvalues.put(23, 805);
+        Hvalues.put(25, 5175);
     }
 
 }

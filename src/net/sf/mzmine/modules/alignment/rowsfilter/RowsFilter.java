@@ -136,7 +136,7 @@ public class RowsFilter implements BatchStepAlignment, TaskListener,
      */
     public void actionPerformed(ActionEvent e) {
 
-        PeakList[] alignmentResults = desktop.getSelectedAlignedPeakLists();
+        PeakList[] alignmentResults = desktop.getSelectedPeakLists();
         if (alignmentResults.length == 0) {
             desktop.displayErrorMessage("Please select aligned peak list");
             return;
@@ -159,9 +159,9 @@ public class RowsFilter implements BatchStepAlignment, TaskListener,
 
             logger.info("Finished peak list rows filter");
 
-            PeakList filteredPeakList = (PeakList) task.getResult();
+            PeakList filteredPeakList = ((RowsFilterTask) task).getResult();
 
-            MZmineCore.getCurrentProject().addAlignedPeakList(filteredPeakList);
+            MZmineCore.getCurrentProject().addPeakList(filteredPeakList);
 
         } else if (task.getStatus() == Task.TaskStatus.ERROR) {
             /* Task encountered an error */
@@ -192,7 +192,7 @@ public class RowsFilter implements BatchStepAlignment, TaskListener,
         TaskGroup newSequence = new TaskGroup(tasks, this, methodListener);
 
         // execute the sequence
-        newSequence.run();
+        newSequence.start();
 
         return newSequence;
 

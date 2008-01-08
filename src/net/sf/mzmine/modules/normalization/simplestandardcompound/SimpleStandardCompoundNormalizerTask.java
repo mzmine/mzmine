@@ -69,7 +69,7 @@ public class SimpleStandardCompoundNormalizerTask implements Task {
         return (float) processedRows / (float) totalRows;
     }
 
-    public Object getResult() {
+    public PeakList getResult() {
         return normalizedPeakList;
     }
 

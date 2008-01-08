@@ -1,5 +1,5 @@
 /*
- * Copyright 2006 The MZmine Development Team
+ * Copyright 2006-2008 The MZmine Development Team
  * 
  * This file is part of MZmine.
  * 
@@ -27,13 +27,13 @@ import org.dom4j.Element;
 public interface StorableParameterSet extends ParameterSet {
 
     /**
-     * Export parameter values to XML representation.
+     * Export parameter values to XML representation
      * 
      */
     public void exportValuesToXML(Element element);
 
     /**
-     * 
+     * Import parameter values from XML representation
      */
     public void importValuesFromXML(Element element);
 

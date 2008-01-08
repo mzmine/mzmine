@@ -69,7 +69,7 @@ class RowsFilterTask implements Task {
         return processedRows / totalRows;
     }
 
-    public Object getResult() {
+    public PeakList getResult() {
         return processedPeakList;
     }
 

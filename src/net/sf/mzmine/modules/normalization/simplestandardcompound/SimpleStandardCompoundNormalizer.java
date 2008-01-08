@@ -85,7 +85,7 @@ public class SimpleStandardCompoundNormalizer implements MZmineModule,
      */
     public void actionPerformed(ActionEvent e) {
 
-        PeakList[] selectedPeakLists = desktop.getSelectedAlignedPeakLists();
+        PeakList[] selectedPeakLists = desktop.getSelectedPeakLists();
         if (selectedPeakLists.length < 1) {
             desktop.displayErrorMessage("Please select aligned peaklist");
             return;
@@ -120,9 +120,9 @@ public class SimpleStandardCompoundNormalizer implements MZmineModule,
 
             logger.info("Finished simple standard compound normalizer");
 
-            PeakList normalizedPeakList = (PeakList) task.getResult();
+            PeakList normalizedPeakList = ((SimpleStandardCompoundNormalizerTask) task).getResult();
 
-            MZmineCore.getCurrentProject().addAlignedPeakList(
+            MZmineCore.getCurrentProject().addPeakList(
                     normalizedPeakList);
 
         } else if (task.getStatus() == Task.TaskStatus.ERROR) {
@@ -156,7 +156,7 @@ public class SimpleStandardCompoundNormalizer implements MZmineModule,
         TaskGroup newSequence = new TaskGroup(tasks, this, methodListener);
 
         // execute the sequence
-        newSequence.run();
+        newSequence.start();
 
         return newSequence;
 

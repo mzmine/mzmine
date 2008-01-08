@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2007 The MZmine Development Team
+ * Copyright 2006-2008 The MZmine Development Team
  * 
  * This file is part of MZmine.
  * 
@@ -30,13 +30,13 @@ class PeakVsRowScore {
 
     SimplePeakListRow masterListRow;
     PeakWrapper peak;
-    double score = Double.MAX_VALUE;
+    float score = Float.MAX_VALUE;
     boolean goodEnough = false;
 
     public PeakVsRowScore(SimplePeakListRow masterListRow, PeakWrapper peak,
-            double MZTolerance, boolean RTToleranceUseAbs,
-            double RTToleranceValueAbs, double RTToleranceValuePercent,
-            double MZvsRTBalance) {
+            float MZTolerance, boolean RTToleranceUseAbs,
+            float RTToleranceValueAbs, float RTToleranceValuePercent,
+            float MZvsRTBalance) {
 
         this.masterListRow = masterListRow;
         this.peak = peak;
@@ -52,20 +52,22 @@ class PeakVsRowScore {
 
         // Calculate differences between M/Z and RT values of isotope pattern
         // and median of the row
-        double diffMZ = Math.abs(masterListRow.getAverageMZ() - peak.getPeak().getMZ());
-        score = Double.MAX_VALUE;
+        float diffMZ = Math.abs(masterListRow.getAverageMZ()
+                - peak.getPeak().getMZ());
+        score = Float.MAX_VALUE;
         goodEnough = false;
         if (diffMZ < MZTolerance) {
 
-            double diffRT = Math.abs(masterListRow.getAverageRT()
+            float diffRT = Math.abs(masterListRow.getAverageRT()
                     - peak.getPeak().getRT());
 
             // What type of RT tolerance is used?
-            double rtTolerance = 0;
+            float rtTolerance = 0;
             if (RTToleranceUseAbs) {
                 rtTolerance = RTToleranceValueAbs;
             } else {
-                rtTolerance = RTToleranceValuePercent * 0.5
+                rtTolerance = RTToleranceValuePercent
+                        * 0.5f
                         * (masterListRow.getAverageRT() + peak.getPeak().getRT());
             }
 

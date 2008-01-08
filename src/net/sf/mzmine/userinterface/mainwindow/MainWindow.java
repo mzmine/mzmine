@@ -154,7 +154,7 @@ public class MainWindow extends JFrame implements MZmineModule, Desktop,
         return itemSelector.getSelectedRawData();
     }
 
-    public PeakList[] getSelectedAlignedPeakLists() {
+    public PeakList[] getSelectedPeakLists() {
         return itemSelector.getSelectedAlignedPeakLists();
     }
 
@@ -179,16 +179,16 @@ public class MainWindow extends JFrame implements MZmineModule, Desktop,
     /**
      * @see net.sf.mzmine.userinterface.Desktop#addSelectionListener(javax.swing.event.ListSelectionListener)
      */
-    public void addSelectionListener(ListSelectionListener listener) {
+/*    public void addSelectionListener(ListSelectionListener listener) {
         itemSelector.addSelectionListener(listener);
         selectionListeners.add(listener);
-    }
+    }*/
 
-    public void notifySelectionListeners() {
+/*    public void notifySelectionListeners() {
         for (ListSelectionListener listener : selectionListeners) {
             listener.valueChanged(new ListSelectionEvent(this, 0, 0, false));
         }
-    }
+    }*/
 
     /**
      */
@@ -273,7 +273,7 @@ public class MainWindow extends JFrame implements MZmineModule, Desktop,
     /**
      * @see net.sf.mzmine.userinterface.Desktop#isDataFileSelected()
      */
-    public boolean isAlignedPeakListSelected() {
+    public boolean isPeakListSelected() {
         return itemSelector.getSelectedAlignedPeakLists().length > 0;
     }
 

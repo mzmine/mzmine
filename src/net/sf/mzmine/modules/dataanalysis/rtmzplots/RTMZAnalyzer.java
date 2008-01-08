@@ -97,7 +97,7 @@ public class RTMZAnalyzer implements MZmineModule, ActionListener {
 
 	public void actionPerformed(ActionEvent event) {
 		              
-        PeakList[] alignedPeakLists = desktop.getSelectedAlignedPeakLists();
+        PeakList[] alignedPeakLists = desktop.getSelectedPeakLists();
         
         if (alignedPeakLists.length==0) {
         	desktop.displayErrorMessage("Please select at least one aligned peak list.");

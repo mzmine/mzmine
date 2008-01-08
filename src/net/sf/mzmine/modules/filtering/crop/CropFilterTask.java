@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2007 The MZmine Development Team
+ * Copyright 2006-2008 The MZmine Development Team
  * 
  * This file is part of MZmine.
  * 
@@ -20,12 +20,14 @@
 package net.sf.mzmine.modules.filtering.crop;
 
 import java.io.IOException;
+import java.util.Arrays;
 
 import net.sf.mzmine.data.Scan;
 import net.sf.mzmine.data.impl.SimpleParameterSet;
 import net.sf.mzmine.data.impl.SimpleScan;
 import net.sf.mzmine.io.RawDataFile;
 import net.sf.mzmine.io.RawDataFileWriter;
+import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.taskcontrol.Task;
 
 /**
@@ -38,16 +40,13 @@ class CropFilterTask implements Task {
     private TaskStatus status = TaskStatus.WAITING;
     private String errorMessage;
 
-    private int filteredScans;
-    private int totalScans;
+    // scan counter
+    private int filteredScans, totalScans;
 
-    private int msLevel;
-    private double minMZ;
-    private double maxMZ;
-    private double minRT;
-    private double maxRT;
-
-    private RawDataFile filteredRawDataFile;
+    // parameter values
+    private String suffix;
+    private float minMZ, maxMZ, minRT, maxRT;
+    private boolean removeOriginal;
 
     /**
      * @param rawDataFile
@@ -55,11 +54,12 @@ class CropFilterTask implements Task {
      */
     CropFilterTask(RawDataFile dataFile, SimpleParameterSet parameters) {
         this.dataFile = dataFile;
-        msLevel = (Integer) parameters.getParameterValue(CropFilter.parameterMSlevel);
-        minMZ = (Float) parameters.getParameterValue(CropFilter.parameterMinMZ);
-        minRT = (Float) parameters.getParameterValue(CropFilter.parameterMinRT);
-        maxMZ = (Float) parameters.getParameterValue(CropFilter.parameterMaxMZ);
-        maxRT = (Float) parameters.getParameterValue(CropFilter.parameterMaxRT);
+        suffix = (String) parameters.getParameterValue(CropFilterParameters.suffix);
+        minMZ = (Float) parameters.getParameterValue(CropFilterParameters.minMZ);
+        minRT = (Float) parameters.getParameterValue(CropFilterParameters.minRT);
+        maxMZ = (Float) parameters.getParameterValue(CropFilterParameters.maxMZ);
+        maxRT = (Float) parameters.getParameterValue(CropFilterParameters.maxRT);
+        removeOriginal = (Boolean) parameters.getParameterValue(CropFilterParameters.autoRemove);
     }
 
     /**
@@ -92,17 +92,10 @@ class CropFilterTask implements Task {
         return errorMessage;
     }
 
-    /**
-     * @see net.sf.mzmine.taskcontrol.Task#getResult()
-     */
-    public Object getResult() {
-        return filteredRawDataFile;
-    }
-
     public RawDataFile getDataFile() {
         return dataFile;
     }
-
+    
     /**
      * @see net.sf.mzmine.taskcontrol.Task#cancel()
      */
@@ -117,110 +110,99 @@ class CropFilterTask implements Task {
 
         status = TaskStatus.PROCESSING;
 
-        // Create new temporary copy
-        RawDataFileWriter rawDataFileWriter;
         try {
-            rawDataFileWriter = dataFile.updateFile();
-        } catch (IOException e) {
-            status = TaskStatus.ERROR;
-            errorMessage = e.toString();
-            return;
-        }
 
-        Scan oldScan, newScan;
+            // Create new temporary file
+            String newName = dataFile.toString() + " " + suffix;
+            RawDataFileWriter rawDataFileWriter = MZmineCore.getIOController().createNewFile(
+                    newName, dataFile.getPreloadLevel());
 
-        // Get all scans
-        int[] scanNumbers = dataFile.getScanNumbers();
-        totalScans = scanNumbers.length;
+            // Get all scans
+            int[] scanNumbers = dataFile.getScanNumbers();
+            totalScans = scanNumbers.length;
 
-        // Loop through all scans
-        for (int scani = 0; scani < totalScans; scani++) {
+            // Loop through all scans
+            for (int scanIndex = 0; scanIndex < totalScans; scanIndex++) {
 
-            // Check if we are not canceled
-            if (status == TaskStatus.CANCELED)
-                return;
+                // Check if we are not canceled
+                if (status == TaskStatus.CANCELED)
+                    return;
 
-            // Get scan
-            oldScan = dataFile.getScan(scanNumbers[scani]);
-
-            // if the scan is our target MS level, do the filtering
-            if (oldScan.getMSLevel() == msLevel) {
+                // Get scan
+                Scan oldScan = dataFile.getScan(scanNumbers[scanIndex]);
 
                 // Is this scan within the RT range?
                 if ((oldScan.getRetentionTime() >= minRT)
                         && (oldScan.getRetentionTime() <= maxRT)) {
 
-                    // Pickup datapoints inside the M/Z range
+                    // Check if whole m/z range is within cropping region or
+                    // scan is a fragmentation scan. In such case we copy the
+                    // scan unmodified.
+                    if ((oldScan.getMSLevel() > 1)
+                            || ((oldScan.getMZRangeMin() >= minMZ) && (oldScan.getMZRangeMax() <= maxMZ))) {
+                        rawDataFileWriter.addScan(oldScan);
+                        filteredScans++;
+                        continue;
+                    }
+
+                    // Pickup datapoints inside the m/z range
                     float originalMassValues[] = oldScan.getMZValues();
                     float originalIntensityValues[] = oldScan.getIntensityValues();
 
-                    int numSmallerThanMin = 0;
-                    for (int ind = 0; ind < originalMassValues.length; ind++) {
-                        if (originalMassValues[ind] >= minMZ) {
-                            break;
-                        }
-                        numSmallerThanMin++;
+                    // Find minimum index within m/z range
+                    int minIndex = Arrays.binarySearch(originalMassValues,
+                            minMZ);
+                    if (minIndex < 0)
+                        minIndex = (minIndex * -1) - 1;
+
+                    // Find maximum index within m/z range
+                    int maxIndex = Arrays.binarySearch(originalMassValues,
+                            maxMZ);
+                    if (maxIndex < 0)
+                        maxIndex = (maxIndex * -1) - 2;
+
+                    // Skip this scan if there are no m/z values in range
+                    if (maxIndex < minIndex)
+                        continue;
+
+                    // Create cropped m/z and intensity arrays
+                    float newMassValues[] = new float[maxIndex - minIndex + 1];
+                    float newIntValues[] = new float[maxIndex - minIndex + 1];
+
+                    // Fill cropped m/z and intensity arrays
+                    for (int ind = minIndex; ind <= maxIndex; ind++) {
+                        newMassValues[ind - minIndex] = originalMassValues[ind];
+                        newIntValues[ind - minIndex] = originalIntensityValues[ind];
                     }
 
-                    int numBiggerThanMax = 0;
-                    for (int ind = (originalMassValues.length - 1); ind >= 0; ind--) {
-                        if (originalMassValues[ind] <= maxMZ) {
-                            break;
-                        }
-                        numBiggerThanMax++;
-                    }
+                    // Create updated scan
+                    SimpleScan newScan = new SimpleScan(oldScan);
+                    newScan.setData(newMassValues, newIntValues);
 
-                    float newMassValues[] = new float[originalMassValues.length
-                            - numSmallerThanMin - numBiggerThanMax];
-                    float newIntensityValues[] = new float[originalMassValues.length
-                            - numSmallerThanMin - numBiggerThanMax];
+                    // Write the updated scan to new file
+                    rawDataFileWriter.addScan(newScan);
 
-                    int newInd = 0;
-                    for (int ind = numSmallerThanMin; ind < (originalMassValues.length - numBiggerThanMax); ind++) {
-                        newMassValues[newInd] = originalMassValues[ind];
-                        newIntensityValues[newInd] = originalIntensityValues[ind];
-                        newInd++;
-                    }
-
-                    SimpleScan tmpScan = new SimpleScan(oldScan);
-                    tmpScan.setData(newMassValues, newIntensityValues);
-                    newScan = tmpScan;
-
-                } else {
-                    // ignore this scan
-                    filteredScans++;
-                    continue;
                 }
-            } else {
-                // TODO: check if the parent scan is included into new file
-                newScan = oldScan;
+
+                filteredScans++;
+
             }
 
-            // Write the modified scan to file
-            try {
+            // Finalize writing
+            RawDataFile filteredRawDataFile = rawDataFileWriter.finishWriting();
+            MZmineCore.getCurrentProject().addFile(filteredRawDataFile);
 
-                rawDataFileWriter.addScan(newScan);
+            // Remove the original file if requested
+            if (removeOriginal) 
+                MZmineCore.getCurrentProject().removeFile(dataFile);
 
-            } catch (IOException e) {
-                status = TaskStatus.ERROR;
-                errorMessage = e.toString();
-                return;
-            }
+            status = TaskStatus.FINISHED;
 
-            filteredScans++;
-
-        }
-
-        // Finalize writing
-        try {
-            rawDataFileWriter.finishWriting();
         } catch (IOException e) {
             status = TaskStatus.ERROR;
             errorMessage = e.toString();
             return;
         }
-
-        status = TaskStatus.FINISHED;
 
     }
 
