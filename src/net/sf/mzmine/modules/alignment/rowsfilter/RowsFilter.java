@@ -180,21 +180,27 @@ public class RowsFilter implements BatchStepAlignment, TaskListener,
      *      net.sf.mzmine.taskcontrol.TaskGroupListener)
      */
     public TaskGroup runModule(RawDataFile[] dataFiles,
-            PeakList[] alignmentResults, ParameterSet parameters,
-            TaskGroupListener methodListener) {
+            PeakList[] peakLists, ParameterSet parameters,
+            TaskGroupListener taskGroupListener) {
 
+        // check peak lists
+        if ((peakLists == null) || (peakLists.length == 0)) {
+            desktop.displayErrorMessage("Please select peak lists for filtering");
+            return null;
+        }
+        
         // prepare a new sequence of tasks
-        Task tasks[] = new RowsFilterTask[alignmentResults.length];
-        for (int i = 0; i < alignmentResults.length; i++) {
-            tasks[i] = new RowsFilterTask(alignmentResults[i],
+        Task tasks[] = new RowsFilterTask[peakLists.length];
+        for (int i = 0; i < peakLists.length; i++) {
+            tasks[i] = new RowsFilterTask(peakLists[i],
                     (SimpleParameterSet) parameters);
         }
-        TaskGroup newSequence = new TaskGroup(tasks, this, methodListener);
+        TaskGroup newGroup = new TaskGroup(tasks, this, taskGroupListener);
 
-        // execute the sequence
-        newSequence.start();
+        // start the group
+        newGroup.start();
 
-        return newSequence;
+        return newGroup;
 
     }
 

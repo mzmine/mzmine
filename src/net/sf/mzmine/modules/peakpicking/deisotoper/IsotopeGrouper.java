@@ -156,6 +156,12 @@ public class IsotopeGrouper implements BatchStepPeakPicking, TaskListener,
     public TaskGroup runModule(RawDataFile[] dataFiles, PeakList[] peakLists,
             ParameterSet parameters, TaskGroupListener taskGroupListener) {
 
+        // check peak lists
+        if ((peakLists == null) || (peakLists.length == 0)) {
+            desktop.displayErrorMessage("Please select peak lists for deisotoping");
+            return null;
+        }
+        
         // prepare a new group of tasks
         Task tasks[] = new IsotopeGrouperTask[peakLists.length];
         for (int i = 0; i < peakLists.length; i++) {

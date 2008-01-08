@@ -141,6 +141,12 @@ public class JoinAligner implements BatchStepAlignment, TaskListener,
     public TaskGroup runModule(RawDataFile[] dataFiles, PeakList[] peakLists,
             ParameterSet parameters, TaskGroupListener taskGroupListener) {
 
+        // check peak lists
+        if ((peakLists == null) || (peakLists.length == 0)) {
+            desktop.displayErrorMessage("Please select peak lists for alignment");
+            return null;
+        }
+        
         // prepare a new group with just one task
         Task tasks[] = new JoinAlignerTask[1];
         tasks[0] = new JoinAlignerTask(peakLists,

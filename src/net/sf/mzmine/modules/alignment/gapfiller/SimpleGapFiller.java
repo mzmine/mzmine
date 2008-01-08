@@ -247,6 +247,7 @@ public class SimpleGapFiller implements BatchStepAlignment, TaskListener,
     public TaskGroup runModule(RawDataFile[] dataFiles, PeakList[] peakLists,
             ParameterSet parameters, TaskGroupListener methodListener) {
 
+        // TODO
         if (peakLists == null || peakLists.length != 1) {
             throw new IllegalArgumentException(
                     "Gap-filling requires exactly one aligned peak list");

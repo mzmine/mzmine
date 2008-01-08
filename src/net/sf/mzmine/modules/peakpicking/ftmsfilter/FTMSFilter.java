@@ -162,6 +162,12 @@ public class FTMSFilter implements BatchStepPeakPicking, TaskListener,
     public TaskGroup runModule(RawDataFile[] dataFiles, PeakList[] peakLists,
             ParameterSet parameters, TaskGroupListener taskGroupListener) {
 
+        // check peak lists
+        if ((peakLists == null) || (peakLists.length == 0)) {
+            desktop.displayErrorMessage("Please select peak lists for filtering");
+            return null;
+        }
+        
         // prepare a new group of tasks
         Task tasks[] = new FTMSFilterTask[peakLists.length];
         for (int i = 0; i < peakLists.length; i++) {

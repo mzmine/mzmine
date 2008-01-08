@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2007 The MZmine Development Team
+ * Copyright 2006-2008 The MZmine Development Team
  * 
  * This file is part of MZmine.
  * 
@@ -22,6 +22,8 @@ package net.sf.mzmine.modules.batchmode;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
+import java.util.Arrays;
+import java.util.HashSet;
 import java.util.logging.Logger;
 
 import net.sf.mzmine.data.ParameterSet;
@@ -29,6 +31,7 @@ import net.sf.mzmine.data.PeakList;
 import net.sf.mzmine.io.RawDataFile;
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.main.MZmineModule;
+import net.sf.mzmine.project.MZmineProject;
 import net.sf.mzmine.taskcontrol.TaskGroup;
 import net.sf.mzmine.taskcontrol.TaskGroupListener;
 import net.sf.mzmine.taskcontrol.TaskGroup.TaskGroupStatus;
@@ -49,7 +52,12 @@ public class BatchMode implements MZmineModule, TaskGroupListener,
     private BatchQueue currentBatchSteps;
     private boolean batchRunning = false;
     private int currentStep;
-    private RawDataFile[] selectedDataFiles;
+
+    private RawDataFile selectedDataFiles[];
+    private PeakList selectedPeakLists[];
+
+    private HashSet<RawDataFile> previousProjectDataFiles;
+    private HashSet<PeakList> previousProjectPeakLists;
 
     /**
      * @see net.sf.mzmine.main.MZmineModule#initModule(net.sf.mzmine.main.MZmineCore)
@@ -75,12 +83,6 @@ public class BatchMode implements MZmineModule, TaskGroupListener,
             return;
         }
 
-        selectedDataFiles = desktop.getSelectedDataFiles();
-        if (selectedDataFiles.length == 0) {
-            desktop.displayErrorMessage("Please select data files");
-            return;
-        }
-
         logger.finest("Showing batch mode setup dialog");
 
         BatchModeDialog setupDialog = new BatchModeDialog(currentBatchSteps);
@@ -89,6 +91,16 @@ public class BatchMode implements MZmineModule, TaskGroupListener,
         if (setupDialog.getExitCode() == ExitCode.OK) {
             batchRunning = true;
             currentStep = 0;
+
+            selectedDataFiles = desktop.getSelectedDataFiles();
+            selectedPeakLists = desktop.getSelectedPeakLists();
+
+            MZmineProject project = MZmineCore.getCurrentProject();
+            previousProjectDataFiles = new HashSet<RawDataFile>(
+                    Arrays.asList(project.getDataFiles()));
+            previousProjectPeakLists = new HashSet<PeakList>(
+                    Arrays.asList(project.getPeakLists()));
+
             runNextStep();
         }
 
@@ -117,9 +129,34 @@ public class BatchMode implements MZmineModule, TaskGroupListener,
         }
 
         if (sequence.getStatus() == TaskGroupStatus.FINISHED) {
-            if (currentStep < currentBatchSteps.size())
+            if (currentStep < currentBatchSteps.size()) {
+
+                // Get current project state
+                MZmineProject project = MZmineCore.getCurrentProject();
+                HashSet<RawDataFile> currentProjectDataFiles = new HashSet<RawDataFile>(
+                        Arrays.asList(project.getDataFiles()));
+                HashSet<PeakList> currentProjectPeakLists = new HashSet<PeakList>(
+                        Arrays.asList(project.getPeakLists()));
+
+                // Check if we have any newly added files or peaklists
+                HashSet<RawDataFile> newProjectDataFiles = new HashSet<RawDataFile>(
+                        currentProjectDataFiles);
+                newProjectDataFiles.removeAll(previousProjectDataFiles);
+                if (!newProjectDataFiles.isEmpty())
+                    selectedDataFiles = newProjectDataFiles.toArray(new RawDataFile[0]);
+                HashSet<PeakList> newProjectPeakLists = new HashSet<PeakList>(
+                        currentProjectPeakLists);
+                newProjectPeakLists.removeAll(previousProjectPeakLists);
+                if (!newProjectPeakLists.isEmpty())
+                    selectedPeakLists = newProjectPeakLists.toArray(new PeakList[0]);
+
+                // Memorize current state of the project for batch processing
+                previousProjectDataFiles = currentProjectDataFiles;
+                previousProjectPeakLists = currentProjectPeakLists;
+
                 runNextStep();
-            else {
+
+            } else {
                 desktop.displayMessage("Batch processing done.");
                 batchRunning = false;
             }
@@ -133,13 +170,8 @@ public class BatchMode implements MZmineModule, TaskGroupListener,
         BatchStepWrapper newStep = currentBatchSteps.get(currentStep);
         BatchStep method = newStep.getMethod();
 
-        PeakList[] lastResultOnly = null;
-        PeakList[] allResults = MZmineCore.getCurrentProject().getPeakLists();
-        if (allResults.length > 0)
-            lastResultOnly = new PeakList[] { allResults[allResults.length - 1] };
-
         TaskGroup newSequence = method.runModule(selectedDataFiles,
-                lastResultOnly, newStep.getParameters(), this);
+                selectedPeakLists, newStep.getParameters(), this);
 
         if (newSequence == null) {
             desktop.displayErrorMessage("Batch processing cannot continue.");

@@ -109,6 +109,12 @@ public class SGFilter implements BatchStepFiltering, TaskListener,
             PeakList[] alignmentResults, ParameterSet parameters,
             TaskGroupListener taskGroupListener) {
 
+        // check data files
+        if ((dataFiles == null) || (dataFiles.length == 0)) {
+            desktop.displayErrorMessage("Please select data files for filtering");
+            return null;
+        }
+        
         // prepare a new task group
         Task tasks[] = new SGFilterTask[dataFiles.length];
         for (int i = 0; i < dataFiles.length; i++) {

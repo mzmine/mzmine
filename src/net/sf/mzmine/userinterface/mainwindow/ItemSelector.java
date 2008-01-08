@@ -87,7 +87,7 @@ public class ItemSelector extends JPanel implements ActionListener,
         JLabel resultsTitle = new JLabel(PEAK_LISTS_LABEL);
 
         peakLists = new DefaultListModel();
-        alignedPeakListList = new JList(peakLists);
+        alignedPeakListList = new DragOrderedJList(peakLists);
         alignedPeakListList.setCellRenderer(new ItemSelectorListRenderer());
         alignedPeakListList.addMouseListener(this);
         alignedPeakListList.addListSelectionListener(this);

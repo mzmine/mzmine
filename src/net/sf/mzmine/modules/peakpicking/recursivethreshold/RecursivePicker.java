@@ -153,7 +153,13 @@ public class RecursivePicker implements BatchStepPeakPicking, TaskListener,
             PeakList[] alignmentResults, ParameterSet parameters,
             TaskGroupListener taskGroupListener) {
 
-        // prepare a new sequence of tasks
+        // check data files
+        if ((dataFiles == null) || (dataFiles.length == 0)) {
+            desktop.displayErrorMessage("Please select data files for peak picking");
+            return null;
+        }
+        
+        // prepare a new group of tasks
         Task tasks[] = new RecursivePickerTask[dataFiles.length];
         for (int i = 0; i < dataFiles.length; i++) {
             tasks[i] = new RecursivePickerTask(dataFiles[i],
@@ -161,7 +167,7 @@ public class RecursivePicker implements BatchStepPeakPicking, TaskListener,
         }
         TaskGroup newGroup = new TaskGroup(tasks, this, taskGroupListener);
 
-        // execute the sequence
+        // start the group
         newGroup.start();
 
         return newGroup;
