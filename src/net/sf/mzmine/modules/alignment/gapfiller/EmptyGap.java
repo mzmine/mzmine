@@ -71,12 +71,12 @@ class EmptyGap {
         this.rawDataFile = rawDataFile;
         this.centroidMZ = mz;
         this.centroidRT = rt;
-        intTolerance = (Float) parameters.getParameterValue(SimpleGapFiller.intTolerance);
-        mzTolerance = (Float) parameters.getParameterValue(SimpleGapFiller.mzTolerance);
-        if (parameters.getParameterValue(SimpleGapFiller.rtToleranceType) == SimpleGapFiller.RTToleranceTypeAbsolute)
+        intTolerance = (Float) parameters.getParameterValue(SimpleGapFillerParameters.intTolerance);
+        mzTolerance = (Float) parameters.getParameterValue(SimpleGapFillerParameters.MZTolerance);
+        if (parameters.getParameterValue(SimpleGapFillerParameters.RTToleranceType) == SimpleGapFillerParameters.RTToleranceTypeAbsolute)
             rtToleranceUseAbs = true;
-        rtToleranceValueAbs = (Float) parameters.getParameterValue(SimpleGapFiller.rtToleranceValueAbs);
-        rtToleranceValuePercent = (Float) parameters.getParameterValue(SimpleGapFiller.rtToleranceValuePercent);
+        rtToleranceValueAbs = (Float) parameters.getParameterValue(SimpleGapFillerParameters.RTToleranceValueAbs);
+        rtToleranceValuePercent = (Float) parameters.getParameterValue(SimpleGapFillerParameters.RTToleranceValuePercent);
 
         rangeMinMZ = centroidMZ - mzTolerance;
         rangeMaxMZ = centroidMZ + mzTolerance;

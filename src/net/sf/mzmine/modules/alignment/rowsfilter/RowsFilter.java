@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2007 The MZmine Development Team
+ * Copyright 2006-2008 The MZmine Development Team
  * 
  * This file is part of MZmine.
  * 
@@ -24,11 +24,8 @@ import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
 import java.util.logging.Logger;
 
-import net.sf.mzmine.data.Parameter;
 import net.sf.mzmine.data.ParameterSet;
-import net.sf.mzmine.data.ParameterType;
 import net.sf.mzmine.data.PeakList;
-import net.sf.mzmine.data.impl.SimpleParameter;
 import net.sf.mzmine.data.impl.SimpleParameterSet;
 import net.sf.mzmine.io.RawDataFile;
 import net.sf.mzmine.main.MZmineCore;
@@ -50,39 +47,6 @@ import net.sf.mzmine.userinterface.dialogs.ParameterSetupDialog;
 public class RowsFilter implements BatchStepAlignment, TaskListener,
         ActionListener {
 
-    public static final Parameter nameParam = new SimpleParameter(
-            ParameterType.STRING, "Filtered peaklist name",
-            "Specify a name for the new peaklist", (Object) "Filtered");
-
-    public static final Parameter minPeaksParam = new SimpleParameter(
-            ParameterType.INTEGER, "Minimum peaks in a row",
-            "Minimum number of peak detections required to select a row",
-            "peaks", new Integer(1), new Integer(1), null);
-
-    public static final Parameter minMZParam = new SimpleParameter(
-            ParameterType.FLOAT, "Minimum m/z",
-            "Minimum average m/z value of a row", "Da", (Float) 0f,
-            MZmineCore.getDesktop().getMZFormat());
-
-    public static final Parameter maxMZParam = new SimpleParameter(
-            ParameterType.FLOAT, "Maximum m/z",
-            "Maximum average m/z value of a row", "Da", (Float) 0f,
-            MZmineCore.getDesktop().getMZFormat());
-
-    public static final Parameter minRTParam = new SimpleParameter(
-            ParameterType.FLOAT, "Minimum retention time",
-            "Maximum average retention time of a row", "s", (Float) 0f,
-            MZmineCore.getDesktop().getRTFormat());
-
-    public static final Parameter maxRTParam = new SimpleParameter(
-            ParameterType.FLOAT, "Maximum retention time",
-            "Maximum average retention time of a row", "s", (Float) 0f,
-            MZmineCore.getDesktop().getRTFormat());
-
-    public static final Parameter identifiedParam = new SimpleParameter(
-            ParameterType.BOOLEAN, "Compound identified?",
-            "Select to filter only identified compounds");
-
     private Logger logger = Logger.getLogger(this.getClass().getName());
 
     private ParameterSet parameters;
@@ -96,9 +60,7 @@ public class RowsFilter implements BatchStepAlignment, TaskListener,
 
         this.desktop = MZmineCore.getDesktop();
 
-        parameters = new SimpleParameterSet(new Parameter[] { nameParam,
-                minPeaksParam, minMZParam, maxMZParam, minRTParam, maxRTParam,
-                identifiedParam });
+        parameters = new RowsFilterParameters();
 
         desktop.addMenuItem(MZmineMenu.ALIGNMENT, toString(), this, null,
                 KeyEvent.VK_A, false, true);
@@ -136,16 +98,16 @@ public class RowsFilter implements BatchStepAlignment, TaskListener,
      */
     public void actionPerformed(ActionEvent e) {
 
-        PeakList[] alignmentResults = desktop.getSelectedPeakLists();
-        if (alignmentResults.length == 0) {
-            desktop.displayErrorMessage("Please select aligned peak list");
+        PeakList[] peakLists = desktop.getSelectedPeakLists();
+        if (peakLists.length == 0) {
+            desktop.displayErrorMessage("Please select peak lists for filtering");
             return;
         }
 
         ExitCode exitCode = setupParameters(parameters);
         if (exitCode != ExitCode.OK)
             return;
-        runModule(null, alignmentResults, parameters.clone(), null);
+        runModule(null, peakLists, parameters.clone(), null);
 
     }
 
@@ -156,20 +118,14 @@ public class RowsFilter implements BatchStepAlignment, TaskListener,
     public void taskFinished(Task task) {
 
         if (task.getStatus() == Task.TaskStatus.FINISHED) {
-
             logger.info("Finished peak list rows filter");
+        }
 
-            PeakList filteredPeakList = ((RowsFilterTask) task).getResult();
-
-            MZmineCore.getCurrentProject().addPeakList(filteredPeakList);
-
-        } else if (task.getStatus() == Task.TaskStatus.ERROR) {
-            /* Task encountered an error */
+        if (task.getStatus() == Task.TaskStatus.ERROR) {
             String msg = "Error while filtering peak list: "
                     + task.getErrorMessage();
             logger.severe(msg);
             desktop.displayErrorMessage(msg);
-
         }
 
     }
@@ -179,17 +135,16 @@ public class RowsFilter implements BatchStepAlignment, TaskListener,
      *      net.sf.mzmine.data.PeakList[], net.sf.mzmine.data.ParameterSet,
      *      net.sf.mzmine.taskcontrol.TaskGroupListener)
      */
-    public TaskGroup runModule(RawDataFile[] dataFiles,
-            PeakList[] peakLists, ParameterSet parameters,
-            TaskGroupListener taskGroupListener) {
+    public TaskGroup runModule(RawDataFile[] dataFiles, PeakList[] peakLists,
+            ParameterSet parameters, TaskGroupListener taskGroupListener) {
 
         // check peak lists
         if ((peakLists == null) || (peakLists.length == 0)) {
             desktop.displayErrorMessage("Please select peak lists for filtering");
             return null;
         }
-        
-        // prepare a new sequence of tasks
+
+        // prepare a new group of tasks
         Task tasks[] = new RowsFilterTask[peakLists.length];
         for (int i = 0; i < peakLists.length; i++) {
             tasks[i] = new RowsFilterTask(peakLists[i],

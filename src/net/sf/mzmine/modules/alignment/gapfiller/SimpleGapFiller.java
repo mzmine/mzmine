@@ -25,13 +25,10 @@ import java.awt.event.KeyEvent;
 import java.util.Hashtable;
 import java.util.logging.Logger;
 
-import net.sf.mzmine.data.Parameter;
 import net.sf.mzmine.data.ParameterSet;
-import net.sf.mzmine.data.ParameterType;
 import net.sf.mzmine.data.Peak;
 import net.sf.mzmine.data.PeakList;
 import net.sf.mzmine.data.PeakListRow;
-import net.sf.mzmine.data.impl.SimpleParameter;
 import net.sf.mzmine.data.impl.SimpleParameterSet;
 import net.sf.mzmine.data.impl.SimplePeakList;
 import net.sf.mzmine.data.impl.SimplePeakListRow;
@@ -53,40 +50,6 @@ import net.sf.mzmine.userinterface.dialogs.ParameterSetupDialog;
 public class SimpleGapFiller implements BatchStepAlignment, TaskListener,
         ActionListener {
 
-    public static final String RTToleranceTypeAbsolute = "Absolute";
-    public static final String RTToleranceTypeRelative = "Relative";
-    public static final Object[] RTToleranceTypePossibleValues = {
-            RTToleranceTypeAbsolute, RTToleranceTypeRelative };
-
-    public static final Parameter nameParam = new SimpleParameter(
-            ParameterType.STRING, "Gap-filled peaklist name",
-            "Specify a name for the new peaklist", (Object) "Gap-filled");
-
-    public static final Parameter intTolerance = new SimpleParameter(
-            ParameterType.FLOAT,
-            "Intensity tolerance",
-            "Maximum allowed deviation from expected /\\ shape of a peak in chromatographic direction",
-            "%", new Float(0.20), new Float(0.0), null);
-
-    public static final Parameter mzTolerance = new SimpleParameter(
-            ParameterType.FLOAT, "M/Z tolerance",
-            "Search range size in M/Z direction", "Da", new Float(0.050),
-            new Float(0.0), null);
-
-    public static final Parameter rtToleranceType = new SimpleParameter(
-            ParameterType.STRING, "RT range type",
-            "How to determine search range size in RT direction",
-            RTToleranceTypeAbsolute, RTToleranceTypePossibleValues);
-
-    public static final Parameter rtToleranceValueAbs = new SimpleParameter(
-            ParameterType.FLOAT, "Absolute RT tolerance",
-            "Absolute search range size in RT direction", "seconds", new Float(
-                    15.0), new Float(0.0), null);
-
-    public static final Parameter rtToleranceValuePercent = new SimpleParameter(
-            ParameterType.FLOAT, "Relative RT tolerance",
-            "Relative search range size in RT direction", "%", new Float(0.15),
-            new Float(0.0), null);
 
     private Logger logger = Logger.getLogger(this.getClass().getName());
 
@@ -105,9 +68,7 @@ public class SimpleGapFiller implements BatchStepAlignment, TaskListener,
 
         this.desktop = MZmineCore.getDesktop();
 
-        parameters = new SimpleParameterSet(new Parameter[] { nameParam,
-                intTolerance, mzTolerance, rtToleranceType,
-                rtToleranceValueAbs, rtToleranceValuePercent });
+        parameters = new SimpleGapFillerParameters();
 
         desktop.addMenuItem(MZmineMenu.ALIGNMENT, "Simple gap filler", this,
                 null, KeyEvent.VK_S, false, true);
@@ -128,8 +89,8 @@ public class SimpleGapFiller implements BatchStepAlignment, TaskListener,
     public void actionPerformed(ActionEvent e) {
 
         PeakList[] selectedPeakLists = desktop.getSelectedPeakLists();
-        if (selectedPeakLists.length < 1) {
-            desktop.displayErrorMessage("Please select alignment result");
+        if (selectedPeakLists.length != 1) {
+            desktop.displayErrorMessage("Please select a single peak list for gap-filling");
             return;
         }
 
@@ -164,7 +125,7 @@ public class SimpleGapFiller implements BatchStepAlignment, TaskListener,
             if (resultCollection.size() == sourcePeakList.getNumberOfRawDataFiles()) {
 
                 // TODO: Create a copy and fill gaps
-                String newName = (String) ((SimpleParameterSet) parameters).getParameterValue(SimpleGapFiller.nameParam);
+                String newName = (String) ((SimpleParameterSet) parameters).getParameterValue(SimpleGapFillerParameters.peakListName);
                 SimplePeakList processedPeakList = new SimplePeakList(newName);
 
                 for (RawDataFile rawData : sourcePeakList.getRawDataFiles()) {
@@ -247,7 +208,7 @@ public class SimpleGapFiller implements BatchStepAlignment, TaskListener,
     public TaskGroup runModule(RawDataFile[] dataFiles, PeakList[] peakLists,
             ParameterSet parameters, TaskGroupListener methodListener) {
 
-        // TODO
+        // TODO why only 1?
         if (peakLists == null || peakLists.length != 1) {
             throw new IllegalArgumentException(
                     "Gap-filling requires exactly one aligned peak list");

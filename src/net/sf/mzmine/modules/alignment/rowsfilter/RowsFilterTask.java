@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2007 The MZmine Development Team
+ * Copyright 2006-2008 The MZmine Development Team
  * 
  * This file is part of MZmine.
  * 
@@ -24,36 +24,38 @@ import net.sf.mzmine.data.PeakListRow;
 import net.sf.mzmine.data.impl.SimpleParameterSet;
 import net.sf.mzmine.data.impl.SimplePeakList;
 import net.sf.mzmine.io.RawDataFile;
+import net.sf.mzmine.main.MZmineCore;
+import net.sf.mzmine.project.MZmineProject;
 import net.sf.mzmine.taskcontrol.Task;
 
 class RowsFilterTask implements Task {
 
-    private PeakList originalPeakList;
-    private SimplePeakList processedPeakList;
-    private TaskStatus status;
+    private PeakList peakList;
+
+    private TaskStatus status = TaskStatus.WAITING;
     private String errorMessage;
 
-    private float processedRows;
-    private float totalRows;
+    // Processed rows counter
+    private int processedRows, totalRows;
 
+    // Method parameters
     private int minPresent;
     private String newName;
     private float minMZ, maxMZ, minRT, maxRT;
-    private boolean identified;
+    private boolean identified, removeOriginal;
 
-    public RowsFilterTask(PeakList peakList,
-            SimpleParameterSet parameters) {
-        
-        status = TaskStatus.WAITING;
-        
-        originalPeakList = peakList;
-        minPresent = (Integer) parameters.getParameterValue(RowsFilter.minPeaksParam);
-        newName = (String) parameters.getParameterValue(RowsFilter.nameParam);
-        minMZ = (Float) parameters.getParameterValue(RowsFilter.minMZParam);
-        maxMZ = (Float) parameters.getParameterValue(RowsFilter.maxMZParam);
-        minRT = (Float) parameters.getParameterValue(RowsFilter.minRTParam);
-        maxRT = (Float) parameters.getParameterValue(RowsFilter.maxRTParam);
-        identified = (Boolean) parameters.getParameterValue(RowsFilter.identifiedParam);
+    public RowsFilterTask(PeakList peakList, SimpleParameterSet parameters) {
+
+        this.peakList = peakList;
+
+        newName = (String) parameters.getParameterValue(RowsFilterParameters.peakListName);
+        minPresent = (Integer) parameters.getParameterValue(RowsFilterParameters.minPeaks);
+        minMZ = (Float) parameters.getParameterValue(RowsFilterParameters.minMZ);
+        maxMZ = (Float) parameters.getParameterValue(RowsFilterParameters.maxMZ);
+        minRT = (Float) parameters.getParameterValue(RowsFilterParameters.minRT);
+        maxRT = (Float) parameters.getParameterValue(RowsFilterParameters.maxRT);
+        identified = (Boolean) parameters.getParameterValue(RowsFilterParameters.identified);
+        removeOriginal = (Boolean) parameters.getParameterValue(RowsFilterParameters.autoRemove);
 
     }
 
@@ -66,11 +68,9 @@ class RowsFilterTask implements Task {
     }
 
     public float getFinishedPercentage() {
-        return processedRows / totalRows;
-    }
-
-    public PeakList getResult() {
-        return processedPeakList;
+        if (totalRows == 0)
+            return 0.0f;
+        return (float) processedRows / (float) totalRows;
     }
 
     public TaskStatus getStatus() {
@@ -85,18 +85,18 @@ class RowsFilterTask implements Task {
 
         status = TaskStatus.PROCESSING;
 
-        totalRows = originalPeakList.getNumberOfRows();
+        totalRows = peakList.getNumberOfRows();
         processedRows = 0;
 
         // Create new alignment result and add opened raw data files to it
-        processedPeakList = new SimplePeakList(newName);
+        SimplePeakList filteredPeakList = new SimplePeakList(newName);
 
-        for (RawDataFile rawData : originalPeakList.getRawDataFiles()) {
-            processedPeakList.addRawDataFile(rawData);
+        for (RawDataFile rawData : peakList.getRawDataFiles()) {
+            filteredPeakList.addRawDataFile(rawData);
         }
 
         // Copy rows with enough peaks to new alignment result
-        for (PeakListRow row : originalPeakList.getRows()) {
+        for (PeakListRow row : peakList.getRows()) {
 
             if (status == TaskStatus.CANCELED)
                 return;
@@ -113,11 +113,19 @@ class RowsFilterTask implements Task {
                 rowIsGood = false;
 
             if (rowIsGood)
-                processedPeakList.addRow(row);
+                filteredPeakList.addRow(row);
 
             processedRows++;
 
         }
+
+        // Add new peaklist to the project
+        MZmineProject currentProject = MZmineCore.getCurrentProject();
+        currentProject.addPeakList(filteredPeakList);
+
+        // Remove the original peaklist if requested
+        if (removeOriginal)
+            MZmineCore.getCurrentProject().removePeakList(peakList);
 
         status = TaskStatus.FINISHED;
 
