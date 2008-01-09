@@ -1,5 +1,5 @@
 /*
- * Copyright 2006 The MZmine Development Team
+ * Copyright 2006-2008 The MZmine Development Team
  * 
  * This file is part of MZmine.
  * 
@@ -17,7 +17,7 @@
  * Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-package net.sf.mzmine.userinterface.components;
+package net.sf.mzmine.modules.visualization.tic;
 
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -31,18 +31,17 @@ import javax.swing.event.MenuListener;
 
 import net.sf.mzmine.io.RawDataFile;
 import net.sf.mzmine.main.MZmineCore;
-import net.sf.mzmine.modules.MultipleRawDataVisualizer;
 
 /**
  * 
  */
-public class AddFilePopupMenu extends JMenu implements MenuListener,
+class AddFilePopupMenu extends JMenu implements MenuListener,
         ActionListener {
 
     private Hashtable<JMenuItem, RawDataFile> menuItemFiles;
-    private MultipleRawDataVisualizer visualizer;
+    private TICVisualizerWindow visualizer;
 
-    public AddFilePopupMenu(MultipleRawDataVisualizer visualizer) {
+    AddFilePopupMenu(TICVisualizerWindow visualizer) {
         super("Add plot of file...");
         addMenuListener(this);
         this.visualizer = visualizer;
@@ -53,7 +52,10 @@ public class AddFilePopupMenu extends JMenu implements MenuListener,
      */
     public void menuSelected(MenuEvent event) {
 
+        // remove all menu items
         removeAll();
+        
+        // get all project files
         RawDataFile[] openFiles = MZmineCore.getCurrentProject().getDataFiles();
         HashSet<RawDataFile> visualizedFiles = new HashSet<RawDataFile>();
         for (RawDataFile file : visualizer.getRawDataFiles())
@@ -61,9 +63,12 @@ public class AddFilePopupMenu extends JMenu implements MenuListener,
 
         menuItemFiles = new Hashtable<JMenuItem, RawDataFile>();
         for (RawDataFile file : openFiles) {
+            
+            // if this file is already added, skip it
             if (visualizedFiles.contains(file))
                 continue;
 
+            // add a menu item for each file
             JMenuItem newItem = new JMenuItem(file.toString());
             newItem.addActionListener(this);
             menuItemFiles.put(newItem, file);

@@ -30,7 +30,6 @@ import javax.swing.JInternalFrame;
 
 import net.sf.mzmine.io.RawDataFile;
 import net.sf.mzmine.main.MZmineCore;
-import net.sf.mzmine.modules.RawDataVisualizer;
 import net.sf.mzmine.taskcontrol.Task;
 import net.sf.mzmine.taskcontrol.TaskListener;
 import net.sf.mzmine.taskcontrol.Task.TaskStatus;
@@ -41,7 +40,7 @@ import net.sf.mzmine.util.CursorPosition;
  * 2D visualizer using JFreeChart library
  */
 public class TwoDVisualizerWindow extends JInternalFrame implements
-        RawDataVisualizer, ActionListener, TaskListener {
+         ActionListener, TaskListener {
 
     private TwoDToolBar toolBar;
     private TwoDPlot twoDPlot;

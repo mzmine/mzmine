@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2007 The MZmine Development Team
+ * Copyright 2006-2008 The MZmine Development Team
  * 
  * This file is part of MZmine.
  * 
@@ -40,7 +40,6 @@ import javax.swing.JSplitPane;
 import javax.swing.ToolTipManager;
 import javax.swing.UIManager;
 import javax.swing.border.EtchedBorder;
-import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
 
 import net.sf.mzmine.data.ParameterSet;
@@ -60,9 +59,10 @@ import net.sf.mzmine.util.NumberFormatter;
 public class MainWindow extends JFrame implements MZmineModule, Desktop,
         WindowListener {
 
-    // default tooltip displaying delay in ms
+    // default tooltip displaying and dismissing delay in ms
     public static final int DEFAULT_TOOLTIP_DELAY = 50;
-
+    public static final int DEFAULT_TOOLTIP_DISMISS_DELAY = Integer.MAX_VALUE;
+    
     private DesktopParameters parameters;
 
     private JDesktopPane desktopPane;
@@ -251,6 +251,7 @@ public class MainWindow extends JFrame implements MZmineModule, Desktop,
         
         ToolTipManager tooltipManager = ToolTipManager.sharedInstance();
         tooltipManager.setInitialDelay(DEFAULT_TOOLTIP_DELAY);
+        tooltipManager.setDismissDelay(DEFAULT_TOOLTIP_DISMISS_DELAY);
 
     }
 

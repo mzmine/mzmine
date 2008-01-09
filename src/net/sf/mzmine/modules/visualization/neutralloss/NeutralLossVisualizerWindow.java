@@ -29,7 +29,6 @@ import javax.swing.JInternalFrame;
 
 import net.sf.mzmine.io.RawDataFile;
 import net.sf.mzmine.main.MZmineCore;
-import net.sf.mzmine.modules.RawDataVisualizer;
 import net.sf.mzmine.modules.visualization.spectra.SpectraVisualizerWindow;
 import net.sf.mzmine.taskcontrol.Task;
 import net.sf.mzmine.taskcontrol.TaskListener;
@@ -40,7 +39,7 @@ import net.sf.mzmine.userinterface.Desktop;
  * Neutral loss visualizer using JFreeChart library
  */
 public class NeutralLossVisualizerWindow extends JInternalFrame implements
-        RawDataVisualizer, ActionListener, TaskListener {
+        ActionListener, TaskListener {
 
     private NeutralLossToolBar toolBar;
     private NeutralLossPlot neutralLossPlot;

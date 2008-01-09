@@ -1,5 +1,5 @@
 /*
- * Copyright 2006 The MZmine Development Team
+ * Copyright 2006-2008 The MZmine Development Team
  * 
  * This file is part of MZmine.
  * 
@@ -19,11 +19,18 @@
 
 package net.sf.mzmine.modules.visualization.tic;
 
+import java.util.Arrays;
 import java.util.Date;
+import java.util.Vector;
 
 import net.sf.mzmine.data.Scan;
 import net.sf.mzmine.io.RawDataFile;
 import net.sf.mzmine.io.util.RawDataAcceptor;
+import net.sf.mzmine.io.util.RawDataRetrievalTask;
+import net.sf.mzmine.main.MZmineCore;
+import net.sf.mzmine.taskcontrol.Task;
+import net.sf.mzmine.taskcontrol.Task.TaskPriority;
+import net.sf.mzmine.util.CollectionUtils;
 import net.sf.mzmine.util.ScanUtils;
 
 import org.jfree.data.xy.AbstractXYZDataset;
@@ -35,14 +42,15 @@ class TICDataSet extends AbstractXYZDataset implements RawDataAcceptor {
 
     // redraw the chart every 100 ms while updating
     private static final int REDRAW_INTERVAL = 100;
+    private static Date lastRedrawTime = new Date();
 
     private TICVisualizerWindow visualizer;
     private RawDataFile dataFile;
-    private int scanNumbers[], loadedScans = 0;
-    private float mzValues[], intensityValues[], rtValues[];
-    private float mzMin, mzMax;
 
-    private static Date lastRedrawTime = new Date();
+    private int scanNumbers[], loadedScans = 0;
+    private float basePeakValues[], intensityValues[], rtValues[];
+    private float mzMin, mzMax;
+    private float intensityMin, intensityMax;
 
     TICDataSet(RawDataFile dataFile, int scanNumbers[], float mzMin,
             float mzMax, TICVisualizerWindow visualizer) {
@@ -53,14 +61,27 @@ class TICDataSet extends AbstractXYZDataset implements RawDataAcceptor {
         this.dataFile = dataFile;
         this.scanNumbers = scanNumbers;
 
-        mzValues = new float[scanNumbers.length];
+        basePeakValues = new float[scanNumbers.length];
         intensityValues = new float[scanNumbers.length];
         rtValues = new float[scanNumbers.length];
 
+        // Start-up the refresh task
+        Task updateTask = new RawDataRetrievalTask(dataFile, scanNumbers,
+                "Updating TIC visualizer of " + dataFile, this);
+        MZmineCore.getTaskController().addTask(updateTask, TaskPriority.HIGH,
+                visualizer);
+
     }
 
+    /**
+     * Returns index of data point which exactly matches given X and Y values
+     * 
+     * @param retentionTime
+     * @param intensity
+     * @return
+     */
     int getIndex(float retentionTime, float intensity) {
-        for (int i = 0; i < intensityValues.length; i++) {
+        for (int i = 0; i < loadedScans; i++) {
             if ((Math.abs(retentionTime - rtValues[i]) < 0.0000001f)
                     && (Math.abs(intensity - intensityValues[i]) < 0.0000001f))
                 return i;
@@ -96,24 +117,34 @@ class TICDataSet extends AbstractXYZDataset implements RawDataAcceptor {
                         totalIntensity += intensityValues[j];
                 }
             }
-            mzValues[index] = scan.getBasePeakMZ();
+            basePeakValues[index] = scan.getBasePeakMZ();
         }
 
         if (visualizer.getPlotType() == TICVisualizerParameters.plotTypeBP) {
             if ((mzMin <= scan.getMZRangeMin())
                     && (mzMax >= scan.getMZRangeMax())) {
-                mzValues[index] = scan.getBasePeakMZ();
+                basePeakValues[index] = scan.getBasePeakMZ();
                 totalIntensity = scan.getBasePeakIntensity();
             } else {
                 float basePeak[] = ScanUtils.findBasePeak(scan, mzMin, mzMax);
                 if (basePeak != null) {
-                    mzValues[index] = basePeak[0];
+                    basePeakValues[index] = basePeak[0];
                     totalIntensity = basePeak[1];
                 } else {
                     totalIntensity = 0;
                 }
             }
 
+        }
+
+        if (index == 0) {
+            intensityMin = totalIntensity;
+            intensityMax = totalIntensity;
+        } else {
+            if (totalIntensity < intensityMin)
+                intensityMin = totalIntensity;
+            if (totalIntensity > intensityMax)
+                intensityMax = totalIntensity;
         }
 
         intensityValues[index] = totalIntensity;
@@ -147,7 +178,7 @@ class TICDataSet extends AbstractXYZDataset implements RawDataAcceptor {
     }
 
     public Number getZ(int series, int item) {
-        return mzValues[item];
+        return basePeakValues[item];
     }
 
     public int getItemCount(int series) {
@@ -161,4 +192,69 @@ class TICDataSet extends AbstractXYZDataset implements RawDataAcceptor {
     public Number getY(int series, int item) {
         return intensityValues[item];
     }
+
+    /**
+     * Checks if given data point is local maximum
+     */
+    public boolean isLocalMaximum(int item) {
+        if ((item <= 0) || (item >= loadedScans - 1))
+            return false;
+        if (intensityValues[item - 1] > intensityValues[item])
+            return false;
+        if (intensityValues[item + 1] > intensityValues[item])
+            return false;
+        return true;
+    }
+
+    /**
+     * Gets indexes of local maxima within given range
+     */
+    public int[] findLocalMaxima(float xMin, float xMax, float yMin, float yMax) {
+
+        // save data set size
+        final int currentSize = loadedScans;
+        float rtCopy[];
+
+        // if the RT values array is not filled yet, create a shrinked copy
+        if (currentSize < rtValues.length) {
+            rtCopy = new float[currentSize];
+            System.arraycopy(rtValues, 0, rtCopy, 0, currentSize);
+        } else {
+            rtCopy = rtValues;
+        }
+
+        int startIndex = Arrays.binarySearch(rtCopy, xMin);
+        if (startIndex < 0)
+            startIndex = (startIndex * -1) - 1;
+
+        Vector<Integer> indices = new Vector<Integer>();
+
+        for (int index = startIndex; (index < rtCopy.length)
+                && (rtCopy[index] <= xMax); index++) {
+
+            // check Y range
+            if ((intensityValues[index] < yMin)
+                    || (intensityValues[index] > yMax))
+                continue;
+
+            if (!isLocalMaximum(index))
+                continue;
+
+            indices.add(index);
+        }
+
+        int indexArray[] = CollectionUtils.toIntArray(indices);
+
+        return indexArray;
+
+    }
+
+    public float getMinIntensity() {
+        return intensityMin;
+    }
+
+    public float getMaxIntensity() {
+        return intensityMax;
+    }
+
 }

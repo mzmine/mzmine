@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2007 The MZmine Development Team
+ * Copyright 2006-2008 The MZmine Development Team
  * 
  * This file is part of MZmine.
  * 
@@ -21,6 +21,7 @@ package net.sf.mzmine.data.impl;
 
 import java.text.Format;
 import java.util.ArrayList;
+import java.util.Hashtable;
 import java.util.TreeMap;
 
 import net.sf.mzmine.data.Peak;
@@ -37,8 +38,8 @@ public class ConstructionPeak implements Peak {
 
     private PeakStatus peakStatus;
 
-    // This table maps a scanNumber to an array of m/z and intensity pairs
-    private TreeMap<Integer, ArrayList<float[]>> datapointsMap;
+    // This table maps a scanNumber to float[2] array of m/z and intensity 
+    private TreeMap<Integer, float[]> datapointsMap;
 
     private RawDataFile dataFile;
 
@@ -134,24 +135,11 @@ public class ConstructionPeak implements Peak {
     }
 
     /**
-     * This method returns an array of float[2] (mz and intensity) points for a
+     * This method returns float[2] (mz and intensity) for a
      * given scan number
      */
-    public float[][] getRawDatapoints(int scanNumber) {
-
-        ArrayList<float[]> datapoints = datapointsMap.get(scanNumber);
-
-        if (datapoints == null)
-            return new float[0][0];
-
-        float[][] res = new float[datapoints.size()][];
-        int ind = 0;
-        for (float[] datapoint : datapoints) {
-            res[ind] = datapoint;
-            ind++;
-        }
-
-        return res;
+    public float[] getRawDatapoints(int scanNumber) {
+        return datapointsMap.get(scanNumber);
     }
 
     /**
@@ -201,7 +189,7 @@ public class ConstructionPeak implements Peak {
 
     private void intializeAddingDatapoints() {
 
-        datapointsMap = new TreeMap<Integer, ArrayList<float[]>>();
+        datapointsMap = new TreeMap<Integer, float[]>();
 
         precalcRequiredMZ = true;
         precalcRequiredRT = true;
@@ -294,17 +282,9 @@ public class ConstructionPeak implements Peak {
         precalcRequiredArea = true;
 
         // Add datapoint
-        ArrayList<float[]> datapoints = datapointsMap.get(scanNumber);
-        if (datapoints == null) {
-            datapoints = new ArrayList<float[]>();
-            datapointsMap.put(scanNumber, datapoints);
-        }
+        float datapoint[] = new float[] { mz, intensity };
 
-        float[] datapoint = new float[2];
-        datapoint[0] = mz;
-        datapoint[1] = intensity;
-
-        datapoints.add(datapoint);
+        datapointsMap.put(scanNumber, datapoint);
 
         // Update construction time variables
         datapointsMZs.add(mz);

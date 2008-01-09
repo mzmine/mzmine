@@ -179,7 +179,7 @@ public class SimpleIsotopePattern implements IsotopePattern {
     /**
      * @see net.sf.mzmine.data.Peak#getRawDatapoints(int)
      */
-    public float[][] getRawDatapoints(int scanNumber) {
+    public float[] getRawDatapoints(int scanNumber) {
         return representativePeak.getRawDatapoints(scanNumber);
     }
 

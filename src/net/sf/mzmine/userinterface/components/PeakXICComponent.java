@@ -25,6 +25,7 @@ import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.RenderingHints;
 import java.awt.geom.GeneralPath;
+import java.util.Arrays;
 
 import javax.swing.BorderFactory;
 import javax.swing.JComponent;
@@ -40,9 +41,9 @@ public class PeakXICComponent extends JComponent {
 
     public static final Color XICColor = Color.blue;
     public static final Border componentBorder = BorderFactory.createLineBorder(Color.lightGray);
-    
+
     private Peak peak;
-    
+
     private float minRT, maxRT, rtSpan, maxIntensity;
 
     /**
@@ -51,29 +52,29 @@ public class PeakXICComponent extends JComponent {
     public PeakXICComponent(Peak peak) {
         this(peak, peak.getDataPointMaxIntensity());
     }
-    
+
     /**
      * @param peak Picked peak to plot
      */
     public PeakXICComponent(Peak peak, float maxIntensity) {
-        
+
         this.peak = peak;
-        
+
         // find data boundaries
         RawDataFile dataFile = peak.getDataFile();
         this.minRT = dataFile.getDataMinRT(1);
         this.maxRT = dataFile.getDataMaxRT(1);
         this.rtSpan = maxRT - minRT;
         this.maxIntensity = maxIntensity;
-        
+
         this.setBorder(componentBorder);
-        
+
     }
 
     public void paint(Graphics g) {
 
         super.paint(g);
-        
+
         // use Graphics2D for antialiasing
         Graphics2D g2 = (Graphics2D) g;
 
@@ -93,19 +94,11 @@ public class PeakXICComponent extends JComponent {
         int xValues[] = new int[scanNumbers.length];
         int yValues[] = new int[scanNumbers.length];
 
-
-
         // find one datapoint with maximum intensity in each scan
         for (int i = 0; i < scanNumbers.length; i++) {
 
-            float dataPoints[][] = peak.getRawDatapoints(scanNumbers[i]);
-            // find maximum intensity (Y value)
-            float intensity = 0;
-            for (int j = 0; j < dataPoints.length; j++) {
-                float[] point = dataPoints[j];
-                if (point[1] > intensity)
-                    intensity = point[1];
-            }
+            float dataPoint[] = peak.getRawDatapoints(scanNumbers[i]);
+
             // get retention time (X value)
             float retentionTime = dataFile.getScan(scanNumbers[i]).getRetentionTime();
 
@@ -113,7 +106,7 @@ public class PeakXICComponent extends JComponent {
             xValues[i] = (int) Math.floor((retentionTime - minRT) / rtSpan
                     * (size.width - 1));
             yValues[i] = size.height
-                    - (int) Math.floor(intensity / maxIntensity
+                    - (int) Math.floor(dataPoint[1] / maxIntensity
                             * (size.height - 1));
 
         }
@@ -134,7 +127,6 @@ public class PeakXICComponent extends JComponent {
         // fill the peak area
         g2.setColor(XICColor);
         g2.fill(path);
-       
 
     }
 

@@ -37,7 +37,7 @@ public class SimplePeak implements Peak {
     private RawDataFile dataFile;
 
     // This table maps a scanNumber to an array of m/z and intensity pairs
-    private Hashtable<Integer, float[][]> datapointsMap;
+    private Hashtable<Integer, float[]> datapointsMap;
 
     // M/Z, RT, Height and Area
     private float mz;
@@ -59,10 +59,9 @@ public class SimplePeak implements Peak {
      *            index is the number of datapoint in scan, length of last
      *            dimension is 2: index value 0=M/Z, 1=Intensity of data point
      */
-    public SimplePeak(RawDataFile dataFile, float MZ, float RT,
-            float height, float area, 
-            int[] scanNumbers,
-            float[][][] datapointsPerScan, PeakStatus peakStatus) {
+    public SimplePeak(RawDataFile dataFile, float MZ, float RT, float height,
+            float area, int[] scanNumbers, float[][] datapointsPerScan,
+            PeakStatus peakStatus) {
 
         this.dataFile = dataFile;
 
@@ -71,22 +70,25 @@ public class SimplePeak implements Peak {
         this.height = height;
         this.area = area;
 
-        datapointsMap = new Hashtable<Integer, float[][]>();
+        datapointsMap = new Hashtable<Integer, float[]>();
         for (int ind = 0; ind < scanNumbers.length; ind++) {
-            
+
             float dataPointRT = dataFile.getScan(scanNumbers[ind]).getRetentionTime();
-            if (dataPointRT < minRT) minRT = dataPointRT;
-            if (dataPointRT > maxRT) maxRT = dataPointRT;
-            
+            if (dataPointRT < minRT)
+                minRT = dataPointRT;
+            if (dataPointRT > maxRT)
+                maxRT = dataPointRT;
+
             // update boundaries
-            for (int dataPointInd = 0; dataPointInd < datapointsPerScan[ind].length; dataPointInd++) {
-                float dataPointMZ = datapointsPerScan[ind][dataPointInd][0];
-                float dataPointIntensity = datapointsPerScan[ind][dataPointInd][1];
-                if (dataPointMZ < minMZ) minMZ = dataPointMZ;
-                if (dataPointMZ > maxMZ) maxMZ = dataPointMZ;
-                if (dataPointIntensity > maxIntensity) maxIntensity = dataPointIntensity;
-            }
-            
+            float dataPointMZ = datapointsPerScan[ind][0];
+            float dataPointIntensity = datapointsPerScan[ind][1];
+            if (dataPointMZ < minMZ)
+                minMZ = dataPointMZ;
+            if (dataPointMZ > maxMZ)
+                maxMZ = dataPointMZ;
+            if (dataPointIntensity > maxIntensity)
+                maxIntensity = dataPointIntensity;
+
             // add data point to hashtable
             datapointsMap.put(scanNumbers[ind], datapointsPerScan[ind]);
         }
@@ -110,7 +112,7 @@ public class SimplePeak implements Peak {
         this.maxRT = p.getDataPointMaxRT();
         this.maxIntensity = p.getDataPointMaxIntensity();
 
-        datapointsMap = new Hashtable<Integer, float[][]>();
+        datapointsMap = new Hashtable<Integer, float[]>();
         for (int scanNumber : p.getScanNumbers()) {
             datapointsMap.put(scanNumber, p.getRawDatapoints(scanNumber));
         }
@@ -183,17 +185,10 @@ public class SimplePeak implements Peak {
     }
 
     /**
-     * This method returns an array of float[2] (mz and intensity) points for a
-     * given scan number
+     * This method returns float[2] (mz and intensity) for a given scan number
      */
-    public float[][] getRawDatapoints(int scanNumber) {
-
-        float[][] datapoints = datapointsMap.get(scanNumber);
-
-        if (datapoints == null)
-            datapoints = new float[0][2];
-
-        return datapoints;
+    public float[] getRawDatapoints(int scanNumber) {
+        return datapointsMap.get(scanNumber);
     }
 
     /**
@@ -223,7 +218,7 @@ public class SimplePeak implements Peak {
     public float getDataPointMaxMZ() {
         return maxMZ;
     }
-    
+
     /**
      * Returns maximum intensity value of all datapoints
      */
@@ -244,7 +239,7 @@ public class SimplePeak implements Peak {
     public float getDuration() {
         return maxRT - minRT;
     }
-    
+
     public String toString() {
         StringBuffer buf = new StringBuffer();
         Format mzFormat = MZmineCore.getDesktop().getMZFormat();

@@ -96,17 +96,17 @@ public class ItemSelector extends JPanel implements ActionListener,
         resultsPanel.setLayout(new BorderLayout());
         resultsPanel.add(resultsTitle, BorderLayout.NORTH);
         resultsPanel.add(resultScroll, BorderLayout.CENTER);
-        resultsPanel.setMinimumSize(new Dimension(150, 10));
+        resultsPanel.setMinimumSize(new Dimension(200, 10));
 
         // Add panels to a split and put split on the main panel
-        setPreferredSize(new Dimension(150, 10));
+        setPreferredSize(new Dimension(200, 10));
         setLayout(new BorderLayout());
 
         JSplitPane rawAndResultsSplit = new JSplitPane(
                 JSplitPane.VERTICAL_SPLIT, rawDataPanel, resultsPanel);
         add(rawAndResultsSplit, BorderLayout.CENTER);
 
-        rawAndResultsSplit.setDividerLocation(230);
+        rawAndResultsSplit.setDividerLocation(300);
 
         dataFilePopupMenu = new JPopupMenu();
         GUIUtils.addMenuItem(dataFilePopupMenu, "Show TIC", this, "SHOW_TIC");

@@ -1,5 +1,5 @@
 /*
- * Copyright 2006 The MZmine Development Team
+ * Copyright 2006-2008 The MZmine Development Team
  * 
  * This file is part of MZmine.
  * 
@@ -17,7 +17,7 @@
  * Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-package net.sf.mzmine.userinterface.components;
+package net.sf.mzmine.modules.visualization.tic;
 
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -29,18 +29,17 @@ import javax.swing.event.MenuEvent;
 import javax.swing.event.MenuListener;
 
 import net.sf.mzmine.io.RawDataFile;
-import net.sf.mzmine.modules.MultipleRawDataVisualizer;
 
 /**
  * 
  */
-public class RemoveFilePopupMenu extends JMenu implements MenuListener,
+class RemoveFilePopupMenu extends JMenu implements MenuListener,
         ActionListener {
 
     private Hashtable<JMenuItem, RawDataFile> menuItemFiles;
-    private MultipleRawDataVisualizer visualizer;
+    private TICVisualizerWindow visualizer;
 
-    public RemoveFilePopupMenu(MultipleRawDataVisualizer visualizer) {
+    RemoveFilePopupMenu(TICVisualizerWindow visualizer) {
         super("Remove plot of file...");
         addMenuListener(this);
         this.visualizer = visualizer;

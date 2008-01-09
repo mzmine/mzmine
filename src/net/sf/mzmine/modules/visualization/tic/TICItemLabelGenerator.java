@@ -22,19 +22,52 @@ package net.sf.mzmine.modules.visualization.tic;
 import java.text.NumberFormat;
 
 import net.sf.mzmine.main.MZmineCore;
-import net.sf.mzmine.userinterface.Desktop;
+
 import org.jfree.chart.labels.XYItemLabelGenerator;
 import org.jfree.data.xy.XYDataset;
 
 /**
+ * Item label generator for TIC visualizer
+ * 
+ * Basic method for annotation is
+ * 
+ * 1) Check if this data point is local maximum
+ * 
+ * 2) Search neighbourhood defined by pixel range for other local maxima with
+ * higher intensity
+ * 
+ * 3) If there is no other maximum, create a label for this one
  * 
  */
 class TICItemLabelGenerator implements XYItemLabelGenerator {
 
+    /*
+     * Number of screen points to reserve for each label, so that the labels do
+     * not overlap
+     */
+    public static final int POINTS_RESERVE_X = 100;
+    public static final int POINTS_RESERVE_Y = 100;
+
+    /*
+     * Only data points which have intensity >= (dataset minimum value *
+     * THRESHOLD_FOR_ANNOTATION) will be annotated
+     */
+    public static final float THRESHOLD_FOR_ANNOTATION = 2f;
+
+    /*
+     * Some saved values
+     */
     private TICPlot plot;
     private TICVisualizerWindow ticWindow;
+    private Object plotType;
+    private NumberFormat mzFormat = MZmineCore.getDesktop().getMZFormat();
+    private NumberFormat intensityFormat = MZmineCore.getDesktop().getIntensityFormat();
 
+    /**
+     * Constructor
+     */
     TICItemLabelGenerator(TICPlot plot, TICVisualizerWindow ticWindow) {
+        plotType = ticWindow.getPlotType();
         this.plot = plot;
         this.ticWindow = ticWindow;
     }
@@ -43,56 +76,68 @@ class TICItemLabelGenerator implements XYItemLabelGenerator {
      * @see org.jfree.chart.labels.XYItemLabelGenerator#generateLabel(org.jfree.data.xy.XYDataset,
      *      int, int)
      */
-    public String generateLabel(XYDataset dataset, int series, int item) {
+    public String generateLabel(XYDataset dataSet, int series, int item) {
 
-        final double originalX = dataset.getXValue(series, item);
-        final double originalY = dataset.getYValue(series, item);
+        // dataSet is actually TICDataSet
+        TICDataSet ticDataSet = (TICDataSet) dataSet;
 
-        final double xLength = plot.getXYPlot().getDomainAxis().getRange().getLength();
-        final double pointX = xLength / plot.getWidth();
+        // X and Y values of current data point
+        float originalX = ticDataSet.getX(0, item).floatValue();
+        float originalY = ticDataSet.getY(0, item).floatValue();
 
-        final int itemCount = dataset.getItemCount(series);
+        // Check if the intensity of this data point is above threshold
+        if (originalY < ticDataSet.getMinIntensity() * THRESHOLD_FOR_ANNOTATION)
+            return null;
 
-        final double limitLeft = originalX - (40 * pointX);
-        final double limitRight = originalX + (40 * pointX);
+        // Check if this data point is local maximum
+        if (!ticDataSet.isLocalMaximum(item))
+            return null;
 
-        for (int i = 1; (item - i > 0) || (item + i < itemCount); i++) {
+        // Calculate data size of 1 screen pixel
+        float xLength = (float) plot.getXYPlot().getDomainAxis().getRange().getLength();
+        float pixelX = xLength / plot.getWidth();
+        float yLength = (float) plot.getXYPlot().getRangeAxis().getRange().getLength();
+        float pixelY = yLength / plot.getHeight();
 
-            if (((item - i < 0) || (dataset.getXValue(series, item - i) < limitLeft))
-                    && ((item + i >= itemCount) || (dataset.getXValue(series,
-                            item + i) > limitRight)))
-                break;
+        // Get all data sets of current plot
+        TICDataSet allDataSets[] = ticWindow.getAllDataSets();
 
-            if ((item - i >= 0)
-                    && (dataset.getXValue(series, item - i) >= limitLeft)
-                    && (originalY <= dataset.getYValue(series, item - i)))
-                return null;
+        // Check each data set for conflicting data points
+        for (TICDataSet checkedDataSet : allDataSets) {
 
-            if ((item + i < itemCount)
-                    && (dataset.getXValue(series, item + i) <= limitRight)
-                    && (originalY <= dataset.getYValue(series, item + i)))
+            // Search for local maxima
+            float searchMinX = originalX - (POINTS_RESERVE_X / 2) * pixelX;
+            float searchMaxX = originalX + (POINTS_RESERVE_X / 2) * pixelX;
+            float searchMinY = originalY;
+            float searchMaxY = originalY + POINTS_RESERVE_Y * pixelY;
+
+            // We don't want to search below the threshold level of the data set
+            if (searchMinY < (checkedDataSet.getMinIntensity() * THRESHOLD_FOR_ANNOTATION))
+                searchMinY = checkedDataSet.getMinIntensity()
+                        * THRESHOLD_FOR_ANNOTATION;
+
+            // Do search
+            int foundLocalMaxima[] = checkedDataSet.findLocalMaxima(searchMinX,
+                    searchMaxX, searchMinY, searchMaxY);
+
+            // If we found other maximum then this data point, bail out
+            if (foundLocalMaxima.length > (dataSet == checkedDataSet ? 1 : 0))
                 return null;
 
         }
 
-        Desktop desktop = MZmineCore.getDesktop();
-        Object plotType = ticWindow.getPlotType();
-        
-        String label = "";
-        
+        // Prepare the label
+        String label = null;
+
+        // Base peak plot shows m/z, TIC shows total intensity
         if (plotType == TICVisualizerParameters.plotTypeBP) {
-            double mz = ((TICDataSet) dataset).getZValue(series, item);
-            NumberFormat mzFormat = desktop.getMZFormat();
+            float mz = ticDataSet.getZ(0, item).floatValue();
             label = mzFormat.format(mz);
+        } else {
+            label = intensityFormat.format(originalY);
         }
-        
-        if (plotType == TICVisualizerParameters.plotTypeTIC) {
-            double tic = dataset.getYValue(series, item);
-            NumberFormat intensityFormat = desktop.getIntensityFormat();
-            label = intensityFormat.format(tic);        }
-        
+
         return label;
 
     }
-
 }

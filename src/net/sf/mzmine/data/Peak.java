@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2007 The MZmine Development Team
+ * Copyright 2006-2008 The MZmine Development Team
  * 
  * This file is part of MZmine.
  * 
@@ -21,7 +21,6 @@ package net.sf.mzmine.data;
 
 import net.sf.mzmine.io.RawDataFile;
 
-
 /**
  * This interface defines the properties of a detected peak
  */
@@ -29,16 +28,16 @@ public interface Peak {
 
     /**
      * UNKNOWN - peak was not found
+     * 
      * DETECTED - peak was found in primary peak picking
-     * MANUAL - peak was set manually 
-     * ESTIMATED - peak was estimated in secondary peak picking (after alignment)
+     * 
+     * MANUAL - peak was set manually
+     * 
+     * ESTIMATED - peak was estimated in secondary peak picking
      * 
      */
     public static enum PeakStatus {
-        UNKNOWN,
-        DETECTED,
-        MANUAL,
-        ESTIMATED
+        UNKNOWN, DETECTED, MANUAL, ESTIMATED
     };
 
     /**
@@ -93,10 +92,9 @@ public interface Peak {
     public int[] getScanNumbers();
 
     /**
-     * This method returns an array of float[2] (mz and intensity) points for a
-     * given scan number
+     * This method returns float[2] (mz and intensity) for a given scan number
      */
-    public float[][] getRawDatapoints(int scanNumber);
+    public float[] getRawDatapoints(int scanNumber);
 
     /**
      * Returns the minimum RT of all datapoints
@@ -117,7 +115,7 @@ public interface Peak {
      * Returns maximum M/Z value of all datapoints
      */
     public float getDataPointMaxMZ();
-    
+
     /**
      * Returns maximum intensity value of all datapoints
      */

@@ -34,7 +34,6 @@ import javax.swing.JLabel;
 
 import net.sf.mzmine.io.RawDataFile;
 import net.sf.mzmine.main.MZmineCore;
-import net.sf.mzmine.modules.RawDataVisualizer;
 import net.sf.mzmine.taskcontrol.Task;
 import net.sf.mzmine.taskcontrol.TaskListener;
 import net.sf.mzmine.taskcontrol.Task.TaskPriority;
@@ -52,7 +51,7 @@ import visad.java3d.MouseBehaviorJ3D;
  * 3D visualizer using VisAd library
  */
 public class ThreeDVisualizerWindow extends JInternalFrame implements
-        RawDataVisualizer, TaskListener, MouseWheelListener, ActionListener {
+         TaskListener, MouseWheelListener, ActionListener {
 
     private ThreeDToolBar toolBar;
     private JLabel titleLabel;

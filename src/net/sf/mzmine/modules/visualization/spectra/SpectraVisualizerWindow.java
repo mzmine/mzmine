@@ -1,17 +1,17 @@
 /*
  * Copyright 2006 The MZmine Development Team
- *
+ * 
  * This file is part of MZmine.
- *
+ * 
  * MZmine is free software; you can redistribute it and/or modify it under the
  * terms of the GNU General Public License as published by the Free Software
  * Foundation; either version 2 of the License, or (at your option) any later
  * version.
- *
+ * 
  * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY
  * WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR
  * A PARTICULAR PURPOSE. See the GNU General Public License for more details.
- *
+ * 
  * You should have received a copy of the GNU General Public License along with
  * MZmine; if not, write to the Free Software Foundation, Inc., 51 Franklin St,
  * Fifth Floor, Boston, MA 02110-1301 USA
@@ -40,7 +40,6 @@ import net.sf.mzmine.io.RawDataFile;
 import net.sf.mzmine.io.util.RawDataAcceptor;
 import net.sf.mzmine.io.util.RawDataRetrievalTask;
 import net.sf.mzmine.main.MZmineCore;
-import net.sf.mzmine.modules.RawDataVisualizer;
 import net.sf.mzmine.modules.visualization.spectra.SpectraPlot.PlotMode;
 import net.sf.mzmine.project.MZmineProject;
 import net.sf.mzmine.taskcontrol.Task;
@@ -61,7 +60,7 @@ import org.jfree.data.xy.XYSeries;
  * Spectrum visualizer using JFreeChart library
  */
 public class SpectraVisualizerWindow extends JInternalFrame implements
-        RawDataVisualizer, ActionListener, RawDataAcceptor, TaskListener {
+        ActionListener, RawDataAcceptor, TaskListener {
 
     private Logger logger = Logger.getLogger(this.getClass().getName());
 
@@ -78,7 +77,8 @@ public class SpectraVisualizerWindow extends JInternalFrame implements
     private Scan[] scans;
     private int loadedScans = 0;
 
-    // mzMin, mzMax and mzBinSize/numOfBins and binnedTemplate are only used when we plot multiple
+    // mzMin, mzMax and mzBinSize/numOfBins and binnedTemplate are only used
+    // when we plot multiple
     // scans
     private float mzMin, mzMax, mzBinSize;
     private int numOfBins;
@@ -155,21 +155,20 @@ public class SpectraVisualizerWindow extends JInternalFrame implements
         Task updateTask = new RawDataRetrievalTask(rawDataFile, scanNumbers,
                 "Updating spectrum visualizer of " + rawDataFile, this);
 
-        MZmineCore.getTaskController().addTask(updateTask, TaskPriority.HIGH, this);
+        MZmineCore.getTaskController().addTask(updateTask, TaskPriority.HIGH,
+                this);
 
     }
 
     /**
-     * @see net.sf.mzmine.modules.RawDataVisualizer#setMZRange(float,
-     *      float)
+     * @see net.sf.mzmine.modules.RawDataVisualizer#setMZRange(float, float)
      */
     public void setMZRange(float mzMin, float mzMax) {
         spectrumPlot.getXYPlot().getDomainAxis().setRange(mzMin, mzMax);
     }
 
     /**
-     * @see net.sf.mzmine.modules.RawDataVisualizer#setRTRange(float,
-     *      float)
+     * @see net.sf.mzmine.modules.RawDataVisualizer#setRTRange(float, float)
      */
     public void setRTRange(float rtMin, float rtMax) {
         // do nothing
@@ -189,7 +188,7 @@ public class SpectraVisualizerWindow extends JInternalFrame implements
 
         if (loadedScans == 0)
             return;
-        
+
         NumberFormat rtFormat = desktop.getRTFormat();
         NumberFormat mzFormat = desktop.getMZFormat();
         NumberFormat intensityFormat = desktop.getIntensityFormat();
@@ -247,10 +246,11 @@ public class SpectraVisualizerWindow extends JInternalFrame implements
         if (command.equals("SHOW_PICKED_PEAKS")) {
             spectrumPlot.switchPickedPeaksVisible();
         }
-        
+
         if (command.equals("SETUP_AXES")) {
-        	AxesSetupDialog dialog = new AxesSetupDialog(desktop.getMainFrame(), spectrumPlot.getChart().getXYPlot());
-        	dialog.setVisible(true);
+            AxesSetupDialog dialog = new AxesSetupDialog(
+                    desktop.getMainFrame(), spectrumPlot.getChart().getXYPlot());
+            dialog.setVisible(true);
         }
 
         if (command.equals("TOGGLE_PLOT_MODE")) {
@@ -307,8 +307,7 @@ public class SpectraVisualizerWindow extends JInternalFrame implements
         if (command.equals("SHOW_FRAGMENT")) {
             int fragments[] = scans[0].getFragmentScanNumbers();
             int selectedFragment = fragments[fragmentScansSelector.getSelectedIndex()];
-            new SpectraVisualizerWindow(dataFile,
-                    selectedFragment);
+            new SpectraVisualizerWindow(dataFile, selectedFragment);
         }
 
     }
@@ -320,7 +319,6 @@ public class SpectraVisualizerWindow extends JInternalFrame implements
         return new RawDataFile[] { rawDataFile };
     }
 
-    
     /**
      * @see net.sf.mzmine.io.RawDataAcceptor#addScan(net.sf.mzmine.data.Scan)
      */
@@ -376,16 +374,17 @@ public class SpectraVisualizerWindow extends JInternalFrame implements
         if (scans.length == 1) {
             // plotting single scan - just add values
             for (int j = 0; j < mzValues.length; j++) {
-            	
-            	try {rawDataSeries.add(mzValues[j], intValues[j], false); }
-            	catch (Exception duplicateException) {
-            		// TODO: Improve processing of duplicate m/z values?
-            	}
+
+                try {
+                    rawDataSeries.add(mzValues[j], intValues[j], false);
+                } catch (Exception duplicateException) {
+                    // TODO: Improve processing of duplicate m/z values?
+                }
 
             }
 
             remove(msmsPanel);
-            
+
             NumberFormat rtFormat = desktop.getRTFormat();
             NumberFormat mzFormat = desktop.getMZFormat();
 
@@ -396,9 +395,10 @@ public class SpectraVisualizerWindow extends JInternalFrame implements
                         + parentNumber
                         + ", RT: "
                         + rtFormat.format(rawDataFile.getScan(parentNumber).getRetentionTime())
-                        + ", precursor m/z: " 
+                        + ", precursor m/z: "
                         + mzFormat.format(scan.getPrecursorMZ());
-                if (scan.getPrecursorCharge() > 0) labelText += " (chrg " + scan.getPrecursorCharge() + ")"; 
+                if (scan.getPrecursorCharge() > 0)
+                    labelText += " (chrg " + scan.getPrecursorCharge() + ")";
                 JLabel label = new JLabel(labelText);
                 label.setFont(label.getFont().deriveFont(10f));
                 msmsPanel.add(label, BorderLayout.CENTER);
@@ -449,20 +449,20 @@ public class SpectraVisualizerWindow extends JInternalFrame implements
             // plotting multiple scans - we have to bin the peaks
             float binnedIntValues[] = ScanUtils.binValues(mzValues, intValues,
                     mzMin, mzMax, numOfBins, false, BinningType.SUM);
-            
+
             for (int j = 0; j < binnedIntValues.length; j++) {
-            	
-            	if (binnedTemplate[j]<binnedIntValues[j])
-            		binnedTemplate[j] = binnedIntValues[j];
+
+                if (binnedTemplate[j] < binnedIntValues[j])
+                    binnedTemplate[j] = binnedIntValues[j];
             }
 
         }
 
         // check if we added last scan
         if (scanIndex == total - 1) {
-        	
-        	// Make a data series of binned template
-        	if (scans.length>1) {
+
+            // Make a data series of binned template
+            if (scans.length > 1) {
                 for (int j = 0; j < binnedTemplate.length; j++) {
 
                     if (binnedTemplate[j] == 0)
@@ -472,27 +472,26 @@ public class SpectraVisualizerWindow extends JInternalFrame implements
                     rawDataSeries.add(mz, binnedTemplate[j], false);
 
                 }
-        		
-        	}
+
+            }
 
             MZmineProject currentProject = MZmineCore.getCurrentProject();
-            
+
             // if we have a peak list, add the eligible peaks
-            PeakList peakList = null; // TODO currentProject.getFilePeakList(dataFile);
+            PeakList peakList = null; // TODO
+                                        // currentProject.getFilePeakList(dataFile);
             if (peakList != null) {
 
                 toolBar.setPeaksButtonEnabled(true);
 
-                Peak[] peaks = peakList.getPeaksInsideScanAndMZRange(dataFile, rtMin,
-                        rtMax, mzMin, mzMax);
+                Peak[] peaks = peakList.getPeaksInsideScanAndMZRange(dataFile,
+                        rtMin, rtMax, mzMin, mzMax);
 
                 for (int i = 0; i < peaks.length; i++) {
 
                     if (scans.length == 1) {
-						float[][] dataPoints = peaks[i].getRawDatapoints(scanNumbers[0]);
-                        for (float[] dataPoint : dataPoints) {
-                            peaksSeries.add(dataPoint[0], dataPoint[1], false);
-                        }
+                        float[] dataPoint = peaks[i].getRawDatapoints(scanNumbers[0]);
+                        peaksSeries.add(dataPoint[0], dataPoint[1], false);
                     } else {
                         float mz = peaks[i].getMZ();
                         float intensity = peaks[i].getHeight();
@@ -520,7 +519,7 @@ public class SpectraVisualizerWindow extends JInternalFrame implements
             }
 
             rawDataSeries.fireSeriesChanged();
-            
+
         }
 
         // update the counter of loaded scans
