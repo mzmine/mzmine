@@ -28,7 +28,6 @@ import java.awt.event.WindowEvent;
 import java.awt.event.WindowListener;
 import java.util.ArrayList;
 import java.util.Enumeration;
-import java.util.Vector;
 
 import javax.swing.JDesktopPane;
 import javax.swing.JFrame;
@@ -40,7 +39,6 @@ import javax.swing.JSplitPane;
 import javax.swing.ToolTipManager;
 import javax.swing.UIManager;
 import javax.swing.border.EtchedBorder;
-import javax.swing.event.ListSelectionListener;
 
 import net.sf.mzmine.data.ParameterSet;
 import net.sf.mzmine.data.PeakList;
@@ -60,7 +58,7 @@ public class MainWindow extends JFrame implements MZmineModule, Desktop,
         WindowListener {
 
     // default tooltip displaying and dismissing delay in ms
-    public static final int DEFAULT_TOOLTIP_DELAY = 50;
+    public static final int DEFAULT_TOOLTIP_DELAY = 30;
     public static final int DEFAULT_TOOLTIP_DISMISS_DELAY = Integer.MAX_VALUE;
     
     private DesktopParameters parameters;
@@ -72,8 +70,6 @@ public class MainWindow extends JFrame implements MZmineModule, Desktop,
     private ItemSelector itemSelector;
 
     private TaskProgressWindow taskList;
-
-    private Vector<ListSelectionListener> selectionListeners = new Vector<ListSelectionListener>();
 
     public TaskProgressWindow getTaskList() {
         return taskList;

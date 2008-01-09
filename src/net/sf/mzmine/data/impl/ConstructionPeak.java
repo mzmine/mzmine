@@ -21,7 +21,6 @@ package net.sf.mzmine.data.impl;
 
 import java.text.Format;
 import java.util.ArrayList;
-import java.util.Hashtable;
 import java.util.TreeMap;
 
 import net.sf.mzmine.data.Peak;

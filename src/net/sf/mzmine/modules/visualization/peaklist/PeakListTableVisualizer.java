@@ -58,7 +58,7 @@ public class PeakListTableVisualizer implements MZmineModule, ActionListener {
         parameters = new PeakListTableParameters();
 
         desktop.addMenuItem(MZmineMenu.VISUALIZATION,
-                "Aligned peak list table", this, null, KeyEvent.VK_A, false,
+                "Peak list table", this, null, KeyEvent.VK_A, false,
                 true);
 
     }
@@ -71,13 +71,13 @@ public class PeakListTableVisualizer implements MZmineModule, ActionListener {
         PeakList peakLists[] = desktop.getSelectedPeakLists();
 
         if (peakLists.length == 0) {
-            desktop.displayErrorMessage("Please select aligned peak list");
+            desktop.displayErrorMessage("Please select peak list");
             return;
         }
 
         for (PeakList peakList : peakLists) {
 
-            logger.finest("Showing a new aligned peak list table view");
+            logger.finest("Showing a new peak list table view");
 
             PeakListTableWindow alignmentResultView = new PeakListTableWindow(
                     peakList);
@@ -90,7 +90,7 @@ public class PeakListTableVisualizer implements MZmineModule, ActionListener {
      * @see net.sf.mzmine.main.MZmineModule#toString()
      */
     public String toString() {
-        return "Alignment result table visualizer";
+        return "Peak list table visualizer";
     }
 
     /**
