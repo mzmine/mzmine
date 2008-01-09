@@ -86,11 +86,11 @@ public class SimpleStandardCompoundNormalizerTask implements Task {
 
         taskStatus = TaskStatus.PROCESSING;
 
-        Object normalizationType = parameters.getParameters().getParameterValue(
+        Object normalizationType = parameters.getParameterValue(
                 SimpleStandardCompoundNormalizerParameterSet.StandardUsageType);
-        Object peakMeasurementType = parameters.getParameters().getParameterValue(
+        Object peakMeasurementType = parameters.getParameterValue(
                 SimpleStandardCompoundNormalizerParameterSet.PeakMeasurementType);
-        float MZvsRTBalance = (Float) parameters.getParameters().getParameterValue(
+        float MZvsRTBalance = (Float) parameters.getParameterValue(
                 SimpleStandardCompoundNormalizerParameterSet.MZvsRTBalance);
 
         logger.fine("Starting Simple standard compound normlization of "

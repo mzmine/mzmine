@@ -25,7 +25,7 @@ import net.sf.mzmine.data.impl.SimpleParameter;
 import net.sf.mzmine.data.impl.SimpleParameterSet;
 import net.sf.mzmine.main.MZmineCore;
 
-class ZoomScanFilterParameters extends SimpleParameterSet {
+public class ZoomScanFilterParameters extends SimpleParameterSet {
 
     public static final Parameter suffix = new SimpleParameter(
             ParameterType.STRING, "Filename suffix",
@@ -43,7 +43,7 @@ class ZoomScanFilterParameters extends SimpleParameterSet {
             "If checked, original file will be removed and only filtered version remains",
             new Boolean(true));
 
-    ZoomScanFilterParameters() {
+    public ZoomScanFilterParameters() {
         super(new Parameter[] { suffix, minMZRange, autoRemove });
     }
 

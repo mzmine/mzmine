@@ -46,7 +46,7 @@ import net.sf.mzmine.userinterface.dialogs.ParameterSetupDialog;
 public class LocalPicker implements BatchStepPeakPicking, TaskListener,
         ActionListener {
 
-    private ParameterSet parameters;
+    private LocalPickerParameters parameters;
 
     private Logger logger = Logger.getLogger(this.getClass().getName());
 
@@ -65,10 +65,6 @@ public class LocalPicker implements BatchStepPeakPicking, TaskListener,
                 "Local maxima peak detector", this, null, KeyEvent.VK_L, false,
                 true);
 
-    }
-
-    public void setParameters(ParameterSet parameters) {
-        this.parameters = parameters;
     }
 
     /**
@@ -122,13 +118,6 @@ public class LocalPicker implements BatchStepPeakPicking, TaskListener,
     }
 
     /**
-     * @see net.sf.mzmine.main.MZmineModule#setCurrentParameters(net.sf.mzmine.data.ParameterSet)
-     */
-    public void setCurrentParameters(ParameterSet parameters) {
-        this.parameters = parameters;
-    }
-
-    /**
      * @see net.sf.mzmine.modules.BatchStep#setupParameters(net.sf.mzmine.data.ParameterSet)
      */
     public ExitCode setupParameters(ParameterSet currentParameters) {
@@ -146,6 +135,10 @@ public class LocalPicker implements BatchStepPeakPicking, TaskListener,
         return parameters;
     }
 
+    public void setParameters(ParameterSet parameters) {
+        this.parameters = (LocalPickerParameters) parameters;
+    }
+
     /**
      * @see net.sf.mzmine.modules.BatchStep#runModule(net.sf.mzmine.io.RawDataFile[],
      *      net.sf.mzmine.data.AlignmentResult[],
@@ -161,12 +154,12 @@ public class LocalPicker implements BatchStepPeakPicking, TaskListener,
             desktop.displayErrorMessage("Please select data files for peak picking");
             return null;
         }
-        
+
         // prepare a new group of tasks
         Task tasks[] = new LocalPickerTask[dataFiles.length];
         for (int i = 0; i < dataFiles.length; i++) {
             tasks[i] = new LocalPickerTask(dataFiles[i],
-                    (SimpleParameterSet) parameters);
+                    (LocalPickerParameters) parameters);
         }
         TaskGroup newGroup = new TaskGroup(tasks, this, taskGroupListener);
 

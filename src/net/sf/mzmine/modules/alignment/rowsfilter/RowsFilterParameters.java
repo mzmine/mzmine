@@ -25,11 +25,11 @@ import net.sf.mzmine.data.impl.SimpleParameter;
 import net.sf.mzmine.data.impl.SimpleParameterSet;
 import net.sf.mzmine.main.MZmineCore;
 
-class RowsFilterParameters extends SimpleParameterSet {
+public class RowsFilterParameters extends SimpleParameterSet {
 
-    public static final Parameter peakListName = new SimpleParameter(
-            ParameterType.STRING, "Filtered peaklist name",
-            "Specify a name for the new peaklist", "Filtered");
+    public static final Parameter suffix = new SimpleParameter(
+            ParameterType.STRING, "Name suffix",
+            "Suffix to be added to peak list name", null, "filtered", null);
 
     public static final Parameter minPeaks = new SimpleParameter(
             ParameterType.INTEGER, "Minimum peaks in a row",
@@ -62,12 +62,12 @@ class RowsFilterParameters extends SimpleParameterSet {
 
     public static final Parameter autoRemove = new SimpleParameter(
             ParameterType.BOOLEAN,
-            "Remove source file after filtering",
-            "If checked, original file will be removed and only filtered version remains",
+            "Remove source peak list after filtering",
+            "If checked, original peak list will be removed and only filtered version remains",
             new Boolean(true));
 
-    RowsFilterParameters() {
-        super(new Parameter[] { peakListName, minPeaks, minMZ, maxMZ, minRT,
+    public RowsFilterParameters() {
+        super(new Parameter[] { suffix, minPeaks, minMZ, maxMZ, minRT,
                 maxRT, identified, autoRemove });
     }
 

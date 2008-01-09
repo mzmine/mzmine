@@ -300,7 +300,7 @@ public class ParameterSetupDialog extends JDialog implements ActionListener {
         if (component instanceof JComboBox) {
             JComboBox combo = (JComboBox) component;
             combo.setSelectedItem(value);
-            
+            return;
         }
 
         switch (p.getType()) {

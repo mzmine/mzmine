@@ -23,7 +23,6 @@ import java.io.IOException;
 import java.util.Vector;
 
 import net.sf.mzmine.data.Scan;
-import net.sf.mzmine.data.impl.SimpleParameterSet;
 import net.sf.mzmine.data.impl.SimpleScan;
 import net.sf.mzmine.io.RawDataFile;
 import net.sf.mzmine.io.RawDataFileWriter;
@@ -53,7 +52,7 @@ class CMFilterTask implements Task {
      * @param dataFile
      * @param parameters
      */
-    CMFilterTask(RawDataFile dataFile, SimpleParameterSet parameters) {
+    CMFilterTask(RawDataFile dataFile, CMFilterParameters parameters) {
         this.dataFile = dataFile;
         suffix = (String) parameters.getParameterValue(CMFilterParameters.suffix);
         mzTolerance = (Float) parameters.getParameterValue(CMFilterParameters.MZTolerance);

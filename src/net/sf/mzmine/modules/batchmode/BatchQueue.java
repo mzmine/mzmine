@@ -32,7 +32,7 @@ import org.dom4j.Element;
 /**
  * Batch steps queue
  */
-class BatchQueue extends Vector<BatchStepWrapper> implements
+public class BatchQueue extends Vector<BatchStepWrapper> implements
         StorableParameterSet {
 
     public static final String BATCHSTEP_ELEMENT = "batchstep";

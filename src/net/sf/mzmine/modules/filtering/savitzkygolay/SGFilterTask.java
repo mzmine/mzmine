@@ -23,7 +23,6 @@ import java.io.IOException;
 import java.util.Hashtable;
 
 import net.sf.mzmine.data.Scan;
-import net.sf.mzmine.data.impl.SimpleParameterSet;
 import net.sf.mzmine.data.impl.SimpleScan;
 import net.sf.mzmine.io.RawDataFile;
 import net.sf.mzmine.io.RawDataFileWriter;
@@ -55,7 +54,7 @@ class SGFilterTask implements Task {
      * @param rawDataFile
      * @param parameters
      */
-    SGFilterTask(RawDataFile dataFile, SimpleParameterSet parameters) {
+    SGFilterTask(RawDataFile dataFile, SGFilterParameters parameters) {
         this.dataFile = dataFile;
 
         suffix = (String) parameters.getParameterValue(SGFilterParameters.suffix);

@@ -25,7 +25,7 @@ import net.sf.mzmine.data.impl.SimpleParameter;
 import net.sf.mzmine.data.impl.SimpleParameterSet;
 import net.sf.mzmine.main.MZmineCore;
 
-class MeanFilterParameters extends SimpleParameterSet {
+public class MeanFilterParameters extends SimpleParameterSet {
 
     public static final Parameter suffix = new SimpleParameter(
             ParameterType.STRING, "Filename suffix",
@@ -42,7 +42,7 @@ class MeanFilterParameters extends SimpleParameterSet {
             "If checked, original file will be removed and only filtered version remains",
             new Boolean(true));
 
-    MeanFilterParameters() {
+    public MeanFilterParameters() {
         super(new Parameter[] { suffix, oneSidedWindowLength, autoRemove });
     }
 

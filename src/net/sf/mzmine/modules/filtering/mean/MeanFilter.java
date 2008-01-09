@@ -46,7 +46,7 @@ import net.sf.mzmine.userinterface.dialogs.ParameterSetupDialog;
 public class MeanFilter implements BatchStepFiltering, TaskListener,
         ActionListener {
 
-    private ParameterSet parameters;
+    private MeanFilterParameters parameters;
 
     private Logger logger = Logger.getLogger(this.getClass().getName());
 
@@ -125,7 +125,7 @@ public class MeanFilter implements BatchStepFiltering, TaskListener,
         Task tasks[] = new MeanFilterTask[dataFiles.length];
         for (int i = 0; i < dataFiles.length; i++) {
             tasks[i] = new MeanFilterTask(dataFiles[i],
-                    (SimpleParameterSet) parameters);
+                    (MeanFilterParameters) parameters);
         }
         TaskGroup newGroup = new TaskGroup(tasks, this, taskGroupListener);
 
@@ -147,7 +147,7 @@ public class MeanFilter implements BatchStepFiltering, TaskListener,
      * @see net.sf.mzmine.main.MZmineModule#setParameters(net.sf.mzmine.data.ParameterSet)
      */
     public void setParameters(ParameterSet parameters) {
-        this.parameters = parameters;
+        this.parameters = (MeanFilterParameters) parameters;
     }
 
     /**

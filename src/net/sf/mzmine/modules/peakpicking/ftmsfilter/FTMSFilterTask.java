@@ -21,7 +21,6 @@ package net.sf.mzmine.modules.peakpicking.ftmsfilter;
 
 import net.sf.mzmine.data.Peak;
 import net.sf.mzmine.data.PeakList;
-import net.sf.mzmine.data.impl.SimpleParameterSet;
 import net.sf.mzmine.data.impl.SimplePeakList;
 import net.sf.mzmine.data.impl.SimplePeakListRow;
 import net.sf.mzmine.io.RawDataFile;
@@ -51,7 +50,7 @@ class FTMSFilterTask implements Task {
      * @param rawDataFile
      * @param parameters
      */
-    FTMSFilterTask(PeakList peaklist, SimpleParameterSet parameters) {
+    FTMSFilterTask(PeakList peaklist, FTMSFilterParameters parameters) {
 
         this.peaklist = peaklist;
 

@@ -26,7 +26,6 @@ import java.awt.event.ActionListener;
 import java.util.Arrays;
 import java.util.logging.Logger;
 
-import javax.swing.JDialog;
 import javax.swing.JMenuItem;
 import javax.swing.JPopupMenu;
 
@@ -49,7 +48,8 @@ import net.sf.mzmine.modules.visualization.peaklist.table.DataFileColumnType;
 import net.sf.mzmine.modules.visualization.peaklist.table.PeakListTable;
 import net.sf.mzmine.modules.visualization.peaklist.table.PeakListTableColumnModel;
 import net.sf.mzmine.modules.visualization.peaklist.table.PeakListTableModel;
-import net.sf.mzmine.modules.visualization.tic.TICSetupDialog;
+import net.sf.mzmine.modules.visualization.tic.TICVisualizer;
+import net.sf.mzmine.modules.visualization.tic.TICVisualizerParameters;
 import net.sf.mzmine.userinterface.Desktop;
 import net.sf.mzmine.userinterface.dialogs.ExitCode;
 import net.sf.mzmine.userinterface.dialogs.ParameterSetupDialog;
@@ -183,12 +183,16 @@ public class PeakListTablePopupMenu extends JPopupMenu implements
         if (src == showXICItem) {
 
             Peak clickedPeak = clickedPeakListRow.getPeak(clickedDataFile);
-            JDialog setupDialog;
+            TICVisualizer tic = TICVisualizer.getInstance();
+            
+            float rtMin = clickedDataFile.getDataMinRT(1);
+            float rtMax = clickedDataFile.getDataMaxRT(1);
+            
             if (clickedPeak != null) {
-                setupDialog = new TICSetupDialog(clickedDataFile,
-                        clickedPeak.getDataPointMinMZ(),
-                        clickedPeak.getDataPointMaxMZ(),
-                        new Peak[] { clickedPeak });
+                tic.showNewTICVisualizerWindow(new RawDataFile[] { clickedDataFile },
+                        new Peak[] { clickedPeak }, 1, TICVisualizerParameters.plotTypeBP, rtMin, rtMax,
+                        clickedPeak.getDataPointMinMZ(), clickedPeak.getDataPointMaxMZ());
+
 
             } else {
                 float minMZ = clickedPeakListRow.getAverageMZ();
@@ -201,9 +205,9 @@ public class PeakListTablePopupMenu extends JPopupMenu implements
                     if (peak.getDataPointMaxMZ() > maxMZ)
                         maxMZ = peak.getDataPointMaxMZ();
                 }
-                setupDialog = new TICSetupDialog(clickedDataFile, minMZ, maxMZ);
-            }
-            setupDialog.setVisible(true);
+                tic.showNewTICVisualizerWindow(new RawDataFile[] { clickedDataFile },
+                        null, 1, TICVisualizerParameters.plotTypeBP, rtMin, rtMax,
+                        clickedPeak.getDataPointMinMZ(), clickedPeak.getDataPointMaxMZ());            }
 
         }
 

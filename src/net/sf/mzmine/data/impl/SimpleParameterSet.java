@@ -93,6 +93,13 @@ public class SimpleParameterSet implements StorableParameterSet {
     /**
      * @see net.sf.mzmine.data.ParameterSet#addParameter(net.sf.mzmine.data.Parameter)
      */
+    public boolean hasParameter(Parameter parameter) {
+        return parameters.contains(parameter);
+    }
+    
+    /**
+     * @see net.sf.mzmine.data.ParameterSet#addParameter(net.sf.mzmine.data.Parameter)
+     */
     public void addParameter(Parameter parameter) {
 
         Iterator<Parameter> params = parameters.iterator();
@@ -136,7 +143,8 @@ public class SimpleParameterSet implements StorableParameterSet {
             throws IllegalArgumentException {
 
         if (!parameters.contains(parameter))
-            throw (new IllegalArgumentException("Unknown parameter " + parameter));
+            throw (new IllegalArgumentException("Unknown parameter "
+                    + parameter));
 
         Object possibleValues[] = parameter.getPossibleValues();
         if (possibleValues != null) {
@@ -147,7 +155,8 @@ public class SimpleParameterSet implements StorableParameterSet {
                 }
             }
             // value not found
-            throw (new IllegalArgumentException("Invalid value " + value + " for parameter " + parameter));
+            throw (new IllegalArgumentException("Invalid value " + value
+                    + " for parameter " + parameter));
 
         }
 
@@ -160,13 +169,17 @@ public class SimpleParameterSet implements StorableParameterSet {
             if (!(value instanceof Integer))
                 throw (new IllegalArgumentException("Value type mismatch"));
             Integer minIValue = (Integer) parameter.getMinimumValue();
-            if ((minIValue != null) && (minIValue.compareTo((Integer) value) > 0))
-                throw (new IllegalArgumentException("Minimum value of parameter " + parameter + " is "
-                        + minIValue));
+            if ((minIValue != null)
+                    && (minIValue.compareTo((Integer) value) > 0))
+                throw (new IllegalArgumentException(
+                        "Minimum value of parameter " + parameter + " is "
+                                + minIValue));
             Integer maxIValue = (Integer) parameter.getMaximumValue();
-            if ((maxIValue != null) && (maxIValue.compareTo((Integer) value) < 0))
-                throw (new IllegalArgumentException("Maximum value of parameter " + parameter + "  is "
-                        + maxIValue));
+            if ((maxIValue != null)
+                    && (maxIValue.compareTo((Integer) value) < 0))
+                throw (new IllegalArgumentException(
+                        "Maximum value of parameter " + parameter + "  is "
+                                + maxIValue));
 
             break;
 
@@ -175,12 +188,14 @@ public class SimpleParameterSet implements StorableParameterSet {
                 throw (new IllegalArgumentException("Value type mismatch"));
             Float minDValue = (Float) parameter.getMinimumValue();
             if ((minDValue != null) && (minDValue.compareTo((Float) value) > 0))
-                throw (new IllegalArgumentException("Minimum value of parameter " + parameter + "  is "
-                        + minDValue));
+                throw (new IllegalArgumentException(
+                        "Minimum value of parameter " + parameter + "  is "
+                                + minDValue));
             Float maxDValue = (Float) parameter.getMaximumValue();
             if ((maxDValue != null) && (maxDValue.compareTo((Float) value) < 0))
-                throw (new IllegalArgumentException("Maximum value of parameter " + parameter + "  is "
-                        + maxDValue));
+                throw (new IllegalArgumentException(
+                        "Maximum value of parameter " + parameter + "  is "
+                                + maxDValue));
             break;
         case STRING:
             if (!(value instanceof String))
@@ -266,24 +281,35 @@ public class SimpleParameterSet implements StorableParameterSet {
 
     public SimpleParameterSet clone() {
         Parameter params[] = getParameters();
-        SimpleParameterSet newSet = new SimpleParameterSet(params);
-        for (Parameter p : params) {
-            Object v = values.get(p);
-            if (v != null)
-                newSet.setParameterValue(p, v);
+        try {
+            // do not make a new instance of SimpleParameterSet, but instead
+            // clone the runtime class of this instance - runtime type may be
+            // inherited class
+            SimpleParameterSet newSet = this.getClass().newInstance();
+
+            for (Parameter p : params) {
+                if (! newSet.hasParameter(p)) newSet.addParameter(p);
+                Object v = values.get(p);
+                if (v != null)
+                    newSet.setParameterValue(p, v);
+            }
+            return newSet;
+        } catch (Exception e) {
+            e.printStackTrace();
+            return null;
         }
-        return newSet;
+
     }
 
     /**
      * Represent method's parameters and their values in human-readable format
      */
     public String toString() {
-        String s = "";
+        StringBuffer s = new StringBuffer();
         for (Parameter p : getParameters()) {
-            s = s.concat(p.getName() + ": " + values.get(p) + ", ");
+            s = s.append(p.getName() + ": " + values.get(p) + ", ");
         }
-        return s;
+        return s.toString();
     }
 
 }

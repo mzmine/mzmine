@@ -27,7 +27,7 @@ import net.sf.mzmine.data.impl.SimpleParameter;
 import net.sf.mzmine.data.impl.SimpleParameterSet;
 import net.sf.mzmine.main.MZmineCore;
 
-class IsotopeGrouperParameters extends SimpleParameterSet {
+public class IsotopeGrouperParameters extends SimpleParameterSet {
 
     public static final NumberFormat percentFormat = NumberFormat.getPercentInstance();
 
@@ -63,7 +63,7 @@ class IsotopeGrouperParameters extends SimpleParameterSet {
             "If checked, original peaklist will be removed and only deisotoped version remains",
             new Boolean(true));
 
-    IsotopeGrouperParameters() {
+    public IsotopeGrouperParameters() {
         super(new Parameter[] { suffix, mzTolerance, rtTolerance,
                 monotonicShape, maximumCharge, autoRemove, });
     }

@@ -27,7 +27,7 @@ import net.sf.mzmine.data.impl.SimpleParameter;
 import net.sf.mzmine.data.impl.SimpleParameterSet;
 import net.sf.mzmine.main.MZmineCore;
 
-class FTMSFilterParameters extends SimpleParameterSet {
+public class FTMSFilterParameters extends SimpleParameterSet {
 
     public static final NumberFormat percentFormat = NumberFormat.getPercentInstance();
 
@@ -65,7 +65,7 @@ class FTMSFilterParameters extends SimpleParameterSet {
             "If checked, original peaklist will be removed and only deisotoped version remains",
             new Boolean(true));
 
-    FTMSFilterParameters() {
+    public FTMSFilterParameters() {
         super(new Parameter[] { suffix, mzDifferenceMin, mzDifferenceMax,
                 rtDifferenceMax, heightMax, autoRemove, });
     }

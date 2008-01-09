@@ -27,7 +27,7 @@ import net.sf.mzmine.data.impl.SimpleParameter;
 import net.sf.mzmine.data.impl.SimpleParameterSet;
 import net.sf.mzmine.main.MZmineCore;
 
-class SimpleGapFillerParameters extends SimpleParameterSet {
+public class SimpleGapFillerParameters extends SimpleParameterSet {
 
     public static final NumberFormat percentFormat = NumberFormat.getPercentInstance();
 
@@ -68,7 +68,7 @@ class SimpleGapFillerParameters extends SimpleParameterSet {
             "Maximum allowed relative RT difference", "%", new Float(0.15),
             new Float(0.0), null, percentFormat);
 
-    SimpleGapFillerParameters() {
+    public SimpleGapFillerParameters() {
         super(new Parameter[] { peakListName, intTolerance, MZTolerance,
                 RTToleranceType, RTToleranceValueAbs, RTToleranceValuePercent });
     }

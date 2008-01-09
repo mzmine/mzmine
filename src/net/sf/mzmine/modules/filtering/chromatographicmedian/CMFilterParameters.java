@@ -25,7 +25,7 @@ import net.sf.mzmine.data.impl.SimpleParameter;
 import net.sf.mzmine.data.impl.SimpleParameterSet;
 import net.sf.mzmine.main.MZmineCore;
 
-class CMFilterParameters extends SimpleParameterSet {
+public class CMFilterParameters extends SimpleParameterSet {
 
     public static final Parameter suffix = new SimpleParameter(
             ParameterType.STRING, "Filename suffix",
@@ -47,7 +47,7 @@ class CMFilterParameters extends SimpleParameterSet {
             "If checked, original file will be removed and only filtered version remains",
             new Boolean(true));
 
-    CMFilterParameters() {
+    public CMFilterParameters() {
         super(new Parameter[] { suffix, oneSidedWindowLength, MZTolerance,
                 autoRemove });
     }

@@ -49,7 +49,7 @@ public class RowsFilter implements BatchStepAlignment, TaskListener,
 
     private Logger logger = Logger.getLogger(this.getClass().getName());
 
-    private ParameterSet parameters;
+    private RowsFilterParameters parameters;
 
     private Desktop desktop;
 
@@ -79,7 +79,7 @@ public class RowsFilter implements BatchStepAlignment, TaskListener,
     }
 
     public void setParameters(ParameterSet parameters) {
-        this.parameters = parameters;
+        this.parameters = (RowsFilterParameters) parameters;
     }
 
     /**
@@ -148,7 +148,7 @@ public class RowsFilter implements BatchStepAlignment, TaskListener,
         Task tasks[] = new RowsFilterTask[peakLists.length];
         for (int i = 0; i < peakLists.length; i++) {
             tasks[i] = new RowsFilterTask(peakLists[i],
-                    (SimpleParameterSet) parameters);
+                    (RowsFilterParameters) parameters);
         }
         TaskGroup newGroup = new TaskGroup(tasks, this, taskGroupListener);
 

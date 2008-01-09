@@ -25,10 +25,8 @@ import java.awt.Dimension;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 
-import javax.swing.BorderFactory;
 import javax.swing.JCheckBox;
 import javax.swing.JInternalFrame;
-import javax.swing.JPanel;
 
 import net.sf.mzmine.io.RawDataFile;
 import net.sf.mzmine.main.MZmineCore;
@@ -87,7 +85,6 @@ public class OldTwoDVisualizerWindow extends JInternalFrame implements
         setBackground(Color.white);
 
         this.dataFile = dataFile;
-        this.msLevel = msLevel;
 
         dataset = new OldTwoDDataSet(dataFile, this);
         

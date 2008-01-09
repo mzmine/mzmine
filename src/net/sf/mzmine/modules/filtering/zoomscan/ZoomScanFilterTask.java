@@ -22,7 +22,6 @@ package net.sf.mzmine.modules.filtering.zoomscan;
 import java.io.IOException;
 
 import net.sf.mzmine.data.Scan;
-import net.sf.mzmine.data.impl.SimpleParameterSet;
 import net.sf.mzmine.io.RawDataFile;
 import net.sf.mzmine.io.RawDataFileWriter;
 import net.sf.mzmine.main.MZmineCore;
@@ -50,7 +49,7 @@ class ZoomScanFilterTask implements Task {
      * @param rawDataFile
      * @param parameters
      */
-    ZoomScanFilterTask(RawDataFile dataFile, SimpleParameterSet parameters) {
+    ZoomScanFilterTask(RawDataFile dataFile, ZoomScanFilterParameters parameters) {
         this.dataFile = dataFile;
         suffix = (String) parameters.getParameterValue(ZoomScanFilterParameters.suffix);
         minMZRange = (Float) parameters.getParameterValue(ZoomScanFilterParameters.minMZRange);

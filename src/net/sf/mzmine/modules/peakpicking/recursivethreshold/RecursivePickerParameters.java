@@ -27,7 +27,7 @@ import net.sf.mzmine.data.impl.SimpleParameter;
 import net.sf.mzmine.data.impl.SimpleParameterSet;
 import net.sf.mzmine.main.MZmineCore;
 
-class RecursivePickerParameters extends SimpleParameterSet {
+public class RecursivePickerParameters extends SimpleParameterSet {
 
     public static final NumberFormat percentFormat = NumberFormat.getPercentInstance();
 
@@ -85,7 +85,7 @@ class RecursivePickerParameters extends SimpleParameterSet {
             "Maximum allowed deviation from expected /\\ shape of a peak in chromatographic direction",
             "%", new Float(0.15), new Float(0.0), null, percentFormat);
 
-    RecursivePickerParameters() {
+    public RecursivePickerParameters() {
         super(new Parameter[] { suffix, binSize, chromatographicThresholdLevel,
                 noiseLevel, minimumPeakHeight, minimumPeakDuration,
                 minimumMZPeakWidth, maximumMZPeakWidth, mzTolerance,

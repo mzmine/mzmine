@@ -21,7 +21,6 @@ package net.sf.mzmine.modules.alignment.rowsfilter;
 
 import net.sf.mzmine.data.PeakList;
 import net.sf.mzmine.data.PeakListRow;
-import net.sf.mzmine.data.impl.SimpleParameterSet;
 import net.sf.mzmine.data.impl.SimplePeakList;
 import net.sf.mzmine.io.RawDataFile;
 import net.sf.mzmine.main.MZmineCore;
@@ -40,15 +39,15 @@ class RowsFilterTask implements Task {
 
     // Method parameters
     private int minPresent;
-    private String newName;
+    private String suffix;
     private float minMZ, maxMZ, minRT, maxRT;
     private boolean identified, removeOriginal;
 
-    public RowsFilterTask(PeakList peakList, SimpleParameterSet parameters) {
+    public RowsFilterTask(PeakList peakList, RowsFilterParameters parameters) {
 
         this.peakList = peakList;
 
-        newName = (String) parameters.getParameterValue(RowsFilterParameters.peakListName);
+        suffix = (String) parameters.getParameterValue(RowsFilterParameters.suffix);
         minPresent = (Integer) parameters.getParameterValue(RowsFilterParameters.minPeaks);
         minMZ = (Float) parameters.getParameterValue(RowsFilterParameters.minMZ);
         maxMZ = (Float) parameters.getParameterValue(RowsFilterParameters.maxMZ);
@@ -88,12 +87,10 @@ class RowsFilterTask implements Task {
         totalRows = peakList.getNumberOfRows();
         processedRows = 0;
 
-        // Create new alignment result and add opened raw data files to it
-        SimplePeakList filteredPeakList = new SimplePeakList(newName);
-
-        for (RawDataFile rawData : peakList.getRawDataFiles()) {
+        // Create new peaklist
+        SimplePeakList filteredPeakList = new SimplePeakList(peakList.toString() + " " + suffix);
+        for (RawDataFile rawData : peakList.getRawDataFiles()) 
             filteredPeakList.addRawDataFile(rawData);
-        }
 
         // Copy rows with enough peaks to new alignment result
         for (PeakListRow row : peakList.getRows()) {

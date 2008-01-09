@@ -22,7 +22,6 @@ package net.sf.mzmine.modules.alignment.join;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
-import java.util.HashSet;
 import java.util.logging.Logger;
 
 import net.sf.mzmine.data.ParameterSet;
@@ -48,7 +47,7 @@ public class JoinAligner implements BatchStepAlignment, TaskListener,
 
     private Logger logger = Logger.getLogger(this.getClass().getName());
 
-    private ParameterSet parameters;
+    private JoinAlignerParameters parameters;
 
     private Desktop desktop;
 
@@ -78,7 +77,7 @@ public class JoinAligner implements BatchStepAlignment, TaskListener,
     }
 
     public void setParameters(ParameterSet parameters) {
-        this.parameters = parameters;
+        this.parameters = (JoinAlignerParameters) parameters;
     }
 
     /**
@@ -150,7 +149,7 @@ public class JoinAligner implements BatchStepAlignment, TaskListener,
         // prepare a new group with just one task
         Task tasks[] = new JoinAlignerTask[1];
         tasks[0] = new JoinAlignerTask(peakLists,
-                (SimpleParameterSet) parameters);
+                (JoinAlignerParameters) parameters);
         TaskGroup newGroup = new TaskGroup(tasks, this, taskGroupListener);
 
         // start the group

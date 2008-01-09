@@ -52,7 +52,7 @@ import net.sf.mzmine.userinterface.dialogs.ParameterSetupDialog;
 public class FTMSFilter implements BatchStepPeakPicking, TaskListener,
         ActionListener {
 
-    private ParameterSet parameters;
+    private FTMSFilterParameters parameters;
 
     private Logger logger = Logger.getLogger(this.getClass().getName());
 
@@ -74,7 +74,7 @@ public class FTMSFilter implements BatchStepPeakPicking, TaskListener,
     }
 
     public void setParameters(ParameterSet parameters) {
-        this.parameters = parameters;
+        this.parameters = (FTMSFilterParameters) parameters;
     }
 
     /**
@@ -172,7 +172,7 @@ public class FTMSFilter implements BatchStepPeakPicking, TaskListener,
         Task tasks[] = new FTMSFilterTask[peakLists.length];
         for (int i = 0; i < peakLists.length; i++) {
             tasks[i] = new FTMSFilterTask(peakLists[i],
-                    (SimpleParameterSet) parameters);
+                    (FTMSFilterParameters) parameters);
         }
 
         TaskGroup newGroup = new TaskGroup(tasks, this, taskGroupListener);

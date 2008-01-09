@@ -48,7 +48,7 @@ import net.sf.mzmine.userinterface.dialogs.ParameterSetupDialog;
 public class IsotopeGrouper implements BatchStepPeakPicking, TaskListener,
         ActionListener {
 
-    private ParameterSet parameters;
+    private IsotopeGrouperParameters parameters;
 
     private Logger logger = Logger.getLogger(this.getClass().getName());
 
@@ -69,7 +69,7 @@ public class IsotopeGrouper implements BatchStepPeakPicking, TaskListener,
     }
 
     public void setParameters(ParameterSet parameters) {
-        this.parameters = parameters;
+        this.parameters = (IsotopeGrouperParameters) parameters;
     }
 
     /**
@@ -166,7 +166,7 @@ public class IsotopeGrouper implements BatchStepPeakPicking, TaskListener,
         Task tasks[] = new IsotopeGrouperTask[peakLists.length];
         for (int i = 0; i < peakLists.length; i++) {
             tasks[i] = new IsotopeGrouperTask(peakLists[i],
-                    (SimpleParameterSet) parameters);
+                    (IsotopeGrouperParameters) parameters);
         }
 
         TaskGroup newGroup = new TaskGroup(tasks, this, taskGroupListener);

@@ -19,7 +19,6 @@
 
 package net.sf.mzmine.modules.alignment.gapfiller;
 
-import net.sf.mzmine.data.ParameterSet;
 import net.sf.mzmine.data.Scan;
 import net.sf.mzmine.io.RawDataFile;
 import net.sf.mzmine.taskcontrol.Task;
@@ -33,12 +32,12 @@ class SimpleGapFillerTask implements Task {
     private TaskStatus status;
     private String errorMessage;
 
-    private ParameterSet parameters;
+    private SimpleGapFillerParameters parameters;
     private int processedScans;;
     private int totalScans;
 
     public SimpleGapFillerTask(RawDataFile rawDataFile,
-            EmptyGap[] emptyGaps, ParameterSet parameters) {
+            EmptyGap[] emptyGaps, SimpleGapFillerParameters parameters) {
 
         status = TaskStatus.WAITING;
 

@@ -36,7 +36,6 @@ import javax.swing.JPopupMenu;
 import javax.swing.KeyStroke;
 
 import net.sf.mzmine.main.MZmineCore;
-import net.sf.mzmine.modules.visualization.tic.TICVisualizerWindow.PlotType;
 import net.sf.mzmine.userinterface.Desktop;
 import net.sf.mzmine.userinterface.components.AddFilePopupMenu;
 import net.sf.mzmine.userinterface.components.RemoveFilePopupMenu;
@@ -100,10 +99,10 @@ class TICPlot extends ChartPanel {
     // data points shape
     private static final Shape dataPointsShape = new Ellipse2D.Float(-2, -2, 5, 5);
 
-    // title font
-    private static final Font titleFont = new Font("SansSerif", Font.PLAIN, 11);
-
-    private TextTitle chartTitle;
+    // titles
+    private static final Font titleFont = new Font("SansSerif", Font.BOLD, 12);
+    private static final Font subTitleFont = new Font("SansSerif", Font.PLAIN, 11);
+    private TextTitle chartTitle, subTitle;
 
     private LegendTitle legend;
 
@@ -134,7 +133,7 @@ class TICPlot extends ChartPanel {
         setCursor(Cursor.getPredefinedCursor(Cursor.CROSSHAIR_CURSOR));
 
         String yAxisLabel;
-        if (visualizer.getPlotType() == PlotType.BASE_PEAK) yAxisLabel = "Base peak intensity";
+        if (visualizer.getPlotType() == TICVisualizerParameters.plotTypeBP) yAxisLabel = "Base peak intensity";
             else yAxisLabel = "Total ion intensity";
         
         // initialize the chart by default time series chart from factory
@@ -152,9 +151,14 @@ class TICPlot extends ChartPanel {
 
         // title
         chartTitle = chart.getTitle();
-        chartTitle.setMargin(5, 0, 0, 0);
         chartTitle.setFont(titleFont);
-
+        chartTitle.setMargin(5, 0, 0, 0);
+        
+        subTitle = new TextTitle();
+        subTitle.setFont(subTitleFont);
+        subTitle.setMargin(5, 0, 0, 0);
+        chart.addSubtitle(subTitle);
+        
         // disable maximum size (we don't want scaling)
         setMaximumDrawWidth(Integer.MAX_VALUE);
         setMaximumDrawHeight(Integer.MAX_VALUE);
@@ -205,9 +209,7 @@ class TICPlot extends ChartPanel {
        
 
         // set label generator
-        XYItemLabelGenerator labelGenerator;
-        if (visualizer.getPlotType() == PlotType.BASE_PEAK) labelGenerator = new BasePeakItemLabelGenerator(this);
-            else labelGenerator = new TICItemLabelGenerator(this);
+        XYItemLabelGenerator labelGenerator = new TICItemLabelGenerator(this, visualizer);
         defaultRenderer.setBaseItemLabelGenerator(labelGenerator);
         defaultRenderer.setBaseItemLabelsVisible(true);
 
@@ -380,8 +382,9 @@ class TICPlot extends ChartPanel {
         }
     }
 
-    void setTitle(String title) {
-        chartTitle.setText(title);
+    void setTitle(String titleText, String subTitleText) {
+        chartTitle.setText(titleText);
+        subTitle.setText(subTitleText);
     }
 
 }

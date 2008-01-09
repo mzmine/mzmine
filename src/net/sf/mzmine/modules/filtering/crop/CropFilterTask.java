@@ -23,7 +23,6 @@ import java.io.IOException;
 import java.util.Arrays;
 
 import net.sf.mzmine.data.Scan;
-import net.sf.mzmine.data.impl.SimpleParameterSet;
 import net.sf.mzmine.data.impl.SimpleScan;
 import net.sf.mzmine.io.RawDataFile;
 import net.sf.mzmine.io.RawDataFileWriter;
@@ -52,7 +51,7 @@ class CropFilterTask implements Task {
      * @param rawDataFile
      * @param parameters
      */
-    CropFilterTask(RawDataFile dataFile, SimpleParameterSet parameters) {
+    CropFilterTask(RawDataFile dataFile, CropFilterParameters parameters) {
         this.dataFile = dataFile;
         suffix = (String) parameters.getParameterValue(CropFilterParameters.suffix);
         minMZ = (Float) parameters.getParameterValue(CropFilterParameters.minMZ);

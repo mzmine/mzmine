@@ -1,5 +1,5 @@
 /*
- * Copyright 2006 The MZmine Development Team
+ * Copyright 2006-2008 The MZmine Development Team
  * 
  * This file is part of MZmine.
  * 
@@ -22,21 +22,28 @@ package net.sf.mzmine.modules.visualization.tic;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
+import java.util.Hashtable;
 import java.util.logging.Logger;
 
-import javax.swing.JDialog;
-
+import net.sf.mzmine.data.Parameter;
 import net.sf.mzmine.data.ParameterSet;
+import net.sf.mzmine.data.Peak;
 import net.sf.mzmine.io.RawDataFile;
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.main.MZmineModule;
 import net.sf.mzmine.userinterface.Desktop;
 import net.sf.mzmine.userinterface.Desktop.MZmineMenu;
+import net.sf.mzmine.userinterface.dialogs.ExitCode;
+import net.sf.mzmine.userinterface.dialogs.ParameterSetupDialog;
 
 /**
  * TIC visualizer using JFreeChart library
  */
 public class TICVisualizer implements MZmineModule, ActionListener {
+
+    private static TICVisualizer myInstance;
+    
+    private TICVisualizerParameters parameters;
 
     private Logger logger = Logger.getLogger(this.getClass().getName());
 
@@ -48,29 +55,96 @@ public class TICVisualizer implements MZmineModule, ActionListener {
     public void initModule() {
 
         this.desktop = MZmineCore.getDesktop();
-        
+
+        parameters = new TICVisualizerParameters();
+
         desktop.addMenuItem(MZmineMenu.VISUALIZATION, "TIC plot", this, null,
                 KeyEvent.VK_T, false, true);
+        
+        myInstance = this;
 
+    }
+    
+    public static TICVisualizer getInstance() {
+        return myInstance;
     }
 
     /**
      * @see java.awt.event.ActionListener#actionPerformed(java.awt.event.ActionEvent)
      */
     public void actionPerformed(ActionEvent e) {
+        RawDataFile selectedFiles[] = desktop.getSelectedDataFiles(); 
+        showNewTICVisualizerWindow(selectedFiles, null, parameters);
+    }
+    
+    public void showNewTICVisualizerWindow(RawDataFile[] dataFiles, Peak[] peaks, int msLevel, Object plotType, float rtMin, float rtMax, float mzMin, float mzMax) {
+        TICVisualizerParameters newParameters = (TICVisualizerParameters) parameters.clone();
+        newParameters.setParameterValue(TICVisualizerParameters.msLevel, msLevel);
+        newParameters.setParameterValue(TICVisualizerParameters.plotType, plotType);
+        newParameters.setParameterValue(TICVisualizerParameters.minRT, rtMin);
+        newParameters.setParameterValue(TICVisualizerParameters.maxRT, rtMax);
+        newParameters.setParameterValue(TICVisualizerParameters.minMZ, mzMin);
+        newParameters.setParameterValue(TICVisualizerParameters.maxMZ, mzMax);
+        showNewTICVisualizerWindow(dataFiles, peaks, newParameters);
+    }
+    
+    public void showNewTICVisualizerWindow(RawDataFile[] dataFiles, Peak[] peaks) {
+        showNewTICVisualizerWindow(dataFiles, peaks, parameters);
+    }
+    
+    private void showNewTICVisualizerWindow(RawDataFile[] dataFiles, Peak[] peaks, TICVisualizerParameters parameters) {
+        
 
         logger.finest("Opening a new TIC visualizer setup dialog");
 
-        RawDataFile dataFiles[] = desktop.getSelectedDataFiles();
-        if (dataFiles.length == 0) {
+        if ((dataFiles == null) || (dataFiles.length == 0)) {
             desktop.displayErrorMessage("Please select at least one data file");
             return;
         }
-
-        for (RawDataFile dataFile : dataFiles) {
-            JDialog setupDialog = new TICSetupDialog(dataFile);
-            setupDialog.setVisible(true);
+        
+        Hashtable<Parameter, Object> autoValues = null;
+        if (dataFiles.length == 1) {
+            autoValues = new Hashtable<Parameter, Object>();
+            autoValues.put(TICVisualizerParameters.msLevel, 1);
+            autoValues.put(TICVisualizerParameters.minRT,
+                    dataFiles[0].getDataMinRT(1));
+            autoValues.put(TICVisualizerParameters.maxRT,
+                    dataFiles[0].getDataMaxRT(1));
+            autoValues.put(TICVisualizerParameters.minMZ,
+                    dataFiles[0].getDataMinMZ(1));
+            autoValues.put(TICVisualizerParameters.maxMZ,
+                    dataFiles[0].getDataMaxMZ(1));
         }
+
+        ParameterSetupDialog dialog = new ParameterSetupDialog(
+                desktop.getMainFrame(), "Please set parameter values for "
+                        + toString(), parameters,
+                autoValues);
+
+        dialog.setVisible(true);
+
+        if (dialog.getExitCode() != ExitCode.OK)
+            return;
+        
+        int msLevel = (Integer) parameters.getParameterValue(TICVisualizerParameters.msLevel);
+
+        float rtMin = (Float) parameters.getParameterValue(TICVisualizerParameters.minRT);
+        float rtMax = (Float) parameters.getParameterValue(TICVisualizerParameters.maxRT);
+        float mzMin = (Float) parameters.getParameterValue(TICVisualizerParameters.minMZ);
+        float mzMax = (Float) parameters.getParameterValue(TICVisualizerParameters.maxMZ);
+        
+
+        if ((rtMax < rtMin) || (mzMax < mzMin)) {
+            desktop.displayErrorMessage("Invalid bounds");
+            return;
+        }
+        
+        this.parameters = parameters;
+
+        Object plotType = parameters.getParameterValue(TICVisualizerParameters.plotType);
+        
+        new TICVisualizerWindow(dataFiles, plotType, msLevel, rtMin,
+                rtMax, mzMin, mzMax, peaks);        
     }
 
     /**
@@ -84,13 +158,14 @@ public class TICVisualizer implements MZmineModule, ActionListener {
      * @see net.sf.mzmine.main.MZmineModule#getParameterSet()
      */
     public ParameterSet getParameterSet() {
-        return null;
+        return parameters;
     }
 
     /**
      * @see net.sf.mzmine.main.MZmineModule#setParameters(net.sf.mzmine.data.ParameterSet)
      */
-    public void setParameters(ParameterSet parameterValues) {
+    public void setParameters(ParameterSet newParameters) {
+        parameters = (TICVisualizerParameters) newParameters;
     }
 
 }

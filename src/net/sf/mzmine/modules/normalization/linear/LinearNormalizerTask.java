@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2007 The MZmine Development Team
+ * Copyright 2006-2008 The MZmine Development Team
  * 
  * This file is part of MZmine.
  * 
@@ -25,11 +25,12 @@ import net.sf.mzmine.data.CompoundIdentity;
 import net.sf.mzmine.data.Peak;
 import net.sf.mzmine.data.PeakList;
 import net.sf.mzmine.data.PeakListRow;
-import net.sf.mzmine.data.impl.SimpleParameterSet;
 import net.sf.mzmine.data.impl.SimplePeak;
 import net.sf.mzmine.data.impl.SimplePeakList;
 import net.sf.mzmine.data.impl.SimplePeakListRow;
 import net.sf.mzmine.io.RawDataFile;
+import net.sf.mzmine.main.MZmineCore;
+import net.sf.mzmine.project.MZmineProject;
 import net.sf.mzmine.taskcontrol.Task;
 
 class LinearNormalizerTask implements Task {
@@ -37,24 +38,23 @@ class LinearNormalizerTask implements Task {
     static final float maximumOverallPeakHeightAfterNormalization = 100000.0f;
 
     private PeakList originalPeakList;
-    private String normalizationTypeString;
 
-    private TaskStatus status;
+    private TaskStatus status = TaskStatus.WAITING;
     private String errorMessage;
 
-    private int processedDataFiles;
-    private int totalDataFiles;
+    private int processedDataFiles, totalDataFiles;
 
-    private SimplePeakList normalizedPeakList;
+    private String suffix, normalizationType;
+    private boolean removeOriginal;
 
     public LinearNormalizerTask(PeakList alignmentResult,
-            SimpleParameterSet parameters) {
-        
-        status = TaskStatus.WAITING;
+            LinearNormalizerParameters parameters) {
 
         this.originalPeakList = alignmentResult;
 
-        normalizationTypeString = (String) parameters.getParameterValue(LinearNormalizer.normalizationType);
+        suffix = (String) parameters.getParameterValue(LinearNormalizerParameters.suffix);
+        normalizationType = (String) parameters.getParameterValue(LinearNormalizerParameters.normalizationType);
+        removeOriginal = (Boolean) parameters.getParameterValue(LinearNormalizerParameters.autoRemove);
 
     }
 
@@ -71,17 +71,13 @@ class LinearNormalizerTask implements Task {
         return (float) processedDataFiles / (float) totalDataFiles;
     }
 
-    public PeakList getResult() {
-        return normalizedPeakList;
-    }
-
     public TaskStatus getStatus() {
         return status;
     }
 
     public String getTaskDescription() {
         return "Linear normalization of " + originalPeakList + " by "
-                + normalizationTypeString;
+                + normalizationType;
     }
 
     public void run() {
@@ -94,9 +90,9 @@ class LinearNormalizerTask implements Task {
         // the normalized alignment
         Hashtable<PeakListRow, SimplePeakListRow> rowMap = new Hashtable<PeakListRow, SimplePeakListRow>();
 
-        // Initialize new alignment result for to normalized result
-        normalizedPeakList = new SimplePeakList(originalPeakList.toString()
-                + " normalized by " + normalizationTypeString);
+        // Create new peak list
+        SimplePeakList normalizedPeakList = new SimplePeakList(
+                originalPeakList.toString() + " " + suffix);
 
         // Copy raw data files from original alignment result to new alignment
         // result
@@ -130,7 +126,7 @@ class LinearNormalizerTask implements Task {
             float normalizationFactor = 1.0f;
 
             // - normalization by average squared peak intensity
-            if (normalizationTypeString == LinearNormalizer.NormalizationTypeAverageIntensity) {
+            if (normalizationType == LinearNormalizerParameters.NormalizationTypeAverageIntensity) {
                 float intensitySum = 0.0f;
                 int intensityCount = 0;
                 for (PeakListRow alignmentRow : originalPeakList.getRows()) {
@@ -146,7 +142,7 @@ class LinearNormalizerTask implements Task {
             }
 
             // - normalization by average squared peak intensity
-            if (normalizationTypeString == LinearNormalizer.NormalizationTypeAverageSquaredIntensity) {
+            if (normalizationType == LinearNormalizerParameters.NormalizationTypeAverageSquaredIntensity) {
                 float intensitySum = 0.0f;
                 int intensityCount = 0;
                 for (PeakListRow alignmentRow : originalPeakList.getRows()) {
@@ -162,7 +158,7 @@ class LinearNormalizerTask implements Task {
             }
 
             // - normalization by maximum peak intensity
-            if (normalizationTypeString == LinearNormalizer.NormalizationTypeMaximumPeakHeight) {
+            if (normalizationType == LinearNormalizerParameters.NormalizationTypeMaximumPeakHeight) {
                 float maximumIntensity = 0.0f;
                 for (PeakListRow alignmentRow : originalPeakList.getRows()) {
                     Peak p = alignmentRow.getPeak(ord);
@@ -177,7 +173,7 @@ class LinearNormalizerTask implements Task {
             }
 
             // - normalization by total raw signal
-            if (normalizationTypeString == LinearNormalizer.NormalizationTypeTotalRawSignal) {
+            if (normalizationType == LinearNormalizerParameters.NormalizationTypeTotalRawSignal) {
                 normalizationFactor = 0;
                 for (int scanNumber : ord.getScanNumbers(1)) {
                     normalizationFactor += ord.getScan(scanNumber).getTIC();
@@ -232,6 +228,14 @@ class LinearNormalizerTask implements Task {
             SimplePeakListRow normalizedRow = rowMap.get(originalAlignmentRow);
             normalizedPeakList.addRow(normalizedRow);
         }
+
+        // Add new peaklist to the project
+        MZmineProject currentProject = MZmineCore.getCurrentProject();
+        currentProject.addPeakList(normalizedPeakList);
+
+        // Remove the original peaklist if requested
+        if (removeOriginal)
+            MZmineCore.getCurrentProject().removePeakList(originalPeakList);
 
         status = TaskStatus.FINISHED;
     }

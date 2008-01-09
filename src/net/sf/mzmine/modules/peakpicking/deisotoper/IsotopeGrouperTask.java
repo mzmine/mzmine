@@ -25,7 +25,6 @@ import java.util.Hashtable;
 import net.sf.mzmine.data.Peak;
 import net.sf.mzmine.data.PeakList;
 import net.sf.mzmine.data.impl.SimpleIsotopePattern;
-import net.sf.mzmine.data.impl.SimpleParameterSet;
 import net.sf.mzmine.data.impl.SimplePeakList;
 import net.sf.mzmine.data.impl.SimplePeakListRow;
 import net.sf.mzmine.io.RawDataFile;
@@ -59,7 +58,7 @@ class IsotopeGrouperTask implements Task {
      * @param rawDataFile
      * @param parameters
      */
-    IsotopeGrouperTask(PeakList peaklist, SimpleParameterSet parameters) {
+    IsotopeGrouperTask(PeakList peaklist, IsotopeGrouperParameters parameters) {
 
         this.peaklist = peaklist;
 

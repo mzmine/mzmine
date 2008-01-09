@@ -144,21 +144,21 @@ public class SimpleStandardCompoundNormalizer implements MZmineModule,
     public TaskGroup runModule(RawDataFile[] dataFiles,
             PeakList[] alignmentResults,
             SimpleStandardCompoundNormalizerParameterSet parameters,
-            TaskGroupListener methodListener) {
+            TaskGroupListener taskGroupListener) {
 
-        // prepare a new sequence of tasks
+        // prepare a new group of tasks
 
         Task tasks[] = new SimpleStandardCompoundNormalizerTask[alignmentResults.length];
         for (int i = 0; i < alignmentResults.length; i++) {
             tasks[i] = new SimpleStandardCompoundNormalizerTask(
                     alignmentResults[i], parameters);
         }
-        TaskGroup newSequence = new TaskGroup(tasks, this, methodListener);
+        TaskGroup newGroup = new TaskGroup(tasks, this, taskGroupListener);
 
-        // execute the sequence
-        newSequence.start();
+        // start the group
+        newGroup.start();
 
-        return newSequence;
+        return newGroup;
 
     }
 

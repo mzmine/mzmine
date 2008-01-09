@@ -53,7 +53,7 @@ public class SimpleGapFiller implements BatchStepAlignment, TaskListener,
 
     private Logger logger = Logger.getLogger(this.getClass().getName());
 
-    private ParameterSet parameters;
+    private SimpleGapFillerParameters parameters;
 
     private Desktop desktop;
 
@@ -79,9 +79,7 @@ public class SimpleGapFiller implements BatchStepAlignment, TaskListener,
         return "Simple Gap filler";
     }
 
-    public void setParameters(ParameterSet parameters) {
-        this.parameters = parameters;
-    }
+
 
     /**
      * @see java.awt.event.ActionListener#actionPerformed(java.awt.event.ActionEvent)
@@ -199,6 +197,10 @@ public class SimpleGapFiller implements BatchStepAlignment, TaskListener,
     public ParameterSet getParameterSet() {
         return parameters;
     }
+    
+    public void setParameters(ParameterSet parameters) {
+        this.parameters = (SimpleGapFillerParameters) parameters;
+    }
 
     /**
      * @see net.sf.mzmine.modules.BatchStep#runModule(net.sf.mzmine.io.RawDataFile[],
@@ -242,7 +244,7 @@ public class SimpleGapFiller implements BatchStepAlignment, TaskListener,
             }
 
             tasks[rawDataFileIndex] = new SimpleGapFillerTask(rawDataFile,
-                    emptyGaps, (SimpleParameterSet) parameters);
+                    emptyGaps, (SimpleGapFillerParameters) parameters);
 
         }
 

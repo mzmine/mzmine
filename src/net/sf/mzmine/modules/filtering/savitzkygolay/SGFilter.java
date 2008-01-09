@@ -42,7 +42,7 @@ import net.sf.mzmine.userinterface.dialogs.ParameterSetupDialog;
 public class SGFilter implements BatchStepFiltering, TaskListener,
         ActionListener {
 
-    private ParameterSet parameters;
+    private SGFilterParameters parameters;
 
     private Logger logger = Logger.getLogger(this.getClass().getName());
 
@@ -119,7 +119,7 @@ public class SGFilter implements BatchStepFiltering, TaskListener,
         Task tasks[] = new SGFilterTask[dataFiles.length];
         for (int i = 0; i < dataFiles.length; i++) {
             tasks[i] = new SGFilterTask(dataFiles[i],
-                    (SimpleParameterSet) parameters);
+                    (SGFilterParameters) parameters);
         }
         TaskGroup newGroup = new TaskGroup(tasks, this, taskGroupListener);
 
@@ -141,7 +141,7 @@ public class SGFilter implements BatchStepFiltering, TaskListener,
      * @see net.sf.mzmine.main.MZmineModule#setParameters(net.sf.mzmine.data.ParameterSet)
      */
     public void setParameters(ParameterSet parameters) {
-        this.parameters = parameters;
+        this.parameters = (SGFilterParameters) parameters;
     }
 
     /**

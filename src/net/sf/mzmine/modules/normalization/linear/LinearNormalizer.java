@@ -48,24 +48,9 @@ import net.sf.mzmine.userinterface.dialogs.ParameterSetupDialog;
 public class LinearNormalizer implements BatchStepNormalization, TaskListener,
         ActionListener {
 
-    protected static final String NormalizationTypeAverageIntensity = "Average intensity";
-    protected static final String NormalizationTypeAverageSquaredIntensity = "Average squared intensity";
-    protected static final String NormalizationTypeMaximumPeakHeight = "Maximum peak intensity";
-    protected static final String NormalizationTypeTotalRawSignal = "Total raw signal";
-
-    protected static final Object[] normalizationTypePossibleValues = {
-            NormalizationTypeAverageIntensity,
-            NormalizationTypeAverageSquaredIntensity,
-            NormalizationTypeMaximumPeakHeight, NormalizationTypeTotalRawSignal };
-
-    protected static final Parameter normalizationType = new SimpleParameter(
-            ParameterType.STRING, "Normalization type",
-            "Normalize intensities by...", NormalizationTypeAverageIntensity,
-            normalizationTypePossibleValues);
-
     private Logger logger = Logger.getLogger(this.getClass().getName());
 
-    private ParameterSet parameters;
+    private LinearNormalizerParameters parameters;
 
     private Desktop desktop;
 
@@ -76,8 +61,7 @@ public class LinearNormalizer implements BatchStepNormalization, TaskListener,
 
         this.desktop = MZmineCore.getDesktop();
 
-        parameters = new SimpleParameterSet(
-                new Parameter[] { normalizationType });
+        parameters = new LinearNormalizerParameters();
 
         desktop.addMenuItem(MZmineMenu.NORMALIZATION, "Linear normalizer",
                 this, null, KeyEvent.VK_A, false, true);
@@ -96,7 +80,7 @@ public class LinearNormalizer implements BatchStepNormalization, TaskListener,
     }
 
     public void setParameters(ParameterSet parameters) {
-        this.parameters = parameters;
+        this.parameters = (LinearNormalizerParameters) parameters;
     }
 
     /**
@@ -116,8 +100,10 @@ public class LinearNormalizer implements BatchStepNormalization, TaskListener,
     public void actionPerformed(ActionEvent e) {
 
         PeakList[] selectedPeakLists = desktop.getSelectedPeakLists();
-        if (selectedPeakLists.length < 1) {
-            desktop.displayErrorMessage("Please select aligned peaklist");
+
+        // check peak lists
+        if ((selectedPeakLists == null) || (selectedPeakLists.length == 0)) {
+            desktop.displayErrorMessage("Please select peak lists for normalization");
             return;
         }
 
@@ -136,21 +122,14 @@ public class LinearNormalizer implements BatchStepNormalization, TaskListener,
     public void taskFinished(Task task) {
 
         if (task.getStatus() == Task.TaskStatus.FINISHED) {
-
             logger.info("Finished linear normalizer");
+        }
 
-            PeakList normalizedPeakList = ((LinearNormalizerTask) task).getResult();
-
-            MZmineCore.getCurrentProject().addPeakList(
-                    normalizedPeakList);
-
-        } else if (task.getStatus() == Task.TaskStatus.ERROR) {
-            /* Task encountered an error */
+        if (task.getStatus() == Task.TaskStatus.ERROR) {
             String msg = "Error while normalizing alignment result(s): "
                     + task.getErrorMessage();
             logger.severe(msg);
             desktop.displayErrorMessage(msg);
-
         }
 
     }
@@ -161,25 +140,27 @@ public class LinearNormalizer implements BatchStepNormalization, TaskListener,
      *      net.sf.mzmine.taskcontrol.TaskGroupListener)
      */
     public TaskGroup runModule(RawDataFile[] dataFiles,
-            PeakList[] alignmentResults, ParameterSet parameters,
-            TaskGroupListener methodListener) {
+            PeakList[] peakLists, ParameterSet parameters,
+            TaskGroupListener taskGroupListener) {
 
-        if (alignmentResults == null) {
-            throw new IllegalArgumentException("Cannot run normalization without aligned peak list");
+        // check peak lists
+        if ((peakLists == null) || (peakLists.length == 0)) {
+            desktop.displayErrorMessage("Please select peak lists for normalization");
+            return null;
         }
-        
-        // prepare a new sequence of tasks
-        Task tasks[] = new LinearNormalizerTask[alignmentResults.length];
-        for (int i = 0; i < alignmentResults.length; i++) {
-            tasks[i] = new LinearNormalizerTask(alignmentResults[i],
-                    (SimpleParameterSet) parameters);
+
+        // prepare a new group of tasks
+        Task tasks[] = new LinearNormalizerTask[peakLists.length];
+        for (int i = 0; i < peakLists.length; i++) {
+            tasks[i] = new LinearNormalizerTask(peakLists[i],
+                    (LinearNormalizerParameters) parameters);
         }
-        TaskGroup newSequence = new TaskGroup(tasks, this, methodListener);
+        TaskGroup newGroup = new TaskGroup(tasks, this, taskGroupListener);
 
-        // execute the sequence
-        newSequence.start();
+        // start the group
+        newGroup.start();
 
-        return newSequence;
+        return newGroup;
 
     }
 

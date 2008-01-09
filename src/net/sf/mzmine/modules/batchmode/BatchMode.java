@@ -23,7 +23,7 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
 import java.util.Arrays;
-import java.util.HashSet;
+import java.util.Vector;
 import java.util.logging.Logger;
 
 import net.sf.mzmine.data.ParameterSet;
@@ -56,8 +56,8 @@ public class BatchMode implements MZmineModule, TaskGroupListener,
     private RawDataFile selectedDataFiles[];
     private PeakList selectedPeakLists[];
 
-    private HashSet<RawDataFile> previousProjectDataFiles;
-    private HashSet<PeakList> previousProjectPeakLists;
+    private Vector<RawDataFile> previousProjectDataFiles;
+    private Vector<PeakList> previousProjectPeakLists;
 
     /**
      * @see net.sf.mzmine.main.MZmineModule#initModule(net.sf.mzmine.main.MZmineCore)
@@ -96,9 +96,9 @@ public class BatchMode implements MZmineModule, TaskGroupListener,
             selectedPeakLists = desktop.getSelectedPeakLists();
 
             MZmineProject project = MZmineCore.getCurrentProject();
-            previousProjectDataFiles = new HashSet<RawDataFile>(
+            previousProjectDataFiles = new Vector<RawDataFile>(
                     Arrays.asList(project.getDataFiles()));
-            previousProjectPeakLists = new HashSet<PeakList>(
+            previousProjectPeakLists = new Vector<PeakList>(
                     Arrays.asList(project.getPeakLists()));
 
             runNextStep();
@@ -133,18 +133,18 @@ public class BatchMode implements MZmineModule, TaskGroupListener,
 
                 // Get current project state
                 MZmineProject project = MZmineCore.getCurrentProject();
-                HashSet<RawDataFile> currentProjectDataFiles = new HashSet<RawDataFile>(
+                Vector<RawDataFile> currentProjectDataFiles = new Vector<RawDataFile>(
                         Arrays.asList(project.getDataFiles()));
-                HashSet<PeakList> currentProjectPeakLists = new HashSet<PeakList>(
+                Vector<PeakList> currentProjectPeakLists = new Vector<PeakList>(
                         Arrays.asList(project.getPeakLists()));
 
                 // Check if we have any newly added files or peaklists
-                HashSet<RawDataFile> newProjectDataFiles = new HashSet<RawDataFile>(
+                Vector<RawDataFile> newProjectDataFiles = new Vector<RawDataFile>(
                         currentProjectDataFiles);
                 newProjectDataFiles.removeAll(previousProjectDataFiles);
                 if (!newProjectDataFiles.isEmpty())
                     selectedDataFiles = newProjectDataFiles.toArray(new RawDataFile[0]);
-                HashSet<PeakList> newProjectPeakLists = new HashSet<PeakList>(
+                Vector<PeakList> newProjectPeakLists = new Vector<PeakList>(
                         currentProjectPeakLists);
                 newProjectPeakLists.removeAll(previousProjectPeakLists);
                 if (!newProjectPeakLists.isEmpty())

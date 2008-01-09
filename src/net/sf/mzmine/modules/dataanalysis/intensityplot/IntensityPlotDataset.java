@@ -25,6 +25,7 @@ import java.util.LinkedHashSet;
 import java.util.List;
 
 import net.sf.mzmine.data.Parameter;
+import net.sf.mzmine.data.ParameterType;
 import net.sf.mzmine.data.Peak;
 import net.sf.mzmine.data.PeakListRow;
 import net.sf.mzmine.io.RawDataFile;
@@ -67,6 +68,13 @@ class IntensityPlotDataset extends AbstractDataset implements
                 parameterValues.add((Comparable) value);
             }
             xValues = parameterValues.toArray(new Comparable[0]);
+
+            // if we have a numerical axis, we don't want the values to be
+            // sorted by the data file order, but rather numerically
+            if ((xAxisParameter.getType() == ParameterType.INTEGER)
+                    || (xAxisParameter.getType() == ParameterType.FLOAT)) {
+                Arrays.sort(xValues);
+            }
         }
 
         if (xAxisValueSource == IntensityPlotParameters.DataFileOption) {

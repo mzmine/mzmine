@@ -46,7 +46,7 @@ import net.sf.mzmine.userinterface.dialogs.ParameterSetupDialog;
 public class CentroidPicker implements BatchStepPeakPicking, TaskListener,
         ActionListener {
 
-    private ParameterSet parameters;
+    private CentroidPickerParameters parameters;
 
     private Logger logger = Logger.getLogger(this.getClass().getName());
 
@@ -64,10 +64,6 @@ public class CentroidPicker implements BatchStepPeakPicking, TaskListener,
         desktop.addMenuItem(MZmineMenu.PEAKPICKING, "Centroid peak detector",
                 this, null, KeyEvent.VK_C, false, true);
 
-    }
-
-    public void setParameters(ParameterSet parameters) {
-        this.parameters = parameters;
     }
 
     /**
@@ -122,13 +118,6 @@ public class CentroidPicker implements BatchStepPeakPicking, TaskListener,
     }
 
     /**
-     * @see net.sf.mzmine.main.MZmineModule#setCurrentParameters(net.sf.mzmine.data.ParameterSet)
-     */
-    public void setCurrentParameters(ParameterSet parameters) {
-        this.parameters = parameters;
-    }
-
-    /**
      * @see net.sf.mzmine.modules.BatchStep#setupParameters(net.sf.mzmine.data.ParameterSet)
      */
     public ExitCode setupParameters(ParameterSet currentParameters) {
@@ -146,6 +135,10 @@ public class CentroidPicker implements BatchStepPeakPicking, TaskListener,
         return parameters;
     }
 
+    public void setParameters(ParameterSet parameters) {
+        this.parameters = (CentroidPickerParameters) parameters;
+    }
+
     /**
      * @see net.sf.mzmine.modules.BatchStep#runModule(net.sf.mzmine.io.RawDataFile[],
      *      net.sf.mzmine.data.AlignmentResult[],
@@ -161,12 +154,12 @@ public class CentroidPicker implements BatchStepPeakPicking, TaskListener,
             desktop.displayErrorMessage("Please select data files for peak picking");
             return null;
         }
-        
+
         // prepare a new group of tasks
         Task tasks[] = new CentroidPickerTask[dataFiles.length];
         for (int i = 0; i < dataFiles.length; i++) {
             tasks[i] = new CentroidPickerTask(dataFiles[i],
-                    (SimpleParameterSet) parameters);
+                    (CentroidPickerParameters) parameters);
         }
         TaskGroup newGroup = new TaskGroup(tasks, this, taskGroupListener);
 

@@ -44,7 +44,7 @@ public class RecursivePicker implements BatchStepPeakPicking, TaskListener,
 
     private Logger logger = Logger.getLogger(this.getClass().getName());
 
-    private ParameterSet parameters;
+    private RecursivePickerParameters parameters;
 
     private Desktop desktop;
 
@@ -63,9 +63,7 @@ public class RecursivePicker implements BatchStepPeakPicking, TaskListener,
 
     }
 
-    public void setParameters(ParameterSet parameters) {
-        this.parameters = parameters;
-    }
+
 
     /**
      * @see java.awt.event.ActionListener#actionPerformed(java.awt.event.ActionEvent)
@@ -119,13 +117,6 @@ public class RecursivePicker implements BatchStepPeakPicking, TaskListener,
     }
 
     /**
-     * @see net.sf.mzmine.main.MZmineModule#setCurrentParameters(net.sf.mzmine.data.ParameterSet)
-     */
-    public void setCurrentParameters(ParameterSet parameters) {
-        this.parameters = parameters;
-    }
-
-    /**
      * @see net.sf.mzmine.modules.BatchStep#setupParameters(net.sf.mzmine.data.ParameterSet)
      */
     public ExitCode setupParameters(ParameterSet currentParameters) {
@@ -141,6 +132,10 @@ public class RecursivePicker implements BatchStepPeakPicking, TaskListener,
      */
     public ParameterSet getParameterSet() {
         return parameters;
+    }
+    
+    public void setParameters(ParameterSet parameters) {
+        this.parameters = (RecursivePickerParameters) parameters;
     }
 
     /**
@@ -163,7 +158,7 @@ public class RecursivePicker implements BatchStepPeakPicking, TaskListener,
         Task tasks[] = new RecursivePickerTask[dataFiles.length];
         for (int i = 0; i < dataFiles.length; i++) {
             tasks[i] = new RecursivePickerTask(dataFiles[i],
-                    (SimpleParameterSet) parameters);
+                    (RecursivePickerParameters) parameters);
         }
         TaskGroup newGroup = new TaskGroup(tasks, this, taskGroupListener);
 

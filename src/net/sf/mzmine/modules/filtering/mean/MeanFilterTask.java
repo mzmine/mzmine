@@ -23,7 +23,6 @@ import java.io.IOException;
 import java.util.Vector;
 
 import net.sf.mzmine.data.Scan;
-import net.sf.mzmine.data.impl.SimpleParameterSet;
 import net.sf.mzmine.data.impl.SimpleScan;
 import net.sf.mzmine.io.RawDataFile;
 import net.sf.mzmine.io.RawDataFileWriter;
@@ -52,7 +51,7 @@ class MeanFilterTask implements Task {
      * @param rawDataFile
      * @param parameters
      */
-    MeanFilterTask(RawDataFile dataFile, SimpleParameterSet parameters) {
+    MeanFilterTask(RawDataFile dataFile, MeanFilterParameters parameters) {
         this.dataFile = dataFile;
         suffix = (String) parameters.getParameterValue(MeanFilterParameters.suffix);
         oneSidedWindowLength = ((Float) parameters.getParameterValue(MeanFilterParameters.oneSidedWindowLength)).floatValue();

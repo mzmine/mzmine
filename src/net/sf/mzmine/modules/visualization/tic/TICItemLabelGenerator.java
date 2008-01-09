@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2007 The MZmine Development Team
+ * Copyright 2006-2008 The MZmine Development Team
  * 
  * This file is part of MZmine.
  * 
@@ -32,9 +32,11 @@ import org.jfree.data.xy.XYDataset;
 class TICItemLabelGenerator implements XYItemLabelGenerator {
 
     private TICPlot plot;
+    private TICVisualizerWindow ticWindow;
 
-    TICItemLabelGenerator(TICPlot plot) {
+    TICItemLabelGenerator(TICPlot plot, TICVisualizerWindow ticWindow) {
         this.plot = plot;
+        this.ticWindow = ticWindow;
     }
 
     /**
@@ -46,9 +48,8 @@ class TICItemLabelGenerator implements XYItemLabelGenerator {
         final double originalX = dataset.getXValue(series, item);
         final double originalY = dataset.getYValue(series, item);
 
-        final double pointX = plot.getXYPlot().getDomainAxis().getRange()
-                .getLength()
-                / plot.getWidth();
+        final double xLength = plot.getXYPlot().getDomainAxis().getRange().getLength();
+        final double pointX = xLength / plot.getWidth();
 
         final int itemCount = dataset.getItemCount(series);
 
@@ -75,9 +76,22 @@ class TICItemLabelGenerator implements XYItemLabelGenerator {
         }
 
         Desktop desktop = MZmineCore.getDesktop();
-        NumberFormat intensityFormat = desktop.getIntensityFormat();
+        Object plotType = ticWindow.getPlotType();
         
-        return intensityFormat.format(dataset.getYValue(series, item));
+        String label = "";
+        
+        if (plotType == TICVisualizerParameters.plotTypeBP) {
+            double mz = ((TICDataSet) dataset).getZValue(series, item);
+            NumberFormat mzFormat = desktop.getMZFormat();
+            label = mzFormat.format(mz);
+        }
+        
+        if (plotType == TICVisualizerParameters.plotTypeTIC) {
+            double tic = dataset.getYValue(series, item);
+            NumberFormat intensityFormat = desktop.getIntensityFormat();
+            label = intensityFormat.format(tic);        }
+        
+        return label;
 
     }
 

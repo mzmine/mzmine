@@ -1,5 +1,5 @@
 /*
- * Copyright 2006 The MZmine Development Team
+ * Copyright 2006-2008 The MZmine Development Team
  * 
  * This file is part of MZmine.
  * 
@@ -53,33 +53,30 @@ import org.jfree.data.xy.DefaultXYDataset;
 public class TICVisualizerWindow extends JInternalFrame implements
         MultipleRawDataVisualizer, TaskListener, ActionListener {
 
-    public static enum PlotType { TIC, BASE_PEAK };
-    
     private TICToolBar toolBar;
     private TICPlot plot;
 
     private Hashtable<RawDataFile, TICDataSet> dataFiles;
-    private PlotType plotType;
+    private Object plotType;
     private int msLevel;
     private float rtMin, rtMax, mzMin, mzMax;
-    
+
     private Peak[] peaks;
-    
+
     private static final double zoomCoefficient = 1.2;
 
     private Desktop desktop;
-    
+
     /**
      * Constructor for total ion chromatogram visualizer
      * 
      */
-    public TICVisualizerWindow(RawDataFile dataFile, PlotType plotType,
-            int msLevel,
-            float rtMin, float rtMax,
-            float mzMin, float mzMax, Peak[] peaks) {
-        
+    public TICVisualizerWindow(RawDataFile dataFiles[], Object plotType,
+            int msLevel, float rtMin, float rtMax, float mzMin, float mzMax,
+            Peak[] peaks) {
+
         super(null, true, true, true, true);
-        
+
         this.desktop = MZmineCore.getDesktop();
         this.plotType = plotType;
         this.msLevel = msLevel;
@@ -89,7 +86,7 @@ public class TICVisualizerWindow extends JInternalFrame implements
         this.mzMin = mzMin;
         this.mzMax = mzMax;
         this.peaks = peaks;
-        
+
         setDefaultCloseOperation(DISPOSE_ON_CLOSE);
         setBackground(Color.white);
 
@@ -99,86 +96,89 @@ public class TICVisualizerWindow extends JInternalFrame implements
         plot = new TICPlot(this);
         add(plot, BorderLayout.CENTER);
 
-        addRawDataFile(dataFile);
+        for (RawDataFile dataFile : dataFiles)
+            addRawDataFile(dataFile);
 
         pack();
 
     }
-    
+
     void updateTitle() {
 
         NumberFormat rtFormat = desktop.getRTFormat();
         NumberFormat mzFormat = desktop.getMZFormat();
         NumberFormat intensityFormat = desktop.getIntensityFormat();
-        
-        StringBuffer title = new StringBuffer();
-        title.append(dataFiles.keySet().toString());
-        title.append(": ");
-        if (plotType == PlotType.BASE_PEAK) title.append("base peak");
-            else { 
-            	// If all datafiles have m/z range less than or equal to range of the plot (mzMin, mzMax), then call this TIC, otherwise XIC 
-            	Set<RawDataFile> fileSet = dataFiles.keySet();
-            	String ticOrXIC = "TIC";
-            	for (RawDataFile orf : fileSet) {
-            		if ( (orf.getDataMinMZ(msLevel)<mzMin) || (orf.getDataMinMZ(msLevel)>mzMax) ) {
-            			ticOrXIC = "XIC";
-            			break;
-            		}
-            	}
-            	title.append(ticOrXIC); 
-            }
-        
-        title.append(" MS" + msLevel);
 
-        setTitle(title.toString());
-        
-        title.append(", m/z: " + mzFormat.format(mzMin) + " - " + mzFormat.format(mzMax));
+        StringBuffer mainTitle = new StringBuffer();
+        StringBuffer subTitle = new StringBuffer();
+        mainTitle.append(dataFiles.keySet().toString());
+        mainTitle.append(": ");
+        if (plotType == TICVisualizerParameters.plotTypeBP)
+            mainTitle.append("base peak");
+        else {
+            // If all datafiles have m/z range less than or equal to range of
+            // the plot (mzMin, mzMax), then call this TIC, otherwise XIC
+            Set<RawDataFile> fileSet = dataFiles.keySet();
+            String ticOrXIC = "TIC";
+            for (RawDataFile orf : fileSet) {
+                if ((orf.getDataMinMZ(msLevel) < mzMin)
+                        || (orf.getDataMinMZ(msLevel) > mzMax)) {
+                    ticOrXIC = "XIC";
+                    break;
+                }
+            }
+            mainTitle.append(ticOrXIC);
+        }
+
+        subTitle.append(" MS" + msLevel);
+        subTitle.append(", m/z: " + mzFormat.format(mzMin) + " - "
+                + mzFormat.format(mzMax));
 
         CursorPosition pos = getCursorPosition();
 
         if (pos != null) {
-            title.append(", scan #");
-            title.append(pos.getScanNumber());
+            subTitle.append(", scan #");
+            subTitle.append(pos.getScanNumber());
             if (dataFiles.size() > 1)
-                title.append(" (" + pos.getDataFile() + ")");
-            title.append(", RT: " + rtFormat.format(pos.getRetentionTime()));
-            if (plotType == PlotType.BASE_PEAK)
-                title.append(", base peak: " + mzFormat.format(pos.getMzValue()) + " m/z");
-            title.append(", IC: " + intensityFormat.format(pos.getIntensityValue()));
+                subTitle.append(" (" + pos.getDataFile() + ")");
+            subTitle.append(", RT: " + rtFormat.format(pos.getRetentionTime()));
+            if (plotType == TICVisualizerParameters.plotTypeBP)
+                subTitle.append(", base peak: "
+                        + mzFormat.format(pos.getMzValue()) + " m/z");
+            subTitle.append(", IC: "
+                    + intensityFormat.format(pos.getIntensityValue()));
         }
-        
+
         if (peaks != null) {
-        	if (peaks.length>1) {
-        		title.append(", " + peaks.length + " peaks");
-        	} else {
-            	title.append(", peak m/z: " + mzFormat.format(peaks[0].getMZ()));
-        	}
+            if (peaks.length > 1) {
+                subTitle.append(", " + peaks.length + " peaks");
+            } else {
+                subTitle.append(", peak m/z: " + mzFormat.format(peaks[0].getMZ()));
+            }
 
         }
 
-        plot.setTitle(title.toString());
+        setTitle(mainTitle.toString());
+        plot.setTitle(title.toString(), subTitle.toString());
 
     }
 
-    
     /**
      * @return Returns the plotType.
      */
-    PlotType getPlotType() {
+    Object getPlotType() {
         return plotType;
     }
 
     /**
-     * @see net.sf.mzmine.modules.RawDataVisualizer#setMZRange(double,
-     *      double)
+     * @see net.sf.mzmine.modules.RawDataVisualizer#setMZRange(double, double)
      */
     public void setMZRange(double mzMin, double mzMax) {
         // do nothing
     }
 
     /**
-     * @see net.sf.mzmine.modules.RawDataVisualizer#setRTRange(double,
-     *      double)
+     * @see net.sf.mzmine.modules.RawDataVisualizer#setRTRange(double, double)
      */
     public void setRTRange(double rtMin, double rtMax) {
         plot.getXYPlot().getDomainAxis().setRange(rtMin, rtMax);
@@ -200,90 +200,92 @@ public class TICVisualizerWindow extends JInternalFrame implements
     }
 
     public void addRawDataFile(RawDataFile newFile) {
-        
+
         int scanNumbers[] = newFile.getScanNumbers(msLevel, rtMin, rtMax);
         if (scanNumbers.length == 0) {
-            desktop.displayErrorMessage("No scans found at MS level " + msLevel + " within given retention time range.");
+            desktop.displayErrorMessage("No scans found at MS level " + msLevel
+                    + " within given retention time range.");
             return;
         }
-        
+
         Vector<RawDataAcceptor> dataSets = new Vector<RawDataAcceptor>();
-        
+
         // Initialize data sets
-        
+
         // i) Normal TIC
-        TICDataSet ticDataset = new TICDataSet(newFile, scanNumbers, mzMin, mzMax, this);
+        TICDataSet ticDataset = new TICDataSet(newFile, scanNumbers, mzMin,
+                mzMax, this);
         dataSets.add(ticDataset);
         dataFiles.put(newFile, ticDataset);
         plot.addTICDataset(ticDataset);
-        
+
         Desktop desktop = MZmineCore.getDesktop();
         NumberFormat mzFormat = desktop.getMZFormat();
 
         // ii) Another dataset for integrated peak area, if peak is given
-        if (peaks!=null) {
-        	// TODO: Needs work for multi-peak
-        	
+        if (peaks != null) {
+            // TODO: Needs work for multi-peak
+
             DefaultXYDataset integratedPeakAreaDataset = new DefaultXYDataset();
-            
+
             double[] peakLabelsX = new double[peaks.length];
             double[] peakLabelsY = new double[peaks.length];
             String[] peakLabelsString = new String[peaks.length];
-            
+
             int peakNumber = 0;
             for (Peak p : peaks) {
-                     	
-            	int[] peakScanNumbers = p.getScanNumbers();
-            	double[][] data = new double[2][peakScanNumbers.length];
-            	          	
-            	double maxHeight = 0.0;
-            	double maxHeightRT = 0.0;
-            	for (int i=0; i< peakScanNumbers.length; i++) {
-            		
-            		int scanNumber = peakScanNumbers[i];
+
+                int[] peakScanNumbers = p.getScanNumbers();
+                double[][] data = new double[2][peakScanNumbers.length];
+
+                double maxHeight = 0.0;
+                double maxHeightRT = 0.0;
+                for (int i = 0; i < peakScanNumbers.length; i++) {
+
+                    int scanNumber = peakScanNumbers[i];
 
                     float rt = newFile.getScan(scanNumber).getRetentionTime();
-            		float[][] datapoints = p.getRawDatapoints(scanNumber);
-            		// Choose maximum height data point
-            		double height = 0.0;
-            		for (float[] mzHeight : datapoints)
-            			if (mzHeight[1]>height) height = mzHeight[1];
-           		    
-            		data[0][i] = rt;
-            		data[1][i] = height;
-            		
-            		if (height>=maxHeight) {
-            			maxHeight = height;
-            			maxHeightRT = rt;
-            		}
-            		           	
-            	}
-            	
-            	peakLabelsX[peakNumber] = maxHeightRT;
-            	peakLabelsY[peakNumber] = (0.90)*maxHeight;
-            	peakLabelsString[peakNumber] = mzFormat.format(p.getMZ());           	
-            	
-            	integratedPeakAreaDataset.addSeries(peakNumber, data);
-            	peakNumber++;
-            	
+                    float[][] datapoints = p.getRawDatapoints(scanNumber);
+                    // Choose maximum height data point
+                    double height = 0.0;
+                    for (float[] mzHeight : datapoints)
+                        if (mzHeight[1] > height)
+                            height = mzHeight[1];
+
+                    data[0][i] = rt;
+                    data[1][i] = height;
+
+                    if (height >= maxHeight) {
+                        maxHeight = height;
+                        maxHeightRT = rt;
+                    }
+
+                }
+
+                peakLabelsX[peakNumber] = maxHeightRT;
+                peakLabelsY[peakNumber] = (0.90) * maxHeight;
+                peakLabelsString[peakNumber] = mzFormat.format(p.getMZ());
+
+                integratedPeakAreaDataset.addSeries(peakNumber, data);
+                peakNumber++;
+
             }
-            
-            
+
             DefaultXYDataset peakAreaLabelDataset = new DefaultXYDataset();
             double[][] labelData = new double[2][peakLabelsX.length];
             labelData[0] = peakLabelsX;
             labelData[1] = peakLabelsY;
             peakAreaLabelDataset.addSeries(0, labelData);
-            
-            plot.addIntegratedPeakAreaDataset(integratedPeakAreaDataset, peakAreaLabelDataset, peakLabelsString);      	
-        	
+
+            plot.addIntegratedPeakAreaDataset(integratedPeakAreaDataset,
+                    peakAreaLabelDataset, peakLabelsString);
+
         }
-        
-        
-        
+
         // Start-up the refresh task
-        new TICRawDataAcceptor(newFile, scanNumbers, dataSets.toArray(new RawDataAcceptor[0]), this);
-        
+        new TICRawDataAcceptor(newFile, scanNumbers,
+                dataSets.toArray(new RawDataAcceptor[0]), this);
+
         if (dataFiles.size() > 1) {
             // when displaying more than one file, show a legend
             plot.showLegend(true);
@@ -306,7 +308,6 @@ public class TICVisualizerWindow extends JInternalFrame implements
 
     }
 
-
     /**
      * @return current cursor position
      */
@@ -319,9 +320,11 @@ public class TICVisualizerWindow extends JInternalFrame implements
             int index = dataSet.getIndex(selectedRT, selectedIT);
             if (index >= 0) {
                 float mz = 0;
-                if (plotType == PlotType.BASE_PEAK) mz = (float) dataSet.getZValue(0, index);
+                if (plotType == TICVisualizerParameters.plotTypeBP)
+                    mz = (float) dataSet.getZValue(0, index);
                 CursorPosition pos = new CursorPosition(selectedRT, mz,
-                        selectedIT, dataSet.getDataFile(), dataSet.getScanNumber(index));
+                        selectedIT, dataSet.getDataFile(),
+                        dataSet.getScanNumber(index));
                 return pos;
             }
         }
@@ -334,8 +337,7 @@ public class TICVisualizerWindow extends JInternalFrame implements
     public void setCursorPosition(CursorPosition newPosition) {
         plot.getXYPlot().setDomainCrosshairValue(
                 newPosition.getRetentionTime(), false);
-        plot.getXYPlot().setRangeCrosshairValue(
-                newPosition.getIntensityValue());
+        plot.getXYPlot().setRangeCrosshairValue(newPosition.getIntensityValue());
     }
 
     /**
@@ -343,9 +345,8 @@ public class TICVisualizerWindow extends JInternalFrame implements
      */
     public void taskFinished(Task task) {
         if (task.getStatus() == TaskStatus.ERROR) {
-            desktop.displayErrorMessage(
-                    "Error while updating TIC visualizer: "
-                            + task.getErrorMessage());
+            desktop.displayErrorMessage("Error while updating TIC visualizer: "
+                    + task.getErrorMessage());
         }
 
     }
@@ -377,13 +378,14 @@ public class TICVisualizerWindow extends JInternalFrame implements
         if (command.equals("SHOW_SPECTRUM")) {
             CursorPosition pos = getCursorPosition();
             if (pos != null) {
-                new SpectraVisualizerWindow(pos.getDataFile(), pos
-                        .getScanNumber());
+                new SpectraVisualizerWindow(pos.getDataFile(),
+                        pos.getScanNumber());
             }
         }
-        
+
         if (command.equals("SETUP_AXES")) {
-            AxesSetupDialog dialog = new AxesSetupDialog(desktop.getMainFrame(), plot.getChart().getXYPlot());
+            AxesSetupDialog dialog = new AxesSetupDialog(
+                    desktop.getMainFrame(), plot.getChart().getXYPlot());
             dialog.setVisible(true);
         }
 
@@ -391,8 +393,8 @@ public class TICVisualizerWindow extends JInternalFrame implements
             CursorPosition pos = getCursorPosition();
             if (pos != null) {
                 TICDataSet dataSet = dataFiles.get(pos.getDataFile());
-                int index = dataSet.getIndex(pos.getRetentionTime(), pos
-                        .getIntensityValue());
+                int index = dataSet.getIndex(pos.getRetentionTime(),
+                        pos.getIntensityValue());
                 if (index > 0) {
                     index--;
                     pos.setRetentionTime((float) dataSet.getXValue(0, index));
@@ -407,13 +409,14 @@ public class TICVisualizerWindow extends JInternalFrame implements
             CursorPosition pos = getCursorPosition();
             if (pos != null) {
                 TICDataSet dataSet = dataFiles.get(pos.getDataFile());
-                int index = dataSet.getIndex(pos.getRetentionTime(), pos
-                        .getIntensityValue());
+                int index = dataSet.getIndex(pos.getRetentionTime(),
+                        pos.getIntensityValue());
                 if (index >= 0) {
                     index++;
                     if (index < dataSet.getItemCount(0)) {
                         pos.setRetentionTime((float) dataSet.getXValue(0, index));
-                        pos.setIntensityValue((float) dataSet.getYValue(0, index));
+                        pos.setIntensityValue((float) dataSet.getYValue(0,
+                                index));
                         setCursorPosition(pos);
                     }
                 }
@@ -431,10 +434,11 @@ public class TICVisualizerWindow extends JInternalFrame implements
         if (command.equals("SHOW_MULTIPLE_SPECTRA")) {
             CursorPosition pos = getCursorPosition();
             if (pos != null) {
-                SpectraSetupDialog dialog = new SpectraSetupDialog(pos.getDataFile(), msLevel, pos.getScanNumber());
+                SpectraSetupDialog dialog = new SpectraSetupDialog(
+                        pos.getDataFile(), msLevel, pos.getScanNumber());
                 dialog.setVisible(true);
             }
-        }        
+        }
 
     }
 

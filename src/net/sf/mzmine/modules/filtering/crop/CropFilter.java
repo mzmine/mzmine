@@ -46,7 +46,7 @@ public class CropFilter implements BatchStepFiltering, TaskListener,
 
     private Logger logger = Logger.getLogger(this.getClass().getName());
 
-    private ParameterSet parameters;
+    private CropFilterParameters parameters;
 
     private Desktop desktop;
 
@@ -139,7 +139,7 @@ public class CropFilter implements BatchStepFiltering, TaskListener,
         Task tasks[] = new CropFilterTask[dataFiles.length];
         for (int i = 0; i < dataFiles.length; i++) {
             tasks[i] = new CropFilterTask(dataFiles[i],
-                    (SimpleParameterSet) parameters);
+                    (CropFilterParameters) parameters);
         }
         TaskGroup newGroup = new TaskGroup(tasks, this, taskGroupListener);
 
@@ -161,7 +161,7 @@ public class CropFilter implements BatchStepFiltering, TaskListener,
      * @see net.sf.mzmine.main.MZmineModule#setParameters(net.sf.mzmine.data.ParameterSet)
      */
     public void setParameters(ParameterSet parameters) {
-        this.parameters = parameters;
+        this.parameters = (CropFilterParameters) parameters;
     }
 
     /**

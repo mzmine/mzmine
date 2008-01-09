@@ -24,7 +24,7 @@ import net.sf.mzmine.data.ParameterType;
 import net.sf.mzmine.data.impl.SimpleParameter;
 import net.sf.mzmine.data.impl.SimpleParameterSet;
 
-class SGFilterParameters extends SimpleParameterSet {
+public class SGFilterParameters extends SimpleParameterSet {
 
     public static final Parameter suffix = new SimpleParameter(
             ParameterType.STRING, "Filename suffix",
@@ -40,7 +40,7 @@ class SGFilterParameters extends SimpleParameterSet {
             "If checked, original file will be removed and only filtered version remains",
             new Boolean(true));
 
-    SGFilterParameters() {
+    public SGFilterParameters() {
         super(new Parameter[] { suffix, datapoints, autoRemove });
     }
 

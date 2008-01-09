@@ -26,7 +26,6 @@ import java.util.TreeSet;
 import net.sf.mzmine.data.Peak;
 import net.sf.mzmine.data.PeakList;
 import net.sf.mzmine.data.PeakListRow;
-import net.sf.mzmine.data.impl.SimpleParameterSet;
 import net.sf.mzmine.data.impl.SimplePeakList;
 import net.sf.mzmine.data.impl.SimplePeakListRow;
 import net.sf.mzmine.io.RawDataFile;
@@ -56,7 +55,7 @@ class JoinAlignerTask implements Task {
      * @param rawDataFile
      * @param parameters
      */
-    JoinAlignerTask(PeakList[] peakLists, SimpleParameterSet parameters) {
+    JoinAlignerTask(PeakList[] peakLists, JoinAlignerParameters parameters) {
 
         this.peakLists = peakLists;
 

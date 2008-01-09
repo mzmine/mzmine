@@ -40,7 +40,7 @@ import net.sf.mzmine.data.PeakList;
 import net.sf.mzmine.io.RawDataFile;
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.modules.visualization.peaklist.PeakListTableWindow;
-import net.sf.mzmine.modules.visualization.tic.TICSetupDialog;
+import net.sf.mzmine.modules.visualization.tic.TICVisualizer;
 import net.sf.mzmine.userinterface.Desktop;
 import net.sf.mzmine.userinterface.components.DragOrderedJList;
 import net.sf.mzmine.util.GUIUtils;
@@ -139,10 +139,8 @@ public class ItemSelector extends JPanel implements ActionListener,
 
         if (command.equals("SHOW_TIC")) {
             RawDataFile[] selectedFiles = getSelectedRawData();
-            for (RawDataFile file : selectedFiles) {
-                TICSetupDialog dialog = new TICSetupDialog(file);
-                dialog.setVisible(true);
-            }
+            TICVisualizer tic = TICVisualizer.getInstance();
+            tic.showNewTICVisualizerWindow(selectedFiles, null);
         }
 
         if (command.equals("REMOVE_PEAKLIST")) {
@@ -241,8 +239,8 @@ public class ItemSelector extends JPanel implements ActionListener,
                 if (clickedIndex < 0)
                     return;
                 RawDataFile clickedFile = (RawDataFile) rawDataFiles.get(clickedIndex);
-                TICSetupDialog dialog = new TICSetupDialog(clickedFile);
-                dialog.setVisible(true);
+                TICVisualizer tic = TICVisualizer.getInstance();
+                tic.showNewTICVisualizerWindow(new RawDataFile[] { clickedFile }, null);
             }
 
             if (e.getSource() == alignedPeakListList) {

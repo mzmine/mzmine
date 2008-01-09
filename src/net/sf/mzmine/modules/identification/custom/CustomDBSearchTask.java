@@ -75,12 +75,6 @@ class CustomDBSearchTask implements Task {
         return ((float) finishedLines) / databaseValues.length;
     }
 
-    /**
-     * @see net.sf.mzmine.taskcontrol.Task#getResult()
-     */
-    public Object getResult() {
-        return null;
-    }
 
     /**
      * @see net.sf.mzmine.taskcontrol.Task#getStatus()

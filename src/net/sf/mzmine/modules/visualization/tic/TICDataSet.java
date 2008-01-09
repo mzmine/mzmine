@@ -83,9 +83,7 @@ class TICDataSet extends AbstractXYZDataset implements RawDataAcceptor {
 
         float totalIntensity = 0;
 
-        switch (visualizer.getPlotType()) {
-
-        case TIC:
+        if (visualizer.getPlotType() == TICVisualizerParameters.plotTypeTIC) {
             if ((mzMin <= scan.getMZRangeMin())
                     && (mzMax >= scan.getMZRangeMax())) {
                 totalIntensity = scan.getTIC();
@@ -99,9 +97,9 @@ class TICDataSet extends AbstractXYZDataset implements RawDataAcceptor {
                 }
             }
             mzValues[index] = scan.getBasePeakMZ();
-            break;
+        }
 
-        case BASE_PEAK:
+        if (visualizer.getPlotType() == TICVisualizerParameters.plotTypeBP) {
             if ((mzMin <= scan.getMZRangeMin())
                     && (mzMax >= scan.getMZRangeMax())) {
                 mzValues[index] = scan.getBasePeakMZ();
@@ -115,7 +113,6 @@ class TICDataSet extends AbstractXYZDataset implements RawDataAcceptor {
                     totalIntensity = 0;
                 }
             }
-            break;
 
         }
 

@@ -27,7 +27,7 @@ import net.sf.mzmine.data.impl.SimpleParameter;
 import net.sf.mzmine.data.impl.SimpleParameterSet;
 import net.sf.mzmine.main.MZmineCore;
 
-class LocalPickerParameters extends SimpleParameterSet {
+public class LocalPickerParameters extends SimpleParameterSet {
 
     public static final NumberFormat percentFormat = NumberFormat.getPercentInstance();
 
@@ -75,7 +75,7 @@ class LocalPickerParameters extends SimpleParameterSet {
             "Maximum allowed deviation from expected /\\ shape of a peak in chromatographic direction",
             "%", new Float(0.15), new Float(0.0), null, percentFormat);
 
-    LocalPickerParameters() {
+    public LocalPickerParameters() {
         super(new Parameter[] { suffix, binSize, chromatographicThresholdLevel,
                 noiseLevel, minimumPeakHeight, minimumPeakDuration,
                 mzTolerance, intTolerance });

@@ -27,7 +27,7 @@ import net.sf.mzmine.data.impl.SimpleParameter;
 import net.sf.mzmine.data.impl.SimpleParameterSet;
 import net.sf.mzmine.main.MZmineCore;
 
-class JoinAlignerParameters extends SimpleParameterSet {
+public class JoinAlignerParameters extends SimpleParameterSet {
 
     public static final NumberFormat percentFormat = NumberFormat.getPercentInstance();
 
@@ -66,7 +66,7 @@ class JoinAlignerParameters extends SimpleParameterSet {
             "Maximum allowed relative RT difference", "%", new Float(0.15),
             new Float(0.0), null, percentFormat);
 
-    JoinAlignerParameters() {
+    public JoinAlignerParameters() {
         super(new Parameter[] { peakListName, MZvsRTBalance, MZTolerance,
                 RTToleranceType, RTToleranceValueAbs, RTToleranceValuePercent });
     }

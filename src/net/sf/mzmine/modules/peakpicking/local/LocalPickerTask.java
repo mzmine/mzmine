@@ -26,7 +26,6 @@ import java.util.Vector;
 import net.sf.mzmine.data.Scan;
 import net.sf.mzmine.data.Peak.PeakStatus;
 import net.sf.mzmine.data.impl.ConstructionPeak;
-import net.sf.mzmine.data.impl.SimpleParameterSet;
 import net.sf.mzmine.data.impl.SimplePeakList;
 import net.sf.mzmine.data.impl.SimplePeakListRow;
 import net.sf.mzmine.io.RawDataFile;
@@ -62,7 +61,7 @@ class LocalPickerTask implements Task {
      * @param rawDataFile
      * @param parameters
      */
-    LocalPickerTask(RawDataFile dataFile, SimpleParameterSet parameters) {
+    LocalPickerTask(RawDataFile dataFile, LocalPickerParameters parameters) {
         status = TaskStatus.WAITING;
         this.dataFile = dataFile;
 
