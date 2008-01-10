@@ -20,7 +20,6 @@
 package net.sf.mzmine.data.impl;
 
 import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.Vector;
 
 import net.sf.mzmine.data.Peak;

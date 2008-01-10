@@ -58,7 +58,7 @@ public class MainWindow extends JFrame implements MZmineModule, Desktop,
         WindowListener {
 
     // default tooltip displaying and dismissing delay in ms
-    public static final int DEFAULT_TOOLTIP_DELAY = 30;
+    public static final int DEFAULT_TOOLTIP_DELAY = 10;
     public static final int DEFAULT_TOOLTIP_DISMISS_DELAY = Integer.MAX_VALUE;
     
     private DesktopParameters parameters;
