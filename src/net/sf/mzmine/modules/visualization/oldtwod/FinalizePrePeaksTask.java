@@ -8,6 +8,8 @@ import net.sf.mzmine.data.Scan;
 import net.sf.mzmine.data.impl.SimplePeakList;
 import net.sf.mzmine.data.impl.SimplePeakListRow;
 import net.sf.mzmine.io.RawDataFile;
+import net.sf.mzmine.main.MZmineCore;
+import net.sf.mzmine.project.MZmineProject;
 import net.sf.mzmine.taskcontrol.Task;
 import net.sf.mzmine.taskcontrol.Task.TaskStatus;
 
@@ -99,12 +101,14 @@ public class FinalizePrePeaksTask implements Task {
         if (peakList==null) {
 			// TODO: Name for the new peak list should be provided by the user as a parameter
         	peakList = new SimplePeakList("new empty peak list");
-			// TODO: Add peak list to project
-        	// currentProject.setFilePeakList(resultDataFile, peakList);
+			// Add peak list to project
+            MZmineProject currentProject = MZmineCore.getCurrentProject();
+            currentProject.addPeakList(peakList);
+
         }
         
 		// Find highest ID of existing peak list rows
-        int highestID = Integer.MIN_VALUE;
+        int highestID = 0;
         for (PeakListRow row : peakList.getRows()) {
         	if (row.getID()>highestID) 
         		highestID = row.getID();
