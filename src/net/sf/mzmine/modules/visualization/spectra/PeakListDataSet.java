@@ -33,12 +33,15 @@ import org.jfree.data.xy.IntervalXYDataset;
  */
 class PeakListDataSet extends AbstractXYDataset implements IntervalXYDataset {
 
-    private Peak displayedPeaks[];
     private int scanNumber;
+    private PeakList peakList;
+
+    private Peak displayedPeaks[];
 
     PeakListDataSet(RawDataFile dataFile, int scanNumber, PeakList peakList) {
 
         this.scanNumber = scanNumber;
+        this.peakList = peakList;
 
         Peak peaks[] = peakList.getPeaks(dataFile);
 
@@ -58,6 +61,14 @@ class PeakListDataSet extends AbstractXYDataset implements IntervalXYDataset {
 
     @Override public Comparable getSeriesKey(int series) {
         return null;
+    }
+
+    public PeakList getPeakList() {
+        return peakList;
+    }
+
+    public Peak getPeak(int series, int item) {
+        return displayedPeaks[item];
     }
 
     public int getItemCount(int series) {

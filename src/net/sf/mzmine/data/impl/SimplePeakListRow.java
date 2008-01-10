@@ -134,6 +134,7 @@ public class SimplePeakListRow implements PeakListRow {
         StringBuffer buf = new StringBuffer();
         Format mzFormat = MZmineCore.getDesktop().getMZFormat();
         Format timeFormat = MZmineCore.getDesktop().getRTFormat();
+        buf.append("#" + myID + " ");
         buf.append(mzFormat.format(getAverageMZ()));
         buf.append(" m/z @");
         buf.append(timeFormat.format(getAverageRT()));

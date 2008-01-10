@@ -112,14 +112,15 @@ class SpectraVisualizerWindow extends JInternalFrame implements ActionListener {
         spectrumPlot.setDataSets(scanDataSet, peaksDataSet);
 
         // Update the peak list combo contents
+        peakListSelector.removeAllItems();
         MZmineProject project = MZmineCore.getCurrentProject();
         PeakList availablePeakLists[] = project.getPeakLists(dataFile);
-        peakListSelector.removeAllItems();
         for (PeakList peakList : availablePeakLists)
             peakListSelector.addItem(peakList);
         if (selectedPeakList != null)
             peakListSelector.setSelectedItem(selectedPeakList);
-        peakListSelector.setEnabled(availablePeakLists.length > 0);
+        peakListSelector.setEnabled((currentScan.getMSLevel() == 1)
+                && (availablePeakLists.length > 0));
 
         // if the scan is centroided, switch to centroid mode
         if (currentScan.isCentroided()) {

@@ -21,33 +21,43 @@ package net.sf.mzmine.modules.visualization.spectra;
 
 import java.text.NumberFormat;
 
+import net.sf.mzmine.data.Peak;
+import net.sf.mzmine.data.PeakList;
+import net.sf.mzmine.data.PeakListRow;
 import net.sf.mzmine.main.MZmineCore;
 
 import org.jfree.chart.labels.XYToolTipGenerator;
 import org.jfree.data.xy.XYDataset;
 
 /**
- * Tooltip generator for raw data points
+ * Tooltip generator for picked peaks
  */
-class SpectraToolTipGenerator implements XYToolTipGenerator {
+class PeakToolTipGenerator implements XYToolTipGenerator {
 
     private NumberFormat mzFormat = MZmineCore.getDesktop().getMZFormat();
     private NumberFormat intensityFormat = MZmineCore.getDesktop().getIntensityFormat();
-    
+
     /**
      * @see org.jfree.chart.labels.XYToolTipGenerator#generateToolTip(org.jfree.data.xy.XYDataset,
      *      int, int)
      */
     public String generateToolTip(XYDataset dataset, int series, int item) {
-        
+
+        PeakListDataSet peakListDataSet = (PeakListDataSet) dataset;
+
+        PeakList peakList = peakListDataSet.getPeakList();
+        Peak peak = peakListDataSet.getPeak(series, item);
+        PeakListRow row = peakList.getPeakRow(peak);
         double intValue = dataset.getYValue(series, item);
-        double mzValue = dataset.getXValue(series, item);     
-        
-        String tooltip = "<html>m/z: " + mzFormat.format(mzValue) + "<br>Intensity: "
+        double mzValue = dataset.getXValue(series, item);
+
+        String tooltip = "<html>" + "Peak: " + peak + "<br>Peak list row: "
+                + row + "<br>Data point m/z: " + mzFormat.format(mzValue)
+                + "<br>Data point intensity: "
                 + intensityFormat.format(intValue) + "</html>";
-        
+
         return tooltip;
-        
+
     }
 
 }

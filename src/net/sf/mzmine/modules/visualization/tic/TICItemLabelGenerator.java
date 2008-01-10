@@ -42,7 +42,7 @@ import org.jfree.data.xy.XYDataset;
 class TICItemLabelGenerator implements XYItemLabelGenerator {
 
     /*
-     * Number of screen points to reserve for each label, so that the labels do
+     * Number of screen pixels to reserve for each label, so that the labels do
      * not overlap
      */
     public static final int POINTS_RESERVE_X = 100;

@@ -42,7 +42,6 @@ import org.jfree.chart.plot.DatasetRenderingOrder;
 import org.jfree.chart.plot.PlotOrientation;
 import org.jfree.chart.plot.XYPlot;
 import org.jfree.chart.renderer.xy.XYBarRenderer;
-import org.jfree.chart.renderer.xy.XYItemRenderer;
 import org.jfree.chart.renderer.xy.XYLineAndShapeRenderer;
 import org.jfree.chart.title.TextTitle;
 import org.jfree.ui.RectangleInsets;
@@ -107,7 +106,7 @@ class SpectraPlot extends ChartPanel {
         chartTitle = chart.getTitle();
         chartTitle.setMargin(5, 0, 0, 0);
         chartTitle.setFont(titleFont);
-        
+
         chartSubTitle = new TextTitle();
         chartSubTitle.setFont(subTitleFont);
         chartSubTitle.setMargin(5, 0, 0, 0);
@@ -150,42 +149,38 @@ class SpectraPlot extends ChartPanel {
 
         // set default renderer properties
         continuousRenderer = new XYLineAndShapeRenderer();
-        continuousRenderer.setShapesFilled(true);
+        continuousRenderer.setBaseShapesFilled(true);
         continuousRenderer.setDrawOutlines(false);
         continuousRenderer.setUseFillPaint(true);
-        continuousRenderer.setShape(dataPointsShape);
-        continuousRenderer.setPaint(plotColor);
-        continuousRenderer.setFillPaint(plotColor);
+        continuousRenderer.setSeriesShape(0, dataPointsShape);
+        continuousRenderer.setSeriesPaint(0, plotColor);
+        continuousRenderer.setBaseFillPaint(plotColor);
         continuousRenderer.setBaseShapesVisible(false);
 
         centroidRenderer = new XYBarRenderer();
-        centroidRenderer.setBaseShape(dataPointsShape);
-        centroidRenderer.setPaint(plotColor);
+        centroidRenderer.setSeriesShape(0, dataPointsShape);
+        centroidRenderer.setSeriesPaint(0, plotColor);
 
         peakListRenderer = new XYBarRenderer();
-        peakListRenderer.setBaseShape(dataPointsShape);
-        peakListRenderer.setPaint(pickedPeaksColor);
-
-        // set default renderers for raw data and peak list
-        XYItemRenderer defaultRenderers[] = { continuousRenderer,
-                peakListRenderer };
-        // plot.setRenderers(defaultRenderers);
+        peakListRenderer.setSeriesPaint(0, pickedPeaksColor);
 
         // set label generator
         SpectraItemLabelGenerator labelGenerator = new SpectraItemLabelGenerator(
                 this);
-        continuousRenderer.setItemLabelGenerator(labelGenerator);
-        continuousRenderer.setItemLabelsVisible(true);
-        continuousRenderer.setItemLabelPaint(labelsColor);
-        centroidRenderer.setItemLabelGenerator(labelGenerator);
-        centroidRenderer.setItemLabelsVisible(true);
-        centroidRenderer.setItemLabelPaint(labelsColor);
+        continuousRenderer.setBaseItemLabelGenerator(labelGenerator);
+        continuousRenderer.setBaseItemLabelsVisible(true);
+        continuousRenderer.setBaseItemLabelPaint(labelsColor);
+        centroidRenderer.setBaseItemLabelGenerator(labelGenerator);
+        centroidRenderer.setBaseItemLabelsVisible(true);
+        centroidRenderer.setBaseItemLabelPaint(labelsColor);
 
         // set toolTipGenerator
-        SpectraToolTipGenerator toolTipGenerator = new SpectraToolTipGenerator();
-        continuousRenderer.setToolTipGenerator(toolTipGenerator);
-        centroidRenderer.setToolTipGenerator(toolTipGenerator);
-        peakListRenderer.setToolTipGenerator(toolTipGenerator);
+        SpectraToolTipGenerator spectraToolTipGenerator = new SpectraToolTipGenerator();
+        continuousRenderer.setBaseToolTipGenerator(spectraToolTipGenerator);
+        centroidRenderer.setBaseToolTipGenerator(spectraToolTipGenerator);
+
+        PeakToolTipGenerator peakToolTipGenerator = new PeakToolTipGenerator();
+        peakListRenderer.setBaseToolTipGenerator(peakToolTipGenerator);
 
         // set focusable state to receive key events
         setFocusable(true);
@@ -238,10 +233,10 @@ class SpectraPlot extends ChartPanel {
 
     void switchItemLabelsVisible() {
 
-        boolean itemLabelsVisible = continuousRenderer.isSeriesItemLabelsVisible(0);
-        centroidRenderer.setItemLabelsVisible(!itemLabelsVisible);
-        continuousRenderer.setItemLabelsVisible(!itemLabelsVisible);
-        peakListRenderer.setItemLabelsVisible(!itemLabelsVisible);
+        boolean itemLabelsVisible = continuousRenderer.getBaseItemLabelsVisible();
+        centroidRenderer.setBaseItemLabelsVisible(!itemLabelsVisible);
+        continuousRenderer.setBaseItemLabelsVisible(!itemLabelsVisible);
+        peakListRenderer.setBaseItemLabelsVisible(!itemLabelsVisible);
     }
 
     void switchDataPointsVisible() {
@@ -252,7 +247,7 @@ class SpectraPlot extends ChartPanel {
     }
 
     boolean getPickedPeaksVisible() {
-        Boolean pickedPeaksVisible = peakListRenderer.getSeriesVisible();
+        Boolean pickedPeaksVisible = peakListRenderer.getBaseSeriesVisible();
         if (pickedPeaksVisible == null)
             return true;
         return pickedPeaksVisible;
@@ -261,7 +256,7 @@ class SpectraPlot extends ChartPanel {
     void switchPickedPeaksVisible() {
 
         boolean pickedPeaksVisible = getPickedPeaksVisible();
-        peakListRenderer.setSeriesVisible(!pickedPeaksVisible);
+        peakListRenderer.setBaseSeriesVisible(!pickedPeaksVisible);
 
     }
 
@@ -293,7 +288,6 @@ class SpectraPlot extends ChartPanel {
         if (peakListData != null) {
             plot.setDataset(1, peakListData);
             plot.setRenderer(1, peakListRenderer);
-            System.out.println("SETTING IT");
         }
     }
 

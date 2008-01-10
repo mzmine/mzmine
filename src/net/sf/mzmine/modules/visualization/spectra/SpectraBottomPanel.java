@@ -23,6 +23,7 @@ import java.awt.Color;
 import java.awt.Font;
 
 import javax.swing.Box;
+import javax.swing.BoxLayout;
 import javax.swing.JButton;
 import javax.swing.JComboBox;
 import javax.swing.JPanel;
@@ -41,8 +42,12 @@ class SpectraBottomPanel extends JPanel {
 
     SpectraBottomPanel(SpectraVisualizerWindow masterFrame) {
 
+        setLayout(new BoxLayout(this, BoxLayout.X_AXIS));
+        
         setBackground(Color.white);
 
+        add(Box.createHorizontalStrut(10));
+        
         JButton prevScanBtn = GUIUtils.addButton(this, "Previous scan", null,
                 masterFrame, "PREVIOUS_SCAN");
         prevScanBtn.setBackground(Color.white);
@@ -50,7 +55,7 @@ class SpectraBottomPanel extends JPanel {
 
         add(Box.createHorizontalGlue());
         
-        GUIUtils.addLabel(this, "MS/MS:", SwingConstants.RIGHT, smallFont);
+        GUIUtils.addLabel(this, "MS/MS: ", SwingConstants.RIGHT);
 
         msmsSelector = new JComboBox();
         msmsSelector.setEnabled(false);
@@ -63,7 +68,9 @@ class SpectraBottomPanel extends JPanel {
         showButton.setBackground(Color.white);
         showButton.setFont(smallFont);
 
-        GUIUtils.addLabel(this, "Peak list:", SwingConstants.RIGHT, smallFont);
+        add(Box.createHorizontalGlue());
+        
+        GUIUtils.addLabel(this, "Peak list: ", SwingConstants.RIGHT);
 
         peakListSelector = new JComboBox();
         peakListSelector.setEnabled(false);
@@ -79,6 +86,8 @@ class SpectraBottomPanel extends JPanel {
                 masterFrame, "NEXT_SCAN");
         nextScanBtn.setBackground(Color.white);
         nextScanBtn.setFont(smallFont);
+        
+        add(Box.createHorizontalStrut(10));
 
     }
 
