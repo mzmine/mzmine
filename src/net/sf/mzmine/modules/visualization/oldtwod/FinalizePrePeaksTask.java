@@ -49,14 +49,6 @@ public class FinalizePrePeaksTask implements Task {
 
 	}
 
-	public Object getResult() {
-        Object[] results = new Object[3];
-        results[0] = dataFile;
-        results[1] = prePeaks;
-        results[2] = null; //TODO: parameters;
-        return results;
-	}
-
 	public TaskStatus getStatus() {
 		return status;
 	}
