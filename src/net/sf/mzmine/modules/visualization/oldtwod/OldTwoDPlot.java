@@ -41,6 +41,7 @@ import java.awt.image.Raster;
 import java.awt.image.SampleModel;
 import java.awt.image.WritableRaster;
 import java.util.Vector;
+import java.util.logging.Logger;
 
 import javax.swing.JMenuItem;
 import javax.swing.JPanel;
@@ -49,17 +50,24 @@ import javax.swing.JPopupMenu;
 import net.sf.mzmine.data.Peak;
 import net.sf.mzmine.data.PeakList;
 import net.sf.mzmine.data.PeakListRow;
+import net.sf.mzmine.data.impl.SimplePeakList;
+import net.sf.mzmine.data.impl.SimplePeakListRow;
 import net.sf.mzmine.io.RawDataFile;
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.modules.visualization.spectra.SpectraVisualizer;
 import net.sf.mzmine.modules.visualization.tic.TICVisualizer;
 import net.sf.mzmine.modules.visualization.tic.TICVisualizerParameters;
 import net.sf.mzmine.project.MZmineProject;
+import net.sf.mzmine.taskcontrol.Task;
+import net.sf.mzmine.taskcontrol.TaskListener;
+import net.sf.mzmine.taskcontrol.Task.TaskPriority;
+import net.sf.mzmine.taskcontrol.Task.TaskStatus;
+import net.sf.mzmine.userinterface.Desktop;
 import net.sf.mzmine.userinterface.components.interpolatinglookuppaintscale.InterpolatingLookupPaintScale;
 import net.sf.mzmine.util.CursorPosition;
 
 public class OldTwoDPlot extends JPanel implements ActionListener,
-        MouseListener, MouseMotionListener {
+        MouseListener, MouseMotionListener, TaskListener {
 
     private static final float zoomOutLittleFactor = 1.5f;
 
@@ -108,6 +116,8 @@ public class OldTwoDPlot extends JPanel implements ActionListener,
     private MZmineProject project;
 
     private Vector<PreConstructionPeak> prePeaks;
+    
+    private Logger logger = Logger.getLogger(this.getClass().getName());
 
     public OldTwoDPlot(OldTwoDVisualizerWindow visualizerWindow,
             OldTwoDDataSet dataset, InterpolatingLookupPaintScale paintScale) {
@@ -534,6 +544,13 @@ public class OldTwoDPlot extends JPanel implements ActionListener,
                     mzMin, mzMax);
 
         }
+		
+		if (src == finalizePrePeaksMenuItem) {
+			// Initialize a new FinalizePrePeaksTask and run it
+			FinalizePrePeaksTask task = new FinalizePrePeaksTask(visualizerWindow.getDataFile(),  prePeaks.toArray(new PreConstructionPeak[0]));
+			MZmineCore.getTaskController().addTask(task, TaskPriority.HIGH, this);
+			
+		}		
 
     }
 
@@ -686,5 +703,33 @@ public class OldTwoDPlot extends JPanel implements ActionListener,
 
     public void mouseMoved(MouseEvent e) {
     }
+	
+		public void taskFinished(Task task) {
+
+			// Remove all pre-peaks from visualizer 
+			prePeaks.clear();
+			
+			repaint();
+		
+	        if (task.getStatus() == Task.TaskStatus.FINISHED) {
+
+	            logger.info("Finished finalizing pre-peaks on "
+	                    + visualizerWindow.getDataFile());
+
+	        }
+
+	        if (task.getStatus() == Task.TaskStatus.ERROR) {
+	            String msg = "Error while finalizing pre-peaks on file "
+	                    + visualizerWindow.getDataFile() + ": " + task.getErrorMessage();
+	            logger.severe(msg);
+
+	            MZmineCore.getDesktop().displayErrorMessage(msg);
+	        }
+		
+	}
+
+
+	public void taskStarted(Task task) {}
+
 
 }
