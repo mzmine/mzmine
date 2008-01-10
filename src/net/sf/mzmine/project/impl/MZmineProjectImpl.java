@@ -37,39 +37,49 @@ import net.sf.mzmine.userinterface.mainwindow.MainWindow;
 public class MZmineProjectImpl implements MZmineProject {
 
     private Vector<RawDataFile> projectFiles;
-    private Vector<PeakList> projectResults;
+    private Vector<PeakList> projectPeakLists;
     private Hashtable<Parameter, Hashtable<RawDataFile, Object>> projectParametersAndValues;
 
     public void addParameter(Parameter parameter) {
-        if (projectParametersAndValues.containsKey(parameter)) return;
-        
+        if (projectParametersAndValues.containsKey(parameter))
+            return;
+
         Hashtable<RawDataFile, Object> parameterValues = new Hashtable<RawDataFile, Object>();
         projectParametersAndValues.put(parameter, parameterValues);
-        
+
     }
+
     public void removeParameter(Parameter parameter) {
-    	projectParametersAndValues.remove(parameter);
+        projectParametersAndValues.remove(parameter);
     }
-    
+
     public boolean hasParameter(Parameter parameter) {
-    	if (projectParametersAndValues.containsKey(parameter)) return true; else return false; 
+        if (projectParametersAndValues.containsKey(parameter))
+            return true;
+        else
+            return false;
     }
-    
-    public Parameter[] getParameters() {	
-    	return projectParametersAndValues.keySet().toArray(new Parameter[0]);
+
+    public Parameter[] getParameters() {
+        return projectParametersAndValues.keySet().toArray(new Parameter[0]);
     }
-    
-    public void setParameterValue(Parameter parameter, RawDataFile rawDataFile, Object value) {
-    	if (!(hasParameter(parameter))) addParameter(parameter);
-    	Hashtable<RawDataFile, Object> parameterValues = projectParametersAndValues.get(parameter);
-    	parameterValues.put(rawDataFile, value);
+
+    public void setParameterValue(Parameter parameter, RawDataFile rawDataFile,
+            Object value) {
+        if (!(hasParameter(parameter)))
+            addParameter(parameter);
+        Hashtable<RawDataFile, Object> parameterValues = projectParametersAndValues.get(parameter);
+        parameterValues.put(rawDataFile, value);
     }
-    
+
     public Object getParameterValue(Parameter parameter, RawDataFile rawDataFile) {
-    	if (!(hasParameter(parameter))) return null;
-        Object value = projectParametersAndValues.get(parameter).get(rawDataFile);
-        if (value == null) return parameter.getDefaultValue();
-    	return value;
+        if (!(hasParameter(parameter)))
+            return null;
+        Object value = projectParametersAndValues.get(parameter).get(
+                rawDataFile);
+        if (value == null)
+            return parameter.getDefaultValue();
+        return value;
     }
 
     public void addFile(RawDataFile newFile) {
@@ -86,34 +96,35 @@ public class MZmineProjectImpl implements MZmineProject {
         itemSelector.removeRawData(file);
     }
 
-    public void updateFile(RawDataFile oldFile, RawDataFile newFile) {
-        MainWindow mainWindow = (MainWindow) MZmineCore.getDesktop();
-        ItemSelector itemSelector = mainWindow.getItemSelector();
-        projectFiles.remove(oldFile);
-        projectFiles.add(newFile);
-        itemSelector.replaceRawData(oldFile, newFile);
-    }
-
     public RawDataFile[] getDataFiles() {
         return projectFiles.toArray(new RawDataFile[0]);
     }
 
-    public void addPeakList(PeakList newResult) {
+    public void addPeakList(PeakList peakList) {
         MainWindow mainWindow = (MainWindow) MZmineCore.getDesktop();
         ItemSelector itemSelector = mainWindow.getItemSelector();
-        projectResults.add(newResult);
-        itemSelector.addAlignmentResult(newResult);
+        projectPeakLists.add(peakList);
+        itemSelector.addPeakList(peakList);
     }
 
-    public void removePeakList(PeakList result) {
+    public void removePeakList(PeakList peakList) {
         MainWindow mainWindow = (MainWindow) MZmineCore.getDesktop();
         ItemSelector itemSelector = mainWindow.getItemSelector();
-        projectResults.remove(result);
-        itemSelector.removeAlignedPeakList(result);
+        projectPeakLists.remove(peakList);
+        itemSelector.removePeakList(peakList);
     }
 
     public PeakList[] getPeakLists() {
-        return projectResults.toArray(new PeakList[0]);
+        return projectPeakLists.toArray(new PeakList[0]);
+    }
+
+    public PeakList[] getPeakLists(RawDataFile file) {
+        Vector<PeakList> result = new Vector<PeakList>();
+        for (PeakList p : projectPeakLists) {
+            if (p.hasRawDataFile(file))
+                result.add(p);
+        }
+        return result.toArray(new PeakList[0]);
     }
 
     /**
@@ -122,9 +133,8 @@ public class MZmineProjectImpl implements MZmineProject {
     public void initModule() {
 
         projectFiles = new Vector<RawDataFile>();
-        projectResults = new Vector<PeakList>();
+        projectPeakLists = new Vector<PeakList>();
         projectParametersAndValues = new Hashtable<Parameter, Hashtable<RawDataFile, Object>>();
-        
 
     }
 

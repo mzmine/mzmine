@@ -144,13 +144,13 @@ public class ItemSelector extends JPanel implements ActionListener,
         }
 
         if (command.equals("REMOVE_PEAKLIST")) {
-            PeakList[] selectedPeakLists = getSelectedAlignedPeakLists();
+            PeakList[] selectedPeakLists = getSelectedPeakLists();
             for (PeakList peakList : selectedPeakLists)
                 MZmineCore.getCurrentProject().removePeakList(peakList);
         }
 
         if (command.equals("SHOW_ALIGNED_PEAKLIST")) {
-            PeakList[] selectedPeakLists = getSelectedAlignedPeakLists();
+            PeakList[] selectedPeakLists = getSelectedPeakLists();
             Desktop desktop = MZmineCore.getDesktop();
             for (PeakList peakList : selectedPeakLists) {
                 PeakListTableWindow window = new PeakListTableWindow(peakList);
@@ -172,13 +172,6 @@ public class ItemSelector extends JPanel implements ActionListener,
      */
     public boolean removeRawData(RawDataFile r) {
         return rawDataFiles.removeElement(r);
-    }
-
-    /**
-     * Replaces a raw data object in the list with a new file
-     */
-    public void replaceRawData(RawDataFile oldFile, RawDataFile newFile) {
-        rawDataFiles.setElementAt(newFile, rawDataFiles.indexOf(oldFile));
     }
 
     /**
@@ -205,18 +198,18 @@ public class ItemSelector extends JPanel implements ActionListener,
         rawDataList.setSelectedValue(rawData, true);
     }
 
-    // METHODS FOR MAINTAINING LIST OF RESULTS
+    // METHODS FOR MAINTAINING PEAK LISTS
     // ---------------------------------------
 
-    public void addAlignmentResult(PeakList a) {
+    public void addPeakList(PeakList a) {
         peakLists.addElement(a);
     }
 
-    public boolean removeAlignedPeakList(PeakList a) {
+    public boolean removePeakList(PeakList a) {
         return peakLists.removeElement(a);
     }
 
-    public PeakList[] getSelectedAlignedPeakLists() {
+    public PeakList[] getSelectedPeakLists() {
 
         Object o[] = alignedPeakListList.getSelectedValues();
 

@@ -22,14 +22,18 @@ package net.sf.mzmine.modules.visualization.tic;
 import java.text.NumberFormat;
 
 import net.sf.mzmine.main.MZmineCore;
-import net.sf.mzmine.userinterface.Desktop;
+
 import org.jfree.chart.labels.XYToolTipGenerator;
 import org.jfree.data.xy.XYDataset;
 
 /**
- * 
+ * Tooltip generator for TIC visualizer
  */
 class TICToolTipGenerator implements XYToolTipGenerator {
+
+    private NumberFormat rtFormat = MZmineCore.getDesktop().getRTFormat();
+    private NumberFormat mzFormat = MZmineCore.getDesktop().getMZFormat();
+    private NumberFormat intensityFormat = MZmineCore.getDesktop().getIntensityFormat();
 
     /**
      * @see org.jfree.chart.labels.XYToolTipGenerator#generateToolTip(org.jfree.data.xy.XYDataset,
@@ -37,18 +41,19 @@ class TICToolTipGenerator implements XYToolTipGenerator {
      */
     public String generateToolTip(XYDataset dataset, int series, int item) {
 
-        Desktop desktop = MZmineCore.getDesktop();
-        NumberFormat rtFormat = desktop.getRTFormat();
-        NumberFormat mzFormat = desktop.getMZFormat();
-        NumberFormat intensityFormat = desktop.getIntensityFormat();
+        TICDataSet ticDataSet = (TICDataSet) dataset;
 
         double rtValue = dataset.getXValue(series, item);
         double intValue = dataset.getYValue(series, item);
         double mzValue = ((TICDataSet) dataset).getZValue(series, item);
-        return "<html>Retention time: " + rtFormat.format(rtValue)
-                + "<br>Base peak m/z: " + mzFormat.format(mzValue)
-                + "<br>Intensity: " + intensityFormat.format(intValue)
-                + "</html>";
+        int scanNumber = ticDataSet.getScanNumber(series, item);
+
+        String toolTip = "<html>Scan #" + scanNumber + "<br>Retention time: "
+                + rtFormat.format(rtValue) + "<br>Base peak m/z: "
+                + mzFormat.format(mzValue) + "<br>Intensity: "
+                + intensityFormat.format(intValue) + "</html>";
+
+        return toolTip;
     }
 
 }

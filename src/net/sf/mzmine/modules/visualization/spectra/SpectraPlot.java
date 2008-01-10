@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2007 The MZmine Development Team
+ * Copyright 2006-2008 The MZmine Development Team
  * 
  * This file is part of MZmine.
  * 
@@ -45,7 +45,6 @@ import org.jfree.chart.renderer.xy.XYBarRenderer;
 import org.jfree.chart.renderer.xy.XYItemRenderer;
 import org.jfree.chart.renderer.xy.XYLineAndShapeRenderer;
 import org.jfree.chart.title.TextTitle;
-import org.jfree.data.xy.XYDataset;
 import org.jfree.ui.RectangleInsets;
 
 /**
@@ -57,10 +56,6 @@ class SpectraPlot extends ChartPanel {
 
     private XYPlot plot;
 
-    static enum PlotMode {
-        CENTROID, CONTINUOUS
-    };
-
     private PlotMode plotMode = PlotMode.CONTINUOUS;
 
     // plot color
@@ -68,31 +63,29 @@ class SpectraPlot extends ChartPanel {
 
     // picked peaks color
     private static final Color pickedPeaksColor = Color.red;
-    
+
     // peak labels color
     private static final Color labelsColor = Color.darkGray;
-    
-    // picked peaks labels color
-    private static final Color pickedPeaksLabelsColor = Color.red;
-    
+
     // grid color
     private static final Color gridColor = Color.lightGray;
-    
-    
-    // data points shape
-    private static final Shape dataPointsShape = new Ellipse2D.Float(-2, -2, 5, 5);
-    
-    // title font
-    private static final Font titleFont = new Font("SansSerif", Font.PLAIN, 11);
 
-    private TextTitle chartTitle;
-    
+    // data points shape
+    private static final Shape dataPointsShape = new Ellipse2D.Float(-2, -2, 5,
+            5);
+
+    // title font
+    private static final Font titleFont = new Font("SansSerif", Font.BOLD, 12);
+    private static final Font subTitleFont = new Font("SansSerif", Font.PLAIN,
+            11);
+    private TextTitle chartTitle, chartSubTitle;
+
     XYBarRenderer centroidRenderer, peakListRenderer;
     XYLineAndShapeRenderer continuousRenderer;
 
-    SpectraPlot(SpectraVisualizerWindow visualizer, XYDataset rawDataSet, XYDataset peaksDataSet) {
+    SpectraPlot(SpectraVisualizerWindow visualizer) {
 
-        super(null, true); // enable double-buffering
+        super(null, true);
 
         setBackground(Color.white);
         setCursor(Cursor.getPredefinedCursor(Cursor.CROSSHAIR_CURSOR));
@@ -106,15 +99,20 @@ class SpectraPlot extends ChartPanel {
                 false, // create legend?
                 true, // generate tooltips?
                 false // generate URLs?
-                );
+        );
         chart.setBackgroundPaint(Color.white);
         setChart(chart);
 
         // title
         chartTitle = chart.getTitle();
-        chartTitle.setMargin(5,0,0,0);
+        chartTitle.setMargin(5, 0, 0, 0);
         chartTitle.setFont(titleFont);
         
+        chartSubTitle = new TextTitle();
+        chartSubTitle.setFont(subTitleFont);
+        chartSubTitle.setMargin(5, 0, 0, 0);
+        chart.addSubtitle(chartSubTitle);
+
         // disable maximum size (we don't want scaling)
         setMaximumDrawWidth(Integer.MAX_VALUE);
         setMaximumDrawHeight(Integer.MAX_VALUE);
@@ -124,11 +122,9 @@ class SpectraPlot extends ChartPanel {
         plot.setBackgroundPaint(Color.white);
         plot.setAxisOffset(new RectangleInsets(5.0, 5.0, 5.0, 5.0));
 
-        // add the data sets
-        plot.setDataset(0, rawDataSet);
-        plot.setDataset(1, peaksDataSet);
+        // set rendering order
         plot.setDatasetRenderingOrder(DatasetRenderingOrder.FORWARD);
-        
+
         // set grid properties
         plot.setDomainGridlinePaint(gridColor);
         plot.setRangeGridlinePaint(gridColor);
@@ -140,13 +136,13 @@ class SpectraPlot extends ChartPanel {
         Desktop desktop = MZmineCore.getDesktop();
         NumberFormat mzFormat = desktop.getMZFormat();
         NumberFormat intensityFormat = desktop.getIntensityFormat();
-        
+
         // set the X axis (retention time) properties
         NumberAxis xAxis = (NumberAxis) plot.getDomainAxis();
         xAxis.setNumberFormatOverride(mzFormat);
         xAxis.setUpperMargin(0.001);
         xAxis.setLowerMargin(0.001);
-        xAxis.setTickLabelInsets(new RectangleInsets(0,0,20,20));
+        xAxis.setTickLabelInsets(new RectangleInsets(0, 0, 20, 20));
 
         // set the Y axis (intensity) properties
         NumberAxis yAxis = (NumberAxis) plot.getRangeAxis();
@@ -165,16 +161,16 @@ class SpectraPlot extends ChartPanel {
         centroidRenderer = new XYBarRenderer();
         centroidRenderer.setBaseShape(dataPointsShape);
         centroidRenderer.setPaint(plotColor);
-        
+
         peakListRenderer = new XYBarRenderer();
         peakListRenderer.setBaseShape(dataPointsShape);
         peakListRenderer.setPaint(pickedPeaksColor);
-        
+
         // set default renderers for raw data and peak list
-        XYItemRenderer defaultRenderers[] = { continuousRenderer, peakListRenderer };
-        plot.setRenderers(defaultRenderers);
-        
-        
+        XYItemRenderer defaultRenderers[] = { continuousRenderer,
+                peakListRenderer };
+        // plot.setRenderers(defaultRenderers);
+
         // set label generator
         SpectraItemLabelGenerator labelGenerator = new SpectraItemLabelGenerator(
                 this);
@@ -184,14 +180,13 @@ class SpectraPlot extends ChartPanel {
         centroidRenderer.setItemLabelGenerator(labelGenerator);
         centroidRenderer.setItemLabelsVisible(true);
         centroidRenderer.setItemLabelPaint(labelsColor);
-        
 
         // set toolTipGenerator
         SpectraToolTipGenerator toolTipGenerator = new SpectraToolTipGenerator();
         continuousRenderer.setToolTipGenerator(toolTipGenerator);
         centroidRenderer.setToolTipGenerator(toolTipGenerator);
         peakListRenderer.setToolTipGenerator(toolTipGenerator);
-        
+
         // set focusable state to receive key events
         setFocusable(true);
 
@@ -205,30 +200,32 @@ class SpectraPlot extends ChartPanel {
         GUIUtils.registerKeyHandler(this, KeyStroke.getKeyStroke('-'),
                 visualizer, "ZOOM_OUT");
 
-
         // add items to popup menu
         JPopupMenu popupMenu = getPopupMenu();
         popupMenu.addSeparator();
-        
-        GUIUtils.addMenuItem(popupMenu, "Toggle centroid/continuous mode", visualizer, "TOGGLE_PLOT_MODE");
-        GUIUtils.addMenuItem(popupMenu, "Toggle displaying of data points in continuous mode", visualizer, "SHOW_DATA_POINTS");
-        GUIUtils.addMenuItem(popupMenu, "Toggle displaying of peak values", visualizer, "SHOW_ANNOTATIONS");
-        GUIUtils.addMenuItem(popupMenu, "Toggle displaying of picked peaks", visualizer, "SHOW_PICKED_PEAKS");
 
+        GUIUtils.addMenuItem(popupMenu, "Toggle centroid/continuous mode",
+                visualizer, "TOGGLE_PLOT_MODE");
+        GUIUtils.addMenuItem(popupMenu,
+                "Toggle displaying of data points in continuous mode",
+                visualizer, "SHOW_DATA_POINTS");
+        GUIUtils.addMenuItem(popupMenu, "Toggle displaying of peak values",
+                visualizer, "SHOW_ANNOTATIONS");
+        GUIUtils.addMenuItem(popupMenu, "Toggle displaying of picked peaks",
+                visualizer, "SHOW_PICKED_PEAKS");
 
     }
 
     /**
-     * @param plotMode
-     *            The plotMode to set.
+     * @param plotMode The plotMode to set.
      */
     void setPlotMode(PlotMode plotMode) {
         this.plotMode = plotMode;
-        if (plotMode == PlotMode.CENTROID) 
+        if (plotMode == PlotMode.CENTROID)
             plot.setRenderer(0, centroidRenderer);
-         else 
+        else
             plot.setRenderer(0, continuousRenderer);
-            
+
     }
 
     PlotMode getPlotMode() {
@@ -238,7 +235,7 @@ class SpectraPlot extends ChartPanel {
     XYPlot getXYPlot() {
         return plot;
     }
-    
+
     void switchItemLabelsVisible() {
 
         boolean itemLabelsVisible = continuousRenderer.isSeriesItemLabelsVisible(0);
@@ -253,24 +250,26 @@ class SpectraPlot extends ChartPanel {
         continuousRenderer.setBaseShapesVisible(!dataPointsVisible);
 
     }
-    
+
     boolean getPickedPeaksVisible() {
         Boolean pickedPeaksVisible = peakListRenderer.getSeriesVisible();
-        if (pickedPeaksVisible == null) return true;
+        if (pickedPeaksVisible == null)
+            return true;
         return pickedPeaksVisible;
     }
-    
+
     void switchPickedPeaksVisible() {
 
         boolean pickedPeaksVisible = getPickedPeaksVisible();
         peakListRenderer.setSeriesVisible(!pickedPeaksVisible);
 
     }
-    
-    void setTitle(String title) {
+
+    void setTitle(String title, String subTitle) {
         chartTitle.setText(title);
+        chartSubTitle.setText(subTitle);
     }
-    
+
     /**
      * @see java.awt.event.MouseListener#mouseClicked(java.awt.event.MouseEvent)
      */
@@ -281,7 +280,21 @@ class SpectraPlot extends ChartPanel {
 
         // request focus to receive key events
         requestFocus();
+    }
 
+    void setDataSets(ScanDataSet scanData, PeakListDataSet peakListData) {
+
+        plot.setDataset(0, scanData);
+        if (plotMode == PlotMode.CENTROID)
+            plot.setRenderer(0, centroidRenderer);
+        else
+            plot.setRenderer(0, continuousRenderer);
+
+        if (peakListData != null) {
+            plot.setDataset(1, peakListData);
+            plot.setRenderer(1, peakListRenderer);
+            System.out.println("SETTING IT");
+        }
     }
 
 }

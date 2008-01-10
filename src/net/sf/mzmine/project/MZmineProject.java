@@ -123,5 +123,10 @@ public interface MZmineProject {
 	 * Returns all peak lists of the project
      */
     public PeakList[] getPeakLists();
+    
+    /**
+     * Returns all peak lists which contain given data file
+     */
+    public PeakList[] getPeakLists(RawDataFile file);
 
 }

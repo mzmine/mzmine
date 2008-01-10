@@ -29,16 +29,21 @@ import net.sf.mzmine.io.util.RawDataAcceptor;
 import net.sf.mzmine.io.util.RawDataRetrievalTask;
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.taskcontrol.Task;
+import net.sf.mzmine.taskcontrol.TaskListener;
 import net.sf.mzmine.taskcontrol.Task.TaskPriority;
+import net.sf.mzmine.taskcontrol.Task.TaskStatus;
 import net.sf.mzmine.util.CollectionUtils;
 import net.sf.mzmine.util.ScanUtils;
 
 import org.jfree.data.xy.AbstractXYZDataset;
 
 /**
- * TIC visualizer data set
+ * TIC visualizer data set, one data set is created per each file shown in this
+ * visualizer. We need to create separate data set for each file, because user
+ * may add/remove files later.
  */
-class TICDataSet extends AbstractXYZDataset implements RawDataAcceptor {
+class TICDataSet extends AbstractXYZDataset implements RawDataAcceptor,
+        TaskListener {
 
     // redraw the chart every 100 ms while updating
     private static final int REDRAW_INTERVAL = 100;
@@ -69,7 +74,7 @@ class TICDataSet extends AbstractXYZDataset implements RawDataAcceptor {
         Task updateTask = new RawDataRetrievalTask(dataFile, scanNumbers,
                 "Updating TIC visualizer of " + dataFile, this);
         MZmineCore.getTaskController().addTask(updateTask, TaskPriority.HIGH,
-                visualizer);
+                this);
 
     }
 
@@ -89,8 +94,8 @@ class TICDataSet extends AbstractXYZDataset implements RawDataAcceptor {
         return -1;
     }
 
-    int getScanNumber(int index) {
-        return scanNumbers[index];
+    int getScanNumber(int series, int item) {
+        return scanNumbers[item];
     }
 
     RawDataFile getDataFile() {
@@ -255,6 +260,19 @@ class TICDataSet extends AbstractXYZDataset implements RawDataAcceptor {
 
     public float getMaxIntensity() {
         return intensityMax;
+    }
+
+    public void taskFinished(Task task) {
+        if (task.getStatus() == TaskStatus.ERROR) {
+            MZmineCore.getDesktop().displayErrorMessage(
+                    "Error while updating TIC visualizer: "
+                            + task.getErrorMessage());
+            return;
+        }
+    }
+
+    public void taskStarted(Task task) {
+        // ignore
     }
 
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2006 The MZmine Development Team
+ * Copyright 2006-2008 The MZmine Development Team
  * 
  * This file is part of MZmine.
  * 
@@ -27,210 +27,168 @@ import java.text.NumberFormat;
 import java.util.Arrays;
 import java.util.logging.Logger;
 
-import javax.swing.JButton;
 import javax.swing.JComboBox;
+import javax.swing.JFrame;
 import javax.swing.JInternalFrame;
-import javax.swing.JLabel;
-import javax.swing.JPanel;
 
-import net.sf.mzmine.data.Peak;
 import net.sf.mzmine.data.PeakList;
 import net.sf.mzmine.data.Scan;
 import net.sf.mzmine.io.RawDataFile;
-import net.sf.mzmine.io.util.RawDataAcceptor;
-import net.sf.mzmine.io.util.RawDataRetrievalTask;
 import net.sf.mzmine.main.MZmineCore;
-import net.sf.mzmine.modules.visualization.spectra.SpectraPlot.PlotMode;
 import net.sf.mzmine.project.MZmineProject;
-import net.sf.mzmine.taskcontrol.Task;
-import net.sf.mzmine.taskcontrol.TaskListener;
-import net.sf.mzmine.taskcontrol.Task.TaskPriority;
-import net.sf.mzmine.taskcontrol.Task.TaskStatus;
-import net.sf.mzmine.userinterface.Desktop;
 import net.sf.mzmine.userinterface.dialogs.AxesSetupDialog;
-import net.sf.mzmine.util.CursorPosition;
-import net.sf.mzmine.util.GUIUtils;
-import net.sf.mzmine.util.ScanUtils;
-import net.sf.mzmine.util.ScanUtils.BinningType;
-
-import org.jfree.data.xy.DefaultTableXYDataset;
-import org.jfree.data.xy.XYSeries;
 
 /**
  * Spectrum visualizer using JFreeChart library
  */
-public class SpectraVisualizerWindow extends JInternalFrame implements
-        ActionListener, RawDataAcceptor, TaskListener {
+class SpectraVisualizerWindow extends JInternalFrame implements ActionListener {
+
+    private static final float zoomCoefficient = 1.2f;
 
     private Logger logger = Logger.getLogger(this.getClass().getName());
 
     private SpectraToolBar toolBar;
     private SpectraPlot spectrumPlot;
+    private SpectraBottomPanel bottomPanel;
 
     private RawDataFile dataFile;
-    private RawDataFile rawDataFile;
 
-    private DefaultTableXYDataset rawDataSet, peaksDataSet;
-    private XYSeries rawDataSeries, peaksSeries;
+    // Currently loaded scan
+    private Scan currentScan;
 
-    private int scanNumbers[];
-    private Scan[] scans;
-    private int loadedScans = 0;
+    // Current scan data set
+    private ScanDataSet scanDataSet;
 
-    // mzMin, mzMax and mzBinSize/numOfBins and binnedTemplate are only used
-    // when we plot multiple
-    // scans
-    private float mzMin, mzMax, mzBinSize;
-    private int numOfBins;
-    private float rtMin, rtMax;
-    private float[] binnedTemplate;
+    private NumberFormat rtFormat = MZmineCore.getDesktop().getRTFormat();
+    private NumberFormat mzFormat = MZmineCore.getDesktop().getMZFormat();
+    private NumberFormat intensityFormat = MZmineCore.getDesktop().getIntensityFormat();
 
-    private static final float zoomCoefficient = 1.2f;
-
-    private boolean initialPropertiesSet = false;
-
-    private Desktop desktop;
-
-    private JPanel msmsPanel;
-    private JComboBox fragmentScansSelector;
-
-    public SpectraVisualizerWindow(RawDataFile dataFile, int scanNumber) {
-        this(dataFile, new int[] { scanNumber }, -1);
-    }
-
-    public SpectraVisualizerWindow(RawDataFile dataFile, int[] scanNumbers,
-            float mzBinSize) {
+    SpectraVisualizerWindow(RawDataFile dataFile, int scanNumber) {
 
         super(dataFile.toString(), true, true, true, true);
 
-        this.desktop = MZmineCore.getDesktop();
+        this.dataFile = dataFile;
 
         setDefaultCloseOperation(DISPOSE_ON_CLOSE);
         setBackground(Color.white);
 
+        spectrumPlot = new SpectraPlot(this);
+        add(spectrumPlot, BorderLayout.CENTER);
+
         toolBar = new SpectraToolBar(this);
         add(toolBar, BorderLayout.EAST);
 
-        msmsPanel = new JPanel();
-        msmsPanel.setBackground(Color.white);
+        bottomPanel = new SpectraBottomPanel(this);
+        add(bottomPanel, BorderLayout.SOUTH);
 
-        this.dataFile = dataFile;
-        this.rawDataFile = dataFile;
-        this.mzBinSize = mzBinSize;
-
-        rawDataSet = new DefaultTableXYDataset();
-        peaksDataSet = new DefaultTableXYDataset();
-
-        // set minimum width for peak line (in fact, a bar)
-        rawDataSet.setIntervalWidth(Double.MIN_VALUE);
-        peaksDataSet.setIntervalWidth(Double.MIN_VALUE);
-
-        spectrumPlot = new SpectraPlot(this, rawDataSet, peaksDataSet);
-        add(spectrumPlot, BorderLayout.CENTER);
-
-        setScans(scanNumbers);
+        loadScan(scanNumber);
 
         pack();
 
     }
 
-    private void setScans(int scanNumbers[]) {
+    private void loadScan(int scanNumber) {
 
-        this.scanNumbers = scanNumbers;
+        logger.finest("Loading scan #" + scanNumber + " from " + dataFile
+                + " for spectra visualizer");
 
-        // wipe previous data, if any
-        rawDataSet.removeAllSeries();
-        peaksDataSet.removeAllSeries();
-        loadedScans = 0;
-        scans = new Scan[scanNumbers.length];
+        currentScan = dataFile.getScan(scanNumber);
+        scanDataSet = new ScanDataSet(currentScan);
 
-        // create sorted series, for easy searching for local maxima in the
-        // label generator
-        rawDataSeries = new XYSeries("data", true, false);
-        rawDataSet.addSeries(rawDataSeries);
+        JComboBox peakListSelector = bottomPanel.getPeakListSelector();
 
-        peaksSeries = new XYSeries("peaks", true, false);
-        peaksDataSet.addSeries(peaksSeries);
+        PeakList selectedPeakList = (PeakList) peakListSelector.getSelectedItem();
+        PeakListDataSet peaksDataSet = null;
 
-        Task updateTask = new RawDataRetrievalTask(rawDataFile, scanNumbers,
-                "Updating spectrum visualizer of " + rawDataFile, this);
-
-        MZmineCore.getTaskController().addTask(updateTask, TaskPriority.HIGH,
-                this);
-
-    }
-
-    /**
-     * @see net.sf.mzmine.modules.RawDataVisualizer#setMZRange(float, float)
-     */
-    public void setMZRange(float mzMin, float mzMax) {
-        spectrumPlot.getXYPlot().getDomainAxis().setRange(mzMin, mzMax);
-    }
-
-    /**
-     * @see net.sf.mzmine.modules.RawDataVisualizer#setRTRange(float, float)
-     */
-    public void setRTRange(float rtMin, float rtMax) {
-        // do nothing
-
-    }
-
-    /**
-     * @see net.sf.mzmine.modules.RawDataVisualizer#setIntensityRange(float,
-     *      float)
-     */
-    public void setIntensityRange(float intensityMin, float intensityMax) {
-        spectrumPlot.getXYPlot().getRangeAxis().setRange(intensityMin,
-                intensityMax);
-    }
-
-    synchronized void updateTitle() {
-
-        if (loadedScans == 0)
-            return;
-
-        NumberFormat rtFormat = desktop.getRTFormat();
-        NumberFormat mzFormat = desktop.getMZFormat();
-        NumberFormat intensityFormat = desktop.getIntensityFormat();
-
-        StringBuffer title = new StringBuffer();
-        title.append("[");
-        title.append(dataFile.toString());
-        title.append("]: ");
-
-        if (loadedScans == 1) {
-            title.append("scan #");
-            title.append(scans[0].getScanNumber());
-            setTitle(title.toString());
-
-            title.append(", MS");
-            title.append(scans[0].getMSLevel());
-            title.append(", RT ");
-            title.append(rtFormat.format(scans[0].getRetentionTime()));
-
-            title.append(", base peak: ");
-            title.append(mzFormat.format(scans[0].getBasePeakMZ()));
-            title.append(" m/z (");
-            title.append(intensityFormat.format(scans[0].getBasePeakIntensity()));
-            title.append(")");
-
+        if (selectedPeakList != null) {
+            toolBar.setPeaksButtonEnabled(true);
+            peaksDataSet = new PeakListDataSet(dataFile, scanNumber,
+                    selectedPeakList);
         } else {
-            title.append("combination of spectra, RT ");
-            title.append(rtFormat.format(scans[0].getRetentionTime()));
-            title.append(" - ");
-            title.append(rtFormat.format(scans[loadedScans - 1].getRetentionTime()));
-            setTitle(title.toString());
-            title.append(", MS");
-            title.append(scans[0].getMSLevel());
+            toolBar.setPeaksButtonEnabled(false);
         }
 
-        spectrumPlot.setTitle(title.toString());
+        // Set plot data sets
+        spectrumPlot.setDataSets(scanDataSet, peaksDataSet);
+
+        // Update the peak list combo contents
+        MZmineProject project = MZmineCore.getCurrentProject();
+        PeakList availablePeakLists[] = project.getPeakLists(dataFile);
+        peakListSelector.removeAllItems();
+        for (PeakList peakList : availablePeakLists)
+            peakListSelector.addItem(peakList);
+        if (selectedPeakList != null)
+            peakListSelector.setSelectedItem(selectedPeakList);
+        peakListSelector.setEnabled(availablePeakLists.length > 0);
+
+        // if the scan is centroided, switch to centroid mode
+        if (currentScan.isCentroided()) {
+            spectrumPlot.setPlotMode(PlotMode.CENTROID);
+            toolBar.setCentroidButton(false);
+        } else {
+            spectrumPlot.setPlotMode(PlotMode.CONTINUOUS);
+            toolBar.setCentroidButton(true);
+        }
+
+        // Clean up the MS/MS selector combo
+
+        JComboBox msmsSelector = bottomPanel.getMSMSSelector();
+        msmsSelector.removeAllItems();
+        msmsSelector.setEnabled(false);
+
+        // Add parent scan to MS/MS selector combo
+
+        int parentNumber = currentScan.getParentScanNumber();
+        if ((currentScan.getMSLevel() > 1) && (parentNumber > 0)) {
+
+            String itemText = "Parent scan #"
+                    + parentNumber
+                    + ", RT: "
+                    + rtFormat.format(dataFile.getScan(parentNumber).getRetentionTime())
+                    + ", precursor m/z: "
+                    + mzFormat.format(currentScan.getPrecursorMZ());
+
+            if (currentScan.getPrecursorCharge() > 0)
+                itemText += " (chrg " + currentScan.getPrecursorCharge() + ")";
+
+            msmsSelector.addItem(itemText);
+            msmsSelector.setEnabled(true);
+
+        }
+
+        // Add all fragment scans to MS/MS selector combo
+        int fragmentScans[] = currentScan.getFragmentScanNumbers();
+        if (fragmentScans != null) {
+
+            for (int fragment : fragmentScans) {
+                Scan fragmentScan = dataFile.getScan(fragment);
+                String itemText = "Fragment scan #" + fragment + ", RT: "
+                        + rtFormat.format(fragmentScan.getRetentionTime())
+                        + ", precursor m/z: "
+                        + mzFormat.format(fragmentScan.getPrecursorMZ());
+                msmsSelector.addItem(itemText);
+                msmsSelector.setEnabled(true);
+            }
+
+        }
+
+        // Set window and plot titles
+
+        String title = "[" + dataFile.toString() + "] scan #"
+                + currentScan.getScanNumber();
+
+        String subTitle = "MS" + currentScan.getMSLevel() + ", RT "
+                + rtFormat.format(currentScan.getRetentionTime())
+                + ", base peak: "
+                + mzFormat.format(currentScan.getBasePeakMZ()) + " m/z ("
+                + intensityFormat.format(currentScan.getBasePeakIntensity())
+                + ")";
+
+        setTitle(title);
+        spectrumPlot.setTitle(title, subTitle);
 
     }
 
-    /**
-     * @see java.awt.event.ActionListener#actionPerformed(java.awt.event.ActionEvent)
-     */
     public void actionPerformed(ActionEvent event) {
 
         String command = event.getActionCommand();
@@ -248,9 +206,27 @@ public class SpectraVisualizerWindow extends JInternalFrame implements
         }
 
         if (command.equals("SETUP_AXES")) {
-            AxesSetupDialog dialog = new AxesSetupDialog(
-                    desktop.getMainFrame(), spectrumPlot.getChart().getXYPlot());
+            JFrame mainFrame = MZmineCore.getDesktop().getMainFrame();
+            AxesSetupDialog dialog = new AxesSetupDialog(mainFrame,
+                    spectrumPlot.getChart().getXYPlot());
             dialog.setVisible(true);
+        }
+
+        if (command.equals("PEAKLIST_CHANGE")) {
+            JComboBox peakListSelector = bottomPanel.getPeakListSelector();
+            PeakList selectedPeakList = (PeakList) peakListSelector.getSelectedItem();
+            PeakListDataSet peaksDataSet = null;
+
+            if (selectedPeakList != null) {
+                toolBar.setPeaksButtonEnabled(true);
+                peaksDataSet = new PeakListDataSet(dataFile,
+                        currentScan.getScanNumber(), selectedPeakList);
+            } else {
+                toolBar.setPeaksButtonEnabled(false);
+            }
+
+            spectrumPlot.setDataSets(scanDataSet, peaksDataSet);
+
         }
 
         if (command.equals("TOGGLE_PLOT_MODE")) {
@@ -264,29 +240,22 @@ public class SpectraVisualizerWindow extends JInternalFrame implements
         }
 
         if (command.equals("PREVIOUS_SCAN")) {
-            if ((scans.length == 1) && (scans[0] != null)) {
-                int msLevel = scans[0].getMSLevel();
-                int scanNumbers[] = rawDataFile.getScanNumbers(msLevel);
-                int scanIndex = Arrays.binarySearch(scanNumbers,
-                        scans[0].getScanNumber());
-                if (scanIndex > 0) {
-                    int newScans[] = { scanNumbers[scanIndex - 1] };
-                    setScans(newScans);
-                }
-            }
+
+            int msLevel = currentScan.getMSLevel();
+            int scanNumbers[] = dataFile.getScanNumbers(msLevel);
+            int scanIndex = Arrays.binarySearch(scanNumbers,
+                    currentScan.getScanNumber());
+            if (scanIndex > 0)
+                loadScan(scanNumbers[scanIndex - 1]);
         }
 
         if (command.equals("NEXT_SCAN")) {
-            if ((scans.length == 1) && (scans[0] != null)) {
-                int msLevel = scans[0].getMSLevel();
-                int scanNumbers[] = rawDataFile.getScanNumbers(msLevel);
-                int scanIndex = Arrays.binarySearch(scanNumbers,
-                        scans[0].getScanNumber());
-                if (scanIndex < (scanNumbers.length - 1)) {
-                    int newScans[] = { scanNumbers[scanIndex + 1] };
-                    setScans(newScans);
-                }
-            }
+            int msLevel = currentScan.getMSLevel();
+            int scanNumbers[] = dataFile.getScanNumbers(msLevel);
+            int scanIndex = Arrays.binarySearch(scanNumbers,
+                    currentScan.getScanNumber());
+            if (scanIndex < (scanNumbers.length - 1))
+                loadScan(scanNumbers[scanIndex + 1]);
         }
 
         if (command.equals("ZOOM_IN")) {
@@ -299,270 +268,21 @@ public class SpectraVisualizerWindow extends JInternalFrame implements
                     zoomCoefficient);
         }
 
-        if (command.equals("SHOW_PARENT")) {
-            new SpectraVisualizerWindow(dataFile,
-                    scans[0].getParentScanNumber());
+        if (command.equals("SHOW_MSMS")) {
+
+            String selectedScanString = (String) bottomPanel.getMSMSSelector().getSelectedItem();
+            if (selectedScanString == null)
+                return;
+
+            int sharpIndex = selectedScanString.indexOf('#');
+            int commaIndex = selectedScanString.indexOf(',');
+            selectedScanString = selectedScanString.substring(sharpIndex + 1,
+                    commaIndex);
+            int selectedScan = Integer.valueOf(selectedScanString);
+
+            SpectraVisualizer specVis = SpectraVisualizer.getInstance();
+            specVis.showNewSpectraWindow(dataFile, selectedScan);
         }
-
-        if (command.equals("SHOW_FRAGMENT")) {
-            int fragments[] = scans[0].getFragmentScanNumbers();
-            int selectedFragment = fragments[fragmentScansSelector.getSelectedIndex()];
-            new SpectraVisualizerWindow(dataFile, selectedFragment);
-        }
-
-    }
-
-    /**
-     * @see net.sf.mzmine.modules.RawDataVisualizer#getRawDataFiles()
-     */
-    public RawDataFile[] getRawDataFiles() {
-        return new RawDataFile[] { rawDataFile };
-    }
-
-    /**
-     * @see net.sf.mzmine.io.RawDataAcceptor#addScan(net.sf.mzmine.data.Scan)
-     */
-    public synchronized void addScan(Scan scan, int scanIndex, int total) {
-
-        scans[scanIndex] = scan;
-
-        if (!initialPropertiesSet) {
-
-            // if the scans are centroided, switch to centroid mode
-            if (scan.isCentroided() || (scans.length > 1)) {
-                spectrumPlot.setPlotMode(PlotMode.CENTROID);
-                toolBar.setCentroidButton(false);
-            } else {
-                spectrumPlot.setPlotMode(PlotMode.CONTINUOUS);
-                toolBar.setCentroidButton(true);
-            }
-
-            // set the X axis range
-            setMZRange(scan.getMZRangeMin(), scan.getMZRangeMax());
-
-            initialPropertiesSet = true;
-        }
-
-        if (scanIndex == 0) {
-
-            // set the m/z axis range
-            mzMin = scan.getMZRangeMin();
-            mzMax = scan.getMZRangeMax();
-
-            // set the initial retention time range
-            rtMin = scan.getRetentionTime();
-            rtMax = scan.getRetentionTime();
-
-            if (scans.length > 1) {
-                // count the number of bins and update the bin size accordingly
-                numOfBins = (int) Math.round((mzMax - mzMin) / mzBinSize);
-                mzBinSize = (mzMax - mzMin) / numOfBins;
-                binnedTemplate = new float[numOfBins];
-            }
-
-        } else {
-            // update the retention time range
-            if (scan.getRetentionTime() < rtMin)
-                rtMin = scan.getRetentionTime();
-            if (scan.getRetentionTime() > rtMax)
-                rtMax = scan.getRetentionTime();
-        }
-
-        float mzValues[] = scan.getMZValues();
-        float intValues[] = scan.getIntensityValues();
-
-        if (scans.length == 1) {
-            // plotting single scan - just add values
-            for (int j = 0; j < mzValues.length; j++) {
-
-                try {
-                    rawDataSeries.add(mzValues[j], intValues[j], false);
-                } catch (Exception duplicateException) {
-                    // TODO: Improve processing of duplicate m/z values?
-                }
-
-            }
-
-            remove(msmsPanel);
-
-            NumberFormat rtFormat = desktop.getRTFormat();
-            NumberFormat mzFormat = desktop.getMZFormat();
-
-            int parentNumber = scan.getParentScanNumber();
-            if ((scan.getMSLevel() > 1) && (parentNumber > 0)) {
-                msmsPanel.removeAll();
-                String labelText = "Parent scan #"
-                        + parentNumber
-                        + ", RT: "
-                        + rtFormat.format(rawDataFile.getScan(parentNumber).getRetentionTime())
-                        + ", precursor m/z: "
-                        + mzFormat.format(scan.getPrecursorMZ());
-                if (scan.getPrecursorCharge() > 0)
-                    labelText += " (chrg " + scan.getPrecursorCharge() + ")";
-                JLabel label = new JLabel(labelText);
-                label.setFont(label.getFont().deriveFont(10f));
-                msmsPanel.add(label, BorderLayout.CENTER);
-                JButton showButton = GUIUtils.addButton(msmsPanel, "Show",
-                        null, this, "SHOW_PARENT");
-                showButton.setFont(showButton.getFont().deriveFont(10f));
-                showButton.setBackground(Color.white);
-                msmsPanel.getLayout().addLayoutComponent(BorderLayout.EAST,
-                        showButton);
-                add(msmsPanel, BorderLayout.SOUTH);
-
-            } else {
-                int fragmentScans[] = scan.getFragmentScanNumbers();
-                if (fragmentScans != null) {
-                    msmsPanel.removeAll();
-                    String labelText = "Fragment scans:";
-                    JLabel label = new JLabel(labelText);
-                    label.setFont(label.getFont().deriveFont(10f));
-                    msmsPanel.add(label, BorderLayout.WEST);
-                    fragmentScansSelector = new JComboBox();
-                    for (int fragment : fragmentScans) {
-                        Scan fragmentScan = rawDataFile.getScan(fragment);
-                        String item = "#"
-                                + fragment
-                                + ", RT: "
-                                + rtFormat.format(fragmentScan.getRetentionTime())
-                                + ", precursor m/z: "
-                                + mzFormat.format(fragmentScan.getPrecursorMZ());
-                        fragmentScansSelector.addItem(item);
-                    }
-                    fragmentScansSelector.setBackground(Color.white);
-                    fragmentScansSelector.setFont(fragmentScansSelector.getFont().deriveFont(
-                            10f));
-                    msmsPanel.add(fragmentScansSelector, BorderLayout.CENTER);
-
-                    JButton showButton = GUIUtils.addButton(msmsPanel, "Show",
-                            null, this, "SHOW_FRAGMENT");
-                    showButton.setBackground(Color.white);
-                    showButton.setFont(showButton.getFont().deriveFont(10f));
-                    msmsPanel.getLayout().addLayoutComponent(BorderLayout.EAST,
-                            showButton);
-                    add(msmsPanel, BorderLayout.SOUTH);
-
-                }
-            }
-
-        } else {
-            // plotting multiple scans - we have to bin the peaks
-            float binnedIntValues[] = ScanUtils.binValues(mzValues, intValues,
-                    mzMin, mzMax, numOfBins, false, BinningType.SUM);
-
-            for (int j = 0; j < binnedIntValues.length; j++) {
-
-                if (binnedTemplate[j] < binnedIntValues[j])
-                    binnedTemplate[j] = binnedIntValues[j];
-            }
-
-        }
-
-        // check if we added last scan
-        if (scanIndex == total - 1) {
-
-            // Make a data series of binned template
-            if (scans.length > 1) {
-                for (int j = 0; j < binnedTemplate.length; j++) {
-
-                    if (binnedTemplate[j] == 0)
-                        continue;
-
-                    float mz = mzMin + (j * mzBinSize);
-                    rawDataSeries.add(mz, binnedTemplate[j], false);
-
-                }
-
-            }
-
-            MZmineProject currentProject = MZmineCore.getCurrentProject();
-
-            // if we have a peak list, add the eligible peaks
-            PeakList peakList = null; // TODO
-                                        // currentProject.getFilePeakList(dataFile);
-            if (peakList != null) {
-
-                toolBar.setPeaksButtonEnabled(true);
-
-                Peak[] peaks = peakList.getPeaksInsideScanAndMZRange(dataFile,
-                        rtMin, rtMax, mzMin, mzMax);
-
-                for (int i = 0; i < peaks.length; i++) {
-
-                    if (scans.length == 1) {
-                        float[] dataPoint = peaks[i].getRawDatapoints(scanNumbers[0]);
-                        peaksSeries.add(dataPoint[0], dataPoint[1], false);
-                    } else {
-                        float mz = peaks[i].getMZ();
-                        float intensity = peaks[i].getHeight();
-
-                        int index = peaksSeries.indexOf(mz);
-
-                        // if we don't have this m/z value yet, add it.
-                        // otherwise make a max of intensities
-                        if (index < 0) {
-                            peaksSeries.add(mz, intensity, false);
-                        } else {
-                            float newVal = Math.max(
-                                    peaksSeries.getY(index).floatValue(),
-                                    intensity);
-                            peaksSeries.updateByIndex(index, newVal);
-                        }
-
-                    }
-
-                }
-
-            } else {
-                // no peaklist
-                toolBar.setPeaksButtonEnabled(false);
-            }
-
-            rawDataSeries.fireSeriesChanged();
-
-        }
-
-        // update the counter of loaded scans
-        loadedScans++;
-
-        updateTitle();
-
-    }
-
-    /**
-     * @see net.sf.mzmine.taskcontrol.TaskListener#taskFinished(net.sf.mzmine.taskcontrol.Task)
-     */
-    public void taskFinished(Task task) {
-        if (task.getStatus() == TaskStatus.ERROR) {
-            logger.severe("Error while updating spectrum visualizer: "
-                    + task.getErrorMessage());
-            desktop.displayErrorMessage("Error while updating spectrum visualizer: "
-                    + task.getErrorMessage());
-        }
-
-    }
-
-    /**
-     * @see net.sf.mzmine.taskcontrol.TaskListener#taskStarted(net.sf.mzmine.taskcontrol.Task)
-     */
-    public void taskStarted(Task task) {
-        // if we have not added this frame before, do it now
-        if (getParent() == null)
-            desktop.addInternalFrame(this);
-    }
-
-    /**
-     * @see net.sf.mzmine.modules.RawDataVisualizer#getCursorPosition()
-     */
-    public CursorPosition getCursorPosition() {
-        return null;
-    }
-
-    /**
-     * @see net.sf.mzmine.modules.RawDataVisualizer#setCursorPosition(net.sf.mzmine.util.CursorPosition)
-     */
-    public void setCursorPosition(CursorPosition newPosition) {
-        // do nothing
 
     }
 

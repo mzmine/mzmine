@@ -94,7 +94,7 @@ public interface Peak {
     /**
      * This method returns float[2] (mz and intensity) for a given scan number
      */
-    public float[] getRawDatapoints(int scanNumber);
+    public float[] getRawDatapoint(int scanNumber);
 
     /**
      * Returns the minimum RT of all datapoints

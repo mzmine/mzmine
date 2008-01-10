@@ -26,12 +26,13 @@ import net.sf.mzmine.io.RawDataFile;
 import org.jfree.data.xy.AbstractXYDataset;
 
 /**
- * Integrated peak area data set
+ * Integrated peak area data set. Separate data set is created for every peak
+ * shown in this visualizer window.
  */
 class PeakDataSet extends AbstractXYDataset {
 
     private Peak peak;
-    
+
     PeakDataSet(Peak peak) {
         this.peak = peak;
     }
@@ -40,7 +41,7 @@ class PeakDataSet extends AbstractXYDataset {
         return 1;
     }
 
-    @Override public Comparable getSeriesKey(int arg0) {
+    @Override public Comparable getSeriesKey(int series) {
         return peak.toString();
     }
 
@@ -57,9 +58,8 @@ class PeakDataSet extends AbstractXYDataset {
 
     public Number getY(int series, int item) {
         int scanNumber = peak.getScanNumbers()[item];
-        float dataPoint[] = peak.getRawDatapoints(scanNumber);
+        float dataPoint[] = peak.getRawDatapoint(scanNumber);
         return dataPoint[1];
-}
-
+    }
 
 }

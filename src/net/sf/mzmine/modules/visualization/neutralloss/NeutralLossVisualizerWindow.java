@@ -29,7 +29,7 @@ import javax.swing.JInternalFrame;
 
 import net.sf.mzmine.io.RawDataFile;
 import net.sf.mzmine.main.MZmineCore;
-import net.sf.mzmine.modules.visualization.spectra.SpectraVisualizerWindow;
+import net.sf.mzmine.modules.visualization.spectra.SpectraVisualizer;
 import net.sf.mzmine.taskcontrol.Task;
 import net.sf.mzmine.taskcontrol.TaskListener;
 import net.sf.mzmine.taskcontrol.Task.TaskStatus;
@@ -139,7 +139,9 @@ public class NeutralLossVisualizerWindow extends JInternalFrame implements
         if (command.equals("SHOW_SPECTRUM")) {
             NeutralLossDataPoint pos = getCursorPosition();
             if (pos != null) {
-                new SpectraVisualizerWindow(dataFile, pos.getScanNumber());
+                SpectraVisualizer specVis = SpectraVisualizer.getInstance();
+                specVis.showNewSpectraWindow(dataFile,
+                        pos.getScanNumber());
             }
         }
 

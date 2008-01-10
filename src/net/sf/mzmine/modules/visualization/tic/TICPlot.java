@@ -96,7 +96,7 @@ class TICPlot extends ChartPanel {
     private static final Font titleFont = new Font("SansSerif", Font.BOLD, 12);
     private static final Font subTitleFont = new Font("SansSerif", Font.PLAIN,
             11);
-    private TextTitle chartTitle, subTitle;
+    private TextTitle chartTitle, chartSubTitle;
 
     // legend
     private LegendTitle legend;
@@ -152,10 +152,10 @@ class TICPlot extends ChartPanel {
         chartTitle.setFont(titleFont);
         chartTitle.setMargin(5, 0, 0, 0);
 
-        subTitle = new TextTitle();
-        subTitle.setFont(subTitleFont);
-        subTitle.setMargin(5, 0, 0, 0);
-        chart.addSubtitle(subTitle);
+        chartSubTitle = new TextTitle();
+        chartSubTitle.setFont(subTitleFont);
+        chartSubTitle.setMargin(5, 0, 0, 0);
+        chart.addSubtitle(chartSubTitle);
 
         // disable maximum size (we don't want scaling)
         setMaximumDrawWidth(Integer.MAX_VALUE);
@@ -243,8 +243,6 @@ class TICPlot extends ChartPanel {
         popupMenu.addSeparator();
         GUIUtils.addMenuItem(popupMenu, "Show spectrum of selected scan",
                 visualizer, "SHOW_SPECTRUM");
-        GUIUtils.addMenuItem(popupMenu, "Show multiple spectra", visualizer,
-                "SHOW_MULTIPLE_SPECTRA");
 
     }
 
@@ -350,7 +348,7 @@ class TICPlot extends ChartPanel {
 
     void setTitle(String titleText, String subTitleText) {
         chartTitle.setText(titleText);
-        subTitle.setText(subTitleText);
+        chartSubTitle.setText(subTitleText);
     }
 
 }

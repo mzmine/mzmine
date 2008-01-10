@@ -20,6 +20,7 @@
 package net.sf.mzmine.util;
 
 import java.awt.Container;
+import java.awt.Font;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 
@@ -272,7 +273,7 @@ public class GUIUtils {
      * @return Created label
      */
     public static JLabel addLabel(Container component, String text) {
-        return addLabel(component, text, null, JLabel.LEFT);
+        return addLabel(component, text, null, JLabel.LEFT, null);
     }
 
     /**
@@ -286,7 +287,22 @@ public class GUIUtils {
      */
     public static JLabel addLabel(Container component, String text,
             int horizontalAlignment) {
-        return addLabel(component, text, null, horizontalAlignment);
+        return addLabel(component, text, null, horizontalAlignment, null);
+    }
+    
+    /**
+     * Add a new label to a given component
+     * 
+     * @param component Component to add the label to
+     * @param text Label's text
+     * @param horizontalAlignment Label's horizontal alignment (e.g.
+     *            JLabel.LEFT)
+     * @param font Label's font
+     * @return Created label
+     */
+    public static JLabel addLabel(Container component, String text,
+            int horizontalAlignment, Font font) {
+        return addLabel(component, text, null, horizontalAlignment, font);
     }
 
     /**
@@ -297,13 +313,15 @@ public class GUIUtils {
      * @param icon Label's icon
      * @param horizontalAlignment Label's horizontal alignment (e.g.
      *            JLabel.LEFT)
+     * @param font Label's font
      * @return Created label
      */
     public static JLabel addLabel(Container component, String text, Icon icon,
-            int horizontalAlignment) {
+            int horizontalAlignment, Font font) {
         JLabel label = new JLabel(text, icon, horizontalAlignment);
         if (component != null)
             component.add(label);
+        if (font != null) label.setFont(font);
         return label;
     }
 

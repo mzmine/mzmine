@@ -114,7 +114,7 @@ public class SimplePeak implements Peak {
 
         datapointsMap = new Hashtable<Integer, float[]>();
         for (int scanNumber : p.getScanNumbers()) {
-            datapointsMap.put(scanNumber, p.getRawDatapoints(scanNumber));
+            datapointsMap.put(scanNumber, p.getRawDatapoint(scanNumber));
         }
 
         this.peakStatus = p.getPeakStatus();
@@ -187,7 +187,7 @@ public class SimplePeak implements Peak {
     /**
      * This method returns float[2] (mz and intensity) for a given scan number
      */
-    public float[] getRawDatapoints(int scanNumber) {
+    public float[] getRawDatapoint(int scanNumber) {
         return datapointsMap.get(scanNumber);
     }
 

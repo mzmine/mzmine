@@ -137,7 +137,7 @@ public class ConstructionPeak implements Peak {
      * This method returns float[2] (mz and intensity) for a
      * given scan number
      */
-    public float[] getRawDatapoints(int scanNumber) {
+    public float[] getRawDatapoint(int scanNumber) {
         return datapointsMap.get(scanNumber);
     }
 

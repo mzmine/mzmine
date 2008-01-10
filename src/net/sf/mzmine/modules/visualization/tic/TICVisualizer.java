@@ -42,7 +42,7 @@ import net.sf.mzmine.userinterface.dialogs.ParameterSetupDialog;
 public class TICVisualizer implements MZmineModule, ActionListener {
 
     private static TICVisualizer myInstance;
-    
+
     private TICVisualizerParameters parameters;
 
     private Logger logger = Logger.getLogger(this.getClass().getName());
@@ -60,11 +60,11 @@ public class TICVisualizer implements MZmineModule, ActionListener {
 
         desktop.addMenuItem(MZmineMenu.VISUALIZATION, "TIC plot", this, null,
                 KeyEvent.VK_T, false, true);
-        
+
         myInstance = this;
 
     }
-    
+
     public static TICVisualizer getInstance() {
         return myInstance;
     }
@@ -73,27 +73,31 @@ public class TICVisualizer implements MZmineModule, ActionListener {
      * @see java.awt.event.ActionListener#actionPerformed(java.awt.event.ActionEvent)
      */
     public void actionPerformed(ActionEvent e) {
-        RawDataFile selectedFiles[] = desktop.getSelectedDataFiles(); 
+        RawDataFile selectedFiles[] = desktop.getSelectedDataFiles();
         showNewTICVisualizerWindow(selectedFiles, null, parameters);
     }
-    
-    public void showNewTICVisualizerWindow(RawDataFile[] dataFiles, Peak[] peaks, int msLevel, Object plotType, float rtMin, float rtMax, float mzMin, float mzMax) {
+
+    public void showNewTICVisualizerWindow(RawDataFile[] dataFiles,
+            Peak[] peaks, int msLevel, Object plotType, float rtMin,
+            float rtMax, float mzMin, float mzMax) {
         TICVisualizerParameters newParameters = (TICVisualizerParameters) parameters.clone();
-        newParameters.setParameterValue(TICVisualizerParameters.msLevel, msLevel);
-        newParameters.setParameterValue(TICVisualizerParameters.plotType, plotType);
+        newParameters.setParameterValue(TICVisualizerParameters.msLevel,
+                msLevel);
+        newParameters.setParameterValue(TICVisualizerParameters.plotType,
+                plotType);
         newParameters.setParameterValue(TICVisualizerParameters.minRT, rtMin);
         newParameters.setParameterValue(TICVisualizerParameters.maxRT, rtMax);
         newParameters.setParameterValue(TICVisualizerParameters.minMZ, mzMin);
         newParameters.setParameterValue(TICVisualizerParameters.maxMZ, mzMax);
         showNewTICVisualizerWindow(dataFiles, peaks, newParameters);
     }
-    
+
     public void showNewTICVisualizerWindow(RawDataFile[] dataFiles, Peak[] peaks) {
         showNewTICVisualizerWindow(dataFiles, peaks, parameters);
     }
-    
-    private void showNewTICVisualizerWindow(RawDataFile[] dataFiles, Peak[] peaks, TICVisualizerParameters parameters) {
-        
+
+    private void showNewTICVisualizerWindow(RawDataFile[] dataFiles,
+            Peak[] peaks, TICVisualizerParameters parameters) {
 
         logger.finest("Opening a new TIC visualizer setup dialog");
 
@@ -101,7 +105,7 @@ public class TICVisualizer implements MZmineModule, ActionListener {
             desktop.displayErrorMessage("Please select at least one data file");
             return;
         }
-        
+
         Hashtable<Parameter, Object> autoValues = null;
         if (dataFiles.length == 1) {
             autoValues = new Hashtable<Parameter, Object>();
@@ -118,33 +122,34 @@ public class TICVisualizer implements MZmineModule, ActionListener {
 
         ParameterSetupDialog dialog = new ParameterSetupDialog(
                 desktop.getMainFrame(), "Please set parameter values for "
-                        + toString(), parameters,
-                autoValues);
+                        + toString(), parameters, autoValues);
 
         dialog.setVisible(true);
 
         if (dialog.getExitCode() != ExitCode.OK)
             return;
-        
+
         int msLevel = (Integer) parameters.getParameterValue(TICVisualizerParameters.msLevel);
 
         float rtMin = (Float) parameters.getParameterValue(TICVisualizerParameters.minRT);
         float rtMax = (Float) parameters.getParameterValue(TICVisualizerParameters.maxRT);
         float mzMin = (Float) parameters.getParameterValue(TICVisualizerParameters.minMZ);
         float mzMax = (Float) parameters.getParameterValue(TICVisualizerParameters.maxMZ);
-        
 
         if ((rtMax < rtMin) || (mzMax < mzMin)) {
             desktop.displayErrorMessage("Invalid bounds");
             return;
         }
-        
+
         this.parameters = parameters;
 
         Object plotType = parameters.getParameterValue(TICVisualizerParameters.plotType);
-        
-        new TICVisualizerWindow(dataFiles, plotType, msLevel, rtMin,
-                rtMax, mzMin, mzMax, peaks);        
+
+        TICVisualizerWindow newWindow = new TICVisualizerWindow(dataFiles,
+                plotType, msLevel, rtMin, rtMax, mzMin, mzMax, peaks);
+
+        desktop.addInternalFrame(newWindow);
+
     }
 
     /**

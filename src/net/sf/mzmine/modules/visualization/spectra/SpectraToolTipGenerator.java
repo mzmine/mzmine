@@ -1,5 +1,5 @@
 /*
- * Copyright 2006 The MZmine Development Team
+ * Copyright 2006-2008 The MZmine Development Team
  * 
  * This file is part of MZmine.
  * 
@@ -17,15 +17,11 @@
  * Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-/**
- * 
- */
 package net.sf.mzmine.modules.visualization.spectra;
 
 import java.text.NumberFormat;
 
 import net.sf.mzmine.main.MZmineCore;
-import net.sf.mzmine.userinterface.Desktop;
 
 import org.jfree.chart.labels.XYToolTipGenerator;
 import org.jfree.data.xy.XYDataset;
@@ -35,20 +31,23 @@ import org.jfree.data.xy.XYDataset;
  */
 class SpectraToolTipGenerator implements XYToolTipGenerator {
 
+    private NumberFormat mzFormat = MZmineCore.getDesktop().getMZFormat();
+    private NumberFormat intensityFormat = MZmineCore.getDesktop().getIntensityFormat();
+    
     /**
      * @see org.jfree.chart.labels.XYToolTipGenerator#generateToolTip(org.jfree.data.xy.XYDataset,
      *      int, int)
      */
     public String generateToolTip(XYDataset dataset, int series, int item) {
         
-        Desktop desktop = MZmineCore.getDesktop();
-        NumberFormat mzFormat = desktop.getMZFormat();
-        NumberFormat intensityFormat = desktop.getIntensityFormat();
-        
         double intValue = dataset.getYValue(series, item);
-        double mzValue = dataset.getXValue(series, item);        
-        return "m/z: " + mzFormat.format(mzValue) + ", intensity: "
-                + intensityFormat.format(intValue);
+        double mzValue = dataset.getXValue(series, item);     
+        
+        String tooltip = "<html>m/z: " + mzFormat.format(mzValue) + "<br>Intensity: "
+                + intensityFormat.format(intValue) + "</html>";
+        
+        return tooltip;
+        
     }
 
 }

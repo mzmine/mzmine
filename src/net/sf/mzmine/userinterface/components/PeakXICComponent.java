@@ -97,7 +97,7 @@ public class PeakXICComponent extends JComponent {
         // find one datapoint with maximum intensity in each scan
         for (int i = 0; i < scanNumbers.length; i++) {
 
-            float dataPoint[] = peak.getRawDatapoints(scanNumbers[i]);
+            float dataPoint[] = peak.getRawDatapoint(scanNumbers[i]);
 
             // get retention time (X value)
             float retentionTime = dataFile.getScan(scanNumbers[i]).getRetentionTime();

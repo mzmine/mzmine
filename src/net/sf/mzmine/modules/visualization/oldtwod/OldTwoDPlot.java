@@ -51,7 +51,7 @@ import net.sf.mzmine.data.PeakList;
 import net.sf.mzmine.data.PeakListRow;
 import net.sf.mzmine.io.RawDataFile;
 import net.sf.mzmine.main.MZmineCore;
-import net.sf.mzmine.modules.visualization.spectra.SpectraVisualizerWindow;
+import net.sf.mzmine.modules.visualization.spectra.SpectraVisualizer;
 import net.sf.mzmine.modules.visualization.tic.TICVisualizer;
 import net.sf.mzmine.modules.visualization.tic.TICVisualizerParameters;
 import net.sf.mzmine.project.MZmineProject;
@@ -282,7 +282,7 @@ public class OldTwoDPlot extends JPanel implements ActionListener,
 
                     int ind = 0;
                     for (int scanNumber : scanNumbers) {
-                        mzs[ind] = p.getRawDatapoints(scanNumber)[0];
+                        mzs[ind] = p.getRawDatapoint(scanNumber)[0];
                         rts[ind] = rawDataFile.getScan(scanNumber).getRetentionTime();
                         ind++;
                     }
@@ -515,7 +515,8 @@ public class OldTwoDPlot extends JPanel implements ActionListener,
             int xIndex = convertPlotXCoordinateToXIndex(mouseCursorPositionX);
             int scanNumber = dataset.getScanNumber(xIndex);
 
-            new SpectraVisualizerWindow(dataset.getRawDataFile(), scanNumber);
+            SpectraVisualizer specVis = SpectraVisualizer.getInstance();
+            specVis.showNewSpectraWindow(dataset.getRawDataFile(), scanNumber);
 
         }
 

@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2007 The MZmine Development Team
+ * Copyright 2006-2008 The MZmine Development Team
  * 
  * This file is part of MZmine.
  * 
@@ -24,20 +24,24 @@ import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
 import java.util.logging.Logger;
 
-import javax.swing.JDialog;
-
 import net.sf.mzmine.data.ParameterSet;
 import net.sf.mzmine.io.RawDataFile;
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.main.MZmineModule;
 import net.sf.mzmine.userinterface.Desktop;
 import net.sf.mzmine.userinterface.Desktop.MZmineMenu;
+import net.sf.mzmine.userinterface.dialogs.ExitCode;
+import net.sf.mzmine.userinterface.dialogs.ParameterSetupDialog;
 
 /**
  * Spectrum visualizer using JFreeChart library
  */
 public class SpectraVisualizer implements MZmineModule, ActionListener {
 
+private static SpectraVisualizer myInstance;
+    
+    private SpectraVisualizerParameters parameters;
+    
     private Logger logger = Logger.getLogger(this.getClass().getName());
 
     private Desktop desktop;
@@ -49,9 +53,17 @@ public class SpectraVisualizer implements MZmineModule, ActionListener {
 
         this.desktop = MZmineCore.getDesktop();
 
+        myInstance = this;
+        
+        parameters = new SpectraVisualizerParameters();
+        
         desktop.addMenuItem(MZmineMenu.VISUALIZATION, "Spectra plot", this,
                 null, KeyEvent.VK_S, false, true);
 
+    }
+    
+    public static SpectraVisualizer getInstance() {
+        return myInstance;
     }
 
     /**
@@ -62,18 +74,38 @@ public class SpectraVisualizer implements MZmineModule, ActionListener {
         logger.finest("Opening a new spectra visualizer setup dialog");
 
         RawDataFile dataFiles[] = desktop.getSelectedDataFiles();
-        if (dataFiles.length == 0) {
-            desktop.displayErrorMessage("Please select at least one data file");
+        if (dataFiles.length != 1) {
+            desktop.displayErrorMessage("Please select a single data file");
             return;
         }
 
-        for (RawDataFile dataFile : dataFiles) {
-            JDialog setupDialog = new SpectraSetupDialog(dataFile);
-            setupDialog.setVisible(true);
-        }
+        showNewSpectraWindow(dataFiles[0], parameters);
 
     }
+    
+    private void showNewSpectraWindow(RawDataFile dataFile, SpectraVisualizerParameters parameters) {
+        
+        ParameterSetupDialog dialog = new ParameterSetupDialog(
+                desktop.getMainFrame(), "Please set parameter values for "
+                        + toString(), parameters);
 
+        dialog.setVisible(true);
+
+        if (dialog.getExitCode() != ExitCode.OK)
+            return;
+        
+        Integer scanNumber = (Integer) parameters.getParameterValue(SpectraVisualizerParameters.scanNumber);
+
+        showNewSpectraWindow(dataFile, scanNumber);
+        
+    }
+    
+    public void showNewSpectraWindow(RawDataFile dataFile, int scanNumber) {
+        SpectraVisualizerWindow newWindow = new SpectraVisualizerWindow(dataFile, scanNumber);
+        desktop.addInternalFrame(newWindow);
+    }
+
+    
     /**
      * @see net.sf.mzmine.main.MZmineModule#toString()
      */
@@ -85,13 +117,14 @@ public class SpectraVisualizer implements MZmineModule, ActionListener {
      * @see net.sf.mzmine.main.MZmineModule#getParameterSet()
      */
     public ParameterSet getParameterSet() {
-        return null;
+        return parameters;
     }
 
     /**
      * @see net.sf.mzmine.main.MZmineModule#setParameters(net.sf.mzmine.data.ParameterSet)
      */
-    public void setParameters(ParameterSet parameterValues) {
+    public void setParameters(ParameterSet newParameters) {
+        parameters = (SpectraVisualizerParameters) newParameters;
     }
 
 }
