@@ -29,7 +29,6 @@ import javax.swing.ImageIcon;
 import javax.swing.JButton;
 import javax.swing.JToolBar;
 
-import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.userinterface.dialogs.AxesSetupDialog;
 import net.sf.mzmine.util.GUIUtils;
 
@@ -116,8 +115,7 @@ class IntensityPlotToolBar extends JToolBar implements ActionListener {
 
         if (src == setupAxesButton) {
             AxesSetupDialog dialog = new AxesSetupDialog(
-                    MZmineCore.getDesktop().getMainFrame(),
-                    frame.getChart().getXYPlot());
+            frame.getChart().getXYPlot());
             dialog.setVisible(true);
         }
 

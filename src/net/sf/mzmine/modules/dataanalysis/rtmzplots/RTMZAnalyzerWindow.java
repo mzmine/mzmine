@@ -69,7 +69,7 @@ public class RTMZAnalyzerWindow extends JInternalFrame implements ActionListener
         String command = event.getActionCommand();
         
         if (command.equals("SETUP_AXES")) {
-        	AxesSetupDialog dialog = new AxesSetupDialog((Frame)desktop, plot.getChart().getXYPlot());
+        	AxesSetupDialog dialog = new AxesSetupDialog(plot.getChart().getXYPlot());
         	dialog.setVisible(true);
         }
         

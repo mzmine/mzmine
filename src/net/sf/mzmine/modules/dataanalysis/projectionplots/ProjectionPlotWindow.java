@@ -1,18 +1,15 @@
 package net.sf.mzmine.modules.dataanalysis.projectionplots;
 
 import java.awt.BorderLayout;
-import java.awt.Frame;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 
 import javax.swing.JInternalFrame;
 
-import org.jfree.chart.renderer.xy.XYItemRenderer;
-
-import net.sf.mzmine.data.PeakList;
-import net.sf.mzmine.data.impl.SimpleParameterSet;
 import net.sf.mzmine.userinterface.Desktop;
 import net.sf.mzmine.userinterface.dialogs.AxesSetupDialog;
+
+import org.jfree.chart.renderer.xy.XYItemRenderer;
 
 public class ProjectionPlotWindow extends JInternalFrame implements ActionListener {
 
@@ -51,7 +48,7 @@ public class ProjectionPlotWindow extends JInternalFrame implements ActionListen
         String command = event.getActionCommand();
         
         if (command.equals("SETUP_AXES")) {
-        	AxesSetupDialog dialog = new AxesSetupDialog((Frame)desktop, plot.getChart().getXYPlot());
+        	AxesSetupDialog dialog = new AxesSetupDialog(plot.getChart().getXYPlot());
         	dialog.setVisible(true);
         }
        
