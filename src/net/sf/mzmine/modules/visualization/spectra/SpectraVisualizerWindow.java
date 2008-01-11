@@ -28,7 +28,6 @@ import java.util.Arrays;
 import java.util.logging.Logger;
 
 import javax.swing.JComboBox;
-import javax.swing.JFrame;
 import javax.swing.JInternalFrame;
 
 import net.sf.mzmine.data.PeakList;
@@ -36,7 +35,11 @@ import net.sf.mzmine.data.Scan;
 import net.sf.mzmine.io.RawDataFile;
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.project.MZmineProject;
+import net.sf.mzmine.userinterface.Desktop;
 import net.sf.mzmine.userinterface.dialogs.AxesSetupDialog;
+
+import org.jfree.chart.axis.NumberAxis;
+import org.jfree.chart.axis.NumberTickUnit;
 
 /**
  * Spectrum visualizer using JFreeChart library
@@ -63,11 +66,14 @@ class SpectraVisualizerWindow extends JInternalFrame implements ActionListener {
     private NumberFormat mzFormat = MZmineCore.getDesktop().getMZFormat();
     private NumberFormat intensityFormat = MZmineCore.getDesktop().getIntensityFormat();
 
+    private Desktop desktop;
+
     SpectraVisualizerWindow(RawDataFile dataFile, int scanNumber) {
 
         super(dataFile.toString(), true, true, true, true);
 
         this.dataFile = dataFile;
+        desktop = MZmineCore.getDesktop();
 
         setDefaultCloseOperation(DISPOSE_ON_CLOSE);
         setBackground(Color.white);
@@ -115,7 +121,7 @@ class SpectraVisualizerWindow extends JInternalFrame implements ActionListener {
         peakListSelector.removeAllItems();
         MZmineProject project = MZmineCore.getCurrentProject();
         PeakList availablePeakLists[] = project.getPeakLists(dataFile);
-        // Add peak lists in reverse order        
+        // Add peak lists in reverse order
         for (int i = availablePeakLists.length - 1; i >= 0; i--)
             peakListSelector.addItem(availablePeakLists[i]);
         if (selectedPeakList != null)
@@ -191,6 +197,15 @@ class SpectraVisualizerWindow extends JInternalFrame implements ActionListener {
 
     }
 
+    public void setAxesRange(float xMin, float xMax, float xTickSize, float yMin, float yMax, float yTickSize) {
+        NumberAxis xAxis = (NumberAxis) spectrumPlot.getXYPlot().getDomainAxis();
+        NumberAxis yAxis = (NumberAxis) spectrumPlot.getXYPlot().getRangeAxis();
+        xAxis.setRange(xMin, xMax);
+        xAxis.setTickUnit(new NumberTickUnit(xTickSize));
+        yAxis.setRange(yMin, yMax);
+        yAxis.setTickUnit(new NumberTickUnit(yTickSize));
+    }
+
     public void actionPerformed(ActionEvent event) {
 
         String command = event.getActionCommand();
@@ -208,10 +223,33 @@ class SpectraVisualizerWindow extends JInternalFrame implements ActionListener {
         }
 
         if (command.equals("SETUP_AXES")) {
-            JFrame mainFrame = MZmineCore.getDesktop().getMainFrame();
-            AxesSetupDialog dialog = new AxesSetupDialog(mainFrame,
-                    spectrumPlot.getChart().getXYPlot());
+            AxesSetupDialog dialog = new AxesSetupDialog(
+                    spectrumPlot.getXYPlot());
             dialog.setVisible(true);
+        }
+
+        if (command.equals("SET_SAME_RANGE")) {
+
+            // Get current axes range
+            NumberAxis xAxis = (NumberAxis) spectrumPlot.getXYPlot().getDomainAxis();
+            NumberAxis yAxis = (NumberAxis) spectrumPlot.getXYPlot().getRangeAxis();
+            float xMin = (float) xAxis.getRange().getLowerBound();
+            float xMax = (float) xAxis.getRange().getUpperBound();
+            float xTick = (float) xAxis.getTickUnit().getSize();
+            float yMin = (float) yAxis.getRange().getLowerBound();
+            float yMax = (float) yAxis.getRange().getUpperBound();
+            float yTick = (float) yAxis.getTickUnit().getSize();
+
+            // Get all frames of my class
+            JInternalFrame spectraFrames[] = desktop.getVisibleFrames(SpectraVisualizerWindow.class);
+
+            // Set the range of these frames
+            for (JInternalFrame frame : spectraFrames) {
+                if (frame == this) continue;
+                SpectraVisualizerWindow spectraFrame = (SpectraVisualizerWindow) frame;
+                spectraFrame.setAxesRange(xMin, xMax, xTick, yMin, yMax, yTick);
+            }
+
         }
 
         if (command.equals("PEAKLIST_CHANGE")) {

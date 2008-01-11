@@ -235,7 +235,9 @@ class TICPlot extends ChartPanel {
         popupMenu.addSeparator();
         popupMenu.add(new AddFilePopupMenu(visualizer));
         popupMenu.add(new RemoveFilePopupMenu(visualizer));
+        
         popupMenu.addSeparator();
+        
         GUIUtils.addMenuItem(popupMenu, "Toggle showing peak values",
                 visualizer, "SHOW_ANNOTATIONS");
         GUIUtils.addMenuItem(popupMenu, "Toggle showing data points",
@@ -243,6 +245,13 @@ class TICPlot extends ChartPanel {
         popupMenu.addSeparator();
         GUIUtils.addMenuItem(popupMenu, "Show spectrum of selected scan",
                 visualizer, "SHOW_SPECTRUM");
+        
+        popupMenu.addSeparator();
+
+        GUIUtils.addMenuItem(popupMenu, "Set axes range", visualizer,
+                "SETUP_AXES");
+        GUIUtils.addMenuItem(popupMenu, "Set same range to all windows",
+                visualizer, "SET_SAME_RANGE");
 
     }
 

@@ -209,6 +209,13 @@ class SpectraPlot extends ChartPanel {
         GUIUtils.addMenuItem(popupMenu, "Toggle displaying of picked peaks",
                 visualizer, "SHOW_PICKED_PEAKS");
 
+        popupMenu.addSeparator();
+
+        GUIUtils.addMenuItem(popupMenu, "Set axes range", visualizer,
+                "SETUP_AXES");
+        GUIUtils.addMenuItem(popupMenu, "Set same range to all windows",
+                visualizer, "SET_SAME_RANGE");
+
     }
 
     /**
