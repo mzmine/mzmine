@@ -115,8 +115,9 @@ class SpectraVisualizerWindow extends JInternalFrame implements ActionListener {
         peakListSelector.removeAllItems();
         MZmineProject project = MZmineCore.getCurrentProject();
         PeakList availablePeakLists[] = project.getPeakLists(dataFile);
-        for (PeakList peakList : availablePeakLists)
-            peakListSelector.addItem(peakList);
+        // Add peak lists in reverse order        
+        for (int i = availablePeakLists.length - 1; i >= 0; i--)
+            peakListSelector.addItem(availablePeakLists[i]);
         if (selectedPeakList != null)
             peakListSelector.setSelectedItem(selectedPeakList);
         peakListSelector.setEnabled((currentScan.getMSLevel() == 1)

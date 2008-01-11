@@ -52,26 +52,15 @@ class ScanDataSet extends AbstractXYDataset implements IntervalXYDataset {
     }
 
     public int getItemCount(int series) {
-        /*
-         * Add 2 extra data points with zero intensity at the beginning and end
-         * of scan range, to keep the auto-range feature consistant with actual
-         * scan range
-         */
-        return mzValues.length + 2;
+        return mzValues.length;
     }
 
     public Number getX(int series, int item) {
-        if (item == 0)
-            return scan.getMZRangeMin();
-        if (item == mzValues.length + 1)
-            return scan.getMZRangeMax();
-        return mzValues[item - 1];
+        return mzValues[item];
     }
 
     public Number getY(int series, int item) {
-        if ((item == 0) || (item == mzValues.length + 1))
-            return 0f;
-        return intensityValues[item - 1];
+        return intensityValues[item];
     }
 
     public Number getEndX(int series, int item) {
