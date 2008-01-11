@@ -17,7 +17,7 @@
  * Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-package net.sf.mzmine.modules.normalization.simplestandardcompound;
+package net.sf.mzmine.modules.normalization.standardcompound;
 
 import java.util.Hashtable;
 import java.util.logging.Logger;
@@ -32,12 +32,12 @@ import net.sf.mzmine.data.impl.SimplePeakListRow;
 import net.sf.mzmine.io.RawDataFile;
 import net.sf.mzmine.taskcontrol.Task;
 
-public class SimpleStandardCompoundNormalizerTask implements Task {
+public class StandardCompoundNormalizerTask implements Task {
 
     private Logger logger = Logger.getLogger(this.getClass().getName());
 
     private PeakList originalPeakList;
-    private SimpleStandardCompoundNormalizerParameterSet parameters;
+    private StandardCompoundNormalizerParameterSet parameters;
 
     private TaskStatus taskStatus;
     private String errorMessage;
@@ -47,8 +47,8 @@ public class SimpleStandardCompoundNormalizerTask implements Task {
 
     private SimplePeakList normalizedPeakList;
 
-    public SimpleStandardCompoundNormalizerTask(PeakList peakList,
-            SimpleStandardCompoundNormalizerParameterSet parameters) {
+    public StandardCompoundNormalizerTask(PeakList peakList,
+            StandardCompoundNormalizerParameterSet parameters) {
         
         taskStatus = TaskStatus.WAITING;
 
@@ -78,7 +78,7 @@ public class SimpleStandardCompoundNormalizerTask implements Task {
     }
 
     public String getTaskDescription() {
-        return "Simple standard compound normalization of "
+        return "Standard compound normalization of "
                 + originalPeakList.toString();
     }
 
@@ -87,13 +87,13 @@ public class SimpleStandardCompoundNormalizerTask implements Task {
         taskStatus = TaskStatus.PROCESSING;
 
         Object normalizationType = parameters.getParameterValue(
-                SimpleStandardCompoundNormalizerParameterSet.StandardUsageType);
+                StandardCompoundNormalizerParameterSet.StandardUsageType);
         Object peakMeasurementType = parameters.getParameterValue(
-                SimpleStandardCompoundNormalizerParameterSet.PeakMeasurementType);
+                StandardCompoundNormalizerParameterSet.PeakMeasurementType);
         float MZvsRTBalance = (Float) parameters.getParameterValue(
-                SimpleStandardCompoundNormalizerParameterSet.MZvsRTBalance);
+                StandardCompoundNormalizerParameterSet.MZvsRTBalance);
 
-        logger.fine("Starting Simple standard compound normlization of "
+        logger.fine("Starting standard compound normlization of "
                 + originalPeakList.toString() + " using "
                 + normalizationType.toString() + " (total "
                 + parameters.getSelectedStandardPeakListRows().length
@@ -134,7 +134,7 @@ public class SimpleStandardCompoundNormalizerTask implements Task {
                 float normalizationFactors[] = null;
                 float normalizationFactorWeights[] = null;
 
-                if (normalizationType == SimpleStandardCompoundNormalizerParameterSet.StandardUsageTypeNearest) {
+                if (normalizationType == StandardCompoundNormalizerParameterSet.StandardUsageTypeNearest) {
 
                     // Search for nearest standard
                     PeakListRow nearestStandardRow = null;
@@ -159,9 +159,9 @@ public class SimpleStandardCompoundNormalizerTask implements Task {
                     normalizationFactors = new float[1];
                     normalizationFactorWeights = new float[1];
                     Peak standardPeak = nearestStandardRow.getPeak(ord);
-                    if (peakMeasurementType == SimpleStandardCompoundNormalizerParameterSet.PeakMeasurementTypeHeight)
+                    if (peakMeasurementType == StandardCompoundNormalizerParameterSet.PeakMeasurementTypeHeight)
                         normalizationFactors[0] = standardPeak.getHeight();
-                    if (peakMeasurementType == SimpleStandardCompoundNormalizerParameterSet.PeakMeasurementTypeArea)
+                    if (peakMeasurementType == StandardCompoundNormalizerParameterSet.PeakMeasurementTypeArea)
                         normalizationFactors[0] = standardPeak.getArea();
                     logger.finest("Normalizing using standard peak "
                             + standardPeak + ", factor "
@@ -170,7 +170,7 @@ public class SimpleStandardCompoundNormalizerTask implements Task {
 
                 }
 
-                if (normalizationType == SimpleStandardCompoundNormalizerParameterSet.StandardUsageTypeWeighted) {
+                if (normalizationType == StandardCompoundNormalizerParameterSet.StandardUsageTypeWeighted) {
 
                     // Add all standards as factors, and use distance as weight
                     PeakListRow[] standardRows = parameters.getSelectedStandardPeakListRows();
@@ -195,9 +195,9 @@ public class SimpleStandardCompoundNormalizerTask implements Task {
                             normalizationFactors[standardRowIndex] = 1.0f;
                             normalizationFactorWeights[standardRowIndex] = 0.0f;
                         } else {
-                            if (peakMeasurementType == SimpleStandardCompoundNormalizerParameterSet.PeakMeasurementTypeHeight)
+                            if (peakMeasurementType == StandardCompoundNormalizerParameterSet.PeakMeasurementTypeHeight)
                                 normalizationFactors[standardRowIndex] = standardPeak.getHeight();
-                            if (peakMeasurementType == SimpleStandardCompoundNormalizerParameterSet.PeakMeasurementTypeArea)
+                            if (peakMeasurementType == StandardCompoundNormalizerParameterSet.PeakMeasurementTypeArea)
                                 normalizationFactors[standardRowIndex] = standardPeak.getArea();
                             normalizationFactorWeights[standardRowIndex] = 1 / distance;
                         }

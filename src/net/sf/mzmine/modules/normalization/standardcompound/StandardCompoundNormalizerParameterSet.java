@@ -17,7 +17,7 @@
  * Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-package net.sf.mzmine.modules.normalization.simplestandardcompound;
+package net.sf.mzmine.modules.normalization.standardcompound;
 
 import net.sf.mzmine.data.Parameter;
 import net.sf.mzmine.data.ParameterType;
@@ -28,8 +28,7 @@ import net.sf.mzmine.data.impl.SimpleParameterSet;
 /**
  * 
  */
-public class SimpleStandardCompoundNormalizerParameterSet extends
-        SimpleParameterSet {
+public class StandardCompoundNormalizerParameterSet extends SimpleParameterSet {
 
     public static final String StandardUsageTypeNearest = "Nearest standard";
     public static final String StandardUsageTypeWeighted = "Weighted contribution of all standards";
@@ -66,15 +65,15 @@ public class SimpleStandardCompoundNormalizerParameterSet extends
 
     private PeakListRow[] selectedPeaks;
 
-    public SimpleStandardCompoundNormalizerParameterSet() {
+    public StandardCompoundNormalizerParameterSet() {
         super(new Parameter[] { StandardUsageType, PeakMeasurementType,
                 MZvsRTBalance, autoRemove });
 
     }
 
-    public SimpleStandardCompoundNormalizerParameterSet clone() {
+    public StandardCompoundNormalizerParameterSet clone() {
 
-        SimpleStandardCompoundNormalizerParameterSet clone = (SimpleStandardCompoundNormalizerParameterSet) super.clone();
+        StandardCompoundNormalizerParameterSet clone = (StandardCompoundNormalizerParameterSet) super.clone();
 
         if (selectedPeaks != null) {
             clone.setSelectedStandardPeakListRows(selectedPeaks);

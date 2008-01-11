@@ -17,7 +17,7 @@
  * Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-package net.sf.mzmine.modules.normalization.simplestandardcompound;
+package net.sf.mzmine.modules.normalization.standardcompound;
 
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -40,12 +40,12 @@ import net.sf.mzmine.userinterface.dialogs.ExitCode;
 /**
  * 
  */
-public class SimpleStandardCompoundNormalizer implements MZmineModule,
+public class StandardCompoundNormalizer implements MZmineModule,
         TaskListener, ActionListener {
 
     private Logger logger = Logger.getLogger(this.getClass().getName());
 
-    private SimpleStandardCompoundNormalizerParameterSet parameters;
+    private StandardCompoundNormalizerParameterSet parameters;
 
     private Desktop desktop;
 
@@ -56,16 +56,16 @@ public class SimpleStandardCompoundNormalizer implements MZmineModule,
 
         this.desktop = MZmineCore.getDesktop();
 
-        parameters = new SimpleStandardCompoundNormalizerParameterSet();
+        parameters = new StandardCompoundNormalizerParameterSet();
 
         desktop.addMenuItem(MZmineMenu.NORMALIZATION,
-                "Simple standard compound normalizer", this, null,
+                "Standard compound normalizer", this, null,
                 KeyEvent.VK_A, false, true);
 
     }
 
     public String toString() {
-        return "Simple standard compoound normalizer";
+        return "Standard compound normalizer";
     }
 
     /**
@@ -76,8 +76,8 @@ public class SimpleStandardCompoundNormalizer implements MZmineModule,
     }
 
     public void setParameters(ParameterSet parameters) {
-        if (parameters instanceof SimpleStandardCompoundNormalizerParameterSet)
-            this.parameters = (SimpleStandardCompoundNormalizerParameterSet) parameters;
+        if (parameters instanceof StandardCompoundNormalizerParameterSet)
+            this.parameters = (StandardCompoundNormalizerParameterSet) parameters;
     }
 
     /**
@@ -92,35 +92,35 @@ public class SimpleStandardCompoundNormalizer implements MZmineModule,
         }
 
         for (PeakList pl : selectedPeakLists) {
-            SimpleStandardCompoundNormalizerDialog dialog = new SimpleStandardCompoundNormalizerDialog(
+            StandardCompoundNormalizerDialog dialog = new StandardCompoundNormalizerDialog(
                     desktop, pl, parameters);
             dialog.setVisible(true);
 
             if (dialog.getExitCode() != ExitCode.OK) {
-                logger.info("Simple standard compound normalization cancelled.");
+                logger.info("Standard compound normalization cancelled.");
                 return;
             }
 
             runModule(
                     null,
                     new PeakList[] { pl },
-                    (SimpleStandardCompoundNormalizerParameterSet) parameters.clone(),
+                    (StandardCompoundNormalizerParameterSet) parameters.clone(),
                     null);
         }
 
     }
 
     public void taskStarted(Task task) {
-        logger.info("Running simple standard compound normalizer");
+        logger.info("Running standard compound normalizer");
     }
 
     public void taskFinished(Task task) {
 
         if (task.getStatus() == Task.TaskStatus.FINISHED) {
 
-            logger.info("Finished simple standard compound normalizer");
+            logger.info("Finished standard compound normalizer");
 
-            PeakList normalizedPeakList = ((SimpleStandardCompoundNormalizerTask) task).getResult();
+            PeakList normalizedPeakList = ((StandardCompoundNormalizerTask) task).getResult();
 
             MZmineCore.getCurrentProject().addPeakList(
                     normalizedPeakList);
@@ -143,14 +143,14 @@ public class SimpleStandardCompoundNormalizer implements MZmineModule,
      */
     public TaskGroup runModule(RawDataFile[] dataFiles,
             PeakList[] alignmentResults,
-            SimpleStandardCompoundNormalizerParameterSet parameters,
+            StandardCompoundNormalizerParameterSet parameters,
             TaskGroupListener taskGroupListener) {
 
         // prepare a new group of tasks
 
-        Task tasks[] = new SimpleStandardCompoundNormalizerTask[alignmentResults.length];
+        Task tasks[] = new StandardCompoundNormalizerTask[alignmentResults.length];
         for (int i = 0; i < alignmentResults.length; i++) {
-            tasks[i] = new SimpleStandardCompoundNormalizerTask(
+            tasks[i] = new StandardCompoundNormalizerTask(
                     alignmentResults[i], parameters);
         }
         TaskGroup newGroup = new TaskGroup(tasks, this, taskGroupListener);

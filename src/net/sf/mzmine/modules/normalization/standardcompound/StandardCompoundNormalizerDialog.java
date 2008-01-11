@@ -17,7 +17,7 @@
  * Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-package net.sf.mzmine.modules.normalization.simplestandardcompound;
+package net.sf.mzmine.modules.normalization.standardcompound;
 
 import java.awt.Color;
 import java.awt.Dimension;
@@ -47,7 +47,7 @@ import net.sf.mzmine.userinterface.dialogs.ExitCode;
 import net.sf.mzmine.util.GUIUtils;
 import net.sf.mzmine.util.PeakListRowSorterByMZ;
 
-class SimpleStandardCompoundNormalizerDialog extends JDialog implements
+class StandardCompoundNormalizerDialog extends JDialog implements
         ActionListener {
 
     static final int PADDING_SIZE = 5;
@@ -56,7 +56,7 @@ class SimpleStandardCompoundNormalizerDialog extends JDialog implements
 
     private Desktop desktop;
 
-    private SimpleStandardCompoundNormalizerParameterSet parameters;
+    private StandardCompoundNormalizerParameterSet parameters;
 
     private Vector<PeakListRow> selectedPeaks;
 
@@ -65,13 +65,13 @@ class SimpleStandardCompoundNormalizerDialog extends JDialog implements
     private ExtendedCheckBox<PeakListRow> peakCheckBoxes[];
     private JButton btnDeselectAllPeaks, btnOK, btnCancel;
 
-    public SimpleStandardCompoundNormalizerDialog(Desktop desktop,
+    public StandardCompoundNormalizerDialog(Desktop desktop,
             PeakList alignmentResult,
-            SimpleStandardCompoundNormalizerParameterSet parameters) {
+            StandardCompoundNormalizerParameterSet parameters) {
 
         // make dialog modal
         super(desktop.getMainFrame(),
-                "Simple standard compound normalizer setup dialog", true);
+                "Standard compound normalizer setup dialog", true);
 
         this.desktop = desktop;
 
@@ -99,7 +99,7 @@ class SimpleStandardCompoundNormalizerDialog extends JDialog implements
         layout.setConstraints(comp, constraints);
 
         availableNormalizationTypesCombo = new JComboBox(
-                SimpleStandardCompoundNormalizerParameterSet.StandardUsageTypePossibleValues);
+                StandardCompoundNormalizerParameterSet.StandardUsageTypePossibleValues);
         constraints.gridx = 1;
         components.add(availableNormalizationTypesCombo, constraints);
 
@@ -109,7 +109,7 @@ class SimpleStandardCompoundNormalizerDialog extends JDialog implements
         layout.setConstraints(comp, constraints);
 
         peakMeasurementCombo = new JComboBox(
-                SimpleStandardCompoundNormalizerParameterSet.PeakMeasurementTypePossibleValues);
+                StandardCompoundNormalizerParameterSet.PeakMeasurementTypePossibleValues);
         constraints.gridx = 1;
         components.add(peakMeasurementCombo, constraints);
 
@@ -193,10 +193,10 @@ class SimpleStandardCompoundNormalizerDialog extends JDialog implements
         if (src == btnOK) {
 
             parameters.setParameterValue(
-                    SimpleStandardCompoundNormalizerParameterSet.StandardUsageType,
+                    StandardCompoundNormalizerParameterSet.StandardUsageType,
                     availableNormalizationTypesCombo.getSelectedItem());
             parameters.setParameterValue(
-                    SimpleStandardCompoundNormalizerParameterSet.PeakMeasurementType,
+                    StandardCompoundNormalizerParameterSet.PeakMeasurementType,
                     peakMeasurementCombo.getSelectedItem());
 
             selectedPeaks = new Vector<PeakListRow>();
@@ -236,7 +236,7 @@ class SimpleStandardCompoundNormalizerDialog extends JDialog implements
         return exitCode;
     }
 
-    public SimpleStandardCompoundNormalizerParameterSet getParameters() {
+    public StandardCompoundNormalizerParameterSet getParameters() {
         return parameters;
     }
 
