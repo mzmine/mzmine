@@ -141,8 +141,8 @@ public class FTMSFilter implements BatchStepPeakPicking, TaskListener,
      */
     public ExitCode setupParameters(ParameterSet currentParameters) {
         ParameterSetupDialog dialog = new ParameterSetupDialog(
-                desktop.getMainFrame(), "Please set parameter values for "
-                        + toString(), (SimpleParameterSet) currentParameters);
+                "Please set parameter values for " + toString(),
+                (SimpleParameterSet) currentParameters);
         dialog.setVisible(true);
         return dialog.getExitCode();
     }
@@ -167,7 +167,7 @@ public class FTMSFilter implements BatchStepPeakPicking, TaskListener,
             desktop.displayErrorMessage("Please select peak lists for filtering");
             return null;
         }
-        
+
         // prepare a new group of tasks
         Task tasks[] = new FTMSFilterTask[peakLists.length];
         for (int i = 0; i < peakLists.length; i++) {

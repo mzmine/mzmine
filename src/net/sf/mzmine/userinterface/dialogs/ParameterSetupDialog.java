@@ -20,7 +20,6 @@
 package net.sf.mzmine.userinterface.dialogs;
 
 import java.awt.BorderLayout;
-import java.awt.Frame;
 import java.awt.GridLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -39,16 +38,18 @@ import javax.swing.JFormattedTextField;
 import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
-import javax.swing.JSeparator;
 import javax.swing.JTextField;
-import javax.swing.SwingConstants;
 
 import net.sf.mzmine.data.Parameter;
 import net.sf.mzmine.data.impl.SimpleParameterSet;
+import net.sf.mzmine.main.MZmineCore;
 
 /**
  * This class represents the parameter setup dialog shown to the user before
  * processing
+ * 
+ * TODO: this class needs to be easily inheritable, modules should be able to
+ * add their own components
  */
 public class ParameterSetupDialog extends JDialog implements ActionListener {
 
@@ -62,9 +63,13 @@ public class ParameterSetupDialog extends JDialog implements ActionListener {
     private Hashtable<Parameter, JComponent> parametersAndComponents;
 
     // Buttons
-    private JButton btnOK, btnCancel, btnAuto;
+    protected JButton btnOK, btnCancel, btnAuto;
 
-    private JPanel pnlAll, pnlLabels, pnlFields, pnlUnits, pnlButtons;
+    // Panels
+    private JPanel pnlLabels, pnlFields, pnlUnits, labelsAndFields, pnlButtons;
+
+    // Derived classed may add their components to this panel
+    protected JPanel pnlAll;
 
     private SimpleParameterSet parameters;
     private Hashtable<Parameter, Object> autoValues;
@@ -72,20 +77,18 @@ public class ParameterSetupDialog extends JDialog implements ActionListener {
     /**
      * Constructor
      */
-    public ParameterSetupDialog(Frame owner, String title,
-            SimpleParameterSet parameters) {
-        this(owner, title, parameters, null);
+    public ParameterSetupDialog(String title, SimpleParameterSet parameters) {
+        this(title, parameters, null);
     }
 
     /**
      * Constructor
      */
-    public ParameterSetupDialog(Frame owner, String title,
-            SimpleParameterSet parameters,
+    public ParameterSetupDialog(String title, SimpleParameterSet parameters,
             Hashtable<Parameter, Object> autoValues) {
 
         // Make dialog modal
-        super(owner, true);
+        super(MZmineCore.getDesktop().getMainFrame(), true);
 
         this.parameters = parameters;
         this.autoValues = autoValues;
@@ -97,11 +100,6 @@ public class ParameterSetupDialog extends JDialog implements ActionListener {
         }
 
         parametersAndComponents = new Hashtable<Parameter, JComponent>();
-
-        // Panel where everything is collected
-        pnlAll = new JPanel(new BorderLayout());
-        pnlAll.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
-        add(pnlAll);
 
         // panels for labels, text fields and units
         pnlLabels = new JPanel(new GridLayout(0, 1));
@@ -169,7 +167,7 @@ public class ParameterSetupDialog extends JDialog implements ActionListener {
             parametersAndComponents.put(p, comp);
             lblLabel.setLabelFor(comp);
             pnlFields.add(comp);
-            
+
             // set the value of the component
             setValue(p, parameters.getParameterValue(p));
 
@@ -190,15 +188,26 @@ public class ParameterSetupDialog extends JDialog implements ActionListener {
             pnlButtons.add(btnAuto);
         }
 
-        pnlAll.add(pnlLabels, BorderLayout.WEST);
-        pnlAll.add(pnlFields, BorderLayout.CENTER);
-        pnlAll.add(pnlUnits, BorderLayout.EAST);
+        // Panel collecting all labels, fileds and units
+        labelsAndFields = new JPanel(new BorderLayout());
+        labelsAndFields.add(pnlLabels, BorderLayout.WEST);
+        labelsAndFields.add(pnlFields, BorderLayout.CENTER);
+        labelsAndFields.add(pnlUnits, BorderLayout.EAST);
+
+        // Panel where everything is collected
+        pnlAll = new JPanel(new BorderLayout());
+        pnlAll.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
+        add(pnlAll);
+
+        // Leave the BorderLayout.CENTER area empty, so that derived dialogs can
+        // put their own controls in there
+        pnlAll.add(labelsAndFields, BorderLayout.NORTH);
         pnlAll.add(pnlButtons, BorderLayout.SOUTH);
 
         pack();
         setTitle(title);
         setResizable(false);
-        setLocationRelativeTo(owner);
+        setLocationRelativeTo(MZmineCore.getDesktop().getMainFrame());
 
     }
 
@@ -296,7 +305,7 @@ public class ParameterSetupDialog extends JDialog implements ActionListener {
         JComponent component = parametersAndComponents.get(p);
         if ((component == null) || (value == null))
             return;
-        
+
         if (component instanceof JComboBox) {
             JComboBox combo = (JComboBox) component;
             combo.setSelectedItem(value);

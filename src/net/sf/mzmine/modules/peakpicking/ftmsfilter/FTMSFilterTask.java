@@ -176,7 +176,7 @@ class FTMSFilterTask implements Task {
 
         // Remove the original peaklist if requested
         if (removeOriginal)
-            MZmineCore.getCurrentProject().removePeakList(peaklist);
+            currentProject.removePeakList(peaklist);
 
         status = TaskStatus.FINISHED;
 

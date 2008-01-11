@@ -50,7 +50,6 @@ import net.sf.mzmine.userinterface.dialogs.ParameterSetupDialog;
 public class SimpleGapFiller implements BatchStepAlignment, TaskListener,
         ActionListener {
 
-
     private Logger logger = Logger.getLogger(this.getClass().getName());
 
     private SimpleGapFillerParameters parameters;
@@ -78,8 +77,6 @@ public class SimpleGapFiller implements BatchStepAlignment, TaskListener,
     public String toString() {
         return "Simple Gap filler";
     }
-
-
 
     /**
      * @see java.awt.event.ActionListener#actionPerformed(java.awt.event.ActionEvent)
@@ -168,11 +165,11 @@ public class SimpleGapFiller implements BatchStepAlignment, TaskListener,
             }
 
         }
-        
+
         if (task.getStatus() == Task.TaskStatus.ERROR) {
 
-            String msg = "Error while gap filling peak list " + sourcePeakList + ": "
-                    + task.getErrorMessage();
+            String msg = "Error while gap filling peak list " + sourcePeakList
+                    + ": " + task.getErrorMessage();
             logger.severe(msg);
             desktop.displayErrorMessage(msg);
 
@@ -185,8 +182,8 @@ public class SimpleGapFiller implements BatchStepAlignment, TaskListener,
      */
     public ExitCode setupParameters(ParameterSet currentParameters) {
         ParameterSetupDialog dialog = new ParameterSetupDialog(
-                desktop.getMainFrame(), "Please check parameter values for "
-                        + toString(), (SimpleParameterSet) currentParameters);
+                "Please check parameter values for " + toString(),
+                (SimpleParameterSet) currentParameters);
         dialog.setVisible(true);
         return dialog.getExitCode();
     }
@@ -197,7 +194,7 @@ public class SimpleGapFiller implements BatchStepAlignment, TaskListener,
     public ParameterSet getParameterSet() {
         return parameters;
     }
-    
+
     public void setParameters(ParameterSet parameters) {
         this.parameters = (SimpleGapFillerParameters) parameters;
     }

@@ -42,11 +42,22 @@ public class LinearNormalizerParameters extends SimpleParameterSet {
     public static final Parameter suffix = new SimpleParameter(
             ParameterType.STRING, "Name suffix",
             "Suffix to be added to peak list name", null, "normalized", null);
-    
+
     public static final Parameter normalizationType = new SimpleParameter(
             ParameterType.STRING, "Normalization type",
             "Normalize intensities by...", NormalizationTypeAverageIntensity,
             normalizationTypePossibleValues);
+
+    public static final String PeakMeasurementTypeHeight = "Peak height";
+    public static final String PeakMeasurementTypeArea = "Peak area";
+
+    public static final Object[] PeakMeasurementTypePossibleValues = {
+            PeakMeasurementTypeHeight, PeakMeasurementTypeArea };
+
+    public static final Parameter peakMeasurementType = new SimpleParameter(
+            ParameterType.STRING, "Peak measurement type",
+            "Measure peaks using", PeakMeasurementTypeHeight,
+            PeakMeasurementTypePossibleValues);
 
     public static final Parameter autoRemove = new SimpleParameter(
             ParameterType.BOOLEAN,
@@ -55,7 +66,8 @@ public class LinearNormalizerParameters extends SimpleParameterSet {
             new Boolean(true));
 
     public LinearNormalizerParameters() {
-        super(new Parameter[] { suffix, normalizationType, autoRemove });
+        super(new Parameter[] { suffix, normalizationType, peakMeasurementType,
+                autoRemove });
     }
 
 }

@@ -41,8 +41,6 @@ import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.ScrollPaneConstants;
 
-import org.apache.axis.wsdl.symbolTable.Parameters;
-
 import net.sf.mzmine.data.Parameter;
 import net.sf.mzmine.data.PeakList;
 import net.sf.mzmine.data.PeakListRow;
@@ -51,9 +49,8 @@ import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.userinterface.Desktop;
 import net.sf.mzmine.userinterface.components.ExtendedCheckBox;
 import net.sf.mzmine.userinterface.dialogs.ExitCode;
-import net.sf.mzmine.util.CollectionUtils;
 import net.sf.mzmine.util.GUIUtils;
-import net.sf.mzmine.util.PeakListRowSorterByMZ;
+import net.sf.mzmine.util.PeakListRowSorterByID;
 
 public class IntensityPlotDialog extends JDialog implements ActionListener {
 
@@ -186,7 +183,7 @@ public class IntensityPlotDialog extends JDialog implements ActionListener {
         peakCheckBoxes = new ExtendedCheckBox[alignedPeakList.getNumberOfRows()];
         minimumHorizSize = 0;
         PeakListRow rows[] = alignedPeakList.getRows();
-        Arrays.sort(rows, new PeakListRowSorterByMZ());
+        Arrays.sort(rows, new PeakListRowSorterByID());
         for (int i = 0; i < rows.length; i++) {
             peakCheckBoxes[i] = new ExtendedCheckBox<PeakListRow>(rows[i],
                     selectedRows.contains(rows[i]));

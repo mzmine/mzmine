@@ -85,8 +85,8 @@ public class JoinAligner implements BatchStepAlignment, TaskListener,
      */
     public ExitCode setupParameters(ParameterSet currentParameters) {
         ParameterSetupDialog dialog = new ParameterSetupDialog(
-                desktop.getMainFrame(), "Please set parameter values for "
-                        + toString(), (SimpleParameterSet) currentParameters);
+                "Please set parameter values for " + toString(),
+                (SimpleParameterSet) currentParameters);
         dialog.setVisible(true);
         return dialog.getExitCode();
     }
@@ -145,7 +145,7 @@ public class JoinAligner implements BatchStepAlignment, TaskListener,
             desktop.displayErrorMessage("Please select peak lists for alignment");
             return null;
         }
-        
+
         // prepare a new group with just one task
         Task tasks[] = new JoinAlignerTask[1];
         tasks[0] = new JoinAlignerTask(peakLists,

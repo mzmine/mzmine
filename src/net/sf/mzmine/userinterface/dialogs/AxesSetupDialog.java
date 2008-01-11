@@ -116,13 +116,7 @@ public class AxesSetupDialog extends JDialog implements ActionListener {
         fieldYTick = new JFormattedTextField(yAxisFormatter);
 
         // Create a panel for labels and fields
-        int numRows = 9;
-        if (xAxis instanceof NumberAxis)
-            numRows += 2;
-        if (yAxis instanceof NumberAxis)
-            numRows += 2;
-
-        JPanel pnlLabelsAndFields = new JPanel(new GridLayout(numRows, 2));
+        JPanel pnlLabelsAndFields = new JPanel(new GridLayout(0, 2));
 
         pnlLabelsAndFields.add(lblXTitle);
         pnlLabelsAndFields.add(new JPanel());

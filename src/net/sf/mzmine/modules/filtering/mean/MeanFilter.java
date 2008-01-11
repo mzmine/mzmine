@@ -98,8 +98,8 @@ public class MeanFilter implements BatchStepFiltering, TaskListener,
     public ExitCode setupParameters(ParameterSet currentParameters) {
 
         ParameterSetupDialog dialog = new ParameterSetupDialog(
-                desktop.getMainFrame(), "Please set parameter values for "
-                        + toString(), (SimpleParameterSet) currentParameters);
+                "Please set parameter values for " + toString(),
+                (SimpleParameterSet) currentParameters);
 
         dialog.setVisible(true);
 
@@ -120,7 +120,7 @@ public class MeanFilter implements BatchStepFiltering, TaskListener,
             desktop.displayErrorMessage("Please select data files for filtering");
             return null;
         }
-        
+
         // prepare a new task group
         Task tasks[] = new MeanFilterTask[dataFiles.length];
         for (int i = 0; i < dataFiles.length; i++) {
@@ -175,6 +175,6 @@ public class MeanFilter implements BatchStepFiltering, TaskListener,
             logger.severe(msg);
             desktop.displayErrorMessage(msg);
         }
-                
+
     }
 }

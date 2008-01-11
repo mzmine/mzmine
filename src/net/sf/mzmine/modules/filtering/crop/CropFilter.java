@@ -113,9 +113,8 @@ public class CropFilter implements BatchStepFiltering, TaskListener,
 
         // Show dialog
         ParameterSetupDialog dialog = new ParameterSetupDialog(
-                desktop.getMainFrame(), "Please set parameter values for "
-                        + toString(), (SimpleParameterSet) currentParameters,
-                autoValues);
+                "Please set parameter values for " + toString(),
+                (SimpleParameterSet) currentParameters, autoValues);
         dialog.setVisible(true);
 
         return dialog.getExitCode();
@@ -134,7 +133,7 @@ public class CropFilter implements BatchStepFiltering, TaskListener,
             desktop.displayErrorMessage("Please select data files for filtering");
             return null;
         }
-        
+
         // prepare a new task group
         Task tasks[] = new CropFilterTask[dataFiles.length];
         for (int i = 0; i < dataFiles.length; i++) {

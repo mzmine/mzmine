@@ -19,185 +19,110 @@
 
 package net.sf.mzmine.modules.normalization.standardcompound;
 
+import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Dimension;
-import java.awt.GridBagConstraints;
-import java.awt.GridBagLayout;
-import java.awt.Insets;
 import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
 import java.util.Vector;
 
+import javax.swing.BorderFactory;
 import javax.swing.BoxLayout;
-import javax.swing.JButton;
 import javax.swing.JCheckBox;
-import javax.swing.JComboBox;
-import javax.swing.JComponent;
-import javax.swing.JDialog;
+import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.ScrollPaneConstants;
 
 import net.sf.mzmine.data.PeakList;
 import net.sf.mzmine.data.PeakListRow;
-import net.sf.mzmine.userinterface.Desktop;
+import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.userinterface.components.ExtendedCheckBox;
-import net.sf.mzmine.userinterface.dialogs.ExitCode;
+import net.sf.mzmine.userinterface.dialogs.ParameterSetupDialog;
 import net.sf.mzmine.util.GUIUtils;
-import net.sf.mzmine.util.PeakListRowSorterByMZ;
+import net.sf.mzmine.util.PeakListRowSorterByID;
 
-class StandardCompoundNormalizerDialog extends JDialog implements
-        ActionListener {
+class StandardCompoundNormalizerDialog extends ParameterSetupDialog {
 
-    static final int PADDING_SIZE = 5;
-
-    private ExitCode exitCode = ExitCode.UNKNOWN;
-
-    private Desktop desktop;
-
-    private StandardCompoundNormalizerParameterSet parameters;
+    private StandardCompoundNormalizerParameters parameters;
 
     private Vector<PeakListRow> selectedPeaks;
 
-    // dialog components
-    private JComboBox availableNormalizationTypesCombo, peakMeasurementCombo;
-    private ExtendedCheckBox<PeakListRow> peakCheckBoxes[];
-    private JButton btnDeselectAllPeaks, btnOK, btnCancel;
+    private Vector<ExtendedCheckBox<PeakListRow>> peakCheckBoxes;
 
-    public StandardCompoundNormalizerDialog(Desktop desktop,
-            PeakList alignmentResult,
-            StandardCompoundNormalizerParameterSet parameters) {
+    public StandardCompoundNormalizerDialog(PeakList peakList,
+            StandardCompoundNormalizerParameters parameters) {
 
         // make dialog modal
-        super(desktop.getMainFrame(),
-                "Standard compound normalizer setup dialog", true);
-
-        this.desktop = desktop;
+        super("Standard compound normalizer setup", parameters);
 
         this.parameters = parameters;
-
-        GridBagConstraints constraints = new GridBagConstraints();
-
-        // set default layout constraints
-        constraints.fill = GridBagConstraints.BOTH;
-        constraints.anchor = GridBagConstraints.WEST;
-        constraints.insets = new Insets(PADDING_SIZE, PADDING_SIZE,
-                PADDING_SIZE, PADDING_SIZE);
-
-        constraints.gridwidth = 1;
-        constraints.gridheight = 1;
-
-        JComponent comp;
-        GridBagLayout layout = new GridBagLayout();
-
-        JPanel components = new JPanel(layout);
-
-        comp = GUIUtils.addLabel(components, "Normalized using ");
-        constraints.gridx = 0;
-        constraints.gridy = 1;
-        layout.setConstraints(comp, constraints);
-
-        availableNormalizationTypesCombo = new JComboBox(
-                StandardCompoundNormalizerParameterSet.StandardUsageTypePossibleValues);
-        constraints.gridx = 1;
-        components.add(availableNormalizationTypesCombo, constraints);
-
-        comp = GUIUtils.addLabel(components, "Peak measurement using ");
-        constraints.gridx = 0;
-        constraints.gridy = 2;
-        layout.setConstraints(comp, constraints);
-
-        peakMeasurementCombo = new JComboBox(
-                StandardCompoundNormalizerParameterSet.PeakMeasurementTypePossibleValues);
-        constraints.gridx = 1;
-        components.add(peakMeasurementCombo, constraints);
-
-        comp = GUIUtils.addLabel(components, "Select standard peaks");
-        constraints.gridx = 0;
-        constraints.gridy = 3;
-        layout.setConstraints(comp, constraints);
 
         JPanel peakCheckBoxesPanel = new JPanel();
         peakCheckBoxesPanel.setBackground(Color.white);
         peakCheckBoxesPanel.setLayout(new BoxLayout(peakCheckBoxesPanel,
                 BoxLayout.Y_AXIS));
 
-        Vector<ExtendedCheckBox<PeakListRow>> peakCheckBoxesVector = new Vector<ExtendedCheckBox<PeakListRow>>();
+        peakCheckBoxes = new Vector<ExtendedCheckBox<PeakListRow>>();
         int minimumHorizSize = 0;
-        PeakListRow rows[] = alignmentResult.getRows();
-        Arrays.sort(rows, new PeakListRowSorterByMZ());
+
+        // Get all rows and sort them
+        PeakListRow rows[] = peakList.getRows();
+        Arrays.sort(rows, new PeakListRowSorterByID());
+
+        List<PeakListRow> selectedRows;
+        if (parameters.getSelectedStandardPeakListRows() != null)
+            selectedRows = Arrays.asList(parameters.getSelectedStandardPeakListRows());
+        else
+            selectedRows = new ArrayList<PeakListRow>(0);
         for (int i = 0; i < rows.length; i++) {
             // Add only fully detected peaks to list of potential standard peaks
-            if (rows[i].getNumberOfPeaks() == alignmentResult.getNumberOfRawDataFiles()) {
+            if (rows[i].getNumberOfPeaks() == peakList.getNumberOfRawDataFiles()) {
+
                 ExtendedCheckBox<PeakListRow> ecb = new ExtendedCheckBox<PeakListRow>(
-                        rows[i], true);
-                ecb.setSelected(false);
-                peakCheckBoxesVector.add(ecb);
+                        rows[i], selectedRows.contains(rows[i]));
+                peakCheckBoxes.add(ecb);
                 minimumHorizSize = Math.max(minimumHorizSize,
                         ecb.getPreferredWidth());
                 peakCheckBoxesPanel.add(ecb);
             }
         }
-        // If there are no peaks that are fully detected, then std compound
-        // normalization is not possible
-        if (peakCheckBoxesVector.size() == 0) {
-            desktop.displayErrorMessage("Aligned peak list does not contain any peaks that are detected in each raw data file.");
+
+        int minimumVertSize = new JCheckBox().getHeight();
+        if (peakCheckBoxes.size() > 0) {
+            minimumVertSize = (int) peakCheckBoxes.get(0).getPreferredSize().getHeight() * 6;
         }
 
-        peakCheckBoxes = peakCheckBoxesVector.toArray(new ExtendedCheckBox[0]);
-        int minimumVertSize = new JCheckBox().getHeight();
-        if ((peakCheckBoxes != null) && (peakCheckBoxes.length > 0))
-            minimumVertSize = (int) peakCheckBoxes[0].getPreferredSize().getHeight() * 6;
         JScrollPane peakPanelScroll = new JScrollPane(peakCheckBoxesPanel,
                 ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED,
                 ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER);
         peakPanelScroll.setPreferredSize(new Dimension(minimumHorizSize,
                 minimumVertSize));
-        constraints.gridx = 1;
-        constraints.weightx = 1;
-        constraints.weighty = 1;
-        components.add(peakPanelScroll, constraints);
 
-        comp = GUIUtils.addSeparator(components, PADDING_SIZE);
-        constraints.gridx = 0;
-        constraints.gridy = 4;
-        constraints.weightx = 0;
-        constraints.weighty = 0;
-        constraints.gridheight = 1;
-        constraints.gridwidth = 2;
-        layout.setConstraints(comp, constraints);
+        JPanel pnlStdSelection = new JPanel();
+        pnlStdSelection.setLayout(new BoxLayout(pnlStdSelection,
+                BoxLayout.X_AXIS));
 
-        JPanel buttonsPanel = new JPanel();
-        btnOK = GUIUtils.addButton(buttonsPanel, "OK", null, this);
-        btnCancel = GUIUtils.addButton(buttonsPanel, "Cancel", null, this);
-        constraints.gridx = 0;
-        constraints.gridy = 5;
-        constraints.gridwidth = 2;
-        components.add(buttonsPanel, constraints);
+        JLabel label = GUIUtils.addLabel(pnlStdSelection, "Standard compounds");
+        label.setBorder(BorderFactory.createEmptyBorder(0, 5, 5, 5));
 
-        GUIUtils.addMargin(components, PADDING_SIZE);
-        add(components);
+        pnlStdSelection.add(peakPanelScroll);
 
-        // finalize the dialog
+        // TODO: ParameterSetupDialog needs interface to add our own components
+        // with labels etc, using pnlAll is dirty
+        pnlAll.add(pnlStdSelection, BorderLayout.CENTER);
+
         pack();
-        setLocationRelativeTo(desktop.getMainFrame());
-        setResizable(true);
 
     }
 
-    public void actionPerformed(ActionEvent event) {
+    public void actionPerformed(ActionEvent ae) {
 
-        Object src = event.getSource();
+        Object src = ae.getSource();
 
         if (src == btnOK) {
-
-            parameters.setParameterValue(
-                    StandardCompoundNormalizerParameterSet.StandardUsageType,
-                    availableNormalizationTypesCombo.getSelectedItem());
-            parameters.setParameterValue(
-                    StandardCompoundNormalizerParameterSet.PeakMeasurementType,
-                    peakMeasurementCombo.getSelectedItem());
 
             selectedPeaks = new Vector<PeakListRow>();
 
@@ -207,37 +132,17 @@ class StandardCompoundNormalizerDialog extends JDialog implements
             }
 
             if (selectedPeaks.size() == 0) {
-                desktop.displayErrorMessage("Please select at least one peak");
+                MZmineCore.getDesktop().displayErrorMessage(
+                        "Please select at least one peak");
                 return;
             }
 
             parameters.setSelectedStandardPeakListRows(selectedPeaks.toArray(new PeakListRow[0]));
 
-            exitCode = ExitCode.OK;
-            dispose();
-            return;
         }
 
-        if (src == btnCancel) {
-            exitCode = ExitCode.CANCEL;
-            dispose();
-            return;
-        }
+        super.actionPerformed(ae);
 
-        if (src == btnDeselectAllPeaks) {
-            for (JCheckBox box : peakCheckBoxes)
-                box.setSelected(false);
-            return;
-        }
-
-    }
-
-    public ExitCode getExitCode() {
-        return exitCode;
-    }
-
-    public StandardCompoundNormalizerParameterSet getParameters() {
-        return parameters;
     }
 
     public PeakListRow[] getSelectedStandardPeakListRows() {

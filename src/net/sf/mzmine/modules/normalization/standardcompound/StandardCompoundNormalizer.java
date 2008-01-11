@@ -40,12 +40,12 @@ import net.sf.mzmine.userinterface.dialogs.ExitCode;
 /**
  * 
  */
-public class StandardCompoundNormalizer implements MZmineModule,
-        TaskListener, ActionListener {
+public class StandardCompoundNormalizer implements MZmineModule, TaskListener,
+        ActionListener {
 
     private Logger logger = Logger.getLogger(this.getClass().getName());
 
-    private StandardCompoundNormalizerParameterSet parameters;
+    private StandardCompoundNormalizerParameters parameters;
 
     private Desktop desktop;
 
@@ -56,11 +56,11 @@ public class StandardCompoundNormalizer implements MZmineModule,
 
         this.desktop = MZmineCore.getDesktop();
 
-        parameters = new StandardCompoundNormalizerParameterSet();
+        parameters = new StandardCompoundNormalizerParameters();
 
         desktop.addMenuItem(MZmineMenu.NORMALIZATION,
-                "Standard compound normalizer", this, null,
-                KeyEvent.VK_A, false, true);
+                "Standard compound normalizer", this, null, KeyEvent.VK_A,
+                false, true);
 
     }
 
@@ -76,8 +76,7 @@ public class StandardCompoundNormalizer implements MZmineModule,
     }
 
     public void setParameters(ParameterSet parameters) {
-        if (parameters instanceof StandardCompoundNormalizerParameterSet)
-            this.parameters = (StandardCompoundNormalizerParameterSet) parameters;
+        this.parameters = (StandardCompoundNormalizerParameters) parameters;
     }
 
     /**
@@ -87,24 +86,21 @@ public class StandardCompoundNormalizer implements MZmineModule,
 
         PeakList[] selectedPeakLists = desktop.getSelectedPeakLists();
         if (selectedPeakLists.length < 1) {
-            desktop.displayErrorMessage("Please select aligned peaklist");
+            desktop.displayErrorMessage("Please select a peak list for normalization");
             return;
         }
 
         for (PeakList pl : selectedPeakLists) {
             StandardCompoundNormalizerDialog dialog = new StandardCompoundNormalizerDialog(
-                    desktop, pl, parameters);
+                    pl, parameters);
             dialog.setVisible(true);
 
             if (dialog.getExitCode() != ExitCode.OK) {
-                logger.info("Standard compound normalization cancelled.");
                 return;
             }
 
-            runModule(
-                    null,
-                    new PeakList[] { pl },
-                    (StandardCompoundNormalizerParameterSet) parameters.clone(),
+            runModule(null, new PeakList[] { pl },
+                    (StandardCompoundNormalizerParameters) parameters.clone(),
                     null);
         }
 
@@ -117,17 +113,11 @@ public class StandardCompoundNormalizer implements MZmineModule,
     public void taskFinished(Task task) {
 
         if (task.getStatus() == Task.TaskStatus.FINISHED) {
-
             logger.info("Finished standard compound normalizer");
+        }
 
-            PeakList normalizedPeakList = ((StandardCompoundNormalizerTask) task).getResult();
-
-            MZmineCore.getCurrentProject().addPeakList(
-                    normalizedPeakList);
-
-        } else if (task.getStatus() == Task.TaskStatus.ERROR) {
-            /* Task encountered an error */
-            String msg = "Error while normalizing alignment result(s): "
+        if (task.getStatus() == Task.TaskStatus.ERROR) {
+            String msg = "Error while normalizing peak list: "
                     + task.getErrorMessage();
             logger.severe(msg);
             desktop.displayErrorMessage(msg);
@@ -143,15 +133,15 @@ public class StandardCompoundNormalizer implements MZmineModule,
      */
     public TaskGroup runModule(RawDataFile[] dataFiles,
             PeakList[] alignmentResults,
-            StandardCompoundNormalizerParameterSet parameters,
+            StandardCompoundNormalizerParameters parameters,
             TaskGroupListener taskGroupListener) {
 
         // prepare a new group of tasks
 
         Task tasks[] = new StandardCompoundNormalizerTask[alignmentResults.length];
         for (int i = 0; i < alignmentResults.length; i++) {
-            tasks[i] = new StandardCompoundNormalizerTask(
-                    alignmentResults[i], parameters);
+            tasks[i] = new StandardCompoundNormalizerTask(alignmentResults[i],
+                    parameters);
         }
         TaskGroup newGroup = new TaskGroup(tasks, this, taskGroupListener);
 

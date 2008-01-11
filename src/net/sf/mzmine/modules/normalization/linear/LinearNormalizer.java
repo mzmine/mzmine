@@ -24,11 +24,8 @@ import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
 import java.util.logging.Logger;
 
-import net.sf.mzmine.data.Parameter;
 import net.sf.mzmine.data.ParameterSet;
-import net.sf.mzmine.data.ParameterType;
 import net.sf.mzmine.data.PeakList;
-import net.sf.mzmine.data.impl.SimpleParameter;
 import net.sf.mzmine.data.impl.SimpleParameterSet;
 import net.sf.mzmine.io.RawDataFile;
 import net.sf.mzmine.main.MZmineCore;
@@ -88,8 +85,8 @@ public class LinearNormalizer implements BatchStepNormalization, TaskListener,
      */
     public ExitCode setupParameters(ParameterSet currentParameters) {
         ParameterSetupDialog dialog = new ParameterSetupDialog(
-                desktop.getMainFrame(), "Please check parameter values for "
-                        + toString(), (SimpleParameterSet) currentParameters);
+                "Please set parameter values for " + toString(),
+                (SimpleParameterSet) currentParameters);
         dialog.setVisible(true);
         return dialog.getExitCode();
     }
@@ -126,7 +123,7 @@ public class LinearNormalizer implements BatchStepNormalization, TaskListener,
         }
 
         if (task.getStatus() == Task.TaskStatus.ERROR) {
-            String msg = "Error while normalizing alignment result(s): "
+            String msg = "Error while normalizing peaklist: "
                     + task.getErrorMessage();
             logger.severe(msg);
             desktop.displayErrorMessage(msg);
@@ -139,9 +136,8 @@ public class LinearNormalizer implements BatchStepNormalization, TaskListener,
      *      net.sf.mzmine.data.PeakList[], net.sf.mzmine.data.ParameterSet,
      *      net.sf.mzmine.taskcontrol.TaskGroupListener)
      */
-    public TaskGroup runModule(RawDataFile[] dataFiles,
-            PeakList[] peakLists, ParameterSet parameters,
-            TaskGroupListener taskGroupListener) {
+    public TaskGroup runModule(RawDataFile[] dataFiles, PeakList[] peakLists,
+            ParameterSet parameters, TaskGroupListener taskGroupListener) {
 
         // check peak lists
         if ((peakLists == null) || (peakLists.length == 0)) {

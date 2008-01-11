@@ -87,8 +87,8 @@ public class RowsFilter implements BatchStepAlignment, TaskListener,
      */
     public ExitCode setupParameters(ParameterSet currentParameters) {
         ParameterSetupDialog dialog = new ParameterSetupDialog(
-                desktop.getMainFrame(), "Please check parameter values for "
-                        + toString(), (SimpleParameterSet) currentParameters);
+                "Please check parameter values for " + toString(),
+                (SimpleParameterSet) currentParameters);
         dialog.setVisible(true);
         return dialog.getExitCode();
     }

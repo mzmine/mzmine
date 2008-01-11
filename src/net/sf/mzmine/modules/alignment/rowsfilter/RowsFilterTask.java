@@ -122,7 +122,7 @@ class RowsFilterTask implements Task {
 
         // Remove the original peaklist if requested
         if (removeOriginal)
-            MZmineCore.getCurrentProject().removePeakList(peakList);
+            currentProject.removePeakList(peakList);
 
         status = TaskStatus.FINISHED;
 

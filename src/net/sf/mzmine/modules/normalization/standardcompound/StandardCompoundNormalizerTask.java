@@ -19,7 +19,6 @@
 
 package net.sf.mzmine.modules.normalization.standardcompound;
 
-import java.util.Hashtable;
 import java.util.logging.Logger;
 
 import net.sf.mzmine.data.CompoundIdentity;
@@ -30,6 +29,9 @@ import net.sf.mzmine.data.impl.SimplePeak;
 import net.sf.mzmine.data.impl.SimplePeakList;
 import net.sf.mzmine.data.impl.SimplePeakListRow;
 import net.sf.mzmine.io.RawDataFile;
+import net.sf.mzmine.main.MZmineCore;
+import net.sf.mzmine.modules.normalization.linear.LinearNormalizerParameters;
+import net.sf.mzmine.project.MZmineProject;
 import net.sf.mzmine.taskcontrol.Task;
 
 public class StandardCompoundNormalizerTask implements Task {
@@ -37,23 +39,29 @@ public class StandardCompoundNormalizerTask implements Task {
     private Logger logger = Logger.getLogger(this.getClass().getName());
 
     private PeakList originalPeakList;
-    private StandardCompoundNormalizerParameterSet parameters;
 
-    private TaskStatus taskStatus;
+    private TaskStatus taskStatus = TaskStatus.WAITING;
     private String errorMessage;
 
-    private int processedRows;
-    private int totalRows;
+    private int processedRows, totalRows;
 
-    private SimplePeakList normalizedPeakList;
+    private String suffix, normalizationType, peakMeasurementType;
+    private float MZvsRTBalance;
+    private boolean removeOriginal;
+    private PeakListRow[] standardRows;
 
     public StandardCompoundNormalizerTask(PeakList peakList,
-            StandardCompoundNormalizerParameterSet parameters) {
-        
-        taskStatus = TaskStatus.WAITING;
+            StandardCompoundNormalizerParameters parameters) {
 
         this.originalPeakList = peakList;
-        this.parameters = parameters;
+
+        suffix = (String) parameters.getParameterValue(LinearNormalizerParameters.suffix);
+        normalizationType = (String) parameters.getParameterValue(StandardCompoundNormalizerParameters.standardUsageType);
+        peakMeasurementType = (String) parameters.getParameterValue(StandardCompoundNormalizerParameters.peakMeasurementType);
+        MZvsRTBalance = (Float) parameters.getParameterValue(StandardCompoundNormalizerParameters.MZvsRTBalance);
+        removeOriginal = (Boolean) parameters.getParameterValue(StandardCompoundNormalizerParameters.autoRemove);
+        standardRows = parameters.getSelectedStandardPeakListRows();
+        
     }
 
     public void cancel() {
@@ -65,12 +73,9 @@ public class StandardCompoundNormalizerTask implements Task {
     }
 
     public float getFinishedPercentage() {
-        if (totalRows == 0) return 0;
+        if (totalRows == 0)
+            return 0;
         return (float) processedRows / (float) totalRows;
-    }
-
-    public PeakList getResult() {
-        return normalizedPeakList;
     }
 
     public TaskStatus getStatus() {
@@ -78,76 +83,62 @@ public class StandardCompoundNormalizerTask implements Task {
     }
 
     public String getTaskDescription() {
-        return "Standard compound normalization of "
-                + originalPeakList.toString();
+        return "Standard compound normalization of " + originalPeakList;
     }
 
     public void run() {
 
         taskStatus = TaskStatus.PROCESSING;
 
-        Object normalizationType = parameters.getParameterValue(
-                StandardCompoundNormalizerParameterSet.StandardUsageType);
-        Object peakMeasurementType = parameters.getParameterValue(
-                StandardCompoundNormalizerParameterSet.PeakMeasurementType);
-        float MZvsRTBalance = (Float) parameters.getParameterValue(
-                StandardCompoundNormalizerParameterSet.MZvsRTBalance);
-
-        logger.fine("Starting standard compound normlization of "
-                + originalPeakList.toString() + " using "
-                + normalizationType.toString() + " (total "
-                + parameters.getSelectedStandardPeakListRows().length
-                + " standard peaks)");
-
-        // This hashtable maps rows from original alignment result to rows of
-        // the normalized alignment
-        Hashtable<PeakListRow, SimplePeakListRow> rowMap = new Hashtable<PeakListRow, SimplePeakListRow>();
+        logger.finest("Starting standard compound normalization of "
+                + originalPeakList + " using " + normalizationType + " (total "
+                + standardRows.length + " standard peaks)");
 
         // Initialize new alignment result for the normalized result
-        normalizedPeakList = new SimplePeakList(originalPeakList.toString()
-                + " normalized using " + normalizationType.toString());
+        SimplePeakList normalizedPeakList = new SimplePeakList(originalPeakList + " " + suffix);
 
         // Copy raw data files from original alignment result to new alignment
         // result
         totalRows = originalPeakList.getNumberOfRows();
-        for (RawDataFile ord : originalPeakList.getRawDataFiles())
-            normalizedPeakList.addRawDataFile(ord);
+        for (RawDataFile file : originalPeakList.getRawDataFiles())
+            normalizedPeakList.addRawDataFile(file);
 
         // Loop through all rows
         for (PeakListRow row : originalPeakList.getRows()) {
 
             // Cancel ?
             if (taskStatus == TaskStatus.CANCELED) {
-                normalizedPeakList = null;
-                rowMap.clear();
-                rowMap = null;
                 return;
             }
+
+            SimplePeakListRow normalizedRow = new SimplePeakListRow(row.getID());
+            normalizedRow.setComment(row.getComment());
+            for (CompoundIdentity ident : row.getCompoundIdentities())
+                normalizedRow.addCompoundIdentity(ident);
 
             // Get m/z and RT of the current row
             float mz = row.getAverageMZ();
             float rt = row.getAverageRT();
 
             // Loop through all raw data files
-            for (RawDataFile ord : originalPeakList.getRawDataFiles()) {
+            for (RawDataFile file : originalPeakList.getRawDataFiles()) {
 
                 float normalizationFactors[] = null;
                 float normalizationFactorWeights[] = null;
 
-                if (normalizationType == StandardCompoundNormalizerParameterSet.StandardUsageTypeNearest) {
+                if (normalizationType == StandardCompoundNormalizerParameters.standardUsageTypeNearest) {
 
                     // Search for nearest standard
                     PeakListRow nearestStandardRow = null;
                     float nearestStandardRowDistance = Float.MAX_VALUE;
-                    PeakListRow[] standardRows = parameters.getSelectedStandardPeakListRows();
+
                     for (int standardRowIndex = 0; standardRowIndex < standardRows.length; standardRowIndex++) {
                         PeakListRow standardRow = standardRows[standardRowIndex];
 
                         float stdMZ = standardRow.getAverageMZ();
                         float stdRT = standardRow.getAverageRT();
-                        float distance = MZvsRTBalance
-                                * java.lang.Math.abs(mz - stdMZ)
-                                + java.lang.Math.abs(rt - stdRT);
+                        float distance = MZvsRTBalance * Math.abs(mz - stdMZ)
+                                + Math.abs(rt - stdRT);
                         if (distance <= nearestStandardRowDistance) {
                             nearestStandardRow = standardRow;
                             nearestStandardRowDistance = distance;
@@ -158,11 +149,12 @@ public class StandardCompoundNormalizerTask implements Task {
                     // Calc and store a single normalization factor
                     normalizationFactors = new float[1];
                     normalizationFactorWeights = new float[1];
-                    Peak standardPeak = nearestStandardRow.getPeak(ord);
-                    if (peakMeasurementType == StandardCompoundNormalizerParameterSet.PeakMeasurementTypeHeight)
+                    Peak standardPeak = nearestStandardRow.getPeak(file);
+                    if (peakMeasurementType == StandardCompoundNormalizerParameters.peakMeasurementTypeHeight) {
                         normalizationFactors[0] = standardPeak.getHeight();
-                    if (peakMeasurementType == StandardCompoundNormalizerParameterSet.PeakMeasurementTypeArea)
+                    } else {
                         normalizationFactors[0] = standardPeak.getArea();
+                    }
                     logger.finest("Normalizing using standard peak "
                             + standardPeak + ", factor "
                             + normalizationFactors[0]);
@@ -170,10 +162,9 @@ public class StandardCompoundNormalizerTask implements Task {
 
                 }
 
-                if (normalizationType == StandardCompoundNormalizerParameterSet.StandardUsageTypeWeighted) {
+                if (normalizationType == StandardCompoundNormalizerParameters.standardUsageTypeWeighted) {
 
                     // Add all standards as factors, and use distance as weight
-                    PeakListRow[] standardRows = parameters.getSelectedStandardPeakListRows();
                     normalizationFactors = new float[standardRows.length];
                     normalizationFactorWeights = new float[standardRows.length];
 
@@ -182,23 +173,23 @@ public class StandardCompoundNormalizerTask implements Task {
 
                         float stdMZ = standardRow.getAverageMZ();
                         float stdRT = standardRow.getAverageRT();
-                        float distance = MZvsRTBalance
-                                * java.lang.Math.abs(mz - stdMZ)
-                                + java.lang.Math.abs(rt - stdRT);
+                        float distance = MZvsRTBalance * Math.abs(mz - stdMZ)
+                                + Math.abs(rt - stdRT);
 
-                        Peak standardPeak = standardRow.getPeak(ord);
+                        Peak standardPeak = standardRow.getPeak(file);
                         if (standardPeak == null) {
-                            // TODO: What to do if standard peak is not
+                            // What to do if standard peak is not
                             // available? (Currently this is ruled out by the
                             // setup dialog, which shows only peaks that are
                             // present in all samples)
                             normalizationFactors[standardRowIndex] = 1.0f;
                             normalizationFactorWeights[standardRowIndex] = 0.0f;
                         } else {
-                            if (peakMeasurementType == StandardCompoundNormalizerParameterSet.PeakMeasurementTypeHeight)
+                            if (peakMeasurementType == StandardCompoundNormalizerParameters.peakMeasurementTypeHeight) {
                                 normalizationFactors[standardRowIndex] = standardPeak.getHeight();
-                            if (peakMeasurementType == StandardCompoundNormalizerParameterSet.PeakMeasurementTypeArea)
+                            } else {
                                 normalizationFactors[standardRowIndex] = standardPeak.getArea();
+                            }
                             normalizationFactorWeights[standardRowIndex] = 1 / distance;
                         }
                     }
@@ -219,15 +210,15 @@ public class StandardCompoundNormalizerTask implements Task {
                 // For simple scaling of the normalized values
                 normalizationFactor = normalizationFactor / 100.0f;
 
-                logger.finest("Normalizing row " + row + "[" + ord
+                logger.finest("Normalizing row " + row + "[" + file
                         + "] using factor " + normalizationFactor);
 
-                // TODO: How to handle zero normalization factor?
+                // How to handle zero normalization factor?
                 if (normalizationFactor == 0.0)
                     normalizationFactor = Float.MIN_VALUE;
 
                 // Normalize peak
-                Peak originalPeak = row.getPeak(ord);
+                Peak originalPeak = row.getPeak(file);
                 if (originalPeak != null) {
                     SimplePeak normalizedPeak = new SimplePeak(originalPeak);
                     float normalizedHeight = originalPeak.getHeight()
@@ -237,29 +228,23 @@ public class StandardCompoundNormalizerTask implements Task {
                     normalizedPeak.setHeight(normalizedHeight);
                     normalizedPeak.setArea(normalizedArea);
 
-                    SimplePeakListRow normalizedRow = rowMap.get(row);
-                    if (normalizedRow == null) {
-                        normalizedRow = new SimplePeakListRow(row.getID());
-                        normalizedRow.setComment(row.getComment());
-                        for (CompoundIdentity ident : row.getCompoundIdentities())
-                            normalizedRow.addCompoundIdentity(ident);
-                        rowMap.put(row, normalizedRow);
-                    }
-
-                    normalizedRow.addPeak(ord, originalPeak, normalizedPeak);
+                    normalizedRow.addPeak(file, originalPeak, normalizedPeak);
                 }
 
             }
-            
+
+            normalizedPeakList.addRow(normalizedRow);
             processedRows++;
 
         }
 
-        // Finally add all normalized rows to normalized alignment result
-        for (PeakListRow row : originalPeakList.getRows()) {
-            SimplePeakListRow normalizedRow = rowMap.get(row);
-            normalizedPeakList.addRow(normalizedRow);
-        }
+        // Add new peaklist to the project
+        MZmineProject currentProject = MZmineCore.getCurrentProject();
+        currentProject.addPeakList(normalizedPeakList);
+
+        // Remove the original peaklist if requested
+        if (removeOriginal)
+            currentProject.removePeakList(originalPeakList);
 
         taskStatus = TaskStatus.FINISHED;
 

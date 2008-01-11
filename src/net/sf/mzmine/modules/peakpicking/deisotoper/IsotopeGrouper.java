@@ -135,8 +135,8 @@ public class IsotopeGrouper implements BatchStepPeakPicking, TaskListener,
      */
     public ExitCode setupParameters(ParameterSet currentParameters) {
         ParameterSetupDialog dialog = new ParameterSetupDialog(
-                desktop.getMainFrame(), "Please set parameter values for "
-                        + toString(), (SimpleParameterSet) currentParameters);
+                "Please set parameter values for " + toString(),
+                (SimpleParameterSet) currentParameters);
         dialog.setVisible(true);
         return dialog.getExitCode();
     }
@@ -161,7 +161,7 @@ public class IsotopeGrouper implements BatchStepPeakPicking, TaskListener,
             desktop.displayErrorMessage("Please select peak lists for deisotoping");
             return null;
         }
-        
+
         // prepare a new group of tasks
         Task tasks[] = new IsotopeGrouperTask[peakLists.length];
         for (int i = 0; i < peakLists.length; i++) {

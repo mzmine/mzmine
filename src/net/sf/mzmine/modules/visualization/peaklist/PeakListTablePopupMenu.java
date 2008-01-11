@@ -184,15 +184,17 @@ public class PeakListTablePopupMenu extends JPopupMenu implements
 
             Peak clickedPeak = clickedPeakListRow.getPeak(clickedDataFile);
             TICVisualizer tic = TICVisualizer.getInstance();
-            
+
             float rtMin = clickedDataFile.getDataMinRT(1);
             float rtMax = clickedDataFile.getDataMaxRT(1);
-            
-            if (clickedPeak != null) {
-                tic.showNewTICVisualizerWindow(new RawDataFile[] { clickedDataFile },
-                        new Peak[] { clickedPeak }, 1, TICVisualizerParameters.plotTypeBP, rtMin, rtMax,
-                        clickedPeak.getDataPointMinMZ(), clickedPeak.getDataPointMaxMZ());
 
+            if (clickedPeak != null) {
+                tic.showNewTICVisualizerWindow(
+                        new RawDataFile[] { clickedDataFile },
+                        new Peak[] { clickedPeak }, 1,
+                        TICVisualizerParameters.plotTypeBP, rtMin, rtMax,
+                        clickedPeak.getDataPointMinMZ(),
+                        clickedPeak.getDataPointMaxMZ());
 
             } else {
                 float minMZ = clickedPeakListRow.getAverageMZ();
@@ -205,9 +207,12 @@ public class PeakListTablePopupMenu extends JPopupMenu implements
                     if (peak.getDataPointMaxMZ() > maxMZ)
                         maxMZ = peak.getDataPointMaxMZ();
                 }
-                tic.showNewTICVisualizerWindow(new RawDataFile[] { clickedDataFile },
-                        null, 1, TICVisualizerParameters.plotTypeBP, rtMin, rtMax,
-                        clickedPeak.getDataPointMinMZ(), clickedPeak.getDataPointMaxMZ());            }
+                tic.showNewTICVisualizerWindow(
+                        new RawDataFile[] { clickedDataFile }, null, 1,
+                        TICVisualizerParameters.plotTypeBP, rtMin, rtMax,
+                        clickedPeak.getDataPointMinMZ(),
+                        clickedPeak.getDataPointMaxMZ());
+            }
 
         }
 
@@ -265,7 +270,6 @@ public class PeakListTablePopupMenu extends JPopupMenu implements
             SimpleParameterSet parameterSet = new SimpleParameterSet(params);
 
             ParameterSetupDialog parameterSetupDialog = new ParameterSetupDialog(
-                    MZmineCore.getDesktop().getMainFrame(),
                     "Please set peak boundaries", parameterSet);
 
             parameterSetupDialog.setVisible(true);
@@ -308,7 +312,6 @@ public class PeakListTablePopupMenu extends JPopupMenu implements
             SimpleParameterSet parameterSet = new SimpleParameterSet(params);
 
             ParameterSetupDialog parameterSetupDialog = new ParameterSetupDialog(
-                    MZmineCore.getDesktop().getMainFrame(),
                     "Please set peak boundaries", parameterSet);
 
             parameterSetupDialog.setVisible(true);
@@ -324,17 +327,17 @@ public class PeakListTablePopupMenu extends JPopupMenu implements
             // find maximum ID and add 1
             int newID = 1;
             for (PeakListRow row : peakList.getRows()) {
-                if (row.getID() >= newID) newID = row.getID() + 1;
+                if (row.getID() >= newID)
+                    newID = row.getID() + 1;
             }
-            
+
             // create new row
             SimplePeakListRow newRow = new SimplePeakListRow(newID);
             peakList.addRow(newRow);
             TableSorter sorterModel = (TableSorter) table.getModel();
             PeakListTableModel originalModel = (PeakListTableModel) sorterModel.getTableModel();
             originalModel.fireTableDataChanged();
-            
-            
+
             // find peaks for new row
             for (RawDataFile dataFile : peakList.getRawDataFiles()) {
                 ManuallyDefinePeakTask task = new ManuallyDefinePeakTask(

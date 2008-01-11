@@ -38,10 +38,10 @@ import net.sf.mzmine.userinterface.dialogs.ParameterSetupDialog;
  */
 public class SpectraVisualizer implements MZmineModule, ActionListener {
 
-private static SpectraVisualizer myInstance;
-    
+    private static SpectraVisualizer myInstance;
+
     private SpectraVisualizerParameters parameters;
-    
+
     private Logger logger = Logger.getLogger(this.getClass().getName());
 
     private Desktop desktop;
@@ -54,14 +54,14 @@ private static SpectraVisualizer myInstance;
         this.desktop = MZmineCore.getDesktop();
 
         myInstance = this;
-        
+
         parameters = new SpectraVisualizerParameters();
-        
+
         desktop.addMenuItem(MZmineMenu.VISUALIZATION, "Spectra plot", this,
                 null, KeyEvent.VK_S, false, true);
 
     }
-    
+
     public static SpectraVisualizer getInstance() {
         return myInstance;
     }
@@ -82,30 +82,30 @@ private static SpectraVisualizer myInstance;
         showNewSpectraWindow(dataFiles[0], parameters);
 
     }
-    
-    private void showNewSpectraWindow(RawDataFile dataFile, SpectraVisualizerParameters parameters) {
-        
+
+    private void showNewSpectraWindow(RawDataFile dataFile,
+            SpectraVisualizerParameters parameters) {
+
         ParameterSetupDialog dialog = new ParameterSetupDialog(
-                desktop.getMainFrame(), "Please set parameter values for "
-                        + toString(), parameters);
+                "Please set parameter values for " + toString(), parameters);
 
         dialog.setVisible(true);
 
         if (dialog.getExitCode() != ExitCode.OK)
             return;
-        
+
         Integer scanNumber = (Integer) parameters.getParameterValue(SpectraVisualizerParameters.scanNumber);
 
         showNewSpectraWindow(dataFile, scanNumber);
-        
+
     }
-    
+
     public void showNewSpectraWindow(RawDataFile dataFile, int scanNumber) {
-        SpectraVisualizerWindow newWindow = new SpectraVisualizerWindow(dataFile, scanNumber);
+        SpectraVisualizerWindow newWindow = new SpectraVisualizerWindow(
+                dataFile, scanNumber);
         desktop.addInternalFrame(newWindow);
     }
 
-    
     /**
      * @see net.sf.mzmine.main.MZmineModule#toString()
      */

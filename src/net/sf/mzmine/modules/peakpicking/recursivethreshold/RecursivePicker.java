@@ -63,8 +63,6 @@ public class RecursivePicker implements BatchStepPeakPicking, TaskListener,
 
     }
 
-
-
     /**
      * @see java.awt.event.ActionListener#actionPerformed(java.awt.event.ActionEvent)
      */
@@ -121,8 +119,8 @@ public class RecursivePicker implements BatchStepPeakPicking, TaskListener,
      */
     public ExitCode setupParameters(ParameterSet currentParameters) {
         ParameterSetupDialog dialog = new ParameterSetupDialog(
-                desktop.getMainFrame(), "Please set parameter values for "
-                        + toString(), (SimpleParameterSet) currentParameters);
+                "Please set parameter values for " + toString(),
+                (SimpleParameterSet) currentParameters);
         dialog.setVisible(true);
         return dialog.getExitCode();
     }
@@ -133,7 +131,7 @@ public class RecursivePicker implements BatchStepPeakPicking, TaskListener,
     public ParameterSet getParameterSet() {
         return parameters;
     }
-    
+
     public void setParameters(ParameterSet parameters) {
         this.parameters = (RecursivePickerParameters) parameters;
     }
@@ -153,7 +151,7 @@ public class RecursivePicker implements BatchStepPeakPicking, TaskListener,
             desktop.displayErrorMessage("Please select data files for peak picking");
             return null;
         }
-        
+
         // prepare a new group of tasks
         Task tasks[] = new RecursivePickerTask[dataFiles.length];
         for (int i = 0; i < dataFiles.length; i++) {

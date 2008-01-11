@@ -94,8 +94,8 @@ public class SGFilter implements BatchStepFiltering, TaskListener,
      */
     public ExitCode setupParameters(ParameterSet currentParameters) {
         ParameterSetupDialog dialog = new ParameterSetupDialog(
-                desktop.getMainFrame(), "Please set parameter values for "
-                        + toString(), (SimpleParameterSet) currentParameters);
+                "Please set parameter values for " + toString(),
+                (SimpleParameterSet) currentParameters);
         dialog.setVisible(true);
         return dialog.getExitCode();
     }
@@ -114,7 +114,7 @@ public class SGFilter implements BatchStepFiltering, TaskListener,
             desktop.displayErrorMessage("Please select data files for filtering");
             return null;
         }
-        
+
         // prepare a new task group
         Task tasks[] = new SGFilterTask[dataFiles.length];
         for (int i = 0; i < dataFiles.length; i++) {
@@ -158,7 +158,7 @@ public class SGFilter implements BatchStepFiltering, TaskListener,
     public void taskFinished(Task task) {
 
         SGFilterTask sgTask = (SGFilterTask) task;
-        
+
         if (task.getStatus() == Task.TaskStatus.FINISHED) {
             logger.info("Finished Savitzky-Golay filter on "
                     + sgTask.getDataFile());

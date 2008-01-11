@@ -28,29 +28,34 @@ import net.sf.mzmine.data.impl.SimpleParameterSet;
 /**
  * 
  */
-public class StandardCompoundNormalizerParameterSet extends SimpleParameterSet {
+public class StandardCompoundNormalizerParameters extends SimpleParameterSet {
 
-    public static final String StandardUsageTypeNearest = "Nearest standard";
-    public static final String StandardUsageTypeWeighted = "Weighted contribution of all standards";
+    public static final String standardUsageTypeNearest = "Nearest standard";
+    public static final String standardUsageTypeWeighted = "Weighted contribution of all standards";
 
-    public static final Object[] StandardUsageTypePossibleValues = {
-            StandardUsageTypeNearest, StandardUsageTypeWeighted };
+    public static final Object[] standardUsageTypePossibleValues = {
+            standardUsageTypeNearest, standardUsageTypeWeighted };
 
-    public static final Parameter StandardUsageType = new SimpleParameter(
+    public static final String peakMeasurementTypeHeight = "Peak height";
+    public static final String peakMeasurementTypeArea = "Peak area";
+
+    public static final Object[] peakMeasurementTypePossibleValues = {
+            peakMeasurementTypeHeight, peakMeasurementTypeArea };
+
+    
+    public static final Parameter suffix = new SimpleParameter(
+            ParameterType.STRING, "Name suffix",
+            "Suffix to be added to peak list name", null, "normalized", null);
+    
+    public static final Parameter standardUsageType = new SimpleParameter(
             ParameterType.STRING, "Normalization type",
-            "Normalize intensities using ", StandardUsageTypeNearest,
-            StandardUsageTypePossibleValues);
+            "Normalize intensities using ", standardUsageTypeNearest,
+            standardUsageTypePossibleValues);
 
-    public static final String PeakMeasurementTypeHeight = "Peak height";
-    public static final String PeakMeasurementTypeArea = "Peak area";
-
-    public static final Object[] PeakMeasurementTypePossibleValues = {
-            PeakMeasurementTypeHeight, PeakMeasurementTypeArea };
-
-    public static final Parameter PeakMeasurementType = new SimpleParameter(
+    public static final Parameter peakMeasurementType = new SimpleParameter(
             ParameterType.STRING, "Peak measurement type",
-            "Measure peaks using ", PeakMeasurementTypeHeight,
-            PeakMeasurementTypePossibleValues);
+            "Measure peaks using ", peakMeasurementTypeHeight,
+            peakMeasurementTypePossibleValues);
 
     public static final Parameter MZvsRTBalance = new SimpleParameter(
             ParameterType.FLOAT, "M/Z vs RT balance",
@@ -65,15 +70,15 @@ public class StandardCompoundNormalizerParameterSet extends SimpleParameterSet {
 
     private PeakListRow[] selectedPeaks;
 
-    public StandardCompoundNormalizerParameterSet() {
-        super(new Parameter[] { StandardUsageType, PeakMeasurementType,
+    public StandardCompoundNormalizerParameters() {
+        super(new Parameter[] { suffix, standardUsageType, peakMeasurementType,
                 MZvsRTBalance, autoRemove });
 
     }
 
-    public StandardCompoundNormalizerParameterSet clone() {
+    public StandardCompoundNormalizerParameters clone() {
 
-        StandardCompoundNormalizerParameterSet clone = (StandardCompoundNormalizerParameterSet) super.clone();
+        StandardCompoundNormalizerParameters clone = (StandardCompoundNormalizerParameters) super.clone();
 
         if (selectedPeaks != null) {
             clone.setSelectedStandardPeakListRows(selectedPeaks);

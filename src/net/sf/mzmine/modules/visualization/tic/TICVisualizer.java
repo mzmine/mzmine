@@ -121,8 +121,8 @@ public class TICVisualizer implements MZmineModule, ActionListener {
         }
 
         ParameterSetupDialog dialog = new ParameterSetupDialog(
-                desktop.getMainFrame(), "Please set parameter values for "
-                        + toString(), parameters, autoValues);
+                "Please set parameter values for " + toString(), parameters,
+                autoValues);
 
         dialog.setVisible(true);
 
