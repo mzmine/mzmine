@@ -59,7 +59,7 @@ public class StandardCompoundNormalizerParameterSet extends SimpleParameterSet {
 
     public static final Parameter autoRemove = new SimpleParameter(
             ParameterType.BOOLEAN,
-            "Remove source peak list after filtering",
+            "Remove original peak list",
             "If checked, original peak list will be removed and only normalized version remains",
             new Boolean(true));
 
