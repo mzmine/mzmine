@@ -61,7 +61,7 @@ public class FTMSFilterParameters extends SimpleParameterSet {
 
     public static final Parameter autoRemove = new SimpleParameter(
             ParameterType.BOOLEAN,
-            "Remove source peaklist after deisotoping",
+            "Remove original peaklist",
             "If checked, original peaklist will be removed and only deisotoped version remains",
             new Boolean(true));
 

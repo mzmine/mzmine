@@ -31,6 +31,12 @@ public class IsotopeGrouperParameters extends SimpleParameterSet {
 
     public static final NumberFormat percentFormat = NumberFormat.getPercentInstance();
 
+    public static final String ChooseTopIntensity = "Most intense";
+    public static final String ChooseLowestMZ = "Lowest m/z";
+
+    public static final Object[] representativeIsotopeValues = {
+            ChooseTopIntensity, ChooseLowestMZ };
+
     public static final Parameter suffix = new SimpleParameter(
             ParameterType.STRING, "Name suffix",
             "Suffix to be added to peak list name", null, "deisotoped", null);
@@ -57,15 +63,22 @@ public class IsotopeGrouperParameters extends SimpleParameterSet {
             ParameterType.INTEGER, "Maximum charge", "Maximum charge", "",
             new Integer(1), new Integer(1), null);
 
+    public static final Parameter representativeIsotope = new SimpleParameter(
+            ParameterType.STRING,
+            "Representative isotope",
+            "Maximum RT difference can be defined either using absolute or relative value",
+            ChooseTopIntensity, representativeIsotopeValues);
+
     public static final Parameter autoRemove = new SimpleParameter(
             ParameterType.BOOLEAN,
-            "Remove source peaklist after deisotoping",
+            "Remove original peaklist",
             "If checked, original peaklist will be removed and only deisotoped version remains",
             new Boolean(true));
 
     public IsotopeGrouperParameters() {
         super(new Parameter[] { suffix, mzTolerance, rtTolerance,
-                monotonicShape, maximumCharge, autoRemove, });
+                monotonicShape, maximumCharge, representativeIsotope,
+                autoRemove });
     }
 
 }

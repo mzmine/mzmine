@@ -20,7 +20,7 @@
 package net.sf.mzmine.modules.peakpicking.deisotoper;
 
 import java.util.Arrays;
-import java.util.Hashtable;
+import java.util.Vector;
 
 import net.sf.mzmine.data.Peak;
 import net.sf.mzmine.data.PeakList;
@@ -37,7 +37,15 @@ import net.sf.mzmine.taskcontrol.Task;
  */
 class IsotopeGrouperTask implements Task {
 
-    private static final float neutronMW = 1.008665f;
+    /**
+     * The isotopeDistance constant defines expected distance between isotopes.
+     * Actual weight of 1 neutron is 1.008665 Da, but part of this mass is
+     * consumed as binding energy to other protons/neutrons. Actual mass
+     * increase of isotopes depends on chemical formula of the molecule. Since
+     * we don't know the formula, we can assume the distance to be ~1 Da, with
+     * user-defined tolerance.
+     */
+    private static final float isotopeDistance = 1f;
 
     private PeakList peaklist;
 
@@ -50,9 +58,8 @@ class IsotopeGrouperTask implements Task {
     // parameter values
     private String suffix;
     private float mzTolerance, rtTolerance;
-    private boolean monotonicShape;
+    private boolean monotonicShape, removeOriginal, chooseMostIntense;
     private int maximumCharge;
-    private boolean removeOriginal;
 
     /**
      * @param rawDataFile
@@ -68,6 +75,7 @@ class IsotopeGrouperTask implements Task {
         rtTolerance = (Float) parameters.getParameterValue(IsotopeGrouperParameters.rtTolerance);
         monotonicShape = (Boolean) parameters.getParameterValue(IsotopeGrouperParameters.monotonicShape);
         maximumCharge = (Integer) parameters.getParameterValue(IsotopeGrouperParameters.maximumCharge);
+        chooseMostIntense = (parameters.getParameterValue(IsotopeGrouperParameters.representativeIsotope) == IsotopeGrouperParameters.ChooseTopIntensity);
         removeOriginal = (Boolean) parameters.getParameterValue(IsotopeGrouperParameters.autoRemove);
 
     }
@@ -156,11 +164,11 @@ class IsotopeGrouperTask implements Task {
             // Check which charge state fits best around this peak
             int bestFitCharge = 0;
             int bestFitScore = -1;
-            Hashtable<Peak, Integer> bestFitPeaks = null;
+            Vector<Peak> bestFitPeaks = null;
             for (int charge : charges) {
 
-                Hashtable<Peak, Integer> fittedPeaks = new Hashtable<Peak, Integer>();
-                fittedPeaks.put(aPeak, new Integer(ind));
+                Vector<Peak> fittedPeaks = new Vector<Peak>();
+                fittedPeaks.add(aPeak);
                 fitPattern(fittedPeaks, aPeak, charge, sortedPeaks);
 
                 int score = fittedPeaks.size();
@@ -177,15 +185,19 @@ class IsotopeGrouperTask implements Task {
             SimpleIsotopePattern isotopePattern = new SimpleIsotopePattern();
             isotopePattern.setCharge(bestFitCharge);
 
-            // TODO: let the user choose whether he wants top intensity peak or
-            // lowest m/z peak as representative
-            double maxHeight = 0;
+            float maxHeight = 0, minMZ = Float.MAX_VALUE;
 
-            for (Peak p : bestFitPeaks.keySet()) {
+            for (Peak p : bestFitPeaks) {
                 isotopePattern.addPeak(p);
                 if (p.getHeight() > maxHeight) {
-                    isotopePattern.setRepresentativePeak(p);
+                    if (chooseMostIntense)
+                        isotopePattern.setRepresentativePeak(p);
                     maxHeight = p.getHeight();
+                }
+                if (p.getMZ() < minMZ) {
+                    if (!chooseMostIntense)
+                        isotopePattern.setRepresentativePeak(p);
+                    minMZ = p.getMZ();
                 }
             }
 
@@ -196,8 +208,11 @@ class IsotopeGrouperTask implements Task {
             newRow.addPeak(dataFile, isotopePattern, isotopePattern);
 
             deisotopedPeakList.addRow(newRow);
-            for (Integer ind2 : bestFitPeaks.values()) {
-                sortedPeaks[ind2] = null;
+
+            // remove all peaks already assigned to isotope pattern
+            for (int i = 0; i < sortedPeaks.length; i++) {
+                if (bestFitPeaks.contains(sortedPeaks[i]))
+                    sortedPeaks[i] = null;
             }
 
             // Update completion rate
@@ -217,20 +232,15 @@ class IsotopeGrouperTask implements Task {
 
     }
 
+    
     /**
      * Fits isotope pattern around one peak.
      * 
      * @param p Pattern is fitted around this peak
      * @param charge Charge state of the fitted pattern
-     * @param parameters User-defined parameters
-     * @param allPeaks Array containing all peaks
-     * @param assignPeaks If true, all fitted peaks are assigned to same isotope
-     *            pattern and numbered according to their position within the
-     *            pattern.
-     * @return Array of peaks in same pattern
      */
-    private void fitPattern(Hashtable<Peak, Integer> fittedPeaks, Peak p,
-            int charge, Peak[] sortedPeaks) {
+    private void fitPattern(Vector<Peak> fittedPeaks, Peak p, int charge,
+            Peak[] sortedPeaks) {
 
         if (charge == 0) {
             return;
@@ -253,24 +263,20 @@ class IsotopeGrouperTask implements Task {
      * @param charge Charge state of the fitted pattern
      * @param direction Defines which half to fit: -1=fit to peaks before start
      *            M/Z, +1=fit to peaks after start M/Z
-     * @param allPeaks Vector of all peaks
      * @param fittedPeaks All matching peaks will be added to this set
      */
     private void fitHalfPattern(Peak p, int charge, int direction,
-            Hashtable<Peak, Integer> fittedPeaks, Peak[] sortedPeaks) {
+            Vector<Peak> fittedPeaks, Peak[] sortedPeaks) {
 
         // Use M/Z and RT of the strongest peak of the pattern (peak 'p')
-        double currentMZ = p.getMZ();
-        double currentRT = p.getRT();
-
-        // Also, use height of the strongest peak as initial height limit
-        double currentHeight = p.getHeight();
+        float mainMZ = p.getMZ();
+        float mainRT = p.getRT();
 
         // Variable n is the number of peak we are currently searching. 1=first
         // peak before/after start peak, 2=peak before/after previous, 3=...
-        boolean followingPeakFound = true;
+        boolean followingPeakFound;
         int n = 1;
-        while (followingPeakFound) {
+        do {
 
             // Assume we don't find match for n:th peak in the pattern (which
             // will end the loop)
@@ -278,7 +284,7 @@ class IsotopeGrouperTask implements Task {
 
             // Loop through all peaks, and collect candidates for the n:th peak
             // in the pattern
-            Hashtable<Peak, Integer> goodCandidates = new Hashtable<Peak, Integer>();
+            Vector<Peak> goodCandidates = new Vector<Peak>();
             for (int ind = 0; ind < sortedPeaks.length; ind++) {
 
                 Peak candidatePeak = sortedPeaks[ind];
@@ -287,28 +293,21 @@ class IsotopeGrouperTask implements Task {
                     continue;
 
                 // Get properties of the candidate peak
-                double candidatePeakMZ = candidatePeak.getMZ();
-                double candidatePeakRT = candidatePeak.getRT();
-                double candidatePeakIntensity = candidatePeak.getHeight();
+                float candidatePeakMZ = candidatePeak.getMZ();
+                float candidatePeakRT = candidatePeak.getRT();
 
                 // Does this peak fill all requirements of a candidate?
-                // - intensity less than intensity of previous peak in the
-                // pattern
                 // - within tolerances from the expected location (M/Z and RT)
                 // - not already a fitted peak (only necessary to avoid
                 // conflicts when parameters are set too wide)
 
-                if (Math.abs((candidatePeakMZ - direction * n * neutronMW
-                        / (double) charge)
-                        - currentMZ) < mzTolerance) {
-                    if (Math.abs(candidatePeakRT - currentRT) < rtTolerance) {
-                        if (candidatePeakIntensity < currentHeight) {
-                            if (!fittedPeaks.contains(candidatePeak)) {
-                                goodCandidates.put(candidatePeak, new Integer(
-                                        ind));
-                            }
-                        }
-                    }
+                if ((Math.abs((candidatePeakMZ - isotopeDistance * direction
+                        * n / (float) charge)
+                        - mainMZ) <= mzTolerance)
+                        && (Math.abs(candidatePeakRT - mainRT) < rtTolerance)
+                        && (!fittedPeaks.contains(candidatePeak))) {
+                    goodCandidates.add(candidatePeak);
+
                 }
 
             }
@@ -320,7 +319,7 @@ class IsotopeGrouperTask implements Task {
             // remove all other candidates. However, currently nothing is done
             // with other candidates.
             Peak bestCandidate = null;
-            for (Peak candidatePeak : goodCandidates.keySet()) {
+            for (Peak candidatePeak : goodCandidates) {
                 if (bestCandidate != null) {
                     if (bestCandidate.getHeight() < candidatePeak.getHeight()) {
                         bestCandidate = candidatePeak;
@@ -336,11 +335,7 @@ class IsotopeGrouperTask implements Task {
             if (bestCandidate != null) {
 
                 // Add best candidate to fitted peaks of the pattern
-                fittedPeaks.put(bestCandidate,
-                        goodCandidates.get(bestCandidate));
-
-                // Update height limit
-                currentHeight = bestCandidate.getHeight();
+                fittedPeaks.add(bestCandidate);
 
                 // n:th peak was found, so let's move on to n+1
                 n++;
@@ -348,7 +343,7 @@ class IsotopeGrouperTask implements Task {
 
             }
 
-        }
+        } while (followingPeakFound);
 
     }
 
