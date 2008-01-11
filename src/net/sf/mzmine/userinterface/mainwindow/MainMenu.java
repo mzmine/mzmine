@@ -36,6 +36,8 @@ import net.sf.mzmine.userinterface.Desktop.MZmineMenu;
 import net.sf.mzmine.userinterface.dialogs.AboutDialog;
 import net.sf.mzmine.userinterface.dialogs.FileOpenDialog;
 import net.sf.mzmine.userinterface.dialogs.FormatSetupDialog;
+import net.sf.mzmine.userinterface.dialogs.ProjectOpenDialog;
+import net.sf.mzmine.userinterface.dialogs.ProjectSaveDialog;
 import net.sf.mzmine.userinterface.dialogs.experimentalparametersetupdialog.ExperimentalParametersSetupDialog;
 import net.sf.mzmine.util.GUIUtils;
 import ca.guydavis.swing.desktop.CascadingWindowPositioner;
@@ -52,16 +54,21 @@ class MainMenu extends JMenuBar implements ActionListener {
 
     private JWindowsMenu windowsMenu;
 
-    private JMenuItem projectOpen, projectExperimentalParameters,
+    private JMenuItem projectOpen, projectRestore,projectSave,projectExperimentalParameters,
             projectFormats, projectSaveParameters, projectLoadParameters,
             projectExit, hlpAbout;
 
     MainMenu() {
-
+    	
         projectMenu = new JMenu("Project");
         projectMenu.setMnemonic(KeyEvent.VK_P);
         add(projectMenu);
-
+        projectRestore = GUIUtils.addMenuItem(projectMenu, "Open project...",
+                this, 0, false);
+        projectSave = GUIUtils.addMenuItem(projectMenu, "Save project...",
+                this, 0, false);
+        projectMenu.addSeparator();
+        
         projectOpen = GUIUtils.addMenuItem(projectMenu, "Import raw data...",
                 this, KeyEvent.VK_O, true);
 
@@ -219,7 +226,19 @@ class MainMenu extends JMenuBar implements ActionListener {
         if (src == projectExit) {
             MZmineCore.exitMZmine();
         }
-
+        if (src == projectRestore) {
+            DesktopParameters parameters = (DesktopParameters) MZmineCore.getDesktop().getParameterSet();
+            String lastPath = parameters.getLastOpenPath();
+            ProjectOpenDialog projectOpenDialog = new ProjectOpenDialog(lastPath);
+            projectOpenDialog.setVisible(true);
+        }  
+        if (src == projectSave) {
+            DesktopParameters parameters = (DesktopParameters) MZmineCore.getDesktop().getParameterSet();
+            String lastPath = parameters.getLastOpenPath();
+            ProjectSaveDialog projectSaveDialog = new ProjectSaveDialog(lastPath);
+            projectSaveDialog.setVisible(true);
+            parameters.setLastOpenPath(projectSaveDialog.getCurrentDirectory());
+        }
         if (src == projectOpen) {
             DesktopParameters parameters = (DesktopParameters) MZmineCore.getDesktop().getParameterSet();
             String lastPath = parameters.getLastOpenPath();

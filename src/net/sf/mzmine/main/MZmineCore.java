@@ -244,5 +244,8 @@ public abstract class MZmineCore {
         }
 
     }
+    public static void setProject(MZmineProject myProject){
+    	currentProject=myProject;  	
+    }
 
 }

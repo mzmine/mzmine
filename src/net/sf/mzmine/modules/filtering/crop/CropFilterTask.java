@@ -112,9 +112,10 @@ class CropFilterTask implements Task {
         try {
 
             // Create new temporary file
-            String newName = dataFile.toString() + " " + suffix;
-            RawDataFileWriter rawDataFileWriter = MZmineCore.getIOController().createNewFile(
-                    newName, dataFile.getPreloadLevel());
+            String newName = dataFile.getFileName() + " " +  suffix;            
+            RawDataFileWriter rawDataFileWriter = 
+            	MZmineCore.getIOController().createNewFile(
+            		newName,suffix,dataFile.getPreloadLevel());
 
             // Get all scans
             int[] scanNumbers = dataFile.getScanNumbers();

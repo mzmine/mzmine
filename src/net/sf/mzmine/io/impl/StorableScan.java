@@ -18,16 +18,18 @@
  */
 
 package net.sf.mzmine.io.impl;
-
+import net.sf.mzmine.main.MZmineCore;
 import java.io.IOException;
 import java.io.RandomAccessFile;
+import java.io.File;
 import java.nio.ByteBuffer;
 import java.nio.FloatBuffer;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-
+import java.io.FileNotFoundException;
 import net.sf.mzmine.data.Scan;
-
+import net.sf.mzmine.project.impl.MZmineProjectImpl;
+import net.sf.mzmine.io.RawDataFile;
 /**
  * Simple implementation of the Scan interface.
  */
@@ -43,19 +45,19 @@ public class StorableScan implements Scan {
     private float basePeakMZ, basePeakIntensity, totalIonCurrent;
     private boolean centroided;
     
-    private RandomAccessFile storageFile;
+    private String storageFileName;
     private long storageFileOffset;
     private int storageArrayByteLength;
     private int numberOfDataPoints;
-
+    private RawDataFile rawDataFile;
     /**
      * Clone constructor
      */
-    public StorableScan(Scan sc, RandomAccessFile storageFile) {
+    public StorableScan(Scan sc, RawDataFile rawDataFile) {
         this(sc.getScanNumber(), sc.getMSLevel(), sc.getRetentionTime(),
                 sc.getParentScanNumber(), sc.getPrecursorMZ(),
                 sc.getFragmentScanNumbers(), sc.getMZValues(),
-                sc.getIntensityValues(), sc.isCentroided(), storageFile);
+                sc.getIntensityValues(), sc.isCentroided(), rawDataFile);
     }
 
     /**
@@ -63,13 +65,13 @@ public class StorableScan implements Scan {
      */
     public StorableScan(int scanNumber, int msLevel, float retentionTime,
             int parentScan, float precursorMZ, int fragmentScans[],
-            float[] mzValues, float[] intensityValues, boolean centroided, RandomAccessFile storageFile) {
+            float[] mzValues, float[] intensityValues, boolean centroided, RawDataFile rawDataFile) {
 
         // check assumptions about proper scan data
         assert (msLevel == 1) || (parentScan > 0);
         
-        // save storage file reference
-        this.storageFile = storageFile;
+        // save rawDataFile  file reference
+        this.rawDataFile = rawDataFile;
 
         // save scan data
         this.scanNumber = scanNumber;
@@ -89,6 +91,7 @@ public class StorableScan implements Scan {
      */
     public float[] getIntensityValues() {
         ByteBuffer buffer = ByteBuffer.allocate(storageArrayByteLength);
+        RandomAccessFile storageFile=rawDataFile.getScanDataFile();
         synchronized(storageFile) {
             try {
             storageFile.seek(storageFileOffset + storageArrayByteLength);
@@ -101,6 +104,7 @@ public class StorableScan implements Scan {
         float intensityValues[] = new float[numberOfDataPoints];
         FloatBuffer floatBuffer = buffer.asFloatBuffer();
         floatBuffer.get(intensityValues);
+        
         return intensityValues;
     }
 
@@ -109,6 +113,7 @@ public class StorableScan implements Scan {
      */
     public float[] getMZValues() {
         ByteBuffer buffer = ByteBuffer.allocate(storageArrayByteLength);
+        RandomAccessFile storageFile=rawDataFile.getScanDataFile();
         synchronized(storageFile) {
             try {
             storageFile.seek(storageFileOffset);
@@ -141,7 +146,7 @@ public class StorableScan implements Scan {
         
         ByteBuffer buffer = ByteBuffer.allocate(storageArrayByteLength);
         FloatBuffer floatBuffer = buffer.asFloatBuffer();
-        
+        RandomAccessFile storageFile=rawDataFile.getWritingScanDataFile();
         synchronized(storageFile) {
             try {
                 
@@ -153,7 +158,7 @@ public class StorableScan implements Scan {
                 floatBuffer.clear();
                 floatBuffer.put(intensityValues);
                 storageFile.write(buffer.array());
-            
+          
             } catch (IOException e) {
                 logger.log(Level.WARNING, "Could not write data to temporary file", e);
             }
