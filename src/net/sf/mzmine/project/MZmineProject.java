@@ -19,6 +19,8 @@
 
 package net.sf.mzmine.project;
 
+import java.io.File;
+
 import net.sf.mzmine.data.Parameter;
 import net.sf.mzmine.data.PeakList;
 import net.sf.mzmine.io.RawDataFile;
@@ -47,7 +49,20 @@ import net.sf.mzmine.io.RawDataFile;
  * 
  */
 public interface MZmineProject {
-
+	/**
+	 * set file system location of this project ;
+	 * 
+	 * @param parameter
+	 */	
+	public void setLocation(File path);
+		
+	/**
+	 * Return file system location of this project ;
+	 * 
+	 * @param parameter
+	 */	
+	public File getLocation();
+	
 	/**
 	 * Adds a new experimental parameter to the project
 	 * 

@@ -19,10 +19,57 @@
 
 package net.sf.mzmine.io;
 
+import java.io.File;
+import java.io.IOException;
+import java.io.RandomAccessFile;
+
 import net.sf.mzmine.data.Scan;
 
 public interface RawDataFile {
-
+ 
+	/**
+     * Returns file name of raw data file object
+     * 
+     * @return File file path
+     */
+	public String getFileName();
+	/**
+     * Returns file path of raw file 
+     * 
+     * @return File file path
+     */
+	public File getFilePath();
+    /**
+     * Set(reset) file path of raw data file mainly for reloading of project
+     * 
+     * @return 
+     */
+	public void setFilePath(File filePath);
+    /**
+     * Returns File ScanDataFileName
+     * 
+     * @return File ScanDataFileName
+     */	
+	public String getScanDataFileName() ;
+    /**
+     * Returns Opened Random access file ScanDataFile
+     * 
+     * @return File ScanDataFileName
+     */	
+    public RandomAccessFile getScanDataFile() ; 
+    /**
+     * Returns Opened Random access file writingScanDataFile
+     * 
+     * @return File writingScanDataFileName
+     */	
+    public RandomAccessFile getWritingScanDataFile() ; 
+      /**
+     * resetScanDataFile when the file location is changed 
+     * 
+     * @return 
+     */	 
+    public void updateScanDataFile(File file);
+    
     public PreloadLevel getPreloadLevel();
 
     public int getNumOfScans();

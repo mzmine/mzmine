@@ -21,10 +21,14 @@ package net.sf.mzmine.project.impl;
 
 import java.util.Hashtable;
 import java.util.Vector;
+import java.util.logging.Logger;
+import java.io.File;
+import java.io.IOException;
 
 import net.sf.mzmine.data.Parameter;
 import net.sf.mzmine.data.PeakList;
 import net.sf.mzmine.io.RawDataFile;
+import net.sf.mzmine.io.PreloadLevel;
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.project.MZmineProject;
 import net.sf.mzmine.userinterface.mainwindow.ItemSelector;
@@ -39,6 +43,33 @@ public class MZmineProjectImpl implements MZmineProject {
     private Vector<RawDataFile> projectFiles;
     private Vector<PeakList> projectPeakLists;
     private Hashtable<Parameter, Hashtable<RawDataFile, Object>> projectParametersAndValues;
+    private Hashtable<RawDataFile, PeakList> peakLists;
+    private Logger logger = Logger.getLogger(this.getClass().getName());
+    //filePath to save project
+    private File dirPath;
+    
+    public MZmineProjectImpl(){
+    	String dirPath="";
+    	try {
+    		//create default project dir 
+			File tmpFile=File.createTempFile("mzmine", "");
+			dirPath=tmpFile.toString();
+			tmpFile.delete();
+			new File(dirPath).mkdir();
+		} catch (IOException e) {
+			logger.fine("Could not make temporary file");
+		}
+		this.setLocation(new File(dirPath));
+		peakLists = new Hashtable<RawDataFile, PeakList>();
+    }
+    
+    public void setLocation(File dirPath){
+    	this.dirPath=dirPath;
+    }   
+    
+    public File getLocation(){
+    	return this.dirPath;
+    }
 
     public void addParameter(Parameter parameter) {
         if (projectParametersAndValues.containsKey(parameter))
@@ -136,6 +167,24 @@ public class MZmineProjectImpl implements MZmineProject {
         projectPeakLists = new Vector<PeakList>();
         projectParametersAndValues = new Hashtable<Parameter, Hashtable<RawDataFile, Object>>();
 
+    }
+    protected void finalize(){
+    	//remove all temporary files
+    	//but first close all temporary files.
+    	for (RawDataFile file:this.getDataFiles()){
+    		if (file.getPreloadLevel().equals(PreloadLevel.PRELOAD_ALL_SCANS)){
+    			break;
+    		}
+    		try {
+				file.getScanDataFile().close();
+    		} catch (IOException e) {
+				logger.warning("Error while closing temporary files.");
+			}
+    	}
+    	for (File file:this.getLocation().listFiles()){
+    		file.delete();
+    	}
+    	this.getLocation().delete();
     }
 
 }

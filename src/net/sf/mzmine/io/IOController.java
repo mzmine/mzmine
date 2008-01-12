@@ -33,13 +33,36 @@ public interface IOController {
      * exits immediately.
      */
     public void openFiles(File[] files, PreloadLevel preloadLevel);
-
+ 
     /**
      * 
      * @param name
      * @return
      * @throws IOException
      */
-    public RawDataFileWriter createNewFile(String name, PreloadLevel preloadLevel) throws IOException;
+    public RawDataFileWriter createNewFile(String fileName,String suffix, PreloadLevel preloadLevel) throws IOException;
+ 
+    /**
+     * 
+     * @param name
+     * @return
+     * @throws IOException
+     */
+    public RawDataFileWriter createNewFile(File file, PreloadLevel preloadLevel) throws IOException;
+ 
+    /**
+     * 
+     * @param projectFile
+     * @return void
+     * @throws IOException
+     */
+    public void openProject(File projectFile) throws IOException; 
+    /**
+     * 
+     * @param projectFile
+     * @return none
+     * @throws IOException
+     */
+    public void saveProject(File projectFile) throws IOException; 
 
 }

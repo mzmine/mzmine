@@ -122,7 +122,7 @@ public class FileOpeningTask implements Task {
             IOController ioController = MZmineCore.getIOController();
 
             // Create new RawDataFile instance
-            buildingFile = ioController.createNewFile(fileName, preloadLevel);
+            buildingFile = ioController.createNewFile(originalFile, preloadLevel);
                 
             // Determine parser
             String extension = fileName.substring(fileName.lastIndexOf(".") + 1).toLowerCase();

@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2007 The MZmine Development Team
+ * Copyright 2006-2008 The MZmine Development Team
  * 
  * This file is part of MZmine.
  * 
@@ -20,14 +20,16 @@
 package net.sf.mzmine.io.impl;
 
 import java.io.File;
-import java.io.IOException;
+import java.io.FileNotFoundException;
 import java.io.RandomAccessFile;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Enumeration;
 import java.util.HashSet;
 import java.util.Hashtable;
 import java.util.Set;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import net.sf.mzmine.data.Scan;
@@ -35,7 +37,9 @@ import net.sf.mzmine.data.impl.SimpleScan;
 import net.sf.mzmine.io.PreloadLevel;
 import net.sf.mzmine.io.RawDataFile;
 import net.sf.mzmine.io.RawDataFileWriter;
+import net.sf.mzmine.taskcontrol.Task.TaskStatus;
 import net.sf.mzmine.util.CollectionUtils;
+import net.sf.mzmine.main.MZmineCore;
 
 /**
  * RawDataFile implementation
@@ -45,14 +49,14 @@ class RawDataFileImpl implements RawDataFile, RawDataFileWriter {
 
     private Logger logger = Logger.getLogger(this.getClass().getName());
 
-    private String fileName;
+    private String fileName; //this is just a name of this object
+    private File filePath;   //this is the file path of raw data file in file system.
 
     private Hashtable<Integer, Float> dataMinMZ, dataMaxMZ, dataMinRT,
             dataMaxRT, dataMaxBasePeakIntensity, dataMaxTIC;
 
-    private File scanDataFileName, writingScanDataFileName;
+    private String scanDataFileName,writingScanDataFileName;
     private RandomAccessFile scanDataFile, writingScanDataFile;
-
     /**
      * Preloaded scans
      */
@@ -60,27 +64,98 @@ class RawDataFileImpl implements RawDataFile, RawDataFileWriter {
 
     private PreloadLevel preloadLevel;
 
+    
+    
     /**
-     * 
+     * This constructor is for DataFiles which are created during operation
+     * Thus they are not really a raw data file.
+     * It might be better to have a separate class for this kind of "Data File"
      */
-    RawDataFileImpl(String name, PreloadLevel preloadLevel) throws IOException {
+    RawDataFileImpl(String fileName, String suffix ,PreloadLevel preloadLevel) throws IOException {
 
-        this.fileName = name;
         this.preloadLevel = preloadLevel;
-        
+        this.fileName=fileName;
+        this.filePath=new File("");
         // create temporary file for scan data
         if (preloadLevel != PreloadLevel.PRELOAD_ALL_SCANS) {
-            writingScanDataFileName = File.createTempFile("mzmine", null);
-            writingScanDataFile = new RandomAccessFile(writingScanDataFileName,
-                    "rw");
-            writingScanDataFileName.deleteOnExit();
+        	File dirPath=MZmineCore.getCurrentProject().getLocation();
+        	writingScanDataFileName=fileName+ "." +suffix;
+        	File scanfile=new File(dirPath,writingScanDataFileName);
+        	scanfile.createNewFile();
+            writingScanDataFile=new RandomAccessFile(scanfile,"rw");
         }
 
         // prepare new Hashtable for scans
         writingScans = new Hashtable<Integer, Scan>();
+    }   
 
+    /**
+     * It is better to keep the reference to real raw file rather than 
+     * just the file name.
+     */
+    RawDataFileImpl(File file, PreloadLevel preloadLevel) throws IOException {
+
+    	this(file.getName(), "scan" ,preloadLevel);
+    	this.filePath=file;
     }
-
+    
+    /**
+     * @see net.sf.mzmine.io.RawDataFile#getFilePath()
+     */
+    public String getFileName() {
+        return this.fileName;
+    }    
+    
+    /**
+     * @see net.sf.mzmine.io.RawDataFile#getFilePath()
+     */
+    public File getFilePath() {
+        return this.filePath;
+    }     
+    /**
+     * @see net.sf.mzmine.io.RawDataFile#setFilePath()
+     */
+    public void setFilePath(File filePath) {
+        this.filePath=filePath;
+    }     
+    /**
+     * @see net.sf.mzmine.io.RawDataFile#getScanDataFile()
+     */
+    public RandomAccessFile getScanDataFile() {
+    	if (!scanDataFile.equals(null)){
+    		return scanDataFile;
+    	}else{
+        	return null;
+        }
+     }       
+    /**
+     * @see net.sf.mzmine.io.RawDataFile#getWritingScanDataFile()
+     */
+    public RandomAccessFile getWritingScanDataFile() {
+    	if (!writingScanDataFile.equals(null)){
+    		return writingScanDataFile;
+    	}else{
+        	return null;
+        }
+    }       
+    	
+    public void updateScanDataFile(File filePath){
+    	try {
+			scanDataFile=new RandomAccessFile(filePath,"r");
+		} catch (FileNotFoundException e) {
+            logger.log(Level.SEVERE, "Could not open file "
+                    + filePath, e);
+            return;
+		}
+    }
+    
+    /**
+     * @see net.sf.mzmine.io.RawDataFile#getScanDataFileName()
+     */
+    public String getScanDataFileName() {
+        return scanDataFileName;
+    }    
+    
     /**
      * @see net.sf.mzmine.io.RawDataFile#getNumOfScans()
      */
@@ -408,7 +483,7 @@ class RawDataFileImpl implements RawDataFile, RawDataFileWriter {
         switch (preloadLevel) {
         case NO_PRELOAD:
             StorableScan storedScan = new StorableScan(newScan,
-                    writingScanDataFile);
+                    this);
             writingScans.put(scanNumber, storedScan);
             break;
         case PRELOAD_ALL_SCANS:
@@ -419,14 +494,14 @@ class RawDataFileImpl implements RawDataFile, RawDataFileWriter {
                 writingScans.put(scanNumber, newScan);
             } else {
                 StorableScan storedFullScan = new StorableScan(newScan,
-                        writingScanDataFile);
+                        this);
                 writingScans.put(scanNumber, storedFullScan);
             }
             break;
 
         }
 
-        // If this is a gragment scan, update the fragmentScans[] array of its
+        // If this is a fragment scan, update the fragmentScans[] array of its
         // parent
         if (newScan.getParentScanNumber() > 0) {
             Scan parentScan = writingScans.get(newScan.getParentScanNumber());
@@ -463,7 +538,7 @@ class RawDataFileImpl implements RawDataFile, RawDataFileWriter {
     }
 
     public String toString() {
-        return fileName;
+        return this.fileName;
     }
 
     /**
@@ -478,19 +553,21 @@ class RawDataFileImpl implements RawDataFile, RawDataFileWriter {
      */
     public RawDataFile finishWriting() throws IOException {
 
-        logger.finest("Writing of scans to file " + fileName + " finished");
-
-        // close temporary file and current data file
+        logger.finest("Writing of scans to file " + writingScanDataFileName + " finished");
+        
+       // close temporary file and current data file
         if (scanDataFile != null) {
             scanDataFile.close();
-            scanDataFileName.delete();
+            File dir=MZmineCore.getCurrentProject().getLocation();
+            new File(dir,this.scanDataFileName).delete();
         }
 
         // switch temporary file to current datafile and reopen it for reading
-        scanDataFile = writingScanDataFile;
+        writingScanDataFile.close();
         scanDataFileName = writingScanDataFileName;
+        scanDataFile = new RandomAccessFile(new File(MZmineCore.getCurrentProject().getLocation(),scanDataFileName.toString()),"r");
         scans = writingScans;
-
+        
         // discard temporary file
         writingScanDataFile = null;
         writingScanDataFileName = null;
@@ -509,28 +586,29 @@ class RawDataFileImpl implements RawDataFile, RawDataFileWriter {
     }
 
     public void finalize() {
-
+    
         if (preloadLevel != PreloadLevel.PRELOAD_ALL_SCANS) {
-            try {
+			try {
                 logger.finest("Removing temporary file"
-                        + scanDataFileName.getPath());
-                scanDataFile.close();
-                scanDataFileName.delete();
-            } catch (IOException e) {
-                // ignore
-            }
-        }
+                        + scanDataFileName);
 
+                scanDataFile.close();
+                File dir=MZmineCore.getCurrentProject().getLocation();
+                new File(dir,scanDataFileName).delete();
+				} catch (IOException e) {
+					logger.log(Level.WARNING, "Could not close temporary file", e);
+				}
+        }
     }
 
     public float getDataMaxMZ() {
         return getDataMaxMZ(0);
     }
-
+    
     public float getDataMaxRT() {
         return getDataMaxRT(0);
     }
-
+    
     public float getDataMinMZ() {
         return getDataMinMZ(0);
     }

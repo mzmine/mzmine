@@ -247,5 +247,8 @@ public abstract class MZmineCore {
     public static void setProject(MZmineProject myProject){
     	currentProject=myProject;  	
     }
+    public static void setDesktop(MainWindow mainWindow){
+    	desktop=mainWindow;  	
+    }
 
 }

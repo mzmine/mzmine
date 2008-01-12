@@ -149,22 +149,21 @@ public class ProjectOpeningTask implements Task {
 	        	    }
 	        	});
 				project = (MZmineProjectImpl) result_project.get(0);
-				//activate the object within 50 references away from MZmineProjectObject
-				//the depth 50 might become insufficient if you make change in object structure
-				db.activate(project,50);
-
+				//activate the object within 20 references away from MZmineProjectObject
+				//the depth 20 might become insufficient if you make change in object structure
+				db.activate(project,20);
+				
 
 			}catch(Exception e){
 				logger.fine(e.getMessage());
 			}finally {
 				db.close();
 			}
-			
+		
 			finished=FINISHED_OBJECT_LOADED;
 			
         	//reset project tempDirPath
 			project.setLocation(tempDirPath);
-			MZmineCore.setProject(project);
 			
 			//Check whether I can find the raw files.
 			boolean foundFiles=true;

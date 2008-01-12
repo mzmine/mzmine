@@ -165,6 +165,7 @@ public class ItemSelector extends JPanel implements ActionListener,
      */
     public void addRawData(RawDataFile r) {
         rawDataFiles.addElement(r);
+
     }
 
     /**
@@ -186,7 +187,7 @@ public class ItemSelector extends JPanel implements ActionListener,
         for (int i = 0; i < o.length; i++) {
             res[i] = (RawDataFile) (o[i]);
         }
-
+        
         return res;
 
     }
@@ -222,7 +223,15 @@ public class ItemSelector extends JPanel implements ActionListener,
         return res;
 
     }
-
+    /**
+     * Method to reset ItemSelecter
+     */
+    public void removeAll(){
+    	alignedPeakListList.removeAll();
+    	peakLists.removeAllElements();
+    	rawDataFiles.removeAllElements();
+    }
+    
     public void mouseClicked(MouseEvent e) {
 
         if ((e.getClickCount() == 2) && (e.getButton() == MouseEvent.BUTTON1)) {
