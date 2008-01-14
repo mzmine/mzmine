@@ -80,7 +80,7 @@ public class CustomDBSearch implements BatchStepIdentification, ActionListener {
 
         PeakList[] selectedPeakLists = desktop.getSelectedPeakLists();
         if (selectedPeakLists.length < 1) {
-            desktop.displayErrorMessage("Please select aligned peak list");
+            desktop.displayErrorMessage("Please select a peak list");
             return;
         }
 
@@ -101,7 +101,7 @@ public class CustomDBSearch implements BatchStepIdentification, ActionListener {
             ParameterSet parameters, TaskGroupListener methodListener) {
 
         if (peakLists == null) {
-            throw new IllegalArgumentException("Cannot run identification without aligned peak list");
+            throw new IllegalArgumentException("Cannot run identification without a peak list");
         }
         
         // prepare a new sequence of tasks
