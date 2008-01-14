@@ -27,6 +27,7 @@ import net.sf.mzmine.data.Peak;
 import net.sf.mzmine.data.PeakList;
 import net.sf.mzmine.data.PeakListRow;
 import net.sf.mzmine.data.impl.SimplePeakList;
+import net.sf.mzmine.io.RawDataFile;
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.project.MZmineProject;
 import net.sf.mzmine.taskcontrol.Task;
@@ -88,15 +89,22 @@ class RTNormalizerTask implements Task {
 
         status = TaskStatus.PROCESSING;
 
+        // First we need to find standards by iterating through first peak list
         totalRows = originalPeakLists[0].getNumberOfRows();
-        
+
         // Create new peak lists
         SimplePeakList normalizedPeakLists[] = new SimplePeakList[originalPeakLists.length];
         for (int i = 0; i < originalPeakLists.length; i++) {
             normalizedPeakLists[i] = new SimplePeakList(originalPeakLists[i]
                     + " " + suffix);
-            
+
+            // Add all data files from original peak lists
+            for (RawDataFile file : originalPeakLists[i].getRawDataFiles())
+                normalizedPeakLists[i].addRawDataFile(file);
+
+            // Remember how many rows we need to normalize
             totalRows += originalPeakLists[i].getNumberOfRows();
+
         }
 
         // goodStandards Vector contains identified standard rows, represented
@@ -106,7 +114,7 @@ class RTNormalizerTask implements Task {
 
         // Iterate the first peaklist
         standardIteration: for (PeakListRow candidate : originalPeakLists[0].getRows()) {
-            
+
             processedRows++;
 
             // Check that all peaks of this row have proper height
@@ -151,11 +159,8 @@ class RTNormalizerTask implements Task {
 
         }
 
-        
         // TODO RT normalization
 
-        
-        
         // Add new peaklists to the project
         MZmineProject currentProject = MZmineCore.getCurrentProject();
 
