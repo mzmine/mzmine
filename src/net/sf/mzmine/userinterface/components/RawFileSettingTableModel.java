@@ -1,25 +1,17 @@
 package net.sf.mzmine.userinterface.components;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
+
 import java.io.File;
 import java.util.ArrayList;
 import java.awt.Color;
 import javax.swing.table.AbstractTableModel;
-import javax.swing.table.TableModel;
 import javax.swing.JButton;
-import javax.swing.JFileChooser;
-import javax.swing.JPanel;
-import javax.swing.text.PlainDocument;
-
-import com.sun.java.ExampleFileFilter;
 
 import net.sf.mzmine.io.RawDataFile;
-import net.sf.mzmine.taskcontrol.Task.TaskPriority;
-import net.sf.mzmine.taskcontrol.Task.TaskStatus;
-import net.sf.mzmine.userinterface.dialogs.RawFileTableEditor;
 
-public class RawFileSettingTableModel extends AbstractTableModel implements TableModel{
-	private Object[][] tableData={{}};
+
+public class RawFileSettingTableModel extends AbstractTableModel{
+
+	private Object[][] tableData;
 	private String columnNames[]={"","Status","File Name","File Path","Select"};
 	private static ColorCircle CIRCLE_GOOD=new ColorCircle(new Color(0,255,0));
 	private static ColorCircle CIRCLE_BAD=new ColorCircle(new Color(255,0,0));

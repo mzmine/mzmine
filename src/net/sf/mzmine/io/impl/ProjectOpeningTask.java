@@ -19,9 +19,8 @@
 
 package net.sf.mzmine.io.impl;
 
-import java.io.BufferedReader;
+
 import java.io.File;
-import java.io.IOException;
 import java.util.List;
 import java.util.ArrayList;
 import java.util.logging.Level;
@@ -32,9 +31,7 @@ import java.io.BufferedOutputStream;
 import java.util.zip.ZipInputStream;
 import java.util.zip.ZipEntry;
 import net.sf.mzmine.io.RawDataFile;
-import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.project.impl.MZmineProjectImpl;
-import net.sf.mzmine.userinterface.mainwindow.MainWindow;
 import net.sf.mzmine.taskcontrol.Task;
 import net.sf.mzmine.userinterface.dialogs.RawFileSettingDialog;
 
@@ -53,12 +50,21 @@ public class ProjectOpeningTask implements Task {
     private TaskStatus status;
     private String errorMessage;
     
-    private float finished=(float)0.0;
-    private static float FINISHED_STARTED=(float)0.1;
-    private static float FINISHED_ZIP_OPENED=(float)0.3;
-    private static float FINISHED_OBJECT_LOADED=(float)0.5;
-    private static float FINISHED_COMPLETE=(float)1.0;
-    
+    private enum Finished{
+    	STARTED(0.1f),
+    	ZIP_OPENED(0.4f),
+    	OBJECT_LOADED(0.7f),
+    	COMPLETE(1.0f);
+    	
+    	private final float value;
+    	Finished(float value){
+    		this.value=value;
+    	}
+    	public float getValue(){
+    		return this.value;
+    	}
+    }
+    private Finished finished;
     MZmineProjectImpl project;
  
     public ProjectOpeningTask(File projectFile) {
@@ -77,7 +83,7 @@ public class ProjectOpeningTask implements Task {
      * @see net.sf.mzmine.taskcontrol.Task#getFinishedPercentage()
      */
     public float getFinishedPercentage() {
-        return finished;
+        return finished.getValue();
     }
 
     /**
@@ -109,7 +115,7 @@ public class ProjectOpeningTask implements Task {
         // Update task status
         logger.info("Started openning project" + projectFile);
         status = TaskStatus.PROCESSING;
-        finished=FINISHED_STARTED;
+        finished=Finished.STARTED;
         
         try {
         	
@@ -126,7 +132,10 @@ public class ProjectOpeningTask implements Task {
         			break;
         		}
         		String fileName=entry.getName().split("/")[1];
-        		output=new BufferedOutputStream(new FileOutputStream(new File(tempDirPath,fileName)));
+        		File tempFile = new File(tempDirPath,fileName);
+        		FileOutputStream tempFileOut = new FileOutputStream(tempFile);
+        		output=new BufferedOutputStream(tempFileOut);
+        		
         		byte buf[] = new byte[1024];
         		int count=0;
         		while((count=zis.read(buf, 0,1024))!=-1){
@@ -134,9 +143,8 @@ public class ProjectOpeningTask implements Task {
         		}
         		output.close();
         		zis.closeEntry();
-        		
         	}
-        	finished=FINISHED_ZIP_OPENED;
+        	finished=Finished.ZIP_OPENED;
 
 			
         	//load from db4o database
@@ -160,7 +168,7 @@ public class ProjectOpeningTask implements Task {
 				db.close();
 			}
 		
-			finished=FINISHED_OBJECT_LOADED;
+			finished=Finished.OBJECT_LOADED;
 			
         	//reset project tempDirPath
 			project.setLocation(tempDirPath);
@@ -210,7 +218,7 @@ public class ProjectOpeningTask implements Task {
         }
 
         logger.info("Finished openning " + projectFile);
-        finished=FINISHED_COMPLETE;
+        finished=Finished.COMPLETE;
         status = TaskStatus.FINISHED;
 
     }

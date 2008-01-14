@@ -54,11 +54,11 @@ public class ItemSelector extends JPanel implements ActionListener,
     public static final String DATA_FILES_LABEL = "Raw data files";
     public static final String PEAK_LISTS_LABEL = "Peak lists";
 
-    private DefaultListModel rawDataFiles;
-    private DragOrderedJList rawDataList;
+    private DefaultListModel rawDataFilesModel;
+    private DragOrderedJList rawDataFiles;
 
-    private DefaultListModel peakLists;
-    private JList alignedPeakListList;
+    private DefaultListModel peakListsModel;
+    private JList peakLists;
     private JPopupMenu dataFilePopupMenu, peakListPopupMenu;
 
     /**
@@ -70,12 +70,12 @@ public class ItemSelector extends JPanel implements ActionListener,
         JPanel rawDataPanel = new JPanel();
         JLabel rawDataTitle = new JLabel(DATA_FILES_LABEL);
 
-        rawDataFiles = new DefaultListModel();
-        rawDataList = new DragOrderedJList(rawDataFiles);
-        rawDataList.setCellRenderer(new ItemSelectorListRenderer());
-        rawDataList.addMouseListener(this);
-        rawDataList.addListSelectionListener(this);
-        JScrollPane rawDataScroll = new JScrollPane(rawDataList);
+        rawDataFilesModel = new DefaultListModel();
+        rawDataFiles = new DragOrderedJList(rawDataFilesModel);
+        rawDataFiles.setCellRenderer(new ItemSelectorListRenderer());
+        rawDataFiles.addMouseListener(this);
+        rawDataFiles.addListSelectionListener(this);
+        JScrollPane rawDataScroll = new JScrollPane(rawDataFiles);
 
         rawDataPanel.setLayout(new BorderLayout());
         rawDataPanel.add(rawDataTitle, BorderLayout.NORTH);
@@ -86,12 +86,12 @@ public class ItemSelector extends JPanel implements ActionListener,
         JPanel resultsPanel = new JPanel();
         JLabel resultsTitle = new JLabel(PEAK_LISTS_LABEL);
 
-        peakLists = new DefaultListModel();
-        alignedPeakListList = new DragOrderedJList(peakLists);
-        alignedPeakListList.setCellRenderer(new ItemSelectorListRenderer());
-        alignedPeakListList.addMouseListener(this);
-        alignedPeakListList.addListSelectionListener(this);
-        JScrollPane resultScroll = new JScrollPane(alignedPeakListList);
+        peakListsModel = new DefaultListModel();
+        peakLists = new DragOrderedJList(peakListsModel);
+        peakLists.setCellRenderer(new ItemSelectorListRenderer());
+        peakLists.addMouseListener(this);
+        peakLists.addListSelectionListener(this);
+        JScrollPane resultScroll = new JScrollPane(peakLists);
 
         resultsPanel.setLayout(new BorderLayout());
         resultsPanel.add(resultsTitle, BorderLayout.NORTH);
@@ -121,8 +121,8 @@ public class ItemSelector extends JPanel implements ActionListener,
     }
 
     void addSelectionListener(ListSelectionListener listener) {
-        rawDataList.addListSelectionListener(listener);
-        alignedPeakListList.addListSelectionListener(listener);
+        rawDataFiles.addListSelectionListener(listener);
+        peakLists.addListSelectionListener(listener);
     }
 
     // Implementation of action listener interface
@@ -164,7 +164,7 @@ public class ItemSelector extends JPanel implements ActionListener,
      * Adds a raw data object to storage
      */
     public void addRawData(RawDataFile r) {
-        rawDataFiles.addElement(r);
+        rawDataFilesModel.addElement(r);
 
     }
 
@@ -172,7 +172,7 @@ public class ItemSelector extends JPanel implements ActionListener,
      * Removes a raw data object from storage
      */
     public boolean removeRawData(RawDataFile r) {
-        return rawDataFiles.removeElement(r);
+        return rawDataFilesModel.removeElement(r);
     }
 
     /**
@@ -180,7 +180,7 @@ public class ItemSelector extends JPanel implements ActionListener,
      */
     public RawDataFile[] getSelectedRawData() {
 
-        Object o[] = rawDataList.getSelectedValues();
+        Object o[] = rawDataFiles.getSelectedValues();
 
         RawDataFile res[] = new RawDataFile[o.length];
 
@@ -196,23 +196,23 @@ public class ItemSelector extends JPanel implements ActionListener,
      * Sets the active raw data item in the list
      */
     public void setActiveRawData(RawDataFile rawData) {
-        rawDataList.setSelectedValue(rawData, true);
+        rawDataFiles.setSelectedValue(rawData, true);
     }
 
     // METHODS FOR MAINTAINING PEAK LISTS
     // ---------------------------------------
 
     public void addPeakList(PeakList a) {
-        peakLists.addElement(a);
+        peakListsModel.addElement(a);
     }
 
     public boolean removePeakList(PeakList a) {
-        return peakLists.removeElement(a);
+        return peakListsModel.removeElement(a);
     }
 
     public PeakList[] getSelectedPeakLists() {
 
-        Object o[] = alignedPeakListList.getSelectedValues();
+        Object o[] = peakLists.getSelectedValues();
 
         PeakList res[] = new PeakList[o.length];
 
@@ -227,29 +227,28 @@ public class ItemSelector extends JPanel implements ActionListener,
      * Method to reset ItemSelecter
      */
     public void removeAll(){
-    	alignedPeakListList.removeAll();
-    	peakLists.removeAllElements();
-    	rawDataFiles.removeAllElements();
+    	peakListsModel.removeAllElements();
+    	rawDataFilesModel.removeAllElements();
     }
     
     public void mouseClicked(MouseEvent e) {
 
         if ((e.getClickCount() == 2) && (e.getButton() == MouseEvent.BUTTON1)) {
 
-            if (e.getSource() == rawDataList) {
-                int clickedIndex = rawDataList.locationToIndex(e.getPoint());
+            if (e.getSource() == rawDataFiles) {
+                int clickedIndex = rawDataFiles.locationToIndex(e.getPoint());
                 if (clickedIndex < 0)
                     return;
-                RawDataFile clickedFile = (RawDataFile) rawDataFiles.get(clickedIndex);
+                RawDataFile clickedFile = (RawDataFile) rawDataFilesModel.get(clickedIndex);
                 TICVisualizer tic = TICVisualizer.getInstance();
                 tic.showNewTICVisualizerWindow(new RawDataFile[] { clickedFile }, null);
             }
 
-            if (e.getSource() == alignedPeakListList) {
-                int clickedIndex = alignedPeakListList.locationToIndex(e.getPoint());
+            if (e.getSource() == peakLists) {
+                int clickedIndex = peakLists.locationToIndex(e.getPoint());
                 if (clickedIndex < 0)
                     return;
-                PeakList clickedPeakList = (PeakList) peakLists.get(clickedIndex);
+                PeakList clickedPeakList = (PeakList) peakListsModel.get(clickedIndex);
                 PeakListTableWindow window = new PeakListTableWindow(
                         clickedPeakList);
                 Desktop desktop = MZmineCore.getDesktop();
@@ -272,9 +271,9 @@ public class ItemSelector extends JPanel implements ActionListener,
     public void mousePressed(MouseEvent e) {
 
         if (e.isPopupTrigger()) {
-            if (e.getSource() == rawDataList)
+            if (e.getSource() == rawDataFiles)
                 dataFilePopupMenu.show(e.getComponent(), e.getX(), e.getY());
-            if (e.getSource() == alignedPeakListList)
+            if (e.getSource() == peakLists)
                 peakListPopupMenu.show(e.getComponent(), e.getX(), e.getY());
         }
 
@@ -282,9 +281,9 @@ public class ItemSelector extends JPanel implements ActionListener,
 
     public void mouseReleased(MouseEvent e) {
         if (e.isPopupTrigger()) {
-            if (e.getSource() == rawDataList)
+            if (e.getSource() == rawDataFiles)
                 dataFilePopupMenu.show(e.getComponent(), e.getX(), e.getY());
-            if (e.getSource() == alignedPeakListList)
+            if (e.getSource() == peakLists)
                 peakListPopupMenu.show(e.getComponent(), e.getX(), e.getY());
         }
     }
@@ -295,12 +294,12 @@ public class ItemSelector extends JPanel implements ActionListener,
 
         // Update the highlighting of peak list list in case raw data list
         // selection has changed and vice versa.
-        if (src == rawDataList) {
-            alignedPeakListList.repaint();
+        if (src == rawDataFiles) {
+            peakLists.repaint();
         }
 
-        if (src == alignedPeakListList) {
-            rawDataList.repaint();
+        if (src == peakLists) {
+            rawDataFiles.repaint();
         }
 
     }
