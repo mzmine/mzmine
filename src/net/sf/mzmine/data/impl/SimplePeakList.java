@@ -90,7 +90,8 @@ public class SimplePeakList implements PeakList {
         Vector<Peak> peakSet = new Vector<Peak>();
         for (int row = 0; row < getNumberOfRows(); row++) {
             Peak p = peakListRows.get(row).getPeak(rawDataFile);
-            if (p != null) peakSet.add(p);
+            if (p != null)
+                peakSet.add(p);
         }
         return peakSet.toArray(new Peak[0]);
     }
@@ -104,6 +105,31 @@ public class SimplePeakList implements PeakList {
 
     public PeakListRow[] getRows() {
         return peakListRows.toArray(new PeakListRow[0]);
+    }
+
+    public PeakListRow[] getRowsInsideMZRange(float startMZ, float endMZ) {
+        return getRowsInsideScanAndMZRange(Float.MIN_VALUE, Float.MAX_VALUE,
+                startMZ, endMZ);
+    }
+
+    public PeakListRow[] getRowsInsideScanRange(float startRT, float endRT) {
+        return getRowsInsideScanAndMZRange(startRT, endRT, Float.MIN_VALUE,
+                Float.MAX_VALUE);
+    }
+
+    public PeakListRow[] getRowsInsideScanAndMZRange(float startRT,
+            float endRT, float startMZ, float endMZ) {
+        Vector<PeakListRow> rowsInside = new Vector<PeakListRow>();
+
+        for (PeakListRow row : peakListRows) {
+            if ((row.getAverageRT() <= endRT)
+                    && (row.getAverageRT() >= startRT)
+                    && (row.getAverageMZ() <= endMZ)
+                    && (row.getAverageMZ() >= startMZ))
+                rowsInside.add(row);
+        }
+
+        return rowsInside.toArray(new PeakListRow[0]);
     }
 
     public void addRow(PeakListRow row) {
@@ -152,14 +178,12 @@ public class SimplePeakList implements PeakList {
 
         Peak[] peaks = getPeaks(file);
         for (Peak p : peaks) {
-            if ((p.getDataPointMinRT() <= endRT)
-                    && (p.getDataPointMaxRT() >= startRT)
-                    && (p.getDataPointMinMZ() <= endMZ)
-                    && (p.getDataPointMaxMZ() >= startMZ))
+            if ((p.getRT() <= endRT) && (p.getRT() >= startRT)
+                    && (p.getMZ() <= endMZ) && (p.getMZ() >= startMZ))
                 peaksInside.add(p);
         }
 
-        return peaksInside.toArray(new Peak[peaksInside.size()]);
+        return peaksInside.toArray(new Peak[0]);
     }
 
     /**
@@ -194,8 +218,8 @@ public class SimplePeakList implements PeakList {
         PeakListRow rows[] = getRows();
 
         for (int i = 0; i < rows.length; i++) {
-            if (rows[i].hasPeak(peak)) 
-                    return i;
+            if (rows[i].hasPeak(peak))
+                return i;
         }
 
         return -1;
@@ -216,7 +240,8 @@ public class SimplePeakList implements PeakList {
         PeakListRow rows[] = getRows();
 
         for (int i = 0; i < rows.length; i++) {
-            if (rows[i].hasPeak(peak)) return rows[i];
+            if (rows[i].hasPeak(peak))
+                return rows[i];
         }
 
         return null;

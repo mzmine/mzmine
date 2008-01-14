@@ -84,6 +84,33 @@ public interface PeakList {
     public PeakListRow[] getRows();
 
     /**
+     * Returns all rows with average retention time within given range
+     * 
+     * @param startRT Start of the retention time range
+     * @param endRT End of the retention time range
+     */
+    public PeakListRow[] getRowsInsideScanRange(float startRT, float endRT);
+
+    /**
+     * Returns all rows with average m/z within given range
+     * 
+     * @param startMZ Start of the m/z range
+     * @param endMZ End of the m/z range
+     */
+    public PeakListRow[] getRowsInsideMZRange(float startMZ, float endMZ);
+
+    /**
+     * Returns all rows with average m/z and retention time within given range
+     * 
+     * @param startRT Start of the retention time range
+     * @param endRT End of the retention time range
+     * @param startMZ Start of the m/z range
+     * @param endMZ End of the m/z range
+     */
+    public PeakListRow[] getRowsInsideScanAndMZRange(float startRT,
+            float endRT, float startMZ, float endMZ);
+
+    /**
      * Returns all peaks overlapping with a retention time range
      * 
      * @param startRT Start of the retention time range
@@ -141,7 +168,7 @@ public interface PeakList {
      * Returns a row number of given peak
      */
     public int getPeakRowNum(Peak peak);
-    
+
     /**
      * Returns a row containing given peak
      */
