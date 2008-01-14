@@ -45,6 +45,14 @@ public class TaskGroup implements TaskListener {
      * @param tasks
      * @param taskController
      */
+    public TaskGroup(Task task, TaskListener taskListener) {
+        this(new Task[] { task }, taskListener, null);
+    }
+    
+    /**
+     * @param tasks
+     * @param taskController
+     */
     public TaskGroup(Task[] tasks, TaskListener taskListener) {
         this(tasks, taskListener, null);
     }
