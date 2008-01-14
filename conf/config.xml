@@ -26,6 +26,7 @@
     <module class="net.sf.mzmine.modules.alignment.join.JoinAligner"/> 
     <module class="net.sf.mzmine.modules.alignment.rowsfilter.RowsFilter"/> 
     <module class="net.sf.mzmine.modules.alignment.gapfiller.SimpleGapFiller"/> 
+    <module class="net.sf.mzmine.modules.normalization.rtnormalizer.RTNormalizer"/> 
     <module class="net.sf.mzmine.modules.normalization.linear.LinearNormalizer"/> 
     <module class="net.sf.mzmine.modules.normalization.standardcompound.StandardCompoundNormalizer"/> 
     <module class="net.sf.mzmine.modules.dataanalysis.rtmzplots.RTMZAnalyzer"/>
