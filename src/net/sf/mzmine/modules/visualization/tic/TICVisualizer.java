@@ -43,9 +43,9 @@ public class TICVisualizer implements MZmineModule, ActionListener {
 
     private static TICVisualizer myInstance;
 
-    private TICVisualizerParameters parameters;
-
     private Logger logger = Logger.getLogger(this.getClass().getName());
+
+    private TICVisualizerParameters parameters;
 
     private Desktop desktop;
 
@@ -135,11 +135,6 @@ public class TICVisualizer implements MZmineModule, ActionListener {
         float rtMax = (Float) parameters.getParameterValue(TICVisualizerParameters.maxRT);
         float mzMin = (Float) parameters.getParameterValue(TICVisualizerParameters.minMZ);
         float mzMax = (Float) parameters.getParameterValue(TICVisualizerParameters.maxMZ);
-
-        if ((rtMax < rtMin) || (mzMax < mzMin)) {
-            desktop.displayErrorMessage("Invalid bounds");
-            return;
-        }
 
         this.parameters = parameters;
 
