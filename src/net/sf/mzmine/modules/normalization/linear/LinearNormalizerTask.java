@@ -52,6 +52,8 @@ class LinearNormalizerTask implements Task {
             LinearNormalizerParameters parameters) {
 
         this.originalPeakList = peakList;
+        
+        totalDataFiles = originalPeakList.getNumberOfRawDataFiles();
 
         suffix = (String) parameters.getParameterValue(LinearNormalizerParameters.suffix);
         normalizationType = (String) parameters.getParameterValue(LinearNormalizerParameters.normalizationType);
@@ -86,8 +88,6 @@ class LinearNormalizerTask implements Task {
 
         status = TaskStatus.PROCESSING;
 
-        totalDataFiles = originalPeakList.getNumberOfRawDataFiles();
-
         // This hashtable maps rows from original alignment result to rows of
         // the normalized alignment
         Hashtable<PeakListRow, SimplePeakListRow> rowMap = new Hashtable<PeakListRow, SimplePeakListRow>();
@@ -116,10 +116,8 @@ class LinearNormalizerTask implements Task {
         // Loop through all raw data files, and normalize peak values
         for (RawDataFile file : originalPeakList.getRawDataFiles()) {
 
+            // Cancel?
             if (status == TaskStatus.CANCELED) {
-                normalizedPeakList = null;
-                rowMap.clear();
-                rowMap = null;
                 return;
             }
 
@@ -203,6 +201,12 @@ class LinearNormalizerTask implements Task {
 
             // Normalize all peak intenisities using the normalization factor
             for (PeakListRow originalpeakListRow : originalPeakList.getRows()) {
+                
+                // Cancel?
+                if (status == TaskStatus.CANCELED) {
+                    return;
+                }
+                
                 Peak originalPeak = originalpeakListRow.getPeak(file);
                 if (originalPeak != null) {
                     SimplePeak normalizedPeak = new SimplePeak(originalPeak);

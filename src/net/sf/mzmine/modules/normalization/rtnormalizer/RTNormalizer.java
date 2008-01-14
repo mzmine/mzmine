@@ -17,7 +17,7 @@
  * Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-package net.sf.mzmine.modules.normalization.linear;
+package net.sf.mzmine.modules.normalization.rtnormalizer;
 
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -42,12 +42,12 @@ import net.sf.mzmine.userinterface.dialogs.ParameterSetupDialog;
 /**
  * 
  */
-public class LinearNormalizer implements BatchStepNormalization, TaskListener,
+public class RTNormalizer implements BatchStepNormalization, TaskListener,
         ActionListener {
 
     private Logger logger = Logger.getLogger(this.getClass().getName());
 
-    private LinearNormalizerParameters parameters;
+    private RTNormalizerParameters parameters;
 
     private Desktop desktop;
 
@@ -58,15 +58,16 @@ public class LinearNormalizer implements BatchStepNormalization, TaskListener,
 
         this.desktop = MZmineCore.getDesktop();
 
-        parameters = new LinearNormalizerParameters();
+        parameters = new RTNormalizerParameters();
 
-        desktop.addMenuItem(MZmineMenu.NORMALIZATION, "Linear normalizer",
-                this, null, KeyEvent.VK_A, false, true);
+        desktop.addMenuItem(MZmineMenu.NORMALIZATION,
+                "Retention time normalizer", this, null, KeyEvent.VK_R, false,
+                true);
 
     }
 
     public String toString() {
-        return "Linear normalizer";
+        return "Retention time normalizer";
     }
 
     /**
@@ -77,7 +78,7 @@ public class LinearNormalizer implements BatchStepNormalization, TaskListener,
     }
 
     public void setParameters(ParameterSet parameters) {
-        this.parameters = (LinearNormalizerParameters) parameters;
+        this.parameters = (RTNormalizerParameters) parameters;
     }
 
     /**
@@ -99,8 +100,8 @@ public class LinearNormalizer implements BatchStepNormalization, TaskListener,
         PeakList[] selectedPeakLists = desktop.getSelectedPeakLists();
 
         // check peak lists
-        if ((selectedPeakLists == null) || (selectedPeakLists.length == 0)) {
-            desktop.displayErrorMessage("Please select peak lists for normalization");
+        if ((selectedPeakLists == null) || (selectedPeakLists.length < 2)) {
+            desktop.displayErrorMessage("Please select at least 2 peak lists for normalization");
             return;
         }
 
@@ -113,13 +114,13 @@ public class LinearNormalizer implements BatchStepNormalization, TaskListener,
     }
 
     public void taskStarted(Task task) {
-        logger.info("Running linear normalizer");
+        logger.info("Running retention time normalizer");
     }
 
     public void taskFinished(Task task) {
 
         if (task.getStatus() == Task.TaskStatus.FINISHED) {
-            logger.info("Finished linear normalizer");
+            logger.info("Finished retention time normalizer");
         }
 
         if (task.getStatus() == Task.TaskStatus.ERROR) {
@@ -140,18 +141,15 @@ public class LinearNormalizer implements BatchStepNormalization, TaskListener,
             ParameterSet parameters, TaskGroupListener taskGroupListener) {
 
         // check peak lists
-        if ((peakLists == null) || (peakLists.length == 0)) {
-            desktop.displayErrorMessage("Please select peak lists for normalization");
+        if ((peakLists == null) || (peakLists.length < 2)) {
+            desktop.displayErrorMessage("Please select at least 2 peak lists for normalization");
             return null;
         }
 
         // prepare a new group of tasks
-        Task tasks[] = new LinearNormalizerTask[peakLists.length];
-        for (int i = 0; i < peakLists.length; i++) {
-            tasks[i] = new LinearNormalizerTask(peakLists[i],
-                    (LinearNormalizerParameters) parameters);
-        }
-        TaskGroup newGroup = new TaskGroup(tasks, this, taskGroupListener);
+        RTNormalizerTask task = new RTNormalizerTask(peakLists,
+                (RTNormalizerParameters) parameters);
+        TaskGroup newGroup = new TaskGroup(task, this, taskGroupListener);
 
         // start the group
         newGroup.start();

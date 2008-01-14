@@ -74,7 +74,7 @@ public class StandardCompoundNormalizerTask implements Task {
 
     public float getFinishedPercentage() {
         if (totalRows == 0)
-            return 0;
+            return 0f;
         return (float) processedRows / (float) totalRows;
     }
 
