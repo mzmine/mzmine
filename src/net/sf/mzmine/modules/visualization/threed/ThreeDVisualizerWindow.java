@@ -1,5 +1,5 @@
 /*
- * Copyright 2006 The MZmine Development Team
+ * Copyright 2006-2008 The MZmine Development Team
  * 
  * This file is part of MZmine.
  * 
@@ -42,9 +42,9 @@ import net.sf.mzmine.userinterface.Desktop;
 import net.sf.mzmine.util.CursorPosition;
 import visad.ConstantMap;
 import visad.DataReference;
-import visad.DisplayImpl;
 import visad.ProjectionControl;
 import visad.bom.PickManipulationRendererJ3D;
+import visad.java3d.DisplayImplJ3D;
 import visad.java3d.MouseBehaviorJ3D;
 
 /**
@@ -55,12 +55,12 @@ public class ThreeDVisualizerWindow extends JInternalFrame implements
 
     private ThreeDToolBar toolBar;
     private JLabel titleLabel;
+    private ThreeDBottomPanel bottomPanel;
 
     private RawDataFile dataFile;
-    private RawDataFile rawDataFile;
     private int msLevel;
 
-    private DisplayImpl display;
+    private DisplayImplJ3D display;
 
     // reference to a peak data
     private DataReference peaksDataReference;
@@ -81,7 +81,6 @@ public class ThreeDVisualizerWindow extends JInternalFrame implements
 
         this.desktop = MZmineCore.getDesktop();
         this.dataFile = dataFile;
-        this.rawDataFile = dataFile;
         this.msLevel = msLevel;
 
         toolBar = new ThreeDToolBar(this);
@@ -93,43 +92,41 @@ public class ThreeDVisualizerWindow extends JInternalFrame implements
         titleLabel.setHorizontalAlignment(JLabel.CENTER);
         add(titleLabel, BorderLayout.NORTH);
 
-        int scanNumbers[] = rawDataFile.getScanNumbers(msLevel, rtMin, rtMax);
+        bottomPanel = new ThreeDBottomPanel(this);
+        add(bottomPanel, BorderLayout.SOUTH);
+        
+        int scanNumbers[] = dataFile.getScanNumbers(msLevel, rtMin, rtMax);
         if (scanNumbers.length == 0) {
             desktop.displayErrorMessage("No scans found at MS level " + msLevel
                     + " within given retention time range.");
             return;
         }
+        
+        // create 3D display
+        try {
+            display = new DisplayImplJ3D(dataFile.toString());
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        
+        // add the 3D component
+        Component threeDPlot = display.getComponent();
+        threeDPlot.setPreferredSize(new Dimension(700, 500));
+        threeDPlot.addMouseWheelListener(this);
+        add(threeDPlot, BorderLayout.CENTER);
+        
+        updateTitle();
+        pack();
 
         Task updateTask = new ThreeDSamplingTask(dataFile, scanNumbers, rtMin,
-                rtMax, mzMin, mzMax, rtResolution, mzResolution, this);
+                rtMax, mzMin, mzMax, rtResolution, mzResolution, this, display);
 
         MZmineCore.getTaskController().addTask(updateTask, TaskPriority.HIGH,
                 this);
 
     }
 
-    /**
-     * @see net.sf.mzmine.modules.RawDataVisualizer#setMZRange(double, double)
-     */
-    public void setMZRange(double mzMin, double mzMax) {
-        // do nothing
-    }
 
-    /**
-     * @see net.sf.mzmine.modules.RawDataVisualizer#setRTRange(double, double)
-     */
-    public void setRTRange(double rtMin, double rtMax) {
-        // do nothing
-
-    }
-
-    /**
-     * @see net.sf.mzmine.modules.RawDataVisualizer#setIntensityRange(double,
-     *      double)
-     */
-    public void setIntensityRange(double intensityMin, double intensityMax) {
-        // do nothing
-    }
 
     void updateTitle() {
 
@@ -187,16 +184,8 @@ public class ThreeDVisualizerWindow extends JInternalFrame implements
 
         if (task.getStatus() == TaskStatus.FINISHED) {
 
-            // add the 3D component
-            display = ((ThreeDSamplingTask) task).getResult();
-            Component threeDPlot = display.getComponent();
-            threeDPlot.setPreferredSize(new Dimension(700, 500));
-            threeDPlot.addMouseWheelListener(this);
-            add(threeDPlot, BorderLayout.CENTER);
-            updateTitle();
-            pack();
 
-            desktop.addInternalFrame(this);
+
         }
 
     }

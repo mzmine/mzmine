@@ -123,7 +123,7 @@ class ThreeDSamplingTask implements Task {
             float rtMin, float rtMax,
             float mzMin, float mzMax,
             int rtResolution, int mzResolution,
-            ThreeDVisualizerWindow visualizer) {
+            ThreeDVisualizerWindow visualizer, DisplayImplJ3D display) {
 
         status = TaskStatus.WAITING;
 
@@ -138,6 +138,7 @@ class ThreeDSamplingTask implements Task {
         this.mzResolution = mzResolution;
 
         this.visualizer = visualizer;
+        this.display = display;
 
 
     }
@@ -170,12 +171,6 @@ class ThreeDSamplingTask implements Task {
         return errorMessage;
     }
 
-    /**
-     * @see net.sf.mzmine.taskcontrol.Task#getResult()
-     */
-    public DisplayImplJ3D getResult() {
-        return display;
-    }
 
     /**
      * @see net.sf.mzmine.taskcontrol.Task#cancel()
@@ -198,8 +193,6 @@ class ThreeDSamplingTask implements Task {
             final float rtRange = (float) (rtMax - rtMin);
 
 
-            // create 3D display
-            display = new DisplayImplJ3D(dataFile.toString());
 
             // basic types
             // we have to use "RT", "Retention time" returns null(?)
