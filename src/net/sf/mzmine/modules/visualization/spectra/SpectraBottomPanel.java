@@ -36,25 +36,29 @@ import net.sf.mzmine.util.GUIUtils;
  */
 class SpectraBottomPanel extends JPanel {
 
-    private static final Font smallFont = new Font("SansSerif", Font.PLAIN, 10);
+    // get arrow characters by their UTF16 code
+    public static final String leftArrow = new String(new char[] { '\u2190' });
+    public static final String rightArrow = new String(new char[] { '\u2192' });
+
+    public static final Font smallFont = new Font("SansSerif", Font.PLAIN, 10);
 
     private JComboBox msmsSelector, peakListSelector;
 
     SpectraBottomPanel(SpectraVisualizerWindow masterFrame) {
 
         setLayout(new BoxLayout(this, BoxLayout.X_AXIS));
-        
+
         setBackground(Color.white);
 
         add(Box.createHorizontalStrut(10));
-        
-        JButton prevScanBtn = GUIUtils.addButton(this, "Previous scan", null,
+
+        JButton prevScanBtn = GUIUtils.addButton(this, leftArrow, null,
                 masterFrame, "PREVIOUS_SCAN");
         prevScanBtn.setBackground(Color.white);
         prevScanBtn.setFont(smallFont);
 
         add(Box.createHorizontalGlue());
-        
+
         GUIUtils.addLabel(this, "MS/MS: ", SwingConstants.RIGHT);
 
         msmsSelector = new JComboBox();
@@ -69,7 +73,7 @@ class SpectraBottomPanel extends JPanel {
         showButton.setFont(smallFont);
 
         add(Box.createHorizontalGlue());
-        
+
         GUIUtils.addLabel(this, "Peak list: ", SwingConstants.RIGHT);
 
         peakListSelector = new JComboBox();
@@ -81,12 +85,12 @@ class SpectraBottomPanel extends JPanel {
         add(peakListSelector);
 
         add(Box.createHorizontalGlue());
-        
-        JButton nextScanBtn = GUIUtils.addButton(this, "Next scan", null,
+
+        JButton nextScanBtn = GUIUtils.addButton(this, rightArrow, null,
                 masterFrame, "NEXT_SCAN");
         nextScanBtn.setBackground(Color.white);
         nextScanBtn.setFont(smallFont);
-        
+
         add(Box.createHorizontalStrut(10));
 
     }
