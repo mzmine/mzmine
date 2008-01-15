@@ -33,13 +33,11 @@ import net.sf.mzmine.io.RawDataFile;
 public class SimplePeakList implements PeakList {
 
     private String name;
-    private Vector<RawDataFile> rawDataFiles;
     private ArrayList<PeakListRow> peakListRows;
     private float maxDataPointIntensity = 0;
 
     public SimplePeakList(String name) {
         this.name = name;
-        rawDataFiles = new Vector<RawDataFile>();
         peakListRows = new ArrayList<PeakListRow>();
     }
 
@@ -51,18 +49,24 @@ public class SimplePeakList implements PeakList {
      * Returns number of raw data files participating in the alignment
      */
     public int getNumberOfRawDataFiles() {
-        return rawDataFiles.size();
+        return getRawDataFiles().length;
     }
 
     /**
      * Returns all raw data files participating in the alignment
      */
     public RawDataFile[] getRawDataFiles() {
+        Vector<RawDataFile> rawDataFiles = new Vector<RawDataFile>();
+        for (PeakListRow row : peakListRows)
+            for (RawDataFile file : row.getRawDataFiles()) {
+                if (!rawDataFiles.contains(file))
+                    rawDataFiles.add(file);
+            }
         return rawDataFiles.toArray(new RawDataFile[0]);
     }
 
     public RawDataFile getRawDataFile(int position) {
-        return rawDataFiles.get(position);
+        return getRawDataFiles()[position];
     }
 
     /**
@@ -133,9 +137,6 @@ public class SimplePeakList implements PeakList {
     }
 
     public void addRow(PeakListRow row) {
-        for (RawDataFile file : row.getRawDataFiles()) {
-            if (! rawDataFiles.contains(file)) rawDataFiles.add(file);
-        }
         peakListRows.add(row);
         if (row.getDataPointMaxIntensity() > maxDataPointIntensity) {
             maxDataPointIntensity = row.getDataPointMaxIntensity();
@@ -228,8 +229,12 @@ public class SimplePeakList implements PeakList {
         return maxDataPointIntensity;
     }
 
-    public boolean hasRawDataFile(RawDataFile file) {
-        return rawDataFiles.contains(file);
+    public boolean hasRawDataFile(RawDataFile hasFile) {
+        for (RawDataFile file : getRawDataFiles()) {
+            if (file == hasFile)
+                return true;
+        }
+        return false;
     }
 
     public PeakListRow getPeakRow(Peak peak) {
