@@ -129,8 +129,7 @@ public class SimplePeak implements Peak {
     }
 
     /*
-     * Get methods for basic properties of the peak as defined by the peak
-     * picking method
+     * Methods for basic properties of the peak
      */
 
     /**
@@ -138,6 +137,16 @@ public class SimplePeak implements Peak {
      */
     public float getMZ() {
         return mz;
+    }
+
+    
+    public void setMZ(float mz) {
+        this.mz = mz;
+    }
+
+    
+    public void setRT(float rt) {
+        this.rt = rt;
     }
 
     /**
