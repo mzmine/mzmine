@@ -136,6 +136,7 @@ class JoinAlignerTask implements Task {
                             + dataFile + " is present in multiple peak lists";
                     return;
                 }
+                
                 allDataFiles.add(dataFile);
             }
         }
@@ -146,16 +147,6 @@ class JoinAlignerTask implements Task {
 
         // Iterate source peak lists
         for (PeakList peakList : peakLists) {
-
-            // Each data file can only have one column in aligned peak list
-            for (RawDataFile dataFile : peakList.getRawDataFiles()) {
-                if (alignedPeakList.hasRawDataFile(dataFile)) {
-                    status = TaskStatus.ERROR;
-                    errorMessage = "Cannot run alignment, because file "
-                            + dataFile + " is present in multiple peak lists";
-                    return;
-                }
-            }
 
             // Create a sorted set of scores matching
             TreeSet<RowVsRowScore> scoreSet = new TreeSet<RowVsRowScore>();
