@@ -19,6 +19,7 @@
 
 package net.sf.mzmine.modules.normalization.rtnormalizer;
 
+import java.text.NumberFormat;
 import java.util.Arrays;
 import java.util.Vector;
 import java.util.logging.Logger;
@@ -26,7 +27,9 @@ import java.util.logging.Logger;
 import net.sf.mzmine.data.Peak;
 import net.sf.mzmine.data.PeakList;
 import net.sf.mzmine.data.PeakListRow;
+import net.sf.mzmine.data.impl.SimplePeak;
 import net.sf.mzmine.data.impl.SimplePeakList;
+import net.sf.mzmine.data.impl.SimplePeakListRow;
 import net.sf.mzmine.io.RawDataFile;
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.project.MZmineProject;
@@ -98,10 +101,6 @@ class RTNormalizerTask implements Task {
             normalizedPeakLists[i] = new SimplePeakList(originalPeakLists[i]
                     + " " + suffix);
 
-            // Add all data files from original peak lists
-            for (RawDataFile file : originalPeakLists[i].getRawDataFiles())
-                normalizedPeakLists[i].addRawDataFile(file);
-
             // Remember how many rows we need to normalize
             totalRows += originalPeakLists[i].getNumberOfRows();
 
@@ -114,6 +113,11 @@ class RTNormalizerTask implements Task {
 
         // Iterate the first peaklist
         standardIteration: for (PeakListRow candidate : originalPeakLists[0].getRows()) {
+
+            // Cancel?
+            if (status == TaskStatus.CANCELED) {
+                return;
+            }
 
             processedRows++;
 
@@ -159,7 +163,36 @@ class RTNormalizerTask implements Task {
 
         }
 
-        // TODO RT normalization
+        // Check if we have any standards
+        if (goodStandards.size() == 0) {
+            status = TaskStatus.ERROR;
+            errorMessage = "No good standard peak was found";
+            return;
+        }
+
+        // Calculate average retention times of all standards
+        float averagedRTs[] = new float[goodStandards.size()];
+        for (int i = 0; i < goodStandards.size(); i++) {
+            float rtAverage = 0;
+            for (PeakListRow row : goodStandards.get(i))
+                rtAverage += row.getAverageRT();
+            rtAverage /= (float) originalPeakLists.length;
+            averagedRTs[i] = rtAverage;
+        }
+
+        // Normalize each peak list
+        for (int peakListIndex = 0; peakListIndex < originalPeakLists.length; peakListIndex++) {
+
+            // Get standard rows for this peak list only
+            PeakListRow standards[] = new PeakListRow[goodStandards.size()];
+            for (int i = 0; i < goodStandards.size(); i++) {
+                standards[i] = goodStandards.get(i)[peakListIndex];
+            }
+
+            normalizePeakList(originalPeakLists[peakListIndex],
+                    normalizedPeakLists[peakListIndex], standards, averagedRTs);
+
+        }
 
         // Add new peaklists to the project
         MZmineProject currentProject = MZmineCore.getCurrentProject();
@@ -178,4 +211,93 @@ class RTNormalizerTask implements Task {
 
     }
 
+    private void normalizePeakList(PeakList originalPeakList,
+            PeakList normalizedPeakList, PeakListRow standards[],
+            float normalizedStdRTs[]) {
+
+        PeakListRow originalRows[] = originalPeakList.getRows();
+
+        for (PeakListRow originalRow : originalRows) {
+
+            // Cancel?
+            if (status == TaskStatus.CANCELED) {
+                return;
+            }
+
+            PeakListRow normalizedRow = normalizeRow(originalRow, standards,
+                    normalizedStdRTs);
+            normalizedPeakList.addRow(normalizedRow);
+
+            processedRows++;
+
+        }
+
+    }
+
+    private PeakListRow normalizeRow(PeakListRow originalRow,
+            PeakListRow standards[], float normalizedStdRTs[]) {
+
+        PeakListRow normalizedRow = new SimplePeakListRow(originalRow.getID());
+
+        // Standard rows preceding and following this row
+        int prevStdIndex = -1, nextStdIndex = -1;
+
+        for (int stdIndex = 0; stdIndex < standards.length; stdIndex++) {
+
+            // If this standard peak is actually originalRow
+            if (standards[stdIndex] == originalRow) {
+                prevStdIndex = stdIndex;
+                nextStdIndex = stdIndex;
+                break;
+            }
+
+            // If this standard peak is before our originalRow
+            if (standards[stdIndex].getAverageRT() < originalRow.getAverageRT()) {
+                if ((prevStdIndex == -1)
+                        || (standards[stdIndex].getAverageRT() > standards[prevStdIndex].getAverageRT()))
+                    prevStdIndex = stdIndex;
+            }
+
+            // If this standard peak is after our originalRow
+            if (standards[stdIndex].getAverageRT() > originalRow.getAverageRT()) {
+                if ((nextStdIndex == -1)
+                        || (standards[stdIndex].getAverageRT() < standards[nextStdIndex].getAverageRT()))
+                    nextStdIndex = stdIndex;
+            }
+
+        }
+
+        // Normalized retention time of this row
+        float normalizedRT = -1;
+
+        if ((prevStdIndex == -1) || (nextStdIndex == -1)) {
+            normalizedRT = originalRow.getAverageRT();
+        } else
+
+        if (prevStdIndex == nextStdIndex) {
+            normalizedRT = normalizedStdRTs[prevStdIndex];
+        } else {
+            float weight = (originalRow.getAverageRT() - standards[prevStdIndex].getAverageRT())
+                    / (standards[nextStdIndex].getAverageRT() - standards[prevStdIndex].getAverageRT());
+            normalizedRT = normalizedStdRTs[prevStdIndex]
+                    + (weight * (normalizedStdRTs[nextStdIndex] - normalizedStdRTs[prevStdIndex]));
+        }
+
+        NumberFormat rtFormat = MZmineCore.getDesktop().getRTFormat();
+        logger.finest("Normalizing row " + originalRow + " to "
+                + rtFormat.format(normalizedRT));
+
+        for (RawDataFile file : originalRow.getRawDataFiles()) {
+            Peak dataFilePeak = originalRow.getPeak(file);
+            if (dataFilePeak != null) {
+                SimplePeak newPeak = new SimplePeak(dataFilePeak);
+                newPeak.setRT(normalizedRT);
+                normalizedRow.addPeak(file,
+                        originalRow.getOriginalPeakListEntry(file), newPeak);
+            }
+        }
+
+        return normalizedRow;
+
+    }
 }
