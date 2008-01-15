@@ -210,8 +210,7 @@ public class PeakListTablePopupMenu extends JPopupMenu implements
                 tic.showNewTICVisualizerWindow(
                         new RawDataFile[] { clickedDataFile }, null, 1,
                         TICVisualizerParameters.plotTypeBP, rtMin, rtMax,
-                        clickedPeak.getDataPointMinMZ(),
-                        clickedPeak.getDataPointMaxMZ());
+                        minMZ, maxMZ);
             }
 
         }
