@@ -19,8 +19,6 @@
 
 package net.sf.mzmine.modules.normalization.rtnormalizer;
 
-import java.text.NumberFormat;
-import java.util.Arrays;
 import java.util.Vector;
 import java.util.logging.Logger;
 
@@ -84,8 +82,8 @@ class RTNormalizerTask implements Task {
     }
 
     public String getTaskDescription() {
-        return "Retention time normalization of "
-                + Arrays.toString(originalPeakLists);
+        return "Retention time normalization of " + originalPeakLists.length
+                + " peak lists";
     }
 
     public void run() {
@@ -211,12 +209,20 @@ class RTNormalizerTask implements Task {
 
     }
 
+    /**
+     * Normalize retention time of all rows in given peak list and save normalized rows into new peak list. 
+     * @param originalPeakList Peak list to be normalized
+     * @param normalizedPeakList New peak list, where normalized rows are to be saved
+     * @param standards Standard rows in same peak list
+     * @param normalizedStdRTs Normalized retention times of standard rows
+     */
     private void normalizePeakList(PeakList originalPeakList,
             PeakList normalizedPeakList, PeakListRow standards[],
             float normalizedStdRTs[]) {
 
         PeakListRow originalRows[] = originalPeakList.getRows();
 
+        // Iterate peak list rows
         for (PeakListRow originalRow : originalRows) {
 
             // Cancel?
@@ -224,8 +230,11 @@ class RTNormalizerTask implements Task {
                 return;
             }
 
+            // Normalize one row
             PeakListRow normalizedRow = normalizeRow(originalRow, standards,
                     normalizedStdRTs);
+            
+            // Add the new row to normalized peak list
             normalizedPeakList.addRow(normalizedRow);
 
             processedRows++;
@@ -234,6 +243,13 @@ class RTNormalizerTask implements Task {
 
     }
 
+    /**
+     * Normalize retention time of given row using selected standards
+     * @param originalRow Peak list row to be normalized
+     * @param standards Standard rows in same peak list
+     * @param normalizedStdRTs Normalized retention times of standard rows
+     * @return New peak list row with normalized retention time
+     */
     private PeakListRow normalizeRow(PeakListRow originalRow,
             PeakListRow standards[], float normalizedStdRTs[]) {
 
@@ -267,7 +283,7 @@ class RTNormalizerTask implements Task {
 
         }
 
-        // Normalized retention time of this row
+        // Calculate normalized retention time of this row
         float normalizedRT = -1;
 
         if ((prevStdIndex == -1) || (nextStdIndex == -1)) {
@@ -283,10 +299,7 @@ class RTNormalizerTask implements Task {
                     + (weight * (normalizedStdRTs[nextStdIndex] - normalizedStdRTs[prevStdIndex]));
         }
 
-        NumberFormat rtFormat = MZmineCore.getDesktop().getRTFormat();
-        logger.finest("Normalizing row " + originalRow + " to "
-                + rtFormat.format(normalizedRT));
-
+        // Set normalized retention time to all peaks in this row
         for (RawDataFile file : originalRow.getRawDataFiles()) {
             Peak dataFilePeak = originalRow.getPeak(file);
             if (dataFilePeak != null) {
@@ -300,4 +313,5 @@ class RTNormalizerTask implements Task {
         return normalizedRow;
 
     }
+
 }
