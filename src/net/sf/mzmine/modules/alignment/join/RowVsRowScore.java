@@ -72,9 +72,14 @@ class RowVsRowScore implements Comparable<RowVsRowScore> {
      * @see java.lang.Comparable#compareTo(java.lang.Object)
      */
     public int compareTo(RowVsRowScore object) {
-        Float myScore = new Float(score);
-        Float objectScore = new Float(object.getScore());
-        return myScore.compareTo(objectScore);
+
+        // We must never return 0, because the TreeSet in JoinAlignerTask would
+        // treat such elements as equal
+        if (score < object.getScore())
+            return -1;
+        else
+            return 1;
+
     }
 
 }

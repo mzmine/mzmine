@@ -136,7 +136,7 @@ class JoinAlignerTask implements Task {
                             + dataFile + " is present in multiple peak lists";
                     return;
                 }
-                
+
                 allDataFiles.add(dataFile);
             }
         }
@@ -194,6 +194,7 @@ class JoinAlignerTask implements Task {
             // Iterate scores by ascending order
             Iterator<RowVsRowScore> scoreIterator = scoreSet.iterator();
             while (scoreIterator.hasNext()) {
+
                 RowVsRowScore score = scoreIterator.next();
 
                 // Check if the row is already mapped
