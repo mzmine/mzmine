@@ -22,8 +22,7 @@ package net.sf.mzmine.modules.alignment.join;
 import net.sf.mzmine.data.PeakListRow;
 
 /**
- * This class represents a score between master peak list row and isotope
- * pattern
+ * This class represents a score between peak list row and aligned peak list row
  */
 class RowVsRowScore implements Comparable<RowVsRowScore> {
 
@@ -69,6 +68,9 @@ class RowVsRowScore implements Comparable<RowVsRowScore> {
         return score;
     }
 
+    /**
+     * @see java.lang.Comparable#compareTo(java.lang.Object)
+     */
     public int compareTo(RowVsRowScore object) {
         Float myScore = new Float(score);
         Float objectScore = new Float(object.getScore());
