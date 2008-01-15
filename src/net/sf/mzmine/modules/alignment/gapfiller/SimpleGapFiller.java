@@ -123,10 +123,6 @@ public class SimpleGapFiller implements BatchStepAlignment, TaskListener,
                 String newName = (String) ((SimpleParameterSet) parameters).getParameterValue(SimpleGapFillerParameters.peakListName);
                 SimplePeakList processedPeakList = new SimplePeakList(newName);
 
-                for (RawDataFile rawData : sourcePeakList.getRawDataFiles()) {
-                    processedPeakList.addRawDataFile(rawData);
-                }
-
                 for (int peakListRowNumber = 0; peakListRowNumber < sourcePeakList.getNumberOfRows(); peakListRowNumber++) {
 
                     PeakListRow sourcePeakListRow = sourcePeakList.getRow(peakListRowNumber);

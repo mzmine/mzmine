@@ -100,8 +100,6 @@ public class StandardCompoundNormalizerTask implements Task {
         // Copy raw data files from original alignment result to new alignment
         // result
         totalRows = originalPeakList.getNumberOfRows();
-        for (RawDataFile file : originalPeakList.getRawDataFiles())
-            normalizedPeakList.addRawDataFile(file);
 
         // Loop through all rows
         for (PeakListRow row : originalPeakList.getRows()) {

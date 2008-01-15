@@ -96,11 +96,6 @@ class LinearNormalizerTask implements Task {
         SimplePeakList normalizedPeakList = new SimplePeakList(
                 originalPeakList.toString() + " " + suffix);
 
-        // Copy raw data files from original alignment result to new alignment
-        // result
-        for (RawDataFile file : originalPeakList.getRawDataFiles())
-            normalizedPeakList.addRawDataFile(file);
-
         // Loop through all raw data files, and find the peak with biggest
         // height
         float maxOriginalHeight = 0.0f;

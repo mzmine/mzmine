@@ -133,17 +133,13 @@ public class SimplePeakList implements PeakList {
     }
 
     public void addRow(PeakListRow row) {
+        for (RawDataFile file : row.getRawDataFiles()) {
+            if (! rawDataFiles.contains(file)) rawDataFiles.add(file);
+        }
         peakListRows.add(row);
         if (row.getDataPointMaxIntensity() > maxDataPointIntensity) {
             maxDataPointIntensity = row.getDataPointMaxIntensity();
         }
-    }
-
-    /**
-     * Adds a new opened raw data to the alignment result
-     */
-    public void addRawDataFile(RawDataFile openedRawDataFile) {
-        rawDataFiles.add(openedRawDataFile);
     }
 
     /**

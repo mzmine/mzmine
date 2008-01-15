@@ -89,8 +89,6 @@ class RowsFilterTask implements Task {
 
         // Create new peaklist
         SimplePeakList filteredPeakList = new SimplePeakList(peakList.toString() + " " + suffix);
-        for (RawDataFile rawData : peakList.getRawDataFiles()) 
-            filteredPeakList.addRawDataFile(rawData);
 
         // Copy rows with enough peaks to new alignment result
         for (PeakListRow row : peakList.getRows()) {

@@ -114,22 +114,6 @@ class JoinAlignerTask implements Task {
         // Create a new aligned peak list
         SimplePeakList alignedPeakList = new SimplePeakList(peakListName);
 
-        // Add raw data files to aligned peak list
-        for (PeakList peakList : peakLists)
-            for (RawDataFile dataFile : peakList.getRawDataFiles()) {
-
-                // Check if the file is already present
-                if (alignedPeakList.hasRawDataFile(dataFile)) {
-                    status = TaskStatus.ERROR;
-                    errorMessage = "Cannot run alignment, because file "
-                            + dataFile + " is present in multiple peak lists";
-                    return;
-                }
-
-                // If not, add the file
-                alignedPeakList.addRawDataFile(dataFile);
-            }
-
         // ID counter for the new peaklist
         int newRowID = 1;
 
@@ -140,6 +124,15 @@ class JoinAlignerTask implements Task {
                 if (status == TaskStatus.CANCELED)
                     return;
 
+                // Check if the file is already present
+                if (alignedPeakList.hasRawDataFile(dataFile)) {
+                    status = TaskStatus.ERROR;
+                    errorMessage = "Cannot run alignment, because file "
+                            + dataFile + " is present in multiple peak lists";
+                    return;
+                }
+
+                
                 Peak[] dataFilePeaks = peakList.getPeaks(dataFile);
                 PeakWrapper wrappedPeakList[] = new PeakWrapper[dataFilePeaks.length];
                 for (int i = 0; i < dataFilePeaks.length; i++) {

@@ -118,7 +118,6 @@ class FTMSFilterTask implements Task {
         // Create new deisotoped peaklist
         SimplePeakList filteredPeakList = new SimplePeakList(peaklist + " "
                 + suffix);
-        filteredPeakList.addRawDataFile(dataFile);
 
         Peak[] allPeaks = peaklist.getPeaks(dataFile);
 

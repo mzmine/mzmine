@@ -128,7 +128,6 @@ class RecursivePickerTask implements Task {
         // Create new peak list
         SimplePeakList newPeakList = new SimplePeakList(dataFile.toString()
                 + " " + suffix);
-        newPeakList.addRawDataFile(dataFile);
 
         // Get all scans of MS level 1
         int[] scanNumbers = dataFile.getScanNumbers(1);
