@@ -15,53 +15,53 @@ import net.sf.mzmine.taskcontrol.Task.TaskStatus;
 
 public class FinalizePrePeaksTask implements Task {
 
-	private RawDataFile dataFile;
-	
-	private PreConstructionPeak[] prePeaks;
-	
+    private RawDataFile dataFile;
+
+    private PreConstructionPeak[] prePeaks;
+
     private int processedScans;
-    private int totalScans;	
-	
-	private TaskStatus status;
-	
-	private String errorMessage;
-	
-	public FinalizePrePeaksTask(RawDataFile dataFile, PreConstructionPeak[] prePeaks) {
-		this.dataFile = dataFile;
-		this.prePeaks = prePeaks;
-		
-		status = TaskStatus.WAITING;
-	}
-	
-	
-	public void cancel() {
-		status = TaskStatus.CANCELED;
-	}
+    private int totalScans;
 
-	public String getErrorMessage() {
-		return errorMessage;
-	}
+    private TaskStatus status;
 
-	public float getFinishedPercentage() {
+    private String errorMessage;
+
+    public FinalizePrePeaksTask(RawDataFile dataFile,
+            PreConstructionPeak[] prePeaks) {
+        this.dataFile = dataFile;
+        this.prePeaks = prePeaks;
+
+        status = TaskStatus.WAITING;
+    }
+
+    public void cancel() {
+        status = TaskStatus.CANCELED;
+    }
+
+    public String getErrorMessage() {
+        return errorMessage;
+    }
+
+    public float getFinishedPercentage() {
         if (totalScans == 0)
             return 0.0f;
         return (float) processedScans / (1.0f * totalScans);
 
-	}
+    }
 
-	public TaskStatus getStatus() {
-		return status;
-	}
+    public TaskStatus getStatus() {
+        return status;
+    }
 
-	public String getTaskDescription() {
+    public String getTaskDescription() {
         return "Finalize defined pre-peaks of " + dataFile;
-	}
+    }
 
-	public void run() {
-		
-		status = TaskStatus.PROCESSING;
+    public void run() {
 
-		// Loop through scans
+        status = TaskStatus.PROCESSING;
+
+        // Loop through scans
         int[] scanNumbers = dataFile.getScanNumbers();
         totalScans = scanNumbers.length;
 
@@ -71,53 +71,53 @@ public class FinalizePrePeaksTask implements Task {
                 return;
 
             Scan s = dataFile.getScan(scanNumbers[i]);
-            
+
             // Offer this scan to all pre-peaks
             for (PreConstructionPeak prePeak : prePeaks) {
-            	prePeak.addScan(s, i, totalScans);
+                prePeak.addScan(s, i, totalScans);
             }
 
             processedScans++;
 
         }
-        
 
-		// TODO: Get user selected peak list for the file 
-		/*
-		MZmineProject currentProject = MZmineCore.getCurrentProject();
-		PeakList peakList = currentProject.getFilePeakList(resultDataFile);
-		*/
-		PeakList peakList = null;
-		
+        // TODO: Get user selected peak list for the file
+        /*
+         * MZmineProject currentProject = MZmineCore.getCurrentProject();
+         * PeakList peakList = currentProject.getFilePeakList(resultDataFile);
+         */
+        PeakList peakList = null;
+
         // If there is no existing peak list, then create a new one
-        if (peakList==null) {
-			// TODO: Name for the new peak list should be provided by the user as a parameter
-        	peakList = new SimplePeakList("new empty peak list");
-			// Add peak list to project
+        if (peakList == null) {
+            // TODO: Name for the new peak list should be provided by the user
+            // as a parameter
+            peakList = new SimplePeakList("new empty peak list",
+                    new RawDataFile[] { dataFile });
+            // Add peak list to project
             MZmineProject currentProject = MZmineCore.getCurrentProject();
             currentProject.addPeakList(peakList);
 
         }
-        
-		// Find highest ID of existing peak list rows
+
+        // Find highest ID of existing peak list rows
         int highestID = 0;
         for (PeakListRow row : peakList.getRows()) {
-        	if (row.getID()>highestID) 
-        		highestID = row.getID();
+            if (row.getID() > highestID)
+                highestID = row.getID();
         }
-        
-		// Append pre-peaks as new rows to the peak list
+
+        // Append pre-peaks as new rows to the peak list
         highestID++;
         for (PreConstructionPeak prePeak : prePeaks) {
-        	SimplePeakListRow newRow = new SimplePeakListRow(highestID);
-        	newRow.addPeak(dataFile, prePeak, prePeak);
-        	peakList.addRow(newRow);
-        	highestID++;
+            SimplePeakListRow newRow = new SimplePeakListRow(highestID);
+            newRow.addPeak(dataFile, prePeak, prePeak);
+            peakList.addRow(newRow);
+            highestID++;
         }
-        
-		
-		status = TaskStatus.FINISHED;
 
-	}
+        status = TaskStatus.FINISHED;
+
+    }
 
 }

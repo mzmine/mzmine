@@ -127,7 +127,7 @@ class LocalPickerTask implements Task {
 
         // Create new peak list
         SimplePeakList newPeakList = new SimplePeakList(dataFile.toString()
-                + " " + suffix);
+                + " " + suffix, new RawDataFile[] { dataFile });
 
         // Get all scans of MS level 1
         int[] scanNumbers = dataFile.getScanNumbers(1);

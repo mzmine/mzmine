@@ -61,7 +61,8 @@ class RecursivePickerTask implements Task {
      * @param dataFile
      * @param parameters
      */
-    RecursivePickerTask(RawDataFile dataFile, RecursivePickerParameters parameters) {
+    RecursivePickerTask(RawDataFile dataFile,
+            RecursivePickerParameters parameters) {
 
         this.dataFile = dataFile;
         suffix = (String) parameters.getParameterValue(RecursivePickerParameters.suffix);
@@ -127,7 +128,7 @@ class RecursivePickerTask implements Task {
 
         // Create new peak list
         SimplePeakList newPeakList = new SimplePeakList(dataFile.toString()
-                + " " + suffix);
+                + " " + suffix, new RawDataFile[] { dataFile });
 
         // Get all scans of MS level 1
         int[] scanNumbers = dataFile.getScanNumbers(1);
@@ -155,7 +156,7 @@ class RecursivePickerTask implements Task {
                     return;
 
                 Scan sc = dataFile.getScan(scanNumbers[i]);
-                
+
                 float[] mzValues = sc.getMZValues();
                 float[] intensityValues = sc.getIntensityValues();
                 float[] tmpInts = ScanUtils.binValues(mzValues,

@@ -52,7 +52,7 @@ class LinearNormalizerTask implements Task {
             LinearNormalizerParameters parameters) {
 
         this.originalPeakList = peakList;
-        
+
         totalDataFiles = originalPeakList.getNumberOfRawDataFiles();
 
         suffix = (String) parameters.getParameterValue(LinearNormalizerParameters.suffix);
@@ -93,8 +93,8 @@ class LinearNormalizerTask implements Task {
         Hashtable<PeakListRow, SimplePeakListRow> rowMap = new Hashtable<PeakListRow, SimplePeakListRow>();
 
         // Create new peak list
-        SimplePeakList normalizedPeakList = new SimplePeakList(
-                originalPeakList.toString() + " " + suffix);
+        SimplePeakList normalizedPeakList = new SimplePeakList(originalPeakList
+                + " " + suffix, originalPeakList.getRawDataFiles());
 
         // Loop through all raw data files, and find the peak with biggest
         // height
@@ -196,12 +196,12 @@ class LinearNormalizerTask implements Task {
 
             // Normalize all peak intenisities using the normalization factor
             for (PeakListRow originalpeakListRow : originalPeakList.getRows()) {
-                
+
                 // Cancel?
                 if (status == TaskStatus.CANCELED) {
                     return;
                 }
-                
+
                 Peak originalPeak = originalpeakListRow.getPeak(file);
                 if (originalPeak != null) {
                     SimplePeak normalizedPeak = new SimplePeak(originalPeak);

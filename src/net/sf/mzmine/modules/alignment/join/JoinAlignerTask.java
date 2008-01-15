@@ -22,6 +22,7 @@ package net.sf.mzmine.modules.alignment.join;
 import java.util.Hashtable;
 import java.util.Iterator;
 import java.util.TreeSet;
+import java.util.Vector;
 
 import net.sf.mzmine.data.PeakList;
 import net.sf.mzmine.data.PeakListRow;
@@ -122,8 +123,26 @@ class JoinAlignerTask implements Task {
             totalRows += peakLists[i].getNumberOfRows() * 2;
         }
 
+        // Collect all data files
+        Vector<RawDataFile> allDataFiles = new Vector<RawDataFile>();
+        for (PeakList peakList : peakLists) {
+
+            for (RawDataFile dataFile : peakList.getRawDataFiles()) {
+
+                // Each data file can only have one column in aligned peak list
+                if (allDataFiles.contains(dataFile)) {
+                    status = TaskStatus.ERROR;
+                    errorMessage = "Cannot run alignment, because file "
+                            + dataFile + " is present in multiple peak lists";
+                    return;
+                }
+                allDataFiles.add(dataFile);
+            }
+        }
+
         // Create a new aligned peak list
-        SimplePeakList alignedPeakList = new SimplePeakList(peakListName);
+        SimplePeakList alignedPeakList = new SimplePeakList(peakListName,
+                allDataFiles.toArray(new RawDataFile[0]));
 
         // Iterate source peak lists
         for (PeakList peakList : peakLists) {

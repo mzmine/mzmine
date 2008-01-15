@@ -121,7 +121,7 @@ public class SimpleGapFiller implements BatchStepAlignment, TaskListener,
 
                 // TODO: Create a copy and fill gaps
                 String newName = (String) ((SimpleParameterSet) parameters).getParameterValue(SimpleGapFillerParameters.peakListName);
-                SimplePeakList processedPeakList = new SimplePeakList(newName);
+                SimplePeakList processedPeakList = new SimplePeakList(newName, sourcePeakList.getRawDataFiles());
 
                 for (int peakListRowNumber = 0; peakListRowNumber < sourcePeakList.getNumberOfRows(); peakListRowNumber++) {
 

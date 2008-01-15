@@ -61,7 +61,7 @@ public class StandardCompoundNormalizerTask implements Task {
         MZvsRTBalance = (Float) parameters.getParameterValue(StandardCompoundNormalizerParameters.MZvsRTBalance);
         removeOriginal = (Boolean) parameters.getParameterValue(StandardCompoundNormalizerParameters.autoRemove);
         standardRows = parameters.getSelectedStandardPeakListRows();
-        
+
     }
 
     public void cancel() {
@@ -95,7 +95,8 @@ public class StandardCompoundNormalizerTask implements Task {
                 + standardRows.length + " standard peaks)");
 
         // Initialize new alignment result for the normalized result
-        SimplePeakList normalizedPeakList = new SimplePeakList(originalPeakList + " " + suffix);
+        SimplePeakList normalizedPeakList = new SimplePeakList(originalPeakList
+                + " " + suffix, originalPeakList.getRawDataFiles());
 
         // Copy raw data files from original alignment result to new alignment
         // result

@@ -20,6 +20,8 @@
 package net.sf.mzmine.data.impl;
 
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 import java.util.Vector;
 
 import net.sf.mzmine.data.Peak;
@@ -33,10 +35,11 @@ import net.sf.mzmine.io.RawDataFile;
 public class SimplePeakList implements PeakList {
 
     private String name;
+    private RawDataFile[] dataFiles;
     private ArrayList<PeakListRow> peakListRows;
     private float maxDataPointIntensity = 0;
 
-    public SimplePeakList(String name) {
+    public SimplePeakList(String name, RawDataFile[] dataFiles) {
         this.name = name;
         peakListRows = new ArrayList<PeakListRow>();
     }
@@ -49,24 +52,18 @@ public class SimplePeakList implements PeakList {
      * Returns number of raw data files participating in the alignment
      */
     public int getNumberOfRawDataFiles() {
-        return getRawDataFiles().length;
+        return dataFiles.length;
     }
 
     /**
      * Returns all raw data files participating in the alignment
      */
     public RawDataFile[] getRawDataFiles() {
-        Vector<RawDataFile> rawDataFiles = new Vector<RawDataFile>();
-        for (PeakListRow row : peakListRows)
-            for (RawDataFile file : row.getRawDataFiles()) {
-                if (!rawDataFiles.contains(file))
-                    rawDataFiles.add(file);
-            }
-        return rawDataFiles.toArray(new RawDataFile[0]);
+        return dataFiles;
     }
 
     public RawDataFile getRawDataFile(int position) {
-        return getRawDataFiles()[position];
+        return dataFiles[position];
     }
 
     /**
@@ -137,6 +134,12 @@ public class SimplePeakList implements PeakList {
     }
 
     public void addRow(PeakListRow row) {
+        List<RawDataFile> myFiles = Arrays.asList(dataFiles);
+        for (RawDataFile testFile : row.getRawDataFiles()) {
+            if (!myFiles.contains(testFile))
+                throw (new IllegalArgumentException("Data file " + testFile
+                        + " is not in this peak list"));
+        }
         peakListRows.add(row);
         if (row.getDataPointMaxIntensity() > maxDataPointIntensity) {
             maxDataPointIntensity = row.getDataPointMaxIntensity();

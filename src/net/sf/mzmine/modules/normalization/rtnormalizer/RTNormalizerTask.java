@@ -97,7 +97,7 @@ class RTNormalizerTask implements Task {
         SimplePeakList normalizedPeakLists[] = new SimplePeakList[originalPeakLists.length];
         for (int i = 0; i < originalPeakLists.length; i++) {
             normalizedPeakLists[i] = new SimplePeakList(originalPeakLists[i]
-                    + " " + suffix);
+                    + " " + suffix, originalPeakLists[i].getRawDataFiles());
 
             // Remember how many rows we need to normalize
             totalRows += originalPeakLists[i].getNumberOfRows();
@@ -210,9 +210,12 @@ class RTNormalizerTask implements Task {
     }
 
     /**
-     * Normalize retention time of all rows in given peak list and save normalized rows into new peak list. 
+     * Normalize retention time of all rows in given peak list and save
+     * normalized rows into new peak list.
+     * 
      * @param originalPeakList Peak list to be normalized
-     * @param normalizedPeakList New peak list, where normalized rows are to be saved
+     * @param normalizedPeakList New peak list, where normalized rows are to be
+     *            saved
      * @param standards Standard rows in same peak list
      * @param normalizedStdRTs Normalized retention times of standard rows
      */
@@ -233,7 +236,7 @@ class RTNormalizerTask implements Task {
             // Normalize one row
             PeakListRow normalizedRow = normalizeRow(originalRow, standards,
                     normalizedStdRTs);
-            
+
             // Add the new row to normalized peak list
             normalizedPeakList.addRow(normalizedRow);
 
@@ -245,6 +248,7 @@ class RTNormalizerTask implements Task {
 
     /**
      * Normalize retention time of given row using selected standards
+     * 
      * @param originalRow Peak list row to be normalized
      * @param standards Standard rows in same peak list
      * @param normalizedStdRTs Normalized retention times of standard rows

@@ -133,7 +133,7 @@ class IsotopeGrouperTask implements Task {
 
         // Create new deisotoped peaklist
         SimplePeakList deisotopedPeakList = new SimplePeakList(peaklist + " "
-                + suffix);
+                + suffix, peaklist.getRawDataFiles());
 
         // Collect all selected charge states
         int charges[] = new int[maximumCharge];
