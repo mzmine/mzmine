@@ -30,7 +30,7 @@ public class RawFileTableEditor extends AbstractCellEditor implements
 
 	public Component getTableCellEditorComponent(JTable table, Object value,
 			boolean isSelected, int row, int col) {
-		filePath = new File((String) table.getValueAt(row, RawFileSettingTableModel.COL_FILEPATH));
+		filePath = new File((String) table.getValueAt(row, RawFileSettingTableModel.Column.FILEPATH.getValue()));
 		this.row=row;
 		this.col=col;
 		this.table=table;
@@ -55,10 +55,10 @@ public class RawFileTableEditor extends AbstractCellEditor implements
 			int returnVal = fc.showDialog(button, "Select");
 			if (returnVal == JFileChooser.APPROVE_OPTION) {
 				this.filePath = fc.getSelectedFile();
-				this.table.setValueAt(this.filePath,this.row,RawFileSettingTableModel.COL_FILEPATH);
-				this.table.setValueAt(this.filePath.getName(),this.row,RawFileSettingTableModel.COL_FILENAME);
-				this.table.setValueAt("OK",this.row,RawFileSettingTableModel.COL_STATUS);
-				this.table.setValueAt("OK",this.row,RawFileSettingTableModel.COL_MARKER);
+				this.table.setValueAt(this.filePath,this.row,RawFileSettingTableModel.Column.FILEPATH.getValue());
+				this.table.setValueAt(this.filePath.getName(),this.row,RawFileSettingTableModel.Column.FILENAME.getValue());
+				this.table.setValueAt("OK",this.row,RawFileSettingTableModel.Column.STATUS.getValue());
+				this.table.setValueAt("OK",this.row,RawFileSettingTableModel.Column.MARKER.getValue());
 			}
 			fireEditingStopped();
 		}

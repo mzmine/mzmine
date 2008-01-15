@@ -18,12 +18,31 @@ public class RawFileSettingTableModel extends AbstractTableModel{
 	private static final String MSG_FOUND="Found";
 	private static final String MSG_NOT_FOUND="Not found";
 	
-	public static final int COL_MARKER=0;
-	public static final int COL_STATUS=1;
-	public static final int COL_FILENAME=2;
-	public static final int COL_FILEPATH=3;
-	public static final int COL_BUTTON=4;
-	
+	public static enum Column{
+		MARKER(0),STATUS(1),FILENAME(2),FILEPATH(3),BUTTON(4);
+		private final int value;
+		Column(int value){
+			this.value=value;
+		}
+		public int getValue(){
+			return this.value;
+		}
+		public static Column getByIndex(int value){
+			switch (value){
+			case 0:
+				return Column.MARKER;	
+			case 1:
+				return Column.STATUS;
+			case 2:
+				return Column.FILENAME;
+			case 3:
+				return Column.FILEPATH;
+			case 4:
+				return Column.BUTTON;
+			}return null;
+		}
+		
+	}
 	public RawFileSettingTableModel(ArrayList <RawDataFile> lostFiles){
 		tableData=new Object[lostFiles.size()][columnNames.length];
 		int i;	
@@ -47,11 +66,11 @@ public class RawFileSettingTableModel extends AbstractTableModel{
 			JButton button=new JButton(message);
 			//button.setActionCommand("SetFile_"+i);
 			//button.addActionListener(this);
-			tableData[i][COL_MARKER]=colorCircle;
-			tableData[i][COL_STATUS]=status;
-			tableData[i][COL_FILENAME]=file.getName();
-			tableData[i][COL_FILEPATH]=filePath;
-			tableData[i][COL_BUTTON]=button;
+			tableData[i][Column.MARKER.getValue()]=colorCircle;
+			tableData[i][Column.STATUS.getValue()]=status;
+			tableData[i][Column.FILENAME.getValue()]=file.getName();
+			tableData[i][Column.FILEPATH.getValue()]=filePath;
+			tableData[i][Column.BUTTON.getValue()]=button;
 		}
 	}
 	public String getColumnName(int col) {
@@ -68,14 +87,15 @@ public class RawFileSettingTableModel extends AbstractTableModel{
 	public Object getValueAt(int row, int col) {
 		return tableData[row][col];
 	}
+
     public Class<?> getColumnClass(int col) {
     	return getValueAt(0, col).getClass();
     }
-    
+
     public void setValueAt(Object value, int row, int col) {
-    	switch(col){
+    	switch(Column.getByIndex(col)){
     	
-    	case COL_MARKER:
+    	case MARKER:
     		ColorCircle circle;
     		if (value.equals("OK")){
     			circle=CIRCLE_GOOD;
@@ -84,7 +104,7 @@ public class RawFileSettingTableModel extends AbstractTableModel{
     		}
     		tableData[row][col]=circle;
     		return;
-    	case COL_STATUS:
+    	case STATUS:
     		String msg;
     		if (value.equals("OK")){
     			msg=MSG_FOUND;
@@ -93,10 +113,10 @@ public class RawFileSettingTableModel extends AbstractTableModel{
     		}
     		tableData[row][col]=msg;
     		return;
-    	case COL_FILENAME:
+    	case FILENAME:
     		tableData[row][col]=value;
     		return;
-    	case COL_FILEPATH:
+    	case FILEPATH:
     		tableData[row][col]=value;
     		return;
     	}
@@ -104,16 +124,16 @@ public class RawFileSettingTableModel extends AbstractTableModel{
     }
 
     public boolean isCellEditable(int row, int col){
-    	switch (col){
-    	case COL_MARKER:
+    	switch (Column.getByIndex(col)){
+    	case MARKER:
     		return false;
-    	case COL_STATUS:
+    	case STATUS:
     		return false;
-    	case COL_FILENAME:
+    	case FILENAME:
     		return false;
-    	case COL_FILEPATH:
+    	case FILEPATH:
     		return false;
-    	case COL_BUTTON:
+    	case BUTTON:
     		return true;
     		
     	}

@@ -67,11 +67,11 @@ public class RawFileSettingDialog extends JDialog implements ActionListener {
         
         table = new JTable(new RawFileSettingTableModel(lostFiles));
         table.setDefaultRenderer(JComponent.class, new ComponentCellRenderer());
-        table.getColumnModel().getColumn(RawFileSettingTableModel.COL_BUTTON).setCellEditor(new RawFileTableEditor());
+        table.getColumnModel().getColumn(RawFileSettingTableModel.Column.BUTTON.getValue()).setCellEditor(new RawFileTableEditor());
         
         //set apperance 
-        table.getColumnModel().getColumn(RawFileSettingTableModel.COL_MARKER).setPreferredWidth(3);
-        table.getColumnModel().getColumn(RawFileSettingTableModel.COL_STATUS).setPreferredWidth(5);
+        table.getColumnModel().getColumn(RawFileSettingTableModel.Column.MARKER.getValue()).setPreferredWidth(3);
+        table.getColumnModel().getColumn(RawFileSettingTableModel.Column.STATUS.getValue()).setPreferredWidth(5);
         JScrollPane scrollPane = new JScrollPane(table);
         add(scrollPane, BorderLayout.CENTER);
         
@@ -105,7 +105,7 @@ public class RawFileSettingDialog extends JDialog implements ActionListener {
         	this.filePaths=new File[table.getRowCount()];
         	int row;
         	for (row=0;row<table.getRowCount();row++){
-        		filePaths[row]=(File)table.getValueAt(row, RawFileSettingTableModel.COL_FILEPATH);
+        		filePaths[row]=(File)table.getValueAt(row, RawFileSettingTableModel.Column.FILEPATH.getValue());
 
         		this.status="ok";	
         		
