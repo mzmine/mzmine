@@ -41,6 +41,7 @@ public class SimplePeakList implements PeakList {
 
     public SimplePeakList(String name, RawDataFile[] dataFiles) {
         this.name = name;
+        this.dataFiles = dataFiles;
         peakListRows = new ArrayList<PeakListRow>();
     }
 
