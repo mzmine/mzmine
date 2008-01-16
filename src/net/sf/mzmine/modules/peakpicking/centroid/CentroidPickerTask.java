@@ -126,8 +126,8 @@ class CentroidPickerTask implements Task {
         status = TaskStatus.PROCESSING;
 
         // Create new peak list
-        SimplePeakList newPeakList = new SimplePeakList(dataFile.toString()
-                + " " + suffix, new RawDataFile[] { dataFile });
+        SimplePeakList newPeakList = new SimplePeakList(
+                dataFile + " " + suffix, dataFile);
 
         // Get all scans of MS level 1
         int[] scanNumbers = dataFile.getScanNumbers(1);
