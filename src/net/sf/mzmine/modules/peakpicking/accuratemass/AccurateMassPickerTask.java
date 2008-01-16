@@ -192,10 +192,10 @@ class AccurateMassPickerTask implements Task {
 
             // Check all peaks that could not be connected 
             for (ConstructionPeak peak : currentPeaks) {
-
                 
                 // If the peak has minimum duration, add it to the peak list
                 if (peak.getDuration() >= minimumPeakDuration) {
+                    peak.finalizedAddingDatapoints();
                     SimplePeakListRow newRow = new SimplePeakListRow(newPeakID);
                     newPeakID++;
                     newRow.addPeak(dataFile, peak, peak);
