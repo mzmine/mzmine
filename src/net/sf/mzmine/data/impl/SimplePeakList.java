@@ -42,8 +42,11 @@ public class SimplePeakList implements PeakList {
     public SimplePeakList(String name, RawDataFile dataFile) {
         this(name, new RawDataFile[] { dataFile });
     }
-    
+
     public SimplePeakList(String name, RawDataFile[] dataFiles) {
+        if (dataFiles == null)
+            throw (new NullPointerException(
+                    "Cannot create a peak list with no data files"));
         this.name = name;
         this.dataFiles = dataFiles;
         peakListRows = new ArrayList<PeakListRow>();
@@ -238,7 +241,7 @@ public class SimplePeakList implements PeakList {
     }
 
     public boolean hasRawDataFile(RawDataFile hasFile) {
-        for (RawDataFile file : getRawDataFiles()) {
+        for (RawDataFile file : dataFiles) {
             if (file == hasFile)
                 return true;
         }
