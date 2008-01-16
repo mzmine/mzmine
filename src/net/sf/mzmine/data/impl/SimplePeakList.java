@@ -39,6 +39,10 @@ public class SimplePeakList implements PeakList {
     private ArrayList<PeakListRow> peakListRows;
     private float maxDataPointIntensity = 0;
 
+    public SimplePeakList(String name, RawDataFile dataFile) {
+        this(name, new RawDataFile[] { dataFile });
+    }
+    
     public SimplePeakList(String name, RawDataFile[] dataFiles) {
         this.name = name;
         this.dataFiles = dataFiles;
