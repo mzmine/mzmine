@@ -332,6 +332,8 @@ public class ConstructionPeak implements Peak {
      * @see net.sf.mzmine.data.Peak#getDuration()
      */
     public float getDuration() {
+        if (precalcRequiredMins)
+            precalculateMins();
         return maxRT - minRT;
     }
 
