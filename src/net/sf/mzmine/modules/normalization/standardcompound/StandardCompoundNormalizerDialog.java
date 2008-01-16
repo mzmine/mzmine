@@ -42,7 +42,7 @@ import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.userinterface.components.ExtendedCheckBox;
 import net.sf.mzmine.userinterface.dialogs.ParameterSetupDialog;
 import net.sf.mzmine.util.GUIUtils;
-import net.sf.mzmine.util.PeakListRowSorterByID;
+import net.sf.mzmine.util.PeakListRowSorterByMZ;
 
 class StandardCompoundNormalizerDialog extends ParameterSetupDialog {
 
@@ -70,7 +70,7 @@ class StandardCompoundNormalizerDialog extends ParameterSetupDialog {
 
         // Get all rows and sort them
         PeakListRow rows[] = peakList.getRows();
-        Arrays.sort(rows, new PeakListRowSorterByID());
+        Arrays.sort(rows, new PeakListRowSorterByMZ());
 
         List<PeakListRow> selectedRows;
         if (parameters.getSelectedStandardPeakListRows() != null)
