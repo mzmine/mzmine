@@ -31,6 +31,7 @@ import net.sf.mzmine.io.RawDataFile;
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.project.MZmineProject;
 import net.sf.mzmine.taskcontrol.Task;
+import net.sf.mzmine.util.PeakSorterByDescendingHeight;
 
 /**
  * 
