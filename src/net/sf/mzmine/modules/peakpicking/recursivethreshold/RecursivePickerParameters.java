@@ -75,7 +75,7 @@ public class RecursivePickerParameters extends SimpleParameterSet {
     public static final Parameter mzTolerance = new SimpleParameter(
             ParameterType.FLOAT,
             "M/Z tolerance",
-            "Maximum allowed distance in M/Z between centroid peaks in successive scans",
+            "Maximum allowed distance in M/Z between data points in successive scans",
             "Da", new Float(0.1), new Float(0.0), null,
             MZmineCore.getDesktop().getMZFormat());
 
