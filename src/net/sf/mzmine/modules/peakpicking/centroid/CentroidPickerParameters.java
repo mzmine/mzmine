@@ -66,7 +66,7 @@ public class CentroidPickerParameters extends SimpleParameterSet {
             ParameterType.FLOAT,
             "M/Z tolerance",
             "Maximum allowed distance in M/Z between centroid peaks in successive scans",
-            "Da", new Float(0.1), new Float(0.0), null,
+            "m/z", new Float(0.1), new Float(0.0), null,
             MZmineCore.getDesktop().getMZFormat());
 
     public static final Parameter intTolerance = new SimpleParameter(
