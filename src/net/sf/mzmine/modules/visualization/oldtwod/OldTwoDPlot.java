@@ -271,8 +271,7 @@ public class OldTwoDPlot extends JPanel implements ActionListener,
 
             g.setColor(peakColor);
             RawDataFile rawDataFile = dataset.getRawDataFile();
-            // TODO: user has to select which peaklist to use
-            PeakList peakList = null; // project.getFilePeakList(rawDataFile);
+            PeakList peakList = visualizerWindow.getSelectedPeakList();
 
             if ((peakList != null) && (showPeaks)) {
 
@@ -547,7 +546,7 @@ public class OldTwoDPlot extends JPanel implements ActionListener,
 		
 		if (src == finalizePrePeaksMenuItem) {
 			// Initialize a new FinalizePrePeaksTask and run it
-			FinalizePrePeaksTask task = new FinalizePrePeaksTask(visualizerWindow.getDataFile(),  prePeaks.toArray(new PreConstructionPeak[0]));
+			FinalizePrePeaksTask task = new FinalizePrePeaksTask(visualizerWindow.getDataFile(),  prePeaks.toArray(new PreConstructionPeak[0]), visualizerWindow);
 			MZmineCore.getTaskController().addTask(task, TaskPriority.HIGH, this);
 			
 		}		
