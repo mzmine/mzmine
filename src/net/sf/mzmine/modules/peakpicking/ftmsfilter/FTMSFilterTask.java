@@ -124,7 +124,7 @@ class FTMSFilterTask implements Task {
         totalPeaks = allPeaks.length;
 
         // Loop through all peaks
-        for (int candidatePeakIndex = 0; candidatePeakIndex < allPeaks.length; candidatePeakIndex++) {
+        allPeaksLoop: for (int candidatePeakIndex = 0; candidatePeakIndex < allPeaks.length; candidatePeakIndex++) {
 
             Peak candidatePeak = allPeaks[candidatePeakIndex];
             float candidatePeakMZ = candidatePeak.getMZ();
@@ -152,17 +152,16 @@ class FTMSFilterTask implements Task {
                         && (candidatePeakHeight <= (comparedPeakHeight * heightMax))) {
                     // Found a shoulder peak, skip it
                     processedPeaks++;
-                    continue;
+                    continue allPeaksLoop;
                 }
 
             }
-            
+
             // Add new row to the filtered peak list
             int oldRowID = peaklist.getPeakRow(candidatePeak).getID();
             SimplePeakListRow newRow = new SimplePeakListRow(oldRowID);
             newRow.addPeak(dataFile, candidatePeak, candidatePeak);
             filteredPeakList.addRow(newRow);
-
 
             // Update completion rate
             processedPeaks++;
