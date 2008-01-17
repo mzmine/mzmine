@@ -51,8 +51,9 @@ class PeakToolTipGenerator implements XYToolTipGenerator {
         double intValue = dataset.getYValue(series, item);
         double mzValue = dataset.getXValue(series, item);
 
-        String tooltip = "<html>" + "Peak: " + peak + "<br>Peak list row: "
-                + row + "<br>Data point m/z: " + mzFormat.format(mzValue)
+        String tooltip = "<html>" + "Peak: " + peak + "<br>Status: "
+                + peak.getPeakStatus() + "<br>Peak list row: " + row
+                + "<br>Data point m/z: " + mzFormat.format(mzValue)
                 + "<br>Data point intensity: "
                 + intensityFormat.format(intValue) + "</html>";
 
