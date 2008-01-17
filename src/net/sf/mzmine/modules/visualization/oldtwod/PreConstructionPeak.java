@@ -89,7 +89,7 @@ public class PreConstructionPeak extends ConstructionPeak  implements RawDataAcc
 		}
 		
 		if (index==total)
-			this.finalizedAddingDatapoints();
+			this.finalizedAddingDatapoints(PeakStatus.MANUAL);
 		
 	}
 

@@ -24,6 +24,7 @@ import java.util.TreeSet;
 import java.util.Vector;
 
 import net.sf.mzmine.data.Scan;
+import net.sf.mzmine.data.Peak.PeakStatus;
 import net.sf.mzmine.data.impl.ConstructionPeak;
 import net.sf.mzmine.data.impl.SimplePeakList;
 import net.sf.mzmine.data.impl.SimplePeakListRow;
@@ -190,12 +191,12 @@ class AccurateMassPickerTask implements Task {
 
             }
 
-            // Check all peaks that could not be connected 
+            // Check all peaks that could not be connected
             for (ConstructionPeak peak : currentPeaks) {
-                
+
                 // If the peak has minimum duration, add it to the peak list
                 if (peak.getDuration() >= minimumPeakDuration) {
-                    peak.finalizedAddingDatapoints();
+                    peak.finalizedAddingDatapoints(PeakStatus.DETECTED);
                     SimplePeakListRow newRow = new SimplePeakListRow(newPeakID);
                     newPeakID++;
                     newRow.addPeak(dataFile, peak, peak);
@@ -231,13 +232,46 @@ class AccurateMassPickerTask implements Task {
 
         Vector<DataPoint> detectedDataPoints = new Vector<DataPoint>();
 
+        double totalSum = 0, intensitySum = 0;
+        float maxIntensity = 0;
+        boolean ascending = true;
         
-        
-        // TODO: calculate median of data points
-        for (int i = 1; i < mzValues.length - 1; i++) {
-            if ((intValues[i] > intValues[i - 1]) && (intValues[i] > intValues[i+1])) {
-                DataPoint p = new DataPoint(mzValues[i], intValues[i]);
+        for (int i = 0; i < mzValues.length; i++) {
+            
+            boolean nextPointIsHigher = ((i == mzValues.length - 1) || (intValues[i] == 0) || (intValues[i] < intValues[i+1]));
+            
+            // If we are ascending and next point is higher, or we are
+            // descending and next point is lower
+            if (ascending == nextPointIsHigher) {
+                totalSum += mzValues[i] * intValues[i];
+                intensitySum += intValues[i];
+                continue;
+            }
+            
+            // If we are at local maximum
+            if (ascending && !nextPointIsHigher) {
+                maxIntensity = intValues[i];
+                ascending = false;
+                continue;
+            }
+            
+            // If we are at the last data point of this m/z peak
+            if (!ascending && nextPointIsHigher) {
+                
+                totalSum += mzValues[i] * intValues[i];
+                intensitySum += intValues[i];
+                
+                // Calculate the weighted average of m/z values
+                float mzValue = (float) (totalSum / intensitySum);
+                DataPoint p = new DataPoint(mzValue, maxIntensity);
                 detectedDataPoints.add(p);
+
+                // Reset the state
+                totalSum = intValues[i] * mzValues[i];
+                intensitySum = intValues[i];
+                ascending = true;
+                
+                continue;
             }
             
         }
@@ -246,5 +280,4 @@ class AccurateMassPickerTask implements Task {
         return detectedDataPointsArray;
 
     }
-
 }

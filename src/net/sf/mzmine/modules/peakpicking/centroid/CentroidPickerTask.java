@@ -291,10 +291,7 @@ class CentroidPickerTask implements Task {
                             && (ucHeight >= minimumPeakHeight)) {
 
                         // Good peak, finalize adding data points
-                        ucPeak.finalizedAddingDatapoints();
-
-                        // Define peak's status
-                        ucPeak.setPeakStatus(PeakStatus.DETECTED);
+                        ucPeak.finalizedAddingDatapoints(PeakStatus.DETECTED);
 
                         // Add it to the peak list
                         SimplePeakListRow newRow = new SimplePeakListRow(
@@ -358,10 +355,7 @@ class CentroidPickerTask implements Task {
                     && (ucHeight >= minimumPeakHeight)) {
 
                 // Good peak, finalize adding datapoints
-                ucPeak.finalizedAddingDatapoints();
-
-                // Define peak's status
-                ucPeak.setPeakStatus(PeakStatus.DETECTED);
+                ucPeak.finalizedAddingDatapoints(PeakStatus.DETECTED);
 
                 // Add it to the peak list
                 SimplePeakListRow newRow = new SimplePeakListRow(newPeakID);

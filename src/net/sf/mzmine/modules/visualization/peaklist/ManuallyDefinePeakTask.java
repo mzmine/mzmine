@@ -98,8 +98,7 @@ class ManuallyDefinePeakTask implements Task {
             
         }
 
-        ucPeak.finalizedAddingDatapoints();
-        ucPeak.setPeakStatus(PeakStatus.MANUAL);
+        ucPeak.finalizedAddingDatapoints(PeakStatus.MANUAL);
 
         if (dataPointFound) {
             selectedRow.addPeak(selectedFile, ucPeak, ucPeak);

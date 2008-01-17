@@ -288,10 +288,7 @@ class LocalPickerTask implements Task {
                             && (ucHeight >= minimumPeakHeight)) {
 
                         // Good peak, finalized adding datapoints
-                        ucPeak.finalizedAddingDatapoints();
-
-                        // Define peak's status
-                        ucPeak.setPeakStatus(PeakStatus.DETECTED);
+                        ucPeak.finalizedAddingDatapoints(PeakStatus.DETECTED);
 
                         // add it to the peak list
                         SimplePeakListRow newRow = new SimplePeakListRow(
@@ -353,10 +350,7 @@ class LocalPickerTask implements Task {
                     && (ucHeight >= minimumPeakHeight)) {
 
                 // Good peak, finalized adding datapoints
-                ucPeak.finalizedAddingDatapoints();
-
-                // Define peak's status
-                ucPeak.setPeakStatus(PeakStatus.DETECTED);
+                ucPeak.finalizedAddingDatapoints(PeakStatus.DETECTED);
 
                 // add it to the peak list
                 SimplePeakListRow newRow = new SimplePeakListRow(newPeakID);

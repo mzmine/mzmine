@@ -300,7 +300,9 @@ public class ConstructionPeak implements Peak {
         growing = false;
     }
 
-    public void finalizedAddingDatapoints() {
+    public void finalizedAddingDatapoints(PeakStatus peakStatus) {
+        
+        this.peakStatus = peakStatus;
 
         if (precalcRequiredMZ)
             precalculateMZ();
