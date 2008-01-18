@@ -92,7 +92,7 @@ public interface Peak {
     public int[] getScanNumbers();
 
     /**
-     * This method returns m/z and intensity of this peak in a given scan This
+     * This method returns m/z and intensity of this peak in a given scan. This
      * m/z and intensity does not need to match any actual raw data point.
      */
     public DataPoint getDatapoint(int scanNumber);

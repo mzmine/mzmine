@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2007 The MZmine Development Team
+ * Copyright 2006-2008 The MZmine Development Team
  * 
  * This file is part of MZmine.
  * 
@@ -20,28 +20,6 @@
 package net.sf.mzmine.data;
 
 import java.text.NumberFormat;
-
-/*
- * 
- * Parameters have multiple purposes:
- * - each module can create its own set of parameters and use a common ParameterSetupDialog to set their values
- * - project can contain a set of experimental parameters and their values per file
- * - visualizers can remember their settings
- * 
- * Different types of parameters require different storage:
- * - user-interface parameters 
- * - per project parameters
- * - per file parameters
- * - per module parameters
- * 
- * Per module parameters and user-interface parameters have to be saved automatically when exiting and reloaded when starting MZmine.
- * 
- * When saving parameters, we have to identify them.
- * 
- * Parameter is immutable.
- * 
- */
-
 
 /**
  * Parameter interface, represents parameters or variables used in the project

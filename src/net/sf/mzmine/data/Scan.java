@@ -19,7 +19,6 @@
 
 package net.sf.mzmine.data;
 
-
 /**
  * This class represent one spectrum of a raw data file.
  */
@@ -36,7 +35,7 @@ public interface Scan {
      * @return MS level
      */
     public int getMSLevel();
-    
+
     /**
      * 
      * @return Mass tolerance in m/z, depending on instrument precision
@@ -78,13 +77,13 @@ public interface Scan {
      * @return Total ion current
      */
     public float getTIC();
-    
+
     /**
      * 
      * @return Data points (m/z and intensity pairs) of this scan
      */
     public DataPoint[] getDataPoints();
-    
+
     /**
      * 
      * @return Data points (m/z and intensity pairs) of this scan
@@ -114,10 +113,11 @@ public interface Scan {
      * @return Precursor m/z or 0 if this is not MSn scan
      */
     public float getPrecursorMZ();
-    
+
     /**
      * 
-     * @return Precursor charge or 0 if this is not MSn scan or charge is unknown
+     * @return Precursor charge or 0 if this is not MSn scan or charge is
+     *         unknown
      */
     public int getPrecursorCharge();
 
