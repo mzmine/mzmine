@@ -109,7 +109,7 @@ public class SimplePeak implements Peak {
         this.maxRT = p.getDataPointMaxRT();
         this.maxIntensity = p.getDataPointMaxIntensity();
 
-        this.scanNumbers = this.getScanNumbers();
+        this.scanNumbers = p.getScanNumbers();
         
         this.dataPointsPerScan = new DataPoint[scanNumbers.length];
         this.rawDataPointsPerScan = new DataPoint[scanNumbers.length][];
