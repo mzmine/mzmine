@@ -18,7 +18,7 @@
     <module class="net.sf.mzmine.modules.filtering.chromatographicmedian.CMFilter"/>
     <module class="net.sf.mzmine.modules.filtering.zoomscan.ZoomScanFilter"/>
     <module class="net.sf.mzmine.modules.peakpicking.recursivethreshold.RecursivePicker"/>
-    <module class="net.sf.mzmine.modules.peakpicking.local.LocalPicker"/>
+    <module class="net.sf.mzmine.modules.peakpicking.accuratemass.AccurateMassPicker"/>
     <module class="net.sf.mzmine.modules.peakpicking.centroid.CentroidPicker"/>
     <module class="net.sf.mzmine.util.menu.PeakPickingMenuSeparator"/>  
     <module class="net.sf.mzmine.modules.peakpicking.deisotoper.IsotopeGrouper"/>
