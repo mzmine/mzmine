@@ -18,10 +18,13 @@
  */
 
 package net.sf.mzmine.modules.filtering.mean;
+
 import java.io.IOException;
 import java.util.Vector;
 
+import net.sf.mzmine.data.DataPoint;
 import net.sf.mzmine.data.Scan;
+import net.sf.mzmine.data.impl.SimpleDataPoint;
 import net.sf.mzmine.data.impl.SimpleScan;
 import net.sf.mzmine.io.RawDataFile;
 import net.sf.mzmine.io.RawDataFileWriter;
@@ -108,11 +111,9 @@ class MeanFilterTask implements Task {
         try {
 
             // Create new temporary file
-            String newName = dataFile.getFileName() + " " +  suffix;            
-            RawDataFileWriter rawDataFileWriter = 
-            	MZmineCore.getIOController().createNewFile(
-            		newName,suffix,dataFile.getPreloadLevel());
-
+            String newName = dataFile.getFileName() + " " + suffix;
+            RawDataFileWriter rawDataFileWriter = MZmineCore.getIOController().createNewFile(
+                    newName, suffix, dataFile.getPreloadLevel());
 
             // Get all scans
             int[] scanNumbers = dataFile.getScanNumbers();
@@ -170,14 +171,13 @@ class MeanFilterTask implements Task {
 
         float elSum;
 
-        float[] masses = sc.getMZValues();
-        float[] intensities = sc.getIntensityValues();
-        float[] newIntensities = new float[masses.length];
+        DataPoint oldDataPoints[] = sc.getDataPoints();
+        DataPoint newDataPoints[] = new DataPoint[oldDataPoints.length];
 
         int addi = 0;
-        for (int i = 0; i < masses.length; i++) {
+        for (int i = 0; i < oldDataPoints.length; i++) {
 
-            currentMass = masses[i];
+            currentMass = oldDataPoints[i].getMZ();
             lowLimit = currentMass - windowLength;
             hiLimit = currentMass + windowLength;
 
@@ -196,9 +196,10 @@ class MeanFilterTask implements Task {
 
             // Add new elements as long as their m/z values are less than the hi
             // limit
-            while ((addi < masses.length) && (masses[addi] <= hiLimit)) {
-                massWindow.add(new Float(masses[addi]));
-                intensityWindow.add(new Float(intensities[addi]));
+            while ((addi < oldDataPoints.length)
+                    && (oldDataPoints[addi].getMZ() <= hiLimit)) {
+                massWindow.add(oldDataPoints[addi].getMZ());
+                intensityWindow.add(oldDataPoints[addi].getIntensity());
                 addi++;
             }
 
@@ -207,7 +208,8 @@ class MeanFilterTask implements Task {
                 elSum += ((Float) (intensityWindow.get(j))).floatValue();
             }
 
-            newIntensities[i] = elSum / (float) intensityWindow.size();
+            newDataPoints[i] = new SimpleDataPoint(currentMass, elSum
+                    / (float) intensityWindow.size());
 
         }
 
@@ -215,7 +217,7 @@ class MeanFilterTask implements Task {
         Scan newScan = new SimpleScan(sc.getScanNumber(), sc.getMSLevel(),
                 sc.getRetentionTime(), sc.getParentScanNumber(),
                 sc.getPrecursorMZ(), sc.getFragmentScanNumbers(),
-                sc.getMZValues(), newIntensities, sc.isCentroided());
+                newDataPoints, sc.isCentroided());
 
         // Write the scan to new file
         writer.addScan(newScan);

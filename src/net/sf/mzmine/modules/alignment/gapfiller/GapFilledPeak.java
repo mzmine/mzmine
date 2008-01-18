@@ -1,4 +1,23 @@
-package net.sf.mzmine.modules.visualization.oldtwod;
+/*
+ * Copyright 2006-2008 The MZmine Development Team
+ * 
+ * This file is part of MZmine.
+ * 
+ * MZmine is free software; you can redistribute it and/or modify it under the
+ * terms of the GNU General Public License as published by the Free Software
+ * Foundation; either version 2 of the License, or (at your option) any later
+ * version.
+ * 
+ * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY
+ * WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR
+ * A PARTICULAR PURPOSE. See the GNU General Public License for more details.
+ * 
+ * You should have received a copy of the GNU General Public License along with
+ * MZmine; if not, write to the Free Software Foundation, Inc., 51 Franklin St,
+ * Fifth Floor, Boston, MA 02110-1301 USA
+ */
+
+package net.sf.mzmine.modules.alignment.gapfiller;
 
 import java.text.Format;
 import java.util.ArrayList;
@@ -6,23 +25,17 @@ import java.util.TreeMap;
 
 import net.sf.mzmine.data.DataPoint;
 import net.sf.mzmine.data.Peak;
-import net.sf.mzmine.data.Scan;
 import net.sf.mzmine.data.impl.SimpleDataPoint;
 import net.sf.mzmine.io.RawDataFile;
-import net.sf.mzmine.io.util.RawDataAcceptor;
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.util.CollectionUtils;
 import net.sf.mzmine.util.MathUtils;
 
 /**
- * This class extends ContructionPeak by including pre-peak information. The
- * pre-peak information are m/z ratio and start and stop RT of the peak,
- * which are defined by the user when drawing the peak on 2d plot. Once the
- * drawn pre-peaks are finalized, datapoints of raw data file must be added
- * using methods of the ConstructionPeak class.
- * 
+ * This class is an implementation of the peak interface for peak picking
+ * methods.
  */
-public class PreConstructionPeak implements Peak, RawDataAcceptor {
+class GapFilledPeak implements Peak {
 
     private PeakStatus peakStatus;
 
@@ -54,30 +67,15 @@ public class PreConstructionPeak implements Peak, RawDataAcceptor {
     private ArrayList<Float> datapointsIntensities;
 
     private boolean growing;
-    
-	
-	// m/z tolerance value
-	private float mzTolerance;
 
-	// m/z value of the line drawn on the 2d-plot
-	private float preMZ;
-
-	// Start and stop RT of the line drawn on the 2d-plot
-	private float preStartRT;
-	private float preStopRT;
-
-	public PreConstructionPeak(RawDataFile dataFile, float preMZ,
-			float preStartRT, float preStopRT) {
+    /**
+     * Initializes empty peak for adding data points to
+     */
+    GapFilledPeak(RawDataFile dataFile) {
         this.dataFile = dataFile;
         intializeAddingDatapoints();
-        
-		this.preMZ = preMZ;
-		this.preStartRT = preStartRT;
-		this.preStopRT = preStopRT;
-		// TODO: Add m/z tolerance parameter to setup dialog, and pass the value to here
-		this.mzTolerance = 0.25f;
-	}
-    
+    }
+
     /**
      * This method returns the status of the peak
      */
@@ -360,63 +358,5 @@ public class PreConstructionPeak implements Peak, RawDataAcceptor {
         buf.append(timeFormat.format(getRT()));
         return buf.toString();
     }
-
-	public float getPreMZ() {
-		return preMZ;
-	}
-
-	public float getPreStartRT() {
-		return preStartRT;
-	}
-
-	public float getPreStopRT() {
-		return preStopRT;
-	}
-	
-
-	/**
-	 * Checks if the scan is within the range of this peak
-	 * If yes, then adds the nearest data point (if any within tolerances) to this peak
-	 */
-	public void addScan(Scan scan, int index, int total) {
-
-		
-		
-		
-		// Is this scan within the range of this peak?
-		if ( (scan.getRetentionTime()>=preStartRT) &&
-			 (scan.getRetentionTime()<=preStopRT) ) {
-				
-			// TODO: Change this: locate most intense datapoint within tolerances (instead of nearest in m/z)
-			// Locate the nearest datapoint to preMZ
-			float nearestDatapointMZ = -1.0f;
-			float nearestDatapointInt = 0.0f;
-			float nearestMZDifference = Float.MAX_VALUE;
-			float previousMZDifference = Float.MAX_VALUE;
-			
-
-            DataPoint dataPoints[] = scan.getDataPoints();
-            
-			for (int i=0; i<dataPoints.length; i++) {
-				float currentMZDifference = Math.abs(dataPoints[i].getMZ() - preMZ);
-				if (currentMZDifference>previousMZDifference) 
-					break;
-				previousMZDifference = currentMZDifference;
-				nearestMZDifference = currentMZDifference;
-				nearestDatapointMZ = dataPoints[i].getMZ();
-				nearestDatapointInt = dataPoints[i].getIntensity();
-				
-			}
-		
-			// If nearest datapoint is within m/z tolerance, then add this datapoint to this peak
-			if (nearestMZDifference<mzTolerance)
-				this.addDatapoint(scan.getScanNumber(), nearestDatapointMZ, scan.getRetentionTime(), nearestDatapointInt);
-			
-		}
-		
-		if (index==total)
-			this.finalizedAddingDatapoints(PeakStatus.MANUAL);
-		
-	}
 
 }

@@ -21,10 +21,10 @@ package net.sf.mzmine.modules.alignment.gapfiller;
 
 import java.util.Vector;
 
+import net.sf.mzmine.data.DataPoint;
 import net.sf.mzmine.data.Peak;
 import net.sf.mzmine.data.Scan;
 import net.sf.mzmine.data.Peak.PeakStatus;
-import net.sf.mzmine.data.impl.ConstructionPeak;
 import net.sf.mzmine.data.impl.SimpleParameterSet;
 import net.sf.mzmine.io.RawDataFile;
 
@@ -102,29 +102,28 @@ class EmptyGap {
         // If not yet inside range, then do not process this scan
         if (scanRT<rangeMinRT) return true;
         
-        float[] massValues = s.getMZValues();
-        float[] intensityValues = s.getIntensityValues();        
+        DataPoint dataPoints[] = s.getDataPoints();
         int scanNumber = s.getScanNumber();
 
         // Find local intensity maximum inside the M/Z range
         float currentIntensity = -1;
         float currentMZ = -1;
-        for (int i = 0; i < massValues.length; i++) {
+        for (int i = 0; i < dataPoints.length; i++) {
 
             // Not yet in the mz range
-            if (massValues[i] < rangeMinMZ) {
+            if (dataPoints[i].getMZ() < rangeMinMZ) {
                 continue;
             }
 
             // Already passed mz range
-            if (massValues[i] > rangeMaxMZ) {
+            if (dataPoints[i].getMZ() > rangeMaxMZ) {
                 break;
             }
 
             // Inside MZ range
-            if (currentIntensity <= intensityValues[i]) {
-                currentIntensity = intensityValues[i];
-                currentMZ = massValues[i];
+            if (currentIntensity <= dataPoints[i].getIntensity()) {
+                currentIntensity = dataPoints[i].getIntensity();
+                currentMZ = dataPoints[i].getMZ();
             }
 
         }
@@ -202,7 +201,7 @@ class EmptyGap {
 
     public Peak getEstimatedPeak() {
         if (bestPeak == null) {
-            ConstructionPeak zeroPeak = new ConstructionPeak(rawDataFile);
+            GapFilledPeak zeroPeak = new GapFilledPeak(rawDataFile);
             zeroPeak.addDatapoint(closestScanNumber, closestMZ, closestRT, 0.0f);
             zeroPeak.finalizedAddingDatapoints(PeakStatus.ESTIMATED);
             bestPeak = zeroPeak;
@@ -310,7 +309,7 @@ class EmptyGap {
             }
 
             // 3) Generate a Peak
-            ConstructionPeak candidatePeak = new ConstructionPeak(rawDataFile);
+            GapFilledPeak candidatePeak = new GapFilledPeak(rawDataFile);
             for (int ind = startInd; ind <= stopInd; ind++) {
                 candidatePeak.addDatapoint(peakScanNumbers.get(ind),
                         peakMZs.get(ind), peakRTs.get(ind), peakInts.get(ind));

@@ -23,6 +23,7 @@ import java.util.Arrays;
 import java.util.Date;
 import java.util.Vector;
 
+import net.sf.mzmine.data.DataPoint;
 import net.sf.mzmine.data.Scan;
 import net.sf.mzmine.io.RawDataFile;
 import net.sf.mzmine.io.util.RawDataAcceptor;
@@ -114,12 +115,9 @@ class TICDataSet extends AbstractXYZDataset implements RawDataAcceptor,
                     && (mzMax >= scan.getMZRangeMax())) {
                 totalIntensity = scan.getTIC();
             } else {
-                float intensityValues[] = scan.getIntensityValues();
-                float scanMzValues[] = scan.getMZValues();
-                for (int j = 0; j < intensityValues.length; j++) {
-                    if ((scanMzValues[j] >= mzMin)
-                            && (scanMzValues[j] <= mzMax))
-                        totalIntensity += intensityValues[j];
+                DataPoint dataPoints[] = scan.getDataPoints(mzMin, mzMax);
+                for (int j = 0; j < dataPoints.length; j++) {
+                        totalIntensity += dataPoints[j].getIntensity();
                 }
             }
             basePeakValues[index] = scan.getBasePeakMZ();
@@ -131,10 +129,10 @@ class TICDataSet extends AbstractXYZDataset implements RawDataAcceptor,
                 basePeakValues[index] = scan.getBasePeakMZ();
                 totalIntensity = scan.getBasePeakIntensity();
             } else {
-                float basePeak[] = ScanUtils.findBasePeak(scan, mzMin, mzMax);
+                DataPoint basePeak = ScanUtils.findBasePeak(scan, mzMin, mzMax);
                 if (basePeak != null) {
-                    basePeakValues[index] = basePeak[0];
-                    totalIntensity = basePeak[1];
+                    basePeakValues[index] = basePeak.getMZ();
+                    totalIntensity = basePeak.getIntensity();
                 } else {
                     totalIntensity = 0;
                 }

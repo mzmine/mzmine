@@ -34,6 +34,7 @@ import java.util.Hashtable;
 import java.util.Vector;
 import java.util.logging.Logger;
 
+import net.sf.mzmine.data.DataPoint;
 import net.sf.mzmine.data.PeakList;
 import net.sf.mzmine.data.Scan;
 import net.sf.mzmine.io.RawDataFile;
@@ -165,8 +166,13 @@ public class OldTwoDDataSet implements RawDataAcceptor {
         Vector<Integer> scanNumbersForXIndex = scanNumbers.get(xIndex);
         scanNumbersForXIndex.add(scan.getScanNumber());
 
-        float mzValues[] = scan.getMZValues();
-        float intensityValues[] = scan.getIntensityValues();
+        DataPoint dataPoints[] = scan.getDataPoints();
+        float[] mzValues = new float[dataPoints.length];
+        float[] intensityValues = new float[dataPoints.length];
+        for (int dp = 0; dp < dataPoints.length; dp++) {
+            mzValues[dp] = dataPoints[dp].getMZ();
+            intensityValues[dp] = dataPoints[dp].getIntensity();
+        }
 
         float binnedIntensities[] = ScanUtils.binValues(mzValues, intensityValues, (float)mzMin, (float)mzMax, bitmapSizeY, interpolate, BinningType.SUM);
         

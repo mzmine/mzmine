@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2007 The MZmine Development Team
+ * Copyright 2006-2008 The MZmine Development Team
  * 
  * This file is part of MZmine.
  * 
@@ -81,15 +81,15 @@ public interface Scan {
     
     /**
      * 
-     * @return m/z values of this scan
+     * @return Data points (m/z and intensity pairs) of this scan
      */
-    public float[] getMZValues();
-
+    public DataPoint[] getDataPoints();
+    
     /**
      * 
-     * @return Intensity values of this scan
+     * @return Data points (m/z and intensity pairs) of this scan
      */
-    public float[] getIntensityValues();
+    public DataPoint[] getDataPoints(float mzMin, float mzMax);
 
     /**
      * 

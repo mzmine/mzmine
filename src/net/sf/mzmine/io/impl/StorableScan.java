@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2007 The MZmine Development Team
+ * Copyright 2006-2008 The MZmine Development Team
  * 
  * This file is part of MZmine.
  * 
@@ -18,25 +18,26 @@
  */
 
 package net.sf.mzmine.io.impl;
-import net.sf.mzmine.main.MZmineCore;
+
 import java.io.IOException;
 import java.io.RandomAccessFile;
-import java.io.File;
 import java.nio.ByteBuffer;
 import java.nio.FloatBuffer;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import java.io.FileNotFoundException;
+
+import net.sf.mzmine.data.DataPoint;
 import net.sf.mzmine.data.Scan;
-import net.sf.mzmine.project.impl.MZmineProjectImpl;
+import net.sf.mzmine.data.impl.SimpleDataPoint;
 import net.sf.mzmine.io.RawDataFile;
+
 /**
  * Simple implementation of the Scan interface.
  */
 public class StorableScan implements Scan {
 
     private Logger logger = Logger.getLogger(this.getClass().getName());
-    
+
     private int scanNumber, msLevel, parentScan, fragmentScans[];
     private float precursorMZ;
     private int precursorCharge;
@@ -44,20 +45,20 @@ public class StorableScan implements Scan {
     private float mzRangeMin, mzRangeMax;
     private float basePeakMZ, basePeakIntensity, totalIonCurrent;
     private boolean centroided;
-    
-    private String storageFileName;
+
     private long storageFileOffset;
     private int storageArrayByteLength;
     private int numberOfDataPoints;
     private RawDataFile rawDataFile;
+
     /**
      * Clone constructor
      */
     public StorableScan(Scan sc, RawDataFile rawDataFile) {
         this(sc.getScanNumber(), sc.getMSLevel(), sc.getRetentionTime(),
                 sc.getParentScanNumber(), sc.getPrecursorMZ(),
-                sc.getFragmentScanNumbers(), sc.getMZValues(),
-                sc.getIntensityValues(), sc.isCentroided(), rawDataFile);
+                sc.getFragmentScanNumbers(), sc.getDataPoints(),
+                sc.isCentroided(), rawDataFile);
     }
 
     /**
@@ -65,12 +66,12 @@ public class StorableScan implements Scan {
      */
     public StorableScan(int scanNumber, int msLevel, float retentionTime,
             int parentScan, float precursorMZ, int fragmentScans[],
-            float[] mzValues, float[] intensityValues, boolean centroided, RawDataFile rawDataFile) {
+            DataPoint[] dataPoints, boolean centroided, RawDataFile rawDataFile) {
 
         // check assumptions about proper scan data
         assert (msLevel == 1) || (parentScan > 0);
-        
-        // save rawDataFile  file reference
+
+        // save rawDataFile file reference
         this.rawDataFile = rawDataFile;
 
         // save scan data
@@ -82,118 +83,129 @@ public class StorableScan implements Scan {
         this.fragmentScans = fragmentScans;
         this.centroided = centroided;
 
-        setData(mzValues, intensityValues);
+        setDataPoints(dataPoints);
 
     }
 
     /**
-     * @return Returns the intensityValues.
+     * @return Scan's datapoints from temporary file.
      */
-    public float[] getIntensityValues() {
+    public DataPoint[] getDataPoints() {
+
         ByteBuffer buffer = ByteBuffer.allocate(storageArrayByteLength);
-        RandomAccessFile storageFile=rawDataFile.getScanDataFile();
-        synchronized(storageFile) {
+        RandomAccessFile storageFile = rawDataFile.getScanDataFile();
+        synchronized (storageFile) {
             try {
-            storageFile.seek(storageFileOffset + storageArrayByteLength);
-            storageFile.read(buffer.array(), 0, storageArrayByteLength);
-            } catch (IOException e) {
-                logger.log(Level.WARNING, "Could not read data from temporary file", e);
-                return new float[0];
-            }
-        }
-        float intensityValues[] = new float[numberOfDataPoints];
-        FloatBuffer floatBuffer = buffer.asFloatBuffer();
-        floatBuffer.get(intensityValues);
-        
-        return intensityValues;
-    }
-
-    /**
-     * @return Returns the mZValues.
-     */
-    public float[] getMZValues() {
-        ByteBuffer buffer = ByteBuffer.allocate(storageArrayByteLength);
-        RandomAccessFile storageFile=rawDataFile.getScanDataFile();
-        synchronized(storageFile) {
-            try {
-            storageFile.seek(storageFileOffset);
-            storageFile.read(buffer.array(), 0, storageArrayByteLength);
-            } catch (IOException e) {
-                logger.log(Level.WARNING, "Could not read data from temporary file", e);
-                return new float[0];
-            }
-        }
-        float mzValues[] = new float[numberOfDataPoints];
-        FloatBuffer floatBuffer = buffer.asFloatBuffer();
-        floatBuffer.get(mzValues);
-        return mzValues;
-    }
-
-    /**
-     * @param mzValues m/z values to set
-     * @param intensityValues Intensity values to set
-     */
-    public void setData(float[] mzValues, float[] intensityValues) {
-
-        // check assumptions
-        assert mzValues.length == intensityValues.length;
-
-        numberOfDataPoints = mzValues.length;
-        
-        
-        // every float needs 4 bytes
-        storageArrayByteLength = numberOfDataPoints * 4;
-        
-        ByteBuffer buffer = ByteBuffer.allocate(storageArrayByteLength);
-        FloatBuffer floatBuffer = buffer.asFloatBuffer();
-        RandomAccessFile storageFile=rawDataFile.getWritingScanDataFile();
-        synchronized(storageFile) {
-            try {
-                
-                storageFileOffset = storageFile.length();
-                
                 storageFile.seek(storageFileOffset);
-                floatBuffer.put(mzValues);
-                storageFile.write(buffer.array());
-                floatBuffer.clear();
-                floatBuffer.put(intensityValues);
-                storageFile.write(buffer.array());
-          
+                storageFile.read(buffer.array(), 0, storageArrayByteLength);
             } catch (IOException e) {
-                logger.log(Level.WARNING, "Could not write data to temporary file", e);
+                logger.log(Level.SEVERE,
+                        "Could not read data from temporary file", e);
+                return new DataPoint[0];
+            }
+        }
+
+        FloatBuffer floatBuffer = buffer.asFloatBuffer();
+
+        DataPoint dataPoints[] = new DataPoint[numberOfDataPoints];
+
+        for (int i = 0; i < numberOfDataPoints; i++) {
+            float mz = floatBuffer.get();
+            float intensity = floatBuffer.get();
+            dataPoints[i] = new SimpleDataPoint(mz, intensity);
+        }
+
+        return dataPoints;
+
+    }
+
+    public DataPoint[] getDataPoints(float mzMin, float mzMax) {
+
+        DataPoint dataPoints[] = getDataPoints();
+
+        int startIndex, endIndex;
+        for (startIndex = 0; startIndex < dataPoints.length; startIndex++) {
+            if (dataPoints[startIndex].getMZ() >= mzMin)
+                break;
+        }
+
+        for (endIndex = startIndex; endIndex < dataPoints.length; endIndex++) {
+            if (dataPoints[endIndex].getMZ() > mzMax)
+                break;
+        }
+
+        DataPoint pointsWithinRange[] = new DataPoint[endIndex - startIndex];
+
+        // Copy the relevant points
+        System.arraycopy(dataPoints, startIndex, pointsWithinRange, 0, endIndex
+                - startIndex);
+
+        return pointsWithinRange;
+    }
+
+    /**
+     * @param dataPoints New datapoints
+     */
+    public void setDataPoints(DataPoint[] dataPoints) {
+
+        numberOfDataPoints = dataPoints.length;
+
+        // every float needs 4 bytes, we need one float for m/z and one float
+        // for intensity
+        storageArrayByteLength = numberOfDataPoints * 4 * 2;
+
+        ByteBuffer buffer = ByteBuffer.allocate(storageArrayByteLength);
+        FloatBuffer floatBuffer = buffer.asFloatBuffer();
+        RandomAccessFile storageFile = rawDataFile.getWritingScanDataFile();
+        synchronized (storageFile) {
+            try {
+
+                storageFileOffset = storageFile.length();
+                storageFile.seek(storageFileOffset);
+
+                for (DataPoint dp : dataPoints) {
+                    floatBuffer.put(dp.getMZ());
+                    floatBuffer.put(dp.getIntensity());
+                }
+
+                storageFile.write(buffer.array());
+
+            } catch (IOException e) {
+                logger.log(Level.SEVERE,
+                        "Could not write data to temporary file", e);
             }
         }
 
         // find m/z range and base peak
-        if (mzValues.length>0) {
-	        mzRangeMin = mzValues[0];
-	        mzRangeMax = mzValues[0];
-	        basePeakMZ = mzValues[0];
-	        basePeakIntensity = intensityValues[0];
-	        for (int i = 1; i < mzValues.length; i++) {
-	            if (mzRangeMin > mzValues[i])
-	                mzRangeMin = mzValues[i];
-	            if (mzRangeMax < mzValues[i])
-	                mzRangeMax = mzValues[i];
-	            if (basePeakIntensity < intensityValues[i]) {
-	                basePeakIntensity = intensityValues[i];
-	                basePeakMZ = mzValues[i];
-	            }
-	        }
-            
+        if (dataPoints.length > 0) {
+            mzRangeMin = dataPoints[0].getMZ();
+            mzRangeMax = dataPoints[0].getMZ();
+            basePeakMZ = dataPoints[0].getMZ();
+            basePeakIntensity = dataPoints[0].getIntensity();
+            for (int i = 1; i < dataPoints.length; i++) {
+                if (mzRangeMin > dataPoints[i].getMZ())
+                    mzRangeMin = dataPoints[i].getMZ();
+                if (mzRangeMax < dataPoints[i].getMZ())
+                    mzRangeMax = dataPoints[i].getMZ();
+                if (basePeakIntensity < dataPoints[i].getIntensity()) {
+                    basePeakIntensity = dataPoints[i].getIntensity();
+                    basePeakMZ = dataPoints[i].getMZ();
+                }
+            }
+
             // calculate TIC
             totalIonCurrent = 0;
-            for (float intensity : intensityValues) totalIonCurrent += intensity;
-            
+            for (DataPoint dp : dataPoints)
+                totalIonCurrent += dp.getIntensity();
+
         } else {
-        	// Empty scan, so no m/z range or base peak
-        	mzRangeMin = 0;
-        	mzRangeMax = mzRangeMin;
-	        basePeakMZ = 0;
-	        basePeakIntensity = 0;
+            // Empty scan, so no m/z range or base peak
+            mzRangeMin = 0;
+            mzRangeMax = mzRangeMin;
+            basePeakMZ = 0;
+            basePeakIntensity = 0;
             totalIonCurrent = 0;
         }
-        
 
     }
 
@@ -246,7 +258,6 @@ public class StorableScan implements Scan {
         this.precursorMZ = precursorMZ;
     }
 
-    
     /**
      * @return Returns the precursorCharge.
      */
@@ -254,7 +265,6 @@ public class StorableScan implements Scan {
         return precursorCharge;
     }
 
-    
     /**
      * @param precursorCharge The precursorCharge to set.
      */

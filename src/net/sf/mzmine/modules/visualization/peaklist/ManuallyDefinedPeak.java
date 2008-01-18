@@ -17,13 +17,15 @@
  * Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-package net.sf.mzmine.data.impl;
+package net.sf.mzmine.modules.visualization.peaklist;
 
 import java.text.Format;
 import java.util.ArrayList;
 import java.util.TreeMap;
 
+import net.sf.mzmine.data.DataPoint;
 import net.sf.mzmine.data.Peak;
+import net.sf.mzmine.data.impl.SimpleDataPoint;
 import net.sf.mzmine.io.RawDataFile;
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.util.CollectionUtils;
@@ -33,12 +35,12 @@ import net.sf.mzmine.util.MathUtils;
  * This class is an implementation of the peak interface for peak picking
  * methods.
  */
-public class ConstructionPeak implements Peak {
+class ManuallyDefinedPeak implements Peak {
 
     private PeakStatus peakStatus;
 
-    // This table maps a scanNumber to float[2] array of m/z and intensity 
-    private TreeMap<Integer, float[]> datapointsMap;
+    // This table maps a scanNumber to an array of m/z and intensity pairs
+    private TreeMap<Integer, DataPoint> datapointsMap;
 
     private RawDataFile dataFile;
 
@@ -69,7 +71,7 @@ public class ConstructionPeak implements Peak {
     /**
      * Initializes empty peak for adding data points to
      */
-    public ConstructionPeak(RawDataFile dataFile) {
+    ManuallyDefinedPeak(RawDataFile dataFile) {
         this.dataFile = dataFile;
         intializeAddingDatapoints();
     }
@@ -134,11 +136,19 @@ public class ConstructionPeak implements Peak {
     }
 
     /**
-     * This method returns float[2] (mz and intensity) for a
-     * given scan number
+     * This method returns a representative datapoint of this peak in a given
+     * scan
      */
-    public float[] getRawDatapoint(int scanNumber) {
+    public DataPoint getDatapoint(int scanNumber) {
         return datapointsMap.get(scanNumber);
+    }
+    
+    /**
+     * This method returns a representative datapoint of this peak in a given
+     * scan
+     */
+    public DataPoint[] getRawDatapoints(int scanNumber) {
+        return new DataPoint[] { datapointsMap.get(scanNumber) };
     }
 
     /**
@@ -188,7 +198,7 @@ public class ConstructionPeak implements Peak {
 
     private void intializeAddingDatapoints() {
 
-        datapointsMap = new TreeMap<Integer, float[]>();
+        datapointsMap = new TreeMap<Integer, DataPoint>();
 
         precalcRequiredMZ = true;
         precalcRequiredRT = true;
@@ -281,7 +291,7 @@ public class ConstructionPeak implements Peak {
         precalcRequiredArea = true;
 
         // Add datapoint
-        float datapoint[] = new float[] { mz, intensity };
+        DataPoint datapoint = new SimpleDataPoint(mz, intensity);
 
         datapointsMap.put(scanNumber, datapoint);
 

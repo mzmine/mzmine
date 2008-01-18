@@ -17,30 +17,15 @@
  * Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-package net.sf.mzmine.modules.peakpicking.accuratemass;
+package net.sf.mzmine.data;
 
 /**
- * This class represents one data point of a spectra (m/z and intensity)
+ * This interface represents one datapoint of a spectra (m/z and intensity)
  */
-public class DataPoint {
+public interface DataPoint {
 
-    private float mz, intensity;
+    public float getMZ();
 
-    /**
-     * @param mz
-     * @param intensity
-     */
-    DataPoint(float mz, float intensity) {
-        this.mz = mz;
-        this.intensity = intensity;
-    }
-
-    float getIntensity() {
-        return intensity;
-    }
-
-    float getMZ() {
-        return mz;
-    }
+    public float getIntensity();
 
 }

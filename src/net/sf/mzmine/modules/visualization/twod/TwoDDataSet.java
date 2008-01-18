@@ -22,6 +22,7 @@ package net.sf.mzmine.modules.visualization.twod;
 import java.util.Date;
 import java.util.logging.Logger;
 
+import net.sf.mzmine.data.DataPoint;
 import net.sf.mzmine.data.Scan;
 import net.sf.mzmine.io.RawDataFile;
 import net.sf.mzmine.io.util.RawDataAcceptor;
@@ -99,8 +100,13 @@ class TwoDDataSet extends AbstractXYDataset implements RawDataAcceptor {
                 / totalRTStep);
         if (xIndex >= bitmapSizeX) xIndex = bitmapSizeX - 1;
 
-        float mzValues[] = scan.getMZValues();
-        float intensityValues[] = scan.getIntensityValues();
+        DataPoint dataPoints[] = scan.getDataPoints();
+        float[] mzValues = new float[dataPoints.length];
+        float[] intensityValues = new float[dataPoints.length];
+        for (int dp = 0; dp < dataPoints.length; dp++) {
+            mzValues[dp] = dataPoints[dp].getMZ();
+            intensityValues[dp] = dataPoints[dp].getIntensity();
+        }
 
         float binnedIntensities[] = ScanUtils.binValues(mzValues,
                 intensityValues, totalMZMin, totalMZMax, bitmapSizeY, false,

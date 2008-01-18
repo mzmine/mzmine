@@ -23,9 +23,9 @@ import java.util.Iterator;
 import java.util.TreeSet;
 import java.util.Vector;
 
+import net.sf.mzmine.data.DataPoint;
 import net.sf.mzmine.data.Scan;
 import net.sf.mzmine.data.Peak.PeakStatus;
-import net.sf.mzmine.data.impl.ConstructionPeak;
 import net.sf.mzmine.data.impl.SimplePeakList;
 import net.sf.mzmine.data.impl.SimplePeakListRow;
 import net.sf.mzmine.io.RawDataFile;
@@ -157,8 +157,14 @@ class RecursivePickerTask implements Task {
 
                 Scan sc = dataFile.getScan(scanNumbers[i]);
 
-                float[] mzValues = sc.getMZValues();
-                float[] intensityValues = sc.getIntensityValues();
+                DataPoint dataPoints[] = sc.getDataPoints();
+                float[] mzValues = new float[dataPoints.length];
+                float[] intensityValues = new float[dataPoints.length];
+                for (int dp = 0; dp < dataPoints.length; dp++) {
+                    mzValues[dp] = dataPoints[dp].getMZ();
+                    intensityValues[dp] = dataPoints[dp].getIntensity();
+                }
+                
                 float[] tmpInts = ScanUtils.binValues(mzValues,
                         intensityValues, startMZ, endMZ, numOfBins, true,
                         ScanUtils.BinningType.MAX);
@@ -194,7 +200,7 @@ class RecursivePickerTask implements Task {
 
         }
 
-        Vector<ConstructionPeak> underConstructionPeaks = new Vector<ConstructionPeak>();
+        Vector<RecursivePeak> underConstructionPeaks = new Vector<RecursivePeak>();
         Vector<OneDimPeak> oneDimPeaks = new Vector<OneDimPeak>();
         for (int i = 0; i < totalScans; i++) {
 
@@ -204,21 +210,26 @@ class RecursivePickerTask implements Task {
             // Get next scan
             Scan sc = dataFile.getScan(scanNumbers[i]);
 
-            float[] masses = sc.getMZValues();
-            float[] intensities = sc.getIntensityValues();
+            DataPoint dataPoints[] = sc.getDataPoints();
+            float[] mzValues = new float[dataPoints.length];
+            float[] intensityValues = new float[dataPoints.length];
+            for (int dp = 0; dp < dataPoints.length; dp++) {
+                mzValues[dp] = dataPoints[dp].getMZ();
+                intensityValues[dp] = dataPoints[dp].getIntensity();
+            }
 
             // Find 1D-peaks
 
             Vector<Integer> inds = new Vector<Integer>();
-            recursiveThreshold(masses, intensities, 0, masses.length - 1,
+            recursiveThreshold(mzValues, intensityValues, 0, mzValues.length - 1,
                     noiseLevel, minimumMZPeakWidth, maximumMZPeakWidth, inds, 0);
 
             for (Integer j : inds) {
                 // Is intensity above the noise level
-                if (intensities[j] >= noiseLevel) {
+                if (intensityValues[j] >= noiseLevel) {
 
                     // Determine correct bin
-                    int bin = (int) Math.floor((masses[j] - startMZ) / binSize);
+                    int bin = (int) Math.floor((mzValues[j] - startMZ) / binSize);
                     if (bin < 0) {
                         bin = 0;
                     }
@@ -228,9 +239,9 @@ class RecursivePickerTask implements Task {
 
                     // Is intensity above the chromatographic threshold level
                     // for this bin?
-                    if (intensities[j] >= chromatographicThresholds[bin]) {
-                        oneDimPeaks.add(new OneDimPeak(i, j, masses[j],
-                                intensities[j]));
+                    if (intensityValues[j] >= chromatographicThresholds[bin]) {
+                        oneDimPeaks.add(new OneDimPeak(i, j, mzValues[j],
+                                intensityValues[j]));
                     }
 
                 }
@@ -241,7 +252,7 @@ class RecursivePickerTask implements Task {
 
             TreeSet<MatchScore> scores = new TreeSet<MatchScore>();
 
-            for (ConstructionPeak ucPeak : underConstructionPeaks) {
+            for (RecursivePeak ucPeak : underConstructionPeaks) {
 
                 for (OneDimPeak oneDimPeak : oneDimPeaks) {
                     MatchScore score = new MatchScore(ucPeak, oneDimPeak,
@@ -266,7 +277,7 @@ class RecursivePickerTask implements Task {
                 }
 
                 // If uc peak is already connected, then move on to next score
-                ConstructionPeak ucPeak = score.getPeak();
+                RecursivePeak ucPeak = score.getPeak();
                 if (ucPeak.isGrowing()) {
                     continue;
                 }
@@ -280,7 +291,7 @@ class RecursivePickerTask implements Task {
 
             // Check if there are any under-construction peaks that were not
             // connected
-            for (ConstructionPeak ucPeak : underConstructionPeaks) {
+            for (RecursivePeak ucPeak : underConstructionPeaks) {
 
                 // If nothing was added,
                 if (!ucPeak.isGrowing()) {
@@ -313,7 +324,7 @@ class RecursivePickerTask implements Task {
             // Clean-up empty slots under-construction peaks collection and
             // reset growing statuses for remaining under construction peaks
             for (int ucInd = 0; ucInd < underConstructionPeaks.size(); ucInd++) {
-                ConstructionPeak ucPeak = underConstructionPeaks.get(ucInd);
+                RecursivePeak ucPeak = underConstructionPeaks.get(ucInd);
                 if (ucPeak == null) {
                     underConstructionPeaks.remove(ucInd);
                     ucInd--;
@@ -328,7 +339,7 @@ class RecursivePickerTask implements Task {
 
                 if (!oneDimPeak.isConnected()) {
 
-                    ConstructionPeak ucPeak = new ConstructionPeak(dataFile);
+                    RecursivePeak ucPeak = new RecursivePeak(dataFile);
                     ucPeak.addDatapoint(sc.getScanNumber(), oneDimPeak.mz,
                             sc.getRetentionTime(), oneDimPeak.intensity);
                     ucPeak.resetGrowingState();
@@ -345,7 +356,7 @@ class RecursivePickerTask implements Task {
 
         // Finally process all remaining under-construction peaks
 
-        for (ConstructionPeak ucPeak : underConstructionPeaks) {
+        for (RecursivePeak ucPeak : underConstructionPeaks) {
 
             // Check length & height
             float ucLength = ucPeak.getDataPointMaxRT()

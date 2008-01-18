@@ -22,7 +22,9 @@ package net.sf.mzmine.modules.filtering.savitzkygolay;
 import java.io.IOException;
 import java.util.Hashtable;
 
+import net.sf.mzmine.data.DataPoint;
 import net.sf.mzmine.data.Scan;
+import net.sf.mzmine.data.impl.SimpleDataPoint;
 import net.sf.mzmine.data.impl.SimpleScan;
 import net.sf.mzmine.io.RawDataFile;
 import net.sf.mzmine.io.RawDataFileWriter;
@@ -113,11 +115,9 @@ class SGFilterTask implements Task {
         try {
 
             // Create new temporary file
-            String newName = dataFile.getFileName() + " " +  suffix;            
-            RawDataFileWriter rawDataFileWriter = 
-            	MZmineCore.getIOController().createNewFile(
-            		newName,suffix,dataFile.getPreloadLevel());
-
+            String newName = dataFile.getFileName() + " " + suffix;
+            RawDataFileWriter rawDataFileWriter = MZmineCore.getIOController().createNewFile(
+                    newName, suffix, dataFile.getPreloadLevel());
 
             // Get all scans
             int[] scanNumbers = dataFile.getScanNumbers();
@@ -170,18 +170,18 @@ class SGFilterTask implements Task {
         int marginSize = (numOfDataPoints + 1) / 2 - 1;
         float sumOfInts;
 
-        float[] masses = sc.getMZValues();
-        float[] intensities = sc.getIntensityValues();
-        float[] newIntensities = new float[masses.length];
+        DataPoint oldDataPoints[] = sc.getDataPoints();
+        DataPoint newDataPoints[] = new DataPoint[oldDataPoints.length
+                - (marginSize * 2)];
 
-        for (int spectrumInd = marginSize; spectrumInd < (masses.length - marginSize); spectrumInd++) {
+        for (int spectrumInd = marginSize; spectrumInd < (oldDataPoints.length - marginSize); spectrumInd++) {
 
-            sumOfInts = aVals[0] * intensities[spectrumInd];
+            sumOfInts = aVals[0] * oldDataPoints[spectrumInd].getIntensity();
 
             for (int windowInd = 1; windowInd <= marginSize; windowInd++) {
                 sumOfInts += aVals[windowInd]
-                        * (intensities[spectrumInd + windowInd] + intensities[spectrumInd
-                                - windowInd]);
+                        * (oldDataPoints[spectrumInd + windowInd].getIntensity() + oldDataPoints[spectrumInd
+                                - windowInd].getIntensity());
             }
 
             sumOfInts = sumOfInts / h;
@@ -189,12 +189,13 @@ class SGFilterTask implements Task {
             if (sumOfInts < 0) {
                 sumOfInts = 0;
             }
-            newIntensities[spectrumInd] = sumOfInts;
+            newDataPoints[spectrumInd - marginSize] = new SimpleDataPoint(
+                    oldDataPoints[spectrumInd].getMZ(), sumOfInts);
 
         }
 
         SimpleScan newScan = new SimpleScan(sc);
-        newScan.setData(sc.getMZValues(), newIntensities);
+        newScan.setDataPoints(newDataPoints);
         writer.addScan(newScan);
 
     }
@@ -203,7 +204,7 @@ class SGFilterTask implements Task {
      * Initialize Avalues and Hvalues
      */
     private void initializeAHValues() {
-        
+
         Avalues = new Hashtable<Integer, int[]>();
         Hvalues = new Hashtable<Integer, Integer>();
 

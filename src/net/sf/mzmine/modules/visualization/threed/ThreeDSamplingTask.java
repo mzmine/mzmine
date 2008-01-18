@@ -1,17 +1,17 @@
 /*
  * Copyright 2006-2007 The MZmine Development Team
- *
+ * 
  * This file is part of MZmine.
- *
+ * 
  * MZmine is free software; you can redistribute it and/or modify it under the
  * terms of the GNU General Public License as published by the Free Software
  * Foundation; either version 2 of the License, or (at your option) any later
  * version.
- *
+ * 
  * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY
  * WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR
  * A PARTICULAR PURPOSE. See the GNU General Public License for more details.
- *
+ * 
  * You should have received a copy of the GNU General Public License along with
  * MZmine; if not, write to the Free Software Foundation, Inc., 51 Franklin St,
  * Fifth Floor, Boston, MA 02110-1301 USA
@@ -25,6 +25,7 @@ import java.text.NumberFormat;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import net.sf.mzmine.data.DataPoint;
 import net.sf.mzmine.data.Peak;
 import net.sf.mzmine.data.PeakList;
 import net.sf.mzmine.data.Scan;
@@ -68,7 +69,7 @@ import visad.java3d.KeyboardBehaviorJ3D;
 import visad.java3d.MouseBehaviorJ3D;
 
 /**
- *
+ * 
  */
 class ThreeDSamplingTask implements Task {
 
@@ -89,7 +90,6 @@ class ThreeDSamplingTask implements Task {
     // The 3D display
     private DisplayImplJ3D display;
 
-
     // maximum value on Z axis
     private float maxBinnedIntensity;
 
@@ -108,22 +108,20 @@ class ThreeDSamplingTask implements Task {
     // tick labels font size
     private static final int LABEL_FONT_SIZE = 2;
 
-
     // axes aspect ratio X:Y:Z
     private static final double[] ASPECT_RATIO = new double[] { 1, 0.8, 0.3 };
 
-
     /**
      * Task constructor
+     * 
      * @param dataFile
      * @param msLevel
      * @param visualizer
      */
-    ThreeDSamplingTask(RawDataFile dataFile, int scanNumbers[],
-            float rtMin, float rtMax,
-            float mzMin, float mzMax,
-            int rtResolution, int mzResolution,
-            ThreeDVisualizerWindow visualizer, DisplayImplJ3D display) {
+    ThreeDSamplingTask(RawDataFile dataFile, int scanNumbers[], float rtMin,
+            float rtMax, float mzMin, float mzMax, int rtResolution,
+            int mzResolution, ThreeDVisualizerWindow visualizer,
+            DisplayImplJ3D display) {
 
         status = TaskStatus.WAITING;
 
@@ -139,7 +137,6 @@ class ThreeDSamplingTask implements Task {
 
         this.visualizer = visualizer;
         this.display = display;
-
 
     }
 
@@ -171,7 +168,6 @@ class ThreeDSamplingTask implements Task {
         return errorMessage;
     }
 
-
     /**
      * @see net.sf.mzmine.taskcontrol.Task#cancel()
      */
@@ -192,8 +188,6 @@ class ThreeDSamplingTask implements Task {
             final float mzRange = (float) (mzMax - mzMin);
             final float rtRange = (float) (rtMax - rtMin);
 
-
-
             // basic types
             // we have to use "RT", "Retention time" returns null(?)
             RealType retentionTimeType = RealType.getRealType("RT", SI.second);
@@ -203,18 +197,21 @@ class ThreeDSamplingTask implements Task {
             // annotation type
             TextType annotationType = TextType.getTextType("Annotation");
 
-            // peak height is for picked peaks, same as intensity, but not mapped to color
+            // peak height is for picked peaks, same as intensity, but not
+            // mapped to color
             RealType peakHeightType = RealType.getRealType("Height");
 
             // function domain - R^2 (retention time and m/z)
-            RealTupleType domainTuple = new RealTupleType(retentionTimeType, mzType);
+            RealTupleType domainTuple = new RealTupleType(retentionTimeType,
+                    mzType);
 
             // [X:Y:Z] tuple for drawing peak box
-            RealTupleType pointTupleType = new RealTupleType(retentionTimeType, mzType, peakHeightType);
-
+            RealTupleType pointTupleType = new RealTupleType(retentionTimeType,
+                    mzType, peakHeightType);
 
             // annotation range
-            TupleType annotationTupleType = new TupleType(new MathType[] { peakHeightType, annotationType });
+            TupleType annotationTupleType = new TupleType(new MathType[] {
+                    peakHeightType, annotationType });
 
             // domain values set
             Set domainSet;
@@ -222,36 +219,35 @@ class ThreeDSamplingTask implements Task {
             // set the resolution (number of data points) on m/z axis
             final float mzStep = mzRange / mzResolution;
 
-
             // set the resolution (number of data points) on retention time axis
             if (scanNumbers.length > rtResolution) {
 
-                // if the number of scans exceeds MAXIMUM_SCANS, we have to bin scans
+                // if the number of scans exceeds MAXIMUM_SCANS, we have to bin
+                // scans
 
-                domainSet = new Linear2DSet(domainTuple,
-                        rtMin,
-                        rtMax,
-                        rtResolution,
-                        mzMin,
-                        mzMax,
-                        mzResolution);
+                domainSet = new Linear2DSet(domainTuple, rtMin, rtMax,
+                        rtResolution, mzMin, mzMax, mzResolution);
 
             } else {
 
-                // number of scans is lower then max. resolution, so we can create a grid column for each scan
+                // number of scans is lower then max. resolution, so we can
+                // create a grid column for each scan
                 rtResolution = scanNumbers.length;
 
                 // domain points in 2D grid
-                float domainPoints[][] = new float[2][mzResolution * rtResolution];
+                float domainPoints[][] = new float[2][mzResolution
+                        * rtResolution];
 
                 for (int j = 0; j < mzResolution; j++) {
                     for (int i = 0; i < rtResolution; i++) {
 
                         // set the point's X coordinate
-                        domainPoints[0][(rtResolution * j) + i] = (float) dataFile.getScan(scanNumbers[i]).getRetentionTime();
+                        domainPoints[0][(rtResolution * j) + i] = (float) dataFile.getScan(
+                                scanNumbers[i]).getRetentionTime();
 
                         // set the point's Y coordinate
-                        domainPoints[1][(rtResolution * j) + i] = (float) mzMin + (j * mzStep);
+                        domainPoints[1][(rtResolution * j) + i] = (float) mzMin
+                                + (j * mzStep);
                     }
                 }
 
@@ -263,7 +259,8 @@ class ThreeDSamplingTask implements Task {
             final float rtStep = rtRange / rtResolution;
 
             // create an array for all data points
-            float[][] intensityValues = new float[1][mzResolution * rtResolution];
+            float[][] intensityValues = new float[1][mzResolution
+                    * rtResolution];
 
             // load scans
             Scan scan;
@@ -275,21 +272,25 @@ class ThreeDSamplingTask implements Task {
 
                 scan = dataFile.getScan(scanNumbers[scanIndex]);
 
-                float[] binnedIntensities = ScanUtils.binValues(scan.getMZValues(),
-                        scan.getIntensityValues(),
-                        mzMin,
-                        mzMax,
-                        mzResolution,
-                        false,
-                        BinningType.MAX);
+                DataPoint dataPoints[] = scan.getDataPoints();
+                float[] scanMZValues = new float[dataPoints.length];
+                float[] scanIntensityValues = new float[dataPoints.length];
+                for (int dp = 0; dp < dataPoints.length; dp++) {
+                    scanMZValues[dp] = dataPoints[dp].getMZ();
+                    scanIntensityValues[dp] = dataPoints[dp].getIntensity();
+                }
 
+                float[] binnedIntensities = ScanUtils.binValues(scanMZValues,
+                        scanIntensityValues, mzMin, mzMax, mzResolution, false,
+                        BinningType.MAX);
 
                 if (domainSet instanceof Linear2DSet) {
                     double rt = scan.getRetentionTime();
                     scanBinIndex = (int) ((rt - rtMin) / rtStep);
 
                     // last scan falls into last bin
-                    if (scanBinIndex == rtResolution) scanBinIndex--;
+                    if (scanBinIndex == rtResolution)
+                        scanBinIndex--;
 
                 } else {
                     // 1 scan per 1 grid column
@@ -298,7 +299,8 @@ class ThreeDSamplingTask implements Task {
 
                 for (int mzIndex = 0; mzIndex < mzResolution; mzIndex++) {
 
-                    int intensityValuesIndex = (rtResolution * mzIndex) + scanBinIndex;
+                    int intensityValuesIndex = (rtResolution * mzIndex)
+                            + scanBinIndex;
 
                     if (binnedIntensities[mzIndex] > intensityValues[0][intensityValuesIndex])
                         intensityValues[0][intensityValuesIndex] = (float) binnedIntensities[mzIndex];
@@ -311,25 +313,30 @@ class ThreeDSamplingTask implements Task {
 
             }
 
+            // create a function from domain (retention time and m/z) to
+            // intensity
+            FunctionType intensityFunction = new FunctionType(domainTuple,
+                    intensityType);
 
-            // create a function from domain (retention time and m/z) to intensity
-            FunctionType intensityFunction = new FunctionType(domainTuple, intensityType);
-
-            // create a function from domain (retention time and m/z) to text annotation
-            FunctionType annotationFunction = new FunctionType(domainTuple, annotationTupleType);
+            // create a function from domain (retention time and m/z) to text
+            // annotation
+            FunctionType annotationFunction = new FunctionType(domainTuple,
+                    annotationTupleType);
 
             // sampled Intensity values stored in 1D array (FlatField)
-            FlatField intensityValuesFlatField = new FlatField(intensityFunction, domainSet);
+            FlatField intensityValuesFlatField = new FlatField(
+                    intensityFunction, domainSet);
             intensityValuesFlatField.setSamples(intensityValues, false);
 
             // create mapping for X,Y,Z axes and color
-            ScalarMap retentionTimeMap = new ScalarMap(retentionTimeType, Display.XAxis);
+            ScalarMap retentionTimeMap = new ScalarMap(retentionTimeType,
+                    Display.XAxis);
             ScalarMap mzMap = new ScalarMap(mzType, Display.YAxis);
             ScalarMap intensityMap = new ScalarMap(intensityType, Display.ZAxis);
             ScalarMap heightMap = new ScalarMap(peakHeightType, Display.ZAxis);
             ScalarMap colorMap = new ScalarMap(intensityType, Display.RGB);
-            ScalarMap annotationMap = new ScalarMap(annotationType, Display.Text);
-
+            ScalarMap annotationMap = new ScalarMap(annotationType,
+                    Display.Text);
 
             // add maps to display
             display.addMap(retentionTimeMap);
@@ -343,20 +350,21 @@ class ThreeDSamplingTask implements Task {
             DataReference dataReference = new DataReferenceImpl("data");
             dataReference.setData(intensityValuesFlatField);
             display.addReference(dataReference);
-            
+
             Desktop desktop = MZmineCore.getDesktop();
             NumberFormat rtFormat = desktop.getRTFormat();
             NumberFormat mzFormat = desktop.getMZFormat();
             NumberFormat intensityFormat = desktop.getIntensityFormat();
 
-
             MZmineProject currentProject = MZmineCore.getCurrentProject();
-            
+
             // if we have peak data, connect them to the display, too
-            PeakList peakList = null; // TODO currentProject.getFilePeakList(dataFile);
+            PeakList peakList = null; // TODO
+                                        // currentProject.getFilePeakList(dataFile);
             if (peakList != null) {
 
-                Peak peaks[] = peakList.getPeaksInsideScanAndMZRange(dataFile, rtMin, rtMax, mzMin, mzMax);
+                Peak peaks[] = peakList.getPeaksInsideScanAndMZRange(dataFile,
+                        rtMin, rtMax, mzMin, mzMax);
 
                 if (peaks.length > 0) {
 
@@ -420,7 +428,6 @@ class ThreeDSamplingTask implements Task {
 
             }
 
-
             // get graphics mode control to set axes and textures properties
             GraphicsModeControl dispGMC = display.getGraphicsModeControl();
 
@@ -429,11 +436,6 @@ class ThreeDSamplingTask implements Task {
 
             // no textures
             dispGMC.setTextureEnable(false);
-
-
-
-
-
 
             float ticks;
 
@@ -478,11 +480,10 @@ class ThreeDSamplingTask implements Task {
             intensityMap.setRange(0, maxBinnedIntensity);
             heightMap.setRange(0, maxBinnedIntensity);
 
-
-            // set the color axis top intensity to half of the maximum intensity value,
+            // set the color axis top intensity to half of the maximum intensity
+            // value,
             // because the peaks are usually sharp
             colorMap.setRange(0, maxBinnedIntensity / 2);
-
 
             // get display renderer to set colors, box, mouse, keys..
             DisplayRendererJ3D dRenderer = (DisplayRendererJ3D) display.getDisplayRenderer();
@@ -495,47 +496,52 @@ class ThreeDSamplingTask implements Task {
             dRenderer.setBoxOn(false);
 
             // set the mouse behavior
-            int mouseBehavior[][][] = new int[][][] { { {
-                MouseHelper.ROTATE,    // left mouse button
-                MouseHelper.ZOOM       // SHIFT + left mouse button
-                }, {
-                MouseHelper.ROTATE,    // CTRL + left mouse button
-                MouseHelper.ZOOM       // CTRL + SHIFT + left mouse button
-                } }, { {
-                MouseHelper.NONE,      // middle mouse button
-                MouseHelper.NONE       // SHIFT + middle mouse button
-                }, {
-                MouseHelper.NONE,      // CTRL + middle mouse button
-                MouseHelper.NONE       // CTRL + SHIFT + middle mouse button
-                } }, { {
-                MouseHelper.TRANSLATE, // right mouse button
-                MouseHelper.DIRECT       // SHIFT + right mouse button
-                }, {
-                MouseHelper.TRANSLATE, // CTRL + right mouse button
-                MouseHelper.DIRECT       // CTRL + SHIFT + right mouse button
-                } } };
-            dRenderer.getMouseBehavior().getMouseHelper().setFunctionMap(mouseBehavior);
-
+            int mouseBehavior[][][] = new int[][][] { { { MouseHelper.ROTATE, // left
+                                                                                // mouse
+                                                                                // button
+                    MouseHelper.ZOOM // SHIFT + left mouse button
+                    }, { MouseHelper.ROTATE, // CTRL + left mouse button
+                            MouseHelper.ZOOM // CTRL + SHIFT + left mouse
+                                                // button
+                    } }, { { MouseHelper.NONE, // middle mouse button
+                    MouseHelper.NONE // SHIFT + middle mouse button
+                    }, { MouseHelper.NONE, // CTRL + middle mouse button
+                            MouseHelper.NONE // CTRL + SHIFT + middle mouse
+                                                // button
+                    } }, { { MouseHelper.TRANSLATE, // right mouse button
+                    MouseHelper.DIRECT // SHIFT + right mouse button
+                    }, { MouseHelper.TRANSLATE, // CTRL + right mouse button
+                            MouseHelper.DIRECT // CTRL + SHIFT + right mouse
+                                                // button
+                    } } };
+            dRenderer.getMouseBehavior().getMouseHelper().setFunctionMap(
+                    mouseBehavior);
 
             // set the keyboard behavior
             KeyboardBehaviorJ3D keyBehavior = new KeyboardBehaviorJ3D(dRenderer);
-            keyBehavior.mapKeyToFunction(KeyboardBehaviorJ3D.ROTATE_X_POS, KeyEvent.VK_DOWN, 0);
-            keyBehavior.mapKeyToFunction(KeyboardBehaviorJ3D.ROTATE_X_NEG, KeyEvent.VK_UP, 0);
-            keyBehavior.mapKeyToFunction(KeyboardBehaviorJ3D.ROTATE_Y_POS, KeyEvent.VK_LEFT, 0);
-            keyBehavior.mapKeyToFunction(KeyboardBehaviorJ3D.ROTATE_Y_NEG, KeyEvent.VK_RIGHT, 0);
-            keyBehavior.mapKeyToFunction(KeyboardBehaviorJ3D.ROTATE_Z_POS, KeyEvent.VK_PAGE_UP, 0);
-            keyBehavior.mapKeyToFunction(KeyboardBehaviorJ3D.ROTATE_Z_NEG, KeyEvent.VK_PAGE_DOWN, 0);
-            keyBehavior.mapKeyToFunction(KeyboardBehaviorJ3D.ZOOM_IN, KeyEvent.VK_PLUS, 0);
-            keyBehavior.mapKeyToFunction(KeyboardBehaviorJ3D.ZOOM_OUT, KeyEvent.VK_MINUS, 0);
+            keyBehavior.mapKeyToFunction(KeyboardBehaviorJ3D.ROTATE_X_POS,
+                    KeyEvent.VK_DOWN, 0);
+            keyBehavior.mapKeyToFunction(KeyboardBehaviorJ3D.ROTATE_X_NEG,
+                    KeyEvent.VK_UP, 0);
+            keyBehavior.mapKeyToFunction(KeyboardBehaviorJ3D.ROTATE_Y_POS,
+                    KeyEvent.VK_LEFT, 0);
+            keyBehavior.mapKeyToFunction(KeyboardBehaviorJ3D.ROTATE_Y_NEG,
+                    KeyEvent.VK_RIGHT, 0);
+            keyBehavior.mapKeyToFunction(KeyboardBehaviorJ3D.ROTATE_Z_POS,
+                    KeyEvent.VK_PAGE_UP, 0);
+            keyBehavior.mapKeyToFunction(KeyboardBehaviorJ3D.ROTATE_Z_NEG,
+                    KeyEvent.VK_PAGE_DOWN, 0);
+            keyBehavior.mapKeyToFunction(KeyboardBehaviorJ3D.ZOOM_IN,
+                    KeyEvent.VK_PLUS, 0);
+            keyBehavior.mapKeyToFunction(KeyboardBehaviorJ3D.ZOOM_OUT,
+                    KeyEvent.VK_MINUS, 0);
             dRenderer.addKeyboardBehavior(keyBehavior);
-
 
             // set text control properties
             TextControl textControl = (TextControl) annotationMap.getControl();
             textControl.setCenter(true);
             textControl.setAutoSize(false);
             textControl.setScale(0.1);
-
 
             // get projection control to set initial rotation and zooming
             ProjectionControl projCont = display.getProjectionControl();
@@ -547,18 +553,18 @@ class ThreeDSamplingTask implements Task {
             double[] pControlMatrix = projCont.getMatrix();
 
             // prepare rotation and scaling matrix
-            double[] mult = MouseBehaviorJ3D.static_make_matrix(
-                    75, 0, 0,   // rotation X,Y,Z
-                    1,          // scaling
+            double[] mult = MouseBehaviorJ3D.static_make_matrix(75, 0, 0, // rotation
+                                                                            // X,Y,Z
+                    1, // scaling
                     0.1, 0.2, 0 // translation (moving) X,Y,Z
-                    );
+            );
 
             // multiply projection matrix
-            pControlMatrix = MouseBehaviorJ3D.static_multiply_matrix(mult, pControlMatrix);
+            pControlMatrix = MouseBehaviorJ3D.static_multiply_matrix(mult,
+                    pControlMatrix);
 
             // set new projection matrix
             projCont.setMatrix(pControlMatrix);
-
 
         } catch (Throwable e) {
             logger.log(Level.SEVERE, "Error while sampling 3D data", e);

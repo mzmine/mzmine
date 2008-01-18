@@ -21,6 +21,7 @@ package net.sf.mzmine.modules.visualization.spectra;
 
 import java.util.Vector;
 
+import net.sf.mzmine.data.DataPoint;
 import net.sf.mzmine.data.Peak;
 import net.sf.mzmine.data.PeakList;
 import net.sf.mzmine.io.RawDataFile;
@@ -47,7 +48,7 @@ class PeakListDataSet extends AbstractXYDataset implements IntervalXYDataset {
 
         Vector<Peak> candidates = new Vector<Peak>();
         for (Peak peak : peaks) {
-            float peakDataPoint[] = peak.getRawDatapoint(scanNumber);
+            DataPoint peakDataPoint = peak.getDatapoint(scanNumber);
             if (peakDataPoint != null)
                 candidates.add(peak);
         }
@@ -76,13 +77,13 @@ class PeakListDataSet extends AbstractXYDataset implements IntervalXYDataset {
     }
 
     public Number getX(int series, int item) {
-        float dataPoint[] = displayedPeaks[item].getRawDatapoint(scanNumber);
-        return dataPoint[0];
+        DataPoint dataPoint = displayedPeaks[item].getDatapoint(scanNumber);
+        return dataPoint.getMZ();
     }
 
     public Number getY(int series, int item) {
-        float dataPoint[] = displayedPeaks[item].getRawDatapoint(scanNumber);
-        return dataPoint[1];
+        DataPoint dataPoint = displayedPeaks[item].getDatapoint(scanNumber);
+        return dataPoint.getIntensity();
     }
 
     public Number getEndX(int series, int item) {

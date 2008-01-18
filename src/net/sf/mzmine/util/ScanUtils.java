@@ -1,5 +1,5 @@
 /*
- * Copyright 2006 The MZmine Development Team
+ * Copyright 2006-2008 The MZmine Development Team
  * 
  * This file is part of MZmine.
  * 
@@ -21,6 +21,7 @@ package net.sf.mzmine.util;
 
 import java.util.Arrays;
 
+import net.sf.mzmine.data.DataPoint;
 import net.sf.mzmine.data.Scan;
 
 /**
@@ -36,33 +37,17 @@ public class ScanUtils {
      * @param mzMax m/z range maximum
      * @return float[2] containing base peak m/z and intensity
      */
-    public static float[] findBasePeak(Scan scan, float mzMin, float mzMax) {
+    public static DataPoint findBasePeak(Scan scan, float mzMin, float mzMax) {
 
-        float mzValues[] = scan.getMZValues();
-        float intensityValues[] = scan.getIntensityValues();
-        float basePeak[] = new float[2];
-        boolean foundPoint = false;
+        DataPoint dataPoints[] = scan.getDataPoints(mzMin, mzMax);
+        DataPoint basePeak = null;
 
-        int searchStart = Arrays.binarySearch(mzValues, mzMin);
-        if (searchStart < 0) {
-            searchStart++;
-            searchStart *= -1;
-        }
-        for (int i = searchStart; i < mzValues.length; i++) {
-
-            if (mzValues[i] > mzMax)
-                break;
-
-            if (intensityValues[i] > basePeak[1]) {
-                foundPoint = true;
-                basePeak[0] = mzValues[i];
-                basePeak[1] = intensityValues[i];
-            }
-
+        for (DataPoint dp : dataPoints) {
+            if ((basePeak == null)
+                    || (dp.getIntensity() > basePeak.getIntensity()))
+                basePeak = dp;
         }
 
-        if (foundPoint == false)
-            return null;
         return basePeak;
     }
 
@@ -228,18 +213,20 @@ public class ScanUtils {
         index = (index * -1) - 1;
 
         // If key value is bigger than biggest m/z value in array
-        if (index == mzValues.length) index--;
-        else 
-            if (index > 0) {
-                // Check insertion point value and previous one, see which one
-                // is closer
-                if (Math.abs(mzValues[index - 1] - key) < Math.abs(mzValues[index] - key)) index--;
-            }
+        if (index == mzValues.length)
+            index--;
+        else if (index > 0) {
+            // Check insertion point value and previous one, see which one
+            // is closer
+            if (Math.abs(mzValues[index - 1] - key) < Math.abs(mzValues[index]
+                    - key))
+                index--;
+        }
 
         // Check m/z tolerancee
         if (Math.abs(mzValues[index] - key) <= mzTolerance)
             return index;
-            
+
         // Nothing was found
         return -1;
 

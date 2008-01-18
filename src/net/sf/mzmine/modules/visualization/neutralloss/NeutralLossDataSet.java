@@ -24,6 +24,7 @@ import java.util.Date;
 import java.util.Iterator;
 import java.util.Vector;
 
+import net.sf.mzmine.data.DataPoint;
 import net.sf.mzmine.data.Scan;
 import net.sf.mzmine.io.RawDataFile;
 import net.sf.mzmine.io.util.RawDataAcceptor;
@@ -90,8 +91,7 @@ class NeutralLossDataSet extends AbstractXYDataset implements RawDataAcceptor, X
             return;
 
         // get m/z and intensity values
-        float mzValues[] = scan.getMZValues();
-        float intensityValues[] = scan.getIntensityValues();
+        DataPoint scanDataPoints[] = scan.getDataPoints();
         
         // skip empty scans, or scans that only contain zero intensity peaks
         if (scan.getBasePeakIntensity() == 0) return;
@@ -100,11 +100,11 @@ class NeutralLossDataSet extends AbstractXYDataset implements RawDataAcceptor, X
         int topPeaks[] = new int[numOfFragments];
         Arrays.fill(topPeaks, -1);
 
-        for (int i = 0; i < intensityValues.length; i++) {
+        for (int i = 0; i < scanDataPoints.length; i++) {
 
             fragmentsCycle: for (int j = 0; j < numOfFragments; j++) {
 
-                if ((topPeaks[j] < 0) || (intensityValues[i] > intensityValues[topPeaks[j]])) {
+                if ((topPeaks[j] < 0) || (scanDataPoints[i].getIntensity()) > scanDataPoints[topPeaks[j]].getIntensity()) {
 
                     // shift the top peaks array
                     for (int k = numOfFragments - 1; k > j; k--)
@@ -129,7 +129,7 @@ class NeutralLossDataSet extends AbstractXYDataset implements RawDataAcceptor, X
                 break;
 
             NeutralLossDataPoint newPoint = new NeutralLossDataPoint(
-                    mzValues[peakIndex], scan.getScanNumber(),
+                    scanDataPoints[peakIndex].getMZ(), scan.getScanNumber(),
                     scan.getParentScanNumber(), scan.getPrecursorMZ(),
                     scan.getPrecursorCharge(), scan.getRetentionTime());
 

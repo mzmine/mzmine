@@ -19,6 +19,7 @@
 
 package net.sf.mzmine.modules.visualization.tic;
 
+import net.sf.mzmine.data.DataPoint;
 import net.sf.mzmine.data.Peak;
 import net.sf.mzmine.data.Scan;
 import net.sf.mzmine.io.RawDataFile;
@@ -58,8 +59,8 @@ class PeakDataSet extends AbstractXYDataset {
 
     public Number getY(int series, int item) {
         int scanNumber = peak.getScanNumbers()[item];
-        float dataPoint[] = peak.getRawDatapoint(scanNumber);
-        return dataPoint[1];
+        DataPoint dataPoint = peak.getDatapoint(scanNumber);
+        return dataPoint.getIntensity();
     }
 
 }

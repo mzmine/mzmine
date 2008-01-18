@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2007 The MZmine Development Team
+ * Copyright 2006-2008 The MZmine Development Team
  * 
  * This file is part of MZmine.
  * 
@@ -22,6 +22,7 @@ package net.sf.mzmine.data.impl;
 import java.util.HashSet;
 import java.util.Set;
 
+import net.sf.mzmine.data.DataPoint;
 import net.sf.mzmine.data.IsotopePattern;
 import net.sf.mzmine.data.Peak;
 import net.sf.mzmine.io.RawDataFile;
@@ -179,8 +180,15 @@ public class SimpleIsotopePattern implements IsotopePattern {
     /**
      * @see net.sf.mzmine.data.Peak#getRawDatapoint(int)
      */
-    public float[] getRawDatapoint(int scanNumber) {
-        return representativePeak.getRawDatapoint(scanNumber);
+    public DataPoint getDatapoint(int scanNumber) {
+        return representativePeak.getDatapoint(scanNumber);
+    }
+    
+    /**
+     * @see net.sf.mzmine.data.Peak#getRawDatapoint(int)
+     */
+    public DataPoint[] getRawDatapoints(int scanNumber) {
+        return representativePeak.getRawDatapoints(scanNumber);
     }
 
     /**

@@ -23,9 +23,9 @@ import java.util.Iterator;
 import java.util.TreeSet;
 import java.util.Vector;
 
+import net.sf.mzmine.data.DataPoint;
 import net.sf.mzmine.data.Scan;
 import net.sf.mzmine.data.Peak.PeakStatus;
-import net.sf.mzmine.data.impl.ConstructionPeak;
 import net.sf.mzmine.data.impl.SimplePeakList;
 import net.sf.mzmine.data.impl.SimplePeakListRow;
 import net.sf.mzmine.io.RawDataFile;
@@ -156,8 +156,14 @@ class CentroidPickerTask implements Task {
 
                 Scan sc = dataFile.getScan(scanNumbers[i]);
 
-                float[] mzValues = sc.getMZValues();
-                float[] intensityValues = sc.getIntensityValues();
+                DataPoint dataPoints[] = sc.getDataPoints();
+                float[] mzValues = new float[dataPoints.length];
+                float[] intensityValues = new float[dataPoints.length];
+                for (int dp = 0; dp < dataPoints.length; dp++) {
+                    mzValues[dp] = dataPoints[dp].getMZ();
+                    intensityValues[dp] = dataPoints[dp].getIntensity();
+                }
+                
                 float[] tmpInts = ScanUtils.binValues(mzValues,
                         intensityValues, startMZ, endMZ, numOfBins, true,
                         ScanUtils.BinningType.MAX);
@@ -190,7 +196,7 @@ class CentroidPickerTask implements Task {
 
         }
 
-        Vector<ConstructionPeak> underConstructionPeaks = new Vector<ConstructionPeak>();
+        Vector<CentroidPeak> underConstructionPeaks = new Vector<CentroidPeak>();
         Vector<OneDimPeak> oneDimPeaks = new Vector<OneDimPeak>();
 
         for (int i = 0; i < totalScans; i++) {
@@ -202,18 +208,23 @@ class CentroidPickerTask implements Task {
 
             Scan sc = dataFile.getScan(scanNumbers[i]);
 
-            float[] masses = sc.getMZValues();
-            float[] intensities = sc.getIntensityValues();
+            DataPoint dataPoints[] = sc.getDataPoints();
+            float[] mzValues = new float[dataPoints.length];
+            float[] intensityValues = new float[dataPoints.length];
+            for (int dp = 0; dp < dataPoints.length; dp++) {
+                mzValues[dp] = dataPoints[dp].getMZ();
+                intensityValues[dp] = dataPoints[dp].getIntensity();
+            }
 
             // Find 1D-peaks
 
-            for (int j = 0; j < intensities.length; j++) {
+            for (int j = 0; j < intensityValues.length; j++) {
 
                 // Is intensity above the noise level?
-                if (intensities[j] >= noiseLevel) {
+                if (intensityValues[j] >= noiseLevel) {
 
                     // Determine correct bin
-                    int bin = (int) Math.floor((masses[j] - startMZ) / binSize);
+                    int bin = (int) Math.floor((mzValues[j] - startMZ) / binSize);
                     if (bin < 0) {
                         bin = 0;
                     }
@@ -223,11 +234,11 @@ class CentroidPickerTask implements Task {
 
                     // Is intensity above the chromatographic threshold level
                     // for this bin?
-                    if (intensities[j] >= chromatographicThresholds[bin]) {
+                    if (intensityValues[j] >= chromatographicThresholds[bin]) {
 
                         // Yes, then mark this index as 1D-peak
-                        oneDimPeaks.add(new OneDimPeak(i, j, masses[j],
-                                intensities[j]));
+                        oneDimPeaks.add(new OneDimPeak(i, j, mzValues[j],
+                                intensityValues[j]));
                     }
 
                 }
@@ -238,7 +249,7 @@ class CentroidPickerTask implements Task {
 
             TreeSet<MatchScore> scores = new TreeSet<MatchScore>();
 
-            for (ConstructionPeak ucPeak : underConstructionPeaks) {
+            for (CentroidPeak ucPeak : underConstructionPeaks) {
 
                 for (OneDimPeak oneDimPeak : oneDimPeaks) {
                     MatchScore score = new MatchScore(ucPeak, oneDimPeak,
@@ -264,7 +275,7 @@ class CentroidPickerTask implements Task {
                 }
 
                 // If uc peak is already connected, then move on to next score
-                ConstructionPeak ucPeak = score.getPeak();
+                CentroidPeak ucPeak = score.getPeak();
                 if (ucPeak.isGrowing()) {
                     continue;
                 }
@@ -278,7 +289,7 @@ class CentroidPickerTask implements Task {
 
             // Check if there are any under-construction peaks that were not
             // connected
-            for (ConstructionPeak ucPeak : underConstructionPeaks) {
+            for (CentroidPeak ucPeak : underConstructionPeaks) {
 
                 // If nothing was added,
                 if (!ucPeak.isGrowing()) {
@@ -313,7 +324,7 @@ class CentroidPickerTask implements Task {
             // Clean-up empty slots under-construction peaks collection and
             // reset growing statuses for remaining under construction peaks
             for (int ucInd = 0; ucInd < underConstructionPeaks.size(); ucInd++) {
-                ConstructionPeak ucPeak = underConstructionPeaks.get(ucInd);
+                CentroidPeak ucPeak = underConstructionPeaks.get(ucInd);
                 if (ucPeak == null) {
                     underConstructionPeaks.remove(ucInd);
                     ucInd--;
@@ -328,7 +339,7 @@ class CentroidPickerTask implements Task {
 
                 if (!oneDimPeak.isConnected()) {
 
-                    ConstructionPeak ucPeak = new ConstructionPeak(dataFile);
+                    CentroidPeak ucPeak = new CentroidPeak(dataFile);
                     ucPeak.addDatapoint(sc.getScanNumber(), oneDimPeak.mz,
                             sc.getRetentionTime(), oneDimPeak.intensity);
                     underConstructionPeaks.add(ucPeak);
@@ -345,7 +356,7 @@ class CentroidPickerTask implements Task {
 
         // Finally process all remaining under-construction peaks
 
-        for (ConstructionPeak ucPeak : underConstructionPeaks) {
+        for (CentroidPeak ucPeak : underConstructionPeaks) {
 
             // Check length & height
             float ucLength = ucPeak.getDataPointMaxRT()

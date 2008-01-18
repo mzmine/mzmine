@@ -21,8 +21,8 @@ package net.sf.mzmine.io.impl;
 
 import java.io.File;
 import java.io.FileNotFoundException;
-import java.io.RandomAccessFile;
 import java.io.IOException;
+import java.io.RandomAccessFile;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Enumeration;
@@ -37,9 +37,8 @@ import net.sf.mzmine.data.impl.SimpleScan;
 import net.sf.mzmine.io.PreloadLevel;
 import net.sf.mzmine.io.RawDataFile;
 import net.sf.mzmine.io.RawDataFileWriter;
-import net.sf.mzmine.taskcontrol.Task.TaskStatus;
-import net.sf.mzmine.util.CollectionUtils;
 import net.sf.mzmine.main.MZmineCore;
+import net.sf.mzmine.util.CollectionUtils;
 
 /**
  * RawDataFile implementation

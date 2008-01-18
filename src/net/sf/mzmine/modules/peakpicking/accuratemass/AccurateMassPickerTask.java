@@ -23,9 +23,10 @@ import java.util.Iterator;
 import java.util.TreeSet;
 import java.util.Vector;
 
+import net.sf.mzmine.data.DataPoint;
 import net.sf.mzmine.data.Scan;
 import net.sf.mzmine.data.Peak.PeakStatus;
-import net.sf.mzmine.data.impl.ConstructionPeak;
+import net.sf.mzmine.data.impl.SimpleDataPoint;
 import net.sf.mzmine.data.impl.SimplePeakList;
 import net.sf.mzmine.data.impl.SimplePeakListRow;
 import net.sf.mzmine.io.RawDataFile;
@@ -125,7 +126,7 @@ class AccurateMassPickerTask implements Task {
         totalScans = scanNumbers.length;
 
         // Keep a set of currently unconnected peaks, sorted by intensity
-        TreeSet<ConstructionPeak> currentPeaks = new TreeSet<ConstructionPeak>(
+        TreeSet<AccurateMassPeak> currentPeaks = new TreeSet<AccurateMassPeak>(
                 new PeakSorterByDescendingHeight());
 
         // Iterate scans
@@ -146,7 +147,7 @@ class AccurateMassPickerTask implements Task {
             }
 
             // A set of those peaks, that are succesfully connected in this scan
-            TreeSet<ConstructionPeak> connectedPeaks = new TreeSet<ConstructionPeak>(
+            TreeSet<AccurateMassPeak> connectedPeaks = new TreeSet<AccurateMassPeak>(
                     new PeakSorterByDescendingHeight());
 
             // Detect m/z peaks in this scan
@@ -155,11 +156,11 @@ class AccurateMassPickerTask implements Task {
             for (DataPoint dataPoint : scanDataPoints) {
 
                 // Seach for peak to which we can connect this data point
-                ConstructionPeak connectedPeak = null;
+                AccurateMassPeak connectedPeak = null;
 
-                Iterator<ConstructionPeak> peaksIterator = currentPeaks.iterator();
+                Iterator<AccurateMassPeak> peaksIterator = currentPeaks.iterator();
                 while (peaksIterator.hasNext()) {
-                    ConstructionPeak peak = peaksIterator.next();
+                    AccurateMassPeak peak = peaksIterator.next();
 
                     // Check if data point can be connected to this peak
                     if (Math.abs(peak.getMZ() - dataPoint.getMZ()) <= mzTolerance) {
@@ -179,7 +180,7 @@ class AccurateMassPickerTask implements Task {
                 // If no peak could be connected to this data point, add a new
                 // peak
                 if (connectedPeak == null)
-                    connectedPeak = new ConstructionPeak(dataFile);
+                    connectedPeak = new AccurateMassPeak(dataFile);
 
                 // Add this data point to the peak
                 connectedPeak.addDatapoint(scanNumbers[scanIndex],
@@ -192,7 +193,7 @@ class AccurateMassPickerTask implements Task {
             }
 
             // Check all peaks that could not be connected
-            for (ConstructionPeak peak : currentPeaks) {
+            for (AccurateMassPeak peak : currentPeaks) {
 
                 // If the peak has minimum duration, add it to the peak list
                 if (peak.getDuration() >= minimumPeakDuration) {
@@ -227,55 +228,58 @@ class AccurateMassPickerTask implements Task {
      */
     private DataPoint[] detectDataPointsInOneScan(Scan scan) {
 
-        float mzValues[] = scan.getMZValues();
-        float intValues[] = scan.getIntensityValues();
+        DataPoint scanDataPoints[] = scan.getDataPoints();
 
         Vector<DataPoint> detectedDataPoints = new Vector<DataPoint>();
 
         double totalSum = 0, intensitySum = 0;
         float maxIntensity = 0;
         boolean ascending = true;
-        
-        for (int i = 0; i < mzValues.length; i++) {
-            
-            boolean nextPointIsHigher = ((i == mzValues.length - 1) || (intValues[i] == 0) || (intValues[i] < intValues[i+1]));
-            
+
+        for (int i = 0; i < scanDataPoints.length; i++) {
+
+            boolean nextPointIsHigher = ((i == scanDataPoints.length - 1)
+                    || (scanDataPoints[i].getIntensity() == 0) || (scanDataPoints[i].getIntensity() < scanDataPoints[i + 1].getIntensity()));
+
             // If we are ascending and next point is higher, or we are
             // descending and next point is lower
             if (ascending == nextPointIsHigher) {
-                totalSum += mzValues[i] * intValues[i];
-                intensitySum += intValues[i];
+                totalSum += scanDataPoints[i].getMZ()
+                        * scanDataPoints[i].getIntensity();
+                intensitySum += scanDataPoints[i].getIntensity();
                 continue;
             }
-            
+
             // If we are at local maximum
             if (ascending && !nextPointIsHigher) {
-                maxIntensity = intValues[i];
+                maxIntensity = scanDataPoints[i].getIntensity();
                 ascending = false;
                 continue;
             }
-            
+
             // If we are at the last data point of this m/z peak
             if (!ascending && nextPointIsHigher) {
-                
-                totalSum += mzValues[i] * intValues[i];
-                intensitySum += intValues[i];
-                
+
+                totalSum += scanDataPoints[i].getMZ()
+                        * scanDataPoints[i].getIntensity();
+                intensitySum += scanDataPoints[i].getIntensity();
+
                 // Calculate the weighted average of m/z values
                 float mzValue = (float) (totalSum / intensitySum);
-                DataPoint p = new DataPoint(mzValue, maxIntensity);
+                DataPoint p = new SimpleDataPoint(mzValue, maxIntensity);
                 detectedDataPoints.add(p);
 
                 // Reset the state
-                totalSum = intValues[i] * mzValues[i];
-                intensitySum = intValues[i];
+                totalSum = scanDataPoints[i].getIntensity()
+                        * scanDataPoints[i].getMZ();
+                intensitySum = scanDataPoints[i].getIntensity();
                 ascending = true;
-                
+
                 continue;
             }
-            
+
         }
-        
+
         DataPoint detectedDataPointsArray[] = detectedDataPoints.toArray(new DataPoint[0]);
         return detectedDataPointsArray;
 

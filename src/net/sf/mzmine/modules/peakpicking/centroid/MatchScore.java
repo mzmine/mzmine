@@ -21,8 +21,6 @@ package net.sf.mzmine.modules.peakpicking.centroid;
 
 import java.util.ArrayList;
 
-import net.sf.mzmine.data.impl.ConstructionPeak;
-
 
 /**
  * This class represents a score (goodness of fit) between Peak and 1D-peak
@@ -30,11 +28,11 @@ import net.sf.mzmine.data.impl.ConstructionPeak;
 class MatchScore implements Comparable<MatchScore> {
 
     private float score;
-    private ConstructionPeak ucPeak;
+    private CentroidPeak ucPeak;
     private OneDimPeak oneDimPeak;
     private float mzTolerance, intTolerance;
 
-    MatchScore(ConstructionPeak uc, OneDimPeak od, float mzTolerance, float intTolerance) {
+    MatchScore(CentroidPeak uc, OneDimPeak od, float mzTolerance, float intTolerance) {
         this.mzTolerance = mzTolerance;
         this.intTolerance = intTolerance;
         ucPeak = uc;
@@ -46,7 +44,7 @@ class MatchScore implements Comparable<MatchScore> {
         return score;
     }
 
-    public ConstructionPeak getPeak() {
+    public CentroidPeak getPeak() {
         return ucPeak;
     }
 
@@ -63,7 +61,7 @@ class MatchScore implements Comparable<MatchScore> {
         return retsig;
     }
 
-    private float calcScore(ConstructionPeak uc, OneDimPeak od) {
+    private float calcScore(CentroidPeak uc, OneDimPeak od) {
 
         float ucMZ = uc.getMZ();
 
@@ -92,7 +90,7 @@ class MatchScore implements Comparable<MatchScore> {
      * peak.
      *
      */
-    private float calcScoreForRTShape(ConstructionPeak uc, OneDimPeak od) {
+    private float calcScoreForRTShape(CentroidPeak uc, OneDimPeak od) {
 
         float nextIntensity = od.intensity;
         //Hashtable<Integer, Float[]> datapoints = uc.getRawDatapoints();

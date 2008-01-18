@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2007 The MZmine Development Team
+ * Copyright 2006-2008 The MZmine Development Team
  * 
  * This file is part of MZmine.
  * 
@@ -25,12 +25,12 @@ import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.RenderingHints;
 import java.awt.geom.GeneralPath;
-import java.util.Arrays;
 
 import javax.swing.BorderFactory;
 import javax.swing.JComponent;
 import javax.swing.border.Border;
 
+import net.sf.mzmine.data.DataPoint;
 import net.sf.mzmine.data.Peak;
 import net.sf.mzmine.io.RawDataFile;
 
@@ -97,7 +97,7 @@ public class PeakXICComponent extends JComponent {
         // find one datapoint with maximum intensity in each scan
         for (int i = 0; i < scanNumbers.length; i++) {
 
-            float dataPoint[] = peak.getRawDatapoint(scanNumbers[i]);
+            DataPoint dataPoint = peak.getDatapoint(scanNumbers[i]);
 
             // get retention time (X value)
             float retentionTime = dataFile.getScan(scanNumbers[i]).getRetentionTime();
@@ -106,7 +106,7 @@ public class PeakXICComponent extends JComponent {
             xValues[i] = (int) Math.floor((retentionTime - minRT) / rtSpan
                     * (size.width - 1));
             yValues[i] = size.height
-                    - (int) Math.floor(dataPoint[1] / maxIntensity
+                    - (int) Math.floor(dataPoint.getIntensity() / maxIntensity
                             * (size.height - 1));
 
         }

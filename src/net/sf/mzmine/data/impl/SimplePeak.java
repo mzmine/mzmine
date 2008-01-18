@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2007 The MZmine Development Team
+ * Copyright 2006-2008 The MZmine Development Team
  * 
  * This file is part of MZmine.
  * 
@@ -21,12 +21,11 @@ package net.sf.mzmine.data.impl;
 
 import java.text.Format;
 import java.util.Arrays;
-import java.util.Hashtable;
 
+import net.sf.mzmine.data.DataPoint;
 import net.sf.mzmine.data.Peak;
 import net.sf.mzmine.io.RawDataFile;
 import net.sf.mzmine.main.MZmineCore;
-import net.sf.mzmine.util.CollectionUtils;
 
 /**
  * This class is a simple implementation of the peak interface.
@@ -36,14 +35,12 @@ public class SimplePeak implements Peak {
     private PeakStatus peakStatus;
     private RawDataFile dataFile;
 
-    // This table maps a scanNumber to an array of m/z and intensity pairs
-    private Hashtable<Integer, float[]> datapointsMap;
+    private int scanNumbers[];
+    private DataPoint dataPointsPerScan[];
+    private DataPoint rawDataPointsPerScan[][];
 
     // M/Z, RT, Height and Area
-    private float mz;
-    private float rt;
-    private float height;
-    private float area;
+    private float mz, rt, height, area;
 
     // Boundaries of the peak
     private float minRT = Float.MAX_VALUE;
@@ -55,13 +52,10 @@ public class SimplePeak implements Peak {
     /**
      * Initializes a new peak using given values
      * 
-     * @param datapointsPerScan first index equals index in scanNumbers, second
-     *            index is the number of datapoint in scan, length of last
-     *            dimension is 2: index value 0=M/Z, 1=Intensity of data point
      */
     public SimplePeak(RawDataFile dataFile, float MZ, float RT, float height,
-            float area, int[] scanNumbers, float[][] datapointsPerScan,
-            PeakStatus peakStatus) {
+            float area, int[] scanNumbers, DataPoint[] dataPointsPerScan,
+            DataPoint[][] rawDataPointsPerScan, PeakStatus peakStatus) {
 
         this.dataFile = dataFile;
 
@@ -70,7 +64,10 @@ public class SimplePeak implements Peak {
         this.height = height;
         this.area = area;
 
-        datapointsMap = new Hashtable<Integer, float[]>();
+        this.scanNumbers = scanNumbers;
+        this.dataPointsPerScan = dataPointsPerScan;
+        this.rawDataPointsPerScan = rawDataPointsPerScan;
+
         for (int ind = 0; ind < scanNumbers.length; ind++) {
 
             float dataPointRT = dataFile.getScan(scanNumbers[ind]).getRetentionTime();
@@ -80,17 +77,17 @@ public class SimplePeak implements Peak {
                 maxRT = dataPointRT;
 
             // update boundaries
-            float dataPointMZ = datapointsPerScan[ind][0];
-            float dataPointIntensity = datapointsPerScan[ind][1];
-            if (dataPointMZ < minMZ)
-                minMZ = dataPointMZ;
-            if (dataPointMZ > maxMZ)
-                maxMZ = dataPointMZ;
-            if (dataPointIntensity > maxIntensity)
-                maxIntensity = dataPointIntensity;
+            for (DataPoint dp : rawDataPointsPerScan[ind]) {
+                float dataPointMZ = dp.getMZ();
+                float dataPointIntensity = dp.getIntensity();
+                if (dataPointMZ < minMZ)
+                    minMZ = dataPointMZ;
+                if (dataPointMZ > maxMZ)
+                    maxMZ = dataPointMZ;
+                if (dataPointIntensity > maxIntensity)
+                    maxIntensity = dataPointIntensity;
+            }
 
-            // add data point to hashtable
-            datapointsMap.put(scanNumbers[ind], datapointsPerScan[ind]);
         }
 
         this.peakStatus = peakStatus;
@@ -112,9 +109,15 @@ public class SimplePeak implements Peak {
         this.maxRT = p.getDataPointMaxRT();
         this.maxIntensity = p.getDataPointMaxIntensity();
 
-        datapointsMap = new Hashtable<Integer, float[]>();
-        for (int scanNumber : p.getScanNumbers()) {
-            datapointsMap.put(scanNumber, p.getRawDatapoint(scanNumber));
+        this.scanNumbers = this.getScanNumbers();
+        
+        this.dataPointsPerScan = new DataPoint[scanNumbers.length];
+        this.rawDataPointsPerScan = new DataPoint[scanNumbers.length][];
+        
+        
+        for (int i = 0; i < scanNumbers.length; i++) {
+            dataPointsPerScan[i] = p.getDatapoint(scanNumbers[i]);
+            rawDataPointsPerScan[i] = p.getRawDatapoints(scanNumbers[i]);
         }
 
         this.peakStatus = p.getPeakStatus();
@@ -139,12 +142,10 @@ public class SimplePeak implements Peak {
         return mz;
     }
 
-    
     public void setMZ(float mz) {
         this.mz = mz;
     }
 
-    
     public void setRT(float rt) {
         this.rt = rt;
     }
@@ -188,17 +189,27 @@ public class SimplePeak implements Peak {
      * This method returns numbers of scans that contain this peak
      */
     public int[] getScanNumbers() {
-        int scanNumbers[] = CollectionUtils.toIntArray(datapointsMap.keySet());
-        Arrays.sort(scanNumbers);
         return scanNumbers;
     }
 
     /**
-     * This method returns float[2] (mz and intensity) for a given scan number
+     * This method returns a representative datapoint of this peak in a given
+     * scan
      */
-    public float[] getRawDatapoint(int scanNumber) {
-        return datapointsMap.get(scanNumber);
+    public DataPoint getDatapoint(int scanNumber) {
+        int index = Arrays.binarySearch(scanNumbers, scanNumber);
+        if (index < 0) return null;
+        return dataPointsPerScan[index];
     }
+
+    /**
+     * This method returns a representative datapoint of this peak in a given
+     * scan
+     */
+    public DataPoint[] getRawDatapoints(int scanNumber) {
+        int index = Arrays.binarySearch(scanNumbers, scanNumber);
+        if (index < 0) return null;
+        return rawDataPointsPerScan[index];    }
 
     /**
      * Returns the first scan number of all datapoints
@@ -253,9 +264,9 @@ public class SimplePeak implements Peak {
         StringBuffer buf = new StringBuffer();
         Format mzFormat = MZmineCore.getDesktop().getMZFormat();
         Format timeFormat = MZmineCore.getDesktop().getRTFormat();
-        buf.append(mzFormat.format(getMZ()));
+        buf.append(mzFormat.format(mz));
         buf.append(" m/z @");
-        buf.append(timeFormat.format(getRT()));
+        buf.append(timeFormat.format(rt));
         return buf.toString();
     }
 

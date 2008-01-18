@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2007 The MZmine Development Team
+ * Copyright 2006-2008 The MZmine Development Team
  * 
  * This file is part of MZmine.
  * 
@@ -29,7 +29,9 @@ import javax.xml.datatype.DatatypeConfigurationException;
 import javax.xml.datatype.DatatypeFactory;
 import javax.xml.datatype.Duration;
 
+import net.sf.mzmine.data.DataPoint;
 import net.sf.mzmine.data.Scan;
+import net.sf.mzmine.data.impl.SimpleDataPoint;
 import net.sf.mzmine.data.impl.SimpleScan;
 import net.sf.mzmine.io.RawDataFileReader;
 
@@ -91,7 +93,7 @@ public class MzXMLv2_1Reader implements RawDataFileReader {
 
         // Prepare variables
         int scanNumber, msLevel, parentScan;
-        float retentionTime, mzValues[], intensityValues[], precursorMZ;
+        float retentionTime, precursorMZ;
         boolean centroided;
 
         // Get scan number and MS level
@@ -138,13 +140,13 @@ public class MzXMLv2_1Reader implements RawDataFileReader {
         }
 
         // Create new mzValues and intensityValues arrays
-        mzValues = new float[goodPeaks.size()];
-        intensityValues = new float[goodPeaks.size()];
+        DataPoint dataPoints[] = new DataPoint[goodPeaks.size()];
 
         // Copy m/z and intensity data
         for (int i = 0; i < goodPeaks.size(); i++) {
-            mzValues[i] = (float) goodPeaks.get(i).getMassOverCharge();
-            intensityValues[i] = (float) goodPeaks.get(i).getIntensity();
+            dataPoints[i] = new SimpleDataPoint(
+                    (float) goodPeaks.get(i).getMassOverCharge(),
+                    (float) goodPeaks.get(i).getIntensity());
         }
 
         // If we have no peaks with intensity of 0, we assume the scan is
@@ -153,8 +155,7 @@ public class MzXMLv2_1Reader implements RawDataFileReader {
 
         // Create new Scan
         SimpleScan newScan = new SimpleScan(scanNumber, msLevel, retentionTime,
-                parentScan, precursorMZ, null, mzValues, intensityValues,
-                centroided);
+                parentScan, precursorMZ, null, dataPoints, centroided);
 
         return newScan;
 

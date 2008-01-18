@@ -31,7 +31,7 @@ public interface Peak {
      * 
      * DETECTED - peak was found in primary peak picking
      * 
-     * MANUAL - peak was set manually
+     * MANUAL - peak was defined manually
      * 
      * ESTIMATED - peak was estimated in secondary peak picking
      * 
@@ -92,27 +92,35 @@ public interface Peak {
     public int[] getScanNumbers();
 
     /**
-     * This method returns float[2] (mz and intensity) for a given scan number
+     * This method returns m/z and intensity of this peak in a given scan This
+     * m/z and intensity does not need to match any actual raw data point.
      */
-    public float[] getRawDatapoint(int scanNumber);
+    public DataPoint getDatapoint(int scanNumber);
 
     /**
-     * Returns the minimum RT of all datapoints
+     * This method returns all data points in given scan that were used to build
+     * this peak. Such data points must match actual raw data points returned by
+     * Scan.getDatapoints()
+     */
+    public DataPoint[] getRawDatapoints(int scanNumber);
+
+    /**
+     * Returns the minimum RT of all datapoints used to detect this peak
      */
     public float getDataPointMinRT();
 
     /**
-     * Returns the maximum RT of all datapoints
+     * Returns the maximum RT of all datapoints used to detect this peak
      */
     public float getDataPointMaxRT();
 
     /**
-     * Returns minimum M/Z value of all datapoints
+     * Returns minimum M/Z value of all datapoints used to detect this peak
      */
     public float getDataPointMinMZ();
 
     /**
-     * Returns maximum M/Z value of all datapoints
+     * Returns maximum M/Z value of all datapoints used to detect this peak
      */
     public float getDataPointMaxMZ();
 

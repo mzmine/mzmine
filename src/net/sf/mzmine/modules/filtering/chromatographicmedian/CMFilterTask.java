@@ -22,7 +22,9 @@ package net.sf.mzmine.modules.filtering.chromatographicmedian;
 import java.io.IOException;
 import java.util.Vector;
 
+import net.sf.mzmine.data.DataPoint;
 import net.sf.mzmine.data.Scan;
+import net.sf.mzmine.data.impl.SimpleDataPoint;
 import net.sf.mzmine.data.impl.SimpleScan;
 import net.sf.mzmine.io.RawDataFile;
 import net.sf.mzmine.io.RawDataFileWriter;
@@ -157,14 +159,13 @@ class CMFilterTask implements Task {
 
                     Integer[] dataPointIndices = new Integer[scanBuffer.length];
 
-                    float[] mzValues = sc.getMZValues();
-                    float[] intValues = sc.getIntensityValues();
-                    float[] newIntValues = new float[intValues.length];
+                    DataPoint oldDataPoints[] = sc.getDataPoints();
+                    DataPoint newDataPoints[] = new DataPoint[oldDataPoints.length];
+                    
+                    for (int datapointIndex = 0; datapointIndex < oldDataPoints.length; datapointIndex++) {
 
-                    for (int datapointIndex = 0; datapointIndex < mzValues.length; datapointIndex++) {
-
-                        float mzValue = mzValues[datapointIndex];
-                        float intValue = intValues[datapointIndex];
+                        float mzValue = oldDataPoints[datapointIndex].getMZ();
+                        float intValue = oldDataPoints[datapointIndex].getIntensity();
 
                         Vector<Float> intValueBuffer = new Vector<Float>();
                         intValueBuffer.add(new Float(intValue));
@@ -199,13 +200,13 @@ class CMFilterTask implements Task {
                         float medianIntensity = MathUtils.calcQuantile(
                                 tmpIntensities, 0.5f);
 
-                        newIntValues[datapointIndex] = medianIntensity;
+                        newDataPoints[datapointIndex] = new SimpleDataPoint(mzValue, medianIntensity);
 
                     }
 
                     // Write the modified scan to file
                     SimpleScan newScan = new SimpleScan(sc);
-                    newScan.setData(mzValues, newIntValues);
+                    newScan.setDataPoints(newDataPoints);
                     rawDataFileWriter.addScan(newScan);
                     filteredScans++;
 
@@ -247,8 +248,7 @@ class CMFilterTask implements Task {
     private Object[] findClosestDatapointIntensity(float mzValue, Scan s,
             int startIndex) {
 
-        float[] massValues = s.getMZValues();
-        float[] intensityValues = s.getIntensityValues();
+        DataPoint dataPoints[] = s.getDataPoints();
 
         Integer closestIndex = null;
 
@@ -258,16 +258,16 @@ class CMFilterTask implements Task {
         float prevDistance = Float.MAX_VALUE;
 
         // Loop through datapoints
-        for (int i = startIndex; i < massValues.length; i++) {
+        for (int i = startIndex; i < dataPoints.length; i++) {
 
             // Check if this mass values is within range to mz value
-            float tmpDistance = Math.abs(massValues[i] - mzValue);
+            float tmpDistance = Math.abs(dataPoints[i].getMZ() - mzValue);
             if (tmpDistance < mzTolerance) {
 
                 // If this is closest datapoint so far, then store its' mz and
                 // intensity
                 if (tmpDistance <= closestDistance) {
-                    closestIntensity = intensityValues[i];
+                    closestIntensity = dataPoints[i].getIntensity();
                     closestDistance = tmpDistance;
                     closestIndex = new Integer(i);
                 }

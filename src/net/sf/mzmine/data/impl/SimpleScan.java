@@ -1,5 +1,5 @@
 /*
- * Copyright 2006 The MZmine Development Team
+ * Copyright 2006-2008 The MZmine Development Team
  * 
  * This file is part of MZmine.
  * 
@@ -19,6 +19,7 @@
 
 package net.sf.mzmine.data.impl;
 
+import net.sf.mzmine.data.DataPoint;
 import net.sf.mzmine.data.Scan;
 
 /**
@@ -30,7 +31,7 @@ public class SimpleScan implements Scan {
     private int msLevel;
     private int parentScan;
     private int fragmentScans[];
-    private float mzValues[], intensityValues[];
+    private DataPoint dataPoints[];
     private float precursorMZ;
     private int precursorCharge;
     private float retentionTime;
@@ -44,8 +45,8 @@ public class SimpleScan implements Scan {
     public SimpleScan(Scan sc) {
         this(sc.getScanNumber(), sc.getMSLevel(), sc.getRetentionTime(),
                 sc.getParentScanNumber(), sc.getPrecursorMZ(),
-                sc.getFragmentScanNumbers(), sc.getMZValues(),
-                sc.getIntensityValues(), sc.isCentroided());
+                sc.getFragmentScanNumbers(), sc.getDataPoints(),
+                sc.isCentroided());
     }
 
     /**
@@ -53,7 +54,7 @@ public class SimpleScan implements Scan {
      */
     public SimpleScan(int scanNumber, int msLevel, float retentionTime,
             int parentScan, float precursorMZ, int fragmentScans[],
-            float[] mzValues, float[] intensityValues, boolean centroided) {
+            DataPoint[] dataPoints, boolean centroided) {
 
         // check assumptions about proper scan data
         assert (msLevel == 1) || (parentScan > 0);
@@ -67,66 +68,73 @@ public class SimpleScan implements Scan {
         this.fragmentScans = fragmentScans;
         this.centroided = centroided;
 
-        setData(mzValues, intensityValues);
-
+        setDataPoints(dataPoints);
     }
 
     /**
-     * @return Returns the intensityValues.
+     * @return Returns scan datapoints
      */
-    public float[] getIntensityValues() {
-        return intensityValues;
+    public DataPoint[] getDataPoints() {
+        return dataPoints;
     }
 
-    /**
-     * @return Returns the mZValues.
-     */
-    public float[] getMZValues() {
-        return mzValues;
+    public DataPoint[] getDataPoints(float mzMin, float mzMax) {
+        
+        int startIndex, endIndex;
+        for (startIndex = 0; startIndex < dataPoints.length; startIndex++) {
+            if (dataPoints[startIndex].getMZ() >= mzMin) break;
+        }
+        
+        for (endIndex = startIndex; endIndex < dataPoints.length; endIndex++) {
+            if (dataPoints[endIndex].getMZ() > mzMax) break;
+        }
+        
+        DataPoint pointsWithinRange[] = new DataPoint[endIndex - startIndex];
+        
+        // Copy the relevant points
+        System.arraycopy(dataPoints, startIndex, pointsWithinRange, 0, endIndex - startIndex);
+        
+        return pointsWithinRange;
     }
 
     /**
      * @param mzValues m/z values to set
      * @param intensityValues Intensity values to set
      */
-    public void setData(float[] mzValues, float[] intensityValues) {
+    public void setDataPoints(DataPoint[] dataPoints) {
 
-        // check assumptions
-        assert mzValues.length == intensityValues.length;
-
-        this.mzValues = mzValues;
-        this.intensityValues = intensityValues;
+        this.dataPoints = dataPoints;
 
         // find m/z range and base peak
-        if (mzValues.length>0) {
-	        mzRangeMin = mzValues[0];
-	        mzRangeMax = mzValues[0];
-	        basePeakMZ = mzValues[0];
-	        basePeakIntensity = intensityValues[0];
-	        for (int i = 1; i < mzValues.length; i++) {
-	            if (mzRangeMin > mzValues[i])
-	                mzRangeMin = mzValues[i];
-	            if (mzRangeMax < mzValues[i])
-	                mzRangeMax = mzValues[i];
-	            if (basePeakIntensity < intensityValues[i]) {
-	                basePeakIntensity = intensityValues[i];
-	                basePeakMZ = mzValues[i];
-	            }
-	        }
-            
+        if (dataPoints.length > 0) {
+            mzRangeMin = dataPoints[0].getMZ();
+            mzRangeMax = dataPoints[0].getMZ();
+            basePeakMZ = dataPoints[0].getMZ();
+            basePeakIntensity = dataPoints[0].getIntensity();
+            for (int i = 1; i < dataPoints.length; i++) {
+                if (mzRangeMin > dataPoints[i].getMZ())
+                    mzRangeMin = dataPoints[i].getMZ();
+                if (mzRangeMax < dataPoints[i].getMZ())
+                    mzRangeMax = dataPoints[i].getMZ();
+                if (basePeakIntensity < dataPoints[i].getIntensity()) {
+                    basePeakIntensity = dataPoints[i].getIntensity();
+                    basePeakMZ = dataPoints[i].getMZ();
+                }
+            }
+
             // calculate TIC
             totalIonCurrent = 0;
-            for (float intensity : intensityValues) totalIonCurrent += intensity;
-            
+            for (DataPoint dp : dataPoints)
+                totalIonCurrent += dp.getIntensity();
+
         } else {
-        	// Empty scan, so no m/z range or base peak
-        	mzRangeMin = 0;
-        	mzRangeMax = mzRangeMin;
-	        basePeakMZ = 0;
-	        basePeakIntensity = 0;    
+            // Empty scan, so no m/z range or base peak
+            mzRangeMin = 0;
+            mzRangeMax = mzRangeMin;
+            basePeakMZ = 0;
+            basePeakIntensity = 0;
             totalIonCurrent = 0;
         }
-        
 
     }
 
@@ -134,7 +142,7 @@ public class SimpleScan implements Scan {
      * @see net.sf.mzmine.data.Scan#getNumberOfDataPoints()
      */
     public int getNumberOfDataPoints() {
-        return mzValues.length;
+        return dataPoints.length;
     }
 
     /**
@@ -179,7 +187,6 @@ public class SimpleScan implements Scan {
         this.precursorMZ = precursorMZ;
     }
 
-    
     /**
      * @return Returns the precursorCharge.
      */
@@ -187,7 +194,6 @@ public class SimpleScan implements Scan {
         return precursorCharge;
     }
 
-    
     /**
      * @param precursorCharge The precursorCharge to set.
      */
@@ -313,9 +319,11 @@ public class SimpleScan implements Scan {
     public float getMassTolerance() {
         return 0.5f;
     }
-    
+
     public float getTIC() {
         return totalIonCurrent;
     }
+
+
 
 }

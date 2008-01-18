@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2007 The MZmine Development Team
+ * Copyright 2006-2008 The MZmine Development Team
  *
  * This file is part of MZmine.
  *
@@ -25,7 +25,9 @@ import java.util.Hashtable;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import net.sf.mzmine.data.DataPoint;
 import net.sf.mzmine.data.Scan;
+import net.sf.mzmine.data.impl.SimpleDataPoint;
 import net.sf.mzmine.data.impl.SimpleScan;
 import net.sf.mzmine.io.RawDataFileReader;
 import ucar.ma2.Array;
@@ -292,7 +294,7 @@ public class NetCDFFileReader implements RawDataFileReader {
         // An empty scan needs some special attention..
         if (scanLength[0]==0) {
             scanNum++;
-            return new SimpleScan(scanNum, 1, retentionTime.floatValue(), -1, 0, null, new float[0], new float[0], false);
+            return new SimpleScan(scanNum, 1, retentionTime.floatValue(), -1, 0, null, new DataPoint[0], false);
         }
 
         // Read mass and intensity values
@@ -321,21 +323,6 @@ public class NetCDFFileReader implements RawDataFileReader {
             doubleMassValues = null;
         }
 
-        if (massValueVariable.getDataType().getPrimitiveClassType() == short.class) {
-            short[] shortMassValues = (short[])massValueArray.copyTo1DJavaArray();
-            massValues = new float[shortMassValues.length];
-            for (int j=0; j<massValues.length; j++) { massValues[j] = (float)(shortMassValues[j]); }
-            shortMassValues = null;
-        }
-
-        if (massValueVariable.getDataType().getPrimitiveClassType() == int.class) {
-            int[] intMassValues = (int[])massValueArray.copyTo1DJavaArray();
-            massValues = new float[intMassValues.length];
-            for (int j=0; j<massValues.length; j++) { massValues[j] = (float)(intMassValues[j]); }
-            intMassValues = null;
-        }
-
-
         float[] intensityValues = null;
 
         if (intensityValueVariable.getDataType().getPrimitiveClassType() == float.class) {
@@ -349,23 +336,14 @@ public class NetCDFFileReader implements RawDataFileReader {
             doubleIntensityValues = null;
         }
 
-        if (intensityValueVariable.getDataType().getPrimitiveClassType() == short.class) {
-            short[] shortIntensityValues = (short[])intensityValueArray.copyTo1DJavaArray();
-            intensityValues = new float[shortIntensityValues.length];
-            for (int j=0; j<intensityValues.length; j++) { intensityValues[j] = (float)(shortIntensityValues[j]); }
-            shortIntensityValues = null;
-        }
-
-        if (intensityValueVariable.getDataType().getPrimitiveClassType() == int.class) {
-            int[] intIntensityValues = (int[])intensityValueArray.copyTo1DJavaArray();
-            intensityValues = new float[intIntensityValues.length];
-            for (int j=0; j<intensityValues.length; j++) {  intensityValues[j] = (float)(intIntensityValues[j]); }
-            intIntensityValues = null;
+        DataPoint dataPoints[] = new DataPoint[massValues.length];
+        for (int i = 0; i < massValues.length; i++) {
+            dataPoints[i] = new SimpleDataPoint(massValues[i], intensityValues[i]);
         }
 
         scanNum++;
         
-        return new SimpleScan(scanNum, 1, retentionTime.floatValue(), -1, 0, null, massValues, intensityValues, false);
+        return new SimpleScan(scanNum, 1, retentionTime.floatValue(), -1, 0, null, dataPoints, false);
 
 
     }

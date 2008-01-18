@@ -19,6 +19,7 @@
 
 package net.sf.mzmine.modules.visualization.spectra;
 
+import net.sf.mzmine.data.DataPoint;
 import net.sf.mzmine.data.Scan;
 
 import org.jfree.data.xy.AbstractXYDataset;
@@ -35,12 +36,11 @@ class ScanDataSet extends AbstractXYDataset implements IntervalXYDataset {
      * Save a local copy of m/z and intensity values, because accessing the scan
      * every time may cause reloading the data from HDD
      */
-    private float mzValues[], intensityValues[];
+    private DataPoint dataPoints[];
 
     ScanDataSet(Scan scan) {
         this.scan = scan;
-        mzValues = scan.getMZValues();
-        intensityValues = scan.getIntensityValues();
+        dataPoints = scan.getDataPoints();
     }
 
     @Override public int getSeriesCount() {
@@ -52,15 +52,15 @@ class ScanDataSet extends AbstractXYDataset implements IntervalXYDataset {
     }
 
     public int getItemCount(int series) {
-        return mzValues.length;
+        return dataPoints.length;
     }
 
     public Number getX(int series, int item) {
-        return mzValues[item];
+        return dataPoints[item].getMZ();
     }
 
     public Number getY(int series, int item) {
-        return intensityValues[item];
+        return dataPoints[item].getIntensity();
     }
 
     public Number getEndX(int series, int item) {

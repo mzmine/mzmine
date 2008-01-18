@@ -20,8 +20,8 @@
 package net.sf.mzmine.modules.filtering.crop;
 
 import java.io.IOException;
-import java.util.Arrays;
 
+import net.sf.mzmine.data.DataPoint;
 import net.sf.mzmine.data.Scan;
 import net.sf.mzmine.data.impl.SimpleScan;
 import net.sf.mzmine.io.RawDataFile;
@@ -146,38 +146,11 @@ class CropFilterTask implements Task {
                     }
 
                     // Pickup datapoints inside the m/z range
-                    float originalMassValues[] = oldScan.getMZValues();
-                    float originalIntensityValues[] = oldScan.getIntensityValues();
-
-                    // Find minimum index within m/z range
-                    int minIndex = Arrays.binarySearch(originalMassValues,
-                            minMZ);
-                    if (minIndex < 0)
-                        minIndex = (minIndex * -1) - 1;
-
-                    // Find maximum index within m/z range
-                    int maxIndex = Arrays.binarySearch(originalMassValues,
-                            maxMZ);
-                    if (maxIndex < 0)
-                        maxIndex = (maxIndex * -1) - 2;
-
-                    // Skip this scan if there are no m/z values in range
-                    if (maxIndex < minIndex)
-                        continue;
-
-                    // Create cropped m/z and intensity arrays
-                    float newMassValues[] = new float[maxIndex - minIndex + 1];
-                    float newIntValues[] = new float[maxIndex - minIndex + 1];
-
-                    // Fill cropped m/z and intensity arrays
-                    for (int ind = minIndex; ind <= maxIndex; ind++) {
-                        newMassValues[ind - minIndex] = originalMassValues[ind];
-                        newIntValues[ind - minIndex] = originalIntensityValues[ind];
-                    }
+                    DataPoint croppedDataPoints[] = oldScan.getDataPoints(minMZ, maxMZ);
 
                     // Create updated scan
                     SimpleScan newScan = new SimpleScan(oldScan);
-                    newScan.setData(newMassValues, newIntValues);
+                    newScan.setDataPoints(croppedDataPoints);
 
                     // Write the updated scan to new file
                     rawDataFileWriter.addScan(newScan);
