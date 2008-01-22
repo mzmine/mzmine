@@ -31,6 +31,8 @@ import net.sf.mzmine.io.RawDataFile;
 import net.sf.mzmine.io.PreloadLevel;
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.project.MZmineProject;
+import net.sf.mzmine.project.ProjectListener;
+import net.sf.mzmine.project.ProjectListener.ProjectEvent;
 import net.sf.mzmine.userinterface.mainwindow.ItemSelector;
 import net.sf.mzmine.userinterface.mainwindow.MainWindow;
 
@@ -43,7 +45,9 @@ public class MZmineProjectImpl implements MZmineProject {
     private Vector<RawDataFile> projectFiles;
     private Vector<PeakList> projectPeakLists;
     private Hashtable<Parameter, Hashtable<RawDataFile, Object>> projectParametersAndValues;
-    private Hashtable<RawDataFile, PeakList> peakLists;
+    
+    private Vector<ProjectListener> listeners;
+    
     private Logger logger = Logger.getLogger(this.getClass().getName());
     //filePath to save project
     private File dirPath;
@@ -60,7 +64,7 @@ public class MZmineProjectImpl implements MZmineProject {
 			logger.fine("Could not make temporary file");
 		}
 		this.setLocation(new File(dirPath));
-		peakLists = new Hashtable<RawDataFile, PeakList>();
+        listeners = new Vector<ProjectListener>();
     }
     
     public void setLocation(File dirPath){
@@ -118,6 +122,8 @@ public class MZmineProjectImpl implements MZmineProject {
         ItemSelector itemSelector = mainWindow.getItemSelector();
         projectFiles.add(newFile);
         itemSelector.addRawData(newFile);
+        for (ProjectListener l : listeners)
+            l.projectModified(ProjectEvent.DATA_FILE_CHANGE);
     }
 
     public void removeFile(RawDataFile file) {
@@ -125,6 +131,8 @@ public class MZmineProjectImpl implements MZmineProject {
         ItemSelector itemSelector = mainWindow.getItemSelector();
         projectFiles.remove(file);
         itemSelector.removeRawData(file);
+        for (ProjectListener l : listeners)
+            l.projectModified(ProjectEvent.DATA_FILE_CHANGE);
     }
 
     public RawDataFile[] getDataFiles() {
@@ -136,6 +144,8 @@ public class MZmineProjectImpl implements MZmineProject {
         ItemSelector itemSelector = mainWindow.getItemSelector();
         projectPeakLists.add(peakList);
         itemSelector.addPeakList(peakList);
+        for (ProjectListener l : listeners)
+            l.projectModified(ProjectEvent.PEAKLIST_CHANGE);
     }
 
     public void removePeakList(PeakList peakList) {
@@ -143,6 +153,8 @@ public class MZmineProjectImpl implements MZmineProject {
         ItemSelector itemSelector = mainWindow.getItemSelector();
         projectPeakLists.remove(peakList);
         itemSelector.removePeakList(peakList);
+        for (ProjectListener l : listeners)
+            l.projectModified(ProjectEvent.PEAKLIST_CHANGE);
     }
 
     public PeakList[] getPeakLists() {
@@ -185,6 +197,14 @@ public class MZmineProjectImpl implements MZmineProject {
     		file.delete();
     	}
     	this.getLocation().delete();
+    }
+
+    public void addProjectListener(ProjectListener listener) {
+        listeners.add(listener);
+    }
+
+    public void removeProjectListener(ProjectListener listener) {
+        listeners.remove(listener);
     }
 
 }
