@@ -51,7 +51,6 @@ class ThreeDBottomPanel extends JPanel implements ProjectListener,
     private JCheckBox showIdChkBox;
 
     private RawDataFile dataFile;
-
     private MZmineProject project;
 
     ThreeDBottomPanel(ThreeDVisualizerWindow masterFrame, RawDataFile dataFile) {
@@ -60,7 +59,7 @@ class ThreeDBottomPanel extends JPanel implements ProjectListener,
 
         setBackground(Color.white);
         setBorder(new EmptyBorder(5, 5, 5, 0));
-        
+
         add(Box.createHorizontalGlue());
 
         this.dataFile = dataFile;
@@ -73,9 +72,9 @@ class ThreeDBottomPanel extends JPanel implements ProjectListener,
         peakListSelector.addActionListener(masterFrame);
         peakListSelector.setActionCommand("PEAKLIST_CHANGE");
         add(peakListSelector);
-        
+
         add(Box.createHorizontalStrut(10));
-        
+
         showIdChkBox = new JCheckBox("Show compound name");
         showIdChkBox.setSelected(true);
         showIdChkBox.setBackground(Color.white);
@@ -83,7 +82,7 @@ class ThreeDBottomPanel extends JPanel implements ProjectListener,
         showIdChkBox.addActionListener(masterFrame);
         showIdChkBox.setActionCommand("PEAKLIST_CHANGE");
         add(showIdChkBox);
-        
+
         project = MZmineCore.getCurrentProject();
         project.addProjectListener(this);
 
@@ -91,11 +90,17 @@ class ThreeDBottomPanel extends JPanel implements ProjectListener,
 
     }
 
+    /**
+     * Returns selected peak list
+     */
     PeakList getSelectedPeakList() {
         PeakList selectedPeakList = (PeakList) peakListSelector.getSelectedItem();
         return selectedPeakList;
     }
 
+    /**
+     * Reloads peak lists from the project to the selector combo box
+     */
     void rebuildPeakListSelector() {
         PeakList selectedPeakList = (PeakList) peakListSelector.getSelectedItem();
         PeakList currentPeakLists[] = MZmineCore.getCurrentProject().getPeakLists(
@@ -120,10 +125,12 @@ class ThreeDBottomPanel extends JPanel implements ProjectListener,
         // Ignore
     }
 
+    /**
+     * We have to remove the listener when the window is closed, because
+     * otherwise the project would always keep a reference to this window and
+     * the GC would not be able to collect it
+     */
     public void internalFrameClosed(InternalFrameEvent event) {
-        // We have to remove the listener when the window is closed, because
-        // otherwise the project would always keep a reference to this window
-        // and the GC would not be able to collect it
         project.removeProjectListener(this);
     }
 
@@ -146,7 +153,7 @@ class ThreeDBottomPanel extends JPanel implements ProjectListener,
     public void internalFrameOpened(InternalFrameEvent event) {
         // Ignore
     }
-    
+
     boolean showCompoundNameSelected() {
         return showIdChkBox.isSelected();
     }

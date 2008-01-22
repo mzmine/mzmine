@@ -34,7 +34,6 @@ import net.sf.mzmine.data.PeakList;
 import net.sf.mzmine.data.Scan;
 import net.sf.mzmine.io.RawDataFile;
 import net.sf.mzmine.main.MZmineCore;
-import net.sf.mzmine.project.MZmineProject;
 import net.sf.mzmine.userinterface.Desktop;
 import net.sf.mzmine.userinterface.dialogs.AxesSetupDialog;
 
@@ -84,12 +83,16 @@ class SpectraVisualizerWindow extends JInternalFrame implements ActionListener {
         toolBar = new SpectraToolBar(this);
         add(toolBar, BorderLayout.EAST);
 
-        bottomPanel = new SpectraBottomPanel(this);
+        bottomPanel = new SpectraBottomPanel(this, dataFile);
         add(bottomPanel, BorderLayout.SOUTH);
 
         loadScan(scanNumber);
 
         pack();
+
+        // After we have constructed everything, load the peak lists into the
+        // bottom panel
+        bottomPanel.rebuildPeakListSelector();
 
     }
 
@@ -107,9 +110,7 @@ class SpectraVisualizerWindow extends JInternalFrame implements ActionListener {
                 currentScan = dataFile.getScan(scanNumber);
                 scanDataSet = new ScanDataSet(currentScan);
 
-                JComboBox peakListSelector = bottomPanel.getPeakListSelector();
-
-                PeakList selectedPeakList = (PeakList) peakListSelector.getSelectedItem();
+                PeakList selectedPeakList = bottomPanel.getSelectedPeakList();
                 PeakListDataSet peaksDataSet = null;
 
                 if (selectedPeakList != null) {
@@ -122,18 +123,6 @@ class SpectraVisualizerWindow extends JInternalFrame implements ActionListener {
 
                 // Set plot data sets
                 spectrumPlot.setDataSets(scanDataSet, peaksDataSet);
-
-                // Update the peak list combo contents
-                peakListSelector.removeAllItems();
-                MZmineProject project = MZmineCore.getCurrentProject();
-                PeakList availablePeakLists[] = project.getPeakLists(dataFile);
-                // Add peak lists in reverse order
-                for (int i = availablePeakLists.length - 1; i >= 0; i--)
-                    peakListSelector.addItem(availablePeakLists[i]);
-                if (selectedPeakList != null)
-                    peakListSelector.setSelectedItem(selectedPeakList);
-                peakListSelector.setEnabled((currentScan.getMSLevel() == 1)
-                        && (availablePeakLists.length > 0));
 
                 // if the scan is centroided, switch to centroid mode
                 if (currentScan.isCentroided()) {
@@ -273,8 +262,7 @@ class SpectraVisualizerWindow extends JInternalFrame implements ActionListener {
         }
 
         if (command.equals("PEAKLIST_CHANGE")) {
-            JComboBox peakListSelector = bottomPanel.getPeakListSelector();
-            PeakList selectedPeakList = (PeakList) peakListSelector.getSelectedItem();
+            PeakList selectedPeakList = bottomPanel.getSelectedPeakList();
             PeakListDataSet peaksDataSet = null;
 
             if (selectedPeakList != null) {
