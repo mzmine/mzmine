@@ -140,7 +140,7 @@ public class NeutralLossVisualizerWindow extends JInternalFrame implements
             NeutralLossDataPoint pos = getCursorPosition();
             if (pos != null) {
                 SpectraVisualizer specVis = SpectraVisualizer.getInstance();
-                specVis.showNewSpectraWindow(dataFile,
+                specVis.showNewSpectrumWindow(dataFile,
                         pos.getScanNumber());
             }
         }

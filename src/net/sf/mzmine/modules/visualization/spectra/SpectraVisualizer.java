@@ -79,11 +79,11 @@ public class SpectraVisualizer implements MZmineModule, ActionListener {
             return;
         }
 
-        showNewSpectraWindow(dataFiles[0], parameters);
+        showNewSpectrumWindow(dataFiles[0], parameters);
 
     }
 
-    private void showNewSpectraWindow(RawDataFile dataFile,
+    private void showNewSpectrumWindow(RawDataFile dataFile,
             SpectraVisualizerParameters parameters) {
 
         ParameterSetupDialog dialog = new ParameterSetupDialog(
@@ -96,11 +96,11 @@ public class SpectraVisualizer implements MZmineModule, ActionListener {
 
         Integer scanNumber = (Integer) parameters.getParameterValue(SpectraVisualizerParameters.scanNumber);
 
-        showNewSpectraWindow(dataFile, scanNumber);
+        showNewSpectrumWindow(dataFile, scanNumber);
 
     }
 
-    public void showNewSpectraWindow(RawDataFile dataFile, int scanNumber) {
+    public void showNewSpectrumWindow(RawDataFile dataFile, int scanNumber) {
         SpectraVisualizerWindow newWindow = new SpectraVisualizerWindow(
                 dataFile, scanNumber);
         desktop.addInternalFrame(newWindow);

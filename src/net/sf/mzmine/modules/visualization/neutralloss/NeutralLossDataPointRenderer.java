@@ -50,7 +50,7 @@ class NeutralLossDataPointRenderer extends XYLineAndShapeRenderer {
         
         this.nlPlot = nlPlot;
 
-        setShape(dataPointsShape);
+        setBaseShape(dataPointsShape);
 
     }
 
@@ -66,9 +66,9 @@ class NeutralLossDataPointRenderer extends XYLineAndShapeRenderer {
         // set the color to red for highlighted points
         if ((point.getPrecursorMZ() < nlPlot.getHighlightedMin())
                 || (point.getPrecursorMZ() > nlPlot.getHighlightedMax()))
-            setPaint(Color.blue, false);
+            setBasePaint(Color.blue, false);
         else
-            setPaint(Color.red, false);
+            setBasePaint(Color.red, false);
 
         super.drawItem(g2, state, dataArea, info, plot, domainAxis, rangeAxis,
                 dataset, series, item, crosshairState, pass);

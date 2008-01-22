@@ -329,7 +329,7 @@ class SpectraVisualizerWindow extends JInternalFrame implements ActionListener {
             int selectedScan = Integer.valueOf(selectedScanString);
 
             SpectraVisualizer specVis = SpectraVisualizer.getInstance();
-            specVis.showNewSpectraWindow(dataFile, selectedScan);
+            specVis.showNewSpectrumWindow(dataFile, selectedScan);
         }
 
     }

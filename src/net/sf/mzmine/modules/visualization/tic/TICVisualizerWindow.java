@@ -301,7 +301,7 @@ public class TICVisualizerWindow extends JInternalFrame implements
             CursorPosition pos = getCursorPosition();
             if (pos != null) {
                 SpectraVisualizer specVis = SpectraVisualizer.getInstance();
-                specVis.showNewSpectraWindow(pos.getDataFile(),
+                specVis.showNewSpectrumWindow(pos.getDataFile(),
                         pos.getScanNumber());
             }
         }

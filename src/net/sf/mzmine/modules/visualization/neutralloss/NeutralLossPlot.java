@@ -114,7 +114,7 @@ class NeutralLossPlot extends ChartPanel {
         renderer = new NeutralLossDataPointRenderer(this);
 
         // tooltips
-        renderer.setToolTipGenerator(dataset);
+        renderer.setBaseToolTipGenerator(dataset);
 
         
         // set the plot properties

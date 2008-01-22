@@ -525,7 +525,7 @@ public class OldTwoDPlot extends JPanel implements ActionListener,
             int scanNumber = dataset.getScanNumber(xIndex);
 
             SpectraVisualizer specVis = SpectraVisualizer.getInstance();
-            specVis.showNewSpectraWindow(dataset.getRawDataFile(), scanNumber);
+            specVis.showNewSpectrumWindow(dataset.getRawDataFile(), scanNumber);
 
         }
 
