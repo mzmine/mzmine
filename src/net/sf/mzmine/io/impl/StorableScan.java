@@ -45,12 +45,12 @@ public class StorableScan implements Scan {
     private float mzRangeMin, mzRangeMax;
     private float basePeakMZ, basePeakIntensity, totalIonCurrent;
     private boolean centroided;
-
+    
     private long storageFileOffset;
     private int storageArrayByteLength;
     private int numberOfDataPoints;
     private RawDataFile rawDataFile;
-
+    
     /**
      * Clone constructor
      */
@@ -70,7 +70,7 @@ public class StorableScan implements Scan {
 
         // check assumptions about proper scan data
         assert (msLevel == 1) || (parentScan > 0);
-
+        
         // save rawDataFile file reference
         this.rawDataFile = rawDataFile;
 

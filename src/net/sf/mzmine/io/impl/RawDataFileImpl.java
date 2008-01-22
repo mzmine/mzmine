@@ -21,8 +21,8 @@ package net.sf.mzmine.io.impl;
 
 import java.io.File;
 import java.io.FileNotFoundException;
-import java.io.IOException;
 import java.io.RandomAccessFile;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Enumeration;
@@ -49,7 +49,6 @@ class RawDataFileImpl implements RawDataFile, RawDataFileWriter {
     private Logger logger = Logger.getLogger(this.getClass().getName());
 
     private String fileName; //this is just a name of this object
-    private File filePath;   //this is the file path of raw data file in file system.
 
     private Hashtable<Integer, Float> dataMinMZ, dataMaxMZ, dataMinRT,
             dataMaxRT, dataMaxBasePeakIntensity, dataMaxTIC;
@@ -60,43 +59,25 @@ class RawDataFileImpl implements RawDataFile, RawDataFileWriter {
      * Preloaded scans
      */
     private Hashtable<Integer, Scan> scans, writingScans;
-
     private PreloadLevel preloadLevel;
-
-    
-    
-    /**
-     * This constructor is for DataFiles which are created during operation
-     * Thus they are not really a raw data file.
-     * It might be better to have a separate class for this kind of "Data File"
-     */
+   
     RawDataFileImpl(String fileName, String suffix ,PreloadLevel preloadLevel) throws IOException {
 
         this.preloadLevel = preloadLevel;
         this.fileName=fileName;
-        this.filePath=new File("");
         // create temporary file for scan data
         if (preloadLevel != PreloadLevel.PRELOAD_ALL_SCANS) {
         	File dirPath=MZmineCore.getCurrentProject().getLocation();
         	writingScanDataFileName=fileName+ "." +suffix;
         	File scanfile=new File(dirPath,writingScanDataFileName);
         	scanfile.createNewFile();
-            writingScanDataFile=new RandomAccessFile(scanfile,"rw");
+        	scanfile.deleteOnExit();
+            writingScanDataFile=new RandomAccessFile(scanfile,"rw");      
         }
 
         // prepare new Hashtable for scans
         writingScans = new Hashtable<Integer, Scan>();
     }   
-
-    /**
-     * It is better to keep the reference to real raw file rather than 
-     * just the file name.
-     */
-    RawDataFileImpl(File file, PreloadLevel preloadLevel) throws IOException {
-
-    	this(file.getName(), "scan" ,preloadLevel);
-    	this.filePath=file;
-    }
     
     /**
      * @see net.sf.mzmine.io.RawDataFile#getFilePath()
@@ -105,18 +86,6 @@ class RawDataFileImpl implements RawDataFile, RawDataFileWriter {
         return this.fileName;
     }    
     
-    /**
-     * @see net.sf.mzmine.io.RawDataFile#getFilePath()
-     */
-    public File getFilePath() {
-        return this.filePath;
-    }     
-    /**
-     * @see net.sf.mzmine.io.RawDataFile#setFilePath()
-     */
-    public void setFilePath(File filePath) {
-        this.filePath=filePath;
-    }     
     /**
      * @see net.sf.mzmine.io.RawDataFile#getScanDataFile()
      */
@@ -194,7 +163,6 @@ class RawDataFileImpl implements RawDataFile, RawDataFileWriter {
 
             if ((minMZ == null) || (scan.getMZRangeMin() < minMZ))
                 minMZ = scan.getMZRangeMin();
-
         }
 
         // return -1 if no scan at this MS level
