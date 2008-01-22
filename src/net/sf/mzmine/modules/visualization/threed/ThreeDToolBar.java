@@ -1,5 +1,5 @@
 /*
- * Copyright 2006 The MZmine Development Team
+ * Copyright 2006-2008 The MZmine Development Team
  * 
  * This file is part of MZmine.
  * 
@@ -30,12 +30,13 @@ import javax.swing.plaf.metal.MetalIconFactory;
 import net.sf.mzmine.util.GUIUtils;
 
 /**
- * 3D visualizer's toolbar class
+ * 3D visualizer's toolbar
  */
 class ThreeDToolBar extends JToolBar {
 
     static final Icon propertiesIcon = MetalIconFactory.getTreeComputerIcon();
-    static final Icon annotationsIcon = new ImageIcon("icons/annotationsicon.png");
+    static final Icon annotationsIcon = new ImageIcon(
+            "icons/annotationsicon.png");
 
     ThreeDToolBar(ThreeDVisualizerWindow masterFrame) {
 

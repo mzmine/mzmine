@@ -36,7 +36,7 @@ import net.sf.mzmine.userinterface.dialogs.ExitCode;
 import net.sf.mzmine.userinterface.dialogs.ParameterSetupDialog;
 
 /**
- * 3D visualizer using VisAD library
+ * 3D visualizer module
  */
 public class ThreeDVisualizer implements MZmineModule, ActionListener {
 
@@ -69,7 +69,7 @@ public class ThreeDVisualizer implements MZmineModule, ActionListener {
 
         RawDataFile dataFiles[] = desktop.getSelectedDataFiles();
         if (dataFiles.length != 1) {
-            desktop.displayErrorMessage("Please select a single file");
+            desktop.displayErrorMessage("Please select a single data file");
             return;
         }
 
@@ -101,10 +101,10 @@ public class ThreeDVisualizer implements MZmineModule, ActionListener {
         int rtRes = (Integer) parameters.getParameterValue(ThreeDVisualizerParameters.rtResolution);
         int mzRes = (Integer) parameters.getParameterValue(ThreeDVisualizerParameters.mzResolution);
 
-        ThreeDVisualizerWindow newWindow = new ThreeDVisualizerWindow(
-                dataFiles[0], msLevel, rtMin, rtMax, mzMin, mzMax, rtRes, mzRes);
-
-        desktop.addInternalFrame(newWindow);
+        // Create a window, but do not add it to the desktop. It will be added
+        // automatically after finishing the sampling task.
+        new ThreeDVisualizerWindow(dataFiles[0], msLevel, rtMin, rtMax, mzMin,
+                mzMax, rtRes, mzRes);
 
     }
 

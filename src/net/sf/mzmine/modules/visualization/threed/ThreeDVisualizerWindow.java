@@ -23,15 +23,19 @@ import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Component;
 import java.awt.Dimension;
+import java.awt.Font;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.MouseWheelEvent;
 import java.awt.event.MouseWheelListener;
+import java.util.logging.Logger;
 
 import javax.swing.BorderFactory;
 import javax.swing.JInternalFrame;
 import javax.swing.JLabel;
 
+import net.sf.mzmine.data.Peak;
+import net.sf.mzmine.data.PeakList;
 import net.sf.mzmine.io.RawDataFile;
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.taskcontrol.Task;
@@ -39,19 +43,18 @@ import net.sf.mzmine.taskcontrol.TaskListener;
 import net.sf.mzmine.taskcontrol.Task.TaskPriority;
 import net.sf.mzmine.taskcontrol.Task.TaskStatus;
 import net.sf.mzmine.userinterface.Desktop;
-import net.sf.mzmine.util.CursorPosition;
-import visad.ConstantMap;
-import visad.DataReference;
 import visad.ProjectionControl;
-import visad.bom.PickManipulationRendererJ3D;
-import visad.java3d.DisplayImplJ3D;
 import visad.java3d.MouseBehaviorJ3D;
 
 /**
- * 3D visualizer using VisAd library
+ * 3D visualizer frame
  */
 public class ThreeDVisualizerWindow extends JInternalFrame implements
-         TaskListener, MouseWheelListener, ActionListener {
+        TaskListener, MouseWheelListener, ActionListener {
+
+    private Logger logger = Logger.getLogger(this.getClass().getName());
+
+    private static final Font titleFont = new Font("SansSerif", Font.BOLD, 12);
 
     private ThreeDToolBar toolBar;
     private JLabel titleLabel;
@@ -60,13 +63,10 @@ public class ThreeDVisualizerWindow extends JInternalFrame implements
     private RawDataFile dataFile;
     private int msLevel;
 
-    private DisplayImplJ3D display;
+    private ThreeDDisplay display;
 
-    // reference to a peak data
-    private DataReference peaksDataReference;
-    private boolean peaksShown = false;
-    private ConstantMap[] peakColorMap;
-    private PickManipulationRendererJ3D peakRenderer;
+    // Axes bounds
+    private float rtMin, rtMax, mzMin, mzMax;
 
     private Desktop desktop;
 
@@ -82,57 +82,63 @@ public class ThreeDVisualizerWindow extends JInternalFrame implements
         this.desktop = MZmineCore.getDesktop();
         this.dataFile = dataFile;
         this.msLevel = msLevel;
+        this.rtMin = rtMin;
+        this.rtMax = rtMax;
+        this.mzMin = mzMin;
+        this.mzMax = mzMax;
 
         toolBar = new ThreeDToolBar(this);
         add(toolBar, BorderLayout.EAST);
 
         titleLabel = new JLabel();
-        titleLabel.setFont(titleLabel.getFont().deriveFont(10f));
+        titleLabel.setFont(titleFont);
         titleLabel.setBorder(BorderFactory.createEmptyBorder(5, 5, 5, 5));
         titleLabel.setHorizontalAlignment(JLabel.CENTER);
         add(titleLabel, BorderLayout.NORTH);
 
-        bottomPanel = new ThreeDBottomPanel(this);
+        bottomPanel = new ThreeDBottomPanel(this, dataFile);
         add(bottomPanel, BorderLayout.SOUTH);
-        
+
         int scanNumbers[] = dataFile.getScanNumbers(msLevel, rtMin, rtMax);
         if (scanNumbers.length == 0) {
             desktop.displayErrorMessage("No scans found at MS level " + msLevel
                     + " within given retention time range.");
             return;
         }
-        
+
         // create 3D display
         try {
-            display = new DisplayImplJ3D(dataFile.toString());
+            display = new ThreeDDisplay();
         } catch (Exception e) {
             e.printStackTrace();
         }
-        
+
         // add the 3D component
         Component threeDPlot = display.getComponent();
         threeDPlot.setPreferredSize(new Dimension(700, 500));
         threeDPlot.addMouseWheelListener(this);
         add(threeDPlot, BorderLayout.CENTER);
-        
+
         updateTitle();
         pack();
 
         Task updateTask = new ThreeDSamplingTask(dataFile, scanNumbers, rtMin,
-                rtMax, mzMin, mzMax, rtResolution, mzResolution, this, display);
+                rtMax, mzMin, mzMax, rtResolution, mzResolution, display);
 
         MZmineCore.getTaskController().addTask(updateTask, TaskPriority.HIGH,
                 this);
 
+        // After we have constructed everything, load the peak lists into the
+        // bottom panel
+        bottomPanel.rebuildPeakListSelector();
+
     }
-
-
 
     void updateTitle() {
 
         StringBuffer title = new StringBuffer();
 
-        title.append(dataFile.toString());
+        title.append("[" + dataFile + "]");
         title.append(": 3D view");
 
         setTitle(title.toString());
@@ -142,33 +148,6 @@ public class ThreeDVisualizerWindow extends JInternalFrame implements
 
         titleLabel.setText(title.toString());
 
-    }
-
-    /**
-     * @param peakRenderer
-     * @param peaksDataReference The peaksDataReference to set.
-     * @param peakColorMap
-     */
-    void setPeaksDataReference(PickManipulationRendererJ3D peakRenderer,
-            DataReference peaksDataReference, ConstantMap[] peakColorMap) {
-        this.peakRenderer = peakRenderer;
-        this.peaksDataReference = peaksDataReference;
-        this.peakColorMap = peakColorMap;
-        this.peaksShown = true;
-    }
-
-    /**
-     * @see net.sf.mzmine.modules.RawDataVisualizer#getCursorPosition()
-     */
-    public CursorPosition getCursorPosition() {
-        return null;
-    }
-
-    /**
-     * @see net.sf.mzmine.modules.RawDataVisualizer#setCursorPosition(net.sf.mzmine.util.CursorPosition)
-     */
-    public void setCursorPosition(CursorPosition newPosition) {
-        // do nothing
     }
 
     /**
@@ -183,9 +162,8 @@ public class ThreeDVisualizerWindow extends JInternalFrame implements
         }
 
         if (task.getStatus() == TaskStatus.FINISHED) {
-
-
-
+            // Add this window to desktop 
+            desktop.addInternalFrame(this);
         }
 
     }
@@ -233,30 +211,30 @@ public class ThreeDVisualizerWindow extends JInternalFrame implements
         String command = event.getActionCommand();
 
         if (command.equals("PROPERTIES")) {
-            ThreeDPropertiesDialog dialog = new ThreeDPropertiesDialog(desktop,
-                    display);
+            ThreeDPropertiesDialog dialog = new ThreeDPropertiesDialog(display);
             dialog.setVisible(true);
         }
 
-        if (command.equals("SHOW_ANNOTATIONS")) {
+        if (command.equals("PEAKLIST_CHANGE")) {
 
-            if (peaksDataReference == null)
+            PeakList selectedPeakList = bottomPanel.getSelectedPeakList();
+            if (selectedPeakList == null)
+
                 return;
 
-            try {
+            logger.finest("Loading a peak list " + selectedPeakList
+                    + " to a 3D view of " + dataFile);
 
-                if (peaksShown) {
-                    display.removeReference(peaksDataReference);
-                    peaksShown = false;
-                } else {
-                    display.addReferences(peakRenderer, peaksDataReference,
-                            peakColorMap);
-                    peaksShown = true;
-                }
+            Peak peaks[] = selectedPeakList.getPeaksInsideScanAndMZRange(
+                    dataFile, rtMin, rtMax, mzMin, mzMax);
 
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
+            display.setPeaks(selectedPeakList, peaks,
+                    bottomPanel.showCompoundNameSelected());
+
+        }
+
+        if (command.equals("SHOW_ANNOTATIONS")) {
+            display.toggleShowingPeaks();
         }
 
     }

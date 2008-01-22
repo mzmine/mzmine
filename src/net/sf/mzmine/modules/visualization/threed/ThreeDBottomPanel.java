@@ -24,48 +24,131 @@ import java.awt.Font;
 
 import javax.swing.Box;
 import javax.swing.BoxLayout;
-import javax.swing.JButton;
+import javax.swing.JCheckBox;
 import javax.swing.JComboBox;
 import javax.swing.JPanel;
 import javax.swing.SwingConstants;
+import javax.swing.border.EmptyBorder;
+import javax.swing.event.InternalFrameEvent;
+import javax.swing.event.InternalFrameListener;
 
+import net.sf.mzmine.data.PeakList;
+import net.sf.mzmine.io.RawDataFile;
+import net.sf.mzmine.main.MZmineCore;
+import net.sf.mzmine.project.MZmineProject;
+import net.sf.mzmine.project.ProjectListener;
 import net.sf.mzmine.util.GUIUtils;
 
 /**
- * Spectra visualizer's bottom panel
+ * 3D visualizer's bottom panel
  */
-class ThreeDBottomPanel extends JPanel {
+class ThreeDBottomPanel extends JPanel implements ProjectListener,
+        InternalFrameListener {
 
     private static final Font smallFont = new Font("SansSerif", Font.PLAIN, 10);
 
     private JComboBox peakListSelector;
+    private JCheckBox showIdChkBox;
 
-    ThreeDBottomPanel(ThreeDVisualizerWindow masterFrame) {
+    private RawDataFile dataFile;
+
+    private MZmineProject project;
+
+    ThreeDBottomPanel(ThreeDVisualizerWindow masterFrame, RawDataFile dataFile) {
 
         setLayout(new BoxLayout(this, BoxLayout.X_AXIS));
 
         setBackground(Color.white);
+        setBorder(new EmptyBorder(5, 5, 5, 0));
+        
+        add(Box.createHorizontalGlue());
 
-        add(Box.createHorizontalStrut(10));
+        this.dataFile = dataFile;
 
         GUIUtils.addLabel(this, "Peak list: ", SwingConstants.RIGHT);
 
         peakListSelector = new JComboBox();
-        peakListSelector.setEnabled(false);
         peakListSelector.setBackground(Color.white);
         peakListSelector.setFont(smallFont);
         peakListSelector.addActionListener(masterFrame);
         peakListSelector.setActionCommand("PEAKLIST_CHANGE");
         add(peakListSelector);
+        
+        add(Box.createHorizontalStrut(10));
+        
+        showIdChkBox = new JCheckBox("Show compound name");
+        showIdChkBox.setSelected(true);
+        showIdChkBox.setBackground(Color.white);
+        showIdChkBox.setFont(smallFont);
+        showIdChkBox.addActionListener(masterFrame);
+        showIdChkBox.setActionCommand("PEAKLIST_CHANGE");
+        add(showIdChkBox);
+        
+        project = MZmineCore.getCurrentProject();
+        project.addProjectListener(this);
 
         add(Box.createHorizontalGlue());
 
-
-        add(Box.createHorizontalStrut(10));
-
     }
 
-    JComboBox getPeakListSelector() {
-        return peakListSelector;
+    PeakList getSelectedPeakList() {
+        PeakList selectedPeakList = (PeakList) peakListSelector.getSelectedItem();
+        return selectedPeakList;
     }
+
+    void rebuildPeakListSelector() {
+        PeakList selectedPeakList = (PeakList) peakListSelector.getSelectedItem();
+        PeakList currentPeakLists[] = MZmineCore.getCurrentProject().getPeakLists(
+                dataFile);
+        peakListSelector.removeAllItems();
+        for (int i = currentPeakLists.length - 1; i >= 0; i--) {
+            peakListSelector.addItem(currentPeakLists[i]);
+        }
+        if (selectedPeakList != null)
+            peakListSelector.setSelectedItem(selectedPeakList);
+    }
+
+    /**
+     * ProjectListener implementaion
+     */
+    public void projectModified(ProjectEvent event) {
+        if (event == ProjectEvent.PEAKLIST_CHANGE)
+            rebuildPeakListSelector();
+    }
+
+    public void internalFrameActivated(InternalFrameEvent event) {
+        // Ignore
+    }
+
+    public void internalFrameClosed(InternalFrameEvent event) {
+        // We have to remove the listener when the window is closed, because
+        // otherwise the project would always keep a reference to this window
+        // and the GC would not be able to collect it
+        project.removeProjectListener(this);
+    }
+
+    public void internalFrameClosing(InternalFrameEvent event) {
+        // Ignore
+    }
+
+    public void internalFrameDeactivated(InternalFrameEvent event) {
+        // Ignore
+    }
+
+    public void internalFrameDeiconified(InternalFrameEvent event) {
+        // Ignore
+    }
+
+    public void internalFrameIconified(InternalFrameEvent event) {
+        // Ignore
+    }
+
+    public void internalFrameOpened(InternalFrameEvent event) {
+        // Ignore
+    }
+    
+    boolean showCompoundNameSelected() {
+        return showIdChkBox.isSelected();
+    }
+
 }

@@ -25,6 +25,9 @@ import net.sf.mzmine.data.impl.SimpleParameter;
 import net.sf.mzmine.data.impl.SimpleParameterSet;
 import net.sf.mzmine.main.MZmineCore;
 
+/**
+ * 3D visualizer parameter set
+ */
 public class ThreeDVisualizerParameters extends SimpleParameterSet {
 
     public static final Integer[] msLevels = { 1, 2, 3, 4, 5, 6, 7, 8, 9, 10 };

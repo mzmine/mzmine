@@ -1,5 +1,5 @@
 /*
- * Copyright 2006 The MZmine Development Team
+ * Copyright 2006-2008 The MZmine Development Team
  * 
  * This file is part of MZmine.
  * 
@@ -16,69 +16,63 @@
  * MZmine; if not, write to the Free Software Foundation, Inc., 51 Franklin St,
  * Fifth Floor, Boston, MA 02110-1301 USA
  */
- 
+
 package net.sf.mzmine.modules.visualization.threed;
 
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 
 import javax.swing.BoxLayout;
-import javax.swing.JButton;
 import javax.swing.JDialog;
-import javax.swing.JLabel;
-import javax.swing.JSeparator;
 import javax.swing.SwingConstants;
 
-import net.sf.mzmine.userinterface.Desktop;
-import visad.DisplayImpl;
+import net.sf.mzmine.main.MZmineCore;
+import net.sf.mzmine.util.GUIUtils;
 import visad.ScalarMap;
 import visad.util.ColorMapWidget;
 import visad.util.GMCWidget;
 
-
 /**
- *
+ * 3D visualizer properties dialog
  */
 class ThreeDPropertiesDialog extends JDialog implements ActionListener {
 
-    private static final String TITLE = "3D visualizer properties"; 
-    
+    private static final String title = "3D visualizer properties";
+
     private GMCWidget gmcWidget;
     private ColorMapWidget colorWidget;
 
-    public ThreeDPropertiesDialog(Desktop desktop, DisplayImpl display) {
-        
-        super(desktop.getMainFrame(), TITLE, true);
+    ThreeDPropertiesDialog(ThreeDDisplay display) {
+
+        super(MZmineCore.getDesktop().getMainFrame(), title, true);
 
         setLayout(new BoxLayout(getContentPane(), BoxLayout.Y_AXIS));
-        
+
         try {
-            
+
             ScalarMap colorMap = (ScalarMap) display.getMapVector().get(4);
+
+            GUIUtils.addLabel(this, "Color mapping", SwingConstants.CENTER);
+
             colorWidget = new ColorMapWidget(colorMap);
-            JLabel colorLabel = new JLabel("Color mapping", SwingConstants.CENTER);
-            add(colorLabel);
             add(colorWidget);
-         
-            JLabel gmcLabel = new JLabel("Graphics mode control", SwingConstants.CENTER);
+
+            GUIUtils.addLabel(this, "Graphics mode control",
+                    SwingConstants.CENTER);
 
             gmcWidget = new GMCWidget(display.getGraphicsModeControl());
-            add(gmcLabel);
             add(gmcWidget);
-            
-            
+
         } catch (Exception e) {
             e.printStackTrace();
         }
-        
-        add(new JSeparator());
-        
-        JButton okButton = new JButton("OK");
-        okButton.addActionListener(this);
-        add(okButton);
-        
+
+        GUIUtils.addSeparator(this);
+
+        GUIUtils.addButton(this, "OK", null, this);
+
         pack();
-        setLocationRelativeTo(desktop.getMainFrame());
+        setLocationRelativeTo(MZmineCore.getDesktop().getMainFrame());
 
     }
 
