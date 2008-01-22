@@ -33,18 +33,7 @@ public interface RawDataFile {
      * @return File file path
      */
 	public String getFileName();
-	/**
-     * Returns file path of raw file 
-     * 
-     * @return File file path
-     */
-	public File getFilePath();
-    /**
-     * Set(reset) file path of raw data file mainly for reloading of project
-     * 
-     * @return 
-     */
-	public void setFilePath(File filePath);
+
     /**
      * Returns File ScanDataFileName
      * 

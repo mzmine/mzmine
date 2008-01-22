@@ -33,7 +33,6 @@ import java.util.zip.ZipEntry;
 import net.sf.mzmine.io.RawDataFile;
 import net.sf.mzmine.project.impl.MZmineProjectImpl;
 import net.sf.mzmine.taskcontrol.Task;
-import net.sf.mzmine.userinterface.dialogs.RawFileSettingDialog;
 
 import com.db4o.Db4o;
 import com.db4o.ObjectContainer;
@@ -133,6 +132,7 @@ public class ProjectOpeningTask implements Task {
         		}
         		String fileName=entry.getName().split("/")[1];
         		File tempFile = new File(tempDirPath,fileName);
+        		tempFile.deleteOnExit();
         		FileOutputStream tempFileOut = new FileOutputStream(tempFile);
         		output=new BufferedOutputStream(tempFileOut);
         		
@@ -173,33 +173,6 @@ public class ProjectOpeningTask implements Task {
         	//reset project tempDirPath
 			project.setLocation(tempDirPath);
 			
-			//Check whether I can find the raw files.
-			boolean foundFiles=true;
-			ArrayList <RawDataFile> lostFiles=new ArrayList <RawDataFile>();
-			for (RawDataFile file:project.getDataFiles()){
-				if (!file.getFilePath().toString().equals("")){
-					if (!file.getFilePath().exists()){
-						foundFiles=false;
-						lostFiles.add(file);
-					}
-				}
-			}
-			
-			if (foundFiles ==false){
-				RawFileSettingDialog dialog=new RawFileSettingDialog(lostFiles);
-		        dialog.setVisible(true);
-		        File filePaths[]=dialog.getResult();
-		        if (!filePaths.toString().equals("")){//this is a real rawDataFile
-		        	RawDataFile rawFiles[]=project.getDataFiles();
-		        	int i;
-		        	for (i=0;i<filePaths.length;i++){
-		        		rawFiles[i].setFilePath(filePaths[i]);	
-		        	}
-		        }else{
-		        	//raise some exception here
-		        }
-
-			}
 			//update scanDataFile in rawDataFiles
 			
 			for (RawDataFile file :project.getDataFiles()){

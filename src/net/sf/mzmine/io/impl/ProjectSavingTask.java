@@ -50,10 +50,10 @@ public class ProjectSavingTask implements Task {
     private String errorMessage;
     private MZmineProjectImpl project;
     private float finished=(float)0.0;
-    private static final float FINISHED_STARTED=(float)0.1;
-    private static final float FINISHED_OBJECT_FREEZED=(float)0.3;
-    private static final float FINISHED_START_ZIPPING=(float)0.4;
-    private static final float FINISHED_COMPLETE=(float)1.0;
+    private static final float FINISHED_STARTED=0.1f;
+    private static final float FINISHED_OBJECT_FREEZED=0.3f;
+    private static final float FINISHED_START_ZIPPING=0.4f;
+    private static final float FINISHED_COMPLETE=1.0f;
     /**
      * 
      */

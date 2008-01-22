@@ -162,7 +162,7 @@ public class IOControllerImpl implements IOController, TaskListener {
      */
     public RawDataFileWriter createNewFile(File file,
             PreloadLevel preloadLevel) throws IOException {
-        return new RawDataFileImpl(file, preloadLevel);
+        return new RawDataFileImpl(file.getName(),"scan", preloadLevel);
     }
     
 
