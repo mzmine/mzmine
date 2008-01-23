@@ -565,7 +565,7 @@ public class OldTwoDPlot extends JPanel implements ActionListener,
     public void mouseReleased(MouseEvent e) {
 
         // Right-mouse button? => show pop-up menu
-        if (e.getButton() != MouseEvent.BUTTON1) {
+        if (e.isPopupTrigger()) {
             popupMenu.show(e.getComponent(), e.getX(), e.getY());
         }
 
