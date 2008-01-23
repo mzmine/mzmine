@@ -44,9 +44,10 @@ public class SimplePeakList implements PeakList {
     }
 
     public SimplePeakList(String name, RawDataFile[] dataFiles) {
-        if (dataFiles == null)
-            throw (new NullPointerException(
+        if ((dataFiles == null) || (dataFiles.length == 0)) {
+            throw (new IllegalArgumentException(
                     "Cannot create a peak list with no data files"));
+        }
         this.name = name;
         this.dataFiles = dataFiles;
         peakListRows = new ArrayList<PeakListRow>();
