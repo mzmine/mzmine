@@ -38,6 +38,9 @@ import net.sf.mzmine.util.PeakSorterByDescendingHeight;
  */
 class AccurateMassPickerTask implements Task {
 
+    // Minimum data points for a good chromatographic peak
+    public static final int MINIMUM_PEAK_DATA_POINS = 10;
+    
     private RawDataFile dataFile;
 
     private TaskStatus status = TaskStatus.WAITING;
@@ -193,6 +196,9 @@ class AccurateMassPickerTask implements Task {
             // Check all peaks that could not be connected
             for (AccurateMassPeak candidatePeak : currentPeaks) {
 
+                // Skip peaks that don't have enough data points
+                if (candidatePeak.getScanNumbers().length < MINIMUM_PEAK_DATA_POINS) continue;
+                
                 // The candidatePeak represents a sequence of same data points.
                 // This sequence may represent 0..n actual peaks. Detect those
                 // peaks by calling processPeakCandidate()
@@ -224,6 +230,9 @@ class AccurateMassPickerTask implements Task {
     }
 
     /**
+     * This method detects m/z peaks (represented by AccurateMassDataPoint
+     * instances) in one scan. As a requirement, the scan must not be centroided
+     * and scan data points must form well-shaped m/z peaks.
      * 
      * @param scan
      * @return
@@ -242,12 +251,7 @@ class AccurateMassPickerTask implements Task {
             boolean nextPointIsHigher = ((i == scanDataPoints.length - 1)
                     || (scanDataPoints[i].getIntensity() == 0) || (scanDataPoints[i].getIntensity() < scanDataPoints[i + 1].getIntensity()));
 
-            // If we are ascending and next point is higher, or we are
-            // descending and next point is lower
-            if (ascending == nextPointIsHigher) {
-                currentMZPeak.add(scanDataPoints[i]);
-                continue;
-            }
+            currentMZPeak.add(scanDataPoints[i]);
 
             // If we are at local maximum
             if (ascending && !nextPointIsHigher) {
@@ -258,14 +262,14 @@ class AccurateMassPickerTask implements Task {
             // If we are at the last data point of this m/z peak
             if (!ascending && nextPointIsHigher) {
 
-                currentMZPeak.add(scanDataPoints[i]);
-
-                // Calculate the weighted average of m/z values
+                // Create a new AccurateMassDataPoint
+                DataPoint currentPeakDataPoints[] = currentMZPeak.toArray(new DataPoint[0]);
                 AccurateMassDataPoint newMZPeak = new AccurateMassDataPoint(
-                        currentMZPeak.toArray(new DataPoint[0]));
+                        currentPeakDataPoints, scan.getRetentionTime());
                 detectedMZPeaks.add(newMZPeak);
 
                 // Reset the state
+                currentMZPeak.clear();
                 ascending = true;
 
                 continue;
@@ -278,12 +282,22 @@ class AccurateMassPickerTask implements Task {
 
     }
 
+    /**
+     * This methods generates final chromatographic peaks from connected data
+     * points.
+     * 
+     * @param candidate A chromatographic peak candidate consisting of same mass
+     *            data points from successive scans
+     * @return Well-shaped peaks separated from the peak candidate
+     */
     private AccurateMassPeak[] processPeakCandidate(AccurateMassPeak candidate) {
 
         Vector<AccurateMassPeak> resultPeaks = new Vector<AccurateMassPeak>();
 
         // If the peak has minimum duration, add it to the peak list
 
+        int scanNumbers[] = candidate.getScanNumbers();
+        
         if (candidate.getDuration() >= minimumPeakDuration) {
             resultPeaks.add(candidate);
         }

@@ -22,22 +22,24 @@ package net.sf.mzmine.modules.peakpicking.accuratemass;
 import net.sf.mzmine.data.DataPoint;
 
 /**
- * This class represents one m/z peak in a spectra. The m/z of this peak is
+ * This class represents one m/z peak in a spectrum. The m/z of this peak is
  * calculated as a weighted average of m/z values of all raw data points of the
  * continuous mode peak. Those source raw data points are saved and can be
  * obtained by calling getRawDataPoints()
  */
 class AccurateMassDataPoint implements DataPoint {
 
-    private float mz, intensity;
+    private float mz, rt, intensity;
     private DataPoint rawDataPoints[];
 
     /**
-     * Creates a new AccurateMassDataPoint from source raw data points
+     * Creates a new AccurateMassDataPoint from source raw data points.
+     * m/z value is calculated as a weigted average.
      */
-    AccurateMassDataPoint(DataPoint rawDataPoints[]) {
+    AccurateMassDataPoint(DataPoint rawDataPoints[], float rt) {
 
         this.rawDataPoints = rawDataPoints;
+        this.rt = rt;
 
         // Variables for calculating the weighted m/z average
         float totalSum = 0f;
@@ -69,8 +71,16 @@ class AccurateMassDataPoint implements DataPoint {
         return mz;
     }
 
+    public float getRT() {
+        return rt;
+    }
+    
     DataPoint[] getRawDataPoints() {
         return rawDataPoints;
+    }
+    
+    void setIntensity(float intensity) {
+        this.intensity = intensity; 
     }
 
 }

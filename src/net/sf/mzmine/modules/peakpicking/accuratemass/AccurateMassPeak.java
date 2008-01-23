@@ -42,8 +42,10 @@ class AccurateMassPeak implements Peak {
     private float height, area;
 
     // Boundaries of the peak
-    private float minRT, maxRT;
-    private float minMZ, maxMZ;
+    private float minRT = Float.MAX_VALUE;
+    private float maxRT = Float.MIN_VALUE;
+    private float minMZ = Float.MAX_VALUE;
+    private float maxMZ = Float.MIN_VALUE;
 
     private TreeMap<Integer, AccurateMassDataPoint> dataPointMap;
 
@@ -111,7 +113,7 @@ class AccurateMassPeak implements Peak {
      * This method returns a representative datapoint of this peak in a given
      * scan
      */
-    public DataPoint getDataPoint(int scanNumber) {
+    public AccurateMassDataPoint getDataPoint(int scanNumber) {
         return dataPointMap.get(scanNumber);
     }
 
@@ -191,11 +193,10 @@ class AccurateMassPeak implements Peak {
 
         // Update construction time variables
 
-        float dataPointRT = dataFile.getScan(scanNumber).getRetentionTime();
-        if (dataPointRT < minRT)
-            minRT = dataPointRT;
-        if (dataPointRT > maxRT)
-            maxRT = dataPointRT;
+        if (dataPoint.getRT() < minRT)
+            minRT = dataPoint.getRT();
+        if (dataPoint.getRT() > maxRT)
+            maxRT = dataPoint.getRT();
 
         for (DataPoint rawDataPoint : dataPoint.getRawDataPoints()) {
 
@@ -208,7 +209,7 @@ class AccurateMassPeak implements Peak {
             // Find the data point with top intensity and use its RT and height
             if (rawDataPoint.getIntensity() > height) {
                 height = rawDataPoint.getIntensity();
-                this.rt = dataPointRT;
+                this.rt = dataPoint.getRT();
             }
 
         }
