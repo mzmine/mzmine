@@ -278,11 +278,10 @@ class AccurateMassPickerTask implements Task {
 
     }
 
-    
     private AccurateMassPeak[] processPeakCandidate(AccurateMassPeak candidate) {
 
         Vector<AccurateMassPeak> resultPeaks = new Vector<AccurateMassPeak>();
-        
+
         // If the peak has minimum duration, add it to the peak list
 
         if (candidate.getDuration() >= minimumPeakDuration) {

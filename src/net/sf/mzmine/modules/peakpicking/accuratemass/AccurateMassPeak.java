@@ -203,7 +203,7 @@ class AccurateMassPeak implements Peak {
             if (rawDataPoint.getMZ() < minMZ)
                 minMZ = rawDataPoint.getMZ();
             if (rawDataPoint.getMZ() > maxMZ)
-                minMZ = rawDataPoint.getMZ();
+                maxMZ = rawDataPoint.getMZ();
 
             // Find the data point with top intensity and use its RT and height
             if (rawDataPoint.getIntensity() > height) {
