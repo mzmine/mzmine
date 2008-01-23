@@ -95,38 +95,38 @@ public interface Peak {
      * This method returns m/z and intensity of this peak in a given scan. This
      * m/z and intensity does not need to match any actual raw data point.
      */
-    public DataPoint getDatapoint(int scanNumber);
+    public DataPoint getDataPoint(int scanNumber);
 
     /**
      * This method returns all data points in given scan that were used to build
      * this peak. Such data points must match actual raw data points returned by
      * Scan.getDatapoints()
      */
-    public DataPoint[] getRawDatapoints(int scanNumber);
+    public DataPoint[] getRawDataPoints(int scanNumber);
 
     /**
      * Returns the minimum RT of all datapoints used to detect this peak
      */
-    public float getDataPointMinRT();
+    public float getRawDataPointMinRT();
 
     /**
      * Returns the maximum RT of all datapoints used to detect this peak
      */
-    public float getDataPointMaxRT();
+    public float getRawDataPointMaxRT();
 
     /**
      * Returns minimum M/Z value of all datapoints used to detect this peak
      */
-    public float getDataPointMinMZ();
+    public float getRawDataPointMinMZ();
 
     /**
      * Returns maximum M/Z value of all datapoints used to detect this peak
      */
-    public float getDataPointMaxMZ();
+    public float getRawDataPointMaxMZ();
 
     /**
-     * Returns maximum intensity value of all datapoints
+     * Returns maximum intensity value of all datapoints used to detect this peak
      */
-    public float getDataPointMaxIntensity();
+    public float getRawDataPointMaxIntensity();
 
 }

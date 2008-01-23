@@ -59,7 +59,7 @@ class PeakDataSet extends AbstractXYDataset {
 
     public Number getY(int series, int item) {
         int scanNumber = peak.getScanNumbers()[item];
-        DataPoint dataPoint = peak.getDatapoint(scanNumber);
+        DataPoint dataPoint = peak.getDataPoint(scanNumber);
         return dataPoint.getIntensity();
     }
 

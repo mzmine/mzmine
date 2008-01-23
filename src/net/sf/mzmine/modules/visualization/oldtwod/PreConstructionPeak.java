@@ -141,7 +141,7 @@ public class PreConstructionPeak implements Peak, RawDataAcceptor {
      * This method returns a representative datapoint of this peak in a given
      * scan
      */
-    public DataPoint getDatapoint(int scanNumber) {
+    public DataPoint getDataPoint(int scanNumber) {
         return datapointsMap.get(scanNumber);
     }
     
@@ -149,14 +149,14 @@ public class PreConstructionPeak implements Peak, RawDataAcceptor {
      * This method returns a representative datapoint of this peak in a given
      * scan
      */
-    public DataPoint[] getRawDatapoints(int scanNumber) {
+    public DataPoint[] getRawDataPoints(int scanNumber) {
         return new DataPoint[] { datapointsMap.get(scanNumber) };
     }
 
     /**
      * Returns the first scan number of all datapoints
      */
-    public float getDataPointMinRT() {
+    public float getRawDataPointMinRT() {
         if (precalcRequiredMins)
             precalculateMins();
         return minRT;
@@ -165,7 +165,7 @@ public class PreConstructionPeak implements Peak, RawDataAcceptor {
     /**
      * Returns the last scan number of all datapoints
      */
-    public float getDataPointMaxRT() {
+    public float getRawDataPointMaxRT() {
         if (precalcRequiredMins)
             precalculateMins();
         return maxRT;
@@ -174,7 +174,7 @@ public class PreConstructionPeak implements Peak, RawDataAcceptor {
     /**
      * Returns minimum M/Z value of all datapoints
      */
-    public float getDataPointMinMZ() {
+    public float getRawDataPointMinMZ() {
         if (precalcRequiredMins)
             precalculateMins();
         return minMZ;
@@ -183,7 +183,7 @@ public class PreConstructionPeak implements Peak, RawDataAcceptor {
     /**
      * Returns maximum M/Z value of all datapoints
      */
-    public float getDataPointMaxMZ() {
+    public float getRawDataPointMaxMZ() {
         if (precalcRequiredMins)
             precalculateMins();
         return maxMZ;
@@ -192,7 +192,7 @@ public class PreConstructionPeak implements Peak, RawDataAcceptor {
     /**
      * Returns maximum M/Z value of all datapoints
      */
-    public float getDataPointMaxIntensity() {
+    public float getRawDataPointMaxIntensity() {
         if (precalcRequiredMins)
             precalculateMins();
         return maxIntensity;

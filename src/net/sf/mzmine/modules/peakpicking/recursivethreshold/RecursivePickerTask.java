@@ -297,8 +297,8 @@ class RecursivePickerTask implements Task {
                 if (!ucPeak.isGrowing()) {
 
                     // Check length
-                    float ucLength = ucPeak.getDataPointMaxRT()
-                            - ucPeak.getDataPointMinRT();
+                    float ucLength = ucPeak.getRawDataPointMaxRT()
+                            - ucPeak.getRawDataPointMinRT();
                     float ucHeight = ucPeak.getHeight();
                     if ((ucLength >= minimumPeakDuration)
                             && (ucHeight >= minimumPeakHeight)) {
@@ -359,8 +359,8 @@ class RecursivePickerTask implements Task {
         for (RecursivePeak ucPeak : underConstructionPeaks) {
 
             // Check length & height
-            float ucLength = ucPeak.getDataPointMaxRT()
-                    - ucPeak.getDataPointMinRT();
+            float ucLength = ucPeak.getRawDataPointMaxRT()
+                    - ucPeak.getRawDataPointMinRT();
             float ucHeight = ucPeak.getHeight();
             if ((ucLength >= minimumPeakDuration)
                     && (ucHeight >= minimumPeakHeight)) {

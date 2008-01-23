@@ -19,8 +19,6 @@
 
 package net.sf.mzmine.modules.peakpicking.accuratemass;
 
-import java.text.NumberFormat;
-
 import net.sf.mzmine.data.Parameter;
 import net.sf.mzmine.data.ParameterType;
 import net.sf.mzmine.data.impl.SimpleParameter;
@@ -28,8 +26,6 @@ import net.sf.mzmine.data.impl.SimpleParameterSet;
 import net.sf.mzmine.main.MZmineCore;
 
 public class AccurateMassPickerParameters extends SimpleParameterSet {
-
-    public static final NumberFormat percentFormat = NumberFormat.getPercentInstance();
 
     public static final Parameter suffix = new SimpleParameter(
             ParameterType.STRING, "Filename suffix",

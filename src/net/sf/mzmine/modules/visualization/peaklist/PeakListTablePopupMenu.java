@@ -193,8 +193,8 @@ public class PeakListTablePopupMenu extends JPopupMenu implements
                         new RawDataFile[] { clickedDataFile },
                         new Peak[] { clickedPeak }, 1,
                         TICVisualizerParameters.plotTypeBP, rtMin, rtMax,
-                        clickedPeak.getDataPointMinMZ(),
-                        clickedPeak.getDataPointMaxMZ());
+                        clickedPeak.getRawDataPointMinMZ(),
+                        clickedPeak.getRawDataPointMaxMZ());
 
             } else {
                 float minMZ = clickedPeakListRow.getAverageMZ();
@@ -202,10 +202,10 @@ public class PeakListTablePopupMenu extends JPopupMenu implements
                 for (Peak peak : clickedPeakListRow.getPeaks()) {
                     if (peak == null)
                         continue;
-                    if (peak.getDataPointMinMZ() < minMZ)
-                        minMZ = peak.getDataPointMinMZ();
-                    if (peak.getDataPointMaxMZ() > maxMZ)
-                        maxMZ = peak.getDataPointMaxMZ();
+                    if (peak.getRawDataPointMinMZ() < minMZ)
+                        minMZ = peak.getRawDataPointMinMZ();
+                    if (peak.getRawDataPointMaxMZ() > maxMZ)
+                        maxMZ = peak.getRawDataPointMaxMZ();
                 }
                 tic.showNewTICVisualizerWindow(
                         new RawDataFile[] { clickedDataFile }, null, 1,
@@ -220,10 +220,10 @@ public class PeakListTablePopupMenu extends JPopupMenu implements
             Peak clickedPeak = clickedPeakListRow.getPeak(clickedDataFile);
             float minRT, maxRT, minMZ, maxMZ;
             if (clickedPeak != null) {
-                minRT = clickedPeak.getDataPointMinRT();
-                maxRT = clickedPeak.getDataPointMaxRT();
-                minMZ = clickedPeak.getDataPointMinMZ();
-                maxMZ = clickedPeak.getDataPointMaxMZ();
+                minRT = clickedPeak.getRawDataPointMinRT();
+                maxRT = clickedPeak.getRawDataPointMaxRT();
+                minMZ = clickedPeak.getRawDataPointMinMZ();
+                maxMZ = clickedPeak.getRawDataPointMaxMZ();
             } else {
                 minRT = clickedPeakListRow.getAverageRT();
                 maxRT = clickedPeakListRow.getAverageRT();
@@ -233,14 +233,14 @@ public class PeakListTablePopupMenu extends JPopupMenu implements
                 for (Peak peak : clickedPeakListRow.getPeaks()) {
                     if (peak == null)
                         continue;
-                    if (peak.getDataPointMinRT() < minRT)
-                        minRT = peak.getDataPointMinRT();
-                    if (peak.getDataPointMaxRT() > maxRT)
-                        maxRT = peak.getDataPointMaxRT();
-                    if (peak.getDataPointMinMZ() < minMZ)
-                        minMZ = peak.getDataPointMinMZ();
-                    if (peak.getDataPointMaxMZ() > maxMZ)
-                        maxMZ = peak.getDataPointMaxMZ();
+                    if (peak.getRawDataPointMinRT() < minRT)
+                        minRT = peak.getRawDataPointMinRT();
+                    if (peak.getRawDataPointMaxRT() > maxRT)
+                        maxRT = peak.getRawDataPointMaxRT();
+                    if (peak.getRawDataPointMinMZ() < minMZ)
+                        minMZ = peak.getRawDataPointMinMZ();
+                    if (peak.getRawDataPointMaxMZ() > maxMZ)
+                        maxMZ = peak.getRawDataPointMaxMZ();
                 }
             }
 

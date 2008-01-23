@@ -291,7 +291,7 @@ public class OldTwoDPlot extends JPanel implements ActionListener,
 
                     int ind = 0;
                     for (int scanNumber : scanNumbers) {
-                        mzs[ind] = p.getDatapoint(scanNumber).getMZ();
+                        mzs[ind] = p.getDataPoint(scanNumber).getMZ();
                         rts[ind] = rawDataFile.getScan(scanNumber).getRetentionTime();
                         ind++;
                     }

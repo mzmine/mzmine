@@ -103,11 +103,11 @@ public class SimplePeak implements Peak {
         this.height = p.getHeight();
         this.area = p.getArea();
 
-        this.minMZ = p.getDataPointMinMZ();
-        this.maxMZ = p.getDataPointMaxMZ();
-        this.minRT = p.getDataPointMinRT();
-        this.maxRT = p.getDataPointMaxRT();
-        this.maxIntensity = p.getDataPointMaxIntensity();
+        this.minMZ = p.getRawDataPointMinMZ();
+        this.maxMZ = p.getRawDataPointMaxMZ();
+        this.minRT = p.getRawDataPointMinRT();
+        this.maxRT = p.getRawDataPointMaxRT();
+        this.maxIntensity = p.getRawDataPointMaxIntensity();
 
         this.scanNumbers = p.getScanNumbers();
         
@@ -116,8 +116,8 @@ public class SimplePeak implements Peak {
         
         
         for (int i = 0; i < scanNumbers.length; i++) {
-            dataPointsPerScan[i] = p.getDatapoint(scanNumbers[i]);
-            rawDataPointsPerScan[i] = p.getRawDatapoints(scanNumbers[i]);
+            dataPointsPerScan[i] = p.getDataPoint(scanNumbers[i]);
+            rawDataPointsPerScan[i] = p.getRawDataPoints(scanNumbers[i]);
         }
 
         this.peakStatus = p.getPeakStatus();
@@ -196,7 +196,7 @@ public class SimplePeak implements Peak {
      * This method returns a representative datapoint of this peak in a given
      * scan
      */
-    public DataPoint getDatapoint(int scanNumber) {
+    public DataPoint getDataPoint(int scanNumber) {
         int index = Arrays.binarySearch(scanNumbers, scanNumber);
         if (index < 0) return null;
         return dataPointsPerScan[index];
@@ -206,7 +206,7 @@ public class SimplePeak implements Peak {
      * This method returns a representative datapoint of this peak in a given
      * scan
      */
-    public DataPoint[] getRawDatapoints(int scanNumber) {
+    public DataPoint[] getRawDataPoints(int scanNumber) {
         int index = Arrays.binarySearch(scanNumbers, scanNumber);
         if (index < 0) return null;
         return rawDataPointsPerScan[index];    }
@@ -214,35 +214,35 @@ public class SimplePeak implements Peak {
     /**
      * Returns the first scan number of all datapoints
      */
-    public float getDataPointMinRT() {
+    public float getRawDataPointMinRT() {
         return minRT;
     }
 
     /**
      * Returns the last scan number of all datapoints
      */
-    public float getDataPointMaxRT() {
+    public float getRawDataPointMaxRT() {
         return maxRT;
     }
 
     /**
      * Returns minimum M/Z value of all datapoints
      */
-    public float getDataPointMinMZ() {
+    public float getRawDataPointMinMZ() {
         return minMZ;
     }
 
     /**
      * Returns maximum M/Z value of all datapoints
      */
-    public float getDataPointMaxMZ() {
+    public float getRawDataPointMaxMZ() {
         return maxMZ;
     }
 
     /**
      * Returns maximum intensity value of all datapoints
      */
-    public float getDataPointMaxIntensity() {
+    public float getRawDataPointMaxIntensity() {
         return maxIntensity;
     }
 

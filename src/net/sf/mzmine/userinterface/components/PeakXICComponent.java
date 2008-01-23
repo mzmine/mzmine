@@ -50,7 +50,7 @@ public class PeakXICComponent extends JComponent {
      * @param peak Picked peak to plot
      */
     public PeakXICComponent(Peak peak) {
-        this(peak, peak.getDataPointMaxIntensity());
+        this(peak, peak.getRawDataPointMaxIntensity());
     }
 
     /**
@@ -97,7 +97,7 @@ public class PeakXICComponent extends JComponent {
         // find one datapoint with maximum intensity in each scan
         for (int i = 0; i < scanNumbers.length; i++) {
 
-            DataPoint dataPoint = peak.getDatapoint(scanNumbers[i]);
+            DataPoint dataPoint = peak.getDataPoint(scanNumbers[i]);
 
             // get retention time (X value)
             float retentionTime = dataFile.getScan(scanNumbers[i]).getRetentionTime();

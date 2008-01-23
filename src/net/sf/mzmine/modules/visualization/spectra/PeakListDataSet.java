@@ -48,7 +48,7 @@ class PeakListDataSet extends AbstractXYDataset implements IntervalXYDataset {
 
         Vector<Peak> candidates = new Vector<Peak>();
         for (Peak peak : peaks) {
-            DataPoint peakDataPoint = peak.getDatapoint(scanNumber);
+            DataPoint peakDataPoint = peak.getDataPoint(scanNumber);
             if (peakDataPoint != null)
                 candidates.add(peak);
         }
@@ -77,12 +77,12 @@ class PeakListDataSet extends AbstractXYDataset implements IntervalXYDataset {
     }
 
     public Number getX(int series, int item) {
-        DataPoint dataPoint = displayedPeaks[item].getDatapoint(scanNumber);
+        DataPoint dataPoint = displayedPeaks[item].getDataPoint(scanNumber);
         return dataPoint.getMZ();
     }
 
     public Number getY(int series, int item) {
-        DataPoint dataPoint = displayedPeaks[item].getDatapoint(scanNumber);
+        DataPoint dataPoint = displayedPeaks[item].getDataPoint(scanNumber);
         return dataPoint.getIntensity();
     }
 

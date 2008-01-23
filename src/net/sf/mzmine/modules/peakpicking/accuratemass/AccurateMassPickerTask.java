@@ -25,8 +25,6 @@ import java.util.Vector;
 
 import net.sf.mzmine.data.DataPoint;
 import net.sf.mzmine.data.Scan;
-import net.sf.mzmine.data.Peak.PeakStatus;
-import net.sf.mzmine.data.impl.SimpleDataPoint;
 import net.sf.mzmine.data.impl.SimplePeakList;
 import net.sf.mzmine.data.impl.SimplePeakListRow;
 import net.sf.mzmine.io.RawDataFile;
@@ -36,7 +34,7 @@ import net.sf.mzmine.taskcontrol.Task;
 import net.sf.mzmine.util.PeakSorterByDescendingHeight;
 
 /**
- * 
+ * Accurate mass peak picker task
  */
 class AccurateMassPickerTask implements Task {
 
@@ -73,7 +71,7 @@ class AccurateMassPickerTask implements Task {
      * @see net.sf.mzmine.taskcontrol.Task#getTaskDescription()
      */
     public String getTaskDescription() {
-        return "Recursive threshold peak detection on " + dataFile;
+        return "Accurate mass peak detection on " + dataFile;
     }
 
     /**
@@ -151,9 +149,10 @@ class AccurateMassPickerTask implements Task {
                     new PeakSorterByDescendingHeight());
 
             // Detect m/z peaks in this scan
-            DataPoint scanDataPoints[] = detectDataPointsInOneScan(scan);
+            AccurateMassDataPoint scanMZPeaks[] = detectMZPeaksInOneScan(scan);
 
-            for (DataPoint dataPoint : scanDataPoints) {
+            // Iterate detected m/z peaks
+            for (AccurateMassDataPoint mzPeak : scanMZPeaks) {
 
                 // Seach for peak to which we can connect this data point
                 AccurateMassPeak connectedPeak = null;
@@ -162,8 +161,9 @@ class AccurateMassPickerTask implements Task {
                 while (peaksIterator.hasNext()) {
                     AccurateMassPeak peak = peaksIterator.next();
 
-                    // Check if data point can be connected to this peak
-                    if (Math.abs(peak.getMZ() - dataPoint.getMZ()) <= mzTolerance) {
+                    // Check if m/z peak data point can be connected to this
+                    // peak
+                    if (Math.abs(peak.getMZ() - mzPeak.getMZ()) <= mzTolerance) {
 
                         // Remove the peak from unconnected peaks set, but keep
                         // it if we're processing last scan
@@ -183,9 +183,7 @@ class AccurateMassPickerTask implements Task {
                     connectedPeak = new AccurateMassPeak(dataFile);
 
                 // Add this data point to the peak
-                connectedPeak.addDatapoint(scanNumbers[scanIndex],
-                        dataPoint.getMZ(), scan.getRetentionTime(),
-                        dataPoint.getIntensity());
+                connectedPeak.addDatapoint(scanNumbers[scanIndex], mzPeak);
 
                 // Add the peak to connected peaks set
                 connectedPeaks.add(connectedPeak);
@@ -193,14 +191,18 @@ class AccurateMassPickerTask implements Task {
             }
 
             // Check all peaks that could not be connected
-            for (AccurateMassPeak peak : currentPeaks) {
+            for (AccurateMassPeak candidatePeak : currentPeaks) {
 
-                // If the peak has minimum duration, add it to the peak list
-                if (peak.getDuration() >= minimumPeakDuration) {
-                    peak.finalizedAddingDatapoints(PeakStatus.DETECTED);
+                // The candidatePeak represents a sequence of same data points.
+                // This sequence may represent 0..n actual peaks. Detect those
+                // peaks by calling processPeakCandidate()
+                AccurateMassPeak goodPeaks[] = processPeakCandidate(candidatePeak);
+
+                // For each good peak, add a new row to the peak list
+                for (AccurateMassPeak goodPeak : goodPeaks) {
                     SimplePeakListRow newRow = new SimplePeakListRow(newPeakID);
                     newPeakID++;
-                    newRow.addPeak(dataFile, peak, peak);
+                    newRow.addPeak(dataFile, goodPeak, goodPeak);
                     newPeakList.addRow(newRow);
                 }
 
@@ -226,14 +228,13 @@ class AccurateMassPickerTask implements Task {
      * @param scan
      * @return
      */
-    private DataPoint[] detectDataPointsInOneScan(Scan scan) {
+    private AccurateMassDataPoint[] detectMZPeaksInOneScan(Scan scan) {
 
         DataPoint scanDataPoints[] = scan.getDataPoints();
 
-        Vector<DataPoint> detectedDataPoints = new Vector<DataPoint>();
+        Vector<AccurateMassDataPoint> detectedMZPeaks = new Vector<AccurateMassDataPoint>();
+        Vector<DataPoint> currentMZPeak = new Vector<DataPoint>();
 
-        double totalSum = 0, intensitySum = 0;
-        float maxIntensity = 0;
         boolean ascending = true;
 
         for (int i = 0; i < scanDataPoints.length; i++) {
@@ -244,15 +245,12 @@ class AccurateMassPickerTask implements Task {
             // If we are ascending and next point is higher, or we are
             // descending and next point is lower
             if (ascending == nextPointIsHigher) {
-                totalSum += scanDataPoints[i].getMZ()
-                        * scanDataPoints[i].getIntensity();
-                intensitySum += scanDataPoints[i].getIntensity();
+                currentMZPeak.add(scanDataPoints[i]);
                 continue;
             }
 
             // If we are at local maximum
             if (ascending && !nextPointIsHigher) {
-                maxIntensity = scanDataPoints[i].getIntensity();
                 ascending = false;
                 continue;
             }
@@ -260,19 +258,14 @@ class AccurateMassPickerTask implements Task {
             // If we are at the last data point of this m/z peak
             if (!ascending && nextPointIsHigher) {
 
-                totalSum += scanDataPoints[i].getMZ()
-                        * scanDataPoints[i].getIntensity();
-                intensitySum += scanDataPoints[i].getIntensity();
+                currentMZPeak.add(scanDataPoints[i]);
 
                 // Calculate the weighted average of m/z values
-                float mzValue = (float) (totalSum / intensitySum);
-                DataPoint p = new SimpleDataPoint(mzValue, maxIntensity);
-                detectedDataPoints.add(p);
+                AccurateMassDataPoint newMZPeak = new AccurateMassDataPoint(
+                        currentMZPeak.toArray(new DataPoint[0]));
+                detectedMZPeaks.add(newMZPeak);
 
                 // Reset the state
-                totalSum = scanDataPoints[i].getIntensity()
-                        * scanDataPoints[i].getMZ();
-                intensitySum = scanDataPoints[i].getIntensity();
                 ascending = true;
 
                 continue;
@@ -280,8 +273,23 @@ class AccurateMassPickerTask implements Task {
 
         }
 
-        DataPoint detectedDataPointsArray[] = detectedDataPoints.toArray(new DataPoint[0]);
-        return detectedDataPointsArray;
+        AccurateMassDataPoint detectedMZPeaksArray[] = detectedMZPeaks.toArray(new AccurateMassDataPoint[0]);
+        return detectedMZPeaksArray;
+
+    }
+
+    
+    private AccurateMassPeak[] processPeakCandidate(AccurateMassPeak candidate) {
+
+        Vector<AccurateMassPeak> resultPeaks = new Vector<AccurateMassPeak>();
+        
+        // If the peak has minimum duration, add it to the peak list
+
+        if (candidate.getDuration() >= minimumPeakDuration) {
+            resultPeaks.add(candidate);
+        }
+
+        return resultPeaks.toArray(new AccurateMassPeak[0]);
 
     }
 }
