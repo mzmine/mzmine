@@ -265,6 +265,11 @@ class SpectraVisualizerWindow extends JInternalFrame implements ActionListener {
         }
 
         if (command.equals("PEAKLIST_CHANGE")) {
+            
+            // If no scan is loaded yet, ignore
+            if (currentScan == null) 
+                return;
+            
             PeakList selectedPeakList = bottomPanel.getSelectedPeakList();
             PeakListDataSet peaksDataSet = null;
 
