@@ -137,7 +137,7 @@ class SpectraVisualizerWindow extends JInternalFrame implements ActionListener {
 
                 JComboBox msmsSelector = bottomPanel.getMSMSSelector();
                 msmsSelector.removeAllItems();
-                msmsSelector.setEnabled(false);
+                boolean msmsVisible = false;
 
                 // Add parent scan to MS/MS selector combo
 
@@ -156,7 +156,7 @@ class SpectraVisualizerWindow extends JInternalFrame implements ActionListener {
                                 + currentScan.getPrecursorCharge() + ")";
 
                     msmsSelector.addItem(itemText);
-                    msmsSelector.setEnabled(true);
+                    msmsVisible = true;
 
                 }
 
@@ -173,10 +173,13 @@ class SpectraVisualizerWindow extends JInternalFrame implements ActionListener {
                                 + ", precursor m/z: "
                                 + mzFormat.format(fragmentScan.getPrecursorMZ());
                         msmsSelector.addItem(itemText);
-                        msmsSelector.setEnabled(true);
+                        msmsVisible = true;
                     }
 
                 }
+
+                // Update the visibility of MS/MS selection combo
+                bottomPanel.setMSMSSelectorVisible(msmsVisible);
 
                 // Set window and plot titles
 

@@ -96,17 +96,16 @@ class SpectraBottomPanel extends JPanel implements ProjectListener,
 
         topPanel.add(Box.createHorizontalStrut(10));
 
-        GUIUtils.addLabel(bottomPanel, "MS/MS: ", SwingConstants.RIGHT);
-
         bottomPanel = new JPanel();
         bottomPanel.setBackground(Color.white);
         bottomPanel.setLayout(new BoxLayout(bottomPanel, BoxLayout.X_AXIS));
         add(bottomPanel, BorderLayout.SOUTH);
 
         bottomPanel.add(Box.createHorizontalGlue());
-        
+
+        GUIUtils.addLabel(bottomPanel, "MS/MS: ", SwingConstants.RIGHT);
+
         msmsSelector = new JComboBox();
-        msmsSelector.setEnabled(false);
         msmsSelector.setBackground(Color.white);
         msmsSelector.setFont(smallFont);
         bottomPanel.add(msmsSelector);
@@ -115,7 +114,7 @@ class SpectraBottomPanel extends JPanel implements ProjectListener,
                 masterFrame, "SHOW_MSMS");
         showButton.setBackground(Color.white);
         showButton.setFont(smallFont);
-        
+
         bottomPanel.add(Box.createHorizontalGlue());
 
         project = MZmineCore.getCurrentProject();
@@ -125,6 +124,10 @@ class SpectraBottomPanel extends JPanel implements ProjectListener,
 
     JComboBox getMSMSSelector() {
         return msmsSelector;
+    }
+
+    void setMSMSSelectorVisible(boolean visible) {
+        bottomPanel.setVisible(visible);
     }
 
     /**
