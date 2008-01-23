@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2007 The MZmine Development Team
+ * Copyright 2006-2008 The MZmine Development Team
  * 
  * This file is part of MZmine.
  * 
@@ -38,7 +38,7 @@ import net.sf.mzmine.userinterface.Desktop.MZmineMenu;
 import net.sf.mzmine.userinterface.dialogs.ExitCode;
 
 /**
- * 
+ * Normalization module using selected internal standards
  */
 public class StandardCompoundNormalizer implements MZmineModule, TaskListener,
         ActionListener {
@@ -85,8 +85,8 @@ public class StandardCompoundNormalizer implements MZmineModule, TaskListener,
     public void actionPerformed(ActionEvent e) {
 
         PeakList[] selectedPeakLists = desktop.getSelectedPeakLists();
-        if (selectedPeakLists.length < 1) {
-            desktop.displayErrorMessage("Please select a peak list for normalization");
+        if (selectedPeakLists.length != 1) {
+            desktop.displayErrorMessage("Please select a single peak list for normalization");
             return;
         }
 
