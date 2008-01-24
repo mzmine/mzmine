@@ -50,10 +50,14 @@ class ThreeDBottomPanel extends JPanel implements ProjectListener,
     private JComboBox peakListSelector;
     private JCheckBox showIdChkBox;
 
+    private ThreeDVisualizerWindow masterFrame;
     private RawDataFile dataFile;
     private MZmineProject project;
 
     ThreeDBottomPanel(ThreeDVisualizerWindow masterFrame, RawDataFile dataFile) {
+
+        this.dataFile = dataFile;
+        this.masterFrame = masterFrame;
 
         setLayout(new BoxLayout(this, BoxLayout.X_AXIS));
 
@@ -61,8 +65,6 @@ class ThreeDBottomPanel extends JPanel implements ProjectListener,
         setBorder(new EmptyBorder(5, 5, 5, 0));
 
         add(Box.createHorizontalGlue());
-
-        this.dataFile = dataFile;
 
         GUIUtils.addLabel(this, "Peak list: ", SwingConstants.RIGHT);
 
@@ -85,7 +87,7 @@ class ThreeDBottomPanel extends JPanel implements ProjectListener,
 
         project = MZmineCore.getCurrentProject();
         project.addProjectListener(this);
-        
+
         masterFrame.addInternalFrameListener(this);
 
         add(Box.createHorizontalGlue());
@@ -134,6 +136,7 @@ class ThreeDBottomPanel extends JPanel implements ProjectListener,
      */
     public void internalFrameClosed(InternalFrameEvent event) {
         project.removeProjectListener(this);
+        masterFrame.removeInternalFrameListener(this);
     }
 
     public void internalFrameClosing(InternalFrameEvent event) {

@@ -54,6 +54,7 @@ class SpectraBottomPanel extends JPanel implements ProjectListener,
     private JPanel topPanel, bottomPanel;
     private JComboBox msmsSelector, peakListSelector;
 
+    private SpectraVisualizerWindow masterFrame;
     private RawDataFile dataFile;
     private MZmineProject project;
 
@@ -61,6 +62,7 @@ class SpectraBottomPanel extends JPanel implements ProjectListener,
 
         super(new BorderLayout());
         this.dataFile = dataFile;
+        this.masterFrame = masterFrame;
 
         setBackground(Color.white);
 
@@ -171,6 +173,7 @@ class SpectraBottomPanel extends JPanel implements ProjectListener,
      */
     public void internalFrameClosed(InternalFrameEvent event) {
         project.removeProjectListener(this);
+        masterFrame.removeInternalFrameListener(this);
     }
 
     public void internalFrameClosing(InternalFrameEvent event) {
