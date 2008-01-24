@@ -34,14 +34,13 @@ import org.jfree.data.xy.IntervalXYDataset;
  */
 class PeakListDataSet extends AbstractXYDataset implements IntervalXYDataset {
 
-    private int scanNumber;
     private PeakList peakList;
 
     private Peak displayedPeaks[];
+    private float mzValues[], intensityValues[];
 
     PeakListDataSet(RawDataFile dataFile, int scanNumber, PeakList peakList) {
 
-        this.scanNumber = scanNumber;
         this.peakList = peakList;
 
         Peak peaks[] = peakList.getPeaks(dataFile);
@@ -53,6 +52,14 @@ class PeakListDataSet extends AbstractXYDataset implements IntervalXYDataset {
                 candidates.add(peak);
         }
         displayedPeaks = candidates.toArray(new Peak[0]);
+
+        mzValues = new float[displayedPeaks.length];
+        intensityValues = new float[displayedPeaks.length];
+
+        for (int i = 0; i < displayedPeaks.length; i++) {
+            mzValues[i] = displayedPeaks[i].getDataPoint(scanNumber).getMZ();
+            intensityValues[i] = displayedPeaks[i].getDataPoint(scanNumber).getIntensity();
+        }
 
     }
 
@@ -73,17 +80,15 @@ class PeakListDataSet extends AbstractXYDataset implements IntervalXYDataset {
     }
 
     public int getItemCount(int series) {
-        return displayedPeaks.length;
+        return mzValues.length;
     }
 
     public Number getX(int series, int item) {
-        DataPoint dataPoint = displayedPeaks[item].getDataPoint(scanNumber);
-        return dataPoint.getMZ();
+        return mzValues[item];
     }
 
     public Number getY(int series, int item) {
-        DataPoint dataPoint = displayedPeaks[item].getDataPoint(scanNumber);
-        return dataPoint.getIntensity();
+        return intensityValues[item];
     }
 
     public Number getEndX(int series, int item) {
