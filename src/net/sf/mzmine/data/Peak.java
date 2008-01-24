@@ -45,12 +45,6 @@ public interface Peak {
      */
     public PeakStatus getPeakStatus();
 
-    /*
-     * Get methods for basic properties of the peak as defined by the peak
-     * picking method. Values for these properties can be freely defined by the
-     * peak picking method.
-     */
-
     /**
      * This method returns raw M/Z value of the peak
      */
@@ -76,11 +70,6 @@ public interface Peak {
      */
     public float getDuration();
 
-    /*
-     * Get methods for accessing the raw datapoints that construct the peak.
-     * These datapoints should correspond to datapoints in the raw data.
-     */
-
     /**
      * Returns raw data file where this peak is present
      */
@@ -98,34 +87,35 @@ public interface Peak {
     public DataPoint getDataPoint(int scanNumber);
 
     /**
-     * This method returns all data points in given scan that were used to build
-     * this peak. Such data points must match actual raw data points returned by
-     * Scan.getDatapoints()
+     * This method returns all raw data points in given scan that were used to
+     * build this peak. Such data points must match actual raw data points
+     * returned by Scan.getDatapoints()
      */
     public DataPoint[] getRawDataPoints(int scanNumber);
 
     /**
-     * Returns the minimum RT of all datapoints used to detect this peak
+     * Returns the minimum RT of all raw data points used to detect this peak
      */
     public float getRawDataPointMinRT();
 
     /**
-     * Returns the maximum RT of all datapoints used to detect this peak
+     * Returns the maximum RT of all raw data points used to detect this peak
      */
     public float getRawDataPointMaxRT();
 
     /**
-     * Returns minimum M/Z value of all datapoints used to detect this peak
+     * Returns minimum M/Z value of all raw data points used to detect this peak
      */
     public float getRawDataPointMinMZ();
 
     /**
-     * Returns maximum M/Z value of all datapoints used to detect this peak
+     * Returns maximum M/Z value of all raw data points used to detect this peak
      */
     public float getRawDataPointMaxMZ();
 
     /**
-     * Returns maximum intensity value of all datapoints used to detect this peak
+     * Returns maximum intensity value of all raw data points used to detect
+     * this peak
      */
     public float getRawDataPointMaxIntensity();
 
