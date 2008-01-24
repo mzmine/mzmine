@@ -107,97 +107,102 @@ class SpectraVisualizerWindow extends JInternalFrame implements ActionListener {
 
             public void run() {
 
-                currentScan = dataFile.getScan(scanNumber);
-                scanDataSet = new ScanDataSet(currentScan);
+                // Synchronize over data file so the threads don't fight each
+                // other while updating the GUI components
+                synchronized (dataFile) {
 
-                PeakList selectedPeakList = bottomPanel.getSelectedPeakList();
-                PeakListDataSet peaksDataSet = null;
+                    currentScan = dataFile.getScan(scanNumber);
+                    scanDataSet = new ScanDataSet(currentScan);
 
-                if (selectedPeakList != null) {
-                    toolBar.setPeaksButtonEnabled(true);
-                    peaksDataSet = new PeakListDataSet(dataFile, scanNumber,
-                            selectedPeakList);
-                } else {
-                    toolBar.setPeaksButtonEnabled(false);
-                }
+                    PeakList selectedPeakList = bottomPanel.getSelectedPeakList();
+                    PeakListDataSet peaksDataSet = null;
 
-                // Set plot data sets
-                spectrumPlot.setDataSets(scanDataSet, peaksDataSet);
-
-                // if the scan is centroided, switch to centroid mode
-                if (currentScan.isCentroided()) {
-                    spectrumPlot.setPlotMode(PlotMode.CENTROID);
-                    toolBar.setCentroidButton(false);
-                } else {
-                    spectrumPlot.setPlotMode(PlotMode.CONTINUOUS);
-                    toolBar.setCentroidButton(true);
-                }
-
-                // Clean up the MS/MS selector combo
-
-                JComboBox msmsSelector = bottomPanel.getMSMSSelector();
-                msmsSelector.removeAllItems();
-                boolean msmsVisible = false;
-
-                // Add parent scan to MS/MS selector combo
-
-                int parentNumber = currentScan.getParentScanNumber();
-                if ((currentScan.getMSLevel() > 1) && (parentNumber > 0)) {
-
-                    String itemText = "Parent scan #"
-                            + parentNumber
-                            + ", RT: "
-                            + rtFormat.format(dataFile.getScan(parentNumber).getRetentionTime())
-                            + ", precursor m/z: "
-                            + mzFormat.format(currentScan.getPrecursorMZ());
-
-                    if (currentScan.getPrecursorCharge() > 0)
-                        itemText += " (chrg "
-                                + currentScan.getPrecursorCharge() + ")";
-
-                    msmsSelector.addItem(itemText);
-                    msmsVisible = true;
-
-                }
-
-                // Add all fragment scans to MS/MS selector combo
-                int fragmentScans[] = currentScan.getFragmentScanNumbers();
-                if (fragmentScans != null) {
-
-                    for (int fragment : fragmentScans) {
-                        Scan fragmentScan = dataFile.getScan(fragment);
-                        String itemText = "Fragment scan #"
-                                + fragment
-                                + ", RT: "
-                                + rtFormat.format(fragmentScan.getRetentionTime())
-                                + ", precursor m/z: "
-                                + mzFormat.format(fragmentScan.getPrecursorMZ());
-                        msmsSelector.addItem(itemText);
-                        msmsVisible = true;
+                    if (selectedPeakList != null) {
+                        toolBar.setPeaksButtonEnabled(true);
+                        peaksDataSet = new PeakListDataSet(dataFile,
+                                scanNumber, selectedPeakList);
+                    } else {
+                        toolBar.setPeaksButtonEnabled(false);
                     }
 
+                    // Set plot data sets
+                    spectrumPlot.setDataSets(scanDataSet, peaksDataSet);
+
+                    // if the scan is centroided, switch to centroid mode
+                    if (currentScan.isCentroided()) {
+                        spectrumPlot.setPlotMode(PlotMode.CENTROID);
+                        toolBar.setCentroidButton(false);
+                    } else {
+                        spectrumPlot.setPlotMode(PlotMode.CONTINUOUS);
+                        toolBar.setCentroidButton(true);
+                    }
+
+                    // Clean up the MS/MS selector combo
+
+                    JComboBox msmsSelector = bottomPanel.getMSMSSelector();
+                    msmsSelector.removeAllItems();
+                    boolean msmsVisible = false;
+
+                    // Add parent scan to MS/MS selector combo
+
+                    int parentNumber = currentScan.getParentScanNumber();
+                    if ((currentScan.getMSLevel() > 1) && (parentNumber > 0)) {
+
+                        String itemText = "Parent scan #"
+                                + parentNumber
+                                + ", RT: "
+                                + rtFormat.format(dataFile.getScan(parentNumber).getRetentionTime())
+                                + ", precursor m/z: "
+                                + mzFormat.format(currentScan.getPrecursorMZ());
+
+                        if (currentScan.getPrecursorCharge() > 0)
+                            itemText += " (chrg "
+                                    + currentScan.getPrecursorCharge() + ")";
+
+                        msmsSelector.addItem(itemText);
+                        msmsVisible = true;
+
+                    }
+
+                    // Add all fragment scans to MS/MS selector combo
+                    int fragmentScans[] = currentScan.getFragmentScanNumbers();
+                    if (fragmentScans != null) {
+
+                        for (int fragment : fragmentScans) {
+                            Scan fragmentScan = dataFile.getScan(fragment);
+                            String itemText = "Fragment scan #"
+                                    + fragment
+                                    + ", RT: "
+                                    + rtFormat.format(fragmentScan.getRetentionTime())
+                                    + ", precursor m/z: "
+                                    + mzFormat.format(fragmentScan.getPrecursorMZ());
+                            msmsSelector.addItem(itemText);
+                            msmsVisible = true;
+                        }
+
+                    }
+
+                    // Update the visibility of MS/MS selection combo
+                    bottomPanel.setMSMSSelectorVisible(msmsVisible);
+
+                    // Set window and plot titles
+
+                    String title = "[" + dataFile.toString() + "] scan #"
+                            + currentScan.getScanNumber();
+
+                    String subTitle = "MS"
+                            + currentScan.getMSLevel()
+                            + ", RT "
+                            + rtFormat.format(currentScan.getRetentionTime())
+                            + ", base peak: "
+                            + mzFormat.format(currentScan.getBasePeakMZ())
+                            + " m/z ("
+                            + intensityFormat.format(currentScan.getBasePeakIntensity())
+                            + ")";
+
+                    setTitle(title);
+                    spectrumPlot.setTitle(title, subTitle);
                 }
-
-                // Update the visibility of MS/MS selection combo
-                bottomPanel.setMSMSSelectorVisible(msmsVisible);
-
-                // Set window and plot titles
-
-                String title = "[" + dataFile.toString() + "] scan #"
-                        + currentScan.getScanNumber();
-
-                String subTitle = "MS"
-                        + currentScan.getMSLevel()
-                        + ", RT "
-                        + rtFormat.format(currentScan.getRetentionTime())
-                        + ", base peak: "
-                        + mzFormat.format(currentScan.getBasePeakMZ())
-                        + " m/z ("
-                        + intensityFormat.format(currentScan.getBasePeakIntensity())
-                        + ")";
-
-                setTitle(title);
-                spectrumPlot.setTitle(title, subTitle);
             }
 
         };
