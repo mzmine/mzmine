@@ -33,9 +33,24 @@ import org.jfree.data.xy.AbstractXYDataset;
 class PeakDataSet extends AbstractXYDataset {
 
     private Peak peak;
+    private float retentionTimes[], intensities[];
 
     PeakDataSet(Peak peak) {
+
         this.peak = peak;
+
+        int scanNumbers[] = peak.getScanNumbers();
+        RawDataFile dataFile = peak.getDataFile();
+
+        retentionTimes = new float[scanNumbers.length];
+        intensities = new float[scanNumbers.length];
+
+        for (int i = 0; i < scanNumbers.length; i++) {
+            Scan scan = dataFile.getScan(scanNumbers[i]);
+            DataPoint dataPoint = peak.getDataPoint(scanNumbers[i]);
+            retentionTimes[i] = scan.getRetentionTime();
+            intensities[i] = dataPoint.getIntensity();
+        }
     }
 
     @Override public int getSeriesCount() {
@@ -47,20 +62,15 @@ class PeakDataSet extends AbstractXYDataset {
     }
 
     public int getItemCount(int series) {
-        return peak.getScanNumbers().length;
+        return retentionTimes.length;
     }
 
     public Number getX(int series, int item) {
-        RawDataFile dataFile = peak.getDataFile();
-        int scanNumber = peak.getScanNumbers()[item];
-        Scan scan = dataFile.getScan(scanNumber);
-        return scan.getRetentionTime();
+        return retentionTimes[item];
     }
 
     public Number getY(int series, int item) {
-        int scanNumber = peak.getScanNumbers()[item];
-        DataPoint dataPoint = peak.getDataPoint(scanNumber);
-        return dataPoint.getIntensity();
+        return intensities[item];
     }
 
 }
