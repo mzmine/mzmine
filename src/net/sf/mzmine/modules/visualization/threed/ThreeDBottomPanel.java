@@ -85,6 +85,8 @@ class ThreeDBottomPanel extends JPanel implements ProjectListener,
 
         project = MZmineCore.getCurrentProject();
         project.addProjectListener(this);
+        
+        masterFrame.addInternalFrameListener(this);
 
         add(Box.createHorizontalGlue());
 

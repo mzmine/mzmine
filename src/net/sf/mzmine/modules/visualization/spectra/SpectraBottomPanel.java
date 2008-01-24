@@ -119,6 +119,8 @@ class SpectraBottomPanel extends JPanel implements ProjectListener,
 
         project = MZmineCore.getCurrentProject();
         project.addProjectListener(this);
+        
+        masterFrame.addInternalFrameListener(this);
 
     }
 
