@@ -49,7 +49,15 @@ public interface IOController {
      * @throws IOException
      */
     public RawDataFileWriter createNewFile(File file, PreloadLevel preloadLevel) throws IOException;
- 
+    
+    /**
+     * 
+     * @param projectDir
+     * @return void
+     * @throws IOException
+     */
+    public void createProject(File projectDir) throws IOException; 
+    
     /**
      * 
      * @param projectFile
@@ -57,12 +65,13 @@ public interface IOController {
      * @throws IOException
      */
     public void openProject(File projectFile) throws IOException; 
+
     /**
      * 
-     * @param projectFile
+     * @param project directory
      * @return none
      * @throws IOException
      */
-    public void saveProject(File projectFile) throws IOException; 
-
+    public void saveProject(File projectDir) throws IOException; 
+    
 }

@@ -22,14 +22,9 @@ package net.sf.mzmine.io.impl;
 
 import java.io.File;
 import java.util.List;
-import java.util.ArrayList;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import java.io.FileOutputStream;
-import java.io.FileInputStream;
-import java.io.BufferedOutputStream;
-import java.util.zip.ZipInputStream;
-import java.util.zip.ZipEntry;
+
 import net.sf.mzmine.io.RawDataFile;
 import net.sf.mzmine.project.impl.MZmineProjectImpl;
 import net.sf.mzmine.taskcontrol.Task;
@@ -45,7 +40,7 @@ public class ProjectOpeningTask implements Task {
 
     private Logger logger = Logger.getLogger(this.getClass().getName());
 
-    private File projectFile;
+    private File projectDir;
     private TaskStatus status;
     private String errorMessage;
     
@@ -66,8 +61,8 @@ public class ProjectOpeningTask implements Task {
     private Finished finished;
     MZmineProjectImpl project;
  
-    public ProjectOpeningTask(File projectFile) {
-        this.projectFile= projectFile;
+    public ProjectOpeningTask(File projectDir) {
+        this.projectDir= projectDir;
         status = TaskStatus.WAITING;
     }
 
@@ -75,7 +70,7 @@ public class ProjectOpeningTask implements Task {
      * @see net.sf.mzmine.taskcontrol.Task#getTaskDescription()
      */
     public String getTaskDescription() {
-        return "Opening project" + projectFile;
+        return "Opening project" + projectDir;
     }
 
     /**
@@ -110,45 +105,22 @@ public class ProjectOpeningTask implements Task {
      * @see java.lang.Runnable#run()
      */
     public void run() {
-
+     	
         // Update task status
-        logger.info("Started openning project" + projectFile);
+        logger.info("Started openning project" + projectDir);
         status = TaskStatus.PROCESSING;
         finished=Finished.STARTED;
         
         try {
         	
-        	//load zipfile and extract into temporary dir
-        	File tempDirPath=File.createTempFile("mzmine",""); 	
-        	tempDirPath.delete();
-        	tempDirPath.mkdir();
-        	tempDirPath.deleteOnExit();
-        	ZipInputStream zis=new ZipInputStream(new FileInputStream(projectFile));
-        	BufferedOutputStream output=null;
-        	while (true){
-        		ZipEntry entry=zis.getNextEntry(); 
-        		if (entry==null){
-        			break;
-        		}
-        		String fileName=entry.getName().split("/")[1];
-        		File tempFile = new File(tempDirPath,fileName);
-        		tempFile.deleteOnExit();
-        		FileOutputStream tempFileOut = new FileOutputStream(tempFile);
-        		output=new BufferedOutputStream(tempFileOut);
-        		
-        		byte buf[] = new byte[1024];
-        		int count=0;
-        		while((count=zis.read(buf, 0,1024))!=-1){
-        			output.write(buf, 0, count);
-        		}
-        		output.close();
-        		zis.closeEntry();
-        	}
-        	finished=Finished.ZIP_OPENED;
-
-			
         	//load from db4o database
-        	File dbFile = new File(tempDirPath, "mzmine.db4o");
+        	File dbFile = new File(projectDir, "mzmine.db4o");
+        	if (!dbFile.exists()){
+            	// check projectDir is a valid MZmine project directory
+            	status = TaskStatus.ERROR;
+            	return;
+        	}
+        	
 			ObjectContainer db = Db4o.openFile(dbFile.toString());
 			try {
 	        	List <MZmineProjectImpl>result_project= db.query(new Predicate<MZmineProjectImpl>() {
@@ -171,7 +143,7 @@ public class ProjectOpeningTask implements Task {
 			finished=Finished.OBJECT_LOADED;
 			
         	//reset project tempDirPath
-			project.setLocation(tempDirPath);
+			project.setLocation(projectDir);
 			
 			//update scanDataFile in rawDataFiles
 			
@@ -184,13 +156,13 @@ public class ProjectOpeningTask implements Task {
 			
 		} catch (Throwable e) {
             logger.log(Level.SEVERE, "Could not open project "
-                    + projectFile.getPath(), e);
+                    + projectDir.getPath(), e);
             errorMessage = e.toString();
             status = TaskStatus.ERROR;
             return;
         }
 
-        logger.info("Finished openning " + projectFile);
+        logger.info("Finished openning " + projectDir);
         finished=Finished.COMPLETE;
         status = TaskStatus.FINISHED;
 
@@ -200,7 +172,7 @@ public class ProjectOpeningTask implements Task {
      * @see net.sf.mzmine.taskcontrol.Task#cancel()
      */
     public void cancel() {
-        logger.info("Cancelling opening of project" + projectFile);
+        logger.info("Cancelling opening of project" + projectDir);
         status = TaskStatus.CANCELED;
     }
 

@@ -23,6 +23,7 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
 import java.io.File;
+import java.io.IOException;
 
 import javax.swing.JDesktopPane;
 import javax.swing.JFileChooser;
@@ -30,14 +31,18 @@ import javax.swing.JMenu;
 import javax.swing.JMenuBar;
 import javax.swing.JMenuItem;
 import javax.swing.KeyStroke;
+import javax.swing.JOptionPane;
+import javax.swing.JDialog;
 
 import net.sf.mzmine.main.MZmineCore;
+import net.sf.mzmine.taskcontrol.impl.TaskControllerImpl;
 import net.sf.mzmine.userinterface.Desktop.MZmineMenu;
 import net.sf.mzmine.userinterface.dialogs.AboutDialog;
 import net.sf.mzmine.userinterface.dialogs.FileOpenDialog;
 import net.sf.mzmine.userinterface.dialogs.FormatSetupDialog;
+import net.sf.mzmine.userinterface.dialogs.ProjectCreateDialog;
 import net.sf.mzmine.userinterface.dialogs.ProjectOpenDialog;
-import net.sf.mzmine.userinterface.dialogs.ProjectSaveDialog;
+import net.sf.mzmine.userinterface.dialogs.ProjectSaveAsDialog;
 import net.sf.mzmine.userinterface.dialogs.experimentalparametersetupdialog.ExperimentalParametersSetupDialog;
 import net.sf.mzmine.util.GUIUtils;
 import ca.guydavis.swing.desktop.CascadingWindowPositioner;
@@ -54,23 +59,26 @@ class MainMenu extends JMenuBar implements ActionListener {
 
     private JWindowsMenu windowsMenu;
 
-    private JMenuItem projectOpen, projectRestore,projectSave,projectExperimentalParameters,
-            projectFormats, projectSaveParameters, projectLoadParameters,
-            projectExit, hlpAbout;
+    private JMenuItem projectCreate, projectOpen, projectRestore,projectSave,
+    	projectExperimentalParameters,projectFormats, projectSaveParameters, projectLoadParameters,
+        projectExit, hlpAbout;
 
     MainMenu() {
     	
         projectMenu = new JMenu("Project");
         projectMenu.setMnemonic(KeyEvent.VK_P);
         add(projectMenu);
+        projectCreate = GUIUtils.addMenuItem(projectMenu, "Create new project...",
+        		this, KeyEvent.VK_N, true);
+        
         projectRestore = GUIUtils.addMenuItem(projectMenu, "Open project...",
-                this, 0, false);
+                this, KeyEvent.VK_O, true);
         projectSave = GUIUtils.addMenuItem(projectMenu, "Save project...",
-                this, 0, false);
+                this, KeyEvent.VK_S, false);
         projectMenu.addSeparator();
         
         projectOpen = GUIUtils.addMenuItem(projectMenu, "Import raw data...",
-                this, KeyEvent.VK_O, true);
+                this, KeyEvent.VK_I, true);
 
         projectMenu.addSeparator();
 
@@ -224,8 +232,35 @@ class MainMenu extends JMenuBar implements ActionListener {
         Object src = e.getSource();
 
         if (src == projectExit) {
+        	int result = JOptionPane.showConfirmDialog(MZmineCore.getDesktop().getMainFrame(), 
+        			"Do you want to save project before exitting mzmine? ", "Exitting mzmine ...", 
+        			JOptionPane.OK_CANCEL_OPTION, JOptionPane.QUESTION_MESSAGE);
+        	if (result == JOptionPane.YES_OPTION){
+            	try {
+                	File projectDir = MZmineCore.getCurrentProject().getLocation();
+    				MZmineCore.getIOController().saveProject(projectDir);
+    			} catch (IOException e1) {
+    				JOptionPane.showMessageDialog(this,"Project Saving Error","Error",JOptionPane.ERROR_MESSAGE);
+    			}
+        	}    
+        	while (((TaskControllerImpl) MZmineCore.getTaskController()).getTaskExists()){
+        		//wait unitl all task to finish
+        	}
             MZmineCore.exitMZmine();
         }
+        
+        if (src == projectCreate) {
+        	int result = JOptionPane.showConfirmDialog(MZmineCore.getDesktop().getMainFrame(), 
+        			"You are going close current project and creating new project", "Creating new project", 
+        			JOptionPane.OK_CANCEL_OPTION, JOptionPane.QUESTION_MESSAGE);
+        	if (result == JOptionPane.YES_OPTION){
+        		DesktopParameters parameters = (DesktopParameters) MZmineCore.getDesktop().getParameterSet();
+                String lastPath = parameters.getLastOpenPath();
+                ProjectCreateDialog projectCreateDialog = new ProjectCreateDialog();
+                projectCreateDialog.setVisible(true);
+        	}
+            
+        }         
         if (src == projectRestore) {
             DesktopParameters parameters = (DesktopParameters) MZmineCore.getDesktop().getParameterSet();
             String lastPath = parameters.getLastOpenPath();
@@ -233,12 +268,14 @@ class MainMenu extends JMenuBar implements ActionListener {
             projectOpenDialog.setVisible(true);
         }  
         if (src == projectSave) {
-            DesktopParameters parameters = (DesktopParameters) MZmineCore.getDesktop().getParameterSet();
-            String lastPath = parameters.getLastOpenPath();
-            ProjectSaveDialog projectSaveDialog = new ProjectSaveDialog(lastPath);
-            projectSaveDialog.setVisible(true);
-            parameters.setLastOpenPath(projectSaveDialog.getCurrentDirectory());
+        	try {
+            	File projectDir = MZmineCore.getCurrentProject().getLocation();
+				MZmineCore.getIOController().saveProject(projectDir);
+			} catch (IOException e1) {
+				JOptionPane.showMessageDialog(this,"Project Saving Error","Error",JOptionPane.ERROR_MESSAGE);
+			}
         }
+
         if (src == projectOpen) {
             DesktopParameters parameters = (DesktopParameters) MZmineCore.getDesktop().getParameterSet();
             String lastPath = parameters.getLastOpenPath();

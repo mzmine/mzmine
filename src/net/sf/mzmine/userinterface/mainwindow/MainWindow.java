@@ -374,6 +374,4 @@ public class MainWindow extends JFrame implements MZmineModule, Desktop,
         return itemSelector;
     }
 
-
-
 }

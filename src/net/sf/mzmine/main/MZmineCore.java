@@ -124,10 +124,10 @@ public abstract class MZmineCore {
 
             if (selectedValue != JOptionPane.YES_OPTION)
                 return;
-
             desktop.getMainFrame().dispose();
         }
 
+        
         System.exit(0);
 
     }

@@ -30,6 +30,7 @@ import net.sf.mzmine.io.impl.IOControllerImpl;
 import net.sf.mzmine.project.impl.MZmineProjectImpl;
 import net.sf.mzmine.taskcontrol.impl.TaskControllerImpl;
 import net.sf.mzmine.userinterface.mainwindow.MainWindow;
+import net.sf.mzmine.userinterface.dialogs.ProjectInitDialog;
 
 import org.dom4j.Document;
 import org.dom4j.Element;
@@ -82,27 +83,25 @@ public class MZmineClient extends MZmineCore implements Runnable {
                     + " computation nodes");
 
             logger.finer("Loading core classes");
-
+            
             // create instances of core modules
             TaskControllerImpl taskController = new TaskControllerImpl(
                     numberOfNodes);
             IOControllerImpl ioController = new IOControllerImpl();
             desktop = new MainWindow();
-            MZmineProjectImpl project = new MZmineProjectImpl();
 
             // save static references to MZmineCore
             MZmineCore.taskController = taskController;
             MZmineCore.ioController = ioController;
-            MZmineCore.desktop = desktop;
-            MZmineCore.currentProject = project;
-
+            MZmineCore.desktop = desktop;           
+            MZmineCore.currentProject = null;
+            
             logger.finer("Initializing core classes");
 
             taskController.initModule();
             ioController.initModule();
-            desktop.initModule();
-            project.initModule();
-
+            desktop.initModule();       
+			
             logger.finer("Loading modules");
 
             moduleSet = new Vector<MZmineModule>();
@@ -120,6 +119,12 @@ public class MZmineClient extends MZmineCore implements Runnable {
 
             // load module configuration
             loadConfiguration(CONFIG_FILE);
+            
+            
+            // create  or select Project
+            // We have to load project here because project loading access desktop property
+            
+            loadProject ();     
 
         } catch (Exception e) {
             logger.log(Level.SEVERE, "Could not parse configuration file "
@@ -139,7 +144,15 @@ public class MZmineClient extends MZmineCore implements Runnable {
         desktop.setStatusBarText("Welcome to MZmine!");
 
     }
-
+    
+    private synchronized void  loadProject(){
+    	ProjectInitDialog initDialog = new ProjectInitDialog();
+   
+    	//while (MZmineCore.getCurrentProject() == null){
+    			initDialog.setVisible(true);
+    	//}
+    }
+    
     public MZmineModule loadModule(String moduleClassName) {
 
         try {

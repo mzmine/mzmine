@@ -155,14 +155,14 @@ public class DesktopParameters implements StorableParameterSet,
     /**
      * @return Returns the lastOpenPath.
      */
-    String getLastOpenPath() {
+    public String getLastOpenPath() {
         return lastOpenPath;
     }
 
     /**
      * @param lastOpenPath The lastOpenPath to set.
      */
-    void setLastOpenPath(String lastOpenPath) {
+    public void setLastOpenPath(String lastOpenPath) {
         this.lastOpenPath = lastOpenPath;
     }
 

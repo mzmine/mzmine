@@ -29,11 +29,10 @@ import java.util.logging.Logger;
 import javax.swing.JDialog;
 import javax.swing.JFileChooser;
 import javax.swing.JPanel;
+import javax.swing.JOptionPane;
 
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.project.MZmineProject;
-
-import com.sun.java.ExampleFileFilter;
 
 /**
  * File open dialog
@@ -43,14 +42,19 @@ public class ProjectOpenDialog extends JDialog implements ActionListener {
     private Logger logger = Logger.getLogger(this.getClass().getName());
     
     private JFileChooser fileChooser;
-
+    private File projectDir;
+    public enum Status{
+    	Processing,Finished,Canceled,Error;
+    }
+    private Status status;
     
     public ProjectOpenDialog(String path) {
 
-        super(MZmineCore.getDesktop().getMainFrame(), "Please select a project file to open..." ,
+        super(MZmineCore.getDesktop().getMainFrame(), "Please select a project Directory to open..." ,
                 true);
         
-        logger.finest("Displaying file open dialog");
+        logger.finest("Displaying project open dialog");
+        status = Status.Processing;
         
         fileChooser = new JFileChooser();
         if (path != null){
@@ -58,17 +62,10 @@ public class ProjectOpenDialog extends JDialog implements ActionListener {
         }
         fileChooser.setMultiSelectionEnabled(false);
         fileChooser.addActionListener(this);
-
-        ExampleFileFilter filter = new ExampleFileFilter();
-        filter.addExtension("mzm");
-        filter.setDescription("mzmine project");
-        fileChooser.addChoosableFileFilter(filter);
-        
-        fileChooser.setFileSelectionMode(JFileChooser.FILES_ONLY);
+        fileChooser.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
         add(fileChooser, BorderLayout.CENTER);
         pack();
         setLocationRelativeTo(MZmineCore.getDesktop().getMainFrame());
-
     }
 
     /**
@@ -79,20 +76,33 @@ public class ProjectOpenDialog extends JDialog implements ActionListener {
         String command = event.getActionCommand();
 
         // check if user clicked "Open"
+ 
         if (command.equals("ApproveSelection")) {
 
             File selectedDir = fileChooser.getSelectedFile();
             try{
             	MZmineCore.getIOController().openProject(selectedDir);
-
-            }catch(IOException e){
+            	status = Status.Finished;
+            }catch(Throwable e){
+            	JOptionPane.showMessageDialog(
+            			this,
+            			"Could not open project dir",
+            			"Project opening error",
+            			JOptionPane.ERROR_MESSAGE);
             	logger.fine("Could not open project file."+e.getMessage());
+            	status = Status.Error;
             }
+        }else{
+        	status = Status.Canceled;
         }
-        
         // discard this dialog
         dispose();
-
     }
-
+    
+    public String getCurrentDirectory(){
+    	return this.projectDir.toString();
+    }
+    public Status getStatus(){
+    	return status;
+    }
 }

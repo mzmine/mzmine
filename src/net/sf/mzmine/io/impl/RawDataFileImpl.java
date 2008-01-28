@@ -71,7 +71,6 @@ class RawDataFileImpl implements RawDataFile, RawDataFileWriter {
         	writingScanDataFileName=fileName+ "." +suffix;
         	File scanfile=new File(dirPath,writingScanDataFileName);
         	scanfile.createNewFile();
-        	scanfile.deleteOnExit();
             writingScanDataFile=new RandomAccessFile(scanfile,"rw");      
         }
 
@@ -552,21 +551,6 @@ class RawDataFileImpl implements RawDataFile, RawDataFileWriter {
 
     }
 
-    public void finalize() {
-    
-        if (preloadLevel != PreloadLevel.PRELOAD_ALL_SCANS) {
-			try {
-                logger.finest("Removing temporary file"
-                        + scanDataFileName);
-
-                scanDataFile.close();
-                File dir=MZmineCore.getCurrentProject().getLocation();
-                new File(dir,scanDataFileName).delete();
-				} catch (IOException e) {
-					logger.log(Level.WARNING, "Could not close temporary file", e);
-				}
-        }
-    }
 
     public float getDataMaxMZ() {
         return getDataMaxMZ(0);

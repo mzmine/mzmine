@@ -182,7 +182,6 @@ class ThreeDDisplay extends DisplayImplJ3D {
         retentionTimeAxis.setTitle("Retention time");
         retentionTimeAxis.setLabelSize(LABEL_FONT_SIZE);
         retentionTimeAxis.setLabelAllTicks(true);
-
         retentionTimeAxis.setNumberFormat(rtFormat);
 
         // set m/z axis properties

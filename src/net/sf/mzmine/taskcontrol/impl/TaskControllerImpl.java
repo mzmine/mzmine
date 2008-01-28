@@ -204,7 +204,13 @@ public class TaskControllerImpl implements TaskController, Runnable {
         else
             return null;
     }
-
+    public boolean getTaskExists (){
+    	if ( taskQueue.allTasksFinished()){
+    		return false;
+    	}else{
+    		return true;
+    	}
+    }
     /**
      */
     public void initModule() {

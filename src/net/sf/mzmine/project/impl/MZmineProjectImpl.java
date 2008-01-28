@@ -50,29 +50,20 @@ public class MZmineProjectImpl implements MZmineProject {
     
     private Logger logger = Logger.getLogger(this.getClass().getName());
     //filePath to save project
-    private File dirPath;
+    private File projectDir;
     
-    public MZmineProjectImpl(){
-    	String dirPath="";
-    	try {
-    		//create default project dir 
-			File tmpFile=File.createTempFile("mzmine", "");
-			dirPath=tmpFile.toString();
-			tmpFile.delete();
-			new File(dirPath).mkdir();
-		} catch (IOException e) {
-			logger.fine("Could not make temporary file");
-		}
-		this.setLocation(new File(dirPath));
+    public MZmineProjectImpl(File projectDir){
+    	this.projectDir = projectDir;
         listeners = new Vector<ProjectListener>();
+        this.initModule();
     }
     
     public void setLocation(File dirPath){
-    	this.dirPath=dirPath;
+    	this.projectDir=dirPath;
     }   
     
     public File getLocation(){
-    	return this.dirPath;
+    	return this.projectDir;
     }
 
     public void addParameter(Parameter parameter) {
@@ -180,25 +171,7 @@ public class MZmineProjectImpl implements MZmineProject {
         projectParametersAndValues = new Hashtable<Parameter, Hashtable<RawDataFile, Object>>();
 
     }
-    protected void finalize(){
-    	//remove all temporary files
-    	//but first close all temporary files.
-    	for (RawDataFile file:this.getDataFiles()){
-    		if (file.getPreloadLevel().equals(PreloadLevel.PRELOAD_ALL_SCANS)){
-    			break;
-    		}
-    		try {
-				file.getScanDataFile().close();
-    		} catch (IOException e) {
-				logger.warning("Error while closing temporary files.");
-			}
-    	}
-    	for (File file:this.getLocation().listFiles()){
-    		file.delete();
-    	}
-    	this.getLocation().delete();
-    }
-
+    
     public void addProjectListener(ProjectListener listener) {
         listeners.add(listener);
     }

@@ -22,6 +22,7 @@ package net.sf.mzmine.io.impl;
 import java.io.File;
 import java.io.IOException;
 import java.util.logging.Logger;
+
 import net.sf.mzmine.data.PeakList;
 import net.sf.mzmine.io.IOController;
 import net.sf.mzmine.io.PreloadLevel;
@@ -35,6 +36,7 @@ import net.sf.mzmine.taskcontrol.TaskListener;
 import net.sf.mzmine.userinterface.Desktop;
 import net.sf.mzmine.userinterface.mainwindow.ItemSelector;
 import net.sf.mzmine.userinterface.mainwindow.MainWindow;
+import net.sf.mzmine.userinterface.dialogs.ProjectInitDialog;
 
 /**
  * IO controller
@@ -61,6 +63,10 @@ public class IOControllerImpl implements IOController, TaskListener {
         }
 
     }
+    public void createProject(File projectDir) throws IOException {
+        Task createTask = new ProjectCreatingTask(projectDir);
+        taskController.addTask(createTask, this);
+    }
     
     public void openProject(File projectDir) throws IOException {
         Task openTask = new ProjectOpeningTask(projectDir);
@@ -70,6 +76,7 @@ public class IOControllerImpl implements IOController, TaskListener {
         Task saveTask = new ProjectSavingTask(projectDir);
         taskController.addTask(saveTask, this);	
     }
+  
     /**
      * This method is called when the file opening task is finished.
      * 
@@ -88,6 +95,29 @@ public class IOControllerImpl implements IOController, TaskListener {
 				desktop.displayErrorMessage("Error opening a file: "
 						+ task.getErrorMessage());
 
+			}
+		}
+    	else if(task instanceof ProjectCreatingTask){
+    		if (task.getStatus() == Task.TaskStatus.FINISHED) {
+    			
+				MZmineProjectImpl project=(MZmineProjectImpl)((ProjectCreatingTask) task).getResult();
+				MZmineCore.setProject(project);
+				//initialize UI
+    			MainWindow window=(MainWindow)MZmineCore.getDesktop();
+    			ItemSelector itemSelector=window.getItemSelector();
+    			itemSelector.removeAll();
+    			
+			} else if (task.getStatus() == Task.TaskStatus.ERROR) {
+				/* Task encountered an error */
+				logger.severe("Error creating a project: "
+						+ task.getErrorMessage());
+				desktop.displayErrorMessage("Error creating a project: "
+						+ task.getErrorMessage());
+				
+				//if project is not initialized ,return to project initializing dialog. 
+				if (MZmineCore.getCurrentProject() == null){
+					new ProjectInitDialog().setVisible(true);
+				}
 			}
 		}
     	else if(task instanceof ProjectOpeningTask){
@@ -116,12 +146,21 @@ public class IOControllerImpl implements IOController, TaskListener {
 						+ task.getErrorMessage());
 				desktop.displayErrorMessage("Error opening a project: "
 						+ task.getErrorMessage());
+				//if project is not initialized ,return to project initializing dialog. 
+				if (MZmineCore.getCurrentProject() == null){
+					new ProjectInitDialog().setVisible(true);
+				}
 			}
 		}
     	else if(task instanceof ProjectSavingTask){
     		if (task.getStatus() == Task.TaskStatus.FINISHED) {
-    			//do nothing
-			} else if (task.getStatus() == Task.TaskStatus.ERROR) {
+    			//reset project directory to new one
+    			File newProjectDir = ((ProjectSavingTask)task).getResult();
+    			MZmineCore.getCurrentProject().setLocation(newProjectDir);
+    			//
+    			MZmineCore.getDesktop().getMainFrame().setTitle("MZmine:" + newProjectDir.toString());
+ 
+    		} else if (task.getStatus() == Task.TaskStatus.ERROR) {
 				/* Task encountered an error */
 				logger.severe("Error saving a project: "
 						+ task.getErrorMessage());

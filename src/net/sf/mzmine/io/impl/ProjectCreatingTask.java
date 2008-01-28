@@ -23,38 +23,41 @@ package net.sf.mzmine.io.impl;
 import java.io.File;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import java.util.List;
 
-import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.project.impl.MZmineProjectImpl;
 import net.sf.mzmine.taskcontrol.Task;
 
 import com.db4o.Db4o;
 import com.db4o.ObjectContainer;
-import com.db4o.query.Predicate;
 
 /**
  * 
  */
-public class ProjectSavingTask implements Task {
+public class ProjectCreatingTask implements Task {
 
     private Logger logger = Logger.getLogger(this.getClass().getName());
 
     private File projectDir;
     private TaskStatus status;
     private String errorMessage;
-    private MZmineProjectImpl project;
-    private float finished=(float)0.0;
-    private static final float FINISHED_STARTED=0.1f;
-    private static final float FINISHED_OBJECT_FREEZED=0.3f;
-    private static final float FINISHED_START_ZIPPING=0.4f;
-    private static final float FINISHED_COMPLETE=1.0f;
-    /**
-     * 
-     */
-    public ProjectSavingTask(File projectDir) {
-
-        this.projectDir = projectDir;
+    
+    private enum Finished{
+    	STARTED(0.1f),
+    	COMPLETE(1.0f);
+    	
+    	private final float value;
+    	Finished(float value){
+    		this.value=value;
+    	}
+    	public float getValue(){
+    		return this.value;
+    	}
+    }
+    private Finished finished;
+    MZmineProjectImpl project;
+ 
+    public ProjectCreatingTask(File projectDir) {
+        this.projectDir= projectDir;
         status = TaskStatus.WAITING;
     }
 
@@ -62,14 +65,14 @@ public class ProjectSavingTask implements Task {
      * @see net.sf.mzmine.taskcontrol.Task#getTaskDescription()
      */
     public String getTaskDescription() {
-        return "Saving project to " + projectDir;
+        return "Creating project" + projectDir;
     }
 
     /**
      * @see net.sf.mzmine.taskcontrol.Task#getFinishedPercentage()
      */
     public float getFinishedPercentage() {
-        return finished;
+        return finished.getValue();
     }
 
     /**
@@ -87,55 +90,54 @@ public class ProjectSavingTask implements Task {
     }
 
     /**
+     * @see net.sf.mzmine.taskcontrol.Task#getResult()
+     */
+    public MZmineProjectImpl getResult() {
+        return project;
+    }
+
+    /**
      * @see java.lang.Runnable#run()
      */
     public void run() {
 
         // Update task status
-        logger.info("Started saving project" + projectDir);
+        logger.info("Started creating project" + projectDir);
         status = TaskStatus.PROCESSING;
-        finished=FINISHED_STARTED;
-        try {        	
-            //Store all project in db4o database
-        	File dbFile = new File(projectDir,"mzmine.db4o");
-        	ObjectContainer db = Db4o.openFile(dbFile.toString());
-        	//first remove existing project
-        	List <MZmineProjectImpl>result_project= db.query(new Predicate<MZmineProjectImpl>() {
-        	    public boolean match(MZmineProjectImpl mzmineProject) {
-        	     return true;	
-        	    }
-        	});
-        	for (MZmineProjectImpl oldProject :result_project){
-        		db.delete(oldProject);
-        	}
+        finished=Finished.STARTED;
+        
+        try {
+        	projectDir.mkdir();
+        	project = new MZmineProjectImpl(projectDir);
+        	project.setLocation(projectDir);
+ 
+        	//initialize db4o database
+        	File dbFile = new File(projectDir, "mzmine.db4o");
+			ObjectContainer db = Db4o.openFile(dbFile.toString());
+			db.set(project);
+			db.commit();
+			db.close();
         	
-        	db.set(MZmineCore.getCurrentProject());
-        	db.commit();
-        	db.close();
-
 		} catch (Throwable e) {
-            logger.log(Level.SEVERE, "Could not save project "
-                    + projectDir.getPath(), e);
+            logger.log(Level.SEVERE, "Could not create project : " 
+                    + projectDir.toString(), e);
             errorMessage = e.toString();
             status = TaskStatus.ERROR;
             return;
         }
 
-        logger.info("Finished saving " + projectDir);
-
+        logger.info("Finished openning " + projectDir);
+        finished=Finished.COMPLETE;
         status = TaskStatus.FINISHED;
-        finished=FINISHED_COMPLETE;
+
     }
 
     /**
      * @see net.sf.mzmine.taskcontrol.Task#cancel()
      */
     public void cancel() {
-        logger.info("Cancelling saving of project" + projectDir);
+        logger.info("Cancelling opening of project" + projectDir);
         status = TaskStatus.CANCELED;
     }
 
-    public File getResult(){
-    	return projectDir;
-    }
 }
