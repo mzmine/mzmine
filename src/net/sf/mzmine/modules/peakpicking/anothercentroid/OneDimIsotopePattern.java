@@ -9,6 +9,7 @@ class OneDimIsotopePattern {
 	Vector<DataPoint> addedDataPoints;
 	
 	OneDimIsotopePattern(DataPoint highestDatapoint) {
+		addedDataPoints = new Vector<DataPoint>();
 		addedDataPoints.add(highestDatapoint);
 	}
 	

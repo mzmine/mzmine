@@ -70,8 +70,9 @@ public class AnotherCentroidPickerParameters extends SimpleParameterSet {
 					.getDesktop().getMZFormat());
 
 	public AnotherCentroidPickerParameters() {
-		super(new Parameter[] { suffix, noiseLevel, minimumPeakDuration,
-				maximumPeakDuration, mzTolerance });
+		super(new Parameter[] { suffix, noiseLevel,
+				minimumNumberOfIsotopicPeaks, maximumChargeState,
+				minimumPeakDuration, maximumPeakDuration, mzTolerance });
 	}
 
 }
