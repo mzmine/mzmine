@@ -26,9 +26,15 @@ import java.awt.Font;
 import java.awt.event.ActionListener;
 import java.awt.event.WindowEvent;
 import java.awt.event.WindowListener;
+import java.awt.image.BufferedImage;
+import java.io.File;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Enumeration;
 
+import javax.imageio.ImageIO;
+import javax.swing.Icon;
+import javax.swing.ImageIcon;
 import javax.swing.JDesktopPane;
 import javax.swing.JFrame;
 import javax.swing.JInternalFrame;
@@ -42,25 +48,32 @@ import javax.swing.border.EtchedBorder;
 
 import net.sf.mzmine.data.ParameterSet;
 import net.sf.mzmine.data.PeakList;
+import net.sf.mzmine.io.PreloadLevel;
 import net.sf.mzmine.io.RawDataFile;
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.main.MZmineModule;
 import net.sf.mzmine.taskcontrol.impl.TaskControllerImpl;
 import net.sf.mzmine.userinterface.Desktop;
 import net.sf.mzmine.userinterface.components.TaskProgressWindow;
+import net.sf.mzmine.userinterface.dialogs.AboutDialog;
 import net.sf.mzmine.util.NumberFormatter;
+
+import org.simplericity.macify.eawt.Application;
+import org.simplericity.macify.eawt.ApplicationEvent;
+import org.simplericity.macify.eawt.ApplicationListener;
+import org.simplericity.macify.eawt.DefaultApplication;
 
 /**
  * This class is the main window of application
  * 
  */
 public class MainWindow extends JFrame implements MZmineModule, Desktop,
-        WindowListener {
+        WindowListener, ApplicationListener {
 
     // default tooltip displaying and dismissing delay in ms
     public static final int DEFAULT_TOOLTIP_DELAY = 10;
     public static final int DEFAULT_TOOLTIP_DISMISS_DELAY = Integer.MAX_VALUE;
-    
+
     private DesktopParameters parameters;
 
     private JDesktopPane desktopPane;
@@ -88,7 +101,6 @@ public class MainWindow extends JFrame implements MZmineModule, Desktop,
         // TODO: adjust frame position
         frame.setVisible(true);
     }
-
 
     /**
      * This method returns the desktop
@@ -154,8 +166,6 @@ public class MainWindow extends JFrame implements MZmineModule, Desktop,
         return itemSelector.getSelectedPeakLists();
     }
 
-
-
     public void addAlignedPeakList(PeakList alignmentResult) {
         itemSelector.addPeakList(alignmentResult);
     }
@@ -172,25 +182,28 @@ public class MainWindow extends JFrame implements MZmineModule, Desktop,
         itemSelector.removeRawData(dataFile);
     }
 
-    /**
-     * @see net.sf.mzmine.userinterface.Desktop#addSelectionListener(javax.swing.event.ListSelectionListener)
-     */
-/*    public void addSelectionListener(ListSelectionListener listener) {
-        itemSelector.addSelectionListener(listener);
-        selectionListeners.add(listener);
-    }*/
 
-/*    public void notifySelectionListeners() {
-        for (ListSelectionListener listener : selectionListeners) {
-            listener.valueChanged(new ListSelectionEvent(this, 0, 0, false));
-        }
-    }*/
 
     /**
      */
     public void initModule() {
 
         parameters = new DesktopParameters();
+
+        // Create an abstract Application, for better Mac OS X support (using
+        // macify library http://simplericity.org/macify/)
+        Application application = new DefaultApplication();
+        application.addApplicationListener(this);
+        
+
+        try {
+            BufferedImage MZmineIcon = ImageIO.read(new File(
+                    "icons/MZmineIcon.png"));
+            setIconImage(MZmineIcon);
+            application.setApplicationIconImage(MZmineIcon);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
 
         Font defaultFont = new Font("SansSerif", Font.PLAIN, 13);
         Font smallFont = new Font("SansSerif", Font.PLAIN, 11);
@@ -239,19 +252,17 @@ public class MainWindow extends JFrame implements MZmineModule, Desktop,
         // Application wants to control closing by itself
         setDefaultCloseOperation(DO_NOTHING_ON_CLOSE);
 
-        setTitle("MZmine");
+        setTitle("MZmine II");
 
         taskList = new TaskProgressWindow(
                 (TaskControllerImpl) MZmineCore.getTaskController());
         desktopPane.add(taskList, JLayeredPane.DEFAULT_LAYER);
-        
+
         ToolTipManager tooltipManager = ToolTipManager.sharedInstance();
         tooltipManager.setInitialDelay(DEFAULT_TOOLTIP_DELAY);
         tooltipManager.setDismissDelay(DEFAULT_TOOLTIP_DISMISS_DELAY);
 
     }
-
-
 
     /**
      * @see net.sf.mzmine.userinterface.Desktop#getMainFrame()
@@ -369,9 +380,43 @@ public class MainWindow extends JFrame implements MZmineModule, Desktop,
     public void setParameters(ParameterSet parameterValues) {
         this.parameters = (DesktopParameters) parameterValues;
     }
-    
+
     public ItemSelector getItemSelector() {
         return itemSelector;
+    }
+
+    public void handleAbout(ApplicationEvent event) {
+        AboutDialog dialog = new AboutDialog();
+        dialog.setVisible(true);
+        event.setHandled(true);
+    }
+
+    public void handleOpenApplication(ApplicationEvent event) {
+        // ignore
+    }
+
+    public void handleOpenFile(ApplicationEvent event) {
+        File file = new File(event.getFilename());
+        MZmineCore.getIOController().openFiles(new File[] { file },
+                PreloadLevel.NO_PRELOAD);
+        event.setHandled(true);
+    }
+
+    public void handlePreferences(ApplicationEvent event) {
+        // ignore
+    }
+
+    public void handlePrintFile(ApplicationEvent event) {
+        // ignore
+    }
+
+    public void handleQuit(ApplicationEvent event) {
+        MZmineCore.exitMZmine();
+        event.setHandled(false);
+    }
+
+    public void handleReopenApplication(ApplicationEvent event) {
+        // ignore
     }
 
 }
