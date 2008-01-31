@@ -1,5 +1,5 @@
 /*
- * Copyright 2006 The MZmine Development Team
+ * Copyright 2006-2008 The MZmine Development Team
  * 
  * This file is part of MZmine.
  * 
@@ -35,10 +35,7 @@ import org.jfree.chart.ChartPanel;
 import org.jfree.chart.JFreeChart;
 import org.jfree.chart.axis.NumberAxis;
 import org.jfree.chart.plot.XYPlot;
-import org.jfree.chart.renderer.GrayPaintScale;
-import org.jfree.chart.renderer.xy.XYBlockRenderer;
 import org.jfree.chart.title.TextTitle;
-import org.jfree.ui.RectangleAnchor;
 
 /**
  * 
@@ -47,7 +44,7 @@ class TwoDPlot extends ChartPanel {
 
     private JFreeChart chart;
 
-    private XYPlot plot;
+    private TwoDXYPlot plot;
 
    
     //  crosshair (selection) color

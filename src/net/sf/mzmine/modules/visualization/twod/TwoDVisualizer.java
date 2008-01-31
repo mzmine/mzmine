@@ -1,5 +1,5 @@
 /*
- * Copyright 2006 The MZmine Development Team
+ * Copyright 2006-2008 The MZmine Development Team
  * 
  * This file is part of MZmine.
  * 
@@ -22,16 +22,19 @@ package net.sf.mzmine.modules.visualization.twod;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
+import java.util.Hashtable;
 import java.util.logging.Logger;
 
-import javax.swing.JDialog;
-
+import net.sf.mzmine.data.Parameter;
 import net.sf.mzmine.data.ParameterSet;
 import net.sf.mzmine.io.RawDataFile;
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.main.MZmineModule;
+import net.sf.mzmine.modules.visualization.threed.ThreeDVisualizerParameters;
 import net.sf.mzmine.userinterface.Desktop;
 import net.sf.mzmine.userinterface.Desktop.MZmineMenu;
+import net.sf.mzmine.userinterface.dialogs.ExitCode;
+import net.sf.mzmine.userinterface.dialogs.ParameterSetupDialog;
 
 /**
  * 2D visualizer using JFreeChart library
@@ -39,6 +42,8 @@ import net.sf.mzmine.userinterface.Desktop.MZmineMenu;
 public class TwoDVisualizer implements MZmineModule, ActionListener {
 
     private Logger logger = Logger.getLogger(this.getClass().getName());
+
+    private TwoDParameters parameters;
 
     private Desktop desktop;
 
@@ -48,6 +53,8 @@ public class TwoDVisualizer implements MZmineModule, ActionListener {
     public void initModule() {
 
         this.desktop = MZmineCore.getDesktop();
+
+        parameters = new TwoDParameters();
 
         desktop.addMenuItem(MZmineMenu.VISUALIZATION, "2D plot", this, null,
                 KeyEvent.VK_2, false, true);
@@ -62,15 +69,43 @@ public class TwoDVisualizer implements MZmineModule, ActionListener {
         logger.finest("Opening a new 2D visualizer setup dialog");
 
         RawDataFile dataFiles[] = desktop.getSelectedDataFiles();
-        if (dataFiles.length == 0) {
-            desktop.displayErrorMessage("Please select at least one data file");
+        if (dataFiles.length != 1) {
+            desktop.displayErrorMessage("Please select a single data file");
             return;
         }
 
-        for (RawDataFile dataFile : dataFiles) {
-            JDialog setupDialog = new TwoDSetupDialog(dataFile);
-            setupDialog.setVisible(true);
-        }
+        Hashtable<Parameter, Object> autoValues = new Hashtable<Parameter, Object>();
+        autoValues.put(ThreeDVisualizerParameters.msLevel, 1);
+        autoValues.put(ThreeDVisualizerParameters.minRT,
+                dataFiles[0].getDataMinRT(1));
+        autoValues.put(ThreeDVisualizerParameters.maxRT,
+                dataFiles[0].getDataMaxRT(1));
+        autoValues.put(ThreeDVisualizerParameters.minMZ,
+                dataFiles[0].getDataMinMZ(1));
+        autoValues.put(ThreeDVisualizerParameters.maxMZ,
+                dataFiles[0].getDataMaxMZ(1));
+
+        ParameterSetupDialog dialog = new ParameterSetupDialog(
+                "Please set parameter values for " + toString(), parameters,
+                autoValues);
+
+        dialog.setVisible(true);
+
+        if (dialog.getExitCode() != ExitCode.OK)
+            return;
+
+        int msLevel = (Integer) parameters.getParameterValue(ThreeDVisualizerParameters.msLevel);
+        float rtMin = (Float) parameters.getParameterValue(ThreeDVisualizerParameters.minRT);
+        float rtMax = (Float) parameters.getParameterValue(ThreeDVisualizerParameters.maxRT);
+        float mzMin = (Float) parameters.getParameterValue(ThreeDVisualizerParameters.minMZ);
+        float mzMax = (Float) parameters.getParameterValue(ThreeDVisualizerParameters.maxMZ);
+        int rtRes = (Integer) parameters.getParameterValue(ThreeDVisualizerParameters.rtResolution);
+        int mzRes = (Integer) parameters.getParameterValue(ThreeDVisualizerParameters.mzResolution);
+
+        TwoDVisualizerWindow newWindow = new TwoDVisualizerWindow(dataFiles[0],
+                msLevel, rtMin, rtMax, mzMin, mzMax, rtRes, mzRes);
+
+        desktop.addInternalFrame(newWindow);
 
     }
 
@@ -85,13 +120,14 @@ public class TwoDVisualizer implements MZmineModule, ActionListener {
      * @see net.sf.mzmine.main.MZmineModule#getParameterSet()
      */
     public ParameterSet getParameterSet() {
-        return null;
+        return parameters;
     }
 
     /**
      * @see net.sf.mzmine.main.MZmineModule#setParameters(net.sf.mzmine.data.ParameterSet)
      */
-    public void setParameters(ParameterSet parameterValues) {
+    public void setParameters(ParameterSet parameters) {
+        this.parameters = (TwoDParameters) parameters;
     }
 
 }

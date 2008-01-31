@@ -1,5 +1,5 @@
 /*
- * Copyright 2006 The MZmine Development Team
+ * Copyright 2006-2008 The MZmine Development Team
  * 
  * This file is part of MZmine.
  * 
@@ -24,8 +24,6 @@ import java.awt.Color;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 
-import javax.swing.BorderFactory;
-import javax.swing.JCheckBox;
 import javax.swing.JInternalFrame;
 
 import net.sf.mzmine.io.RawDataFile;
@@ -34,17 +32,16 @@ import net.sf.mzmine.taskcontrol.Task;
 import net.sf.mzmine.taskcontrol.TaskListener;
 import net.sf.mzmine.taskcontrol.Task.TaskStatus;
 import net.sf.mzmine.userinterface.Desktop;
-import net.sf.mzmine.util.CursorPosition;
 
 /**
  * 2D visualizer using JFreeChart library
  */
 public class TwoDVisualizerWindow extends JInternalFrame implements
-         ActionListener, TaskListener {
+        ActionListener, TaskListener {
 
     private TwoDToolBar toolBar;
     private TwoDPlot twoDPlot;
-    private JCheckBox resampleCheckBox;
+    private TwoDBottomPanel bottomPanel;
 
     private TwoDDataSet dataset;
 
@@ -75,42 +72,14 @@ public class TwoDVisualizerWindow extends JInternalFrame implements
 
         twoDPlot = new TwoDPlot(this, dataset);
         add(twoDPlot, BorderLayout.CENTER);
-        
 
-        resampleCheckBox = new JCheckBox("Resample when zooming", true);
-        resampleCheckBox.setBackground(Color.white);
-        resampleCheckBox.setFont(resampleCheckBox.getFont().deriveFont(10f));
-        resampleCheckBox.setHorizontalAlignment(JCheckBox.CENTER);
-        resampleCheckBox.setBorder(BorderFactory.createEmptyBorder(5, 5, 5, 5));
-        add(resampleCheckBox, BorderLayout.SOUTH);
+        bottomPanel = new TwoDBottomPanel(this, dataFile);
+        add(bottomPanel, BorderLayout.SOUTH);
 
         updateTitle();
 
         pack();
 
-    }
-
-    /**
-     * @see net.sf.mzmine.modules.RawDataVisualizer#setMZRange(double, double)
-     */
-    public void setMZRange(double mzMin, double mzMax) {
-        twoDPlot.getXYPlot().getRangeAxis().setRange(mzMin, mzMax);
-    }
-
-    /**
-     * @see net.sf.mzmine.modules.RawDataVisualizer#setRTRange(double, double)
-     */
-    public void setRTRange(double rtMin, double rtMax) {
-        twoDPlot.getXYPlot().getDomainAxis().setRange(rtMin, rtMax);
-
-    }
-
-    /**
-     * @see net.sf.mzmine.modules.RawDataVisualizer#setIntensityRange(double,
-     *      double)
-     */
-    public void setIntensityRange(double intensityMin, double intensityMax) {
-        // do nothing
     }
 
     void updateTitle() {
@@ -156,25 +125,7 @@ public class TwoDVisualizerWindow extends JInternalFrame implements
      * @see net.sf.mzmine.taskcontrol.TaskListener#taskStarted(net.sf.mzmine.taskcontrol.Task)
      */
     public void taskStarted(Task task) {
-        // if we have not added this frame before, do it now
-        if (getParent() == null)
-            desktop.addInternalFrame(this);
-    }
-
-    /**
-     * @see net.sf.mzmine.modules.RawDataVisualizer#getCursorPosition()
-     */
-    public CursorPosition getCursorPosition() {
-        // TODO Auto-generated method stub
-        return null;
-    }
-
-    /**
-     * @see net.sf.mzmine.modules.RawDataVisualizer#setCursorPosition(net.sf.mzmine.util.CursorPosition)
-     */
-    public void setCursorPosition(CursorPosition newPosition) {
-        // TODO Auto-generated method stub
-
+        // ignore
     }
 
     TwoDPlot getPlot() {
