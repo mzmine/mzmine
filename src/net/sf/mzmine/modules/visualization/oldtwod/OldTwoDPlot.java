@@ -564,10 +564,6 @@ public class OldTwoDPlot extends JPanel implements ActionListener,
 
     public void mouseReleased(MouseEvent e) {
 
-        // Right-mouse button? => show pop-up menu
-        if (e.isPopupTrigger()) {
-            popupMenu.show(e.getComponent(), e.getX(), e.getY());
-        }
 
         // Left-mouse button
         if (e.getButton() == MouseEvent.BUTTON1) {
@@ -598,6 +594,11 @@ public class OldTwoDPlot extends JPanel implements ActionListener,
         // Store info about pressed button
         lastPressedMouseButton = e.getButton();
 
+        // Right-mouse button? => show pop-up menu
+        if (e.isPopupTrigger()) {
+            popupMenu.show(e.getComponent(), e.getX(), e.getY());
+        }
+        
         // If not the first mouse button pressed, then do nothing
         if (e.getButton() != MouseEvent.BUTTON1) {
             return;
