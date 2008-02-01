@@ -30,7 +30,6 @@ import net.sf.mzmine.data.ParameterSet;
 import net.sf.mzmine.io.RawDataFile;
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.main.MZmineModule;
-import net.sf.mzmine.modules.visualization.threed.ThreeDVisualizerParameters;
 import net.sf.mzmine.userinterface.Desktop;
 import net.sf.mzmine.userinterface.Desktop.MZmineMenu;
 import net.sf.mzmine.userinterface.dialogs.ExitCode;
@@ -75,14 +74,14 @@ public class TwoDVisualizer implements MZmineModule, ActionListener {
         }
 
         Hashtable<Parameter, Object> autoValues = new Hashtable<Parameter, Object>();
-        autoValues.put(ThreeDVisualizerParameters.msLevel, 1);
-        autoValues.put(ThreeDVisualizerParameters.minRT,
+        autoValues.put(TwoDParameters.msLevel, 1);
+        autoValues.put(TwoDParameters.minRT,
                 dataFiles[0].getDataMinRT(1));
-        autoValues.put(ThreeDVisualizerParameters.maxRT,
+        autoValues.put(TwoDParameters.maxRT,
                 dataFiles[0].getDataMaxRT(1));
-        autoValues.put(ThreeDVisualizerParameters.minMZ,
+        autoValues.put(TwoDParameters.minMZ,
                 dataFiles[0].getDataMinMZ(1));
-        autoValues.put(ThreeDVisualizerParameters.maxMZ,
+        autoValues.put(TwoDParameters.maxMZ,
                 dataFiles[0].getDataMaxMZ(1));
 
         ParameterSetupDialog dialog = new ParameterSetupDialog(
@@ -94,16 +93,14 @@ public class TwoDVisualizer implements MZmineModule, ActionListener {
         if (dialog.getExitCode() != ExitCode.OK)
             return;
 
-        int msLevel = (Integer) parameters.getParameterValue(ThreeDVisualizerParameters.msLevel);
-        float rtMin = (Float) parameters.getParameterValue(ThreeDVisualizerParameters.minRT);
-        float rtMax = (Float) parameters.getParameterValue(ThreeDVisualizerParameters.maxRT);
-        float mzMin = (Float) parameters.getParameterValue(ThreeDVisualizerParameters.minMZ);
-        float mzMax = (Float) parameters.getParameterValue(ThreeDVisualizerParameters.maxMZ);
-        int rtRes = (Integer) parameters.getParameterValue(ThreeDVisualizerParameters.rtResolution);
-        int mzRes = (Integer) parameters.getParameterValue(ThreeDVisualizerParameters.mzResolution);
+        int msLevel = (Integer) parameters.getParameterValue(TwoDParameters.msLevel);
+        float rtMin = (Float) parameters.getParameterValue(TwoDParameters.minRT);
+        float rtMax = (Float) parameters.getParameterValue(TwoDParameters.maxRT);
+        float mzMin = (Float) parameters.getParameterValue(TwoDParameters.minMZ);
+        float mzMax = (Float) parameters.getParameterValue(TwoDParameters.maxMZ);
 
         TwoDVisualizerWindow newWindow = new TwoDVisualizerWindow(dataFiles[0],
-                msLevel, rtMin, rtMax, mzMin, mzMax, rtRes, mzRes);
+                msLevel, rtMin, rtMax, mzMin, mzMax);
 
         desktop.addInternalFrame(newWindow);
 

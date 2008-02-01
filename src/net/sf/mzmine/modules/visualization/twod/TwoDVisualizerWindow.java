@@ -51,8 +51,7 @@ public class TwoDVisualizerWindow extends JInternalFrame implements
     private Desktop desktop;
 
     public TwoDVisualizerWindow(RawDataFile dataFile, int msLevel, float rtMin,
-            float rtMax, float mzMin, float mzMax, int rtResolution,
-            int mzResolution) {
+            float rtMax, float mzMin, float mzMax) {
 
         super(dataFile.toString(), true, true, true, true);
 
@@ -65,7 +64,7 @@ public class TwoDVisualizerWindow extends JInternalFrame implements
         this.msLevel = msLevel;
 
         dataset = new TwoDDataSet(dataFile, msLevel, rtMin, rtMax, mzMin,
-                mzMax, rtResolution, mzResolution, this);
+                mzMax, this);
 
         toolBar = new TwoDToolBar(this);
         add(toolBar, BorderLayout.EAST);

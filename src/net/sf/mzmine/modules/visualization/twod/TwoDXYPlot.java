@@ -22,7 +22,7 @@ package net.sf.mzmine.modules.visualization.twod;
 import java.awt.Color;
 import java.awt.Graphics2D;
 import java.awt.geom.Rectangle2D;
-import java.awt.image.BufferedImage;
+import java.util.Date;
 
 import net.sf.mzmine.userinterface.components.interpolatinglookuppaintscale.InterpolatingLookupPaintScale;
 
@@ -52,6 +52,7 @@ class TwoDXYPlot extends XYPlot {
             CrosshairState crosshairState)
     {
      
+        System.out.println("render " + (new Date()));
         //super.render(g2, dataArea, index, info, crosshairState);
         
         // only render the image once
@@ -82,7 +83,7 @@ class TwoDXYPlot extends XYPlot {
                 float pointMZMin = imageMZMin + (j * imageMZStep);
                 float pointMZMax = pointMZMin + imageMZStep;
                 
-                summedValues[i][j] = dataset.getSummedIntensity(pointRTMin, pointRTMax, pointMZMin, pointMZMax);
+                summedValues[i][j] = dataset.getMaxIntensity(pointRTMin, pointRTMax, pointMZMin, pointMZMax);
                 
                 if (summedValues[i][j] > maxValue) maxValue = summedValues[i][j];
                 
@@ -96,20 +97,24 @@ class TwoDXYPlot extends XYPlot {
         paintScale.add(0.2*maxValue, Color.black);
         
         // prepare a bitmap of required size
-        BufferedImage image = new BufferedImage(width,
-                height, BufferedImage.TYPE_INT_RGB);
+        // BufferedImage image = new BufferedImage(width,
+        //        height, BufferedImage.TYPE_INT_RGB);
         
         // draw image points
         for (int i = 0; i < width; i++)
             for (int j = 0; j < height; j++)
             {
                 Color pointColor = (Color) paintScale.getPaint(summedValues[i][j]);
-                image.setRGB(i, height - j - 1, pointColor.getRGB());
+                g2.setColor(pointColor);
+                g2.drawRect(i + x, y + height - j - 1, 1, 1);
+                // image.setRGB(i, height - j - 1, pointColor.getRGB());
             }
         
         // paint image
-        g2.drawImage(image, x, y, null);
+        // g2.drawImage(image, x, y, null);
     
+        System.out.println("render finished " + (new Date()));
+        
         return true;
     }
 

@@ -19,19 +19,20 @@
 
 package net.sf.mzmine.modules.visualization.twod;
 
+import java.util.Arrays;
 import java.util.Date;
 import java.util.logging.Logger;
 
 import net.sf.mzmine.data.DataPoint;
 import net.sf.mzmine.data.Scan;
+import net.sf.mzmine.data.impl.SimpleDataPoint;
 import net.sf.mzmine.io.RawDataFile;
 import net.sf.mzmine.io.util.RawDataAcceptor;
 import net.sf.mzmine.io.util.RawDataRetrievalTask;
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.taskcontrol.Task;
 import net.sf.mzmine.taskcontrol.Task.TaskPriority;
-import net.sf.mzmine.util.ScanUtils;
-import net.sf.mzmine.util.ScanUtils.BinningType;
+import net.sf.mzmine.util.DataPointSorterByMZ;
 
 import org.jfree.data.xy.AbstractXYDataset;
 
@@ -48,17 +49,16 @@ class TwoDDataSet extends AbstractXYDataset implements RawDataAcceptor {
     private RawDataFile rawDataFile;
     private TwoDVisualizerWindow visualizer;
 
-    private float intensityMatrix[][];
-    private float maxValue = 0;
+    private float retentionTimes[];
+    private DataPoint dataPointMatrix[][];
 
     private float totalRTMin, totalRTMax, totalMZMin, totalMZMax;
-    private float totalRTStep, totalMZStep;
+    private int loadedScans = 0;
 
     private Date lastRedrawTime = new Date();
 
     TwoDDataSet(RawDataFile rawDataFile, int msLevel, float rtMin, float rtMax,
-            float mzMin, float mzMax, int rtResolution, int mzResolution,
-            TwoDVisualizerWindow visualizer) {
+            float mzMin, float mzMax, TwoDVisualizerWindow visualizer) {
 
         this.rawDataFile = rawDataFile;
         this.visualizer = visualizer;
@@ -67,12 +67,12 @@ class TwoDDataSet extends AbstractXYDataset implements RawDataAcceptor {
         totalRTMax = rtMax;
         totalMZMin = mzMin;
         totalMZMax = mzMax;
-        totalRTStep = (rtMax - rtMin) / rtResolution;
-        totalMZStep = (mzMax - mzMin) / mzResolution;
-        intensityMatrix = new float[rtResolution][mzResolution];
 
         int scanNumbers[] = rawDataFile.getScanNumbers(msLevel, rtMin, rtMax);
         assert scanNumbers != null;
+
+        dataPointMatrix = new DataPoint[scanNumbers.length][];
+        retentionTimes = new float[scanNumbers.length];
 
         Task updateTask = new RawDataRetrievalTask(rawDataFile, scanNumbers,
                 "Updating 2D visualizer of " + rawDataFile, this);
@@ -87,39 +87,10 @@ class TwoDDataSet extends AbstractXYDataset implements RawDataAcceptor {
      */
     public void addScan(Scan scan, int index, int total) {
 
-        int bitmapSizeX, bitmapSizeY;
+        retentionTimes[index] = scan.getRetentionTime();
+        dataPointMatrix[index] = scan.getDataPoints(totalMZMin, totalMZMax);
+        loadedScans++;
 
-        bitmapSizeX = intensityMatrix.length;
-        bitmapSizeY = intensityMatrix[0].length;
-
-        if ((scan.getRetentionTime() < totalRTMin)
-                || (scan.getRetentionTime() > totalRTMax))
-            return;
-
-        int xIndex = (int) Math.floor((scan.getRetentionTime() - totalRTMin)
-                / totalRTStep);
-        if (xIndex >= bitmapSizeX) xIndex = bitmapSizeX - 1;
-
-        DataPoint dataPoints[] = scan.getDataPoints();
-        float[] mzValues = new float[dataPoints.length];
-        float[] intensityValues = new float[dataPoints.length];
-        for (int dp = 0; dp < dataPoints.length; dp++) {
-            mzValues[dp] = dataPoints[dp].getMZ();
-            intensityValues[dp] = dataPoints[dp].getIntensity();
-        }
-
-        float binnedIntensities[] = ScanUtils.binValues(mzValues,
-                intensityValues, totalMZMin, totalMZMax, bitmapSizeY, false,
-                BinningType.SUM);
-        
-        for (int i = 0; i < bitmapSizeY; i++) {
-            intensityMatrix[xIndex][i] += binnedIntensities[i];
-            if (intensityMatrix[xIndex][i] > maxValue) {
-                maxValue = intensityMatrix[xIndex][i];
-            }
-        }
-
-        
         // redraw every REDRAW_INTERVAL ms
         boolean notify = false;
         Date currentTime = new Date();
@@ -143,7 +114,10 @@ class TwoDDataSet extends AbstractXYDataset implements RawDataAcceptor {
      * @see org.jfree.data.general.AbstractSeriesDataset#getSeriesCount()
      */
     public int getSeriesCount() {
-        return 1;
+        if (loadedScans > 2)
+            return 2;
+        else
+            return loadedScans;
     }
 
     /**
@@ -157,73 +131,72 @@ class TwoDDataSet extends AbstractXYDataset implements RawDataAcceptor {
      * @see org.jfree.data.xy.XYDataset#getItemCount(int)
      */
     public int getItemCount(int series) {
-        return intensityMatrix.length * intensityMatrix[0].length;
+        return 2;
     }
 
     /**
      * @see org.jfree.data.xy.XYDataset#getX(int, int)
      */
     public Number getX(int series, int item) {
-        int xIndex = item % intensityMatrix.length;
-        float xValue = totalRTMin + (totalRTStep * xIndex);
-        return xValue;
+        if (series == 0)
+            return retentionTimes[0];
+        else
+            return retentionTimes[loadedScans - 1];
     }
 
     /**
      * @see org.jfree.data.xy.XYDataset#getY(int, int)
      */
     public Number getY(int series, int item) {
-        int yIndex = item / intensityMatrix.length;
-        float yValue = totalMZMin + (totalMZStep * yIndex);
-        return yValue;
+        if (item == 0)
+            return dataPointMatrix[series][0].getMZ();
+        else
+            return dataPointMatrix[series][dataPointMatrix[series].length - 1].getMZ();
     }
 
-    /**
-     * @see org.jfree.data.xy.XYZDataset#getZ(int, int)
-     */
-    public Number getZ(int series, int item) {
-        int xIndex = item % intensityMatrix.length;
-        int yIndex = item / intensityMatrix.length;
-        return intensityMatrix[xIndex][yIndex];
+    float getMaxIntensity(float rtMin, float rtMax, float mzMin, float mzMax) {
+
+        float maxIntensity = 0;
+
+        float searchRetentionTimes[] = retentionTimes;
+        if (loadedScans < retentionTimes.length) {
+            searchRetentionTimes = new float[loadedScans];
+            System.arraycopy(retentionTimes, 0, searchRetentionTimes, 0,
+                    searchRetentionTimes.length);
+        }
+
+        int startScanIndex = Arrays.binarySearch(searchRetentionTimes, rtMin);
+
+        if (startScanIndex < 0)
+            startScanIndex = (startScanIndex * -1) - 1;
+
+        if (startScanIndex >= searchRetentionTimes.length) {
+            return 0;
+        }
+
+        if (searchRetentionTimes[startScanIndex] > rtMax) {
+            return getMaxIntensity(searchRetentionTimes[startScanIndex - 1],
+                    searchRetentionTimes[startScanIndex - 1], mzMin, mzMax);
+        }
+
+        for (int scanIndex = startScanIndex; ((scanIndex < searchRetentionTimes.length) && (searchRetentionTimes[scanIndex] <= rtMax)); scanIndex++) {
+
+            DataPoint dataPoints[] = dataPointMatrix[scanIndex];
+            DataPoint searchMZ = new SimpleDataPoint(mzMin, 0);
+            int startMZIndex = Arrays.binarySearch(dataPoints, searchMZ,
+                    new DataPointSorterByMZ());
+            if (startMZIndex < 0)
+                startMZIndex = (startMZIndex * -1) - 1;
+
+            for (int mzIndex = startMZIndex; ((mzIndex < dataPoints.length) && (dataPoints[mzIndex].getMZ() <= mzMax)); mzIndex++) {
+                if (dataPoints[mzIndex].getIntensity() > maxIntensity)
+                    maxIntensity = dataPoints[mzIndex].getIntensity();
+            }
+
+        }
+
+        return maxIntensity;
+
     }
 
-
-    
-    float getSummedIntensity(float rtMin, float rtMax, float mzMin, float mzMax) {
-        
-        int bitmapSizeX, bitmapSizeY;
-
-        bitmapSizeX = intensityMatrix.length;
-        bitmapSizeY = intensityMatrix[0].length;
-        
-        int rtMinIndex = (int) Math.floor((rtMin - totalRTMin)
-                / totalRTStep);
-        if (rtMinIndex >= bitmapSizeX) rtMinIndex = bitmapSizeX - 1;
-        if (rtMinIndex < 0) rtMinIndex = 0;
-        
-        int rtMaxIndex = (int) Math.floor((rtMax - totalRTMin)
-                / totalRTStep);
-        if (rtMaxIndex >= bitmapSizeX) rtMaxIndex = bitmapSizeX - 1;
-        if (rtMaxIndex < 0) rtMaxIndex = 0;
-        
-        int mzMinIndex = (int) Math.floor((mzMin - totalMZMin)
-                / totalMZStep);
-        if (mzMinIndex >= bitmapSizeY) mzMinIndex = bitmapSizeY - 1;
-        if (mzMinIndex < 0) mzMinIndex = 0;
-        
-        int mzMaxIndex = (int) Math.floor((mzMax - totalMZMin)
-                / totalMZStep);
-        if (mzMaxIndex >= bitmapSizeY) mzMaxIndex = bitmapSizeY - 1; 
-        if (mzMaxIndex < 0) mzMaxIndex = 0;
-        
-        float summedIntensity = 0;
-        
-        for (int i = rtMinIndex; i <= rtMaxIndex; i++) 
-            for (int j = mzMinIndex; j <= mzMaxIndex; j++)
-                summedIntensity += intensityMatrix[i][j];
-        
-        return summedIntensity;
-        
-    }
-    
 }

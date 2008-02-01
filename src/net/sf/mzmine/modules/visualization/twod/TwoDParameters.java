@@ -46,11 +46,6 @@ public class TwoDParameters extends SimpleParameterSet {
             "X axis upper limit", null, new Float(600.0), new Float(0.0), null,
             MZmineCore.getDesktop().getRTFormat());
 
-    public static final Parameter rtResolution = new SimpleParameter(
-            ParameterType.INTEGER, "Retention time resolution",
-            "Number of data points on retention time axis", "data points", 100,
-            100, null);
-
     public static final Parameter minMZ = new SimpleParameter(
             ParameterType.FLOAT, "Minimum M/Z", "m/z lower limit", "m/z",
             new Float(100.0), new Float(0.0), null,
@@ -61,13 +56,8 @@ public class TwoDParameters extends SimpleParameterSet {
             new Float(1000.0), new Float(0.0), null,
             MZmineCore.getDesktop().getMZFormat());
 
-    public static final Parameter mzResolution = new SimpleParameter(
-            ParameterType.INTEGER, "m/z resolution",
-            "Number of data points on m/z axis", "data points", 100, 100, null);
-
     public TwoDParameters() {
-        super(new Parameter[] { msLevel, minRT, maxRT, rtResolution, minMZ,
-                maxMZ, mzResolution });
+        super(new Parameter[] { msLevel, minRT, maxRT, minMZ, maxMZ });
     }
 
 }
