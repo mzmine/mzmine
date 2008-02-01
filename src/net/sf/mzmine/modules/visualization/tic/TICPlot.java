@@ -48,7 +48,6 @@ import org.jfree.chart.plot.DatasetRenderingOrder;
 import org.jfree.chart.plot.PlotOrientation;
 import org.jfree.chart.plot.XYPlot;
 import org.jfree.chart.renderer.xy.XYAreaRenderer;
-import org.jfree.chart.renderer.xy.XYItemRenderer;
 import org.jfree.chart.renderer.xy.XYLineAndShapeRenderer;
 import org.jfree.chart.title.LegendTitle;
 import org.jfree.chart.title.TextTitle;
@@ -235,9 +234,9 @@ class TICPlot extends ChartPanel {
         popupMenu.addSeparator();
         popupMenu.add(new AddFilePopupMenu(visualizer));
         popupMenu.add(new RemoveFilePopupMenu(visualizer));
-        
+
         popupMenu.addSeparator();
-        
+
         GUIUtils.addMenuItem(popupMenu, "Toggle showing peak values",
                 visualizer, "SHOW_ANNOTATIONS");
         GUIUtils.addMenuItem(popupMenu, "Toggle showing data points",
@@ -245,7 +244,7 @@ class TICPlot extends ChartPanel {
         popupMenu.addSeparator();
         GUIUtils.addMenuItem(popupMenu, "Show spectrum of selected scan",
                 visualizer, "SHOW_SPECTRUM");
-        
+
         popupMenu.addSeparator();
 
         GUIUtils.addMenuItem(popupMenu, "Set axes range", visualizer,
@@ -297,11 +296,20 @@ class TICPlot extends ChartPanel {
 
     void switchItemLabelsVisible() {
 
-        XYItemRenderer renderer = (XYLineAndShapeRenderer) plot.getRenderer();
-        boolean itemLabelsVisible = renderer.isSeriesItemLabelsVisible(0);
+        boolean itemLabelsVisible = false;
+
         for (int i = 0; i < plot.getDatasetCount(); i++) {
-            renderer = (XYItemRenderer) plot.getRenderer(i);
-            if (renderer != null) {
+            if (plot.getRenderer(i) instanceof XYLineAndShapeRenderer) {
+                XYLineAndShapeRenderer renderer = (XYLineAndShapeRenderer) plot.getRenderer(i);
+                itemLabelsVisible = renderer.isSeriesItemLabelsVisible(0);
+                break;
+            }
+
+        }
+
+        for (int i = 0; i < plot.getDatasetCount(); i++) {
+            if (plot.getRenderer(i) instanceof XYLineAndShapeRenderer) {
+                XYLineAndShapeRenderer renderer = (XYLineAndShapeRenderer) plot.getRenderer(i);
                 renderer.setBaseItemLabelsVisible(!itemLabelsVisible);
             }
         }
@@ -309,13 +317,20 @@ class TICPlot extends ChartPanel {
 
     void switchDataPointsVisible() {
 
+        boolean dataPointsVisible = false;
+
         for (int i = 0; i < plot.getDatasetCount(); i++) {
-            if (plot.getRenderer(i).getClass() == XYLineAndShapeRenderer.class) {
+            if (plot.getRenderer(i) instanceof XYLineAndShapeRenderer) {
                 XYLineAndShapeRenderer renderer = (XYLineAndShapeRenderer) plot.getRenderer(i);
-                if (renderer != null) {
-                    boolean dataPointsVisible = renderer.getBaseShapesVisible();
-                    renderer.setBaseShapesVisible(!dataPointsVisible);
-                }
+                dataPointsVisible = renderer.getBaseShapesVisible();
+                break;
+            }
+        }
+
+        for (int i = 0; i < plot.getDatasetCount(); i++) {
+            if (plot.getRenderer(i) instanceof XYLineAndShapeRenderer) {
+                XYLineAndShapeRenderer renderer = (XYLineAndShapeRenderer) plot.getRenderer(i);
+                renderer.setBaseShapesVisible(!dataPointsVisible);
             }
         }
     }
