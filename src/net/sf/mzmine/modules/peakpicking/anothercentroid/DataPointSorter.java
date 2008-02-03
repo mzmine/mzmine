@@ -27,14 +27,56 @@ import net.sf.mzmine.data.DataPoint;
  * This is a helper class required for sorting datapoints in order of decreasing
  * intensity.
  */
-public class DataPointSorterByDescendingIntensity implements Comparator<DataPoint> {
+public class DataPointSorter implements Comparator<DataPoint> {
+
+	public enum SortingProperty {
+		MZ, INTENSITY
+	};
+
+	public enum SortingDirection {
+		ASCENDING, DESCENDING
+	}
+
+	private SortingProperty property;
+	private SortingDirection direction;
+
+	public DataPointSorter() {
+		this.property = SortingProperty.INTENSITY;
+		this.direction = SortingDirection.DESCENDING;
+	}
+
+	public DataPointSorter(SortingProperty property, SortingDirection direction) {
+		this.property = property;
+		this.direction = direction;
+	}
 
 	public int compare(DataPoint d1, DataPoint d2) {
 
-		Float d1Intensity = d1.getIntensity();
-		Float d2Intensity = d2.getIntensity();
+		Float d1Value, d2Value;
 
-		return d2Intensity.compareTo(d1Intensity);
+		switch (property) {
+		case MZ:
+			d1Value = d1.getMZ();
+			d2Value = d2.getMZ();
+			break;
+
+		case INTENSITY:
+		default:
+			d1Value = d1.getIntensity();
+			d2Value = d2.getIntensity();
+			break;
+
+		}
+
+		int compResult = d1Value.compareTo(d2Value);
+
+		switch (direction) {
+		case ASCENDING:
+			return compResult;
+		case DESCENDING:
+		default:
+			return -compResult;
+		}
 
 	}
 
