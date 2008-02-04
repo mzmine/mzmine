@@ -26,6 +26,8 @@ import java.awt.event.ActionListener;
 
 import javax.swing.JInternalFrame;
 
+import org.jfree.chart.plot.XYPlot;
+
 import net.sf.mzmine.io.RawDataFile;
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.taskcontrol.Task;
@@ -105,6 +107,8 @@ public class TwoDVisualizerWindow extends JInternalFrame implements
         String command = event.getActionCommand();
 
         if (command.equals("SHOW_DATA_POINTS")) {
+            twoDPlot.getXYPlot().switchPalette();
+            repaint();
             // TODO
         }
 

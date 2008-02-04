@@ -43,8 +43,8 @@ class TwoDDataSet extends AbstractXYDataset implements RawDataAcceptor {
 
     private Logger logger = Logger.getLogger(this.getClass().getName());
 
-    // redraw the chart every 500 ms while updating
-    private static final int REDRAW_INTERVAL = 500;
+    // redraw the chart every 1000 ms while updating
+    private static final int REDRAW_INTERVAL = 1000;
 
     private RawDataFile rawDataFile;
     private TwoDVisualizerWindow visualizer;
@@ -171,10 +171,13 @@ class TwoDDataSet extends AbstractXYDataset implements RawDataAcceptor {
             startScanIndex = (startScanIndex * -1) - 1;
 
         if (startScanIndex >= searchRetentionTimes.length) {
+            
             return 0;
         }
 
         if (searchRetentionTimes[startScanIndex] > rtMax) {
+            if (startScanIndex == 0) 
+                return 0;
             return getMaxIntensity(searchRetentionTimes[startScanIndex - 1],
                     searchRetentionTimes[startScanIndex - 1], mzMin, mzMax);
         }
@@ -195,6 +198,7 @@ class TwoDDataSet extends AbstractXYDataset implements RawDataAcceptor {
 
         }
 
+        
         return maxIntensity;
 
     }

@@ -141,7 +141,7 @@ class TwoDPlot extends ChartPanel {
 
     }
 
-    XYPlot getXYPlot() {
+    TwoDXYPlot getXYPlot() {
         return plot;
     }
    

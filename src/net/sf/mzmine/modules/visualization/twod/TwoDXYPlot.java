@@ -22,9 +22,9 @@ package net.sf.mzmine.modules.visualization.twod;
 import java.awt.Color;
 import java.awt.Graphics2D;
 import java.awt.geom.Rectangle2D;
+import java.awt.image.BufferedImage;
 import java.util.Date;
-
-import net.sf.mzmine.userinterface.components.interpolatinglookuppaintscale.InterpolatingLookupPaintScale;
+import java.util.logging.Logger;
 
 import org.jfree.chart.axis.ValueAxis;
 import org.jfree.chart.plot.CrosshairState;
@@ -32,93 +32,122 @@ import org.jfree.chart.plot.PlotRenderingInfo;
 import org.jfree.chart.plot.XYPlot;
 
 /**
- * This class is responsible for drawing the actual data points.
+ * This class is responsible for drawing the actual data points. It does not
+ * used InterpolatingLookupPaintScale, because it is quite slow.
  */
 class TwoDXYPlot extends XYPlot {
 
+    private Logger logger = Logger.getLogger(this.getClass().getName());
+
     TwoDDataSet dataset;
+
+    private TwoDPaletteType paletteType = TwoDPaletteType.PALETTE_GRAY20;
 
     TwoDXYPlot(TwoDDataSet dataset, ValueAxis domainAxis, ValueAxis rangeAxis) {
         super(dataset, domainAxis, rangeAxis, null);
         this.dataset = dataset;
-        
-        
+
     }
-    
-    public boolean render(Graphics2D g2,
-            Rectangle2D dataArea,
-            int index,
-            PlotRenderingInfo info,
-            CrosshairState crosshairState)
-    {
-     
-        System.out.println("render " + (new Date()));
-        //super.render(g2, dataArea, index, info, crosshairState);
-        
+
+    public boolean render(final Graphics2D g2, final Rectangle2D dataArea,
+            int index, PlotRenderingInfo info, CrosshairState crosshairState) {
+
         // only render the image once
-        if (index != 0) return false;
-        
+        if (index != 0)
+            return false;
+
+        // Save current time
+        Date renderStartTime = new Date();
+        // super.render(g2, dataArea, index, info, crosshairState);
+
         // prepare some necessary constants
         final int x = (int) dataArea.getX();
         final int y = (int) dataArea.getY();
         final int width = (int) dataArea.getWidth();
         final int height = (int) dataArea.getHeight();
-        
+
         final float imageRTMin = (float) getDomainAxis().getRange().getLowerBound();
         final float imageRTMax = (float) getDomainAxis().getRange().getUpperBound();
-        final float imageRTStep = (imageRTMax - imageRTMin) / height;
+        final float imageRTStep = (imageRTMax - imageRTMin) / width;
         final float imageMZMin = (float) getRangeAxis().getRange().getLowerBound();
         final float imageMZMax = (float) getRangeAxis().getRange().getUpperBound();
         final float imageMZStep = (imageMZMax - imageMZMin) / height;
-        
-        // prepare a float array of summed intensities 
-        float summedValues[][] = new float[width][height];
+
+        // prepare a float array of summed intensities
+        float values[][] = new float[width][height];
         float maxValue = 0;
         
+        
+
         for (int i = 0; i < width; i++)
             for (int j = 0; j < height; j++) {
-                
+
                 float pointRTMin = imageRTMin + (i * imageRTStep);
                 float pointRTMax = pointRTMin + imageRTStep;
                 float pointMZMin = imageMZMin + (j * imageMZStep);
                 float pointMZMax = pointMZMin + imageMZStep;
-                
-                summedValues[i][j] = dataset.getMaxIntensity(pointRTMin, pointRTMax, pointMZMin, pointMZMax);
-                
-                if (summedValues[i][j] > maxValue) maxValue = summedValues[i][j];
-                
-            }
-        
-        // if we have no data points, bail out
-        if (maxValue == 0) return false;
 
-        InterpolatingLookupPaintScale paintScale = new InterpolatingLookupPaintScale();
-        paintScale.add(0.0, Color.white);
-        paintScale.add(0.2*maxValue, Color.black);
-        
+                values[i][j] = dataset.getMaxIntensity(pointRTMin, pointRTMax,
+                        pointMZMin, pointMZMax);
+
+                if (values[i][j] > maxValue)
+                    maxValue = values[i][j];
+                
+               // if ((i == width - 1) && (j == height - 1)) logger.finest("max " + pointRTMax + " " + pointMZMax);
+
+            }
+
+        // if we have no data points, bail out
+        if (maxValue == 0)
+            return false;
+
+        // Normalize all values
+        for (int i = 0; i < width; i++)
+            for (int j = 0; j < height; j++) {
+                values[i][j] /= maxValue;
+            }
+
         // prepare a bitmap of required size
-        // BufferedImage image = new BufferedImage(width,
-        //        height, BufferedImage.TYPE_INT_RGB);
-        
+        BufferedImage image = new BufferedImage(width, height,
+                BufferedImage.TYPE_INT_ARGB);
+
         // draw image points
         for (int i = 0; i < width; i++)
-            for (int j = 0; j < height; j++)
-            {
-                Color pointColor = (Color) paintScale.getPaint(summedValues[i][j]);
-                g2.setColor(pointColor);
-                g2.drawRect(i + x, y + height - j - 1, 1, 1);
-                // image.setRGB(i, height - j - 1, pointColor.getRGB());
+            for (int j = 0; j < height; j++) {
+                // float intensity = 1 - (values[i][j] / maxValue);
+                // System.out.println("i " + intensity);
+                Color pointColor = paletteType.getColor(values[i][j]);
+                // new Color(intensity, intensity, intensity); //(Color)
+                // paintScale.getPaint(values[i][j]);
+                // Color pointColor = (Color)
+                // paintScale.getPaint(values[i][j]);
+                // g2.setColor(pointColor);
+                // g2.drawRect(i + x, y + height - j - 1, 1, 1);
+                image.setRGB(i, height - j - 1, pointColor.getRGB());
+                // image.setRGB(i, height - j - 1, (int) (255 -
+                // (maxValue /
+                // values[i][j]) * 255) << 16);
             }
-        
-        // paint image
-        // g2.drawImage(image, x, y, null);
-    
-        System.out.println("render finished " + (new Date()));
-        
+
+        // Paint image
+        g2.drawImage(image, x, y, null);
+
+        Date renderFinishTime = new Date();
+
+        logger.finest("Finished rendering 2D visualizer, "
+                + (renderFinishTime.getTime() - renderStartTime.getTime())
+                + " ms");
+
         return true;
+
     }
 
-
-    
+    void switchPalette() {
+        TwoDPaletteType types[] = TwoDPaletteType.values();
+        int newIndex = paletteType.ordinal() + 1;
+        if (newIndex >= types.length)
+            newIndex = 0;
+        paletteType = types[newIndex];
+    }
 
 }
