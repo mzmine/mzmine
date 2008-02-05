@@ -359,27 +359,29 @@ public class OldTwoDPlot extends JPanel implements ActionListener,
                 case OldTwoDVisualizerWindow.ZOOMPEAKEDIT_PEAKEDITMODE:
 
                     // Draw the current pre-pre-peak
-                    g2d.setColor(selectionColor);
-                    g2d.setStroke(new BasicStroke(2.0f));
-                    g2d.draw(new Line2D.Double(mouseAreaStartX,
-                            selectionLastClickY, mouseAreaStopX,
-                            selectionLastClickY));
-
+                	if (selectionColor!=null) {
+	                    g2d.setColor(selectionColor);
+	                    g2d.setStroke(new BasicStroke(2.0f));
+	                    g2d.draw(new Line2D.Double(mouseAreaStartX,
+	                            selectionLastClickY, mouseAreaStopX,
+	                            selectionLastClickY));
+                	}
                     break;
 
                 case OldTwoDVisualizerWindow.ZOOMPEAKEDIT_ZOOMMODE:
 
                     // Draw rectangle over the selected area
-                    g2d.setColor(selectionColor);
-                    g2d.setStroke(new BasicStroke(0.0f));
-                    g2d.setPaint(new Color(
-                            (float) selectionColor.getRed() / 255.0f,
-                            (float) selectionColor.getGreen() / 255.0f,
-                            (float) selectionColor.getBlue() / 255.0f, 0.25f));
-                    g2d.fill(new Rectangle2D.Double(mouseAreaStartX,
-                            mouseAreaStartY, mouseAreaStopX - mouseAreaStartX,
-                            mouseAreaStopY - mouseAreaStartY));
-
+                	if (selectionColor!=null) {
+	                    g2d.setColor(selectionColor);
+	                    g2d.setStroke(new BasicStroke(0.0f));
+	                    g2d.setPaint(new Color(
+	                            (float) selectionColor.getRed() / 255.0f,
+	                            (float) selectionColor.getGreen() / 255.0f,
+	                            (float) selectionColor.getBlue() / 255.0f, 0.25f));
+	                    g2d.fill(new Rectangle2D.Double(mouseAreaStartX,
+	                            mouseAreaStartY, mouseAreaStopX - mouseAreaStartX,
+	                            mouseAreaStopY - mouseAreaStartY));
+                	}
                     break;
                 }
 
