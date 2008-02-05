@@ -35,7 +35,7 @@ enum TwoDPaletteType {
     TwoDPaletteType() {
         rainbowScale = new InterpolatingLookupPaintScale();
         rainbowScale.add(0, Color.white);
-        rainbowScale.add(0.0625, Color.red);
+        rainbowScale.add(0.04, Color.red);
         rainbowScale.add(0.125, Color.orange);
         rainbowScale.add(0.25, Color.yellow);
         rainbowScale.add(0.5, Color.blue);
