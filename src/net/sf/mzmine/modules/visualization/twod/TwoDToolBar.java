@@ -33,11 +33,11 @@ import net.sf.mzmine.util.GUIUtils;
  */
 class TwoDToolBar extends JToolBar {
 
-    static final Icon centroidIcon = new ImageIcon("icons/centroidicon.png");
-    static final Icon continuousIcon = new ImageIcon("icons/continuousicon.png");
+    static final Icon paletteIcon = new ImageIcon("icons/colorbaricon.png");
     static final Icon dataPointsIcon = new ImageIcon("icons/datapointsicon.png");
     static final Icon annotationsIcon = new ImageIcon("icons/annotationsicon.png");
-
+    static final Icon axesIcon = new ImageIcon("icons/axesicon.png");
+    
     TwoDToolBar(TwoDVisualizerWindow masterFrame) {
 
         super(JToolBar.VERTICAL);
@@ -47,8 +47,8 @@ class TwoDToolBar extends JToolBar {
         setMargin(new Insets(5, 5, 5, 5));
         setBackground(Color.white);
 
-        GUIUtils.addButton(this, null, centroidIcon, masterFrame,
-                "TOGGLE_PLOT_MODE", "Toggle centroid/continuous mode");
+        GUIUtils.addButton(this, null, paletteIcon, masterFrame,
+                "SWITCH_PALETTE", "Switch palette");
         
         addSeparator();
         
@@ -61,6 +61,11 @@ class TwoDToolBar extends JToolBar {
         GUIUtils.addButton(this, null, annotationsIcon, masterFrame,
                 "SHOW_ANNOTATIONS", "Toggle displaying of peak values");
 
+        addSeparator();
+
+        GUIUtils.addButton(this, null, axesIcon, masterFrame, "SETUP_AXES",
+                "Setup ranges for axes");
+        
     }
 
 }

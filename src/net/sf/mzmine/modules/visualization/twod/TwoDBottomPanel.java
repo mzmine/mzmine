@@ -51,8 +51,6 @@ class TwoDBottomPanel extends JPanel implements ProjectListener,
 
     private JComboBox peakListSelector;
 
-    private JCheckBox resampleCheckBox;
-
     private TwoDVisualizerWindow masterFrame;
     private RawDataFile dataFile;
     private MZmineProject project;
@@ -79,14 +77,7 @@ class TwoDBottomPanel extends JPanel implements ProjectListener,
         add(peakListSelector);
 
         add(Box.createHorizontalStrut(10));
-
-        resampleCheckBox = new JCheckBox("Resample when zooming", true);
-        resampleCheckBox.setBackground(Color.white);
-        resampleCheckBox.setFont(resampleCheckBox.getFont().deriveFont(10f));
-        resampleCheckBox.setHorizontalAlignment(JCheckBox.CENTER);
-        resampleCheckBox.setBorder(BorderFactory.createEmptyBorder(5, 5, 5, 5));
-        add(resampleCheckBox, BorderLayout.SOUTH);
-
+        
         project = MZmineCore.getCurrentProject();
         project.addProjectListener(this);
 

@@ -75,14 +75,10 @@ public class TwoDVisualizer implements MZmineModule, ActionListener {
 
         Hashtable<Parameter, Object> autoValues = new Hashtable<Parameter, Object>();
         autoValues.put(TwoDParameters.msLevel, 1);
-        autoValues.put(TwoDParameters.minRT,
-                dataFiles[0].getDataMinRT(1));
-        autoValues.put(TwoDParameters.maxRT,
-                dataFiles[0].getDataMaxRT(1));
-        autoValues.put(TwoDParameters.minMZ,
-                dataFiles[0].getDataMinMZ(1));
-        autoValues.put(TwoDParameters.maxMZ,
-                dataFiles[0].getDataMaxMZ(1));
+        autoValues.put(TwoDParameters.minRT, dataFiles[0].getDataMinRT(1));
+        autoValues.put(TwoDParameters.maxRT, dataFiles[0].getDataMaxRT(1));
+        autoValues.put(TwoDParameters.minMZ, dataFiles[0].getDataMinMZ(1));
+        autoValues.put(TwoDParameters.maxMZ, dataFiles[0].getDataMaxMZ(1));
 
         ParameterSetupDialog dialog = new ParameterSetupDialog(
                 "Please set parameter values for " + toString(), parameters,
@@ -99,10 +95,10 @@ public class TwoDVisualizer implements MZmineModule, ActionListener {
         float mzMin = (Float) parameters.getParameterValue(TwoDParameters.minMZ);
         float mzMax = (Float) parameters.getParameterValue(TwoDParameters.maxMZ);
 
-        TwoDVisualizerWindow newWindow = new TwoDVisualizerWindow(dataFiles[0],
-                msLevel, rtMin, rtMax, mzMin, mzMax);
-
-        desktop.addInternalFrame(newWindow);
+        // Create a window, but do not add it to the desktop. It will be added
+        // automatically after finishing the sampling task.
+        new TwoDVisualizerWindow(dataFiles[0], msLevel, rtMin, rtMax, mzMin,
+                mzMax);
 
     }
 

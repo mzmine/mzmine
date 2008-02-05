@@ -23,6 +23,9 @@ import java.awt.Color;
 
 import net.sf.mzmine.userinterface.components.interpolatinglookuppaintscale.InterpolatingLookupPaintScale;
 
+/**
+ * We try not to use InterpolatingLookupPaintScale, because it is quite slow
+ */
 enum TwoDPaletteType {
 
     PALETTE_GRAY20, PALETTE_GRAY5, PALETTE_GRAY1, PALETTE_RAINBOW;
@@ -32,12 +35,11 @@ enum TwoDPaletteType {
     TwoDPaletteType() {
         rainbowScale = new InterpolatingLookupPaintScale();
         rainbowScale.add(0, Color.white);
-        rainbowScale.add(0.0078125, Color.red);
-        rainbowScale.add(0.0625, Color.yellow);
-        rainbowScale.add(0.125, Color.green);
-        rainbowScale.add(0.25, Color.pink);
+        rainbowScale.add(0.0625, Color.red);
+        rainbowScale.add(0.125, Color.yellow);
+        rainbowScale.add(0.25, Color.orange);
         rainbowScale.add(0.5, Color.blue);
-        rainbowScale.add(1, Color.black);
+        rainbowScale.add(1, Color.cyan);
     }
 
     /**

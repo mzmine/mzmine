@@ -23,23 +23,26 @@ import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.util.logging.Logger;
 
 import javax.swing.JInternalFrame;
 
-import org.jfree.chart.plot.XYPlot;
-
+import net.sf.mzmine.data.PeakList;
 import net.sf.mzmine.io.RawDataFile;
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.taskcontrol.Task;
 import net.sf.mzmine.taskcontrol.TaskListener;
 import net.sf.mzmine.taskcontrol.Task.TaskStatus;
 import net.sf.mzmine.userinterface.Desktop;
+import net.sf.mzmine.userinterface.dialogs.AxesSetupDialog;
 
 /**
  * 2D visualizer using JFreeChart library
  */
 public class TwoDVisualizerWindow extends JInternalFrame implements
         ActionListener, TaskListener {
+
+    private Logger logger = Logger.getLogger(this.getClass().getName());
 
     private TwoDToolBar toolBar;
     private TwoDPlot twoDPlot;
@@ -64,14 +67,14 @@ public class TwoDVisualizerWindow extends JInternalFrame implements
 
         this.dataFile = dataFile;
         this.msLevel = msLevel;
-
+        
         dataset = new TwoDDataSet(dataFile, msLevel, rtMin, rtMax, mzMin,
                 mzMax, this);
 
         toolBar = new TwoDToolBar(this);
         add(toolBar, BorderLayout.EAST);
 
-        twoDPlot = new TwoDPlot(this, dataset);
+        twoDPlot = new TwoDPlot(dataFile, this, dataset, rtMin, rtMax, mzMin, mzMax);
         add(twoDPlot, BorderLayout.CENTER);
 
         bottomPanel = new TwoDBottomPanel(this, dataFile);
@@ -80,6 +83,10 @@ public class TwoDVisualizerWindow extends JInternalFrame implements
         updateTitle();
 
         pack();
+        
+        // After we have constructed everything, load the peak lists into the
+        // bottom panel
+        bottomPanel.rebuildPeakListSelector();
 
     }
 
@@ -106,10 +113,35 @@ public class TwoDVisualizerWindow extends JInternalFrame implements
 
         String command = event.getActionCommand();
 
-        if (command.equals("SHOW_DATA_POINTS")) {
+        if (command.equals("SWITCH_PALETTE")) {
             twoDPlot.getXYPlot().switchPalette();
             repaint();
-            // TODO
+        }
+        
+        if (command.equals("SHOW_DATA_POINTS")) {
+            twoDPlot.switchDataPointsVisible();
+        }
+        
+        if (command.equals("SHOW_ANNOTATIONS")) {
+            twoDPlot.getXYPlot().setDataset(1, null);
+        }
+
+        if (command.equals("PEAKLIST_CHANGE")) {
+
+            PeakList selectedPeakList = bottomPanel.getSelectedPeakList();
+            if (selectedPeakList == null)
+                return;
+
+            logger.finest("Loading a peak list " + selectedPeakList
+                    + " to a 2D view of " + dataFile);
+
+            twoDPlot.loadPeakList(selectedPeakList);
+
+        }
+        
+        if (command.equals("SETUP_AXES")) {
+            AxesSetupDialog dialog = new AxesSetupDialog(twoDPlot.getXYPlot());
+            dialog.setVisible(true);
         }
 
     }
@@ -121,6 +153,11 @@ public class TwoDVisualizerWindow extends JInternalFrame implements
         if (task.getStatus() == TaskStatus.ERROR) {
             desktop.displayErrorMessage("Error while updating 2D visualizer: "
                     + task.getErrorMessage());
+        }
+
+        if (task.getStatus() == TaskStatus.FINISHED) {
+            // Add this window to desktop
+            desktop.addInternalFrame(this);
         }
     }
 
