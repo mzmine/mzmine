@@ -21,6 +21,9 @@ package net.sf.mzmine.modules.visualization.twod;
 
 import java.text.NumberFormat;
 
+import net.sf.mzmine.data.Peak;
+import net.sf.mzmine.data.PeakList;
+import net.sf.mzmine.data.PeakListRow;
 import net.sf.mzmine.main.MZmineCore;
 
 import org.jfree.chart.labels.XYToolTipGenerator;
@@ -44,12 +47,17 @@ class PeakToolTipGenerator implements XYToolTipGenerator {
         PeakDataSet peakDataSet = (PeakDataSet) dataset;
         PeakDataPoint dataPoint = peakDataSet.getDataPoint(series, item);
 
+        PeakList peakList = peakDataSet.getPeakList();
+        Peak peak = peakDataSet.getPeak(series);
+        PeakListRow row = peakList.getPeakRow(peak);
         float rtValue = dataPoint.getRT();
         float intValue = dataPoint.getIntensity();
         float mzValue = dataPoint.getMZ();
         int scanNumber = dataPoint.getScanNumber();
 
-        String toolTip = "<html>Scan #" + scanNumber + "<br>Retention time: "
+        String toolTip = "<html>Peak: " + peak + "<br>Status: "
+                + peak.getPeakStatus() + "<br>Peak list row: " + row
+                + "<br>Scan #" + scanNumber + "<br>Retention time: "
                 + rtFormat.format(rtValue) + "<br>m/z: "
                 + mzFormat.format(mzValue) + "<br>Intensity: "
                 + intensityFormat.format(intValue) + "</html>";

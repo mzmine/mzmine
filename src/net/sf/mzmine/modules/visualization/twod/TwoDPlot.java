@@ -23,6 +23,8 @@ import java.awt.BasicStroke;
 import java.awt.Color;
 import java.awt.Cursor;
 import java.awt.Font;
+import java.awt.event.MouseEvent;
+import java.awt.geom.Rectangle2D;
 import java.text.NumberFormat;
 
 import javax.swing.JMenuItem;
@@ -33,17 +35,19 @@ import net.sf.mzmine.io.RawDataFile;
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.userinterface.Desktop;
 
+import org.jfree.chart.ChartMouseEvent;
+import org.jfree.chart.ChartMouseListener;
 import org.jfree.chart.ChartPanel;
 import org.jfree.chart.JFreeChart;
 import org.jfree.chart.axis.NumberAxis;
 import org.jfree.chart.plot.DatasetRenderingOrder;
 import org.jfree.chart.title.TextTitle;
+import org.jfree.ui.RectangleEdge;
 
 /**
  * 
  */
 class TwoDPlot extends ChartPanel {
-
 
     // crosshair (selection) color
     private static final Color crossHairColor = Color.gray;
@@ -53,32 +57,37 @@ class TwoDPlot extends ChartPanel {
             BasicStroke.CAP_BUTT, BasicStroke.JOIN_BEVEL, 1.0f, new float[] {
                     5, 3 }, 0);
 
-    
     private RawDataFile rawDataFile;
     private float rtMin, rtMax, mzMin, mzMax;
 
-    
     private JFreeChart chart;
 
     private TwoDXYPlot plot;
-
+    private TwoDDataSet dataset;
 
     private PeakDataRenderer peakDataRenderer;
-    
+
     // title font
     private static final Font titleFont = new Font("SansSerif", Font.PLAIN, 11);
 
     private TextTitle chartTitle;
+    private NumberAxis xAxis, yAxis;
+
+    private NumberFormat rtFormat = MZmineCore.getDesktop().getRTFormat();
+    private NumberFormat mzFormat = MZmineCore.getDesktop().getMZFormat();
+    private NumberFormat intensityFormat = MZmineCore.getDesktop().getIntensityFormat();
 
     // private TwoDItemRenderer renderer;
 
-    TwoDPlot(RawDataFile rawDataFile, TwoDVisualizerWindow visualizer, TwoDDataSet dataset, float rtMin,
-            float rtMax, float mzMin, float mzMax) {
+    TwoDPlot(RawDataFile rawDataFile, TwoDVisualizerWindow visualizer,
+            TwoDDataSet dataset, float rtMin, float rtMax, float mzMin,
+            float mzMax) {
         // superconstructor with no chart yet
         // disable off-screen buffering (makes problems with late drawing of the
         // title)
         super(null, false);
-        this.rawDataFile=rawDataFile;
+        this.rawDataFile = rawDataFile;
+        this.dataset = dataset;
         this.rtMin = rtMin;
         this.rtMax = rtMax;
         this.mzMin = mzMin;
@@ -92,14 +101,14 @@ class TwoDPlot extends ChartPanel {
         NumberFormat mzFormat = desktop.getMZFormat();
 
         // set the X axis (retention time) properties
-        NumberAxis xAxis = new NumberAxis("Retention time");
+        xAxis = new NumberAxis("Retention time");
         xAxis.setAutoRangeIncludesZero(false);
         xAxis.setNumberFormatOverride(rtFormat);
         xAxis.setUpperMargin(0);
         xAxis.setLowerMargin(0);
 
         // set the Y axis (intensity) properties
-        NumberAxis yAxis = new NumberAxis("m/z");
+        yAxis = new NumberAxis("m/z");
         yAxis.setAutoRangeIncludesZero(false);
         yAxis.setNumberFormatOverride(mzFormat);
         yAxis.setUpperMargin(0);
@@ -132,13 +141,11 @@ class TwoDPlot extends ChartPanel {
         plot.setDomainCrosshairVisible(true);
         plot.setDomainCrosshairPaint(crossHairColor);
         plot.setDomainCrosshairStroke(crossHairStroke);
-        
+
         // set rendering order
         plot.setDatasetRenderingOrder(DatasetRenderingOrder.FORWARD);
 
-        
         peakDataRenderer = new PeakDataRenderer();
-
 
         // add items to popup menu
         JMenuItem annotationsMenuItem, dataPointsMenuItem, plotTypeMenuItem;
@@ -161,21 +168,45 @@ class TwoDPlot extends ChartPanel {
     void setTitle(String title) {
         chartTitle.setText(title);
     }
-    
+
     void switchDataPointsVisible() {
 
         boolean dataPointsVisible = peakDataRenderer.getBaseShapesVisible();
         peakDataRenderer.setBaseShapesVisible(!dataPointsVisible);
 
     }
-    
+
     void loadPeakList(PeakList peakList) {
-        
-        PeakDataSet peaksDataSet = new PeakDataSet(rawDataFile,
-                peakList, rtMin, rtMax, mzMin, mzMax);
+
+        PeakDataSet peaksDataSet = new PeakDataSet(rawDataFile, peakList,
+                rtMin, rtMax, mzMin, mzMax);
 
         plot.setDataset(1, peaksDataSet);
         plot.setRenderer(1, peakDataRenderer);
+    }
+
+    public String getToolTipText(MouseEvent event) {
+
+        String tooltip = super.getToolTipText(event);
+
+        if (tooltip == null) {
+            
+            int mouseX = event.getX();
+            int mouseY = event.getY();
+            Rectangle2D plotArea = getScreenDataArea();
+            RectangleEdge xAxisEdge = plot.getDomainAxisEdge();
+            RectangleEdge yAxisEdge = plot.getRangeAxisEdge();
+            float rt = (float) xAxis.java2DToValue(mouseX, plotArea, xAxisEdge);
+            float mz = (float) yAxis.java2DToValue(mouseY, plotArea, yAxisEdge);
+            // float intensity = dataset.getMaxIntensity(rt, rt, mz, mz);
+
+            tooltip = "<html>Retention time: " + rtFormat.format(rt)
+                    + "<br>m/z: " + mzFormat.format(mz) + "</html>";
+
+        }
+
+        return tooltip;
+
     }
 
 }

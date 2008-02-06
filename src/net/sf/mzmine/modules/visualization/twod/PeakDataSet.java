@@ -33,18 +33,23 @@ import org.jfree.data.xy.AbstractXYDataset;
  */
 class PeakDataSet extends AbstractXYDataset {
 
+    private PeakList peakList;
+    private Peak peaks[];
     private PeakDataPoint dataPoints[][];
 
     PeakDataSet(RawDataFile dataFile, PeakList peakList, float rtMin,
             float rtMax, float mzMin, float mzMax) {
 
-        Vector<PeakDataPoint[]> processedPeaks = new Vector<PeakDataPoint[]>(
+        this.peakList = peakList;
+        
+        Vector<Peak> processedPeaks = new Vector<Peak>(1024, 1024);
+        Vector<PeakDataPoint[]> processedPeakDataPoints = new Vector<PeakDataPoint[]>(
                 1024, 1024);
         Vector<PeakDataPoint> thisPeakDataPoints = new Vector<PeakDataPoint>();
 
-        Peak peaks[] = peakList.getPeaks(dataFile);
+        Peak allPeaks[] = peakList.getPeaks(dataFile);
 
-        for (Peak peak : peaks) {
+        for (Peak peak : allPeaks) {
 
             int scanNumbers[] = peak.getScanNumbers();
 
@@ -62,13 +67,15 @@ class PeakDataSet extends AbstractXYDataset {
 
             if (thisPeakDataPoints.size() > 0) {
                 PeakDataPoint dpArray[] = thisPeakDataPoints.toArray(new PeakDataPoint[0]);
-                processedPeaks.add(dpArray);
+                processedPeaks.add(peak);
+                processedPeakDataPoints.add(dpArray);
                 thisPeakDataPoints.clear();
             }
 
         }
 
-        dataPoints = processedPeaks.toArray(new PeakDataPoint[0][]);
+        peaks = processedPeaks.toArray(new Peak[0]);
+        dataPoints = processedPeakDataPoints.toArray(new PeakDataPoint[0][]);
 
     }
 
@@ -82,6 +89,14 @@ class PeakDataSet extends AbstractXYDataset {
 
     public int getItemCount(int series) {
         return dataPoints[series].length;
+    }
+    
+    public PeakList getPeakList() {
+        return peakList;
+    }
+    
+    public Peak getPeak(int series) {
+        return peaks[series];
     }
 
     public PeakDataPoint getDataPoint(int series, int item) {
