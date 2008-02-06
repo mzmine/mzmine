@@ -254,7 +254,7 @@ public class MainWindow extends JFrame implements MZmineModule, Desktop,
         // Application wants to control closing by itself
         setDefaultCloseOperation(DO_NOTHING_ON_CLOSE);
 
-        setTitle("MZmine II");
+        setTitle("MZmine 2");
 
         taskList = new TaskProgressWindow(
                 (TaskControllerImpl) MZmineCore.getTaskController());
