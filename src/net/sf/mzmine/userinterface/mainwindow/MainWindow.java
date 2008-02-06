@@ -71,7 +71,7 @@ public class MainWindow extends JFrame implements MZmineModule, Desktop,
         WindowListener, ApplicationListener {
 
     // default tooltip displaying and dismissing delay in ms
-    public static final int DEFAULT_TOOLTIP_DELAY = 10;
+    public static final int DEFAULT_TOOLTIP_DELAY = 50;
     public static final int DEFAULT_TOOLTIP_DISMISS_DELAY = Integer.MAX_VALUE;
 
     private DesktopParameters parameters;
@@ -207,6 +207,7 @@ public class MainWindow extends JFrame implements MZmineModule, Desktop,
 
         Font defaultFont = new Font("SansSerif", Font.PLAIN, 13);
         Font smallFont = new Font("SansSerif", Font.PLAIN, 11);
+        Font tinyFont = new Font("SansSerif", Font.PLAIN, 10);
         Enumeration keys = UIManager.getDefaults().keys();
         while (keys.hasMoreElements()) {
             Object key = keys.nextElement();
@@ -216,6 +217,7 @@ public class MainWindow extends JFrame implements MZmineModule, Desktop,
         }
         UIManager.put("List.font", smallFont);
         UIManager.put("Table.font", smallFont);
+        UIManager.put("ToolTip.font", tinyFont);
 
         // Initialize item selector
         itemSelector = new ItemSelector(this);
