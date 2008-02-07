@@ -115,7 +115,6 @@ public class TwoDVisualizerWindow extends JInternalFrame implements
 
         if (command.equals("SWITCH_PALETTE")) {
             twoDPlot.getXYPlot().switchPalette();
-            repaint();
         }
         
         if (command.equals("SHOW_DATA_POINTS")) {

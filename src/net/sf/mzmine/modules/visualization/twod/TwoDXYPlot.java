@@ -30,6 +30,7 @@ import org.jfree.chart.axis.ValueAxis;
 import org.jfree.chart.plot.CrosshairState;
 import org.jfree.chart.plot.PlotRenderingInfo;
 import org.jfree.chart.plot.XYPlot;
+import org.jfree.data.general.DatasetChangeEvent;
 
 /**
  * This class is responsible for drawing the actual data points.
@@ -39,17 +40,17 @@ class TwoDXYPlot extends XYPlot {
     private Logger logger = Logger.getLogger(this.getClass().getName());
 
     private float totalRTMin, totalRTMax, totalMZMin, totalMZMax;
-    private float savedRTMin, savedRTMax, savedMZMin, savedMZMax;
-    private float zoomOutValues[][];
-    private float savedValues[][];
+    private BufferedImage zoomOutBitmap;
 
-    TwoDDataSet dataset;
+    private TwoDDataSet dataset;
 
     private TwoDPaletteType paletteType = TwoDPaletteType.PALETTE_GRAY20;
 
     TwoDXYPlot(TwoDDataSet dataset, float rtMin, float rtMax, float mzMin,
             float mzMax, ValueAxis domainAxis, ValueAxis rangeAxis) {
+       
         super(dataset, domainAxis, rangeAxis, null);
+        
         this.dataset = dataset;
 
         totalRTMin = rtMin;
@@ -62,124 +63,90 @@ class TwoDXYPlot extends XYPlot {
     public boolean render(final Graphics2D g2, final Rectangle2D dataArea,
             int index, PlotRenderingInfo info, CrosshairState crosshairState) {
 
-        // only render the image once
-        if (index == 0) {
+        // if this is not TwoDDataSet
+        if (index != 0)
+            return super.render(g2, dataArea, index, info, crosshairState);
 
-            // Save current time
-            Date renderStartTime = new Date();
+        // prepare some necessary constants
+        final int x = (int) dataArea.getX();
+        final int y = (int) dataArea.getY();
+        final int width = (int) dataArea.getWidth();
+        final int height = (int) dataArea.getHeight();
 
-            // prepare some necessary constants
-            final int x = (int) dataArea.getX();
-            final int y = (int) dataArea.getY();
-            final int width = (int) dataArea.getWidth();
-            final int height = (int) dataArea.getHeight();
+        final float imageRTMin = (float) getDomainAxis().getRange().getLowerBound();
+        final float imageRTMax = (float) getDomainAxis().getRange().getUpperBound();
+        final float imageRTStep = (imageRTMax - imageRTMin) / width;
+        final float imageMZMin = (float) getRangeAxis().getRange().getLowerBound();
+        final float imageMZMax = (float) getRangeAxis().getRange().getUpperBound();
+        final float imageMZStep = (imageMZMax - imageMZMin) / height;
 
-            final float imageRTMin = (float) getDomainAxis().getRange().getLowerBound();
-            final float imageRTMax = (float) getDomainAxis().getRange().getUpperBound();
-            final float imageRTStep = (imageRTMax - imageRTMin) / (width - 1);
-            final float imageMZMin = (float) getRangeAxis().getRange().getLowerBound();
-            final float imageMZMax = (float) getRangeAxis().getRange().getUpperBound();
-            final float imageMZStep = (imageMZMax - imageMZMin) / (height - 1);
+        if ((zoomOutBitmap != null) && (imageRTMin == totalRTMin)
+                && (imageRTMax == totalRTMax) && (imageMZMin == totalMZMin)
+                && (imageMZMax == totalMZMax)
+                && (zoomOutBitmap.getWidth() == width)
+                && (zoomOutBitmap.getHeight() == height)) {
+            g2.drawImage(zoomOutBitmap, x, y, null);
+            return true;
+        }
 
-            float values[][];
+        // Save current time
+        Date renderStartTime = new Date();
 
-            if ((savedValues != null) && (imageRTMin == savedRTMin)
-                    && (imageRTMax == savedRTMax) && (imageMZMin == savedMZMin)
-                    && (imageMZMax == savedMZMax)
-                    && (savedValues.length == width)
-                    && (savedValues[0].length == height)) {
-                values = savedValues;
-            } else if ((zoomOutValues != null) && (imageRTMin == totalRTMin)
-                    && (imageRTMax == totalRTMax) && (imageMZMin == totalMZMin)
-                    && (imageMZMax == totalMZMax)
-                    && (zoomOutValues.length == width)
-                    && (zoomOutValues[0].length == height)) {
-                values = zoomOutValues;
-            } else {
+        // prepare a float array of summed intensities
+        float values[][] = new float[width][height];
+        float maxValue = 0;
 
-                // prepare a float array of summed intensities
-                values = new float[width][height];
-                float maxValue = 0;
+        for (int i = 0; i < width; i++)
+            for (int j = 0; j < height; j++) {
 
-                for (int i = 0; i < width; i++)
-                    for (int j = 0; j < height; j++) {
+                float pointRTMin = imageRTMin + (i * imageRTStep);
+                float pointRTMax = pointRTMin + imageRTStep;
+                float pointMZMin = imageMZMin + (j * imageMZStep);
+                float pointMZMax = pointMZMin + imageMZStep;
 
-                        float pointRTMin = imageRTMin + (i * imageRTStep);
-                        float pointRTMax = pointRTMin + imageRTStep;
-                        float pointMZMin = imageMZMin + (j * imageMZStep);
-                        float pointMZMax = pointMZMin + imageMZStep;
+                values[i][j] = dataset.getMaxIntensity(pointRTMin, pointRTMax,
+                        pointMZMin, pointMZMax);
 
-                        values[i][j] = dataset.getMaxIntensity(pointRTMin,
-                                pointRTMax, pointMZMin, pointMZMax);
-
-                        if (values[i][j] > maxValue)
-                            maxValue = values[i][j];
-
-                        // if ((i == width - 1) && (j == height - 1))
-                        // logger.finest("max
-                        // " + pointRTMax + " " + pointMZMax);
-
-                    }
-
-                // if we have no data points, bail out
-                if (maxValue == 0)
-                    return false;
-
-                // Normalize all values
-                for (int i = 0; i < width; i++)
-                    for (int j = 0; j < height; j++) {
-                        values[i][j] /= maxValue;
-                    }
-
-                savedRTMin = imageRTMin;
-                savedRTMax = imageRTMax;
-                savedMZMin = imageMZMin;
-                savedMZMax = imageMZMax;
-                savedValues = values;
-
-                // if we have zoom out, save the values
-                if ((imageRTMin == totalRTMin) && (imageRTMax == totalRTMax)
-                        && (imageMZMin == totalMZMin)
-                        && (imageMZMax == totalMZMax))
-                    zoomOutValues = values;
+                if (values[i][j] > maxValue)
+                    maxValue = values[i][j];
 
             }
 
-            // prepare a bitmap of required size
-            BufferedImage image = new BufferedImage(width, height,
-                    BufferedImage.TYPE_INT_ARGB);
+        // This should never happen, but just for correctness
+        if (maxValue == 0)
+            return false;
 
-            // draw image points
-            for (int i = 0; i < width; i++)
-                for (int j = 0; j < height; j++) {
-                    // float intensity = 1 - (values[i][j] / maxValue);
-                    // System.out.println("i " + intensity);
-                    Color pointColor = paletteType.getColor(values[i][j]);
-                    // new Color(intensity, intensity, intensity); //(Color)
-                    // paintScale.getPaint(values[i][j]);
-                    // Color pointColor = (Color)
-                    // paintScale.getPaint(values[i][j]);
-                    // g2.setColor(pointColor);
-                    // g2.drawRect(i + x, y + height - j - 1, 1, 1);
-                    image.setRGB(i, height - j - 1, pointColor.getRGB());
-                    // image.setRGB(i, height - j - 1, (int) (255 -
-                    // (maxValue /
-                    // values[i][j]) * 255) << 16);
-                }
+        // Normalize all values
+        for (int i = 0; i < width; i++)
+            for (int j = 0; j < height; j++) {
+                values[i][j] /= maxValue;
+            }
 
-            // Paint image
-            g2.drawImage(image, x, y, null);
+        // prepare a bitmap of required size
+        BufferedImage image = new BufferedImage(width, height,
+                BufferedImage.TYPE_INT_ARGB);
 
-            Date renderFinishTime = new Date();
+        // draw image points
+        for (int i = 0; i < width; i++)
+            for (int j = 0; j < height; j++) {
+                Color pointColor = paletteType.getColor(values[i][j]);
+                image.setRGB(i, height - j - 1, pointColor.getRGB());
+            }
 
-            logger.finest("Finished rendering 2D visualizer, "
-                    + (renderFinishTime.getTime() - renderStartTime.getTime())
-                    + " ms");
-
+        // if we are zoomed out, save the values
+        if ((imageRTMin == totalRTMin) && (imageRTMax == totalRTMax)
+                && (imageMZMin == totalMZMin) && (imageMZMax == totalMZMax)) {
+            zoomOutBitmap = image;
         }
 
-        // Render remaining data sets
-        super.render(g2, dataArea, index, info, crosshairState);
+        // Paint image
+        g2.drawImage(image, x, y, null);
+
+        Date renderFinishTime = new Date();
+
+        logger.finest("Finished rendering 2D visualizer, "
+                + (renderFinishTime.getTime() - renderStartTime.getTime())
+                + " ms");
 
         return true;
 
@@ -191,6 +158,8 @@ class TwoDXYPlot extends XYPlot {
         if (newIndex >= types.length)
             newIndex = 0;
         paletteType = types[newIndex];
+        zoomOutBitmap = null;
+        datasetChanged(new DatasetChangeEvent(dataset, dataset));
     }
 
 }

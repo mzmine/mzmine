@@ -35,8 +35,6 @@ import net.sf.mzmine.io.RawDataFile;
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.userinterface.Desktop;
 
-import org.jfree.chart.ChartMouseEvent;
-import org.jfree.chart.ChartMouseListener;
 import org.jfree.chart.ChartPanel;
 import org.jfree.chart.JFreeChart;
 import org.jfree.chart.axis.NumberAxis;
@@ -63,31 +61,29 @@ class TwoDPlot extends ChartPanel {
     private JFreeChart chart;
 
     private TwoDXYPlot plot;
-    private TwoDDataSet dataset;
 
     private PeakDataRenderer peakDataRenderer;
 
     // title font
-    private static final Font titleFont = new Font("SansSerif", Font.PLAIN, 11);
-
-    private TextTitle chartTitle;
+    private static final Font titleFont = new Font("SansSerif", Font.BOLD, 12);
+    private static final Font subTitleFont = new Font("SansSerif", Font.PLAIN,
+            11);
+    private TextTitle chartTitle, chartSubTitle;
+    
     private NumberAxis xAxis, yAxis;
 
     private NumberFormat rtFormat = MZmineCore.getDesktop().getRTFormat();
     private NumberFormat mzFormat = MZmineCore.getDesktop().getMZFormat();
-    private NumberFormat intensityFormat = MZmineCore.getDesktop().getIntensityFormat();
 
     // private TwoDItemRenderer renderer;
 
     TwoDPlot(RawDataFile rawDataFile, TwoDVisualizerWindow visualizer,
             TwoDDataSet dataset, float rtMin, float rtMax, float mzMin,
             float mzMax) {
-        // superconstructor with no chart yet
-        // disable off-screen buffering (makes problems with late drawing of the
-        // title)
-        super(null, false);
+
+        super(null, true);
+        
         this.rawDataFile = rawDataFile;
-        this.dataset = dataset;
         this.rtMin = rtMin;
         this.rtMax = rtMax;
         this.mzMin = mzMin;
@@ -131,6 +127,11 @@ class TwoDPlot extends ChartPanel {
         chartTitle = chart.getTitle();
         chartTitle.setMargin(5, 0, 0, 0);
         chartTitle.setFont(titleFont);
+        
+        chartSubTitle = new TextTitle();
+        chartSubTitle.setFont(subTitleFont);
+        chartSubTitle.setMargin(5, 0, 0, 0);
+        chart.addSubtitle(chartSubTitle);
 
         // disable maximum size (we don't want scaling)
         setMaximumDrawWidth(Integer.MAX_VALUE);
@@ -188,9 +189,8 @@ class TwoDPlot extends ChartPanel {
     public String getToolTipText(MouseEvent event) {
 
         String tooltip = super.getToolTipText(event);
-
+        
         if (tooltip == null) {
-            
             int mouseX = event.getX();
             int mouseY = event.getY();
             Rectangle2D plotArea = getScreenDataArea();
@@ -198,13 +198,11 @@ class TwoDPlot extends ChartPanel {
             RectangleEdge yAxisEdge = plot.getRangeAxisEdge();
             float rt = (float) xAxis.java2DToValue(mouseX, plotArea, xAxisEdge);
             float mz = (float) yAxis.java2DToValue(mouseY, plotArea, yAxisEdge);
-            // float intensity = dataset.getMaxIntensity(rt, rt, mz, mz);
 
             tooltip = "<html>Retention time: " + rtFormat.format(rt)
                     + "<br>m/z: " + mzFormat.format(mz) + "</html>";
-
         }
-
+        
         return tooltip;
 
     }
