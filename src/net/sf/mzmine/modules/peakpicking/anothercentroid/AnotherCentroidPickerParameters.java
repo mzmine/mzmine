@@ -49,8 +49,8 @@ public class AnotherCentroidPickerParameters extends SimpleParameterSet {
 					.getIntegerInstance());
 
 	public static final Parameter maximumChargeState = new SimpleParameter(
-			ParameterType.INTEGER, "max charge state",
-			"Maximum searched charge state", null, new Integer(3), new Integer(
+			ParameterType.INTEGER, "Max charge state",
+			"Maximum searched charge state", null, new Integer(1), new Integer(
 					1), null, NumberFormat.getIntegerInstance());
 
 	public static final Parameter minimumPeakDuration = new SimpleParameter(
@@ -64,7 +64,7 @@ public class AnotherCentroidPickerParameters extends SimpleParameterSet {
 			new Float(0.0), null, MZmineCore.getDesktop().getRTFormat());
 
 	public static final Parameter mzTolerance = new SimpleParameter(
-			ParameterType.FLOAT, "M/Z tolerance",
+			ParameterType.FLOAT, "m/z tolerance",
 			"Maximum allowed distance in m/z between centroids of a peak",
 			"m/z", new Float(0.1), new Float(0.0), null, MZmineCore
 					.getDesktop().getMZFormat());

@@ -19,6 +19,10 @@
 
 package net.sf.mzmine.modules.peakpicking.anothercentroid;
 
+import java.io.FileWriter;
+import java.io.IOException;
+import java.io.PrintWriter;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Enumeration;
 import java.util.Hashtable;
@@ -143,6 +147,7 @@ class AnotherCentroidPickerTask implements Task {
 		totalScans = scanNumbers.length;
 
 		// 1st pass: find isotope patterns in scans
+		ArrayList<ConstructionIsotopePattern> allCollectedPatterns = new ArrayList<ConstructionIsotopePattern>();
 		for (int i = 0; i < totalScans; i++) {
 
 			if (status == TaskStatus.CANCELED)
@@ -150,17 +155,59 @@ class AnotherCentroidPickerTask implements Task {
 
 			Scan sc = dataFile.getScan(scanNumbers[i]);
 
-			OneDimIsotopePattern[] detectedOneDPatterns = detectPatterns(sc);
-			System.out
-					.println("Number of detected isotope pattern in scan "
-							+ sc.getScanNumber() + " is "
-							+ detectedOneDPatterns.length);
+			ConstructionIsotopePattern[] patternsForScan = detectPatterns(sc);
 
 			// Store only new patterns
+			for (ConstructionIsotopePattern detectedPattern : patternsForScan) {
+				boolean foundSimilar = false;
+				for (ConstructionIsotopePattern previouslyCollectedPattern : allCollectedPatterns) {
+					if (detectedPattern.isSimilar(previouslyCollectedPattern,
+							mzTolerance)) {
+						foundSimilar = true;
+						break;
+					}
+				}
+
+				if (!foundSimilar) {
+					allCollectedPatterns.add(detectedPattern);
+				}
+			}
 
 			processedScans++;
 
 		}
+
+		// DEBUG begin print out a list of collected patterns
+		/*
+		try {
+			PrintWriter fout = new PrintWriter(new FileWriter(
+					"D:/temp/detectedPatterns.txt"));
+
+			fout
+					.println("Monoisotopic m/z\tPattern size\tCharge state\tAll m/zs");
+			for (ConstructionIsotopePattern pattern : allCollectedPatterns) {
+				DataPoint[] dataPoints = pattern.getDataPoints();
+				DataPoint monoDataPoint = dataPoints[0];
+				String allMZs = "";
+				for (DataPoint dataPoint : dataPoints) {
+					if (monoDataPoint.getMZ() > dataPoint.getMZ()) {
+						monoDataPoint = dataPoint;
+					}
+					allMZs += "" + dataPoint.getMZ() + "; ";
+				}
+				fout.println("" + monoDataPoint.getMZ() + "\t"
+						+ pattern.getNumberOfDataPoints() + "\t"
+						+ pattern.getChargeState() + "\t" + allMZs);
+			}
+			fout.flush();
+			fout.close();
+
+		} catch (IOException ex) {
+			System.out.println("DEBUG: printing to file failed: "
+					+ ex.toString());
+		}
+		*/
+		// DEBUG end
 
 		// 2nd pass: calc XIC for each unique pattern
 		for (int i = 0; i < totalScans; i++) {
@@ -188,8 +235,8 @@ class AnotherCentroidPickerTask implements Task {
 
 	}
 
-	private OneDimIsotopePattern[] detectPatterns(Scan sc) {
-		Vector<OneDimIsotopePattern> detectedPatterns = new Vector<OneDimIsotopePattern>();
+	private ConstructionIsotopePattern[] detectPatterns(Scan sc) {
+		Vector<ConstructionIsotopePattern> detectedPatterns = new Vector<ConstructionIsotopePattern>();
 
 		// Filter away centroids below noise level
 		DataPoint allCentroids[] = sc.getDataPoints();
@@ -215,117 +262,122 @@ class AnotherCentroidPickerTask implements Task {
 			if (monoCentroid == null)
 				continue;
 
-			// Test isotope patterns of different charge  starting from the
-			// monoisotopic centroid, and select the isotope pattern with most matching centroids
+			// Test isotope patterns of different charge starting from the
+			// monoisotopic centroid, and select the isotope pattern with most
+			// matching centroids
 			Hashtable<Integer, DataPoint> bestPattern = null;
-			for (int chargeState = 1; chargeState < maximumChargeState; chargeState++) {
+			int bestChargeState = -1;
+			for (int chargeState = 1; chargeState <= maximumChargeState; chargeState++) {
 
-				// Collect as many matching centroids as possible
+				// Initialize collection of centroids in this pattern with the
+				// monoisotopic centroid
 				Hashtable<Integer, DataPoint> collectedCentroids = new Hashtable<Integer, DataPoint>();
 				collectedCentroids.put(monoCentroidIndex, monoCentroid);
-				for (int otherCentroidIndex = monoCentroidIndex + 1; otherCentroidIndex < sortedCentroids.length; otherCentroidIndex++) {
-					DataPoint otherCentroid = sortedCentroids[otherCentroidIndex];
-					if (otherCentroid == null)
-						continue;
 
-					// Check if m/z difference from this centroid to
-					// monoisotopic centroid is within tolerances
+				// Start search for other centroids from the next centroid after
+				// monoisotopic centroid and continue as long as there are more
+				// centroids available and previous centroid in the pattern was
+				// found inside the acceptable m/z range
+				int otherCentroidIndex = monoCentroidIndex + 1;
+				boolean foundNext = true;
+				while ((otherCentroidIndex < sortedCentroids.length)
+						&& foundNext) {
+
+					// Next peak in the pattern hasn't been found yet
+					foundNext = false;
+
+					// Calc expected m/z location and acceptable m/z range of
+					// the next peak
 					float minMZRange = monoCentroid.getMZ() + isotopeDistance
 							* collectedCentroids.size() - mzTolerance;
 					float maxMZRange = monoCentroid.getMZ() + isotopeDistance
 							* collectedCentroids.size() + mzTolerance;
+					float expectedMZ = monoCentroid.getMZ() + isotopeDistance
+							* collectedCentroids.size();
 
-					if (otherCentroid.getMZ() < minMZRange)
-						continue;
-					if (otherCentroid.getMZ() > maxMZRange)
-						break;
+					// There are no candidates for the next centroid in the
+					// pattern yet
+					float bestCandidateDistance = Float.MAX_VALUE;
+					DataPoint bestCandidate = null;
+					int bestCandidateIndex = -1;
 
-					// TODO: Add other criteria for selecting the centroid
-					// (intensity shape of forming pattern, compare possible
-					// multiple matches within tolerance, ...)
-					collectedCentroids.put(otherCentroidIndex,
-							otherCentroid);
+					// Search for the next centroid as long as there are more
+					// centroids available
+					while ((otherCentroidIndex < sortedCentroids.length)) {
+
+						DataPoint otherCentroid = sortedCentroids[otherCentroidIndex];
+
+						// If this centroid has been already assigned to another
+						// pattern, do not attempt to include it in this pattern
+						if (otherCentroid == null) {
+							otherCentroidIndex++;
+							continue;
+						}
+
+						// Ignore this centroid if it is not yet inside m/z
+						// range, and
+						// stop searching if it is already past m/z range
+						if (otherCentroid.getMZ() < minMZRange) {
+							otherCentroidIndex++;
+							continue;
+						}
+						if (otherCentroid.getMZ() > maxMZRange)
+							break;
+
+						// Check if this centroid is closer to the expected m/z
+						// location than the previously found candidate
+						if (Math.abs(otherCentroid.getMZ() - expectedMZ) < bestCandidateDistance) {
+							bestCandidateDistance = Math.abs(otherCentroid
+									.getMZ()
+									- expectedMZ);
+
+							bestCandidate = otherCentroid;
+							bestCandidateIndex = otherCentroidIndex;
+
+						}
+
+						otherCentroidIndex++;
+					}
+
+					if (bestCandidate != null) {
+						foundNext = true;
+						collectedCentroids.put(bestCandidateIndex,
+								bestCandidate);
+						otherCentroidIndex = bestCandidateIndex + 1;
+					}
 
 				}
 
-				if ( (bestPattern==null) || (bestPattern.size() < collectedCentroids.size()) ) 
+				if ((bestPattern == null)
+						|| (bestPattern.size() < collectedCentroids.size())) {
+					bestChargeState = chargeState;
 					bestPattern = collectedCentroids;
+				}
 
 			}
-			
+
 			// If best pattern is good enough then keep it and remove all
 			// participating centroids from further consideration
-			if (bestPattern.size()>=minimumNumberOfIsotopicPeaks) {
-				OneDimIsotopePattern pattern = new OneDimIsotopePattern();
-				
+			if (bestPattern.size() >= minimumNumberOfIsotopicPeaks) {
+
+				ConstructionIsotopePattern pattern = new ConstructionIsotopePattern(
+						bestChargeState);
+
 				Enumeration<Integer> centroidIndices = bestPattern.keys();
-				while(centroidIndices.hasMoreElements()) {
+				while (centroidIndices.hasMoreElements()) {
 					Integer centroidIndex = centroidIndices.nextElement();
 					DataPoint centroid = bestPattern.get(centroidIndex);
 					pattern.addDataPoint(centroid);
 					sortedCentroids[centroidIndex] = null;
 				}
-				
+
 				detectedPatterns.add(pattern);
-				
+
 			}
 
 		}
 
-		return detectedPatterns.toArray(new OneDimIsotopePattern[0]);
+		return detectedPatterns.toArray(new ConstructionIsotopePattern[0]);
 
 	}
-	/*
-	 * private OneDimIsotopePattern[] detectPatterns(Scan sc) { Vector<OneDimIsotopePattern>
-	 * detectedPatterns = new Vector<OneDimIsotopePattern>();
-	 * 
-	 * DataPoint sortedDataPoints[] = sc.getDataPoints();
-	 * 
-	 * Arrays.sort(sortedDataPoints, new
-	 * DataPointSorterByDescendingIntensity()); // Continue until all possible
-	 * isotope patterns have been found int highestIntensityIndex = 0; while
-	 * (true) { // Find strongest remaining centroid and start constructing an //
-	 * isotope pattern around it while ((highestIntensityIndex <
-	 * sortedDataPoints.length) && (sortedDataPoints[highestIntensityIndex] ==
-	 * null)) { highestIntensityIndex++; } if (highestIntensityIndex >=
-	 * sortedDataPoints.length) break; if
-	 * (sortedDataPoints[highestIntensityIndex] == null) break; DataPoint
-	 * highestIntensityDataPoint = sortedDataPoints[highestIntensityIndex];
-	 * OneDimIsotopePattern trialPattern = new OneDimIsotopePattern(
-	 * highestIntensityDataPoint); sortedDataPoints[highestIntensityIndex] =
-	 * null; // Search for other centroids in the same pattern for (int
-	 * chargeState = 1; chargeState <= maximumChargeState; chargeState++) { //
-	 * Find matching centroids with lower m/z int lower = 1; boolean foundLower =
-	 * true; while (foundLower) { foundLower = false;
-	 * 
-	 * for (int i = 0; i < sortedDataPoints.length; i++) { DataPoint
-	 * anotherDataPoint = sortedDataPoints[i]; if (anotherDataPoint == null)
-	 * continue;
-	 * 
-	 * double mzDiff = highestIntensityDataPoint.getMZ() -
-	 * anotherDataPoint.getMZ(); double expectedMZDiff = (isotopeDistance /
-	 * (float) chargeState) (float) lower; if (Math.abs(mzDiff - expectedMZDiff) <
-	 * mzTolerance) { trialPattern.addDataPoint(anotherDataPoint);
-	 * sortedDataPoints[i] = null; foundLower = true; break; } }
-	 * 
-	 * lower++; } // Find matching centroids with higher m/z int higher = 1;
-	 * boolean foundHigher = true; while (foundHigher) { foundHigher = false;
-	 * 
-	 * for (int i = 0; i < sortedDataPoints.length; i++) { DataPoint
-	 * anotherDataPoint = sortedDataPoints[i]; if (anotherDataPoint == null)
-	 * continue;
-	 * 
-	 * double mzDiff = anotherDataPoint.getMZ() -
-	 * highestIntensityDataPoint.getMZ(); double expectedMZDiff =
-	 * (isotopeDistance / (float) chargeState) (float) higher; if
-	 * (Math.abs(mzDiff - expectedMZDiff) < mzTolerance) {
-	 * trialPattern.addDataPoint(anotherDataPoint); sortedDataPoints[i] = null;
-	 * foundHigher = true; break; } }
-	 * 
-	 * higher++; } } // If enough centroids in the pattern, then add this to
-	 * detected // patterns if (trialPattern.getNumberOfDataPoints() >=
-	 * minimumNumberOfIsotopicPeaks) { detectedPatterns.add(trialPattern); } }
-	 * 
-	 * return detectedPatterns.toArray(new OneDimIsotopePattern[0]); }
-	 */
 }

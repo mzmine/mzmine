@@ -19,28 +19,61 @@
 
 package net.sf.mzmine.modules.peakpicking.anothercentroid;
 
-import java.util.Vector;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.TreeSet;
 
 import net.sf.mzmine.data.DataPoint;
+import net.sf.mzmine.modules.peakpicking.anothercentroid.DataPointSorter.SortingDirection;
+import net.sf.mzmine.modules.peakpicking.anothercentroid.DataPointSorter.SortingProperty;
 
-class OneDimIsotopePattern {
+class ConstructionIsotopePattern {
 
-	Vector<DataPoint> addedDataPoints;
+	private TreeSet<DataPoint> addedDataPoints;
+	private int chargeState;
 
-	OneDimIsotopePattern() {
-		addedDataPoints = new Vector<DataPoint>();
+	ConstructionIsotopePattern(int chargeState) {
+		this.chargeState = chargeState;
+		addedDataPoints = new TreeSet<DataPoint>(new DataPointSorter(
+				SortingProperty.MZ, SortingDirection.ASCENDING));
+
 	}
 
 	protected void addDataPoint(DataPoint dataPoint) {
 		addedDataPoints.add(dataPoint);
+
 	}
 
 	protected DataPoint[] getDataPoints() {
 		return addedDataPoints.toArray(new DataPoint[0]);
 	}
 
+	protected DataPoint getMonoisotopicDataPoint() {
+		return addedDataPoints.first();
+	}
+
 	protected int getNumberOfDataPoints() {
 		return addedDataPoints.size();
+	}
+
+	protected int getChargeState() {
+		return chargeState;
+	}
+
+	protected boolean isSimilar(ConstructionIsotopePattern anotherPattern,
+			float mzTolerance) {
+
+		// Criteria for similarity: matching monoisotopic m/z and charge state
+
+		if (this.getChargeState() != anotherPattern.getChargeState())
+			return false;
+
+		if (Math.abs(this.getMonoisotopicDataPoint().getMZ() - anotherPattern
+				.getMonoisotopicDataPoint().getMZ()) > mzTolerance)
+			return false;
+
+		return true;
+
 	}
 
 }
