@@ -21,9 +21,11 @@ package net.sf.mzmine.modules.peakpicking.anothercentroid;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Iterator;
 import java.util.TreeSet;
 
 import net.sf.mzmine.data.DataPoint;
+import net.sf.mzmine.data.Scan;
 import net.sf.mzmine.modules.peakpicking.anothercentroid.DataPointSorter.SortingDirection;
 import net.sf.mzmine.modules.peakpicking.anothercentroid.DataPointSorter.SortingProperty;
 
@@ -31,17 +33,32 @@ class ConstructionIsotopePattern {
 
 	private TreeSet<DataPoint> addedDataPoints;
 	private int chargeState;
+	private float mzTolerance;
+	
+	private float[] XIC;
 
-	ConstructionIsotopePattern(int chargeState) {
+	ConstructionIsotopePattern(int chargeState, float mzTolerance) {
 		this.chargeState = chargeState;
+		this.mzTolerance = mzTolerance;
+		
 		addedDataPoints = new TreeSet<DataPoint>(new DataPointSorter(
 				SortingProperty.MZ, SortingDirection.ASCENDING));
-
+		
 	}
 
 	protected void addDataPoint(DataPoint dataPoint) {
 		addedDataPoints.add(dataPoint);
 
+	}
+	
+	protected void addDataPoints(DataPoint[] dataPoints) {
+		for (DataPoint dataPoint : dataPoints) {
+			addDataPoint(dataPoint);
+		}
+	}
+	
+	protected void removeDataPoints() {
+		addedDataPoints.clear();
 	}
 
 	protected DataPoint[] getDataPoints() {
@@ -60,8 +77,7 @@ class ConstructionIsotopePattern {
 		return chargeState;
 	}
 
-	protected boolean isSimilar(ConstructionIsotopePattern anotherPattern,
-			float mzTolerance) {
+	protected boolean isSimilar(ConstructionIsotopePattern anotherPattern) {
 
 		// Criteria for similarity: matching monoisotopic m/z and charge state
 
@@ -74,6 +90,29 @@ class ConstructionIsotopePattern {
 
 		return true;
 
+	}
+	
+	protected Bin[] initializeXIC(int numberOfScans) {
+		XIC = new float[numberOfScans];
+		
+		ArrayList<Bin> bins = new ArrayList<Bin>();
+	
+		Iterator<DataPoint> dataPointsIter = addedDataPoints.iterator();
+		while (dataPointsIter.hasNext()) {
+			DataPoint dataPoint = dataPointsIter.next();
+			bins.add(new Bin(this, dataPoint.getMZ()-mzTolerance, dataPoint.getMZ()+mzTolerance));
+		}
+		
+		return bins.toArray(new Bin[0]);
+		
+	}
+	
+	protected void addIntensity(int scanCount, float intensity) {
+			XIC[scanCount] += intensity;
+	}
+	
+	protected float[] getXIC() {
+		return XIC;
 	}
 
 }

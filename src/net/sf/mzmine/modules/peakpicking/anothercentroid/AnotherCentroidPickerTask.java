@@ -146,7 +146,8 @@ class AnotherCentroidPickerTask implements Task {
 		int[] scanNumbers = dataFile.getScanNumbers(1);
 		totalScans = scanNumbers.length;
 
-		// 1st pass: find isotope patterns in scans
+		// 1st pass: find isotope patterns in each scan, collect unique patterns
+
 		ArrayList<ConstructionIsotopePattern> allCollectedPatterns = new ArrayList<ConstructionIsotopePattern>();
 		for (int i = 0; i < totalScans; i++) {
 
@@ -161,9 +162,11 @@ class AnotherCentroidPickerTask implements Task {
 			for (ConstructionIsotopePattern detectedPattern : patternsForScan) {
 				boolean foundSimilar = false;
 				for (ConstructionIsotopePattern previouslyCollectedPattern : allCollectedPatterns) {
-					if (detectedPattern.isSimilar(previouslyCollectedPattern,
-							mzTolerance)) {
+					if (detectedPattern.isSimilar(previouslyCollectedPattern)) {
 						foundSimilar = true;
+						previouslyCollectedPattern.removeDataPoints();
+						previouslyCollectedPattern
+								.addDataPoints(detectedPattern.getDataPoints());
 						break;
 					}
 				}
@@ -177,47 +180,54 @@ class AnotherCentroidPickerTask implements Task {
 
 		}
 
-		// DEBUG begin print out a list of collected patterns
-		/*
-		try {
-			PrintWriter fout = new PrintWriter(new FileWriter(
-					"D:/temp/detectedPatterns.txt"));
+		// 2nd pass: calc XIC for each unique pattern and find elution start and
+		// stop times
 
-			fout
-					.println("Monoisotopic m/z\tPattern size\tCharge state\tAll m/zs");
-			for (ConstructionIsotopePattern pattern : allCollectedPatterns) {
-				DataPoint[] dataPoints = pattern.getDataPoints();
-				DataPoint monoDataPoint = dataPoints[0];
-				String allMZs = "";
-				for (DataPoint dataPoint : dataPoints) {
-					if (monoDataPoint.getMZ() > dataPoint.getMZ()) {
-						monoDataPoint = dataPoint;
-					}
-					allMZs += "" + dataPoint.getMZ() + "; ";
-				}
-				fout.println("" + monoDataPoint.getMZ() + "\t"
-						+ pattern.getNumberOfDataPoints() + "\t"
-						+ pattern.getChargeState() + "\t" + allMZs);
-			}
-			fout.flush();
-			fout.close();
-
-		} catch (IOException ex) {
-			System.out.println("DEBUG: printing to file failed: "
-					+ ex.toString());
+		// Initialize XICs and get bin borders for each pattern
+		ArrayList<Bin> binArray = new ArrayList<Bin>();
+		for (ConstructionIsotopePattern pattern : allCollectedPatterns) {
+			Bin[] binsForPattern = pattern.initializeXIC(totalScans);
+			for (Bin bin : binsForPattern)
+				binArray.add(bin);
 		}
-		*/
-		// DEBUG end
+		Bin[] bins = binArray.toArray(new Bin[0]);
 
-		// 2nd pass: calc XIC for each unique pattern
+		// Collect XICs
 		for (int i = 0; i < totalScans; i++) {
 
 			if (status == TaskStatus.CANCELED)
 				return;
 
+			Scan sc = dataFile.getScan(scanNumbers[i]);
+			binCentroids(sc, bins);
+			for (Bin bin : bins)
+				bin.moveToNextScan();
 			processedScans++;
 		}
 
+		// TODO: Interpret XICs
+
+		// DEBUG begin print out a list of collected patterns
+		/*
+		 * try { PrintWriter fout = new PrintWriter(new FileWriter(
+		 * "D:/temp/detectedPatterns.txt"));
+		 * 
+		 * fout .println("Monoisotopic m/z\tPattern size\tCharge state\tAll
+		 * m/zs"); for (ConstructionIsotopePattern pattern :
+		 * allCollectedPatterns) { DataPoint[] dataPoints =
+		 * pattern.getDataPoints(); DataPoint monoDataPoint = dataPoints[0];
+		 * String allMZs = ""; for (DataPoint dataPoint : dataPoints) { if
+		 * (monoDataPoint.getMZ() > dataPoint.getMZ()) { monoDataPoint =
+		 * dataPoint; } allMZs += "" + dataPoint.getMZ() + "; "; }
+		 * fout.println("" + monoDataPoint.getMZ() + "\t" +
+		 * pattern.getNumberOfDataPoints() + "\t" + pattern.getChargeState() +
+		 * "\t" + allMZs); } fout.flush(); fout.close(); } catch (IOException
+		 * ex) { System.out.println("DEBUG: printing to file failed: " +
+		 * ex.toString()); }
+		 */
+		// DEBUG end
+		
+		
 		// 3rd pass: collect datapoints
 		for (int i = 0; i < totalScans; i++) {
 
@@ -361,7 +371,7 @@ class AnotherCentroidPickerTask implements Task {
 			if (bestPattern.size() >= minimumNumberOfIsotopicPeaks) {
 
 				ConstructionIsotopePattern pattern = new ConstructionIsotopePattern(
-						bestChargeState);
+						bestChargeState, mzTolerance);
 
 				Enumeration<Integer> centroidIndices = bestPattern.keys();
 				while (centroidIndices.hasMoreElements()) {
@@ -380,4 +390,9 @@ class AnotherCentroidPickerTask implements Task {
 		return detectedPatterns.toArray(new ConstructionIsotopePattern[0]);
 
 	}
+
+	private void binCentroids(Scan sc, Bin[] bins) {
+		// TODO !
+	}
+
 }
