@@ -230,7 +230,8 @@
     </module>  
     <module class="net.sf.mzmine.modules.identification.fragmentation.InSourceFragmentationSearch"/>  
     <module class="net.sf.mzmine.modules.identification.kegg.KEGGSearch"/>  
-    <module class="net.sf.mzmine.modules.identification.pubchem.PubChemSearch"/> 
+    <module class="net.sf.mzmine.modules.identification.pubchem.PubChemSearch"/>
+    <module class="net.sf.mzmine.modules.identification.qbixlipiddb.QBIXLipidDBSearch"/>
   </modules>  
   <desktop>
     <format type="m/z">
