@@ -98,10 +98,15 @@ class QBIXLipidDBSearchTask implements Task {
         SimpleCompoundIdentity tmpIdentity = new SimpleCompoundIdentity("1", "not yet ready", 
         																null, "NA", 
         																null, "QBIX lipid DB");
-
+        
+        QBIXLipidDBQueriesBuilder queriesBuilder = new QBIXLipidDBQueriesBuilder(parameters);
+        
+        
         
         for (PeakListRow peakRow : peakList.getRows()) {
-        	
+
+        	QBIXLipidDBQuery[] queries = queriesBuilder.createQueries(peakRow);
+        	logger.finest("Created " + queries.length + " queries for row " + peakRow.getAverageMZ() + ", " + peakRow.getAverageRT());
         	peakRow.addCompoundIdentity(tmpIdentity);
         }
 
