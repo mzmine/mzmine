@@ -23,7 +23,7 @@ import java.util.ArrayList;
 
 import net.sf.mzmine.data.PeakListRow;
 
-class QBIXLipidDBQueriesBuilder {
+class QBIXLipidDBUtils {
 
 	/*
 	 * Table format: min m/z, max m/z, min rt, max rt, "name", add, "adduct",
@@ -60,7 +60,7 @@ class QBIXLipidDBQueriesBuilder {
 
 	private QBIXLipidDBSearchParameters parameters;
 
-	QBIXLipidDBQueriesBuilder(QBIXLipidDBSearchParameters parameters) {
+	QBIXLipidDBUtils(QBIXLipidDBSearchParameters parameters) {
 		this.parameters = parameters;
 	}
 

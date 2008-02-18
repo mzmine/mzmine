@@ -95,7 +95,7 @@ class QBIXLipidDBSearchTask implements Task {
 
 		logger.info("Running " + getTaskDescription());
 
-		QBIXLipidDBQueriesBuilder queriesBuilder = new QBIXLipidDBQueriesBuilder(
+		QBIXLipidDBUtils queriesBuilder = new QBIXLipidDBUtils(
 				parameters);
 
 		QBIXLipidDBConnection dbConnection = new QBIXLipidDBConnection(
