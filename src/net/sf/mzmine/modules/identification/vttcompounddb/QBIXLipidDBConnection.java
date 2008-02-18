@@ -23,7 +23,12 @@ import java.io.StringWriter;
 import java.util.ArrayList;
 import java.util.logging.Logger;
 
+import org.w3c.dom.Element;
+import org.w3c.dom.Node;
+import org.w3c.dom.NodeList;
+
 import net.sf.mzmine.data.CompoundIdentity;
+import net.sf.mzmine.data.impl.SimpleCompoundIdentity;
 /*
 import com.softwareag.tamino.db.api.accessor.TAccessLocation;
 import com.softwareag.tamino.db.api.accessor.TXMLObjectAccessor;
@@ -79,7 +84,7 @@ class QBIXLipidDBConnection {
 
 	}
 
-	protected CompoundIdentity[] runQueryOnInternalDatabase(
+	protected CompoundIdentity[] runQueryOnInternalLibrary(
 			QBIXLipidDBQuery query) {
 
 		ArrayList<CompoundIdentity> compoundIdentities = new ArrayList<CompoundIdentity>();
@@ -89,31 +94,56 @@ class QBIXLipidDBConnection {
 					.warning("Tried to run a query while database connection is closed.");
 			return null;
 		}
-*/
+
 		String xQueryString = "for $a in input()/CommonLipid where  $a/BasePeak < "
 				+ query.getMaxMZ()
-				+ " and  $a/BasePeak > "
+				+ " and $a/BasePeak > "
 				+ query.getMinMZ()
 				+ " return  <Element> {$a/Name}\n{$a/MonoIsoMass}\n {$a/BasePeak} </Element>";
 
+		
 		System.out.println("xQueryString=" + xQueryString);
-/*
+
 		TXQuery xQuery = TXQuery.newInstance(xQueryString);
 
 		try {
 			TResponse response = accessor.xquery(xQuery);
 
-			// Iterate through results
 			TXMLObjectIterator responseIterator = response
 					.getXMLObjectIterator();
-			while (responseIterator.hasNext()) { // as long as there are more
+			while (responseIterator.hasNext()) { 
 
 				TXMLObject doc = responseIterator.next();
+				
+				String compoundID = "";
+				String compoundName = "";
+	            String[] alternateNames = null; 
+	            String compoundFormula = "";
+	            String databaseEntryURL = (String)parameters.getParameterValue(QBIXLipidDBSearchParameters.databaseURI);
+	            String identificationMethod = "Search on QBIX internal lipid database";
+	            
+				Element element = (Element)doc.getElement();
+				
+				NodeList compoundProperties = element.getChildNodes();
+				for (int itemNumber=0; itemNumber<compoundProperties.getLength(); itemNumber++) {
+					
+					Node property = compoundProperties.item(itemNumber);
+					if (property.getNodeName().equalsIgnoreCase("name")) {
+							compoundName = property.getTextContent();
+					}
+							
+				}
+				
+				CompoundIdentity newIdentity = new SimpleCompoundIdentity(compoundID, compoundName, alternateNames, compoundFormula, databaseEntryURL, identificationMethod);
+				
+				compoundIdentities.add(newIdentity);
 
-				// TODO: Parse response
+				
 				StringWriter write = new StringWriter();
 				doc.writeTo(write);
 				System.out.println(write);
+				
+				
 			}
 
 			responseIterator.close();
@@ -149,6 +179,38 @@ class QBIXLipidDBConnection {
 */
 		logger.finest("Closed connection to database");
 
+	}
+
+	/**
+	 * DEBUG
+	 */
+	public static void main(String argz[]) {
+		QBIXLipidDBConnection dbConnection = new QBIXLipidDBConnection(
+				new QBIXLipidDBSearchParameters());
+
+		if (!dbConnection.openConnection()) {
+			System.out.println("Could not open database connection");
+			return;
+		}
+
+		QBIXLipidDBQuery testQuery = new QBIXLipidDBQuery(
+				"Glycerophospholipi*", 496.34107f, 202.700265f, 50.0f, "[M+H]",
+				1.007825f, 0.2f, "LPC/LPE/LPA/LSer");
+
+		CompoundIdentity[] identities = dbConnection
+				.runQueryOnInternalLibrary(testQuery);
+
+		for (CompoundIdentity identity : identities) {
+			System.out.print("ID=" + identity.getCompoundID() + ", ");
+			System.out.print("CompoundName=" + identity.getCompoundName() + ", ");
+			System.out.print("Formula=" + identity.getCompoundFormula() + ", ");
+			System.out.print("IdentificationMethod="
+					+ identity.getIdentificationMethod() + ", ");
+			System.out.println("DatabaseEntryURL="
+					+ identity.getDatabaseEntryURL());
+		}
+
+		dbConnection.closeConnection();
 	}
 
 }

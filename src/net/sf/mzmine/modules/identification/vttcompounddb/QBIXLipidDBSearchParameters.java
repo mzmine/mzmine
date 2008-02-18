@@ -43,10 +43,10 @@ public class QBIXLipidDBSearchParameters extends SimpleParameterSet {
 			ParameterType.FLOAT, "ppm", "m/z tolerance in ppm", "ppm",
 			new Float(50.0), new Float(0), null, NumberFormat.getNumberInstance());
 
+	// TODO: Remove if unused parameter?
 	public static final Parameter MassResolution = new SimpleParameter(
 			ParameterType.FLOAT, "Mass resolution", "Mass resolution", "",
-			new Float(0.2), new Float(0.0), null, MZmineCore.getDesktop()
-					.getMZFormat());
+			new Float(0.2), new Float(0.0), null, NumberFormat.getNumberInstance());
 
 	public QBIXLipidDBSearchParameters() {
 		super(new Parameter[] { MZTolerance, MassResolution });

@@ -112,10 +112,10 @@ class QBIXLipidDBSearchTask implements Task {
 			QBIXLipidDBQuery[] queries = queriesBuilder.createQueries(peakRow);
 			logger.finest("Created " + queries.length + " queries for row "
 					+ peakRow.getAverageMZ() + ", " + peakRow.getAverageRT());
-
+			
 			for (QBIXLipidDBQuery query : queries) {
 				CompoundIdentity[] foundIdentities = dbConnection
-						.runQueryOnInternalDatabase(query);
+						.runQueryOnInternalLibrary(query);
 
 				for (CompoundIdentity identity : foundIdentities)
 					peakRow.addCompoundIdentity(identity);
