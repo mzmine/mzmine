@@ -1,3 +1,22 @@
+/*
+ * Copyright 2006-2008 The MZmine Development Team
+ * 
+ * This file is part of MZmine.
+ * 
+ * MZmine is free software; you can redistribute it and/or modify it under the
+ * terms of the GNU General Public License as published by the Free Software
+ * Foundation; either version 2 of the License, or (at your option) any later
+ * version.
+ * 
+ * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY
+ * WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR
+ * A PARTICULAR PURPOSE. See the GNU General Public License for more details.
+ * 
+ * You should have received a copy of the GNU General Public License along with
+ * MZmine; if not, write to the Free Software Foundation, Inc., 51 Franklin St,
+ * Fifth Floor, Boston, MA 02110-1301 USA
+ */
+
 package net.sf.mzmine.modules.identification.qbixlipiddb;
 
 import java.util.ArrayList;
@@ -7,10 +26,10 @@ import net.sf.mzmine.data.PeakListRow;
 class QBIXLipidDBQueriesBuilder {
 
 	/*
-	 * Table format: min m/z, max m/z, min rt, max rt, "name", add,
-	 * "adduct", "expected"
+	 * Table format: min m/z, max m/z, min rt, max rt, "name", add, "adduct",
+	 * "expected"
 	 */
-	
+
 	private final int COL_MINMZ = 0;
 	private final int COL_MAXMZ = 1;
 	private final int COL_MINRT = 2;
@@ -36,63 +55,66 @@ class QBIXLipidDBQueriesBuilder {
 {1000.0f,	Float.MAX_VALUE, 	410.0f,		Float.MAX_VALUE,	"Glycerophospholipi*",	22.98977f,				"[M+Na]+",		"CL"}
 };
 
-	private static Object[] NoMatchQuery = 
-{0.0f,		0.0f,				0.0f,		0.0f,				"(.*)", 				1.007825,				"AUTO",			"NOIDEA"};
+	private static Object[] noMatchQuery = 
+{0.0f,		0.0f,				0.0f,		0.0f,				"(.*)", 				1.007825f,				"AUTO",			"NOIDEA"};
 
-	
 	private QBIXLipidDBSearchParameters parameters;
-	
-	
+
 	QBIXLipidDBQueriesBuilder(QBIXLipidDBSearchParameters parameters) {
 		this.parameters = parameters;
 	}
-	
-	
+
 	protected QBIXLipidDBQuery[] createQueries(PeakListRow peakListRow) {
-		
-		float mz = peakListRow.getAverageMZ(); 
+
+		float mz = peakListRow.getAverageMZ();
 		float rt = peakListRow.getAverageRT();
-		
+
 		ArrayList<QBIXLipidDBQuery> queries = new ArrayList<QBIXLipidDBQuery>();
-			
-		if (mz<=0) return new QBIXLipidDBQuery[0];
-		if (rt<0) return new QBIXLipidDBQuery[0];
-		
-		float toleranceMZ = mz * (Float)parameters.getParameterValue(parameters.MZTolerance) / 1000000.0f;
-		
-		float resolution = (Float)parameters.getParameterValue(parameters.MassResolution);
-		
-		for (int queryNumber = 0; queryNumber<lipidClassLookup.length; queryNumber++) {
-			if ( 	(mz>(Float)lipidClassLookup[queryNumber][COL_MINMZ]) &&
-					(mz<(Float)lipidClassLookup[queryNumber][COL_MAXMZ]) &&
-					(rt>(Float)lipidClassLookup[queryNumber][COL_MINRT]) &&
-					(rt<(Float)lipidClassLookup[queryNumber][COL_MAXRT]) ) {
 
+		if (mz <= 0)
+			return new QBIXLipidDBQuery[0];
+		if (rt < 0)
+			return new QBIXLipidDBQuery[0];
 
-				float minMZ = mz - toleranceMZ - (Float)lipidClassLookup[queryNumber][COL_ADD];
-				float maxMZ = mz + toleranceMZ - (Float)lipidClassLookup[queryNumber][COL_ADD];
-				
+		float tolerancePPM = (Float) parameters
+				.getParameterValue(QBIXLipidDBSearchParameters.MZTolerance);
+		float resolution = (Float) parameters
+				.getParameterValue(QBIXLipidDBSearchParameters.MassResolution);
+
+		for (int queryNumber = 0; queryNumber < lipidClassLookup.length; queryNumber++) {
+			if ((mz > (Float) lipidClassLookup[queryNumber][COL_MINMZ])
+					&& (mz < (Float) lipidClassLookup[queryNumber][COL_MAXMZ])
+					&& (rt > (Float) lipidClassLookup[queryNumber][COL_MINRT])
+					&& (rt < (Float) lipidClassLookup[queryNumber][COL_MAXRT])) {
+
 				QBIXLipidDBQuery newQueryData = new QBIXLipidDBQuery(
-						(String)lipidClassLookup[queryNumber][COL_NAME],
-						minMZ,
-						maxMZ,
-						toleranceMZ,
-						(String)lipidClassLookup[queryNumber][COL_ADDUCT],
-						(Float)lipidClassLookup[queryNumber][COL_ADD],
+						(String) lipidClassLookup[queryNumber][COL_NAME], mz,
+						rt, tolerancePPM,
+						(String) lipidClassLookup[queryNumber][COL_ADDUCT],
+						(Float) lipidClassLookup[queryNumber][COL_ADD],
 						resolution,
-						(String)lipidClassLookup[queryNumber][COL_EXPECTED],
-						mz,
-						rt);
-				
+						(String) lipidClassLookup[queryNumber][COL_EXPECTED]);
+
 				queries.add(newQueryData);
-				
+
 			}
-			
+
+		}
+
+		if (queries.isEmpty()) {
+
+			QBIXLipidDBQuery newQueryData = new QBIXLipidDBQuery(
+					(String) noMatchQuery[COL_NAME], mz, rt, tolerancePPM,
+					(String) noMatchQuery[COL_ADDUCT],
+					(Float) noMatchQuery[COL_ADD], resolution,
+					(String) noMatchQuery[COL_EXPECTED]);
+
+			queries.add(newQueryData);
+
 		}
 
 		return queries.toArray(new QBIXLipidDBQuery[0]);
-		
+
 	}
 
-	
 }

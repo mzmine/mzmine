@@ -19,6 +19,8 @@
 
 package net.sf.mzmine.modules.identification.qbixlipiddb;
 
+import java.text.NumberFormat;
+
 import net.sf.mzmine.data.Parameter;
 import net.sf.mzmine.data.ParameterType;
 import net.sf.mzmine.data.impl.SimpleParameter;
@@ -30,23 +32,24 @@ import net.sf.mzmine.main.MZmineCore;
  */
 public class QBIXLipidDBSearchParameters extends SimpleParameterSet {
 
-    public static final String QBIXInternalLipidDatabase = "QBIX internal lipid database";
-	
-	
+	public static final String QBIXInternalLipidDatabase = "QBIX internal lipid database";
+
+	public static final Parameter databaseURI = new SimpleParameter(
+			ParameterType.STRING, "Tamino server URI",
+			"Address of the Tamino database server", null,
+			"http://sbtamino1.ad.vtt.fi:8060/tamino/BfxDB03", null);
+
 	public static final Parameter MZTolerance = new SimpleParameter(
 			ParameterType.FLOAT, "ppm", "m/z tolerance in ppm", "ppm",
-			new Float(0.2), new Float(0.0), null, MZmineCore.getDesktop()
-					.getMZFormat());
+			new Float(50.0), new Float(0), null, NumberFormat.getNumberInstance());
 
 	public static final Parameter MassResolution = new SimpleParameter(
 			ParameterType.FLOAT, "Mass resolution", "Mass resolution", "",
 			new Float(0.2), new Float(0.0), null, MZmineCore.getDesktop()
 					.getMZFormat());
 
+	public QBIXLipidDBSearchParameters() {
+		super(new Parameter[] { MZTolerance, MassResolution });
+	}
 
-    public QBIXLipidDBSearchParameters() {
-        super(new Parameter[] { MZTolerance, MassResolution });
-    }
-
-	
 }

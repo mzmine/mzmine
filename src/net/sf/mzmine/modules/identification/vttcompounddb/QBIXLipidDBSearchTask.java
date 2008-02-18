@@ -21,9 +21,9 @@ package net.sf.mzmine.modules.identification.qbixlipiddb;
 
 import java.util.logging.Logger;
 
+import net.sf.mzmine.data.CompoundIdentity;
 import net.sf.mzmine.data.PeakList;
 import net.sf.mzmine.data.PeakListRow;
-import net.sf.mzmine.data.impl.SimpleCompoundIdentity;
 import net.sf.mzmine.taskcontrol.Task;
 
 /**
@@ -31,89 +31,113 @@ import net.sf.mzmine.taskcontrol.Task;
  */
 class QBIXLipidDBSearchTask implements Task {
 
-    private Logger logger = Logger.getLogger(this.getClass().getName());
+	private Logger logger = Logger.getLogger(this.getClass().getName());
 
-    private PeakList peakList;
-    private QBIXLipidDBSearchParameters parameters;
+	private PeakList peakList;
+	private QBIXLipidDBSearchParameters parameters;
 
-    private TaskStatus status;
-    private String errorMessage;
-    private String[][] databaseValues;
-    private int finishedLines = 0;
+	private TaskStatus status;
+	private String errorMessage;
+	private String[][] databaseValues;
+	private int finishedLines = 0;
 
-    QBIXLipidDBSearchTask(PeakList peakList, QBIXLipidDBSearchParameters parameters) {
-        status = TaskStatus.WAITING;
-        this.peakList = peakList;
-        this.parameters = parameters;
-    }
+	QBIXLipidDBSearchTask(PeakList peakList,
+			QBIXLipidDBSearchParameters parameters) {
+		status = TaskStatus.WAITING;
+		this.peakList = peakList;
+		this.parameters = parameters;
+	}
 
-    /**
-     * @see net.sf.mzmine.taskcontrol.Task#cancel()
-     */
-    public void cancel() {
-        status = TaskStatus.CANCELED;
-    }
+	/**
+	 * @see net.sf.mzmine.taskcontrol.Task#cancel()
+	 */
+	public void cancel() {
+		status = TaskStatus.CANCELED;
+	}
 
-    /**
-     * @see net.sf.mzmine.taskcontrol.Task#getErrorMessage()
-     */
-    public String getErrorMessage() {
-        return errorMessage;
-    }
+	/**
+	 * @see net.sf.mzmine.taskcontrol.Task#getErrorMessage()
+	 */
+	public String getErrorMessage() {
+		return errorMessage;
+	}
 
-    /**
-     * @see net.sf.mzmine.taskcontrol.Task#getFinishedPercentage()
-     */
-    public float getFinishedPercentage() {
-        if (databaseValues == null)
-            return 0;
-        return ((float) finishedLines) / databaseValues.length;
-    }
+	/**
+	 * @see net.sf.mzmine.taskcontrol.Task#getFinishedPercentage()
+	 */
+	public float getFinishedPercentage() {
+		if (databaseValues == null)
+			return 0;
+		return ((float) finishedLines) / databaseValues.length;
+	}
 
+	/**
+	 * @see net.sf.mzmine.taskcontrol.Task#getStatus()
+	 */
+	public TaskStatus getStatus() {
+		return status;
+	}
 
-    /**
-     * @see net.sf.mzmine.taskcontrol.Task#getStatus()
-     */
-    public TaskStatus getStatus() {
-        return status;
-    }
+	/**
+	 * @see net.sf.mzmine.taskcontrol.Task#getTaskDescription()
+	 */
+	public String getTaskDescription() {
+		return "Peak identification of " + peakList
+				+ " using QBIX internal lipid database.";
+	}
 
-    /**
-     * @see net.sf.mzmine.taskcontrol.Task#getTaskDescription()
-     */
-    public String getTaskDescription() {
-        return "Peak identification of " + peakList + " using QBIX internal lipid database.";
-    }
+	/**
+	 * @see java.lang.Runnable#run()
+	 */
+	public void run() {
 
-    /**
-     * @see java.lang.Runnable#run()
-     */
-    public void run() {
+		status = TaskStatus.PROCESSING;
 
-        status = TaskStatus.PROCESSING;
-        
-        
-        logger.info("Running " + getTaskDescription());
-        
-        SimpleCompoundIdentity tmpIdentity = new SimpleCompoundIdentity("1", "not yet ready", 
-        																null, "NA", 
-        																null, "QBIX lipid DB");
-        
-        QBIXLipidDBQueriesBuilder queriesBuilder = new QBIXLipidDBQueriesBuilder(parameters);
-        
-        
-        
-        for (PeakListRow peakRow : peakList.getRows()) {
+		logger.info("Running " + getTaskDescription());
 
-        	QBIXLipidDBQuery[] queries = queriesBuilder.createQueries(peakRow);
-        	logger.finest("Created " + queries.length + " queries for row " + peakRow.getAverageMZ() + ", " + peakRow.getAverageRT());
-        	peakRow.addCompoundIdentity(tmpIdentity);
-        }
+		QBIXLipidDBQueriesBuilder queriesBuilder = new QBIXLipidDBQueriesBuilder(
+				parameters);
 
-        logger.info("Finished " + getTaskDescription());
-        
-        status = TaskStatus.FINISHED;
+		QBIXLipidDBConnection dbConnection = new QBIXLipidDBConnection(
+				parameters);
 
-    }
-    
+		if (!dbConnection.openConnection()) {
+			logger.severe("Could not open database connection");
+			errorMessage = "Could not open database connection";
+			status = TaskStatus.ERROR;
+		}
+
+		for (PeakListRow peakRow : peakList.getRows()) {
+
+			QBIXLipidDBQuery[] queries = queriesBuilder.createQueries(peakRow);
+			logger.finest("Created " + queries.length + " queries for row "
+					+ peakRow.getAverageMZ() + ", " + peakRow.getAverageRT());
+
+			for (QBIXLipidDBQuery query : queries) {
+				CompoundIdentity[] foundIdentities = dbConnection
+						.runQueryOnInternalDatabase(query);
+
+				for (CompoundIdentity identity : foundIdentities)
+					peakRow.addCompoundIdentity(identity);
+
+				foundIdentities = dbConnection.runQueryOnLipidDatabase(query);
+
+				for (CompoundIdentity identity : foundIdentities)
+					peakRow.addCompoundIdentity(identity);
+			}
+
+			logger.finest("Added " + peakRow.getCompoundIdentities().length
+					+ " identities for row " + peakRow.getAverageMZ() + ", "
+					+ peakRow.getAverageRT());
+
+		}
+
+		dbConnection.closeConnection();
+
+		logger.info("Finished " + getTaskDescription());
+
+		status = TaskStatus.FINISHED;
+
+	}
+
 }
