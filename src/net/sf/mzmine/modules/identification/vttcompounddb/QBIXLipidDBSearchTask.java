@@ -39,7 +39,8 @@ class QBIXLipidDBSearchTask implements Task {
 	private TaskStatus status;
 	private String errorMessage;
 	private String[][] databaseValues;
-	private int finishedLines = 0;
+	private int processedRows = 0;
+	private int totalRows = 0;
 
 	QBIXLipidDBSearchTask(PeakList peakList,
 			QBIXLipidDBSearchParameters parameters) {
@@ -66,9 +67,8 @@ class QBIXLipidDBSearchTask implements Task {
 	 * @see net.sf.mzmine.taskcontrol.Task#getFinishedPercentage()
 	 */
 	public float getFinishedPercentage() {
-		if (databaseValues == null)
-			return 0;
-		return ((float) finishedLines) / databaseValues.length;
+		if (totalRows == 0) return 0;
+		return ((float) processedRows) / (float)totalRows;
 	}
 
 	/**
@@ -95,7 +95,7 @@ class QBIXLipidDBSearchTask implements Task {
 
 		logger.info("Running " + getTaskDescription());
 
-		QBIXLipidDBUtils queriesBuilder = new QBIXLipidDBUtils(
+		QBIXLipidDBUtils queryUtil = new QBIXLipidDBUtils(
 				parameters);
 
 		QBIXLipidDBConnection dbConnection = new QBIXLipidDBConnection(
@@ -107,9 +107,11 @@ class QBIXLipidDBSearchTask implements Task {
 			status = TaskStatus.ERROR;
 		}
 
+		totalRows = peakList.getRows().length;
+		processedRows = 0;
 		for (PeakListRow peakRow : peakList.getRows()) {
 
-			QBIXLipidDBQuery[] queries = queriesBuilder.createQueries(peakRow);
+			QBIXLipidDBQuery[] queries = queryUtil.createQueries(peakRow);
 			logger.finest("Created " + queries.length + " queries for row "
 					+ peakRow.getAverageMZ() + ", " + peakRow.getAverageRT());
 			
@@ -118,18 +120,17 @@ class QBIXLipidDBSearchTask implements Task {
 						.runQueryOnInternalLibrary(query);
 
 				for (CompoundIdentity identity : foundIdentities)
-					peakRow.addCompoundIdentity(identity);
+					if (queryUtil.validateIdentityForQuery(query, identity))
+						peakRow.addCompoundIdentity(identity);
 
-				foundIdentities = dbConnection.runQueryOnLipidDatabase(query);
-
-				for (CompoundIdentity identity : foundIdentities)
-					peakRow.addCompoundIdentity(identity);
 			}
 
 			logger.finest("Added " + peakRow.getCompoundIdentities().length
 					+ " identities for row " + peakRow.getAverageMZ() + ", "
 					+ peakRow.getAverageRT());
 
+			processedRows++;
+			
 		}
 
 		dbConnection.closeConnection();

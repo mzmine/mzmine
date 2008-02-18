@@ -101,9 +101,6 @@ class QBIXLipidDBConnection {
 				+ query.getMinMZ()
 				+ " return  <Element> {$a/Name}\n{$a/MonoIsoMass}\n {$a/BasePeak} </Element>";
 
-		
-		System.out.println("xQueryString=" + xQueryString);
-
 		TXQuery xQuery = TXQuery.newInstance(xQueryString);
 
 		try {
@@ -111,39 +108,37 @@ class QBIXLipidDBConnection {
 
 			TXMLObjectIterator responseIterator = response
 					.getXMLObjectIterator();
-			while (responseIterator.hasNext()) { 
+			while (responseIterator.hasNext()) {
 
 				TXMLObject doc = responseIterator.next();
-				
+
 				String compoundID = "";
 				String compoundName = "";
-	            String[] alternateNames = null; 
-	            String compoundFormula = "";
-	            String databaseEntryURL = (String)parameters.getParameterValue(QBIXLipidDBSearchParameters.databaseURI);
-	            String identificationMethod = "Search on QBIX internal lipid database";
-	            
-				Element element = (Element)doc.getElement();
-				
+				String[] alternateNames = null;
+				String compoundFormula = "";
+				String databaseEntryURL = (String) parameters
+						.getParameterValue(QBIXLipidDBSearchParameters.databaseURI);
+				String identificationMethod = "Search on QBIX internal lipid database";
+
+				Element element = (Element) doc.getElement();
+
 				NodeList compoundProperties = element.getChildNodes();
-				for (int itemNumber=0; itemNumber<compoundProperties.getLength(); itemNumber++) {
-					
+				for (int itemNumber = 0; itemNumber < compoundProperties
+						.getLength(); itemNumber++) {
+
 					Node property = compoundProperties.item(itemNumber);
 					if (property.getNodeName().equalsIgnoreCase("name")) {
-							compoundName = property.getTextContent();
+						compoundName = property.getTextContent();
 					}
-							
+
 				}
-				
-				CompoundIdentity newIdentity = new SimpleCompoundIdentity(compoundID, compoundName, alternateNames, compoundFormula, databaseEntryURL, identificationMethod);
-				
+
+				CompoundIdentity newIdentity = new SimpleCompoundIdentity(
+						compoundID, compoundName, alternateNames,
+						compoundFormula, databaseEntryURL, identificationMethod);
+
 				compoundIdentities.add(newIdentity);
 
-				
-				StringWriter write = new StringWriter();
-				doc.writeTo(write);
-				System.out.println(write);
-				
-				
 			}
 
 			responseIterator.close();
@@ -202,7 +197,8 @@ class QBIXLipidDBConnection {
 
 		for (CompoundIdentity identity : identities) {
 			System.out.print("ID=" + identity.getCompoundID() + ", ");
-			System.out.print("CompoundName=" + identity.getCompoundName() + ", ");
+			System.out.print("CompoundName=" + identity.getCompoundName()
+					+ ", ");
 			System.out.print("Formula=" + identity.getCompoundFormula() + ", ");
 			System.out.print("IdentificationMethod="
 					+ identity.getIdentificationMethod() + ", ");

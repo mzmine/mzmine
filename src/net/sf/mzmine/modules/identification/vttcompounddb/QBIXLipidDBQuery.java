@@ -60,6 +60,10 @@ class QBIXLipidDBQuery {
 		return mz + mz * tolerancePPM / 1000000.0f;
 	}
 
+	float getRT() {
+		return rt;
+	}
+	
 	String getAdduct() {
 		return adduct;
 	}
