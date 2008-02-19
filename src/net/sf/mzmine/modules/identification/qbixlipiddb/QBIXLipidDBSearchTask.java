@@ -117,10 +117,10 @@ class QBIXLipidDBSearchTask implements Task {
 			
 			for (QBIXLipidDBQuery query : queries) {
 				CompoundIdentity[] foundIdentities = dbConnection
-						.runQueryOnInternalLibrary(query);
+						.runQueryOnCommonLipids(query);
 
 				for (CompoundIdentity identity : foundIdentities)
-					if (queryUtil.validateIdentityForQuery(query, identity))
+					if (queryUtil.validateLipidLibraryIdentity(query, identity))
 						peakRow.addCompoundIdentity(identity);
 
 			}

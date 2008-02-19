@@ -84,7 +84,10 @@ class QBIXLipidDBConnection {
 
 	}
 
-	protected CompoundIdentity[] runQueryOnInternalLibrary(
+	/**
+	 * Runs query on database of common lipids 
+	 */
+	protected CompoundIdentity[] runQueryOnCommonLipids(
 			QBIXLipidDBQuery query) {
 
 		ArrayList<CompoundIdentity> compoundIdentities = new ArrayList<CompoundIdentity>();
@@ -118,7 +121,7 @@ class QBIXLipidDBConnection {
 				String compoundFormula = "";
 				String databaseEntryURL = (String) parameters
 						.getParameterValue(QBIXLipidDBSearchParameters.databaseURI);
-				String identificationMethod = "Search on QBIX internal lipid database";
+				String identificationMethod = "Search on internal lipid library";
 
 				Element element = (Element) doc.getElement();
 
@@ -152,13 +155,91 @@ class QBIXLipidDBConnection {
 
 	}
 
-	protected CompoundIdentity[] runQueryOnLipidDatabase(QBIXLipidDBQuery query) {
+	/**
+	 * Runs the query on database of theoretical lipids
+	 */
+	protected CompoundIdentity[] runQueryOnTheoreticalLipids(QBIXLipidDBQuery query) {
 
 		ArrayList<CompoundIdentity> compoundIdentities = new ArrayList<CompoundIdentity>();
+/*
+		if (connection.isClosed()) {
+			logger
+					.warning("Tried to run a query while database connection is closed.");
+			return null;
+		}
 
-		// TODO: Implementation
+		String xQueryString = "declare namespace tf = \"http://namespaces.softwareag.com/tamino/TaminoFunction\" for $a in input()/Compound where  tf:containsText($a/Molecule/Class,\""
+				+ query.getName()
+				+ "\") and $a/Molecule/Isotopicdistribution/Mass[1] < "
+				+ (query.getMaxMZ() - query.getAdd())
+				+ " and  $a/Molecule/Isotopicdistribution/Mass[1] > "
+				+ (query.getMinMZ() - query.getAdd())
+				+ " return  <Results> "
+				+ "{$a/VTT_ID} \n "
+				+ "{$a/Molecule/Name} \n "
+				+ "{$a/Molecule/Molecular_Formula} "
+				+ "</Results> sort by (Score_abundance)";
 
+		TXQuery xQuery = TXQuery.newInstance(xQueryString);
+
+		try {
+			TResponse response = accessor.xquery(xQuery);
+
+			TXMLObjectIterator responseIterator = response
+					.getXMLObjectIterator();
+			while (responseIterator.hasNext()) {
+
+				TXMLObject doc = responseIterator.next();
+
+				String compoundID = "";
+				String compoundName = "";
+				String[] alternateNames = null;
+				String compoundFormula = "";
+				String databaseEntryURL = (String) parameters
+						.getParameterValue(QBIXLipidDBSearchParameters.databaseURI);
+				String identificationMethod = "Search on theoretical lipid database";
+
+				Element element = (Element) doc.getElement();
+
+				NodeList compoundProperties = element.getChildNodes();
+				for (int itemNumber = 0; itemNumber < compoundProperties
+						.getLength(); itemNumber++) {
+
+					Node property = compoundProperties.item(itemNumber);
+
+					if (property.getNodeName().equalsIgnoreCase("VTT_ID"))
+						compoundID = property.getTextContent();
+
+					if (property.getNodeName().equalsIgnoreCase("Name"))
+						compoundName = property.getTextContent();
+
+					if (property.getNodeName().equalsIgnoreCase(
+							"Molecular_Formula"))
+						compoundFormula = property.getTextContent();
+
+				}
+
+				CompoundIdentity newIdentity = new SimpleCompoundIdentity(
+						compoundID, compoundName, alternateNames,
+						compoundFormula, databaseEntryURL, identificationMethod);
+
+				compoundIdentities.add(newIdentity);
+
+				StringWriter stringWriter = new StringWriter();
+				doc.writeTo(stringWriter);
+				System.out.println(stringWriter);
+
+			}
+
+			responseIterator.close();
+
+		} catch (Exception e) {
+			logger.warning(e.toString());
+			return null;
+		}
+*/
 		return compoundIdentities.toArray(new CompoundIdentity[0]);
+
 	}
 
 	protected void closeConnection() {
@@ -193,7 +274,7 @@ class QBIXLipidDBConnection {
 				1.007825f, 0.2f, "LPC/LPE/LPA/LSer");
 
 		CompoundIdentity[] identities = dbConnection
-				.runQueryOnInternalLibrary(testQuery);
+				.runQueryOnTheoreticalLipids(testQuery);
 
 		for (CompoundIdentity identity : identities) {
 			System.out.print("ID=" + identity.getCompoundID() + ", ");

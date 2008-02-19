@@ -63,14 +63,14 @@ class QBIXLipidDBUtils {
 
 	
 	/*
-	 * Postprocessing table 
+	 * Postprocessing tables 
 	 */
 	
-	private final int ivtColMinRT = 0;
-	private final int ivtColMaxRT = 1;
-	private final int ivtColName =  2;
+	private final int clColMinRT = 0;
+	private final int clColMaxRT = 1;
+	private final int clColName =  2;
 	
-	private Object[][] identityValidationTable = {
+	private Object[][] commonLipidsValidationTable = {
 {0.0f,		300.0f,				"Lyso"},
 {0.0f,		400.0f,				"DAG"},
 {410.0f,	Float.MAX_VALUE,	"TAG"},
@@ -79,6 +79,44 @@ class QBIXLipidDBUtils {
 {0.0f,		430.0f,				"Cer"},
 {0.0f,		420.0f,				"SM"},
 {410.0f,	Float.MAX_VALUE,	"ChoE"}
+	};
+	
+	private Object[][] theoreticalLipidsValidationTable = {
+{"FA",						false, "(.*)"},
+
+{"LPC/LPE/LPA/LSer",		true,  "(.*)phosphocholine",						false, "1-(.*)-2-(.*)phosphocholine"},
+{"LPC/LPE/LPA/LSer",		true,  "(.*)phosphoserine",							false, "1-(.*)-2-(.*)phosphoserine",					false, "(.*)-O-(.*)"},
+{"LPC/LPE/LPA/LSer",		true,  "(.*)phospho-(.*)-myo-inositol(.*)",			false, "1-(.*)-2-(.*)phospho-(.*)-myo-inositol(.*)",	false, "(.*)-O-(.*)"},
+{"LPC/LPE/LPA/LSer",		true,  "(.*)phosphoethanolamine",					false, "1-(.*)-2-(.*)phosphoethanolamine"},
+{"LPC/LPE/LPA/LSer",		true,  "(.*)phosphate",								false, "1-(.*)-2-(.*)phosphate",						false, "(.*)-O-(.*)"},
+{"LPC/LPE/LPA/LSer",		true,  "(.*)phospho-(.*)-myo-inositol(.*)",			false, "1-(.*)-2-(.*)phospho-(.*)-myo-inositol(.*)",	false, "(.*)-O-(.*)"},
+
+
+{"GPCho/GPEtn/GPIns/GPSer",	false, "(.*)-O-(.*)-O-(.*)",						true, "1-(.*)-2-(.*)phosphocholine"},
+{"GPCho/GPEtn/GPIns/GPSer",	false, "(.*)-O-(.*)-O-(.*)",						true, "1-(.*)-2-(.*)phosphoserine",					false, "(.*)-O-(.*)"},
+{"GPCho/GPEtn/GPIns/GPSer",	false, "(.*)-O-(.*)-O-(.*)",						true, "1-(.*)-2-(.*)phospho-(.*)-myo-inositol(.*)",	false, "(.*)-O-(.*)"},
+{"GPCho/GPEtn/GPIns/GPSer",	false, "(.*)-O-(.*)-O-(.*)",						true, "1-(.*)-2-(.*)phosphoethanolamine"},
+{"GPCho/GPEtn/GPIns/GPSer",	false, "(.*)-O-(.*)-O-(.*)",						true, "1-(.*)-2-(.*)phospho-(.*)-myo-inositol(.*)",	false, "(.*)-O-(.*)"},
+
+{"TAG",						true,  "1(.*)-2(.*)-3(.*)-sn(.*)"},
+
+{"DAG",						false, "(.*)-O-(.*)",								false, "1(.*)-2(.*)-3(.*)-sn-(.*)",					true, "1-(.*)-2-(.*)-sn-glycerol"},
+
+{"MAG",						false, "1-(.*)2(.*)-sn-glycerol",					true, "1-(.*)-sn-glycerol"},
+{"MAG",						false, "1-(.*)2(.*)-sn-glycerol",					true, "2-(.*)-sn-glycerol"},
+
+{"ChoE",					true, "cholest-5-en-3beta-yl-(.*)"},
+
+{"CL",						true, "(.*)1\\((.*)\\),2\\((.*)\\)-sn-glycero-3-phospho\\],(.*)1\\((.*)\\),2\\((.*)\\)-sn-glycero-3-phospho\\]-sn-glycerol(.*)"},	// $MAXSCORE=626;
+
+{"Cer",						true, "N-(.*)sphing*",								false, "N-(.*)phosp(.*)",							false, "N-(.*)glucosyl(.*)",			true, "N-(.*)-octadecasphing(.*)"},
+
+{"SM",						false, "(.*)hydroxy(.*)",							true, "N-(.*)octadecasphinganine-1-phosphocholine"},
+{"SM",						false, "(.*)hydroxy(.*)",							true, "N-(.*)octadecasphing-4-enine-1-phosphocholine"},
+
+{"GPA",						false, "(.*)-O-(.*)",								false, "(.*)sn-glycero-3-pyrophosphate", 			true, "(.*)phosphate"},
+
+{"GPGro",					false, "(.*)-O-(.*)",								true, "(.*)phospho-(.*)-sn-glycerol(.*)"},
 	};
 	
 	private QBIXLipidDBSearchParameters parameters;
@@ -144,19 +182,32 @@ class QBIXLipidDBUtils {
 	}
 	
 	/**
-	 * Validate if identity is possible for the query
+	 * Validate if identity from the lipid library is possible for the query
 	 */
-	boolean validateIdentityForQuery(QBIXLipidDBQuery query, CompoundIdentity identity) {
+	boolean validateLipidLibraryIdentity(QBIXLipidDBQuery query, CompoundIdentity identity) {
 		
-		for (int tableRow=0; tableRow<identityValidationTable.length; tableRow++) {
-			if (	(query.getRT()>(Float)identityValidationTable[tableRow][ivtColMinRT]) &&
-					(query.getRT()<(Float)identityValidationTable[tableRow][ivtColMaxRT]) &&
-					(identity.getCompoundName().contains( (String)identityValidationTable[tableRow][ivtColName])) ) {
+		for (int tableRow=0; tableRow<commonLipidsValidationTable.length; tableRow++) {
+			if (	(query.getRT()>(Float)commonLipidsValidationTable[tableRow][clColMinRT]) &&
+					(query.getRT()<(Float)commonLipidsValidationTable[tableRow][clColMaxRT]) &&
+					(identity.getCompoundName().contains( (String)commonLipidsValidationTable[tableRow][clColName])) ) {
 				return true;
 			}
 		}
 		return false;
 		
+	}
+	
+	/**
+	 * 
+	 * @param query
+	 * @param identity
+	 * @return
+	 */
+	boolean validateTheoreticalLipidDatabaseIdentity(QBIXLipidDBQuery query, CompoundIdentity identity) {
+		
+		// TODO: Implementation
+		
+		return false;
 	}
 	
 

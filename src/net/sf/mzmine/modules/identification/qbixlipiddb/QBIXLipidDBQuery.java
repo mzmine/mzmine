@@ -22,7 +22,7 @@ package net.sf.mzmine.modules.identification.qbixlipiddb;
 class QBIXLipidDBQuery {
 
 	private String name;
-	private float mz;
+	private float mz;			// TODO: Store both base peak m/z and monoisotopic m/z
 	private float rt;
 	private float tolerancePPM;
 	private String adduct;
