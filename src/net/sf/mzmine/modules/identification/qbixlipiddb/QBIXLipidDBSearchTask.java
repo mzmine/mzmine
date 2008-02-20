@@ -67,8 +67,9 @@ class QBIXLipidDBSearchTask implements Task {
 	 * @see net.sf.mzmine.taskcontrol.Task#getFinishedPercentage()
 	 */
 	public float getFinishedPercentage() {
-		if (totalRows == 0) return 0;
-		return ((float) processedRows) / (float)totalRows;
+		if (totalRows == 0)
+			return 0;
+		return ((float) processedRows) / (float) totalRows;
 	}
 
 	/**
@@ -95,8 +96,7 @@ class QBIXLipidDBSearchTask implements Task {
 
 		logger.info("Running " + getTaskDescription());
 
-		QBIXLipidDBUtils queryUtil = new QBIXLipidDBUtils(
-				parameters);
+		QBIXLipidDBUtils queryUtil = new QBIXLipidDBUtils(parameters);
 
 		QBIXLipidDBConnection dbConnection = new QBIXLipidDBConnection(
 				parameters);
@@ -112,25 +112,45 @@ class QBIXLipidDBSearchTask implements Task {
 		for (PeakListRow peakRow : peakList.getRows()) {
 
 			QBIXLipidDBQuery[] queries = queryUtil.createQueries(peakRow);
-			logger.finest("Created " + queries.length + " queries for row "
-					+ peakRow.getAverageMZ() + ", " + peakRow.getAverageRT());
-			
+
 			for (QBIXLipidDBQuery query : queries) {
-				CompoundIdentity[] foundIdentities = dbConnection
+				CompoundIdentity[] foundCommonLipidIdentities = dbConnection
 						.runQueryOnCommonLipids(query);
 
-				for (CompoundIdentity identity : foundIdentities)
-					if (queryUtil.validateLipidLibraryIdentity(query, identity))
+				int validCommonLipidsCount = 0;
+				for (CompoundIdentity identity : foundCommonLipidIdentities)
+					if (queryUtil.validateCommonLipidIdentity(query, identity)) {
 						peakRow.addCompoundIdentity(identity);
+						validCommonLipidsCount++;
+					}
+
+				CompoundIdentity[] foundTheoreticalLipidIdentities = dbConnection
+						.runQueryOnTheoreticalLipids(query);
+
+				int validTheoreticalLipidsCount = 0;
+				for (CompoundIdentity identity : foundTheoreticalLipidIdentities)
+					if (queryUtil.validateTheoreticalLipidIdentity(query,
+							identity)) {
+						peakRow.addCompoundIdentity(identity);
+						validTheoreticalLipidsCount++;
+					}
+
+				logger.finest("Common lipids, found "
+						+ foundCommonLipidIdentities.length + " validated "
+						+ validCommonLipidsCount
+						+ ", Theoretical lipids, found "
+						+ foundTheoreticalLipidIdentities.length
+						+ ", validated " + validTheoreticalLipidsCount);
 
 			}
 
-			logger.finest("Added " + peakRow.getCompoundIdentities().length
+			logger.finest("Created " + queries.length + " and added "
+					+ peakRow.getCompoundIdentities().length
 					+ " identities for row " + peakRow.getAverageMZ() + ", "
 					+ peakRow.getAverageRT());
 
 			processedRows++;
-			
+
 		}
 
 		dbConnection.closeConnection();

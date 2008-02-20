@@ -20,15 +20,19 @@
 package net.sf.mzmine.modules.identification.qbixlipiddb;
 
 import java.util.ArrayList;
+import java.util.regex.Pattern;
 
 import net.sf.mzmine.data.CompoundIdentity;
 import net.sf.mzmine.data.PeakListRow;
 
 /**
- * This class implements methods needed in pre- and post-processing queries and responses
+ * This class implements methods needed in pre- and post-processing queries and
+ * responses
  */
 class QBIXLipidDBUtils {
 
+	// TODO: Move all data tables to the database!
+	
 	/*
 	 * Preprocessing table
 	 */
@@ -58,7 +62,7 @@ class QBIXLipidDBUtils {
 {1000.0f,	Float.MAX_VALUE, 	410.0f,		Float.MAX_VALUE,	"Glycerophospholipi*",	22.98977f,				"[M+Na]+",		"CL"}
 };
 
-	private static Object[] noMatchQuery = 
+	private final Object[] noMatchQuery = 
 {0.0f,		0.0f,				0.0f,		0.0f,				"(.*)", 				1.007825f,				"AUTO",			"NOIDEA"};
 
 	
@@ -70,7 +74,7 @@ class QBIXLipidDBUtils {
 	private final int clColMaxRT = 1;
 	private final int clColName =  2;
 	
-	private Object[][] commonLipidsValidationTable = {
+	private final Object[][] commonLipidsValidationTable = {
 {0.0f,		300.0f,				"Lyso"},
 {0.0f,		400.0f,				"DAG"},
 {410.0f,	Float.MAX_VALUE,	"TAG"},
@@ -81,7 +85,7 @@ class QBIXLipidDBUtils {
 {410.0f,	Float.MAX_VALUE,	"ChoE"}
 	};
 	
-	private Object[][] theoreticalLipidsValidationTable = {
+	private final Object[][] theoreticalLipidsValidationTable = {
 {"FA",						false, "(.*)"},
 
 {"LPC/LPE/LPA/LSer",		true,  "(.*)phosphocholine",						false, "1-(.*)-2-(.*)phosphocholine"},
@@ -118,7 +122,7 @@ class QBIXLipidDBUtils {
 
 {"GPGro",					false, "(.*)-O-(.*)",								true, "(.*)phospho-(.*)-sn-glycerol(.*)"},
 	};
-	
+
 	private QBIXLipidDBSearchParameters parameters;
 
 	QBIXLipidDBUtils(QBIXLipidDBSearchParameters parameters) {
@@ -180,35 +184,51 @@ class QBIXLipidDBUtils {
 		return queries.toArray(new QBIXLipidDBQuery[0]);
 
 	}
-	
+
 	/**
 	 * Validate if identity from the lipid library is possible for the query
 	 */
-	boolean validateLipidLibraryIdentity(QBIXLipidDBQuery query, CompoundIdentity identity) {
-		
-		for (int tableRow=0; tableRow<commonLipidsValidationTable.length; tableRow++) {
-			if (	(query.getRT()>(Float)commonLipidsValidationTable[tableRow][clColMinRT]) &&
-					(query.getRT()<(Float)commonLipidsValidationTable[tableRow][clColMaxRT]) &&
-					(identity.getCompoundName().contains( (String)commonLipidsValidationTable[tableRow][clColName])) ) {
+	boolean validateCommonLipidIdentity(QBIXLipidDBQuery query,
+			CompoundIdentity identity) {
+
+		for (int tableRow = 0; tableRow < commonLipidsValidationTable.length; tableRow++) {
+			if ((query.getRT() > (Float) commonLipidsValidationTable[tableRow][clColMinRT])
+					&& (query.getRT() < (Float) commonLipidsValidationTable[tableRow][clColMaxRT])
+					&& (identity.getCompoundName()
+							.contains((String) commonLipidsValidationTable[tableRow][clColName]))) {
 				return true;
 			}
 		}
 		return false;
-		
+
 	}
-	
+
 	/**
 	 * 
 	 * @param query
 	 * @param identity
 	 * @return
 	 */
-	boolean validateTheoreticalLipidDatabaseIdentity(QBIXLipidDBQuery query, CompoundIdentity identity) {
-		
-		// TODO: Implementation
-		
+	boolean validateTheoreticalLipidIdentity(QBIXLipidDBQuery query,
+			CompoundIdentity identity) {
+
+		for (int tableRow = 0; tableRow < theoreticalLipidsValidationTable.length; tableRow++) {
+			if (query.getExpected().equalsIgnoreCase(
+					(String) theoreticalLipidsValidationTable[tableRow][0])) {
+				int conditionNumber = 0;
+				int numberOfConditions = (theoreticalLipidsValidationTable[tableRow].length - 1) / 2;
+				while (conditionNumber < numberOfConditions) {
+					boolean conditionResult = (Boolean) theoreticalLipidsValidationTable[tableRow][1 + conditionNumber * 2];
+					String conditionRegexp = (String) theoreticalLipidsValidationTable[tableRow][1 + conditionNumber + 1];
+					if (Pattern.matches(conditionRegexp, identity
+							.getCompoundName()) == conditionResult)
+						return true;
+					conditionNumber++;
+				}
+			}
+		}
+
 		return false;
 	}
-	
 
 }

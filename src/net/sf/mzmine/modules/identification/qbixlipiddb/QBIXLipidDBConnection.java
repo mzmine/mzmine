@@ -22,11 +22,11 @@ package net.sf.mzmine.modules.identification.qbixlipiddb;
 import java.io.StringWriter;
 import java.util.ArrayList;
 import java.util.logging.Logger;
-
+/*
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
-
+*/
 import net.sf.mzmine.data.CompoundIdentity;
 import net.sf.mzmine.data.impl.SimpleCompoundIdentity;
 /*
@@ -85,10 +85,9 @@ class QBIXLipidDBConnection {
 	}
 
 	/**
-	 * Runs query on database of common lipids 
+	 * Runs query on database of common lipids
 	 */
-	protected CompoundIdentity[] runQueryOnCommonLipids(
-			QBIXLipidDBQuery query) {
+	protected CompoundIdentity[] runQueryOnCommonLipids(QBIXLipidDBQuery query) {
 
 		ArrayList<CompoundIdentity> compoundIdentities = new ArrayList<CompoundIdentity>();
 /*
@@ -158,7 +157,8 @@ class QBIXLipidDBConnection {
 	/**
 	 * Runs the query on database of theoretical lipids
 	 */
-	protected CompoundIdentity[] runQueryOnTheoreticalLipids(QBIXLipidDBQuery query) {
+	protected CompoundIdentity[] runQueryOnTheoreticalLipids(
+			QBIXLipidDBQuery query) {
 
 		ArrayList<CompoundIdentity> compoundIdentities = new ArrayList<CompoundIdentity>();
 /*
@@ -225,10 +225,6 @@ class QBIXLipidDBConnection {
 
 				compoundIdentities.add(newIdentity);
 
-				StringWriter stringWriter = new StringWriter();
-				doc.writeTo(stringWriter);
-				System.out.println(stringWriter);
-
 			}
 
 			responseIterator.close();
@@ -261,8 +257,11 @@ class QBIXLipidDBConnection {
 	 * DEBUG
 	 */
 	public static void main(String argz[]) {
+
+		QBIXLipidDBSearchParameters parameters = new QBIXLipidDBSearchParameters();
+
 		QBIXLipidDBConnection dbConnection = new QBIXLipidDBConnection(
-				new QBIXLipidDBSearchParameters());
+				parameters);
 
 		if (!dbConnection.openConnection()) {
 			System.out.println("Could not open database connection");
@@ -273,18 +272,25 @@ class QBIXLipidDBConnection {
 				"Glycerophospholipi*", 496.34107f, 202.700265f, 50.0f, "[M+H]",
 				1.007825f, 0.2f, "LPC/LPE/LPA/LSer");
 
+		QBIXLipidDBUtils utils = new QBIXLipidDBUtils(parameters);
+
 		CompoundIdentity[] identities = dbConnection
 				.runQueryOnTheoreticalLipids(testQuery);
 
 		for (CompoundIdentity identity : identities) {
-			System.out.print("ID=" + identity.getCompoundID() + ", ");
-			System.out.print("CompoundName=" + identity.getCompoundName()
-					+ ", ");
-			System.out.print("Formula=" + identity.getCompoundFormula() + ", ");
-			System.out.print("IdentificationMethod="
-					+ identity.getIdentificationMethod() + ", ");
-			System.out.println("DatabaseEntryURL="
-					+ identity.getDatabaseEntryURL());
+			System.out.println("ID="
+					+ identity.getCompoundID()
+					+ ", CompoundName="
+					+ identity.getCompoundName()
+					+ ", Formula="
+					+ identity.getCompoundFormula()
+					+ ", IdentificationMethod="
+					+ identity.getIdentificationMethod()
+					+ ", DatabaseEntryURL="
+					+ identity.getDatabaseEntryURL()
+					+ ", Validated="
+					+ utils.validateTheoreticalLipidIdentity(testQuery,
+							identity));
 		}
 
 		dbConnection.closeConnection();
