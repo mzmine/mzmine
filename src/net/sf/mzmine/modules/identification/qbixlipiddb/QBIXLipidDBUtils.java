@@ -146,8 +146,10 @@ class QBIXLipidDBUtils {
 
 		float tolerancePPM = (Float) parameters
 				.getParameterValue(QBIXLipidDBSearchParameters.MZTolerance);
+		/*
 		float resolution = (Float) parameters
 				.getParameterValue(QBIXLipidDBSearchParameters.MassResolution);
+		*/
 
 		for (int queryNumber = 0; queryNumber < lipidClassTable.length; queryNumber++) {
 			if ((mz > (Float) lipidClassTable[queryNumber][lctColMinMZ])
@@ -160,7 +162,6 @@ class QBIXLipidDBUtils {
 						rt, tolerancePPM,
 						(String) lipidClassTable[queryNumber][lctColAdduct],
 						(Float) lipidClassTable[queryNumber][lctColAdd],
-						resolution,
 						(String) lipidClassTable[queryNumber][lctColExpected]);
 
 				queries.add(newQueryData);
@@ -174,7 +175,7 @@ class QBIXLipidDBUtils {
 			QBIXLipidDBQuery newQueryData = new QBIXLipidDBQuery(
 					(String) noMatchQuery[lctColName], mz, rt, tolerancePPM,
 					(String) noMatchQuery[lctColAdduct],
-					(Float) noMatchQuery[lctColAdd], resolution,
+					(Float) noMatchQuery[lctColAdd],
 					(String) noMatchQuery[lctColExpected]);
 
 			queries.add(newQueryData);

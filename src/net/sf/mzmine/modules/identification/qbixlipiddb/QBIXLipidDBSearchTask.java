@@ -114,20 +114,28 @@ class QBIXLipidDBSearchTask implements Task {
 			QBIXLipidDBQuery[] queries = queryUtil.createQueries(peakRow);
 
 			for (QBIXLipidDBQuery query : queries) {
-				CompoundIdentity[] foundCommonLipidIdentities = dbConnection
-						.runQueryOnCommonLipids(query);
 
+				CompoundIdentity[] foundCommonLipidIdentities = new CompoundIdentity[0];
 				int validCommonLipidsCount = 0;
+				CompoundIdentity[] foundTheoreticalLipidIdentities = new CompoundIdentity[0];
+				int validTheoreticalLipidsCount = 0;
+
+				if ((Boolean) parameters
+						.getParameterValue(QBIXLipidDBSearchParameters.IncludeCommonLipids))
+					foundCommonLipidIdentities = dbConnection
+							.runQueryOnCommonLipids(query);
+
 				for (CompoundIdentity identity : foundCommonLipidIdentities)
 					if (queryUtil.validateCommonLipidIdentity(query, identity)) {
 						peakRow.addCompoundIdentity(identity);
 						validCommonLipidsCount++;
 					}
 
-				CompoundIdentity[] foundTheoreticalLipidIdentities = dbConnection
-						.runQueryOnTheoreticalLipids(query);
+				if ((Boolean) parameters
+						.getParameterValue(QBIXLipidDBSearchParameters.IncludeTheoreticalLipids))
+					foundTheoreticalLipidIdentities = dbConnection
+							.runQueryOnTheoreticalLipids(query);
 
-				int validTheoreticalLipidsCount = 0;
 				for (CompoundIdentity identity : foundTheoreticalLipidIdentities)
 					if (queryUtil.validateTheoreticalLipidIdentity(query,
 							identity)) {

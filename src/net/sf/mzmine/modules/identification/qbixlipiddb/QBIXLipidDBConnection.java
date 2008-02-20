@@ -270,7 +270,7 @@ class QBIXLipidDBConnection {
 
 		QBIXLipidDBQuery testQuery = new QBIXLipidDBQuery(
 				"Glycerophospholipi*", 496.34107f, 202.700265f, 50.0f, "[M+H]",
-				1.007825f, 0.2f, "LPC/LPE/LPA/LSer");
+				1.007825f, "LPC/LPE/LPA/LSer");
 
 		QBIXLipidDBUtils utils = new QBIXLipidDBUtils(parameters);
 

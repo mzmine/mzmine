@@ -41,15 +41,25 @@ public class QBIXLipidDBSearchParameters extends SimpleParameterSet {
 
 	public static final Parameter MZTolerance = new SimpleParameter(
 			ParameterType.FLOAT, "ppm", "m/z tolerance in ppm", "ppm",
-			new Float(50.0), new Float(0), null, NumberFormat.getNumberInstance());
+			new Float(50.0), new Float(0), null, NumberFormat
+					.getNumberInstance());
 
 	// TODO: Remove if unused parameter?
-	public static final Parameter MassResolution = new SimpleParameter(
-			ParameterType.FLOAT, "Mass resolution", "Mass resolution", "",
-			new Float(0.2), new Float(0.0), null, NumberFormat.getNumberInstance());
+	/*
+	 * public static final Parameter MassResolution = new SimpleParameter(
+	 * ParameterType.FLOAT, "Mass resolution", "Mass resolution", "", new
+	 * Float(0.2), new Float(0.0), null, NumberFormat.getNumberInstance());
+	 */
+	public static final Parameter IncludeCommonLipids = new SimpleParameter(
+			ParameterType.BOOLEAN, "Common lipids", "Search in common lipids",
+			true);
 
+	public static final Parameter IncludeTheoreticalLipids = new SimpleParameter(
+			ParameterType.BOOLEAN, "Theoretical lipids", "Search in theoretical lipids",
+			true);	
+	
 	public QBIXLipidDBSearchParameters() {
-		super(new Parameter[] { MZTolerance, MassResolution });
+		super(new Parameter[] { MZTolerance, IncludeCommonLipids, IncludeTheoreticalLipids });
 	}
 
 }

@@ -27,11 +27,10 @@ class QBIXLipidDBQuery {
 	private float tolerancePPM;
 	private String adduct;
 	private float add;
-	private float resolution;
 	private String expected;
 
 	QBIXLipidDBQuery(String name, float mz, float rt, float tolerancePPM,
-			String adduct, float add, float resolution, String expected) {
+			String adduct, float add, String expected) {
 
 		this.name = name;
 		this.mz = mz;
@@ -39,7 +38,6 @@ class QBIXLipidDBQuery {
 		this.tolerancePPM = tolerancePPM;
 		this.adduct = adduct;
 		this.add = add;
-		this.resolution = resolution;
 		this.expected = expected;
 
 	}
