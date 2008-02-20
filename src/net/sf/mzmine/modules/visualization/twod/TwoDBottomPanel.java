@@ -19,14 +19,11 @@
 
 package net.sf.mzmine.modules.visualization.twod;
 
-import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Font;
 
-import javax.swing.BorderFactory;
 import javax.swing.Box;
 import javax.swing.BoxLayout;
-import javax.swing.JCheckBox;
 import javax.swing.JComboBox;
 import javax.swing.JPanel;
 import javax.swing.SwingConstants;
@@ -45,111 +42,112 @@ import net.sf.mzmine.util.GUIUtils;
  * 2D visualizer's bottom panel
  */
 class TwoDBottomPanel extends JPanel implements ProjectListener,
-        InternalFrameListener {
+		InternalFrameListener {
 
-    private static final Font smallFont = new Font("SansSerif", Font.PLAIN, 10);
+	private static final Font smallFont = new Font("SansSerif", Font.PLAIN, 10);
 
-    private JComboBox peakListSelector;
+	private JComboBox peakListSelector;
 
-    private TwoDVisualizerWindow masterFrame;
-    private RawDataFile dataFile;
-    private MZmineProject project;
+	private TwoDVisualizerWindow masterFrame;
+	private RawDataFile dataFile;
+	private MZmineProject project;
 
-    TwoDBottomPanel(TwoDVisualizerWindow masterFrame, RawDataFile dataFile) {
+	TwoDBottomPanel(TwoDVisualizerWindow masterFrame, RawDataFile dataFile) {
 
-        this.dataFile = dataFile;
-        this.masterFrame = masterFrame;
+		this.dataFile = dataFile;
+		this.masterFrame = masterFrame;
 
-        setLayout(new BoxLayout(this, BoxLayout.X_AXIS));
+		setLayout(new BoxLayout(this, BoxLayout.X_AXIS));
 
-        setBackground(Color.white);
-        setBorder(new EmptyBorder(5, 5, 5, 0));
+		setBackground(Color.white);
+		setBorder(new EmptyBorder(5, 5, 5, 0));
 
-        add(Box.createHorizontalGlue());
+		add(Box.createHorizontalGlue());
 
-        GUIUtils.addLabel(this, "Peak list: ", SwingConstants.RIGHT);
+		GUIUtils.addLabel(this, "Peak list: ", SwingConstants.RIGHT);
 
-        peakListSelector = new JComboBox();
-        peakListSelector.setBackground(Color.white);
-        peakListSelector.setFont(smallFont);
-        peakListSelector.addActionListener(masterFrame);
-        peakListSelector.setActionCommand("PEAKLIST_CHANGE");
-        add(peakListSelector);
+		peakListSelector = new JComboBox();
+		peakListSelector.setBackground(Color.white);
+		peakListSelector.setFont(smallFont);
+		peakListSelector.addActionListener(masterFrame);
+		peakListSelector.setActionCommand("PEAKLIST_CHANGE");
+		add(peakListSelector);
 
-        add(Box.createHorizontalStrut(10));
-        
-        project = MZmineCore.getCurrentProject();
-        project.addProjectListener(this);
+		add(Box.createHorizontalStrut(10));
 
-        masterFrame.addInternalFrameListener(this);
+		project = MZmineCore.getCurrentProject();
+		project.addProjectListener(this);
 
-        add(Box.createHorizontalGlue());
+		masterFrame.addInternalFrameListener(this);
 
-    }
+		add(Box.createHorizontalGlue());
 
-    /**
-     * Returns selected peak list
-     */
-    PeakList getSelectedPeakList() {
-        PeakList selectedPeakList = (PeakList) peakListSelector.getSelectedItem();
-        return selectedPeakList;
-    }
+	}
 
-    /**
-     * Reloads peak lists from the project to the selector combo box
-     */
-    void rebuildPeakListSelector() {
-        PeakList selectedPeakList = (PeakList) peakListSelector.getSelectedItem();
-        PeakList currentPeakLists[] = MZmineCore.getCurrentProject().getPeakLists(
-                dataFile);
-        peakListSelector.removeAllItems();
-        for (int i = currentPeakLists.length - 1; i >= 0; i--) {
-            peakListSelector.addItem(currentPeakLists[i]);
-        }
-        if (selectedPeakList != null)
-            peakListSelector.setSelectedItem(selectedPeakList);
-    }
+	/**
+	 * Returns selected peak list
+	 */
+	PeakList getSelectedPeakList() {
+		PeakList selectedPeakList = (PeakList) peakListSelector
+				.getSelectedItem();
+		return selectedPeakList;
+	}
 
-    /**
-     * ProjectListener implementaion
-     */
-    public void projectModified(ProjectEvent event) {
-        if (event == ProjectEvent.PEAKLIST_CHANGE)
-            rebuildPeakListSelector();
-    }
+	/**
+	 * Reloads peak lists from the project to the selector combo box
+	 */
+	void rebuildPeakListSelector(MZmineProject project) {
+		PeakList selectedPeakList = (PeakList) peakListSelector
+				.getSelectedItem();
+		PeakList currentPeakLists[] = project.getPeakLists(dataFile);
+		peakListSelector.removeAllItems();
+		for (int i = currentPeakLists.length - 1; i >= 0; i--) {
+			peakListSelector.addItem(currentPeakLists[i]);
+		}
+		if (selectedPeakList != null)
+			peakListSelector.setSelectedItem(selectedPeakList);
+	}
 
-    public void internalFrameActivated(InternalFrameEvent event) {
-        // Ignore
-    }
+	/**
+	 * ProjectListener implementaion
+	 */
+	public void projectModified(ProjectEvent event, MZmineProject project) {
+		if (event == ProjectEvent.PEAKLIST_CHANGE)
+			rebuildPeakListSelector(project);
+	}
 
-    /**
-     * We have to remove the listener when the window is closed, because
-     * otherwise the project would always keep a reference to this window and
-     * the GC would not be able to collect it
-     */
-    public void internalFrameClosed(InternalFrameEvent event) {
-        project.removeProjectListener(this);
-        masterFrame.removeInternalFrameListener(this);
-    }
+	public void internalFrameActivated(InternalFrameEvent event) {
+		// Ignore
+	}
 
-    public void internalFrameClosing(InternalFrameEvent event) {
-        // Ignore
-    }
+	/**
+	 * We have to remove the listener when the window is closed, because
+	 * otherwise the project would always keep a reference to this window and
+	 * the GC would not be able to collect it
+	 */
+	public void internalFrameClosed(InternalFrameEvent event) {
+		project.removeProjectListener(this);
+		masterFrame.removeInternalFrameListener(this);
+	}
 
-    public void internalFrameDeactivated(InternalFrameEvent event) {
-        // Ignore
-    }
+	public void internalFrameClosing(InternalFrameEvent event) {
+		// Ignore
+	}
 
-    public void internalFrameDeiconified(InternalFrameEvent event) {
-        // Ignore
-    }
+	public void internalFrameDeactivated(InternalFrameEvent event) {
+		// Ignore
+	}
 
-    public void internalFrameIconified(InternalFrameEvent event) {
-        // Ignore
-    }
+	public void internalFrameDeiconified(InternalFrameEvent event) {
+		// Ignore
+	}
 
-    public void internalFrameOpened(InternalFrameEvent event) {
-        // Ignore
-    }
+	public void internalFrameIconified(InternalFrameEvent event) {
+		// Ignore
+	}
+
+	public void internalFrameOpened(InternalFrameEvent event) {
+		// Ignore
+	}
 
 }

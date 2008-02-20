@@ -40,135 +40,136 @@ import net.sf.mzmine.userinterface.dialogs.AxesSetupDialog;
  * 2D visualizer using JFreeChart library
  */
 public class TwoDVisualizerWindow extends JInternalFrame implements
-        ActionListener, TaskListener {
+		ActionListener, TaskListener {
 
-    private Logger logger = Logger.getLogger(this.getClass().getName());
+	private Logger logger = Logger.getLogger(this.getClass().getName());
 
-    private TwoDToolBar toolBar;
-    private TwoDPlot twoDPlot;
-    private TwoDBottomPanel bottomPanel;
+	private TwoDToolBar toolBar;
+	private TwoDPlot twoDPlot;
+	private TwoDBottomPanel bottomPanel;
 
-    private TwoDDataSet dataset;
+	private TwoDDataSet dataset;
 
-    private RawDataFile dataFile;
-    private int msLevel;
+	private RawDataFile dataFile;
+	private int msLevel;
 
-    private Desktop desktop;
+	private Desktop desktop;
 
-    public TwoDVisualizerWindow(RawDataFile dataFile, int msLevel, float rtMin,
-            float rtMax, float mzMin, float mzMax) {
+	public TwoDVisualizerWindow(RawDataFile dataFile, int msLevel, float rtMin,
+			float rtMax, float mzMin, float mzMax) {
 
-        super(dataFile.toString(), true, true, true, true);
+		super(dataFile.toString(), true, true, true, true);
 
-        this.desktop = MZmineCore.getDesktop();
+		this.desktop = MZmineCore.getDesktop();
 
-        setDefaultCloseOperation(DISPOSE_ON_CLOSE);
-        setBackground(Color.white);
+		setDefaultCloseOperation(DISPOSE_ON_CLOSE);
+		setBackground(Color.white);
 
-        this.dataFile = dataFile;
-        this.msLevel = msLevel;
-        
-        dataset = new TwoDDataSet(dataFile, msLevel, rtMin, rtMax, mzMin,
-                mzMax, this);
+		this.dataFile = dataFile;
+		this.msLevel = msLevel;
 
-        toolBar = new TwoDToolBar(this);
-        add(toolBar, BorderLayout.EAST);
+		dataset = new TwoDDataSet(dataFile, msLevel, rtMin, rtMax, mzMin,
+				mzMax, this);
 
-        twoDPlot = new TwoDPlot(dataFile, this, dataset, rtMin, rtMax, mzMin, mzMax);
-        add(twoDPlot, BorderLayout.CENTER);
+		toolBar = new TwoDToolBar(this);
+		add(toolBar, BorderLayout.EAST);
 
-        bottomPanel = new TwoDBottomPanel(this, dataFile);
-        add(bottomPanel, BorderLayout.SOUTH);
+		twoDPlot = new TwoDPlot(dataFile, this, dataset, rtMin, rtMax, mzMin,
+				mzMax);
+		add(twoDPlot, BorderLayout.CENTER);
 
-        updateTitle();
+		bottomPanel = new TwoDBottomPanel(this, dataFile);
+		add(bottomPanel, BorderLayout.SOUTH);
 
-        pack();
-        
-        // After we have constructed everything, load the peak lists into the
-        // bottom panel
-        bottomPanel.rebuildPeakListSelector();
+		updateTitle();
 
-    }
+		pack();
 
-    void updateTitle() {
+		// After we have constructed everything, load the peak lists into the
+		// bottom panel
+		bottomPanel.rebuildPeakListSelector(MZmineCore.getCurrentProject());
 
-        StringBuffer title = new StringBuffer();
-        title.append("[");
-        title.append(dataFile.toString());
-        title.append("]: 2D view");
+	}
 
-        setTitle(title.toString());
+	void updateTitle() {
 
-        title.append(", MS");
-        title.append(msLevel);
+		StringBuffer title = new StringBuffer();
+		title.append("[");
+		title.append(dataFile.toString());
+		title.append("]: 2D view");
 
-        twoDPlot.setTitle(title.toString());
+		setTitle(title.toString());
 
-    }
+		title.append(", MS");
+		title.append(msLevel);
 
-    /**
-     * @see java.awt.event.ActionListener#actionPerformed(java.awt.event.ActionEvent)
-     */
-    public void actionPerformed(ActionEvent event) {
+		twoDPlot.setTitle(title.toString());
 
-        String command = event.getActionCommand();
+	}
 
-        if (command.equals("SWITCH_PALETTE")) {
-            twoDPlot.getXYPlot().switchPalette();
-        }
-        
-        if (command.equals("SHOW_DATA_POINTS")) {
-            twoDPlot.switchDataPointsVisible();
-        }
-        
-        if (command.equals("SHOW_ANNOTATIONS")) {
-            twoDPlot.getXYPlot().setDataset(1, null);
-        }
+	/**
+	 * @see java.awt.event.ActionListener#actionPerformed(java.awt.event.ActionEvent)
+	 */
+	public void actionPerformed(ActionEvent event) {
 
-        if (command.equals("PEAKLIST_CHANGE")) {
+		String command = event.getActionCommand();
 
-            PeakList selectedPeakList = bottomPanel.getSelectedPeakList();
-            if (selectedPeakList == null)
-                return;
+		if (command.equals("SWITCH_PALETTE")) {
+			twoDPlot.getXYPlot().switchPalette();
+		}
 
-            logger.finest("Loading a peak list " + selectedPeakList
-                    + " to a 2D view of " + dataFile);
+		if (command.equals("SHOW_DATA_POINTS")) {
+			twoDPlot.switchDataPointsVisible();
+		}
 
-            twoDPlot.loadPeakList(selectedPeakList);
+		if (command.equals("SHOW_ANNOTATIONS")) {
+			twoDPlot.getXYPlot().setDataset(1, null);
+		}
 
-        }
-        
-        if (command.equals("SETUP_AXES")) {
-            AxesSetupDialog dialog = new AxesSetupDialog(twoDPlot.getXYPlot());
-            dialog.setVisible(true);
-        }
+		if (command.equals("PEAKLIST_CHANGE")) {
 
-    }
+			PeakList selectedPeakList = bottomPanel.getSelectedPeakList();
+			if (selectedPeakList == null)
+				return;
 
-    /**
-     * @see net.sf.mzmine.taskcontrol.TaskListener#taskFinished(net.sf.mzmine.taskcontrol.Task)
-     */
-    public void taskFinished(Task task) {
-        if (task.getStatus() == TaskStatus.ERROR) {
-            desktop.displayErrorMessage("Error while updating 2D visualizer: "
-                    + task.getErrorMessage());
-        }
+			logger.finest("Loading a peak list " + selectedPeakList
+					+ " to a 2D view of " + dataFile);
 
-        if (task.getStatus() == TaskStatus.FINISHED) {
-            // Add this window to desktop
-            desktop.addInternalFrame(this);
-        }
-    }
+			twoDPlot.loadPeakList(selectedPeakList);
 
-    /**
-     * @see net.sf.mzmine.taskcontrol.TaskListener#taskStarted(net.sf.mzmine.taskcontrol.Task)
-     */
-    public void taskStarted(Task task) {
-        // ignore
-    }
+		}
 
-    TwoDPlot getPlot() {
-        return twoDPlot;
-    }
+		if (command.equals("SETUP_AXES")) {
+			AxesSetupDialog dialog = new AxesSetupDialog(twoDPlot.getXYPlot());
+			dialog.setVisible(true);
+		}
+		
+	}
+
+	/**
+	 * @see net.sf.mzmine.taskcontrol.TaskListener#taskFinished(net.sf.mzmine.taskcontrol.Task)
+	 */
+	public void taskFinished(Task task) {
+		if (task.getStatus() == TaskStatus.ERROR) {
+			desktop.displayErrorMessage("Error while updating 2D visualizer: "
+					+ task.getErrorMessage());
+		}
+
+		if (task.getStatus() == TaskStatus.FINISHED) {
+			// Add this window to desktop
+			desktop.addInternalFrame(this);
+		}
+	}
+
+	/**
+	 * @see net.sf.mzmine.taskcontrol.TaskListener#taskStarted(net.sf.mzmine.taskcontrol.Task)
+	 */
+	public void taskStarted(Task task) {
+		// ignore
+	}
+
+	TwoDPlot getPlot() {
+		return twoDPlot;
+	}
 
 }

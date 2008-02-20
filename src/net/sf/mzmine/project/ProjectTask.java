@@ -16,40 +16,14 @@
  * MZmine; if not, write to the Free Software Foundation, Inc., 51 Franklin St,
  * Fifth Floor, Boston, MA 02110-1301 USA
  */
+package net.sf.mzmine.project;
 
-package net.sf.mzmine.io;
-
-import java.io.File;
-import java.io.IOException;
+import net.sf.mzmine.taskcontrol.Task;
 
 /**
- * IO controller
- * 
+ * This interface defines base interface for project task variants
  */
-public interface IOController {
 
-	/**
-	 * This method is non-blocking, it places a request to open these files and
-	 * exits immediately.
-	 */
-	public void openFiles(File[] files, PreloadLevel preloadLevel);
-
-	/**
-	 * 
-	 * @param name
-	 * @return
-	 * @throws IOException
-	 */
-	public RawDataFileWriter createNewFile(String fileName, String suffix,
-			PreloadLevel preloadLevel) throws IOException;
-
-	/**
-	 * 
-	 * @param name
-	 * @return
-	 * @throws IOException
-	 */
-	public RawDataFileWriter createNewFile(File file, PreloadLevel preloadLevel)
-			throws IOException;
-
+public interface ProjectTask extends Task {
+	public MZmineProject getResult();
 }

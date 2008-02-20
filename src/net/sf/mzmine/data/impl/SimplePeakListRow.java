@@ -23,20 +23,22 @@ import java.text.Format;
 import java.util.Enumeration;
 import java.util.HashSet;
 import java.util.Hashtable;
+import java.util.Vector;
 
 import net.sf.mzmine.data.CompoundIdentity;
 import net.sf.mzmine.data.Peak;
 import net.sf.mzmine.data.PeakListRow;
 import net.sf.mzmine.io.RawDataFile;
 import net.sf.mzmine.main.MZmineCore;
+import net.sf.mzmine.project.MZmineProject;
 
 /**
  * 
  */
 public class SimplePeakListRow implements PeakListRow {
 
-    private Hashtable<RawDataFile, Peak> peaks;
-    private Hashtable<RawDataFile, Peak> originalPeaks;
+    private Hashtable<String, Peak> peaks;
+    private Hashtable<String, Peak> originalPeaks;
     private HashSet<CompoundIdentity> identities;
     private CompoundIdentity preferredIdentity;
     private String comment;
@@ -45,8 +47,8 @@ public class SimplePeakListRow implements PeakListRow {
 
     public SimplePeakListRow(int myID) {
         this.myID = myID;
-        peaks = new Hashtable<RawDataFile, Peak>();
-        originalPeaks = new Hashtable<RawDataFile, Peak>();
+        peaks = new Hashtable<String, Peak>();
+        originalPeaks = new Hashtable<String, Peak>();
         identities = new HashSet<CompoundIdentity>();
         preferredIdentity = CompoundIdentity.UNKNOWN_IDENTITY;
     }
@@ -69,30 +71,35 @@ public class SimplePeakListRow implements PeakListRow {
      * Return opened raw data files with a peak on this row
      */
     public RawDataFile[] getRawDataFiles() {
-        return peaks.keySet().toArray(new RawDataFile[0]);
+        MZmineProject project=MZmineCore.getCurrentProject();
+        Vector <RawDataFile>rawDataFilesInPeak= new Vector<RawDataFile>();
+        for (String fileName:peaks.keySet()){
+        	rawDataFilesInPeak.add(project.getDataFile(fileName));
+        }
+        return rawDataFilesInPeak.toArray(new RawDataFile[0]);
     }
 
     /*
      * Returns peak for given raw data file
      */
     public Peak getPeak(RawDataFile rawData) {
-        return peaks.get(rawData);
+        return peaks.get(rawData.getFileName());
     }
 
     public void setPeak(RawDataFile rawData, Peak p) {
-        peaks.put(rawData, p);
+        peaks.put(rawData.getFileName(), p);
     }
 
     /**
      * @see net.sf.mzmine.data.PeakListRow#getOriginalPeakListEntry(net.sf.mzmine.io.RawDataFile)
      */
     public Peak getOriginalPeakListEntry(RawDataFile rawData) {
-        return originalPeaks.get(rawData);
+        return originalPeaks.get(rawData.getFileName());
     }
 
     public void addPeak(RawDataFile rawData, Peak original, Peak current) {
-        peaks.put(rawData, current);
-        originalPeaks.put(rawData, original);
+        peaks.put(rawData.getFileName(), current);
+        originalPeaks.put(rawData.getFileName(), original);
         if (current.getRawDataPointMaxIntensity() > maxDataPointIntensity)
             maxDataPointIntensity = current.getRawDataPointMaxIntensity();
     }

@@ -3,7 +3,7 @@
 <configuration> 
   <nodes local="2"/>  
   <modules> 
-    <module class="net.sf.mzmine.modules.visualization.tic.TICVisualizer">
+    <module class="net.sf.mzmine.modules.visualization.tic.TICVisualizer"> 
       <parameters>
         <parameter name="MS level" type="INTEGER">1</parameter>
         <parameter name="Plot type" type="STRING">TIC</parameter>
@@ -11,16 +11,24 @@
         <parameter name="Maximum retention time" type="FLOAT">600.0</parameter>
         <parameter name="Minimum M/Z" type="FLOAT">100.0</parameter>
         <parameter name="Maximum M/Z" type="FLOAT">1000.0</parameter>
-      </parameters>
+      </parameters> 
     </module>  
-    <module class="net.sf.mzmine.modules.visualization.spectra.SpectraVisualizer">
+    <module class="net.sf.mzmine.modules.visualization.spectra.SpectraVisualizer"> 
       <parameters>
         <parameter name="Scan number" type="INTEGER"/>
-      </parameters>
+      </parameters> 
     </module>  
-    <module class="net.sf.mzmine.modules.visualization.twod.TwoDVisualizer"/>  
+    <module class="net.sf.mzmine.modules.visualization.twod.TwoDVisualizer"> 
+      <parameters>
+        <parameter name="MS level" type="INTEGER">1</parameter>
+        <parameter name="Minimum retention time" type="FLOAT">0.0</parameter>
+        <parameter name="Maximum retention time" type="FLOAT">600.0</parameter>
+        <parameter name="Minimum M/Z" type="FLOAT">100.0</parameter>
+        <parameter name="Maximum M/Z" type="FLOAT">1000.0</parameter>
+      </parameters> 
+    </module>  
     <module class="net.sf.mzmine.modules.visualization.oldtwod.OldTwoDVisualizer"/>  
-    <module class="net.sf.mzmine.modules.visualization.threed.ThreeDVisualizer">
+    <module class="net.sf.mzmine.modules.visualization.threed.ThreeDVisualizer"> 
       <parameters>
         <parameter name="MS level" type="INTEGER">1</parameter>
         <parameter name="Minimum retention time" type="FLOAT">0.0</parameter>
@@ -29,80 +37,80 @@
         <parameter name="Minimum M/Z" type="FLOAT">100.0</parameter>
         <parameter name="Maximum M/Z" type="FLOAT">1000.0</parameter>
         <parameter name="m/z resolution" type="INTEGER">100</parameter>
-      </parameters>
+      </parameters> 
     </module>  
     <module class="net.sf.mzmine.modules.visualization.neutralloss.NeutralLossVisualizer"/>  
     <module class="net.sf.mzmine.util.menu.VisualizationMenuSeparator"/>  
-    <module class="net.sf.mzmine.modules.visualization.peaklist.PeakListTableVisualizer">
+    <module class="net.sf.mzmine.modules.visualization.peaklist.PeakListTableVisualizer"> 
       <parameters>
         <rowheight>20</rowheight>
         <peakshapenormalization>PEAKMAX</peakshapenormalization>
-      </parameters>
+      </parameters> 
     </module>  
-    <module class="net.sf.mzmine.modules.batchmode.BatchMode">
-      <parameters/>
+    <module class="net.sf.mzmine.modules.batchmode.BatchMode"> 
+      <parameters/> 
     </module>  
-    <module class="net.sf.mzmine.modules.filtering.crop.CropFilter">
+    <module class="net.sf.mzmine.modules.filtering.crop.CropFilter"> 
       <parameters>
         <parameter name="Filename suffix" type="STRING">cropped</parameter>
         <parameter name="Minimum M/Z" type="FLOAT">100.0</parameter>
         <parameter name="Maximum M/Z" type="FLOAT">1000.0</parameter>
         <parameter name="Minimum retention time" type="FLOAT">0.0</parameter>
         <parameter name="Maximum retention time" type="FLOAT">600.0</parameter>
-        <parameter name="Remove source file after filtering" type="BOOLEAN">true</parameter>
-      </parameters>
+        <parameter name="Remove source file after filtering" type="BOOLEAN">false</parameter>
+      </parameters> 
     </module>  
-    <module class="net.sf.mzmine.modules.filtering.mean.MeanFilter">
+    <module class="net.sf.mzmine.modules.filtering.mean.MeanFilter"> 
       <parameters>
         <parameter name="Filename suffix" type="STRING">filtered</parameter>
         <parameter name="Window length" type="FLOAT">0.1</parameter>
         <parameter name="Remove source file after filtering" type="BOOLEAN">true</parameter>
-      </parameters>
+      </parameters> 
     </module>  
-    <module class="net.sf.mzmine.modules.filtering.savitzkygolay.SGFilter">
+    <module class="net.sf.mzmine.modules.filtering.savitzkygolay.SGFilter"> 
       <parameters>
         <parameter name="Filename suffix" type="STRING">filtered</parameter>
         <parameter name="Number of datapoints" type="INTEGER">5</parameter>
         <parameter name="Remove source file after filtering" type="BOOLEAN">true</parameter>
-      </parameters>
+      </parameters> 
     </module>  
-    <module class="net.sf.mzmine.modules.filtering.chromatographicmedian.CMFilter">
+    <module class="net.sf.mzmine.modules.filtering.chromatographicmedian.CMFilter"> 
       <parameters>
         <parameter name="Filename suffix" type="STRING">filtered</parameter>
         <parameter name="Window length" type="INTEGER">1</parameter>
         <parameter name="M/Z tolerance" type="FLOAT">0.1</parameter>
         <parameter name="Remove source file after filtering" type="BOOLEAN">true</parameter>
-      </parameters>
+      </parameters> 
     </module>  
-    <module class="net.sf.mzmine.modules.filtering.zoomscan.ZoomScanFilter">
+    <module class="net.sf.mzmine.modules.filtering.zoomscan.ZoomScanFilter"> 
       <parameters>
         <parameter name="Filename suffix" type="STRING">filtered</parameter>
         <parameter name="Minimum M/Z range" type="FLOAT">100.0</parameter>
         <parameter name="Remove source file after filtering" type="BOOLEAN">true</parameter>
-      </parameters>
+      </parameters> 
     </module>  
-    <module class="net.sf.mzmine.modules.peakpicking.recursivethreshold.RecursivePicker">
+    <module class="net.sf.mzmine.modules.peakpicking.recursivethreshold.RecursivePicker"> 
       <parameters>
         <parameter name="Filename suffix" type="STRING">peaklist</parameter>
         <parameter name="M/Z bin width" type="FLOAT">0.25</parameter>
         <parameter name="Chromatographic threshold level" type="FLOAT">0.0</parameter>
         <parameter name="Noise level" type="FLOAT">10.0</parameter>
         <parameter name="Min peak height" type="FLOAT">100.0</parameter>
-        <parameter name="Min peak duration" type="FLOAT">10.0</parameter>
+        <parameter name="Min peak duration" type="FLOAT">20.0</parameter>
         <parameter name="Min M/Z peak width" type="FLOAT">0.2</parameter>
         <parameter name="Max M/Z peak width" type="FLOAT">1.0</parameter>
         <parameter name="M/Z tolerance" type="FLOAT">0.1</parameter>
         <parameter name="Intensity tolerance" type="FLOAT">0.15</parameter>
-      </parameters>
+      </parameters> 
     </module>  
-    <module class="net.sf.mzmine.modules.peakpicking.accuratemass.AccurateMassPicker">
+    <module class="net.sf.mzmine.modules.peakpicking.accuratemass.AccurateMassPicker"> 
       <parameters>
         <parameter name="Filename suffix" type="STRING">peaklist</parameter>
         <parameter name="M/Z tolerance" type="FLOAT">0.1</parameter>
         <parameter name="Min peak duration" type="FLOAT">10.0</parameter>
-      </parameters>
+      </parameters> 
     </module>  
-    <module class="net.sf.mzmine.modules.peakpicking.centroid.CentroidPicker">
+    <module class="net.sf.mzmine.modules.peakpicking.centroid.CentroidPicker"> 
       <parameters>
         <parameter name="Filename suffix" type="STRING">peaklist</parameter>
         <parameter name="M/Z bin width" type="FLOAT">0.25</parameter>
@@ -112,19 +120,21 @@
         <parameter name="Min peak duration" type="FLOAT">10.0</parameter>
         <parameter name="M/Z tolerance" type="FLOAT">0.1</parameter>
         <parameter name="Intensity tolerance" type="FLOAT">0.15</parameter>
-      </parameters>
+      </parameters> 
     </module>  
-    <module class="net.sf.mzmine.modules.peakpicking.anothercentroid.AnotherCentroidPicker">
+    <module class="net.sf.mzmine.modules.peakpicking.anothercentroid.AnotherCentroidPicker"> 
       <parameters>
         <parameter name="Filename suffix" type="STRING">peaklist</parameter>
         <parameter name="Noise level" type="FLOAT">10.0</parameter>
+        <parameter name="Min number of isotopic peaks" type="INTEGER">3</parameter>
+        <parameter name="Max charge state" type="INTEGER">1</parameter>
         <parameter name="Min peak duration" type="FLOAT">10.0</parameter>
         <parameter name="Max peak duration" type="FLOAT">10.0</parameter>
-        <parameter name="M/Z tolerance" type="FLOAT">0.1</parameter>
-      </parameters>
+        <parameter name="m/z tolerance" type="FLOAT">0.1</parameter>
+      </parameters> 
     </module>  
     <module class="net.sf.mzmine.util.menu.PeakPickingMenuSeparator"/>  
-    <module class="net.sf.mzmine.modules.peakpicking.deisotoper.IsotopeGrouper">
+    <module class="net.sf.mzmine.modules.peakpicking.deisotoper.IsotopeGrouper"> 
       <parameters>
         <parameter name="Name suffix" type="STRING">deisotoped</parameter>
         <parameter name="M/Z tolerance" type="FLOAT">0.05</parameter>
@@ -133,9 +143,9 @@
         <parameter name="Maximum charge" type="INTEGER">1</parameter>
         <parameter name="Representative isotope" type="STRING">Most intense</parameter>
         <parameter name="Remove original peaklist" type="BOOLEAN">true</parameter>
-      </parameters>
+      </parameters> 
     </module>  
-    <module class="net.sf.mzmine.modules.peakpicking.ftmsfilter.FTMSFilter">
+    <module class="net.sf.mzmine.modules.peakpicking.ftmsfilter.FTMSFilter"> 
       <parameters>
         <parameter name="Name suffix" type="STRING">FTMS filtered</parameter>
         <parameter name="M/Z difference minimum" type="FLOAT">0.0010</parameter>
@@ -143,9 +153,9 @@
         <parameter name="RT difference maximum" type="FLOAT">5.0</parameter>
         <parameter name="Maximum height" type="FLOAT">0.05</parameter>
         <parameter name="Remove original peaklist" type="BOOLEAN">true</parameter>
-      </parameters>
+      </parameters> 
     </module>  
-    <module class="net.sf.mzmine.modules.alignment.join.JoinAligner">
+    <module class="net.sf.mzmine.modules.alignment.join.JoinAligner"> 
       <parameters>
         <parameter name="Peaklist name" type="STRING">Aligned peak list</parameter>
         <parameter name="M/Z vs RT balance" type="FLOAT">10.0</parameter>
@@ -153,9 +163,9 @@
         <parameter name="Retention time tolerance type" type="STRING">Absolute</parameter>
         <parameter name="Absolute RT tolerance" type="FLOAT">15.0</parameter>
         <parameter name="Relative RT tolerance" type="FLOAT">0.15</parameter>
-      </parameters>
+      </parameters> 
     </module>  
-    <module class="net.sf.mzmine.modules.alignment.rowsfilter.RowsFilter">
+    <module class="net.sf.mzmine.modules.alignment.rowsfilter.RowsFilter"> 
       <parameters>
         <parameter name="Name suffix" type="STRING">filtered</parameter>
         <parameter name="Minimum peaks in a row" type="INTEGER">1</parameter>
@@ -165,9 +175,9 @@
         <parameter name="Maximum retention time" type="FLOAT">0.0</parameter>
         <parameter name="Only identified?" type="BOOLEAN"/>
         <parameter name="Remove source peak list after filtering" type="BOOLEAN">true</parameter>
-      </parameters>
+      </parameters> 
     </module>  
-    <module class="net.sf.mzmine.modules.alignment.gapfiller.SimpleGapFiller">
+    <module class="net.sf.mzmine.modules.alignment.gapfiller.SimpleGapFiller"> 
       <parameters>
         <parameter name="Peaklist name" type="STRING">Aligned peak list</parameter>
         <parameter name="Intensity tolerance" type="FLOAT">0.2</parameter>
@@ -175,44 +185,44 @@
         <parameter name="Retention time tolerance type" type="STRING">Absolute</parameter>
         <parameter name="Absolute RT tolerance" type="FLOAT">15.0</parameter>
         <parameter name="Relative RT tolerance" type="FLOAT">0.15</parameter>
-      </parameters>
+      </parameters> 
     </module>  
-    <module class="net.sf.mzmine.modules.normalization.rtnormalizer.RTNormalizer">
+    <module class="net.sf.mzmine.modules.normalization.rtnormalizer.RTNormalizer"> 
       <parameters>
         <parameter name="Name suffix" type="STRING">normalized</parameter>
         <parameter name="M/Z tolerance" type="FLOAT">0.2</parameter>
         <parameter name="Retention time tolerance" type="FLOAT">60.0</parameter>
         <parameter name="Minimum standard intensity" type="FLOAT">1000.0</parameter>
         <parameter name="Remove original peak list" type="BOOLEAN">true</parameter>
-      </parameters>
+      </parameters> 
     </module>  
-    <module class="net.sf.mzmine.modules.normalization.linear.LinearNormalizer">
+    <module class="net.sf.mzmine.modules.normalization.linear.LinearNormalizer"> 
       <parameters>
         <parameter name="Name suffix" type="STRING">normalized</parameter>
         <parameter name="Normalization type" type="STRING">Average intensity</parameter>
         <parameter name="Peak measurement type" type="STRING">Peak height</parameter>
         <parameter name="Remove original peak list" type="BOOLEAN">true</parameter>
-      </parameters>
+      </parameters> 
     </module>  
-    <module class="net.sf.mzmine.modules.normalization.standardcompound.StandardCompoundNormalizer">
+    <module class="net.sf.mzmine.modules.normalization.standardcompound.StandardCompoundNormalizer"> 
       <parameters>
         <parameter name="Name suffix" type="STRING">normalized</parameter>
         <parameter name="Normalization type" type="STRING">Nearest standard</parameter>
         <parameter name="Peak measurement type" type="STRING">Peak height</parameter>
         <parameter name="M/Z vs RT balance" type="FLOAT">10.0</parameter>
         <parameter name="Remove original peak list" type="BOOLEAN">true</parameter>
-      </parameters>
+      </parameters> 
     </module>  
-    <module class="net.sf.mzmine.modules.dataanalysis.rtmzplots.RTMZAnalyzer">
+    <module class="net.sf.mzmine.modules.dataanalysis.rtmzplots.RTMZAnalyzer"> 
       <parameters>
         <parameter name="Peak measurement type" type="STRING">Area</parameter>
-      </parameters>
+      </parameters> 
     </module>  
     <module class="net.sf.mzmine.modules.dataanalysis.projectionplots.ProjectionPlot"/>  
-    <module class="net.sf.mzmine.modules.dataanalysis.intensityplot.IntensityPlot">
-      <parameters/>
+    <module class="net.sf.mzmine.modules.dataanalysis.intensityplot.IntensityPlot"> 
+      <parameters/> 
     </module>  
-    <module class="net.sf.mzmine.modules.identification.custom.CustomDBSearch">
+    <module class="net.sf.mzmine.modules.identification.custom.CustomDBSearch"> 
       <parameters>
         <databasefile></databasefile>
         <fieldseparator></fieldseparator>
@@ -226,12 +236,17 @@
         <ignorefirstline>false</ignorefirstline>
         <mztolerance>1.0</mztolerance>
         <rttolerance>60.0</rttolerance>
-      </parameters>
+      </parameters> 
     </module>  
     <module class="net.sf.mzmine.modules.identification.fragmentation.InSourceFragmentationSearch"/>  
     <module class="net.sf.mzmine.modules.identification.kegg.KEGGSearch"/>  
-    <module class="net.sf.mzmine.modules.identification.pubchem.PubChemSearch"/>
-    <module class="net.sf.mzmine.modules.identification.qbixlipiddb.QBIXLipidDBSearch"/>
+    <module class="net.sf.mzmine.modules.identification.pubchem.PubChemSearch"/>  
+    <module class="net.sf.mzmine.modules.identification.qbixlipiddb.QBIXLipidDBSearch"> 
+      <parameters>
+        <parameter name="ppm" type="FLOAT">50.0</parameter>
+        <parameter name="Mass resolution" type="FLOAT">0.2</parameter>
+      </parameters> 
+    </module> 
   </modules>  
   <desktop>
     <format type="m/z">
@@ -247,11 +262,12 @@
       <pattern>0.00E0</pattern>
     </format>
     <mainwindow>
-      <x>140</x>
-      <y>147</y>
-      <width>1000</width>
-      <height>700</height>
+      <x>390</x>
+      <y>64</y>
+      <width>1172</width>
+      <height>842</height>
     </mainwindow>
-    <lastdirectory>D:\temp\mzmineprojects</lastdirectory>
-  </desktop>
+    <lastdirectory>/mnt/newHD/private/kawasaki/mzmine/Nakamura/XML/negative mode XML</lastdirectory>
+    <lastProjectDirectory>/MyProject.25.mzmine</lastProjectDirectory>
+  </desktop> 
 </configuration>

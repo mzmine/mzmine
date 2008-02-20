@@ -17,39 +17,25 @@
  * Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-package net.sf.mzmine.io;
+package net.sf.mzmine.project;
 
 import java.io.File;
 import java.io.IOException;
 
 /**
- * IO controller
- * 
+ * This interface defines project manager that deal with inter-project
+ * operations
  */
-public interface IOController {
 
-	/**
-	 * This method is non-blocking, it places a request to open these files and
-	 * exits immediately.
-	 */
-	public void openFiles(File[] files, PreloadLevel preloadLevel);
+public interface ProjectManager {
+	public void createProject(File projectDir) throws IOException;
 
-	/**
-	 * 
-	 * @param name
-	 * @return
-	 * @throws IOException
-	 */
-	public RawDataFileWriter createNewFile(String fileName, String suffix,
-			PreloadLevel preloadLevel) throws IOException;
+	public void createTemporalProject() throws IOException;
 
-	/**
-	 * 
-	 * @param name
-	 * @return
-	 * @throws IOException
-	 */
-	public RawDataFileWriter createNewFile(File file, PreloadLevel preloadLevel)
-			throws IOException;
+	public void openProject(File projectDir) throws IOException;
 
+	public void saveProject(File projectDir) throws IOException;
+	
+	public void removeProjectDir(File projectDir);
+	public ProjectStatus getStatus();
 }

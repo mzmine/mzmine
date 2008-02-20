@@ -26,10 +26,10 @@ package net.sf.mzmine.project;
  */
 public interface ProjectListener {
 
-    public enum ProjectEvent {
-        DATA_FILE_CHANGE, PEAKLIST_CHANGE
-    };
+	public enum ProjectEvent {
+		DATA_FILE_CHANGE, PEAKLIST_CHANGE, PROJECT_CHANGED
+	};
 
-    public void projectModified(ProjectEvent event);
+	public void projectModified(ProjectEvent event, MZmineProject project);
 
 }

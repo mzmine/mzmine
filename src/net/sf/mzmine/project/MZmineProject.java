@@ -20,6 +20,7 @@
 package net.sf.mzmine.project;
 
 import java.io.File;
+import java.util.Vector;
 
 import net.sf.mzmine.data.Parameter;
 import net.sf.mzmine.data.PeakList;
@@ -53,16 +54,16 @@ public interface MZmineProject {
 	 * set file system location of this project ;
 	 * 
 	 * @param parameter
-	 */	
+	 */
 	public void setLocation(File path);
-		
+
 	/**
 	 * Return file system location of this project ;
 	 * 
 	 * @param parameter
-	 */	
+	 */
 	public File getLocation();
-	
+
 	/**
 	 * Adds a new experimental parameter to the project
 	 * 
@@ -123,35 +124,59 @@ public interface MZmineProject {
 	public RawDataFile[] getDataFiles();
 
 	/**
+	 * Returns RawDataFile with specified file name.
+	 * 
+	 */
+	public RawDataFile getDataFile(String fileName);
+
+	
+	/**
 	 * Adds a peak list to the project
 	 * 
 	 */
-    public void addPeakList(PeakList peaklist);
+	public void addPeakList(PeakList peaklist);
 
 	/**
 	 * Removes a peak list from the project
 	 * 
 	 */
-    public void removePeakList(PeakList peaklist);
+	public void removePeakList(PeakList peaklist);
 
 	/**
 	 * Returns all peak lists of the project
-     */
-    public PeakList[] getPeakLists();
-    
-    /**
-     * Returns all peak lists which contain given data file
-     */
-    public PeakList[] getPeakLists(RawDataFile file);
-    
-    /**
-     * Adds a listener which is notified when there is a change of the project 
-     */
-    public void addProjectListener(ProjectListener listener);
-    
-    /**
-     * Adds a listener which is notified when there is a change of the project 
-     */
-    public void removeProjectListener(ProjectListener listener);
+	 */
+	public PeakList[] getPeakLists();
+
+	/**
+	 * Returns all peak lists which contain given data file
+	 */
+	public PeakList[] getPeakLists(RawDataFile file);
+
+	/**
+	 * Adds a listener which is notified when there is a change of the project
+	 */
+	public void addProjectListener(ProjectListener listener);
+
+	/**
+	 * Remove a listener which is notified when there is a change of the project
+	 */
+	public void removeProjectListener(ProjectListener listener);
+
+	/**
+	 * List listeners
+	 */
+	public Vector<ProjectListener> getProjectListeners();
+
+	/**
+	 * check project is in temporal space (Not yet saved)
+	 */
+
+	public boolean getIsTemporal();
+
+	/**
+	 * set project is in temporal space or not
+	 */
+
+	public void setIsTemporal(boolean isTemoral);
 
 }

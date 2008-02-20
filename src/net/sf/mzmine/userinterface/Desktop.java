@@ -37,65 +37,66 @@ import net.sf.mzmine.util.NumberFormatter;
  */
 public interface Desktop extends MZmineModule {
 
-    public enum MZmineMenu {
-        PROJECT, FILTERING, PEAKPICKING, ALIGNMENT, NORMALIZATION, IDENTIFICATION, VISUALIZATION, ANALYSIS
-    };
+	public enum MZmineMenu {
+		PROJECT, FILTERING, PEAKPICKING, ALIGNMENT, NORMALIZATION, IDENTIFICATION, VISUALIZATION, ANALYSIS
+	};
 
-    /**
-     * Returns a reference to main application window
-     * 
-     * @return Main window frame
-     */
-    public JFrame getMainFrame();
+	/**
+	 * Returns a reference to main application window
+	 * 
+	 * @return Main window frame
+	 */
+	public JFrame getMainFrame();
 
-    public JMenuItem addMenuItem(MZmineMenu parentMenu, String text,
-            ActionListener listener, String actionCommand, int mnemonic,
-            boolean setAccelerator, boolean enabled);
+	public JMenuItem addMenuItem(MZmineMenu parentMenu, String text,
+			ActionListener listener, String actionCommand, int mnemonic,
+			boolean setAccelerator, boolean enabled);
 
-    /**
-     * Adds a separator to a given MZmine menu
-     * 
-     * @param parentMenu Menu where to add a separator
-     */
-    public void addMenuSeparator(MZmineMenu parentMenu);
+	/**
+	 * Adds a separator to a given MZmine menu
+	 * 
+	 * @param parentMenu
+	 *            Menu where to add a separator
+	 */
+	public void addMenuSeparator(MZmineMenu parentMenu);
 
-    public void addInternalFrame(JInternalFrame frame);
+	public void addInternalFrame(JInternalFrame frame);
 
-    public JInternalFrame[] getVisibleFrames(Class frameClass);
+	public JInternalFrame[] getVisibleFrames(Class frameClass);
 
-    public JInternalFrame[] getVisibleFrames();
+	public JInternalFrame[] getVisibleFrames();
 
-    public JInternalFrame getSelectedFrame();
+	public JInternalFrame getSelectedFrame();
 
-    // Status bar funcions
-    public void setStatusBarText(String text);
+	// Status bar funcions
+	public void setStatusBarText(String text);
 
-    public void setStatusBarText(String text, Color textColor);
+	public void setStatusBarText(String text, Color textColor);
 
-    // Message box functions
-    public void displayMessage(String msg);
+	// Message box functions
+	public void displayMessage(String msg);
 
-    public void displayErrorMessage(String msg);
+	public void displayErrorMessage(String msg);
 
-    public boolean isDataFileSelected();
+	public boolean isDataFileSelected();
 
-    public boolean isPeakListSelected();
+	public boolean isPeakListSelected();
 
-    /**
-     * Returns array of currently selected raw data files in GUI
-     */
-    public RawDataFile[] getSelectedDataFiles();
+	/**
+	 * Returns array of currently selected raw data files in GUI
+	 */
+	public RawDataFile[] getSelectedDataFiles();
 
-    /**
-     * Returns array of currently selected alignned peaklists in GUI
-     */
-    public PeakList[] getSelectedPeakLists();
+	/**
+	 * Returns array of currently selected alignned peaklists in GUI
+	 */
+	public PeakList[] getSelectedPeakLists();
 
-    // Number formatting functions
-    public NumberFormatter getMZFormat();
+	// Number formatting functions
+	public NumberFormatter getMZFormat();
 
-    public NumberFormatter getRTFormat();
+	public NumberFormatter getRTFormat();
 
-    public NumberFormatter getIntensityFormat();
+	public NumberFormatter getIntensityFormat();
 
 }

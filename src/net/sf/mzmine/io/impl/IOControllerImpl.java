@@ -1,5 +1,5 @@
 /*
- * Copyright 2006 The MZmine Development Team
+ * Copyright 2007-2008 The MZmine Development Team
  * 
  * This file is part of MZmine.
  * 
@@ -23,67 +23,49 @@ import java.io.File;
 import java.io.IOException;
 import java.util.logging.Logger;
 
-import net.sf.mzmine.data.PeakList;
 import net.sf.mzmine.io.IOController;
 import net.sf.mzmine.io.PreloadLevel;
 import net.sf.mzmine.io.RawDataFile;
 import net.sf.mzmine.io.RawDataFileWriter;
 import net.sf.mzmine.main.MZmineCore;
-import net.sf.mzmine.project.impl.MZmineProjectImpl;
 import net.sf.mzmine.taskcontrol.Task;
 import net.sf.mzmine.taskcontrol.TaskController;
 import net.sf.mzmine.taskcontrol.TaskListener;
 import net.sf.mzmine.userinterface.Desktop;
-import net.sf.mzmine.userinterface.mainwindow.ItemSelector;
-import net.sf.mzmine.userinterface.mainwindow.MainWindow;
-import net.sf.mzmine.userinterface.dialogs.ProjectInitDialog;
 
 /**
  * IO controller
  */
 public class IOControllerImpl implements IOController, TaskListener {
 
-    private Logger logger = Logger.getLogger(this.getClass().getName());
+	private Logger logger = Logger.getLogger(this.getClass().getName());
 
-    private TaskController taskController;
-    private Desktop desktop;
+	private TaskController taskController;
+	private Desktop desktop;
 
-    /**
-     * This method is non-blocking, it places a request to open these files and
-     * exits immediately.
-     */
-    public void openFiles(File[] files, PreloadLevel preloadLevel) {
+	/**
+	 * This method is non-blocking, it places a request to open these files and
+	 * exits immediately.
+	 */
+	public void openFiles(File[] files, PreloadLevel preloadLevel) {
 
-        Task openTask;
+		Task openTask;
 
-        for (File file : files) {
+		for (File file : files) {
 
-            openTask = new FileOpeningTask(file, preloadLevel);
-            taskController.addTask(openTask, this);
-        }
+			openTask = new FileOpeningTask(file, preloadLevel);
+			taskController.addTask(openTask, this);
+		}
 
-    }
-    public void createProject(File projectDir) throws IOException {
-        Task createTask = new ProjectCreatingTask(projectDir);
-        taskController.addTask(createTask, this);
-    }
-    
-    public void openProject(File projectDir) throws IOException {
-        Task openTask = new ProjectOpeningTask(projectDir);
-        taskController.addTask(openTask, this);
-    }
-    public void saveProject(File projectDir) throws IOException {
-        Task saveTask = new ProjectSavingTask(projectDir);
-        taskController.addTask(saveTask, this);	
-    }
-  
-    /**
-     * This method is called when the file opening task is finished.
-     * 
-     * @see net.sf.mzmine.taskcontrol.TaskListener#taskFinished(net.sf.mzmine.taskcontrol.Task)
-     */
-    public void taskFinished(Task task) {
-    	if (task instanceof FileOpeningTask) {
+	}
+
+	/**
+	 * This method is called when the file opening task is finished.
+	 * 
+	 * @see net.sf.mzmine.taskcontrol.TaskListener#taskFinished(net.sf.mzmine.taskcontrol.Task)
+	 */
+	public void taskFinished(Task task) {
+		if (task instanceof FileOpeningTask) {
 			if (task.getStatus() == Task.TaskStatus.FINISHED) {
 				RawDataFile newFile = ((FileOpeningTask) task).getResult();
 				MZmineCore.getCurrentProject().addFile(newFile);
@@ -97,112 +79,40 @@ public class IOControllerImpl implements IOController, TaskListener {
 
 			}
 		}
-    	else if(task instanceof ProjectCreatingTask){
-    		if (task.getStatus() == Task.TaskStatus.FINISHED) {
-    			
-				MZmineProjectImpl project=(MZmineProjectImpl)((ProjectCreatingTask) task).getResult();
-				MZmineCore.setProject(project);
-				//initialize UI
-    			MainWindow window=(MainWindow)MZmineCore.getDesktop();
-    			ItemSelector itemSelector=window.getItemSelector();
-    			itemSelector.removeAll();
-    			
-			} else if (task.getStatus() == Task.TaskStatus.ERROR) {
-				/* Task encountered an error */
-				logger.severe("Error creating a project: "
-						+ task.getErrorMessage());
-				desktop.displayErrorMessage("Error creating a project: "
-						+ task.getErrorMessage());
-				
-				//if project is not initialized ,return to project initializing dialog. 
-				if (MZmineCore.getCurrentProject() == null){
-					new ProjectInitDialog().setVisible(true);
-				}
-			}
-		}
-    	else if(task instanceof ProjectOpeningTask){
-    		if (task.getStatus() == Task.TaskStatus.FINISHED) {
-    			//do nothing
-				MZmineProjectImpl project=(MZmineProjectImpl)((ProjectOpeningTask) task).getResult();
-				MZmineCore.setProject(project);
-				//restore user interface
-    			//add files to fileList
-    			MainWindow window=(MainWindow)MZmineCore.getDesktop();
-    			ItemSelector itemSelector=window.getItemSelector();
-    			itemSelector.removeAll();
-    			for (RawDataFile file:project.getDataFiles()){
-    				itemSelector.addRawData(file);
-    			}
-    			
-    			//add resultList to peak list pane
-    			for(PeakList peakList:project.getPeakLists()){
-    				itemSelector.addPeakList(peakList);
-    			}
-				
-				
-			} else if (task.getStatus() == Task.TaskStatus.ERROR) {
-				/* Task encountered an error */
-				logger.severe("Error opening a project: "
-						+ task.getErrorMessage());
-				desktop.displayErrorMessage("Error opening a project: "
-						+ task.getErrorMessage());
-				//if project is not initialized ,return to project initializing dialog. 
-				if (MZmineCore.getCurrentProject() == null){
-					new ProjectInitDialog().setVisible(true);
-				}
-			}
-		}
-    	else if(task instanceof ProjectSavingTask){
-    		if (task.getStatus() == Task.TaskStatus.FINISHED) {
-    			//reset project directory to new one
-    			File newProjectDir = ((ProjectSavingTask)task).getResult();
-    			MZmineCore.getCurrentProject().setLocation(newProjectDir);
-    			//
-    			MZmineCore.getDesktop().getMainFrame().setTitle("MZmine:" + newProjectDir.toString());
- 
-    		} else if (task.getStatus() == Task.TaskStatus.ERROR) {
-				/* Task encountered an error */
-				logger.severe("Error saving a project: "
-						+ task.getErrorMessage());
-				desktop.displayErrorMessage("Error saving a project: "
-						+ task.getErrorMessage());
-			}
-		}
-    }
 
-    /**
-     * @see net.sf.mzmine.taskcontrol.TaskListener#taskStarted(net.sf.mzmine.taskcontrol.Task)
-     */
-    public void taskStarted(Task task) {
-        // do nothing
-    }
+	}
 
-    /**
-     * @see net.sf.mzmine.main.MZmineModule#initModule(net.sf.mzmine.main.MZmineCore)
-     */
-    public void initModule() {
-        this.taskController = MZmineCore.getTaskController();
-        this.desktop = MZmineCore.getDesktop();
-    }
+	/**
+	 * @see net.sf.mzmine.taskcontrol.TaskListener#taskStarted(net.sf.mzmine.taskcontrol.Task)
+	 */
+	public void taskStarted(Task task) {
+		// do nothing
+	}
 
-    
-    /**
-     * @see net.sf.mzmine.io.IOController#createNewFile(java.lang.String,
-     *      net.sf.mzmine.io.PreloadLevel)
-     */
-    public RawDataFileWriter createNewFile(String fileName,String suffix,
-            PreloadLevel preloadLevel) throws IOException {
-        return new RawDataFileImpl(fileName,suffix, preloadLevel);
-    }
-    
-    /**
-     * @see net.sf.mzmine.io.IOController#createNewFile(java.lang.String,
-     *      net.sf.mzmine.io.PreloadLevel)
-     */
-    public RawDataFileWriter createNewFile(File file,
-            PreloadLevel preloadLevel) throws IOException {
-        return new RawDataFileImpl(file.getName(),"scan", preloadLevel);
-    }
-    
+	/**
+	 * @see net.sf.mzmine.main.MZmineModule#initModule(net.sf.mzmine.main.MZmineCore)
+	 */
+	public void initModule() {
+		this.taskController = MZmineCore.getTaskController();
+		this.desktop = MZmineCore.getDesktop();
+	}
+
+	/**
+	 * @see net.sf.mzmine.io.IOController#createNewFile(java.lang.String,
+	 *      net.sf.mzmine.io.PreloadLevel)
+	 */
+	public RawDataFileWriter createNewFile(String fileName, String suffix,
+			PreloadLevel preloadLevel) throws IOException {
+		return new RawDataFileImpl(fileName, suffix, preloadLevel);
+	}
+
+	/**
+	 * @see net.sf.mzmine.io.IOController#createNewFile(java.lang.String,
+	 *      net.sf.mzmine.io.PreloadLevel)
+	 */
+	public RawDataFileWriter createNewFile(File file, PreloadLevel preloadLevel)
+			throws IOException {
+		return new RawDataFileImpl(file.getName(), "scan", preloadLevel);
+	}
 
 }

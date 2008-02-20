@@ -27,10 +27,12 @@ import java.util.logging.Logger;
 import javax.swing.SwingUtilities;
 
 import net.sf.mzmine.io.impl.IOControllerImpl;
-import net.sf.mzmine.project.impl.MZmineProjectImpl;
+import net.sf.mzmine.project.MZmineProject;
+import net.sf.mzmine.project.ProjectManager;
+import net.sf.mzmine.project.ProjectType;
+import net.sf.mzmine.project.impl.ProjectManagerImpl;
 import net.sf.mzmine.taskcontrol.impl.TaskControllerImpl;
 import net.sf.mzmine.userinterface.mainwindow.MainWindow;
-import net.sf.mzmine.userinterface.dialogs.ProjectInitDialog;
 
 import org.dom4j.Document;
 import org.dom4j.Element;
@@ -41,155 +43,177 @@ import org.dom4j.io.SAXReader;
  */
 public class MZmineClient extends MZmineCore implements Runnable {
 
-    private Logger logger = Logger.getLogger(this.getClass().getName());
+	private Logger logger = Logger.getLogger(this.getClass().getName());
 
-    private Vector<MZmineModule> moduleSet;
+	private Vector<MZmineModule> moduleSet;
 
-    /**
-     * Main method
-     */
-    public static void main(String args[]) {
+	private ProjectManager projectManager;
 
-        // create the GUI in the event-dispatching thread
-        MZmineClient client = new MZmineClient();
-        SwingUtilities.invokeLater(client);
+	// make MZmineClient a singleton
+	private static MZmineClient client = new MZmineClient();
 
-    }
+	private MZmineClient() {
+	}
 
-    /**
-     * @see java.lang.Runnable#run()
-     */
-    public void run() {
+	public static MZmineClient getInstance() {
+		return client;
+	}
 
-        // load configuration from XML
-        Document configuration = null;
-        MainWindow desktop = null;
-        try {
-            SAXReader reader = new SAXReader();
-            configuration = reader.read(CONFIG_FILE);
-            Element configRoot = configuration.getRootElement();
+	/**
+	 * Main method
+	 */
+	public static void main(String args[]) {
 
-            // get the configured number of computation nodes
-            int numberOfNodes;
+		// create the GUI in the event-dispatching thread
+		SwingUtilities.invokeLater(client);
 
-            Element nodes = configRoot.element(NODES_ELEMENT_NAME);
-            String numberOfNodesConfigEntry = nodes.attributeValue(LOCAL_ATTRIBUTE_NAME);
-            if (numberOfNodesConfigEntry != null) {
-                numberOfNodes = Integer.parseInt(numberOfNodesConfigEntry);
-            } else
-                numberOfNodes = Runtime.getRuntime().availableProcessors();
+	}
 
-            logger.info("MZmine starting with " + numberOfNodes
-                    + " computation nodes");
+	/**
+	 * @see java.lang.Runnable#run()
+	 */
+	public void run() {
 
-            logger.finer("Loading core classes");
-            
-            // create instances of core modules
-            TaskControllerImpl taskController = new TaskControllerImpl(
-                    numberOfNodes);
-            IOControllerImpl ioController = new IOControllerImpl();
-            desktop = new MainWindow();
+		// load configuration from XML
+		Document configuration = null;
+		MainWindow desktop = null;
+		try {
+			SAXReader reader = new SAXReader();
+			configuration = reader.read(CONFIG_FILE);
+			Element configRoot = configuration.getRootElement();
 
-            // save static references to MZmineCore
-            MZmineCore.taskController = taskController;
-            MZmineCore.ioController = ioController;
-            MZmineCore.desktop = desktop;           
-            MZmineCore.currentProject = null;
-            
-            logger.finer("Initializing core classes");
+			// get the configured number of computation nodes
+			int numberOfNodes;
 
-            taskController.initModule();
-            ioController.initModule();
-            desktop.initModule();       
-			
-            logger.finer("Loading modules");
+			Element nodes = configRoot.element(NODES_ELEMENT_NAME);
+			String numberOfNodesConfigEntry = nodes
+					.attributeValue(LOCAL_ATTRIBUTE_NAME);
+			if (numberOfNodesConfigEntry != null) {
+				numberOfNodes = Integer.parseInt(numberOfNodesConfigEntry);
+			} else
+				numberOfNodes = Runtime.getRuntime().availableProcessors();
 
-            moduleSet = new Vector<MZmineModule>();
+			logger.info("MZmine starting with " + numberOfNodes
+					+ " computation nodes");
 
-            Iterator modIter = configRoot.element(MODULES_ELEMENT_NAME).elementIterator(
-                    MODULE_ELEMENT_NAME);
+			logger.finer("Loading core classes");
 
-            while (modIter.hasNext()) {
-                Element moduleElement = (Element) modIter.next();
-                String className = moduleElement.attributeValue(CLASS_ATTRIBUTE_NAME);
-                loadModule(className);
-            }
+			// create instances of core modules
+			TaskControllerImpl taskController = new TaskControllerImpl(
+					numberOfNodes);
+			IOControllerImpl ioController = new IOControllerImpl();
+			desktop = new MainWindow();
 
-            MZmineCore.initializedModules = moduleSet.toArray(new MZmineModule[0]);
+			// save static references to MZmineCore
+			MZmineCore.taskController = taskController;
+			MZmineCore.ioController = ioController;
+			MZmineCore.desktop = desktop;
+			MZmineCore.currentProject = null;
 
-            // load module configuration
-            loadConfiguration(CONFIG_FILE);
-            
-            
-            // create  or select Project
-            // We have to load project here because project loading access desktop property
-            
-            loadProject ();     
+			logger.finer("Initializing core classes");
 
-        } catch (Exception e) {
-            logger.log(Level.SEVERE, "Could not parse configuration file "
-                    + CONFIG_FILE, e);
-            System.exit(1);
-        }
-        
-        // register the shutdown hook
-        ShutDownHook shutDownHook = new ShutDownHook();
-        Runtime.getRuntime().addShutdownHook(shutDownHook);
+			taskController.initModule();
+			ioController.initModule();
+			desktop.initModule();
 
-        // show the GUI
-        logger.finest("Showing main window");
-        desktop.setVisible(true);
-        
-        // show the welcome message
-        desktop.setStatusBarText("Welcome to MZmine!");
+			logger.finer("Loading modules");
 
-    }
-    
-    private synchronized void  loadProject(){
-    	ProjectInitDialog initDialog = new ProjectInitDialog();
-   
-    	//while (MZmineCore.getCurrentProject() == null){
-    			initDialog.setVisible(true);
-    	//}
-    }
-    
-    public MZmineModule loadModule(String moduleClassName) {
+			moduleSet = new Vector<MZmineModule>();
 
-        try {
+			Iterator modIter = configRoot.element(MODULES_ELEMENT_NAME)
+					.elementIterator(MODULE_ELEMENT_NAME);
 
-            logger.finest("Loading module " + moduleClassName);
+			while (modIter.hasNext()) {
+				Element moduleElement = (Element) modIter.next();
+				String className = moduleElement
+						.attributeValue(CLASS_ATTRIBUTE_NAME);
+				loadModule(className);
+			}
 
-            // load the module class
-            Class moduleClass = Class.forName(moduleClassName);
+			MZmineCore.initializedModules = moduleSet
+					.toArray(new MZmineModule[0]);
 
-            // create instance
-            MZmineModule moduleInstance = (MZmineModule) moduleClass.newInstance();
+			// load module configuration
+			loadConfiguration(CONFIG_FILE);
 
-            // init module
-            moduleInstance.initModule();
+			// create or select Project
+			// We have to load project here because project loading access
+			// desktop property
 
-            // add to the module set
-            moduleSet.add(moduleInstance);
+			while (MZmineCore.getTaskController() == null) {
+				// wait;
+			}
+			while (MZmineCore.getDesktop() == null) {
+				// wait;
+			}
 
-            return moduleInstance;
+			projectManager = new ProjectManagerImpl(ProjectType.xstream);
+			projectManager.createTemporalProject();
 
-        } catch (Exception e) {
-            logger.log(Level.SEVERE,
-                    "Could not load module " + moduleClassName, e);
-            return null;
-        }
+		} catch (Exception e) {
+			logger.log(Level.SEVERE, "Could not parse configuration file "
+					+ CONFIG_FILE, e);
+			System.exit(1);
+		}
 
-    }
+		// register the shutdown hook
+		ShutDownHook shutDownHook = new ShutDownHook();
+		Runtime.getRuntime().addShutdownHook(shutDownHook);
 
-    /**
-     * Shutdown hook - invoked on JRE shutdown. This method saves current
-     * configuration to XML.
-     * 
-     */
-    private class ShutDownHook extends Thread {
-        public void start() {
-            saveConfiguration(CONFIG_FILE);
-        }
-    }
+		// show the GUI
+		logger.finest("Showing main window");
+		desktop.setVisible(true);
 
+		// show the welcome message
+		desktop.setStatusBarText("Welcome to MZmine!");
+
+	}
+
+	public ProjectManager getProjectManager() {
+		return projectManager;
+	}
+
+	public MZmineModule loadModule(String moduleClassName) {
+
+		try {
+
+			logger.finest("Loading module " + moduleClassName);
+
+			// load the module class
+			Class moduleClass = Class.forName(moduleClassName);
+
+			// create instance
+			MZmineModule moduleInstance = (MZmineModule) moduleClass
+					.newInstance();
+
+			// init module
+			moduleInstance.initModule();
+
+			// add to the module set
+			moduleSet.add(moduleInstance);
+
+			return moduleInstance;
+
+		} catch (Exception e) {
+			logger.log(Level.SEVERE,
+					"Could not load module " + moduleClassName, e);
+			return null;
+		}
+
+	}
+
+	/**
+	 * Shutdown hook - invoked on JRE shutdown. This method saves current
+	 * configuration to XML.
+	 * 
+	 */
+	private class ShutDownHook extends Thread {
+		public void start() {
+			saveConfiguration(CONFIG_FILE);
+			MZmineProject project = MZmineCore.getCurrentProject();
+			if (project.getIsTemporal() == true) {
+				projectManager.removeProjectDir(project.getLocation());
+			}
+		}
+	}
 }
