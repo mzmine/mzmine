@@ -37,16 +37,6 @@ public interface IsotopePattern extends Peak {
      */
     public Peak getRepresentativePeak();
 
-    /**
-     * Returns peak with the lowest m/z value of this pattern
-     */
-    public Peak getLowestMZPeak();
-    
-    /**
-     * Returns the most intense peak of this pattern
-     */
-    public Peak getMostIntensePeak();
-    
 	/**
 	 * Returns the charge of peaks in the pattern
 	 */

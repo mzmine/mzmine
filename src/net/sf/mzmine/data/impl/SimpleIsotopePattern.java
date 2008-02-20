@@ -104,34 +104,6 @@ public class SimpleIsotopePattern implements IsotopePattern {
 		this.representativePeak = representativePeak;
 	}
 
-	public Peak getLowestMZPeak() {
-		if ((peaks == null) || (peaks.size() == 0))
-			return null;
-
-		Iterator<Peak> peakIter = peaks.iterator();
-		Peak lowestMZPeak = peakIter.next();
-		while (peakIter.hasNext()) {
-			Peak peak = peakIter.next();
-			if (peak.getMZ() < lowestMZPeak.getMZ())
-				lowestMZPeak = peak;
-		}
-		return lowestMZPeak;
-	}
-
-	public Peak getMostIntensePeak() {
-		if ((peaks == null) || (peaks.size() == 0))
-			return null;
-
-		Iterator<Peak> peakIter = peaks.iterator();
-		Peak mostIntensePeak = peakIter.next();
-		while (peakIter.hasNext()) {
-			Peak peak = peakIter.next();
-			if (peak.getArea() > mostIntensePeak.getArea())
-				mostIntensePeak = peak;
-		}
-		return mostIntensePeak;
-	}
-
 	/**
 	 * @see net.sf.mzmine.data.Peak#getDataFile()
 	 */
