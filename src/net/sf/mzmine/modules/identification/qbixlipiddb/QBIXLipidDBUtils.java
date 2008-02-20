@@ -24,6 +24,7 @@ import java.util.regex.Pattern;
 
 import net.sf.mzmine.data.CompoundIdentity;
 import net.sf.mzmine.data.PeakListRow;
+import net.sf.mzmine.util.PeakUtils;
 
 /**
  * This class implements methods needed in pre- and post-processing queries and
@@ -134,12 +135,13 @@ class QBIXLipidDBUtils {
 	 */
 	QBIXLipidDBQuery[] createQueries(PeakListRow peakListRow) {
 
-		float mz = peakListRow.getAverageMZ();
+		float monoisotopicMZ = PeakUtils.getAverageMZUsingLowestMZPeaks(peakListRow);
+		float basepeakMZ = PeakUtils.getAverageMZUsingMostIntensePeaks(peakListRow);
 		float rt = peakListRow.getAverageRT();
 
 		ArrayList<QBIXLipidDBQuery> queries = new ArrayList<QBIXLipidDBQuery>();
 
-		if (mz <= 0)
+		if ( (monoisotopicMZ <= 0) || (basepeakMZ <=0) )
 			return new QBIXLipidDBQuery[0];
 		if (rt < 0)
 			return new QBIXLipidDBQuery[0];
@@ -152,13 +154,13 @@ class QBIXLipidDBUtils {
 		*/
 
 		for (int queryNumber = 0; queryNumber < lipidClassTable.length; queryNumber++) {
-			if ((mz > (Float) lipidClassTable[queryNumber][lctColMinMZ])
-					&& (mz < (Float) lipidClassTable[queryNumber][lctColMaxMZ])
+			if ((basepeakMZ > (Float) lipidClassTable[queryNumber][lctColMinMZ])
+					&& (basepeakMZ < (Float) lipidClassTable[queryNumber][lctColMaxMZ])
 					&& (rt > (Float) lipidClassTable[queryNumber][lctColMinRT])
 					&& (rt < (Float) lipidClassTable[queryNumber][lctColMaxRT])) {
 
 				QBIXLipidDBQuery newQueryData = new QBIXLipidDBQuery(
-						(String) lipidClassTable[queryNumber][lctColName], mz,
+						(String) lipidClassTable[queryNumber][lctColName], monoisotopicMZ, basepeakMZ,
 						rt, tolerancePPM,
 						(String) lipidClassTable[queryNumber][lctColAdduct],
 						(Float) lipidClassTable[queryNumber][lctColAdd],
@@ -173,7 +175,7 @@ class QBIXLipidDBUtils {
 		if (queries.isEmpty()) {
 
 			QBIXLipidDBQuery newQueryData = new QBIXLipidDBQuery(
-					(String) noMatchQuery[lctColName], mz, rt, tolerancePPM,
+					(String) noMatchQuery[lctColName], monoisotopicMZ, basepeakMZ, rt, tolerancePPM,
 					(String) noMatchQuery[lctColAdduct],
 					(Float) noMatchQuery[lctColAdd],
 					(String) noMatchQuery[lctColExpected]);
@@ -220,7 +222,7 @@ class QBIXLipidDBUtils {
 				int numberOfConditions = (theoreticalLipidsValidationTable[tableRow].length - 1) / 2;
 				while (conditionNumber < numberOfConditions) {
 					boolean conditionResult = (Boolean) theoreticalLipidsValidationTable[tableRow][1 + conditionNumber * 2];
-					String conditionRegexp = (String) theoreticalLipidsValidationTable[tableRow][1 + conditionNumber + 1];
+					String conditionRegexp = (String) theoreticalLipidsValidationTable[tableRow][1 + conditionNumber * 2 + 1];
 					if (Pattern.matches(conditionRegexp, identity
 							.getCompoundName()) == conditionResult)
 						return true;

@@ -22,18 +22,20 @@ package net.sf.mzmine.modules.identification.qbixlipiddb;
 class QBIXLipidDBQuery {
 
 	private String name;
-	private float mz;			// TODO: Store both base peak m/z and monoisotopic m/z
+	private float monoIsotopicMZ;	
+	private float basePeakMZ;
 	private float rt;
 	private float tolerancePPM;
 	private String adduct;
 	private float add;
 	private String expected;
 
-	QBIXLipidDBQuery(String name, float mz, float rt, float tolerancePPM,
+	QBIXLipidDBQuery(String name, float monoIsotopicMZ, float basePeakMZ, float rt, float tolerancePPM,
 			String adduct, float add, String expected) {
 
 		this.name = name;
-		this.mz = mz;
+		this.monoIsotopicMZ = monoIsotopicMZ;
+		this.basePeakMZ = basePeakMZ;
 		this.rt = rt;
 		this.tolerancePPM = tolerancePPM;
 		this.adduct = adduct;
@@ -46,18 +48,30 @@ class QBIXLipidDBQuery {
 		return name;
 	}
 
-	float getMZ() {
-		return mz;
+	float getMonoIsotopicMZ() {
+		return monoIsotopicMZ;
 	}
 	
-	float getMinMZ() {
-		return mz - mz * tolerancePPM / 1000000.0f;
+	float getMinMonoIsotopicMZ() {
+		return getMonoIsotopicMZ() - getMonoIsotopicMZ() * tolerancePPM / 1000000.0f;
 	}
 
-	float getMaxMZ() {
-		return mz + mz * tolerancePPM / 1000000.0f;
+	float getMaxMonoIsotopicMZ() {
+		return getMonoIsotopicMZ() + getMonoIsotopicMZ() * tolerancePPM / 1000000.0f;
 	}
 
+	float getBasePeakMZ() {
+		return basePeakMZ;
+	}
+	
+	float getMinBasePeakMZ() {
+		return getBasePeakMZ() - getBasePeakMZ() * tolerancePPM / 1000000.0f;
+	}
+
+	float getMaxBasePeakMZ() {
+		return getBasePeakMZ() + getBasePeakMZ() * tolerancePPM / 1000000.0f;
+	}	
+	
 	float getRT() {
 		return rt;
 	}

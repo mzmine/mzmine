@@ -98,9 +98,9 @@ class QBIXLipidDBConnection {
 		}
 
 		String xQueryString = "for $a in input()/CommonLipid where  $a/BasePeak < "
-				+ query.getMaxMZ()
+				+ query.getMaxMonoIsotopicMZ()
 				+ " and $a/BasePeak > "
-				+ query.getMinMZ()
+				+ query.getMinMonoIsotopicMZ()
 				+ " return  <Element> {$a/Name}\n{$a/MonoIsoMass}\n {$a/BasePeak} </Element>";
 
 		TXQuery xQuery = TXQuery.newInstance(xQueryString);
@@ -171,9 +171,9 @@ class QBIXLipidDBConnection {
 		String xQueryString = "declare namespace tf = \"http://namespaces.softwareag.com/tamino/TaminoFunction\" for $a in input()/Compound where  tf:containsText($a/Molecule/Class,\""
 				+ query.getName()
 				+ "\") and $a/Molecule/Isotopicdistribution/Mass[1] < "
-				+ (query.getMaxMZ() - query.getAdd())
+				+ (query.getMaxBasePeakMZ() - query.getAdd())
 				+ " and  $a/Molecule/Isotopicdistribution/Mass[1] > "
-				+ (query.getMinMZ() - query.getAdd())
+				+ (query.getMinBasePeakMZ() - query.getAdd())
 				+ " return  <Results> "
 				+ "{$a/VTT_ID} \n "
 				+ "{$a/Molecule/Name} \n "
@@ -269,7 +269,7 @@ class QBIXLipidDBConnection {
 		}
 
 		QBIXLipidDBQuery testQuery = new QBIXLipidDBQuery(
-				"Glycerophospholipi*", 496.34107f, 202.700265f, 50.0f, "[M+H]",
+				"Glycerophospholipi*", 496.34107f, 496.34107f, 202.700265f, 50.0f, "[M+H]",
 				1.007825f, "LPC/LPE/LPA/LSer");
 
 		QBIXLipidDBUtils utils = new QBIXLipidDBUtils(parameters);
@@ -278,6 +278,7 @@ class QBIXLipidDBConnection {
 				.runQueryOnTheoreticalLipids(testQuery);
 
 		for (CompoundIdentity identity : identities) {
+			
 			System.out.println("ID="
 					+ identity.getCompoundID()
 					+ ", CompoundName="
@@ -289,8 +290,7 @@ class QBIXLipidDBConnection {
 					+ ", DatabaseEntryURL="
 					+ identity.getDatabaseEntryURL()
 					+ ", Validated="
-					+ utils.validateTheoreticalLipidIdentity(testQuery,
-							identity));
+					+ utils.validateTheoreticalLipidIdentity(testQuery, identity));
 		}
 
 		dbConnection.closeConnection();
