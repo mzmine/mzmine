@@ -19,6 +19,8 @@
 
 package net.sf.mzmine.io.impl;
 
+import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.RandomAccessFile;
 import java.nio.ByteBuffer;
@@ -30,13 +32,14 @@ import net.sf.mzmine.data.DataPoint;
 import net.sf.mzmine.data.Scan;
 import net.sf.mzmine.data.impl.SimpleDataPoint;
 import net.sf.mzmine.io.RawDataFile;
+import net.sf.mzmine.main.MZmineCore;
 
 /**
  * Simple implementation of the Scan interface.
  */
 public class StorableScan implements Scan {
 
-    private Logger logger = Logger.getLogger(this.getClass().getName());
+    private transient Logger logger = Logger.getLogger(this.getClass().getName());
 
     private int scanNumber, msLevel, parentScan, fragmentScans[];
     private float precursorMZ;
@@ -393,6 +396,11 @@ public class StorableScan implements Scan {
 
     public float getTIC() {
         return totalIonCurrent;
+    }
+    private Object readResolve(){
+    	
+		logger = Logger.getLogger(this.getClass().getName());
+    	return this;
     }
 
 }

@@ -46,7 +46,7 @@ import net.sf.mzmine.util.CollectionUtils;
  */
 class RawDataFileImpl implements RawDataFile, RawDataFileWriter {
 
-    private Logger logger = Logger.getLogger(this.getClass().getName());
+    private transient Logger logger = Logger.getLogger(this.getClass().getName());
 
     private String fileName; //this is just a name of this object
 
@@ -54,7 +54,7 @@ class RawDataFileImpl implements RawDataFile, RawDataFileWriter {
             dataMaxRT, dataMaxBasePeakIntensity, dataMaxTIC;
 
     private String scanDataFileName,writingScanDataFileName;
-    private RandomAccessFile scanDataFile, writingScanDataFile;
+    private transient RandomAccessFile scanDataFile, writingScanDataFile;
     /**
      * Preloaded scans
      */
@@ -567,5 +567,8 @@ class RawDataFileImpl implements RawDataFile, RawDataFileWriter {
     public float getDataMinRT() {
         return getDataMinRT(0);
     }
-
+    private Object readResolve(){
+		logger = Logger.getLogger(this.getClass().getName());
+    	return this;
+    }
 }
