@@ -189,7 +189,12 @@ class RTNormalizerTask implements Task {
 
             normalizePeakList(originalPeakLists[peakListIndex],
                     normalizedPeakLists[peakListIndex], standards, averagedRTs);
+            
+        }
 
+        // Cancel?
+        if (status == TaskStatus.CANCELED) {
+            return;
         }
 
         // Add new peaklists to the project
