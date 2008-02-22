@@ -241,12 +241,6 @@
     <module class="net.sf.mzmine.modules.identification.fragmentation.InSourceFragmentationSearch"/>  
     <module class="net.sf.mzmine.modules.identification.kegg.KEGGSearch"/>  
     <module class="net.sf.mzmine.modules.identification.pubchem.PubChemSearch"/>  
-    <module class="net.sf.mzmine.modules.identification.qbixlipiddb.QBIXLipidDBSearch"> 
-      <parameters>
-        <parameter name="ppm" type="FLOAT">50.0</parameter>
-        <parameter name="Mass resolution" type="FLOAT">0.2</parameter>
-      </parameters> 
-    </module> 
   </modules>  
   <desktop>
     <format type="m/z">
