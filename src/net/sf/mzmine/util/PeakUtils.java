@@ -68,7 +68,7 @@ public class PeakUtils {
 
 		Peak mostIntensePeak = peaks[0];
 		for (Peak peak : peaks)
-			if (peak.getArea() < mostIntensePeak.getArea())
+			if (peak.getArea() > mostIntensePeak.getArea())
 				mostIntensePeak = peak;
 
 		return mostIntensePeak;
