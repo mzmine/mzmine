@@ -31,7 +31,7 @@ public class DuplicateFilterParameters extends SimpleParameterSet {
 
     public static final Parameter suffix = new SimpleParameter(
             ParameterType.STRING, "Name suffix",
-            "Suffix to be added to peak list name", null, "FTMS filtered", null);
+            "Suffix to be added to peak list name", null, "Duplicate peaks filtered", null);
 
     public static final Parameter mzDifferenceMax = new SimpleParameter(
             ParameterType.FLOAT, "M/Z tolerance",
