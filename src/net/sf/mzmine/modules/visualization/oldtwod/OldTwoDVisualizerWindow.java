@@ -130,18 +130,19 @@ public class OldTwoDVisualizerWindow extends JInternalFrame implements
 
 		getContentPane().add(plotAndAxis, BorderLayout.CENTER);
 
-		bottomPanel = new OldTwoDBottomPanel(this);
+		bottomPanel = new OldTwoDBottomPanel(this, dataFile);
 		add(bottomPanel, BorderLayout.SOUTH);
 
-		// Update the peak list combo contents
-		updatePeakListCombo();
-		
 		updateTitle();
 
 		pack();
 
 		setSize(600, 400);
 
+		// After we have constructed everything, load the peak lists into the
+		// bottom panel
+		bottomPanel.rebuildPeakListSelector(MZmineCore.getCurrentProject());
+		
 	}
 
 	public void datasetUpdating() {
@@ -174,22 +175,6 @@ public class OldTwoDVisualizerWindow extends JInternalFrame implements
 		return selectedPeakList;
 	}
 	
-	protected void updatePeakListCombo() {
-		JComboBox peakListSelector = bottomPanel.getPeakListSelector();
-		peakListSelector.removeAllItems();
-		MZmineProject project = MZmineCore.getCurrentProject();
-		PeakList availablePeakLists[] = project.getPeakLists(dataFile);
-		// Add peak lists in reverse order
-		for (int i = availablePeakLists.length - 1; i >= 0; i--) {
-			peakListSelector.addItem(availablePeakLists[i]);
-			if (selectedPeakList == null)
-				selectedPeakList = availablePeakLists[i];
-		}
-		if (selectedPeakList != null)
-			peakListSelector.setSelectedItem(selectedPeakList);
-		peakListSelector.setEnabled((availablePeakLists.length > 0));
-		
-	}
 
 	private Object[] createPaintScale(int paletteMode, float maxIntensity) {
 
@@ -416,8 +401,7 @@ public class OldTwoDVisualizerWindow extends JInternalFrame implements
 		}
 		
         if (command.equals("PEAKLIST_CHANGE")) {
-            JComboBox peakListSelector = bottomPanel.getPeakListSelector();
-            selectedPeakList = (PeakList) peakListSelector.getSelectedItem();
+            selectedPeakList = bottomPanel.getSelectedPeakList(); 
             repaint();
         }
 		

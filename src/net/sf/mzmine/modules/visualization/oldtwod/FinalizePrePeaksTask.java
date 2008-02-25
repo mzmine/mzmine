@@ -134,8 +134,6 @@ public class FinalizePrePeaksTask implements Task {
 			highestID++;
 		}
 
-		visualizerWindow.updatePeakListCombo();
-
 		status = TaskStatus.FINISHED;
 
 	}
