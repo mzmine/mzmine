@@ -154,7 +154,8 @@
         <parameter name="Maximum height" type="FLOAT">0.05</parameter>
         <parameter name="Remove original peaklist" type="BOOLEAN">true</parameter>
       </parameters> 
-    </module>  
+    </module>
+    <module class="net.sf.mzmine.modules.peakpicking.duplicatefilter.DuplicateFilter"/>  
     <module class="net.sf.mzmine.modules.alignment.join.JoinAligner"> 
       <parameters>
         <parameter name="Peaklist name" type="STRING">Aligned peak list</parameter>
