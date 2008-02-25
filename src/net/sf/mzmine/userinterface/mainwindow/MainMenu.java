@@ -271,9 +271,11 @@ class MainMenu extends JMenuBar implements ActionListener {
 			if (result == JOptionPane.YES_OPTION) {
 				DesktopParameters parameters = (DesktopParameters) MZmineCore
 						.getDesktop().getParameterSet();
-				File lastDir = new File(parameters.getLastOpenProjectPath());
+                String lastPath = parameters.getLastOpenProjectPath();
+                if (lastPath == null) lastPath = "";
+                File lastProjectPath = new File(lastPath);
 				ProjectCreateDialog projectCreateDialog = new ProjectCreateDialog(
-						lastDir, ProjectCreateDialog.DialogType.Create);
+                        lastProjectPath, ProjectCreateDialog.DialogType.Create);
 				projectCreateDialog.setVisible(true);
 			}
 
@@ -281,9 +283,11 @@ class MainMenu extends JMenuBar implements ActionListener {
 		if (src == projectRestore) {
 			DesktopParameters parameters = (DesktopParameters) MZmineCore
 					.getDesktop().getParameterSet();
-			File lastProjectPath = new File(parameters.getLastOpenProjectPath());
-			ProjectOpenDialog projectOpenDialog = new ProjectOpenDialog(
-					lastProjectPath);
+            String lastPath = parameters.getLastOpenPath();
+            if (lastPath == null) lastPath = "";
+            File lastDir = new File(lastPath);
+            ProjectOpenDialog projectOpenDialog = new ProjectOpenDialog(
+                    lastDir);
 			projectOpenDialog.setVisible(true);
 		}
 		if (src == projectSave) {
@@ -292,9 +296,10 @@ class MainMenu extends JMenuBar implements ActionListener {
 					// exec save as
 					DesktopParameters parameters = (DesktopParameters) MZmineCore
 							.getDesktop().getParameterSet();
-					File lastProjectPath = new File(parameters
-							.getLastOpenProjectPath());
-					ProjectCreateDialog projectSaveAsDialog = new ProjectCreateDialog(
+                    String lastPath = parameters.getLastOpenProjectPath();
+                    if (lastPath == null) lastPath = "";
+                    File lastProjectPath = new File(lastPath);
+                    ProjectCreateDialog projectSaveAsDialog = new ProjectCreateDialog(
 							lastProjectPath,ProjectCreateDialog.DialogType.SaveAs);
 					projectSaveAsDialog.setVisible(true);
 
@@ -314,7 +319,9 @@ class MainMenu extends JMenuBar implements ActionListener {
 		if (src == projectSaveAs) {
 			DesktopParameters parameters = (DesktopParameters) MZmineCore
 					.getDesktop().getParameterSet();
-			File lastProjectPath = new File(parameters.getLastOpenProjectPath());
+            String lastPath = parameters.getLastOpenProjectPath();
+            if (lastPath == null) lastPath = "";
+			File lastProjectPath = new File(lastPath);
 			ProjectCreateDialog projectSaveAsDialog = new ProjectCreateDialog(
 					lastProjectPath, ProjectCreateDialog.DialogType.SaveAs);
 			projectSaveAsDialog.setVisible(true);
@@ -322,7 +329,8 @@ class MainMenu extends JMenuBar implements ActionListener {
 		if (src == projectOpen) {
 			DesktopParameters parameters = (DesktopParameters) MZmineCore
 					.getDesktop().getParameterSet();
-			String lastPath = parameters.getLastOpenPath();
+            String lastPath = parameters.getLastOpenProjectPath();
+            if (lastPath == null) lastPath = "";
 			FileOpenDialog fileOpenDialog = new FileOpenDialog(lastPath);
 			fileOpenDialog.setVisible(true);
 			parameters.setLastOpenPath(fileOpenDialog.getCurrentDirectory());
