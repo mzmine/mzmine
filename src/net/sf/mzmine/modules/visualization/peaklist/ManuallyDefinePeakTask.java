@@ -111,6 +111,9 @@ class ManuallyDefinePeakTask implements Task {
                 dataPointFound = true;
                 ucPeak.addDatapoint(scan.getScanNumber(), basePeak.getMZ(),
                     scan.getRetentionTime(), basePeak.getIntensity());
+            } else if (dataPointFound) {
+                ucPeak.addDatapoint(scan.getScanNumber(), ucPeak.getMZ(),
+                        scan.getRetentionTime(), 0f);
             }
             
             processedScans++;
