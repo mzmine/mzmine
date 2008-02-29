@@ -79,12 +79,18 @@ public interface Scan {
     public float getTIC();
 
     /**
+     * This method may need to read data from disk, therefore it may be quite
+     * slow. Modules should be aware of that and cache the data points if
+     * necessary.
      * 
      * @return Data points (m/z and intensity pairs) of this scan
      */
     public DataPoint[] getDataPoints();
 
     /**
+     * This method may need to read data from disk, therefore it may be quite
+     * slow. Modules should be aware of that and cache the data points if
+     * necessary.
      * 
      * @return Data points (m/z and intensity pairs) of this scan
      */
