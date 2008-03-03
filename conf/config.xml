@@ -178,7 +178,7 @@
         <parameter name="Remove source peak list after filtering" type="BOOLEAN">true</parameter>
       </parameters> 
     </module>  
-    <module class="net.sf.mzmine.modules.alignment.gapfiller.SimpleGapFiller"> 
+    <module class="net.sf.mzmine.modules.peakpicking.gapfiller.GapFiller"> 
       <parameters>
         <parameter name="Peaklist name" type="STRING">Aligned peak list</parameter>
         <parameter name="Intensity tolerance" type="FLOAT">0.2</parameter>
