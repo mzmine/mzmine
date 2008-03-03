@@ -56,7 +56,7 @@ public class GapFiller implements BatchStepAlignment, TaskListener,
 
         parameters = new GapFillerParameters();
 
-        desktop.addMenuItem(MZmineMenu.ALIGNMENT, "Gap filler", this, null,
+        desktop.addMenuItem(MZmineMenu.PEAKPICKING, "Gap filler", this, null,
                 KeyEvent.VK_G, false, true);
 
     }
