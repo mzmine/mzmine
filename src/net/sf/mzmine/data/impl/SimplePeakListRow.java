@@ -98,10 +98,17 @@ public class SimplePeakListRow implements PeakListRow {
     }
 
     public void addPeak(RawDataFile rawData, Peak original, Peak current) {
-        peaks.put(rawData.getFileName(), current);
-        originalPeaks.put(rawData.getFileName(), original);
-        if (current.getRawDataPointMaxIntensity() > maxDataPointIntensity)
-            maxDataPointIntensity = current.getRawDataPointMaxIntensity();
+        
+        if (original != null) {
+            originalPeaks.put(rawData.getFileName(), original);
+        } else originalPeaks.remove(rawData.getFileName());
+        
+        if (current != null) {
+            peaks.put(rawData.getFileName(), current);
+            if (current.getRawDataPointMaxIntensity() > maxDataPointIntensity)
+                maxDataPointIntensity = current.getRawDataPointMaxIntensity();
+        } else peaks.remove(rawData.getFileName());
+
     }
 
     /*
