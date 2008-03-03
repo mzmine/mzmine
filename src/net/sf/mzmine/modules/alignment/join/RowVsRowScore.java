@@ -20,66 +20,75 @@
 package net.sf.mzmine.modules.alignment.join;
 
 import net.sf.mzmine.data.PeakListRow;
+import net.sf.mzmine.util.PeakUtils;
 
 /**
  * This class represents a score between peak list row and aligned peak list row
  */
 class RowVsRowScore implements Comparable<RowVsRowScore> {
 
-    private PeakListRow peakListRow, alignedRow;
-    float score;
+	private PeakListRow peakListRow, alignedRow;
+	float score;
 
-    RowVsRowScore(PeakListRow peakListRow, PeakListRow alignedRow,
-            float MZvsRTBalance) {
+	RowVsRowScore(PeakListRow peakListRow, PeakListRow alignedRow,
+			float mzMaxDiff, float mzWeight, float rtMaxDiff,
+			float rtWeight, float sameIDWeight) {
 
-        this.peakListRow = peakListRow;
-        this.alignedRow = alignedRow;
+		this.peakListRow = peakListRow;
+		this.alignedRow = alignedRow;
 
-        // Calculate differences between M/Z and RT values
-        float diffMZ = Math.abs(peakListRow.getAverageMZ()
-                - alignedRow.getAverageMZ());
+		// Calculate differences between m/z and RT values
+		float mzDiff = Math.abs(peakListRow.getAverageMZ()
+				- alignedRow.getAverageMZ());
 
-        float diffRT = Math.abs(peakListRow.getAverageRT()
-                - alignedRow.getAverageRT());
+		float rtDiff = Math.abs(peakListRow.getAverageRT()
+				- alignedRow.getAverageRT());
 
-        score = MZvsRTBalance * diffMZ + diffRT;
+		// Compare identities
+		float sameIDFlag = 0.0f;
+		if (PeakUtils.compareIdentities(peakListRow, alignedRow))
+			sameIDFlag = 1.0f;
 
-    }
+		score = (1 - mzDiff / mzMaxDiff) * mzWeight
+				+ (1 - rtDiff / rtMaxDiff) * rtWeight + sameIDFlag
+				* sameIDWeight;
 
-    /**
-     * This method returns the peak list row which is being aligned
-     */
-    PeakListRow getPeakListRow() {
-        return peakListRow;
-    }
+	}
 
-    /**
-     * This method returns the row of aligned peak list
-     */
-    PeakListRow getAlignedRow() {
-        return alignedRow;
-    }
+	/**
+	 * This method returns the peak list row which is being aligned
+	 */
+	PeakListRow getPeakListRow() {
+		return peakListRow;
+	}
 
-    /**
-     * This method returns score between the these two peaks (the lower score,
-     * the better match)
-     */
-    float getScore() {
-        return score;
-    }
+	/**
+	 * This method returns the row of aligned peak list
+	 */
+	PeakListRow getAlignedRow() {
+		return alignedRow;
+	}
 
-    /**
-     * @see java.lang.Comparable#compareTo(java.lang.Object)
-     */
-    public int compareTo(RowVsRowScore object) {
+	/**
+	 * This method returns score between the these two peaks (the lower score,
+	 * the better match)
+	 */
+	float getScore() {
+		return score;
+	}
 
-        // We must never return 0, because the TreeSet in JoinAlignerTask would
-        // treat such elements as equal
-        if (score < object.getScore())
-            return -1;
-        else
-            return 1;
+	/**
+	 * @see java.lang.Comparable#compareTo(java.lang.Object)
+	 */
+	public int compareTo(RowVsRowScore object) {
 
-    }
+		// We must never return 0, because the TreeSet in JoinAlignerTask would
+		// treat such elements as equal
+		if (score < object.getScore())
+			return 1;
+		else
+			return -1;
+
+	}
 
 }
