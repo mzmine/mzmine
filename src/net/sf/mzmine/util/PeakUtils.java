@@ -21,12 +21,13 @@ package net.sf.mzmine.util;
 
 import java.util.Iterator;
 
+import net.sf.mzmine.data.CompoundIdentity;
 import net.sf.mzmine.data.IsotopePattern;
 import net.sf.mzmine.data.Peak;
 import net.sf.mzmine.data.PeakListRow;
 
 /**
- * Methods for handling peaks and isotope patterns
+ * Utilities for peaks and peak lists
  * 
  */
 public class PeakUtils {
@@ -128,4 +129,75 @@ public class PeakUtils {
 
 	}
 
+	
+	/**
+	 * Compares identities of two peak list rows.
+	 * 1) if preferred identities are available, they must be same 
+	 * 2) if no identities are available on both rows, return true
+	 * 3) otherwise all identities on both rows must be same 
+	 *
+	 * @return	True if identities match between rows
+	 * 
+	 * TODO Compare using IDs instead of names when possible
+	 */
+	public static boolean compareIdentities(PeakListRow row1, PeakListRow row2) {
+
+		if ((row1 == null) || (row2 == null))
+			return false;
+
+		// If both have preferred identity available, then compare only those
+		CompoundIdentity row1PreferredIdentity = row1
+				.getPreferredCompoundIdentity();
+		CompoundIdentity row2PreferredIdentity = row2
+				.getPreferredCompoundIdentity();
+		if ((row1PreferredIdentity != null) && (row2PreferredIdentity != null)) {
+			if (row1PreferredIdentity.getCompoundName().equals(
+					row2PreferredIdentity.getCompoundName()))
+				return true;
+			else
+				return false;
+		}
+
+		// If no identities at all for both rows, then return true
+		CompoundIdentity[] row1Identities = row1.getCompoundIdentities();
+		CompoundIdentity[] row2Identities = row2.getCompoundIdentities();
+		if ((row1Identities.length == 0) && (row2Identities.length == 0))
+			return true;
+
+		// Otherwise compare all against all and require that each identity has
+		// a matching identity on the other row
+		if (row1Identities.length != row2Identities.length) return false;
+		boolean sameID = false;
+		for (CompoundIdentity row1Identity : row1Identities) {
+			sameID = false;
+			for (CompoundIdentity row2Identity : row2Identities) {
+				if (row1Identity.getCompoundName().equals(
+						row2Identity.getCompoundName())) {
+					sameID = true;
+					break;
+				}
+			}
+			if (!sameID)
+				break;
+		}
+
+		return sameID;
+
+	}
+	
+	/**
+	 * Returns true if peak list row contains a compound identity matching to id
+	 * 
+	 * TODO Compare IDs instead of names when possible
+	 */
+	public static boolean containsIdentity(PeakListRow row, CompoundIdentity id) {
+		
+		for (CompoundIdentity identity : row.getCompoundIdentities()) {
+			if (identity.getCompoundName().equals(id.getCompoundName()))
+				return true;
+		}
+		
+		return false;
+	}
+	
 }
