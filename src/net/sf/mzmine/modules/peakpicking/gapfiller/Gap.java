@@ -225,7 +225,7 @@ class Gap {
                         && (currentPeakDataPoints.get(i).getIntensity() >= currentPeakDataPoints.get(
                                 i - 1).getIntensity())) {
 
-                    if (currentPeakDataPoints.get(i).getIntensity() >= currentMaxHeight) {
+                    if (currentPeakDataPoints.get(i).getIntensity() > currentMaxHeight) {
 
                         currentMaxHeight = currentPeakDataPoints.get(i).getIntensity();
                         highestMaximumInd = i;
