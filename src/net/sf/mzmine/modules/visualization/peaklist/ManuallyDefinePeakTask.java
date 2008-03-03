@@ -29,29 +29,31 @@ import net.sf.mzmine.io.RawDataFile;
 import net.sf.mzmine.taskcontrol.Task;
 import net.sf.mzmine.util.ScanUtils;
 
+// TODO: zero intensity data points may be added to the end of the peak, this
+// should be fixed
+
 class ManuallyDefinePeakTask implements Task {
 
     private Logger logger = Logger.getLogger(this.getClass().getName());
-    
+
     private TaskStatus status;
     private String errorMessage;
 
     private int processedScans;
     private int totalScans;
-    
+
     private PeakListRow selectedRow;
     private RawDataFile selectedFile;
     private float minRT, maxRT, minMZ, maxMZ;
-    
-    ManuallyDefinePeakTask(PeakListRow selectedRow,
-            RawDataFile selectedFile, float minRT, float maxRT, float minMZ,
-            float maxMZ) {
-        
+
+    ManuallyDefinePeakTask(PeakListRow selectedRow, RawDataFile selectedFile,
+            float minRT, float maxRT, float minMZ, float maxMZ) {
+
         status = TaskStatus.WAITING;
-        
+
         this.selectedRow = selectedRow;
         this.selectedFile = selectedFile;
-        
+
         this.minRT = minRT;
         this.maxRT = maxRT;
         this.minMZ = minMZ;
@@ -86,17 +88,18 @@ class ManuallyDefinePeakTask implements Task {
     }
 
     public void run() {
-        
+
         status = TaskStatus.PROCESSING;
-        
-        logger.finest("Starting manual peak picker, RT: " + minRT + " - " + maxRT + ", m/z: " + minMZ + " - " + maxMZ);
+
+        logger.finest("Starting manual peak picker, RT: " + minRT + " - "
+                + maxRT + ", m/z: " + minMZ + " - " + maxMZ);
 
         int[] scanNumbers = selectedFile.getScanNumbers(1, minRT, maxRT);
         totalScans = scanNumbers.length;
-        
+
         ManuallyDefinedPeak ucPeak = new ManuallyDefinedPeak(selectedFile);
         boolean dataPointFound = false;
-        
+
         for (int i = 0; i < totalScans; i++) {
 
             if (status == TaskStatus.CANCELED)
@@ -104,32 +107,32 @@ class ManuallyDefinePeakTask implements Task {
 
             // Get next scan
             Scan scan = selectedFile.getScan(scanNumbers[i]);
-            
+
             DataPoint basePeak = ScanUtils.findBasePeak(scan, minMZ, maxMZ);
-            
+
             if (basePeak != null) {
                 dataPointFound = true;
                 ucPeak.addDatapoint(scan.getScanNumber(), basePeak.getMZ(),
-                    scan.getRetentionTime(), basePeak.getIntensity());
+                        scan.getRetentionTime(), basePeak.getIntensity());
             } else if (dataPointFound) {
                 ucPeak.addDatapoint(scan.getScanNumber(), ucPeak.getMZ(),
                         scan.getRetentionTime(), 0f);
             }
-            
+
             processedScans++;
-            
+
         }
 
         ucPeak.finalizedAddingDatapoints(PeakStatus.MANUAL);
 
-        if (dataPointFound) {
+        if (ucPeak.getHeight() > 0) 
             selectedRow.addPeak(selectedFile, ucPeak, ucPeak);
-        }
 
-        logger.finest("Finished manual peak picker, " + processedScans + " scans processed");
+        logger.finest("Finished manual peak picker, " + processedScans
+                + " scans processed");
 
         status = TaskStatus.FINISHED;
-        
+
     }
 
 }
