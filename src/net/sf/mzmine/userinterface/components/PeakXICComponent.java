@@ -89,6 +89,9 @@ public class PeakXICComponent extends JComponent {
         RawDataFile dataFile = peak.getDataFile();
         int scanNumbers[] = peak.getScanNumbers();
 
+        // If we have no data, just return
+        if (scanNumbers.length == 0) return;
+        
         // for each datapoint, find [X:Y] coordinates of its point in painted
         // image
         int xValues[] = new int[scanNumbers.length];
