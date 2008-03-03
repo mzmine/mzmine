@@ -19,16 +19,19 @@
 
 package net.sf.mzmine.project.impl;
 
+import java.io.EOFException;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.InputStreamReader;
 import java.io.ObjectInputStream;
+import java.util.HashMap;
 import java.util.Hashtable;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import javax.swing.DefaultListModel;
+
 import net.sf.mzmine.data.Parameter;
-import net.sf.mzmine.data.PeakList;
 import net.sf.mzmine.io.RawDataFile;
 import net.sf.mzmine.main.MZmineClient;
 import net.sf.mzmine.main.MZmineCore;
@@ -116,44 +119,124 @@ public class ProjectOpeningTask_xstream implements ProjectOpeningTask {
 
 		try {
 
-			RawDataFile[] dataFiles;
-			PeakList[] peakLists;
+			DefaultListModel rawDataListModel;
+			DefaultListModel peakListsListModel;
+
 			Hashtable<Parameter, Hashtable<String, Object>> projectParameters;
 
-			File xmlFile = new File(projectDir, "project.xml");
-			InputStreamReader reader = new InputStreamReader(
-					new FileInputStream(xmlFile), "UTF-8");
-
 			XStream xstream = new XStream();
+			File xmlFile;
+			InputStreamReader reader;
+			ObjectInputStream in;
+			int NUM_STEP = 7;
+			int step = 1;
 
-			ObjectInputStream in = xstream.createObjectInputStream(reader);
+			float start;
+			float end;
+			int count;
+
+			int numDataFiles;
+			int numPeakLists;
+
+			// restore info first
+			xmlFile = new File(projectDir, "info.xml");
+
+			if (xmlFile.exists()) {
+				reader = new InputStreamReader(new FileInputStream(xmlFile),
+						"UTF-8");
+				in = xstream.createObjectInputStream(reader);
+				HashMap<String, String> info = (HashMap<String, String>) in
+						.readObject();
+				in.close();
+				numDataFiles = Integer.parseInt(info.get("numDataFiles"));
+				numPeakLists = Integer.parseInt(info.get("numPeakLists"));
+			} else {
+				//
+				numDataFiles = 100;
+				numPeakLists = 100;
+			}
 			finished = FINISHED_STARTED + (FINISHED_LOADED - FINISHED_STARTED)
-					/ 6 * 1;
+					/ NUM_STEP * 1;
 
-			dataFiles = (RawDataFile[]) in.readObject();
+			// restore project
+			xmlFile = new File(projectDir, "project.xml");
+			reader = new InputStreamReader(new FileInputStream(xmlFile),
+					"UTF-8");
+			in = xstream.createObjectInputStream(reader);
+			project = (MZmineProjectImpl) in.readObject();
+			in.close();
 			finished = FINISHED_STARTED + (FINISHED_LOADED - FINISHED_STARTED)
-					/ 6 * 2;
+					/ NUM_STEP * 2;
 
-			peakLists = (PeakList[]) in.readObject();
-			finished = FINISHED_STARTED + (FINISHED_LOADED - FINISHED_STARTED)
-					/ 6 * 3;
+			// restore data files
+			step = 3;
+			start = finished;
+			end = FINISHED_STARTED + (FINISHED_LOADED - FINISHED_STARTED)
+					/ NUM_STEP * step;
 
+			xmlFile = new File(projectDir, "dataFiles.xml");
+			reader = new InputStreamReader(new FileInputStream(xmlFile),
+					"UTF-8");
+
+			in = xstream.createObjectInputStream(reader);
+			rawDataListModel = new DefaultListModel();
+			count = 0;
+			while (true) {
+				try {
+					rawDataListModel.addElement(in.readObject());
+					finished = start + (end - start) / numDataFiles
+							* (count + 1);
+					count++;
+				} catch (EOFException e) {
+					break;
+				}
+			}
+			in.close();
+			project.setRawDataListModel(rawDataListModel);
+			finished = end;
+
+			// restore peak lists
+			step = 4;
+			start = finished;
+			end = finished = FINISHED_STARTED
+					+ (FINISHED_LOADED - FINISHED_STARTED) / NUM_STEP * step;
+
+			xmlFile = new File(projectDir, "peakLists.xml");
+			reader = new InputStreamReader(new FileInputStream(xmlFile),
+					"UTF-8");
+			in = xstream.createObjectInputStream(reader);
+			peakListsListModel = new DefaultListModel();
+			count = 0;
+			while (true) {
+				try {
+					peakListsListModel.addElement(in.readObject());
+					finished = start + (end - start) / numPeakLists
+							* (count + 1);
+					count++;
+				} catch (EOFException e) {
+					break;
+				}
+			}
+			in.close();
+			project.setPeakListsListModel(peakListsListModel);
+			finished = end;
+
+			// restore parameters
+			xmlFile = new File(projectDir, "parameters.xml");
+			reader = new InputStreamReader(new FileInputStream(xmlFile),
+					"UTF-8");
+			in = xstream.createObjectInputStream(reader);
 			projectParameters = (Hashtable<Parameter, Hashtable<String, Object>>) in
 					.readObject();
+			in.close();
 			finished = FINISHED_STARTED + (FINISHED_LOADED - FINISHED_STARTED)
-					/ 6 * 4;
+					/ NUM_STEP * 5;
 
-			project = new MZmineProjectImpl(projectDir);
-
-			for (RawDataFile file : dataFiles) {
-				project.addFile(file);
-			}
-			for (PeakList peakList : peakLists) {
-				project.addPeakList(peakList);
-			}
+			project.setPeakListsListModel(peakListsListModel);
+			project.setRawDataListModel(rawDataListModel);
 			project.setProjectParameters(projectParameters);
 			finished = FINISHED_STARTED + (FINISHED_LOADED - FINISHED_STARTED)
-					/ 6 * 5;
+					/ NUM_STEP * 6;
 
 			// load configuraton
 			File configFile = new File(projectDir, "config.xml");

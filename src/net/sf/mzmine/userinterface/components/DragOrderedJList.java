@@ -25,6 +25,7 @@ import java.awt.event.MouseMotionAdapter;
 
 import javax.swing.DefaultListModel;
 import javax.swing.JList;
+import javax.swing.ListModel;
 
 /**
  * A modified JList that can reorder items in DefaultListModel by dragging with
@@ -33,43 +34,41 @@ import javax.swing.JList;
  */
 public class DragOrderedJList extends JList {
 
-    private DefaultListModel defaultModel;
-    private int dragFrom;
+	private int dragFrom;
 
-    public DragOrderedJList(DefaultListModel model) {
+	public DragOrderedJList(DefaultListModel model) {
+		super(model);
 
-        super(model);
+		// add mouse button pressed listener
+		addMouseListener(new MouseAdapter() {
 
-        this.defaultModel = model;
+			public void mousePressed(MouseEvent m) {
+				dragFrom = getSelectedIndex();
+			}
+		});
 
-        // add mouse button pressed listener
-        addMouseListener(new MouseAdapter() {
+		// add mouse move listener
+		addMouseMotionListener(new MouseMotionAdapter() {
 
-            public void mousePressed(MouseEvent m) {
-                dragFrom = getSelectedIndex();
-            }
-        });
+			public void mouseDragged(MouseEvent m) {
 
-        // add mouse move listener
-        addMouseMotionListener(new MouseMotionAdapter() {
+				// get drag target
+				int dragTo = getSelectedIndex();
 
-            public void mouseDragged(MouseEvent m) {
+				// ignore event if order has not changed
+				if (dragTo == dragFrom)
+					return;
 
-                // get drag target
-                int dragTo = getSelectedIndex();
+				// reorder the item
+				DefaultListModel listModel = (DefaultListModel) DragOrderedJList.this
+						.getModel();
+				Object item = listModel.elementAt(dragFrom);
+				listModel.removeElementAt(dragFrom);
+				listModel.add(dragTo, item);
 
-                // ignore event if order has not changed
-                if (dragTo == dragFrom)
-                    return;
-
-                // reorder the item
-                Object item = defaultModel.remove(dragFrom);
-                defaultModel.add(dragTo, item);
-
-                // update drag source
-                dragFrom = dragTo;
-            }
-        });
-
-    }
+				// update drag source
+				dragFrom = dragTo;
+			}
+		});
+	}
 }

@@ -56,9 +56,8 @@ public class ProjectManagerImpl implements ProjectManager, TaskListener {
 	public ProjectManagerImpl(ProjectType projectType) {
 		this.status = ProjectStatus.Idle;
 		this.projectType = projectType;
-		this.desktop = MZmineCore.getDesktop();
-		this.taskController = MZmineCore.getTaskController();
-	}
+		this.initModule();
+		}
 
 	/**
 	 * This method is non-blocking, it places a request to open these files and
@@ -77,10 +76,10 @@ public class ProjectManagerImpl implements ProjectManager, TaskListener {
 	public void _createProject(File projectDir, Boolean isTemporal) {
 		status = ProjectStatus.Processing;
 		Boolean ok;
-		
-		//Check to delete temporary project after creation of new project
+
+		// Check to delete temporary project after creation of new project
 		MZmineProject oldProject;
-		File oldProjectDir=null;
+		File oldProjectDir = null;
 		Boolean removeOld = false;
 		if (isTemporal != true) {
 			oldProject = MZmineCore.getCurrentProject();
@@ -99,13 +98,15 @@ public class ProjectManagerImpl implements ProjectManager, TaskListener {
 			MZmineProjectImpl project = new MZmineProjectImpl(projectDir);
 			project.setLocation(projectDir);
 			project.setIsTemporal(isTemporal);
-			project.addProjectListener((MainWindow) desktop);
+			if (desktop != null) {
+				project.addProjectListener((MainWindow) desktop);
+			}
 			MZmineCore.setProject(project);
 
-			if (removeOld==true){
+			if (removeOld == true) {
 				this.removeProjectDir(oldProjectDir);
 			}
-			
+
 		} catch (Throwable e) {
 			String msg = "Error in cerating project directory";
 			logger.severe(msg);
@@ -114,7 +115,7 @@ public class ProjectManagerImpl implements ProjectManager, TaskListener {
 		} finally {
 			status = ProjectStatus.Idle;
 		}
-		
+
 	}
 
 	public synchronized void openProject(File projectDir) throws IOException {

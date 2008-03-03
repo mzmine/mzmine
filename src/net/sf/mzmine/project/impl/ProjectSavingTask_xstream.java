@@ -27,6 +27,7 @@ import java.io.InputStream;
 import java.io.ObjectOutputStream;
 import java.io.OutputStream;
 import java.io.OutputStreamWriter;
+import java.util.HashMap;
 import java.util.Hashtable;
 import java.util.logging.Logger;
 
@@ -233,158 +234,251 @@ public class ProjectSavingTask_xstream implements ProjectSavingTask {
 		return true;
 	}
 
+	private Boolean preserveOldProject() {
+		replace = true;
+		logger
+				.info("Moving original files (except scanfiles) to temporal space ");
+
+		File tmpPlace;
+		int index = 0;
+		while (true) {
+			tmpPlace = new File(oldProjectDir.toString() + ".tmp" + index);
+			if (tmpPlace.exists()) {
+				index++;
+			} else {
+				break;
+			}
+		}
+		tmpPlace.mkdir();
+
+		float start;
+		float stop;
+		String fileName;
+		File fromFile;
+		File destFile;
+		File[] files = oldProjectDir.listFiles();
+
+		for (int i = 0; i < files.length; i++) {
+			fromFile = files[i];
+			fileName = fromFile.getName();
+			String fileTail = fileName.substring(fileName.length()
+					- ".scan".length(), fileName.length());
+			if (!fileTail.equals(".scan")) {
+				destFile = new File(tmpPlace, fileName);
+				start = FINISHED_STARTED
+						+ (FINISHED_COPY_FILES - FINISHED_STARTED)
+						/ files.length * i;
+				stop = FINISHED_STARTED
+						+ (FINISHED_COPY_FILES - FINISHED_STARTED)
+						/ files.length * (i + 1);
+				ok = this.copyFile(fromFile, destFile, start, stop);
+
+				if (ok != true) {
+					this.removeDir(tmpPlace);
+					errorMessage = "Could not save data into :" + projectDir;
+					status = TaskStatus.ERROR;
+					return false;
+				}
+			}
+		}
+		oldProjectDir = tmpPlace;
+		return true;
+	}
+
+	private Boolean copyProjectDir() {
+		replace = false;
+		// Move files to new place
+		ok = projectDir.mkdir();
+
+		// check
+		if (ok == false) {
+			logger
+					.fine("Failed to create project dir:"
+							+ projectDir.toString());
+			errorMessage = "Could not create project directory :" + projectDir;
+			this.rollback();
+			return false;
+		}
+
+		logger.info("Copying scanfiles in " + projectDir);
+		ok = this.copyDir(oldProjectDir, projectDir, FINISHED_STARTED,
+				FINISHED_COPY_FILES);
+
+		if (ok == false) {
+			errorMessage = "Could not copy scan files to :" + projectDir;
+			this.rollback();
+			return false;
+		}
+		return true;
+	}
+
 	/**
 	 * @see java.lang.Runnable#run()
 	 */
 	public void run() {
 
 		// Update task status
-		logger.info("Started saving project" + projectDir);
-		status = TaskStatus.PROCESSING;
-		finished = FINISHED_STARTED;
-		project = (MZmineProjectImpl) MZmineCore.getCurrentProject();
-
-		// store current status
-		oldProjectDir = project.getLocation();
-		isTemporal = project.getIsTemporal();
-		ok = false;
-
-		// if save existing project, make temporal project and rename it
-
-		if (oldProjectDir == this.projectDir) {
-			replace = true;
-			logger
-					.info("Moving original files (except scanfiles) to temporal space ");
-
-			File tmpPlace;
-			int index = 0;
-			while (true) {
-				tmpPlace = new File(oldProjectDir.toString() + ".tmp" + index);
-				if (tmpPlace.exists()) {
-					index++;
-				} else {
-					break;
-				}
-			}
-			tmpPlace.mkdir();
-
-			float start;
-			float stop;
-			String fileName;
-			File fromFile;
-			File destFile;
-			File[] files = oldProjectDir.listFiles();
-
-			for (int i = 0; i < files.length; i++) {
-				fromFile = files[i];
-				fileName = fromFile.getName();
-				if (fileName.substring(fileName.length() - ".scan".length(),
-						fileName.length()) != ".scan") {
-					destFile = new File(tmpPlace, fileName);
-					start = FINISHED_STARTED
-							+ (FINISHED_COPY_FILES - FINISHED_STARTED)
-							/ files.length * i;
-					stop = FINISHED_STARTED
-							+ (FINISHED_COPY_FILES - FINISHED_STARTED)
-							/ files.length * (i + 1);
-					ok = this.copyFile(fromFile, destFile, start, stop);
-
-					if (ok != true) {
-						this.removeDir(tmpPlace);
-						errorMessage = "Could not save data into :"
-								+ projectDir;
-						status = TaskStatus.ERROR;
-						return;
-					}
-				}
-			}
-			oldProjectDir = tmpPlace;
-
-		} else {
-			replace = false;
-			// Move files to new place
-			ok = projectDir.mkdir();
-
-			// check
-			if (ok == false) {
-				logger.fine("Failed to create project dir:"
-						+ projectDir.toString());
-				errorMessage = "Could not create project directory :"
-						+ projectDir;
-				this.rollback();
-				return;
-			}
-
-			logger.info("Copying scanfiles in " + projectDir);
-			ok = this.copyDir(oldProjectDir, projectDir, FINISHED_STARTED,
-					FINISHED_COPY_FILES);
-
-			if (ok == false) {
-				errorMessage = "Could not copy scan files to :" + projectDir;
-				this.rollback();
-				return;
-			}
-		}
-		finished = FINISHED_COPY_FILES;
-
-		// only store part of the project to xml
-
-		logger.info("Prepareing save for " + projectDir);
-		project.setLocation(projectDir);
 		try {
-			RawDataFile[] dataFiles;
-			PeakList[] peakLists;
-			Hashtable<Parameter, Hashtable<String, Object>> projectParameters;
+			logger.info("Started saving project" + projectDir);
+			status = TaskStatus.PROCESSING;
+			finished = FINISHED_STARTED;
+			project = (MZmineProjectImpl) MZmineCore.getCurrentProject();
 
-			dataFiles = project.getDataFiles();
-			peakLists = project.getPeakLists();
-			projectParameters = project.getProjectParameters();
+			// store current status
+			oldProjectDir = project.getLocation();
+			isTemporal = project.getIsTemporal();
+			ok = false;
 
-			File xmlFile = new File(projectDir, "project.xml");
-			XStream xstream = new XStream();
+			// if save existing project, make temporal project and rename it
 
-			OutputStreamWriter writer = new OutputStreamWriter(
-					new FileOutputStream(xmlFile), "UTF-8");
-			ObjectOutputStream out = xstream.createObjectOutputStream(writer);
+			if (oldProjectDir == this.projectDir) {
+				ok = this.preserveOldProject();
+			} else {
+				ok = this.copyProjectDir();
+			}
+			if (ok != true) {
+				return;
+			}
 
-			logger.info("Saving datafiles in " + projectDir);
-			out.writeObject(dataFiles);
-			finished = FINISHED_COPY_FILES
-					+ (FINISHED_SAVE_DATA - FINISHED_COPY_FILES) / 4 * 1;
+			finished = FINISHED_COPY_FILES;
 
-			logger.info("Saving peakLists in " + projectDir);
-			out.writeObject(peakLists);
-			finished = FINISHED_COPY_FILES
-					+ (FINISHED_SAVE_DATA - FINISHED_COPY_FILES) / 4 * 2;
+			// only store part of the project to xml
 
-			logger.info("Saving parameters in" + projectDir);
-			out.writeObject(projectParameters);
-			finished = FINISHED_COPY_FILES
-					+ (FINISHED_SAVE_DATA - FINISHED_COPY_FILES) / 4 * 3;
+			logger.info("Prepareing save for " + projectDir);
+			project.setLocation(projectDir);
+			int NUM_STEP = 6;
+			try {
+				RawDataFile[] dataFiles;
+				PeakList[] peakLists;
+				Hashtable<Parameter, Hashtable<String, Object>> projectParameters;
 
-			out.close();
+				dataFiles = project.getDataFiles();
+				peakLists = project.getPeakLists();
+				projectParameters = project.getProjectParameters();
 
-			// store configFile
-			File configFile = new File(projectDir, "config.xml");
-			MZmineCore.saveConfiguration(configFile);
+				File xmlFile;
+				OutputStreamWriter writer;
+				ObjectOutputStream out;
+				float start;
+				float end;
 
-			finished = FINISHED_SAVE_DATA;
-			logger.info("Complete converting" + projectDir);
+				XStream xstream = new XStream();
+
+				xmlFile = new File(projectDir, "project.xml");
+				writer = new OutputStreamWriter(new FileOutputStream(xmlFile),
+						"UTF-8");
+				out = xstream.createObjectOutputStream(writer);
+				out.writeObject(project);
+				out.close();
+				finished = FINISHED_COPY_FILES
+						+ (FINISHED_SAVE_DATA - FINISHED_COPY_FILES) / NUM_STEP
+						* 1;
+
+				// save project files
+				logger.info("Saving datafiles in " + projectDir);
+				xmlFile = new File(projectDir, "dataFiles.xml");
+				writer = new OutputStreamWriter(new FileOutputStream(xmlFile),
+						"UTF-8");
+				out = xstream.createObjectOutputStream(writer);
+				start = finished;
+				end = FINISHED_COPY_FILES
+						+ (FINISHED_SAVE_DATA - FINISHED_COPY_FILES) / NUM_STEP
+						* 2;
+
+				dataFiles = MZmineCore.getCurrentProject().getDataFiles();
+				RawDataFile dataFile;
+				for (int i = 0; i < dataFiles.length; i++) {
+					dataFile = dataFiles[i];
+					out.writeObject(dataFile);
+					out.flush();
+					finished = start + (end - start) * i / dataFiles.length;
+				}
+				out.close();
+				finished = FINISHED_COPY_FILES
+						+ (FINISHED_SAVE_DATA - FINISHED_COPY_FILES) / NUM_STEP
+						* 2;
+
+				// save peak lists
+				logger.info("Saving peakList in " + projectDir);
+				xmlFile = new File(projectDir, "peakLists.xml");
+				writer = new OutputStreamWriter(new FileOutputStream(xmlFile),
+						"UTF-8");
+				out = xstream.createObjectOutputStream(writer);
+				start = finished;
+				end = FINISHED_COPY_FILES
+						+ (FINISHED_SAVE_DATA - FINISHED_COPY_FILES) / NUM_STEP
+						* 3;
+
+				peakLists = MZmineCore.getCurrentProject().getPeakLists();
+				PeakList peakList;
+				for (int i = 0; i < peakLists.length; i++) {
+					peakList = peakLists[i];
+					out.writeObject(peakList);
+					out.flush();
+					finished = start + (end - start) * i / peakLists.length;
+				}
+				out.close();
+				finished = FINISHED_COPY_FILES
+						+ (FINISHED_SAVE_DATA - FINISHED_COPY_FILES) / NUM_STEP
+						* 3;
+
+				// save parameters
+				logger.info("Saving parameters in" + projectDir);
+				xmlFile = new File(projectDir, "parameters.xml");
+				writer = new OutputStreamWriter(new FileOutputStream(xmlFile),
+						"UTF-8");
+				out = xstream.createObjectOutputStream(writer);
+				out.writeObject(projectParameters);
+				out.close();
+				finished = FINISHED_COPY_FILES
+						+ (FINISHED_SAVE_DATA - FINISHED_COPY_FILES) / NUM_STEP
+						* 4;
+
+				// store configFile
+				File configFile = new File(projectDir, "config.xml");
+				MZmineCore.saveConfiguration(configFile);
+
+				// store additional info about project
+				logger.info("Saving additional infos in" + projectDir);
+				xmlFile = new File(projectDir, "info.xml");
+				writer = new OutputStreamWriter(new FileOutputStream(xmlFile),
+						"UTF-8");
+
+				HashMap<String, String> info = new HashMap<String, String>();
+				info.put("numDataFiles", ((Integer) dataFiles.length)
+						.toString());
+				info.put("numPeakLists", ((Integer) peakLists.length)
+						.toString());
+				out = xstream.createObjectOutputStream(writer);
+				out.writeObject(info);
+				out.close();
+				finished = FINISHED_COPY_FILES
+						+ (FINISHED_SAVE_DATA - FINISHED_COPY_FILES) / NUM_STEP
+						* 5;
+
+				finished = FINISHED_SAVE_DATA;
+				logger.info("Complete converting" + projectDir);
+
+			} catch (Throwable e) {
+				errorMessage = "Could not save data into :" + projectDir;
+				this.rollback();
+				return;
+			}
+
+			if (isTemporal || replace == true) {
+				// remove old project
+				this.removeDir(oldProjectDir);
+			}
+			project.setIsTemporal(false);
+
+			logger.info("Finished saving " + projectDir);
+			status = TaskStatus.FINISHED;
+			finished = FINISHED_COMPLETE;
+
 		} catch (Throwable e) {
-			errorMessage = "Could not save data into :" + projectDir;
-			this.rollback();
-			return;
+			status = TaskStatus.ERROR;
+			//
 		}
-
-		if (isTemporal || replace == true) {
-			// remove old project
-			this.removeDir(oldProjectDir);
-		}
-		project.setIsTemporal(false);
-
-		logger.info("Finished saving " + projectDir);
-		status = TaskStatus.FINISHED;
-		finished = FINISHED_COMPLETE;
 	}
 
 	private void rollback() {

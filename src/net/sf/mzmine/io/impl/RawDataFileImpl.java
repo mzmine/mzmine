@@ -68,7 +68,7 @@ class RawDataFileImpl implements RawDataFile, RawDataFileWriter {
         // create temporary file for scan data
         if (preloadLevel != PreloadLevel.PRELOAD_ALL_SCANS) {
         	File dirPath=MZmineCore.getCurrentProject().getLocation();
-        	writingScanDataFileName=fileName+ "." +suffix;
+        	writingScanDataFileName=fileName+ "." +suffix+".scan";
         	File scanfile=new File(dirPath,writingScanDataFileName);
         	scanfile.createNewFile();
             writingScanDataFile=new RandomAccessFile(scanfile,"rw");      

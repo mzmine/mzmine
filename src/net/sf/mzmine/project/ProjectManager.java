@@ -38,4 +38,5 @@ public interface ProjectManager {
 	
 	public void removeProjectDir(File projectDir);
 	public ProjectStatus getStatus();
+	public void initModule();
 }

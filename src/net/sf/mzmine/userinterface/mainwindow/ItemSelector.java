@@ -28,7 +28,6 @@ import java.awt.event.MouseListener;
 
 import javax.swing.DefaultListModel;
 import javax.swing.JLabel;
-import javax.swing.JList;
 import javax.swing.JPanel;
 import javax.swing.JPopupMenu;
 import javax.swing.JScrollPane;
@@ -54,11 +53,8 @@ public class ItemSelector extends JPanel implements ActionListener,
 	public static final String DATA_FILES_LABEL = "Raw data files";
 	public static final String PEAK_LISTS_LABEL = "Peak lists";
 
-	private DefaultListModel rawDataFilesModel;
-	private DragOrderedJList rawDataFiles;
-
-	private DefaultListModel peakListsModel;
-	private JList peakLists;
+	private DragOrderedJList rawDataFiles, peakLists;
+	private DefaultListModel rawDataFilesModel, peakListsModel;
 	private JPopupMenu dataFilePopupMenu, peakListPopupMenu;
 
 	/**
@@ -70,7 +66,8 @@ public class ItemSelector extends JPanel implements ActionListener,
 		JPanel rawDataPanel = new JPanel();
 		JLabel rawDataTitle = new JLabel(DATA_FILES_LABEL);
 
-		rawDataFilesModel = new DefaultListModel();
+		rawDataFilesModel = MZmineCore.getCurrentProject()
+				.getRawDataListModel();
 		rawDataFiles = new DragOrderedJList(rawDataFilesModel);
 		rawDataFiles.setCellRenderer(new ItemSelectorListRenderer());
 		rawDataFiles.addMouseListener(this);
@@ -86,7 +83,7 @@ public class ItemSelector extends JPanel implements ActionListener,
 		JPanel resultsPanel = new JPanel();
 		JLabel resultsTitle = new JLabel(PEAK_LISTS_LABEL);
 
-		peakListsModel = new DefaultListModel();
+		peakListsModel = MZmineCore.getCurrentProject().getPeakListsListModel();
 		peakLists = new DragOrderedJList(peakListsModel);
 		peakLists.setCellRenderer(new ItemSelectorListRenderer());
 		peakLists.addMouseListener(this);
@@ -160,20 +157,20 @@ public class ItemSelector extends JPanel implements ActionListener,
 
 	}
 
-	/**
-	 * Adds a raw data object to storage
-	 */
-	public void addRawData(RawDataFile r) {
-		rawDataFilesModel.addElement(r);
-
-	}
-
-	/**
-	 * Removes a raw data object from storage
-	 */
-	public boolean removeRawData(RawDataFile r) {
-		return rawDataFilesModel.removeElement(r);
-	}
+	// /**
+	// * Adds a raw data object to storage
+	// */
+	// public void addRawData(RawDataFile r) {
+	// rawDataFilesModel.addElement(r);
+	//
+	// }
+	//
+	// /**
+	// * Removes a raw data object from storage
+	// */
+	// public boolean removeRawData(RawDataFile r) {
+	// return rawDataFilesModel.removeElement(r);
+	// }
 
 	/**
 	 * Returns selected raw data objects in an array
@@ -202,13 +199,13 @@ public class ItemSelector extends JPanel implements ActionListener,
 	// METHODS FOR MAINTAINING PEAK LISTS
 	// ---------------------------------------
 
-	public void addPeakList(PeakList a) {
-		peakListsModel.addElement(a);
-	}
-
-	public boolean removePeakList(PeakList a) {
-		return peakListsModel.removeElement(a);
-	}
+	// public void addPeakList(PeakList a) {
+	// peakListsModel.addElement(a);
+	// }
+	//
+	// public boolean removePeakList(PeakList a) {
+	// return peakListsModel.removeElement(a);
+	// }
 
 	public PeakList[] getSelectedPeakLists() {
 
@@ -227,19 +224,18 @@ public class ItemSelector extends JPanel implements ActionListener,
 	/**
 	 * Method to reset ItemSelecter
 	 */
-	public void removeAll() {
-		peakListsModel.removeAllElements();
-		rawDataFilesModel.removeAllElements();
-	}
-
-	public void removePeakLists() {
-		peakListsModel.removeAllElements();
-	}
-
-	public void removeDataFiles() {
-		rawDataFilesModel.removeAllElements();
-	}
-
+	// public void removeAll() {
+	// peakListsModel.removeAllElements();
+	// rawDataFilesModel.removeAllElements();
+	// }
+	//
+	// public void removePeakLists() {
+	// peakListsModel.removeAllElements();
+	// }
+	//
+	// public void removeDataFiles() {
+	// rawDataFilesModel.removeAllElements();
+	// }
 	public void mouseClicked(MouseEvent e) {
 
 		if ((e.getClickCount() == 2) && (e.getButton() == MouseEvent.BUTTON1)) {
@@ -313,6 +309,18 @@ public class ItemSelector extends JPanel implements ActionListener,
 		if (src == peakLists) {
 			rawDataFiles.repaint();
 		}
+
+	}
+
+	public void reloadDataModel() {
+		rawDataFilesModel = MZmineCore.getCurrentProject()
+				.getRawDataListModel();
+		rawDataFiles.setModel(rawDataFilesModel);
+		rawDataFiles.repaint();
+
+		peakListsModel = MZmineCore.getCurrentProject().getPeakListsListModel();
+		peakLists.setModel(peakListsModel);
+		peakLists.repaint();
 
 	}
 

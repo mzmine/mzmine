@@ -20,7 +20,6 @@
 package net.sf.mzmine.data.impl;
 
 import java.util.HashSet;
-import java.util.Iterator;
 import java.util.Set;
 
 import net.sf.mzmine.data.DataPoint;
@@ -109,6 +108,13 @@ public class SimpleIsotopePattern implements IsotopePattern {
 	 */
 	public RawDataFile getDataFile() {
 		return representativePeak.getDataFile();
+	}
+
+	/**
+	 * @see net.sf.mzmine.data.Peak#setDataFile()
+	 */
+	public void setDataFile(RawDataFile dataFile) {
+		representativePeak.setDataFile(dataFile);
 	}
 
 	/**

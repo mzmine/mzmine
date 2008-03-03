@@ -166,21 +166,6 @@ public class MainWindow extends JFrame implements MZmineModule, Desktop,
 		return itemSelector.getSelectedPeakLists();
 	}
 
-	public void addAlignedPeakList(PeakList alignmentResult) {
-		itemSelector.addPeakList(alignmentResult);
-	}
-
-	public void addDataFile(RawDataFile dataFile) {
-		itemSelector.addRawData(dataFile);
-	}
-
-	public void removeAlignedPeakList(PeakList alignmentResult) {
-		itemSelector.removePeakList(alignmentResult);
-	}
-
-	public void removeDataFile(RawDataFile dataFile) {
-		itemSelector.removeRawData(dataFile);
-	}
 
 	/**
 	 */
@@ -419,15 +404,8 @@ public class MainWindow extends JFrame implements MZmineModule, Desktop,
 	}
 
 	public void projectModified(ProjectEvent event, MZmineProject project) {
-
-		this.itemSelector.removeAll();
-		for (RawDataFile file : project.getDataFiles()) {
-			this.addDataFile(file);
-		}
-		for (PeakList list : project.getPeakLists()) {
-			this.addAlignedPeakList(list);
-		}
-
+		this.itemSelector.reloadDataModel();
+		
 		String projectName;
 		if (project.getIsTemporal() == true) {
 			projectName = "( Not saved yet )";

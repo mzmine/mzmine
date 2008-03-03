@@ -29,6 +29,7 @@ import javax.swing.SwingUtilities;
 import net.sf.mzmine.io.impl.IOControllerImpl;
 import net.sf.mzmine.project.MZmineProject;
 import net.sf.mzmine.project.ProjectManager;
+import net.sf.mzmine.project.ProjectStatus;
 import net.sf.mzmine.project.ProjectType;
 import net.sf.mzmine.project.impl.ProjectManagerImpl;
 import net.sf.mzmine.taskcontrol.impl.TaskControllerImpl;
@@ -98,6 +99,15 @@ public class MZmineClient extends MZmineCore implements Runnable {
 
 			logger.finer("Loading core classes");
 
+			
+
+			projectManager = new ProjectManagerImpl(ProjectType.xstream);
+			projectManager.createTemporalProject();
+			while (projectManager.getStatus() == ProjectStatus.Processing){
+				// wait;
+			}
+
+			
 			// create instances of core modules
 			TaskControllerImpl taskController = new TaskControllerImpl(
 					numberOfNodes);
@@ -108,14 +118,14 @@ public class MZmineClient extends MZmineCore implements Runnable {
 			MZmineCore.taskController = taskController;
 			MZmineCore.ioController = ioController;
 			MZmineCore.desktop = desktop;
-			MZmineCore.currentProject = null;
 
 			logger.finer("Initializing core classes");
 
 			taskController.initModule();
 			ioController.initModule();
 			desktop.initModule();
-
+			projectManager.initModule();
+			
 			logger.finer("Loading modules");
 
 			moduleSet = new Vector<MZmineModule>();
@@ -135,21 +145,10 @@ public class MZmineClient extends MZmineCore implements Runnable {
 
 			// load module configuration
 			loadConfiguration(CONFIG_FILE);
+			MZmineCore.getCurrentProject().addProjectListener(desktop);
 
-			// create or select Project
-			// We have to load project here because project loading access
-			// desktop property
-
-			while (MZmineCore.getTaskController() == null) {
-				// wait;
-			}
-			while (MZmineCore.getDesktop() == null) {
-				// wait;
-			}
-
-			projectManager = new ProjectManagerImpl(ProjectType.xstream);
-			projectManager.createTemporalProject();
-
+			
+			
 		} catch (Exception e) {
 			logger.log(Level.SEVERE, "Could not parse configuration file "
 					+ CONFIG_FILE, e);

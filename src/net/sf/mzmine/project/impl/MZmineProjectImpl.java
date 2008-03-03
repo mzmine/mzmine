@@ -20,20 +20,18 @@
 package net.sf.mzmine.project.impl;
 
 import java.io.File;
-import java.util.Enumeration;
 import java.util.Hashtable;
 import java.util.Vector;
 import java.util.logging.Logger;
 
+import javax.swing.DefaultListModel;
+
 import net.sf.mzmine.data.Parameter;
 import net.sf.mzmine.data.PeakList;
+import net.sf.mzmine.data.impl.SimplePeakList;
 import net.sf.mzmine.io.RawDataFile;
-import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.project.MZmineProject;
 import net.sf.mzmine.project.ProjectListener;
-import net.sf.mzmine.project.ProjectListener.ProjectEvent;
-import net.sf.mzmine.userinterface.mainwindow.ItemSelector;
-import net.sf.mzmine.userinterface.mainwindow.MainWindow;
 
 /**
  * This class represents a MZmine project. That includes raw data files,
@@ -41,10 +39,10 @@ import net.sf.mzmine.userinterface.mainwindow.MainWindow;
  */
 public class MZmineProjectImpl implements MZmineProject {
 
-	private transient Hashtable<String, RawDataFile> projectFiles;
-	private transient Vector<PeakList> projectPeakLists;
 	private transient Hashtable<Parameter, Hashtable<String, Object>> projectParametersAndValues;
 	private transient Vector<ProjectListener> listeners;
+	private transient DefaultListModel rawDataList;
+	private transient DefaultListModel peakListsList;
 
 	private transient Logger logger;
 	// filePath to save project
@@ -61,8 +59,8 @@ public class MZmineProjectImpl implements MZmineProject {
 	 */
 	public void initModule() {
 		listeners = new Vector<ProjectListener>();
-		projectFiles = new Hashtable<String, RawDataFile>();
-		projectPeakLists = new Vector<PeakList>();
+		this.rawDataList = new DefaultListModel();
+		this.peakListsList = new DefaultListModel();
 		projectParametersAndValues = new Hashtable<Parameter, Hashtable<String, Object>>();
 		logger = Logger.getLogger(this.getClass().getName());
 		isTemporal = true;
@@ -128,65 +126,56 @@ public class MZmineProjectImpl implements MZmineProject {
 	}
 
 	public void addFile(RawDataFile newFile) {
-		MainWindow mainWindow = (MainWindow) MZmineCore.getDesktop();
-		ItemSelector itemSelector = mainWindow.getItemSelector();
-		projectFiles.put(newFile.getFileName(), newFile);
-		itemSelector.addRawData(newFile);
-		for (ProjectListener l : listeners)
-			l.projectModified(ProjectEvent.DATA_FILE_CHANGE, this);
+		this.rawDataList.addElement(newFile);
 	}
 
 	public void removeFile(RawDataFile file) {
-		MainWindow mainWindow = (MainWindow) MZmineCore.getDesktop();
-		ItemSelector itemSelector = mainWindow.getItemSelector();
-		projectFiles.remove(file);
-		itemSelector.removeRawData(file);
-		for (ProjectListener l : listeners)
-			l.projectModified(ProjectEvent.DATA_FILE_CHANGE, this);
+		this.rawDataList.removeElement(file);
 	}
 
 	public RawDataFile[] getDataFiles() {
 
 		Vector<RawDataFile> dataFiles = new Vector<RawDataFile>();
-
-		for (Enumeration<RawDataFile> e = projectFiles.elements(); e
-				.hasMoreElements();) {
-			dataFiles.add(e.nextElement());
+		for (int i = 0; i < this.rawDataList.size(); i++) {
+			dataFiles.add((RawDataFile) this.rawDataList.getElementAt(i));
 		}
 		return dataFiles.toArray(new RawDataFile[0]);
 	}
 
 	public RawDataFile getDataFile(String fileName) {
-		return projectFiles.get(fileName);
+		RawDataFile file;
+		for (int i = 0; i < this.rawDataList.size(); i++) {
+			file = (RawDataFile) this.rawDataList.getElementAt(i);
+			if (file.getFileName().equals(fileName)) {
+				return file;
+			}
+		}
+		return null;
 	}
 
 	public void addPeakList(PeakList peakList) {
-		MainWindow mainWindow = (MainWindow) MZmineCore.getDesktop();
-		ItemSelector itemSelector = mainWindow.getItemSelector();
-		projectPeakLists.add(peakList);
-		itemSelector.addPeakList(peakList);
-		for (ProjectListener l : listeners)
-			l.projectModified(ProjectEvent.PEAKLIST_CHANGE, this);
+		this.peakListsList.addElement(peakList);
 	}
 
 	public void removePeakList(PeakList peakList) {
-		MainWindow mainWindow = (MainWindow) MZmineCore.getDesktop();
-		ItemSelector itemSelector = mainWindow.getItemSelector();
-		projectPeakLists.remove(peakList);
-		itemSelector.removePeakList(peakList);
-		for (ProjectListener l : listeners)
-			l.projectModified(ProjectEvent.PEAKLIST_CHANGE, this);
+		this.peakListsList.removeElement(peakList);
 	}
 
 	public PeakList[] getPeakLists() {
-		return projectPeakLists.toArray(new PeakList[0]);
+		Vector<PeakList> peakLists = new Vector<PeakList>();
+		for (int i = 0; i < this.peakListsList.size(); i++) {
+			peakLists.add((PeakList) this.peakListsList.getElementAt(i));
+		}
+		return peakLists.toArray(new PeakList[0]);
 	}
 
 	public PeakList[] getPeakLists(RawDataFile file) {
 		Vector<PeakList> result = new Vector<PeakList>();
-		for (PeakList p : projectPeakLists) {
-			if (p.hasRawDataFile(file))
-				result.add(p);
+		SimplePeakList peakList;
+		for (int i = 0; i < this.peakListsList.size(); i++) {
+			peakList = (SimplePeakList) this.peakListsList.elementAt(i);
+			if (peakList.hasRawDataFile(file))
+				result.add(peakList);
 		}
 		return result.toArray(new PeakList[0]);
 	}
@@ -215,12 +204,33 @@ public class MZmineProjectImpl implements MZmineProject {
 		projectParametersAndValues = projectParameters;
 	}
 
+	public DefaultListModel getPeakListsListModel() {
+		return this.peakListsList;
+	};
+
+	/**
+	 * Returns DataFileListModel for GUI
+	 */
+	public DefaultListModel getRawDataListModel() {
+		return this.rawDataList;
+	};
+
 	private Object readResolve() {
 		listeners = new Vector<ProjectListener>();
-		projectFiles = new Hashtable<String, RawDataFile>();
-		projectPeakLists = new Vector<PeakList>();
+		this.peakListsList = new DefaultListModel();
+		this.rawDataList = new DefaultListModel();
 		projectParametersAndValues = new Hashtable<Parameter, Hashtable<String, Object>>();
 		logger = Logger.getLogger(this.getClass().getName());
 		return this;
+	}
+
+	public void setPeakListsListModel(DefaultListModel listModel) {
+		this.peakListsList = listModel;
+
+	}
+
+	public void setRawDataListModel(DefaultListModel listModel) {
+		this.rawDataList = listModel;
+
 	}
 }
