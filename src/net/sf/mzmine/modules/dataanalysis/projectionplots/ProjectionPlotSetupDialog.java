@@ -1,48 +1,51 @@
+/*
+ * Copyright 2006-2008 The MZmine Development Team
+ * 
+ * This file is part of MZmine.
+ * 
+ * MZmine is free software; you can redistribute it and/or modify it under the
+ * terms of the GNU General Public License as published by the Free Software
+ * Foundation; either version 2 of the License, or (at your option) any later
+ * version.
+ * 
+ * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY
+ * WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR
+ * A PARTICULAR PURPOSE. See the GNU General Public License for more details.
+ * 
+ * You should have received a copy of the GNU General Public License along with
+ * MZmine; if not, write to the Free Software Foundation, Inc., 51 Franklin St,
+ * Fifth Floor, Boston, MA 02110-1301 USA
+ */
+
 package net.sf.mzmine.modules.dataanalysis.projectionplots;
 
-import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Dimension;
-import java.awt.FlowLayout;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.Insets;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.awt.event.ItemEvent;
-import java.awt.event.ItemListener;
 import java.util.Arrays;
-import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Vector;
 
-import javax.swing.BorderFactory;
 import javax.swing.Box;
 import javax.swing.BoxLayout;
-import javax.swing.ButtonGroup;
-import javax.swing.DefaultCellEditor;
 import javax.swing.JButton;
 import javax.swing.JCheckBox;
 import javax.swing.JComboBox;
 import javax.swing.JComponent;
 import javax.swing.JDialog;
-import javax.swing.JLabel;
 import javax.swing.JPanel;
-import javax.swing.JRadioButton;
 import javax.swing.JScrollPane;
-import javax.swing.JTable;
 import javax.swing.ScrollPaneConstants;
-import javax.swing.table.AbstractTableModel;
 
 import net.sf.mzmine.data.Parameter;
 import net.sf.mzmine.data.PeakList;
 import net.sf.mzmine.data.PeakListRow;
-import net.sf.mzmine.data.impl.SimpleParameterSet;
 import net.sf.mzmine.io.RawDataFile;
 import net.sf.mzmine.main.MZmineCore;
-import net.sf.mzmine.modules.dataanalysis.intensityplot.IntensityPlotParameters;
-import net.sf.mzmine.project.MZmineProject;
 import net.sf.mzmine.userinterface.Desktop;
 import net.sf.mzmine.userinterface.components.ExtendedCheckBox;
 import net.sf.mzmine.userinterface.dialogs.ExitCode;
@@ -50,8 +53,6 @@ import net.sf.mzmine.util.GUIUtils;
 import net.sf.mzmine.util.PeakListRowSorterByMZ;
 
 public class ProjectionPlotSetupDialog extends JDialog implements ActionListener {
-
-	private static final Color[] colors = { Color.lightGray, Color.red, Color.green, Color.blue, Color.magenta, Color.orange};
 
     static final int PADDING_SIZE = 5;
 
@@ -161,11 +162,11 @@ public class ProjectionPlotSetupDialog extends JDialog implements ActionListener
         	parametersInCombo[i+2] = projectParameters[i];
         }
         comboColoringMethod = new JComboBox(availableColoringStyles);
-        if (parameterSet.getColoringMode() == parameterSet.ColoringSingleOption)
+        if (parameterSet.getColoringMode() == ProjectionPlotParameters.ColoringSingleOption)
         	comboColoringMethod.setSelectedItem(availableColoringStyles[0]);
-        if (parameterSet.getColoringMode() == parameterSet.ColoringByFileOption)
+        if (parameterSet.getColoringMode() == ProjectionPlotParameters.ColoringByFileOption)
         	comboColoringMethod.setSelectedItem(availableColoringStyles[0]);
-        if ( (parameterSet.getColoringMode() == parameterSet.ColoringByParameterValueOption) &&
+        if ( (parameterSet.getColoringMode() == ProjectionPlotParameters.ColoringByParameterValueOption) &&
         	 (parameterSet.getSelectedParameter()!=null) ) 
         	comboColoringMethod.setSelectedItem(parameterSet.getSelectedParameter());
         constraints.gridx = 1;
@@ -180,10 +181,10 @@ public class ProjectionPlotSetupDialog extends JDialog implements ActionListener
                 ProjectionPlotParameters.PeakHeightOption,
                 ProjectionPlotParameters.PeakAreaOption };
         comboPeakMeasuringMethod = new JComboBox(availablePeakMeasuringStyles);
-        if (parameterSet.getPeakMeasuringMode() == parameterSet.PeakHeightOption)
-        	comboPeakMeasuringMethod.setSelectedItem(parameterSet.PeakHeightOption);
-        if (parameterSet.getPeakMeasuringMode() == parameterSet.PeakAreaOption)
-        	comboPeakMeasuringMethod.setSelectedItem(parameterSet.PeakAreaOption);
+        if (parameterSet.getPeakMeasuringMode() == ProjectionPlotParameters.PeakHeightOption)
+        	comboPeakMeasuringMethod.setSelectedItem(ProjectionPlotParameters.PeakHeightOption);
+        if (parameterSet.getPeakMeasuringMode() == ProjectionPlotParameters.PeakAreaOption)
+        	comboPeakMeasuringMethod.setSelectedItem(ProjectionPlotParameters.PeakAreaOption);
         
         constraints.gridx = 1;
         components.add(comboPeakMeasuringMethod, constraints);
@@ -294,12 +295,12 @@ public class ProjectionPlotSetupDialog extends JDialog implements ActionListener
             parameterSet.setSelectedDataFiles(selectedFiles.toArray(new RawDataFile[0]));
             parameterSet.setSelectedRows(selectedPeaks.toArray(new PeakListRow[0]));
 
-            if (comboColoringMethod.getSelectedItem()==parameterSet.ColoringSingleOption)
-            	parameterSet.setColoringMode(parameterSet.ColoringSingleOption);
-            if (comboColoringMethod.getSelectedItem()==parameterSet.ColoringByFileOption)
-            	parameterSet.setColoringMode(parameterSet.ColoringByFileOption);
-            if (comboColoringMethod.getSelectedIndex()>1) {
-            	parameterSet.setColoringMode(parameterSet.ColoringByParameterValueOption);
+            if (comboColoringMethod.getSelectedItem() == ProjectionPlotParameters.ColoringSingleOption)
+            	parameterSet.setColoringMode(ProjectionPlotParameters.ColoringSingleOption);
+            if (comboColoringMethod.getSelectedItem() == ProjectionPlotParameters.ColoringByFileOption)
+            	parameterSet.setColoringMode(ProjectionPlotParameters.ColoringByFileOption);
+            if (comboColoringMethod.getSelectedIndex() > 1) {
+            	parameterSet.setColoringMode(ProjectionPlotParameters.ColoringByParameterValueOption);
             	Parameter selectedParameter = parametersInCombo[comboColoringMethod.getSelectedIndex()];
             	parameterSet.setSelectedParameter(selectedParameter);
             }

@@ -1,3 +1,22 @@
+/*
+ * Copyright 2006-2008 The MZmine Development Team
+ * 
+ * This file is part of MZmine.
+ * 
+ * MZmine is free software; you can redistribute it and/or modify it under the
+ * terms of the GNU General Public License as published by the Free Software
+ * Foundation; either version 2 of the License, or (at your option) any later
+ * version.
+ * 
+ * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY
+ * WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR
+ * A PARTICULAR PURPOSE. See the GNU General Public License for more details.
+ * 
+ * You should have received a copy of the GNU General Public License along with
+ * MZmine; if not, write to the Free Software Foundation, Inc., 51 Franklin St,
+ * Fifth Floor, Boston, MA 02110-1301 USA
+ */
+
 package net.sf.mzmine.modules.dataanalysis.projectionplots;
 
 import org.jfree.chart.labels.StandardXYItemLabelGenerator;
@@ -6,24 +25,24 @@ import org.jfree.data.xy.XYZDataset;
 
 public class ProjectionPlotItemLabelGenerator extends
 		StandardXYItemLabelGenerator {
-	
-	public String generateLabel(ProjectionPlotDataset dataset, int series, int item) {
-		ProjectionPlotDataset projectionPlotDataSet = (ProjectionPlotDataset)dataset;
+
+	public String generateLabel(ProjectionPlotDataset dataset, int series,
+			int item) {
 		return dataset.getRawDataFile(item).toString();
 	}
 
 	public String generateLabel(XYDataset dataset, int series, int item) {
 		if (dataset instanceof ProjectionPlotDataset)
-			return generateLabel((ProjectionPlotDataset)dataset, series, item);
+			return generateLabel((ProjectionPlotDataset) dataset, series, item);
 		else
 			return null;
 	}
 
 	public String generateLabel(XYZDataset dataset, int series, int item) {
 		if (dataset instanceof ProjectionPlotDataset)
-			return generateLabel((ProjectionPlotDataset)dataset, series, item);
+			return generateLabel((ProjectionPlotDataset) dataset, series, item);
 		else
 			return null;
 	}
-	
+
 }

@@ -21,7 +21,7 @@ package net.sf.mzmine.modules.dataanalysis.projectionplots;
 
 import java.util.Vector;
 
-import jmprojection.CDA;
+import jmprojection.Sammons;
 import jmprojection.Preprocess;
 import net.sf.mzmine.data.Parameter;
 import net.sf.mzmine.data.Peak;
@@ -32,7 +32,7 @@ import net.sf.mzmine.project.MZmineProject;
 
 import org.jfree.data.xy.AbstractXYDataset;
 
-public class CDADataset extends AbstractXYDataset implements
+public class SammonDataset extends AbstractXYDataset implements
 		ProjectionPlotDataset {
 
 	private double[] component1Coords;
@@ -52,7 +52,7 @@ public class CDADataset extends AbstractXYDataset implements
 	private int yAxisDimension;
 
 
-	public CDADataset(ProjectionPlotParameters parameters, int xAxisDimension, int yAxisDimension) {
+	public SammonDataset(ProjectionPlotParameters parameters, int xAxisDimension, int yAxisDimension) {
 
 		this.xAxisDimension = xAxisDimension;
 		this.yAxisDimension = yAxisDimension;
@@ -67,7 +67,7 @@ public class CDADataset extends AbstractXYDataset implements
 		if (parameters.getPeakMeasuringMode()==ProjectionPlotParameters.PeakHeightOption)
 			useArea = false;
 		
-		datasetTitle = "Curvilinear distance analysis";
+		datasetTitle = "Sammon's projection";
 
 		
 		// Determine groups for selected raw data files
@@ -109,7 +109,7 @@ public class CDADataset extends AbstractXYDataset implements
 		}
 
 		
-		// Generate matrix of raw data (input to CDA)
+		// Generate matrix of raw data (input to Sammon's projection)
 		double[][] rawData = new double[selectedRawDataFiles.length][selectedRows.length];
 		for (int rowIndex=0; rowIndex<selectedRows.length; rowIndex++) {
 			PeakListRow peakListRow = selectedRows[rowIndex];
@@ -128,12 +128,12 @@ public class CDADataset extends AbstractXYDataset implements
 		int numComponents = xAxisDimension;
 		if (yAxisDimension>numComponents) numComponents = yAxisDimension;
 
-		// Scale data and do CDA
+		// Scale data and do Sammon's mapping
 		Preprocess.scaleToUnityVariance(rawData);
-		CDA cdaProj = new CDA(rawData);
-		cdaProj.iterate(100);
+		Sammons sammonsProj = new Sammons(rawData);
+		sammonsProj.iterate(100);
 
-		double[][] result = cdaProj.getState();
+		double[][] result = sammonsProj.getState();
 
 
 		component1Coords = result[xAxisDimension-1];
