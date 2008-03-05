@@ -35,7 +35,6 @@ import org.jfree.chart.axis.NumberAxis;
 import org.jfree.chart.plot.Plot;
 import org.jfree.chart.plot.PlotOrientation;
 import org.jfree.chart.plot.XYPlot;
-import org.jfree.chart.title.LegendTitle;
 import org.jfree.chart.title.TextTitle;
 import org.jfree.ui.RectangleInsets;
 
@@ -59,7 +58,8 @@ public class ProjectionPlotPanel extends ChartPanel {
 		super(null);
 
 		boolean createLegend = false;
-		if (dataset.getNumberOfGroups() > 1)
+		if ((dataset.getNumberOfGroups() > 1)
+				&& (dataset.getNumberOfGroups() < 20))
 			createLegend = true;
 
 		chart = ChartFactory.createXYAreaChart("", dataset.getXLabel(), dataset
@@ -144,9 +144,7 @@ public class ProjectionPlotPanel extends ChartPanel {
 						spotRenderer.getGroupPaint(groupNumber)));
 			}
 			plot.setFixedLegendItems(legendItemsCollection);
-			LegendTitle legendTitle = new LegendTitle(plot);
 		}
-		// chart.addLegend(legendTitle);
 
 	}
 
