@@ -52,9 +52,9 @@ public class ProjectionPlotWindow extends JInternalFrame implements
 		String title = parameters.getSourcePeakList().toString();
 		title = title.concat(" : ");
 		title = title.concat(dataset.toString());
-		if (parameters.getPeakMeasuringMode() == parameters.PeakAreaOption)
+		if (parameters.getPeakMeasuringMode() == ProjectionPlotParameters.PeakAreaOption)
 			title = title.concat(" (using peak areas)");
-		if (parameters.getPeakMeasuringMode() == parameters.PeakHeightOption)
+		if (parameters.getPeakMeasuringMode() == ProjectionPlotParameters.PeakHeightOption)
 			title = title.concat(" (using peak heights)");
 		this.setTitle(title);
 
