@@ -98,6 +98,7 @@ public class ExperimentalParametersSetupDialog extends JDialog implements Action
 		private JPanel panelRemoveParameterButton;
 		private JButton buttonRemoveParameter;
 	private JPanel panelOKCancelButtons;
+		private JButton buttonImportParameterValues;
 		private JButton buttonOK;
 		private JButton buttonCancel;
 	
@@ -141,12 +142,27 @@ public class ExperimentalParametersSetupDialog extends JDialog implements Action
 	public void actionPerformed(ActionEvent actionEvent) {
 
 		Object src = actionEvent.getSource();
+		
+		if (src == buttonImportParameterValues) {
+			// TODO: Ask user to save changed parameters/values to project first
+			
+			// Try to read parameter values from file
+			ExperimentalParametersImporter importer = new ExperimentalParametersImporter(desktop);
+			
+			// If import is successful, reload parameter values from project to the table
+			if (importer.importParameters()) { 
+				copyParameterValuesFromRawDataFiles();
+				setupTableModel();
+			}
+			
+		}
+		
 		if (src == buttonOK) {
 			
 			// Validate parameter values  
 			if (!validateParameterValues()) return;
 			
-			// Copy paramter values to raw data files
+			// Copy parameter values to raw data files
 			copyParameterValuesToRawDataFiles();
 			
 			exitCode = ExitCode.OK;
@@ -567,10 +583,14 @@ public class ExperimentalParametersSetupDialog extends JDialog implements Action
 			
 			
 		panelOKCancelButtons = new JPanel(new FlowLayout(FlowLayout.RIGHT));
+		
+			buttonImportParameterValues = new JButton("Import parameters and values...");
+			buttonImportParameterValues.addActionListener(this);
 			buttonOK = new JButton("OK");
 			buttonOK.addActionListener(this);
 			buttonCancel = new JButton("Cancel");
 			buttonCancel.addActionListener(this);
+			panelOKCancelButtons.add(buttonImportParameterValues);
 			panelOKCancelButtons.add(buttonOK);
 			panelOKCancelButtons.add(buttonCancel);
 			
