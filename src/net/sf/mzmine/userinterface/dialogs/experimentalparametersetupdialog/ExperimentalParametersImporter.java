@@ -66,8 +66,8 @@ import com.sun.java.ExampleFileFilter;
  * numeric, then the parameter type is set to Float.
  * 
  * 2. If there are at least some duplicate strings among values for a parameter,
- * then the parameter type will be String with all unique string as possible
- * parameter values.
+ * then the parameter type is String and possible parameter values are all
+ * unique strings.
  * 
  * 3. Otherwise it is a free text parameter of type String.
  * 
@@ -263,12 +263,19 @@ public class ExperimentalParametersImporter {
 			Parameter[] parameters) {
 
 		MZmineProject currentProject = MZmineCore.getCurrentProject();
-		
-		// Add parameters if they do not exist already
-		for (Parameter parameter : parameters) {
-			if (!currentProject.hasParameter(parameter))
-				currentProject.addParameter(parameter);
-		}
+
+		// TODO Fix bug in importing parameters with same names		
+		// Remove previous parameters with identical names		
+		Parameter[] projectParameters = currentProject.getParameters();
+		for (Parameter inputParameter: parameters)
+			for (Parameter projectParameter : projectParameters) {
+				if (projectParameter.getName().equals(inputParameter.getName()))
+					currentProject.removeParameter(projectParameter);
+			}
+
+		// Add parameters to project
+		for (Parameter inputParameter : parameters)
+			currentProject.addParameter(inputParameter);
 
 		// Open reader
 		BufferedReader parameterFileReader;
