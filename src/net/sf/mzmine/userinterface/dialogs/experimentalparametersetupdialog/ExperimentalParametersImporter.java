@@ -35,16 +35,14 @@ import javax.swing.JFileChooser;
 import net.sf.mzmine.data.Parameter;
 import net.sf.mzmine.data.ParameterType;
 import net.sf.mzmine.data.impl.SimpleParameter;
-import net.sf.mzmine.io.RawDataFile;
 import net.sf.mzmine.main.MZmineCore;
-import net.sf.mzmine.project.MZmineProject;
 import net.sf.mzmine.userinterface.Desktop;
 
 import com.sun.java.ExampleFileFilter;
 
 /**
- * This class imports project parameters and their values from a CSV file to
- * MZmineProject.
+ * This class imports project parameters and their values from a CSV file to the
+ * main project parameter setup dialog.
  * 
  * 
  * Description of input file format:
@@ -56,8 +54,8 @@ import com.sun.java.ExampleFileFilter;
  * First row in the file must contain column headers. Header for the first
  * column (filename) is ignored but must exists. Rest of the column headers are
  * used as names for project parameters. All column names in the file must be be
- * unique. If MZmineProject already contains a parameter with the same name,
- * then the values of that parameter will be overwritten.
+ * unique. If main dialog already contains a parameter with the same name, a
+ * warning is shown to the user before overwriting previous parameter.
  * 
  * 
  * Rules for deciding type of parameter:
@@ -76,11 +74,15 @@ import com.sun.java.ExampleFileFilter;
 public class ExperimentalParametersImporter {
 
 	private Logger logger = Logger.getLogger(this.getClass().getName());;
+
+	private ExperimentalParametersSetupDialog mainDialog;
 	private Desktop desktop;
 
-	public ExperimentalParametersImporter(Desktop desktop) {
+	public ExperimentalParametersImporter(
+			ExperimentalParametersSetupDialog mainDialog) {
+		this.mainDialog = mainDialog;
 
-		this.desktop = desktop;
+		desktop = MZmineCore.getDesktop();
 
 	}
 
@@ -262,20 +264,22 @@ public class ExperimentalParametersImporter {
 	private boolean processParameterValues(File parameterFile,
 			Parameter[] parameters) {
 
-		MZmineProject currentProject = MZmineCore.getCurrentProject();
+		// Check if main dialog already contains a parameter with same name and
+		// remove those
+		for (Parameter parameter : parameters) {
+			Parameter p = mainDialog.getParameter(parameter.getName());
+			if (p != null) {
+				// TODO Warn user
 
-		// TODO Fix bug in importing parameters with same names		
-		// Remove previous parameters with identical names		
-		Parameter[] projectParameters = currentProject.getParameters();
-		for (Parameter inputParameter: parameters)
-			for (Parameter projectParameter : projectParameters) {
-				if (projectParameter.getName().equals(inputParameter.getName()))
-					currentProject.removeParameter(projectParameter);
+				// Remove existing parameter from the main dialog
+				mainDialog.removeParameter(p);
 			}
+		}
 
-		// Add parameters to project
-		for (Parameter inputParameter : parameters)
-			currentProject.addParameter(inputParameter);
+		// Add new parameters to the main dialog
+		for (Parameter parameter : parameters) {
+			mainDialog.addParameter(parameter);
+		}
 
 		// Open reader
 		BufferedReader parameterFileReader;
@@ -303,12 +307,6 @@ public class ExperimentalParametersImporter {
 
 				// Get raw data file for this row
 				String fileName = st.nextToken();
-				RawDataFile rawDataFile = currentProject.getDataFile(fileName);
-				if (rawDataFile == null) {
-					logger.warning("Could not find a raw data file '"
-							+ fileName + "' from the project.");
-					continue;
-				}
 
 				// Set parameter values to project
 				int parameterIndex = 0;
@@ -317,12 +315,11 @@ public class ExperimentalParametersImporter {
 					Parameter parameter = parameters[parameterIndex];
 
 					if (parameter.getType() == ParameterType.FLOAT)
-						currentProject
-								.setParameterValue(parameter, rawDataFile,
-										Double.parseDouble(parameterValue));
+						mainDialog.setParameterValue(parameter, fileName,
+								Double.parseDouble(parameterValue));
 					else
-						currentProject.setParameterValue(parameter,
-								rawDataFile, parameterValue);
+						mainDialog.setParameterValue(parameter, fileName,
+								parameterValue);
 
 					parameterIndex++;
 
