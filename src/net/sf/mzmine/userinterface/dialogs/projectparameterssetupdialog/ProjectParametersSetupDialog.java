@@ -319,9 +319,9 @@ public class ProjectParametersSetupDialog extends JDialog implements
 
 	private void copyParameterValuesFromRawDataFiles() {
 
+		MZmineProject currentProject = MZmineCore.getCurrentProject();
+		
 		for (int dataFileIndex = 0; dataFileIndex < dataFiles.length; dataFileIndex++) {
-
-			MZmineProject currentProject = MZmineCore.getCurrentProject();
 
 			RawDataFile file = dataFiles[dataFileIndex];
 			Parameter[] parameters = currentProject.getParameters();

@@ -31,6 +31,7 @@ import java.util.StringTokenizer;
 import java.util.logging.Logger;
 
 import javax.swing.JFileChooser;
+import javax.swing.JOptionPane;
 
 import net.sf.mzmine.data.Parameter;
 import net.sf.mzmine.data.ParameterType;
@@ -215,7 +216,7 @@ public class ProjectParametersImporter {
 				}
 				if (isAllNumeric) {
 					parameters.add(new SimpleParameter(ParameterType.FLOAT,
-							name, null));
+							name, null, new Float(0.0)));
 					continue;
 				}
 
@@ -236,7 +237,7 @@ public class ProjectParametersImporter {
 
 				// Otherwise it is a free text parameter
 				parameters.add(new SimpleParameter(ParameterType.STRING, name,
-						null));
+						null, new String("")));
 
 			}
 
@@ -264,14 +265,22 @@ public class ProjectParametersImporter {
 	private boolean processParameterValues(File parameterFile,
 			Parameter[] parameters) {
 
-		// Check if main dialog already contains a parameter with same name and
-		// remove those
+		// Warn user if main dialog already contains a parameter with same name 
 		for (Parameter parameter : parameters) {
 			Parameter p = mainDialog.getParameter(parameter.getName());
 			if (p != null) {
-				// TODO Warn user
-
-				// Remove existing parameter from the main dialog
+				int res = JOptionPane.showConfirmDialog(mainDialog, 
+						"Overwrite previous parameter(s) with same name?", "Overwrite?", JOptionPane.OK_CANCEL_OPTION);
+				if (res == JOptionPane.CANCEL_OPTION)
+					return false;
+				else break;
+			}
+		}
+		
+		// Remove parameters with same name
+		for (Parameter parameter : parameters) {
+			Parameter p = mainDialog.getParameter(parameter.getName());
+			if (p != null) {
 				mainDialog.removeParameter(p);
 			}
 		}
