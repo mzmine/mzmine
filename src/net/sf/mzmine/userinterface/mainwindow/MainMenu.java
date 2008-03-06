@@ -42,6 +42,7 @@ import net.sf.mzmine.userinterface.dialogs.FileOpenDialog;
 import net.sf.mzmine.userinterface.dialogs.FormatSetupDialog;
 import net.sf.mzmine.userinterface.dialogs.ProjectCreateDialog;
 import net.sf.mzmine.userinterface.dialogs.ProjectOpenDialog;
+import net.sf.mzmine.userinterface.dialogs.projectparameterssetupdialog.ProjectParametersSetupDialog;
 import net.sf.mzmine.util.GUIUtils;
 import ca.guydavis.swing.desktop.CascadingWindowPositioner;
 import ca.guydavis.swing.desktop.JWindowsMenu;
@@ -356,10 +357,8 @@ class MainMenu extends JMenuBar implements ActionListener {
 		}
 
 		if (src == projectExperimentalParameters) {
-			/*
-			ExperimentalParametersSetupDialog dialog = new ExperimentalParametersSetupDialog();
+			ProjectParametersSetupDialog dialog = new ProjectParametersSetupDialog();
 			dialog.setVisible(true);
-			*/
 		}
 
 		if (src == projectFormats) {
