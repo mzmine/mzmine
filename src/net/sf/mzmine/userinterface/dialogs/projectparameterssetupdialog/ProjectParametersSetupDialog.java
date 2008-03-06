@@ -74,7 +74,7 @@ public class ProjectParametersSetupDialog extends JDialog implements
 		this.dataFiles = MZmineCore.getCurrentProject().getDataFiles();
 		this.desktop = MZmineCore.getDesktop();
 
-		setTitle("Setup experimental parameters and values");
+		setTitle("Setup project parameters and values");
 		initComponents();
 
 		copyParameterValuesFromRawDataFiles();
@@ -273,13 +273,13 @@ public class ProjectParametersSetupDialog extends JDialog implements
 
 		MZmineProject currentProject = MZmineCore.getCurrentProject();
 
-		// Remove all previous experimental parameters from project
+		// Remove all previous parameters from project
 		Parameter[] parameters = currentProject.getParameters();
 		for (Parameter parameter : parameters) {
 			currentProject.removeParameter(parameter);
 		}
 
-		// Add new experimental parameters
+		// Add new parameters
 		parameters = parameterValues.keySet().toArray(new Parameter[0]);
 		for (Parameter parameter : parameters) {
 			currentProject.addParameter(parameter);
@@ -326,7 +326,7 @@ public class ProjectParametersSetupDialog extends JDialog implements
 			RawDataFile file = dataFiles[dataFileIndex];
 			Parameter[] parameters = currentProject.getParameters();
 
-			// Loop through all experimental paramters defined for this file
+			// Loop through all parameters defined for this file
 			for (Parameter p : parameters) {
 
 				// Check if this parameter has been seen before?
