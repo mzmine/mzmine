@@ -20,10 +20,11 @@
 package net.sf.mzmine.modules.dataanalysis.projectionplots;
 
 import net.sf.mzmine.io.RawDataFile;
+import net.sf.mzmine.taskcontrol.Task;
 
 import org.jfree.data.xy.XYDataset;
 
-public interface ProjectionPlotDataset extends XYDataset {
+public interface ProjectionPlotDataset extends XYDataset, Task {
 
 	public RawDataFile getRawDataFile(int item);
 	
@@ -36,7 +37,5 @@ public interface ProjectionPlotDataset extends XYDataset {
 	public String getXLabel();
 	
 	public String getYLabel();
-	
-	
-	
+		
 }

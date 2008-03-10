@@ -23,12 +23,14 @@ import java.util.Vector;
 
 import jmprojection.PCA;
 import jmprojection.Preprocess;
+import jmprojection.ProjectionStatus;
 import net.sf.mzmine.data.Parameter;
 import net.sf.mzmine.data.Peak;
 import net.sf.mzmine.data.PeakListRow;
 import net.sf.mzmine.io.RawDataFile;
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.project.MZmineProject;
+import net.sf.mzmine.userinterface.Desktop;
 
 import org.jfree.data.xy.AbstractXYDataset;
 
@@ -37,6 +39,8 @@ public class PCADataset extends AbstractXYDataset implements
 
 	private double[] component1Coords;
 	private double[] component2Coords;
+
+	private ProjectionPlotParameters parameters;
 
 	private Parameter selectedParameter;
 
@@ -51,21 +55,21 @@ public class PCADataset extends AbstractXYDataset implements
 	private int xAxisPC;
 	private int yAxisPC;
 
+	private TaskStatus status = TaskStatus.WAITING;
+	private String errorMessage;
+	
+	private ProjectionStatus projectionStatus;
+
 	public PCADataset(ProjectionPlotParameters parameters, int xAxisPC,
 			int yAxisPC) {
 
+		this.parameters = parameters;
 		this.xAxisPC = xAxisPC;
 		this.yAxisPC = yAxisPC;
 
 		selectedParameter = parameters.getSelectedParameter();
 		selectedRawDataFiles = parameters.getSelectedDataFiles();
 		selectedRows = parameters.getSelectedRows();
-
-		boolean useArea = true;
-		if (parameters.getPeakMeasuringMode() == ProjectionPlotParameters.PeakAreaOption)
-			useArea = true;
-		if (parameters.getPeakMeasuringMode() == ProjectionPlotParameters.PeakHeightOption)
-			useArea = false;
 
 		datasetTitle = "Principal component analysis";
 
@@ -109,35 +113,6 @@ public class PCADataset extends AbstractXYDataset implements
 
 			numberOfGroups = parameterValuesForGroups.length;
 		}
-
-		// Generate matrix of raw data (input to PCA)
-		double[][] rawData = new double[selectedRawDataFiles.length][selectedRows.length];
-		for (int rowIndex = 0; rowIndex < selectedRows.length; rowIndex++) {
-			PeakListRow peakListRow = selectedRows[rowIndex];
-			for (int fileIndex = 0; fileIndex < selectedRawDataFiles.length; fileIndex++) {
-				RawDataFile rawDataFile = selectedRawDataFiles[fileIndex];
-				Peak p = peakListRow.getPeak(rawDataFile);
-				if (p != null) {
-					if (useArea)
-						rawData[fileIndex][rowIndex] = p.getArea();
-					else
-						rawData[fileIndex][rowIndex] = p.getHeight();
-				}
-			}
-		}
-
-		int numComponents = xAxisPC;
-		if (yAxisPC > numComponents)
-			numComponents = yAxisPC;
-
-		// Scale data and do PCA
-		Preprocess.scaleToUnityVariance(rawData);
-		PCA pcaProj = new PCA(rawData, numComponents);
-
-		double[][] result = pcaProj.getState();
-
-		component1Coords = result[xAxisPC - 1];
-		component2Coords = result[yAxisPC - 1];
 
 	}
 
@@ -205,6 +180,78 @@ public class PCADataset extends AbstractXYDataset implements
 
 	public int getNumberOfGroups() {
 		return numberOfGroups;
+	}
+
+	public void run() {
+
+		status = TaskStatus.PROCESSING;
+
+		// Generate matrix of raw data (input to PCA)
+		boolean useArea = true;
+		if (parameters.getPeakMeasuringMode() == ProjectionPlotParameters.PeakAreaOption)
+			useArea = true;
+		if (parameters.getPeakMeasuringMode() == ProjectionPlotParameters.PeakHeightOption)
+			useArea = false;
+		
+		double[][] rawData = new double[selectedRawDataFiles.length][selectedRows.length];
+		for (int rowIndex = 0; rowIndex < selectedRows.length; rowIndex++) {
+			PeakListRow peakListRow = selectedRows[rowIndex];
+			for (int fileIndex = 0; fileIndex < selectedRawDataFiles.length; fileIndex++) {
+				RawDataFile rawDataFile = selectedRawDataFiles[fileIndex];
+				Peak p = peakListRow.getPeak(rawDataFile);
+				if (p != null) {
+					if (useArea)
+						rawData[fileIndex][rowIndex] = p.getArea();
+					else
+						rawData[fileIndex][rowIndex] = p.getHeight();
+				}
+			}
+		}
+
+		int numComponents = xAxisPC;
+		if (yAxisPC > numComponents)
+			numComponents = yAxisPC;
+
+		// Scale data and do PCA
+		Preprocess.scaleToUnityVariance(rawData);
+		PCA pcaProj = new PCA(rawData, numComponents);
+		projectionStatus = pcaProj.getProjectionStatus();
+
+		double[][] result = pcaProj.getState();
+
+		component1Coords = result[xAxisPC - 1];
+		component2Coords = result[yAxisPC - 1];
+
+		status = TaskStatus.FINISHED;
+
+		Desktop desktop = MZmineCore.getDesktop();
+		ProjectionPlotWindow newFrame = new ProjectionPlotWindow(desktop, this,
+				parameters);
+		desktop.addInternalFrame(newFrame);
+
+	}
+
+	public void cancel() {
+		status = TaskStatus.CANCELED;
+	}
+
+	public String getErrorMessage() {
+		return errorMessage;
+	}
+
+	public TaskStatus getStatus() {
+		return status;
+	}
+
+	public String getTaskDescription() {
+		if ( (parameters==null) || (parameters.getSourcePeakList()==null) ) 
+			return "PCA projection";
+		return "PCA projection " + parameters.getSourcePeakList(); 
+	}
+
+	public float getFinishedPercentage() {
+		if (projectionStatus==null) return 0.0f;
+		return projectionStatus.getFinishedPercentage();
 	}
 
 }

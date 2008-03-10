@@ -21,14 +21,16 @@ package net.sf.mzmine.modules.dataanalysis.projectionplots;
 
 import java.util.Vector;
 
-import jmprojection.Sammons;
 import jmprojection.Preprocess;
+import jmprojection.ProjectionStatus;
+import jmprojection.Sammons;
 import net.sf.mzmine.data.Parameter;
 import net.sf.mzmine.data.Peak;
 import net.sf.mzmine.data.PeakListRow;
 import net.sf.mzmine.io.RawDataFile;
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.project.MZmineProject;
+import net.sf.mzmine.userinterface.Desktop;
 
 import org.jfree.data.xy.AbstractXYDataset;
 
@@ -38,6 +40,8 @@ public class SammonDataset extends AbstractXYDataset implements
 	private double[] component1Coords;
 	private double[] component2Coords;
 
+	private ProjectionPlotParameters parameters;
+	
 	private Parameter selectedParameter;
 	
 	private RawDataFile[] selectedRawDataFiles;
@@ -51,21 +55,20 @@ public class SammonDataset extends AbstractXYDataset implements
 	private int xAxisDimension;
 	private int yAxisDimension;
 
+	private TaskStatus status = TaskStatus.WAITING;
+	private String errorMessage;
+	
+	private ProjectionStatus projectionStatus;
 
 	public SammonDataset(ProjectionPlotParameters parameters, int xAxisDimension, int yAxisDimension) {
 
+		this.parameters = parameters;
 		this.xAxisDimension = xAxisDimension;
 		this.yAxisDimension = yAxisDimension;
 
 		selectedParameter = parameters.getSelectedParameter();
 		selectedRawDataFiles = parameters.getSelectedDataFiles();
 		selectedRows = parameters.getSelectedRows();
-
-		boolean useArea = true;
-		if (parameters.getPeakMeasuringMode()==ProjectionPlotParameters.PeakAreaOption)
-			useArea = true;
-		if (parameters.getPeakMeasuringMode()==ProjectionPlotParameters.PeakHeightOption)
-			useArea = false;
 		
 		datasetTitle = "Sammon's projection";
 
@@ -108,38 +111,8 @@ public class SammonDataset extends AbstractXYDataset implements
 			numberOfGroups = parameterValuesForGroups.length;
 		}
 
-		
-		// Generate matrix of raw data (input to Sammon's projection)
-		double[][] rawData = new double[selectedRawDataFiles.length][selectedRows.length];
-		for (int rowIndex=0; rowIndex<selectedRows.length; rowIndex++) {
-			PeakListRow peakListRow = selectedRows[rowIndex];
-			for (int fileIndex=0; fileIndex<selectedRawDataFiles.length; fileIndex++) {
-				RawDataFile rawDataFile = selectedRawDataFiles[fileIndex];
-				Peak p = peakListRow.getPeak(rawDataFile);
-				if (p!=null) {
-					if (useArea)
-						rawData[fileIndex][rowIndex] = p.getArea();
-					else
-						rawData[fileIndex][rowIndex] = p.getHeight();
-				}
-			}
-		}
-
-		int numComponents = xAxisDimension;
-		if (yAxisDimension>numComponents) numComponents = yAxisDimension;
-
-		// Scale data and do Sammon's mapping
-		Preprocess.scaleToUnityVariance(rawData);
-		Sammons sammonsProj = new Sammons(rawData);
-		sammonsProj.iterate(100);
-
-		double[][] result = sammonsProj.getState();
-
-
-		component1Coords = result[xAxisDimension-1];
-		component2Coords = result[yAxisDimension-1];
-
 	}
+		
 
 	public String toString() {
 		return datasetTitle;
@@ -201,4 +174,79 @@ public class SammonDataset extends AbstractXYDataset implements
 		return numberOfGroups;
 	}	
 
+	public void run() {
+		
+		status = TaskStatus.PROCESSING;
+		
+		// Generate matrix of raw data (input to Sammon's projection)
+		boolean useArea = true;
+		if (parameters.getPeakMeasuringMode()==ProjectionPlotParameters.PeakAreaOption)
+			useArea = true;
+		if (parameters.getPeakMeasuringMode()==ProjectionPlotParameters.PeakHeightOption)
+			useArea = false;
+		
+		double[][] rawData = new double[selectedRawDataFiles.length][selectedRows.length];
+		for (int rowIndex=0; rowIndex<selectedRows.length; rowIndex++) {
+			PeakListRow peakListRow = selectedRows[rowIndex];
+			for (int fileIndex=0; fileIndex<selectedRawDataFiles.length; fileIndex++) {
+				RawDataFile rawDataFile = selectedRawDataFiles[fileIndex];
+				Peak p = peakListRow.getPeak(rawDataFile);
+				if (p!=null) {
+					if (useArea)
+						rawData[fileIndex][rowIndex] = p.getArea();
+					else
+						rawData[fileIndex][rowIndex] = p.getHeight();
+				}
+			}
+		}
+
+		int numComponents = xAxisDimension;
+		if (yAxisDimension>numComponents) numComponents = yAxisDimension;
+
+		// Scale data and do Sammon's mapping
+		Preprocess.scaleToUnityVariance(rawData);
+		Sammons sammonsProj = new Sammons(rawData);
+		
+		projectionStatus = sammonsProj.getProjectionStatus();
+		
+		sammonsProj.iterate(100);
+
+		double[][] result = sammonsProj.getState();
+
+
+		component1Coords = result[xAxisDimension-1];
+		component2Coords = result[yAxisDimension-1];
+
+		status = TaskStatus.FINISHED;
+
+		Desktop desktop = MZmineCore.getDesktop();
+		ProjectionPlotWindow newFrame = new ProjectionPlotWindow(desktop, this,
+				parameters);
+		desktop.addInternalFrame(newFrame);		
+		
+	}
+		
+	public void cancel() {
+		status = TaskStatus.CANCELED;
+	}
+
+	public String getErrorMessage() {
+		return errorMessage;
+	}
+
+	public TaskStatus getStatus() {
+		return status;
+	}
+
+	public String getTaskDescription() {
+		if ( (parameters==null) || (parameters.getSourcePeakList()==null) ) 
+			return "Sammon's projection";
+		return "Sammon's projection " + parameters.getSourcePeakList().toString(); 
+	}	
+	
+	public float getFinishedPercentage() {
+		if (projectionStatus==null) return 0.0f;
+		return projectionStatus.getFinishedPercentage();
+	}	
+	
 }
