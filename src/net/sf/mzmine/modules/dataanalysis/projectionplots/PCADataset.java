@@ -218,6 +218,8 @@ public class PCADataset extends AbstractXYDataset implements
 		projectionStatus = pcaProj.getProjectionStatus();
 
 		double[][] result = pcaProj.getState();
+		
+		if (status == TaskStatus.CANCELED) return;
 
 		component1Coords = result[xAxisPC - 1];
 		component2Coords = result[yAxisPC - 1];
@@ -232,6 +234,7 @@ public class PCADataset extends AbstractXYDataset implements
 	}
 
 	public void cancel() {
+		projectionStatus.cancel();
 		status = TaskStatus.CANCELED;
 	}
 

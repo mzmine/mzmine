@@ -30,6 +30,7 @@ import net.sf.mzmine.data.PeakListRow;
 import net.sf.mzmine.io.RawDataFile;
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.project.MZmineProject;
+import net.sf.mzmine.taskcontrol.Task.TaskStatus;
 import net.sf.mzmine.userinterface.Desktop;
 
 import org.jfree.data.xy.AbstractXYDataset;
@@ -210,10 +211,13 @@ public class SammonDataset extends AbstractXYDataset implements
 		projectionStatus = sammonsProj.getProjectionStatus();
 		
 		sammonsProj.iterate(100);
+		
+		if (status == TaskStatus.CANCELED) return;
 
 		double[][] result = sammonsProj.getState();
 
-
+		if (status == TaskStatus.CANCELED) return;
+		
 		component1Coords = result[xAxisDimension-1];
 		component2Coords = result[yAxisDimension-1];
 
@@ -227,6 +231,7 @@ public class SammonDataset extends AbstractXYDataset implements
 	}
 		
 	public void cancel() {
+		projectionStatus.cancel();
 		status = TaskStatus.CANCELED;
 	}
 
