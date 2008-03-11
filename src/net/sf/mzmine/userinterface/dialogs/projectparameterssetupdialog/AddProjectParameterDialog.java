@@ -254,7 +254,6 @@ public class AddProjectParameterDialog extends JDialog implements
 		fieldFreeTextDefaultValue.setEnabled(enabled);
 	}
 
-	@Override
 	public void actionPerformed(ActionEvent actionEvent) {
 
 		Object src = actionEvent.getSource();
