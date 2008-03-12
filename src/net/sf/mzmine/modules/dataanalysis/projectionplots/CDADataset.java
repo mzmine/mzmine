@@ -30,7 +30,6 @@ import net.sf.mzmine.data.PeakListRow;
 import net.sf.mzmine.io.RawDataFile;
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.project.MZmineProject;
-import net.sf.mzmine.taskcontrol.Task.TaskStatus;
 import net.sf.mzmine.userinterface.Desktop;
 
 import org.jfree.data.xy.AbstractXYDataset;
@@ -61,12 +60,12 @@ public class CDADataset extends AbstractXYDataset implements
 	
 	private ProjectionStatus projectionStatus;
 
-	public CDADataset(ProjectionPlotParameters parameters, int xAxisDimension, int yAxisDimension) {
+	public CDADataset(ProjectionPlotParameters parameters) {
 
 		this.parameters = parameters;
 		
-		this.xAxisDimension = xAxisDimension;
-		this.yAxisDimension = yAxisDimension;
+		this.xAxisDimension = (Integer)parameters.getParameterValue(ProjectionPlotParameters.xAxisComponent);
+		this.yAxisDimension = (Integer)parameters.getParameterValue(ProjectionPlotParameters.yAxisComponent);
 
 		selectedParameter = parameters.getSelectedParameter();
 		selectedRawDataFiles = parameters.getSelectedDataFiles();
@@ -77,7 +76,7 @@ public class CDADataset extends AbstractXYDataset implements
 		// Determine groups for selected raw data files
 		groupsForSelectedRawDataFiles = new int[selectedRawDataFiles.length];
 		
-		if (parameters.getColoringMode()==ProjectionPlotParameters.ColoringSingleOption) {
+		if (parameters.getParameterValue(ProjectionPlotParameters.coloringType)== ProjectionPlotParameters.ColoringTypeSingleColor) {
 			// All files to a single group
 			for (int ind=0; ind<selectedRawDataFiles.length; ind++)
 				groupsForSelectedRawDataFiles[ind] = 0;
@@ -85,7 +84,7 @@ public class CDADataset extends AbstractXYDataset implements
 			numberOfGroups = 1;	
 		}
 
-		if (parameters.getColoringMode()==ProjectionPlotParameters.ColoringByFileOption) {
+		if (parameters.getParameterValue(ProjectionPlotParameters.coloringType)== ProjectionPlotParameters.ColoringTypeByFile) {
 			// Each file to own group
 			for (int ind=0; ind<selectedRawDataFiles.length; ind++)
 				groupsForSelectedRawDataFiles[ind] = ind;
@@ -93,7 +92,7 @@ public class CDADataset extends AbstractXYDataset implements
 			numberOfGroups = selectedRawDataFiles.length;
 		}		
 		
-		if (parameters.getColoringMode()==ProjectionPlotParameters.ColoringByParameterValueOption) {
+		if (parameters.getParameterValue(ProjectionPlotParameters.coloringType)== ProjectionPlotParameters.ColoringTypeByParameterValue) {
 			// Group files with same parameter value to same group
 			MZmineProject project = MZmineCore.getCurrentProject();
 			Vector<Object> availableParameterValues = new Vector<Object>(); 
@@ -183,9 +182,9 @@ public class CDADataset extends AbstractXYDataset implements
 
 		// Generate matrix of raw data (input to CDA)
 		boolean useArea = true;
-		if (parameters.getPeakMeasuringMode() == ProjectionPlotParameters.PeakAreaOption)
+		if (parameters.getParameterValue(ProjectionPlotParameters.peakMeasurementType) == ProjectionPlotParameters.PeakMeasurementTypeArea)
 			useArea = true;
-		if (parameters.getPeakMeasuringMode() == ProjectionPlotParameters.PeakHeightOption)
+		if (parameters.getParameterValue(ProjectionPlotParameters.peakMeasurementType) == ProjectionPlotParameters.PeakMeasurementTypeHeight)
 			useArea = false;
 		
 		double[][] rawData = new double[selectedRawDataFiles.length][selectedRows.length];

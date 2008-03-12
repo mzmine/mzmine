@@ -33,15 +33,12 @@ import org.jfree.chart.renderer.xy.XYItemRenderer;
 public class ProjectionPlotWindow extends JInternalFrame implements
 		ActionListener {
 
-	private Desktop desktop;
 	private ProjectionPlotToolbar toolbar;
 	private ProjectionPlotPanel plot;
 
 	public ProjectionPlotWindow(Desktop desktop, ProjectionPlotDataset dataset,
 			ProjectionPlotParameters parameters) {
 		super(null, true, true, true, true);
-
-		this.desktop = desktop;
 
 		toolbar = new ProjectionPlotToolbar(this);
 		add(toolbar, BorderLayout.EAST);
@@ -52,10 +49,12 @@ public class ProjectionPlotWindow extends JInternalFrame implements
 		String title = parameters.getSourcePeakList().toString();
 		title = title.concat(" : ");
 		title = title.concat(dataset.toString());
-		if (parameters.getPeakMeasuringMode() == ProjectionPlotParameters.PeakAreaOption)
-			title = title.concat(" (using peak areas)");
-		if (parameters.getPeakMeasuringMode() == ProjectionPlotParameters.PeakHeightOption)
+		if (parameters
+				.getParameterValue(ProjectionPlotParameters.peakMeasurementType) == ProjectionPlotParameters.PeakMeasurementTypeHeight)
 			title = title.concat(" (using peak heights)");
+		if (parameters
+				.getParameterValue(ProjectionPlotParameters.peakMeasurementType) == ProjectionPlotParameters.PeakMeasurementTypeArea)
+			title = title.concat(" (using peak areas)");
 		this.setTitle(title);
 
 		pack();

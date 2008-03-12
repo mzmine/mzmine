@@ -20,54 +20,84 @@
 package net.sf.mzmine.modules.dataanalysis.projectionplots;
 
 import net.sf.mzmine.data.Parameter;
+import net.sf.mzmine.data.ParameterType;
 import net.sf.mzmine.data.PeakList;
 import net.sf.mzmine.data.PeakListRow;
-import net.sf.mzmine.data.StorableParameterSet;
+import net.sf.mzmine.data.impl.SimpleParameter;
+import net.sf.mzmine.data.impl.SimpleParameterSet;
 import net.sf.mzmine.io.RawDataFile;
 
 import org.dom4j.Element;
 
-public class ProjectionPlotParameters implements StorableParameterSet {
+public class ProjectionPlotParameters extends SimpleParameterSet {
+
+	// Normal (stored) parameters
+	public static final String ColoringTypeSingleColor = "No coloring";
+	public static final String ColoringTypeByParameterValue = "Color by parameter value";
+	public static final String ColoringTypeByFile = "Color by file";
+	private static final String[] ColoringTypePossibleValues = {
+			ColoringTypeSingleColor, ColoringTypeByParameterValue,
+			ColoringTypeByFile };
+
+	public static final Parameter coloringType = new SimpleParameter(
+			ParameterType.STRING, "Coloring type", "Measure peaks using",
+			ColoringTypeSingleColor, ColoringTypePossibleValues);
+
+	public static final String PeakMeasurementTypeHeight = "Peak height";
+	public static final String PeakMeasurementTypeArea = "Peak area";
+	public static final String[] PeakMeasurementTypePossibleValues = {
+			PeakMeasurementTypeHeight, PeakMeasurementTypeArea };
+
+	public static final Parameter peakMeasurementType = new SimpleParameter(
+			ParameterType.STRING, "Peak measurement type",
+			"Measure peaks using", PeakMeasurementTypeHeight,
+			PeakMeasurementTypePossibleValues);
+
+	public static final Integer[] componentPossibleValues = { 1, 2, 3, 4, 5 };
+
+	public static final Parameter xAxisComponent = new SimpleParameter(
+			ParameterType.INTEGER, "X-axis component",
+			"Component on the X-axis", componentPossibleValues[0],
+			componentPossibleValues);
+
+	public static final Parameter yAxisComponent = new SimpleParameter(
+			ParameterType.INTEGER, "Y-axis component",
+			"Component on the Y-axis", componentPossibleValues[1],
+			componentPossibleValues);
+
+	// Non-stored parameter values
 
 	private PeakList sourcePeakList;
 
-	// XML elements
-	private static final String coloringModeElement = "coloringmode";
-	private static final String peakMeasuringModeElement = "peakmeasuringmode";
-
-	// Exported/imported parameters and their possible values
-	private Object coloringMode;
-	public static final String ColoringSingleOption = "No coloring";
-	public static final String ColoringByParameterValueOption = "Color by parameter value";
-	public static final String ColoringByFileOption = "Color by file";
-
-	private Object peakMeasuringMode;
-	public static final String PeakHeightOption = "Peak height";
-	public static final String PeakAreaOption = "Peak area";
-
-	// Not exported parameter values
 	private Parameter selectedParameter; // Parameter used when coloring by
-											// parameter value
+	// parameter value
 	private RawDataFile[] selectedDataFiles;
 	private PeakListRow[] selectedRows;
 
 	public ProjectionPlotParameters(PeakList sourcePeakList) {
-
+		this();
+		
 		this.sourcePeakList = sourcePeakList;
 		this.selectedDataFiles = sourcePeakList.getRawDataFiles();
 		this.selectedRows = sourcePeakList.getRows();
 
-		coloringMode = ColoringByFileOption;
-		peakMeasuringMode = PeakAreaOption;
 		selectedParameter = null;
 	}
 
 	private ProjectionPlotParameters(PeakList sourcePeakList,
-			Object coloringMode, Object peakMeasuringMode,
+			Object coloringTypeValue, Object peakMeasuringValue,
+			Object xAxisComponentNumber, Object yAxisComponentNumber,
 			Parameter selectedParameter, RawDataFile[] selectedDataFiles,
 			PeakListRow[] selectedRows) {
-		this.coloringMode = coloringMode;
-		this.peakMeasuringMode = peakMeasuringMode;
+
+		this();
+		
+		setParameterValue(coloringType, coloringTypeValue);
+		setParameterValue(peakMeasurementType, peakMeasuringValue);
+		setParameterValue(xAxisComponent, xAxisComponentNumber);
+		setParameterValue(yAxisComponent, yAxisComponentNumber);
+
+		this.sourcePeakList = sourcePeakList;
 		this.selectedParameter = selectedParameter;
 		this.selectedDataFiles = selectedDataFiles;
 		this.selectedRows = selectedRows;
@@ -77,55 +107,16 @@ public class ProjectionPlotParameters implements StorableParameterSet {
 	 * Represent method's parameters and their values in human-readable format
 	 */
 	public String toString() {
-		return "Coloring mode: " + coloringMode + ", peak measuring mode: "
-				+ peakMeasuringMode + ", selected parameter: "
-				+ selectedParameter;
+		return "Coloring mode: " + getParameterValue(coloringType)
+				+ ", peak measurement type: "
+				+ getParameterValue(peakMeasurementType)
+				+ ", selected parameter: " + selectedParameter;
 	}
 
 	public ProjectionPlotParameters clone() {
-		return new ProjectionPlotParameters(sourcePeakList, coloringMode,
-				peakMeasuringMode, selectedParameter, selectedDataFiles,
-				selectedRows);
-	}
-
-	public void exportValuesToXML(Element element) {
-		element.addElement(coloringModeElement)
-				.setText(coloringMode.toString());
-		element.addElement(peakMeasuringModeElement).setText(
-				peakMeasuringMode.toString());
-	}
-
-	public void importValuesFromXML(Element element) {
-		String coloringModeString = element.elementText(coloringModeElement);
-		if (ColoringSingleOption.equals(coloringModeString))
-			coloringMode = ColoringByFileOption;
-		if (ColoringByFileOption.equals(coloringModeString))
-			coloringMode = ColoringByFileOption;
-		if (ColoringByParameterValueOption.equals(coloringModeString))
-			coloringMode = ColoringByParameterValueOption;
-
-		String peakMeasuringModeString = element
-				.elementText(peakMeasuringModeElement);
-		if (PeakHeightOption.equals(peakMeasuringModeString))
-			peakMeasuringMode = PeakHeightOption;
-		if (PeakAreaOption.equals(peakMeasuringModeString))
-			peakMeasuringMode = PeakAreaOption;
-	}
-
-	public Object getColoringMode() {
-		return coloringMode;
-	}
-
-	public void setColoringMode(Object coloringMode) {
-		this.coloringMode = coloringMode;
-	}
-
-	public Object getPeakMeasuringMode() {
-		return peakMeasuringMode;
-	}
-
-	public void setPeakMeasuringMode(Object peakMeasuringMode) {
-		this.peakMeasuringMode = peakMeasuringMode;
+		return new ProjectionPlotParameters(sourcePeakList, coloringType,
+				peakMeasurementType, xAxisComponent, yAxisComponent,
+				selectedParameter, selectedDataFiles, selectedRows);
 	}
 
 	public RawDataFile[] getSelectedDataFiles() {
@@ -160,4 +151,9 @@ public class ProjectionPlotParameters implements StorableParameterSet {
 		this.sourcePeakList = sourcePeakList;
 	}
 
+	
+	public ProjectionPlotParameters() {
+	    super(new Parameter[] { coloringType, peakMeasurementType, xAxisComponent,
+	    		yAxisComponent });
+	}
 }

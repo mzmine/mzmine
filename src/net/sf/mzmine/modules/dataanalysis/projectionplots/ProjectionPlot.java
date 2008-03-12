@@ -98,8 +98,13 @@ public class ProjectionPlot implements MZmineModule, ActionListener, TaskListene
 					selectedAlignedPeakLists[0]);
 		}
 
+		boolean forceXYComponents = true;
+		String command = event.getActionCommand();
+		if (command.equals("PCA_PLOT"))
+			forceXYComponents = false;
+		
 		ProjectionPlotSetupDialog setupDialog = new ProjectionPlotSetupDialog(
-				selectedAlignedPeakLists[0], parameters);
+				selectedAlignedPeakLists[0], parameters, forceXYComponents);
 		setupDialog.setVisible(true);
 
 		if (setupDialog.getExitCode() == ExitCode.OK) {
@@ -107,15 +112,14 @@ public class ProjectionPlot implements MZmineModule, ActionListener, TaskListene
 
 			ProjectionPlotDataset dataset = null;
 
-			String command = event.getActionCommand();
 			if (command.equals("PCA_PLOT"))
-				dataset = new PCADataset(parameters, 1, 2);
+				dataset = new PCADataset(parameters);
 
 			if (command.equals("CDA_PLOT"))
-				dataset = new CDADataset(parameters, 1, 2);
+				dataset = new CDADataset(parameters);
 			
 			if (command.equals("SAMMON_PLOT"))
-				dataset = new SammonDataset(parameters, 1, 2);
+				dataset = new SammonDataset(parameters);
 
 	        new TaskGroup(dataset, this).start();
 
