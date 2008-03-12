@@ -231,7 +231,7 @@ public class SammonDataset extends AbstractXYDataset implements
 	}
 		
 	public void cancel() {
-		projectionStatus.cancel();
+        if (projectionStatus != null) projectionStatus.cancel();
 		status = TaskStatus.CANCELED;
 	}
 
