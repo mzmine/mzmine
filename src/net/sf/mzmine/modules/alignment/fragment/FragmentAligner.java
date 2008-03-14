@@ -337,8 +337,11 @@ public class FragmentAligner implements BatchStepAlignment, TaskListener,
 			if (mzFragmentIndex < mzFragmentLimits.length) {
 				name = "m/z up to " + mzFragmentLimits[mzFragmentIndex];
 			} else {
-				name = "m/z after "
+				if (mzFragmentLimits.length>0)
+					name = "m/z after "
 						+ mzFragmentLimits[mzFragmentLimits.length - 1];
+				else
+					name = "single fragment";
 			}
 
 			Task t = new AlignFragmentTask(peakLists, this.parameters, name,
