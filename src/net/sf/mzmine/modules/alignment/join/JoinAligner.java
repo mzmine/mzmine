@@ -60,13 +60,13 @@ public class JoinAligner implements BatchStepAlignment, TaskListener,
 
         parameters = new JoinAlignerParameters();
 
-        desktop.addMenuItem(MZmineMenu.ALIGNMENT, "Peak list aligner", this,
-                null, KeyEvent.VK_A, false, true);
+        desktop.addMenuItem(MZmineMenu.ALIGNMENT, toString(), this,
+                null, KeyEvent.VK_J, false, true);
 
     }
 
     public String toString() {
-        return "Join Aligner";
+        return "Join aligner";
     }
 
     /**
