@@ -88,7 +88,7 @@ public class AnotherCentroidPicker implements BatchStepPeakPicking,
 	public void taskStarted(Task task) {
 		AnotherCentroidPickerTask centTask = (AnotherCentroidPickerTask) task;
 		logger
-				.info("Running centroid peak picker on "
+				.info("Running another centroid peak picker on "
 						+ centTask.getDataFile());
 	}
 
@@ -98,7 +98,7 @@ public class AnotherCentroidPicker implements BatchStepPeakPicking,
 
 		if (task.getStatus() == Task.TaskStatus.FINISHED) {
 
-			logger.info("Finished centroid peak picker on "
+			logger.info("Finished another centroid peak picker on "
 					+ centTask.getDataFile());
 
 		}
@@ -116,7 +116,7 @@ public class AnotherCentroidPicker implements BatchStepPeakPicking,
 	 * @see net.sf.mzmine.modules.BatchStep#toString()
 	 */
 	public String toString() {
-		return "Centroid peak detector";
+		return "Another centroid peak detector";
 	}
 
 	/**
