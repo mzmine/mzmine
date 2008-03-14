@@ -166,6 +166,8 @@
         <parameter name="Relative RT tolerance" type="FLOAT">0.15</parameter>
       </parameters> 
     </module>  
+    <module class="net.sf.mzmine.modules.alignment.fragment.FragmentAligner"/>
+    <module class="net.sf.mzmine.util.menu.AlignmentMenuSeparator"/>  
     <module class="net.sf.mzmine.modules.alignment.rowsfilter.RowsFilter"> 
       <parameters>
         <parameter name="Name suffix" type="STRING">filtered</parameter>
