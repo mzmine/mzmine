@@ -38,6 +38,7 @@ import net.sf.mzmine.taskcontrol.Task;
 import net.sf.mzmine.taskcontrol.TaskGroup;
 import net.sf.mzmine.taskcontrol.TaskGroupListener;
 import net.sf.mzmine.taskcontrol.TaskListener;
+import net.sf.mzmine.taskcontrol.Task.TaskStatus;
 import net.sf.mzmine.userinterface.Desktop;
 import net.sf.mzmine.userinterface.Desktop.MZmineMenu;
 import net.sf.mzmine.userinterface.dialogs.ExitCode;
@@ -141,6 +142,16 @@ public class FragmentAligner implements BatchStepAlignment, TaskListener,
 		startedTasks.remove(task);
 
 		if (task.getStatus() == Task.TaskStatus.FINISHED) {
+
+			// Check if a task has been canceled
+			for (Task t : startedTasks)
+				// If yes, then cancel all tasks
+				if (t.getStatus() == TaskStatus.CANCELED) {
+					for (Task tt : startedTasks) {
+						tt.cancel();
+					}
+					break;
+				}
 
 			// All fragments done?
 			if (startedTasks.size() == 0) {
@@ -337,9 +348,9 @@ public class FragmentAligner implements BatchStepAlignment, TaskListener,
 			if (mzFragmentIndex < mzFragmentLimits.length) {
 				name = "m/z up to " + mzFragmentLimits[mzFragmentIndex];
 			} else {
-				if (mzFragmentLimits.length>0)
+				if (mzFragmentLimits.length > 0)
 					name = "m/z after "
-						+ mzFragmentLimits[mzFragmentLimits.length - 1];
+							+ mzFragmentLimits[mzFragmentLimits.length - 1];
 				else
 					name = "single fragment";
 			}
