@@ -20,5 +20,29 @@
 package net.sf.mzmine.data;
 
 public enum ParameterType {
-    STRING, INTEGER, FLOAT, BOOLEAN
+
+    /**
+     * Parameter values represented by String instance
+     */
+    STRING,
+
+    /**
+     * Parameter values represented by Integer instance
+     */
+    INTEGER,
+
+    /**
+     * Parameter values represented by Float instance
+     */
+    FLOAT,
+
+    /**
+     * Parameter values represented by Range instance (range of float values)
+     */
+    RANGE,
+
+    /**
+     * Parameter values represented by Boolean instance
+     */
+    BOOLEAN
 }

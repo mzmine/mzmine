@@ -23,6 +23,7 @@ import java.text.NumberFormat;
 
 import net.sf.mzmine.data.Parameter;
 import net.sf.mzmine.data.ParameterType;
+import net.sf.mzmine.util.Range;
 
 /**
  * Simple Parameter implementation
@@ -45,14 +46,13 @@ public class SimpleParameter implements Parameter {
 
     public SimpleParameter(ParameterType type, String name, String description,
             String units, NumberFormat format) {
-        this(type, name, description, units, null, null, null, null,
-                format);
+        this(type, name, description, units, null, null, null, null, format);
     }
-    
+
     public SimpleParameter(ParameterType type, String name, String description,
             String units, Object defaultValue, NumberFormat format) {
-        this(type, name, description, units, defaultValue, null, null,
-                null, format);
+        this(type, name, description, units, defaultValue, null, null, null,
+                format);
     }
 
     public SimpleParameter(ParameterType type, String name, String description,
@@ -98,7 +98,6 @@ public class SimpleParameter implements Parameter {
      * @param possibleValues
      * @param format
      */
-
     private SimpleParameter(ParameterType type, String name,
             String description, String units, Object defaultValue,
             Object minValue, Object maxValue, Object[] possibleValues,
@@ -112,10 +111,11 @@ public class SimpleParameter implements Parameter {
         this.maxValue = maxValue;
         this.possibleValues = possibleValues;
         this.defaultNumberFormat = defaultNumberFormat;
-        
+
         if ((possibleValues != null) && (possibleValues.length == 0))
-            throw new IllegalArgumentException("Possible values array must not be 0 size");
-        
+            throw new IllegalArgumentException(
+                    "Possible values array must not be 0 size");
+
         switch (type) {
         case BOOLEAN:
             if ((defaultValue != null) && (!(defaultValue instanceof Boolean)))
@@ -149,6 +149,18 @@ public class SimpleParameter implements Parameter {
                         throw new IllegalArgumentException(
                                 "Invalid possible values type");
                 }
+            }
+            break;
+        case RANGE:
+            if ((defaultValue != null) && (!(defaultValue instanceof Range)))
+                throw new IllegalArgumentException("Invalid default value type");
+            if ((minValue != null) && (!(minValue instanceof Number)))
+                throw new IllegalArgumentException("Invalid min value type");
+            if ((maxValue != null) && (!(maxValue instanceof Number)))
+                throw new IllegalArgumentException("Invalid max value type");
+            if (possibleValues != null) {
+                throw new IllegalArgumentException(
+                        "Range parameters do not support selection from possible values");
             }
             break;
         }

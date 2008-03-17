@@ -27,6 +27,7 @@ import java.util.logging.Logger;
 import net.sf.mzmine.data.Parameter;
 import net.sf.mzmine.data.ParameterType;
 import net.sf.mzmine.data.StorableParameterSet;
+import net.sf.mzmine.util.Range;
 
 import org.dom4j.Element;
 
@@ -96,7 +97,7 @@ public class SimpleParameterSet implements StorableParameterSet {
     public boolean hasParameter(Parameter parameter) {
         return parameters.contains(parameter);
     }
-    
+
     /**
      * @see net.sf.mzmine.data.ParameterSet#addParameter(net.sf.mzmine.data.Parameter)
      */
@@ -168,15 +169,14 @@ public class SimpleParameterSet implements StorableParameterSet {
         case INTEGER:
             if (!(value instanceof Integer))
                 throw (new IllegalArgumentException("Value type mismatch"));
+            int intValue = (Integer) value;
             Integer minIValue = (Integer) parameter.getMinimumValue();
-            if ((minIValue != null)
-                    && (minIValue.compareTo((Integer) value) > 0))
+            if ((minIValue != null) && (intValue < minIValue))
                 throw (new IllegalArgumentException(
                         "Minimum value of parameter " + parameter + " is "
                                 + minIValue));
             Integer maxIValue = (Integer) parameter.getMaximumValue();
-            if ((maxIValue != null)
-                    && (maxIValue.compareTo((Integer) value) < 0))
+            if ((maxIValue != null) && (intValue > maxIValue))
                 throw (new IllegalArgumentException(
                         "Maximum value of parameter " + parameter + "  is "
                                 + maxIValue));
@@ -186,17 +186,35 @@ public class SimpleParameterSet implements StorableParameterSet {
         case FLOAT:
             if (!(value instanceof Float))
                 throw (new IllegalArgumentException("Value type mismatch"));
-            Float minDValue = (Float) parameter.getMinimumValue();
-            if ((minDValue != null) && (minDValue.compareTo((Float) value) > 0))
+            float floatValue = (Float) value;
+            Float minFValue = (Float) parameter.getMinimumValue();
+            if ((minFValue != null) && (floatValue < minFValue))
                 throw (new IllegalArgumentException(
                         "Minimum value of parameter " + parameter + "  is "
-                                + minDValue));
-            Float maxDValue = (Float) parameter.getMaximumValue();
-            if ((maxDValue != null) && (maxDValue.compareTo((Float) value) < 0))
+                                + minFValue));
+            Float maxFValue = (Float) parameter.getMaximumValue();
+            if ((maxFValue != null) && (floatValue > maxFValue))
                 throw (new IllegalArgumentException(
                         "Maximum value of parameter " + parameter + "  is "
-                                + maxDValue));
+                                + maxFValue));
             break;
+
+        case RANGE:
+            if (!(value instanceof Range))
+                throw (new IllegalArgumentException("Value type mismatch"));
+            Range rangeValue = (Range) value;
+            Float minRValue = (Float) parameter.getMinimumValue();
+            if ((minRValue != null) && (rangeValue.getMin() < minRValue))
+                throw (new IllegalArgumentException(
+                        "Minimum value of parameter " + parameter + "  is "
+                                + minRValue));
+            Float maxRValue = (Float) parameter.getMaximumValue();
+            if ((maxRValue != null) && (rangeValue.getMax() > maxRValue))
+                throw (new IllegalArgumentException(
+                        "Maximum value of parameter " + parameter + "  is "
+                                + maxRValue));
+            break;
+
         case STRING:
             if (!(value instanceof String))
                 throw (new IllegalArgumentException("Value type mismatch"));
@@ -232,7 +250,16 @@ public class SimpleParameterSet implements StorableParameterSet {
 
             Object value = getParameterValue(p);
             if (value != null) {
-                newElement.addText(value.toString());
+                String valueAsString;
+                if (value instanceof Range) {
+                    Range rangeValue = (Range) value;
+                    valueAsString = String.valueOf(rangeValue.getMin()) + "-"
+                            + String.valueOf(rangeValue.getMax());
+                } else {
+                    valueAsString = value.toString();
+                }
+                newElement.addText(valueAsString);
+
             }
 
         }
@@ -267,6 +294,12 @@ public class SimpleParameterSet implements StorableParameterSet {
                 case FLOAT:
                     value = Float.parseFloat(valueText);
                     break;
+                case RANGE:
+                    String values[] = valueText.split("-");
+                    float min = Float.parseFloat(values[0]);
+                    float max = Float.parseFloat(values[1]);
+                    value = new Range(min, max);
+                    break;
                 case STRING:
                     value = valueText;
                     break;
@@ -288,7 +321,8 @@ public class SimpleParameterSet implements StorableParameterSet {
             SimpleParameterSet newSet = this.getClass().newInstance();
 
             for (Parameter p : params) {
-                if (! newSet.hasParameter(p)) newSet.addParameter(p);
+                if (!newSet.hasParameter(p))
+                    newSet.addParameter(p);
                 Object v = values.get(p);
                 if (v != null)
                     newSet.setParameterValue(p, v);

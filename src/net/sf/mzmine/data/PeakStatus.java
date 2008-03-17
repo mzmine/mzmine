@@ -20,30 +20,29 @@
 package net.sf.mzmine.data;
 
 /**
- * 
- * This enum defines the detection status of a picked peak.
+ * This enum defines the detection status of a picked peak (one cell of a
+ * PeakList table).
  * 
  */
 public enum PeakStatus {
 
     /**
-     * UNKNOWN - peak was not found
+     * Peak was not found
      */
     UNKNOWN,
 
     /**
-     * DETECTED - peak was found in primary peak picking
+     * Peak was found in primary peak picking
      */
     DETECTED,
 
-
     /**
-     * ESTIMATED - peak was estimated in secondary peak picking
+     * Peak was estimated in secondary peak picking
      */
     ESTIMATED,
-    
+
     /**
-     * MANUAL - peak was defined manually
+     * Peak was defined manually
      */
     MANUAL
 
