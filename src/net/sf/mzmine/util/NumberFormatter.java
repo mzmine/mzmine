@@ -111,6 +111,17 @@ public class NumberFormatter extends NumberFormat implements Cloneable {
 
         return embeddedFormatter.format(arg0, arg1, arg2);
     }
+    
+    /**
+     */
+    public synchronized StringBuffer format(Range range, StringBuffer arg1,
+            FieldPosition arg2) {
+
+        embeddedFormatter.format(range.getMin(), arg1, new FieldPosition(0));
+        arg1.append(" - ");
+        embeddedFormatter.format(range.getMax(), arg1, new FieldPosition(0));
+        return arg1;
+    }
 
     /**
      * @see java.text.NumberFormat#format(long, java.lang.StringBuffer,
