@@ -20,12 +20,10 @@
 package net.sf.mzmine.modules.peakpicking.anothercentroid;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Iterator;
 import java.util.TreeSet;
 
 import net.sf.mzmine.data.DataPoint;
-import net.sf.mzmine.data.Scan;
 import net.sf.mzmine.modules.peakpicking.anothercentroid.DataPointSorter.SortingDirection;
 import net.sf.mzmine.modules.peakpicking.anothercentroid.DataPointSorter.SortingProperty;
 

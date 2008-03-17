@@ -32,7 +32,7 @@ import net.sf.mzmine.data.PeakListRow;
 import net.sf.mzmine.data.impl.SimpleParameterSet;
 import net.sf.mzmine.data.impl.SimplePeakList;
 import net.sf.mzmine.desktop.Desktop;
-import net.sf.mzmine.desktop.Desktop.MZmineMenu;
+import net.sf.mzmine.desktop.MZmineMenu;
 import net.sf.mzmine.io.RawDataFile;
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.modules.batchmode.BatchStepAlignment;

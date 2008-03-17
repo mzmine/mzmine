@@ -17,18 +17,20 @@
  * Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-package net.sf.mzmine.modules.peakpicking.accuratemass;
+package net.sf.mzmine.modules.peakpicking.manual;
 
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
 import java.util.logging.Logger;
 
+import net.sf.mzmine.data.Parameter;
 import net.sf.mzmine.data.ParameterSet;
+import net.sf.mzmine.data.ParameterType;
+import net.sf.mzmine.data.Peak;
 import net.sf.mzmine.data.PeakList;
+import net.sf.mzmine.data.impl.SimpleParameter;
 import net.sf.mzmine.data.impl.SimpleParameterSet;
-import net.sf.mzmine.desktop.Desktop;
-import net.sf.mzmine.desktop.MZmineMenu;
 import net.sf.mzmine.io.RawDataFile;
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.modules.batchmode.BatchStepPeakPicking;
@@ -36,10 +38,13 @@ import net.sf.mzmine.taskcontrol.Task;
 import net.sf.mzmine.taskcontrol.TaskGroup;
 import net.sf.mzmine.taskcontrol.TaskGroupListener;
 import net.sf.mzmine.taskcontrol.TaskListener;
-import net.sf.mzmine.util.dialogs.ExitCode;
-import net.sf.mzmine.util.dialogs.ParameterSetupDialog;
+import net.sf.mzmine.userinterface.Desktop;
+import net.sf.mzmine.userinterface.Desktop.MZmineMenu;
+import net.sf.mzmine.userinterface.dialogs.ExitCode;
+import net.sf.mzmine.userinterface.dialogs.ParameterSetupDialog;
+import net.sf.mzmine.util.NumberFormatter;
 
-public class AccurateMassPicker implements BatchStepPeakPicking, TaskListener,
+public class ManualPeakPicker implements BatchStepPeakPicking, TaskListener,
         ActionListener {
 
     private Logger logger = Logger.getLogger(this.getClass().getName());
@@ -167,4 +172,72 @@ public class AccurateMassPicker implements BatchStepPeakPicking, TaskListener,
 
     }
 
+    float minRT, maxRT, minMZ, maxMZ;
+    if (clickedPeak != null) {
+        minRT = clickedPeak.getRawDataPointMinRT();
+        maxRT = clickedPeak.getRawDataPointMaxRT();
+        minMZ = clickedPeak.getRawDataPointMinMZ();
+        maxMZ = clickedPeak.getRawDataPointMaxMZ();
+    } else {
+        minRT = clickedPeakListRow.getAverageRT();
+        maxRT = clickedPeakListRow.getAverageRT();
+        minMZ = clickedPeakListRow.getAverageMZ();
+        maxMZ = clickedPeakListRow.getAverageMZ();
+
+        for (Peak peak : clickedPeakListRow.getPeaks()) {
+            if (peak == null)
+                continue;
+            if (peak.getRawDataPointMinRT() < minRT)
+                minRT = peak.getRawDataPointMinRT();
+            if (peak.getRawDataPointMaxRT() > maxRT)
+                maxRT = peak.getRawDataPointMaxRT();
+            if (peak.getRawDataPointMinMZ() < minMZ)
+                minMZ = peak.getRawDataPointMinMZ();
+            if (peak.getRawDataPointMaxMZ() > maxMZ)
+                maxMZ = peak.getRawDataPointMaxMZ();
+        }
+    }
+
+    NumberFormatter mzFormat = MZmineCore.getDesktop().getMZFormat();
+    NumberFormatter rtFormat = MZmineCore.getDesktop().getRTFormat();
+
+    Parameter minRTparam = new SimpleParameter(ParameterType.FLOAT,
+            "Retention time min", "Retention time min", "s", minRT,
+            clickedDataFile.getDataMinRT(1),
+            clickedDataFile.getDataMaxRT(1), rtFormat);
+    Parameter maxRTparam = new SimpleParameter(ParameterType.FLOAT,
+            "Retention time max", "Retention time max", "s", maxRT,
+            clickedDataFile.getDataMinRT(1),
+            clickedDataFile.getDataMaxRT(1), rtFormat);
+    Parameter minMZparam = new SimpleParameter(ParameterType.FLOAT,
+            "m/z min", "m/z min", "Da", minMZ,
+            clickedDataFile.getDataMinMZ(1),
+            clickedDataFile.getDataMaxMZ(1), mzFormat);
+    Parameter maxMZparam = new SimpleParameter(ParameterType.FLOAT,
+            "m/z max", "m/z max", "Da", maxMZ,
+            clickedDataFile.getDataMinMZ(1),
+            clickedDataFile.getDataMaxMZ(1), mzFormat);
+    Parameter[] params = { minRTparam, maxRTparam, minMZparam,
+            maxMZparam };
+
+    SimpleParameterSet parameterSet = new SimpleParameterSet(params);
+
+    ParameterSetupDialog parameterSetupDialog = new ParameterSetupDialog(
+            "Please set peak boundaries", parameterSet);
+
+    parameterSetupDialog.setVisible(true);
+
+    if (parameterSetupDialog.getExitCode() != ExitCode.OK)
+        return;
+
+    minRT = (Float) parameterSet.getParameterValue(minRTparam);
+    maxRT = (Float) parameterSet.getParameterValue(maxRTparam);
+    minMZ = (Float) parameterSet.getParameterValue(minMZparam);
+    maxMZ = (Float) parameterSet.getParameterValue(maxMZparam);
+
+    ManuallyDefinePeakTask task = new ManuallyDefinePeakTask(
+            clickedPeakListRow, clickedDataFile, minRT, maxRT, minMZ,
+            maxMZ);
+
+    MZmineCore.getTaskController().addTask(task);
 }

@@ -33,7 +33,7 @@ import javax.swing.JMenuItem;
 import javax.swing.JOptionPane;
 import javax.swing.KeyStroke;
 
-import net.sf.mzmine.desktop.Desktop.MZmineMenu;
+import net.sf.mzmine.desktop.MZmineMenu;
 import net.sf.mzmine.io.impl.FileOpenDialog;
 import net.sf.mzmine.main.MZmineClient;
 import net.sf.mzmine.main.MZmineCore;

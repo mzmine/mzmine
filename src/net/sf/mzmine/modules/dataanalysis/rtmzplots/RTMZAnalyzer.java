@@ -32,7 +32,7 @@ import net.sf.mzmine.data.PeakList;
 import net.sf.mzmine.data.impl.SimpleParameter;
 import net.sf.mzmine.data.impl.SimpleParameterSet;
 import net.sf.mzmine.desktop.Desktop;
-import net.sf.mzmine.desktop.Desktop.MZmineMenu;
+import net.sf.mzmine.desktop.MZmineMenu;
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.main.MZmineModule;
 import net.sf.mzmine.util.dialogs.ExitCode;

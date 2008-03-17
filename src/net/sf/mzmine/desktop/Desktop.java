@@ -36,10 +36,6 @@ import net.sf.mzmine.main.MZmineModule;
  */
 public interface Desktop extends MZmineModule {
 
-	public enum MZmineMenu {
-		PROJECT, FILTERING, PEAKPICKING, ALIGNMENT, NORMALIZATION, IDENTIFICATION, VISUALIZATION, ANALYSIS
-	};
-
 	/**
 	 * Returns a reference to main application window
 	 * 

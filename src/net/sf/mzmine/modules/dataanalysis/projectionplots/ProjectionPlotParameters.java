@@ -27,8 +27,6 @@ import net.sf.mzmine.data.impl.SimpleParameter;
 import net.sf.mzmine.data.impl.SimpleParameterSet;
 import net.sf.mzmine.io.RawDataFile;
 
-import org.dom4j.Element;
-
 public class ProjectionPlotParameters extends SimpleParameterSet {
 
 	// Normal (stored) parameters

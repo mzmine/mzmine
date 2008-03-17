@@ -27,7 +27,7 @@ import java.util.logging.Logger;
 import net.sf.mzmine.data.ParameterSet;
 import net.sf.mzmine.data.PeakList;
 import net.sf.mzmine.desktop.Desktop;
-import net.sf.mzmine.desktop.Desktop.MZmineMenu;
+import net.sf.mzmine.desktop.MZmineMenu;
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.main.MZmineModule;
 import net.sf.mzmine.util.logging.JCommonLogHandler;

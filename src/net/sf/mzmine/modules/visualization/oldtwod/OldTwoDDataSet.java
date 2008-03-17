@@ -19,24 +19,11 @@
 
 package net.sf.mzmine.modules.visualization.oldtwod;
 
-import java.awt.Point;
-import java.awt.Transparency;
-import java.awt.color.ColorSpace;
-import java.awt.image.BufferedImage;
-import java.awt.image.ColorModel;
-import java.awt.image.ComponentColorModel;
-import java.awt.image.DataBuffer;
-import java.awt.image.Raster;
-import java.awt.image.SampleModel;
-import java.awt.image.WritableRaster;
 import java.util.ArrayList;
-import java.util.Date;
-import java.util.Hashtable;
 import java.util.Vector;
 import java.util.logging.Logger;
 
 import net.sf.mzmine.data.DataPoint;
-import net.sf.mzmine.data.PeakList;
 import net.sf.mzmine.data.Scan;
 import net.sf.mzmine.io.RawDataFile;
 import net.sf.mzmine.io.util.RawDataAcceptor;
@@ -46,11 +33,6 @@ import net.sf.mzmine.taskcontrol.Task;
 import net.sf.mzmine.taskcontrol.Task.TaskPriority;
 import net.sf.mzmine.util.ScanUtils;
 import net.sf.mzmine.util.ScanUtils.BinningType;
-
-import org.jfree.chart.event.PlotChangeEvent;
-import org.jfree.chart.event.PlotChangeListener;
-import org.jfree.chart.plot.XYPlot;
-import org.jfree.data.xy.AbstractXYZDataset;
 
 /**
  * 

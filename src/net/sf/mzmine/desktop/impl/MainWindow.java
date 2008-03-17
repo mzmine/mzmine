@@ -47,6 +47,7 @@ import javax.swing.border.EtchedBorder;
 import net.sf.mzmine.data.ParameterSet;
 import net.sf.mzmine.data.PeakList;
 import net.sf.mzmine.desktop.Desktop;
+import net.sf.mzmine.desktop.MZmineMenu;
 import net.sf.mzmine.io.PreloadLevel;
 import net.sf.mzmine.io.RawDataFile;
 import net.sf.mzmine.main.MZmineCore;

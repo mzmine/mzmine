@@ -19,9 +19,6 @@
 
 package net.sf.mzmine.modules.peakpicking.anothercentroid;
 
-import java.io.FileWriter;
-import java.io.IOException;
-import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Enumeration;

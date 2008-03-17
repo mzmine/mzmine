@@ -28,7 +28,7 @@ import javax.swing.JDialog;
 
 import net.sf.mzmine.data.ParameterSet;
 import net.sf.mzmine.desktop.Desktop;
-import net.sf.mzmine.desktop.Desktop.MZmineMenu;
+import net.sf.mzmine.desktop.MZmineMenu;
 import net.sf.mzmine.io.RawDataFile;
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.main.MZmineModule;
