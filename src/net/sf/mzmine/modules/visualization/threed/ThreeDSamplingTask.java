@@ -26,6 +26,7 @@ import net.sf.mzmine.data.DataPoint;
 import net.sf.mzmine.data.Scan;
 import net.sf.mzmine.io.RawDataFile;
 import net.sf.mzmine.taskcontrol.Task;
+import net.sf.mzmine.util.Range;
 import net.sf.mzmine.util.ScanUtils;
 import net.sf.mzmine.util.ScanUtils.BinningType;
 import visad.Gridded2DSet;
@@ -41,7 +42,7 @@ class ThreeDSamplingTask implements Task {
 
     private RawDataFile dataFile;
     private int scanNumbers[];
-    private float rtMin, rtMax, mzMin, mzMax;
+    private Range rtRange, mzRange;
 
     // Data resolution on m/z and retention time axis
     private int rtResolution, mzResolution;
@@ -63,8 +64,7 @@ class ThreeDSamplingTask implements Task {
      * @param msLevel
      * @param visualizer
      */
-    ThreeDSamplingTask(RawDataFile dataFile, int scanNumbers[], float rtMin,
-            float rtMax, float mzMin, float mzMax, int rtResolution,
+    ThreeDSamplingTask(RawDataFile dataFile, int scanNumbers[], Range rtRange, Range mzRange, int rtResolution,
             int mzResolution, ThreeDDisplay display) {
 
         status = TaskStatus.WAITING;
@@ -72,10 +72,8 @@ class ThreeDSamplingTask implements Task {
         this.dataFile = dataFile;
         this.scanNumbers = scanNumbers;
 
-        this.rtMin = rtMin;
-        this.rtMax = rtMax;
-        this.mzMin = mzMin;
-        this.mzMax = mzMax;
+        this.rtRange = rtRange;
+        this.mzRange = mzRange;
         this.rtResolution = rtResolution;
         this.mzResolution = mzResolution;
 
@@ -127,21 +125,17 @@ class ThreeDSamplingTask implements Task {
 
         try {
 
-            // get the data range
-            final float mzRange = mzMax - mzMin;
-            final float rtRange = rtMax - rtMin;
-
             // domain values set
             Set domainSet;
 
             // set the resolution (number of data points) on m/z axis
-            final float mzStep = mzRange / mzResolution;
+            final float mzStep = mzRange.getSize() / mzResolution;
 
             // set the resolution (number of data points) on retention time axis
             if (scanNumbers.length > rtResolution) {
 
-                domainSet = new Linear2DSet(display.getDomainTuple(), rtMin,
-                        rtMax, rtResolution, mzMin, mzMax, mzResolution);
+                domainSet = new Linear2DSet(display.getDomainTuple(), rtRange.getMin(),
+                        rtRange.getMax(), rtResolution, mzRange.getMin(), mzRange.getMax(), mzResolution);
 
             } else {
 
@@ -162,7 +156,7 @@ class ThreeDSamplingTask implements Task {
                                 scanNumbers[i]).getRetentionTime();
 
                         // set the point's Y coordinate
-                        domainPoints[1][point] = mzMin + (j * mzStep);
+                        domainPoints[1][point] = mzRange.getMin() + (j * mzStep);
                     }
                 }
 
@@ -171,7 +165,7 @@ class ThreeDSamplingTask implements Task {
 
             }
 
-            final float rtStep = rtRange / rtResolution;
+            final float rtStep = rtRange.getSize() / rtResolution;
 
             // create an array for all data points
             float[][] intensityValues = new float[1][mzResolution
@@ -194,14 +188,14 @@ class ThreeDSamplingTask implements Task {
                 }
 
                 float[] binnedIntensities = ScanUtils.binValues(scanMZValues,
-                        scanIntensityValues, mzMin, mzMax, mzResolution, false,
+                        scanIntensityValues, mzRange, mzResolution, false,
                         BinningType.MAX);
 
                 int scanBinIndex;
 
                 if (domainSet instanceof Linear2DSet) {
                     double rt = scan.getRetentionTime();
-                    scanBinIndex = (int) ((rt - rtMin) / rtStep);
+                    scanBinIndex = (int) ((rt - rtRange.getMin()) / rtStep);
 
                     // last scan falls into last bin
                     if (scanBinIndex == rtResolution)
@@ -228,8 +222,8 @@ class ThreeDSamplingTask implements Task {
 
             }
 
-            display.setData(intensityValues, domainSet, rtMin, rtMax, mzMin,
-                    mzMax, maxBinnedIntensity);
+            display.setData(intensityValues, domainSet, rtRange.getMin(), rtRange.getMax(), mzRange.getMin(),
+                    mzRange.getMax(), maxBinnedIntensity);
 
         } catch (Throwable e) {
             logger.log(Level.SEVERE, "Error while sampling 3D data", e);

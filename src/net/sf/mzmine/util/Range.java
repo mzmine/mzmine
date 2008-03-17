@@ -43,6 +43,10 @@ public class Range {
      * @param max Range maximum
      */
     public Range(float min, float max) {
+        if (min > max) {
+            throw (new IllegalArgumentException(
+                    "Range minimum must be <= maximum"));
+        }
         this.min = min;
         this.max = max;
     }
@@ -124,7 +128,7 @@ public class Range {
         if (max < value)
             max = value;
     }
-    
+
     /**
      * Extends this range (if necessary) to include the given range
      * 

@@ -32,6 +32,7 @@ import net.sf.mzmine.io.RawDataFile;
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.project.MZmineProject;
 import net.sf.mzmine.taskcontrol.Task;
+import net.sf.mzmine.util.Range;
 
 class RTNormalizerTask implements Task {
 
@@ -134,8 +135,8 @@ class RTNormalizerTask implements Task {
             // Find matching rows in remaining peaklists
             for (int i = 1; i < originalPeakLists.length; i++) {
                 PeakListRow matchingRows[] = originalPeakLists[i].getRowsInsideScanAndMZRange(
-                        candidateRT - rtTolerance, candidateRT + rtTolerance,
-                        candidateMZ - mzTolerance, candidateMZ + mzTolerance);
+                        new Range(candidateRT - rtTolerance, candidateRT + rtTolerance),
+                        new Range(candidateMZ - mzTolerance, candidateMZ + mzTolerance));
 
                 // If we have not found exactly 1 matching peak, move to next
                 // standard candidate

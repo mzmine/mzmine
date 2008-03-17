@@ -17,7 +17,7 @@
  * Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-package net.sf.mzmine.modules.visualization.tic;
+package net.sf.mzmine.modules.visualization.neutralloss;
 
 import net.sf.mzmine.data.Parameter;
 import net.sf.mzmine.data.ParameterType;
@@ -26,22 +26,16 @@ import net.sf.mzmine.data.impl.SimpleParameterSet;
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.util.Range;
 
-public class TICVisualizerParameters extends SimpleParameterSet {
+public class NeutralLossParameters extends SimpleParameterSet {
 
-    public static final String plotTypeTIC = "TIC";
-    public static final String plotTypeBP = "Base peak intensity";
+    public static final String xAxisPrecursor = "Precursor mass";
+    public static final String xAxisRT = "Retention time";
 
-    public static final String[] plotTypes = { plotTypeTIC, plotTypeBP };
-    public static final Integer[] msLevels = { 1, 2, 3, 4, 5, 6, 7, 8, 9, 10 };
+    public static final String[] xAxisTypes = { xAxisPrecursor, xAxisRT };
 
-    public static final Parameter msLevel = new SimpleParameter(
-            ParameterType.INTEGER, "MS level", "MS level of plotted scans", 1,
-            msLevels);
-
-    public static final Parameter plotType = new SimpleParameter(
-            ParameterType.STRING, "Plot type",
-            "Type of Y value calculation (TIC = sum, base peak = max)",
-            plotTypeTIC, plotTypes);
+    public static final Parameter xAxisType = new SimpleParameter(
+            ParameterType.STRING, "X axis", "X axis type", xAxisPrecursor,
+            xAxisTypes);
 
     public static final Parameter retentionTimeRange = new SimpleParameter(
             ParameterType.RANGE, "Retention time",
@@ -49,16 +43,18 @@ public class TICVisualizerParameters extends SimpleParameterSet {
             new Float(0), null, MZmineCore.getRTFormat());
 
     public static final Parameter mzRange = new SimpleParameter(
-            ParameterType.RANGE,
-            "m/z range",
-            "Range of m/z values. If this range does not include the whole scan m/z range, the resulting visualizer is XIC type.",
-            "m/z", new Range(0, 1000), new Float(0), null,
-            MZmineCore.getMZFormat());
+            ParameterType.RANGE, "Precursor m/z",
+            "Range of precursor m/z values", "m/z", new Range(0, 1000),
+            new Float(0), null, MZmineCore.getMZFormat());
 
-    public TICVisualizerParameters() {
-        super(
-                new Parameter[] { msLevel, plotType, retentionTimeRange,
-                        mzRange });
+    public static final Parameter numOfFragments = new SimpleParameter(
+            ParameterType.INTEGER, "Fragments",
+            "Number of most intense fragments", null, new Integer(5),
+            new Integer(0), null);
+
+    public NeutralLossParameters() {
+        super(new Parameter[] { xAxisType, retentionTimeRange, mzRange,
+                numOfFragments });
     }
 
 }

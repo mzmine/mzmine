@@ -26,6 +26,8 @@ import java.awt.image.BufferedImage;
 import java.util.Date;
 import java.util.logging.Logger;
 
+import net.sf.mzmine.util.Range;
+
 import org.jfree.chart.axis.ValueAxis;
 import org.jfree.chart.plot.CrosshairState;
 import org.jfree.chart.plot.PlotRenderingInfo;
@@ -41,24 +43,21 @@ class TwoDXYPlot extends XYPlot {
 
     // TODO: crosshair, centroid mode, show only top XXX peaks, checkbox display peaklist
     
-    private float totalRTMin, totalRTMax, totalMZMin, totalMZMax;
+    private Range totalRTRange, totalMZRange;;
     private BufferedImage zoomOutBitmap;
 
     private TwoDDataSet dataset;
 
     private TwoDPaletteType paletteType = TwoDPaletteType.PALETTE_GRAY20;
 
-    TwoDXYPlot(TwoDDataSet dataset, float rtMin, float rtMax, float mzMin,
-            float mzMax, ValueAxis domainAxis, ValueAxis rangeAxis) {
+    TwoDXYPlot(TwoDDataSet dataset, Range rtRange, Range mzRange, ValueAxis domainAxis, ValueAxis rangeAxis) {
        
         super(dataset, domainAxis, rangeAxis, null);
         
         this.dataset = dataset;
 
-        totalRTMin = rtMin;
-        totalRTMax = rtMax;
-        totalMZMin = mzMin;
-        totalMZMax = mzMax;
+        totalRTRange = rtRange;
+        totalMZRange = mzRange;
 
     }
 
@@ -82,9 +81,9 @@ class TwoDXYPlot extends XYPlot {
         final float imageMZMax = (float) getRangeAxis().getRange().getUpperBound();
         final float imageMZStep = (imageMZMax - imageMZMin) / height;
 
-        if ((zoomOutBitmap != null) && (imageRTMin == totalRTMin)
-                && (imageRTMax == totalRTMax) && (imageMZMin == totalMZMin)
-                && (imageMZMax == totalMZMax)
+        if ((zoomOutBitmap != null) && (imageRTMin == totalRTRange.getMin())
+                && (imageRTMax == totalRTRange.getMax()) && (imageMZMin == totalMZRange.getMin())
+                && (imageMZMax == totalMZRange.getMax())
                 && (zoomOutBitmap.getWidth() == width)
                 && (zoomOutBitmap.getHeight() == height)) {
             g2.drawImage(zoomOutBitmap, x, y, null);
@@ -106,8 +105,8 @@ class TwoDXYPlot extends XYPlot {
                 float pointMZMin = imageMZMin + (j * imageMZStep);
                 float pointMZMax = pointMZMin + imageMZStep;
 
-                values[i][j] = dataset.getMaxIntensity(pointRTMin, pointRTMax,
-                        pointMZMin, pointMZMax);
+                values[i][j] = dataset.getMaxIntensity(new Range(pointRTMin, pointRTMax),
+                        new Range(pointMZMin, pointMZMax));
 
                 if (values[i][j] > maxValue)
                     maxValue = values[i][j];
@@ -136,8 +135,8 @@ class TwoDXYPlot extends XYPlot {
             }
 
         // if we are zoomed out, save the values
-        if ((imageRTMin == totalRTMin) && (imageRTMax == totalRTMax)
-                && (imageMZMin == totalMZMin) && (imageMZMax == totalMZMax)) {
+        if ((imageRTMin == totalRTRange.getMin()) && (imageRTMax == totalRTRange.getMax())
+                && (imageMZMin == totalMZRange.getMin()) && (imageMZMax == totalMZRange.getMax())) {
             zoomOutBitmap = image;
         }
 

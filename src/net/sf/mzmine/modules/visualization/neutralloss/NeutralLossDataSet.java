@@ -32,6 +32,7 @@ import net.sf.mzmine.io.util.RawDataRetrievalTask;
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.taskcontrol.Task;
 import net.sf.mzmine.taskcontrol.Task.TaskPriority;
+import net.sf.mzmine.util.Range;
 
 import org.jfree.chart.labels.XYToolTipGenerator;
 import org.jfree.data.xy.AbstractXYDataset;
@@ -40,33 +41,34 @@ import org.jfree.data.xy.XYDataset;
 /**
  * 
  */
-class NeutralLossDataSet extends AbstractXYDataset implements RawDataAcceptor, XYToolTipGenerator {
+class NeutralLossDataSet extends AbstractXYDataset implements RawDataAcceptor,
+        XYToolTipGenerator {
 
     // redraw the chart every 100 ms while updating
     private static final int REDRAW_INTERVAL = 100;
 
     private RawDataFile rawDataFile;
 
-    private float totalMZMin, totalMZMax;
-    private int numOfFragments, xAxis;
+    private Range totalMZRange;
+    private int numOfFragments;
+    private Object xAxisType;
 
     private Date lastRedrawTime = new Date();
 
     private Vector<NeutralLossDataPoint> dataPoints;
 
-    NeutralLossDataSet(RawDataFile rawDataFile,
-            int xAxis, float rtMin, float rtMax, float mzMin, float mzMax,
-            int numOfFragments, NeutralLossVisualizerWindow visualizer) {
+    NeutralLossDataSet(RawDataFile rawDataFile, Object xAxisType,
+            Range rtRange, Range mzRange, int numOfFragments,
+            NeutralLossVisualizerWindow visualizer) {
 
         this.rawDataFile = rawDataFile;
 
-        totalMZMin = mzMin;
-        totalMZMax = mzMax;
+        totalMZRange = mzRange;
         this.numOfFragments = numOfFragments;
-        this.xAxis = xAxis;
+        this.xAxisType = xAxisType;
 
         // get MS/MS scans
-        int scanNumbers[] = rawDataFile.getScanNumbers(2, rtMin, rtMax);
+        int scanNumbers[] = rawDataFile.getScanNumbers(2, rtRange);
         assert scanNumbers != null;
 
         dataPoints = new Vector<NeutralLossDataPoint>(scanNumbers.length);
@@ -74,7 +76,8 @@ class NeutralLossDataSet extends AbstractXYDataset implements RawDataAcceptor, X
         Task updateTask = new RawDataRetrievalTask(rawDataFile, scanNumbers,
                 "Updating neutral loss visualizer of " + rawDataFile, this);
 
-        MZmineCore.getTaskController().addTask(updateTask, TaskPriority.HIGH, visualizer);
+        MZmineCore.getTaskController().addTask(updateTask, TaskPriority.HIGH,
+                visualizer);
 
     }
 
@@ -86,15 +89,15 @@ class NeutralLossDataSet extends AbstractXYDataset implements RawDataAcceptor, X
         // logger.finest("Adding scan " + scan);
 
         // check parent m/z
-        if ((scan.getPrecursorMZ() < totalMZMin)
-                || (scan.getPrecursorMZ() > totalMZMax))
+        if (!totalMZRange.contains(scan.getPrecursorMZ()))
             return;
 
         // get m/z and intensity values
         DataPoint scanDataPoints[] = scan.getDataPoints();
-        
+
         // skip empty scans
-        if (scan.getBasePeak() == null) return;
+        if (scan.getBasePeak() == null)
+            return;
 
         // topPeaks will contain indexes to mzValues peaks of top intensity
         int topPeaks[] = new int[numOfFragments];
@@ -104,7 +107,8 @@ class NeutralLossDataSet extends AbstractXYDataset implements RawDataAcceptor, X
 
             fragmentsCycle: for (int j = 0; j < numOfFragments; j++) {
 
-                if ((topPeaks[j] < 0) || (scanDataPoints[i].getIntensity()) > scanDataPoints[topPeaks[j]].getIntensity()) {
+                if ((topPeaks[j] < 0)
+                        || (scanDataPoints[i].getIntensity()) > scanDataPoints[topPeaks[j]].getIntensity()) {
 
                     // shift the top peaks array
                     for (int k = numOfFragments - 1; k > j; k--)
@@ -181,7 +185,7 @@ class NeutralLossDataSet extends AbstractXYDataset implements RawDataAcceptor, X
      * @see org.jfree.data.xy.XYDataset#getX(int, int)
      */
     public Number getX(int series, int item) {
-        if (xAxis == 0)
+        if (xAxisType == NeutralLossParameters.xAxisPrecursor)
             return dataPoints.get(item).getPrecursorMass();
         else
             return dataPoints.get(item).getRetentionTime();
@@ -194,35 +198,38 @@ class NeutralLossDataSet extends AbstractXYDataset implements RawDataAcceptor, X
     public Number getY(int series, int item) {
         return dataPoints.get(item).getNeutralLoss();
     }
-    
+
     public NeutralLossDataPoint getDataPoint(int item) {
         return dataPoints.get(item);
     }
-    
+
     public NeutralLossDataPoint getDataPoint(float xValue, float yValue) {
-        Vector<NeutralLossDataPoint> dataCopy = new Vector<NeutralLossDataPoint>(dataPoints);
+        Vector<NeutralLossDataPoint> dataCopy = new Vector<NeutralLossDataPoint>(
+                dataPoints);
         Iterator<NeutralLossDataPoint> it = dataCopy.iterator();
         float currentX, currentY;
         while (it.hasNext()) {
             NeutralLossDataPoint point = it.next();
-            if (xAxis == 0) currentX = point.getPrecursorMass();
-            else currentX = point.getRetentionTime();
+            if (xAxisType == NeutralLossParameters.xAxisPrecursor)
+                currentX = point.getPrecursorMass();
+            else
+                currentX = point.getRetentionTime();
             currentY = point.getNeutralLoss();
             // check for equality
-            if ((Math.abs(currentX - xValue) < 0.00000001) && (Math.abs(currentY - yValue) < 0.00000001))
+            if ((Math.abs(currentX - xValue) < 0.00000001)
+                    && (Math.abs(currentY - yValue) < 0.00000001))
                 return point;
         }
         return null;
     }
 
     /**
-     * @see org.jfree.chart.labels.XYToolTipGenerator#generateToolTip(org.jfree.data.xy.XYDataset, int, int)
+     * @see org.jfree.chart.labels.XYToolTipGenerator#generateToolTip(org.jfree.data.xy.XYDataset,
+     *      int, int)
      */
     public String generateToolTip(XYDataset dataset, int series, int item) {
         return dataPoints.get(item).toString();
 
     }
-    
-
 
 }

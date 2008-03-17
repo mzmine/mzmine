@@ -33,6 +33,7 @@ import javax.swing.JPopupMenu;
 import net.sf.mzmine.data.PeakList;
 import net.sf.mzmine.io.RawDataFile;
 import net.sf.mzmine.main.MZmineCore;
+import net.sf.mzmine.util.Range;
 
 import org.jfree.chart.ChartPanel;
 import org.jfree.chart.JFreeChart;
@@ -55,7 +56,7 @@ class TwoDPlot extends ChartPanel {
                     5, 3 }, 0);
 
     private RawDataFile rawDataFile;
-    private float rtMin, rtMax, mzMin, mzMax;
+    private Range rtRange, mzRange;
 
     private JFreeChart chart;
 
@@ -77,16 +78,13 @@ class TwoDPlot extends ChartPanel {
     // private TwoDItemRenderer renderer;
 
     TwoDPlot(RawDataFile rawDataFile, TwoDVisualizerWindow visualizer,
-            TwoDDataSet dataset, float rtMin, float rtMax, float mzMin,
-            float mzMax) {
+            TwoDDataSet dataset, Range rtRange, Range mzRange) {
 
         super(null, true);
 
         this.rawDataFile = rawDataFile;
-        this.rtMin = rtMin;
-        this.rtMax = rtMax;
-        this.mzMin = mzMin;
-        this.mzMax = mzMax;
+        this.rtRange = rtRange;
+        this.mzRange = mzRange;
 
         setBackground(Color.white);
         setCursor(Cursor.getPredefinedCursor(Cursor.CROSSHAIR_CURSOR));
@@ -109,11 +107,10 @@ class TwoDPlot extends ChartPanel {
         yAxis.setLowerMargin(0);
 
         // set the plot properties
-        plot = new TwoDXYPlot(dataset, rtMin, rtMax, mzMin, mzMax, xAxis, yAxis);
+        plot = new TwoDXYPlot(dataset, rtRange, mzRange, xAxis, yAxis);
         plot.setBackgroundPaint(Color.white);
         plot.setDomainGridlinesVisible(false);
         plot.setRangeGridlinesVisible(false);
-        // TODO plot.setAxisOffset(new RectangleInsets(5.0, 5.0, 5.0, 5.0));
 
         // chart properties
         chart = new JFreeChart("", titleFont, plot, false);
@@ -178,7 +175,7 @@ class TwoDPlot extends ChartPanel {
     void loadPeakList(PeakList peakList) {
 
         PeakDataSet peaksDataSet = new PeakDataSet(rawDataFile, peakList,
-                rtMin, rtMax, mzMin, mzMax);
+                rtRange, mzRange);
 
         plot.setDataset(1, peaksDataSet);
         plot.setRenderer(1, peakDataRenderer);

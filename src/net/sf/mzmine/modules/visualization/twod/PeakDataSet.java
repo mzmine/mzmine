@@ -25,6 +25,7 @@ import net.sf.mzmine.data.DataPoint;
 import net.sf.mzmine.data.Peak;
 import net.sf.mzmine.data.PeakList;
 import net.sf.mzmine.io.RawDataFile;
+import net.sf.mzmine.util.Range;
 
 import org.jfree.data.xy.AbstractXYDataset;
 
@@ -37,8 +38,7 @@ class PeakDataSet extends AbstractXYDataset {
     private Peak peaks[];
     private PeakDataPoint dataPoints[][];
 
-    PeakDataSet(RawDataFile dataFile, PeakList peakList, float rtMin,
-            float rtMax, float mzMin, float mzMax) {
+    PeakDataSet(RawDataFile dataFile, PeakList peakList, Range rtRange, Range mzRange) {
 
         this.peakList = peakList;
         
@@ -57,8 +57,7 @@ class PeakDataSet extends AbstractXYDataset {
 
                 float rt = dataFile.getScan(scan).getRetentionTime();
                 DataPoint dp = peak.getDataPoint(scan);
-                if ((rt >= rtMin) && (rt <= rtMax) && (dp.getMZ() >= mzMin)
-                        && (dp.getMZ() <= mzMax)) {
+                if (rtRange.contains(rt) && mzRange.contains(dp.getMZ())) {
                     PeakDataPoint newDP = new PeakDataPoint(scan, rt, dp);
                     thisPeakDataPoints.add(newDP);
                 }

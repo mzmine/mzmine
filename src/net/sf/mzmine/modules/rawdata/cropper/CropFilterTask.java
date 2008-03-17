@@ -28,6 +28,7 @@ import net.sf.mzmine.io.RawDataFile;
 import net.sf.mzmine.io.RawDataFileWriter;
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.taskcontrol.Task;
+import net.sf.mzmine.util.Range;
 
 /**
  * 
@@ -44,7 +45,7 @@ class CropFilterTask implements Task {
 
     // parameter values
     private String suffix;
-    private float minMZ, maxMZ, minRT, maxRT;
+    private Range mzRange, rtRange;
     private boolean removeOriginal;
 
     /**
@@ -54,10 +55,8 @@ class CropFilterTask implements Task {
     CropFilterTask(RawDataFile dataFile, CropFilterParameters parameters) {
         this.dataFile = dataFile;
         suffix = (String) parameters.getParameterValue(CropFilterParameters.suffix);
-        minMZ = (Float) parameters.getParameterValue(CropFilterParameters.minMZ);
-        minRT = (Float) parameters.getParameterValue(CropFilterParameters.minRT);
-        maxMZ = (Float) parameters.getParameterValue(CropFilterParameters.maxMZ);
-        maxRT = (Float) parameters.getParameterValue(CropFilterParameters.maxRT);
+        mzRange = (Range) parameters.getParameterValue(CropFilterParameters.mzRange);
+        rtRange = (Range) parameters.getParameterValue(CropFilterParameters.retentionTimeRange);
         removeOriginal = (Boolean) parameters.getParameterValue(CropFilterParameters.autoRemove);
     }
 
@@ -131,22 +130,20 @@ class CropFilterTask implements Task {
                 Scan oldScan = dataFile.getScan(scanNumbers[scanIndex]);
 
                 // Is this scan within the RT range?
-                if ((oldScan.getRetentionTime() >= minRT)
-                        && (oldScan.getRetentionTime() <= maxRT)) {
+                if (rtRange.contains(oldScan.getRetentionTime())) {
 
                     // Check if whole m/z range is within cropping region or
                     // scan is a fragmentation scan. In such case we copy the
                     // scan unmodified.
                     if ((oldScan.getMSLevel() > 1)
-                            || (oldScan.getMZRange().containsRange(minMZ, maxMZ))) {
+                            || (oldScan.getMZRange().containsRange(mzRange))) {
                         rawDataFileWriter.addScan(oldScan);
                         filteredScans++;
                         continue;
                     }
 
                     // Pickup datapoints inside the m/z range
-                    DataPoint croppedDataPoints[] = oldScan.getDataPoints(
-                            minMZ, maxMZ);
+                    DataPoint croppedDataPoints[] = oldScan.getDataPoints(mzRange);
 
                     // Create updated scan
                     SimpleScan newScan = new SimpleScan(oldScan);

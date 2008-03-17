@@ -292,14 +292,16 @@ class RawDataFileImpl implements RawDataFile, RawDataFileWriter {
      * @see net.sf.mzmine.io.RawDataFile#getScanNumbers(int)
      */
     public int[] getScanNumbers(int msLevel) {
-
-        return getScanNumbers(msLevel, Float.MIN_VALUE, Float.MAX_VALUE);
+        Set<Integer> numbersSet = scans.keySet();
+        int[] numbersArray = CollectionUtils.toIntArray(numbersSet);
+        Arrays.sort(numbersArray);
+        return numbersArray;
     }
 
     /**
      * @see net.sf.mzmine.io.RawDataFile#getScanNumbers(int, float, float)
      */
-    public int[] getScanNumbers(int msLevel, float rtMin, float rtMax) {
+    public int[] getScanNumbers(int msLevel, Range rtRange) {
 
         ArrayList<Integer> eligibleScanNumbers = new ArrayList<Integer>();
 
@@ -308,8 +310,7 @@ class RawDataFileImpl implements RawDataFile, RawDataFileWriter {
             Scan scan = scansEnum.nextElement();
 
             if ((scan.getMSLevel() == msLevel)
-                    && (scan.getRetentionTime() >= rtMin)
-                    && (scan.getRetentionTime() <= rtMax))
+                    && (rtRange.contains(scan.getRetentionTime())))
                 eligibleScanNumbers.add(scan.getScanNumber());
         }
 

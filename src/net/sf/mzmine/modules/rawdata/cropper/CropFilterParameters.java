@@ -24,6 +24,7 @@ import net.sf.mzmine.data.ParameterType;
 import net.sf.mzmine.data.impl.SimpleParameter;
 import net.sf.mzmine.data.impl.SimpleParameterSet;
 import net.sf.mzmine.main.MZmineCore;
+import net.sf.mzmine.util.Range;
 
 public class CropFilterParameters extends SimpleParameterSet {
 
@@ -31,25 +32,15 @@ public class CropFilterParameters extends SimpleParameterSet {
             ParameterType.STRING, "Filename suffix",
             "Suffix to be added to filename", null, "cropped", null);
 
-    public static final Parameter minMZ = new SimpleParameter(
-            ParameterType.FLOAT, "Minimum M/Z",
-            "Lower m/z boundary of the cropped region", "m/z",
-            new Float(100.0), new Float(0.0), null, MZmineCore.getMZFormat());
+    public static final Parameter mzRange = new SimpleParameter(
+            ParameterType.RANGE, "m/z range",
+            "m/z boundary of the cropped region", "m/z", new Range(0, 1000),
+            new Float(0), null, MZmineCore.getMZFormat());
 
-    public static final Parameter maxMZ = new SimpleParameter(
-            ParameterType.FLOAT, "Maximum M/Z",
-            "Upper m/z boundary of the cropped region", "m/z",
-            new Float(1000.0), new Float(0.0), null, MZmineCore.getMZFormat());
-
-    public static final Parameter minRT = new SimpleParameter(
-            ParameterType.FLOAT, "Minimum retention time",
-            "Lower retention time boundary of the cropped region", null,
-            new Float(0.0), new Float(0.0), null, MZmineCore.getRTFormat());
-
-    public static final Parameter maxRT = new SimpleParameter(
-            ParameterType.FLOAT, "Maximum retention time",
-            "Upper retention time boundary of the cropped region", null,
-            new Float(600.0), new Float(0.0), null, MZmineCore.getRTFormat());
+    public static final Parameter retentionTimeRange = new SimpleParameter(
+            ParameterType.RANGE, "Retention time",
+            "retention time boundary of the cropped region", null, new Range(0,
+                    600), new Float(0), null, MZmineCore.getRTFormat());
 
     public static final Parameter autoRemove = new SimpleParameter(
             ParameterType.BOOLEAN,
@@ -59,7 +50,7 @@ public class CropFilterParameters extends SimpleParameterSet {
 
     public CropFilterParameters() {
         super(
-                new Parameter[] { suffix, minMZ, maxMZ, minRT, maxRT,
+                new Parameter[] { suffix, mzRange, retentionTimeRange,
                         autoRemove });
     }
 

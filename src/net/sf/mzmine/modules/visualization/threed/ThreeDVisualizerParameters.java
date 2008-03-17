@@ -24,6 +24,7 @@ import net.sf.mzmine.data.ParameterType;
 import net.sf.mzmine.data.impl.SimpleParameter;
 import net.sf.mzmine.data.impl.SimpleParameterSet;
 import net.sf.mzmine.main.MZmineCore;
+import net.sf.mzmine.util.Range;
 
 /**
  * 3D visualizer parameter set
@@ -36,36 +37,27 @@ public class ThreeDVisualizerParameters extends SimpleParameterSet {
             ParameterType.INTEGER, "MS level", "MS level of plotted scans", 1,
             msLevels);
 
-    public static final Parameter minRT = new SimpleParameter(
-            ParameterType.FLOAT, "Minimum retention time",
-            "X axis lower limit", null, new Float(0.0), new Float(0.0), null,
-            MZmineCore.getRTFormat());
-
-    public static final Parameter maxRT = new SimpleParameter(
-            ParameterType.FLOAT, "Maximum retention time",
-            "X axis upper limit", null, new Float(600.0), new Float(0.0), null,
-            MZmineCore.getRTFormat());
+    public static final Parameter retentionTimeRange = new SimpleParameter(
+            ParameterType.RANGE, "Retention time",
+            "Retention time (X axis) range", null, new Range(0, 600),
+            new Float(0), null, MZmineCore.getRTFormat());
 
     public static final Parameter rtResolution = new SimpleParameter(
             ParameterType.INTEGER, "Retention time resolution",
             "Number of data points on retention time axis", "data points", 100,
             100, null);
 
-    public static final Parameter minMZ = new SimpleParameter(
-            ParameterType.FLOAT, "Minimum M/Z", "m/z lower limit", "m/z",
-            new Float(100.0), new Float(0.0), null, MZmineCore.getMZFormat());
-
-    public static final Parameter maxMZ = new SimpleParameter(
-            ParameterType.FLOAT, "Maximum M/Z", "m/z upper limit", "m/z",
-            new Float(1000.0), new Float(0.0), null, MZmineCore.getMZFormat());
+    public static final Parameter mzRange = new SimpleParameter(
+            ParameterType.RANGE, "m/z range", "m/z (Y axis) range", "m/z",
+            new Range(0, 1000), new Float(0), null, MZmineCore.getMZFormat());
 
     public static final Parameter mzResolution = new SimpleParameter(
             ParameterType.INTEGER, "m/z resolution",
             "Number of data points on m/z axis", "data points", 100, 100, null);
 
     public ThreeDVisualizerParameters() {
-        super(new Parameter[] { msLevel, minRT, maxRT, rtResolution, minMZ,
-                maxMZ, mzResolution });
+        super(new Parameter[] { msLevel, retentionTimeRange, rtResolution,
+                mzRange, mzResolution });
     }
 
 }

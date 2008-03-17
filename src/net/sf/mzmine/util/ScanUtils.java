@@ -37,9 +37,9 @@ public class ScanUtils {
      * @param mzMax m/z range maximum
      * @return float[2] containing base peak m/z and intensity
      */
-    public static DataPoint findBasePeak(Scan scan, float mzMin, float mzMax) {
+    public static DataPoint findBasePeak(Scan scan, Range mzRange) {
 
-        DataPoint dataPoints[] = scan.getDataPoints(mzMin, mzMax);
+        DataPoint dataPoints[] = scan.getDataPoints(mzRange);
         DataPoint basePeak = null;
 
         for (DataPoint dp : dataPoints) {
@@ -73,12 +73,12 @@ public class ScanUtils {
      *            'y', min of 'y')
      * @return Values for each bin
      */
-    public static float[] binValues(float[] x, float[] y, float firstBinStart,
-            float lastBinStop, int numberOfBins, boolean interpolate,
+    public static float[] binValues(float[] x, float[] y, Range binRange,
+            int numberOfBins, boolean interpolate,
             BinningType binningType) {
 
         Float[] binValues = new Float[numberOfBins];
-        float binWidth = (lastBinStop - firstBinStart) / numberOfBins;
+        float binWidth = binRange.getSize() / numberOfBins;
 
         float beforeX = Float.MIN_VALUE;
         float beforeY = 0.0f;
@@ -89,7 +89,7 @@ public class ScanUtils {
         for (int valueIndex = 0; valueIndex < x.length; valueIndex++) {
 
             // Before first bin?
-            if ((x[valueIndex] - firstBinStart) < 0) {
+            if ((x[valueIndex] - binRange.getMin()) < 0) {
                 if (x[valueIndex] > beforeX) {
                     beforeX = x[valueIndex];
                     beforeY = y[valueIndex];
@@ -98,7 +98,7 @@ public class ScanUtils {
             }
 
             // After last bin?
-            if ((lastBinStop - x[valueIndex]) < 0) {
+            if ((binRange.getMax() - x[valueIndex]) < 0) {
                 if (x[valueIndex] < afterX) {
                     afterX = x[valueIndex];
                     afterY = y[valueIndex];
@@ -106,7 +106,7 @@ public class ScanUtils {
                 continue;
             }
 
-            int binIndex = (int) ((x[valueIndex] - firstBinStart) / binWidth);
+            int binIndex = (int) ((x[valueIndex] - binRange.getMin()) / binWidth);
 
             // in case x[valueIndex] is exactly lastBinStop, we would overflow
             // the array
@@ -153,7 +153,7 @@ public class ScanUtils {
 
                     // Find exisiting left neighbour
                     float leftNeighbourValue = beforeY;
-                    int leftNeighbourBinIndex = (int) java.lang.Math.floor((beforeX - firstBinStart)
+                    int leftNeighbourBinIndex = (int) java.lang.Math.floor((beforeX - binRange.getMin())
                             / binWidth);
                     for (int anotherBinIndex = binIndex - 1; anotherBinIndex >= 0; anotherBinIndex--) {
                         if (binValues[anotherBinIndex] != null) {
@@ -166,7 +166,7 @@ public class ScanUtils {
                     // Find existing right neighbour
                     float rightNeighbourValue = afterY;
                     int rightNeighbourBinIndex = (binValues.length - 1)
-                            + (int) java.lang.Math.ceil((afterX - lastBinStop)
+                            + (int) java.lang.Math.ceil((afterX - binRange.getMax())
                                     / binWidth);
                     for (int anotherBinIndex = binIndex + 1; anotherBinIndex < binValues.length; anotherBinIndex++) {
                         if (binValues[anotherBinIndex] != null) {

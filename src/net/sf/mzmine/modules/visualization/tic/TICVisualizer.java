@@ -38,7 +38,7 @@ import net.sf.mzmine.util.dialogs.ExitCode;
 import net.sf.mzmine.util.dialogs.ParameterSetupDialog;
 
 /**
- * TIC visualizer using JFreeChart library
+ * TIC/XIC visualizer using JFreeChart library
  */
 public class TICVisualizer implements MZmineModule, ActionListener {
 
@@ -79,16 +79,17 @@ public class TICVisualizer implements MZmineModule, ActionListener {
     }
 
     public void showNewTICVisualizerWindow(RawDataFile[] dataFiles,
-            Peak[] peaks, int msLevel, Object plotType, Range rtRange, Range mzRange) {
+            Peak[] peaks, int msLevel, Object plotType, Range rtRange,
+            Range mzRange) {
         TICVisualizerParameters newParameters = (TICVisualizerParameters) parameters.clone();
         newParameters.setParameterValue(TICVisualizerParameters.msLevel,
                 msLevel);
         newParameters.setParameterValue(TICVisualizerParameters.plotType,
                 plotType);
-        newParameters.setParameterValue(TICVisualizerParameters.minRT, rtRange.getMin());
-        newParameters.setParameterValue(TICVisualizerParameters.maxRT, rtRange.getMax());
-        newParameters.setParameterValue(TICVisualizerParameters.minMZ, mzRange.getMin());
-        newParameters.setParameterValue(TICVisualizerParameters.maxMZ, mzRange.getMax());
+        newParameters.setParameterValue(
+                TICVisualizerParameters.retentionTimeRange, rtRange);
+        newParameters.setParameterValue(TICVisualizerParameters.mzRange,
+                mzRange);
         showNewTICVisualizerWindow(dataFiles, peaks, newParameters);
     }
 
@@ -110,14 +111,11 @@ public class TICVisualizer implements MZmineModule, ActionListener {
         if (dataFiles.length == 1) {
             autoValues = new Hashtable<Parameter, Object>();
             autoValues.put(TICVisualizerParameters.msLevel, 1);
-            autoValues.put(TICVisualizerParameters.minRT,
-                    dataFiles[0].getDataRTRange(1).getMin());
-            autoValues.put(TICVisualizerParameters.maxRT,
-                    dataFiles[0].getDataRTRange(1).getMax());
-            autoValues.put(TICVisualizerParameters.minMZ,
-                    dataFiles[0].getDataMZRange(1).getMin());
-            autoValues.put(TICVisualizerParameters.maxMZ,
-                    dataFiles[0].getDataMZRange(1).getMax());
+            autoValues.put(TICVisualizerParameters.retentionTimeRange,
+                    dataFiles[0].getDataRTRange(1));
+            autoValues.put(TICVisualizerParameters.mzRange,
+                    dataFiles[0].getDataMZRange(1));
+
         }
 
         ParameterSetupDialog dialog = new ParameterSetupDialog(
@@ -131,17 +129,15 @@ public class TICVisualizer implements MZmineModule, ActionListener {
 
         int msLevel = (Integer) parameters.getParameterValue(TICVisualizerParameters.msLevel);
 
-        float rtMin = (Float) parameters.getParameterValue(TICVisualizerParameters.minRT);
-        float rtMax = (Float) parameters.getParameterValue(TICVisualizerParameters.maxRT);
-        float mzMin = (Float) parameters.getParameterValue(TICVisualizerParameters.minMZ);
-        float mzMax = (Float) parameters.getParameterValue(TICVisualizerParameters.maxMZ);
+        Range rtRange = (Range) parameters.getParameterValue(TICVisualizerParameters.retentionTimeRange);
+        Range mzRange = (Range) parameters.getParameterValue(TICVisualizerParameters.mzRange);
 
         this.parameters = parameters;
 
         Object plotType = parameters.getParameterValue(TICVisualizerParameters.plotType);
 
         TICVisualizerWindow newWindow = new TICVisualizerWindow(dataFiles,
-                plotType, msLevel, rtMin, rtMax, mzMin, mzMax, peaks);
+                plotType, msLevel, rtRange, mzRange, peaks);
 
         desktop.addInternalFrame(newWindow);
 
@@ -151,7 +147,7 @@ public class TICVisualizer implements MZmineModule, ActionListener {
      * @see net.sf.mzmine.main.MZmineModule#toString()
      */
     public String toString() {
-        return "TIC visualizer";
+        return "TIC/XIC visualizer";
     }
 
     /**

@@ -81,7 +81,7 @@ public interface Scan {
      * 
      * @return Data points (m/z and intensity pairs) of this scan
      */
-    public DataPoint[] getDataPoints(float mzMin, float mzMax);
+    public DataPoint[] getDataPoints(Range mzRange);
 
     /**
      * 

@@ -32,6 +32,7 @@ import net.sf.mzmine.data.impl.SimplePeakListRow;
 import net.sf.mzmine.io.RawDataFile;
 import net.sf.mzmine.taskcontrol.Task;
 import net.sf.mzmine.util.PeakUtils;
+import net.sf.mzmine.util.Range;
 
 
 class AlignFragmentTask implements Task {
@@ -196,7 +197,7 @@ class AlignFragmentTask implements Task {
 
 				// Get all rows of the aligned peaklist within parameter limits
 				PeakListRow candidateRows[] = alignedPeakList
-						.getRowsInsideScanAndMZRange(rtMin, rtMax, mzMin, mzMax);
+						.getRowsInsideScanAndMZRange(new Range(rtMin, rtMax), new Range(mzMin, mzMax));
 
 				// Calculate scores and store them
 				for (PeakListRow candidate : candidateRows) {

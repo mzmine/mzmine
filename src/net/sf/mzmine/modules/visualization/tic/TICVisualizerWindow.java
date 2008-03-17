@@ -59,7 +59,7 @@ public class TICVisualizerWindow extends JInternalFrame implements
 
     private Object plotType;
     private int msLevel;
-    private float rtMin, rtMax, mzMin, mzMax;
+    private Range rtRange, mzRange;
 
     private static final double zoomCoefficient = 1.2;
 
@@ -70,7 +70,7 @@ public class TICVisualizerWindow extends JInternalFrame implements
      * 
      */
     public TICVisualizerWindow(RawDataFile dataFiles[], Object plotType,
-            int msLevel, float rtMin, float rtMax, float mzMin, float mzMax,
+            int msLevel, Range rtRange, Range mzRange,
             Peak[] peaks) {
 
         super(null, true, true, true, true);
@@ -79,10 +79,8 @@ public class TICVisualizerWindow extends JInternalFrame implements
         this.plotType = plotType;
         this.msLevel = msLevel;
         this.ticDataSets = new Hashtable<RawDataFile, TICDataSet>();
-        this.rtMin = rtMin;
-        this.rtMax = rtMax;
-        this.mzMin = mzMin;
-        this.mzMax = mzMax;
+        this.rtRange = rtRange;
+        this.mzRange = mzRange;
 
         setDefaultCloseOperation(DISPOSE_ON_CLOSE);
         setBackground(Color.white);
@@ -125,7 +123,6 @@ public class TICVisualizerWindow extends JInternalFrame implements
             // the plot (mzMin, mzMax), then call this TIC, otherwise XIC
             Set<RawDataFile> fileSet = ticDataSets.keySet();
             String ticOrXIC = "TIC";
-            Range mzRange = new Range(mzMin, mzMax);
             for (RawDataFile df : fileSet) {
                 if (! mzRange.containsRange(df.getDataMZRange(msLevel))) {
                     ticOrXIC = "XIC";
@@ -136,8 +133,7 @@ public class TICVisualizerWindow extends JInternalFrame implements
         }
 
         mainTitle.append(", MS" + msLevel);
-        mainTitle.append(", m/z: " + mzFormat.format(mzMin) + " - "
-                + mzFormat.format(mzMax));
+        mainTitle.append(", m/z: " + mzFormat.format(mzRange));
 
         CursorPosition pos = getCursorPosition();
 
@@ -174,10 +170,9 @@ public class TICVisualizerWindow extends JInternalFrame implements
     }
 
     /**
-     * @see net.sf.mzmine.modules.RawDataVisualizer#setRTRange(double, double)
      */
-    public void setRTRange(double rtMin, double rtMax) {
-        ticPlot.getXYPlot().getDomainAxis().setRange(rtMin, rtMax);
+    public void setRTRange(Range rtRange) {
+        ticPlot.getXYPlot().getDomainAxis().setRange(rtRange.getMin(), rtRange.getMax());
     }
 
     public void setAxesRange(float xMin, float xMax, float xTickSize, float yMin, float yMax, float yTickSize) {
@@ -206,21 +201,20 @@ public class TICVisualizerWindow extends JInternalFrame implements
 
     public void addRawDataFile(RawDataFile newFile) {
 
-        int scanNumbers[] = newFile.getScanNumbers(msLevel, rtMin, rtMax);
+        int scanNumbers[] = newFile.getScanNumbers(msLevel, rtRange);
         if (scanNumbers.length == 0) {
             desktop.displayErrorMessage("No scans found at MS level " + msLevel
                     + " within given retention time range.");
             return;
         }
 
-        TICDataSet ticDataset = new TICDataSet(newFile, scanNumbers, mzMin,
-                mzMax, this);
+        TICDataSet ticDataset = new TICDataSet(newFile, scanNumbers, mzRange, this);
         ticDataSets.put(newFile, ticDataset);
         ticPlot.addTICDataset(ticDataset);
 
         if (ticDataSets.size() == 1) {
             // when adding first file, set the retention time range
-            setRTRange(rtMin, rtMax);
+            setRTRange(rtRange);
         }
 
     }

@@ -31,6 +31,7 @@ import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.taskcontrol.Task;
 import net.sf.mzmine.taskcontrol.Task.TaskPriority;
 import net.sf.mzmine.util.DataPointSorterByMZ;
+import net.sf.mzmine.util.Range;
 
 import org.jfree.data.xy.AbstractXYDataset;
 
@@ -45,20 +46,18 @@ class TwoDDataSet extends AbstractXYDataset implements RawDataAcceptor {
     private float basePeaks[];
     private DataPoint dataPointMatrix[][];
 
-    private float totalRTMin, totalRTMax, totalMZMin, totalMZMax;
+    private Range totalRTRange, totalMZRange;
     private int loadedScans = 0;
 
-    TwoDDataSet(RawDataFile rawDataFile, int msLevel, float rtMin, float rtMax,
-            float mzMin, float mzMax, TwoDVisualizerWindow visualizer) {
+    TwoDDataSet(RawDataFile rawDataFile, int msLevel, Range rtRange,
+            Range mzRange, TwoDVisualizerWindow visualizer) {
 
         this.rawDataFile = rawDataFile;
 
-        totalRTMin = rtMin;
-        totalRTMax = rtMax;
-        totalMZMin = mzMin;
-        totalMZMax = mzMax;
+        totalRTRange = rtRange;
+        totalMZRange = mzRange;
 
-        int scanNumbers[] = rawDataFile.getScanNumbers(msLevel, rtMin, rtMax);
+        int scanNumbers[] = rawDataFile.getScanNumbers(msLevel, rtRange);
         assert scanNumbers != null;
 
         dataPointMatrix = new DataPoint[scanNumbers.length][];
@@ -81,7 +80,7 @@ class TwoDDataSet extends AbstractXYDataset implements RawDataAcceptor {
         DataPoint scanBasePeak = scan.getBasePeak();
         retentionTimes[index] = scan.getRetentionTime();
         basePeaks[index] = (scanBasePeak == null ? 0 : scanBasePeak.getIntensity());
-        dataPointMatrix[index] = scan.getDataPoints(totalMZMin, totalMZMax);
+        dataPointMatrix[index] = scan.getDataPoints(totalMZRange);
         loadedScans++;
 
         // redraw when we add last value
@@ -117,9 +116,9 @@ class TwoDDataSet extends AbstractXYDataset implements RawDataAcceptor {
      */
     public Number getX(int series, int item) {
         if (series == 0)
-            return totalRTMin;
+            return totalRTRange.getMin();
         else
-            return totalRTMax;
+            return totalRTRange.getMax();
     }
 
     /**
@@ -127,12 +126,12 @@ class TwoDDataSet extends AbstractXYDataset implements RawDataAcceptor {
      */
     public Number getY(int series, int item) {
         if (item == 0)
-            return totalMZMin;
+            return totalMZRange.getMin();
         else
-            return totalMZMax;
+            return totalMZRange.getMax();
     }
 
-    float getMaxIntensity(float rtMin, float rtMax, float mzMin, float mzMax) {
+    float getMaxIntensity(Range rtRange, Range mzRange) {
 
         float maxIntensity = 0;
 
@@ -143,7 +142,8 @@ class TwoDDataSet extends AbstractXYDataset implements RawDataAcceptor {
                     searchRetentionTimes.length);
         }
 
-        int startScanIndex = Arrays.binarySearch(searchRetentionTimes, rtMin);
+        int startScanIndex = Arrays.binarySearch(searchRetentionTimes,
+                rtRange.getMin());
 
         if (startScanIndex < 0)
             startScanIndex = (startScanIndex * -1) - 1;
@@ -152,34 +152,34 @@ class TwoDDataSet extends AbstractXYDataset implements RawDataAcceptor {
             return 0;
         }
 
-        if (searchRetentionTimes[startScanIndex] > rtMax) {
+        if (searchRetentionTimes[startScanIndex] > rtRange.getMax()) {
             if (startScanIndex == 0)
                 return 0;
 
             if (startScanIndex == searchRetentionTimes.length - 1)
                 return getMaxIntensity(dataPointMatrix[startScanIndex - 1],
-                        mzMin, mzMax);
+                        mzRange);
 
             // find which scan point is closer
-            float diffNext = searchRetentionTimes[startScanIndex] - rtMax;
-            float diffPrev = rtMin - searchRetentionTimes[startScanIndex - 1];
+            float diffNext = searchRetentionTimes[startScanIndex]
+                    - rtRange.getMax();
+            float diffPrev = rtRange.getMin()
+                    - searchRetentionTimes[startScanIndex - 1];
 
             if (diffPrev < diffNext)
                 return getMaxIntensity(dataPointMatrix[startScanIndex - 1],
-                        mzMin, mzMax);
+                        mzRange);
             else
-                return getMaxIntensity(dataPointMatrix[startScanIndex], mzMin,
-                        mzMax);
+                return getMaxIntensity(dataPointMatrix[startScanIndex], mzRange);
         }
 
-        for (int scanIndex = startScanIndex; ((scanIndex < searchRetentionTimes.length) && (searchRetentionTimes[scanIndex] <= rtMax)); scanIndex++) {
+        for (int scanIndex = startScanIndex; ((scanIndex < searchRetentionTimes.length) && (searchRetentionTimes[scanIndex] <= rtRange.getMax())); scanIndex++) {
 
             // ignore scans where all peaks are smaller than current max
             if (basePeaks[scanIndex] < maxIntensity)
                 continue;
 
-            float scanMax = getMaxIntensity(dataPointMatrix[scanIndex], mzMin,
-                    mzMax);
+            float scanMax = getMaxIntensity(dataPointMatrix[scanIndex], mzRange);
             if (scanMax > maxIntensity)
                 maxIntensity = scanMax;
 
@@ -189,11 +189,11 @@ class TwoDDataSet extends AbstractXYDataset implements RawDataAcceptor {
 
     }
 
-    float getMaxIntensity(DataPoint dataPoints[], float mzMin, float mzMax) {
+    float getMaxIntensity(DataPoint dataPoints[], Range mzRange) {
 
         float maxIntensity = 0;
 
-        DataPoint searchMZ = new SimpleDataPoint(mzMin, 0);
+        DataPoint searchMZ = new SimpleDataPoint(mzRange.getMin(), 0);
         int startMZIndex = Arrays.binarySearch(dataPoints, searchMZ,
                 new DataPointSorterByMZ());
         if (startMZIndex < 0)
@@ -202,15 +202,17 @@ class TwoDDataSet extends AbstractXYDataset implements RawDataAcceptor {
         if (startMZIndex >= dataPoints.length)
             return 0;
 
-        if (dataPoints[startMZIndex].getMZ() > mzMax) {
+        if (dataPoints[startMZIndex].getMZ() > mzRange.getMax()) {
             if (startMZIndex == 0)
                 return 0;
             if (startMZIndex == dataPoints.length - 1)
                 return dataPoints[startMZIndex - 1].getIntensity();
 
             // find which data point is closer
-            float diffNext = dataPoints[startMZIndex].getMZ() - mzMax;
-            float diffPrev = mzMin - dataPoints[startMZIndex - 1].getMZ();
+            float diffNext = dataPoints[startMZIndex].getMZ()
+                    - mzRange.getMax();
+            float diffPrev = mzRange.getMin()
+                    - dataPoints[startMZIndex - 1].getMZ();
 
             if (diffPrev < diffNext)
                 return dataPoints[startMZIndex - 1].getIntensity();
@@ -219,7 +221,7 @@ class TwoDDataSet extends AbstractXYDataset implements RawDataAcceptor {
 
         }
 
-        for (int mzIndex = startMZIndex; ((mzIndex < dataPoints.length) && (dataPoints[mzIndex].getMZ() <= mzMax)); mzIndex++) {
+        for (int mzIndex = startMZIndex; ((mzIndex < dataPoints.length) && (dataPoints[mzIndex].getMZ() <= mzRange.getMax())); mzIndex++) {
             if (dataPoints[mzIndex].getIntensity() > maxIntensity)
                 maxIntensity = dataPoints[mzIndex].getIntensity();
         }

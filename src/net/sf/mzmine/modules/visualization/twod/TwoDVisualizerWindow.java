@@ -34,6 +34,7 @@ import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.taskcontrol.Task;
 import net.sf.mzmine.taskcontrol.TaskListener;
 import net.sf.mzmine.taskcontrol.Task.TaskStatus;
+import net.sf.mzmine.util.Range;
 import net.sf.mzmine.util.dialogs.AxesSetupDialog;
 
 /**
@@ -55,8 +56,7 @@ public class TwoDVisualizerWindow extends JInternalFrame implements
 
 	private Desktop desktop;
 
-	public TwoDVisualizerWindow(RawDataFile dataFile, int msLevel, float rtMin,
-			float rtMax, float mzMin, float mzMax) {
+	public TwoDVisualizerWindow(RawDataFile dataFile, int msLevel, Range rtRange, Range mzRange) {
 
 		super(dataFile.toString(), true, true, true, true);
 
@@ -68,14 +68,12 @@ public class TwoDVisualizerWindow extends JInternalFrame implements
 		this.dataFile = dataFile;
 		this.msLevel = msLevel;
 
-		dataset = new TwoDDataSet(dataFile, msLevel, rtMin, rtMax, mzMin,
-				mzMax, this);
+		dataset = new TwoDDataSet(dataFile, msLevel, rtRange, mzRange, this);
 
 		toolBar = new TwoDToolBar(this);
 		add(toolBar, BorderLayout.EAST);
 
-		twoDPlot = new TwoDPlot(dataFile, this, dataset, rtMin, rtMax, mzMin,
-				mzMax);
+		twoDPlot = new TwoDPlot(dataFile, this, dataset, rtRange, mzRange);
 		add(twoDPlot, BorderLayout.CENTER);
 
 		bottomPanel = new TwoDBottomPanel(this, dataFile);

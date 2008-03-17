@@ -31,6 +31,7 @@ import net.sf.mzmine.io.util.RawDataRetrievalTask;
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.taskcontrol.Task;
 import net.sf.mzmine.taskcontrol.Task.TaskPriority;
+import net.sf.mzmine.util.Range;
 import net.sf.mzmine.util.ScanUtils;
 import net.sf.mzmine.util.ScanUtils.BinningType;
 
@@ -94,7 +95,7 @@ public class OldTwoDDataSet implements RawDataAcceptor {
 
 		// Pickup scan number within given rt range
 		int[] scanNumbersForRetrieval = rawDataFile.getScanNumbers(msLevel,
-				(float) desiredRTMin, (float) desiredRTMax);
+				new Range((float) desiredRTMin, (float) desiredRTMax));
 
 		// Adjust rt resolution if there are less scans that desired resolution
 		rtResolution = desiredRTResolution;
@@ -182,7 +183,7 @@ public class OldTwoDDataSet implements RawDataAcceptor {
 		}
 
 		float binnedIntensities[] = ScanUtils.binValues(mzValues,
-				intensityValues, (float) mzMin, (float) mzMax, bitmapSizeY,
+				intensityValues, new Range((float) mzMin, (float) mzMax), bitmapSizeY,
 				interpolate, BinningType.SUM);
 
 		for (int i = 0; i < bitmapSizeY; i++) {

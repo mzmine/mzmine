@@ -32,6 +32,7 @@ import net.sf.mzmine.desktop.MZmineMenu;
 import net.sf.mzmine.io.RawDataFile;
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.main.MZmineModule;
+import net.sf.mzmine.util.Range;
 import net.sf.mzmine.util.dialogs.ExitCode;
 import net.sf.mzmine.util.dialogs.ParameterSetupDialog;
 
@@ -75,14 +76,11 @@ public class ThreeDVisualizer implements MZmineModule, ActionListener {
 
         Hashtable<Parameter, Object> autoValues = new Hashtable<Parameter, Object>();
         autoValues.put(ThreeDVisualizerParameters.msLevel, 1);
-        autoValues.put(ThreeDVisualizerParameters.minRT,
-                dataFiles[0].getDataRTRange(1).getMin());
-        autoValues.put(ThreeDVisualizerParameters.maxRT,
-                dataFiles[0].getDataRTRange(1).getMax());
-        autoValues.put(ThreeDVisualizerParameters.minMZ,
-                dataFiles[0].getDataMZRange(1).getMin());
-        autoValues.put(ThreeDVisualizerParameters.maxMZ,
-                dataFiles[0].getDataMZRange(1).getMax());
+        autoValues.put(ThreeDVisualizerParameters.retentionTimeRange,
+                dataFiles[0].getDataRTRange(1));
+        autoValues.put(ThreeDVisualizerParameters.mzRange,
+                dataFiles[0].getDataMZRange(1));
+        
 
         ParameterSetupDialog dialog = new ParameterSetupDialog(
                 "Please set parameter values for " + toString(), parameters,
@@ -94,17 +92,14 @@ public class ThreeDVisualizer implements MZmineModule, ActionListener {
             return;
 
         int msLevel = (Integer) parameters.getParameterValue(ThreeDVisualizerParameters.msLevel);
-        float rtMin = (Float) parameters.getParameterValue(ThreeDVisualizerParameters.minRT);
-        float rtMax = (Float) parameters.getParameterValue(ThreeDVisualizerParameters.maxRT);
-        float mzMin = (Float) parameters.getParameterValue(ThreeDVisualizerParameters.minMZ);
-        float mzMax = (Float) parameters.getParameterValue(ThreeDVisualizerParameters.maxMZ);
+        Range rtRange = (Range) parameters.getParameterValue(ThreeDVisualizerParameters.retentionTimeRange);
+        Range mzRange = (Range) parameters.getParameterValue(ThreeDVisualizerParameters.mzRange);
         int rtRes = (Integer) parameters.getParameterValue(ThreeDVisualizerParameters.rtResolution);
         int mzRes = (Integer) parameters.getParameterValue(ThreeDVisualizerParameters.mzResolution);
 
         // Create a window, but do not add it to the desktop. It will be added
         // automatically after finishing the sampling task.
-        new ThreeDVisualizerWindow(dataFiles[0], msLevel, rtMin, rtMax, mzMin,
-                mzMax, rtRes, mzRes);
+        new ThreeDVisualizerWindow(dataFiles[0], msLevel, rtRange, rtRes, mzRange, mzRes);
 
     }
 

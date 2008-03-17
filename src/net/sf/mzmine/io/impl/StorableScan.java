@@ -121,18 +121,18 @@ public class StorableScan implements Scan {
 
     }
 
-    public DataPoint[] getDataPoints(float mzMin, float mzMax) {
+    public DataPoint[] getDataPoints(Range mzRange) {
 
         DataPoint dataPoints[] = getDataPoints();
 
         int startIndex, endIndex;
         for (startIndex = 0; startIndex < dataPoints.length; startIndex++) {
-            if (dataPoints[startIndex].getMZ() >= mzMin)
+            if (dataPoints[startIndex].getMZ() >= mzRange.getMin())
                 break;
         }
 
         for (endIndex = startIndex; endIndex < dataPoints.length; endIndex++) {
-            if (dataPoints[endIndex].getMZ() > mzMax)
+            if (dataPoints[endIndex].getMZ() > mzRange.getMax())
                 break;
         }
 

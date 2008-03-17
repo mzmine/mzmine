@@ -33,6 +33,7 @@ import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.project.MZmineProject;
 import net.sf.mzmine.taskcontrol.Task;
 import net.sf.mzmine.util.MathUtils;
+import net.sf.mzmine.util.Range;
 import net.sf.mzmine.util.ScanUtils;
 
 /**
@@ -165,7 +166,7 @@ class CentroidPickerTask implements Task {
                 }
                 
                 float[] tmpInts = ScanUtils.binValues(mzValues,
-                        intensityValues, startMZ, endMZ, numOfBins, true,
+                        intensityValues, new Range(startMZ, endMZ), numOfBins, true,
                         ScanUtils.BinningType.MAX);
                 for (int bini = 0; bini < numOfBins; bini++) {
                     binInts[bini][i] = tmpInts[bini];

@@ -26,39 +26,42 @@ import net.sf.mzmine.data.Scan;
 import net.sf.mzmine.util.Range;
 
 public interface RawDataFile {
- 
-	/**
+
+    /**
      * Returns file name of raw data file object
      * 
      * @return File file path
      */
-	public String getFileName();
+    public String getFileName();
 
     /**
      * Returns File ScanDataFileName
      * 
      * @return File ScanDataFileName
-     */	
-	public String getScanDataFileName() ;
+     */
+    public String getScanDataFileName();
+
     /**
      * Returns Opened Random access file ScanDataFile
      * 
      * @return File ScanDataFileName
-     */	
-    public RandomAccessFile getScanDataFile() ; 
+     */
+    public RandomAccessFile getScanDataFile();
+
     /**
      * Returns Opened Random access file writingScanDataFile
      * 
      * @return File writingScanDataFileName
-     */	
-    public RandomAccessFile getWritingScanDataFile() ; 
-      /**
-     * resetScanDataFile when the file location is changed 
+     */
+    public RandomAccessFile getWritingScanDataFile();
+
+    /**
+     * resetScanDataFile when the file location is changed
      * 
-     * @return 
-     */	 
+     * @return
+     */
     public void updateScanDataFile(File file);
-    
+
     public PreloadLevel getPreloadLevel();
 
     public int getNumOfScans();
@@ -71,7 +74,7 @@ public interface RawDataFile {
      * @return Sorted array of scan numbers, never returns null
      */
     public int[] getScanNumbers();
-    
+
     /**
      * Returns sorted array of all scan numbers in given MS level
      * 
@@ -85,12 +88,10 @@ public interface RawDataFile {
      * time range
      * 
      * @param msLevel MS level
-     * @param rtMin Minimum retention time
-     * @param rtMax Maximum retention time
+     * @param rtRange Retention time range
      * @return Sorted array of scan numbers, never returns null
      */
-    public int[] getScanNumbers(int msLevel, float rtMin, float rtMax);
-
+    public int[] getScanNumbers(int msLevel, Range rtRange);
 
     /**
      * 

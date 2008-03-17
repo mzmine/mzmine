@@ -34,6 +34,7 @@ import net.sf.mzmine.taskcontrol.TaskListener;
 import net.sf.mzmine.taskcontrol.Task.TaskPriority;
 import net.sf.mzmine.taskcontrol.Task.TaskStatus;
 import net.sf.mzmine.util.CollectionUtils;
+import net.sf.mzmine.util.Range;
 import net.sf.mzmine.util.ScanUtils;
 
 import org.jfree.data.xy.AbstractXYZDataset;
@@ -55,15 +56,13 @@ class TICDataSet extends AbstractXYZDataset implements RawDataAcceptor,
 
     private int scanNumbers[], loadedScans = 0;
     private float basePeakValues[], intensityValues[], rtValues[];
-    private float mzMin, mzMax;
+    private Range mzRange;
     private float intensityMin, intensityMax;
 
-    TICDataSet(RawDataFile dataFile, int scanNumbers[], float mzMin,
-            float mzMax, TICVisualizerWindow visualizer) {
+    TICDataSet(RawDataFile dataFile, int scanNumbers[], Range mzRange, TICVisualizerWindow visualizer) {
 
         this.visualizer = visualizer;
-        this.mzMin = mzMin;
-        this.mzMax = mzMax;
+        this.mzRange = mzRange;
         this.dataFile = dataFile;
         this.scanNumbers = scanNumbers;
 
@@ -111,20 +110,20 @@ class TICDataSet extends AbstractXYZDataset implements RawDataAcceptor,
         float totalIntensity = 0;
         DataPoint basePeak = null;
 
-        if (scan.getMZRange().isWithin(mzMin, mzMax)) {
+        if (scan.getMZRange().isWithin(mzRange)) {
             basePeak = scan.getBasePeak();
         } else {
-            basePeak = ScanUtils.findBasePeak(scan, mzMin, mzMax);
+            basePeak = ScanUtils.findBasePeak(scan, mzRange);
         }
 
         if (basePeak != null)
             basePeakValues[index] = basePeak.getMZ();
 
         if (visualizer.getPlotType() == TICVisualizerParameters.plotTypeTIC) {
-            if (scan.getMZRange().isWithin(mzMin, mzMax)) {
+            if (scan.getMZRange().isWithin(mzRange)) {
                 totalIntensity = scan.getTIC();
             } else {
-                DataPoint dataPoints[] = scan.getDataPoints(mzMin, mzMax);
+                DataPoint dataPoints[] = scan.getDataPoints(mzRange);
                 for (int j = 0; j < dataPoints.length; j++) {
                     totalIntensity += dataPoints[j].getIntensity();
                 }

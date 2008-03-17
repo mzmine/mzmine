@@ -28,6 +28,7 @@ import net.sf.mzmine.data.PeakStatus;
 import net.sf.mzmine.data.Scan;
 import net.sf.mzmine.data.impl.SimplePeak;
 import net.sf.mzmine.io.RawDataFile;
+import net.sf.mzmine.util.Range;
 import net.sf.mzmine.util.ScanUtils;
 
 class Gap {
@@ -36,7 +37,7 @@ class Gap {
     private RawDataFile rawDataFile;
 
     private float searchMZ, searchRT;
-    private float rangeMinMZ, rangeMaxMZ, rangeMinRT, rangeMaxRT;
+    private Range mzRange, rtRange;
     private float intTolerance;
 
     // These store information about peak that is currently under construction
@@ -61,11 +62,9 @@ class Gap {
 
         this.intTolerance = intTolerance;
 
-        this.rangeMinMZ = searchMZ - mzTolerance;
-        this.rangeMaxMZ = searchMZ + mzTolerance;
+        this.mzRange = new Range(searchMZ - mzTolerance, searchMZ + mzTolerance);
 
-        this.rangeMinRT = searchRT - rtTolerance;
-        this.rangeMaxRT = searchRT + rtTolerance;
+        this.rtRange = new Range(searchRT - rtTolerance, searchRT + rtTolerance);
 
     }
 
@@ -74,16 +73,15 @@ class Gap {
         float scanRT = scan.getRetentionTime();
 
         // If not yet inside the RT range
-        if (scanRT < rangeMinRT)
+        if (scanRT < rtRange.getMin())
             return;
 
         // If we have passed the RT range and finished processing last peak
-        if ((scanRT > rangeMaxRT) && (currentPeakDataPoints == null))
+        if ((scanRT > rtRange.getMax()) && (currentPeakDataPoints == null))
             return;
 
         // Find top m/z peak in our range
-        DataPoint basePeak = ScanUtils.findBasePeak(scan, rangeMinMZ,
-                rangeMaxMZ);
+        DataPoint basePeak = ScanUtils.findBasePeak(scan, mzRange);
 
         GapDataPoint currentDataPoint;
         if (basePeak != null) {
@@ -186,7 +184,7 @@ class Gap {
      */
     private boolean checkRTShape(GapDataPoint dp) {
 
-        if (dp.getRT() < rangeMinRT) {
+        if (dp.getRT() < rtRange.getMin()) {
             float prevInt = currentPeakDataPoints.get(
                     currentPeakDataPoints.size() - 1).getIntensity();
             if (dp.getIntensity() > (prevInt * (1 - intTolerance))) {
@@ -194,11 +192,11 @@ class Gap {
             }
         }
 
-        if ((rangeMinRT <= dp.getRT()) && (dp.getRT() <= rangeMaxRT)) {
+        if (rtRange.contains(dp.getRT())) {
             return true;
         }
 
-        if (dp.getRT() > rangeMaxRT) {
+        if (dp.getRT() > rtRange.getMax()) {
             float prevInt = currentPeakDataPoints.get(
                     currentPeakDataPoints.size() - 1).getIntensity();
             if (dp.getIntensity() < (prevInt * (1 + intTolerance))) {
@@ -217,8 +215,7 @@ class Gap {
         float currentMaxHeight = 0f;
         for (int i = 1; i < currentPeakDataPoints.size() - 1; i++) {
 
-            if ((rangeMinRT <= currentPeakDataPoints.get(i).getRT())
-                    && (currentPeakDataPoints.get(i).getRT() <= rangeMaxRT)) {
+            if (rtRange.contains(currentPeakDataPoints.get(i).getRT())) {
 
                 if ((currentPeakDataPoints.get(i).getIntensity() >= currentPeakDataPoints.get(
                         i + 1).getIntensity())

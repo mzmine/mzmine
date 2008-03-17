@@ -33,6 +33,7 @@ import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.project.MZmineProject;
 import net.sf.mzmine.taskcontrol.Task;
 import net.sf.mzmine.util.MathUtils;
+import net.sf.mzmine.util.Range;
 import net.sf.mzmine.util.ScanUtils;
 
 /**
@@ -139,10 +140,10 @@ class RecursivePickerTask implements Task {
          */
 
         // Get minimum and maximum m/z values
-        float startMZ = dataFile.getDataMZRange(1).getMin();
-        float endMZ = dataFile.getDataMZRange(1).getMax();
+        Range mzRange = dataFile.getDataMZRange(1);
+        
 
-        int numOfBins = (int) (Math.ceil((endMZ - startMZ) / binSize));
+        int numOfBins = (int) (Math.ceil(mzRange.getSize() / binSize));
         float[] chromatographicThresholds = new float[numOfBins];
 
         if (chromatographicThresholdLevel > 0) {
@@ -166,7 +167,7 @@ class RecursivePickerTask implements Task {
                 }
                 
                 float[] tmpInts = ScanUtils.binValues(mzValues,
-                        intensityValues, startMZ, endMZ, numOfBins, true,
+                        intensityValues, mzRange, numOfBins, true,
                         ScanUtils.BinningType.MAX);
                 for (int bini = 0; bini < numOfBins; bini++) {
                     binInts[bini][i] = tmpInts[bini];
@@ -229,7 +230,7 @@ class RecursivePickerTask implements Task {
                 if (intensityValues[j] >= noiseLevel) {
 
                     // Determine correct bin
-                    int bin = (int) Math.floor((mzValues[j] - startMZ) / binSize);
+                    int bin = (int) Math.floor((mzValues[j] - mzRange.getMin()) / binSize);
                     if (bin < 0) {
                         bin = 0;
                     }

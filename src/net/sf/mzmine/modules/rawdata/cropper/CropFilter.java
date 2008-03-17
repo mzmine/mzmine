@@ -101,14 +101,11 @@ public class CropFilter implements BatchStepFiltering, TaskListener,
         RawDataFile[] dataFiles = desktop.getSelectedDataFiles();
         if (dataFiles.length == 1) {
             autoValues = new Hashtable<Parameter, Object>();
-            autoValues.put(CropFilterParameters.minRT,
-                    dataFiles[0].getDataRTRange(1).getMin());
-            autoValues.put(CropFilterParameters.maxRT,
-                    dataFiles[0].getDataRTRange(1).getMax());
-            autoValues.put(CropFilterParameters.minMZ,
-                    dataFiles[0].getDataMZRange(1).getMin());
-            autoValues.put(CropFilterParameters.maxMZ,
-                    dataFiles[0].getDataMZRange(1).getMax());
+            autoValues.put(CropFilterParameters.retentionTimeRange,
+                    dataFiles[0].getDataRTRange(1));
+            autoValues.put(CropFilterParameters.mzRange,
+                    dataFiles[0].getDataMZRange(1));
+
         }
 
         // Show dialog

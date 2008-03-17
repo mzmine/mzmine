@@ -34,6 +34,7 @@ import net.sf.mzmine.modules.visualization.spectra.SpectraVisualizer;
 import net.sf.mzmine.taskcontrol.Task;
 import net.sf.mzmine.taskcontrol.TaskListener;
 import net.sf.mzmine.taskcontrol.Task.TaskStatus;
+import net.sf.mzmine.util.Range;
 
 /**
  * Neutral loss visualizer using JFreeChart library
@@ -50,9 +51,8 @@ public class NeutralLossVisualizerWindow extends JInternalFrame implements
 
     private Desktop desktop;
 
-    public NeutralLossVisualizerWindow(RawDataFile dataFile, int xAxis,
-            float rtMin, float rtMax, float mzMin, float mzMax,
-            int numOfFragments) {
+    public NeutralLossVisualizerWindow(RawDataFile dataFile, Object xAxisType,
+            Range rtRange, Range mzRange, int numOfFragments) {
 
         super(dataFile.toString(), true, true, true, true);
 
@@ -63,19 +63,19 @@ public class NeutralLossVisualizerWindow extends JInternalFrame implements
 
         this.dataFile = dataFile;
 
-        dataset = new NeutralLossDataSet(dataFile, xAxis, rtMin, rtMax, mzMin,
-                mzMax, numOfFragments, this);
+        dataset = new NeutralLossDataSet(dataFile, xAxisType, rtRange, mzRange,
+                numOfFragments, this);
 
         toolBar = new NeutralLossToolBar(this);
         add(toolBar, BorderLayout.EAST);
 
-        neutralLossPlot = new NeutralLossPlot(this, dataset, xAxis);
+        neutralLossPlot = new NeutralLossPlot(this, dataset, xAxisType);
         add(neutralLossPlot, BorderLayout.CENTER);
 
-        if (xAxis == 1)
-            setDomainRange(rtMin, rtMax);
+        if (xAxisType == NeutralLossParameters.xAxisRT)
+            setDomainRange(rtRange);
         else
-            setDomainRange(mzMin, mzMax);
+            setDomainRange(mzRange);
 
         updateTitle();
 
@@ -85,22 +85,16 @@ public class NeutralLossVisualizerWindow extends JInternalFrame implements
 
     /**
      */
-    public void setRangeRange(float min, float max) {
-        neutralLossPlot.getXYPlot().getRangeAxis().setRange(min, max);
+    public void setRangeRange(Range rng) {
+        neutralLossPlot.getXYPlot().getRangeAxis().setRange(rng.getMin(),
+                rng.getMax());
     }
 
     /**
      */
-    public void setDomainRange(float min, float max) {
-        neutralLossPlot.getXYPlot().getDomainAxis().setRange(min, max);
-    }
-
-    /**
-     * @see net.sf.mzmine.modules.RawDataVisualizer#setIntensityRange(float,
-     *      float)
-     */
-    public void setIntensityRange(float intensityMin, float intensityMax) {
-        // do nothing
+    public void setDomainRange(Range rng) {
+        neutralLossPlot.getXYPlot().getDomainAxis().setRange(rng.getMin(),
+                rng.getMax());
     }
 
     void updateTitle() {
@@ -140,8 +134,7 @@ public class NeutralLossVisualizerWindow extends JInternalFrame implements
             NeutralLossDataPoint pos = getCursorPosition();
             if (pos != null) {
                 SpectraVisualizer specVis = SpectraVisualizer.getInstance();
-                specVis.showNewSpectrumWindow(dataFile,
-                        pos.getScanNumber());
+                specVis.showNewSpectrumWindow(dataFile, pos.getScanNumber());
             }
         }
 
@@ -162,9 +155,6 @@ public class NeutralLossVisualizerWindow extends JInternalFrame implements
      * @see net.sf.mzmine.taskcontrol.TaskListener#taskStarted(net.sf.mzmine.taskcontrol.Task)
      */
     public void taskStarted(Task task) {
-        // if we have not added this frame before, do it now
-        if (getParent() == null)
-            desktop.addInternalFrame(this);
     }
 
     /**

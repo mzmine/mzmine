@@ -73,11 +73,9 @@ class NeutralLossPlot extends ChartPanel {
     private double highlightedMin, highlightedMax;
 
     NeutralLossPlot(NeutralLossVisualizerWindow visualizer,
-            NeutralLossDataSet dataset, int xAxisType) {
-        // superconstructor with no chart yet
-        // disable off-screen buffering (makes problems with late drawing of the
-        // title)
-        super(null, false);
+            NeutralLossDataSet dataset, Object xAxisType) {
+
+        super(null, true);
 
         this.visualizer = visualizer;
 
@@ -89,7 +87,7 @@ class NeutralLossPlot extends ChartPanel {
 
         // set the X axis (retention time) properties
         NumberAxis xAxis;
-        if (xAxisType == 0) {
+        if (xAxisType == NeutralLossParameters.xAxisPrecursor) {
             xAxis = new NumberAxis("Precursor mass");
             xAxis.setNumberFormatOverride(mzFormat);
         } else {

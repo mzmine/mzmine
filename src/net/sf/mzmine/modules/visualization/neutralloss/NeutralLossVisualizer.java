@@ -22,17 +22,24 @@ package net.sf.mzmine.modules.visualization.neutralloss;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
+import java.util.Hashtable;
 import java.util.logging.Logger;
 
 import javax.swing.JDialog;
 
+import net.sf.mzmine.data.Parameter;
 import net.sf.mzmine.data.ParameterSet;
 import net.sf.mzmine.desktop.Desktop;
 import net.sf.mzmine.desktop.MZmineMenu;
 import net.sf.mzmine.io.RawDataFile;
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.main.MZmineModule;
+import net.sf.mzmine.modules.visualization.tic.TICVisualizerParameters;
+import net.sf.mzmine.modules.visualization.tic.TICVisualizerWindow;
 import net.sf.mzmine.util.CollectionUtils;
+import net.sf.mzmine.util.Range;
+import net.sf.mzmine.util.dialogs.ExitCode;
+import net.sf.mzmine.util.dialogs.ParameterSetupDialog;
 
 /**
  * Neutral loss (MS/MS) visualizer using JFreeChart library
@@ -40,6 +47,8 @@ import net.sf.mzmine.util.CollectionUtils;
 public class NeutralLossVisualizer implements MZmineModule, ActionListener {
 
     private Logger logger = Logger.getLogger(this.getClass().getName());
+
+    private NeutralLossParameters parameters;
 
     private Desktop desktop;
 
@@ -49,6 +58,8 @@ public class NeutralLossVisualizer implements MZmineModule, ActionListener {
     public void initModule() {
 
         this.desktop = MZmineCore.getDesktop();
+
+        parameters = new NeutralLossParameters();
 
         desktop.addMenuItem(MZmineMenu.VISUALIZATION, "Neutral loss", this,
                 null, KeyEvent.VK_N, false, true);
@@ -77,8 +88,38 @@ public class NeutralLossVisualizer implements MZmineModule, ActionListener {
                         + " does not contain data for MS levels 1 and 2.");
                 continue;
             }
-            JDialog setupDialog = new NeutralLossSetupDialog(dataFile);
-            setupDialog.setVisible(true);
+
+            Hashtable<Parameter, Object> autoValues = null;
+            if (dataFiles.length == 1) {
+                autoValues = new Hashtable<Parameter, Object>();
+
+                autoValues.put(NeutralLossParameters.retentionTimeRange,
+                        dataFile.getDataRTRange(2));
+                autoValues.put(NeutralLossParameters.mzRange,
+                        dataFile.getDataMZRange(1));
+
+            }
+
+            ParameterSetupDialog dialog = new ParameterSetupDialog(
+                    "Please set parameter values for " + toString(),
+                    parameters, autoValues);
+
+            dialog.setVisible(true);
+
+            if (dialog.getExitCode() != ExitCode.OK)
+                return;
+
+            Range rtRange = (Range) parameters.getParameterValue(NeutralLossParameters.retentionTimeRange);
+            Range mzRange = (Range) parameters.getParameterValue(NeutralLossParameters.mzRange);
+            int fragments = (Integer) parameters.getParameterValue(NeutralLossParameters.numOfFragments);
+
+            Object xAxisType = parameters.getParameterValue(NeutralLossParameters.xAxisType);
+
+            NeutralLossVisualizerWindow newWindow = new NeutralLossVisualizerWindow(
+                    dataFile, xAxisType, rtRange, mzRange, fragments);
+
+            desktop.addInternalFrame(newWindow);
+
         }
 
     }
@@ -94,13 +135,14 @@ public class NeutralLossVisualizer implements MZmineModule, ActionListener {
      * @see net.sf.mzmine.main.MZmineModule#getParameterSet()
      */
     public ParameterSet getParameterSet() {
-        return null;
+        return parameters;
     }
 
     /**
      * @see net.sf.mzmine.main.MZmineModule#setParameters(net.sf.mzmine.data.ParameterSet)
      */
-    public void setParameters(ParameterSet parameterValues) {
+    public void setParameters(ParameterSet parameters) {
+        this.parameters = (NeutralLossParameters) parameters;
     }
 
 }
