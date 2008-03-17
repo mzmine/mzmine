@@ -33,6 +33,7 @@ import net.sf.mzmine.project.MZmineProject;
 import net.sf.mzmine.taskcontrol.TaskController;
 import net.sf.mzmine.userinterface.Desktop;
 import net.sf.mzmine.userinterface.mainwindow.MainWindow;
+import net.sf.mzmine.util.NumberFormatter;
 
 import org.dom4j.Document;
 import org.dom4j.Element;
@@ -249,6 +250,19 @@ public abstract class MZmineCore {
     }
     public static void setDesktop(MainWindow mainWindow){
     	desktop=mainWindow;  	
+    }
+
+    // Number formatting functions
+    public static NumberFormatter getIntensityFormat() {
+        return ((MainWindow) desktop).getIntensityFormat();
+    }
+
+    public static NumberFormatter getMZFormat() {
+        return ((MainWindow) desktop).getMZFormat();
+    }
+
+    public static NumberFormatter getRTFormat() {
+        return ((MainWindow) desktop).getRTFormat();
     }
 
 }

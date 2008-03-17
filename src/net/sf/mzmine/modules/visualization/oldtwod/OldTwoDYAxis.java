@@ -35,7 +35,7 @@ public class OldTwoDYAxis extends JPanel {
 		}	
 
 		Desktop desktop = MZmineCore.getDesktop();
-        NumberFormat mzFormat = desktop.getMZFormat();
+        NumberFormat mzFormat = MZmineCore.getMZFormat();
 
 		double w = getWidth();
 		double h = getHeight();

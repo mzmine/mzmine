@@ -57,8 +57,8 @@ public class SimpleDataPoint implements DataPoint {
     }
 
     public String toString() {
-        Format mzFormat = MZmineCore.getDesktop().getMZFormat();
-        Format intensityFormat = MZmineCore.getDesktop().getIntensityFormat();
+        Format mzFormat = MZmineCore.getMZFormat();
+        Format intensityFormat = MZmineCore.getIntensityFormat();
         String str = "m/z: " + mzFormat.format(mz) + ", intensity: "
                 + intensityFormat.format(intensity);
         return str;

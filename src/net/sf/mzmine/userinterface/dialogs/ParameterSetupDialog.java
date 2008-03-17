@@ -146,18 +146,30 @@ public class ParameterSetupDialog extends JDialog implements ActionListener {
 
             JComponent comp = null;
 
+            NumberFormat format = p.getNumberFormat();
+            if (format == null)
+                format = NumberFormat.getNumberInstance();
+            
             switch (p.getType()) {
             case STRING:
                 comp = new JTextField();
                 break;
             case INTEGER:
             case FLOAT:
-                NumberFormat format = p.getNumberFormat();
-                if (format == null)
-                    format = NumberFormat.getNumberInstance();
+
                 JFormattedTextField txtField = new JFormattedTextField(format);
                 txtField.setColumns(TEXTFIELD_COLUMNS);
                 comp = txtField;
+                break;
+                
+            case RANGE:
+                
+                JFormattedTextField minTxtField = new JFormattedTextField(format);
+                JFormattedTextField maxTxtField = new JFormattedTextField(format);
+                minTxtField.setColumns(TEXTFIELD_COLUMNS);
+                maxTxtField.setColumns(TEXTFIELD_COLUMNS);
+                
+                //comp = txtField;
                 break;
 
             case BOOLEAN:

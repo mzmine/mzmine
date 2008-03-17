@@ -68,9 +68,9 @@ class CustomDBSearchDialog extends JDialog implements ActionListener {
     public CustomDBSearchDialog(CustomDBSearchParameters parameters) {
 
         // Make dialog modal
-        super(MZmineCore.getDesktop().getMainFrame(), "DB search parameters", true);
+        super(MZmineCore.getDesktop().getMainFrame(), "DB search parameters",
+                true);
 
-        this.desktop = MZmineCore.getDesktop();
         this.parameters = parameters;
 
         // Create panel with controls
@@ -107,18 +107,17 @@ class CustomDBSearchDialog extends JDialog implements ActionListener {
 
         // m/z tolerance
         GUIUtils.addLabel(pnlLabelsAndFields, "m/z tolerance");
-        NumberFormat mzFormat = desktop.getMZFormat();
+        NumberFormat mzFormat = MZmineCore.getMZFormat();
         mzToleranceField = new JFormattedTextField(mzFormat);
         mzToleranceField.setValue((Double) parameters.getMzTolerance());
         pnlLabelsAndFields.add(mzToleranceField);
 
         // Retention time tolerance
         GUIUtils.addLabel(pnlLabelsAndFields, "Retention time tolerance (sec)");
-        NumberFormat rtFormat = desktop.getRTFormat();
+        NumberFormat rtFormat = MZmineCore.getRTFormat();
         rtToleranceField = new JFormattedTextField(rtFormat);
         rtToleranceField.setValue((Double) parameters.getRtTolerance());
         pnlLabelsAndFields.add(rtToleranceField);
-
 
         // Buttons
         JPanel pnlButtons = new JPanel();
@@ -135,7 +134,7 @@ class CustomDBSearchDialog extends JDialog implements ActionListener {
         pack();
 
         setResizable(false);
-        setLocationRelativeTo(desktop.getMainFrame());
+        setLocationRelativeTo(MZmineCore.getDesktop().getMainFrame());
 
     }
 
@@ -147,26 +146,27 @@ class CustomDBSearchDialog extends JDialog implements ActionListener {
         Object src = ae.getSource();
 
         if (src == btnOK) {
-            
+
             String dataFilePath = fileNameField.getText();
             if (dataFilePath.length() == 0) {
                 desktop.displayErrorMessage("Please select database file");
                 return;
             }
-            
+
             File dataFile = new File(dataFilePath);
-            if (! dataFile.exists()) {
-                desktop.displayErrorMessage("File " + dataFile + " does not exist");
-                return;                
+            if (!dataFile.exists()) {
+                desktop.displayErrorMessage("File " + dataFile
+                        + " does not exist");
+                return;
             }
-            
+
             parameters.setDataBaseFile(dataFilePath);
             parameters.setFieldSeparator(fieldSeparatorField.getText().charAt(0));
             parameters.setFieldOrder(fieldOrderModel.toArray());
             parameters.setIgnoreFirstLine(ignoreFirstLineBox.isSelected());
             parameters.setMzTolerance(((Number) mzToleranceField.getValue()).doubleValue());
             parameters.setRtTolerance(((Number) rtToleranceField.getValue()).doubleValue());
-            
+
             exitCode = ExitCode.OK;
             dispose();
 
@@ -177,9 +177,9 @@ class CustomDBSearchDialog extends JDialog implements ActionListener {
             JFileChooser chooser = new JFileChooser();
             chooser.setFileSelectionMode(JFileChooser.FILES_ONLY);
             chooser.setMultiSelectionEnabled(false);
-            
+
             int returnVal = chooser.showOpenDialog(desktop.getMainFrame());
-            
+
             if (returnVal == JFileChooser.APPROVE_OPTION) {
                 String selectedFile = chooser.getSelectedFile().getAbsolutePath();
                 fileNameField.setText(selectedFile);

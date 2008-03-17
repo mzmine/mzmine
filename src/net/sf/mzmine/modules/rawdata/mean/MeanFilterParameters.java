@@ -34,7 +34,7 @@ public class MeanFilterParameters extends SimpleParameterSet {
     public static final Parameter oneSidedWindowLength = new SimpleParameter(
             ParameterType.FLOAT, "Window length",
             "One-sided length of the smoothing window", "m/z", new Float(0.1),
-            new Float(0.0), null, MZmineCore.getDesktop().getMZFormat());
+            new Float(0.0), null, MZmineCore.getMZFormat());
 
     public static final Parameter autoRemove = new SimpleParameter(
             ParameterType.BOOLEAN,

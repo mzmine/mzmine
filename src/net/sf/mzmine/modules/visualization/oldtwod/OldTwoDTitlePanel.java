@@ -26,8 +26,8 @@ public class OldTwoDTitlePanel extends JPanel {
 	
 	public void updateTitle() {
 		Desktop desktop = MZmineCore.getDesktop();
-		Format mzFormat = desktop.getMZFormat();
-		Format rtFormat = desktop.getRTFormat();
+		Format mzFormat = MZmineCore.getMZFormat();
+		Format rtFormat = MZmineCore.getRTFormat();
 	
 		String title = "";
 		

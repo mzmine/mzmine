@@ -29,7 +29,6 @@ import javax.swing.JMenuItem;
 import net.sf.mzmine.data.PeakList;
 import net.sf.mzmine.io.RawDataFile;
 import net.sf.mzmine.main.MZmineModule;
-import net.sf.mzmine.util.NumberFormatter;
 
 /**
  * This interface represents the application GUI
@@ -91,12 +90,5 @@ public interface Desktop extends MZmineModule {
 	 * Returns array of currently selected alignned peaklists in GUI
 	 */
 	public PeakList[] getSelectedPeakLists();
-
-	// Number formatting functions
-	public NumberFormatter getMZFormat();
-
-	public NumberFormatter getRTFormat();
-
-	public NumberFormatter getIntensityFormat();
 
 }

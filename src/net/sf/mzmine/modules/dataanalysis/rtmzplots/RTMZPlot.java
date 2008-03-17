@@ -25,8 +25,8 @@ import java.awt.Font;
 import java.text.NumberFormat;
 
 import net.sf.mzmine.main.MZmineCore;
-import net.sf.mzmine.userinterface.Desktop;
 import net.sf.mzmine.userinterface.components.interpolatinglookuppaintscale.InterpolatingLookupPaintScale;
+
 import org.jfree.chart.ChartFactory;
 import org.jfree.chart.ChartPanel;
 import org.jfree.chart.JFreeChart;
@@ -105,9 +105,8 @@ public class RTMZPlot extends ChartPanel {
         plot.setDomainCrosshairStroke(crossHairStroke);
         plot.setRangeCrosshairStroke(crossHairStroke);
   
-        Desktop desktop = MZmineCore.getDesktop();
-        NumberFormat rtFormat = desktop.getRTFormat();
-        NumberFormat mzFormat = desktop.getMZFormat();
+        NumberFormat rtFormat = MZmineCore.getRTFormat();
+        NumberFormat mzFormat = MZmineCore.getMZFormat();
 
         // set the X axis (retention time) properties
         NumberAxis xAxis = (NumberAxis) plot.getDomainAxis();

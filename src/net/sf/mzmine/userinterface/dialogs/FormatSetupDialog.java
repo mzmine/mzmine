@@ -67,11 +67,10 @@ public class FormatSetupDialog extends JDialog implements ActionListener {
         // Make dialog modal
         super(MZmineCore.getDesktop().getMainFrame(), "Format setting", true);
 
-        Desktop desktop = MZmineCore.getDesktop();
         
-        this.mzFormat = desktop.getMZFormat();
-        this.rtFormat = desktop.getRTFormat();
-        this.intensityFormat = desktop.getIntensityFormat();
+        this.mzFormat = MZmineCore.getMZFormat();
+        this.rtFormat = MZmineCore.getRTFormat();
+        this.intensityFormat = MZmineCore.getIntensityFormat();
 
         JLabel mzFormatLabel = new JLabel("m/z format");
         JLabel rtFormatLabel = new JLabel("Retention time format");
@@ -132,7 +131,7 @@ public class FormatSetupDialog extends JDialog implements ActionListener {
         pack();
 
         setResizable(false);
-        setLocationRelativeTo(desktop.getMainFrame());
+        setLocationRelativeTo(MZmineCore.getDesktop().getMainFrame());
 
     }
 

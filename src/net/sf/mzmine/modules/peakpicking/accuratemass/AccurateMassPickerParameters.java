@@ -36,7 +36,7 @@ public class AccurateMassPickerParameters extends SimpleParameterSet {
             "M/Z tolerance",
             "Maximum allowed distance in M/Z between data points in successive scans",
             "m/z", new Float(0.1), new Float(0.0), null,
-            MZmineCore.getDesktop().getMZFormat());
+            MZmineCore.getMZFormat());
 
     public static final Parameter minDataPoints = new SimpleParameter(
             ParameterType.INTEGER, "Min data points",

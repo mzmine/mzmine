@@ -32,7 +32,6 @@ import javax.swing.JPopupMenu;
 import javax.swing.KeyStroke;
 
 import net.sf.mzmine.main.MZmineCore;
-import net.sf.mzmine.userinterface.Desktop;
 import net.sf.mzmine.util.GUIUtils;
 
 import org.jfree.chart.ChartPanel;
@@ -55,38 +54,38 @@ class NeutralLossPlot extends ChartPanel {
     private XYItemRenderer renderer;
 
     private boolean showSpectrumRequest = false;
-    
+
     private NeutralLossVisualizerWindow visualizer;
-    
-    //  crosshair (selection) color
-    private static final Color crossHairColor = Color.gray; 
-    
+
+    // crosshair (selection) color
+    private static final Color crossHairColor = Color.gray;
+
     // crosshair stroke
-    private static final BasicStroke crossHairStroke = new BasicStroke(1, BasicStroke.CAP_BUTT,
-            BasicStroke.JOIN_BEVEL, 1.0f, new float[] { 5, 3 }, 0);
+    private static final BasicStroke crossHairStroke = new BasicStroke(1,
+            BasicStroke.CAP_BUTT, BasicStroke.JOIN_BEVEL, 1.0f, new float[] {
+                    5, 3 }, 0);
 
     // title font
     private static final Font titleFont = new Font("SansSerif", Font.PLAIN, 11);
 
     private TextTitle chartTitle;
-    
+
     private double highlightedMin, highlightedMax;
-    
-    
-    NeutralLossPlot(NeutralLossVisualizerWindow visualizer, NeutralLossDataSet dataset, int xAxisType) {
+
+    NeutralLossPlot(NeutralLossVisualizerWindow visualizer,
+            NeutralLossDataSet dataset, int xAxisType) {
         // superconstructor with no chart yet
-        // disable off-screen buffering (makes problems with late drawing of the title)
+        // disable off-screen buffering (makes problems with late drawing of the
+        // title)
         super(null, false);
 
-        this.visualizer = visualizer; 
-        
+        this.visualizer = visualizer;
+
         setBackground(Color.white);
         setCursor(Cursor.getPredefinedCursor(Cursor.CROSSHAIR_CURSOR));
-        
-        Desktop desktop = MZmineCore.getDesktop();
-        NumberFormat rtFormat = desktop.getRTFormat();
-        NumberFormat mzFormat = desktop.getMZFormat();
-        
+
+        NumberFormat rtFormat = MZmineCore.getRTFormat();
+        NumberFormat mzFormat = MZmineCore.getMZFormat();
 
         // set the X axis (retention time) properties
         NumberAxis xAxis;
@@ -100,8 +99,6 @@ class NeutralLossPlot extends ChartPanel {
         xAxis.setUpperMargin(0);
         xAxis.setLowerMargin(0);
         xAxis.setAutoRangeIncludesZero(false);
-        
-
 
         // set the Y axis (intensity) properties
         NumberAxis yAxis = new NumberAxis("Neutral loss");
@@ -109,36 +106,31 @@ class NeutralLossPlot extends ChartPanel {
         yAxis.setNumberFormatOverride(mzFormat);
         yAxis.setUpperMargin(0);
         yAxis.setLowerMargin(0);
-        
+
         // set the renderer properties
         renderer = new NeutralLossDataPointRenderer(this);
 
         // tooltips
         renderer.setBaseToolTipGenerator(dataset);
 
-        
         // set the plot properties
         plot = new XYPlot(dataset, xAxis, yAxis, renderer);
         plot.setBackgroundPaint(Color.white);
 
-        
         // chart properties
-        chart = new JFreeChart("", titleFont, plot, false); 
+        chart = new JFreeChart("", titleFont, plot, false);
         chart.setBackgroundPaint(Color.white);
-        
+
         setChart(chart);
 
         // title
         chartTitle = chart.getTitle();
-        chartTitle.setMargin(5,0,0,0);
+        chartTitle.setMargin(5, 0, 0, 0);
         chartTitle.setFont(titleFont);
-        
+
         // disable maximum size (we don't want scaling)
         setMaximumDrawWidth(Integer.MAX_VALUE);
         setMaximumDrawHeight(Integer.MAX_VALUE);
-
-        
-        
 
         // set crosshair (selection) properties
         plot.setDomainCrosshairVisible(true);
@@ -147,7 +139,7 @@ class NeutralLossPlot extends ChartPanel {
         plot.setRangeCrosshairPaint(crossHairColor);
         plot.setDomainCrosshairStroke(crossHairStroke);
         plot.setRangeCrosshairStroke(crossHairStroke);
-        
+
         plot.addRangeMarker(new ValueMarker(0));
 
         // set focusable state to receive key events
@@ -156,13 +148,10 @@ class NeutralLossPlot extends ChartPanel {
         // register key handlers
         GUIUtils.registerKeyHandler(this, KeyStroke.getKeyStroke("SPACE"),
                 visualizer, "SHOW_SPECTRUM");
-        
 
-        
         // add items to popup menu
         JMenuItem highlightMenuItem;
 
-        
         highlightMenuItem = new JMenuItem("Highlight precursor m/z range...");
         highlightMenuItem.addActionListener(visualizer);
         highlightMenuItem.setActionCommand("HIGHLIGHT");
@@ -174,37 +163,31 @@ class NeutralLossPlot extends ChartPanel {
 
     }
 
-   
     void setTitle(String title) {
         chartTitle.setText(title);
     }
 
-
-
-
-    
     /**
      * @return Returns the highlightedMin.
      */
     double getHighlightedMin() {
         return highlightedMin;
     }
-    
-    
+
     /**
      * @param highlightedMin The highlightedMin to set.
      */
     void setHighlightedMin(double highlightedMin) {
         this.highlightedMin = highlightedMin;
     }
-    
+
     /**
      * @return Returns the highlightedMax.
      */
     double getHighlightedMax() {
         return highlightedMax;
     }
-    
+
     /**
      * @param highlightedMax The highlightedMax to set.
      */
@@ -251,7 +234,7 @@ class NeutralLossPlot extends ChartPanel {
         }
 
     }
-    
+
     XYPlot getXYPlot() {
         return plot;
     }

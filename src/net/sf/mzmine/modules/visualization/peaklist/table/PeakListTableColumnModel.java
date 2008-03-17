@@ -36,7 +36,6 @@ import net.sf.mzmine.io.RawDataFile;
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.modules.visualization.peaklist.PeakListTableParameters;
 import net.sf.mzmine.modules.visualization.peaklist.PeakListTableVisualizer;
-import net.sf.mzmine.userinterface.Desktop;
 import net.sf.mzmine.userinterface.components.ColumnGroup;
 import net.sf.mzmine.userinterface.components.GroupableTableHeader;
 import net.sf.mzmine.util.NumberFormatter;
@@ -83,10 +82,9 @@ public class PeakListTableColumnModel extends DefaultTableColumnModel implements
         header.addMouseListener(this);
 
         // prepare formatters
-        Desktop desktop = MZmineCore.getDesktop();
-        NumberFormatter mzFormat = desktop.getMZFormat();
-        NumberFormatter rtFormat = desktop.getRTFormat();
-        NumberFormatter intensityFormat = desktop.getIntensityFormat();
+        NumberFormatter mzFormat = MZmineCore.getMZFormat();
+        NumberFormatter rtFormat = MZmineCore.getRTFormat();
+        NumberFormatter intensityFormat = MZmineCore.getIntensityFormat();
 
         // prepare cell renderers
         mzRenderer = new FormattedCellRenderer(mzFormat);

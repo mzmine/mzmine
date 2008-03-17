@@ -39,7 +39,7 @@ public class CMFilterParameters extends SimpleParameterSet {
     public static final Parameter MZTolerance = new SimpleParameter(
             ParameterType.FLOAT, "M/Z tolerance",
             "Maximum allowed m/z difference", "m/z", new Float(0.1), new Float(
-                    0.0), null, MZmineCore.getDesktop().getMZFormat());
+                    0.0), null, MZmineCore.getMZFormat());
 
     public static final Parameter autoRemove = new SimpleParameter(
             ParameterType.BOOLEAN,

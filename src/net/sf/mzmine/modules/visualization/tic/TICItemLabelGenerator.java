@@ -60,8 +60,8 @@ class TICItemLabelGenerator implements XYItemLabelGenerator {
     private TICPlot plot;
     private TICVisualizerWindow ticWindow;
     private Object plotType;
-    private NumberFormat mzFormat = MZmineCore.getDesktop().getMZFormat();
-    private NumberFormat intensityFormat = MZmineCore.getDesktop().getIntensityFormat();
+    private NumberFormat mzFormat = MZmineCore.getMZFormat();
+    private NumberFormat intensityFormat = MZmineCore.getIntensityFormat();
 
     /**
      * Constructor

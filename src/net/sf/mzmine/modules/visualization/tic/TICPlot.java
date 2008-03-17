@@ -33,7 +33,6 @@ import javax.swing.JPopupMenu;
 import javax.swing.KeyStroke;
 
 import net.sf.mzmine.main.MZmineCore;
-import net.sf.mzmine.userinterface.Desktop;
 import net.sf.mzmine.util.GUIUtils;
 
 import org.jfree.chart.ChartFactory;
@@ -183,9 +182,8 @@ class TICPlot extends ChartPanel {
         plot.setDomainCrosshairStroke(crossHairStroke);
         plot.setRangeCrosshairStroke(crossHairStroke);
 
-        Desktop desktop = MZmineCore.getDesktop();
-        NumberFormat rtFormat = desktop.getRTFormat();
-        NumberFormat intensityFormat = desktop.getIntensityFormat();
+        NumberFormat rtFormat = MZmineCore.getRTFormat();
+        NumberFormat intensityFormat = MZmineCore.getIntensityFormat();
 
         // set the X axis (retention time) properties
         NumberAxis xAxis = (NumberAxis) plot.getDomainAxis();

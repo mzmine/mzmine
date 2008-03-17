@@ -128,7 +128,7 @@ class PeakListReportGenerator {
                 NumberFieldElementFactory mzFac = new NumberFieldElementFactory();
                 mzFac.setVerticalAlignment(ElementAlignment.MIDDLE);
                 mzFac.setFieldname(fieldName);
-                mzFac.setFormat(MZmineCore.getDesktop().getMZFormat());
+                mzFac.setFormat(MZmineCore.getMZFormat());
                 newElementFac = mzFac;
                 break;
 
@@ -136,7 +136,7 @@ class PeakListReportGenerator {
                 NumberFieldElementFactory rtFac = new NumberFieldElementFactory();
                 rtFac.setVerticalAlignment(ElementAlignment.MIDDLE);
                 rtFac.setFieldname(fieldName);
-                rtFac.setFormat(MZmineCore.getDesktop().getRTFormat());
+                rtFac.setFormat(MZmineCore.getRTFormat());
                 newElementFac = rtFac;
                 break;
 
@@ -223,7 +223,7 @@ class PeakListReportGenerator {
                 NumberFieldElementFactory mzFac = new NumberFieldElementFactory();
                 mzFac.setVerticalAlignment(ElementAlignment.MIDDLE);
                 mzFac.setFieldname(fieldName);
-                mzFac.setFormat(MZmineCore.getDesktop().getMZFormat());
+                mzFac.setFormat(MZmineCore.getMZFormat());
                 newElementFac = mzFac;
                 break;
 
@@ -232,7 +232,7 @@ class PeakListReportGenerator {
                 NumberFieldElementFactory rtFac = new NumberFieldElementFactory();
                 rtFac.setVerticalAlignment(ElementAlignment.MIDDLE);
                 rtFac.setFieldname(fieldName);
-                rtFac.setFormat(MZmineCore.getDesktop().getRTFormat());
+                rtFac.setFormat(MZmineCore.getRTFormat());
                 newElementFac = rtFac;
                 break;
 
@@ -241,7 +241,7 @@ class PeakListReportGenerator {
                 NumberFieldElementFactory intFac = new NumberFieldElementFactory();
                 intFac.setVerticalAlignment(ElementAlignment.MIDDLE);
                 intFac.setFieldname(fieldName);
-                intFac.setFormat(MZmineCore.getDesktop().getIntensityFormat());
+                intFac.setFormat(MZmineCore.getIntensityFormat());
                 newElementFac = intFac;
                 break;
 

@@ -29,50 +29,49 @@ import net.sf.mzmine.main.MZmineCore;
 
 public class AnotherCentroidPickerParameters extends SimpleParameterSet {
 
-	public static final NumberFormat percentFormat = NumberFormat
-			.getPercentInstance();
+    public static final NumberFormat percentFormat = NumberFormat.getPercentInstance();
 
-	public static final Parameter suffix = new SimpleParameter(
-			ParameterType.STRING, "Filename suffix",
-			"Suffix to be added to filename", null, "peaklist", null);
+    public static final Parameter suffix = new SimpleParameter(
+            ParameterType.STRING, "Filename suffix",
+            "Suffix to be added to filename", null, "peaklist", null);
 
-	public static final Parameter noiseLevel = new SimpleParameter(
-			ParameterType.FLOAT, "Noise level",
-			"Intensities less than this value are interpreted as noise",
-			"absolute", new Float(10.0), new Float(0.0), null, MZmineCore
-					.getDesktop().getIntensityFormat());
+    public static final Parameter noiseLevel = new SimpleParameter(
+            ParameterType.FLOAT, "Noise level",
+            "Intensities less than this value are interpreted as noise",
+            "absolute", new Float(10.0), new Float(0.0), null,
+            MZmineCore.getIntensityFormat());
 
-	public static final Parameter minimumNumberOfIsotopicPeaks = new SimpleParameter(
-			ParameterType.INTEGER, "Min number of isotopic peaks",
-			"Minimum acceptable number of isotopic peaks per pattern", null,
-			new Integer(3), new Integer(1), null, NumberFormat
-					.getIntegerInstance());
+    public static final Parameter minimumNumberOfIsotopicPeaks = new SimpleParameter(
+            ParameterType.INTEGER, "Min number of isotopic peaks",
+            "Minimum acceptable number of isotopic peaks per pattern", null,
+            new Integer(3), new Integer(1), null,
+            NumberFormat.getIntegerInstance());
 
-	public static final Parameter maximumChargeState = new SimpleParameter(
-			ParameterType.INTEGER, "Max charge state",
-			"Maximum searched charge state", null, new Integer(1), new Integer(
-					1), null, NumberFormat.getIntegerInstance());
+    public static final Parameter maximumChargeState = new SimpleParameter(
+            ParameterType.INTEGER, "Max charge state",
+            "Maximum searched charge state", null, new Integer(1), new Integer(
+                    1), null, NumberFormat.getIntegerInstance());
 
-	public static final Parameter minimumPeakDuration = new SimpleParameter(
-			ParameterType.FLOAT, "Min peak duration",
-			"Minimum acceptable peak duration", null, new Float(10.0),
-			new Float(0.0), null, MZmineCore.getDesktop().getRTFormat());
+    public static final Parameter minimumPeakDuration = new SimpleParameter(
+            ParameterType.FLOAT, "Min peak duration",
+            "Minimum acceptable peak duration", null, new Float(10.0),
+            new Float(0.0), null, MZmineCore.getRTFormat());
 
-	public static final Parameter maximumPeakDuration = new SimpleParameter(
-			ParameterType.FLOAT, "Max peak duration",
-			"Maximum acceptable peak duration", null, new Float(10.0),
-			new Float(0.0), null, MZmineCore.getDesktop().getRTFormat());
+    public static final Parameter maximumPeakDuration = new SimpleParameter(
+            ParameterType.FLOAT, "Max peak duration",
+            "Maximum acceptable peak duration", null, new Float(10.0),
+            new Float(0.0), null, MZmineCore.getRTFormat());
 
-	public static final Parameter mzTolerance = new SimpleParameter(
-			ParameterType.FLOAT, "m/z tolerance",
-			"Maximum allowed distance in m/z between centroids of a peak",
-			"m/z", new Float(0.1), new Float(0.0), null, MZmineCore
-					.getDesktop().getMZFormat());
+    public static final Parameter mzTolerance = new SimpleParameter(
+            ParameterType.FLOAT, "m/z tolerance",
+            "Maximum allowed distance in m/z between centroids of a peak",
+            "m/z", new Float(0.1), new Float(0.0), null,
+            MZmineCore.getMZFormat());
 
-	public AnotherCentroidPickerParameters() {
-		super(new Parameter[] { suffix, noiseLevel,
-				minimumNumberOfIsotopicPeaks, maximumChargeState,
-				minimumPeakDuration, maximumPeakDuration, mzTolerance });
-	}
+    public AnotherCentroidPickerParameters() {
+        super(new Parameter[] { suffix, noiseLevel,
+                minimumNumberOfIsotopicPeaks, maximumChargeState,
+                minimumPeakDuration, maximumPeakDuration, mzTolerance });
+    }
 
 }

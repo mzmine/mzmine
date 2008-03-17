@@ -30,7 +30,6 @@ import javax.swing.JInternalFrame;
 import net.sf.mzmine.data.Parameter;
 import net.sf.mzmine.data.ParameterType;
 import net.sf.mzmine.main.MZmineCore;
-import net.sf.mzmine.userinterface.Desktop;
 import net.sf.mzmine.util.NumberFormatter;
 
 import org.jfree.chart.ChartFactory;
@@ -151,10 +150,9 @@ public class IntensityPlotFrame extends JInternalFrame {
             yAxis = (NumberAxis) ((CategoryPlot) plot).getRangeAxis();
         else
             yAxis = (NumberAxis) ((XYPlot) plot).getRangeAxis();
-        Desktop desktop = MZmineCore.getDesktop();
-        NumberFormatter yAxisFormat = desktop.getIntensityFormat();
+        NumberFormatter yAxisFormat = MZmineCore.getIntensityFormat();
         if (parameters.getYAxisValueSource() == IntensityPlotParameters.PeakRTOption)
-            yAxisFormat = desktop.getRTFormat();
+            yAxisFormat = MZmineCore.getRTFormat();
         yAxis.setNumberFormatOverride(yAxisFormat);
 
         setTitle(title);

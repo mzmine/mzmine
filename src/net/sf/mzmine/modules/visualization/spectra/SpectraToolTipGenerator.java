@@ -31,23 +31,24 @@ import org.jfree.data.xy.XYDataset;
  */
 class SpectraToolTipGenerator implements XYToolTipGenerator {
 
-    private NumberFormat mzFormat = MZmineCore.getDesktop().getMZFormat();
-    private NumberFormat intensityFormat = MZmineCore.getDesktop().getIntensityFormat();
-    
+    private NumberFormat mzFormat = MZmineCore.getMZFormat();
+    private NumberFormat intensityFormat = MZmineCore.getIntensityFormat();
+
     /**
      * @see org.jfree.chart.labels.XYToolTipGenerator#generateToolTip(org.jfree.data.xy.XYDataset,
      *      int, int)
      */
     public String generateToolTip(XYDataset dataset, int series, int item) {
-        
+
         double intValue = dataset.getYValue(series, item);
-        double mzValue = dataset.getXValue(series, item);     
-        
-        String tooltip = "<html>m/z: " + mzFormat.format(mzValue) + "<br>Intensity: "
-                + intensityFormat.format(intValue) + "</html>";
-        
+        double mzValue = dataset.getXValue(series, item);
+
+        String tooltip = "<html>m/z: " + mzFormat.format(mzValue)
+                + "<br>Intensity: " + intensityFormat.format(intValue)
+                + "</html>";
+
         return tooltip;
-        
+
     }
 
 }

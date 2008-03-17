@@ -39,12 +39,12 @@ public class ThreeDVisualizerParameters extends SimpleParameterSet {
     public static final Parameter minRT = new SimpleParameter(
             ParameterType.FLOAT, "Minimum retention time",
             "X axis lower limit", null, new Float(0.0), new Float(0.0), null,
-            MZmineCore.getDesktop().getRTFormat());
+            MZmineCore.getRTFormat());
 
     public static final Parameter maxRT = new SimpleParameter(
             ParameterType.FLOAT, "Maximum retention time",
             "X axis upper limit", null, new Float(600.0), new Float(0.0), null,
-            MZmineCore.getDesktop().getRTFormat());
+            MZmineCore.getRTFormat());
 
     public static final Parameter rtResolution = new SimpleParameter(
             ParameterType.INTEGER, "Retention time resolution",
@@ -53,13 +53,11 @@ public class ThreeDVisualizerParameters extends SimpleParameterSet {
 
     public static final Parameter minMZ = new SimpleParameter(
             ParameterType.FLOAT, "Minimum M/Z", "m/z lower limit", "m/z",
-            new Float(100.0), new Float(0.0), null,
-            MZmineCore.getDesktop().getMZFormat());
+            new Float(100.0), new Float(0.0), null, MZmineCore.getMZFormat());
 
     public static final Parameter maxMZ = new SimpleParameter(
             ParameterType.FLOAT, "Maximum M/Z", "m/z upper limit", "m/z",
-            new Float(1000.0), new Float(0.0), null,
-            MZmineCore.getDesktop().getMZFormat());
+            new Float(1000.0), new Float(0.0), null, MZmineCore.getMZFormat());
 
     public static final Parameter mzResolution = new SimpleParameter(
             ParameterType.INTEGER, "m/z resolution",

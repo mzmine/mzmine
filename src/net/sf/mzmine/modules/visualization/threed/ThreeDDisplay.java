@@ -29,7 +29,6 @@ import net.sf.mzmine.data.Peak;
 import net.sf.mzmine.data.PeakList;
 import net.sf.mzmine.data.PeakListRow;
 import net.sf.mzmine.main.MZmineCore;
-import net.sf.mzmine.userinterface.Desktop;
 import visad.AxisScale;
 import visad.ConstantMap;
 import visad.Data;
@@ -171,10 +170,9 @@ class ThreeDDisplay extends DisplayImplJ3D {
         addMap(annotationMap);
 
         // Get formatters
-        Desktop desktop = MZmineCore.getDesktop();
-        NumberFormat rtFormat = desktop.getRTFormat();
-        NumberFormat mzFormat = desktop.getMZFormat();
-        NumberFormat intensityFormat = desktop.getIntensityFormat();
+        NumberFormat rtFormat = MZmineCore.getRTFormat();
+        NumberFormat mzFormat = MZmineCore.getMZFormat();
+        NumberFormat intensityFormat = MZmineCore.getIntensityFormat();
 
         // set retention time axis properties
         retentionTimeAxis = retentionTimeMap.getAxisScale();
@@ -372,7 +370,7 @@ class ThreeDDisplay extends DisplayImplJ3D {
 
             // set the resolution (number of data points) on m/z axis
 
-            NumberFormat mzFormat = MZmineCore.getDesktop().getMZFormat();
+            NumberFormat mzFormat = MZmineCore.getMZFormat();
             for (int i = 0; i < peaks.length; i++) {
 
                 peaksDomainPoints[0][i] = peaks[i].getRT();

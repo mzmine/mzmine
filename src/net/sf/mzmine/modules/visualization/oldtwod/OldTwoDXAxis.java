@@ -27,7 +27,7 @@ public class OldTwoDXAxis extends JPanel {
 		super.paint(g);
 
 		Desktop desktop = MZmineCore.getDesktop();
-        NumberFormat rtFormat = desktop.getRTFormat();
+        NumberFormat rtFormat = MZmineCore.getRTFormat();
 
         float minRT = 0;
         float maxRT = 0;

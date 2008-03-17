@@ -39,20 +39,20 @@ public class FTMSFilterParameters extends SimpleParameterSet {
             ParameterType.FLOAT, "M/Z difference minimum",
             "Minimum m/z difference between real peak and shoulder peak",
             "m/z", new Float(0.001), new Float(0.0), null,
-            MZmineCore.getDesktop().getMZFormat());
+            MZmineCore.getMZFormat());
 
     public static final Parameter mzDifferenceMax = new SimpleParameter(
             ParameterType.FLOAT, "M/Z difference maximum",
             "Maximum m/z difference between real peak and shoulder peak",
             "m/z", new Float(0.005), new Float(0.0), null,
-            MZmineCore.getDesktop().getMZFormat());
+            MZmineCore.getMZFormat());
 
     public static final Parameter rtDifferenceMax = new SimpleParameter(
             ParameterType.FLOAT,
             "RT difference maximum",
             "Maximum retention time difference between real peak and shoulder peak",
             "seconds", new Float(5.0), new Float(0.0), null,
-            MZmineCore.getDesktop().getRTFormat());
+            MZmineCore.getRTFormat());
 
     public static final Parameter heightMax = new SimpleParameter(
             ParameterType.FLOAT, "Maximum height",

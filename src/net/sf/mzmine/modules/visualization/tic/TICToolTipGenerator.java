@@ -31,9 +31,9 @@ import org.jfree.data.xy.XYDataset;
  */
 class TICToolTipGenerator implements XYToolTipGenerator {
 
-    private NumberFormat rtFormat = MZmineCore.getDesktop().getRTFormat();
-    private NumberFormat mzFormat = MZmineCore.getDesktop().getMZFormat();
-    private NumberFormat intensityFormat = MZmineCore.getDesktop().getIntensityFormat();
+    private NumberFormat rtFormat = MZmineCore.getRTFormat();
+    private NumberFormat mzFormat = MZmineCore.getMZFormat();
+    private NumberFormat intensityFormat = MZmineCore.getIntensityFormat();
 
     /**
      * @see org.jfree.chart.labels.XYToolTipGenerator#generateToolTip(org.jfree.data.xy.XYDataset,

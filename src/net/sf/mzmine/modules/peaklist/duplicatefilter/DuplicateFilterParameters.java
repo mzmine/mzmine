@@ -19,8 +19,6 @@
 
 package net.sf.mzmine.modules.peaklist.duplicatefilter;
 
-import java.text.NumberFormat;
-
 import net.sf.mzmine.data.Parameter;
 import net.sf.mzmine.data.ParameterType;
 import net.sf.mzmine.data.impl.SimpleParameter;
@@ -37,14 +35,14 @@ public class DuplicateFilterParameters extends SimpleParameterSet {
             ParameterType.FLOAT, "M/Z tolerance",
             "Maximum m/z difference between duplicate peaks",
             "m/z", new Float(0.05), new Float(0.0), null,
-            MZmineCore.getDesktop().getMZFormat());
+            MZmineCore.getMZFormat());
 
     public static final Parameter rtDifferenceMax = new SimpleParameter(
             ParameterType.FLOAT,
             "RT difference maximum",
             "Maximum retention time difference between duplicate peaks",
             "seconds", new Float(5.0), new Float(0.0), null,
-            MZmineCore.getDesktop().getRTFormat());
+            MZmineCore.getRTFormat());
 
     public static final Parameter requireSameIdentification = new SimpleParameter(
     		ParameterType.BOOLEAN, "Require same identification",

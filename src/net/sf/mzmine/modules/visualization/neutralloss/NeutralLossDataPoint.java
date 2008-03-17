@@ -22,11 +22,9 @@ package net.sf.mzmine.modules.visualization.neutralloss;
 import java.text.NumberFormat;
 
 import net.sf.mzmine.main.MZmineCore;
-import net.sf.mzmine.userinterface.Desktop;
-
 
 /**
- *
+ * 
  */
 class NeutralLossDataPoint {
 
@@ -38,7 +36,7 @@ class NeutralLossDataPoint {
     private float neutralLoss;
     private float precursorMass;
     private String label;
-    
+
     /**
      * @param scanNumber
      * @param precursorScanNumber
@@ -46,23 +44,25 @@ class NeutralLossDataPoint {
      * @param precursorCharge
      * @param retentionTime
      */
-    NeutralLossDataPoint(float mzValue, int scanNumber, int precursorScanNumber, float precursorMZ, int precursorCharge, float retentionTime) {
-        
-        Desktop desktop = MZmineCore.getDesktop();
-        NumberFormat rtFormat = desktop.getRTFormat();
-        NumberFormat mzFormat = desktop.getMZFormat();
-        
+    NeutralLossDataPoint(float mzValue, int scanNumber,
+            int precursorScanNumber, float precursorMZ, int precursorCharge,
+            float retentionTime) {
+
+        NumberFormat rtFormat = MZmineCore.getRTFormat();
+        NumberFormat mzFormat = MZmineCore.getMZFormat();
+
         this.mzValue = mzValue;
         this.scanNumber = scanNumber;
         this.precursorScanNumber = precursorScanNumber;
         this.precursorMZ = precursorMZ;
         this.precursorCharge = precursorCharge;
         this.retentionTime = retentionTime;
-        
+
         precursorMass = precursorMZ;
-        if (precursorCharge > 0) precursorMass *= precursorCharge;
+        if (precursorCharge > 0)
+            precursorMass *= precursorCharge;
         neutralLoss = precursorMass - mzValue;
-        
+
         StringBuffer sb = new StringBuffer();
         sb.append("loss: ");
         sb.append(mzFormat.format(neutralLoss));
@@ -72,21 +72,19 @@ class NeutralLossDataPoint {
         sb.append(rtFormat.format(retentionTime));
         sb.append(", precursor scan #" + precursorScanNumber);
         sb.append(", m/z ");
-        sb.append(mzFormat.format(precursorMZ));     
-        if (precursorCharge > 0) sb.append(" (chrg " + precursorCharge + ")");
+        sb.append(mzFormat.format(precursorMZ));
+        if (precursorCharge > 0)
+            sb.append(" (chrg " + precursorCharge + ")");
         label = sb.toString();
-        
+
     }
 
-    
-    
     /**
      * @return Returns the mzValue.
      */
     float getMzValue() {
         return mzValue;
     }
-
 
     /**
      * @return Returns the precursorCharge.
@@ -95,14 +93,13 @@ class NeutralLossDataPoint {
         return precursorCharge;
     }
 
-    
     /**
      * @return Returns the precursorMZ.
      */
     float getPrecursorMZ() {
         return precursorMZ;
     }
-    
+
     /**
      * @return Returns the precursor mass, or m/z if charge is unknown.
      */
@@ -110,7 +107,6 @@ class NeutralLossDataPoint {
         return precursorMass;
     }
 
-    
     /**
      * @return Returns the precursorScanNumber.
      */
@@ -118,7 +114,6 @@ class NeutralLossDataPoint {
         return precursorScanNumber;
     }
 
-    
     /**
      * @return Returns the retentionTime.
      */
@@ -126,22 +121,20 @@ class NeutralLossDataPoint {
         return retentionTime;
     }
 
-    
     /**
      * @return Returns the scanNumber.
      */
     int getScanNumber() {
         return scanNumber;
     }
-    
+
     float getNeutralLoss() {
         return neutralLoss;
     }
-    
-    
+
     public String toString() {
         return label;
- 
+
     }
-    
+
 }

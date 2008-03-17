@@ -39,22 +39,22 @@ public class RowsFilterParameters extends SimpleParameterSet {
     public static final Parameter minMZ = new SimpleParameter(
             ParameterType.FLOAT, "Minimum m/z",
             "Minimum average m/z value of a row", "m/z", (Float) 0f,
-            MZmineCore.getDesktop().getMZFormat());
+            MZmineCore.getMZFormat());
 
     public static final Parameter maxMZ = new SimpleParameter(
             ParameterType.FLOAT, "Maximum m/z",
             "Maximum average m/z value of a row", "m/z", (Float) 0f,
-            MZmineCore.getDesktop().getMZFormat());
+            MZmineCore.getMZFormat());
 
     public static final Parameter minRT = new SimpleParameter(
             ParameterType.FLOAT, "Minimum retention time",
             "Maximum average retention time of a row", null, (Float) 0f,
-            MZmineCore.getDesktop().getRTFormat());
+            MZmineCore.getRTFormat());
 
     public static final Parameter maxRT = new SimpleParameter(
             ParameterType.FLOAT, "Maximum retention time",
             "Maximum average retention time of a row", null, (Float) 0f,
-            MZmineCore.getDesktop().getRTFormat());
+            MZmineCore.getRTFormat());
 
     public static final Parameter identified = new SimpleParameter(
             ParameterType.BOOLEAN, "Only identified?",
@@ -67,8 +67,8 @@ public class RowsFilterParameters extends SimpleParameterSet {
             new Boolean(true));
 
     public RowsFilterParameters() {
-        super(new Parameter[] { suffix, minPeaks, minMZ, maxMZ, minRT,
-                maxRT, identified, autoRemove });
+        super(new Parameter[] { suffix, minPeaks, minMZ, maxMZ, minRT, maxRT,
+                identified, autoRemove });
     }
 
 }

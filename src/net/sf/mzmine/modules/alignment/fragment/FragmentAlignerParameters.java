@@ -45,7 +45,7 @@ public class FragmentAlignerParameters extends SimpleParameterSet {
 	public static final Parameter MZTolerance = new SimpleParameter(
 			ParameterType.FLOAT, "M/Z tolerance",
 			"Maximum allowed M/Z difference", "m/z", new Float(0.2), new Float(
-					0.0), null, MZmineCore.getDesktop().getMZFormat());
+					0.0), null, MZmineCore.getMZFormat());
 
 	public static final Parameter MZWeight = new SimpleParameter(
 			ParameterType.FLOAT, "Weight for m/z",
@@ -61,7 +61,7 @@ public class FragmentAlignerParameters extends SimpleParameterSet {
 	public static final Parameter RTToleranceValueAbs = new SimpleParameter(
 			ParameterType.FLOAT, "Absolute RT tolerance",
 			"Maximum allowed absolute RT difference", null, new Float(15.0),
-			new Float(0.0), null, MZmineCore.getDesktop().getRTFormat());
+			new Float(0.0), null, MZmineCore.getRTFormat());
 
 	public static final Parameter RTToleranceValuePercent = new SimpleParameter(
 			ParameterType.FLOAT, "Relative RT tolerance",

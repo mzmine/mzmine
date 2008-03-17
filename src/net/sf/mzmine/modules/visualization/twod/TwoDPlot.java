@@ -33,7 +33,6 @@ import javax.swing.JPopupMenu;
 import net.sf.mzmine.data.PeakList;
 import net.sf.mzmine.io.RawDataFile;
 import net.sf.mzmine.main.MZmineCore;
-import net.sf.mzmine.userinterface.Desktop;
 
 import org.jfree.chart.ChartPanel;
 import org.jfree.chart.JFreeChart;
@@ -69,11 +68,11 @@ class TwoDPlot extends ChartPanel {
     private static final Font subTitleFont = new Font("SansSerif", Font.PLAIN,
             11);
     private TextTitle chartTitle, chartSubTitle;
-    
+
     private NumberAxis xAxis, yAxis;
 
-    private NumberFormat rtFormat = MZmineCore.getDesktop().getRTFormat();
-    private NumberFormat mzFormat = MZmineCore.getDesktop().getMZFormat();
+    private NumberFormat rtFormat = MZmineCore.getRTFormat();
+    private NumberFormat mzFormat = MZmineCore.getMZFormat();
 
     // private TwoDItemRenderer renderer;
 
@@ -82,7 +81,7 @@ class TwoDPlot extends ChartPanel {
             float mzMax) {
 
         super(null, true);
-        
+
         this.rawDataFile = rawDataFile;
         this.rtMin = rtMin;
         this.rtMax = rtMax;
@@ -92,9 +91,8 @@ class TwoDPlot extends ChartPanel {
         setBackground(Color.white);
         setCursor(Cursor.getPredefinedCursor(Cursor.CROSSHAIR_CURSOR));
 
-        Desktop desktop = MZmineCore.getDesktop();
-        NumberFormat rtFormat = desktop.getRTFormat();
-        NumberFormat mzFormat = desktop.getMZFormat();
+        NumberFormat rtFormat = MZmineCore.getRTFormat();
+        NumberFormat mzFormat = MZmineCore.getMZFormat();
 
         // set the X axis (retention time) properties
         xAxis = new NumberAxis("Retention time");
@@ -127,7 +125,7 @@ class TwoDPlot extends ChartPanel {
         chartTitle = chart.getTitle();
         chartTitle.setMargin(5, 0, 0, 0);
         chartTitle.setFont(titleFont);
-        
+
         chartSubTitle = new TextTitle();
         chartSubTitle.setFont(subTitleFont);
         chartSubTitle.setMargin(5, 0, 0, 0);
@@ -189,7 +187,7 @@ class TwoDPlot extends ChartPanel {
     public String getToolTipText(MouseEvent event) {
 
         String tooltip = super.getToolTipText(event);
-        
+
         if (tooltip == null) {
             int mouseX = event.getX();
             int mouseY = event.getY();
@@ -202,7 +200,7 @@ class TwoDPlot extends ChartPanel {
             tooltip = "<html>Retention time: " + rtFormat.format(rt)
                     + "<br>m/z: " + mzFormat.format(mz) + "</html>";
         }
-        
+
         return tooltip;
 
     }

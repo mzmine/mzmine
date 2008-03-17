@@ -34,8 +34,7 @@ public class ZoomScanFilterParameters extends SimpleParameterSet {
     public static final Parameter minMZRange = new SimpleParameter(
             ParameterType.FLOAT, "Minimum M/Z range",
             "Required minimum m/z range for a full scan", "m/z", new Float(
-                    100.0), new Float(0.0), null,
-            MZmineCore.getDesktop().getMZFormat());
+                    100.0), new Float(0.0), null, MZmineCore.getMZFormat());
 
     public static final Parameter autoRemove = new SimpleParameter(
             ParameterType.BOOLEAN,

@@ -24,7 +24,6 @@ import java.text.Format;
 import net.sf.mzmine.data.Peak;
 import net.sf.mzmine.io.RawDataFile;
 import net.sf.mzmine.main.MZmineCore;
-import net.sf.mzmine.userinterface.Desktop;
 
 import org.jfree.chart.labels.CategoryToolTipGenerator;
 import org.jfree.chart.labels.XYToolTipGenerator;
@@ -42,8 +41,7 @@ class IntensityPlotTooltipGenerator implements CategoryToolTipGenerator,
      *      int, int)
      */
     public String generateToolTip(CategoryDataset dataset, int row, int column) {
-        Desktop desktop = MZmineCore.getDesktop();
-        Format intensityFormat = desktop.getIntensityFormat();
+        Format intensityFormat = MZmineCore.getIntensityFormat();
         Peak peaks[] = ((IntensityPlotDataset) dataset).getPeaks(row, column);
         RawDataFile files[] = ((IntensityPlotDataset) dataset).getFiles(column);
 

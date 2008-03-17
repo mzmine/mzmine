@@ -34,8 +34,8 @@ import org.jfree.data.xy.XYDataset;
  */
 class PeakToolTipGenerator implements XYToolTipGenerator {
 
-    private NumberFormat mzFormat = MZmineCore.getDesktop().getMZFormat();
-    private NumberFormat intensityFormat = MZmineCore.getDesktop().getIntensityFormat();
+    private NumberFormat mzFormat = MZmineCore.getMZFormat();
+    private NumberFormat intensityFormat = MZmineCore.getIntensityFormat();
 
     /**
      * @see org.jfree.chart.labels.XYToolTipGenerator#generateToolTip(org.jfree.data.xy.XYDataset,

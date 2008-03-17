@@ -31,7 +31,6 @@ import javax.swing.JPopupMenu;
 import javax.swing.KeyStroke;
 
 import net.sf.mzmine.main.MZmineCore;
-import net.sf.mzmine.userinterface.Desktop;
 import net.sf.mzmine.util.GUIUtils;
 
 import org.jfree.chart.ChartFactory;
@@ -132,9 +131,8 @@ class SpectraPlot extends ChartPanel {
         plot.setDomainCrosshairVisible(false);
         plot.setRangeCrosshairVisible(false);
 
-        Desktop desktop = MZmineCore.getDesktop();
-        NumberFormat mzFormat = desktop.getMZFormat();
-        NumberFormat intensityFormat = desktop.getIntensityFormat();
+        NumberFormat mzFormat = MZmineCore.getMZFormat();
+        NumberFormat intensityFormat = MZmineCore.getIntensityFormat();
 
         // set the X axis (retention time) properties
         NumberAxis xAxis = (NumberAxis) plot.getDomainAxis();

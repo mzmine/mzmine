@@ -363,8 +363,8 @@ public class PreConstructionPeak implements Peak, RawDataAcceptor {
 
 	public String toString() {
 		StringBuffer buf = new StringBuffer();
-		Format mzFormat = MZmineCore.getDesktop().getMZFormat();
-		Format timeFormat = MZmineCore.getDesktop().getRTFormat();
+		Format mzFormat = MZmineCore.getMZFormat();
+		Format timeFormat = MZmineCore.getRTFormat();
 		buf.append(mzFormat.format(getMZ()));
 		buf.append(" m/z @");
 		buf.append(timeFormat.format(getRT()));

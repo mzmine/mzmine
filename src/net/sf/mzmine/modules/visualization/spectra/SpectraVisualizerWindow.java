@@ -62,9 +62,9 @@ class SpectraVisualizerWindow extends JInternalFrame implements ActionListener {
     // Current scan data set
     private ScanDataSet scanDataSet;
 
-    private NumberFormat rtFormat = MZmineCore.getDesktop().getRTFormat();
-    private NumberFormat mzFormat = MZmineCore.getDesktop().getMZFormat();
-    private NumberFormat intensityFormat = MZmineCore.getDesktop().getIntensityFormat();
+    private NumberFormat rtFormat = MZmineCore.getRTFormat();
+    private NumberFormat mzFormat = MZmineCore.getMZFormat();
+    private NumberFormat intensityFormat = MZmineCore.getIntensityFormat();
 
     private Desktop desktop;
 
