@@ -31,7 +31,7 @@ import javax.swing.table.TableModel;
 
 import net.sf.mzmine.data.Peak;
 import net.sf.mzmine.data.PeakList;
-import net.sf.mzmine.data.Peak.PeakStatus;
+import net.sf.mzmine.data.PeakStatus;
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.modules.visualization.peaklist.table.CommonColumnType;
 import net.sf.mzmine.modules.visualization.peaklist.table.DataFileColumnType;
@@ -202,7 +202,7 @@ class PeakListReportGenerator {
                             maxHeight = peakList.getRow(rowNumber).getDataPointMaxIntensity();
                             break;
                         default:
-                            maxHeight = peak.getRawDataPointMaxIntensity();
+                            maxHeight = peak.getRawDataPointsIntensityRange().getMax();
                             break;
                         }
                         

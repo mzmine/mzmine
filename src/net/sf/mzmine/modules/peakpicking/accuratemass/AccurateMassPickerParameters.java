@@ -38,13 +38,13 @@ public class AccurateMassPickerParameters extends SimpleParameterSet {
             "m/z", new Float(0.1), new Float(0.0), null,
             MZmineCore.getDesktop().getMZFormat());
 
-    public static final Parameter minimumPeakDuration = new SimpleParameter(
-            ParameterType.FLOAT, "Min peak duration",
-            "Minimum acceptable peak duration", null, new Float(10.0),
-            new Float(0.0), null, MZmineCore.getDesktop().getRTFormat());
+    public static final Parameter minDataPoints = new SimpleParameter(
+            ParameterType.INTEGER, "Min data points",
+            "Minimum number of data points to form a peak", null, new Integer(
+                    10), new Integer(10), null);
 
     public AccurateMassPickerParameters() {
-        super(new Parameter[] { suffix, mzTolerance, minimumPeakDuration, });
+        super(new Parameter[] { suffix, mzTolerance, minDataPoints });
     }
 
 }

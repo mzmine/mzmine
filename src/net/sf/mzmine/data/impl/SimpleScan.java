@@ -122,7 +122,7 @@ public class SimpleScan implements Scan {
                 if (dp.getIntensity() > basePeak.getIntensity())
                     basePeak = dp;
 
-                mzRange.addValue(dp.getMZ());
+                mzRange.extendRange(dp.getMZ());
 
                 totalIonCurrent += dp.getIntensity();
 

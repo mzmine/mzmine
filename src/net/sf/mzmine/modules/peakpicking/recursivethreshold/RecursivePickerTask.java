@@ -24,8 +24,8 @@ import java.util.TreeSet;
 import java.util.Vector;
 
 import net.sf.mzmine.data.DataPoint;
+import net.sf.mzmine.data.PeakStatus;
 import net.sf.mzmine.data.Scan;
-import net.sf.mzmine.data.Peak.PeakStatus;
 import net.sf.mzmine.data.impl.SimplePeakList;
 import net.sf.mzmine.data.impl.SimplePeakListRow;
 import net.sf.mzmine.io.RawDataFile;
@@ -139,8 +139,8 @@ class RecursivePickerTask implements Task {
          */
 
         // Get minimum and maximum m/z values
-        float startMZ = dataFile.getDataMinMZ(1);
-        float endMZ = dataFile.getDataMaxMZ(1);
+        float startMZ = dataFile.getDataMZRange(1).getMin();
+        float endMZ = dataFile.getDataMZRange(1).getMax();
 
         int numOfBins = (int) (Math.ceil((endMZ - startMZ) / binSize));
         float[] chromatographicThresholds = new float[numOfBins];
@@ -297,8 +297,7 @@ class RecursivePickerTask implements Task {
                 if (!ucPeak.isGrowing()) {
 
                     // Check length
-                    float ucLength = ucPeak.getRawDataPointMaxRT()
-                            - ucPeak.getRawDataPointMinRT();
+                    float ucLength = ucPeak.getRawDataPointsRTRange().getSize();
                     float ucHeight = ucPeak.getHeight();
                     if ((ucLength >= minimumPeakDuration)
                             && (ucHeight >= minimumPeakHeight)) {
@@ -359,8 +358,7 @@ class RecursivePickerTask implements Task {
         for (RecursivePeak ucPeak : underConstructionPeaks) {
 
             // Check length & height
-            float ucLength = ucPeak.getRawDataPointMaxRT()
-                    - ucPeak.getRawDataPointMinRT();
+            float ucLength = ucPeak.getRawDataPointsRTRange().getSize();
             float ucHeight = ucPeak.getHeight();
             if ((ucLength >= minimumPeakDuration)
                     && (ucHeight >= minimumPeakHeight)) {

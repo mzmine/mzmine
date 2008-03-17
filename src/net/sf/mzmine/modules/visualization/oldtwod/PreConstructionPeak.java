@@ -6,6 +6,7 @@ import java.util.TreeMap;
 
 import net.sf.mzmine.data.DataPoint;
 import net.sf.mzmine.data.Peak;
+import net.sf.mzmine.data.PeakStatus;
 import net.sf.mzmine.data.Scan;
 import net.sf.mzmine.data.impl.SimpleDataPoint;
 import net.sf.mzmine.io.RawDataFile;
@@ -13,6 +14,7 @@ import net.sf.mzmine.io.util.RawDataAcceptor;
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.util.CollectionUtils;
 import net.sf.mzmine.util.MathUtils;
+import net.sf.mzmine.util.Range;
 
 /**
  * This class extends ContructionPeak by including pre-peak information. The
@@ -425,5 +427,24 @@ public class PreConstructionPeak implements Peak, RawDataAcceptor {
 			this.finalizedAddingDatapoints(PeakStatus.MANUAL);
 
 	}
+
+
+
+    public Range getRawDataPointsIntensityRange() {
+        // TODO Auto-generated method stub
+        return null;
+    }
+
+    public Range getRawDataPointsMZRange() {
+        // TODO Auto-generated method stub
+        return null;
+    }
+
+    public Range getRawDataPointsRTRange() {
+        // TODO Auto-generated method stub
+        return null;
+    }
+
+
 
 }

@@ -536,13 +536,14 @@ public class OldTwoDPlot extends JPanel implements ActionListener,
             TICVisualizer tic = TICVisualizer.getInstance();
             RawDataFile dataFile = dataset.getRawDataFile();
 
-            float rtMin = dataFile.getDataMinRT(1);
+            /*float rtMin = dataFile.getDataMinRT(1);
             float rtMax = dataFile.getDataMaxRT(1);
             float mzMin = cursorMZ - defaultOneSidedXICWidth;
             float mzMax = cursorMZ + defaultOneSidedXICWidth;
             tic.showNewTICVisualizerWindow(new RawDataFile[] { dataFile },
                     null, 1, TICVisualizerParameters.plotTypeBP, rtMin, rtMax,
                     mzMin, mzMax);
+                    */
 
         }
 		

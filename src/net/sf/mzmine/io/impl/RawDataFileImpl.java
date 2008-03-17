@@ -40,6 +40,7 @@ import net.sf.mzmine.io.RawDataFile;
 import net.sf.mzmine.io.RawDataFileWriter;
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.util.CollectionUtils;
+import net.sf.mzmine.util.Range;
 
 /**
  * RawDataFile implementation
@@ -49,81 +50,82 @@ class RawDataFileImpl implements RawDataFile, RawDataFileWriter {
 
     private transient Logger logger = Logger.getLogger(this.getClass().getName());
 
-    private String fileName; //this is just a name of this object
+    private String fileName; // this is just a name of this object
 
     private Hashtable<Integer, Float> dataMinMZ, dataMaxMZ, dataMinRT,
             dataMaxRT, dataMaxBasePeakIntensity, dataMaxTIC;
 
-    private String scanDataFileName,writingScanDataFileName;
+    private String scanDataFileName, writingScanDataFileName;
     private transient RandomAccessFile scanDataFile, writingScanDataFile;
     /**
      * Preloaded scans
      */
     private Hashtable<Integer, Scan> scans, writingScans;
     private PreloadLevel preloadLevel;
-   
-    RawDataFileImpl(String fileName, String suffix ,PreloadLevel preloadLevel) throws IOException {
+
+    RawDataFileImpl(String fileName, String suffix, PreloadLevel preloadLevel)
+            throws IOException {
 
         this.preloadLevel = preloadLevel;
-        this.fileName=fileName;
+        this.fileName = fileName;
         // create temporary file for scan data
         if (preloadLevel != PreloadLevel.PRELOAD_ALL_SCANS) {
-        	File dirPath=MZmineCore.getCurrentProject().getLocation();
-        	writingScanDataFileName=fileName+ "." +suffix+".scan";
-        	File scanfile=new File(dirPath,writingScanDataFileName);
-        	scanfile.createNewFile();
-            writingScanDataFile=new RandomAccessFile(scanfile,"rw");      
+            File dirPath = MZmineCore.getCurrentProject().getLocation();
+            writingScanDataFileName = fileName + "." + suffix + ".scan";
+            File scanfile = new File(dirPath, writingScanDataFileName);
+            scanfile.createNewFile();
+            writingScanDataFile = new RandomAccessFile(scanfile, "rw");
         }
 
         // prepare new Hashtable for scans
         writingScans = new Hashtable<Integer, Scan>();
-    }   
-    
+    }
+
     /**
      * @see net.sf.mzmine.io.RawDataFile#getFilePath()
      */
     public String getFileName() {
         return this.fileName;
-    }    
-    
+    }
+
     /**
      * @see net.sf.mzmine.io.RawDataFile#getScanDataFile()
      */
     public RandomAccessFile getScanDataFile() {
-    	if (!scanDataFile.equals(null)){
-    		return scanDataFile;
-    	}else{
-        	return null;
+        if (!scanDataFile.equals(null)) {
+            return scanDataFile;
+        } else {
+            return null;
         }
-     }       
+    }
+
     /**
      * @see net.sf.mzmine.io.RawDataFile#getWritingScanDataFile()
      */
     public RandomAccessFile getWritingScanDataFile() {
-    	if (!writingScanDataFile.equals(null)){
-    		return writingScanDataFile;
-    	}else{
-        	return null;
+        if (!writingScanDataFile.equals(null)) {
+            return writingScanDataFile;
+        } else {
+            return null;
         }
-    }       
-    	
-    public void updateScanDataFile(File filePath){
-    	try {
-			scanDataFile=new RandomAccessFile(filePath,"r");
-		} catch (FileNotFoundException e) {
-            logger.log(Level.SEVERE, "Could not open file "
-                    + filePath, e);
-            return;
-		}
     }
-    
+
+    public void updateScanDataFile(File filePath) {
+        try {
+            scanDataFile = new RandomAccessFile(filePath, "r");
+        } catch (FileNotFoundException e) {
+            logger.log(Level.SEVERE, "Could not open file " + filePath, e);
+            return;
+        }
+    }
+
     /**
      * @see net.sf.mzmine.io.RawDataFile#getScanDataFileName()
      */
     public String getScanDataFileName() {
         return scanDataFileName;
-    }    
-    
+    }
+
     /**
      * @see net.sf.mzmine.io.RawDataFile#getNumOfScans()
      */
@@ -378,9 +380,10 @@ class RawDataFileImpl implements RawDataFile, RawDataFileWriter {
             // ignore scans of other ms levels
             if (scan.getMSLevel() != msLevel)
                 continue;
-            
+
             DataPoint scanBasePeak = scan.getBasePeak();
-            if (scanBasePeak == null) continue;
+            if (scanBasePeak == null)
+                continue;
 
             if ((maxBasePeak == null)
                     || (scanBasePeak.getIntensity() > maxBasePeak))
@@ -448,8 +451,7 @@ class RawDataFileImpl implements RawDataFile, RawDataFileWriter {
         // Store the scan data
         switch (preloadLevel) {
         case NO_PRELOAD:
-            StorableScan storedScan = new StorableScan(newScan,
-                    this);
+            StorableScan storedScan = new StorableScan(newScan, this);
             writingScans.put(scanNumber, storedScan);
             break;
         case PRELOAD_ALL_SCANS:
@@ -459,8 +461,7 @@ class RawDataFileImpl implements RawDataFile, RawDataFileWriter {
             if (msLevel == 1) {
                 writingScans.put(scanNumber, newScan);
             } else {
-                StorableScan storedFullScan = new StorableScan(newScan,
-                        this);
+                StorableScan storedFullScan = new StorableScan(newScan, this);
                 writingScans.put(scanNumber, storedFullScan);
             }
             break;
@@ -519,21 +520,24 @@ class RawDataFileImpl implements RawDataFile, RawDataFileWriter {
      */
     public RawDataFile finishWriting() throws IOException {
 
-        logger.finest("Writing of scans to file " + writingScanDataFileName + " finished");
-        
-       // close temporary file and current data file
+        logger.finest("Writing of scans to file " + writingScanDataFileName
+                + " finished");
+
+        // close temporary file and current data file
         if (scanDataFile != null) {
             scanDataFile.close();
-            File dir=MZmineCore.getCurrentProject().getLocation();
-            new File(dir,this.scanDataFileName).delete();
+            File dir = MZmineCore.getCurrentProject().getLocation();
+            new File(dir, this.scanDataFileName).delete();
         }
 
         // switch temporary file to current datafile and reopen it for reading
         writingScanDataFile.close();
         scanDataFileName = writingScanDataFileName;
-        scanDataFile = new RandomAccessFile(new File(MZmineCore.getCurrentProject().getLocation(),scanDataFileName.toString()),"r");
+        scanDataFile = new RandomAccessFile(new File(
+                MZmineCore.getCurrentProject().getLocation(),
+                scanDataFileName.toString()), "r");
         scans = writingScans;
-        
+
         // discard temporary file
         writingScanDataFile = null;
         writingScanDataFileName = null;
@@ -546,20 +550,19 @@ class RawDataFileImpl implements RawDataFile, RawDataFileWriter {
         dataMaxRT = null;
         dataMaxBasePeakIntensity = null;
         dataMaxTIC = null;
-        
+
         return this;
 
     }
 
-
     public float getDataMaxMZ() {
         return getDataMaxMZ(0);
     }
-    
+
     public float getDataMaxRT() {
         return getDataMaxRT(0);
     }
-    
+
     public float getDataMinMZ() {
         return getDataMinMZ(0);
     }
@@ -567,8 +570,29 @@ class RawDataFileImpl implements RawDataFile, RawDataFileWriter {
     public float getDataMinRT() {
         return getDataMinRT(0);
     }
-    private Object readResolve(){
-		logger = Logger.getLogger(this.getClass().getName());
-    	return this;
+
+    private Object readResolve() {
+        logger = Logger.getLogger(this.getClass().getName());
+        return this;
+    }
+
+    public Range getDataMZRange() {
+        // TODO this needs cleanup
+        return new Range(getDataMinMZ(), getDataMaxMZ());
+    }
+
+    public Range getDataMZRange(int msLevel) {
+        // TODO this needs cleanup
+        return new Range(getDataMinMZ(msLevel), getDataMaxMZ(msLevel));
+    }
+
+    public Range getDataRTRange() {
+        // TODO this needs cleanup
+        return new Range(getDataMinRT(), getDataMaxRT());
+    }
+
+    public Range getDataRTRange(int msLevel) {
+        // TODO this needs cleanup
+        return new Range(getDataMinRT(msLevel), getDataMaxRT(msLevel));
     }
 }

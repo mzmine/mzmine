@@ -71,10 +71,10 @@ public class SimplePeakListRow implements PeakListRow {
      * Return opened raw data files with a peak on this row
      */
     public RawDataFile[] getRawDataFiles() {
-        MZmineProject project=MZmineCore.getCurrentProject();
-        Vector <RawDataFile>rawDataFilesInPeak= new Vector<RawDataFile>();
-        for (String fileName:peaks.keySet()){
-        	rawDataFilesInPeak.add(project.getDataFile(fileName));
+        MZmineProject project = MZmineCore.getCurrentProject();
+        Vector<RawDataFile> rawDataFilesInPeak = new Vector<RawDataFile>();
+        for (String fileName : peaks.keySet()) {
+            rawDataFilesInPeak.add(project.getDataFile(fileName));
         }
         return rawDataFilesInPeak.toArray(new RawDataFile[0]);
     }
@@ -98,16 +98,18 @@ public class SimplePeakListRow implements PeakListRow {
     }
 
     public void addPeak(RawDataFile rawData, Peak original, Peak current) {
-        
+
         if (original != null) {
             originalPeaks.put(rawData.getFileName(), original);
-        } else originalPeaks.remove(rawData.getFileName());
-        
+        } else
+            originalPeaks.remove(rawData.getFileName());
+
         if (current != null) {
             peaks.put(rawData.getFileName(), current);
-            if (current.getRawDataPointMaxIntensity() > maxDataPointIntensity)
-                maxDataPointIntensity = current.getRawDataPointMaxIntensity();
-        } else peaks.remove(rawData.getFileName());
+            if (current.getRawDataPointsIntensityRange().getMax() > maxDataPointIntensity)
+                maxDataPointIntensity = current.getRawDataPointsIntensityRange().getMax();
+        } else
+            peaks.remove(rawData.getFileName());
 
     }
 

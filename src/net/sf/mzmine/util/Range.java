@@ -27,6 +27,18 @@ public class Range {
     private float min, max;
 
     /**
+     * Create a range with only one value, representing both minimum and
+     * maximum. Such range can later be extended using extendRange().
+     * 
+     * @param minAndMax Range minimum and maximum
+     */
+    public Range(float minAndMax) {
+        this(minAndMax, minAndMax);
+    }
+
+    /**
+     * Create a range from min to max.
+     * 
      * @param min Range minimum
      * @param max Range maximum
      */
@@ -62,19 +74,29 @@ public class Range {
     /**
      * Returns true if this range contains the whole given range as a subset.
      * 
-     * @param checkMin Minimum of checked range
-     * @param checkMax Maximum of checked range
+     * @param checkMin Minimum of given range
+     * @param checkMax Maximum of given range
      * @return True if this range contains given range
      */
     public boolean containsRange(float checkMin, float checkMax) {
         return ((checkMin >= min) && (checkMax <= max));
     }
-    
+
     /**
-     * Returns true if this range lies within the whole given range.
+     * Returns true if this range contains the whole given range as a subset.
      * 
-     * @param checkMin Minimum of checked range
-     * @param checkMax Maximum of checked range
+     * @param checkRange Given range
+     * @return True if this range contains given range
+     */
+    public boolean containsRange(Range checkRange) {
+        return containsRange(checkRange.getMin(), checkRange.getMax());
+    }
+
+    /**
+     * Returns true if this range lies within the given range.
+     * 
+     * @param checkMin Minimum of given range
+     * @param checkMax Maximum of given range
      * @return True if this range lies within given range
      */
     public boolean isWithin(float checkMin, float checkMax) {
@@ -82,19 +104,42 @@ public class Range {
     }
 
     /**
+     * Returns true if this range lies within the given range.
+     * 
+     * @param checkRange Given range
+     * @return True if this range lies within given range
+     */
+    public boolean isWithin(Range checkRange) {
+        return isWithin(checkRange.getMin(), checkRange.getMax());
+    }
+
+    /**
      * Extends this range (if necessary) to include the given value
      * 
      * @param value Value to extends this range
      */
-    public void addValue(float value) {
-        if (value < min)
+    public void extendRange(float value) {
+        if (min > value)
             min = value;
-        if (value > max)
+        if (max < value)
             max = value;
+    }
+    
+    /**
+     * Extends this range (if necessary) to include the given range
+     * 
+     * @param extension Range to extends this range
+     */
+    public void extendRange(Range extension) {
+        if (min > extension.getMin())
+            min = extension.getMin();
+        if (max < extension.getMax())
+            max = extension.getMax();
     }
 
     /**
      * Returns the size of this range.
+     * 
      * @return Size of this range
      */
     public float getSize() {

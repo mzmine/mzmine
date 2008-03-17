@@ -27,7 +27,7 @@ import net.sf.mzmine.data.DataPoint;
  * continuous mode peak. Those source raw data points are saved and can be
  * obtained by calling getRawDataPoints()
  */
-class AccurateMassDataPoint implements DataPoint {
+class AccurateMassDataPoint implements DataPoint, Comparable<AccurateMassDataPoint> {
 
     private float mz, rt, intensity;
     private DataPoint rawDataPoints[];
@@ -81,6 +81,15 @@ class AccurateMassDataPoint implements DataPoint {
     
     void setIntensity(float intensity) {
         this.intensity = intensity; 
+    }
+
+    /**
+     * Comparator implementation to sort by descending intensity
+     */
+    public int compareTo(AccurateMassDataPoint point) {
+        Float pointIntensity = point.getIntensity();
+        Float myIntensity = intensity;
+        return pointIntensity.compareTo(myIntensity);
     }
 
 }

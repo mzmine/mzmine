@@ -81,7 +81,7 @@ class PeakShapeCellRenderer implements TableCellRenderer {
                 maxHeight = peakList.getRow(rowNumber).getDataPointMaxIntensity();
                 break;
             default:
-                maxHeight = peak.getRawDataPointMaxIntensity();
+                maxHeight = peak.getRawDataPointsIntensityRange().getMax();
                 break;
             }
             

@@ -20,10 +20,10 @@
 package net.sf.mzmine.io;
 
 import java.io.File;
-import java.io.IOException;
 import java.io.RandomAccessFile;
 
 import net.sf.mzmine.data.Scan;
+import net.sf.mzmine.util.Range;
 
 public interface RawDataFile {
  
@@ -99,21 +99,13 @@ public interface RawDataFile {
      */
     public Scan getScan(int scan);
 
-    public float getDataMinMZ();
+    public Range getDataMZRange();
 
-    public float getDataMaxMZ();
+    public Range getDataRTRange();
 
-    public float getDataMinRT();
+    public Range getDataMZRange(int msLevel);
 
-    public float getDataMaxRT();
-    
-    public float getDataMinMZ(int msLevel);
-
-    public float getDataMaxMZ(int msLevel);
-
-    public float getDataMinRT(int msLevel);
-
-    public float getDataMaxRT(int msLevel);
+    public Range getDataRTRange(int msLevel);
 
     public float getDataMaxBasePeakIntensity(int msLevel);
 

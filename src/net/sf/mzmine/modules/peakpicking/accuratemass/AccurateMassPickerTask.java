@@ -19,6 +19,7 @@
 
 package net.sf.mzmine.modules.peakpicking.accuratemass;
 
+import java.util.Arrays;
 import java.util.Iterator;
 import java.util.TreeSet;
 import java.util.Vector;
@@ -38,9 +39,6 @@ import net.sf.mzmine.util.PeakSorterByDescendingHeight;
  */
 class AccurateMassPickerTask implements Task {
 
-    // Minimum data points for a good chromatographic peak
-    public static final int MINIMUM_PEAK_DATA_POINS = 10;
-    
     private RawDataFile dataFile;
 
     private TaskStatus status = TaskStatus.WAITING;
@@ -51,7 +49,8 @@ class AccurateMassPickerTask implements Task {
 
     // parameter values
     private String suffix;
-    private float mzTolerance, minimumPeakDuration;
+    private float mzTolerance;
+    private int minDataPoints;
 
     // peak id counter
     private int newPeakID = 1;
@@ -66,7 +65,7 @@ class AccurateMassPickerTask implements Task {
         this.dataFile = dataFile;
         suffix = (String) parameters.getParameterValue(AccurateMassPickerParameters.suffix);
         mzTolerance = (Float) parameters.getParameterValue(AccurateMassPickerParameters.mzTolerance);
-        minimumPeakDuration = (Float) parameters.getParameterValue(AccurateMassPickerParameters.minimumPeakDuration);
+        minDataPoints = (Integer) parameters.getParameterValue(AccurateMassPickerParameters.minDataPoints);
 
     }
 
@@ -154,6 +153,9 @@ class AccurateMassPickerTask implements Task {
             // Detect m/z peaks in this scan
             AccurateMassDataPoint scanMZPeaks[] = detectMZPeaksInOneScan(scan);
 
+            // Sort by descending height
+            Arrays.sort(scanMZPeaks);
+
             // Iterate detected m/z peaks
             for (AccurateMassDataPoint mzPeak : scanMZPeaks) {
 
@@ -196,9 +198,10 @@ class AccurateMassPickerTask implements Task {
             // Check all peaks that could not be connected
             for (AccurateMassPeak candidatePeak : currentPeaks) {
 
-                // Skip peaks that don't have enough data points
-                if (candidatePeak.getScanNumbers().length < MINIMUM_PEAK_DATA_POINS) continue;
-                
+                // Skip sequences that don't have enough data points
+                if (candidatePeak.getScanNumbers().length < minDataPoints)
+                    continue;
+
                 // The candidatePeak represents a sequence of same data points.
                 // This sequence may represent 0..n actual peaks. Detect those
                 // peaks by calling processPeakCandidate()
@@ -241,7 +244,8 @@ class AccurateMassPickerTask implements Task {
 
         DataPoint scanDataPoints[] = scan.getDataPoints();
 
-        Vector<AccurateMassDataPoint> detectedMZPeaks = new Vector<AccurateMassDataPoint>();
+        Vector<AccurateMassDataPoint> detectedMZPeaks = new Vector<AccurateMassDataPoint>(
+                1024, 1024);
         Vector<DataPoint> currentMZPeak = new Vector<DataPoint>();
 
         boolean ascending = true;
@@ -290,17 +294,74 @@ class AccurateMassPickerTask implements Task {
      *            data points from successive scans
      * @return Well-shaped peaks separated from the peak candidate
      */
-    private AccurateMassPeak[] processPeakCandidate(AccurateMassPeak candidate) {
+    private AccurateMassPeak[] processPeakCandidate(
+            AccurateMassPeak candidatePeak) {
 
+        if (1 == 1) {
+            AccurateMassPeak smoothed = new AccurateMassPeak(dataFile);
+            
+            int peakScans[] = candidatePeak.getScanNumbers();
+            for (int i = 5; i < peakScans.length - 5; i++) {
+                AccurateMassDataPoint dp = candidatePeak.getDataPoint(peakScans[i]);
+                
+                float intSum = 0;
+                for (int j = i - 5; j < i + 6; j++) {
+                    intSum += candidatePeak.getDataPoint(peakScans[j]).getIntensity();
+                }
+                intSum /= 11f;
+                dp.setIntensity(intSum);
+                smoothed.addDatapoint(peakScans[i], dp);
+                
+            }
+            
+            // rule out empty peaks
+            if (smoothed.getScanNumbers().length == 0) return new AccurateMassPeak[0];
+            
+            return new AccurateMassPeak[] { smoothed };
+        }
+        
         Vector<AccurateMassPeak> resultPeaks = new Vector<AccurateMassPeak>();
 
         // If the peak has minimum duration, add it to the peak list
 
-        int scanNumbers[] = candidate.getScanNumbers();
+        int peakScans[] = candidatePeak.getScanNumbers();
+
+        Vector<AccurateMassDataPoint> goodLocalMaxima = new Vector<AccurateMassDataPoint>(); 
         
-        if (candidate.getDuration() >= minimumPeakDuration) {
-            resultPeaks.add(candidate);
+        // Find data points which represent maxima on the interval of at least 5
+        // data points to the left and 5 data points to the right
+        maximaSearch: for (int i = 5; i < peakScans.length - 5; i++) {
+            AccurateMassDataPoint maximaCandidate = candidatePeak.getDataPoint(peakScans[i]);
+
+            for (int j = 1; j <= 5; j++) {
+                DataPoint leftNeighbour = candidatePeak.getDataPoint(peakScans[i
+                        - j]);
+                DataPoint rightNeighbour = candidatePeak.getDataPoint(peakScans[i
+                        + j]);
+                if ((leftNeighbour.getIntensity() > maximaCandidate.getIntensity())
+                        || (rightNeighbour.getIntensity() > maximaCandidate.getIntensity()))
+                    continue maximaSearch;
+            }
+            
+            // found a good maximum
+            goodLocalMaxima.add(maximaCandidate);
+            
         }
+
+        for (AccurateMassDataPoint localMaximum : goodLocalMaxima) {
+
+            AccurateMassPeak newPeak = new AccurateMassPeak(dataFile);
+            for (int i = 0; i < peakScans.length; i++) {
+                AccurateMassDataPoint point = candidatePeak.getDataPoint(peakScans[i]);
+                // 10s range
+                if ((point.getRT() >= localMaximum.getRT() - 10) && ((point.getRT() <= localMaximum.getRT() + 10))) {
+                    newPeak.addDatapoint(peakScans[i], point);
+                }
+            }
+            
+            resultPeaks.add(newPeak);
+        }
+        
 
         return resultPeaks.toArray(new AccurateMassPeak[0]);
 

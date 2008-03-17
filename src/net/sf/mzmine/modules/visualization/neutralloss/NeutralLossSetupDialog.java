@@ -252,10 +252,10 @@ public class NeutralLossSetupDialog extends JDialog implements ActionListener {
         // to activate the selection listener
         comboXaxis.setSelectedIndex(0);
 
-        fieldMinRT.setValue(dataFile.getDataMinRT(2));
-        fieldMaxRT.setValue(dataFile.getDataMaxRT(2));
-        fieldMinMZ.setValue(dataFile.getDataMinMZ(1));
-        fieldMaxMZ.setValue(dataFile.getDataMaxMZ(1));
+        fieldMinRT.setValue(dataFile.getDataRTRange(2).getMin());
+        fieldMaxRT.setValue(dataFile.getDataRTRange(2).getMax());
+        fieldMinMZ.setValue(dataFile.getDataMZRange(1).getMin());
+        fieldMaxMZ.setValue(dataFile.getDataMZRange(1).getMax());
 
         // finalize the dialog
         pack();

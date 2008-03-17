@@ -33,6 +33,7 @@ import javax.swing.border.Border;
 import net.sf.mzmine.data.DataPoint;
 import net.sf.mzmine.data.Peak;
 import net.sf.mzmine.io.RawDataFile;
+import net.sf.mzmine.util.Range;
 
 /**
  * Simple lightweight component for plotting peak shape
@@ -44,13 +45,14 @@ public class PeakXICComponent extends JComponent {
 
     private Peak peak;
 
-    private float minRT, maxRT, rtSpan, maxIntensity;
+    private Range rtRange;
+    private float maxIntensity;
 
     /**
      * @param peak Picked peak to plot
      */
     public PeakXICComponent(Peak peak) {
-        this(peak, peak.getRawDataPointMaxIntensity());
+        this(peak, peak.getRawDataPointsIntensityRange().getMax());
     }
 
     /**
@@ -62,9 +64,7 @@ public class PeakXICComponent extends JComponent {
 
         // find data boundaries
         RawDataFile dataFile = peak.getDataFile();
-        this.minRT = dataFile.getDataMinRT(1);
-        this.maxRT = dataFile.getDataMaxRT(1);
-        this.rtSpan = maxRT - minRT;
+        this.rtRange = dataFile.getDataRTRange(1);
         this.maxIntensity = maxIntensity;
 
         this.setBorder(componentBorder);
@@ -90,8 +90,9 @@ public class PeakXICComponent extends JComponent {
         int scanNumbers[] = peak.getScanNumbers();
 
         // If we have no data, just return
-        if (scanNumbers.length == 0) return;
-        
+        if (scanNumbers.length == 0)
+            return;
+
         // for each datapoint, find [X:Y] coordinates of its point in painted
         // image
         int xValues[] = new int[scanNumbers.length];
@@ -106,8 +107,8 @@ public class PeakXICComponent extends JComponent {
             float retentionTime = dataFile.getScan(scanNumbers[i]).getRetentionTime();
 
             // calculate [X:Y] coordinates
-            xValues[i] = (int) Math.floor((retentionTime - minRT) / rtSpan
-                    * (size.width - 1));
+            xValues[i] = (int) Math.floor((retentionTime - rtRange.getMin())
+                    / rtRange.getSize() * (size.width - 1));
             yValues[i] = size.height
                     - (int) Math.floor(dataPoint.getIntensity() / maxIntensity
                             * (size.height - 1));

@@ -254,18 +254,18 @@ public class OldTwoDVisualizerWindow extends JInternalFrame implements
 			desktop.addInternalFrame(this);
 
 		// Use maximum zoom settings
-		float rtMin = dataFile.getDataMinRT(msLevel);
+		/*float rtMin = dataFile.getDataMinRT(msLevel);
 		float rtMax = dataFile.getDataMaxRT(msLevel);
 		float mzMin = dataFile.getDataMinMZ(msLevel);
-		float mzMax = dataFile.getDataMaxMZ(msLevel);
+		float mzMax = dataFile.getDataMaxMZ(msLevel);*/
 
 		// Use previous interpolate setting (default to no interpolation)
 		boolean interpolate = false;
 		if (dataset != null)
 			interpolate = dataset.isInterpolated();
 
-		dataset.resampleIntensityMatrix(msLevel, rtMin, rtMax, mzMin, mzMax,
-				twoDPlot.getWidth(), twoDPlot.getHeight(), interpolate);
+		//dataset.resampleIntensityMatrix(msLevel, rtMin, rtMax, mzMin, mzMax,
+		//		twoDPlot.getWidth(), twoDPlot.getHeight(), interpolate);
 
 	}
 

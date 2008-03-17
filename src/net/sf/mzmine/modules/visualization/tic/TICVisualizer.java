@@ -35,6 +35,7 @@ import net.sf.mzmine.userinterface.Desktop;
 import net.sf.mzmine.userinterface.Desktop.MZmineMenu;
 import net.sf.mzmine.userinterface.dialogs.ExitCode;
 import net.sf.mzmine.userinterface.dialogs.ParameterSetupDialog;
+import net.sf.mzmine.util.Range;
 
 /**
  * TIC visualizer using JFreeChart library
@@ -78,17 +79,16 @@ public class TICVisualizer implements MZmineModule, ActionListener {
     }
 
     public void showNewTICVisualizerWindow(RawDataFile[] dataFiles,
-            Peak[] peaks, int msLevel, Object plotType, float rtMin,
-            float rtMax, float mzMin, float mzMax) {
+            Peak[] peaks, int msLevel, Object plotType, Range rtRange, Range mzRange) {
         TICVisualizerParameters newParameters = (TICVisualizerParameters) parameters.clone();
         newParameters.setParameterValue(TICVisualizerParameters.msLevel,
                 msLevel);
         newParameters.setParameterValue(TICVisualizerParameters.plotType,
                 plotType);
-        newParameters.setParameterValue(TICVisualizerParameters.minRT, rtMin);
-        newParameters.setParameterValue(TICVisualizerParameters.maxRT, rtMax);
-        newParameters.setParameterValue(TICVisualizerParameters.minMZ, mzMin);
-        newParameters.setParameterValue(TICVisualizerParameters.maxMZ, mzMax);
+        newParameters.setParameterValue(TICVisualizerParameters.minRT, rtRange.getMin());
+        newParameters.setParameterValue(TICVisualizerParameters.maxRT, rtRange.getMax());
+        newParameters.setParameterValue(TICVisualizerParameters.minMZ, mzRange.getMin());
+        newParameters.setParameterValue(TICVisualizerParameters.maxMZ, mzRange.getMax());
         showNewTICVisualizerWindow(dataFiles, peaks, newParameters);
     }
 
@@ -111,13 +111,13 @@ public class TICVisualizer implements MZmineModule, ActionListener {
             autoValues = new Hashtable<Parameter, Object>();
             autoValues.put(TICVisualizerParameters.msLevel, 1);
             autoValues.put(TICVisualizerParameters.minRT,
-                    dataFiles[0].getDataMinRT(1));
+                    dataFiles[0].getDataRTRange(1).getMin());
             autoValues.put(TICVisualizerParameters.maxRT,
-                    dataFiles[0].getDataMaxRT(1));
+                    dataFiles[0].getDataRTRange(1).getMax());
             autoValues.put(TICVisualizerParameters.minMZ,
-                    dataFiles[0].getDataMinMZ(1));
+                    dataFiles[0].getDataMZRange(1).getMin());
             autoValues.put(TICVisualizerParameters.maxMZ,
-                    dataFiles[0].getDataMaxMZ(1));
+                    dataFiles[0].getDataMZRange(1).getMax());
         }
 
         ParameterSetupDialog dialog = new ParameterSetupDialog(

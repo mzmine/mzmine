@@ -76,13 +76,13 @@ public class ThreeDVisualizer implements MZmineModule, ActionListener {
         Hashtable<Parameter, Object> autoValues = new Hashtable<Parameter, Object>();
         autoValues.put(ThreeDVisualizerParameters.msLevel, 1);
         autoValues.put(ThreeDVisualizerParameters.minRT,
-                dataFiles[0].getDataMinRT(1));
+                dataFiles[0].getDataRTRange(1).getMin());
         autoValues.put(ThreeDVisualizerParameters.maxRT,
-                dataFiles[0].getDataMaxRT(1));
+                dataFiles[0].getDataRTRange(1).getMax());
         autoValues.put(ThreeDVisualizerParameters.minMZ,
-                dataFiles[0].getDataMinMZ(1));
+                dataFiles[0].getDataMZRange(1).getMin());
         autoValues.put(ThreeDVisualizerParameters.maxMZ,
-                dataFiles[0].getDataMaxMZ(1));
+                dataFiles[0].getDataMZRange(1).getMax());
 
         ParameterSetupDialog dialog = new ParameterSetupDialog(
                 "Please set parameter values for " + toString(), parameters,

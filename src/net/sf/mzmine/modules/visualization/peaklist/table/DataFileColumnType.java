@@ -20,7 +20,7 @@
 package net.sf.mzmine.modules.visualization.peaklist.table;
 
 import net.sf.mzmine.data.Peak;
-import net.sf.mzmine.data.Peak.PeakStatus;
+import net.sf.mzmine.data.PeakStatus;
 
 public enum DataFileColumnType {
 

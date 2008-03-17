@@ -75,10 +75,10 @@ public class TwoDVisualizer implements MZmineModule, ActionListener {
 
         Hashtable<Parameter, Object> autoValues = new Hashtable<Parameter, Object>();
         autoValues.put(TwoDParameters.msLevel, 1);
-        autoValues.put(TwoDParameters.minRT, dataFiles[0].getDataMinRT(1));
-        autoValues.put(TwoDParameters.maxRT, dataFiles[0].getDataMaxRT(1));
-        autoValues.put(TwoDParameters.minMZ, dataFiles[0].getDataMinMZ(1));
-        autoValues.put(TwoDParameters.maxMZ, dataFiles[0].getDataMaxMZ(1));
+        autoValues.put(TwoDParameters.minRT, dataFiles[0].getDataRTRange(1).getMin());
+        autoValues.put(TwoDParameters.maxRT, dataFiles[0].getDataRTRange(1).getMax());
+        autoValues.put(TwoDParameters.minMZ, dataFiles[0].getDataMZRange(1).getMin());
+        autoValues.put(TwoDParameters.maxMZ, dataFiles[0].getDataMZRange(1).getMax());
 
         ParameterSetupDialog dialog = new ParameterSetupDialog(
                 "Please set parameter values for " + toString(), parameters,

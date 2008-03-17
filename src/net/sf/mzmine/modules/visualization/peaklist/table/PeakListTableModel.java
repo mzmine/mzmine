@@ -25,7 +25,7 @@ import net.sf.mzmine.data.CompoundIdentity;
 import net.sf.mzmine.data.Peak;
 import net.sf.mzmine.data.PeakList;
 import net.sf.mzmine.data.PeakListRow;
-import net.sf.mzmine.data.Peak.PeakStatus;
+import net.sf.mzmine.data.PeakStatus;
 import net.sf.mzmine.io.RawDataFile;
 
 public class PeakListTableModel extends AbstractTableModel {
@@ -120,7 +120,7 @@ public class PeakListTableModel extends AbstractTableModel {
             case AREA:
                 return new Double(peak.getArea());
             case DURATION:
-                return new Double(peak.getDuration());
+                return new Double(peak.getRawDataPointsRTRange().getSize());
 
             }
 

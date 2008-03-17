@@ -19,15 +19,16 @@
 
 package net.sf.mzmine.modules.peakpicking.accuratemass;
 
-import java.text.NumberFormat;
 import java.util.TreeMap;
 
 import net.sf.mzmine.data.DataPoint;
 import net.sf.mzmine.data.Peak;
+import net.sf.mzmine.data.PeakStatus;
 import net.sf.mzmine.io.RawDataFile;
-import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.util.CollectionUtils;
 import net.sf.mzmine.util.MathUtils;
+import net.sf.mzmine.util.PeakUtils;
+import net.sf.mzmine.util.Range;
 
 /**
  * This class is an implementation of the peak interface for peak picking
@@ -38,14 +39,10 @@ class AccurateMassPeak implements Peak {
 	private RawDataFile dataFile;
 
 	// Raw M/Z, RT, Height and Area
-	private float mz, rt;
-	private float height, area;
+	private float mz, rt, height, area;
 
-	// Boundaries of the peak
-	private float minRT = Float.MAX_VALUE;
-	private float maxRT = Float.MIN_VALUE;
-	private float minMZ = Float.MAX_VALUE;
-	private float maxMZ = Float.MIN_VALUE;
+    // Boundaries of the peak
+    private Range rtRange, mzRange, intensityRange;
 
 	private TreeMap<Integer, AccurateMassDataPoint> dataPointMap;
 
@@ -96,13 +93,6 @@ class AccurateMassPeak implements Peak {
 	}
 
 	/**
-	 * @see net.sf.mzmine.data.Peak#getDuration()
-	 */
-	public float getDuration() {
-		return maxRT - minRT;
-	}
-
-	/**
 	 * This method returns numbers of scans that contain this peak
 	 */
 	public int[] getScanNumbers() {
@@ -126,66 +116,15 @@ class AccurateMassPeak implements Peak {
 	}
 
 	/**
-	 * Returns the first scan number of all datapoints
-	 */
-	public float getRawDataPointMinRT() {
-		return minRT;
-	}
-
-	/**
-	 * Returns the last scan number of all datapoints
-	 */
-	public float getRawDataPointMaxRT() {
-		return maxRT;
-	}
-
-	/**
-	 * Returns minimum M/Z value of all datapoints
-	 */
-	public float getRawDataPointMinMZ() {
-		return minMZ;
-	}
-
-	/**
-	 * Returns maximum M/Z value of all datapoints
-	 */
-	public float getRawDataPointMaxMZ() {
-		return maxMZ;
-	}
-
-	/**
-	 * Returns maximum M/Z value of all datapoints
-	 */
-	public float getRawDataPointMaxIntensity() {
-		return height;
-	}
-
-	/**
 	 * @see net.sf.mzmine.data.Peak#getDataFile()
 	 */
 	public RawDataFile getDataFile() {
 		return dataFile;
 	}
 
-	/**
-	 * @see net.sf.mzmine.data.Peak#setDataFile()
-	 */
-	public void setDataFile(RawDataFile dataFile) {
-		this.dataFile = dataFile;
-	}
-
-	/**
-	 * @see java.lang.Object#toString()
-	 */
-	public String toString() {
-		NumberFormat mzFormat = MZmineCore.getDesktop().getMZFormat();
-		NumberFormat timeFormat = MZmineCore.getDesktop().getRTFormat();
-		StringBuffer buf = new StringBuffer();
-		buf.append(mzFormat.format(mz));
-		buf.append(" m/z @");
-		buf.append(timeFormat.format(rt));
-		return buf.toString();
-	}
+    public String toString() {
+        return PeakUtils.peakToString(this);
+    }
 
 	/**
 	 * Adds a new data point to this peak
@@ -200,18 +139,22 @@ class AccurateMassPeak implements Peak {
 
 		// Update construction time variables
 
-		if (dataPoint.getRT() < minRT)
-			minRT = dataPoint.getRT();
-		if (dataPoint.getRT() > maxRT)
-			maxRT = dataPoint.getRT();
-
+        if (rtRange == null) {
+            rtRange = new Range(dataPoint.getRT());
+        } else {
+            rtRange.extendRange(dataPoint.getRT());
+        }
+        
 		for (DataPoint rawDataPoint : dataPoint.getRawDataPoints()) {
 
 			// Update m/z boundaries
-			if (rawDataPoint.getMZ() < minMZ)
-				minMZ = rawDataPoint.getMZ();
-			if (rawDataPoint.getMZ() > maxMZ)
-				maxMZ = rawDataPoint.getMZ();
+            if (mzRange == null) {
+                mzRange = new Range(rawDataPoint.getMZ());
+                intensityRange = new Range(rawDataPoint.getIntensity());
+            } else {
+                mzRange.extendRange(dataPoint.getMZ());
+                intensityRange.extendRange(dataPoint.getIntensity());
+            }
 
 			// Find the data point with top intensity and use its RT and height
 			if (rawDataPoint.getIntensity() > height) {
@@ -256,5 +199,17 @@ class AccurateMassPeak implements Peak {
 		this.mz = MathUtils.calcQuantile(mzArray, 0.5f);
 
 	}
+
+    public Range getRawDataPointsIntensityRange() {
+        return intensityRange;
+    }
+
+    public Range getRawDataPointsMZRange() {
+        return mzRange;
+    }
+
+    public Range getRawDataPointsRTRange() {
+        return rtRange;
+    }
 
 }

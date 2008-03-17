@@ -50,6 +50,9 @@ import net.sf.mzmine.main.MZmineCore;
  * 
  * TODO: this class needs to be easily inheritable, modules should be able to
  * add their own components
+ * 
+ * TODO: add support for RANGE type parameters
+ * 
  */
 public class ParameterSetupDialog extends JDialog implements ActionListener {
 

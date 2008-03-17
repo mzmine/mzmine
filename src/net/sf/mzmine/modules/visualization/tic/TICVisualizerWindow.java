@@ -40,6 +40,7 @@ import net.sf.mzmine.taskcontrol.Task.TaskStatus;
 import net.sf.mzmine.userinterface.Desktop;
 import net.sf.mzmine.userinterface.dialogs.AxesSetupDialog;
 import net.sf.mzmine.util.CursorPosition;
+import net.sf.mzmine.util.Range;
 
 import org.jfree.chart.axis.NumberAxis;
 import org.jfree.chart.axis.NumberTickUnit;
@@ -124,9 +125,9 @@ public class TICVisualizerWindow extends JInternalFrame implements
             // the plot (mzMin, mzMax), then call this TIC, otherwise XIC
             Set<RawDataFile> fileSet = ticDataSets.keySet();
             String ticOrXIC = "TIC";
+            Range mzRange = new Range(mzMin, mzMax);
             for (RawDataFile df : fileSet) {
-                if ((df.getDataMinMZ(msLevel) < mzMin)
-                        || (df.getDataMinMZ(msLevel) > mzMax)) {
+                if (! mzRange.containsRange(df.getDataMZRange(msLevel))) {
                     ticOrXIC = "XIC";
                     break;
                 }

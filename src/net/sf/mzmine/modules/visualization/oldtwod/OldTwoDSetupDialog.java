@@ -300,10 +300,10 @@ public class OldTwoDSetupDialog extends JDialog implements ActionListener {
 
             int msLevel = (Integer) comboMSlevel.getSelectedItem();
 
-            fieldMinRT.setValue(dataFile.getDataMinRT(msLevel));
+            /*fieldMinRT.setValue(dataFile.getDataMinRT(msLevel));
             fieldMaxRT.setValue(dataFile.getDataMaxRT(msLevel));
             fieldMinMZ.setValue(dataFile.getDataMinMZ(msLevel));
-            fieldMaxMZ.setValue(dataFile.getDataMaxMZ(msLevel));
+            fieldMaxMZ.setValue(dataFile.getDataMaxMZ(msLevel));*/
 
         }
 
