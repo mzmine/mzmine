@@ -70,8 +70,7 @@ public class TICVisualizerWindow extends JInternalFrame implements
      * 
      */
     public TICVisualizerWindow(RawDataFile dataFiles[], Object plotType,
-            int msLevel, Range rtRange, Range mzRange,
-            Peak[] peaks) {
+            int msLevel, Range rtRange, Range mzRange, Peak[] peaks) {
 
         super(null, true, true, true, true);
 
@@ -124,7 +123,7 @@ public class TICVisualizerWindow extends JInternalFrame implements
             Set<RawDataFile> fileSet = ticDataSets.keySet();
             String ticOrXIC = "TIC";
             for (RawDataFile df : fileSet) {
-                if (! mzRange.containsRange(df.getDataMZRange(msLevel))) {
+                if (!mzRange.containsRange(df.getDataMZRange(msLevel))) {
                     ticOrXIC = "XIC";
                     break;
                 }
@@ -133,7 +132,8 @@ public class TICVisualizerWindow extends JInternalFrame implements
         }
 
         mainTitle.append(", MS" + msLevel);
-        mainTitle.append(", m/z: " + mzFormat.format(mzRange));
+        mainTitle.append(", m/z: " + mzFormat.format(mzRange.getMin()) + " - "
+                + mzFormat.format(mzRange.getMax()));
 
         CursorPosition pos = getCursorPosition();
 
@@ -172,10 +172,12 @@ public class TICVisualizerWindow extends JInternalFrame implements
     /**
      */
     public void setRTRange(Range rtRange) {
-        ticPlot.getXYPlot().getDomainAxis().setRange(rtRange.getMin(), rtRange.getMax());
+        ticPlot.getXYPlot().getDomainAxis().setRange(rtRange.getMin(),
+                rtRange.getMax());
     }
 
-    public void setAxesRange(float xMin, float xMax, float xTickSize, float yMin, float yMax, float yTickSize) {
+    public void setAxesRange(float xMin, float xMax, float xTickSize,
+            float yMin, float yMax, float yTickSize) {
         NumberAxis xAxis = (NumberAxis) ticPlot.getXYPlot().getDomainAxis();
         NumberAxis yAxis = (NumberAxis) ticPlot.getXYPlot().getRangeAxis();
         xAxis.setRange(xMin, xMax);
@@ -208,7 +210,8 @@ public class TICVisualizerWindow extends JInternalFrame implements
             return;
         }
 
-        TICDataSet ticDataset = new TICDataSet(newFile, scanNumbers, mzRange, this);
+        TICDataSet ticDataset = new TICDataSet(newFile, scanNumbers, mzRange,
+                this);
         ticDataSets.put(newFile, ticDataset);
         ticPlot.addTICDataset(ticDataset);
 
@@ -221,7 +224,8 @@ public class TICVisualizerWindow extends JInternalFrame implements
 
     public void removeRawDataFile(RawDataFile file) {
         TICDataSet dataset = ticDataSets.get(file);
-        ticPlot.getXYPlot().setDataset(ticPlot.getXYPlot().indexOf(dataset), null);
+        ticPlot.getXYPlot().setDataset(ticPlot.getXYPlot().indexOf(dataset),
+                null);
         ticDataSets.remove(file);
     }
 
@@ -254,7 +258,8 @@ public class TICVisualizerWindow extends JInternalFrame implements
     public void setCursorPosition(CursorPosition newPosition) {
         ticPlot.getXYPlot().setDomainCrosshairValue(
                 newPosition.getRetentionTime(), false);
-        ticPlot.getXYPlot().setRangeCrosshairValue(newPosition.getIntensityValue());
+        ticPlot.getXYPlot().setRangeCrosshairValue(
+                newPosition.getIntensityValue());
     }
 
     /**
@@ -323,7 +328,8 @@ public class TICVisualizerWindow extends JInternalFrame implements
 
             // Set the range of these frames
             for (JInternalFrame frame : spectraFrames) {
-                if (frame == this) continue;
+                if (frame == this)
+                    continue;
                 TICVisualizerWindow spectraFrame = (TICVisualizerWindow) frame;
                 spectraFrame.setAxesRange(xMin, xMax, xTick, yMin, yMax, yTick);
             }
