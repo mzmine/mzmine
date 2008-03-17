@@ -34,6 +34,7 @@ import net.sf.mzmine.modules.peakpicking.anothercentroid.DataPointSorter.Sorting
 import net.sf.mzmine.modules.peakpicking.anothercentroid.DataPointSorter.SortingProperty;
 import net.sf.mzmine.project.MZmineProject;
 import net.sf.mzmine.taskcontrol.Task;
+import net.sf.mzmine.util.DataPointSorterByMZ;
 
 /**
  * 
@@ -189,6 +190,9 @@ class AnotherCentroidPickerTask implements Task {
 		}
 		Bin[] bins = binArray.toArray(new Bin[0]);
 
+		Arrays.sort(bins, new BinSorter(BinSorter.SortingProperty.LOWMZ,
+				BinSorter.SortingDirection.ASCENDING));
+
 		// Collect XICs
 		for (int i = 0; i < totalScans; i++) {
 
@@ -223,8 +227,7 @@ class AnotherCentroidPickerTask implements Task {
 		 * ex.toString()); }
 		 */
 		// DEBUG end
-		
-		
+
 		// 3rd pass: collect datapoints
 		for (int i = 0; i < totalScans; i++) {
 
@@ -242,6 +245,9 @@ class AnotherCentroidPickerTask implements Task {
 
 	}
 
+	/**
+	 * Returns all 1d isotope patterns detected in a scan
+	 */
 	private ConstructionIsotopePattern[] detectPatterns(Scan sc) {
 		Vector<ConstructionIsotopePattern> detectedPatterns = new Vector<ConstructionIsotopePattern>();
 
@@ -388,8 +394,40 @@ class AnotherCentroidPickerTask implements Task {
 
 	}
 
+	/**
+	 * Offers centroids to bins with matching m/z
+	 */
 	private void binCentroids(Scan sc, Bin[] bins) {
-		// TODO !
+
+		DataPoint allCentroids[] = sc.getDataPoints();
+		Arrays.sort(allCentroids, new DataPointSorterByMZ());
+
+		int binStartIndex = 0;
+		for (DataPoint centroid : allCentroids) {
+
+			float centroidMZ = centroid.getMZ();
+
+			for (int binIndex = binStartIndex; binIndex < bins.length; binIndex++) {
+
+				Bin bin = bins[binIndex];
+
+				if (centroidMZ > bin.getHighMZ()) {
+					binStartIndex++;
+					continue;
+				}
+				if (centroidMZ < bin.getLowMZ())
+					break;
+
+				/*
+				 * if ( (centroidMZ >= bin.getLowMZ()) && (centroidMZ <=
+				 * bin.getHighMZ()) )
+				 */
+				bin.offerIntensity(centroid.getIntensity());
+
+			}
+
+		}
+
 	}
 
 }
