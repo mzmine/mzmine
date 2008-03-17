@@ -295,16 +295,16 @@ class CentroidPickerTask implements Task {
                 // If nothing was added,
                 if (!ucPeak.isGrowing()) {
 
+                	// Finalize peak
+                	ucPeak.finalizedAddingDatapoints(PeakStatus.DETECTED);
+                	
                     // Check length
                     float ucLength = ucPeak.getRawDataPointsRTRange().getSize();
                     float ucHeight = ucPeak.getHeight();
                     if ((ucLength >= minimumPeakDuration)
                             && (ucHeight >= minimumPeakHeight)) {
 
-                        // Good peak, finalize adding data points
-                        ucPeak.finalizedAddingDatapoints(PeakStatus.DETECTED);
-
-                        // Add it to the peak list
+                        // Good peak, add it to the peak list
                         SimplePeakListRow newRow = new SimplePeakListRow(
                                 newPeakID);
                         newPeakID++;
@@ -357,17 +357,17 @@ class CentroidPickerTask implements Task {
         // Finally process all remaining under-construction peaks
 
         for (CentroidPeak ucPeak : underConstructionPeaks) {
-
+        	
+        	// Finalize peak
+        	ucPeak.finalizedAddingDatapoints(PeakStatus.DETECTED);
+        	
             // Check length & height
             float ucLength = ucPeak.getRawDataPointsRTRange().getSize();
             float ucHeight = ucPeak.getHeight();
             if ((ucLength >= minimumPeakDuration)
                     && (ucHeight >= minimumPeakHeight)) {
 
-                // Good peak, finalize adding datapoints
-                ucPeak.finalizedAddingDatapoints(PeakStatus.DETECTED);
-
-                // Add it to the peak list
+                // Good peak, add it to the peak list
                 SimplePeakListRow newRow = new SimplePeakListRow(newPeakID);
                 newPeakID++;
                 newRow.addPeak(dataFile, ucPeak, ucPeak);
