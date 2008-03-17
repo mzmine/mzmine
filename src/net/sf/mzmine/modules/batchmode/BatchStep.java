@@ -25,7 +25,7 @@ import net.sf.mzmine.io.RawDataFile;
 import net.sf.mzmine.main.MZmineModule;
 import net.sf.mzmine.taskcontrol.TaskGroup;
 import net.sf.mzmine.taskcontrol.TaskGroupListener;
-import net.sf.mzmine.userinterface.dialogs.ExitCode;
+import net.sf.mzmine.util.dialogs.ExitCode;
 
 /**
  * Interface representing a data processing method which can be executed in a batch

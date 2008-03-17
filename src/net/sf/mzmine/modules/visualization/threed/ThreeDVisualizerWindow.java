@@ -36,13 +36,13 @@ import javax.swing.JLabel;
 
 import net.sf.mzmine.data.Peak;
 import net.sf.mzmine.data.PeakList;
+import net.sf.mzmine.desktop.Desktop;
 import net.sf.mzmine.io.RawDataFile;
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.taskcontrol.Task;
 import net.sf.mzmine.taskcontrol.TaskListener;
 import net.sf.mzmine.taskcontrol.Task.TaskPriority;
 import net.sf.mzmine.taskcontrol.Task.TaskStatus;
-import net.sf.mzmine.userinterface.Desktop;
 import visad.ProjectionControl;
 import visad.java3d.MouseBehaviorJ3D;
 

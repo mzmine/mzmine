@@ -29,8 +29,8 @@ import javax.swing.ImageIcon;
 import javax.swing.JButton;
 import javax.swing.JToolBar;
 
-import net.sf.mzmine.userinterface.dialogs.AxesSetupDialog;
 import net.sf.mzmine.util.GUIUtils;
+import net.sf.mzmine.util.dialogs.AxesSetupDialog;
 
 import org.jfree.chart.plot.CategoryPlot;
 import org.jfree.chart.plot.Plot;

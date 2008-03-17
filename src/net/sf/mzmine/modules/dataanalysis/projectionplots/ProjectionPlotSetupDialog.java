@@ -45,13 +45,13 @@ import javax.swing.ScrollPaneConstants;
 import net.sf.mzmine.data.Parameter;
 import net.sf.mzmine.data.PeakList;
 import net.sf.mzmine.data.PeakListRow;
+import net.sf.mzmine.desktop.Desktop;
 import net.sf.mzmine.io.RawDataFile;
 import net.sf.mzmine.main.MZmineCore;
-import net.sf.mzmine.userinterface.Desktop;
-import net.sf.mzmine.userinterface.components.ExtendedCheckBox;
-import net.sf.mzmine.userinterface.dialogs.ExitCode;
 import net.sf.mzmine.util.GUIUtils;
 import net.sf.mzmine.util.PeakListRowSorterByMZ;
+import net.sf.mzmine.util.components.ExtendedCheckBox;
+import net.sf.mzmine.util.dialogs.ExitCode;
 
 public class ProjectionPlotSetupDialog extends JDialog implements ActionListener {
 

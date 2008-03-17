@@ -21,7 +21,7 @@ package net.sf.mzmine.modules.visualization.twod;
 
 import java.awt.Color;
 
-import net.sf.mzmine.userinterface.components.interpolatinglookuppaintscale.InterpolatingLookupPaintScale;
+import net.sf.mzmine.util.interpolatinglookuppaintscale.InterpolatingLookupPaintScale;
 
 /**
  * We try not to use InterpolatingLookupPaintScale, because it is quite slow

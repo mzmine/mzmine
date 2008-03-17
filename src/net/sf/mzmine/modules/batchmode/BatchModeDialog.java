@@ -39,8 +39,8 @@ import javax.swing.ListSelectionModel;
 import net.sf.mzmine.data.ParameterSet;
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.main.MZmineModule;
-import net.sf.mzmine.userinterface.dialogs.ExitCode;
 import net.sf.mzmine.util.GUIUtils;
+import net.sf.mzmine.util.dialogs.ExitCode;
 
 class BatchModeDialog extends JDialog implements ActionListener {
 

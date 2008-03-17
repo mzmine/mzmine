@@ -21,14 +21,14 @@ package net.sf.mzmine.taskcontrol.impl;
 
 import java.util.logging.Logger;
 
+import net.sf.mzmine.desktop.impl.MainWindow;
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.taskcontrol.Task;
 import net.sf.mzmine.taskcontrol.TaskController;
 import net.sf.mzmine.taskcontrol.TaskListener;
 import net.sf.mzmine.taskcontrol.Task.TaskPriority;
 import net.sf.mzmine.taskcontrol.Task.TaskStatus;
-import net.sf.mzmine.userinterface.components.TaskProgressWindow;
-import net.sf.mzmine.userinterface.mainwindow.MainWindow;
+import net.sf.mzmine.util.components.TaskProgressWindow;
 
 /**
  * Task controller implementation

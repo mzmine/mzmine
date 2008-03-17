@@ -36,8 +36,8 @@ import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.modules.visualization.peaklist.table.CommonColumnType;
 import net.sf.mzmine.modules.visualization.peaklist.table.DataFileColumnType;
 import net.sf.mzmine.modules.visualization.peaklist.table.PeakListTable;
-import net.sf.mzmine.userinterface.components.ColorCircle;
-import net.sf.mzmine.userinterface.components.PeakXICComponent;
+import net.sf.mzmine.util.components.ColorCircle;
+import net.sf.mzmine.util.components.PeakXICComponent;
 
 import org.jfree.report.Element;
 import org.jfree.report.ElementAlignment;

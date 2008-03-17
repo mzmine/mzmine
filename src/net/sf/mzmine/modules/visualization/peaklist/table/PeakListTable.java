@@ -33,8 +33,8 @@ import net.sf.mzmine.modules.visualization.peaklist.PeakListTableParameters;
 import net.sf.mzmine.modules.visualization.peaklist.PeakListTablePopupMenu;
 import net.sf.mzmine.modules.visualization.peaklist.PeakListTableVisualizer;
 import net.sf.mzmine.modules.visualization.peaklist.PeakListTableWindow;
-import net.sf.mzmine.userinterface.components.GroupableTableHeader;
-import net.sf.mzmine.userinterface.components.PopupListener;
+import net.sf.mzmine.util.components.GroupableTableHeader;
+import net.sf.mzmine.util.components.PopupListener;
 
 import com.sun.java.TableSorter;
 

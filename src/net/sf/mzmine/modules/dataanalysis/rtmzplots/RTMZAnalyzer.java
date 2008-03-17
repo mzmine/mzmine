@@ -31,12 +31,12 @@ import net.sf.mzmine.data.ParameterType;
 import net.sf.mzmine.data.PeakList;
 import net.sf.mzmine.data.impl.SimpleParameter;
 import net.sf.mzmine.data.impl.SimpleParameterSet;
+import net.sf.mzmine.desktop.Desktop;
+import net.sf.mzmine.desktop.Desktop.MZmineMenu;
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.main.MZmineModule;
-import net.sf.mzmine.userinterface.Desktop;
-import net.sf.mzmine.userinterface.Desktop.MZmineMenu;
-import net.sf.mzmine.userinterface.components.interpolatinglookuppaintscale.InterpolatingLookupPaintScale;
-import net.sf.mzmine.userinterface.dialogs.ExitCode;
+import net.sf.mzmine.util.dialogs.ExitCode;
+import net.sf.mzmine.util.interpolatinglookuppaintscale.InterpolatingLookupPaintScale;
 
 import org.jfree.data.xy.AbstractXYZDataset;
 

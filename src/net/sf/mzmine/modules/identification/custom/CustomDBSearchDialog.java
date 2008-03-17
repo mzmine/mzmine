@@ -35,11 +35,11 @@ import javax.swing.JFormattedTextField;
 import javax.swing.JPanel;
 import javax.swing.JTextField;
 
+import net.sf.mzmine.desktop.Desktop;
 import net.sf.mzmine.main.MZmineCore;
-import net.sf.mzmine.userinterface.Desktop;
-import net.sf.mzmine.userinterface.components.DragOrderedJList;
-import net.sf.mzmine.userinterface.dialogs.ExitCode;
 import net.sf.mzmine.util.GUIUtils;
+import net.sf.mzmine.util.components.DragOrderedJList;
+import net.sf.mzmine.util.dialogs.ExitCode;
 
 /**
  * 

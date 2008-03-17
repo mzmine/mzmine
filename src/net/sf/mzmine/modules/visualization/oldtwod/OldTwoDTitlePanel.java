@@ -6,8 +6,8 @@ import javax.swing.BorderFactory;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 
+import net.sf.mzmine.desktop.Desktop;
 import net.sf.mzmine.main.MZmineCore;
-import net.sf.mzmine.userinterface.Desktop;
 import net.sf.mzmine.util.CursorPosition;
 
 public class OldTwoDTitlePanel extends JPanel {

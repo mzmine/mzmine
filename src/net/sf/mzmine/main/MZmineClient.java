@@ -26,6 +26,7 @@ import java.util.logging.Logger;
 
 import javax.swing.SwingUtilities;
 
+import net.sf.mzmine.desktop.impl.MainWindow;
 import net.sf.mzmine.io.impl.IOControllerImpl;
 import net.sf.mzmine.project.MZmineProject;
 import net.sf.mzmine.project.ProjectManager;
@@ -33,7 +34,6 @@ import net.sf.mzmine.project.ProjectStatus;
 import net.sf.mzmine.project.ProjectType;
 import net.sf.mzmine.project.impl.ProjectManagerImpl;
 import net.sf.mzmine.taskcontrol.impl.TaskControllerImpl;
-import net.sf.mzmine.userinterface.mainwindow.MainWindow;
 
 import org.dom4j.Document;
 import org.dom4j.Element;

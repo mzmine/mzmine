@@ -24,6 +24,8 @@ import java.io.IOException;
 import java.lang.reflect.Constructor;
 import java.util.logging.Logger;
 
+import net.sf.mzmine.desktop.Desktop;
+import net.sf.mzmine.desktop.impl.MainWindow;
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.project.MZmineProject;
 import net.sf.mzmine.project.ProjectListener;
@@ -36,8 +38,6 @@ import net.sf.mzmine.project.ProjectType;
 import net.sf.mzmine.taskcontrol.Task;
 import net.sf.mzmine.taskcontrol.TaskController;
 import net.sf.mzmine.taskcontrol.TaskListener;
-import net.sf.mzmine.userinterface.Desktop;
-import net.sf.mzmine.userinterface.mainwindow.MainWindow;
 
 /**
  * project manager implementation Using reflection to support different

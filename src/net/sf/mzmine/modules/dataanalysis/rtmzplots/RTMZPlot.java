@@ -25,7 +25,7 @@ import java.awt.Font;
 import java.text.NumberFormat;
 
 import net.sf.mzmine.main.MZmineCore;
-import net.sf.mzmine.userinterface.components.interpolatinglookuppaintscale.InterpolatingLookupPaintScale;
+import net.sf.mzmine.util.interpolatinglookuppaintscale.InterpolatingLookupPaintScale;
 
 import org.jfree.chart.ChartFactory;
 import org.jfree.chart.ChartPanel;

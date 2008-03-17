@@ -25,8 +25,8 @@ import java.awt.event.ActionListener;
 
 import javax.swing.JInternalFrame;
 
-import net.sf.mzmine.userinterface.Desktop;
-import net.sf.mzmine.userinterface.dialogs.AxesSetupDialog;
+import net.sf.mzmine.desktop.Desktop;
+import net.sf.mzmine.util.dialogs.AxesSetupDialog;
 
 import org.jfree.chart.renderer.xy.XYItemRenderer;
 

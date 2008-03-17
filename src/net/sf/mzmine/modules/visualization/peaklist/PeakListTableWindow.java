@@ -33,7 +33,7 @@ import javax.swing.JScrollPane;
 import net.sf.mzmine.data.PeakList;
 import net.sf.mzmine.modules.visualization.peaklist.table.PeakListTable;
 import net.sf.mzmine.modules.visualization.peaklist.table.PeakListTableColumnModel;
-import net.sf.mzmine.userinterface.dialogs.ExitCode;
+import net.sf.mzmine.util.dialogs.ExitCode;
 
 import org.jfree.report.JFreeReport;
 import org.jfree.report.modules.gui.base.PreviewDialog;

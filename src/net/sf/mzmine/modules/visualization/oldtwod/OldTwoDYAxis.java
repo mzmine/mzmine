@@ -6,8 +6,8 @@ import java.text.NumberFormat;
 
 import javax.swing.JPanel;
 
+import net.sf.mzmine.desktop.Desktop;
 import net.sf.mzmine.main.MZmineCore;
-import net.sf.mzmine.userinterface.Desktop;
 
 public class OldTwoDYAxis extends JPanel {
 

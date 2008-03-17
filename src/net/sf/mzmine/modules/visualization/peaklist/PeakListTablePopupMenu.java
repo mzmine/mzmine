@@ -32,6 +32,7 @@ import javax.swing.JPopupMenu;
 import net.sf.mzmine.data.Peak;
 import net.sf.mzmine.data.PeakList;
 import net.sf.mzmine.data.PeakListRow;
+import net.sf.mzmine.desktop.Desktop;
 import net.sf.mzmine.io.RawDataFile;
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.modules.dataanalysis.intensityplot.IntensityPlot;
@@ -45,10 +46,9 @@ import net.sf.mzmine.modules.visualization.peaklist.table.PeakListTableColumnMod
 import net.sf.mzmine.modules.visualization.peaklist.table.PeakListTableModel;
 import net.sf.mzmine.modules.visualization.tic.TICVisualizer;
 import net.sf.mzmine.modules.visualization.tic.TICVisualizerParameters;
-import net.sf.mzmine.userinterface.Desktop;
-import net.sf.mzmine.userinterface.dialogs.ExitCode;
 import net.sf.mzmine.util.GUIUtils;
 import net.sf.mzmine.util.Range;
+import net.sf.mzmine.util.dialogs.ExitCode;
 
 import com.sun.java.TableSorter;
 

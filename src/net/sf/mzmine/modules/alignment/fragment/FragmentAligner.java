@@ -31,6 +31,8 @@ import net.sf.mzmine.data.PeakList;
 import net.sf.mzmine.data.PeakListRow;
 import net.sf.mzmine.data.impl.SimpleParameterSet;
 import net.sf.mzmine.data.impl.SimplePeakList;
+import net.sf.mzmine.desktop.Desktop;
+import net.sf.mzmine.desktop.Desktop.MZmineMenu;
 import net.sf.mzmine.io.RawDataFile;
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.modules.batchmode.BatchStepAlignment;
@@ -39,13 +41,11 @@ import net.sf.mzmine.taskcontrol.TaskGroup;
 import net.sf.mzmine.taskcontrol.TaskGroupListener;
 import net.sf.mzmine.taskcontrol.TaskListener;
 import net.sf.mzmine.taskcontrol.Task.TaskStatus;
-import net.sf.mzmine.userinterface.Desktop;
-import net.sf.mzmine.userinterface.Desktop.MZmineMenu;
-import net.sf.mzmine.userinterface.dialogs.ExitCode;
-import net.sf.mzmine.userinterface.dialogs.ParameterSetupDialog;
 import net.sf.mzmine.util.PeakListRowSorter;
 import net.sf.mzmine.util.PeakListRowSorter.SortingDirection;
 import net.sf.mzmine.util.PeakListRowSorter.SortingProperty;
+import net.sf.mzmine.util.dialogs.ExitCode;
+import net.sf.mzmine.util.dialogs.ParameterSetupDialog;
 
 /**
  * This aligner first divides m/z range to fragments and then aligns peaks for

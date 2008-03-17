@@ -27,13 +27,13 @@ import java.util.logging.Logger;
 
 import net.sf.mzmine.data.Parameter;
 import net.sf.mzmine.data.ParameterSet;
+import net.sf.mzmine.desktop.Desktop;
+import net.sf.mzmine.desktop.Desktop.MZmineMenu;
 import net.sf.mzmine.io.RawDataFile;
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.main.MZmineModule;
-import net.sf.mzmine.userinterface.Desktop;
-import net.sf.mzmine.userinterface.Desktop.MZmineMenu;
-import net.sf.mzmine.userinterface.dialogs.ExitCode;
-import net.sf.mzmine.userinterface.dialogs.ParameterSetupDialog;
+import net.sf.mzmine.util.dialogs.ExitCode;
+import net.sf.mzmine.util.dialogs.ParameterSetupDialog;
 
 /**
  * 3D visualizer module

@@ -34,7 +34,7 @@ import javax.swing.table.TableModel;
 import net.sf.mzmine.taskcontrol.Task;
 import net.sf.mzmine.taskcontrol.Task.TaskPriority;
 import net.sf.mzmine.taskcontrol.Task.TaskStatus;
-import net.sf.mzmine.userinterface.components.LabeledProgressBar;
+import net.sf.mzmine.util.components.LabeledProgressBar;
 
 /**
  * Task queue

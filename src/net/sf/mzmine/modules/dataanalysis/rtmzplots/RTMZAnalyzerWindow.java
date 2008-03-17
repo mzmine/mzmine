@@ -30,11 +30,11 @@ import org.jfree.data.xy.AbstractXYZDataset;
 
 import net.sf.mzmine.data.PeakList;
 import net.sf.mzmine.data.impl.SimpleParameterSet;
-import net.sf.mzmine.userinterface.Desktop;
-import net.sf.mzmine.userinterface.components.interpolatinglookuppaintscale.InterpolatingLookupPaintScale;
-import net.sf.mzmine.userinterface.components.interpolatinglookuppaintscale.InterpolatingLookupPaintScaleSetupDialog;
-import net.sf.mzmine.userinterface.dialogs.AxesSetupDialog;
-import net.sf.mzmine.userinterface.dialogs.ExitCode;
+import net.sf.mzmine.desktop.Desktop;
+import net.sf.mzmine.util.dialogs.AxesSetupDialog;
+import net.sf.mzmine.util.dialogs.ExitCode;
+import net.sf.mzmine.util.interpolatinglookuppaintscale.InterpolatingLookupPaintScale;
+import net.sf.mzmine.util.interpolatinglookuppaintscale.InterpolatingLookupPaintScaleSetupDialog;
 
 public class RTMZAnalyzerWindow extends JInternalFrame implements ActionListener {
 

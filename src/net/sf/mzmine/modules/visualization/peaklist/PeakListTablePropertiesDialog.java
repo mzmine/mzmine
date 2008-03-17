@@ -41,8 +41,8 @@ import javax.swing.JTextField;
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.modules.visualization.peaklist.table.CommonColumnType;
 import net.sf.mzmine.modules.visualization.peaklist.table.DataFileColumnType;
-import net.sf.mzmine.userinterface.dialogs.ExitCode;
 import net.sf.mzmine.util.GUIUtils;
+import net.sf.mzmine.util.dialogs.ExitCode;
 
 public class PeakListTablePropertiesDialog extends JDialog implements
         ActionListener {

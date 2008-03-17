@@ -23,6 +23,7 @@ import java.io.File;
 import java.io.IOException;
 import java.util.logging.Logger;
 
+import net.sf.mzmine.desktop.Desktop;
 import net.sf.mzmine.io.IOController;
 import net.sf.mzmine.io.PreloadLevel;
 import net.sf.mzmine.io.RawDataFile;
@@ -31,7 +32,6 @@ import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.taskcontrol.Task;
 import net.sf.mzmine.taskcontrol.TaskController;
 import net.sf.mzmine.taskcontrol.TaskListener;
-import net.sf.mzmine.userinterface.Desktop;
 
 /**
  * IO controller

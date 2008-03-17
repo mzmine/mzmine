@@ -27,10 +27,10 @@ import jmprojection.Sammons;
 import net.sf.mzmine.data.Parameter;
 import net.sf.mzmine.data.Peak;
 import net.sf.mzmine.data.PeakListRow;
+import net.sf.mzmine.desktop.Desktop;
 import net.sf.mzmine.io.RawDataFile;
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.project.MZmineProject;
-import net.sf.mzmine.userinterface.Desktop;
 
 import org.jfree.data.xy.AbstractXYDataset;
 

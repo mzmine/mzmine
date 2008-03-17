@@ -29,7 +29,7 @@ import javax.swing.border.Border;
 import javax.swing.table.TableCellRenderer;
 
 import net.sf.mzmine.data.PeakStatus;
-import net.sf.mzmine.userinterface.components.ColorCircle;
+import net.sf.mzmine.util.components.ColorCircle;
 
 import org.jfree.ui.OverlayLayout;
 

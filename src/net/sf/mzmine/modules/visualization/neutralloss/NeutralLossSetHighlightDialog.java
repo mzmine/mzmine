@@ -35,7 +35,7 @@ import javax.swing.JDialog;
 import javax.swing.JFormattedTextField;
 import javax.swing.JPanel;
 
-import net.sf.mzmine.userinterface.Desktop;
+import net.sf.mzmine.desktop.Desktop;
 import net.sf.mzmine.util.GUIUtils;
 
 /**

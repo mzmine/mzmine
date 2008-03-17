@@ -28,11 +28,11 @@ import javax.swing.JOptionPane;
 
 import net.sf.mzmine.data.ParameterSet;
 import net.sf.mzmine.data.StorableParameterSet;
+import net.sf.mzmine.desktop.Desktop;
+import net.sf.mzmine.desktop.impl.MainWindow;
 import net.sf.mzmine.io.IOController;
 import net.sf.mzmine.project.MZmineProject;
 import net.sf.mzmine.taskcontrol.TaskController;
-import net.sf.mzmine.userinterface.Desktop;
-import net.sf.mzmine.userinterface.mainwindow.MainWindow;
 import net.sf.mzmine.util.NumberFormatter;
 
 import org.dom4j.Document;

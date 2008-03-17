@@ -36,9 +36,9 @@ import javax.swing.JScrollPane;
 import javax.swing.border.EmptyBorder;
 
 import net.sf.mzmine.data.impl.SimpleParameterSet;
+import net.sf.mzmine.desktop.Desktop;
 import net.sf.mzmine.io.RawDataFile;
-import net.sf.mzmine.userinterface.Desktop;
-import net.sf.mzmine.userinterface.dialogs.ExitCode;
+import net.sf.mzmine.util.dialogs.ExitCode;
 
 public class RTMZSetupDialog extends JDialog implements java.awt.event.ActionListener {
 

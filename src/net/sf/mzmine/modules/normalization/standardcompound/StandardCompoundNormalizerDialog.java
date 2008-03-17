@@ -39,10 +39,10 @@ import javax.swing.ScrollPaneConstants;
 import net.sf.mzmine.data.PeakList;
 import net.sf.mzmine.data.PeakListRow;
 import net.sf.mzmine.main.MZmineCore;
-import net.sf.mzmine.userinterface.components.ExtendedCheckBox;
-import net.sf.mzmine.userinterface.dialogs.ParameterSetupDialog;
 import net.sf.mzmine.util.GUIUtils;
 import net.sf.mzmine.util.PeakListRowSorterByMZ;
+import net.sf.mzmine.util.components.ExtendedCheckBox;
+import net.sf.mzmine.util.dialogs.ParameterSetupDialog;
 
 class StandardCompoundNormalizerDialog extends ParameterSetupDialog {
 

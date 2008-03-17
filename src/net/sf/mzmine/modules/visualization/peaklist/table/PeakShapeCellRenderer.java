@@ -29,7 +29,7 @@ import javax.swing.table.TableCellRenderer;
 import net.sf.mzmine.data.Peak;
 import net.sf.mzmine.data.PeakList;
 import net.sf.mzmine.modules.visualization.peaklist.PeakListTableParameters;
-import net.sf.mzmine.userinterface.components.PeakXICComponent;
+import net.sf.mzmine.util.components.PeakXICComponent;
 
 import org.jfree.ui.OverlayLayout;
 
