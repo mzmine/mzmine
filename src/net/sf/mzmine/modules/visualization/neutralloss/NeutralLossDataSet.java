@@ -93,8 +93,8 @@ class NeutralLossDataSet extends AbstractXYDataset implements RawDataAcceptor, X
         // get m/z and intensity values
         DataPoint scanDataPoints[] = scan.getDataPoints();
         
-        // skip empty scans, or scans that only contain zero intensity peaks
-        if (scan.getBasePeakIntensity() == 0) return;
+        // skip empty scans
+        if (scan.getBasePeak() == null) return;
 
         // topPeaks will contain indexes to mzValues peaks of top intensity
         int topPeaks[] = new int[numOfFragments];

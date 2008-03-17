@@ -21,8 +21,8 @@ package net.sf.mzmine.io.impl;
 
 import java.io.File;
 import java.io.FileNotFoundException;
-import java.io.RandomAccessFile;
 import java.io.IOException;
+import java.io.RandomAccessFile;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Enumeration;
@@ -32,6 +32,7 @@ import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import net.sf.mzmine.data.DataPoint;
 import net.sf.mzmine.data.Scan;
 import net.sf.mzmine.data.impl.SimpleScan;
 import net.sf.mzmine.io.PreloadLevel;
@@ -152,16 +153,14 @@ class RawDataFileImpl implements RawDataFile, RawDataFileWriter {
             return minMZ.floatValue();
 
         // find the value
-        Enumeration<Scan> scansEnum = scans.elements();
-        while (scansEnum.hasMoreElements()) {
-            Scan scan = scansEnum.nextElement();
+        for (Scan scan : scans.values()) {
 
             // ignore scans of other ms levels
             if ((msLevel != 0) && (scan.getMSLevel() != msLevel))
                 continue;
 
-            if ((minMZ == null) || (scan.getMZRangeMin() < minMZ))
-                minMZ = scan.getMZRangeMin();
+            if ((minMZ == null) || (scan.getMZRange().getMin() < minMZ))
+                minMZ = scan.getMZRange().getMin();
         }
 
         // return -1 if no scan at this MS level
@@ -189,16 +188,14 @@ class RawDataFileImpl implements RawDataFile, RawDataFileWriter {
             return maxMZ.floatValue();
 
         // find the value
-        Enumeration<Scan> scansEnum = scans.elements();
-        while (scansEnum.hasMoreElements()) {
-            Scan scan = scansEnum.nextElement();
+        for (Scan scan : scans.values()) {
 
             // ignore scans of other ms levels
             if ((msLevel != 0) && (scan.getMSLevel() != msLevel))
                 continue;
 
-            if ((maxMZ == null) || (scan.getMZRangeMax() > maxMZ))
-                maxMZ = scan.getMZRangeMax();
+            if ((maxMZ == null) || (scan.getMZRange().getMax() > maxMZ))
+                maxMZ = scan.getMZRange().getMax();
 
         }
 
@@ -381,10 +378,13 @@ class RawDataFileImpl implements RawDataFile, RawDataFileWriter {
             // ignore scans of other ms levels
             if (scan.getMSLevel() != msLevel)
                 continue;
+            
+            DataPoint scanBasePeak = scan.getBasePeak();
+            if (scanBasePeak == null) continue;
 
             if ((maxBasePeak == null)
-                    || (scan.getBasePeakIntensity() > maxBasePeak))
-                maxBasePeak = scan.getBasePeakIntensity();
+                    || (scanBasePeak.getIntensity() > maxBasePeak))
+                maxBasePeak = scanBasePeak.getIntensity();
 
         }
 

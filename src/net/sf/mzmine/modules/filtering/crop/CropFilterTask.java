@@ -94,7 +94,7 @@ class CropFilterTask implements Task {
     public RawDataFile getDataFile() {
         return dataFile;
     }
-    
+
     /**
      * @see net.sf.mzmine.taskcontrol.Task#cancel()
      */
@@ -112,10 +112,9 @@ class CropFilterTask implements Task {
         try {
 
             // Create new temporary file
-            String newName = dataFile.getFileName() + " " +  suffix;            
-            RawDataFileWriter rawDataFileWriter = 
-            	MZmineCore.getIOController().createNewFile(
-            		newName,suffix,dataFile.getPreloadLevel());
+            String newName = dataFile.getFileName() + " " + suffix;
+            RawDataFileWriter rawDataFileWriter = MZmineCore.getIOController().createNewFile(
+                    newName, suffix, dataFile.getPreloadLevel());
 
             // Get all scans
             int[] scanNumbers = dataFile.getScanNumbers();
@@ -139,14 +138,15 @@ class CropFilterTask implements Task {
                     // scan is a fragmentation scan. In such case we copy the
                     // scan unmodified.
                     if ((oldScan.getMSLevel() > 1)
-                            || ((oldScan.getMZRangeMin() >= minMZ) && (oldScan.getMZRangeMax() <= maxMZ))) {
+                            || (oldScan.getMZRange().containsRange(minMZ, maxMZ))) {
                         rawDataFileWriter.addScan(oldScan);
                         filteredScans++;
                         continue;
                     }
 
                     // Pickup datapoints inside the m/z range
-                    DataPoint croppedDataPoints[] = oldScan.getDataPoints(minMZ, maxMZ);
+                    DataPoint croppedDataPoints[] = oldScan.getDataPoints(
+                            minMZ, maxMZ);
 
                     // Create updated scan
                     SimpleScan newScan = new SimpleScan(oldScan);
@@ -166,7 +166,7 @@ class CropFilterTask implements Task {
             MZmineCore.getCurrentProject().addFile(filteredRawDataFile);
 
             // Remove the original file if requested
-            if (removeOriginal) 
+            if (removeOriginal)
                 MZmineCore.getCurrentProject().removeFile(dataFile);
 
             status = TaskStatus.FINISHED;
@@ -178,5 +178,4 @@ class CropFilterTask implements Task {
         }
 
     }
-
 }

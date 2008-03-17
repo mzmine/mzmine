@@ -19,8 +19,6 @@
 
 package net.sf.mzmine.io.impl;
 
-import java.io.File;
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.RandomAccessFile;
 import java.nio.ByteBuffer;
@@ -32,7 +30,7 @@ import net.sf.mzmine.data.DataPoint;
 import net.sf.mzmine.data.Scan;
 import net.sf.mzmine.data.impl.SimpleDataPoint;
 import net.sf.mzmine.io.RawDataFile;
-import net.sf.mzmine.main.MZmineCore;
+import net.sf.mzmine.util.Range;
 
 /**
  * Simple implementation of the Scan interface.
@@ -45,15 +43,16 @@ public class StorableScan implements Scan {
     private float precursorMZ;
     private int precursorCharge;
     private float retentionTime;
-    private float mzRangeMin, mzRangeMax;
-    private float basePeakMZ, basePeakIntensity, totalIonCurrent;
+    private Range mzRange;
+    private DataPoint basePeak;
+    private float totalIonCurrent;
     private boolean centroided;
-    
+
     private long storageFileOffset;
     private int storageArrayByteLength;
     private int numberOfDataPoints;
     private RawDataFile rawDataFile;
-    
+
     /**
      * Clone constructor
      */
@@ -73,7 +72,7 @@ public class StorableScan implements Scan {
 
         // check assumptions about proper scan data
         assert (msLevel == 1) || (parentScan > 0);
-        
+
         // save rawDataFile file reference
         this.rawDataFile = rawDataFile;
 
@@ -149,7 +148,7 @@ public class StorableScan implements Scan {
     /**
      * @param dataPoints New datapoints
      */
-    public void setDataPoints(DataPoint[] dataPoints) {
+    void setDataPoints(DataPoint[] dataPoints) {
 
         numberOfDataPoints = dataPoints.length;
 
@@ -181,32 +180,26 @@ public class StorableScan implements Scan {
 
         // find m/z range and base peak
         if (dataPoints.length > 0) {
-            mzRangeMin = dataPoints[0].getMZ();
-            mzRangeMax = dataPoints[0].getMZ();
-            basePeakMZ = dataPoints[0].getMZ();
-            basePeakIntensity = dataPoints[0].getIntensity();
-            for (int i = 1; i < dataPoints.length; i++) {
-                if (mzRangeMin > dataPoints[i].getMZ())
-                    mzRangeMin = dataPoints[i].getMZ();
-                if (mzRangeMax < dataPoints[i].getMZ())
-                    mzRangeMax = dataPoints[i].getMZ();
-                if (basePeakIntensity < dataPoints[i].getIntensity()) {
-                    basePeakIntensity = dataPoints[i].getIntensity();
-                    basePeakMZ = dataPoints[i].getMZ();
-                }
-            }
 
-            // calculate TIC
-            totalIonCurrent = 0;
-            for (DataPoint dp : dataPoints)
+            basePeak = dataPoints[0];
+            mzRange = new Range(dataPoints[0].getMZ(),
+                    dataPoints[0].getMZ());
+
+            for (DataPoint dp : dataPoints) {
+
+                if (dp.getIntensity() > basePeak.getIntensity())
+                    basePeak = dp;
+
+                mzRange.addValue(dp.getMZ());
+
                 totalIonCurrent += dp.getIntensity();
+
+            }
 
         } else {
             // Empty scan, so no m/z range or base peak
-            mzRangeMin = 0;
-            mzRangeMax = mzRangeMin;
-            basePeakMZ = 0;
-            basePeakIntensity = 0;
+            mzRange = new Range(0, 0);
+            basePeak = null;
             totalIonCurrent = 0;
         }
 
@@ -227,24 +220,10 @@ public class StorableScan implements Scan {
     }
 
     /**
-     * @param scanNumber The scanNumber to set.
-     */
-    public void setScanNumber(int scanNumber) {
-        this.scanNumber = scanNumber;
-    }
-
-    /**
      * @see net.sf.mzmine.data.Scan#getMSLevel()
      */
     public int getMSLevel() {
         return msLevel;
-    }
-
-    /**
-     * @param msLevel The msLevel to set.
-     */
-    public void setMSLevel(int msLevel) {
-        this.msLevel = msLevel;
     }
 
     /**
@@ -255,24 +234,10 @@ public class StorableScan implements Scan {
     }
 
     /**
-     * @param precursorMZ The precursorMZ to set.
-     */
-    public void setPrecursorMZ(float precursorMZ) {
-        this.precursorMZ = precursorMZ;
-    }
-
-    /**
      * @return Returns the precursorCharge.
      */
     public int getPrecursorCharge() {
         return precursorCharge;
-    }
-
-    /**
-     * @param precursorCharge The precursorCharge to set.
-     */
-    public void setPrecursorCharge(int precursorCharge) {
-        this.precursorCharge = precursorCharge;
     }
 
     /**
@@ -283,66 +248,17 @@ public class StorableScan implements Scan {
     }
 
     /**
-     * @param retentionTime The retentionTime to set.
-     */
-    public void setRetentionTime(float retentionTime) {
-        this.retentionTime = retentionTime;
-    }
-
-    /**
-     * @see net.sf.mzmine.data.Scan#getMZRangeMin()
-     */
-    public float getMZRangeMin() {
-        return mzRangeMin;
-    }
-
-    /**
-     * @param mzRangeMin The mzRangeMin to set.
-     */
-    public void setMZRangeMin(float mzRangeMin) {
-        this.mzRangeMin = mzRangeMin;
-    }
-
-    /**
      * @see net.sf.mzmine.data.Scan#getMZRangeMax()
      */
-    public float getMZRangeMax() {
-        return mzRangeMax;
-    }
-
-    /**
-     * @param mzRangeMax The mzRangeMax to set.
-     */
-    public void setMZRangeMax(float mzRangeMax) {
-        this.mzRangeMax = mzRangeMax;
+    public Range getMZRange() {
+        return mzRange;
     }
 
     /**
      * @see net.sf.mzmine.data.Scan#getBasePeakMZ()
      */
-    public float getBasePeakMZ() {
-        return basePeakMZ;
-    }
-
-    /**
-     * @param basePeakMZ The basePeakMZ to set.
-     */
-    public void setBasePeakMZ(float basePeakMZ) {
-        this.basePeakMZ = basePeakMZ;
-    }
-
-    /**
-     * @see net.sf.mzmine.data.Scan#getBasePeakIntensity()
-     */
-    public float getBasePeakIntensity() {
-        return basePeakIntensity;
-    }
-
-    /**
-     * @param basePeakIntensity The basePeakIntensity to set.
-     */
-    public void setBasePeakIntensity(float basePeakIntensity) {
-        this.basePeakIntensity = basePeakIntensity;
+    public DataPoint getBasePeak() {
+        return basePeak;
     }
 
     /**
@@ -369,7 +285,7 @@ public class StorableScan implements Scan {
     /**
      * @param fragmentScans The fragmentScans to set.
      */
-    public void setFragmentScanNumbers(int[] fragmentScans) {
+    void setFragmentScanNumbers(int[] fragmentScans) {
         this.fragmentScans = fragmentScans;
     }
 
@@ -380,27 +296,14 @@ public class StorableScan implements Scan {
         return centroided;
     }
 
-    /**
-     * @param centroided Is scan centroided?
-     */
-    public void setCentroided(boolean centroided) {
-        this.centroided = centroided;
-    }
-
-    /**
-     * @see net.sf.mzmine.data.Scan#getMassTolerance()
-     */
-    public float getMassTolerance() {
-        return 0.5f;
-    }
-
     public float getTIC() {
         return totalIonCurrent;
     }
-    private Object readResolve(){
-    	
-		logger = Logger.getLogger(this.getClass().getName());
-    	return this;
+
+    private Object readResolve() {
+
+        logger = Logger.getLogger(this.getClass().getName());
+        return this;
     }
 
 }

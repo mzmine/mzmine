@@ -20,7 +20,6 @@
 package net.sf.mzmine.modules.visualization.twod;
 
 import java.util.Arrays;
-import java.util.logging.Logger;
 
 import net.sf.mzmine.data.DataPoint;
 import net.sf.mzmine.data.Scan;
@@ -40,10 +39,7 @@ import org.jfree.data.xy.AbstractXYDataset;
  */
 class TwoDDataSet extends AbstractXYDataset implements RawDataAcceptor {
 
-    private Logger logger = Logger.getLogger(this.getClass().getName());
-
     private RawDataFile rawDataFile;
-    private TwoDVisualizerWindow visualizer;
 
     private float retentionTimes[];
     private float basePeaks[];
@@ -56,7 +52,6 @@ class TwoDDataSet extends AbstractXYDataset implements RawDataAcceptor {
             float mzMin, float mzMax, TwoDVisualizerWindow visualizer) {
 
         this.rawDataFile = rawDataFile;
-        this.visualizer = visualizer;
 
         totalRTMin = rtMin;
         totalRTMax = rtMax;
@@ -83,8 +78,9 @@ class TwoDDataSet extends AbstractXYDataset implements RawDataAcceptor {
      */
     public void addScan(Scan scan, int index, int total) {
 
+        DataPoint scanBasePeak = scan.getBasePeak();
         retentionTimes[index] = scan.getRetentionTime();
-        basePeaks[index] = scan.getBasePeakIntensity();
+        basePeaks[index] = (scanBasePeak == null ? 0 : scanBasePeak.getIntensity());
         dataPointMatrix[index] = scan.getDataPoints(totalMZMin, totalMZMax);
         loadedScans++;
 
@@ -213,10 +209,8 @@ class TwoDDataSet extends AbstractXYDataset implements RawDataAcceptor {
                 return dataPoints[startMZIndex - 1].getIntensity();
 
             // find which data point is closer
-            float diffNext = dataPoints[startMZIndex].getMZ()
-                    - mzMax;
-            float diffPrev = mzMin
-                    - dataPoints[startMZIndex - 1].getMZ();
+            float diffNext = dataPoints[startMZIndex].getMZ() - mzMax;
+            float diffPrev = mzMin - dataPoints[startMZIndex - 1].getMZ();
 
             if (diffPrev < diffNext)
                 return dataPoints[startMZIndex - 1].getIntensity();

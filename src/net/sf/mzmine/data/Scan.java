@@ -19,6 +19,8 @@
 
 package net.sf.mzmine.data;
 
+import net.sf.mzmine.util.Range;
+
 /**
  * This class represent one spectrum of a raw data file.
  */
@@ -38,42 +40,27 @@ public interface Scan {
 
     /**
      * 
-     * @return Mass tolerance in m/z, depending on instrument precision
-     */
-    public float getMassTolerance();
-
-    /**
-     * 
-     * @return Retention time of this scan
+     * @return Retention time of this scan in seconds
      */
     public float getRetentionTime();
 
     /**
+     * Returns the m/z range of this Scan. Never returns null.
      * 
-     * @return Minimum m/z of this scan
+     * @return m/z range of this Scan
      */
-    public float getMZRangeMin();
+    public Range getMZRange();
 
     /**
+     * Returns the top intensity data point. May return null if there are no
+     * data points in this Scan.
      * 
-     * @return Maxmimum m/z of this scan
+     * @return Base peak
      */
-    public float getMZRangeMax();
+    public DataPoint getBasePeak();
 
     /**
-     * 
-     * @return Base peak m/z
-     */
-    public float getBasePeakMZ();
-
-    /**
-     * 
-     * @return Base peak intensity
-     */
-    public float getBasePeakIntensity();
-
-    /**
-     * 
+     * Returns the sum of intensities of all data points.
      * @return Total ion current
      */
     public float getTIC();

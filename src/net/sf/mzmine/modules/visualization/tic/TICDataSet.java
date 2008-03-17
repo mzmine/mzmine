@@ -109,35 +109,32 @@ class TICDataSet extends AbstractXYZDataset implements RawDataAcceptor,
     public void addScan(final Scan scan, int index, int total) {
 
         float totalIntensity = 0;
+        DataPoint basePeak = null;
+
+        if (scan.getMZRange().isWithin(mzMin, mzMax)) {
+            basePeak = scan.getBasePeak();
+        } else {
+            basePeak = ScanUtils.findBasePeak(scan, mzMin, mzMax);
+        }
+
+        if (basePeak != null)
+            basePeakValues[index] = basePeak.getMZ();
 
         if (visualizer.getPlotType() == TICVisualizerParameters.plotTypeTIC) {
-            if ((mzMin <= scan.getMZRangeMin())
-                    && (mzMax >= scan.getMZRangeMax())) {
+            if (scan.getMZRange().isWithin(mzMin, mzMax)) {
                 totalIntensity = scan.getTIC();
             } else {
                 DataPoint dataPoints[] = scan.getDataPoints(mzMin, mzMax);
                 for (int j = 0; j < dataPoints.length; j++) {
-                        totalIntensity += dataPoints[j].getIntensity();
+                    totalIntensity += dataPoints[j].getIntensity();
                 }
             }
-            basePeakValues[index] = scan.getBasePeakMZ();
+
         }
 
         if (visualizer.getPlotType() == TICVisualizerParameters.plotTypeBP) {
-            if ((mzMin <= scan.getMZRangeMin())
-                    && (mzMax >= scan.getMZRangeMax())) {
-                basePeakValues[index] = scan.getBasePeakMZ();
-                totalIntensity = scan.getBasePeakIntensity();
-            } else {
-                DataPoint basePeak = ScanUtils.findBasePeak(scan, mzMin, mzMax);
-                if (basePeak != null) {
-                    basePeakValues[index] = basePeak.getMZ();
-                    totalIntensity = basePeak.getIntensity();
-                } else {
-                    totalIntensity = 0;
-                }
-            }
-
+            if (basePeak != null)
+                totalIntensity = basePeak.getIntensity();
         }
 
         if (index == 0) {

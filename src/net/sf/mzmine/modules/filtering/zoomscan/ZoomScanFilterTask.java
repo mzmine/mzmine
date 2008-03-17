@@ -107,10 +107,9 @@ class ZoomScanFilterTask implements Task {
         try {
 
             // Create new temporary file
-            String newName = dataFile.getFileName() + " " +  suffix;            
-            RawDataFileWriter rawDataFileWriter = 
-            	MZmineCore.getIOController().createNewFile(
-            		newName,suffix,dataFile.getPreloadLevel());
+            String newName = dataFile.getFileName() + " " + suffix;
+            RawDataFileWriter rawDataFileWriter = MZmineCore.getIOController().createNewFile(
+                    newName, suffix, dataFile.getPreloadLevel());
 
             // Get all scans
             int[] scanNumbers = dataFile.getScanNumbers();
@@ -121,16 +120,13 @@ class ZoomScanFilterTask implements Task {
 
                 if (status == TaskStatus.CANCELED)
                     return;
-                
+
                 // Get next scan
                 Scan oldScan = dataFile.getScan(scanNumbers[scani]);
 
-                // Get mz range
-                float mzRange = oldScan.getMZRangeMax()
-                        - oldScan.getMZRangeMin();
-
                 // Leave all scans of MS levels >1 and appropriate m/z range
-                if ((oldScan.getMSLevel() != 1) || (mzRange >= minMZRange)) {
+                if ((oldScan.getMSLevel() != 1)
+                        || (oldScan.getMZRange().getSize() >= minMZRange)) {
                     rawDataFileWriter.addScan(oldScan);
                 }
 
