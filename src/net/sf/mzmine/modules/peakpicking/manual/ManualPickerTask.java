@@ -23,8 +23,8 @@ import java.util.logging.Logger;
 
 import net.sf.mzmine.data.DataPoint;
 import net.sf.mzmine.data.PeakListRow;
+import net.sf.mzmine.data.PeakStatus;
 import net.sf.mzmine.data.Scan;
-import net.sf.mzmine.data.Peak.PeakStatus;
 import net.sf.mzmine.io.RawDataFile;
 import net.sf.mzmine.taskcontrol.Task;
 import net.sf.mzmine.util.ScanUtils;
@@ -89,7 +89,7 @@ class ManualPickerTask implements Task {
 
     public void run() {
 
-        status = TaskStatus.PROCESSING;
+        /*status = TaskStatus.PROCESSING;
 
         logger.finest("Starting manual peak picker, RT: " + minRT + " - "
                 + maxRT + ", m/z: " + minMZ + " - " + maxMZ);
@@ -132,7 +132,7 @@ class ManualPickerTask implements Task {
                 + " scans processed");
 
         status = TaskStatus.FINISHED;
-
+*/
     }
 
 }

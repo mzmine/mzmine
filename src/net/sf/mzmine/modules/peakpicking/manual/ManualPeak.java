@@ -158,7 +158,7 @@ class ManualPeak implements Peak {
 
         // Update construction time variables
 
-        if (dataPoint.getRT() < minRT)
+   /*     if (dataPoint.getRT() < minRT)
             minRT = dataPoint.getRT();
         if (dataPoint.getRT() > maxRT)
             maxRT = dataPoint.getRT();
@@ -212,7 +212,7 @@ class ManualPeak implements Peak {
             mzArray[i] = dataPointMap.get(allScanNumbers[i]).getMZ();
         }
         this.mz = MathUtils.calcQuantile(mzArray, 0.5f);
-
+*/
     }
 
 }

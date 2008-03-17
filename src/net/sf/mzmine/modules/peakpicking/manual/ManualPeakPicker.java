@@ -24,25 +24,21 @@ import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
 import java.util.logging.Logger;
 
-import net.sf.mzmine.data.Parameter;
 import net.sf.mzmine.data.ParameterSet;
-import net.sf.mzmine.data.ParameterType;
-import net.sf.mzmine.data.Peak;
 import net.sf.mzmine.data.PeakList;
-import net.sf.mzmine.data.impl.SimpleParameter;
 import net.sf.mzmine.data.impl.SimpleParameterSet;
+import net.sf.mzmine.desktop.Desktop;
+import net.sf.mzmine.desktop.MZmineMenu;
 import net.sf.mzmine.io.RawDataFile;
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.modules.batchmode.BatchStepPeakPicking;
+import net.sf.mzmine.modules.peakpicking.accuratemass.AccurateMassPickerParameters;
 import net.sf.mzmine.taskcontrol.Task;
 import net.sf.mzmine.taskcontrol.TaskGroup;
 import net.sf.mzmine.taskcontrol.TaskGroupListener;
 import net.sf.mzmine.taskcontrol.TaskListener;
-import net.sf.mzmine.userinterface.Desktop;
-import net.sf.mzmine.userinterface.Desktop.MZmineMenu;
-import net.sf.mzmine.userinterface.dialogs.ExitCode;
-import net.sf.mzmine.userinterface.dialogs.ParameterSetupDialog;
-import net.sf.mzmine.util.NumberFormatter;
+import net.sf.mzmine.util.dialogs.ExitCode;
+import net.sf.mzmine.util.dialogs.ParameterSetupDialog;
 
 public class ManualPeakPicker implements BatchStepPeakPicking, TaskListener,
         ActionListener {
@@ -88,15 +84,16 @@ public class ManualPeakPicker implements BatchStepPeakPicking, TaskListener,
     }
 
     public void taskStarted(Task task) {
-        AccurateMassPickerTask rtTask = (AccurateMassPickerTask) task;
-        logger.info("Running accurate mass peak picker on "
-                + rtTask.getDataFile());
+        ManualPickerTask rtTask = (ManualPickerTask) task;
+        /*logger.info("Running accurate mass peak picker on "
+                + rtTask.getDataFile());*/
 
     }
 
     public void taskFinished(Task task) {
 
-        AccurateMassPickerTask rtTask = (AccurateMassPickerTask) task;
+        /*
+        ManualPickerTask rtTask = (ManualPickerTask) task;
 
         if (task.getStatus() == Task.TaskStatus.FINISHED) {
             logger.info("Finished accurate mass peak picker on "
@@ -109,6 +106,7 @@ public class ManualPeakPicker implements BatchStepPeakPicking, TaskListener,
             logger.severe(msg);
             desktop.displayErrorMessage(msg);
         }
+        */
 
     }
 
@@ -158,7 +156,7 @@ public class ManualPeakPicker implements BatchStepPeakPicking, TaskListener,
         }
 
         // prepare a new group of tasks
-        Task tasks[] = new AccurateMassPickerTask[dataFiles.length];
+/*        Task tasks[] = new AccurateMassPickerTask[dataFiles.length];
         for (int i = 0; i < dataFiles.length; i++) {
             tasks[i] = new AccurateMassPickerTask(dataFiles[i],
                     (AccurateMassPickerParameters) parameters);
@@ -167,11 +165,12 @@ public class ManualPeakPicker implements BatchStepPeakPicking, TaskListener,
 
         // start the group
         newGroup.start();
-
-        return newGroup;
+*/
+        return null;
 
     }
 
+    /*
     float minRT, maxRT, minMZ, maxMZ;
     if (clickedPeak != null) {
         minRT = clickedPeak.getRawDataPointMinRT();
@@ -240,4 +239,5 @@ public class ManualPeakPicker implements BatchStepPeakPicking, TaskListener,
             maxMZ);
 
     MZmineCore.getTaskController().addTask(task);
+    */
 }
