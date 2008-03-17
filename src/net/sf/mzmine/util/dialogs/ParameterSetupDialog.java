@@ -20,6 +20,7 @@
 package net.sf.mzmine.util.dialogs;
 
 import java.awt.BorderLayout;
+import java.awt.FlowLayout;
 import java.awt.GridLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -43,6 +44,8 @@ import javax.swing.JTextField;
 import net.sf.mzmine.data.Parameter;
 import net.sf.mzmine.data.impl.SimpleParameterSet;
 import net.sf.mzmine.main.MZmineCore;
+import net.sf.mzmine.util.GUIUtils;
+import net.sf.mzmine.util.Range;
 
 /**
  * This class represents the parameter setup dialog shown to the user before
@@ -50,8 +53,6 @@ import net.sf.mzmine.main.MZmineCore;
  * 
  * TODO: this class needs to be easily inheritable, modules should be able to
  * add their own components
- * 
- * TODO: add support for RANGE type parameters
  * 
  */
 public class ParameterSetupDialog extends JDialog implements ActionListener {
@@ -149,7 +150,7 @@ public class ParameterSetupDialog extends JDialog implements ActionListener {
             NumberFormat format = p.getNumberFormat();
             if (format == null)
                 format = NumberFormat.getNumberInstance();
-            
+
             switch (p.getType()) {
             case STRING:
                 comp = new JTextField();
@@ -161,15 +162,20 @@ public class ParameterSetupDialog extends JDialog implements ActionListener {
                 txtField.setColumns(TEXTFIELD_COLUMNS);
                 comp = txtField;
                 break;
-                
+
             case RANGE:
-                
-                JFormattedTextField minTxtField = new JFormattedTextField(format);
-                JFormattedTextField maxTxtField = new JFormattedTextField(format);
+
+                JFormattedTextField minTxtField = new JFormattedTextField(
+                        format);
+                JFormattedTextField maxTxtField = new JFormattedTextField(
+                        format);
                 minTxtField.setColumns(TEXTFIELD_COLUMNS);
                 maxTxtField.setColumns(TEXTFIELD_COLUMNS);
-                
-                //comp = txtField;
+                JPanel panel = new JPanel(new FlowLayout());
+                panel.add(minTxtField);
+                GUIUtils.addLabel(panel, " - ");
+                panel.add(maxTxtField);
+                comp = panel;
                 break;
 
             case BOOLEAN:
@@ -261,6 +267,15 @@ public class ParameterSetupDialog extends JDialog implements ActionListener {
                         Float newFloatValue = ((Number) doubleField.getValue()).floatValue();
                         parameters.setParameterValue(p, newFloatValue);
                         break;
+                    case RANGE:
+                        JPanel panel = (JPanel) parametersAndComponents.get(p);
+                        JFormattedTextField minField = (JFormattedTextField) panel.getComponent(0);
+                        JFormattedTextField maxField = (JFormattedTextField) panel.getComponent(2);
+                        float minValue = ((Number) minField.getValue()).floatValue();
+                        float maxValue = ((Number) maxField.getValue()).floatValue();
+                        Range rangeValue = new Range(minValue, maxValue);
+                        parameters.setParameterValue(p, rangeValue);
+                        break;
                     case STRING:
                         JTextField stringField = (JTextField) parametersAndComponents.get(p);
                         parameters.setParameterValue(p, stringField.getText());
@@ -337,6 +352,14 @@ public class ParameterSetupDialog extends JDialog implements ActionListener {
         case FLOAT:
             JFormattedTextField txtField = (JFormattedTextField) component;
             txtField.setValue(value);
+            break;
+        case RANGE:
+            Range valueRange = (Range) value;
+            JPanel panel = (JPanel) component;
+            JFormattedTextField minField = (JFormattedTextField) panel.getComponent(0);
+            minField.setValue(valueRange.getMin());
+            JFormattedTextField maxField = (JFormattedTextField) panel.getComponent(2);
+            maxField.setValue(valueRange.getMax());
             break;
         case BOOLEAN:
             JCheckBox checkBox = (JCheckBox) component;
