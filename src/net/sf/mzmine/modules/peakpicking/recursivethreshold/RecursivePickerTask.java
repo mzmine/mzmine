@@ -296,17 +296,17 @@ class RecursivePickerTask implements Task {
 
                 // If nothing was added,
                 if (!ucPeak.isGrowing()) {
-
+                	
+                	// Finalize peak
+                	ucPeak.finalizedAddingDatapoints(PeakStatus.DETECTED);
+                	
                     // Check length
                     float ucLength = ucPeak.getRawDataPointsRTRange().getSize();
                     float ucHeight = ucPeak.getHeight();
                     if ((ucLength >= minimumPeakDuration)
                             && (ucHeight >= minimumPeakHeight)) {
 
-                        // Good peak, finalized adding datapoints
-                        ucPeak.finalizedAddingDatapoints(PeakStatus.DETECTED);
-
-                        // add it to the peak list
+                        // Good peak, add it to the peak list
                         SimplePeakListRow newRow = new SimplePeakListRow(
                                 newPeakID);
                         newPeakID++;
@@ -358,16 +358,16 @@ class RecursivePickerTask implements Task {
 
         for (RecursivePeak ucPeak : underConstructionPeaks) {
 
+        	// Finalize peak
+        	ucPeak.finalizedAddingDatapoints(PeakStatus.DETECTED);
+        	
             // Check length & height
             float ucLength = ucPeak.getRawDataPointsRTRange().getSize();
             float ucHeight = ucPeak.getHeight();
             if ((ucLength >= minimumPeakDuration)
                     && (ucHeight >= minimumPeakHeight)) {
 
-                // Good peak. finalized adding datapoints
-                ucPeak.finalizedAddingDatapoints(PeakStatus.DETECTED);
-
-                // add it to the peak list
+                // Good peak, add it to the peak list
                 SimplePeakListRow newRow = new SimplePeakListRow(newPeakID);
                 newPeakID++;
                 newRow.addPeak(dataFile, ucPeak, ucPeak);
