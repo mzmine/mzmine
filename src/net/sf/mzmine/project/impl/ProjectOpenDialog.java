@@ -17,7 +17,7 @@
  * Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-package net.sf.mzmine.project.dialogs;
+package net.sf.mzmine.project.impl;
 
 import java.awt.BorderLayout;
 import java.awt.event.ActionEvent;
