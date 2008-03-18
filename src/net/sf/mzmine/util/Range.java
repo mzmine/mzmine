@@ -52,6 +52,15 @@ public class Range {
     }
 
     /**
+     * Copy constructor.
+     * 
+     * @param range Range to copy
+     */
+    public Range(Range range) {
+        this(range.getMin(), range.getMax());
+    }
+
+    /**
      * @return Range minimun
      */
     public float getMin() {
@@ -149,7 +158,7 @@ public class Range {
     public float getSize() {
         return (max - min);
     }
-    
+
     /**
      * Returns the average point of this range.
      * 
