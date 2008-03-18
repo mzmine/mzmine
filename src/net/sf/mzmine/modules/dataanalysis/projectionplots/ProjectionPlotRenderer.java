@@ -33,12 +33,22 @@ public class ProjectionPlotRenderer extends XYLineAndShapeRenderer {
 
 	private Paint[] paintsForGroups;
 
-	private final Paint[] avoidPaints = {new Color(85,255,85)};
+	private final Color[] avoidColors = {new Color(255,255,85)};
 	
 	private static final Shape dataPointsShape = new Ellipse2D.Float(-6, -6, 12,
 			12);
 
 	private ProjectionPlotDataset dataset;
+	
+	private boolean isAvoidColor(Color color) {
+		for (Color c : avoidColors) {
+			if (c.equals(color)) 
+				return true;
+		}
+		
+		return false;
+	}
+	
 
 	public ProjectionPlotRenderer(XYPlot plot, ProjectionPlotDataset dataset) {
 		super(false, true);
@@ -46,19 +56,17 @@ public class ProjectionPlotRenderer extends XYLineAndShapeRenderer {
 		this.setSeriesShape(0, dataPointsShape);
 
 		paintsForGroups = new Paint[dataset.getNumberOfGroups()];
-
-		ArrayList<Paint> avoidPaintsArray = new ArrayList<Paint>();
-		for (Paint p : avoidPaints) avoidPaintsArray.add(p);		
-		
 		DrawingSupplier drawSupp = plot.getDrawingSupplier();
 		for (int groupNumber = 0; groupNumber < dataset.getNumberOfGroups(); groupNumber++) {
-			Paint nextPaint = drawSupp.getNextPaint();
 
-			while (avoidPaintsArray.contains(nextPaint))
+			Paint nextPaint = drawSupp.getNextPaint();
+			while (isAvoidColor((Color)nextPaint))
 				nextPaint = drawSupp.getNextPaint();
-						
-			paintsForGroups[groupNumber] = drawSupp.getNextPaint();
+											
+			paintsForGroups[groupNumber] = nextPaint;
+			
 		}
+		
 	}
 
 	public Paint getItemPaint(int series, int item) {
