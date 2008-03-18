@@ -35,6 +35,9 @@ import net.sf.mzmine.util.Range;
 /**
  * This class is an implementation of the peak interface for peak picking
  * methods.
+ * 
+ * TODO: this class is unnecessarily complicated
+ * 
  */
 class RecursivePeak implements Peak {
 
@@ -146,14 +149,20 @@ class RecursivePeak implements Peak {
     }
 
     public Range getRawDataPointsIntensityRange() {
+        if (precalcRequiredMins)
+            precalculateMins();
         return intensityRange;
     }
 
     public Range getRawDataPointsMZRange() {
+        if (precalcRequiredMins)
+            precalculateMins();
         return mzRange;
     }
 
     public Range getRawDataPointsRTRange() {
+        if (precalcRequiredMins)
+            precalculateMins();
         return rtRange;
     }
 
