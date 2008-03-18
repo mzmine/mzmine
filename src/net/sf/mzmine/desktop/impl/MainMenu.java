@@ -282,7 +282,7 @@ class MainMenu extends JMenuBar implements ActionListener {
 		if (src == projectRestore) {
 			DesktopParameters parameters = (DesktopParameters) MZmineCore
 					.getDesktop().getParameterSet();
-            String lastPath = parameters.getLastOpenPath();
+            String lastPath = parameters.getLastOpenProjectPath();
             if (lastPath == null) lastPath = "";
             File lastDir = new File(lastPath);
             ProjectOpenDialog projectOpenDialog = new ProjectOpenDialog(
@@ -328,7 +328,7 @@ class MainMenu extends JMenuBar implements ActionListener {
 		if (src == projectOpen) {
 			DesktopParameters parameters = (DesktopParameters) MZmineCore
 					.getDesktop().getParameterSet();
-            String lastPath = parameters.getLastOpenProjectPath();
+            String lastPath = parameters.getLastOpenPath();
             if (lastPath == null) lastPath = "";
 			FileOpenDialog fileOpenDialog = new FileOpenDialog(lastPath);
 			fileOpenDialog.setVisible(true);
