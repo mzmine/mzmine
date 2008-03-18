@@ -150,4 +150,12 @@ public class Range {
         return (max - min);
     }
 
+    /**
+     * Returns the String representation
+     * 
+     * @return This range as string
+     */
+    public String toString() {
+        return String.valueOf(min) + " - " + String.valueOf(max);
+    }
 }
