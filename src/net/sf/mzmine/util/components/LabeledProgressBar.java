@@ -57,5 +57,11 @@ public class LabeledProgressBar extends JPanel {
         progressBar.setValue(percent);
         label.setText(percent + "%");
     }
+    
+    public void setValue(float value, String text) {
+        int percent = (int) (value * 100);
+        progressBar.setValue(percent);
+        label.setText(text);
+    }
 
 }
