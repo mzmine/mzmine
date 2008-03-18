@@ -19,45 +19,39 @@
 
 package net.sf.mzmine.modules.peakpicking.manual;
 
+import java.util.Arrays;
 import java.util.logging.Logger;
 
 import net.sf.mzmine.data.DataPoint;
 import net.sf.mzmine.data.PeakListRow;
-import net.sf.mzmine.data.PeakStatus;
 import net.sf.mzmine.data.Scan;
+import net.sf.mzmine.data.impl.SimpleDataPoint;
 import net.sf.mzmine.io.RawDataFile;
 import net.sf.mzmine.taskcontrol.Task;
+import net.sf.mzmine.util.Range;
 import net.sf.mzmine.util.ScanUtils;
-
-// TODO: zero intensity data points may be added to the end of the peak, this
-// should be fixed
 
 class ManualPickerTask implements Task {
 
     private Logger logger = Logger.getLogger(this.getClass().getName());
 
-    private TaskStatus status;
+    private TaskStatus status = TaskStatus.WAITING;
     private String errorMessage;
 
-    private int processedScans;
-    private int totalScans;
+    private int processedScans, totalScans;
 
-    private PeakListRow selectedRow;
-    private RawDataFile selectedFile;
-    private float minRT, maxRT, minMZ, maxMZ;
+    private PeakListRow peakListRow;
+    private RawDataFile dataFiles[];
+    private Range rtRange, mzRange;
 
-    ManualPickerTask(PeakListRow selectedRow, RawDataFile selectedFile,
-            float minRT, float maxRT, float minMZ, float maxMZ) {
+    ManualPickerTask(PeakListRow peakListRow, RawDataFile dataFiles[],
+            ManualPickerParameters parameters) {
 
-        status = TaskStatus.WAITING;
+        this.peakListRow = peakListRow;
+        this.dataFiles = dataFiles;
 
-        this.selectedRow = selectedRow;
-        this.selectedFile = selectedFile;
-
-        this.minRT = minRT;
-        this.maxRT = maxRT;
-        this.minMZ = minMZ;
-        this.maxMZ = maxMZ;
+        rtRange = (Range) parameters.getParameterValue(ManualPickerParameters.retentionTimeRange);
+        mzRange = (Range) parameters.getParameterValue(ManualPickerParameters.mzRange);
 
     }
 
@@ -71,12 +65,8 @@ class ManualPickerTask implements Task {
 
     public float getFinishedPercentage() {
         if (totalScans == 0)
-            return 0.0f;
+            return 0f;
         return (float) processedScans / totalScans;
-    }
-
-    public Object getResult() {
-        return null;
     }
 
     public TaskStatus getStatus() {
@@ -84,55 +74,67 @@ class ManualPickerTask implements Task {
     }
 
     public String getTaskDescription() {
-        return "Manually picking a peak from " + selectedFile;
+        return "Manually picking peaks from " + Arrays.toString(dataFiles);
     }
 
     public void run() {
 
-        /*status = TaskStatus.PROCESSING;
+        status = TaskStatus.PROCESSING;
 
-        logger.finest("Starting manual peak picker, RT: " + minRT + " - "
-                + maxRT + ", m/z: " + minMZ + " - " + maxMZ);
+        logger.finest("Starting manual peak picker, RT: " + rtRange + ", m/z: "
+                + mzRange);
 
-        int[] scanNumbers = selectedFile.getScanNumbers(1, minRT, maxRT);
-        totalScans = scanNumbers.length;
+        // Calculate total number of scans to process
+        for (RawDataFile dataFile : dataFiles) {
+            int[] scanNumbers = dataFile.getScanNumbers(1, rtRange);
+            totalScans += scanNumbers.length;
+        }
 
-        ManualPeak ucPeak = new ManualPeak(selectedFile);
-        boolean dataPointFound = false;
+        // Find peak in each data file
+        for (RawDataFile dataFile : dataFiles) {
 
-        for (int i = 0; i < totalScans; i++) {
+            ManualPeak newPeak = new ManualPeak(dataFile);
+            boolean dataPointFound = false;
 
-            if (status == TaskStatus.CANCELED)
-                return;
+            int[] scanNumbers = dataFile.getScanNumbers(1, rtRange);
 
-            // Get next scan
-            Scan scan = selectedFile.getScan(scanNumbers[i]);
+            for (int scanNumber : scanNumbers) {
 
-            DataPoint basePeak = ScanUtils.findBasePeak(scan, minMZ, maxMZ);
+                if (status == TaskStatus.CANCELED)
+                    return;
 
-            if (basePeak != null) {
-                dataPointFound = true;
-                ucPeak.addDatapoint(scan.getScanNumber(), basePeak.getMZ(),
-                        scan.getRetentionTime(), basePeak.getIntensity());
-            } else if (dataPointFound) {
-                ucPeak.addDatapoint(scan.getScanNumber(), ucPeak.getMZ(),
-                        scan.getRetentionTime(), 0f);
+                // Get next scan
+                Scan scan = dataFile.getScan(scanNumber);
+
+                // Find most intense m/z peak
+                DataPoint basePeak = ScanUtils.findBasePeak(scan, mzRange);
+
+                if (basePeak != null) {
+                    if (basePeak.getIntensity() > 0)
+                        dataPointFound = true;
+                    newPeak.addDatapoint(scan.getScanNumber(), basePeak);
+                } else {
+                    DataPoint fakeDataPoint = new SimpleDataPoint(
+                            mzRange.getAverage(), 0);
+                    newPeak.addDatapoint(scan.getScanNumber(), fakeDataPoint);
+                }
+
+                processedScans++;
+
             }
 
-            processedScans++;
+            if (dataPointFound) {
+                newPeak.finalizePeak();
+                peakListRow.addPeak(dataFile, newPeak, newPeak);
+            }
 
         }
 
-        ucPeak.finalizedAddingDatapoints(PeakStatus.MANUAL);
-
-        if (ucPeak.getHeight() > 0) 
-            selectedRow.addPeak(selectedFile, ucPeak, ucPeak);
-
-        logger.finest("Finished manual peak picker, " + processedScans
+        logger.finest("Finished manual peak picker" + processedScans
                 + " scans processed");
 
         status = TaskStatus.FINISHED;
-*/
+
     }
 
 }

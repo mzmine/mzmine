@@ -32,6 +32,7 @@ import javax.swing.JPopupMenu;
 import net.sf.mzmine.data.Peak;
 import net.sf.mzmine.data.PeakList;
 import net.sf.mzmine.data.PeakListRow;
+import net.sf.mzmine.data.impl.SimplePeakListRow;
 import net.sf.mzmine.desktop.Desktop;
 import net.sf.mzmine.io.RawDataFile;
 import net.sf.mzmine.main.MZmineCore;
@@ -39,6 +40,7 @@ import net.sf.mzmine.modules.dataanalysis.intensityplot.IntensityPlot;
 import net.sf.mzmine.modules.dataanalysis.intensityplot.IntensityPlotDialog;
 import net.sf.mzmine.modules.dataanalysis.intensityplot.IntensityPlotFrame;
 import net.sf.mzmine.modules.dataanalysis.intensityplot.IntensityPlotParameters;
+import net.sf.mzmine.modules.peakpicking.manual.ManualPeakPicker;
 import net.sf.mzmine.modules.visualization.peaklist.table.CommonColumnType;
 import net.sf.mzmine.modules.visualization.peaklist.table.DataFileColumnType;
 import net.sf.mzmine.modules.visualization.peaklist.table.PeakListTable;
@@ -183,35 +185,49 @@ public class PeakListTablePopupMenu extends JPopupMenu implements
                 tic.showNewTICVisualizerWindow(
                         new RawDataFile[] { clickedDataFile },
                         new Peak[] { clickedPeak }, 1,
-                        TICVisualizerParameters.plotTypeBP, clickedDataFile.getDataRTRange(1),
+                        TICVisualizerParameters.plotTypeBP,
+                        clickedDataFile.getDataRTRange(1),
                         clickedPeak.getRawDataPointsMZRange());
 
             } else {
                 Range mzRange = new Range(clickedPeakListRow.getAverageMZ());
-                
+
                 for (Peak peak : clickedPeakListRow.getPeaks()) {
                     if (peak == null)
                         continue;
                     mzRange.extendRange(peak.getRawDataPointsMZRange());
-                    
+
                 }
                 tic.showNewTICVisualizerWindow(
                         new RawDataFile[] { clickedDataFile }, null, 1,
-                        TICVisualizerParameters.plotTypeBP, clickedDataFile.getDataRTRange(1),
-                        mzRange);
+                        TICVisualizerParameters.plotTypeBP,
+                        clickedDataFile.getDataRTRange(1), mzRange);
             }
 
         }
 
         if (src == manuallyDefineItem) {
-
-            Peak clickedPeak = clickedPeakListRow.getPeak(clickedDataFile);
-            // TODO: call manual peak picker            
+            ManualPeakPicker.runManualDetection(clickedDataFile,
+                    clickedPeakListRow);
         }
 
         if (src == addNewRowItem) {
 
-            // TODO: call manual peak picker
+            // find maximum ID and add 1
+            int newID = 1;
+            for (PeakListRow row : peakList.getRows()) {
+                if (row.getID() >= newID)
+                    newID = row.getID() + 1;
+            }
+
+            // create a new row
+            SimplePeakListRow newRow = new SimplePeakListRow(newID);
+            peakList.addRow(newRow);
+            TableSorter sorterModel = (TableSorter) table.getModel();
+            PeakListTableModel originalModel = (PeakListTableModel) sorterModel.getTableModel();
+            originalModel.fireTableDataChanged();
+            ManualPeakPicker.runManualDetection(peakList.getRawDataFiles(),
+                    newRow);
         }
 
     }

@@ -38,8 +38,7 @@ class ManualPeak implements Peak {
     private RawDataFile dataFile;
 
     // Raw M/Z, RT, Height and Area
-    private float mz, rt;
-    private float height, area;
+    private float mz, rt, height, area;
 
     // Boundaries of the peak
     private Range rtRange, mzRange, intensityRange;
@@ -50,18 +49,15 @@ class ManualPeak implements Peak {
      * Initializes empty peak for adding data points
      */
     ManualPeak(RawDataFile dataFile) {
-
-        dataPointMap = new TreeMap<Integer, DataPoint>();
-
         this.dataFile = dataFile;
-
+        dataPointMap = new TreeMap<Integer, DataPoint>();
     }
 
     /**
-     * This peak is always a result of peak detection, therefore DETECTED
+     * This peak is always a result of manual peak detection, therefore MANUAL
      */
     public PeakStatus getPeakStatus() {
-        return PeakStatus.DETECTED;
+        return PeakStatus.MANUAL;
     }
 
     /**
@@ -134,13 +130,6 @@ class ManualPeak implements Peak {
         return dataFile;
     }
 
-    /**
-     * @see net.sf.mzmine.data.Peak#setDataFile()
-     */
-    public void setDataFile(RawDataFile dataFile) {
-        this.dataFile = dataFile;
-    }
-
     public String toString() {
         return PeakUtils.peakToString(this);
     }
@@ -154,51 +143,69 @@ class ManualPeak implements Peak {
      */
     void addDatapoint(int scanNumber, DataPoint dataPoint) {
 
+        float rt = dataFile.getScan(scanNumber).getRetentionTime();
+
+        if (dataPointMap.isEmpty()) {
+            rtRange = new Range(rt);
+            mzRange = new Range(dataPoint.getMZ());
+            intensityRange = new Range(dataPoint.getIntensity());
+        } else {
+            rtRange.extendRange(rt);
+            mzRange.extendRange(dataPoint.getMZ());
+            intensityRange.extendRange(dataPoint.getIntensity());
+        }
+        
         dataPointMap.put(scanNumber, dataPoint);
 
-        // Update construction time variables
+    }
 
-   /*     if (dataPoint.getRT() < minRT)
-            minRT = dataPoint.getRT();
-        if (dataPoint.getRT() > maxRT)
-            maxRT = dataPoint.getRT();
+    void finalizePeak() {
 
-        for (DataPoint rawDataPoint : dataPoint.getRawDataPoints()) {
+        // Trim the zero-intensity data points from the beginning and end
+        while (!dataPointMap.isEmpty()) {
+            int scanNumber = dataPointMap.firstKey();
+            if (dataPointMap.get(scanNumber).getIntensity() > 0)
+                break;
+            dataPointMap.remove(scanNumber);
+        }
+        while (!dataPointMap.isEmpty()) {
+            int scanNumber = dataPointMap.lastKey();
+            if (dataPointMap.get(scanNumber).getIntensity() > 0)
+                break;
+            dataPointMap.remove(scanNumber);
+        }
 
-            // Update m/z boundaries
-            if (rawDataPoint.getMZ() < minMZ)
-                minMZ = rawDataPoint.getMZ();
-            if (rawDataPoint.getMZ() > maxMZ)
-                maxMZ = rawDataPoint.getMZ();
-
-            // Find the data point with top intensity and use its RT and height
-            if (rawDataPoint.getIntensity() > height) {
-                height = rawDataPoint.getIntensity();
-                this.rt = dataPoint.getRT();
-            }
-
+        // Check if we have any data points
+        if (dataPointMap.isEmpty()) {
+            throw (new IllegalStateException(
+                    "Peak can not be finalized without any data points"));
         }
 
         // Get all scan numbers
-        int allScanNumbers[] = CollectionUtils
-                .toIntArray(dataPointMap.keySet());
+        int allScanNumbers[] = CollectionUtils.toIntArray(dataPointMap.keySet());
+
+        // Find the data point with top intensity and use its RT and height
+        for (int i = 0; i < allScanNumbers.length; i++) {
+            DataPoint dataPoint = dataPointMap.get(allScanNumbers[i]);
+            float rt = dataFile.getScan(allScanNumbers[i]).getRetentionTime();
+            if (dataPoint.getIntensity() > height) {
+                height = dataPoint.getIntensity();
+                this.rt = rt;
+            }
+        }
 
         // Calculate peak area
         area = 0f;
         for (int i = 1; i < allScanNumbers.length; i++) {
 
             // X axis interval length
-            float previousRT = dataFile.getScan(allScanNumbers[i - 1])
-                    .getRetentionTime();
-            float thisRT = dataFile.getScan(allScanNumbers[i])
-                    .getRetentionTime();
+            float previousRT = dataFile.getScan(allScanNumbers[i - 1]).getRetentionTime();
+            float thisRT = dataFile.getScan(allScanNumbers[i]).getRetentionTime();
             float rtDifference = thisRT - previousRT;
 
             // Intensity at the beginning and end of the interval
-            float previousIntensity = dataPointMap.get(allScanNumbers[i - 1])
-                    .getIntensity();
-            float thisIntensity = dataPointMap.get(allScanNumbers[i])
-                    .getIntensity();
+            float previousIntensity = dataPointMap.get(allScanNumbers[i - 1]).getIntensity();
+            float thisIntensity = dataPointMap.get(allScanNumbers[i]).getIntensity();
             float averageIntensity = (previousIntensity + thisIntensity) / 2;
 
             // Calculate area of the interval
@@ -212,7 +219,6 @@ class ManualPeak implements Peak {
             mzArray[i] = dataPointMap.get(allScanNumbers[i]).getMZ();
         }
         this.mz = MathUtils.calcQuantile(mzArray, 0.5f);
-*/
-    }
 
+    }
 }
