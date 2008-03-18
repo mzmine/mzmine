@@ -25,19 +25,62 @@ import org.jfree.data.xy.XYZDataset;
 
 public class ProjectionPlotToolTipGenerator implements XYZToolTipGenerator {
 
-	public String generateToolTip(ProjectionPlotDataset dataset, int series, int item) {
-		return dataset.getRawDataFile(item).toString();
+	private enum LabelMode {
+		FileName, FileNameAndParameterValue
+	};
+
+	private LabelMode labelMode;
+
+	ProjectionPlotToolTipGenerator(ProjectionPlotParameters parameters) {
+
+		if (parameters.getParameterValue(ProjectionPlotParameters.coloringType) == ProjectionPlotParameters.ColoringTypeSingleColor)
+			labelMode = LabelMode.FileName;
+
+		if (parameters.getParameterValue(ProjectionPlotParameters.coloringType) == ProjectionPlotParameters.ColoringTypeByFile)
+			labelMode = LabelMode.FileName;
+
+		if (parameters.getParameterValue(ProjectionPlotParameters.coloringType) == ProjectionPlotParameters.ColoringTypeByParameterValue)
+			labelMode = LabelMode.FileNameAndParameterValue;
+
+	}
+
+	private String generateToolTip(ProjectionPlotDataset dataset, int item) {
+
+		
+		switch (labelMode) {
+		
+		case FileName:
+		default:
+			return dataset.getRawDataFile(item).toString();
+
+		case FileNameAndParameterValue:
+			String ret = "<html>";
+			ret += dataset.getRawDataFile(item).toString() + "<br>";
+			ret += "Parameter value: ";
+			
+			int groupNumber = dataset.getGroupNumber(item);
+			Object paramValue = dataset.getGroupParameterValue(groupNumber);
+			if (paramValue != null)
+				ret += paramValue.toString();
+			
+			ret += "</html>";
+			
+			return ret;
+		}
+
 	}
 
 	public String generateToolTip(XYDataset dataset, int series, int item) {
-		if (dataset instanceof ProjectionPlotDataset) 
-			return ((ProjectionPlotDataset)dataset).getRawDataFile(item).toString();
-		return null;
-	}	
+		if (dataset instanceof ProjectionPlotDataset)
+			return generateToolTip((ProjectionPlotDataset)dataset, item);
+		else
+			return null;
+	}
 
 	public String generateToolTip(XYZDataset dataset, int series, int item) {
-		if (dataset instanceof ProjectionPlotDataset) 
-			return ((ProjectionPlotDataset)dataset).getRawDataFile(item).toString();
-		return null;
-	}	
+		if (dataset instanceof ProjectionPlotDataset)
+			return generateToolTip((ProjectionPlotDataset)dataset, item);
+		else
+			return null;
+	}
 }

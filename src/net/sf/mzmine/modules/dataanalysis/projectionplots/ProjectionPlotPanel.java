@@ -19,7 +19,6 @@
 
 package net.sf.mzmine.modules.dataanalysis.projectionplots;
 
-import java.awt.BasicStroke;
 import java.awt.Color;
 import java.awt.Font;
 import java.text.NumberFormat;
@@ -32,7 +31,6 @@ import org.jfree.chart.JFreeChart;
 import org.jfree.chart.LegendItem;
 import org.jfree.chart.LegendItemCollection;
 import org.jfree.chart.axis.NumberAxis;
-import org.jfree.chart.plot.Plot;
 import org.jfree.chart.plot.PlotOrientation;
 import org.jfree.chart.plot.XYPlot;
 import org.jfree.chart.title.TextTitle;
@@ -41,20 +39,16 @@ import org.jfree.ui.RectangleInsets;
 public class ProjectionPlotPanel extends ChartPanel {
 
 	private static final Color gridColor = Color.lightGray;
-	private static final Color crossHairColor = Color.gray;
 	private static final Font titleFont = new Font("SansSerif", Font.PLAIN, 11);
-	// crosshair stroke
-	private static final BasicStroke crossHairStroke = new BasicStroke(1,
-			BasicStroke.CAP_BUTT, BasicStroke.JOIN_BEVEL, 1.0f, new float[] {
-					5, 3 }, 0);
 
 	private JFreeChart chart;
 	private XYPlot plot;
 
+	private ProjectionPlotItemLabelGenerator itemLabelGenerator;
 	private ProjectionPlotRenderer spotRenderer;
 
 	public ProjectionPlotPanel(ProjectionPlotWindow masterFrame,
-			ProjectionPlotDataset dataset) {
+			ProjectionPlotDataset dataset, ProjectionPlotParameters parameters) {
 		super(null);
 
 		boolean createLegend = false;
@@ -90,12 +84,8 @@ public class ProjectionPlotPanel extends ChartPanel {
 		plot.setRangeGridlinePaint(gridColor);
 
 		// set crosshair (selection) properties
-		plot.setDomainCrosshairVisible(true);
-		plot.setRangeCrosshairVisible(true);
-		plot.setDomainCrosshairPaint(crossHairColor);
-		plot.setRangeCrosshairPaint(crossHairColor);
-		plot.setDomainCrosshairStroke(crossHairStroke);
-		plot.setRangeCrosshairStroke(crossHairStroke);
+		plot.setDomainCrosshairVisible(false);
+		plot.setRangeCrosshairVisible(false);
 
 		NumberFormat numberFormat = NumberFormat.getNumberInstance();
 
@@ -110,11 +100,12 @@ public class ProjectionPlotPanel extends ChartPanel {
 		plot.setDataset(dataset);
 
 		spotRenderer = new ProjectionPlotRenderer(plot, dataset);
+		itemLabelGenerator = new ProjectionPlotItemLabelGenerator(parameters);
+		spotRenderer.setBaseItemLabelGenerator(itemLabelGenerator);
+		spotRenderer.setBaseItemLabelsVisible(true);
 		spotRenderer
-				.setBaseItemLabelGenerator(new ProjectionPlotItemLabelGenerator());
-		spotRenderer.setBaseItemLabelsVisible(false);
-		spotRenderer
-				.setBaseToolTipGenerator(new ProjectionPlotToolTipGenerator());
+				.setBaseToolTipGenerator(new ProjectionPlotToolTipGenerator(
+						parameters));
 		plot.setRenderer(spotRenderer);
 
 		// Setup legend
@@ -140,7 +131,7 @@ public class ProjectionPlotPanel extends ChartPanel {
 					paramValue = fileNames;
 				}
 				legendItemsCollection.add(new LegendItem(paramValue.toString(),
-						"-", null, null, Plot.DEFAULT_LEGEND_ITEM_BOX,
+						"-", null, null, spotRenderer.getDataPointsShape(),
 						spotRenderer.getGroupPaint(groupNumber)));
 			}
 			plot.setFixedLegendItems(legendItemsCollection);
@@ -148,4 +139,8 @@ public class ProjectionPlotPanel extends ChartPanel {
 
 	}
 
+	protected void cycleItemLabelMode() {
+		itemLabelGenerator.cycleLabelMode();
+		spotRenderer.setBaseItemLabelsVisible(true);
+	}
 }

@@ -26,11 +26,54 @@ import org.jfree.data.xy.XYZDataset;
 public class ProjectionPlotItemLabelGenerator extends
 		StandardXYItemLabelGenerator {
 
+	private enum LabelMode {None, FileName, ParameterValue};
+	private LabelMode[] labelModes;
+	private int labelModeIndex = 0;
+	
+	ProjectionPlotItemLabelGenerator(ProjectionPlotParameters parameters) {
+		
+		labelModes = new LabelMode[]{LabelMode.None};
+		
+		if (parameters.getParameterValue(ProjectionPlotParameters.coloringType)== ProjectionPlotParameters.ColoringTypeSingleColor)
+			labelModes = new LabelMode[]{LabelMode.None, LabelMode.FileName};
+		
+		if (parameters.getParameterValue(ProjectionPlotParameters.coloringType)== ProjectionPlotParameters.ColoringTypeByFile)
+			labelModes = new LabelMode[]{LabelMode.None, LabelMode.FileName};
+
+		if (parameters.getParameterValue(ProjectionPlotParameters.coloringType)== ProjectionPlotParameters.ColoringTypeByParameterValue)
+			labelModes = new LabelMode[]{LabelMode.None, LabelMode.FileName, LabelMode.ParameterValue};
+	
+	}
+	
+	
+	protected void cycleLabelMode() {
+		labelModeIndex++;
+		
+		if (labelModeIndex >= labelModes.length)
+			labelModeIndex = 0;
+		
+	}
+	
 	public String generateLabel(ProjectionPlotDataset dataset, int series,
 			int item) {
-		return dataset.getRawDataFile(item).toString();
-	}
+		
+		switch (labelModes[labelModeIndex]) {
+		case None:
+		default:
+			return "";
 
+		case FileName:
+			return dataset.getRawDataFile(item).toString();
+
+		case ParameterValue:
+			int groupNumber = dataset.getGroupNumber(item);
+			Object paramValue = dataset.getGroupParameterValue(groupNumber);
+			if (paramValue!=null) return paramValue.toString(); else return "";
+			
+		}
+				
+	}
+	
 	public String generateLabel(XYDataset dataset, int series, int item) {
 		if (dataset instanceof ProjectionPlotDataset)
 			return generateLabel((ProjectionPlotDataset) dataset, series, item);

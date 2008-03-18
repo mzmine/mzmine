@@ -43,7 +43,7 @@ public class ProjectionPlotWindow extends JInternalFrame implements
 		toolbar = new ProjectionPlotToolbar(this);
 		add(toolbar, BorderLayout.EAST);
 
-		plot = new ProjectionPlotPanel(this, dataset);
+		plot = new ProjectionPlotPanel(this, dataset, parameters);
 		add(plot, BorderLayout.CENTER);
 
 		String title = parameters.getSourcePeakList().toString();
@@ -72,10 +72,15 @@ public class ProjectionPlotWindow extends JInternalFrame implements
 		}
 
 		if (command.equals("TOGGLE_LABELS")) {
+			/*
 			XYItemRenderer rend = plot.getChart().getXYPlot().getRenderer();
 			rend.setBaseItemLabelsVisible(!rend.getBaseItemLabelsVisible());
+			*/
+			plot.cycleItemLabelMode();
 		}
 
 	}
+	
+	
 
 }
