@@ -21,6 +21,7 @@ package net.sf.mzmine.desktop.impl;
 
 import java.awt.Color;
 import java.awt.Dimension;
+import java.awt.Font;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.util.logging.Logger;
@@ -31,17 +32,21 @@ import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.border.EtchedBorder;
 
+import net.sf.mzmine.util.components.LabeledProgressBar;
+
 public class Statusbar extends JPanel implements Runnable, MouseListener {
 
     // frequency in milliseconds how often to update free memory label
     public static final int MEMORY_LABEL_UPDATE_FREQUENCY = 1000;
+    public static final int STATUS_BAR_HEIGHT = 20;
+    public static final Font statusBarFont = new Font("SansSerif", Font.PLAIN, 12);
     
     private Logger logger = Logger.getLogger(this.getClass().getName());
 
     private JPanel statusTextPanel, memoryPanel;
-    private JLabel statusTextLabel, memoryLabel;
+    private JLabel statusTextLabel;
+    private LabeledProgressBar memoryLabel;
 
-    private final int statusBarHeight = 25;
 
     Statusbar() {
 
@@ -52,24 +57,25 @@ public class Statusbar extends JPanel implements Runnable, MouseListener {
         statusTextPanel.setLayout(new BoxLayout(statusTextPanel,
                 BoxLayout.X_AXIS));
         statusTextPanel.setBorder(new EtchedBorder(EtchedBorder.RAISED));
-
+        
         statusTextLabel = new JLabel();
-        statusTextLabel.setMinimumSize(new Dimension(100, statusBarHeight));
-        statusTextLabel.setPreferredSize(new Dimension(3200, statusBarHeight));
+        statusTextLabel.setFont(statusBarFont);
+        statusTextLabel.setMinimumSize(new Dimension(100, STATUS_BAR_HEIGHT));
+        statusTextLabel.setPreferredSize(new Dimension(3200, STATUS_BAR_HEIGHT));
 
         statusTextPanel.add(Box.createRigidArea(new Dimension(5,
-                statusBarHeight)));
+                STATUS_BAR_HEIGHT)));
         statusTextPanel.add(statusTextLabel);
 
         add(statusTextPanel);
 
-        memoryLabel = new JLabel("");
+        memoryLabel = new LabeledProgressBar();
         memoryPanel = new JPanel();
         memoryPanel.setLayout(new BoxLayout(memoryPanel, BoxLayout.X_AXIS));
         memoryPanel.setBorder(new EtchedBorder(EtchedBorder.RAISED));
-        memoryPanel.add(Box.createRigidArea(new Dimension(10, statusBarHeight)));
+        memoryPanel.add(Box.createRigidArea(new Dimension(10, STATUS_BAR_HEIGHT)));
         memoryPanel.add(memoryLabel);
-        memoryPanel.add(Box.createRigidArea(new Dimension(10, statusBarHeight)));
+        memoryPanel.add(Box.createRigidArea(new Dimension(10, STATUS_BAR_HEIGHT)));
 
         memoryLabel.addMouseListener(this);
         
@@ -136,9 +142,10 @@ public class Statusbar extends JPanel implements Runnable, MouseListener {
             // get free memory in megabytes
             long freeMem = Runtime.getRuntime().freeMemory() / (1024 * 1024);
             long totalMem = Runtime.getRuntime().totalMemory() / (1024 * 1024);
-
-            memoryLabel.setText(freeMem + "MB free");
-            memoryLabel.setToolTipText("JVM memory: " + freeMem + "MB free, "
+            float fullMem = ((float) (totalMem - freeMem)) / totalMem;
+            
+            memoryLabel.setValue(fullMem, freeMem + "MB free");
+            memoryLabel.setToolTipText("JVM memory: " + freeMem + "MB, "
                     + totalMem + "MB total");
 
             try {
