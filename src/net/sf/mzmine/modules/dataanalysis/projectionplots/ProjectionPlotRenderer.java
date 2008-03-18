@@ -32,7 +32,7 @@ public class ProjectionPlotRenderer extends XYLineAndShapeRenderer {
 
 	private Paint[] paintsForGroups;
 
-	private final Color[] avoidColors = { new Color(255, 255, 85) };
+	private final Color[] avoidColors = { new Color(255, 255, 85)};
 
 	private static final Shape dataPointsShape = new Ellipse2D.Float(-6, -6,
 			12, 12);
@@ -41,7 +41,9 @@ public class ProjectionPlotRenderer extends XYLineAndShapeRenderer {
 
 	private boolean isAvoidColor(Color color) {
 		for (Color c : avoidColors) {
-			if (c.equals(color))
+			if (	(color.getRed() >= c.getRed()) &&
+					(color.getGreen() >= c.getGreen()) &&
+					(color.getBlue() >= c.getBlue())	)
 				return true;
 		}
 
