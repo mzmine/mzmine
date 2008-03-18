@@ -292,10 +292,7 @@ class RawDataFileImpl implements RawDataFile, RawDataFileWriter {
      * @see net.sf.mzmine.io.RawDataFile#getScanNumbers(int)
      */
     public int[] getScanNumbers(int msLevel) {
-        Set<Integer> numbersSet = scans.keySet();
-        int[] numbersArray = CollectionUtils.toIntArray(numbersSet);
-        Arrays.sort(numbersArray);
-        return numbersArray;
+        return getScanNumbers(msLevel, new Range(Float.MIN_VALUE, Float.MAX_VALUE));
     }
 
     /**
@@ -325,14 +322,7 @@ class RawDataFileImpl implements RawDataFile, RawDataFileWriter {
      */
     public int[] getScanNumbers() {
 
-        ArrayList<Integer> allScanNumbers = new ArrayList<Integer>();
-
-        Enumeration<Scan> scansEnum = scans.elements();
-        while (scansEnum.hasMoreElements()) {
-            Scan scan = scansEnum.nextElement();
-            allScanNumbers.add(scan.getScanNumber());
-        }
-
+        Set<Integer> allScanNumbers = scans.keySet();
         int[] numbersArray = CollectionUtils.toIntArray(allScanNumbers);
         Arrays.sort(numbersArray);
 
