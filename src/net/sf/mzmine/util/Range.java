@@ -149,6 +149,15 @@ public class Range {
     public float getSize() {
         return (max - min);
     }
+    
+    /**
+     * Returns the average point of this range.
+     * 
+     * @return Average
+     */
+    public float getAverage() {
+        return ((min + max) / 2);
+    }
 
     /**
      * Returns the String representation
