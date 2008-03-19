@@ -43,6 +43,7 @@ import org.jfree.report.Element;
 import org.jfree.report.ElementAlignment;
 import org.jfree.report.GroupHeader;
 import org.jfree.report.JFreeReport;
+import org.jfree.report.TableDataFactory;
 import org.jfree.report.elementfactory.ComponentFieldElementFactory;
 import org.jfree.report.elementfactory.ElementFactory;
 import org.jfree.report.elementfactory.LabelElementFactory;
@@ -51,6 +52,7 @@ import org.jfree.report.elementfactory.TextFieldElementFactory;
 import org.jfree.report.function.AbstractExpression;
 import org.jfree.report.function.Expression;
 import org.jfree.report.modules.parser.base.ReportGenerator;
+import org.jfree.resourceloader.ResourceException;
 import org.jfree.xml.ElementDefinitionException;
 
 /**
@@ -68,21 +70,24 @@ class PeakListReportGenerator {
     private int xPosition;
     private int rowHeight;
 
-    PeakListReportGenerator(PeakListTable table, PeakListTableParameters parameters) {
+    PeakListReportGenerator(PeakListTable table,
+            PeakListTableParameters parameters) {
         this.table = table;
         this.parameters = parameters;
     }
 
-    JFreeReport generateReport() throws IOException, ElementDefinitionException {
+    JFreeReport generateReport() throws IOException,
+            ElementDefinitionException, ResourceException {
 
-        ReportGenerator gener = ReportGenerator.getInstance();
-        JFreeReport report;
-        URL def = PeakListReportGenerator.class.getResource("print-report-definition.xml");
 
-        report = gener.parseReport(def);
+         ReportGenerator gener = ReportGenerator.getInstance();
+        
+        URL def = getClass().getResource("print-report-definition.xml");
 
+        JFreeReport report = gener.parseReport(def);
+        
         TableModel tableModel = table.getModel();
-        report.setData(tableModel);
+        report.setDataFactory(new TableDataFactory("default", tableModel));
 
         xPosition = 0;
         rowHeight = table.getRowHeight();
@@ -90,10 +95,8 @@ class PeakListReportGenerator {
         // column model contains all visible columns
         TableColumnModel columnModel = table.getColumnModel();
         for (int i = 0; i < columnModel.getColumnCount(); i++) {
-
             TableColumn column = columnModel.getColumn(i);
             addColumnToReport(report, column);
-
         }
 
         return report;
@@ -102,12 +105,12 @@ class PeakListReportGenerator {
 
     private void addColumnToReport(JFreeReport report, TableColumn column) {
 
-        final int modelIndex = column.getModelIndex();
+        int modelIndex = column.getModelIndex();
         final String fieldName = "column" + modelIndex;
-        final Object columnIdentifier = column.getIdentifier();
-        final int columnWidth = column.getWidth();
-        final Dimension fieldSize = new Dimension(columnWidth, rowHeight);
-        final Point2D position = new Point2D.Float(xPosition, 0);
+        Object columnIdentifier = column.getIdentifier();
+        int columnWidth = column.getWidth();
+        Dimension fieldSize = new Dimension(columnWidth, rowHeight);
+        Point2D position = new Point2D.Float(xPosition, 0);
         xPosition += columnWidth;
 
         ElementFactory newElementFac = null;
@@ -116,7 +119,7 @@ class PeakListReportGenerator {
         GroupHeader header = report.getGroup(0).getHeader();
         LabelElementFactory labelFac = new LabelElementFactory();
         labelFac.setText((String) column.getHeaderValue());
-        labelFac.setPreferredSize(fieldSize);
+        labelFac.setMinimumSize(fieldSize);
         labelFac.setAbsolutePosition(position);
         header.addElement(labelFac.createElement());
 
@@ -152,7 +155,7 @@ class PeakListReportGenerator {
 
             }
         }
-
+        
         if (columnIdentifier instanceof DataFileColumnType) {
             DataFileColumnType columnType = (DataFileColumnType) columnIdentifier;
             switch (columnType) {
@@ -186,11 +189,11 @@ class PeakListReportGenerator {
                 Expression peakShapeExpression = new AbstractExpression() {
 
                     public Object getValue() {
-                        
+
                         Peak peak = (Peak) getDataRow().get(fieldName);
                         if (peak == null)
                             return null;
-                        
+
                         float maxHeight;
                         PeakList peakList = table.getPeakList();
                         switch (parameters.getPeakShapeNormalization()) {
@@ -205,7 +208,7 @@ class PeakListReportGenerator {
                             maxHeight = peak.getRawDataPointsIntensityRange().getMax();
                             break;
                         }
-                        
+
                         return new PeakXICComponent(peak, maxHeight);
 
                     }
@@ -250,7 +253,8 @@ class PeakListReportGenerator {
         }
 
         newElementFac.setAbsolutePosition(position);
-        newElementFac.setPreferredSize(fieldSize);
+        newElementFac.setMinimumSize(fieldSize);
+
         Element newItem = newElementFac.createElement();
         report.getItemBand().addElement(newItem);
 
