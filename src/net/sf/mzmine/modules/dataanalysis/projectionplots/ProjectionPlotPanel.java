@@ -41,6 +41,8 @@ public class ProjectionPlotPanel extends ChartPanel {
 	private static final Color gridColor = Color.lightGray;
 	private static final Font titleFont = new Font("SansSerif", Font.PLAIN, 11);
 
+	private static final float dataPointAlpha = 0.8f;
+	
 	private JFreeChart chart;
 	private XYPlot plot;
 
@@ -60,6 +62,7 @@ public class ProjectionPlotPanel extends ChartPanel {
 				.getYLabel(), dataset, PlotOrientation.VERTICAL, createLegend,
 				false, false);
 		chart.setBackgroundPaint(Color.white);
+		
 
 		setChart(chart);
 
@@ -86,7 +89,9 @@ public class ProjectionPlotPanel extends ChartPanel {
 		// set crosshair (selection) properties
 		plot.setDomainCrosshairVisible(false);
 		plot.setRangeCrosshairVisible(false);
-
+		
+		plot.setForegroundAlpha(dataPointAlpha);
+		
 		NumberFormat numberFormat = NumberFormat.getNumberInstance();
 
 		// set the X axis (component 1) properties
@@ -130,9 +135,11 @@ public class ProjectionPlotPanel extends ChartPanel {
 
 					paramValue = fileNames;
 				}
+				Color nextColor = (Color)spotRenderer.getGroupPaint(groupNumber);
+				Color groupColor = new Color(nextColor.getRed(), nextColor.getGreen(), nextColor.getBlue(), (int)Math.round(255*dataPointAlpha));
 				legendItemsCollection.add(new LegendItem(paramValue.toString(),
 						"-", null, null, spotRenderer.getDataPointsShape(),
-						spotRenderer.getGroupPaint(groupNumber)));
+						groupColor));
 			}
 			plot.setFixedLegendItems(legendItemsCollection);
 		}

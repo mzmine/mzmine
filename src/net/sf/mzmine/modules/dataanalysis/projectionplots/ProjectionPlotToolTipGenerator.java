@@ -19,12 +19,16 @@
 
 package net.sf.mzmine.modules.dataanalysis.projectionplots;
 
+import net.sf.mzmine.data.Parameter;
+
 import org.jfree.chart.labels.XYZToolTipGenerator;
 import org.jfree.data.xy.XYDataset;
 import org.jfree.data.xy.XYZDataset;
 
 public class ProjectionPlotToolTipGenerator implements XYZToolTipGenerator {
 
+	private ProjectionPlotParameters parameters;
+	
 	private enum LabelMode {
 		FileName, FileNameAndParameterValue
 	};
@@ -33,6 +37,8 @@ public class ProjectionPlotToolTipGenerator implements XYZToolTipGenerator {
 
 	ProjectionPlotToolTipGenerator(ProjectionPlotParameters parameters) {
 
+		this.parameters = parameters;
+		
 		if (parameters.getParameterValue(ProjectionPlotParameters.coloringType) == ProjectionPlotParameters.ColoringTypeSingleColor)
 			labelMode = LabelMode.FileName;
 
@@ -56,12 +62,15 @@ public class ProjectionPlotToolTipGenerator implements XYZToolTipGenerator {
 		case FileNameAndParameterValue:
 			String ret = "<html>";
 			ret += dataset.getRawDataFile(item).toString() + "<br>";
-			ret += "Parameter value: ";
+
+			ret += parameters.getSelectedParameter().getName() + ": ";
 			
 			int groupNumber = dataset.getGroupNumber(item);
 			Object paramValue = dataset.getGroupParameterValue(groupNumber);
 			if (paramValue != null)
 				ret += paramValue.toString();
+			else
+				ret += "N/A";
 			
 			ret += "</html>";
 			
