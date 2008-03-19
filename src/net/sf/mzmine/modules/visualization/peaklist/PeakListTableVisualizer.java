@@ -30,7 +30,6 @@ import net.sf.mzmine.desktop.Desktop;
 import net.sf.mzmine.desktop.MZmineMenu;
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.main.MZmineModule;
-import net.sf.mzmine.util.logging.JCommonLogHandler;
 
 import org.jfree.report.JFreeReportBoot;
 
@@ -50,16 +49,24 @@ public class PeakListTableVisualizer implements MZmineModule, ActionListener {
         this.desktop = MZmineCore.getDesktop();
         myInstance = this;
 
-        // boot the JFreeReport library and register our logging handler,
-        // to get a rid of JCommon debug messages on the console
-        JFreeReportBoot.getInstance().start();
-        JCommonLogHandler.register();
+        // Disable default logging of JFreeReport library
+        System.setProperty("org.jfree.base.NoDefaultDebug", "true");
+
+        // Boot the JFreeReport library in a new thread, because it may take a
+        // couple of seconds and we don't want to block MZmine startup
+        Thread bootThread = new Thread() {
+
+            public void run() {
+                JFreeReportBoot.getInstance().start();
+            }
+            
+        };
+        bootThread.start();
 
         parameters = new PeakListTableParameters();
 
-        desktop.addMenuItem(MZmineMenu.VISUALIZATION,
-                "Peak list table", this, null, KeyEvent.VK_A, false,
-                true);
+        desktop.addMenuItem(MZmineMenu.VISUALIZATION, "Peak list table", this,
+                null, KeyEvent.VK_A, false, true);
 
     }
 
