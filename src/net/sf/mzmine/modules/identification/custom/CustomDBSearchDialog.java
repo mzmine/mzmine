@@ -35,7 +35,6 @@ import javax.swing.JFormattedTextField;
 import javax.swing.JPanel;
 import javax.swing.JTextField;
 
-import net.sf.mzmine.desktop.Desktop;
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.util.GUIUtils;
 import net.sf.mzmine.util.components.DragOrderedJList;
@@ -50,7 +49,6 @@ class CustomDBSearchDialog extends JDialog implements ActionListener {
 
     private ExitCode exitCode = ExitCode.UNKNOWN;
 
-    private Desktop desktop;
     private CustomDBSearchParameters parameters;
 
     // Dialog controles
@@ -149,13 +147,13 @@ class CustomDBSearchDialog extends JDialog implements ActionListener {
 
             String dataFilePath = fileNameField.getText();
             if (dataFilePath.length() == 0) {
-                desktop.displayErrorMessage("Please select database file");
+                MZmineCore.getDesktop().displayErrorMessage("Please select database file");
                 return;
             }
 
             File dataFile = new File(dataFilePath);
             if (!dataFile.exists()) {
-                desktop.displayErrorMessage("File " + dataFile
+                MZmineCore.getDesktop().displayErrorMessage("File " + dataFile
                         + " does not exist");
                 return;
             }
@@ -178,7 +176,7 @@ class CustomDBSearchDialog extends JDialog implements ActionListener {
             chooser.setFileSelectionMode(JFileChooser.FILES_ONLY);
             chooser.setMultiSelectionEnabled(false);
 
-            int returnVal = chooser.showOpenDialog(desktop.getMainFrame());
+            int returnVal = chooser.showOpenDialog(MZmineCore.getDesktop().getMainFrame());
 
             if (returnVal == JFileChooser.APPROVE_OPTION) {
                 String selectedFile = chooser.getSelectedFile().getAbsolutePath();
