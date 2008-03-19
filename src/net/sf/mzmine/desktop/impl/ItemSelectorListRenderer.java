@@ -20,6 +20,7 @@
 package net.sf.mzmine.desktop.impl;
 
 import java.awt.Component;
+import java.awt.Dimension;
 import java.awt.Font;
 
 import javax.swing.DefaultListCellRenderer;
@@ -40,6 +41,11 @@ class ItemSelectorListRenderer extends DefaultListCellRenderer {
         // First get original rendered component
         final Component component = super.getListCellRendererComponent(list,
                 value, index, isSelected, hasFocus);
+
+        // This is necessary, although it doesn't make much sense.
+        // If we don't set the preferred size here, the JList occasionally
+        // becomes blank when the ListModel is updated
+        component.setPreferredSize(new Dimension(100, 15));
 
         // Check if we are rendering list of raw data files
         if (value instanceof RawDataFile) {
