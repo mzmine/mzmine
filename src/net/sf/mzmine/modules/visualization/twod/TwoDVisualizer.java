@@ -78,7 +78,7 @@ public class TwoDVisualizer implements MZmineModule, ActionListener {
         autoValues.put(TwoDParameters.msLevel, 1);
         autoValues.put(TwoDParameters.retentionTimeRange,
                 dataFiles[0].getDataRTRange(1));
-        autoValues.put(TwoDParameters.mzRange, dataFiles[0].getDataRTRange(1));
+        autoValues.put(TwoDParameters.mzRange, dataFiles[0].getDataMZRange(1));
 
         ParameterSetupDialog dialog = new ParameterSetupDialog(
                 "Please set parameter values for " + toString(), parameters,
