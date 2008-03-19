@@ -171,6 +171,10 @@ class TwoDPlot extends ChartPanel {
         peakDataRenderer.setBaseShapesVisible(!dataPointsVisible);
 
     }
+    
+    void switchContinuousCentroid() {
+    	plot.switchContinuousCentroid();
+    }
 
     void loadPeakList(PeakList peakList) {
 

@@ -142,6 +142,10 @@ public class TwoDVisualizerWindow extends JInternalFrame implements
 			dialog.setVisible(true);
 		}
 		
+		if (command.equals("SWITCH_CENTROID")) {
+			twoDPlot.switchContinuousCentroid();
+		}
+		
 	}
 
 	/**

@@ -41,7 +41,7 @@ class TwoDXYPlot extends XYPlot {
 
     private Logger logger = Logger.getLogger(this.getClass().getName());
 
-    // TODO: crosshair, centroid mode, show only top XXX peaks, checkbox display peaklist
+    // TODO: crosshair, show only top XXX peaks, checkbox display peaklist
     
     private Range totalRTRange, totalMZRange;;
     private BufferedImage zoomOutBitmap;
@@ -49,6 +49,8 @@ class TwoDXYPlot extends XYPlot {
     private TwoDDataSet dataset;
 
     private TwoDPaletteType paletteType = TwoDPaletteType.PALETTE_GRAY20;
+    
+    private boolean centroided = false;
 
     TwoDXYPlot(TwoDDataSet dataset, Range rtRange, Range mzRange, ValueAxis domainAxis, ValueAxis rangeAxis) {
        
@@ -106,7 +108,7 @@ class TwoDXYPlot extends XYPlot {
                 float pointMZMax = pointMZMin + imageMZStep;
 
                 values[i][j] = dataset.getMaxIntensity(new Range(pointRTMin, pointRTMax),
-                        new Range(pointMZMin, pointMZMax));
+                        new Range(pointMZMin, pointMZMax), centroided);
 
                 if (values[i][j] > maxValue)
                     maxValue = values[i][j];
@@ -161,6 +163,11 @@ class TwoDXYPlot extends XYPlot {
         paletteType = types[newIndex];
         zoomOutBitmap = null;
         datasetChanged(new DatasetChangeEvent(dataset, dataset));
+    }
+    
+    void switchContinuousCentroid() {
+    	centroided = !centroided;
+    	datasetChanged(new DatasetChangeEvent(dataset, dataset));
     }
 
 }

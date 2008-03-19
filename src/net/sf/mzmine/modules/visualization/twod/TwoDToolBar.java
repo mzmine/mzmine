@@ -37,6 +37,7 @@ class TwoDToolBar extends JToolBar {
     static final Icon dataPointsIcon = new ImageIcon("icons/datapointsicon.png");
     static final Icon annotationsIcon = new ImageIcon("icons/annotationsicon.png");
     static final Icon axesIcon = new ImageIcon("icons/axesicon.png");
+    static final Icon centroidIcon = new ImageIcon("icons/centroidicon.png");
     
     TwoDToolBar(TwoDVisualizerWindow masterFrame) {
 
@@ -65,6 +66,11 @@ class TwoDToolBar extends JToolBar {
 
         GUIUtils.addButton(this, null, axesIcon, masterFrame, "SETUP_AXES",
                 "Setup ranges for axes");
+        
+        addSeparator();
+        
+        GUIUtils.addButton(this, null, centroidIcon, masterFrame, "SWITCH_CENTROID",
+        "Switch between continuous and centroided mode");        
         
     }
 
