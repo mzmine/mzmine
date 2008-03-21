@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2007 The MZmine Development Team
+ * Copyright 2006-2008 The MZmine Development Team
  * 
  * This file is part of MZmine.
  * 
@@ -83,10 +83,10 @@ class IntensityPlotToolBar extends JToolBar implements ActionListener {
 
             if (plot instanceof CategoryPlot) {
                 LineAndShapeRenderer renderer = (LineAndShapeRenderer) ((CategoryPlot) plot).getRenderer();
-                linesVisible = renderer.getLinesVisible();
+                linesVisible = renderer.getBaseLinesVisible();
             } else {
                 XYLineAndShapeRenderer renderer = (XYLineAndShapeRenderer) ((XYPlot) plot).getRenderer();
-                linesVisible = renderer.getLinesVisible();
+                linesVisible = renderer.getBaseLinesVisible();
             }
 
             // check for null value
@@ -105,10 +105,10 @@ class IntensityPlotToolBar extends JToolBar implements ActionListener {
 
             if (plot instanceof CategoryPlot) {
                 LineAndShapeRenderer renderer = (LineAndShapeRenderer) ((CategoryPlot) plot).getRenderer();
-                renderer.setLinesVisible(linesVisible);
+                renderer.setBaseLinesVisible(linesVisible);
             } else {
                 XYLineAndShapeRenderer renderer = (XYLineAndShapeRenderer) ((XYPlot) plot).getRenderer();
-                renderer.setLinesVisible(linesVisible);
+                renderer.setBaseLinesVisible(linesVisible);
             }
 
         }
