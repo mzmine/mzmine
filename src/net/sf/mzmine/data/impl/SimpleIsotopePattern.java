@@ -184,4 +184,9 @@ public class SimpleIsotopePattern implements IsotopePattern {
         return representativePeak.getRawDataPointsRTRange();
     }
 
+    public float getMass() {
+        if (charge == UNKNOWN_CHARGE) return representativePeak.getMZ();
+        else return representativePeak.getMZ() * charge;
+    }
+
 }
