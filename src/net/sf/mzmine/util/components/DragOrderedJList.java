@@ -25,7 +25,6 @@ import java.awt.event.MouseMotionAdapter;
 
 import javax.swing.DefaultListModel;
 import javax.swing.JList;
-import javax.swing.ListModel;
 
 /**
  * A modified JList that can reorder items in DefaultListModel by dragging with

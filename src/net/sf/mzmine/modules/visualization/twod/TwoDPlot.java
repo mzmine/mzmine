@@ -27,9 +27,6 @@ import java.awt.event.MouseEvent;
 import java.awt.geom.Rectangle2D;
 import java.text.NumberFormat;
 
-import javax.swing.JMenuItem;
-import javax.swing.JPopupMenu;
-
 import net.sf.mzmine.data.PeakList;
 import net.sf.mzmine.io.RawDataFile;
 import net.sf.mzmine.main.MZmineCore;
@@ -143,8 +140,8 @@ class TwoDPlot extends ChartPanel {
 
         peakDataRenderer = new PeakDataRenderer();
 
-        // add items to popup menu
-        JMenuItem annotationsMenuItem, dataPointsMenuItem, plotTypeMenuItem;
+        /* add items to popup menu
+        MenuItem annotationsMenuItem, dataPointsMenuItem, plotTypeMenuItem;
         // TODO
         plotTypeMenuItem = new JMenuItem("Toggle centroid/continuous mode");
         plotTypeMenuItem.addActionListener(visualizer);
@@ -154,6 +151,7 @@ class TwoDPlot extends ChartPanel {
         JPopupMenu popupMenu = getPopupMenu();
         popupMenu.addSeparator();
         popupMenu.add(plotTypeMenuItem);
+        */
 
     }
 

@@ -19,8 +19,6 @@
 
 package net.sf.mzmine.modules.dataanalysis.projectionplots;
 
-import net.sf.mzmine.data.Parameter;
-
 import org.jfree.chart.labels.XYZToolTipGenerator;
 import org.jfree.data.xy.XYDataset;
 import org.jfree.data.xy.XYZDataset;

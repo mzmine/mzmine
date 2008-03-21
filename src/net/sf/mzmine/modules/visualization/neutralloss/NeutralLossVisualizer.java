@@ -25,8 +25,6 @@ import java.awt.event.KeyEvent;
 import java.util.Hashtable;
 import java.util.logging.Logger;
 
-import javax.swing.JDialog;
-
 import net.sf.mzmine.data.Parameter;
 import net.sf.mzmine.data.ParameterSet;
 import net.sf.mzmine.desktop.Desktop;
@@ -34,8 +32,6 @@ import net.sf.mzmine.desktop.MZmineMenu;
 import net.sf.mzmine.io.RawDataFile;
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.main.MZmineModule;
-import net.sf.mzmine.modules.visualization.tic.TICVisualizerParameters;
-import net.sf.mzmine.modules.visualization.tic.TICVisualizerWindow;
 import net.sf.mzmine.util.CollectionUtils;
 import net.sf.mzmine.util.Range;
 import net.sf.mzmine.util.dialogs.ExitCode;

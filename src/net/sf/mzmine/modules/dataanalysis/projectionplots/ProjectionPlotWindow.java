@@ -28,8 +28,6 @@ import javax.swing.JInternalFrame;
 import net.sf.mzmine.desktop.Desktop;
 import net.sf.mzmine.util.dialogs.AxesSetupDialog;
 
-import org.jfree.chart.renderer.xy.XYItemRenderer;
-
 public class ProjectionPlotWindow extends JInternalFrame implements
 		ActionListener {
 
