@@ -64,8 +64,10 @@ public class IntensityPlotDialog extends JDialog implements ActionListener {
 
     // dialog components
     private JComboBox xAxisValueSourceCombo, yAxisValueSourceCombo;
-    private ExtendedCheckBox<RawDataFile> rawDataFileCheckBoxes[];
-    private ExtendedCheckBox<PeakListRow> peakCheckBoxes[];
+
+    private Vector<ExtendedCheckBox<RawDataFile>> rawDataFileCheckBoxes;
+    private Vector<ExtendedCheckBox<PeakListRow>> peakCheckBoxes;
+
     private JButton btnSelectAllFiles, btnDeselectAllFiles, btnSelectAllPeaks,
             btnDeselectAllPeaks, btnOK, btnCancel;
 
@@ -108,17 +110,18 @@ public class IntensityPlotDialog extends JDialog implements ActionListener {
         dataFileCheckBoxesPanel.setBackground(Color.white);
         dataFileCheckBoxesPanel.setLayout(new BoxLayout(
                 dataFileCheckBoxesPanel, BoxLayout.Y_AXIS));
-        rawDataFileCheckBoxes = new ExtendedCheckBox[alignedPeakList.getNumberOfRawDataFiles()];
+        rawDataFileCheckBoxes = new Vector<ExtendedCheckBox<RawDataFile>>();
         int minimumHorizSize = 0;
         RawDataFile files[] = alignedPeakList.getRawDataFiles();
         for (int i = 0; i < files.length; i++) {
-            rawDataFileCheckBoxes[i] = new ExtendedCheckBox<RawDataFile>(
+            ExtendedCheckBox<RawDataFile> ecb = new ExtendedCheckBox<RawDataFile>(
                     files[i], selectedDataFiles.contains(files[i]));
+            rawDataFileCheckBoxes.add(ecb);
             minimumHorizSize = Math.max(minimumHorizSize,
-                    rawDataFileCheckBoxes[i].getPreferredWidth());
-            dataFileCheckBoxesPanel.add(rawDataFileCheckBoxes[i]);
+                    ecb.getPreferredWidth());
+            dataFileCheckBoxesPanel.add(ecb);
         }
-        int minimumVertSize = (int) rawDataFileCheckBoxes[0].getPreferredSize().getHeight() * 3;
+        int minimumVertSize = (int) rawDataFileCheckBoxes.get(0).getPreferredSize().getHeight() * 3;
         JScrollPane dataFilePanelScroll = new JScrollPane(
                 dataFileCheckBoxesPanel,
                 ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED,
@@ -180,18 +183,19 @@ public class IntensityPlotDialog extends JDialog implements ActionListener {
         peakCheckBoxesPanel.setBackground(Color.white);
         peakCheckBoxesPanel.setLayout(new BoxLayout(peakCheckBoxesPanel,
                 BoxLayout.Y_AXIS));
-        peakCheckBoxes = new ExtendedCheckBox[alignedPeakList.getNumberOfRows()];
+        peakCheckBoxes = new Vector<ExtendedCheckBox<PeakListRow>>();
         minimumHorizSize = 0;
         PeakListRow rows[] = alignedPeakList.getRows();
         Arrays.sort(rows, new PeakListRowSorterByMZ());
         for (int i = 0; i < rows.length; i++) {
-            peakCheckBoxes[i] = new ExtendedCheckBox<PeakListRow>(rows[i],
-                    selectedRows.contains(rows[i]));
+            ExtendedCheckBox<PeakListRow> ecb = new ExtendedCheckBox<PeakListRow>(
+                    rows[i], selectedRows.contains(rows[i]));
+            peakCheckBoxes.add(ecb);
             minimumHorizSize = Math.max(minimumHorizSize,
-                    peakCheckBoxes[i].getPreferredWidth());
-            peakCheckBoxesPanel.add(peakCheckBoxes[i]);
+                    ecb.getPreferredWidth());
+            peakCheckBoxesPanel.add(ecb);
         }
-        minimumVertSize = (int) peakCheckBoxes[0].getPreferredSize().getHeight() * 6;
+        minimumVertSize = (int) peakCheckBoxes.get(0).getPreferredSize().getHeight() * 6;
         JScrollPane peakPanelScroll = new JScrollPane(peakCheckBoxesPanel,
                 ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED,
                 ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER);

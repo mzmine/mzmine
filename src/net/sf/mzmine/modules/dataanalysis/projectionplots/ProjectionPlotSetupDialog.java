@@ -53,7 +53,8 @@ import net.sf.mzmine.util.PeakListRowSorterByMZ;
 import net.sf.mzmine.util.components.ExtendedCheckBox;
 import net.sf.mzmine.util.dialogs.ExitCode;
 
-public class ProjectionPlotSetupDialog extends JDialog implements ActionListener {
+public class ProjectionPlotSetupDialog extends JDialog implements
+        ActionListener {
 
     static final int PADDING_SIZE = 5;
 
@@ -64,17 +65,18 @@ public class ProjectionPlotSetupDialog extends JDialog implements ActionListener
     private ProjectionPlotParameters parameterSet;
 
     // dialog components
-    
+
     private JComboBox comboColoringMethod;
     private JComboBox comboPeakMeasuringMethod;
-    
+
     private JComboBox comboXAxisComponent;
     private JComboBox comboYAxisComponent;
-    
+
     private Parameter[] parametersInCombo;
-    
-    private ExtendedCheckBox<RawDataFile> rawDataFileCheckBoxes[];
-    private ExtendedCheckBox<PeakListRow> peakCheckBoxes[];
+
+    private Vector<ExtendedCheckBox<RawDataFile>> rawDataFileCheckBoxes;
+    private Vector<ExtendedCheckBox<PeakListRow>> peakCheckBoxes;
+
     private JButton btnSelectAllFiles, btnDeselectAllFiles, btnSelectAllPeaks,
             btnDeselectAllPeaks, btnOK, btnCancel;
 
@@ -117,17 +119,18 @@ public class ProjectionPlotSetupDialog extends JDialog implements ActionListener
         dataFileCheckBoxesPanel.setBackground(Color.white);
         dataFileCheckBoxesPanel.setLayout(new BoxLayout(
                 dataFileCheckBoxesPanel, BoxLayout.Y_AXIS));
-        rawDataFileCheckBoxes = new ExtendedCheckBox[alignedPeakList.getNumberOfRawDataFiles()];
+        rawDataFileCheckBoxes = new Vector<ExtendedCheckBox<RawDataFile>>();
         int minimumHorizSize = 0;
         RawDataFile files[] = alignedPeakList.getRawDataFiles();
         for (int i = 0; i < files.length; i++) {
-            rawDataFileCheckBoxes[i] = new ExtendedCheckBox<RawDataFile>(
+            ExtendedCheckBox<RawDataFile> ecb = new ExtendedCheckBox<RawDataFile>(
                     files[i], selectedDataFiles.contains(files[i]));
+            rawDataFileCheckBoxes.add(ecb);
             minimumHorizSize = Math.max(minimumHorizSize,
-                    rawDataFileCheckBoxes[i].getPreferredWidth());
-            dataFileCheckBoxesPanel.add(rawDataFileCheckBoxes[i]);
+                    ecb.getPreferredWidth());
+            dataFileCheckBoxesPanel.add(ecb);
         }
-        int minimumVertSize = (int) rawDataFileCheckBoxes[0].getPreferredSize().getHeight() * 3;
+        int minimumVertSize = (int) rawDataFileCheckBoxes.get(0).getPreferredSize().getHeight() * 3;
         JScrollPane dataFilePanelScroll = new JScrollPane(
                 dataFileCheckBoxesPanel,
                 ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED,
@@ -162,17 +165,18 @@ public class ProjectionPlotSetupDialog extends JDialog implements ActionListener
         parametersInCombo[0] = null;
         parametersInCombo[1] = null;
         for (int i = 0; i < projectParameters.length; i++) {
-        	availableColoringStyles[i + 2] = "Color by parameter " + projectParameters[i].getName();
-        	parametersInCombo[i+2] = projectParameters[i];
+            availableColoringStyles[i + 2] = "Color by parameter "
+                    + projectParameters[i].getName();
+            parametersInCombo[i + 2] = projectParameters[i];
         }
         comboColoringMethod = new JComboBox(availableColoringStyles);
         if (parameterSet.getParameterValue(ProjectionPlotParameters.coloringType) == ProjectionPlotParameters.ColoringTypeSingleColor)
-        	comboColoringMethod.setSelectedItem(ProjectionPlotParameters.ColoringTypeSingleColor);
+            comboColoringMethod.setSelectedItem(ProjectionPlotParameters.ColoringTypeSingleColor);
         if (parameterSet.getParameterValue(ProjectionPlotParameters.coloringType) == ProjectionPlotParameters.ColoringTypeByFile)
-        	comboColoringMethod.setSelectedItem(ProjectionPlotParameters.ColoringTypeByFile);
-        if ( (parameterSet.getParameterValue(ProjectionPlotParameters.coloringType) == ProjectionPlotParameters.ColoringTypeByParameterValue) &&
-        	 (parameterSet.getSelectedParameter()!=null) ) 
-        	comboColoringMethod.setSelectedItem(parameterSet.getSelectedParameter());
+            comboColoringMethod.setSelectedItem(ProjectionPlotParameters.ColoringTypeByFile);
+        if ((parameterSet.getParameterValue(ProjectionPlotParameters.coloringType) == ProjectionPlotParameters.ColoringTypeByParameterValue)
+                && (parameterSet.getSelectedParameter() != null))
+            comboColoringMethod.setSelectedItem(parameterSet.getSelectedParameter());
         constraints.gridx = 1;
         components.add(comboColoringMethod, constraints);
 
@@ -186,10 +190,10 @@ public class ProjectionPlotSetupDialog extends JDialog implements ActionListener
                 ProjectionPlotParameters.PeakMeasurementTypeArea };
         comboPeakMeasuringMethod = new JComboBox(availablePeakMeasuringStyles);
         if (parameterSet.getParameterValue(ProjectionPlotParameters.peakMeasurementType) == ProjectionPlotParameters.PeakMeasurementTypeHeight)
-        	comboPeakMeasuringMethod.setSelectedItem(ProjectionPlotParameters.PeakMeasurementTypeHeight);
+            comboPeakMeasuringMethod.setSelectedItem(ProjectionPlotParameters.PeakMeasurementTypeHeight);
         if (parameterSet.getParameterValue(ProjectionPlotParameters.peakMeasurementType) == ProjectionPlotParameters.PeakMeasurementTypeArea)
-        	comboPeakMeasuringMethod.setSelectedItem(ProjectionPlotParameters.PeakMeasurementTypeArea);
-        
+            comboPeakMeasuringMethod.setSelectedItem(ProjectionPlotParameters.PeakMeasurementTypeArea);
+
         constraints.gridx = 1;
         components.add(comboPeakMeasuringMethod, constraints);
 
@@ -202,18 +206,19 @@ public class ProjectionPlotSetupDialog extends JDialog implements ActionListener
         peakCheckBoxesPanel.setBackground(Color.white);
         peakCheckBoxesPanel.setLayout(new BoxLayout(peakCheckBoxesPanel,
                 BoxLayout.Y_AXIS));
-        peakCheckBoxes = new ExtendedCheckBox[alignedPeakList.getNumberOfRows()];
+        peakCheckBoxes = new Vector<ExtendedCheckBox<PeakListRow>>();
         minimumHorizSize = 0;
         PeakListRow rows[] = alignedPeakList.getRows();
         Arrays.sort(rows, new PeakListRowSorterByMZ());
         for (int i = 0; i < rows.length; i++) {
-            peakCheckBoxes[i] = new ExtendedCheckBox<PeakListRow>(rows[i],
-                    selectedRows.contains(rows[i]));
+            ExtendedCheckBox<PeakListRow> ecb = new ExtendedCheckBox<PeakListRow>(
+                    rows[i], selectedRows.contains(rows[i]));
+            peakCheckBoxes.add(ecb);
             minimumHorizSize = Math.max(minimumHorizSize,
-                    peakCheckBoxes[i].getPreferredWidth());
-            peakCheckBoxesPanel.add(peakCheckBoxes[i]);
+                    ecb.getPreferredWidth());
+            peakCheckBoxesPanel.add(ecb);
         }
-        minimumVertSize = (int) peakCheckBoxes[0].getPreferredSize().getHeight() * 6;
+        minimumVertSize = (int) peakCheckBoxes.get(0).getPreferredSize().getHeight() * 6;
         JScrollPane peakPanelScroll = new JScrollPane(peakCheckBoxesPanel,
                 ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED,
                 ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER);
@@ -247,12 +252,13 @@ public class ProjectionPlotSetupDialog extends JDialog implements ActionListener
         comboXAxisComponent.setSelectedItem(parameterSet.getParameterValue(ProjectionPlotParameters.xAxisComponent));
         constraints.gridx = 1;
         if (forceXYComponents) {
-        	comboXAxisComponent.setSelectedItem(availableXComponents[0]);
-        	components.add(new JLabel(availableXComponents[0].toString()), constraints);
+            comboXAxisComponent.setSelectedItem(availableXComponents[0]);
+            components.add(new JLabel(availableXComponents[0].toString()),
+                    constraints);
         } else {
-        	components.add(comboXAxisComponent, constraints);
+            components.add(comboXAxisComponent, constraints);
         }
-        
+
         comp = GUIUtils.addLabel(components, "Component on Y-axis");
         constraints.gridx = 0;
         constraints.gridy = 5;
@@ -263,12 +269,13 @@ public class ProjectionPlotSetupDialog extends JDialog implements ActionListener
         comboYAxisComponent.setSelectedItem(parameterSet.getParameterValue(ProjectionPlotParameters.yAxisComponent));
         constraints.gridx = 1;
         if (forceXYComponents) {
-        	comboYAxisComponent.setSelectedItem(availableYComponents[1]);
-        	components.add(new JLabel(availableYComponents[1].toString()), constraints);
+            comboYAxisComponent.setSelectedItem(availableYComponents[1]);
+            components.add(new JLabel(availableYComponents[1].toString()),
+                    constraints);
         } else {
-        	components.add(comboYAxisComponent, constraints);
+            components.add(comboYAxisComponent, constraints);
         }
-      
+
         comp = GUIUtils.addSeparator(components, PADDING_SIZE);
         constraints.gridx = 0;
         constraints.gridy = 6;
@@ -307,23 +314,32 @@ public class ProjectionPlotSetupDialog extends JDialog implements ActionListener
 
             Vector<RawDataFile> selectedFiles = new Vector<RawDataFile>();
             Vector<PeakListRow> selectedPeaks = new Vector<PeakListRow>();
-            
+
             for (ExtendedCheckBox<RawDataFile> box : rawDataFileCheckBoxes) {
                 if (box.isSelected())
                     selectedFiles.add(box.getObject());
             }
-            
-            // Validate that there are at least equally many files as the maximum selected PC
-            int numPC = (Integer)comboXAxisComponent.getSelectedItem();
-            if (numPC>selectedFiles.size()) {
-            	MZmineCore.getDesktop().displayMessage("Selected PC (" + numPC + ") for X-axis too high with only " + selectedFiles.size() + " files selected currently.");
-            	return;
+
+            // Validate that there are at least equally many files as the
+            // maximum selected PC
+            int numPC = (Integer) comboXAxisComponent.getSelectedItem();
+            if (numPC > selectedFiles.size()) {
+                MZmineCore.getDesktop().displayMessage(
+                        "Selected PC (" + numPC
+                                + ") for X-axis too high with only "
+                                + selectedFiles.size()
+                                + " files selected currently.");
+                return;
             }
-            numPC = (Integer)comboYAxisComponent.getSelectedItem();
-            if (numPC>selectedFiles.size()) {
-            	MZmineCore.getDesktop().displayMessage("Selected PC (" + numPC + ") for Y-axis too high with only " + selectedFiles.size() + " files selected currently.");
-            	return;
-            }            
+            numPC = (Integer) comboYAxisComponent.getSelectedItem();
+            if (numPC > selectedFiles.size()) {
+                MZmineCore.getDesktop().displayMessage(
+                        "Selected PC (" + numPC
+                                + ") for Y-axis too high with only "
+                                + selectedFiles.size()
+                                + " files selected currently.");
+                return;
+            }
 
             for (ExtendedCheckBox<PeakListRow> box : peakCheckBoxes) {
                 if (box.isSelected())
@@ -343,21 +359,33 @@ public class ProjectionPlotSetupDialog extends JDialog implements ActionListener
             parameterSet.setSourcePeakList(alignedPeakList);
             parameterSet.setSelectedDataFiles(selectedFiles.toArray(new RawDataFile[0]));
             parameterSet.setSelectedRows(selectedPeaks.toArray(new PeakListRow[0]));
-           
+
             if (comboColoringMethod.getSelectedItem() == ProjectionPlotParameters.ColoringTypeSingleColor)
-            	parameterSet.setParameterValue(ProjectionPlotParameters.coloringType, ProjectionPlotParameters.ColoringTypeSingleColor);
+                parameterSet.setParameterValue(
+                        ProjectionPlotParameters.coloringType,
+                        ProjectionPlotParameters.ColoringTypeSingleColor);
             if (comboColoringMethod.getSelectedItem() == ProjectionPlotParameters.ColoringTypeByFile)
-            	parameterSet.setParameterValue(ProjectionPlotParameters.coloringType, ProjectionPlotParameters.ColoringTypeByFile);
+                parameterSet.setParameterValue(
+                        ProjectionPlotParameters.coloringType,
+                        ProjectionPlotParameters.ColoringTypeByFile);
             if (comboColoringMethod.getSelectedIndex() > 1) {
-            	parameterSet.setParameterValue(ProjectionPlotParameters.coloringType, ProjectionPlotParameters.ColoringTypeByParameterValue);
-            	Parameter selectedParameter = parametersInCombo[comboColoringMethod.getSelectedIndex()];
-            	parameterSet.setSelectedParameter(selectedParameter);
+                parameterSet.setParameterValue(
+                        ProjectionPlotParameters.coloringType,
+                        ProjectionPlotParameters.ColoringTypeByParameterValue);
+                Parameter selectedParameter = parametersInCombo[comboColoringMethod.getSelectedIndex()];
+                parameterSet.setSelectedParameter(selectedParameter);
             }
-            
-            parameterSet.setParameterValue(ProjectionPlotParameters.peakMeasurementType, comboPeakMeasuringMethod.getSelectedItem());
-            parameterSet.setParameterValue(ProjectionPlotParameters.xAxisComponent, comboXAxisComponent.getSelectedItem()); 
-            parameterSet.setParameterValue(ProjectionPlotParameters.yAxisComponent, comboYAxisComponent.getSelectedItem());
-            
+
+            parameterSet.setParameterValue(
+                    ProjectionPlotParameters.peakMeasurementType,
+                    comboPeakMeasuringMethod.getSelectedItem());
+            parameterSet.setParameterValue(
+                    ProjectionPlotParameters.xAxisComponent,
+                    comboXAxisComponent.getSelectedItem());
+            parameterSet.setParameterValue(
+                    ProjectionPlotParameters.yAxisComponent,
+                    comboYAxisComponent.getSelectedItem());
+
             exitCode = ExitCode.OK;
             dispose();
             return;
