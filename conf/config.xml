@@ -22,7 +22,7 @@
         <parameter name="Retention time" type="RANGE">0.0-600.0</parameter>
         <parameter name="m/z range" type="RANGE">0.0-1000.0</parameter>
       </parameters> 
-    </module>   
+    </module>  
     <module class="net.sf.mzmine.modules.visualization.threed.ThreeDVisualizer"> 
       <parameters>
         <parameter name="MS level" type="INTEGER">1</parameter>
@@ -312,7 +312,23 @@
     </module>  
     <module class="net.sf.mzmine.modules.identification.fragmentation.InSourceFragmentationSearch"/>  
     <module class="net.sf.mzmine.modules.identification.kegg.KEGGSearch"/>  
-    <module class="net.sf.mzmine.modules.identification.pubchem.PubChemSearch"/> 
+    <module class="net.sf.mzmine.modules.identification.pubchem.PubChemSearch"/>  
+    <module class="net.sf.mzmine.modules.io.peaklistexport.PeakListExporter">
+      <parameters>
+        <parameter name="Filename" type="STRING">/tmp/export</parameter>
+        <parameter name="Field separator" type="STRING">,</parameter>
+        <parameter name="Export row ID" type="BOOLEAN">true</parameter>
+        <parameter name="Export row m/z" type="BOOLEAN">true</parameter>
+        <parameter name="Export row retention time" type="BOOLEAN">true</parameter>
+        <parameter name="Export row comment" type="BOOLEAN">true</parameter>
+        <parameter name="Export row compound identity" type="BOOLEAN">true</parameter>
+        <parameter name="Export peak status" type="BOOLEAN">true</parameter>
+        <parameter name="Export peak m/z" type="BOOLEAN">true</parameter>
+        <parameter name="Export peak retention time" type="BOOLEAN">true</parameter>
+        <parameter name="Export peak height" type="BOOLEAN">true</parameter>
+        <parameter name="Export peak area" type="BOOLEAN">true</parameter>
+      </parameters>
+    </module> 
   </modules>  
   <desktop>
     <format type="m/z">
@@ -330,8 +346,8 @@
     <mainwindow>
       <x>325</x>
       <y>164</y>
-      <width>1296</width>
-      <height>899</height>
+      <width>1343</width>
+      <height>918</height>
     </mainwindow>
     <lastdirectory>/Users/plusik</lastdirectory>
     <lastProjectDirectory>/</lastProjectDirectory>
