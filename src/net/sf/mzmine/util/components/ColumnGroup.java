@@ -98,8 +98,7 @@ public class ColumnGroup {
         while (en.hasMoreElements()) {
             Object obj = en.nextElement();
             if (obj instanceof ColumnGroup) {
-                Object o = g.clone();
-                Vector<ColumnGroup> clone = (Vector<ColumnGroup>) o;
+                Vector<ColumnGroup> clone = new Vector<ColumnGroup>(g);
                 Vector groups = (Vector) ((ColumnGroup) obj).getColumnGroups(c,
                         clone);
                 if (groups != null)
