@@ -57,7 +57,7 @@ import net.sf.mzmine.util.Range;
  */
 public class ParameterSetupDialog extends JDialog implements ActionListener {
 
-    public static final int TEXTFIELD_COLUMNS = 8;
+    public static final int TEXTFIELD_COLUMNS = 10;
 
     private ExitCode exitCode = ExitCode.UNKNOWN;
 
@@ -153,14 +153,16 @@ public class ParameterSetupDialog extends JDialog implements ActionListener {
 
             switch (p.getType()) {
             case STRING:
-                comp = new JTextField();
+                JTextField txtField = new JTextField();
+                txtField.setColumns(TEXTFIELD_COLUMNS);
+                comp = txtField;
                 break;
             case INTEGER:
             case FLOAT:
 
-                JFormattedTextField txtField = new JFormattedTextField(format);
-                txtField.setColumns(TEXTFIELD_COLUMNS);
-                comp = txtField;
+                JFormattedTextField fmtField = new JFormattedTextField(format);
+                fmtField.setColumns(TEXTFIELD_COLUMNS);
+                comp = fmtField;
                 break;
 
             case RANGE:
