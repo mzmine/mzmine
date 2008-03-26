@@ -52,7 +52,7 @@ class MainMenu extends JMenuBar implements ActionListener {
 
 	private JMenu projectMenu, filterMenu, peakMenu, alignmentMenu,
 			normalizationMenu, identificationMenu, rawDataVisualizationMenu,
-			dataAnalysisMenu, helpMenu;
+			dataAnalysisMenu, helpMenu,peakListMenu;
 
 	private JWindowsMenu windowsMenu;
 
@@ -101,13 +101,17 @@ class MainMenu extends JMenuBar implements ActionListener {
 		projectExit = GUIUtils.addMenuItem(projectMenu, "Exit", this,
 				KeyEvent.VK_X, true);
 
-		filterMenu = new JMenu("Raw data filtering");
+		filterMenu = new JMenu("Raw data processing");
 		filterMenu.setMnemonic(KeyEvent.VK_F);
 		this.add(filterMenu);
 
 		peakMenu = new JMenu("Peak detection");
 		peakMenu.setMnemonic(KeyEvent.VK_D);
 		this.add(peakMenu);
+        
+        peakListMenu = new JMenu("Peaklist processing");
+        peakListMenu.setMnemonic(KeyEvent.VK_P);
+        this.add(peakListMenu);
 
 		alignmentMenu = new JMenu("Alignment");
 		alignmentMenu.setMnemonic(KeyEvent.VK_A);
@@ -158,6 +162,9 @@ class MainMenu extends JMenuBar implements ActionListener {
 		case PEAKPICKING:
 			peakMenu.add(newItem);
 			break;
+        case PEAKLISTPROCESSING:
+            peakListMenu.add(newItem);
+            break;
 		case ALIGNMENT:
 			alignmentMenu.add(newItem);
 			break;
@@ -204,6 +211,9 @@ class MainMenu extends JMenuBar implements ActionListener {
 		case PEAKPICKING:
 			peakMenu.addSeparator();
 			break;
+        case PEAKLISTPROCESSING:
+            peakListMenu.addSeparator();
+            break;
 		case ALIGNMENT:
 			alignmentMenu.addSeparator();
 			break;
