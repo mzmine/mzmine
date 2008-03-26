@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2007 The MZmine Development Team
+ * Copyright 2006-2008 The MZmine Development Team
  * 
  * This file is part of MZmine.
  * 
@@ -29,7 +29,8 @@ import net.sf.mzmine.desktop.Desktop;
 import net.sf.mzmine.desktop.MZmineMenu;
 import net.sf.mzmine.io.RawDataFile;
 import net.sf.mzmine.main.MZmineCore;
-import net.sf.mzmine.modules.batchmode.BatchStepIdentification;
+import net.sf.mzmine.modules.batchmode.BatchStep;
+import net.sf.mzmine.modules.batchmode.BatchStepCategory;
 import net.sf.mzmine.taskcontrol.Task;
 import net.sf.mzmine.taskcontrol.TaskGroup;
 import net.sf.mzmine.taskcontrol.TaskGroupListener;
@@ -38,7 +39,7 @@ import net.sf.mzmine.util.dialogs.ExitCode;
 /**
  * 
  */
-public class CustomDBSearch implements BatchStepIdentification, ActionListener {
+public class CustomDBSearch implements BatchStep, ActionListener {
 
     public static final String MODULE_NAME = "Custom database search";
 
@@ -55,8 +56,8 @@ public class CustomDBSearch implements BatchStepIdentification, ActionListener {
 
         parameters = new CustomDBSearchParameters();
 
-        desktop.addMenuItem(MZmineMenu.IDENTIFICATION, MODULE_NAME, this, null,
-                KeyEvent.VK_C, false, true);
+        desktop.addMenuItem(MZmineMenu.IDENTIFICATION, MODULE_NAME,
+                "TODO write description", KeyEvent.VK_C, this, null);
     }
 
     /**
@@ -101,9 +102,10 @@ public class CustomDBSearch implements BatchStepIdentification, ActionListener {
             ParameterSet parameters, TaskGroupListener methodListener) {
 
         if (peakLists == null) {
-            throw new IllegalArgumentException("Cannot run identification without a peak list");
+            throw new IllegalArgumentException(
+                    "Cannot run identification without a peak list");
         }
-        
+
         // prepare a new sequence of tasks
         Task tasks[] = new CustomDBSearchTask[peakLists.length];
         for (int i = 0; i < peakLists.length; i++) {
@@ -131,6 +133,10 @@ public class CustomDBSearch implements BatchStepIdentification, ActionListener {
 
     public String toString() {
         return MODULE_NAME;
+    }
+
+    public BatchStepCategory getBatchStepCategory() {
+        return BatchStepCategory.IDENTIFICATION;
     }
 
 }

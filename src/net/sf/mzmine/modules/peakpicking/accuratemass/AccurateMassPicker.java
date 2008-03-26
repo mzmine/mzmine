@@ -31,7 +31,8 @@ import net.sf.mzmine.desktop.Desktop;
 import net.sf.mzmine.desktop.MZmineMenu;
 import net.sf.mzmine.io.RawDataFile;
 import net.sf.mzmine.main.MZmineCore;
-import net.sf.mzmine.modules.batchmode.BatchStepPeakPicking;
+import net.sf.mzmine.modules.batchmode.BatchStep;
+import net.sf.mzmine.modules.batchmode.BatchStepCategory;
 import net.sf.mzmine.taskcontrol.Task;
 import net.sf.mzmine.taskcontrol.TaskGroup;
 import net.sf.mzmine.taskcontrol.TaskGroupListener;
@@ -39,7 +40,7 @@ import net.sf.mzmine.taskcontrol.TaskListener;
 import net.sf.mzmine.util.dialogs.ExitCode;
 import net.sf.mzmine.util.dialogs.ParameterSetupDialog;
 
-public class AccurateMassPicker implements BatchStepPeakPicking, TaskListener,
+public class AccurateMassPicker implements BatchStep, TaskListener,
         ActionListener {
 
     private Logger logger = Logger.getLogger(this.getClass().getName());
@@ -58,8 +59,8 @@ public class AccurateMassPicker implements BatchStepPeakPicking, TaskListener,
         parameters = new AccurateMassPickerParameters();
 
         desktop.addMenuItem(MZmineMenu.PEAKPICKING,
-                "Accurate mass peak detector", this, null, KeyEvent.VK_A,
-                false, true);
+                "Accurate mass peak detector", "TODO write description",
+                KeyEvent.VK_A, this, null);
 
     }
 
@@ -167,4 +168,7 @@ public class AccurateMassPicker implements BatchStepPeakPicking, TaskListener,
 
     }
 
+    public BatchStepCategory getBatchStepCategory() {
+        return BatchStepCategory.PEAKPICKING;
+    }
 }

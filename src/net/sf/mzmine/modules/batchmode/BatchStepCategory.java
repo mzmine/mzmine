@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2007 The MZmine Development Team
+ * Copyright 2006-2008 The MZmine Development Team
  * 
  * This file is part of MZmine.
  * 
@@ -19,10 +19,26 @@
 
 package net.sf.mzmine.modules.batchmode;
 
-/**
- * Interface representing a data processing method which can be executed in a
- * batch
- */
-public interface BatchStepNormalization extends BatchStep {
+public enum BatchStepCategory {
+
+    PROJECT("Project"), 
+    RAWDATAPROCESSING("Raw data processing"), 
+    PEAKPICKING("Peak picking"),
+    PEAKLISTPROCESSING("Peak list processing"), 
+    ALIGNMENT("Alignment"),
+    NORMALIZATION("Normalization"),
+    IDENTIFICATION("Identification"),
+    VISUALIZATION("Visualization"),
+    DATAANALYSIS("Data analysis");
+
+    private final String categoryName;
+
+    BatchStepCategory(String categoryName) {
+        this.categoryName = categoryName;
+    }
+
+    public String toString() {
+        return categoryName;
+    }
 
 }

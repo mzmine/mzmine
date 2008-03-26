@@ -31,7 +31,8 @@ import net.sf.mzmine.desktop.Desktop;
 import net.sf.mzmine.desktop.MZmineMenu;
 import net.sf.mzmine.io.RawDataFile;
 import net.sf.mzmine.main.MZmineCore;
-import net.sf.mzmine.modules.batchmode.BatchStepPeakPicking;
+import net.sf.mzmine.modules.batchmode.BatchStep;
+import net.sf.mzmine.modules.batchmode.BatchStepCategory;
 import net.sf.mzmine.taskcontrol.Task;
 import net.sf.mzmine.taskcontrol.TaskGroup;
 import net.sf.mzmine.taskcontrol.TaskGroupListener;
@@ -45,8 +46,7 @@ import net.sf.mzmine.util.dialogs.ParameterSetupDialog;
  * 
  */
 
-public class IsotopeGrouper implements BatchStepPeakPicking, TaskListener,
-        ActionListener {
+public class IsotopeGrouper implements BatchStep, TaskListener, ActionListener {
 
     private IsotopeGrouperParameters parameters;
 
@@ -63,8 +63,9 @@ public class IsotopeGrouper implements BatchStepPeakPicking, TaskListener,
 
         parameters = new IsotopeGrouperParameters();
 
-        desktop.addMenuItem(MZmineMenu.PEAKPICKING, "Isotopic peaks grouper",
-                this, null, KeyEvent.VK_I, false, true);
+        desktop.addMenuItem(MZmineMenu.PEAKLISTPROCESSING,
+                "Isotopic peaks grouper", "TODO write description",
+                KeyEvent.VK_I, this, null);
 
     }
 
@@ -176,6 +177,10 @@ public class IsotopeGrouper implements BatchStepPeakPicking, TaskListener,
 
         return newGroup;
 
+    }
+
+    public BatchStepCategory getBatchStepCategory() {
+        return BatchStepCategory.PEAKLISTPROCESSING;
     }
 
 }

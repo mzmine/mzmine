@@ -31,7 +31,8 @@ import net.sf.mzmine.desktop.Desktop;
 import net.sf.mzmine.desktop.MZmineMenu;
 import net.sf.mzmine.io.RawDataFile;
 import net.sf.mzmine.main.MZmineCore;
-import net.sf.mzmine.modules.batchmode.BatchStepPeakPicking;
+import net.sf.mzmine.modules.batchmode.BatchStep;
+import net.sf.mzmine.modules.batchmode.BatchStepCategory;
 import net.sf.mzmine.taskcontrol.Task;
 import net.sf.mzmine.taskcontrol.TaskGroup;
 import net.sf.mzmine.taskcontrol.TaskGroupListener;
@@ -43,7 +44,7 @@ import net.sf.mzmine.util.dialogs.ParameterSetupDialog;
  * This class implements a peak picker based on searching for local maximums in
  * each spectra
  */
-public class CentroidPicker implements BatchStepPeakPicking, TaskListener,
+public class CentroidPicker implements BatchStep, TaskListener,
         ActionListener {
 
     private CentroidPickerParameters parameters;
@@ -62,7 +63,7 @@ public class CentroidPicker implements BatchStepPeakPicking, TaskListener,
         parameters = new CentroidPickerParameters();
 
         desktop.addMenuItem(MZmineMenu.PEAKPICKING, "Centroid peak detector",
-                this, null, KeyEvent.VK_C, false, true);
+                "TODO write description", KeyEvent.VK_C, this, null);
 
     }
 
@@ -170,4 +171,8 @@ public class CentroidPicker implements BatchStepPeakPicking, TaskListener,
 
     }
 
+    public BatchStepCategory getBatchStepCategory() {
+        return BatchStepCategory.PEAKPICKING;
+    }
+    
 }

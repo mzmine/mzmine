@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2007 The MZmine Development Team
+ * Copyright 2006-2008 The MZmine Development Team
  * 
  * This file is part of MZmine.
  * 
@@ -68,31 +68,18 @@ class BatchModeDialog extends JDialog implements ActionListener {
         currentStepsList.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
 
         methodsCombo = new JComboBox();
+
         MZmineModule allModules[] = MZmineCore.getAllModules();
-        methodsCombo.addItem("--- Raw data filtering ---");
-        for (MZmineModule mod : allModules) {
-            if (mod instanceof BatchStepFiltering)
-                methodsCombo.addItem(mod);
-        }
-        methodsCombo.addItem("--- Peak picking ---");
-        for (MZmineModule mod : allModules) {
-            if (mod instanceof BatchStepPeakPicking)
-                methodsCombo.addItem(mod);
-        }
-        methodsCombo.addItem("--- Alignment ---");
-        for (MZmineModule mod : allModules) {
-            if (mod instanceof BatchStepAlignment)
-                methodsCombo.addItem(mod);
-        }
-        methodsCombo.addItem("--- Normalization ---");
-        for (MZmineModule mod : allModules) {
-            if (mod instanceof BatchStepNormalization)
-                methodsCombo.addItem(mod);
-        }
-        methodsCombo.addItem("--- Identification ---");
-        for (MZmineModule mod : allModules) {
-            if (mod instanceof BatchStepIdentification)
-                methodsCombo.addItem(mod);
+
+        for (BatchStepCategory category : BatchStepCategory.values()) {
+            methodsCombo.addItem("--- " + category + " ---");
+            for (MZmineModule module : allModules) {
+                if (module instanceof BatchStep) {
+                    BatchStep step = (BatchStep) module;
+                    if (step.getBatchStepCategory() == category)
+                        methodsCombo.addItem(step);
+                }
+            }
         }
 
         JPanel pnlRight = new JPanel();
@@ -161,7 +148,8 @@ class BatchModeDialog extends JDialog implements ActionListener {
 
         if (src == btnAdd) {
 
-            if (!(methodsCombo.getSelectedItem() instanceof BatchStep)) return;
+            if (!(methodsCombo.getSelectedItem() instanceof BatchStep))
+                return;
             BatchStep selectedMethod = (BatchStep) methodsCombo.getSelectedItem();
             logger.finest("Adding " + selectedMethod);
 

@@ -31,7 +31,8 @@ import net.sf.mzmine.desktop.Desktop;
 import net.sf.mzmine.desktop.MZmineMenu;
 import net.sf.mzmine.io.RawDataFile;
 import net.sf.mzmine.main.MZmineCore;
-import net.sf.mzmine.modules.batchmode.BatchStepAlignment;
+import net.sf.mzmine.modules.batchmode.BatchStep;
+import net.sf.mzmine.modules.batchmode.BatchStepCategory;
 import net.sf.mzmine.taskcontrol.Task;
 import net.sf.mzmine.taskcontrol.TaskGroup;
 import net.sf.mzmine.taskcontrol.TaskGroupListener;
@@ -42,8 +43,7 @@ import net.sf.mzmine.util.dialogs.ParameterSetupDialog;
 /**
  * 
  */
-public class JoinAligner implements BatchStepAlignment, TaskListener,
-        ActionListener {
+public class JoinAligner implements BatchStep, TaskListener, ActionListener {
 
     private Logger logger = Logger.getLogger(this.getClass().getName());
 
@@ -60,8 +60,8 @@ public class JoinAligner implements BatchStepAlignment, TaskListener,
 
         parameters = new JoinAlignerParameters();
 
-        desktop.addMenuItem(MZmineMenu.ALIGNMENT, toString(), this,
-                null, KeyEvent.VK_J, false, true);
+        desktop.addMenuItem(MZmineMenu.ALIGNMENT, toString(),
+                "TODO write description", KeyEvent.VK_J, this, null);
 
     }
 
@@ -157,6 +157,10 @@ public class JoinAligner implements BatchStepAlignment, TaskListener,
 
         return newGroup;
 
+    }
+
+    public BatchStepCategory getBatchStepCategory() {
+        return BatchStepCategory.ALIGNMENT;
     }
 
 }

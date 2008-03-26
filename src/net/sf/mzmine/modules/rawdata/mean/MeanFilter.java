@@ -31,7 +31,8 @@ import net.sf.mzmine.desktop.Desktop;
 import net.sf.mzmine.desktop.MZmineMenu;
 import net.sf.mzmine.io.RawDataFile;
 import net.sf.mzmine.main.MZmineCore;
-import net.sf.mzmine.modules.batchmode.BatchStepFiltering;
+import net.sf.mzmine.modules.batchmode.BatchStep;
+import net.sf.mzmine.modules.batchmode.BatchStepCategory;
 import net.sf.mzmine.taskcontrol.Task;
 import net.sf.mzmine.taskcontrol.TaskGroup;
 import net.sf.mzmine.taskcontrol.TaskGroupListener;
@@ -43,8 +44,7 @@ import net.sf.mzmine.util.dialogs.ParameterSetupDialog;
  * This class represent a method for filtering scans in raw data file with
  * moving average filter.
  */
-public class MeanFilter implements BatchStepFiltering, TaskListener,
-        ActionListener {
+public class MeanFilter implements BatchStep, TaskListener, ActionListener {
 
     private MeanFilterParameters parameters;
 
@@ -61,8 +61,9 @@ public class MeanFilter implements BatchStepFiltering, TaskListener,
 
         parameters = new MeanFilterParameters();
 
-        desktop.addMenuItem(MZmineMenu.FILTERING, "Mean filter spectra", this,
-                null, KeyEvent.VK_M, false, true);
+        desktop.addMenuItem(MZmineMenu.RAWDATAPROCESSING,
+                "Mean filter spectra", "TODO write description", KeyEvent.VK_M,
+                this, null);
 
     }
 
@@ -177,4 +178,9 @@ public class MeanFilter implements BatchStepFiltering, TaskListener,
         }
 
     }
+
+    public BatchStepCategory getBatchStepCategory() {
+        return BatchStepCategory.RAWDATAPROCESSING;
+    }
+
 }

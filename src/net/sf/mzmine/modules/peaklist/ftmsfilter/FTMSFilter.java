@@ -31,7 +31,8 @@ import net.sf.mzmine.desktop.Desktop;
 import net.sf.mzmine.desktop.MZmineMenu;
 import net.sf.mzmine.io.RawDataFile;
 import net.sf.mzmine.main.MZmineCore;
-import net.sf.mzmine.modules.batchmode.BatchStepPeakPicking;
+import net.sf.mzmine.modules.batchmode.BatchStep;
+import net.sf.mzmine.modules.batchmode.BatchStepCategory;
 import net.sf.mzmine.taskcontrol.Task;
 import net.sf.mzmine.taskcontrol.TaskGroup;
 import net.sf.mzmine.taskcontrol.TaskGroupListener;
@@ -49,7 +50,7 @@ import net.sf.mzmine.util.dialogs.ParameterSetupDialog;
  * 
  */
 
-public class FTMSFilter implements BatchStepPeakPicking, TaskListener,
+public class FTMSFilter implements BatchStep, TaskListener,
         ActionListener {
 
     private FTMSFilterParameters parameters;
@@ -67,9 +68,9 @@ public class FTMSFilter implements BatchStepPeakPicking, TaskListener,
 
         parameters = new FTMSFilterParameters();
 
-        desktop.addMenuItem(MZmineMenu.PEAKPICKING,
-                "FTMS shoulder peak filter", this, null, KeyEvent.VK_F, false,
-                true);
+        desktop.addMenuItem(MZmineMenu.PEAKLISTPROCESSING,
+                "FTMS shoulder peak filter", "TODO write description",
+                KeyEvent.VK_F, this, null);
 
     }
 
@@ -184,4 +185,7 @@ public class FTMSFilter implements BatchStepPeakPicking, TaskListener,
 
     }
 
+    public BatchStepCategory getBatchStepCategory() {
+        return BatchStepCategory.PEAKLISTPROCESSING;
+    }
 }

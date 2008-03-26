@@ -31,7 +31,8 @@ import net.sf.mzmine.desktop.Desktop;
 import net.sf.mzmine.desktop.MZmineMenu;
 import net.sf.mzmine.io.RawDataFile;
 import net.sf.mzmine.main.MZmineCore;
-import net.sf.mzmine.modules.batchmode.BatchStepFiltering;
+import net.sf.mzmine.modules.batchmode.BatchStep;
+import net.sf.mzmine.modules.batchmode.BatchStepCategory;
 import net.sf.mzmine.taskcontrol.Task;
 import net.sf.mzmine.taskcontrol.TaskGroup;
 import net.sf.mzmine.taskcontrol.TaskGroupListener;
@@ -39,8 +40,7 @@ import net.sf.mzmine.taskcontrol.TaskListener;
 import net.sf.mzmine.util.dialogs.ExitCode;
 import net.sf.mzmine.util.dialogs.ParameterSetupDialog;
 
-public class CMFilter implements BatchStepFiltering, TaskListener,
-        ActionListener {
+public class CMFilter implements BatchStep, TaskListener, ActionListener {
 
     private CMFilterParameters parameters;
 
@@ -57,9 +57,9 @@ public class CMFilter implements BatchStepFiltering, TaskListener,
 
         parameters = new CMFilterParameters();
 
-        desktop.addMenuItem(MZmineMenu.FILTERING,
-                "Chromatographic median filter", this, null, KeyEvent.VK_H,
-                false, true);
+        desktop.addMenuItem(MZmineMenu.RAWDATAPROCESSING,
+                "Chromatographic median filter", "TODO write description",
+                KeyEvent.VK_H, this, null);
 
     }
 
@@ -173,6 +173,10 @@ public class CMFilter implements BatchStepFiltering, TaskListener,
             desktop.displayErrorMessage(msg);
         }
 
+    }
+
+    public BatchStepCategory getBatchStepCategory() {
+        return BatchStepCategory.RAWDATAPROCESSING;
     }
 
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2007 The MZmine Development Team
+ * Copyright 2006-2008 The MZmine Development Team
  * 
  * This file is part of MZmine.
  * 
@@ -17,7 +17,7 @@
  * Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-package net.sf.mzmine.modules.dataanalysis.intensityplot;
+package net.sf.mzmine.modules.visualization.intensityplot;
 
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -51,11 +51,11 @@ public class IntensityPlot implements MZmineModule, ActionListener {
         this.desktop = MZmineCore.getDesktop();
 
         parameters = new IntensityPlotParameters();
-        
+
         myInstance = this;
 
-        desktop.addMenuItem(MZmineMenu.ANALYSIS, "Peak intensity plot", this,
-                null, KeyEvent.VK_D, false, true);
+        desktop.addMenuItem(MZmineMenu.VISUALIZATION, "Peak intensity plot",
+                "TODO write description", KeyEvent.VK_D, this, null);
 
     }
 
@@ -114,7 +114,7 @@ public class IntensityPlot implements MZmineModule, ActionListener {
     public void setParameters(ParameterSet parameterValues) {
         this.parameters = (IntensityPlotParameters) parameterValues;
     }
-    
+
     public static IntensityPlot getInstance() {
         return myInstance;
     }

@@ -59,14 +59,14 @@ public class PeakListTableVisualizer implements MZmineModule, ActionListener {
             public void run() {
                 JFreeReportBoot.getInstance().start();
             }
-            
+
         };
         bootThread.start();
 
         parameters = new PeakListTableParameters();
 
-        desktop.addMenuItem(MZmineMenu.VISUALIZATION, "Peak list table", this,
-                null, KeyEvent.VK_A, false, true);
+        desktop.addMenuItem(MZmineMenu.VISUALIZATION, "Peak list table",
+                "TODO write description", KeyEvent.VK_A, this, null);
 
     }
 

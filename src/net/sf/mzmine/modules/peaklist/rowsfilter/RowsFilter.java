@@ -31,7 +31,8 @@ import net.sf.mzmine.desktop.Desktop;
 import net.sf.mzmine.desktop.MZmineMenu;
 import net.sf.mzmine.io.RawDataFile;
 import net.sf.mzmine.main.MZmineCore;
-import net.sf.mzmine.modules.batchmode.BatchStepAlignment;
+import net.sf.mzmine.modules.batchmode.BatchStep;
+import net.sf.mzmine.modules.batchmode.BatchStepCategory;
 import net.sf.mzmine.taskcontrol.Task;
 import net.sf.mzmine.taskcontrol.TaskGroup;
 import net.sf.mzmine.taskcontrol.TaskGroupListener;
@@ -44,8 +45,7 @@ import net.sf.mzmine.util.dialogs.ParameterSetupDialog;
  * which have less than defined number of peaks detected
  * 
  */
-public class RowsFilter implements BatchStepAlignment, TaskListener,
-        ActionListener {
+public class RowsFilter implements BatchStep, TaskListener, ActionListener {
 
     private Logger logger = Logger.getLogger(this.getClass().getName());
 
@@ -62,8 +62,8 @@ public class RowsFilter implements BatchStepAlignment, TaskListener,
 
         parameters = new RowsFilterParameters();
 
-        desktop.addMenuItem(MZmineMenu.ALIGNMENT, toString(), this, null,
-                KeyEvent.VK_A, false, true);
+        desktop.addMenuItem(MZmineMenu.PEAKLISTPROCESSING, toString(),
+                "TODO write description", KeyEvent.VK_R, this, null);
 
     }
 
@@ -157,6 +157,10 @@ public class RowsFilter implements BatchStepAlignment, TaskListener,
 
         return newGroup;
 
+    }
+
+    public BatchStepCategory getBatchStepCategory() {
+        return BatchStepCategory.PEAKLISTPROCESSING;
     }
 
 }

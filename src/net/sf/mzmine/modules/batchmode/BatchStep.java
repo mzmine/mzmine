@@ -28,14 +28,16 @@ import net.sf.mzmine.taskcontrol.TaskGroupListener;
 import net.sf.mzmine.util.dialogs.ExitCode;
 
 /**
- * Interface representing a data processing method which can be executed in a batch
+ * Interface representing a data processing method which can be executed in a
+ * batch
  */
 public interface BatchStep extends MZmineModule {
 
     /**
      * Show a setup dialog for the module parameter set
      * 
-     * @return ExitCode.OK or ExitCode.CANCEL depending how user closed the dialog 
+     * @return ExitCode.OK or ExitCode.CANCEL depending how user closed the
+     *         dialog
      */
     public ExitCode setupParameters(ParameterSet parameters);
 
@@ -53,5 +55,13 @@ public interface BatchStep extends MZmineModule {
     public TaskGroup runModule(RawDataFile[] dataFiles,
             PeakList[] alignmentResults, ParameterSet parameters,
             TaskGroupListener methodListener);
+
+    /**
+     * Returns the category of the batch step (e.g. raw data processing, peak
+     * picking etc.)
+     * 
+     * @return Category of this batch step
+     */
+    public BatchStepCategory getBatchStepCategory();
 
 }

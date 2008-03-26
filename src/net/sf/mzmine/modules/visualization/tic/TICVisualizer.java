@@ -59,8 +59,8 @@ public class TICVisualizer implements MZmineModule, ActionListener {
 
         parameters = new TICVisualizerParameters();
 
-        desktop.addMenuItem(MZmineMenu.VISUALIZATION, "TIC plot", this, null,
-                KeyEvent.VK_T, false, true);
+        desktop.addMenuItem(MZmineMenu.VISUALIZATION, "TIC plot",
+                "TODO write description", KeyEvent.VK_T, this, null);
 
         myInstance = this;
 

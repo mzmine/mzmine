@@ -47,8 +47,8 @@ public class PeakListExporter implements MZmineModule, ActionListener {
 
         parameters = new PeakListExportParameters();
 
-        desktop.addMenuItem(MZmineMenu.PROJECT, "Peak list export", this, null,
-                KeyEvent.VK_P, false, true);
+        desktop.addMenuItem(MZmineMenu.PROJECT, "Peak list export",
+                "TODO write description", KeyEvent.VK_P, this, null);
 
     }
 

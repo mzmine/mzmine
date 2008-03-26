@@ -36,55 +36,96 @@ import net.sf.mzmine.main.MZmineModule;
  */
 public interface Desktop extends MZmineModule {
 
-	/**
-	 * Returns a reference to main application window
-	 * 
-	 * @return Main window frame
-	 */
-	public JFrame getMainFrame();
+    /**
+     * Returns a reference to main application window
+     * 
+     * @return Main window frame
+     */
+    public JFrame getMainFrame();
 
-	public JMenuItem addMenuItem(MZmineMenu parentMenu, String text,
-			ActionListener listener, String actionCommand, int mnemonic,
-			boolean setAccelerator, boolean enabled);
+    /**
+     * Creates a new menu item in the main application menu.
+     * 
+     * @param parentMenu MZmineMenu where to create the new item
+     * @param text Item text
+     * @param toolTip Item's tooltip
+     * @param mnemonic Item's keyboard shortcut
+     * @param listener ActionListener to receive the new menu item's events
+     * @param actionCommand Action command for action listener or null
+     * @return Newly created JMenuItem
+     */
+    public JMenuItem addMenuItem(MZmineMenu parentMenu, String text,
+            String toolTip, int mnemonic, ActionListener listener, String actionCommand);
 
-	/**
-	 * Adds a separator to a given MZmine menu
-	 * 
-	 * @param parentMenu
-	 *            Menu where to add a separator
-	 */
-	public void addMenuSeparator(MZmineMenu parentMenu);
+    /**
+     * Adds a separator to a given MZmine menu
+     * 
+     * @param parentMenu Menu where to add a separator
+     */
+    public void addMenuSeparator(MZmineMenu parentMenu);
 
-	public void addInternalFrame(JInternalFrame frame);
+    /**
+     * Adds a new internal frame (JInternalFrame) to the desktop pane
+     * 
+     * @param frame Internal frame to add
+     */
+    public void addInternalFrame(JInternalFrame frame);
 
-	public JInternalFrame[] getVisibleFrames(Class frameClass);
+    /**
+     * Returns all internal frames in the desktop pane
+     * 
+     * @return Array of all internal frames
+     */
+    public JInternalFrame[] getInternalFrames();
 
-	public JInternalFrame[] getVisibleFrames();
+    /**
+     * Returns the currently selected frame or null if no frame is selected
+     * 
+     * @return Selected frame
+     */
+    public JInternalFrame getSelectedFrame();
 
-	public JInternalFrame getSelectedFrame();
+    /**
+     * Displays a given text on the application status bar in black color
+     * 
+     * @param text Text to show
+     */
+    public void setStatusBarText(String text);
 
-	// Status bar funcions
-	public void setStatusBarText(String text);
+    /**
+     * Displays a given text on the application status bar in a given color
+     * 
+     * @param text Text to show
+     * @param textColor Text color
+     */
+    public void setStatusBarText(String text, Color textColor);
 
-	public void setStatusBarText(String text, Color textColor);
+    /**
+     * Displays a message box with a given text
+     * 
+     * @param msg Text to show
+     */
+    public void displayMessage(String msg);
 
-	// Message box functions
-	public void displayMessage(String msg);
+    /**
+     * Displays an error message box with a given text
+     * 
+     * @param msg Text to show
+     */
+    public void displayErrorMessage(String msg);
 
-	public void displayErrorMessage(String msg);
+    /**
+     * Returns array of currently selected raw data files in GUI
+     * 
+     * @return Array of selected raw data files
+     */
+    public RawDataFile[] getSelectedDataFiles();
 
-	public boolean isDataFileSelected();
-
-	public boolean isPeakListSelected();
-
-	/**
-	 * Returns array of currently selected raw data files in GUI
-	 */
-	public RawDataFile[] getSelectedDataFiles();
-
-	/**
-	 * Returns array of currently selected alignned peaklists in GUI
-	 */
-	public PeakList[] getSelectedPeakLists();
+    /**
+     * Returns array of currently selected peak lists in GUI
+     * 
+     * @return Array of selected peak lists
+     */
+    public PeakList[] getSelectedPeakLists();
 
 }

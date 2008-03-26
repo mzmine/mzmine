@@ -31,7 +31,6 @@ import javax.swing.JMenu;
 import javax.swing.JMenuBar;
 import javax.swing.JMenuItem;
 import javax.swing.JOptionPane;
-import javax.swing.KeyStroke;
 
 import net.sf.mzmine.desktop.MZmineMenu;
 import net.sf.mzmine.io.impl.FileOpenDialog;
@@ -153,7 +152,7 @@ class MainMenu extends JMenuBar implements ActionListener {
 		case PROJECT:
 			projectMenu.add(newItem, 5);
 			break;
-		case FILTERING:
+		case RAWDATAPROCESSING:
 			filterMenu.add(newItem);
 			break;
 		case PEAKPICKING:
@@ -172,27 +171,26 @@ class MainMenu extends JMenuBar implements ActionListener {
 		case VISUALIZATION:
 			rawDataVisualizationMenu.add(newItem);
 			break;
-		case ANALYSIS:
+		case DATAANALYSIS:
 			dataAnalysisMenu.add(newItem);
 			break;
 		}
 	}
 
-	public JMenuItem addMenuItem(MZmineMenu parentMenu, String text,
-			ActionListener listener, String actionCommand, int mnemonic,
-			boolean setAccelerator, boolean enabled) {
+	public JMenuItem addMenuItem(MZmineMenu parentMenu, String text, String toolTip, int mnemonic, ActionListener listener, String actionCommand) {
 
 		JMenuItem newItem = new JMenuItem(text);
 		if (listener != null)
 			newItem.addActionListener(listener);
-		if (actionCommand != null)
-			newItem.setActionCommand(actionCommand);
-		if (mnemonic > 0)
+        if (actionCommand != null)
+            newItem.setActionCommand(actionCommand);
+		if (toolTip != null)
+			newItem.setToolTipText(toolTip);
+		if (mnemonic > 0) {
 			newItem.setMnemonic(mnemonic);
-		if (setAccelerator)
-			newItem.setAccelerator(KeyStroke.getKeyStroke(mnemonic,
-					ActionEvent.CTRL_MASK));
-		newItem.setEnabled(enabled);
+			//newItem.setAccelerator(KeyStroke.getKeyStroke(mnemonic,
+			//		ActionEvent.CTRL_MASK));
+        }
 		addMenuItem(parentMenu, newItem);
 		return newItem;
 
@@ -200,7 +198,7 @@ class MainMenu extends JMenuBar implements ActionListener {
 
 	public void addMenuSeparator(MZmineMenu parentMenu) {
 		switch (parentMenu) {
-		case FILTERING:
+		case RAWDATAPROCESSING:
 			filterMenu.addSeparator();
 			break;
 		case PEAKPICKING:
@@ -219,7 +217,7 @@ class MainMenu extends JMenuBar implements ActionListener {
 		case VISUALIZATION:
 			rawDataVisualizationMenu.addSeparator();
 			break;
-		case ANALYSIS:
+		case DATAANALYSIS:
 			dataAnalysisMenu.addSeparator();
 			break;
 

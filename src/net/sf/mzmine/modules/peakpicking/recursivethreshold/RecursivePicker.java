@@ -31,7 +31,8 @@ import net.sf.mzmine.desktop.Desktop;
 import net.sf.mzmine.desktop.MZmineMenu;
 import net.sf.mzmine.io.RawDataFile;
 import net.sf.mzmine.main.MZmineCore;
-import net.sf.mzmine.modules.batchmode.BatchStepPeakPicking;
+import net.sf.mzmine.modules.batchmode.BatchStep;
+import net.sf.mzmine.modules.batchmode.BatchStepCategory;
 import net.sf.mzmine.taskcontrol.Task;
 import net.sf.mzmine.taskcontrol.TaskGroup;
 import net.sf.mzmine.taskcontrol.TaskGroupListener;
@@ -39,8 +40,7 @@ import net.sf.mzmine.taskcontrol.TaskListener;
 import net.sf.mzmine.util.dialogs.ExitCode;
 import net.sf.mzmine.util.dialogs.ParameterSetupDialog;
 
-public class RecursivePicker implements BatchStepPeakPicking, TaskListener,
-        ActionListener {
+public class RecursivePicker implements BatchStep, TaskListener, ActionListener {
 
     private Logger logger = Logger.getLogger(this.getClass().getName());
 
@@ -58,8 +58,8 @@ public class RecursivePicker implements BatchStepPeakPicking, TaskListener,
         parameters = new RecursivePickerParameters();
 
         desktop.addMenuItem(MZmineMenu.PEAKPICKING,
-                "Recursive threshold peak detector", this, null, KeyEvent.VK_R,
-                false, true);
+                "Recursive threshold peak detector", "TODO write description",
+                KeyEvent.VK_R, this, null);
 
     }
 
@@ -165,6 +165,10 @@ public class RecursivePicker implements BatchStepPeakPicking, TaskListener,
 
         return newGroup;
 
+    }
+
+    public BatchStepCategory getBatchStepCategory() {
+        return BatchStepCategory.PEAKPICKING;
     }
 
 }

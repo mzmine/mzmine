@@ -56,8 +56,8 @@ public class TwoDVisualizer implements MZmineModule, ActionListener {
 
         parameters = new TwoDParameters();
 
-        desktop.addMenuItem(MZmineMenu.VISUALIZATION, "2D plot", this, null,
-                KeyEvent.VK_2, false, true);
+        desktop.addMenuItem(MZmineMenu.VISUALIZATION, "2D plot",
+                "TODO write description", KeyEvent.VK_2, this, null);
 
     }
 

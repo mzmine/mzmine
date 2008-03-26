@@ -31,7 +31,8 @@ import net.sf.mzmine.desktop.Desktop;
 import net.sf.mzmine.desktop.MZmineMenu;
 import net.sf.mzmine.io.RawDataFile;
 import net.sf.mzmine.main.MZmineCore;
-import net.sf.mzmine.modules.batchmode.BatchStepFiltering;
+import net.sf.mzmine.modules.batchmode.BatchStep;
+import net.sf.mzmine.modules.batchmode.BatchStepCategory;
 import net.sf.mzmine.taskcontrol.Task;
 import net.sf.mzmine.taskcontrol.TaskGroup;
 import net.sf.mzmine.taskcontrol.TaskGroupListener;
@@ -39,8 +40,7 @@ import net.sf.mzmine.taskcontrol.TaskListener;
 import net.sf.mzmine.util.dialogs.ExitCode;
 import net.sf.mzmine.util.dialogs.ParameterSetupDialog;
 
-public class ZoomScanFilter implements BatchStepFiltering, TaskListener,
-        ActionListener {
+public class ZoomScanFilter implements BatchStep, TaskListener, ActionListener {
 
     private ZoomScanFilterParameters parameters;
 
@@ -57,8 +57,8 @@ public class ZoomScanFilter implements BatchStepFiltering, TaskListener,
 
         parameters = new ZoomScanFilterParameters();
 
-        desktop.addMenuItem(MZmineMenu.FILTERING, "Zoom scan filter", this,
-                null, KeyEvent.VK_Z, false, true);
+        desktop.addMenuItem(MZmineMenu.RAWDATAPROCESSING, "Zoom scan filter",
+                "TODO write description", KeyEvent.VK_Z, this, null);
 
     }
 
@@ -170,6 +170,10 @@ public class ZoomScanFilter implements BatchStepFiltering, TaskListener,
             desktop.displayErrorMessage(msg);
         }
 
+    }
+
+    public BatchStepCategory getBatchStepCategory() {
+        return BatchStepCategory.RAWDATAPROCESSING;
     }
 
 }

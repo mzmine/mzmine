@@ -260,11 +260,12 @@ class SpectraVisualizerWindow extends JInternalFrame implements ActionListener {
             float yTick = (float) yAxis.getTickUnit().getSize();
 
             // Get all frames of my class
-            JInternalFrame spectraFrames[] = desktop.getVisibleFrames(SpectraVisualizerWindow.class);
+            JInternalFrame spectraFrames[] = desktop.getInternalFrames();
 
             // Set the range of these frames
             for (JInternalFrame frame : spectraFrames) {
-                if (frame == this)
+                if ((!(frame instanceof SpectraVisualizerWindow))
+                        || (frame == this))
                     continue;
                 SpectraVisualizerWindow spectraFrame = (SpectraVisualizerWindow) frame;
                 spectraFrame.setAxesRange(xMin, xMax, xTick, yMin, yMax, yTick);

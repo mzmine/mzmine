@@ -323,11 +323,12 @@ public class TICVisualizerWindow extends JInternalFrame implements
             float yTick = (float) yAxis.getTickUnit().getSize();
 
             // Get all frames of my class
-            JInternalFrame spectraFrames[] = desktop.getVisibleFrames(TICVisualizerWindow.class);
+            JInternalFrame spectraFrames[] = desktop.getInternalFrames();
 
             // Set the range of these frames
             for (JInternalFrame frame : spectraFrames) {
-                if (frame == this)
+                if ((!(frame instanceof TICVisualizerWindow))
+                        || (frame == this))
                     continue;
                 TICVisualizerWindow spectraFrame = (TICVisualizerWindow) frame;
                 spectraFrame.setAxesRange(xMin, xMax, xTick, yMin, yMax, yTick);

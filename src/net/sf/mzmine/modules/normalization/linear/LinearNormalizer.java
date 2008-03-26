@@ -31,7 +31,8 @@ import net.sf.mzmine.desktop.Desktop;
 import net.sf.mzmine.desktop.MZmineMenu;
 import net.sf.mzmine.io.RawDataFile;
 import net.sf.mzmine.main.MZmineCore;
-import net.sf.mzmine.modules.batchmode.BatchStepNormalization;
+import net.sf.mzmine.modules.batchmode.BatchStep;
+import net.sf.mzmine.modules.batchmode.BatchStepCategory;
 import net.sf.mzmine.taskcontrol.Task;
 import net.sf.mzmine.taskcontrol.TaskGroup;
 import net.sf.mzmine.taskcontrol.TaskGroupListener;
@@ -42,7 +43,7 @@ import net.sf.mzmine.util.dialogs.ParameterSetupDialog;
 /**
  * 
  */
-public class LinearNormalizer implements BatchStepNormalization, TaskListener,
+public class LinearNormalizer implements BatchStep, TaskListener,
         ActionListener {
 
     private Logger logger = Logger.getLogger(this.getClass().getName());
@@ -61,7 +62,7 @@ public class LinearNormalizer implements BatchStepNormalization, TaskListener,
         parameters = new LinearNormalizerParameters();
 
         desktop.addMenuItem(MZmineMenu.NORMALIZATION, "Linear normalizer",
-                this, null, KeyEvent.VK_A, false, true);
+                "TODO write description", KeyEvent.VK_L, this, null);
 
     }
 
@@ -158,6 +159,10 @@ public class LinearNormalizer implements BatchStepNormalization, TaskListener,
 
         return newGroup;
 
+    }
+
+    public BatchStepCategory getBatchStepCategory() {
+        return BatchStepCategory.NORMALIZATION;
     }
 
 }

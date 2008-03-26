@@ -26,7 +26,6 @@ import java.awt.event.ComponentEvent;
 import java.awt.event.ComponentListener;
 import java.util.Iterator;
 
-import net.sf.mzmine.data.Parameter;
 import net.sf.mzmine.data.StorableParameterSet;
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.util.NumberFormatter;
@@ -275,12 +274,7 @@ public class DesktopParameters implements StorableParameterSet,
 				.elementText(LAST_PROJECT_PATH_ELEMENT_NAME);
 	}
 
-	/**
-	 * @see net.sf.mzmine.data.ParameterSet#getParameterValue(net.sf.mzmine.data.Parameter)
-	 */
-	public Object getParameterValue(Parameter parameter) {
-		return null;
-	}
+
 
 	public DesktopParameters clone() {
 		return new DesktopParameters(mzFormat.clone(), rtFormat.clone(),

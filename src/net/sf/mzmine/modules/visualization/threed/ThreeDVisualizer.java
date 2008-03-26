@@ -56,8 +56,8 @@ public class ThreeDVisualizer implements MZmineModule, ActionListener {
 
         parameters = new ThreeDVisualizerParameters();
 
-        desktop.addMenuItem(MZmineMenu.VISUALIZATION, "3D plot", this, null,
-                KeyEvent.VK_3, false, true);
+        desktop.addMenuItem(MZmineMenu.VISUALIZATION, "3D plot",
+                "TODO write description", KeyEvent.VK_3, this, null);
 
     }
 
@@ -80,7 +80,6 @@ public class ThreeDVisualizer implements MZmineModule, ActionListener {
                 dataFiles[0].getDataRTRange(1));
         autoValues.put(ThreeDVisualizerParameters.mzRange,
                 dataFiles[0].getDataMZRange(1));
-        
 
         ParameterSetupDialog dialog = new ParameterSetupDialog(
                 "Please set parameter values for " + toString(), parameters,
@@ -99,7 +98,8 @@ public class ThreeDVisualizer implements MZmineModule, ActionListener {
 
         // Create a window, but do not add it to the desktop. It will be added
         // automatically after finishing the sampling task.
-        new ThreeDVisualizerWindow(dataFiles[0], msLevel, rtRange, rtRes, mzRange, mzRes);
+        new ThreeDVisualizerWindow(dataFiles[0], msLevel, rtRange, rtRes,
+                mzRange, mzRes);
 
     }
 

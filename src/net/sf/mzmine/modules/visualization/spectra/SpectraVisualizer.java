@@ -57,8 +57,8 @@ public class SpectraVisualizer implements MZmineModule, ActionListener {
 
         parameters = new SpectraVisualizerParameters();
 
-        desktop.addMenuItem(MZmineMenu.VISUALIZATION, "Spectra plot", this,
-                null, KeyEvent.VK_S, false, true);
+        desktop.addMenuItem(MZmineMenu.VISUALIZATION, "Spectra plot",
+                "TODO write description", KeyEvent.VK_S, this, null);
 
     }
 
