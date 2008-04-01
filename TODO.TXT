@@ -1,0 +1,69 @@
+Code
+
+* Data analysis
+- CDA and Sammons plots are not implemented. 
+- RT/mz plot's color axis needs more informative title - instead of "Logratio" it should say e.g. "log2(avg peak area(file1, file2) / avg peak area (file3, file4))"
+
+* Standard compound normalizer
+- NOMIS method
+
+* Gap filler
+- Secondary peak picking is not implemented
+
+* Finish raw data visualizers
+- TIC can be activated only when just 1 data file is selected
+- 2D visualizer is not yet finished. It should show detected peaks on top of the visualization.
+- TIC, Spectra and 2D visualizer need a common dialog to set X/Y axis range
+- "Set same axis range to other visualizers" menu item
+- 3D-visualizer needs a setting for peak annotation threshold (annotate only peaks above given level), threshold in % or absolute
+- TIC/2D/3D visualizer setup dialog should remember last range values and offer either default values (depending on file) or last values
+- Datasets of JFreeChart library have to be updated in swing event-dispatching thread, otherwise exceptions can be thrown
+- From raw data it should be possible to find nearest peak to cursor position and show it on a peak list and available alignment results
+- Update visualizers after data or peak list has been modified.
+
+
+* Alignment result table visualizer
+- Display isotope pattern and charge of deisotoped peaks
+
+
+* From peak list table it should be possible to open raw data visualizers showing the detected or estimated peak:
+- 2D visualizer with an overview of the region around the peak
+- Spectrum showing scan at the highest position of the peak 
+- XIC with area for the peak shaded (new feature)
+
+
+* Each module should provide a detailed description of all its parameters. 
+- Parameter descriptions should be detailed enough to make software understandable.
+
+
+* IO
+- User should be able to set mass precision per each file/MS level
+- Use the ProteomeCommons IO framework for reading all kinds of mass spec formats
+
+
+* Peak picking
+- Peak picking method should limit detected peaks with minimum/maximum duration
+
+
+* User interface
+- Copy/paste
+- Printing
+- Undo
+
+
+
+* Compound identification
+- Implement basic identification methods using KEGG/PubChem/custom database
+- Implement in-source fragment identification
+- Display identification results in alignment result visualizer
+
+
+* Dialogs
+- Problems in entering acceptable values to formatted fields. For example retention times shown in AxesSetupDialog.
+
+
+Other
+
+* Write documentation for the new code
+
+* Rewrite User's manual.

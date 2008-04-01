@@ -1,60 +1,86 @@
 <?xml version="1.0"?>
 <project name="MZmine" default="jar" basedir=".">
-	
-	<property name="src" value="src"/>
-	<property name="lib" value="lib"/>
-	<property name="rest" value="rest"/>
-	
-	<property name="build" value="build"/>
-	<property name="dist" value="dist"/>
-		
-	<path id="classpath.alllibs">
-		<pathelement location="${lib}/base64.jar"/>
-		<pathelement location="${lib}/danby.jar"/>
-		<pathelement location="${lib}/jmprojection.jar"/>
-		<pathelement location="${lib}/netcdf.jar"/>
-		<pathelement location="${lib}/sunutils.jar"/>
+
+	<property name="src" value="src" />
+	<property name="lib" value="lib" />
+	<property name="conf" value="conf" />
+	<property name="rest" value="rest" />
+	<property name="icons" value="icons" />
+	<property name="build" value="build" />
+	<property name="dist" value="dist" />
+
+	<property name="manifest" value="mzmine.mf" />
+	<property name="mainclass" value="net.sf.mzmine.main.DummyMain" />
+
+    <fileset id="jars" dir="${lib}">
+    	<include name="*.jar" />
+    </fileset>
+     	
+	<path id="cppath">
+		<fileset refid="jars" />
 	</path>
+
+	<pathconvert property="classpath" refid="cppath" pathsep=" " dirsep="/">
+	    <map from="${basedir}${file.separator}" to="" />
+    </pathconvert>
 	
+	<target name="manifest">
+	   	<manifest file="${manifest}" mode="replace">
+	  		<attribute name="Built-By" value="${user.name}"/>
+	  		<attribute name="Main-Class" value="${mainclass}"/>
+	   		<attribute name="Class-Path" value=". ${classpath}"/>	  	
+	  	</manifest>
+	</target>
+	
+	<target name="compile">
 
+		<mkdir dir="${build}" />
 
-	<target name="compile">	
-		<mkdir dir="${build}"/>
-		
-		<javac srcdir="${src}" destdir="${build}" debug="on">
-			<classpath refid="classpath.alllibs"/>
+		<javac target="1.5" srcdir="${src}" destdir="${build}" debug="on">
+			<classpath refid="cppath" />
 		</javac>
 		
 	</target>
-	
-	<target name="jar" depends="compile">
-		<mkdir dir="${dist}"/>
-		<mkdir dir="${dist}/lib"/>
+
+	<target name="jar" depends="compile,manifest">
 		
+		<mkdir dir="${dist}" />
+		<mkdir dir="${dist}/lib" />
+		<mkdir dir="${dist}/icons" />
+		<mkdir dir="${dist}/conf" />
+
+		<!-- copy the sources, to include all resources like XML report definition -->
+		<copy todir="${build}">
+			<fileset dir="${src}" />
+		</copy>
+				
 		<copy todir="${dist}">
-			<fileset file="${rest}/mzmineclient.ini"/>
-			<fileset file="${rest}/mzminecontroller.ini"/>
-			<fileset file="${rest}/mzminenode.ini"/>
-			<fileset file="${rest}/startMZmine.bat"/>
-		</copy>
-		<copy todir="${dist}/lib">
-			<fileset file="${lib}/base64.jar"/>
-			<fileset file="${lib}/danby.jar"/>
-			<fileset file="${lib}/jmprojection.jar"/>
-			<fileset file="${lib}/netcdf.jar"/>
-			<fileset file="${lib}/sunutils.jar"/>
+			<fileset file="${rest}/startMZmine.*" />
 		</copy>
 		
-		<jar destfile="${dist}/MZmine.jar" manifest="${rest}/mzminemanifest">
+		<copy todir="${dist}/conf">
+			<fileset file="${conf}/*.properties" />
+			<fileset file="${conf}/*.xml" />
+		</copy>
+		
+		<copy todir="${dist}/icons">
+			<fileset file="${icons}/*.png" />
+		</copy>
+		
+		<copy todir="${dist}/lib">
+			<fileset file="${lib}/*.jar" />
+		</copy>
+
+		<jar destfile="${dist}/MZmine.jar" manifest="${manifest}">
 			<fileset dir="${build}" />
-			<fileset dir="${lib}"/>
 		</jar>
-	</target>
-	
-	<target name="clean">
-		<delete dir="${build}"/>
-		<delete dir="${dist}"/>
+		
 	</target>
 
-	
+	<target name="clean">
+		<delete dir="${build}" />
+		<delete dir="${dist}" />
+		<delete file="${manifest}" />
+	</target>
+
 </project>
