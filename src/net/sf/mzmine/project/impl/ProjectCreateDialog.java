@@ -25,9 +25,11 @@ import java.awt.Insets;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.File;
+import java.util.HashMap;
 import java.util.logging.Logger;
 
 import javax.swing.JButton;
+import javax.swing.JCheckBox;
 import javax.swing.JComponent;
 import javax.swing.JDialog;
 import javax.swing.JPanel;
@@ -35,6 +37,7 @@ import javax.swing.JPanel;
 import net.sf.mzmine.desktop.impl.DesktopParameters;
 import net.sf.mzmine.main.MZmineClient;
 import net.sf.mzmine.main.MZmineCore;
+import net.sf.mzmine.project.ProjectManager;
 import net.sf.mzmine.util.GUIUtils;
 
 /**
@@ -49,6 +52,8 @@ public class ProjectCreateDialog extends JDialog implements ActionListener {
 	private String buttonName;
 	private ProjectCreatePane createProjectPane;
 	private DialogType dialogType;
+	JCheckBox chkBoxZip;
+	private boolean zip;
 
 	public enum DialogType {
 		Create, SaveAs
@@ -67,6 +72,7 @@ public class ProjectCreateDialog extends JDialog implements ActionListener {
 	}
 
 	protected void setup(File lastProjectDir) {
+		zip = false;
 		if (this.dialogType == DialogType.SaveAs) {
 			this.frameTitle = "Saving project...";
 			this.message = "Please select a name to save project as";
@@ -117,6 +123,20 @@ public class ProjectCreateDialog extends JDialog implements ActionListener {
 		constraints.weightx = 1;
 		layout.setConstraints(createProjectPane, constraints);
 
+		// Experimental Zip option
+		if (this.dialogType == DialogType.SaveAs) {
+			gridy++;
+			chkBoxZip = new JCheckBox("Zip DataFiles and PeakLists");
+			panel.add(chkBoxZip);
+			constraints.gridx = 0;
+			constraints.gridy = gridy;
+			constraints.gridwidth = 5;
+			constraints.gridheight = 1;
+			constraints.weighty = 0;
+			constraints.weightx = 1;
+			layout.setConstraints(chkBoxZip, constraints);
+		}
+
 		gridy++;
 		comp = GUIUtils.addSeparator(panel, PADDING_SIZE);
 		constraints.gridx = 0;
@@ -164,27 +184,44 @@ public class ProjectCreateDialog extends JDialog implements ActionListener {
 
 			if (projectDir == null) {
 				return;
-			} else {
+			}
+
+			if (this.dialogType == DialogType.Create) {
 				try {
-					if (this.dialogType == DialogType.Create) {
-						MZmineClient.getInstance().getProjectManager()
-								.createProject(projectDir);
-					} else {
-						MZmineClient.getInstance().getProjectManager()
-								.saveProject(projectDir);
-					}
-					DesktopParameters parameters = (DesktopParameters) MZmineCore
-							.getDesktop().getParameterSet();
-					parameters.setLastOpenProjectPath(projectDir.toString());
-					// discard this dialog
-					dispose();
+					MZmineClient.getInstance().getProjectManager()
+							.createProject(projectDir);
 				} catch (Throwable e) {
 					logger.fine("Could not create new project");
 				}
-				// leave this dialog open
+
+			} else {
+				// dialogType==DilogType.SaveAs
+				try {
+					ProjectManager manager = MZmineClient.getInstance()
+							.getProjectManager();
+					HashMap<String, Object> options = new HashMap();
+					if (this.chkBoxZip.getSelectedObjects() == null) {
+						manager.saveProject(projectDir);
+						options.put("zip", false);
+					} else {
+						options.put("zip", true);
+						manager.saveProject(projectDir, options);
+					}
+
+				} catch (Throwable e) {
+					logger.fine("Could not save project");
+				}
 			}
+			DesktopParameters parameters = (DesktopParameters) MZmineCore
+					.getDesktop().getParameterSet();
+			parameters.setLastOpenProjectPath(projectDir.toString());
+			// discard this dialog
+			dispose();
+			// leave this dialog open
+
 		} else if (command.equals("Cancel")) {
 			dispose();
 		}
 	}
+
 }

@@ -22,6 +22,9 @@ package net.sf.mzmine.project.impl;
 import java.io.File;
 import java.io.IOException;
 import java.lang.reflect.Constructor;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
 import java.util.logging.Logger;
 
 import net.sf.mzmine.desktop.Desktop;
@@ -57,7 +60,7 @@ public class ProjectManagerImpl implements ProjectManager, TaskListener {
 		this.status = ProjectStatus.Idle;
 		this.projectType = projectType;
 		this.initModule();
-		}
+	}
 
 	/**
 	 * This method is non-blocking, it places a request to open these files and
@@ -119,13 +122,34 @@ public class ProjectManagerImpl implements ProjectManager, TaskListener {
 	}
 
 	public synchronized void openProject(File projectDir) throws IOException {
+		this.openProject(projectDir, null);
+	}
+
+	public synchronized void openProject(File projectDir, HashMap options)
+			throws IOException {
 		try {
+			//Check Project format
+			
+			String version;
+			String fileNames[]=projectDir.list();
+			if (!Arrays.asList( fileNames).contains("dataFiles" )){
+				//format is v1
+				version="1";
+			}else{
+				version="";
+			}
+			
+			String className="net.sf.mzmine.project.impl.ProjectOpeningTask_"
+				+ this.projectType.toString();
+			if (!version.equals("")){
+				className=className+"_"+version;
+			}
 			Class projectClass = Class
-					.forName("net.sf.mzmine.project.impl.ProjectOpeningTask_"
-							+ this.projectType.toString());
+					.forName(className);
 			Constructor projectConst = projectClass.getConstructor(File.class);
 			ProjectTask openTask = (ProjectTask) projectConst
 					.newInstance(projectDir);
+			openTask.setOption(options);
 			taskController.addTask(openTask, this);
 			status = ProjectStatus.Processing;
 
@@ -138,14 +162,21 @@ public class ProjectManagerImpl implements ProjectManager, TaskListener {
 	}
 
 	public synchronized void saveProject(File projectDir) throws IOException {
+		this.saveProject(projectDir, null);
+	}
+
+	public synchronized void saveProject(File projectDir, HashMap options)
+			throws IOException {
 
 		try {
+			String className="net.sf.mzmine.project.impl.ProjectSavingTask_"
+				+ this.projectType.toString();
 			Class projectClass = Class
-					.forName("net.sf.mzmine.project.impl.ProjectSavingTask_"
-							+ this.projectType.toString());
+					.forName(className);
 			Constructor projectConst = projectClass.getConstructor(File.class);
 			ProjectTask saveTask = (ProjectTask) projectConst
 					.newInstance(projectDir);
+			saveTask.setOption(options);
 			taskController.addTask(saveTask, this);
 			status = ProjectStatus.Processing;
 
