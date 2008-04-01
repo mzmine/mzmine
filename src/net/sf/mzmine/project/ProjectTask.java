@@ -18,6 +18,8 @@
  */
 package net.sf.mzmine.project;
 
+import java.util.HashMap;
+
 import net.sf.mzmine.taskcontrol.Task;
 
 /**
@@ -26,4 +28,5 @@ import net.sf.mzmine.taskcontrol.Task;
 
 public interface ProjectTask extends Task {
 	public MZmineProject getResult();
+	public void setOption(HashMap option);
 }

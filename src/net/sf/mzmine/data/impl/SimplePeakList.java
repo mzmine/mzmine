@@ -38,7 +38,7 @@ import net.sf.mzmine.util.Range;
 public class SimplePeakList implements PeakList {
 
     private String name;
-    private String[] dataFileNames;
+    private RawDataFile[] dataFiles;
     private ArrayList<PeakListRow> peakListRows;
     private float maxDataPointIntensity = 0;
 
@@ -52,12 +52,12 @@ public class SimplePeakList implements PeakList {
                     "Cannot create a peak list with no data files"));
         }
         this.name = name;
-        dataFileNames = new String[dataFiles.length];
+        this.dataFiles = new RawDataFile[dataFiles.length];
 
         RawDataFile dataFile;
         for (int i = 0; i < dataFiles.length; i++) {
             dataFile = dataFiles[i];
-            dataFileNames[i] = dataFile.getFileName();
+            this.dataFiles[i] = dataFile;
         }
         peakListRows = new ArrayList<PeakListRow>();
     }
@@ -70,26 +70,18 @@ public class SimplePeakList implements PeakList {
      * Returns number of raw data files participating in the alignment
      */
     public int getNumberOfRawDataFiles() {
-        return dataFileNames.length;
+        return dataFiles.length;
     }
 
     /**
      * Returns all raw data files participating in the alignment
      */
     public RawDataFile[] getRawDataFiles() {
-        MZmineProject project = MZmineCore.getCurrentProject();
-        Vector<RawDataFile> dataFiles = new Vector<RawDataFile>();
-
-        for (String fileName : dataFileNames) {
-            dataFiles.add(project.getDataFile(fileName));
-        }
-        return dataFiles.toArray(new RawDataFile[0]);
+        return dataFiles;
     }
 
     public RawDataFile getRawDataFile(int position) {
-        MZmineProject project = MZmineCore.getCurrentProject();
-        String fileName = this.dataFileNames[position];
-        return project.getDataFile(fileName);
+        return dataFiles[position];
     }
 
     /**
@@ -254,7 +246,7 @@ public class SimplePeakList implements PeakList {
     }
 
     public boolean hasRawDataFile(RawDataFile hasFile) {
-        return Arrays.asList(dataFileNames).contains(hasFile.getFileName());
+        return Arrays.asList(dataFiles).contains(hasFile);
     }
 
     public PeakListRow getPeakRow(Peak peak) {

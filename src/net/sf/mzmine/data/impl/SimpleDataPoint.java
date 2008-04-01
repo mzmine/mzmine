@@ -29,39 +29,39 @@ import net.sf.mzmine.main.MZmineCore;
  */
 public class SimpleDataPoint implements DataPoint {
 
-    private float mz, intensity;
+	private float mz, intensity;
 
-    /**
-     * @param mz
-     * @param intensity
-     */
-    public SimpleDataPoint(float mz, float intensity) {
-        this.mz = mz;
-        this.intensity = intensity;
-    }
+	/**
+	 * @param mz
+	 * @param intensity
+	 */
+	public SimpleDataPoint(float mz, float intensity) {
+		this.mz = mz;
+		this.intensity = intensity;
+	}
 
-    public float getIntensity() {
-        return intensity;
-    }
+	public float getIntensity() {
+		return intensity;
+	}
 
-    public float getMZ() {
-        return mz;
-    }
+	public float getMZ() {
+		return mz;
+	}
 
-    public void setIntensity(float intensity) {
-        this.intensity = intensity;
-    }
+	public void setIntensity(float intensity) {
+		this.intensity = intensity;
+	}
 
-    public void setMZ(float mz) {
-        this.mz = mz;
-    }
+	public void setMZ(float mz) {
+		this.mz = mz;
+	}
 
-    public String toString() {
-        Format mzFormat = MZmineCore.getMZFormat();
-        Format intensityFormat = MZmineCore.getIntensityFormat();
-        String str = "m/z: " + mzFormat.format(mz) + ", intensity: "
-                + intensityFormat.format(intensity);
-        return str;
-    }
+	public String toString() {
+		Format mzFormat = MZmineCore.getMZFormat();
+		Format intensityFormat = MZmineCore.getIntensityFormat();
+		String str = "m/z: " + mzFormat.format(mz) + ", intensity: "
+				+ intensityFormat.format(intensity);
+		return str;
+	}
 
 }

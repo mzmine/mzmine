@@ -353,12 +353,12 @@
       <pattern>0.00E0</pattern>
     </format>
     <mainwindow>
-      <x>0</x>
-      <y>22</y>
-      <width>-1</width>
-      <height>-1</height>
+      <x>348</x>
+      <y>23</y>
+      <width>1420</width>
+      <height>798</height>
     </mainwindow>
-    <lastdirectory>/Volumes/Documents</lastdirectory>
-    <lastProjectDirectory>/Users/plusik/Documents/20080319 tor2 data MZmine analysis.mzmine</lastProjectDirectory>
+    <lastdirectory>/mnt/newHD/private/kawasaki/mzmine/Nakamura/XML/negative mode XML</lastdirectory>
+    <lastProjectDirectory>/mnt/newHD/private/kawasaki/mzmine/MyProject.11.mzmine</lastProjectDirectory>
   </desktop> 
 </configuration>

@@ -131,6 +131,7 @@ public class MZmineProjectImpl implements MZmineProject {
 
 	public void removeFile(RawDataFile file) {
 		this.rawDataList.removeElement(file);
+		file.delete();
 	}
 
 	public RawDataFile[] getDataFiles() {

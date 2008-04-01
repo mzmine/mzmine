@@ -586,4 +586,13 @@ public class RawDataFileImpl implements RawDataFile, RawDataFileWriter {
         // TODO this needs cleanup
         return new Range(getDataMinRT(msLevel), getDataMaxRT(msLevel));
     }
+
+	public void delete() {
+		// dispose temporary file
+		File tmpFile = new File(MZmineCore.getCurrentProject().getLocation(),
+				scanDataFileName.toString());
+		if (tmpFile.exists()) {
+			tmpFile.delete();
+		}
+	}
 }

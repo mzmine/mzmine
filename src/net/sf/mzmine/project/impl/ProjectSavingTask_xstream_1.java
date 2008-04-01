@@ -21,7 +21,6 @@ package net.sf.mzmine.project.impl;
 
 import java.io.File;
 import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -30,7 +29,6 @@ import java.io.OutputStream;
 import java.io.OutputStreamWriter;
 import java.util.HashMap;
 import java.util.Hashtable;
-import java.util.List;
 import java.util.logging.Logger;
 
 import net.sf.mzmine.data.Parameter;
@@ -39,17 +37,14 @@ import net.sf.mzmine.io.RawDataFile;
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.project.MZmineProject;
 import net.sf.mzmine.project.ProjectSavingTask;
-import net.sf.mzmine.project.ProjectType;
 
 import com.thoughtworks.xstream.XStream;
-import com.thoughtworks.xstream.persistence.StreamStrategy;
-import com.thoughtworks.xstream.persistence.XmlArrayList;
 
 /**
  * project saving task with xstream library
  */
 
-public class ProjectSavingTask_xstream implements ProjectSavingTask {
+public class ProjectSavingTask_xstream_1 implements ProjectSavingTask {
 
 	private Logger logger = Logger.getLogger(this.getClass().getName());
 
@@ -65,13 +60,10 @@ public class ProjectSavingTask_xstream implements ProjectSavingTask {
 	private static final float FINISHED_COPY_FILES = 0.7f;
 	private static final float FINISHED_SAVE_DATA = 0.95f;
 	private static final float FINISHED_COMPLETE = 1.0f;
-	private ProjectType projectType;
-	private HashMap option;
 
-	public ProjectSavingTask_xstream(File projectDir) {
+	public ProjectSavingTask_xstream_1(File projectDir) {
 		this.projectDir = projectDir;
 		status = TaskStatus.WAITING;
-		option = new HashMap();
 	}
 
 	/**
@@ -102,37 +94,10 @@ public class ProjectSavingTask_xstream implements ProjectSavingTask {
 		return errorMessage;
 	}
 
-	/**
-	 * @see net.sf.mzmine.taskcontrol.Task#cancel()
-	 */
-	public void cancel() {
-		logger.info("Cancelling saving of project" + projectDir);
-		status = TaskStatus.CANCELED;
-	}
-
-	/**
-	 * @see net.sf.mzmine.project.ProjectSavingTask#getResult()
-	 */
-	public MZmineProject getResult() {
-		return project;
-	}
-
-	public void setOption(HashMap option) {
-		this.option = option;
-	}
-	private boolean moveFile(File fromFile,File destFile,float start,float end){
-		boolean ok;
-		ok=this.copyFile(fromFile,destFile,start,end);
-		if (ok==false){
-			return false;
-		}
-		fromFile.delete();
-		return true;
-	}
 	private boolean copyFile(File fromFile, File destFile, float start,
 			float stop) {
 
-		byte[] buffer = new byte[256 * 8 * 8 * 8];
+		byte[] buffer = new byte[256 * 8 * 8];
 
 		InputStream input_test;
 
@@ -269,7 +234,7 @@ public class ProjectSavingTask_xstream implements ProjectSavingTask {
 		return true;
 	}
 
-	private Boolean preserveOldProject(float start, float end) {
+	private Boolean preserveOldProject() {
 		replace = true;
 		logger
 				.info("Moving original files (except scanfiles) to temporal space ");
@@ -286,8 +251,8 @@ public class ProjectSavingTask_xstream implements ProjectSavingTask {
 		}
 		tmpPlace.mkdir();
 
-		float subStart;
-		float subEnd;
+		float start;
+		float stop;
 		String fileName;
 		File fromFile;
 		File destFile;
@@ -300,13 +265,14 @@ public class ProjectSavingTask_xstream implements ProjectSavingTask {
 					- ".scan".length(), fileName.length());
 			if (!fileTail.equals(".scan")) {
 				destFile = new File(tmpPlace, fileName);
-				subStart = start + (end - start) / files.length * i;
-				subEnd = start + (end - start) / files.length * (i + 1);
-				if (fromFile.isDirectory() == true) {
-					ok = this.moveDir(fromFile, destFile, subStart, subEnd);
-				} else {
-					ok = this.moveFile(fromFile, destFile, subStart, subEnd);
-				}
+				start = FINISHED_STARTED
+						+ (FINISHED_COPY_FILES - FINISHED_STARTED)
+						/ files.length * i;
+				stop = FINISHED_STARTED
+						+ (FINISHED_COPY_FILES - FINISHED_STARTED)
+						/ files.length * (i + 1);
+				ok = this.copyFile(fromFile, destFile, start, stop);
+
 				if (ok != true) {
 					this.removeDir(tmpPlace);
 					errorMessage = "Could not save data into :" + projectDir;
@@ -319,7 +285,7 @@ public class ProjectSavingTask_xstream implements ProjectSavingTask {
 		return true;
 	}
 
-	private Boolean copyProjectDir(float start, float end) {
+	private Boolean copyProjectDir() {
 		replace = false;
 		// Move files to new place
 		ok = projectDir.mkdir();
@@ -330,131 +296,20 @@ public class ProjectSavingTask_xstream implements ProjectSavingTask {
 					.fine("Failed to create project dir:"
 							+ projectDir.toString());
 			errorMessage = "Could not create project directory :" + projectDir;
+			this.rollback();
 			return false;
 		}
 
 		logger.info("Copying scanfiles in " + projectDir);
-		ok = this.copyDir(oldProjectDir, projectDir, start, end);
+		ok = this.copyDir(oldProjectDir, projectDir, FINISHED_STARTED,
+				FINISHED_COPY_FILES);
 
 		if (ok == false) {
 			errorMessage = "Could not copy scan files to :" + projectDir;
-
+			this.rollback();
 			return false;
 		}
 		return true;
-	}
-
-	private void saveProject(XStream xstream, float start, float end)
-			throws IOException {
-		File xmlFile;
-		OutputStreamWriter writer;
-		ObjectOutputStream out;
-		logger.info("Saving peakList in " + projectDir);
-
-		xmlFile = new File(projectDir, "project.xml");
-
-		writer = new OutputStreamWriter(new FileOutputStream(xmlFile), "UTF-8");
-		out = xstream.createObjectOutputStream(writer);
-
-		// start serializing objects
-		out.writeObject(project);
-		out.close();
-		this.finished = end;
-	}
-
-	private void savePeakLists(XStream xstream, float start, float end)
-			throws IOException, FileNotFoundException {
-
-		PeakList[] peakLists;
-		StreamStrategy strategy;
-		List xmlList;
-
-		logger.info("Saving peakList in " + projectDir);
-		File peakListDir = new File(projectDir, "peakLists");
-		peakListDir.mkdir();
-
-		strategy = new MZmineFileStreamStrategy(peakListDir, xstream, project,
-				projectType);
-
-		xmlList = new XmlArrayList(strategy);
-
-		peakLists = project.getPeakLists();
-		PeakList peakList;
-		for (int i = 0; i < peakLists.length; i++) {
-			peakList = peakLists[i];
-			xmlList.add(peakList);
-			finished = start + (end - start) * i / peakLists.length;
-		}
-		this.finished = end;
-	}
-
-	private void saveRawDataFiles(XStream xstream, float start, float end)
-			throws IOException {
-
-		RawDataFile[] dataFiles;
-		StreamStrategy strategy;
-		dataFiles = project.getDataFiles();
-		List xmlList;
-
-		logger.info("Saving datafiles in " + projectDir);
-		xstream.alias("rawDataFile", RawDataFile.class);
-
-		File dataFileDir = new File(projectDir, "dataFiles");
-		dataFileDir.mkdir();
-
-		strategy = new MZmineFileStreamStrategy(dataFileDir, xstream, project,
-				projectType);
-		xmlList = new XmlArrayList(strategy);
-
-		dataFiles = MZmineCore.getCurrentProject().getDataFiles();
-		RawDataFile dataFile;
-
-		for (int i = 0; i < dataFiles.length; i++) {
-			dataFile = dataFiles[i];
-			xmlList.add(dataFile);
-			finished = start + (end - start) * i / dataFiles.length;
-		}
-		this.finished = end;
-	}
-
-	private void saveParameters(XStream xstream, float start, float end)
-			throws IOException {
-		File xmlFile;
-		OutputStreamWriter writer;
-		ObjectOutputStream out;
-		Hashtable<Parameter, Hashtable<String, Object>> projectParameters;
-
-		projectParameters = project.getProjectParameters();
-
-		logger.info("Saving parameters in" + projectDir);
-		xmlFile = new File(projectDir, "parameters.xml");
-		writer = new OutputStreamWriter(new FileOutputStream(xmlFile), "UTF-8");
-		out = xstream.createObjectOutputStream(writer);
-		out.writeObject(projectParameters);
-		out.close();
-		out = null;
-		this.finished = end;
-
-	}
-
-	private void saveInfo(XStream xstream, float start, float end)
-			throws IOException {
-		File xmlFile;
-		OutputStreamWriter writer;
-		ObjectOutputStream out;
-
-		logger.info("Saving additional infos in" + projectDir);
-		xmlFile = new File(projectDir, "info.xml");
-		writer = new OutputStreamWriter(new FileOutputStream(xmlFile), "UTF-8");
-
-		HashMap<String, String> info = new HashMap<String, String>();
-		info.put("projectType", this.projectType.toString());
-		info.put("Save format", "version.2");
-		out = xstream.createObjectOutputStream(writer);
-		out.writeObject(info);
-		out.close();
-		out = null;
-		this.finished = end;
 	}
 
 	/**
@@ -468,8 +323,6 @@ public class ProjectSavingTask_xstream implements ProjectSavingTask {
 			status = TaskStatus.PROCESSING;
 			finished = FINISHED_STARTED;
 			project = (MZmineProjectImpl) MZmineCore.getCurrentProject();
-			float start;
-			float end;
 
 			// store current status
 			oldProjectDir = project.getLocation();
@@ -478,16 +331,16 @@ public class ProjectSavingTask_xstream implements ProjectSavingTask {
 
 			// if save existing project, make temporal project and rename it
 
-			start = FINISHED_STARTED;
-			end = FINISHED_COPY_FILES;
 			if (oldProjectDir == this.projectDir) {
-				ok = this.preserveOldProject(start, end);
+				ok = this.preserveOldProject();
 			} else {
-				ok = this.copyProjectDir(start, end);
+				ok = this.copyProjectDir();
 			}
 			if (ok != true) {
 				return;
 			}
+
+			finished = FINISHED_COPY_FILES;
 
 			// only store part of the project to xml
 
@@ -495,53 +348,113 @@ public class ProjectSavingTask_xstream implements ProjectSavingTask {
 			project.setLocation(projectDir);
 			int NUM_STEP = 6;
 			try {
+				RawDataFile[] dataFiles;
+				PeakList[] peakLists;
+				Hashtable<Parameter, Hashtable<String, Object>> projectParameters;
 
-				// setup xstream
+				dataFiles = project.getDataFiles();
+				peakLists = project.getPeakLists();
+				projectParameters = project.getProjectParameters();
+
+				File xmlFile;
+				OutputStreamWriter writer;
+				ObjectOutputStream out;
+				float start;
+				float end;
+
 				XStream xstream = new XStream();
-				if (this.option != null && this.option.containsKey("zip")
-						&& this.option.get("zip").equals(true)) {
-					projectType = ProjectType.zippedXML;
-				} else {
-					projectType = ProjectType.xml;
-				}
 
-				start = finished;
-				end = FINISHED_COPY_FILES
+				xmlFile = new File(projectDir, "project.xml");
+				writer = new OutputStreamWriter(new FileOutputStream(xmlFile),
+						"UTF-8");
+				out = xstream.createObjectOutputStream(writer);
+				out.writeObject(project);
+				out.close();
+				finished = FINISHED_COPY_FILES
 						+ (FINISHED_SAVE_DATA - FINISHED_COPY_FILES) / NUM_STEP
 						* 1;
-				this.saveProject(xstream, start, end);
 
 				// save project files
+				logger.info("Saving datafiles in " + projectDir);
+				xmlFile = new File(projectDir, "dataFiles.xml");
+				writer = new OutputStreamWriter(new FileOutputStream(xmlFile),
+						"UTF-8");
+				out = xstream.createObjectOutputStream(writer);
 				start = finished;
 				end = FINISHED_COPY_FILES
 						+ (FINISHED_SAVE_DATA - FINISHED_COPY_FILES) / NUM_STEP
 						* 2;
-				this.saveRawDataFiles(xstream, start, end);
+
+				dataFiles = MZmineCore.getCurrentProject().getDataFiles();
+				RawDataFile dataFile;
+				for (int i = 0; i < dataFiles.length; i++) {
+					dataFile = dataFiles[i];
+					out.writeObject(dataFile);
+					out.flush();
+					finished = start + (end - start) * i / dataFiles.length;
+				}
+				out.close();
+				finished = FINISHED_COPY_FILES
+						+ (FINISHED_SAVE_DATA - FINISHED_COPY_FILES) / NUM_STEP
+						* 2;
 
 				// save peak lists
+				logger.info("Saving peakList in " + projectDir);
+				xmlFile = new File(projectDir, "peakLists.xml");
+				writer = new OutputStreamWriter(new FileOutputStream(xmlFile),
+						"UTF-8");
+				out = xstream.createObjectOutputStream(writer);
 				start = finished;
 				end = FINISHED_COPY_FILES
 						+ (FINISHED_SAVE_DATA - FINISHED_COPY_FILES) / NUM_STEP
 						* 3;
-				this.savePeakLists(xstream, start, end);
 
-				// save parameters
-				start = finished;
-				end = FINISHED_COPY_FILES
-						+ (FINISHED_SAVE_DATA - FINISHED_COPY_FILES) / NUM_STEP
-						* 4;
-				this.saveParameters(xstream, start, end);
-
-				// store additional info about project
-				start = finished;
+				peakLists = MZmineCore.getCurrentProject().getPeakLists();
+				PeakList peakList;
+				for (int i = 0; i < peakLists.length; i++) {
+					peakList = peakLists[i];
+					out.writeObject(peakList);
+					out.flush();
+					finished = start + (end - start) * i / peakLists.length;
+				}
+				out.close();
 				finished = FINISHED_COPY_FILES
 						+ (FINISHED_SAVE_DATA - FINISHED_COPY_FILES) / NUM_STEP
-						* 5;
-				this.saveInfo(xstream, start, end);
+						* 3;
+
+				// save parameters
+				logger.info("Saving parameters in" + projectDir);
+				xmlFile = new File(projectDir, "parameters.xml");
+				writer = new OutputStreamWriter(new FileOutputStream(xmlFile),
+						"UTF-8");
+				out = xstream.createObjectOutputStream(writer);
+				out.writeObject(projectParameters);
+				out.close();
+				finished = FINISHED_COPY_FILES
+						+ (FINISHED_SAVE_DATA - FINISHED_COPY_FILES) / NUM_STEP
+						* 4;
 
 				// store configFile
 				File configFile = new File(projectDir, "config.xml");
 				MZmineCore.saveConfiguration(configFile);
+
+				// store additional info about project
+				logger.info("Saving additional infos in" + projectDir);
+				xmlFile = new File(projectDir, "info.xml");
+				writer = new OutputStreamWriter(new FileOutputStream(xmlFile),
+						"UTF-8");
+
+				HashMap<String, String> info = new HashMap<String, String>();
+				info.put("numDataFiles", ((Integer) dataFiles.length)
+						.toString());
+				info.put("numPeakLists", ((Integer) peakLists.length)
+						.toString());
+				out = xstream.createObjectOutputStream(writer);
+				out.writeObject(info);
+				out.close();
+				finished = FINISHED_COPY_FILES
+						+ (FINISHED_SAVE_DATA - FINISHED_COPY_FILES) / NUM_STEP
+						* 5;
 
 				finished = FINISHED_SAVE_DATA;
 				logger.info("Complete converting" + projectDir);
@@ -586,4 +499,23 @@ public class ProjectSavingTask_xstream implements ProjectSavingTask {
 		status = TaskStatus.ERROR;
 	}
 
+	/**
+	 * @see net.sf.mzmine.taskcontrol.Task#cancel()
+	 */
+	public void cancel() {
+		logger.info("Cancelling saving of project" + projectDir);
+		status = TaskStatus.CANCELED;
+	}
+
+	/**
+	 * @see net.sf.mzmine.project.ProjectSavingTask#getResult()
+	 */
+	public MZmineProject getResult() {
+		return project;
+	}
+
+	public void setOption(HashMap option) {
+		//do nothing
+		
+	}
 }

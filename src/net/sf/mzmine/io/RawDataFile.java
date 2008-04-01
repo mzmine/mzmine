@@ -113,5 +113,6 @@ public interface RawDataFile {
     public float getDataMaxTotalIonCurrent(int msLevel);
 
     public String toString();
-
+    
+    public void delete();
 }

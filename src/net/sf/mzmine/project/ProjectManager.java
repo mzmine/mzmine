@@ -21,6 +21,7 @@ package net.sf.mzmine.project;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.HashMap;
 
 /**
  * This interface defines project manager that deal with inter-project
@@ -33,8 +34,12 @@ public interface ProjectManager {
 	public void createTemporalProject() throws IOException;
 
 	public void openProject(File projectDir) throws IOException;
+	public void openProject(File projectDir,HashMap options) throws IOException;
 
 	public void saveProject(File projectDir) throws IOException;
+	public void saveProject(File projectDir,HashMap options) throws IOException;
+	
+	
 	
 	public void removeProjectDir(File projectDir);
 	public ProjectStatus getStatus();

@@ -25,5 +25,5 @@ package net.sf.mzmine.project;
  */
 
 public enum ProjectType {
-	xstream, xml,
+	xstream, xml,zippedXML
 }
