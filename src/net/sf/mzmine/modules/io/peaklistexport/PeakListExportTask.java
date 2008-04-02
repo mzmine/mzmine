@@ -24,6 +24,7 @@ import java.io.FileWriter;
 import net.sf.mzmine.data.Peak;
 import net.sf.mzmine.data.PeakList;
 import net.sf.mzmine.data.PeakListRow;
+import net.sf.mzmine.data.PeakStatus;
 import net.sf.mzmine.io.RawDataFile;
 import net.sf.mzmine.taskcontrol.Task;
 
@@ -39,7 +40,7 @@ class PeakListExportTask implements Task {
     // parameter values
     private String fileName, fieldSeparator;
     private boolean exportRowID, exportRowMZ, exportRowRT, exportRowComment,
-            exportRowIdentity;
+            exportRowIdentity, exportRowNumDetected;
     private boolean exportPeakStatus, exportPeakMZ, exportPeakRT,
             exportPeakHeight, exportPeakArea;
 
@@ -54,6 +55,7 @@ class PeakListExportTask implements Task {
         exportRowRT = (Boolean) parameters.getParameterValue(PeakListExportParameters.exportRowRT);
         exportRowComment = (Boolean) parameters.getParameterValue(PeakListExportParameters.exportRowComment);
         exportRowIdentity = (Boolean) parameters.getParameterValue(PeakListExportParameters.exportRowIdentity);
+        exportRowNumDetected = (Boolean) parameters.getParameterValue(PeakListExportParameters.exportRowNumberOfDetected);
         exportPeakStatus = (Boolean) parameters.getParameterValue(PeakListExportParameters.exportPeakStatus);
         exportPeakMZ = (Boolean) parameters.getParameterValue(PeakListExportParameters.exportPeakMZ);
         exportPeakRT = (Boolean) parameters.getParameterValue(PeakListExportParameters.exportPeakRT);
@@ -113,6 +115,8 @@ class PeakListExportTask implements Task {
             line.append("Comment" + fieldSeparator);
         if (exportRowIdentity)
             line.append("Identity" + fieldSeparator);
+        if (exportRowNumDetected)
+        	line.append("Number of detected peaks" + fieldSeparator);
 
         for (RawDataFile dataFile : peakList.getRawDataFiles()) {
             if (exportPeakStatus)
@@ -169,7 +173,16 @@ class PeakListExportTask implements Task {
                     line.append(peakListRow.getPreferredCompoundIdentity()
                             + fieldSeparator);
             }
+            if (exportRowNumDetected) {
+            	int numDetected = 0;
+            	for (Peak p : peakListRow.getPeaks())
+            		if (p.getPeakStatus() == PeakStatus.DETECTED)
+            			numDetected++;
+            	
+            	line.append(numDetected + fieldSeparator);
 
+            }
+            
             for (RawDataFile dataFile : peakList.getRawDataFiles()) {
                 Peak peak = peakListRow.getPeak(dataFile);
                 if (peak != null) {
