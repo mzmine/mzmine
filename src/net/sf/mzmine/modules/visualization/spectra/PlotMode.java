@@ -20,5 +20,5 @@
 package net.sf.mzmine.modules.visualization.spectra;
 
 enum PlotMode {
-    CENTROID, CONTINUOUS
+    CENTROID, CONTINUOUS, UNDEFINED
 }

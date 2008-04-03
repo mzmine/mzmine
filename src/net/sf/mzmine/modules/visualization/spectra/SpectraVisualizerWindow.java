@@ -129,14 +129,16 @@ class SpectraVisualizerWindow extends JInternalFrame implements ActionListener {
                     // Set plot data sets
                     spectrumPlot.setDataSets(scanDataSet, peaksDataSet);
 
-                    // if the scan is centroided, switch to centroid mode
-                    if (currentScan.isCentroided()) {
-                        spectrumPlot.setPlotMode(PlotMode.CENTROID);
-                        toolBar.setCentroidButton(false);
-                    } else {
-                        spectrumPlot.setPlotMode(PlotMode.CONTINUOUS);
-                        toolBar.setCentroidButton(true);
-                    }
+                    // Set plot mode only if it hasn't been set before
+                    if (spectrumPlot.getPlotMode() == PlotMode.UNDEFINED)
+                        // if the scan is centroided, switch to centroid mode
+	                    if (currentScan.isCentroided()) {
+	                        spectrumPlot.setPlotMode(PlotMode.CENTROID);
+	                        toolBar.setCentroidButton(false);
+	                    } else {
+	                        spectrumPlot.setPlotMode(PlotMode.CONTINUOUS);
+	                        toolBar.setCentroidButton(true);
+	                    }
 
                     // Clean up the MS/MS selector combo
 

@@ -54,7 +54,7 @@ class SpectraPlot extends ChartPanel {
 
     private XYPlot plot;
 
-    private PlotMode plotMode = PlotMode.CONTINUOUS;
+    private PlotMode plotMode = PlotMode.UNDEFINED;
 
     // plot color
     private static final Color plotColor = new Color(0, 0, 192);
