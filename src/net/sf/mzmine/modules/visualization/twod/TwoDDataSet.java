@@ -131,7 +131,7 @@ class TwoDDataSet extends AbstractXYDataset implements RawDataAcceptor {
             return totalMZRange.getMax();
     }
 
-    float getMaxIntensity(Range rtRange, Range mzRange, boolean centroided) {
+    float getMaxIntensity(Range rtRange, Range mzRange, PlotMode plotMode) {
 
         float maxIntensity = 0;
 
@@ -158,7 +158,7 @@ class TwoDDataSet extends AbstractXYDataset implements RawDataAcceptor {
 
             if (startScanIndex == searchRetentionTimes.length - 1)
                 return getMaxIntensity(dataPointMatrix[startScanIndex - 1],
-                        mzRange, centroided);
+                        mzRange, plotMode);
 
             // find which scan point is closer
             float diffNext = searchRetentionTimes[startScanIndex]
@@ -168,9 +168,9 @@ class TwoDDataSet extends AbstractXYDataset implements RawDataAcceptor {
 
             if (diffPrev < diffNext)
                 return getMaxIntensity(dataPointMatrix[startScanIndex - 1],
-                        mzRange, centroided);
+                        mzRange, plotMode);
             else
-                return getMaxIntensity(dataPointMatrix[startScanIndex], mzRange, centroided);
+                return getMaxIntensity(dataPointMatrix[startScanIndex], mzRange, plotMode);
         }
 
         for (int scanIndex = startScanIndex; ((scanIndex < searchRetentionTimes.length) && (searchRetentionTimes[scanIndex] <= rtRange.getMax())); scanIndex++) {
@@ -179,7 +179,7 @@ class TwoDDataSet extends AbstractXYDataset implements RawDataAcceptor {
             if (basePeaks[scanIndex] < maxIntensity)
                 continue;
 
-            float scanMax = getMaxIntensity(dataPointMatrix[scanIndex], mzRange, centroided);
+            float scanMax = getMaxIntensity(dataPointMatrix[scanIndex], mzRange, plotMode);
             if (scanMax > maxIntensity)
                 maxIntensity = scanMax;
 
@@ -189,7 +189,7 @@ class TwoDDataSet extends AbstractXYDataset implements RawDataAcceptor {
 
     }
 
-    float getMaxIntensity(DataPoint dataPoints[], Range mzRange, boolean centroided) {
+    float getMaxIntensity(DataPoint dataPoints[], Range mzRange, PlotMode plotMode) {
 
         float maxIntensity = 0;
 
@@ -203,7 +203,7 @@ class TwoDDataSet extends AbstractXYDataset implements RawDataAcceptor {
             return 0;
 
         if (dataPoints[startMZIndex].getMZ() > mzRange.getMax()) {
-        	if (!centroided) {
+        	if (plotMode != PlotMode.CENTROID) {
 	            if (startMZIndex == 0)
 	                return 0;
 	            if (startMZIndex == dataPoints.length - 1)

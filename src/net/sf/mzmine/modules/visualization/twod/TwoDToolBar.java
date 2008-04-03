@@ -24,6 +24,7 @@ import java.awt.Insets;
 
 import javax.swing.Icon;
 import javax.swing.ImageIcon;
+import javax.swing.JButton;
 import javax.swing.JToolBar;
 
 import net.sf.mzmine.util.GUIUtils;
@@ -38,6 +39,9 @@ class TwoDToolBar extends JToolBar {
     static final Icon annotationsIcon = new ImageIcon("icons/annotationsicon.png");
     static final Icon axesIcon = new ImageIcon("icons/axesicon.png");
     static final Icon centroidIcon = new ImageIcon("icons/centroidicon.png");
+    static final Icon continuousIcon = new ImageIcon("icons/continuousicon.png");
+    
+    private JButton centroidContinuousButton;
     
     TwoDToolBar(TwoDVisualizerWindow masterFrame) {
 
@@ -69,9 +73,18 @@ class TwoDToolBar extends JToolBar {
         
         addSeparator();
         
-        GUIUtils.addButton(this, null, centroidIcon, masterFrame, "SWITCH_CENTROID",
+        centroidContinuousButton = GUIUtils.addButton(this, null, centroidIcon, masterFrame, "SWITCH_PLOTMODE",
         "Switch between continuous and centroided mode");        
         
     }
 
+    void setCentroidButton(boolean centroid) {
+        if (centroid) {
+            centroidContinuousButton.setIcon(centroidIcon);
+        } else {
+            centroidContinuousButton.setIcon(continuousIcon);
+        }
+    }
+    
+    
 }

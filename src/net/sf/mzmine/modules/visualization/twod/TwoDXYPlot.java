@@ -50,7 +50,7 @@ class TwoDXYPlot extends XYPlot {
 
     private TwoDPaletteType paletteType = TwoDPaletteType.PALETTE_GRAY20;
     
-    private boolean centroided = false;
+    private PlotMode plotMode = PlotMode.UNDEFINED;
 
     TwoDXYPlot(TwoDDataSet dataset, Range rtRange, Range mzRange, ValueAxis domainAxis, ValueAxis rangeAxis) {
        
@@ -108,7 +108,7 @@ class TwoDXYPlot extends XYPlot {
                 float pointMZMax = pointMZMin + imageMZStep;
 
                 values[i][j] = dataset.getMaxIntensity(new Range(pointRTMin, pointRTMax),
-                        new Range(pointMZMin, pointMZMax), centroided);
+                        new Range(pointMZMin, pointMZMax), plotMode);
 
                 if (values[i][j] > maxValue)
                     maxValue = values[i][j];
@@ -165,8 +165,12 @@ class TwoDXYPlot extends XYPlot {
         datasetChanged(new DatasetChangeEvent(dataset, dataset));
     }
     
-    void switchContinuousCentroid() {
-    	centroided = !centroided;
+    PlotMode getPlotMode() {
+    	return plotMode;
+    }
+    
+    void setPlotMode(PlotMode plotMode) {
+    	this.plotMode = plotMode; 
     	datasetChanged(new DatasetChangeEvent(dataset, dataset));
     }
 

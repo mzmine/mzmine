@@ -170,8 +170,12 @@ class TwoDPlot extends ChartPanel {
 
     }
     
-    void switchContinuousCentroid() {
-    	plot.switchContinuousCentroid();
+    PlotMode getPlotMode() {
+    	return plot.getPlotMode();
+    }
+    
+    void setPlotMode(PlotMode plotMode) {
+    	plot.setPlotMode(plotMode);
     }
 
     void loadPeakList(PeakList peakList) {
