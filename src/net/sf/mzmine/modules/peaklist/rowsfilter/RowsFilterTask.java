@@ -19,6 +19,8 @@
 
 package net.sf.mzmine.modules.peaklist.rowsfilter;
 
+import net.sf.mzmine.data.IsotopePattern;
+import net.sf.mzmine.data.Peak;
 import net.sf.mzmine.data.PeakList;
 import net.sf.mzmine.data.PeakListRow;
 import net.sf.mzmine.data.impl.SimplePeakList;
@@ -37,7 +39,7 @@ class RowsFilterTask implements Task {
     private int processedRows, totalRows;
 
     // Method parameters
-    private int minPresent;
+    private int minPresent, minIsotopePatternSize;
     private String suffix;
     private float minMZ, maxMZ, minRT, maxRT;
     private boolean identified, removeOriginal;
@@ -48,6 +50,7 @@ class RowsFilterTask implements Task {
 
         suffix = (String) parameters.getParameterValue(RowsFilterParameters.suffix);
         minPresent = (Integer) parameters.getParameterValue(RowsFilterParameters.minPeaks);
+        minIsotopePatternSize = (Integer) parameters.getParameterValue(RowsFilterParameters.minIsotopePatternSize);
         minMZ = (Float) parameters.getParameterValue(RowsFilterParameters.minMZ);
         maxMZ = (Float) parameters.getParameterValue(RowsFilterParameters.maxMZ);
         minRT = (Float) parameters.getParameterValue(RowsFilterParameters.minRT);
@@ -107,6 +110,20 @@ class RowsFilterTask implements Task {
             if ((row.getAverageRT() > maxRT) || (row.getAverageRT() < minRT))
                 rowIsGood = false;
 
+            int maxIsotopePatternSizeOnRow = 1;
+            for (Peak p : row.getPeaks()) {
+            	if (p instanceof IsotopePattern) {
+            		IsotopePattern i = (IsotopePattern)p;
+            		Peak[] originalPeaks = i.getOriginalPeaks();
+            		if (originalPeaks != null) {
+            			if (maxIsotopePatternSizeOnRow < originalPeaks.length)
+            				maxIsotopePatternSizeOnRow = originalPeaks.length;
+            		}
+            	}
+            }
+            if (maxIsotopePatternSizeOnRow < minIsotopePatternSize)
+            	rowIsGood = false;
+            
             if (rowIsGood)
                 filteredPeakList.addRow(row);
 

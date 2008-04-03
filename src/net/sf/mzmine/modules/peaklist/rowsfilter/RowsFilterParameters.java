@@ -36,6 +36,11 @@ public class RowsFilterParameters extends SimpleParameterSet {
             "Minimum number of peak detections required to select a row",
             "peaks", new Integer(1), new Integer(1), null);
 
+    public static final Parameter minIsotopePatternSize = new SimpleParameter(
+            ParameterType.INTEGER, "Minimum peaks in an isotope pattern",
+            "Minimum number of peaks required in an isotope pattern",
+            "peaks", new Integer(1), new Integer(1), null);    
+    
     public static final Parameter minMZ = new SimpleParameter(
             ParameterType.FLOAT, "Minimum m/z",
             "Minimum average m/z value of a row", "m/z", (Float) 0f,
@@ -67,7 +72,7 @@ public class RowsFilterParameters extends SimpleParameterSet {
             new Boolean(true));
 
     public RowsFilterParameters() {
-        super(new Parameter[] { suffix, minPeaks, minMZ, maxMZ, minRT, maxRT,
+        super(new Parameter[] { suffix, minPeaks, minIsotopePatternSize, minMZ, maxMZ, minRT, maxRT,
                 identified, autoRemove });
     }
 
