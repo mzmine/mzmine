@@ -19,7 +19,7 @@
 
 package net.sf.mzmine.modules.visualization.tic;
 
-import net.sf.mzmine.io.RawDataFile;
+import net.sf.mzmine.data.RawDataFile;
 
 /**
  * 

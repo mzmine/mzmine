@@ -19,7 +19,7 @@
 
 package net.sf.mzmine.modules.dataanalysis.projectionplots;
 
-import net.sf.mzmine.io.RawDataFile;
+import net.sf.mzmine.data.RawDataFile;
 import net.sf.mzmine.taskcontrol.Task;
 
 import org.jfree.data.xy.XYDataset;

@@ -38,8 +38,8 @@ import javax.swing.JTable;
 
 import net.sf.mzmine.data.Parameter;
 import net.sf.mzmine.data.ParameterType;
+import net.sf.mzmine.data.RawDataFile;
 import net.sf.mzmine.desktop.Desktop;
-import net.sf.mzmine.io.RawDataFile;
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.project.MZmineProject;
 import net.sf.mzmine.util.dialogs.ExitCode;

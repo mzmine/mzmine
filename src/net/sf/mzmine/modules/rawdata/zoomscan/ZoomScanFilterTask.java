@@ -21,9 +21,9 @@ package net.sf.mzmine.modules.rawdata.zoomscan;
 
 import java.io.IOException;
 
+import net.sf.mzmine.data.RawDataFile;
+import net.sf.mzmine.data.RawDataFileWriter;
 import net.sf.mzmine.data.Scan;
-import net.sf.mzmine.io.RawDataFile;
-import net.sf.mzmine.io.RawDataFileWriter;
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.taskcontrol.Task;
 

@@ -25,9 +25,9 @@ import java.util.Vector;
 import net.sf.mzmine.data.DataPoint;
 import net.sf.mzmine.data.PeakListRow;
 import net.sf.mzmine.data.PeakStatus;
+import net.sf.mzmine.data.RawDataFile;
 import net.sf.mzmine.data.Scan;
 import net.sf.mzmine.data.impl.SimplePeak;
-import net.sf.mzmine.io.RawDataFile;
 import net.sf.mzmine.util.Range;
 import net.sf.mzmine.util.ScanUtils;
 

@@ -1,5 +1,5 @@
 /*
- * Copyright 2006 The MZmine Development Team
+ * Copyright 2006-2008 The MZmine Development Team
  *
  * This file is part of MZmine.
  *
@@ -17,10 +17,9 @@
  * Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-package net.sf.mzmine.io.util;
+package net.sf.mzmine.util;
 
 import net.sf.mzmine.data.Scan;
-
 
 /**
  * Interface for classes that accept scans for processing, visualization etc.

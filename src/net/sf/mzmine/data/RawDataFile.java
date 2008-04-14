@@ -17,12 +17,11 @@
  * Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-package net.sf.mzmine.io;
+package net.sf.mzmine.data;
 
 import java.io.File;
 import java.io.RandomAccessFile;
 
-import net.sf.mzmine.data.Scan;
 import net.sf.mzmine.util.Range;
 
 public interface RawDataFile {

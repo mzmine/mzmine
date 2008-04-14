@@ -25,7 +25,7 @@ import java.io.IOException;
 
 import javax.imageio.ImageIO;
 
-import net.sf.mzmine.io.PreloadLevel;
+import net.sf.mzmine.data.PreloadLevel;
 import net.sf.mzmine.main.MZmineCore;
 
 import org.simplericity.macify.eawt.Application;

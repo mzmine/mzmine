@@ -20,7 +20,6 @@
 
 package net.sf.mzmine.data;
 
-import net.sf.mzmine.io.RawDataFile;
 import net.sf.mzmine.util.Range;
 
 /**

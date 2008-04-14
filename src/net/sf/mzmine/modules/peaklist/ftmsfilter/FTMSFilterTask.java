@@ -21,9 +21,9 @@ package net.sf.mzmine.modules.peaklist.ftmsfilter;
 
 import net.sf.mzmine.data.Peak;
 import net.sf.mzmine.data.PeakList;
+import net.sf.mzmine.data.RawDataFile;
 import net.sf.mzmine.data.impl.SimplePeakList;
 import net.sf.mzmine.data.impl.SimplePeakListRow;
-import net.sf.mzmine.io.RawDataFile;
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.project.MZmineProject;
 import net.sf.mzmine.taskcontrol.Task;

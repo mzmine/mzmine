@@ -21,8 +21,8 @@ package net.sf.mzmine.modules.visualization.tic;
 
 import net.sf.mzmine.data.DataPoint;
 import net.sf.mzmine.data.Peak;
+import net.sf.mzmine.data.RawDataFile;
 import net.sf.mzmine.data.Scan;
-import net.sf.mzmine.io.RawDataFile;
 
 import org.jfree.data.xy.AbstractXYDataset;
 

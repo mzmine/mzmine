@@ -33,11 +33,11 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import net.sf.mzmine.data.DataPoint;
+import net.sf.mzmine.data.PreloadLevel;
+import net.sf.mzmine.data.RawDataFile;
+import net.sf.mzmine.data.RawDataFileWriter;
 import net.sf.mzmine.data.Scan;
 import net.sf.mzmine.data.impl.SimpleScan;
-import net.sf.mzmine.io.PreloadLevel;
-import net.sf.mzmine.io.RawDataFile;
-import net.sf.mzmine.io.RawDataFileWriter;
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.util.CollectionUtils;
 import net.sf.mzmine.util.Range;
@@ -46,6 +46,7 @@ import net.sf.mzmine.util.Range;
  * RawDataFile implementation
  * 
  */
+@Deprecated
 class RawDataFileImpl implements RawDataFile, RawDataFileWriter {
 
     private transient Logger logger = Logger.getLogger(this.getClass().getName());
@@ -82,14 +83,14 @@ class RawDataFileImpl implements RawDataFile, RawDataFileWriter {
     }
 
     /**
-     * @see net.sf.mzmine.io.RawDataFile#getFilePath()
+     * @see net.sf.mzmine.data.RawDataFile#getFilePath()
      */
     public String getFileName() {
         return this.fileName;
     }
 
     /**
-     * @see net.sf.mzmine.io.RawDataFile#getScanDataFile()
+     * @see net.sf.mzmine.data.RawDataFile#getScanDataFile()
      */
     public RandomAccessFile getScanDataFile() {
         if (!scanDataFile.equals(null)) {
@@ -100,7 +101,7 @@ class RawDataFileImpl implements RawDataFile, RawDataFileWriter {
     }
 
     /**
-     * @see net.sf.mzmine.io.RawDataFile#getWritingScanDataFile()
+     * @see net.sf.mzmine.data.RawDataFile#getWritingScanDataFile()
      */
     public RandomAccessFile getWritingScanDataFile() {
         if (!writingScanDataFile.equals(null)) {
@@ -120,28 +121,28 @@ class RawDataFileImpl implements RawDataFile, RawDataFileWriter {
     }
 
     /**
-     * @see net.sf.mzmine.io.RawDataFile#getScanDataFileName()
+     * @see net.sf.mzmine.data.RawDataFile#getScanDataFileName()
      */
     public String getScanDataFileName() {
         return scanDataFileName;
     }
 
     /**
-     * @see net.sf.mzmine.io.RawDataFile#getNumOfScans()
+     * @see net.sf.mzmine.data.RawDataFile#getNumOfScans()
      */
     public int getNumOfScans() {
         return scans.size();
     }
 
     /**
-     * @see net.sf.mzmine.io.RawDataFile#getScan(int)
+     * @see net.sf.mzmine.data.RawDataFile#getScan(int)
      */
     public Scan getScan(int scanNumber) {
         return scans.get(scanNumber);
     }
 
     /**
-     * @see net.sf.mzmine.io.RawDataFile#getDataMinMZ()
+     * @see net.sf.mzmine.data.RawDataFile#getDataMinMZ()
      */
     public float getDataMinMZ(int msLevel) {
 
@@ -176,7 +177,7 @@ class RawDataFileImpl implements RawDataFile, RawDataFileWriter {
     }
 
     /**
-     * @see net.sf.mzmine.io.RawDataFile#getDataMaxMZ()
+     * @see net.sf.mzmine.data.RawDataFile#getDataMaxMZ()
      */
     public float getDataMaxMZ(int msLevel) {
 
@@ -212,7 +213,7 @@ class RawDataFileImpl implements RawDataFile, RawDataFileWriter {
     }
 
     /**
-     * @see net.sf.mzmine.io.RawDataFile#getDataMinRT()
+     * @see net.sf.mzmine.data.RawDataFile#getDataMinRT()
      */
     public float getDataMinRT(int msLevel) {
 
@@ -251,7 +252,7 @@ class RawDataFileImpl implements RawDataFile, RawDataFileWriter {
     }
 
     /**
-     * @see net.sf.mzmine.io.RawDataFile#getDataMaxRT()
+     * @see net.sf.mzmine.data.RawDataFile#getDataMaxRT()
      */
     public float getDataMaxRT(int msLevel) {
 
@@ -289,14 +290,14 @@ class RawDataFileImpl implements RawDataFile, RawDataFileWriter {
     }
 
     /**
-     * @see net.sf.mzmine.io.RawDataFile#getScanNumbers(int)
+     * @see net.sf.mzmine.data.RawDataFile#getScanNumbers(int)
      */
     public int[] getScanNumbers(int msLevel) {
         return getScanNumbers(msLevel, new Range(Float.MIN_VALUE, Float.MAX_VALUE));
     }
 
     /**
-     * @see net.sf.mzmine.io.RawDataFile#getScanNumbers(int, float, float)
+     * @see net.sf.mzmine.data.RawDataFile#getScanNumbers(int, float, float)
      */
     public int[] getScanNumbers(int msLevel, Range rtRange) {
 
@@ -318,7 +319,7 @@ class RawDataFileImpl implements RawDataFile, RawDataFileWriter {
     }
 
     /**
-     * @see net.sf.mzmine.io.RawDataFile#getScanNumbers()
+     * @see net.sf.mzmine.data.RawDataFile#getScanNumbers()
      */
     public int[] getScanNumbers() {
 
@@ -331,7 +332,7 @@ class RawDataFileImpl implements RawDataFile, RawDataFileWriter {
     }
 
     /**
-     * @see net.sf.mzmine.io.RawDataFile#getMSLevels()
+     * @see net.sf.mzmine.data.RawDataFile#getMSLevels()
      */
     public int[] getMSLevels() {
 
@@ -350,7 +351,7 @@ class RawDataFileImpl implements RawDataFile, RawDataFileWriter {
     }
 
     /**
-     * @see net.sf.mzmine.io.RawDataFile#getDataMaxBasePeakIntensity()
+     * @see net.sf.mzmine.data.RawDataFile#getDataMaxBasePeakIntensity()
      */
     public float getDataMaxBasePeakIntensity(int msLevel) {
 
@@ -394,7 +395,7 @@ class RawDataFileImpl implements RawDataFile, RawDataFileWriter {
     }
 
     /**
-     * @see net.sf.mzmine.io.RawDataFile#getDataMaxTotalIonCurrent()
+     * @see net.sf.mzmine.data.RawDataFile#getDataMaxTotalIonCurrent()
      */
     public float getDataMaxTotalIonCurrent(int msLevel) {
 
@@ -500,14 +501,14 @@ class RawDataFileImpl implements RawDataFile, RawDataFileWriter {
     }
 
     /**
-     * @see net.sf.mzmine.io.RawDataFile#getPreloadLevel()
+     * @see net.sf.mzmine.data.RawDataFile#getPreloadLevel()
      */
     public PreloadLevel getPreloadLevel() {
         return preloadLevel;
     }
 
     /**
-     * @see net.sf.mzmine.io.RawDataFileWriter#finishWriting()
+     * @see net.sf.mzmine.data.RawDataFileWriter#finishWriting()
      */
     public RawDataFile finishWriting() throws IOException {
 

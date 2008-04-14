@@ -32,7 +32,7 @@ import javax.swing.event.InternalFrameEvent;
 import javax.swing.event.InternalFrameListener;
 
 import net.sf.mzmine.data.PeakList;
-import net.sf.mzmine.io.RawDataFile;
+import net.sf.mzmine.data.RawDataFile;
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.project.MZmineProject;
 import net.sf.mzmine.project.ProjectListener;

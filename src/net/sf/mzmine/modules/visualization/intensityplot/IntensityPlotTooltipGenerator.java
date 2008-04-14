@@ -22,7 +22,7 @@ package net.sf.mzmine.modules.visualization.intensityplot;
 import java.text.Format;
 
 import net.sf.mzmine.data.Peak;
-import net.sf.mzmine.io.RawDataFile;
+import net.sf.mzmine.data.RawDataFile;
 import net.sf.mzmine.main.MZmineCore;
 
 import org.jfree.chart.labels.CategoryToolTipGenerator;

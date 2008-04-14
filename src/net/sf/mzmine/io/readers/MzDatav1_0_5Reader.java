@@ -38,6 +38,7 @@ import org.proteomecommons.io.mzdata.v1_05.MzDataPeakListSpectrumSettings;
 /**
  * 
  */
+@Deprecated
 public class MzDatav1_0_5Reader implements RawDataFileReader {
 
     private Logger logger = Logger.getLogger(this.getClass().getName());

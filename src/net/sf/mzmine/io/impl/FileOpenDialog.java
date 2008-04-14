@@ -31,7 +31,7 @@ import javax.swing.JDialog;
 import javax.swing.JFileChooser;
 import javax.swing.JPanel;
 
-import net.sf.mzmine.io.PreloadLevel;
+import net.sf.mzmine.data.PreloadLevel;
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.util.GUIUtils;
 
@@ -40,14 +40,15 @@ import com.sun.java.ExampleFileFilter;
 /**
  * File open dialog
  */
-public class FileOpenDialog extends JDialog implements ActionListener {
+@Deprecated
+public  class FileOpenDialog extends JDialog implements ActionListener {
 
     private Logger logger = Logger.getLogger(this.getClass().getName());
     
     private JFileChooser fileChooser;
     private JComboBox preloadChooser;
     
-    public FileOpenDialog(String path) {
+    public  FileOpenDialog(String path) {
 
         super(MZmineCore.getDesktop().getMainFrame(), "Please select data files to open",
                 true);

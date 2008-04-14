@@ -28,7 +28,7 @@ import java.awt.geom.Rectangle2D;
 import java.text.NumberFormat;
 
 import net.sf.mzmine.data.PeakList;
-import net.sf.mzmine.io.RawDataFile;
+import net.sf.mzmine.data.RawDataFile;
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.util.Range;
 

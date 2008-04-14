@@ -27,14 +27,15 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import net.sf.mzmine.data.DataPoint;
+import net.sf.mzmine.data.RawDataFile;
 import net.sf.mzmine.data.Scan;
 import net.sf.mzmine.data.impl.SimpleDataPoint;
-import net.sf.mzmine.io.RawDataFile;
 import net.sf.mzmine.util.Range;
 
 /**
  * Simple implementation of the Scan interface.
  */
+@Deprecated
 public class StorableScan implements Scan {
 
     private transient Logger logger = Logger.getLogger(this.getClass().getName());

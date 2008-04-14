@@ -21,8 +21,8 @@ package net.sf.mzmine.modules.visualization.intensityplot;
 
 import net.sf.mzmine.data.PeakList;
 import net.sf.mzmine.data.PeakListRow;
+import net.sf.mzmine.data.RawDataFile;
 import net.sf.mzmine.data.StorableParameterSet;
-import net.sf.mzmine.io.RawDataFile;
 
 import org.dom4j.Element;
 

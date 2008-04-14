@@ -25,14 +25,21 @@ import java.awt.event.KeyEvent;
 
 import net.sf.mzmine.data.ParameterSet;
 import net.sf.mzmine.data.PeakList;
+import net.sf.mzmine.data.RawDataFile;
 import net.sf.mzmine.desktop.Desktop;
 import net.sf.mzmine.desktop.MZmineMenu;
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.main.MZmineModule;
+import net.sf.mzmine.modules.batchmode.BatchStep;
+import net.sf.mzmine.modules.batchmode.BatchStepCategory;
+import net.sf.mzmine.taskcontrol.Task;
+import net.sf.mzmine.taskcontrol.TaskGroup;
+import net.sf.mzmine.taskcontrol.TaskGroupListener;
 import net.sf.mzmine.util.dialogs.ExitCode;
 import net.sf.mzmine.util.dialogs.ParameterSetupDialog;
 
-public class PeakListExporter implements MZmineModule, ActionListener {
+public class PeakListExporter implements MZmineModule, ActionListener,
+        BatchStep {
 
     private PeakListExportParameters parameters;
 
@@ -60,7 +67,7 @@ public class PeakListExporter implements MZmineModule, ActionListener {
         this.parameters = (PeakListExportParameters) parameters;
     }
 
-    public void actionPerformed(ActionEvent arg0) {
+    public void actionPerformed(ActionEvent event) {
 
         PeakList[] selectedPeakLists = desktop.getSelectedPeakLists();
         if (selectedPeakLists.length != 1) {
@@ -68,17 +75,13 @@ public class PeakListExporter implements MZmineModule, ActionListener {
             return;
         }
 
-        ParameterSetupDialog dialog = new ParameterSetupDialog(
-                "Please set parameter values for " + toString(), parameters);
-        dialog.setVisible(true);
+        ExitCode setupExitCode = setupParameters(parameters);
 
-        if (dialog.getExitCode() != ExitCode.OK) {
+        if (setupExitCode != ExitCode.OK) {
             return;
         }
 
-        PeakListExportTask task = new PeakListExportTask(selectedPeakLists[0],
-                parameters);
-        MZmineCore.getTaskController().addTask(task);
+        runModule(null, selectedPeakLists, parameters, null);
 
     }
 
@@ -87,6 +90,37 @@ public class PeakListExporter implements MZmineModule, ActionListener {
      */
     public String toString() {
         return "Peak list exporter";
+    }
+
+    public BatchStepCategory getBatchStepCategory() {
+        return BatchStepCategory.PROJECT;
+    }
+
+    public TaskGroup runModule(RawDataFile[] dataFiles, PeakList[] peakLists,
+            ParameterSet parameters, TaskGroupListener taskGroupListener) {
+
+        PeakListExportTask task = new PeakListExportTask(peakLists[0],
+                (PeakListExportParameters) parameters);
+
+        TaskGroup newGroup = new TaskGroup(new Task[] { task }, null,
+                taskGroupListener);
+
+        // start this group
+        newGroup.start();
+
+        return newGroup;
+
+    }
+
+    public ExitCode setupParameters(ParameterSet parameters) {
+
+        ParameterSetupDialog dialog = new ParameterSetupDialog(
+                "Please set parameter values for " + toString(),
+                (PeakListExportParameters) parameters);
+
+        dialog.setVisible(true);
+
+        return dialog.getExitCode();
     }
 
 }

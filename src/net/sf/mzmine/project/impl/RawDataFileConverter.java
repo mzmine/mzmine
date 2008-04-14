@@ -1,6 +1,6 @@
 package net.sf.mzmine.project.impl;
 
-import net.sf.mzmine.io.RawDataFile;
+import net.sf.mzmine.data.RawDataFile;
 import net.sf.mzmine.project.MZmineProject;
 
 import com.thoughtworks.xstream.converters.Converter;

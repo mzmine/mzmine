@@ -36,8 +36,8 @@ import javax.swing.JLabel;
 
 import net.sf.mzmine.data.Peak;
 import net.sf.mzmine.data.PeakList;
+import net.sf.mzmine.data.RawDataFile;
 import net.sf.mzmine.desktop.Desktop;
-import net.sf.mzmine.io.RawDataFile;
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.taskcontrol.Task;
 import net.sf.mzmine.taskcontrol.TaskListener;

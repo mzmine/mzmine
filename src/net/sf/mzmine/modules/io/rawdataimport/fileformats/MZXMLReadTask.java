@@ -25,7 +25,7 @@ import java.util.logging.Logger;
 import javax.xml.parsers.SAXParser;
 import javax.xml.parsers.SAXParserFactory;
 
-import net.sf.mzmine.io.PreloadLevel;
+import net.sf.mzmine.data.PreloadLevel;
 import net.sf.mzmine.taskcontrol.Task;
 
 import org.xml.sax.Attributes;

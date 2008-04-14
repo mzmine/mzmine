@@ -26,9 +26,9 @@ import java.util.Hashtable;
 import java.util.Vector;
 
 import net.sf.mzmine.data.DataPoint;
+import net.sf.mzmine.data.RawDataFile;
 import net.sf.mzmine.data.Scan;
 import net.sf.mzmine.data.impl.SimplePeakList;
-import net.sf.mzmine.io.RawDataFile;
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.modules.peakpicking.anothercentroid.DataPointSorter.SortingDirection;
 import net.sf.mzmine.modules.peakpicking.anothercentroid.DataPointSorter.SortingProperty;

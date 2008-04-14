@@ -36,7 +36,7 @@ import javax.swing.DefaultListModel;
 
 import net.sf.mzmine.data.Parameter;
 import net.sf.mzmine.data.PeakList;
-import net.sf.mzmine.io.RawDataFile;
+import net.sf.mzmine.data.RawDataFile;
 import net.sf.mzmine.main.MZmineClient;
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.project.MZmineProject;

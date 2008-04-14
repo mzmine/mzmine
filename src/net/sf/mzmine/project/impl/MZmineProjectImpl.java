@@ -28,8 +28,8 @@ import javax.swing.DefaultListModel;
 
 import net.sf.mzmine.data.Parameter;
 import net.sf.mzmine.data.PeakList;
+import net.sf.mzmine.data.RawDataFile;
 import net.sf.mzmine.data.impl.SimplePeakList;
-import net.sf.mzmine.io.RawDataFile;
 import net.sf.mzmine.project.MZmineProject;
 import net.sf.mzmine.project.ProjectListener;
 

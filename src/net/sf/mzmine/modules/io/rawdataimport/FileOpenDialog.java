@@ -31,7 +31,7 @@ import javax.swing.JDialog;
 import javax.swing.JFileChooser;
 import javax.swing.JPanel;
 
-import net.sf.mzmine.io.PreloadLevel;
+import net.sf.mzmine.data.PreloadLevel;
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.util.GUIUtils;
 

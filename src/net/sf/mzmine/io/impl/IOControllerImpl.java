@@ -23,11 +23,11 @@ import java.io.File;
 import java.io.IOException;
 import java.util.logging.Logger;
 
+import net.sf.mzmine.data.PreloadLevel;
+import net.sf.mzmine.data.RawDataFile;
+import net.sf.mzmine.data.RawDataFileWriter;
 import net.sf.mzmine.desktop.Desktop;
 import net.sf.mzmine.io.IOController;
-import net.sf.mzmine.io.PreloadLevel;
-import net.sf.mzmine.io.RawDataFile;
-import net.sf.mzmine.io.RawDataFileWriter;
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.taskcontrol.Task;
 import net.sf.mzmine.taskcontrol.TaskController;
@@ -36,6 +36,7 @@ import net.sf.mzmine.taskcontrol.TaskListener;
 /**
  * IO controller
  */
+@Deprecated
 public class IOControllerImpl implements IOController, TaskListener {
 
 	private Logger logger = Logger.getLogger(this.getClass().getName());
@@ -99,7 +100,7 @@ public class IOControllerImpl implements IOController, TaskListener {
 
 	/**
 	 * @see net.sf.mzmine.io.IOController#createNewFile(java.lang.String,
-	 *      net.sf.mzmine.io.PreloadLevel)
+	 *      net.sf.mzmine.data.PreloadLevel)
 	 */
 	public RawDataFileWriter createNewFile(String fileName, String suffix,
 			PreloadLevel preloadLevel) throws IOException {
@@ -108,7 +109,7 @@ public class IOControllerImpl implements IOController, TaskListener {
 
 	/**
 	 * @see net.sf.mzmine.io.IOController#createNewFile(java.lang.String,
-	 *      net.sf.mzmine.io.PreloadLevel)
+	 *      net.sf.mzmine.data.PreloadLevel)
 	 */
 	public RawDataFileWriter createNewFile(File file, PreloadLevel preloadLevel)
 			throws IOException {

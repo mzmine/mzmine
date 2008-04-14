@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2007 The MZmine Development Team
+ * Copyright 2006-2008 The MZmine Development Team
  * 
  * This file is part of MZmine.
  * 
@@ -21,7 +21,7 @@ package net.sf.mzmine.modules.batchmode;
 
 import net.sf.mzmine.data.ParameterSet;
 import net.sf.mzmine.data.PeakList;
-import net.sf.mzmine.io.RawDataFile;
+import net.sf.mzmine.data.RawDataFile;
 import net.sf.mzmine.main.MZmineModule;
 import net.sf.mzmine.taskcontrol.TaskGroup;
 import net.sf.mzmine.taskcontrol.TaskGroupListener;
@@ -53,8 +53,8 @@ public interface BatchStep extends MZmineModule {
      * 
      */
     public TaskGroup runModule(RawDataFile[] dataFiles,
-            PeakList[] alignmentResults, ParameterSet parameters,
-            TaskGroupListener methodListener);
+            PeakList[] peakLists, ParameterSet parameters,
+            TaskGroupListener taskGroupListener);
 
     /**
      * Returns the category of the batch step (e.g. raw data processing, peak

@@ -26,12 +26,12 @@ import java.io.IOException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import net.sf.mzmine.data.PreloadLevel;
+import net.sf.mzmine.data.RawDataFile;
+import net.sf.mzmine.data.RawDataFileWriter;
 import net.sf.mzmine.data.Scan;
 import net.sf.mzmine.io.IOController;
-import net.sf.mzmine.io.PreloadLevel;
-import net.sf.mzmine.io.RawDataFile;
 import net.sf.mzmine.io.RawDataFileReader;
-import net.sf.mzmine.io.RawDataFileWriter;
 import net.sf.mzmine.io.readers.MzDatav1_0_5Reader;
 import net.sf.mzmine.io.readers.MzXMLv1_1_1Reader;
 import net.sf.mzmine.io.readers.MzXMLv2_0Reader;
@@ -43,6 +43,7 @@ import net.sf.mzmine.taskcontrol.Task;
 /**
  * 
  */
+@Deprecated
 public class FileOpeningTask implements Task {
 
     private Logger logger = Logger.getLogger(this.getClass().getName());

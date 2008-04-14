@@ -23,9 +23,9 @@ import net.sf.mzmine.data.Parameter;
 import net.sf.mzmine.data.ParameterType;
 import net.sf.mzmine.data.PeakList;
 import net.sf.mzmine.data.PeakListRow;
+import net.sf.mzmine.data.RawDataFile;
 import net.sf.mzmine.data.impl.SimpleParameter;
 import net.sf.mzmine.data.impl.SimpleParameterSet;
-import net.sf.mzmine.io.RawDataFile;
 
 public class ProjectionPlotParameters extends SimpleParameterSet {
 

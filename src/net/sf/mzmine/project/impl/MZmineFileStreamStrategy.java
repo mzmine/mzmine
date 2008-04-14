@@ -12,10 +12,10 @@ import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 import java.util.zip.ZipOutputStream;
 
+import net.sf.mzmine.data.RawDataFile;
 import net.sf.mzmine.data.impl.SimpleDataPoint;
 import net.sf.mzmine.data.impl.SimplePeakListRow;
 import net.sf.mzmine.data.impl.SimpleScan;
-import net.sf.mzmine.io.RawDataFile;
 import net.sf.mzmine.io.impl.StorableScan;
 import net.sf.mzmine.project.MZmineProject;
 import net.sf.mzmine.project.ProjectType;

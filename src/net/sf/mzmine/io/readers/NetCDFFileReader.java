@@ -38,6 +38,7 @@ import ucar.nc2.Variable;
 /**
  * This is a helper class used for parsing NetCDF files
  */
+@Deprecated
 public class NetCDFFileReader implements RawDataFileReader {
 
     private Logger logger = Logger.getLogger(this.getClass().getName());

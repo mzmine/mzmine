@@ -24,7 +24,7 @@ import java.util.Hashtable;
 import javax.swing.table.AbstractTableModel;
 
 import net.sf.mzmine.data.Parameter;
-import net.sf.mzmine.io.RawDataFile;
+import net.sf.mzmine.data.RawDataFile;
 
 public class ParameterTableModel extends
 		AbstractTableModel {

@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2007 The MZmine Development Team
+ * Copyright 2006-2008 The MZmine Development Team
  * 
  * This file is part of MZmine.
  * 
@@ -17,14 +17,14 @@
  * Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-package net.sf.mzmine.io;
+package net.sf.mzmine.data;
 
 import java.io.IOException;
 
-import net.sf.mzmine.data.Scan;
-
 /**
- * 
+ * This interface represents a raw data file which is being modified. Scans can
+ * be added to the file by calling the addScan() method. Final RawDataFile
+ * instance is obtained by calling finishWriting() method.
  */
 public interface RawDataFileWriter {
 

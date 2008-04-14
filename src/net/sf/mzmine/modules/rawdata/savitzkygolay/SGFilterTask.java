@@ -23,11 +23,11 @@ import java.io.IOException;
 import java.util.Hashtable;
 
 import net.sf.mzmine.data.DataPoint;
+import net.sf.mzmine.data.RawDataFile;
+import net.sf.mzmine.data.RawDataFileWriter;
 import net.sf.mzmine.data.Scan;
 import net.sf.mzmine.data.impl.SimpleDataPoint;
 import net.sf.mzmine.data.impl.SimpleScan;
-import net.sf.mzmine.io.RawDataFile;
-import net.sf.mzmine.io.RawDataFileWriter;
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.taskcontrol.Task;
 

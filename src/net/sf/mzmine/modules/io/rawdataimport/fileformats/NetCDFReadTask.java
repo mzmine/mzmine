@@ -23,8 +23,8 @@ import java.io.File;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import net.sf.mzmine.io.PreloadLevel;
-import net.sf.mzmine.io.RawDataFile;
+import net.sf.mzmine.data.PreloadLevel;
+import net.sf.mzmine.data.RawDataFile;
 import net.sf.mzmine.modules.io.rawdataimport.RawDataFileImpl;
 import net.sf.mzmine.taskcontrol.Task;
 

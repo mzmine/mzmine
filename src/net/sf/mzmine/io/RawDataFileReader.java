@@ -26,6 +26,7 @@ import net.sf.mzmine.data.Scan;
 /**
  * 
  */
+@Deprecated
 public interface RawDataFileReader {
 
     public void startReading() throws IOException;

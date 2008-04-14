@@ -19,36 +19,91 @@
 
 package net.sf.mzmine.modules.io.rawdataimport;
 
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.awt.event.KeyEvent;
+
 import net.sf.mzmine.data.ParameterSet;
+import net.sf.mzmine.data.PeakList;
+import net.sf.mzmine.data.RawDataFile;
+import net.sf.mzmine.desktop.Desktop;
+import net.sf.mzmine.desktop.MZmineMenu;
 import net.sf.mzmine.main.MZmineModule;
+import net.sf.mzmine.modules.batchmode.BatchStep;
+import net.sf.mzmine.modules.batchmode.BatchStepCategory;
+import net.sf.mzmine.modules.io.peaklistexport.PeakListExportParameters;
+import net.sf.mzmine.taskcontrol.TaskGroup;
+import net.sf.mzmine.taskcontrol.TaskGroupListener;
+import net.sf.mzmine.util.dialogs.ExitCode;
+import net.sf.mzmine.util.dialogs.ParameterSetupDialog;
 
 /**
  * work in progress...
  */
-public class RawDataImporter implements MZmineModule {
+public class RawDataImporter implements MZmineModule, ActionListener, BatchStep {
 
-    /**
-     * @see net.sf.mzmine.main.MZmineModule#getParameterSet()
-     */
-    public ParameterSet getParameterSet() {
-        // TODO Auto-generated method stub
-        return null;
-    }
+    private RawDataImporterParameters parameters;
+
+    private Desktop desktop;
 
     /**
      * @see net.sf.mzmine.main.MZmineModule#initModule(net.sf.mzmine.main.MZmineCore)
      */
     public void initModule() {
 
+        parameters = new RawDataImporterParameters();
+
+        desktop.addMenuItem(MZmineMenu.PROJECT, "Import raw data files DEVEL",
+                "This module imports raw data files of various formats",
+                KeyEvent.VK_I, this, null);
     }
 
+    /**
+     * @see net.sf.mzmine.main.MZmineModule#getParameterSet()
+     */
+    public ParameterSet getParameterSet() {
+        return parameters;
+    }
 
     /**
      * @see net.sf.mzmine.main.MZmineModule#setParameters(net.sf.mzmine.data.ParameterSet)
      */
-    public void setParameters(ParameterSet parameterValues) {
-        // TODO Auto-generated method stub
+    public void setParameters(ParameterSet parameters) {
+        this.parameters = (RawDataImporterParameters) parameters;
+    }
 
+    public void actionPerformed(ActionEvent event) {
+
+        ExitCode setupExitCode = setupParameters(parameters);
+
+        if (setupExitCode != ExitCode.OK) {
+            return;
+        }
+
+        runModule(null, null, parameters, null);
+    }
+
+    public BatchStepCategory getBatchStepCategory() {
+        return BatchStepCategory.PROJECT;
+    }
+
+    public TaskGroup runModule(RawDataFile[] dataFiles, PeakList[] peakLists,
+            ParameterSet parameters, TaskGroupListener taskGroupListener) {
+
+        // TODO
+
+        return null;
+    }
+
+    public ExitCode setupParameters(ParameterSet parameters) {
+
+        ParameterSetupDialog dialog = new ParameterSetupDialog(
+                "Please set parameter values for " + toString(),
+                (PeakListExportParameters) parameters);
+
+        dialog.setVisible(true);
+
+        return dialog.getExitCode();
     }
 
 }

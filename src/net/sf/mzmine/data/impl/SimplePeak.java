@@ -24,7 +24,7 @@ import java.util.Arrays;
 import net.sf.mzmine.data.DataPoint;
 import net.sf.mzmine.data.Peak;
 import net.sf.mzmine.data.PeakStatus;
-import net.sf.mzmine.io.RawDataFile;
+import net.sf.mzmine.data.RawDataFile;
 import net.sf.mzmine.util.PeakUtils;
 import net.sf.mzmine.util.Range;
 

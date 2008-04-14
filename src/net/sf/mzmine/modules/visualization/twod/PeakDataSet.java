@@ -24,7 +24,7 @@ import java.util.Vector;
 import net.sf.mzmine.data.DataPoint;
 import net.sf.mzmine.data.Peak;
 import net.sf.mzmine.data.PeakList;
-import net.sf.mzmine.io.RawDataFile;
+import net.sf.mzmine.data.RawDataFile;
 import net.sf.mzmine.util.Range;
 
 import org.jfree.data.xy.AbstractXYDataset;

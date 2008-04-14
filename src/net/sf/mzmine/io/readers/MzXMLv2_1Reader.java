@@ -41,6 +41,7 @@ import org.proteomecommons.io.mzxml.v2_1.MzXMLPeakListReader;
 /**
  * 
  */
+@Deprecated
 public class MzXMLv2_1Reader implements RawDataFileReader {
 
     private Logger logger = Logger.getLogger(this.getClass().getName());

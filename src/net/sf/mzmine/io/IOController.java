@@ -22,10 +22,14 @@ package net.sf.mzmine.io;
 import java.io.File;
 import java.io.IOException;
 
+import net.sf.mzmine.data.PreloadLevel;
+import net.sf.mzmine.data.RawDataFileWriter;
+
 /**
  * IO controller
  * 
  */
+@Deprecated
 public interface IOController {
 
 	/**

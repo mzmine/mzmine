@@ -24,10 +24,8 @@ import java.util.Date;
 import java.util.Vector;
 
 import net.sf.mzmine.data.DataPoint;
+import net.sf.mzmine.data.RawDataFile;
 import net.sf.mzmine.data.Scan;
-import net.sf.mzmine.io.RawDataFile;
-import net.sf.mzmine.io.util.RawDataAcceptor;
-import net.sf.mzmine.io.util.RawDataRetrievalTask;
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.taskcontrol.Task;
 import net.sf.mzmine.taskcontrol.TaskListener;
@@ -35,6 +33,8 @@ import net.sf.mzmine.taskcontrol.Task.TaskPriority;
 import net.sf.mzmine.taskcontrol.Task.TaskStatus;
 import net.sf.mzmine.util.CollectionUtils;
 import net.sf.mzmine.util.Range;
+import net.sf.mzmine.util.RawDataAcceptor;
+import net.sf.mzmine.util.RawDataRetrievalTask;
 import net.sf.mzmine.util.ScanUtils;
 
 import org.jfree.data.xy.AbstractXYZDataset;

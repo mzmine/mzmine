@@ -31,8 +31,8 @@ import java.util.Set;
 import javax.swing.JInternalFrame;
 
 import net.sf.mzmine.data.Peak;
+import net.sf.mzmine.data.RawDataFile;
 import net.sf.mzmine.desktop.Desktop;
-import net.sf.mzmine.io.RawDataFile;
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.modules.visualization.spectra.SpectraVisualizer;
 import net.sf.mzmine.taskcontrol.Task;

@@ -27,7 +27,7 @@ import javax.swing.JInternalFrame;
 import javax.swing.JMenuItem;
 
 import net.sf.mzmine.data.PeakList;
-import net.sf.mzmine.io.RawDataFile;
+import net.sf.mzmine.data.RawDataFile;
 import net.sf.mzmine.main.MZmineModule;
 
 /**
