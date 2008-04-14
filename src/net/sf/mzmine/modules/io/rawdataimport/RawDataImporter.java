@@ -28,10 +28,10 @@ import net.sf.mzmine.data.PeakList;
 import net.sf.mzmine.data.RawDataFile;
 import net.sf.mzmine.desktop.Desktop;
 import net.sf.mzmine.desktop.MZmineMenu;
+import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.main.MZmineModule;
 import net.sf.mzmine.modules.batchmode.BatchStep;
 import net.sf.mzmine.modules.batchmode.BatchStepCategory;
-import net.sf.mzmine.modules.io.peaklistexport.PeakListExportParameters;
 import net.sf.mzmine.taskcontrol.TaskGroup;
 import net.sf.mzmine.taskcontrol.TaskGroupListener;
 import net.sf.mzmine.util.dialogs.ExitCode;
@@ -50,6 +50,8 @@ public class RawDataImporter implements MZmineModule, ActionListener, BatchStep 
      * @see net.sf.mzmine.main.MZmineModule#initModule(net.sf.mzmine.main.MZmineCore)
      */
     public void initModule() {
+        
+        this.desktop = MZmineCore.getDesktop();
 
         parameters = new RawDataImporterParameters();
 
@@ -99,7 +101,7 @@ public class RawDataImporter implements MZmineModule, ActionListener, BatchStep 
 
         ParameterSetupDialog dialog = new ParameterSetupDialog(
                 "Please set parameter values for " + toString(),
-                (PeakListExportParameters) parameters);
+                (RawDataImporterParameters) parameters);
 
         dialog.setVisible(true);
 
