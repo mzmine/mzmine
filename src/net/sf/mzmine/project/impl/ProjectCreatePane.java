@@ -168,10 +168,7 @@ public class ProjectCreatePane extends JPanel implements ActionListener {
 				if (projectDir.exists()) {
 					ok = false;
 					this.lblShortMessage.setText("File exists !");
-				} else if (projectParentDir.toString().substring(
-						0,
-						projectParentDir.toString().length()
-								- ".mzmine".length()) == ".mzmine") {
+				} else if (projectParentDir.toString().endsWith(".mzmine")) {
 					ok = false;
 					this.lblShortMessage
 							.setText("You can not make project in another project ");
