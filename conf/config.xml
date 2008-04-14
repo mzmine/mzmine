@@ -7,8 +7,8 @@
       <parameters>
         <parameter name="MS level" type="INTEGER">1</parameter>
         <parameter name="Plot type" type="STRING">Base peak intensity</parameter>
-        <parameter name="Retention time" type="RANGE">0.579-2398.92</parameter>
-        <parameter name="m/z range" type="RANGE">183.08723-183.08858</parameter>
+        <parameter name="Retention time" type="RANGE">0.577-2399.4</parameter>
+        <parameter name="m/z range" type="RANGE">99.999664-1000.0101</parameter>
       </parameters> 
     </module>  
     <module class="net.sf.mzmine.modules.visualization.spectra.SpectraVisualizer"> 
@@ -26,10 +26,10 @@
     <module class="net.sf.mzmine.modules.visualization.threed.ThreeDVisualizer"> 
       <parameters>
         <parameter name="MS level" type="INTEGER">1</parameter>
-        <parameter name="Retention time" type="RANGE">0.0-600.0</parameter>
-        <parameter name="Retention time resolution" type="INTEGER">100</parameter>
-        <parameter name="m/z range" type="RANGE">0.0-1000.0</parameter>
-        <parameter name="m/z resolution" type="INTEGER">100</parameter>
+        <parameter name="Retention time" type="RANGE">660.0-900.0</parameter>
+        <parameter name="Retention time resolution" type="INTEGER">600</parameter>
+        <parameter name="m/z range" type="RANGE">340.0-350.0</parameter>
+        <parameter name="m/z resolution" type="INTEGER">600</parameter>
       </parameters> 
     </module>  
     <module class="net.sf.mzmine.modules.visualization.neutralloss.NeutralLossVisualizer"> 
@@ -140,8 +140,8 @@
         <parameter name="Filename suffix" type="STRING">peaklist</parameter>
         <parameter name="M/Z bin width" type="FLOAT">0.01</parameter>
         <parameter name="Chromatographic threshold level" type="FLOAT">0.0</parameter>
-        <parameter name="Noise level" type="FLOAT">6000.0</parameter>
-        <parameter name="Min peak height" type="FLOAT">20000.0</parameter>
+        <parameter name="Noise level" type="FLOAT">60000.0</parameter>
+        <parameter name="Min peak height" type="FLOAT">80000.0</parameter>
         <parameter name="Min peak duration" type="FLOAT">30.0</parameter>
         <parameter name="Min M/Z peak width" type="FLOAT">0.0</parameter>
         <parameter name="Max M/Z peak width" type="FLOAT">0.5</parameter>
@@ -224,6 +224,7 @@
       <parameters>
         <parameter name="Name suffix" type="STRING">filtered</parameter>
         <parameter name="Minimum peaks in a row" type="INTEGER">2</parameter>
+        <parameter name="Minimum peaks in an isotope pattern" type="INTEGER">1</parameter>
         <parameter name="Minimum m/z" type="FLOAT">0.0</parameter>
         <parameter name="Maximum m/z" type="FLOAT">1000.0</parameter>
         <parameter name="Minimum retention time" type="FLOAT">0.0</parameter>
@@ -331,11 +332,18 @@
         <parameter name="Export row retention time" type="BOOLEAN">true</parameter>
         <parameter name="Export row comment" type="BOOLEAN">true</parameter>
         <parameter name="Export row compound identity" type="BOOLEAN">true</parameter>
+        <parameter name="Export row number of detected peaks" type="BOOLEAN">true</parameter>
         <parameter name="Export peak status" type="BOOLEAN">true</parameter>
         <parameter name="Export peak m/z" type="BOOLEAN">true</parameter>
         <parameter name="Export peak retention time" type="BOOLEAN">true</parameter>
         <parameter name="Export peak height" type="BOOLEAN">true</parameter>
         <parameter name="Export peak area" type="BOOLEAN">true</parameter>
+      </parameters> 
+    </module>  
+    <module class="net.sf.mzmine.modules.io.rawdataimport.RawDataImporter"> 
+      <parameters>
+        <parameter name="Last open directory" type="STRING">/Users/plusik</parameter>
+        <parameter name="Preload level" type="STRING">Store scan data in temporary file</parameter>
       </parameters> 
     </module> 
   </modules>  
@@ -353,12 +361,12 @@
       <pattern>0.00E0</pattern>
     </format>
     <mainwindow>
-      <x>348</x>
-      <y>23</y>
-      <width>1420</width>
-      <height>798</height>
+      <x>0</x>
+      <y>22</y>
+      <width>-1</width>
+      <height>-1</height>
     </mainwindow>
-    <lastdirectory>/mnt/newHD/private/kawasaki/mzmine/Nakamura/XML/negative mode XML</lastdirectory>
+    <lastdirectory>/Users/plusik</lastdirectory>
     <lastProjectDirectory>/mnt/newHD/private/kawasaki/mzmine/MyProject.11.mzmine</lastProjectDirectory>
   </desktop> 
 </configuration>
