@@ -19,6 +19,8 @@
 
 package net.sf.mzmine.modules.io.rawdataimport;
 
+import java.io.File;
+
 import net.sf.mzmine.data.Parameter;
 import net.sf.mzmine.data.ParameterType;
 import net.sf.mzmine.data.PreloadLevel;
@@ -26,6 +28,8 @@ import net.sf.mzmine.data.impl.SimpleParameter;
 import net.sf.mzmine.data.impl.SimpleParameterSet;
 
 public class RawDataImporterParameters extends SimpleParameterSet {
+
+    private File fileNames[];
 
     public static final Parameter importDirectory = new SimpleParameter(
             ParameterType.STRING, "Last open directory",
@@ -38,6 +42,14 @@ public class RawDataImporterParameters extends SimpleParameterSet {
 
     public RawDataImporterParameters() {
         super(new Parameter[] { importDirectory, preloadLevel });
+    }
+
+    File[] getFileNames() {
+        return fileNames;
+    }
+
+    void setFileNames(File[] fileNames) {
+        this.fileNames = fileNames;
     }
 
 }

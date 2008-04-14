@@ -35,7 +35,6 @@ import net.sf.mzmine.modules.batchmode.BatchStepCategory;
 import net.sf.mzmine.taskcontrol.TaskGroup;
 import net.sf.mzmine.taskcontrol.TaskGroupListener;
 import net.sf.mzmine.util.dialogs.ExitCode;
-import net.sf.mzmine.util.dialogs.ParameterSetupDialog;
 
 /**
  * work in progress...
@@ -50,7 +49,7 @@ public class RawDataImporter implements MZmineModule, ActionListener, BatchStep 
      * @see net.sf.mzmine.main.MZmineModule#initModule(net.sf.mzmine.main.MZmineCore)
      */
     public void initModule() {
-        
+
         this.desktop = MZmineCore.getDesktop();
 
         parameters = new RawDataImporterParameters();
@@ -99,8 +98,7 @@ public class RawDataImporter implements MZmineModule, ActionListener, BatchStep 
 
     public ExitCode setupParameters(ParameterSet parameters) {
 
-        ParameterSetupDialog dialog = new ParameterSetupDialog(
-                "Please set parameter values for " + toString(),
+        FileOpenDialog dialog = new FileOpenDialog(
                 (RawDataImporterParameters) parameters);
 
         dialog.setVisible(true);

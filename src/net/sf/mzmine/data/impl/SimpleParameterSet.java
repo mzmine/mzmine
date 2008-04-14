@@ -147,15 +147,18 @@ public class SimpleParameterSet implements StorableParameterSet {
             throw (new IllegalArgumentException("Unknown parameter "
                     + parameter));
 
+        
         Object possibleValues[] = parameter.getPossibleValues();
+        
         if (possibleValues != null) {
             for (Object possibleValue : possibleValues) {
-                if (possibleValue.equals(value)) {
+                // We compare String version of the values, in case some values were specified as Enum constants
+                if (possibleValue.toString().equals(value.toString())) {
                     values.put(parameter, possibleValue);
                     return;
                 }
             }
-            // value not found
+            // Value not found
             throw (new IllegalArgumentException("Invalid value " + value
                     + " for parameter " + parameter));
 

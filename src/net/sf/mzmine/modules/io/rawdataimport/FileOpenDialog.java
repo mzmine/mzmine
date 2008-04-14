@@ -1,17 +1,17 @@
 /*
- * Copyright 2006 The MZmine Development Team
- *
+ * Copyright 2006-2008 The MZmine Development Team
+ * 
  * This file is part of MZmine.
- *
+ * 
  * MZmine is free software; you can redistribute it and/or modify it under the
  * terms of the GNU General Public License as published by the Free Software
  * Foundation; either version 2 of the License, or (at your option) any later
  * version.
- *
+ * 
  * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY
  * WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR
  * A PARTICULAR PURPOSE. See the GNU General Public License for more details.
- *
+ * 
  * You should have received a copy of the GNU General Public License along with
  * MZmine; if not, write to the Free Software Foundation, Inc., 51 Franklin St,
  * Fifth Floor, Boston, MA 02110-1301 USA
@@ -34,6 +34,7 @@ import javax.swing.JPanel;
 import net.sf.mzmine.data.PreloadLevel;
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.util.GUIUtils;
+import net.sf.mzmine.util.dialogs.ExitCode;
 
 import com.sun.java.ExampleFileFilter;
 
@@ -42,20 +43,27 @@ import com.sun.java.ExampleFileFilter;
  */
 public class FileOpenDialog extends JDialog implements ActionListener {
 
-    private transient Logger logger = Logger.getLogger(this.getClass().getName());
-    
+    private Logger logger = Logger.getLogger(this.getClass().getName());
+
+    private ExitCode exitCode = ExitCode.UNKNOWN;
+
+    private RawDataImporterParameters parameters;
     private JFileChooser fileChooser;
     private JComboBox preloadChooser;
-    
-    public FileOpenDialog(String path) {
 
-        super(MZmineCore.getDesktop().getMainFrame(), "Please select data files to open",
-                true);
-        
+    public FileOpenDialog(RawDataImporterParameters parameters) {
+
+        super(MZmineCore.getDesktop().getMainFrame(),
+                "Please select data files to open", true);
+
+        this.parameters = parameters;
+
         logger.finest("Displaying file open dialog");
-        
+
         fileChooser = new JFileChooser();
-        if (path != null) fileChooser.setCurrentDirectory(new File(path));
+        String path = (String) parameters.getParameterValue(RawDataImporterParameters.importDirectory);
+        if (path != null)
+            fileChooser.setCurrentDirectory(new File(path));
         fileChooser.setMultiSelectionEnabled(true);
         fileChooser.addActionListener(this);
 
@@ -81,10 +89,12 @@ public class FileOpenDialog extends JDialog implements ActionListener {
 
         JPanel preloadChooserPanel = new JPanel(new FlowLayout());
         preloadChooser = new JComboBox(PreloadLevel.values());
+        PreloadLevel previousPreloadLevel = (PreloadLevel) parameters.getParameterValue(RawDataImporterParameters.preloadLevel);
+        if (previousPreloadLevel != null) preloadChooser.setSelectedItem(previousPreloadLevel);
         GUIUtils.addLabel(preloadChooserPanel, "Data storage:");
         preloadChooserPanel.add(preloadChooser);
         GUIUtils.addMargin(preloadChooserPanel, 10);
-        
+
         add(fileChooser, BorderLayout.CENTER);
         add(preloadChooserPanel, BorderLayout.SOUTH);
 
@@ -104,19 +114,31 @@ public class FileOpenDialog extends JDialog implements ActionListener {
         // check if user clicked "Open"
         if (command.equals("ApproveSelection")) {
 
-            File[] selectedFiles = fileChooser.getSelectedFiles();
-            PreloadLevel preloadLevel = (PreloadLevel) preloadChooser.getSelectedItem();
-            MZmineCore.getIOController().openFiles(selectedFiles, preloadLevel);
+            exitCode = ExitCode.OK;
 
+            File[] selectedFiles = fileChooser.getSelectedFiles();
+            parameters.setFileNames(selectedFiles);
+            parameters.setParameterValue(
+                    RawDataImporterParameters.importDirectory,
+                    fileChooser.getCurrentDirectory().toString());
+            PreloadLevel preloadLevel = (PreloadLevel) preloadChooser.getSelectedItem();
+            parameters.setParameterValue(
+                    RawDataImporterParameters.preloadLevel, preloadLevel);
+
+        } else {
+            exitCode = ExitCode.CANCEL;
         }
 
         // discard this dialog
         dispose();
 
     }
-    
-    public String getCurrentDirectory() {
-        return fileChooser.getCurrentDirectory().toString();
+
+    /**
+     * Method for reading exit code
+     */
+    public ExitCode getExitCode() {
+        return exitCode;
     }
 
 }
