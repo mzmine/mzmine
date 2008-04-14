@@ -42,7 +42,7 @@ import com.sun.java.ExampleFileFilter;
  */
 public class FileOpenDialog extends JDialog implements ActionListener {
 
-    private Logger logger = Logger.getLogger(this.getClass().getName());
+    private transient Logger logger = Logger.getLogger(this.getClass().getName());
     
     private JFileChooser fileChooser;
     private JComboBox preloadChooser;
