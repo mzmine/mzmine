@@ -193,7 +193,6 @@ public class MZXMLReadTask extends DefaultHandler implements Task {
 
 			if (buildingScan != null) {
 				parentStack.addFirst(buildingScan);
-				logger.info("Adiciona a stack scan number: " + buildingScan.getScanNumber());
 				buildingScan = null;
 			}
 
@@ -217,6 +216,10 @@ public class MZXMLReadTask extends DefaultHandler implements Task {
 				} catch (DatatypeConfigurationException e) {
 					throw new SAXException("Could not read retention time: " + e);
 				}
+			}else {
+				status = TaskStatus.ERROR;
+				errorMessage = "This file does not contain retentionTime for scans";
+				throw new SAXException("Could not read retention time");
 			}
 
 			int parentScan = -1;
@@ -286,7 +289,8 @@ public class MZXMLReadTask extends DefaultHandler implements Task {
 				parentStack.addFirst(buildingScan);
 				buildingScan = null;
 				while (!parentStack.isEmpty()) {
-					newMZmineFile.addScan(parentStack.pollLast());
+					SimpleScan s = parentStack.removeLast();
+					newMZmineFile.addScan(s);
 					parsedScans++;
 				}
 				
