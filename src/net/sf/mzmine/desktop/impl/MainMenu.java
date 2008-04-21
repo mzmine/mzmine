@@ -31,6 +31,7 @@ import javax.swing.JMenu;
 import javax.swing.JMenuBar;
 import javax.swing.JMenuItem;
 import javax.swing.JOptionPane;
+import javax.swing.KeyStroke;
 
 import net.sf.mzmine.desktop.MZmineMenu;
 import net.sf.mzmine.io.impl.FileOpenDialog;
@@ -195,8 +196,8 @@ class MainMenu extends JMenuBar implements ActionListener {
 			newItem.setToolTipText(toolTip);
 		if (mnemonic > 0) {
 			newItem.setMnemonic(mnemonic);
-			//newItem.setAccelerator(KeyStroke.getKeyStroke(mnemonic,
-			//		ActionEvent.CTRL_MASK));
+			newItem.setAccelerator(KeyStroke.getKeyStroke(mnemonic,
+					ActionEvent.CTRL_MASK));
         }
 		addMenuItem(parentMenu, newItem);
 		return newItem;

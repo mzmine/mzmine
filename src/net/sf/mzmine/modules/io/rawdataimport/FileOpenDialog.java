@@ -74,6 +74,21 @@ public class FileOpenDialog extends JDialog implements ActionListener {
         fileChooser.addChoosableFileFilter(filter);
 
         filter = new ExampleFileFilter();
+        filter.addExtension("mzDATA");
+        filter.setDescription("mzDATA 1.05 files");
+        fileChooser.addChoosableFileFilter(filter);
+
+        filter = new ExampleFileFilter();
+        filter.addExtension("mzML");
+        filter.setDescription("mzML RAW files");
+        fileChooser.addChoosableFileFilter(filter);
+
+        filter = new ExampleFileFilter();
+        filter.addExtension("RAW");
+        filter.setDescription("XCalibur RAW files");
+        fileChooser.addChoosableFileFilter(filter);
+
+        filter = new ExampleFileFilter();
         filter.addExtension("xml");
         filter.addExtension("mzxml");
         filter.setDescription("MZXML files");
@@ -82,8 +97,11 @@ public class FileOpenDialog extends JDialog implements ActionListener {
         filter = new ExampleFileFilter();
         filter.addExtension("cdf");
         filter.addExtension("nc");
-        filter.addExtension("xml");
+        filter.addExtension("mzDATA");
+        filter.addExtension("mzML");
         filter.addExtension("mzxml");
+        filter.addExtension("RAW");
+        filter.addExtension("xml");
         filter.setDescription("All raw data files");
         fileChooser.setFileFilter(filter);
 

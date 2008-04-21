@@ -63,7 +63,7 @@ public class RawDataFileImpl implements RawDataFile, RawDataFileWriter {
     private Hashtable<Integer, Scan> scans, writingScans;
     private PreloadLevel preloadLevel;
 
-    RawDataFileImpl(String fileName, String suffix, PreloadLevel preloadLevel)
+    public RawDataFileImpl(String fileName, String suffix, PreloadLevel preloadLevel)
             throws IOException {
 
         this.preloadLevel = preloadLevel;
@@ -586,7 +586,7 @@ public class RawDataFileImpl implements RawDataFile, RawDataFileWriter {
         // TODO this needs cleanup
         return new Range(getDataMinRT(msLevel), getDataMaxRT(msLevel));
     }
-
+   
 	public void delete() {
 		// dispose temporary file
 		File tmpFile = new File(MZmineCore.getCurrentProject().getLocation(),
