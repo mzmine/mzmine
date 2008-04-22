@@ -33,12 +33,12 @@ import net.sf.mzmine.data.RawDataFile;
 import net.sf.mzmine.data.RawDataFileWriter;
 import net.sf.mzmine.desktop.Desktop;
 import net.sf.mzmine.desktop.MZmineMenu;
-import net.sf.mzmine.io.impl.FileOpeningTask;
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.main.MZmineModule;
 import net.sf.mzmine.modules.batchmode.BatchStep;
 import net.sf.mzmine.modules.batchmode.BatchStepCategory;
-import net.sf.mzmine.modules.io.rawdataimport.fileformats.MZXMLReadTask;
+import net.sf.mzmine.modules.io.rawdataimport.fileformats.MzDataReadTask;
+import net.sf.mzmine.modules.io.rawdataimport.fileformats.MzXMLReadTask;
 import net.sf.mzmine.modules.io.rawdataimport.fileformats.NetCDFReadTask;
 import net.sf.mzmine.taskcontrol.Task;
 import net.sf.mzmine.taskcontrol.TaskGroup;
@@ -114,15 +114,19 @@ public class RawDataImporter implements MZmineModule, ActionListener, TaskListen
 	    	
                 String extension = file[i].getName().substring(file[i].getName().lastIndexOf(".") + 1).toLowerCase();
              
-                if(extension.endsWith("xml") || extension.endsWith("mzdata")) {	    	
-	                openTasks[i] = new MZXMLReadTask(file[i],
+                if (extension.endsWith("mzdata")) {	    	
+	                openTasks[i] = new MzDataReadTask(file[i],
+	            		(PreloadLevel) rawDataImporterParameters.getParameterValue(RawDataImporterParameters.preloadLevel));
+                }
+                if(extension.endsWith("mzxml")) {	    	
+	                openTasks[i] = new MzXMLReadTask(file[i],
 	            		(PreloadLevel) rawDataImporterParameters.getParameterValue(RawDataImporterParameters.preloadLevel));
                 }
                 if (extension.endsWith("cdf")) {	    	
 	                openTasks[i] = new NetCDFReadTask(file[i],
 	            		(PreloadLevel) rawDataImporterParameters.getParameterValue(RawDataImporterParameters.preloadLevel));
                 }
-                if(!extension.endsWith("xml") && !extension.endsWith("mzdata") && !extension.endsWith("cdf")) {	    	
+                if(!extension.endsWith("mzxml") && !extension.endsWith("mzdata") && !extension.endsWith("cdf")) {	    	
                     desktop.displayErrorMessage("Cannot determine file type of file "+ file[i]);                    
                 	logger.finest("Cannot determine file type of file "+ file[i]);
                     return null;
@@ -153,7 +157,13 @@ public class RawDataImporter implements MZmineModule, ActionListener, TaskListen
     
     public void taskFinished(Task task) {
 
- 		if (task instanceof MZXMLReadTask) {
+ 		if (task instanceof MzDataReadTask) {
+            if (task.getStatus() == Task.TaskStatus.FINISHED) {
+            	logger.info("Finished action of " + task.getTaskDescription());
+            }
+ 		}
+
+ 		if (task instanceof MzXMLReadTask) {
             if (task.getStatus() == Task.TaskStatus.FINISHED) {
             	logger.info("Finished action of " + task.getTaskDescription());
             }
