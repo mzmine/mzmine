@@ -23,19 +23,16 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
 import java.io.File;
-import java.io.IOException;
 import java.util.logging.Logger;
 
 import net.sf.mzmine.data.ParameterSet;
 import net.sf.mzmine.data.PeakList;
 import net.sf.mzmine.data.PreloadLevel;
 import net.sf.mzmine.data.RawDataFile;
-import net.sf.mzmine.data.RawDataFileWriter;
 import net.sf.mzmine.desktop.Desktop;
 import net.sf.mzmine.desktop.MZmineMenu;
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.main.MZmineModule;
-import net.sf.mzmine.main.RawDataFileImpl;
 import net.sf.mzmine.modules.batchmode.BatchStep;
 import net.sf.mzmine.modules.batchmode.BatchStepCategory;
 import net.sf.mzmine.modules.io.rawdataimport.fileformats.MzDataReadTask;
@@ -123,7 +120,6 @@ public class RawDataImporter implements MZmineModule, ActionListener,
         File file[] = rawDataImporterParameters.getFileNames();
         Task openTasks[] = new Task[file.length];
 
-<<<<<<< .mine
 	        for (int i = 0; i < file.length; i++) {
 	    	
                 String extension = file[i].getName().substring(file[i].getName().lastIndexOf(".") + 1).toLowerCase();
@@ -155,40 +151,6 @@ public class RawDataImporter implements MZmineModule, ActionListener,
                 }
 	        }
  		TaskGroup newGroup = new TaskGroup(openTasks, this, taskGroupListener);
-=======
-        for (int i = 0; i < file.length; i++) {
-
-            String extension = file[i].getName().substring(
-                    file[i].getName().lastIndexOf(".") + 1).toLowerCase();
-
-            if (extension.endsWith("mzdata")) {
-                openTasks[i] = new MzDataReadTask(
-                        file[i],
-                        (PreloadLevel) rawDataImporterParameters.getParameterValue(RawDataImporterParameters.preloadLevel));
-            }
-            if (extension.endsWith("mzxml")) {
-                openTasks[i] = new MzXMLReadTask(
-                        file[i],
-                        (PreloadLevel) rawDataImporterParameters.getParameterValue(RawDataImporterParameters.preloadLevel));
-            }
-            if (extension.endsWith("cdf")) {
-                openTasks[i] = new NetCDFReadTask(
-                        file[i],
-                        (PreloadLevel) rawDataImporterParameters.getParameterValue(RawDataImporterParameters.preloadLevel));
-            }
-            if (extension.endsWith("raw")) {
-                openTasks[i] = new XcaliburRawFileReadTask(
-                        file[i],
-                        (PreloadLevel) rawDataImporterParameters.getParameterValue(RawDataImporterParameters.preloadLevel));
-            }
-            if (openTasks[i] == null) {
-                desktop.displayErrorMessage("Cannot determine file type of file "
-                        + file[i]);
-                logger.warning("Cannot determine file type of file " + file[i]);
-                return null;
-            }
-        }
-        TaskGroup newGroup = new TaskGroup(openTasks, this, taskGroupListener);
 
         // start this group
         newGroup.start();

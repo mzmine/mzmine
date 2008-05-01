@@ -135,7 +135,7 @@ public class MzXMLReadTask extends DefaultHandler implements Task {
 
 		try {
 
-			newMZmineFile = new RawDataFileImpl(originalFile.getName(),preloadLevel);
+			newMZmineFile = new RawDataFileImpl(originalFile.getName(), "mzxml", preloadLevel);
 
 			SAXParser saxParser = factory.newSAXParser();
 			saxParser.parse(originalFile, this);
@@ -282,7 +282,6 @@ public class MzXMLReadTask extends DefaultHandler implements Task {
 			 * so we include the present scan/fragment into the stack and start 
 			 * to take elements from them (FIFO) for the MZmineFile. 
 			 */
-			logger.info("Level of msLevelTree " + msLevelTree);
 
 			if (msLevelTree == 0) {
 				parentStack.addFirst(buildingScan);
@@ -376,8 +375,8 @@ public class MzXMLReadTask extends DefaultHandler implements Task {
 				} 
 				catch (Exception eof) {
 					status = TaskStatus.ERROR;
-							errorMessage = "Corrupt compressed peak";
-							throw new SAXException("Parsing Cancelled");
+					errorMessage = "Corrupt compressed peak";
+					throw new SAXException("Parsing Cancelled");
 				 }
 			}
 

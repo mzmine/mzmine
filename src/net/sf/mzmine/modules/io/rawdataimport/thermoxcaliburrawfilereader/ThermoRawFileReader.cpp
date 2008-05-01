@@ -6,7 +6,7 @@
 	Description: read Thermo/Xcalibur native RAW mass-spec data files,
 	and bind java objects, methods and fileds of MZmine application.
 	Please note, this dll requires the XRawfile library from 
-	ThermoFinnigan to run. This file is part of MZmine.
+	ThermoFinnigan to run.
 
 	Date: May 2008
 	Author: Alejandro Villar Briones, OIST Okinawa Japan, 2008, based
@@ -74,25 +74,25 @@ JNIEXPORT jint JNICALL Java_net_sf_mzmine_modules_io_rawdataimport_fileformats_X
 	jfieldID fid_logger = env->GetFieldID(cls, "logger","Ljava/util/logging/Logger;");
 	jobject log = env->GetObjectField(jobj, fid_logger);
 	jclass cls_logger=env->GetObjectClass(log);
-	jmethodID mid_info = env->GetMethodID(cls_logger, 
-		"info", 
+	jmethodID mid_finest = env->GetMethodID(cls_logger, 
+		"finest", 
 		"(Ljava/lang/String;)V");
-	if (mid_info == 0) {
-		printf("Can't find method logger.info\n");
+	if (mid_finest == 0) {
+		printf("Can't find method logger.finest\n");
 		return (jint) 1;
 	}
 
 	jmethodID mid_severe = env->GetMethodID(cls_logger, 
 		"severe", 
 		"(Ljava/lang/String;)V");
-	if (mid_info == 0) {
+	if (mid_severe == 0) {
 		printf("Can't find method logger.finest\n");
 		return (jint) 1;
 	}
 
 	jstring jstr = env->NewStringUTF("Initialize dll");
 	env->ExceptionClear();
-	env->CallVoidMethod(log, mid_info, jstr);
+	env->CallVoidMethod(log, mid_finest, jstr);
 	if(env->ExceptionOccurred()) {
 		printf("error occured when calling logger.info()\n");
 		env->ExceptionDescribe();
@@ -110,7 +110,7 @@ JNIEXPORT jint JNICALL Java_net_sf_mzmine_modules_io_rawdataimport_fileformats_X
 
 	if (!FAILED(hr)) {
 		jstr = env->NewStringUTF("Xcalibur 2.0 interface initialized.");
-		env->CallVoidMethod(log, mid_info, jstr);
+		env->CallVoidMethod(log, mid_finest, jstr);
 	}
 	else {
 		jstr = (jstring) "Unable to initialize Xcalibur 2.0 interface";
