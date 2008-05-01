@@ -41,6 +41,7 @@ import net.sf.mzmine.desktop.Desktop;
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.modules.visualization.peaklist.PeakListTableWindow;
 import net.sf.mzmine.modules.visualization.tic.TICVisualizer;
+import net.sf.mzmine.project.impl.MZmineProjectImpl;
 import net.sf.mzmine.util.GUIUtils;
 import net.sf.mzmine.util.components.DragOrderedJList;
 
@@ -65,9 +66,9 @@ public class ItemSelector extends JPanel implements ActionListener,
 		// Create panel for raw data objects
 		JPanel rawDataPanel = new JPanel();
 		JLabel rawDataTitle = new JLabel(DATA_FILES_LABEL);
-
-		rawDataFilesModel = MZmineCore.getCurrentProject()
-				.getRawDataListModel();
+		MZmineProjectImpl project = (MZmineProjectImpl) MZmineCore
+				.getCurrentProject();
+		rawDataFilesModel = project.getRawDataListModel();
 		rawDataFiles = new DragOrderedJList(rawDataFilesModel);
 		rawDataFiles.setCellRenderer(new ItemSelectorListRenderer());
 		rawDataFiles.addMouseListener(this);
@@ -83,7 +84,7 @@ public class ItemSelector extends JPanel implements ActionListener,
 		JPanel resultsPanel = new JPanel();
 		JLabel resultsTitle = new JLabel(PEAK_LISTS_LABEL);
 
-		peakListsModel = MZmineCore.getCurrentProject().getPeakListsListModel();
+		peakListsModel = project.getPeakListsListModel();
 		peakLists = new DragOrderedJList(peakListsModel);
 		peakLists.setCellRenderer(new ItemSelectorListRenderer());
 		peakLists.addMouseListener(this);
@@ -313,12 +314,14 @@ public class ItemSelector extends JPanel implements ActionListener,
 	}
 
 	public void reloadDataModel() {
-		rawDataFilesModel = MZmineCore.getCurrentProject()
-				.getRawDataListModel();
+		MZmineProjectImpl project = (MZmineProjectImpl) MZmineCore
+				.getCurrentProject();
+
+		rawDataFilesModel = project.getRawDataListModel();
 		rawDataFiles.setModel(rawDataFilesModel);
 		rawDataFiles.repaint();
 
-		peakListsModel = MZmineCore.getCurrentProject().getPeakListsListModel();
+		peakListsModel = project.getPeakListsListModel();
 		peakLists.setModel(peakListsModel);
 		peakLists.repaint();
 

@@ -96,7 +96,37 @@
       </parameters> 
     </module>  
     <module class="net.sf.mzmine.modules.batchmode.BatchMode"> 
-      <parameters/> 
+      <parameters>
+        <batchstep>
+          <method>net.sf.mzmine.modules.peakpicking.recursivethreshold.RecursivePicker</method>
+          <parameters>
+            <parameter name="Filename suffix" type="STRING">peaklist</parameter>
+            <parameter name="M/Z bin width" type="FLOAT">0.01</parameter>
+            <parameter name="Chromatographic threshold level" type="FLOAT">0.0</parameter>
+            <parameter name="Noise level" type="FLOAT">60000.0</parameter>
+            <parameter name="Min peak height" type="FLOAT">80000.0</parameter>
+            <parameter name="Min peak duration" type="FLOAT">30.0</parameter>
+            <parameter name="Min M/Z peak width" type="FLOAT">0.0</parameter>
+            <parameter name="Max M/Z peak width" type="FLOAT">0.5</parameter>
+            <parameter name="M/Z tolerance" type="FLOAT">0.0030</parameter>
+            <parameter name="Intensity tolerance" type="FLOAT">0.4</parameter>
+          </parameters>
+        </batchstep>
+        <batchstep>
+          <method>net.sf.mzmine.modules.alignment.join.JoinAligner</method>
+          <parameters>
+            <parameter name="Peaklist name" type="STRING">positive</parameter>
+            <parameter name="M/Z tolerance" type="FLOAT">0.0030</parameter>
+            <parameter name="Weight for m/z" type="FLOAT">10.0</parameter>
+            <parameter name="Retention time tolerance type" type="STRING">Absolute</parameter>
+            <parameter name="Absolute RT tolerance" type="FLOAT">30.0</parameter>
+            <parameter name="Relative RT tolerance" type="FLOAT">0.15</parameter>
+            <parameter name="Weight for RT" type="FLOAT">10.0</parameter>
+            <parameter name="Require same ID" type="BOOLEAN">false</parameter>
+            <parameter name="Weight for ID" type="FLOAT">0.0</parameter>
+          </parameters>
+        </batchstep>
+      </parameters> 
     </module>  
     <module class="net.sf.mzmine.modules.rawdata.cropper.CropFilter"> 
       <parameters>
@@ -342,7 +372,7 @@
     </module>  
     <module class="net.sf.mzmine.modules.io.rawdataimport.RawDataImporter"> 
       <parameters>
-        <parameter name="Last open directory" type="STRING">/Users/plusik</parameter>
+        <parameter name="Last open directory" type="STRING">/mnt/newHD/private/kawasaki/mzmine/Nakamura/XML/negative mode XML</parameter>
         <parameter name="Preload level" type="STRING">Store scan data in temporary file</parameter>
       </parameters> 
     </module> 
@@ -361,12 +391,12 @@
       <pattern>0.00E0</pattern>
     </format>
     <mainwindow>
-      <x>0</x>
-      <y>22</y>
-      <width>-1</width>
-      <height>-1</height>
+      <x>704</x>
+      <y>78</y>
+      <width>885</width>
+      <height>632</height>
     </mainwindow>
-    <lastdirectory>/Users/plusik</lastdirectory>
-    <lastProjectDirectory>/mnt/newHD/private/kawasaki/mzmine/MyProject.11.mzmine</lastProjectDirectory>
+    <lastdirectory>/mnt/newHD/private/kawasaki/mzmine/Nakamura/XML/negative mode XML</lastdirectory>
+    <lastProjectDirectory>/mnt/newHD/private/kawasaki/mzmine/MyProject.21.mzmine</lastProjectDirectory>
   </desktop> 
 </configuration>

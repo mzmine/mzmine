@@ -210,16 +210,16 @@ public class RawDataImporter implements MZmineModule, ActionListener,
 
     }
 
-    public RawDataFileWriter createNewFile(String fileName, String suffix,
+    public RawDataFileWriter createNewFile(String fileName, 
             PreloadLevel preloadLevel) throws IOException {
-        return new RawDataFileImpl(fileName, suffix, preloadLevel);
+        return new RawDataFileImpl(fileName,  preloadLevel);
     }
 
     /**
      */
     public RawDataFileWriter createNewFile(File file, PreloadLevel preloadLevel)
             throws IOException {
-        return new RawDataFileImpl(file.getName(), "scan", preloadLevel);
+        return new RawDataFileImpl(file.getName(),  preloadLevel);
     }
 
     public static RawDataImporter getInstance() {

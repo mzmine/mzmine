@@ -351,7 +351,7 @@ class RecursivePickerTask implements Task {
             oneDimPeaks.clear();
 
             processedScans++;
-
+            
         } // End of scan loop
 
         // Finally process all remaining under-construction peaks

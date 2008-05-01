@@ -1,4 +1,6 @@
-package net.sf.mzmine.project.impl;
+package net.sf.mzmine.project.converters;
+
+import java.util.HashMap;
 
 import net.sf.mzmine.data.RawDataFile;
 import net.sf.mzmine.project.MZmineProject;
@@ -20,8 +22,8 @@ public class RawDataFileConverter extends AbstractReflectionConverter implements
 	 * only fileName of RawDataFile Need MZmineProject as constructor argument.
 	 * Actual rawDataFile is acquired from project with fileName as key
 	 */
-	private MZmineProject project;
-
+		private HashMap <String,RawDataFile>store;
+	
 	public enum Mode {
 		NORMAL, SIMPLE
 	}
@@ -29,10 +31,10 @@ public class RawDataFileConverter extends AbstractReflectionConverter implements
 	private Mode mode;
 
 	public RawDataFileConverter(Mapper mapper,
-			ReflectionProvider reflectionProvider, MZmineProject project) {
+			ReflectionProvider reflectionProvider) {
 		super(mapper, reflectionProvider);
-		this.project = project;
 		this.mode = Mode.SIMPLE;
+		this.store=new HashMap<String,RawDataFile>();
 	}
 
 	public boolean canConvert(Class type) {
@@ -62,17 +64,18 @@ public class RawDataFileConverter extends AbstractReflectionConverter implements
 
 	public Object unmarshal(HierarchicalStreamReader reader,
 			UnmarshallingContext context) {
-		Object object;
+		RawDataFile dataFile;
 		if (this.mode == Mode.SIMPLE) {
 
 			reader.moveDown();
 			String fileName = reader.getValue();
 			reader.moveUp();
-			object = this.project.getDataFile(fileName);
+			dataFile=this.store.get(fileName);
 		} else {
-			object = super.unmarshal(reader, context);
+			dataFile = (RawDataFile)super.unmarshal(reader, context);
+			this.store.put(dataFile.getFileName(),dataFile);
 		}
-		return object;
+		return dataFile;
 	}
 
 	public void setMode(Mode mode) {

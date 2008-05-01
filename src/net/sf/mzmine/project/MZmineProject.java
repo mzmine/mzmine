@@ -22,8 +22,6 @@ package net.sf.mzmine.project;
 import java.io.File;
 import java.util.Vector;
 
-import javax.swing.DefaultListModel;
-
 import net.sf.mzmine.data.Parameter;
 import net.sf.mzmine.data.PeakList;
 import net.sf.mzmine.data.RawDataFile;
@@ -180,23 +178,4 @@ public interface MZmineProject {
 
 	public void setIsTemporal(boolean isTemoral);
 
-	/**
-	 * Returns PeakListModel for GUI
-	 */
-	public DefaultListModel getPeakListsListModel();
-
-	/**
-	 * Returns DataFileListModel for GUI
-	 */
-	public DefaultListModel getRawDataListModel();
-
-	/**
-	 * Returns PeakListModel for GUI
-	 */
-	public void setPeakListsListModel(DefaultListModel listModel);
-
-	/**
-	 * Returns DataFileListModel for GUI
-	 */
-	public void setRawDataListModel(DefaultListModel listModel);
 }

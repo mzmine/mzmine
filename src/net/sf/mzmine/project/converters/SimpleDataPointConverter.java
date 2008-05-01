@@ -1,4 +1,4 @@
-package net.sf.mzmine.project.impl;
+package net.sf.mzmine.project.converters;
 
 import net.sf.mzmine.data.impl.SimpleDataPoint;
 
@@ -33,7 +33,7 @@ public class SimpleDataPointConverter implements Converter {
 
 		float intensity = new Float(value.split(":")[0]).floatValue();
 		float mz = new Float(value.split(":")[1]).floatValue();
-		SimpleDataPoint dataPoint = new SimpleDataPoint(intensity, mz);
+		SimpleDataPoint dataPoint = new SimpleDataPoint(mz,intensity);
 		return dataPoint;
 
 	}

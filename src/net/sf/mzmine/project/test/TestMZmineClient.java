@@ -17,17 +17,16 @@
  * Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-package net.sf.mzmine.main;
+package net.sf.mzmine.project.test;
 
 import java.util.Iterator;
 import java.util.Vector;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import javax.swing.SwingUtilities;
-
 import net.sf.mzmine.desktop.impl.MainWindow;
-import net.sf.mzmine.project.MZmineProject;
+import net.sf.mzmine.main.MZmineCore;
+import net.sf.mzmine.main.MZmineModule;
 import net.sf.mzmine.project.ProjectManager;
 import net.sf.mzmine.project.ProjectStatus;
 import net.sf.mzmine.project.ProjectType;
@@ -41,7 +40,7 @@ import org.dom4j.io.SAXReader;
 /**
  * Main client class
  */
-public class MZmineClient extends MZmineCore implements Runnable {
+public class TestMZmineClient extends MZmineCore implements Runnable {
 
 	private Logger logger = Logger.getLogger(this.getClass().getName());
 
@@ -50,23 +49,14 @@ public class MZmineClient extends MZmineCore implements Runnable {
 	private ProjectManager projectManager;
 
 	// make MZmineClient a singleton
-	private static MZmineClient client = new MZmineClient();
+	private static TestMZmineClient client = new TestMZmineClient();
 
-	private MZmineClient() {
+	private TestMZmineClient() {
+		this.run();
 	}
 
-	public static MZmineClient getInstance() {
+	public static TestMZmineClient getInstance() {
 		return client;
-	}
-
-	/**
-	 * Main method
-	 */
-	public static void main(String args[]) {
-
-		// create the GUI in the event-dispatching thread
-		SwingUtilities.invokeLater(client);
-
 	}
 
 	/**
@@ -98,40 +88,35 @@ public class MZmineClient extends MZmineCore implements Runnable {
 
 			logger.finer("Loading core classes");
 
-			
-
 			projectManager = new ProjectManagerImpl(ProjectType.xstream);
 			projectManager.createTemporalProject();
-			while (projectManager.getStatus() == ProjectStatus.Processing){
+			while (projectManager.getStatus() == ProjectStatus.Processing) {
 				// wait;
 				Thread.sleep(500);
 			}
 
-			
 			// create instances of core modules
 			TaskControllerImpl taskController = new TaskControllerImpl(
 					numberOfNodes);
-			//IOControllerImpl ioController=new IOControllerImpl();
 			desktop = new MainWindow();
 
 			// save static references to MZmineCore
 			MZmineCore.taskController = taskController;
-			//MZmineCore.ioController = ioController;
 			MZmineCore.desktop = desktop;
 
 			logger.finer("Initializing core classes");
 
 			taskController.initModule();
-			//ioController.initModule();
 			desktop.initModule();
 			projectManager.initModule();
-			
+
 			logger.finer("Loading modules");
 
 			moduleSet = new Vector<MZmineModule>();
 
-			Iterator <Element> modIter = configRoot.element(MODULES_ELEMENT_NAME).
-					elementIterator(MODULE_ELEMENT_NAME);
+			Iterator<Element> modIter = configRoot
+					.element(MODULES_ELEMENT_NAME).elementIterator(
+							MODULE_ELEMENT_NAME);
 
 			while (modIter.hasNext()) {
 				Element moduleElement = modIter.next();
@@ -147,25 +132,11 @@ public class MZmineClient extends MZmineCore implements Runnable {
 			loadConfiguration(CONFIG_FILE);
 			MZmineCore.getCurrentProject().addProjectListener(desktop);
 
-			
-			
 		} catch (Exception e) {
 			logger.log(Level.SEVERE, "Could not parse configuration file "
 					+ CONFIG_FILE, e);
 			System.exit(1);
 		}
-
-		// register the shutdown hook
-		ShutDownHook shutDownHook = new ShutDownHook();
-		Runtime.getRuntime().addShutdownHook(shutDownHook);
-
-		// show the GUI
-		logger.finest("Showing main window");
-		desktop.setVisible(true);
-
-		// show the welcome message
-		desktop.setStatusBarText("Welcome to MZmine!");
-
 	}
 
 	public ProjectManager getProjectManager() {
@@ -199,20 +170,5 @@ public class MZmineClient extends MZmineCore implements Runnable {
 			return null;
 		}
 
-	}
-
-	/**
-	 * Shutdown hook - invoked on JRE shutdown. This method saves current
-	 * configuration to XML.
-	 * 
-	 */
-	private class ShutDownHook extends Thread {
-		public void start() {
-			saveConfiguration(CONFIG_FILE);
-			MZmineProject project = MZmineCore.getCurrentProject();
-			if (project.getIsTemporal() == true) {
-				projectManager.removeProjectDir(project.getLocation());
-			}
-		}
 	}
 }

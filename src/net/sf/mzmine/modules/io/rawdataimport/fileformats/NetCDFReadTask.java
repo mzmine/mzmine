@@ -123,7 +123,7 @@ public class NetCDFReadTask implements Task {
         try {
         	// Create new RawDataFile instance
         	newMZmineFile = new RawDataFileImpl(
-            		originalFile.getName(), "cdf", preloadLevel);
+            		originalFile.getName(),  preloadLevel);
 
             // Open file
             this.startReading();

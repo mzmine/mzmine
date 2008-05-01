@@ -271,9 +271,15 @@ public abstract class MZmineCore {
 		return ((MainWindow) desktop).getRTFormat();
 	}
 
+	public static RawDataFileWriter createNewFile(String name, 
+			PreloadLevel preloadLevel) throws IOException {
+		return new RawDataFileImpl(name, preloadLevel);
+	}	
+	
+	@Deprecated
 	public static RawDataFileWriter createNewFile(String name, String suffix,
 			PreloadLevel preloadLevel) throws IOException {
-		return new RawDataFileImpl(name, suffix, preloadLevel);
+		return new RawDataFileImpl(name, preloadLevel);
 	}
 
 }

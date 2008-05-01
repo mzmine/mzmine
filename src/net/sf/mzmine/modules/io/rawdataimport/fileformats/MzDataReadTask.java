@@ -144,8 +144,7 @@ public class MzDataReadTask extends DefaultHandler implements Task {
 
 		try {
 
-			newMZmineFile = new RawDataFileImpl(originalFile.getName(),
-					"mzxml", preloadLevel);
+			newMZmineFile = new RawDataFileImpl(originalFile.getName(), preloadLevel);
 
 			SAXParser saxParser = factory.newSAXParser();
 			saxParser.parse(originalFile, this);

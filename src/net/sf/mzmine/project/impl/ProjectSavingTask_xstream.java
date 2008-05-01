@@ -30,7 +30,6 @@ import java.io.OutputStream;
 import java.io.OutputStreamWriter;
 import java.util.HashMap;
 import java.util.Hashtable;
-import java.util.List;
 import java.util.logging.Logger;
 
 import net.sf.mzmine.data.Parameter;
@@ -40,10 +39,9 @@ import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.project.MZmineProject;
 import net.sf.mzmine.project.ProjectSavingTask;
 import net.sf.mzmine.project.ProjectType;
+import net.sf.mzmine.project.converters.RawDataFileConverter;
 
 import com.thoughtworks.xstream.XStream;
-import com.thoughtworks.xstream.persistence.StreamStrategy;
-import com.thoughtworks.xstream.persistence.XmlArrayList;
 
 /**
  * project saving task with xstream library
@@ -120,15 +118,18 @@ public class ProjectSavingTask_xstream implements ProjectSavingTask {
 	public void setOption(HashMap option) {
 		this.option = option;
 	}
-	private boolean moveFile(File fromFile,File destFile,float start,float end){
+
+	private boolean moveFile(File fromFile, File destFile, float start,
+			float end) {
 		boolean ok;
-		ok=this.copyFile(fromFile,destFile,start,end);
-		if (ok==false){
+		ok = this.copyFile(fromFile, destFile, start, end);
+		if (ok == false) {
 			return false;
 		}
 		fromFile.delete();
 		return true;
 	}
+
 	private boolean copyFile(File fromFile, File destFile, float start,
 			float stop) {
 
@@ -362,58 +363,40 @@ public class ProjectSavingTask_xstream implements ProjectSavingTask {
 		this.finished = end;
 	}
 
-	@SuppressWarnings("unchecked")
-    private void savePeakLists(XStream xstream, float start, float end)
+	private void savePeakLists(XStream xstream, float start, float end)
 			throws IOException, FileNotFoundException {
 
 		PeakList[] peakLists;
-		StreamStrategy strategy;
-		List xmlList;
-
+		final String DIR="peakLists";
+		
 		logger.info("Saving peakList in " + projectDir);
-		File peakListDir = new File(projectDir, "peakLists");
-		peakListDir.mkdir();
-
-		strategy = new MZmineFileStreamStrategy(peakListDir, xstream, project,
-				projectType);
-
-		xmlList = new XmlArrayList(strategy);
-
-		peakLists = project.getPeakLists();
+		File outDir = new File(projectDir, DIR);
+		DirectoryStorage storage=new DirectoryStorage(xstream,outDir);
+		
+		peakLists = project.getPeakLists();		
 		PeakList peakList;
 		for (int i = 0; i < peakLists.length; i++) {
 			peakList = peakLists[i];
-			xmlList.add(peakList);
+			storage.add(peakList, peakList.toString());
 			finished = start + (end - start) * i / peakLists.length;
 		}
 		this.finished = end;
 	}
 
-	@SuppressWarnings("unchecked")
-    private void saveRawDataFiles(XStream xstream, float start, float end)
+	private void saveRawDataFiles(XStream xstream, float start, float end)
 			throws IOException {
-
-		RawDataFile[] dataFiles;
-		StreamStrategy strategy;
-		dataFiles = project.getDataFiles();
-		List xmlList;
-
-		logger.info("Saving datafiles in " + projectDir);
-		xstream.alias("rawDataFile", RawDataFile.class);
-
-		File dataFileDir = new File(projectDir, "dataFiles");
-		dataFileDir.mkdir();
-
-		strategy = new MZmineFileStreamStrategy(dataFileDir, xstream, project,
-				projectType);
-		xmlList = new XmlArrayList(strategy);
-
-		dataFiles = MZmineCore.getCurrentProject().getDataFiles();
-		RawDataFile dataFile;
-
+		RawDataFile [] dataFiles;
+		final String DIR="dataFiles";
+		
+		logger.info("Saving peakList in " + projectDir);
+		File outDir = new File(projectDir, DIR);
+		DirectoryStorage storage=new DirectoryStorage(xstream,outDir);
+		
+		dataFiles=project.getDataFiles();
+		RawDataFile rawDataFile;
 		for (int i = 0; i < dataFiles.length; i++) {
-			dataFile = dataFiles[i];
-			xmlList.add(dataFile);
+			rawDataFile = dataFiles[i];
+			storage.add(rawDataFile, rawDataFile.getFileName());
 			finished = start + (end - start) * i / dataFiles.length;
 		}
 		this.finished = end;
@@ -499,7 +482,8 @@ public class ProjectSavingTask_xstream implements ProjectSavingTask {
 			try {
 
 				// setup xstream
-				XStream xstream = new XStream();
+				XStream xstream = MZmineXStream.getXstream();
+				
 				if (this.option != null && this.option.containsKey("zip")
 						&& this.option.get("zip").equals(true)) {
 					projectType = ProjectType.zippedXML;
@@ -513,13 +497,16 @@ public class ProjectSavingTask_xstream implements ProjectSavingTask {
 						* 1;
 				this.saveProject(xstream, start, end);
 
-				// save project files
+				// save data files
+				
 				start = finished;
 				end = FINISHED_COPY_FILES
 						+ (FINISHED_SAVE_DATA - FINISHED_COPY_FILES) / NUM_STEP
 						* 2;
 				this.saveRawDataFiles(xstream, start, end);
-
+				RawDataFileConverter rawDataFileConverter= (RawDataFileConverter)xstream.getConverterLookup().lookupConverterForType(RawDataFile.class);
+				rawDataFileConverter.setMode(RawDataFileConverter.Mode.SIMPLE);
+				
 				// save peak lists
 				start = finished;
 				end = FINISHED_COPY_FILES

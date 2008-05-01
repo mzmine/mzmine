@@ -24,6 +24,7 @@ import java.io.IOException;
 import java.lang.reflect.Constructor;
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.concurrent.Semaphore;
 import java.util.logging.Logger;
 
 import net.sf.mzmine.desktop.Desktop;
@@ -54,6 +55,7 @@ public class ProjectManagerImpl implements ProjectManager, TaskListener {
 	// status to check for app quitting or etc...
 	private ProjectStatus status;
 	private ProjectType projectType;
+	private final Semaphore available = new Semaphore(1);
 
 	public ProjectManagerImpl(ProjectType projectType) {
 		this.status = ProjectStatus.Idle;
@@ -68,14 +70,22 @@ public class ProjectManagerImpl implements ProjectManager, TaskListener {
 	public synchronized void createTemporalProject() throws IOException {
 		File projectDir = File.createTempFile("mzmine", null);
 		projectDir.delete();
-		this._createProject(projectDir, true);
+		this.createProject(projectDir, true);
+
 	}
 
-	public synchronized void createProject(File projectDir) throws IOException {
-		this._createProject(projectDir, false);
+	public synchronized void createProject(File projectDir) {
+		this.createProject(projectDir, false);
 	}
 
-	public void _createProject(File projectDir, Boolean isTemporal) {
+	private void createProject(File projectDir, Boolean isTemporal) {
+		try {
+			available.acquire();
+		} catch (InterruptedException e) {
+			// TODO Auto-generated catch block
+
+			e.printStackTrace();
+		}
 		status = ProjectStatus.Processing;
 		Boolean ok;
 
@@ -110,41 +120,41 @@ public class ProjectManagerImpl implements ProjectManager, TaskListener {
 			}
 
 		} catch (Throwable e) {
+			
 			String msg = "Error in cerating project directory";
 			logger.severe(msg);
 			desktop.displayErrorMessage(msg);
-			return;
+
 		} finally {
 			status = ProjectStatus.Idle;
+			available.release();
 		}
 
 	}
 
-	public synchronized void openProject(File projectDir) throws IOException {
+	public void openProject(File projectDir) throws IOException {
 		this.openProject(projectDir, null);
 	}
 
-	public synchronized void openProject(File projectDir, HashMap options)
-			throws IOException {
+	public void openProject(File projectDir, HashMap options){
 		try {
-			//Check Project format
-			
+			// Check Project format
+			available.acquire();
 			String version;
-			String fileNames[]=projectDir.list();
-			if (!Arrays.asList( fileNames).contains("dataFiles" )){
-				//format is v1
-				version="1";
-			}else{
-				version="";
+			String fileNames[] = projectDir.list();
+			if (!Arrays.asList(fileNames).contains("dataFiles")) {
+				// format is v1
+				version = "1";
+			} else {
+				version = "";
 			}
-			
-			String className="net.sf.mzmine.project.impl.ProjectOpeningTask_"
-				+ this.projectType.toString();
-			if (!version.equals("")){
-				className=className+"_"+version;
+
+			String className = "net.sf.mzmine.project.impl.ProjectOpeningTask_"
+					+ this.projectType.toString();
+			if (!version.equals("")) {
+				className = className + "_" + version;
 			}
-			Class projectClass = Class
-					.forName(className);
+			Class projectClass = Class.forName(className);
 			Constructor projectConst = projectClass.getConstructor(File.class);
 			ProjectTask openTask = (ProjectTask) projectConst
 					.newInstance(projectDir);
@@ -153,6 +163,7 @@ public class ProjectManagerImpl implements ProjectManager, TaskListener {
 			status = ProjectStatus.Processing;
 
 		} catch (Throwable e) {
+			available.release();
 			String msg = "Error in starting project opening: ";
 			logger.severe(msg);
 			desktop.displayErrorMessage(msg);
@@ -160,18 +171,17 @@ public class ProjectManagerImpl implements ProjectManager, TaskListener {
 		}
 	}
 
-	public synchronized void saveProject(File projectDir) throws IOException {
+	public void saveProject(File projectDir) {
 		this.saveProject(projectDir, null);
 	}
 
-	public synchronized void saveProject(File projectDir, HashMap options)
-			throws IOException {
+	public void saveProject(File projectDir, HashMap options) {
 
 		try {
-			String className="net.sf.mzmine.project.impl.ProjectSavingTask_"
-				+ this.projectType.toString();
-			Class projectClass = Class
-					.forName(className);
+			available.acquire();
+			String className = "net.sf.mzmine.project.impl.ProjectSavingTask_"
+					+ this.projectType.toString();
+			Class projectClass = Class.forName(className);
 			Constructor projectConst = projectClass.getConstructor(File.class);
 			ProjectTask saveTask = (ProjectTask) projectConst
 					.newInstance(projectDir);
@@ -183,6 +193,7 @@ public class ProjectManagerImpl implements ProjectManager, TaskListener {
 			String msg = "Error in starting project saving: ";
 			logger.severe(msg);
 			desktop.displayErrorMessage(msg);
+			available.release();
 			return;
 		}
 	}
@@ -200,11 +211,11 @@ public class ProjectManagerImpl implements ProjectManager, TaskListener {
 	 * @see net.sf.mzmine.taskcontrol.TaskListener#taskFinished(net.sf.mzmine.taskcontrol.Task)
 	 */
 	public void taskFinished(Task task) {
+		
 		if (task instanceof ProjectOpeningTask) {
 			if (task.getStatus() == Task.TaskStatus.FINISHED) {
 				MZmineProject project = ((ProjectTask) task).getResult();
 				MZmineCore.setProject(project);
-
 				// transfer listeners in the old project to new one
 				project.addProjectListener((MainWindow) desktop);
 			} else if (task.getStatus() == Task.TaskStatus.ERROR) {
@@ -233,6 +244,7 @@ public class ProjectManagerImpl implements ProjectManager, TaskListener {
 			}
 
 		}
+		available.release();
 		status = ProjectStatus.Idle;
 	}
 

@@ -34,12 +34,11 @@ public interface ProjectManager {
 	public void createTemporalProject() throws IOException;
 
 	public void openProject(File projectDir) throws IOException;
-	public void openProject(File projectDir,HashMap options) throws IOException;
+	public void openProject(File projectDir,HashMap<String,Object> options) throws IOException;
 
 	public void saveProject(File projectDir) throws IOException;
-	public void saveProject(File projectDir,HashMap options) throws IOException;
-	
-	
+	public void saveProject(File projectDir,HashMap<String,Object> options) throws IOException;
+
 	
 	public void removeProjectDir(File projectDir);
 	public ProjectStatus getStatus();
