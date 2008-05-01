@@ -38,9 +38,9 @@ import net.sf.mzmine.data.Scan;
 import net.sf.mzmine.data.impl.SimpleDataPoint;
 import net.sf.mzmine.data.impl.SimpleScan;
 import net.sf.mzmine.main.MZmineCore;
-import net.sf.mzmine.modules.io.rawdataimport.RawDataFileImpl;
+import net.sf.mzmine.main.RawDataFileImpl;
 import net.sf.mzmine.taskcontrol.Task;
-//import net.sf.mzmine.taskcontrol.Task.TaskStatus;
+
 
 /**
  * 
@@ -62,10 +62,7 @@ public class NetCDFReadTask implements Task {
 
     private RawDataFileImpl newMZmineFile;
     private PreloadLevel preloadLevel;
-    //private Scan buildingScan;
-
-    //private RawDataFileWriter buildingFile;
-    
+     
 	private Variable massValueVariable;
 	private Variable intensityValueVariable;    
     
@@ -77,9 +74,6 @@ public class NetCDFReadTask implements Task {
     	originalFile = fileToOpen;
         this.preloadLevel = preloadLevel;
         status = TaskStatus.WAITING;
-        
-         //buildingFile = new NetCDFFile(fileToOpen, preloadLevel);
- 
     }
 
     /**
@@ -128,8 +122,6 @@ public class NetCDFReadTask implements Task {
 
         try {
         	// Create new RawDataFile instance
-            //buildingFile = new RawDataFileImpl(
-            		//originalFile.getName(), "cdf", preloadLevel);
         	newMZmineFile = new RawDataFileImpl(
             		originalFile.getName(), "cdf", preloadLevel);
 
@@ -152,7 +144,6 @@ public class NetCDFReadTask implements Task {
 
             // Close file
             this.finishReading();
-            //newMZmineFile = (RawDataFileImpl) buildingFile.finishWriting();            
             newMZmineFile.finishWriting();            
             MZmineCore.getCurrentProject().addFile(newMZmineFile);
             
@@ -171,9 +162,6 @@ public class NetCDFReadTask implements Task {
         status = TaskStatus.FINISHED;
 
     }
-
-    
-    
     
     
     public void startReading() throws IOException {
@@ -264,11 +252,7 @@ public class NetCDFReadTask implements Task {
 
         
         // TODO: Read (optional) variable scan_type
-
-
-
         // Fix problems caused by new QStar data converter
-
         // assume scan is missing when scan_index[i]<0
         // for these scans, fix variables:
         // -    scan_acquisition_time: interpolate/extrapolate using times of present scans
@@ -459,10 +443,7 @@ public class NetCDFReadTask implements Task {
         }
 
         scanNum++;
-        
         return new SimpleScan(scanNum, 1, retentionTime.floatValue(), -1, 0, null, dataPoints, false);
-
-
     }
 
 
@@ -473,15 +454,7 @@ public class NetCDFReadTask implements Task {
         return numberOfGoodScans;
     }
 
-    
-    
-    
-    
-    
-    
-    
-    
-    
+ 
     /**
      * @see net.sf.mzmine.taskcontrol.Task#cancel()
      */
