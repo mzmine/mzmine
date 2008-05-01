@@ -27,6 +27,8 @@ import javax.imageio.ImageIO;
 
 import net.sf.mzmine.data.PreloadLevel;
 import net.sf.mzmine.main.MZmineCore;
+import net.sf.mzmine.modules.io.rawdataimport.RawDataImporter;
+import net.sf.mzmine.modules.io.rawdataimport.RawDataImporterParameters;
 
 import org.simplericity.macify.eawt.Application;
 import org.simplericity.macify.eawt.ApplicationEvent;
@@ -70,8 +72,10 @@ public class MacSupport implements ApplicationListener {
 
     public void handleOpenFile(ApplicationEvent event) {
         File file = new File(event.getFilename());
-        MZmineCore.getIOController().openFiles(new File[] { file },
-                PreloadLevel.NO_PRELOAD);
+        RawDataImporter importerModule = RawDataImporter.getInstance();
+        RawDataImporterParameters parameters = (RawDataImporterParameters) importerModule.getParameterSet();
+        parameters.setFileNames(new File[] { file });
+        importerModule.runModule(null, null, parameters, null);
         event.setHandled(true);
     }
 

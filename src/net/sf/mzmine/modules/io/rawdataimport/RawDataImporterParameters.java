@@ -44,11 +44,11 @@ public class RawDataImporterParameters extends SimpleParameterSet {
         super(new Parameter[] { importDirectory, preloadLevel });
     }
 
-    File[] getFileNames() {
+    public File[] getFileNames() {
         return fileNames;
     }
 
-    void setFileNames(File[] fileNames) {
+    public void setFileNames(File[] fileNames) {
         this.fileNames = fileNames;
     }
 

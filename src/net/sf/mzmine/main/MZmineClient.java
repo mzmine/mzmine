@@ -27,7 +27,6 @@ import java.util.logging.Logger;
 import javax.swing.SwingUtilities;
 
 import net.sf.mzmine.desktop.impl.MainWindow;
-import net.sf.mzmine.io.impl.IOControllerImpl;
 import net.sf.mzmine.project.MZmineProject;
 import net.sf.mzmine.project.ProjectManager;
 import net.sf.mzmine.project.ProjectStatus;
@@ -111,18 +110,18 @@ public class MZmineClient extends MZmineCore implements Runnable {
 			// create instances of core modules
 			TaskControllerImpl taskController = new TaskControllerImpl(
 					numberOfNodes);
-			IOControllerImpl ioController = new IOControllerImpl();
+			//IOControllerImpl ioController = new IOControllerImpl();
 			desktop = new MainWindow();
 
 			// save static references to MZmineCore
 			MZmineCore.taskController = taskController;
-			MZmineCore.ioController = ioController;
+			//MZmineCore.ioController = ioController;
 			MZmineCore.desktop = desktop;
 
 			logger.finer("Initializing core classes");
 
 			taskController.initModule();
-			ioController.initModule();
+			//ioController.initModule();
 			desktop.initModule();
 			projectManager.initModule();
 			

@@ -34,9 +34,9 @@ import javax.swing.JOptionPane;
 import javax.swing.KeyStroke;
 
 import net.sf.mzmine.desktop.MZmineMenu;
-import net.sf.mzmine.io.impl.FileOpenDialog;
 import net.sf.mzmine.main.MZmineClient;
 import net.sf.mzmine.main.MZmineCore;
+import net.sf.mzmine.modules.io.rawdataimport.FileOpenDialog;
 import net.sf.mzmine.project.impl.ProjectCreateDialog;
 import net.sf.mzmine.project.impl.ProjectOpenDialog;
 import net.sf.mzmine.project.parameterssetup.ProjectParametersSetupDialog;
@@ -57,7 +57,7 @@ class MainMenu extends JMenuBar implements ActionListener {
 
 	private JWindowsMenu windowsMenu;
 
-	private JMenuItem projectCreate, projectOpen, projectRestore, projectSave,
+	private JMenuItem projectCreate, projectRestore, projectSave,
 			projectSaveAs, projectExperimentalParameters, projectFormats,
 			projectSaveParameters, projectLoadParameters, projectExit,
 			hlpAbout;
@@ -77,9 +77,6 @@ class MainMenu extends JMenuBar implements ActionListener {
 		projectSaveAs = GUIUtils.addMenuItem(projectMenu, "Save project as...",
 				this, KeyEvent.VK_S, false);
 		projectMenu.addSeparator();
-
-		projectOpen = GUIUtils.addMenuItem(projectMenu, "Import raw data...",
-				this, KeyEvent.VK_I, true);
 
 		projectMenu.addSeparator();
 
@@ -334,15 +331,7 @@ class MainMenu extends JMenuBar implements ActionListener {
 					lastProjectPath, ProjectCreateDialog.DialogType.SaveAs);
 			projectSaveAsDialog.setVisible(true);
 		}
-		if (src == projectOpen) {
-			DesktopParameters parameters = (DesktopParameters) MZmineCore
-					.getDesktop().getParameterSet();
-            String lastPath = parameters.getLastOpenPath();
-            if (lastPath == null) lastPath = "";
-			FileOpenDialog fileOpenDialog = new FileOpenDialog(lastPath);
-			fileOpenDialog.setVisible(true);
-			parameters.setLastOpenPath(fileOpenDialog.getCurrentDirectory());
-		}
+
 
 		if (src == projectSaveParameters) {
 			JFileChooser chooser = new JFileChooser();

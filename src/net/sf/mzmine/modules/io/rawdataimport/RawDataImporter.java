@@ -35,11 +35,13 @@ import net.sf.mzmine.desktop.Desktop;
 import net.sf.mzmine.desktop.MZmineMenu;
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.main.MZmineModule;
+import net.sf.mzmine.main.RawDataFileImpl;
 import net.sf.mzmine.modules.batchmode.BatchStep;
 import net.sf.mzmine.modules.batchmode.BatchStepCategory;
 import net.sf.mzmine.modules.io.rawdataimport.fileformats.MzDataReadTask;
 import net.sf.mzmine.modules.io.rawdataimport.fileformats.MzXMLReadTask;
 import net.sf.mzmine.modules.io.rawdataimport.fileformats.NetCDFReadTask;
+import net.sf.mzmine.modules.io.rawdataimport.fileformats.XcaliburRawFileReadTask;
 import net.sf.mzmine.taskcontrol.Task;
 import net.sf.mzmine.taskcontrol.TaskGroup;
 import net.sf.mzmine.taskcontrol.TaskGroupListener;
@@ -57,6 +59,7 @@ public class RawDataImporter implements MZmineModule, ActionListener, TaskListen
 
     private Desktop desktop;
 
+    private static RawDataImporter myInstance;
 
     /**
      * @see net.sf.mzmine.main.MZmineModule#initModule(net.sf.mzmine.main.MZmineCore)
@@ -64,10 +67,11 @@ public class RawDataImporter implements MZmineModule, ActionListener, TaskListen
     public void initModule() {
 
         this.desktop = MZmineCore.getDesktop();
-
+        this.myInstance = this;
+        
         parameters = new RawDataImporterParameters();
 
-        desktop.addMenuItem(MZmineMenu.PROJECT, "Import raw data files DEVEL",
+        desktop.addMenuItem(MZmineMenu.PROJECT, "Import raw data files",
                 "This module imports raw data files of various formats",
                 KeyEvent.VK_W, this, null);
     }
@@ -126,7 +130,11 @@ public class RawDataImporter implements MZmineModule, ActionListener, TaskListen
 	                openTasks[i] = new NetCDFReadTask(file[i],
 	            		(PreloadLevel) rawDataImporterParameters.getParameterValue(RawDataImporterParameters.preloadLevel));
                 }
-                if(!extension.endsWith("mzxml") && !extension.endsWith("mzdata") && !extension.endsWith("cdf")) {	    	
+                if (extension.endsWith("raw")) {	    	
+	                openTasks[i] = new XcaliburRawFileReadTask(file[i],
+	            		(PreloadLevel) rawDataImporterParameters.getParameterValue(RawDataImporterParameters.preloadLevel));
+                }
+                if(openTasks[i] == null) {	    	
                     desktop.displayErrorMessage("Cannot determine file type of file "+ file[i]);                    
                 	logger.finest("Cannot determine file type of file "+ file[i]);
                     return null;
@@ -175,7 +183,13 @@ public class RawDataImporter implements MZmineModule, ActionListener, TaskListen
             }
  		}
  		
-        if (task.getStatus() == Task.TaskStatus.ERROR) {
+ 		if (task instanceof XcaliburRawFileReadTask) {
+            if (task.getStatus() == Task.TaskStatus.FINISHED) {
+            	logger.info("Finished action of " + task.getTaskDescription());
+            }
+ 		}
+ 		
+ 		if (task.getStatus() == Task.TaskStatus.ERROR) {
             String msg = "Error while trying to "
                     + task.getTaskDescription() + ": " + task.getErrorMessage();
             logger.severe(msg);
@@ -195,5 +209,9 @@ public class RawDataImporter implements MZmineModule, ActionListener, TaskListen
 			throws IOException {
 		return new RawDataFileImpl(file.getName(), "scan", preloadLevel);
 	}    
+	
+	public static RawDataImporter getInstance() {
+		return myInstance;
+	}
 
 }
