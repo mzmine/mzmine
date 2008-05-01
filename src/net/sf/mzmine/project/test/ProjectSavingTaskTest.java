@@ -41,13 +41,11 @@ public class ProjectSavingTaskTest {
 		
 		MZmineProject project=MZmineCore.getCurrentProject();
 		// load data file into project
-		File testFilesDir=new File("resources");
-		if (!testFilesDir.exists()||testFilesDir.listFiles().length<1){
+		File sourceFile=new File("resources/test.mzXML");
+		if (!sourceFile.exists()){
 			fail("No test source file available");
 		}
-		File sourceFile = testFilesDir.listFiles()[0];;
-		boolean ok = sourceFile.exists();
-		
+
 		PreloadLevel preloadLevel = PreloadLevel.NO_PRELOAD;
 		MzXMLReadTask readTask=new MzXMLReadTask(sourceFile,preloadLevel);
 		Logger logger = Logger.getLogger(readTask.getClass().getName());
