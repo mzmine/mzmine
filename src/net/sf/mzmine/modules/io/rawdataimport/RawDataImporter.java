@@ -39,6 +39,7 @@ import net.sf.mzmine.main.RawDataFileImpl;
 import net.sf.mzmine.modules.batchmode.BatchStep;
 import net.sf.mzmine.modules.batchmode.BatchStepCategory;
 import net.sf.mzmine.modules.io.rawdataimport.fileformats.MzDataReadTask;
+import net.sf.mzmine.modules.io.rawdataimport.fileformats.MzMLReadTask;
 import net.sf.mzmine.modules.io.rawdataimport.fileformats.MzXMLReadTask;
 import net.sf.mzmine.modules.io.rawdataimport.fileformats.NetCDFReadTask;
 import net.sf.mzmine.modules.io.rawdataimport.fileformats.XcaliburRawFileReadTask;
@@ -122,6 +123,39 @@ public class RawDataImporter implements MZmineModule, ActionListener,
         File file[] = rawDataImporterParameters.getFileNames();
         Task openTasks[] = new Task[file.length];
 
+<<<<<<< .mine
+	        for (int i = 0; i < file.length; i++) {
+	    	
+                String extension = file[i].getName().substring(file[i].getName().lastIndexOf(".") + 1).toLowerCase();
+             
+                if (extension.endsWith("mzdata")) {	    	
+	                openTasks[i] = new MzDataReadTask(file[i],
+	            		(PreloadLevel) rawDataImporterParameters.getParameterValue(RawDataImporterParameters.preloadLevel));
+                }
+                if(extension.endsWith("mzxml")) {	    	
+	                openTasks[i] = new MzXMLReadTask(file[i],
+	            		(PreloadLevel) rawDataImporterParameters.getParameterValue(RawDataImporterParameters.preloadLevel));
+                }
+                if(extension.endsWith("mzml")) {	    	
+	                openTasks[i] = new MzMLReadTask(file[i],
+	            		(PreloadLevel) rawDataImporterParameters.getParameterValue(RawDataImporterParameters.preloadLevel));
+                }
+                if (extension.endsWith("cdf")) {	    	
+	                openTasks[i] = new NetCDFReadTask(file[i],
+	            		(PreloadLevel) rawDataImporterParameters.getParameterValue(RawDataImporterParameters.preloadLevel));
+                }
+                if (extension.endsWith("raw")) {	    	
+	                openTasks[i] = new XcaliburRawFileReadTask(file[i],
+	            		(PreloadLevel) rawDataImporterParameters.getParameterValue(RawDataImporterParameters.preloadLevel));
+                }
+                if(openTasks[i] == null) {	    	
+                    desktop.displayErrorMessage("Cannot determine file type of file "+ file[i]);                    
+                	logger.finest("Cannot determine file type of file "+ file[i]);
+                    return null;
+                }
+	        }
+ 		TaskGroup newGroup = new TaskGroup(openTasks, this, taskGroupListener);
+=======
         for (int i = 0; i < file.length; i++) {
 
             String extension = file[i].getName().substring(
@@ -155,6 +189,7 @@ public class RawDataImporter implements MZmineModule, ActionListener,
             }
         }
         TaskGroup newGroup = new TaskGroup(openTasks, this, taskGroupListener);
+
         // start this group
         newGroup.start();
         return newGroup;
@@ -189,6 +224,12 @@ public class RawDataImporter implements MZmineModule, ActionListener,
             }
         }
 
+ 		if (task instanceof MzMLReadTask) {
+            if (task.getStatus() == Task.TaskStatus.FINISHED) {
+            	logger.info("Finished action of " + task.getTaskDescription());
+            }
+ 		}
+
         if (task instanceof NetCDFReadTask) {
             if (task.getStatus() == Task.TaskStatus.FINISHED) {
                 logger.info("Finished action of " + task.getTaskDescription());
@@ -208,18 +249,6 @@ public class RawDataImporter implements MZmineModule, ActionListener,
             desktop.displayErrorMessage(msg);
         }
 
-    }
-
-    public RawDataFileWriter createNewFile(String fileName, 
-            PreloadLevel preloadLevel) throws IOException {
-        return new RawDataFileImpl(fileName,  preloadLevel);
-    }
-
-    /**
-     */
-    public RawDataFileWriter createNewFile(File file, PreloadLevel preloadLevel)
-            throws IOException {
-        return new RawDataFileImpl(file.getName(),  preloadLevel);
     }
 
     public static RawDataImporter getInstance() {
