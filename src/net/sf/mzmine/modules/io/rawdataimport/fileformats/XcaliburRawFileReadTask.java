@@ -142,11 +142,16 @@ public class XcaliburRawFileReadTask implements Task {
 			logger.finest("Calling native function openFile "
 					+ originalFile.getPath());
 			int result = openFile(originalFile.getPath());
-			if (result != 0) {
+			if ((result != 0) && (status != TaskStatus.CANCELED)) {
 				status = TaskStatus.ERROR;
 				errorMessage = "There is an error in the RAW file, please check the log file";
 				return;
 			}
+
+			if (status == TaskStatus.CANCELED) {
+				return;
+			}
+			
 			// Close file
 			newMZmineFile.finishWriting();
 			MZmineCore.getCurrentProject().addFile(newMZmineFile);
