@@ -33,7 +33,7 @@ import net.sf.mzmine.data.PreloadLevel;
 import net.sf.mzmine.data.impl.SimpleDataPoint;
 import net.sf.mzmine.data.impl.SimpleScan;
 import net.sf.mzmine.main.MZmineCore;
-import net.sf.mzmine.modules.io.rawdataimport.RawDataFileImpl;
+import net.sf.mzmine.main.RawDataFileImpl;
 import net.sf.mzmine.taskcontrol.Task;
 
 import org.jfree.xml.util.Base64;
@@ -353,20 +353,23 @@ public class MzDataReadTask extends DefaultHandler implements Task {
 			 * Update of fragmentScanNumbers of each Scan in the parentStack
 			 */
 
-			for (SimpleScan s : parentStack) {
-				if (s.getScanNumber() == buildingScan.getParentScanNumber()) {
+			for (SimpleScan currentScan : parentStack) {
+				if (currentScan.getScanNumber() == buildingScan.getParentScanNumber()) {
 
-					int[] b = s.getFragmentScanNumbers();
-					if (b != null) {
-						int[] temp = b;
-						b = new int[temp.length + 1];
-						System.arraycopy(temp, 0, b, 0, temp.length);
-						b[temp.length] = buildingScan.getScanNumber();
-						s.setFragmentScanNumbers(b);
+					int[] currentFragmentScanNumbers = currentScan.getFragmentScanNumbers();
+					if (currentFragmentScanNumbers != null) {
+						int[] tempFragmentScanNumbers = currentFragmentScanNumbers;
+						currentFragmentScanNumbers = new int[tempFragmentScanNumbers.length + 1];
+						System.arraycopy(tempFragmentScanNumbers, 0, 
+								currentFragmentScanNumbers, 0, 
+								tempFragmentScanNumbers.length);
+						currentFragmentScanNumbers[tempFragmentScanNumbers.length] = buildingScan
+								.getScanNumber();
+						currentScan.setFragmentScanNumbers(currentFragmentScanNumbers);
 					} else {
-						b = new int[1];
-						b[0] = s.getScanNumber();
-						s.setFragmentScanNumbers(b);
+						currentFragmentScanNumbers = new int[1];
+						currentFragmentScanNumbers[0] = buildingScan.getScanNumber();
+						currentScan.setFragmentScanNumbers(currentFragmentScanNumbers);
 					}
 				}
 			}
@@ -377,8 +380,8 @@ public class MzDataReadTask extends DefaultHandler implements Task {
 			 * elements. 
 			 */
 			if (parentStack.size() > 10) {
-				SimpleScan s = parentStack.removeLast();
-				newMZmineFile.addScan(s);
+				SimpleScan scan = parentStack.removeLast();
+				newMZmineFile.addScan(scan);
 				parsedScans++;
 			}
 
@@ -459,8 +462,8 @@ public class MzDataReadTask extends DefaultHandler implements Task {
 
 	public void endDocument() throws SAXException {
 		while (!parentStack.isEmpty()) {
-			SimpleScan s = parentStack.removeLast();
-			newMZmineFile.addScan(s);
+			SimpleScan scan = parentStack.removeLast();
+			newMZmineFile.addScan(scan);
 			parsedScans++;
 		}
 	}
