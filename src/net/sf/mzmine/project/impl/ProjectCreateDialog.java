@@ -53,7 +53,7 @@ public class ProjectCreateDialog extends JDialog implements ActionListener {
 	private ProjectCreatePane createProjectPane;
 	private DialogType dialogType;
 	JCheckBox chkBoxZip;
-	private boolean zip;
+	// private boolean zip;
 
 	public enum DialogType {
 		Create, SaveAs
@@ -72,7 +72,7 @@ public class ProjectCreateDialog extends JDialog implements ActionListener {
 	}
 
 	protected void setup(File lastProjectDir) {
-		zip = false;
+		// zip = false;
 		if (this.dialogType == DialogType.SaveAs) {
 			this.frameTitle = "Saving project...";
 			this.message = "Please select a name to save project as";
@@ -199,7 +199,7 @@ public class ProjectCreateDialog extends JDialog implements ActionListener {
 				try {
 					ProjectManager manager = MZmineClient.getInstance()
 							.getProjectManager();
-					HashMap<String, Object> options = new HashMap();
+					HashMap<String, Object> options = new HashMap<String, Object>();
 					if (this.chkBoxZip.getSelectedObjects() == null) {
 						manager.saveProject(projectDir);
 						options.put("zip", false);

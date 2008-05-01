@@ -4,7 +4,6 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
-import java.io.FilenameFilter;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -27,7 +26,7 @@ import com.thoughtworks.xstream.persistence.StreamStrategy;
 public class MZmineFileStreamStrategy extends FileStreamStrategy implements
 		StreamStrategy {
 
-	private final FilenameFilter filter;
+    // private final FilenameFilter filter;
 
 	private final XStream xstream;
 
@@ -67,11 +66,11 @@ public class MZmineFileStreamStrategy extends FileStreamStrategy implements
 
 		this.xstream.registerConverter(new SimpleDataPointConverter());
 
-		this.filter = new FilenameFilter() {
+		/*this.filter = new FilenameFilter() {
 			public boolean accept(File dir, String name) {
 				return new File(dir, name).isFile() && isValid(dir, name);
 			}
-		};
+		};*/
 	}
 
 	protected boolean isValid(File dir, String name) {

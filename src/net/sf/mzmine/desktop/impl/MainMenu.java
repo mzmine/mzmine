@@ -36,7 +36,6 @@ import javax.swing.KeyStroke;
 import net.sf.mzmine.desktop.MZmineMenu;
 import net.sf.mzmine.main.MZmineClient;
 import net.sf.mzmine.main.MZmineCore;
-import net.sf.mzmine.modules.io.rawdataimport.FileOpenDialog;
 import net.sf.mzmine.project.impl.ProjectCreateDialog;
 import net.sf.mzmine.project.impl.ProjectOpenDialog;
 import net.sf.mzmine.project.parameterssetup.ProjectParametersSetupDialog;

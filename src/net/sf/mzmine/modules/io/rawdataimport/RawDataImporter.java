@@ -49,12 +49,13 @@ import net.sf.mzmine.taskcontrol.TaskListener;
 import net.sf.mzmine.util.dialogs.ExitCode;
 
 /**
- * work in progress...
+ * Raw data import module
  */
-public class RawDataImporter implements MZmineModule, ActionListener, TaskListener, BatchStep {
+public class RawDataImporter implements MZmineModule, ActionListener,
+        TaskListener, BatchStep {
 
     private Logger logger = Logger.getLogger(this.getClass().getName());
-    
+
     private RawDataImporterParameters parameters;
 
     private Desktop desktop;
@@ -67,8 +68,9 @@ public class RawDataImporter implements MZmineModule, ActionListener, TaskListen
     public void initModule() {
 
         this.desktop = MZmineCore.getDesktop();
-        this.myInstance = this;
-        
+
+        myInstance = this;
+
         parameters = new RawDataImporterParameters();
 
         desktop.addMenuItem(MZmineMenu.PROJECT, "Import raw data files",
@@ -90,6 +92,13 @@ public class RawDataImporter implements MZmineModule, ActionListener, TaskListen
         this.parameters = (RawDataImporterParameters) parameters;
     }
 
+    /**
+     * @see net.sf.mzmine.modules.BatchStep#toString()
+     */
+    public String toString() {
+        return "Raw data import";
+    }
+
     public void actionPerformed(ActionEvent event) {
 
         ExitCode setupExitCode = setupParameters(parameters);
@@ -99,7 +108,7 @@ public class RawDataImporter implements MZmineModule, ActionListener, TaskListen
         }
 
         runModule(null, null, parameters, null);
-        
+
     }
 
     public BatchStepCategory getBatchStepCategory() {
@@ -109,44 +118,47 @@ public class RawDataImporter implements MZmineModule, ActionListener, TaskListen
     public TaskGroup runModule(RawDataFile[] dataFiles, PeakList[] peakLists,
             ParameterSet parameters, TaskGroupListener taskGroupListener) {
 
-        // TODO
-		    RawDataImporterParameters rawDataImporterParameters = (RawDataImporterParameters) parameters;
-		    File file[]=rawDataImporterParameters.getFileNames();
-	        Task openTasks[] = new Task[file.length];
+        RawDataImporterParameters rawDataImporterParameters = (RawDataImporterParameters) parameters;
+        File file[] = rawDataImporterParameters.getFileNames();
+        Task openTasks[] = new Task[file.length];
 
-	        for (int i = 0; i < file.length; i++) {
-	    	
-                String extension = file[i].getName().substring(file[i].getName().lastIndexOf(".") + 1).toLowerCase();
-             
-                if (extension.endsWith("mzdata")) {	    	
-	                openTasks[i] = new MzDataReadTask(file[i],
-	            		(PreloadLevel) rawDataImporterParameters.getParameterValue(RawDataImporterParameters.preloadLevel));
-                }
-                if(extension.endsWith("mzxml")) {	    	
-	                openTasks[i] = new MzXMLReadTask(file[i],
-	            		(PreloadLevel) rawDataImporterParameters.getParameterValue(RawDataImporterParameters.preloadLevel));
-                }
-                if (extension.endsWith("cdf")) {	    	
-	                openTasks[i] = new NetCDFReadTask(file[i],
-	            		(PreloadLevel) rawDataImporterParameters.getParameterValue(RawDataImporterParameters.preloadLevel));
-                }
-                if (extension.endsWith("raw")) {	    	
-	                openTasks[i] = new XcaliburRawFileReadTask(file[i],
-	            		(PreloadLevel) rawDataImporterParameters.getParameterValue(RawDataImporterParameters.preloadLevel));
-                }
-                if(openTasks[i] == null) {	    	
-                    desktop.displayErrorMessage("Cannot determine file type of file "+ file[i]);                    
-                	logger.finest("Cannot determine file type of file "+ file[i]);
-                    return null;
-                }
-	        }
- 		TaskGroup newGroup = new TaskGroup(openTasks, this, taskGroupListener);
+        for (int i = 0; i < file.length; i++) {
+
+            String extension = file[i].getName().substring(
+                    file[i].getName().lastIndexOf(".") + 1).toLowerCase();
+
+            if (extension.endsWith("mzdata")) {
+                openTasks[i] = new MzDataReadTask(
+                        file[i],
+                        (PreloadLevel) rawDataImporterParameters.getParameterValue(RawDataImporterParameters.preloadLevel));
+            }
+            if (extension.endsWith("mzxml")) {
+                openTasks[i] = new MzXMLReadTask(
+                        file[i],
+                        (PreloadLevel) rawDataImporterParameters.getParameterValue(RawDataImporterParameters.preloadLevel));
+            }
+            if (extension.endsWith("cdf")) {
+                openTasks[i] = new NetCDFReadTask(
+                        file[i],
+                        (PreloadLevel) rawDataImporterParameters.getParameterValue(RawDataImporterParameters.preloadLevel));
+            }
+            if (extension.endsWith("raw")) {
+                openTasks[i] = new XcaliburRawFileReadTask(
+                        file[i],
+                        (PreloadLevel) rawDataImporterParameters.getParameterValue(RawDataImporterParameters.preloadLevel));
+            }
+            if (openTasks[i] == null) {
+                desktop.displayErrorMessage("Cannot determine file type of file "
+                        + file[i]);
+                logger.warning("Cannot determine file type of file " + file[i]);
+                return null;
+            }
+        }
+        TaskGroup newGroup = new TaskGroup(openTasks, this, taskGroupListener);
         // start this group
         newGroup.start();
         return newGroup;
     }
-
-
 
     public ExitCode setupParameters(ParameterSet parameters) {
 
@@ -160,58 +172,58 @@ public class RawDataImporter implements MZmineModule, ActionListener, TaskListen
 
     public void taskStarted(Task task) {
         Task openTask = task;
-         logger.info("Started action of " + openTask.getTaskDescription());
-    }    
-    
+        logger.info("Started action of " + openTask.getTaskDescription());
+    }
+
     public void taskFinished(Task task) {
 
- 		if (task instanceof MzDataReadTask) {
+        if (task instanceof MzDataReadTask) {
             if (task.getStatus() == Task.TaskStatus.FINISHED) {
-            	logger.info("Finished action of " + task.getTaskDescription());
+                logger.info("Finished action of " + task.getTaskDescription());
             }
- 		}
+        }
 
- 		if (task instanceof MzXMLReadTask) {
+        if (task instanceof MzXMLReadTask) {
             if (task.getStatus() == Task.TaskStatus.FINISHED) {
-            	logger.info("Finished action of " + task.getTaskDescription());
+                logger.info("Finished action of " + task.getTaskDescription());
             }
- 		}
+        }
 
- 		if (task instanceof NetCDFReadTask) {
+        if (task instanceof NetCDFReadTask) {
             if (task.getStatus() == Task.TaskStatus.FINISHED) {
-            	logger.info("Finished action of " + task.getTaskDescription());
+                logger.info("Finished action of " + task.getTaskDescription());
             }
- 		}
- 		
- 		if (task instanceof XcaliburRawFileReadTask) {
+        }
+
+        if (task instanceof XcaliburRawFileReadTask) {
             if (task.getStatus() == Task.TaskStatus.FINISHED) {
-            	logger.info("Finished action of " + task.getTaskDescription());
+                logger.info("Finished action of " + task.getTaskDescription());
             }
- 		}
- 		
- 		if (task.getStatus() == Task.TaskStatus.ERROR) {
-            String msg = "Error while trying to "
-                    + task.getTaskDescription() + ": " + task.getErrorMessage();
+        }
+
+        if (task.getStatus() == Task.TaskStatus.ERROR) {
+            String msg = "Error while trying to " + task.getTaskDescription()
+                    + ": " + task.getErrorMessage();
             logger.severe(msg);
             desktop.displayErrorMessage(msg);
         }
 
     }
-    
-	public RawDataFileWriter createNewFile(String fileName, String suffix,
-			PreloadLevel preloadLevel) throws IOException {
-		return new RawDataFileImpl(fileName, suffix, preloadLevel);
-	}
 
-	/**
-	 */
-	public RawDataFileWriter createNewFile(File file, PreloadLevel preloadLevel)
-			throws IOException {
-		return new RawDataFileImpl(file.getName(), "scan", preloadLevel);
-	}    
-	
-	public static RawDataImporter getInstance() {
-		return myInstance;
-	}
+    public RawDataFileWriter createNewFile(String fileName, String suffix,
+            PreloadLevel preloadLevel) throws IOException {
+        return new RawDataFileImpl(fileName, suffix, preloadLevel);
+    }
+
+    /**
+     */
+    public RawDataFileWriter createNewFile(File file, PreloadLevel preloadLevel)
+            throws IOException {
+        return new RawDataFileImpl(file.getName(), "scan", preloadLevel);
+    }
+
+    public static RawDataImporter getInstance() {
+        return myInstance;
+    }
 
 }

@@ -22,7 +22,6 @@ package net.sf.mzmine.project.impl;
 import java.io.File;
 import java.util.Hashtable;
 import java.util.Vector;
-import java.util.logging.Logger;
 
 import javax.swing.DefaultListModel;
 
@@ -44,7 +43,7 @@ public class MZmineProjectImpl implements MZmineProject {
 	private transient DefaultListModel rawDataList;
 	private transient DefaultListModel peakListsList;
 
-	private transient Logger logger;
+	// private transient Logger logger;
 	// filePath to save project
 	private File projectDir;
 	private boolean isTemporal = true;
@@ -62,7 +61,7 @@ public class MZmineProjectImpl implements MZmineProject {
 		this.rawDataList = new DefaultListModel();
 		this.peakListsList = new DefaultListModel();
 		projectParametersAndValues = new Hashtable<Parameter, Hashtable<String, Object>>();
-		logger = Logger.getLogger(this.getClass().getName());
+		
 		isTemporal = true;
 	}
 
@@ -221,7 +220,7 @@ public class MZmineProjectImpl implements MZmineProject {
 		this.peakListsList = new DefaultListModel();
 		this.rawDataList = new DefaultListModel();
 		projectParametersAndValues = new Hashtable<Parameter, Hashtable<String, Object>>();
-		logger = Logger.getLogger(this.getClass().getName());
+		//logger = Logger.getLogger(this.getClass().getName());
 		return this;
 	}
 

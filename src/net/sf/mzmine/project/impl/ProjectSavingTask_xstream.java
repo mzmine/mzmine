@@ -362,7 +362,8 @@ public class ProjectSavingTask_xstream implements ProjectSavingTask {
 		this.finished = end;
 	}
 
-	private void savePeakLists(XStream xstream, float start, float end)
+	@SuppressWarnings("unchecked")
+    private void savePeakLists(XStream xstream, float start, float end)
 			throws IOException, FileNotFoundException {
 
 		PeakList[] peakLists;
@@ -388,7 +389,8 @@ public class ProjectSavingTask_xstream implements ProjectSavingTask {
 		this.finished = end;
 	}
 
-	private void saveRawDataFiles(XStream xstream, float start, float end)
+	@SuppressWarnings("unchecked")
+    private void saveRawDataFiles(XStream xstream, float start, float end)
 			throws IOException {
 
 		RawDataFile[] dataFiles;

@@ -55,11 +55,14 @@ class AnotherCentroidPickerTask implements Task {
 	private String suffix;
 	private float noiseLevel;
 	private float mzTolerance;
-	private float minimumPeakDuration, maximumPeakDuration;
+	
+    @SuppressWarnings("unused")
+    private float minimumPeakDuration, maximumPeakDuration;
 	private int maximumChargeState, minimumNumberOfIsotopicPeaks;
 
 	// peak id counter
-	private int newPeakID = 1;
+	@SuppressWarnings("unused")
+    private int newPeakID = 1;
 
 	/**
 	 * @param rawDataFile
@@ -85,7 +88,7 @@ class AnotherCentroidPickerTask implements Task {
 				.getParameterValue(AnotherCentroidPickerParameters.maximumChargeState);
 		minimumNumberOfIsotopicPeaks = (Integer) parameters
 				.getParameterValue(AnotherCentroidPickerParameters.minimumNumberOfIsotopicPeaks);
-
+        
 	}
 
 	/**

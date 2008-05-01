@@ -181,7 +181,7 @@ public class ProjectSavingTask_xstream_1 implements ProjectSavingTask {
 		return true;
 	}
 
-	private boolean moveDir(File fromDir, File destDir, float finished_start,
+	/*private boolean moveDir(File fromDir, File destDir, float finished_start,
 			float finished_stop) {
 		boolean ok = false;
 		ok = fromDir.renameTo(destDir);
@@ -210,7 +210,7 @@ public class ProjectSavingTask_xstream_1 implements ProjectSavingTask {
 		}
 		this.removeDir(fromDir);
 		return true;
-	}
+	}*/
 
 	private boolean removeDir(File dir) {
 		boolean ok;

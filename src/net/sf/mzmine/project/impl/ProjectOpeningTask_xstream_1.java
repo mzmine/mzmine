@@ -102,7 +102,8 @@ public class ProjectOpeningTask_xstream_1 implements ProjectOpeningTask {
 	/**
 	 * @see java.lang.Runnable#run()
 	 */
-	public void run() {
+	@SuppressWarnings("unchecked")
+    public void run() {
 
 		// Update task status
 		logger.info("Started openning project" + projectDir);
@@ -145,7 +146,7 @@ public class ProjectOpeningTask_xstream_1 implements ProjectOpeningTask {
 				reader = new InputStreamReader(new FileInputStream(xmlFile),
 						"UTF-8");
 				in = xstream.createObjectInputStream(reader);
-				HashMap<String, String> info = (HashMap<String, String>) in
+				HashMap<String, String> info = (HashMap) in
 						.readObject();
 				in.close();
 				numDataFiles = Integer.parseInt(info.get("numDataFiles"));
@@ -226,7 +227,7 @@ public class ProjectOpeningTask_xstream_1 implements ProjectOpeningTask {
 			reader = new InputStreamReader(new FileInputStream(xmlFile),
 					"UTF-8");
 			in = xstream.createObjectInputStream(reader);
-			projectParameters = (Hashtable<Parameter, Hashtable<String, Object>>) in
+			projectParameters = (Hashtable) in
 					.readObject();
 			in.close();
 			finished = FINISHED_STARTED + (FINISHED_LOADED - FINISHED_STARTED)

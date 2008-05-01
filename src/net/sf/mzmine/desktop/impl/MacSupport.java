@@ -74,6 +74,8 @@ public class MacSupport implements ApplicationListener {
         File file = new File(event.getFilename());
         RawDataImporter importerModule = RawDataImporter.getInstance();
         RawDataImporterParameters parameters = (RawDataImporterParameters) importerModule.getParameterSet();
+        parameters.setParameterValue(RawDataImporterParameters.preloadLevel,
+                PreloadLevel.NO_PRELOAD);
         parameters.setFileNames(new File[] { file });
         importerModule.runModule(null, null, parameters, null);
         event.setHandled(true);
