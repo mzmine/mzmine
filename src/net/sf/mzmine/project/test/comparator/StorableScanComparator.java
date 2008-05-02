@@ -80,7 +80,7 @@ public class StorableScanComparator implements Comparator {
 		if (oldFile.getNumOfScans()!=newFile.getNumOfScans()){
 			return false;
 		}
-		if (oldFile.getPreloadLevel().equals(newFile.getPreloadLevel())){
+		if (!oldFile.getPreloadLevel().equals(newFile.getPreloadLevel())){
 			return false;
 		}
 		return true;

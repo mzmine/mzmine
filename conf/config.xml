@@ -391,12 +391,12 @@
       <pattern>0.00E0</pattern>
     </format>
     <mainwindow>
-      <x>704</x>
-      <y>78</y>
-      <width>885</width>
-      <height>632</height>
+      <x>878</x>
+      <y>0</y>
+      <width>875</width>
+      <height>624</height>
     </mainwindow>
     <lastdirectory>/mnt/newHD/private/kawasaki/mzmine/Nakamura/XML/negative mode XML</lastdirectory>
-    <lastProjectDirectory>/mnt/newHD/private/kawasaki/mzmine/MyProject.21.mzmine</lastProjectDirectory>
+    <lastProjectDirectory>/mnt/newHD/private/kawasaki/mzmine/MyProject.22.mzmine</lastProjectDirectory>
   </desktop> 
 </configuration>

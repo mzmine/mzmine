@@ -13,9 +13,9 @@ public class MZmineProjectComparator implements Comparator {
 	Logger logger = Logger.getLogger(this.getClass().getName());
 
 	public boolean compare(Object oldObj, Object newObj,
-			OmitFieldRegistory ofRegist, HashMap<Object, ArrayList<Object>> doneList)
-			throws Exception {
-		Field[] fields;
+			OmitFieldRegistory ofRegist,
+			HashMap<Object, ArrayList<Object>> doneList) throws Exception {
+
 		Object oldValue;
 		Object newValue;
 		FactoryComparator factoryComparator = new FactoryComparator();
@@ -24,7 +24,6 @@ public class MZmineProjectComparator implements Comparator {
 		String[] fieldNames = { "projectParametersAndValues", "rawDataList",
 				"peakListsList", "isTemporal" };
 
-		fields = oldObj.getClass().getDeclaredFields();
 		Field oldField;
 		for (String fieldName : fieldNames) {
 			oldField = oldObj.getClass().getDeclaredField(fieldName);

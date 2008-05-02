@@ -92,7 +92,7 @@ public class RawDataFileComparator implements Comparator {
 
 				boolean ok = factoryComparator.compare(oldFieldValue,
 						newFieldValue, ofRegist, doneList);
-				if (ok = false) {
+				if (ok== false) {
 					return false;
 				}
 			}

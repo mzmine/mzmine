@@ -82,6 +82,7 @@ public class FactoryComparator implements Comparator {
 	}
 
 	private class NullType {
+		//marker type
 		public String toString() {
 			return "Null value";
 		}
