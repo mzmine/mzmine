@@ -2,14 +2,15 @@ package net.sf.mzmine.project.test.comparator;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.Iterator;
 
 import net.sf.mzmine.project.test.OmitFieldRegistory;
 
 public class CollectionComparator implements Comparator {
 	public boolean compare(Object oldObj, Object newObj,
-			OmitFieldRegistory ofRegist, ArrayList<Object[]> doneList)
-			throws Exception {
+			OmitFieldRegistory ofRegist,
+			HashMap<Object, ArrayList<Object>> doneList) throws Exception {
 		Collection oldCol = (Collection) oldObj;
 		Collection newCol = (Collection) newObj;
 		if (oldCol.size() != newCol.size()) {

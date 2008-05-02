@@ -1,6 +1,7 @@
 package net.sf.mzmine.project.test.comparator;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
 
@@ -8,7 +9,7 @@ import net.sf.mzmine.project.test.OmitFieldRegistory;
 
 public class MapComparator implements Comparator {
 	public boolean compare(Object oldObj, Object newObj,
-			OmitFieldRegistory ofRegist, ArrayList<Object[]> doneList)
+			OmitFieldRegistory ofRegist, HashMap<Object, ArrayList<Object>> doneList)
 			throws Exception {
 		Map oldMap = (Map) oldObj;
 		Map newMap = (Map) newObj;

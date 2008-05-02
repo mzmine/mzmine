@@ -2,12 +2,13 @@ package net.sf.mzmine.project.test.comparator;
 
 import java.lang.reflect.Array;
 import java.util.ArrayList;
+import java.util.HashMap;
 
 import net.sf.mzmine.project.test.OmitFieldRegistory;
 
 public class ArrayComparator implements Comparator {
 	public boolean compare(Object oldArray, Object newArray,
-			OmitFieldRegistory ofRegist,ArrayList<Object[]> doneList) throws Exception {
+			OmitFieldRegistory ofRegist,HashMap<Object, ArrayList<Object>> doneList) throws Exception {
 		if (Array.getLength(oldArray) != Array.getLength(newArray)) {
 			return false;
 		}

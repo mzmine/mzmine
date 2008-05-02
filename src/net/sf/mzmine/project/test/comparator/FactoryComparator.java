@@ -18,6 +18,7 @@ import java.util.logging.Logger;
 
 import net.sf.mzmine.data.RawDataFile;
 import net.sf.mzmine.main.RawDataFileImpl;
+import net.sf.mzmine.main.StorableScan;
 import net.sf.mzmine.project.MZmineProject;
 import net.sf.mzmine.project.impl.MZmineProjectImpl;
 import net.sf.mzmine.project.test.OmitFieldRegistory;
@@ -25,15 +26,16 @@ import net.sf.mzmine.project.test.OmitFieldRegistory;
 public class FactoryComparator implements Comparator {
 	private HashMap<Class, Comparator> comparators;
 	private Logger logger;
+
 	public FactoryComparator() {
 		logger = Logger.getLogger(this.getClass().getName());
-		
+
 		comparators = new HashMap<Class, Comparator>();
 
 		comparators.put(Array.class, new ArrayComparator());
 		comparators.put(NullType.class, new NullComparator());
 		comparators.put(GenericType.class, new ObjectComparator());
-
+		
 		Comparator collectionComparator = new CollectionComparator();
 		comparators.put(BeanContextServicesSupport.class, collectionComparator);
 		comparators.put(HashSet.class, collectionComparator);
@@ -63,14 +65,16 @@ public class FactoryComparator implements Comparator {
 		comparators.put(Boolean.class, simpleComparator);
 		comparators.put(Enum.class, simpleComparator);
 		comparators.put(String.class, simpleComparator);
-		
+
 		Comparator rawDataFileComparator = new RawDataFileComparator();
 		comparators.put(RawDataFile.class, rawDataFileComparator);
 		comparators.put(RawDataFileImpl.class, rawDataFileComparator);
-		
+
 		Comparator projectComparator = new MZmineProjectComparator();
 		comparators.put(MZmineProject.class, projectComparator);
 		comparators.put(MZmineProjectImpl.class, projectComparator);
+		
+		comparators.put(StorableScan.class,new StorableScanComparator());
 	}
 
 	private class GenericType {
@@ -78,68 +82,72 @@ public class FactoryComparator implements Comparator {
 	}
 
 	private class NullType {
-		public String toString(){
+		public String toString() {
 			return "Null value";
 		}
 	}
 
-	public boolean compare(Object oldObj, Object newObj) throws Exception {
-		return this.compare(oldObj, newObj, new OmitFieldRegistory(),
-				new ArrayList<Object[]>(0));
+	public boolean compare(Object oldObj, Object newObj,
+			HashMap<Object, ArrayList<Object>> doneList) throws Exception {
+		return this.compare(oldObj, newObj, new OmitFieldRegistory(), doneList);
 	}
 
 	public boolean compare(Object oldObj, Object newObj,
-			OmitFieldRegistory ofRegist) throws Exception {
-		return this.compare(oldObj, newObj, ofRegist,
-				new ArrayList<Object[]>(0));
-	}
-
-	public boolean compare(Object oldObj, Object newObj,
-			OmitFieldRegistory ofRegist, ArrayList<Object[]> doneList)
-			throws Exception {
+			OmitFieldRegistory ofRegist,
+			HashMap<Object, ArrayList<Object>> doneList) throws Exception {
 
 		Comparator comparator = null;
 		Class cls;
 
 		if (oldObj == null) {
-			oldObj=new NullType();
-			newObj=new NullType();
-			cls = NullType.class;
-			comparator = comparators.get(cls);
-		} else {
-
-			cls = oldObj.getClass();
-			if (cls.isArray()) {
-				comparator = comparators.get(Array.class);
-
-			} else if (cls.isEnum()) {
-				comparator = comparators.get(Enum.class);
-
-			} else if (comparators.containsKey(cls)) {
-				comparator = comparators.get(cls);
-
-			} else {
-				cls = GenericType.class;
-				comparator = comparators.get(GenericType.class);
-			}
+			oldObj = new NullType();
+			newObj = new NullType();
 		}
+
+		cls = oldObj.getClass();
+		if (cls.isArray()) {
+			comparator = comparators.get(Array.class);
+
+		} else if (cls.isEnum()) {
+			comparator = comparators.get(Enum.class);
+
+		} else if (comparators.containsKey(cls)) {
+			comparator = comparators.get(cls);
+
+		} else {
+			cls = GenericType.class;
+			comparator = comparators.get(GenericType.class);
+		}
+
 		if (comparator == null) {
 			throw new Exception("Comparator not found for "
 					+ oldObj.getClass().getName());
 		}
-		Object[] pair = { oldObj, newObj };
-		if (doneList.contains(pair)){
-			return true;
+
+		if (doneList.containsKey(oldObj)) {
+			ArrayList<Object> list = doneList.get(oldObj);
+			if (list.contains(newObj)) {
+				logger.info("Found in already done list");
+				return true;
+			}
 		}
 		boolean ok = comparator.compare(oldObj, newObj, ofRegist, doneList);
 		if (ok == true) {
-			doneList.add(pair);
-		}else{
-			logger.info("Not consistent :\noldObj:"
-					+ oldObj.toString() + " \newObj:"
-					+ newObj.toString());
+			logger.info("Consistent :\noldObj:" + oldObj.toString()
+					+ " \nnewObj:" + newObj.toString());
+
+			if (doneList.containsKey(oldObj)) {
+				doneList.get(oldObj).add(newObj);
+			} else {
+				ArrayList<Object> list = new ArrayList<Object>(0);
+				list.add(newObj);
+				doneList.put(oldObj, list);
+			}
+			return true;
+		} else {
+			logger.info("Not consistent :\noldObj:" + oldObj.toString()
+					+ " \nnewObj:" + newObj.toString());
 			return false;
 		}
-		return ok;
 	}
 }

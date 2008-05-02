@@ -4,6 +4,8 @@ import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
 import java.io.File;
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -30,24 +32,24 @@ public class ProjectSavingTaskTest {
 	ProjectSavingTask_xstream savingTask;
 	TestMZmineClient testClient;
 	File projectDir;
-	
+
 	@Before
 	public void setUp() throws Exception {
-		this.testClient=TestMZmineClient.getInstance();
+		this.testClient = TestMZmineClient.getInstance();
 	}
-	
-	private MZmineProject setUpProject() throws Exception{
+
+	private MZmineProject setUpProject() throws Exception {
 		// setup MZmineclient equivalent process
-		
-		MZmineProject project=MZmineCore.getCurrentProject();
+
+		MZmineProject project = MZmineCore.getCurrentProject();
 		// load data file into project
-		File sourceFile=new File("resources/test.mzXML");
-		if (!sourceFile.exists()){
+		File sourceFile = new File("resources/test.mzXML");
+		if (!sourceFile.exists()) {
 			fail("No test source file available");
 		}
 
 		PreloadLevel preloadLevel = PreloadLevel.NO_PRELOAD;
-		MzXMLReadTask readTask=new MzXMLReadTask(sourceFile,preloadLevel);
+		MzXMLReadTask readTask = new MzXMLReadTask(sourceFile, preloadLevel);
 		Logger logger = Logger.getLogger(readTask.getClass().getName());
 		logger.setLevel(Level.FINEST);
 		readTask.run();
@@ -56,59 +58,73 @@ public class ProjectSavingTaskTest {
 		logger.info("Registering some peakLists");
 		RecursivePicker picker = new RecursivePicker();
 		picker.initModule();
-		RawDataFile[] dataFiles=project.getDataFiles();
-		TaskGroup taskGroup=picker.runModule(
-				dataFiles, null, new RecursivePickerParameters(),null);
-		while (taskGroup.getStatus()==TaskGroup.TaskGroupStatus.RUNNING){
-			//wait
+		RawDataFile[] dataFiles = project.getDataFiles();
+		TaskGroup taskGroup = picker.runModule(dataFiles, null,
+				new RecursivePickerParameters(), null);
+		while (taskGroup.getStatus() == TaskGroup.TaskGroupStatus.RUNNING) {
+			// wait
 			Thread.sleep(1000);
 			logger.info("Waiting for the peakPicking to finish");
 		}
-		
+
 		return project;
+	}
+
+	private void deleteDir(File dir) {
+		
+		for (File item : dir.listFiles()) {
+			if (item.isDirectory()&& 0<item.listFiles().length) {
+				this.deleteDir(item);
+			}else{
+				item.delete();
+			}
+		}
+		dir.delete();
 	}
 
 	@After
 	public void tearDown() throws Exception {
-		
+		// cleanup project dir
+		this.deleteDir(projectDir);
 	}
 
 	@Test
-	public void testConsistency() throws Exception{
-		MZmineProject oldProject=this.setUpProject();
-		ProjectManager projectManager=this.testClient.getProjectManager();
-		// create project saving task
-		
-		projectDir= File.createTempFile("test", "");
+	public void testConsistency() throws Exception {
+		MZmineProject oldProject = this.setUpProject();
+		ProjectManager projectManager = this.testClient.getProjectManager();
+
+		//Save project
+		projectDir = File.createTempFile("test", "");
 		projectDir.delete();
 		
-		logger.info("Saving project to "+projectDir.getPath());
+		logger.info("Saving project to " + projectDir.getPath());
 		projectManager.saveProject(projectDir);
-		
-		while (projectManager.getStatus()==ProjectStatus.Processing){
-			//wait
+
+		while (projectManager.getStatus() == ProjectStatus.Processing) {
+			// wait
 			Thread.sleep(3000);
 			logger.info("Waiting for the project saving to fisnish");
-		}		
+		}
 		logger.info("Finished saving project");
 		
+		//open project
 		projectManager.openProject(projectDir);
-		while (projectManager.getStatus()==ProjectStatus.Processing){
-			//wait
+		while (projectManager.getStatus() == ProjectStatus.Processing) {
+			// wait
 			Thread.sleep(3000);
 			logger.info("Waiting for the project openning to fisnish");
-		}		
-		logger.info("Finished opening project");		
-		MZmineProject newProject=MZmineCore.getCurrentProject();
-		
-		OmitFieldRegistory rfRegist=new OmitFieldRegistory();
-		
+		}
+		logger.info("Finished opening project");
+		MZmineProject newProject = MZmineCore.getCurrentProject();
+
+		OmitFieldRegistory rfRegist = new OmitFieldRegistory();
+
 		rfRegist.register(StorableScan.class, "logger");
-		rfRegist.register(StorableScan.class, "rawDataFile");
-		
-		
+		//rfRegist.register(StorableScan.class, "rawDataFile");
+
 		FactoryComparator factoryComparator = new FactoryComparator();
-		boolean ok = factoryComparator.compare(oldProject,newProject,rfRegist);
+		boolean ok = factoryComparator
+				.compare(oldProject, newProject, rfRegist,new HashMap<Object,ArrayList<Object>>());
 		assertTrue(ok);
 	}
 }

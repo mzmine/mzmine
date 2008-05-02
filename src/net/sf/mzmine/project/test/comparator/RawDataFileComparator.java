@@ -2,6 +2,7 @@ package net.sf.mzmine.project.test.comparator;
 
 import java.lang.reflect.Field;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.Hashtable;
 import java.util.List;
 import java.util.logging.Logger;
@@ -14,7 +15,7 @@ public class RawDataFileComparator implements Comparator {
 	FactoryComparator factoryComparator;
 
 	public boolean compare(Object oldObj, Object newObj,
-			OmitFieldRegistory ofRegist, ArrayList<Object[]> doneList)
+			OmitFieldRegistory ofRegist, HashMap<Object, ArrayList<Object>> doneList)
 			throws Exception {
 
 		Object oldValue;
@@ -39,7 +40,7 @@ public class RawDataFileComparator implements Comparator {
 			oldField.setAccessible(true);
 			oldValue = oldField.get(oldObj);
 			newValue = oldField.get(newObj);
-			if (fieldName == "scans" || fieldName == "writingScans") {
+			if (fieldName.equals("scans") || fieldName.equals("writingScans")) {
 				if (oldValue != null) {
 					ok = this.compareScans(oldValue, newValue, ofRegist,
 							doneList);
@@ -63,7 +64,7 @@ public class RawDataFileComparator implements Comparator {
 	}
 
 	private boolean compareScans(Object oldObj, Object newObj,
-			OmitFieldRegistory ofRegist, ArrayList<Object[]> doneList)
+			OmitFieldRegistory ofRegist, HashMap<Object,ArrayList<Object>> doneList)
 			throws Exception {
 
 		Hashtable<Integer, Scan> oldHash = (Hashtable<Integer, Scan>) oldObj;

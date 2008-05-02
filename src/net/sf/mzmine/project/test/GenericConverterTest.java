@@ -3,6 +3,8 @@ package net.sf.mzmine.project.test;
 import static org.junit.Assert.assertTrue;
 
 import java.lang.reflect.Field;
+import java.util.ArrayList;
+import java.util.HashMap;
 
 import net.sf.mzmine.project.test.comparator.FactoryComparator;
 
@@ -80,7 +82,8 @@ public abstract class GenericConverterTest {
 		xmlString = xstream.toXML(objectToStore);
 		Object newObject = xstream.fromXML(xmlString);
 		FactoryComparator factoryComparator = new FactoryComparator();
-		boolean ok = factoryComparator.compare(this.objectToStore, newObject,this.ofRegist);
+		HashMap <Object,ArrayList<Object>> doneList= new HashMap <Object,ArrayList<Object>> ();
+		boolean ok = factoryComparator.compare(this.objectToStore, newObject,this.ofRegist,doneList);
 		assertTrue(ok);
 	}
 }

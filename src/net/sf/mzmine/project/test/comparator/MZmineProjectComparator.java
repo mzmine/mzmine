@@ -2,6 +2,7 @@ package net.sf.mzmine.project.test.comparator;
 
 import java.lang.reflect.Field;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.logging.Logger;
 
 import javax.swing.DefaultListModel;
@@ -12,7 +13,7 @@ public class MZmineProjectComparator implements Comparator {
 	Logger logger = Logger.getLogger(this.getClass().getName());
 
 	public boolean compare(Object oldObj, Object newObj,
-			OmitFieldRegistory ofRegist, ArrayList<Object[]> doneList)
+			OmitFieldRegistory ofRegist, HashMap<Object, ArrayList<Object>> doneList)
 			throws Exception {
 		Field[] fields;
 		Object oldValue;
