@@ -275,11 +275,5 @@ public abstract class MZmineCore {
 			PreloadLevel preloadLevel) throws IOException {
 		return new RawDataFileImpl(name, preloadLevel);
 	}	
-	
-	@Deprecated
-	public static RawDataFileWriter createNewFile(String name, String suffix,
-			PreloadLevel preloadLevel) throws IOException {
-		return new RawDataFileImpl(name, preloadLevel);
-	}
 
 }

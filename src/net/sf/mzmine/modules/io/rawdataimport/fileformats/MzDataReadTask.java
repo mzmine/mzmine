@@ -20,6 +20,7 @@
 package net.sf.mzmine.modules.io.rawdataimport.fileformats;
 
 import java.io.File;
+import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.util.LinkedList;
@@ -30,10 +31,11 @@ import javax.xml.parsers.SAXParserFactory;
 
 import net.sf.mzmine.data.DataPoint;
 import net.sf.mzmine.data.PreloadLevel;
+import net.sf.mzmine.data.RawDataFile;
+import net.sf.mzmine.data.RawDataFileWriter;
 import net.sf.mzmine.data.impl.SimpleDataPoint;
 import net.sf.mzmine.data.impl.SimpleScan;
 import net.sf.mzmine.main.MZmineCore;
-import net.sf.mzmine.main.RawDataFileImpl;
 import net.sf.mzmine.taskcontrol.Task;
 
 import org.jfree.xml.util.Base64;
@@ -49,7 +51,7 @@ public class MzDataReadTask extends DefaultHandler implements Task {
 	private Logger logger = Logger.getLogger(this.getClass().getName());
 
 	private File originalFile;
-	private RawDataFileImpl newMZmineFile;
+    private RawDataFileWriter newMZmineFile;
 	private PreloadLevel preloadLevel;
 	private TaskStatus status;
 	private int totalScans = -1;
@@ -144,14 +146,14 @@ public class MzDataReadTask extends DefaultHandler implements Task {
 
 		try {
 
-			newMZmineFile = new RawDataFileImpl(originalFile.getName(), preloadLevel);
+			newMZmineFile = MZmineCore.createNewFile(originalFile.getName(), preloadLevel);
 
 			SAXParser saxParser = factory.newSAXParser();
 			saxParser.parse(originalFile, this);
 
 			// Close file
-			newMZmineFile.finishWriting();
-			MZmineCore.getCurrentProject().addFile(newMZmineFile);
+            RawDataFile finalRawDataFile = newMZmineFile.finishWriting();
+			MZmineCore.getCurrentProject().addFile(finalRawDataFile);
 
 		} catch (Throwable e) {
 			/* we may already have set the status to CANCELED */
@@ -276,6 +278,7 @@ public class MzDataReadTask extends DefaultHandler implements Task {
 
 	/**
 	 * endElement()
+	 * @throws IOException 
 	 */
 	public void endElement(String namespaceURI, String sName, // simple name
 			String qName // qualified name
@@ -380,7 +383,13 @@ public class MzDataReadTask extends DefaultHandler implements Task {
 			 */
 			if (parentStack.size() > 10) {
 				SimpleScan scan = parentStack.removeLast();
-				newMZmineFile.addScan(scan);
+				try {
+                    newMZmineFile.addScan(scan);
+                } catch (IOException e) {
+                    status = TaskStatus.ERROR;
+                    errorMessage = "IO error: " + e;
+                    throw new SAXException("Parsing cancelled");
+                }
 				parsedScans++;
 			}
 
@@ -462,7 +471,13 @@ public class MzDataReadTask extends DefaultHandler implements Task {
 	public void endDocument() throws SAXException {
 		while (!parentStack.isEmpty()) {
 			SimpleScan scan = parentStack.removeLast();
-			newMZmineFile.addScan(scan);
+			try {
+                newMZmineFile.addScan(scan);
+            } catch (IOException e) {
+                status = TaskStatus.ERROR;
+                errorMessage = "IO error: " + e;
+                throw new SAXException("Parsing cancelled");
+            }
 			parsedScans++;
 		}
 	}

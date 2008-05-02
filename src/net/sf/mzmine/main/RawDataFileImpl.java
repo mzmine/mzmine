@@ -63,13 +63,13 @@ public class RawDataFileImpl implements RawDataFile, RawDataFileWriter {
 	private Hashtable<Integer, Scan> scans, writingScans;
 	private PreloadLevel preloadLevel;
 
-	public RawDataFileImpl(String fileName, PreloadLevel preloadLevel)
+	RawDataFileImpl(String fileName, PreloadLevel preloadLevel)
 			throws IOException {
 		this(MZmineCore.getCurrentProject().getLocation(), fileName,
 				preloadLevel);
 	}
 
-	public RawDataFileImpl(File scanFileDir, String fileName,
+	RawDataFileImpl(File scanFileDir, String fileName,
 			PreloadLevel preloadLevel) throws IOException {
 
 		this.preloadLevel = preloadLevel;

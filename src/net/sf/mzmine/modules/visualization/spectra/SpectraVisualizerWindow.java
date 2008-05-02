@@ -132,13 +132,13 @@ class SpectraVisualizerWindow extends JInternalFrame implements ActionListener {
                     // Set plot mode only if it hasn't been set before
                     if (spectrumPlot.getPlotMode() == PlotMode.UNDEFINED)
                         // if the scan is centroided, switch to centroid mode
-	                    if (currentScan.isCentroided()) {
-	                        spectrumPlot.setPlotMode(PlotMode.CENTROID);
-	                        toolBar.setCentroidButton(false);
-	                    } else {
-	                        spectrumPlot.setPlotMode(PlotMode.CONTINUOUS);
-	                        toolBar.setCentroidButton(true);
-	                    }
+                        if (currentScan.isCentroided()) {
+                            spectrumPlot.setPlotMode(PlotMode.CENTROID);
+                            toolBar.setCentroidButton(false);
+                        } else {
+                            spectrumPlot.setPlotMode(PlotMode.CONTINUOUS);
+                            toolBar.setCentroidButton(true);
+                        }
 
                     // Clean up the MS/MS selector combo
 
@@ -151,19 +151,23 @@ class SpectraVisualizerWindow extends JInternalFrame implements ActionListener {
                     int parentNumber = currentScan.getParentScanNumber();
                     if ((currentScan.getMSLevel() > 1) && (parentNumber > 0)) {
 
-                        String itemText = "Parent scan #"
-                                + parentNumber
-                                + ", RT: "
-                                + rtFormat.format(dataFile.getScan(parentNumber).getRetentionTime())
-                                + ", precursor m/z: "
-                                + mzFormat.format(currentScan.getPrecursorMZ());
+                        Scan parentScan = dataFile.getScan(parentNumber);
+                        if (parentScan != null) {
+                            String itemText = "Parent scan #"
+                                    + parentNumber
+                                    + ", RT: "
+                                    + rtFormat.format(parentScan.getRetentionTime())
+                                    + ", precursor m/z: "
+                                    + mzFormat.format(currentScan.getPrecursorMZ());
 
-                        if (currentScan.getPrecursorCharge() > 0)
-                            itemText += " (chrg "
-                                    + currentScan.getPrecursorCharge() + ")";
+                            if (currentScan.getPrecursorCharge() > 0)
+                                itemText += " (chrg "
+                                        + currentScan.getPrecursorCharge()
+                                        + ")";
 
-                        msmsSelector.addItem(itemText);
-                        msmsVisible = true;
+                            msmsSelector.addItem(itemText);
+                            msmsVisible = true;
+                        }
 
                     }
 
@@ -173,6 +177,8 @@ class SpectraVisualizerWindow extends JInternalFrame implements ActionListener {
 
                         for (int fragment : fragmentScans) {
                             Scan fragmentScan = dataFile.getScan(fragment);
+                            if (fragmentScan == null)
+                                continue;
                             String itemText = "Fragment scan #"
                                     + fragment
                                     + ", RT: "

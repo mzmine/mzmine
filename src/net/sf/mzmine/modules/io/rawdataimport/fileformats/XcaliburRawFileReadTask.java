@@ -25,10 +25,11 @@ import java.util.logging.Logger;
 
 import net.sf.mzmine.data.DataPoint;
 import net.sf.mzmine.data.PreloadLevel;
+import net.sf.mzmine.data.RawDataFile;
+import net.sf.mzmine.data.RawDataFileWriter;
 import net.sf.mzmine.data.impl.SimpleDataPoint;
 import net.sf.mzmine.data.impl.SimpleScan;
 import net.sf.mzmine.main.MZmineCore;
-import net.sf.mzmine.main.RawDataFileImpl;
 import net.sf.mzmine.taskcontrol.Task;
 
 /**
@@ -39,7 +40,7 @@ public class XcaliburRawFileReadTask implements Task {
 	private Logger logger = Logger.getLogger(this.getClass().getName());
 
 	private File originalFile;
-	private RawDataFileImpl newMZmineFile;
+	private RawDataFileWriter newMZmineFile;
 	private PreloadLevel preloadLevel;
 	private TaskStatus status;
 	private String errorMessage;
@@ -137,7 +138,7 @@ public class XcaliburRawFileReadTask implements Task {
 		}
 
 		try {
-			newMZmineFile = new RawDataFileImpl(originalFile.getName(), 
+			newMZmineFile = MZmineCore.createNewFile(originalFile.getName(), 
 					preloadLevel);
 			logger.finest("Calling native function openFile "
 					+ originalFile.getPath());
@@ -153,12 +154,11 @@ public class XcaliburRawFileReadTask implements Task {
 			}
 			
 			// Close file
-			newMZmineFile.finishWriting();
-			MZmineCore.getCurrentProject().addFile(newMZmineFile);
+			RawDataFile finalRawDataFile = newMZmineFile.finishWriting();
+			MZmineCore.getCurrentProject().addFile(finalRawDataFile);
 
 		} catch (Throwable e) {
 			/* we may already have set the status to CANCELED */
-			e.printStackTrace();
 			if (status == TaskStatus.PROCESSING)
 				status = TaskStatus.ERROR;
 			errorMessage = e.toString();

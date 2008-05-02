@@ -5,6 +5,7 @@ import java.io.File;
 import net.sf.mzmine.data.PreloadLevel;
 import net.sf.mzmine.data.RawDataFile;
 import net.sf.mzmine.data.impl.SimplePeakList;
+import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.main.RawDataFileImpl;
 import net.sf.mzmine.project.converters.PeakListConverter;
 
@@ -18,8 +19,8 @@ public class PeakListConverter_SimplePeakListTest extends GenericConverterTest {
 		File dir = File.createTempFile(this.getClass().getName(), "");
 		dir.delete();
 		dir.mkdir();
-		dataFile = new RawDataFileImpl(dir, "testRawDataFile",
-				PreloadLevel.NO_PRELOAD);
+		dataFile = MZmineCore.createNewFile("testRawDataFile",
+				PreloadLevel.NO_PRELOAD).finishWriting();
 		return new SimplePeakList("testSimplePeakList", dataFile);
 	}
 

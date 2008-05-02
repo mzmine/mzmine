@@ -109,7 +109,7 @@ class ZoomScanFilterTask implements Task {
             // Create new temporary file
             String newName = dataFile.getFileName() + " " + suffix;
             RawDataFileWriter rawDataFileWriter = MZmineCore.createNewFile(
-                    newName, suffix, dataFile.getPreloadLevel());
+                    newName, dataFile.getPreloadLevel());
 
             // Get all scans
             int[] scanNumbers = dataFile.getScanNumbers();

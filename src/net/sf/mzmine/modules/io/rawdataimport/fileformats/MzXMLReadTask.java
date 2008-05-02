@@ -36,10 +36,11 @@ import javax.xml.parsers.SAXParserFactory;
 
 import net.sf.mzmine.data.DataPoint;
 import net.sf.mzmine.data.PreloadLevel;
+import net.sf.mzmine.data.RawDataFile;
+import net.sf.mzmine.data.RawDataFileWriter;
 import net.sf.mzmine.data.impl.SimpleDataPoint;
 import net.sf.mzmine.data.impl.SimpleScan;
 import net.sf.mzmine.main.MZmineCore;
-import net.sf.mzmine.main.RawDataFileImpl;
 import net.sf.mzmine.taskcontrol.Task;
 
 import org.jfree.xml.util.Base64;
@@ -55,7 +56,7 @@ public class MzXMLReadTask extends DefaultHandler implements Task {
 	private Logger logger = Logger.getLogger(this.getClass().getName());
 
 	private File originalFile;
-	private RawDataFileImpl newMZmineFile;
+	private RawDataFileWriter newMZmineFile;
 	private PreloadLevel preloadLevel;
 	private TaskStatus status;
 	private int totalScans = -1;
@@ -135,14 +136,14 @@ public class MzXMLReadTask extends DefaultHandler implements Task {
 
 		try {
 
-			newMZmineFile = new RawDataFileImpl(originalFile.getName(), "mzxml", preloadLevel);
+			newMZmineFile = MZmineCore.createNewFile(originalFile.getName(), preloadLevel);
 
 			SAXParser saxParser = factory.newSAXParser();
 			saxParser.parse(originalFile, this);
 
 			// Close file
-			newMZmineFile.finishWriting();
-			MZmineCore.getCurrentProject().addFile(newMZmineFile);
+			RawDataFile finalRawDataFile = newMZmineFile.finishWriting();
+			MZmineCore.getCurrentProject().addFile(finalRawDataFile);
 
 		} catch (Throwable e) {
 			/* we may already have set the status to CANCELED */
@@ -288,7 +289,13 @@ public class MzXMLReadTask extends DefaultHandler implements Task {
 				buildingScan = null;
 				while (!parentStack.isEmpty()) {
 					SimpleScan currentScan = parentStack.removeLast();
-					newMZmineFile.addScan(currentScan);
+					try {
+                        newMZmineFile.addScan(currentScan);
+                    } catch (IOException e) {
+                        status = TaskStatus.ERROR;
+                        errorMessage = "IO error: " + e;
+                        throw new SAXException("Parsing cancelled");
+                    }
 					parsedScans++;
 				}
 				

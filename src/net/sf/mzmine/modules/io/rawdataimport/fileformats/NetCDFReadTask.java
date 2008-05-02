@@ -25,21 +25,19 @@ import java.util.Hashtable;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import ucar.ma2.Array;
-import ucar.ma2.IndexIterator;
-import ucar.nc2.NetcdfFile;
-import ucar.nc2.Variable;
-
 import net.sf.mzmine.data.DataPoint;
 import net.sf.mzmine.data.PreloadLevel;
 import net.sf.mzmine.data.RawDataFile;
-//import net.sf.mzmine.data.RawDataFileWriter;
+import net.sf.mzmine.data.RawDataFileWriter;
 import net.sf.mzmine.data.Scan;
 import net.sf.mzmine.data.impl.SimpleDataPoint;
 import net.sf.mzmine.data.impl.SimpleScan;
 import net.sf.mzmine.main.MZmineCore;
-import net.sf.mzmine.main.RawDataFileImpl;
 import net.sf.mzmine.taskcontrol.Task;
+import ucar.ma2.Array;
+import ucar.ma2.IndexIterator;
+import ucar.nc2.NetcdfFile;
+import ucar.nc2.Variable;
 
 
 /**
@@ -60,7 +58,7 @@ public class NetCDFReadTask implements Task {
 	private Hashtable<Integer, Integer[]> scansIndex;
 	private Hashtable<Integer, Double> scansRetentionTimes;    
 
-    private RawDataFileImpl newMZmineFile;
+    private RawDataFileWriter newMZmineFile;
     private PreloadLevel preloadLevel;
      
 	private Variable massValueVariable;
@@ -105,13 +103,6 @@ public class NetCDFReadTask implements Task {
     }
 
     /**
-     * @see net.sf.mzmine.taskcontrol.Task#getResult()
-     */
-    public RawDataFile getResult() {
-        return newMZmineFile;
-    }
-
-    /**
      * @see java.lang.Runnable#run()
      */
     public void run() {
@@ -122,7 +113,7 @@ public class NetCDFReadTask implements Task {
 
         try {
         	// Create new RawDataFile instance
-        	newMZmineFile = new RawDataFileImpl(
+        	newMZmineFile = MZmineCore.createNewFile(
             		originalFile.getName(),  preloadLevel);
 
             // Open file
@@ -144,8 +135,8 @@ public class NetCDFReadTask implements Task {
 
             // Close file
             this.finishReading();
-            newMZmineFile.finishWriting();            
-            MZmineCore.getCurrentProject().addFile(newMZmineFile);
+            RawDataFile finalRawDataFile = newMZmineFile.finishWriting();            
+            MZmineCore.getCurrentProject().addFile(finalRawDataFile);
             
         } catch (Throwable e) {
             logger.log(Level.SEVERE, "Could not open file "
@@ -248,10 +239,6 @@ public class NetCDFReadTask implements Task {
 
         scanTimeIterator = null; scanTimeArray = null; scanTimeVariable = null;
 
-
-
-        
-        // TODO: Read (optional) variable scan_type
         // Fix problems caused by new QStar data converter
         // assume scan is missing when scan_index[i]<0
         // for these scans, fix variables:
@@ -446,15 +433,6 @@ public class NetCDFReadTask implements Task {
         return new SimpleScan(scanNum, 1, retentionTime.floatValue(), -1, 0, null, dataPoints, false);
     }
 
-
-    /**
-     * Returns total number of scans
-     */
-    public int getNumberOfScans() {
-        return numberOfGoodScans;
-    }
-
- 
     /**
      * @see net.sf.mzmine.taskcontrol.Task#cancel()
      */

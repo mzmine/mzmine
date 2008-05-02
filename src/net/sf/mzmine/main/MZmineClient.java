@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2007 The MZmine Development Team
+ * Copyright 2006-2008 The MZmine Development Team
  * 
  * This file is part of MZmine.
  * 
@@ -72,7 +72,8 @@ public class MZmineClient extends MZmineCore implements Runnable {
 	/**
 	 * @see java.lang.Runnable#run()
 	 */
-	public void run() {
+	@SuppressWarnings("unchecked")
+    public void run() {
 
 		// load configuration from XML
 		Document configuration = null;
@@ -130,7 +131,7 @@ public class MZmineClient extends MZmineCore implements Runnable {
 
 			moduleSet = new Vector<MZmineModule>();
 
-			Iterator <Element> modIter = configRoot.element(MODULES_ELEMENT_NAME).
+			Iterator<Element> modIter = configRoot.element(MODULES_ELEMENT_NAME).
 					elementIterator(MODULE_ELEMENT_NAME);
 
 			while (modIter.hasNext()) {

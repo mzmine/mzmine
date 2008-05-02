@@ -4,6 +4,7 @@ import java.io.File;
 
 import net.sf.mzmine.data.PreloadLevel;
 import net.sf.mzmine.data.RawDataFile;
+import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.main.RawDataFileImpl;
 import net.sf.mzmine.project.converters.RawDataFileConverter;
 
@@ -17,8 +18,8 @@ public class RawDataFileConverter_SimpleModeTest extends GenericConverterTest {
 		File dir = File.createTempFile(this.getClass().getName(), "");
 		dir.delete();
 		dir.mkdir();
-		dataFile = new RawDataFileImpl(dir, "testRawDataFile",
-				PreloadLevel.NO_PRELOAD);
+		dataFile = MZmineCore.createNewFile("testRawDataFile",
+				PreloadLevel.NO_PRELOAD).finishWriting();
 		return dataFile;
 	}
 
