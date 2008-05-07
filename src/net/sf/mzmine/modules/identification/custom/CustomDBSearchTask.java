@@ -109,6 +109,7 @@ class CustomDBSearchTask implements Task {
             for (; finishedLines < databaseValues.length; finishedLines++) {
                 processOneLine(databaseValues[finishedLines]);
             }
+            dbFileReader.close();
 
         } catch (Exception e) {
             logger.log(Level.WARNING, "Could not read file " + dbFile, e);
