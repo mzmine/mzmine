@@ -121,7 +121,7 @@ public class TwoDVisualizerWindow extends JInternalFrame implements
 		}
 
 		if (command.equals("SHOW_ANNOTATIONS")) {
-			twoDPlot.getXYPlot().setDataset(1, null);
+			twoDPlot.switchPeaksVisible();
 		}
 
 		if (command.equals("PEAKLIST_CHANGE")) {

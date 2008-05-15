@@ -170,6 +170,18 @@ class TwoDPlot extends ChartPanel {
 
     }
     
+    void switchPeaksVisible() {
+    	
+    	if (plot.getDataset(1) == null) return;
+    	
+    	boolean peaksVisible = plot.getRenderer(1) != null;
+    	if (peaksVisible) {
+    		plot.setRenderer(1, null);
+    	} else {
+    		plot.setRenderer(1, peakDataRenderer);
+    	}
+    }
+    
     PlotMode getPlotMode() {
     	return plot.getPlotMode();
     }
