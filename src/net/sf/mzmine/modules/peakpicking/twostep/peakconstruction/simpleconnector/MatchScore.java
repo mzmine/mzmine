@@ -31,14 +31,14 @@ class MatchScore implements Comparable<MatchScore> {
 
     private float score;
     private ConnectedPeak ucPeak;
-    private MzPeak oneDimPeak;
+    private MzPeak mzPeak;
     private float mzTolerance, intTolerance;
 
     MatchScore(ConnectedPeak uc, MzPeak od, float mzTolerance, float intTolerance) {
         this.mzTolerance = mzTolerance;
         this.intTolerance = intTolerance;
         ucPeak = uc;
-        oneDimPeak = od;
+        mzPeak = od;
         score = calcScore(uc, od);
     }
 
@@ -50,8 +50,8 @@ class MatchScore implements Comparable<MatchScore> {
         return ucPeak;
     }
 
-    public MzPeak getOneDimPeak() {
-        return oneDimPeak;
+    public MzPeak getMzPeak() {
+        return mzPeak;
     }
 
     public int compareTo(MatchScore m) {

@@ -256,6 +256,9 @@ public class XcaliburRawFileReadTask implements Task {
 		for (i = 0, j = 0; i < completeDataPoints.length; i++) {
 			float intensity = completeDataPoints[i].getIntensity();
 			float mz = completeDataPoints[i].getMZ();
+			
+			//logger.finest("Mz " + mz + " " + intensity);
+			
 			if (completeDataPoints[i].getIntensity() > 0) {
 				tempDataPoints[j] = new SimpleDataPoint(mz, intensity);
 				j++;
@@ -325,6 +328,7 @@ public class XcaliburRawFileReadTask implements Task {
 				parsedScans++;
 			}
 			parentStack.clear();
+			
 		}
 
 		buildingScan = null;

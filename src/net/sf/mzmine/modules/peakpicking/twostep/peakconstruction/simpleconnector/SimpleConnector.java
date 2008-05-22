@@ -19,7 +19,14 @@
 
 package net.sf.mzmine.modules.peakpicking.twostep.peakconstruction.simpleconnector;
 
+import java.util.Iterator;
+import java.util.TreeSet;
+import java.util.Vector;
+import java.util.logging.Logger;
+
 import net.sf.mzmine.data.Peak;
+import net.sf.mzmine.data.PeakStatus;
+import net.sf.mzmine.data.RawDataFile;
 import net.sf.mzmine.data.Scan;
 import net.sf.mzmine.modules.peakpicking.twostep.massdetection.MzPeak;
 import net.sf.mzmine.modules.peakpicking.twostep.peakconstruction.PeakBuilder;
@@ -29,13 +36,112 @@ import net.sf.mzmine.modules.peakpicking.twostep.peakconstruction.PeakBuilder;
  */
 public class SimpleConnector implements PeakBuilder {
 
+    private Logger logger = Logger.getLogger(this.getClass().getName());
+    private float intTolerance, mzTolerance;
+    private float minimumPeakHeight, minimumPeakDuration;
+    
     public SimpleConnector(SimpleConnectorParameters parameters) {
-
+        intTolerance = (Float) parameters.getParameterValue(SimpleConnectorParameters.intTolerance);
+        minimumPeakDuration = (Float) parameters.getParameterValue(SimpleConnectorParameters.minimumPeakDuration);
+        minimumPeakHeight = (Float) parameters.getParameterValue(SimpleConnectorParameters.minimumPeakHeight);
+        mzTolerance = (Float) parameters.getParameterValue(SimpleConnectorParameters.mzTolerance);
     }
 
-    public Peak[] addScan(Scan scan, MzPeak[] mzValues) {
-        // TODO Auto-generated method stub
-        return null;
+    public Vector<Peak> addScan(Scan scan, Vector<MzPeak> mzValues, Vector<ConnectedPeak> underConstructionPeaks, RawDataFile dataFile) {
+
+    	Vector<Peak> finishedPeaks = new Vector<Peak>();
+        // Calculate scores between under-construction scores and 1d-peaks
+        TreeSet<MatchScore> scores = new TreeSet<MatchScore>();
+
+        for (ConnectedPeak ucPeak : underConstructionPeaks) {
+            for (MzPeak mzPeak : mzValues) {
+            	MatchScore score = new MatchScore(ucPeak, mzPeak,
+                        mzTolerance, intTolerance);
+                if (score.getScore() < Float.MAX_VALUE) {
+                    scores.add(score);
+                }
+            }
+        }
+
+        // Connect the best scoring pairs of under-construction and 1d peaks
+
+        Iterator<MatchScore> scoreIterator = scores.iterator();
+        while (scoreIterator.hasNext()) {
+            MatchScore score = scoreIterator.next();
+
+            // If 1d peak is already connected, then move to next score
+            MzPeak mzPeak = score.getMzPeak();
+            if (mzPeak.isConnected()) {
+                continue;
+            }
+
+            // If uc peak is already connected, then move on to next score
+            ConnectedPeak ucPeak = score.getPeak();
+            if (ucPeak.isGrowing()) {
+                continue;
+            }
+
+            // Connect 1d to uc
+            ucPeak.addDatapoint(scan.getScanNumber(), mzPeak.mz,
+                    scan.getRetentionTime(), mzPeak.intensity);
+            mzPeak.setConnected();
+
+        }
+
+        
+        // Check if there are any under-construction peaks that were not
+        // connected (finished)
+        for (ConnectedPeak ucPeak : underConstructionPeaks) {
+
+            // If nothing was added,
+            if (!ucPeak.isGrowing()) {
+            	
+            	// Finalize peak
+            	ucPeak.finalizedAddingDatapoints(PeakStatus.DETECTED);
+            	
+                // Check length
+                float ucLength = ucPeak.getRawDataPointsRTRange().getSize();
+                float ucHeight = ucPeak.getHeight();
+                if ((ucLength >= minimumPeakDuration)
+                        && (ucHeight >= minimumPeakHeight)) {
+                		finishedPeaks.add(ucPeak);
+                }
+
+                // Remove the peak from under construction peaks
+                int ucInd = underConstructionPeaks.indexOf(ucPeak);
+                underConstructionPeaks.set(ucInd, null);
+            }
+
+        }
+        
+        
+        // Clean-up empty slots under-construction peaks collection and
+        // reset growing statuses for remaining under construction peaks
+        for (int ucInd = 0; ucInd < underConstructionPeaks.size(); ucInd++) {
+        	ConnectedPeak ucPeak = underConstructionPeaks.get(ucInd);
+            if (ucPeak == null) {
+                underConstructionPeaks.remove(ucInd);
+                ucInd--;
+            } else {
+                ucPeak.resetGrowingState();
+            }
+        }
+
+        
+        // If there are some unconnected 1d-peaks, then start a new
+        // under-construction peak for each of them
+        for (MzPeak mzPeak : mzValues) {
+            if (!mzPeak.isConnected()) {
+            	ConnectedPeak ucPeak = new ConnectedPeak(dataFile);
+                ucPeak.addDatapoint(scan.getScanNumber(), mzPeak.mz,
+                        scan.getRetentionTime(), mzPeak.intensity);
+                ucPeak.resetGrowingState();
+                underConstructionPeaks.add(ucPeak);
+            }
+
+        }
+
+        return finishedPeaks;
     }
 
 }

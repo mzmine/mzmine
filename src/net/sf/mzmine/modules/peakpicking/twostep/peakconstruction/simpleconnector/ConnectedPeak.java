@@ -39,7 +39,8 @@ import net.sf.mzmine.util.Range;
  * TODO: this class is unnecessarily complicated
  * 
  */
-class ConnectedPeak implements Peak {
+
+public class ConnectedPeak implements Peak {
 
     private PeakStatus peakStatus;
 

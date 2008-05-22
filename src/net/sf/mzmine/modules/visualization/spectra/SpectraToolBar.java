@@ -21,6 +21,7 @@ package net.sf.mzmine.modules.visualization.spectra;
 
 import java.awt.Color;
 import java.awt.Insets;
+import java.awt.event.ActionListener;
 
 import javax.swing.Icon;
 import javax.swing.ImageIcon;
@@ -32,7 +33,7 @@ import net.sf.mzmine.util.GUIUtils;
 /**
  * Spectra visualizer's toolbar class
  */
-class SpectraToolBar extends JToolBar {
+public class SpectraToolBar extends JToolBar {
 
     static final Icon centroidIcon = new ImageIcon("icons/centroidicon.png");
     static final Icon continuousIcon = new ImageIcon("icons/continuousicon.png");
@@ -41,9 +42,10 @@ class SpectraToolBar extends JToolBar {
     static final Icon pickedPeakIcon = new ImageIcon("icons/pickedpeakicon.png");
     static final Icon axesIcon = new ImageIcon("icons/axesicon.png");
     
-    private JButton centroidContinuousButton, dataPointsButton, peaksButton;
+    private JButton centroidContinuousButton, dataPointsButton, peaksButton, axesButton;
 
-    SpectraToolBar(SpectraVisualizerWindow masterFrame) {
+    //public SpectraToolBar(SpectraVisualizerWindow masterFrame) {
+    public SpectraToolBar(ActionListener masterFrame) {
 
         super(JToolBar.VERTICAL);
 
@@ -74,13 +76,13 @@ class SpectraToolBar extends JToolBar {
         
         addSeparator();
         
-        GUIUtils.addButton(this, null, axesIcon, masterFrame,
+        axesButton = GUIUtils.addButton(this, null, axesIcon, masterFrame,
                 "SETUP_AXES", "Setup ranges for axes");
         
 
     }
 
-    void setCentroidButton(boolean centroid) {
+    public void setCentroidButton(boolean centroid) {
         if (centroid) {
             centroidContinuousButton.setIcon(centroidIcon);
             dataPointsButton.setEnabled(true);
@@ -90,8 +92,12 @@ class SpectraToolBar extends JToolBar {
         }
     }
     
-    void setPeaksButtonEnabled(boolean enabled) {
+    public void setPeaksButtonEnabled(boolean enabled) {
         peaksButton.setEnabled(enabled);
+    }
+
+    public void setAxesButtonEnabled(boolean enabled) {
+    	axesButton.setEnabled(enabled);
     }
 
 }

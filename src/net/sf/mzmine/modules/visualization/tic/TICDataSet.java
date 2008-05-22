@@ -22,6 +22,7 @@ package net.sf.mzmine.modules.visualization.tic;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.Vector;
+import java.util.logging.Logger;
 
 import net.sf.mzmine.data.DataPoint;
 import net.sf.mzmine.data.RawDataFile;
@@ -47,7 +48,8 @@ import org.jfree.data.xy.AbstractXYZDataset;
 class TICDataSet extends AbstractXYZDataset implements RawDataAcceptor,
         TaskListener {
 
-    // redraw the chart every 100 ms while updating
+	private Logger logger = Logger.getLogger(this.getClass().getName());
+	// redraw the chart every 100 ms while updating
     private static final int REDRAW_INTERVAL = 100;
     private static Date lastRedrawTime = new Date();
 
@@ -148,7 +150,9 @@ class TICDataSet extends AbstractXYZDataset implements RawDataAcceptor,
 
         intensityValues[index] = totalIntensity;
         rtValues[index] = scan.getRetentionTime();
-
+        
+        //logger.info(" " + totalIntensity + " " + scan.getRetentionTime());
+        
         loadedScans++;
 
         // redraw every REDRAW_INTERVAL ms

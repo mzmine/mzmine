@@ -32,14 +32,14 @@ import org.jfree.data.xy.IntervalXYDataset;
 /**
  * Picked peaks data set;
  */
-class PeakListDataSet extends AbstractXYDataset implements IntervalXYDataset {
+public class PeakListDataSet extends AbstractXYDataset implements IntervalXYDataset {
 
     private PeakList peakList;
 
     private Peak displayedPeaks[];
     private float mzValues[], intensityValues[];
 
-    PeakListDataSet(RawDataFile dataFile, int scanNumber, PeakList peakList) {
+    public PeakListDataSet(RawDataFile dataFile, int scanNumber, PeakList peakList) {
 
         this.peakList = peakList;
 

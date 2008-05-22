@@ -19,6 +19,8 @@
 
 package net.sf.mzmine.modules.peakpicking.twostep.massdetection;
 
+import java.util.Vector;
+
 import net.sf.mzmine.data.Scan;
 
 /**
@@ -31,6 +33,6 @@ public interface MassDetector {
      * @return Mass and intensity values (m/z and intensity pairs) of a
      *         given scan
      */
-    public MzPeak[] getMassValues(Scan scan);
+    public Vector<MzPeak> getMassValues(Scan scan);
     
 }

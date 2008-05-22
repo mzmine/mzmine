@@ -28,7 +28,7 @@ import org.jfree.data.xy.IntervalXYDataset;
 /**
  * Spectra visualizer data set for scan data points
  */
-class ScanDataSet extends AbstractXYDataset implements IntervalXYDataset {
+public class ScanDataSet extends AbstractXYDataset implements IntervalXYDataset {
 
     private Scan scan;
 
@@ -38,7 +38,7 @@ class ScanDataSet extends AbstractXYDataset implements IntervalXYDataset {
      */
     private DataPoint dataPoints[];
 
-    ScanDataSet(Scan scan) {
+    public ScanDataSet(Scan scan) {
         this.scan = scan;
         dataPoints = scan.getDataPoints();
     }

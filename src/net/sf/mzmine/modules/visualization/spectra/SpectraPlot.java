@@ -23,6 +23,7 @@ import java.awt.Color;
 import java.awt.Cursor;
 import java.awt.Font;
 import java.awt.Shape;
+import java.awt.event.ActionListener;
 import java.awt.event.MouseEvent;
 import java.awt.geom.Ellipse2D;
 import java.text.NumberFormat;
@@ -48,7 +49,7 @@ import org.jfree.ui.RectangleInsets;
 /**
  * 
  */
-class SpectraPlot extends ChartPanel {
+public class SpectraPlot extends ChartPanel {
 
     private JFreeChart chart;
 
@@ -81,7 +82,8 @@ class SpectraPlot extends ChartPanel {
     XYBarRenderer centroidRenderer, peakListRenderer;
     XYLineAndShapeRenderer continuousRenderer;
 
-    SpectraPlot(SpectraVisualizerWindow visualizer) {
+    //public SpectraPlot(SpectraVisualizerWindow visualizer) {
+    public SpectraPlot(ActionListener visualizer) {
 
         super(null, true);
 
@@ -219,7 +221,7 @@ class SpectraPlot extends ChartPanel {
     /**
      * @param plotMode The plotMode to set.
      */
-    void setPlotMode(PlotMode plotMode) {
+    public void setPlotMode(PlotMode plotMode) {
         this.plotMode = plotMode;
         if (plotMode == PlotMode.CENTROID)
             plot.setRenderer(0, centroidRenderer);
@@ -228,15 +230,15 @@ class SpectraPlot extends ChartPanel {
 
     }
 
-    PlotMode getPlotMode() {
+    public PlotMode getPlotMode() {
         return plotMode;
     }
 
-    XYPlot getXYPlot() {
+    public XYPlot getXYPlot() {
         return plot;
     }
 
-    void switchItemLabelsVisible() {
+    public void switchItemLabelsVisible() {
 
         boolean itemLabelsVisible = continuousRenderer.getBaseItemLabelsVisible();
         centroidRenderer.setBaseItemLabelsVisible(!itemLabelsVisible);
@@ -244,28 +246,28 @@ class SpectraPlot extends ChartPanel {
         peakListRenderer.setBaseItemLabelsVisible(!itemLabelsVisible);
     }
 
-    void switchDataPointsVisible() {
+    public void switchDataPointsVisible() {
 
         boolean dataPointsVisible = continuousRenderer.getBaseShapesVisible();
         continuousRenderer.setBaseShapesVisible(!dataPointsVisible);
 
     }
 
-    boolean getPickedPeaksVisible() {
+    public boolean getPickedPeaksVisible() {
         Boolean pickedPeaksVisible = peakListRenderer.getBaseSeriesVisible();
         if (pickedPeaksVisible == null)
             return true;
         return pickedPeaksVisible;
     }
 
-    void switchPickedPeaksVisible() {
+    public void switchPickedPeaksVisible() {
 
         boolean pickedPeaksVisible = getPickedPeaksVisible();
         peakListRenderer.setBaseSeriesVisible(!pickedPeaksVisible);
 
     }
 
-    void setTitle(String title, String subTitle) {
+    public void setTitle(String title, String subTitle) {
         chartTitle.setText(title);
         chartSubTitle.setText(subTitle);
     }
@@ -282,7 +284,7 @@ class SpectraPlot extends ChartPanel {
         requestFocus();
     }
 
-    void setDataSets(ScanDataSet scanData, PeakListDataSet peakListData) {
+    public void setDataSets(ScanDataSet scanData, PeakListDataSet peakListData) {
 
         plot.setDataset(0, scanData);
         if (plotMode == PlotMode.CENTROID)

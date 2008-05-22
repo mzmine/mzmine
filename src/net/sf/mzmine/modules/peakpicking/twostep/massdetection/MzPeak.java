@@ -26,16 +26,36 @@ import net.sf.mzmine.data.DataPoint;
  */
 public class MzPeak implements DataPoint {
 
+    public int scanNum;
+
+    public float mz, intensity;
+    public int datapointIndex;
+
+    private boolean connected;
+
+    public MzPeak(int scanNum, int datapointIndex, float mz,
+            float intensity) {
+        this.scanNum = scanNum;
+        this.datapointIndex = datapointIndex;
+        this.mz = mz;
+        this.intensity = intensity;
+        connected = false;
+    }
+
+    public void setConnected() {
+        connected = true;
+    }
+    
     public float getIntensity() {
-        // TODO Auto-generated method stub
-        return 0;
+        return intensity;
     }
 
     public float getMZ() {
-        // TODO Auto-generated method stub
-        return 0;
+        return mz;
     }
 
+    public boolean isConnected() {
+        return connected;
+    }
     
-
 }

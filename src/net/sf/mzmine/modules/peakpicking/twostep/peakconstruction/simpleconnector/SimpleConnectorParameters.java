@@ -41,7 +41,7 @@ public class SimpleConnectorParameters extends SimpleParameterSet {
             "Minimum acceptable peak duration", null, new Float(10.0),
             new Float(0.0), null, MZmineCore.getRTFormat());
 
-    public static final Parameter minimumMZPeakWidth = new SimpleParameter(
+    /*public static final Parameter minimumMZPeakWidth = new SimpleParameter(
             ParameterType.FLOAT, "Min M/Z peak width",
             "Minimum acceptable peak width in m/z", "m/z", new Float(0.2),
             new Float(0.0), null, MZmineCore.getMZFormat());
@@ -50,7 +50,7 @@ public class SimpleConnectorParameters extends SimpleParameterSet {
             ParameterType.FLOAT, "Max M/Z peak width",
             "Maximum acceptable peak width in m/z", "m/z", new Float(1.00),
             new Float(0.0), null, MZmineCore.getMZFormat());
-
+*/
     public static final Parameter mzTolerance = new SimpleParameter(
             ParameterType.FLOAT,
             "M/Z tolerance",
@@ -66,7 +66,7 @@ public class SimpleConnectorParameters extends SimpleParameterSet {
 
     public SimpleConnectorParameters() {
         super(new Parameter[] { minimumPeakHeight, minimumPeakDuration,
-                minimumMZPeakWidth, maximumMZPeakWidth, mzTolerance,
+                /*minimumMZPeakWidth, maximumMZPeakWidth,*/ mzTolerance,
                 intTolerance });
     }
 

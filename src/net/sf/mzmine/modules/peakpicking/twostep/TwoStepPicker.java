@@ -45,7 +45,7 @@ public class TwoStepPicker implements BatchStep, TaskListener, ActionListener {
     private Logger logger = Logger.getLogger(this.getClass().getName());
 
     private TwoStepPickerParameters parameters;
-
+    
     private Desktop desktop;
 
     /**
@@ -56,11 +56,9 @@ public class TwoStepPicker implements BatchStep, TaskListener, ActionListener {
         this.desktop = MZmineCore.getDesktop();
 
         parameters = new TwoStepPickerParameters();
-
         desktop.addMenuItem(MZmineMenu.PEAKPICKING,
                 "Two step peak detector", "TODO write description",
                 KeyEvent.VK_T, this, null);
-
     }
 
     /**
@@ -74,7 +72,7 @@ public class TwoStepPicker implements BatchStep, TaskListener, ActionListener {
             return;
         }
 
-        ExitCode exitCode = setupParameters(parameters);
+        ExitCode exitCode = setupParameters(parameters, dataFiles[0]);
         if (exitCode != ExitCode.OK)
             return;
 
@@ -117,10 +115,10 @@ public class TwoStepPicker implements BatchStep, TaskListener, ActionListener {
     /**
      * @see net.sf.mzmine.modules.BatchStep#setupParameters(net.sf.mzmine.data.ParameterSet)
      */
-    public ExitCode setupParameters(ParameterSet currentParameters) {
-        ParameterSetupDialog dialog = new ParameterSetupDialog(
+    public ExitCode setupParameters(TwoStepPickerParameters currentParameters, RawDataFile dataFile) {
+    	TwoStepPickerSetupDialog dialog = new TwoStepPickerSetupDialog(
                 "Please set parameter values for " + toString(),
-                (SimpleParameterSet) currentParameters);
+                 currentParameters, dataFile);
         dialog.setVisible(true);
         return dialog.getExitCode();
     }
@@ -143,7 +141,7 @@ public class TwoStepPicker implements BatchStep, TaskListener, ActionListener {
      *      net.sf.mzmine.taskcontrol.TaskGroupListener)
      */
     public TaskGroup runModule(RawDataFile[] dataFiles,
-            PeakList[] alignmentResults, ParameterSet parameters,
+            PeakList[] alignmentResults, TwoStepPickerParameters parameters,
             TaskGroupListener taskGroupListener) {
 
         // check data files
@@ -156,7 +154,7 @@ public class TwoStepPicker implements BatchStep, TaskListener, ActionListener {
         Task tasks[] = new TwoStepPickerTask[dataFiles.length];
         for (int i = 0; i < dataFiles.length; i++) {
             tasks[i] = new TwoStepPickerTask(dataFiles[i],
-                    (TwoStepPickerParameters) parameters);
+                    parameters);
         }
         TaskGroup newGroup = new TaskGroup(tasks, this, taskGroupListener);
 
@@ -167,8 +165,16 @@ public class TwoStepPicker implements BatchStep, TaskListener, ActionListener {
 
     }
 
+    public TaskGroup runModule(RawDataFile[] dataFiles,
+            PeakList[] peakLists, ParameterSet parameters,
+            TaskGroupListener taskGroupListener){
+    	return null;
+    }
+
     public BatchStepCategory getBatchStepCategory() {
         return BatchStepCategory.PEAKPICKING;
     }
-
+    public ExitCode setupParameters(ParameterSet parameters){
+    	return ExitCode.OK;
+    }
 }

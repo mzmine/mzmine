@@ -44,7 +44,7 @@ import org.jfree.chart.axis.NumberTickUnit;
 /**
  * Spectrum visualizer using JFreeChart library
  */
-class SpectraVisualizerWindow extends JInternalFrame implements ActionListener {
+public class SpectraVisualizerWindow extends JInternalFrame implements ActionListener {
 
     private static final float zoomCoefficient = 1.2f;
 
@@ -114,6 +114,11 @@ class SpectraVisualizerWindow extends JInternalFrame implements ActionListener {
 
                     currentScan = dataFile.getScan(scanNumber);
                     scanDataSet = new ScanDataSet(currentScan);
+                    
+                    /*DataPoint [] temp = currentScan.getDataPoints(); 
+                    for (int i=0; i < currentScan.getNumberOfDataPoints(); i++)
+                    	logger.finest("Scan number " + scanNumber + " Mz " + temp[i].getMZ() + " intensity " + temp[i].getIntensity());*/ 
+                    
 
                     PeakList selectedPeakList = bottomPanel.getSelectedPeakList();
                     PeakListDataSet peaksDataSet = null;
