@@ -24,6 +24,7 @@ import java.awt.Color;
 import java.awt.GridLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.MouseEvent;
 import java.lang.reflect.Constructor;
 import java.text.NumberFormat;
 import java.util.Iterator;
@@ -450,7 +451,12 @@ class MassDetectorSetupDialog extends ParameterSetupDialog implements
 
 		}
 	}
-
+	public void mouseClicked(MouseEvent e) {
+		int ind = comboScanNumber.getSelectedIndex();
+		setPeakListDataSet(ind);
+		loadScan(listScans[ind]);	
+	}
+	
 	private void displayMessage(String msg) {
 		try {
 			logger.info(msg);
