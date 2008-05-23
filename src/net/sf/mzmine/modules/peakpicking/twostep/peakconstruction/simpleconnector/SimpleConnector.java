@@ -28,6 +28,8 @@ import net.sf.mzmine.data.Peak;
 import net.sf.mzmine.data.PeakStatus;
 import net.sf.mzmine.data.RawDataFile;
 import net.sf.mzmine.data.Scan;
+import net.sf.mzmine.data.impl.SimplePeakListRow;
+import net.sf.mzmine.modules.peakpicking.recursivethreshold.RecursivePickerParameters;
 import net.sf.mzmine.modules.peakpicking.twostep.massdetection.MzPeak;
 import net.sf.mzmine.modules.peakpicking.twostep.peakconstruction.PeakBuilder;
 
@@ -143,5 +145,24 @@ public class SimpleConnector implements PeakBuilder {
 
         return finishedPeaks;
     }
+    
+    public Vector<Peak> finishPeaks(Vector<ConnectedPeak> underConstructionPeaks){
+    	Vector<Peak> finishedPeaks = new Vector<Peak>();    	
+        for (ConnectedPeak ucPeak : underConstructionPeaks) {
+         	// Finalize peak
+         	ucPeak.finalizedAddingDatapoints(PeakStatus.DETECTED);
+         	
+             // Check length & height
+             float ucLength = ucPeak.getRawDataPointsRTRange().getSize();
+             float ucHeight = ucPeak.getHeight();
+             
+             if ((ucLength >= minimumPeakDuration)
+                     && (ucHeight >= minimumPeakHeight)) {
+         		finishedPeaks.add(ucPeak);
+             }
+         }    	
+        return finishedPeaks;   	
+    }
+
 
 }

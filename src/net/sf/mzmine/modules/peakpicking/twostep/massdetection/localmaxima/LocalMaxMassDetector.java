@@ -26,210 +26,150 @@ import net.sf.mzmine.data.DataPoint;
 import net.sf.mzmine.data.Scan;
 import net.sf.mzmine.modules.peakpicking.twostep.massdetection.MassDetector;
 import net.sf.mzmine.modules.peakpicking.twostep.massdetection.MzPeak;
-import net.sf.mzmine.util.Range;
-import net.sf.mzmine.util.ScanUtils;
 
 public class LocalMaxMassDetector implements MassDetector {
 
 	private Logger logger = Logger.getLogger(this.getClass().getName());
-	
+
 	// parameter values
-    private float binSize, chromatographicThresholdLevel, noiseLevel;
-    private float minimumMZPeakWidth, maximumMZPeakWidth;
-    private Range mzRange;
-    
-    public LocalMaxMassDetector(LocalMaxMassDetectorParameters parameters, Range mzRange) {
+	private float minimumMZPeakWidth, maximumMZPeakWidth, noiseLevel;
 
-        binSize = (Float) parameters.getParameterValue(LocalMaxMassDetectorParameters.binSize);
-        chromatographicThresholdLevel = (Float) parameters.getParameterValue(LocalMaxMassDetectorParameters.chromatographicThresholdLevel);
-        noiseLevel = (Float) parameters.getParameterValue(LocalMaxMassDetectorParameters.noiseLevel);
-        minimumMZPeakWidth = (Float) parameters.getParameterValue(LocalMaxMassDetectorParameters.minimumMZPeakWidth);
-        maximumMZPeakWidth = (Float) parameters.getParameterValue(LocalMaxMassDetectorParameters.maximumMZPeakWidth); 
-        
-        // Get minimum and maximum m/z values
-        this.mzRange = mzRange;
-        
-    }
-    public Vector<MzPeak> getMassValues(Scan scan) {
-    	return getMassValues (scan, 0);
-    }
-    
-    public Vector<MzPeak> getMassValues(Scan scan, int scanNumber) {
-    	
-        /*
-         * Calculate M/Z binning
-         */
-    	
-        int numOfBins = (int) (Math.ceil(mzRange.getSize() / binSize));
-        float[] chromatographicThresholds = new float[numOfBins];
+	public LocalMaxMassDetector(LocalMaxMassDetectorParameters parameters) {
+		noiseLevel = (Float) parameters
+				.getParameterValue(LocalMaxMassDetectorParameters.noiseLevel);
+		minimumMZPeakWidth = (Float) parameters
+				.getParameterValue(LocalMaxMassDetectorParameters.minimumMZPeakWidth);
+		maximumMZPeakWidth = (Float) parameters
+				.getParameterValue(LocalMaxMassDetectorParameters.maximumMZPeakWidth);
+	}
 
-        Scan sc = scan;
-        DataPoint dataPoints[] = sc.getDataPoints();
-        float[] mzValues = new float[dataPoints.length];
-        float[] intensityValues = new float[dataPoints.length];
-        for (int dp = 0; dp < dataPoints.length; dp++) {
-            mzValues[dp] = dataPoints[dp].getMZ();
-            intensityValues[dp] = dataPoints[dp].getIntensity();
-        }
-        
-        if (chromatographicThresholdLevel > 0) {
+	public Vector<MzPeak> getMassValues(Scan scan) {
+		return getMassValues(scan, scan.getScanNumber());
+	}
 
-            float[] binInts = new float[numOfBins];
-               
-            float[] tmpInts = ScanUtils.binValues(mzValues,
-                  intensityValues, mzRange, numOfBins, true,
-                  ScanUtils.BinningType.MAX);
-            for (int bini = 0; bini < numOfBins; bini++) {
-                binInts[bini] = tmpInts[bini];
-            }
+	public Vector<MzPeak> getMassValues(Scan scan, int scanNumber) {
 
+		Scan sc = scan;
+		DataPoint dataPoints[] = sc.getDataPoints();
+		float[] mzValues = new float[dataPoints.length];
+		float[] intensityValues = new float[dataPoints.length];
+		for (int dp = 0; dp < dataPoints.length; dp++) {
+			mzValues[dp] = dataPoints[dp].getMZ();
+			intensityValues[dp] = dataPoints[dp].getIntensity();
+		}
 
-            // Calculate filtering threshold from each RIC
-            float initialThreshold = Float.MAX_VALUE;
+		Vector<MzPeak> mzPeaks = new Vector<MzPeak>();
 
-            for (int bini = 0; bini < numOfBins; bini++) {
-                chromatographicThresholds[bini] = binInts[bini];
-                if (chromatographicThresholds[bini] < initialThreshold) {
-                    initialThreshold = chromatographicThresholds[bini];
-                }
-            }
+		// Find MzPeaks
 
-            binInts = null;
+		Vector<Integer> mzPeakInds = new Vector<Integer>();
+		recursiveThreshold(mzValues, intensityValues, 0, mzValues.length - 1,
+				noiseLevel, minimumMZPeakWidth, maximumMZPeakWidth, mzPeakInds,
+				0);
 
-        } else {
-            for (int bini = 0; bini < numOfBins; bini++)
-                chromatographicThresholds[bini] = 0;
-        }
+		for (Integer j : mzPeakInds) {
+			// Is intensity above the noise level
+			if (intensityValues[j] >= noiseLevel) {
+				mzPeaks.add(new MzPeak(scanNumber, j, mzValues[j],
+						intensityValues[j]));
+			}
+		}
+		return mzPeaks;
+	}
 
-        Vector<MzPeak> mzPeaks = new Vector<MzPeak>();
+	/**
+	 * This function searches for maximums from given part of a spectrum
+	 */
+	private int recursiveThreshold(float[] masses, float intensities[],
+			int startInd, int stopInd, float thresholdLevel,
+			float minPeakWidthMZ, float maxPeakWidthMZ,
+			Vector<Integer> CentroidInds, int recuLevel) {
 
-        // Find MzPeaks
+		int peakStartInd;
+		int peakStopInd;
+		float peakWidthMZ;
+		int peakMinInd;
+		int peakMaxInd;
 
-        Vector<Integer> mzPeakInds = new Vector<Integer>();
-        recursiveThreshold(mzValues, intensityValues, 0, mzValues.length - 1,
-                    noiseLevel, minimumMZPeakWidth, maximumMZPeakWidth, mzPeakInds, 0);
+		for (int ind = startInd; ind <= stopInd; ind++) {
+			// While below threshold
+			while ((ind <= stopInd) && (intensities[ind] <= thresholdLevel)) {
+				ind++;
+			}
 
-            for (Integer j : mzPeakInds) {
-                // Is intensity above the noise level
-                if (intensityValues[j] >= noiseLevel) {
+			if (ind >= stopInd) {
+				break;
+			}
 
-                    // Determine correct bin
-                    int bin = (int) Math.floor((mzValues[j] - mzRange.getMin()) / binSize);
-                    if (bin < 0) {
-                        bin = 0;
-                    }
-                    if (bin >= numOfBins) {
-                        bin = numOfBins - 1;
-                    }
+			peakStartInd = ind;
+			peakMinInd = peakStartInd;
+			peakMaxInd = peakStartInd;
 
-                    // Is intensity above the chromatographic threshold level
-                    // for this bin?
-                    if (intensityValues[j] >= chromatographicThresholds[bin]) {
+			// While peak is on
+			while ((ind <= stopInd) && (intensities[ind] > thresholdLevel)) {
+				// Check if this is the minimum point of the peak
+				if (intensities[ind] < intensities[peakMinInd]) {
+					peakMinInd = ind;
+				}
 
-                    	mzPeaks.add(new MzPeak(scanNumber, j, mzValues[j],
-                                intensityValues[j]));
-                    }
+				// Check if this is the maximum poin of the peak
+				if (intensities[ind] > intensities[peakMaxInd]) {
+					peakMaxInd = ind;
+				}
 
-                }
+				ind++;
+			}
 
-            }
-        return mzPeaks;
-    }
+			if (ind == stopInd) {
+				ind--;
+			}
+			// peakStopInd = ind - 1;
+			peakStopInd = ind - 1;
 
-    
-    /**
-     * This function searches for maximums from given part of a spectrum
-     */
-    private int recursiveThreshold(float[] masses, float intensities[],
-            int startInd, int stopInd, float thresholdLevel,
-            float minPeakWidthMZ, float maxPeakWidthMZ,
-            Vector<Integer> CentroidInds, int recuLevel) {
+			// Is this suitable peak?
 
-        int peakStartInd;
-        int peakStopInd;
-        float peakWidthMZ;
-        int peakMinInd;
-        int peakMaxInd;
+			if (peakStopInd < 0) {
+				peakWidthMZ = 0;
+			} else {
+				int tmpInd1 = peakStartInd - 1;
+				if (tmpInd1 < startInd) {
+					tmpInd1 = startInd;
+				}
+				int tmpInd2 = peakStopInd + 1;
+				if (tmpInd2 > stopInd) {
+					tmpInd2 = stopInd;
+				}
+				peakWidthMZ = masses[peakStopInd] - masses[peakStartInd];
+			}
 
-        for (int ind = startInd; ind <= stopInd; ind++) {
-            // While below threshold
-            while ((ind <= stopInd) && (intensities[ind] <= thresholdLevel)) {
-                ind++;
-            }
+			if ((peakWidthMZ >= minPeakWidthMZ)
+					&& (peakWidthMZ <= maxPeakWidthMZ)) {
 
-            if (ind >= stopInd) {
-                break;
-            }
+				// Two options: define peak centroid index as maxintensity index
+				// or mean index of all indices
+				CentroidInds.add(new Integer(peakMaxInd));
 
-            peakStartInd = ind;
-            peakMinInd = peakStartInd;
-            peakMaxInd = peakStartInd;
+				if (recuLevel > 0) {
+					return peakStopInd + 1;
+				}
+				// lastKnownGoodPeakStopInd = peakStopInd;
+			}
 
-            // While peak is on
-            while ((ind <= stopInd) && (intensities[ind] > thresholdLevel)) {
-                // Check if this is the minimum point of the peak
-                if (intensities[ind] < intensities[peakMinInd]) {
-                    peakMinInd = ind;
-                }
+			// Is there need for further investigation?
+			if (peakWidthMZ > maxPeakWidthMZ) {
+				ind = recursiveThreshold(masses, intensities, peakStartInd,
+						peakStopInd, intensities[peakMinInd], minPeakWidthMZ,
+						maxPeakWidthMZ, CentroidInds, recuLevel + 1);
+			}
 
-                // Check if this is the maximum poin of the peak
-                if (intensities[ind] > intensities[peakMaxInd]) {
-                    peakMaxInd = ind;
-                }
+			if (ind == (stopInd - 1)) {
+				break;
+			}
+		}
 
-                ind++;
-            }
+		// return lastKnownGoodPeakStopInd;
+		return stopInd;
 
-            if (ind == stopInd) {
-                ind--;
-            }
-            // peakStopInd = ind - 1;
-            peakStopInd = ind - 1;
-
-            // Is this suitable peak?
-
-            if (peakStopInd < 0) {
-                peakWidthMZ = 0;
-            } else {
-                int tmpInd1 = peakStartInd - 1;
-                if (tmpInd1 < startInd) {
-                    tmpInd1 = startInd;
-                }
-                int tmpInd2 = peakStopInd + 1;
-                if (tmpInd2 > stopInd) {
-                    tmpInd2 = stopInd;
-                }
-                peakWidthMZ = masses[peakStopInd] - masses[peakStartInd];
-            }
-
-            if ((peakWidthMZ >= minPeakWidthMZ)
-                    && (peakWidthMZ <= maxPeakWidthMZ)) {
-
-                // Two options: define peak centroid index as maxintensity index
-                // or mean index of all indices
-                CentroidInds.add(new Integer(peakMaxInd));
-
-                if (recuLevel > 0) {
-                    return peakStopInd + 1;
-                }
-                // lastKnownGoodPeakStopInd = peakStopInd;
-            }
-
-            // Is there need for further investigation?
-            if (peakWidthMZ > maxPeakWidthMZ) {
-                ind = recursiveThreshold(masses, intensities, peakStartInd,
-                        peakStopInd, intensities[peakMinInd], minPeakWidthMZ,
-                        maxPeakWidthMZ, CentroidInds, recuLevel + 1);
-            }
-
-            if (ind == (stopInd - 1)) {
-                break;
-            }
-        }
-
-        // return lastKnownGoodPeakStopInd;
-        return stopInd;
-
-    }
+	}
 
 }

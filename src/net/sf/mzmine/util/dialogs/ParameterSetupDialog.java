@@ -24,6 +24,8 @@ import java.awt.FlowLayout;
 import java.awt.GridLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.KeyEvent;
+import java.awt.event.KeyListener;
 import java.text.NumberFormat;
 import java.util.Hashtable;
 import java.util.Iterator;
@@ -55,7 +57,7 @@ import net.sf.mzmine.util.Range;
  * add their own components
  * 
  */
-public class ParameterSetupDialog extends JDialog implements ActionListener {
+public class ParameterSetupDialog extends JDialog implements ActionListener{
 
     public static final int TEXTFIELD_COLUMNS = 10;
 
@@ -64,13 +66,14 @@ public class ParameterSetupDialog extends JDialog implements ActionListener {
     private Logger logger = Logger.getLogger(this.getClass().getName());
 
     // Parameters and their representation in the dialog
-    private Hashtable<Parameter, JComponent> parametersAndComponents;
+    public  Hashtable<Parameter, JComponent> parametersAndComponents;
 
     // Buttons
     protected JButton btnOK, btnCancel, btnAuto;
 
     // Panels
-    private JPanel pnlLabels, pnlFields, pnlUnits, labelsAndFields, pnlButtons;
+    private JPanel pnlLabels, pnlFields, pnlUnits, pnlButtons;
+    public JPanel labelsAndFields;
 
     // Derived classed may add their components to this panel
     protected JPanel pnlAll;
@@ -163,6 +166,7 @@ public class ParameterSetupDialog extends JDialog implements ActionListener {
                 JFormattedTextField fmtField = new JFormattedTextField(format);
                 fmtField.setColumns(TEXTFIELD_COLUMNS);
                 comp = fmtField;
+                fmtField.addActionListener(this);
                 break;
 
             case RANGE:
@@ -178,6 +182,8 @@ public class ParameterSetupDialog extends JDialog implements ActionListener {
                 GUIUtils.addLabel(panel, " - ");
                 panel.add(maxTxtField);
                 comp = panel;
+                minTxtField.addActionListener(this);
+                maxTxtField.addActionListener(this);
                 break;
 
             case BOOLEAN:

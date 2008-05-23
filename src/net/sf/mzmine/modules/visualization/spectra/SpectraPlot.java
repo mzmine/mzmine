@@ -296,6 +296,7 @@ public class SpectraPlot extends ChartPanel {
             plot.setDataset(1, peakListData);
             plot.setRenderer(1, peakListRenderer);
         }
+        
     }
 
 }

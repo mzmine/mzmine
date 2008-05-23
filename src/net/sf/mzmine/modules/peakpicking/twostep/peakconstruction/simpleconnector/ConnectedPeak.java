@@ -69,7 +69,7 @@ public class ConnectedPeak implements Peak {
     /**
      * Initializes empty peak for adding data points to
      */
-    ConnectedPeak(RawDataFile dataFile) {
+    public ConnectedPeak(RawDataFile dataFile) {
         this.dataFile = dataFile;
         intializeAddingDatapoints();
     }
