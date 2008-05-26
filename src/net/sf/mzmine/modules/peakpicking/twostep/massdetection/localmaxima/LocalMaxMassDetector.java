@@ -44,10 +44,6 @@ public class LocalMaxMassDetector implements MassDetector {
 	}
 
 	public Vector<MzPeak> getMassValues(Scan scan) {
-		return getMassValues(scan, scan.getScanNumber());
-	}
-
-	public Vector<MzPeak> getMassValues(Scan scan, int scanNumber) {
 
 		Scan sc = scan;
 		DataPoint dataPoints[] = sc.getDataPoints();
@@ -70,7 +66,7 @@ public class LocalMaxMassDetector implements MassDetector {
 		for (Integer j : mzPeakInds) {
 			// Is intensity above the noise level
 			if (intensityValues[j] >= noiseLevel) {
-				mzPeaks.add(new MzPeak(scanNumber, j, mzValues[j],
+				mzPeaks.add(new MzPeak(scan.getScanNumber(), j, mzValues[j],
 						intensityValues[j]));
 			}
 		}
@@ -152,7 +148,6 @@ public class LocalMaxMassDetector implements MassDetector {
 				if (recuLevel > 0) {
 					return peakStopInd + 1;
 				}
-				// lastKnownGoodPeakStopInd = peakStopInd;
 			}
 
 			// Is there need for further investigation?

@@ -44,8 +44,7 @@ public class SpectraToolBar extends JToolBar {
     
     private JButton centroidContinuousButton, dataPointsButton, peaksButton, axesButton;
 
-    //public SpectraToolBar(SpectraVisualizerWindow masterFrame) {
-    public SpectraToolBar(ActionListener masterFrame) {
+    public SpectraToolBar(SpectraPlot plot) {
 
         super(JToolBar.VERTICAL);
 
@@ -55,28 +54,28 @@ public class SpectraToolBar extends JToolBar {
         setBackground(Color.white);
 
         centroidContinuousButton = GUIUtils.addButton(this, null, centroidIcon,
-                masterFrame, "TOGGLE_PLOT_MODE",
+        		plot, "TOGGLE_PLOT_MODE",
                 "Toggle centroid/continuous mode");
 
         addSeparator();
 
         dataPointsButton = GUIUtils.addButton(this, null, dataPointsIcon,
-                masterFrame, "SHOW_DATA_POINTS",
+        		plot, "SHOW_DATA_POINTS",
                 "Toggle displaying of data points  in continuous mode");
 
         addSeparator();
 
-        GUIUtils.addButton(this, null, annotationsIcon, masterFrame,
+        GUIUtils.addButton(this, null, annotationsIcon, plot,
                 "SHOW_ANNOTATIONS", "Toggle displaying of peak values");
 
         addSeparator();
 
-        peaksButton = GUIUtils.addButton(this, null, pickedPeakIcon, masterFrame,
+        peaksButton = GUIUtils.addButton(this, null, pickedPeakIcon, plot,
                 "SHOW_PICKED_PEAKS", "Toggle displaying of picked peaks");
         
         addSeparator();
         
-        axesButton = GUIUtils.addButton(this, null, axesIcon, masterFrame,
+        axesButton = GUIUtils.addButton(this, null, axesIcon, plot,
                 "SETUP_AXES", "Setup ranges for axes");
         
 

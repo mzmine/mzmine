@@ -27,14 +27,14 @@ import net.sf.mzmine.main.MZmineCore;
 
 public class WaveletMassDetectorParameters extends SimpleParameterSet {
 
-    public static final Parameter noiseLevel = new SimpleParameter(
-            ParameterType.FLOAT, "Noise level",
-            "Intensities less than this value are interpreted as noise",
+    public static final Parameter scaleLevel = new SimpleParameter(
+            ParameterType.FLOAT, "Scale level",
+            "Number of wavelete'scale to use in peak match detection",
             "absolute", new Float(10.0), new Float(0.0), null,
             MZmineCore.getIntensityFormat());
 
     public WaveletMassDetectorParameters() {
-        super(new Parameter[] { noiseLevel });
+        super(new Parameter[] { scaleLevel });
 
     }
 

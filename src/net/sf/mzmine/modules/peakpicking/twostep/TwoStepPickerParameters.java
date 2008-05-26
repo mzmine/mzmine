@@ -20,192 +20,190 @@
 package net.sf.mzmine.modules.peakpicking.twostep;
 
 import java.util.Iterator;
-import java.util.StringTokenizer;
-import java.util.logging.Logger;
 
 import net.sf.mzmine.data.Parameter;
 import net.sf.mzmine.data.ParameterType;
 import net.sf.mzmine.data.StorableParameterSet;
+import net.sf.mzmine.data.impl.SimpleParameter;
 import net.sf.mzmine.data.impl.SimpleParameterSet;
-import net.sf.mzmine.util.Range;
 
 import org.dom4j.Element;
 
 public class TwoStepPickerParameters implements StorableParameterSet {
 
-	private Logger logger = Logger.getLogger(this.getClass().getName());
-	public static final String PARAMETER_ELEMENT_NAME = "TwoStepParameter";
-    public static final String PARAMETER_NAME_ATTRIBUTE = "name";
-    public static final String PARAMETER_TYPE_ATTRIBUTE = "type";
-    
-    public static final String massDetectorNames[] = { "Centroid",
-            "Local maxima", "Exact mass", "Wavelet transform" };
+	private static final String PARAMETER_NAME_ATTRIBUTE = "name";
 
-    public static final String massDetectorClasses[] = {
-            "net.sf.mzmine.modules.peakpicking.twostep.massdetection.centroid.CentroidMassDetector",
-            "net.sf.mzmine.modules.peakpicking.twostep.massdetection.localmaxima.LocalMaxMassDetector",
-            "net.sf.mzmine.modules.peakpicking.twostep.massdetection.exactmass.ExactMassDetector",
-            "net.sf.mzmine.modules.peakpicking.twostep.massdetection.wavelet.WaveletMassDetector" };
+	public static final String massDetectorNames[] = { "Centroid",
+			"Local maxima", "Exact mass", "Wavelet transform" };
 
-    public static final String peakBuilderNames[] = { "Simple data point connector" };
+	public static final String massDetectorClasses[] = {
+			"net.sf.mzmine.modules.peakpicking.twostep.massdetection.centroid.CentroidMassDetector",
+			"net.sf.mzmine.modules.peakpicking.twostep.massdetection.localmaxima.LocalMaxMassDetector",
+			"net.sf.mzmine.modules.peakpicking.twostep.massdetection.exactmass.ExactMassDetector",
+			"net.sf.mzmine.modules.peakpicking.twostep.massdetection.wavelet.WaveletMassDetector" };
 
-    public static final String peakBuilderClasses[] = { 
-            "net.sf.mzmine.modules.peakpicking.twostep.peakconstruction.simpleconnector.SimpleConnector" };
+	public static final String peakBuilderNames[] = { "Simple data point connector" };
 
-    private SimpleParameterSet massDetectorParameters[];
-    private SimpleParameterSet peakBuilderParameters[];
+	public static final String peakBuilderClasses[] = { "net.sf.mzmine.modules.peakpicking.twostep.peakconstruction.simpleconnector.SimpleConnector" };
 
-    public TwoStepPickerParameters()  {
+	private SimpleParameterSet massDetectorParameters[],
+			peakBuilderParameters[], twoStepsParameters;
 
-    	massDetectorTypeNumber = 0;
-    	peakBuilderTypeNumber = 0;
-    	
-    	massDetectorParameters = new SimpleParameterSet[massDetectorClasses.length];
-    	peakBuilderParameters = new SimpleParameterSet[peakBuilderClasses.length];
-    	
-    	for (int i = 0; i < massDetectorClasses.length; i++) {
-    		String className = massDetectorClasses[i] + "Parameters";
-    		Class paramClass;
+	private static final Parameter massDetectorTypeNumber = new SimpleParameter(
+			ParameterType.INTEGER,
+			"Mass Detector type",
+			"This value defines the type of mass detector to use in two steps peak picking process",
+			0);
+
+	private static final Parameter peakBuilderTypeNumber = new SimpleParameter(
+			ParameterType.INTEGER,
+			"Peak Builder type",
+			"This value defines the type of peak builder to use in two steps peak picking process",
+			0);
+
+	private static final Parameter suffix = new SimpleParameter(
+			ParameterType.STRING, "Suffix",
+			"This string is added to filename as suffix",
+			new String("peaklist"));
+
+	public TwoStepPickerParameters() {
+
+		massDetectorParameters = new SimpleParameterSet[massDetectorClasses.length];
+		peakBuilderParameters = new SimpleParameterSet[peakBuilderClasses.length];
+
+		twoStepsParameters = new SimpleParameterSet(new Parameter[] {
+				massDetectorTypeNumber, peakBuilderTypeNumber, suffix });
+
+		for (int i = 0; i < massDetectorClasses.length; i++) {
+			String className = massDetectorClasses[i] + "Parameters";
+			Class paramClass;
 			try {
 				paramClass = Class.forName(className);
-	    		massDetectorParameters[i] = (SimpleParameterSet) paramClass.newInstance();
+				massDetectorParameters[i] = (SimpleParameterSet) paramClass
+						.newInstance();
 			} catch (Exception e) {
 				e.printStackTrace();
 			}
-    	}
+		}
 
-    	for (int i = 0; i < peakBuilderClasses.length; i++) {
-    		String className = peakBuilderClasses[i] + "Parameters";
-    		Class paramClass;
+		for (int i = 0; i < peakBuilderClasses.length; i++) {
+			String className = peakBuilderClasses[i] + "Parameters";
+			Class paramClass;
 			try {
 				paramClass = Class.forName(className);
-				peakBuilderParameters[i] = (SimpleParameterSet) paramClass.newInstance();
+				peakBuilderParameters[i] = (SimpleParameterSet) paramClass
+						.newInstance();
 			} catch (Exception e) {
 				e.printStackTrace();
 			}
-    	}
-    }
-    
- 
-    public SimpleParameterSet getMassDetectorParameters(int ind) {
-    	return massDetectorParameters[ind];
-    }
+		}
+	}
 
-    public SimpleParameterSet getPeakBuilderParameters(int ind) {
-    	return peakBuilderParameters[ind];
-    }
+	public SimpleParameterSet getMassDetectorParameters(int ind) {
+		return massDetectorParameters[ind];
+	}
 
-    private String suffix= "twosteps";
-    
-    public void setSuffix (String suffix){
-    	this.suffix = suffix;
-    }
+	public SimpleParameterSet getPeakBuilderParameters(int ind) {
+		return peakBuilderParameters[ind];
+	}
 
-    public String getSuffix (){
-    	return suffix;
-    }
+	public void setSuffix(String title) {
+		if (title.equals(""))
+			title = "peakList";
+		twoStepsParameters.setParameterValue(suffix, title);
+	}
 
-    private int massDetectorTypeNumber, peakBuilderTypeNumber;
-    
-    public void setTypeNumber (int massDetectorInd, int peakBuilderInd){
-    	massDetectorTypeNumber = massDetectorInd;
-    	peakBuilderTypeNumber = peakBuilderInd;
-    }
-    
-    public int getMassDetectorTypeNumber (){
-    	return massDetectorTypeNumber;
-    }
-    
-    public int getPeakBuilderTypeNumber (){
-    	return peakBuilderTypeNumber;
-    }
-        	
-    public void exportValuesToXML(Element element) {
-        
-    	for (int i = 0; i < massDetectorParameters.length; i++) {
-        	Element subElement = element.addElement(removeSpaces(massDetectorNames[i]));    		
-    		massDetectorParameters[i].exportValuesToXML(subElement);
-    	}
-    	
-    	for (int i = 0; i < peakBuilderParameters.length; i++) {
-        	Element subElement = element.addElement(removeSpaces(peakBuilderNames[i]));    		
-        	peakBuilderParameters[i].exportValuesToXML(subElement);
-    	}
+	public String getSuffix() {
+		String Suffix =  (String) twoStepsParameters.getParameterValue(suffix);
+		if (Suffix == null)
+			return "peaklist";
+		return Suffix;
+	}
 
-    	Element newElement = element.addElement(PARAMETER_ELEMENT_NAME);
-    	Element newElement1 = newElement.addElement("parameter");
-    	newElement1.addAttribute(PARAMETER_NAME_ATTRIBUTE, "suffix");
-        newElement1.addAttribute(PARAMETER_TYPE_ATTRIBUTE, "STRING");
-        newElement1.addText(this.suffix);
-        
-    	Element newElement2 = newElement.addElement("parameter");
-    	newElement2.addAttribute(PARAMETER_NAME_ATTRIBUTE, "massDetectorTypeNumber");
-        newElement2.addAttribute(PARAMETER_TYPE_ATTRIBUTE, "INTEGER");
-        newElement2.addText(Integer.toString(this.massDetectorTypeNumber));
-        
-    	Element newElement3 = newElement.addElement("parameter");
-    	newElement3.addAttribute(PARAMETER_NAME_ATTRIBUTE, "peakBuilderTypeNumber");
-        newElement3.addAttribute(PARAMETER_TYPE_ATTRIBUTE, "INTEGER");
-        newElement3.addText(Integer.toString(this.peakBuilderTypeNumber));
-        
-    }
+	public void setTypeNumber(int massDetectorInd, int peakBuilderInd) {
+		twoStepsParameters.setParameterValue(massDetectorTypeNumber,
+				massDetectorInd);
+		twoStepsParameters.setParameterValue(peakBuilderTypeNumber,
+				peakBuilderInd);
+	}
 
-    public void importValuesFromXML(Element element) {
-        // TODO Auto-generated method stub
-        
-    	for (int i = 0; i < massDetectorParameters.length; i++) {
-    		Element paramElem = element.element(removeSpaces(massDetectorNames[i]));
-   			massDetectorParameters[i].importValuesFromXML(paramElem);
-    	}
-    	for (int i = 0; i < peakBuilderParameters.length; i++) {
-    		Element paramElem = element.element(removeSpaces(peakBuilderNames[i]));
-    		peakBuilderParameters[i].importValuesFromXML(paramElem);
-    	}
-    	
-    	Element paramElem = element.element(PARAMETER_ELEMENT_NAME);
-    	Iterator paramIter = paramElem.elementIterator("parameter");
+	public int getMassDetectorTypeNumber() {
+		return (Integer) twoStepsParameters
+				.getParameterValue(massDetectorTypeNumber);
+	}
+
+	public int getPeakBuilderTypeNumber() {
+		return (Integer) twoStepsParameters
+				.getParameterValue(peakBuilderTypeNumber);
+	}
+
+	public void exportValuesToXML(Element element) {
+
+		for (int i = 0; i < massDetectorParameters.length; i++) {
+			Element subElement = element.addElement("massdetector");
+			subElement.addAttribute(PARAMETER_NAME_ATTRIBUTE,
+					massDetectorNames[i]);
+			massDetectorParameters[i].exportValuesToXML(subElement);
+		}
+
+		for (int i = 0; i < peakBuilderParameters.length; i++) {
+			Element subElement = element.addElement("peakbuilder");
+			subElement.addAttribute(PARAMETER_NAME_ATTRIBUTE,
+					peakBuilderNames[i]);
+			peakBuilderParameters[i].exportValuesToXML(subElement);
+		}
+
+		twoStepsParameters.exportValuesToXML(element);
+	}
+
+	public void importValuesFromXML(Element element) {
+
+		Iterator paramIter = element.elementIterator("massdetector");
 		while (paramIter.hasNext()) {
-			Element paramElemTwoStep = (Element) paramIter.next();
-			String valueText = paramElemTwoStep.getText();
-    		if (paramElemTwoStep.attributeValue(PARAMETER_NAME_ATTRIBUTE).equals("suffix")){
-    			this.suffix = valueText;
-    		}
-			if (paramElemTwoStep.attributeValue(PARAMETER_NAME_ATTRIBUTE).equals("massDetectorTypeNumber")){
-    			this.massDetectorTypeNumber = Integer.parseInt(valueText);
-    		}
-    		if (paramElemTwoStep.attributeValue(PARAMETER_NAME_ATTRIBUTE).equals("peakBuilderTypeNumber")){
-    			this.peakBuilderTypeNumber = Integer.parseInt(valueText);
-    		}
-    	}
-    }
+			Element paramElem = (Element) paramIter.next();
+			for (int i = 0; i < massDetectorNames.length; i++) {
+				if (paramElem.attributeValue(PARAMETER_NAME_ATTRIBUTE).equals(
+						massDetectorNames[i])) {
+					massDetectorParameters[i].importValuesFromXML(paramElem);
+					break;
+				}
+			}
+		}
 
-    public TwoStepPickerParameters clone() {
-        
-            // do not make a new instance of SimpleParameterSet, but instead
-            // clone the runtime class of this instance - runtime type may be
-            // inherited class
-        	TwoStepPickerParameters newSet = new TwoStepPickerParameters(); //this.getClass().newInstance();
-            newSet.massDetectorParameters = new SimpleParameterSet[massDetectorParameters.length];
-            for (int i = 0; i < massDetectorParameters.length; i++){
-            	newSet.massDetectorParameters[i] = massDetectorParameters[i].clone();
-            }
-            newSet.peakBuilderParameters = new SimpleParameterSet[peakBuilderParameters.length];
-            for (int i = 0; i < peakBuilderParameters.length; i++){
-            	newSet.peakBuilderParameters[i] = peakBuilderParameters[i].clone();
-            }
-            newSet.suffix = this.suffix;
-            newSet.massDetectorTypeNumber = getMassDetectorTypeNumber ();
-            newSet.peakBuilderTypeNumber = getPeakBuilderTypeNumber ();
-            return newSet;
+		Iterator paramIter2 = element.elementIterator("peakbuilder");
+		while (paramIter2.hasNext()) {
+			Element paramElem = (Element) paramIter2.next();
+			for (int i = 0; i < massDetectorNames.length; i++) {
+				if (paramElem.attributeValue(PARAMETER_NAME_ATTRIBUTE).equals(
+						peakBuilderNames[i])) {
+					peakBuilderParameters[i].importValuesFromXML(paramElem);
+					break;
+				}
+			}
+		}
 
-    }
-    
-    private String removeSpaces(String s) {
-    
-    	StringTokenizer st = new StringTokenizer(s," ",false);
-    	String t="";
-    	while (st.hasMoreElements()) t += st.nextElement();
-    	return t;
-    }
+		twoStepsParameters.importValuesFromXML(element);
+
+	}
+
+	public TwoStepPickerParameters clone() {
+
+		// do not make a new instance of SimpleParameterSet, but instead
+		// clone the runtime class of this instance - runtime type may be
+		// inherited class
+		TwoStepPickerParameters newSet = new TwoStepPickerParameters(); // this.getClass().newInstance();
+		newSet.massDetectorParameters = new SimpleParameterSet[massDetectorParameters.length];
+		for (int i = 0; i < massDetectorParameters.length; i++) {
+			newSet.massDetectorParameters[i] = massDetectorParameters[i]
+					.clone();
+		}
+		newSet.peakBuilderParameters = new SimpleParameterSet[peakBuilderParameters.length];
+		for (int i = 0; i < peakBuilderParameters.length; i++) {
+			newSet.peakBuilderParameters[i] = peakBuilderParameters[i].clone();
+		}
+		newSet.twoStepsParameters = twoStepsParameters.clone();
+		return newSet;
+
+	}
 
 }

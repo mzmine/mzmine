@@ -17,14 +17,16 @@
  * Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-package net.sf.mzmine.modules.peakpicking.twostep;
+package net.sf.mzmine.modules.peakpicking.twostep.massdetection;
 
 import java.awt.BorderLayout;
 import java.awt.Color;
+import java.awt.Component;
 import java.awt.GridLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.awt.event.MouseEvent;
+import java.beans.PropertyChangeEvent;
+import java.beans.PropertyChangeListener;
 import java.lang.reflect.Constructor;
 import java.text.NumberFormat;
 import java.util.Iterator;
@@ -52,18 +54,16 @@ import net.sf.mzmine.data.Scan;
 import net.sf.mzmine.data.impl.SimpleParameterSet;
 import net.sf.mzmine.data.impl.SimplePeakList;
 import net.sf.mzmine.data.impl.SimplePeakListRow;
+import net.sf.mzmine.desktop.Desktop;
 import net.sf.mzmine.main.MZmineCore;
-import net.sf.mzmine.modules.peakpicking.twostep.massdetection.MassDetector;
-import net.sf.mzmine.modules.peakpicking.twostep.massdetection.MzPeak;
+import net.sf.mzmine.modules.peakpicking.twostep.TwoStepPickerParameters;
 import net.sf.mzmine.modules.peakpicking.twostep.peakconstruction.simpleconnector.ConnectedPeak;
 import net.sf.mzmine.modules.visualization.spectra.PeakListDataSet;
 import net.sf.mzmine.modules.visualization.spectra.PlotMode;
 import net.sf.mzmine.modules.visualization.spectra.ScanDataSet;
 import net.sf.mzmine.modules.visualization.spectra.SpectraPlot;
 import net.sf.mzmine.modules.visualization.spectra.SpectraToolBar;
-import net.sf.mzmine.project.impl.MZmineProjectImpl;
 import net.sf.mzmine.util.Range;
-import net.sf.mzmine.util.dialogs.AxesSetupDialog;
 import net.sf.mzmine.util.dialogs.ParameterSetupDialog;
 
 import org.jfree.chart.axis.NumberAxis;
@@ -72,10 +72,8 @@ import org.jfree.chart.axis.NumberTickUnit;
 /**
  * Parameter Setup Dialog with Spectrum visualizer using JFreeChart library
  */
-class MassDetectorSetupDialog extends ParameterSetupDialog implements
-		ActionListener {
-
-	private static final float zoomCoefficient = 1.2f;
+public class MassDetectorSetupDialog extends ParameterSetupDialog implements
+		ActionListener, PropertyChangeListener {
 
 	private Logger logger = Logger.getLogger(this.getClass().getName());
 
@@ -86,8 +84,8 @@ class MassDetectorSetupDialog extends ParameterSetupDialog implements
 	private RawDataFile[] dataFiles;
 	private String[] fileNames;
 
-	private JPanel pnlPlotXY, pnlFileNameScanNumber, pnlLocal, pnlLabels,
-			pnlFields, pnlSpace;
+	private JPanel pnlPlotXY, pnlFileNameScanNumber, pnlLocal, pnlLab, pnlFlds,
+			pnlSpace;
 	private JComboBox comboDataFileName, comboScanNumber;
 	private int indexComboFileName;
 
@@ -111,14 +109,16 @@ class MassDetectorSetupDialog extends ParameterSetupDialog implements
 	private NumberFormat mzFormat = MZmineCore.getMZFormat();
 	private NumberFormat intensityFormat = MZmineCore.getIntensityFormat();
 
-	MassDetectorSetupDialog(RawDataFile dataFile,
-			TwoStepPickerParameters parameters, int massDetectorTypeNumber) {
+	public MassDetectorSetupDialog(TwoStepPickerParameters parameters,
+			int massDetectorTypeNumber) {
 
 		super(TwoStepPickerParameters.massDetectorNames[massDetectorTypeNumber]
 				+ "'s parameter Set Up Dialog & preVisualizer", parameters
 				.getMassDetectorParameters(massDetectorTypeNumber));
 
-		this.previewDataFile = dataFile;
+		Desktop desktop = MZmineCore.getDesktop();
+		dataFiles = desktop.getSelectedDataFiles();
+		this.previewDataFile = dataFiles[0];
 		this.massDetectorTypeNumber = massDetectorTypeNumber;
 
 		peaksDataSet = null;
@@ -133,9 +133,6 @@ class MassDetectorSetupDialog extends ParameterSetupDialog implements
 		for (int i = 0; i < listScans.length; i++)
 			currentScanNumberlist[i] = String.valueOf(listScans[i]);
 
-		MZmineProjectImpl project = (MZmineProjectImpl) MZmineCore
-				.getCurrentProject();
-		dataFiles = project.getDataFiles();
 		fileNames = new String[dataFiles.length];
 
 		for (int i = 0; i < dataFiles.length; i++) {
@@ -144,14 +141,21 @@ class MassDetectorSetupDialog extends ParameterSetupDialog implements
 				indexComboFileName = i;
 		}
 
+		// Set a listener in all parameters's fields to add functionality to
+		// this dialog
+		Component[] fields = pnlFields.getComponents();
+		for (Component field : fields) {
+			field.addPropertyChangeListener("value", this);
+		}
+
 		// panels for DataFile combo and ScanNumber combo
 		pnlLocal = new JPanel(new BorderLayout());
-		pnlLabels = new JPanel(new GridLayout(0, 1));
-		pnlFields = new JPanel(new GridLayout(0, 1));
+		pnlLab = new JPanel(new GridLayout(0, 1));
+		pnlFlds = new JPanel(new GridLayout(0, 1));
 		pnlSpace = new JPanel(new GridLayout(0, 1));
 
-		pnlFields.setBorder(BorderFactory.createEmptyBorder(5, 5, 5, 5));
-		pnlLabels.setBorder(BorderFactory.createEmptyBorder(5, 5, 5, 5));
+		pnlFlds.setBorder(BorderFactory.createEmptyBorder(5, 5, 5, 5));
+		pnlLab.setBorder(BorderFactory.createEmptyBorder(5, 5, 5, 5));
 		pnlSpace.setBorder(BorderFactory.createEmptyBorder(5, 5, 5, 5));
 
 		pnlFileNameScanNumber = new JPanel(new BorderLayout());
@@ -167,14 +171,14 @@ class MassDetectorSetupDialog extends ParameterSetupDialog implements
 		comboScanNumber.setBackground(Color.WHITE);
 		comboScanNumber.addActionListener(this);
 
-		pnlLabels.add(lblFileSelected);
-		pnlLabels.add(lblScanNumber);
-		pnlFields.add(comboDataFileName);
-		pnlFields.add(comboScanNumber);
+		pnlLab.add(lblFileSelected);
+		pnlLab.add(lblScanNumber);
+		pnlFlds.add(comboDataFileName);
+		pnlFlds.add(comboScanNumber);
 		pnlSpace.add(lblSpace);
 
-		pnlFileNameScanNumber.add(pnlLabels, BorderLayout.WEST);
-		pnlFileNameScanNumber.add(pnlFields, BorderLayout.CENTER);
+		pnlFileNameScanNumber.add(pnlLab, BorderLayout.WEST);
+		pnlFileNameScanNumber.add(pnlFlds, BorderLayout.CENTER);
 		pnlFileNameScanNumber.add(pnlSpace, BorderLayout.EAST);
 
 		pnlLocal.add(pnlFileNameScanNumber, BorderLayout.NORTH);
@@ -189,7 +193,8 @@ class MassDetectorSetupDialog extends ParameterSetupDialog implements
 		spectrumPlot = new SpectraPlot(this);
 		pnlPlotXY.add(spectrumPlot, BorderLayout.CENTER);
 
-		toolBar = new SpectraToolBar(this);
+		toolBar = new SpectraToolBar(spectrumPlot);
+		spectrumPlot.setRelatedToolBar(toolBar);
 		pnlPlotXY.add(toolBar, BorderLayout.EAST);
 		pnlLocal.add(pnlPlotXY, BorderLayout.SOUTH);
 
@@ -197,6 +202,10 @@ class MassDetectorSetupDialog extends ParameterSetupDialog implements
 
 		// Make the PeakListSet for the XYPlot
 		setPeakListDataSet(0);
+
+		// Plot the first scan of the first selected RawDataFile with his
+		// possible peaks, using the selected mass
+		// detector
 		loadScan(listScans[0]);
 
 		pack();
@@ -207,8 +216,10 @@ class MassDetectorSetupDialog extends ParameterSetupDialog implements
 
 	private void loadScan(final int scanNumber) {
 
-		logger.finest("Loading scan #" + scanNumber + " from "
-				+ previewDataFile + " for spectra visualizer");
+		/*
+		 * logger.finest("Loading scan #" + scanNumber + " from " +
+		 * previewDataFile + " for spectra visualizer");
+		 */
 
 		currentScan = previewDataFile.getScan(scanNumber);
 		scanDataSet = new ScanDataSet(currentScan);
@@ -259,7 +270,6 @@ class MassDetectorSetupDialog extends ParameterSetupDialog implements
 	public void actionPerformed(ActionEvent event) {
 
 		Object src = event.getSource();
-		String command = event.getActionCommand();
 
 		if (src == btnOK) {
 			super.actionPerformed(event);
@@ -292,61 +302,16 @@ class MassDetectorSetupDialog extends ParameterSetupDialog implements
 				loadScan(listScans[0]);
 			}
 		}
-
-		if (src instanceof JFormattedTextField) {
-			int ind = comboScanNumber.getSelectedIndex();
-			setPeakListDataSet(ind);
-			loadScan(listScans[ind]);
-		}
-
-		if (command.equals("SHOW_DATA_POINTS")) {
-			spectrumPlot.switchDataPointsVisible();
-		}
-
-		if (command.equals("SHOW_ANNOTATIONS")) {
-			spectrumPlot.switchItemLabelsVisible();
-		}
-
-		if (command.equals("SHOW_PICKED_PEAKS")) {
-			spectrumPlot.switchPickedPeaksVisible();
-		}
-
-		if (command.equals("SETUP_AXES")) {
-			AxesSetupDialog dialog = new AxesSetupDialog(spectrumPlot
-					.getXYPlot());
-			dialog.setVisible(true);
-		}
-
-		if (command.equals("TOGGLE_PLOT_MODE")) {
-			if (spectrumPlot.getPlotMode() == PlotMode.CONTINUOUS) {
-				spectrumPlot.setPlotMode(PlotMode.CENTROID);
-				toolBar.setCentroidButton(false);
-			} else {
-				spectrumPlot.setPlotMode(PlotMode.CONTINUOUS);
-				toolBar.setCentroidButton(true);
-			}
-		}
-
-		if (command.equals("ZOOM_IN")) {
-			spectrumPlot.getXYPlot().getDomainAxis().resizeRange(
-					1 / zoomCoefficient);
-		}
-
-		if (command.equals("ZOOM_OUT")) {
-			spectrumPlot.getXYPlot().getDomainAxis().resizeRange(
-					zoomCoefficient);
-		}
 	}
 
 	/*
-	 * First get the actual values in the form, upgrade parameters for
-	 * our local mass detector. After calculate all possible peaks, we 
-	 * create a new PeakListSet for the selected DataFile and Scan in 
-	 * the form.
+	 * First get the actual values in the form, upgrade parameters for our local
+	 * mass detector. After calculate all possible peaks, we create a new
+	 * PeakListSet for the selected DataFile and Scan in the form.
 	 */
 	public void setPeakListDataSet(int ind) {
 
-		Vector<MzPeak> mzValues = new Vector<MzPeak>();
+		Vector <MzPeak> mzValues = new Vector<MzPeak>();
 		SimplePeakList newPeakList = new SimplePeakList(previewDataFile
 				+ "_singleScanPeak", previewDataFile);
 		buildParameterSetMassDetector();
@@ -364,6 +329,11 @@ class MassDetectorSetupDialog extends ParameterSetupDialog implements
 
 		Scan scan = previewDataFile.getScan(listScans[ind]);
 		mzValues = massDetector.getMassValues(scan);
+		
+		if(mzValues == null){
+			peaksDataSet = null;
+			return;
+		}
 
 		Vector<Peak> pickedDataPoint = new Vector<Peak>();
 
@@ -451,12 +421,13 @@ class MassDetectorSetupDialog extends ParameterSetupDialog implements
 
 		}
 	}
-	public void mouseClicked(MouseEvent e) {
+
+	public void propertyChange(PropertyChangeEvent e) {
 		int ind = comboScanNumber.getSelectedIndex();
 		setPeakListDataSet(ind);
-		loadScan(listScans[ind]);	
+		loadScan(listScans[ind]);
 	}
-	
+
 	private void displayMessage(String msg) {
 		try {
 			logger.info(msg);

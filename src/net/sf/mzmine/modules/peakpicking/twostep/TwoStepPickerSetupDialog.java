@@ -23,19 +23,17 @@ import java.awt.BorderLayout;
 import java.awt.GridLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.util.logging.Logger;
 
 import javax.swing.BorderFactory;
 import javax.swing.JButton;
 import javax.swing.JComboBox;
 import javax.swing.JDialog;
 import javax.swing.JLabel;
-import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JTextField;
 
-import net.sf.mzmine.data.RawDataFile;
 import net.sf.mzmine.main.MZmineCore;
+import net.sf.mzmine.modules.peakpicking.twostep.massdetection.MassDetectorSetupDialog;
 import net.sf.mzmine.util.dialogs.ExitCode;
 import net.sf.mzmine.util.dialogs.ParameterSetupDialog;
 
@@ -44,7 +42,6 @@ import net.sf.mzmine.util.dialogs.ParameterSetupDialog;
  */
 class TwoStepPickerSetupDialog extends JDialog implements ActionListener {
 
-	private Logger logger = Logger.getLogger(this.getClass().getName());
 	private TwoStepPickerParameters parameters;
 	private ExitCode exitCode = ExitCode.UNKNOWN;
 
@@ -64,16 +61,13 @@ class TwoStepPickerSetupDialog extends JDialog implements ActionListener {
 	// Derived classed may add their components to this panel
 	protected JPanel pnlAll;
 
-	private RawDataFile dataFile;
-
 	public TwoStepPickerSetupDialog(String title,
-			TwoStepPickerParameters parameters, RawDataFile dataFile) {
+			TwoStepPickerParameters parameters) {
 
 		super(MZmineCore.getDesktop().getMainFrame(),
 				"Please select mass detector  & peak builder", true);
 
 		this.parameters = parameters;
-		this.dataFile = dataFile;
 
 		pnlSuffix = new JPanel(new BorderLayout());
 		pnlSuffix.setBorder(BorderFactory.createEmptyBorder(0, 10, 10, 10));
@@ -85,19 +79,20 @@ class TwoStepPickerSetupDialog extends JDialog implements ActionListener {
 		pnlSuffix.add(txtField, BorderLayout.CENTER);
 
 		// Check if there are any parameters
-		String[] massDetectorNames = parameters.massDetectorNames;
+		String[] massDetectorNames = TwoStepPickerParameters.massDetectorNames;
 		if ((massDetectorNames == null) || (massDetectorNames.length == 0)) {
 			dispose();
 		}
 
-		String[] peakBuilderNames = parameters.peakBuilderNames;
+		String[] peakBuilderNames = TwoStepPickerParameters.peakBuilderNames;
 		if ((peakBuilderNames == null) || (peakBuilderNames.length == 0)) {
 			dispose();
 		}
 
 		// panels for mass detectors & peak builders
 		pnlMassDetectors = new JPanel(new GridLayout(1, 3, 5, 0));
-		comboMassDetectors = new JComboBox(parameters.massDetectorNames);
+		comboMassDetectors = new JComboBox(
+				TwoStepPickerParameters.massDetectorNames);
 		comboMassDetectors.setSelectedIndex(parameters
 				.getMassDetectorTypeNumber());
 		comboMassDetectors.addActionListener(this);
@@ -109,7 +104,8 @@ class TwoStepPickerSetupDialog extends JDialog implements ActionListener {
 		pnlMassDetectors.add(btnSetMass);
 
 		pnlPeaksConstructors = new JPanel(new GridLayout(1, 3, 5, 0));
-		comboPeaksConstructors = new JComboBox(parameters.peakBuilderNames);
+		comboPeaksConstructors = new JComboBox(
+				TwoStepPickerParameters.peakBuilderNames);
 		comboPeaksConstructors.setSelectedIndex(parameters
 				.getPeakBuilderTypeNumber());
 		comboPeaksConstructors.addActionListener(this);
@@ -164,7 +160,7 @@ class TwoStepPickerSetupDialog extends JDialog implements ActionListener {
 			int ind = comboMassDetectors.getSelectedIndex();
 
 			MassDetectorSetupDialog dialog = new MassDetectorSetupDialog(
-					dataFile, parameters, ind);
+					parameters, ind);
 			dialog.setVisible(true);
 
 		}
@@ -190,15 +186,6 @@ class TwoStepPickerSetupDialog extends JDialog implements ActionListener {
 			dispose();
 		}
 
-	}
-
-	private void displayMessage(String msg) {
-		try {
-			logger.info(msg);
-			JOptionPane.showMessageDialog(this, msg, "Error",
-					JOptionPane.ERROR_MESSAGE);
-		} catch (Exception exce) {
-		}
 	}
 
 }

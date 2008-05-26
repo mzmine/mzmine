@@ -25,27 +25,15 @@ import java.util.logging.Logger;
 
 import net.sf.mzmine.data.ParameterSet;
 import net.sf.mzmine.data.Peak;
-import net.sf.mzmine.data.PeakStatus;
 import net.sf.mzmine.data.RawDataFile;
 import net.sf.mzmine.data.Scan;
-import net.sf.mzmine.data.impl.SimpleParameterSet;
 import net.sf.mzmine.data.impl.SimplePeakList;
 import net.sf.mzmine.data.impl.SimplePeakListRow;
 import net.sf.mzmine.main.MZmineCore;
-import net.sf.mzmine.modules.peakpicking.recursivethreshold.RecursivePickerParameters;
 import net.sf.mzmine.modules.peakpicking.twostep.massdetection.MassDetector;
 import net.sf.mzmine.modules.peakpicking.twostep.massdetection.MzPeak;
-import net.sf.mzmine.modules.peakpicking.twostep.massdetection.centroid.CentroidMassDetector;
-import net.sf.mzmine.modules.peakpicking.twostep.massdetection.centroid.CentroidMassDetectorParameters;
-import net.sf.mzmine.modules.peakpicking.twostep.massdetection.exactmass.ExactMassDetector;
-import net.sf.mzmine.modules.peakpicking.twostep.massdetection.exactmass.ExactMassDetectorParameters;
-import net.sf.mzmine.modules.peakpicking.twostep.massdetection.localmaxima.LocalMaxMassDetector;
-import net.sf.mzmine.modules.peakpicking.twostep.massdetection.localmaxima.LocalMaxMassDetectorParameters;
-import net.sf.mzmine.modules.peakpicking.twostep.massdetection.wavelet.WaveletMassDetector;
-import net.sf.mzmine.modules.peakpicking.twostep.massdetection.wavelet.WaveletMassDetectorParameters;
 import net.sf.mzmine.modules.peakpicking.twostep.peakconstruction.PeakBuilder;
 import net.sf.mzmine.modules.peakpicking.twostep.peakconstruction.simpleconnector.ConnectedPeak;
-import net.sf.mzmine.modules.peakpicking.twostep.peakconstruction.simpleconnector.SimpleConnectorParameters;
 import net.sf.mzmine.project.MZmineProject;
 import net.sf.mzmine.taskcontrol.Task;
 
@@ -54,149 +42,171 @@ import net.sf.mzmine.taskcontrol.Task;
  */
 class TwoStepPickerTask implements Task {
 
-    private Logger logger = Logger.getLogger(this.getClass().getName());
-    private RawDataFile dataFile;
+	private Logger logger = Logger.getLogger(this.getClass().getName());
+	private RawDataFile dataFile;
 
-    private TaskStatus status = TaskStatus.WAITING;
-    private String errorMessage;
+	private TaskStatus status = TaskStatus.WAITING;
+	private String errorMessage;
 
-    // scan counter
-    private int processedScans, totalScans;
-    private int newPeakID = 1;
-    private int[] scanNumbers;
-    
-    // User parameters
-    private String suffix;
+	// scan counter
+	private int processedScans, totalScans;
+	private int newPeakID = 1;
+	private int[] scanNumbers;
 
+	// User parameters
+	private String suffix;
 
-    private int massDetectorTypeNumber, peakBuilderTypeNumber;
-    private MassDetector massDetector;
-    
-    // Peak Builders 
-    private PeakBuilder peakBuilder;
+	private int massDetectorTypeNumber, peakBuilderTypeNumber;
+	private MassDetector massDetector;
 
-    private ParameterSet mdParameters, pbParameters;
-    
+	// Peak Builders
+	private PeakBuilder peakBuilder;
 
-    
-    /**
-     * @param dataFile
-     * @param parameters
-     */
-    TwoStepPickerTask(RawDataFile dataFile, TwoStepPickerParameters parameters) {
-    	
-    	this.dataFile = dataFile;
+	private ParameterSet mdParameters, pbParameters;
 
-        massDetectorTypeNumber = parameters.getMassDetectorTypeNumber();
-        mdParameters = parameters.getMassDetectorParameters(massDetectorTypeNumber);
-        String massDetectorClassName = TwoStepPickerParameters.massDetectorClasses[massDetectorTypeNumber];
-        try {
-        Class massDetectorClass = Class.forName(massDetectorClassName);
-        Constructor massDetectorConstruct = massDetectorClass.getConstructors()[0];
-        //Constructor massDetectorConstruct = massDetectorClass.getConstructor();
-        massDetector = (MassDetector) massDetectorConstruct.newInstance(mdParameters);
-        } catch (Exception e) {
-        	e.printStackTrace();
-        }
-        
-        
-    	peakBuilderTypeNumber = parameters.getPeakBuilderTypeNumber();
-        pbParameters = parameters.getPeakBuilderParameters(peakBuilderTypeNumber);
-        String peakBuilderClassName = TwoStepPickerParameters.peakBuilderClasses[peakBuilderTypeNumber];
-        try {
-        Class peakBuilderClass = Class.forName(peakBuilderClassName);
-        Constructor peakBuilderConstruct = peakBuilderClass.getConstructors()[0];
-        peakBuilder = (PeakBuilder) peakBuilderConstruct.newInstance(pbParameters);
-        } catch (Exception e) {
-        	e.printStackTrace();
-        }
+	/**
+	 * @param dataFile
+	 * @param parameters
+	 */
+	TwoStepPickerTask(RawDataFile dataFile, TwoStepPickerParameters parameters) {
 
-        suffix = parameters.getSuffix();
-    	scanNumbers = dataFile.getScanNumbers(1);
-        totalScans = scanNumbers.length;
-    }
+		this.dataFile = dataFile;
 
-    /**
-     * @see net.sf.mzmine.taskcontrol.Task#getTaskDescription()
-     */
-    public String getTaskDescription() {
-        return "Two step peak detection on " + dataFile;
-    }
+		massDetectorTypeNumber = parameters.getMassDetectorTypeNumber();
+		logger.finest("MassDetectorTypeNumber = " + massDetectorTypeNumber);
+		mdParameters = parameters
+				.getMassDetectorParameters(massDetectorTypeNumber);
+		logger.finest("mdParameters = " + mdParameters);
+		peakBuilderTypeNumber = parameters.getPeakBuilderTypeNumber();
+		logger.finest("peakBuilderTypeNumber = " + peakBuilderTypeNumber);
+		pbParameters = parameters
+				.getPeakBuilderParameters(peakBuilderTypeNumber);
+		logger.finest("pbParameters = " + pbParameters);
+		suffix = parameters.getSuffix();
+		logger.finest("suffix = " + suffix);
+		scanNumbers = dataFile.getScanNumbers(1);
+		totalScans = scanNumbers.length;
+	}
 
-    /**
-     * @see net.sf.mzmine.taskcontrol.Task#getFinishedPercentage()
-     */
-    public float getFinishedPercentage() {
-        if (totalScans == 0)
-            return 0.0f;
-        return (float) processedScans / (float) totalScans;
-    }
+	/**
+	 * @see net.sf.mzmine.taskcontrol.Task#getTaskDescription()
+	 */
+	public String getTaskDescription() {
+		return "Two step peak detection on " + dataFile;
+	}
 
-    /**
-     * @see net.sf.mzmine.taskcontrol.Task#getStatus()
-     */
-    public TaskStatus getStatus() {
-        return status;
-    }
+	/**
+	 * @see net.sf.mzmine.taskcontrol.Task#getFinishedPercentage()
+	 */
+	public float getFinishedPercentage() {
+		if (totalScans == 0)
+			return 0.0f;
+		return (float) processedScans / (float) totalScans;
+	}
 
-    /**
-     * @see net.sf.mzmine.taskcontrol.Task#getErrorMessage()
-     */
-    public String getErrorMessage() {
-        return errorMessage;
-    }
+	/**
+	 * @see net.sf.mzmine.taskcontrol.Task#getStatus()
+	 */
+	public TaskStatus getStatus() {
+		return status;
+	}
 
-    public RawDataFile getDataFile() {
-        return dataFile;
-    }
+	/**
+	 * @see net.sf.mzmine.taskcontrol.Task#getErrorMessage()
+	 */
+	public String getErrorMessage() {
+		return errorMessage;
+	}
 
-    /**
-     * @see net.sf.mzmine.taskcontrol.Task#cancel()
-     */
-    public void cancel() {
-        status = TaskStatus.CANCELED;
-    }
+	public RawDataFile getDataFile() {
+		return dataFile;
+	}
 
-    /**
-     * @see Runnable#run()
-     */
-    public void run() {
+	/**
+	 * @see net.sf.mzmine.taskcontrol.Task#cancel()
+	 */
+	public void cancel() {
+		status = TaskStatus.CANCELED;
+	}
 
-        status = TaskStatus.PROCESSING;
-        // Create new peak list
-        SimplePeakList newPeakList = new SimplePeakList(
-                dataFile + " " + suffix, dataFile);
+	/**
+	 * @see Runnable#run()
+	 */
+	public void run() {
 
-        // MzPeak
-        Vector<MzPeak> mzValues = new Vector<MzPeak>();
-        Vector<ConnectedPeak> underConstructionPeaks= new Vector<ConnectedPeak>();
-        Vector<Peak> peaks = new Vector<Peak>();
-        
-    	for (int i=0; i<totalScans; i++){
-    		Scan scan= dataFile.getScan(scanNumbers[i]);  
-    		mzValues = massDetector.getMassValues(scan);
-    		peaks = peakBuilder.addScan(scan, mzValues, underConstructionPeaks, dataFile);
-    		for (Peak finishedPeak: peaks){
-        		SimplePeakListRow newRow = new SimplePeakListRow(newPeakID);
-                newPeakID++;
-                newRow.addPeak(dataFile, finishedPeak, finishedPeak);
-                newPeakList.addRow(newRow);
-    		}
-    		processedScans++;
-    	}
-    	
-		peaks = peakBuilder.finishPeaks(underConstructionPeaks);
-		for (Peak finishedPeak: peaks){
-    		SimplePeakListRow newRow = new SimplePeakListRow(newPeakID);
-            newPeakID++;
-            newRow.addPeak(dataFile, finishedPeak, finishedPeak);
-            newPeakList.addRow(newRow);
+		status = TaskStatus.PROCESSING;
+
+		// Create new mass detector according with the user's selection
+		String massDetectorClassName = TwoStepPickerParameters.massDetectorClasses[massDetectorTypeNumber];
+		try {
+			Class massDetectorClass = Class.forName(massDetectorClassName);
+			Constructor massDetectorConstruct = massDetectorClass
+					.getConstructors()[0];
+			massDetector = (MassDetector) massDetectorConstruct
+					.newInstance(mdParameters);
+		} catch (Exception e) {
+			logger.finest("Error trying to make an instance of mass detector "
+					+ massDetectorClassName);
+			status = TaskStatus.ERROR;
+			e.printStackTrace();
 		}
-         
-         // Add new peaklist to the project
-         MZmineProject currentProject = MZmineCore.getCurrentProject();
-         currentProject.addPeakList(newPeakList);
 
-         status = TaskStatus.FINISHED;
-    }
+		// Create new peak builder according with the user's selection
+		String peakBuilderClassName = TwoStepPickerParameters.peakBuilderClasses[peakBuilderTypeNumber];
+		try {
+			Class peakBuilderClass = Class.forName(peakBuilderClassName);
+			Constructor peakBuilderConstruct = peakBuilderClass
+					.getConstructors()[0];
+			peakBuilder = (PeakBuilder) peakBuilderConstruct
+					.newInstance(pbParameters);
+		} catch (Exception e) {
+			logger.finest("Error trying to make an instance of peak builder "
+					+ peakBuilderClassName);
+			status = TaskStatus.ERROR;
+			e.printStackTrace();
+		}
+
+		// Create new peak list
+		SimplePeakList newPeakList = new SimplePeakList(
+				dataFile + " " + suffix, dataFile);
+
+		Vector<MzPeak> mzValues = new Vector<MzPeak>();
+		Vector<ConnectedPeak> underConstructionPeaks = new Vector<ConnectedPeak>();
+		Vector<Peak> peaks = new Vector<Peak>();
+
+		for (int i = 0; i < totalScans; i++) {
+			Scan scan = dataFile.getScan(scanNumbers[i]);
+			mzValues = massDetector.getMassValues(scan);
+			
+			if (mzValues.size() == 0) {
+				logger.finest("Value of MzValues equal to zero");
+				continue;
+			}
+			peaks = peakBuilder.addScan(scan, mzValues, underConstructionPeaks,
+					dataFile);
+			
+			for (Peak finishedPeak : peaks) {
+				SimplePeakListRow newRow = new SimplePeakListRow(newPeakID);
+				newPeakID++;
+				newRow.addPeak(dataFile, finishedPeak, finishedPeak);
+				newPeakList.addRow(newRow);
+			}
+			
+			processedScans++;
+		}
+		
+		peaks = peakBuilder.finishPeaks(underConstructionPeaks);
+		for (Peak finishedPeak : peaks) {
+			SimplePeakListRow newRow = new SimplePeakListRow(newPeakID);
+			newPeakID++;
+			newRow.addPeak(dataFile, finishedPeak, finishedPeak);
+			newPeakList.addRow(newRow);
+		}
+
+		// Add new peaklist to the project
+		MZmineProject currentProject = MZmineCore.getCurrentProject();
+		currentProject.addPeakList(newPeakList);
+
+		status = TaskStatus.FINISHED;
+	}
 }

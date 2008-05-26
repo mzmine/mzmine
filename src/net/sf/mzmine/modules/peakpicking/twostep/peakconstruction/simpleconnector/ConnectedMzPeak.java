@@ -17,39 +17,29 @@
  * Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-package net.sf.mzmine.modules.peakpicking.twostep.massdetection;
+package net.sf.mzmine.modules.peakpicking.twostep.peakconstruction.simpleconnector;
 
-import net.sf.mzmine.data.DataPoint;
+import net.sf.mzmine.modules.peakpicking.twostep.massdetection.MzPeak;
 
 /**
  * This class represent an m/z peak
  */
-public class MzPeak implements DataPoint {
+public class ConnectedMzPeak {
 
-	public int scanNum;
-	public float mz, intensity;
-	public int datapointIndex;
+	private boolean connected;
+	public MzPeak mzPeak;
 
-	public MzPeak() {
-		this.scanNum = 0;
-		this.datapointIndex = 0;
-		this.mz = 0;
-		this.intensity = 0;
+	public ConnectedMzPeak(MzPeak peak) {
+		this.mzPeak = peak;
+		connected = false;
 	}
 
-	public MzPeak(int scanNum, int datapointIndex, float mz, float intensity) {
-		this.scanNum = scanNum;
-		this.datapointIndex = datapointIndex;
-		this.mz = mz;
-		this.intensity = intensity;
+	public void setConnected() {
+		connected = true;
 	}
 
-	public float getIntensity() {
-		return intensity;
-	}
-
-	public float getMZ() {
-		return mz;
+	public boolean isConnected() {
+		return connected;
 	}
 
 }

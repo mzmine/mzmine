@@ -22,6 +22,7 @@ package net.sf.mzmine.modules.peakpicking.recursivethreshold;
 import java.util.Iterator;
 import java.util.TreeSet;
 import java.util.Vector;
+import java.util.logging.Logger;
 
 import net.sf.mzmine.data.DataPoint;
 import net.sf.mzmine.data.PeakStatus;
@@ -249,6 +250,7 @@ class RecursivePickerTask implements Task {
 
             }
 
+            
             // Calculate scores between under-construction scores and 1d-peaks
 
             TreeSet<MatchScore> scores = new TreeSet<MatchScore>();
@@ -264,6 +266,7 @@ class RecursivePickerTask implements Task {
                 }
 
             }
+
 
             // Connect the best scoring pairs of under-construction and 1d peaks
 

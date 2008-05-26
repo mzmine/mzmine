@@ -22,14 +22,11 @@ package net.sf.mzmine.modules.peakpicking.twostep.peakconstruction.simpleconnect
 import java.util.Iterator;
 import java.util.TreeSet;
 import java.util.Vector;
-import java.util.logging.Logger;
 
 import net.sf.mzmine.data.Peak;
 import net.sf.mzmine.data.PeakStatus;
 import net.sf.mzmine.data.RawDataFile;
 import net.sf.mzmine.data.Scan;
-import net.sf.mzmine.data.impl.SimplePeakListRow;
-import net.sf.mzmine.modules.peakpicking.recursivethreshold.RecursivePickerParameters;
 import net.sf.mzmine.modules.peakpicking.twostep.massdetection.MzPeak;
 import net.sf.mzmine.modules.peakpicking.twostep.peakconstruction.PeakBuilder;
 
@@ -38,7 +35,6 @@ import net.sf.mzmine.modules.peakpicking.twostep.peakconstruction.PeakBuilder;
  */
 public class SimpleConnector implements PeakBuilder {
 
-    private Logger logger = Logger.getLogger(this.getClass().getName());
     private float intTolerance, mzTolerance;
     private float minimumPeakHeight, minimumPeakDuration;
     
@@ -52,11 +48,15 @@ public class SimpleConnector implements PeakBuilder {
     public Vector<Peak> addScan(Scan scan, Vector<MzPeak> mzValues, Vector<ConnectedPeak> underConstructionPeaks, RawDataFile dataFile) {
 
     	Vector<Peak> finishedPeaks = new Vector<Peak>();
+    	Vector<ConnectedMzPeak> cMzPeaks = new Vector<ConnectedMzPeak>();
         // Calculate scores between under-construction scores and 1d-peaks
         TreeSet<MatchScore> scores = new TreeSet<MatchScore>();
 
+        for (MzPeak mzPeak : mzValues) 
+        	cMzPeaks.add(new ConnectedMzPeak(mzPeak));
+
         for (ConnectedPeak ucPeak : underConstructionPeaks) {
-            for (MzPeak mzPeak : mzValues) {
+            for (ConnectedMzPeak mzPeak : cMzPeaks) {
             	MatchScore score = new MatchScore(ucPeak, mzPeak,
                         mzTolerance, intTolerance);
                 if (score.getScore() < Float.MAX_VALUE) {
@@ -72,8 +72,8 @@ public class SimpleConnector implements PeakBuilder {
             MatchScore score = scoreIterator.next();
 
             // If 1d peak is already connected, then move to next score
-            MzPeak mzPeak = score.getMzPeak();
-            if (mzPeak.isConnected()) {
+            ConnectedMzPeak cMzPeak = score.getMzPeak();
+            if (cMzPeak.isConnected()) {
                 continue;
             }
 
@@ -84,9 +84,9 @@ public class SimpleConnector implements PeakBuilder {
             }
 
             // Connect 1d to uc
-            ucPeak.addDatapoint(scan.getScanNumber(), mzPeak.mz,
-                    scan.getRetentionTime(), mzPeak.intensity);
-            mzPeak.setConnected();
+            ucPeak.addDatapoint(scan.getScanNumber(), cMzPeak.mzPeak.mz,
+                    scan.getRetentionTime(), cMzPeak.mzPeak.intensity);
+            cMzPeak.setConnected();
 
         }
 
@@ -132,11 +132,11 @@ public class SimpleConnector implements PeakBuilder {
         
         // If there are some unconnected 1d-peaks, then start a new
         // under-construction peak for each of them
-        for (MzPeak mzPeak : mzValues) {
-            if (!mzPeak.isConnected()) {
+        for (ConnectedMzPeak cMzPeak : cMzPeaks) {
+            if (!cMzPeak.isConnected()) {
             	ConnectedPeak ucPeak = new ConnectedPeak(dataFile);
-                ucPeak.addDatapoint(scan.getScanNumber(), mzPeak.mz,
-                        scan.getRetentionTime(), mzPeak.intensity);
+                ucPeak.addDatapoint(scan.getScanNumber(), cMzPeak.mzPeak.mz,
+                        scan.getRetentionTime(), cMzPeak.mzPeak.intensity);
                 ucPeak.resetGrowingState();
                 underConstructionPeaks.add(ucPeak);
             }

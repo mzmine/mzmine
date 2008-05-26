@@ -23,6 +23,7 @@ import java.awt.Color;
 import java.awt.Cursor;
 import java.awt.Font;
 import java.awt.Shape;
+import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.MouseEvent;
 import java.awt.geom.Ellipse2D;
@@ -33,6 +34,7 @@ import javax.swing.KeyStroke;
 
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.util.GUIUtils;
+import net.sf.mzmine.util.dialogs.AxesSetupDialog;
 
 import org.jfree.chart.ChartFactory;
 import org.jfree.chart.ChartPanel;
@@ -51,252 +53,306 @@ import org.jfree.ui.RectangleInsets;
  */
 public class SpectraPlot extends ChartPanel {
 
-    private JFreeChart chart;
+	private JFreeChart chart;
 
-    private XYPlot plot;
+	private XYPlot plot;
 
-    private PlotMode plotMode = PlotMode.UNDEFINED;
+	private PlotMode plotMode = PlotMode.UNDEFINED;
 
-    // plot color
-    private static final Color plotColor = new Color(0, 0, 192);
+	// Tool Bar that is related with this plot in the same spectrum visualizer
+	// window
+	private SpectraToolBar toolBar;
 
-    // picked peaks color
-    private static final Color pickedPeaksColor = Color.red;
+	// plot color
+	private static final Color plotColor = new Color(0, 0, 192);
 
-    // peak labels color
-    private static final Color labelsColor = Color.darkGray;
+	// picked peaks color
+	private static final Color pickedPeaksColor = Color.red;
 
-    // grid color
-    private static final Color gridColor = Color.lightGray;
+	// peak labels color
+	private static final Color labelsColor = Color.darkGray;
 
-    // data points shape
-    private static final Shape dataPointsShape = new Ellipse2D.Float(-2, -2, 5,
-            5);
+	// grid color
+	private static final Color gridColor = Color.lightGray;
 
-    // title font
-    private static final Font titleFont = new Font("SansSerif", Font.BOLD, 12);
-    private static final Font subTitleFont = new Font("SansSerif", Font.PLAIN,
-            11);
-    private TextTitle chartTitle, chartSubTitle;
+	// data points shape
+	private static final Shape dataPointsShape = new Ellipse2D.Float(-2, -2, 5,
+			5);
 
-    XYBarRenderer centroidRenderer, peakListRenderer;
-    XYLineAndShapeRenderer continuousRenderer;
+	// title font
+	private static final Font titleFont = new Font("SansSerif", Font.BOLD, 12);
+	private static final Font subTitleFont = new Font("SansSerif", Font.PLAIN,
+			11);
+	private TextTitle chartTitle, chartSubTitle;
+	
+    private static final float zoomCoefficient = 1.2f;
 
-    //public SpectraPlot(SpectraVisualizerWindow visualizer) {
-    public SpectraPlot(ActionListener visualizer) {
+	XYBarRenderer centroidRenderer, peakListRenderer;
+	XYLineAndShapeRenderer continuousRenderer;
 
-        super(null, true);
+	// public SpectraPlot(SpectraVisualizerWindow visualizer) {
+	public SpectraPlot(ActionListener visualizer) {
 
-        setBackground(Color.white);
-        setCursor(Cursor.getPredefinedCursor(Cursor.CROSSHAIR_CURSOR));
+		super(null, true);
 
-        // initialize the chart by default time series chart from factory
-        chart = ChartFactory.createXYLineChart("", // title
-                "m/z", // x-axis label
-                "Intensity", // y-axis label
-                null, // data set
-                PlotOrientation.VERTICAL, // orientation
-                false, // create legend?
-                true, // generate tooltips?
-                false // generate URLs?
-        );
-        chart.setBackgroundPaint(Color.white);
-        setChart(chart);
+		setBackground(Color.white);
+		setCursor(Cursor.getPredefinedCursor(Cursor.CROSSHAIR_CURSOR));
 
-        // title
-        chartTitle = chart.getTitle();
-        chartTitle.setMargin(5, 0, 0, 0);
-        chartTitle.setFont(titleFont);
+		// initialize the chart by default time series chart from factory
+		chart = ChartFactory.createXYLineChart("", // title
+				"m/z", // x-axis label
+				"Intensity", // y-axis label
+				null, // data set
+				PlotOrientation.VERTICAL, // orientation
+				false, // create legend?
+				true, // generate tooltips?
+				false // generate URLs?
+				);
+		chart.setBackgroundPaint(Color.white);
+		setChart(chart);
 
-        chartSubTitle = new TextTitle();
-        chartSubTitle.setFont(subTitleFont);
-        chartSubTitle.setMargin(5, 0, 0, 0);
-        chart.addSubtitle(chartSubTitle);
+		// title
+		chartTitle = chart.getTitle();
+		chartTitle.setMargin(5, 0, 0, 0);
+		chartTitle.setFont(titleFont);
 
-        // disable maximum size (we don't want scaling)
-        setMaximumDrawWidth(Integer.MAX_VALUE);
-        setMaximumDrawHeight(Integer.MAX_VALUE);
+		chartSubTitle = new TextTitle();
+		chartSubTitle.setFont(subTitleFont);
+		chartSubTitle.setMargin(5, 0, 0, 0);
+		chart.addSubtitle(chartSubTitle);
 
-        // set the plot properties
-        plot = chart.getXYPlot();
-        plot.setBackgroundPaint(Color.white);
-        plot.setAxisOffset(new RectangleInsets(5.0, 5.0, 5.0, 5.0));
+		// disable maximum size (we don't want scaling)
+		setMaximumDrawWidth(Integer.MAX_VALUE);
+		setMaximumDrawHeight(Integer.MAX_VALUE);
 
-        // set rendering order
-        plot.setDatasetRenderingOrder(DatasetRenderingOrder.FORWARD);
+		// set the plot properties
+		plot = chart.getXYPlot();
+		plot.setBackgroundPaint(Color.white);
+		plot.setAxisOffset(new RectangleInsets(5.0, 5.0, 5.0, 5.0));
 
-        // set grid properties
-        plot.setDomainGridlinePaint(gridColor);
-        plot.setRangeGridlinePaint(gridColor);
+		// set rendering order
+		plot.setDatasetRenderingOrder(DatasetRenderingOrder.FORWARD);
 
-        // set crosshair (selection) properties
-        plot.setDomainCrosshairVisible(false);
-        plot.setRangeCrosshairVisible(false);
+		// set grid properties
+		plot.setDomainGridlinePaint(gridColor);
+		plot.setRangeGridlinePaint(gridColor);
 
-        NumberFormat mzFormat = MZmineCore.getMZFormat();
-        NumberFormat intensityFormat = MZmineCore.getIntensityFormat();
+		// set crosshair (selection) properties
+		plot.setDomainCrosshairVisible(false);
+		plot.setRangeCrosshairVisible(false);
 
-        // set the X axis (retention time) properties
-        NumberAxis xAxis = (NumberAxis) plot.getDomainAxis();
-        xAxis.setNumberFormatOverride(mzFormat);
-        xAxis.setUpperMargin(0.001);
-        xAxis.setLowerMargin(0.001);
-        xAxis.setTickLabelInsets(new RectangleInsets(0, 0, 20, 20));
+		NumberFormat mzFormat = MZmineCore.getMZFormat();
+		NumberFormat intensityFormat = MZmineCore.getIntensityFormat();
 
-        // set the Y axis (intensity) properties
-        NumberAxis yAxis = (NumberAxis) plot.getRangeAxis();
-        yAxis.setNumberFormatOverride(intensityFormat);
+		// set the X axis (retention time) properties
+		NumberAxis xAxis = (NumberAxis) plot.getDomainAxis();
+		xAxis.setNumberFormatOverride(mzFormat);
+		xAxis.setUpperMargin(0.001);
+		xAxis.setLowerMargin(0.001);
+		xAxis.setTickLabelInsets(new RectangleInsets(0, 0, 20, 20));
 
-        // set default renderer properties
-        continuousRenderer = new XYLineAndShapeRenderer();
-        continuousRenderer.setBaseShapesFilled(true);
-        continuousRenderer.setDrawOutlines(false);
-        continuousRenderer.setUseFillPaint(true);
-        continuousRenderer.setSeriesShape(0, dataPointsShape);
-        continuousRenderer.setSeriesPaint(0, plotColor);
-        continuousRenderer.setBaseFillPaint(plotColor);
-        continuousRenderer.setBaseShapesVisible(false);
+		// set the Y axis (intensity) properties
+		NumberAxis yAxis = (NumberAxis) plot.getRangeAxis();
+		yAxis.setNumberFormatOverride(intensityFormat);
 
-        centroidRenderer = new XYBarRenderer();
-        centroidRenderer.setSeriesShape(0, dataPointsShape);
-        centroidRenderer.setSeriesPaint(0, plotColor);
+		// set default renderer properties
+		continuousRenderer = new XYLineAndShapeRenderer();
+		continuousRenderer.setBaseShapesFilled(true);
+		continuousRenderer.setDrawOutlines(false);
+		continuousRenderer.setUseFillPaint(true);
+		continuousRenderer.setSeriesShape(0, dataPointsShape);
+		continuousRenderer.setSeriesPaint(0, plotColor);
+		continuousRenderer.setBaseFillPaint(plotColor);
+		continuousRenderer.setBaseShapesVisible(false);
 
-        peakListRenderer = new XYBarRenderer();
-        peakListRenderer.setSeriesPaint(0, pickedPeaksColor);
+		centroidRenderer = new XYBarRenderer();
+		centroidRenderer.setSeriesShape(0, dataPointsShape);
+		centroidRenderer.setSeriesPaint(0, plotColor);
 
-        // set label generator
-        SpectraItemLabelGenerator labelGenerator = new SpectraItemLabelGenerator(
-                this);
-        continuousRenderer.setBaseItemLabelGenerator(labelGenerator);
-        continuousRenderer.setBaseItemLabelsVisible(true);
-        continuousRenderer.setBaseItemLabelPaint(labelsColor);
-        centroidRenderer.setBaseItemLabelGenerator(labelGenerator);
-        centroidRenderer.setBaseItemLabelsVisible(true);
-        centroidRenderer.setBaseItemLabelPaint(labelsColor);
+		peakListRenderer = new XYBarRenderer();
+		peakListRenderer.setSeriesPaint(0, pickedPeaksColor);
 
-        // set toolTipGenerator
-        SpectraToolTipGenerator spectraToolTipGenerator = new SpectraToolTipGenerator();
-        continuousRenderer.setBaseToolTipGenerator(spectraToolTipGenerator);
-        centroidRenderer.setBaseToolTipGenerator(spectraToolTipGenerator);
+		// set label generator
+		SpectraItemLabelGenerator labelGenerator = new SpectraItemLabelGenerator(
+				this);
+		continuousRenderer.setBaseItemLabelGenerator(labelGenerator);
+		continuousRenderer.setBaseItemLabelsVisible(true);
+		continuousRenderer.setBaseItemLabelPaint(labelsColor);
+		centroidRenderer.setBaseItemLabelGenerator(labelGenerator);
+		centroidRenderer.setBaseItemLabelsVisible(true);
+		centroidRenderer.setBaseItemLabelPaint(labelsColor);
 
-        PeakToolTipGenerator peakToolTipGenerator = new PeakToolTipGenerator();
-        peakListRenderer.setBaseToolTipGenerator(peakToolTipGenerator);
+		// set toolTipGenerator
+		SpectraToolTipGenerator spectraToolTipGenerator = new SpectraToolTipGenerator();
+		continuousRenderer.setBaseToolTipGenerator(spectraToolTipGenerator);
+		centroidRenderer.setBaseToolTipGenerator(spectraToolTipGenerator);
 
-        // set focusable state to receive key events
-        setFocusable(true);
+		PeakToolTipGenerator peakToolTipGenerator = new PeakToolTipGenerator();
+		peakListRenderer.setBaseToolTipGenerator(peakToolTipGenerator);
 
-        // register key handlers
-        GUIUtils.registerKeyHandler(this, KeyStroke.getKeyStroke("LEFT"),
-                visualizer, "PREVIOUS_SCAN");
-        GUIUtils.registerKeyHandler(this, KeyStroke.getKeyStroke("RIGHT"),
-                visualizer, "NEXT_SCAN");
-        GUIUtils.registerKeyHandler(this, KeyStroke.getKeyStroke('+'),
-                visualizer, "ZOOM_IN");
-        GUIUtils.registerKeyHandler(this, KeyStroke.getKeyStroke('-'),
-                visualizer, "ZOOM_OUT");
+		// set focusable state to receive key events
+		setFocusable(true);
 
-        // add items to popup menu
-        JPopupMenu popupMenu = getPopupMenu();
-        popupMenu.addSeparator();
+		// register key handlers
+		GUIUtils.registerKeyHandler(this, KeyStroke.getKeyStroke("LEFT"),
+				visualizer, "PREVIOUS_SCAN");
+		GUIUtils.registerKeyHandler(this, KeyStroke.getKeyStroke("RIGHT"),
+				visualizer, "NEXT_SCAN");
+		GUIUtils.registerKeyHandler(this, KeyStroke.getKeyStroke('+'), this,
+				"ZOOM_IN");
+		GUIUtils.registerKeyHandler(this, KeyStroke.getKeyStroke('-'), this,
+				"ZOOM_OUT");
 
-        GUIUtils.addMenuItem(popupMenu, "Toggle centroid/continuous mode",
-                visualizer, "TOGGLE_PLOT_MODE");
-        GUIUtils.addMenuItem(popupMenu,
-                "Toggle displaying of data points in continuous mode",
-                visualizer, "SHOW_DATA_POINTS");
-        GUIUtils.addMenuItem(popupMenu, "Toggle displaying of peak values",
-                visualizer, "SHOW_ANNOTATIONS");
-        GUIUtils.addMenuItem(popupMenu, "Toggle displaying of picked peaks",
-                visualizer, "SHOW_PICKED_PEAKS");
+		// add items to popup menu
+		JPopupMenu popupMenu = getPopupMenu();
+		
+		popupMenu.addSeparator();
 
-        popupMenu.addSeparator();
+		GUIUtils.addMenuItem(popupMenu, "Toggle centroid/continuous mode",
+				this, "TOGGLE_PLOT_MODE");
+		GUIUtils.addMenuItem(popupMenu,
+				"Toggle displaying of data points in continuous mode", this,
+				"SHOW_DATA_POINTS");
+		GUIUtils.addMenuItem(popupMenu, "Toggle displaying of peak values",
+				this, "SHOW_ANNOTATIONS");
+		GUIUtils.addMenuItem(popupMenu, "Toggle displaying of picked peaks",
+				this, "SHOW_PICKED_PEAKS");
 
-        GUIUtils.addMenuItem(popupMenu, "Set axes range", visualizer,
-                "SETUP_AXES");
-        GUIUtils.addMenuItem(popupMenu, "Set same range to all windows",
-                visualizer, "SET_SAME_RANGE");
+		popupMenu.addSeparator();
 
-    }
+		GUIUtils.addMenuItem(popupMenu, "Set axes range", this, "SETUP_AXES");
+		GUIUtils.addMenuItem(popupMenu, "Set same range to all windows",
+				visualizer, "SET_SAME_RANGE");
 
-    /**
-     * @param plotMode The plotMode to set.
-     */
-    public void setPlotMode(PlotMode plotMode) {
-        this.plotMode = plotMode;
-        if (plotMode == PlotMode.CENTROID)
-            plot.setRenderer(0, centroidRenderer);
-        else
-            plot.setRenderer(0, continuousRenderer);
+	}
 
-    }
+	public void actionPerformed(ActionEvent event) {
 
-    public PlotMode getPlotMode() {
-        return plotMode;
-    }
+		super.actionPerformed(event);
+		
+		String command = event.getActionCommand();
 
-    public XYPlot getXYPlot() {
-        return plot;
-    }
+		if (command.equals("TOGGLE_PLOT_MODE")) {
+			if (this.getPlotMode() == PlotMode.CONTINUOUS) {
+				this.setPlotMode(PlotMode.CENTROID);
+				toolBar.setCentroidButton(false);
+			} else {
+				this.setPlotMode(PlotMode.CONTINUOUS);
+				toolBar.setCentroidButton(true);
+			}
+		}
 
-    public void switchItemLabelsVisible() {
+		if (command.equals("SHOW_DATA_POINTS")) {
+			this.switchDataPointsVisible();
+		}
 
-        boolean itemLabelsVisible = continuousRenderer.getBaseItemLabelsVisible();
-        centroidRenderer.setBaseItemLabelsVisible(!itemLabelsVisible);
-        continuousRenderer.setBaseItemLabelsVisible(!itemLabelsVisible);
-        peakListRenderer.setBaseItemLabelsVisible(!itemLabelsVisible);
-    }
+		if (command.equals("SHOW_ANNOTATIONS")) {
+			this.switchItemLabelsVisible();
+		}
 
-    public void switchDataPointsVisible() {
+		if (command.equals("SHOW_PICKED_PEAKS")) {
+			this.switchPickedPeaksVisible();
+		}
 
-        boolean dataPointsVisible = continuousRenderer.getBaseShapesVisible();
-        continuousRenderer.setBaseShapesVisible(!dataPointsVisible);
+		if (command.equals("SETUP_AXES")) {
+			AxesSetupDialog dialog = new AxesSetupDialog(this.getXYPlot());
+			dialog.setVisible(true);
+		}
 
-    }
+		if ((command.equals("ZOOM_IN")) || (command.equals("ZOOM_IN_BOTH_COMMAND"))) {
+			this.getXYPlot().getDomainAxis().resizeRange(1 / zoomCoefficient);
+		}
 
-    public boolean getPickedPeaksVisible() {
-        Boolean pickedPeaksVisible = peakListRenderer.getBaseSeriesVisible();
-        if (pickedPeaksVisible == null)
-            return true;
-        return pickedPeaksVisible;
-    }
+		if ((command.equals("ZOOM_OUT")) || (command.equals("ZOOM_OUT_BOTH_COMMAND"))) {
+			this.getXYPlot().getDomainAxis().resizeRange(zoomCoefficient);
+		}
+	}
 
-    public void switchPickedPeaksVisible() {
+	/**
+	 * @param plotMode
+	 *            The plotMode to set.
+	 */
+	public void setPlotMode(PlotMode plotMode) {
+		this.plotMode = plotMode;
+		if (plotMode == PlotMode.CENTROID)
+			plot.setRenderer(0, centroidRenderer);
+		else
+			plot.setRenderer(0, continuousRenderer);
 
-        boolean pickedPeaksVisible = getPickedPeaksVisible();
-        peakListRenderer.setBaseSeriesVisible(!pickedPeaksVisible);
+	}
 
-    }
+	public PlotMode getPlotMode() {
+		return plotMode;
+	}
 
-    public void setTitle(String title, String subTitle) {
-        chartTitle.setText(title);
-        chartSubTitle.setText(subTitle);
-    }
+	public XYPlot getXYPlot() {
+		return plot;
+	}
 
-    /**
-     * @see java.awt.event.MouseListener#mouseClicked(java.awt.event.MouseEvent)
-     */
-    public void mouseClicked(MouseEvent event) {
+	public void switchItemLabelsVisible() {
 
-        // let the parent handle the event (selection etc.)
-        super.mouseClicked(event);
+		boolean itemLabelsVisible = continuousRenderer
+				.getBaseItemLabelsVisible();
+		centroidRenderer.setBaseItemLabelsVisible(!itemLabelsVisible);
+		continuousRenderer.setBaseItemLabelsVisible(!itemLabelsVisible);
+		peakListRenderer.setBaseItemLabelsVisible(!itemLabelsVisible);
+	}
 
-        // request focus to receive key events
-        requestFocus();
-    }
+	public void switchDataPointsVisible() {
 
-    public void setDataSets(ScanDataSet scanData, PeakListDataSet peakListData) {
+		boolean dataPointsVisible = continuousRenderer.getBaseShapesVisible();
+		continuousRenderer.setBaseShapesVisible(!dataPointsVisible);
 
-        plot.setDataset(0, scanData);
-        if (plotMode == PlotMode.CENTROID)
-            plot.setRenderer(0, centroidRenderer);
-        else
-            plot.setRenderer(0, continuousRenderer);
+	}
 
-        if (peakListData != null) {
-            plot.setDataset(1, peakListData);
-            plot.setRenderer(1, peakListRenderer);
-        }
-        
-    }
+	public boolean getPickedPeaksVisible() {
+		Boolean pickedPeaksVisible = peakListRenderer.getBaseSeriesVisible();
+		if (pickedPeaksVisible == null)
+			return true;
+		return pickedPeaksVisible;
+	}
+
+	public void switchPickedPeaksVisible() {
+
+		boolean pickedPeaksVisible = getPickedPeaksVisible();
+		peakListRenderer.setBaseSeriesVisible(!pickedPeaksVisible);
+
+	}
+
+	public void setTitle(String title, String subTitle) {
+		chartTitle.setText(title);
+		chartSubTitle.setText(subTitle);
+	}
+
+	public void setRelatedToolBar(SpectraToolBar toolBar) {
+		this.toolBar = toolBar;
+	}
+
+	/**
+	 * @see java.awt.event.MouseListener#mouseClicked(java.awt.event.MouseEvent)
+	 */
+	public void mouseClicked(MouseEvent event) {
+
+		// let the parent handle the event (selection etc.)
+		super.mouseClicked(event);
+
+		// request focus to receive key events
+		requestFocus();
+	}
+
+	public void setDataSets(ScanDataSet scanData, PeakListDataSet peakListData) {
+
+		plot.setDataset(0, scanData);
+		if (plotMode == PlotMode.CENTROID)
+			plot.setRenderer(0, centroidRenderer);
+		else
+			plot.setRenderer(0, continuousRenderer);
+
+		if (peakListData != null) {
+			plot.setDataset(1, peakListData);
+			plot.setRenderer(1, peakListRenderer);
+		}
+
+	}
 
 }

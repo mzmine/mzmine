@@ -24,8 +24,8 @@ import java.awt.FlowLayout;
 import java.awt.GridLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.awt.event.MouseEvent;
-import java.awt.event.MouseListener;
+import java.beans.PropertyChangeEvent;
+import java.beans.PropertyChangeListener;
 import java.text.NumberFormat;
 import java.util.Hashtable;
 import java.util.Iterator;
@@ -57,8 +57,7 @@ import net.sf.mzmine.util.Range;
  * add their own components
  * 
  */
-public class ParameterSetupDialog extends JDialog implements ActionListener,
-		MouseListener {
+public class ParameterSetupDialog extends JDialog implements ActionListener {
 
 	public static final int TEXTFIELD_COLUMNS = 10;
 
@@ -73,8 +72,8 @@ public class ParameterSetupDialog extends JDialog implements ActionListener,
 	protected JButton btnOK, btnCancel, btnAuto;
 
 	// Panels
-	private JPanel pnlLabels, pnlFields, pnlUnits, pnlButtons;
-	public JPanel labelsAndFields;
+	private JPanel pnlLabels, pnlUnits, pnlButtons;
+	public JPanel labelsAndFields, pnlFields;
 
 	// Derived classed may add their components to this panel
 	protected JPanel pnlAll;
@@ -167,8 +166,6 @@ public class ParameterSetupDialog extends JDialog implements ActionListener,
 				JFormattedTextField fmtField = new JFormattedTextField(format);
 				fmtField.setColumns(TEXTFIELD_COLUMNS);
 				comp = fmtField;
-				fmtField.addActionListener(this);
-				fmtField.addMouseListener(this);
 				break;
 
 			case RANGE:
@@ -184,10 +181,6 @@ public class ParameterSetupDialog extends JDialog implements ActionListener,
 				GUIUtils.addLabel(panel, " - ");
 				panel.add(maxTxtField);
 				comp = panel;
-				minTxtField.addActionListener(this);
-				minTxtField.addMouseListener(this);
-				maxTxtField.addActionListener(this);
-				maxTxtField.addMouseListener(this);
 				break;
 
 			case BOOLEAN:
@@ -395,18 +388,4 @@ public class ParameterSetupDialog extends JDialog implements ActionListener,
 		}
 	}
 
-	public void mousePressed(MouseEvent e) {
-	}
-
-	public void mouseReleased(MouseEvent e) {
-	}
-
-	public void mouseEntered(MouseEvent e) {
-	}
-
-	public void mouseExited(MouseEvent e) {
-	}
-
-	public void mouseClicked(MouseEvent e) {
-	}
 }

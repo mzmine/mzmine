@@ -20,22 +20,69 @@
 package net.sf.mzmine.modules.peakpicking.twostep.massdetection.wavelet;
 
 import java.util.Vector;
+import java.util.logging.Logger;
 
+import net.sf.mzmine.data.DataPoint;
 import net.sf.mzmine.data.Scan;
+import net.sf.mzmine.data.impl.SimpleDataPoint;
 import net.sf.mzmine.modules.peakpicking.twostep.massdetection.MassDetector;
 import net.sf.mzmine.modules.peakpicking.twostep.massdetection.MzPeak;
 
-
 public class WaveletMassDetector implements MassDetector {
 
-    public WaveletMassDetector(WaveletMassDetectorParameters parameters) {
-        
-    }
-    
-    public Vector<MzPeak> getMassValues(Scan scan) {
-        // TODO Auto-generated method stub
-        return null;
-    }
+	private Logger logger = Logger.getLogger(this.getClass().getName());
 
+	// parameter values
+	private float scaleLevel;
+
+	public WaveletMassDetector(WaveletMassDetectorParameters parameters) {
+		scaleLevel = (Float) parameters
+				.getParameterValue(WaveletMassDetectorParameters.scaleLevel);
+	}
+
+	public Vector<MzPeak> getMassValues(Scan scan) {
+		Scan sc = scan;
+		DataPoint dataPoints[] = sc.getDataPoints();
+		float[] mzValues = new float[dataPoints.length];
+		float[] intensityValues = new float[dataPoints.length];
+		for (int dp = 0; dp < dataPoints.length; dp++) {
+			mzValues[dp] = dataPoints[dp].getMZ();
+			intensityValues[dp] = dataPoints[dp].getIntensity();
+		}
+
+		Vector<MzPeak> mzPeaks = new Vector<MzPeak>();
+
+		// Find MzPeaks
+
+		Vector<Integer> mzPeakInds = new Vector<Integer>();
+		//recursiveThreshold(mzValues, intensityValues, 0, mzValues.length - 1,
+			//	scaleLevel, mzPeakInds, 0);
+
+		for (Integer j : mzPeakInds) {
+			// Is intensity above the noise level
+			if (intensityValues[j] >= scaleLevel) {
+				mzPeaks.add(new MzPeak(scan.getScanNumber(), j, mzValues[j],
+						intensityValues[j]));
+			}
+		}
+		return mzPeaks;
+	}
+
+	private DataPoint[] insertEdge(DataPoint[] originalDataPoints) {
+		Vector<DataPoint> edgeDataPoint = new Vector<DataPoint>();
+		for (int dp = 1; dp < originalDataPoints.length; dp++) {
+			if ((originalDataPoints[dp].getIntensity() == 0)
+					&& (originalDataPoints[dp - 1].getIntensity() > 0)
+					&& (originalDataPoints[dp + 1].getIntensity() == 0)) {
+				int i;
+				for (i=0; i<5; i++){
+					SimpleDataPoint newDp = new SimpleDataPoint(((float)originalDataPoints[dp].getMZ()+(0.0001f*i)),0.0f);
+					edgeDataPoint.add(newDp);
+				}
+			}
+		}
+		DataPoint[] peaks = edgeDataPoint.toArray(new DataPoint[0]);
+		return peaks;
+	}
 
 }

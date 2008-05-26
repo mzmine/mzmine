@@ -21,8 +21,6 @@ package net.sf.mzmine.modules.peakpicking.twostep.peakconstruction.simpleconnect
 
 import java.util.ArrayList;
 
-import net.sf.mzmine.modules.peakpicking.twostep.massdetection.MzPeak;
-
 
 /**
  * This class represents a score (goodness of fit) between a chromatographic peak and m/z peak
@@ -31,10 +29,10 @@ class MatchScore implements Comparable<MatchScore> {
 
     private float score;
     private ConnectedPeak ucPeak;
-    private MzPeak mzPeak;
+    private ConnectedMzPeak mzPeak;
     private float mzTolerance, intTolerance;
 
-    MatchScore(ConnectedPeak uc, MzPeak od, float mzTolerance, float intTolerance) {
+    MatchScore(ConnectedPeak uc, ConnectedMzPeak od, float mzTolerance, float intTolerance) {
         this.mzTolerance = mzTolerance;
         this.intTolerance = intTolerance;
         ucPeak = uc;
@@ -50,7 +48,7 @@ class MatchScore implements Comparable<MatchScore> {
         return ucPeak;
     }
 
-    public MzPeak getMzPeak() {
+    public ConnectedMzPeak getMzPeak() {
         return mzPeak;
     }
 
@@ -63,19 +61,19 @@ class MatchScore implements Comparable<MatchScore> {
         return retsig;
     }
 
-    private float calcScore(ConnectedPeak uc, MzPeak od) {
+    private float calcScore(ConnectedPeak uc, ConnectedMzPeak od) {
 
         float ucMZ = uc.getMZ();
 
         // If mz difference is too big? (do this first for optimal
         // performance)
-        if (Math.abs(ucMZ - od.getMZ()) > mzTolerance) {
+        if (Math.abs(ucMZ - od.mzPeak.getMZ()) > mzTolerance) {
             return Float.MAX_VALUE;
 
         } else {
 
             // Calculate score components and total score
-            float scoreMZComponent = (float) Math.abs(ucMZ - od.getMZ());
+            float scoreMZComponent = (float) Math.abs(ucMZ - od.mzPeak.getMZ());
             float scoreRTComponent = calcScoreForRTShape(uc, od);
             float totalScore = (float) Math.sqrt(scoreMZComponent
                     * scoreMZComponent + scoreRTComponent
@@ -91,9 +89,9 @@ class MatchScore implements Comparable<MatchScore> {
      * determines if it is possible to add given m/z peak at the end of the
      * peak.
      */
-    private float calcScoreForRTShape(ConnectedPeak uc, MzPeak od) {
+    private float calcScoreForRTShape(ConnectedPeak uc, ConnectedMzPeak od) {
 
-        float nextIntensity = od.getIntensity();
+        float nextIntensity = od.mzPeak.getIntensity();
         //Hashtable<Integer, Float[]> datapoints = uc.getRawDatapoints();
         int[] scanNumbers = uc.getScanNumbers();
 
