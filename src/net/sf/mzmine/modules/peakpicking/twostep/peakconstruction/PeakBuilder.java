@@ -34,8 +34,8 @@ public interface PeakBuilder {
     /**
      * 
      */
-    public Vector<Peak> addScan(Scan scan, Vector<MzPeak> mzValues, Vector<ConnectedPeak> ucPeak, RawDataFile dataFile);
+    public Peak[] addScan(Scan scan, MzPeak[] mzValues, Vector<ConnectedPeak> ucPeak, RawDataFile dataFile);
     
-    public Vector<Peak> finishPeaks(Vector<ConnectedPeak> underConstructionPeaks);
+    public Peak[] finishPeaks(Vector<ConnectedPeak> underConstructionPeaks);
     
 }

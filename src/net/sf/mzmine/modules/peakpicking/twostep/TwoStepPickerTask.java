@@ -73,17 +73,12 @@ class TwoStepPickerTask implements Task {
 		this.dataFile = dataFile;
 
 		massDetectorTypeNumber = parameters.getMassDetectorTypeNumber();
-		logger.finest("MassDetectorTypeNumber = " + massDetectorTypeNumber);
 		mdParameters = parameters
 				.getMassDetectorParameters(massDetectorTypeNumber);
-		logger.finest("mdParameters = " + mdParameters);
 		peakBuilderTypeNumber = parameters.getPeakBuilderTypeNumber();
-		logger.finest("peakBuilderTypeNumber = " + peakBuilderTypeNumber);
 		pbParameters = parameters
 				.getPeakBuilderParameters(peakBuilderTypeNumber);
-		logger.finest("pbParameters = " + pbParameters);
 		suffix = parameters.getSuffix();
-		logger.finest("suffix = " + suffix);
 		scanNumbers = dataFile.getScanNumbers(1);
 		totalScans = scanNumbers.length;
 	}
@@ -170,16 +165,16 @@ class TwoStepPickerTask implements Task {
 		SimplePeakList newPeakList = new SimplePeakList(
 				dataFile + " " + suffix, dataFile);
 
-		Vector<MzPeak> mzValues = new Vector<MzPeak>();
+		MzPeak[] mzValues = new MzPeak[0];
 		Vector<ConnectedPeak> underConstructionPeaks = new Vector<ConnectedPeak>();
-		Vector<Peak> peaks = new Vector<Peak>();
+		//Vector<Peak> peaks = new Vector<Peak>();
+		Peak[] peaks = new Peak[0];
 
 		for (int i = 0; i < totalScans; i++) {
 			Scan scan = dataFile.getScan(scanNumbers[i]);
 			mzValues = massDetector.getMassValues(scan);
 			
-			if (mzValues.size() == 0) {
-				logger.finest("Value of MzValues equal to zero");
+			if (mzValues.length == 0) {
 				continue;
 			}
 			peaks = peakBuilder.addScan(scan, mzValues, underConstructionPeaks,

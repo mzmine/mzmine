@@ -20,7 +20,6 @@
 package net.sf.mzmine.modules.peakpicking.twostep.massdetection.localmaxima;
 
 import java.util.Vector;
-import java.util.logging.Logger;
 
 import net.sf.mzmine.data.DataPoint;
 import net.sf.mzmine.data.Scan;
@@ -28,8 +27,6 @@ import net.sf.mzmine.modules.peakpicking.twostep.massdetection.MassDetector;
 import net.sf.mzmine.modules.peakpicking.twostep.massdetection.MzPeak;
 
 public class LocalMaxMassDetector implements MassDetector {
-
-	private Logger logger = Logger.getLogger(this.getClass().getName());
 
 	// parameter values
 	private float minimumMZPeakWidth, maximumMZPeakWidth, noiseLevel;
@@ -43,7 +40,7 @@ public class LocalMaxMassDetector implements MassDetector {
 				.getParameterValue(LocalMaxMassDetectorParameters.maximumMZPeakWidth);
 	}
 
-	public Vector<MzPeak> getMassValues(Scan scan) {
+	public MzPeak[] getMassValues(Scan scan) {
 
 		Scan sc = scan;
 		DataPoint dataPoints[] = sc.getDataPoints();
@@ -70,7 +67,7 @@ public class LocalMaxMassDetector implements MassDetector {
 						intensityValues[j]));
 			}
 		}
-		return mzPeaks;
+		return mzPeaks.toArray(new MzPeak[0]);
 	}
 
 	/**

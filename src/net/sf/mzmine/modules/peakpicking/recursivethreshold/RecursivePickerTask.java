@@ -22,7 +22,6 @@ package net.sf.mzmine.modules.peakpicking.recursivethreshold;
 import java.util.Iterator;
 import java.util.TreeSet;
 import java.util.Vector;
-import java.util.logging.Logger;
 
 import net.sf.mzmine.data.DataPoint;
 import net.sf.mzmine.data.PeakStatus;

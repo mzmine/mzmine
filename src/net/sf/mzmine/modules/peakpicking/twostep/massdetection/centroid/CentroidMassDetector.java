@@ -19,8 +19,6 @@
 
 package net.sf.mzmine.modules.peakpicking.twostep.massdetection.centroid;
 
-import java.util.Vector;
-
 import net.sf.mzmine.data.Scan;
 import net.sf.mzmine.modules.peakpicking.twostep.massdetection.MassDetector;
 import net.sf.mzmine.modules.peakpicking.twostep.massdetection.MzPeak;
@@ -35,7 +33,7 @@ public class CentroidMassDetector implements MassDetector {
     	return 0;
     }
     
-    public Vector<MzPeak> getMassValues(Scan scan) {
+    public MzPeak[] getMassValues(Scan scan) {
         // TODO Auto-generated method stub
         return null;
     }

@@ -19,8 +19,6 @@
 
 package net.sf.mzmine.modules.peakpicking.twostep.massdetection.exactmass;
 
-import java.util.Vector;
-
 import net.sf.mzmine.data.Scan;
 import net.sf.mzmine.modules.peakpicking.twostep.massdetection.MassDetector;
 import net.sf.mzmine.modules.peakpicking.twostep.massdetection.MzPeak;
@@ -31,7 +29,7 @@ public class ExactMassDetector implements MassDetector {
         
     }
     
-    public Vector<MzPeak> getMassValues(Scan scan) {
+    public MzPeak[] getMassValues(Scan scan) {
         // TODO Auto-generated method stub
         return null;
     }

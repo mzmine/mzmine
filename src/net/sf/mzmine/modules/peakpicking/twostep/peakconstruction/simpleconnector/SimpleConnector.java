@@ -45,7 +45,7 @@ public class SimpleConnector implements PeakBuilder {
         mzTolerance = (Float) parameters.getParameterValue(SimpleConnectorParameters.mzTolerance);
     }
 
-    public Vector<Peak> addScan(Scan scan, Vector<MzPeak> mzValues, Vector<ConnectedPeak> underConstructionPeaks, RawDataFile dataFile) {
+    public Peak[] addScan(Scan scan, MzPeak[] mzValues, Vector<ConnectedPeak> underConstructionPeaks, RawDataFile dataFile) {
 
     	Vector<Peak> finishedPeaks = new Vector<Peak>();
     	Vector<ConnectedMzPeak> cMzPeaks = new Vector<ConnectedMzPeak>();
@@ -143,10 +143,10 @@ public class SimpleConnector implements PeakBuilder {
 
         }
 
-        return finishedPeaks;
+        return finishedPeaks.toArray(new Peak[0]);
     }
     
-    public Vector<Peak> finishPeaks(Vector<ConnectedPeak> underConstructionPeaks){
+    public Peak[] finishPeaks(Vector<ConnectedPeak> underConstructionPeaks){
     	Vector<Peak> finishedPeaks = new Vector<Peak>();    	
         for (ConnectedPeak ucPeak : underConstructionPeaks) {
          	// Finalize peak
@@ -161,7 +161,7 @@ public class SimpleConnector implements PeakBuilder {
          		finishedPeaks.add(ucPeak);
              }
          }    	
-        return finishedPeaks;   	
+        return finishedPeaks.toArray(new Peak[0]);   	
     }
 
 

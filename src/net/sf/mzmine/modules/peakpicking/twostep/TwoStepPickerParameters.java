@@ -117,6 +117,8 @@ public class TwoStepPickerParameters implements StorableParameterSet {
 		String Suffix =  (String) twoStepsParameters.getParameterValue(suffix);
 		if (Suffix == null)
 			return "peaklist";
+		if (Suffix.equals(""))
+			return "peaklist";
 		return Suffix;
 	}
 

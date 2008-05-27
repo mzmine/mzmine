@@ -34,6 +34,7 @@ import java.util.Vector;
 import java.util.logging.Logger;
 
 import javax.swing.BorderFactory;
+import javax.swing.Box;
 import javax.swing.ComboBoxModel;
 import javax.swing.DefaultComboBoxModel;
 import javax.swing.JCheckBox;
@@ -161,7 +162,6 @@ public class MassDetectorSetupDialog extends ParameterSetupDialog implements
 		pnlFileNameScanNumber = new JPanel(new BorderLayout());
 		JLabel lblFileSelected = new JLabel("Data file ");
 		JLabel lblScanNumber = new JLabel("Scan number ");
-		JLabel lblSpace = new JLabel("            ");
 		comboDataFileName = new JComboBox(fileNames);
 		comboDataFileName.setSelectedIndex(indexComboFileName);
 		comboDataFileName.setBackground(Color.WHITE);
@@ -175,13 +175,11 @@ public class MassDetectorSetupDialog extends ParameterSetupDialog implements
 		pnlLab.add(lblScanNumber);
 		pnlFlds.add(comboDataFileName);
 		pnlFlds.add(comboScanNumber);
-		pnlSpace.add(lblSpace);
+		pnlSpace.add(Box.createHorizontalStrut(50));
 
 		pnlFileNameScanNumber.add(pnlLab, BorderLayout.WEST);
 		pnlFileNameScanNumber.add(pnlFlds, BorderLayout.CENTER);
 		pnlFileNameScanNumber.add(pnlSpace, BorderLayout.EAST);
-
-		pnlLocal.add(pnlFileNameScanNumber, BorderLayout.NORTH);
 
 		// Panel for XYPlot
 		pnlPlotXY = new JPanel(new BorderLayout());
@@ -196,9 +194,11 @@ public class MassDetectorSetupDialog extends ParameterSetupDialog implements
 		toolBar = new SpectraToolBar(spectrumPlot);
 		spectrumPlot.setRelatedToolBar(toolBar);
 		pnlPlotXY.add(toolBar, BorderLayout.EAST);
-		pnlLocal.add(pnlPlotXY, BorderLayout.SOUTH);
 
-		pnlAll.add(pnlLocal, BorderLayout.EAST);
+		labelsAndFields.add(pnlFileNameScanNumber, BorderLayout.SOUTH);
+		pnlLocal.add(pnlAll, BorderLayout.WEST);
+		pnlLocal.add(pnlPlotXY, BorderLayout.EAST);
+		add(pnlLocal);
 
 		// Make the PeakListSet for the XYPlot
 		setPeakListDataSet(0);
@@ -311,7 +311,7 @@ public class MassDetectorSetupDialog extends ParameterSetupDialog implements
 	 */
 	public void setPeakListDataSet(int ind) {
 
-		Vector <MzPeak> mzValues = new Vector<MzPeak>();
+		MzPeak[] mzValues = new MzPeak[0];
 		SimplePeakList newPeakList = new SimplePeakList(previewDataFile
 				+ "_singleScanPeak", previewDataFile);
 		buildParameterSetMassDetector();
@@ -329,8 +329,8 @@ public class MassDetectorSetupDialog extends ParameterSetupDialog implements
 
 		Scan scan = previewDataFile.getScan(listScans[ind]);
 		mzValues = massDetector.getMassValues(scan);
-		
-		if(mzValues == null){
+
+		if (mzValues == null) {
 			peaksDataSet = null;
 			return;
 		}

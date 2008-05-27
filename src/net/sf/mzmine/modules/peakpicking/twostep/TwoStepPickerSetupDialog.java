@@ -20,11 +20,13 @@
 package net.sf.mzmine.modules.peakpicking.twostep;
 
 import java.awt.BorderLayout;
-import java.awt.GridLayout;
+import java.awt.Dimension;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 
 import javax.swing.BorderFactory;
+import javax.swing.Box;
+import javax.swing.BoxLayout;
 import javax.swing.JButton;
 import javax.swing.JComboBox;
 import javax.swing.JDialog;
@@ -49,8 +51,7 @@ class TwoStepPickerSetupDialog extends JDialog implements ActionListener {
 	protected JButton btnOK, btnCancel, btnSetMass, btnSetPeak;
 
 	// Panels
-	private JPanel pnlSuffix, pnlMassDetectors, pnlPeaksConstructors, pnlCombo,
-			pnlButtons;
+	private JPanel pnlCombo, pnlButtons;
 
 	// Combo Box
 	JComboBox comboMassDetectors, comboPeaksConstructors;
@@ -69,58 +70,65 @@ class TwoStepPickerSetupDialog extends JDialog implements ActionListener {
 
 		this.parameters = parameters;
 
-		pnlSuffix = new JPanel(new BorderLayout());
-		pnlSuffix.setBorder(BorderFactory.createEmptyBorder(0, 10, 10, 10));
+		JPanel panel1 = new JPanel();
+		panel1.setLayout(new BoxLayout(panel1, BoxLayout.X_AXIS));
+		panel1.setBorder(BorderFactory.createEmptyBorder(5, 5, 5, 5));
 		JLabel lblLabel = new JLabel("Filename suffix ");
-		pnlSuffix.add(lblLabel, BorderLayout.WEST);
+		lblLabel.setSize(200, 28);
+		panel1.add(lblLabel);
+		panel1.add(Box.createRigidArea(new Dimension(10, 10)));
 		txtField = new JTextField();
-		txtField.setColumns(10);
 		txtField.setText(parameters.getSuffix());
-		pnlSuffix.add(txtField, BorderLayout.CENTER);
+		txtField.selectAll();
+		txtField.setMaximumSize(new Dimension(250, 30));
+		panel1.add(txtField);
+		panel1.add(Box.createRigidArea(new Dimension(10, 10)));
 
-		// Check if there are any parameters
-		String[] massDetectorNames = TwoStepPickerParameters.massDetectorNames;
-		if ((massDetectorNames == null) || (massDetectorNames.length == 0)) {
-			dispose();
-		}
-
-		String[] peakBuilderNames = TwoStepPickerParameters.peakBuilderNames;
-		if ((peakBuilderNames == null) || (peakBuilderNames.length == 0)) {
-			dispose();
-		}
-
-		// panels for mass detectors & peak builders
-		pnlMassDetectors = new JPanel(new GridLayout(1, 3, 5, 0));
+		JPanel panel2 = new JPanel();
+		panel2.setLayout(new BoxLayout(panel2, BoxLayout.X_AXIS));
+		panel2.setBorder(BorderFactory.createEmptyBorder(5, 5, 5, 5));
+		JLabel lblMassDetectors = new JLabel("Mass Detector");
+		lblMassDetectors.setSize(200, 28);
+		panel2.add(lblMassDetectors);
+		panel2.add(Box.createRigidArea(new Dimension(10, 10)));
 		comboMassDetectors = new JComboBox(
 				TwoStepPickerParameters.massDetectorNames);
 		comboMassDetectors.setSelectedIndex(parameters
 				.getMassDetectorTypeNumber());
 		comboMassDetectors.addActionListener(this);
+		comboMassDetectors.setMaximumSize(new Dimension(200, 30));
+		panel2.add(comboMassDetectors);
+		panel2.add(Box.createRigidArea(new Dimension(10, 10)));
 		btnSetMass = new JButton("Set parameters");
 		btnSetMass.addActionListener(this);
-		JLabel lblMassDetectors = new JLabel("Mass Detector");
-		pnlMassDetectors.add(lblMassDetectors);
-		pnlMassDetectors.add(comboMassDetectors);
-		pnlMassDetectors.add(btnSetMass);
+		panel2.add(btnSetMass);
+		panel2.add(Box.createRigidArea(new Dimension(10, 10)));
 
-		pnlPeaksConstructors = new JPanel(new GridLayout(1, 3, 5, 0));
+		JPanel panel3 = new JPanel();
+		panel3.setLayout(new BoxLayout(panel3, BoxLayout.X_AXIS));
+		panel3.setBorder(BorderFactory.createEmptyBorder(5, 5, 5, 5));
+		JLabel lblPeakBuilder = new JLabel("Peak Builder");
+		lblPeakBuilder.setMaximumSize(new Dimension(200, 30));
+		panel3.add(lblPeakBuilder);
+		panel3.add(Box.createRigidArea(new Dimension(10, 10)));
 		comboPeaksConstructors = new JComboBox(
 				TwoStepPickerParameters.peakBuilderNames);
 		comboPeaksConstructors.setSelectedIndex(parameters
 				.getPeakBuilderTypeNumber());
 		comboPeaksConstructors.addActionListener(this);
+		comboPeaksConstructors.setMaximumSize(new Dimension(200, 28));
+		panel3.add(comboPeaksConstructors);
+		panel3.add(Box.createRigidArea(new Dimension(10, 10)));
 		btnSetPeak = new JButton("Set parameters");
 		btnSetPeak.addActionListener(this);
-		JLabel lblPeakBuilder = new JLabel("Peak Builder");
-		lblPeakBuilder.setSize(lblMassDetectors.getSize());
-		pnlPeaksConstructors.add(lblPeakBuilder);
-		pnlPeaksConstructors.add(comboPeaksConstructors);
-		pnlPeaksConstructors.add(btnSetPeak);
+		panel3.add(btnSetPeak);
+		panel3.add(Box.createRigidArea(new Dimension(10, 10)));
 
 		pnlCombo = new JPanel(new BorderLayout());
 		pnlCombo.setBorder(BorderFactory.createEmptyBorder(0, 10, 10, 10));
-		pnlCombo.add(pnlMassDetectors, BorderLayout.NORTH);
-		pnlCombo.add(pnlPeaksConstructors, BorderLayout.SOUTH);
+		pnlCombo.add(panel1, BorderLayout.NORTH);
+		pnlCombo.add(panel2, BorderLayout.CENTER);
+		pnlCombo.add(panel3, BorderLayout.SOUTH);
 
 		// Buttons
 		pnlButtons = new JPanel();
@@ -138,7 +146,7 @@ class TwoStepPickerSetupDialog extends JDialog implements ActionListener {
 
 		// Leave the BorderLayout.CENTER area empty, so that derived dialogs can
 		// put their own controls in there
-		pnlAll.add(pnlSuffix, BorderLayout.NORTH);
+		// pnlAll.add(pnlSuffix, BorderLayout.NORTH);
 		pnlAll.add(pnlCombo, BorderLayout.CENTER);
 		pnlAll.add(pnlButtons, BorderLayout.SOUTH);
 
