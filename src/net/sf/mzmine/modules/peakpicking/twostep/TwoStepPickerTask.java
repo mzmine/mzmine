@@ -174,9 +174,6 @@ class TwoStepPickerTask implements Task {
 			Scan scan = dataFile.getScan(scanNumbers[i]);
 			mzValues = massDetector.getMassValues(scan);
 			
-			if (mzValues.length == 0) {
-				continue;
-			}
 			peaks = peakBuilder.addScan(scan, mzValues, underConstructionPeaks,
 					dataFile);
 			

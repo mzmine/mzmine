@@ -43,6 +43,7 @@ import javax.swing.JFormattedTextField;
 import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
+import javax.swing.JSeparator;
 import javax.swing.JTextField;
 import javax.swing.border.Border;
 import javax.swing.border.EtchedBorder;
@@ -69,6 +70,7 @@ import net.sf.mzmine.util.dialogs.ParameterSetupDialog;
 
 import org.jfree.chart.axis.NumberAxis;
 import org.jfree.chart.axis.NumberTickUnit;
+import org.jfree.chart.labels.XYToolTipGenerator;
 
 /**
  * Parameter Setup Dialog with Spectrum visualizer using JFreeChart library
@@ -88,6 +90,7 @@ public class MassDetectorSetupDialog extends ParameterSetupDialog implements
 	private JPanel pnlPlotXY, pnlFileNameScanNumber, pnlLocal, pnlLab, pnlFlds,
 			pnlSpace;
 	private JComboBox comboDataFileName, comboScanNumber;
+	private JCheckBox preview;
 	private int indexComboFileName;
 
 	// Currently loaded scan
@@ -166,10 +169,12 @@ public class MassDetectorSetupDialog extends ParameterSetupDialog implements
 		comboDataFileName.setSelectedIndex(indexComboFileName);
 		comboDataFileName.setBackground(Color.WHITE);
 		comboDataFileName.addActionListener(this);
+		comboDataFileName.setEnabled(false);
 		comboScanNumber = new JComboBox(currentScanNumberlist);
 		comboScanNumber.setSelectedIndex(0);
 		comboScanNumber.setBackground(Color.WHITE);
 		comboScanNumber.addActionListener(this);
+		comboScanNumber.setEnabled(false);
 
 		pnlLab.add(lblFileSelected);
 		pnlLab.add(lblScanNumber);
@@ -177,6 +182,14 @@ public class MassDetectorSetupDialog extends ParameterSetupDialog implements
 		pnlFlds.add(comboScanNumber);
 		pnlSpace.add(Box.createHorizontalStrut(50));
 
+		JPanel pnlpreview = new JPanel(new BorderLayout());
+		preview = new JCheckBox(" Enabled preview of mass peak detection ");
+		preview.addActionListener(this);
+		JSeparator line = new JSeparator();
+		pnlpreview.add(line, BorderLayout.NORTH);
+		pnlpreview.add(preview, BorderLayout.CENTER);
+
+		pnlFileNameScanNumber.add(pnlpreview, BorderLayout.NORTH);
 		pnlFileNameScanNumber.add(pnlLab, BorderLayout.WEST);
 		pnlFileNameScanNumber.add(pnlFlds, BorderLayout.CENTER);
 		pnlFileNameScanNumber.add(pnlSpace, BorderLayout.EAST);
@@ -189,6 +202,8 @@ public class MassDetectorSetupDialog extends ParameterSetupDialog implements
 		pnlPlotXY.setBackground(Color.white);
 
 		spectrumPlot = new SpectraPlot(this);
+		MzPeakToolTipGenerator mzPeakToolTipGenerator = new MzPeakToolTipGenerator();
+		spectrumPlot.setPeakToolTipGenerator((XYToolTipGenerator) mzPeakToolTipGenerator);
 		pnlPlotXY.add(spectrumPlot, BorderLayout.CENTER);
 
 		toolBar = new SpectraToolBar(spectrumPlot);
@@ -197,19 +212,8 @@ public class MassDetectorSetupDialog extends ParameterSetupDialog implements
 
 		labelsAndFields.add(pnlFileNameScanNumber, BorderLayout.SOUTH);
 		pnlLocal.add(pnlAll, BorderLayout.WEST);
-		pnlLocal.add(pnlPlotXY, BorderLayout.EAST);
 		add(pnlLocal);
-
-		// Make the PeakListSet for the XYPlot
-		setPeakListDataSet(0);
-
-		// Plot the first scan of the first selected RawDataFile with his
-		// possible peaks, using the selected mass
-		// detector
-		loadScan(listScans[0]);
-
 		pack();
-
 		setLocationRelativeTo(MZmineCore.getDesktop().getMainFrame());
 
 	}
@@ -300,6 +304,29 @@ public class MassDetectorSetupDialog extends ParameterSetupDialog implements
 
 				setPeakListDataSet(0);
 				loadScan(listScans[0]);
+			}
+		}
+
+		if (src == preview) {
+			if (preview.isSelected()) {
+				pnlLocal.add(pnlPlotXY, BorderLayout.CENTER);
+				add(pnlLocal);
+				pack();
+				int ind = comboScanNumber.getSelectedIndex();
+				comboDataFileName.setEnabled(true);
+				comboScanNumber.setEnabled(true);
+				setPeakListDataSet(ind);
+				loadScan(listScans[ind]);
+				this.setResizable(true);
+				setLocationRelativeTo(MZmineCore.getDesktop().getMainFrame());
+			} else {
+				pnlLocal.remove(pnlPlotXY);
+				add(pnlLocal);
+				pack();
+				comboDataFileName.setEnabled(false);
+				comboScanNumber.setEnabled(false);
+				this.setResizable(false);
+				setLocationRelativeTo(MZmineCore.getDesktop().getMainFrame());
 			}
 		}
 	}

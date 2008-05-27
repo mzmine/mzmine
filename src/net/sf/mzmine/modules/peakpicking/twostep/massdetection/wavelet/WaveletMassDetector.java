@@ -20,7 +20,6 @@
 package net.sf.mzmine.modules.peakpicking.twostep.massdetection.wavelet;
 
 import java.util.Vector;
-import java.util.logging.Logger;
 
 import net.sf.mzmine.data.DataPoint;
 import net.sf.mzmine.data.Scan;
@@ -30,7 +29,7 @@ import net.sf.mzmine.modules.peakpicking.twostep.massdetection.MzPeak;
 
 public class WaveletMassDetector implements MassDetector {
 
-	private Logger logger = Logger.getLogger(this.getClass().getName());
+	//private Logger logger = Logger.getLogger(this.getClass().getName());
 
 	// parameter values
 	private float scaleLevel;
@@ -40,7 +39,7 @@ public class WaveletMassDetector implements MassDetector {
 				.getParameterValue(WaveletMassDetectorParameters.scaleLevel);
 	}
 
-	public Vector<MzPeak> getMassValues(Scan scan) {
+	public MzPeak[] getMassValues(Scan scan) {
 		Scan sc = scan;
 		DataPoint dataPoints[] = sc.getDataPoints();
 		float[] mzValues = new float[dataPoints.length];
@@ -65,7 +64,7 @@ public class WaveletMassDetector implements MassDetector {
 						intensityValues[j]));
 			}
 		}
-		return mzPeaks;
+		return mzPeaks.toArray(new MzPeak[0]);
 	}
 
 	private DataPoint[] insertEdge(DataPoint[] originalDataPoints) {

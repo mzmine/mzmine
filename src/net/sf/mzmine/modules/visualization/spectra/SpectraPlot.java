@@ -40,6 +40,7 @@ import org.jfree.chart.ChartFactory;
 import org.jfree.chart.ChartPanel;
 import org.jfree.chart.JFreeChart;
 import org.jfree.chart.axis.NumberAxis;
+import org.jfree.chart.labels.XYToolTipGenerator;
 import org.jfree.chart.plot.DatasetRenderingOrder;
 import org.jfree.chart.plot.PlotOrientation;
 import org.jfree.chart.plot.XYPlot;
@@ -354,5 +355,7 @@ public class SpectraPlot extends ChartPanel {
 		}
 
 	}
-
+	public void setPeakToolTipGenerator(XYToolTipGenerator peakToolTipGenerator) {
+		this.peakListRenderer.setBaseToolTipGenerator(peakToolTipGenerator);
+	}
 }
