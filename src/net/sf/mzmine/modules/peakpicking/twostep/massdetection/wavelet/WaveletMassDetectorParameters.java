@@ -23,19 +23,18 @@ import net.sf.mzmine.data.Parameter;
 import net.sf.mzmine.data.ParameterType;
 import net.sf.mzmine.data.impl.SimpleParameter;
 import net.sf.mzmine.data.impl.SimpleParameterSet;
-import net.sf.mzmine.main.MZmineCore;
 
 public class WaveletMassDetectorParameters extends SimpleParameterSet {
 
-    public static final Parameter scaleLevel = new SimpleParameter(
-            ParameterType.FLOAT, "Scale level",
-            "Number of wavelete'scale to use in peak match detection",
-            "absolute", new Float(10.0), new Float(0.0), null,
-            MZmineCore.getIntensityFormat());
+	public static final Parameter scaleLevel = new SimpleParameter(
+			ParameterType.INTEGER,
+			"Scale level",
+			"Number of wavelet'scale (coeficients) to use in m/z peak detection",
+			"absolute", new Integer(6), new Integer(0), null, null);
 
-    public WaveletMassDetectorParameters() {
-        super(new Parameter[] { scaleLevel });
+	public WaveletMassDetectorParameters() {
+		super(new Parameter[] { scaleLevel });
 
-    }
+	}
 
 }
