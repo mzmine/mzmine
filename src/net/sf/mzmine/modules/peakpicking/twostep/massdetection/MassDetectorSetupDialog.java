@@ -97,6 +97,7 @@ public class MassDetectorSetupDialog extends ParameterSetupDialog implements
 	private Scan currentScan;
 	private String[] currentScanNumberlist;
 	private int[] listScans;
+	private Boolean centroided = false;
 
 	// Current scan data set
 	private ScanDataSet scanDataSet;
@@ -122,6 +123,15 @@ public class MassDetectorSetupDialog extends ParameterSetupDialog implements
 
 		Desktop desktop = MZmineCore.getDesktop();
 		dataFiles = desktop.getSelectedDataFiles();
+
+		// Verify if any of selected data files is centroided to allow the use
+		// of some methods
+		for (int i = 0; i < dataFiles.length; i++) {
+			Scan scan = dataFiles[i].getScan(1);
+			if (scan.isCentroided())
+				centroided = true;
+		}
+
 		this.previewDataFile = dataFiles[0];
 		this.massDetectorTypeNumber = massDetectorTypeNumber;
 
@@ -203,7 +213,8 @@ public class MassDetectorSetupDialog extends ParameterSetupDialog implements
 
 		spectrumPlot = new SpectraPlot(this);
 		MzPeakToolTipGenerator mzPeakToolTipGenerator = new MzPeakToolTipGenerator();
-		spectrumPlot.setPeakToolTipGenerator((XYToolTipGenerator) mzPeakToolTipGenerator);
+		spectrumPlot
+				.setPeakToolTipGenerator((XYToolTipGenerator) mzPeakToolTipGenerator);
 		pnlPlotXY.add(spectrumPlot, BorderLayout.CENTER);
 
 		toolBar = new SpectraToolBar(spectrumPlot);
@@ -218,12 +229,10 @@ public class MassDetectorSetupDialog extends ParameterSetupDialog implements
 
 	}
 
+	/*
+	 * This function set all the information into the plot chart
+	 */
 	private void loadScan(final int scanNumber) {
-
-		/*
-		 * logger.finest("Loading scan #" + scanNumber + " from " +
-		 * previewDataFile + " for spectra visualizer");
-		 */
 
 		currentScan = previewDataFile.getScan(scanNumber);
 		scanDataSet = new ScanDataSet(currentScan);
@@ -276,7 +285,13 @@ public class MassDetectorSetupDialog extends ParameterSetupDialog implements
 		Object src = event.getSource();
 
 		if (src == btnOK) {
-			super.actionPerformed(event);
+			if ((!centroided)
+					&& (TwoStepPickerParameters.massDetectorNames[massDetectorTypeNumber]
+							.equals("Centroid"))) {
+				displayMessage("Invalid method for the current data file (not centroided)");
+			} else {
+				super.actionPerformed(event);
+			}
 		}
 
 		if (src == btnCancel) {
@@ -309,16 +324,23 @@ public class MassDetectorSetupDialog extends ParameterSetupDialog implements
 
 		if (src == preview) {
 			if (preview.isSelected()) {
-				pnlLocal.add(pnlPlotXY, BorderLayout.CENTER);
-				add(pnlLocal);
-				pack();
 				int ind = comboScanNumber.getSelectedIndex();
-				comboDataFileName.setEnabled(true);
-				comboScanNumber.setEnabled(true);
-				setPeakListDataSet(ind);
-				loadScan(listScans[ind]);
-				this.setResizable(true);
-				setLocationRelativeTo(MZmineCore.getDesktop().getMainFrame());
+				if ((!centroided)
+						&& (TwoStepPickerParameters.massDetectorNames[massDetectorTypeNumber]
+								.equals("Centroid"))) {
+					displayMessage("Invalid method for the current data file (not centroided)");
+				} else {
+					pnlLocal.add(pnlPlotXY, BorderLayout.CENTER);
+					add(pnlLocal);
+					pack();
+					comboDataFileName.setEnabled(true);
+					comboScanNumber.setEnabled(true);
+					setPeakListDataSet(ind);
+					loadScan(listScans[ind]);
+					this.setResizable(true);
+					setLocationRelativeTo(MZmineCore.getDesktop()
+							.getMainFrame());
+				}
 			} else {
 				pnlLocal.remove(pnlPlotXY);
 				add(pnlLocal);

@@ -19,23 +19,49 @@
 
 package net.sf.mzmine.modules.peakpicking.twostep.massdetection.centroid;
 
+import java.util.Vector;
+
+import net.sf.mzmine.data.DataPoint;
 import net.sf.mzmine.data.Scan;
 import net.sf.mzmine.modules.peakpicking.twostep.massdetection.MassDetector;
 import net.sf.mzmine.modules.peakpicking.twostep.massdetection.MzPeak;
 
 public class CentroidMassDetector implements MassDetector {
 
-    public CentroidMassDetector(CentroidMassDetectorParameters parameters) {
-        
-    }
+	// parameter values
+	private float noiseLevel;
 
-    public int name (){
-    	return 0;
-    }
-    
-    public MzPeak[] getMassValues(Scan scan) {
-        // TODO Auto-generated method stub
-        return null;
-    }
+	public CentroidMassDetector(CentroidMassDetectorParameters parameters) {
+		this.noiseLevel = (Float) parameters
+				.getParameterValue(CentroidMassDetectorParameters.noiseLevel);
+	}
+
+	public int name() {
+		return 0;
+	}
+
+	public MzPeak[] getMassValues(Scan scan) {
+		Vector<MzPeak> mzPeaks = new Vector<MzPeak>();
+		DataPoint dataPoints[] = scan.getDataPoints();
+		float[] mzValues = new float[dataPoints.length];
+		float[] intensityValues = new float[dataPoints.length];
+		for (int dp = 0; dp < dataPoints.length; dp++) {
+			mzValues[dp] = dataPoints[dp].getMZ();
+			intensityValues[dp] = dataPoints[dp].getIntensity();
+		}
+
+		// Find possible mzPeaks
+
+		for (int j = 0; j < intensityValues.length; j++) {
+
+			// Is intensity above the noise level?
+			if (intensityValues[j] >= noiseLevel) {
+				// Yes, then mark this index as mzPeak
+				mzPeaks.add(new MzPeak(scan.getScanNumber(), j, mzValues[j],
+						intensityValues[j]));
+			}
+		}
+		return mzPeaks.toArray(new MzPeak[0]);
+	}
 
 }
