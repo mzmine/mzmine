@@ -182,9 +182,8 @@ public class ExactMassDetector implements MassDetector {
 			// at 0.1% of peak's height
 			double partA = 2 * FWHM * FWHM;
 			float peakHeight = currentMzPeak.getIntensity();
-			float heightPercentage = peakHeight * 0.001f;
-			double ln = Math.abs(Math.log(heightPercentage / peakHeight));
-			float sideRange = (float) Math.sqrt(partA * ln);
+			double ln = Math.abs(Math.log10(0.001));
+			float sideRange = (float) Math.sqrt(partA * ln) / 2.0f;
 			Range rangePeak = new Range(currentMzPeak.getMZ() - sideRange,
 					currentMzPeak.getMZ() + sideRange);
 
