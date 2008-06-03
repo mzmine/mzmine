@@ -184,7 +184,6 @@ public class SpectraVisualizerWindow extends JInternalFrame implements
 							msmsSelector.addItem(itemText);
 							msmsVisible = true;
 						}
-
 					}
 
 					// Add all fragment scans to MS/MS selector combo
@@ -206,7 +205,6 @@ public class SpectraVisualizerWindow extends JInternalFrame implements
 							msmsSelector.addItem(itemText);
 							msmsVisible = true;
 						}
-
 					}
 
 					// Update the visibility of MS/MS selection combo

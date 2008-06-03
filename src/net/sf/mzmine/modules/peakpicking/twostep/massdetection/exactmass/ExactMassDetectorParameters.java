@@ -33,8 +33,13 @@ public class ExactMassDetectorParameters extends SimpleParameterSet {
             "absolute", new Float(10.0), new Float(0.0), null,
             MZmineCore.getIntensityFormat());
 
-    public ExactMassDetectorParameters() {
-        super(new Parameter[] { noiseLevel });
+	public static final Parameter resolution = new SimpleParameter(
+			ParameterType.FLOAT, "Resolution",
+			"Mass Spectometry resolution", "absolute", new Float(60000.00),
+			new Float(0.0), null, null);
+	
+	public ExactMassDetectorParameters() {
+        super(new Parameter[] { noiseLevel, resolution  });
 
     }
 

@@ -57,7 +57,9 @@ public class CentroidMassDetector implements MassDetector {
 			// Is intensity above the noise level?
 			if (intensityValues[j] >= noiseLevel) {
 				// Yes, then mark this index as mzPeak
-				mzPeaks.add(new MzPeak(scan.getScanNumber(), j, mzValues[j],
+				//mzPeaks.add(new MzPeak(scan.getScanNumber(), j, mzValues[j],
+					//	intensityValues[j]));
+				mzPeaks.add(new MzPeak(scan.getScanNumber(), mzValues[j],
 						intensityValues[j]));
 			}
 		}

@@ -40,6 +40,7 @@ public class WaveletMassDetector implements MassDetector {
 	private int scaleLevel;
 
 	private SimpleDataPoint[] dataPoints, waveletDataPoints;
+	float[] mzValues, intensityValues;
 
 	/*
 	 * Parameters of the wavelet, NPOINTS is the number of wavelet values to use
@@ -64,8 +65,8 @@ public class WaveletMassDetector implements MassDetector {
 		dataPoints = insertEdge(originalDataPoints);
 		waveletDataPoints = performCWT(dataPoints);
 
-		float[] mzValues = new float[originalDataPoints.length];
-		float[] intensityValues = new float[originalDataPoints.length];
+		mzValues = new float[originalDataPoints.length];
+		intensityValues = new float[originalDataPoints.length];
 		for (int dp = 0; dp < originalDataPoints.length; dp++) {
 			mzValues[dp] = originalDataPoints[dp].getMZ();
 			intensityValues[dp] = originalDataPoints[dp].getIntensity();
@@ -74,21 +75,26 @@ public class WaveletMassDetector implements MassDetector {
 		Vector<MzPeak> mzPeaks = new Vector<MzPeak>();
 
 		// Find MzPeaks
-		Vector<Integer> mzPeakInds = new Vector<Integer>();
+
 		float[] waveletMzValues = new float[waveletDataPoints.length];
 		float[] waveletIntensityValues = new float[waveletDataPoints.length];
 		for (int dp = 0; dp < waveletDataPoints.length; dp++) {
 			waveletMzValues[dp] = waveletDataPoints[dp].getMZ();
 			waveletIntensityValues[dp] = waveletDataPoints[dp].getIntensity();
 		}
+
+		Vector<Integer> mzPeakInds = new Vector<Integer>();
+
 		getAllPeakLocalMaxima(waveletIntensityValues, mzPeakInds);
 
-		int oDPindex;
 		for (Integer j : mzPeakInds) {
-			for (oDPindex = 0; oDPindex < originalDataPoints.length - 1; oDPindex++) {
-				if (waveletMzValues[j] == mzValues[oDPindex])
-					mzPeaks.add(new MzPeak(scan.getScanNumber(), j,
+			for (int oDPindex = 0; oDPindex < originalDataPoints.length - 1; oDPindex++) {
+				if (waveletMzValues[j] == mzValues[oDPindex]) {
+					//mzPeaks.add(new MzPeak(scan.getScanNumber(), j,
+						//	mzValues[oDPindex], intensityValues[oDPindex]));
+					mzPeaks.add(new MzPeak(scan.getScanNumber(), 
 							mzValues[oDPindex], intensityValues[oDPindex]));
+				}
 			}
 		}
 		return mzPeaks.toArray(new MzPeak[0]);
@@ -105,7 +111,7 @@ public class WaveletMassDetector implements MassDetector {
 					&& (originalDataPoints[dp - 1].getIntensity() > 0)
 					&& (originalDataPoints[dp + 1].getIntensity() == 0)) {
 				int i;
-				for (i = 0; i < 5; i++) {
+				for (i = 0; i < 20; i++) {
 					SimpleDataPoint newDp = new SimpleDataPoint(
 							((float) originalDataPoints[dp].getMZ() + (0.0001f * i)),
 							0.0f);
@@ -175,7 +181,7 @@ public class WaveletMassDetector implements MassDetector {
 		return cwtDataPoints;
 	}
 
-	/* 
+	/*
 	 * This function calculates the wavelets's coefficients in Time domain
 	 */
 	private double cwtMEXHATreal(double x, double a, double b) {

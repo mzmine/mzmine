@@ -28,28 +28,30 @@ public class MzPeak implements DataPoint {
 
 	public int scanNum;
 	public float mz, intensity;
-	public int datapointIndex;
+	//public int datapointIndex;
 
     // This table maps a possible peak to an array of m/z and intensity pairs
     private DataPoint[] rawDataPoints;
 
 	public MzPeak() {
 		this.scanNum = 0;
-		this.datapointIndex = 0;
+		//this.datapointIndex = 0;
 		this.mz = 0;
 		this.intensity = 0;
 	}
 
-	public MzPeak(int scanNum, int datapointIndex, float mz, float intensity) {
+	//public MzPeak(int scanNum, int datapointIndex, float mz, float intensity) {
+	public MzPeak(int scanNum, float mz, float intensity) {
 		this.scanNum = scanNum;
-		this.datapointIndex = datapointIndex;
+		//this.datapointIndex = datapointIndex;
 		this.mz = mz;
 		this.intensity = intensity;
 	}
 
-	public MzPeak(int scanNum, int datapointIndex, float mz, float intensity, DataPoint[] rawDataPoints) {
+	//public MzPeak(int scanNum, int datapointIndex, float mz, float intensity, DataPoint[] rawDataPoints) {
+	public MzPeak(int scanNum, float mz, float intensity, DataPoint[] rawDataPoints) {
 		this.scanNum = scanNum;
-		this.datapointIndex = datapointIndex;
+		//this.datapointIndex = datapointIndex;
 		this.mz = mz;
 		this.intensity = intensity;
 		this.rawDataPoints = rawDataPoints;

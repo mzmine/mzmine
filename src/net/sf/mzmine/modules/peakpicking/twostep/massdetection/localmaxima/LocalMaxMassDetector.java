@@ -63,7 +63,9 @@ public class LocalMaxMassDetector implements MassDetector {
 		for (Integer j : mzPeakInds) {
 			// Is intensity above the noise level
 			if (intensityValues[j] >= noiseLevel) {
-				mzPeaks.add(new MzPeak(scan.getScanNumber(), j, mzValues[j],
+				//mzPeaks.add(new MzPeak(scan.getScanNumber(), j, mzValues[j],
+					//	intensityValues[j]));
+				mzPeaks.add(new MzPeak(scan.getScanNumber(), mzValues[j],
 						intensityValues[j]));
 			}
 		}
