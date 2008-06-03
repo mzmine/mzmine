@@ -194,8 +194,8 @@ public class ExactMassDetector implements MassDetector {
 			Iterator<MzPeak> anotherIteratorMzPeak = mzPeaks.iterator();
 			while (anotherIteratorMzPeak.hasNext()) {
 				MzPeak comparedMzPeak = anotherIteratorMzPeak.next();
-				if (((comparedMzPeak.getMZ() >= rangePeak.getMin()) || (comparedMzPeak
-						.getMZ() >= rangePeak.getMax()))
+				if (((comparedMzPeak.getMZ() >= rangePeak.getMin()) && (comparedMzPeak
+						.getMZ() <= rangePeak.getMax()))
 						&& (comparedMzPeak.getIntensity() / peakHeight < 0.05)) {
 					removeMzPeaks.add(comparedMzPeak);
 				}

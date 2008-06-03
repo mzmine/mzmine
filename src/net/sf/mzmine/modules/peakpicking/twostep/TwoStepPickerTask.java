@@ -36,6 +36,7 @@ import net.sf.mzmine.modules.peakpicking.twostep.peakconstruction.PeakBuilder;
 import net.sf.mzmine.modules.peakpicking.twostep.peakconstruction.simpleconnector.ConnectedPeak;
 import net.sf.mzmine.project.MZmineProject;
 import net.sf.mzmine.taskcontrol.Task;
+import net.sf.mzmine.taskcontrol.Task.TaskStatus;
 
 /**
  * 
@@ -171,7 +172,11 @@ class TwoStepPickerTask implements Task {
 		Peak[] peaks = new Peak[0];
 
 		for (int i = 0; i < totalScans; i++) {
-			Scan scan = dataFile.getScan(scanNumbers[i]);
+            
+			if (status == TaskStatus.CANCELED)
+                return;
+            
+            Scan scan = dataFile.getScan(scanNumbers[i]);
 			mzValues = massDetector.getMassValues(scan);
 			
 			peaks = peakBuilder.addScan(scan, mzValues, underConstructionPeaks,
