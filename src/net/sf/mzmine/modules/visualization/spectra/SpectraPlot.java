@@ -29,10 +29,12 @@ import java.awt.event.MouseEvent;
 import java.awt.geom.Ellipse2D;
 import java.text.NumberFormat;
 
+import javax.swing.JInternalFrame;
 import javax.swing.JPopupMenu;
 import javax.swing.KeyStroke;
 
 import net.sf.mzmine.main.MZmineCore;
+import net.sf.mzmine.modules.peakpicking.twostep.massdetection.MassDetectorSetupDialog;
 import net.sf.mzmine.util.GUIUtils;
 import net.sf.mzmine.util.dialogs.AxesSetupDialog;
 
@@ -91,8 +93,7 @@ public class SpectraPlot extends ChartPanel {
 	XYBarRenderer centroidRenderer, peakListRenderer;
 	XYLineAndShapeRenderer continuousRenderer;
 
-	// public SpectraPlot(SpectraVisualizerWindow visualizer) {
-	public SpectraPlot(ActionListener visualizer) {
+	public SpectraPlot(ActionListener masterPlot) {
 
 		super(null, true);
 
@@ -196,9 +197,9 @@ public class SpectraPlot extends ChartPanel {
 
 		// register key handlers
 		GUIUtils.registerKeyHandler(this, KeyStroke.getKeyStroke("LEFT"),
-				visualizer, "PREVIOUS_SCAN");
+				masterPlot, "PREVIOUS_SCAN");
 		GUIUtils.registerKeyHandler(this, KeyStroke.getKeyStroke("RIGHT"),
-				visualizer, "NEXT_SCAN");
+				masterPlot, "NEXT_SCAN");
 		GUIUtils.registerKeyHandler(this, KeyStroke.getKeyStroke('+'), this,
 				"ZOOM_IN");
 		GUIUtils.registerKeyHandler(this, KeyStroke.getKeyStroke('-'), this,
@@ -222,8 +223,10 @@ public class SpectraPlot extends ChartPanel {
 		popupMenu.addSeparator();
 
 		GUIUtils.addMenuItem(popupMenu, "Set axes range", this, "SETUP_AXES");
+		
+		if (!(masterPlot instanceof MassDetectorSetupDialog))
 		GUIUtils.addMenuItem(popupMenu, "Set same range to all windows",
-				visualizer, "SET_SAME_RANGE");
+				this, "SET_SAME_RANGE");
 
 	}
 
@@ -266,6 +269,33 @@ public class SpectraPlot extends ChartPanel {
 
 		if ((command.equals("ZOOM_OUT")) || (command.equals("ZOOM_OUT_BOTH_COMMAND"))) {
 			this.getXYPlot().getDomainAxis().resizeRange(zoomCoefficient);
+		}
+
+		if (command.equals("SET_SAME_RANGE")) {
+
+			// Get current axes range
+			NumberAxis xAxis = (NumberAxis) this.getXYPlot()
+					.getDomainAxis();
+			NumberAxis yAxis = (NumberAxis) this.getXYPlot()
+					.getRangeAxis();
+			float xMin = (float) xAxis.getRange().getLowerBound();
+			float xMax = (float) xAxis.getRange().getUpperBound();
+			float xTick = (float) xAxis.getTickUnit().getSize();
+			float yMin = (float) yAxis.getRange().getLowerBound();
+			float yMax = (float) yAxis.getRange().getUpperBound();
+			float yTick = (float) yAxis.getTickUnit().getSize();
+
+			// Get all frames of my class
+			JInternalFrame spectraFrames[] = MZmineCore.getDesktop().getInternalFrames();
+
+			// Set the range of these frames
+			for (JInternalFrame frame : spectraFrames) {
+				if (!(frame instanceof SpectraVisualizerWindow))
+					continue;
+				SpectraVisualizerWindow spectraFrame = (SpectraVisualizerWindow) frame;
+				spectraFrame.setAxesRange(xMin, xMax, xTick, yMin, yMax, yTick);
+			}
+
 		}
 	}
 

@@ -43,8 +43,8 @@ class MzPeakToolTipGenerator implements XYToolTipGenerator {
 		double intValue = dataset.getYValue(series, item);
 		double mzValue = dataset.getXValue(series, item);
 
-		String tooltip = "<html>" + "MzPeak is detected at <br>Data point m/z: "
-				+ mzFormat.format(mzValue) + "<br>Data point intensity: "
+		String tooltip = "<html>" + "m/z peak is detected at <br>m/z: "
+				+ mzFormat.format(mzValue) + "<br>intensity: "
 				+ intensityFormat.format(intValue) + "</html>";
 
 		return tooltip;

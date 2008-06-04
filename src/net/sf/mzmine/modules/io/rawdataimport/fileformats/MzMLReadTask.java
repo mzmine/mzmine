@@ -25,7 +25,6 @@ import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.util.HashMap;
 import java.util.LinkedList;
-import java.util.Vector;
 import java.util.logging.Logger;
 import java.util.zip.Inflater;
 
@@ -57,7 +56,7 @@ public class MzMLReadTask extends DefaultHandler implements Task {
 	private RawDataFileWriter newMZmineFile;
 	private PreloadLevel preloadLevel;
 	private TaskStatus status;
-	private int totalScans = -1;
+	private int totalScans;
 	private int parsedScans;
 	private int peaksCount = 0;
 	private String errorMessage;
@@ -97,21 +96,14 @@ public class MzMLReadTask extends DefaultHandler implements Task {
 	private SimpleScan buildingScan;
 
 	/*
-	 * This stack stores at most 10 consecutive scans. This window serves to
+	 * This stack stores at most 20 consecutive scans. This window serves to
 	 * find possible fragments (current scan) that belongs to any of the stored
 	 * scans in the stack. The reason of the size follows the concept of
 	 * neighborhood of scans and all his fragments. These solution is
 	 * implemented because exists the possibility to find fragments of one
-	 * 
-	 * TODO Verify this part of comment.
-	 * 
-	 * scan after one or more full scans. The file
-	 * myo_full_1.05cv.mzML/myo_full_1.04cv.mzML, provided by Proteomics
-	 * Standards Initiative as example, shows this condition in the order of
-	 * scans and fragments.
-	 * 
-	 * http://sourceforge.net/projects/psidev/
+	 * scan after one or more full scans.
 	 */
+	private static final int limitSize = 20;
 	private LinkedList<SimpleScan> parentStack;
 
 	public MzMLReadTask(File fileToOpen, PreloadLevel preloadLevel) {
@@ -175,8 +167,6 @@ public class MzMLReadTask extends DefaultHandler implements Task {
 			MZmineCore.getCurrentProject().addFile(finalRawDataFile);
 
 		} catch (Throwable e) {
-			/* we may already have set the status to CANCELED */
-			e.printStackTrace();
 			if (status == TaskStatus.PROCESSING)
 				status = TaskStatus.ERROR;
 			errorMessage = e.toString();
@@ -203,8 +193,13 @@ public class MzMLReadTask extends DefaultHandler implements Task {
 		status = TaskStatus.CANCELED;
 	}
 
-	public void startElement(String namespaceURI, String lName, // local name
-			String qName, // qualified name
+	/**
+	 *  startElement()
+	 * 
+	 * @see org.xml.sax.ContentHandler#startElement(String , String , String , 
+			Attributes )
+	 */
+	public void startElement(String namespaceURI, String lName, String qName, 
 			Attributes attrs) throws SAXException {
 
 		if (status == TaskStatus.CANCELED)
@@ -226,8 +221,6 @@ public class MzMLReadTask extends DefaultHandler implements Task {
 			precursorCharge = 0;
 			scanNumber = Integer.parseInt(attrs.getValue("index")) + 1;
 			scanId.put(attrs.getValue("id"), (Integer) scanNumber);
-			// peaksCount =
-			// Integer.parseInt(attrs.getValue("defaultArrayLength"));
 			spectrumFlag = true;
 		}
 
@@ -321,10 +314,10 @@ public class MzMLReadTask extends DefaultHandler implements Task {
 
 	/**
 	 * endElement()
+	 * 
+	 * @see org.xml.sax.ContentHandler#endElement(String , String , String )
 	 */
-	public void endElement(String namespaceURI, String sName, // simple name
-			String qName // qualified name
-	) throws SAXException {
+	public void endElement(String namespaceURI, String sName, String qName) throws SAXException {
 
 		// <spectrum>
 		if (qName.equalsIgnoreCase("spectrum")) {
@@ -450,10 +443,9 @@ public class MzMLReadTask extends DefaultHandler implements Task {
 
 			/*
 			 * Verify the size of parentStack. The actual size of the window to
-			 * cover possible candidates for fragmentScanNumber update is 10
-			 * elements.
+			 * cover possible candidates is defined by limitSize.
 			 */
-			if (parentStack.size() > 20) {
+			if (parentStack.size() > limitSize) {
 				SimpleScan scan = parentStack.removeLast();
 				try {
 					newMZmineFile.addScan(scan);
@@ -475,62 +467,48 @@ public class MzMLReadTask extends DefaultHandler implements Task {
 			binaryDataArrayFlag = false;
 		}
 
-		// <mzArrayBinary>
-		if ((qName.equalsIgnoreCase("Binary")) && (mzArrayBinaryFlag)) {
-
-			mzArrayBinaryFlag = false;
-			mzDataPoints = new double[peaksCount];
-
+		// <Binary>
+		if (qName.equalsIgnoreCase("Binary")) {
 			byte[] peakBytes = Base64.decode(charBuffer.toString()
 					.toCharArray());
 
 			if (compressFlag) {
 				// Uncompress the bytes
-				unCompress(peakBytes);
+				peakBytes = unCompress(peakBytes);
 			}
 
-			ByteBuffer currentMzBytes = ByteBuffer.wrap(peakBytes);
-			currentMzBytes = currentMzBytes.order(ByteOrder.LITTLE_ENDIAN);
-			// currentMzBytes = currentMzBytes.order(ByteOrder.BIG_ENDIAN);
+			ByteBuffer currentBytes = ByteBuffer.wrap(peakBytes);
+			currentBytes = currentBytes.order(ByteOrder.LITTLE_ENDIAN);
 
-			for (int i = 0; i < mzDataPoints.length; i++) {
-				if (precision == null || precision.equals("32"))
-					mzDataPoints[i] = (double) currentMzBytes.getFloat();
-				else
-					mzDataPoints[i] = currentMzBytes.getDouble();
-			}
-			charBuffer.setLength(0);
-		}
+			if (mzArrayBinaryFlag) {
 
-		// <intenArrayBinary>
-		if ((qName.equalsIgnoreCase("Binary")) && (intenArrayBinaryFlag)) {
+				mzArrayBinaryFlag = false;
+				mzDataPoints = new double[peaksCount];
 
-			intenArrayBinaryFlag = false;
-			intensityDataPoints = new double[peaksCount];
-
-			byte[] peakBytes = Base64.decode(charBuffer.toString()
-					.toCharArray());
-
-			if (compressFlag) {
-				// Uncompress the bytes
-				unCompress(peakBytes);
+				for (int i = 0; i < mzDataPoints.length; i++) {
+					if (precision == null || precision.equals("32"))
+						mzDataPoints[i] = (double) currentBytes.getFloat();
+					else
+						mzDataPoints[i] = currentBytes.getDouble();
+				}
 			}
 
-			ByteBuffer currentIntensityBytes = ByteBuffer.wrap(peakBytes);
-			currentIntensityBytes = currentIntensityBytes
-					.order(ByteOrder.LITTLE_ENDIAN);
-			// currentIntensityBytes =
-			// currentIntensityBytes.order(ByteOrder.BIG_ENDIAN);
+			if (intenArrayBinaryFlag) {
 
-			for (int i = 0; i < intensityDataPoints.length; i++) {
-				if (precision == null || precision.equals("32"))
-					intensityDataPoints[i] = (double) currentIntensityBytes
-							.getFloat();
-				else
-					intensityDataPoints[i] = currentIntensityBytes.getFloat();
+				intenArrayBinaryFlag = false;
+				intensityDataPoints = new double[peaksCount];
+
+				for (int i = 0; i < intensityDataPoints.length; i++) {
+					if (precision == null || precision.equals("32"))
+						intensityDataPoints[i] = (double) currentBytes
+								.getFloat();
+					else
+						intensityDataPoints[i] = currentBytes.getFloat();
+				}
 			}
 			charBuffer.setLength(0);
 		}
+
 	}
 
 	/**
@@ -559,8 +537,10 @@ public class MzMLReadTask extends DefaultHandler implements Task {
 	/**
 	 * This function provides support for decompression ZLIB compression
 	 * library.
+	 * 
+	 * @param peakBytes
 	 */
-	private void unCompress(byte[] peakBytes) throws SAXException {
+	private byte[] unCompress(byte[] peakBytes) throws SAXException {
 		// Uncompress the bytes
 		Inflater decompresser = new Inflater();
 		decompresser.setInput(peakBytes, 0, compressedLen);
@@ -583,7 +563,7 @@ public class MzMLReadTask extends DefaultHandler implements Task {
 			System.arraycopy(resultCompressed, 0, resultTotal, buffer.length,
 					resultLength);
 			decompresser.end();
-			peakBytes = new byte[resultTotal.length];
+			// peakBytes = new byte[resultTotal.length];
 			peakBytes = resultTotal;
 		} catch (Exception eof) {
 			status = TaskStatus.ERROR;
@@ -591,5 +571,6 @@ public class MzMLReadTask extends DefaultHandler implements Task {
 			throw new SAXException("Parsing Cancelled");
 		}
 		compressFlag = false;
+		return peakBytes;
 	}
 }

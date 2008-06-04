@@ -36,7 +36,6 @@ import net.sf.mzmine.data.RawDataFile;
 import net.sf.mzmine.data.Scan;
 import net.sf.mzmine.desktop.Desktop;
 import net.sf.mzmine.main.MZmineCore;
-import net.sf.mzmine.util.dialogs.AxesSetupDialog;
 
 import org.jfree.chart.axis.NumberAxis;
 import org.jfree.chart.axis.NumberTickUnit;
@@ -46,8 +45,6 @@ import org.jfree.chart.axis.NumberTickUnit;
  */
 public class SpectraVisualizerWindow extends JInternalFrame implements
 		ActionListener {
-
-	private static final float zoomCoefficient = 1.2f;
 
 	private Logger logger = Logger.getLogger(this.getClass().getName());
 
@@ -253,34 +250,6 @@ public class SpectraVisualizerWindow extends JInternalFrame implements
 	public void actionPerformed(ActionEvent event) {
 
 		String command = event.getActionCommand();
-
-		if (command.equals("SET_SAME_RANGE")) {
-
-			// Get current axes range
-			NumberAxis xAxis = (NumberAxis) spectrumPlot.getXYPlot()
-					.getDomainAxis();
-			NumberAxis yAxis = (NumberAxis) spectrumPlot.getXYPlot()
-					.getRangeAxis();
-			float xMin = (float) xAxis.getRange().getLowerBound();
-			float xMax = (float) xAxis.getRange().getUpperBound();
-			float xTick = (float) xAxis.getTickUnit().getSize();
-			float yMin = (float) yAxis.getRange().getLowerBound();
-			float yMax = (float) yAxis.getRange().getUpperBound();
-			float yTick = (float) yAxis.getTickUnit().getSize();
-
-			// Get all frames of my class
-			JInternalFrame spectraFrames[] = desktop.getInternalFrames();
-
-			// Set the range of these frames
-			for (JInternalFrame frame : spectraFrames) {
-				if ((!(frame instanceof SpectraVisualizerWindow))
-						|| (frame == this))
-					continue;
-				SpectraVisualizerWindow spectraFrame = (SpectraVisualizerWindow) frame;
-				spectraFrame.setAxesRange(xMin, xMax, xTick, yMin, yMax, yTick);
-			}
-
-		}
 
 		if (command.equals("PEAKLIST_CHANGE")) {
 

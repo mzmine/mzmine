@@ -99,22 +99,43 @@ public class TwoStepPickerParameters implements StorableParameterSet {
 		}
 	}
 
+	/**
+	 * 
+	 * @param int
+	 *            index
+	 * @return SimpleParameterSet
+	 */
 	public SimpleParameterSet getMassDetectorParameters(int ind) {
 		return massDetectorParameters[ind];
 	}
 
+	/**
+	 * 
+	 * @param int
+	 *            index
+	 * @return SimpleParameterSet
+	 */
 	public SimpleParameterSet getPeakBuilderParameters(int ind) {
 		return peakBuilderParameters[ind];
 	}
 
+	/**
+	 * 
+	 * @param String
+	 *            title
+	 */
 	public void setSuffix(String title) {
 		if (title.equals(""))
 			title = "peakList";
 		twoStepsParameters.setParameterValue(suffix, title);
 	}
 
+	/**
+	 * 
+	 * @return String
+	 */
 	public String getSuffix() {
-		String Suffix =  (String) twoStepsParameters.getParameterValue(suffix);
+		String Suffix = (String) twoStepsParameters.getParameterValue(suffix);
 		if (Suffix == null)
 			return "peaklist";
 		if (Suffix.equals(""))
@@ -122,6 +143,13 @@ public class TwoStepPickerParameters implements StorableParameterSet {
 		return Suffix;
 	}
 
+	/**
+	 * 
+	 * @param int
+	 *            massDetectorInd
+	 * @param int
+	 *            peakBuilderInd
+	 */
 	public void setTypeNumber(int massDetectorInd, int peakBuilderInd) {
 		twoStepsParameters.setParameterValue(massDetectorTypeNumber,
 				massDetectorInd);
@@ -129,16 +157,28 @@ public class TwoStepPickerParameters implements StorableParameterSet {
 				peakBuilderInd);
 	}
 
+	/**
+	 * 
+	 * @return Integer massDetectorTypeNumber
+	 */
 	public int getMassDetectorTypeNumber() {
 		return (Integer) twoStepsParameters
 				.getParameterValue(massDetectorTypeNumber);
 	}
 
+	/**
+	 * 
+	 * @return Integer peakBuilderTypeNumber
+	 */
 	public int getPeakBuilderTypeNumber() {
 		return (Integer) twoStepsParameters
 				.getParameterValue(peakBuilderTypeNumber);
 	}
 
+	/**
+	 * 
+	 * @see net.sf.mzmine.data.StorableParameterSet#exportValuesToXML(org.dom4j.Element)
+	 */
 	public void exportValuesToXML(Element element) {
 
 		for (int i = 0; i < massDetectorParameters.length; i++) {
@@ -158,6 +198,10 @@ public class TwoStepPickerParameters implements StorableParameterSet {
 		twoStepsParameters.exportValuesToXML(element);
 	}
 
+	/**
+	 * 
+	 * @see net.sf.mzmine.data.StorableParameterSet#importValuesFromXML(org.dom4j.Element)
+	 */
 	public void importValuesFromXML(Element element) {
 
 		Iterator paramIter = element.elementIterator("massdetector");
@@ -188,6 +232,9 @@ public class TwoStepPickerParameters implements StorableParameterSet {
 
 	}
 
+	/** 
+	 * 
+	 */
 	public TwoStepPickerParameters clone() {
 
 		// do not make a new instance of SimpleParameterSet, but instead

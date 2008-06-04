@@ -19,6 +19,8 @@
 
 package net.sf.mzmine.modules.peakpicking.twostep.massdetection.exactmass;
 
+import java.text.NumberFormat;
+
 import net.sf.mzmine.data.Parameter;
 import net.sf.mzmine.data.ParameterType;
 import net.sf.mzmine.data.impl.SimpleParameter;
@@ -27,20 +29,44 @@ import net.sf.mzmine.main.MZmineCore;
 
 public class ExactMassDetectorParameters extends SimpleParameterSet {
 
-    public static final Parameter noiseLevel = new SimpleParameter(
-            ParameterType.FLOAT, "Noise level",
-            "Intensities less than this value are interpreted as noise",
-            "absolute", new Float(10.0), new Float(0.0), null,
-            MZmineCore.getIntensityFormat());
+	public static final NumberFormat percentFormat = NumberFormat
+			.getPercentInstance();
+
+	public static final Parameter noiseLevel = new SimpleParameter(
+			ParameterType.FLOAT, "Noise level",
+			"Intensities less than this value are interpreted as noise",
+			"absolute", new Float(10.0), new Float(0.0), null, MZmineCore
+					.getIntensityFormat());
 
 	public static final Parameter resolution = new SimpleParameter(
-			ParameterType.FLOAT, "Resolution",
-			"Mass Spectometry resolution", "absolute", new Float(60000.00),
-			new Float(0.0), null, null);
-	
-	public ExactMassDetectorParameters() {
-        super(new Parameter[] { noiseLevel, resolution  });
+			ParameterType.INTEGER,
+			"Mass Resolution",
+			"Mass resolution is the dimensionless ratio of the mass of the peak divided by its width." +
+			" Peak width is taken as the full width at half maximum intensity, (fwhm).",
+			null, new Integer(60000), new Integer(0), null, NumberFormat
+					.getIntegerInstance());
 
-    }
+	public static final Parameter cleanLateral = new SimpleParameter(
+			ParameterType.BOOLEAN,
+			"Remove lateral peaks",
+			"Remove lateral peaks under the criteria defined by percentage of peak's height and resolution",
+			null, new Boolean(false), null, null, null);
+
+	public static final Parameter percentageHeight = new SimpleParameter(
+			ParameterType.FLOAT, "Percentage of Height",
+			"Limit of height in percentage to remove lateral peaks", "%",
+			new Float(0.05), new Float(0.0), null, percentFormat);
+
+	public static final Parameter percentageResolution = new SimpleParameter(
+			ParameterType.FLOAT,
+			"Resolution",
+			"Percentage of resolution to calculate width of the peak and remove lateral peaks",
+			"%", new Float(0.25), new Float(0.01), null, percentFormat);
+
+	public ExactMassDetectorParameters() {
+		super(new Parameter[] { noiseLevel, resolution, cleanLateral,
+				percentageHeight, percentageResolution });
+
+	}
 
 }

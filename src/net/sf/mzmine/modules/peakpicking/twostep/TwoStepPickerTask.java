@@ -36,10 +36,9 @@ import net.sf.mzmine.modules.peakpicking.twostep.peakconstruction.PeakBuilder;
 import net.sf.mzmine.modules.peakpicking.twostep.peakconstruction.simpleconnector.ConnectedPeak;
 import net.sf.mzmine.project.MZmineProject;
 import net.sf.mzmine.taskcontrol.Task;
-import net.sf.mzmine.taskcontrol.Task.TaskStatus;
 
 /**
- * 
+ * @see 
  */
 class TwoStepPickerTask implements Task {
 
@@ -144,7 +143,7 @@ class TwoStepPickerTask implements Task {
 			logger.finest("Error trying to make an instance of mass detector "
 					+ massDetectorClassName);
 			status = TaskStatus.ERROR;
-			e.printStackTrace();
+			return;
 		}
 
 		// Create new peak builder according with the user's selection
@@ -159,17 +158,16 @@ class TwoStepPickerTask implements Task {
 			logger.finest("Error trying to make an instance of peak builder "
 					+ peakBuilderClassName);
 			status = TaskStatus.ERROR;
-			e.printStackTrace();
+			return;
 		}
 
 		// Create new peak list
 		SimplePeakList newPeakList = new SimplePeakList(
 				dataFile + " " + suffix, dataFile);
 
-		MzPeak[] mzValues = new MzPeak[0];
+		MzPeak[] mzValues;
 		Vector<ConnectedPeak> underConstructionPeaks = new Vector<ConnectedPeak>();
-		//Vector<Peak> peaks = new Vector<Peak>();
-		Peak[] peaks = new Peak[0];
+		Peak[] peaks;
 
 		for (int i = 0; i < totalScans; i++) {
             
@@ -182,6 +180,7 @@ class TwoStepPickerTask implements Task {
 			peaks = peakBuilder.addScan(scan, mzValues, underConstructionPeaks,
 					dataFile);
 			
+			if(peaks != null)
 			for (Peak finishedPeak : peaks) {
 				SimplePeakListRow newRow = new SimplePeakListRow(newPeakID);
 				newPeakID++;
@@ -193,6 +192,8 @@ class TwoStepPickerTask implements Task {
 		}
 		
 		peaks = peakBuilder.finishPeaks(underConstructionPeaks);
+		
+		if (peaks != null)
 		for (Peak finishedPeak : peaks) {
 			SimplePeakListRow newRow = new SimplePeakListRow(newPeakID);
 			newPeakID++;

@@ -182,7 +182,8 @@ public class ParameterSetupDialog extends JDialog implements ActionListener {
 				break;
 
 			case BOOLEAN:
-				comp = new JCheckBox();
+				JCheckBox checkBox = new JCheckBox();
+				comp = checkBox;
 				break;
 
 			}

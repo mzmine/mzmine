@@ -36,31 +36,18 @@ public class CentroidMassDetector implements MassDetector {
 				.getParameterValue(CentroidMassDetectorParameters.noiseLevel);
 	}
 
-	public int name() {
-		return 0;
-	}
-
 	public MzPeak[] getMassValues(Scan scan) {
 		Vector<MzPeak> mzPeaks = new Vector<MzPeak>();
 		DataPoint dataPoints[] = scan.getDataPoints();
-		float[] mzValues = new float[dataPoints.length];
-		float[] intensityValues = new float[dataPoints.length];
-		for (int dp = 0; dp < dataPoints.length; dp++) {
-			mzValues[dp] = dataPoints[dp].getMZ();
-			intensityValues[dp] = dataPoints[dp].getIntensity();
-		}
 
 		// Find possible mzPeaks
-
-		for (int j = 0; j < intensityValues.length; j++) {
+		for (int j = 0; j < dataPoints.length; j++) {
 
 			// Is intensity above the noise level?
-			if (intensityValues[j] >= noiseLevel) {
+			if (dataPoints[j].getIntensity() >= noiseLevel) {
 				// Yes, then mark this index as mzPeak
-				//mzPeaks.add(new MzPeak(scan.getScanNumber(), j, mzValues[j],
-					//	intensityValues[j]));
-				mzPeaks.add(new MzPeak(scan.getScanNumber(), mzValues[j],
-						intensityValues[j]));
+				mzPeaks.add(new MzPeak(scan.getScanNumber(), dataPoints[j]
+						.getMZ(), dataPoints[j].getIntensity()));
 			}
 		}
 		return mzPeaks.toArray(new MzPeak[0]);

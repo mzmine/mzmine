@@ -29,7 +29,7 @@ public interface MassDetector {
     /**
      * 
      * @return Mass and intensity values (m/z and intensity pairs) of a
-     *         given scan
+     *         given scan that fill the criteria of Mass Detector for a m/z peak
      */
     public MzPeak[] getMassValues(Scan scan);
     

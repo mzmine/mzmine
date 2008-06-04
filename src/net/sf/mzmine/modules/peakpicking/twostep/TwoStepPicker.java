@@ -27,6 +27,7 @@ import java.util.logging.Logger;
 import net.sf.mzmine.data.ParameterSet;
 import net.sf.mzmine.data.PeakList;
 import net.sf.mzmine.data.RawDataFile;
+import net.sf.mzmine.data.Scan;
 import net.sf.mzmine.desktop.Desktop;
 import net.sf.mzmine.desktop.MZmineMenu;
 import net.sf.mzmine.main.MZmineCore;
@@ -54,7 +55,7 @@ public class TwoStepPicker implements BatchStep, TaskListener, ActionListener {
 		this.desktop = MZmineCore.getDesktop();
 
 		parameters = new TwoStepPickerParameters();
-		desktop.addMenuItem(MZmineMenu.PEAKPICKING, "Two step peak detector",
+		desktop.addMenuItem(MZmineMenu.PEAKPICKING, "Two steps peak detector",
 				"TODO write description", KeyEvent.VK_T, this, null);
 	}
 
@@ -72,7 +73,7 @@ public class TwoStepPicker implements BatchStep, TaskListener, ActionListener {
 		ExitCode exitCode = setupParameters(parameters);
 		if (exitCode != ExitCode.OK)
 			return;
-
+		
 		runModule(dataFiles, null, parameters.clone(), null);
 
 	}
@@ -88,12 +89,12 @@ public class TwoStepPicker implements BatchStep, TaskListener, ActionListener {
 		TwoStepPickerTask rtTask = (TwoStepPickerTask) task;
 
 		if (task.getStatus() == Task.TaskStatus.FINISHED) {
-			logger.info("Finished recursive threshold peak picker on "
+			logger.info("Finished two steps peak picker on "
 					+ rtTask.getDataFile());
 		}
 
 		if (task.getStatus() == Task.TaskStatus.ERROR) {
-			String msg = "Error while running recursive threshold peak picker on file "
+			String msg = "Error while running two steps peak picker on file "
 					+ rtTask.getDataFile() + ": " + task.getErrorMessage();
 			logger.severe(msg);
 			desktop.displayErrorMessage(msg);
@@ -105,7 +106,7 @@ public class TwoStepPicker implements BatchStep, TaskListener, ActionListener {
 	 * @see net.sf.mzmine.modules.BatchStep#toString()
 	 */
 	public String toString() {
-		return "Two step peak detector";
+		return "Two steps peak detector ";
 	}
 
 	/**

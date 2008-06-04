@@ -42,7 +42,7 @@ public class WaveletMassDetector implements MassDetector {
 	private SimpleDataPoint[] dataPoints, waveletDataPoints;
 	float[] mzValues, intensityValues;
 
-	/*
+	/**
 	 * Parameters of the wavelet, NPOINTS is the number of wavelet values to use
 	 * The WAVELET_ESL & WAVELET_ESL indicates the Effective Support boundaries
 	 */
@@ -100,7 +100,7 @@ public class WaveletMassDetector implements MassDetector {
 		return mzPeaks.toArray(new MzPeak[0]);
 	}
 
-	/*
+	/**
 	 * This function insert datapoints with intensity zero, as a preprocess to
 	 * perform the continuos wavelet transform
 	 */
