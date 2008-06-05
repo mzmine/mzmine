@@ -38,9 +38,7 @@ public class WaveletMassDetector implements MassDetector {
 
 	// parameter value
 	private int scaleLevel;
-
-	private SimpleDataPoint[] dataPoints, waveletDataPoints;
-	float[] mzValues, intensityValues;
+	private float waveletWindow;
 	private Vector<MzPeak> mzPeaks;
 
 	/**
@@ -54,74 +52,20 @@ public class WaveletMassDetector implements MassDetector {
 	public WaveletMassDetector(WaveletMassDetectorParameters parameters) {
 		scaleLevel = (Integer) parameters
 				.getParameterValue(WaveletMassDetectorParameters.scaleLevel);
+		waveletWindow = (Float) parameters
+				.getParameterValue(WaveletMassDetectorParameters.waveletWindow);
 	}
 
 	public MzPeak[] getMassValues(Scan scan) {
 		Scan sc = scan;
-		DataPoint originalDataPoints[] = new DataPoint[0];
-		originalDataPoints = sc.getDataPoints();
+		DataPoint[] originalDataPoints = sc.getDataPoints();
 		mzPeaks = new Vector<MzPeak>();
 
-		// Insert necessary values (spaces) between data points to perform the
-		// CWT
-		//dataPoints = insertEdge(originalDataPoints);
-		//waveletDataPoints = performCWT(dataPoints);
-		waveletDataPoints = performCWT(originalDataPoints);
+		DataPoint[] waveletDataPoints = performCWT(originalDataPoints);
 
-		mzValues = new float[originalDataPoints.length];
-		intensityValues = new float[originalDataPoints.length];
-		for (int dp = 0; dp < originalDataPoints.length; dp++) {
-			mzValues[dp] = originalDataPoints[dp].getMZ();
-			intensityValues[dp] = originalDataPoints[dp].getIntensity();
-		}
+		getMzPeaks(originalDataPoints, waveletDataPoints);
 
-
-		float[] waveletMzValues = new float[waveletDataPoints.length];
-		float[] waveletIntensityValues = new float[waveletDataPoints.length];
-		for (int dp = 0; dp < waveletDataPoints.length; dp++) {
-			waveletMzValues[dp] = waveletDataPoints[dp].getMZ();
-			waveletIntensityValues[dp] = waveletDataPoints[dp].getIntensity();
-		}
-
-		Vector<Integer> mzPeakInds = new Vector<Integer>();
-
-		mzPeakInds = getAllPeakLocalMaxima(waveletIntensityValues);
-
-		for (Integer j : mzPeakInds) {
-			for (int oDPindex = 0; oDPindex < originalDataPoints.length - 1; oDPindex++) {
-				if (waveletMzValues[j] == mzValues[oDPindex]) {
-					mzPeaks.add(new MzPeak(mzValues[oDPindex], intensityValues[oDPindex]));
-				}
-			}
-		}
 		return mzPeaks.toArray(new MzPeak[0]);
-	}
-
-	/**
-	 * This function insert data points with intensity zero, as a preprocess to
-	 * perform the continuous wavelet transform
-	 */
-	private SimpleDataPoint[] insertEdge(DataPoint[] originalDataPoints) {
-		Vector<SimpleDataPoint> edgeDataPoint = new Vector<SimpleDataPoint>();
-		for (int dp = 1; dp < originalDataPoints.length - 1; dp++) {
-			if ((originalDataPoints[dp].getIntensity() == 0)
-					&& (originalDataPoints[dp - 1].getIntensity() > 0)
-					&& (originalDataPoints[dp + 1].getIntensity() == 0)) {
-				int i;
-				for (i = 0; i < 20; i++) {
-					SimpleDataPoint newDp = new SimpleDataPoint(
-							((float) originalDataPoints[dp].getMZ() + (0.0001f * i)),
-							0.0f);
-					edgeDataPoint.add(newDp);
-				}
-			} else {
-				SimpleDataPoint newDp = new SimpleDataPoint(
-						(float) originalDataPoints[dp].getMZ(),
-						(float) originalDataPoints[dp].getIntensity());
-				edgeDataPoint.add(newDp);
-			}
-		}
-		return edgeDataPoint.toArray(new SimpleDataPoint[0]);
 	}
 
 	/**
@@ -129,7 +73,7 @@ public class WaveletMassDetector implements MassDetector {
 	 * 
 	 * @param dataPoints
 	 */
-	 private SimpleDataPoint[] performCWT(DataPoint[] dataPoints) {
+	private SimpleDataPoint[] performCWT(DataPoint[] dataPoints) {
 		int length = dataPoints.length;
 		SimpleDataPoint[] cwtDataPoints = new SimpleDataPoint[length];
 		double wstep = ((WAVELET_ESR - WAVELET_ESL) / NPOINTS);
@@ -137,7 +81,8 @@ public class WaveletMassDetector implements MassDetector {
 
 		float waveletIndex = WAVELET_ESL;
 		for (int j = 0; j < NPOINTS; j++) {
-			W[j] = cwtMEXHATreal(waveletIndex, 1.0, 0.0);
+			// Pre calculate the values of the wavelet
+			W[j] = cwtMEXHATreal(waveletIndex, waveletWindow, 0.0);
 			waveletIndex += wstep;
 		}
 
@@ -183,9 +128,12 @@ public class WaveletMassDetector implements MassDetector {
 	/**
 	 * This function calculates the wavelets's coefficients in Time domain
 	 * 
-	 * @param double x Step of wavelet
-	 * @param double a Width at FWHM
-	 * @param double b Offset from the center of the peak
+	 * @param double
+	 *            x Step of the wavelet
+	 * @param double
+	 *            a Window Width of the wavelet
+	 * @param double
+	 *            b Offset from the center of the peak
 	 */
 	private double cwtMEXHATreal(double x, double a, double b) {
 		/* c = 2 / ( sqrt(3) * pi^(1/4) ) */
@@ -203,15 +151,17 @@ public class WaveletMassDetector implements MassDetector {
 	/**
 	 * This function searches for maximums from wavelet data points
 	 */
-	private Vector<Integer> getAllPeakLocalMaxima(float intensities[]) {
-		
-		Vector<Integer> CentroidInds = new Vector<Integer>();
+	private void getMzPeaks(DataPoint[] originalDataPoints,
+			DataPoint[] waveletDataPoints) {
+
+		Vector<DataPoint> rawDataPoints = new Vector<DataPoint>();
 		int peakMaxInd = 0;
-		int stopInd = intensities.length - 1;
+		int stopInd = waveletDataPoints.length - 1;
 
 		for (int ind = 0; ind <= stopInd; ind++) {
 
-			while ((ind <= stopInd) && (intensities[ind] == 0)) {
+			while ((ind <= stopInd)
+					&& (waveletDataPoints[ind].getIntensity() == 0)) {
 				ind++;
 			}
 			peakMaxInd = ind;
@@ -220,11 +170,14 @@ public class WaveletMassDetector implements MassDetector {
 			}
 
 			// While peak is on
-			while ((ind <= stopInd) && (intensities[ind] > 0)) {
+			while ((ind <= stopInd)
+					&& (waveletDataPoints[ind].getIntensity() > 0)) {
 				// Check if this is the maximum point of the peak
-				if (intensities[ind] > intensities[peakMaxInd]) {
+				if (waveletDataPoints[ind].getIntensity() > waveletDataPoints[peakMaxInd]
+						.getIntensity()) {
 					peakMaxInd = ind;
 				}
+				rawDataPoints.add(originalDataPoints[ind]);
 				ind++;
 			}
 
@@ -232,10 +185,14 @@ public class WaveletMassDetector implements MassDetector {
 				break;
 			}
 
-			CentroidInds.add(new Integer(peakMaxInd));
+			rawDataPoints.add(originalDataPoints[ind]);
+
+			mzPeaks.add(new MzPeak(originalDataPoints[peakMaxInd].getMZ(),
+					originalDataPoints[peakMaxInd].getIntensity(),
+					rawDataPoints.toArray(new DataPoint[0])));
+
 		}
-		
-		return CentroidInds;
+
 	}
 
 }

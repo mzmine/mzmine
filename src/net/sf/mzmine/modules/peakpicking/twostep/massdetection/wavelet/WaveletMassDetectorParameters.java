@@ -19,6 +19,8 @@
 
 package net.sf.mzmine.modules.peakpicking.twostep.massdetection.wavelet;
 
+import java.text.NumberFormat;
+
 import net.sf.mzmine.data.Parameter;
 import net.sf.mzmine.data.ParameterType;
 import net.sf.mzmine.data.impl.SimpleParameter;
@@ -26,14 +28,23 @@ import net.sf.mzmine.data.impl.SimpleParameterSet;
 
 public class WaveletMassDetectorParameters extends SimpleParameterSet {
 
+	public static final NumberFormat percentFormat = NumberFormat
+	.getPercentInstance();
+	
 	public static final Parameter scaleLevel = new SimpleParameter(
 			ParameterType.INTEGER,
 			"Scale level",
 			"Number of wavelet'scale (coeficients) to use in m/z peak detection",
 			"absolute", new Integer(6), new Integer(1), null, null);
 
+	public static final Parameter waveletWindow = new SimpleParameter(
+			ParameterType.FLOAT,
+			"Wavelet window size (%)",
+			"Size in % of wavelet window to apply in m/z peak detection",
+			"%", new Float(0.5), new Float(0.01), null, percentFormat);
+
 	public WaveletMassDetectorParameters() {
-		super(new Parameter[] { scaleLevel });
+		super(new Parameter[] { scaleLevel, waveletWindow });
 
 	}
 
