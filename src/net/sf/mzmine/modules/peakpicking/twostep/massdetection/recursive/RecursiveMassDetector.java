@@ -26,18 +26,18 @@ import net.sf.mzmine.data.Scan;
 import net.sf.mzmine.modules.peakpicking.twostep.massdetection.MassDetector;
 import net.sf.mzmine.modules.peakpicking.twostep.massdetection.MzPeak;
 
-public class LocalMaxMassDetector implements MassDetector {
+public class RecursiveMassDetector implements MassDetector {
 
 	// parameter values
 	private float minimumMZPeakWidth, maximumMZPeakWidth, noiseLevel;
 
-	public LocalMaxMassDetector(LocalMaxMassDetectorParameters parameters) {
+	public RecursiveMassDetector(RecursiveMassDetectorParameters parameters) {
 		noiseLevel = (Float) parameters
-				.getParameterValue(LocalMaxMassDetectorParameters.noiseLevel);
+				.getParameterValue(RecursiveMassDetectorParameters.noiseLevel);
 		minimumMZPeakWidth = (Float) parameters
-				.getParameterValue(LocalMaxMassDetectorParameters.minimumMZPeakWidth);
+				.getParameterValue(RecursiveMassDetectorParameters.minimumMZPeakWidth);
 		maximumMZPeakWidth = (Float) parameters
-				.getParameterValue(LocalMaxMassDetectorParameters.maximumMZPeakWidth);
+				.getParameterValue(RecursiveMassDetectorParameters.maximumMZPeakWidth);
 	}
 
 	public MzPeak[] getMassValues(Scan scan) {

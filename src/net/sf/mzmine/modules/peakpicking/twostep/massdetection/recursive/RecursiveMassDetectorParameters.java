@@ -27,7 +27,7 @@ import net.sf.mzmine.data.impl.SimpleParameter;
 import net.sf.mzmine.data.impl.SimpleParameterSet;
 import net.sf.mzmine.main.MZmineCore;
 
-public class LocalMaxMassDetectorParameters extends SimpleParameterSet {
+public class RecursiveMassDetectorParameters extends SimpleParameterSet {
 
 	public static final NumberFormat percentFormat = NumberFormat
 			.getPercentInstance();
@@ -48,7 +48,7 @@ public class LocalMaxMassDetectorParameters extends SimpleParameterSet {
 			"Maximum acceptable peak width in m/z", "m/z", new Float(1.00),
 			new Float(0.0), null, MZmineCore.getMZFormat());
 
-	public LocalMaxMassDetectorParameters() {
+	public RecursiveMassDetectorParameters() {
 		super(new Parameter[] { noiseLevel, minimumMZPeakWidth,
 				maximumMZPeakWidth });
 
