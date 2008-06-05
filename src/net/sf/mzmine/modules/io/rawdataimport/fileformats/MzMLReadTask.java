@@ -46,7 +46,7 @@ import org.xml.sax.SAXException;
 import org.xml.sax.helpers.DefaultHandler;
 
 /**
- * This class read 1.04 and 1.05 MZDATA files.
+ * This class read 1.0 MZML files.
  */
 public class MzMLReadTask extends DefaultHandler implements Task {
 
