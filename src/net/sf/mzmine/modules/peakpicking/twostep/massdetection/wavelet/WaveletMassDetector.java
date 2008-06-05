@@ -41,6 +41,7 @@ public class WaveletMassDetector implements MassDetector {
 
 	private SimpleDataPoint[] dataPoints, waveletDataPoints;
 	float[] mzValues, intensityValues;
+	private Vector<MzPeak> mzPeaks;
 
 	/**
 	 * Parameters of the wavelet, NPOINTS is the number of wavelet values to use
@@ -59,11 +60,13 @@ public class WaveletMassDetector implements MassDetector {
 		Scan sc = scan;
 		DataPoint originalDataPoints[] = new DataPoint[0];
 		originalDataPoints = sc.getDataPoints();
+		mzPeaks = new Vector<MzPeak>();
 
-		// Insert necessary values (spaces) between datapoints to perform the
+		// Insert necessary values (spaces) between data points to perform the
 		// CWT
-		dataPoints = insertEdge(originalDataPoints);
-		waveletDataPoints = performCWT(dataPoints);
+		//dataPoints = insertEdge(originalDataPoints);
+		//waveletDataPoints = performCWT(dataPoints);
+		waveletDataPoints = performCWT(originalDataPoints);
 
 		mzValues = new float[originalDataPoints.length];
 		intensityValues = new float[originalDataPoints.length];
@@ -72,9 +75,6 @@ public class WaveletMassDetector implements MassDetector {
 			intensityValues[dp] = originalDataPoints[dp].getIntensity();
 		}
 
-		Vector<MzPeak> mzPeaks = new Vector<MzPeak>();
-
-		// Find MzPeaks
 
 		float[] waveletMzValues = new float[waveletDataPoints.length];
 		float[] waveletIntensityValues = new float[waveletDataPoints.length];
@@ -85,7 +85,7 @@ public class WaveletMassDetector implements MassDetector {
 
 		Vector<Integer> mzPeakInds = new Vector<Integer>();
 
-		getAllPeakLocalMaxima(waveletIntensityValues, mzPeakInds);
+		mzPeakInds = getAllPeakLocalMaxima(waveletIntensityValues);
 
 		for (Integer j : mzPeakInds) {
 			for (int oDPindex = 0; oDPindex < originalDataPoints.length - 1; oDPindex++) {
@@ -98,8 +98,8 @@ public class WaveletMassDetector implements MassDetector {
 	}
 
 	/**
-	 * This function insert datapoints with intensity zero, as a preprocess to
-	 * perform the continuos wavelet transform
+	 * This function insert data points with intensity zero, as a preprocess to
+	 * perform the continuous wavelet transform
 	 */
 	private SimpleDataPoint[] insertEdge(DataPoint[] originalDataPoints) {
 		Vector<SimpleDataPoint> edgeDataPoint = new Vector<SimpleDataPoint>();
@@ -124,10 +124,12 @@ public class WaveletMassDetector implements MassDetector {
 		return edgeDataPoint.toArray(new SimpleDataPoint[0]);
 	}
 
-	/*
+	/**
 	 * Perform the CWT over raw data points in the selected scale level
+	 * 
+	 * @param dataPoints
 	 */
-	private SimpleDataPoint[] performCWT(DataPoint[] dataPoints) {
+	 private SimpleDataPoint[] performCWT(DataPoint[] dataPoints) {
 		int length = dataPoints.length;
 		SimpleDataPoint[] cwtDataPoints = new SimpleDataPoint[length];
 		double wstep = ((WAVELET_ESR - WAVELET_ESL) / NPOINTS);
@@ -178,8 +180,12 @@ public class WaveletMassDetector implements MassDetector {
 		return cwtDataPoints;
 	}
 
-	/*
+	/**
 	 * This function calculates the wavelets's coefficients in Time domain
+	 * 
+	 * @param double x Step of wavelet
+	 * @param double a Width at FWHM
+	 * @param double b Offset from the center of the peak
 	 */
 	private double cwtMEXHATreal(double x, double a, double b) {
 		/* c = 2 / ( sqrt(3) * pi^(1/4) ) */
@@ -197,9 +203,9 @@ public class WaveletMassDetector implements MassDetector {
 	/**
 	 * This function searches for maximums from wavelet data points
 	 */
-	private void getAllPeakLocalMaxima(float intensities[],
-			Vector<Integer> CentroidInds) {
-
+	private Vector<Integer> getAllPeakLocalMaxima(float intensities[]) {
+		
+		Vector<Integer> CentroidInds = new Vector<Integer>();
 		int peakMaxInd = 0;
 		int stopInd = intensities.length - 1;
 
@@ -228,6 +234,8 @@ public class WaveletMassDetector implements MassDetector {
 
 			CentroidInds.add(new Integer(peakMaxInd));
 		}
+		
+		return CentroidInds;
 	}
 
 }

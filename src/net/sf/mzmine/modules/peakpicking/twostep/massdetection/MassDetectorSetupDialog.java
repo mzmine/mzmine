@@ -334,7 +334,7 @@ public class MassDetectorSetupDialog extends ParameterSetupDialog implements
 		Vector<Peak> pickedDataPoint = new Vector<Peak>();
 
 		for (MzPeak mzPeak : mzValues) {
-			pickedDataPoint.add(new FakePeak(mzPeak.mz, mzPeak.intensity));
+			pickedDataPoint.add(new FakePeak(mzPeak.getMZ(), mzPeak.getIntensity()));
 		}
 
 		int newPeakID = 1;

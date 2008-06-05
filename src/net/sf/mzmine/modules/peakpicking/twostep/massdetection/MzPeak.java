@@ -27,7 +27,7 @@ import net.sf.mzmine.data.impl.SimpleDataPoint;
  */
 public class MzPeak implements DataPoint {
 
-	public float mz, intensity;
+	private float mz, intensity;
 	private DataPoint[] rawDataPoints;
 
 	/**

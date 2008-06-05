@@ -84,8 +84,8 @@ public class SimpleConnector implements PeakBuilder {
             }
 
             // Connect 1d to uc
-            ucPeak.addDatapoint(scan.getScanNumber(), cMzPeak.mzPeak.mz,
-                    scan.getRetentionTime(), cMzPeak.mzPeak.intensity);
+            ucPeak.addDatapoint(scan.getScanNumber(), cMzPeak.mzPeak.getMZ(),
+                    scan.getRetentionTime(), cMzPeak.mzPeak.getIntensity());
             cMzPeak.setConnected();
 
         }
@@ -135,8 +135,8 @@ public class SimpleConnector implements PeakBuilder {
         for (ConnectedMzPeak cMzPeak : cMzPeaks) {
             if (!cMzPeak.isConnected()) {
             	ConnectedPeak ucPeak = new ConnectedPeak(dataFile);
-                ucPeak.addDatapoint(scan.getScanNumber(), cMzPeak.mzPeak.mz,
-                        scan.getRetentionTime(), cMzPeak.mzPeak.intensity);
+                ucPeak.addDatapoint(scan.getScanNumber(), cMzPeak.mzPeak.getMZ(),
+                        scan.getRetentionTime(), cMzPeak.mzPeak.getIntensity());
                 ucPeak.resetGrowingState();
                 underConstructionPeaks.add(ucPeak);
             }

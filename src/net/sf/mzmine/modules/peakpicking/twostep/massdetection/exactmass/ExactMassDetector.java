@@ -24,13 +24,11 @@ import java.util.Vector;
 
 import net.sf.mzmine.data.DataPoint;
 import net.sf.mzmine.data.Scan;
-import net.sf.mzmine.data.impl.SimpleDataPoint;
 import net.sf.mzmine.modules.peakpicking.twostep.massdetection.MassDetector;
 import net.sf.mzmine.modules.peakpicking.twostep.massdetection.MzPeak;
 import net.sf.mzmine.util.Range;
 
 public class ExactMassDetector implements MassDetector {
-
 
 	// parameter values
 	private float noiseLevel;
@@ -40,6 +38,7 @@ public class ExactMassDetector implements MassDetector {
 	private float percentageResolution;
 
 	private DataPoint scanDataPoints[];
+	private Vector<MzPeak> mzPeaks;
 
 	public ExactMassDetector(ExactMassDetectorParameters parameters) {
 		noiseLevel = (Float) parameters
@@ -54,13 +53,15 @@ public class ExactMassDetector implements MassDetector {
 				.getParameterValue(ExactMassDetectorParameters.percentageResolution);
 	}
 
-	/* (non-Javadoc)
+	/*
+	 * (non-Javadoc)
+	 * 
 	 * @see net.sf.mzmine.modules.peakpicking.twostep.massdetection.MassDetector#getMassValues(net.sf.mzmine.data.Scan)
 	 */
 	public MzPeak[] getMassValues(Scan scan) {
 		scanDataPoints = scan.getDataPoints();
 		int startCurrentPeak = 0, endCurrentPeak = 0;
-		Vector<MzPeak> mzPeaks = new Vector<MzPeak>();
+		mzPeaks = new Vector<MzPeak>();
 		int length = scanDataPoints.length - 1;
 		Vector<Integer> localMinimum = new Vector<Integer>();
 		Vector<Integer> localMaximum = new Vector<Integer>();
@@ -73,7 +74,7 @@ public class ExactMassDetector implements MassDetector {
 
 		for (int ind = 1; ind <= length; ind++) {
 
-			while ((ind <= length) && (intensityValues[ind] == 0)) {
+			while ((ind < length) && (intensityValues[ind] == 0)) {
 				ind++;
 			}
 			if (ind >= length) {
@@ -81,8 +82,8 @@ public class ExactMassDetector implements MassDetector {
 			}
 
 			// While peak is on
-			startCurrentPeak = ind;
-			while ((ind < length - 1) && (intensityValues[ind + 1] > 0)) {
+			startCurrentPeak = ind - 1;
+			while ((ind < length - 1) && (intensityValues[ind] > 0)) {
 				// Check for all local maximum and minimum in this peak
 				if (top) {
 					if ((intensityValues[ind - 1] < intensityValues[ind])
@@ -99,21 +100,15 @@ public class ExactMassDetector implements MassDetector {
 				}
 				ind++;
 			}
-			endCurrentPeak = ind + 1;
+			endCurrentPeak = ind;
 
-			DataPoint[] exactMassDataPoint = calculateExactMass(localMaximum,
-					localMinimum, startCurrentPeak, endCurrentPeak);
-
-			for (DataPoint dp : exactMassDataPoint) {
-				mzPeaks.add(new MzPeak(dp.getMZ(), dp
-						.getIntensity()));
-			}
+			calculateExactMass(localMaximum, localMinimum, startCurrentPeak,
+					endCurrentPeak);
 
 			top = true;
 			localMaximum.clear();
 			localMinimum.clear();
 		}
-		removeNoiseLevelPeaks(mzPeaks);
 		if (cleanLateral)
 			removeLateralPeaks(mzPeaks, percentageHeight, percentageResolution);
 		return mzPeaks.toArray(new MzPeak[0]);
@@ -122,7 +117,8 @@ public class ExactMassDetector implements MassDetector {
 	/**
 	 * 
 	 * This function calculates the mass (m/z) giving weight to each data point
-	 * of the peak
+	 * of the peak using all local maximum and minimum. Also applies a filter
+	 * for peaks with intensity below of noise level parameter.
 	 * 
 	 * @param localMaximum
 	 * @param localMinimum
@@ -130,21 +126,29 @@ public class ExactMassDetector implements MassDetector {
 	 * @param end
 	 * @return
 	 */
-	private DataPoint[] calculateExactMass(Vector<Integer> localMaximum,
+	private void calculateExactMass(Vector<Integer> localMaximum,
 			Vector<Integer> localMinimum, int start, int end) {
-		Vector<DataPoint> dataPoints = new Vector<DataPoint>();
+
+		Vector<DataPoint> rangeDataPoints = new Vector<DataPoint>();
+
 		float sumMz = 0;
 		float sumIntensities = 0;
+
 		if ((localMinimum.isEmpty()) && (localMaximum.size() == 1)) {
-			for (int i = start; i < end; i++) {
-				sumMz += scanDataPoints[i].getMZ()
-						* scanDataPoints[i].getIntensity();
-				sumIntensities += scanDataPoints[i].getIntensity();
-			}
-			float exactMz = sumMz / sumIntensities;
+			// Filter of noise level
 			float intensity = scanDataPoints[localMaximum.firstElement()]
 					.getIntensity();
-			dataPoints.add(new SimpleDataPoint(exactMz, intensity));
+			if (intensity > noiseLevel) {
+				for (int i = start; i < end; i++) {
+					sumMz += scanDataPoints[i].getMZ()
+							* scanDataPoints[i].getIntensity();
+					sumIntensities += scanDataPoints[i].getIntensity();
+					rangeDataPoints.add(scanDataPoints[i]);
+				}
+				float exactMz = sumMz / sumIntensities;
+				mzPeaks.add(new MzPeak(exactMz, intensity, rangeDataPoints
+						.toArray(new DataPoint[0])));
+			}
 		} else {
 			Iterator<Integer> maximum = localMaximum.iterator();
 			Iterator<Integer> minimum = localMinimum.iterator();
@@ -155,14 +159,19 @@ public class ExactMassDetector implements MassDetector {
 					int index = maximum.next();
 					sumMz = 0;
 					sumIntensities = 0;
-					for (int i = tempStart; i <= tempEnd; i++) {
-						sumMz += scanDataPoints[i].getMZ()
-								* scanDataPoints[i].getIntensity();
-						sumIntensities += scanDataPoints[i].getIntensity();
-					}
-					float exactMz = sumMz / sumIntensities;
+					// Filter of noise level
 					float intensity = scanDataPoints[index].getIntensity();
-					dataPoints.add(new SimpleDataPoint(exactMz, intensity));
+					if (intensity > noiseLevel) {
+						for (int i = tempStart; i <= tempEnd; i++) {
+							sumMz += scanDataPoints[i].getMZ()
+									* scanDataPoints[i].getIntensity();
+							sumIntensities += scanDataPoints[i].getIntensity();
+							rangeDataPoints.add(scanDataPoints[i]);
+						}
+						float exactMz = sumMz / sumIntensities;
+						mzPeaks.add(new MzPeak(exactMz, intensity,
+								rangeDataPoints.toArray(new DataPoint[0])));
+					}
 					tempStart = tempEnd;
 					if (minimum.hasNext())
 						tempEnd = minimum.next();
@@ -172,42 +181,37 @@ public class ExactMassDetector implements MassDetector {
 				}
 			}
 		}
-
-		return dataPoints.toArray(new DataPoint[0]);
 	}
 
-	private void removeNoiseLevelPeaks(Vector<MzPeak> mzPeaks) {
-		MzPeak[] arrayMzPeak = mzPeaks.toArray(new MzPeak[0]);
-		for (MzPeak currentMzPeak : arrayMzPeak) {
-			if (currentMzPeak.getIntensity() < noiseLevel)
-				mzPeaks.remove(currentMzPeak);			
-		}
-	}
-	
 	/**
 	 * 
 	 * This function calculates the base peak width with a fixed mass resolution
 	 * (percentageResolution). After eliminates the encountered lateral peaks in
-	 * this range, with a height value less than defined height percentage of 
+	 * this range, with a height value less than defined height percentage of
 	 * central peak (percentageHeight).
 	 * 
 	 * @param mzPeaks
 	 * @param percentageHeight
 	 * @param percentageResolution
 	 */
-	private void removeLateralPeaks(Vector<MzPeak> mzPeaks, float percentageHeight, float percentageResolution) {
+	private void removeLateralPeaks(Vector<MzPeak> mzPeaks,
+			float percentageHeight, float percentageResolution) {
 
 		MzPeak[] arrayMzPeak = mzPeaks.toArray(new MzPeak[0]);
 		for (MzPeak currentMzPeak : arrayMzPeak) {
 
 			// FWFM (Full Width at Half Maximum)
-			float FWHM = currentMzPeak.getMZ() / ( (float) resolution  * percentageResolution);
+			float FWHM = currentMzPeak.getMZ()
+					/ ((float) resolution * percentageResolution);
 
 			float peakHeight = currentMzPeak.getIntensity();
 
-			// Calculates the 0.0001% of peak's height and applies natural logarithm.
-			// This height value is chosen because is the closest to zero. The zero
-			// value is not used because the Gaussian function tends to infinite at this height  
+			/*
+			 * Calculates the 0.0001% of peak's height and applies natural
+			 * logarithm. This height value is chosen because is the closest to
+			 * zero. The zero value is not used because the Gaussian function
+			 * tends to infinite at this height
+			 */
 			double ln = Math.abs(Math.log(peakHeight * 0.000001));
 
 			// Using the Gaussian function we calculate the base peak width,
@@ -221,9 +225,9 @@ public class ExactMassDetector implements MassDetector {
 			while (anotherIteratorMzPeak.hasNext()) {
 				MzPeak comparedMzPeak = anotherIteratorMzPeak.next();
 
-				if ((comparedMzPeak.getMZ() >= rangePeak.getMin()) &&
-						(comparedMzPeak.getMZ() <= rangePeak.getMax())	&& 
-						((comparedMzPeak.getIntensity() / peakHeight) <  percentageHeight) ) {
+				if ((comparedMzPeak.getMZ() >= rangePeak.getMin())
+						&& (comparedMzPeak.getMZ() <= rangePeak.getMax())
+						&& ((comparedMzPeak.getIntensity() / peakHeight) < percentageHeight)) {
 					anotherIteratorMzPeak.remove();
 				}
 				if (comparedMzPeak.getMZ() > rangePeak.getMax())
