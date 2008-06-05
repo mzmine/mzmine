@@ -20,56 +20,71 @@
 package net.sf.mzmine.modules.peakpicking.twostep.massdetection;
 
 import net.sf.mzmine.data.DataPoint;
+import net.sf.mzmine.data.impl.SimpleDataPoint;
 
 /**
  * This class represent an m/z peak
  */
 public class MzPeak implements DataPoint {
 
-	public int scanNum;
 	public float mz, intensity;
-	//public int datapointIndex;
+	private DataPoint[] rawDataPoints;
 
-    // This table maps a possible peak to an array of m/z and intensity pairs
-    private DataPoint[] rawDataPoints;
-
-	public MzPeak() {
-		this.scanNum = 0;
-		//this.datapointIndex = 0;
-		this.mz = 0;
-		this.intensity = 0;
-	}
-
-	//public MzPeak(int scanNum, int datapointIndex, float mz, float intensity) {
-	public MzPeak(int scanNum, float mz, float intensity) {
-		this.scanNum = scanNum;
-		//this.datapointIndex = datapointIndex;
+	/**
+	 * This constructor creates a DataPoint with these values. This DataPoint
+	 * represents the portion of a peak (m/z domain) on certain scan.The raw 
+	 * data points that conform these m/z peak correspond to all range (start
+	 * & end) of the peak in m/z domain, in this case only correspond to one 
+	 * single DataPoint. 
+	 * 
+	 * @param mz
+	 * @param intensity
+	 */
+	public MzPeak(float mz, float intensity) {
 		this.mz = mz;
 		this.intensity = intensity;
+		DataPoint[] fakeRawDataPoints = new DataPoint[1];
+		fakeRawDataPoints[0] = new SimpleDataPoint(mz, intensity);
+		this.rawDataPoints = fakeRawDataPoints;
 	}
 
-	//public MzPeak(int scanNum, int datapointIndex, float mz, float intensity, DataPoint[] rawDataPoints) {
-	public MzPeak(int scanNum, float mz, float intensity, DataPoint[] rawDataPoints) {
-		this.scanNum = scanNum;
-		//this.datapointIndex = datapointIndex;
+	/**
+	 * This constructor creates a DataPoint with these values. This DataPoint
+	 * represents the portion of a peak (m/z domain) on certain scan. The raw 
+	 * data points that conform these m/z peak correspond to all range (start
+	 * & end) of the peak in m/z domain.
+	 * 
+	 * @param mz
+	 * @param intensity
+	 * @param rawDataPoints
+	 */
+	public MzPeak(float mz, float intensity, DataPoint[] rawDataPoints) {
 		this.mz = mz;
 		this.intensity = intensity;
 		this.rawDataPoints = rawDataPoints;
 	}
 
+	/**
+	 * Returns intensity value of the peak on this scan. The value depends of
+	 * the used mass detector.
+	 */
 	public float getIntensity() {
 		return intensity;
 	}
 
+	/**
+	 * Returns m/z value of the peak on this scan. The value depends of the used
+	 * mass detector.
+	 */
 	public float getMZ() {
 		return mz;
 	}
 
-     /**
-     * This method returns an array of raw datapoints that form this peak 
-     */
-    public DataPoint[] getRawDataPoints() {
-        return rawDataPoints;
-    }
-    
+	/**
+	 * This method returns an array of raw data points that form this peak
+	 */
+	public DataPoint[] getRawDataPoints() {
+		return rawDataPoints;
+	}
+
 }

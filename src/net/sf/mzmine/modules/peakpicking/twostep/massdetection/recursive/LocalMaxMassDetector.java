@@ -17,7 +17,7 @@
  * Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-package net.sf.mzmine.modules.peakpicking.twostep.massdetection.localmaxima;
+package net.sf.mzmine.modules.peakpicking.twostep.massdetection.recursive;
 
 import java.util.Vector;
 
@@ -63,10 +63,7 @@ public class LocalMaxMassDetector implements MassDetector {
 		for (Integer j : mzPeakInds) {
 			// Is intensity above the noise level
 			if (intensityValues[j] >= noiseLevel) {
-				//mzPeaks.add(new MzPeak(scan.getScanNumber(), j, mzValues[j],
-					//	intensityValues[j]));
-				mzPeaks.add(new MzPeak(scan.getScanNumber(), mzValues[j],
-						intensityValues[j]));
+				mzPeaks.add(new MzPeak(mzValues[j],	intensityValues[j]));
 			}
 		}
 		return mzPeaks.toArray(new MzPeak[0]);

@@ -48,7 +48,7 @@ public class ExactMassDetectorParameters extends SimpleParameterSet {
 
 	public static final Parameter cleanLateral = new SimpleParameter(
 			ParameterType.BOOLEAN,
-			"Remove lateral peaks",
+			"Remove FTMS shoulder peaks",
 			"Remove lateral peaks under the criteria defined by percentage of peak's height and resolution",
 			null, new Boolean(false), null, null, null);
 

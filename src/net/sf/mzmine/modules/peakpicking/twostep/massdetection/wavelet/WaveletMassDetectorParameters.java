@@ -30,7 +30,7 @@ public class WaveletMassDetectorParameters extends SimpleParameterSet {
 			ParameterType.INTEGER,
 			"Scale level",
 			"Number of wavelet'scale (coeficients) to use in m/z peak detection",
-			"absolute", new Integer(6), new Integer(0), null, null);
+			"absolute", new Integer(6), new Integer(1), null, null);
 
 	public WaveletMassDetectorParameters() {
 		super(new Parameter[] { scaleLevel });

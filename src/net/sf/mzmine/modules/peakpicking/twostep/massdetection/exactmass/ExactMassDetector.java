@@ -105,7 +105,7 @@ public class ExactMassDetector implements MassDetector {
 					localMinimum, startCurrentPeak, endCurrentPeak);
 
 			for (DataPoint dp : exactMassDataPoint) {
-				mzPeaks.add(new MzPeak(scan.getScanNumber(), dp.getMZ(), dp
+				mzPeaks.add(new MzPeak(dp.getMZ(), dp
 						.getIntensity()));
 			}
 

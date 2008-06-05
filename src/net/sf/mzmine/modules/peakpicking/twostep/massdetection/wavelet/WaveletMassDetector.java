@@ -90,10 +90,7 @@ public class WaveletMassDetector implements MassDetector {
 		for (Integer j : mzPeakInds) {
 			for (int oDPindex = 0; oDPindex < originalDataPoints.length - 1; oDPindex++) {
 				if (waveletMzValues[j] == mzValues[oDPindex]) {
-					//mzPeaks.add(new MzPeak(scan.getScanNumber(), j,
-						//	mzValues[oDPindex], intensityValues[oDPindex]));
-					mzPeaks.add(new MzPeak(scan.getScanNumber(), 
-							mzValues[oDPindex], intensityValues[oDPindex]));
+					mzPeaks.add(new MzPeak(mzValues[oDPindex], intensityValues[oDPindex]));
 				}
 			}
 		}

@@ -31,6 +31,7 @@ import java.lang.reflect.Constructor;
 import java.text.NumberFormat;
 import java.util.Iterator;
 import java.util.Vector;
+import java.util.logging.Logger;
 
 import javax.swing.BorderFactory;
 import javax.swing.Box;
@@ -59,7 +60,6 @@ import net.sf.mzmine.data.impl.SimplePeakListRow;
 import net.sf.mzmine.desktop.Desktop;
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.modules.peakpicking.twostep.TwoStepPickerParameters;
-import net.sf.mzmine.modules.peakpicking.twostep.peakconstruction.simpleconnector.ConnectedPeak;
 import net.sf.mzmine.modules.visualization.spectra.PeakListDataSet;
 import net.sf.mzmine.modules.visualization.spectra.PlotMode;
 import net.sf.mzmine.modules.visualization.spectra.ScanDataSet;
@@ -79,7 +79,7 @@ import org.jfree.chart.labels.XYToolTipGenerator;
 public class MassDetectorSetupDialog extends ParameterSetupDialog implements
 		ActionListener, PropertyChangeListener {
 
-	// private Logger logger = Logger.getLogger(this.getClass().getName());
+	private Logger logger = Logger.getLogger(this.getClass().getName());
 
 	private RawDataFile previewDataFile;
 	private RawDataFile[] dataFiles;
@@ -316,7 +316,11 @@ public class MassDetectorSetupDialog extends ParameterSetupDialog implements
 			massDetector = (MassDetector) massDetectorConstruct
 					.newInstance(mdParameters);
 		} catch (Exception e) {
-			e.printStackTrace();
+			desktop.displayErrorMessage("Error trying to make an instance of mass detector "
+					+ massDetectorClassName);
+			logger.finest("Error trying to make an instance of mass detector "
+					+ massDetectorClassName);
+			return;
 		}
 
 		Scan scan = previewDataFile.getScan(listScans[ind]);
@@ -330,10 +334,7 @@ public class MassDetectorSetupDialog extends ParameterSetupDialog implements
 		Vector<Peak> pickedDataPoint = new Vector<Peak>();
 
 		for (MzPeak mzPeak : mzValues) {
-			ConnectedPeak ucPeak = new ConnectedPeak(previewDataFile);
-			ucPeak.addDatapoint(scan.getScanNumber(), mzPeak.mz, scan
-					.getRetentionTime(), mzPeak.intensity);
-			pickedDataPoint.add(ucPeak);
+			pickedDataPoint.add(new FakePeak(mzPeak.mz, mzPeak.intensity));
 		}
 
 		int newPeakID = 1;
