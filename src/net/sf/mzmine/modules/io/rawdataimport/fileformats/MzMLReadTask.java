@@ -100,8 +100,8 @@ public class MzMLReadTask extends DefaultHandler implements Task {
 	 * find possible fragments (current scan) that belongs to any of the stored
 	 * scans in the stack. The reason of the size follows the concept of
 	 * neighborhood of scans and all his fragments. These solution is
-	 * implemented because exists the possibility to find fragments of one
-	 * scan after one or more full scans.
+	 * implemented because exists the possibility to find fragments of one scan
+	 * after one or more full scans.
 	 */
 	private static final int limitSize = 20;
 	private LinkedList<SimpleScan> parentStack;
@@ -194,10 +194,10 @@ public class MzMLReadTask extends DefaultHandler implements Task {
 	}
 
 	/**
-	 *  startElement()
+	 * startElement()
 	 * 
-	 * @see org.xml.sax.ContentHandler#startElement(String , String , String , 
-			Attributes )
+	 * @see org.xml.sax.ContentHandler#startElement(String , String , String ,
+	 *      Attributes )
 	 */
 	public void startElement(String namespaceURI, String lName, String qName, 
 			Attributes attrs) throws SAXException {
@@ -219,8 +219,12 @@ public class MzMLReadTask extends DefaultHandler implements Task {
 			precursorMz = 0f;
 			precision = null;
 			precursorCharge = 0;
-			scanNumber = Integer.parseInt(attrs.getValue("index")) + 1;
-			scanId.put(attrs.getValue("id"), (Integer) scanNumber);
+			String index = attrs.getValue("index");
+			String id = attrs.getValue("id");
+			if ((index == null) || (id == null))
+				throw new SAXException("File does not comply with the standard mzML 1.0");
+			scanNumber = Integer.parseInt(index) + 1;
+			scanId.put(id, (Integer) scanNumber);
 			spectrumFlag = true;
 		}
 
@@ -269,21 +273,28 @@ public class MzMLReadTask extends DefaultHandler implements Task {
 			if (scanFlag) {
 				if (accession.equals("MS:1000016")) {
 					String unitAccession = attrs.getValue("unitAccession");
-					if (unitAccession != null) {
+					String value = attrs.getValue("value");
+					if ((unitAccession != null) && (value != null)) {
 						if (unitAccession.equals("MS:1000038"))
-							retentionTime = Float.parseFloat(attrs
-									.getValue("value")) * 60f;
-					} else
-						retentionTime = Float.parseFloat(attrs
-								.getValue("value"));
+							retentionTime = Float.parseFloat(value) * 60f;
+						else
+							retentionTime = Float.parseFloat(value);
+					}
+					else
+						throw new SAXException("File does not comply with the standard mzML 1.0");
 				}
 			}
 
 			if ((precursorFlag) && (ionSelectionFlag)) {
+				String value = attrs.getValue("value");
+				if (value != null) {
 				if (accession.equals("MS:1000040"))
-					precursorMz = Float.parseFloat(attrs.getValue("value"));
+					precursorMz = Float.parseFloat(value);
 				if (accession.equals("MS:1000041"))
-					precursorCharge = Integer.parseInt(attrs.getValue("value"));
+					precursorCharge = Integer.parseInt(value);
+				}
+				else
+					throw new SAXException("File does not comply with the standard mzML 1.0");
 			}
 			if (binaryDataArrayFlag) {
 				if (accession.equals("MS:1000514"))
@@ -306,7 +317,12 @@ public class MzMLReadTask extends DefaultHandler implements Task {
 		// <binaryDataArray>
 		if (qName.equalsIgnoreCase("binaryDataArray")) {
 			// clean the current char buffer for the new element
-			compressedLen = Integer.parseInt(attrs.getValue("encodedLength"));
+			String encodedLength = attrs.getValue("encodedLength");
+			if (encodedLength != null) {
+			compressedLen = Integer.parseInt(encodedLength);
+			}
+			else
+				throw new SAXException("File does not comply with the standard mzML 1.0");
 			binaryDataArrayFlag = true;
 		}
 
@@ -317,7 +333,8 @@ public class MzMLReadTask extends DefaultHandler implements Task {
 	 * 
 	 * @see org.xml.sax.ContentHandler#endElement(String , String , String )
 	 */
-	public void endElement(String namespaceURI, String sName, String qName) throws SAXException {
+	public void endElement(String namespaceURI, String sName, String qName)
+			throws SAXException {
 
 		// <spectrum>
 		if (qName.equalsIgnoreCase("spectrum")) {
