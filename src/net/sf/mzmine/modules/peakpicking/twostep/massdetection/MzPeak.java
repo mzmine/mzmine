@@ -43,8 +43,15 @@ public class MzPeak implements DataPoint {
 	public MzPeak(float mz, float intensity) {
 		this.mz = mz;
 		this.intensity = intensity;
-		DataPoint[] fakeRawDataPoints = new DataPoint[1];
-		fakeRawDataPoints[0] = new SimpleDataPoint(mz, intensity);
+		DataPoint[] fakeRawDataPoints = {new SimpleDataPoint(mz, intensity)};//= new DataPoint[1];
+		//fakeRawDataPoints[0] = new SimpleDataPoint(mz, intensity);
+		this.rawDataPoints = fakeRawDataPoints;
+	}
+
+	public MzPeak(DataPoint dataPoint) {
+		this.mz = dataPoint.getMZ();
+		this.intensity = dataPoint.getIntensity();
+		DataPoint[] fakeRawDataPoints = {dataPoint};
 		this.rawDataPoints = fakeRawDataPoints;
 	}
 
@@ -61,6 +68,12 @@ public class MzPeak implements DataPoint {
 	public MzPeak(float mz, float intensity, DataPoint[] rawDataPoints) {
 		this.mz = mz;
 		this.intensity = intensity;
+		this.rawDataPoints = rawDataPoints;
+	}
+
+	public MzPeak(DataPoint dataPoint, DataPoint[] rawDataPoints) {
+		this.mz = dataPoint.getMZ();
+		this.intensity = dataPoint.getIntensity();
 		this.rawDataPoints = rawDataPoints;
 	}
 
