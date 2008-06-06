@@ -330,9 +330,9 @@ class ThreeDDisplay extends DisplayImplJ3D {
             intensityMap.setRange(0, maxIntensity);
             heightMap.setRange(0, maxIntensity);
 
-            // set the color axis top intensity to half of the maximum intensity
+            // set the color axis top intensity to 20% of the maximum intensity
             // value, because the peaks are usually sharp
-            colorMap.setRange(0, maxIntensity / 2);
+            colorMap.setRange(0, maxIntensity / 5);
 
             float mzRange = mzMax - mzMin;
             float rtRange = rtMax - rtMin;
