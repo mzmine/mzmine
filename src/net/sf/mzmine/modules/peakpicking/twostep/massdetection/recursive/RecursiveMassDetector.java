@@ -43,27 +43,21 @@ public class RecursiveMassDetector implements MassDetector {
 	public MzPeak[] getMassValues(Scan scan) {
 
 		Scan sc = scan;
-		DataPoint dataPoints[] = sc.getDataPoints();
-		float[] mzValues = new float[dataPoints.length];
-		float[] intensityValues = new float[dataPoints.length];
-		for (int dp = 0; dp < dataPoints.length; dp++) {
-			mzValues[dp] = dataPoints[dp].getMZ();
-			intensityValues[dp] = dataPoints[dp].getIntensity();
-		}
+		DataPoint[] dataPoints = sc.getDataPoints();
 
 		Vector<MzPeak> mzPeaks = new Vector<MzPeak>();
 
 		// Find MzPeaks
 
 		Vector<Integer> mzPeakInds = new Vector<Integer>();
-		recursiveThreshold(mzValues, intensityValues, 0, mzValues.length - 1,
+		recursiveThreshold(dataPoints, 0, dataPoints.length - 1,
 				noiseLevel, minimumMZPeakWidth, maximumMZPeakWidth, mzPeakInds,
 				0);
 
 		for (Integer j : mzPeakInds) {
 			// Is intensity above the noise level
-			if (intensityValues[j] >= noiseLevel) {
-				mzPeaks.add(new MzPeak(mzValues[j],	intensityValues[j]));
+			if (dataPoints[j].getIntensity() >= noiseLevel) {
+				mzPeaks.add(new MzPeak(dataPoints[j]));
 			}
 		}
 		return mzPeaks.toArray(new MzPeak[0]);
@@ -72,7 +66,7 @@ public class RecursiveMassDetector implements MassDetector {
 	/**
 	 * This function searches for maximums from given part of a spectrum
 	 */
-	private int recursiveThreshold(float[] masses, float intensities[],
+	private int recursiveThreshold(DataPoint[] dataPoint,
 			int startInd, int stopInd, float thresholdLevel,
 			float minPeakWidthMZ, float maxPeakWidthMZ,
 			Vector<Integer> CentroidInds, int recuLevel) {
@@ -85,7 +79,7 @@ public class RecursiveMassDetector implements MassDetector {
 
 		for (int ind = startInd; ind <= stopInd; ind++) {
 			// While below threshold
-			while ((ind <= stopInd) && (intensities[ind] <= thresholdLevel)) {
+			while ((ind <= stopInd) && (dataPoint[ind].getIntensity() <= thresholdLevel)) {
 				ind++;
 			}
 
@@ -98,14 +92,14 @@ public class RecursiveMassDetector implements MassDetector {
 			peakMaxInd = peakStartInd;
 
 			// While peak is on
-			while ((ind <= stopInd) && (intensities[ind] > thresholdLevel)) {
+			while ((ind <= stopInd) && (dataPoint[ind].getIntensity() > thresholdLevel)) {
 				// Check if this is the minimum point of the peak
-				if (intensities[ind] < intensities[peakMinInd]) {
+				if (dataPoint[ind].getIntensity() < dataPoint[peakMinInd].getIntensity()) {
 					peakMinInd = ind;
 				}
 
 				// Check if this is the maximum poin of the peak
-				if (intensities[ind] > intensities[peakMaxInd]) {
+				if (dataPoint[ind].getIntensity() > dataPoint[peakMaxInd].getIntensity()) {
 					peakMaxInd = ind;
 				}
 
@@ -131,7 +125,7 @@ public class RecursiveMassDetector implements MassDetector {
 				if (tmpInd2 > stopInd) {
 					tmpInd2 = stopInd;
 				}
-				peakWidthMZ = masses[peakStopInd] - masses[peakStartInd];
+				peakWidthMZ = dataPoint[peakStopInd].getMZ() - dataPoint[peakStartInd].getMZ();
 			}
 
 			if ((peakWidthMZ >= minPeakWidthMZ)
@@ -148,8 +142,8 @@ public class RecursiveMassDetector implements MassDetector {
 
 			// Is there need for further investigation?
 			if (peakWidthMZ > maxPeakWidthMZ) {
-				ind = recursiveThreshold(masses, intensities, peakStartInd,
-						peakStopInd, intensities[peakMinInd], minPeakWidthMZ,
+				ind = recursiveThreshold(dataPoint, peakStartInd,
+						peakStopInd, dataPoint[peakMinInd].getIntensity(), minPeakWidthMZ,
 						maxPeakWidthMZ, CentroidInds, recuLevel + 1);
 			}
 

@@ -187,8 +187,7 @@ public class WaveletMassDetector implements MassDetector {
 
 			rawDataPoints.add(originalDataPoints[ind]);
 
-			mzPeaks.add(new MzPeak(originalDataPoints[peakMaxInd].getMZ(),
-					originalDataPoints[peakMaxInd].getIntensity(),
+			mzPeaks.add(new MzPeak(originalDataPoints[peakMaxInd],
 					rawDataPoints.toArray(new DataPoint[0])));
 
 		}

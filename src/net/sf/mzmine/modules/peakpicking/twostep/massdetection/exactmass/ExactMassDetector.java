@@ -24,6 +24,7 @@ import java.util.Vector;
 
 import net.sf.mzmine.data.DataPoint;
 import net.sf.mzmine.data.Scan;
+import net.sf.mzmine.data.impl.SimpleDataPoint;
 import net.sf.mzmine.modules.peakpicking.twostep.massdetection.MassDetector;
 import net.sf.mzmine.modules.peakpicking.twostep.massdetection.MzPeak;
 import net.sf.mzmine.util.Range;
@@ -146,7 +147,7 @@ public class ExactMassDetector implements MassDetector {
 					rangeDataPoints.add(scanDataPoints[i]);
 				}
 				float exactMz = sumMz / sumIntensities;
-				mzPeaks.add(new MzPeak(exactMz, intensity, rangeDataPoints
+				mzPeaks.add(new MzPeak(new SimpleDataPoint(exactMz, intensity), rangeDataPoints
 						.toArray(new DataPoint[0])));
 			}
 		} else {
@@ -169,7 +170,7 @@ public class ExactMassDetector implements MassDetector {
 							rangeDataPoints.add(scanDataPoints[i]);
 						}
 						float exactMz = sumMz / sumIntensities;
-						mzPeaks.add(new MzPeak(exactMz, intensity,
+						mzPeaks.add(new MzPeak(new SimpleDataPoint(exactMz, intensity),
 								rangeDataPoints.toArray(new DataPoint[0])));
 					}
 					tempStart = tempEnd;

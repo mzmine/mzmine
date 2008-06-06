@@ -20,7 +20,6 @@
 package net.sf.mzmine.modules.peakpicking.twostep.massdetection;
 
 import net.sf.mzmine.data.DataPoint;
-import net.sf.mzmine.data.impl.SimpleDataPoint;
 
 /**
  * This class represent an m/z peak
@@ -31,46 +30,28 @@ public class MzPeak implements DataPoint {
 	private DataPoint[] rawDataPoints;
 
 	/**
-	 * This constructor creates a DataPoint with these values. This DataPoint
-	 * represents the portion of a peak (m/z domain) on certain scan.The raw 
-	 * data points that conform these m/z peak correspond to all range (start
-	 * & end) of the peak in m/z domain, in this case only correspond to one 
-	 * single DataPoint. 
+	 * This constructor takes this DataPoint to represent the portion of a peak
+	 * (m/z domain) on certain scan.The raw data points that conform these m/z
+	 * peak correspond to all range (start & end) of the peak in m/z domain, in
+	 * this case only correspond to one single DataPoint.
 	 * 
-	 * @param mz
-	 * @param intensity
+	 * @param dataPoint
 	 */
-	public MzPeak(float mz, float intensity) {
-		this.mz = mz;
-		this.intensity = intensity;
-		DataPoint[] fakeRawDataPoints = {new SimpleDataPoint(mz, intensity)};//= new DataPoint[1];
-		//fakeRawDataPoints[0] = new SimpleDataPoint(mz, intensity);
-		this.rawDataPoints = fakeRawDataPoints;
-	}
-
 	public MzPeak(DataPoint dataPoint) {
 		this.mz = dataPoint.getMZ();
 		this.intensity = dataPoint.getIntensity();
-		DataPoint[] fakeRawDataPoints = {dataPoint};
+		DataPoint[] fakeRawDataPoints = { dataPoint };
 		this.rawDataPoints = fakeRawDataPoints;
 	}
 
 	/**
-	 * This constructor creates a DataPoint with these values. This DataPoint
-	 * represents the portion of a peak (m/z domain) on certain scan. The raw 
-	 * data points that conform these m/z peak correspond to all range (start
-	 * & end) of the peak in m/z domain.
+	 * This constructor take this DataPoint to represent the portion of a peak
+	 * (m/z domain) on certain scan. The raw data points that conform these m/z
+	 * peak correspond to all range (start & end) of the peak in m/z domain.
 	 * 
-	 * @param mz
-	 * @param intensity
+	 * @param dataPoint
 	 * @param rawDataPoints
 	 */
-	public MzPeak(float mz, float intensity, DataPoint[] rawDataPoints) {
-		this.mz = mz;
-		this.intensity = intensity;
-		this.rawDataPoints = rawDataPoints;
-	}
-
 	public MzPeak(DataPoint dataPoint, DataPoint[] rawDataPoints) {
 		this.mz = dataPoint.getMZ();
 		this.intensity = dataPoint.getIntensity();
