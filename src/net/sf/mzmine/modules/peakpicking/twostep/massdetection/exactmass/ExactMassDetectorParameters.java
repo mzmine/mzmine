@@ -41,26 +41,28 @@ public class ExactMassDetectorParameters extends SimpleParameterSet {
 	public static final Parameter resolution = new SimpleParameter(
 			ParameterType.INTEGER,
 			"Mass Resolution",
-			"Mass resolution is the dimensionless ratio of the mass of the peak divided by its width." +
-			" Peak width is taken as the full width at half maximum intensity, (fwhm).",
+			"Mass resolution is the dimensionless ratio of the mass of the peak divided by its width."
+					+ " Peak width is taken as the full width at half maximum intensity, (fwhm).",
 			null, new Integer(60000), new Integer(0), null, NumberFormat
 					.getIntegerInstance());
 
 	public static final Parameter cleanLateral = new SimpleParameter(
 			ParameterType.BOOLEAN,
 			"Remove FTMS shoulder peaks",
-			"Remove lateral peaks under the criteria defined by percentage of peak's height and resolution",
+			"Remove lateral peaks under the criteria defined by percentage of peak's intensity and resolution",
 			null, new Boolean(false), null, null, null);
 
 	public static final Parameter percentageHeight = new SimpleParameter(
-			ParameterType.FLOAT, "Percentage of Height",
-			"Limit of height in percentage to remove lateral peaks", "%",
-			new Float(0.05), new Float(0.0), null, percentFormat);
+			ParameterType.FLOAT,
+			"Percentage of Itensity",
+			"Intensities less than this percentage of the biggest peak's instensity in a range (see % of Resolution) are removed",
+			"%", new Float(0.05), new Float(0.0), null, percentFormat);
 
 	public static final Parameter percentageResolution = new SimpleParameter(
 			ParameterType.FLOAT,
-			"Resolution",
-			"Percentage of resolution to calculate width of the peak and remove lateral peaks",
+			"Percentage of Resolution",
+			"According with this percentage, it is estimated the base peak's width. This width is used to define "
+					+ "the range for seeking lateral peaks. Peaks with mass within this width are removed ",
 			"%", new Float(0.25), new Float(0.01), null, percentFormat);
 
 	public ExactMassDetectorParameters() {

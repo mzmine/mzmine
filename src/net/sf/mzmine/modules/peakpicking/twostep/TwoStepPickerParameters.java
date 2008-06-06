@@ -33,8 +33,9 @@ public class TwoStepPickerParameters implements StorableParameterSet {
 
 	private static final String PARAMETER_NAME_ATTRIBUTE = "name";
 
-	public static final String massDetectorNames[] = { "Centroid", "Local maxima",
-			"Recursive", "Exact mass", "Wavelet transform" };
+	public static final String massDetectorNames[] = { "Centroid",
+			"Local maxima", "Recursive threshold", "Exact mass",
+			"Wavelet transform" };
 
 	public static final String massDetectorClasses[] = {
 			"net.sf.mzmine.modules.peakpicking.twostep.massdetection.centroid.CentroidMassDetector",
@@ -233,15 +234,15 @@ public class TwoStepPickerParameters implements StorableParameterSet {
 
 	}
 
-	/** 
+	/**
+	 * This function allows to use these parameters by others threads. So it is
+	 * possible to configure any other task with different parameters value
+	 * without modify the behavior of other launched tasks
 	 * 
 	 */
 	public TwoStepPickerParameters clone() {
 
-		// do not make a new instance of SimpleParameterSet, but instead
-		// clone the runtime class of this instance - runtime type may be
-		// inherited class
-		TwoStepPickerParameters newSet = new TwoStepPickerParameters(); // this.getClass().newInstance();
+		TwoStepPickerParameters newSet = new TwoStepPickerParameters();
 		newSet.massDetectorParameters = new SimpleParameterSet[massDetectorParameters.length];
 		for (int i = 0; i < massDetectorParameters.length; i++) {
 			newSet.massDetectorParameters[i] = massDetectorParameters[i]

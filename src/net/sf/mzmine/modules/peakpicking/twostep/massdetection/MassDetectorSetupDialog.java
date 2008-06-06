@@ -120,7 +120,7 @@ public class MassDetectorSetupDialog extends ParameterSetupDialog implements
 			int massDetectorTypeNumber) {
 
 		super(TwoStepPickerParameters.massDetectorNames[massDetectorTypeNumber]
-				+ "'s parameter Set Up Dialog & preVisualizer", parameters
+				+ "'s parameter setup dialog ", parameters
 				.getMassDetectorParameters(massDetectorTypeNumber));
 
 		dataFiles = MZmineCore.getCurrentProject().getDataFiles();
@@ -221,14 +221,14 @@ public class MassDetectorSetupDialog extends ParameterSetupDialog implements
 		String command = event.getActionCommand();
 
 		if (src == btnOK) {
-				super.actionPerformed(event);
+			super.actionPerformed(event);
 		}
 
 		if (src == btnCancel) {
 			dispose();
 		}
 
-		if ((src == comboScanNumber) || (src instanceof JCheckBox)) {
+		if ((src == comboScanNumber) || ((src instanceof JCheckBox) && (src != preview))) {
 			int ind = comboScanNumber.getSelectedIndex();
 			setPeakListDataSet(ind);
 			loadScan(listScans[ind]);
@@ -255,18 +255,17 @@ public class MassDetectorSetupDialog extends ParameterSetupDialog implements
 		if (src == preview) {
 			if (preview.isSelected()) {
 				int ind = comboScanNumber.getSelectedIndex();
-					pnlLocal.add(pnlPlotXY, BorderLayout.CENTER);
-					add(pnlLocal);
-					pack();
-					comboDataFileName.setEnabled(true);
-					comboScanNumber.setEnabled(true);
-					nextScanBtn.setEnabled(true);
-					prevScanBtn.setEnabled(true);
-					setPeakListDataSet(ind);
-					loadScan(listScans[ind]);
-					this.setResizable(true);
-					setLocationRelativeTo(MZmineCore.getDesktop()
-							.getMainFrame());
+				pnlLocal.add(pnlPlotXY, BorderLayout.CENTER);
+				add(pnlLocal);
+				pack();
+				comboDataFileName.setEnabled(true);
+				comboScanNumber.setEnabled(true);
+				nextScanBtn.setEnabled(true);
+				prevScanBtn.setEnabled(true);
+				setPeakListDataSet(ind);
+				loadScan(listScans[ind]);
+				this.setResizable(true);
+				setLocationRelativeTo(MZmineCore.getDesktop().getMainFrame());
 			} else {
 				pnlLocal.remove(pnlPlotXY);
 				add(pnlLocal);
@@ -303,7 +302,6 @@ public class MassDetectorSetupDialog extends ParameterSetupDialog implements
 	 */
 	public void setPeakListDataSet(int ind) {
 
-		MzPeak[] mzValues = new MzPeak[0];
 		SimplePeakList newPeakList = new SimplePeakList(previewDataFile
 				+ "_singleScanPeak", previewDataFile);
 		buildParameterSetMassDetector();
@@ -316,15 +314,16 @@ public class MassDetectorSetupDialog extends ParameterSetupDialog implements
 			massDetector = (MassDetector) massDetectorConstruct
 					.newInstance(mdParameters);
 		} catch (Exception e) {
-			desktop.displayErrorMessage("Error trying to make an instance of mass detector "
-					+ massDetectorClassName);
+			desktop
+					.displayErrorMessage("Error trying to make an instance of mass detector "
+							+ massDetectorClassName);
 			logger.finest("Error trying to make an instance of mass detector "
 					+ massDetectorClassName);
 			return;
 		}
 
 		Scan scan = previewDataFile.getScan(listScans[ind]);
-		mzValues = massDetector.getMassValues(scan);
+		MzPeak[] mzValues = massDetector.getMassValues(scan);
 
 		if (mzValues == null) {
 			peaksDataSet = null;
@@ -334,7 +333,7 @@ public class MassDetectorSetupDialog extends ParameterSetupDialog implements
 		Vector<Peak> pickedDataPoint = new Vector<Peak>();
 
 		for (MzPeak mzPeak : mzValues) {
-			pickedDataPoint.add(new FakePeak(mzPeak.getMZ(), mzPeak.getIntensity()));
+			pickedDataPoint.add(new FakePeak(scan.getScanNumber(), mzPeak));
 		}
 
 		int newPeakID = 1;
@@ -421,9 +420,11 @@ public class MassDetectorSetupDialog extends ParameterSetupDialog implements
 	}
 
 	public void propertyChange(PropertyChangeEvent e) {
-		int ind = comboScanNumber.getSelectedIndex();
-		setPeakListDataSet(ind);
-		loadScan(listScans[ind]);
+		if (preview.isSelected()) {
+			int ind = comboScanNumber.getSelectedIndex();
+			setPeakListDataSet(ind);
+			loadScan(listScans[ind]);
+		}
 	}
 
 	/**

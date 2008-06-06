@@ -23,6 +23,7 @@ import java.awt.BorderLayout;
 import java.awt.Dimension;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.util.Arrays;
 
 import javax.swing.BorderFactory;
 import javax.swing.Box;
@@ -220,13 +221,32 @@ class TwoStepPickerSetupDialog extends JDialog implements ActionListener {
 		int massDetectorNumber = comboMassDetectors.getSelectedIndex();
 		String massDetectorName = TwoStepPickerParameters.massDetectorNames[massDetectorNumber];
 		boolean centroid = false;
+		boolean notMsLevelOne = false;
 
 		if (dataFiles.length != 0) {
 			for (int i = 0; i < dataFiles.length; i++) {
-				int index = dataFiles[i].getScanNumbers()[0];
+				
+				int msLevels[] = dataFiles[i].getMSLevels();
+				Arrays.sort(msLevels);
+				
+				if (msLevels[0] != 1){
+					notMsLevelOne = true;
+					break;
+				}
+				
+				int index = dataFiles[i].getScanNumbers(1)[0];
 				Scan scan = dataFiles[i].getScan(index);
-				if (scan.isCentroided())
+				
+				if (scan.isCentroided()){
 					centroid = true;
+					break;
+				}
+			}
+
+			if (notMsLevelOne) {
+				desktop
+						.displayMessage(" One or more selected files does not contain spectrum of MS level \"1\".\n"
+								+ " The actual mass detector only works over spectrum of this level.");
 			}
 
 			if ((centroid) && (!massDetectorName.equals("Centroid"))) {
