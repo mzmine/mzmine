@@ -64,6 +64,7 @@ public class MzMLReadTask extends DefaultHandler implements Task {
 	private boolean precursorFlag = false;
 	private boolean spectrumFlag = false;
 	private boolean spectrumDescriptionFlag = false;
+	private boolean spectrumListFlag= false;
 	private boolean scanFlag = false;
 	private boolean ionSelectionFlag = false;
 	private boolean binaryDataArrayFlag = false;
@@ -210,6 +211,7 @@ public class MzMLReadTask extends DefaultHandler implements Task {
 			String s = attrs.getValue("count");
 			if (s != null)
 				totalScans = Integer.parseInt(s);
+			spectrumListFlag = true;
 		}
 
 		// <spectrum>
@@ -221,9 +223,11 @@ public class MzMLReadTask extends DefaultHandler implements Task {
 			precursorCharge = 0;
 			String index = attrs.getValue("index");
 			String id = attrs.getValue("id");
-			if ((index == null) || (id == null))
+			String defaultArrayLength = attrs.getValue("defaultArrayLength");
+			if ((index == null) || (id == null) || (defaultArrayLength == null))
 				throw new SAXException("File does not comply with the standard mzML 1.0");
 			scanNumber = Integer.parseInt(index) + 1;
+			peaksCount = Integer.parseInt(defaultArrayLength);
 			scanId.put(id, (Integer) scanNumber);
 			spectrumFlag = true;
 		}
@@ -303,14 +307,14 @@ public class MzMLReadTask extends DefaultHandler implements Task {
 					intenArrayBinaryFlag = true;
 				if (accession.equals("MS:1000521")) {
 					precision = "32";
-					peaksCount = (int) compressedLen / 32;
 				}
 				if (accession.equals("MS:1000523")) {
 					precision = "64";
-					peaksCount = (int) compressedLen / 64;
 				}
-				if (attrs.getValue("accession").equals("MS:1000574"))
+				if (accession.equals("MS:1000574")){
 					compressFlag = true;
+					logger.finest("Activate compressed flag ");
+				}
 			}
 		}
 
@@ -336,6 +340,11 @@ public class MzMLReadTask extends DefaultHandler implements Task {
 	public void endElement(String namespaceURI, String sName, String qName)
 			throws SAXException {
 
+		// <spectrumList>
+		if (qName.equals("spectrumList")) {
+			spectrumListFlag = false;
+		}
+		
 		// <spectrum>
 		if (qName.equalsIgnoreCase("spectrum")) {
 			spectrumFlag = false;
@@ -485,10 +494,11 @@ public class MzMLReadTask extends DefaultHandler implements Task {
 		}
 
 		// <Binary>
-		if (qName.equalsIgnoreCase("Binary")) {
+		if ((qName.equalsIgnoreCase("Binary")) && (spectrumListFlag)) {
+
 			byte[] peakBytes = Base64.decode(charBuffer.toString()
 					.toCharArray());
-
+			
 			if (compressFlag) {
 				// Uncompress the bytes
 				peakBytes = unCompress(peakBytes);
@@ -520,7 +530,7 @@ public class MzMLReadTask extends DefaultHandler implements Task {
 						intensityDataPoints[i] = (double) currentBytes
 								.getFloat();
 					else
-						intensityDataPoints[i] = currentBytes.getFloat();
+						intensityDataPoints[i] = currentBytes.getDouble();
 				}
 			}
 			charBuffer.setLength(0);
@@ -560,12 +570,18 @@ public class MzMLReadTask extends DefaultHandler implements Task {
 	private byte[] unCompress(byte[] peakBytes) throws SAXException {
 		// Uncompress the bytes
 		Inflater decompresser = new Inflater();
-		decompresser.setInput(peakBytes, 0, compressedLen);
+		
+		decompresser.setInput(peakBytes);
+				
 		byte[] resultCompressed = new byte[1024];
 		byte[] resultTotal = new byte[0];
 
 		try {
+			
 			int resultLength = decompresser.inflate(resultCompressed);
+
+			logger.finest("peakBytes " + resultLength);
+
 			while (!decompresser.finished()) {
 				byte buffer[] = resultTotal;
 				resultTotal = new byte[resultTotal.length + resultLength];
@@ -580,8 +596,8 @@ public class MzMLReadTask extends DefaultHandler implements Task {
 			System.arraycopy(resultCompressed, 0, resultTotal, buffer.length,
 					resultLength);
 			decompresser.end();
-			// peakBytes = new byte[resultTotal.length];
 			peakBytes = resultTotal;
+
 		} catch (Exception eof) {
 			status = TaskStatus.ERROR;
 			errorMessage = "Corrupt compressed peak";

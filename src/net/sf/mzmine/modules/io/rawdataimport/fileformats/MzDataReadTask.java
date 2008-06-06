@@ -180,7 +180,7 @@ public class MzDataReadTask extends DefaultHandler implements Task {
 	 * @see net.sf.mzmine.taskcontrol.Task#cancel()
 	 */
 	public void cancel() {
-		logger.info("Cancelling opening of MZXML file " + originalFile);
+		logger.info("Cancelling opening of MZDATA file " + originalFile);
 		status = TaskStatus.CANCELED;
 	}
 
