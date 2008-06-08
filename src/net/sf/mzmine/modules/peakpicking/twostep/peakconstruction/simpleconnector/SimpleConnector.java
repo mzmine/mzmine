@@ -37,15 +37,18 @@ public class SimpleConnector implements PeakBuilder {
 
     private float intTolerance, mzTolerance;
     private float minimumPeakHeight, minimumPeakDuration;
+    private Vector<ConnectedPeak> underConstructionPeaks;
     
     public SimpleConnector(SimpleConnectorParameters parameters) {
         intTolerance = (Float) parameters.getParameterValue(SimpleConnectorParameters.intTolerance);
         minimumPeakDuration = (Float) parameters.getParameterValue(SimpleConnectorParameters.minimumPeakDuration);
         minimumPeakHeight = (Float) parameters.getParameterValue(SimpleConnectorParameters.minimumPeakHeight);
         mzTolerance = (Float) parameters.getParameterValue(SimpleConnectorParameters.mzTolerance);
+        underConstructionPeaks = new Vector<ConnectedPeak>();
     }
 
-    public Peak[] addScan(Scan scan, MzPeak[] mzValues, Vector<ConnectedPeak> underConstructionPeaks, RawDataFile dataFile) {
+    //public Peak[] addScan(Scan scan, MzPeak[] mzValues, Vector<ConnectedPeak> underConstructionPeaks, RawDataFile dataFile) {
+    public Peak[] addScan(Scan scan, MzPeak[] mzValues, RawDataFile dataFile) {
 
     	Vector<Peak> finishedPeaks = new Vector<Peak>();
     	Vector<ConnectedMzPeak> cMzPeaks = new Vector<ConnectedMzPeak>();
@@ -146,7 +149,8 @@ public class SimpleConnector implements PeakBuilder {
         return finishedPeaks.toArray(new Peak[0]);
     }
     
-    public Peak[] finishPeaks(Vector<ConnectedPeak> underConstructionPeaks){
+    //public Peak[] finishPeaks(Vector<ConnectedPeak> underConstructionPeaks){
+    public Peak[] finishPeaks(){
     	Vector<Peak> finishedPeaks = new Vector<Peak>();    	
         for (ConnectedPeak ucPeak : underConstructionPeaks) {
          	// Finalize peak

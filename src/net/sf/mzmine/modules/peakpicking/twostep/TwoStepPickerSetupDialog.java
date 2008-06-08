@@ -40,8 +40,8 @@ import net.sf.mzmine.data.Scan;
 import net.sf.mzmine.desktop.Desktop;
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.modules.peakpicking.twostep.massdetection.MassDetectorSetupDialog;
+import net.sf.mzmine.modules.peakpicking.twostep.peakconstruction.PeakBuilderSetupDialog;
 import net.sf.mzmine.util.dialogs.ExitCode;
-import net.sf.mzmine.util.dialogs.ParameterSetupDialog;
 
 /**
  * 
@@ -88,9 +88,13 @@ class TwoStepPickerSetupDialog extends JDialog implements ActionListener {
 
 		if (src == btnSetPeak) {
 			int ind = comboPeaksConstructors.getSelectedIndex();
-			ParameterSetupDialog dialog = new ParameterSetupDialog(
+
+			PeakBuilderSetupDialog dialog = new PeakBuilderSetupDialog(
+					parameters, ind);
+			
+			/*ParameterSetupDialog dialog = new ParameterSetupDialog(
 					"Please set parameter values for " + toString(), parameters
-							.getPeakBuilderParameters(ind));
+							.getPeakBuilderParameters(ind));*/
 			dialog.setVisible(true);
 		}
 

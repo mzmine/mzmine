@@ -20,13 +20,10 @@
 
 package net.sf.mzmine.modules.peakpicking.twostep.peakconstruction;
 
-import java.util.Vector;
-
 import net.sf.mzmine.data.Peak;
 import net.sf.mzmine.data.RawDataFile;
 import net.sf.mzmine.data.Scan;
 import net.sf.mzmine.modules.peakpicking.twostep.massdetection.MzPeak;
-import net.sf.mzmine.modules.peakpicking.twostep.peakconstruction.simpleconnector.ConnectedPeak;
 
 public interface PeakBuilder {
 
@@ -34,8 +31,8 @@ public interface PeakBuilder {
     /**
      * 
      */
-    public Peak[] addScan(Scan scan, MzPeak[] mzValues, Vector<ConnectedPeak> ucPeak, RawDataFile dataFile);
+    public Peak[] addScan(Scan scan, MzPeak[] mzValues, RawDataFile dataFile);
     
-    public Peak[] finishPeaks(Vector<ConnectedPeak> underConstructionPeaks);
-    
+    public Peak[] finishPeaks();
+
 }

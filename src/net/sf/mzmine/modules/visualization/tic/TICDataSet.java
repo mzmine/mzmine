@@ -19,10 +19,11 @@
 
 package net.sf.mzmine.modules.visualization.tic;
 
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.Vector;
-import java.util.logging.Logger;
 
 import net.sf.mzmine.data.DataPoint;
 import net.sf.mzmine.data.RawDataFile;
@@ -45,15 +46,15 @@ import org.jfree.data.xy.AbstractXYZDataset;
  * visualizer. We need to create separate data set for each file, because user
  * may add/remove files later.
  */
-class TICDataSet extends AbstractXYZDataset implements RawDataAcceptor,
+public class TICDataSet extends AbstractXYZDataset implements RawDataAcceptor,
         TaskListener {
 
-	private Logger logger = Logger.getLogger(this.getClass().getName());
+	//private Logger logger = Logger.getLogger(this.getClass().getName());
 	// redraw the chart every 100 ms while updating
     private static final int REDRAW_INTERVAL = 100;
     private static Date lastRedrawTime = new Date();
 
-    private TICVisualizerWindow visualizer;
+    private ActionListener visualizer;
     private RawDataFile dataFile;
 
     private int scanNumbers[], loadedScans = 0;
@@ -61,7 +62,7 @@ class TICDataSet extends AbstractXYZDataset implements RawDataAcceptor,
     private Range mzRange;
     private float intensityMin, intensityMax;
 
-    TICDataSet(RawDataFile dataFile, int scanNumbers[], Range mzRange, TICVisualizerWindow visualizer) {
+    public TICDataSet(RawDataFile dataFile, int scanNumbers[], Range mzRange, ActionListener visualizer) {
 
         this.visualizer = visualizer;
         this.mzRange = mzRange;
@@ -120,8 +121,15 @@ class TICDataSet extends AbstractXYZDataset implements RawDataAcceptor,
 
         if (basePeak != null)
             basePeakValues[index] = basePeak.getMZ();
+        
+        String plotType;
+        
+        if (visualizer instanceof TICVisualizerWindow)
+        	plotType = (String) ((TICVisualizerWindow)visualizer).getPlotType();
+        else
+        	plotType = TICVisualizerParameters.plotTypeBP;
 
-        if (visualizer.getPlotType() == TICVisualizerParameters.plotTypeTIC) {
+        if (plotType == TICVisualizerParameters.plotTypeTIC) {
             if (scan.getMZRange().isWithin(mzRange)) {
                 totalIntensity = scan.getTIC();
             } else {
@@ -133,7 +141,7 @@ class TICDataSet extends AbstractXYZDataset implements RawDataAcceptor,
 
         }
 
-        if (visualizer.getPlotType() == TICVisualizerParameters.plotTypeBP) {
+        if (plotType == TICVisualizerParameters.plotTypeBP) {
             if (basePeak != null)
                 totalIntensity = basePeak.getIntensity();
         }
@@ -267,6 +275,7 @@ class TICDataSet extends AbstractXYZDataset implements RawDataAcceptor,
                             + task.getErrorMessage());
             return;
         }
+        visualizer.actionPerformed(new ActionEvent(this, ActionEvent.ACTION_PERFORMED, "TICDataSet_upgraded"));
     }
 
     public void taskStarted(Task task) {

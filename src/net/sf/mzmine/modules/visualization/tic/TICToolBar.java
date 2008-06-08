@@ -21,6 +21,7 @@ package net.sf.mzmine.modules.visualization.tic;
 
 import java.awt.Color;
 import java.awt.Insets;
+import java.awt.event.ActionListener;
 
 import javax.swing.Icon;
 import javax.swing.ImageIcon;
@@ -31,7 +32,7 @@ import net.sf.mzmine.util.GUIUtils;
 /**
  * TIC visualizer's toolbar class
  */
-class TICToolBar extends JToolBar {
+public class TICToolBar extends JToolBar {
 
     static final Icon showSpectrumIcon = new ImageIcon("icons/spectrumicon.png");
     static final Icon dataPointsIcon = new ImageIcon("icons/datapointsicon.png");
@@ -39,7 +40,7 @@ class TICToolBar extends JToolBar {
             "icons/annotationsicon.png");
     static final Icon axesIcon = new ImageIcon("icons/axesicon.png");
 
-    TICToolBar(TICVisualizerWindow masterFrame) {
+    public TICToolBar(ActionListener masterFrame) {
 
         super(JToolBar.VERTICAL);
 

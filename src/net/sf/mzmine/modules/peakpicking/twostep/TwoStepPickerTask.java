@@ -20,7 +20,6 @@
 package net.sf.mzmine.modules.peakpicking.twostep;
 
 import java.lang.reflect.Constructor;
-import java.util.Vector;
 import java.util.logging.Logger;
 
 import net.sf.mzmine.data.ParameterSet;
@@ -33,7 +32,6 @@ import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.modules.peakpicking.twostep.massdetection.MassDetector;
 import net.sf.mzmine.modules.peakpicking.twostep.massdetection.MzPeak;
 import net.sf.mzmine.modules.peakpicking.twostep.peakconstruction.PeakBuilder;
-import net.sf.mzmine.modules.peakpicking.twostep.peakconstruction.simpleconnector.ConnectedPeak;
 import net.sf.mzmine.project.MZmineProject;
 import net.sf.mzmine.taskcontrol.Task;
 
@@ -166,7 +164,6 @@ class TwoStepPickerTask implements Task {
 				dataFile + " " + suffix, dataFile);
 
 		MzPeak[] mzValues;
-		Vector<ConnectedPeak> underConstructionPeaks = new Vector<ConnectedPeak>();
 		Peak[] peaks;
 
 		for (int i = 0; i < totalScans; i++) {
@@ -177,8 +174,7 @@ class TwoStepPickerTask implements Task {
             Scan scan = dataFile.getScan(scanNumbers[i]);
 			mzValues = massDetector.getMassValues(scan);
 			
-			peaks = peakBuilder.addScan(scan, mzValues, underConstructionPeaks,
-					dataFile);
+			peaks = peakBuilder.addScan(scan, mzValues, dataFile);
 			
 			if(peaks != null)
 			for (Peak finishedPeak : peaks) {
@@ -191,7 +187,7 @@ class TwoStepPickerTask implements Task {
 			processedScans++;
 		}
 		
-		peaks = peakBuilder.finishPeaks(underConstructionPeaks);
+		peaks = peakBuilder.finishPeaks();
 		
 		if (peaks != null)
 		for (Peak finishedPeak : peaks) {

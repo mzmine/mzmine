@@ -30,12 +30,12 @@ import org.jfree.data.xy.AbstractXYDataset;
  * Integrated peak area data set. Separate data set is created for every peak
  * shown in this visualizer window.
  */
-class PeakDataSet extends AbstractXYDataset {
+public class PeakDataSet extends AbstractXYDataset {
 
     private Peak peak;
     private float retentionTimes[], intensities[];
 
-    PeakDataSet(Peak peak) {
+    public PeakDataSet(Peak peak) {
 
         this.peak = peak;
 
