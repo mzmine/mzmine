@@ -293,6 +293,12 @@ public class PeakBuilderSetupDialog extends ParameterSetupDialog implements
 				for (Peak p : peaks)
 					totalPeaks.add(p);
 		}
+		
+		peaks = peakBuilder.finishPeaks();
+		if (peaks.length > 0)
+			for (Peak p : peaks)
+				totalPeaks.add(p);
+		
 		if (!totalPeaks.isEmpty()) {
 			for (Peak peak : totalPeaks) {
 				PeakDataSet peakDataSet = new PeakDataSet(peak);
