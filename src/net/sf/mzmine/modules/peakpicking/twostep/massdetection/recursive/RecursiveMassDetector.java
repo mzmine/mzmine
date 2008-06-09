@@ -112,7 +112,7 @@ public class RecursiveMassDetector implements MassDetector {
 			}
 
 			// Add ending point of the peak
-			if ((nextIsZero) || (nextIsLittler)) {
+			if (((nextIsZero) || (nextIsLittler)) && (ind < stopInd)) {
 				peakStopInd = ind + 1;
 				RawDataPointsInds.add(dataPoints[peakStopInd]);
 			} else
