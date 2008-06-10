@@ -25,11 +25,18 @@ import net.sf.mzmine.data.Parameter;
 import net.sf.mzmine.data.ParameterType;
 import net.sf.mzmine.data.impl.SimpleParameter;
 import net.sf.mzmine.data.impl.SimpleParameterSet;
+import net.sf.mzmine.main.MZmineCore;
 
 public class WaveletMassDetectorParameters extends SimpleParameterSet {
 
 	public static final NumberFormat percentFormat = NumberFormat
 	.getPercentInstance();
+	
+	public static final Parameter noiseLevel = new SimpleParameter(
+			ParameterType.FLOAT, "Noise level",
+			"Intensities less than this value are interpreted as noise",
+			"absolute", new Float(10.0), new Float(0.0), null, MZmineCore
+					.getIntensityFormat());
 	
 	public static final Parameter scaleLevel = new SimpleParameter(
 			ParameterType.INTEGER,
@@ -44,7 +51,7 @@ public class WaveletMassDetectorParameters extends SimpleParameterSet {
 			"%", new Float(0.5), new Float(0.01), null, percentFormat);
 
 	public WaveletMassDetectorParameters() {
-		super(new Parameter[] { scaleLevel, waveletWindow });
+		super(new Parameter[] { noiseLevel, scaleLevel, waveletWindow });
 
 	}
 
