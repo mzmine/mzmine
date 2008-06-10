@@ -28,6 +28,7 @@ import java.awt.event.ActionListener;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.lang.reflect.Constructor;
+import java.util.Hashtable;
 import java.util.Iterator;
 import java.util.Vector;
 import java.util.logging.Logger;
@@ -76,6 +77,10 @@ public class PeakBuilderSetupDialog extends ParameterSetupDialog implements
 	private RawDataFile previewDataFile;
 	private RawDataFile[] dataFiles;
 	private String[] fileNames;
+	
+    // Data sets
+    private Hashtable<Integer, PeakDataSet> peakDataSets;
+
 
 	// Dialog components
 	private JPanel pnlPlotXY, pnlLocal;
@@ -144,6 +149,8 @@ public class PeakBuilderSetupDialog extends ParameterSetupDialog implements
 				if (fileNames[i].equals(previewDataFile.getFileName()))
 					indexComboFileName = i;
 			}
+			
+			peakDataSets = new Hashtable<Integer, PeakDataSet>();
 
 			// Set a listener in all parameters's fields to add functionality to
 			// this dialog
@@ -269,7 +276,7 @@ public class PeakBuilderSetupDialog extends ParameterSetupDialog implements
 	 * 
 	 * @param ind
 	 */
-	synchronized public void setPeakDataSet() {
+	public void setPeakDataSet() {
 
 		buildParameterSetPeakBuilder();
 		String peakBuilderClassName = TwoStepPickerParameters.peakBuilderClasses[peakBuilderTypeNumber];
@@ -309,9 +316,12 @@ public class PeakBuilderSetupDialog extends ParameterSetupDialog implements
 				totalPeaks.add(p);
 
 		if (!totalPeaks.isEmpty()) {
+			int peakInd = 0;
 			for (Peak peak : totalPeaks) {
 				PeakDataSet peakDataSet = new PeakDataSet(peak);
 				ticPlot.addPeakDataset(peakDataSet);
+				peakDataSets.put(Integer.valueOf(peakInd), peakDataSet);
+				peakInd++;
 			}
 		}
 		ticPlot.addTICDataset(ticDataset);
@@ -325,6 +335,7 @@ public class PeakBuilderSetupDialog extends ParameterSetupDialog implements
 			ticPlot.getXYPlot().setDataset(index, null);
 		}
 		ticPlot.startDatasetCounter();
+		peakDataSets.clear();
 		freeMemory();
 	}
 
@@ -508,18 +519,11 @@ public class PeakBuilderSetupDialog extends ParameterSetupDialog implements
 		pnlPlotXY.setBorder(BorderFactory.createCompoundBorder(one, two));
 		pnlPlotXY.setBackground(Color.white);
 
-		/*
-		 * spectrumPlot = new SpectraPlot(this); MzPeakToolTipGenerator
-		 * mzPeakToolTipGenerator = new MzPeakToolTipGenerator(); spectrumPlot
-		 * .setPeakToolTipGenerator((XYToolTipGenerator)
-		 * mzPeakToolTipGenerator);
-		 */
-
-		ticPlot = new TICPlot(this);
+		ticPlot = new TICPlot((ActionListener) this);
 		pnlPlotXY.add(ticPlot, BorderLayout.CENTER);
 
-		toolBar = new TICToolBar(this);
-		// spectrumPlot.setRelatedToolBar(toolBar);
+		toolBar = new TICToolBar(ticPlot);
+		toolBar.getComponentAtIndex(0).setVisible(false);
 		pnlPlotXY.add(toolBar, BorderLayout.EAST);
 
 		labelsAndFields.add(pnlFileNameScanNumber, BorderLayout.SOUTH);
@@ -552,6 +556,11 @@ public class PeakBuilderSetupDialog extends ParameterSetupDialog implements
 
 	}
 	
+    public TICDataSet[] getDataSet() {
+    	TICDataSet[] ticDatasets = {ticDataset};
+        return ticDatasets;
+    }
+    
 	protected void freeMemory() {
 		System.gc();
 		System.runFinalization();

@@ -19,9 +19,11 @@
 
 package net.sf.mzmine.modules.visualization.tic;
 
+import java.awt.event.ActionListener;
 import java.text.NumberFormat;
 
 import net.sf.mzmine.main.MZmineCore;
+import net.sf.mzmine.modules.peakpicking.twostep.peakconstruction.PeakBuilderSetupDialog;
 
 import org.jfree.chart.labels.XYItemLabelGenerator;
 import org.jfree.data.xy.XYDataset;
@@ -58,7 +60,8 @@ class TICItemLabelGenerator implements XYItemLabelGenerator {
      * Some saved values
      */
     private TICPlot plot;
-    private TICVisualizerWindow ticWindow;
+    //private TICVisualizerWindow ticWindow;
+    private ActionListener ticWindow;
     private Object plotType;
     private NumberFormat mzFormat = MZmineCore.getMZFormat();
     private NumberFormat intensityFormat = MZmineCore.getIntensityFormat();
@@ -66,8 +69,11 @@ class TICItemLabelGenerator implements XYItemLabelGenerator {
     /**
      * Constructor
      */
-    TICItemLabelGenerator(TICPlot plot, TICVisualizerWindow ticWindow) {
-        plotType = ticWindow.getPlotType();
+    TICItemLabelGenerator(TICPlot plot, ActionListener ticWindow) {
+    	if (ticWindow instanceof TICVisualizerWindow)
+    		plotType = ((TICVisualizerWindow) ticWindow).getPlotType();
+    	else
+    		plotType = TICVisualizerParameters.plotTypeBP;
         this.plot = plot;
         this.ticWindow = ticWindow;
     }
@@ -99,8 +105,15 @@ class TICItemLabelGenerator implements XYItemLabelGenerator {
         float yLength = (float) plot.getXYPlot().getRangeAxis().getRange().getLength();
         float pixelY = yLength / plot.getHeight();
 
+        TICDataSet[] allDataSets={};
+        
         // Get all data sets of current plot
-        TICDataSet allDataSets[] = ticWindow.getAllDataSets();
+    	if (ticWindow instanceof TICVisualizerWindow){
+    		allDataSets = ((TICVisualizerWindow) ticWindow).getAllDataSets();
+    	}
+    	if (ticWindow instanceof PeakBuilderSetupDialog){
+    		allDataSets = ((PeakBuilderSetupDialog) ticWindow).getDataSet();
+    	}
 
         // Check each data set for conflicting data points
         for (TICDataSet checkedDataSet : allDataSets) {

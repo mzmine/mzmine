@@ -24,7 +24,7 @@ import net.sf.mzmine.data.RawDataFile;
 /**
  * 
  */
-class CursorPosition {
+public class CursorPosition {
 
     private float retentionTime, mzValue, intensityValue;
     private RawDataFile dataFile;
@@ -37,7 +37,7 @@ class CursorPosition {
      * @param rawDataFile
      * @param scanNumber
      */
-    CursorPosition(float retentionTime, float mzValue, float intensityValue,
+    public CursorPosition(float retentionTime, float mzValue, float intensityValue,
             RawDataFile dataFile, int scanNumber) {
         this.retentionTime = retentionTime;
         this.mzValue = mzValue;
@@ -49,70 +49,70 @@ class CursorPosition {
     /**
      * @return Returns the intensityValue.
      */
-    float getIntensityValue() {
+    public float getIntensityValue() {
         return intensityValue;
     }
 
     /**
      * @param intensityValue The intensityValue to set.
      */
-    void setIntensityValue(float intensityValue) {
+    public void setIntensityValue(float intensityValue) {
         this.intensityValue = intensityValue;
     }
 
     /**
      * @return Returns the mzValue.
      */
-    float getMzValue() {
+    public float getMzValue() {
         return mzValue;
     }
 
     /**
      * @param mzValue The mzValue to set.
      */
-    void setMzValue(float mzValue) {
+    public void setMzValue(float mzValue) {
         this.mzValue = mzValue;
     }
 
     /**
      * @return Returns the retentionTime.
      */
-    float getRetentionTime() {
+    public float getRetentionTime() {
         return retentionTime;
     }
 
     /**
      * @param retentionTime The retentionTime to set.
      */
-    void setRetentionTime(float retentionTime) {
+    public void setRetentionTime(float retentionTime) {
         this.retentionTime = retentionTime;
     }
 
     /**
      * @return Returns the dataFile.
      */
-    RawDataFile getDataFile() {
+    public RawDataFile getDataFile() {
         return dataFile;
     }
 
     /**
      * @param dataFile The dataFile to set.
      */
-    void setDataFile(RawDataFile dataFile) {
+    public void setDataFile(RawDataFile dataFile) {
         this.dataFile = dataFile;
     }
 
     /**
      * @return Returns the scanNumber.
      */
-    int getScanNumber() {
+    public int getScanNumber() {
         return scanNumber;
     }
 
     /**
      * @param scanNumber The scanNumber to set.
      */
-    void setScanNumber(int scanNumber) {
+    public void setScanNumber(int scanNumber) {
         this.scanNumber = scanNumber;
     }
 

@@ -30,11 +30,14 @@ import java.awt.event.MouseEvent;
 import java.awt.geom.Ellipse2D;
 import java.text.NumberFormat;
 
+import javax.swing.JInternalFrame;
 import javax.swing.JPopupMenu;
 import javax.swing.KeyStroke;
 
 import net.sf.mzmine.main.MZmineCore;
+import net.sf.mzmine.modules.visualization.spectra.SpectraVisualizerWindow;
 import net.sf.mzmine.util.GUIUtils;
+import net.sf.mzmine.util.dialogs.AxesSetupDialog;
 
 import org.jfree.chart.ChartFactory;
 import org.jfree.chart.ChartPanel;
@@ -61,6 +64,9 @@ public class TICPlot extends ChartPanel {
 	private JFreeChart chart;
 
 	private XYPlot plot;
+	
+    private static final double zoomCoefficient = 1.2;
+
 
 	// private TICVisualizerWindow visualizer;
 	private ActionListener visualizer;
@@ -209,12 +215,12 @@ public class TICPlot extends ChartPanel {
 		defaultRenderer.setBaseItemLabelPaint(labelsColor);
 
 		// set label generator
-		if (visualizer instanceof TICVisualizerWindow) {
+		//if (visualizer instanceof TICVisualizerWindow) {
 			XYItemLabelGenerator labelGenerator = new TICItemLabelGenerator(
-					this, (TICVisualizerWindow) visualizer);
+					this, visualizer);
 			defaultRenderer.setBaseItemLabelGenerator(labelGenerator);
 			defaultRenderer.setBaseItemLabelsVisible(true);
-		}
+		//}
 
 		// set toolTipGenerator
 		XYToolTipGenerator toolTipGenerator = new TICToolTipGenerator();
@@ -231,9 +237,9 @@ public class TICPlot extends ChartPanel {
 		GUIUtils.registerKeyHandler(this, KeyStroke.getKeyStroke("SPACE"),
 				visualizer, "SHOW_SPECTRUM");
 		GUIUtils.registerKeyHandler(this, KeyStroke.getKeyStroke('+'),
-				visualizer, "ZOOM_IN");
+				this, "ZOOM_IN");
 		GUIUtils.registerKeyHandler(this, KeyStroke.getKeyStroke('-'),
-				visualizer, "ZOOM_OUT");
+				this, "ZOOM_OUT");
 
 		// add items to popup menu
 		JPopupMenu popupMenu = getPopupMenu();
@@ -251,24 +257,84 @@ public class TICPlot extends ChartPanel {
 		}
 
 		GUIUtils.addMenuItem(popupMenu, "Toggle showing peak values",
-				visualizer, "SHOW_ANNOTATIONS");
+				this, "SHOW_ANNOTATIONS");
 		GUIUtils.addMenuItem(popupMenu, "Toggle showing data points",
-				visualizer, "SHOW_DATA_POINTS");
+				this, "SHOW_DATA_POINTS");
 		popupMenu.addSeparator();
 		GUIUtils.addMenuItem(popupMenu, "Show spectrum of selected scan",
 				visualizer, "SHOW_SPECTRUM");
 
 		popupMenu.addSeparator();
 
-		GUIUtils.addMenuItem(popupMenu, "Set axes range", visualizer,
+		GUIUtils.addMenuItem(popupMenu, "Set axes range", this,
 				"SETUP_AXES");
 		if (visualizer instanceof TICVisualizerWindow)
 
 			GUIUtils.addMenuItem(popupMenu, "Set same range to all windows",
-					visualizer, "SET_SAME_RANGE");
+					this, "SET_SAME_RANGE");
 
 	}
 
+	public void actionPerformed(ActionEvent event) {
+
+		super.actionPerformed(event);
+		
+		String command = event.getActionCommand();
+
+		if (command.equals("SHOW_DATA_POINTS")) {
+			this.switchDataPointsVisible();
+		}
+
+		if (command.equals("SHOW_ANNOTATIONS")) {
+			this.switchItemLabelsVisible();
+		}
+
+		if (command.equals("SETUP_AXES")) {
+			AxesSetupDialog dialog = new AxesSetupDialog(this.getXYPlot());
+			dialog.setVisible(true);
+		}
+
+        if (command.equals("ZOOM_IN")) {
+        this.getXYPlot().getDomainAxis().resizeRange(1 / zoomCoefficient);
+        }
+
+        if (command.equals("ZOOM_OUT")) {
+        	this.getXYPlot().getDomainAxis().resizeRange(zoomCoefficient);
+        }
+		
+        if (command.equals("SET_SAME_RANGE")) {
+
+			// Get current axes range
+			NumberAxis xAxis = (NumberAxis) this.getXYPlot()
+					.getDomainAxis();
+			NumberAxis yAxis = (NumberAxis) this.getXYPlot()
+					.getRangeAxis();
+			float xMin = (float) xAxis.getRange().getLowerBound();
+			float xMax = (float) xAxis.getRange().getUpperBound();
+			float xTick = (float) xAxis.getTickUnit().getSize();
+			float yMin = (float) yAxis.getRange().getLowerBound();
+			float yMax = (float) yAxis.getRange().getUpperBound();
+			float yTick = (float) yAxis.getTickUnit().getSize();
+
+			// Get all frames of my class
+			JInternalFrame spectraFrames[] = MZmineCore.getDesktop().getInternalFrames();
+
+			// Set the range of these frames
+			for (JInternalFrame frame : spectraFrames) {
+				if (!(frame instanceof SpectraVisualizerWindow))
+					continue;
+				SpectraVisualizerWindow spectraFrame = (SpectraVisualizerWindow) frame;
+				spectraFrame.setAxesRange(xMin, xMax, xTick, yMin, yMax, yTick);
+			}
+
+		}
+        
+        if (command.equals("SHOW_SPECTRUM")) {
+        	visualizer.actionPerformed(event);
+        }
+	}
+	
+	
 	/**
 	 * @see java.awt.event.MouseListener#mouseClicked(java.awt.event.MouseEvent)
 	 */

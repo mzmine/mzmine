@@ -21,7 +21,6 @@ package net.sf.mzmine.modules.visualization.spectra;
 
 import java.awt.Color;
 import java.awt.Insets;
-import java.awt.event.ActionListener;
 
 import javax.swing.Icon;
 import javax.swing.ImageIcon;

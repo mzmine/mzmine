@@ -39,7 +39,6 @@ import net.sf.mzmine.taskcontrol.Task;
 import net.sf.mzmine.taskcontrol.TaskListener;
 import net.sf.mzmine.taskcontrol.Task.TaskStatus;
 import net.sf.mzmine.util.Range;
-import net.sf.mzmine.util.dialogs.AxesSetupDialog;
 
 import org.jfree.chart.axis.NumberAxis;
 import org.jfree.chart.axis.NumberTickUnit;
@@ -60,7 +59,6 @@ public class TICVisualizerWindow extends JInternalFrame implements
     private int msLevel;
     private Range rtRange, mzRange;
 
-    private static final double zoomCoefficient = 1.2;
 
     private Desktop desktop;
 
@@ -83,11 +81,12 @@ public class TICVisualizerWindow extends JInternalFrame implements
         setDefaultCloseOperation(DISPOSE_ON_CLOSE);
         setBackground(Color.white);
 
-        toolBar = new TICToolBar(this);
-        add(toolBar, BorderLayout.EAST);
-
         ticPlot = new TICPlot(this);
         add(ticPlot, BorderLayout.CENTER);
+
+        //toolBar = new TICToolBar(this);
+        toolBar = new TICToolBar(ticPlot);
+        add(toolBar, BorderLayout.EAST);
 
         // add all peaks
         if (peaks != null) {
@@ -288,14 +287,6 @@ public class TICVisualizerWindow extends JInternalFrame implements
 
         String command = event.getActionCommand();
 
-        if (command.equals("SHOW_DATA_POINTS")) {
-            ticPlot.switchDataPointsVisible();
-        }
-
-        if (command.equals("SHOW_ANNOTATIONS")) {
-            ticPlot.switchItemLabelsVisible();
-        }
-
         if (command.equals("SHOW_SPECTRUM")) {
             CursorPosition pos = getCursorPosition();
             if (pos != null) {
@@ -303,37 +294,6 @@ public class TICVisualizerWindow extends JInternalFrame implements
                 specVis.showNewSpectrumWindow(pos.getDataFile(),
                         pos.getScanNumber());
             }
-        }
-
-        if (command.equals("SETUP_AXES")) {
-            AxesSetupDialog dialog = new AxesSetupDialog(ticPlot.getXYPlot());
-            dialog.setVisible(true);
-        }
-
-        if (command.equals("SET_SAME_RANGE")) {
-
-            // Get current axes range
-            NumberAxis xAxis = (NumberAxis) ticPlot.getXYPlot().getDomainAxis();
-            NumberAxis yAxis = (NumberAxis) ticPlot.getXYPlot().getRangeAxis();
-            float xMin = (float) xAxis.getRange().getLowerBound();
-            float xMax = (float) xAxis.getRange().getUpperBound();
-            float xTick = (float) xAxis.getTickUnit().getSize();
-            float yMin = (float) yAxis.getRange().getLowerBound();
-            float yMax = (float) yAxis.getRange().getUpperBound();
-            float yTick = (float) yAxis.getTickUnit().getSize();
-
-            // Get all frames of my class
-            JInternalFrame spectraFrames[] = desktop.getInternalFrames();
-
-            // Set the range of these frames
-            for (JInternalFrame frame : spectraFrames) {
-                if ((!(frame instanceof TICVisualizerWindow))
-                        || (frame == this))
-                    continue;
-                TICVisualizerWindow spectraFrame = (TICVisualizerWindow) frame;
-                spectraFrame.setAxesRange(xMin, xMax, xTick, yMin, yMax, yTick);
-            }
-
         }
 
         if (command.equals("MOVE_CURSOR_LEFT")) {
@@ -368,14 +328,6 @@ public class TICVisualizerWindow extends JInternalFrame implements
                     }
                 }
             }
-        }
-
-        if (command.equals("ZOOM_IN")) {
-            ticPlot.getXYPlot().getDomainAxis().resizeRange(1 / zoomCoefficient);
-        }
-
-        if (command.equals("ZOOM_OUT")) {
-            ticPlot.getXYPlot().getDomainAxis().resizeRange(zoomCoefficient);
         }
 
     }

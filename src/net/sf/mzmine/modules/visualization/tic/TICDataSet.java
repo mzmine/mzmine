@@ -88,7 +88,7 @@ public class TICDataSet extends AbstractXYZDataset implements RawDataAcceptor,
      * @param intensity
      * @return
      */
-    int getIndex(float retentionTime, float intensity) {
+    public int getIndex(float retentionTime, float intensity) {
         for (int i = 0; i < loadedScans; i++) {
             if ((Math.abs(retentionTime - rtValues[i]) < 0.0000001f)
                     && (Math.abs(intensity - intensityValues[i]) < 0.0000001f))
