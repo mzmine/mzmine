@@ -79,7 +79,7 @@ public class LocalMaxMassDetector implements MassDetector {
 
                 // Add the m/z peak if it is above the noise level
                 if (currentMzPeakTop.getIntensity() > noiseLevel) {
-                    MzPeak newMzPeak = new MzPeak(currentMzPeakTop,
+                    MzPeak newMzPeak = new MzPeak(scan, currentMzPeakTop,
                             currentMzPeakDataPoints.toArray(new DataPoint[0]));
                     mzPeaks.add(newMzPeak);
                 }

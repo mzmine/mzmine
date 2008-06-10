@@ -40,6 +40,7 @@ public class WaveletMassDetector implements MassDetector {
 	private int scaleLevel;
 	private float waveletWindow;
 	private Vector<MzPeak> mzPeaks;
+	private Scan scan;
 
 	/**
 	 * Parameters of the wavelet, NPOINTS is the number of wavelet values to use
@@ -57,8 +58,8 @@ public class WaveletMassDetector implements MassDetector {
 	}
 
 	public MzPeak[] getMassValues(Scan scan) {
-		Scan sc = scan;
-		DataPoint[] originalDataPoints = sc.getDataPoints();
+		this.scan = scan;
+		DataPoint[] originalDataPoints = scan.getDataPoints();
 		mzPeaks = new Vector<MzPeak>();
 
 		DataPoint[] waveletDataPoints = performCWT(originalDataPoints);
@@ -187,7 +188,7 @@ public class WaveletMassDetector implements MassDetector {
 
 			rawDataPoints.add(originalDataPoints[ind]);
 
-			mzPeaks.add(new MzPeak(originalDataPoints[peakMaxInd],
+			mzPeaks.add(new MzPeak(scan, originalDataPoints[peakMaxInd],
 					rawDataPoints.toArray(new DataPoint[0])));
 
 		}

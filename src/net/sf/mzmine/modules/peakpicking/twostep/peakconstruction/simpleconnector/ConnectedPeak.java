@@ -21,12 +21,14 @@ package net.sf.mzmine.modules.peakpicking.twostep.peakconstruction.simpleconnect
 
 import java.util.ArrayList;
 import java.util.TreeMap;
+import java.util.Vector;
 
 import net.sf.mzmine.data.DataPoint;
 import net.sf.mzmine.data.Peak;
 import net.sf.mzmine.data.PeakStatus;
 import net.sf.mzmine.data.RawDataFile;
 import net.sf.mzmine.data.impl.SimpleDataPoint;
+import net.sf.mzmine.modules.peakpicking.twostep.massdetection.MzPeak;
 import net.sf.mzmine.util.CollectionUtils;
 import net.sf.mzmine.util.MathUtils;
 import net.sf.mzmine.util.PeakUtils;
@@ -46,6 +48,8 @@ public class ConnectedPeak implements Peak {
 
     // This table maps a scanNumber to an array of m/z and intensity pairs
     private TreeMap<Integer, DataPoint> datapointsMap;
+    
+    private Vector<MzPeak> mzValues;
 
     private RawDataFile dataFile;
 
@@ -74,6 +78,27 @@ public class ConnectedPeak implements Peak {
         intializeAddingDatapoints();
     }
 
+    public ConnectedPeak(ConnectedPeak p) {
+
+        this.dataFile = p.getDataFile();
+
+        this.mz = p.getMZ();
+        this.rt = p.getRT();
+        this.height = p.getHeight();
+        this.area = p.getArea();
+
+        this.rtRange = p.getRawDataPointsRTRange();
+        this.mzRange = p.getRawDataPointsMZRange();
+        this.intensityRange = p.getRawDataPointsIntensityRange();
+
+        this.peakStatus = p.getPeakStatus();
+        this.dataFile = p.getDataFile();
+        this.mzValues = p.getMzPeaks();
+        this.datapointsMap = p.getDatapointsMap();
+
+    }
+    
+    
     /**
      * This method returns the status of the peak
      */
@@ -181,6 +206,7 @@ public class ConnectedPeak implements Peak {
         datapointsMZs = new ArrayList<Float>();
         datapointsRTs = new ArrayList<Float>();
         datapointsIntensities = new ArrayList<Float>();
+        mzValues = new Vector<MzPeak>();
 
     }
 
@@ -247,7 +273,7 @@ public class ConnectedPeak implements Peak {
         precalcRequiredMins = false;
     }
 
-    public void addDatapoint(int scanNumber, float mz, float rt, float intensity) {
+    public void addMzPeak(MzPeak mzValue) {
 
         growing = true;
         precalcRequiredMZ = true;
@@ -256,14 +282,17 @@ public class ConnectedPeak implements Peak {
         precalcRequiredArea = true;
 
         // Add datapoint
-        DataPoint datapoint = new SimpleDataPoint(mz, intensity);
+        //DataPoint datapoint = new SimpleDataPoint(mz, intensity);
+        DataPoint datapoint = new SimpleDataPoint(mzValue.getMZ(), mzValue.getIntensity());
 
-        datapointsMap.put(scanNumber, datapoint);
+        datapointsMap.put(mzValue.getScan().getScanNumber(), datapoint);
+        
+        mzValues.add(mzValue);
 
         // Update construction time variables
-        datapointsMZs.add(mz);
-        datapointsRTs.add(rt);
-        datapointsIntensities.add(intensity);
+        datapointsMZs.add(mzValue.getMZ());
+        datapointsRTs.add(mzValue.getScan().getRetentionTime());
+        datapointsIntensities.add(mzValue.getIntensity());
 
     }
 
@@ -303,6 +332,14 @@ public class ConnectedPeak implements Peak {
      */
     public RawDataFile getDataFile() {
         return dataFile;
+    }
+    
+    public Vector<MzPeak> getMzPeaks(){
+    	return mzValues;
+    }
+
+    public TreeMap<Integer, DataPoint> getDatapointsMap(){
+    	return  datapointsMap;
     }
 
     public String toString() {

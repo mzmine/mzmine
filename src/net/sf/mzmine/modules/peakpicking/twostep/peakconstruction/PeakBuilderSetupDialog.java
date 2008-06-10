@@ -176,6 +176,14 @@ public class PeakBuilderSetupDialog extends ParameterSetupDialog implements
 			dispose();
 		}
 
+		if (((src instanceof JCheckBox) && (src != preview))) {
+			if (preview.isSelected()) {
+				removePeakDataSet();
+				setPeakDataSet();
+			}
+		}
+		
+		
 		if (src == comboDataFileName) {
 			int ind = comboDataFileName.getSelectedIndex();
 			previewDataFile = dataFiles[ind];
@@ -247,11 +255,11 @@ public class PeakBuilderSetupDialog extends ParameterSetupDialog implements
 		}
 	}
 
-	
-	synchronized public void setDataSet() {
+	private void setDataSet() {
 		ticDataset = new TICDataSet(previewDataFile, listScans, mzRange, this);
 		ticPlot.getXYPlot().getDomainAxis().setRange(rtRange.getMin(),
 				rtRange.getMax());
+		freeMemory();
 	}
 
 	/**
@@ -285,7 +293,8 @@ public class PeakBuilderSetupDialog extends ParameterSetupDialog implements
 		Vector<Peak> totalPeaks = new Vector<Peak>();
 		float mz = mzRange.getAverage();
 		for (int i = 0; i < listScans.length; i++) {
-			MzPeak[] mzValues = { new MzPeak(new SimpleDataPoint(mz, ticDataset
+			MzPeak[] mzValues = { new MzPeak(previewDataFile
+					.getScan(listScans[i]), new SimpleDataPoint(mz, ticDataset
 					.getY(0, i).floatValue())) };
 			peaks = peakBuilder.addScan(previewDataFile.getScan(listScans[i]),
 					mzValues, previewDataFile);
@@ -293,12 +302,12 @@ public class PeakBuilderSetupDialog extends ParameterSetupDialog implements
 				for (Peak p : peaks)
 					totalPeaks.add(p);
 		}
-		
+
 		peaks = peakBuilder.finishPeaks();
 		if (peaks.length > 0)
 			for (Peak p : peaks)
 				totalPeaks.add(p);
-		
+
 		if (!totalPeaks.isEmpty()) {
 			for (Peak peak : totalPeaks) {
 				PeakDataSet peakDataSet = new PeakDataSet(peak);
@@ -306,6 +315,7 @@ public class PeakBuilderSetupDialog extends ParameterSetupDialog implements
 			}
 		}
 		ticPlot.addTICDataset(ticDataset);
+		freeMemory();
 
 	}
 
@@ -315,6 +325,7 @@ public class PeakBuilderSetupDialog extends ParameterSetupDialog implements
 			ticPlot.getXYPlot().setDataset(index, null);
 		}
 		ticPlot.startDatasetCounter();
+		freeMemory();
 	}
 
 	/**
@@ -387,7 +398,6 @@ public class PeakBuilderSetupDialog extends ParameterSetupDialog implements
 
 		}
 	}
-
 
 	/**
 	 * This function add all the additional components for this dialog over the
@@ -539,6 +549,12 @@ public class PeakBuilderSetupDialog extends ParameterSetupDialog implements
 			minTxtFieldMZ.removePropertyChangeListener("value", this);
 			maxTxtFieldMZ.removePropertyChangeListener("value", this);
 		}
+
+	}
+	
+	protected void freeMemory() {
+		System.gc();
+		System.runFinalization();
 
 	}
 

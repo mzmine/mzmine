@@ -27,7 +27,7 @@ import net.sf.mzmine.modules.peakpicking.twostep.massdetection.MzPeak;
 public class ConnectedMzPeak {
 
 	private boolean connected;
-	public MzPeak mzPeak;
+	private MzPeak mzPeak;
 
 	public ConnectedMzPeak(MzPeak peak) {
 		this.mzPeak = peak;
@@ -40,6 +40,10 @@ public class ConnectedMzPeak {
 
 	public boolean isConnected() {
 		return connected;
+	}
+
+	public MzPeak getMzPeak() {
+		return mzPeak;
 	}
 
 }

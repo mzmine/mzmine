@@ -17,7 +17,6 @@
  * Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-
 package net.sf.mzmine.modules.peakpicking.twostep.peakconstruction;
 
 import net.sf.mzmine.data.Peak;
@@ -27,12 +26,18 @@ import net.sf.mzmine.modules.peakpicking.twostep.massdetection.MzPeak;
 
 public interface PeakBuilder {
 
-    
-    /**
-     * 
-     */
-    public Peak[] addScan(Scan scan, MzPeak[] mzValues, RawDataFile dataFile);
-    
-    public Peak[] finishPeaks();
+	/**
+	 * 
+	 */
+	public Peak[] addScan(Scan scan, MzPeak[] mzValues, RawDataFile dataFile);
+
+	/**
+	 * This method creates an array of peaks with all MzPeaks that have not yet
+	 * connected. This function must be called after the last scan of the
+	 * DataFile.
+	 * 
+	 * @return Peak[]
+	 */
+	public Peak[] finishPeaks();
 
 }

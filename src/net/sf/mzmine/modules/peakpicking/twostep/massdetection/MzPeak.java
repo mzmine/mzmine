@@ -20,6 +20,7 @@
 package net.sf.mzmine.modules.peakpicking.twostep.massdetection;
 
 import net.sf.mzmine.data.DataPoint;
+import net.sf.mzmine.data.Scan;
 
 /**
  * This class represent an m/z peak
@@ -28,6 +29,7 @@ public class MzPeak implements DataPoint {
 
 	private float mz, intensity;
 	private DataPoint[] rawDataPoints;
+	private Scan scan;
 
 	/**
 	 * This constructor takes this DataPoint to represent the portion of a peak
@@ -37,11 +39,12 @@ public class MzPeak implements DataPoint {
 	 * 
 	 * @param dataPoint
 	 */
-	public MzPeak(DataPoint dataPoint) {
+	public MzPeak(Scan scan, DataPoint dataPoint) {
 		this.mz = dataPoint.getMZ();
 		this.intensity = dataPoint.getIntensity();
 		DataPoint[] fakeRawDataPoints = { dataPoint };
 		this.rawDataPoints = fakeRawDataPoints;
+		this.scan = scan;
 	}
 
 	/**
@@ -52,10 +55,11 @@ public class MzPeak implements DataPoint {
 	 * @param dataPoint
 	 * @param rawDataPoints
 	 */
-	public MzPeak(DataPoint dataPoint, DataPoint[] rawDataPoints) {
+	public MzPeak(Scan scan, DataPoint dataPoint, DataPoint[] rawDataPoints) {
 		this.mz = dataPoint.getMZ();
 		this.intensity = dataPoint.getIntensity();
 		this.rawDataPoints = rawDataPoints;
+		this.scan = scan;
 	}
 
 	/**
@@ -81,4 +85,11 @@ public class MzPeak implements DataPoint {
 		return rawDataPoints;
 	}
 
+	/**
+	 * This method returns the scan where is located this part of the peak
+	 */
+	public Scan getScan() {
+		return scan;
+	}
+	
 }

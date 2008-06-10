@@ -103,7 +103,7 @@ public class ExactMassDetector implements MassDetector {
 			}
 			endCurrentPeak = ind;
 
-			calculateExactMass(localMaximum, localMinimum, startCurrentPeak,
+			calculateExactMass(scan, localMaximum, localMinimum, startCurrentPeak,
 					endCurrentPeak);
 
 			top = true;
@@ -127,7 +127,7 @@ public class ExactMassDetector implements MassDetector {
 	 * @param end
 	 * @return
 	 */
-	private void calculateExactMass(Vector<Integer> localMaximum,
+	private void calculateExactMass(Scan scan, Vector<Integer> localMaximum,
 			Vector<Integer> localMinimum, int start, int end) {
 
 		Vector<DataPoint> rangeDataPoints = new Vector<DataPoint>();
@@ -147,7 +147,7 @@ public class ExactMassDetector implements MassDetector {
 					rangeDataPoints.add(scanDataPoints[i]);
 				}
 				float exactMz = sumMz / sumIntensities;
-				mzPeaks.add(new MzPeak(new SimpleDataPoint(exactMz, intensity), rangeDataPoints
+				mzPeaks.add(new MzPeak(scan, new SimpleDataPoint(exactMz, intensity), rangeDataPoints
 						.toArray(new DataPoint[0])));
 			}
 		} else {
@@ -170,7 +170,7 @@ public class ExactMassDetector implements MassDetector {
 							rangeDataPoints.add(scanDataPoints[i]);
 						}
 						float exactMz = sumMz / sumIntensities;
-						mzPeaks.add(new MzPeak(new SimpleDataPoint(exactMz, intensity),
+						mzPeaks.add(new MzPeak(scan, new SimpleDataPoint(exactMz, intensity),
 								rangeDataPoints.toArray(new DataPoint[0])));
 					}
 					tempStart = tempEnd;

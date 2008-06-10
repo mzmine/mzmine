@@ -346,6 +346,7 @@ public class MassDetectorSetupDialog extends ParameterSetupDialog implements
 
 		peaksDataSet = new PeakListDataSet(previewDataFile, scan
 				.getScanNumber(), newPeakList);
+		freeMemory();
 	}
 
 	/**
@@ -539,6 +540,12 @@ public class MassDetectorSetupDialog extends ParameterSetupDialog implements
 		pnlLocal = new JPanel(new BorderLayout());
 
 		pnlLocal.add(pnlAll, BorderLayout.WEST);
+	}
+	
+	protected void freeMemory() {
+		System.gc();
+		System.runFinalization();
+
 	}
 
 }

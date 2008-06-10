@@ -32,6 +32,7 @@ public class RecursiveMassDetector implements MassDetector {
 	private float minimumMZPeakWidth, maximumMZPeakWidth, noiseLevel;
 	private Vector<MzPeak> mzPeaks;
 	private DataPoint[] dataPoints;
+	private Scan scan;
 
 	public RecursiveMassDetector(RecursiveMassDetectorParameters parameters) {
 		noiseLevel = (Float) parameters
@@ -44,8 +45,8 @@ public class RecursiveMassDetector implements MassDetector {
 
 	public MzPeak[] getMassValues(Scan scan) {
 
-		Scan sc = scan;
-		dataPoints = sc.getDataPoints();
+		this.scan = scan;
+		dataPoints = scan.getDataPoints();
 		mzPeaks = new Vector<MzPeak>();
 
 		// Find MzPeaks
@@ -127,7 +128,7 @@ public class RecursiveMassDetector implements MassDetector {
 
 				// Declare a new MzPeak with intensity equal to max intensity
 				// data point
-				mzPeaks.add(new MzPeak(dataPoints[peakMaxInd],
+				mzPeaks.add(new MzPeak(scan, dataPoints[peakMaxInd],
 						RawDataPointsInds.toArray(new DataPoint[0])));
 				RawDataPointsInds.clear();
 

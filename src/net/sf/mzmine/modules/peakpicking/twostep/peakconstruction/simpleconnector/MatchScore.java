@@ -56,8 +56,7 @@ class MatchScore implements Comparable<MatchScore> {
         int retsig = (int) Math.signum(score - m.getScore());
         if (retsig == 0) {
             retsig = -1;
-        } // Must never return 0, because treeset can't hold equal
-        // elements
+        } 
         return retsig;
     }
 
@@ -67,13 +66,13 @@ class MatchScore implements Comparable<MatchScore> {
 
         // If mz difference is too big? (do this first for optimal
         // performance)
-        if (Math.abs(ucMZ - od.mzPeak.getMZ()) > mzTolerance) {
+        if (Math.abs(ucMZ - od.getMzPeak().getMZ()) > mzTolerance) {
             return Float.MAX_VALUE;
 
         } else {
 
             // Calculate score components and total score
-            float scoreMZComponent = (float) Math.abs(ucMZ - od.mzPeak.getMZ());
+            float scoreMZComponent = (float) Math.abs(ucMZ - od.getMzPeak().getMZ());
             float scoreRTComponent = calcScoreForRTShape(uc, od);
             float totalScore = (float) Math.sqrt(scoreMZComponent
                     * scoreMZComponent + scoreRTComponent
@@ -91,7 +90,7 @@ class MatchScore implements Comparable<MatchScore> {
      */
     private float calcScoreForRTShape(ConnectedPeak uc, ConnectedMzPeak od) {
 
-        float nextIntensity = od.mzPeak.getIntensity();
+        float nextIntensity = od.getMzPeak().getIntensity();
         //Hashtable<Integer, Float[]> datapoints = uc.getRawDatapoints();
         int[] scanNumbers = uc.getScanNumbers();
 
