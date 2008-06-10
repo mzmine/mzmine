@@ -188,7 +188,7 @@ class ThreeDSamplingTask implements Task {
                 }
 
                 float[] binnedIntensities = ScanUtils.binValues(scanMZValues,
-                        scanIntensityValues, mzRange, mzResolution, false,
+                        scanIntensityValues, mzRange, mzResolution, ! scan.isCentroided(),
                         BinningType.MAX);
 
                 int scanBinIndex;
