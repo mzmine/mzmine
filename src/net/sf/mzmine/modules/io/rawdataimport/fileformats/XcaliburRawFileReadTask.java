@@ -130,7 +130,8 @@ public class XcaliburRawFileReadTask implements Task {
 		logger.info("Started parsing file " + originalFile);
 
 		try {
-			System.loadLibrary("ThermoRawFileReader");
+			String libraryFullPath = System.getProperty("user.dir") + "\\lib\\ThermoRawFileReader.dll";
+			System.load(libraryFullPath);
 		} catch (Throwable e) {
 			status = TaskStatus.ERROR;
 			errorMessage = "Unable to load dynamic library to bind to Thermo Xcalibur";
