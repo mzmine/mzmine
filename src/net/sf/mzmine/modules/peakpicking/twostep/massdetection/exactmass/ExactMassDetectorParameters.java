@@ -29,6 +29,13 @@ import net.sf.mzmine.main.MZmineCore;
 
 public class ExactMassDetectorParameters extends SimpleParameterSet {
 
+	public static final String peakModelNames[] = { "Gaussian",
+		"Lorentzian" };
+
+	public static final String peakModelClasses[] = {
+		"net.sf.mzmine.modules.peakpicking.twostep.peakmodel.impl.GaussPeak",
+		"net.sf.mzmine.modules.peakpicking.twostep.peakmodel.impl.LorentzianPeak" };
+
 	public static final NumberFormat percentFormat = NumberFormat
 			.getPercentInstance();
 
@@ -49,25 +56,18 @@ public class ExactMassDetectorParameters extends SimpleParameterSet {
 	public static final Parameter cleanLateral = new SimpleParameter(
 			ParameterType.BOOLEAN,
 			"Remove FTMS shoulder peaks",
-			"Remove lateral peaks under the criteria defined by percentage of peak's intensity and resolution",
+			"Remove lateral peaks encontered under the shape of simulated peak by \"Model peak function\"",
 			null, new Boolean(false), null, null, null);
 
-	public static final Parameter percentageHeight = new SimpleParameter(
-			ParameterType.FLOAT,
-			"Percentage of Itensity",
-			"Intensities less than this percentage of the biggest peak's instensity in a range (see % of Resolution) are removed",
-			"%", new Float(0.05), new Float(0.0), null, percentFormat);
+	public static final Parameter peakModel = new SimpleParameter(
+			ParameterType.STRING,
+			"Model peak function",
+			"This model calculates a simulated peak using the oiginal peak's intensity, m/z and resolution.",
+			null, peakModelNames);
 
-	public static final Parameter percentageResolution = new SimpleParameter(
-			ParameterType.FLOAT,
-			"Percentage of Resolution",
-			"According with this percentage, it is estimated the base peak's width. This width is used to define "
-					+ "the range for seeking lateral peaks. Peaks with mass within this width are removed ",
-			"%", new Float(0.25), new Float(0.01), null, percentFormat);
 
 	public ExactMassDetectorParameters() {
-		super(new Parameter[] { noiseLevel, resolution, cleanLateral,
-				percentageHeight, percentageResolution });
+		super(new Parameter[] { noiseLevel, resolution, cleanLateral, peakModel	});
 
 	}
 

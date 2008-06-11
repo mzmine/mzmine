@@ -19,14 +19,18 @@
 
 package net.sf.mzmine.modules.peakpicking.twostep.massdetection.exactmass;
 
+import java.lang.reflect.Constructor;
 import java.util.Iterator;
 import java.util.Vector;
 
 import net.sf.mzmine.data.DataPoint;
 import net.sf.mzmine.data.Scan;
 import net.sf.mzmine.data.impl.SimpleDataPoint;
+import net.sf.mzmine.desktop.Desktop;
+import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.modules.peakpicking.twostep.massdetection.MassDetector;
 import net.sf.mzmine.modules.peakpicking.twostep.massdetection.MzPeak;
+import net.sf.mzmine.modules.peakpicking.twostep.peakmodel.PeakModel;
 import net.sf.mzmine.util.Range;
 
 public class ExactMassDetector implements MassDetector {
@@ -35,11 +39,16 @@ public class ExactMassDetector implements MassDetector {
 	private float noiseLevel;
 	private int resolution;
 	private boolean cleanLateral;
-	private float percentageHeight;
-	private float percentageResolution;
+	private String peakModelname;
 
 	private DataPoint scanDataPoints[];
 	private Vector<MzPeak> mzPeaks;
+	
+	private PeakModel peakModel;
+
+	// Desktop
+	private Desktop desktop = MZmineCore.getDesktop();
+
 
 	public ExactMassDetector(ExactMassDetectorParameters parameters) {
 		noiseLevel = (Float) parameters
@@ -48,10 +57,9 @@ public class ExactMassDetector implements MassDetector {
 				.getParameterValue(ExactMassDetectorParameters.resolution);
 		cleanLateral = (Boolean) parameters
 				.getParameterValue(ExactMassDetectorParameters.cleanLateral);
-		percentageHeight = (Float) parameters
-				.getParameterValue(ExactMassDetectorParameters.percentageHeight);
-		percentageResolution = (Float) parameters
-				.getParameterValue(ExactMassDetectorParameters.percentageResolution);
+		peakModelname = (String) parameters
+				.getParameterValue(ExactMassDetectorParameters.peakModel);
+		
 	}
 
 	/*
@@ -111,7 +119,7 @@ public class ExactMassDetector implements MassDetector {
 			localMinimum.clear();
 		}
 		if (cleanLateral)
-			removeLateralPeaks(mzPeaks, percentageHeight, percentageResolution);
+			removeLateralPeaks(mzPeaks); //, percentageHeight, percentageResolution);
 		return mzPeaks.toArray(new MzPeak[0]);
 	}
 
@@ -195,32 +203,36 @@ public class ExactMassDetector implements MassDetector {
 	 * @param percentageHeight
 	 * @param percentageResolution
 	 */
-	private void removeLateralPeaks(Vector<MzPeak> mzPeaks,
-			float percentageHeight, float percentageResolution) {
+	private void removeLateralPeaks(Vector<MzPeak> mzPeaks) { 
+		
+		Constructor peakModelConstruct;
+		Class peakModelClass;
+		int peakModelindex = 0;
+		for (String model: ExactMassDetectorParameters.peakModelNames){
+			if (model.equals(peakModelname))
+				break;
+			peakModelindex++;
+		}
+		
+		String peakModelClassName = ExactMassDetectorParameters.peakModelClasses[peakModelindex];
 
 		MzPeak[] arrayMzPeak = mzPeaks.toArray(new MzPeak[0]);
 		for (MzPeak currentMzPeak : arrayMzPeak) {
 
-			// FWFM (Full Width at Half Maximum)
-			float FWHM = currentMzPeak.getMZ()
-					/ ((float) resolution * percentageResolution);
+			try {
+				peakModelClass = Class.forName(peakModelClassName);
+				peakModelConstruct = peakModelClass
+						.getConstructors()[0];
+				peakModel = (PeakModel) peakModelConstruct.newInstance(currentMzPeak.getMZ(), 
+						currentMzPeak.getIntensity(), resolution);
+			} catch (Exception e) {
+				desktop
+						.displayErrorMessage("Error trying to make an instance of peak model "
+								+ peakModelClassName);
+				return;
+			}
 
-			float peakHeight = currentMzPeak.getIntensity();
-
-			/*
-			 * Calculates the 0.0001% of peak's height and applies natural
-			 * logarithm. This height value is chosen because is the closest to
-			 * zero. The zero value is not used because the Gaussian function
-			 * tends to infinite at this height
-			 */
-			double ln = Math.abs(Math.log(peakHeight * 0.000001));
-
-			// Using the Gaussian function we calculate the base peak width,
-			double partA = 2 * FWHM * FWHM;
-			float sideRange = (float) Math.sqrt(partA * ln) / 2.0f;
-
-			Range rangePeak = new Range(currentMzPeak.getMZ() - sideRange,
-					currentMzPeak.getMZ() + sideRange);
+			Range rangePeak = peakModel.getBasePeakWidth();
 
 			Iterator<MzPeak> anotherIteratorMzPeak = mzPeaks.iterator();
 			while (anotherIteratorMzPeak.hasNext()) {
@@ -228,7 +240,7 @@ public class ExactMassDetector implements MassDetector {
 
 				if ((comparedMzPeak.getMZ() >= rangePeak.getMin())
 						&& (comparedMzPeak.getMZ() <= rangePeak.getMax())
-						&& ((comparedMzPeak.getIntensity() / peakHeight) < percentageHeight)) {
+						&& (comparedMzPeak.getIntensity() < peakModel.getIntensity(comparedMzPeak.getMZ()))) {
 					anotherIteratorMzPeak.remove();
 				}
 				if (comparedMzPeak.getMZ() > rangePeak.getMax())

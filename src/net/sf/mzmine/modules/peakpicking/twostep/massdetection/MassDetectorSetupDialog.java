@@ -159,6 +159,8 @@ public class MassDetectorSetupDialog extends ParameterSetupDialog implements
 				field.addPropertyChangeListener("value", this);
 				if (field instanceof JCheckBox)
 					((JCheckBox) field).addActionListener(this);
+				if (field instanceof JComboBox)
+					((JComboBox) field).addActionListener(this);
 			}
 
 			// Add all complementary components for this dialog
@@ -228,7 +230,9 @@ public class MassDetectorSetupDialog extends ParameterSetupDialog implements
 			dispose();
 		}
 
-		if ((src == comboScanNumber) || ((src instanceof JCheckBox) && (src != preview))) {
+		if ((src == comboScanNumber) 
+				|| ((src instanceof JCheckBox) && (src != preview))
+				|| ((src instanceof JComboBox) && (src != comboDataFileName))) {
 			int ind = comboScanNumber.getSelectedIndex();
 			setPeakListDataSet(ind);
 			loadScan(listScans[ind]);
