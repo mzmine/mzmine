@@ -40,11 +40,13 @@ import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JTextField;
+import javax.swing.JToolTip;
 
 import net.sf.mzmine.data.Parameter;
 import net.sf.mzmine.data.impl.SimpleParameterSet;
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.util.GUIUtils;
+import net.sf.mzmine.util.MZmineToolTip;
 import net.sf.mzmine.util.Range;
 
 /**
@@ -154,14 +156,26 @@ public class ParameterSetupDialog extends JDialog implements ActionListener {
 
 			switch (p.getType()) {
 			case STRING:
-				JTextField txtField = new JTextField();
+				JTextField txtField = new JTextField(){
+				      public JToolTip createToolTip() {
+				          MZmineToolTip tip = new MZmineToolTip();
+				          tip.setComponent(this);
+				          return tip;
+				        }
+				};
 				txtField.setColumns(TEXTFIELD_COLUMNS);
 				comp = txtField;
 				break;
 			case INTEGER:
 			case FLOAT:
 
-				JFormattedTextField fmtField = new JFormattedTextField(format);
+				JFormattedTextField fmtField = new JFormattedTextField(format){
+				      public JToolTip createToolTip() {
+				    	  MZmineToolTip tip = new MZmineToolTip();
+				    	  tip.setComponent(this);
+				    	  return tip;
+				      }
+				};
 				fmtField.setColumns(TEXTFIELD_COLUMNS);
 				comp = fmtField;
 				break;
@@ -174,7 +188,13 @@ public class ParameterSetupDialog extends JDialog implements ActionListener {
 						format);
 				minTxtField.setColumns(TEXTFIELD_COLUMNS);
 				maxTxtField.setColumns(TEXTFIELD_COLUMNS);
-				JPanel panel = new JPanel(new FlowLayout());
+				JPanel panel = new JPanel(new FlowLayout()){
+				      public JToolTip createToolTip() {
+				    	  MZmineToolTip tip = new MZmineToolTip();
+				    	  tip.setComponent(this);
+				    	  return tip;
+				      }
+				};
 				panel.add(minTxtField);
 				GUIUtils.addLabel(panel, " - ");
 				panel.add(maxTxtField);
@@ -182,7 +202,13 @@ public class ParameterSetupDialog extends JDialog implements ActionListener {
 				break;
 
 			case BOOLEAN:
-				JCheckBox checkBox = new JCheckBox();
+				JCheckBox checkBox = new JCheckBox(){
+				      public JToolTip createToolTip() {
+				    	  MZmineToolTip tip = new MZmineToolTip();
+				    	  tip.setComponent(this);
+				    	  return tip;
+				      }
+				};
 				comp = checkBox;
 				break;
 
