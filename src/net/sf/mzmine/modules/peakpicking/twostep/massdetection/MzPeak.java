@@ -92,4 +92,19 @@ public class MzPeak implements DataPoint {
 		return scan;
 	}
 	
+	public void addRawDatapoints (DataPoint[] addedRawDataPoints){
+		  int fpl = rawDataPoints.length;
+		  int spl = addedRawDataPoints.length;
+
+		  DataPoint[] temp = new DataPoint[fpl + spl];
+		                
+		  System.arraycopy(rawDataPoints, 0, temp, 0, fpl);
+		  System.arraycopy(addedRawDataPoints, 0, temp, fpl, spl);
+		  
+		  //Arrays.sort(temp, new DataPointSorterByMZ());
+		  
+		  rawDataPoints = new DataPoint[temp.length];
+		  rawDataPoints = temp;
+	}
+	
 }

@@ -52,7 +52,7 @@ public class WaveletMassDetector implements MassDetector {
 
 	public WaveletMassDetector(WaveletMassDetectorParameters parameters) {
 		noiseLevel = (Float) parameters
-		.getParameterValue(WaveletMassDetectorParameters.noiseLevel);
+				.getParameterValue(WaveletMassDetectorParameters.noiseLevel);
 		scaleLevel = (Integer) parameters
 				.getParameterValue(WaveletMassDetectorParameters.scaleLevel);
 		waveletWindow = (Float) parameters
@@ -191,23 +191,24 @@ public class WaveletMassDetector implements MassDetector {
 			rawDataPoints.add(originalDataPoints[ind]);
 
 			if (originalDataPoints[peakMaxInd].getIntensity() > noiseLevel) {
-				SimpleDataPoint peakDataPoint = new SimpleDataPoint (originalDataPoints[peakMaxInd].getMZ(),
+				SimpleDataPoint peakDataPoint = new SimpleDataPoint(
+						originalDataPoints[peakMaxInd].getMZ(),
 						calcAproxIntensity(rawDataPoints));
-				
-				mzPeaks.add(new MzPeak(scan, peakDataPoint,
-						rawDataPoints.toArray(new DataPoint[0])));
-				
+
+				mzPeaks.add(new MzPeak(scan, peakDataPoint, rawDataPoints
+						.toArray(new DataPoint[0])));
+
 			}
 			rawDataPoints.clear();
 		}
 
 	}
-	
+
 	private float calcAproxIntensity(Vector<DataPoint> rawDataPoints) {
 
 		float aproxIntensity = 0;
 
-		for (DataPoint d: rawDataPoints) {
+		for (DataPoint d : rawDataPoints) {
 			if (d.getIntensity() > aproxIntensity)
 				aproxIntensity = d.getIntensity();
 		}

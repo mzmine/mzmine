@@ -19,7 +19,7 @@
 
 package net.sf.mzmine.modules.peakpicking.twostep.peakconstruction.simpleconnector;
 
-import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.TreeMap;
 import java.util.Vector;
 
@@ -27,7 +27,6 @@ import net.sf.mzmine.data.DataPoint;
 import net.sf.mzmine.data.Peak;
 import net.sf.mzmine.data.PeakStatus;
 import net.sf.mzmine.data.RawDataFile;
-import net.sf.mzmine.data.impl.SimpleDataPoint;
 import net.sf.mzmine.modules.peakpicking.twostep.massdetection.MzPeak;
 import net.sf.mzmine.util.CollectionUtils;
 import net.sf.mzmine.util.MathUtils;
@@ -35,315 +34,285 @@ import net.sf.mzmine.util.PeakUtils;
 import net.sf.mzmine.util.Range;
 
 /**
- * This class is an implementation of the peak interface for peak picking
- * methods.
- * 
- * TODO: this class is unnecessarily complicated
+ * This class is an implementation of the peak interface for SimpleConnector
+ * Peak Builder
  * 
  */
 
 public class ConnectedPeak implements Peak {
 
-    private PeakStatus peakStatus;
+	private PeakStatus peakStatus;
 
-    // This table maps a scanNumber to an array of m/z and intensity pairs
-    private TreeMap<Integer, DataPoint> datapointsMap;
-    
-    private Vector<MzPeak> mzValues;
+	// These elements are used to construct the Peak.
+	private TreeMap<Integer, MzPeak> datapointsMap;
+	private Vector<Float> datapointsMZs;
 
-    private RawDataFile dataFile;
+	// Raw data file, M/Z, RT, Height and Area
+	private RawDataFile dataFile;
+	private float mz, rt, height, area;
 
-    // Raw M/Z, RT, Height and Area
-    private float mz, rt, height, area;
+	// Characteristics of the peak
+	private Range mzRange, intensityRange, rtRange;
 
-    // Boundaries of the peak
-    private Range rtRange, mzRange, intensityRange;
+	// This is used for constructing the peak
+	private boolean growing = false;
 
-    // These are used for constructing the peak
-    private boolean precalcRequiredMZ;
-    private boolean precalcRequiredRT;
-    private boolean precalcRequiredMins;
-    private boolean precalcRequiredArea;
-    private ArrayList<Float> datapointsMZs;
-    private ArrayList<Float> datapointsRTs;
-    private ArrayList<Float> datapointsIntensities;
+	/**
+	 * Initializes this Peak with one MzPeak
+	 */
+	public ConnectedPeak(RawDataFile dataFile, MzPeak mzValue) {
+		this.dataFile = dataFile;
+		datapointsMap = new TreeMap<Integer, MzPeak>();
+		datapointsMZs = new Vector<Float>();
 
-    private boolean growing;
+		// We map this MzPeak with the scan number as a key due construction
+		// peak purpose.
+		datapointsMap.put(mzValue.getScan().getScanNumber(), mzValue);
 
-    /**
-     * Initializes empty peak for adding data points to
-     */
-    public ConnectedPeak(RawDataFile dataFile) {
-        this.dataFile = dataFile;
-        intializeAddingDatapoints();
-    }
+		// Initial characteristics of our peak with just one point (MzPeak).
+		rt = mzValue.getScan().getRetentionTime();
+		mz = mzValue.getMZ();
+		height = mzValue.getIntensity();
 
-    public ConnectedPeak(ConnectedPeak p) {
+		// Initial area of our peak is just one point.
+		area = 0.0f;
 
-        this.dataFile = p.getDataFile();
+		// Used in calculation of median MZ
+		datapointsMZs.add(mz);
 
-        this.mz = p.getMZ();
-        this.rt = p.getRT();
-        this.height = p.getHeight();
-        this.area = p.getArea();
+		// Initial ranges of our peak using all values from MzPeak
+		rtRange = new Range(rt);
 
-        this.rtRange = p.getRawDataPointsRTRange();
-        this.mzRange = p.getRawDataPointsMZRange();
-        this.intensityRange = p.getRawDataPointsIntensityRange();
+		DataPoint[] mzPeakRawDataPoints = mzValue.getRawDataPoints();
 
-        this.peakStatus = p.getPeakStatus();
-        this.dataFile = p.getDataFile();
-        this.mzValues = p.getMzPeaks();
-        this.datapointsMap = p.getDatapointsMap();
+		for (DataPoint dp : mzPeakRawDataPoints) {
+			if (mzRange == null)
+				mzRange = new Range(dp.getMZ());
+			else
+				mzRange.extendRange(dp.getMZ());
+			if (intensityRange == null)
+				intensityRange = new Range(dp.getIntensity());
+			else
+				intensityRange.extendRange(dp.getIntensity());
+		}
 
-    }
-    
-    
-    /**
-     * This method returns the status of the peak
-     */
-    public PeakStatus getPeakStatus() {
-        return peakStatus;
-    }
+	}
 
-    public void setPeakStatus(PeakStatus peakStatus) {
-        this.peakStatus = peakStatus;
-    }
+	/**
+	 * This method adds a MzPeak to this Peak. All values of this Peak (rt, m/z,
+	 * intensity and ranges) are upgraded
+	 * 
+	 * 
+	 * @param mzValue
+	 */
+	public void addMzPeak(MzPeak mzValue) {
 
-    /*
-     * Get methods for basic properties of the peak as defined by the peak
-     * picking method
-     */
+		// Update construction time variables
+		if (height <= mzValue.getIntensity()) {
+			height = mzValue.getIntensity();
+			rt = mzValue.getScan().getRetentionTime();
+		}
 
-    /**
-     * This method returns M/Z value of the peak
-     */
-    public float getMZ() {
-        if (precalcRequiredMZ)
-            precalculateMZ();
-        return mz;
-    }
+		// Calculate median MZ
+		datapointsMZs.add(mzValue.getMZ());
 
-    /**
-     * This method returns retention time of the peak
-     */
-    public float getRT() {
-        if (precalcRequiredRT)
-            precalculateRT();
-        return rt;
-    }
+		mz = MathUtils.calcQuantile(
+				CollectionUtils.toFloatArray(datapointsMZs), 0.5f);
 
-    /**
-     * This method returns the raw height of the peak
-     */
-    public float getHeight() {
-        if (precalcRequiredRT)
-            precalculateRT();
-        return height;
-    }
+		rtRange.extendRange(mzValue.getScan().getRetentionTime());
 
-    /**
-     * This method returns the raw area of the peak
-     */
-    public float getArea() {
-        if (precalcRequiredArea)
-            precalculateArea();
-        return area;
-    }
+		DataPoint[] mzPeakRawDataPoints = mzValue.getRawDataPoints();
 
-    /**
-     * This method returns numbers of scans that contain this peak
-     */
-    public int[] getScanNumbers() {
-        return CollectionUtils.toIntArray(datapointsMap.keySet());
-    }
+		for (DataPoint dp : mzPeakRawDataPoints) {
+			mzRange.extendRange(dp.getMZ());
+			intensityRange.extendRange(dp.getIntensity());
+		}
 
-    /**
-     * This method returns a representative datapoint of this peak in a given
-     * scan
-     */
-    public DataPoint getDataPoint(int scanNumber) {
-        return datapointsMap.get(scanNumber);
-    }
+		// Use the last added MzPeak to calculate the area of the peak.
+		int lastIndex = datapointsMap.lastKey();
+		MzPeak lastAddedMzPeak = datapointsMap.get(lastIndex);
 
-    /**
-     * This method returns a representative datapoint of this peak in a given
-     * scan
-     */
-    public DataPoint[] getRawDataPoints(int scanNumber) {
-        return new DataPoint[] { datapointsMap.get(scanNumber) };
-    }
+		float rtDifference = mzValue.getScan().getRetentionTime()
+				- lastAddedMzPeak.getScan().getRetentionTime();
 
-    public Range getRawDataPointsIntensityRange() {
-        if (precalcRequiredMins)
-            precalculateMins();
-        return intensityRange;
-    }
+		// intensity at the beginning of the interval
+		float intensityStart = lastAddedMzPeak.getIntensity();
 
-    public Range getRawDataPointsMZRange() {
-        if (precalcRequiredMins)
-            precalculateMins();
-        return mzRange;
-    }
+		// intensity at the end of the interval
+		float intensityEnd = mzValue.getIntensity();
 
-    public Range getRawDataPointsRTRange() {
-        if (precalcRequiredMins)
-            precalculateMins();
-        return rtRange;
-    }
+		// calculate area of the interval
+		area += (rtDifference * (intensityStart + intensityEnd) / 2);
 
-    private void intializeAddingDatapoints() {
+		// Add MzPeak
+		datapointsMap.put(mzValue.getScan().getScanNumber(), mzValue);
+		growing = true;
 
-        datapointsMap = new TreeMap<Integer, DataPoint>();
+	}
 
-        precalcRequiredMZ = true;
-        precalcRequiredRT = true;
-        precalcRequiredMins = true;
-        precalcRequiredArea = true;
+	/**
+	 * This method returns the status of the peak
+	 */
+	public PeakStatus getPeakStatus() {
+		return peakStatus;
+	}
 
-        growing = false;
+	/**
+	 * 
+	 * @param peakStatus
+	 */
+	public void setPeakStatus(PeakStatus peakStatus) {
+		this.peakStatus = peakStatus;
+	}
 
-        datapointsMZs = new ArrayList<Float>();
-        datapointsRTs = new ArrayList<Float>();
-        datapointsIntensities = new ArrayList<Float>();
-        mzValues = new Vector<MzPeak>();
+	/**
+	 * This method returns M/Z value of the peak
+	 */
+	public float getMZ() {
+		return mz;
+	}
 
-    }
+	/**
+	 * This method returns retention time of the peak
+	 */
+	public float getRT() {
+		return rt;
+	}
 
-    private void precalculateMZ() {
-        // Calculate median MZ
-        mz = MathUtils.calcQuantile(
-                CollectionUtils.toFloatArray(datapointsMZs), 0.5f);
-        precalcRequiredMZ = false;
-    }
+	/**
+	 * This method returns the height of the peak
+	 */
+	public float getHeight() {
+		return height;
+	}
 
-    private void precalculateRT() {
-        // Find maximum intensity datapoint and use its RT
-        float maxIntensity = 0.0f;
-        for (int ind = 0; ind < datapointsIntensities.size(); ind++) {
-            if (maxIntensity <= datapointsIntensities.get(ind)) {
-                maxIntensity = datapointsIntensities.get(ind);
-                rt = datapointsRTs.get(ind);
-                height = maxIntensity;
-            }
-        }
-        precalcRequiredRT = false;
-    }
+	/**
+	 * This method returns the area of the peak
+	 */
+	public float getArea() {
+		return area;
+	}
 
-    private void precalculateArea() {
+	/**
+	 * This method returns numbers of scans that contain this peak
+	 */
+	public int[] getScanNumbers() {
+		return CollectionUtils.toIntArray(datapointsMap.keySet());
+	}
 
-        float sum = 0.0f;
+	/**
+	 * This method returns a representative data point of this peak in a given
+	 * scan
+	 */
+	public DataPoint getDataPoint(int scanNumber) {
+		return datapointsMap.get(scanNumber);
+	}
 
-        // process all datapoints
-        for (int i = 0; i < (datapointsIntensities.size() - 1); i++) {
+	/**
+	 * This method returns an array of all raw data point of this peak in a
+	 * given scan
+	 */
+	public DataPoint[] getRawDataPoints(int scanNumber) {
+		return datapointsMap.get(scanNumber).getRawDataPoints();
+	}
 
-            // X axis interval length
-            final float rtDifference = datapointsRTs.get(i + 1)
-                    - datapointsRTs.get(i);
+	/**
+	 * This method returns the intensity range of this peak
+	 * 
+	 */
+	public Range getRawDataPointsIntensityRange() {
+		return intensityRange;
+	}
 
-            // intensity at the beginning of the interval
-            final float intensityStart = datapointsIntensities.get(i);
+	/**
+	 * This method returns the m/z range of this peak
+	 * 
+	 */
+	public Range getRawDataPointsMZRange() {
+		return mzRange;
+	}
 
-            // intensity at the end of the interval
-            final float intensityEnd = datapointsIntensities.get(i + 1);
+	/**
+	 * This method returns the retention time range of this peak
+	 * 
+	 */
+	public Range getRawDataPointsRTRange() {
+		return rtRange;
+	}
 
-            // calculate area of the interval
-            sum += (rtDifference * (intensityStart + intensityEnd) / 2);
+	/**
+	 * This method returns all MzPeaks collected in this Peak. The order of the
+	 * array is ascend according with the number of the scans.
+	 * 
+	 * @return Array MzPeak
+	 */
+	public MzPeak[] getMzPeaks() {
+		return datapointsMap.values().toArray(new MzPeak[0]);
+	}
 
-        }
+	/**
+	 * This method returns the status of growing's flag.
+	 * 
+	 * @return boolean growing
+	 */
+	public boolean isGrowing() {
+		return growing;
+	}
 
-        area = sum;
+	/**
+	 * This method sets the growing's flag to false.
+	 * 
+	 */
+	public void resetGrowingState() {
+		growing = false;
+	}
 
-        precalcRequiredArea = false;
-    }
+	/**
+	 * This method set the status of the Peak and the growing's flag to false.
+	 * 
+	 * 
+	 * @param peakStatus
+	 */
+	public void finalizedAddingDatapoints(PeakStatus peakStatus) {
+		this.peakStatus = peakStatus;
+		growing = false;
+	}
 
-    private void precalculateMins() {
+	/**
+	 * This method returns all the MzPeaks intensities collected in this Peak
+	 * until this moment. The order of the vector is ascend according with
+	 * number of scans.
+	 * 
+	 * @return Vector<Float> Intensities
+	 */
+	public Vector<Float> getConstructionIntensities() {
+		Vector<Float> datapointsIntensities = new Vector<Float>();
+		Iterator<Integer> indexIterator = datapointsMap.navigableKeySet()
+				.iterator();
+		while (indexIterator.hasNext()) {
+			int index = indexIterator.next();
+			MzPeak mzPeak = datapointsMap.get(index);
+			float intensity = mzPeak.getIntensity();
+			datapointsIntensities.add(intensity);
+		}
+		return datapointsIntensities;
+	}
 
-        for (int ind = 0; ind < datapointsMZs.size(); ind++) {
-            if (ind == 0) {
-                rtRange = new Range(datapointsRTs.get(ind));
-                mzRange = new Range(datapointsMZs.get(ind));
-                intensityRange = new Range(datapointsIntensities.get(ind));
-            } else {
-                rtRange.extendRange(datapointsRTs.get(ind));
-                mzRange.extendRange(datapointsMZs.get(ind));
-                intensityRange.extendRange(datapointsIntensities.get(ind));
-            }
-        }
-        precalcRequiredMins = false;
-    }
+	/**
+	 * @see net.sf.mzmine.data.Peak#getDataFile()
+	 */
+	public RawDataFile getDataFile() {
+		return dataFile;
+	}
 
-    public void addMzPeak(MzPeak mzValue) {
-
-        growing = true;
-        precalcRequiredMZ = true;
-        precalcRequiredRT = true;
-        precalcRequiredMins = true;
-        precalcRequiredArea = true;
-
-        // Add datapoint
-        //DataPoint datapoint = new SimpleDataPoint(mz, intensity);
-        DataPoint datapoint = new SimpleDataPoint(mzValue.getMZ(), mzValue.getIntensity());
-
-        datapointsMap.put(mzValue.getScan().getScanNumber(), datapoint);
-        
-        mzValues.add(mzValue);
-
-        // Update construction time variables
-        datapointsMZs.add(mzValue.getMZ());
-        datapointsRTs.add(mzValue.getScan().getRetentionTime());
-        datapointsIntensities.add(mzValue.getIntensity());
-
-    }
-
-    public boolean isGrowing() {
-        return growing;
-    }
-
-    public void resetGrowingState() {
-        growing = false;
-    }
-
-    public void finalizedAddingDatapoints(PeakStatus peakStatus) {
-
-        this.peakStatus = peakStatus;
-
-        if (precalcRequiredMZ)
-            precalculateMZ();
-        if (precalcRequiredRT)
-            precalculateRT();
-        if (precalcRequiredMins)
-            precalculateMins();
-        if (precalcRequiredArea)
-            precalculateArea();
-
-        datapointsMZs = null;
-        datapointsRTs = null;
-        datapointsIntensities = null;
-
-    }
-
-    public ArrayList<Float> getConstructionIntensities() {
-        return datapointsIntensities;
-    }
-
-    /**
-     * @see net.sf.mzmine.data.Peak#getDataFile()
-     */
-    public RawDataFile getDataFile() {
-        return dataFile;
-    }
-    
-    public Vector<MzPeak> getMzPeaks(){
-    	return mzValues;
-    }
-
-    public TreeMap<Integer, DataPoint> getDatapointsMap(){
-    	return  datapointsMap;
-    }
-
-    public String toString() {
-        return PeakUtils.peakToString(this);
-    }
+	/**
+	 * This method returns a string with the basic information that defines this
+	 * peak
+	 * 
+	 * @return String information
+	 */
+	public String toString() {
+		return PeakUtils.peakToString(this);
+	}
 
 }

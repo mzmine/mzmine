@@ -33,6 +33,12 @@ import net.sf.mzmine.modules.peakpicking.twostep.peakconstruction.PeakBuilder;
 import net.sf.mzmine.util.MathUtils;
 
 /**
+ * This class implements a simple peak builder. This takes all detected MzPeaks
+ * in one Scan and try to find a possible relationship between each one of these
+ * with MzPeaks of the previous scan. This relationship is set by a match score
+ * using MatchScore class, according with the parameters of Tolerance of MZ and
+ * Intensity. Also it can apply a second search for possible peaks (threshold
+ * level), over a already detected peak.
  * 
  */
 public class SimpleConnector implements PeakBuilder {
@@ -80,9 +86,7 @@ public class SimpleConnector implements PeakBuilder {
 
 		// Calculate score for each ConnectedMzPeak
 		for (ConnectedPeak ucPeak : underConstructionPeaks) {
-			// for (ConnectedMzPeak currentConectedMzPeak : cMzPeaks) {
 			for (ConnectedMzPeak currentMzPeak : cMzPeaks) {
-
 				MatchScore score = new MatchScore(ucPeak, currentMzPeak,
 						mzTolerance, intTolerance);
 
@@ -113,13 +117,16 @@ public class SimpleConnector implements PeakBuilder {
 			// Add MzPeak to the proper Peak and set status connected
 			ucPeak.addMzPeak(cMzPeak.getMzPeak());
 			cMzPeak.setConnected();
-
 		}
 
 		// Check if there are any under-construction peaks that were not
 		// connected (finished)
-		for (ConnectedPeak ucPeak : underConstructionPeaks) {
 
+		Iterator<ConnectedPeak> iteratorConPeak = underConstructionPeaks
+				.iterator();
+		while (iteratorConPeak.hasNext()) {
+
+			ConnectedPeak ucPeak = iteratorConPeak.next();
 			// If nothing was added,
 			if (!ucPeak.isGrowing()) {
 
@@ -144,42 +151,32 @@ public class SimpleConnector implements PeakBuilder {
 					}
 
 				} else {
-					// Check length
+
+					// Check length of detected peak (filter according to set
+					// parameters)
+
 					float ucLength = ucPeak.getRawDataPointsRTRange().getSize();
 					float ucHeight = ucPeak.getHeight();
 					if ((ucLength >= minimumPeakDuration)
 							&& (ucHeight >= minimumPeakHeight)) {
 						finishedPeaks.add(ucPeak);
 					}
-
 				}
 
 				// Remove the peak from under construction peaks
-				int ucInd = underConstructionPeaks.indexOf(ucPeak);
-				underConstructionPeaks.set(ucInd, null);
-			}
+				iteratorConPeak.remove();
 
-		}
-
-		// Clean-up empty slots under-construction peaks collection and
-		// reset growing statuses for remaining under construction peaks
-		for (int ucInd = 0; ucInd < underConstructionPeaks.size(); ucInd++) {
-			ConnectedPeak ucPeak = underConstructionPeaks.get(ucInd);
-			if (ucPeak == null) {
-				underConstructionPeaks.remove(ucInd);
-				ucInd--;
-			} else {
+			} else
 				ucPeak.resetGrowingState();
-			}
 		}
 
-		// If there are some unconnected 1d-peaks, then start a new
+		// If there are some unconnected MzPeaks, then start a new
 		// under-construction peak for each of them
+
 		for (ConnectedMzPeak cMzPeak : cMzPeaks) {
 			if (!cMzPeak.isConnected()) {
-				ConnectedPeak ucPeak = new ConnectedPeak(dataFile);
-				ucPeak.addMzPeak(cMzPeak.getMzPeak());
-				ucPeak.resetGrowingState();
+				ConnectedPeak ucPeak = new ConnectedPeak(dataFile, cMzPeak
+						.getMzPeak());
 				underConstructionPeaks.add(ucPeak);
 			}
 
@@ -202,7 +199,8 @@ public class SimpleConnector implements PeakBuilder {
 	 */
 	private Peak[] chromatographicPeaksSearch(ConnectedPeak ucPeak) {
 
-		MzPeak[] mzValues = ucPeak.getMzPeaks().toArray(new MzPeak[0]);
+		// MzPeak[] mzValues = ucPeak.getMzPeaks().toArray(new MzPeak[0]);
+		MzPeak[] mzValues = ucPeak.getMzPeaks();
 
 		float[] intensities = new float[mzValues.length];
 
@@ -214,26 +212,54 @@ public class SimpleConnector implements PeakBuilder {
 				intensities, chromatographicThresholdLevel);
 
 		Vector<ConnectedPeak> newChromatoPeaks = new Vector<ConnectedPeak>();
-		ConnectedPeak chromatoPeak = new ConnectedPeak(ucPeak.getDataFile());
+		Vector<MzPeak> newChromatoMzPeaks = new Vector<MzPeak>();
 
 		for (MzPeak mzPeak : mzValues) {
+
+			// If the intensity of this MzPeak is bigger than threshold level
+			// we store it in a Vector.
+
 			if (mzPeak.getIntensity() >= chromatographicThresholdlevelPeak) {
-				chromatoPeak.addMzPeak(mzPeak);
-			} else {
-				boolean addedMzPeaks = chromatoPeak.getMzPeaks().size() > 0;
-				if (addedMzPeaks) {
+				newChromatoMzPeaks.add(mzPeak);
+			}
+
+			// If the intensity of lower than threshold level, it could mean
+			// that is the ending of this new threshold level peak
+			// we store it in a Vector.
+
+			else {
+
+				// Verify if we add some MzPeaks to the new ConnectedPeak, if
+				// that is true, we create a new ConnectedPeak with all stored
+				// MzPeaks.
+
+				if (newChromatoMzPeaks.size() > 0) {
+					ConnectedPeak chromatoPeak = new ConnectedPeak(ucPeak
+							.getDataFile(), newChromatoMzPeaks.elementAt(0));
+					for (int i = 1; i < newChromatoMzPeaks.size(); i++) {
+						chromatoPeak.addMzPeak(newChromatoMzPeaks.elementAt(i));
+					}
+					newChromatoMzPeaks.clear();
 					chromatoPeak.finalizedAddingDatapoints(PeakStatus.DETECTED);
-					newChromatoPeaks.add(new ConnectedPeak(chromatoPeak));
-					chromatoPeak = new ConnectedPeak(ucPeak.getDataFile());
+					newChromatoPeaks.add(chromatoPeak);
 				}
 			}
 		}
-		boolean addedMzPeaks = chromatoPeak.getMzPeaks().size() > 0;
-		if (addedMzPeaks) {
+
+		// At least we verify if there is one last threshold peak at the end,
+		// and it was not detected in the for cycle, due there is not MzPeak
+		// with intensity below of threshold level to define the ending
+
+		if (newChromatoMzPeaks.size() > 0) {
+			ConnectedPeak chromatoPeak = new ConnectedPeak(
+					ucPeak.getDataFile(), newChromatoMzPeaks.elementAt(0));
+			for (int i = 1; i < newChromatoMzPeaks.size(); i++) {
+				chromatoPeak.addMzPeak(newChromatoMzPeaks.elementAt(i));
+			}
 			chromatoPeak.finalizedAddingDatapoints(PeakStatus.DETECTED);
-			newChromatoPeaks.add(new ConnectedPeak(chromatoPeak));
-			chromatoPeak = new ConnectedPeak(ucPeak.getDataFile());
+			newChromatoPeaks.add(chromatoPeak);
 		}
+
 		return newChromatoPeaks.toArray(new ConnectedPeak[0]);
 	}
 

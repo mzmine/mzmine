@@ -36,7 +36,7 @@ import net.sf.mzmine.util.Range;
 public class ExactMassDetector implements MassDetector {
 
 	// parameter values
-	private float noiseLevel;
+	private float noiseLevel, basePeakIntensity;
 	private int resolution;
 	private boolean cleanLateral;
 	private String peakModelname;
@@ -44,7 +44,7 @@ public class ExactMassDetector implements MassDetector {
 	private DataPoint scanDataPoints[];
 	private Vector<MzPeak> mzPeaks;
 	
-	private PeakModel peakModel;
+	private PeakModel peakModel, peakModelofBiggestPeak;
 
 	// Desktop
 	private Desktop desktop = MZmineCore.getDesktop();
@@ -75,6 +75,7 @@ public class ExactMassDetector implements MassDetector {
 		Vector<Integer> localMinimum = new Vector<Integer>();
 		Vector<Integer> localMaximum = new Vector<Integer>();
 		boolean top = true;
+		basePeakIntensity = scan.getBasePeak().getIntensity();
 
 		float[] intensityValues = new float[scanDataPoints.length];
 		for (int i = 0; i < scanDataPoints.length; i++) {
@@ -118,8 +119,9 @@ public class ExactMassDetector implements MassDetector {
 			localMaximum.clear();
 			localMinimum.clear();
 		}
-		if (cleanLateral)
-			removeLateralPeaks(mzPeaks); //, percentageHeight, percentageResolution);
+		if (cleanLateral){
+			removeLateralPeaks(); 
+		}
 		return mzPeaks.toArray(new MzPeak[0]);
 	}
 
@@ -157,7 +159,9 @@ public class ExactMassDetector implements MassDetector {
 				float exactMz = sumMz / sumIntensities;
 				mzPeaks.add(new MzPeak(scan, new SimpleDataPoint(exactMz, intensity), rangeDataPoints
 						.toArray(new DataPoint[0])));
+				rangeDataPoints.clear();
 			}
+			return;
 		} else {
 			Iterator<Integer> maximum = localMaximum.iterator();
 			Iterator<Integer> minimum = localMinimum.iterator();
@@ -180,6 +184,7 @@ public class ExactMassDetector implements MassDetector {
 						float exactMz = sumMz / sumIntensities;
 						mzPeaks.add(new MzPeak(scan, new SimpleDataPoint(exactMz, intensity),
 								rangeDataPoints.toArray(new DataPoint[0])));
+						rangeDataPoints.clear();
 					}
 					tempStart = tempEnd;
 					if (minimum.hasNext())
@@ -189,6 +194,7 @@ public class ExactMassDetector implements MassDetector {
 
 				}
 			}
+			return;
 		}
 	}
 
@@ -203,7 +209,7 @@ public class ExactMassDetector implements MassDetector {
 	 * @param percentageHeight
 	 * @param percentageResolution
 	 */
-	private void removeLateralPeaks(Vector<MzPeak> mzPeaks) { 
+	private void removeLateralPeaks() { 
 		
 		Constructor peakModelConstruct;
 		Class peakModelClass;
@@ -218,6 +224,9 @@ public class ExactMassDetector implements MassDetector {
 
 		MzPeak[] arrayMzPeak = mzPeaks.toArray(new MzPeak[0]);
 		for (MzPeak currentMzPeak : arrayMzPeak) {
+			
+			if (currentMzPeak.getIntensity() < noiseLevel)
+				continue;
 
 			try {
 				peakModelClass = Class.forName(peakModelClassName);
@@ -225,6 +234,8 @@ public class ExactMassDetector implements MassDetector {
 						.getConstructors()[0];
 				peakModel = (PeakModel) peakModelConstruct.newInstance(currentMzPeak.getMZ(), 
 						currentMzPeak.getIntensity(), resolution);
+				peakModelofBiggestPeak = (PeakModel) peakModelConstruct.newInstance(currentMzPeak.getMZ(), 
+						basePeakIntensity, resolution);
 			} catch (Exception e) {
 				desktop
 						.displayErrorMessage("Error trying to make an instance of peak model "
@@ -233,11 +244,16 @@ public class ExactMassDetector implements MassDetector {
 			}
 
 			Range rangePeak = peakModel.getBasePeakWidth();
+			Range rangeNoise = peakModelofBiggestPeak.getBasePeakWidth();
 
 			Iterator<MzPeak> anotherIteratorMzPeak = mzPeaks.iterator();
 			while (anotherIteratorMzPeak.hasNext()) {
 				MzPeak comparedMzPeak = anotherIteratorMzPeak.next();
 
+				if ((comparedMzPeak.getMZ() < rangeNoise.getMin()) && (comparedMzPeak.getIntensity() < noiseLevel)){
+					anotherIteratorMzPeak.remove();
+				}
+						
 				if ((comparedMzPeak.getMZ() >= rangePeak.getMin())
 						&& (comparedMzPeak.getMZ() <= rangePeak.getMax())
 						&& (comparedMzPeak.getIntensity() < peakModel.getIntensity(comparedMzPeak.getMZ()))) {
@@ -249,5 +265,4 @@ public class ExactMassDetector implements MassDetector {
 		}
 
 	}
-
 }

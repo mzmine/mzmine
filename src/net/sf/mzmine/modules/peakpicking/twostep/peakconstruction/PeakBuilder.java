@@ -28,6 +28,11 @@ public interface PeakBuilder {
 
 	/**
 	 * 
+	 * This method takes all detected MzPeaks in one Scan and try to find a
+	 * possible relationship between each one of these with MzPeaks of the
+	 * previous scans. It returns an array of objects type Peak.
+	 * 
+	 * @return Peak[]
 	 */
 	public Peak[] addScan(Scan scan, MzPeak[] mzValues, RawDataFile dataFile);
 

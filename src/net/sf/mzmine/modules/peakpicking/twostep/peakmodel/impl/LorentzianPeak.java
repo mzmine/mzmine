@@ -24,13 +24,13 @@ import net.sf.mzmine.util.Range;
 
 public class LorentzianPeak implements PeakModel {
 
-	private float mzMain, intensityMain, FWHM;
+	private float mzMain, intensityMain, HWHM;
 
 	public LorentzianPeak(float mzMain, float intensityMain, float resolution) {
 		this.mzMain = mzMain;
 		this.intensityMain = intensityMain;
 		// FWFM (Full Width at Half Maximum)
-		FWHM = mzMain / ((float) resolution);
+		HWHM = mzMain / ((float) resolution * 2);
 	}
 
 	/* (non-Javadoc)
@@ -47,7 +47,7 @@ public class LorentzianPeak implements PeakModel {
 		 */
 		double baseIntensity = intensityMain * 0.001;
 		double partA = ((intensityMain / baseIntensity) - 1)
-				* Math.pow(FWHM, 2);
+				* Math.pow(HWHM, 2);
 
 		// Using the Lorentzian function we calculate the base peak width,
 		float sideRange = (float) Math.sqrt(partA) / 2.0f;
@@ -62,7 +62,7 @@ public class LorentzianPeak implements PeakModel {
 	 */
 	public float getIntensity(float mz) {
 
-		double partA = Math.pow(FWHM, 2);
+		double partA = Math.pow(HWHM, 2);
 		double partB = intensityMain * partA;
 		double partC = Math.pow((mz - mzMain), 2) + partA;
 		

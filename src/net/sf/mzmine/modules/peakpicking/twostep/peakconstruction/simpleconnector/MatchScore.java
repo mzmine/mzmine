@@ -19,7 +19,7 @@
 
 package net.sf.mzmine.modules.peakpicking.twostep.peakconstruction.simpleconnector;
 
-import java.util.ArrayList;
+import java.util.Vector;
 
 
 /**
@@ -91,7 +91,6 @@ class MatchScore implements Comparable<MatchScore> {
     private float calcScoreForRTShape(ConnectedPeak uc, ConnectedMzPeak od) {
 
         float nextIntensity = od.getMzPeak().getIntensity();
-        //Hashtable<Integer, Float[]> datapoints = uc.getRawDatapoints();
         int[] scanNumbers = uc.getScanNumbers();
 
         // If no previous m/z peaks
@@ -99,7 +98,7 @@ class MatchScore implements Comparable<MatchScore> {
             return 0;
         }
 
-        ArrayList<Float> intensities = uc.getConstructionIntensities();
+        Vector<Float> intensities = uc.getConstructionIntensities();
 
         // If only one previous m/z peak
         if (scanNumbers.length == 1) {
