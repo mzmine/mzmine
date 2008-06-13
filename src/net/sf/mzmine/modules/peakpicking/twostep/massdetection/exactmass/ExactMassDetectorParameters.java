@@ -30,18 +30,19 @@ import net.sf.mzmine.main.MZmineCore;
 public class ExactMassDetectorParameters extends SimpleParameterSet {
 
 	public static final String peakModelNames[] = { "Gaussian",
-		"Lorentzian" };
+		"Lorentzian", "Modified Lorentzian" };
 
 	public static final String peakModelClasses[] = {
 		"net.sf.mzmine.modules.peakpicking.twostep.peakmodel.impl.GaussPeak",
-		"net.sf.mzmine.modules.peakpicking.twostep.peakmodel.impl.LorentzianPeak" };
+		"net.sf.mzmine.modules.peakpicking.twostep.peakmodel.impl.LorentzianPeak",
+		"net.sf.mzmine.modules.peakpicking.twostep.peakmodel.impl.ModifiedLorentzianPeak" };
 
 	public static final NumberFormat percentFormat = NumberFormat
 			.getPercentInstance();
 
 	public static final Parameter noiseLevel = new SimpleParameter(
 			ParameterType.FLOAT, "Noise level",
-			"Intensities less than this value are interpreted as noise",
+			"Intensities less than this value are interpreted as noise.",
 			"absolute", new Float(10.0), new Float(0.0), null, MZmineCore
 					.getIntensityFormat());
 
@@ -53,21 +54,15 @@ public class ExactMassDetectorParameters extends SimpleParameterSet {
 			null, new Integer(60000), new Integer(0), null, NumberFormat
 					.getIntegerInstance());
 
-	public static final Parameter cleanLateral = new SimpleParameter(
-			ParameterType.BOOLEAN,
-			"Remove FTMS shoulder peaks",
-			"Remove lateral peaks encontered under the shape of simulated peak by \"Model peak function\"",
-			null, new Boolean(false), null, null, null);
-
 	public static final Parameter peakModel = new SimpleParameter(
 			ParameterType.STRING,
-			"Model peak function",
-			"This model calculates a simulated peak using the oiginal peak's intensity, m/z and resolution.",
+			"Peak Model function",
+			"peakModelParameter.txt",
 			null, peakModelNames);
 
 
 	public ExactMassDetectorParameters() {
-		super(new Parameter[] { noiseLevel, resolution, cleanLateral, peakModel	});
+		super(new Parameter[] { noiseLevel, resolution, peakModel	});
 
 	}
 

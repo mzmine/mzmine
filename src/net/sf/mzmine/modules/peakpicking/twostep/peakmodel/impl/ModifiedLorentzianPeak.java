@@ -22,18 +22,43 @@ package net.sf.mzmine.modules.peakpicking.twostep.peakmodel.impl;
 import net.sf.mzmine.modules.peakpicking.twostep.peakmodel.PeakModel;
 import net.sf.mzmine.util.Range;
 
-public class LorentzianPeak implements PeakModel {
+public class ModifiedLorentzianPeak implements PeakModel {
 
-	private float mzMain, intensityMain, HWHM;
+	private float mzMain, intensityMain, FWHM, MWHM;
+	private Range rangePeak, rangePeakModified;
+	private float diffWidth, diffMass, widthStep;
 
-	public LorentzianPeak(float mzMain, float intensityMain, float resolution) {
+	public ModifiedLorentzianPeak(float mzMain, float intensityMain,
+			float resolution) {
 		this.mzMain = mzMain;
 		this.intensityMain = intensityMain;
-		// HWFM (Half Width at Half Maximum)
-		HWHM = mzMain / ((float) resolution * 2);
+		// FWFM (Full Width at Half Maximum)
+		FWHM = mzMain / ((float) resolution);
+
+		// MWFM (Modified Width at Half Maximum)
+		MWHM = mzMain / ((float) resolution * 0.10f);
+
+		// Using the Gaussian function we calculate the peak width at 5% of
+		// intensity
+
+		double partA = 2 * Math.pow(FWHM, 2);
+		double ln = Math.abs(Math.log(intensityMain * 0.05));
+		float sideRange = (float) Math.sqrt(partA * ln) / 2.0f;
+
+		// We use this range to recognize when to use a different value of width
+		// for Lorentzian function
+		rangePeak = new Range(mzMain - sideRange, mzMain + sideRange);
+
+		// This value is the difference between the FWHM used to calculate the
+		// width (Gaussian peak) at 5% of intensity and the MWHM used to
+		// calculate the width (Lorentzian function) at 0.1% of intensity.
+		diffWidth = MWHM - FWHM;
+
 	}
 
-	/* (non-Javadoc)
+	/*
+	 * (non-Javadoc)
+	 * 
 	 * @see net.sf.mzmine.modules.peakpicking.twostep.peakmodel.PeakModel#getBasePeakWidth()
 	 */
 	public Range getBasePeakWidth() {
@@ -47,27 +72,43 @@ public class LorentzianPeak implements PeakModel {
 		 */
 		double baseIntensity = intensityMain * 0.001;
 		double partA = ((intensityMain / baseIntensity) - 1)
-				* Math.pow(HWHM, 2);
+				* Math.pow(MWHM, 2);
 
 		// Using the Lorentzian function we calculate the base peak width,
 		float sideRange = (float) Math.sqrt(partA) / 2.0f;
 
-		Range rangePeak = new Range(mzMain - sideRange, mzMain + sideRange);
+		rangePeakModified = new Range(mzMain - sideRange, mzMain + sideRange);
 
-		return rangePeak;
+		// These two values are used to calculate the appropiated FWHM to
+		// determine the intensity of our modified lorentzian peak
+		diffMass = rangePeakModified.getMax() - rangePeak.getMax();
+		widthStep = diffWidth / diffMass;
+
+		return rangePeakModified;
 	}
 
-	/* (non-Javadoc)
+	/*
+	 * (non-Javadoc)
+	 * 
 	 * @see net.sf.mzmine.modules.peakpicking.twostep.peakmodel.PeakModel#getIntensity(float)
 	 */
 	public float getIntensity(float mz) {
 
-		double partA = Math.pow(HWHM, 2);
+		float width = FWHM;
+
+		if (mz < rangePeak.getMin())
+			width = FWHM + (widthStep * Math.abs(rangePeak.getMin() - mz));
+		if (mz > rangePeak.getMin())
+			width = FWHM + (widthStep * Math.abs(mz - rangePeak.getMax()));
+
+		// We calculate the intensity using the Lorentzian function with a modified FWHM.
+		
+		double partA = Math.pow(width, 2);
 		double partB = intensityMain * partA;
 		double partC = Math.pow((mz - mzMain), 2) + partA;
-		
+
 		float intensity = (float) (partB / partC);
-		
+
 		return intensity;
 	}
 

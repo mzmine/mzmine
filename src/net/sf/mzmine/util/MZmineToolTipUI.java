@@ -23,6 +23,8 @@ import java.awt.Dimension;
 import java.awt.Font;
 import java.awt.FontMetrics;
 import java.awt.Graphics;
+import java.awt.Graphics2D;
+import java.awt.RenderingHints;
 import java.awt.image.BufferedImage;
 import java.io.BufferedInputStream;
 import java.io.BufferedReader;
@@ -49,49 +51,98 @@ public class MZmineToolTipUI extends BasicToolTipUI {
 	private int maxWidth = 0;
 
 	public void paint(Graphics g, JComponent c) {
-		FontMetrics metrics = c.getFontMetrics(c.getFont());
+		Graphics2D g2 = (Graphics2D) g;
+
+		RenderingHints qualityHints = new RenderingHints(
+				RenderingHints.KEY_ANTIALIASING,
+				RenderingHints.VALUE_ANTIALIAS_ON);
+		qualityHints.put(RenderingHints.KEY_RENDERING,
+				RenderingHints.VALUE_RENDER_QUALITY);
+		qualityHints.put(RenderingHints.KEY_ALPHA_INTERPOLATION,
+				RenderingHints.VALUE_ALPHA_INTERPOLATION_QUALITY);
+		qualityHints.put(RenderingHints.KEY_COLOR_RENDERING,
+				RenderingHints.VALUE_COLOR_RENDER_QUALITY);
+		qualityHints.put(RenderingHints.KEY_DITHERING,
+				RenderingHints.VALUE_DITHER_ENABLE);
+		qualityHints.put(RenderingHints.KEY_FRACTIONALMETRICS,
+				RenderingHints.VALUE_FRACTIONALMETRICS_ON);
+		qualityHints.put(RenderingHints.KEY_INTERPOLATION,
+				RenderingHints.VALUE_INTERPOLATION_BILINEAR);
+		qualityHints.put(RenderingHints.KEY_ALPHA_INTERPOLATION,
+				RenderingHints.VALUE_ALPHA_INTERPOLATION_QUALITY);
+		qualityHints.put(RenderingHints.KEY_STROKE_CONTROL,
+				RenderingHints.VALUE_STROKE_NORMALIZE);
+		qualityHints.put(RenderingHints.KEY_TEXT_ANTIALIASING,
+				RenderingHints.VALUE_TEXT_ANTIALIAS_LCD_VRGB);
+
+		g2.setRenderingHints(qualityHints);
+		
+		Font defaultFont = g2.getFont();
+		FontMetrics metrics = g2.getFontMetrics(g.getFont());
 		Dimension size = c.getSize();
-		g.setColor(c.getBackground());
-		g.fillRect(0, 0, size.width, size.height);
-		g.setColor(c.getForeground());
+		g2.setColor(c.getBackground());
+		g2.fillRect(0, 0, size.width, size.height);
+		g2.setColor(c.getForeground());
 		if (strs != null) {
 			int yPosition = 0;
 			for (int i = 0; i < strs.length; i++) {
-				if (i == 0){
-					Font f = g.getFont();
-					f.deriveFont(Font.ITALIC);
-					Font newFont = f.deriveFont(Font.BOLD);
-					g.setFont(newFont);
-					g.drawString(strs[i], 3, (metrics.getHeight()) * (yPosition+1));
-					newFont = f.deriveFont(Font.PLAIN);
-					g.setFont(newFont);
+				if ((i == 0) && (strs.length > 1)) {
+					Font newFont = new Font("SansSerif.bold", Font.PLAIN,
+							defaultFont.getSize() + 1);
+					g2.setFont(newFont);
+					g2.drawString(strs[i], 3, (metrics.getHeight())
+							* (yPosition + 1));
+					g2.setFont(defaultFont);
+					yPosition++;
 					continue;
 				}
-				if (strs[i].equals("IMAGE")){
-					try{
-						File input = new File(strs[i+1]);
+				if (strs[i].equals("IMAGE")) {
+					try {
+						String libraryFullPath = System.getProperty("user.dir")
+								+ "\\help\\" + strs[i + 1];
+						File input = new File(libraryFullPath);
 						BufferedImage image = ImageIO.read(input);
-						g.drawImage(image, 20, (metrics.getHeight()) * (yPosition+1), 150, 100, c);
+						int width = size.width - 40;
+
+						// determine thumbnail size from WIDTH and HEIGHT
+						int thumbWidth = size.width - 40;
+						int thumbHeight = 250;
+						double thumbRatio = (double) thumbWidth
+								/ (double) thumbHeight;
+						int imageWidth = image.getWidth(null);
+						int imageHeight = image.getHeight(null);
+						double imageRatio = (double) imageWidth
+								/ (double) imageHeight;
+						if (thumbRatio < imageRatio) {
+							thumbHeight = (int) (thumbWidth / imageRatio);
+						} else {
+							thumbWidth = (int) (thumbHeight * imageRatio);
+						}
+
+
+						g2.drawImage(image, 20, (metrics.getHeight())
+								* (yPosition + 1), thumbWidth, thumbHeight, c);
+
 						i++;
-						yPosition += 8;
-					}
-					catch(FileNotFoundException e){
-						  logger.finest("Error:"+e.getMessage());
-					}
-					catch(IOException e){
-						  logger.finest("Error:"+e.getMessage());
+						yPosition += (250 / metrics.getHeight()) + 2;
+
+					} catch (FileNotFoundException e) {
+						logger.finest("Error:" + e.getMessage());
+					} catch (IOException e) {
+						logger.finest("Error:" + e.getMessage());
 					}
 					continue;
 				}
 
-				g.drawString(strs[i], 3, (metrics.getHeight()) * (yPosition+1));
+				g2.drawString(strs[i], 3, (metrics.getHeight())
+						* (yPosition + 1));
 				yPosition++;
 			}
 		}
 	}
 
 	public Dimension getPreferredSize(JComponent c) {
-		
+
 		int height = 0;
 		String line;
 		int maxWidth = 0;
@@ -102,11 +153,13 @@ public class MZmineToolTipUI extends BasicToolTipUI {
 		String tipText = ((JToolTip) c).getTipText();
 
 		if (tipText == null) {
-			return new Dimension(maxWidth + 6, height + 4);
+			return new Dimension(0, 0);
 		}
-		
+
 		try {
-			File file = new File(tipText);
+			String libraryFullPath = System.getProperty("user.dir")
+					+ "\\help\\" + tipText;
+			File file = new File(libraryFullPath);
 			FileInputStream fis = new FileInputStream(file);
 
 			// Here BufferedInputStream is added for fast reading.
@@ -138,19 +191,27 @@ public class MZmineToolTipUI extends BasicToolTipUI {
 					i++;
 				}
 			}
-			height = (metrics.getHeight() * numberOfLines) + 
-				(numberOfImages * 100);
+			height = (metrics.getHeight() * numberOfLines)
+					+ (numberOfImages * 250);
 			this.maxWidth = maxWidth;
 			return new Dimension(maxWidth + 6, height + 4);
 
 		} catch (FileNotFoundException e) {
+
+			int dot = tipText.lastIndexOf('.');
+			if ((dot != tipText.length()) && (dot > -1))
+				if (tipText.substring(dot).equals(".txt"))
+					return null;
+
 			maxWidth = SwingUtilities.computeStringWidth(metrics, tipText);
 			height = metrics.getHeight();
 			strs = new String[] { tipText };
 			return new Dimension(maxWidth + 6, height + 4);
+
 		} catch (IOException e) {
-			  logger.finest("Error:"+e.getMessage());
+			logger.finest("Error:" + e.getMessage());
 		}
+
 		return new Dimension(maxWidth + 6, height + 4);
 	}
 }

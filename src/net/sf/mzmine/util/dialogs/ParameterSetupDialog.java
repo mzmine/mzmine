@@ -135,7 +135,13 @@ public class ParameterSetupDialog extends JDialog implements ActionListener {
 
 			Object[] possibleValues = p.getPossibleValues();
 			if (possibleValues != null) {
-				JComboBox combo = new JComboBox();
+				JComboBox combo = new JComboBox(){
+				      public JToolTip createToolTip() {
+				    	  MZmineToolTip tip = new MZmineToolTip();
+				    	  tip.setComponent(this);
+				    	  return tip;
+				      }
+				};
 				for (Object value : possibleValues) {
 					combo.addItem(value);
 					if (value == parameters.getParameterValue(p))

@@ -38,7 +38,6 @@ public class ExactMassDetector implements MassDetector {
 	// parameter values
 	private float noiseLevel, basePeakIntensity;
 	private int resolution;
-	private boolean cleanLateral;
 	private String peakModelname;
 
 	private DataPoint scanDataPoints[];
@@ -55,8 +54,6 @@ public class ExactMassDetector implements MassDetector {
 				.getParameterValue(ExactMassDetectorParameters.noiseLevel);
 		resolution = (Integer) parameters
 				.getParameterValue(ExactMassDetectorParameters.resolution);
-		cleanLateral = (Boolean) parameters
-				.getParameterValue(ExactMassDetectorParameters.cleanLateral);
 		peakModelname = (String) parameters
 				.getParameterValue(ExactMassDetectorParameters.peakModel);
 		
@@ -119,9 +116,7 @@ public class ExactMassDetector implements MassDetector {
 			localMaximum.clear();
 			localMinimum.clear();
 		}
-		if (cleanLateral){
-			removeLateralPeaks(); 
-		}
+		removeLateralPeaks(); 
 		return mzPeaks.toArray(new MzPeak[0]);
 	}
 

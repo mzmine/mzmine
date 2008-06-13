@@ -1,0 +1,10 @@
+Peak Model function
+
+To improve the spectrum evaluation procedure for this type of spectral data (FTMS),
+a mathematical model of Gaussian / Lorentzian peak shape is used. Such a model 
+describe a peak using the same attributes of spectral data ( m/z, resolution, intensity). 
+All FTMS shoulder peaks under the curve of our modeled peak  are not considered as a 
+possible MZPeak.
+
+IMAGE
+OriginalPlusGaussPlusLorentzian.png
