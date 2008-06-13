@@ -102,9 +102,8 @@ public class MZmineToolTipUI extends BasicToolTipUI {
 								+ "\\help\\" + strs[i + 1];
 						File input = new File(libraryFullPath);
 						BufferedImage image = ImageIO.read(input);
-						int width = size.width - 40;
 
-						// determine thumbnail size from WIDTH and HEIGHT
+						// determine thumbnail size 
 						int thumbWidth = size.width - 40;
 						int thumbHeight = 250;
 						double thumbRatio = (double) thumbWidth
