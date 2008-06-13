@@ -23,7 +23,6 @@ import java.util.Vector;
 
 import net.sf.mzmine.data.DataPoint;
 import net.sf.mzmine.data.Scan;
-import net.sf.mzmine.data.impl.SimpleDataPoint;
 import net.sf.mzmine.modules.peakpicking.twostep.massdetection.MassDetector;
 import net.sf.mzmine.modules.peakpicking.twostep.massdetection.MzPeak;
 
@@ -141,10 +140,15 @@ public class RecursiveMassDetector implements MassDetector {
 
 			// If the peak is still too big applies the same method until find a
 			// peak of the right size
-			if ((peakWidthMZ > maximumMZPeakWidth)
-					&& (peakMinInd != peakStartInd)) {
+			if (peakWidthMZ > maximumMZPeakWidth) {
+					if (peakMinInd != peakStartInd) {
 				ind = recursiveThreshold(peakStartInd, peakStopInd,
 						dataPoints[peakMinInd].getIntensity(), recuLevel + 1);
+					}
+					else{
+						ind = recursiveThreshold(peakStartInd+1, peakStopInd,
+								dataPoints[peakStartInd+1].getIntensity(), recuLevel + 1);
+					}
 			}
 
 		}
