@@ -99,7 +99,7 @@ public class MZmineToolTipUI extends BasicToolTipUI {
 				if (strs[i].equals("IMAGE")) {
 					try {
 						String libraryFullPath = System.getProperty("user.dir")
-								+ "\\help\\" + strs[i + 1];
+								+ "\\help\\tipTool\\images\\" + strs[i + 1];
 						File input = new File(libraryFullPath);
 						BufferedImage image = ImageIO.read(input);
 
@@ -157,7 +157,7 @@ public class MZmineToolTipUI extends BasicToolTipUI {
 
 		try {
 			String libraryFullPath = System.getProperty("user.dir")
-					+ "\\help\\" + tipText;
+					+ "\\help\\tipTool\\texts\\" + tipText;
 			File file = new File(libraryFullPath);
 			FileInputStream fis = new FileInputStream(file);
 

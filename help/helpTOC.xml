@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="ISO-8859-1"  ?>
+<!DOCTYPE toc
+  PUBLIC "-//Sun Microsystems Inc.//DTD JavaHelp TOC Version 1.0//EN"
+            "http://java.sun.com/products/javahelp/toc_1_0.dtd">
+<toc version="1.0">
+<tocitem text="Test" image="chapter" >
+<tocitem text="Initial Page" target="item1" image="topic" />
+<tocitem text="Contact" target="item2" image="topic" >
+</tocitem>
+<tocitem text="IO Data" image="chapter" >
+<tocitem text="Input formats" target="item3" image="topic" />
+<tocitem text="Output formats" target="item4" image="topic" />
+</tocitem>
+<tocitem text="Project" image="chapter" >
+<tocitem text="Save project" target="item5" image="topic" />
+<tocitem text="New project" target="item5" image="topic" />
+</tocitem>
+<tocitem text="Visualization" image="chapter" >
+<tocitem text="Spectrum" target="item3" image="topic" />
+<tocitem text="Chromatograph" target="item3" image="topic" />
+<tocitem text="2D visualizer" target="item3" image="topic" />
+<tocitem text="3D visualizer" target="item3" image="topic" />
+</tocitem>
+<tocitem text="Data Analysis" image="chapter" > 
+<tocitem text="Processing" target="item3" image="topic" />
+<tocitem text="Mass peak detection" target="item3" image="topic" />
+</tocitem>
+<tocitem text="Peak picking" image="chapter" >
+<tocitem text="Peak builder" target="item3" image="topic" />
+</tocitem>
+<tocitem text="Peak Analysis" image="chapter" >
+<tocitem text="Peak identification" target="item3" image="topic" />
+</tocitem>
+<tocitem text="Databases" image="chapter" >
+<tocitem text="KEGG" target="item3" image="topic" />
+</tocitem>
+</toc>

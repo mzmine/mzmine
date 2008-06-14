@@ -24,7 +24,13 @@ import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
 import java.io.File;
 import java.io.IOException;
+import java.net.MalformedURLException;
+import java.net.URL;
+import java.util.logging.Logger;
 
+import javax.help.CSH;
+import javax.help.HelpBroker;
+import javax.help.HelpSet;
 import javax.swing.JDesktopPane;
 import javax.swing.JFileChooser;
 import javax.swing.JMenu;
@@ -50,16 +56,18 @@ import ca.guydavis.swing.desktop.JWindowsMenu;
  */
 class MainMenu extends JMenuBar implements ActionListener {
 
+	private Logger logger = Logger.getLogger(this.getClass().getName());
+
 	private JMenu projectMenu, filterMenu, peakMenu, alignmentMenu,
 			normalizationMenu, identificationMenu, rawDataVisualizationMenu,
-			dataAnalysisMenu, helpMenu,peakListMenu;
+			dataAnalysisMenu, helpMenu, peakListMenu;
 
 	private JWindowsMenu windowsMenu;
 
 	private JMenuItem projectCreate, projectRestore, projectSave,
 			projectSaveAs, projectExperimentalParameters, projectFormats,
 			projectSaveParameters, projectLoadParameters, projectExit,
-			hlpAbout;
+			hlpAbout, hlpContent;
 
 	MainMenu() {
 
@@ -105,10 +113,10 @@ class MainMenu extends JMenuBar implements ActionListener {
 		peakMenu = new JMenu("Peak detection");
 		peakMenu.setMnemonic(KeyEvent.VK_D);
 		this.add(peakMenu);
-        
-        peakListMenu = new JMenu("Peaklist processing");
-        peakListMenu.setMnemonic(KeyEvent.VK_P);
-        this.add(peakListMenu);
+
+		peakListMenu = new JMenu("Peaklist processing");
+		peakListMenu.setMnemonic(KeyEvent.VK_P);
+		this.add(peakListMenu);
 
 		alignmentMenu = new JMenu("Alignment");
 		alignmentMenu.setMnemonic(KeyEvent.VK_A);
@@ -146,6 +154,20 @@ class MainMenu extends JMenuBar implements ActionListener {
 		hlpAbout = GUIUtils.addMenuItem(helpMenu, "About MZmine 2...", this,
 				KeyEvent.VK_A);
 
+		try {
+			String urlAddress = "file:/" + System.getProperty("user.dir")
+					+ "\\help\\help.hs";
+			URL url = new URL(urlAddress);
+			HelpSet hs = new HelpSet(null, url);
+			HelpBroker hb = hs.createHelpBroker();
+			hlpContent = GUIUtils.addMenuItem(helpMenu, "Help Contents",
+					new CSH.DisplayHelpFromSource(hb), KeyEvent.VK_C);
+			logger.finest("Loading Help System");
+		} catch (Exception eHelp) {
+			logger.severe("An error ocurred trying to load the Help System"
+					+ eHelp.toString());
+		}
+
 	}
 
 	public void addMenuItem(MZmineMenu parentMenu, JMenuItem newItem) {
@@ -159,9 +181,9 @@ class MainMenu extends JMenuBar implements ActionListener {
 		case PEAKPICKING:
 			peakMenu.add(newItem);
 			break;
-        case PEAKLISTPROCESSING:
-            peakListMenu.add(newItem);
-            break;
+		case PEAKLISTPROCESSING:
+			peakListMenu.add(newItem);
+			break;
 		case ALIGNMENT:
 			alignmentMenu.add(newItem);
 			break;
@@ -181,20 +203,22 @@ class MainMenu extends JMenuBar implements ActionListener {
 		}
 	}
 
-	public JMenuItem addMenuItem(MZmineMenu parentMenu, String text, String toolTip, int mnemonic, ActionListener listener, String actionCommand) {
+	public JMenuItem addMenuItem(MZmineMenu parentMenu, String text,
+			String toolTip, int mnemonic, ActionListener listener,
+			String actionCommand) {
 
 		JMenuItem newItem = new JMenuItem(text);
 		if (listener != null)
 			newItem.addActionListener(listener);
-        if (actionCommand != null)
-            newItem.setActionCommand(actionCommand);
+		if (actionCommand != null)
+			newItem.setActionCommand(actionCommand);
 		if (toolTip != null)
 			newItem.setToolTipText(toolTip);
 		if (mnemonic > 0) {
 			newItem.setMnemonic(mnemonic);
 			newItem.setAccelerator(KeyStroke.getKeyStroke(mnemonic,
 					ActionEvent.CTRL_MASK));
-        }
+		}
 		addMenuItem(parentMenu, newItem);
 		return newItem;
 
@@ -208,9 +232,9 @@ class MainMenu extends JMenuBar implements ActionListener {
 		case PEAKPICKING:
 			peakMenu.addSeparator();
 			break;
-        case PEAKLISTPROCESSING:
-            peakListMenu.addSeparator();
-            break;
+		case PEAKLISTPROCESSING:
+			peakListMenu.addSeparator();
+			break;
 		case ALIGNMENT:
 			alignmentMenu.addSeparator();
 			break;
@@ -275,11 +299,12 @@ class MainMenu extends JMenuBar implements ActionListener {
 			if (result == JOptionPane.YES_OPTION) {
 				DesktopParameters parameters = (DesktopParameters) MZmineCore
 						.getDesktop().getParameterSet();
-                String lastPath = parameters.getLastOpenProjectPath();
-                if (lastPath == null) lastPath = "";
-                File lastProjectPath = new File(lastPath);
+				String lastPath = parameters.getLastOpenProjectPath();
+				if (lastPath == null)
+					lastPath = "";
+				File lastProjectPath = new File(lastPath);
 				ProjectCreateDialog projectCreateDialog = new ProjectCreateDialog(
-                        lastProjectPath, ProjectCreateDialog.DialogType.Create);
+						lastProjectPath, ProjectCreateDialog.DialogType.Create);
 				projectCreateDialog.setVisible(true);
 			}
 
@@ -287,11 +312,11 @@ class MainMenu extends JMenuBar implements ActionListener {
 		if (src == projectRestore) {
 			DesktopParameters parameters = (DesktopParameters) MZmineCore
 					.getDesktop().getParameterSet();
-            String lastPath = parameters.getLastOpenProjectPath();
-            if (lastPath == null) lastPath = "";
-            File lastDir = new File(lastPath);
-            ProjectOpenDialog projectOpenDialog = new ProjectOpenDialog(
-                    lastDir);
+			String lastPath = parameters.getLastOpenProjectPath();
+			if (lastPath == null)
+				lastPath = "";
+			File lastDir = new File(lastPath);
+			ProjectOpenDialog projectOpenDialog = new ProjectOpenDialog(lastDir);
 			projectOpenDialog.setVisible(true);
 		}
 		if (src == projectSave) {
@@ -300,11 +325,13 @@ class MainMenu extends JMenuBar implements ActionListener {
 					// exec save as
 					DesktopParameters parameters = (DesktopParameters) MZmineCore
 							.getDesktop().getParameterSet();
-                    String lastPath = parameters.getLastOpenProjectPath();
-                    if (lastPath == null) lastPath = "";
-                    File lastProjectPath = new File(lastPath);
-                    ProjectCreateDialog projectSaveAsDialog = new ProjectCreateDialog(
-							lastProjectPath,ProjectCreateDialog.DialogType.SaveAs);
+					String lastPath = parameters.getLastOpenProjectPath();
+					if (lastPath == null)
+						lastPath = "";
+					File lastProjectPath = new File(lastPath);
+					ProjectCreateDialog projectSaveAsDialog = new ProjectCreateDialog(
+							lastProjectPath,
+							ProjectCreateDialog.DialogType.SaveAs);
 					projectSaveAsDialog.setVisible(true);
 
 				} else {
@@ -323,14 +350,14 @@ class MainMenu extends JMenuBar implements ActionListener {
 		if (src == projectSaveAs) {
 			DesktopParameters parameters = (DesktopParameters) MZmineCore
 					.getDesktop().getParameterSet();
-            String lastPath = parameters.getLastOpenProjectPath();
-            if (lastPath == null) lastPath = "";
+			String lastPath = parameters.getLastOpenProjectPath();
+			if (lastPath == null)
+				lastPath = "";
 			File lastProjectPath = new File(lastPath);
 			ProjectCreateDialog projectSaveAsDialog = new ProjectCreateDialog(
 					lastProjectPath, ProjectCreateDialog.DialogType.SaveAs);
 			projectSaveAsDialog.setVisible(true);
 		}
-
 
 		if (src == projectSaveParameters) {
 			JFileChooser chooser = new JFileChooser();
@@ -368,6 +395,14 @@ class MainMenu extends JMenuBar implements ActionListener {
 			dialog.setVisible(true);
 		}
 
+		// Help->Contents
+		/*
+		 * if (src == hlpContent) { try { String urlAddress =
+		 * System.getProperty("user.dir") + "\\help\\help.hs"; URL url = new
+		 * URL(urlAddress); HelpSet hs = new HelpSet(null, url); HelpBroker hb =
+		 * hs.createHelpBroker(); new CSH.DisplayHelpFromSource(hb); } catch
+		 * (Exception eHelp) { eHelp.printStackTrace(); } }
+		 */
 	}
 
 }
