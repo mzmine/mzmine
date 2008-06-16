@@ -33,9 +33,9 @@ public class ExactMassDetectorParameters extends SimpleParameterSet {
 		"Lorentzian", "Modified Lorentzian" };
 
 	public static final String peakModelClasses[] = {
-		"net.sf.mzmine.modules.peakpicking.twostep.peakmodel.impl.GaussPeak",
-		"net.sf.mzmine.modules.peakpicking.twostep.peakmodel.impl.LorentzianPeak",
-		"net.sf.mzmine.modules.peakpicking.twostep.peakmodel.impl.ModifiedLorentzianPeak" };
+		"net.sf.mzmine.modules.peakpicking.twostep.massdetection.exactmass.peakmodel.impl.GaussPeak",
+		"net.sf.mzmine.modules.peakpicking.twostep.massdetection.exactmass.peakmodel.impl.LorentzianPeak",
+		"net.sf.mzmine.modules.peakpicking.twostep.massdetection.exactmass.peakmodel.impl.ModifiedLorentzianPeak" };
 
 	public static final NumberFormat percentFormat = NumberFormat
 			.getPercentInstance();

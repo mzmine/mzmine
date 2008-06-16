@@ -92,9 +92,6 @@ class TwoStepPickerSetupDialog extends JDialog implements ActionListener {
 			PeakBuilderSetupDialog dialog = new PeakBuilderSetupDialog(
 					parameters, ind);
 			
-			/*ParameterSetupDialog dialog = new ParameterSetupDialog(
-					"Please set parameter values for " + toString(), parameters
-							.getPeakBuilderParameters(ind));*/
 			dialog.setVisible(true);
 		}
 

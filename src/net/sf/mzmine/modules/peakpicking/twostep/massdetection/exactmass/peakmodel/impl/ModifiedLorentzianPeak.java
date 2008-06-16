@@ -17,9 +17,9 @@
  * Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-package net.sf.mzmine.modules.peakpicking.twostep.peakmodel.impl;
+package net.sf.mzmine.modules.peakpicking.twostep.massdetection.exactmass.peakmodel.impl;
 
-import net.sf.mzmine.modules.peakpicking.twostep.peakmodel.PeakModel;
+import net.sf.mzmine.modules.peakpicking.twostep.massdetection.exactmass.peakmodel.PeakModel;
 import net.sf.mzmine.util.Range;
 
 public class ModifiedLorentzianPeak implements PeakModel {

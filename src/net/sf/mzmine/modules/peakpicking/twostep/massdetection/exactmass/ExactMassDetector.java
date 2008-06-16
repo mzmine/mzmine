@@ -30,7 +30,7 @@ import net.sf.mzmine.desktop.Desktop;
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.modules.peakpicking.twostep.massdetection.MassDetector;
 import net.sf.mzmine.modules.peakpicking.twostep.massdetection.MzPeak;
-import net.sf.mzmine.modules.peakpicking.twostep.peakmodel.PeakModel;
+import net.sf.mzmine.modules.peakpicking.twostep.massdetection.exactmass.peakmodel.PeakModel;
 import net.sf.mzmine.util.Range;
 
 public class ExactMassDetector implements MassDetector {
@@ -170,13 +170,8 @@ public class ExactMassDetector implements MassDetector {
 					float intensity = scanDataPoints[index].getIntensity();
 					if (intensity > noiseLevel) {
 						for (int i = tempStart; i <= tempEnd; i++) {
-							// sumMz += scanDataPoints[i].getMZ()
-							// * scanDataPoints[i].getIntensity();
-							// sumIntensities +=
-							// scanDataPoints[i].getIntensity();
 							rangeDataPoints.add(scanDataPoints[i]);
 						}
-						// float exactMz = sumMz / sumIntensities;
 						float exactMz = calculateExactMass(rangeDataPoints,
 								scanDataPoints[index].getMZ(),
 								scanDataPoints[index].getIntensity());
@@ -200,7 +195,7 @@ public class ExactMassDetector implements MassDetector {
 	private float calculateExactMass(Vector<DataPoint> rangeDataPoints,
 			float mz, float intensity) {
 
-		float leftX1 = 0, leftY1 = 0, leftY2 = 0, leftX2 = 0, rightX1 = 0, rightY1 = 0, rightX2 = 0, rightY2 = 0;
+		float leftX1 = -1, leftY1 = -1, leftY2 = -1, leftX2 = -1, rightX1 = -1, rightY1 = -1, rightX2 = -1, rightY2 = -1;
 
 		for (int i = 0; i < rangeDataPoints.size(); i++) {
 			if ((rangeDataPoints.get(i).getIntensity() <= intensity / 2)
@@ -221,6 +216,9 @@ public class ExactMassDetector implements MassDetector {
 			}
 		}
 
+		if ((leftY1 == -1) || (rightY1 == -1))
+			return mz;
+		
 		float mLeft = (leftY1 - leftY2) / (leftX1 - leftX2);
 		float mRight = (rightY1 - rightY2) / (rightX1 - rightX2);
 

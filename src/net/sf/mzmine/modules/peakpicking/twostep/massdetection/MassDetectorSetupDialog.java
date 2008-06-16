@@ -121,7 +121,7 @@ public class MassDetectorSetupDialog extends ParameterSetupDialog implements
 
 		super(TwoStepPickerParameters.massDetectorNames[massDetectorTypeNumber]
 				+ "'s parameter setup dialog ", parameters
-				.getMassDetectorParameters(massDetectorTypeNumber));
+				.getMassDetectorParameters(massDetectorTypeNumber), "help");
 
 		dataFiles = MZmineCore.getCurrentProject().getDataFiles();
 		this.massDetectorTypeNumber = massDetectorTypeNumber;
