@@ -19,7 +19,6 @@
 
 package net.sf.mzmine.modules.peakpicking.twostep.massdetection.recursive;
 
-import java.util.Collections;
 import java.util.Vector;
 
 import net.sf.mzmine.data.DataPoint;
@@ -68,24 +67,29 @@ public class RecursiveMassDetector implements MassDetector {
 		for (int ind = startInd; ind < stopInd; ind++) {
 
 			boolean currentIsBiggerNoise = dataPoints[ind].getIntensity() > curentNoiseLevel;
-			Vector<Float> localminima = new Vector<Float>();
+			float localMinimum = Float.MAX_VALUE;
 
 			// Ignore intensities below curentNoiseLevel
 			if (!currentIsBiggerNoise)
 				continue;
 
 			// Add initial point of the peak
-    		peakStartInd = ind;
+			peakStartInd = ind;
 			peakMaxInd = peakStartInd;
 
 			// While peak is on
 			while ((ind < stopInd)
 					&& (dataPoints[ind].getIntensity() > curentNoiseLevel)) {
 
+				boolean isLocalMinimum = (dataPoints[ind - 1].getIntensity() > dataPoints[ind]
+						.getIntensity())
+						&& (dataPoints[ind].getIntensity() < dataPoints[ind + 1]
+								.getIntensity());
+				
 				// Check if this is the minimum point of the peak
-				if ((dataPoints[ind - 1].getIntensity() > dataPoints[ind].getIntensity())
-						&& (dataPoints[ind].getIntensity() < dataPoints[ind + 1].getIntensity()))
-					localminima.add(dataPoints[ind].getIntensity());
+				if (isLocalMinimum
+						&& (dataPoints[ind].getIntensity() < localMinimum))
+					localMinimum = dataPoints[ind].getIntensity();
 
 				// Check if this is the maximum point of the peak
 				if (dataPoints[ind].getIntensity() > dataPoints[peakMaxInd]
@@ -98,11 +102,7 @@ public class RecursiveMassDetector implements MassDetector {
 			}
 
 			// Add ending point of the peak
-     		peakStopInd = ind;
-     		
-     		if (localminima.size() > 0){
-     			Collections.sort(localminima);
-     		}
+			peakStopInd = ind;
 
 			peakWidthMZ = dataPoints[peakStopInd].getMZ()
 					- dataPoints[peakStartInd].getMZ();
@@ -126,16 +126,12 @@ public class RecursiveMassDetector implements MassDetector {
 			// If the peak is still too big applies the same method until find a
 			// peak of the right size
 			if (peakWidthMZ > maximumMZPeakWidth) {
-					if (localminima.size() > 0) {
-				ind = recursiveThreshold(peakStartInd, peakStopInd,
-						localminima.get(0), recuLevel + 1);
-					}
-					else{
-						ind = recursiveThreshold(peakStartInd+1, peakStopInd,
-								dataPoints[peakStartInd+1].getIntensity(), recuLevel + 1);
-					}
+				if (localMinimum < Float.MAX_VALUE) {
+					ind = recursiveThreshold(peakStartInd, peakStopInd,
+							localMinimum, recuLevel + 1);
+				}
+
 			}
-			localminima.clear();
 
 		}
 
