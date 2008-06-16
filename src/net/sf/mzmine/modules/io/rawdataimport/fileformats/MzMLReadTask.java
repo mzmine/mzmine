@@ -46,7 +46,8 @@ import org.xml.sax.SAXException;
 import org.xml.sax.helpers.DefaultHandler;
 
 /**
- * This class read 1.0 MZML files.
+ * This class reads MZML 1.0 files.
+ * (http://www.psidev.info/index.php?q=node/257)
  */
 public class MzMLReadTask extends DefaultHandler implements Task {
 
@@ -72,7 +73,6 @@ public class MzMLReadTask extends DefaultHandler implements Task {
 	private boolean intenArrayBinaryFlag = false;
 	private boolean centroided = false;
 	private boolean compressFlag = false;
-	private int compressedLen;
 	private String precision;
 	private int scanNumber;
 	private int msLevel;
@@ -320,13 +320,6 @@ public class MzMLReadTask extends DefaultHandler implements Task {
 
 		// <binaryDataArray>
 		if (qName.equalsIgnoreCase("binaryDataArray")) {
-			// clean the current char buffer for the new element
-			String encodedLength = attrs.getValue("encodedLength");
-			if (encodedLength != null) {
-			compressedLen = Integer.parseInt(encodedLength);
-			}
-			else
-				throw new SAXException("File does not comply with the standard mzML 1.0");
 			binaryDataArrayFlag = true;
 		}
 
@@ -579,8 +572,6 @@ public class MzMLReadTask extends DefaultHandler implements Task {
 		try {
 			
 			int resultLength = decompresser.inflate(resultCompressed);
-
-			logger.finest("peakBytes " + resultLength);
 
 			while (!decompresser.finished()) {
 				byte buffer[] = resultTotal;
