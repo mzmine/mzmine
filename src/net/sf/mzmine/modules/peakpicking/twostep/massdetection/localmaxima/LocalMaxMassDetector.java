@@ -23,13 +23,11 @@ import java.util.Vector;
 
 import net.sf.mzmine.data.DataPoint;
 import net.sf.mzmine.data.Scan;
-import net.sf.mzmine.data.impl.SimpleDataPoint;
 import net.sf.mzmine.modules.peakpicking.twostep.massdetection.MassDetector;
 import net.sf.mzmine.modules.peakpicking.twostep.massdetection.MzPeak;
 
 /**
- * This class detects all local maximum in a given scan.
- * 
+ * This class detects all local maxima in a given scan.
  */
 public class LocalMaxMassDetector implements MassDetector {
 
