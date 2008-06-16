@@ -287,7 +287,7 @@ public class ConnectedPeak implements Peak {
 	 */
 	public Vector<Float> getConstructionIntensities() {
 		Vector<Float> datapointsIntensities = new Vector<Float>();
-		Iterator<Integer> indexIterator = datapointsMap.navigableKeySet()
+		Iterator<Integer> indexIterator = datapointsMap.keySet()
 				.iterator();
 		while (indexIterator.hasNext()) {
 			int index = indexIterator.next();

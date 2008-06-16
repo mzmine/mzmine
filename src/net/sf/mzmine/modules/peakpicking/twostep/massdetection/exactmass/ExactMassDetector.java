@@ -42,12 +42,11 @@ public class ExactMassDetector implements MassDetector {
 
 	private DataPoint scanDataPoints[];
 	private Vector<MzPeak> mzPeaks;
-	
+
 	private PeakModel peakModel, peakModelofBiggestPeak;
 
 	// Desktop
 	private Desktop desktop = MZmineCore.getDesktop();
-
 
 	public ExactMassDetector(ExactMassDetectorParameters parameters) {
 		noiseLevel = (Float) parameters
@@ -56,7 +55,7 @@ public class ExactMassDetector implements MassDetector {
 				.getParameterValue(ExactMassDetectorParameters.resolution);
 		peakModelname = (String) parameters
 				.getParameterValue(ExactMassDetectorParameters.peakModel);
-		
+
 	}
 
 	/*
@@ -109,14 +108,14 @@ public class ExactMassDetector implements MassDetector {
 			}
 			endCurrentPeak = ind;
 
-			calculateExactMass(scan, localMaximum, localMinimum, startCurrentPeak,
+			definePeaks(scan, localMaximum, localMinimum, startCurrentPeak,
 					endCurrentPeak);
 
 			top = true;
 			localMaximum.clear();
 			localMinimum.clear();
 		}
-		removeLateralPeaks(); 
+		removeLateralPeaks();
 		return mzPeaks.toArray(new MzPeak[0]);
 	}
 
@@ -132,7 +131,7 @@ public class ExactMassDetector implements MassDetector {
 	 * @param end
 	 * @return
 	 */
-	private void calculateExactMass(Scan scan, Vector<Integer> localMaximum,
+	private void definePeaks(Scan scan, Vector<Integer> localMaximum,
 			Vector<Integer> localMinimum, int start, int end) {
 
 		Vector<DataPoint> rangeDataPoints = new Vector<DataPoint>();
@@ -152,8 +151,8 @@ public class ExactMassDetector implements MassDetector {
 					rangeDataPoints.add(scanDataPoints[i]);
 				}
 				float exactMz = sumMz / sumIntensities;
-				mzPeaks.add(new MzPeak(scan, new SimpleDataPoint(exactMz, intensity), rangeDataPoints
-						.toArray(new DataPoint[0])));
+				mzPeaks.add(new MzPeak(scan, new SimpleDataPoint(exactMz,
+						intensity), rangeDataPoints.toArray(new DataPoint[0])));
 				rangeDataPoints.clear();
 			}
 			return;
@@ -171,14 +170,19 @@ public class ExactMassDetector implements MassDetector {
 					float intensity = scanDataPoints[index].getIntensity();
 					if (intensity > noiseLevel) {
 						for (int i = tempStart; i <= tempEnd; i++) {
-							sumMz += scanDataPoints[i].getMZ()
-									* scanDataPoints[i].getIntensity();
-							sumIntensities += scanDataPoints[i].getIntensity();
+							// sumMz += scanDataPoints[i].getMZ()
+							// * scanDataPoints[i].getIntensity();
+							// sumIntensities +=
+							// scanDataPoints[i].getIntensity();
 							rangeDataPoints.add(scanDataPoints[i]);
 						}
-						float exactMz = sumMz / sumIntensities;
-						mzPeaks.add(new MzPeak(scan, new SimpleDataPoint(exactMz, intensity),
-								rangeDataPoints.toArray(new DataPoint[0])));
+						// float exactMz = sumMz / sumIntensities;
+						float exactMz = calculateExactMass(rangeDataPoints,
+								scanDataPoints[index].getMZ(),
+								scanDataPoints[index].getIntensity());
+						mzPeaks.add(new MzPeak(scan, new SimpleDataPoint(
+								exactMz, intensity), rangeDataPoints
+								.toArray(new DataPoint[0])));
 						rangeDataPoints.clear();
 					}
 					tempStart = tempEnd;
@@ -193,8 +197,44 @@ public class ExactMassDetector implements MassDetector {
 		}
 	}
 
+	private float calculateExactMass(Vector<DataPoint> rangeDataPoints,
+			float mz, float intensity) {
+
+		float leftX1 = 0, leftY1 = 0, leftY2 = 0, leftX2 = 0, rightX1 = 0, rightY1 = 0, rightX2 = 0, rightY2 = 0;
+
+		for (int i = 0; i < rangeDataPoints.size(); i++) {
+			if ((rangeDataPoints.get(i).getIntensity() <= intensity / 2)
+					&& (rangeDataPoints.get(i).getMZ() < mz)
+					&& (i + 1 < rangeDataPoints.size())) {
+				leftY1 = rangeDataPoints.get(i).getIntensity();
+				leftX1 = rangeDataPoints.get(i).getMZ();
+				leftY2 = rangeDataPoints.get(i + 1).getIntensity();
+				leftX2 = rangeDataPoints.get(i + 1).getMZ();
+			}
+			if ((rangeDataPoints.get(i).getIntensity() >= intensity / 2)
+					&& (rangeDataPoints.get(i).getMZ() > mz)
+					&& (i + 1 < rangeDataPoints.size())) {
+				rightY1 = rangeDataPoints.get(i).getIntensity();
+				rightX1 = rangeDataPoints.get(i).getMZ();
+				rightY2 = rangeDataPoints.get(i + 1).getIntensity();
+				rightX2 = rangeDataPoints.get(i + 1).getMZ();
+			}
+		}
+
+		float mLeft = (leftY1 - leftY2) / (leftX1 - leftX2);
+		float mRight = (rightY1 - rightY2) / (rightX1 - rightX2);
+
+		float xLeft = leftX1 + (((intensity / 2) - leftY1) / mLeft);
+		float xRight = rightX1 + (((intensity / 2) - rightY1) / mRight);
+
+		float FWHM = xRight - xLeft;
+
+		float exactMass = xLeft + FWHM / 2;
+
+		return exactMass;
+	}
+
 	/**
-	 * 
 	 * This function calculates the base peak width with a fixed mass resolution
 	 * (percentageResolution). After eliminates the encountered lateral peaks in
 	 * this range, with a height value less than defined height percentage of
@@ -204,33 +244,34 @@ public class ExactMassDetector implements MassDetector {
 	 * @param percentageHeight
 	 * @param percentageResolution
 	 */
-	private void removeLateralPeaks() { 
-		
+	private void removeLateralPeaks() {
+
 		Constructor peakModelConstruct;
 		Class peakModelClass;
 		int peakModelindex = 0;
-		for (String model: ExactMassDetectorParameters.peakModelNames){
+		for (String model : ExactMassDetectorParameters.peakModelNames) {
 			if (model.equals(peakModelname))
 				break;
 			peakModelindex++;
 		}
-		
+
 		String peakModelClassName = ExactMassDetectorParameters.peakModelClasses[peakModelindex];
 
 		MzPeak[] arrayMzPeak = mzPeaks.toArray(new MzPeak[0]);
 		for (MzPeak currentMzPeak : arrayMzPeak) {
-			
+
 			if (currentMzPeak.getIntensity() < noiseLevel)
 				continue;
 
 			try {
 				peakModelClass = Class.forName(peakModelClassName);
-				peakModelConstruct = peakModelClass
-						.getConstructors()[0];
-				peakModel = (PeakModel) peakModelConstruct.newInstance(currentMzPeak.getMZ(), 
-						currentMzPeak.getIntensity(), resolution);
-				peakModelofBiggestPeak = (PeakModel) peakModelConstruct.newInstance(currentMzPeak.getMZ(), 
-						basePeakIntensity, resolution);
+				peakModelConstruct = peakModelClass.getConstructors()[0];
+				peakModel = (PeakModel) peakModelConstruct.newInstance(
+						currentMzPeak.getMZ(), currentMzPeak.getIntensity(),
+						resolution);
+				peakModelofBiggestPeak = (PeakModel) peakModelConstruct
+						.newInstance(currentMzPeak.getMZ(), basePeakIntensity,
+								resolution);
 			} catch (Exception e) {
 				desktop
 						.displayErrorMessage("Error trying to make an instance of peak model "
@@ -245,13 +286,15 @@ public class ExactMassDetector implements MassDetector {
 			while (anotherIteratorMzPeak.hasNext()) {
 				MzPeak comparedMzPeak = anotherIteratorMzPeak.next();
 
-				if ((comparedMzPeak.getMZ() < rangeNoise.getMin()) && (comparedMzPeak.getIntensity() < noiseLevel)){
+				if ((comparedMzPeak.getMZ() < rangeNoise.getMin())
+						&& (comparedMzPeak.getIntensity() < noiseLevel)) {
 					anotherIteratorMzPeak.remove();
 				}
-						
+
 				if ((comparedMzPeak.getMZ() >= rangePeak.getMin())
 						&& (comparedMzPeak.getMZ() <= rangePeak.getMax())
-						&& (comparedMzPeak.getIntensity() < peakModel.getIntensity(comparedMzPeak.getMZ()))) {
+						&& (comparedMzPeak.getIntensity() < peakModel
+								.getIntensity(comparedMzPeak.getMZ()))) {
 					anotherIteratorMzPeak.remove();
 				}
 				if (comparedMzPeak.getMZ() > rangePeak.getMax())

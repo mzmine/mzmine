@@ -72,8 +72,6 @@ public class MZmineToolTipUI extends BasicToolTipUI {
 				RenderingHints.VALUE_ALPHA_INTERPOLATION_QUALITY);
 		qualityHints.put(RenderingHints.KEY_STROKE_CONTROL,
 				RenderingHints.VALUE_STROKE_NORMALIZE);
-		qualityHints.put(RenderingHints.KEY_TEXT_ANTIALIASING,
-				RenderingHints.VALUE_TEXT_ANTIALIAS_LCD_VRGB);
 
 		g2.setRenderingHints(qualityHints);
 		

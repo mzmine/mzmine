@@ -19,6 +19,7 @@
 
 package net.sf.mzmine.modules.peakpicking.twostep.massdetection.recursive;
 
+import java.util.Collections;
 import java.util.Vector;
 
 import net.sf.mzmine.data.DataPoint;
@@ -55,52 +56,36 @@ public class RecursiveMassDetector implements MassDetector {
 	}
 
 	/**
-	 * This function searches for maximums from given part of a spectrum
+	 * This function searches for maxima from given part of a spectrum
 	 */
 	private int recursiveThreshold(int startInd, int stopInd,
-			float currentLevel, int recuLevel) {
+			float curentNoiseLevel, int recuLevel) {
 
 		Vector<DataPoint> RawDataPointsInds = new Vector<DataPoint>();
-		int peakStartInd, peakStopInd, peakMinInd, peakMaxInd;
+		int peakStartInd, peakStopInd, peakMaxInd;
 		float peakWidthMZ;
 
 		for (int ind = startInd; ind < stopInd; ind++) {
 
-			boolean currentIsBiggerNoise = dataPoints[ind].getIntensity() > currentLevel;
-			boolean previousIsZero = dataPoints[ind - 1].getIntensity() == 0;
-			boolean previousIsLittler = dataPoints[ind - 1].getIntensity() < dataPoints[ind]
-					.getIntensity();
-			boolean nextIsZero = dataPoints[ind + 1].getIntensity() == 0;
-			boolean nextIsLittler = dataPoints[ind + 1].getIntensity() < dataPoints[ind]
-					.getIntensity();
+			boolean currentIsBiggerNoise = dataPoints[ind].getIntensity() > curentNoiseLevel;
+			Vector<Float> localminima = new Vector<Float>();
 
-			// Ignore intensities below currentLevel
+			// Ignore intensities below curentNoiseLevel
 			if (!currentIsBiggerNoise)
 				continue;
 
 			// Add initial point of the peak
-			if ((previousIsZero) || (previousIsLittler)) {
-				if (ind == 1)
-					peakStartInd = ind;
-				else {
-					peakStartInd = ind - 1;
-					RawDataPointsInds.add(dataPoints[peakStartInd]);
-				}
-			} else {
-				peakStartInd = ind;
-			}
-
-			peakMinInd = peakStartInd;
+    		peakStartInd = ind;
 			peakMaxInd = peakStartInd;
 
 			// While peak is on
 			while ((ind < stopInd)
-					&& (dataPoints[ind].getIntensity() > currentLevel)) {
+					&& (dataPoints[ind].getIntensity() > curentNoiseLevel)) {
 
 				// Check if this is the minimum point of the peak
-				if (dataPoints[ind].getIntensity() < dataPoints[peakMinInd]
-						.getIntensity())
-					peakMinInd = ind;
+				if ((dataPoints[ind - 1].getIntensity() > dataPoints[ind].getIntensity())
+						&& (dataPoints[ind].getIntensity() < dataPoints[ind + 1].getIntensity()))
+					localminima.add(dataPoints[ind].getIntensity());
 
 				// Check if this is the maximum point of the peak
 				if (dataPoints[ind].getIntensity() > dataPoints[peakMaxInd]
@@ -113,11 +98,11 @@ public class RecursiveMassDetector implements MassDetector {
 			}
 
 			// Add ending point of the peak
-			if (((nextIsZero) || (nextIsLittler)) && (ind < stopInd)) {
-				peakStopInd = ind + 1;
-				RawDataPointsInds.add(dataPoints[peakStopInd]);
-			} else
-				peakStopInd = ind;
+     		peakStopInd = ind;
+     		
+     		if (localminima.size() > 0){
+     			Collections.sort(localminima);
+     		}
 
 			peakWidthMZ = dataPoints[peakStopInd].getMZ()
 					- dataPoints[peakStartInd].getMZ();
@@ -141,15 +126,16 @@ public class RecursiveMassDetector implements MassDetector {
 			// If the peak is still too big applies the same method until find a
 			// peak of the right size
 			if (peakWidthMZ > maximumMZPeakWidth) {
-					if (peakMinInd != peakStartInd) {
+					if (localminima.size() > 0) {
 				ind = recursiveThreshold(peakStartInd, peakStopInd,
-						dataPoints[peakMinInd].getIntensity(), recuLevel + 1);
+						localminima.get(0), recuLevel + 1);
 					}
 					else{
 						ind = recursiveThreshold(peakStartInd+1, peakStopInd,
 								dataPoints[peakStartInd+1].getIntensity(), recuLevel + 1);
 					}
 			}
+			localminima.clear();
 
 		}
 

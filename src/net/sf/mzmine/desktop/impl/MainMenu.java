@@ -155,9 +155,9 @@ class MainMenu extends JMenuBar implements ActionListener {
 				KeyEvent.VK_A);
 
 		try {
-			String urlAddress = "file:/" + System.getProperty("user.dir")
-					+ "\\help\\help.hs";
-			URL url = new URL(urlAddress);
+			File urlAddress = new File(System.getProperty("user.dir")
+					+ File.separator + "help" + File.separator + "help.hs");
+			URL url = urlAddress.toURI().toURL();
 			HelpSet hs = new HelpSet(null, url);
 			HelpBroker hb = hs.createHelpBroker();
 			hlpContent = GUIUtils.addMenuItem(helpMenu, "Help Contents",
