@@ -8,6 +8,8 @@
 	<property name="icons" value="icons" />
 	<property name="build" value="build" />
 	<property name="dist" value="dist" />
+	<property name="help" value="help" />
+
 
 	<property name="manifest" value="mzmine.mf" />
 	<property name="mainclass" value="net.sf.mzmine.main.DummyMain" />
@@ -71,6 +73,10 @@
 			<fileset file="${lib}/*.jar" />
 		</copy>
 
+		<copy todir="${dist}/help">
+			<fileset dir="${help}" />
+		</copy>
+			
 		<jar destfile="${dist}/MZmine.jar" manifest="${manifest}">
 			<fileset dir="${build}" />
 		</jar>
