@@ -60,7 +60,7 @@ class BatchModeDialog extends JDialog implements ActionListener {
     public BatchModeDialog(Vector<BatchStepWrapper> batchSteps) {
 
         // make dialog modal
-        super(MZmineCore.getDesktop().getMainFrame(), "Batch mode setup", false);
+        super(MZmineCore.getDesktop().getMainFrame(), "Batch mode setup", true);
 
         this.batchSteps = batchSteps;
 

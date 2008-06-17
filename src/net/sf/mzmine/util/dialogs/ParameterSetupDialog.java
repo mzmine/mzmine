@@ -120,7 +120,7 @@ public class ParameterSetupDialog extends JDialog implements ActionListener {
 			Hashtable<Parameter, Object> autoValues, String helpID) {
 
 		// Make dialog modal
-		super(MZmineCore.getDesktop().getMainFrame(), false);
+		super(MZmineCore.getDesktop().getMainFrame(), true);
 
 		this.parameters = parameters;
 		this.autoValues = autoValues;
