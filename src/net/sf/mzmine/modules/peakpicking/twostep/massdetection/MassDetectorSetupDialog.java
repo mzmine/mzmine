@@ -33,6 +33,9 @@ import java.util.Iterator;
 import java.util.Vector;
 import java.util.logging.Logger;
 
+import javax.help.DefaultHelpBroker;
+import javax.help.HelpBroker;
+import javax.help.WindowPresentation;
 import javax.swing.BorderFactory;
 import javax.swing.Box;
 import javax.swing.BoxLayout;
@@ -42,6 +45,7 @@ import javax.swing.JButton;
 import javax.swing.JCheckBox;
 import javax.swing.JComboBox;
 import javax.swing.JFormattedTextField;
+import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JSeparator;
@@ -58,6 +62,7 @@ import net.sf.mzmine.data.impl.SimpleParameterSet;
 import net.sf.mzmine.data.impl.SimplePeakList;
 import net.sf.mzmine.data.impl.SimplePeakListRow;
 import net.sf.mzmine.desktop.Desktop;
+import net.sf.mzmine.desktop.impl.MainWindow;
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.modules.peakpicking.twostep.TwoStepPickerParameters;
 import net.sf.mzmine.modules.visualization.spectra.PeakListDataSet;
@@ -121,8 +126,8 @@ public class MassDetectorSetupDialog extends ParameterSetupDialog implements
 
 		super(TwoStepPickerParameters.massDetectorNames[massDetectorTypeNumber]
 				+ "'s parameter setup dialog ", parameters
-				.getMassDetectorParameters(massDetectorTypeNumber), "help");
-
+				.getMassDetectorParameters(massDetectorTypeNumber), "item2");
+		
 		dataFiles = MZmineCore.getCurrentProject().getDataFiles();
 		this.massDetectorTypeNumber = massDetectorTypeNumber;
 		peaksDataSet = null;
@@ -293,6 +298,17 @@ public class MassDetectorSetupDialog extends ParameterSetupDialog implements
 			int ind = comboScanNumber.getSelectedIndex() + 1;
 			if (ind < (listScans.length - 1))
 				comboScanNumber.setSelectedIndex(ind);
+		}
+
+		if (src == btnHelp) {
+			
+			HelpBroker hb = ((MainWindow)desktop).getHelp().getHelpBroker();
+			ActionListener helpListener = ((MainWindow)desktop).getHelp().getHelpListener();
+			helpListener.actionPerformed(new ActionEvent(desktop, ActionEvent.ACTION_PERFORMED, null));
+			hb.setCurrentID(helpID);
+			WindowPresentation wp = ((DefaultHelpBroker)hb).getWindowPresentation();
+			((JFrame)wp.getHelpWindow()).setAlwaysOnTop(true);
+			
 		}
 
 	}

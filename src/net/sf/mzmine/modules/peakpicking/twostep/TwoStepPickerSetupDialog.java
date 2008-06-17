@@ -61,7 +61,7 @@ class TwoStepPickerSetupDialog extends JDialog implements ActionListener {
 			TwoStepPickerParameters parameters) {
 
 		super(MZmineCore.getDesktop().getMainFrame(),
-				"Please select mass detector  & peak builder", true);
+				"Please select mass detector  & peak builder", false);
 
 		this.parameters = parameters;
 		this.title = title;

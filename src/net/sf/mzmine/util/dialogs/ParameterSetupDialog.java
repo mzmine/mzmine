@@ -29,6 +29,9 @@ import java.util.Hashtable;
 import java.util.Iterator;
 import java.util.logging.Logger;
 
+import javax.help.DefaultHelpBroker;
+import javax.help.HelpBroker;
+import javax.help.WindowPresentation;
 import javax.swing.BorderFactory;
 import javax.swing.JButton;
 import javax.swing.JCheckBox;
@@ -36,6 +39,7 @@ import javax.swing.JComboBox;
 import javax.swing.JComponent;
 import javax.swing.JDialog;
 import javax.swing.JFormattedTextField;
+import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
@@ -44,6 +48,8 @@ import javax.swing.JToolTip;
 
 import net.sf.mzmine.data.Parameter;
 import net.sf.mzmine.data.impl.SimpleParameterSet;
+import net.sf.mzmine.desktop.Desktop;
+import net.sf.mzmine.desktop.impl.MainWindow;
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.util.GUIUtils;
 import net.sf.mzmine.util.MZmineToolTip;
@@ -64,12 +70,14 @@ public class ParameterSetupDialog extends JDialog implements ActionListener {
 	private ExitCode exitCode = ExitCode.UNKNOWN;
 
 	private Logger logger = Logger.getLogger(this.getClass().getName());
+	
+	protected String helpID;
 
 	// Parameters and their representation in the dialog
 	public Hashtable<Parameter, JComponent> parametersAndComponents;
 
 	// Buttons
-	protected JButton btnOK, btnCancel, btnAuto;
+	protected JButton btnOK, btnCancel, btnAuto, btnHelp;
 
 	// Panels
 	private JPanel pnlLabels, pnlUnits, pnlButtons;
@@ -81,21 +89,38 @@ public class ParameterSetupDialog extends JDialog implements ActionListener {
 	private SimpleParameterSet parameters;
 	private Hashtable<Parameter, Object> autoValues;
 
+	// Desktop
+	private Desktop desktop = MZmineCore.getDesktop();
+	
 	/**
 	 * Constructor
 	 */
 	public ParameterSetupDialog(String title, SimpleParameterSet parameters) {
-		this(title, parameters, null);
+		this(title, parameters, null, null);
+	}
+
+	/**
+	 * Constructor
+	 */
+	public ParameterSetupDialog(String title, SimpleParameterSet parameters, String helpID) {
+		this(title, parameters, null, helpID);
+	}
+
+	/**
+	 * Constructor
+	 */
+	public ParameterSetupDialog(String title, SimpleParameterSet parameters, Hashtable<Parameter, Object> autoValues) {
+		this(title, parameters, autoValues, null);
 	}
 
 	/**
 	 * Constructor
 	 */
 	public ParameterSetupDialog(String title, SimpleParameterSet parameters,
-			Hashtable<Parameter, Object> autoValues) {
+			Hashtable<Parameter, Object> autoValues, String helpID) {
 
 		// Make dialog modal
-		super(MZmineCore.getDesktop().getMainFrame(), true);
+		super(MZmineCore.getDesktop().getMainFrame(), false);
 
 		this.parameters = parameters;
 		this.autoValues = autoValues;
@@ -245,6 +270,13 @@ public class ParameterSetupDialog extends JDialog implements ActionListener {
 			pnlButtons.add(btnAuto);
 		}
 
+		if (helpID != null) {
+			btnHelp = new JButton("Help");
+			btnHelp.addActionListener(this);
+			pnlButtons.add(btnHelp);
+			this.helpID = helpID;
+		}
+
 		// Panel collecting all labels, fileds and units
 		labelsAndFields = new JPanel(new BorderLayout());
 		labelsAndFields.add(pnlLabels, BorderLayout.WEST);
@@ -356,6 +388,17 @@ public class ParameterSetupDialog extends JDialog implements ActionListener {
 			for (Parameter p : autoValues.keySet()) {
 				setValue(p, autoValues.get(p));
 			}
+
+		}
+
+		if (src == btnHelp) {
+			
+			HelpBroker hb = ((MainWindow)desktop).getHelp().getHelpBroker();
+			ActionListener helpListener = ((MainWindow)desktop).getHelp().getHelpListener();
+			helpListener.actionPerformed(new ActionEvent(desktop, ActionEvent.ACTION_PERFORMED, null));
+			hb.setCurrentID(helpID);
+			WindowPresentation wp = ((DefaultHelpBroker)hb).getWindowPresentation();
+			((JFrame)wp.getHelpWindow()).setAlwaysOnTop(true);
 
 		}
 

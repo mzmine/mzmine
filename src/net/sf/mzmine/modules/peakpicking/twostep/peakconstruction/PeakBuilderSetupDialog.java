@@ -33,12 +33,16 @@ import java.util.Iterator;
 import java.util.Vector;
 import java.util.logging.Logger;
 
+import javax.help.DefaultHelpBroker;
+import javax.help.HelpBroker;
+import javax.help.WindowPresentation;
 import javax.swing.BorderFactory;
 import javax.swing.Box;
 import javax.swing.BoxLayout;
 import javax.swing.JCheckBox;
 import javax.swing.JComboBox;
 import javax.swing.JFormattedTextField;
+import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JSeparator;
@@ -53,6 +57,7 @@ import net.sf.mzmine.data.RawDataFile;
 import net.sf.mzmine.data.impl.SimpleDataPoint;
 import net.sf.mzmine.data.impl.SimpleParameterSet;
 import net.sf.mzmine.desktop.Desktop;
+import net.sf.mzmine.desktop.impl.MainWindow;
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.modules.peakpicking.twostep.TwoStepPickerParameters;
 import net.sf.mzmine.modules.peakpicking.twostep.massdetection.MzPeak;
@@ -77,10 +82,9 @@ public class PeakBuilderSetupDialog extends ParameterSetupDialog implements
 	private RawDataFile previewDataFile;
 	private RawDataFile[] dataFiles;
 	private String[] fileNames;
-	
-    // Data sets
-    private Hashtable<Integer, PeakDataSet> peakDataSets;
 
+	// Data sets
+	private Hashtable<Integer, PeakDataSet> peakDataSets;
 
 	// Dialog components
 	private JPanel pnlPlotXY, pnlLocal;
@@ -117,7 +121,7 @@ public class PeakBuilderSetupDialog extends ParameterSetupDialog implements
 
 		super(TwoStepPickerParameters.peakBuilderNames[peakBuilderTypeNumber]
 				+ "'s parameter setup dialog ", parameters
-				.getPeakBuilderParameters(peakBuilderTypeNumber));
+				.getPeakBuilderParameters(peakBuilderTypeNumber), "item2");
 
 		dataFiles = MZmineCore.getCurrentProject().getDataFiles();
 		this.peakBuilderTypeNumber = peakBuilderTypeNumber;
@@ -149,7 +153,7 @@ public class PeakBuilderSetupDialog extends ParameterSetupDialog implements
 				if (fileNames[i].equals(previewDataFile.getFileName()))
 					indexComboFileName = i;
 			}
-			
+
 			peakDataSets = new Hashtable<Integer, PeakDataSet>();
 
 			// Set a listener in all parameters's fields to add functionality to
@@ -189,8 +193,7 @@ public class PeakBuilderSetupDialog extends ParameterSetupDialog implements
 				setPeakDataSet();
 			}
 		}
-		
-		
+
 		if (src == comboDataFileName) {
 			int ind = comboDataFileName.getSelectedIndex();
 			previewDataFile = dataFiles[ind];
@@ -231,6 +234,20 @@ public class PeakBuilderSetupDialog extends ParameterSetupDialog implements
 
 		if (command.equals("TICDataSet_upgraded")) {
 			setPeakDataSet();
+		}
+
+		if (src == btnHelp) {
+
+			HelpBroker hb = ((MainWindow) desktop).getHelp().getHelpBroker();
+			ActionListener helpListener = ((MainWindow) desktop).getHelp()
+					.getHelpListener();
+			helpListener.actionPerformed(new ActionEvent(desktop,
+					ActionEvent.ACTION_PERFORMED, null));
+			hb.setCurrentID(helpID);
+			WindowPresentation wp = ((DefaultHelpBroker) hb)
+					.getWindowPresentation();
+			((JFrame) wp.getHelpWindow()).setAlwaysOnTop(true);
+
 		}
 
 	}
@@ -555,12 +572,12 @@ public class PeakBuilderSetupDialog extends ParameterSetupDialog implements
 		}
 
 	}
-	
-    public TICDataSet[] getDataSet() {
-    	TICDataSet[] ticDatasets = {ticDataset};
-        return ticDatasets;
-    }
-    
+
+	public TICDataSet[] getDataSet() {
+		TICDataSet[] ticDatasets = { ticDataset };
+		return ticDatasets;
+	}
+
 	protected void freeMemory() {
 		System.gc();
 		System.runFinalization();

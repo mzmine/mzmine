@@ -24,13 +24,7 @@ import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
 import java.io.File;
 import java.io.IOException;
-import java.net.MalformedURLException;
-import java.net.URL;
-import java.util.logging.Logger;
 
-import javax.help.CSH;
-import javax.help.HelpBroker;
-import javax.help.HelpSet;
 import javax.swing.JDesktopPane;
 import javax.swing.JFileChooser;
 import javax.swing.JMenu;
@@ -56,7 +50,6 @@ import ca.guydavis.swing.desktop.JWindowsMenu;
  */
 class MainMenu extends JMenuBar implements ActionListener {
 
-	private Logger logger = Logger.getLogger(this.getClass().getName());
 
 	private JMenu projectMenu, filterMenu, peakMenu, alignmentMenu,
 			normalizationMenu, identificationMenu, rawDataVisualizationMenu,
@@ -67,7 +60,7 @@ class MainMenu extends JMenuBar implements ActionListener {
 	private JMenuItem projectCreate, projectRestore, projectSave,
 			projectSaveAs, projectExperimentalParameters, projectFormats,
 			projectSaveParameters, projectLoadParameters, projectExit,
-			hlpAbout, hlpContent;
+			hlpAbout;
 
 	MainMenu() {
 
@@ -153,21 +146,6 @@ class MainMenu extends JMenuBar implements ActionListener {
 
 		hlpAbout = GUIUtils.addMenuItem(helpMenu, "About MZmine 2...", this,
 				KeyEvent.VK_A);
-
-		try {
-			File urlAddress = new File(System.getProperty("user.dir")
-					+ File.separator + "help" + File.separator + "help.hs");
-			URL url = urlAddress.toURI().toURL();
-			HelpSet hs = new HelpSet(null, url);
-			HelpBroker hb = hs.createHelpBroker();
-			hlpContent = GUIUtils.addMenuItem(helpMenu, "Help Contents",
-					new CSH.DisplayHelpFromSource(hb), KeyEvent.VK_C);
-			logger.finest("Loading Help System");
-		} catch (Exception eHelp) {
-			logger.severe("An error ocurred trying to load the Help System"
-					+ eHelp.toString());
-		}
-
 	}
 
 	public void addMenuItem(MZmineMenu parentMenu, JMenuItem newItem) {
@@ -199,6 +177,9 @@ class MainMenu extends JMenuBar implements ActionListener {
 			break;
 		case DATAANALYSIS:
 			dataAnalysisMenu.add(newItem);
+			break;
+		case HELPSYSTEM:
+			helpMenu.add(newItem);
 			break;
 		}
 	}
@@ -244,12 +225,14 @@ class MainMenu extends JMenuBar implements ActionListener {
 		case IDENTIFICATION:
 			identificationMenu.addSeparator();
 			break;
-
 		case VISUALIZATION:
 			rawDataVisualizationMenu.addSeparator();
 			break;
 		case DATAANALYSIS:
 			dataAnalysisMenu.addSeparator();
+			break;
+		case HELPSYSTEM:
+			helpMenu.addSeparator();
 			break;
 
 		}
@@ -395,14 +378,6 @@ class MainMenu extends JMenuBar implements ActionListener {
 			dialog.setVisible(true);
 		}
 
-		// Help->Contents
-		/*
-		 * if (src == hlpContent) { try { String urlAddress =
-		 * System.getProperty("user.dir") + "\\help\\help.hs"; URL url = new
-		 * URL(urlAddress); HelpSet hs = new HelpSet(null, url); HelpBroker hb =
-		 * hs.createHelpBroker(); new CSH.DisplayHelpFromSource(hb); } catch
-		 * (Exception eHelp) { eHelp.printStackTrace(); } }
-		 */
 	}
-
+	
 }

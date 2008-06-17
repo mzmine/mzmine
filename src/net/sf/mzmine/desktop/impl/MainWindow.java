@@ -68,6 +68,8 @@ public class MainWindow extends JFrame implements MZmineModule, Desktop,
     private ItemSelector itemSelector;
 
     private TaskProgressWindow taskList;
+    
+    private HelpClass help;
 
     public TaskProgressWindow getTaskList() {
         return taskList;
@@ -189,6 +191,8 @@ public class MainWindow extends JFrame implements MZmineModule, Desktop,
 
         // Construct menu
         menuBar = new MainMenu();
+		help = new HelpClass();
+		help.addMenuItem(menuBar);
         setJMenuBar(menuBar);
 
         // Initialize window listener for responding to user events
@@ -216,6 +220,10 @@ public class MainWindow extends JFrame implements MZmineModule, Desktop,
      */
     public JFrame getMainFrame() {
         return this;
+    }
+
+    public HelpClass getHelp() {
+        return help;
     }
 
     /**
