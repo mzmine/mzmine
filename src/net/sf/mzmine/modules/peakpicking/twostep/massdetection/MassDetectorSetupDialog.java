@@ -238,9 +238,11 @@ public class MassDetectorSetupDialog extends ParameterSetupDialog implements
 		if ((src == comboScanNumber) 
 				|| ((src instanceof JCheckBox) && (src != preview))
 				|| ((src instanceof JComboBox) && (src != comboDataFileName))) {
-			int ind = comboScanNumber.getSelectedIndex();
-			setPeakListDataSet(ind);
-			loadScan(listScans[ind]);
+			if (preview.isSelected()) {
+				int ind = comboScanNumber.getSelectedIndex();
+				setPeakListDataSet(ind);
+				loadScan(listScans[ind]);
+			}
 		}
 
 		if (src == comboDataFileName) {
