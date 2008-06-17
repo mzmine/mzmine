@@ -317,8 +317,7 @@ public class PeakBuilderSetupDialog extends ParameterSetupDialog implements
 		Vector<Peak> totalPeaks = new Vector<Peak>();
 		float mz = mzRange.getAverage();
 		for (int i = 0; i < listScans.length; i++) {
-			MzPeak[] mzValues = { new MzPeak(previewDataFile
-					.getScan(listScans[i]), new SimpleDataPoint(mz, ticDataset
+			MzPeak[] mzValues = { new MzPeak(new SimpleDataPoint(mz, ticDataset
 					.getY(0, i).floatValue())) };
 			peaks = peakBuilder.addScan(previewDataFile.getScan(listScans[i]),
 					mzValues, previewDataFile);

@@ -82,7 +82,7 @@ public class SimpleConnector implements PeakBuilder {
 		// Convert MzPeak in ConnectedMzPeak to deal with status property
 		// (boolean connected)
 		for (MzPeak mzPeak : mzValues)
-			cMzPeaks.add(new ConnectedMzPeak(mzPeak));
+			cMzPeaks.add(new ConnectedMzPeak(scan, mzPeak));
 
 		// Calculate score for each ConnectedMzPeak
 		for (ConnectedPeak ucPeak : underConstructionPeaks) {
@@ -115,7 +115,7 @@ public class SimpleConnector implements PeakBuilder {
 			}
 
 			// Add MzPeak to the proper Peak and set status connected
-			ucPeak.addMzPeak(cMzPeak.getMzPeak());
+			ucPeak.addMzPeak(cMzPeak);
 			cMzPeak.setConnected();
 		}
 
@@ -175,8 +175,7 @@ public class SimpleConnector implements PeakBuilder {
 
 		for (ConnectedMzPeak cMzPeak : cMzPeaks) {
 			if (!cMzPeak.isConnected()) {
-				ConnectedPeak ucPeak = new ConnectedPeak(dataFile, cMzPeak
-						.getMzPeak());
+				ConnectedPeak ucPeak = new ConnectedPeak(dataFile, cMzPeak);
 				underConstructionPeaks.add(ucPeak);
 			}
 
@@ -200,26 +199,26 @@ public class SimpleConnector implements PeakBuilder {
 	private Peak[] chromatographicPeaksSearch(ConnectedPeak ucPeak) {
 
 		// MzPeak[] mzValues = ucPeak.getMzPeaks().toArray(new MzPeak[0]);
-		MzPeak[] mzValues = ucPeak.getMzPeaks();
+		ConnectedMzPeak[] mzValues = ucPeak.getConnectedMzPeaks();
 
 		float[] intensities = new float[mzValues.length];
 
 		for (int i = 0; i < intensities.length; i++)
-			intensities[i] = mzValues[i].getIntensity();
+			intensities[i] = mzValues[i].getMzPeak().getIntensity();
 		Arrays.sort(intensities);
 
 		float chromatographicThresholdlevelPeak = MathUtils.calcQuantile(
 				intensities, chromatographicThresholdLevel);
 
 		Vector<ConnectedPeak> newChromatoPeaks = new Vector<ConnectedPeak>();
-		Vector<MzPeak> newChromatoMzPeaks = new Vector<MzPeak>();
+		Vector<ConnectedMzPeak> newChromatoMzPeaks = new Vector<ConnectedMzPeak>();
 
-		for (MzPeak mzPeak : mzValues) {
+		for (ConnectedMzPeak mzPeak : mzValues) {
 
 			// If the intensity of this MzPeak is bigger than threshold level
 			// we store it in a Vector.
 
-			if (mzPeak.getIntensity() >= chromatographicThresholdlevelPeak) {
+			if (mzPeak.getMzPeak().getIntensity() >= chromatographicThresholdlevelPeak) {
 				newChromatoMzPeaks.add(mzPeak);
 			}
 

@@ -27,21 +27,24 @@ public class GaussPeak implements PeakModel {
 	private float mzMain, intensityMain, FWHM;
 	private double partA;
 
-	public GaussPeak(float mzMain, float intensityMain,
+	/* (non-Javadoc)
+	 * @see net.sf.mzmine.modules.peakpicking.twostep.massdetection.exactmass.peakmodel.PeakModel#setParameters(float, float, float)
+	 */
+	public void setParameters(float mzMain, float intensityMain,
 			float resolution) {
-		this.mzMain = mzMain;
-		this.intensityMain = intensityMain;
-		
-		// FWFM (Full Width at Half Maximum)
-		FWHM = mzMain
-				/ ((float) resolution );
-		partA = 2 * Math.pow(FWHM, 2);
+			this.mzMain = mzMain;
+			this.intensityMain = intensityMain;
+			
+			// FWFM (Full Width at Half Maximum)
+			FWHM = mzMain
+					/ ((float) resolution );
+			partA = 2 * Math.pow(FWHM, 2);		
 	}
 
 	/* (non-Javadoc)
 	 * @see net.sf.mzmine.modules.peakpicking.twostep.peakmodel.PeakModel#getBasePeakWidth()
 	 */
-	public Range getBasePeakWidth() {
+	public Range getWidth(float	partialIntensity) {
 
 		/*
 		 * Calculates the 0.0001% of peak's height and applies natural
@@ -49,7 +52,11 @@ public class GaussPeak implements PeakModel {
 		 * zero. The zero value is not used because the Gaussian function
 		 * tends to infinite at this height
 		 */
-		double ln = Math.abs(Math.log(intensityMain * 0.000001));
+		
+		if (partialIntensity <= 0)
+			partialIntensity = 1;
+		
+		double ln = Math.abs(Math.log(partialIntensity));
 
 		// Using the Gaussian function we calculate the base peak width,
 		float sideRange = (float) Math.sqrt(partA * ln) / 2.0f;
@@ -68,5 +75,6 @@ public class GaussPeak implements PeakModel {
 		float intensity =  (float) (intensityMain * Math.exp(partB));
 		return intensity;
 	}
+
 
 }

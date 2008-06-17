@@ -29,7 +29,7 @@ public class MzPeak implements DataPoint {
 
 	private float mz, intensity;
 	private DataPoint[] rawDataPoints;
-	private Scan scan;
+	//private Scan scan;
 
 	/**
 	 * This constructor takes this DataPoint to represent the portion of a peak
@@ -39,12 +39,12 @@ public class MzPeak implements DataPoint {
 	 * 
 	 * @param dataPoint
 	 */
-	public MzPeak(Scan scan, DataPoint dataPoint) {
+	public MzPeak(DataPoint dataPoint) {
 		this.mz = dataPoint.getMZ();
 		this.intensity = dataPoint.getIntensity();
 		DataPoint[] fakeRawDataPoints = { dataPoint };
 		this.rawDataPoints = fakeRawDataPoints;
-		this.scan = scan;
+		//this.scan = scan;
 	}
 
 	/**
@@ -55,11 +55,11 @@ public class MzPeak implements DataPoint {
 	 * @param dataPoint
 	 * @param rawDataPoints
 	 */
-	public MzPeak(Scan scan, DataPoint dataPoint, DataPoint[] rawDataPoints) {
+	public MzPeak(DataPoint dataPoint, DataPoint[] rawDataPoints) {
 		this.mz = dataPoint.getMZ();
 		this.intensity = dataPoint.getIntensity();
 		this.rawDataPoints = rawDataPoints;
-		this.scan = scan;
+		//this.scan = scan;
 	}
 
 	/**
@@ -88,23 +88,9 @@ public class MzPeak implements DataPoint {
 	/**
 	 * This method returns the scan where is located this part of the peak
 	 */
-	public Scan getScan() {
-		return scan;
-	}
+	//public Scan getScan() {
+		//return scan;
+	//}
 	
-	public void addRawDatapoints (DataPoint[] addedRawDataPoints){
-		  int fpl = rawDataPoints.length;
-		  int spl = addedRawDataPoints.length;
 
-		  DataPoint[] temp = new DataPoint[fpl + spl];
-		                
-		  System.arraycopy(rawDataPoints, 0, temp, 0, fpl);
-		  System.arraycopy(addedRawDataPoints, 0, temp, fpl, spl);
-		  
-		  //Arrays.sort(temp, new DataPointSorterByMZ());
-		  
-		  rawDataPoints = new DataPoint[temp.length];
-		  rawDataPoints = temp;
-	}
-	
 }

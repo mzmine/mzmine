@@ -28,7 +28,10 @@ public class ModifiedLorentzianPeak implements PeakModel {
 	private Range rangePeak, rangePeakModified;
 	private float diffWidth, diffMass, widthStep;
 
-	public ModifiedLorentzianPeak(float mzMain, float intensityMain,
+	/* (non-Javadoc)
+	 * @see net.sf.mzmine.modules.peakpicking.twostep.massdetection.exactmass.peakmodel.PeakModel#setParameters(float, float, float)
+	 */
+	public void setParameters(float mzMain, float intensityMain,
 			float resolution) {
 		this.mzMain = mzMain;
 		this.intensityMain = intensityMain;
@@ -61,7 +64,7 @@ public class ModifiedLorentzianPeak implements PeakModel {
 	 * 
 	 * @see net.sf.mzmine.modules.peakpicking.twostep.peakmodel.PeakModel#getBasePeakWidth()
 	 */
-	public Range getBasePeakWidth() {
+	public Range getWidth(float	partialIntensity) {
 
 		/*
 		 * Calculates the 0.001% of peak's height. This height value is chosen
@@ -70,8 +73,12 @@ public class ModifiedLorentzianPeak implements PeakModel {
 		 * make useless comparisons.
 		 * 
 		 */
-		double baseIntensity = intensityMain * 0.001;
-		double partA = ((intensityMain / baseIntensity) - 1)
+		//double baseIntensity = intensityMain * 0.001;
+		
+		if (partialIntensity <= 0)
+			partialIntensity = 1;
+		
+		double partA = ((intensityMain / partialIntensity) - 1)
 				* Math.pow(MWHM, 2);
 
 		// Using the Lorentzian function we calculate the base peak width,

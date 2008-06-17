@@ -19,6 +19,7 @@
 
 package net.sf.mzmine.modules.peakpicking.twostep.peakconstruction.simpleconnector;
 
+import net.sf.mzmine.data.Scan;
 import net.sf.mzmine.modules.peakpicking.twostep.massdetection.MzPeak;
 
 /**
@@ -28,9 +29,11 @@ public class ConnectedMzPeak {
 
 	private boolean connected;
 	private MzPeak mzPeak;
+	private Scan scan;
 
-	public ConnectedMzPeak(MzPeak peak) {
+	public ConnectedMzPeak(Scan scan, MzPeak peak) {
 		this.mzPeak = peak;
+		this.scan = scan;
 		connected = false;
 	}
 
@@ -44,6 +47,10 @@ public class ConnectedMzPeak {
 
 	public MzPeak getMzPeak() {
 		return mzPeak;
+	}
+
+	public Scan getScan() {
+		return scan;
 	}
 
 }

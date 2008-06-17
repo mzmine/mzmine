@@ -29,7 +29,7 @@ public interface PeakModel {
 	 * @return Range base width
 	 * 
 	 */
-	public Range getBasePeakWidth ();
+	public Range getWidth(float	partialIntensity);
 	
 	/**
 	 * This function returns the intensity of modeled peak at certain m/z
@@ -37,5 +37,15 @@ public interface PeakModel {
 	 * @return float intensity
 	 */
 	public float getIntensity (float mz);
+
+	/**
+	 * This function set all required parameters to construct a peak model
+	 * 
+	 * @param mzMain
+	 * @param intensityMain
+	 * @param resolution
+	 */
+	public void setParameters(float mzMain, float intensityMain,
+			float resolution);
 
 }

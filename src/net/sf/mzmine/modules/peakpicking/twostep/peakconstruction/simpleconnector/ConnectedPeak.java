@@ -27,6 +27,7 @@ import net.sf.mzmine.data.DataPoint;
 import net.sf.mzmine.data.Peak;
 import net.sf.mzmine.data.PeakStatus;
 import net.sf.mzmine.data.RawDataFile;
+import net.sf.mzmine.data.Scan;
 import net.sf.mzmine.modules.peakpicking.twostep.massdetection.MzPeak;
 import net.sf.mzmine.util.CollectionUtils;
 import net.sf.mzmine.util.MathUtils;
@@ -44,12 +45,12 @@ public class ConnectedPeak implements Peak {
 	private PeakStatus peakStatus;
 
 	// These elements are used to construct the Peak.
-	private TreeMap<Integer, MzPeak> datapointsMap;
+	private TreeMap<Integer, ConnectedMzPeak> datapointsMap;
 	private Vector<Float> datapointsMZs;
 
 	// Raw data file, M/Z, RT, Height and Area
 	private RawDataFile dataFile;
-	private float mz, rt, height, area;
+	private float mz, rt, height, area, previousRetentionTime;
 
 	// Characteristics of the peak
 	private Range mzRange, intensityRange, rtRange;
@@ -60,9 +61,9 @@ public class ConnectedPeak implements Peak {
 	/**
 	 * Initializes this Peak with one MzPeak
 	 */
-	public ConnectedPeak(RawDataFile dataFile, MzPeak mzValue) {
+	public ConnectedPeak(RawDataFile dataFile, ConnectedMzPeak mzValue) {
 		this.dataFile = dataFile;
-		datapointsMap = new TreeMap<Integer, MzPeak>();
+		datapointsMap = new TreeMap<Integer, ConnectedMzPeak>();
 		datapointsMZs = new Vector<Float>();
 
 		// We map this MzPeak with the scan number as a key due construction
@@ -71,8 +72,9 @@ public class ConnectedPeak implements Peak {
 
 		// Initial characteristics of our peak with just one point (MzPeak).
 		rt = mzValue.getScan().getRetentionTime();
-		mz = mzValue.getMZ();
-		height = mzValue.getIntensity();
+		previousRetentionTime = rt;
+		mz = mzValue.getMzPeak().getMZ();
+		height = mzValue.getMzPeak().getIntensity();
 
 		// Initial area of our peak is just one point.
 		area = 0.0f;
@@ -83,7 +85,7 @@ public class ConnectedPeak implements Peak {
 		// Initial ranges of our peak using all values from MzPeak
 		rtRange = new Range(rt);
 
-		DataPoint[] mzPeakRawDataPoints = mzValue.getRawDataPoints();
+		DataPoint[] mzPeakRawDataPoints = mzValue.getMzPeak().getRawDataPoints();
 
 		for (DataPoint dp : mzPeakRawDataPoints) {
 			if (mzRange == null)
@@ -105,23 +107,23 @@ public class ConnectedPeak implements Peak {
 	 * 
 	 * @param mzValue
 	 */
-	public void addMzPeak(MzPeak mzValue) {
+	public void addMzPeak(ConnectedMzPeak mzValue) {
 
 		// Update construction time variables
-		if (height <= mzValue.getIntensity()) {
-			height = mzValue.getIntensity();
+		if (height <= mzValue.getMzPeak().getIntensity()) {
+			height = mzValue.getMzPeak().getIntensity();
 			rt = mzValue.getScan().getRetentionTime();
 		}
 
 		// Calculate median MZ
-		datapointsMZs.add(mzValue.getMZ());
+		datapointsMZs.add(mzValue.getMzPeak().getMZ());
 
 		mz = MathUtils.calcQuantile(
 				CollectionUtils.toFloatArray(datapointsMZs), 0.5f);
 
 		rtRange.extendRange(mzValue.getScan().getRetentionTime());
 
-		DataPoint[] mzPeakRawDataPoints = mzValue.getRawDataPoints();
+		DataPoint[] mzPeakRawDataPoints = mzValue.getMzPeak().getRawDataPoints();
 
 		for (DataPoint dp : mzPeakRawDataPoints) {
 			mzRange.extendRange(dp.getMZ());
@@ -130,16 +132,16 @@ public class ConnectedPeak implements Peak {
 
 		// Use the last added MzPeak to calculate the area of the peak.
 		int lastIndex = datapointsMap.lastKey();
-		MzPeak lastAddedMzPeak = datapointsMap.get(lastIndex);
+		ConnectedMzPeak lastAddedMzPeak = datapointsMap.get(lastIndex);
 
 		float rtDifference = mzValue.getScan().getRetentionTime()
-				- lastAddedMzPeak.getScan().getRetentionTime();
+				- previousRetentionTime;
 
 		// intensity at the beginning of the interval
-		float intensityStart = lastAddedMzPeak.getIntensity();
+		float intensityStart = lastAddedMzPeak.getMzPeak().getIntensity();
 
 		// intensity at the end of the interval
-		float intensityEnd = mzValue.getIntensity();
+		float intensityEnd = mzValue.getMzPeak().getIntensity();
 
 		// calculate area of the interval
 		area += (rtDifference * (intensityStart + intensityEnd) / 2);
@@ -147,6 +149,7 @@ public class ConnectedPeak implements Peak {
 		// Add MzPeak
 		datapointsMap.put(mzValue.getScan().getScanNumber(), mzValue);
 		growing = true;
+		previousRetentionTime = mzValue.getScan().getRetentionTime();
 
 	}
 
@@ -205,7 +208,7 @@ public class ConnectedPeak implements Peak {
 	 * scan
 	 */
 	public DataPoint getDataPoint(int scanNumber) {
-		return datapointsMap.get(scanNumber);
+		return datapointsMap.get(scanNumber).getMzPeak();
 	}
 
 	/**
@@ -213,7 +216,7 @@ public class ConnectedPeak implements Peak {
 	 * given scan
 	 */
 	public DataPoint[] getRawDataPoints(int scanNumber) {
-		return datapointsMap.get(scanNumber).getRawDataPoints();
+		return datapointsMap.get(scanNumber).getMzPeak().getRawDataPoints();
 	}
 
 	/**
@@ -246,8 +249,8 @@ public class ConnectedPeak implements Peak {
 	 * 
 	 * @return Array MzPeak
 	 */
-	public MzPeak[] getMzPeaks() {
-		return datapointsMap.values().toArray(new MzPeak[0]);
+	public ConnectedMzPeak[] getConnectedMzPeaks() {
+		return datapointsMap.values().toArray(new ConnectedMzPeak[0]);
 	}
 
 	/**
@@ -291,7 +294,7 @@ public class ConnectedPeak implements Peak {
 				.iterator();
 		while (indexIterator.hasNext()) {
 			int index = indexIterator.next();
-			MzPeak mzPeak = datapointsMap.get(index);
+			MzPeak mzPeak = datapointsMap.get(index).getMzPeak();
 			float intensity = mzPeak.getIntensity();
 			datapointsIntensities.add(intensity);
 		}

@@ -113,7 +113,7 @@ public class RecursiveMassDetector implements MassDetector {
 
 				// Declare a new MzPeak with intensity equal to max intensity
 				// data point
-				mzPeaks.add(new MzPeak(scan, dataPoints[peakMaxInd],
+				mzPeaks.add(new MzPeak(dataPoints[peakMaxInd],
 						RawDataPointsInds.toArray(new DataPoint[0])));
 
 				if (recuLevel > 0) {
