@@ -151,17 +151,6 @@
         <parameter name="Intensity tolerance" type="FLOAT">0.15</parameter>
       </parameters> 
     </module>  
-    <module class="net.sf.mzmine.modules.peakpicking.anothercentroid.AnotherCentroidPicker"> 
-      <parameters>
-        <parameter name="Filename suffix" type="STRING">peaklist</parameter>
-        <parameter name="Noise level" type="FLOAT">10.0</parameter>
-        <parameter name="Min number of isotopic peaks" type="INTEGER">3</parameter>
-        <parameter name="Max charge state" type="INTEGER">1</parameter>
-        <parameter name="Min peak duration" type="FLOAT">10.0</parameter>
-        <parameter name="Max peak duration" type="FLOAT">10.0</parameter>
-        <parameter name="m/z tolerance" type="FLOAT">0.1</parameter>
-      </parameters> 
-    </module>  
     <module class="net.sf.mzmine.modules.peakpicking.manual.ManualPeakPicker"/>  
     <module class="net.sf.mzmine.modules.peakpicking.gapfiller.GapFiller"> 
       <parameters>
