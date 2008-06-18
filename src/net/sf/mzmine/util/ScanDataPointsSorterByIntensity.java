@@ -24,12 +24,12 @@ import java.util.Comparator;
 
 import net.sf.mzmine.data.DataPoint;
 
-public class ScanDataPointsSorterByMZ implements Comparator<DataPoint>{
+public class ScanDataPointsSorterByIntensity implements Comparator<DataPoint>{
 
 	public int compare(DataPoint dp1, DataPoint dp2) {
-        Float mz1 = dp1.getMZ();
-        Float mz2 = dp2.getMZ();
-        return mz1.compareTo(mz2); 
+        Float mz1 = dp1.getIntensity();
+        Float mz2 = dp2.getIntensity();
+        return mz2.compareTo(mz1); 
 	}
 
 }
