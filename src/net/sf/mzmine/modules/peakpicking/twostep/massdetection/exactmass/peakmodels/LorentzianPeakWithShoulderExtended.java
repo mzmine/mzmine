@@ -17,32 +17,38 @@
  * Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-package net.sf.mzmine.modules.peakpicking.twostep.massdetection.exactmass.peakmodel.impl;
+package net.sf.mzmine.modules.peakpicking.twostep.massdetection.exactmass.peakmodels;
 
-import net.sf.mzmine.modules.peakpicking.twostep.massdetection.exactmass.peakmodel.PeakModel;
+import net.sf.mzmine.modules.peakpicking.twostep.massdetection.exactmass.PeakModel;
 import net.sf.mzmine.util.Range;
 
-public class ModifiedLorentzianPeak implements PeakModel {
+public class LorentzianPeakWithShoulderExtended implements PeakModel {
 
 	private float mzMain, intensityMain, FWHM, MWHM;
 	private Range rangePeak, rangePeakModified;
 	private float diffWidth, diffMass, widthStep;
 
-	/* (non-Javadoc)
-	 * @see net.sf.mzmine.modules.peakpicking.twostep.massdetection.exactmass.peakmodel.PeakModel#setParameters(float, float, float)
+	/**
+	 * @see net.sf.mzmine.modules.peakpicking.twostep.massdetection.exactmass.peakmodel.PeakModel#setParameters(float,
+	 *      float, float)
 	 */
 	public void setParameters(float mzMain, float intensityMain,
 			float resolution) {
 		this.mzMain = mzMain;
 		this.intensityMain = intensityMain;
+
 		// FWFM (Full Width at Half Maximum)
 		FWHM = mzMain / ((float) resolution);
 
-		// MWFM (Modified Width at Half Maximum)
-		MWHM = mzMain / ((float) resolution * 0.10f);
+		// We set a width given by 5% of actual resolution called
+		// MWFM (Modified Width at Half Maximum) and we use it to calculate the
+		// width at the level defined in getWidth() method's parameter.
+		MWHM = mzMain / ((float) resolution * 0.05f);
 
 		// Using the Gaussian function we calculate the peak width at 5% of
-		// intensity
+		// intensity. This % of the intensity is chosen according with the
+		// definition of lateral peaks. Lateral peaks is any under 5% of
+		// intensity of the main peak.
 
 		double partA = 2 * Math.pow(FWHM, 2);
 		double ln = Math.abs(Math.log(intensityMain * 0.05));
@@ -59,25 +65,21 @@ public class ModifiedLorentzianPeak implements PeakModel {
 
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * 
+	/**
 	 * @see net.sf.mzmine.modules.peakpicking.twostep.peakmodel.PeakModel#getBasePeakWidth()
 	 */
-	public Range getWidth(float	partialIntensity) {
+	public Range getWidth(float partialIntensity) {
 
 		/*
-		 * Calculates the 0.001% of peak's height. This height value is chosen
-		 * because is close to zero. A lower value of intensity in this function
-		 * is giving a range too big. If we have a wider range is possible to
-		 * make useless comparisons.
-		 * 
+		 * The height value must be bigger than zero.The zero value is not used
+		 * because the Lorentzian function tends to infinite and in this
+		 * function with zero intensity we get a NaN. If that is the case we
+		 * have a too big range and could result in to make useless comparisons.
 		 */
-		//double baseIntensity = intensityMain * 0.001;
-		
+
 		if (partialIntensity <= 0)
-			partialIntensity = 1;
-		
+			return new Range(0, Float.MAX_VALUE);
+
 		double partA = ((intensityMain / partialIntensity) - 1)
 				* Math.pow(MWHM, 2);
 
@@ -94,22 +96,22 @@ public class ModifiedLorentzianPeak implements PeakModel {
 		return rangePeakModified;
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * 
+	/**
 	 * @see net.sf.mzmine.modules.peakpicking.twostep.peakmodel.PeakModel#getIntensity(float)
 	 */
 	public float getIntensity(float mz) {
 
 		float width = FWHM;
 
+		// Depending of the value of mz, we use our increased width to get
+		// larger shoulders and try to cover more lateral peaks.
 		if (mz < rangePeak.getMin())
 			width = FWHM + (widthStep * Math.abs(rangePeak.getMin() - mz));
 		if (mz > rangePeak.getMin())
 			width = FWHM + (widthStep * Math.abs(mz - rangePeak.getMax()));
 
-		// We calculate the intensity using the Lorentzian function with a modified FWHM.
-		
+		// We calculate the intensity using the Lorentzian function
+
 		double partA = Math.pow(width, 2);
 		double partB = intensityMain * partA;
 		double partC = Math.pow((mz - mzMain), 2) + partA;

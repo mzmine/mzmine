@@ -29,13 +29,14 @@ import net.sf.mzmine.main.MZmineCore;
 
 public class ExactMassDetectorParameters extends SimpleParameterSet {
 
-	public static final String peakModelNames[] = { "Gaussian",
-		"Lorentzian", "Modified Lorentzian" };
+	public static final String peakModelNames[] = { "Gaussian", "Gaussian plus triangle",
+		"Lorentzian", "Lorentzian extended" };
 
 	public static final String peakModelClasses[] = {
-		"net.sf.mzmine.modules.peakpicking.twostep.massdetection.exactmass.peakmodel.impl.GaussPeak",
-		"net.sf.mzmine.modules.peakpicking.twostep.massdetection.exactmass.peakmodel.impl.LorentzianPeak",
-		"net.sf.mzmine.modules.peakpicking.twostep.massdetection.exactmass.peakmodel.impl.ModifiedLorentzianPeak" };
+		"net.sf.mzmine.modules.peakpicking.twostep.massdetection.exactmass.peakmodels.GaussPeak",
+		"net.sf.mzmine.modules.peakpicking.twostep.massdetection.exactmass.peakmodels.GaussPlusTrianglePeak",
+		"net.sf.mzmine.modules.peakpicking.twostep.massdetection.exactmass.peakmodels.LorentzianPeak",
+		"net.sf.mzmine.modules.peakpicking.twostep.massdetection.exactmass.peakmodels.LorentzianPeakWithShoulderExtended" };
 
 	public static final NumberFormat percentFormat = NumberFormat
 			.getPercentInstance();

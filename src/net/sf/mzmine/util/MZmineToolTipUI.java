@@ -74,7 +74,7 @@ public class MZmineToolTipUI extends BasicToolTipUI {
 				RenderingHints.VALUE_STROKE_NORMALIZE);
 
 		g2.setRenderingHints(qualityHints);
-		
+
 		Font defaultFont = g2.getFont();
 		FontMetrics metrics = g2.getFontMetrics(g.getFont());
 		Dimension size = c.getSize();
@@ -96,12 +96,13 @@ public class MZmineToolTipUI extends BasicToolTipUI {
 				}
 				if (strs[i].equals("IMAGE")) {
 					try {
-						String libraryFullPath = System.getProperty("user.dir")
-								+ "\\help\\tipTool\\images\\" + strs[i + 1];
-						File input = new File(libraryFullPath);
+						File input = new File(System.getProperty("user.dir")
+								+ File.separator + "help" + File.separator + "tipTool"
+								+ File.separator + "images" + File.separator + strs[i + 1]);
+						
 						BufferedImage image = ImageIO.read(input);
 
-						// determine thumbnail size 
+						// determine thumbnail size
 						int thumbWidth = size.width - 40;
 						int thumbHeight = 250;
 						double thumbRatio = (double) thumbWidth
@@ -115,7 +116,6 @@ public class MZmineToolTipUI extends BasicToolTipUI {
 						} else {
 							thumbWidth = (int) (thumbHeight * imageRatio);
 						}
-
 
 						g2.drawImage(image, 20, (metrics.getHeight())
 								* (yPosition + 1), thumbWidth, thumbHeight, c);
@@ -154,9 +154,9 @@ public class MZmineToolTipUI extends BasicToolTipUI {
 		}
 
 		try {
-			String libraryFullPath = System.getProperty("user.dir")
-					+ "\\help\\tipTool\\texts\\" + tipText;
-			File file = new File(libraryFullPath);
+			File file = new File(System.getProperty("user.dir")
+					+ File.separator + "help" + File.separator + "tipTool"
+					+ File.separator + "texts" + File.separator + tipText);
 			FileInputStream fis = new FileInputStream(file);
 
 			// Here BufferedInputStream is added for fast reading.

@@ -17,64 +17,66 @@
  * Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-package net.sf.mzmine.modules.peakpicking.twostep.massdetection.exactmass.peakmodel.impl;
+package net.sf.mzmine.modules.peakpicking.twostep.massdetection.exactmass.peakmodels;
 
-import net.sf.mzmine.modules.peakpicking.twostep.massdetection.exactmass.peakmodel.PeakModel;
+import net.sf.mzmine.modules.peakpicking.twostep.massdetection.exactmass.PeakModel;
 import net.sf.mzmine.util.Range;
 
 public class GaussPeak implements PeakModel {
-	
+
 	private float mzMain, intensityMain, FWHM;
 	private double partA;
 
-	/* (non-Javadoc)
-	 * @see net.sf.mzmine.modules.peakpicking.twostep.massdetection.exactmass.peakmodel.PeakModel#setParameters(float, float, float)
+	/**
+	 * @see net.sf.mzmine.modules.peakpicking.twostep.massdetection.exactmass.peakmodel.PeakModel#setParameters(float,
+	 *      float, float)
 	 */
 	public void setParameters(float mzMain, float intensityMain,
 			float resolution) {
-			this.mzMain = mzMain;
-			this.intensityMain = intensityMain;
-			
-			// FWFM (Full Width at Half Maximum)
-			FWHM = mzMain
-					/ ((float) resolution );
-			partA = 2 * Math.pow(FWHM, 2);		
+		this.mzMain = mzMain;
+		this.intensityMain = intensityMain;
+
+		// FWFM (Full Width at Half Maximum)
+		FWHM = mzMain / ((float) resolution);
+		partA = 2 * Math.pow(FWHM, 2);
 	}
 
-	/* (non-Javadoc)
+	/**
 	 * @see net.sf.mzmine.modules.peakpicking.twostep.peakmodel.PeakModel#getBasePeakWidth()
 	 */
-	public Range getWidth(float	partialIntensity) {
+	public Range getWidth(float partialIntensity) {
 
 		/*
-		 * Calculates the 0.0001% of peak's height and applies natural
-		 * logarithm. This height value is chosen because is the closest to
-		 * zero. The zero value is not used because the Gaussian function
-		 * tends to infinite at this height
+		 * The height value must be bigger than zero.The zero value is not used
+		 * because the Gaussian function tends to infinite and in this function
+		 * with zero intensity we get a NaN. If that is the case we have a too
+		 * big range and could result in to make useless comparisons.
 		 */
-		
+
 		if (partialIntensity <= 0)
-			partialIntensity = 1;
-		
+			return new Range(0, Float.MAX_VALUE);
+
 		double ln = Math.abs(Math.log(partialIntensity));
 
-		// Using the Gaussian function we calculate the base peak width,
+		// Using the Gaussian function we calculate the peak width at intensity given (partialIntensity),
 		float sideRange = (float) Math.sqrt(partA * ln) / 2.0f;
 
-		Range rangePeak = new Range(mzMain - sideRange,
-				mzMain + sideRange);
-		
+		// This range represents the width of our peak in m/z terms
+		Range rangePeak = new Range(mzMain - sideRange, mzMain + sideRange);
+
 		return rangePeak;
 	}
 
-	/* (non-Javadoc)
+	/**
 	 * @see net.sf.mzmine.modules.peakpicking.twostep.peakmodel.PeakModel#getIntensity(float)
 	 */
 	public float getIntensity(float mz) {
+
+		// Using the Gaussian function we calculate the intensity m/z given (mz)
 		double partB = -1 * Math.pow((mzMain - mz), 2) / partA;
-		float intensity =  (float) (intensityMain * Math.exp(partB));
+		float intensity = (float) (intensityMain * Math.exp(partB));
+		
 		return intensity;
 	}
-
 
 }

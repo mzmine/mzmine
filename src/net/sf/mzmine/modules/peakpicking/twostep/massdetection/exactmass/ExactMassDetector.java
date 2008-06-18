@@ -19,20 +19,15 @@
 
 package net.sf.mzmine.modules.peakpicking.twostep.massdetection.exactmass;
 
-import java.lang.reflect.Constructor;
 import java.util.Iterator;
 import java.util.TreeSet;
 import java.util.Vector;
+import java.util.logging.Logger;
 
 import net.sf.mzmine.data.DataPoint;
 import net.sf.mzmine.data.Scan;
-import net.sf.mzmine.desktop.Desktop;
-import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.modules.peakpicking.twostep.massdetection.MassDetector;
 import net.sf.mzmine.modules.peakpicking.twostep.massdetection.MzPeak;
-import net.sf.mzmine.modules.peakpicking.twostep.massdetection.exactmass.peakmodel.PeakModel;
-import net.sf.mzmine.util.MzPeaksSorterByIntensity;
-import net.sf.mzmine.util.MzPeaksSorterByMZ;
 import net.sf.mzmine.util.Range;
 
 public class ExactMassDetector implements MassDetector {
@@ -42,8 +37,7 @@ public class ExactMassDetector implements MassDetector {
 	private int resolution;
 	private String peakModelname;
 
-	// Desktop
-	private Desktop desktop = MZmineCore.getDesktop();
+	private Logger logger = Logger.getLogger(this.getClass().getName());
 
 	public ExactMassDetector(ExactMassDetectorParameters parameters) {
 		noiseLevel = (Float) parameters
@@ -55,25 +49,29 @@ public class ExactMassDetector implements MassDetector {
 
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * 
+	/**
 	 * @see net.sf.mzmine.modules.peakpicking.twostep.massdetection.MassDetector#getMassValues(net.sf.mzmine.data.Scan)
 	 */
 	public MzPeak[] getMassValues(Scan scan) {
 
 		// Create a tree set of detected mzPeaks sorted by MZ in ascending order
-		TreeSet<MzPeak> mzPeaks = new TreeSet<MzPeak>(new MzPeaksSorterByMZ());
+		TreeSet<MzPeak> mzPeaks = new TreeSet<MzPeak>(new MzPeaksSorter(true,
+				true));
+
+		// Create a tree set of candidate mzPeaks sorted by intensity in
+		// descending order.
+		TreeSet<MzPeak> candidatePeaks = new TreeSet<MzPeak>(new MzPeaksSorter(
+				false, false));
 
 		// First get all candidate peaks (local maximum)
-		TreeSet<MzPeak> candidates = getLocalMaxima(scan);
+		getLocalMaxima(scan, candidatePeaks);
 
 		// We calculate the exact mass for each peak and remove lateral peaks,
 		// starting with biggest intensity peak and so on
-		while (candidates.size() > 0) {
+		while (candidatePeaks.size() > 0) {
 
 			// Always take the biggest (intensity) peak
-			MzPeak currentCandidate = candidates.first();
+			MzPeak currentCandidate = candidatePeaks.first();
 
 			// Calculate the exact mass and update value in current candidate
 			// (MzPeak)
@@ -83,11 +81,11 @@ public class ExactMassDetector implements MassDetector {
 			// Add this candidate to the final tree set sorted by MZ and remove
 			// from tree set sorted by intensity
 			mzPeaks.add(currentCandidate);
-			candidates.remove(currentCandidate);
+			candidatePeaks.remove(currentCandidate);
 
 			// Remove from tree set sorted by intensity all FTMS shoulder peaks,
 			// taking as a main peak the current candidate
-			removeLateralPeaks(currentCandidate, candidates);
+			removeLateralPeaks(currentCandidate, candidatePeaks);
 
 		}
 
@@ -104,16 +102,11 @@ public class ExactMassDetector implements MassDetector {
 	 * @param scan
 	 * @return
 	 */
-	private TreeSet<MzPeak> getLocalMaxima(Scan scan) {
+	private void getLocalMaxima(Scan scan, TreeSet<MzPeak> candidatePeaks) {
 
 		DataPoint[] scanDataPoints = scan.getDataPoints();
 		DataPoint localMaximum = scanDataPoints[0];
 		Vector<DataPoint> rangeDataPoints = new Vector<DataPoint>();
-
-		// Create a tree set of candidate mzPeaks sorted by intensity in
-		// descending order.
-		TreeSet<MzPeak> candidatePeaks = new TreeSet<MzPeak>(
-				new MzPeaksSorterByIntensity());
 
 		boolean ascending = true;
 
@@ -157,71 +150,120 @@ public class ExactMassDetector implements MassDetector {
 			}
 
 		}
-		return candidatePeaks;
+
 	}
 
 	/**
-	 * This method calculates the exact mass of
+	 * This method calculates the exact mass of a peak using the FWHM concept
+	 * and linear equation (y = mx + b).
 	 * 
-	 * 
-	 * @param currentCandidate
-	 * @return
+	 * @param MzPeak
+	 * @return float
 	 */
 	private float calculateExactMass(MzPeak currentCandidate) {
+
+		/*
+		 * According with the FWHM concept, the exact mass of this peak is the
+		 * half point of FWHM. In order to get the points in the curve that
+		 * define the FWHM, we use the linear equation.
+		 * 
+		 * First we look for, in left side of the peak, 2 data points together
+		 * that have an intensity less (first data point) and bigger (second
+		 * data point) than half of total intensity. Then we calculate the slope
+		 * of the line defined by this two data points. At least, we calculate
+		 * the point in this line that has an intensity equal to the half of
+		 * total intensity
+		 * 
+		 * We repeat the same process in the right side.
+		 */
 
 		float xRight = -1, xLeft = -1;
 		DataPoint[] rangeDataPoints = currentCandidate.getRawDataPoints();
 
-		for (int i = 0; i < rangeDataPoints.length; i++) {
+		for (int i = 0; i < rangeDataPoints.length - 1; i++) {
+
+			// Left side of the curve
 			if ((rangeDataPoints[i].getIntensity() <= currentCandidate
 					.getIntensity() / 2)
 					&& (rangeDataPoints[i].getMZ() < currentCandidate.getMZ())
-					&& (i + 1 < rangeDataPoints.length)) {
+					&& (rangeDataPoints[i + 1].getIntensity() >= currentCandidate
+							.getIntensity() / 2)) {
 
+				// First point with intensity just less than half of total
+				// intensity
 				float leftY1 = rangeDataPoints[i].getIntensity();
 				float leftX1 = rangeDataPoints[i].getMZ();
+
+				// Second point with intensity just bigger than half of total
+				// intensity
 				float leftY2 = rangeDataPoints[i + 1].getIntensity();
 				float leftX2 = rangeDataPoints[i + 1].getMZ();
 
+				// We calculate the slope with formula m = Y1 - Y2 / X1 - X2
 				float mLeft = (leftY1 - leftY2) / (leftX1 - leftX2);
+
+				// We calculate the desired point (at half intensity) with the
+				// linear equation
+				// X = X1 + [(Y - Y1) / m ], where Y = half of total intensity
 				xLeft = leftX1
 						+ (((currentCandidate.getIntensity() / 2) - leftY1) / mLeft);
 				continue;
 			}
+
+			// Right side of the curve
 			if ((rangeDataPoints[i].getIntensity() >= currentCandidate
 					.getIntensity() / 2)
 					&& (rangeDataPoints[i].getMZ() > currentCandidate.getMZ())
-					&& (i + 1 < rangeDataPoints.length)) {
+					&& (rangeDataPoints[i + 1].getIntensity() <= currentCandidate
+							.getIntensity() / 2)) {
 
+				// First point with intensity just less than half of total
+				// intensity
 				float rightY1 = rangeDataPoints[i].getIntensity();
 				float rightX1 = rangeDataPoints[i].getMZ();
+
+				// Second point with intensity just bigger than half of total
+				// intensity
 				float rightY2 = rangeDataPoints[i + 1].getIntensity();
 				float rightX2 = rangeDataPoints[i + 1].getMZ();
 
+				// We calculate the slope with formula m = Y1 - Y2 / X1 - X2
 				float mRight = (rightY1 - rightY2) / (rightX1 - rightX2);
+
+				// We calculate the desired point (at half intensity) with the
+				// linear equation
+				// X = X1 + [(Y - Y1) / m ], where Y = half of total intensity
 				xRight = rightX1
 						+ (((currentCandidate.getIntensity() / 2) - rightY1) / mRight);
 				break;
 			}
 		}
 
+		// We verify the values to confirm we find the desired points. If not we
+		// return the same mass value.
 		if ((xRight == -1) || (xLeft == -1))
 			return currentCandidate.getMZ();
 
+		// FWHM is defined by the points in the left and right side of the curve
+		// with intensity equal to the half of total intensity.
 		float FWHM = xRight - xLeft;
 
+		// The center of FWHM is the exact mass of our peak.
 		float exactMass = xLeft + FWHM / 2;
 
 		return exactMass;
 	}
 
 	/**
-	 * This function remove FTMS shoulder peaks encountered in the lateral of a
-	 * main peak (currentCandidate). First calculates a peak model (Gauss,
-	 * Lorenzian, etc) defined by peakModelName parameter, with the same
-	 * position (m/z) and height (intensity) of the currentCandidate, and the
-	 * defined resolution (resolution parameter). Second search and remove all
-	 * the lateral peaks that are under the curve of the modeled peak.
+	 * This function remove peaks encountered in the lateral of a main peak
+	 * (currentCandidate) that are considered as garbage, for example FTMS
+	 * shoulder peaks. 
+	 * 
+	 * First calculates a peak model (Gauss, Lorenzian, etc)
+	 * defined by peakModelName parameter, with the same position (m/z) and
+	 * height (intensity) of the currentCandidate, and the defined resolution
+	 * (resolution parameter). Second search and remove all the lateral peaks
+	 * that are under the curve of the modeled peak.
 	 * 
 	 * @param mzPeaks
 	 * @param percentageHeight
@@ -230,51 +272,58 @@ public class ExactMassDetector implements MassDetector {
 	private void removeLateralPeaks(MzPeak currentCandidate,
 			TreeSet<MzPeak> candidates) {
 
-		Constructor peakModelConstruct;
-		Class peakModelClass;
 		PeakModel peakModel;
 
-		int peakModelindex = 0;
+		String peakModelClassName = null;
 
 		// Peak Model used to remove FTMS shoulder peaks
-		for (String model : ExactMassDetectorParameters.peakModelNames) {
-			if (model.equals(peakModelname))
-				break;
-			peakModelindex++;
+		for (int peakModelindex = 0; peakModelindex < ExactMassDetectorParameters.peakModelNames.length; peakModelindex++) {
+			if (ExactMassDetectorParameters.peakModelNames[peakModelindex]
+					.equals(peakModelname))
+				peakModelClassName = ExactMassDetectorParameters.peakModelClasses[peakModelindex];
 		}
 
-		String peakModelClassName = ExactMassDetectorParameters.peakModelClasses[peakModelindex];
-
-		try {
-			peakModelClass = Class.forName(peakModelClassName);
-			peakModelConstruct = peakModelClass.getConstructors()[0];
-			peakModel = (PeakModel) peakModelConstruct.newInstance();
-
-		} catch (Exception e) {
-			desktop
-					.displayErrorMessage("Error trying to make an instance of peak model "
-							+ peakModelClassName);
+		if (peakModelClassName == null) {
+			logger.warning("Error trying to make an instance of peak model "
+					+ peakModelname);
 			return;
 		}
 
+		try {
+			Class peakModelClass = Class.forName(peakModelClassName);
+			peakModel = (PeakModel) peakModelClass.newInstance();
+
+		} catch (Exception e) {
+			logger.warning("Error trying to make an instance of peak model "
+					+ peakModelClassName);
+			return;
+		}
+
+		// We set our peak model with same position(m/z), height(intensity) and
+		// resolution of the current peak
 		peakModel.setParameters(currentCandidate.getMZ(), currentCandidate
 				.getIntensity(), resolution);
+
+		// We use the width of the modeled peak at noise level to set the range
+		// of search for lateral peaks.
 		Range rangePeak = peakModel.getWidth(noiseLevel);
 
+		// We search over all peak candidates and remove all of them that are
+		// under the curve defined by our peak model
 		Iterator<MzPeak> candidatesIterator = candidates.iterator();
 		while (candidatesIterator.hasNext()) {
 
 			MzPeak lateralCandidate = candidatesIterator.next();
 
+			// Condition in x domain (m/z)
 			if ((lateralCandidate.getMZ() >= rangePeak.getMin())
 					&& (lateralCandidate.getMZ() <= rangePeak.getMax())
+					// Condition in y domain (intensity)
 					&& (lateralCandidate.getIntensity() < peakModel
 							.getIntensity(lateralCandidate.getMZ()))) {
 				candidatesIterator.remove();
 			}
 		}
-
-		return;
 
 	}
 }
