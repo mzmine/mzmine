@@ -79,6 +79,14 @@ public class MzPeak implements DataPoint {
 	}
 
 	/**
+	 * Returns m/z value of the peak on this scan. The value depends of the used
+	 * mass detector.
+	 */
+	public void setMZ(float mz) {
+		this.mz = mz;
+	}
+
+	/**
 	 * This method returns an array of raw data points that form this peak
 	 */
 	public DataPoint[] getRawDataPoints() {
