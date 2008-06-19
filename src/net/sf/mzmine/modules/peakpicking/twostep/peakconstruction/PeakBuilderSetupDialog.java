@@ -29,7 +29,6 @@ import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.lang.reflect.Constructor;
 import java.util.Hashtable;
-import java.util.Iterator;
 import java.util.Vector;
 import java.util.logging.Logger;
 
@@ -39,6 +38,7 @@ import javax.help.WindowPresentation;
 import javax.swing.BorderFactory;
 import javax.swing.Box;
 import javax.swing.BoxLayout;
+import javax.swing.JButton;
 import javax.swing.JCheckBox;
 import javax.swing.JComboBox;
 import javax.swing.JFormattedTextField;
@@ -46,12 +46,10 @@ import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JSeparator;
-import javax.swing.JTextField;
 import javax.swing.SwingConstants;
 import javax.swing.border.Border;
 import javax.swing.border.EtchedBorder;
 
-import net.sf.mzmine.data.Parameter;
 import net.sf.mzmine.data.Peak;
 import net.sf.mzmine.data.RawDataFile;
 import net.sf.mzmine.data.impl.SimpleDataPoint;
@@ -87,11 +85,12 @@ public class PeakBuilderSetupDialog extends ParameterSetupDialog implements
 	private Hashtable<Integer, PeakDataSet> peakDataSets;
 
 	// Dialog components
-	private JPanel pnlPlotXY, pnlLocal;
+	private JPanel pnlPlotXY, pnlLocal, pnlFileNameScanNumber;
 	private JComboBox comboDataFileName;
 	private JFormattedTextField minTxtFieldRet, maxTxtFieldRet, minTxtFieldMZ,
 			maxTxtFieldMZ;
 	private JCheckBox preview;
+	private JButton btnLoad;
 	private int indexComboFileName;
 
 	// Currently loaded chromatograph
@@ -121,7 +120,8 @@ public class PeakBuilderSetupDialog extends ParameterSetupDialog implements
 
 		super(TwoStepPickerParameters.peakBuilderNames[peakBuilderTypeNumber]
 				+ "'s parameter setup dialog ", parameters
-				.getPeakBuilderParameters(peakBuilderTypeNumber), "Builder" + peakBuilderTypeNumber);
+				.getPeakBuilderParameters(peakBuilderTypeNumber), "Builder"
+				+ peakBuilderTypeNumber);
 
 		dataFiles = MZmineCore.getCurrentProject().getDataFiles();
 		this.peakBuilderTypeNumber = peakBuilderTypeNumber;
@@ -194,41 +194,57 @@ public class PeakBuilderSetupDialog extends ParameterSetupDialog implements
 			}
 		}
 
+		if (src == btnLoad) {
+			if (preview.isSelected()) {
+				rtRange = new Range(Float.parseFloat(minTxtFieldRet.getValue()
+						.toString()), Float.parseFloat(maxTxtFieldRet
+						.getValue().toString()));
+				listScans = previewDataFile.getScanNumbers(1, rtRange);
+				mzRange = new Range(Float.parseFloat(minTxtFieldMZ.getValue()
+						.toString()), Float.parseFloat(maxTxtFieldMZ.getValue()
+						.toString()));
+				removePeakDataSet();
+				setDataSet();
+			}
+		}
+
 		if (src == comboDataFileName) {
+
 			int ind = comboDataFileName.getSelectedIndex();
+
 			previewDataFile = dataFiles[ind];
 			listScans = previewDataFile.getScanNumbers(1);
+
 			rtRange = previewDataFile.getDataRTRange(1);
-			mzRange = previewDataFile.getDataMZRange(1);
-
-			enablePreviewComponents(false);
-
 			minTxtFieldRet.setValue(rtRange.getMin());
 			maxTxtFieldRet.setValue(rtRange.getMax());
+
+			mzRange = previewDataFile.getDataMZRange(1);
 			minTxtFieldMZ.setValue(mzRange.getMin());
 			maxTxtFieldMZ.setValue(mzRange.getMax());
 
-			enablePreviewComponents(true);
 			removePeakDataSet();
 			setDataSet();
 		}
 
 		if (src == preview) {
 			if (preview.isSelected()) {
+				pnlFileNameScanNumber.setVisible(true);
 				pnlLocal.add(pnlPlotXY, BorderLayout.CENTER);
 				comboDataFileName.setEnabled(true);
 				add(pnlLocal);
 				pack();
-				enablePreviewComponents(true);
 				setDataSet();
 				setLocationRelativeTo(MZmineCore.getDesktop().getMainFrame());
+				this.setResizable(true);
 			} else {
+				pnlFileNameScanNumber.setVisible(false);
 				pnlLocal.remove(pnlPlotXY);
 				comboDataFileName.setEnabled(false);
 				removePeakDataSet();
 				pack();
-				enablePreviewComponents(false);
 				setLocationRelativeTo(MZmineCore.getDesktop().getMainFrame());
+				this.setResizable(false);
 			}
 		}
 
@@ -254,26 +270,9 @@ public class PeakBuilderSetupDialog extends ParameterSetupDialog implements
 
 	public void propertyChange(PropertyChangeEvent e) {
 
-		Object src = e.getSource();
 		synchronized (this) {
-
 			if (preview.isSelected()) {
 				removePeakDataSet();
-				if ((src == minTxtFieldRet) || (src == maxTxtFieldRet)) {
-					rtRange = new Range(Float.parseFloat(minTxtFieldRet
-							.getValue().toString()), Float
-							.parseFloat(maxTxtFieldRet.getValue().toString()));
-					listScans = previewDataFile.getScanNumbers(1, rtRange);
-					setDataSet();
-					return;
-				}
-				if ((src == minTxtFieldMZ) || (src == maxTxtFieldMZ)) {
-					mzRange = new Range(Float.parseFloat(minTxtFieldMZ
-							.getValue().toString()), Float
-							.parseFloat(maxTxtFieldMZ.getValue().toString()));
-					setDataSet();
-					return;
-				}
 				setPeakDataSet();
 			}
 		}
@@ -295,7 +294,7 @@ public class PeakBuilderSetupDialog extends ParameterSetupDialog implements
 	 */
 	public void setPeakDataSet() {
 
-		buildParameterSetPeakBuilder();
+		pbParameters = buildParameterSet(pbParameters);
 		String peakBuilderClassName = TwoStepPickerParameters.peakBuilderClasses[peakBuilderTypeNumber];
 
 		try {
@@ -317,19 +316,24 @@ public class PeakBuilderSetupDialog extends ParameterSetupDialog implements
 		Vector<Peak> totalPeaks = new Vector<Peak>();
 		float mz = mzRange.getAverage();
 		for (int i = 0; i < listScans.length; i++) {
+			
 			MzPeak[] mzValues = { new MzPeak(new SimpleDataPoint(mz, ticDataset
 					.getY(0, i).floatValue())) };
 			peaks = peakBuilder.addScan(previewDataFile.getScan(listScans[i]),
 					mzValues, previewDataFile);
+
 			if (peaks.length > 0)
-				for (Peak p : peaks)
+				for (Peak p : peaks){
 					totalPeaks.add(p);
+				}
+			peaks = null;
 		}
 
 		peaks = peakBuilder.finishPeaks();
 		if (peaks.length > 0)
-			for (Peak p : peaks)
+			for (Peak p : peaks){
 				totalPeaks.add(p);
+			}
 
 		if (!totalPeaks.isEmpty()) {
 			int peakInd = 0;
@@ -356,77 +360,6 @@ public class PeakBuilderSetupDialog extends ParameterSetupDialog implements
 	}
 
 	/**
-	 * This function collect all the information from the form's filed and build
-	 * the ParameterSet.
-	 * 
-	 */
-	void buildParameterSetPeakBuilder() {
-		Iterator<Parameter> paramIter = parametersAndComponents.keySet()
-				.iterator();
-		while (paramIter.hasNext()) {
-			Parameter p = paramIter.next();
-
-			try {
-
-				Object[] possibleValues = p.getPossibleValues();
-				if (possibleValues != null) {
-					JComboBox combo = (JComboBox) parametersAndComponents
-							.get(p);
-					pbParameters.setParameterValue(p, possibleValues[combo
-							.getSelectedIndex()]);
-					continue;
-				}
-
-				switch (p.getType()) {
-				case INTEGER:
-					JFormattedTextField intField = (JFormattedTextField) parametersAndComponents
-							.get(p);
-					Integer newIntValue = ((Number) intField.getValue())
-							.intValue();
-					pbParameters.setParameterValue(p, newIntValue);
-					break;
-				case FLOAT:
-					JFormattedTextField doubleField = (JFormattedTextField) parametersAndComponents
-							.get(p);
-					Float newFloatValue = ((Number) doubleField.getValue())
-							.floatValue();
-					pbParameters.setParameterValue(p, newFloatValue);
-					break;
-				case RANGE:
-					JPanel panel = (JPanel) parametersAndComponents.get(p);
-					JFormattedTextField minField = (JFormattedTextField) panel
-							.getComponent(0);
-					JFormattedTextField maxField = (JFormattedTextField) panel
-							.getComponent(2);
-					float minValue = ((Number) minField.getValue())
-							.floatValue();
-					float maxValue = ((Number) maxField.getValue())
-							.floatValue();
-					Range rangeValue = new Range(minValue, maxValue);
-					pbParameters.setParameterValue(p, rangeValue);
-					break;
-				case STRING:
-					JTextField stringField = (JTextField) parametersAndComponents
-							.get(p);
-					pbParameters.setParameterValue(p, stringField.getText());
-					break;
-				case BOOLEAN:
-					JCheckBox checkBox = (JCheckBox) parametersAndComponents
-							.get(p);
-					Boolean newBoolValue = checkBox.isSelected();
-					pbParameters.setParameterValue(p, newBoolValue);
-					break;
-				}
-
-			} catch (Exception invalidValueException) {
-				desktop.displayMessage(invalidValueException.getMessage());
-				return;
-			}
-
-		}
-	}
-
-	/**
 	 * This function add all the additional components for this dialog over the
 	 * original ParameterSetupDialog.
 	 * 
@@ -435,14 +368,14 @@ public class PeakBuilderSetupDialog extends ParameterSetupDialog implements
 
 		// Elements of pnlpreview
 		JPanel pnlpreview = new JPanel(new BorderLayout());
+
 		preview = new JCheckBox(" Show preview of peak building ");
 		preview.addActionListener(this);
 		preview.setHorizontalAlignment(SwingConstants.CENTER);
 
-		JSeparator line = new JSeparator();
-
-		pnlpreview.add(line, BorderLayout.NORTH);
+		pnlpreview.add(new JSeparator(), BorderLayout.NORTH);
 		pnlpreview.add(preview, BorderLayout.CENTER);
+		pnlpreview.add(Box.createVerticalStrut(10), BorderLayout.SOUTH);
 
 		// Elements of pnlLab
 		JPanel pnlLab = new JPanel();
@@ -474,12 +407,10 @@ public class PeakBuilderSetupDialog extends ParameterSetupDialog implements
 		JPanel pnlRetention = new JPanel(new FlowLayout());
 
 		minTxtFieldRet = new JFormattedTextField(MZmineCore.getRTFormat());
-		minTxtFieldRet.setEnabled(false);
 		minTxtFieldRet.setColumns(TEXTFIELD_COLUMNS);
 		minTxtFieldRet.setValue(rtRange.getMin());
 
 		maxTxtFieldRet = new JFormattedTextField(MZmineCore.getRTFormat());
-		maxTxtFieldRet.setEnabled(false);
 		maxTxtFieldRet.setColumns(TEXTFIELD_COLUMNS);
 		maxTxtFieldRet.setValue(rtRange.getMax());
 
@@ -492,12 +423,10 @@ public class PeakBuilderSetupDialog extends ParameterSetupDialog implements
 		JPanel pnlMZ = new JPanel(new FlowLayout());
 
 		minTxtFieldMZ = new JFormattedTextField(MZmineCore.getMZFormat());
-		minTxtFieldMZ.setEnabled(false);
 		minTxtFieldMZ.setColumns(TEXTFIELD_COLUMNS);
 		minTxtFieldMZ.setValue(mzRange.getMin());
 
 		maxTxtFieldMZ = new JFormattedTextField(MZmineCore.getMZFormat());
-		maxTxtFieldMZ.setEnabled(false);
 		maxTxtFieldMZ.setColumns(TEXTFIELD_COLUMNS);
 		maxTxtFieldMZ.setValue(mzRange.getMax());
 
@@ -518,15 +447,43 @@ public class PeakBuilderSetupDialog extends ParameterSetupDialog implements
 		pnlSpace.setLayout(new BoxLayout(pnlSpace, BoxLayout.Y_AXIS));
 		pnlSpace.setBorder(BorderFactory.createEmptyBorder(5, 5, 5, 5));
 
-		pnlSpace.add(Box.createHorizontalStrut(50));
+		pnlSpace.add(new JLabel(" "));
+		pnlSpace.add(Box.createVerticalStrut(25));
+		pnlSpace.add(new JLabel("min. "));
+		pnlSpace.add(Box.createVerticalStrut(25));
+		pnlSpace.add(new JLabel("m/z "));
+
+		// Elements of pnlLoad
+		JPanel pnlLoad = new JPanel();
+		pnlLoad.setLayout(new BoxLayout(pnlLoad, BoxLayout.X_AXIS));
+		pnlLoad.setBorder(BorderFactory.createEmptyBorder(1, 5, 1, 5));
+
+		btnLoad = new JButton("Update Chromatograph");
+		btnLoad.addActionListener(this);
+
+		pnlLoad
+				.add(new JLabel(
+						"<html><font size=2 color=#336699>For each scan, most intense data point<br> within given"
+								+ " m/z range, is used to build<br> the chromatograph.</font><br><br></html>"));
+		pnlLoad.add(btnLoad);
+
+		JPanel pnlLoadSep = new JPanel(new BorderLayout());
+		pnlLoadSep.add(pnlLoad, BorderLayout.NORTH);
+		pnlLoadSep.add(new JSeparator(), BorderLayout.SOUTH);
 
 		// Put all together
-		JPanel pnlFileNameScanNumber = new JPanel(new BorderLayout());
+		pnlFileNameScanNumber = new JPanel(new BorderLayout());
 
-		pnlFileNameScanNumber.add(pnlpreview, BorderLayout.NORTH);
 		pnlFileNameScanNumber.add(pnlLab, BorderLayout.WEST);
 		pnlFileNameScanNumber.add(pnlFlds, BorderLayout.CENTER);
 		pnlFileNameScanNumber.add(pnlSpace, BorderLayout.EAST);
+		pnlFileNameScanNumber.add(pnlLoadSep, BorderLayout.SOUTH);
+		pnlFileNameScanNumber.setVisible(false);
+
+		JPanel pnlVisible = new JPanel(new BorderLayout());
+
+		pnlVisible.add(pnlpreview, BorderLayout.NORTH);
+		pnlVisible.add(pnlFileNameScanNumber, BorderLayout.SOUTH);
 
 		// Panel for XYPlot
 		pnlPlotXY = new JPanel(new BorderLayout());
@@ -542,7 +499,7 @@ public class PeakBuilderSetupDialog extends ParameterSetupDialog implements
 		toolBar.getComponentAtIndex(0).setVisible(false);
 		pnlPlotXY.add(toolBar, BorderLayout.EAST);
 
-		labelsAndFields.add(pnlFileNameScanNumber, BorderLayout.SOUTH);
+		labelsAndFields.add(pnlVisible, BorderLayout.SOUTH);
 
 		// Complete panel for this dialog including pnlPlotXY
 		pnlLocal = new JPanel(new BorderLayout());
@@ -550,37 +507,13 @@ public class PeakBuilderSetupDialog extends ParameterSetupDialog implements
 		pnlLocal.add(pnlAll, BorderLayout.WEST);
 	}
 
-	private void enablePreviewComponents(boolean logic) {
-
-		minTxtFieldRet.setEnabled(logic);
-		maxTxtFieldRet.setEnabled(logic);
-		minTxtFieldMZ.setEnabled(logic);
-		maxTxtFieldMZ.setEnabled(logic);
-		this.setResizable(logic);
-
-		if (logic) {
-			minTxtFieldRet.addPropertyChangeListener("value", this);
-			maxTxtFieldRet.addPropertyChangeListener("value", this);
-			minTxtFieldMZ.addPropertyChangeListener("value", this);
-			maxTxtFieldMZ.addPropertyChangeListener("value", this);
-		} else {
-			minTxtFieldRet.removePropertyChangeListener("value", this);
-			maxTxtFieldRet.removePropertyChangeListener("value", this);
-			minTxtFieldMZ.removePropertyChangeListener("value", this);
-			maxTxtFieldMZ.removePropertyChangeListener("value", this);
-		}
-
-	}
-
 	public TICDataSet[] getDataSet() {
 		TICDataSet[] ticDatasets = { ticDataset };
 		return ticDatasets;
 	}
 
-	protected void freeMemory() {
+	private void freeMemory() {
 		System.gc();
-		System.runFinalization();
-
 	}
 
 }

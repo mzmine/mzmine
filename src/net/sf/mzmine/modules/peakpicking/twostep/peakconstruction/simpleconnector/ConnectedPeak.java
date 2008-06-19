@@ -27,7 +27,6 @@ import net.sf.mzmine.data.DataPoint;
 import net.sf.mzmine.data.Peak;
 import net.sf.mzmine.data.PeakStatus;
 import net.sf.mzmine.data.RawDataFile;
-import net.sf.mzmine.data.Scan;
 import net.sf.mzmine.modules.peakpicking.twostep.massdetection.MzPeak;
 import net.sf.mzmine.util.CollectionUtils;
 import net.sf.mzmine.util.MathUtils;
@@ -85,7 +84,8 @@ public class ConnectedPeak implements Peak {
 		// Initial ranges of our peak using all values from MzPeak
 		rtRange = new Range(rt);
 
-		DataPoint[] mzPeakRawDataPoints = mzValue.getMzPeak().getRawDataPoints();
+		DataPoint[] mzPeakRawDataPoints = mzValue.getMzPeak()
+				.getRawDataPoints();
 
 		for (DataPoint dp : mzPeakRawDataPoints) {
 			if (mzRange == null)
@@ -123,7 +123,8 @@ public class ConnectedPeak implements Peak {
 
 		rtRange.extendRange(mzValue.getScan().getRetentionTime());
 
-		DataPoint[] mzPeakRawDataPoints = mzValue.getMzPeak().getRawDataPoints();
+		DataPoint[] mzPeakRawDataPoints = mzValue.getMzPeak()
+				.getRawDataPoints();
 
 		for (DataPoint dp : mzPeakRawDataPoints) {
 			mzRange.extendRange(dp.getMZ());
@@ -290,8 +291,7 @@ public class ConnectedPeak implements Peak {
 	 */
 	public Vector<Float> getConstructionIntensities() {
 		Vector<Float> datapointsIntensities = new Vector<Float>();
-		Iterator<Integer> indexIterator = datapointsMap.keySet()
-				.iterator();
+		Iterator<Integer> indexIterator = datapointsMap.keySet().iterator();
 		while (indexIterator.hasNext()) {
 			int index = indexIterator.next();
 			MzPeak mzPeak = datapointsMap.get(index).getMzPeak();
@@ -316,6 +316,10 @@ public class ConnectedPeak implements Peak {
 	 */
 	public String toString() {
 		return PeakUtils.peakToString(this);
+	}
+
+	public void setMZ(float mz) {
+		this.mz = mz;
 	}
 
 }

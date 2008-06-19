@@ -308,4 +308,9 @@ class RecursivePeak implements Peak {
         return PeakUtils.peakToString(this);
     }
 
+	public void setMZ(float mz) {
+		// TODO Auto-generated method stub
+		
+	}
+
 }

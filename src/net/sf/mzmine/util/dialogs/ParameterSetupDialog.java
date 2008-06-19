@@ -72,7 +72,7 @@ public class ParameterSetupDialog extends JDialog implements ActionListener {
 	private ExitCode exitCode = ExitCode.UNKNOWN;
 
 	private Logger logger = Logger.getLogger(this.getClass().getName());
-	
+
 	protected String helpID;
 
 	// Parameters and their representation in the dialog
@@ -93,7 +93,7 @@ public class ParameterSetupDialog extends JDialog implements ActionListener {
 
 	// Desktop
 	private Desktop desktop = MZmineCore.getDesktop();
-	
+
 	/**
 	 * Constructor
 	 */
@@ -104,14 +104,16 @@ public class ParameterSetupDialog extends JDialog implements ActionListener {
 	/**
 	 * Constructor
 	 */
-	public ParameterSetupDialog(String title, SimpleParameterSet parameters, String helpID) {
+	public ParameterSetupDialog(String title, SimpleParameterSet parameters,
+			String helpID) {
 		this(title, parameters, null, helpID);
 	}
 
 	/**
 	 * Constructor
 	 */
-	public ParameterSetupDialog(String title, SimpleParameterSet parameters, Hashtable<Parameter, Object> autoValues) {
+	public ParameterSetupDialog(String title, SimpleParameterSet parameters,
+			Hashtable<Parameter, Object> autoValues) {
 		this(title, parameters, autoValues, null);
 	}
 
@@ -280,72 +282,7 @@ public class ParameterSetupDialog extends JDialog implements ActionListener {
 		Object src = ae.getSource();
 
 		if (src == btnOK) {
-
-			// Copy values from form, validate them, and set them to project
-			Iterator<Parameter> paramIter = parametersAndComponents.keySet()
-					.iterator();
-			while (paramIter.hasNext()) {
-				Parameter p = paramIter.next();
-
-				try {
-
-					Object[] possibleValues = p.getPossibleValues();
-					if (possibleValues != null) {
-						JComboBox combo = (JComboBox) parametersAndComponents
-								.get(p);
-						parameters.setParameterValue(p, possibleValues[combo
-								.getSelectedIndex()]);
-						continue;
-					}
-
-					switch (p.getType()) {
-					case INTEGER:
-						JFormattedTextField intField = (JFormattedTextField) parametersAndComponents
-								.get(p);
-						Integer newIntValue = ((Number) intField.getValue())
-								.intValue();
-						parameters.setParameterValue(p, newIntValue);
-						break;
-					case FLOAT:
-						JFormattedTextField doubleField = (JFormattedTextField) parametersAndComponents
-								.get(p);
-						Float newFloatValue = ((Number) doubleField.getValue())
-								.floatValue();
-						parameters.setParameterValue(p, newFloatValue);
-						break;
-					case RANGE:
-						JPanel panel = (JPanel) parametersAndComponents.get(p);
-						JFormattedTextField minField = (JFormattedTextField) panel
-								.getComponent(0);
-						JFormattedTextField maxField = (JFormattedTextField) panel
-								.getComponent(2);
-						float minValue = ((Number) minField.getValue())
-								.floatValue();
-						float maxValue = ((Number) maxField.getValue())
-								.floatValue();
-						Range rangeValue = new Range(minValue, maxValue);
-						parameters.setParameterValue(p, rangeValue);
-						break;
-					case STRING:
-						JTextField stringField = (JTextField) parametersAndComponents
-								.get(p);
-						parameters.setParameterValue(p, stringField.getText());
-						break;
-					case BOOLEAN:
-						JCheckBox checkBox = (JCheckBox) parametersAndComponents
-								.get(p);
-						Boolean newBoolValue = checkBox.isSelected();
-						parameters.setParameterValue(p, newBoolValue);
-						break;
-					}
-
-				} catch (Exception invalidValueException) {
-					displayMessage(invalidValueException.getMessage());
-					return;
-				}
-
-			}
-
+			parameters = buildParameterSet(parameters);
 			exitCode = ExitCode.OK;
 			dispose();
 		}
@@ -364,13 +301,16 @@ public class ParameterSetupDialog extends JDialog implements ActionListener {
 		}
 
 		if (src == btnHelp) {
-			
-			HelpBroker hb = ((MainWindow)desktop).getHelp().getHelpBroker();
-			ActionListener helpListener = ((MainWindow)desktop).getHelp().getHelpListener();
-			helpListener.actionPerformed(new ActionEvent(desktop, ActionEvent.ACTION_PERFORMED, null));
+
+			HelpBroker hb = ((MainWindow) desktop).getHelp().getHelpBroker();
+			ActionListener helpListener = ((MainWindow) desktop).getHelp()
+					.getHelpListener();
+			helpListener.actionPerformed(new ActionEvent(desktop,
+					ActionEvent.ACTION_PERFORMED, null));
 			hb.setCurrentID(helpID);
-			WindowPresentation wp = ((DefaultHelpBroker)hb).getWindowPresentation();
-			((JFrame)wp.getHelpWindow()).setAlwaysOnTop(true);
+			WindowPresentation wp = ((DefaultHelpBroker) hb)
+					.getWindowPresentation();
+			((JFrame) wp.getHelpWindow()).setAlwaysOnTop(true);
 
 		}
 
@@ -433,21 +373,98 @@ public class ParameterSetupDialog extends JDialog implements ActionListener {
 			break;
 		}
 	}
-	
-	void setHelpListener(JButton helpBtn){
+
+	/**
+	 * This function collect all the information from the form's filed and build
+	 * the ParameterSet.
+	 * 
+	 */
+	public SimpleParameterSet buildParameterSet(SimpleParameterSet underConstuctionParameter) {
+		Iterator<Parameter> paramIter = parametersAndComponents.keySet()
+				.iterator();
+		while (paramIter.hasNext()) {
+			Parameter p = paramIter.next();
+
+			try {
+
+				Object[] possibleValues = p.getPossibleValues();
+				if (possibleValues != null) {
+					JComboBox combo = (JComboBox) parametersAndComponents
+							.get(p);
+					underConstuctionParameter.setParameterValue(p, possibleValues[combo
+							.getSelectedIndex()]);
+					continue;
+				}
+
+				switch (p.getType()) {
+				case INTEGER:
+					JFormattedTextField intField = (JFormattedTextField) parametersAndComponents
+							.get(p);
+					Integer newIntValue = ((Number) intField.getValue())
+							.intValue();
+					underConstuctionParameter.setParameterValue(p, newIntValue);
+					break;
+				case FLOAT:
+					JFormattedTextField doubleField = (JFormattedTextField) parametersAndComponents
+							.get(p);
+					Float newFloatValue = ((Number) doubleField.getValue())
+							.floatValue();
+					underConstuctionParameter.setParameterValue(p, newFloatValue);
+					break;
+				case RANGE:
+					JPanel panel = (JPanel) parametersAndComponents.get(p);
+					JFormattedTextField minField = (JFormattedTextField) panel
+							.getComponent(0);
+					JFormattedTextField maxField = (JFormattedTextField) panel
+							.getComponent(2);
+					float minValue = ((Number) minField.getValue())
+							.floatValue();
+					float maxValue = ((Number) maxField.getValue())
+							.floatValue();
+					Range rangeValue = new Range(minValue, maxValue);
+					underConstuctionParameter.setParameterValue(p, rangeValue);
+					break;
+				case STRING:
+					JTextField stringField = (JTextField) parametersAndComponents
+							.get(p);
+					underConstuctionParameter.setParameterValue(p, stringField.getText());
+					break;
+				case BOOLEAN:
+					JCheckBox checkBox = (JCheckBox) parametersAndComponents
+							.get(p);
+					Boolean newBoolValue = checkBox.isSelected();
+					underConstuctionParameter.setParameterValue(p, newBoolValue);
+					break;
+				}
+
+			} catch (Exception invalidValueException) {
+				desktop.displayMessage(invalidValueException.getMessage());
+				return underConstuctionParameter;
+			}
+
+		}
+		return underConstuctionParameter;
+	}
+
+	/**
+	 * This method creates the help system in a dialog modal window, and assign
+	 * the ActionListener to the button that receives as parameter
+	 * 
+	 * @param helpBtn
+	 */
+	void setHelpListener(JButton helpBtn) {
 
 		try {
-		File urlAddress = new File(System.getProperty("user.dir")
-			+ File.separator + "help" + File.separator + "help.hs");
-		URL url = urlAddress.toURI().toURL();
-		HelpSet hs = new HelpSet(null, url);
-		HelpBroker hb = hs.createHelpBroker();
-		hb.enableHelpKey(getRootPane(), helpID, hs); 
-		helpBtn.addActionListener(new CSH.DisplayHelpFromSource(hb));
-		}
-		catch (Exception event){
+			File urlAddress = new File(System.getProperty("user.dir")
+					+ File.separator + "help" + File.separator + "help.hs");
+			URL url = urlAddress.toURI().toURL();
+			HelpSet hs = new HelpSet(null, url);
+			HelpBroker hb = hs.createHelpBroker();
+			hb.enableHelpKey(getRootPane(), helpID, hs);
+			helpBtn.addActionListener(new CSH.DisplayHelpFromSource(hb));
+		} catch (Exception event) {
 			event.printStackTrace();
-		}	
+		}
 	}
 
 }

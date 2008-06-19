@@ -221,4 +221,9 @@ class ManualPeak implements Peak {
         this.mz = MathUtils.calcQuantile(mzArray, 0.5f);
 
     }
+
+	public void setMZ(float mz) {
+		// TODO Auto-generated method stub
+		
+	}
 }

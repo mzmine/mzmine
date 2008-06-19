@@ -189,4 +189,9 @@ public class SimpleIsotopePattern implements IsotopePattern {
         else return representativePeak.getMZ() * charge;
     }
 
+	public void setMZ(float mz) {
+		// TODO Auto-generated method stub
+		
+	}
+
 }

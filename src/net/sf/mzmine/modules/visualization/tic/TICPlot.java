@@ -64,9 +64,8 @@ public class TICPlot extends ChartPanel {
 	private JFreeChart chart;
 
 	private XYPlot plot;
-	
-    private static final double zoomCoefficient = 1.2;
 
+	private static final double zoomCoefficient = 1.2;
 
 	// private TICVisualizerWindow visualizer;
 	private ActionListener visualizer;
@@ -78,7 +77,7 @@ public class TICPlot extends ChartPanel {
 			Color.magenta, Color.cyan, Color.orange };
 
 	private static final Color[] peakColors = { Color.pink, Color.red,
-			Color.yellow };
+			Color.yellow, Color.blue, Color.lightGray, Color.orange, Color.green };
 
 	// peak labels color
 	private static final Color labelsColor = Color.darkGray;
@@ -187,12 +186,14 @@ public class TICPlot extends ChartPanel {
 		plot.setRangeGridlinePaint(gridColor);
 
 		// set crosshair (selection) properties
-		plot.setDomainCrosshairVisible(true);
-		plot.setRangeCrosshairVisible(true);
-		plot.setDomainCrosshairPaint(crossHairColor);
-		plot.setRangeCrosshairPaint(crossHairColor);
-		plot.setDomainCrosshairStroke(crossHairStroke);
-		plot.setRangeCrosshairStroke(crossHairStroke);
+		if (visualizer instanceof TICVisualizerWindow) {
+			plot.setDomainCrosshairVisible(true);
+			plot.setRangeCrosshairVisible(true);
+			plot.setDomainCrosshairPaint(crossHairColor);
+			plot.setRangeCrosshairPaint(crossHairColor);
+			plot.setDomainCrosshairStroke(crossHairStroke);
+			plot.setRangeCrosshairStroke(crossHairStroke);
+		}
 
 		NumberFormat rtFormat = MZmineCore.getRTFormat();
 		NumberFormat intensityFormat = MZmineCore.getIntensityFormat();
@@ -215,12 +216,12 @@ public class TICPlot extends ChartPanel {
 		defaultRenderer.setBaseItemLabelPaint(labelsColor);
 
 		// set label generator
-		//if (visualizer instanceof TICVisualizerWindow) {
-			XYItemLabelGenerator labelGenerator = new TICItemLabelGenerator(
-					this, visualizer);
-			defaultRenderer.setBaseItemLabelGenerator(labelGenerator);
-			defaultRenderer.setBaseItemLabelsVisible(true);
-		//}
+		// if (visualizer instanceof TICVisualizerWindow) {
+		XYItemLabelGenerator labelGenerator = new TICItemLabelGenerator(this,
+				visualizer);
+		defaultRenderer.setBaseItemLabelGenerator(labelGenerator);
+		defaultRenderer.setBaseItemLabelsVisible(true);
+		// }
 
 		// set toolTipGenerator
 		XYToolTipGenerator toolTipGenerator = new TICToolTipGenerator();
@@ -236,10 +237,10 @@ public class TICPlot extends ChartPanel {
 				visualizer, "MOVE_CURSOR_RIGHT");
 		GUIUtils.registerKeyHandler(this, KeyStroke.getKeyStroke("SPACE"),
 				visualizer, "SHOW_SPECTRUM");
-		GUIUtils.registerKeyHandler(this, KeyStroke.getKeyStroke('+'),
-				this, "ZOOM_IN");
-		GUIUtils.registerKeyHandler(this, KeyStroke.getKeyStroke('-'),
-				this, "ZOOM_OUT");
+		GUIUtils.registerKeyHandler(this, KeyStroke.getKeyStroke('+'), this,
+				"ZOOM_IN");
+		GUIUtils.registerKeyHandler(this, KeyStroke.getKeyStroke('-'), this,
+				"ZOOM_OUT");
 
 		// add items to popup menu
 		JPopupMenu popupMenu = getPopupMenu();
@@ -256,20 +257,22 @@ public class TICPlot extends ChartPanel {
 
 		}
 
-		GUIUtils.addMenuItem(popupMenu, "Toggle showing peak values",
-				this, "SHOW_ANNOTATIONS");
-		GUIUtils.addMenuItem(popupMenu, "Toggle showing data points",
-				this, "SHOW_DATA_POINTS");
-		popupMenu.addSeparator();
-		GUIUtils.addMenuItem(popupMenu, "Show spectrum of selected scan",
-				visualizer, "SHOW_SPECTRUM");
+		GUIUtils.addMenuItem(popupMenu, "Toggle showing peak values", this,
+				"SHOW_ANNOTATIONS");
+		GUIUtils.addMenuItem(popupMenu, "Toggle showing data points", this,
+				"SHOW_DATA_POINTS");
+
+		if (visualizer instanceof TICVisualizerWindow){
+			popupMenu.addSeparator();
+			GUIUtils.addMenuItem(popupMenu, "Show spectrum of selected scan",
+					visualizer, "SHOW_SPECTRUM");
+		}
 
 		popupMenu.addSeparator();
 
-		GUIUtils.addMenuItem(popupMenu, "Set axes range", this,
-				"SETUP_AXES");
+		GUIUtils.addMenuItem(popupMenu, "Set axes range", this, "SETUP_AXES");
+
 		if (visualizer instanceof TICVisualizerWindow)
-
 			GUIUtils.addMenuItem(popupMenu, "Set same range to all windows",
 					this, "SET_SAME_RANGE");
 
@@ -278,7 +281,7 @@ public class TICPlot extends ChartPanel {
 	public void actionPerformed(ActionEvent event) {
 
 		super.actionPerformed(event);
-		
+
 		String command = event.getActionCommand();
 
 		if (command.equals("SHOW_DATA_POINTS")) {
@@ -294,21 +297,19 @@ public class TICPlot extends ChartPanel {
 			dialog.setVisible(true);
 		}
 
-        if (command.equals("ZOOM_IN")) {
-        this.getXYPlot().getDomainAxis().resizeRange(1 / zoomCoefficient);
-        }
+		if (command.equals("ZOOM_IN")) {
+			this.getXYPlot().getDomainAxis().resizeRange(1 / zoomCoefficient);
+		}
 
-        if (command.equals("ZOOM_OUT")) {
-        	this.getXYPlot().getDomainAxis().resizeRange(zoomCoefficient);
-        }
-		
-        if (command.equals("SET_SAME_RANGE")) {
+		if (command.equals("ZOOM_OUT")) {
+			this.getXYPlot().getDomainAxis().resizeRange(zoomCoefficient);
+		}
+
+		if (command.equals("SET_SAME_RANGE")) {
 
 			// Get current axes range
-			NumberAxis xAxis = (NumberAxis) this.getXYPlot()
-					.getDomainAxis();
-			NumberAxis yAxis = (NumberAxis) this.getXYPlot()
-					.getRangeAxis();
+			NumberAxis xAxis = (NumberAxis) this.getXYPlot().getDomainAxis();
+			NumberAxis yAxis = (NumberAxis) this.getXYPlot().getRangeAxis();
 			float xMin = (float) xAxis.getRange().getLowerBound();
 			float xMax = (float) xAxis.getRange().getUpperBound();
 			float xTick = (float) xAxis.getTickUnit().getSize();
@@ -317,7 +318,8 @@ public class TICPlot extends ChartPanel {
 			float yTick = (float) yAxis.getTickUnit().getSize();
 
 			// Get all frames of my class
-			JInternalFrame spectraFrames[] = MZmineCore.getDesktop().getInternalFrames();
+			JInternalFrame spectraFrames[] = MZmineCore.getDesktop()
+					.getInternalFrames();
 
 			// Set the range of these frames
 			for (JInternalFrame frame : spectraFrames) {
@@ -328,13 +330,12 @@ public class TICPlot extends ChartPanel {
 			}
 
 		}
-        
-        if (command.equals("SHOW_SPECTRUM")) {
-        	visualizer.actionPerformed(event);
-        }
+
+		if (command.equals("SHOW_SPECTRUM")) {
+			visualizer.actionPerformed(event);
+		}
 	}
-	
-	
+
 	/**
 	 * @see java.awt.event.MouseListener#mouseClicked(java.awt.event.MouseEvent)
 	 */
@@ -462,8 +463,6 @@ public class TICPlot extends ChartPanel {
 		numOfDataSets = 0;
 	}
 
-	
-	
 	void setTitle(String titleText, String subTitleText) {
 		chartTitle.setText(titleText);
 		chartSubTitle.setText(subTitleText);

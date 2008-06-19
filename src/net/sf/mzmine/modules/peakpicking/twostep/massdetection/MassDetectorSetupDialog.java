@@ -29,7 +29,6 @@ import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.lang.reflect.Constructor;
 import java.text.NumberFormat;
-import java.util.Iterator;
 import java.util.Vector;
 import java.util.logging.Logger;
 
@@ -44,17 +43,15 @@ import javax.swing.DefaultComboBoxModel;
 import javax.swing.JButton;
 import javax.swing.JCheckBox;
 import javax.swing.JComboBox;
-import javax.swing.JFormattedTextField;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JSeparator;
-import javax.swing.JTextField;
+import javax.swing.SwingConstants;
 import javax.swing.border.Border;
 import javax.swing.border.EtchedBorder;
 
 import net.sf.mzmine.data.DataPoint;
-import net.sf.mzmine.data.Parameter;
 import net.sf.mzmine.data.Peak;
 import net.sf.mzmine.data.RawDataFile;
 import net.sf.mzmine.data.Scan;
@@ -71,7 +68,6 @@ import net.sf.mzmine.modules.visualization.spectra.ScanDataSet;
 import net.sf.mzmine.modules.visualization.spectra.SpectraPlot;
 import net.sf.mzmine.modules.visualization.spectra.SpectraToolBar;
 import net.sf.mzmine.util.GUIUtils;
-import net.sf.mzmine.util.Range;
 import net.sf.mzmine.util.dialogs.ParameterSetupDialog;
 
 import org.jfree.chart.labels.XYToolTipGenerator;
@@ -91,7 +87,7 @@ public class MassDetectorSetupDialog extends ParameterSetupDialog implements
 	private String[] fileNames;
 
 	// Dialog components
-	private JPanel pnlPlotXY, pnlLocal;
+	private JPanel pnlPlotXY, pnlLocal, pnlFileNameScanNumber;
 	private JComboBox comboDataFileName, comboScanNumber;
 	private JCheckBox preview;
 	private JButton nextScanBtn;
@@ -222,6 +218,9 @@ public class MassDetectorSetupDialog extends ParameterSetupDialog implements
 
 	}
 
+	/**
+	 * @see net.sf.mzmine.util.dialogs.ParameterSetupDialog#actionPerformed(java.awt.event.ActionEvent)
+	 */
 	public void actionPerformed(ActionEvent event) {
 
 		Object src = event.getSource();
@@ -268,24 +267,17 @@ public class MassDetectorSetupDialog extends ParameterSetupDialog implements
 				int ind = comboScanNumber.getSelectedIndex();
 				pnlLocal.add(pnlPlotXY, BorderLayout.CENTER);
 				add(pnlLocal);
+				pnlFileNameScanNumber.setVisible(true);
 				pack();
-				comboDataFileName.setEnabled(true);
-				comboScanNumber.setEnabled(true);
-				nextScanBtn.setEnabled(true);
-				prevScanBtn.setEnabled(true);
 				setPeakListDataSet(ind);
 				loadScan(listScans[ind]);
 				this.setResizable(true);
 				setLocationRelativeTo(MZmineCore.getDesktop().getMainFrame());
 			} else {
 				pnlLocal.remove(pnlPlotXY);
-				add(pnlLocal);
-				pack();
-				comboDataFileName.setEnabled(false);
-				comboScanNumber.setEnabled(false);
-				nextScanBtn.setEnabled(false);
-				prevScanBtn.setEnabled(false);
+				pnlFileNameScanNumber.setVisible(false);
 				this.setResizable(false);
+				pack();
 				setLocationRelativeTo(MZmineCore.getDesktop().getMainFrame());
 			}
 		}
@@ -326,7 +318,7 @@ public class MassDetectorSetupDialog extends ParameterSetupDialog implements
 
 		SimplePeakList newPeakList = new SimplePeakList(previewDataFile
 				+ "_singleScanPeak", previewDataFile);
-		buildParameterSetMassDetector();
+		mdParameters = buildParameterSet(mdParameters);
 		String massDetectorClassName = TwoStepPickerParameters.massDetectorClasses[massDetectorTypeNumber];
 
 		try {
@@ -372,76 +364,8 @@ public class MassDetectorSetupDialog extends ParameterSetupDialog implements
 	}
 
 	/**
-	 * This function collect all the information from the form's filed and build
-	 * the ParameterSet.
-	 * 
+	 * @see java.beans.PropertyChangeListener#propertyChange(java.beans.PropertyChangeEvent)
 	 */
-	void buildParameterSetMassDetector() {
-		Iterator<Parameter> paramIter = parametersAndComponents.keySet()
-				.iterator();
-		while (paramIter.hasNext()) {
-			Parameter p = paramIter.next();
-
-			try {
-
-				Object[] possibleValues = p.getPossibleValues();
-				if (possibleValues != null) {
-					JComboBox combo = (JComboBox) parametersAndComponents
-							.get(p);
-					mdParameters.setParameterValue(p, possibleValues[combo
-							.getSelectedIndex()]);
-					continue;
-				}
-
-				switch (p.getType()) {
-				case INTEGER:
-					JFormattedTextField intField = (JFormattedTextField) parametersAndComponents
-							.get(p);
-					Integer newIntValue = ((Number) intField.getValue())
-							.intValue();
-					mdParameters.setParameterValue(p, newIntValue);
-					break;
-				case FLOAT:
-					JFormattedTextField doubleField = (JFormattedTextField) parametersAndComponents
-							.get(p);
-					Float newFloatValue = ((Number) doubleField.getValue())
-							.floatValue();
-					mdParameters.setParameterValue(p, newFloatValue);
-					break;
-				case RANGE:
-					JPanel panel = (JPanel) parametersAndComponents.get(p);
-					JFormattedTextField minField = (JFormattedTextField) panel
-							.getComponent(0);
-					JFormattedTextField maxField = (JFormattedTextField) panel
-							.getComponent(2);
-					float minValue = ((Number) minField.getValue())
-							.floatValue();
-					float maxValue = ((Number) maxField.getValue())
-							.floatValue();
-					Range rangeValue = new Range(minValue, maxValue);
-					mdParameters.setParameterValue(p, rangeValue);
-					break;
-				case STRING:
-					JTextField stringField = (JTextField) parametersAndComponents
-							.get(p);
-					mdParameters.setParameterValue(p, stringField.getText());
-					break;
-				case BOOLEAN:
-					JCheckBox checkBox = (JCheckBox) parametersAndComponents
-							.get(p);
-					Boolean newBoolValue = checkBox.isSelected();
-					mdParameters.setParameterValue(p, newBoolValue);
-					break;
-				}
-
-			} catch (Exception invalidValueException) {
-				desktop.displayMessage(invalidValueException.getMessage());
-				return;
-			}
-
-		}
-	}
-
 	public void propertyChange(PropertyChangeEvent e) {
 		if (preview.isSelected()) {
 			int ind = comboScanNumber.getSelectedIndex();
@@ -463,12 +387,13 @@ public class MassDetectorSetupDialog extends ParameterSetupDialog implements
 
 		// Elements of pnlpreview
 		JPanel pnlpreview = new JPanel(new BorderLayout());
+		
 		preview = new JCheckBox(" Show preview of mass peak detection ");
 		preview.addActionListener(this);
+		preview.setHorizontalAlignment(SwingConstants.CENTER);
+		pnlpreview.add(Box.createVerticalStrut(10), BorderLayout.SOUTH);
 
-		JSeparator line = new JSeparator();
-
-		pnlpreview.add(line, BorderLayout.NORTH);
+		pnlpreview.add(new JSeparator(), BorderLayout.NORTH);
 		pnlpreview.add(preview, BorderLayout.CENTER);
 
 		// Elements of pnlLab
@@ -476,12 +401,9 @@ public class MassDetectorSetupDialog extends ParameterSetupDialog implements
 		pnlLab.setLayout(new BoxLayout(pnlLab, BoxLayout.Y_AXIS));
 		pnlLab.setBorder(BorderFactory.createEmptyBorder(5, 5, 5, 5));
 
-		JLabel lblFileSelected = new JLabel("Data file ");
-		JLabel lblScanNumber = new JLabel("Scan number ");
-
-		pnlLab.add(lblFileSelected);
+		pnlLab.add(new JLabel("Data file "));
 		pnlLab.add(Box.createVerticalStrut(25));
-		pnlLab.add(lblScanNumber);
+		pnlLab.add(new JLabel("Scan number "));
 
 		// Elements of pnlFlds
 		JPanel pnlFlds = new JPanel();
@@ -492,25 +414,23 @@ public class MassDetectorSetupDialog extends ParameterSetupDialog implements
 		comboDataFileName.setSelectedIndex(indexComboFileName);
 		comboDataFileName.setBackground(Color.WHITE);
 		comboDataFileName.addActionListener(this);
-		comboDataFileName.setEnabled(false);
 
 		comboScanNumber = new JComboBox(currentScanNumberlist);
 		comboScanNumber.setSelectedIndex(0);
 		comboScanNumber.setBackground(Color.WHITE);
 		comboScanNumber.addActionListener(this);
-		comboScanNumber.setEnabled(false);
 
 		pnlFlds.add(comboDataFileName);
 		pnlFlds.add(Box.createVerticalStrut(10));
 
 		// --> Elements of pnlScanArrows
+
 		JPanel pnlScanArrows = new JPanel();
 		pnlScanArrows.setLayout(new BoxLayout(pnlScanArrows, BoxLayout.X_AXIS));
 
 		prevScanBtn = GUIUtils.addButton(pnlScanArrows, leftArrow, null,
 				(ActionListener) this, "PREVIOUS_SCAN");
 		prevScanBtn.setFont(new Font("SansSerif", Font.BOLD, 14));
-		prevScanBtn.setEnabled(false);
 
 		pnlScanArrows.add(Box.createHorizontalStrut(5));
 		pnlScanArrows.add(comboScanNumber);
@@ -519,7 +439,7 @@ public class MassDetectorSetupDialog extends ParameterSetupDialog implements
 		nextScanBtn = GUIUtils.addButton(pnlScanArrows, rightArrow, null,
 				(ActionListener) this, "NEXT_SCAN");
 		nextScanBtn.setFont(new Font("SansSerif", Font.BOLD, 14));
-		nextScanBtn.setEnabled(false);
+
 		// <--
 
 		pnlFlds.add(pnlScanArrows);
@@ -532,12 +452,18 @@ public class MassDetectorSetupDialog extends ParameterSetupDialog implements
 		pnlSpace.add(Box.createHorizontalStrut(50));
 
 		// Put all together
-		JPanel pnlFileNameScanNumber = new JPanel(new BorderLayout());
+		pnlFileNameScanNumber = new JPanel(new BorderLayout());
 
 		pnlFileNameScanNumber.add(pnlpreview, BorderLayout.NORTH);
 		pnlFileNameScanNumber.add(pnlLab, BorderLayout.WEST);
 		pnlFileNameScanNumber.add(pnlFlds, BorderLayout.CENTER);
 		pnlFileNameScanNumber.add(pnlSpace, BorderLayout.EAST);
+		pnlFileNameScanNumber.setVisible(false);
+		
+		JPanel pnlVisible = new JPanel(new BorderLayout());
+
+		pnlVisible.add(pnlpreview, BorderLayout.NORTH);
+		pnlVisible.add(pnlFileNameScanNumber, BorderLayout.SOUTH);
 
 		// Panel for XYPlot
 		pnlPlotXY = new JPanel(new BorderLayout());
@@ -556,7 +482,7 @@ public class MassDetectorSetupDialog extends ParameterSetupDialog implements
 		spectrumPlot.setRelatedToolBar(toolBar);
 		pnlPlotXY.add(toolBar, BorderLayout.EAST);
 
-		labelsAndFields.add(pnlFileNameScanNumber, BorderLayout.SOUTH);
+		labelsAndFields.add(pnlVisible, BorderLayout.SOUTH);
 
 		// Complete panel for this dialog including pnlPlotXY
 		pnlLocal = new JPanel(new BorderLayout());
@@ -564,10 +490,8 @@ public class MassDetectorSetupDialog extends ParameterSetupDialog implements
 		pnlLocal.add(pnlAll, BorderLayout.WEST);
 	}
 	
-	protected void freeMemory() {
+	private void freeMemory() {
 		System.gc();
-		System.runFinalization();
-
 	}
 
 }

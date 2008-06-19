@@ -98,4 +98,9 @@ class FakePeak implements Peak {
 		return scanNumbers;
 	}
 
+	public void setMZ(float mz) {
+		// TODO Auto-generated method stub
+		
+	}
+
 }
