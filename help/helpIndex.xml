@@ -1,5 +1,72 @@
   <?xml version="1.0" encoding="ISO-8859-1" standalone="no"?>
   <!DOCTYPE index PUBLIC "-//Sun Microsystems Inc.//DTD JavaHelp Index Version 1.0//EN" "http://java.sun.com/products/javahelp/index_1_0.dtd">
   <index version="1.0">
-    <indexitem text="test" target="item2"/>
+    <indexitem text="MZmine" target="MZmine1"/>
+   <indexitem text="alignment" target="Alignment1" />
+   <indexitem text="fragment" target="Alignment2" />
+   <indexitem text="batch" target="Batch1" />
+   <indexitem text="batch configuration" target="Batch2" />
+   <indexitem text="batch add" target="Batch2" />
+   <indexitem text="batch remove" target="Batch2" />
+   <indexitem text="batch configure" target="Batch2" />
+   <indexitem text="Wavelet" target="analysis1" />
+   <indexitem text="Gaussian" target="analysis1" />
+   <indexitem text="Lorentzian" target="analysis1" />
+   <indexitem text="Poisson" target="analysis1" />
+   <indexitem text="EMG" target="analysis1" />
+   <indexitem text="databases" target="Databases1" />
+   <indexitem text="KEGG" target="Databases2" />
+   <indexitem text="PubChem" target="Databases3" />
+   <indexitem text="search" target="Identification1" />
+   <indexitem text="MZmine" target="MZmine1" />
+   <indexitem text="contact" target="MZmine2" />
+   <indexitem text="data point" target="Data1"  />
+   <indexitem text="scan" target="Data2"  />
+   <indexitem text="peak" target="Data3"  />
+   <indexitem text="peak list" target="Data4"  />
+   <indexitem text="mzXML" target="RawData1"  />
+   <indexitem text="mzData" target="RawData1"  />
+   <indexitem text="mzML" target="RawData1"  />
+   <indexitem text="CDF" target="RawData1"  />
+   <indexitem text="Raw" target="RawData1"  />
+   <indexitem text="Thermo" target="RawData1"  />
+   <indexitem text="RT normalizer" target="Normalization1"  />
+   <indexitem text="Linear normalizer" target="Normalization2"  />
+   <indexitem text="Compound normalizer" target="Normalization3"  />
+   <indexitem text="Isotopic" target="list1"  />
+   <indexitem text="FTMS" target="list2"  />
+   <indexitem text="duplicate list" target="list3"  />
+   <indexitem text="list filter" target="list4"  />
+   <indexitem text="Accurate" target="Peak1"  />
+   <indexitem text="Centroid" target="Peak2"  />
+   <indexitem text="Centroid another" target="Peak3"  />
+   <indexitem text="Gap" target="Peak4"  />
+   <indexitem text="Recursive" target="Peak5"  />
+   <indexitem text="two steps" target="steps1"  />
+   <indexitem text="Centroid mass" target="Mass1"  />
+   <indexitem text="Exact mass" target="Mass2"  />
+   <indexitem text="FTMS remove" target="Mass2"  />
+   <indexitem text="Local maximum mass" target="Mass3"  />
+   <indexitem text="Recursive mass" target="Mass4"  />
+   <indexitem text="Wavelet mass" target="Mass5"  />
+   <indexitem text="Simple connector" target="Builder1"  />
+   <indexitem text="new" target="Project1"  />
+   <indexitem text="open" target="Project2"  />
+   <indexitem text="save" target="Project3"  />
+   <indexitem text="import" target="Project4"  />
+   <indexitem text="export" target="Project5"  />
+   <indexitem text="output" target="Project5"  />
+   <indexitem text="Crop" target="RawProc1"  />
+   <indexitem text="Mean" target="RawProc2"  />
+   <indexitem text="Savitzky" target="RawProc3"  />
+   <indexitem text="median" target="RawProc4"  />
+   <indexitem text="zoom" target="RawProc5"  />
+   <indexitem text="Spectrum" target="Visualization1"  />
+   <indexitem text="Chromatograph" target="Visualization2"  />
+   <indexitem text="TIC" target="Visualization3"  />
+   <indexitem text="XIC" target="Visualization3"  />
+   <indexitem text="2D" target="Visualization4"  />
+   <indexitem text="3D" target="Visualization5"  />
+   <indexitem text="windows" target="Windows1"  />
+
   </index>

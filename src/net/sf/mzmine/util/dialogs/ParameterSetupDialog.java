@@ -24,13 +24,17 @@ import java.awt.FlowLayout;
 import java.awt.GridLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.io.File;
+import java.net.URL;
 import java.text.NumberFormat;
 import java.util.Hashtable;
 import java.util.Iterator;
 import java.util.logging.Logger;
 
+import javax.help.CSH;
 import javax.help.DefaultHelpBroker;
 import javax.help.HelpBroker;
+import javax.help.HelpSet;
 import javax.help.WindowPresentation;
 import javax.swing.BorderFactory;
 import javax.swing.JButton;
@@ -271,10 +275,10 @@ public class ParameterSetupDialog extends JDialog implements ActionListener {
 		}
 
 		if (helpID != null) {
-			btnHelp = new JButton("Help");
-			btnHelp.addActionListener(this);
-			pnlButtons.add(btnHelp);
 			this.helpID = helpID;
+			btnHelp = new JButton("Help");
+			setHelpListener(btnHelp);
+			pnlButtons.add(btnHelp);
 		}
 
 		// Panel collecting all labels, fileds and units
@@ -460,6 +464,22 @@ public class ParameterSetupDialog extends JDialog implements ActionListener {
 			checkBox.setSelected(selected);
 			break;
 		}
+	}
+	
+	void setHelpListener(JButton helpBtn){
+
+		try {
+		File urlAddress = new File(System.getProperty("user.dir")
+			+ File.separator + "help" + File.separator + "help.hs");
+		URL url = urlAddress.toURI().toURL();
+		HelpSet hs = new HelpSet(null, url);
+		HelpBroker hb = hs.createHelpBroker();
+		hb.enableHelpKey(getRootPane(), helpID, hs); 
+		helpBtn.addActionListener(new CSH.DisplayHelpFromSource(hb));
+		}
+		catch (Exception event){
+			event.printStackTrace();
+		}	
 	}
 
 }
