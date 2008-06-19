@@ -37,11 +37,6 @@ public interface Peak {
     public float getMZ();
 
     /**
-     * This method returns raw M/Z value of the peak
-     */
-    public void setMZ(float mz);
-
-    /**
      * This method returns raw retention time of the peak
      */
     public float getRT();

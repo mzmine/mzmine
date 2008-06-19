@@ -17,12 +17,15 @@
  * Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-package net.sf.mzmine.modules.peakpicking.twostep.peakconstruction.simpleconnector;
+package net.sf.mzmine.modules.peakpicking.twostep.peakconstruction.thresholdconnector;
 
 import java.util.Arrays;
+import java.util.HashMap;
+import java.util.IdentityHashMap;
 import java.util.Iterator;
 import java.util.TreeSet;
 import java.util.Vector;
+import java.util.logging.Logger;
 
 import net.sf.mzmine.data.Peak;
 import net.sf.mzmine.data.PeakStatus;
@@ -33,7 +36,6 @@ import net.sf.mzmine.modules.peakpicking.twostep.peakconstruction.ConnectedMzPea
 import net.sf.mzmine.modules.peakpicking.twostep.peakconstruction.ConnectedPeak;
 import net.sf.mzmine.modules.peakpicking.twostep.peakconstruction.MatchScore;
 import net.sf.mzmine.modules.peakpicking.twostep.peakconstruction.PeakBuilder;
-import net.sf.mzmine.util.MathUtils;
 
 /**
  * This class implements a simple peak builder. This takes all detected MzPeaks
@@ -44,27 +46,27 @@ import net.sf.mzmine.util.MathUtils;
  * level), over a already detected peak.
  * 
  */
-public class SimpleConnector implements PeakBuilder {
+public class ThresholdConnector implements PeakBuilder {
 
-	private float intTolerance, mzTolerance, chromatographicThresholdLevel;
+	private Logger logger = Logger.getLogger(this.getClass().getName());
+	
+	private float mzTolerance, amplitudeOfNoise;
 	private float minimumPeakHeight, minimumPeakDuration;
-	private boolean chromatographicFilter;
 	private Vector<ConnectedPeak> underConstructionPeaks;
 
-	public SimpleConnector(SimpleConnectorParameters parameters) {
-		intTolerance = (Float) parameters
-				.getParameterValue(SimpleConnectorParameters.intTolerance);
+	public ThresholdConnector(ThresholdConnectorParameters parameters) {
+
 		minimumPeakDuration = (Float) parameters
-				.getParameterValue(SimpleConnectorParameters.minimumPeakDuration);
+				.getParameterValue(ThresholdConnectorParameters.minimumPeakDuration);
 		minimumPeakHeight = (Float) parameters
-				.getParameterValue(SimpleConnectorParameters.minimumPeakHeight);
+				.getParameterValue(ThresholdConnectorParameters.minimumPeakHeight);
 		mzTolerance = (Float) parameters
-				.getParameterValue(SimpleConnectorParameters.mzTolerance);
-		chromatographicThresholdLevel = (Float) parameters
-				.getParameterValue(SimpleConnectorParameters.chromatographicThresholdLevel);
-		chromatographicFilter = (Boolean) parameters
-				.getParameterValue(SimpleConnectorParameters.chromatographicFilter);
+				.getParameterValue(ThresholdConnectorParameters.mzTolerance);
+		amplitudeOfNoise = (Float) parameters
+				.getParameterValue(ThresholdConnectorParameters.amplitudeOfNoise);
+
 		underConstructionPeaks = new Vector<ConnectedPeak>();
+		
 	}
 
 	/*
@@ -78,7 +80,7 @@ public class SimpleConnector implements PeakBuilder {
 
 		Vector<Peak> finishedPeaks = new Vector<Peak>();
 		Vector<ConnectedMzPeak> cMzPeaks = new Vector<ConnectedMzPeak>();
-
+		
 		// Calculate scores between MzPeaks
 		TreeSet<MatchScore> scores = new TreeSet<MatchScore>();
 
@@ -91,7 +93,7 @@ public class SimpleConnector implements PeakBuilder {
 		for (ConnectedPeak ucPeak : underConstructionPeaks) {
 			for (ConnectedMzPeak currentMzPeak : cMzPeaks) {
 				MatchScore score = new MatchScore(ucPeak, currentMzPeak,
-						mzTolerance, intTolerance);
+						mzTolerance, Float.MAX_VALUE);
 
 				if (score.getScore() < Float.MAX_VALUE) {
 					scores.add(score);
@@ -120,6 +122,7 @@ public class SimpleConnector implements PeakBuilder {
 			// Add MzPeak to the proper Peak and set status connected
 			ucPeak.addMzPeak(cMzPeak);
 			cMzPeak.setConnected();
+			((PeakwithFrequencyScore) ucPeak).addNewIntensity(cMzPeak.getMzPeak().getIntensity());
 		}
 
 		// Check if there are any under-construction peaks that were not
@@ -137,32 +140,17 @@ public class SimpleConnector implements PeakBuilder {
 				ucPeak.finalizedAddingDatapoints(PeakStatus.DETECTED);
 
 				// Apply second criteria to identify possible peaks.
-				if (chromatographicFilter) {
 
-					Peak[] chromatographicPeaks = chromatographicPeaksSearch(ucPeak);
+				Peak[] chromatographicPeaks = noiseThresholdPeaksSearch(ucPeak);
 
-					if (chromatographicPeaks.length != 0) {
-						for (Peak p : chromatographicPeaks) {
-							float pLength = p.getRawDataPointsRTRange()
-									.getSize();
-							float pHeight = p.getHeight();
-							if ((pLength >= minimumPeakDuration)
-									&& (pHeight >= minimumPeakHeight)) {
-								finishedPeaks.add(p);
-							}
+				if (chromatographicPeaks.length != 0) {
+					for (Peak p : chromatographicPeaks) {
+						float pLength = p.getRawDataPointsRTRange().getSize();
+						float pHeight = p.getHeight();
+						if ((pLength >= minimumPeakDuration)
+								&& (pHeight >= minimumPeakHeight)) {
+							finishedPeaks.add(p);
 						}
-					}
-
-				} else {
-
-					// Check length of detected peak (filter according to set
-					// parameters)
-
-					float ucLength = ucPeak.getRawDataPointsRTRange().getSize();
-					float ucHeight = ucPeak.getHeight();
-					if ((ucLength >= minimumPeakDuration)
-							&& (ucHeight >= minimumPeakHeight)) {
-						finishedPeaks.add(ucPeak);
 					}
 				}
 
@@ -178,7 +166,7 @@ public class SimpleConnector implements PeakBuilder {
 
 		for (ConnectedMzPeak cMzPeak : cMzPeaks) {
 			if (!cMzPeak.isConnected()) {
-				ConnectedPeak ucPeak = new ConnectedPeak(dataFile, cMzPeak);
+				PeakwithFrequencyScore ucPeak = new PeakwithFrequencyScore(dataFile, cMzPeak, amplitudeOfNoise);
 				underConstructionPeaks.add(ucPeak);
 			}
 
@@ -187,19 +175,55 @@ public class SimpleConnector implements PeakBuilder {
 		return finishedPeaks.toArray(new Peak[0]);
 	}
 
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see net.sf.mzmine.modules.peakpicking.twostep.peakconstruction.PeakBuilder#finishPeaks()
+	 */
+	public Peak[] finishPeaks() {
+		Vector<Peak> finishedPeaks = new Vector<Peak>();
+		for (ConnectedPeak ucPeak : underConstructionPeaks) {
+			// Finalize peak
+			ucPeak.finalizedAddingDatapoints(PeakStatus.DETECTED);
+
+			// Check length & height
+			float ucLength = ucPeak.getRawDataPointsRTRange().getSize();
+			float ucHeight = ucPeak.getHeight();
+
+			if ((ucLength >= minimumPeakDuration)
+					&& (ucHeight >= minimumPeakHeight)) {
+
+				Peak[] chromatographicPeaks = noiseThresholdPeaksSearch(ucPeak);
+
+				if (chromatographicPeaks.length != 0) {
+					for (Peak p : chromatographicPeaks) {
+						float pLength = p.getRawDataPointsRTRange().getSize();
+						float pHeight = p.getHeight();
+						if ((pLength >= minimumPeakDuration)
+								&& (pHeight >= minimumPeakHeight)) {
+							finishedPeaks.add(p);
+						}
+					}
+				}
+
+			}
+		}
+		return finishedPeaks.toArray(new Peak[0]);
+	}
+
 	/**
 	 * 
-	 * Verify a detected peak using the criteria of chromatographic threshold
-	 * level. If some regions of the peak, do not comply with the criteria, are
-	 * excluded. And besides if there are more than one region that cover this
-	 * criteria and they are separated, we construct a different peak for each
-	 * region.
+	 * Verify a detected peak using the criteria of auto-defined noise level
+	 * threshold level. If some regions of the peak has an intensity below of
+	 * this auto-defined level, are excluded. And besides if there are more than
+	 * one region over this auto-defined level, we construct
+	 * a different peak for each region.
 	 * 
 	 * @param ConnectedPeak
 	 *            ucPeak
 	 * @return Peak[]
 	 */
-	private Peak[] chromatographicPeaksSearch(ConnectedPeak ucPeak) {
+	private Peak[] noiseThresholdPeaksSearch(ConnectedPeak ucPeak) {
 
 		// MzPeak[] mzValues = ucPeak.getMzPeaks().toArray(new MzPeak[0]);
 		ConnectedMzPeak[] mzValues = ucPeak.getConnectedMzPeaks();
@@ -210,8 +234,7 @@ public class SimpleConnector implements PeakBuilder {
 			intensities[i] = mzValues[i].getMzPeak().getIntensity();
 		Arrays.sort(intensities);
 
-		float chromatographicThresholdlevelPeak = MathUtils.calcQuantile(
-				intensities, chromatographicThresholdLevel);
+		float noiseThreshold = ((PeakwithFrequencyScore) ucPeak).getNoiseThreshold();
 
 		Vector<ConnectedPeak> newChromatoPeaks = new Vector<ConnectedPeak>();
 		Vector<ConnectedMzPeak> newChromatoMzPeaks = new Vector<ConnectedMzPeak>();
@@ -221,7 +244,7 @@ public class SimpleConnector implements PeakBuilder {
 			// If the intensity of this MzPeak is bigger than threshold level
 			// we store it in a Vector.
 
-			if (mzPeak.getMzPeak().getIntensity() >= chromatographicThresholdlevelPeak) {
+			if (mzPeak.getMzPeak().getIntensity() >= noiseThreshold) {
 				newChromatoMzPeaks.add(mzPeak);
 			}
 
@@ -263,47 +286,6 @@ public class SimpleConnector implements PeakBuilder {
 		}
 
 		return newChromatoPeaks.toArray(new ConnectedPeak[0]);
-	}
-
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see net.sf.mzmine.modules.peakpicking.twostep.peakconstruction.PeakBuilder#finishPeaks()
-	 */
-	public Peak[] finishPeaks() {
-		Vector<Peak> finishedPeaks = new Vector<Peak>();
-		for (ConnectedPeak ucPeak : underConstructionPeaks) {
-			// Finalize peak
-			ucPeak.finalizedAddingDatapoints(PeakStatus.DETECTED);
-
-			// Check length & height
-			float ucLength = ucPeak.getRawDataPointsRTRange().getSize();
-			float ucHeight = ucPeak.getHeight();
-
-			if ((ucLength >= minimumPeakDuration)
-					&& (ucHeight >= minimumPeakHeight)) {
-
-				if (chromatographicFilter) {
-
-					Peak[] chromatographicPeaks = chromatographicPeaksSearch(ucPeak);
-
-					if (chromatographicPeaks.length != 0) {
-						for (Peak p : chromatographicPeaks) {
-							float pLength = p.getRawDataPointsRTRange()
-									.getSize();
-							float pHeight = p.getHeight();
-							if ((pLength >= minimumPeakDuration)
-									&& (pHeight >= minimumPeakHeight)) {
-								finishedPeaks.add(p);
-							}
-						}
-					}
-
-				} else
-					finishedPeaks.add(ucPeak);
-			}
-		}
-		return finishedPeaks.toArray(new Peak[0]);
 	}
 
 }

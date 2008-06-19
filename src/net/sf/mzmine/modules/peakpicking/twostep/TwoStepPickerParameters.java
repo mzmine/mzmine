@@ -44,9 +44,15 @@ public class TwoStepPickerParameters implements StorableParameterSet {
 			"net.sf.mzmine.modules.peakpicking.twostep.massdetection.recursive.RecursiveMassDetector",
 			"net.sf.mzmine.modules.peakpicking.twostep.massdetection.wavelet.WaveletMassDetector" };
 
-	public static final String peakBuilderNames[] = { "Simple data point connector" };
+	public static final String peakBuilderNames[] = { "Base line connector",
+			"Savitzky-Golay connector", "Simple data point connector", "Threshold connector", "Wavelet connector"};
 
-	public static final String peakBuilderClasses[] = { "net.sf.mzmine.modules.peakpicking.twostep.peakconstruction.simpleconnector.SimpleConnector" };
+	public static final String peakBuilderClasses[] = {
+			"net.sf.mzmine.modules.peakpicking.twostep.peakconstruction.baselineconnector.BaselineConnector",
+			"net.sf.mzmine.modules.peakpicking.twostep.peakconstruction.savitzkygolayconnector.SavitzkyGolayConnector",
+			"net.sf.mzmine.modules.peakpicking.twostep.peakconstruction.simpleconnector.SimpleConnector",
+			"net.sf.mzmine.modules.peakpicking.twostep.peakconstruction.thresholdconnector.ThresholdConnector",
+			"net.sf.mzmine.modules.peakpicking.twostep.peakconstruction.waveletconnector.WaveletConnector" };
 
 	private SimpleParameterSet massDetectorParameters[],
 			peakBuilderParameters[], twoStepsParameters;

@@ -17,22 +17,23 @@
  * Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-package net.sf.mzmine.modules.peakpicking.twostep.peakconstruction.simpleconnector;
+package net.sf.mzmine.modules.peakpicking.twostep.peakconstruction;
 
 import java.util.Vector;
+
 
 
 /**
  * This class represents a score (goodness of fit) between a chromatographic peak and m/z peak
  */
-class MatchScore implements Comparable<MatchScore> {
+public class MatchScore implements Comparable<MatchScore> {
 
     private float score;
     private ConnectedPeak ucPeak;
     private ConnectedMzPeak mzPeak;
     private float mzTolerance, intTolerance;
 
-    MatchScore(ConnectedPeak uc, ConnectedMzPeak od, float mzTolerance, float intTolerance) {
+    public MatchScore(ConnectedPeak uc, ConnectedMzPeak od, float mzTolerance, float intTolerance) {
         this.mzTolerance = mzTolerance;
         this.intTolerance = intTolerance;
         ucPeak = uc;
