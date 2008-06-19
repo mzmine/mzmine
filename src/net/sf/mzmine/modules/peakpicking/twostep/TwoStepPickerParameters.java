@@ -34,14 +34,14 @@ public class TwoStepPickerParameters implements StorableParameterSet {
 	private static final String PARAMETER_NAME_ATTRIBUTE = "name";
 
 	public static final String massDetectorNames[] = { "Centroid",
-			"Local maxima", "Recursive threshold", "Exact mass",
+			"Exact mass", "Local maxima", "Recursive threshold",
 			"Wavelet transform" };
 
 	public static final String massDetectorClasses[] = {
 			"net.sf.mzmine.modules.peakpicking.twostep.massdetection.centroid.CentroidMassDetector",
+			"net.sf.mzmine.modules.peakpicking.twostep.massdetection.exactmass.ExactMassDetector",
 			"net.sf.mzmine.modules.peakpicking.twostep.massdetection.localmaxima.LocalMaxMassDetector",
 			"net.sf.mzmine.modules.peakpicking.twostep.massdetection.recursive.RecursiveMassDetector",
-			"net.sf.mzmine.modules.peakpicking.twostep.massdetection.exactmass.ExactMassDetector",
 			"net.sf.mzmine.modules.peakpicking.twostep.massdetection.wavelet.WaveletMassDetector" };
 
 	public static final String peakBuilderNames[] = { "Simple data point connector" };

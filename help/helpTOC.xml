@@ -55,14 +55,14 @@
 <tocitem text="Two steps peak detector" image="chapter" >
 <tocitem text="Two steps peak detector" target="steps1" image="topic" />
 <tocitem text="Mass detector" image="chapter" >
-<tocitem text="Centroid mass detector" target="Mass1" image="topic" />
-<tocitem text="Exact mass detector" target="Mass2" image="topic" />
-<tocitem text="Local maxima mass detector" target="Mass3" image="topic" />
-<tocitem text="Recursive mass detector" target="Mass4" image="topic" />
-<tocitem text="Wavelet mass detector" target="Mass5" image="topic" />
+<tocitem text="Centroid mass detector" target="Mass0" image="topic" />
+<tocitem text="Exact mass detector" target="Mass1" image="topic" />
+<tocitem text="Local maxima mass detector" target="Mass2" image="topic" />
+<tocitem text="Recursive mass detector" target="Mass3" image="topic" />
+<tocitem text="Wavelet mass detector" target="Mass4" image="topic" />
 </tocitem>
 <tocitem text="Peak Builder" image="chapter" >
-<tocitem text="Simple Connector Peak Builder" target="Builder1" image="topic" />
+<tocitem text="Simple Connector Peak Builder" target="Builder0" image="topic" />
 </tocitem>
 </tocitem>
 </tocitem>

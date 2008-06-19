@@ -58,7 +58,7 @@ public class ExactMassDetectorParameters extends SimpleParameterSet {
 	public static final Parameter peakModel = new SimpleParameter(
 			ParameterType.STRING,
 			"Peak Model function",
-			"peakModelParameter.txt",
+			"Lateral peaks under the curve of this peak model are not considered as a possible peak",
 			null, peakModelNames);
 
 

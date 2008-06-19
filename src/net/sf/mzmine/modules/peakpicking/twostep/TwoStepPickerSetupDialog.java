@@ -23,8 +23,13 @@ import java.awt.BorderLayout;
 import java.awt.Dimension;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.io.File;
+import java.net.URL;
 import java.util.Arrays;
 
+import javax.help.CSH;
+import javax.help.HelpBroker;
+import javax.help.HelpSet;
 import javax.swing.BorderFactory;
 import javax.swing.Box;
 import javax.swing.BoxLayout;
@@ -53,7 +58,7 @@ class TwoStepPickerSetupDialog extends JDialog implements ActionListener {
 	private String title;
 
 	// Dialog components
-	private JButton btnOK, btnCancel, btnSetMass, btnSetPeak;
+	private JButton btnOK, btnCancel, btnHelp, btnSetMass, btnSetPeak;
 	private JComboBox comboMassDetectors, comboPeaksConstructors;
 	private JTextField txtField;
 
@@ -194,9 +199,12 @@ class TwoStepPickerSetupDialog extends JDialog implements ActionListener {
 		btnOK.addActionListener(this);
 		btnCancel = new JButton("Cancel");
 		btnCancel.addActionListener(this);
+		btnHelp = new JButton("Help");
+		setHelpListener(btnHelp);
 
 		pnlButtons.add(btnOK);
 		pnlButtons.add(btnCancel);
+		pnlButtons.add(btnHelp);
 
 		// Panel where everything is collected
 		JPanel pnlAll = new JPanel(new BorderLayout());
@@ -262,6 +270,22 @@ class TwoStepPickerSetupDialog extends JDialog implements ActionListener {
 								+ " The actual mass detector could give an unexpected result ");
 			}
 		}
+	}
+
+	void setHelpListener(JButton helpBtn){
+
+		try {
+		File urlAddress = new File(System.getProperty("user.dir")
+			+ File.separator + "help" + File.separator + "help.hs");
+		URL url = urlAddress.toURI().toURL();
+		HelpSet hs = new HelpSet(null, url);
+		HelpBroker hb = hs.createHelpBroker();
+		hb.enableHelpKey(getRootPane(), "steps1", hs); 
+		helpBtn.addActionListener(new CSH.DisplayHelpFromSource(hb));
+		}
+		catch (Exception event){
+			event.printStackTrace();
+		}	
 	}
 
 }

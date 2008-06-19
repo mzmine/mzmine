@@ -31,13 +31,13 @@
    <mapID target="Peak3" url="" />
    <mapID target="Peak4" url="" />
    <mapID target="Peak5" url="" />
-   <mapID target="steps1" url="" />
-   <mapID target="Mass1" url="" />
-   <mapID target="Mass2" url="" />
-   <mapID target="Mass3" url="" />
-   <mapID target="Mass4" url="" />
-   <mapID target="Mass5" url="" />
-   <mapID target="Builder1" url="" />
+   <mapID target="steps1" url="html/twoStepsDetector.htm" />
+   <mapID target="Mass0" url="html/centroid.htm" />
+   <mapID target="Mass1" url="html/exactMass.htm" />
+   <mapID target="Mass2" url="html/localMaxima.htm" />
+   <mapID target="Mass3" url="html/recursiveMass.htm" />
+   <mapID target="Mass4" url="html/waveletMass.htm" />
+   <mapID target="Builder0" url="html/simpleBuilder.htm" />
    <mapID target="Project1" url="" />
    <mapID target="Project2" url="" />
    <mapID target="Project3" url="" />

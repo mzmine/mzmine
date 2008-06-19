@@ -121,7 +121,7 @@ public class PeakBuilderSetupDialog extends ParameterSetupDialog implements
 
 		super(TwoStepPickerParameters.peakBuilderNames[peakBuilderTypeNumber]
 				+ "'s parameter setup dialog ", parameters
-				.getPeakBuilderParameters(peakBuilderTypeNumber), "item2");
+				.getPeakBuilderParameters(peakBuilderTypeNumber), "Builder" + peakBuilderTypeNumber);
 
 		dataFiles = MZmineCore.getCurrentProject().getDataFiles();
 		this.peakBuilderTypeNumber = peakBuilderTypeNumber;
