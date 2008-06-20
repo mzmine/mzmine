@@ -19,7 +19,7 @@
 package net.sf.mzmine.modules.peakpicking.twostep.peakconstruction.thresholdconnector;
 
 import java.util.Iterator;
-import java.util.NavigableSet;
+import java.util.Set;
 import java.util.TreeMap;
 
 import net.sf.mzmine.data.RawDataFile;
@@ -63,7 +63,7 @@ public class PeakwithFrequencyScore extends ConnectedPeak{
 		int numberOfBin = 0;
 		int maxFrequency = 0;
 		
-		NavigableSet<Integer> c = binsFrequency.navigableKeySet();
+		Set<Integer> c = binsFrequency.keySet();
 		Iterator<Integer> iteratorBin = c.iterator();
 
 		while (iteratorBin.hasNext()){

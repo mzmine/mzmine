@@ -314,10 +314,10 @@ public class PeakBuilderSetupDialog extends ParameterSetupDialog implements
 
 		Peak[] peaks;
 		Vector<Peak> totalPeaks = new Vector<Peak>();
-		float mz = mzRange.getAverage();
+
 		for (int i = 0; i < listScans.length; i++) {
 			
-			MzPeak[] mzValues = { new MzPeak(new SimpleDataPoint(mz, ticDataset
+			MzPeak[] mzValues = { new MzPeak(new SimpleDataPoint(ticDataset.getZ(0, i).floatValue(), ticDataset
 					.getY(0, i).floatValue())) };
 			peaks = peakBuilder.addScan(previewDataFile.getScan(listScans[i]),
 					mzValues, previewDataFile);
@@ -464,7 +464,7 @@ public class PeakBuilderSetupDialog extends ParameterSetupDialog implements
 		pnlLoad
 				.add(new JLabel(
 						"<html><font size=2 color=#336699>For each scan, most intense data point<br> within given"
-								+ " m/z range, is used to build<br> the chromatograph.</font><br><br></html>"));
+								+ " m/z range, is used to build<br> the chromatogram.</font><br><br></html>"));
 		pnlLoad.add(btnLoad);
 
 		JPanel pnlLoadSep = new JPanel(new BorderLayout());
