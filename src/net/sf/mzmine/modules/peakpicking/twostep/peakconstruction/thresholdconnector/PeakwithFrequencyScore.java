@@ -29,10 +29,12 @@ import net.sf.mzmine.modules.peakpicking.twostep.peakconstruction.ConnectedPeak;
 public class PeakwithFrequencyScore extends ConnectedPeak{
 
 	private TreeMap<Integer, Integer> binsFrequency;
-	private float amplitudeOfNoise;
+	private float amplitudeOfNoise, maxIntensity;
 
 	public PeakwithFrequencyScore(RawDataFile dataFile, ConnectedMzPeak mzValue, float amplitudeOfNoise ) {
 		super(dataFile, mzValue);
+		
+		maxIntensity = mzValue.getMzPeak().getIntensity();
 		
 		binsFrequency = new TreeMap<Integer, Integer>();
 		
@@ -55,7 +57,10 @@ public class PeakwithFrequencyScore extends ConnectedPeak{
 			frequencyValue = binsFrequency.get(numberOfBin);
 			frequencyValue++;
 		}
-		binsFrequency.put(numberOfBin, frequencyValue);		
+		binsFrequency.put(numberOfBin, frequencyValue);	
+		
+		if (intensity > maxIntensity)
+			maxIntensity = intensity;
 	}
 	
 	public float getNoiseThreshold(){
@@ -77,8 +82,11 @@ public class PeakwithFrequencyScore extends ConnectedPeak{
 		}
 		
 		
-		float noiseThreshold = (numberOfBin + 2 ) * amplitudeOfNoise;
-
+		float noiseThreshold = (numberOfBin + 1 ) * amplitudeOfNoise;
+		float percentage = noiseThreshold/maxIntensity;
+		if (percentage > 0.3)
+			noiseThreshold = amplitudeOfNoise;
+		
 		return noiseThreshold;
 	}
 
