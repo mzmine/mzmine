@@ -1,50 +1,49 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
 <configuration> 
-  <nodes local="4"/>  
+  <nodes local="2"/>  
   <modules> 
     <module class="net.sf.mzmine.modules.peakpicking.twostep.TwoStepPicker"> 
       <parameters>
-        <Centroid>
+        <massdetector name="Centroid">
           <parameter name="Noise level" type="FLOAT">10.0</parameter>
-        </Centroid>
-        <Localmaxima>
-          <parameter name="M/Z bin width" type="FLOAT">0.08</parameter>
-          <parameter name="Chromatographic threshold level" type="FLOAT">0.0</parameter>
+        </massdetector>
+        <massdetector name="Exact mass">
+          <parameter name="Noise level" type="FLOAT">3000.0</parameter>
+          <parameter name="Mass Resolution" type="INTEGER">60000</parameter>
+          <parameter name="Peak Model function" type="STRING">Gaussian plus triangle</parameter>
+        </massdetector>
+        <massdetector name="Local maxima">
           <parameter name="Noise level" type="FLOAT">100.0</parameter>
-          <parameter name="Min M/Z peak width" type="FLOAT">0.2</parameter>
-          <parameter name="Max M/Z peak width" type="FLOAT">1.0</parameter>
-        </Localmaxima>
-        <Exactmass>
+        </massdetector>
+        <massdetector name="Recursive threshold">
+          <parameter name="Noise level" type="FLOAT">5.0</parameter>
+          <parameter name="Min M/Z peak width" type="FLOAT">0.01</parameter>
+          <parameter name="Max M/Z peak width" type="FLOAT">0.1</parameter>
+        </massdetector>
+        <massdetector name="Wavelet transform">
           <parameter name="Noise level" type="FLOAT">10.0</parameter>
-        </Exactmass>
-        <Wavelettransform>
-          <parameter name="Noise level" type="FLOAT">10.0</parameter>
-        </Wavelettransform>
-        <Simpledatapointconnector>
-          <parameter name="Min peak height" type="FLOAT">100.0</parameter>
-          <parameter name="Min peak duration" type="FLOAT">10.0</parameter>
+          <parameter name="Scale level" type="INTEGER">6</parameter>
+          <parameter name="Wavelet window size (%)" type="FLOAT">0.5</parameter>
+        </massdetector>
+        <peakbuilder name="Base line connector">
+          <parameter name="Baseline level" type="FLOAT">100.0</parameter>
           <parameter name="M/Z tolerance" type="FLOAT">0.1</parameter>
-          <parameter name="Intensity tolerance" type="FLOAT">0.4</parameter>
-        </Simpledatapointconnector>
-        <TwoStepParameter>
-          <parameter name="suffix" type="STRING">twosteps</parameter>
-          <parameter name="massDetectorTypeNumber" type="INTEGER">1</parameter>
-          <parameter name="peakBuilderTypeNumber" type="INTEGER">0</parameter>
-        </TwoStepParameter>
+        </peakbuilder>
+        <peakbuilder name="Savitzky-Golay connector"/>
       </parameters> 
     </module>  
     <module class="net.sf.mzmine.modules.visualization.tic.TICVisualizer"> 
       <parameters>
         <parameter name="MS level" type="INTEGER">1</parameter>
-        <parameter name="Plot type" type="STRING">TIC</parameter>
-        <parameter name="Retention time" type="RANGE">0.5661-2398.8782</parameter>
+        <parameter name="Plot type" type="STRING">Base peak intensity</parameter>
+        <parameter name="Retention time" type="RANGE">0.566-2398.88</parameter>
         <parameter name="m/z range" type="RANGE">99.99989-1000.01154</parameter>
       </parameters> 
     </module>  
     <module class="net.sf.mzmine.modules.visualization.spectra.SpectraVisualizer"> 
       <parameters>
-        <parameter name="Scan number" type="INTEGER">23</parameter>
+        <parameter name="Scan number" type="INTEGER"/>
       </parameters> 
     </module>  
     <module class="net.sf.mzmine.modules.visualization.twod.TwoDVisualizer"> 
@@ -54,12 +53,21 @@
         <parameter name="m/z range" type="RANGE">0.0-1000.0</parameter>
       </parameters> 
     </module>  
+    <module class="net.sf.mzmine.modules.visualization.tempthreed.ThreeDVisualizer"> 
+      <parameters>
+        <parameter name="MS level" type="INTEGER">1</parameter>
+        <parameter name="Retention time" type="RANGE">0.0-600.0</parameter>
+        <parameter name="Retention time resolution" type="INTEGER">100</parameter>
+        <parameter name="m/z range" type="RANGE">0.0-1000.0</parameter>
+        <parameter name="m/z resolution" type="INTEGER">100</parameter>
+      </parameters> 
+    </module>  
     <module class="net.sf.mzmine.modules.visualization.threed.ThreeDVisualizer"> 
       <parameters>
         <parameter name="MS level" type="INTEGER">1</parameter>
-        <parameter name="Retention time" type="RANGE">0.578-2399.912</parameter>
+        <parameter name="Retention time" type="RANGE">0.0-600.0</parameter>
         <parameter name="Retention time resolution" type="INTEGER">100</parameter>
-        <parameter name="m/z range" type="RANGE">99.999886-999.9817</parameter>
+        <parameter name="m/z range" type="RANGE">0.0-1000.0</parameter>
         <parameter name="m/z resolution" type="INTEGER">100</parameter>
       </parameters> 
     </module>  
@@ -93,7 +101,7 @@
       <parameters>
         <parameter name="Filename suffix" type="STRING">filtered</parameter>
         <parameter name="Window length" type="FLOAT">0.1</parameter>
-        <parameter name="Remove source file after filtering" type="BOOLEAN">true</parameter>
+        <parameter name="Remove source file after filtering" type="BOOLEAN">false</parameter>
       </parameters> 
     </module>  
     <module class="net.sf.mzmine.modules.rawdata.savitzkygolay.SGFilter"> 
@@ -130,13 +138,6 @@
         <parameter name="Max M/Z peak width" type="FLOAT">1.0</parameter>
         <parameter name="M/Z tolerance" type="FLOAT">0.1</parameter>
         <parameter name="Intensity tolerance" type="FLOAT">0.15</parameter>
-      </parameters> 
-    </module>  
-    <module class="net.sf.mzmine.modules.peakpicking.accuratemass.AccurateMassPicker"> 
-      <parameters>
-        <parameter name="Filename suffix" type="STRING">peaklist</parameter>
-        <parameter name="M/Z tolerance" type="FLOAT">0.1</parameter>
-        <parameter name="Min data points" type="INTEGER">10</parameter>
       </parameters> 
     </module>  
     <module class="net.sf.mzmine.modules.peakpicking.centroid.CentroidPicker"> 
@@ -312,7 +313,7 @@
     </module>  
     <module class="net.sf.mzmine.modules.io.rawdataimport.RawDataImporter"> 
       <parameters>
-        <parameter name="Last open directory" type="STRING">E:\DATA</parameter>
+        <parameter name="Last open directory" type="STRING">/Volumes/Documents</parameter>
         <parameter name="Preload level" type="STRING">Store scan data in temporary file</parameter>
       </parameters> 
     </module> 
@@ -328,15 +329,15 @@
     </format>
     <format type="Intensity">
       <type>NUMBER</type>
-      <pattern>0.00E0</pattern>
+      <pattern>#0.0</pattern>
     </format>
     <mainwindow>
-      <x>460</x>
-      <y>235</y>
-      <width>1000</width>
-      <height>700</height>
+      <x>0</x>
+      <y>22</y>
+      <width>-1</width>
+      <height>-1</height>
     </mainwindow>
     <lastdirectory>/mnt/newHD/private/kawasaki/mzmine/Nakamura/XML/negative mode XML</lastdirectory>
-    <lastProjectDirectory>/mnt/newHD/private/kawasaki/mzmine/MyProject.22.mzmine</lastProjectDirectory>
+    <lastProjectDirectory>/Users/plusik/Documents/20080604 Sajiki pyk1 analysis.mzmine</lastProjectDirectory>
   </desktop> 
 </configuration>
