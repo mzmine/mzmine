@@ -66,7 +66,7 @@ public class IsotopeGrouperParameters extends SimpleParameterSet {
     public static final Parameter representativeIsotope = new SimpleParameter(
             ParameterType.STRING,
             "Representative isotope",
-            "Maximum RT difference can be defined either using absolute or relative value",
+            "Which peak should represent the whole isotope pattern",
             ChooseTopIntensity, representativeIsotopeValues);
 
     public static final Parameter autoRemove = new SimpleParameter(
