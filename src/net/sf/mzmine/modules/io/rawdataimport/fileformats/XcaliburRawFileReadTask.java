@@ -182,7 +182,7 @@ public class XcaliburRawFileReadTask implements Task {
 	 * @see net.sf.mzmine.taskcontrol.Task#cancel()
 	 */
 	public void cancel() {
-		logger.info("Cancelling opening of MZXML file " + originalFile);
+		logger.info("Cancelling opening of RAW file " + originalFile);
 		status = TaskStatus.CANCELED;
 	}
 
@@ -194,7 +194,7 @@ public class XcaliburRawFileReadTask implements Task {
 	public void startScan() throws IOException {
 
 		if (status == TaskStatus.CANCELED)
-			throw new IOException("Parsing Cancelled");
+			return;
 
 		/*
 		 * This section verify if the current scan is a full scan. If this condition
