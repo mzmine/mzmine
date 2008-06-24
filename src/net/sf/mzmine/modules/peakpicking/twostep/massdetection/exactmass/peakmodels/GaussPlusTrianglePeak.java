@@ -78,7 +78,7 @@ public class GaussPlusTrianglePeak implements PeakModel {
 			Range rangePeak2;
 			
 			if (adjacent < 1){
-				rangePeak2 = new Range((mzMain - 1 + adjacent),(mzMain + 1 - adjacent));
+				rangePeak2 = new Range((mzMain - (1 - adjacent)),(mzMain + (1 - adjacent)));
 			}
 			else{
 				rangePeak2 = new Range(mzMain);
