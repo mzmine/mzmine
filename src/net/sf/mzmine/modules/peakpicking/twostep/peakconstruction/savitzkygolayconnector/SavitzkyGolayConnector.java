@@ -19,7 +19,6 @@
 
 package net.sf.mzmine.modules.peakpicking.twostep.peakconstruction.savitzkygolayconnector;
 
-import java.util.Arrays;
 import java.util.Iterator;
 import java.util.TreeSet;
 import java.util.Vector;
@@ -33,22 +32,22 @@ import net.sf.mzmine.modules.peakpicking.twostep.peakconstruction.ConnectedMzPea
 import net.sf.mzmine.modules.peakpicking.twostep.peakconstruction.ConnectedPeak;
 import net.sf.mzmine.modules.peakpicking.twostep.peakconstruction.MatchScore;
 import net.sf.mzmine.modules.peakpicking.twostep.peakconstruction.PeakBuilder;
-import net.sf.mzmine.util.MathUtils;
 
 /**
- * This class implements a simple peak builder. This takes all detected MzPeaks
- * in one Scan and try to find a possible relationship between each one of these
- * with MzPeaks of the previous scan. This relationship is set by a match score
- * using MatchScore class, according with the parameters of Tolerance of MZ and
- * Intensity. Also it can apply a second search for possible peaks (threshold
- * level), over a already detected peak.
+ * This class implements a peak builder using a match score to link MzPeaks in
+ * the axis of retention time. Also uses Savitzky-Golay coefficients to
+ * calculate the first and second derivative (smoothed) of raw data points
+ * (intensity) that conforms each peak. The first derivative is used to
+ * determine the peak's range, and the second derivative to determine the
+ * intensity of the peak.
  * 
  */
 public class SavitzkyGolayConnector implements PeakBuilder {
 
-	private float intTolerance, mzTolerance, chromatographicThresholdLevel;
+	//private Logger logger = Logger.getLogger(this.getClass().getName());
+
+	private float intTolerance, mzTolerance;
 	private float minimumPeakHeight, minimumPeakDuration;
-	private boolean chromatographicFilter;
 	private Vector<ConnectedPeak> underConstructionPeaks;
 
 	public SavitzkyGolayConnector(SavitzkyGolayConnectorParameters parameters) {
@@ -60,10 +59,7 @@ public class SavitzkyGolayConnector implements PeakBuilder {
 				.getParameterValue(SavitzkyGolayConnectorParameters.minimumPeakHeight);
 		mzTolerance = (Float) parameters
 				.getParameterValue(SavitzkyGolayConnectorParameters.mzTolerance);
-		chromatographicThresholdLevel = (Float) parameters
-				.getParameterValue(SavitzkyGolayConnectorParameters.chromatographicThresholdLevel);
-		chromatographicFilter = (Boolean) parameters
-				.getParameterValue(SavitzkyGolayConnectorParameters.chromatographicFilter);
+
 		underConstructionPeaks = new Vector<ConnectedPeak>();
 	}
 
@@ -136,13 +132,18 @@ public class SavitzkyGolayConnector implements PeakBuilder {
 				// Finalize peak
 				ucPeak.finalizedAddingDatapoints(PeakStatus.DETECTED);
 
-				// Apply second criteria to identify possible peaks.
-				if (chromatographicFilter) {
+				// Check length & height
+				float ucLength = ucPeak.getRawDataPointsRTRange().getSize();
+				float ucHeight = ucPeak.getHeight();
 
-					Peak[] chromatographicPeaks = chromatographicPeaksSearch(ucPeak);
+				if ((ucLength >= minimumPeakDuration)
+						&& (ucHeight >= minimumPeakHeight)) {
+					// Apply second criteria to identify possible peaks.
 
-					if (chromatographicPeaks.length != 0) {
-						for (Peak p : chromatographicPeaks) {
+					Peak[] possiblePeaks = SGPeaksSearch(ucPeak);
+
+					if (possiblePeaks.length != 0) {
+						for (Peak p : possiblePeaks) {
 							float pLength = p.getRawDataPointsRTRange()
 									.getSize();
 							float pHeight = p.getHeight();
@@ -152,18 +153,9 @@ public class SavitzkyGolayConnector implements PeakBuilder {
 							}
 						}
 					}
-
-				} else {
-
-					// Check length of detected peak (filter according to set
-					// parameters)
-
-					float ucLength = ucPeak.getRawDataPointsRTRange().getSize();
-					float ucHeight = ucPeak.getHeight();
-					if ((ucLength >= minimumPeakDuration)
-							&& (ucHeight >= minimumPeakHeight)) {
+					else
 						finishedPeaks.add(ucPeak);
-					}
+
 				}
 
 				// Remove the peak from under construction peaks
@@ -178,91 +170,14 @@ public class SavitzkyGolayConnector implements PeakBuilder {
 
 		for (ConnectedMzPeak cMzPeak : cMzPeaks) {
 			if (!cMzPeak.isConnected()) {
-				ConnectedPeak ucPeak = new ConnectedPeak(dataFile, cMzPeak);
+				SavitzkyGolayPeak ucPeak = new SavitzkyGolayPeak(dataFile,
+						cMzPeak);
 				underConstructionPeaks.add(ucPeak);
 			}
 
 		}
 
 		return finishedPeaks.toArray(new Peak[0]);
-	}
-
-	/**
-	 * 
-	 * Verify a detected peak using the criteria of chromatographic threshold
-	 * level. If some regions of the peak, do not comply with the criteria, are
-	 * excluded. And besides if there are more than one region that cover this
-	 * criteria and they are separated, we construct a different peak for each
-	 * region.
-	 * 
-	 * @param ConnectedPeak
-	 *            ucPeak
-	 * @return Peak[]
-	 */
-	private Peak[] chromatographicPeaksSearch(ConnectedPeak ucPeak) {
-
-		// MzPeak[] mzValues = ucPeak.getMzPeaks().toArray(new MzPeak[0]);
-		ConnectedMzPeak[] mzValues = ucPeak.getConnectedMzPeaks();
-
-		float[] intensities = new float[mzValues.length];
-
-		for (int i = 0; i < intensities.length; i++)
-			intensities[i] = mzValues[i].getMzPeak().getIntensity();
-		Arrays.sort(intensities);
-
-		float chromatographicThresholdlevelPeak = MathUtils.calcQuantile(
-				intensities, chromatographicThresholdLevel);
-
-		Vector<ConnectedPeak> newChromatoPeaks = new Vector<ConnectedPeak>();
-		Vector<ConnectedMzPeak> newChromatoMzPeaks = new Vector<ConnectedMzPeak>();
-
-		for (ConnectedMzPeak mzPeak : mzValues) {
-
-			// If the intensity of this MzPeak is bigger than threshold level
-			// we store it in a Vector.
-
-			if (mzPeak.getMzPeak().getIntensity() >= chromatographicThresholdlevelPeak) {
-				newChromatoMzPeaks.add(mzPeak);
-			}
-
-			// If the intensity of lower than threshold level, it could mean
-			// that is the ending of this new threshold level peak
-			// we store it in a Vector.
-
-			else {
-
-				// Verify if we add some MzPeaks to the new ConnectedPeak, if
-				// that is true, we create a new ConnectedPeak with all stored
-				// MzPeaks.
-
-				if (newChromatoMzPeaks.size() > 0) {
-					ConnectedPeak chromatoPeak = new ConnectedPeak(ucPeak
-							.getDataFile(), newChromatoMzPeaks.elementAt(0));
-					for (int i = 1; i < newChromatoMzPeaks.size(); i++) {
-						chromatoPeak.addMzPeak(newChromatoMzPeaks.elementAt(i));
-					}
-					newChromatoMzPeaks.clear();
-					chromatoPeak.finalizedAddingDatapoints(PeakStatus.DETECTED);
-					newChromatoPeaks.add(chromatoPeak);
-				}
-			}
-		}
-
-		// At least we verify if there is one last threshold peak at the end,
-		// and it was not detected in the for cycle, due there is not MzPeak
-		// with intensity below of threshold level to define the ending
-
-		if (newChromatoMzPeaks.size() > 0) {
-			ConnectedPeak chromatoPeak = new ConnectedPeak(
-					ucPeak.getDataFile(), newChromatoMzPeaks.elementAt(0));
-			for (int i = 1; i < newChromatoMzPeaks.size(); i++) {
-				chromatoPeak.addMzPeak(newChromatoMzPeaks.elementAt(i));
-			}
-			chromatoPeak.finalizedAddingDatapoints(PeakStatus.DETECTED);
-			newChromatoPeaks.add(chromatoPeak);
-		}
-
-		return newChromatoPeaks.toArray(new ConnectedPeak[0]);
 	}
 
 	/*
@@ -283,27 +198,137 @@ public class SavitzkyGolayConnector implements PeakBuilder {
 			if ((ucLength >= minimumPeakDuration)
 					&& (ucHeight >= minimumPeakHeight)) {
 
-				if (chromatographicFilter) {
+				Peak[] possiblePeaks = SGPeaksSearch(ucPeak);
 
-					Peak[] chromatographicPeaks = chromatographicPeaksSearch(ucPeak);
-
-					if (chromatographicPeaks.length != 0) {
-						for (Peak p : chromatographicPeaks) {
-							float pLength = p.getRawDataPointsRTRange()
-									.getSize();
-							float pHeight = p.getHeight();
-							if ((pLength >= minimumPeakDuration)
-									&& (pHeight >= minimumPeakHeight)) {
-								finishedPeaks.add(p);
-							}
+				if (possiblePeaks.length != 0) {
+					for (Peak p : possiblePeaks) {
+						float pLength = p.getRawDataPointsRTRange().getSize();
+						float pHeight = p.getHeight();
+						if ((pLength >= minimumPeakDuration)
+								&& (pHeight >= minimumPeakHeight)) {
+							finishedPeaks.add(p);
 						}
 					}
-
-				} else
+				}
+				else
 					finishedPeaks.add(ucPeak);
+
 			}
 		}
 		return finishedPeaks.toArray(new Peak[0]);
+	}
+
+	/**
+	 * 
+	 * 
+	 * @param ConnectedPeak
+	 *            ucPeak
+	 * @return Peak[]
+	 */
+	private Peak[] SGPeaksSearch(ConnectedPeak ucPeak) {
+
+		boolean activeFirstPeak = false, activeSecondPeak = false, passThreshold= false;
+		int crossZero = 0;
+
+		ConnectedMzPeak[] mzValues = ucPeak.getConnectedMzPeaks();
+
+		float[] derivativeOfIntensities = new float[mzValues.length];
+		derivativeOfIntensities = ((SavitzkyGolayPeak) ucPeak)
+				.getDerivative(false);
+		float noiseThreshold = ((SavitzkyGolayPeak) ucPeak)
+				.getDerivativeThreshold();
+
+		Vector<ConnectedPeak> newPeaks = new Vector<ConnectedPeak>();
+		Vector<ConnectedMzPeak> newMzPeaks = new Vector<ConnectedMzPeak>();
+		Vector<ConnectedMzPeak> newOverlappedMzPeaks = new Vector<ConnectedMzPeak>();
+
+		for (int i = 1; i < derivativeOfIntensities.length; i++) {
+
+			if (((derivativeOfIntensities[i-1] < 0.0f) && (derivativeOfIntensities[i] > 0.0f))
+					|| ((derivativeOfIntensities[i-1] > 0.0f) && (derivativeOfIntensities[i] < 0.0f))){
+
+				if ((derivativeOfIntensities[i-1] < 0.0f) && (derivativeOfIntensities[i] > 0.0f)){
+					if (crossZero == 0){
+						activeFirstPeak = true;
+					}						
+					if (crossZero == 2){
+						if (passThreshold){
+							activeSecondPeak = true;
+						}
+						else{
+							newMzPeaks.clear();
+							crossZero = 0;
+						}
+					}					
+
+				}
+				
+				if (crossZero == 3){
+					activeFirstPeak = false;
+				}
+
+				//Always increment
+				passThreshold = false;
+				if ((activeFirstPeak) || (activeSecondPeak)){
+					crossZero++;
+				}
+
+			}
+
+			if (Math.abs(derivativeOfIntensities[i]) > Math.abs(noiseThreshold)){
+				passThreshold = true;
+				
+				if ((crossZero == 0) && (derivativeOfIntensities[i] > 0)){
+					activeFirstPeak = true;
+					crossZero++;
+				}
+			}
+				
+
+			//if (true) {
+			if ((activeFirstPeak)) {
+
+				/*ConnectedMzPeak temp = new ConnectedMzPeak(mzValues[i]
+						.getScan(), new MzPeak(new SimpleDataPoint(mzValues[i]
+						.getMzPeak().getMZ(), derivativeOfIntensities[i]*100)));
+				newMzPeaks.add(temp);*/
+
+				newMzPeaks.add(mzValues[i]);
+			}
+
+			if (activeSecondPeak) {
+
+				/*ConnectedMzPeak temp = new ConnectedMzPeak(mzValues[i]
+						.getScan(), new MzPeak(new SimpleDataPoint(mzValues[i]
+						.getMzPeak().getMZ(), derivativeOfIntensities[i] * 100)));
+				newOverlappedMzPeaks.add(temp);*/
+				
+				newOverlappedMzPeaks.add(mzValues[i]);
+			}
+
+			if ((newMzPeaks.size() > 0) && (!activeFirstPeak)) {
+				ConnectedPeak SGPeak = new ConnectedPeak(ucPeak.getDataFile(),
+						newMzPeaks.elementAt(0));
+				for (int j = 1; j < newMzPeaks.size(); j++) {
+					SGPeak.addMzPeak(newMzPeaks.elementAt(j));
+				}
+				newMzPeaks.clear();
+				SGPeak.finalizedAddingDatapoints(PeakStatus.DETECTED);
+				newPeaks.add(SGPeak);
+				
+				if ((newOverlappedMzPeaks.size() > 0) && (activeSecondPeak)){
+					for (ConnectedMzPeak p : newOverlappedMzPeaks)
+							newMzPeaks.add(p);
+					activeSecondPeak = false;
+					activeFirstPeak = true;
+					crossZero = 2;
+					newOverlappedMzPeaks.clear();
+				}
+			}
+
+		}
+
+		return newPeaks.toArray(new ConnectedPeak[0]);
 	}
 
 }

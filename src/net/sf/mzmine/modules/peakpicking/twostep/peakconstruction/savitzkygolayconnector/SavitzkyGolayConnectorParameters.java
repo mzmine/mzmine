@@ -55,21 +55,10 @@ public class SavitzkyGolayConnectorParameters extends SimpleParameterSet {
 			"Maximum allowed deviation from expected /\\ shape of a peak in chromatographic direction",
 			"%", new Float(0.15), new Float(0.0), new Float(1.0), percentFormat);
 
-	public static final Parameter chromatographicFilter = new SimpleParameter(
-			ParameterType.BOOLEAN,
-			"Apply Chromatographic threshold filter",
-			"Remove any portion of the peak under the criteria defined by percentage Chromatographic threshold level",
-			null, new Boolean(false), null, null, null);
-
-    public static final Parameter chromatographicThresholdLevel = new SimpleParameter(
-            ParameterType.FLOAT, "Chromatographic threshold level",
-            "Used in defining threshold level value from an XIC", "%",
-            new Float(0.80), new Float(0.0), new Float(1.0), percentFormat);
-
 	
 	public SavitzkyGolayConnectorParameters() {
 		super(new Parameter[] { minimumPeakHeight, minimumPeakDuration,
-				mzTolerance, intTolerance, chromatographicFilter, chromatographicThresholdLevel });
+				mzTolerance, intTolerance });
 	}
 
 }
