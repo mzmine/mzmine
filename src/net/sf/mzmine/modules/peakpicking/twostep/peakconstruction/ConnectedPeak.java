@@ -209,6 +209,8 @@ public class ConnectedPeak implements Peak {
 	 * scan
 	 */
 	public DataPoint getDataPoint(int scanNumber) {
+        if (datapointsMap.get(scanNumber) == null) return null;
+        
 		return datapointsMap.get(scanNumber).getMzPeak();
 	}
 
