@@ -318,15 +318,15 @@ public class TICPlot extends ChartPanel {
 			float yTick = (float) yAxis.getTickUnit().getSize();
 
 			// Get all frames of my class
-			JInternalFrame spectraFrames[] = MZmineCore.getDesktop()
+			JInternalFrame frames[] = MZmineCore.getDesktop()
 					.getInternalFrames();
 
 			// Set the range of these frames
-			for (JInternalFrame frame : spectraFrames) {
-				if (!(frame instanceof SpectraVisualizerWindow))
+			for (JInternalFrame frame : frames) {
+				if (!(frame instanceof TICVisualizerWindow))
 					continue;
-				SpectraVisualizerWindow spectraFrame = (SpectraVisualizerWindow) frame;
-				spectraFrame.setAxesRange(xMin, xMax, xTick, yMin, yMax, yTick);
+                TICVisualizerWindow ticFrame = (TICVisualizerWindow) frame;
+                ticFrame.setAxesRange(xMin, xMax, xTick, yMin, yMax, yTick);
 			}
 
 		}
