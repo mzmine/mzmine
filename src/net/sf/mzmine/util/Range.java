@@ -176,4 +176,17 @@ public class Range {
     public String toString() {
         return String.valueOf(min) + " - " + String.valueOf(max);
     }
+
+    /**
+     * Returns the String representation
+     * 
+     * @return This range as string
+     */
+    public int compareTo( Range range2) {
+        Float value1 = this.getMax() - this.getMin();
+        Float value2 = range2.getMax() - range2.getMin();
+    	
+    	return value1.compareTo(value2);
+    }
+
 }
