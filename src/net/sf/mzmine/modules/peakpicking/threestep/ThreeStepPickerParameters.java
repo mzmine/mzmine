@@ -38,21 +38,26 @@ public class ThreeStepPickerParameters implements StorableParameterSet {
 			"Wavelet transform" };
 
 	public static final String massDetectorClasses[] = {
-			"net.sf.mzmine.modules.peakpicking.twostep.massdetection.centroid.CentroidMassDetector",
-			"net.sf.mzmine.modules.peakpicking.twostep.massdetection.exactmass.ExactMassDetector",
-			"net.sf.mzmine.modules.peakpicking.twostep.massdetection.localmaxima.LocalMaxMassDetector",
-			"net.sf.mzmine.modules.peakpicking.twostep.massdetection.recursive.RecursiveMassDetector",
-			"net.sf.mzmine.modules.peakpicking.twostep.massdetection.wavelet.WaveletMassDetector" };
+			"net.sf.mzmine.modules.peakpicking.threestep.massdetection.centroid.CentroidMassDetector",
+			"net.sf.mzmine.modules.peakpicking.threestep.massdetection.exactmass.ExactMassDetector",
+			"net.sf.mzmine.modules.peakpicking.threestep.massdetection.localmaxima.LocalMaxMassDetector",
+			"net.sf.mzmine.modules.peakpicking.threestep.massdetection.recursive.RecursiveMassDetector",
+			"net.sf.mzmine.modules.peakpicking.threestep.massdetection.wavelet.WaveletMassDetector" };
 
-	public static final String peakBuilderNames[] = { "Base line connector",
+	public static final String chromatogramBuilderNames[] = { "Simple Chromatogram Builder" };
+
+	public static final String chromatogramBuilderClasses[] = {
+		"net.sf.mzmine.modules.peakpicking.threestep.xicconstruction.simplechromatogram.SimpleChromatogramBuilder"};
+
+		public static final String peakBuilderNames[] = { "Base line connector",
 			"Savitzky-Golay connector", "Simple data point connector", "Threshold connector", "Wavelet connector"};
 
 	public static final String peakBuilderClasses[] = {
-			"net.sf.mzmine.modules.peakpicking.twostep.peakconstruction.baselineconnector.BaselineConnector",
-			"net.sf.mzmine.modules.peakpicking.twostep.peakconstruction.savitzkygolayconnector.SavitzkyGolayConnector",
-			"net.sf.mzmine.modules.peakpicking.twostep.peakconstruction.simpleconnector.SimpleConnector",
-			"net.sf.mzmine.modules.peakpicking.twostep.peakconstruction.thresholdconnector.ThresholdConnector",
-			"net.sf.mzmine.modules.peakpicking.twostep.peakconstruction.waveletconnector.WaveletConnector" };
+			"net.sf.mzmine.modules.peakpicking.threestep.peakconstruction.baselineconnector.BaselineConnector",
+			"net.sf.mzmine.modules.peakpicking.threestep.peakconstruction.savitzkygolayconnector.SavitzkyGolayConnector",
+			"net.sf.mzmine.modules.peakpicking.threestep.peakconstruction.simpleconnector.SimpleConnector",
+			"net.sf.mzmine.modules.peakpicking.threestep.peakconstruction.thresholdconnector.ThresholdConnector",
+			"net.sf.mzmine.modules.peakpicking.threestep.peakconstruction.waveletconnector.WaveletConnector" };
 
 	private SimpleParameterSet massDetectorParameters[],
 			peakBuilderParameters[], twoStepsParameters;
