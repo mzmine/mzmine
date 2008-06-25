@@ -1,7 +1,5 @@
 package net.sf.mzmine.desktop.impl;
 
-import java.awt.Frame;
-import java.awt.Window;
 import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
 import java.io.File;

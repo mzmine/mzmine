@@ -191,8 +191,8 @@ public class MainWindow extends JFrame implements MZmineModule, Desktop,
 
         // Construct menu
         menuBar = new MainMenu();
-		help = new HelpClass();
-		help.addMenuItem(menuBar);
+		//help = new HelpClass();
+		//help.addMenuItem(menuBar);
         setJMenuBar(menuBar);
 
         // Initialize window listener for responding to user events
@@ -320,6 +320,11 @@ public class MainWindow extends JFrame implements MZmineModule, Desktop,
         }
         this.setTitle("MZmine :" + projectName);
 
+    }
+    
+    public void setHelpMenuItem(){
+		help = new HelpClass();
+		help.addMenuItem(menuBar);
     }
 
 }

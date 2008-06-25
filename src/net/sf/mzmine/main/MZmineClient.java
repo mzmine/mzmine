@@ -26,6 +26,7 @@ import java.util.logging.Logger;
 
 import javax.swing.SwingUtilities;
 
+import net.sf.mzmine.desktop.impl.HelpClass;
 import net.sf.mzmine.desktop.impl.MainWindow;
 import net.sf.mzmine.project.MZmineProject;
 import net.sf.mzmine.project.ProjectManager;
@@ -119,7 +120,7 @@ public class MZmineClient extends MZmineCore implements Runnable {
 			MZmineCore.taskController = taskController;
 			//MZmineCore.ioController = ioController;
 			MZmineCore.desktop = desktop;
-
+				
 			logger.finer("Initializing core classes");
 
 			taskController.initModule();
@@ -140,6 +141,8 @@ public class MZmineClient extends MZmineCore implements Runnable {
 						.attributeValue(CLASS_ATTRIBUTE_NAME);
 				loadModule(className);
 			}
+
+			desktop.setHelpMenuItem();
 
 			MZmineCore.initializedModules = moduleSet
 					.toArray(new MZmineModule[0]);
