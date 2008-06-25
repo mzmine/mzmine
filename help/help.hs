@@ -7,7 +7,7 @@
    <title>Help</title>
    <!-- maps -->
    <maps>
-     <homeID>item1</homeID>
+     <homeID>MZmine1</homeID>
      <mapref location="help.jhm" />
    </maps>
    <!-- views -->
