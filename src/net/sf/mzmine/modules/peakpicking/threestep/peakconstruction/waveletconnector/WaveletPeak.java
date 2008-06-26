@@ -158,7 +158,7 @@ public class WaveletPeak extends ConnectedPeak {
 	 * one region over this auto-defined level, we construct a different peak
 	 * for each region.
 	 * 
-	 * @param ConnectedPeak
+	 * @param SimpleChromatogram
 	 *            ucPeak
 	 * @return Peak[]
 	 */

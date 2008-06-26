@@ -17,7 +17,7 @@
  * Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-package net.sf.mzmine.modules.peakpicking.threestep.peakconstruction.baselineconnector;
+package net.sf.mzmine.modules.peakpicking.threestep.xicconstruction.simplechromatogram;
 
 import java.text.NumberFormat;
 
@@ -27,15 +27,20 @@ import net.sf.mzmine.data.impl.SimpleParameter;
 import net.sf.mzmine.data.impl.SimpleParameterSet;
 import net.sf.mzmine.main.MZmineCore;
 
-public class BaselineConnectorParameters extends SimpleParameterSet {
+public class SimpleChromatogramBuilderParameters extends SimpleParameterSet {
 
 	public static final NumberFormat percentFormat = NumberFormat
 			.getPercentInstance();
 
-	public static final Parameter baselineLevel = new SimpleParameter(
-			ParameterType.FLOAT, "Baseline level",
-			"All data points over this level are considered to form a peak", "absolute", new Float(100.0),
+	public static final Parameter minimumChromatogramHeight = new SimpleParameter(
+			ParameterType.FLOAT, "Min peak height",
+			"Minimum acceptable peak height", "absolute", new Float(100.0),
 			new Float(0.0), null, MZmineCore.getIntensityFormat());
+
+	public static final Parameter minimumChromatogramDuration = new SimpleParameter(
+			ParameterType.FLOAT, "Min peak duration",
+			"Minimum acceptable peak duration", null, new Float(10.0),
+			new Float(0.0), null, MZmineCore.getRTFormat());
 
 	public static final Parameter mzTolerance = new SimpleParameter(
 			ParameterType.FLOAT,
@@ -44,8 +49,16 @@ public class BaselineConnectorParameters extends SimpleParameterSet {
 			"m/z", new Float(0.1), new Float(0.0), new Float(1.0), MZmineCore
 					.getMZFormat());
 
-	public BaselineConnectorParameters() {
-		super(new Parameter[] { baselineLevel, mzTolerance });
+	public static final Parameter intTolerance = new SimpleParameter(
+			ParameterType.FLOAT,
+			"Intensity tolerance",
+			"Maximum allowed deviation from expected /\\ shape of a peak in chromatographic direction",
+			"%", new Float(0.15), new Float(0.0), new Float(1.0), percentFormat);
+
+	
+	public SimpleChromatogramBuilderParameters() {
+		super(new Parameter[] { minimumChromatogramHeight, minimumChromatogramDuration,
+				mzTolerance, intTolerance });
 	}
 
 }

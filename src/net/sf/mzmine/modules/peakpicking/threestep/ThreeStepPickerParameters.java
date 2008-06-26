@@ -53,25 +53,31 @@ public class ThreeStepPickerParameters implements StorableParameterSet {
 			"Savitzky-Golay connector", "Simple data point connector", "Threshold connector", "Wavelet connector"};
 
 	public static final String peakBuilderClasses[] = {
-			"net.sf.mzmine.modules.peakpicking.threestep.peakconstruction.baselineconnector.BaselineConnector",
+			"net.sf.mzmine.modules.peakpicking.threestep.peakconstruction.baselinepeakbuilder.BaselinePeakBuilder",
 			"net.sf.mzmine.modules.peakpicking.threestep.peakconstruction.savitzkygolayconnector.SavitzkyGolayConnector",
 			"net.sf.mzmine.modules.peakpicking.threestep.peakconstruction.simpleconnector.SimpleConnector",
 			"net.sf.mzmine.modules.peakpicking.threestep.peakconstruction.thresholdconnector.ThresholdConnector",
 			"net.sf.mzmine.modules.peakpicking.threestep.peakconstruction.waveletconnector.WaveletConnector" };
 
-	private SimpleParameterSet massDetectorParameters[],
-			peakBuilderParameters[], twoStepsParameters;
+	private SimpleParameterSet massDetectorParameters[], chromatogramBuilderParameters[],
+			peakBuilderParameters[], threeStepsParameters;
 
 	private static final Parameter massDetectorTypeNumber = new SimpleParameter(
 			ParameterType.INTEGER,
 			"Mass Detector type",
-			"This value defines the type of mass detector to use in two steps peak picking process",
+			"This value defines the type of mass detector to use in three steps peak picking process",
+			0);
+
+	private static final Parameter chromatogramBuilderTypeNumber = new SimpleParameter(
+			ParameterType.INTEGER,
+			"Chromatogram Builder type",
+			"This value defines the type of chromatogram builder to use in three steps peak picking process",
 			0);
 
 	private static final Parameter peakBuilderTypeNumber = new SimpleParameter(
 			ParameterType.INTEGER,
 			"Peak Builder type",
-			"This value defines the type of peak builder to use in two steps peak picking process",
+			"This value defines the type of peak builder to use in three steps peak picking process",
 			0);
 
 	private static final Parameter suffix = new SimpleParameter(
@@ -82,10 +88,11 @@ public class ThreeStepPickerParameters implements StorableParameterSet {
 	public ThreeStepPickerParameters() {
 
 		massDetectorParameters = new SimpleParameterSet[massDetectorClasses.length];
+		chromatogramBuilderParameters = new SimpleParameterSet[chromatogramBuilderClasses.length];
 		peakBuilderParameters = new SimpleParameterSet[peakBuilderClasses.length];
 
-		twoStepsParameters = new SimpleParameterSet(new Parameter[] {
-				massDetectorTypeNumber, peakBuilderTypeNumber, suffix });
+		threeStepsParameters = new SimpleParameterSet(new Parameter[] {
+				massDetectorTypeNumber, chromatogramBuilderTypeNumber, peakBuilderTypeNumber, suffix });
 
 		for (int i = 0; i < massDetectorClasses.length; i++) {
 			String className = massDetectorClasses[i] + "Parameters";
@@ -93,6 +100,18 @@ public class ThreeStepPickerParameters implements StorableParameterSet {
 			try {
 				paramClass = Class.forName(className);
 				massDetectorParameters[i] = (SimpleParameterSet) paramClass
+						.newInstance();
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
+		}
+
+		for (int i = 0; i < chromatogramBuilderClasses.length; i++) {
+			String className = chromatogramBuilderClasses[i] + "Parameters";
+			Class paramClass;
+			try {
+				paramClass = Class.forName(className);
+				chromatogramBuilderParameters[i] = (SimpleParameterSet) paramClass
 						.newInstance();
 			} catch (Exception e) {
 				e.printStackTrace();
@@ -128,6 +147,16 @@ public class ThreeStepPickerParameters implements StorableParameterSet {
 	 *            index
 	 * @return SimpleParameterSet
 	 */
+	public SimpleParameterSet getChromatogramBuilderParameters(int ind) {
+		return chromatogramBuilderParameters[ind];
+	}
+
+	/**
+	 * 
+	 * @param int
+	 *            index
+	 * @return SimpleParameterSet
+	 */
 	public SimpleParameterSet getPeakBuilderParameters(int ind) {
 		return peakBuilderParameters[ind];
 	}
@@ -140,7 +169,7 @@ public class ThreeStepPickerParameters implements StorableParameterSet {
 	public void setSuffix(String title) {
 		if (title.equals(""))
 			title = "peakList";
-		twoStepsParameters.setParameterValue(suffix, title);
+		threeStepsParameters.setParameterValue(suffix, title);
 	}
 
 	/**
@@ -148,7 +177,7 @@ public class ThreeStepPickerParameters implements StorableParameterSet {
 	 * @return String
 	 */
 	public String getSuffix() {
-		String Suffix = (String) twoStepsParameters.getParameterValue(suffix);
+		String Suffix = (String) threeStepsParameters.getParameterValue(suffix);
 		if (Suffix == null)
 			return "peaklist";
 		if (Suffix.equals(""))
@@ -161,12 +190,16 @@ public class ThreeStepPickerParameters implements StorableParameterSet {
 	 * @param int
 	 *            massDetectorInd
 	 * @param int
+	 *            chromatogramBuilderInd
+	 * @param int
 	 *            peakBuilderInd
 	 */
-	public void setTypeNumber(int massDetectorInd, int peakBuilderInd) {
-		twoStepsParameters.setParameterValue(massDetectorTypeNumber,
+	public void setTypeNumber(int massDetectorInd, int chromatogramBuilderInd, int peakBuilderInd) {
+		threeStepsParameters.setParameterValue(massDetectorTypeNumber,
 				massDetectorInd);
-		twoStepsParameters.setParameterValue(peakBuilderTypeNumber,
+		threeStepsParameters.setParameterValue(chromatogramBuilderTypeNumber,
+				chromatogramBuilderInd);
+		threeStepsParameters.setParameterValue(peakBuilderTypeNumber,
 				peakBuilderInd);
 	}
 
@@ -175,8 +208,17 @@ public class ThreeStepPickerParameters implements StorableParameterSet {
 	 * @return Integer massDetectorTypeNumber
 	 */
 	public int getMassDetectorTypeNumber() {
-		return (Integer) twoStepsParameters
+		return (Integer) threeStepsParameters
 				.getParameterValue(massDetectorTypeNumber);
+	}
+
+	/**
+	 * 
+	 * @return Integer chromatogramBuilderTypeNumber
+	 */
+	public int getChromatogramBuilderTypeNumber() {
+		return (Integer) threeStepsParameters
+				.getParameterValue(chromatogramBuilderTypeNumber);
 	}
 
 	/**
@@ -184,7 +226,7 @@ public class ThreeStepPickerParameters implements StorableParameterSet {
 	 * @return Integer peakBuilderTypeNumber
 	 */
 	public int getPeakBuilderTypeNumber() {
-		return (Integer) twoStepsParameters
+		return (Integer) threeStepsParameters
 				.getParameterValue(peakBuilderTypeNumber);
 	}
 
@@ -201,6 +243,13 @@ public class ThreeStepPickerParameters implements StorableParameterSet {
 			massDetectorParameters[i].exportValuesToXML(subElement);
 		}
 
+		for (int i = 0; i < chromatogramBuilderParameters.length; i++) {
+			Element subElement = element.addElement("chromatogrambuilder");
+			subElement.addAttribute(PARAMETER_NAME_ATTRIBUTE,
+					chromatogramBuilderNames[i]);
+			chromatogramBuilderParameters[i].exportValuesToXML(subElement);
+		}
+
 		for (int i = 0; i < peakBuilderParameters.length; i++) {
 			Element subElement = element.addElement("peakbuilder");
 			subElement.addAttribute(PARAMETER_NAME_ATTRIBUTE,
@@ -208,7 +257,7 @@ public class ThreeStepPickerParameters implements StorableParameterSet {
 			peakBuilderParameters[i].exportValuesToXML(subElement);
 		}
 
-		twoStepsParameters.exportValuesToXML(element);
+		threeStepsParameters.exportValuesToXML(element);
 	}
 
 	/**
@@ -229,9 +278,21 @@ public class ThreeStepPickerParameters implements StorableParameterSet {
 			}
 		}
 
-		Iterator paramIter2 = element.elementIterator("peakbuilder");
+		Iterator paramIter2 = element.elementIterator("chromatogrambuilder");
 		while (paramIter2.hasNext()) {
 			Element paramElem = (Element) paramIter2.next();
+			for (int i = 0; i < chromatogramBuilderNames.length; i++) {
+				if (paramElem.attributeValue(PARAMETER_NAME_ATTRIBUTE).equals(
+						chromatogramBuilderNames[i])) {
+					chromatogramBuilderParameters[i].importValuesFromXML(paramElem);
+					break;
+				}
+			}
+		}
+
+		Iterator paramIter3 = element.elementIterator("peakbuilder");
+		while (paramIter3.hasNext()) {
+			Element paramElem = (Element) paramIter3.next();
 			for (int i = 0; i < massDetectorNames.length; i++) {
 				if (paramElem.attributeValue(PARAMETER_NAME_ATTRIBUTE).equals(
 						peakBuilderNames[i])) {
@@ -241,7 +302,7 @@ public class ThreeStepPickerParameters implements StorableParameterSet {
 			}
 		}
 
-		twoStepsParameters.importValuesFromXML(element);
+		threeStepsParameters.importValuesFromXML(element);
 
 	}
 
@@ -254,16 +315,24 @@ public class ThreeStepPickerParameters implements StorableParameterSet {
 	public ThreeStepPickerParameters clone() {
 
 		ThreeStepPickerParameters newSet = new ThreeStepPickerParameters();
+		
 		newSet.massDetectorParameters = new SimpleParameterSet[massDetectorParameters.length];
 		for (int i = 0; i < massDetectorParameters.length; i++) {
 			newSet.massDetectorParameters[i] = massDetectorParameters[i]
 					.clone();
 		}
+
+		newSet.chromatogramBuilderParameters = new SimpleParameterSet[chromatogramBuilderParameters.length];
+		for (int i = 0; i < chromatogramBuilderParameters.length; i++) {
+			newSet.chromatogramBuilderParameters[i] = chromatogramBuilderParameters[i].clone();
+		}
+
 		newSet.peakBuilderParameters = new SimpleParameterSet[peakBuilderParameters.length];
 		for (int i = 0; i < peakBuilderParameters.length; i++) {
 			newSet.peakBuilderParameters[i] = peakBuilderParameters[i].clone();
 		}
-		newSet.twoStepsParameters = twoStepsParameters.clone();
+
+		newSet.threeStepsParameters = threeStepsParameters.clone();
 		return newSet;
 
 	}

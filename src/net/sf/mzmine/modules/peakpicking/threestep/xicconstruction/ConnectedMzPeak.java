@@ -17,10 +17,10 @@
  * Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-package net.sf.mzmine.modules.peakpicking.threestep.peakconstruction;
+package net.sf.mzmine.modules.peakpicking.threestep.xicconstruction;
 
 import net.sf.mzmine.data.Scan;
-import net.sf.mzmine.modules.peakpicking.twostep.massdetection.MzPeak;
+import net.sf.mzmine.modules.peakpicking.threestep.massdetection.MzPeak;
 
 /**
  * This class represent an m/z peak

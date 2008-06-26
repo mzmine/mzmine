@@ -17,23 +17,24 @@
  * Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-package net.sf.mzmine.modules.peakpicking.threestep.peakconstruction;
+package net.sf.mzmine.modules.peakpicking.threestep.xicconstruction;
 
 import java.util.Vector;
 
 
 
+
 /**
- * This class represents a score (goodness of fit) between a chromatographic peak and m/z peak
+ * This class represents a score (goodness of fit) between a chromatogram and m/z peak
  */
 public class MatchScore implements Comparable<MatchScore> {
 
     private float score;
-    private ConnectedPeak ucPeak;
+    private Chromatogram ucPeak;
     private ConnectedMzPeak mzPeak;
     private float mzTolerance, intTolerance;
 
-    public MatchScore(ConnectedPeak uc, ConnectedMzPeak od, float mzTolerance, float intTolerance) {
+    public MatchScore(Chromatogram uc, ConnectedMzPeak od, float mzTolerance, float intTolerance) {
         this.mzTolerance = mzTolerance;
         this.intTolerance = intTolerance;
         ucPeak = uc;
@@ -45,7 +46,7 @@ public class MatchScore implements Comparable<MatchScore> {
         return score;
     }
 
-    public ConnectedPeak getPeak() {
+    public Chromatogram getPeak() {
         return ucPeak;
     }
 
@@ -61,7 +62,7 @@ public class MatchScore implements Comparable<MatchScore> {
         return retsig;
     }
 
-    private float calcScore(ConnectedPeak uc, ConnectedMzPeak od) {
+    private float calcScore(Chromatogram uc, ConnectedMzPeak od) {
 
         float ucMZ = uc.getMZ();
 
@@ -89,22 +90,32 @@ public class MatchScore implements Comparable<MatchScore> {
      * determines if it is possible to add given m/z peak at the end of the
      * peak.
      */
-    private float calcScoreForRTShape(ConnectedPeak uc, ConnectedMzPeak od) {
+    private float calcScoreForRTShape(Chromatogram chromatogram, ConnectedMzPeak cMzPeak) {
 
-        float nextIntensity = od.getMzPeak().getIntensity();
-        int[] scanNumbers = uc.getScanNumbers();
+        float nextIntensity = cMzPeak.getMzPeak().getIntensity();
+        ConnectedMzPeak[] lastConnectedMzPeaks = chromatogram.getLastConnectedMzPeaks();
+        
+        int[] scanNumbers = new int[lastConnectedMzPeaks.length];
+        float[] intensities = new float[lastConnectedMzPeaks.length];
+        
+		if (lastConnectedMzPeaks.length > 0) {
+			for (int i = 0; i < intensities.length; i++) {
+				intensities[i] = lastConnectedMzPeaks[i].getMzPeak().getIntensity();
+				scanNumbers[i] = lastConnectedMzPeaks[i].getScan()
+				.getScanNumber();
+			}
+		}
+
 
         // If no previous m/z peaks
         if (scanNumbers.length == 0) {
             return 0;
         }
 
-        Vector<Float> intensities = uc.getConstructionIntensities();
-
         // If only one previous m/z peak
         if (scanNumbers.length == 1) {
 
-            float prevIntensity = intensities.get(0);
+            float prevIntensity = intensities[0];
 
             // If it goes up, then give minimum (best) score
             if ((nextIntensity - prevIntensity) >= 0) {
@@ -134,8 +145,8 @@ public class MatchScore implements Comparable<MatchScore> {
 
         for (int ind=1; ind<scanNumbers.length; ind++) {
 
-            float prevIntensity = intensities.get(ind-1);
-            float currIntensity = intensities.get(ind);
+            float prevIntensity = intensities[ind-1];
+            float currIntensity = intensities[ind];
 
             // If peak is currently going up
             if (derSign == 1) {
@@ -177,7 +188,7 @@ public class MatchScore implements Comparable<MatchScore> {
         // If peak is currently going down
         if (derSign == -1) {
 
-            float lastIntensity = intensities.get(intensities.size()-1);
+            float lastIntensity = intensities[intensities.length-1];
 
             // Then peak must not start going up again
             float topMargin = lastIntensity

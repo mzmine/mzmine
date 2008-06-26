@@ -1,9 +1,7 @@
 package net.sf.mzmine.modules.peakpicking.threestep.xicconstruction;
 
-import net.sf.mzmine.data.Peak;
-import net.sf.mzmine.data.RawDataFile;
 import net.sf.mzmine.data.Scan;
-import net.sf.mzmine.modules.peakpicking.twostep.massdetection.MzPeak;
+import net.sf.mzmine.modules.peakpicking.threestep.massdetection.MzPeak;
 
 public interface ChromatogramBuilder {
 

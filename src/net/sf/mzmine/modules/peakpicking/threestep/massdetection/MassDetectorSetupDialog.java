@@ -62,7 +62,6 @@ import net.sf.mzmine.desktop.Desktop;
 import net.sf.mzmine.desktop.impl.MainWindow;
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.modules.peakpicking.threestep.ThreeStepPickerParameters;
-import net.sf.mzmine.modules.peakpicking.twostep.TwoStepPickerParameters;
 import net.sf.mzmine.modules.visualization.spectra.PeakListDataSet;
 import net.sf.mzmine.modules.visualization.spectra.PlotMode;
 import net.sf.mzmine.modules.visualization.spectra.ScanDataSet;
@@ -121,7 +120,7 @@ public class MassDetectorSetupDialog extends ParameterSetupDialog implements
 	public MassDetectorSetupDialog(ThreeStepPickerParameters parameters,
 			int massDetectorTypeNumber) {
 
-		super(TwoStepPickerParameters.massDetectorNames[massDetectorTypeNumber]
+		super(ThreeStepPickerParameters.massDetectorNames[massDetectorTypeNumber]
 				+ "'s parameter setup dialog ", parameters
 				.getMassDetectorParameters(massDetectorTypeNumber), "Mass" + massDetectorTypeNumber);
 		
@@ -320,7 +319,7 @@ public class MassDetectorSetupDialog extends ParameterSetupDialog implements
 		SimplePeakList newPeakList = new SimplePeakList(previewDataFile
 				+ "_singleScanPeak", previewDataFile);
 		mdParameters = buildParameterSet(mdParameters);
-		String massDetectorClassName = TwoStepPickerParameters.massDetectorClasses[massDetectorTypeNumber];
+		String massDetectorClassName = ThreeStepPickerParameters.massDetectorClasses[massDetectorTypeNumber];
 
 		try {
 			Class massDetectorClass = Class.forName(massDetectorClassName);

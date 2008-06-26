@@ -21,7 +21,7 @@ package net.sf.mzmine.modules.peakpicking.threestep.massdetection.exactmass;
 
 import java.util.Comparator;
 
-import net.sf.mzmine.modules.peakpicking.twostep.massdetection.MzPeak;
+import net.sf.mzmine.modules.peakpicking.threestep.massdetection.MzPeak;
 
 /**
  * This class implements Comparator class to provide a comparison between to

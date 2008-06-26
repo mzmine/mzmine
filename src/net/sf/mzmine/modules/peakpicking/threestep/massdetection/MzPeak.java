@@ -20,7 +20,6 @@
 package net.sf.mzmine.modules.peakpicking.threestep.massdetection;
 
 import net.sf.mzmine.data.DataPoint;
-import net.sf.mzmine.data.Scan;
 
 /**
  * This class represent an m/z peak

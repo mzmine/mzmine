@@ -47,6 +47,7 @@ import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.modules.peakpicking.threestep.massdetection.MassDetectorSetupDialog;
 import net.sf.mzmine.modules.peakpicking.threestep.peakconstruction.PeakBuilderSetupDialog;
 import net.sf.mzmine.util.dialogs.ExitCode;
+import net.sf.mzmine.util.dialogs.ParameterSetupDialog;
 
 /**
  * 
@@ -58,8 +59,10 @@ class ThreeStepPickerSetupDialog extends JDialog implements ActionListener {
 	private String title;
 
 	// Dialog components
-	private JButton btnOK, btnCancel, btnHelp, btnSetMass, btnSetPeak;
-	private JComboBox comboMassDetectors, comboPeaksConstructors;
+	private JButton btnOK, btnCancel, btnHelp, btnSetMass, btnSetChromato,
+			btnSetPeak;
+	private JComboBox comboMassDetectors, comboChromatoBuilder,
+			comboPeaksConstructors;
 	private JTextField txtField;
 
 	public ThreeStepPickerSetupDialog(String title,
@@ -91,18 +94,32 @@ class ThreeStepPickerSetupDialog extends JDialog implements ActionListener {
 
 		}
 
+		if (src == btnSetChromato) {
+			int ind = comboChromatoBuilder.getSelectedIndex();
+
+			ParameterSetupDialog dialog = new ParameterSetupDialog(
+					ThreeStepPickerParameters.massDetectorNames[ind]
+							+ "'s parameter setup dialog ", parameters
+							.getChromatogramBuilderParameters(ind),
+					"ChromatoBuild" + ind);
+			;
+
+			dialog.setVisible(true);
+		}
+
 		if (src == btnSetPeak) {
 			int ind = comboPeaksConstructors.getSelectedIndex();
 
 			PeakBuilderSetupDialog dialog = new PeakBuilderSetupDialog(
 					parameters, ind);
-			
+
 			dialog.setVisible(true);
 		}
 
 		if (src == btnOK) {
 			inform();
 			parameters.setTypeNumber(comboMassDetectors.getSelectedIndex(),
+					comboChromatoBuilder.getSelectedIndex(),
 					comboPeaksConstructors.getSelectedIndex());
 			parameters.setSuffix(txtField.getText());
 			exitCode = ExitCode.OK;
@@ -161,10 +178,33 @@ class ThreeStepPickerSetupDialog extends JDialog implements ActionListener {
 		panel2.add(btnSetMass);
 		panel2.add(Box.createRigidArea(new Dimension(10, 10)));
 
-		// Elements of panel2
+		// Elements of panel3
 		JPanel panel3 = new JPanel();
-		panel3.setLayout(new BoxLayout(panel3, BoxLayout.X_AXIS));
+		panel3.setLayout(new BoxLayout(panel2, BoxLayout.X_AXIS));
 		panel3.setBorder(BorderFactory.createEmptyBorder(5, 5, 5, 5));
+
+		JLabel lblChromatoBuilder = new JLabel("Chromatogram Builder");
+		lblChromatoBuilder.setSize(200, 28);
+		comboChromatoBuilder = new JComboBox(
+				ThreeStepPickerParameters.massDetectorNames);
+		comboChromatoBuilder.setSelectedIndex(parameters
+				.getMassDetectorTypeNumber());
+		comboChromatoBuilder.addActionListener(this);
+		comboChromatoBuilder.setMaximumSize(new Dimension(200, 30));
+		btnSetChromato = new JButton("Set parameters");
+		btnSetChromato.addActionListener(this);
+
+		panel3.add(lblChromatoBuilder);
+		panel3.add(Box.createRigidArea(new Dimension(10, 10)));
+		panel3.add(comboChromatoBuilder);
+		panel3.add(Box.createRigidArea(new Dimension(10, 10)));
+		panel3.add(btnSetChromato);
+		panel3.add(Box.createRigidArea(new Dimension(10, 10)));
+
+		// Elements of panel4
+		JPanel panel4 = new JPanel();
+		panel4.setLayout(new BoxLayout(panel4, BoxLayout.X_AXIS));
+		panel4.setBorder(BorderFactory.createEmptyBorder(5, 5, 5, 5));
 
 		JLabel lblPeakBuilder = new JLabel("Peak Builder");
 		lblPeakBuilder.setMaximumSize(new Dimension(200, 30));
@@ -177,20 +217,22 @@ class ThreeStepPickerSetupDialog extends JDialog implements ActionListener {
 		btnSetPeak = new JButton("Set parameters");
 		btnSetPeak.addActionListener(this);
 
-		panel3.add(lblPeakBuilder);
-		panel3.add(Box.createRigidArea(new Dimension(10, 10)));
-		panel3.add(comboPeaksConstructors);
-		panel3.add(Box.createRigidArea(new Dimension(10, 10)));
-		panel3.add(btnSetPeak);
-		panel3.add(Box.createRigidArea(new Dimension(10, 10)));
+		panel4.add(lblPeakBuilder);
+		panel4.add(Box.createRigidArea(new Dimension(10, 10)));
+		panel4.add(comboPeaksConstructors);
+		panel4.add(Box.createRigidArea(new Dimension(10, 10)));
+		panel4.add(btnSetPeak);
+		panel4.add(Box.createRigidArea(new Dimension(10, 10)));
 
 		// Elements of pnlCombo
 		JPanel pnlCombo = new JPanel(new BorderLayout());
-		pnlCombo.setBorder(BorderFactory.createEmptyBorder(0, 10, 10, 10));
+		// pnlCombo.setBorder(BorderFactory.createEmptyBorder(0, 10, 10, 10));
+		pnlCombo.setLayout(new BoxLayout(pnlCombo, BoxLayout.Y_AXIS));
 
-		pnlCombo.add(panel1, BorderLayout.NORTH);
-		pnlCombo.add(panel2, BorderLayout.CENTER);
-		pnlCombo.add(panel3, BorderLayout.SOUTH);
+		pnlCombo.add(panel1);
+		pnlCombo.add(panel2);
+		pnlCombo.add(panel3);
+		pnlCombo.add(panel4);
 
 		// Elements of pnlButtons
 		JPanel pnlButtons = new JPanel();
@@ -215,11 +257,10 @@ class ThreeStepPickerSetupDialog extends JDialog implements ActionListener {
 
 		pack();
 		setTitle(title);
-		//setResizable(false);
 		setLocationRelativeTo(MZmineCore.getDesktop().getMainFrame());
-		
+
 	}
-	
+
 	/**
 	 * 
 	 */
@@ -234,19 +275,19 @@ class ThreeStepPickerSetupDialog extends JDialog implements ActionListener {
 
 		if (dataFiles.length != 0) {
 			for (int i = 0; i < dataFiles.length; i++) {
-				
+
 				int msLevels[] = dataFiles[i].getMSLevels();
 				Arrays.sort(msLevels);
-				
-				if (msLevels[0] != 1){
+
+				if (msLevels[0] != 1) {
 					notMsLevelOne = true;
 					break;
 				}
-				
+
 				int index = dataFiles[i].getScanNumbers(1)[0];
 				Scan scan = dataFiles[i].getScan(index);
-				
-				if (scan.isCentroided()){
+
+				if (scan.isCentroided()) {
 					centroid = true;
 					break;
 				}
@@ -272,20 +313,19 @@ class ThreeStepPickerSetupDialog extends JDialog implements ActionListener {
 		}
 	}
 
-	void setHelpListener(JButton helpBtn){
+	void setHelpListener(JButton helpBtn) {
 
 		try {
-		File urlAddress = new File(System.getProperty("user.dir")
-			+ File.separator + "help" + File.separator + "help.hs");
-		URL url = urlAddress.toURI().toURL();
-		HelpSet hs = new HelpSet(null, url);
-		HelpBroker hb = hs.createHelpBroker();
-		hb.enableHelpKey(getRootPane(), "steps1", hs); 
-		helpBtn.addActionListener(new CSH.DisplayHelpFromSource(hb));
-		}
-		catch (Exception event){
+			File urlAddress = new File(System.getProperty("user.dir")
+					+ File.separator + "help" + File.separator + "help.hs");
+			URL url = urlAddress.toURI().toURL();
+			HelpSet hs = new HelpSet(null, url);
+			HelpBroker hb = hs.createHelpBroker();
+			hb.enableHelpKey(getRootPane(), "steps1", hs);
+			helpBtn.addActionListener(new CSH.DisplayHelpFromSource(hb));
+		} catch (Exception event) {
 			event.printStackTrace();
-		}	
+		}
 	}
 
 }

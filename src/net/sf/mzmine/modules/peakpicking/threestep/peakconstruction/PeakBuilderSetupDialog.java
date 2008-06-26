@@ -58,8 +58,7 @@ import net.sf.mzmine.desktop.Desktop;
 import net.sf.mzmine.desktop.impl.MainWindow;
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.modules.peakpicking.threestep.ThreeStepPickerParameters;
-import net.sf.mzmine.modules.peakpicking.twostep.TwoStepPickerParameters;
-import net.sf.mzmine.modules.peakpicking.twostep.massdetection.MzPeak;
+import net.sf.mzmine.modules.peakpicking.threestep.massdetection.MzPeak;
 import net.sf.mzmine.modules.visualization.tic.PeakDataSet;
 import net.sf.mzmine.modules.visualization.tic.TICDataSet;
 import net.sf.mzmine.modules.visualization.tic.TICPlot;
@@ -119,9 +118,9 @@ public class PeakBuilderSetupDialog extends ParameterSetupDialog implements
 	public PeakBuilderSetupDialog(ThreeStepPickerParameters parameters,
 			int peakBuilderTypeNumber) {
 
-		super(TwoStepPickerParameters.peakBuilderNames[peakBuilderTypeNumber]
+		super(ThreeStepPickerParameters.peakBuilderNames[peakBuilderTypeNumber]
 				+ "'s parameter setup dialog ", parameters
-				.getPeakBuilderParameters(peakBuilderTypeNumber), "Builder"
+				.getPeakBuilderParameters(peakBuilderTypeNumber), "PeakBuild"
 				+ peakBuilderTypeNumber);
 
 		dataFiles = MZmineCore.getCurrentProject().getDataFiles();
@@ -296,7 +295,7 @@ public class PeakBuilderSetupDialog extends ParameterSetupDialog implements
 	public void setPeakDataSet() {
 
 		pbParameters = buildParameterSet(pbParameters);
-		String peakBuilderClassName = TwoStepPickerParameters.peakBuilderClasses[peakBuilderTypeNumber];
+		String peakBuilderClassName = ThreeStepPickerParameters.peakBuilderClasses[peakBuilderTypeNumber];
 
 		try {
 			Class peakBuilderClass = Class.forName(peakBuilderClassName);
@@ -317,6 +316,8 @@ public class PeakBuilderSetupDialog extends ParameterSetupDialog implements
 		Vector<Peak> totalPeaks = new Vector<Peak>();
 
 		for (int i = 0; i < listScans.length; i++) {
+			
+			// TODO Correct creation of chromatogram
 			
 			MzPeak[] mzValues = { new MzPeak(new SimpleDataPoint(ticDataset.getZ(0, i).floatValue(), ticDataset
 					.getY(0, i).floatValue())) };

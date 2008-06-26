@@ -29,14 +29,16 @@ import net.sf.mzmine.data.Scan;
 import net.sf.mzmine.data.impl.SimplePeakList;
 import net.sf.mzmine.data.impl.SimplePeakListRow;
 import net.sf.mzmine.main.MZmineCore;
-import net.sf.mzmine.modules.peakpicking.twostep.massdetection.MassDetector;
-import net.sf.mzmine.modules.peakpicking.twostep.massdetection.MzPeak;
-import net.sf.mzmine.modules.peakpicking.twostep.peakconstruction.PeakBuilder;
+import net.sf.mzmine.modules.peakpicking.threestep.massdetection.MassDetector;
+import net.sf.mzmine.modules.peakpicking.threestep.massdetection.MzPeak;
+import net.sf.mzmine.modules.peakpicking.threestep.peakconstruction.PeakBuilder;
+import net.sf.mzmine.modules.peakpicking.threestep.xicconstruction.Chromatogram;
+import net.sf.mzmine.modules.peakpicking.threestep.xicconstruction.ChromatogramBuilder;
 import net.sf.mzmine.project.MZmineProject;
 import net.sf.mzmine.taskcontrol.Task;
 
 /**
- * @see 
+ * @see
  */
 class ThreeStepPickerTask implements Task {
 
@@ -47,35 +49,49 @@ class ThreeStepPickerTask implements Task {
 	private String errorMessage;
 
 	// scan counter
-	private int processedScans, totalScans;
+	private int processedScans, totalScans, totalChromatograms;
 	private int newPeakID = 1;
 	private int[] scanNumbers;
 
 	// User parameters
 	private String suffix;
 
-	private int massDetectorTypeNumber, peakBuilderTypeNumber;
+	private int massDetectorTypeNumber, chromatogramBuilderTypeNumber,
+			peakBuilderTypeNumber;
+
+	// Mass Detector
 	private MassDetector massDetector;
+
+	// Chromatogram Builders
+	private ChromatogramBuilder chromatogramBuilder;
 
 	// Peak Builders
 	private PeakBuilder peakBuilder;
 
-	private ParameterSet mdParameters, pbParameters;
+	private ParameterSet mdParameters, cbParameters, pbParameters;
+	
+	private boolean finishChromatograms= false;
 
 	/**
 	 * @param dataFile
 	 * @param parameters
 	 */
-	ThreeStepPickerTask(RawDataFile dataFile, ThreeStepPickerParameters parameters) {
+	ThreeStepPickerTask(RawDataFile dataFile,
+			ThreeStepPickerParameters parameters) {
 
 		this.dataFile = dataFile;
 
 		massDetectorTypeNumber = parameters.getMassDetectorTypeNumber();
 		mdParameters = parameters
 				.getMassDetectorParameters(massDetectorTypeNumber);
-		peakBuilderTypeNumber = parameters.getPeakBuilderTypeNumber();
+
+		chromatogramBuilderTypeNumber = parameters.getPeakBuilderTypeNumber();
+		cbParameters = parameters
+				.getPeakBuilderParameters(chromatogramBuilderTypeNumber);
+
+		peakBuilderTypeNumber = parameters.getChromatogramBuilderTypeNumber();
 		pbParameters = parameters
-				.getPeakBuilderParameters(peakBuilderTypeNumber);
+				.getChromatogramBuilderParameters(peakBuilderTypeNumber);
 		suffix = parameters.getSuffix();
 		scanNumbers = dataFile.getScanNumbers(1);
 		totalScans = scanNumbers.length;
@@ -94,7 +110,10 @@ class ThreeStepPickerTask implements Task {
 	public float getFinishedPercentage() {
 		if (totalScans == 0)
 			return 0.0f;
-		return (float) processedScans / (float) totalScans;
+		if (!finishChromatograms)
+			return (float) processedScans / (float) totalScans * 2;
+		else
+			return ((float) processedScans / (float) totalChromatograms * 2) + 0.5f;
 	}
 
 	/**
@@ -144,7 +163,23 @@ class ThreeStepPickerTask implements Task {
 			return;
 		}
 
-		// Create new peak builder according with the user's selection
+		// Create new chromatogram builder according with the user's selection
+		String chromatogramBuilderClassName = ThreeStepPickerParameters.chromatogramBuilderClasses[peakBuilderTypeNumber];
+		try {
+			Class chromatogramBuilderClass = Class
+					.forName(chromatogramBuilderClassName);
+			Constructor chromtogramBuilderConstruct = chromatogramBuilderClass
+					.getConstructors()[0];
+			chromatogramBuilder = (ChromatogramBuilder) chromtogramBuilderConstruct
+					.newInstance(cbParameters);
+		} catch (Exception e) {
+			logger.finest("Error trying to make an instance of peak builder "
+					+ chromatogramBuilderClassName);
+			status = TaskStatus.ERROR;
+			return;
+		}
+
+		// Create new peak constructor according with the user's selection
 		String peakBuilderClassName = ThreeStepPickerParameters.peakBuilderClasses[peakBuilderTypeNumber];
 		try {
 			Class peakBuilderClass = Class.forName(peakBuilderClassName);
@@ -164,37 +199,49 @@ class ThreeStepPickerTask implements Task {
 				dataFile + " " + suffix, dataFile);
 
 		MzPeak[] mzValues;
+		Chromatogram[] chromatograms;
 		Peak[] peaks;
 
+		// TODO Verify the process in three steps
 		for (int i = 0; i < totalScans; i++) {
-            
+
 			if (status == TaskStatus.CANCELED)
-                return;
-            
-            Scan scan = dataFile.getScan(scanNumbers[i]);
+				return;
+
+			Scan scan = dataFile.getScan(scanNumbers[i]);
 			mzValues = massDetector.getMassValues(scan);
-			
-			peaks = peakBuilder.addScan(scan, mzValues, dataFile);
-			
-			if(peaks != null)
-			for (Peak finishedPeak : peaks) {
-				SimplePeakListRow newRow = new SimplePeakListRow(newPeakID);
-				newPeakID++;
-				newRow.addPeak(dataFile, finishedPeak, finishedPeak);
-				newPeakList.addRow(newRow);
-			}
-			
+
+			chromatogramBuilder.addScan(scan, mzValues);
+
+			/*
+			 * peaks = peakBuilder.addScan(scan, mzValues, dataFile);
+			 * 
+			 * if(peaks != null) for (Peak finishedPeak : peaks) {
+			 * SimplePeakListRow newRow = new SimplePeakListRow(newPeakID);
+			 * newPeakID++; newRow.addPeak(dataFile, finishedPeak,
+			 * finishedPeak); newPeakList.addRow(newRow); }
+			 */
+
 			processedScans++;
 		}
-		
-		peaks = peakBuilder.finishPeaks();
-		
-		if (peaks != null)
-		for (Peak finishedPeak : peaks) {
-			SimplePeakListRow newRow = new SimplePeakListRow(newPeakID);
-			newPeakID++;
-			newRow.addPeak(dataFile, finishedPeak, finishedPeak);
-			newPeakList.addRow(newRow);
+
+		// peaks = peakBuilder.finishPeaks();
+		chromatograms = chromatogramBuilder.finishChromatograms();
+
+		finishChromatograms = true;
+		totalChromatograms = chromatograms.length;
+
+		for (Chromatogram chromatogram : chromatograms) {
+			peaks = peakBuilder.addChromatogram(chromatogram, dataFile);
+
+			if (peaks != null)
+				for (Peak finishedPeak : peaks) {
+					SimplePeakListRow newRow = new SimplePeakListRow(newPeakID);
+					newPeakID++;
+					newRow.addPeak(dataFile, finishedPeak, finishedPeak);
+					newPeakList.addRow(newRow);
+				}
+			processedScans++;
 		}
 
 		// Add new peaklist to the project

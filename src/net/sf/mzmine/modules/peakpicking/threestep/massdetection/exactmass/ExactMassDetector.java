@@ -26,8 +26,8 @@ import java.util.logging.Logger;
 
 import net.sf.mzmine.data.DataPoint;
 import net.sf.mzmine.data.Scan;
-import net.sf.mzmine.modules.peakpicking.twostep.massdetection.MassDetector;
-import net.sf.mzmine.modules.peakpicking.twostep.massdetection.MzPeak;
+import net.sf.mzmine.modules.peakpicking.threestep.massdetection.MassDetector;
+import net.sf.mzmine.modules.peakpicking.threestep.massdetection.MzPeak;
 import net.sf.mzmine.util.Range;
 
 public class ExactMassDetector implements MassDetector {
@@ -50,7 +50,7 @@ public class ExactMassDetector implements MassDetector {
 	}
 
 	/**
-	 * @see net.sf.mzmine.modules.peakpicking.twostep.massdetection.MassDetector#getMassValues(net.sf.mzmine.data.Scan)
+	 * @see net.sf.mzmine.modules.peakpicking.threestep.massdetection.MassDetector#getMassValues(net.sf.mzmine.data.Scan)
 	 */
 	public MzPeak[] getMassValues(Scan scan) {
 

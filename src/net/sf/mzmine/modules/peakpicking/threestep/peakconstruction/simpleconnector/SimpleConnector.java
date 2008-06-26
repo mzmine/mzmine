@@ -195,7 +195,7 @@ public class SimpleConnector implements PeakBuilder {
 	 * criteria and they are separated, we construct a different peak for each
 	 * region.
 	 * 
-	 * @param ConnectedPeak
+	 * @param SimpleChromatogram
 	 *            ucPeak
 	 * @return Peak[]
 	 */

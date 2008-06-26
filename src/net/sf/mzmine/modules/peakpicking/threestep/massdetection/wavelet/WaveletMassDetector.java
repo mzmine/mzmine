@@ -24,8 +24,8 @@ import java.util.Vector;
 import net.sf.mzmine.data.DataPoint;
 import net.sf.mzmine.data.Scan;
 import net.sf.mzmine.data.impl.SimpleDataPoint;
-import net.sf.mzmine.modules.peakpicking.twostep.massdetection.MassDetector;
-import net.sf.mzmine.modules.peakpicking.twostep.massdetection.MzPeak;
+import net.sf.mzmine.modules.peakpicking.threestep.massdetection.MassDetector;
+import net.sf.mzmine.modules.peakpicking.threestep.massdetection.MzPeak;
 
 /*
  * This class implements the Continuous Wavelet Transform (CWT), Mexican Hat,
