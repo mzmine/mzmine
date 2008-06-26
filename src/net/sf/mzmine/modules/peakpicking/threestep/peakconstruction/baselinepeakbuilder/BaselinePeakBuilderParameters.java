@@ -27,7 +27,7 @@ import net.sf.mzmine.data.impl.SimpleParameter;
 import net.sf.mzmine.data.impl.SimpleParameterSet;
 import net.sf.mzmine.main.MZmineCore;
 
-public class BaselineConnectorParameters extends SimpleParameterSet {
+public class BaselinePeakBuilderParameters extends SimpleParameterSet {
 
 	public static final NumberFormat percentFormat = NumberFormat
 			.getPercentInstance();
@@ -37,7 +37,7 @@ public class BaselineConnectorParameters extends SimpleParameterSet {
 			"All data points over this level are considered to form a peak", "absolute", new Float(100.0),
 			new Float(0.0), null, MZmineCore.getIntensityFormat());
 
-	public BaselineConnectorParameters() {
+	public BaselinePeakBuilderParameters() {
 		super(new Parameter[] { baselineLevel });
 	}
 

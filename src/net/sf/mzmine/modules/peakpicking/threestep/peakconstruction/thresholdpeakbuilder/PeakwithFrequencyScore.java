@@ -16,7 +16,7 @@
  * Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-package net.sf.mzmine.modules.peakpicking.threestep.peakconstruction.thresholdconnector;
+package net.sf.mzmine.modules.peakpicking.threestep.peakconstruction.thresholdpeakbuilder;
 
 import java.util.Iterator;
 import java.util.Set;

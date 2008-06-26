@@ -16,7 +16,7 @@
  * Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-package net.sf.mzmine.modules.peakpicking.threestep.peakconstruction.savitzkygolayconnector;
+package net.sf.mzmine.modules.peakpicking.threestep.peakconstruction.savitzkygolaypeakbuilder;
 
 import net.sf.mzmine.data.RawDataFile;
 import net.sf.mzmine.modules.peakpicking.twostep.peakconstruction.ConnectedMzPeak;

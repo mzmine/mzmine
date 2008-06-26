@@ -36,14 +36,14 @@ import net.sf.mzmine.modules.peakpicking.threestep.xicconstruction.ConnectedMzPe
  * level).
  * 
  */
-public class BaselineConnector implements PeakBuilder {
+public class BaselinePeakBuilder implements PeakBuilder {
 
 	private float baselineLevel;
 	private Vector<ConnectedPeak> underDetectionPeaks;
 
-	public BaselineConnector(BaselineConnectorParameters parameters) {
+	public BaselinePeakBuilder(BaselinePeakBuilderParameters parameters) {
 		baselineLevel = (Float) parameters
-				.getParameterValue(BaselineConnectorParameters.baselineLevel);
+				.getParameterValue(BaselinePeakBuilderParameters.baselineLevel);
 
 		underDetectionPeaks = new Vector<ConnectedPeak>();
 	}

@@ -54,10 +54,10 @@ public class ThreeStepPickerParameters implements StorableParameterSet {
 
 	public static final String peakBuilderClasses[] = {
 			"net.sf.mzmine.modules.peakpicking.threestep.peakconstruction.baselinepeakbuilder.BaselinePeakBuilder",
-			"net.sf.mzmine.modules.peakpicking.threestep.peakconstruction.savitzkygolayconnector.SavitzkyGolayConnector",
-			"net.sf.mzmine.modules.peakpicking.threestep.peakconstruction.simpleconnector.SimpleConnector",
-			"net.sf.mzmine.modules.peakpicking.threestep.peakconstruction.thresholdconnector.ThresholdConnector",
-			"net.sf.mzmine.modules.peakpicking.threestep.peakconstruction.waveletconnector.WaveletConnector" };
+			"net.sf.mzmine.modules.peakpicking.threestep.peakconstruction.savitzkygolaypeakbuilder.SavitzkyGolayPeakBuilder",
+			"net.sf.mzmine.modules.peakpicking.threestep.peakconstruction.simplepeakbuilder.SimplePeakBuilder",
+			"net.sf.mzmine.modules.peakpicking.threestep.peakconstruction.thresholdpeakbuilder.ThresholdPeakBuilder",
+			"net.sf.mzmine.modules.peakpicking.threestep.peakconstruction.waveletpeakbuilder.WaveletPeakBuilder" };
 
 	private SimpleParameterSet massDetectorParameters[], chromatogramBuilderParameters[],
 			peakBuilderParameters[], threeStepsParameters;
