@@ -27,7 +27,7 @@ import net.sf.mzmine.data.impl.SimpleParameter;
 import net.sf.mzmine.data.impl.SimpleParameterSet;
 import net.sf.mzmine.main.MZmineCore;
 
-public class SavitzkyGolayConnectorParameters extends SimpleParameterSet {
+public class SavitzkyGolayPeakBuilderParameters extends SimpleParameterSet {
 
 	public static final NumberFormat percentFormat = NumberFormat
 			.getPercentInstance();
@@ -42,23 +42,8 @@ public class SavitzkyGolayConnectorParameters extends SimpleParameterSet {
 			"Minimum acceptable peak duration", null, new Float(10.0),
 			new Float(0.0), null, MZmineCore.getRTFormat());
 
-	public static final Parameter mzTolerance = new SimpleParameter(
-			ParameterType.FLOAT,
-			"M/Z tolerance",
-			"Maximum allowed distance in M/Z between data points in successive scans",
-			"m/z", new Float(0.1), new Float(0.0), new Float(1.0), MZmineCore
-					.getMZFormat());
-
-	public static final Parameter intTolerance = new SimpleParameter(
-			ParameterType.FLOAT,
-			"Intensity tolerance",
-			"Maximum allowed deviation from expected /\\ shape of a peak in chromatographic direction",
-			"%", new Float(0.15), new Float(0.0), new Float(1.0), percentFormat);
-
-	
-	public SavitzkyGolayConnectorParameters() {
-		super(new Parameter[] { minimumPeakHeight, minimumPeakDuration,
-				mzTolerance, intTolerance });
+	public SavitzkyGolayPeakBuilderParameters() {
+		super(new Parameter[] { minimumPeakHeight, minimumPeakDuration });
 	}
 
 }

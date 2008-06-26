@@ -22,7 +22,6 @@ package net.sf.mzmine.modules.peakpicking.threestep.peakconstruction.baselinepea
 import java.util.Vector;
 
 import net.sf.mzmine.data.Peak;
-import net.sf.mzmine.data.PeakStatus;
 import net.sf.mzmine.data.RawDataFile;
 import net.sf.mzmine.modules.peakpicking.threestep.peakconstruction.ConnectedPeak;
 import net.sf.mzmine.modules.peakpicking.threestep.peakconstruction.PeakBuilder;
@@ -39,13 +38,10 @@ import net.sf.mzmine.modules.peakpicking.threestep.xicconstruction.ConnectedMzPe
 public class BaselinePeakBuilder implements PeakBuilder {
 
 	private float baselineLevel;
-	private Vector<ConnectedPeak> underDetectionPeaks;
 
 	public BaselinePeakBuilder(BaselinePeakBuilderParameters parameters) {
 		baselineLevel = (Float) parameters
 				.getParameterValue(BaselinePeakBuilderParameters.baselineLevel);
-
-		underDetectionPeaks = new Vector<ConnectedPeak>();
 	}
 
 	/** 
@@ -53,8 +49,10 @@ public class BaselinePeakBuilder implements PeakBuilder {
 	 */
 	public Peak[] addChromatogram(Chromatogram chromatogram,
 			RawDataFile dataFile) {
+
 		ConnectedMzPeak[] cMzPeaks = chromatogram.getConnectedMzPeaks();
 		Vector<ConnectedMzPeak> regionOfMzPeaks = new Vector<ConnectedMzPeak>();
+		Vector<ConnectedPeak> underDetectionPeaks = new Vector<ConnectedPeak>();
 
 		if (cMzPeaks.length > 0) {
 			
@@ -69,7 +67,6 @@ public class BaselinePeakBuilder implements PeakBuilder {
 						peak.addMzPeak(regionOfMzPeaks.get(i));
 					}
 					regionOfMzPeaks.clear();
-					peak.finalizedAddingDatapoints(PeakStatus.DETECTED);
 					underDetectionPeaks.add(peak);
 				}
 				

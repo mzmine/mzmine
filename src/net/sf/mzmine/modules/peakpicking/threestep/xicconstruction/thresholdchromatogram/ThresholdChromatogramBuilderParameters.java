@@ -17,7 +17,7 @@
  * Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-package net.sf.mzmine.modules.peakpicking.threestep.peakconstruction.thresholdpeakbuilder;
+package net.sf.mzmine.modules.peakpicking.threestep.xicconstruction.thresholdchromatogram;
 
 import java.text.NumberFormat;
 
@@ -27,36 +27,37 @@ import net.sf.mzmine.data.impl.SimpleParameter;
 import net.sf.mzmine.data.impl.SimpleParameterSet;
 import net.sf.mzmine.main.MZmineCore;
 
-public class ThresholdConnectorParameters extends SimpleParameterSet {
+public class ThresholdChromatogramBuilderParameters extends SimpleParameterSet {
 
 	public static final NumberFormat percentFormat = NumberFormat
 			.getPercentInstance();
 
-	public static final Parameter minimumPeakHeight = new SimpleParameter(
-			ParameterType.FLOAT, "Min peak height",
+	public static final Parameter baselineLevel = new SimpleParameter(
+			ParameterType.FLOAT, "Min Chromatogram height",
 			"Minimum acceptable peak height", "absolute", new Float(100.0),
 			new Float(0.0), null, MZmineCore.getIntensityFormat());
 
-	public static final Parameter minimumPeakDuration = new SimpleParameter(
-			ParameterType.FLOAT, "Min peak duration",
+	public static final Parameter minimumChromatogramDuration = new SimpleParameter(
+			ParameterType.FLOAT, "Min Chromatogram duration",
 			"Minimum acceptable peak duration", null, new Float(10.0),
 			new Float(0.0), null, MZmineCore.getRTFormat());
 
 	public static final Parameter mzTolerance = new SimpleParameter(
 			ParameterType.FLOAT,
 			"M/Z tolerance",
-			"Maximum allowed distance in M/Z between data points in successive scans",
+			"Maximum allowed distance in M/Z between data points in successive spectrums",
 			"m/z", new Float(0.1), new Float(0.0), new Float(1.0), MZmineCore
 					.getMZFormat());
 
-	public static final Parameter amplitudeOfNoise = new SimpleParameter(
-			ParameterType.FLOAT, "Amplitude of noise",
-			"This vaue corresponds to the amplitude of noise present all the time in the signal", "absolute", new Float(1000.0),
-			new Float(500.0), null, MZmineCore.getIntensityFormat());
+    public static final Parameter chromatographicThresholdLevel = new SimpleParameter(
+            ParameterType.FLOAT, "Chromatographic threshold level",
+            "Used in defining threshold level value from an XIC", "%",
+            new Float(0.80), new Float(0.0), new Float(1.0), percentFormat);
 
-	public ThresholdConnectorParameters() {
-		super(new Parameter[] { minimumPeakHeight, minimumPeakDuration,
-				mzTolerance, amplitudeOfNoise });
+    
+    public ThresholdChromatogramBuilderParameters() {
+		super(new Parameter[] { baselineLevel, minimumChromatogramDuration,
+				mzTolerance, chromatographicThresholdLevel });
 	}
 
 }

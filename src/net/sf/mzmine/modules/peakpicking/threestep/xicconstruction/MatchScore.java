@@ -19,10 +19,6 @@
 
 package net.sf.mzmine.modules.peakpicking.threestep.xicconstruction;
 
-import java.util.Vector;
-
-
-
 
 /**
  * This class represents a score (goodness of fit) between a chromatogram and m/z peak
@@ -30,28 +26,27 @@ import java.util.Vector;
 public class MatchScore implements Comparable<MatchScore> {
 
     private float score;
-    private Chromatogram ucPeak;
-    private ConnectedMzPeak mzPeak;
-    private float mzTolerance, intTolerance;
+    private Chromatogram chromatogram;
+    private ConnectedMzPeak cMzPeak;
+    private float mzTolerance;
 
-    public MatchScore(Chromatogram uc, ConnectedMzPeak od, float mzTolerance, float intTolerance) {
+    public MatchScore(Chromatogram chromatogram, ConnectedMzPeak cMzPeak, float mzTolerance) {
         this.mzTolerance = mzTolerance;
-        this.intTolerance = intTolerance;
-        ucPeak = uc;
-        mzPeak = od;
-        score = calcScore(uc, od);
+        this.chromatogram = chromatogram;
+        this.cMzPeak = cMzPeak;
+        score = calcScore(chromatogram, cMzPeak);
     }
 
     public float getScore() {
         return score;
     }
 
-    public Chromatogram getPeak() {
-        return ucPeak;
+    public Chromatogram getChromatogram() {
+        return chromatogram;
     }
 
     public ConnectedMzPeak getMzPeak() {
-        return mzPeak;
+        return cMzPeak;
     }
 
     public int compareTo(MatchScore m) {
@@ -62,154 +57,27 @@ public class MatchScore implements Comparable<MatchScore> {
         return retsig;
     }
 
-    private float calcScore(Chromatogram uc, ConnectedMzPeak od) {
+    private float calcScore(Chromatogram chromatogram, ConnectedMzPeak cMzPeak) {
 
-        float ucMZ = uc.getMZ();
+        float chromatoMZ = chromatogram.getMZ();
+        float chromatoIntensity = chromatogram.getIntensity();
 
         // If mz difference is too big? (do this first for optimal
         // performance)
-        if (Math.abs(ucMZ - od.getMzPeak().getMZ()) > mzTolerance) {
+        if (Math.abs(chromatoMZ - cMzPeak.getMzPeak().getMZ()) > mzTolerance) {
             return Float.MAX_VALUE;
 
         } else {
 
             // Calculate score components and total score
-            float scoreMZComponent = (float) Math.abs(ucMZ - od.getMzPeak().getMZ());
-            float scoreRTComponent = calcScoreForRTShape(uc, od);
+            double scoreMZComponent = (float) Math.abs(chromatoMZ - cMzPeak.getMzPeak().getMZ());
+            double scoreIntensityComponent = (float) Math.abs(chromatoIntensity - cMzPeak.getMzPeak().getIntensity());
             float totalScore = (float) Math.sqrt(scoreMZComponent
-                    * scoreMZComponent + scoreRTComponent
-                    * scoreRTComponent);
+                    * scoreMZComponent + scoreIntensityComponent
+                    * scoreIntensityComponent);
 
             return totalScore;
         }
 
     }
-
-    /**
-     * This function check for the shape of the peak in RT direction, and
-     * determines if it is possible to add given m/z peak at the end of the
-     * peak.
-     */
-    private float calcScoreForRTShape(Chromatogram chromatogram, ConnectedMzPeak cMzPeak) {
-
-        float nextIntensity = cMzPeak.getMzPeak().getIntensity();
-        ConnectedMzPeak[] lastConnectedMzPeaks = chromatogram.getLastConnectedMzPeaks();
-        
-        int[] scanNumbers = new int[lastConnectedMzPeaks.length];
-        float[] intensities = new float[lastConnectedMzPeaks.length];
-        
-		if (lastConnectedMzPeaks.length > 0) {
-			for (int i = 0; i < intensities.length; i++) {
-				intensities[i] = lastConnectedMzPeaks[i].getMzPeak().getIntensity();
-				scanNumbers[i] = lastConnectedMzPeaks[i].getScan()
-				.getScanNumber();
-			}
-		}
-
-
-        // If no previous m/z peaks
-        if (scanNumbers.length == 0) {
-            return 0;
-        }
-
-        // If only one previous m/z peak
-        if (scanNumbers.length == 1) {
-
-            float prevIntensity = intensities[0];
-
-            // If it goes up, then give minimum (best) score
-            if ((nextIntensity - prevIntensity) >= 0) {
-                return 0;
-            }
-
-            // If it goes too much down, then give MAX_VALUE
-            float bottomMargin = prevIntensity
-                    * (1 - intTolerance);
-            if (nextIntensity <= bottomMargin) {
-                return Float.MAX_VALUE;
-            }
-
-            // If it goes little bit down, but within marginal, then give
-            // score between 0...maxScore
-            // return ( (prevIntensity-nextIntensity) / (
-            // prevIntensity-bottomMargin) );
-            return 0;
-
-        }
-
-        // There are two or more previous m/z peaks in this peak
-
-        // Determine shape of the peak
-
-        int derSign = 1;
-
-        for (int ind=1; ind<scanNumbers.length; ind++) {
-
-            float prevIntensity = intensities[ind-1];
-            float currIntensity = intensities[ind];
-
-            // If peak is currently going up
-            if (derSign == 1) {
-                // Then next intensity must be above bottomMargin or derSign
-                // changes
-                float bottomMargin = prevIntensity
-                        * (1 - intTolerance);
-
-                if (currIntensity <= bottomMargin) {
-                    derSign = -1;
-                    continue;
-                }
-            }
-
-            // If peak is currently going down
-            if (derSign == -1) {
-                // Then next intensity should be less than topMargin or peak
-                // ends
-                float topMargin = prevIntensity
-                        * (1 + intTolerance);
-
-                if (currIntensity >= topMargin) {
-                    return Float.MAX_VALUE;
-                }
-            }
-
-        }
-        // derSign now contains information about RT peak shape at the end
-        // of the peak so far
-
-        // If peak is currently going up
-        if (derSign == 1) {
-
-            // Then give minimum (best) score in any case (peak can continue
-            // going up or start going down)
-            return 0;
-        }
-
-        // If peak is currently going down
-        if (derSign == -1) {
-
-            float lastIntensity = intensities[intensities.length-1];
-
-            // Then peak must not start going up again
-            float topMargin = lastIntensity
-                    * (1 + intTolerance);
-
-            if (nextIntensity >= topMargin) {
-                return Float.MAX_VALUE;
-            }
-
-            if (nextIntensity < lastIntensity) {
-                return 0;
-            }
-
-            // return maxScore * ( 1 - ( (topMargin-nextInt) /
-            // (topMargin-prevInts[usedSize-1]) ) );
-            return 0;
-        }
-
-        // Should never go here
-        return Float.MAX_VALUE;
-
-    }
-    
 }

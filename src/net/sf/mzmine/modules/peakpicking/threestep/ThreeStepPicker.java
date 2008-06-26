@@ -54,7 +54,7 @@ public class ThreeStepPicker implements BatchStep, TaskListener, ActionListener 
 		this.desktop = MZmineCore.getDesktop();
 
 		parameters = new ThreeStepPickerParameters();
-		desktop.addMenuItem(MZmineMenu.PEAKPICKING, "Two steps peak detector",
+		desktop.addMenuItem(MZmineMenu.PEAKPICKING, "Three steps peak detector",
 				"TODO write description", KeyEvent.VK_T, this, null);
 	}
 

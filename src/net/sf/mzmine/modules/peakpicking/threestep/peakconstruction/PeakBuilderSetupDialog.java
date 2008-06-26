@@ -29,7 +29,6 @@ import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.lang.reflect.Constructor;
 import java.util.Hashtable;
-import java.util.Vector;
 import java.util.logging.Logger;
 
 import javax.help.DefaultHelpBroker;
@@ -59,6 +58,10 @@ import net.sf.mzmine.desktop.impl.MainWindow;
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.modules.peakpicking.threestep.ThreeStepPickerParameters;
 import net.sf.mzmine.modules.peakpicking.threestep.massdetection.MzPeak;
+import net.sf.mzmine.modules.peakpicking.threestep.xicconstruction.Chromatogram;
+import net.sf.mzmine.modules.peakpicking.threestep.xicconstruction.ChromatogramBuilder;
+import net.sf.mzmine.modules.peakpicking.threestep.xicconstruction.simplechromatogram.SimpleChromatogramBuilder;
+import net.sf.mzmine.modules.peakpicking.threestep.xicconstruction.simplechromatogram.SimpleChromatogramBuilderParameters;
 import net.sf.mzmine.modules.visualization.tic.PeakDataSet;
 import net.sf.mzmine.modules.visualization.tic.TICDataSet;
 import net.sf.mzmine.modules.visualization.tic.TICPlot;
@@ -104,9 +107,8 @@ public class PeakBuilderSetupDialog extends ParameterSetupDialog implements
 	private TICDataSet ticDataset;
 
 	// Mass Detector;
-	private PeakBuilder peakBuilder;
-	private SimpleParameterSet pbParameters;
-	private int peakBuilderTypeNumber;
+	private SimpleParameterSet cbParameters, pbParameters;
+	private int peakBuilderTypeNumber, chromatogramBuilderTypeNumber;
 
 	// Desktop
 	private Desktop desktop = MZmineCore.getDesktop();
@@ -116,7 +118,7 @@ public class PeakBuilderSetupDialog extends ParameterSetupDialog implements
 	 * @param massDetectorTypeNumber
 	 */
 	public PeakBuilderSetupDialog(ThreeStepPickerParameters parameters,
-			int peakBuilderTypeNumber) {
+			int chromatogramBuilderTypeNumber, int peakBuilderTypeNumber) {
 
 		super(ThreeStepPickerParameters.peakBuilderNames[peakBuilderTypeNumber]
 				+ "'s parameter setup dialog ", parameters
@@ -124,6 +126,11 @@ public class PeakBuilderSetupDialog extends ParameterSetupDialog implements
 				+ peakBuilderTypeNumber);
 
 		dataFiles = MZmineCore.getCurrentProject().getDataFiles();
+
+		this.cbParameters = parameters
+				.getChromatogramBuilderParameters(chromatogramBuilderTypeNumber);
+		this.chromatogramBuilderTypeNumber = chromatogramBuilderTypeNumber;
+
 		this.peakBuilderTypeNumber = peakBuilderTypeNumber;
 
 		if (dataFiles.length != 0) {
@@ -294,58 +301,79 @@ public class PeakBuilderSetupDialog extends ParameterSetupDialog implements
 	 */
 	public void setPeakDataSet() {
 
+		// Create Chromatogram Builder
+		String chromatogramBuilderClassName = ThreeStepPickerParameters.chromatogramBuilderClasses[chromatogramBuilderTypeNumber];
+		ChromatogramBuilder chromatoBuilder;
+		
+		try {
+			Class chromatogramBuilderClass = Class.forName(chromatogramBuilderClassName);
+			Constructor chromatogramBuilderConstruct = chromatogramBuilderClass
+					.getConstructors()[0];
+			chromatoBuilder = (ChromatogramBuilder) chromatogramBuilderConstruct
+					.newInstance(cbParameters);
+		} catch (Exception e) {
+			String message = "Error trying to make an instance of Chromatogram Builder "
+					+ chromatogramBuilderClassName;
+			desktop.displayErrorMessage(message);
+			logger.finest(message);
+			return;
+		}
+
+		// Create Peak Builder
+		PeakBuilder peakBuilder;
 		pbParameters = buildParameterSet(pbParameters);
 		String peakBuilderClassName = ThreeStepPickerParameters.peakBuilderClasses[peakBuilderTypeNumber];
 
 		try {
 			Class peakBuilderClass = Class.forName(peakBuilderClassName);
-			Constructor massDetectorConstruct = peakBuilderClass
+			Constructor peakBuilderConstruct = peakBuilderClass
 					.getConstructors()[0];
-			peakBuilder = (PeakBuilder) massDetectorConstruct
+			peakBuilder = (PeakBuilder) peakBuilderConstruct
 					.newInstance(pbParameters);
 		} catch (Exception e) {
-			desktop
-					.displayErrorMessage("Error trying to make an instance of mass detector "
-							+ peakBuilderClassName);
-			logger.finest("Error trying to make an instance of mass detector "
-					+ peakBuilderClassName);
+			String message = "Error trying to make an instance of Peak Builder "
+					+ peakBuilderClassName;
+			desktop.displayErrorMessage(message);
+			logger.finest(message);
 			return;
 		}
 
+		
 		Peak[] peaks;
-		Vector<Peak> totalPeaks = new Vector<Peak>();
 
 		for (int i = 0; i < listScans.length; i++) {
-			
-			// TODO Correct creation of chromatogram
-			
-			MzPeak[] mzValues = { new MzPeak(new SimpleDataPoint(ticDataset.getZ(0, i).floatValue(), ticDataset
-					.getY(0, i).floatValue())) };
-			peaks = peakBuilder.addScan(previewDataFile.getScan(listScans[i]),
-					mzValues, previewDataFile);
+
+			MzPeak[] mzValues = { new MzPeak(new SimpleDataPoint(mzRange.getAverage(), ticDataset.getY(0, i)
+					.floatValue())) };
+			chromatoBuilder.addScan(previewDataFile, previewDataFile.getScan(listScans[i]),
+					mzValues);
+
+		}
+
+		Chromatogram[] allChromatograms = chromatoBuilder.finishChromatograms();
+		int peakInd = 0;
+
+		for (Chromatogram chromatogram : allChromatograms) {
+
+			peaks = peakBuilder.addChromatogram(chromatogram, previewDataFile);
 
 			if (peaks.length > 0)
-				for (Peak p : peaks){
-					totalPeaks.add(p);
+				for (Peak p : peaks) {
+					PeakDataSet peakDataSet = new PeakDataSet(p);
+					ticPlot.addPeakDataset(peakDataSet);
+					peakDataSets.put(Integer.valueOf(peakInd), peakDataSet);
+					peakInd++;
 				}
-			peaks = null;
-		}
 
-		peaks = peakBuilder.finishPeaks();
-		if (peaks.length > 0)
-			for (Peak p : peaks){
-				totalPeaks.add(p);
+			if (peakInd > 60) {
+				String message = "Too many peaks detected, please set another parameter values";
+				desktop.displayMessage(message);
+				logger.finest(message);
+				break;
 			}
 
-		if (!totalPeaks.isEmpty()) {
-			int peakInd = 0;
-			for (Peak peak : totalPeaks) {
-				PeakDataSet peakDataSet = new PeakDataSet(peak);
-				ticPlot.addPeakDataset(peakDataSet);
-				peakDataSets.put(Integer.valueOf(peakInd), peakDataSet);
-				peakInd++;
-			}
 		}
+
 		ticPlot.addTICDataset(ticDataset);
 		freeMemory();
 

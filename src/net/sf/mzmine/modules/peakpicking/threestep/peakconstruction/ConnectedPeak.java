@@ -19,7 +19,7 @@
 
 package net.sf.mzmine.modules.peakpicking.threestep.peakconstruction;
 
-import java.util.Iterator;
+import java.text.Format;
 import java.util.TreeMap;
 import java.util.Vector;
 
@@ -27,7 +27,7 @@ import net.sf.mzmine.data.DataPoint;
 import net.sf.mzmine.data.Peak;
 import net.sf.mzmine.data.PeakStatus;
 import net.sf.mzmine.data.RawDataFile;
-import net.sf.mzmine.modules.peakpicking.threestep.massdetection.MzPeak;
+import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.modules.peakpicking.threestep.xicconstruction.ConnectedMzPeak;
 import net.sf.mzmine.util.CollectionUtils;
 import net.sf.mzmine.util.MathUtils;
@@ -42,7 +42,7 @@ import net.sf.mzmine.util.Range;
 
 public class ConnectedPeak implements Peak {
 
-	private PeakStatus peakStatus;
+	private PeakStatus peakStatus = PeakStatus.DETECTED;
 
 	// These elements are used to construct the Peak.
 	private TreeMap<Integer, ConnectedMzPeak> datapointsMap;
@@ -55,8 +55,6 @@ public class ConnectedPeak implements Peak {
 	// Characteristics of the peak
 	private Range mzRange, intensityRange, rtRange;
 
-	// This is used for constructing the peak
-	private boolean growing = false;
 
 	/**
 	 * Initializes this Peak with one MzPeak
@@ -150,7 +148,6 @@ public class ConnectedPeak implements Peak {
 
 		// Add MzPeak
 		datapointsMap.put(mzValue.getScan().getScanNumber(), mzValue);
-		growing = true;
 		previousRetentionTime = mzValue.getScan().getRetentionTime();
 
 	}
@@ -160,14 +157,6 @@ public class ConnectedPeak implements Peak {
 	 */
 	public PeakStatus getPeakStatus() {
 		return peakStatus;
-	}
-
-	/**
-	 * 
-	 * @param peakStatus
-	 */
-	public void setPeakStatus(PeakStatus peakStatus) {
-		this.peakStatus = peakStatus;
 	}
 
 	/**
@@ -247,62 +236,6 @@ public class ConnectedPeak implements Peak {
 		return rtRange;
 	}
 
-	/**
-	 * This method returns all MzPeaks collected in this Peak. The order of the
-	 * array is ascend according with the number of the scans.
-	 * 
-	 * @return Array MzPeak
-	 */
-	public ConnectedMzPeak[] getConnectedMzPeaks() {
-		return datapointsMap.values().toArray(new ConnectedMzPeak[0]);
-	}
-
-	/**
-	 * This method returns the status of growing's flag.
-	 * 
-	 * @return boolean growing
-	 */
-	public boolean isGrowing() {
-		return growing;
-	}
-
-	/**
-	 * This method sets the growing's flag to false.
-	 * 
-	 */
-	public void resetGrowingState() {
-		growing = false;
-	}
-
-	/**
-	 * This method set the status of the Peak and the growing's flag to false.
-	 * 
-	 * 
-	 * @param peakStatus
-	 */
-	public void finalizedAddingDatapoints(PeakStatus peakStatus) {
-		this.peakStatus = peakStatus;
-		growing = false;
-	}
-
-	/**
-	 * This method returns all the MzPeaks intensities collected in this Peak
-	 * until this moment. The order of the vector is ascend according with
-	 * number of scans.
-	 * 
-	 * @return Vector<Float> Intensities
-	 */
-	public Vector<Float> getConstructionIntensities() {
-		Vector<Float> datapointsIntensities = new Vector<Float>();
-		Iterator<Integer> indexIterator = datapointsMap.keySet().iterator();
-		while (indexIterator.hasNext()) {
-			int index = indexIterator.next();
-			MzPeak mzPeak = datapointsMap.get(index).getMzPeak();
-			float intensity = mzPeak.getIntensity();
-			datapointsIntensities.add(intensity);
-		}
-		return datapointsIntensities;
-	}
 
 	/**
 	 * @see net.sf.mzmine.data.Peak#getDataFile()
@@ -318,11 +251,12 @@ public class ConnectedPeak implements Peak {
 	 * @return String information
 	 */
 	public String toString() {
-		return PeakUtils.peakToString(this);
+        StringBuffer buf = new StringBuffer();
+        Format timeFormat = MZmineCore.getRTFormat();
+        buf.append(" detected peak @");
+        buf.append(timeFormat.format(this.getRT()));
+        return buf.toString();
 	}
 
-	public void setMZ(float mz) {
-		this.mz = mz;
-	}
 
 }

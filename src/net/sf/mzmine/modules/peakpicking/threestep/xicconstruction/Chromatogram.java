@@ -22,6 +22,7 @@ package net.sf.mzmine.modules.peakpicking.threestep.xicconstruction;
 import java.util.TreeMap;
 import java.util.Vector;
 
+import net.sf.mzmine.data.RawDataFile;
 import net.sf.mzmine.data.Scan;
 import net.sf.mzmine.util.CollectionUtils;
 import net.sf.mzmine.util.MathUtils;
@@ -40,15 +41,20 @@ public class Chromatogram {
 	private Vector<Float> datapointsMZs;
 
 	// Raw data file, M/Z, RT, Height and Area
-	private float mz, height, minimumChromatogramHeight;
+	private float mz, height;
 
 	// This is used for constructing the peak
 	private boolean growing = false, previousConnectedMzPeaks = false;
+	
+	// This dataFile is used to know the complete range of the chromatogram
+	private RawDataFile dataFile;
 
 	/**
 	 * Initializes this Peak with one MzPeak
 	 */
-	public Chromatogram(ConnectedMzPeak mzValue, float minimumChromatogramHeight) {
+	public Chromatogram(RawDataFile dataFile, ConnectedMzPeak mzValue) {
+		
+		this.dataFile = dataFile;
 
 		datapointsMap = new TreeMap<Integer, ConnectedMzPeak>();
 		datapointsMZs = new Vector<Float>();
@@ -61,7 +67,6 @@ public class Chromatogram {
 		// (MzPeak).
 		mz = mzValue.getMzPeak().getMZ();
 		height = mzValue.getMzPeak().getIntensity();
-		this.minimumChromatogramHeight = minimumChromatogramHeight;
 
 		// Used in calculation of median MZ
 		datapointsMZs.add(mz);
@@ -104,6 +109,21 @@ public class Chromatogram {
 		return mz;
 	}
 
+	/**
+	 * This method returns M/Z value of the peak
+	 */
+	public float getIntensity() {
+		return height;
+	}
+
+	
+	/**
+	 * This method returns the connectedMzPeak in given scan number
+	 */
+	public ConnectedMzPeak getConnectedMzPeak(int scanNumber) {
+		return datapointsMap.get(scanNumber);
+	}
+	
 	/**
 	 * This method returns the retention time range of the last connected
 	 * MzPeaks
@@ -169,12 +189,20 @@ public class Chromatogram {
 		return datapointsMap.values().toArray(new ConnectedMzPeak[0]);
 	}
 
+	public RawDataFile getDataFile() {
+		return dataFile;
+	}
+	
 	public void removeLastConnectedMzPeaks() {
 		ConnectedMzPeak[] lastConnectedMzPeaks = getLastConnectedMzPeaks();
 		for (ConnectedMzPeak mzValue : lastConnectedMzPeaks) {
 			Scan scan = mzValue.getScan();
 			datapointsMap.remove(scan.getScanNumber());
 		}
+	}
+	
+	public void removeConnectedMzPeak(int scanNumber){
+		datapointsMap.remove(scanNumber);
 	}
 
 	public boolean hasPreviousConnectedMzPeaks() {
@@ -193,7 +221,7 @@ public class Chromatogram {
 	public boolean isLastConnectedMzPeakZero() {
 		ConnectedMzPeak lastConnectedMzPeak = datapointsMap.get(datapointsMap
 				.lastKey());
-		if (lastConnectedMzPeak.getMzPeak().getIntensity() <= minimumChromatogramHeight)
+		if (lastConnectedMzPeak.getMzPeak().getIntensity() == 0)
 			return true;
 		else
 			return false;

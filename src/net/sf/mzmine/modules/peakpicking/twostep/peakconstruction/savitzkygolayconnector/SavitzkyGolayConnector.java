@@ -221,7 +221,7 @@ public class SavitzkyGolayConnector implements PeakBuilder {
 	/**
 	 * 
 	 * 
-	 * @param ConnectedPeak
+	 * @param SimpleChromatogram
 	 *            ucPeak
 	 * @return Peak[]
 	 */

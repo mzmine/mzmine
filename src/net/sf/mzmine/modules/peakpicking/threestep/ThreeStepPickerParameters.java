@@ -33,8 +33,8 @@ public class ThreeStepPickerParameters implements StorableParameterSet {
 
 	private static final String PARAMETER_NAME_ATTRIBUTE = "name";
 
-	public static final String massDetectorNames[] = { "Centroid",
-			"Exact mass", "Local maxima", "Recursive threshold",
+	public static final String massDetectorNames[] = { "Centroid Mass",
+			"Exact Mass", "Local maxima", "Recursive threshold",
 			"Wavelet transform" };
 
 	public static final String massDetectorClasses[] = {
@@ -44,13 +44,14 @@ public class ThreeStepPickerParameters implements StorableParameterSet {
 			"net.sf.mzmine.modules.peakpicking.threestep.massdetection.recursive.RecursiveMassDetector",
 			"net.sf.mzmine.modules.peakpicking.threestep.massdetection.wavelet.WaveletMassDetector" };
 
-	public static final String chromatogramBuilderNames[] = { "Simple Chromatogram Builder" };
+	public static final String chromatogramBuilderNames[] = { "Simple Chromatogram", "Threshold Chromatogram" };
 
 	public static final String chromatogramBuilderClasses[] = {
-		"net.sf.mzmine.modules.peakpicking.threestep.xicconstruction.simplechromatogram.SimpleChromatogramBuilder"};
+		"net.sf.mzmine.modules.peakpicking.threestep.xicconstruction.simplechromatogram.SimpleChromatogramBuilder",
+		"net.sf.mzmine.modules.peakpicking.threestep.xicconstruction.thresholdchromatogram.ThresholdChromatogramBuilder"};
 
-		public static final String peakBuilderNames[] = { "Base line connector",
-			"Savitzky-Golay connector", "Simple data point connector", "Threshold connector", "Wavelet connector"};
+		public static final String peakBuilderNames[] = { "Baseline Peak",
+			"Savitzky-Golay Peak", "Simple Peak", "Threshold Peak", "Wavelet Peak"};
 
 	public static final String peakBuilderClasses[] = {
 			"net.sf.mzmine.modules.peakpicking.threestep.peakconstruction.baselinepeakbuilder.BaselinePeakBuilder",

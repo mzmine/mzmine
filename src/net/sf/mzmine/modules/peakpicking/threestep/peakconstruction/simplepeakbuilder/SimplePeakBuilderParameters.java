@@ -17,25 +17,16 @@
  * Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-package net.sf.mzmine.modules.peakpicking.threestep.peakconstruction;
+package net.sf.mzmine.modules.peakpicking.threestep.peakconstruction.simplepeakbuilder;
 
-import net.sf.mzmine.data.Peak;
-import net.sf.mzmine.data.RawDataFile;
-import net.sf.mzmine.modules.peakpicking.threestep.xicconstruction.Chromatogram;
+import net.sf.mzmine.data.Parameter;
+import net.sf.mzmine.data.impl.SimpleParameterSet;
 
-public interface PeakBuilder {
+public class SimplePeakBuilderParameters extends SimpleParameterSet {
 
 
-	
-	/**
-	 * 
-	 * This method takes all detected MzPeaks in one Scan and try to find a
-	 * possible relationship between each one of these with MzPeaks of the
-	 * previous scans. It returns an array of objects type Peak.
-	 * 
-	 * @return Peak[]
-	 */
-	public Peak[] addChromatogram(Chromatogram chromatogram, RawDataFile dataFile);
-
+	public SimplePeakBuilderParameters() {
+		super(new Parameter[] { });
+	}
 
 }

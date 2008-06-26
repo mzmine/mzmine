@@ -211,7 +211,7 @@ class ThreeStepPickerTask implements Task {
 			Scan scan = dataFile.getScan(scanNumbers[i]);
 			mzValues = massDetector.getMassValues(scan);
 
-			chromatogramBuilder.addScan(scan, mzValues);
+			chromatogramBuilder.addScan(dataFile, scan, mzValues);
 
 			/*
 			 * peaks = peakBuilder.addScan(scan, mzValues, dataFile);

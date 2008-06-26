@@ -98,7 +98,7 @@ class ThreeStepPickerSetupDialog extends JDialog implements ActionListener {
 			int ind = comboChromatoBuilder.getSelectedIndex();
 
 			ParameterSetupDialog dialog = new ParameterSetupDialog(
-					ThreeStepPickerParameters.massDetectorNames[ind]
+					ThreeStepPickerParameters.chromatogramBuilderNames[ind]
 							+ "'s parameter setup dialog ", parameters
 							.getChromatogramBuilderParameters(ind),
 					"ChromatoBuild" + ind);
@@ -108,10 +108,11 @@ class ThreeStepPickerSetupDialog extends JDialog implements ActionListener {
 		}
 
 		if (src == btnSetPeak) {
-			int ind = comboPeaksConstructors.getSelectedIndex();
+			int indChromatoBuilder = comboChromatoBuilder.getSelectedIndex();
+			int indexPeakBuilder = comboPeaksConstructors.getSelectedIndex();
 
 			PeakBuilderSetupDialog dialog = new PeakBuilderSetupDialog(
-					parameters, ind);
+					parameters, indChromatoBuilder, indexPeakBuilder);
 
 			dialog.setVisible(true);
 		}
@@ -180,13 +181,13 @@ class ThreeStepPickerSetupDialog extends JDialog implements ActionListener {
 
 		// Elements of panel3
 		JPanel panel3 = new JPanel();
-		panel3.setLayout(new BoxLayout(panel2, BoxLayout.X_AXIS));
+		panel3.setLayout(new BoxLayout(panel3, BoxLayout.X_AXIS));
 		panel3.setBorder(BorderFactory.createEmptyBorder(5, 5, 5, 5));
 
-		JLabel lblChromatoBuilder = new JLabel("Chromatogram Builder");
+		JLabel lblChromatoBuilder = new JLabel("<HTML>Chromatogram <BR>Builder</HTML>");
 		lblChromatoBuilder.setSize(200, 28);
 		comboChromatoBuilder = new JComboBox(
-				ThreeStepPickerParameters.massDetectorNames);
+				ThreeStepPickerParameters.chromatogramBuilderNames);
 		comboChromatoBuilder.setSelectedIndex(parameters
 				.getMassDetectorTypeNumber());
 		comboChromatoBuilder.addActionListener(this);
