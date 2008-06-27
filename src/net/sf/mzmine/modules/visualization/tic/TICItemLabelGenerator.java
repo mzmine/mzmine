@@ -21,9 +21,10 @@ package net.sf.mzmine.modules.visualization.tic;
 
 import java.awt.event.ActionListener;
 import java.text.NumberFormat;
+import java.util.Arrays;
 
 import net.sf.mzmine.main.MZmineCore;
-import net.sf.mzmine.modules.peakpicking.twostep.peakconstruction.PeakBuilderSetupDialog;
+import net.sf.mzmine.modules.peakpicking.threestep.peakconstruction.PeakBuilderSetupDialog;
 
 import org.jfree.chart.labels.XYItemLabelGenerator;
 import org.jfree.data.xy.XYDataset;
@@ -115,6 +116,7 @@ class TICItemLabelGenerator implements XYItemLabelGenerator {
     		allDataSets = ((PeakBuilderSetupDialog) ticWindow).getDataSet();
     	}
 
+    	
         // Check each data set for conflicting data points
         for (TICDataSet checkedDataSet : allDataSets) {
 

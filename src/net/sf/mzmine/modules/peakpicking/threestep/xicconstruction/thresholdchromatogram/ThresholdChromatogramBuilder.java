@@ -3,6 +3,7 @@ package net.sf.mzmine.modules.peakpicking.threestep.xicconstruction.thresholdchr
 import java.util.Iterator;
 import java.util.TreeSet;
 import java.util.Vector;
+import java.util.logging.Logger;
 
 import net.sf.mzmine.data.RawDataFile;
 import net.sf.mzmine.data.Scan;
@@ -12,21 +13,18 @@ import net.sf.mzmine.modules.peakpicking.threestep.xicconstruction.Chromatogram;
 import net.sf.mzmine.modules.peakpicking.threestep.xicconstruction.ChromatogramBuilder;
 import net.sf.mzmine.modules.peakpicking.threestep.xicconstruction.ConnectedMzPeak;
 import net.sf.mzmine.modules.peakpicking.threestep.xicconstruction.MatchScore;
-import net.sf.mzmine.util.MathUtils;
 
 public class ThresholdChromatogramBuilder implements ChromatogramBuilder {
 
-	// private Logger logger = Logger.getLogger(this.getClass().getName());
+	private Logger logger = Logger.getLogger(this.getClass().getName());
 
-	private float mzTolerance, chromatographicThresholdLevel;
-	private float baselineLevel, minimumChromatogramDuration;
+	private float mzTolerance, chromatographicThresholdLevel,
+			minimumChromatogramDuration;
 	private Vector<Chromatogram> underConstructionChromatograms;
 
 	public ThresholdChromatogramBuilder(
 			ThresholdChromatogramBuilderParameters parameters) {
 
-		baselineLevel = (Float) parameters
-				.getParameterValue(ThresholdChromatogramBuilderParameters.baselineLevel);
 		minimumChromatogramDuration = (Float) parameters
 				.getParameterValue(ThresholdChromatogramBuilderParameters.minimumChromatogramDuration);
 		mzTolerance = (Float) parameters
@@ -78,10 +76,8 @@ public class ThresholdChromatogramBuilder implements ChromatogramBuilder {
 
 			// Add MzPeak to the proper Chromatogram and set status connected
 			// (filter according to parameter)
-			if (cMzPeak.getMzPeak().getIntensity() > baselineLevel) {
-				currentChromatogram.addMzPeak(cMzPeak);
-				cMzPeak.setConnected();
-			}
+			currentChromatogram.addMzPeak(cMzPeak);
+			cMzPeak.setConnected();
 		}
 
 		// Check if there are any under-construction peaks that were not
@@ -132,12 +128,9 @@ public class ThresholdChromatogramBuilder implements ChromatogramBuilder {
 		for (ConnectedMzPeak cMzPeak : cMzPeaks) {
 			if (!cMzPeak.isConnected()) {
 
-				// (filter according to parameter)
-				if (cMzPeak.getMzPeak().getIntensity() > baselineLevel) {
-					Chromatogram newChromatogram = new Chromatogram(dataFile,
-							cMzPeak);
-					underConstructionChromatograms.add(newChromatogram);
-				}
+				Chromatogram newChromatogram = new Chromatogram(dataFile,
+						cMzPeak);
+				underConstructionChromatograms.add(newChromatogram);
 			}
 
 		}
@@ -156,19 +149,22 @@ public class ThresholdChromatogramBuilder implements ChromatogramBuilder {
 
 			int[] scanNumbers = chromatogram.getDataFile().getScanNumbers(1);
 			float[] chromatoIntensities = new float[scanNumbers.length];
+			float sumIntensities = 0;
 
 			for (int i = 0; i < scanNumbers.length; i++) {
 
 				ConnectedMzPeak mzValue = chromatogram
 						.getConnectedMzPeak(scanNumbers[i]);
-				if (mzValue != null)
+				if (mzValue != null) {
 					chromatoIntensities[i] = mzValue.getMzPeak().getIntensity();
-				else
+				} else
 					chromatoIntensities[i] = 0;
+				sumIntensities += chromatoIntensities[i];
 			}
 
-			chromatographicThresholdlevelPeak = MathUtils.calcQuantile(
-					chromatoIntensities, chromatographicThresholdLevel);
+			chromatographicThresholdlevelPeak = calcChromatogramThreshold(
+					chromatoIntensities, (sumIntensities / scanNumbers.length),
+					chromatographicThresholdLevel);
 
 			for (int i = 0; i < scanNumbers.length; i++) {
 				ConnectedMzPeak mzValue = chromatogram
@@ -189,7 +185,65 @@ public class ThresholdChromatogramBuilder implements ChromatogramBuilder {
 
 		}
 
+		// Verify the length of each chromatogram
+		Iterator<Chromatogram> iteratorConPeak = underConstructionChromatograms
+				.iterator();
+		while (iteratorConPeak.hasNext()) {
+
+			Chromatogram currentChromatogram = iteratorConPeak.next();
+
+			// Check length of current Chromatogram (filter according to
+			// parameter)
+			float chromatoLength = currentChromatogram
+					.getLastConnectedMzPeaksRTRange().getSize();
+
+			if (chromatoLength < minimumChromatogramDuration) {
+
+				// Verify if the connected area is the only present in the
+				// current chromatogram
+				if (!currentChromatogram.hasPreviousConnectedMzPeaks())
+					iteratorConPeak.remove();
+
+			}
+		}
+
 		return underConstructionChromatograms.toArray(new Chromatogram[0]);
+	}
+
+	/**
+	 * 
+	 * @param chromatoIntensities
+	 * @param avgIntensities
+	 * @param chromatographicThresholdLevel
+	 * @return
+	 */
+	private float calcChromatogramThreshold(float[] chromatoIntensities,
+			float avgIntensities, float chromatographicThresholdLevel) {
+
+		float standardDeviation = 0;
+
+		for (int i = 0; i < chromatoIntensities.length; i++) {
+			float deviation = chromatoIntensities[i] - avgIntensities;
+			float deviation2 = deviation * deviation;
+			standardDeviation += deviation2;
+		}
+
+		standardDeviation /= chromatoIntensities.length;
+		standardDeviation = (float) Math.sqrt(standardDeviation);
+
+		float avgDifference = 0;
+		int cont = 0;
+
+		for (int i = 0; i < chromatoIntensities.length; i++) {
+			if (chromatoIntensities[i] < standardDeviation) {
+				avgDifference += (standardDeviation - chromatoIntensities[i]);
+				cont++;
+			}
+		}
+
+		avgDifference /= cont;
+		return standardDeviation
+				- (avgDifference * chromatographicThresholdLevel);
 	}
 
 }

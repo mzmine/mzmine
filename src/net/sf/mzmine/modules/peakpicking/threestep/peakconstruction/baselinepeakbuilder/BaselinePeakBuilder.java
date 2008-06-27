@@ -20,6 +20,7 @@
 package net.sf.mzmine.modules.peakpicking.threestep.peakconstruction.baselinepeakbuilder;
 
 import java.util.Vector;
+import java.util.logging.Logger;
 
 import net.sf.mzmine.data.Peak;
 import net.sf.mzmine.data.RawDataFile;
@@ -37,6 +38,8 @@ import net.sf.mzmine.modules.peakpicking.threestep.xicconstruction.ConnectedMzPe
  */
 public class BaselinePeakBuilder implements PeakBuilder {
 
+	private Logger logger = Logger.getLogger(this.getClass().getName());
+	
 	private float baselineLevel;
 
 	public BaselinePeakBuilder(BaselinePeakBuilderParameters parameters) {
@@ -51,6 +54,9 @@ public class BaselinePeakBuilder implements PeakBuilder {
 			RawDataFile dataFile) {
 
 		ConnectedMzPeak[] cMzPeaks = chromatogram.getConnectedMzPeaks();
+		
+		logger.finest("Number of cMzPeaks " + cMzPeaks.length);
+		
 		Vector<ConnectedMzPeak> regionOfMzPeaks = new Vector<ConnectedMzPeak>();
 		Vector<ConnectedPeak> underDetectionPeaks = new Vector<ConnectedPeak>();
 
@@ -72,8 +78,18 @@ public class BaselinePeakBuilder implements PeakBuilder {
 				
 			}
 			
+			if (regionOfMzPeaks.size() != 0) {
+				ConnectedPeak peak = new ConnectedPeak(dataFile,
+						regionOfMzPeaks.get(0));
+				for (int i = 0; i < regionOfMzPeaks.size(); i++) {
+					peak.addMzPeak(regionOfMzPeaks.get(i));
+				}
+				underDetectionPeaks.add(peak);
+			}
+			
 		}
 		
+		logger.finest(" Numero de picos " + underDetectionPeaks.size());
 		return underDetectionPeaks.toArray(new Peak[0]);
 	}
 

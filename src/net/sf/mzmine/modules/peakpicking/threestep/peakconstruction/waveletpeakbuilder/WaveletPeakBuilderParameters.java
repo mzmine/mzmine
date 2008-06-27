@@ -42,15 +42,7 @@ public class WaveletPeakBuilderParameters extends SimpleParameterSet {
 			"Minimum acceptable peak duration", null, new Float(10.0),
 			new Float(0.0), null, MZmineCore.getRTFormat());
 
-	public static final Parameter amplitudeOfNoise = new SimpleParameter(
-			ParameterType.FLOAT,
-			"Amplitude of noise",
-			"This vaue corresponds to the amplitude of noise present all the time in the signal",
-			"absolute", new Float(1000.0), new Float(500.0), null, MZmineCore
-					.getIntensityFormat());
-
 	public WaveletPeakBuilderParameters() {
-		super(new Parameter[] { minimumPeakHeight, minimumPeakDuration,
-				amplitudeOfNoise });
+		super(new Parameter[] { minimumPeakHeight, minimumPeakDuration });
 	}
 }

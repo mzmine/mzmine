@@ -32,11 +32,6 @@ public class SimpleChromatogramBuilderParameters extends SimpleParameterSet {
 	public static final NumberFormat percentFormat = NumberFormat
 			.getPercentInstance();
 
-	public static final Parameter baselineLevel = new SimpleParameter(
-			ParameterType.FLOAT, "Min Chromatogram height",
-			"Minimum acceptable peak height", "absolute", new Float(100.0),
-			new Float(0.0), null, MZmineCore.getIntensityFormat());
-
 	public static final Parameter minimumChromatogramDuration = new SimpleParameter(
 			ParameterType.FLOAT, "Min Chromatogram duration",
 			"Minimum acceptable peak duration", null, new Float(10.0),
@@ -50,7 +45,7 @@ public class SimpleChromatogramBuilderParameters extends SimpleParameterSet {
 					.getMZFormat());
 
 	public SimpleChromatogramBuilderParameters() {
-		super(new Parameter[] { baselineLevel, minimumChromatogramDuration,
+		super(new Parameter[] { minimumChromatogramDuration,
 				mzTolerance });
 	}
 

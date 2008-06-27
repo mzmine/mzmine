@@ -203,13 +203,33 @@ public class PeakBuilderSetupDialog extends ParameterSetupDialog implements
 
 		if (src == btnLoad) {
 			if (preview.isSelected()) {
-				rtRange = new Range(Float.parseFloat(minTxtFieldRet.getValue()
-						.toString()), Float.parseFloat(maxTxtFieldRet
-						.getValue().toString()));
+				float minRT = Float.parseFloat(minTxtFieldRet.getValue()
+						.toString());
+				float maxRT = Float.parseFloat(maxTxtFieldRet.getValue()
+						.toString());
+
+				if (minRT > maxRT) {
+					String message = "Retention time range not valid ";
+					desktop.displayErrorMessage(message);
+					return;
+				}
+
+				rtRange = new Range(minRT, maxRT);
+
+				float minMZ = Float.parseFloat(minTxtFieldMZ.getValue()
+						.toString());
+				float maxMZ = Float.parseFloat(maxTxtFieldMZ.getValue()
+						.toString());
+
+				if (minMZ > maxMZ) {
+					String message = "M/Z range not valid ";
+					desktop.displayErrorMessage(message);
+					return;
+				}
+
+				mzRange = new Range(minMZ, maxMZ);
+
 				listScans = previewDataFile.getScanNumbers(1, rtRange);
-				mzRange = new Range(Float.parseFloat(minTxtFieldMZ.getValue()
-						.toString()), Float.parseFloat(maxTxtFieldMZ.getValue()
-						.toString()));
 				removePeakDataSet();
 				setDataSet();
 			}
@@ -304,9 +324,10 @@ public class PeakBuilderSetupDialog extends ParameterSetupDialog implements
 		// Create Chromatogram Builder
 		String chromatogramBuilderClassName = ThreeStepPickerParameters.chromatogramBuilderClasses[chromatogramBuilderTypeNumber];
 		ChromatogramBuilder chromatoBuilder;
-		
+
 		try {
-			Class chromatogramBuilderClass = Class.forName(chromatogramBuilderClassName);
+			Class chromatogramBuilderClass = Class
+					.forName(chromatogramBuilderClassName);
 			Constructor chromatogramBuilderConstruct = chromatogramBuilderClass
 					.getConstructors()[0];
 			chromatoBuilder = (ChromatogramBuilder) chromatogramBuilderConstruct
@@ -338,15 +359,14 @@ public class PeakBuilderSetupDialog extends ParameterSetupDialog implements
 			return;
 		}
 
-		
 		Peak[] peaks;
 
 		for (int i = 0; i < listScans.length; i++) {
 
-			MzPeak[] mzValues = { new MzPeak(new SimpleDataPoint(mzRange.getAverage(), ticDataset.getY(0, i)
-					.floatValue())) };
-			chromatoBuilder.addScan(previewDataFile, previewDataFile.getScan(listScans[i]),
-					mzValues);
+			MzPeak[] mzValues = { new MzPeak(new SimpleDataPoint(mzRange
+					.getAverage(), ticDataset.getY(0, i).floatValue())) };
+			chromatoBuilder.addScan(previewDataFile, previewDataFile
+					.getScan(listScans[i]), mzValues);
 
 		}
 

@@ -3,6 +3,7 @@ package net.sf.mzmine.modules.peakpicking.threestep.xicconstruction.simplechroma
 import java.util.Iterator;
 import java.util.TreeSet;
 import java.util.Vector;
+import java.util.logging.Logger;
 
 import net.sf.mzmine.data.RawDataFile;
 import net.sf.mzmine.data.Scan;
@@ -15,17 +16,14 @@ import net.sf.mzmine.modules.peakpicking.threestep.xicconstruction.MatchScore;
 
 public class SimpleChromatogramBuilder implements ChromatogramBuilder {
 
-	//private Logger logger = Logger.getLogger(this.getClass().getName());
-	
-	private float mzTolerance;
-	private float baselineLevel, minimumChromatogramDuration;
+	private Logger logger = Logger.getLogger(this.getClass().getName());
+
+	private float mzTolerance, minimumChromatogramDuration;
 	private Vector<Chromatogram> underConstructionChromatograms;
 
 	public SimpleChromatogramBuilder(
 			SimpleChromatogramBuilderParameters parameters) {
-		
-		baselineLevel = (Float) parameters
-				.getParameterValue(SimpleChromatogramBuilderParameters.baselineLevel);
+
 		minimumChromatogramDuration = (Float) parameters
 				.getParameterValue(SimpleChromatogramBuilderParameters.minimumChromatogramDuration);
 		mzTolerance = (Float) parameters
@@ -74,11 +72,9 @@ public class SimpleChromatogramBuilder implements ChromatogramBuilder {
 			}
 
 			// Add MzPeak to the proper Chromatogram and set status connected
-			// (filter according to parameter)
-			if (cMzPeak.getMzPeak().getIntensity() > baselineLevel) {
-				currentChromatogram.addMzPeak(cMzPeak);
-				cMzPeak.setConnected();
-			}
+			currentChromatogram.addMzPeak(cMzPeak);
+			cMzPeak.setConnected();
+
 		}
 
 		// Check if there are any under-construction peaks that were not
@@ -102,12 +98,11 @@ public class SimpleChromatogramBuilder implements ChromatogramBuilder {
 					// Verify if the connected area is the only present in the
 					// current chromatogram , if not just remove from current
 					// chromatogram this region
-					if (currentChromatogram.hasPreviousConnectedMzPeaks()){
+					if (currentChromatogram.hasPreviousConnectedMzPeaks()) {
 						currentChromatogram.removeLastConnectedMzPeaks();
-					}
-					else{
+					} else {
 						iteratorConPeak.remove();
-						}
+					}
 				}
 
 				if (!currentChromatogram.isLastConnectedMzPeakZero()) {
@@ -129,12 +124,9 @@ public class SimpleChromatogramBuilder implements ChromatogramBuilder {
 
 		for (ConnectedMzPeak cMzPeak : cMzPeaks) {
 			if (!cMzPeak.isConnected()) {
-				
-				// (filter according to parameter)
-				if (cMzPeak.getMzPeak().getIntensity() > baselineLevel) {
-					Chromatogram newChromatogram = new Chromatogram(dataFile, cMzPeak);
-					underConstructionChromatograms.add(newChromatogram);
-				}
+				Chromatogram newChromatogram = new Chromatogram(dataFile,
+						cMzPeak);
+				underConstructionChromatograms.add(newChromatogram);
 			}
 
 		}
@@ -146,7 +138,32 @@ public class SimpleChromatogramBuilder implements ChromatogramBuilder {
 	 * 
 	 */
 	public Chromatogram[] finishChromatograms() {
-		return underConstructionChromatograms.toArray(new Chromatogram[0]);
+
+		Iterator<Chromatogram> iteratorConPeak = underConstructionChromatograms
+				.iterator();
+		while (iteratorConPeak.hasNext()) {
+
+			Chromatogram currentChromatogram = iteratorConPeak.next();
+
+			// Check length of detected Chromatogram (filter according to
+			// parameter)
+			float chromatoLength = currentChromatogram
+					.getLastConnectedMzPeaksRTRange().getSize();
+
+			if (chromatoLength < minimumChromatogramDuration) {
+
+				// Verify if the connected area is the only present in the
+				// current chromatogram
+				if (!currentChromatogram.hasPreviousConnectedMzPeaks())
+					iteratorConPeak.remove();
+
+			}
+		}
+
+		Chromatogram[] chromatograms = underConstructionChromatograms
+				.toArray(new Chromatogram[0]);
+
+		return chromatograms;
 	}
 
 }

@@ -19,20 +19,16 @@
 
 package net.sf.mzmine.modules.peakpicking.threestep.peakconstruction.savitzkygolaypeakbuilder;
 
-import java.util.Iterator;
-import java.util.TreeSet;
+import java.util.Arrays;
 import java.util.Vector;
+import java.util.logging.Logger;
 
 import net.sf.mzmine.data.Peak;
-import net.sf.mzmine.data.PeakStatus;
 import net.sf.mzmine.data.RawDataFile;
-import net.sf.mzmine.data.Scan;
-import net.sf.mzmine.modules.peakpicking.threestep.massdetection.MzPeak;
 import net.sf.mzmine.modules.peakpicking.threestep.peakconstruction.ConnectedPeak;
 import net.sf.mzmine.modules.peakpicking.threestep.peakconstruction.PeakBuilder;
 import net.sf.mzmine.modules.peakpicking.threestep.xicconstruction.Chromatogram;
 import net.sf.mzmine.modules.peakpicking.threestep.xicconstruction.ConnectedMzPeak;
-import net.sf.mzmine.modules.peakpicking.threestep.xicconstruction.MatchScore;
 
 /**
  * This class implements a peak builder using a match score to link MzPeaks in
@@ -45,7 +41,7 @@ import net.sf.mzmine.modules.peakpicking.threestep.xicconstruction.MatchScore;
  */
 public class SavitzkyGolayPeakBuilder implements PeakBuilder {
 
-	// private Logger logger = Logger.getLogger(this.getClass().getName());
+	private Logger logger = Logger.getLogger(this.getClass().getName());
 
 	private float minimumPeakHeight, minimumPeakDuration;
 
@@ -72,15 +68,14 @@ public class SavitzkyGolayPeakBuilder implements PeakBuilder {
 
 	private float maxValueDerivative = 0.0f;
 
-	
 	/**
 	 * Constructor of Savitzky-Golay Peak Builder
 	 * 
 	 * @param parameters
 	 */
 	public SavitzkyGolayPeakBuilder(
-	
-			SavitzkyGolayPeakBuilderParameters parameters) {
+
+	SavitzkyGolayPeakBuilderParameters parameters) {
 		minimumPeakDuration = (Float) parameters
 				.getParameterValue(SavitzkyGolayPeakBuilderParameters.minimumPeakDuration);
 		minimumPeakHeight = (Float) parameters
@@ -88,31 +83,39 @@ public class SavitzkyGolayPeakBuilder implements PeakBuilder {
 
 	}
 
-	/** 
-	 * @see net.sf.mzmine.modules.peakpicking.threestep.peakconstruction.PeakBuilder#addChromatogram(net.sf.mzmine.modules.peakpicking.threestep.xicconstruction.Chromatogram, net.sf.mzmine.data.RawDataFile)
+	/**
+	 * @see net.sf.mzmine.modules.peakpicking.threestep.peakconstruction.PeakBuilder#addChromatogram(net.sf.mzmine.modules.peakpicking.threestep.xicconstruction.Chromatogram,
+	 *      net.sf.mzmine.data.RawDataFile)
 	 */
 	public Peak[] addChromatogram(Chromatogram chromatogram,
 			RawDataFile dataFile) {
+		
+		maxValueDerivative = 0.0f;
 
 		Vector<Peak> detectedPeaks = new Vector<Peak>();
 
 		int[] scanNumbers = dataFile.getScanNumbers(1);
 		float[] chromatoIntensities = new float[scanNumbers.length];
+		Arrays.sort(scanNumbers);
 
 		for (int i = 0; i < scanNumbers.length; i++) {
+			//logger.finest(" Ciclo de i " + i);
 			ConnectedMzPeak mzValue = chromatogram
 					.getConnectedMzPeak(scanNumbers[i]);
 			if (mzValue != null)
 				chromatoIntensities[i] = mzValue.getMzPeak().getIntensity();
-			else
+			else{
 				chromatoIntensities[i] = 0;
+				//logger.finest(" No encontra intensity en chromatogram " + i + " " + scanNumbers[i]);
+			}
 		}
 
 		float[] chromato2ndDerivative = calculate2ndDerivative(chromatoIntensities);
-		float noiseThreshold = Math.abs(maxValueDerivative) * 0.05f;
-		
-		Peak[] chromatographicPeaks = SGPeaksSearch(dataFile, chromatogram, scanNumbers,
-				chromato2ndDerivative, noiseThreshold);
+		logger.finest(" Value of noiseThreshold " + maxValueDerivative * 0.01f );
+		float noiseThreshold = maxValueDerivative * 0.02f;
+
+		Peak[] chromatographicPeaks = SGPeaksSearch(dataFile, chromatogram,
+				scanNumbers, chromato2ndDerivative, noiseThreshold);
 
 		if (chromatographicPeaks.length != 0) {
 			for (Peak p : chromatographicPeaks) {
@@ -124,10 +127,9 @@ public class SavitzkyGolayPeakBuilder implements PeakBuilder {
 				}
 			}
 		}
-		
+
 		return detectedPeaks.toArray(new Peak[0]);
 	}
-
 
 	/**
 	 * 
@@ -136,7 +138,8 @@ public class SavitzkyGolayPeakBuilder implements PeakBuilder {
 	 *            ucPeak
 	 * @return Peak[]
 	 */
-	private Peak[] SGPeaksSearch(RawDataFile dataFile, Chromatogram chromatogram, int[] scanNumbers,
+	private Peak[] SGPeaksSearch(RawDataFile dataFile,
+			Chromatogram chromatogram, int[] scanNumbers,
 			float[] derivativeOfIntensities, float noiseThreshold) {
 
 		boolean activeFirstPeak = false, activeSecondPeak = false, passThreshold = false;
@@ -153,15 +156,13 @@ public class SavitzkyGolayPeakBuilder implements PeakBuilder {
 
 				if ((derivativeOfIntensities[i - 1] < 0.0f)
 						&& (derivativeOfIntensities[i] > 0.0f)) {
-					if (crossZero == 0) {
-						activeFirstPeak = true;
-					}
-					if (crossZero == 2) {
+					if (crossZero == 2){
 						if (passThreshold) {
 							activeSecondPeak = true;
 						} else {
 							newMzPeaks.clear();
 							crossZero = 0;
+							activeFirstPeak = false;
 						}
 					}
 
@@ -173,37 +174,49 @@ public class SavitzkyGolayPeakBuilder implements PeakBuilder {
 
 				// Always increment
 				passThreshold = false;
-				if ((activeFirstPeak) || (activeSecondPeak)) {
+				if ((activeFirstPeak) || (activeSecondPeak)){
 					crossZero++;
 				}
 
 			}
 
-			if (Math.abs(derivativeOfIntensities[i]) > Math.abs(noiseThreshold)) {
+			if (Math.abs(derivativeOfIntensities[i]) > noiseThreshold ) {
 				passThreshold = true;
-
 				if ((crossZero == 0) && (derivativeOfIntensities[i] > 0)) {
 					activeFirstPeak = true;
 					crossZero++;
 				}
 			}
 
-			// if (true) {
 			if ((activeFirstPeak)) {
-				ConnectedMzPeak mzValue = chromatogram.getConnectedMzPeak(scanNumbers[i]);
-				if (mzValue != null)
+				ConnectedMzPeak mzValue = chromatogram
+						.getConnectedMzPeak(scanNumbers[i]);
+				if (mzValue != null) {
 					newMzPeaks.add(mzValue);
+					/*ConnectedMzPeak temp = new ConnectedMzPeak(mzValue
+							.getScan(), new MzPeak(new SimpleDataPoint(mzValue
+							.getMzPeak().getMZ(),
+							derivativeOfIntensities[i] * 100)));
+					newMzPeaks.add(temp);*/
+				}
 			}
 
 			if (activeSecondPeak) {
-				ConnectedMzPeak mzValue = chromatogram.getConnectedMzPeak(scanNumbers[i]);
-				if (mzValue != null)
-				newOverlappedMzPeaks.add(mzValue);
+				ConnectedMzPeak mzValue = chromatogram
+						.getConnectedMzPeak(scanNumbers[i]);
+				if (mzValue != null){
+					newOverlappedMzPeaks.add(mzValue);
+					/*ConnectedMzPeak temp = new ConnectedMzPeak(mzValue
+							.getScan(), new MzPeak(new SimpleDataPoint(mzValue
+							.getMzPeak().getMZ(),
+							derivativeOfIntensities[i] * 100)));
+					newOverlappedMzPeaks.add(temp);*/
+				}
 			}
 
 			if ((newMzPeaks.size() > 0) && (!activeFirstPeak)) {
-				ConnectedPeak SGPeak = new ConnectedPeak(dataFile,
-						newMzPeaks.elementAt(0));
+				ConnectedPeak SGPeak = new ConnectedPeak(dataFile, newMzPeaks
+						.elementAt(0));
 				for (int j = 1; j < newMzPeaks.size(); j++) {
 					SGPeak.addMzPeak(newMzPeaks.elementAt(j));
 				}
@@ -217,17 +230,10 @@ public class SavitzkyGolayPeakBuilder implements PeakBuilder {
 					activeFirstPeak = true;
 					crossZero = 2;
 					newOverlappedMzPeaks.clear();
+					passThreshold = false;
 				}
 			}
 
-		}
-		
-		if (newMzPeaks.size() > 0)  {
-			ConnectedPeak SGPeak = new ConnectedPeak(dataFile,
-					newMzPeaks.elementAt(0));
-			for (int j = 1; j < newMzPeaks.size(); j++) {
-				SGPeak.addMzPeak(newMzPeaks.elementAt(j));
-			}
 		}
 
 		return newPeaks.toArray(new ConnectedPeak[0]);
@@ -257,8 +263,8 @@ public class SavitzkyGolayPeakBuilder implements PeakBuilder {
 				derivative[k] += chromatoIntensities[k + i]
 						* getSGCoefficient(M, i);
 			}
-			if (Math.abs(derivative[k]) > Math.abs(maxValueDerivative))
-				maxValueDerivative = derivative[k];
+			if (Math.abs(derivative[k]) > maxValueDerivative)
+				maxValueDerivative = Math.abs(derivative[k]);
 
 		}
 
@@ -280,5 +286,4 @@ public class SavitzkyGolayPeakBuilder implements PeakBuilder {
 
 	}
 
-	
 }
