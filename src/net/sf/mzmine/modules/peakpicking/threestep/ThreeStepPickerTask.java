@@ -69,8 +69,8 @@ class ThreeStepPickerTask implements Task {
 	private PeakBuilder peakBuilder;
 
 	private ParameterSet mdParameters, cbParameters, pbParameters;
-	
-	private boolean finishChromatograms= false;
+
+	private boolean finishChromatograms = false;
 
 	/**
 	 * @param dataFile
@@ -87,11 +87,11 @@ class ThreeStepPickerTask implements Task {
 
 		chromatogramBuilderTypeNumber = parameters.getPeakBuilderTypeNumber();
 		cbParameters = parameters
-				.getPeakBuilderParameters(chromatogramBuilderTypeNumber);
+				.getChromatogramBuilderParameters(chromatogramBuilderTypeNumber);
 
 		peakBuilderTypeNumber = parameters.getChromatogramBuilderTypeNumber();
 		pbParameters = parameters
-				.getChromatogramBuilderParameters(peakBuilderTypeNumber);
+				.getPeakBuilderParameters(peakBuilderTypeNumber);
 		suffix = parameters.getSuffix();
 		scanNumbers = dataFile.getScanNumbers(1);
 		totalScans = scanNumbers.length;
@@ -164,7 +164,7 @@ class ThreeStepPickerTask implements Task {
 		}
 
 		// Create new chromatogram builder according with the user's selection
-		String chromatogramBuilderClassName = ThreeStepPickerParameters.chromatogramBuilderClasses[peakBuilderTypeNumber];
+		String chromatogramBuilderClassName = ThreeStepPickerParameters.chromatogramBuilderClasses[chromatogramBuilderTypeNumber];
 		try {
 			Class chromatogramBuilderClass = Class
 					.forName(chromatogramBuilderClassName);
@@ -173,8 +173,9 @@ class ThreeStepPickerTask implements Task {
 			chromatogramBuilder = (ChromatogramBuilder) chromtogramBuilderConstruct
 					.newInstance(cbParameters);
 		} catch (Exception e) {
-			logger.finest("Error trying to make an instance of peak builder "
-					+ chromatogramBuilderClassName);
+			logger
+					.finest("Error trying to make an instance of chromatogram builder "
+							+ chromatogramBuilderClassName);
 			status = TaskStatus.ERROR;
 			return;
 		}
