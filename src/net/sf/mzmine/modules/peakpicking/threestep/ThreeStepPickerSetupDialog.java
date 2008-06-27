@@ -188,8 +188,7 @@ class ThreeStepPickerSetupDialog extends JDialog implements ActionListener {
 		lblChromatoBuilder.setSize(200, 28);
 		comboChromatoBuilder = new JComboBox(
 				ThreeStepPickerParameters.chromatogramBuilderNames);
-		comboChromatoBuilder.setSelectedIndex(parameters
-				.getMassDetectorTypeNumber());
+		comboChromatoBuilder.setSelectedIndex(parameters.getChromatogramBuilderTypeNumber());
 		comboChromatoBuilder.addActionListener(this);
 		comboChromatoBuilder.setMaximumSize(new Dimension(200, 30));
 		btnSetChromato = new JButton("Set parameters");

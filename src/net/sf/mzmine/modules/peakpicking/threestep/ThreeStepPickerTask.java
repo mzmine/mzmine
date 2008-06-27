@@ -111,9 +111,9 @@ class ThreeStepPickerTask implements Task {
 		if (totalScans == 0)
 			return 0.0f;
 		if (!finishChromatograms)
-			return (float) processedScans / ( totalScans * 0.5f);
+			return (float) processedScans / ( totalScans * 2);
 		else
-			return ((float) processedScans / ( totalChromatograms * 0.5f)) + 0.5f ;
+			return ((float) processedScans / ( totalChromatograms * 2)) + 0.5f ;
 	}
 
 	/**
@@ -231,6 +231,8 @@ class ThreeStepPickerTask implements Task {
 
 		finishChromatograms = true;
 		totalChromatograms = chromatograms.length;
+		
+		processedScans = 0;
 
 		for (Chromatogram chromatogram : chromatograms) {
 			peaks = peakBuilder.addChromatogram(chromatogram, dataFile);
