@@ -41,7 +41,7 @@ import net.sf.mzmine.modules.peakpicking.threestep.xicconstruction.ConnectedMzPe
  */
 public class SavitzkyGolayPeakBuilder implements PeakBuilder {
 
-	private Logger logger = Logger.getLogger(this.getClass().getName());
+	//private Logger logger = Logger.getLogger(this.getClass().getName());
 
 	private float minimumPeakHeight, minimumPeakDuration;
 
@@ -111,7 +111,6 @@ public class SavitzkyGolayPeakBuilder implements PeakBuilder {
 		}
 
 		float[] chromato2ndDerivative = calculate2ndDerivative(chromatoIntensities);
-		logger.finest(" Value of noiseThreshold " + maxValueDerivative * 0.01f );
 		float noiseThreshold = maxValueDerivative * 0.02f;
 
 		Peak[] chromatographicPeaks = SGPeaksSearch(dataFile, chromatogram,

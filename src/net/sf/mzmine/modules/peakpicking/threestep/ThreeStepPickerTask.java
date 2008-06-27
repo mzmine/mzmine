@@ -85,11 +85,11 @@ class ThreeStepPickerTask implements Task {
 		mdParameters = parameters
 				.getMassDetectorParameters(massDetectorTypeNumber);
 
-		chromatogramBuilderTypeNumber = parameters.getPeakBuilderTypeNumber();
+		chromatogramBuilderTypeNumber = parameters.getChromatogramBuilderTypeNumber();
 		cbParameters = parameters
 				.getChromatogramBuilderParameters(chromatogramBuilderTypeNumber);
 
-		peakBuilderTypeNumber = parameters.getChromatogramBuilderTypeNumber();
+		peakBuilderTypeNumber = parameters.getPeakBuilderTypeNumber();
 		pbParameters = parameters
 				.getPeakBuilderParameters(peakBuilderTypeNumber);
 		suffix = parameters.getSuffix();
@@ -111,9 +111,9 @@ class ThreeStepPickerTask implements Task {
 		if (totalScans == 0)
 			return 0.0f;
 		if (!finishChromatograms)
-			return (float) processedScans / (float) totalScans * 2;
+			return (float) processedScans / ( totalScans * 0.5f);
 		else
-			return ((float) processedScans / (float) totalChromatograms * 2) + 0.5f;
+			return ((float) processedScans / ( totalChromatograms * 0.5f)) + 0.5f ;
 	}
 
 	/**

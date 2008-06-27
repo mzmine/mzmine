@@ -16,7 +16,7 @@ import net.sf.mzmine.modules.peakpicking.threestep.xicconstruction.MatchScore;
 
 public class ThresholdChromatogramBuilder implements ChromatogramBuilder {
 
-	private Logger logger = Logger.getLogger(this.getClass().getName());
+	//private Logger logger = Logger.getLogger(this.getClass().getName());
 
 	private float mzTolerance, chromatographicThresholdLevel,
 			minimumChromatogramDuration;

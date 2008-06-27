@@ -38,7 +38,7 @@ import net.sf.mzmine.modules.peakpicking.threestep.xicconstruction.ConnectedMzPe
  */
 public class BaselinePeakBuilder implements PeakBuilder {
 
-	private Logger logger = Logger.getLogger(this.getClass().getName());
+	//private Logger logger = Logger.getLogger(this.getClass().getName());
 	
 	private float baselineLevel;
 
@@ -55,7 +55,7 @@ public class BaselinePeakBuilder implements PeakBuilder {
 
 		ConnectedMzPeak[] cMzPeaks = chromatogram.getConnectedMzPeaks();
 		
-		logger.finest("Number of cMzPeaks " + cMzPeaks.length);
+		//logger.finest("Number of cMzPeaks " + cMzPeaks.length);
 		
 		Vector<ConnectedMzPeak> regionOfMzPeaks = new Vector<ConnectedMzPeak>();
 		Vector<ConnectedPeak> underDetectionPeaks = new Vector<ConnectedPeak>();
@@ -89,7 +89,7 @@ public class BaselinePeakBuilder implements PeakBuilder {
 			
 		}
 		
-		logger.finest(" Numero de picos " + underDetectionPeaks.size());
+		//logger.finest(" Numero de picos " + underDetectionPeaks.size());
 		return underDetectionPeaks.toArray(new Peak[0]);
 	}
 
