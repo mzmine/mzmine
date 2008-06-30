@@ -24,10 +24,11 @@ import net.sf.mzmine.util.Range;
 
 public class LorentzianPeakWithShoulderExtended implements PeakModel {
 
-	private float mzMain, intensityMain, FWHM, MWHM;
+	private float mzMain, intensityMain, HWHM, MWHM;
 	private Range rangePeak, rangePeakModified;
 	private float diffWidth, diffMass, widthStep;
 
+	
 	/**
 	 * @see net.sf.mzmine.modules.peakpicking.twostep.massdetection.exactmass.peakmodel.PeakModel#setParameters(float,
 	 *      float, float)
@@ -37,31 +38,32 @@ public class LorentzianPeakWithShoulderExtended implements PeakModel {
 		this.mzMain = mzMain;
 		this.intensityMain = intensityMain;
 
-		// FWFM (Full Width at Half Maximum)
-		FWHM = mzMain / ((float) resolution);
+		// HWFM (Half Width at Half Maximum)
+		HWHM = (mzMain / resolution) / 2.0f ;
 
 		// We set a width given by 5% of actual resolution called
 		// MWFM (Modified Width at Half Maximum) and we use it to calculate the
 		// width at the level defined in getWidth() method's parameter.
-		MWHM = mzMain / ((float) resolution * 0.05f);
+		MWHM = HWHM * 20.0f;
 
 		// Using the Gaussian function we calculate the peak width at 5% of
 		// intensity. This % of the intensity is chosen according with the
 		// definition of lateral peaks. Lateral peaks is any under 5% of
 		// intensity of the main peak.
 
-		double partA = 2 * Math.pow(FWHM, 2);
-		double ln = Math.abs(Math.log(intensityMain * 0.05));
+		double partA = 2 * Math.pow(HWHM, 2);
+		double ln = Math.abs(Math.log(0.05));
 		float sideRange = (float) Math.sqrt(partA * ln) / 2.0f;
 
 		// We use this range to recognize when to use a different value of width
 		// for Lorentzian function
 		rangePeak = new Range(mzMain - sideRange, mzMain + sideRange);
+		
 
 		// This value is the difference between the FWHM used to calculate the
 		// width (Gaussian peak) at 5% of intensity and the MWHM used to
 		// calculate the width (Lorentzian function) at 0.1% of intensity.
-		diffWidth = MWHM - FWHM;
+		diffWidth = MWHM - HWHM;
 
 	}
 
@@ -90,7 +92,7 @@ public class LorentzianPeakWithShoulderExtended implements PeakModel {
 
 		rangePeakModified = new Range(mzMain - sideRange, mzMain + sideRange);
 
-		// These two values are used to calculate the appropiated FWHM to
+		// These two values are used to calculate the appropiated HWHM to
 		// determine the intensity of our modified lorentzian peak
 		diffMass = rangePeakModified.getMax() - rangePeak.getMax();
 		widthStep = diffWidth / diffMass;
@@ -103,23 +105,24 @@ public class LorentzianPeakWithShoulderExtended implements PeakModel {
 	 */
 	public float getIntensity(float mz) {
 
-		float width = FWHM;
+		float width = MWHM;
+		float height = intensityMain * 0.05f;
 
 		// Depending of the value of mz, we use our increased width to get
 		// larger shoulders and try to cover more lateral peaks.
-		if (mz < rangePeak.getMin())
-			width = FWHM + (widthStep * Math.abs(rangePeak.getMin() - mz));
-		if (mz > rangePeak.getMin())
-			width = FWHM + (widthStep * Math.abs(mz - rangePeak.getMax()));
+		if ((mz > rangePeak.getMin()) && (mz < rangePeak.getMax())){
+			height = intensityMain;
+			width = HWHM; 
+		}
 
 		// We calculate the intensity using the Lorentzian function
 
-		double partA = Math.pow(width, 2);
-		double partB = intensityMain * partA;
+		double partA = width * width;
+		double partB = height * partA;
 		double partC = Math.pow((mz - mzMain), 2) + partA;
 
 		float intensity = (float) (partB / partC);
-
+		
 		return intensity;
 	}
 

@@ -38,7 +38,7 @@ public class GaussPeak implements PeakModel {
 		this.intensityMain = intensityMain;
 
 		// FWFM (Full Width at Half Maximum)
-		FWHM = mzMain / ((float) resolution);
+		FWHM = mzMain / resolution;
 		partA = 2 * Math.pow(FWHM, 2);
 	}
 
@@ -62,7 +62,7 @@ public class GaussPeak implements PeakModel {
 		double ln = Math.abs(Math.log(partialIntensity));
 
 		// Using the Gaussian function we calculate the peak width at intensity given (partialIntensity),
-		float sideRange = (float) Math.sqrt(partA * ln) / 2.0f;
+		float sideRange = (float) (Math.sqrt(partA * ln) / 2.0f );
 
 		// This range represents the width of our peak in m/z terms
 		Range rangePeak = new Range(mzMain - sideRange, mzMain + sideRange);
@@ -76,7 +76,7 @@ public class GaussPeak implements PeakModel {
 	public float getIntensity(float mz) {
 
 		// Using the Gaussian function we calculate the intensity m/z given (mz)
-		double partB = -1 * Math.pow((mzMain - mz), 2) / partA;
+		double partB = -1 * (Math.pow((mz - mzMain), 2) / partA );
 		float intensity = (float) (intensityMain * Math.exp(partB));
 		return intensity;
 	}

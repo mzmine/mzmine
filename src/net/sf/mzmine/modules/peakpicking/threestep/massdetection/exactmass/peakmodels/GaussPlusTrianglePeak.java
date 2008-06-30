@@ -27,6 +27,7 @@ public class GaussPlusTrianglePeak implements PeakModel {
 	private float mzMain, intensityMain, FWHM;
 	private double partA, angle;
 	private Range rangePeakAtFivePercentage;
+	
 
 	/**
 	 * @see net.sf.mzmine.modules.peakpicking.twostep.massdetection.exactmass.peakmodel.PeakModel#setParameters(float,
@@ -38,9 +39,12 @@ public class GaussPlusTrianglePeak implements PeakModel {
 		if ((mz >= rangePeakAtFivePercentage.getMin())
 				&& (mz <= rangePeakAtFivePercentage.getMax())) {
 			
-			double partB = -1 * Math.pow((mzMain - mz), 2) / partA;
-			float intensity = (float) (intensityMain * Math.exp(partB));
-			
+			double diff = (mz - mzMain) * 2;
+			double diff2 = diff * diff;
+			double partB = -1 * (diff2 / partA);
+			double eX = Math.exp(partB);
+			float intensity = (float) (intensityMain * eX);
+
 			return intensity;
 		} else {
 			// We use Pitagora's theorem to calculate the intensity with the
@@ -65,10 +69,8 @@ public class GaussPlusTrianglePeak implements PeakModel {
 		if (partialIntensity == 0)
 			partialIntensity = intensityMain * 0.00001f;
 
-		double ln = Math.abs(Math.log(partialIntensity));
-
-		// Using the Gaussian function we calculate the peak width at
-		// intensity given (partialIntensity),
+		// Using the Gaussian function we calculate the peak width at 5% of intensity
+		double ln = Math.abs(Math.log(partialIntensity/intensityMain));
 		float sideRange = (float) Math.sqrt(partA * ln) / 2.0f;
 		// This range represents the width of our peak in m/z terms
 		Range rangePeak = new Range(mzMain - sideRange, mzMain + sideRange);
@@ -103,8 +105,8 @@ public class GaussPlusTrianglePeak implements PeakModel {
 		this.intensityMain = intensityMain;
 
 		// FWFM (Full Width at Half Maximum)
-		FWHM = mzMain / ((float) resolution);
-		partA = 2 * Math.pow(FWHM, 2);
+		FWHM = mzMain / resolution;
+		partA = 2 * (FWHM * FWHM);
 
 		rangePeakAtFivePercentage = this.getWidth(intensityMain * 0.05f);
 		
