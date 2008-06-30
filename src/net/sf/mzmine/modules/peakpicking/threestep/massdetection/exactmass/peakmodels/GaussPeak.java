@@ -78,8 +78,14 @@ public class GaussPeak implements PeakModel {
 	public float getIntensity(float mz) {
 
 		// Using the Gaussian function we calculate the intensity m/z given (mz)
-		double partB = -1 * (Math.pow((mz - mzMain), 2) / partA );
-		float intensity = (float) (intensityMain * Math.exp(partB));
+		double diff = (mz - mzMain) * 2;
+		double diff2 = diff * diff;
+		double partB = -1 * (diff2 / partA);
+		double eX = Math.exp(partB);
+		float intensity = (float) (intensityMain * eX);
+		
+		//double partB = -1 * (Math.pow((mz - mzMain), 2) / partA );
+		//float intensity = (float) (intensityMain * Math.exp(partB));
 		return intensity;
 	}
 
