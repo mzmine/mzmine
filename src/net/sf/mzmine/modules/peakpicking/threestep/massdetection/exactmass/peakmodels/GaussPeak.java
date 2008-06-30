@@ -27,6 +27,7 @@ public class GaussPeak implements PeakModel {
 	
 	private float mzMain, intensityMain, FWHM;
 	private double partA;
+	
 
 	/**
 	 * @see net.sf.mzmine.modules.peakpicking.twostep.massdetection.exactmass.peakmodel.PeakModel#setParameters(float,
@@ -59,14 +60,15 @@ public class GaussPeak implements PeakModel {
 		if (partialIntensity == 0)
 			partialIntensity = 1;
 		
-		double ln = Math.abs(Math.log(partialIntensity));
+		double portion = partialIntensity/intensityMain;
+		double ln = Math.abs(Math.log(portion));
 
 		// Using the Gaussian function we calculate the peak width at intensity given (partialIntensity),
 		float sideRange = (float) (Math.sqrt(partA * ln) / 2.0f );
 
 		// This range represents the width of our peak in m/z terms
 		Range rangePeak = new Range(mzMain - sideRange, mzMain + sideRange);
-		
+
 		return rangePeak;
 	}
 

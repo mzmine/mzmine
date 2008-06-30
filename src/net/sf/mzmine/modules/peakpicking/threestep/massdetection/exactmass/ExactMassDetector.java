@@ -139,6 +139,7 @@ public class ExactMassDetector implements MassDetector {
 
 				// Add the m/z peak if it is above the noise level
 				if (localMaximum.getIntensity() > noiseLevel) {
+					
 					DataPoint[] rawDataPoints = rangeDataPoints
 							.toArray(new DataPoint[0]);
 					candidatePeaks.add(new MzPeak(localMaximum, rawDataPoints));
@@ -323,6 +324,7 @@ public class ExactMassDetector implements MassDetector {
 					// Condition in y domain (intensity)
 					&& (lateralCandidate.getIntensity() < peakModel
 							.getIntensity(lateralCandidate.getMZ()))) {
+				
 				candidatesIterator.remove();
 			}
 		}
