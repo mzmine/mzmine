@@ -24,6 +24,7 @@ import net.sf.mzmine.util.Range;
 
 public class GaussPeak implements PeakModel {
 
+	
 	private float mzMain, intensityMain, FWHM;
 	private double partA;
 
@@ -53,9 +54,11 @@ public class GaussPeak implements PeakModel {
 		 * big range and could result in to make useless comparisons.
 		 */
 
-		if (partialIntensity <= 0)
+		if (partialIntensity < 0)
 			return new Range(0, Float.MAX_VALUE);
-
+		if (partialIntensity == 0)
+			partialIntensity = 1;
+		
 		double ln = Math.abs(Math.log(partialIntensity));
 
 		// Using the Gaussian function we calculate the peak width at intensity given (partialIntensity),
@@ -63,7 +66,7 @@ public class GaussPeak implements PeakModel {
 
 		// This range represents the width of our peak in m/z terms
 		Range rangePeak = new Range(mzMain - sideRange, mzMain + sideRange);
-
+		
 		return rangePeak;
 	}
 
@@ -75,7 +78,6 @@ public class GaussPeak implements PeakModel {
 		// Using the Gaussian function we calculate the intensity m/z given (mz)
 		double partB = -1 * Math.pow((mzMain - mz), 2) / partA;
 		float intensity = (float) (intensityMain * Math.exp(partB));
-		
 		return intensity;
 	}
 

@@ -298,7 +298,8 @@ public class ExactMassDetector implements MassDetector {
 					+ peakModelClassName);
 			return;
 		}
-
+		
+		
 		// We set our peak model with same position(m/z), height(intensity) and
 		// resolution of the current peak
 		peakModel.setParameters(currentCandidate.getMZ(), currentCandidate
@@ -307,6 +308,7 @@ public class ExactMassDetector implements MassDetector {
 		// We use the width of the modeled peak at noise level to set the range
 		// of search for lateral peaks.
 		Range rangePeak = peakModel.getWidth(noiseLevel);
+
 
 		// We search over all peak candidates and remove all of them that are
 		// under the curve defined by our peak model

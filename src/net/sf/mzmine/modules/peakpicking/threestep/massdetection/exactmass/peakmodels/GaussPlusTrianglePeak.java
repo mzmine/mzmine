@@ -37,14 +37,17 @@ public class GaussPlusTrianglePeak implements PeakModel {
 		// Using the Gaussian function we calculate the intensity m/z given (mz)
 		if ((mz >= rangePeakAtFivePercentage.getMin())
 				&& (mz <= rangePeakAtFivePercentage.getMax())) {
+			
 			double partB = -1 * Math.pow((mzMain - mz), 2) / partA;
 			float intensity = (float) (intensityMain * Math.exp(partB));
+			
 			return intensity;
 		} else {
 			// We use Pitagora's theorem to calculate the intensity with the
 			// function opposite side = adjacent side * Tan (angle)
 			float opposite = 1 - Math.abs(mzMain - mz);
 			float intensity = (float) (opposite * Math.tan(angle));
+			
 			return intensity;
 		}
 	}
@@ -57,8 +60,10 @@ public class GaussPlusTrianglePeak implements PeakModel {
 		 * have a too big range and could result in to make useless comparisons.
 		 */
 
-		if (partialIntensity <= 0)
+		if (partialIntensity < 0)
 			return new Range(0, Float.MAX_VALUE);
+		if (partialIntensity == 0)
+			partialIntensity = intensityMain * 0.00001f;
 
 		double ln = Math.abs(Math.log(partialIntensity));
 
@@ -102,7 +107,7 @@ public class GaussPlusTrianglePeak implements PeakModel {
 		partA = 2 * Math.pow(FWHM, 2);
 
 		rangePeakAtFivePercentage = this.getWidth(intensityMain * 0.05f);
-
+		
 		// We use Pitagora's theorem to calculate the angle of a rectangular
 		// triangle with a base equal to one (m/z) and height equal to 5%
 		// intensity of the peak.
