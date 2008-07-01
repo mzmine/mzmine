@@ -52,8 +52,8 @@
 <tocitem text="Centroid peak detector" target="Peak3" image="topic" />
 <tocitem text="Gap filler" target="Peak4" image="topic" />
 <tocitem text="Recursive threshold peak detector" target="Peak5" image="topic" />
-<tocitem text="Two steps peak detector" image="chapter" >
-<tocitem text="Two steps peak detector" target="steps1" image="topic" />
+<tocitem text="Three steps peak detector" image="chapter" >
+<tocitem text="Three steps peak detector" target="steps1" image="topic" />
 <tocitem text="Mass detector" image="chapter" >
 <tocitem text="Centroid mass detector" target="Mass0" image="topic" />
 <tocitem text="Exact mass detector" target="Mass1" image="topic" />
