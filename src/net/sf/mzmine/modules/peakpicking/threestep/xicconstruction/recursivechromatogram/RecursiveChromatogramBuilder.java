@@ -1,4 +1,4 @@
-package net.sf.mzmine.modules.peakpicking.threestep.xicconstruction.thresholdchromatogram;
+package net.sf.mzmine.modules.peakpicking.threestep.xicconstruction.recursivechromatogram;
 
 import java.util.Iterator;
 import java.util.TreeSet;
@@ -12,8 +12,9 @@ import net.sf.mzmine.modules.peakpicking.threestep.xicconstruction.Chromatogram;
 import net.sf.mzmine.modules.peakpicking.threestep.xicconstruction.ChromatogramBuilder;
 import net.sf.mzmine.modules.peakpicking.threestep.xicconstruction.ConnectedMzPeak;
 import net.sf.mzmine.modules.peakpicking.threestep.xicconstruction.MatchScore;
+import net.sf.mzmine.util.MathUtils;
 
-public class ThresholdChromatogramBuilder implements ChromatogramBuilder {
+public class RecursiveChromatogramBuilder implements ChromatogramBuilder {
 
 	//private Logger logger = Logger.getLogger(this.getClass().getName());
 
@@ -21,15 +22,15 @@ public class ThresholdChromatogramBuilder implements ChromatogramBuilder {
 			minimumChromatogramDuration;
 	private Vector<Chromatogram> underConstructionChromatograms;
 
-	public ThresholdChromatogramBuilder(
-			ThresholdChromatogramBuilderParameters parameters) {
+	public RecursiveChromatogramBuilder(
+			RecursiveChromatogramBuilderParameters parameters) {
 
 		minimumChromatogramDuration = (Float) parameters
-				.getParameterValue(ThresholdChromatogramBuilderParameters.minimumChromatogramDuration);
+				.getParameterValue(RecursiveChromatogramBuilderParameters.minimumChromatogramDuration);
 		mzTolerance = (Float) parameters
-				.getParameterValue(ThresholdChromatogramBuilderParameters.mzTolerance);
+				.getParameterValue(RecursiveChromatogramBuilderParameters.mzTolerance);
 		chromatographicThresholdLevel = (Float) parameters
-				.getParameterValue(ThresholdChromatogramBuilderParameters.chromatographicThresholdLevel);
+				.getParameterValue(RecursiveChromatogramBuilderParameters.chromatographicThresholdLevel);
 
 		underConstructionChromatograms = new Vector<Chromatogram>();
 	}
@@ -145,7 +146,7 @@ public class ThresholdChromatogramBuilder implements ChromatogramBuilder {
 	 */
 	public Chromatogram[] finishChromatograms() {
 
-		float chromatographicThresholdlevelPeak;
+		float recursiveThresholdlevelPeak;
 
 		for (Chromatogram chromatogram : underConstructionChromatograms) {
 
@@ -164,24 +165,26 @@ public class ThresholdChromatogramBuilder implements ChromatogramBuilder {
 				sumIntensities += chromatoIntensities[i];
 			}
 
-			chromatographicThresholdlevelPeak = calcChromatogramThreshold(
-					chromatoIntensities, (sumIntensities / scanNumbers.length),
-					chromatographicThresholdLevel);
+			recursiveThresholdlevelPeak = MathUtils.calcQuantile(
+					chromatoIntensities, chromatographicThresholdLevel);
+			//calcChromatogramThreshold(
+				//	chromatoIntensities, (sumIntensities / scanNumbers.length),
+					//chromatographicThresholdLevel);
 
 			for (int i = 0; i < scanNumbers.length; i++) {
 				ConnectedMzPeak mzValue = chromatogram
 						.getConnectedMzPeak(scanNumbers[i]);
 				if (mzValue != null)
-					if (mzValue.getMzPeak().getIntensity() <= chromatographicThresholdlevelPeak) {
+					if (mzValue.getMzPeak().getIntensity() < recursiveThresholdlevelPeak) {
 
 						chromatogram.removeConnectedMzPeak(scanNumbers[i]);
 
 						// Set to zero this point.
-						SimpleDataPoint zeroDataPoint = new SimpleDataPoint(
+						/*SimpleDataPoint zeroDataPoint = new SimpleDataPoint(
 								mzValue.getMzPeak().getMZ(), 0);
 						ConnectedMzPeak zeroChromatoPoint = new ConnectedMzPeak(
 								mzValue.getScan(), new MzPeak(zeroDataPoint));
-						chromatogram.addMzPeak(zeroChromatoPoint);
+						chromatogram.addMzPeak(zeroChromatoPoint);*/
 					}
 			}
 
@@ -223,7 +226,6 @@ public class ThresholdChromatogramBuilder implements ChromatogramBuilder {
 			float avgIntensities, float chromatographicThresholdLevel) {
 
 		float standardDeviation = 0;
-		float percentage = 1.0f - chromatographicThresholdLevel;
 
 		for (int i = 0; i < chromatoIntensities.length; i++) {
 			float deviation = chromatoIntensities[i] - avgIntensities;
@@ -246,7 +248,7 @@ public class ThresholdChromatogramBuilder implements ChromatogramBuilder {
 
 		avgDifference /= cont;
 		return standardDeviation
-				- (avgDifference * percentage);
+				- (avgDifference * chromatographicThresholdLevel);
 	}
 
 }

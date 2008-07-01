@@ -44,9 +44,10 @@ public class ThreeStepPickerParameters implements StorableParameterSet {
 			"net.sf.mzmine.modules.peakpicking.threestep.massdetection.recursive.RecursiveMassDetector",
 			"net.sf.mzmine.modules.peakpicking.threestep.massdetection.wavelet.WaveletMassDetector" };
 
-	public static final String chromatogramBuilderNames[] = { "Simple Chromatogram", "Threshold Chromatogram" };
+	public static final String chromatogramBuilderNames[] = { "Recursive Chromatogram", "Simple Chromatogram", "Threshold Chromatogram" };
 
 	public static final String chromatogramBuilderClasses[] = {
+		"net.sf.mzmine.modules.peakpicking.threestep.xicconstruction.recursivechromatogram.RecursiveChromatogramBuilder",
 		"net.sf.mzmine.modules.peakpicking.threestep.xicconstruction.simplechromatogram.SimpleChromatogramBuilder",
 		"net.sf.mzmine.modules.peakpicking.threestep.xicconstruction.thresholdchromatogram.ThresholdChromatogramBuilder"};
 
