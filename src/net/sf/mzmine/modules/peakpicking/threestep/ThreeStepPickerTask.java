@@ -230,6 +230,8 @@ class ThreeStepPickerTask implements Task {
 
 			processedScans++;
 		}
+		
+		freeMemory();
 
 		// peaks = peakBuilder.finishPeaks();
 		chromatograms = chromatogramBuilder.finishChromatograms();
@@ -257,11 +259,17 @@ class ThreeStepPickerTask implements Task {
 			processedScans++;
 			
 		}
-
+		freeMemory();
+		
 		// Add new peaklist to the project
 		MZmineProject currentProject = MZmineCore.getCurrentProject();
 		currentProject.addPeakList(newPeakList);
 
 		status = TaskStatus.FINISHED;
+	}
+	
+	private void freeMemory() {
+		System.gc();
+		System.runFinalization();
 	}
 }

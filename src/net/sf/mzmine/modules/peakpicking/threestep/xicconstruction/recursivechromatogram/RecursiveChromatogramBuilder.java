@@ -178,13 +178,6 @@ public class RecursiveChromatogramBuilder implements ChromatogramBuilder {
 					if (mzValue.getMzPeak().getIntensity() < recursiveThresholdlevelPeak) {
 
 						chromatogram.removeConnectedMzPeak(scanNumbers[i]);
-
-						// Set to zero this point.
-						/*SimpleDataPoint zeroDataPoint = new SimpleDataPoint(
-								mzValue.getMzPeak().getMZ(), 0);
-						ConnectedMzPeak zeroChromatoPoint = new ConnectedMzPeak(
-								mzValue.getScan(), new MzPeak(zeroDataPoint));
-						chromatogram.addMzPeak(zeroChromatoPoint);*/
 					}
 			}
 
@@ -213,42 +206,6 @@ public class RecursiveChromatogramBuilder implements ChromatogramBuilder {
 		}
 
 		return underConstructionChromatograms.toArray(new Chromatogram[0]);
-	}
-
-	/**
-	 * 
-	 * @param chromatoIntensities
-	 * @param avgIntensities
-	 * @param chromatographicThresholdLevel
-	 * @return
-	 */
-	private float calcChromatogramThreshold(float[] chromatoIntensities,
-			float avgIntensities, float chromatographicThresholdLevel) {
-
-		float standardDeviation = 0;
-
-		for (int i = 0; i < chromatoIntensities.length; i++) {
-			float deviation = chromatoIntensities[i] - avgIntensities;
-			float deviation2 = deviation * deviation;
-			standardDeviation += deviation2;
-		}
-
-		standardDeviation /= chromatoIntensities.length;
-		standardDeviation = (float) Math.sqrt(standardDeviation);
-
-		float avgDifference = 0;
-		int cont = 0;
-
-		for (int i = 0; i < chromatoIntensities.length; i++) {
-			if (chromatoIntensities[i] < standardDeviation) {
-				avgDifference += (standardDeviation - chromatoIntensities[i]);
-				cont++;
-			}
-		}
-
-		avgDifference /= cont;
-		return standardDeviation
-				- (avgDifference * chromatographicThresholdLevel);
 	}
 
 }

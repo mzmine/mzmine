@@ -173,15 +173,7 @@ public class ThresholdChromatogramBuilder implements ChromatogramBuilder {
 						.getConnectedMzPeak(scanNumbers[i]);
 				if (mzValue != null)
 					if (mzValue.getMzPeak().getIntensity() <= chromatographicThresholdlevelPeak) {
-
 						chromatogram.removeConnectedMzPeak(scanNumbers[i]);
-
-						// Set to zero this point.
-						SimpleDataPoint zeroDataPoint = new SimpleDataPoint(
-								mzValue.getMzPeak().getMZ(), 0);
-						ConnectedMzPeak zeroChromatoPoint = new ConnectedMzPeak(
-								mzValue.getScan(), new MzPeak(zeroDataPoint));
-						chromatogram.addMzPeak(zeroChromatoPoint);
 					}
 			}
 
