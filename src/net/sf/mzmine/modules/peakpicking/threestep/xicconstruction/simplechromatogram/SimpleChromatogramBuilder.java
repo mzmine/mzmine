@@ -16,7 +16,7 @@ import net.sf.mzmine.modules.peakpicking.threestep.xicconstruction.MatchScore;
 
 public class SimpleChromatogramBuilder implements ChromatogramBuilder {
 
-	//private Logger logger = Logger.getLogger(this.getClass().getName());
+	private Logger logger = Logger.getLogger(this.getClass().getName());
 
 	private float mzTolerance, minimumChromatogramDuration;
 	private Vector<Chromatogram> underConstructionChromatograms;
@@ -87,6 +87,9 @@ public class SimpleChromatogramBuilder implements ChromatogramBuilder {
 
 			// If nothing was added,
 			if (!currentChromatogram.isGrowing()) {
+				
+				if (currentChromatogram.isLastConnectedMzPeakZero()) 
+					continue;
 
 				// Check length of detected Chromatogram (filter according to
 				// parameter)
@@ -99,21 +102,22 @@ public class SimpleChromatogramBuilder implements ChromatogramBuilder {
 					// current chromatogram , if not just remove from current
 					// chromatogram this region
 					if (currentChromatogram.hasPreviousConnectedMzPeaks()) {
+						
 						currentChromatogram.removeLastConnectedMzPeaks();
+						continue;
+					
 					} else {
 						iteratorConPeak.remove();
+						continue;
 					}
 				}
 
-				if (!currentChromatogram.isLastConnectedMzPeakZero()) {
-
-					// Set separator between regions in a chromatogram.
 					SimpleDataPoint zeroDataPoint = new SimpleDataPoint(
 							currentChromatogram.getMZ(), 0);
 					ConnectedMzPeak zeroChromatoPoint = new ConnectedMzPeak(
 							scan, new MzPeak(zeroDataPoint));
 					currentChromatogram.addMzPeak(zeroChromatoPoint);
-				}
+					currentChromatogram.resetGrowingState();
 
 			} else
 				currentChromatogram.resetGrowingState();
@@ -130,7 +134,6 @@ public class SimpleChromatogramBuilder implements ChromatogramBuilder {
 			}
 
 		}
-
 	}
 
 	/**
@@ -162,8 +165,12 @@ public class SimpleChromatogramBuilder implements ChromatogramBuilder {
 
 		Chromatogram[] chromatograms = underConstructionChromatograms
 				.toArray(new Chromatogram[0]);
-
+		freeMemory();
 		return chromatograms;
+	}
+	
+	private void freeMemory() {
+		System.gc();
 	}
 
 }

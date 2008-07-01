@@ -108,10 +108,17 @@ class ThreeStepPickerTask implements Task {
 	 * @see net.sf.mzmine.taskcontrol.Task#getFinishedPercentage()
 	 */
 	public float getFinishedPercentage() {
+		float advance = 0;
 		if (totalScans == 0)
 			return 0.0f;
 		else
-			return (float) processedScans / totalScans;
+			advance = (float) processedScans / (totalScans * 2);
+		
+		if (finishChromatograms)
+			advance += 0.5f;
+		
+		return advance;
+			
 	}
 
 	/**
@@ -220,7 +227,7 @@ class ThreeStepPickerTask implements Task {
 			 * newPeakID++; newRow.addPeak(dataFile, finishedPeak,
 			 * finishedPeak); newPeakList.addRow(newRow); }
 			 */
-			if ((processedScans/totalScans)< 0.95)
+
 			processedScans++;
 		}
 
@@ -228,11 +235,15 @@ class ThreeStepPickerTask implements Task {
 		chromatograms = chromatogramBuilder.finishChromatograms();
 
 		finishChromatograms = true;
-		totalChromatograms = chromatograms.length;
+		totalScans = chromatograms.length;
+		processedScans = 0;
 		
-		int restStep = (int) (totalScans - processedScans) / chromatograms.length;
+		logger.finest("Value of totalChromatograms " + totalScans);
 
 		for (Chromatogram chromatogram : chromatograms) {
+			if (status == TaskStatus.CANCELED)
+				return;
+			
 			peaks = peakBuilder.addChromatogram(chromatogram, dataFile);
 
 			if (peaks != null)
@@ -242,7 +253,9 @@ class ThreeStepPickerTask implements Task {
 					newRow.addPeak(dataFile, finishedPeak, finishedPeak);
 					newPeakList.addRow(newRow);
 				}
-			processedScans+= restStep;
+			
+			processedScans++;
+			
 		}
 
 		// Add new peaklist to the project

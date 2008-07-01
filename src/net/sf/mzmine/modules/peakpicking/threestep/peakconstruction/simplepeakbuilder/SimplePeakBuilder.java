@@ -19,8 +19,12 @@
 
 package net.sf.mzmine.modules.peakpicking.threestep.peakconstruction.simplepeakbuilder;
 
+import java.util.Arrays;
+
 import net.sf.mzmine.data.Peak;
 import net.sf.mzmine.data.RawDataFile;
+import net.sf.mzmine.data.impl.SimpleDataPoint;
+import net.sf.mzmine.modules.peakpicking.threestep.massdetection.MzPeak;
 import net.sf.mzmine.modules.peakpicking.threestep.peakconstruction.ConnectedPeak;
 import net.sf.mzmine.modules.peakpicking.threestep.peakconstruction.PeakBuilder;
 import net.sf.mzmine.modules.peakpicking.threestep.xicconstruction.Chromatogram;
@@ -54,38 +58,39 @@ public class SimplePeakBuilder implements PeakBuilder {
 		ConnectedMzPeak[] allConnectedMzPeaks = chromatogram.getConnectedMzPeaks();
 		ConnectedPeak simplePeak = new ConnectedPeak(chromatogram.getDataFile(), allConnectedMzPeaks[0]);
 		
-		for(int i=1; i<allConnectedMzPeaks.length; i++){
-			simplePeak.addMzPeak(allConnectedMzPeaks[i]);
+		int[] scanNumbers = dataFile.getScanNumbers(1);
+		int a = 0;
+		Arrays.sort(scanNumbers);
+		
+		for (int i = 0; i < scanNumbers.length; i++) {
+			//logger.finest(" Ciclo de i " + i);
+			//ConnectedMzPeak mzValue = chromatogram
+				//	.getConnectedMzPeak(scanNumbers[i]);
+			//if (mzValue != null){
+			if (allConnectedMzPeaks[a].getScan().getScanNumber() == scanNumbers[i]){
+				simplePeak.addMzPeak(allConnectedMzPeaks[a]);
+				a++;
+				if (a> allConnectedMzPeaks.length -1 )
+					a = allConnectedMzPeaks.length -1;
+			}
+			else{
+				SimpleDataPoint zeroDataPoint = new SimpleDataPoint(
+						chromatogram.getMZ(), 0);
+				ConnectedMzPeak zeroChromatoPoint = new ConnectedMzPeak(
+						dataFile.getScan(scanNumbers[i]), new MzPeak(zeroDataPoint));
+				simplePeak.addMzPeak(zeroChromatoPoint);
+			}
 		}
+		
+		
+		/*for(int i=1; i<allConnectedMzPeaks.length; i++){
+			simplePeak.addMzPeak(allConnectedMzPeaks[i]);
+		}*/
 		
 		Peak[] peaks = { simplePeak };
 		
 		return peaks;
 		
-		/*Vector<Peak> peaks = new Vector<Peak>();
-		Vector<ConnectedMzPeak> possiblePeak = new Vector<ConnectedMzPeak>();
-		int[] scanNumbers = dataFile.getScanNumbers(1);
-
-		for (int i = 0; i < scanNumbers.length; i++) {
-			ConnectedMzPeak mzValue = chromatogram
-					.getConnectedMzPeak(scanNumbers[i]);
-			if (mzValue != null)
-				possiblePeak.add(mzValue);
-			else
-				if(possiblePeak.size() != 0){
-
-					ConnectedPeak simplePeak = new ConnectedPeak(chromatogram.getDataFile(), possiblePeak.get(0));
-					
-					for(int j=1; j<possiblePeak.size(); j++){
-						simplePeak.addMzPeak(possiblePeak.get(j));
-					}
-					peaks.add(simplePeak);
-					possiblePeak.clear();
-				}
-		}
-		
-		return peaks.toArray(new Peak[0]);*/
-
 	}
 
 }

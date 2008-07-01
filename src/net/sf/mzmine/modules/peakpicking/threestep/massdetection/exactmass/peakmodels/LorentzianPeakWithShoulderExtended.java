@@ -44,7 +44,7 @@ public class LorentzianPeakWithShoulderExtended implements PeakModel {
 		// We set a width given by 5% of actual resolution called
 		// MWFM (Modified Width at Half Maximum) and we use it to calculate the
 		// width at the level defined in getWidth() method's parameter.
-		MWHM = HWHM * 20.0f;
+		MWHM = HWHM * 40.0f;
 
 		// Using the Gaussian function we calculate the peak width at 5% of
 		// intensity. This % of the intensity is chosen according with the

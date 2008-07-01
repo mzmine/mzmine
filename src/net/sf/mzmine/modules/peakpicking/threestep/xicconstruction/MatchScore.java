@@ -72,11 +72,14 @@ public class MatchScore implements Comparable<MatchScore> {
             // Calculate score components and total score
             double scoreMZComponent = (float) Math.abs(chromatoMZ - cMzPeak.getMzPeak().getMZ());
             double scoreIntensityComponent = (float) Math.abs(chromatoIntensity - cMzPeak.getMzPeak().getIntensity());
+            float intensitySqrScore = (float) Math.sqrt(scoreIntensityComponent);
+ 
             float totalScore = (float) Math.sqrt(scoreMZComponent
-                    * scoreMZComponent + scoreIntensityComponent
-                    * scoreIntensityComponent);
+                    * scoreMZComponent * intensitySqrScore
+                    );
 
-            return totalScore;
+            //return totalScore;
+            return (float) Math.abs(chromatoMZ - cMzPeak.getMzPeak().getMZ());
         }
 
     }

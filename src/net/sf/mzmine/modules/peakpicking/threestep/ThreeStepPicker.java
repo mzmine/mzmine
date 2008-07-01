@@ -79,7 +79,7 @@ public class ThreeStepPicker implements BatchStep, TaskListener, ActionListener 
 
 	public void taskStarted(Task task) {
 		ThreeStepPickerTask rtTask = (ThreeStepPickerTask) task;
-		logger.info("Running two step peak picker on " + rtTask.getDataFile());
+		logger.info("Running three steps peak picker on " + rtTask.getDataFile());
 
 	}
 
@@ -88,12 +88,12 @@ public class ThreeStepPicker implements BatchStep, TaskListener, ActionListener 
 		ThreeStepPickerTask rtTask = (ThreeStepPickerTask) task;
 
 		if (task.getStatus() == Task.TaskStatus.FINISHED) {
-			logger.info("Finished two steps peak picker on "
+			logger.info("Finished three steps peak picker on "
 					+ rtTask.getDataFile());
 		}
 
 		if (task.getStatus() == Task.TaskStatus.ERROR) {
-			String msg = "Error while running two steps peak picker on file "
+			String msg = "Error while running three steps peak picker on file "
 					+ rtTask.getDataFile() + ": " + task.getErrorMessage();
 			logger.severe(msg);
 			desktop.displayErrorMessage(msg);
@@ -105,7 +105,7 @@ public class ThreeStepPicker implements BatchStep, TaskListener, ActionListener 
 	 * @see net.sf.mzmine.modules.BatchStep#toString()
 	 */
 	public String toString() {
-		return "Two steps peak detector ";
+		return "Three steps peak detector ";
 	}
 
 	/**

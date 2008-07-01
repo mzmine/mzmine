@@ -3,7 +3,6 @@ package net.sf.mzmine.modules.peakpicking.threestep.xicconstruction.thresholdchr
 import java.util.Iterator;
 import java.util.TreeSet;
 import java.util.Vector;
-import java.util.logging.Logger;
 
 import net.sf.mzmine.data.RawDataFile;
 import net.sf.mzmine.data.Scan;
@@ -75,9 +74,9 @@ public class ThresholdChromatogramBuilder implements ChromatogramBuilder {
 			}
 
 			// Add MzPeak to the proper Chromatogram and set status connected
-			// (filter according to parameter)
 			currentChromatogram.addMzPeak(cMzPeak);
 			cMzPeak.setConnected();
+
 		}
 
 		// Check if there are any under-construction peaks that were not
@@ -90,6 +89,9 @@ public class ThresholdChromatogramBuilder implements ChromatogramBuilder {
 
 			// If nothing was added,
 			if (!currentChromatogram.isGrowing()) {
+				
+				if (currentChromatogram.isLastConnectedMzPeakZero()) 
+					continue;
 
 				// Check length of detected Chromatogram (filter according to
 				// parameter)
@@ -102,21 +104,22 @@ public class ThresholdChromatogramBuilder implements ChromatogramBuilder {
 					// current chromatogram , if not just remove from current
 					// chromatogram this region
 					if (currentChromatogram.hasPreviousConnectedMzPeaks()) {
+						
 						currentChromatogram.removeLastConnectedMzPeaks();
+						continue;
+					
 					} else {
 						iteratorConPeak.remove();
+						continue;
 					}
 				}
 
-				if (!currentChromatogram.isLastConnectedMzPeakZero()) {
-
-					// Set separator between regions in a chromatogram.
 					SimpleDataPoint zeroDataPoint = new SimpleDataPoint(
 							currentChromatogram.getMZ(), 0);
 					ConnectedMzPeak zeroChromatoPoint = new ConnectedMzPeak(
 							scan, new MzPeak(zeroDataPoint));
 					currentChromatogram.addMzPeak(zeroChromatoPoint);
-				}
+					currentChromatogram.resetGrowingState();
 
 			} else
 				currentChromatogram.resetGrowingState();
@@ -127,14 +130,13 @@ public class ThresholdChromatogramBuilder implements ChromatogramBuilder {
 
 		for (ConnectedMzPeak cMzPeak : cMzPeaks) {
 			if (!cMzPeak.isConnected()) {
-
 				Chromatogram newChromatogram = new Chromatogram(dataFile,
 						cMzPeak);
 				underConstructionChromatograms.add(newChromatogram);
 			}
 
 		}
-
+		
 	}
 
 	/**
