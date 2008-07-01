@@ -3,7 +3,7 @@
 <configuration> 
   <nodes local="2"/>  
   <modules> 
-    <module class="net.sf.mzmine.modules.peakpicking.threestep.ThreeStepPicker">
+    <module class="net.sf.mzmine.modules.peakpicking.threestep.ThreeStepPicker"> 
       <parameters>
         <massdetector name="Centroid Mass">
           <parameter name="Noise level" type="FLOAT">10.0</parameter>
@@ -26,6 +26,11 @@
           <parameter name="Scale level" type="INTEGER">6</parameter>
           <parameter name="Wavelet window size (%)" type="FLOAT">0.5</parameter>
         </massdetector>
+        <chromatogrambuilder name="Recursive Chromatogram">
+          <parameter name="Min Chromatogram duration" type="FLOAT">20.0</parameter>
+          <parameter name="M/Z tolerance" type="FLOAT">0.0010</parameter>
+          <parameter name="Chromatographic threshold level" type="FLOAT">0.95</parameter>
+        </chromatogrambuilder>
         <chromatogrambuilder name="Simple Chromatogram">
           <parameter name="Min Chromatogram duration" type="FLOAT">20.0</parameter>
           <parameter name="M/Z tolerance" type="FLOAT">0.0010</parameter>
@@ -33,7 +38,7 @@
         <chromatogrambuilder name="Threshold Chromatogram">
           <parameter name="Min Chromatogram duration" type="FLOAT">20.0</parameter>
           <parameter name="M/Z tolerance" type="FLOAT">0.0010</parameter>
-          <parameter name="Chromatographic threshold level" type="FLOAT">0.8</parameter>
+          <parameter name="Chromatographic threshold level" type="FLOAT">0.95</parameter>
         </chromatogrambuilder>
         <peakbuilder name="Baseline Peak">
           <parameter name="Baseline level" type="FLOAT">1000.0</parameter>
@@ -52,11 +57,11 @@
           <parameter name="Min peak height" type="FLOAT">1000.0</parameter>
           <parameter name="Min peak duration" type="FLOAT">10.0</parameter>
         </peakbuilder>
-        <parameter name="Mass Detector type" type="INTEGER">4</parameter>
-        <parameter name="Chromatogram Builder type" type="INTEGER">1</parameter>
-        <parameter name="Peak Builder type" type="INTEGER">4</parameter>
+        <parameter name="Mass Detector type" type="INTEGER">1</parameter>
+        <parameter name="Chromatogram Builder type" type="INTEGER">2</parameter>
+        <parameter name="Peak Builder type" type="INTEGER">2</parameter>
         <parameter name="Suffix" type="STRING">peaklist_threeSteps</parameter>
-      </parameters>
+      </parameters> 
     </module>  
     <module class="net.sf.mzmine.modules.peakpicking.twostep.TwoStepPicker"> 
       <parameters>
@@ -407,10 +412,10 @@
       <pattern>#0.0</pattern>
     </format>
     <mainwindow>
-      <x>-8</x>
-      <y>-8</y>
-      <width>-1</width>
-      <height>-1</height>
+      <x>460</x>
+      <y>235</y>
+      <width>1000</width>
+      <height>700</height>
     </mainwindow>
     <lastdirectory>/mnt/newHD/private/kawasaki/mzmine/Nakamura/XML/negative mode XML</lastdirectory>
     <lastProjectDirectory>/Users/plusik/Documents/20080604 Sajiki pyk1 analysis.mzmine</lastProjectDirectory>
