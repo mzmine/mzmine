@@ -63,10 +63,6 @@ public class SimplePeakDetector implements PeakBuilder {
 		Arrays.sort(scanNumbers);
 		
 		for (int i = 0; i < scanNumbers.length; i++) {
-			//logger.finest(" Ciclo de i " + i);
-			//ConnectedMzPeak mzValue = chromatogram
-				//	.getConnectedMzPeak(scanNumbers[i]);
-			//if (mzValue != null){
 			if (allConnectedMzPeaks[a].getScan().getScanNumber() == scanNumbers[i]){
 				simplePeak.addMzPeak(allConnectedMzPeaks[a]);
 				a++;
@@ -74,21 +70,11 @@ public class SimplePeakDetector implements PeakBuilder {
 					a = allConnectedMzPeaks.length -1;
 			}
 			else{
-				SimpleDataPoint zeroDataPoint = new SimpleDataPoint(
-						chromatogram.getMZ(), 0);
-				ConnectedMzPeak zeroChromatoPoint = new ConnectedMzPeak(
-						dataFile.getScan(scanNumbers[i]), new MzPeak(zeroDataPoint));
-				simplePeak.addMzPeak(zeroChromatoPoint);
+				simplePeak.addMzPeak(scanNumbers[i]);
 			}
 		}
 		
-		
-		/*for(int i=1; i<allConnectedMzPeaks.length; i++){
-			simplePeak.addMzPeak(allConnectedMzPeaks[i]);
-		}*/
-		
 		Peak[] peaks = { simplePeak };
-		
 		return peaks;
 		
 	}

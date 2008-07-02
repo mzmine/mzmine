@@ -247,7 +247,7 @@ public class WaveletPeakDetector implements PeakBuilder {
 		double sqrtScaleLevel, intensity;
 		boolean top = false;
 
-		for (int k = 2; k < 10000; ) {
+		for (int k = 2; k < 5000; ) {
 
 			scale = k;
 			a_esl = scale * WAVELET_ESL;

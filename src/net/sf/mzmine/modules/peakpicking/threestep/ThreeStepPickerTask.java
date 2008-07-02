@@ -207,7 +207,7 @@ class ThreeStepPickerTask implements Task {
 		MzPeak[] mzValues;
 		Chromatogram[] chromatograms;
 		Peak[] peaks;
-
+		
 		// TODO Verify the process in three steps
 		for (int i = 0; i < totalScans; i++) {
 
@@ -215,32 +215,19 @@ class ThreeStepPickerTask implements Task {
 				return;
 
 			Scan scan = dataFile.getScan(scanNumbers[i]);
+
 			mzValues = massDetector.getMassValues(scan);
 
 			chromatogramBuilder.addScan(dataFile, scan, mzValues);
-
-			/*
-			 * peaks = peakBuilder.addScan(scan, mzValues, dataFile);
-			 * 
-			 * if(peaks != null) for (Peak finishedPeak : peaks) {
-			 * SimplePeakListRow newRow = new SimplePeakListRow(newPeakID);
-			 * newPeakID++; newRow.addPeak(dataFile, finishedPeak,
-			 * finishedPeak); newPeakList.addRow(newRow); }
-			 */
-
 			processedScans++;
 		}
 		
-		freeMemory();
-
 		// peaks = peakBuilder.finishPeaks();
 		chromatograms = chromatogramBuilder.finishChromatograms();
 
 		finishChromatograms = true;
 		totalScans = chromatograms.length;
 		processedScans = 0;
-		
-		logger.finest("Value of totalChromatograms " + totalScans);
 
 		for (Chromatogram chromatogram : chromatograms) {
 			if (status == TaskStatus.CANCELED)
@@ -255,11 +242,11 @@ class ThreeStepPickerTask implements Task {
 					newRow.addPeak(dataFile, finishedPeak, finishedPeak);
 					newPeakList.addRow(newRow);
 				}
-			
+
 			processedScans++;
-			
 		}
-		freeMemory();
+		
+		//freeMemory();
 		
 		// Add new peaklist to the project
 		MZmineProject currentProject = MZmineCore.getCurrentProject();
@@ -270,6 +257,6 @@ class ThreeStepPickerTask implements Task {
 	
 	private void freeMemory() {
 		System.gc();
-		System.runFinalization();
 	}
+	
 }

@@ -168,12 +168,12 @@ class ThreeStepPickerSetupDialog extends JDialog implements ActionListener {
 		btnSetMass = new JButton("Set parameters");
 		btnSetMass.addActionListener(this);
 
-		panel2.add(new JLabel("Mass Detector"));
+		panel2.add(new JLabel("Mass Detection"));
 		panel2.add(Box.createRigidArea(new Dimension(10, 10)));
 		panel2.add(comboMassDetectors);
 		panel2.add(Box.createRigidArea(new Dimension(10, 10)));
 		panel2.add(btnSetMass);
-		panel2.add(Box.createRigidArea(new Dimension(10, 10)));
+		//panel2.add(Box.createRigidArea(new Dimension(10, 10)));
 
 		// Elements of panel3
 		JPanel panel3 = new JPanel();
@@ -188,12 +188,12 @@ class ThreeStepPickerSetupDialog extends JDialog implements ActionListener {
 		btnSetChromato = new JButton("Set parameters");
 		btnSetChromato.addActionListener(this);
 
-		panel3.add(new JLabel("Chromatogram"));
-		panel3.add(Box.createRigidArea(new Dimension(10, 10)));
+		panel3.add(new JLabel("<HTML>Chromatogram<BR>Construction</HTML>"));
+		//panel3.add(Box.createRigidArea(new Dimension(10, 10)));
 		panel3.add(comboChromatoBuilder);
 		panel3.add(Box.createRigidArea(new Dimension(10, 10)));
 		panel3.add(btnSetChromato);
-		panel3.add(Box.createRigidArea(new Dimension(10, 10)));
+		//panel3.add(Box.createRigidArea(new Dimension(10, 10)));
 
 		// Elements of panel4
 		JPanel panel4 = new JPanel();
@@ -209,12 +209,12 @@ class ThreeStepPickerSetupDialog extends JDialog implements ActionListener {
 		btnSetPeak = new JButton("Set parameters");
 		btnSetPeak.addActionListener(this);
 
-		panel4.add(new JLabel("Peak Detector"));
+		panel4.add(new JLabel("Peak Detection"));
 		panel4.add(Box.createRigidArea(new Dimension(10, 10)));
 		panel4.add(comboPeaksConstructors);
 		panel4.add(Box.createRigidArea(new Dimension(10, 10)));
 		panel4.add(btnSetPeak);
-		panel4.add(Box.createRigidArea(new Dimension(10, 10)));
+		//panel4.add(Box.createRigidArea(new Dimension(10, 10)));
 
 		// Elements of pnlCombo
 		JPanel pnlCombo = new JPanel(new BorderLayout());

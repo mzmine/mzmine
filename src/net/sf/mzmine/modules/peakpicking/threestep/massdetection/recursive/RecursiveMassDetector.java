@@ -20,6 +20,7 @@
 package net.sf.mzmine.modules.peakpicking.threestep.massdetection.recursive;
 
 import java.util.Vector;
+import java.util.logging.Logger;
 
 import net.sf.mzmine.data.DataPoint;
 import net.sf.mzmine.data.Scan;
@@ -28,11 +29,13 @@ import net.sf.mzmine.modules.peakpicking.threestep.massdetection.MzPeak;
 
 public class RecursiveMassDetector implements MassDetector {
 
+	private Logger logger = Logger.getLogger(this.getClass().getName());
+	
 	// parameter values
 	private float minimumMZPeakWidth, maximumMZPeakWidth, noiseLevel;
 	private Vector<MzPeak> mzPeaks;
 	private DataPoint[] dataPoints;
-	private Scan scan;
+	//private Scan scan;
 
 	public RecursiveMassDetector(RecursiveMassDetectorParameters parameters) {
 		noiseLevel = (Float) parameters
@@ -45,7 +48,7 @@ public class RecursiveMassDetector implements MassDetector {
 
 	public MzPeak[] getMassValues(Scan scan) {
 
-		this.scan = scan;
+		//this.scan = scan;
 		dataPoints = scan.getDataPoints();
 		mzPeaks = new Vector<MzPeak>();
 
@@ -60,6 +63,8 @@ public class RecursiveMassDetector implements MassDetector {
 	private int recursiveThreshold(int startInd, int stopInd,
 			float curentNoiseLevel, int recuLevel) {
 
+		//logger.finest(" Level of recursion " + recuLevel);
+
 		Vector<DataPoint> RawDataPointsInds = new Vector<DataPoint>();
 		int peakStartInd, peakStopInd, peakMaxInd;
 		float peakWidthMZ;
@@ -70,8 +75,9 @@ public class RecursiveMassDetector implements MassDetector {
 			float localMinimum = Float.MAX_VALUE;
 
 			// Ignore intensities below curentNoiseLevel
-			if (!currentIsBiggerNoise)
+			if (!currentIsBiggerNoise){
 				continue;
+			}
 
 			// Add initial point of the peak
 			peakStartInd = ind;

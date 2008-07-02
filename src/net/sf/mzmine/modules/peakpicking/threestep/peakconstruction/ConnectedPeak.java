@@ -31,7 +31,6 @@ import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.modules.peakpicking.threestep.xicconstruction.ConnectedMzPeak;
 import net.sf.mzmine.util.CollectionUtils;
 import net.sf.mzmine.util.MathUtils;
-import net.sf.mzmine.util.PeakUtils;
 import net.sf.mzmine.util.Range;
 
 /**
@@ -51,6 +50,7 @@ public class ConnectedPeak implements Peak {
 	// Raw data file, M/Z, RT, Height and Area
 	private RawDataFile dataFile;
 	private float mz, rt, height, area, previousRetentionTime;
+	private int lastValidIndex = 0;
 
 	// Characteristics of the peak
 	private Range mzRange, intensityRange, rtRange;
@@ -66,7 +66,8 @@ public class ConnectedPeak implements Peak {
 
 		// We map this MzPeak with the scan number as a key due construction
 		// peak purpose.
-		datapointsMap.put(mzValue.getScan().getScanNumber(), mzValue);
+		lastValidIndex = mzValue.getScan().getScanNumber();
+		datapointsMap.put(lastValidIndex, mzValue);
 
 		// Initial characteristics of our peak with just one point (MzPeak).
 		rt = mzValue.getScan().getRetentionTime();
@@ -131,8 +132,7 @@ public class ConnectedPeak implements Peak {
 		}
 
 		// Use the last added MzPeak to calculate the area of the peak.
-		int lastIndex = datapointsMap.lastKey();
-		ConnectedMzPeak lastAddedMzPeak = datapointsMap.get(lastIndex);
+		ConnectedMzPeak lastAddedMzPeak = datapointsMap.get(lastValidIndex);
 
 		float rtDifference = mzValue.getScan().getRetentionTime()
 				- previousRetentionTime;
@@ -147,10 +147,17 @@ public class ConnectedPeak implements Peak {
 		area += (rtDifference * (intensityStart + intensityEnd) / 2);
 
 		// Add MzPeak
-		datapointsMap.put(mzValue.getScan().getScanNumber(), mzValue);
+		lastValidIndex = mzValue.getScan().getScanNumber();
+		datapointsMap.put(lastValidIndex, mzValue);
 		previousRetentionTime = mzValue.getScan().getRetentionTime();
+		
 
 	}
+	
+	public void addMzPeak(int scanNumber) {
+		datapointsMap.put(scanNumber, null);
+	}
+
 
 	/**
 	 * This method returns the status of the peak
@@ -200,7 +207,7 @@ public class ConnectedPeak implements Peak {
 	 */
 	public DataPoint getDataPoint(int scanNumber) {
         if (datapointsMap.get(scanNumber) == null) return null;
-        
+      
 		return datapointsMap.get(scanNumber).getMzPeak();
 	}
 

@@ -126,42 +126,6 @@ public class SavitzkyGolayPeakDetector implements PeakBuilder {
 				}
 			}
 		}
-		else{
-			ConnectedMzPeak[] cMzPeaks = chromatogram.getConnectedMzPeaks();
-			
-			//logger.finest("Number of cMzPeaks " + cMzPeaks.length);
-			
-			Vector<ConnectedMzPeak> regionOfMzPeaks = new Vector<ConnectedMzPeak>();
-
-			if (cMzPeaks.length > 0) {
-				
-				for (ConnectedMzPeak mzPeak : cMzPeaks) {
-			
-					if (mzPeak.getMzPeak().getIntensity() > minimumPeakHeight) {
-						regionOfMzPeaks.add(mzPeak);
-					} else if (regionOfMzPeaks.size() != 0) {
-						ConnectedPeak peak = new ConnectedPeak(dataFile,
-								regionOfMzPeaks.get(0));
-						for (int i = 0; i < regionOfMzPeaks.size(); i++) {
-							peak.addMzPeak(regionOfMzPeaks.get(i));
-						}
-						regionOfMzPeaks.clear();
-						detectedPeaks.add(peak);
-					}
-					
-				}
-				
-				if (regionOfMzPeaks.size() != 0) {
-					ConnectedPeak peak = new ConnectedPeak(dataFile,
-							regionOfMzPeaks.get(0));
-					for (int i = 0; i < regionOfMzPeaks.size(); i++) {
-						peak.addMzPeak(regionOfMzPeaks.get(i));
-					}
-					detectedPeaks.add(peak);
-				}
-				
-			}
-		}
 
 		return detectedPeaks.toArray(new Peak[0]);
 	}

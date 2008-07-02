@@ -13,6 +13,7 @@ import net.sf.mzmine.modules.peakpicking.threestep.xicconstruction.Chromatogram;
 import net.sf.mzmine.modules.peakpicking.threestep.xicconstruction.ChromatogramBuilder;
 import net.sf.mzmine.modules.peakpicking.threestep.xicconstruction.ConnectedMzPeak;
 import net.sf.mzmine.modules.peakpicking.threestep.xicconstruction.MatchScore;
+import net.sf.mzmine.util.ChromatogramsSortedByMz;
 
 public class SimpleChromatogramBuilder implements ChromatogramBuilder {
 
@@ -29,6 +30,7 @@ public class SimpleChromatogramBuilder implements ChromatogramBuilder {
 		mzTolerance = (Float) parameters
 				.getParameterValue(SimpleChromatogramBuilderParameters.mzTolerance);
 
+		ChromatogramsSortedByMz comparatorChromatograms = new ChromatogramsSortedByMz();
 		underConstructionChromatograms = new Vector<Chromatogram>();
 	}
 
@@ -42,13 +44,21 @@ public class SimpleChromatogramBuilder implements ChromatogramBuilder {
 
 		// Calculate scores between Chromatogram and MzPeaks
 		TreeSet<MatchScore> scores = new TreeSet<MatchScore>();
-		for (Chromatogram currentChromatogram : underConstructionChromatograms) {
-			for (ConnectedMzPeak currentMzPeak : cMzPeaks) {
-				MatchScore score = new MatchScore(currentChromatogram,
-						currentMzPeak, mzTolerance);
+		float mz;
 
-				if (score.getScore() < Float.MAX_VALUE) {
-					scores.add(score);
+		for (Chromatogram currentChromatogram : underConstructionChromatograms) {
+
+			for (ConnectedMzPeak currentMzPeak : cMzPeaks) {
+
+				mz = currentMzPeak.getMzPeak().getMZ();
+				float mzDifference = Math.abs(currentChromatogram.getMZ() - mz);
+
+				if (mzDifference < mzTolerance) {
+					MatchScore score = new MatchScore(currentChromatogram,
+							currentMzPeak, mzTolerance);
+					if (score.getScore() < Float.MAX_VALUE) {
+						scores.add(score);
+					}
 				}
 			}
 		}
@@ -87,8 +97,8 @@ public class SimpleChromatogramBuilder implements ChromatogramBuilder {
 
 			// If nothing was added,
 			if (!currentChromatogram.isGrowing()) {
-				
-				if (currentChromatogram.isLastConnectedMzPeakZero()) 
+
+				if (currentChromatogram.isLastConnectedMzPeakZero())
 					continue;
 
 				// Check length of detected Chromatogram (filter according to
@@ -102,22 +112,22 @@ public class SimpleChromatogramBuilder implements ChromatogramBuilder {
 					// current chromatogram , if not just remove from current
 					// chromatogram this region
 					if (currentChromatogram.hasPreviousConnectedMzPeaks()) {
-						
+
 						currentChromatogram.removeLastConnectedMzPeaks();
 						continue;
-					
+
 					} else {
 						iteratorConPeak.remove();
 						continue;
 					}
 				}
 
-					SimpleDataPoint zeroDataPoint = new SimpleDataPoint(
-							currentChromatogram.getMZ(), 0);
-					ConnectedMzPeak zeroChromatoPoint = new ConnectedMzPeak(
-							scan, new MzPeak(zeroDataPoint));
-					currentChromatogram.addMzPeak(zeroChromatoPoint);
-					currentChromatogram.resetGrowingState();
+				SimpleDataPoint zeroDataPoint = new SimpleDataPoint(
+						currentChromatogram.getMZ(), 0);
+				ConnectedMzPeak zeroChromatoPoint = new ConnectedMzPeak(scan,
+						new MzPeak(zeroDataPoint));
+				currentChromatogram.addMzPeak(zeroChromatoPoint);
+				currentChromatogram.resetGrowingState();
 
 			} else
 				currentChromatogram.resetGrowingState();
@@ -165,12 +175,7 @@ public class SimpleChromatogramBuilder implements ChromatogramBuilder {
 
 		Chromatogram[] chromatograms = underConstructionChromatograms
 				.toArray(new Chromatogram[0]);
-		freeMemory();
 		return chromatograms;
-	}
-	
-	private void freeMemory() {
-		System.gc();
 	}
 
 }
