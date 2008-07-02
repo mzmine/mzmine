@@ -64,10 +64,8 @@ public class GaussPlusTrianglePeak implements PeakModel {
 		 * have a too big range and could result in to make useless comparisons.
 		 */
 
-		if (partialIntensity < 0)
+		if (partialIntensity <= 0)
 			return new Range(0, Float.MAX_VALUE);
-		if (partialIntensity == 0)
-			partialIntensity = intensityMain * 0.00001f;
 
 		// Using the Gaussian function we calculate the peak width at 5% of intensity
 		double ln = Math.abs(Math.log(partialIntensity/intensityMain));

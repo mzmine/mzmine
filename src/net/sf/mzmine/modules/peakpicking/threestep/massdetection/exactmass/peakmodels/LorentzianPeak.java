@@ -51,10 +51,8 @@ public class LorentzianPeak implements PeakModel {
 		 * big range and could result in to make useless comparisons.
 		 */
 
-		if (partialIntensity < 0)
+		if (partialIntensity <= 0)
 			return new Range(0, Float.MAX_VALUE);
-		if (partialIntensity == 0)
-			partialIntensity = 1;
 
 		// Using the Lorentzian function we calculate the peak width
 		double partA = ((intensityMain / partialIntensity) - 1)

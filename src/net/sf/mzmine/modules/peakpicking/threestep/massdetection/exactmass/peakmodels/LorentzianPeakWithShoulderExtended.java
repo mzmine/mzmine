@@ -79,10 +79,8 @@ public class LorentzianPeakWithShoulderExtended implements PeakModel {
 		 * have a too big range and could result in to make useless comparisons.
 		 */
 
-		if (partialIntensity < 0)
+		if (partialIntensity <= 0)
 			return new Range(0, Float.MAX_VALUE);
-		if (partialIntensity == 0)
-			partialIntensity = 1;
 
 		double partA = ((intensityMain / partialIntensity) - 1)
 				* Math.pow(MWHM, 2);

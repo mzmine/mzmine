@@ -20,7 +20,6 @@
 package net.sf.mzmine.modules.peakpicking.threestep.peakconstruction.chromatographicthresholdpeakdetector;
 
 import java.util.Vector;
-import java.util.logging.Logger;
 
 import net.sf.mzmine.data.Peak;
 import net.sf.mzmine.data.RawDataFile;
@@ -28,68 +27,103 @@ import net.sf.mzmine.modules.peakpicking.threestep.peakconstruction.ConnectedPea
 import net.sf.mzmine.modules.peakpicking.threestep.peakconstruction.PeakBuilder;
 import net.sf.mzmine.modules.peakpicking.threestep.xicconstruction.Chromatogram;
 import net.sf.mzmine.modules.peakpicking.threestep.xicconstruction.ConnectedMzPeak;
+import net.sf.mzmine.util.MathUtils;
 
 /**
  * This class implements a simple peak builder. This takes all collected MzPeaks
- * in one chromatogram and try to find all possible peaks. This detection follows 
- * the concept of baseline in a chromatogram to set a peak (threshold
+ * in one chromatogram and try to find all possible peaks. This detection
+ * follows the concept of baseline in a chromatogram to set a peak (threshold
  * level).
  * 
  */
 public class ChromatographicThresholdPeakDetector implements PeakBuilder {
 
-	//private Logger logger = Logger.getLogger(this.getClass().getName());
-	
-	private float baselineLevel;
+	// private Logger logger = Logger.getLogger(this.getClass().getName());
 
-	public ChromatographicThresholdPeakDetector(ChromatographicThresholdPeakDetectorParameters parameters) {
-		baselineLevel = (Float) parameters
-				.getParameterValue(ChromatographicThresholdPeakDetectorParameters.baselineLevel);
+	private float chromatographicThresholdLevel, minimumPeakHeight,
+			minimumPeakDuration;
+
+	public ChromatographicThresholdPeakDetector(
+			ChromatographicThresholdPeakDetectorParameters parameters) {
+
+		minimumPeakHeight = (Float) parameters
+				.getParameterValue(ChromatographicThresholdPeakDetectorParameters.minimumPeakHeight);
+		minimumPeakDuration = (Float) parameters
+				.getParameterValue(ChromatographicThresholdPeakDetectorParameters.minimumPeakDuration);
+		chromatographicThresholdLevel = (Float) parameters
+				.getParameterValue(ChromatographicThresholdPeakDetectorParameters.chromatographicThresholdLevel);
+
 	}
 
-	/** 
-	 * @see net.sf.mzmine.modules.peakpicking.threestep.peakconstruction.PeakBuilder#addChromatogram(net.sf.mzmine.modules.peakpicking.threestep.xicconstruction.Chromatogram, net.sf.mzmine.data.RawDataFile)
+	/**
+	 * @see net.sf.mzmine.modules.peakpicking.threestep.peakconstruction.PeakBuilder#addChromatogram(net.sf.mzmine.modules.peakpicking.threestep.xicconstruction.Chromatogram,
+	 *      net.sf.mzmine.data.RawDataFile)
 	 */
 	public Peak[] addChromatogram(Chromatogram chromatogram,
 			RawDataFile dataFile) {
 
 		ConnectedMzPeak[] cMzPeaks = chromatogram.getConnectedMzPeaks();
-		
-		//logger.finest("Number of cMzPeaks " + cMzPeaks.length);
-		
+
+		float recursiveThresholdlevelPeak;
+
+		int[] scanNumbers = chromatogram.getDataFile().getScanNumbers(1);
+		float[] chromatoIntensities = new float[scanNumbers.length];
+		float sumIntensities = 0;
+
+		for (int i = 0; i < scanNumbers.length; i++) {
+
+			ConnectedMzPeak mzValue = chromatogram
+					.getConnectedMzPeak(scanNumbers[i]);
+			if (mzValue != null) {
+				chromatoIntensities[i] = mzValue.getMzPeak().getIntensity();
+			} else
+				chromatoIntensities[i] = 0;
+			sumIntensities += chromatoIntensities[i];
+		}
+
+		recursiveThresholdlevelPeak = MathUtils.calcQuantile(
+				chromatoIntensities, chromatographicThresholdLevel);
+
 		Vector<ConnectedMzPeak> regionOfMzPeaks = new Vector<ConnectedMzPeak>();
 		Vector<ConnectedPeak> underDetectionPeaks = new Vector<ConnectedPeak>();
 
-		if (cMzPeaks.length > 0) {
-			
-			for (ConnectedMzPeak mzPeak : cMzPeaks) {
-		
-				if (mzPeak.getMzPeak().getIntensity() > baselineLevel) {
-					regionOfMzPeaks.add(mzPeak);
-				} else if (regionOfMzPeaks.size() != 0) {
-					ConnectedPeak peak = new ConnectedPeak(dataFile,
-							regionOfMzPeaks.get(0));
-					for (int i = 0; i < regionOfMzPeaks.size(); i++) {
-						peak.addMzPeak(regionOfMzPeaks.get(i));
-					}
-					regionOfMzPeaks.clear();
-					underDetectionPeaks.add(peak);
-				}
-				
-			}
-			
-			if (regionOfMzPeaks.size() != 0) {
+		for (ConnectedMzPeak mzPeak : cMzPeaks) {
+
+			if (mzPeak.getMzPeak().getIntensity() > recursiveThresholdlevelPeak) {
+				regionOfMzPeaks.add(mzPeak);
+			} else if (regionOfMzPeaks.size() != 0) {
 				ConnectedPeak peak = new ConnectedPeak(dataFile,
 						regionOfMzPeaks.get(0));
 				for (int i = 0; i < regionOfMzPeaks.size(); i++) {
 					peak.addMzPeak(regionOfMzPeaks.get(i));
 				}
+				regionOfMzPeaks.clear();
+
+				float pLength = peak.getRawDataPointsRTRange().getSize();
+				float pHeight = peak.getHeight();
+				if ((pLength >= minimumPeakDuration)
+						&& (pHeight >= minimumPeakHeight)) {
+					underDetectionPeaks.add(peak);
+				}
+
+			}
+
+		}
+
+		if (regionOfMzPeaks.size() != 0) {
+			ConnectedPeak peak = new ConnectedPeak(dataFile, regionOfMzPeaks
+					.get(0));
+			for (int i = 0; i < regionOfMzPeaks.size(); i++) {
+				peak.addMzPeak(regionOfMzPeaks.get(i));
+			}
+			float pLength = peak.getRawDataPointsRTRange().getSize();
+			float pHeight = peak.getHeight();
+			if ((pLength >= minimumPeakDuration)
+					&& (pHeight >= minimumPeakHeight)) {
 				underDetectionPeaks.add(peak);
 			}
-			
 		}
-		
-		//logger.finest(" Numero de picos " + underDetectionPeaks.size());
+
 		return underDetectionPeaks.toArray(new Peak[0]);
 	}
 

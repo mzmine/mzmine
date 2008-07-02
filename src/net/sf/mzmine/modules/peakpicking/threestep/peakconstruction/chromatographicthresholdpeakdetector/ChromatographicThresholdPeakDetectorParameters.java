@@ -32,13 +32,24 @@ public class ChromatographicThresholdPeakDetectorParameters extends SimpleParame
 	public static final NumberFormat percentFormat = NumberFormat
 			.getPercentInstance();
 
-	public static final Parameter baselineLevel = new SimpleParameter(
-			ParameterType.FLOAT, "Baseline level",
-			"All data points over this level are considered to form a peak", "absolute", new Float(100.0),
+	public static final Parameter minimumPeakHeight = new SimpleParameter(
+			ParameterType.FLOAT, "Min peak height",
+			"Minimum acceptable peak height", "absolute", new Float(100.0),
 			new Float(0.0), null, MZmineCore.getIntensityFormat());
 
+	public static final Parameter minimumPeakDuration = new SimpleParameter(
+			ParameterType.FLOAT, "Min peak duration",
+			"Minimum acceptable peak duration", null, new Float(10.0),
+			new Float(0.0), null, MZmineCore.getRTFormat());
+	
+	public static final Parameter chromatographicThresholdLevel = new SimpleParameter(
+            ParameterType.FLOAT, "Chromatographic threshold level",
+            "Used in defining threshold level value from an XIC", "%",
+            new Float(0.80), new Float(0.0), new Float(1.0), percentFormat);
+    
+    
 	public ChromatographicThresholdPeakDetectorParameters() {
-		super(new Parameter[] { baselineLevel });
+		super(new Parameter[] { minimumPeakHeight, minimumPeakDuration, chromatographicThresholdLevel });
 	}
 
 }

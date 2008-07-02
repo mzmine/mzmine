@@ -75,6 +75,7 @@ class ThreeStepPickerSetupDialog extends JDialog implements ActionListener {
 		this.title = title;
 
 		addComponentsToDialog();
+		this.setResizable(false);
 	}
 
 	public ExitCode getExitCode() {
@@ -206,7 +207,7 @@ class ThreeStepPickerSetupDialog extends JDialog implements ActionListener {
 		panel4.setLayout(new BoxLayout(panel4, BoxLayout.X_AXIS));
 		panel4.setBorder(BorderFactory.createEmptyBorder(5, 5, 5, 5));
 
-		JLabel lblPeakBuilder = new JLabel("Peak Builder");
+		JLabel lblPeakBuilder = new JLabel("Peak Detector");
 		lblPeakBuilder.setMaximumSize(new Dimension(200, 30));
 		comboPeaksConstructors = new JComboBox(
 				ThreeStepPickerParameters.peakBuilderNames);

@@ -55,10 +55,8 @@ public class GaussPeak implements PeakModel {
 		 * big range and could result in to make useless comparisons.
 		 */
 
-		if (partialIntensity < 0)
+		if (partialIntensity <= 0)
 			return new Range(0, Float.MAX_VALUE);
-		if (partialIntensity == 0)
-			partialIntensity = 1;
 		
 		double portion = partialIntensity/intensityMain;
 		double ln = Math.abs(Math.log(portion));

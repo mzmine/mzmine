@@ -44,25 +44,26 @@ public class ThreeStepPickerParameters implements StorableParameterSet {
 			"net.sf.mzmine.modules.peakpicking.threestep.massdetection.recursive.RecursiveMassDetector",
 			"net.sf.mzmine.modules.peakpicking.threestep.massdetection.wavelet.WaveletMassDetector" };
 
-	public static final String chromatogramBuilderNames[] = { "Recursive Chromatogram", "Simple Chromatogram", "Threshold Chromatogram" };
+	public static final String chromatogramBuilderNames[] = { "Simple Builder" };
 
-	public static final String chromatogramBuilderClasses[] = {
-		"net.sf.mzmine.modules.peakpicking.threestep.xicconstruction.recursivechromatogram.RecursiveChromatogramBuilder",
-		"net.sf.mzmine.modules.peakpicking.threestep.xicconstruction.simplechromatogram.SimpleChromatogramBuilder",
-		"net.sf.mzmine.modules.peakpicking.threestep.xicconstruction.thresholdchromatogram.ThresholdChromatogramBuilder"};
+	public static final String chromatogramBuilderClasses[] = { "net.sf.mzmine.modules.peakpicking.threestep.xicconstruction.simplechromatogram.SimpleChromatogramBuilder" };
 
-		public static final String peakBuilderNames[] = { "Baseline Peak",
-			"Savitzky-Golay Peak", "Simple Peak", "Threshold Peak", "Wavelet Peak"};
+	public static final String peakBuilderNames[] = { "Simple", "Baseline",
+			"Chromatographic Threshold", "Noise Amplitude",
+			"Standard Deviation", "Savitzky-Golay", "Wavelet" };
 
 	public static final String peakBuilderClasses[] = {
-			"net.sf.mzmine.modules.peakpicking.threestep.peakconstruction.baselinepeakbuilder.BaselinePeakBuilder",
-			"net.sf.mzmine.modules.peakpicking.threestep.peakconstruction.savitzkygolaypeakbuilder.SavitzkyGolayPeakBuilder",
-			"net.sf.mzmine.modules.peakpicking.threestep.peakconstruction.simplepeakbuilder.SimplePeakBuilder",
-			"net.sf.mzmine.modules.peakpicking.threestep.peakconstruction.thresholdpeakbuilder.ThresholdPeakBuilder",
-			"net.sf.mzmine.modules.peakpicking.threestep.peakconstruction.waveletpeakbuilder.WaveletPeakBuilder" };
+			"net.sf.mzmine.modules.peakpicking.threestep.peakconstruction.simplepeakdetector.SimplePeakDetector",
+			"net.sf.mzmine.modules.peakpicking.threestep.peakconstruction.baselinepeakdetector.BaselinePeakDetector",
+			"net.sf.mzmine.modules.peakpicking.threestep.peakconstruction.chromatographicthresholdpeakdetector.ChromatographicThresholdPeakDetector",
+			"net.sf.mzmine.modules.peakpicking.threestep.peakconstruction.noiseamplitudepeakdetector.NoiseAmplitudePeakDetector",
+			"net.sf.mzmine.modules.peakpicking.threestep.peakconstruction.standarddeviationpeakdetector.StandardDeviationPeakDetector",
+			"net.sf.mzmine.modules.peakpicking.threestep.peakconstruction.savitzkygolaypeakdetector.SavitzkyGolayPeakDetector",
+			"net.sf.mzmine.modules.peakpicking.threestep.peakconstruction.waveletpeakdetector.WaveletPeakDetector" };
 
-	private SimpleParameterSet massDetectorParameters[], chromatogramBuilderParameters[],
-			peakBuilderParameters[], threeStepsParameters;
+	private SimpleParameterSet massDetectorParameters[],
+			chromatogramBuilderParameters[], peakBuilderParameters[],
+			threeStepsParameters;
 
 	private static final Parameter massDetectorTypeNumber = new SimpleParameter(
 			ParameterType.INTEGER,
@@ -94,7 +95,8 @@ public class ThreeStepPickerParameters implements StorableParameterSet {
 		peakBuilderParameters = new SimpleParameterSet[peakBuilderClasses.length];
 
 		threeStepsParameters = new SimpleParameterSet(new Parameter[] {
-				massDetectorTypeNumber, chromatogramBuilderTypeNumber, peakBuilderTypeNumber, suffix });
+				massDetectorTypeNumber, chromatogramBuilderTypeNumber,
+				peakBuilderTypeNumber, suffix });
 
 		for (int i = 0; i < massDetectorClasses.length; i++) {
 			String className = massDetectorClasses[i] + "Parameters";
@@ -196,7 +198,8 @@ public class ThreeStepPickerParameters implements StorableParameterSet {
 	 * @param int
 	 *            peakBuilderInd
 	 */
-	public void setTypeNumber(int massDetectorInd, int chromatogramBuilderInd, int peakBuilderInd) {
+	public void setTypeNumber(int massDetectorInd, int chromatogramBuilderInd,
+			int peakBuilderInd) {
 		threeStepsParameters.setParameterValue(massDetectorTypeNumber,
 				massDetectorInd);
 		threeStepsParameters.setParameterValue(chromatogramBuilderTypeNumber,
@@ -286,7 +289,8 @@ public class ThreeStepPickerParameters implements StorableParameterSet {
 			for (int i = 0; i < chromatogramBuilderNames.length; i++) {
 				if (paramElem.attributeValue(PARAMETER_NAME_ATTRIBUTE).equals(
 						chromatogramBuilderNames[i])) {
-					chromatogramBuilderParameters[i].importValuesFromXML(paramElem);
+					chromatogramBuilderParameters[i]
+							.importValuesFromXML(paramElem);
 					break;
 				}
 			}
@@ -317,7 +321,7 @@ public class ThreeStepPickerParameters implements StorableParameterSet {
 	public ThreeStepPickerParameters clone() {
 
 		ThreeStepPickerParameters newSet = new ThreeStepPickerParameters();
-		
+
 		newSet.massDetectorParameters = new SimpleParameterSet[massDetectorParameters.length];
 		for (int i = 0; i < massDetectorParameters.length; i++) {
 			newSet.massDetectorParameters[i] = massDetectorParameters[i]
@@ -326,7 +330,8 @@ public class ThreeStepPickerParameters implements StorableParameterSet {
 
 		newSet.chromatogramBuilderParameters = new SimpleParameterSet[chromatogramBuilderParameters.length];
 		for (int i = 0; i < chromatogramBuilderParameters.length; i++) {
-			newSet.chromatogramBuilderParameters[i] = chromatogramBuilderParameters[i].clone();
+			newSet.chromatogramBuilderParameters[i] = chromatogramBuilderParameters[i]
+					.clone();
 		}
 
 		newSet.peakBuilderParameters = new SimpleParameterSet[peakBuilderParameters.length];
