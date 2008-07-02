@@ -17,7 +17,7 @@
  * Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-package net.sf.mzmine.modules.peakpicking.threestep.xicconstruction.standarddeviationchromatogram;
+package net.sf.mzmine.modules.peakpicking.threestep.xicconstruction.thresholdchromatogram;
 
 import java.text.NumberFormat;
 
