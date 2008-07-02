@@ -167,10 +167,7 @@ public class RecursiveChromatogramBuilder implements ChromatogramBuilder {
 
 			recursiveThresholdlevelPeak = MathUtils.calcQuantile(
 					chromatoIntensities, chromatographicThresholdLevel);
-			//calcChromatogramThreshold(
-				//	chromatoIntensities, (sumIntensities / scanNumbers.length),
-					//chromatographicThresholdLevel);
-
+			
 			for (int i = 0; i < scanNumbers.length; i++) {
 				ConnectedMzPeak mzValue = chromatogram
 						.getConnectedMzPeak(scanNumbers[i]);

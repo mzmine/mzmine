@@ -1,4 +1,4 @@
-package net.sf.mzmine.modules.peakpicking.threestep.xicconstruction.thresholdchromatogram;
+package net.sf.mzmine.modules.peakpicking.threestep.xicconstruction.standarddeviationchromatogram;
 
 import java.util.Iterator;
 import java.util.TreeSet;
