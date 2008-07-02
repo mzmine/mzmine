@@ -69,7 +69,7 @@ class ThreeStepPickerSetupDialog extends JDialog implements ActionListener {
 			ThreeStepPickerParameters parameters) {
 
 		super(MZmineCore.getDesktop().getMainFrame(),
-				"Please select mass detector  & peak builder", true);
+				"Please select mass detector  & peak detector", true);
 
 		this.parameters = parameters;
 		this.title = title;
@@ -145,25 +145,20 @@ class ThreeStepPickerSetupDialog extends JDialog implements ActionListener {
 		panel1.setLayout(new BoxLayout(panel1, BoxLayout.X_AXIS));
 		panel1.setBorder(BorderFactory.createEmptyBorder(5, 5, 5, 5));
 
-		JLabel lblLabel = new JLabel("Filename suffix ");
-		lblLabel.setSize(200, 28);
 		txtField = new JTextField();
 		txtField.setText(parameters.getSuffix());
 		txtField.selectAll();
 		txtField.setMaximumSize(new Dimension(250, 30));
 
-		panel1.add(lblLabel);
+		panel1.add(new JLabel("Filename suffix "));
 		panel1.add(Box.createRigidArea(new Dimension(10, 10)));
 		panel1.add(txtField);
-		panel1.add(Box.createRigidArea(new Dimension(10, 10)));
 
 		// Elements of panel2
 		JPanel panel2 = new JPanel();
 		panel2.setLayout(new BoxLayout(panel2, BoxLayout.X_AXIS));
 		panel2.setBorder(BorderFactory.createEmptyBorder(5, 5, 5, 5));
 
-		JLabel lblMassDetectors = new JLabel("Mass Detector");
-		lblMassDetectors.setSize(200, 28);
 		comboMassDetectors = new JComboBox(
 				ThreeStepPickerParameters.massDetectorNames);
 		comboMassDetectors.setSelectedIndex(parameters
@@ -173,7 +168,7 @@ class ThreeStepPickerSetupDialog extends JDialog implements ActionListener {
 		btnSetMass = new JButton("Set parameters");
 		btnSetMass.addActionListener(this);
 
-		panel2.add(lblMassDetectors);
+		panel2.add(new JLabel("Mass Detector"));
 		panel2.add(Box.createRigidArea(new Dimension(10, 10)));
 		panel2.add(comboMassDetectors);
 		panel2.add(Box.createRigidArea(new Dimension(10, 10)));
@@ -185,8 +180,6 @@ class ThreeStepPickerSetupDialog extends JDialog implements ActionListener {
 		panel3.setLayout(new BoxLayout(panel3, BoxLayout.X_AXIS));
 		panel3.setBorder(BorderFactory.createEmptyBorder(5, 5, 5, 5));
 
-		JLabel lblChromatoBuilder = new JLabel("<HTML>Chromatogram <BR>Builder</HTML>");
-		lblChromatoBuilder.setSize(200, 28);
 		comboChromatoBuilder = new JComboBox(
 				ThreeStepPickerParameters.chromatogramBuilderNames);
 		comboChromatoBuilder.setSelectedIndex(parameters.getChromatogramBuilderTypeNumber());
@@ -195,7 +188,7 @@ class ThreeStepPickerSetupDialog extends JDialog implements ActionListener {
 		btnSetChromato = new JButton("Set parameters");
 		btnSetChromato.addActionListener(this);
 
-		panel3.add(lblChromatoBuilder);
+		panel3.add(new JLabel("Chromatogram"));
 		panel3.add(Box.createRigidArea(new Dimension(10, 10)));
 		panel3.add(comboChromatoBuilder);
 		panel3.add(Box.createRigidArea(new Dimension(10, 10)));
@@ -207,8 +200,6 @@ class ThreeStepPickerSetupDialog extends JDialog implements ActionListener {
 		panel4.setLayout(new BoxLayout(panel4, BoxLayout.X_AXIS));
 		panel4.setBorder(BorderFactory.createEmptyBorder(5, 5, 5, 5));
 
-		JLabel lblPeakBuilder = new JLabel("Peak Detector");
-		lblPeakBuilder.setMaximumSize(new Dimension(200, 30));
 		comboPeaksConstructors = new JComboBox(
 				ThreeStepPickerParameters.peakBuilderNames);
 		comboPeaksConstructors.setSelectedIndex(parameters
@@ -218,7 +209,7 @@ class ThreeStepPickerSetupDialog extends JDialog implements ActionListener {
 		btnSetPeak = new JButton("Set parameters");
 		btnSetPeak.addActionListener(this);
 
-		panel4.add(lblPeakBuilder);
+		panel4.add(new JLabel("Peak Detector"));
 		panel4.add(Box.createRigidArea(new Dimension(10, 10)));
 		panel4.add(comboPeaksConstructors);
 		panel4.add(Box.createRigidArea(new Dimension(10, 10)));
