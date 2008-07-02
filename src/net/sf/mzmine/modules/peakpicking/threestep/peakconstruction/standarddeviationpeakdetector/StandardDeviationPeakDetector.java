@@ -17,7 +17,7 @@
  * Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-package net.sf.mzmine.modules.peakpicking.threestep.peakconstruction.baselinepeakbuilder;
+package net.sf.mzmine.modules.peakpicking.threestep.peakconstruction.standarddeviationpeakdetector;
 
 import java.util.Vector;
 import java.util.logging.Logger;
@@ -36,15 +36,15 @@ import net.sf.mzmine.modules.peakpicking.threestep.xicconstruction.ConnectedMzPe
  * level).
  * 
  */
-public class BaselinePeakBuilder implements PeakBuilder {
+public class StandardDeviationPeakDetector implements PeakBuilder {
 
 	//private Logger logger = Logger.getLogger(this.getClass().getName());
 	
 	private float baselineLevel;
 
-	public BaselinePeakBuilder(BaselinePeakBuilderParameters parameters) {
+	public StandardDeviationPeakDetector(StandardDeviationPeakDetectorParameters parameters) {
 		baselineLevel = (Float) parameters
-				.getParameterValue(BaselinePeakBuilderParameters.baselineLevel);
+				.getParameterValue(StandardDeviationPeakDetectorParameters.baselineLevel);
 	}
 
 	/** 

@@ -17,7 +17,7 @@
  * Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-package net.sf.mzmine.modules.peakpicking.threestep.peakconstruction.savitzkygolaypeakbuilder;
+package net.sf.mzmine.modules.peakpicking.threestep.peakconstruction.savitzkygolaypeakdetector;
 
 import java.util.Arrays;
 import java.util.Vector;
@@ -39,7 +39,7 @@ import net.sf.mzmine.modules.peakpicking.threestep.xicconstruction.ConnectedMzPe
  * intensity of the peak.
  * 
  */
-public class SavitzkyGolayPeakBuilder implements PeakBuilder {
+public class SavitzkyGolayPeakDetector implements PeakBuilder {
 
 	//private Logger logger = Logger.getLogger(this.getClass().getName());
 
@@ -73,13 +73,13 @@ public class SavitzkyGolayPeakBuilder implements PeakBuilder {
 	 * 
 	 * @param parameters
 	 */
-	public SavitzkyGolayPeakBuilder(
+	public SavitzkyGolayPeakDetector(
 
-	SavitzkyGolayPeakBuilderParameters parameters) {
+	SavitzkyGolayPeakDetectorParameters parameters) {
 		minimumPeakDuration = (Float) parameters
-				.getParameterValue(SavitzkyGolayPeakBuilderParameters.minimumPeakDuration);
+				.getParameterValue(SavitzkyGolayPeakDetectorParameters.minimumPeakDuration);
 		minimumPeakHeight = (Float) parameters
-				.getParameterValue(SavitzkyGolayPeakBuilderParameters.minimumPeakHeight);
+				.getParameterValue(SavitzkyGolayPeakDetectorParameters.minimumPeakHeight);
 
 	}
 

@@ -17,7 +17,7 @@
  * Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-package net.sf.mzmine.modules.peakpicking.threestep.peakconstruction.waveletpeakbuilder;
+package net.sf.mzmine.modules.peakpicking.threestep.peakconstruction.waveletpeakdetector;
 
 import java.text.NumberFormat;
 
@@ -27,7 +27,7 @@ import net.sf.mzmine.data.impl.SimpleParameter;
 import net.sf.mzmine.data.impl.SimpleParameterSet;
 import net.sf.mzmine.main.MZmineCore;
 
-public class WaveletPeakBuilderParameters extends SimpleParameterSet {
+public class WaveletPeakDetectorParameters extends SimpleParameterSet {
 
 	public static final NumberFormat percentFormat = NumberFormat
 			.getPercentInstance();
@@ -42,7 +42,7 @@ public class WaveletPeakBuilderParameters extends SimpleParameterSet {
 			"Minimum acceptable peak duration", null, new Float(10.0),
 			new Float(0.0), null, MZmineCore.getRTFormat());
 
-	public WaveletPeakBuilderParameters() {
+	public WaveletPeakDetectorParameters() {
 		super(new Parameter[] { minimumPeakHeight, minimumPeakDuration });
 	}
 }

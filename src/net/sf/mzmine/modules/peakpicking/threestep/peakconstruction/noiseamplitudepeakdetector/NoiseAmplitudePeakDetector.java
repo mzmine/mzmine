@@ -17,7 +17,7 @@
  * Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-package net.sf.mzmine.modules.peakpicking.threestep.peakconstruction.thresholdpeakbuilder;
+package net.sf.mzmine.modules.peakpicking.threestep.peakconstruction.noiseamplitudepeakdetector;
 
 import java.util.Iterator;
 import java.util.Set;
@@ -40,21 +40,21 @@ import net.sf.mzmine.modules.peakpicking.threestep.xicconstruction.ConnectedMzPe
  * level), over a already detected peak.
  * 
  */
-public class ThresholdPeakBuilder implements PeakBuilder {
+public class NoiseAmplitudePeakDetector implements PeakBuilder {
 
 	// private Logger logger = Logger.getLogger(this.getClass().getName());
 
 	private float amplitudeOfNoise;
 	private float minimumPeakHeight, minimumPeakDuration;
 
-	public ThresholdPeakBuilder(ThresholdPeakBuilderParameters parameters) {
+	public NoiseAmplitudePeakDetector(NoiseAmplitudePeakDetectorParameters parameters) {
 
 		minimumPeakDuration = (Float) parameters
-				.getParameterValue(ThresholdPeakBuilderParameters.minimumPeakDuration);
+				.getParameterValue(NoiseAmplitudePeakDetectorParameters.minimumPeakDuration);
 		minimumPeakHeight = (Float) parameters
-				.getParameterValue(ThresholdPeakBuilderParameters.minimumPeakHeight);
+				.getParameterValue(NoiseAmplitudePeakDetectorParameters.minimumPeakHeight);
 		amplitudeOfNoise = (Float) parameters
-				.getParameterValue(ThresholdPeakBuilderParameters.amplitudeOfNoise);
+				.getParameterValue(NoiseAmplitudePeakDetectorParameters.amplitudeOfNoise);
 
 	}
 

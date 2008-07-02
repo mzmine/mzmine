@@ -17,7 +17,7 @@
  * Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-package net.sf.mzmine.modules.peakpicking.threestep.peakconstruction.baselinepeakbuilder;
+package net.sf.mzmine.modules.peakpicking.threestep.peakconstruction.baselinepeakdetector;
 
 import java.text.NumberFormat;
 
@@ -27,7 +27,7 @@ import net.sf.mzmine.data.impl.SimpleParameter;
 import net.sf.mzmine.data.impl.SimpleParameterSet;
 import net.sf.mzmine.main.MZmineCore;
 
-public class BaselinePeakBuilderParameters extends SimpleParameterSet {
+public class BaselinePeakDetectorParameters extends SimpleParameterSet {
 
 	public static final NumberFormat percentFormat = NumberFormat
 			.getPercentInstance();
@@ -37,7 +37,7 @@ public class BaselinePeakBuilderParameters extends SimpleParameterSet {
 			"All data points over this level are considered to form a peak", "absolute", new Float(100.0),
 			new Float(0.0), null, MZmineCore.getIntensityFormat());
 
-	public BaselinePeakBuilderParameters() {
+	public BaselinePeakDetectorParameters() {
 		super(new Parameter[] { baselineLevel });
 	}
 

@@ -17,7 +17,7 @@
  * Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-package net.sf.mzmine.modules.peakpicking.threestep.peakconstruction.simplepeakbuilder;
+package net.sf.mzmine.modules.peakpicking.threestep.peakconstruction.simplepeakdetector;
 
 import java.util.Arrays;
 
@@ -39,13 +39,13 @@ import net.sf.mzmine.modules.peakpicking.threestep.xicconstruction.ConnectedMzPe
  * level), over a already detected peak.
  * 
  */
-public class SimplePeakBuilder implements PeakBuilder {
+public class SimplePeakDetector implements PeakBuilder {
 
 	/**
 	 * 
 	 * @param parameters
 	 */
-	public SimplePeakBuilder(SimplePeakBuilderParameters parameters) {
+	public SimplePeakDetector(SimplePeakDetectorParameters parameters) {
 
 	}
 

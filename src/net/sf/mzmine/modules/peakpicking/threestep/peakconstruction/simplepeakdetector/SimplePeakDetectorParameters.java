@@ -17,15 +17,15 @@
  * Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-package net.sf.mzmine.modules.peakpicking.threestep.peakconstruction.simplepeakbuilder;
+package net.sf.mzmine.modules.peakpicking.threestep.peakconstruction.simplepeakdetector;
 
 import net.sf.mzmine.data.Parameter;
 import net.sf.mzmine.data.impl.SimpleParameterSet;
 
-public class SimplePeakBuilderParameters extends SimpleParameterSet {
+public class SimplePeakDetectorParameters extends SimpleParameterSet {
 
 
-	public SimplePeakBuilderParameters() {
+	public SimplePeakDetectorParameters() {
 		super(new Parameter[] { });
 	}
 

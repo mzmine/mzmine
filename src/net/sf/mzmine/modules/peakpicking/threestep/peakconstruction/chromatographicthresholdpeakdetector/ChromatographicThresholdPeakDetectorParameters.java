@@ -17,7 +17,7 @@
  * Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-package net.sf.mzmine.modules.peakpicking.threestep.peakconstruction.thresholdpeakbuilder;
+package net.sf.mzmine.modules.peakpicking.threestep.peakconstruction.chromatographicthresholdpeakdetector;
 
 import java.text.NumberFormat;
 
@@ -27,31 +27,18 @@ import net.sf.mzmine.data.impl.SimpleParameter;
 import net.sf.mzmine.data.impl.SimpleParameterSet;
 import net.sf.mzmine.main.MZmineCore;
 
-public class ThresholdPeakBuilderParameters extends SimpleParameterSet {
+public class ChromatographicThresholdPeakDetectorParameters extends SimpleParameterSet {
 
 	public static final NumberFormat percentFormat = NumberFormat
 			.getPercentInstance();
 
-	public static final Parameter minimumPeakHeight = new SimpleParameter(
-			ParameterType.FLOAT, "Min peak height",
-			"Minimum acceptable peak height", "absolute", new Float(100.0),
+	public static final Parameter baselineLevel = new SimpleParameter(
+			ParameterType.FLOAT, "Baseline level",
+			"All data points over this level are considered to form a peak", "absolute", new Float(100.0),
 			new Float(0.0), null, MZmineCore.getIntensityFormat());
 
-	public static final Parameter minimumPeakDuration = new SimpleParameter(
-			ParameterType.FLOAT, "Min peak duration",
-			"Minimum acceptable peak duration", null, new Float(10.0),
-			new Float(0.0), null, MZmineCore.getRTFormat());
-
-	public static final Parameter amplitudeOfNoise = new SimpleParameter(
-			ParameterType.FLOAT,
-			"Amplitude of noise",
-			"This vaue corresponds to the amplitude of noise present all the time in the signal",
-			"absolute", new Float(1000.0), new Float(500.0), null, MZmineCore
-					.getIntensityFormat());
-
-	public ThresholdPeakBuilderParameters() {
-		super(new Parameter[] { minimumPeakHeight, minimumPeakDuration,
-				amplitudeOfNoise });
+	public ChromatographicThresholdPeakDetectorParameters() {
+		super(new Parameter[] { baselineLevel });
 	}
 
 }
