@@ -24,6 +24,8 @@ import java.util.logging.Logger;
 
 import net.sf.mzmine.data.Peak;
 import net.sf.mzmine.data.RawDataFile;
+import net.sf.mzmine.data.impl.SimpleDataPoint;
+import net.sf.mzmine.modules.peakpicking.threestep.massdetection.MzPeak;
 import net.sf.mzmine.modules.peakpicking.threestep.peakconstruction.ConnectedPeak;
 import net.sf.mzmine.modules.peakpicking.threestep.peakconstruction.PeakBuilder;
 import net.sf.mzmine.modules.peakpicking.threestep.xicconstruction.Chromatogram;
@@ -183,6 +185,8 @@ public class WaveletPeakDetector implements PeakBuilder {
 									(float) waveletIntensities[i])));
 					newMzPeaks.add(temp);*/
 				}
+				else
+					activeFirstPeak = false;
 
 			}
 
@@ -247,7 +251,7 @@ public class WaveletPeakDetector implements PeakBuilder {
 		double sqrtScaleLevel, intensity;
 		boolean top = false;
 
-		for (int k = 2; k < 5000; ) {
+		for (int k = 2; k < 100; k++ ) {
 
 			scale = k;
 			a_esl = scale * WAVELET_ESL;
@@ -287,14 +291,16 @@ public class WaveletPeakDetector implements PeakBuilder {
 			}
 			if (top)
 				break;
-			if (k < 10)
+			/*if (k < 10)
 				k++;
 			if ((k >= 10) && (k < 25))
-				k+= 5;
+				k+= 5;*/
 			if ((k >= 25) && (k < 100))
-				k+= 25;
-			if (k >= 100)
-				k+= 1000;
+				k+= 10;
+			/*if ((k >= 100) &&(k >= 500))
+				k+= 100;
+			if (k >= 1000)
+				k+= 1000;*/
 			
 		}
 		

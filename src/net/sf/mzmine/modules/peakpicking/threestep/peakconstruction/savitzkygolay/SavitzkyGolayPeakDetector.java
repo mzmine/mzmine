@@ -25,6 +25,8 @@ import java.util.logging.Logger;
 
 import net.sf.mzmine.data.Peak;
 import net.sf.mzmine.data.RawDataFile;
+import net.sf.mzmine.data.impl.SimpleDataPoint;
+import net.sf.mzmine.modules.peakpicking.threestep.massdetection.MzPeak;
 import net.sf.mzmine.modules.peakpicking.threestep.peakconstruction.ConnectedPeak;
 import net.sf.mzmine.modules.peakpicking.threestep.peakconstruction.PeakBuilder;
 import net.sf.mzmine.modules.peakpicking.threestep.xicconstruction.Chromatogram;
@@ -41,7 +43,7 @@ import net.sf.mzmine.modules.peakpicking.threestep.xicconstruction.ConnectedMzPe
  */
 public class SavitzkyGolayPeakDetector implements PeakBuilder {
 
-	//private Logger logger = Logger.getLogger(this.getClass().getName());
+	private Logger logger = Logger.getLogger(this.getClass().getName());
 
 	private float minimumPeakHeight, minimumPeakDuration;
 
@@ -99,19 +101,18 @@ public class SavitzkyGolayPeakDetector implements PeakBuilder {
 		Arrays.sort(scanNumbers);
 
 		for (int i = 0; i < scanNumbers.length; i++) {
-			//logger.finest(" Ciclo de i " + i);
 			ConnectedMzPeak mzValue = chromatogram
 					.getConnectedMzPeak(scanNumbers[i]);
-			if (mzValue != null)
+			if (mzValue != null){
 				chromatoIntensities[i] = mzValue.getMzPeak().getIntensity();
+			}
 			else{
 				chromatoIntensities[i] = 0;
-				//logger.finest(" No encontra intensity en chromatogram " + i + " " + scanNumbers[i]);
 			}
 		}
 
 		float[] chromato2ndDerivative = calculate2ndDerivative(chromatoIntensities);
-		float noiseThreshold = maxValueDerivative * 0.05f;
+		float noiseThreshold = maxValueDerivative * 0.02f;
 
 		Peak[] chromatographicPeaks = SGPeaksSearch(dataFile, chromatogram,
 				scanNumbers, chromato2ndDerivative, noiseThreshold);
@@ -182,11 +183,14 @@ public class SavitzkyGolayPeakDetector implements PeakBuilder {
 			if (Math.abs(derivativeOfIntensities[i]) > noiseThreshold ) {
 				passThreshold = true;
 				if ((crossZero == 0) && (derivativeOfIntensities[i] > 0)) {
+					//logger.finest("Prende primero " + crossZero);
 					activeFirstPeak = true;
 					crossZero++;
 				}
 			}
+			
 
+			//if (true){
 			if ((activeFirstPeak)) {
 				ConnectedMzPeak mzValue = chromatogram
 						.getConnectedMzPeak(scanNumbers[i]);
@@ -198,6 +202,10 @@ public class SavitzkyGolayPeakDetector implements PeakBuilder {
 							derivativeOfIntensities[i] * 100)));
 					newMzPeaks.add(temp);*/
 				}
+				else if (newMzPeaks.size() > 0){
+					activeFirstPeak = false;
+				}
+					
 			}
 
 			if (activeSecondPeak) {
@@ -230,11 +238,22 @@ public class SavitzkyGolayPeakDetector implements PeakBuilder {
 					crossZero = 2;
 					newOverlappedMzPeaks.clear();
 					passThreshold = false;
+
 				}
 			}
 
 		}
-
+		
+		if (newMzPeaks.size() > 0) {
+			ConnectedPeak SGPeak = new ConnectedPeak(dataFile, newMzPeaks
+					.elementAt(0));
+			for (int j = 1; j < newMzPeaks.size(); j++) {
+				SGPeak.addMzPeak(newMzPeaks.elementAt(j));
+			}
+			newMzPeaks.clear();
+			newPeaks.add(SGPeak);
+		}
+		
 		return newPeaks.toArray(new ConnectedPeak[0]);
 	}
 
@@ -262,7 +281,7 @@ public class SavitzkyGolayPeakDetector implements PeakBuilder {
 				derivative[k] += chromatoIntensities[k + i]
 						* getSGCoefficient(M, i);
 			}
-			if (Math.abs(derivative[k]) > maxValueDerivative)
+			if ( (Math.abs(derivative[k])) > maxValueDerivative)
 				maxValueDerivative = Math.abs(derivative[k]);
 
 		}

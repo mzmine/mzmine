@@ -21,6 +21,7 @@ package net.sf.mzmine.modules.peakpicking.threestep.xicconstruction;
 
 import java.util.TreeMap;
 import java.util.Vector;
+import java.util.logging.Logger;
 
 import net.sf.mzmine.data.RawDataFile;
 import net.sf.mzmine.data.Scan;
@@ -36,6 +37,8 @@ import net.sf.mzmine.util.Range;
 
 public class Chromatogram {
 
+	//private Logger logger = Logger.getLogger(this.getClass().getName());
+	
 	// These elements are used to construct the Peak.
 	private TreeMap<Integer, ConnectedMzPeak> datapointsMap;
 	private Vector<Float> datapointsMZs;
@@ -70,7 +73,7 @@ public class Chromatogram {
 
 		// Used in calculation of median MZ
 		datapointsMZs.add(mz);
-
+		
 	}
 
 	/**
@@ -82,20 +85,21 @@ public class Chromatogram {
 	 */
 	public void addMzPeak(ConnectedMzPeak mzValue) {
 
+		if (mzValue.getMzPeak().getIntensity() == 0){
+			previousConnectedMzPeaks = true;
+		}
+
 		// Update construction time variables
 		if (height <= mzValue.getMzPeak().getIntensity()) {
 			height = mzValue.getMzPeak().getIntensity();
 		}
 
-		if (mzValue.getMzPeak().getIntensity() == 0)
-			previousConnectedMzPeaks = true;
-
 		// Calculate median MZ
 		datapointsMZs.add(mzValue.getMzPeak().getMZ());
-
+		
 		mz = MathUtils.calcQuantile(
 				CollectionUtils.toFloatArray(datapointsMZs), 0.5f);
-
+		
 		// Add MzPeak
 		datapointsMap.put(mzValue.getScan().getScanNumber(), mzValue);
 		growing = true;
@@ -173,7 +177,7 @@ public class Chromatogram {
 			else
 				lastConnectedMzPeaks.clear();
 		}
-
+		
 		return lastConnectedMzPeaks.toArray(new ConnectedMzPeak[0]);
 
 	}
@@ -242,7 +246,7 @@ public class Chromatogram {
 	 * @return String information
 	 */
 	public String toString() {
-		return new String("Chromatogram @ MZ " + mz + " height " + height);
+		return new String("Chromatogram @ m/z " + mz + " height " + height);
 	}
 
 }

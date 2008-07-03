@@ -20,6 +20,7 @@
 package net.sf.mzmine.modules.peakpicking.threestep;
 
 import java.lang.reflect.Constructor;
+import java.util.Arrays;
 import java.util.logging.Logger;
 
 import net.sf.mzmine.data.ParameterSet;
@@ -94,6 +95,7 @@ class ThreeStepPickerTask implements Task {
 				.getPeakBuilderParameters(peakBuilderTypeNumber);
 		suffix = parameters.getSuffix();
 		scanNumbers = dataFile.getScanNumbers(1);
+		Arrays.sort(scanNumbers);
 		totalScans = scanNumbers.length;
 		description = "Three step peak detection on "+ dataFile + " (Chromatogram building)";
 		

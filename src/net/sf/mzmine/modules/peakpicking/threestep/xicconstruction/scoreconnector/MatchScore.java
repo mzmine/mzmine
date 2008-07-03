@@ -31,13 +31,11 @@ public class MatchScore implements Comparable<MatchScore> {
     private float score;
     private Chromatogram chromatogram;
     private ConnectedMzPeak cMzPeak;
-    private float mzTolerance;
 
-    public MatchScore(Chromatogram chromatogram, ConnectedMzPeak cMzPeak, float mzTolerance) {
-        this.mzTolerance = mzTolerance;
+    public MatchScore(Chromatogram chromatogram, ConnectedMzPeak cMzPeak) {
         this.chromatogram = chromatogram;
         this.cMzPeak = cMzPeak;
-        score = calcScore(chromatogram, cMzPeak);
+        score = (float) Math.abs(chromatogram.getMZ() - cMzPeak.getMzPeak().getMZ());
     }
 
     public float getScore() {
@@ -58,18 +56,5 @@ public class MatchScore implements Comparable<MatchScore> {
             retsig = -1;
         } 
         return retsig;
-    }
-
-    private float calcScore(Chromatogram chromatogram, ConnectedMzPeak cMzPeak) {
-
-        float chromatoMZ = chromatogram.getMZ();
-
-        if (Math.abs(chromatoMZ - cMzPeak.getMzPeak().getMZ()) > mzTolerance) {
-            return Float.MAX_VALUE;
-        } else {
-            // Calculate score components and total score
-            return (float) Math.abs(chromatoMZ - cMzPeak.getMzPeak().getMZ());
-        }
-
     }
 }
