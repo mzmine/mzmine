@@ -21,6 +21,9 @@ package net.sf.mzmine.modules.peakpicking.threestep;
 
 import java.awt.BorderLayout;
 import java.awt.Dimension;
+import java.awt.GridBagConstraints;
+import java.awt.GridBagLayout;
+import java.awt.Insets;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.File;
@@ -31,8 +34,6 @@ import javax.help.CSH;
 import javax.help.HelpBroker;
 import javax.help.HelpSet;
 import javax.swing.BorderFactory;
-import javax.swing.Box;
-import javax.swing.BoxLayout;
 import javax.swing.JButton;
 import javax.swing.JComboBox;
 import javax.swing.JDialog;
@@ -140,25 +141,14 @@ class ThreeStepPickerSetupDialog extends JDialog implements ActionListener {
 	 * 
 	 */
 	private void addComponentsToDialog() {
-		// Elements of panel1
-		JPanel panel1 = new JPanel();
-		panel1.setLayout(new BoxLayout(panel1, BoxLayout.X_AXIS));
-		panel1.setBorder(BorderFactory.createEmptyBorder(5, 5, 5, 5));
 
+		// Elements of suffix
 		txtField = new JTextField();
 		txtField.setText(parameters.getSuffix());
 		txtField.selectAll();
 		txtField.setMaximumSize(new Dimension(250, 30));
 
-		panel1.add(new JLabel("Filename suffix "));
-		panel1.add(Box.createRigidArea(new Dimension(10, 10)));
-		panel1.add(txtField);
-
-		// Elements of panel2
-		JPanel panel2 = new JPanel();
-		panel2.setLayout(new BoxLayout(panel2, BoxLayout.X_AXIS));
-		panel2.setBorder(BorderFactory.createEmptyBorder(5, 5, 5, 5));
-
+		// Elements of Mass detector
 		comboMassDetectors = new JComboBox(
 				ThreeStepPickerParameters.massDetectorNames);
 		comboMassDetectors.setSelectedIndex(parameters
@@ -168,18 +158,7 @@ class ThreeStepPickerSetupDialog extends JDialog implements ActionListener {
 		btnSetMass = new JButton("Set parameters");
 		btnSetMass.addActionListener(this);
 
-		panel2.add(new JLabel("Mass Detection"));
-		panel2.add(Box.createRigidArea(new Dimension(10, 10)));
-		panel2.add(comboMassDetectors);
-		panel2.add(Box.createRigidArea(new Dimension(10, 10)));
-		panel2.add(btnSetMass);
-		//panel2.add(Box.createRigidArea(new Dimension(10, 10)));
-
-		// Elements of panel3
-		JPanel panel3 = new JPanel();
-		panel3.setLayout(new BoxLayout(panel3, BoxLayout.X_AXIS));
-		panel3.setBorder(BorderFactory.createEmptyBorder(5, 5, 5, 5));
-
+		// Elements of Chromatogram builder
 		comboChromatoBuilder = new JComboBox(
 				ThreeStepPickerParameters.chromatogramBuilderNames);
 		comboChromatoBuilder.setSelectedIndex(parameters.getChromatogramBuilderTypeNumber());
@@ -188,18 +167,7 @@ class ThreeStepPickerSetupDialog extends JDialog implements ActionListener {
 		btnSetChromato = new JButton("Set parameters");
 		btnSetChromato.addActionListener(this);
 
-		panel3.add(new JLabel("<HTML>Chromatogram<BR>Construction</HTML>"));
-		//panel3.add(Box.createRigidArea(new Dimension(10, 10)));
-		panel3.add(comboChromatoBuilder);
-		panel3.add(Box.createRigidArea(new Dimension(10, 10)));
-		panel3.add(btnSetChromato);
-		//panel3.add(Box.createRigidArea(new Dimension(10, 10)));
-
-		// Elements of panel4
-		JPanel panel4 = new JPanel();
-		panel4.setLayout(new BoxLayout(panel4, BoxLayout.X_AXIS));
-		panel4.setBorder(BorderFactory.createEmptyBorder(5, 5, 5, 5));
-
+		// Elements of Peak recognition
 		comboPeaksConstructors = new JComboBox(
 				ThreeStepPickerParameters.peakBuilderNames);
 		comboPeaksConstructors.setSelectedIndex(parameters
@@ -209,26 +177,7 @@ class ThreeStepPickerSetupDialog extends JDialog implements ActionListener {
 		btnSetPeak = new JButton("Set parameters");
 		btnSetPeak.addActionListener(this);
 
-		panel4.add(new JLabel("Peak Detection"));
-		panel4.add(Box.createRigidArea(new Dimension(10, 10)));
-		panel4.add(comboPeaksConstructors);
-		panel4.add(Box.createRigidArea(new Dimension(10, 10)));
-		panel4.add(btnSetPeak);
-		//panel4.add(Box.createRigidArea(new Dimension(10, 10)));
-
-		// Elements of pnlCombo
-		JPanel pnlCombo = new JPanel(new BorderLayout());
-		// pnlCombo.setBorder(BorderFactory.createEmptyBorder(0, 10, 10, 10));
-		pnlCombo.setLayout(new BoxLayout(pnlCombo, BoxLayout.Y_AXIS));
-
-		pnlCombo.add(panel1);
-		pnlCombo.add(panel2);
-		pnlCombo.add(panel3);
-		pnlCombo.add(panel4);
-
-		// Elements of pnlButtons
-		JPanel pnlButtons = new JPanel();
-
+		// Elements of buttons
 		btnOK = new JButton("OK");
 		btnOK.addActionListener(this);
 		btnCancel = new JButton("Cancel");
@@ -236,15 +185,64 @@ class ThreeStepPickerSetupDialog extends JDialog implements ActionListener {
 		btnHelp = new JButton("Help");
 		setHelpListener(btnHelp);
 
-		pnlButtons.add(btnOK);
-		pnlButtons.add(btnCancel);
-		pnlButtons.add(btnHelp);
+		JPanel pnlCombo = new JPanel();
+		pnlCombo.setLayout(new GridBagLayout());
+		GridBagConstraints c = new GridBagConstraints();
+		c.fill = GridBagConstraints.HORIZONTAL;
+		c.weighty = 10.0;
+		c.weightx = 10.0;
+		c.insets = new Insets(5,5,5,5);
+		c.gridx = 0;
+		c.gridy = 0;
+		pnlCombo.add(new JLabel("Filename suffix "), c);
+		c.gridwidth = 4;
+		c.gridx = 1;
+		pnlCombo.add(txtField, c);
 
+		c.gridwidth = 1;
+		c.gridx = 0;
+		c.gridy = 1;
+		pnlCombo.add(new JLabel("Mass detection"), c);
+		c.gridwidth = 3;
+		c.gridx = 1;		
+		pnlCombo.add(comboMassDetectors, c);
+		c.gridwidth = 1;
+		c.gridx = 4;		
+		pnlCombo.add(btnSetMass, c);
+		
+		c.gridx = 0;
+		c.gridy = 2;
+		pnlCombo.add(new JLabel("<HTML>Chromatogram<BR>construction</HTML>"), c);
+		c.gridwidth = 3;
+		c.gridx = 1;		
+		pnlCombo.add(comboChromatoBuilder, c);
+		c.gridwidth = 1;
+		c.gridx = 4;		
+		pnlCombo.add(btnSetChromato, c);
+		
+		c.gridx = 0;
+		c.gridy = 3;
+		pnlCombo.add(new JLabel("Peak recognition"), c);
+		c.gridwidth = 3;
+		c.gridx = 1;		
+		pnlCombo.add(comboPeaksConstructors, c);
+		c.gridwidth = 1;
+		c.gridx = 4;		
+		pnlCombo.add(btnSetPeak, c);
+		
+		c.gridx = 1;
+		c.gridy = 4;
+		pnlCombo.add(btnOK, c);
+		c.gridx = 2;
+		pnlCombo.add(btnCancel, c);
+		c.gridx = 3;
+		pnlCombo.add(btnHelp, c);
+		
+		
 		// Panel where everything is collected
 		JPanel pnlAll = new JPanel(new BorderLayout());
 		pnlAll.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
 		pnlAll.add(pnlCombo, BorderLayout.CENTER);
-		pnlAll.add(pnlButtons, BorderLayout.SOUTH);
 		add(pnlAll);
 
 		pack();
