@@ -49,15 +49,20 @@ public class PeakDataSet extends AbstractXYDataset {
             Scan scan = dataFile.getScan(scanNumbers[i]);
             DataPoint dataPoint = peak.getDataPoint(scanNumbers[i]);
             retentionTimes[i] = scan.getRetentionTime();
-            intensities[i] = dataPoint.getIntensity();
+            if (dataPoint == null)
+                intensities[i] = 0;
+            else
+                intensities[i] = dataPoint.getIntensity();
         }
     }
 
-    @Override public int getSeriesCount() {
+    @Override
+    public int getSeriesCount() {
         return 1;
     }
 
-    @Override public Comparable getSeriesKey(int series) {
+    @Override
+    public Comparable getSeriesKey(int series) {
         return peak.toString();
     }
 
