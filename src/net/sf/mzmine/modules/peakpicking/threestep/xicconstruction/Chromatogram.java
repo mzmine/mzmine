@@ -97,8 +97,9 @@ public class Chromatogram {
 		// Calculate median MZ
 		datapointsMZs.add(mzValue.getMzPeak().getMZ());
 		
-		mz = MathUtils.calcQuantile(
-				CollectionUtils.toFloatArray(datapointsMZs), 0.5f);
+		//mz = MathUtils.calcQuantile(
+		//		CollectionUtils.toFloatArray(datapointsMZs), 0.5f);
+		mz = mzValue.getMzPeak().getMZ();
 		
 		// Add MzPeak
 		datapointsMap.put(mzValue.getScan().getScanNumber(), mzValue);
