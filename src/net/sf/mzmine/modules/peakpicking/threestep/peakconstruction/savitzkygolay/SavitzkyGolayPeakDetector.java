@@ -17,7 +17,7 @@
  * Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-package net.sf.mzmine.modules.peakpicking.threestep.peakconstruction.savitzkygolaypeakdetector;
+package net.sf.mzmine.modules.peakpicking.threestep.peakconstruction.savitzkygolay;
 
 import java.util.Arrays;
 import java.util.Vector;

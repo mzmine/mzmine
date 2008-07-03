@@ -17,7 +17,7 @@
  * Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-package net.sf.mzmine.modules.peakpicking.threestep.peakconstruction.simplepeakdetector;
+package net.sf.mzmine.modules.peakpicking.threestep.peakconstruction.simple;
 
 import java.util.Arrays;
 

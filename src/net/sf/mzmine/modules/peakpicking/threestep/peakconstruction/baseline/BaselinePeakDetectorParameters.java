@@ -17,7 +17,7 @@
  * Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-package net.sf.mzmine.modules.peakpicking.threestep.peakconstruction.chromatographicthresholdpeakdetector;
+package net.sf.mzmine.modules.peakpicking.threestep.peakconstruction.baseline;
 
 import java.text.NumberFormat;
 
@@ -27,7 +27,7 @@ import net.sf.mzmine.data.impl.SimpleParameter;
 import net.sf.mzmine.data.impl.SimpleParameterSet;
 import net.sf.mzmine.main.MZmineCore;
 
-public class ChromatographicThresholdPeakDetectorParameters extends SimpleParameterSet {
+public class BaselinePeakDetectorParameters extends SimpleParameterSet {
 
 	public static final NumberFormat percentFormat = NumberFormat
 			.getPercentInstance();
@@ -42,14 +42,13 @@ public class ChromatographicThresholdPeakDetectorParameters extends SimpleParame
 			"Minimum acceptable peak duration", null, new Float(10.0),
 			new Float(0.0), null, MZmineCore.getRTFormat());
 	
-	public static final Parameter chromatographicThresholdLevel = new SimpleParameter(
-            ParameterType.FLOAT, "Chromatographic threshold level",
-            "Used in defining threshold level value from an XIC", "%",
-            new Float(0.80), new Float(0.0), new Float(1.0), percentFormat);
-    
-    
-	public ChromatographicThresholdPeakDetectorParameters() {
-		super(new Parameter[] { minimumPeakHeight, minimumPeakDuration, chromatographicThresholdLevel });
+	public static final Parameter baselineLevel = new SimpleParameter(
+			ParameterType.FLOAT, "Baseline level",
+			"All data points over this level are considered to form a peak", "absolute", new Float(100.0),
+			new Float(0.0), null, MZmineCore.getIntensityFormat());
+
+	public BaselinePeakDetectorParameters() {
+		super(new Parameter[] { minimumPeakHeight, minimumPeakDuration, baselineLevel });
 	}
 
 }

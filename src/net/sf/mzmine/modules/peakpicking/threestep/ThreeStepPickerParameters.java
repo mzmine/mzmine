@@ -53,13 +53,13 @@ public class ThreeStepPickerParameters implements StorableParameterSet {
 			"Standard deviation", "Savitzky-Golay", "Wavelet transform" };
 
 	public static final String peakBuilderClasses[] = {
-			"net.sf.mzmine.modules.peakpicking.threestep.peakconstruction.simplepeakdetector.SimplePeakDetector",
-			"net.sf.mzmine.modules.peakpicking.threestep.peakconstruction.baselinepeakdetector.BaselinePeakDetector",
-			"net.sf.mzmine.modules.peakpicking.threestep.peakconstruction.chromatographicthresholdpeakdetector.ChromatographicThresholdPeakDetector",
-			"net.sf.mzmine.modules.peakpicking.threestep.peakconstruction.noiseamplitudepeakdetector.NoiseAmplitudePeakDetector",
-			"net.sf.mzmine.modules.peakpicking.threestep.peakconstruction.standarddeviationpeakdetector.StandardDeviationPeakDetector",
-			"net.sf.mzmine.modules.peakpicking.threestep.peakconstruction.savitzkygolaypeakdetector.SavitzkyGolayPeakDetector",
-			"net.sf.mzmine.modules.peakpicking.threestep.peakconstruction.waveletpeakdetector.WaveletPeakDetector" };
+			"net.sf.mzmine.modules.peakpicking.threestep.peakconstruction.simple.SimplePeakDetector",
+			"net.sf.mzmine.modules.peakpicking.threestep.peakconstruction.baseline.BaselinePeakDetector",
+			"net.sf.mzmine.modules.peakpicking.threestep.peakconstruction.chromatographicthreshold.ChromatographicThresholdPeakDetector",
+			"net.sf.mzmine.modules.peakpicking.threestep.peakconstruction.noiseamplitude.NoiseAmplitudePeakDetector",
+			"net.sf.mzmine.modules.peakpicking.threestep.peakconstruction.standarddeviation.StandardDeviationPeakDetector",
+			"net.sf.mzmine.modules.peakpicking.threestep.peakconstruction.savitzkygolay.SavitzkyGolayPeakDetector",
+			"net.sf.mzmine.modules.peakpicking.threestep.peakconstruction.wavelet.WaveletPeakDetector" };
 
 	private SimpleParameterSet massDetectorParameters[],
 			chromatogramBuilderParameters[], peakBuilderParameters[],

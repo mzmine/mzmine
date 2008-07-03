@@ -17,7 +17,7 @@
  * Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-package net.sf.mzmine.modules.peakpicking.threestep.peakconstruction.standarddeviationpeakdetector;
+package net.sf.mzmine.modules.peakpicking.threestep.peakconstruction.baseline;
 
 import java.util.Vector;
 
@@ -35,22 +35,19 @@ import net.sf.mzmine.modules.peakpicking.threestep.xicconstruction.scoreconnecto
  * level).
  * 
  */
-public class StandardDeviationPeakDetector implements PeakBuilder {
+public class BaselinePeakDetector implements PeakBuilder {
 
 	// private Logger logger = Logger.getLogger(this.getClass().getName());
 
-	private float standardDeviationLevel, minimumPeakHeight,
-			minimumPeakDuration;
+	private float minimumPeakHeight, minimumPeakDuration, baselineLevel;
 
-	public StandardDeviationPeakDetector(
-			StandardDeviationPeakDetectorParameters parameters) {
-
+	public BaselinePeakDetector(BaselinePeakDetectorParameters parameters) {
 		minimumPeakHeight = (Float) parameters
-				.getParameterValue(StandardDeviationPeakDetectorParameters.minimumPeakHeight);
+				.getParameterValue(BaselinePeakDetectorParameters.minimumPeakHeight);
 		minimumPeakDuration = (Float) parameters
-				.getParameterValue(StandardDeviationPeakDetectorParameters.minimumPeakDuration);
-		standardDeviationLevel = (Float) parameters
-				.getParameterValue(StandardDeviationPeakDetectorParameters.standardDeviationLevel);
+				.getParameterValue(BaselinePeakDetectorParameters.minimumPeakDuration);
+		baselineLevel = (Float) parameters
+				.getParameterValue(BaselinePeakDetectorParameters.baselineLevel);
 	}
 
 	/**
@@ -62,26 +59,7 @@ public class StandardDeviationPeakDetector implements PeakBuilder {
 
 		ConnectedMzPeak[] cMzPeaks = chromatogram.getConnectedMzPeaks();
 
-		float standardDeviationlevelPeak;
-
-		int[] scanNumbers = chromatogram.getDataFile().getScanNumbers(1);
-		float[] chromatoIntensities = new float[scanNumbers.length];
-		float sumIntensities = 0;
-
-		for (int i = 0; i < scanNumbers.length; i++) {
-
-			ConnectedMzPeak mzValue = chromatogram
-					.getConnectedMzPeak(scanNumbers[i]);
-			if (mzValue != null) {
-				chromatoIntensities[i] = mzValue.getMzPeak().getIntensity();
-			} else
-				chromatoIntensities[i] = 0;
-			sumIntensities += chromatoIntensities[i];
-		}
-
-		standardDeviationlevelPeak = calcChromatogramThreshold(
-				chromatoIntensities, (sumIntensities / scanNumbers.length),
-				standardDeviationLevel);
+		// logger.finest("Number of cMzPeaks " + cMzPeaks.length);
 
 		Vector<ConnectedMzPeak> regionOfMzPeaks = new Vector<ConnectedMzPeak>();
 		Vector<ConnectedPeak> underDetectionPeaks = new Vector<ConnectedPeak>();
@@ -90,7 +68,7 @@ public class StandardDeviationPeakDetector implements PeakBuilder {
 
 			for (ConnectedMzPeak mzPeak : cMzPeaks) {
 
-				if (mzPeak.getMzPeak().getIntensity() > standardDeviationlevelPeak) {
+				if (mzPeak.getMzPeak().getIntensity() > baselineLevel) {
 					regionOfMzPeaks.add(mzPeak);
 				} else if (regionOfMzPeaks.size() != 0) {
 					ConnectedPeak peak = new ConnectedPeak(dataFile,
@@ -131,42 +109,6 @@ public class StandardDeviationPeakDetector implements PeakBuilder {
 
 		// logger.finest(" Numero de picos " + underDetectionPeaks.size());
 		return underDetectionPeaks.toArray(new Peak[0]);
-	}
-
-	/**
-	 * 
-	 * @param chromatoIntensities
-	 * @param avgIntensities
-	 * @param chromatographicThresholdLevel
-	 * @return
-	 */
-	private float calcChromatogramThreshold(float[] chromatoIntensities,
-			float avgIntensities, float chromatographicThresholdLevel) {
-
-		float standardDeviation = 0;
-		float percentage = 1.0f - chromatographicThresholdLevel;
-
-		for (int i = 0; i < chromatoIntensities.length; i++) {
-			float deviation = chromatoIntensities[i] - avgIntensities;
-			float deviation2 = deviation * deviation;
-			standardDeviation += deviation2;
-		}
-
-		standardDeviation /= chromatoIntensities.length;
-		standardDeviation = (float) Math.sqrt(standardDeviation);
-
-		float avgDifference = 0;
-		int cont = 0;
-
-		for (int i = 0; i < chromatoIntensities.length; i++) {
-			if (chromatoIntensities[i] < standardDeviation) {
-				avgDifference += (standardDeviation - chromatoIntensities[i]);
-				cont++;
-			}
-		}
-
-		avgDifference /= cont;
-		return standardDeviation - (avgDifference * percentage);
 	}
 
 }

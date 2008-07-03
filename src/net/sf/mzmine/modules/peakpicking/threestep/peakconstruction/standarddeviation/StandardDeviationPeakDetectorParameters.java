@@ -17,7 +17,7 @@
  * Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-package net.sf.mzmine.modules.peakpicking.threestep.peakconstruction.savitzkygolaypeakdetector;
+package net.sf.mzmine.modules.peakpicking.threestep.peakconstruction.standarddeviation;
 
 import java.text.NumberFormat;
 
@@ -27,7 +27,7 @@ import net.sf.mzmine.data.impl.SimpleParameter;
 import net.sf.mzmine.data.impl.SimpleParameterSet;
 import net.sf.mzmine.main.MZmineCore;
 
-public class SavitzkyGolayPeakDetectorParameters extends SimpleParameterSet {
+public class StandardDeviationPeakDetectorParameters extends SimpleParameterSet {
 
 	public static final NumberFormat percentFormat = NumberFormat
 			.getPercentInstance();
@@ -41,9 +41,14 @@ public class SavitzkyGolayPeakDetectorParameters extends SimpleParameterSet {
 			ParameterType.FLOAT, "Min peak duration",
 			"Minimum acceptable peak duration", null, new Float(10.0),
 			new Float(0.0), null, MZmineCore.getRTFormat());
-
-	public SavitzkyGolayPeakDetectorParameters() {
-		super(new Parameter[] { minimumPeakHeight, minimumPeakDuration });
+	
+	public static final Parameter standardDeviationLevel = new SimpleParameter(
+            ParameterType.FLOAT, "Standard Deviation threshold level",
+            "Used to define % of standard deviation value as threshold level", "%",
+            new Float(0.80), new Float(0.0), new Float(1.0), percentFormat);
+    
+	public StandardDeviationPeakDetectorParameters() {
+		super(new Parameter[] { minimumPeakHeight,  minimumPeakDuration, standardDeviationLevel});
 	}
 
 }

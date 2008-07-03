@@ -17,7 +17,7 @@
  * Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-package net.sf.mzmine.modules.peakpicking.threestep.peakconstruction.waveletpeakdetector;
+package net.sf.mzmine.modules.peakpicking.threestep.peakconstruction.wavelet;
 
 import java.util.Vector;
 import java.util.logging.Logger;

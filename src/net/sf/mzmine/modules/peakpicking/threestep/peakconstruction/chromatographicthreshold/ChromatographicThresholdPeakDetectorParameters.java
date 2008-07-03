@@ -17,7 +17,7 @@
  * Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-package net.sf.mzmine.modules.peakpicking.threestep.peakconstruction.waveletpeakdetector;
+package net.sf.mzmine.modules.peakpicking.threestep.peakconstruction.chromatographicthreshold;
 
 import java.text.NumberFormat;
 
@@ -27,7 +27,7 @@ import net.sf.mzmine.data.impl.SimpleParameter;
 import net.sf.mzmine.data.impl.SimpleParameterSet;
 import net.sf.mzmine.main.MZmineCore;
 
-public class WaveletPeakDetectorParameters extends SimpleParameterSet {
+public class ChromatographicThresholdPeakDetectorParameters extends SimpleParameterSet {
 
 	public static final NumberFormat percentFormat = NumberFormat
 			.getPercentInstance();
@@ -41,8 +41,15 @@ public class WaveletPeakDetectorParameters extends SimpleParameterSet {
 			ParameterType.FLOAT, "Min peak duration",
 			"Minimum acceptable peak duration", null, new Float(10.0),
 			new Float(0.0), null, MZmineCore.getRTFormat());
-
-	public WaveletPeakDetectorParameters() {
-		super(new Parameter[] { minimumPeakHeight, minimumPeakDuration });
+	
+	public static final Parameter chromatographicThresholdLevel = new SimpleParameter(
+            ParameterType.FLOAT, "Chromatographic threshold level",
+            "Used in defining threshold level value from an XIC", "%",
+            new Float(0.80), new Float(0.0), new Float(1.0), percentFormat);
+    
+    
+	public ChromatographicThresholdPeakDetectorParameters() {
+		super(new Parameter[] { minimumPeakHeight, minimumPeakDuration, chromatographicThresholdLevel });
 	}
+
 }
