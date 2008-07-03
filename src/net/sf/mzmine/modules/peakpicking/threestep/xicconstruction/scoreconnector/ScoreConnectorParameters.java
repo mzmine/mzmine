@@ -17,7 +17,7 @@
  * Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-package net.sf.mzmine.modules.peakpicking.threestep.xicconstruction.simplechromatogram;
+package net.sf.mzmine.modules.peakpicking.threestep.xicconstruction.scoreconnector;
 
 import java.text.NumberFormat;
 
@@ -27,25 +27,25 @@ import net.sf.mzmine.data.impl.SimpleParameter;
 import net.sf.mzmine.data.impl.SimpleParameterSet;
 import net.sf.mzmine.main.MZmineCore;
 
-public class SimpleChromatogramBuilderParameters extends SimpleParameterSet {
+public class ScoreConnectorParameters extends SimpleParameterSet {
 
 	public static final NumberFormat percentFormat = NumberFormat
 			.getPercentInstance();
 
-	public static final Parameter minimumChromatogramDuration = new SimpleParameter(
-			ParameterType.FLOAT, "Min Chromatogram duration",
-			"Minimum acceptable peak duration", null, new Float(10.0),
+	public static final Parameter minimumTimeSpan = new SimpleParameter(
+			ParameterType.FLOAT, "Min time span",
+			"Minimum acceptable time span of connected string of m/z peaks", null, new Float(10.0),
 			new Float(0.0), null, MZmineCore.getRTFormat());
 
 	public static final Parameter mzTolerance = new SimpleParameter(
 			ParameterType.FLOAT,
-			"M/Z tolerance",
+			"m/z tolerance",
 			"Maximum allowed distance in M/Z between data points in successive spectrums",
 			"m/z", new Float(0.1), new Float(0.0), new Float(1.0), MZmineCore
 					.getMZFormat());
 
-	public SimpleChromatogramBuilderParameters() {
-		super(new Parameter[] { minimumChromatogramDuration,
+	public ScoreConnectorParameters() {
+		super(new Parameter[] { minimumTimeSpan,
 				mzTolerance });
 	}
 

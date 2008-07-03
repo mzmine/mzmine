@@ -1,4 +1,4 @@
-package net.sf.mzmine.modules.peakpicking.threestep.xicconstruction.simplechromatogram;
+package net.sf.mzmine.modules.peakpicking.threestep.xicconstruction.scoreconnector;
 
 import java.util.Iterator;
 import java.util.TreeSet;
@@ -11,26 +11,22 @@ import net.sf.mzmine.data.impl.SimpleDataPoint;
 import net.sf.mzmine.modules.peakpicking.threestep.massdetection.MzPeak;
 import net.sf.mzmine.modules.peakpicking.threestep.xicconstruction.Chromatogram;
 import net.sf.mzmine.modules.peakpicking.threestep.xicconstruction.ChromatogramBuilder;
-import net.sf.mzmine.modules.peakpicking.threestep.xicconstruction.ConnectedMzPeak;
-import net.sf.mzmine.modules.peakpicking.threestep.xicconstruction.MatchScore;
-import net.sf.mzmine.util.ChromatogramsSortedByMz;
 
-public class SimpleChromatogramBuilder implements ChromatogramBuilder {
+public class ScoreConnector implements ChromatogramBuilder {
 
 	private Logger logger = Logger.getLogger(this.getClass().getName());
 
-	private float mzTolerance, minimumChromatogramDuration;
+	private float mzTolerance, minimumTimeSpan;
 	private Vector<Chromatogram> underConstructionChromatograms;
 
-	public SimpleChromatogramBuilder(
-			SimpleChromatogramBuilderParameters parameters) {
+	public ScoreConnector(
+			ScoreConnectorParameters parameters) {
 
-		minimumChromatogramDuration = (Float) parameters
-				.getParameterValue(SimpleChromatogramBuilderParameters.minimumChromatogramDuration);
+		minimumTimeSpan = (Float) parameters
+				.getParameterValue(ScoreConnectorParameters.minimumTimeSpan);
 		mzTolerance = (Float) parameters
-				.getParameterValue(SimpleChromatogramBuilderParameters.mzTolerance);
+				.getParameterValue(ScoreConnectorParameters.mzTolerance);
 
-		ChromatogramsSortedByMz comparatorChromatograms = new ChromatogramsSortedByMz();
 		underConstructionChromatograms = new Vector<Chromatogram>();
 	}
 
@@ -106,7 +102,7 @@ public class SimpleChromatogramBuilder implements ChromatogramBuilder {
 				float chromatoLength = currentChromatogram
 						.getLastConnectedMzPeaksRTRange().getSize();
 
-				if (chromatoLength < minimumChromatogramDuration) {
+				if (chromatoLength < minimumTimeSpan) {
 
 					// Verify if the connected area is the only present in the
 					// current chromatogram , if not just remove from current
@@ -163,7 +159,7 @@ public class SimpleChromatogramBuilder implements ChromatogramBuilder {
 			float chromatoLength = currentChromatogram
 					.getLastConnectedMzPeaksRTRange().getSize();
 
-			if (chromatoLength < minimumChromatogramDuration) {
+			if (chromatoLength < minimumTimeSpan) {
 
 				// Verify if the connected area is the only present in the
 				// current chromatogram

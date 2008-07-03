@@ -17,7 +17,7 @@
  * Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-package net.sf.mzmine.modules.peakpicking.threestep.xicconstruction;
+package net.sf.mzmine.modules.peakpicking.threestep.xicconstruction.scoreconnector;
 
 import net.sf.mzmine.data.Scan;
 import net.sf.mzmine.modules.peakpicking.threestep.massdetection.MzPeak;

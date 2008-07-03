@@ -39,7 +39,7 @@ public class RecursiveMassDetectorParameters extends SimpleParameterSet {
 					.getIntensityFormat());
 
 	public static final Parameter minimumMZPeakWidth = new SimpleParameter(
-			ParameterType.FLOAT, "Min M/Z peak width",
+			ParameterType.FLOAT, "Min m/z peak width",
 			"Minimum acceptable peak width in m/z", "m/z", new Float(0.2),
 			new Float(0.0), null, MZmineCore.getMZFormat());
 

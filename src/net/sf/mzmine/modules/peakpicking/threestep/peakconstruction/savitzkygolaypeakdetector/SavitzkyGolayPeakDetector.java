@@ -28,7 +28,7 @@ import net.sf.mzmine.data.RawDataFile;
 import net.sf.mzmine.modules.peakpicking.threestep.peakconstruction.ConnectedPeak;
 import net.sf.mzmine.modules.peakpicking.threestep.peakconstruction.PeakBuilder;
 import net.sf.mzmine.modules.peakpicking.threestep.xicconstruction.Chromatogram;
-import net.sf.mzmine.modules.peakpicking.threestep.xicconstruction.ConnectedMzPeak;
+import net.sf.mzmine.modules.peakpicking.threestep.xicconstruction.scoreconnector.ConnectedMzPeak;
 
 /**
  * This class implements a peak builder using a match score to link MzPeaks in
@@ -111,7 +111,7 @@ public class SavitzkyGolayPeakDetector implements PeakBuilder {
 		}
 
 		float[] chromato2ndDerivative = calculate2ndDerivative(chromatoIntensities);
-		float noiseThreshold = maxValueDerivative * 0.02f;
+		float noiseThreshold = maxValueDerivative * 0.05f;
 
 		Peak[] chromatographicPeaks = SGPeaksSearch(dataFile, chromatogram,
 				scanNumbers, chromato2ndDerivative, noiseThreshold);

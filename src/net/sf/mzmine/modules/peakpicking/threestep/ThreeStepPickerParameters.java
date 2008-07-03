@@ -33,8 +33,8 @@ public class ThreeStepPickerParameters implements StorableParameterSet {
 
 	private static final String PARAMETER_NAME_ATTRIBUTE = "name";
 
-	public static final String massDetectorNames[] = { "Centroid Mass",
-			"Exact Mass", "Local maxima", "Recursive threshold",
+	public static final String massDetectorNames[] = { "Centroid",
+			"Exact mass", "Local maxima", "Recursive threshold",
 			"Wavelet transform" };
 
 	public static final String massDetectorClasses[] = {
@@ -44,13 +44,13 @@ public class ThreeStepPickerParameters implements StorableParameterSet {
 			"net.sf.mzmine.modules.peakpicking.threestep.massdetection.recursive.RecursiveMassDetector",
 			"net.sf.mzmine.modules.peakpicking.threestep.massdetection.wavelet.WaveletMassDetector" };
 
-	public static final String chromatogramBuilderNames[] = { "Simple Builder" };
+	public static final String chromatogramBuilderNames[] = { "Score connector" };
 
-	public static final String chromatogramBuilderClasses[] = { "net.sf.mzmine.modules.peakpicking.threestep.xicconstruction.simplechromatogram.SimpleChromatogramBuilder" };
+	public static final String chromatogramBuilderClasses[] = { "net.sf.mzmine.modules.peakpicking.threestep.xicconstruction.scoreconnector.ScoreConnector" };
 
-	public static final String peakBuilderNames[] = { "Simple", "Baseline",
-			"Chromatographic Threshold", "Noise Amplitude",
-			"Standard Deviation", "Savitzky-Golay", "Wavelet" };
+	public static final String peakBuilderNames[] = { "No recognition", "Baseline cut-off",
+			"Chromatographic threshold", "Noise amplitude",
+			"Standard deviation", "Savitzky-Golay", "Wavelet transform" };
 
 	public static final String peakBuilderClasses[] = {
 			"net.sf.mzmine.modules.peakpicking.threestep.peakconstruction.simplepeakdetector.SimplePeakDetector",
