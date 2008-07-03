@@ -50,33 +50,45 @@ public class SimplePeakDetector implements PeakBuilder {
 	}
 
 	/**
-	 * @see net.sf.mzmine.modules.peakpicking.threestep.peakconstruction.PeakBuilder#addChromatogram(net.sf.mzmine.modules.peakpicking.threestep.xicconstruction.Chromatogram, net.sf.mzmine.data.RawDataFile)
+	 * @see net.sf.mzmine.modules.peakpicking.threestep.peakconstruction.PeakBuilder#addChromatogram(net.sf.mzmine.modules.peakpicking.threestep.xicconstruction.Chromatogram,
+	 *      net.sf.mzmine.data.RawDataFile)
 	 */
 	public Peak[] addChromatogram(Chromatogram chromatogram,
 			RawDataFile dataFile) {
 
-		ConnectedMzPeak[] allConnectedMzPeaks = chromatogram.getConnectedMzPeaks();
-		ConnectedPeak simplePeak = new ConnectedPeak(chromatogram.getDataFile(), allConnectedMzPeaks[0]);
-		
+		ConnectedMzPeak[] allConnectedMzPeaks = chromatogram
+				.getConnectedMzPeaks();
+		ConnectedPeak simplePeak = new ConnectedPeak(
+				chromatogram.getDataFile(), allConnectedMzPeaks[0]);
+
 		int[] scanNumbers = dataFile.getScanNumbers(1);
 		int a = 0;
 		Arrays.sort(scanNumbers);
-		
+		int startDetectedScan = allConnectedMzPeaks[a].getScan()
+				.getScanNumber();
+		int lastDetectedScan = allConnectedMzPeaks[allConnectedMzPeaks.length - 1]
+				.getScan().getScanNumber();
+
 		for (int i = 0; i < scanNumbers.length; i++) {
-			if (allConnectedMzPeaks[a].getScan().getScanNumber() == scanNumbers[i]){
-				simplePeak.addMzPeak(allConnectedMzPeaks[a]);
-				a++;
-				if (a> allConnectedMzPeaks.length -1 )
-					a = allConnectedMzPeaks.length -1;
+			// Verify just the range of scans where MzPeaks are detected
+			if ((scanNumbers[i] >= startDetectedScan)
+					&& (scanNumbers[i] <= lastDetectedScan)) {
+				
+				if (allConnectedMzPeaks[a].getScan().getScanNumber() == scanNumbers[i]) {
+					simplePeak.addMzPeak(allConnectedMzPeaks[a]);
+					a++;
+					if (a > allConnectedMzPeaks.length - 1)
+						a = allConnectedMzPeaks.length - 1;
+				} else {
+					simplePeak.addMzPeak(scanNumbers[i]);
+				}
+				
 			}
-			else{
-				simplePeak.addMzPeak(scanNumbers[i]);
-			}
+			
 		}
-		
+
 		Peak[] peaks = { simplePeak };
 		return peaks;
-		
-	}
 
+	}
 }
