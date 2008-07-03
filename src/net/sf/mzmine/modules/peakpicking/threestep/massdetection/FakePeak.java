@@ -42,7 +42,6 @@ class FakePeak implements Peak {
 	 * @param datapoint
 	 */
 	public FakePeak(int scanNumber, DataPoint datapoint) {
-		super();
 		this.datapoint = datapoint;
 		this.scanNumber = scanNumber;
 		mzRange = new Range(datapoint.getMZ());
@@ -96,11 +95,6 @@ class FakePeak implements Peak {
 	public int[] getScanNumbers() {
 		int scanNumbers[] = { scanNumber };
 		return scanNumbers;
-	}
-
-	public void setMZ(float mz) {
-		// TODO Auto-generated method stub
-		
 	}
 
 }
