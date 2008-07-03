@@ -28,7 +28,7 @@ import net.sf.mzmine.data.RawDataFile;
 import net.sf.mzmine.modules.peakpicking.threestep.peakconstruction.ConnectedPeak;
 import net.sf.mzmine.modules.peakpicking.threestep.peakconstruction.PeakBuilder;
 import net.sf.mzmine.modules.peakpicking.threestep.xicconstruction.Chromatogram;
-import net.sf.mzmine.modules.peakpicking.threestep.xicconstruction.scoreconnector.ConnectedMzPeak;
+import net.sf.mzmine.modules.peakpicking.threestep.xicconstruction.ConnectedMzPeak;
 
 /**
  * This class implements a peak builder using a match score to link MzPeaks in

@@ -17,7 +17,7 @@
  * Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-package net.sf.mzmine.modules.peakpicking.threestep.xicconstruction.scoreconnector;
+package net.sf.mzmine.modules.peakpicking.threestep.xicconstruction;
 
 import net.sf.mzmine.data.Scan;
 import net.sf.mzmine.modules.peakpicking.threestep.massdetection.MzPeak;
@@ -25,7 +25,7 @@ import net.sf.mzmine.modules.peakpicking.threestep.massdetection.MzPeak;
 /**
  * This class represent an m/z peak
  */
-public class ConnectedMzPeak {
+public class ConnectedMzPeak implements Comparable<ConnectedMzPeak>{
 
 	private boolean connected;
 	private MzPeak mzPeak;
@@ -53,4 +53,13 @@ public class ConnectedMzPeak {
 		return scan;
 	}
 
+	public int compareTo(ConnectedMzPeak cMzPeak) {
+        
+		int retsig = (int) Math.signum(mzPeak.getIntensity() - cMzPeak.getMzPeak().getIntensity());
+        if (retsig == 0) {
+            retsig = -1;
+        } 
+        return retsig;
+        
+	}
 }

@@ -26,7 +26,7 @@ import net.sf.mzmine.data.RawDataFile;
 import net.sf.mzmine.modules.peakpicking.threestep.peakconstruction.ConnectedPeak;
 import net.sf.mzmine.modules.peakpicking.threestep.peakconstruction.PeakBuilder;
 import net.sf.mzmine.modules.peakpicking.threestep.xicconstruction.Chromatogram;
-import net.sf.mzmine.modules.peakpicking.threestep.xicconstruction.scoreconnector.ConnectedMzPeak;
+import net.sf.mzmine.modules.peakpicking.threestep.xicconstruction.ConnectedMzPeak;
 import net.sf.mzmine.util.MathUtils;
 
 /**

@@ -20,6 +20,7 @@
 package net.sf.mzmine.modules.peakpicking.threestep.xicconstruction.scoreconnector;
 
 import net.sf.mzmine.modules.peakpicking.threestep.xicconstruction.Chromatogram;
+import net.sf.mzmine.modules.peakpicking.threestep.xicconstruction.ConnectedMzPeak;
 
 
 /**
@@ -62,25 +63,11 @@ public class MatchScore implements Comparable<MatchScore> {
     private float calcScore(Chromatogram chromatogram, ConnectedMzPeak cMzPeak) {
 
         float chromatoMZ = chromatogram.getMZ();
-        float chromatoIntensity = chromatogram.getIntensity();
 
-        // If mz difference is too big? (do this first for optimal
-        // performance)
         if (Math.abs(chromatoMZ - cMzPeak.getMzPeak().getMZ()) > mzTolerance) {
             return Float.MAX_VALUE;
-
         } else {
-
             // Calculate score components and total score
-            double scoreMZComponent = (float) Math.abs(chromatoMZ - cMzPeak.getMzPeak().getMZ());
-            double scoreIntensityComponent = (float) Math.abs(chromatoIntensity - cMzPeak.getMzPeak().getIntensity());
-            float intensitySqrScore = (float) Math.sqrt(scoreIntensityComponent);
- 
-            float totalScore = (float) Math.sqrt(scoreMZComponent
-                    * scoreMZComponent * intensitySqrScore
-                    );
-
-            //return totalScore;
             return (float) Math.abs(chromatoMZ - cMzPeak.getMzPeak().getMZ());
         }
 

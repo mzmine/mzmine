@@ -1,9 +1,8 @@
-package net.sf.mzmine.modules.peakpicking.threestep.xicconstruction.scoreconnector;
+package net.sf.mzmine.modules.peakpicking.threestep.xicconstruction.highestdatapoint;
 
 import java.util.Iterator;
 import java.util.TreeSet;
 import java.util.Vector;
-import java.util.logging.Logger;
 
 import net.sf.mzmine.data.RawDataFile;
 import net.sf.mzmine.data.Scan;
@@ -13,20 +12,20 @@ import net.sf.mzmine.modules.peakpicking.threestep.xicconstruction.Chromatogram;
 import net.sf.mzmine.modules.peakpicking.threestep.xicconstruction.ChromatogramBuilder;
 import net.sf.mzmine.modules.peakpicking.threestep.xicconstruction.ConnectedMzPeak;
 
-public class ScoreConnector implements ChromatogramBuilder {
+public class HighestDatapointConnector implements ChromatogramBuilder {
 
-	private Logger logger = Logger.getLogger(this.getClass().getName());
+	//private Logger logger = Logger.getLogger(this.getClass().getName());
 
 	private float mzTolerance, minimumTimeSpan;
 	private Vector<Chromatogram> underConstructionChromatograms;
 
-	public ScoreConnector(
-			ScoreConnectorParameters parameters) {
+	public HighestDatapointConnector(
+			HighestDatapointConnectorParameters parameters) {
 
 		minimumTimeSpan = (Float) parameters
-				.getParameterValue(ScoreConnectorParameters.minimumTimeSpan);
+				.getParameterValue(HighestDatapointConnectorParameters.minimumTimeSpan);
 		mzTolerance = (Float) parameters
-				.getParameterValue(ScoreConnectorParameters.mzTolerance);
+				.getParameterValue(HighestDatapointConnectorParameters.mzTolerance);
 
 		underConstructionChromatograms = new Vector<Chromatogram>();
 	}
@@ -40,48 +39,28 @@ public class ScoreConnector implements ChromatogramBuilder {
 			cMzPeaks.add(new ConnectedMzPeak(scan, mzPeak));
 
 		// Calculate scores between Chromatogram and MzPeaks
-		TreeSet<MatchScore> scores = new TreeSet<MatchScore>();
-		float mz;
+		TreeSet<ConnectedMzPeak> highestDatapoint = new TreeSet<ConnectedMzPeak>();
+		float mz, mzDifference;
 
 		for (Chromatogram currentChromatogram : underConstructionChromatograms) {
 
+			mz = currentChromatogram.getMZ();
+
 			for (ConnectedMzPeak currentMzPeak : cMzPeaks) {
 
-				mz = currentMzPeak.getMzPeak().getMZ();
-				float mzDifference = Math.abs(currentChromatogram.getMZ() - mz);
+				if (currentMzPeak.isConnected())
+					continue;
 
-				if (mzDifference < mzTolerance) {
-					MatchScore score = new MatchScore(currentChromatogram,
-							currentMzPeak, mzTolerance);
-					if (score.getScore() < Float.MAX_VALUE) {
-						scores.add(score);
-					}
-				}
-			}
-		}
-
-		// Connect the best scoring pairs of under-construction and 1d peaks
-		Iterator<MatchScore> scoreIterator = scores.iterator();
-		while (scoreIterator.hasNext()) {
-
-			MatchScore score = scoreIterator.next();
-
-			// If ConnectedMzPeak is already connected, then move to next score
-			ConnectedMzPeak cMzPeak = score.getMzPeak();
-			if (cMzPeak.isConnected()) {
-				continue;
+				mzDifference = Math.abs(currentMzPeak.getMzPeak().getMZ() - mz);
+				if (mzDifference < mzTolerance)
+					highestDatapoint.add(currentMzPeak);
 			}
 
-			// If Chromatogram is growing, then move on to next score
-			Chromatogram currentChromatogram = score.getChromatogram();
-			if (currentChromatogram.isGrowing()) {
-				continue;
+			if (highestDatapoint.size() != 0) {
+				currentChromatogram.addMzPeak(highestDatapoint.last());
+				highestDatapoint.last().setConnected();
+				highestDatapoint.clear();
 			}
-
-			// Add MzPeak to the proper Chromatogram and set status connected
-			currentChromatogram.addMzPeak(cMzPeak);
-			cMzPeak.setConnected();
-
 		}
 
 		// Check if there are any under-construction peaks that were not
@@ -143,12 +122,7 @@ public class ScoreConnector implements ChromatogramBuilder {
 		}
 	}
 
-	/**
-	 * Return all chromatograms with possible peaks.
-	 * 
-	 */
 	public Chromatogram[] finishChromatograms() {
-
 		Iterator<Chromatogram> iteratorConPeak = underConstructionChromatograms
 				.iterator();
 		while (iteratorConPeak.hasNext()) {
