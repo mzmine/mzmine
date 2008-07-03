@@ -34,80 +34,88 @@ import org.jfree.data.xy.AbstractXYDataset;
  */
 class PeakDataSet extends AbstractXYDataset {
 
-    private PeakList peakList;
-    private Peak peaks[];
-    private PeakDataPoint dataPoints[][];
+	private PeakList peakList;
 
-    PeakDataSet(RawDataFile dataFile, PeakList peakList, Range rtRange, Range mzRange) {
+	private Peak peaks[];
 
-        this.peakList = peakList;
-        
-        Vector<Peak> processedPeaks = new Vector<Peak>(1024, 1024);
-        Vector<PeakDataPoint[]> processedPeakDataPoints = new Vector<PeakDataPoint[]>(
-                1024, 1024);
-        Vector<PeakDataPoint> thisPeakDataPoints = new Vector<PeakDataPoint>();
+	private PeakDataPoint dataPoints[][];
 
-        Peak allPeaks[] = peakList.getPeaks(dataFile);
+	PeakDataSet(RawDataFile dataFile, PeakList peakList, Range rtRange,
+			Range mzRange) {
 
-        for (Peak peak : allPeaks) {
+		this.peakList = peakList;
 
-            int scanNumbers[] = peak.getScanNumbers();
+		Vector<Peak> processedPeaks = new Vector<Peak>(1024, 1024);
+		Vector<PeakDataPoint[]> processedPeakDataPoints = new Vector<PeakDataPoint[]>(
+				1024, 1024);
+		Vector<PeakDataPoint> thisPeakDataPoints = new Vector<PeakDataPoint>();
 
-            for (int scan : scanNumbers) {
+		Peak allPeaks[] = peakList.getPeaks(dataFile);
 
-                float rt = dataFile.getScan(scan).getRetentionTime();
-                DataPoint dp = peak.getDataPoint(scan);
-                if (rtRange.contains(rt) && mzRange.contains(dp.getMZ())) {
-                    PeakDataPoint newDP = new PeakDataPoint(scan, rt, dp);
-                    thisPeakDataPoints.add(newDP);
-                }
+		for (Peak peak : allPeaks) {
 
-            }
+			int scanNumbers[] = peak.getScanNumbers();
 
-            if (thisPeakDataPoints.size() > 0) {
-                PeakDataPoint dpArray[] = thisPeakDataPoints.toArray(new PeakDataPoint[0]);
-                processedPeaks.add(peak);
-                processedPeakDataPoints.add(dpArray);
-                thisPeakDataPoints.clear();
-            }
+			for (int scan : scanNumbers) {
 
-        }
+				float rt = dataFile.getScan(scan).getRetentionTime();
+				DataPoint dp = peak.getDataPoint(scan);
+				if (dp != null) {
+					if (rtRange.contains(rt) && mzRange.contains(dp.getMZ())) {
+						PeakDataPoint newDP = new PeakDataPoint(scan, rt, dp);
+						thisPeakDataPoints.add(newDP);
+					}
+				}
 
-        peaks = processedPeaks.toArray(new Peak[0]);
-        dataPoints = processedPeakDataPoints.toArray(new PeakDataPoint[0][]);
+			}
 
-    }
+			if (thisPeakDataPoints.size() > 0) {
+				PeakDataPoint dpArray[] = thisPeakDataPoints
+						.toArray(new PeakDataPoint[0]);
+				processedPeaks.add(peak);
+				processedPeakDataPoints.add(dpArray);
+				thisPeakDataPoints.clear();
+			}
 
-    @Override public int getSeriesCount() {
-        return dataPoints.length;
-    }
+		}
 
-    @Override public Comparable getSeriesKey(int series) {
-        return null;
-    }
+		peaks = processedPeaks.toArray(new Peak[0]);
+		dataPoints = processedPeakDataPoints.toArray(new PeakDataPoint[0][]);
 
-    public int getItemCount(int series) {
-        return dataPoints[series].length;
-    }
-    
-    public PeakList getPeakList() {
-        return peakList;
-    }
-    
-    public Peak getPeak(int series) {
-        return peaks[series];
-    }
+	}
 
-    public PeakDataPoint getDataPoint(int series, int item) {
-        return dataPoints[series][item];
-    }
+	@Override
+	public int getSeriesCount() {
+		return dataPoints.length;
+	}
 
-    public Number getX(int series, int item) {
-        return dataPoints[series][item].getRT();
-    }
+	@Override
+	public Comparable getSeriesKey(int series) {
+		return null;
+	}
 
-    public Number getY(int series, int item) {
-        return dataPoints[series][item].getMZ();
-    }
+	public int getItemCount(int series) {
+		return dataPoints[series].length;
+	}
+
+	public PeakList getPeakList() {
+		return peakList;
+	}
+
+	public Peak getPeak(int series) {
+		return peaks[series];
+	}
+
+	public PeakDataPoint getDataPoint(int series, int item) {
+		return dataPoints[series][item];
+	}
+
+	public Number getX(int series, int item) {
+		return dataPoints[series][item].getRT();
+	}
+
+	public Number getY(int series, int item) {
+		return dataPoints[series][item].getMZ();
+	}
 
 }
