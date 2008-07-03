@@ -31,6 +31,7 @@ import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.modules.peakpicking.threestep.xicconstruction.ConnectedMzPeak;
 import net.sf.mzmine.util.CollectionUtils;
 import net.sf.mzmine.util.MathUtils;
+import net.sf.mzmine.util.PeakUtils;
 import net.sf.mzmine.util.Range;
 
 /**
@@ -258,11 +259,7 @@ public class ConnectedPeak implements Peak {
 	 * @return String information
 	 */
 	public String toString() {
-        StringBuffer buf = new StringBuffer();
-        Format timeFormat = MZmineCore.getRTFormat();
-        buf.append(" detected peak @");
-        buf.append(timeFormat.format(this.getRT()));
-        return buf.toString();
+        return PeakUtils.peakToString(this);
 	}
 
 

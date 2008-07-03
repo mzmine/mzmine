@@ -60,8 +60,6 @@ import net.sf.mzmine.modules.peakpicking.threestep.ThreeStepPickerParameters;
 import net.sf.mzmine.modules.peakpicking.threestep.massdetection.MzPeak;
 import net.sf.mzmine.modules.peakpicking.threestep.xicconstruction.Chromatogram;
 import net.sf.mzmine.modules.peakpicking.threestep.xicconstruction.ChromatogramBuilder;
-import net.sf.mzmine.modules.peakpicking.threestep.xicconstruction.simplechromatogram.SimpleChromatogramBuilder;
-import net.sf.mzmine.modules.peakpicking.threestep.xicconstruction.simplechromatogram.SimpleChromatogramBuilderParameters;
 import net.sf.mzmine.modules.visualization.tic.PeakDataSet;
 import net.sf.mzmine.modules.visualization.tic.TICDataSet;
 import net.sf.mzmine.modules.visualization.tic.TICPlot;
@@ -379,7 +377,7 @@ public class PeakBuilderSetupDialog extends ParameterSetupDialog implements
 
 			if (peaks.length > 0)
 				for (Peak p : peaks) {
-					PeakDataSet peakDataSet = new PeakDataSet(p);
+					PeakDataSet peakDataSet = new PeakDataSet(new PreviewConnectedPeak(p));
 					ticPlot.addPeakDataset(peakDataSet);
 					peakDataSets.put(Integer.valueOf(peakInd), peakDataSet);
 					peakInd++;

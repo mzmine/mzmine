@@ -70,7 +70,7 @@ class ThreeStepPickerTask implements Task {
 
 	private ParameterSet mdParameters, cbParameters, pbParameters;
 
-	private boolean finishChromatograms = false;
+	private String description;
 
 	/**
 	 * @param dataFile
@@ -95,30 +95,25 @@ class ThreeStepPickerTask implements Task {
 		suffix = parameters.getSuffix();
 		scanNumbers = dataFile.getScanNumbers(1);
 		totalScans = scanNumbers.length;
+		description = "Three step peak detection on "+ dataFile + " (Chromatogram building)";
+		
 	}
 
 	/**
 	 * @see net.sf.mzmine.taskcontrol.Task#getTaskDescription()
 	 */
 	public String getTaskDescription() {
-		return "Two step peak detection on " + dataFile;
+		return description;
 	}
 
 	/**
 	 * @see net.sf.mzmine.taskcontrol.Task#getFinishedPercentage()
 	 */
 	public float getFinishedPercentage() {
-		float advance = 0;
 		if (totalScans == 0)
 			return 0.0f;
 		else
-			advance = (float) processedScans / (totalScans * 2);
-		
-		if (finishChromatograms)
-			advance += 0.5f;
-		
-		return advance;
-			
+			return (float) processedScans / totalScans;
 	}
 
 	/**
@@ -225,7 +220,7 @@ class ThreeStepPickerTask implements Task {
 		// peaks = peakBuilder.finishPeaks();
 		chromatograms = chromatogramBuilder.finishChromatograms();
 
-		finishChromatograms = true;
+		description = "Three step peak detection on "+ dataFile + " (Peak recognition)";
 		totalScans = chromatograms.length;
 		processedScans = 0;
 
@@ -246,17 +241,11 @@ class ThreeStepPickerTask implements Task {
 			processedScans++;
 		}
 		
-		//freeMemory();
-		
 		// Add new peaklist to the project
 		MZmineProject currentProject = MZmineCore.getCurrentProject();
 		currentProject.addPeakList(newPeakList);
 
 		status = TaskStatus.FINISHED;
-	}
-	
-	private void freeMemory() {
-		System.gc();
 	}
 	
 }
