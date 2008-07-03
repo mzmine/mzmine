@@ -114,6 +114,8 @@ public class StandardCompoundNormalizerTask implements Task {
             normalizedRow.setComment(row.getComment());
             for (CompoundIdentity ident : row.getCompoundIdentities())
                 normalizedRow.addCompoundIdentity(ident);
+            if (row.getPreferredCompoundIdentity() != null)
+                normalizedRow.setPreferredCompoundIdentity(row.getPreferredCompoundIdentity());
 
             // Get m/z and RT of the current row
             float mz = row.getAverageMZ();
