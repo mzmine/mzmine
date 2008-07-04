@@ -22,68 +22,74 @@ package net.sf.mzmine.modules.peakpicking.threestep.massdetection.exactmass.peak
 import net.sf.mzmine.modules.peakpicking.threestep.massdetection.exactmass.PeakModel;
 import net.sf.mzmine.util.Range;
 
+/**
+ * 
+ * This class represents a gaussian model, using the formula:
+ * 
+ * f(x) = a * e ^ ((x-b)^2 / (-2 * c^2)) 
+ * 
+ * where
+ * 
+ * a... height of the model (intensityMain)
+ * b... center of the model (mzMain)
+ * c... FWHM / (2 * sqrt(2 . ln(2)))  
+ * FWHM... Full Width at Half Maximum         
+ *
+ */
 public class GaussPeak implements PeakModel {
 
-	
-	private float mzMain, intensityMain, FWHM, C;
-	private double partA;
-	
+    private float mzMain, intensityMain, FWHM, partC, part2C2;
 
-	/**
-	 * @see net.sf.mzmine.modules.peakpicking.twostep.massdetection.exactmass.peakmodel.PeakModel#setParameters(float,
-	 *      float, float)
-	 */
-	public void setParameters(float mzMain, float intensityMain,
-			float resolution) {
-		this.mzMain = mzMain;
-		this.intensityMain = intensityMain;
+    /**
+     * @see net.sf.mzmine.modules.peakpicking.twostep.massdetection.exactmass.peakmodel.PeakModel#setParameters(float,
+     *      float, float)
+     */
+    public void setParameters(float mzMain, float intensityMain,
+            float resolution) {
+        
+        this.mzMain = mzMain;
+        this.intensityMain = intensityMain;
 
-		// FWFM (Full Width at Half Maximum)
-		FWHM = (mzMain / resolution);
-		C = FWHM / 2.3548200450309493820231386529194f;
-		partA = 2 * Math.pow(C, 2);
-	}
+        // FWFM (Full Width at Half Maximum)
+        FWHM = (mzMain / resolution);
+        partC = FWHM / 2.354820045f;
+        part2C2 = 2f * (float) Math.pow(partC, 2);
+    }
 
-	/**
-	 * @see net.sf.mzmine.modules.peakpicking.twostep.peakmodel.PeakModel#getBasePeakWidth()
-	 */
-	public Range getWidth(float partialIntensity) {
+    /**
+     * @see net.sf.mzmine.modules.peakpicking.twostep.peakmodel.PeakModel#getBasePeakWidth()
+     */
+    public Range getWidth(float partialIntensity) {
 
-		/*
-		 * The height value must be bigger than zero.The zero value is not used
-		 * because the Gaussian function tends to infinite and in this function
-		 * with zero intensity we get a NaN. If that is the case we have a too
-		 * big range and could result in to make useless comparisons.
-		 */
+        // The height value must be bigger than zero.
+        if (partialIntensity <= 0)
+            return new Range(0, Float.MAX_VALUE);
 
-		if (partialIntensity <= 0)
-			return new Range(0, Float.MAX_VALUE);
-		
-		double portion = partialIntensity/intensityMain;
-		double ln = Math.abs(Math.log(portion));
+        // Using the Gaussian function we calculate the peak width at intensity
+        // given (partialIntensity)
 
-		// Using the Gaussian function we calculate the peak width at intensity given (partialIntensity),
-		float sideRange = (float) (Math.sqrt(partA * ln));
+        float portion = partialIntensity / intensityMain;
+        float ln = -1 * (float) Math.log(portion);
 
-		// This range represents the width of our peak in m/z terms
-		Range rangePeak = new Range(mzMain - sideRange, mzMain + sideRange);
+        float sideRange = (float) (Math.sqrt(part2C2 * ln));
 
-		return rangePeak;
-	}
+        // This range represents the width of our peak in m/z
+        Range rangePeak = new Range(mzMain - sideRange, mzMain + sideRange);
 
-	/**
-	 * @see net.sf.mzmine.modules.peakpicking.twostep.peakmodel.PeakModel#getIntensity(float)
-	 */
-	public float getIntensity(float mz) {
+        return rangePeak;
+    }
 
-		// Using the Gaussian function we calculate the intensity m/z given (mz)
-		double diff = (mz - mzMain);
-		double diff2 = diff * diff;
-		double partB = -1 * (diff2 / partA);
-		double eX = Math.exp(partB);
-		float intensity = (float) (intensityMain * eX);
-		
-		return intensity;
-	}
+    /**
+     * @see net.sf.mzmine.modules.peakpicking.twostep.peakmodel.PeakModel#getIntensity(float)
+     */
+    public float getIntensity(float mz) {
+
+        // Using the Gaussian function we calculate the intensity at given m/z
+        float diff2 = (float) Math.pow(mz - mzMain, 2);
+        float exponent = -1 * (diff2 / part2C2);
+        float eX = (float) Math.exp(exponent);
+        float intensity = intensityMain * eX;
+        return intensity;
+    }
 
 }

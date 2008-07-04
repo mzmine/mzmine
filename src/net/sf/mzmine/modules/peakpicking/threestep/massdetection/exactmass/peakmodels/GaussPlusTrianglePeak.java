@@ -22,97 +22,63 @@ package net.sf.mzmine.modules.peakpicking.threestep.massdetection.exactmass.peak
 import net.sf.mzmine.modules.peakpicking.threestep.massdetection.exactmass.PeakModel;
 import net.sf.mzmine.util.Range;
 
+/**
+ * 
+ * This class represents a Gaussian model extended by a triangle with the height
+ * of 5% intensity and the width of 1 m/z. The purpose is to remove any small
+ * side peak fluctuations which occur for example in case of FTMS data
+ * ("shoulder peaks").
+ * 
+ */
 public class GaussPlusTrianglePeak implements PeakModel {
 
-	private float mzMain, intensityMain, FWHM, C;
-	private double partA, angle;
-	private Range rangePeakAtFivePercentage;
-	
+    private GaussPeak gaussModel;
+    private float mzMain, fivePercentIntensity;
 
-	/**
-	 * @see net.sf.mzmine.modules.peakpicking.twostep.massdetection.exactmass.peakmodel.PeakModel#setParameters(float,
-	 *      float, float)
-	 */
-	public float getIntensity(float mz) {
+    public void setParameters(float mzMain, float intensityMain,
+            float resolution) {
 
-		// Using the Gaussian function we calculate the intensity m/z given (mz)
-		if ((mz >= rangePeakAtFivePercentage.getMin())
-				&& (mz <= rangePeakAtFivePercentage.getMax())) {
-			
-			double diff = (mz - mzMain);
-			double diff2 = diff * diff;
-			double partB = -1 * (diff2 / partA);
-			double eX = Math.exp(partB);
-			float intensity = (float) (intensityMain * eX);
+        this.mzMain = mzMain;
+        this.fivePercentIntensity = intensityMain * 0.05f;
 
-			return intensity;
-		} else {
-			// We use Pitagora's theorem to calculate the intensity with the
-			// function opposite side = adjacent side * Tan (angle)
-			float opposite = 1 - Math.abs(mzMain - mz);
-			float intensity = (float) (opposite * Math.tan(angle));
-			
-			return intensity;
-		}
-	}
+        // Prepare a Gaussian model
+        gaussModel = new GaussPeak();
+        gaussModel.setParameters(mzMain, intensityMain, resolution);
 
-	public Range getWidth(float partialIntensity) {
-		/*
-		 * The height value must be bigger than zero.The zero value is not used
-		 * because the Lorentzian function tends to infinite and in this
-		 * function with zero intensity we get a NaN. If that is the case we
-		 * have a too big range and could result in to make useless comparisons.
-		 */
+    }
 
-		if (partialIntensity <= 0)
-			return new Range(0, Float.MAX_VALUE);
+    /**
+     * @see net.sf.mzmine.modules.peakpicking.twostep.massdetection.exactmass.peakmodel.PeakModel#setParameters(float,
+     *      float, float)
+     */
+    public float getIntensity(float mz) {
 
-		// Using the Gaussian function we calculate the peak width at 5% of intensity
-		double ln = Math.abs(Math.log(partialIntensity/intensityMain));
-		float sideRange = (float) Math.sqrt(partA * ln);
-		// This range represents the width of our peak in m/z terms
-		Range rangePeak = new Range(mzMain - sideRange, mzMain + sideRange);
+        float gaussIntensity = gaussModel.getIntensity(mz);
 
-		if (partialIntensity >= intensityMain * 0.05f) {
-			return rangePeak;
-		} else {
+        float mzDiff = Math.abs(mzMain - mz);
 
-			// We use Pitagora's theorem to calculate the intensity with the
-			// function adjacent side = opposite side / Tan (angle)
-			float adjacent = (float) (partialIntensity / Math.tan(angle));
-			Range rangePeak2;
-			
-			if (adjacent < 1){
-				rangePeak2 = new Range((mzMain - (1 - adjacent)),(mzMain + (1 - adjacent)));
-			}
-			else{
-				rangePeak2 = new Range(mzMain);
-			}
-			
-			if( rangePeak2.compareTo(rangePeak) > 0)
-				return rangePeak2;
-			else
-				return rangePeak;
-		}
+        if (mzDiff >= 1)
+            return gaussIntensity;
 
-	}
+        float triangleIntensity = fivePercentIntensity * (1 - mzDiff);
 
-	public void setParameters(float mzMain, float intensityMain,
-			float resolution) {
-		this.mzMain = mzMain;
-		this.intensityMain = intensityMain;
+        return Math.max(gaussIntensity, triangleIntensity);
 
-		// FWFM (Full Width at Half Maximum)
-		FWHM = (mzMain / resolution);
-		C = FWHM / 2.3548200450309493820231386529194f;
-		partA = 2 * Math.pow(C, 2);
+    }
 
-		rangePeakAtFivePercentage = this.getWidth(intensityMain * 0.05f);
-		
-		// We use Pitagora's theorem to calculate the angle of a rectangular
-		// triangle with a base equal to one (m/z) and height equal to 5%
-		// intensity of the peak.
-		angle = Math.atan((intensityMain * 0.05f));
-	}
+    public Range getWidth(float partialIntensity) {
+
+        // The height value must be bigger than zero
+        if (partialIntensity <= 0)
+            return new Range(0, Float.MAX_VALUE);
+
+        if (partialIntensity < fivePercentIntensity)
+            return new Range(mzMain - 1, mzMain + 1);
+
+        Range gaussWidth = gaussModel.getWidth(partialIntensity);
+
+        return gaussWidth;
+
+    }
 
 }
