@@ -44,7 +44,7 @@ public class HighestDatapointConnector implements ChromatogramBuilder {
 
 		for (Chromatogram currentChromatogram : underConstructionChromatograms) {
 
-			mz = currentChromatogram.getMZ();
+			mz = currentChromatogram.getLastMz();
 
 			for (ConnectedMzPeak currentMzPeak : cMzPeaks) {
 
