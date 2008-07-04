@@ -22,63 +22,68 @@ package net.sf.mzmine.modules.peakpicking.threestep.massdetection.exactmass.peak
 import net.sf.mzmine.modules.peakpicking.threestep.massdetection.exactmass.PeakModel;
 import net.sf.mzmine.util.Range;
 
+/**
+ * 
+ * This class represents a Lorentzian function model, using the formula:
+ * 
+ * f(x) = a / (1 + ((x-b)^2 / (HWHM^2)))
+ * 
+ * where
+ * 
+ * a... height of the model (intensityMain) b... center of the model (mzMain)
+ * HWHM... Half Width at Half Maximum
+ * 
+ */
+
 public class LorentzianPeak implements PeakModel {
 
-	private float mzMain, intensityMain, HWHM;
+    private float mzMain, intensityMain, squareHWHM;
 
-	/**
-	 * @see net.sf.mzmine.modules.peakpicking.twostep.massdetection.exactmass.peakmodel.PeakModel#setParameters(float,
-	 *      float, float)
-	 */
-	public void setParameters(float mzMain, float intensityMain,
-			float resolution) {
-		this.mzMain = mzMain;
-		this.intensityMain = intensityMain;
-		
-		// HWFM (Half Width at Half Maximum)
-		HWHM = mzMain / ((float) resolution * 2);
-	}
+    /**
+     * @see net.sf.mzmine.modules.peakpicking.twostep.massdetection.exactmass.peakmodel.PeakModel#setParameters(float,
+     *      float, float)
+     */
+    public void setParameters(float mzMain, float intensityMain,
+            float resolution) {
 
-	/**
-	 * @see net.sf.mzmine.modules.peakpicking.twostep.peakmodel.PeakModel#getBasePeakWidth()
-	 */
-	public Range getWidth(float partialIntensity) {
+        this.mzMain = mzMain;
+        this.intensityMain = intensityMain;
 
-		/*
-		 * The height value must be bigger than zero.The zero value is not used
-		 * because the Lorentzian function tends to infinite and in this function
-		 * with zero intensity we get a NaN. If that is the case we have a too
-		 * big range and could result in to make useless comparisons.
-		 */
+        // HWFM (Half Width at Half Maximum) ^ 2
+        squareHWHM = (float) Math.pow((mzMain / resolution) / 2, 2);
+    }
 
-		if (partialIntensity <= 0)
-			return new Range(0, Float.MAX_VALUE);
+    /**
+     * @see net.sf.mzmine.modules.peakpicking.twostep.peakmodel.PeakModel#getBasePeakWidth()
+     */
+    public Range getWidth(float partialIntensity) {
 
-		// Using the Lorentzian function we calculate the peak width
-		double partA = ((intensityMain / partialIntensity) - 1)
-				* Math.pow(HWHM, 2);
+        // The height value must be bigger than zero.
+        if (partialIntensity <= 0)
+            return new Range(0, Float.MAX_VALUE);
 
-		float sideRange = (float) Math.sqrt(partA) / 2.0f;
+        // Using the Lorentzian function we calculate the peak width
+        float squareX = ((intensityMain / partialIntensity) - 1) * squareHWHM;
 
-		// This range represents the width of our peak in m/z terms
-		Range rangePeak = new Range(mzMain - sideRange, mzMain + sideRange);
+        float sideRange = (float) Math.sqrt(squareX);
 
-		return rangePeak;
-	}
+        // This range represents the width of our peak in m/z terms
+        Range rangePeak = new Range(mzMain - sideRange, mzMain + sideRange);
 
-	/**
-	 * @see net.sf.mzmine.modules.peakpicking.twostep.peakmodel.PeakModel#getIntensity(float)
-	 */
-	public float getIntensity(float mz) {
+        return rangePeak;
+    }
 
-		// Using the Lorentzian function we calculate the intensity m/z given (mz),
-		double partA = Math.pow(HWHM, 2);
-		double partB = intensityMain * partA;
-		double partC = Math.pow((mz - mzMain), 2) + partA;
+    /**
+     * @see net.sf.mzmine.modules.peakpicking.twostep.peakmodel.PeakModel#getIntensity(float)
+     */
+    public float getIntensity(float mz) {
 
-		float intensity = (float) (partB / partC);
-
-		return intensity;
-	}
+        // Using the Lorentzian function we calculate the intensity at given
+        // m/z
+        float squareX = (float) Math.pow((mz - mzMain), 2);
+        float ratio = squareX / squareHWHM;
+        float intensity = intensityMain / (1 + ratio);
+        return intensity;
+    }
 
 }

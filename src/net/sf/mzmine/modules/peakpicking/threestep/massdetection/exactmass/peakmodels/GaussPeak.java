@@ -24,7 +24,7 @@ import net.sf.mzmine.util.Range;
 
 /**
  * 
- * This class represents a gaussian model, using the formula:
+ * This class represents a Gaussian model, using the formula:
  * 
  * f(x) = a * e ^ ((x-b)^2 / (-2 * c^2)) 
  * 
