@@ -17,8 +17,10 @@
  * Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-package net.sf.mzmine.main;
+package net.sf.mzmine.desktop.helpsystem;
 
+
+import java.io.File;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.Enumeration;
@@ -32,16 +34,17 @@ import javax.help.Map;
 public class MZmineHelpMap implements Map {
 
 	private HelpSet helpset; // the top HelpSet
-	private Hashtable lookup = null;
+	private Hashtable<String, String> lookup = null;
 
 	public MZmineHelpMap() {
-		lookup = new Hashtable();
+		lookup = new Hashtable<String, String>();
 		this.helpset = new HelpSet();
 	}
 
 
 	public void setTarget(String target){
-		lookup.put(target, target);
+		String url = "jar:file:" + System.getProperty("user.dir") + "/dist/MZmine.jar!/" + target;
+		lookup.put(target, url);
 	}
 	
 	
@@ -71,8 +74,9 @@ public class MZmineHelpMap implements Map {
 	 * 
 	 * @return An enumeration of all the IDs in a Map.
 	 */
-	public Enumeration getAllIDs() {
-		return new FlatEnumeration(lookup.keys(), helpset);
+	public Enumeration<String> getAllIDs() {
+		//return new FlatEnumeration(lookup.keys(), helpset);
+		return lookup.keys();
 	}
 
 	/**
@@ -180,7 +184,7 @@ public class MZmineHelpMap implements Map {
 	public Enumeration getIDs(URL url) {
 		String tmp = null;
 		URL tmpURL = null;
-		Vector ids = new Vector();
+		Vector<String> ids = new Vector<String>();
 		for (Enumeration e = lookup.keys(); e.hasMoreElements();) {
 			String key = (String) e.nextElement();
 			try {
@@ -217,5 +221,5 @@ public class MZmineHelpMap implements Map {
 			return back;
 		}
 	}
-
+	
 }

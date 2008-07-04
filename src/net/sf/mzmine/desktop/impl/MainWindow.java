@@ -44,6 +44,7 @@ import net.sf.mzmine.data.PeakList;
 import net.sf.mzmine.data.RawDataFile;
 import net.sf.mzmine.desktop.Desktop;
 import net.sf.mzmine.desktop.MZmineMenu;
+import net.sf.mzmine.desktop.helpsystem.HelpClass;
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.main.MZmineModule;
 import net.sf.mzmine.project.MZmineProject;
@@ -191,8 +192,8 @@ public class MainWindow extends JFrame implements MZmineModule, Desktop,
 
         // Construct menu
         menuBar = new MainMenu();
-		//help = new HelpClass();
-		//help.addMenuItem(menuBar);
+		help = new HelpClass();
+		help.addMenuItem(menuBar);
         setJMenuBar(menuBar);
 
         // Initialize window listener for responding to user events
@@ -322,9 +323,9 @@ public class MainWindow extends JFrame implements MZmineModule, Desktop,
 
     }
     
-    public void setHelpMenuItem(){
+    /*public void setHelpMenuItem(){
 		help = new HelpClass();
 		help.addMenuItem(menuBar);
-    }
+    }*/
 
 }

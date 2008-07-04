@@ -32,6 +32,7 @@ import java.text.NumberFormat;
 import java.util.Vector;
 import java.util.logging.Logger;
 
+import javax.help.CSH;
 import javax.help.DefaultHelpBroker;
 import javax.help.HelpBroker;
 import javax.help.WindowPresentation;
@@ -59,6 +60,9 @@ import net.sf.mzmine.data.impl.SimpleParameterSet;
 import net.sf.mzmine.data.impl.SimplePeakList;
 import net.sf.mzmine.data.impl.SimplePeakListRow;
 import net.sf.mzmine.desktop.Desktop;
+import net.sf.mzmine.desktop.helpsystem.MZmineHelpMap;
+import net.sf.mzmine.desktop.helpsystem.MZmineHelpSet;
+import net.sf.mzmine.desktop.helpsystem.MZmineTOCView;
 import net.sf.mzmine.desktop.impl.MainWindow;
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.modules.peakpicking.threestep.ThreeStepPickerParameters;
@@ -292,17 +296,6 @@ public class MassDetectorSetupDialog extends ParameterSetupDialog implements
 			int ind = comboScanNumber.getSelectedIndex() + 1;
 			if (ind < (listScans.length - 1))
 				comboScanNumber.setSelectedIndex(ind);
-		}
-
-		if (src == btnHelp) {
-			
-			HelpBroker hb = ((MainWindow)desktop).getHelp().getHelpBroker();
-			ActionListener helpListener = ((MainWindow)desktop).getHelp().getHelpListener();
-			helpListener.actionPerformed(new ActionEvent(desktop, ActionEvent.ACTION_PERFORMED, null));
-			hb.setCurrentID(helpID);
-			WindowPresentation wp = ((DefaultHelpBroker)hb).getWindowPresentation();
-			((JFrame)wp.getHelpWindow()).setAlwaysOnTop(true);
-			
 		}
 
 	}

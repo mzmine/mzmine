@@ -25,16 +25,17 @@ import java.awt.GridLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.File;
-import java.net.URL;
 import java.text.NumberFormat;
+import java.util.Enumeration;
 import java.util.Hashtable;
 import java.util.Iterator;
+import java.util.jar.JarEntry;
+import java.util.jar.JarFile;
 import java.util.logging.Logger;
 
 import javax.help.CSH;
 import javax.help.DefaultHelpBroker;
 import javax.help.HelpBroker;
-import javax.help.HelpSet;
 import javax.help.WindowPresentation;
 import javax.swing.BorderFactory;
 import javax.swing.JButton;
@@ -52,6 +53,9 @@ import javax.swing.JTextField;
 import net.sf.mzmine.data.Parameter;
 import net.sf.mzmine.data.impl.SimpleParameterSet;
 import net.sf.mzmine.desktop.Desktop;
+import net.sf.mzmine.desktop.helpsystem.MZmineHelpMap;
+import net.sf.mzmine.desktop.helpsystem.MZmineHelpSet;
+import net.sf.mzmine.desktop.helpsystem.MZmineTOCView;
 import net.sf.mzmine.desktop.impl.MainWindow;
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.util.GUIUtils;
@@ -300,20 +304,6 @@ public class ParameterSetupDialog extends JDialog implements ActionListener {
 
 		}
 
-		if (src == btnHelp) {
-
-			HelpBroker hb = ((MainWindow) desktop).getHelp().getHelpBroker();
-			ActionListener helpListener = ((MainWindow) desktop).getHelp()
-					.getHelpListener();
-			helpListener.actionPerformed(new ActionEvent(desktop,
-					ActionEvent.ACTION_PERFORMED, null));
-			hb.setCurrentID(helpID);
-			WindowPresentation wp = ((DefaultHelpBroker) hb)
-					.getWindowPresentation();
-			((JFrame) wp.getHelpWindow()).setAlwaysOnTop(true);
-
-		}
-
 	}
 
 	private void displayMessage(String msg) {
@@ -455,13 +445,31 @@ public class ParameterSetupDialog extends JDialog implements ActionListener {
 	void setHelpListener(JButton helpBtn) {
 
 		try {
-			File urlAddress = new File(System.getProperty("user.dir")
-					+ File.separator + "help" + File.separator + "help.hs");
-			URL url = urlAddress.toURI().toURL();
-			HelpSet hs = new HelpSet(null, url);
+			// Construct help
+			MZmineHelpMap helpMap = new MZmineHelpMap();
+			
+			File file = new File(System.getProperty("user.dir") + File.separator + "dist" + File.separator
+					+ "MZmine.jar");
+			JarFile jarFile = new JarFile(file);
+		    Enumeration<JarEntry> e = jarFile.entries();
+		       while (e.hasMoreElements()) {
+		           JarEntry entry = e.nextElement();
+		           String name = entry.getName();
+		           if ( name.contains("htm") )
+		        	   helpMap.setTarget(name);
+		       }			
+		       
+		    MZmineHelpSet hs = new MZmineHelpSet();
+	        MZmineTOCView myTOC = new MZmineTOCView(hs, "TOC", "Table Of Contents", helpMap);
+	        
+	        hs.setLocalMap(helpMap);
+			hs.addTOCView(myTOC);
+			
 			HelpBroker hb = hs.createHelpBroker();
 			hb.enableHelpKey(getRootPane(), helpID, hs);
+
 			helpBtn.addActionListener(new CSH.DisplayHelpFromSource(hb));
+			
 		} catch (Exception event) {
 			event.printStackTrace();
 		}

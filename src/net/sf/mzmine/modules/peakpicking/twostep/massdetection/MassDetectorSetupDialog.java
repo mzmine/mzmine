@@ -294,7 +294,7 @@ public class MassDetectorSetupDialog extends ParameterSetupDialog implements
 				comboScanNumber.setSelectedIndex(ind);
 		}
 
-		if (src == btnHelp) {
+		/*if (src == btnHelp) {
 			
 			HelpBroker hb = ((MainWindow)desktop).getHelp().getHelpBroker();
 			ActionListener helpListener = ((MainWindow)desktop).getHelp().getHelpListener();
@@ -303,7 +303,7 @@ public class MassDetectorSetupDialog extends ParameterSetupDialog implements
 			WindowPresentation wp = ((DefaultHelpBroker)hb).getWindowPresentation();
 			((JFrame)wp.getHelpWindow()).setAlwaysOnTop(true);
 			
-		}
+		}*/
 
 	}
 

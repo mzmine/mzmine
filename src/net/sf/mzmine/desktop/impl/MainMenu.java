@@ -48,7 +48,7 @@ import ca.guydavis.swing.desktop.JWindowsMenu;
 /**
  * 
  */
-class MainMenu extends JMenuBar implements ActionListener {
+public class MainMenu extends JMenuBar implements ActionListener {
 
 
 	private JMenu projectMenu, filterMenu, peakMenu, alignmentMenu,

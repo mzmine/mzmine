@@ -252,7 +252,7 @@ public class PeakBuilderSetupDialog extends ParameterSetupDialog implements
 			setPeakDataSet();
 		}
 
-		if (src == btnHelp) {
+		/*if (src == btnHelp) {
 
 			HelpBroker hb = ((MainWindow) desktop).getHelp().getHelpBroker();
 			ActionListener helpListener = ((MainWindow) desktop).getHelp()
@@ -264,7 +264,7 @@ public class PeakBuilderSetupDialog extends ParameterSetupDialog implements
 					.getWindowPresentation();
 			((JFrame) wp.getHelpWindow()).setAlwaysOnTop(true);
 
-		}
+		}*/
 
 	}
 

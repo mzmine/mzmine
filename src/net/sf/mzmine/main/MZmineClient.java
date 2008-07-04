@@ -26,7 +26,7 @@ import java.util.logging.Logger;
 
 import javax.swing.SwingUtilities;
 
-import net.sf.mzmine.desktop.impl.HelpClass;
+import net.sf.mzmine.desktop.helpsystem.HelpClass;
 import net.sf.mzmine.desktop.impl.MainWindow;
 import net.sf.mzmine.project.MZmineProject;
 import net.sf.mzmine.project.ProjectManager;
@@ -142,7 +142,7 @@ public class MZmineClient extends MZmineCore implements Runnable {
 				loadModule(className);
 			}
 
-			desktop.setHelpMenuItem();
+			//desktop.setHelpMenuItem();
 
 			MZmineCore.initializedModules = moduleSet
 					.toArray(new MZmineModule[0]);
