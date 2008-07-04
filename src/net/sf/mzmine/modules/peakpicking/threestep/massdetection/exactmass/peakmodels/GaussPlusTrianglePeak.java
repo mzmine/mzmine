@@ -24,7 +24,7 @@ import net.sf.mzmine.util.Range;
 
 public class GaussPlusTrianglePeak implements PeakModel {
 
-	private float mzMain, intensityMain, FWHM;
+	private float mzMain, intensityMain, FWHM, C;
 	private double partA, angle;
 	private Range rangePeakAtFivePercentage;
 	
@@ -39,7 +39,7 @@ public class GaussPlusTrianglePeak implements PeakModel {
 		if ((mz >= rangePeakAtFivePercentage.getMin())
 				&& (mz <= rangePeakAtFivePercentage.getMax())) {
 			
-			double diff = (mz - mzMain) * 2;
+			double diff = (mz - mzMain);
 			double diff2 = diff * diff;
 			double partB = -1 * (diff2 / partA);
 			double eX = Math.exp(partB);
@@ -69,7 +69,7 @@ public class GaussPlusTrianglePeak implements PeakModel {
 
 		// Using the Gaussian function we calculate the peak width at 5% of intensity
 		double ln = Math.abs(Math.log(partialIntensity/intensityMain));
-		float sideRange = (float) Math.sqrt(partA * ln) / 2.0f;
+		float sideRange = (float) Math.sqrt(partA * ln);
 		// This range represents the width of our peak in m/z terms
 		Range rangePeak = new Range(mzMain - sideRange, mzMain + sideRange);
 
@@ -103,8 +103,9 @@ public class GaussPlusTrianglePeak implements PeakModel {
 		this.intensityMain = intensityMain;
 
 		// FWFM (Full Width at Half Maximum)
-		FWHM = mzMain / resolution;
-		partA = 2 * (FWHM * FWHM);
+		FWHM = (mzMain / resolution);
+		C = FWHM / 2.3548200450309493820231386529194f;
+		partA = 2 * Math.pow(C, 2);
 
 		rangePeakAtFivePercentage = this.getWidth(intensityMain * 0.05f);
 		
