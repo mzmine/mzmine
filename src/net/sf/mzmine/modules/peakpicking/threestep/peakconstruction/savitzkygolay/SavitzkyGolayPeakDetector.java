@@ -21,12 +21,9 @@ package net.sf.mzmine.modules.peakpicking.threestep.peakconstruction.savitzkygol
 
 import java.util.Arrays;
 import java.util.Vector;
-import java.util.logging.Logger;
 
 import net.sf.mzmine.data.Peak;
 import net.sf.mzmine.data.RawDataFile;
-import net.sf.mzmine.data.impl.SimpleDataPoint;
-import net.sf.mzmine.modules.peakpicking.threestep.massdetection.MzPeak;
 import net.sf.mzmine.modules.peakpicking.threestep.peakconstruction.ConnectedPeak;
 import net.sf.mzmine.modules.peakpicking.threestep.peakconstruction.PeakBuilder;
 import net.sf.mzmine.modules.peakpicking.threestep.xicconstruction.Chromatogram;
@@ -43,7 +40,7 @@ import net.sf.mzmine.modules.peakpicking.threestep.xicconstruction.ConnectedMzPe
  */
 public class SavitzkyGolayPeakDetector implements PeakBuilder {
 
-	private Logger logger = Logger.getLogger(this.getClass().getName());
+	//private Logger logger = Logger.getLogger(this.getClass().getName());
 
 	private float minimumPeakHeight, minimumPeakDuration;
 
@@ -204,6 +201,7 @@ public class SavitzkyGolayPeakDetector implements PeakBuilder {
 				}
 				else if (newMzPeaks.size() > 0){
 					activeFirstPeak = false;
+					crossZero = 0;
 				}
 					
 			}

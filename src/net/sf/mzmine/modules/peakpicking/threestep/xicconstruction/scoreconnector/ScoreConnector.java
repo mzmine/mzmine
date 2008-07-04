@@ -120,7 +120,7 @@ public class ScoreConnector implements ChromatogramBuilder {
 				}
 
 				SimpleDataPoint zeroDataPoint = new SimpleDataPoint(
-						currentChromatogram.getMZ(), 0);
+						currentChromatogram.getLastMz(), 0);
 				ConnectedMzPeak zeroChromatoPoint = new ConnectedMzPeak(scan,
 						new MzPeak(zeroDataPoint));
 				currentChromatogram.addMzPeak(zeroChromatoPoint);

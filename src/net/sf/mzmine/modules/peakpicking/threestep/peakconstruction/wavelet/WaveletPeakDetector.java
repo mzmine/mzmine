@@ -20,16 +20,14 @@
 package net.sf.mzmine.modules.peakpicking.threestep.peakconstruction.wavelet;
 
 import java.util.Vector;
-import java.util.logging.Logger;
 
 import net.sf.mzmine.data.Peak;
 import net.sf.mzmine.data.RawDataFile;
-import net.sf.mzmine.data.impl.SimpleDataPoint;
-import net.sf.mzmine.modules.peakpicking.threestep.massdetection.MzPeak;
 import net.sf.mzmine.modules.peakpicking.threestep.peakconstruction.ConnectedPeak;
 import net.sf.mzmine.modules.peakpicking.threestep.peakconstruction.PeakBuilder;
 import net.sf.mzmine.modules.peakpicking.threestep.xicconstruction.Chromatogram;
 import net.sf.mzmine.modules.peakpicking.threestep.xicconstruction.ConnectedMzPeak;
+import net.sf.mzmine.util.MathUtils;
 
 /**
  * This class implements a simple peak builder. This takes all detected MzPeaks
@@ -42,10 +40,9 @@ import net.sf.mzmine.modules.peakpicking.threestep.xicconstruction.ConnectedMzPe
  */
 public class WaveletPeakDetector implements PeakBuilder {
 
-	private Logger logger = Logger.getLogger(this.getClass().getName());
+	//private Logger logger = Logger.getLogger(this.getClass().getName());
 
-	private float minimumPeakHeight, minimumPeakDuration, maxIntensity = 0;
-	double[] W;
+	private float minimumPeakHeight, minimumPeakDuration;
 
 	/**
 	 * Parameters of the wavelet, The WAVELET_ESL & WAVELET_ESL indicates the
@@ -54,6 +51,8 @@ public class WaveletPeakDetector implements PeakBuilder {
 	private static final int WAVELET_ESL = -5;
 	private static final int WAVELET_ESR = 5;
 	private double maxWaveletIntensity = 0;
+	private float maxIntensity = 0;
+	double[] W;
 
 	public WaveletPeakDetector(WaveletPeakDetectorParameters parameters) {
 
@@ -70,11 +69,13 @@ public class WaveletPeakDetector implements PeakBuilder {
 			RawDataFile dataFile) {
 		
 		maxWaveletIntensity = 0;
+		maxIntensity = 0;
 
 		Vector<Peak> detectedPeaks = new Vector<Peak>();
 
 		int[] scanNumbers = dataFile.getScanNumbers(1);
 		float[] chromatoIntensities = new float[scanNumbers.length];
+		float avgChromatoIntensities = 0;
 
 		for (int i = 0; i < scanNumbers.length; i++) {
 			ConnectedMzPeak mzValue = chromatogram
@@ -85,12 +86,18 @@ public class WaveletPeakDetector implements PeakBuilder {
 				chromatoIntensities[i] = 0;
 			if (chromatoIntensities[i] > maxIntensity)
 				maxIntensity = chromatoIntensities[i];
+			avgChromatoIntensities += chromatoIntensities[i];
 		}
+		
+		avgChromatoIntensities /= scanNumbers.length;
+		
+		// Chromatogram with characteristics of background
+		if ((avgChromatoIntensities/maxIntensity) > (maxIntensity * 0.5f))
+			return detectedPeaks.toArray(new Peak[0]);
+		
 
 		double[] waveletIntensities = performCWT(chromatoIntensities);
 		
-		logger.finest(" Chromato " + chromatogram.toString());
-
 		Peak[] chromatographicPeaks = getWaveletPeaks(chromatogram, dataFile,
 				scanNumbers, waveletIntensities);
 
@@ -124,6 +131,8 @@ public class WaveletPeakDetector implements PeakBuilder {
 	public Peak[] getWaveletPeaks(Chromatogram chromatogram,
 			RawDataFile dataFile, int[] scanNumbers, double[] waveletIntensities) {
 
+		float waveletThresholdLevel = calcWaveletThreshold(waveletIntensities);
+		
 		boolean activeFirstPeak = false, activeSecondPeak = false, passThreshold = false;
 		int crossZero = 0;
 
@@ -165,8 +174,13 @@ public class WaveletPeakDetector implements PeakBuilder {
 
 			}
 			
-			if (Math.abs(waveletIntensities[i]) > (maxWaveletIntensity * 0.02) ) {
+			if (Math.abs(waveletIntensities[i]) > waveletThresholdLevel){ //(maxWaveletIntensity * 0.05) ) {
 				passThreshold = true;
+				if ((crossZero == 0) && (waveletIntensities[i] < 0)) {
+					//logger.finest("Prende primero " + crossZero);
+					activeFirstPeak = true;
+					crossZero++;
+				}
 			}
 
 			if (((waveletIntensities[i - 1] < 0.0f) && (waveletIntensities[i] == 0.0f))) {
@@ -174,6 +188,7 @@ public class WaveletPeakDetector implements PeakBuilder {
 				activeSecondPeak = false;
 			}
 
+			//if (true){
 			if ((activeFirstPeak)) {
 				ConnectedMzPeak mzValue = chromatogram
 						.getConnectedMzPeak(scanNumbers[i]);
@@ -185,9 +200,10 @@ public class WaveletPeakDetector implements PeakBuilder {
 									(float) waveletIntensities[i])));
 					newMzPeaks.add(temp);*/
 				}
-				else
+				else if (newMzPeaks.size() > 0){
 					activeFirstPeak = false;
-
+					crossZero = 0;
+				}
 			}
 
 			if (activeSecondPeak) {
@@ -224,7 +240,7 @@ public class WaveletPeakDetector implements PeakBuilder {
 			}
 
 		}
-
+		
 		return newPeaks.toArray(new ConnectedPeak[0]);
 	}
 
@@ -280,31 +296,18 @@ public class WaveletPeakDetector implements PeakBuilder {
 
 				}
 				intensity /= sqrtScaleLevel;
-				if (intensity >= maxIntensity) {
+				if (Math.abs(intensity) >= maxIntensity) {
 					top = true;
 				}
 				waveletIntensities[dx] = intensity;
 				
 				if (Math.abs(waveletIntensities[dx]) > maxWaveletIntensity)
 					maxWaveletIntensity = Math.abs(waveletIntensities[dx]);
-
+				
 			}
 			if (top)
 				break;
-			/*if (k < 10)
-				k++;
-			if ((k >= 10) && (k < 25))
-				k+= 5;*/
-			if ((k >= 25) && (k < 100))
-				k+= 10;
-			/*if ((k >= 100) &&(k >= 500))
-				k+= 100;
-			if (k >= 1000)
-				k+= 1000;*/
-			
 		}
-		
-		logger.finest("Level of scale " + scale );
 		
 		return waveletIntensities;
 
@@ -332,5 +335,23 @@ public class WaveletPeakDetector implements PeakBuilder {
 		}
 
 	}
+	
+	/**
+	 * 
+	 * @param chromatoIntensities
+	 * @param avgIntensities
+	 * @param chromatographicThresholdLevel
+	 * @return
+	 */
+	private float calcWaveletThreshold(double[] waveletIntensities) {
+
+		float[] intensities = new float[waveletIntensities.length];
+		for (int i = 0; i < waveletIntensities.length; i++) {
+			intensities[i] = (float) Math.abs(waveletIntensities[i]);
+		}
+		
+		return MathUtils.calcQuantile(intensities, 0.95f);
+	}
+
 
 }

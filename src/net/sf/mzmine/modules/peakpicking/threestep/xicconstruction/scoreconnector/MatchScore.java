@@ -35,7 +35,7 @@ public class MatchScore implements Comparable<MatchScore> {
     public MatchScore(Chromatogram chromatogram, ConnectedMzPeak cMzPeak) {
         this.chromatogram = chromatogram;
         this.cMzPeak = cMzPeak;
-        score = (float) Math.abs(chromatogram.getMZ() - cMzPeak.getMzPeak().getMZ());
+        score = (float) Math.abs(chromatogram.getLastMz() - cMzPeak.getMzPeak().getMZ());
     }
 
     public float getScore() {

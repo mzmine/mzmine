@@ -97,9 +97,8 @@ public class Chromatogram {
 		// Calculate median MZ
 		datapointsMZs.add(mzValue.getMzPeak().getMZ());
 		
-		//mz = MathUtils.calcQuantile(
-		//		CollectionUtils.toFloatArray(datapointsMZs), 0.5f);
-		mz = mzValue.getMzPeak().getMZ();
+		mz = MathUtils.calcQuantile(
+			CollectionUtils.toFloatArray(datapointsMZs), 0.5f);
 		
 		// Add MzPeak
 		datapointsMap.put(mzValue.getScan().getScanNumber(), mzValue);
@@ -183,6 +182,17 @@ public class Chromatogram {
 
 	}
 
+	/**
+	 * This method returns the last m/z of this chromatogram.
+	 * of the scans.
+	 * 
+	 * @return Array MzPeak
+	 */
+	public float getLastMz() {
+		return datapointsMap.get(datapointsMap.lastKey()).getMzPeak().getMZ();
+	}
+	
+	
 	/**
 	 * This method returns the last group of MzPeaks connected in this
 	 * chromatogram. The order of the array is ascend according with the number
