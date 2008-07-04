@@ -19,8 +19,7 @@
 
 package net.sf.mzmine.modules.peakpicking.threestep.massdetection.recursive;
 
-import java.util.Vector;
-import java.util.logging.Logger;
+import java.util.ArrayList;
 
 import net.sf.mzmine.data.DataPoint;
 import net.sf.mzmine.data.Scan;
@@ -29,121 +28,114 @@ import net.sf.mzmine.modules.peakpicking.threestep.massdetection.MzPeak;
 
 public class RecursiveMassDetector implements MassDetector {
 
-	private Logger logger = Logger.getLogger(this.getClass().getName());
-	
-	// parameter values
-	private float minimumMZPeakWidth, maximumMZPeakWidth, noiseLevel;
-	private Vector<MzPeak> mzPeaks;
-	private DataPoint[] dataPoints;
-	//private Scan scan;
+    // Parameter values
+    private float minimumMZPeakWidth, maximumMZPeakWidth, noiseLevel;
+    private ArrayList<MzPeak> mzPeaks;
+    private DataPoint[] dataPoints;
 
-	public RecursiveMassDetector(RecursiveMassDetectorParameters parameters) {
-		noiseLevel = (Float) parameters
-				.getParameterValue(RecursiveMassDetectorParameters.noiseLevel);
-		minimumMZPeakWidth = (Float) parameters
-				.getParameterValue(RecursiveMassDetectorParameters.minimumMZPeakWidth);
-		maximumMZPeakWidth = (Float) parameters
-				.getParameterValue(RecursiveMassDetectorParameters.maximumMZPeakWidth);
-	}
+    // private Scan scan;
 
-	public MzPeak[] getMassValues(Scan scan) {
+    public RecursiveMassDetector(RecursiveMassDetectorParameters parameters) {
+        noiseLevel = (Float) parameters.getParameterValue(RecursiveMassDetectorParameters.noiseLevel);
+        minimumMZPeakWidth = (Float) parameters.getParameterValue(RecursiveMassDetectorParameters.minimumMZPeakWidth);
+        maximumMZPeakWidth = (Float) parameters.getParameterValue(RecursiveMassDetectorParameters.maximumMZPeakWidth);
+    }
 
-		//this.scan = scan;
-		dataPoints = scan.getDataPoints();
-		mzPeaks = new Vector<MzPeak>();
+    public MzPeak[] getMassValues(Scan scan) {
 
-		// Find MzPeaks
-		recursiveThreshold(1, dataPoints.length - 1, noiseLevel, 0);
-		return mzPeaks.toArray(new MzPeak[0]);
-	}
+        // this.scan = scan;
+        dataPoints = scan.getDataPoints();
+        mzPeaks = new ArrayList<MzPeak>();
 
-	/**
-	 * This function searches for maxima from given part of a spectrum
-	 */
-	private int recursiveThreshold(int startInd, int stopInd,
-			float curentNoiseLevel, int recuLevel) {
+        // Find MzPeaks
+        recursiveThreshold(1, dataPoints.length - 1, noiseLevel, 0);
+        return mzPeaks.toArray(new MzPeak[0]);
+    }
 
-		//logger.finest(" Level of recursion " + recuLevel);
+    /**
+     * This function searches for maxima from given part of a spectrum
+     */
+    private int recursiveThreshold(int startInd, int stopInd,
+            float curentNoiseLevel, int recuLevel) {
 
-		Vector<DataPoint> RawDataPointsInds = new Vector<DataPoint>();
-		int peakStartInd, peakStopInd, peakMaxInd;
-		float peakWidthMZ;
+        // logger.finest(" Level of recursion " + recuLevel);
 
-		for (int ind = startInd; ind < stopInd; ind++) {
+        ArrayList<DataPoint> RawDataPointsInds = new ArrayList<DataPoint>();
+        int peakStartInd, peakStopInd, peakMaxInd;
+        float peakWidthMZ;
 
-			boolean currentIsBiggerNoise = dataPoints[ind].getIntensity() > curentNoiseLevel;
-			float localMinimum = Float.MAX_VALUE;
+        for (int ind = startInd; ind < stopInd; ind++) {
 
-			// Ignore intensities below curentNoiseLevel
-			if (!currentIsBiggerNoise){
-				continue;
-			}
+            boolean currentIsBiggerNoise = dataPoints[ind].getIntensity() > curentNoiseLevel;
+            float localMinimum = Float.MAX_VALUE;
 
-			// Add initial point of the peak
-			peakStartInd = ind;
-			peakMaxInd = peakStartInd;
+            // Ignore intensities below curentNoiseLevel
+            if (!currentIsBiggerNoise) {
+                continue;
+            }
 
-			// While peak is on
-			while ((ind < stopInd)
-					&& (dataPoints[ind].getIntensity() > curentNoiseLevel)) {
+            // Add initial point of the peak
+            peakStartInd = ind;
+            peakMaxInd = peakStartInd;
 
-				boolean isLocalMinimum = (dataPoints[ind - 1].getIntensity() > dataPoints[ind]
-						.getIntensity())
-						&& (dataPoints[ind].getIntensity() < dataPoints[ind + 1]
-								.getIntensity());
-				
-				// Check if this is the minimum point of the peak
-				if (isLocalMinimum
-						&& (dataPoints[ind].getIntensity() < localMinimum))
-					localMinimum = dataPoints[ind].getIntensity();
+            // While peak is on
+            while ((ind < stopInd)
+                    && (dataPoints[ind].getIntensity() > curentNoiseLevel)) {
 
-				// Check if this is the maximum point of the peak
-				if (dataPoints[ind].getIntensity() > dataPoints[peakMaxInd]
-						.getIntensity())
-					peakMaxInd = ind;
+                boolean isLocalMinimum = (dataPoints[ind - 1].getIntensity() > dataPoints[ind].getIntensity())
+                        && (dataPoints[ind].getIntensity() < dataPoints[ind + 1].getIntensity());
 
-				// Forming the DataPoint array that defines this peak
-				RawDataPointsInds.add(dataPoints[ind]);
-				ind++;
-			}
+                // Check if this is the minimum point of the peak
+                if (isLocalMinimum
+                        && (dataPoints[ind].getIntensity() < localMinimum))
+                    localMinimum = dataPoints[ind].getIntensity();
 
-			// Add ending point of the peak
-			peakStopInd = ind;
+                // Check if this is the maximum point of the peak
+                if (dataPoints[ind].getIntensity() > dataPoints[peakMaxInd].getIntensity())
+                    peakMaxInd = ind;
 
-			peakWidthMZ = dataPoints[peakStopInd].getMZ()
-					- dataPoints[peakStartInd].getMZ();
+                // Forming the DataPoint array that defines this peak
+                RawDataPointsInds.add(dataPoints[ind]);
+                ind++;
+            }
 
-			// Verify width of the peak
-			if ((peakWidthMZ >= minimumMZPeakWidth)
-					&& (peakWidthMZ <= maximumMZPeakWidth)) {
+            // Add ending point of the peak
+            peakStopInd = ind;
 
-				// Declare a new MzPeak with intensity equal to max intensity
-				// data point
-				mzPeaks.add(new MzPeak(dataPoints[peakMaxInd],
-						RawDataPointsInds.toArray(new DataPoint[0])));
+            peakWidthMZ = dataPoints[peakStopInd].getMZ()
+                    - dataPoints[peakStartInd].getMZ();
 
-				if (recuLevel > 0) {
-					// return stop index and beginning of the next peak
-					return ind;
-				}
-			}
-			RawDataPointsInds.clear();
+            // Verify width of the peak
+            if ((peakWidthMZ >= minimumMZPeakWidth)
+                    && (peakWidthMZ <= maximumMZPeakWidth)) {
 
-			// If the peak is still too big applies the same method until find a
-			// peak of the right size
-			if (peakWidthMZ > maximumMZPeakWidth) {
-				if (localMinimum < Float.MAX_VALUE) {
-					ind = recursiveThreshold(peakStartInd, peakStopInd,
-							localMinimum, recuLevel + 1);
-				}
+                // Declare a new MzPeak with intensity equal to max intensity
+                // data point
+                mzPeaks.add(new MzPeak(dataPoints[peakMaxInd],
+                        RawDataPointsInds.toArray(new DataPoint[0])));
 
-			}
+                if (recuLevel > 0) {
+                    // return stop index and beginning of the next peak
+                    return ind;
+                }
+            }
+            RawDataPointsInds.clear();
 
-		}
+            // If the peak is still too big applies the same method until find a
+            // peak of the right size
+            if (peakWidthMZ > maximumMZPeakWidth) {
+                if (localMinimum < Float.MAX_VALUE) {
+                    ind = recursiveThreshold(peakStartInd, peakStopInd,
+                            localMinimum, recuLevel + 1);
+                }
 
-		// return stop index
-		return stopInd;
+            }
 
-	}
+        }
+
+        // return stop index
+        return stopInd;
+
+    }
 
 }

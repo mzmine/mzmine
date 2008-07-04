@@ -21,7 +21,7 @@ package net.sf.mzmine.modules.peakpicking.threestep.massdetection.exactmass;
 
 import java.util.Iterator;
 import java.util.TreeSet;
-import java.util.Vector;
+import java.util.ArrayList;
 import java.util.logging.Logger;
 
 import net.sf.mzmine.data.DataPoint;
@@ -127,7 +127,7 @@ public class ExactMassDetector implements MassDetector {
 
         DataPoint[] scanDataPoints = scan.getDataPoints();
         DataPoint localMaximum = scanDataPoints[0];
-        Vector<DataPoint> rangeDataPoints = new Vector<DataPoint>();
+        ArrayList<DataPoint> rangeDataPoints = new ArrayList<DataPoint>();
 
         boolean ascending = true;
 
