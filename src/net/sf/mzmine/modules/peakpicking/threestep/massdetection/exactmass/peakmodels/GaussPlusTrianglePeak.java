@@ -32,17 +32,26 @@ import net.sf.mzmine.util.Range;
  */
 public class GaussPlusTrianglePeak implements PeakModel {
 
+    /**
+     * This constant defines at what percentage of the intensity we set the
+     * height of our triangle. Default is 5%.
+     */
+    public static final float shoulderIntensityRatio = 0.05f;
+
     private GaussPeak gaussModel;
-    private float mzMain, fivePercentIntensity;
+    private float mzMain, shoulderIntensity;
+
+    public GaussPlusTrianglePeak() {
+        gaussModel = new GaussPeak();
+    }
 
     public void setParameters(float mzMain, float intensityMain,
             float resolution) {
 
         this.mzMain = mzMain;
-        this.fivePercentIntensity = intensityMain * 0.05f;
+        this.shoulderIntensity = intensityMain * shoulderIntensityRatio;
 
-        // Prepare a Gaussian model
-        gaussModel = new GaussPeak();
+        // update the Gaussian model
         gaussModel.setParameters(mzMain, intensityMain, resolution);
 
     }
@@ -60,7 +69,7 @@ public class GaussPlusTrianglePeak implements PeakModel {
         if (mzDiff >= 1)
             return gaussIntensity;
 
-        float triangleIntensity = fivePercentIntensity * (1 - mzDiff);
+        float triangleIntensity = shoulderIntensity * (1 - mzDiff);
 
         return Math.max(gaussIntensity, triangleIntensity);
 
@@ -72,7 +81,7 @@ public class GaussPlusTrianglePeak implements PeakModel {
         if (partialIntensity <= 0)
             return new Range(0, Float.MAX_VALUE);
 
-        if (partialIntensity < fivePercentIntensity)
+        if (partialIntensity < shoulderIntensity)
             return new Range(mzMain - 1, mzMain + 1);
 
         Range gaussWidth = gaussModel.getWidth(partialIntensity);

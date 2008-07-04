@@ -32,7 +32,7 @@ import net.sf.mzmine.util.Range;
 
 public class ExactMassDetector implements MassDetector {
 
-    // parameter values
+    // Parameter values
     private float noiseLevel;
     private int resolution;
     private PeakModel peakModel;

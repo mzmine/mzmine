@@ -36,7 +36,7 @@ public class ExactMassDetectorParameters extends SimpleParameterSet {
 		"net.sf.mzmine.modules.peakpicking.threestep.massdetection.exactmass.peakmodels.GaussPeak",
 		"net.sf.mzmine.modules.peakpicking.threestep.massdetection.exactmass.peakmodels.GaussPlusTrianglePeak",
 		"net.sf.mzmine.modules.peakpicking.threestep.massdetection.exactmass.peakmodels.LorentzianPeak",
-		"net.sf.mzmine.modules.peakpicking.threestep.massdetection.exactmass.peakmodels.LorentzianPeakWithShoulderExtended" };
+		"net.sf.mzmine.modules.peakpicking.threestep.massdetection.exactmass.peakmodels.LorentzianPeakWithShoulder" };
 
 	public static final NumberFormat percentFormat = NumberFormat
 			.getPercentInstance();

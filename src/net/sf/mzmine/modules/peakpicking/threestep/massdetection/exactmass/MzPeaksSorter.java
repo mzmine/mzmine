@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2007 The MZmine Development Team
+ * Copyright 2006-2008 The MZmine Development Team
  * 
  * This file is part of MZmine.
  * 
@@ -48,19 +48,20 @@ public class MzPeaksSorter implements Comparator<MzPeak> {
 	}
 
 	public int compare(MzPeak dp1, MzPeak dp2) {
-		Float mz1 = 0.0f, mz2 = 0.0f;
+        
+		Float value1, value2;
 
 		if (sortByMZ) {
-			mz1 = dp1.getMZ();
-			mz2 = dp2.getMZ();
+            value1 = dp1.getMZ();
+            value2 = dp2.getMZ();
 		} else {
-			mz1 = dp1.getIntensity();
-			mz2 = dp2.getIntensity();
+            value1 = dp1.getIntensity();
+            value2 = dp2.getIntensity();
 		}
 
 		if (ascending)
-			return mz1.compareTo(mz2);
+			return value1.compareTo(value2);
 		else
-			return mz2.compareTo(mz1);
+			return value2.compareTo(value1);
 	}
 }
