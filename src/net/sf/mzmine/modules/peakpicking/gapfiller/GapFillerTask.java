@@ -21,6 +21,7 @@ package net.sf.mzmine.modules.peakpicking.gapfiller;
 
 import java.util.Vector;
 
+import net.sf.mzmine.data.CompoundIdentity;
 import net.sf.mzmine.data.Peak;
 import net.sf.mzmine.data.PeakList;
 import net.sf.mzmine.data.PeakListRow;
@@ -76,6 +77,11 @@ class GapFillerTask implements Task {
         for (int row = 0; row < peakList.getNumberOfRows(); row++) {
             PeakListRow sourceRow = peakList.getRow(row);
             PeakListRow newRow = new SimplePeakListRow(sourceRow.getID());
+            newRow.setComment(sourceRow.getComment());
+            for (CompoundIdentity ident : sourceRow.getCompoundIdentities())
+                newRow.addCompoundIdentity(ident);
+            if (sourceRow.getPreferredCompoundIdentity() != null)
+                newRow.setPreferredCompoundIdentity(sourceRow.getPreferredCompoundIdentity());
             processedPeakList.addRow(newRow);
         }
 
