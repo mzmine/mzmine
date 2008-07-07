@@ -66,7 +66,7 @@ class GapFillerTask implements Task {
 
         // Calculate total number of scans in all files
         for (RawDataFile dataFile : peakList.getRawDataFiles()) {
-            totalScans += dataFile.getNumOfScans();
+            totalScans += dataFile.getNumOfScans(1);
         }
 
         // Create new peak list

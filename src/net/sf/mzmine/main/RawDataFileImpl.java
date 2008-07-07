@@ -621,4 +621,15 @@ public class RawDataFileImpl implements RawDataFile, RawDataFileWriter {
 			tmpFile.delete();
 		}
 	}
+
+    public int getNumOfScans(int msLevel) {
+        int numOfScans = 0;
+        Enumeration<Scan> scansEnum = scans.elements();
+        while (scansEnum.hasMoreElements()) {
+            Scan scan = scansEnum.nextElement();
+            if (scan.getMSLevel() == msLevel)
+                numOfScans++;
+        }
+        return numOfScans;
+    }
 }

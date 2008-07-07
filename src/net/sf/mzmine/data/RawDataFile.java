@@ -65,6 +65,8 @@ public interface RawDataFile {
 
     public int getNumOfScans();
 
+    public int getNumOfScans(int msLevel);
+
     public int[] getMSLevels();
 
     /**
