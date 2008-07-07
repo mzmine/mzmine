@@ -1,24 +1,24 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
 <configuration> 
-  <nodes local="4"/>  
+  <nodes local="2"/>  
   <modules> 
     <module class="net.sf.mzmine.modules.peakpicking.threestep.ThreeStepPicker"> 
       <parameters>
-        <massdetector name="Centroid Mass">
+        <massdetector name="Centroid">
           <parameter name="Noise level" type="FLOAT">10.0</parameter>
         </massdetector>
-        <massdetector name="Exact Mass">
+        <massdetector name="Exact mass">
           <parameter name="Noise level" type="FLOAT">3000.0</parameter>
           <parameter name="Mass Resolution" type="INTEGER">60000</parameter>
-          <parameter name="Peak Model function" type="STRING">Lorentzian extended</parameter>
+          <parameter name="Peak Model function" type="STRING">Gaussian plus triangle</parameter>
         </massdetector>
         <massdetector name="Local maxima">
           <parameter name="Noise level" type="FLOAT">1000.0</parameter>
         </massdetector>
         <massdetector name="Recursive threshold">
           <parameter name="Noise level" type="FLOAT">1000.0</parameter>
-          <parameter name="Min M/Z peak width" type="FLOAT">0.0</parameter>
+          <parameter name="Min m/z peak width" type="FLOAT">0.2</parameter>
           <parameter name="Max M/Z peak width" type="FLOAT">1.0</parameter>
         </massdetector>
         <massdetector name="Wavelet transform">
@@ -26,25 +26,31 @@
           <parameter name="Scale level" type="INTEGER">6</parameter>
           <parameter name="Wavelet window size (%)" type="FLOAT">0.5</parameter>
         </massdetector>
-        <chromatogrambuilder name="Simple Builder">
-          <parameter name="Min Chromatogram duration" type="FLOAT">10.0</parameter>
-          <parameter name="M/Z tolerance" type="FLOAT">0.1</parameter>
+        <chromatogrambuilder name="Score connector">
+          <parameter name="Min time span" type="FLOAT">20.0</parameter>
+          <parameter name="m/z tolerance" type="FLOAT">0.0015</parameter>
         </chromatogrambuilder>
-        <peakbuilder name="Simple"/>
-        <peakbuilder name="Baseline">
+        <chromatogrambuilder name="Highest datapoint">
+          <parameter name="Min time span" type="FLOAT">20.0</parameter>
+          <parameter name="m/z tolerance" type="FLOAT">0.0015</parameter>
+        </chromatogrambuilder>
+        <peakbuilder name="No recognition"/>
+        <peakbuilder name="Baseline cut-off">
+          <parameter name="Min peak height" type="FLOAT">100.0</parameter>
+          <parameter name="Min peak duration" type="FLOAT">10.0</parameter>
           <parameter name="Baseline level" type="FLOAT">100.0</parameter>
         </peakbuilder>
-        <peakbuilder name="Chromatographic Threshold">
+        <peakbuilder name="Chromatographic threshold">
           <parameter name="Min peak height" type="FLOAT">100.0</parameter>
           <parameter name="Min peak duration" type="FLOAT">10.0</parameter>
           <parameter name="Chromatographic threshold level" type="FLOAT">0.8</parameter>
         </peakbuilder>
-        <peakbuilder name="Noise Amplitude">
+        <peakbuilder name="Noise amplitude">
           <parameter name="Min peak height" type="FLOAT">100.0</parameter>
           <parameter name="Min peak duration" type="FLOAT">10.0</parameter>
           <parameter name="Amplitude of noise" type="FLOAT">1000.0</parameter>
         </peakbuilder>
-        <peakbuilder name="Standard Deviation">
+        <peakbuilder name="Standard deviation">
           <parameter name="Min peak height" type="FLOAT">100.0</parameter>
           <parameter name="Min peak duration" type="FLOAT">10.0</parameter>
           <parameter name="Standard Deviation threshold level" type="FLOAT">0.8</parameter>
@@ -53,81 +59,22 @@
           <parameter name="Min peak height" type="FLOAT">100.0</parameter>
           <parameter name="Min peak duration" type="FLOAT">10.0</parameter>
         </peakbuilder>
-        <peakbuilder name="Wavelet">
+        <peakbuilder name="Wavelet transform">
           <parameter name="Min peak height" type="FLOAT">100.0</parameter>
           <parameter name="Min peak duration" type="FLOAT">10.0</parameter>
         </peakbuilder>
         <parameter name="Mass Detector type" type="INTEGER">1</parameter>
         <parameter name="Chromatogram Builder type" type="INTEGER">0</parameter>
         <parameter name="Peak Builder type" type="INTEGER">0</parameter>
-        <parameter name="Suffix" type="STRING">peaklist_new</parameter>
-      </parameters> 
-    </module>  
-    <module class="net.sf.mzmine.modules.peakpicking.twostep.TwoStepPicker"> 
-      <parameters>
-        <massdetector name="Centroid">
-          <parameter name="Noise level" type="FLOAT">10.0</parameter>
-        </massdetector>
-        <massdetector name="Exact mass">
-          <parameter name="Noise level" type="FLOAT">10.0</parameter>
-          <parameter name="Mass Resolution" type="INTEGER">60000</parameter>
-          <parameter name="Peak Model function" type="STRING"/>
-        </massdetector>
-        <massdetector name="Local maxima">
-          <parameter name="Noise level" type="FLOAT">10.0</parameter>
-        </massdetector>
-        <massdetector name="Recursive threshold">
-          <parameter name="Noise level" type="FLOAT">10.0</parameter>
-          <parameter name="Min M/Z peak width" type="FLOAT">0.2</parameter>
-          <parameter name="Max M/Z peak width" type="FLOAT">1.0</parameter>
-        </massdetector>
-        <massdetector name="Wavelet transform">
-          <parameter name="Noise level" type="FLOAT">10.0</parameter>
-          <parameter name="Scale level" type="INTEGER">6</parameter>
-          <parameter name="Wavelet window size (%)" type="FLOAT">0.5</parameter>
-        </massdetector>
-        <peakbuilder name="Base line connector">
-          <parameter name="Baseline level" type="FLOAT">100.0</parameter>
-          <parameter name="M/Z tolerance" type="FLOAT">0.1</parameter>
-        </peakbuilder>
-        <peakbuilder name="Savitzky-Golay connector">
-          <parameter name="Min peak height" type="FLOAT">100.0</parameter>
-          <parameter name="Min peak duration" type="FLOAT">10.0</parameter>
-          <parameter name="M/Z tolerance" type="FLOAT">0.1</parameter>
-          <parameter name="Intensity tolerance" type="FLOAT">0.15</parameter>
-        </peakbuilder>
-        <peakbuilder name="Simple data point connector">
-          <parameter name="Min peak height" type="FLOAT">100.0</parameter>
-          <parameter name="Min peak duration" type="FLOAT">10.0</parameter>
-          <parameter name="M/Z tolerance" type="FLOAT">0.1</parameter>
-          <parameter name="Intensity tolerance" type="FLOAT">0.15</parameter>
-          <parameter name="Apply Chromatographic threshold filter" type="BOOLEAN">false</parameter>
-          <parameter name="Chromatographic threshold level" type="FLOAT">0.8</parameter>
-        </peakbuilder>
-        <peakbuilder name="Threshold connector">
-          <parameter name="Min peak height" type="FLOAT">100.0</parameter>
-          <parameter name="Min peak duration" type="FLOAT">10.0</parameter>
-          <parameter name="M/Z tolerance" type="FLOAT">0.1</parameter>
-          <parameter name="Amplitude of noise" type="FLOAT">1000.0</parameter>
-        </peakbuilder>
-        <peakbuilder name="Wavelet connector">
-          <parameter name="Min peak height" type="FLOAT">100.0</parameter>
-          <parameter name="Min peak duration" type="FLOAT">10.0</parameter>
-          <parameter name="M/Z tolerance" type="FLOAT">0.1</parameter>
-          <parameter name="Intensity tolerance" type="FLOAT">0.15</parameter>
-          <parameter name="Amplitude of noise" type="FLOAT">1000.0</parameter>
-        </peakbuilder>
-        <parameter name="Mass Detector type" type="INTEGER">0</parameter>
-        <parameter name="Peak Builder type" type="INTEGER">0</parameter>
-        <parameter name="Suffix" type="STRING"/>
+        <parameter name="Suffix" type="STRING">peaklist_3</parameter>
       </parameters> 
     </module>  
     <module class="net.sf.mzmine.modules.visualization.tic.TICVisualizer"> 
       <parameters>
         <parameter name="MS level" type="INTEGER">1</parameter>
         <parameter name="Plot type" type="STRING">Base peak intensity</parameter>
-        <parameter name="Retention time" type="RANGE">0.5661-2398.8782</parameter>
-        <parameter name="m/z range" type="RANGE">129.05426-129.05879</parameter>
+        <parameter name="Retention time" type="RANGE">0.5799-2398.917</parameter>
+        <parameter name="m/z range" type="RANGE">100.985535-100.98803</parameter>
       </parameters> 
     </module>  
     <module class="net.sf.mzmine.modules.visualization.spectra.SpectraVisualizer"> 
@@ -145,10 +92,10 @@
     <module class="net.sf.mzmine.modules.visualization.threed.ThreeDVisualizer"> 
       <parameters>
         <parameter name="MS level" type="INTEGER">1</parameter>
-        <parameter name="Retention time" type="RANGE">0.0-600.0</parameter>
-        <parameter name="Retention time resolution" type="INTEGER">100</parameter>
-        <parameter name="m/z range" type="RANGE">0.0-1000.0</parameter>
-        <parameter name="m/z resolution" type="INTEGER">100</parameter>
+        <parameter name="Retention time" type="RANGE">0.5799-2398.917</parameter>
+        <parameter name="Retention time resolution" type="INTEGER">700</parameter>
+        <parameter name="m/z range" type="RANGE">100.00005-1000.00916</parameter>
+        <parameter name="m/z resolution" type="INTEGER">700</parameter>
       </parameters> 
     </module>  
     <module class="net.sf.mzmine.modules.visualization.neutralloss.NeutralLossVisualizer"> 
@@ -184,11 +131,11 @@
         </column>
         <column type="datafile" name="STATUS">
           <visible>true</visible>
-          <width>100</width>
+          <width>15</width>
         </column>
         <column type="datafile" name="PEAKSHAPE">
           <visible>true</visible>
-          <width>1070</width>
+          <width>593</width>
         </column>
         <column type="datafile" name="MZ">
           <visible>false</visible>
@@ -210,7 +157,7 @@
           <visible>false</visible>
           <width>100</width>
         </column>
-        <rowheight>20</rowheight>
+        <rowheight>50</rowheight>
         <peakshapenormalization>PEAKMAX</peakshapenormalization>
       </parameters> 
     </module>  
@@ -219,11 +166,11 @@
         <batchstep>
           <method>net.sf.mzmine.modules.peakpicking.threestep.ThreeStepPicker</method>
           <parameters>
-            <massdetector name="Centroid Mass">
+            <massdetector name="Centroid">
               <parameter name="Noise level" type="FLOAT">10.0</parameter>
             </massdetector>
-            <massdetector name="Exact Mass">
-              <parameter name="Noise level" type="FLOAT">3000.0</parameter>
+            <massdetector name="Exact mass">
+              <parameter name="Noise level" type="FLOAT">10.0</parameter>
               <parameter name="Mass Resolution" type="INTEGER">60000</parameter>
               <parameter name="Peak Model function" type="STRING">Lorentzian extended</parameter>
             </massdetector>
@@ -232,7 +179,7 @@
             </massdetector>
             <massdetector name="Recursive threshold">
               <parameter name="Noise level" type="FLOAT">10000.0</parameter>
-              <parameter name="Min M/Z peak width" type="FLOAT">0.0</parameter>
+              <parameter name="Min m/z peak width" type="FLOAT">0.2</parameter>
               <parameter name="Max M/Z peak width" type="FLOAT">1.0</parameter>
             </massdetector>
             <massdetector name="Wavelet transform">
@@ -240,25 +187,31 @@
               <parameter name="Scale level" type="INTEGER">6</parameter>
               <parameter name="Wavelet window size (%)" type="FLOAT">0.5</parameter>
             </massdetector>
-            <chromatogrambuilder name="Simple Builder">
-              <parameter name="Min Chromatogram duration" type="FLOAT">10.0</parameter>
-              <parameter name="M/Z tolerance" type="FLOAT">0.1</parameter>
+            <chromatogrambuilder name="Score connector">
+              <parameter name="Min time span" type="FLOAT">10.0</parameter>
+              <parameter name="m/z tolerance" type="FLOAT">0.1</parameter>
             </chromatogrambuilder>
-            <peakbuilder name="Simple"/>
-            <peakbuilder name="Baseline">
+            <chromatogrambuilder name="Highest datapoint">
+              <parameter name="Min time span" type="FLOAT">10.0</parameter>
+              <parameter name="m/z tolerance" type="FLOAT">0.1</parameter>
+            </chromatogrambuilder>
+            <peakbuilder name="No recognition"/>
+            <peakbuilder name="Baseline cut-off">
+              <parameter name="Min peak height" type="FLOAT">100.0</parameter>
+              <parameter name="Min peak duration" type="FLOAT">10.0</parameter>
               <parameter name="Baseline level" type="FLOAT">100.0</parameter>
             </peakbuilder>
-            <peakbuilder name="Chromatographic Threshold">
+            <peakbuilder name="Chromatographic threshold">
               <parameter name="Min peak height" type="FLOAT">100.0</parameter>
               <parameter name="Min peak duration" type="FLOAT">10.0</parameter>
               <parameter name="Chromatographic threshold level" type="FLOAT">0.8</parameter>
             </peakbuilder>
-            <peakbuilder name="Noise Amplitude">
+            <peakbuilder name="Noise amplitude">
               <parameter name="Min peak height" type="FLOAT">100.0</parameter>
               <parameter name="Min peak duration" type="FLOAT">10.0</parameter>
               <parameter name="Amplitude of noise" type="FLOAT">1000.0</parameter>
             </peakbuilder>
-            <peakbuilder name="Standard Deviation">
+            <peakbuilder name="Standard deviation">
               <parameter name="Min peak height" type="FLOAT">100.0</parameter>
               <parameter name="Min peak duration" type="FLOAT">10.0</parameter>
               <parameter name="Standard Deviation threshold level" type="FLOAT">0.8</parameter>
@@ -267,7 +220,7 @@
               <parameter name="Min peak height" type="FLOAT">100.0</parameter>
               <parameter name="Min peak duration" type="FLOAT">10.0</parameter>
             </peakbuilder>
-            <peakbuilder name="Wavelet">
+            <peakbuilder name="Wavelet transform">
               <parameter name="Min peak height" type="FLOAT">100.0</parameter>
               <parameter name="Min peak duration" type="FLOAT">10.0</parameter>
             </peakbuilder>
@@ -522,10 +475,10 @@
       <pattern>#0.0</pattern>
     </format>
     <mainwindow>
-      <x>-8</x>
-      <y>-8</y>
-      <width>-1</width>
-      <height>-1</height>
+      <x>401</x>
+      <y>274</y>
+      <width>1157</width>
+      <height>761</height>
     </mainwindow>
     <lastdirectory>/mnt/newHD/private/kawasaki/mzmine/Nakamura/XML/negative mode XML</lastdirectory>
     <lastProjectDirectory>/Users/plusik/Documents/20080604 Sajiki pyk1 analysis.mzmine</lastProjectDirectory>
