@@ -34,7 +34,7 @@ import javax.swing.JPopupMenu;
 import javax.swing.KeyStroke;
 
 import net.sf.mzmine.main.MZmineCore;
-import net.sf.mzmine.modules.peakpicking.twostep.massdetection.MassDetectorSetupDialog;
+import net.sf.mzmine.modules.peakpicking.threestep.massdetection.MassDetectorSetupDialog;
 import net.sf.mzmine.util.GUIUtils;
 import net.sf.mzmine.util.dialogs.AxesSetupDialog;
 
