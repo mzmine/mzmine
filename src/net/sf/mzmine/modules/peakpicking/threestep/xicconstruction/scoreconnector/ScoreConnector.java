@@ -44,11 +44,15 @@ public class ScoreConnector implements ChromatogramBuilder {
 		float mz;
 
 		for (Chromatogram currentChromatogram : underConstructionChromatograms) {
+			float chromatogramMz = currentChromatogram.getLastMz();
 
 			for (ConnectedMzPeak currentMzPeak : cMzPeaks) {
-
+				
 				mz = currentMzPeak.getMzPeak().getMZ();
-				float mzDifference = Math.abs(currentChromatogram.getLastMz() - mz);
+				if (mz > (chromatogramMz + mzTolerance))
+					break;
+
+				float mzDifference = Math.abs(chromatogramMz - mz);
 
 				if (mzDifference <= mzTolerance) {
 					MatchScore score = new MatchScore(currentChromatogram,
@@ -141,6 +145,7 @@ public class ScoreConnector implements ChromatogramBuilder {
 			}
 
 		}
+		
 	}
 
 	/**

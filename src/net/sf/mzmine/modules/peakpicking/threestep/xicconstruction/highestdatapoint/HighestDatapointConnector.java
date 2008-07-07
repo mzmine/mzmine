@@ -44,14 +44,19 @@ public class HighestDatapointConnector implements ChromatogramBuilder {
 
 		for (Chromatogram currentChromatogram : underConstructionChromatograms) {
 
-			mz = currentChromatogram.getLastMz();
+			float chromatogramMz = currentChromatogram.getLastMz();
 
 			for (ConnectedMzPeak currentMzPeak : cMzPeaks) {
+
+				mz = currentMzPeak.getMzPeak().getMZ();
+
+				if (mz > (chromatogramMz + mzTolerance))
+					break;
 
 				if (currentMzPeak.isConnected())
 					continue;
 
-				mzDifference = Math.abs(currentMzPeak.getMzPeak().getMZ() - mz);
+				mzDifference = Math.abs(chromatogramMz - mz);
 				if (mzDifference < mzTolerance)
 					highestDatapoint.add(currentMzPeak);
 			}

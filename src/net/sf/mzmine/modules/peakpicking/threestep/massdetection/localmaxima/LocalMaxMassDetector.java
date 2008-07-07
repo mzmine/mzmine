@@ -19,12 +19,14 @@
 
 package net.sf.mzmine.modules.peakpicking.threestep.massdetection.localmaxima;
 
-import java.util.ArrayList;
+import java.util.TreeSet;
+import java.util.Vector;
 
 import net.sf.mzmine.data.DataPoint;
 import net.sf.mzmine.data.Scan;
 import net.sf.mzmine.modules.peakpicking.threestep.massdetection.MassDetector;
 import net.sf.mzmine.modules.peakpicking.threestep.massdetection.MzPeak;
+import net.sf.mzmine.modules.peakpicking.threestep.massdetection.MzPeaksSorter;
 
 /**
  * This class detects all local maxima in a given scan.
@@ -40,11 +42,15 @@ public class LocalMaxMassDetector implements MassDetector {
 
     public MzPeak[] getMassValues(Scan scan) {
 
-        ArrayList<MzPeak> mzPeaks = new ArrayList<MzPeak>();
+        //ArrayList<MzPeak> mzPeaks = new ArrayList<MzPeak>();
+        // Create a tree set of detected mzPeaks sorted by MZ in ascending order
+        TreeSet<MzPeak> mzPeaks = new TreeSet<MzPeak>(new MzPeaksSorter(true,
+                true));
+        
         DataPoint dataPoints[] = scan.getDataPoints();
 
         // All data points of current m/z peak
-        ArrayList<DataPoint> currentMzPeakDataPoints = new ArrayList<DataPoint>();
+        Vector<DataPoint> currentMzPeakDataPoints = new Vector<DataPoint>();
 
         // Top data point of current m/z peak
         DataPoint currentMzPeakTop = null;

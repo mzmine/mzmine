@@ -19,18 +19,20 @@
 
 package net.sf.mzmine.modules.peakpicking.threestep.massdetection.recursive;
 
-import java.util.ArrayList;
+import java.util.TreeSet;
+import java.util.Vector;
 
 import net.sf.mzmine.data.DataPoint;
 import net.sf.mzmine.data.Scan;
 import net.sf.mzmine.modules.peakpicking.threestep.massdetection.MassDetector;
 import net.sf.mzmine.modules.peakpicking.threestep.massdetection.MzPeak;
+import net.sf.mzmine.modules.peakpicking.threestep.massdetection.MzPeaksSorter;
 
 public class RecursiveMassDetector implements MassDetector {
 
     // Parameter values
     private float minimumMZPeakWidth, maximumMZPeakWidth, noiseLevel;
-    private ArrayList<MzPeak> mzPeaks;
+    private TreeSet<MzPeak> mzPeaks;
     private DataPoint[] dataPoints;
 
     // private Scan scan;
@@ -45,7 +47,8 @@ public class RecursiveMassDetector implements MassDetector {
 
         // this.scan = scan;
         dataPoints = scan.getDataPoints();
-        mzPeaks = new ArrayList<MzPeak>();
+        mzPeaks = new TreeSet<MzPeak>(new MzPeaksSorter(true,
+                true));
 
         // Find MzPeaks
         recursiveThreshold(1, dataPoints.length - 1, noiseLevel, 0);
@@ -60,7 +63,7 @@ public class RecursiveMassDetector implements MassDetector {
 
         // logger.finest(" Level of recursion " + recuLevel);
 
-        ArrayList<DataPoint> RawDataPointsInds = new ArrayList<DataPoint>();
+        Vector<DataPoint> RawDataPointsInds = new Vector<DataPoint>();
         int peakStartInd, peakStopInd, peakMaxInd;
         float peakWidthMZ;
 

@@ -28,6 +28,7 @@ import net.sf.mzmine.data.DataPoint;
 import net.sf.mzmine.data.Scan;
 import net.sf.mzmine.modules.peakpicking.threestep.massdetection.MassDetector;
 import net.sf.mzmine.modules.peakpicking.threestep.massdetection.MzPeak;
+import net.sf.mzmine.modules.peakpicking.threestep.massdetection.MzPeaksSorter;
 import net.sf.mzmine.util.Range;
 
 public class ExactMassDetector implements MassDetector {

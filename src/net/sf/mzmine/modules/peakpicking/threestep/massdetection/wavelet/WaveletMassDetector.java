@@ -19,13 +19,15 @@
 
 package net.sf.mzmine.modules.peakpicking.threestep.massdetection.wavelet;
 
-import java.util.ArrayList;
+import java.util.TreeSet;
+import java.util.Vector;
 
 import net.sf.mzmine.data.DataPoint;
 import net.sf.mzmine.data.Scan;
 import net.sf.mzmine.data.impl.SimpleDataPoint;
 import net.sf.mzmine.modules.peakpicking.threestep.massdetection.MassDetector;
 import net.sf.mzmine.modules.peakpicking.threestep.massdetection.MzPeak;
+import net.sf.mzmine.modules.peakpicking.threestep.massdetection.MzPeaksSorter;
 
 /*
  * This class implements the Continuous Wavelet Transform (CWT), Mexican Hat,
@@ -39,7 +41,7 @@ public class WaveletMassDetector implements MassDetector {
     // Parameter value
     private int scaleLevel;
     private float waveletWindow, noiseLevel;
-    private ArrayList<MzPeak> mzPeaks;
+    private TreeSet<MzPeak> mzPeaks;
 
     /**
      * Parameters of the wavelet, NPOINTS is the number of wavelet values to use
@@ -57,7 +59,8 @@ public class WaveletMassDetector implements MassDetector {
 
     public MzPeak[] getMassValues(Scan scan) {
         DataPoint[] originalDataPoints = scan.getDataPoints();
-        mzPeaks = new ArrayList<MzPeak>();
+        mzPeaks = new TreeSet<MzPeak>(new MzPeaksSorter(true,
+                true));
 
         DataPoint[] waveletDataPoints = performCWT(originalDataPoints);
 
@@ -149,7 +152,7 @@ public class WaveletMassDetector implements MassDetector {
     private void getMzPeaks(DataPoint[] originalDataPoints,
             DataPoint[] waveletDataPoints) {
 
-        ArrayList<DataPoint> rawDataPoints = new ArrayList<DataPoint>();
+        Vector<DataPoint> rawDataPoints = new Vector<DataPoint>();
         int peakMaxInd = 0;
         int stopInd = waveletDataPoints.length - 1;
 
@@ -195,7 +198,7 @@ public class WaveletMassDetector implements MassDetector {
 
     }
 
-    private float calcAproxIntensity(ArrayList<DataPoint> rawDataPoints) {
+    private float calcAproxIntensity(Vector<DataPoint> rawDataPoints) {
 
         float aproxIntensity = 0;
 

@@ -17,11 +17,10 @@
  * Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-package net.sf.mzmine.modules.peakpicking.threestep.massdetection.exactmass;
+package net.sf.mzmine.modules.peakpicking.threestep.massdetection;
 
 import java.util.Comparator;
 
-import net.sf.mzmine.modules.peakpicking.threestep.massdetection.MzPeak;
 
 /**
  * This class implements Comparator class to provide a comparison between to
@@ -42,7 +41,7 @@ public class MzPeaksSorter implements Comparator<MzPeak> {
 	 * @param sortByMZ
 	 * @param ascending
 	 */
-	MzPeaksSorter(boolean sortByMZ, boolean ascending) {
+	public MzPeaksSorter(boolean sortByMZ, boolean ascending) {
 		this.sortByMZ = sortByMZ;
 		this.ascending = ascending;
 	}

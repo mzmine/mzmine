@@ -19,12 +19,13 @@
 
 package net.sf.mzmine.modules.peakpicking.threestep.massdetection.centroid;
 
-import java.util.Vector;
+import java.util.TreeSet;
 
 import net.sf.mzmine.data.DataPoint;
 import net.sf.mzmine.data.Scan;
 import net.sf.mzmine.modules.peakpicking.threestep.massdetection.MassDetector;
 import net.sf.mzmine.modules.peakpicking.threestep.massdetection.MzPeak;
+import net.sf.mzmine.modules.peakpicking.threestep.massdetection.MzPeaksSorter;
 
 public class CentroidMassDetector implements MassDetector {
 
@@ -37,8 +38,13 @@ public class CentroidMassDetector implements MassDetector {
 	}
 
 	public MzPeak[] getMassValues(Scan scan) {
-		Vector<MzPeak> mzPeaks = new Vector<MzPeak>();
-		DataPoint dataPoints[] = scan.getDataPoints();
+		//Vector<MzPeak> mzPeaks = new Vector<MzPeak>();
+        
+		// Create a tree set of detected mzPeaks sorted by MZ in ascending order
+        TreeSet<MzPeak> mzPeaks = new TreeSet<MzPeak>(new MzPeaksSorter(true,
+                true));
+        
+        DataPoint dataPoints[] = scan.getDataPoints();
 
 		// Find possible mzPeaks
 		for (int j = 0; j < dataPoints.length; j++) {
