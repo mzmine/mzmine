@@ -369,7 +369,7 @@ public class ProjectSavingTask_xstream implements ProjectSavingTask {
 		PeakList[] peakLists;
 		final String DIR="peakLists";
 		
-		logger.info("Saving peakList in " + projectDir);
+		
 		File outDir = new File(projectDir, DIR);
 		DirectoryStorage storage=new DirectoryStorage(xstream,outDir);
 		
@@ -377,6 +377,7 @@ public class ProjectSavingTask_xstream implements ProjectSavingTask {
 		PeakList peakList;
 		for (int i = 0; i < peakLists.length; i++) {
 			peakList = peakLists[i];
+            logger.info("Saving peakList " + peakList + " in " + outDir);
 			storage.add(peakList, peakList.toString());
 			finished = start + (end - start) * i / peakLists.length;
 		}
@@ -388,7 +389,7 @@ public class ProjectSavingTask_xstream implements ProjectSavingTask {
 		RawDataFile [] dataFiles;
 		final String DIR="dataFiles";
 		
-		logger.info("Saving peakList in " + projectDir);
+		
 		File outDir = new File(projectDir, DIR);
 		DirectoryStorage storage=new DirectoryStorage(xstream,outDir);
 		
@@ -396,6 +397,7 @@ public class ProjectSavingTask_xstream implements ProjectSavingTask {
 		RawDataFile rawDataFile;
 		for (int i = 0; i < dataFiles.length; i++) {
 			rawDataFile = dataFiles[i];
+            logger.info("Saving rawDataFile " + rawDataFile + " in " + outDir);
 			storage.add(rawDataFile, rawDataFile.getFileName());
 			finished = start + (end - start) * i / dataFiles.length;
 		}
@@ -455,6 +457,8 @@ public class ProjectSavingTask_xstream implements ProjectSavingTask {
 			project = (MZmineProjectImpl) MZmineCore.getCurrentProject();
 			float start;
 			float end;
+            
+            
 
 			// store current status
 			oldProjectDir = project.getLocation();
@@ -484,6 +488,9 @@ public class ProjectSavingTask_xstream implements ProjectSavingTask {
 				// setup xstream
 				XStream xstream = MZmineXStream.getXstream();
 				
+                // set references to ID, because XPath consumes too much memory
+                xstream.setMode(XStream.ID_REFERENCES);
+                
 				if (this.option != null && this.option.containsKey("zip")
 						&& this.option.get("zip").equals(true)) {
 					projectType = ProjectType.zippedXML;

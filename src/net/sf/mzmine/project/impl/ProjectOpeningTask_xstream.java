@@ -247,6 +247,9 @@ public class ProjectOpeningTask_xstream implements ProjectOpeningTask {
 
 			// register converter for specific type
 			XStream xstream = MZmineXStream.getXstream();
+            
+            // set references to ID, because XPath consumes too much memory
+            xstream.setMode(XStream.ID_REFERENCES);
 
 			// restore info first
 			start = finished;
