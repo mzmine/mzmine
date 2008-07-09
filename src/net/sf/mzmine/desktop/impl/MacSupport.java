@@ -26,6 +26,7 @@ import java.io.IOException;
 import javax.imageio.ImageIO;
 
 import net.sf.mzmine.data.PreloadLevel;
+import net.sf.mzmine.desktop.helpsystem.HelpWindow;
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.modules.io.rawdataimport.RawDataImporter;
 import net.sf.mzmine.modules.io.rawdataimport.RawDataImporterParameters;
@@ -61,9 +62,10 @@ public class MacSupport implements ApplicationListener {
     }
 
     public void handleAbout(ApplicationEvent event) {
-        AboutDialog dialog = new AboutDialog();
+        /*AboutDialog dialog = new AboutDialog();
         dialog.setVisible(true);
-        event.setHandled(true);
+        event.setHandled(true);*/
+        HelpWindow.makeHelpWindow();
     }
 
     public void handleOpenApplication(ApplicationEvent event) {

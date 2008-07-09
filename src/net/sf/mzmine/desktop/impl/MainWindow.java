@@ -44,7 +44,7 @@ import net.sf.mzmine.data.PeakList;
 import net.sf.mzmine.data.RawDataFile;
 import net.sf.mzmine.desktop.Desktop;
 import net.sf.mzmine.desktop.MZmineMenu;
-import net.sf.mzmine.desktop.helpsystem.HelpClass;
+import net.sf.mzmine.desktop.helpsystem.HelpMainMenuItem;
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.main.MZmineModule;
 import net.sf.mzmine.project.MZmineProject;
@@ -70,7 +70,7 @@ public class MainWindow extends JFrame implements MZmineModule, Desktop,
 
     private TaskProgressWindow taskList;
     
-    private HelpClass help;
+    private HelpMainMenuItem help;
 
     public TaskProgressWindow getTaskList() {
         return taskList;
@@ -192,7 +192,7 @@ public class MainWindow extends JFrame implements MZmineModule, Desktop,
 
         // Construct menu
         menuBar = new MainMenu();
-		help = new HelpClass();
+		help = new HelpMainMenuItem();
 		help.addMenuItem(menuBar);
         setJMenuBar(menuBar);
 
@@ -223,7 +223,7 @@ public class MainWindow extends JFrame implements MZmineModule, Desktop,
         return this;
     }
 
-    public HelpClass getHelp() {
+    public HelpMainMenuItem getHelp() {
         return help;
     }
 

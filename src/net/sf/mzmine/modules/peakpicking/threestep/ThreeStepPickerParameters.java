@@ -46,11 +46,11 @@ public class ThreeStepPickerParameters implements StorableParameterSet {
 			"net.sf.mzmine.modules.peakpicking.threestep.massdetection.wavelet.WaveletMassDetector" };
 
 	public static final String massDetectorHelpFiles[] = {
-		"net/sf/mzmine/modules/peakpicking/threestep/massdetection/centroid/CentroidMassDetector.html",
-		"net/sf/mzmine/modules/peakpicking/threestep/massdetection/exactmass/ExactMassDetector.html",
-		"net/sf/mzmine/modules/peakpicking/threestep/massdetection/localmaxima/LocalMaxMassDetector.html",
-		"net/sf/mzmine/modules/peakpicking/threestep/massdetection/recursive/RecursiveMassDetector.html",
-		"net/sf/mzmine/modules/peakpicking/threestep/massdetection/wavelet/WaveletMassDetector.html" };
+		"net/sf/mzmine/modules/peakpicking/threestep/massdetection/centroid/help/CentroidMassDetector.html",
+		"net/sf/mzmine/modules/peakpicking/threestep/massdetection/exactmass/help/ExactMassDetector.html",
+		"net/sf/mzmine/modules/peakpicking/threestep/massdetection/localmaxima/help/LocalMaxMassDetector.html",
+		"net/sf/mzmine/modules/peakpicking/threestep/massdetection/recursive/help/RecursiveMassDetector.html",
+		"net/sf/mzmine/modules/peakpicking/threestep/massdetection/wavelet/help/WaveletMassDetector.html" };
 
 	// Chromatogram Builders
 	public static final String chromatogramBuilderNames[] = { "Score connector", "Highest datapoint" };
@@ -60,8 +60,8 @@ public class ThreeStepPickerParameters implements StorableParameterSet {
 			"net.sf.mzmine.modules.peakpicking.threestep.xicconstruction.highestdatapoint.HighestDatapointConnector" };
 
 	public static final String chromatogramBuilderHelpFiles[] = { 
-		"net/sf/mzmine/modules/peakpicking/threestep/xicconstruction/scoreconnector/ScoreConnector.html",
-		"net/sf/mzmine/modules/peakpicking/threestep/xicconstruction/highestdatapoint/HighestDatapointConnector.html" };
+		"net/sf/mzmine/modules/peakpicking/threestep/xicconstruction/scoreconnector/help/ScoreConnector.html",
+		"net/sf/mzmine/modules/peakpicking/threestep/xicconstruction/highestdatapoint/help/HighestDatapointConnector.html" };
 
 	// Peak recognition
 	public static final String peakBuilderNames[] = { "No recognition", "Baseline cut-off",
@@ -78,13 +78,13 @@ public class ThreeStepPickerParameters implements StorableParameterSet {
 			"net.sf.mzmine.modules.peakpicking.threestep.peakconstruction.wavelet.WaveletPeakDetector" };
 
 	public static final String peakBuilderHelpFiles[] = {
-		"net/sf/mzmine/modules/peakpicking/threestep/peakconstruction/simple/SimplePeakDetector.html",
-		"net/sf/mzmine/modules/peakpicking/threestep/peakconstruction/baseline/BaselinePeakDetector.html",
-		"net/sf/mzmine/modules/peakpicking/threestep/peakconstruction/chromatographicthreshold/ChromatographicThresholdPeakDetector.html",
-		"net/sf/mzmine/modules/peakpicking/threestep/peakconstruction/noiseamplitude/NoiseAmplitudePeakDetector.html",
-		"net/sf/mzmine/modules/peakpicking/threestep/peakconstruction/standarddeviation/StandardDeviationPeakDetector.html",
-		"net/sf/mzmine/modules/peakpicking/threestep/peakconstruction/savitzkygolay/SavitzkyGolayPeakDetector.html",
-		"net/sf/mzmine/modules/peakpicking/threestep/peakconstruction/wavelet/WaveletPeakDetector.html" };
+		"net/sf/mzmine/modules/peakpicking/threestep/peakconstruction/simple/help/SimplePeakDetector.html",
+		"net/sf/mzmine/modules/peakpicking/threestep/peakconstruction/baseline/help/BaselinePeakDetector.html",
+		"net/sf/mzmine/modules/peakpicking/threestep/peakconstruction/chromatographicthreshold/help/ChromatographicThresholdPeakDetector.html",
+		"net/sf/mzmine/modules/peakpicking/threestep/peakconstruction/noiseamplitude/help/NoiseAmplitudePeakDetector.html",
+		"net/sf/mzmine/modules/peakpicking/threestep/peakconstruction/standarddeviation/help/StandardDeviationPeakDetector.html",
+		"net/sf/mzmine/modules/peakpicking/threestep/peakconstruction/savitzkygolay/help/SavitzkyGolayPeakDetector.html",
+		"net/sf/mzmine/modules/peakpicking/threestep/peakconstruction/wavelet/help/WaveletPeakDetector.html" };
 
 	
 	// Three step parameters

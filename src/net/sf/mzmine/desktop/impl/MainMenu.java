@@ -59,8 +59,7 @@ public class MainMenu extends JMenuBar implements ActionListener {
 
 	private JMenuItem projectCreate, projectRestore, projectSave,
 			projectSaveAs, projectExperimentalParameters, projectFormats,
-			projectSaveParameters, projectLoadParameters, projectExit,
-			hlpAbout;
+			projectSaveParameters, projectLoadParameters, projectExit;
 
 	MainMenu() {
 
@@ -144,8 +143,6 @@ public class MainMenu extends JMenuBar implements ActionListener {
 		helpMenu.setMnemonic(KeyEvent.VK_H);
 		this.add(helpMenu);
 
-		hlpAbout = GUIUtils.addMenuItem(helpMenu, "About MZmine 2...", this,
-				KeyEvent.VK_A);
 	}
 
 	public void addMenuItem(MZmineMenu parentMenu, JMenuItem newItem) {
@@ -370,12 +367,6 @@ public class MainMenu extends JMenuBar implements ActionListener {
 		if (src == projectFormats) {
 			FormatSetupDialog formatDialog = new FormatSetupDialog();
 			formatDialog.setVisible(true);
-		}
-
-		// Help->About
-		if (src == hlpAbout) {
-			AboutDialog dialog = new AboutDialog();
-			dialog.setVisible(true);
 		}
 
 	}

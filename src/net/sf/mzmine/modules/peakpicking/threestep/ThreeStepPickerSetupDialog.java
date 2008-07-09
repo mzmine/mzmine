@@ -178,7 +178,7 @@ class ThreeStepPickerSetupDialog extends JDialog implements ActionListener {
 		btnOK.addActionListener(this);
 		btnCancel = new JButton("Cancel");
 		btnCancel.addActionListener(this);
-		btnHelp = new HelpButton("net/sf/mzmine/modules/peakpicking/threestep/ThreeStepsDetector.html");
+		btnHelp = new HelpButton("net/sf/mzmine/modules/peakpicking/threestep/help/ThreeStepsDetector.html");
 
 		JPanel pnlCombo = new JPanel();
 		pnlCombo.setLayout(new GridBagLayout());

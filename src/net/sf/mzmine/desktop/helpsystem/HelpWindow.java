@@ -19,8 +19,8 @@
 
 package net.sf.mzmine.desktop.helpsystem;
 
+import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.awt.event.KeyEvent;
 import java.io.File;
 import java.util.Enumeration;
 import java.util.jar.JarEntry;
@@ -29,12 +29,9 @@ import java.util.jar.JarFile;
 import javax.help.CSH;
 import javax.help.HelpBroker;
 
-import net.sf.mzmine.desktop.MZmineMenu;
-import net.sf.mzmine.desktop.impl.MainMenu;
+public final class HelpWindow {
 
-public class HelpClass {
-
-	public void addMenuItem(MainMenu menu) {
+	public static void makeHelpWindow() {
 
 		try {
 			
@@ -65,10 +62,8 @@ public class HelpClass {
 			hs.addTOCView(myTOC);
 			
 			HelpBroker hb = hs.createHelpBroker();
-			ActionListener helpListener = new CSH.DisplayHelpFromSource(hb);
-
-			menu.addMenuItem(MZmineMenu.HELPSYSTEM, "Help Contents",
-					"Help system contents", KeyEvent.VK_C, helpListener, null);
+			new CSH.DisplayHelpFromSource(hb).actionPerformed(new ActionEvent(hb, 0, null));
+			
 			
 			
 		} catch (Exception e) {

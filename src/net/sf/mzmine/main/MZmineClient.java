@@ -26,7 +26,7 @@ import java.util.logging.Logger;
 
 import javax.swing.SwingUtilities;
 
-import net.sf.mzmine.desktop.helpsystem.HelpClass;
+import net.sf.mzmine.desktop.helpsystem.HelpMainMenuItem;
 import net.sf.mzmine.desktop.impl.MainWindow;
 import net.sf.mzmine.project.MZmineProject;
 import net.sf.mzmine.project.ProjectManager;
