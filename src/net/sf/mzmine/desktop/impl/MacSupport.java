@@ -62,10 +62,8 @@ public class MacSupport implements ApplicationListener {
     }
 
     public void handleAbout(ApplicationEvent event) {
-        /*AboutDialog dialog = new AboutDialog();
-        dialog.setVisible(true);
-        event.setHandled(true);*/
         HelpWindow.makeHelpWindow();
+        event.setHandled(true);
     }
 
     public void handleOpenApplication(ApplicationEvent event) {
