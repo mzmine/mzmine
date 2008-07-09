@@ -26,14 +26,8 @@ import java.awt.GridBagLayout;
 import java.awt.Insets;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.io.File;
 import java.util.Arrays;
-import java.util.Enumeration;
-import java.util.jar.JarEntry;
-import java.util.jar.JarFile;
 
-import javax.help.CSH;
-import javax.help.HelpBroker;
 import javax.swing.BorderFactory;
 import javax.swing.JButton;
 import javax.swing.JComboBox;
@@ -45,13 +39,10 @@ import javax.swing.JTextField;
 import net.sf.mzmine.data.RawDataFile;
 import net.sf.mzmine.data.Scan;
 import net.sf.mzmine.desktop.Desktop;
-import net.sf.mzmine.desktop.helpsystem.MZmineHelpMap;
-import net.sf.mzmine.desktop.helpsystem.MZmineHelpSet;
-import net.sf.mzmine.desktop.helpsystem.MZmineTOCView;
-import net.sf.mzmine.desktop.impl.MainWindow;
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.modules.peakpicking.threestep.massdetection.MassDetectorSetupDialog;
 import net.sf.mzmine.modules.peakpicking.threestep.peakconstruction.PeakBuilderSetupDialog;
+import net.sf.mzmine.util.components.HelpButton;
 import net.sf.mzmine.util.dialogs.ExitCode;
 import net.sf.mzmine.util.dialogs.ParameterSetupDialog;
 
@@ -71,9 +62,6 @@ class ThreeStepPickerSetupDialog extends JDialog implements ActionListener {
 			comboPeaksConstructors;
 	private JTextField txtField;
 	
-	// Desktop
-	private Desktop desktop = MZmineCore.getDesktop();
-
 	public ThreeStepPickerSetupDialog(String title,
 			ThreeStepPickerParameters parameters) {
 
@@ -111,7 +99,7 @@ class ThreeStepPickerSetupDialog extends JDialog implements ActionListener {
 					ThreeStepPickerParameters.chromatogramBuilderNames[ind]
 							+ "'s parameter setup dialog ", parameters
 							.getChromatogramBuilderParameters(ind),
-					"ChromatoBuild" + ind);
+							ThreeStepPickerParameters.chromatogramBuilderHelpFiles[ind]);
 			;
 
 			dialog.setVisible(true);
@@ -190,8 +178,7 @@ class ThreeStepPickerSetupDialog extends JDialog implements ActionListener {
 		btnOK.addActionListener(this);
 		btnCancel = new JButton("Cancel");
 		btnCancel.addActionListener(this);
-		btnHelp = new JButton("Help");
-		setHelpListener(btnHelp);
+		btnHelp = new HelpButton("net/sf/mzmine/modules/peakpicking/threestep/ThreeStepsDetector.html");
 
 		JPanel pnlCombo = new JPanel();
 		pnlCombo.setLayout(new GridBagLayout());
@@ -308,39 +295,6 @@ class ThreeStepPickerSetupDialog extends JDialog implements ActionListener {
 						.displayMessage(" Neither one of the selected files contains centroided data points.\n"
 								+ " The actual mass detector could give an unexpected result ");
 			}
-		}
-	}
-
-	void setHelpListener(JButton helpBtn) {
-
-		try {
-			
-			// Construct help
-			MZmineHelpMap helpMap = new MZmineHelpMap();
-			
-			File file = new File(System.getProperty("user.dir") + File.separator + "dist" + File.separator
-					+ "MZmine.jar");
-			JarFile jarFile = new JarFile(file);
-		    Enumeration<JarEntry> e = jarFile.entries();
-		       while (e.hasMoreElements()) {
-		           JarEntry entry = e.nextElement();
-		           String name = entry.getName();
-		           if ( name.contains("htm") )
-		        	   helpMap.setTarget(name);
-		       }			
-		       
-		    MZmineHelpSet hs = new MZmineHelpSet();
-	        MZmineTOCView myTOC = new MZmineTOCView(hs, "TOC", "Table Of Contents", helpMap);
-	        
-	        hs.setLocalMap(helpMap);
-			hs.addTOCView(myTOC);
-			
-			HelpBroker hb = hs.createHelpBroker();
-			//hb.enableHelpKey(getRootPane(), "net/sf/mzmine.modules/peakpicking/threestep/ThreeStepsDetector.htm", hs);
-
-			helpBtn.addActionListener(new CSH.DisplayHelpFromSource(hb));
-			} catch (Exception event) {
-			event.printStackTrace();
 		}
 	}
 

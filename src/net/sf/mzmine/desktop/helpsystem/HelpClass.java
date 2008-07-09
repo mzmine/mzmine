@@ -34,14 +34,12 @@ import net.sf.mzmine.desktop.impl.MainMenu;
 
 public class HelpClass {
 
-	private MZmineHelpMap helpMap;
-	
 	public void addMenuItem(MainMenu menu) {
 
 		try {
 			
 			// Construct help
-	        helpMap = new MZmineHelpMap();
+			MZmineHelpMap helpMap = new MZmineHelpMap();
 			
 			File file = new File(System.getProperty("user.dir") + File.separator + "dist" + File.separator
 					+ "MZmine.jar");
@@ -50,16 +48,20 @@ public class HelpClass {
 		       while (e.hasMoreElements()) {
 		           JarEntry entry = e.nextElement();
 		           String name = entry.getName();
-		           if ( name.contains("htm") )
+		           if ( name.contains("htm") ){
 		        	   helpMap.setTarget(name);
-		       }			
+		           }
+		       }
+		       
+		    helpMap.setTargetImage("topic.png");
 			
 		    MZmineHelpSet hs = new MZmineHelpSet();
 	        hs.setLocalMap(helpMap);
 
 	        MZmineTOCView myTOC = new MZmineTOCView(hs, "TOC", "Table Of Contents", helpMap);
 	        
-			hs.setHomeID("net/sf/mzmine/main/initialPage.htm");
+			hs.setHomeID("net/sf/mzmine/desktop/helpsystem/initialPage.htm");
+			hs.setTitle("MZmine 2 - LC/MS Toolbox");
 			hs.addTOCView(myTOC);
 			
 			HelpBroker hb = hs.createHelpBroker();
@@ -72,10 +74,6 @@ public class HelpClass {
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
-	}
-	
-	public MZmineHelpMap getHelpMap() {
-		return helpMap;
 	}
 
 }

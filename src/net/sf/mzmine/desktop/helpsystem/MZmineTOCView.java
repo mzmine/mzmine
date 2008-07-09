@@ -25,8 +25,11 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
-import java.util.Enumeration;
+import java.util.Collections;
+import java.util.Iterator;
+import java.util.List;
 import java.util.Locale;
+import java.util.TreeSet;
 import java.util.jar.JarFile;
 
 import javax.help.BadIDException;
@@ -37,6 +40,8 @@ import javax.help.TOCView;
 import javax.help.TreeItem;
 import javax.help.Map.ID;
 import javax.swing.tree.DefaultMutableTreeNode;
+
+import net.sf.mzmine.util.TOCItemSorterByName;
 
 public class MZmineTOCView extends TOCView {
 
@@ -58,17 +63,27 @@ public class MZmineTOCView extends TOCView {
 		try {
 			DefaultMutableTreeNode node = new DefaultMutableTreeNode();
 
-			TOCItem item = null;
+			TreeSet<TOCItem> sortedItems = new TreeSet<TOCItem>(new TOCItemSorterByName());
 			
-			Enumeration<String> e = hm.getAllIDs();
+			List<String> list = Collections.list(hm.getAllIDs());
+			Collections.sort(list);
+			Iterator<String> e = list.iterator();
 			
-			while (e.hasMoreElements()){
-				String target = e.nextElement();
-				item = (TOCItem) createMyItem(target);
-				//System.out.print("Item " + item.toString() + "\n");
+			while (e.hasNext()){
+				String target = (String) e.next();
+				if (target.contains(".png"))
+					continue;
+				sortedItems.add((TOCItem) createMyItem(target));
+			}
+
+			Iterator<TOCItem> i = sortedItems.iterator();
+			
+			while (i.hasNext()){
+				TOCItem item = i.next(); 
 				DefaultMutableTreeNode newChild = new DefaultMutableTreeNode(item);
 				node.add(newChild);
 			}
+
 			return node;
 
 		} catch (Exception ex) {
@@ -120,18 +135,16 @@ public class MZmineTOCView extends TOCView {
 
 			in.close();
 		} catch (IOException e) {
-			System.out.print(" Error leyendo " + target);
 		}
 
 	    Map.ID mapID = null;
 	    try {
 		mapID = ID.create(target, hs);
 	    } catch (BadIDException bex1) {
-			System.out.print(" Error creando map id " );
 	    }
 	    
 	    Map.ID imageMapID = null;
-		String imageID = "topic";
+		String imageID = "topic.png";
 		try {
 			imageMapID = ID.create(imageID, hs);
 		} catch (BadIDException bex2) {
@@ -151,5 +164,6 @@ public class MZmineTOCView extends TOCView {
 	public TreeItem createItem() {
 		return new TOCItem();
 	}
+	
 
 }

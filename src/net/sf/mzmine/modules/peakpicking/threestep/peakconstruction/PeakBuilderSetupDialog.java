@@ -31,9 +31,6 @@ import java.lang.reflect.Constructor;
 import java.util.Hashtable;
 import java.util.logging.Logger;
 
-import javax.help.DefaultHelpBroker;
-import javax.help.HelpBroker;
-import javax.help.WindowPresentation;
 import javax.swing.BorderFactory;
 import javax.swing.Box;
 import javax.swing.BoxLayout;
@@ -41,7 +38,6 @@ import javax.swing.JButton;
 import javax.swing.JCheckBox;
 import javax.swing.JComboBox;
 import javax.swing.JFormattedTextField;
-import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JSeparator;
@@ -54,7 +50,6 @@ import net.sf.mzmine.data.RawDataFile;
 import net.sf.mzmine.data.impl.SimpleDataPoint;
 import net.sf.mzmine.data.impl.SimpleParameterSet;
 import net.sf.mzmine.desktop.Desktop;
-import net.sf.mzmine.desktop.impl.MainWindow;
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.modules.peakpicking.threestep.ThreeStepPickerParameters;
 import net.sf.mzmine.modules.peakpicking.threestep.massdetection.MzPeak;
@@ -120,8 +115,7 @@ public class PeakBuilderSetupDialog extends ParameterSetupDialog implements
 
 		super(ThreeStepPickerParameters.peakBuilderNames[peakBuilderTypeNumber]
 				+ "'s parameter setup dialog ", parameters
-				.getPeakBuilderParameters(peakBuilderTypeNumber), "PeakBuild"
-				+ peakBuilderTypeNumber);
+				.getPeakBuilderParameters(peakBuilderTypeNumber), ThreeStepPickerParameters.peakBuilderHelpFiles[peakBuilderTypeNumber]);
 
 		dataFiles = MZmineCore.getCurrentProject().getDataFiles();
 

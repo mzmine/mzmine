@@ -44,7 +44,7 @@ public class RecursiveMassDetectorParameters extends SimpleParameterSet {
 			new Float(0.0), null, MZmineCore.getMZFormat());
 
 	public static final Parameter maximumMZPeakWidth = new SimpleParameter(
-			ParameterType.FLOAT, "Max M/Z peak width",
+			ParameterType.FLOAT, "Max m/z peak width",
 			"Maximum acceptable peak width in m/z", "m/z", new Float(1.00),
 			new Float(0.0010), null, MZmineCore.getMZFormat());
 

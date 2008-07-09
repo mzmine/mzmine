@@ -34,9 +34,7 @@ import java.util.jar.JarFile;
 import java.util.logging.Logger;
 
 import javax.help.CSH;
-import javax.help.DefaultHelpBroker;
 import javax.help.HelpBroker;
-import javax.help.WindowPresentation;
 import javax.swing.BorderFactory;
 import javax.swing.JButton;
 import javax.swing.JCheckBox;
@@ -44,7 +42,6 @@ import javax.swing.JComboBox;
 import javax.swing.JComponent;
 import javax.swing.JDialog;
 import javax.swing.JFormattedTextField;
-import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
@@ -56,10 +53,10 @@ import net.sf.mzmine.desktop.Desktop;
 import net.sf.mzmine.desktop.helpsystem.MZmineHelpMap;
 import net.sf.mzmine.desktop.helpsystem.MZmineHelpSet;
 import net.sf.mzmine.desktop.helpsystem.MZmineTOCView;
-import net.sf.mzmine.desktop.impl.MainWindow;
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.util.GUIUtils;
 import net.sf.mzmine.util.Range;
+import net.sf.mzmine.util.components.HelpButton;
 
 /**
  * This class represents the parameter setup dialog shown to the user before
@@ -250,8 +247,9 @@ public class ParameterSetupDialog extends JDialog implements ActionListener {
 
 		if (helpID != null) {
 			this.helpID = helpID;
-			btnHelp = new JButton("Help");
-			setHelpListener(btnHelp);
+			//btnHelp = new JButton("Help");
+			//setHelpListener(btnHelp);
+			btnHelp = new HelpButton(helpID);
 			pnlButtons.add(btnHelp);
 		}
 

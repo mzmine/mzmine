@@ -32,10 +32,6 @@ import java.text.NumberFormat;
 import java.util.Vector;
 import java.util.logging.Logger;
 
-import javax.help.CSH;
-import javax.help.DefaultHelpBroker;
-import javax.help.HelpBroker;
-import javax.help.WindowPresentation;
 import javax.swing.BorderFactory;
 import javax.swing.Box;
 import javax.swing.BoxLayout;
@@ -44,7 +40,6 @@ import javax.swing.DefaultComboBoxModel;
 import javax.swing.JButton;
 import javax.swing.JCheckBox;
 import javax.swing.JComboBox;
-import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JSeparator;
@@ -60,10 +55,6 @@ import net.sf.mzmine.data.impl.SimpleParameterSet;
 import net.sf.mzmine.data.impl.SimplePeakList;
 import net.sf.mzmine.data.impl.SimplePeakListRow;
 import net.sf.mzmine.desktop.Desktop;
-import net.sf.mzmine.desktop.helpsystem.MZmineHelpMap;
-import net.sf.mzmine.desktop.helpsystem.MZmineHelpSet;
-import net.sf.mzmine.desktop.helpsystem.MZmineTOCView;
-import net.sf.mzmine.desktop.impl.MainWindow;
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.modules.peakpicking.threestep.ThreeStepPickerParameters;
 import net.sf.mzmine.modules.visualization.spectra.PeakListDataSet;
@@ -126,7 +117,7 @@ public class MassDetectorSetupDialog extends ParameterSetupDialog implements
 
 		super(ThreeStepPickerParameters.massDetectorNames[massDetectorTypeNumber]
 				+ "'s parameter setup dialog ", parameters
-				.getMassDetectorParameters(massDetectorTypeNumber), "Mass" + massDetectorTypeNumber);
+				.getMassDetectorParameters(massDetectorTypeNumber), ThreeStepPickerParameters.massDetectorHelpFiles[massDetectorTypeNumber]);
 		
 		dataFiles = MZmineCore.getCurrentProject().getDataFiles();
 		this.massDetectorTypeNumber = massDetectorTypeNumber;

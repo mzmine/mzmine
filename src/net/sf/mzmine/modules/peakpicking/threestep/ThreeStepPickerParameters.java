@@ -33,6 +33,7 @@ public class ThreeStepPickerParameters implements StorableParameterSet {
 
 	private static final String PARAMETER_NAME_ATTRIBUTE = "name";
 
+	// Mass Detectors
 	public static final String massDetectorNames[] = { "Centroid",
 			"Exact mass", "Local maxima", "Recursive threshold",
 			"Wavelet transform" };
@@ -44,12 +45,25 @@ public class ThreeStepPickerParameters implements StorableParameterSet {
 			"net.sf.mzmine.modules.peakpicking.threestep.massdetection.recursive.RecursiveMassDetector",
 			"net.sf.mzmine.modules.peakpicking.threestep.massdetection.wavelet.WaveletMassDetector" };
 
+	public static final String massDetectorHelpFiles[] = {
+		"net/sf/mzmine/modules/peakpicking/threestep/massdetection/centroid/CentroidMassDetector.html",
+		"net/sf/mzmine/modules/peakpicking/threestep/massdetection/exactmass/ExactMassDetector.html",
+		"net/sf/mzmine/modules/peakpicking/threestep/massdetection/localmaxima/LocalMaxMassDetector.html",
+		"net/sf/mzmine/modules/peakpicking/threestep/massdetection/recursive/RecursiveMassDetector.html",
+		"net/sf/mzmine/modules/peakpicking/threestep/massdetection/wavelet/WaveletMassDetector.html" };
+
+	// Chromatogram Builders
 	public static final String chromatogramBuilderNames[] = { "Score connector", "Highest datapoint" };
 
 	public static final String chromatogramBuilderClasses[] = { 
 			"net.sf.mzmine.modules.peakpicking.threestep.xicconstruction.scoreconnector.ScoreConnector",
 			"net.sf.mzmine.modules.peakpicking.threestep.xicconstruction.highestdatapoint.HighestDatapointConnector" };
 
+	public static final String chromatogramBuilderHelpFiles[] = { 
+		"net/sf/mzmine/modules/peakpicking/threestep/xicconstruction/scoreconnector/ScoreConnector.html",
+		"net/sf/mzmine/modules/peakpicking/threestep/xicconstruction/highestdatapoint/HighestDatapointConnector.html" };
+
+	// Peak recognition
 	public static final String peakBuilderNames[] = { "No recognition", "Baseline cut-off",
 			"Chromatographic threshold", "Noise amplitude",
 			"Standard deviation", "Savitzky-Golay", "Wavelet transform" };
@@ -63,6 +77,17 @@ public class ThreeStepPickerParameters implements StorableParameterSet {
 			"net.sf.mzmine.modules.peakpicking.threestep.peakconstruction.savitzkygolay.SavitzkyGolayPeakDetector",
 			"net.sf.mzmine.modules.peakpicking.threestep.peakconstruction.wavelet.WaveletPeakDetector" };
 
+	public static final String peakBuilderHelpFiles[] = {
+		"net/sf/mzmine/modules/peakpicking/threestep/peakconstruction/simple/SimplePeakDetector.html",
+		"net/sf/mzmine/modules/peakpicking/threestep/peakconstruction/baseline/BaselinePeakDetector.html",
+		"net/sf/mzmine/modules/peakpicking/threestep/peakconstruction/chromatographicthreshold/ChromatographicThresholdPeakDetector.html",
+		"net/sf/mzmine/modules/peakpicking/threestep/peakconstruction/noiseamplitude/NoiseAmplitudePeakDetector.html",
+		"net/sf/mzmine/modules/peakpicking/threestep/peakconstruction/standarddeviation/StandardDeviationPeakDetector.html",
+		"net/sf/mzmine/modules/peakpicking/threestep/peakconstruction/savitzkygolay/SavitzkyGolayPeakDetector.html",
+		"net/sf/mzmine/modules/peakpicking/threestep/peakconstruction/wavelet/WaveletPeakDetector.html" };
+
+	
+	// Three step parameters
 	private SimpleParameterSet massDetectorParameters[],
 			chromatogramBuilderParameters[], peakBuilderParameters[],
 			threeStepsParameters;

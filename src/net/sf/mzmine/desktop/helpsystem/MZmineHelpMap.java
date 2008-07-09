@@ -20,7 +20,6 @@
 package net.sf.mzmine.desktop.helpsystem;
 
 
-import java.io.File;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.Enumeration;
@@ -47,6 +46,10 @@ public class MZmineHelpMap implements Map {
 		lookup.put(target, url);
 	}
 	
+	public void setTargetImage(String target){
+		String url = "file:" + System.getProperty("user.dir") + "/icons/" + target ;
+		lookup.put(target, url);
+	}
 	
 	/**
 	 * The HelpSet for this Map.
