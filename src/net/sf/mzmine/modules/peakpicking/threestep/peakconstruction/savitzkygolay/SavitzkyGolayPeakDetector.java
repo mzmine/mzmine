@@ -22,7 +22,7 @@ package net.sf.mzmine.modules.peakpicking.threestep.peakconstruction.savitzkygol
 import java.util.Arrays;
 import java.util.Vector;
 
-import net.sf.mzmine.data.Peak;
+import net.sf.mzmine.data.ChromatographicPeak;
 import net.sf.mzmine.data.RawDataFile;
 import net.sf.mzmine.modules.peakpicking.threestep.peakconstruction.ConnectedPeak;
 import net.sf.mzmine.modules.peakpicking.threestep.peakconstruction.PeakBuilder;
@@ -86,12 +86,12 @@ public class SavitzkyGolayPeakDetector implements PeakBuilder {
 	 * @see net.sf.mzmine.modules.peakpicking.threestep.peakconstruction.PeakBuilder#addChromatogram(net.sf.mzmine.modules.peakpicking.threestep.xicconstruction.Chromatogram,
 	 *      net.sf.mzmine.data.RawDataFile)
 	 */
-	public Peak[] addChromatogram(Chromatogram chromatogram,
+	public ChromatographicPeak[] addChromatogram(Chromatogram chromatogram,
 			RawDataFile dataFile) {
 		
 		maxValueDerivative = 0.0f;
 
-		Vector<Peak> detectedPeaks = new Vector<Peak>();
+		Vector<ChromatographicPeak> detectedPeaks = new Vector<ChromatographicPeak>();
 
 		int[] scanNumbers = dataFile.getScanNumbers(1);
 		float[] chromatoIntensities = new float[scanNumbers.length];
@@ -111,11 +111,11 @@ public class SavitzkyGolayPeakDetector implements PeakBuilder {
 		float[] chromato2ndDerivative = calculate2ndDerivative(chromatoIntensities);
 		float noiseThreshold = maxValueDerivative * 0.02f;
 
-		Peak[] chromatographicPeaks = SGPeaksSearch(dataFile, chromatogram,
+		ChromatographicPeak[] chromatographicPeaks = SGPeaksSearch(dataFile, chromatogram,
 				scanNumbers, chromato2ndDerivative, noiseThreshold);
 
 		if (chromatographicPeaks.length != 0) {
-			for (Peak p : chromatographicPeaks) {
+			for (ChromatographicPeak p : chromatographicPeaks) {
 				float pLength = p.getRawDataPointsRTRange().getSize();
 				float pHeight = p.getHeight();
 				if ((pLength >= minimumPeakDuration)
@@ -125,7 +125,7 @@ public class SavitzkyGolayPeakDetector implements PeakBuilder {
 			}
 		}
 
-		return detectedPeaks.toArray(new Peak[0]);
+		return detectedPeaks.toArray(new ChromatographicPeak[0]);
 	}
 
 	/**
@@ -135,7 +135,7 @@ public class SavitzkyGolayPeakDetector implements PeakBuilder {
 	 *            ucPeak
 	 * @return Peak[]
 	 */
-	private Peak[] SGPeaksSearch(RawDataFile dataFile,
+	private ChromatographicPeak[] SGPeaksSearch(RawDataFile dataFile,
 			Chromatogram chromatogram, int[] scanNumbers,
 			float[] derivativeOfIntensities, float noiseThreshold) {
 

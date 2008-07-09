@@ -19,6 +19,7 @@
 
 package net.sf.mzmine.modules.peakpicking.threestep.massdetection;
 
+import net.sf.mzmine.data.MzPeak;
 import net.sf.mzmine.data.Scan;
 
 /**

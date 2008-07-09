@@ -20,7 +20,7 @@
 package net.sf.mzmine.modules.peakpicking.manual;
 
 import net.sf.mzmine.data.ParameterSet;
-import net.sf.mzmine.data.Peak;
+import net.sf.mzmine.data.ChromatographicPeak;
 import net.sf.mzmine.data.PeakListRow;
 import net.sf.mzmine.data.RawDataFile;
 import net.sf.mzmine.main.MZmineCore;
@@ -57,7 +57,7 @@ public class ManualPeakPicker implements MZmineModule {
 
         // Check the peaks for selected data files
         for (RawDataFile dataFile : dataFiles) {
-            Peak peak = peakListRow.getPeak(dataFile);
+            ChromatographicPeak peak = peakListRow.getPeak(dataFile);
             if (peak == null)
                 continue;
             if (mzRange == null) {
@@ -72,7 +72,7 @@ public class ManualPeakPicker implements MZmineModule {
 
         // If none of the data files had a peak, check the whole row
         if (mzRange == null) {
-            for (Peak peak : peakListRow.getPeaks()) {
+            for (ChromatographicPeak peak : peakListRow.getPeaks()) {
                 if (peak == null)
                     continue;
                 if (mzRange == null) {

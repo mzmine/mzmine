@@ -21,10 +21,10 @@ package net.sf.mzmine.modules.peakpicking.threestep.peakconstruction.wavelet;
 
 import java.util.Vector;
 
-import net.sf.mzmine.data.Peak;
+import net.sf.mzmine.data.ChromatographicPeak;
 import net.sf.mzmine.data.RawDataFile;
+import net.sf.mzmine.data.impl.SimpleMzPeak;
 import net.sf.mzmine.data.impl.SimpleDataPoint;
-import net.sf.mzmine.modules.peakpicking.threestep.massdetection.MzPeak;
 import net.sf.mzmine.modules.peakpicking.threestep.peakconstruction.ConnectedPeak;
 import net.sf.mzmine.modules.peakpicking.threestep.peakconstruction.PeakBuilder;
 import net.sf.mzmine.modules.peakpicking.threestep.xicconstruction.Chromatogram;
@@ -67,13 +67,13 @@ public class WaveletPeakDetector implements PeakBuilder {
 
 	}
 
-	public Peak[] addChromatogram(Chromatogram chromatogram,
+	public ChromatographicPeak[] addChromatogram(Chromatogram chromatogram,
 			RawDataFile dataFile) {
 		
 		maxWaveletIntensity = 0;
 		maxIntensity = 0;
 
-		Vector<Peak> detectedPeaks = new Vector<Peak>();
+		Vector<ChromatographicPeak> detectedPeaks = new Vector<ChromatographicPeak>();
 
 		int[] scanNumbers = dataFile.getScanNumbers(1);
 		float[] chromatoIntensities = new float[scanNumbers.length];
@@ -95,16 +95,16 @@ public class WaveletPeakDetector implements PeakBuilder {
 		
 		// Chromatogram with characteristics of background
 		if ((avgChromatoIntensities/maxIntensity) > (maxIntensity * 0.5f))
-			return detectedPeaks.toArray(new Peak[0]);
+			return detectedPeaks.toArray(new ChromatographicPeak[0]);
 		
 
 		double[] waveletIntensities = performCWT(chromatoIntensities);
 		
-		Peak[] chromatographicPeaks = getWaveletPeaks(chromatogram, dataFile,
+		ChromatographicPeak[] chromatographicPeaks = getWaveletPeaks(chromatogram, dataFile,
 				scanNumbers, waveletIntensities);
 
 		if (chromatographicPeaks.length != 0) {
-			for (Peak p : chromatographicPeaks) {
+			for (ChromatographicPeak p : chromatographicPeaks) {
 				float pLength = p.getRawDataPointsRTRange().getSize();
 				float pHeight = p.getHeight();
 				if ((pLength >= minimumPeakDuration)
@@ -114,7 +114,7 @@ public class WaveletPeakDetector implements PeakBuilder {
 			}
 		}
 
-		return detectedPeaks.toArray(new Peak[0]);
+		return detectedPeaks.toArray(new ChromatographicPeak[0]);
 
 	}
 
@@ -130,7 +130,7 @@ public class WaveletPeakDetector implements PeakBuilder {
 	 *            ucPeak
 	 * @return Peak[]
 	 */
-	public Peak[] getWaveletPeaks(Chromatogram chromatogram,
+	public ChromatographicPeak[] getWaveletPeaks(Chromatogram chromatogram,
 			RawDataFile dataFile, int[] scanNumbers, double[] waveletIntensities) {
 
 		float waveletThresholdLevel = calcWaveletThreshold(waveletIntensities);
@@ -197,7 +197,7 @@ public class WaveletPeakDetector implements PeakBuilder {
 				if (mzValue != null) {
 					//newMzPeaks.add(mzValue);
 					ConnectedMzPeak temp = new ConnectedMzPeak(mzValue
-							.getScan(), new MzPeak(
+							.getScan(), new SimpleMzPeak(
 							new SimpleDataPoint(mzValue.getMzPeak().getMZ(),
 									(float) waveletIntensities[i])));
 					newMzPeaks.add(temp);
@@ -214,7 +214,7 @@ public class WaveletPeakDetector implements PeakBuilder {
 				if (mzValue != null) {
 					//newOverlappedMzPeaks.add(mzValue);
 					ConnectedMzPeak temp = new ConnectedMzPeak(mzValue
-							.getScan(), new MzPeak(
+							.getScan(), new SimpleMzPeak(
 							new SimpleDataPoint(mzValue.getMzPeak().getMZ(),
 									(float) waveletIntensities[i])));
 					newOverlappedMzPeaks.add(temp);

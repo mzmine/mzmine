@@ -21,7 +21,7 @@ package net.sf.mzmine.modules.io.peaklistexport;
 
 import java.io.FileWriter;
 
-import net.sf.mzmine.data.Peak;
+import net.sf.mzmine.data.ChromatographicPeak;
 import net.sf.mzmine.data.PeakList;
 import net.sf.mzmine.data.PeakListRow;
 import net.sf.mzmine.data.PeakStatus;
@@ -175,7 +175,7 @@ class PeakListExportTask implements Task {
             }
             if (exportRowNumDetected) {
             	int numDetected = 0;
-            	for (Peak p : peakListRow.getPeaks())
+            	for (ChromatographicPeak p : peakListRow.getPeaks())
             		if (p.getPeakStatus() == PeakStatus.DETECTED)
             			numDetected++;
             	
@@ -184,7 +184,7 @@ class PeakListExportTask implements Task {
             }
             
             for (RawDataFile dataFile : peakList.getRawDataFiles()) {
-                Peak peak = peakListRow.getPeak(dataFile);
+                ChromatographicPeak peak = peakListRow.getPeak(dataFile);
                 if (peak != null) {
                     if (exportPeakStatus)
                         line.append(peak.getPeakStatus() + fieldSeparator);

@@ -25,7 +25,7 @@ import jmprojection.CDA;
 import jmprojection.Preprocess;
 import jmprojection.ProjectionStatus;
 import net.sf.mzmine.data.Parameter;
-import net.sf.mzmine.data.Peak;
+import net.sf.mzmine.data.ChromatographicPeak;
 import net.sf.mzmine.data.PeakListRow;
 import net.sf.mzmine.data.RawDataFile;
 import net.sf.mzmine.desktop.Desktop;
@@ -192,7 +192,7 @@ public class CDADataset extends AbstractXYDataset implements
 			PeakListRow peakListRow = selectedRows[rowIndex];
 			for (int fileIndex=0; fileIndex<selectedRawDataFiles.length; fileIndex++) {
 				RawDataFile rawDataFile = selectedRawDataFiles[fileIndex];
-				Peak p = peakListRow.getPeak(rawDataFile);
+				ChromatographicPeak p = peakListRow.getPeak(rawDataFile);
 				if (p!=null) {
 					if (useArea)
 						rawData[fileIndex][rowIndex] = p.getArea();

@@ -1,20 +1,38 @@
+/*
+ * Copyright 2006-2008 The MZmine Development Team
+ * 
+ * This file is part of MZmine.
+ * 
+ * MZmine is free software; you can redistribute it and/or modify it under the
+ * terms of the GNU General Public License as published by the Free Software
+ * Foundation; either version 2 of the License, or (at your option) any later
+ * version.
+ * 
+ * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY
+ * WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR
+ * A PARTICULAR PURPOSE. See the GNU General Public License for more details.
+ * 
+ * You should have received a copy of the GNU General Public License along with
+ * MZmine; if not, write to the Free Software Foundation, Inc., 51 Franklin St,
+ * Fifth Floor, Boston, MA 02110-1301 USA
+ */
+
 package net.sf.mzmine.modules.peakpicking.threestep.xicconstruction.highestdatapoint;
 
 import java.util.Iterator;
 import java.util.TreeSet;
 import java.util.Vector;
 
+import net.sf.mzmine.data.MzPeak;
 import net.sf.mzmine.data.RawDataFile;
 import net.sf.mzmine.data.Scan;
 import net.sf.mzmine.data.impl.SimpleDataPoint;
-import net.sf.mzmine.modules.peakpicking.threestep.massdetection.MzPeak;
+import net.sf.mzmine.data.impl.SimpleMzPeak;
 import net.sf.mzmine.modules.peakpicking.threestep.xicconstruction.Chromatogram;
 import net.sf.mzmine.modules.peakpicking.threestep.xicconstruction.ChromatogramBuilder;
 import net.sf.mzmine.modules.peakpicking.threestep.xicconstruction.ConnectedMzPeak;
 
 public class HighestDatapointConnector implements ChromatogramBuilder {
-
-	//private Logger logger = Logger.getLogger(this.getClass().getName());
 
 	private float mzTolerance, minimumTimeSpan;
 	private Vector<Chromatogram> underConstructionChromatograms;
@@ -106,7 +124,7 @@ public class HighestDatapointConnector implements ChromatogramBuilder {
 				SimpleDataPoint zeroDataPoint = new SimpleDataPoint(
 						currentChromatogram.getMZ(), 0);
 				ConnectedMzPeak zeroChromatoPoint = new ConnectedMzPeak(scan,
-						new MzPeak(zeroDataPoint));
+						new SimpleMzPeak(zeroDataPoint));
 				currentChromatogram.addMzPeak(zeroChromatoPoint);
 				currentChromatogram.resetGrowingState();
 

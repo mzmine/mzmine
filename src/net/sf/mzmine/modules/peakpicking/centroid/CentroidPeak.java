@@ -23,7 +23,7 @@ import java.util.ArrayList;
 import java.util.TreeMap;
 
 import net.sf.mzmine.data.DataPoint;
-import net.sf.mzmine.data.Peak;
+import net.sf.mzmine.data.ChromatographicPeak;
 import net.sf.mzmine.data.PeakStatus;
 import net.sf.mzmine.data.RawDataFile;
 import net.sf.mzmine.data.impl.SimpleDataPoint;
@@ -36,7 +36,7 @@ import net.sf.mzmine.util.Range;
  * This class is an implementation of the peak interface for peak picking
  * methods.
  */
-class CentroidPeak implements Peak {
+class CentroidPeak implements ChromatographicPeak {
 
     private PeakStatus peakStatus;
 
@@ -289,7 +289,7 @@ class CentroidPeak implements Peak {
     }
 
     /**
-     * @see net.sf.mzmine.data.Peak#getDataFile()
+     * @see net.sf.mzmine.data.ChromatographicPeak#getDataFile()
      */
     public RawDataFile getDataFile() {
         return dataFile;

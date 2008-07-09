@@ -19,7 +19,7 @@
 
 package net.sf.mzmine.modules.peakpicking.threestep.peakconstruction;
 
-import net.sf.mzmine.data.Peak;
+import net.sf.mzmine.data.ChromatographicPeak;
 import net.sf.mzmine.data.RawDataFile;
 import net.sf.mzmine.modules.peakpicking.threestep.xicconstruction.Chromatogram;
 
@@ -35,7 +35,7 @@ public interface PeakBuilder {
 	 * 
 	 * @return Peak[]
 	 */
-	public Peak[] addChromatogram(Chromatogram chromatogram, RawDataFile dataFile);
+	public ChromatographicPeak[] addChromatogram(Chromatogram chromatogram, RawDataFile dataFile);
 
 
 }

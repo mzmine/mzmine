@@ -26,7 +26,7 @@ import javax.swing.JPanel;
 import javax.swing.JTable;
 import javax.swing.table.TableCellRenderer;
 
-import net.sf.mzmine.data.Peak;
+import net.sf.mzmine.data.ChromatographicPeak;
 import net.sf.mzmine.data.PeakList;
 import net.sf.mzmine.modules.visualization.peaklist.PeakListTableParameters;
 import net.sf.mzmine.util.components.PeakXICComponent;
@@ -67,9 +67,9 @@ class PeakShapeCellRenderer implements TableCellRenderer {
 
         newPanel.setBackground(bgColor);
 
-        if (value instanceof Peak) {
+        if (value instanceof ChromatographicPeak) {
 
-            Peak peak = (Peak) value;
+            ChromatographicPeak peak = (ChromatographicPeak) value;
             float maxHeight = 0;
             
             switch (parameters.getPeakShapeNormalization()) {

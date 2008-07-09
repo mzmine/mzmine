@@ -24,7 +24,7 @@ import java.util.TreeMap;
 import java.util.Vector;
 
 import net.sf.mzmine.data.DataPoint;
-import net.sf.mzmine.data.Peak;
+import net.sf.mzmine.data.ChromatographicPeak;
 import net.sf.mzmine.data.PeakStatus;
 import net.sf.mzmine.data.RawDataFile;
 import net.sf.mzmine.main.MZmineCore;
@@ -40,7 +40,7 @@ import net.sf.mzmine.util.Range;
  * 
  */
 
-public class ConnectedPeak implements Peak {
+public class ConnectedPeak implements ChromatographicPeak {
 
 	private PeakStatus peakStatus = PeakStatus.DETECTED;
 
@@ -246,7 +246,7 @@ public class ConnectedPeak implements Peak {
 
 
 	/**
-	 * @see net.sf.mzmine.data.Peak#getDataFile()
+	 * @see net.sf.mzmine.data.ChromatographicPeak#getDataFile()
 	 */
 	public RawDataFile getDataFile() {
 		return dataFile;

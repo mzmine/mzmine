@@ -22,7 +22,7 @@ package net.sf.mzmine.data.impl;
 import java.util.Arrays;
 
 import net.sf.mzmine.data.DataPoint;
-import net.sf.mzmine.data.Peak;
+import net.sf.mzmine.data.ChromatographicPeak;
 import net.sf.mzmine.data.PeakStatus;
 import net.sf.mzmine.data.RawDataFile;
 import net.sf.mzmine.util.PeakUtils;
@@ -31,7 +31,7 @@ import net.sf.mzmine.util.Range;
 /**
  * This class is a simple implementation of the peak interface.
  */
-public class SimplePeak implements Peak {
+public class SimpleChromatographicPeak implements ChromatographicPeak {
 
     private PeakStatus peakStatus;
     private RawDataFile dataFile;
@@ -50,7 +50,7 @@ public class SimplePeak implements Peak {
      * Initializes a new peak using given values
      * 
      */
-    public SimplePeak(RawDataFile dataFile, float MZ, float RT, float height,
+    public SimpleChromatographicPeak(RawDataFile dataFile, float MZ, float RT, float height,
             float area, int[] scanNumbers, DataPoint[] dataPointsPerScan,
             DataPoint[][] rawDataPointsPerScan, PeakStatus peakStatus) {
 
@@ -100,7 +100,7 @@ public class SimplePeak implements Peak {
 
     }
 
-    public SimplePeak(Peak p) {
+    public SimpleChromatographicPeak(ChromatographicPeak p) {
 
         this.dataFile = p.getDataFile();
 
@@ -214,14 +214,14 @@ public class SimplePeak implements Peak {
     }
 
     /**
-     * @see net.sf.mzmine.data.Peak#getDataFile()
+     * @see net.sf.mzmine.data.ChromatographicPeak#getDataFile()
      */
     public RawDataFile getDataFile() {
         return dataFile;
     }
 
     /**
-     * @see net.sf.mzmine.data.Peak#setDataFile()
+     * @see net.sf.mzmine.data.ChromatographicPeak#setDataFile()
      */
     public void setDataFile(RawDataFile dataFile) {
         this.dataFile = dataFile;

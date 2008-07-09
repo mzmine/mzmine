@@ -19,13 +19,13 @@
 
 package net.sf.mzmine.modules.peakpicking.threestep.massdetection.centroid;
 
-import java.util.TreeSet;
+import java.util.ArrayList;
 
 import net.sf.mzmine.data.DataPoint;
+import net.sf.mzmine.data.MzPeak;
 import net.sf.mzmine.data.Scan;
+import net.sf.mzmine.data.impl.SimpleMzPeak;
 import net.sf.mzmine.modules.peakpicking.threestep.massdetection.MassDetector;
-import net.sf.mzmine.modules.peakpicking.threestep.massdetection.MzPeak;
-import net.sf.mzmine.modules.peakpicking.threestep.massdetection.MzPeaksSorter;
 
 public class CentroidMassDetector implements MassDetector {
 
@@ -38,11 +38,8 @@ public class CentroidMassDetector implements MassDetector {
 	}
 
 	public MzPeak[] getMassValues(Scan scan) {
-		//Vector<MzPeak> mzPeaks = new Vector<MzPeak>();
-        
-		// Create a tree set of detected mzPeaks sorted by MZ in ascending order
-        TreeSet<MzPeak> mzPeaks = new TreeSet<MzPeak>(new MzPeaksSorter(true,
-                true));
+		
+        ArrayList<MzPeak> mzPeaks = new ArrayList<MzPeak>();
         
         DataPoint dataPoints[] = scan.getDataPoints();
 
@@ -52,7 +49,7 @@ public class CentroidMassDetector implements MassDetector {
 			// Is intensity above the noise level?
 			if (dataPoints[j].getIntensity() >= noiseLevel) {
 				// Yes, then mark this index as mzPeak
-				mzPeaks.add(new MzPeak(dataPoints[j]));
+				mzPeaks.add(new SimpleMzPeak(dataPoints[j]));
 			}
 		}
 		return mzPeaks.toArray(new MzPeak[0]);

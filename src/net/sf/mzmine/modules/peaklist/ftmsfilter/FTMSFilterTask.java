@@ -19,7 +19,7 @@
 
 package net.sf.mzmine.modules.peaklist.ftmsfilter;
 
-import net.sf.mzmine.data.Peak;
+import net.sf.mzmine.data.ChromatographicPeak;
 import net.sf.mzmine.data.PeakList;
 import net.sf.mzmine.data.RawDataFile;
 import net.sf.mzmine.data.impl.SimplePeakList;
@@ -119,14 +119,14 @@ class FTMSFilterTask implements Task {
         SimplePeakList filteredPeakList = new SimplePeakList(peaklist + " "
                 + suffix, peaklist.getRawDataFiles());
 
-        Peak[] allPeaks = peaklist.getPeaks(dataFile);
+        ChromatographicPeak[] allPeaks = peaklist.getPeaks(dataFile);
 
         totalPeaks = allPeaks.length;
 
         // Loop through all peaks
         allPeaksLoop: for (int candidatePeakIndex = 0; candidatePeakIndex < allPeaks.length; candidatePeakIndex++) {
 
-            Peak candidatePeak = allPeaks[candidatePeakIndex];
+            ChromatographicPeak candidatePeak = allPeaks[candidatePeakIndex];
             float candidatePeakMZ = candidatePeak.getMZ();
             float candidatePeakRT = candidatePeak.getRT();
             float candidatePeakHeight = candidatePeak.getHeight();
@@ -137,7 +137,7 @@ class FTMSFilterTask implements Task {
                 if (status == TaskStatus.CANCELED)
                     return;
 
-                Peak comparedPeak = allPeaks[comparedPeakIndex];
+                ChromatographicPeak comparedPeak = allPeaks[comparedPeakIndex];
 
                 float comparedPeakMZ = comparedPeak.getMZ();
                 float comparedPeakRT = comparedPeak.getRT();

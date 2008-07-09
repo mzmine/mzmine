@@ -17,9 +17,11 @@
  * Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-package net.sf.mzmine.modules.peakpicking.threestep.massdetection;
+package net.sf.mzmine.util;
 
 import java.util.Comparator;
+
+import net.sf.mzmine.data.DataPoint;
 
 
 /**
@@ -29,7 +31,7 @@ import java.util.Comparator;
  * constructor.
  * 
  */
-public class MzPeaksSorter implements Comparator<MzPeak> {
+public class DataPointSorter implements Comparator<DataPoint> {
 
 	private boolean sortByMZ, ascending;
 
@@ -41,12 +43,12 @@ public class MzPeaksSorter implements Comparator<MzPeak> {
 	 * @param sortByMZ
 	 * @param ascending
 	 */
-	public MzPeaksSorter(boolean sortByMZ, boolean ascending) {
+	public DataPointSorter(boolean sortByMZ, boolean ascending) {
 		this.sortByMZ = sortByMZ;
 		this.ascending = ascending;
 	}
 
-	public int compare(MzPeak dp1, MzPeak dp2) {
+	public int compare(DataPoint dp1, DataPoint dp2) {
         
 		Float value1, value2;
 

@@ -20,7 +20,7 @@
 package net.sf.mzmine.modules.peakpicking.threestep.massdetection;
 
 import net.sf.mzmine.data.DataPoint;
-import net.sf.mzmine.data.Peak;
+import net.sf.mzmine.data.ChromatographicPeak;
 import net.sf.mzmine.data.PeakStatus;
 import net.sf.mzmine.data.RawDataFile;
 import net.sf.mzmine.util.Range;
@@ -30,7 +30,7 @@ import net.sf.mzmine.util.Range;
  * This class is only used for visualization terms by MassDetectorSetupDialog.
  * 
  */
-class FakePeak implements Peak {
+class FakePeak implements ChromatographicPeak {
 
 	private DataPoint datapoint;
 	private Range mzRange, intensityRange;

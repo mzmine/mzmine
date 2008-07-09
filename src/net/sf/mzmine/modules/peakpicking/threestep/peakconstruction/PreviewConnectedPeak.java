@@ -22,17 +22,17 @@ package net.sf.mzmine.modules.peakpicking.threestep.peakconstruction;
 import java.text.Format;
 
 import net.sf.mzmine.data.DataPoint;
-import net.sf.mzmine.data.Peak;
+import net.sf.mzmine.data.ChromatographicPeak;
 import net.sf.mzmine.data.PeakStatus;
 import net.sf.mzmine.data.RawDataFile;
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.util.Range;
 
-public class PreviewConnectedPeak implements Peak {
+public class PreviewConnectedPeak implements ChromatographicPeak {
 	
-	private Peak peak;
+	private ChromatographicPeak peak;
 
-	public PreviewConnectedPeak(Peak originalPeak){
+	public PreviewConnectedPeak(ChromatographicPeak originalPeak){
 		this.peak = originalPeak;
 	}
 	

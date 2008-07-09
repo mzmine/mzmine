@@ -22,7 +22,7 @@ package net.sf.mzmine.modules.visualization.twod;
 import java.util.Vector;
 
 import net.sf.mzmine.data.DataPoint;
-import net.sf.mzmine.data.Peak;
+import net.sf.mzmine.data.ChromatographicPeak;
 import net.sf.mzmine.data.PeakList;
 import net.sf.mzmine.data.RawDataFile;
 import net.sf.mzmine.util.Range;
@@ -36,7 +36,7 @@ class PeakDataSet extends AbstractXYDataset {
 
 	private PeakList peakList;
 
-	private Peak peaks[];
+	private ChromatographicPeak peaks[];
 
 	private PeakDataPoint dataPoints[][];
 
@@ -45,14 +45,14 @@ class PeakDataSet extends AbstractXYDataset {
 
 		this.peakList = peakList;
 
-		Vector<Peak> processedPeaks = new Vector<Peak>(1024, 1024);
+		Vector<ChromatographicPeak> processedPeaks = new Vector<ChromatographicPeak>(1024, 1024);
 		Vector<PeakDataPoint[]> processedPeakDataPoints = new Vector<PeakDataPoint[]>(
 				1024, 1024);
 		Vector<PeakDataPoint> thisPeakDataPoints = new Vector<PeakDataPoint>();
 
-		Peak allPeaks[] = peakList.getPeaks(dataFile);
+		ChromatographicPeak allPeaks[] = peakList.getPeaks(dataFile);
 
-		for (Peak peak : allPeaks) {
+		for (ChromatographicPeak peak : allPeaks) {
 
 			int scanNumbers[] = peak.getScanNumbers();
 
@@ -79,7 +79,7 @@ class PeakDataSet extends AbstractXYDataset {
 
 		}
 
-		peaks = processedPeaks.toArray(new Peak[0]);
+		peaks = processedPeaks.toArray(new ChromatographicPeak[0]);
 		dataPoints = processedPeakDataPoints.toArray(new PeakDataPoint[0][]);
 
 	}
@@ -102,7 +102,7 @@ class PeakDataSet extends AbstractXYDataset {
 		return peakList;
 	}
 
-	public Peak getPeak(int series) {
+	public ChromatographicPeak getPeak(int series) {
 		return peaks[series];
 	}
 

@@ -22,11 +22,11 @@ package net.sf.mzmine.modules.normalization.standardcompound;
 import java.util.logging.Logger;
 
 import net.sf.mzmine.data.CompoundIdentity;
-import net.sf.mzmine.data.Peak;
+import net.sf.mzmine.data.ChromatographicPeak;
 import net.sf.mzmine.data.PeakList;
 import net.sf.mzmine.data.PeakListRow;
 import net.sf.mzmine.data.RawDataFile;
-import net.sf.mzmine.data.impl.SimplePeak;
+import net.sf.mzmine.data.impl.SimpleChromatographicPeak;
 import net.sf.mzmine.data.impl.SimplePeakList;
 import net.sf.mzmine.data.impl.SimplePeakListRow;
 import net.sf.mzmine.main.MZmineCore;
@@ -150,7 +150,7 @@ public class StandardCompoundNormalizerTask implements Task {
                     // Calc and store a single normalization factor
                     normalizationFactors = new float[1];
                     normalizationFactorWeights = new float[1];
-                    Peak standardPeak = nearestStandardRow.getPeak(file);
+                    ChromatographicPeak standardPeak = nearestStandardRow.getPeak(file);
                     if (peakMeasurementType == StandardCompoundNormalizerParameters.peakMeasurementTypeHeight) {
                         normalizationFactors[0] = standardPeak.getHeight();
                     } else {
@@ -177,7 +177,7 @@ public class StandardCompoundNormalizerTask implements Task {
                         float distance = MZvsRTBalance * Math.abs(mz - stdMZ)
                                 + Math.abs(rt - stdRT);
 
-                        Peak standardPeak = standardRow.getPeak(file);
+                        ChromatographicPeak standardPeak = standardRow.getPeak(file);
                         if (standardPeak == null) {
                             // What to do if standard peak is not
                             // available? (Currently this is ruled out by the
@@ -219,9 +219,9 @@ public class StandardCompoundNormalizerTask implements Task {
                     normalizationFactor = Float.MIN_VALUE;
 
                 // Normalize peak
-                Peak originalPeak = row.getPeak(file);
+                ChromatographicPeak originalPeak = row.getPeak(file);
                 if (originalPeak != null) {
-                    SimplePeak normalizedPeak = new SimplePeak(originalPeak);
+                    SimpleChromatographicPeak normalizedPeak = new SimpleChromatographicPeak(originalPeak);
                     float normalizedHeight = originalPeak.getHeight()
                             / normalizationFactor;
                     float normalizedArea = originalPeak.getArea()

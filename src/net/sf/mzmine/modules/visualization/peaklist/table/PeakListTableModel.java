@@ -22,7 +22,7 @@ package net.sf.mzmine.modules.visualization.peaklist.table;
 import javax.swing.table.AbstractTableModel;
 
 import net.sf.mzmine.data.CompoundIdentity;
-import net.sf.mzmine.data.Peak;
+import net.sf.mzmine.data.ChromatographicPeak;
 import net.sf.mzmine.data.PeakList;
 import net.sf.mzmine.data.PeakListRow;
 import net.sf.mzmine.data.PeakStatus;
@@ -97,7 +97,7 @@ public class PeakListTableModel extends AbstractTableModel {
 
             DataFileColumnType dataFileColumn = getDataFileColumn(col);
             RawDataFile file = getColumnDataFile(col);
-            Peak peak = peakListRow.getPeak(file);
+            ChromatographicPeak peak = peakListRow.getPeak(file);
 
             if (peak == null) {
                 if (dataFileColumn == DataFileColumnType.STATUS)

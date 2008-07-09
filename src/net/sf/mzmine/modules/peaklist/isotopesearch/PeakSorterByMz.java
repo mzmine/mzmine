@@ -21,15 +21,15 @@ package net.sf.mzmine.modules.peaklist.isotopesearch;
 
 import java.util.Comparator;
 
-import net.sf.mzmine.data.Peak;
+import net.sf.mzmine.data.ChromatographicPeak;
 
 /**
  * This is a helper class required for sorting peaks in order of decreasing
  * intensity.
  */
-public class PeakSorterByMz implements Comparator<Peak> {
+public class PeakSorterByMz implements Comparator<ChromatographicPeak> {
 	
-    public int compare(Peak p1, Peak p2) {
+    public int compare(ChromatographicPeak p1, ChromatographicPeak p2) {
 
         Float p1Mz = p1.getMZ();
         Float p2Mz = p2.getMZ();

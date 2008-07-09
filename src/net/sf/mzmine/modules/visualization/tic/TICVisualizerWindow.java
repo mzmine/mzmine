@@ -30,7 +30,7 @@ import java.util.Set;
 
 import javax.swing.JInternalFrame;
 
-import net.sf.mzmine.data.Peak;
+import net.sf.mzmine.data.ChromatographicPeak;
 import net.sf.mzmine.data.RawDataFile;
 import net.sf.mzmine.desktop.Desktop;
 import net.sf.mzmine.main.MZmineCore;
@@ -67,7 +67,7 @@ public class TICVisualizerWindow extends JInternalFrame implements
      * 
      */
     public TICVisualizerWindow(RawDataFile dataFiles[], Object plotType,
-            int msLevel, Range rtRange, Range mzRange, Peak[] peaks) {
+            int msLevel, Range rtRange, Range mzRange, ChromatographicPeak[] peaks) {
 
         super(null, true, true, true, true);
 
@@ -90,7 +90,7 @@ public class TICVisualizerWindow extends JInternalFrame implements
 
         // add all peaks
         if (peaks != null) {
-            for (Peak peak : peaks) {
+            for (ChromatographicPeak peak : peaks) {
                 PeakDataSet peakDataSet = new PeakDataSet(peak);
                 ticPlot.addPeakDataset(peakDataSet);
             }

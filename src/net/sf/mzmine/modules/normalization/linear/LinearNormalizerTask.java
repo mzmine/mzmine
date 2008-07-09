@@ -22,12 +22,12 @@ package net.sf.mzmine.modules.normalization.linear;
 import java.util.Hashtable;
 
 import net.sf.mzmine.data.CompoundIdentity;
-import net.sf.mzmine.data.Peak;
+import net.sf.mzmine.data.ChromatographicPeak;
 import net.sf.mzmine.data.PeakList;
 import net.sf.mzmine.data.PeakListRow;
 import net.sf.mzmine.data.RawDataFile;
 import net.sf.mzmine.data.Scan;
-import net.sf.mzmine.data.impl.SimplePeak;
+import net.sf.mzmine.data.impl.SimpleChromatographicPeak;
 import net.sf.mzmine.data.impl.SimplePeakList;
 import net.sf.mzmine.data.impl.SimplePeakListRow;
 import net.sf.mzmine.main.MZmineCore;
@@ -101,7 +101,7 @@ class LinearNormalizerTask implements Task {
         float maxOriginalHeight = 0.0f;
         for (RawDataFile file : originalPeakList.getRawDataFiles()) {
             for (PeakListRow originalpeakListRow : originalPeakList.getRows()) {
-                Peak p = originalpeakListRow.getPeak(file);
+                ChromatographicPeak p = originalpeakListRow.getPeak(file);
                 if (p != null)
                     if (maxOriginalHeight <= p.getHeight())
                         maxOriginalHeight = p.getHeight();
@@ -125,7 +125,7 @@ class LinearNormalizerTask implements Task {
                 float intensitySum = 0.0f;
                 int intensityCount = 0;
                 for (PeakListRow peakListRow : originalPeakList.getRows()) {
-                    Peak p = peakListRow.getPeak(file);
+                    ChromatographicPeak p = peakListRow.getPeak(file);
                     if (p != null) {
                         if (peakMeasurementType == LinearNormalizerParameters.PeakMeasurementTypeHeight) {
                             intensitySum += p.getHeight();
@@ -143,7 +143,7 @@ class LinearNormalizerTask implements Task {
                 float intensitySum = 0.0f;
                 int intensityCount = 0;
                 for (PeakListRow peakListRow : originalPeakList.getRows()) {
-                    Peak p = peakListRow.getPeak(file);
+                    ChromatographicPeak p = peakListRow.getPeak(file);
                     if (p != null) {
                         if (peakMeasurementType == LinearNormalizerParameters.PeakMeasurementTypeHeight) {
                             intensitySum += (p.getHeight() * p.getHeight());
@@ -160,7 +160,7 @@ class LinearNormalizerTask implements Task {
             if (normalizationType == LinearNormalizerParameters.NormalizationTypeMaximumPeakHeight) {
                 float maximumIntensity = 0.0f;
                 for (PeakListRow peakListRow : originalPeakList.getRows()) {
-                    Peak p = peakListRow.getPeak(file);
+                    ChromatographicPeak p = peakListRow.getPeak(file);
                     if (p != null) {
                         if (peakMeasurementType == LinearNormalizerParameters.PeakMeasurementTypeHeight) {
                             if (maximumIntensity < p.getHeight())
@@ -202,9 +202,9 @@ class LinearNormalizerTask implements Task {
                     return;
                 }
 
-                Peak originalPeak = originalpeakListRow.getPeak(file);
+                ChromatographicPeak originalPeak = originalpeakListRow.getPeak(file);
                 if (originalPeak != null) {
-                    SimplePeak normalizedPeak = new SimplePeak(originalPeak);
+                    SimpleChromatographicPeak normalizedPeak = new SimpleChromatographicPeak(originalPeak);
                     float normalizedHeight = originalPeak.getHeight()
                             / normalizationFactor;
                     float normalizedArea = originalPeak.getArea()

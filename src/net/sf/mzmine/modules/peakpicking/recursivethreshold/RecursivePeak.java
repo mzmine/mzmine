@@ -23,7 +23,7 @@ import java.util.ArrayList;
 import java.util.TreeMap;
 
 import net.sf.mzmine.data.DataPoint;
-import net.sf.mzmine.data.Peak;
+import net.sf.mzmine.data.ChromatographicPeak;
 import net.sf.mzmine.data.PeakStatus;
 import net.sf.mzmine.data.RawDataFile;
 import net.sf.mzmine.data.impl.SimpleDataPoint;
@@ -39,7 +39,7 @@ import net.sf.mzmine.util.Range;
  * TODO: this class is unnecessarily complicated
  * 
  */
-class RecursivePeak implements Peak {
+class RecursivePeak implements ChromatographicPeak {
 
     private PeakStatus peakStatus;
 
@@ -298,7 +298,7 @@ class RecursivePeak implements Peak {
     }
 
     /**
-     * @see net.sf.mzmine.data.Peak#getDataFile()
+     * @see net.sf.mzmine.data.ChromatographicPeak#getDataFile()
      */
     public RawDataFile getDataFile() {
         return dataFile;

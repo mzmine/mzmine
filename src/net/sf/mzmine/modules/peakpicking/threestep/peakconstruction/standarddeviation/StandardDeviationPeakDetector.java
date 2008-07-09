@@ -21,7 +21,7 @@ package net.sf.mzmine.modules.peakpicking.threestep.peakconstruction.standarddev
 
 import java.util.Vector;
 
-import net.sf.mzmine.data.Peak;
+import net.sf.mzmine.data.ChromatographicPeak;
 import net.sf.mzmine.data.RawDataFile;
 import net.sf.mzmine.modules.peakpicking.threestep.peakconstruction.ConnectedPeak;
 import net.sf.mzmine.modules.peakpicking.threestep.peakconstruction.PeakBuilder;
@@ -57,7 +57,7 @@ public class StandardDeviationPeakDetector implements PeakBuilder {
 	 * @see net.sf.mzmine.modules.peakpicking.threestep.peakconstruction.PeakBuilder#addChromatogram(net.sf.mzmine.modules.peakpicking.threestep.xicconstruction.Chromatogram,
 	 *      net.sf.mzmine.data.RawDataFile)
 	 */
-	public Peak[] addChromatogram(Chromatogram chromatogram,
+	public ChromatographicPeak[] addChromatogram(Chromatogram chromatogram,
 			RawDataFile dataFile) {
 
 		ConnectedMzPeak[] cMzPeaks = chromatogram.getConnectedMzPeaks();
@@ -130,7 +130,7 @@ public class StandardDeviationPeakDetector implements PeakBuilder {
 		}
 
 		// logger.finest(" Numero de picos " + underDetectionPeaks.size());
-		return underDetectionPeaks.toArray(new Peak[0]);
+		return underDetectionPeaks.toArray(new ChromatographicPeak[0]);
 	}
 
 	/**

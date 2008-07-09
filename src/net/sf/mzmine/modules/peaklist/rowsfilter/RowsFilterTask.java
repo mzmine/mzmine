@@ -20,7 +20,7 @@
 package net.sf.mzmine.modules.peaklist.rowsfilter;
 
 import net.sf.mzmine.data.IsotopePattern;
-import net.sf.mzmine.data.Peak;
+import net.sf.mzmine.data.ChromatographicPeak;
 import net.sf.mzmine.data.PeakList;
 import net.sf.mzmine.data.PeakListRow;
 import net.sf.mzmine.data.impl.SimplePeakList;
@@ -111,10 +111,10 @@ class RowsFilterTask implements Task {
                 rowIsGood = false;
 
             int maxIsotopePatternSizeOnRow = 1;
-            for (Peak p : row.getPeaks()) {
+            for (ChromatographicPeak p : row.getPeaks()) {
             	if (p instanceof IsotopePattern) {
             		IsotopePattern i = (IsotopePattern)p;
-            		Peak[] originalPeaks = i.getOriginalPeaks();
+            		ChromatographicPeak[] originalPeaks = i.getOriginalPeaks();
             		if (originalPeaks != null) {
             			if (maxIsotopePatternSizeOnRow < originalPeaks.length)
             				maxIsotopePatternSizeOnRow = originalPeaks.length;

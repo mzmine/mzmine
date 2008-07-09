@@ -26,7 +26,7 @@ import java.util.Hashtable;
 import java.util.Vector;
 
 import net.sf.mzmine.data.CompoundIdentity;
-import net.sf.mzmine.data.Peak;
+import net.sf.mzmine.data.ChromatographicPeak;
 import net.sf.mzmine.data.PeakListRow;
 import net.sf.mzmine.data.RawDataFile;
 import net.sf.mzmine.main.MZmineCore;
@@ -37,8 +37,8 @@ import net.sf.mzmine.project.MZmineProject;
  */
 public class SimplePeakListRow implements PeakListRow {
 
-    private Hashtable<String, Peak> peaks;
-    private Hashtable<String, Peak> originalPeaks;
+    private Hashtable<String, ChromatographicPeak> peaks;
+    private Hashtable<String, ChromatographicPeak> originalPeaks;
     private HashSet<CompoundIdentity> identities;
     private CompoundIdentity preferredIdentity;
     private String comment;
@@ -47,8 +47,8 @@ public class SimplePeakListRow implements PeakListRow {
 
     public SimplePeakListRow(int myID) {
         this.myID = myID;
-        peaks = new Hashtable<String, Peak>();
-        originalPeaks = new Hashtable<String, Peak>();
+        peaks = new Hashtable<String, ChromatographicPeak>();
+        originalPeaks = new Hashtable<String, ChromatographicPeak>();
         identities = new HashSet<CompoundIdentity>();
         preferredIdentity = CompoundIdentity.UNKNOWN_IDENTITY;
     }
@@ -63,8 +63,8 @@ public class SimplePeakListRow implements PeakListRow {
     /*
      * Return peaks assigned to this row
      */
-    public Peak[] getPeaks() {
-        return peaks.values().toArray(new Peak[0]);
+    public ChromatographicPeak[] getPeaks() {
+        return peaks.values().toArray(new ChromatographicPeak[0]);
     }
 
     /*
@@ -82,22 +82,22 @@ public class SimplePeakListRow implements PeakListRow {
     /*
      * Returns peak for given raw data file
      */
-    public Peak getPeak(RawDataFile rawData) {
+    public ChromatographicPeak getPeak(RawDataFile rawData) {
         return peaks.get(rawData.getFileName());
     }
 
-    public void setPeak(RawDataFile rawData, Peak p) {
+    public void setPeak(RawDataFile rawData, ChromatographicPeak p) {
         peaks.put(rawData.getFileName(), p);
     }
 
     /**
      * @see net.sf.mzmine.data.PeakListRow#getOriginalPeakListEntry(net.sf.mzmine.data.RawDataFile)
      */
-    public Peak getOriginalPeakListEntry(RawDataFile rawData) {
+    public ChromatographicPeak getOriginalPeakListEntry(RawDataFile rawData) {
         return originalPeaks.get(rawData.getFileName());
     }
 
-    public void addPeak(RawDataFile rawData, Peak original, Peak current) {
+    public void addPeak(RawDataFile rawData, ChromatographicPeak original, ChromatographicPeak current) {
 
         if (original != null) {
             originalPeaks.put(rawData.getFileName(), original);
@@ -118,9 +118,9 @@ public class SimplePeakListRow implements PeakListRow {
      */
     public float getAverageMZ() {
         float mzSum = 0.0f;
-        Enumeration<Peak> peakEnum = peaks.elements();
+        Enumeration<ChromatographicPeak> peakEnum = peaks.elements();
         while (peakEnum.hasMoreElements()) {
-            Peak p = peakEnum.nextElement();
+            ChromatographicPeak p = peakEnum.nextElement();
             mzSum += p.getMZ();
         }
         return mzSum / peaks.size();
@@ -131,9 +131,9 @@ public class SimplePeakListRow implements PeakListRow {
      */
     public float getAverageRT() {
         float rtSum = 0.0f;
-        Enumeration<Peak> peakEnum = peaks.elements();
+        Enumeration<ChromatographicPeak> peakEnum = peaks.elements();
         while (peakEnum.hasMoreElements()) {
-            Peak p = peakEnum.nextElement();
+            ChromatographicPeak p = peakEnum.nextElement();
             rtSum += p.getRT();
         }
         return rtSum / peaks.size();
@@ -212,7 +212,7 @@ public class SimplePeakListRow implements PeakListRow {
         return maxDataPointIntensity;
     }
 
-    public boolean hasPeak(Peak peak) {
+    public boolean hasPeak(ChromatographicPeak peak) {
         return peaks.containsValue(peak);
     }
 

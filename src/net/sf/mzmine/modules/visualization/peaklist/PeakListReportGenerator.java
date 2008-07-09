@@ -29,7 +29,7 @@ import javax.swing.table.TableColumn;
 import javax.swing.table.TableColumnModel;
 import javax.swing.table.TableModel;
 
-import net.sf.mzmine.data.Peak;
+import net.sf.mzmine.data.ChromatographicPeak;
 import net.sf.mzmine.data.PeakList;
 import net.sf.mzmine.data.PeakStatus;
 import net.sf.mzmine.main.MZmineCore;
@@ -190,7 +190,7 @@ class PeakListReportGenerator {
 
                     public Object getValue() {
 
-                        Peak peak = (Peak) getDataRow().get(fieldName);
+                        ChromatographicPeak peak = (ChromatographicPeak) getDataRow().get(fieldName);
                         if (peak == null)
                             return null;
 

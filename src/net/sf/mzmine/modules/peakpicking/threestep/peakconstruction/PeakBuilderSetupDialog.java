@@ -45,14 +45,14 @@ import javax.swing.SwingConstants;
 import javax.swing.border.Border;
 import javax.swing.border.EtchedBorder;
 
-import net.sf.mzmine.data.Peak;
+import net.sf.mzmine.data.ChromatographicPeak;
 import net.sf.mzmine.data.RawDataFile;
+import net.sf.mzmine.data.impl.SimpleMzPeak;
 import net.sf.mzmine.data.impl.SimpleDataPoint;
 import net.sf.mzmine.data.impl.SimpleParameterSet;
 import net.sf.mzmine.desktop.Desktop;
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.modules.peakpicking.threestep.ThreeStepPickerParameters;
-import net.sf.mzmine.modules.peakpicking.threestep.massdetection.MzPeak;
 import net.sf.mzmine.modules.peakpicking.threestep.xicconstruction.Chromatogram;
 import net.sf.mzmine.modules.peakpicking.threestep.xicconstruction.ChromatogramBuilder;
 import net.sf.mzmine.modules.visualization.tic.PeakDataSet;
@@ -337,11 +337,11 @@ public class PeakBuilderSetupDialog extends ParameterSetupDialog implements
 			return;
 		}
 
-		Peak[] peaks;
+		ChromatographicPeak[] peaks;
 
 		for (int i = 0; i < listScans.length; i++) {
 
-			MzPeak[] mzValues = { new MzPeak(new SimpleDataPoint(mzRange
+			SimpleMzPeak[] mzValues = { new SimpleMzPeak(new SimpleDataPoint(mzRange
 					.getAverage(), ticDataset.getY(0, i).floatValue())) };
 			chromatoBuilder.addScan(previewDataFile, previewDataFile
 					.getScan(listScans[i]), mzValues);
@@ -356,7 +356,7 @@ public class PeakBuilderSetupDialog extends ParameterSetupDialog implements
 			peaks = peakBuilder.addChromatogram(chromatogram, previewDataFile);
 
 			if (peaks.length > 0)
-				for (Peak p : peaks) {
+				for (ChromatographicPeak p : peaks) {
 					PeakDataSet peakDataSet = new PeakDataSet(new PreviewConnectedPeak(p));
 					ticPlot.addPeakDataset(peakDataSet);
 					peakDataSets.put(Integer.valueOf(peakInd), peakDataSet);

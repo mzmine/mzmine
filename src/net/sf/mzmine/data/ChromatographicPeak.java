@@ -24,7 +24,7 @@ import net.sf.mzmine.util.Range;
 /**
  * This interface defines the properties of a detected peak
  */
-public interface Peak {
+public interface ChromatographicPeak {
 
     /**
      * This method returns the status of the peak

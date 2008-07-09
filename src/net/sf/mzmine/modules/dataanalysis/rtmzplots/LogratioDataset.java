@@ -22,7 +22,7 @@ package net.sf.mzmine.modules.dataanalysis.rtmzplots;
 import java.util.Vector;
 import java.util.logging.Logger;
 
-import net.sf.mzmine.data.Peak;
+import net.sf.mzmine.data.ChromatographicPeak;
 import net.sf.mzmine.data.PeakList;
 import net.sf.mzmine.data.PeakListRow;
 import net.sf.mzmine.data.RawDataFile;
@@ -73,7 +73,7 @@ public class LogratioDataset extends AbstractXYZDataset implements RTMZDataset  
 			// Collect available peak intensities for selected files
 			Vector<Float> groupOnePeakIntensities = new Vector<Float>(); 
 			for (int fileIndex=0; fileIndex<groupOneSelectedFiles.length; fileIndex++) {
-				Peak p = row.getPeak(groupOneSelectedFiles[fileIndex]);
+				ChromatographicPeak p = row.getPeak(groupOneSelectedFiles[fileIndex]);
 				if (p!=null) {
 					if (useArea)
 						groupOnePeakIntensities.add(p.getArea());
@@ -83,7 +83,7 @@ public class LogratioDataset extends AbstractXYZDataset implements RTMZDataset  
 			}
 			Vector<Float> groupTwoPeakIntensities = new Vector<Float>(); 
 			for (int fileIndex=0; fileIndex<groupTwoSelectedFiles.length; fileIndex++) {
-				Peak p = row.getPeak(groupTwoSelectedFiles[fileIndex]);
+				ChromatographicPeak p = row.getPeak(groupTwoSelectedFiles[fileIndex]);
 				if (p!=null) {
 					if (useArea)
 						groupTwoPeakIntensities.add(p.getArea());

@@ -22,7 +22,7 @@ package net.sf.mzmine.modules.peaklist.deisotoper;
 import java.util.Arrays;
 import java.util.Vector;
 
-import net.sf.mzmine.data.Peak;
+import net.sf.mzmine.data.ChromatographicPeak;
 import net.sf.mzmine.data.PeakList;
 import net.sf.mzmine.data.RawDataFile;
 import net.sf.mzmine.data.impl.SimpleIsotopePattern;
@@ -142,7 +142,7 @@ class IsotopeGrouperTask implements Task {
             charges[i] = (i + 1);
 
         // Sort peaks
-        Peak[] sortedPeaks = peaklist.getPeaks(dataFile);
+        ChromatographicPeak[] sortedPeaks = peaklist.getPeaks(dataFile);
         Arrays.sort(sortedPeaks, new PeakSorterByDescendingHeight());
 
         // Loop through all peaks in the order of descending intensity
@@ -153,7 +153,7 @@ class IsotopeGrouperTask implements Task {
             if (status == TaskStatus.CANCELED)
                 return;
 
-            Peak aPeak = sortedPeaks[ind];
+            ChromatographicPeak aPeak = sortedPeaks[ind];
 
             // Check if peak was already deleted
             if (aPeak == null) {
@@ -164,10 +164,10 @@ class IsotopeGrouperTask implements Task {
             // Check which charge state fits best around this peak
             int bestFitCharge = 0;
             int bestFitScore = -1;
-            Vector<Peak> bestFitPeaks = null;
+            Vector<ChromatographicPeak> bestFitPeaks = null;
             for (int charge : charges) {
 
-                Vector<Peak> fittedPeaks = new Vector<Peak>();
+                Vector<ChromatographicPeak> fittedPeaks = new Vector<ChromatographicPeak>();
                 fittedPeaks.add(aPeak);
                 fitPattern(fittedPeaks, aPeak, charge, sortedPeaks);
 
@@ -187,7 +187,7 @@ class IsotopeGrouperTask implements Task {
 
             float maxHeight = 0, minMZ = Float.MAX_VALUE;
 
-            for (Peak p : bestFitPeaks) {
+            for (ChromatographicPeak p : bestFitPeaks) {
                 isotopePattern.addPeak(p);
                 if (p.getHeight() > maxHeight) {
                     if (chooseMostIntense)
@@ -239,8 +239,8 @@ class IsotopeGrouperTask implements Task {
      * @param p Pattern is fitted around this peak
      * @param charge Charge state of the fitted pattern
      */
-    private void fitPattern(Vector<Peak> fittedPeaks, Peak p, int charge,
-            Peak[] sortedPeaks) {
+    private void fitPattern(Vector<ChromatographicPeak> fittedPeaks, ChromatographicPeak p, int charge,
+            ChromatographicPeak[] sortedPeaks) {
 
         if (charge == 0) {
             return;
@@ -265,8 +265,8 @@ class IsotopeGrouperTask implements Task {
      *            M/Z, +1=fit to peaks after start M/Z
      * @param fittedPeaks All matching peaks will be added to this set
      */
-    private void fitHalfPattern(Peak p, int charge, int direction,
-            Vector<Peak> fittedPeaks, Peak[] sortedPeaks) {
+    private void fitHalfPattern(ChromatographicPeak p, int charge, int direction,
+            Vector<ChromatographicPeak> fittedPeaks, ChromatographicPeak[] sortedPeaks) {
 
         // Use M/Z and RT of the strongest peak of the pattern (peak 'p')
         float mainMZ = p.getMZ();
@@ -284,10 +284,10 @@ class IsotopeGrouperTask implements Task {
 
             // Loop through all peaks, and collect candidates for the n:th peak
             // in the pattern
-            Vector<Peak> goodCandidates = new Vector<Peak>();
+            Vector<ChromatographicPeak> goodCandidates = new Vector<ChromatographicPeak>();
             for (int ind = 0; ind < sortedPeaks.length; ind++) {
 
-                Peak candidatePeak = sortedPeaks[ind];
+                ChromatographicPeak candidatePeak = sortedPeaks[ind];
 
                 if (candidatePeak == null)
                     continue;
@@ -318,8 +318,8 @@ class IsotopeGrouperTask implements Task {
             // more sophisticated at this step. For example, we might want to
             // remove all other candidates. However, currently nothing is done
             // with other candidates.
-            Peak bestCandidate = null;
-            for (Peak candidatePeak : goodCandidates) {
+            ChromatographicPeak bestCandidate = null;
+            for (ChromatographicPeak candidatePeak : goodCandidates) {
                 if (bestCandidate != null) {
                     if (bestCandidate.getHeight() < candidatePeak.getHeight()) {
                         bestCandidate = candidatePeak;

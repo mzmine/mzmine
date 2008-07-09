@@ -22,7 +22,7 @@ package net.sf.mzmine.modules.peakpicking.gapfiller;
 import java.util.Vector;
 
 import net.sf.mzmine.data.CompoundIdentity;
-import net.sf.mzmine.data.Peak;
+import net.sf.mzmine.data.ChromatographicPeak;
 import net.sf.mzmine.data.PeakList;
 import net.sf.mzmine.data.PeakListRow;
 import net.sf.mzmine.data.RawDataFile;
@@ -100,8 +100,8 @@ class GapFillerTask implements Task {
                 PeakListRow sourceRow = peakList.getRow(row);
                 PeakListRow newRow = processedPeakList.getRow(row);
 
-                Peak sourcePeak = sourceRow.getPeak(dataFile);
-                Peak sourceOriginalPeak = sourceRow.getOriginalPeakListEntry(dataFile);
+                ChromatographicPeak sourcePeak = sourceRow.getPeak(dataFile);
+                ChromatographicPeak sourceOriginalPeak = sourceRow.getOriginalPeakListEntry(dataFile);
 
                 if (sourcePeak == null) {
 

@@ -20,7 +20,7 @@
 package net.sf.mzmine.modules.visualization.tic;
 
 import net.sf.mzmine.data.DataPoint;
-import net.sf.mzmine.data.Peak;
+import net.sf.mzmine.data.ChromatographicPeak;
 import net.sf.mzmine.data.RawDataFile;
 import net.sf.mzmine.data.Scan;
 
@@ -32,10 +32,10 @@ import org.jfree.data.xy.AbstractXYDataset;
  */
 public class PeakDataSet extends AbstractXYDataset {
 
-    private Peak peak;
+    private ChromatographicPeak peak;
     private float retentionTimes[], intensities[];
 
-    public PeakDataSet(Peak peak) {
+    public PeakDataSet(ChromatographicPeak peak) {
 
         this.peak = peak;
 

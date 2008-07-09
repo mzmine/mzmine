@@ -24,7 +24,7 @@ import java.util.Set;
 import java.util.TreeMap;
 import java.util.Vector;
 
-import net.sf.mzmine.data.Peak;
+import net.sf.mzmine.data.ChromatographicPeak;
 import net.sf.mzmine.data.RawDataFile;
 import net.sf.mzmine.modules.peakpicking.threestep.peakconstruction.ConnectedPeak;
 import net.sf.mzmine.modules.peakpicking.threestep.peakconstruction.PeakBuilder;
@@ -62,14 +62,14 @@ public class NoiseAmplitudePeakDetector implements PeakBuilder {
 	 * @see net.sf.mzmine.modules.peakpicking.threestep.peakconstruction.PeakBuilder#addChromatogram(net.sf.mzmine.modules.peakpicking.threestep.xicconstruction.Chromatogram,
 	 *      net.sf.mzmine.data.RawDataFile)
 	 */
-	public Peak[] addChromatogram(Chromatogram chromatogram,
+	public ChromatographicPeak[] addChromatogram(Chromatogram chromatogram,
 			RawDataFile dataFile) {
 
 		// This treeMap stores the score of frequency of intensity ranges
 		TreeMap<Integer, Integer> binsFrequency = new TreeMap<Integer, Integer>();
 		float maxIntensity = 0;
 		
-		Vector<Peak> detectedPeaks = new Vector<Peak>();
+		Vector<ChromatographicPeak> detectedPeaks = new Vector<ChromatographicPeak>();
 
 		int[] scanNumbers = dataFile.getScanNumbers(1);
 		float[] chromatoIntensities = new float[scanNumbers.length];
@@ -91,11 +91,11 @@ public class NoiseAmplitudePeakDetector implements PeakBuilder {
 
 		float noiseThreshold = getNoiseThreshold(binsFrequency, maxIntensity);
 
-		Peak[] chromatographicPeaks = noiseThresholdPeaksSearch(chromatogram,
+		ChromatographicPeak[] chromatographicPeaks = noiseThresholdPeaksSearch(chromatogram,
 				dataFile, scanNumbers, noiseThreshold);
 
 		if (chromatographicPeaks.length != 0) {
-			for (Peak p : chromatographicPeaks) {
+			for (ChromatographicPeak p : chromatographicPeaks) {
 				float pLength = p.getRawDataPointsRTRange().getSize();
 				float pHeight = p.getHeight();
 				if ((pLength >= minimumPeakDuration)
@@ -141,7 +141,7 @@ public class NoiseAmplitudePeakDetector implements PeakBuilder {
 			}
 		}
 
-		return detectedPeaks.toArray(new Peak[0]);
+		return detectedPeaks.toArray(new ChromatographicPeak[0]);
 	}
 
 	/**
@@ -156,7 +156,7 @@ public class NoiseAmplitudePeakDetector implements PeakBuilder {
 	 *            ucPeak
 	 * @return Peak[]
 	 */
-	private Peak[] noiseThresholdPeaksSearch(Chromatogram chromatogram,
+	private ChromatographicPeak[] noiseThresholdPeaksSearch(Chromatogram chromatogram,
 			RawDataFile dataFile, int[] scanNumbers, float noiseThreshold) {
 
 		Vector<ConnectedPeak> newChromatoPeaks = new Vector<ConnectedPeak>();

@@ -26,7 +26,7 @@ import java.util.List;
 
 import net.sf.mzmine.data.Parameter;
 import net.sf.mzmine.data.ParameterType;
-import net.sf.mzmine.data.Peak;
+import net.sf.mzmine.data.ChromatographicPeak;
 import net.sf.mzmine.data.PeakListRow;
 import net.sf.mzmine.data.RawDataFile;
 import net.sf.mzmine.main.MZmineCore;
@@ -84,13 +84,13 @@ class IntensityPlotDataset extends AbstractDataset implements
         }
     }
 
-    Peak[] getPeaks(int row, int column) {
+    ChromatographicPeak[] getPeaks(int row, int column) {
         return getPeaks(xValues[column], selectedRows[row]);
     }
 
-    Peak[] getPeaks(Comparable xValue, PeakListRow row) {
+    ChromatographicPeak[] getPeaks(Comparable xValue, PeakListRow row) {
         RawDataFile files[] = getFiles(xValue);
-        Peak[] peaks = new Peak[files.length];
+        ChromatographicPeak[] peaks = new ChromatographicPeak[files.length];
         for (int i = 0; i < files.length; i++) {
             peaks[i] = row.getPeak(files[i]);
         }
@@ -122,7 +122,7 @@ class IntensityPlotDataset extends AbstractDataset implements
     }
 
     public Number getMeanValue(int row, int column) {
-        Peak[] peaks = getPeaks(xValues[column], selectedRows[row]);
+        ChromatographicPeak[] peaks = getPeaks(xValues[column], selectedRows[row]);
         HashSet<Float> values = new HashSet<Float>();
         for (int i = 0; i < peaks.length; i++) {
             if (peaks[i] == null)
@@ -146,7 +146,7 @@ class IntensityPlotDataset extends AbstractDataset implements
     }
 
     public Number getStdDevValue(int row, int column) {
-        Peak[] peaks = getPeaks(xValues[column], selectedRows[row]);
+        ChromatographicPeak[] peaks = getPeaks(xValues[column], selectedRows[row]);
 
         // if we have only 1 peak, there is no standard deviation
         if (peaks.length == 1)

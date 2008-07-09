@@ -21,7 +21,7 @@ package net.sf.mzmine.util;
 
 import java.util.Comparator;
 
-import net.sf.mzmine.data.Peak;
+import net.sf.mzmine.data.ChromatographicPeak;
 import net.sf.mzmine.data.PeakListRow;
 
 /**
@@ -81,13 +81,13 @@ public class PeakListRowSorter implements Comparator<PeakListRow> {
      */
 	private int compareArea(PeakListRow row1, PeakListRow row2) {
 
-		Peak[] peaks1 = row1.getPeaks();
+		ChromatographicPeak[] peaks1 = row1.getPeaks();
 		float[] peakAreas1 = new float[peaks1.length];
 		for (int peakInd = 0; peakInd < peakAreas1.length; peakInd++)
 			peakAreas1[peakInd] = peaks1[peakInd].getArea();
 		Float medianPeakAreas1 = MathUtils.calcQuantile(peakAreas1, 0.5f);
 
-		Peak[] peaks2 = row2.getPeaks();
+		ChromatographicPeak[] peaks2 = row2.getPeaks();
 		float[] peakAreas2 = new float[peaks2.length];
 		for (int peakInd = 0; peakInd < peakAreas2.length; peakInd++)
 			peakAreas2[peakInd] = peaks2[peakInd].getArea();

@@ -27,7 +27,7 @@ import net.sf.mzmine.data.PeakListRow;
 import net.sf.mzmine.data.PeakStatus;
 import net.sf.mzmine.data.RawDataFile;
 import net.sf.mzmine.data.Scan;
-import net.sf.mzmine.data.impl.SimplePeak;
+import net.sf.mzmine.data.impl.SimpleChromatographicPeak;
 import net.sf.mzmine.util.Range;
 import net.sf.mzmine.util.ScanUtils;
 
@@ -167,7 +167,7 @@ class Gap {
             // Calculate average m/z value
             mz /= bestPeakDataPoints.size();
 
-            SimplePeak newPeak = new SimplePeak(rawDataFile, mz, rt, height,
+            SimpleChromatographicPeak newPeak = new SimpleChromatographicPeak(rawDataFile, mz, rt, height,
                     area, scanNumbers, peakDataPoints, peakRawDataPoints,
                     PeakStatus.ESTIMATED);
 

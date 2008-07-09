@@ -66,12 +66,12 @@ public interface PeakList {
      * @param row Row of the peak list
      * @param rawDataFile Raw data file where the peak is detected/estimated
      */
-    public Peak getPeak(int row, RawDataFile rawDataFile);
+    public ChromatographicPeak getPeak(int row, RawDataFile rawDataFile);
 
     /**
      * Returns all peaks for a raw data file
      */
-    public Peak[] getPeaks(RawDataFile rawDataFile);
+    public ChromatographicPeak[] getPeaks(RawDataFile rawDataFile);
 
     /**
      * Returns all peaks on one row
@@ -116,7 +116,7 @@ public interface PeakList {
      * @param startRT Start of the retention time range
      * @param endRT End of the retention time range
      */
-    public Peak[] getPeaksInsideScanRange(RawDataFile file, Range rtRange);
+    public ChromatographicPeak[] getPeaksInsideScanRange(RawDataFile file, Range rtRange);
 
     /**
      * Returns all peaks in a given m/z range
@@ -124,7 +124,7 @@ public interface PeakList {
      * @param startMZ Start of the m/z range
      * @param endMZ End of the m/z range
      */
-    public Peak[] getPeaksInsideMZRange(RawDataFile file, Range mzRange);
+    public ChromatographicPeak[] getPeaksInsideMZRange(RawDataFile file, Range mzRange);
 
     /**
      * Returns all peaks in a given m/z & retention time ranges
@@ -134,7 +134,7 @@ public interface PeakList {
      * @param startMZ Start of the m/z range
      * @param endMZ End of the m/z range
      */
-    public Peak[] getPeaksInsideScanAndMZRange(RawDataFile file, Range rtRange,
+    public ChromatographicPeak[] getPeaksInsideScanAndMZRange(RawDataFile file, Range rtRange,
             Range mzRange);
 
     /**
@@ -165,11 +165,11 @@ public interface PeakList {
     /**
      * Returns a row number of given peak
      */
-    public int getPeakRowNum(Peak peak);
+    public int getPeakRowNum(ChromatographicPeak peak);
 
     /**
      * Returns a row containing given peak
      */
-    public PeakListRow getPeakRow(Peak peak);
+    public PeakListRow getPeakRow(ChromatographicPeak peak);
 
 }

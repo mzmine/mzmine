@@ -24,15 +24,15 @@ import java.util.Vector;
 
 import net.sf.mzmine.data.DataPoint;
 import net.sf.mzmine.data.Scan;
+import net.sf.mzmine.data.impl.SimpleMzPeak;
 import net.sf.mzmine.modules.peakpicking.threestep.massdetection.MassDetector;
-import net.sf.mzmine.modules.peakpicking.threestep.massdetection.MzPeak;
-import net.sf.mzmine.modules.peakpicking.threestep.massdetection.MzPeaksSorter;
+import net.sf.mzmine.util.DataPointSorter;
 
 public class RecursiveMassDetector implements MassDetector {
 
     // Parameter values
     private float minimumMZPeakWidth, maximumMZPeakWidth, noiseLevel;
-    private TreeSet<MzPeak> mzPeaks;
+    private TreeSet<SimpleMzPeak> mzPeaks;
     private DataPoint[] dataPoints;
 
     // private Scan scan;
@@ -43,16 +43,16 @@ public class RecursiveMassDetector implements MassDetector {
         maximumMZPeakWidth = (Float) parameters.getParameterValue(RecursiveMassDetectorParameters.maximumMZPeakWidth);
     }
 
-    public MzPeak[] getMassValues(Scan scan) {
+    public SimpleMzPeak[] getMassValues(Scan scan) {
 
         // this.scan = scan;
         dataPoints = scan.getDataPoints();
-        mzPeaks = new TreeSet<MzPeak>(new MzPeaksSorter(true,
+        mzPeaks = new TreeSet<SimpleMzPeak>(new DataPointSorter(true,
                 true));
 
         // Find MzPeaks
         recursiveThreshold(1, dataPoints.length - 1, noiseLevel, 0);
-        return mzPeaks.toArray(new MzPeak[0]);
+        return mzPeaks.toArray(new SimpleMzPeak[0]);
     }
 
     /**
@@ -114,7 +114,7 @@ public class RecursiveMassDetector implements MassDetector {
 
                 // Declare a new MzPeak with intensity equal to max intensity
                 // data point
-                mzPeaks.add(new MzPeak(dataPoints[peakMaxInd],
+                mzPeaks.add(new SimpleMzPeak(dataPoints[peakMaxInd],
                         RawDataPointsInds.toArray(new DataPoint[0])));
 
                 if (recuLevel > 0) {

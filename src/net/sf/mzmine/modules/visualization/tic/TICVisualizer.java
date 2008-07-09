@@ -27,7 +27,7 @@ import java.util.logging.Logger;
 
 import net.sf.mzmine.data.Parameter;
 import net.sf.mzmine.data.ParameterSet;
-import net.sf.mzmine.data.Peak;
+import net.sf.mzmine.data.ChromatographicPeak;
 import net.sf.mzmine.data.RawDataFile;
 import net.sf.mzmine.desktop.Desktop;
 import net.sf.mzmine.desktop.MZmineMenu;
@@ -79,7 +79,7 @@ public class TICVisualizer implements MZmineModule, ActionListener {
     }
 
     public void showNewTICVisualizerWindow(RawDataFile[] dataFiles,
-            Peak[] peaks, int msLevel, Object plotType, Range rtRange,
+            ChromatographicPeak[] peaks, int msLevel, Object plotType, Range rtRange,
             Range mzRange) {
         TICVisualizerParameters newParameters = (TICVisualizerParameters) parameters.clone();
         newParameters.setParameterValue(TICVisualizerParameters.msLevel,
@@ -93,12 +93,12 @@ public class TICVisualizer implements MZmineModule, ActionListener {
         showNewTICVisualizerWindow(dataFiles, peaks, newParameters);
     }
 
-    public void showNewTICVisualizerWindow(RawDataFile[] dataFiles, Peak[] peaks) {
+    public void showNewTICVisualizerWindow(RawDataFile[] dataFiles, ChromatographicPeak[] peaks) {
         showNewTICVisualizerWindow(dataFiles, peaks, parameters);
     }
 
     private void showNewTICVisualizerWindow(RawDataFile[] dataFiles,
-            Peak[] peaks, TICVisualizerParameters parameters) {
+            ChromatographicPeak[] peaks, TICVisualizerParameters parameters) {
 
         logger.finest("Opening a new TIC visualizer setup dialog");
 

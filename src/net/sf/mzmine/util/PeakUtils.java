@@ -23,7 +23,7 @@ import java.text.Format;
 
 import net.sf.mzmine.data.CompoundIdentity;
 import net.sf.mzmine.data.IsotopePattern;
-import net.sf.mzmine.data.Peak;
+import net.sf.mzmine.data.ChromatographicPeak;
 import net.sf.mzmine.data.PeakListRow;
 import net.sf.mzmine.main.MZmineCore;
 
@@ -40,7 +40,7 @@ public class PeakUtils {
      * @param peak Peak to be converted to String
      * @return String representation of the peak
      */
-    public static String peakToString(Peak peak) {
+    public static String peakToString(ChromatographicPeak peak) {
         StringBuffer buf = new StringBuffer();
         Format mzFormat = MZmineCore.getMZFormat();
         Format timeFormat = MZmineCore.getRTFormat();
@@ -53,18 +53,18 @@ public class PeakUtils {
     /**
      * Returns peak with the lowest m/z value of the isotope pattern
      */
-    public static Peak getLowestMZPeak(IsotopePattern pattern) {
+    public static ChromatographicPeak getLowestMZPeak(IsotopePattern pattern) {
 
         if (pattern == null)
             return null;
 
-        Peak[] peaks = pattern.getOriginalPeaks();
+        ChromatographicPeak[] peaks = pattern.getOriginalPeaks();
 
         if ((peaks == null) || (peaks.length == 0))
             return null;
 
-        Peak lowestMZPeak = peaks[0];
-        for (Peak peak : peaks)
+        ChromatographicPeak lowestMZPeak = peaks[0];
+        for (ChromatographicPeak peak : peaks)
             if (peak.getMZ() < lowestMZPeak.getMZ())
                 lowestMZPeak = peak;
 
@@ -75,18 +75,18 @@ public class PeakUtils {
     /**
      * Returns the most intense peak of the isotope pattern
      */
-    public static Peak getMostIntensePeak(IsotopePattern pattern) {
+    public static ChromatographicPeak getMostIntensePeak(IsotopePattern pattern) {
 
         if (pattern == null)
             return null;
 
-        Peak[] peaks = pattern.getOriginalPeaks();
+        ChromatographicPeak[] peaks = pattern.getOriginalPeaks();
 
         if ((peaks == null) || (peaks.length == 0))
             return null;
 
-        Peak mostIntensePeak = peaks[0];
-        for (Peak peak : peaks)
+        ChromatographicPeak mostIntensePeak = peaks[0];
+        for (ChromatographicPeak peak : peaks)
             if (peak.getArea() > mostIntensePeak.getArea())
                 mostIntensePeak = peak;
 
@@ -103,13 +103,13 @@ public class PeakUtils {
         if (peakListRow == null)
             return 0.0f;
 
-        Peak[] peaks = peakListRow.getPeaks();
+        ChromatographicPeak[] peaks = peakListRow.getPeaks();
 
         if ((peaks == null) || (peaks.length == 0))
             return 0.0f;
 
         float mzSum = 0.0f;
-        for (Peak peak : peaks) {
+        for (ChromatographicPeak peak : peaks) {
             if (peak instanceof IsotopePattern)
                 mzSum += getLowestMZPeak((IsotopePattern) peak).getMZ();
             else
@@ -130,13 +130,13 @@ public class PeakUtils {
         if (peakListRow == null)
             return 0.0f;
 
-        Peak[] peaks = peakListRow.getPeaks();
+        ChromatographicPeak[] peaks = peakListRow.getPeaks();
 
         if ((peaks == null) || (peaks.length == 0))
             return 0.0f;
 
         float mzSum = 0.0f;
-        for (Peak peak : peaks) {
+        for (ChromatographicPeak peak : peaks) {
             if (peak instanceof IsotopePattern)
                 mzSum += getMostIntensePeak((IsotopePattern) peak).getMZ();
             else

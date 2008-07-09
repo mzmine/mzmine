@@ -29,7 +29,7 @@ import java.util.logging.Logger;
 import javax.swing.JMenuItem;
 import javax.swing.JPopupMenu;
 
-import net.sf.mzmine.data.Peak;
+import net.sf.mzmine.data.ChromatographicPeak;
 import net.sf.mzmine.data.PeakList;
 import net.sf.mzmine.data.PeakListRow;
 import net.sf.mzmine.data.RawDataFile;
@@ -178,13 +178,13 @@ public class PeakListTablePopupMenu extends JPopupMenu implements
 
         if (src == showXICItem) {
 
-            Peak clickedPeak = clickedPeakListRow.getPeak(clickedDataFile);
+            ChromatographicPeak clickedPeak = clickedPeakListRow.getPeak(clickedDataFile);
             TICVisualizer tic = TICVisualizer.getInstance();
 
             if (clickedPeak != null) {
                 tic.showNewTICVisualizerWindow(
                         new RawDataFile[] { clickedDataFile },
-                        new Peak[] { clickedPeak }, 1,
+                        new ChromatographicPeak[] { clickedPeak }, 1,
                         TICVisualizerParameters.plotTypeBP,
                         clickedDataFile.getDataRTRange(1),
                         clickedPeak.getRawDataPointsMZRange());
@@ -192,7 +192,7 @@ public class PeakListTablePopupMenu extends JPopupMenu implements
             } else {
                 Range mzRange = new Range(clickedPeakListRow.getAverageMZ());
 
-                for (Peak peak : clickedPeakListRow.getPeaks()) {
+                for (ChromatographicPeak peak : clickedPeakListRow.getPeaks()) {
                     if (peak == null)
                         continue;
                     mzRange.extendRange(peak.getRawDataPointsMZRange());

@@ -43,27 +43,27 @@ public interface PeakListRow {
     /**
      * Return peaks assigned to this row
      */
-    public Peak[] getPeaks();
+    public ChromatographicPeak[] getPeaks();
 
     /**
      * Returns peak for given raw data file
      */
-    public Peak getPeak(RawDataFile rawData);
+    public ChromatographicPeak getPeak(RawDataFile rawData);
 
     /**
      * Add a peak
      */
-    public void addPeak(RawDataFile rawData, Peak original, Peak current);
+    public void addPeak(RawDataFile rawData, ChromatographicPeak original, ChromatographicPeak current);
     
     /**
      * Has a peak?
      */
-    public boolean hasPeak(Peak peak);
+    public boolean hasPeak(ChromatographicPeak peak);
         
     /**
      * Returns peak for given raw data file
      */
-    public Peak getOriginalPeakListEntry(RawDataFile rawData);
+    public ChromatographicPeak getOriginalPeakListEntry(RawDataFile rawData);
 
     /**
      * Returns average M/Z for peaks on this row

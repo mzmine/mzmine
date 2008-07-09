@@ -24,7 +24,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Vector;
 
-import net.sf.mzmine.data.Peak;
+import net.sf.mzmine.data.ChromatographicPeak;
 import net.sf.mzmine.data.PeakList;
 import net.sf.mzmine.data.PeakListRow;
 import net.sf.mzmine.data.RawDataFile;
@@ -96,21 +96,21 @@ public class SimplePeakList implements PeakList {
      * @param row Row of the alignment result
      * @param rawDataFile Raw data file where the peak is detected/estimated
      */
-    public Peak getPeak(int row, RawDataFile rawDataFile) {
+    public ChromatographicPeak getPeak(int row, RawDataFile rawDataFile) {
         return peakListRows.get(row).getPeak(rawDataFile);
     }
 
     /**
      * Returns all peaks for a raw data file
      */
-    public Peak[] getPeaks(RawDataFile rawDataFile) {
-        Vector<Peak> peakSet = new Vector<Peak>();
+    public ChromatographicPeak[] getPeaks(RawDataFile rawDataFile) {
+        Vector<ChromatographicPeak> peakSet = new Vector<ChromatographicPeak>();
         for (int row = 0; row < getNumberOfRows(); row++) {
-            Peak p = peakListRows.get(row).getPeak(rawDataFile);
+            ChromatographicPeak p = peakListRows.get(row).getPeak(rawDataFile);
             if (p != null)
                 peakSet.add(p);
         }
-        return peakSet.toArray(new Peak[0]);
+        return peakSet.toArray(new ChromatographicPeak[0]);
     }
 
     /**
@@ -167,7 +167,7 @@ public class SimplePeakList implements PeakList {
      * @param endRT End of the retention time range
      * @return
      */
-    public Peak[] getPeaksInsideScanRange(RawDataFile file, Range rtRange) {
+    public ChromatographicPeak[] getPeaksInsideScanRange(RawDataFile file, Range rtRange) {
         return getPeaksInsideScanAndMZRange(file, rtRange, new Range(
                 Float.MIN_VALUE, Float.MAX_VALUE));
     }
@@ -175,7 +175,7 @@ public class SimplePeakList implements PeakList {
     /**
      * @see net.sf.mzmine.data.PeakList#getPeaksInsideMZRange(float, float)
      */
-    public Peak[] getPeaksInsideMZRange(RawDataFile file, Range mzRange) {
+    public ChromatographicPeak[] getPeaksInsideMZRange(RawDataFile file, Range mzRange) {
         return getPeaksInsideScanAndMZRange(file, new Range(Float.MIN_VALUE,
                 Float.MAX_VALUE), mzRange);
     }
@@ -184,17 +184,17 @@ public class SimplePeakList implements PeakList {
      * @see net.sf.mzmine.data.PeakList#getPeaksInsideScanAndMZRange(float,
      *      float, float, float)
      */
-    public Peak[] getPeaksInsideScanAndMZRange(RawDataFile file, Range rtRange,
+    public ChromatographicPeak[] getPeaksInsideScanAndMZRange(RawDataFile file, Range rtRange,
             Range mzRange) {
-        Vector<Peak> peaksInside = new Vector<Peak>();
+        Vector<ChromatographicPeak> peaksInside = new Vector<ChromatographicPeak>();
 
-        Peak[] peaks = getPeaks(file);
-        for (Peak p : peaks) {
+        ChromatographicPeak[] peaks = getPeaks(file);
+        for (ChromatographicPeak p : peaks) {
             if (rtRange.contains(p.getRT()) && mzRange.contains(p.getMZ()))
                 peaksInside.add(p);
         }
 
-        return peaksInside.toArray(new Peak[0]);
+        return peaksInside.toArray(new ChromatographicPeak[0]);
     }
 
     /**
@@ -222,9 +222,9 @@ public class SimplePeakList implements PeakList {
     }
 
     /**
-     * @see net.sf.mzmine.data.PeakList#getPeakRowNum(net.sf.mzmine.data.Peak)
+     * @see net.sf.mzmine.data.PeakList#getPeakRowNum(net.sf.mzmine.data.ChromatographicPeak)
      */
-    public int getPeakRowNum(Peak peak) {
+    public int getPeakRowNum(ChromatographicPeak peak) {
 
         PeakListRow rows[] = getRows();
 
@@ -247,7 +247,7 @@ public class SimplePeakList implements PeakList {
         return Arrays.asList(dataFiles).contains(hasFile);
     }
 
-    public PeakListRow getPeakRow(Peak peak) {
+    public PeakListRow getPeakRow(ChromatographicPeak peak) {
         PeakListRow rows[] = getRows();
 
         for (int i = 0; i < rows.length; i++) {

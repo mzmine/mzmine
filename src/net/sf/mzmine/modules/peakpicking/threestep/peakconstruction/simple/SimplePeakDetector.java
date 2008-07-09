@@ -21,10 +21,10 @@ package net.sf.mzmine.modules.peakpicking.threestep.peakconstruction.simple;
 
 import java.util.Arrays;
 
-import net.sf.mzmine.data.Peak;
+import net.sf.mzmine.data.ChromatographicPeak;
 import net.sf.mzmine.data.RawDataFile;
+import net.sf.mzmine.data.impl.SimpleMzPeak;
 import net.sf.mzmine.data.impl.SimpleDataPoint;
-import net.sf.mzmine.modules.peakpicking.threestep.massdetection.MzPeak;
 import net.sf.mzmine.modules.peakpicking.threestep.peakconstruction.ConnectedPeak;
 import net.sf.mzmine.modules.peakpicking.threestep.peakconstruction.PeakBuilder;
 import net.sf.mzmine.modules.peakpicking.threestep.xicconstruction.Chromatogram;
@@ -53,7 +53,7 @@ public class SimplePeakDetector implements PeakBuilder {
 	 * @see net.sf.mzmine.modules.peakpicking.threestep.peakconstruction.PeakBuilder#addChromatogram(net.sf.mzmine.modules.peakpicking.threestep.xicconstruction.Chromatogram,
 	 *      net.sf.mzmine.data.RawDataFile)
 	 */
-	public Peak[] addChromatogram(Chromatogram chromatogram,
+	public ChromatographicPeak[] addChromatogram(Chromatogram chromatogram,
 			RawDataFile dataFile) {
 
 		ConnectedMzPeak[] allConnectedMzPeaks = chromatogram
@@ -87,7 +87,7 @@ public class SimplePeakDetector implements PeakBuilder {
 			
 		}
 
-		Peak[] peaks = { simplePeak };
+		ChromatographicPeak[] peaks = { simplePeak };
 		return peaks;
 
 	}

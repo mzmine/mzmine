@@ -17,25 +17,20 @@
  * Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-package net.sf.mzmine.util;
-
-import java.util.Comparator;
-
-import net.sf.mzmine.data.ChromatographicPeak;
+package net.sf.mzmine.data;
 
 /**
- * This is a helper class required for sorting peaks in order of decreasing
- * intensity.
+ * This interface represents a single m/z peak within a spectrum. The getMZ()
+ * and getIntensity() methods of MzPeak return the best m/z and intensity
+ * values, which do not necessarily match any raw data points within the scan.
+ * Instead, MzPeak provides the getRawDataPoints() method which returns those
+ * data points that were considered to form this MzPeak.
  */
-public class PeakSorterByDescendingHeight implements Comparator<ChromatographicPeak> {
+public interface MzPeak extends DataPoint {
 
-    public int compare(ChromatographicPeak p1, ChromatographicPeak p2) {
-
-        Float p1Height = p1.getHeight();
-        Float p2Height = p2.getHeight();
-
-        return p2Height.compareTo(p1Height);
-
-    }
+    /**
+     * This method returns an array of raw data points that form this peak
+     */
+    public DataPoint[] getRawDataPoints();
 
 }

@@ -21,7 +21,7 @@ package net.sf.mzmine.modules.visualization.spectra;
 
 import java.text.NumberFormat;
 
-import net.sf.mzmine.data.Peak;
+import net.sf.mzmine.data.ChromatographicPeak;
 import net.sf.mzmine.data.PeakList;
 import net.sf.mzmine.data.PeakListRow;
 import net.sf.mzmine.main.MZmineCore;
@@ -46,7 +46,7 @@ class PeakToolTipGenerator implements XYToolTipGenerator {
         PeakListDataSet peakListDataSet = (PeakListDataSet) dataset;
 
         PeakList peakList = peakListDataSet.getPeakList();
-        Peak peak = peakListDataSet.getPeak(series, item);
+        ChromatographicPeak peak = peakListDataSet.getPeak(series, item);
         PeakListRow row = peakList.getPeakRow(peak);
         double intValue = dataset.getYValue(series, item);
         double mzValue = dataset.getXValue(series, item);

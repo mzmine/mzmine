@@ -23,15 +23,15 @@ import java.lang.reflect.Constructor;
 import java.util.Arrays;
 import java.util.logging.Logger;
 
+import net.sf.mzmine.data.ChromatographicPeak;
+import net.sf.mzmine.data.MzPeak;
 import net.sf.mzmine.data.ParameterSet;
-import net.sf.mzmine.data.Peak;
 import net.sf.mzmine.data.RawDataFile;
 import net.sf.mzmine.data.Scan;
 import net.sf.mzmine.data.impl.SimplePeakList;
 import net.sf.mzmine.data.impl.SimplePeakListRow;
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.modules.peakpicking.threestep.massdetection.MassDetector;
-import net.sf.mzmine.modules.peakpicking.threestep.massdetection.MzPeak;
 import net.sf.mzmine.modules.peakpicking.threestep.peakconstruction.PeakBuilder;
 import net.sf.mzmine.modules.peakpicking.threestep.xicconstruction.Chromatogram;
 import net.sf.mzmine.modules.peakpicking.threestep.xicconstruction.ChromatogramBuilder;
@@ -50,7 +50,7 @@ class ThreeStepPickerTask implements Task {
 	private String errorMessage;
 
 	// scan counter
-	private int processedScans, totalScans, totalChromatograms;
+	private int processedScans, totalScans;
 	private int newPeakID = 1;
 	private int[] scanNumbers;
 
@@ -203,7 +203,7 @@ class ThreeStepPickerTask implements Task {
 
 		MzPeak[] mzValues;
 		Chromatogram[] chromatograms;
-		Peak[] peaks;
+		ChromatographicPeak[] peaks;
 		
 		// TODO Verify the process in three steps
 		for (int i = 0; i < totalScans; i++) {
@@ -233,7 +233,7 @@ class ThreeStepPickerTask implements Task {
 			peaks = peakBuilder.addChromatogram(chromatogram, dataFile);
 
 			if (peaks != null)
-				for (Peak finishedPeak : peaks) {
+				for (ChromatographicPeak finishedPeak : peaks) {
 					SimplePeakListRow newRow = new SimplePeakListRow(newPeakID);
 					newPeakID++;
 					newRow.addPeak(dataFile, finishedPeak, finishedPeak);

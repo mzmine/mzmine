@@ -22,11 +22,11 @@ package net.sf.mzmine.modules.normalization.rtnormalizer;
 import java.util.Vector;
 import java.util.logging.Logger;
 
-import net.sf.mzmine.data.Peak;
+import net.sf.mzmine.data.ChromatographicPeak;
 import net.sf.mzmine.data.PeakList;
 import net.sf.mzmine.data.PeakListRow;
 import net.sf.mzmine.data.RawDataFile;
-import net.sf.mzmine.data.impl.SimplePeak;
+import net.sf.mzmine.data.impl.SimpleChromatographicPeak;
 import net.sf.mzmine.data.impl.SimplePeakList;
 import net.sf.mzmine.data.impl.SimplePeakListRow;
 import net.sf.mzmine.main.MZmineCore;
@@ -121,7 +121,7 @@ class RTNormalizerTask implements Task {
             processedRows++;
 
             // Check that all peaks of this row have proper height
-            for (Peak p : candidate.getPeaks()) {
+            for (ChromatographicPeak p : candidate.getPeaks()) {
                 if (p.getHeight() < minHeight)
                     continue standardIteration;
             }
@@ -144,7 +144,7 @@ class RTNormalizerTask implements Task {
                     continue standardIteration;
 
                 // Check that all peaks of this row have proper height
-                for (Peak p : matchingRows[0].getPeaks()) {
+                for (ChromatographicPeak p : matchingRows[0].getPeaks()) {
                     if (p.getHeight() < minHeight)
                         continue standardIteration;
                 }
@@ -311,9 +311,9 @@ class RTNormalizerTask implements Task {
 
         // Set normalized retention time to all peaks in this row
         for (RawDataFile file : originalRow.getRawDataFiles()) {
-            Peak dataFilePeak = originalRow.getPeak(file);
+            ChromatographicPeak dataFilePeak = originalRow.getPeak(file);
             if (dataFilePeak != null) {
-                SimplePeak newPeak = new SimplePeak(dataFilePeak);
+                SimpleChromatographicPeak newPeak = new SimpleChromatographicPeak(dataFilePeak);
                 newPeak.setRT(normalizedRT);
                 normalizedRow.addPeak(file,
                         originalRow.getOriginalPeakListEntry(file), newPeak);

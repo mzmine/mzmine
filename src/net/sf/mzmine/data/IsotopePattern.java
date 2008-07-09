@@ -22,19 +22,19 @@ package net.sf.mzmine.data;
 /**
  * This interface defines the properties of a deisotoped peak
  */
-public interface IsotopePattern extends Peak {
+public interface IsotopePattern extends ChromatographicPeak {
 
     public static final int UNKNOWN_CHARGE = -1;
 
     /**
      * Returns peaks that form this isotopic pattern
      */
-    public Peak[] getOriginalPeaks();
+    public ChromatographicPeak[] getOriginalPeaks();
 
     /**
      * Returns representative peak of this pattern
      */
-    public Peak getRepresentativePeak();
+    public ChromatographicPeak getRepresentativePeak();
 
     /**
      * Returns the charge of peaks in the pattern

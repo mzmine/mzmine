@@ -47,8 +47,9 @@ import javax.swing.SwingConstants;
 import javax.swing.border.Border;
 import javax.swing.border.EtchedBorder;
 
+import net.sf.mzmine.data.ChromatographicPeak;
 import net.sf.mzmine.data.DataPoint;
-import net.sf.mzmine.data.Peak;
+import net.sf.mzmine.data.MzPeak;
 import net.sf.mzmine.data.RawDataFile;
 import net.sf.mzmine.data.Scan;
 import net.sf.mzmine.data.impl.SimpleParameterSet;
@@ -328,14 +329,14 @@ public class MassDetectorSetupDialog extends ParameterSetupDialog implements
 			return;
 		}
 
-		Vector<Peak> pickedDataPoint = new Vector<Peak>();
+		Vector<ChromatographicPeak> pickedDataPoint = new Vector<ChromatographicPeak>();
 
 		for (MzPeak mzPeak : mzValues) {
 			pickedDataPoint.add(new FakePeak(scan.getScanNumber(), mzPeak));
 		}
 
 		int newPeakID = 1;
-		for (Peak finishedPeak : pickedDataPoint) {
+		for (ChromatographicPeak finishedPeak : pickedDataPoint) {
 			SimplePeakListRow newRow = new SimplePeakListRow(newPeakID);
 			newPeakID++;
 			newRow.addPeak(previewDataFile, finishedPeak, finishedPeak);
