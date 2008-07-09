@@ -34,7 +34,7 @@ import javax.swing.BorderFactory;
 import javax.swing.JInternalFrame;
 import javax.swing.JLabel;
 
-import net.sf.mzmine.data.Peak;
+import net.sf.mzmine.data.ChromatographicPeak;
 import net.sf.mzmine.data.PeakList;
 import net.sf.mzmine.data.RawDataFile;
 import net.sf.mzmine.desktop.Desktop;
@@ -223,7 +223,7 @@ public class ThreeDVisualizerWindow extends JInternalFrame implements
             logger.finest("Loading a peak list " + selectedPeakList
                     + " to a 3D view of " + dataFile);
 
-            Peak peaks[] = selectedPeakList.getPeaksInsideScanAndMZRange(
+            ChromatographicPeak peaks[] = selectedPeakList.getPeaksInsideScanAndMZRange(
                     dataFile, rtRange, mzRange);
 
             display.setPeaks(selectedPeakList, peaks,

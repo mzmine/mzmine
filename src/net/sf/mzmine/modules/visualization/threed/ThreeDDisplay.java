@@ -24,8 +24,8 @@ import java.awt.event.KeyEvent;
 import java.rmi.RemoteException;
 import java.text.NumberFormat;
 
+import net.sf.mzmine.data.ChromatographicPeak;
 import net.sf.mzmine.data.CompoundIdentity;
-import net.sf.mzmine.data.Peak;
 import net.sf.mzmine.data.PeakList;
 import net.sf.mzmine.data.PeakListRow;
 import net.sf.mzmine.main.MZmineCore;
@@ -361,7 +361,7 @@ class ThreeDDisplay extends DisplayImplJ3D {
     /**
      * Set picked peaks
      */
-    void setPeaks(PeakList peakList, Peak peaks[], boolean showCompoundName) {
+    void setPeaks(PeakList peakList, ChromatographicPeak peaks[], boolean showCompoundName) {
 
         try {
 

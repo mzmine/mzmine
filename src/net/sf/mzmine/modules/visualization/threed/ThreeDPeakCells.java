@@ -21,7 +21,7 @@ package net.sf.mzmine.modules.visualization.threed;
 
 import java.rmi.RemoteException;
 
-import net.sf.mzmine.data.Peak;
+import net.sf.mzmine.data.ChromatographicPeak;
 import visad.CellImpl;
 import visad.ConstantMap;
 import visad.DataReference;
@@ -37,14 +37,14 @@ import visad.VisADException;
 class ThreeDPeakCells extends CellImpl {
 
     private ThreeDDisplay display;
-    private Peak[] peaks;
+    private ChromatographicPeak[] peaks;
     private DataReference dataReferences[];
 
     ThreeDPeakCells(ThreeDDisplay display) {
         this.display = display;
     }
 
-    synchronized void setPeaks(Peak peaks[]) throws VisADException,
+    synchronized void setPeaks(ChromatographicPeak peaks[]) throws VisADException,
             RemoteException {
 
         this.peaks = peaks;
