@@ -3,7 +3,7 @@
   <head>
       <title>Wavelet transform mass detector</title>
   </head>
-<body bgcolor="#f0f0f0">
+<body>
 <h1 style="color: #0066CC; font-size: 35;">Wavelet transform mass detector</h1>
 
 <h2 style="margin-left: 20px;">Spectrum analysis</h2>
@@ -14,12 +14,12 @@ This mass detector uses the Mexican Hat wavelet, that is a continuous wavelet tr
  original intensity of data points into wavelet domain. Next look for all local maximums 
  in the calculated wavelet. And finally sets a mass spectrum peak in the same point where
  the wavelet has a local maximum.  
-</br></br>
+<br><br>
 The mass spectrum peak is formed with the selected data point (mass and intensity) using 
 the wavelet and all surrounding data points. These weightings determine the relative importance
  of each data point mass on the average. The data points used in the calculation of 
  exact mass are considered part of the mass spectrum peak. 
- </br></br>
+ <br><br>
 This mass detector is recommended for raw data with low resolution. 
 </p>
 
@@ -36,14 +36,14 @@ In mathematics and numerical analysis, the Mexican hat wavelet is the normalized
 <tr></tr>
 <tr>
 	<td>
-	<img src="WaveletFormula.png"></a>
+	<img src="WaveletFormula.png">
 	</td>
 </tr>
 </table>
 
 <p style="margin-left: 30px;" align="justify"; >
 The parameter t is the intensity of each data point in the curve,
- and sigma corresponds to the standard deviation.</br>
+ and sigma corresponds to the standard deviation.<br>
 </p>
 
 <table style="margin-left: 30px; margin-right: auto;">
@@ -52,10 +52,10 @@ The parameter t is the intensity of each data point in the curve,
 <tr>
 <td>
 	<td>
-	<img src="Wavelet_Mex_Hat.png"></a>
+	<img src="Wavelet_Mex_Hat.png">
 	</td>
 	<td>
-	<img src="Wavelet_calculated_form.jpg"></a>
+	<img src="Wavelet_calculated_form.jpg">
 	</td>
 </td>
 </tr>
@@ -74,13 +74,13 @@ is the intensity of the wavelet on certain point. In the first formula "t" is th
 <tr></tr>
 <tr>
 	<td>
-	<img src="Wavelet_coefficients_calculation.jpg"></a>
+	<img src="Wavelet_coefficients_calculation.jpg">
 	</td>
 </tr>
 <tr></tr>
 <tr>
 	<td>
-	<img src="Wavelet_intensities_calculation.jpg"></a>
+	<img src="Wavelet_intensities_calculation.jpg">
 	</td>
 </tr>
 </table>
@@ -95,21 +95,21 @@ The limits where is evaluated the Mexican Hat wavelet are from -5 until 5 (ESL,E
 <h2 style="margin-left: 20px;">Parameters</h2>
 
 <p style="margin-left: 30px;" align="justify"; >
-This detector requires the next three parameters:</br></br>
-<i>"Noise level"</i></br>
+This detector requires the next three parameters:<br><br>
+<i>"Noise level"</i><br>
 This value sets the minimum intensity level that a data point must
- have to be consider part of a possible peak.</br></br>
-<i>"Scale level"</i></br>
+ have to be consider part of a possible peak.<br><br>
+<i>"Scale level"</i><br>
 This value is the scale factor that either dilates or compresses the wavelet signal. 
 When the scale factor is relatively low, the signal is more contracted which in turn 
 results in a more detailed resulting graph and as a consequence more noisy peaks are detected.
  On the other hand, when the scale factor is high, the signal is stretched out which means that
- the resulting graph will be presented in less detail resulting in a smoothed signal.</br></br>
-<i>"Wavelet window size(%)"</i></br>
+ the resulting graph will be presented in less detail resulting in a smoothed signal.<br><br>
+<i>"Wavelet window size(%)"</i><br>
 This value is the size of the window used to calculated the wavelet signal. 
 When the size of the window is small makes more noisy peaks could be detected.
  On the other hand, when the size of the window is complete is possible to avoid the undesired
- peaks, depending on the raw data to process this parameter is manipulated by the user.</br></br>
+ peaks, depending on the raw data to process this parameter is manipulated by the user.<br><br>
  
  <table style="margin-left: 30px; margin-right: auto;">
 
@@ -117,11 +117,11 @@ When the size of the window is small makes more noisy peaks could be detected.
 <tr></tr>
 <tr>
 <td>
-	<td>Wavelet window size at 10%<br/>
-	<img src="Wavelet_window_size10.jpg" border="2"></a>
+	<td>Wavelet window size at 10%<br>
+	<img src="Wavelet_window_size10.jpg" border="2">
 	</td>
-	<td>Wavelet window size at 100%<br/>
-	<img src="Wavelet_window_size100.jpg"  border="2"></a>
+	<td>Wavelet window size at 100%<br>
+	<img src="Wavelet_window_size100.jpg"  border="2">
 	</td>
 <td>
 </tr>
@@ -134,16 +134,16 @@ When the size of the window is small makes more noisy peaks could be detected.
 <tr></tr>
 <tr></tr>
 <tr>
-	<td>Parameter setup dialog<br/><br/>
-	<img src="Wavelet_mass_detector_set.jpg"></a>
+	<td>Parameter setup dialog<br><br>
+	<img src="Wavelet_mass_detector_set.jpg">
 	</td>
 </tr>
 <tr></tr>
 <tr></tr>
 <tr>
 	<td>
-	Spectrum plot showing detected peaks<br/><br/>
-	<img src="Wavelet_mass_detector_preview.jpg"></a>
+	Spectrum plot showing detected peaks<br><br>
+	<img src="Wavelet_mass_detector_preview.jpg">
 	</p>
 	</td>
 </tr>

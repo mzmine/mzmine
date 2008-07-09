@@ -3,7 +3,7 @@
   <head>
       <title>Three steps peak detector</title>
   </head>
-<body bgcolor="#f0f0f0">
+<body>
 <h1 style="color: #0066CC; font-size: 35;">Three steps peak detector</h1>
 
 <h2 style="margin-left: 20px;">Method overview</h2>
@@ -20,7 +20,7 @@ characteristics.
 <p style="margin-left: 30px;" align="justify"; >
 The first step is identify the representative data point of each peak in spectrum domain.
  This is achieved by different approaches, depending of raw data characteristics (resolution,
- mass, intensity and peak shape).</br></br>Mass detectors.
+ mass, intensity and peak shape).<br><br>Mass detectors.
 </p>
 
 <li><a href="./massdetection/centroid/CentroidMassDetector.html">Centroid</a></li>
@@ -36,7 +36,7 @@ After mass detection is finished in one spectrum the second step take each one o
 masses and try to find the most related chromatogram. If it is not possible to relate a mass data 
 point with any chromatogram, a new chromatogram is initialized with this mass. The factor to 
 establish the relationship between a chromatogram and a mass datapoint depends on the mass (m/z) 
-and intensity.</br>
+and intensity.<br>
 </p>
 
 <li><a href="./xicconstruction/scoreconnector/ScoreConnector.html">Simple connector</a></li>
@@ -49,7 +49,7 @@ The third step is executed after all chromatograms are finilized, this means all
 by Mass detector and representative mass data points have been collected into chromatograms. The process of peak 
 recognition relies on chromatogram's shape, for this reason is possible to use different approaches. Each one of the
 next methods try to identify some regions of the chromatogram as a peak and despite the rest as a noise or 
-background signal</br>
+background signal<br>
 </p>
 
 <li><a href="./peakconstruction/simple/SimplePeakDetector.html">No recognition</a></li>
@@ -65,8 +65,8 @@ background signal</br>
 <tr></tr>
 <tr></tr>
 <tr>
-	<td>Parameter setup dialog<br/><br/>
-	<img src="Centroid_mass_detector_set.jpg"></a>
+	<td>Parameter setup dialog<br><br>
+	<img src="Centroid_mass_detector_set.jpg">
 	</td>
 </tr>
 </table>

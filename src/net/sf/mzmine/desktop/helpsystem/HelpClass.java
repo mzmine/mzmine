@@ -60,7 +60,7 @@ public class HelpClass {
 
 	        MZmineTOCView myTOC = new MZmineTOCView(hs, "TOC", "Table Of Contents", helpMap);
 	        
-			hs.setHomeID("net/sf/mzmine/desktop/helpsystem/initialPage.htm");
+			hs.setHomeID("net/sf/mzmine/desktop/helpsystem/AboutText.html");
 			hs.setTitle("MZmine 2 - LC/MS Toolbox");
 			hs.addTOCView(myTOC);
 			
