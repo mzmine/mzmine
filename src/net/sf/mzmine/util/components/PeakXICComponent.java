@@ -102,7 +102,7 @@ public class PeakXICComponent extends JComponent {
         for (int i = 0; i < scanNumbers.length; i++) {
 
             float dataPointIntensity = 0;
-        	DataPoint dataPoint = peak.getDataPoint(scanNumbers[i]);
+        	DataPoint dataPoint = peak.getMzPeak(scanNumbers[i]);
         	
         	if (dataPoint != null)
         		dataPointIntensity = dataPoint.getIntensity();
