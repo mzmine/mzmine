@@ -59,7 +59,7 @@ class PeakDataSet extends AbstractXYDataset {
 			for (int scan : scanNumbers) {
 
 				float rt = dataFile.getScan(scan).getRetentionTime();
-				DataPoint dp = peak.getDataPoint(scan);
+				DataPoint dp = peak.getMzPeak(scan);
 				if (dp != null) {
 					if (rtRange.contains(rt) && mzRange.contains(dp.getMZ())) {
 						PeakDataPoint newDP = new PeakDataPoint(scan, rt, dp);

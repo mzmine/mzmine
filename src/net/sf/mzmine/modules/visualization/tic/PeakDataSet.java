@@ -47,7 +47,7 @@ public class PeakDataSet extends AbstractXYDataset {
 
         for (int i = 0; i < scanNumbers.length; i++) {
             Scan scan = dataFile.getScan(scanNumbers[i]);
-            DataPoint dataPoint = peak.getDataPoint(scanNumbers[i]);
+            DataPoint dataPoint = peak.getMzPeak(scanNumbers[i]);
             retentionTimes[i] = scan.getRetentionTime();
             if (dataPoint == null)
                 intensities[i] = 0;
