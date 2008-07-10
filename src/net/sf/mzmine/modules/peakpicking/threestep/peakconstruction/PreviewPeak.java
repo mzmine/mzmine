@@ -22,7 +22,6 @@ package net.sf.mzmine.modules.peakpicking.threestep.peakconstruction;
 import java.text.Format;
 
 import net.sf.mzmine.data.ChromatographicPeak;
-import net.sf.mzmine.data.DataPoint;
 import net.sf.mzmine.data.MzPeak;
 import net.sf.mzmine.data.PeakStatus;
 import net.sf.mzmine.data.RawDataFile;
@@ -44,11 +43,8 @@ public class PreviewPeak implements ChromatographicPeak {
 	 * @return String information
 	 */
 	public String toString() {
-		StringBuffer buf = new StringBuffer();
 		Format timeFormat = MZmineCore.getRTFormat();
-		buf.append(" peak@");
-		buf.append(timeFormat.format(this.getRT()));
-		return buf.toString();
+		return "Peak @" + timeFormat.format(this.getRT());
 	}
 
 	public float getArea() {

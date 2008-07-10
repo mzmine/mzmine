@@ -34,7 +34,6 @@ import net.sf.mzmine.data.DataPoint;
 import net.sf.mzmine.data.PeakList;
 import net.sf.mzmine.data.RawDataFile;
 import net.sf.mzmine.data.Scan;
-import net.sf.mzmine.desktop.Desktop;
 import net.sf.mzmine.main.MZmineCore;
 
 import org.jfree.chart.axis.NumberAxis;
@@ -64,14 +63,11 @@ public class SpectraVisualizerWindow extends JInternalFrame implements
 	private NumberFormat mzFormat = MZmineCore.getMZFormat();
 	private NumberFormat intensityFormat = MZmineCore.getIntensityFormat();
 
-	private Desktop desktop;
-
 	SpectraVisualizerWindow(RawDataFile dataFile, int scanNumber) {
 
 		super(dataFile.toString(), true, true, true, true);
 
 		this.dataFile = dataFile;
-		desktop = MZmineCore.getDesktop();
 
 		setDefaultCloseOperation(DISPOSE_ON_CLOSE);
 		setBackground(Color.white);

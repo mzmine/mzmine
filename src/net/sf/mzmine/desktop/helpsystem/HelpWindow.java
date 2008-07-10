@@ -20,7 +20,6 @@
 package net.sf.mzmine.desktop.helpsystem;
 
 import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
 import java.io.File;
 import java.util.Enumeration;
 import java.util.jar.JarEntry;

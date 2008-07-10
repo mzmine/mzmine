@@ -22,7 +22,6 @@ package net.sf.mzmine.modules.peakpicking.recursivethreshold;
 import java.util.Iterator;
 import java.util.TreeSet;
 import java.util.Vector;
-import java.util.logging.Logger;
 
 import net.sf.mzmine.data.DataPoint;
 import net.sf.mzmine.data.PeakStatus;
@@ -42,7 +41,7 @@ import net.sf.mzmine.util.ScanUtils;
  */
 class RecursivePickerTask implements Task {
 
-	private Logger logger = Logger.getLogger(this.getClass().getName());
+// private Logger logger = Logger.getLogger(this.getClass().getName());
 	
 	private RawDataFile dataFile;
 

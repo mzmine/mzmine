@@ -31,7 +31,6 @@ import java.util.Hashtable;
 import java.util.Iterator;
 import java.util.jar.JarEntry;
 import java.util.jar.JarFile;
-import java.util.logging.Logger;
 
 import javax.help.CSH;
 import javax.help.HelpBroker;
@@ -43,7 +42,6 @@ import javax.swing.JComponent;
 import javax.swing.JDialog;
 import javax.swing.JFormattedTextField;
 import javax.swing.JLabel;
-import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JTextField;
 
@@ -71,8 +69,6 @@ public class ParameterSetupDialog extends JDialog implements ActionListener {
 	public static final int TEXTFIELD_COLUMNS = 10;
 
 	private ExitCode exitCode = ExitCode.UNKNOWN;
-
-	private Logger logger = Logger.getLogger(this.getClass().getName());
 
 	protected String helpID;
 
@@ -302,15 +298,6 @@ public class ParameterSetupDialog extends JDialog implements ActionListener {
 
 		}
 
-	}
-
-	private void displayMessage(String msg) {
-		try {
-			logger.info(msg);
-			JOptionPane.showMessageDialog(this, msg, "Error",
-					JOptionPane.ERROR_MESSAGE);
-		} catch (Exception exce) {
-		}
 	}
 
 	/**

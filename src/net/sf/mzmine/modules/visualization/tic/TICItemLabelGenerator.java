@@ -21,7 +21,6 @@ package net.sf.mzmine.modules.visualization.tic;
 
 import java.awt.event.ActionListener;
 import java.text.NumberFormat;
-import java.util.Arrays;
 
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.modules.peakpicking.threestep.peakconstruction.PeakBuilderSetupDialog;
