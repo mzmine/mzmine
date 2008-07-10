@@ -74,6 +74,7 @@ public class MZmineTOCView extends TOCView {
 				if (target.contains(".png"))
 					continue;
 				sortedItems.add((TOCItem) createMyItem(target));
+				System.out.print(target +"\n");
 			}
 
 			Iterator<TOCItem> i = sortedItems.iterator();

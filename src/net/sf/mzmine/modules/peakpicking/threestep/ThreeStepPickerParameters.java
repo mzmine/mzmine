@@ -60,8 +60,8 @@ public class ThreeStepPickerParameters implements StorableParameterSet {
 			"net.sf.mzmine.modules.peakpicking.threestep.xicconstruction.highestdatapoint.HighestDatapointConnector" };
 
 	public static final String chromatogramBuilderHelpFiles[] = { 
-		"net/sf/mzmine/modules/peakpicking/threestep/xicconstruction/scoreconnector/help/ScoreConnector.html",
-		"net/sf/mzmine/modules/peakpicking/threestep/xicconstruction/highestdatapoint/help/HighestDatapointConnector.html" };
+		"net/sf/mzmine/modules/peakpicking/threestep/xicconstruction/scoreconnector/help/SimpleConnector.html",
+		"net/sf/mzmine/modules/peakpicking/threestep/xicconstruction/highestdatapoint/help/HighIntensityConnector.html" };
 
 	// Peak recognition
 	public static final String peakBuilderNames[] = { "No recognition", "Baseline cut-off",

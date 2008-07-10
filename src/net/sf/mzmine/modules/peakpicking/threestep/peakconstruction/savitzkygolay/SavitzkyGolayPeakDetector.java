@@ -24,6 +24,8 @@ import java.util.Vector;
 
 import net.sf.mzmine.data.ChromatographicPeak;
 import net.sf.mzmine.data.RawDataFile;
+import net.sf.mzmine.data.impl.SimpleDataPoint;
+import net.sf.mzmine.data.impl.SimpleMzPeak;
 import net.sf.mzmine.modules.peakpicking.threestep.peakconstruction.ConnectedPeak;
 import net.sf.mzmine.modules.peakpicking.threestep.peakconstruction.PeakBuilder;
 import net.sf.mzmine.modules.peakpicking.threestep.xicconstruction.Chromatogram;
@@ -194,7 +196,7 @@ public class SavitzkyGolayPeakDetector implements PeakBuilder {
 				if (mzValue != null) {
 					newMzPeaks.add(mzValue);
 					/*ConnectedMzPeak temp = new ConnectedMzPeak(mzValue
-							.getScan(), new MzPeak(new SimpleDataPoint(mzValue
+							.getScan(), new SimpleMzPeak(new SimpleDataPoint(mzValue
 							.getMzPeak().getMZ(),
 							derivativeOfIntensities[i] * 100)));
 					newMzPeaks.add(temp);*/
@@ -212,7 +214,7 @@ public class SavitzkyGolayPeakDetector implements PeakBuilder {
 				if (mzValue != null){
 					newOverlappedMzPeaks.add(mzValue);
 					/*ConnectedMzPeak temp = new ConnectedMzPeak(mzValue
-							.getScan(), new MzPeak(new SimpleDataPoint(mzValue
+							.getScan(), new SimpleMzPeak(new SimpleDataPoint(mzValue
 							.getMzPeak().getMZ(),
 							derivativeOfIntensities[i] * 100)));
 					newOverlappedMzPeaks.add(temp);*/

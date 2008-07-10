@@ -42,7 +42,12 @@ public class WaveletPeakDetectorParameters extends SimpleParameterSet {
 			"Minimum acceptable peak duration", null, new Float(10.0),
 			new Float(0.0), null, MZmineCore.getRTFormat());
 
+	public static final Parameter waveletThresholdLevel = new SimpleParameter(
+			ParameterType.FLOAT, "Wavelet threshold level",
+			"Minimum acceptable intensity in the wavelet for peak recognition", null, new Float(0.80),
+			new Float(0.0), null, percentFormat);
+
 	public WaveletPeakDetectorParameters() {
-		super(new Parameter[] { minimumPeakHeight, minimumPeakDuration });
+		super(new Parameter[] { minimumPeakHeight, minimumPeakDuration, waveletThresholdLevel });
 	}
 }
