@@ -243,8 +243,6 @@ public class ParameterSetupDialog extends JDialog implements ActionListener {
 
 		if (helpID != null) {
 			this.helpID = helpID;
-			//btnHelp = new JButton("Help");
-			//setHelpListener(btnHelp);
 			btnHelp = new HelpButton(helpID);
 			pnlButtons.add(btnHelp);
 		}

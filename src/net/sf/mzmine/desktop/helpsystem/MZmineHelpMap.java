@@ -117,7 +117,7 @@ public class MZmineHelpMap implements Map {
 	 */
 	public boolean isID(URL url) {
 		URL tmp;
-		for (Enumeration e = lookup.keys(); e.hasMoreElements();) {
+		for (Enumeration<String> e = lookup.keys(); e.hasMoreElements();) {
 			try {
 				String key = (String) e.nextElement();
 				tmp = new URL((String) lookup.get(key));
@@ -144,7 +144,7 @@ public class MZmineHelpMap implements Map {
 		if (url == null)
 			return null;
 		String urlString = url.toExternalForm();
-		for (Enumeration e = lookup.keys(); e.hasMoreElements();) {
+		for (Enumeration<String> e = lookup.keys(); e.hasMoreElements();) {
 			String key = (String) e.nextElement();
 			try {
 				tmp = (String) lookup.get(key);
@@ -184,11 +184,11 @@ public class MZmineHelpMap implements Map {
 	 *            The URL to compare the Map IDs to.
 	 * @return Enumeration of Map.IDs
 	 */
-	public Enumeration getIDs(URL url) {
+	public Enumeration<Object> getIDs(URL url) {
 		String tmp = null;
 		URL tmpURL = null;
 		Vector<String> ids = new Vector<String>();
-		for (Enumeration e = lookup.keys(); e.hasMoreElements();) {
+		for (Enumeration<String> e = lookup.keys(); e.hasMoreElements();) {
 			String key = (String) e.nextElement();
 			try {
 				tmp = (String) lookup.get(key);
@@ -202,11 +202,11 @@ public class MZmineHelpMap implements Map {
 		return new FlatEnumeration(ids.elements(), helpset);
 	}
 
-	private static class FlatEnumeration implements Enumeration {
-		private Enumeration e;
+	private static class FlatEnumeration implements Enumeration<Object> {
+		private Enumeration<String> e;
 		private HelpSet hs;
 
-		public FlatEnumeration(Enumeration e, HelpSet hs) {
+		public FlatEnumeration(Enumeration<String> e, HelpSet hs) {
 			this.e = e;
 			this.hs = hs;
 		}

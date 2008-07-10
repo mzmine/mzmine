@@ -205,7 +205,6 @@ class ThreeStepPickerTask implements Task {
 		Chromatogram[] chromatograms;
 		ChromatographicPeak[] peaks;
 		
-		// TODO Verify the process in three steps
 		for (int i = 0; i < totalScans; i++) {
 
 			if (status == TaskStatus.CANCELED)

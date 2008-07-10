@@ -37,15 +37,9 @@ import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.util.GUIUtils;
 import net.sf.mzmine.util.NumberFormatter;
 import net.sf.mzmine.util.NumberFormatter.FormatterType;
+import net.sf.mzmine.util.components.HelpButton;
 
 public class FormatSetupDialog extends JDialog implements ActionListener {
-
-    public static final String helpText = "Number formatting:\n\n"
-            + "0 = Digit\n" + "# = Digit (zero absent)\n"
-            + ". = Decimal separator\n" + ", = Grouping separator\n"
-            + "E = Exponent\n" + "% = Percentage\n\n" + "Time formatting:\n\n"
-            + "H = Hour\n" + "m = Minute\n" + "s = Second\n"
-            + "S = Millisecond";
 
     public static final int TEXTFIELD_COLUMNS = 12;
 
@@ -110,8 +104,9 @@ public class FormatSetupDialog extends JDialog implements ActionListener {
         JPanel pnlButtons = new JPanel();
         btnOK = GUIUtils.addButton(pnlButtons, "OK", null, this);
         btnCancel = GUIUtils.addButton(pnlButtons, "Cancel", null, this);
-        btnHelp = GUIUtils.addButton(pnlButtons, "Help", null, this);
-
+        btnHelp = new HelpButton("net/sf/mzmine/util/help/Formats.html");
+        pnlButtons.add(btnHelp);
+        
         // Put everything into a main panel
         JPanel pnlAll = new JPanel(new BorderLayout());
         GUIUtils.addMargin(pnlAll, 10);
@@ -188,10 +183,6 @@ public class FormatSetupDialog extends JDialog implements ActionListener {
         if (src == btnCancel) {
             exitCode = ExitCode.CANCEL;
             dispose();
-        }
-
-        if (src == btnHelp) {
-            desktop.displayMessage(helpText);
         }
 
     }
