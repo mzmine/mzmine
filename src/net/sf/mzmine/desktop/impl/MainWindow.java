@@ -159,7 +159,6 @@ public class MainWindow extends JFrame implements MZmineModule, Desktop,
     public void initModule() {
 
         SwingParameters.initSwingParameters();
-        MacSupport.initMacSupport();
 
         parameters = new DesktopParameters();
 
