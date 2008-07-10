@@ -21,18 +21,19 @@ package net.sf.mzmine.modules.peakpicking.threestep.peakconstruction;
 
 import java.text.Format;
 
-import net.sf.mzmine.data.DataPoint;
 import net.sf.mzmine.data.ChromatographicPeak;
+import net.sf.mzmine.data.DataPoint;
+import net.sf.mzmine.data.MzPeak;
 import net.sf.mzmine.data.PeakStatus;
 import net.sf.mzmine.data.RawDataFile;
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.util.Range;
 
-public class PreviewConnectedPeak implements ChromatographicPeak {
+public class PreviewPeak implements ChromatographicPeak {
 	
 	private ChromatographicPeak peak;
 
-	public PreviewConnectedPeak(ChromatographicPeak originalPeak){
+	public PreviewPeak(ChromatographicPeak originalPeak){
 		this.peak = originalPeak;
 	}
 	
@@ -58,8 +59,8 @@ public class PreviewConnectedPeak implements ChromatographicPeak {
 		return peak.getDataFile();
 	}
 
-	public DataPoint getDataPoint(int scanNumber) {
-		return peak.getDataPoint(scanNumber);
+	public MzPeak getMzPeak(int scanNumber) {
+		return peak.getMzPeak(scanNumber);
 	}
 
 	public float getHeight() {
@@ -76,10 +77,6 @@ public class PreviewConnectedPeak implements ChromatographicPeak {
 
 	public float getRT() {
 		return peak.getRT();
-	}
-
-	public DataPoint[] getRawDataPoints(int scanNumber) {
-		return peak.getRawDataPoints(scanNumber);
 	}
 
 	public Range getRawDataPointsIntensityRange() {

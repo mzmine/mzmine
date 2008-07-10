@@ -29,7 +29,8 @@ package net.sf.mzmine.data;
 public interface MzPeak extends DataPoint {
 
     /**
-     * This method returns an array of raw data points that form this peak
+     * This method returns an array of raw data points that form this peak,
+     * sorted in m/z order.
      */
     public DataPoint[] getRawDataPoints();
 

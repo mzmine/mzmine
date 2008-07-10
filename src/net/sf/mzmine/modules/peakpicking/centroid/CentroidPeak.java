@@ -22,11 +22,13 @@ package net.sf.mzmine.modules.peakpicking.centroid;
 import java.util.ArrayList;
 import java.util.TreeMap;
 
-import net.sf.mzmine.data.DataPoint;
 import net.sf.mzmine.data.ChromatographicPeak;
+import net.sf.mzmine.data.DataPoint;
+import net.sf.mzmine.data.MzPeak;
 import net.sf.mzmine.data.PeakStatus;
 import net.sf.mzmine.data.RawDataFile;
 import net.sf.mzmine.data.impl.SimpleDataPoint;
+import net.sf.mzmine.data.impl.SimpleMzPeak;
 import net.sf.mzmine.util.CollectionUtils;
 import net.sf.mzmine.util.MathUtils;
 import net.sf.mzmine.util.PeakUtils;
@@ -133,8 +135,8 @@ class CentroidPeak implements ChromatographicPeak {
      * This method returns a representative datapoint of this peak in a given
      * scan
      */
-    public DataPoint getDataPoint(int scanNumber) {
-        return datapointsMap.get(scanNumber);
+    public MzPeak getMzPeak(int scanNumber) {
+        return new SimpleMzPeak(datapointsMap.get(scanNumber));
     }
 
     /**

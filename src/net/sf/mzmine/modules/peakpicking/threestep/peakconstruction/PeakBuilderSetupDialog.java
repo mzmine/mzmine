@@ -357,7 +357,7 @@ public class PeakBuilderSetupDialog extends ParameterSetupDialog implements
 
 			if (peaks.length > 0)
 				for (ChromatographicPeak p : peaks) {
-					PeakDataSet peakDataSet = new PeakDataSet(new PreviewConnectedPeak(p));
+					PeakDataSet peakDataSet = new PeakDataSet(new PreviewPeak(p));
 					ticPlot.addPeakDataset(peakDataSet);
 					peakDataSets.put(Integer.valueOf(peakInd), peakDataSet);
 					peakInd++;

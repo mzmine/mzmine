@@ -23,11 +23,13 @@ import java.util.List;
 import java.util.Vector;
 
 import net.sf.mzmine.data.DataPoint;
+import net.sf.mzmine.data.MzPeak;
 import net.sf.mzmine.data.PeakListRow;
 import net.sf.mzmine.data.PeakStatus;
 import net.sf.mzmine.data.RawDataFile;
 import net.sf.mzmine.data.Scan;
 import net.sf.mzmine.data.impl.SimpleChromatographicPeak;
+import net.sf.mzmine.data.impl.SimpleMzPeak;
 import net.sf.mzmine.util.Range;
 import net.sf.mzmine.util.ScanUtils;
 
@@ -130,15 +132,13 @@ class Gap {
 
             float area = 0f, height = 0f, mz = 0f, rt = 0f;
             int scanNumbers[] = new int[bestPeakDataPoints.size()];
-            DataPoint peakDataPoints[] = new DataPoint[bestPeakDataPoints.size()];
-            DataPoint peakRawDataPoints[][] = new DataPoint[bestPeakDataPoints.size()][1];
+            MzPeak mzPeaks[] = new MzPeak[bestPeakDataPoints.size()];
 
             // Process all datapoints
             for (int i = 0; i < bestPeakDataPoints.size(); i++) {
 
                 scanNumbers[i] = bestPeakDataPoints.get(i).getScanNumber();
-                peakDataPoints[i] = bestPeakDataPoints.get(i);
-                peakRawDataPoints[i][0] = bestPeakDataPoints.get(i);
+                mzPeaks[i] = new SimpleMzPeak(bestPeakDataPoints.get(i));
                 mz += bestPeakDataPoints.get(i).getMZ();
 
                 // Check height
@@ -167,8 +167,8 @@ class Gap {
             // Calculate average m/z value
             mz /= bestPeakDataPoints.size();
 
-            SimpleChromatographicPeak newPeak = new SimpleChromatographicPeak(rawDataFile, mz, rt, height,
-                    area, scanNumbers, peakDataPoints, peakRawDataPoints,
+            SimpleChromatographicPeak newPeak = new SimpleChromatographicPeak(
+                    rawDataFile, mz, rt, height, area, scanNumbers, mzPeaks,
                     PeakStatus.ESTIMATED);
 
             // Fill the gap

@@ -21,8 +21,9 @@ package net.sf.mzmine.data.impl;
 
 import java.util.Arrays;
 
-import net.sf.mzmine.data.DataPoint;
 import net.sf.mzmine.data.ChromatographicPeak;
+import net.sf.mzmine.data.DataPoint;
+import net.sf.mzmine.data.MzPeak;
 import net.sf.mzmine.data.PeakStatus;
 import net.sf.mzmine.data.RawDataFile;
 import net.sf.mzmine.util.PeakUtils;
@@ -37,8 +38,7 @@ public class SimpleChromatographicPeak implements ChromatographicPeak {
     private RawDataFile dataFile;
 
     private int scanNumbers[];
-    private DataPoint dataPointsPerScan[];
-    private DataPoint rawDataPointsPerScan[][];
+    private MzPeak mzPeaksPerScan[];
 
     // M/Z, RT, Height and Area
     private float mz, rt, height, area;
@@ -51,10 +51,10 @@ public class SimpleChromatographicPeak implements ChromatographicPeak {
      * 
      */
     public SimpleChromatographicPeak(RawDataFile dataFile, float MZ, float RT, float height,
-            float area, int[] scanNumbers, DataPoint[] dataPointsPerScan,
-            DataPoint[][] rawDataPointsPerScan, PeakStatus peakStatus) {
+            float area, int[] scanNumbers, MzPeak[] mzPeaksPerScan,
+            PeakStatus peakStatus) {
 
-        if (dataPointsPerScan.length == 0) {
+        if (mzPeaksPerScan.length == 0) {
             throw new IllegalArgumentException(
                     "Cannot create a SimplePeak instance with no data points");
         }
@@ -67,8 +67,8 @@ public class SimpleChromatographicPeak implements ChromatographicPeak {
         this.area = area;
 
         this.scanNumbers = scanNumbers;
-        this.dataPointsPerScan = dataPointsPerScan;
-        this.rawDataPointsPerScan = rawDataPointsPerScan;
+        this.mzPeaksPerScan = mzPeaksPerScan;
+        
 
         for (int ind = 0; ind < scanNumbers.length; ind++) {
 
@@ -82,7 +82,7 @@ public class SimpleChromatographicPeak implements ChromatographicPeak {
             }
 
             // Update m/z and intensity ranges
-            for (DataPoint dp : rawDataPointsPerScan[ind]) {
+            for (DataPoint dp : mzPeaksPerScan[ind].getRawDataPoints()) {
 
                 if (ind == 0) {
                     mzRange = new Range(dp.getMZ());
@@ -100,6 +100,9 @@ public class SimpleChromatographicPeak implements ChromatographicPeak {
 
     }
 
+    /**
+     * Copy constructor
+     */
     public SimpleChromatographicPeak(ChromatographicPeak p) {
 
         this.dataFile = p.getDataFile();
@@ -114,13 +117,10 @@ public class SimpleChromatographicPeak implements ChromatographicPeak {
         this.intensityRange = p.getRawDataPointsIntensityRange();
 
         this.scanNumbers = p.getScanNumbers();
-
-        this.dataPointsPerScan = new DataPoint[scanNumbers.length];
-        this.rawDataPointsPerScan = new DataPoint[scanNumbers.length][];
+        this.mzPeaksPerScan = new MzPeak[scanNumbers.length];
 
         for (int i = 0; i < scanNumbers.length; i++) {
-            dataPointsPerScan[i] = p.getDataPoint(scanNumbers[i]);
-            rawDataPointsPerScan[i] = p.getRawDataPoints(scanNumbers[i]);
+            mzPeaksPerScan[i] = p.getMzPeak(scanNumbers[i]);
         }
 
         this.peakStatus = p.getPeakStatus();
@@ -195,23 +195,13 @@ public class SimpleChromatographicPeak implements ChromatographicPeak {
      * This method returns a representative datapoint of this peak in a given
      * scan
      */
-    public DataPoint getDataPoint(int scanNumber) {
+    public MzPeak getMzPeak(int scanNumber) {
         int index = Arrays.binarySearch(scanNumbers, scanNumber);
         if (index < 0)
             return null;
-        return dataPointsPerScan[index];
+        return mzPeaksPerScan[index];
     }
 
-    /**
-     * This method returns a representative datapoint of this peak in a given
-     * scan
-     */
-    public DataPoint[] getRawDataPoints(int scanNumber) {
-        int index = Arrays.binarySearch(scanNumbers, scanNumber);
-        if (index < 0)
-            return null;
-        return rawDataPointsPerScan[index];
-    }
 
     /**
      * @see net.sf.mzmine.data.ChromatographicPeak#getDataFile()

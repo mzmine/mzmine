@@ -19,15 +19,14 @@
 
 package net.sf.mzmine.modules.peakpicking.threestep.peakconstruction;
 
-import java.text.Format;
 import java.util.TreeMap;
 import java.util.Vector;
 
-import net.sf.mzmine.data.DataPoint;
 import net.sf.mzmine.data.ChromatographicPeak;
+import net.sf.mzmine.data.DataPoint;
+import net.sf.mzmine.data.MzPeak;
 import net.sf.mzmine.data.PeakStatus;
 import net.sf.mzmine.data.RawDataFile;
-import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.modules.peakpicking.threestep.xicconstruction.ConnectedMzPeak;
 import net.sf.mzmine.util.CollectionUtils;
 import net.sf.mzmine.util.MathUtils;
@@ -206,7 +205,7 @@ public class ConnectedPeak implements ChromatographicPeak {
 	 * This method returns a representative data point of this peak in a given
 	 * scan
 	 */
-	public DataPoint getDataPoint(int scanNumber) {
+	public MzPeak getMzPeak(int scanNumber) {
         if (datapointsMap.get(scanNumber) == null) return null;
       
 		return datapointsMap.get(scanNumber).getMzPeak();

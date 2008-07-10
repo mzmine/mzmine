@@ -19,8 +19,9 @@
 
 package net.sf.mzmine.modules.peakpicking.threestep.massdetection;
 
-import net.sf.mzmine.data.DataPoint;
 import net.sf.mzmine.data.ChromatographicPeak;
+import net.sf.mzmine.data.DataPoint;
+import net.sf.mzmine.data.MzPeak;
 import net.sf.mzmine.data.PeakStatus;
 import net.sf.mzmine.data.RawDataFile;
 import net.sf.mzmine.util.Range;
@@ -32,8 +33,7 @@ import net.sf.mzmine.util.Range;
  */
 class FakePeak implements ChromatographicPeak {
 
-	private DataPoint datapoint;
-	private Range mzRange, intensityRange;
+	private MzPeak mzPeak;
 	private int scanNumber;
 
 	/**
@@ -41,11 +41,9 @@ class FakePeak implements ChromatographicPeak {
 	 * @param scanNumber
 	 * @param datapoint
 	 */
-	public FakePeak(int scanNumber, DataPoint datapoint) {
-		this.datapoint = datapoint;
+	public FakePeak(int scanNumber, MzPeak mzPeak) {
+		this.mzPeak = mzPeak;
 		this.scanNumber = scanNumber;
-		mzRange = new Range(datapoint.getMZ());
-		intensityRange = new Range(datapoint.getIntensity());
 	}
 
 	public float getArea() {
@@ -56,8 +54,8 @@ class FakePeak implements ChromatographicPeak {
 		return null;
 	}
 
-	public DataPoint getDataPoint(int scanNumber) {
-		return datapoint;
+	public MzPeak getMzPeak(int scanNumber) {
+		return mzPeak;
 	}
 
 	public float getHeight() {
@@ -81,11 +79,11 @@ class FakePeak implements ChromatographicPeak {
 	}
 
 	public Range getRawDataPointsIntensityRange() {
-		return intensityRange;
+		return null;
 	}
 
 	public Range getRawDataPointsMZRange() {
-		return mzRange;
+		return null;
 	}
 
 	public Range getRawDataPointsRTRange() {

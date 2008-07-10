@@ -22,9 +22,9 @@ package net.sf.mzmine.data.impl;
 import java.util.HashSet;
 import java.util.Set;
 
-import net.sf.mzmine.data.DataPoint;
-import net.sf.mzmine.data.IsotopePattern;
 import net.sf.mzmine.data.ChromatographicPeak;
+import net.sf.mzmine.data.IsotopePattern;
+import net.sf.mzmine.data.MzPeak;
 import net.sf.mzmine.data.PeakStatus;
 import net.sf.mzmine.data.RawDataFile;
 import net.sf.mzmine.util.Range;
@@ -154,15 +154,8 @@ public class SimpleIsotopePattern implements IsotopePattern {
     /**
      * @see net.sf.mzmine.data.ChromatographicPeak#getRawDatapoint(int)
      */
-    public DataPoint getDataPoint(int scanNumber) {
-        return representativePeak.getDataPoint(scanNumber);
-    }
-
-    /**
-     * @see net.sf.mzmine.data.ChromatographicPeak#getRawDatapoint(int)
-     */
-    public DataPoint[] getRawDataPoints(int scanNumber) {
-        return representativePeak.getRawDataPoints(scanNumber);
+    public MzPeak getMzPeak(int scanNumber) {
+        return representativePeak.getMzPeak(scanNumber);
     }
 
     /**
