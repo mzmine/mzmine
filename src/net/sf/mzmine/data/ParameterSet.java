@@ -34,5 +34,9 @@ public interface ParameterSet {
      * Represent method's parameters and their values in human-readable format
      */
     public String toString();
+    
+    public Parameter[] getParameters();
+    
+    public Object getParameterValue(Parameter parameter);
 
 }
