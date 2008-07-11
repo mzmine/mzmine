@@ -79,11 +79,11 @@ class FakePeak implements ChromatographicPeak {
 	}
 
 	public Range getRawDataPointsIntensityRange() {
-		return null;
+		return new Range(mzPeak.getIntensity());
 	}
 
 	public Range getRawDataPointsMZRange() {
-		return null;
+		return new Range(mzPeak.getMZ());
 	}
 
 	public Range getRawDataPointsRTRange() {
