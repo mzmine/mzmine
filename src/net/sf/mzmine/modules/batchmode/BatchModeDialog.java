@@ -45,154 +45,159 @@ import net.sf.mzmine.util.dialogs.ExitCode;
 
 class BatchModeDialog extends JDialog implements ActionListener {
 
-    static final int PADDING_SIZE = 5;
+	static final int PADDING_SIZE = 5;
 
-    private Logger logger = Logger.getLogger(this.getClass().getName());
+	private Logger logger = Logger.getLogger(this.getClass().getName());
 
-    private ExitCode exitCode = ExitCode.CANCEL;
+	private ExitCode exitCode = ExitCode.CANCEL;
 
-    private Vector<BatchStepWrapper> batchSteps;
+	private Vector<BatchStepWrapper> batchSteps;
 
-    // dialog components
-    private JComboBox methodsCombo;
-    private JList currentStepsList;
-    private JButton btnAdd, btnConfig, btnRemove, btnOK, btnCancel, btnHelp;
+	// dialog components
+	private JComboBox methodsCombo;
+	private BatchList currentStepsList;
+	private JButton btnAdd, btnConfig, btnRemove, btnOK, btnCancel, btnHelp;
 
-    public BatchModeDialog(Vector<BatchStepWrapper> batchSteps) {
+	public BatchModeDialog(Vector<BatchStepWrapper> batchSteps) {
 
-        // make dialog modal
-        super(MZmineCore.getDesktop().getMainFrame(), "Batch mode setup", true);
+		// make dialog modal
+		super(MZmineCore.getDesktop().getMainFrame(), "Batch mode setup", true);
 
-        this.batchSteps = batchSteps;
+		this.batchSteps = batchSteps;
 
-        currentStepsList = new JList(batchSteps);
-        currentStepsList.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+		currentStepsList = new BatchList(batchSteps);
+		currentStepsList.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
 
-        methodsCombo = new JComboBox();
+		methodsCombo = new JComboBox();
 
-        MZmineModule allModules[] = MZmineCore.getAllModules();
+		MZmineModule allModules[] = MZmineCore.getAllModules();
 
-        for (BatchStepCategory category : BatchStepCategory.values()) {
-            methodsCombo.addItem("--- " + category + " ---");
-            for (MZmineModule module : allModules) {
-                if (module instanceof BatchStep) {
-                    BatchStep step = (BatchStep) module;
-                    if (step.getBatchStepCategory() == category)
-                        methodsCombo.addItem(step);
-                }
-            }
-        }
+		for (BatchStepCategory category : BatchStepCategory.values()) {
+			methodsCombo.addItem("--- " + category + " ---");
+			for (MZmineModule module : allModules) {
+				if (module instanceof BatchStep) {
+					BatchStep step = (BatchStep) module;
+					if (step.getBatchStepCategory() == category)
+						methodsCombo.addItem(step);
+				}
+			}
+		}
 
-        JPanel pnlRight = new JPanel();
-        pnlRight.setLayout(new BoxLayout(pnlRight, BoxLayout.Y_AXIS));
-        btnConfig = GUIUtils.addButton(pnlRight, "Configure", null, this);
-        btnRemove = GUIUtils.addButton(pnlRight, "Remove", null, this);
+		JPanel pnlRight = new JPanel();
+		pnlRight.setLayout(new BoxLayout(pnlRight, BoxLayout.Y_AXIS));
+		btnConfig = GUIUtils.addButton(pnlRight, "Configure", null, this);
+		btnRemove = GUIUtils.addButton(pnlRight, "Remove", null, this);
 
-        JPanel pnlCenter = new JPanel(new BorderLayout());
-        pnlCenter.add(new JLabel("Current batch:"), BorderLayout.NORTH);
-        pnlCenter.add(new JScrollPane(currentStepsList), BorderLayout.CENTER);
+		JPanel pnlCenter = new JPanel(new BorderLayout());
+		pnlCenter.add(new JLabel("Current batch:"), BorderLayout.NORTH);
+		pnlCenter.add(new JScrollPane(currentStepsList), BorderLayout.CENTER);
 
-        JPanel pnlBottom = new JPanel(new BorderLayout());
-        btnAdd = GUIUtils.addButton(pnlBottom, "Add", null, this);
-        pnlBottom.add(btnAdd, BorderLayout.EAST);
-        pnlBottom.add(methodsCombo, BorderLayout.CENTER);
+		JPanel pnlBottom = new JPanel(new BorderLayout());
+		btnAdd = GUIUtils.addButton(pnlBottom, "Add", null, this);
+		pnlBottom.add(btnAdd, BorderLayout.EAST);
+		pnlBottom.add(methodsCombo, BorderLayout.CENTER);
 
-        JPanel pnlMain = new JPanel(new BorderLayout());
-        pnlMain.add(pnlCenter, BorderLayout.CENTER);
-        pnlMain.add(pnlBottom, BorderLayout.SOUTH);
-        pnlMain.add(pnlRight, BorderLayout.EAST);
+		JPanel pnlMain = new JPanel(new BorderLayout());
+		pnlMain.add(pnlCenter, BorderLayout.CENTER);
+		pnlMain.add(pnlBottom, BorderLayout.SOUTH);
+		pnlMain.add(pnlRight, BorderLayout.EAST);
 
-        // Setup buttons
-        JPanel pnlButtons = new JPanel();
-        btnOK = GUIUtils.addButton(pnlButtons, "Run batch", null, this);
-        btnCancel = GUIUtils.addButton(pnlButtons, "Cancel", null, this);
-        btnHelp = new HelpButton("net/sf/mzmine/modules/batchmode/help/BatchMode.html");
-        pnlButtons.add(btnHelp);
+		// Setup buttons
+		JPanel pnlButtons = new JPanel();
+		btnOK = GUIUtils.addButton(pnlButtons, "Run batch", null, this);
+		btnCancel = GUIUtils.addButton(pnlButtons, "Cancel", null, this);
+		btnHelp = new HelpButton(
+				"net/sf/mzmine/modules/batchmode/help/BatchMode.html");
+		pnlButtons.add(btnHelp);
 
-        JPanel pnlAll = new JPanel(new BorderLayout());
-        pnlAll.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
-        pnlAll.add(pnlMain, BorderLayout.CENTER);
-        pnlAll.add(pnlButtons, BorderLayout.SOUTH);
+		JPanel pnlAll = new JPanel(new BorderLayout());
+		pnlAll.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
+		pnlAll.add(pnlMain, BorderLayout.CENTER);
+		pnlAll.add(pnlButtons, BorderLayout.SOUTH);
 
-        add(pnlAll);
+		add(pnlAll);
 
-        // finalize the dialog
-        pack();
-        setResizable(false);
-        setLocationRelativeTo(MZmineCore.getDesktop().getMainFrame());
+		// finalize the dialog
+		pack();
+		setResizable(false);
+		setLocationRelativeTo(MZmineCore.getDesktop().getMainFrame());
 
-    }
+	}
 
-    /**
-     * @see java.awt.event.ActionListener#actionPerformed(java.awt.event.ActionEvent)
-     */
-    public void actionPerformed(ActionEvent event) {
+	/**
+	 * @see java.awt.event.ActionListener#actionPerformed(java.awt.event.ActionEvent)
+	 */
+	public void actionPerformed(ActionEvent event) {
 
-        Object src = event.getSource();
+		Object src = event.getSource();
 
-        if (src == btnOK) {
+		if (src == btnOK) {
 
-            if (batchSteps.size() == 0) {
-                MZmineCore.getDesktop().displayErrorMessage(
-                        "Please select at least one method");
-                return;
-            }
+			if (batchSteps.size() == 0) {
+				MZmineCore.getDesktop().displayErrorMessage(
+						"Please select at least one method");
+				return;
+			}
 
-            exitCode = ExitCode.OK;
-            dispose();
-            return;
-        }
+			exitCode = ExitCode.OK;
+			dispose();
+			return;
+		}
 
-        if (src == btnCancel) {
-            exitCode = ExitCode.CANCEL;
-            dispose();
-            return;
-        }
+		if (src == btnCancel) {
+			exitCode = ExitCode.CANCEL;
+			dispose();
+			return;
+		}
 
-        if (src == btnAdd) {
+		if (src == btnAdd) {
 
-            if (!(methodsCombo.getSelectedItem() instanceof BatchStep))
-                return;
-            BatchStep selectedMethod = (BatchStep) methodsCombo.getSelectedItem();
-            logger.finest("Adding " + selectedMethod);
+			if (!(methodsCombo.getSelectedItem() instanceof BatchStep))
+				return;
+			BatchStep selectedMethod = (BatchStep) methodsCombo
+					.getSelectedItem();
+			logger.finest("Adding " + selectedMethod);
 
-            // clone the parameters to
-            ParameterSet paramsCopy = selectedMethod.getParameterSet().clone();
-            ExitCode exitCode = selectedMethod.setupParameters(paramsCopy);
-            if (exitCode != ExitCode.OK)
-                return;
-            selectedMethod.setParameters(paramsCopy);
+			// clone the parameters to
+			ParameterSet paramsCopy = selectedMethod.getParameterSet().clone();
+			ExitCode exitCode = selectedMethod.setupParameters(paramsCopy);
+			if (exitCode != ExitCode.OK)
+				return;
+			selectedMethod.setParameters(paramsCopy);
 
-            BatchStepWrapper newStep = new BatchStepWrapper(selectedMethod,
-                    paramsCopy);
-            batchSteps.add(newStep);
-            currentStepsList.setListData(batchSteps);
-            return;
-        }
+			BatchStepWrapper newStep = new BatchStepWrapper(selectedMethod,
+					paramsCopy);
+			batchSteps.add(newStep);
+			currentStepsList.setListData(batchSteps);
+			return;
+		}
 
-        if (src == btnRemove) {
+		if (src == btnRemove) {
 
-            BatchStepWrapper selected = (BatchStepWrapper) currentStepsList.getSelectedValue();
-            logger.finest("Removing " + selected);
-            batchSteps.remove(selected);
-            currentStepsList.setListData(batchSteps);
-            return;
-        }
+			BatchStepWrapper selected = (BatchStepWrapper) currentStepsList
+					.getSelectedValue();
+			logger.finest("Removing " + selected);
+			batchSteps.remove(selected);
+			currentStepsList.setListData(batchSteps);
+			return;
+		}
 
-        if (src == btnConfig) {
+		if (src == btnConfig) {
 
-            BatchStepWrapper selected = (BatchStepWrapper) currentStepsList.getSelectedValue();
-            if (selected == null)
-                return;
-            logger.finest("Configuring " + selected);
-            selected.getMethod().setupParameters(selected.getParameters());
-            return;
-        }
+			BatchStepWrapper selected = (BatchStepWrapper) currentStepsList
+					.getSelectedValue();
+			if (selected == null)
+				return;
+			logger.finest("Configuring " + selected);
+			selected.getMethod().setupParameters(selected.getParameters());
+			return;
+		}
 
-    }
+	}
 
-    public ExitCode getExitCode() {
-        return exitCode;
-    }
+	public ExitCode getExitCode() {
+		return exitCode;
+	}
+
 
 }

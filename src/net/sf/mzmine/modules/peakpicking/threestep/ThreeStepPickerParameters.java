@@ -371,4 +371,27 @@ public class ThreeStepPickerParameters implements StorableParameterSet {
 
 	}
 
+	public Object getParameterValue(Parameter parameter) {
+		Object objectValue =  threeStepsParameters.getParameterValue(parameter);
+		if (objectValue instanceof String)
+			return objectValue.toString();
+		
+		int index = (Integer)objectValue;
+		String parameterName = parameter.getName();
+		if(parameterName.equals("Mass Detector type")){
+			return massDetectorNames[index];
+		}
+		if(parameterName.equals("Chromatogram Builder type")){
+			return chromatogramBuilderNames[index];
+		}
+		if(parameterName.equals("Peak Builder type")){
+			return peakBuilderNames[index];
+		}
+		return null;
+    }
+
+	public Parameter[] getParameters() {
+		return threeStepsParameters.getParameters();
+	}
+
 }

@@ -113,19 +113,17 @@ public class MZmineClient extends MZmineCore implements Runnable {
 			// create instances of core modules
 			TaskControllerImpl taskController = new TaskControllerImpl(
 					numberOfNodes);
-			//IOControllerImpl ioController=new IOControllerImpl();
+
 			desktop = new MainWindow();
 			help = new HelpImp();
 
 			// save static references to MZmineCore
 			MZmineCore.taskController = taskController;
-			//MZmineCore.ioController = ioController;
 			MZmineCore.desktop = desktop;
 				
 			logger.finer("Initializing core classes");
 
 			taskController.initModule();
-			//ioController.initModule();
 			desktop.initModule();
 			projectManager.initModule();
 			
@@ -143,7 +141,6 @@ public class MZmineClient extends MZmineCore implements Runnable {
 				loadModule(className);
 			}
 
-			//desktop.setHelpMenuItem();
 
 			MZmineCore.initializedModules = moduleSet
 					.toArray(new MZmineModule[0]);

@@ -21,6 +21,7 @@ package net.sf.mzmine.modules.identification.custom;
 
 import java.util.List;
 
+import net.sf.mzmine.data.Parameter;
 import net.sf.mzmine.data.StorableParameterSet;
 
 import org.dom4j.Element;
@@ -224,5 +225,13 @@ class CustomDBSearchParameters implements StorableParameterSet {
 
         return paramString.toString();
     }
+
+	public Object getParameterValue(Parameter parameter) {
+		return null;
+	}
+
+	public Parameter[] getParameters() {
+		return null;
+	}
 
 }

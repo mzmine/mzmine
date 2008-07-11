@@ -24,6 +24,7 @@ import java.util.Hashtable;
 import java.util.Iterator;
 import java.util.List;
 
+import net.sf.mzmine.data.Parameter;
 import net.sf.mzmine.data.StorableParameterSet;
 import net.sf.mzmine.modules.visualization.peaklist.table.CommonColumnType;
 import net.sf.mzmine.modules.visualization.peaklist.table.DataFileColumnType;
@@ -232,5 +233,13 @@ public class PeakListTableParameters implements StorableParameterSet {
     public void setColumnWidth(DataFileColumnType type, int width) {
         dataFileColumnsWidth.put(type, width);
     }
+
+	public Object getParameterValue(Parameter parameter) {
+		return null;
+	}
+
+	public Parameter[] getParameters() {
+		return null;
+	}
 
 }

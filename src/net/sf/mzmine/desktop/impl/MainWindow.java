@@ -322,9 +322,4 @@ public class MainWindow extends JFrame implements MZmineModule, Desktop,
 
     }
     
-    /*public void setHelpMenuItem(){
-		help = new HelpClass();
-		help.addMenuItem(menuBar);
-    }*/
-
 }

@@ -40,8 +40,13 @@ public class RawDataImporterParameters extends SimpleParameterSet {
             "Defines which scans will be pre-loaded to memory, if any",
             PreloadLevel.NO_PRELOAD, PreloadLevel.values());
 
+    public static final Parameter LastFiles = new SimpleParameter(
+            ParameterType.STRING, "Files to import",
+            "");
+
     public RawDataImporterParameters() {
-        super(new Parameter[] { importDirectory, preloadLevel });
+        super(new Parameter[] { importDirectory, preloadLevel// });
+        , LastFiles });
     }
 
     public File[] getFileNames() {
@@ -49,7 +54,15 @@ public class RawDataImporterParameters extends SimpleParameterSet {
     }
 
     public void setFileNames(File[] fileNames) {
-        this.fileNames = fileNames;
+    	this.fileNames = fileNames;
+
+    	String files = "  ";
+    	 		if (fileNames != null){
+			for(File f:fileNames){
+				files += f.getName() + " ";
+			}
+		}
+		this.setParameterValue(LastFiles, files);
     }
 
 }

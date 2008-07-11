@@ -19,6 +19,7 @@
 
 package net.sf.mzmine.modules.visualization.intensityplot;
 
+import net.sf.mzmine.data.Parameter;
 import net.sf.mzmine.data.PeakList;
 import net.sf.mzmine.data.PeakListRow;
 import net.sf.mzmine.data.RawDataFile;
@@ -172,5 +173,13 @@ public class IntensityPlotParameters implements StorableParameterSet {
         if (PeakAreaOption.equals(yValueSource)) yAxisValueSource = PeakAreaOption;
         if (PeakRTOption.equals(yValueSource)) yAxisValueSource = PeakRTOption;
     }
+
+	public Object getParameterValue(Parameter parameter) {
+		return null;
+	}
+
+	public Parameter[] getParameters() {
+		return null;
+	}
 
 }

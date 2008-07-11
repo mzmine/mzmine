@@ -22,6 +22,7 @@ package net.sf.mzmine.modules.batchmode;
 import java.util.Iterator;
 import java.util.Vector;
 
+import net.sf.mzmine.data.Parameter;
 import net.sf.mzmine.data.ParameterSet;
 import net.sf.mzmine.data.StorableParameterSet;
 import net.sf.mzmine.main.MZmineCore;
@@ -104,5 +105,13 @@ public class BatchQueue extends Vector<BatchStepWrapper> implements
         }
         return clonedQueue;
     }
+
+	public Object getParameterValue(Parameter parameter) {
+		return null;
+	}
+
+	public Parameter[] getParameters() {
+		return null;
+	}
 
 }

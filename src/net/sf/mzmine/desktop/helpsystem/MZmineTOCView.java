@@ -117,9 +117,6 @@ public class MZmineTOCView extends TOCView {
 
 		String line, title = "Test";
 		try {
-			//File file = new File(System.getProperty("user.dir") + File.separator //+ "dist" + File.separator
-				//	+ "MZmine.jar");
-			
 			JarFile jarFile = new JarFile(file);
 			InputStream test = jarFile.getInputStream(jarFile.getEntry(target));
 			BufferedReader in = new BufferedReader(new InputStreamReader(test));
