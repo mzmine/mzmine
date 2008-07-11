@@ -43,7 +43,7 @@ public class FragmentAlignerParameters extends SimpleParameterSet {
 			"Aligned peak list", null);
 
 	public static final Parameter MZTolerance = new SimpleParameter(
-			ParameterType.FLOAT, "M/Z tolerance",
+			ParameterType.FLOAT, "m/z tolerance",
 			"Maximum allowed M/Z difference", "m/z", new Float(0.2), new Float(
 					0.0), null, MZmineCore.getMZFormat());
 

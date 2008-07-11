@@ -21,16 +21,13 @@ package net.sf.mzmine.desktop.helpsystem;
 
 import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
-import java.io.File;
-import java.util.Enumeration;
-import java.util.jar.JarEntry;
-import java.util.jar.JarFile;
 
 import javax.help.CSH;
 import javax.help.HelpBroker;
 
 import net.sf.mzmine.desktop.MZmineMenu;
 import net.sf.mzmine.desktop.impl.MainMenu;
+import net.sf.mzmine.main.MZmineCore;
 
 public class HelpMainMenuItem {
 
@@ -38,32 +35,8 @@ public class HelpMainMenuItem {
 
 		try {
 			
-			// Construct help
-			MZmineHelpMap helpMap = new MZmineHelpMap();
-			
-			File file = new File(System.getProperty("user.dir") + File.separator + "dist" + File.separator
-					+ "MZmine.jar");
-			JarFile jarFile = new JarFile(file);
-		    Enumeration<JarEntry> e = jarFile.entries();
-		       while (e.hasMoreElements()) {
-		           JarEntry entry = e.nextElement();
-		           String name = entry.getName();
-		           if ( name.contains("htm") ){
-		        	   helpMap.setTarget(name);
-		           }
-		       }
-		       
-		    helpMap.setTargetImage("topic.png");
-			
-		    MZmineHelpSet hs = new MZmineHelpSet();
-	        hs.setLocalMap(helpMap);
-
-	        MZmineTOCView myTOC = new MZmineTOCView(hs, "TOC", "Table Of Contents", helpMap);
-	        
-			hs.setHomeID("net/sf/mzmine/desktop/helpsystem/AboutText.html");
-			hs.setTitle("MZmine 2 - LC/MS Toolbox");
-			hs.addTOCView(myTOC);
-			
+		    MZmineHelpSet hs = MZmineCore.getHelpImp().getHelpSet();
+		    
 			HelpBroker hb = hs.createHelpBroker();
 			ActionListener helpListener = new CSH.DisplayHelpFromSource(hb);
 

@@ -419,43 +419,4 @@ public class ParameterSetupDialog extends JDialog implements ActionListener {
 		return underConstuctionParameter;
 	}
 
-	/**
-	 * This method creates the help system in a dialog modal window, and assign
-	 * the ActionListener to the button that receives as parameter
-	 * 
-	 * @param helpBtn
-	 */
-	void setHelpListener(JButton helpBtn) {
-
-		try {
-			// Construct help
-			MZmineHelpMap helpMap = new MZmineHelpMap();
-			
-			File file = new File(System.getProperty("user.dir") + File.separator + "dist" + File.separator
-					+ "MZmine.jar");
-			JarFile jarFile = new JarFile(file);
-		    Enumeration<JarEntry> e = jarFile.entries();
-		       while (e.hasMoreElements()) {
-		           JarEntry entry = e.nextElement();
-		           String name = entry.getName();
-		           if ( name.contains("htm") )
-		        	   helpMap.setTarget(name);
-		       }			
-		       
-		    MZmineHelpSet hs = new MZmineHelpSet();
-	        MZmineTOCView myTOC = new MZmineTOCView(hs, "TOC", "Table Of Contents", helpMap);
-	        
-	        hs.setLocalMap(helpMap);
-			hs.addTOCView(myTOC);
-			
-			HelpBroker hb = hs.createHelpBroker();
-			hb.enableHelpKey(getRootPane(), helpID, hs);
-
-			helpBtn.addActionListener(new CSH.DisplayHelpFromSource(hb));
-			
-		} catch (Exception event) {
-			event.printStackTrace();
-		}
-	}
-
 }

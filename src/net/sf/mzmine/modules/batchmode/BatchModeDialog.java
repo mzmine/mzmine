@@ -40,6 +40,7 @@ import net.sf.mzmine.data.ParameterSet;
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.main.MZmineModule;
 import net.sf.mzmine.util.GUIUtils;
+import net.sf.mzmine.util.components.HelpButton;
 import net.sf.mzmine.util.dialogs.ExitCode;
 
 class BatchModeDialog extends JDialog implements ActionListener {
@@ -55,7 +56,7 @@ class BatchModeDialog extends JDialog implements ActionListener {
     // dialog components
     private JComboBox methodsCombo;
     private JList currentStepsList;
-    private JButton btnAdd, btnConfig, btnRemove, btnOK, btnCancel;
+    private JButton btnAdd, btnConfig, btnRemove, btnOK, btnCancel, btnHelp;
 
     public BatchModeDialog(Vector<BatchStepWrapper> batchSteps) {
 
@@ -105,6 +106,8 @@ class BatchModeDialog extends JDialog implements ActionListener {
         JPanel pnlButtons = new JPanel();
         btnOK = GUIUtils.addButton(pnlButtons, "Run batch", null, this);
         btnCancel = GUIUtils.addButton(pnlButtons, "Cancel", null, this);
+        btnHelp = new HelpButton("net/sf/mzmine/modules/batchmode/help/BatchMode.html");
+        pnlButtons.add(btnHelp);
 
         JPanel pnlAll = new JPanel(new BorderLayout());
         pnlAll.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));

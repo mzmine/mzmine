@@ -32,6 +32,7 @@ import net.sf.mzmine.data.PreloadLevel;
 import net.sf.mzmine.data.RawDataFileWriter;
 import net.sf.mzmine.data.StorableParameterSet;
 import net.sf.mzmine.desktop.Desktop;
+import net.sf.mzmine.desktop.helpsystem.HelpImp;
 import net.sf.mzmine.desktop.impl.MainWindow;
 import net.sf.mzmine.project.MZmineProject;
 import net.sf.mzmine.taskcontrol.TaskController;
@@ -66,6 +67,7 @@ public abstract class MZmineCore {
 	protected static Desktop desktop;
 	protected static MZmineProject currentProject;
 	protected static MZmineModule[] initializedModules;
+	protected static HelpImp help;
 
 	/**
 	 * Returns a reference to local task controller.
@@ -100,6 +102,15 @@ public abstract class MZmineCore {
 	 */
 	public static MZmineModule[] getAllModules() {
 		return initializedModules;
+	}
+	
+	/**
+	 * Returns an array of all initialized MZmine modules
+	 * 
+	 * @return Array of all initialized MZmine modules
+	 */
+	public static HelpImp getHelpImp() {
+		return help;
 	}
 
 	/**

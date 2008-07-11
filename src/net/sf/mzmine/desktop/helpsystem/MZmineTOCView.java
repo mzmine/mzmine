@@ -47,11 +47,13 @@ public class MZmineTOCView extends TOCView {
 
 	private MZmineHelpMap hm;
 	private HelpSet hs;
+	private File file;
 
-	public MZmineTOCView(MZmineHelpSet hs, String name, String label, MZmineHelpMap hm) {
+	public MZmineTOCView(MZmineHelpSet hs, String name, String label, MZmineHelpMap hm, File file) {
 		super(hs, name, label, null);
 		this.hm = hm;
 		this.hs = (HelpSet) hs;
+		this.file = file;
 	}
 
 	/**
@@ -115,8 +117,8 @@ public class MZmineTOCView extends TOCView {
 
 		String line, title = "Test";
 		try {
-			File file = new File(System.getProperty("user.dir") + File.separator + "dist" + File.separator
-					+ "MZmine.jar");
+			//File file = new File(System.getProperty("user.dir") + File.separator //+ "dist" + File.separator
+				//	+ "MZmine.jar");
 			
 			JarFile jarFile = new JarFile(file);
 			InputStream test = jarFile.getInputStream(jarFile.getEntry(target));

@@ -34,15 +34,22 @@ public class MZmineHelpMap implements Map {
 
 	private HelpSet helpset; // the top HelpSet
 	private Hashtable<String, String> lookup = null;
+	private boolean test;
 
-	public MZmineHelpMap() {
+	public MZmineHelpMap(boolean test) {
 		lookup = new Hashtable<String, String>();
 		this.helpset = new HelpSet();
+		this.test = test;
 	}
 
 
 	public void setTarget(String target){
-		String url = "jar:file:" + System.getProperty("user.dir") + "/dist/MZmine.jar!/" + target;
+		String url;
+		if (test)
+			url = "jar:file:" + System.getProperty("user.dir") + "/dist/MZmine.jar!/" + target;
+		else
+			url = "jar:file:" + System.getProperty("user.dir") + "/MZmine.jar!/" + target;
+			
 		lookup.put(target, url);
 	}
 	

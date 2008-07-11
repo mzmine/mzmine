@@ -19,18 +19,12 @@
 
 package net.sf.mzmine.util.components;
 
-import java.io.File;
-import java.util.Enumeration;
-import java.util.jar.JarEntry;
-import java.util.jar.JarFile;
-
 import javax.help.CSH;
 import javax.help.HelpBroker;
 import javax.swing.JButton;
 
-import net.sf.mzmine.desktop.helpsystem.MZmineHelpMap;
 import net.sf.mzmine.desktop.helpsystem.MZmineHelpSet;
-import net.sf.mzmine.desktop.helpsystem.MZmineTOCView;
+import net.sf.mzmine.main.MZmineCore;
 
 /**
  * This class extends JButton class to implement Help system generated
@@ -49,31 +43,9 @@ public class HelpButton extends JButton {
 	public HelpButton(String helpID) {
 		super("Help");
 		try {
-			// Construct help
-			MZmineHelpMap helpMap = new MZmineHelpMap();
 
-			File file = new File(System.getProperty("user.dir")
-					+ File.separator + "dist" + File.separator + "MZmine.jar");
-			JarFile jarFile = new JarFile(file);
-			Enumeration<JarEntry> e = jarFile.entries();
-			while (e.hasMoreElements()) {
-				JarEntry entry = e.nextElement();
-				String name = entry.getName();
-				if (name.contains("htm")) {
-					helpMap.setTarget(name);
-				}
-			}
-
-			helpMap.setTargetImage("topic.png");
-
-			MZmineHelpSet hs = new MZmineHelpSet();
-			MZmineTOCView myTOC = new MZmineTOCView(hs, "TOC",
-					"Table Of Contents", helpMap);
-
-			hs.setLocalMap(helpMap);
-			hs.addTOCView(myTOC);
-			hs.setTitle("MZmine 2 - LC/MS Toolbox ");
-
+			MZmineHelpSet hs = MZmineCore.getHelpImp().getHelpSet();
+			
 			HelpBroker hb = hs.createHelpBroker();
 			hs.setHomeID(helpID);
 

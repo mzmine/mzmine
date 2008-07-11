@@ -70,6 +70,8 @@ public class FragmentAligner implements BatchStep, TaskListener,
     // completion of the whole alignment method to caller
     private ConcatenateFragmentsTask concatenateFragmentsTask;
     private TaskGroup concatenateFragmentsTaskGroup;
+    
+    private final String helpID = "net/sf/mzmine/modules/alignment/fragment/help/FragmentAlignment.html";
 
     /**
      * @see net.sf.mzmine.main.MZmineModule#initModule(net.sf.mzmine.main.MZmineCore)
@@ -106,7 +108,7 @@ public class FragmentAligner implements BatchStep, TaskListener,
     public ExitCode setupParameters(ParameterSet currentParameters) {
         ParameterSetupDialog dialog = new ParameterSetupDialog(
                 "Please set parameter values for " + toString(),
-                (SimpleParameterSet) currentParameters);
+                (SimpleParameterSet) currentParameters, helpID);
         dialog.setVisible(true);
         return dialog.getExitCode();
     }
