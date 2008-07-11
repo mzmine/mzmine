@@ -3,6 +3,12 @@
 <configuration> 
   <nodes local="2"/>  
   <modules> 
+    <module class="net.sf.mzmine.modules.io.rawdataimport.RawDataImporter"> 
+      <parameters>
+        <parameter name="Last open directory" type="STRING">E:\DATA</parameter>
+        <parameter name="Preload level" type="STRING">Store scan data in temporary file</parameter>
+      </parameters> 
+    </module>  
     <module class="net.sf.mzmine.modules.peakpicking.threestep.ThreeStepPicker"> 
       <parameters>
         <massdetector name="Centroid">
@@ -435,12 +441,6 @@
         <parameter name="Export peak retention time" type="BOOLEAN">true</parameter>
         <parameter name="Export peak height" type="BOOLEAN">true</parameter>
         <parameter name="Export peak area" type="BOOLEAN">true</parameter>
-      </parameters> 
-    </module>  
-    <module class="net.sf.mzmine.modules.io.rawdataimport.RawDataImporter"> 
-      <parameters>
-        <parameter name="Last open directory" type="STRING">E:\DATA</parameter>
-        <parameter name="Preload level" type="STRING">Store scan data in temporary file</parameter>
       </parameters> 
     </module> 
   </modules>  
