@@ -2,10 +2,10 @@ package net.sf.mzmine.modules.batchmode;
 
 import java.awt.event.MouseEvent;
 import java.util.Vector;
-import java.util.logging.Logger;
 
 import javax.swing.JList;
 import javax.swing.JToolTip;
+import javax.swing.ToolTipManager;
 
 import net.sf.mzmine.data.ParameterSet;
 import net.sf.mzmine.util.tooltip.MZmineToolTip;
@@ -18,6 +18,8 @@ public class BatchList extends JList {
 	
 	BatchList(Vector<BatchStepWrapper> batchSteps) {
 		super(batchSteps);
+		ToolTipManager.sharedInstance().setInitialDelay(1000);
+		ToolTipManager.sharedInstance().setDismissDelay(4000);
 	}
 	
 	public JToolTip createToolTip() {
