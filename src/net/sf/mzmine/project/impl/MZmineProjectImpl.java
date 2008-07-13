@@ -38,47 +38,26 @@ import net.sf.mzmine.project.ProjectListener;
  */
 public class MZmineProjectImpl implements MZmineProject {
 
-	private transient Hashtable<Parameter, Hashtable<String, Object>> projectParametersAndValues;
+	private Hashtable<Parameter, Hashtable<String, Object>> projectParametersAndValues;
 	private transient Vector<ProjectListener> listeners;
-	private transient DefaultListModel rawDataList;
-	private transient DefaultListModel peakListsList;
+	
+    private DefaultListModel rawDataList;
+	private DefaultListModel peakListsList;
 
-	// private transient Logger logger;
-	// filePath to save project
-	private File projectDir;
-	private boolean isTemporal = true;
+	private File projectFile;
 
-	public MZmineProjectImpl(File projectDir) {
-		this.projectDir = projectDir;
-		this.initModule();
-	}
-
-	/**
-	 * 
-	 */
-	public void initModule() {
-		listeners = new Vector<ProjectListener>();
-		this.rawDataList = new DefaultListModel();
-		this.peakListsList = new DefaultListModel();
-		projectParametersAndValues = new Hashtable<Parameter, Hashtable<String, Object>>();
+	public MZmineProjectImpl() {
 		
-		isTemporal = true;
+        listeners = new Vector<ProjectListener>();
+        this.rawDataList = new DefaultListModel();
+        this.peakListsList = new DefaultListModel();
+        projectParametersAndValues = new Hashtable<Parameter, Hashtable<String, Object>>();
+        
 	}
 
-	public boolean getIsTemporal() {
-		return this.isTemporal;
-	}
-
-	public void setIsTemporal(boolean flag) {
-		this.isTemporal = flag;
-	}
-
-	public void setLocation(File dirPath) {
-		this.projectDir = dirPath;
-	}
 
 	public File getLocation() {
-		return this.projectDir;
+		return this.projectFile;
 	}
 
 	public void addParameter(Parameter parameter) {
@@ -95,10 +74,7 @@ public class MZmineProjectImpl implements MZmineProject {
 	}
 
 	public boolean hasParameter(Parameter parameter) {
-		if (projectParametersAndValues.containsKey(parameter))
-			return true;
-		else
-			return false;
+		return projectParametersAndValues.containsKey(parameter);
 	}
 
 	public Parameter[] getParameters() {
@@ -130,7 +106,7 @@ public class MZmineProjectImpl implements MZmineProject {
 
 	public void removeFile(RawDataFile file) {
 		this.rawDataList.removeElement(file);
-		file.delete();
+		file.close();
 	}
 
 	public RawDataFile[] getDataFiles() {
@@ -140,17 +116,6 @@ public class MZmineProjectImpl implements MZmineProject {
 			dataFiles.add((RawDataFile) this.rawDataList.getElementAt(i));
 		}
 		return dataFiles.toArray(new RawDataFile[0]);
-	}
-
-	public RawDataFile getDataFile(String fileName) {
-		RawDataFile file;
-		for (int i = 0; i < this.rawDataList.size(); i++) {
-			file = (RawDataFile) this.rawDataList.getElementAt(i);
-			if (file.getFileName().equals(fileName)) {
-				return file;
-			}
-		}
-		return null;
 	}
 
 	public void addPeakList(PeakList peakList) {
@@ -190,47 +155,27 @@ public class MZmineProjectImpl implements MZmineProject {
 		listeners.remove(listener);
 	}
 
-	//
-	public Vector<ProjectListener> getProjectListeners() {
-		return listeners;
-	}
-
-	protected Hashtable<Parameter, Hashtable<String, Object>> getProjectParameters() {
-		return (Hashtable<Parameter, Hashtable<String, Object>>) projectParametersAndValues;
-	}
-
-	protected void setProjectParameters(
-			Hashtable<Parameter, Hashtable<String, Object>> projectParameters) {
-		projectParametersAndValues = projectParameters;
-	}
-
 	public DefaultListModel getPeakListsListModel() {
 		return this.peakListsList;
-	};
+	}
 
 	/**
 	 * Returns DataFileListModel for GUI
 	 */
 	public DefaultListModel getRawDataListModel() {
 		return this.rawDataList;
-	};
-
-	private Object readResolve() {
-		listeners = new Vector<ProjectListener>();
-		this.peakListsList = new DefaultListModel();
-		this.rawDataList = new DefaultListModel();
-		projectParametersAndValues = new Hashtable<Parameter, Hashtable<String, Object>>();
-		//logger = Logger.getLogger(this.getClass().getName());
-		return this;
 	}
 
-	public void setPeakListsListModel(DefaultListModel listModel) {
-		this.peakListsList = listModel;
-
-	}
-
-	public void setRawDataListModel(DefaultListModel listModel) {
-		this.rawDataList = listModel;
-
-	}
+    public File getProjectFile() {
+        return projectFile;
+    }
+    
+   void setProjectFile(File file) {
+        this.projectFile = file;
+    }
+    
+    private Object readResolve() {
+        listeners = new Vector<ProjectListener>();
+        return this;
+    }
 }

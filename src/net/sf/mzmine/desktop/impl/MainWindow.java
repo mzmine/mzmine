@@ -48,7 +48,6 @@ import net.sf.mzmine.desktop.helpsystem.HelpMainMenuItem;
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.main.MZmineModule;
 import net.sf.mzmine.project.MZmineProject;
-import net.sf.mzmine.project.ProjectListener;
 import net.sf.mzmine.taskcontrol.impl.TaskControllerImpl;
 import net.sf.mzmine.util.NumberFormatter;
 import net.sf.mzmine.util.components.TaskProgressWindow;
@@ -58,7 +57,7 @@ import net.sf.mzmine.util.components.TaskProgressWindow;
  * 
  */
 public class MainWindow extends JFrame implements MZmineModule, Desktop,
-        WindowListener, ProjectListener {
+        WindowListener {
 
     private DesktopParameters parameters;
 
@@ -69,7 +68,7 @@ public class MainWindow extends JFrame implements MZmineModule, Desktop,
     private ItemSelector itemSelector;
 
     private TaskProgressWindow taskList;
-    
+
     private HelpMainMenuItem help;
 
     public TaskProgressWindow getTaskList() {
@@ -191,8 +190,8 @@ public class MainWindow extends JFrame implements MZmineModule, Desktop,
 
         // Construct menu
         menuBar = new MainMenu();
-		help = new HelpMainMenuItem();
-		help.addMenuItem(menuBar);
+        help = new HelpMainMenuItem();
+        help.addMenuItem(menuBar);
         setJMenuBar(menuBar);
 
         // Initialize window listener for responding to user events
@@ -307,19 +306,19 @@ public class MainWindow extends JFrame implements MZmineModule, Desktop,
         return itemSelector;
     }
 
-    public void projectModified(ProjectEvent event, MZmineProject project) {
-        this.itemSelector.reloadDataModel();
+    public void reloadProject() {
+        MZmineProject project = MZmineCore.getCurrentProject();
+        
+        itemSelector.reloadDataModel();
 
-        String projectName;
-        if (project.getIsTemporal() == true) {
-            projectName = "( Not saved yet )";
-        } else {
-            String fileName = project.getLocation().getName();
-            projectName = fileName.substring(0, fileName.length()
-                    - ".mzmine".length());
+        if (project.getProjectFile() != null) {
+            String projectName = project.getProjectFile().getName();
+            if (projectName.endsWith(".mzmine")) {
+                projectName = projectName.substring(0, projectName.length() - 7);
+            }
+            setTitle("MZmine 2: " + projectName);
         }
-        this.setTitle("MZmine :" + projectName);
 
     }
-    
+
 }

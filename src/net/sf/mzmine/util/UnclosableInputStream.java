@@ -17,30 +17,23 @@
  * Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-package net.sf.mzmine.project;
+package net.sf.mzmine.util;
 
-import java.io.File;
-import java.io.IOException;
-import java.util.HashMap;
+import java.io.FilterInputStream;
+import java.io.InputStream;
 
 /**
- * This interface defines project manager that deal with inter-project
- * operations
+ * Simple InputStream filter which does not propagate close() to its underlying
+ * stream
  */
+public class UnclosableInputStream extends FilterInputStream {
 
-public interface ProjectManager {
-	public void createProject(File projectDir) throws IOException;
+    public UnclosableInputStream(InputStream in) {
+        super(in);
+    }
 
-	public void createTemporalProject() throws IOException;
+    public void close() {
+        // ignore close
+    }
 
-	public void openProject(File projectDir) throws IOException;
-	public void openProject(File projectDir,HashMap<String,Object> options) throws IOException;
-
-	public void saveProject(File projectDir) throws IOException;
-	public void saveProject(File projectDir,HashMap<String,Object> options) throws IOException;
-
-	
-	public void removeProjectDir(File projectDir);
-	public ProjectStatus getStatus();
-	public void initModule();
 }

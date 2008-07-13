@@ -19,256 +19,136 @@
 
 package net.sf.mzmine.project.impl;
 
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.awt.event.KeyEvent;
 import java.io.File;
-import java.io.IOException;
-import java.lang.reflect.Constructor;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.concurrent.Semaphore;
-import java.util.logging.Logger;
+
+import javax.swing.JFileChooser;
 
 import net.sf.mzmine.desktop.Desktop;
-import net.sf.mzmine.desktop.impl.MainWindow;
+import net.sf.mzmine.desktop.MZmineMenu;
+import net.sf.mzmine.desktop.impl.DesktopParameters;
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.project.MZmineProject;
-import net.sf.mzmine.project.ProjectListener;
-import net.sf.mzmine.project.ProjectManager;
-import net.sf.mzmine.project.ProjectOpeningTask;
-import net.sf.mzmine.project.ProjectSavingTask;
-import net.sf.mzmine.project.ProjectStatus;
-import net.sf.mzmine.project.ProjectTask;
-import net.sf.mzmine.project.ProjectType;
-import net.sf.mzmine.taskcontrol.Task;
-import net.sf.mzmine.taskcontrol.TaskController;
-import net.sf.mzmine.taskcontrol.TaskListener;
+
+import com.sun.java.ExampleFileFilter;
 
 /**
  * project manager implementation Using reflection to support different
  * implementation of actual tasks
  */
-public class ProjectManagerImpl implements ProjectManager, TaskListener {
+public class ProjectManagerImpl implements ActionListener {
 
-	private Logger logger = Logger.getLogger(this.getClass().getName());
+    // private Logger logger = Logger.getLogger(this.getClass().getName());
 
-	private TaskController taskController;
-	private Desktop desktop;
-	// status to check for app quitting or etc...
-	private ProjectStatus status;
-	private ProjectType projectType;
-	private final Semaphore available = new Semaphore(1);
+    private static ProjectManagerImpl myInstance;
 
-	public ProjectManagerImpl(ProjectType projectType) {
-		this.status = ProjectStatus.Idle;
-		this.projectType = projectType;
-		this.initModule();
-	}
+    MZmineProject currentProject;
 
-	/**
-	 * This method is non-blocking, it places a request to open these files and
-	 * exits immediately.
-	 */
-	public synchronized void createTemporalProject() throws IOException {
-		File projectDir = File.createTempFile("mzmine", null);
-		projectDir.delete();
-		this.createProject(projectDir, true);
+    /**
+     * @see net.sf.mzmine.main.MZmineModule#initModule(net.sf.mzmine.main.MZmineCore)
+     */
+    public void initModule() {
+        currentProject = new MZmineProjectImpl();
+        myInstance = this;
+    }
 
-	}
+    /**
+     * Desktop is not initialized yet, when we run our initModule, so we need to
+     * create menu items later
+     * 
+     */
+    public void createMenuItems() {
+        Desktop desktop = MZmineCore.getDesktop();
 
-	public synchronized void createProject(File projectDir) {
-		this.createProject(projectDir, false);
-	}
+        desktop.addMenuItem(MZmineMenu.PROJECT, "Open project...", null,
+                KeyEvent.VK_O, this, "OPEN_PROJECT");
 
-	private void createProject(File projectDir, Boolean isTemporal) {
-		try {
-			available.acquire();
-		} catch (InterruptedException e) {
-			// TODO Auto-generated catch block
+        desktop.addMenuItem(MZmineMenu.PROJECT, "Save project...", null,
+                KeyEvent.VK_S, this, "SAVE_PROJECT");
 
-			e.printStackTrace();
-		}
-		status = ProjectStatus.Processing;
-		Boolean ok;
+        desktop.addMenuItem(MZmineMenu.PROJECT, "Save project as...", null,
+                KeyEvent.VK_A, this, "SAVE_PROJECT_AS");
 
-		// Check to delete temporary project after creation of new project
-		MZmineProject oldProject;
-		File oldProjectDir = null;
-		Boolean removeOld = false;
-		if (isTemporal != true) {
-			oldProject = MZmineCore.getCurrentProject();
-			if (oldProject.getIsTemporal() == true) {
-				removeOld = true;
-				oldProjectDir = oldProject.getLocation();
-			}
-		}
+    }
 
-		try {
-			ok = projectDir.mkdir();
-			if (ok == false) {
-				throw new IOException();
-			}
+    public void actionPerformed(ActionEvent event) {
 
-			MZmineProjectImpl project = new MZmineProjectImpl(projectDir);
-			project.setLocation(projectDir);
-			project.setIsTemporal(isTemporal);
-			if (desktop != null) {
-				project.addProjectListener((MainWindow) desktop);
-			}
-			MZmineCore.setProject(project);
+        String cmd = event.getActionCommand();
 
-			if (removeOld == true) {
-				this.removeProjectDir(oldProjectDir);
-			}
+        if (cmd.equals("OPEN_PROJECT")) {
+            DesktopParameters parameters = (DesktopParameters) MZmineCore.getDesktop().getParameterSet();
+            String lastPath = parameters.getLastOpenProjectPath();
+            JFileChooser chooser = new JFileChooser();
+            if (lastPath != null)
+                chooser.setCurrentDirectory(new File(lastPath));
 
-		} catch (Throwable e) {
-			
-			String msg = "Error in cerating project directory";
-			logger.severe(msg);
-			desktop.displayErrorMessage(msg);
+            ExampleFileFilter filter = new ExampleFileFilter();
+            filter.addExtension("mzmine");
+            filter.setDescription("MZmine 2 projects");
+            chooser.setFileFilter(filter);
+            int returnVal = chooser.showOpenDialog(MZmineCore.getDesktop().getMainFrame());
+            if (returnVal == JFileChooser.APPROVE_OPTION) {
+                File selectedFile = chooser.getSelectedFile();
+                ProjectOpeningTask task = new ProjectOpeningTask(
+                        selectedFile);
+                MZmineCore.getTaskController().addTask(task);
+                DesktopParameters newDesktopParams = (DesktopParameters) MZmineCore.getDesktop().getParameterSet();
+                newDesktopParams.setLastOpenProjectPath(selectedFile.getParent());
+            }
+        }
 
-		} finally {
-			status = ProjectStatus.Idle;
-			available.release();
-		}
+        if (cmd.equals("SAVE_PROJECT")) {
+            File projectFile = MZmineCore.getCurrentProject().getProjectFile();
+            if (projectFile == null) {
+                saveProjectAs();
+                return;
+            }
+            ProjectSavingTask task = new ProjectSavingTask(projectFile);
+            MZmineCore.getTaskController().addTask(task);
+            
+        }
 
-	}
+        if (cmd.equals("SAVE_PROJECT_AS")) {
+            saveProjectAs();
+        }
+    }
 
-	public void openProject(File projectDir) throws IOException {
-		this.openProject(projectDir, null);
-	}
+    public MZmineProject getCurrentProject() {
+        return currentProject;
+    }
 
-	public void openProject(File projectDir, HashMap options){
-		try {
-			// Check Project format
-			available.acquire();
-			String version;
-			String fileNames[] = projectDir.list();
-			if (!Arrays.asList(fileNames).contains("dataFiles")) {
-				// format is v1
-				version = "1";
-			} else {
-				version = "";
-			}
+    void setCurrentProject(MZmineProject project) {
+        this.currentProject = project;
+    }
 
-			String className = "net.sf.mzmine.project.impl.ProjectOpeningTask_"
-					+ this.projectType.toString();
-			if (!version.equals("")) {
-				className = className + "_" + version;
-			}
-			Class projectClass = Class.forName(className);
-			Constructor projectConst = projectClass.getConstructor(File.class);
-			ProjectTask openTask = (ProjectTask) projectConst
-					.newInstance(projectDir);
-			openTask.setOption(options);
-			taskController.addTask(openTask, this);
-			status = ProjectStatus.Processing;
+    static ProjectManagerImpl getInstance() {
+        return myInstance;
+    }
+    
+    private void saveProjectAs() {
+        DesktopParameters parameters = (DesktopParameters) MZmineCore.getDesktop().getParameterSet();
+        String lastPath = parameters.getLastOpenProjectPath();
+        JFileChooser chooser = new JFileChooser();
+        if (lastPath != null)
+            chooser.setCurrentDirectory(new File(lastPath));
 
-		} catch (Throwable e) {
-			available.release();
-			String msg = "Error in starting project opening: ";
-			logger.severe(msg);
-			desktop.displayErrorMessage(msg);
-			return;
-		}
-	}
-
-	public void saveProject(File projectDir) {
-		this.saveProject(projectDir, null);
-	}
-
-	public void saveProject(File projectDir, HashMap options) {
-
-		try {
-			available.acquire();
-			String className = "net.sf.mzmine.project.impl.ProjectSavingTask_"
-					+ this.projectType.toString();
-			Class projectClass = Class.forName(className);
-			Constructor projectConst = projectClass.getConstructor(File.class);
-			ProjectTask saveTask = (ProjectTask) projectConst
-					.newInstance(projectDir);
-			saveTask.setOption(options);
-			taskController.addTask(saveTask, this);
-			status = ProjectStatus.Processing;
-
-		} catch (Throwable e) {
-			String msg = "Error in starting project saving: ";
-			logger.severe(msg);
-			desktop.displayErrorMessage(msg);
-			available.release();
-			return;
-		}
-	}
-
-	public void removeProjectDir(File projectDir) {
-		for (File file : projectDir.listFiles()) {
-			file.delete();
-		}
-		projectDir.delete();
-	}
-
-	/**
-	 * This method is called when the file opening task is finished.
-	 * 
-	 * @see net.sf.mzmine.taskcontrol.TaskListener#taskFinished(net.sf.mzmine.taskcontrol.Task)
-	 */
-	public void taskFinished(Task task) {
-		
-		if (task instanceof ProjectOpeningTask) {
-			if (task.getStatus() == Task.TaskStatus.FINISHED) {
-				MZmineProject project = ((ProjectTask) task).getResult();
-				MZmineCore.setProject(project);
-				// transfer listeners in the old project to new one
-				project.addProjectListener((MainWindow) desktop);
-			} else if (task.getStatus() == Task.TaskStatus.ERROR) {
-				/* Task encountered an error */
-				logger.severe("Error in project processing: "
-						+ task.getErrorMessage());
-				desktop.displayErrorMessage("Error: " + task.getErrorMessage());
-			}
-
-		} else if (task instanceof ProjectSavingTask) {
-			if (task.getStatus() == Task.TaskStatus.FINISHED) {
-
-				// transfer listeners in the old project to new one
-				MZmineProject project = MZmineCore.getCurrentProject();
-				for (ProjectListener listener : project.getProjectListeners()) {
-					listener.projectModified(
-							ProjectListener.ProjectEvent.PROJECT_CHANGED,
-							project);
-				}
-
-			} else if (task.getStatus() == Task.TaskStatus.ERROR) {
-				/* Task encountered an error */
-				logger.severe("Error in project processing: "
-						+ task.getErrorMessage());
-				desktop.displayErrorMessage("Error: " + task.getErrorMessage());
-			}
-
-		}
-		available.release();
-		status = ProjectStatus.Idle;
-	}
-
-	/**
-	 * @see net.sf.mzmine.taskcontrol.TaskListener#taskStarted(net.sf.mzmine.taskcontrol.Task)
-	 */
-	public void taskStarted(Task task) {
-		// do nothing
-	}
-
-	/**
-	 * @see net.sf.mzmine.main.MZmineModule#initModule(net.sf.mzmine.main.MZmineCore)
-	 */
-	public void initModule() {
-		this.taskController = MZmineCore.getTaskController();
-		this.desktop = MZmineCore.getDesktop();
-	}
-
-	/**
-	 * @see net.sf.mzmine.project.ProjectManager#getStatus()
-	 */
-	public ProjectStatus getStatus() {
-		return status;
-
-	}
+        ExampleFileFilter filter = new ExampleFileFilter();
+        filter.addExtension("mzmine");
+        filter.setDescription("MZmine 2 projects");
+        chooser.setFileFilter(filter);
+        int returnVal = chooser.showSaveDialog(MZmineCore.getDesktop().getMainFrame());
+        if (returnVal == JFileChooser.APPROVE_OPTION) {
+            File selectedFile = chooser.getSelectedFile();
+            parameters.setLastOpenProjectPath(selectedFile.getParent());
+            String extension = filter.getExtension(selectedFile);
+            if ((extension == null) || (!extension.equals("mzmine"))) {
+                selectedFile = new File(selectedFile.getPath() + ".mzmine");
+            }
+            ProjectSavingTask task = new ProjectSavingTask(selectedFile);
+            MZmineCore.getTaskController().addTask(task);
+        }
+    }
 
 }

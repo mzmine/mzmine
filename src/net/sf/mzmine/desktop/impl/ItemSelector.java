@@ -158,21 +158,6 @@ public class ItemSelector extends JPanel implements ActionListener,
 
 	}
 
-	// /**
-	// * Adds a raw data object to storage
-	// */
-	// public void addRawData(RawDataFile r) {
-	// rawDataFilesModel.addElement(r);
-	//
-	// }
-	//
-	// /**
-	// * Removes a raw data object from storage
-	// */
-	// public boolean removeRawData(RawDataFile r) {
-	// return rawDataFilesModel.removeElement(r);
-	// }
-
 	/**
 	 * Returns selected raw data objects in an array
 	 */
@@ -197,16 +182,6 @@ public class ItemSelector extends JPanel implements ActionListener,
 		rawDataFiles.setSelectedValue(rawData, true);
 	}
 
-	// METHODS FOR MAINTAINING PEAK LISTS
-	// ---------------------------------------
-
-	// public void addPeakList(PeakList a) {
-	// peakListsModel.addElement(a);
-	// }
-	//
-	// public boolean removePeakList(PeakList a) {
-	// return peakListsModel.removeElement(a);
-	// }
 
 	public PeakList[] getSelectedPeakLists() {
 
@@ -222,21 +197,6 @@ public class ItemSelector extends JPanel implements ActionListener,
 
 	}
 
-	/**
-	 * Method to reset ItemSelecter
-	 */
-	// public void removeAll() {
-	// peakListsModel.removeAllElements();
-	// rawDataFilesModel.removeAllElements();
-	// }
-	//
-	// public void removePeakLists() {
-	// peakListsModel.removeAllElements();
-	// }
-	//
-	// public void removeDataFiles() {
-	// rawDataFilesModel.removeAllElements();
-	// }
 	public void mouseClicked(MouseEvent e) {
 
 		if ((e.getClickCount() == 2) && (e.getButton() == MouseEvent.BUTTON1)) {

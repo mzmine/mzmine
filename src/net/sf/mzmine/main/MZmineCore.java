@@ -35,6 +35,8 @@ import net.sf.mzmine.desktop.Desktop;
 import net.sf.mzmine.desktop.helpsystem.HelpImp;
 import net.sf.mzmine.desktop.impl.MainWindow;
 import net.sf.mzmine.project.MZmineProject;
+import net.sf.mzmine.project.impl.ProjectManagerImpl;
+import net.sf.mzmine.project.impl.RawDataFileImpl;
 import net.sf.mzmine.taskcontrol.TaskController;
 import net.sf.mzmine.util.NumberFormatter;
 
@@ -65,7 +67,7 @@ public abstract class MZmineCore {
 
 	protected static TaskController taskController;
 	protected static Desktop desktop;
-	protected static MZmineProject currentProject;
+	protected static ProjectManagerImpl projectManager;
 	protected static MZmineModule[] initializedModules;
 	protected static HelpImp help;
 
@@ -92,7 +94,7 @@ public abstract class MZmineCore {
 	 * 
 	 */
 	public static MZmineProject getCurrentProject() {
-		return currentProject;
+		return projectManager.getCurrentProject();
 	}
 
 	/**
@@ -123,7 +125,7 @@ public abstract class MZmineCore {
 		if (desktop != null) {
 			int selectedValue = JOptionPane.showInternalConfirmDialog(desktop
 					.getMainFrame().getContentPane(),
-					"Are you sure you want to exit MZmine?", "Exiting...",
+					"Are you sure you want to exit MZmine 2?", "Exiting...",
 					JOptionPane.YES_NO_OPTION, JOptionPane.WARNING_MESSAGE);
 
 			if (selectedValue != JOptionPane.YES_OPTION)
@@ -202,7 +204,7 @@ public abstract class MZmineCore {
 			writer.write(configuration);
 			writer.close();
 
-			logger.info("Saved configuration to file " + file);
+			logger.finest("Saved configuration to file " + file);
 
 		} catch (Exception e) {
 			logger.log(Level.SEVERE, "Could not update configuration file "
@@ -252,21 +254,13 @@ public abstract class MZmineCore {
 
 			}
 
-			logger.info("Loaded configuration from file " + file);
+			logger.finest("Loaded configuration from file " + file);
 
 		} catch (Exception e) {
 			logger.log(Level.SEVERE, "Could not parse configuration file "
 					+ file, e);
 		}
 
-	}
-
-	public static void setProject(MZmineProject myProject) {
-		currentProject = myProject;
-	}
-
-	public static void setDesktop(MainWindow mainWindow) {
-		desktop = mainWindow;
 	}
 
 	// Number formatting functions
@@ -285,6 +279,6 @@ public abstract class MZmineCore {
 	public static RawDataFileWriter createNewFile(String name, 
 			PreloadLevel preloadLevel) throws IOException {
 		return new RawDataFileImpl(name, preloadLevel);
-	}	
+	}
 
 }

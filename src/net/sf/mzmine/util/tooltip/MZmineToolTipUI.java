@@ -24,8 +24,6 @@ public class MZmineToolTipUI extends BasicToolTipUI {
 
 	private String[] strs;
 
-	private int maxWidth = 0;
-	
 	public void paint(Graphics g, JComponent c) {
 		Graphics2D g2 = (Graphics2D) g;
 
@@ -119,7 +117,6 @@ public class MZmineToolTipUI extends BasicToolTipUI {
 			}
 		}
 		height = (metrics.getHeight() * numberOfLines);
-		this.maxWidth = maxWidth;
 		return new Dimension(maxWidth + 3, height + 10);
 
 	}

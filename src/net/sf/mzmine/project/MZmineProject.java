@@ -20,7 +20,6 @@
 package net.sf.mzmine.project;
 
 import java.io.File;
-import java.util.Vector;
 
 import net.sf.mzmine.data.Parameter;
 import net.sf.mzmine.data.PeakList;
@@ -50,132 +49,101 @@ import net.sf.mzmine.data.RawDataFile;
  * 
  */
 public interface MZmineProject {
-	/**
-	 * set file system location of this project ;
-	 * 
-	 * @param parameter
-	 */
-	public void setLocation(File path);
 
-	/**
-	 * Return file system location of this project ;
-	 * 
-	 * @param parameter
-	 */
-	public File getLocation();
+    /**
+     * Return the filename of the project file
+     */
+    public File getProjectFile();
 
-	/**
-	 * Adds a new experimental parameter to the project
-	 * 
-	 * @param parameter
-	 */
-	public void addParameter(Parameter parameter);
+    /**
+     * Adds a new experimental parameter to the project
+     * 
+     * @param parameter
+     */
+    public void addParameter(Parameter parameter);
 
-	/**
-	 * Removes an experimental parameter from the project
-	 * 
-	 * @param parameter
-	 */
-	public void removeParameter(Parameter parameter);
+    /**
+     * Removes an experimental parameter from the project
+     * 
+     * @param parameter
+     */
+    public void removeParameter(Parameter parameter);
 
-	/**
-	 * Returns true if project contains the experimental parameter
-	 */
-	public boolean hasParameter(Parameter parameter);
+    /**
+     * Returns true if project contains the experimental parameter
+     */
+    public boolean hasParameter(Parameter parameter);
 
-	/**
-	 * Returns all experimental parameter of the project
-	 */
-	public Parameter[] getParameters();
+    /**
+     * Returns all experimental parameter of the project
+     */
+    public Parameter[] getParameters();
 
-	/**
-	 * Sets experimental parameter's value corresponding to a RawDataFile.
-	 * <p>
-	 * If the parameter does not exists in the project, it is added to the
-	 * project. If parameter already has a value corresponding the given file,
-	 * previous value is replaced.
-	 * 
-	 */
-	public void setParameterValue(Parameter parameter, RawDataFile rawDataFile,
-			Object value);
+    /**
+     * Sets experimental parameter's value corresponding to a RawDataFile.
+     * <p>
+     * If the parameter does not exists in the project, it is added to the
+     * project. If parameter already has a value corresponding the given file,
+     * previous value is replaced.
+     * 
+     */
+    public void setParameterValue(Parameter parameter, RawDataFile rawDataFile,
+            Object value);
 
-	/**
-	 * Returns experimental parameter's value corresponding to a RawDataFile.
-	 * 
-	 */
-	public Object getParameterValue(Parameter parameter, RawDataFile rawDataFile);
+    /**
+     * Returns experimental parameter's value corresponding to a RawDataFile.
+     * 
+     */
+    public Object getParameterValue(Parameter parameter, RawDataFile rawDataFile);
 
-	/**
-	 * Adds a new RawDataFile to the project.
-	 * 
-	 */
-	public void addFile(RawDataFile newFile);
+    /**
+     * Adds a new RawDataFile to the project.
+     * 
+     */
+    public void addFile(RawDataFile newFile);
 
-	/**
-	 * Removes a RawDataFile from the project.
-	 * 
-	 */
-	public void removeFile(RawDataFile file);
+    /**
+     * Removes a RawDataFile from the project.
+     * 
+     */
+    public void removeFile(RawDataFile file);
 
-	/**
-	 * Returns all RawDataFiles of the project.
-	 * 
-	 */
-	public RawDataFile[] getDataFiles();
+    /**
+     * Returns all RawDataFiles of the project.
+     * 
+     */
+    public RawDataFile[] getDataFiles();
 
-	/**
-	 * Returns RawDataFile with specified file name.
-	 * 
-	 */
-	public RawDataFile getDataFile(String fileName);
+    /**
+     * Adds a peak list to the project
+     * 
+     */
+    public void addPeakList(PeakList peaklist);
 
-	/**
-	 * Adds a peak list to the project
-	 * 
-	 */
-	public void addPeakList(PeakList peaklist);
+    /**
+     * Removes a peak list from the project
+     * 
+     */
+    public void removePeakList(PeakList peaklist);
 
-	/**
-	 * Removes a peak list from the project
-	 * 
-	 */
-	public void removePeakList(PeakList peaklist);
+    /**
+     * Returns all peak lists of the project
+     */
+    public PeakList[] getPeakLists();
 
-	/**
-	 * Returns all peak lists of the project
-	 */
-	public PeakList[] getPeakLists();
+    /**
+     * Returns all peak lists which contain given data file
+     */
+    public PeakList[] getPeakLists(RawDataFile file);
 
-	/**
-	 * Returns all peak lists which contain given data file
-	 */
-	public PeakList[] getPeakLists(RawDataFile file);
+    /**
+     * Adds a listener which is notified when there is a change of the project
+     */
+    public void addProjectListener(ProjectListener listener);
 
-	/**
-	 * Adds a listener which is notified when there is a change of the project
-	 */
-	public void addProjectListener(ProjectListener listener);
-
-	/**
-	 * Remove a listener which is notified when there is a change of the project
-	 */
-	public void removeProjectListener(ProjectListener listener);
-
-	/**
-	 * List listeners
-	 */
-	public Vector<ProjectListener> getProjectListeners();
-
-	/**
-	 * check project is in temporal space (Not yet saved)
-	 */
-
-	public boolean getIsTemporal();
-
-	/**
-	 * set project is in temporal space or not
-	 */
-
-	public void setIsTemporal(boolean isTemoral);
+    /**
+     * Remove a listener which is notified when there is a change of the project
+     */
+    public void removeProjectListener(ProjectListener listener);
 
 }

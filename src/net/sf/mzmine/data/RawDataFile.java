@@ -19,9 +19,6 @@
 
 package net.sf.mzmine.data;
 
-import java.io.File;
-import java.io.RandomAccessFile;
-
 import net.sf.mzmine.util.Range;
 
 public interface RawDataFile {
@@ -32,34 +29,6 @@ public interface RawDataFile {
      * @return File file path
      */
     public String getFileName();
-
-    /**
-     * Returns File ScanDataFileName
-     * 
-     * @return File ScanDataFileName
-     */
-    public String getScanDataFileName();
-
-    /**
-     * Returns Opened Random access file ScanDataFile
-     * 
-     * @return File ScanDataFileName
-     */
-    public RandomAccessFile getScanDataFile();
-
-    /**
-     * Returns Opened Random access file writingScanDataFile
-     * 
-     * @return File writingScanDataFileName
-     */
-    public RandomAccessFile getWritingScanDataFile();
-
-    /**
-     * resetScanDataFile when the file location is changed
-     * 
-     * @return
-     */
-    public void updateScanDataFile(File file);
 
     public PreloadLevel getPreloadLevel();
 
@@ -112,8 +81,10 @@ public interface RawDataFile {
     public float getDataMaxBasePeakIntensity(int msLevel);
 
     public float getDataMaxTotalIonCurrent(int msLevel);
-
-    public String toString();
     
-    public void delete();
+    /**
+     * Close the file in case it is removed from the project
+     */
+    public void close();
+    
 }

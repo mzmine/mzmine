@@ -23,22 +23,21 @@ import java.text.Format;
 import java.util.Enumeration;
 import java.util.HashSet;
 import java.util.Hashtable;
-import java.util.Vector;
 
-import net.sf.mzmine.data.CompoundIdentity;
 import net.sf.mzmine.data.ChromatographicPeak;
+import net.sf.mzmine.data.CompoundIdentity;
+import net.sf.mzmine.data.IsotopePattern;
 import net.sf.mzmine.data.PeakListRow;
 import net.sf.mzmine.data.RawDataFile;
 import net.sf.mzmine.main.MZmineCore;
-import net.sf.mzmine.project.MZmineProject;
 
 /**
  * 
  */
 public class SimplePeakListRow implements PeakListRow {
 
-    private Hashtable<String, ChromatographicPeak> peaks;
-    private Hashtable<String, ChromatographicPeak> originalPeaks;
+    private Hashtable<RawDataFile, ChromatographicPeak> peaks;
+    private Hashtable<RawDataFile, ChromatographicPeak> originalPeaks;
     private HashSet<CompoundIdentity> identities;
     private CompoundIdentity preferredIdentity;
     private String comment;
@@ -47,8 +46,8 @@ public class SimplePeakListRow implements PeakListRow {
 
     public SimplePeakListRow(int myID) {
         this.myID = myID;
-        peaks = new Hashtable<String, ChromatographicPeak>();
-        originalPeaks = new Hashtable<String, ChromatographicPeak>();
+        peaks = new Hashtable<RawDataFile, ChromatographicPeak>();
+        originalPeaks = new Hashtable<RawDataFile, ChromatographicPeak>();
         identities = new HashSet<CompoundIdentity>();
         preferredIdentity = CompoundIdentity.UNKNOWN_IDENTITY;
     }
@@ -71,45 +70,48 @@ public class SimplePeakListRow implements PeakListRow {
      * Return opened raw data files with a peak on this row
      */
     public RawDataFile[] getRawDataFiles() {
-        MZmineProject project = MZmineCore.getCurrentProject();
-        Vector<RawDataFile> rawDataFilesInPeak = new Vector<RawDataFile>();
-        for (String fileName : peaks.keySet()) {
-            rawDataFilesInPeak.add(project.getDataFile(fileName));
-        }
-        return rawDataFilesInPeak.toArray(new RawDataFile[0]);
+        return peaks.keySet().toArray(new RawDataFile[0]);
     }
 
     /*
      * Returns peak for given raw data file
      */
     public ChromatographicPeak getPeak(RawDataFile rawData) {
-        return peaks.get(rawData.getFileName());
-    }
-
-    public void setPeak(RawDataFile rawData, ChromatographicPeak p) {
-        peaks.put(rawData.getFileName(), p);
+        return peaks.get(rawData);
     }
 
     /**
      * @see net.sf.mzmine.data.PeakListRow#getOriginalPeakListEntry(net.sf.mzmine.data.RawDataFile)
      */
     public ChromatographicPeak getOriginalPeakListEntry(RawDataFile rawData) {
-        return originalPeaks.get(rawData.getFileName());
+        return originalPeaks.get(rawData);
     }
 
-    public void addPeak(RawDataFile rawData, ChromatographicPeak original, ChromatographicPeak current) {
+    public void addPeak(RawDataFile rawData, ChromatographicPeak original,
+            ChromatographicPeak current) {
 
         if (original != null) {
-            originalPeaks.put(rawData.getFileName(), original);
-        } else
-            originalPeaks.remove(rawData.getFileName());
+            
+            // convert the peak to SimpleChromatographicPeak for easy serialization
+            if (!((original instanceof SimpleChromatographicPeak) || (original instanceof IsotopePattern)))
+                original = new SimpleChromatographicPeak(original);
+            
+            originalPeaks.put(rawData, original);
+        } else {
+            originalPeaks.remove(rawData);
+        }
 
         if (current != null) {
-            peaks.put(rawData.getFileName(), current);
+            
+            // convert the peak to SimpleChromatographicPeak for easy serialization
+            if (!((current instanceof SimpleChromatographicPeak) || (current instanceof IsotopePattern)))
+                current = new SimpleChromatographicPeak(current);
+            
+            peaks.put(rawData, current);
             if (current.getRawDataPointsIntensityRange().getMax() > maxDataPointIntensity)
                 maxDataPointIntensity = current.getRawDataPointsIntensityRange().getMax();
         } else
-            peaks.remove(rawData.getFileName());
+            peaks.remove(rawData);
 
     }
 

@@ -17,7 +17,7 @@
  * Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-package net.sf.mzmine.main;
+package net.sf.mzmine.project.impl;
 
 import java.io.IOException;
 import java.io.RandomAccessFile;
@@ -27,13 +27,12 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import net.sf.mzmine.data.DataPoint;
-import net.sf.mzmine.data.RawDataFile;
 import net.sf.mzmine.data.Scan;
 import net.sf.mzmine.data.impl.SimpleDataPoint;
 import net.sf.mzmine.util.Range;
 
 /**
- * Simple implementation of the Scan interface.
+ * Implementation of the Scan interface which stores raw data points in a temporary file
  */
 public class StorableScan implements Scan {
 
@@ -51,12 +50,12 @@ public class StorableScan implements Scan {
     private long storageFileOffset;
     private int storageArrayByteLength;
     private int numberOfDataPoints;
-    private RawDataFile rawDataFile;
+    private RawDataFileImpl rawDataFile;
 
     /**
      * Clone constructor
      */
-    public StorableScan(Scan sc, RawDataFile rawDataFile) {
+    public StorableScan(Scan sc, RawDataFileImpl rawDataFile) {
         this(sc.getScanNumber(), sc.getMSLevel(), sc.getRetentionTime(),
                 sc.getParentScanNumber(), sc.getPrecursorMZ(),
                 sc.getFragmentScanNumbers(), sc.getDataPoints(),
@@ -68,7 +67,7 @@ public class StorableScan implements Scan {
      */
     public StorableScan(int scanNumber, int msLevel, float retentionTime,
             int parentScan, float precursorMZ, int fragmentScans[],
-            DataPoint[] dataPoints, boolean centroided, RawDataFile rawDataFile) {
+            DataPoint[] dataPoints, boolean centroided, RawDataFileImpl rawDataFile) {
 
         // check assumptions about proper scan data
         assert (msLevel == 1) || (parentScan > 0);
@@ -158,7 +157,7 @@ public class StorableScan implements Scan {
 
         ByteBuffer buffer = ByteBuffer.allocate(storageArrayByteLength);
         FloatBuffer floatBuffer = buffer.asFloatBuffer();
-        RandomAccessFile storageFile = rawDataFile.getWritingScanDataFile();
+        RandomAccessFile storageFile = rawDataFile.getScanDataFile();
         synchronized (storageFile) {
             try {
 
@@ -301,7 +300,6 @@ public class StorableScan implements Scan {
     }
 
     private Object readResolve() {
-
         logger = Logger.getLogger(this.getClass().getName());
         return this;
     }
