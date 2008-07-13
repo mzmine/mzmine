@@ -50,14 +50,12 @@ public class DesktopParameters implements StorableParameterSet,
 	public static final String Y_ELEMENT_NAME = "y";
 	public static final String WIDTH_ELEMENT_NAME = "width";
 	public static final String HEIGHT_ELEMENT_NAME = "height";
-	public static final String LASTPATH_ELEMENT_NAME = "lastdirectory";
 	public static final String LAST_PROJECT_PATH_ELEMENT_NAME = "lastProjectDirectory";
 
 	public static final int MAXIMIZED = -1;
 
 	private NumberFormatter mzFormat, rtFormat, intensityFormat;
 	private int mainWindowX, mainWindowY, mainWindowWidth, mainWindowHeight;
-	private String lastOpenPath = "";
 	private String lastOpenProjectPath = "";
 
 	DesktopParameters() {
@@ -159,13 +157,6 @@ public class DesktopParameters implements StorableParameterSet,
 	}
 
 	/**
-	 * @return Returns the lastOpenPath.
-	 */
-	public String getLastOpenPath() {
-		return lastOpenPath;
-	}
-
-	/**
 	 * @param lastOpenProjectPath
 	 *            The lastOpenProjectPath to set.
 	 */
@@ -180,13 +171,6 @@ public class DesktopParameters implements StorableParameterSet,
 		return lastOpenProjectPath;
 	}
 
-	/**
-	 * @param lastOpenPath
-	 *            The lastOpenPath to set.
-	 */
-	public void setLastOpenPath(String lastOpenPath) {
-		this.lastOpenPath = lastOpenPath;
-	}
 
 	/**
 	 * @see net.sf.mzmine.data.StorableParameterSet#exportValuesToXML(org.dom4j.Element)
@@ -218,7 +202,6 @@ public class DesktopParameters implements StorableParameterSet,
 		mainWindowElement.addElement(HEIGHT_ELEMENT_NAME).setText(
 				String.valueOf(mainWindowHeight));
 
-		element.addElement(LASTPATH_ELEMENT_NAME).setText(lastOpenPath);
 		element.addElement(LAST_PROJECT_PATH_ELEMENT_NAME).setText(
 				lastOpenProjectPath);
 
@@ -270,7 +253,6 @@ public class DesktopParameters implements StorableParameterSet,
 
 		mainWindow.setExtendedState(newState);
 
-		lastOpenPath = element.elementText(LASTPATH_ELEMENT_NAME);
 		lastOpenProjectPath = element
 				.elementText(LAST_PROJECT_PATH_ELEMENT_NAME);
 	}

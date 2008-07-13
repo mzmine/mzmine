@@ -70,6 +70,8 @@ public class ProjectManagerImpl implements ActionListener {
 
         desktop.addMenuItem(MZmineMenu.PROJECT, "Save project as...", null,
                 KeyEvent.VK_A, this, "SAVE_PROJECT_AS");
+        
+        desktop.addMenuSeparator(MZmineMenu.PROJECT);
 
     }
 
