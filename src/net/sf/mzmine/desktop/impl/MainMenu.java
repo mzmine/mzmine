@@ -188,6 +188,10 @@ public class MainMenu extends JMenuBar implements ActionListener {
 
     public void addMenuSeparator(MZmineMenu parentMenu) {
         switch (parentMenu) {
+        case PROJECT:
+            projectMenu.insertSeparator(projectMenuIndex);
+            projectMenuIndex++;
+            break;
         case RAWDATAPROCESSING:
             filterMenu.addSeparator();
             break;
