@@ -13,16 +13,16 @@ This mass detector search for all local maximum data points in the current spect
 After that it sort all of them in descending order. The next step is calculate the 
 exact mass for each mass spectrum peak and remove lateral peaks, starting with the 
 biggest intensity data point and so on.<br><br>
-The method to calculate the exact mass is the weighted average using the intensity
- of each data point as weight factor. These weightings determine the relative importance
- of each data point mass on the average. The data points used in the calculation of 
- exact mass are considered part of the mass spectrum peak. 
+First the method locates 
+the closest data points to the <a href="../peakmodels/help/GaussPeak.html">FWHM</a> (P1, P2, 
+P3, P4). With these four points is possible to calculate two points (cP1, cP2) that define 
+the width of the peak and the exact mass (the center of the width is consider as exact mass).
 </p>
 
 <table style="margin-left: 30px; margin-right: auto;">
 <tr>
 	<td>Parameter setup dialog<br><br>
-	<img src="Exact_mass_calculation.jpg" border="2">
+	<img src="Exact_mass_FWHM.jpg" border="2">
 	</td>
 </tr>
 </table>
