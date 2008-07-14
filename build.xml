@@ -1,5 +1,5 @@
 <?xml version="1.0"?>
-<project name="MZmine" default="jar" basedir=".">
+<project name="MZmine2" default="jar" basedir=".">
 
 	<property name="src" value="src" />
 	<property name="lib" value="lib" />
@@ -71,7 +71,7 @@
 			<fileset file="${lib}/*.jar" />
 		</copy>
 
-		<jar destfile="${dist}/MZmine.jar" manifest="${manifest}">
+		<jar destfile="${dist}/MZmine2.jar" manifest="${manifest}">
 			<fileset dir="${build}" />
 		</jar>
 		
