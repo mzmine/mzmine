@@ -5,9 +5,9 @@
   <modules> 
     <module class="net.sf.mzmine.modules.io.rawdataimport.RawDataImporter"> 
       <parameters>
-        <parameter name="Last open directory" type="STRING">/Users/plusik</parameter>
+        <parameter name="Last open directory" type="STRING">/Volumes/DATA/tor2/071106 to2 and sds23 restr temp</parameter>
         <parameter name="Preload level" type="STRING">Store scan data in temporary file</parameter>
-        <parameter name="Files to import" type="STRING">070308_STD_19_profile.mzXML</parameter>
+        <parameter name="Files to import" type="STRING">071106_A_pos_100-1000_13.mzXML 071106_B_pos_100-1000_14.mzXML 071106_C_pos_100-1000_15.mzXML 071106_D_pos_100-1000_16.mzXML</parameter>
       </parameters> 
     </module>  
     <module class="net.sf.mzmine.modules.peakpicking.threestep.ThreeStepPicker"> 
@@ -16,7 +16,7 @@
           <parameter name="Noise level" type="FLOAT">10.0</parameter>
         </massdetector>
         <massdetector name="Exact mass">
-          <parameter name="Noise level" type="FLOAT">300000.0</parameter>
+          <parameter name="Noise level" type="FLOAT">3000.0</parameter>
           <parameter name="Mass Resolution" type="INTEGER">60000</parameter>
           <parameter name="Peak Model function" type="STRING">Gaussian plus triangle</parameter>
         </massdetector>
@@ -43,9 +43,9 @@
         </chromatogrambuilder>
         <peakbuilder name="No recognition"/>
         <peakbuilder name="Baseline cut-off">
-          <parameter name="Min peak height" type="FLOAT">100.0</parameter>
-          <parameter name="Min peak duration" type="FLOAT">10.0</parameter>
-          <parameter name="Baseline level" type="FLOAT">100.0</parameter>
+          <parameter name="Min peak height" type="FLOAT">10000.0</parameter>
+          <parameter name="Min peak duration" type="FLOAT">30.0</parameter>
+          <parameter name="Baseline level" type="FLOAT">1000.0</parameter>
         </peakbuilder>
         <peakbuilder name="Chromatographic threshold">
           <parameter name="Min peak height" type="FLOAT">100.0</parameter>
@@ -81,8 +81,8 @@
       <parameters>
         <parameter name="MS level" type="INTEGER">1</parameter>
         <parameter name="Plot type" type="STRING">Base peak intensity</parameter>
-        <parameter name="Retention time" type="RANGE">0.577-2399.4</parameter>
-        <parameter name="m/z range" type="RANGE">808.09814-808.14594</parameter>
+        <parameter name="Retention time" type="RANGE">0.584-2399.65</parameter>
+        <parameter name="m/z range" type="RANGE">256.07584-256.08823</parameter>
       </parameters> 
     </module>  
     <module class="net.sf.mzmine.modules.visualization.spectra.SpectraVisualizer"> 
@@ -130,7 +130,7 @@
           <width>100</width>
         </column>
         <column type="common" name="IDENTITY">
-          <visible>false</visible>
+          <visible>true</visible>
           <width>100</width>
         </column>
         <column type="common" name="COMMENT">
@@ -302,20 +302,10 @@
         <parameter name="Name suffix" type="STRING">deisotoped</parameter>
         <parameter name="M/Z tolerance" type="FLOAT">0.05</parameter>
         <parameter name="RT tolerance" type="FLOAT">5.0</parameter>
-        <parameter name="Monotonic shape" type="BOOLEAN">true</parameter>
-        <parameter name="Maximum charge" type="INTEGER">1</parameter>
+        <parameter name="Monotonic shape" type="BOOLEAN">false</parameter>
+        <parameter name="Maximum charge" type="INTEGER">3</parameter>
         <parameter name="Representative isotope" type="STRING">Most intense</parameter>
         <parameter name="Remove original peaklist" type="BOOLEAN">false</parameter>
-      </parameters> 
-    </module>  
-    <module class="net.sf.mzmine.modules.peaklist.ftmsfilter.FTMSFilter"> 
-      <parameters>
-        <parameter name="Name suffix" type="STRING">FTMS filtered</parameter>
-        <parameter name="M/Z difference minimum" type="FLOAT">0.0010</parameter>
-        <parameter name="M/Z difference maximum" type="FLOAT">0.0050</parameter>
-        <parameter name="RT difference maximum" type="FLOAT">5.0</parameter>
-        <parameter name="Maximum height" type="FLOAT">0.05</parameter>
-        <parameter name="Remove original peaklist" type="BOOLEAN">true</parameter>
       </parameters> 
     </module>  
     <module class="net.sf.mzmine.modules.peaklist.duplicatefilter.DuplicateFilter"> 
@@ -343,10 +333,10 @@
     <module class="net.sf.mzmine.modules.alignment.join.JoinAligner"> 
       <parameters>
         <parameter name="Peak list name" type="STRING">Aligned peak list</parameter>
-        <parameter name="m/z tolerance" type="FLOAT">0.2</parameter>
+        <parameter name="m/z tolerance" type="FLOAT">0.0020</parameter>
         <parameter name="Weight for m/z" type="FLOAT">10.0</parameter>
         <parameter name="Retention time tolerance type" type="STRING">Absolute</parameter>
-        <parameter name="Absolute RT tolerance" type="FLOAT">15.0</parameter>
+        <parameter name="Absolute RT tolerance" type="FLOAT">30.0</parameter>
         <parameter name="Relative RT tolerance" type="FLOAT">0.15</parameter>
         <parameter name="Weight for RT" type="FLOAT">10.0</parameter>
         <parameter name="Require same ID" type="BOOLEAN">false</parameter>
@@ -411,8 +401,8 @@
     </module>  
     <module class="net.sf.mzmine.modules.identification.custom.CustomDBSearch"> 
       <parameters>
-        <databasefile>C:\Users\Alex\Documents\Kyoto proxy.txt</databasefile>
-        <fieldseparator></fieldseparator>
+        <databasefile>/Volumes/Documents/peakid.csv</databasefile>
+        <fieldseparator>,</fieldseparator>
         <fieldorder>
           <field>ID</field>
           <field>m/z</field>
@@ -420,9 +410,9 @@
           <field>Name</field>
           <field>Formula</field>
         </fieldorder>
-        <ignorefirstline>false</ignorefirstline>
-        <mztolerance>1.0</mztolerance>
-        <rttolerance>60.0</rttolerance>
+        <ignorefirstline>true</ignorefirstline>
+        <mztolerance>0.0050</mztolerance>
+        <rttolerance>180.0</rttolerance>
       </parameters> 
     </module>  
     <module class="net.sf.mzmine.modules.identification.fragmentation.InSourceFragmentationSearch"/>  
@@ -460,10 +450,10 @@
       <pattern>0.0E0</pattern>
     </format>
     <mainwindow>
-      <x>395</x>
-      <y>168</y>
-      <width>1157</width>
-      <height>761</height>
+      <x>148</x>
+      <y>77</y>
+      <width>1621</width>
+      <height>940</height>
     </mainwindow>
     <lastProjectDirectory>/Users/plusik</lastProjectDirectory>
   </desktop> 
