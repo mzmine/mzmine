@@ -43,8 +43,7 @@ import net.sf.mzmine.util.dialogs.ParameterSetupDialog;
 /**
  * 
  */
-public class RTNormalizer implements BatchStep, TaskListener,
-        ActionListener {
+public class RTNormalizer implements BatchStep, TaskListener, ActionListener {
 
     private Logger logger = Logger.getLogger(this.getClass().getName());
 
@@ -62,7 +61,8 @@ public class RTNormalizer implements BatchStep, TaskListener,
         parameters = new RTNormalizerParameters();
 
         desktop.addMenuItem(MZmineMenu.NORMALIZATION,
-                "Retention time normalizer", "TODO write description",
+                "Retention time normalizer",
+                "Retention time normalization using common, high intensity peaks",
                 KeyEvent.VK_R, this, null);
 
     }

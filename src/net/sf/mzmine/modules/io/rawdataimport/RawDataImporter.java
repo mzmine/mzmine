@@ -72,7 +72,7 @@ public class RawDataImporter implements MZmineModule, ActionListener,
 		parameters = new RawDataImporterParameters();
 
 		desktop.addMenuItem(MZmineMenu.PROJECT, "Import raw data files",
-				"This module imports raw data files of various formats",
+				"This module imports raw data files into the project",
 				KeyEvent.VK_W, this, null);
 	}
 

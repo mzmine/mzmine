@@ -52,15 +52,16 @@ public class ProjectionPlot implements MZmineModule, ActionListener,
         this.desktop = MZmineCore.getDesktop();
 
         desktop.addMenuItem(MZmineMenu.DATAANALYSIS,
-                "Principal component analysis (PCA)", "TODO write description",
-                KeyEvent.VK_P, this, "PCA_PLOT");
+                "Principal component analysis (PCA)",
+                "Principal component analysis", KeyEvent.VK_P, this, "PCA_PLOT");
 
         desktop.addMenuItem(MZmineMenu.DATAANALYSIS,
                 "Curvilinear distance analysis (CDA)",
-                "TODO write description", KeyEvent.VK_C, this, "CDA_PLOT");
+                "Curvilinear distance analysis", KeyEvent.VK_C, this,
+                "CDA_PLOT");
 
         desktop.addMenuItem(MZmineMenu.DATAANALYSIS, "Sammon's projection",
-                "TODO write description", KeyEvent.VK_S, this, "SAMMON_PLOT");
+                "Sammon's projection", KeyEvent.VK_S, this, "SAMMON_PLOT");
 
     }
 

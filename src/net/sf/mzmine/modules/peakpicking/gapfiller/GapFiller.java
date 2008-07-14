@@ -57,7 +57,7 @@ public class GapFiller implements BatchStep, TaskListener, ActionListener {
         parameters = new GapFillerParameters();
 
         desktop.addMenuItem(MZmineMenu.PEAKPICKING, "Gap filler",
-                "TODO write description", KeyEvent.VK_G, this, null);
+                "Secondary peak detection, to fill gaps in a peak list", KeyEvent.VK_G, this, null);
 
     }
 

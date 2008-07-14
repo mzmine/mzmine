@@ -40,128 +40,133 @@ import net.sf.mzmine.util.dialogs.ExitCode;
 
 public class ThreeStepPicker implements BatchStep, TaskListener, ActionListener {
 
-	private Logger logger = Logger.getLogger(this.getClass().getName());
+    private Logger logger = Logger.getLogger(this.getClass().getName());
 
-	private ThreeStepPickerParameters parameters;
+    private ThreeStepPickerParameters parameters;
 
-	private Desktop desktop;
+    private Desktop desktop;
 
-	/**
-	 * @see net.sf.mzmine.main.MZmineModule#initModule(net.sf.mzmine.main.MZmineCore)
-	 */
-	public void initModule() {
+    /**
+     * @see net.sf.mzmine.main.MZmineModule#initModule(net.sf.mzmine.main.MZmineCore)
+     */
+    public void initModule() {
 
-		this.desktop = MZmineCore.getDesktop();
+        this.desktop = MZmineCore.getDesktop();
 
-		parameters = new ThreeStepPickerParameters();
-		desktop.addMenuItem(MZmineMenu.PEAKPICKING, "Three steps peak detector",
-				"TODO write description", KeyEvent.VK_T, this, null);
-	}
+        parameters = new ThreeStepPickerParameters();
+        desktop.addMenuItem(
+                MZmineMenu.PEAKPICKING,
+                "Three step peak detector",
+                "<html>Peak detection method based on three steps:<br>"
+                        + "1) detection of mass values in each scan<br>"
+                        + "2) Construction of XIC for each mass<br>"
+                        + "3) Resolving individual peaks within each chromatogram"
+                        + "</html>", KeyEvent.VK_T, this, null);
+    }
 
-	/**
-	 * @see java.awt.event.ActionListener#actionPerformed(java.awt.event.ActionEvent)
-	 */
-	public void actionPerformed(ActionEvent e) {
+    /**
+     * @see java.awt.event.ActionListener#actionPerformed(java.awt.event.ActionEvent)
+     */
+    public void actionPerformed(ActionEvent e) {
 
-		RawDataFile[] dataFiles = desktop.getSelectedDataFiles();
-		if (dataFiles.length == 0) {
-			desktop.displayErrorMessage("Please select at least one data file");
-			return;
-		}
+        RawDataFile[] dataFiles = desktop.getSelectedDataFiles();
+        if (dataFiles.length == 0) {
+            desktop.displayErrorMessage("Please select at least one data file");
+            return;
+        }
 
-		ExitCode exitCode = setupParameters(parameters);
-		if (exitCode != ExitCode.OK)
-			return;
-		
-		runModule(dataFiles, null, parameters.clone(), null);
+        ExitCode exitCode = setupParameters(parameters);
+        if (exitCode != ExitCode.OK)
+            return;
 
-	}
+        runModule(dataFiles, null, parameters.clone(), null);
 
-	public void taskStarted(Task task) {
-		ThreeStepPickerTask rtTask = (ThreeStepPickerTask) task;
-		logger.info("Running three steps peak picker on " + rtTask.getDataFile());
+    }
 
-	}
+    public void taskStarted(Task task) {
+        ThreeStepPickerTask rtTask = (ThreeStepPickerTask) task;
+        logger.info("Running three steps peak picker on "
+                + rtTask.getDataFile());
 
-	public void taskFinished(Task task) {
+    }
 
-		ThreeStepPickerTask rtTask = (ThreeStepPickerTask) task;
+    public void taskFinished(Task task) {
 
-		if (task.getStatus() == Task.TaskStatus.FINISHED) {
-			logger.info("Finished three steps peak picker on "
-					+ rtTask.getDataFile());
-		}
+        ThreeStepPickerTask rtTask = (ThreeStepPickerTask) task;
 
-		if (task.getStatus() == Task.TaskStatus.ERROR) {
-			String msg = "Error while running three steps peak picker on file "
-					+ rtTask.getDataFile() + ": " + task.getErrorMessage();
-			logger.severe(msg);
-			desktop.displayErrorMessage(msg);
-		}
+        if (task.getStatus() == Task.TaskStatus.FINISHED) {
+            logger.info("Finished three steps peak picker on "
+                    + rtTask.getDataFile());
+        }
 
-	}
+        if (task.getStatus() == Task.TaskStatus.ERROR) {
+            String msg = "Error while running three steps peak picker on file "
+                    + rtTask.getDataFile() + ": " + task.getErrorMessage();
+            logger.severe(msg);
+            desktop.displayErrorMessage(msg);
+        }
 
-	/**
-	 * @see net.sf.mzmine.modules.BatchStep#toString()
-	 */
-	public String toString() {
-		return "Three steps peak detector ";
-	}
+    }
 
-	/**
-	 * @see net.sf.mzmine.modules.BatchStep#setupParameters(net.sf.mzmine.data.ParameterSet)
-	 */
-	public ExitCode setupParameters(ParameterSet parameters) {
-		ThreeStepPickerSetupDialog dialog = new ThreeStepPickerSetupDialog(
-				"Please set parameter values for " + toString(),
-				(ThreeStepPickerParameters) parameters);
-		dialog.setVisible(true);
-		return dialog.getExitCode();
-	}
+    /**
+     * @see net.sf.mzmine.modules.BatchStep#toString()
+     */
+    public String toString() {
+        return "Three steps peak detector ";
+    }
 
-	/**
-	 * @see net.sf.mzmine.main.MZmineModule#getParameterSet()
-	 */
-	public ParameterSet getParameterSet() {
-		return parameters;
-	}
+    /**
+     * @see net.sf.mzmine.modules.BatchStep#setupParameters(net.sf.mzmine.data.ParameterSet)
+     */
+    public ExitCode setupParameters(ParameterSet parameters) {
+        ThreeStepPickerSetupDialog dialog = new ThreeStepPickerSetupDialog(
+                "Please set parameter values for " + toString(),
+                (ThreeStepPickerParameters) parameters);
+        dialog.setVisible(true);
+        return dialog.getExitCode();
+    }
 
-	public void setParameters(ParameterSet parameters) {
-		this.parameters = (ThreeStepPickerParameters) parameters;
-	}
+    /**
+     * @see net.sf.mzmine.main.MZmineModule#getParameterSet()
+     */
+    public ParameterSet getParameterSet() {
+        return parameters;
+    }
 
-	/**
-	 * @see net.sf.mzmine.modules.BatchStep#runModule(net.sf.mzmine.data.RawDataFile[],
-	 *      net.sf.mzmine.data.AlignmentResult[],
-	 *      net.sf.mzmine.data.ParameterSet,
-	 *      net.sf.mzmine.taskcontrol.TaskGroupListener)
-	 */
-	public TaskGroup runModule(RawDataFile[] dataFiles, PeakList[] peakLists,
-			ParameterSet parameters, TaskGroupListener taskGroupListener) {
-		// check data files
-		if ((dataFiles == null) || (dataFiles.length == 0)) {
-			desktop
-					.displayErrorMessage("Please select data files for peak picking");
-			return null;
-		}
+    public void setParameters(ParameterSet parameters) {
+        this.parameters = (ThreeStepPickerParameters) parameters;
+    }
 
-		// prepare a new group of tasks
-		Task tasks[] = new ThreeStepPickerTask[dataFiles.length];
-		for (int i = 0; i < dataFiles.length; i++) {
-			tasks[i] = new ThreeStepPickerTask(dataFiles[i],
-					(ThreeStepPickerParameters) parameters);
-		}
-		TaskGroup newGroup = new TaskGroup(tasks, this, taskGroupListener);
+    /**
+     * @see net.sf.mzmine.modules.BatchStep#runModule(net.sf.mzmine.data.RawDataFile[],
+     *      net.sf.mzmine.data.AlignmentResult[],
+     *      net.sf.mzmine.data.ParameterSet,
+     *      net.sf.mzmine.taskcontrol.TaskGroupListener)
+     */
+    public TaskGroup runModule(RawDataFile[] dataFiles, PeakList[] peakLists,
+            ParameterSet parameters, TaskGroupListener taskGroupListener) {
+        // check data files
+        if ((dataFiles == null) || (dataFiles.length == 0)) {
+            desktop.displayErrorMessage("Please select data files for peak picking");
+            return null;
+        }
 
-		// start the group
-		newGroup.start();
+        // prepare a new group of tasks
+        Task tasks[] = new ThreeStepPickerTask[dataFiles.length];
+        for (int i = 0; i < dataFiles.length; i++) {
+            tasks[i] = new ThreeStepPickerTask(dataFiles[i],
+                    (ThreeStepPickerParameters) parameters);
+        }
+        TaskGroup newGroup = new TaskGroup(tasks, this, taskGroupListener);
 
-		return newGroup;
-	}
+        // start the group
+        newGroup.start();
 
-	public BatchStepCategory getBatchStepCategory() {
-		return BatchStepCategory.PEAKPICKING;
-	}
+        return newGroup;
+    }
 
+    public BatchStepCategory getBatchStepCategory() {
+        return BatchStepCategory.PEAKPICKING;
+    }
 
 }

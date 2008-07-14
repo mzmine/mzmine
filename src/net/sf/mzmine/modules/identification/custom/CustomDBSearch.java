@@ -57,7 +57,8 @@ public class CustomDBSearch implements BatchStep, ActionListener {
         parameters = new CustomDBSearchParameters();
 
         desktop.addMenuItem(MZmineMenu.IDENTIFICATION, MODULE_NAME,
-                "TODO write description", KeyEvent.VK_C, this, null);
+                "Identification by searching a custom database in CSV file",
+                KeyEvent.VK_C, this, null);
     }
 
     /**

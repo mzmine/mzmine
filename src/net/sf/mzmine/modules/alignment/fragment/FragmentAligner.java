@@ -53,8 +53,7 @@ import net.sf.mzmine.util.dialogs.ParameterSetupDialog;
  * each fragment independently.
  * 
  */
-public class FragmentAligner implements BatchStep, TaskListener,
-        ActionListener {
+public class FragmentAligner implements BatchStep, TaskListener, ActionListener {
 
     private Logger logger = Logger.getLogger(this.getClass().getName());
 
@@ -70,7 +69,7 @@ public class FragmentAligner implements BatchStep, TaskListener,
     // completion of the whole alignment method to caller
     private ConcatenateFragmentsTask concatenateFragmentsTask;
     private TaskGroup concatenateFragmentsTaskGroup;
-    
+
     private final String helpID = "net/sf/mzmine/modules/alignment/fragment/help/FragmentAlignment.html";
 
     /**
@@ -83,7 +82,8 @@ public class FragmentAligner implements BatchStep, TaskListener,
         parameters = new FragmentAlignerParameters();
 
         desktop.addMenuItem(MZmineMenu.ALIGNMENT, toString(),
-                "TODO write description", KeyEvent.VK_F, this, null);
+                "Parallel alignment of divided peak list m/z intervals",
+                KeyEvent.VK_F, this, null);
 
     }
 
@@ -357,7 +357,7 @@ public class FragmentAligner implements BatchStep, TaskListener,
 
         return concatenateFragmentsTaskGroup;
     }
-    
+
     public BatchStepCategory getBatchStepCategory() {
         return BatchStepCategory.ALIGNMENT;
     }

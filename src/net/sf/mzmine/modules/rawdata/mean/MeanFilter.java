@@ -61,9 +61,11 @@ public class MeanFilter implements BatchStep, TaskListener, ActionListener {
 
         parameters = new MeanFilterParameters();
 
-        desktop.addMenuItem(MZmineMenu.RAWDATAPROCESSING,
-                "Mean filter spectra", "TODO write description", KeyEvent.VK_M,
-                this, null);
+        desktop.addMenuItem(
+                MZmineMenu.RAWDATAPROCESSING,
+                "Mean filter",
+                "Smoothing filter for each individual spectrum, using a mean of neighbouring data points",
+                KeyEvent.VK_M, this, null);
 
     }
 

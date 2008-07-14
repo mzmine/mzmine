@@ -63,7 +63,8 @@ public class RowsFilter implements BatchStep, TaskListener, ActionListener {
         parameters = new RowsFilterParameters();
 
         desktop.addMenuItem(MZmineMenu.PEAKLISTPROCESSING, toString(),
-                "TODO write description", KeyEvent.VK_R, this, null);
+                "Selection of peak list rows matching given requirements",
+                KeyEvent.VK_R, this, null);
 
     }
 

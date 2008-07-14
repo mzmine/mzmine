@@ -59,7 +59,8 @@ public class StandardCompoundNormalizer implements MZmineModule, TaskListener,
         parameters = new StandardCompoundNormalizerParameters();
 
         desktop.addMenuItem(MZmineMenu.NORMALIZATION,
-                "Standard compound normalizer", "TODO write description",
+                "Standard compound normalizer",
+                "Peak list normalization using selected internal standards",
                 KeyEvent.VK_S, this, null);
 
     }

@@ -66,7 +66,7 @@ public class PeakListTableVisualizer implements MZmineModule, ActionListener {
         parameters = new PeakListTableParameters();
 
         desktop.addMenuItem(MZmineMenu.VISUALIZATION, "Peak list table",
-                "TODO write description", KeyEvent.VK_A, this, null);
+                "Shows a table view of a peak list", KeyEvent.VK_A, this, null);
 
     }
 

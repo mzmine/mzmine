@@ -71,10 +71,14 @@ public class RTMZAnalyzer implements MZmineModule, ActionListener {
 
         desktop.addMenuItem(MZmineMenu.DATAANALYSIS,
                 "Coefficient of variation (CV) analysis",
-                "TODO write description", KeyEvent.VK_V, this, "CV_PLOT");
+                "Plots a variation of each peak among a group of samples",
+                KeyEvent.VK_V, this, "CV_PLOT");
 
-        desktop.addMenuItem(MZmineMenu.DATAANALYSIS, "Logratio analysis",
-                "TODO write description", KeyEvent.VK_L, this, "LOGRATIO_PLOT");
+        desktop.addMenuItem(
+                MZmineMenu.DATAANALYSIS,
+                "Logratio analysis",
+                "Plots a difference of each peak between two groups of samples",
+                KeyEvent.VK_L, this, "LOGRATIO_PLOT");
 
     }
 

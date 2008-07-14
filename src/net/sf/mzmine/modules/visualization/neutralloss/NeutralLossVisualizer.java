@@ -58,7 +58,8 @@ public class NeutralLossVisualizer implements MZmineModule, ActionListener {
         parameters = new NeutralLossParameters();
 
         desktop.addMenuItem(MZmineMenu.VISUALIZATION, "Neutral loss",
-                "TODO write description", KeyEvent.VK_N, this, null);
+                "Plots the neutral loss of each fragment (MS/MS) scan",
+                KeyEvent.VK_N, this, null);
 
     }
 

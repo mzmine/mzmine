@@ -50,9 +50,8 @@ public class JoinAligner implements BatchStep, TaskListener, ActionListener {
     private JoinAlignerParameters parameters;
 
     private Desktop desktop;
-    
-    private final String helpID = "net/sf/mzmine/modules/alignment/join/help/JoinAlignment.html";
 
+    private final String helpID = "net/sf/mzmine/modules/alignment/join/help/JoinAlignment.html";
 
     /**
      * @see net.sf.mzmine.main.MZmineModule#initModule(net.sf.mzmine.main.MZmineCore)
@@ -64,7 +63,8 @@ public class JoinAligner implements BatchStep, TaskListener, ActionListener {
         parameters = new JoinAlignerParameters();
 
         desktop.addMenuItem(MZmineMenu.ALIGNMENT, toString(),
-                "TODO write description", KeyEvent.VK_J, this, null);
+                "Alignment based on m/z and retention time tolerance",
+                KeyEvent.VK_J, this, null);
 
     }
 

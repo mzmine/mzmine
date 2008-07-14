@@ -69,7 +69,7 @@ public class BatchMode implements MZmineModule, TaskGroupListener,
         currentBatchSteps = new BatchQueue();
 
         desktop.addMenuItem(MZmineMenu.PROJECT, "Run batch...",
-                "TODO write description", KeyEvent.VK_R, this, null);
+                "Configure and run a batch of tasks", KeyEvent.VK_R, this, null);
 
     }
 

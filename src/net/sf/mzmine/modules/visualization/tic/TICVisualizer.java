@@ -60,7 +60,7 @@ public class TICVisualizer implements MZmineModule, ActionListener {
         parameters = new TICVisualizerParameters();
 
         desktop.addMenuItem(MZmineMenu.VISUALIZATION, "TIC plot",
-                "TODO write description", KeyEvent.VK_T, this, null);
+                "Visualization of the chromatogram", KeyEvent.VK_T, this, null);
 
         myInstance = this;
 
@@ -79,8 +79,8 @@ public class TICVisualizer implements MZmineModule, ActionListener {
     }
 
     public void showNewTICVisualizerWindow(RawDataFile[] dataFiles,
-            ChromatographicPeak[] peaks, int msLevel, Object plotType, Range rtRange,
-            Range mzRange) {
+            ChromatographicPeak[] peaks, int msLevel, Object plotType,
+            Range rtRange, Range mzRange) {
         TICVisualizerParameters newParameters = (TICVisualizerParameters) parameters.clone();
         newParameters.setParameterValue(TICVisualizerParameters.msLevel,
                 msLevel);
@@ -93,7 +93,8 @@ public class TICVisualizer implements MZmineModule, ActionListener {
         showNewTICVisualizerWindow(dataFiles, peaks, newParameters);
     }
 
-    public void showNewTICVisualizerWindow(RawDataFile[] dataFiles, ChromatographicPeak[] peaks) {
+    public void showNewTICVisualizerWindow(RawDataFile[] dataFiles,
+            ChromatographicPeak[] peaks) {
         showNewTICVisualizerWindow(dataFiles, peaks, parameters);
     }
 

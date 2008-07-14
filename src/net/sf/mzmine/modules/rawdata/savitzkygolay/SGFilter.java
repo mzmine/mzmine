@@ -59,7 +59,7 @@ public class SGFilter implements BatchStep, TaskListener,
         parameters = new SGFilterParameters();
 
         desktop.addMenuItem(MZmineMenu.RAWDATAPROCESSING,
-                "Savitzky-Golay filter spectra", "TODO write description",
+                "Savitzky-Golay filter", "Smoothing filter for each individual spectrum, using Savitzky-Golay method",
                 KeyEvent.VK_S, this, null);
 
     }
