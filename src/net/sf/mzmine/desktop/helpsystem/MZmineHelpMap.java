@@ -46,9 +46,9 @@ public class MZmineHelpMap implements Map {
 	public void setTarget(String target){
 		String url;
 		if (test)
-			url = "jar:file:" + System.getProperty("user.dir") + "/dist/MZmine.jar!/" + target;
+			url = "jar:file:" + System.getProperty("user.dir") + "/dist/MZmine2.jar!/" + target;
 		else
-			url = "jar:file:" + System.getProperty("user.dir") + "/MZmine.jar!/" + target;
+			url = "jar:file:" + System.getProperty("user.dir") + "/MZmine2.jar!/" + target;
 			
 		lookup.put(target, url);
 	}

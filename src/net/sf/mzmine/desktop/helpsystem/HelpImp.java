@@ -35,11 +35,11 @@ public class HelpImp {
 			boolean test = false;
 			
 			File file = new File(System.getProperty("user.dir") + File.separator// + "dist" + File.separator
-					+ "MZmine.jar");
+					+ "MZmine2.jar");
 			
 			if (!file.exists()){
 				file = new File(System.getProperty("user.dir") + File.separator + "dist" + File.separator
-						+ "MZmine.jar");
+						+ "MZmine2.jar");
 				test = true;
 			}
 			
