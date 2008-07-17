@@ -23,6 +23,8 @@ import java.util.Vector;
 
 import net.sf.mzmine.data.ChromatographicPeak;
 import net.sf.mzmine.data.RawDataFile;
+import net.sf.mzmine.data.impl.SimpleDataPoint;
+import net.sf.mzmine.data.impl.SimpleMzPeak;
 import net.sf.mzmine.modules.peakpicking.threestep.peakconstruction.ConnectedPeak;
 import net.sf.mzmine.modules.peakpicking.threestep.peakconstruction.PeakBuilder;
 import net.sf.mzmine.modules.peakpicking.threestep.xicconstruction.Chromatogram;
@@ -94,7 +96,7 @@ public class WaveletPeakDetector implements PeakBuilder {
 		avgChromatoIntensities /= scanNumbers.length;
 		
 		// Chromatogram with characteristics of background
-		if ((avgChromatoIntensities/maxIntensity) > (maxIntensity * 0.5f))
+		if ((avgChromatoIntensities) > (maxIntensity * 0.5f))
 			return detectedPeaks.toArray(new ChromatographicPeak[0]);
 		
 
@@ -176,10 +178,9 @@ public class WaveletPeakDetector implements PeakBuilder {
 
 			}
 			
-			if (Math.abs(waveletIntensities[i]) > waveletThresholdLevel){ //(maxWaveletIntensity * 0.05) ) {
+			if ((!passThreshold) && ((Math.abs(waveletIntensities[i]) > waveletThresholdLevel))){ 
 				passThreshold = true;
-				if ((crossZero == 0) && (waveletIntensities[i] < 0)) {
-					//logger.finest("Prende primero " + crossZero);
+				if ((crossZero == 0)){ 
 					activeFirstPeak = true;
 					crossZero++;
 				}
@@ -341,9 +342,7 @@ public class WaveletPeakDetector implements PeakBuilder {
 	/**
 	 * 
 	 * @param chromatoIntensities
-	 * @param avgIntensities
-	 * @param chromatographicThresholdLevel
-	 * @return
+	 * @return waveletThresholdLevel
 	 */
 	private float calcWaveletThreshold(double[] waveletIntensities) {
 

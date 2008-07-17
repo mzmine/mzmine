@@ -208,7 +208,8 @@ public class TICPlot extends ChartPanel {
 		yAxis.setNumberFormatOverride(intensityFormat);
 
 		// set default renderer properties
-		defaultRenderer = (XYLineAndShapeRenderer) plot.getRenderer();
+		//defaultRenderer = (XYLineAndShapeRenderer) plot.getRenderer();
+		defaultRenderer = new XYLineAndShapeRenderer(true,false);
 		defaultRenderer.setBaseShapesFilled(true);
 		defaultRenderer.setDrawOutlines(false);
 		defaultRenderer.setUseFillPaint(true);
@@ -448,7 +449,9 @@ public class TICPlot extends ChartPanel {
 
 		plot.setDataset(numOfDataSets + numOfPeaks, newSet);
 
-		XYAreaRenderer newRenderer = new XYAreaRenderer(XYAreaRenderer.AREA);
+		//XYAreaRenderer newRenderer = new XYAreaRenderer(XYAreaRenderer.AREA);
+		PeakTICPlotRenderer newRenderer = new PeakTICPlotRenderer(0.75f);
+		
 		Color peakColor = peakColors[numOfPeaks % peakColors.length];
 		newRenderer.setSeriesPaint(0, peakColor);
 		plot.setRenderer(numOfDataSets + numOfPeaks, newRenderer);

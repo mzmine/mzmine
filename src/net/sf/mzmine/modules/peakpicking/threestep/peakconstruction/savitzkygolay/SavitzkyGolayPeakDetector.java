@@ -28,6 +28,7 @@ import net.sf.mzmine.modules.peakpicking.threestep.peakconstruction.ConnectedPea
 import net.sf.mzmine.modules.peakpicking.threestep.peakconstruction.PeakBuilder;
 import net.sf.mzmine.modules.peakpicking.threestep.xicconstruction.Chromatogram;
 import net.sf.mzmine.modules.peakpicking.threestep.xicconstruction.ConnectedMzPeak;
+import net.sf.mzmine.util.MathUtils;
 
 /**
  * This class implements a peak builder using a match score to link MzPeaks in
@@ -42,7 +43,7 @@ public class SavitzkyGolayPeakDetector implements PeakBuilder {
 
 	//private Logger logger = Logger.getLogger(this.getClass().getName());
 
-	private float minimumPeakHeight, minimumPeakDuration;
+	private float minimumPeakHeight, minimumPeakDuration, derivativeThresholdLevel;
 
 	private static final float[][] SGCoefficientsSecondDerivative = {
 			{ 0.0f },
@@ -79,6 +80,8 @@ public class SavitzkyGolayPeakDetector implements PeakBuilder {
 				.getParameterValue(SavitzkyGolayPeakDetectorParameters.minimumPeakDuration);
 		minimumPeakHeight = (Float) parameters
 				.getParameterValue(SavitzkyGolayPeakDetectorParameters.minimumPeakHeight);
+		derivativeThresholdLevel = (Float) parameters
+		.getParameterValue(SavitzkyGolayPeakDetectorParameters.derivativeThresholdLevel);
 
 	}
 
@@ -90,11 +93,13 @@ public class SavitzkyGolayPeakDetector implements PeakBuilder {
 			RawDataFile dataFile) {
 		
 		maxValueDerivative = 0.0f;
+		float maxIntensity = 0;
 
 		Vector<ChromatographicPeak> detectedPeaks = new Vector<ChromatographicPeak>();
 
 		int[] scanNumbers = dataFile.getScanNumbers(1);
 		float[] chromatoIntensities = new float[scanNumbers.length];
+		float avgChromatoIntensities = 0;
 		Arrays.sort(scanNumbers);
 
 		for (int i = 0; i < scanNumbers.length; i++) {
@@ -106,10 +111,20 @@ public class SavitzkyGolayPeakDetector implements PeakBuilder {
 			else{
 				chromatoIntensities[i] = 0;
 			}
+			
+			if (chromatoIntensities[i] > maxIntensity)
+				maxIntensity = chromatoIntensities[i];
+			avgChromatoIntensities += chromatoIntensities[i];
 		}
+		
+		avgChromatoIntensities /= scanNumbers.length;
+		
+		// Chromatogram with characteristics of background
+		if ((avgChromatoIntensities) > (maxIntensity * 0.5f))
+			return detectedPeaks.toArray(new ChromatographicPeak[0]);
 
 		float[] chromato2ndDerivative = calculate2ndDerivative(chromatoIntensities);
-		float noiseThreshold = maxValueDerivative * 0.02f;
+		float noiseThreshold = calcDerivativeThreshold(chromato2ndDerivative); //maxValueDerivative * 0.02f;
 
 		ChromatographicPeak[] chromatographicPeaks = SGPeaksSearch(dataFile, chromatogram,
 				scanNumbers, chromato2ndDerivative, noiseThreshold);
@@ -300,6 +315,21 @@ public class SavitzkyGolayPeakDetector implements PeakBuilder {
 		int C = Math.abs(signedC);
 		return SGCoefficientsSecondDerivative[M][C];
 
+	}
+	
+	/**
+	 * 
+	 * @param chromatoIntensities
+	 * @return noiseThresholdLevel
+	 */
+	private float calcDerivativeThreshold(float[] derivativeIntensities) {
+
+		float[] intensities = new float[derivativeIntensities.length];
+		for (int i = 0; i < derivativeIntensities.length; i++) {
+			intensities[i] = (float) Math.abs(derivativeIntensities[i]);
+		}
+		
+		return MathUtils.calcQuantile(intensities, derivativeThresholdLevel);
 	}
 
 }

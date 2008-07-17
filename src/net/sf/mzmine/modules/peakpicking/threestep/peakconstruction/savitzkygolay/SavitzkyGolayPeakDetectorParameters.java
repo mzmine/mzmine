@@ -42,8 +42,13 @@ public class SavitzkyGolayPeakDetectorParameters extends SimpleParameterSet {
 			"Minimum acceptable peak duration", null, new Float(10.0),
 			new Float(0.0), null, MZmineCore.getRTFormat());
 
+	public static final Parameter derivativeThresholdLevel = new SimpleParameter(
+			ParameterType.FLOAT, "Derivative threshold level",
+			"Minimum acceptable intensity in the 2nd derivative for peak recognition", null, new Float(0.80),
+			new Float(0.0), null, percentFormat);
+
 	public SavitzkyGolayPeakDetectorParameters() {
-		super(new Parameter[] { minimumPeakHeight, minimumPeakDuration });
+		super(new Parameter[] { minimumPeakHeight, minimumPeakDuration, derivativeThresholdLevel });
 	}
 
 }
