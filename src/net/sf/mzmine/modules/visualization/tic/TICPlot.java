@@ -107,7 +107,7 @@ public class TICPlot extends ChartPanel {
 	private static final Font legendFont = new Font("SansSerif", Font.PLAIN, 11);
 
 	// renderers
-	private XYLineAndShapeRenderer defaultRenderer;
+	private TICPlotRenderer defaultRenderer;
 
 	// datasets counter
 	private int numOfDataSets = 0, numOfPeaks = 0;
@@ -208,8 +208,7 @@ public class TICPlot extends ChartPanel {
 		yAxis.setNumberFormatOverride(intensityFormat);
 
 		// set default renderer properties
-		//defaultRenderer = (XYLineAndShapeRenderer) plot.getRenderer();
-		defaultRenderer = new XYLineAndShapeRenderer(true,false);
+		defaultRenderer = new TICPlotRenderer();
 		defaultRenderer.setBaseShapesFilled(true);
 		defaultRenderer.setDrawOutlines(false);
 		defaultRenderer.setUseFillPaint(true);
@@ -431,8 +430,7 @@ public class TICPlot extends ChartPanel {
 		plot.setDataset(numOfDataSets + numOfPeaks, newSet);
 
 		try {
-			XYLineAndShapeRenderer newRenderer = (XYLineAndShapeRenderer) defaultRenderer
-					.clone();
+			TICPlotRenderer newRenderer = (TICPlotRenderer) defaultRenderer.clone();
 			Color rendererColor = plotColors[numOfDataSets % plotColors.length];
 			newRenderer.setSeriesPaint(0, rendererColor);
 			newRenderer.setSeriesFillPaint(0, rendererColor);
@@ -450,7 +448,7 @@ public class TICPlot extends ChartPanel {
 		plot.setDataset(numOfDataSets + numOfPeaks, newSet);
 
 		//XYAreaRenderer newRenderer = new XYAreaRenderer(XYAreaRenderer.AREA);
-		PeakTICPlotRenderer newRenderer = new PeakTICPlotRenderer(0.75f);
+		PeakTICPlotRenderer newRenderer = new PeakTICPlotRenderer(0.6f);
 		
 		Color peakColor = peakColors[numOfPeaks % peakColors.length];
 		newRenderer.setSeriesPaint(0, peakColor);

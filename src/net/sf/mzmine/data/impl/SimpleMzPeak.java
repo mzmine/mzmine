@@ -89,10 +89,22 @@ public class SimpleMzPeak implements MzPeak {
     }
 
     /**
+     * Sets the m/z value of this m/z peak
+     */
+    public void setIntensity(float intensity) {
+        this.intensity = intensity;
+    }
+    
+    
+    /**
      * This method returns an array of raw data points that form this m/z peak
      */
     public DataPoint[] getRawDataPoints() {
         return rawDataPoints;
+    }
+    
+    public MzPeak clone(){
+    	return new SimpleMzPeak(this.mz, this.intensity, this.rawDataPoints);
     }
 
 }

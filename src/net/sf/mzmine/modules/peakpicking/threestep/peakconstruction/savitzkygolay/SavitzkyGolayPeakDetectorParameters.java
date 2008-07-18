@@ -29,12 +29,17 @@ import net.sf.mzmine.main.MZmineCore;
 
 public class SavitzkyGolayPeakDetectorParameters extends SimpleParameterSet {
 
+	public static final String peakModelNames[] = { "EMG" };
+
+	public static final String peakModelClasses[] = {
+		"net.sf.mzmine.modules.peakpicking.threestep.peakconstruction.peakfillingmodels.impl.EMG" };
+	
 	public static final NumberFormat percentFormat = NumberFormat
 			.getPercentInstance();
 
 	public static final Parameter minimumPeakHeight = new SimpleParameter(
 			ParameterType.FLOAT, "Min peak height",
-			"Minimum acceptable peak height", "absolute", new Float(100.0),
+			"Minimum acceptable peak height", "absolute", new Float(10000.0),
 			new Float(0.0), null, MZmineCore.getIntensityFormat());
 
 	public static final Parameter minimumPeakDuration = new SimpleParameter(
@@ -46,9 +51,26 @@ public class SavitzkyGolayPeakDetectorParameters extends SimpleParameterSet {
 			ParameterType.FLOAT, "Derivative threshold level",
 			"Minimum acceptable intensity in the 2nd derivative for peak recognition", null, new Float(0.80),
 			new Float(0.0), null, percentFormat);
+	
+	public static final Parameter fillingPeaks = new SimpleParameter(
+			ParameterType.BOOLEAN, "Filling peak shape",
+			"Activates the method to fill the peak shape using the selected peak model function", null, false,
+			null, null, null);
+	
+	public static final Parameter peakModel = new SimpleParameter(
+			ParameterType.STRING,
+			"Peak Model function",
+			"Lateral peaks under the curve of this peak model are not considered as a possible peak",
+			null, peakModelNames);
+
+	public static final Parameter noiseAmplitude = new SimpleParameter(
+			ParameterType.FLOAT, "Amplitude of noise",
+			"Amplitude of noise present in the signal", "absolute", new Float(0.15),
+			new Float(0.1), null, MZmineCore.getIntensityFormat());
 
 	public SavitzkyGolayPeakDetectorParameters() {
-		super(new Parameter[] { minimumPeakHeight, minimumPeakDuration, derivativeThresholdLevel });
+		super(new Parameter[] { minimumPeakHeight, minimumPeakDuration, derivativeThresholdLevel,
+				fillingPeaks, peakModel, noiseAmplitude });
 	}
 
 }

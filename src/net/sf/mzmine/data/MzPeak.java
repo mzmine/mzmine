@@ -33,5 +33,7 @@ public interface MzPeak extends DataPoint {
      * sorted in m/z order.
      */
     public DataPoint[] getRawDataPoints();
+    
+    public MzPeak clone();
 
 }

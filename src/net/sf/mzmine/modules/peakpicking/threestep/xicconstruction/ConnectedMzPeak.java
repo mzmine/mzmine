@@ -62,4 +62,9 @@ public class ConnectedMzPeak implements Comparable<ConnectedMzPeak>{
         return retsig;
         
 	}
+	
+	public ConnectedMzPeak clone(){
+		return new ConnectedMzPeak(this.scan, this.mzPeak.clone());
+	}
+	
 }

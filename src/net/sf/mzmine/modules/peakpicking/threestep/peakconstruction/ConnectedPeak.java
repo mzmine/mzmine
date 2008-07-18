@@ -250,6 +250,18 @@ public class ConnectedPeak implements ChromatographicPeak {
 	public RawDataFile getDataFile() {
 		return dataFile;
 	}
+	
+	public ConnectedMzPeak[] getAllMzPeaks(){
+		return datapointsMap.values().toArray(new ConnectedMzPeak[0]);
+	}
+	
+	public void setRT(float rt){
+		this.rt = rt;
+	}
+	
+	public void setHeight(float height){
+		this.height = height;
+	}
 
 	/**
 	 * This method returns a string with the basic information that defines this
