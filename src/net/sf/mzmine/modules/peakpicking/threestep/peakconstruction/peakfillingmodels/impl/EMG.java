@@ -16,9 +16,9 @@ public class EMG implements PeakFillingModel {
 	private Logger logger = Logger.getLogger(this.getClass().getName());
 
 	public ChromatographicPeak fillingPeak(
-			ChromatographicPeak originalDetectedShape, float noiseAmplitude) {
+			ChromatographicPeak originalDetectedShape) {
 
-		float C = noiseAmplitude;// 0.2f;//noiseAmplitude / heightMax;
+		float C = 0.2f; //Fixed level of excess;
 		float heightMax = originalDetectedShape.getHeight() * (1.0f - (C / 10));
 		float RT = originalDetectedShape.getRT();
 		ConnectedMzPeak[] listMzPeaks = ((ConnectedPeak) originalDetectedShape)
@@ -26,7 +26,6 @@ public class EMG implements PeakFillingModel {
 		float FWHM = calculateWidth(listMzPeaks, heightMax, RT) * (1.0f - (C));
 
 		if (FWHM < 0) {
-			logger.finest("Valor de FWHM " + FWHM + " C " + C);
 			return originalDetectedShape;
 		}
 
@@ -43,8 +42,6 @@ public class EMG implements PeakFillingModel {
 		float a = (RT - xLeft);
 		float b = (xRight - RT);
 		float paramA = b / a;
-		if (paramA == 1)
-			paramA = 0;
 		float paramB = (1.76f * (float) Math.pow(paramA, 2))
 				- (11.15f * paramA) + 28.0f;
 		float Ap = (FWHM) / paramB;

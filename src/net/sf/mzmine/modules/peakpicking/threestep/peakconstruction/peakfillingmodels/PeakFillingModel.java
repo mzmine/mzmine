@@ -12,6 +12,6 @@ public interface PeakFillingModel {
 	 * @param originalDetectedShape
 	 * @return fillingPeak
 	 */
-	public ChromatographicPeak fillingPeak(ChromatographicPeak originalDetectedShape, float noiseAmplitude);
+	public ChromatographicPeak fillingPeak(ChromatographicPeak originalDetectedShape);
 
 }

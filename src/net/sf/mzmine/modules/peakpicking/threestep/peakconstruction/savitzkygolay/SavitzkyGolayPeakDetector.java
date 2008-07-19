@@ -47,7 +47,7 @@ public class SavitzkyGolayPeakDetector implements PeakBuilder {
 
 	private Logger logger = Logger.getLogger(this.getClass().getName());
 
-	private float minimumPeakHeight, minimumPeakDuration, noiseAmplitude,
+	private float minimumPeakHeight, minimumPeakDuration, 
 			derivativeThresholdLevel;
 	private boolean fillingPeaks;
 	private PeakFillingModel peakModel;
@@ -93,9 +93,6 @@ public class SavitzkyGolayPeakDetector implements PeakBuilder {
 		fillingPeaks = (Boolean) parameters
 				.getParameterValue(SavitzkyGolayPeakDetectorParameters.fillingPeaks);
 		
-		noiseAmplitude = (Float) parameters
-		.getParameterValue(SavitzkyGolayPeakDetectorParameters.noiseAmplitude);
-
 		String peakModelname = (String) parameters
 				.getParameterValue(SavitzkyGolayPeakDetectorParameters.peakModel);
 
@@ -179,7 +176,7 @@ public class SavitzkyGolayPeakDetector implements PeakBuilder {
 
 					// Apply peak filling method
 					if (fillingPeaks) {
-						ChromatographicPeak shapeFilledPeak = peakModel.fillingPeak(p, noiseAmplitude);
+						ChromatographicPeak shapeFilledPeak = peakModel.fillingPeak(p);
 						detectedPeaks.add(shapeFilledPeak);
 					} else
 						detectedPeaks.add(p);

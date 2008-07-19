@@ -63,14 +63,9 @@ public class SavitzkyGolayPeakDetectorParameters extends SimpleParameterSet {
 			"Lateral peaks under the curve of this peak model are not considered as a possible peak",
 			null, peakModelNames);
 
-	public static final Parameter noiseAmplitude = new SimpleParameter(
-			ParameterType.FLOAT, "Amplitude of noise",
-			"Amplitude of noise present in the signal", "absolute", new Float(0.15),
-			new Float(0.1), null, MZmineCore.getIntensityFormat());
-
 	public SavitzkyGolayPeakDetectorParameters() {
 		super(new Parameter[] { minimumPeakHeight, minimumPeakDuration, derivativeThresholdLevel,
-				fillingPeaks, peakModel, noiseAmplitude });
+				fillingPeaks, peakModel });
 	}
 
 }
