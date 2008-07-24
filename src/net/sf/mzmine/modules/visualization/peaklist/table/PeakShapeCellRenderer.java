@@ -28,7 +28,9 @@ import javax.swing.table.TableCellRenderer;
 
 import net.sf.mzmine.data.ChromatographicPeak;
 import net.sf.mzmine.data.PeakList;
+import net.sf.mzmine.data.PeakListRow;
 import net.sf.mzmine.modules.visualization.peaklist.PeakListTableParameters;
+import net.sf.mzmine.util.components.CombinedXICComponent;
 import net.sf.mzmine.util.components.PeakXICComponent;
 
 import org.jfree.ui.OverlayLayout;
@@ -89,7 +91,19 @@ class PeakShapeCellRenderer implements TableCellRenderer {
 
             newPanel.add(xic);
 
-            newPanel.setToolTipText(peak.toString());
+            newPanel.setToolTipText(xic.getToolTipText());
+           
+        }
+        
+        if (value instanceof PeakListRow) {
+
+            PeakListRow plRow = (PeakListRow) value;
+            
+            CombinedXICComponent xic = new CombinedXICComponent(plRow);
+
+            newPanel.add(xic);
+            
+            newPanel.setToolTipText(xic.getToolTipText());
            
         }
 

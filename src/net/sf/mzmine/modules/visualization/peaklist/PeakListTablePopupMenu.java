@@ -109,11 +109,15 @@ public class PeakListTablePopupMenu extends JPopupMenu implements
         int clickedColumn = columnModel.getColumn(
                 table.columnAtPoint(clickedPoint)).getModelIndex();
         if ((clickedRow >= 0) && (clickedColumn >= 0)) {
-            showXICItem.setEnabled(clickedColumn >= CommonColumnType.values().length);
+            showXICItem.setEnabled((clickedColumn == CommonColumnType.PEAKSHAPE.ordinal())
+                    || (clickedColumn >= CommonColumnType.values().length));
             manuallyDefineItem.setEnabled(clickedColumn >= CommonColumnType.values().length);
-            int dataFileIndex = (clickedColumn - CommonColumnType.values().length)
-                    / DataFileColumnType.values().length;
-            clickedDataFile = peakList.getRawDataFile(dataFileIndex);
+            if (clickedColumn >= CommonColumnType.values().length) {
+                int dataFileIndex = (clickedColumn - CommonColumnType.values().length)
+                        / DataFileColumnType.values().length;
+                clickedDataFile = peakList.getRawDataFile(dataFileIndex);
+            } else
+                clickedDataFile = null;
             TableSorter sorter = (TableSorter) table.getModel();
             clickedPeakListRow = peakList.getRow(sorter.modelIndex(clickedRow));
         }
@@ -178,8 +182,31 @@ public class PeakListTablePopupMenu extends JPopupMenu implements
 
         if (src == showXICItem) {
 
-            ChromatographicPeak clickedPeak = clickedPeakListRow.getPeak(clickedDataFile);
             TICVisualizer tic = TICVisualizer.getInstance();
+
+            // Check if we clicked on a raw data file XIC, or combined XIC
+            if (clickedDataFile == null) {
+                Range rtRange = null, mzRange = null;
+                for (RawDataFile dataFile : clickedPeakListRow.getRawDataFiles()) {
+                    if (rtRange == null)
+                        rtRange = dataFile.getDataRTRange(1);
+                    else
+                        rtRange.extendRange(dataFile.getDataRTRange(1));
+                }
+                for (ChromatographicPeak peak : clickedPeakListRow.getPeaks()) {
+                    if (mzRange == null)
+                        mzRange = peak.getRawDataPointsMZRange();
+                    else
+                        mzRange.extendRange(peak.getRawDataPointsMZRange());
+                }
+                tic.showNewTICVisualizerWindow(
+                        clickedPeakListRow.getRawDataFiles(),
+                        clickedPeakListRow.getPeaks(), 1,
+                        TICVisualizerParameters.plotTypeBP, rtRange, mzRange);
+                return;
+            }
+
+            ChromatographicPeak clickedPeak = clickedPeakListRow.getPeak(clickedDataFile);
 
             if (clickedPeak != null) {
                 tic.showNewTICVisualizerWindow(

@@ -122,6 +122,9 @@ public class PeakListTableColumnModel extends DefaultTableColumnModel implements
                 newColumn.setCellRenderer(defaultRenderer);
                 newColumn.setCellEditor(defaultEditor);
                 break;
+            case PEAKSHAPE:
+                newColumn.setCellRenderer(peakShapeRenderer);
+                break;
             default:
                 newColumn.setCellRenderer(defaultRenderer);
             }

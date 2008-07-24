@@ -91,6 +91,8 @@ public class PeakListTableModel extends AbstractTableModel {
                 return peakListRow.getComment();
             case IDENTITY:
                 return peakListRow.getPreferredCompoundIdentity();
+            case PEAKSHAPE:
+                return peakListRow;
             }
 
         } else {

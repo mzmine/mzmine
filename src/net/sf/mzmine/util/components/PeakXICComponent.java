@@ -68,6 +68,9 @@ public class PeakXICComponent extends JComponent {
         this.maxIntensity = maxIntensity;
 
         this.setBorder(componentBorder);
+        
+        // add tooltip
+        setToolTipText(peak.toString());
 
     }
 

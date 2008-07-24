@@ -70,7 +70,7 @@ public class TICVisualizerWindow extends JInternalFrame implements
             int msLevel, Range rtRange, Range mzRange, ChromatographicPeak[] peaks) {
 
         super(null, true, true, true, true);
-
+        
         this.desktop = MZmineCore.getDesktop();
         this.plotType = plotType;
         this.msLevel = msLevel;
