@@ -174,6 +174,7 @@ public class MainWindow extends JFrame implements MZmineModule, Desktop,
 
         // Place objects on main window
         desktopPane = new JDesktopPane();
+        desktopPane.setBackground(new Color(65, 105, 170));
 
         split = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, itemSelector,
                 desktopPane);
