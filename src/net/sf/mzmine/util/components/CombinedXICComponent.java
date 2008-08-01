@@ -87,7 +87,7 @@ public class CombinedXICComponent extends JComponent {
         int colorIndex = 0;
 
         NumberFormat intensityFormat = MZmineCore.getIntensityFormat();
-        
+
         for (RawDataFile dataFile : peaks.getRawDataFiles()) {
 
             ChromatographicPeak peak = peaks.getPeak(dataFile);
@@ -103,9 +103,10 @@ public class CombinedXICComponent extends JComponent {
             toolTip.append(dataFile.getFileName());
             toolTip.append("</font>: ");
             toolTip.append(peak.toString());
-            toolTip.append(", <b>" + intensityFormat.format(peak.getHeight()) + "</b>");
+            toolTip.append(", <b>" + intensityFormat.format(peak.getHeight())
+                    + "</b>");
             toolTip.append("<br>");
-            colorIndex++;
+            colorIndex = (colorIndex + 1) % plotColors.length;
 
         }
 
@@ -145,7 +146,7 @@ public class CombinedXICComponent extends JComponent {
 
             // set color for current XIC
             g2.setColor(plotColors[colorIndex]);
-            colorIndex++;
+            colorIndex = (colorIndex + 1) % plotColors.length;
 
             // for each datapoint, find [X:Y] coordinates of its point in
             // painted image
