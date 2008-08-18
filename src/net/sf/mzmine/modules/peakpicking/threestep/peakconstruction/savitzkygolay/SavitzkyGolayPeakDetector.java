@@ -25,7 +25,6 @@ import java.util.logging.Logger;
 
 import net.sf.mzmine.data.ChromatographicPeak;
 import net.sf.mzmine.data.RawDataFile;
-import net.sf.mzmine.data.impl.SimpleDataPoint;
 import net.sf.mzmine.data.impl.SimpleMzPeak;
 import net.sf.mzmine.modules.peakpicking.threestep.peakconstruction.ConnectedPeak;
 import net.sf.mzmine.modules.peakpicking.threestep.peakconstruction.PeakBuilder;
@@ -49,6 +48,7 @@ public class SavitzkyGolayPeakDetector implements PeakBuilder {
 
 	private float minimumPeakHeight, minimumPeakDuration, 
 			derivativeThresholdLevel, excessLevel;
+	private int filterLevel;
 	private boolean fillingPeaks;
 	private PeakFillingModel peakModel;
 
@@ -71,10 +71,11 @@ public class SavitzkyGolayPeakDetector implements PeakBuilder {
 
 		fillingPeaks = (Boolean) parameters
 				.getParameterValue(SavitzkyGolayPeakDetectorParameters.fillingPeaks);
-		
 		excessLevel = (Float) parameters
 		.getParameterValue(SavitzkyGolayPeakDetectorParameters.excessLevel);
-		
+		filterLevel = (Integer) parameters
+		.getParameterValue(SavitzkyGolayPeakDetectorParameters.filterLevel);
+
 		String peakModelname = (String) parameters
 				.getParameterValue(SavitzkyGolayPeakDetectorParameters.peakModel);
 
@@ -142,12 +143,11 @@ public class SavitzkyGolayPeakDetector implements PeakBuilder {
 		if ((avgChromatoIntensities) > (maxIntensity * 0.5f))
 			return detectedPeaks.toArray(new ChromatographicPeak[0]);
 
-		float[] chromato2ndDerivative = calculate2ndDerivative(chromatoIntensities);
+		float[] chromato2ndDerivative = SGDerivative.calculateDerivative(chromatoIntensities, false, 12);
 		float noiseThreshold = calcDerivativeThreshold(chromato2ndDerivative);
 
 		ChromatographicPeak[] chromatographicPeaks = SGPeaksSearch(dataFile,
-				chromatogram, scanNumbers, chromato2ndDerivative,
-				noiseThreshold);
+				chromatogram, scanNumbers, chromato2ndDerivative, noiseThreshold);
 
 		if (chromatographicPeaks.length != 0) {
 			for (ChromatographicPeak p : chromatographicPeaks) {
@@ -198,10 +198,10 @@ public class SavitzkyGolayPeakDetector implements PeakBuilder {
 			
 			float absolute = derivativeOfIntensities[i]; //Math.abs(derivativeOfIntensities[i]);
 			if (( absolute < maxDerivativeIntensity) && (crossZero == 2)) {
-			maxDerivativeIntensity = absolute;
-			indexMaxPoint = i;
+				maxDerivativeIntensity = absolute;
+				indexMaxPoint = i;
 			}
-
+			
 			if (((derivativeOfIntensities[i - 1] < 0.0f) && (derivativeOfIntensities[i] > 0.0f))
 					|| ((derivativeOfIntensities[i - 1] > 0.0f) && (derivativeOfIntensities[i] < 0.0f))) {
 
@@ -240,8 +240,8 @@ public class SavitzkyGolayPeakDetector implements PeakBuilder {
 				}
 			}
 
-			 if (true){
-			//if ((activeFirstPeak)) {
+			 //if (true){
+			if ((activeFirstPeak)) {
 				ConnectedMzPeak mzValue = chromatogram
 						.getConnectedMzPeak(scanNumbers[i]);
 				if (mzValue != null) {
@@ -249,7 +249,7 @@ public class SavitzkyGolayPeakDetector implements PeakBuilder {
 					
 					  /*ConnectedMzPeak temp = new ConnectedMzPeak(mzValue
 					  .getScan(), new SimpleMzPeak(new SimpleDataPoint(mzValue
-					  .getMzPeak().getMZ(), derivativeOfIntensities[i]*100)));
+					  .getMzPeak().getMZ(), derivativeOfIntensities[i]*10)));
 					  newMzPeaks.add(temp);*/
 					 
 				} else if (newMzPeaks.size() > 0) {
@@ -331,52 +331,7 @@ public class SavitzkyGolayPeakDetector implements PeakBuilder {
 		return newPeaks.toArray(new ConnectedPeak[0]);
 	}
 
-	/**
-	 * This method returns the second smoothed derivative values of an array.
-	 * 
-	 * @param chromatoIntensities
-	 * @return
-	 */
-	public float[] calculate2ndDerivative(float[] chromatoIntensities) {
-
-		float[] derivative = new float[chromatoIntensities.length];
-		int M = 0;
-
-		for (int k = 0; k < derivative.length; k++) {
-
-			// Determine boundaries
-			if (k < 13)
-				M = k;
-			if (k + M > derivative.length - 1)
-				M = derivative.length - (k + 1);
-
-			// Perform derivative using Savitzky Golay coefficients
-			for (int i = -M; i <= M; i++) {
-				derivative[k] += chromatoIntensities[k + i]
-						* getSGCoefficient(M, i);
-			}
-			if ((Math.abs(derivative[k])) > maxValueDerivative)
-				maxValueDerivative = Math.abs(derivative[k]);
-
-		}
-
-		return derivative;
-	}
-
-	/**
-	 * This method return the Savitzky-Golay 2nd smoothed derivative coefficient
-	 * from an array
-	 * 
-	 * @param M
-	 * @param signedC
-	 * @return
-	 */
-	private Float getSGCoefficient(int M, int signedC) {
-
-		int C = Math.abs(signedC);
-		return SGCoefficients.SGCoefficientsSecondDerivativeQuartic[M][C];
-
-	}
+	
 
 	/**
 	 * 
