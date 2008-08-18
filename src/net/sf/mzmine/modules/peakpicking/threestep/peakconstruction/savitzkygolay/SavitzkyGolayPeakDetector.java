@@ -48,7 +48,6 @@ public class SavitzkyGolayPeakDetector implements PeakBuilder {
 
 	private float minimumPeakHeight, minimumPeakDuration, 
 			derivativeThresholdLevel, excessLevel;
-	private int filterLevel;
 	private boolean fillingPeaks;
 	private PeakFillingModel peakModel;
 
@@ -73,8 +72,6 @@ public class SavitzkyGolayPeakDetector implements PeakBuilder {
 				.getParameterValue(SavitzkyGolayPeakDetectorParameters.fillingPeaks);
 		excessLevel = (Float) parameters
 		.getParameterValue(SavitzkyGolayPeakDetectorParameters.excessLevel);
-		filterLevel = (Integer) parameters
-		.getParameterValue(SavitzkyGolayPeakDetectorParameters.filterLevel);
 
 		String peakModelname = (String) parameters
 				.getParameterValue(SavitzkyGolayPeakDetectorParameters.peakModel);

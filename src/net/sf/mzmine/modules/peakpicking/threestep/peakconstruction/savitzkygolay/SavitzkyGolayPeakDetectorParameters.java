@@ -70,16 +70,9 @@ public class SavitzkyGolayPeakDetectorParameters extends SimpleParameterSet {
 			"and increasing this parameter in negative domain the width is bigger.",
 			"absolute", new Float(0.1), new Float(-0.9), new Float(0.9), null);
 
-	public static final Parameter filterLevel = new SimpleParameter(
-			ParameterType.INTEGER,
-			"Level of filter",
-			"Increasing this parameter in positive domain the width of the filling peak becomes smaller, " +
-			"and increasing this parameter in negative domain the width is bigger.",
-			"absolute", new Integer(4), new Integer(2), new Integer(12), null);
-
 	public SavitzkyGolayPeakDetectorParameters() {
 		super(new Parameter[] { minimumPeakHeight, minimumPeakDuration, derivativeThresholdLevel,
-				fillingPeaks, peakModel, excessLevel, filterLevel });
+				fillingPeaks, peakModel, excessLevel });
 	}
 
 }
