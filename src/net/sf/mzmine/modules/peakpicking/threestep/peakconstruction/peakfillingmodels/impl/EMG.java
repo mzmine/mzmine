@@ -3,7 +3,6 @@ package net.sf.mzmine.modules.peakpicking.threestep.peakconstruction.peakfilling
 import java.util.logging.Logger;
 
 import net.sf.mzmine.data.ChromatographicPeak;
-import net.sf.mzmine.data.impl.SimpleDataPoint;
 import net.sf.mzmine.data.impl.SimpleMzPeak;
 import net.sf.mzmine.modules.peakpicking.threestep.peakconstruction.ConnectedPeak;
 import net.sf.mzmine.modules.peakpicking.threestep.peakconstruction.peakfillingmodels.PeakFillingModel;
@@ -35,7 +34,7 @@ public class EMG implements PeakFillingModel {
 		 * Ap = FWHM / ([1.76 (b/a)^2] - [11.15 (b/a)] + 28)
 		 * 
 		 * This formula is a variation of Foley J.P., Dorsey J.G. "Equations for
-		 * // calculation of chormatographic figures of Merit for Ideal and
+		 * calculation of chormatographic figures of Merit for Ideal and
 		 * Skewed Peaks", Anal. Chem. 1983, 55, 730-737.
 		 */
 
@@ -45,8 +44,8 @@ public class EMG implements PeakFillingModel {
 		float paramB = (1.76f * (float) Math.pow(paramA, 2))
 				- (11.15f * paramA) + 28.0f;
 		float Ap = (FWHM) / paramB;
-		if (b > a)
-			Ap *= -1;
+		//if (b > a)
+			//Ap *= -1;
 
 		float t, shapeHeight;
 
@@ -128,7 +127,7 @@ public class EMG implements PeakFillingModel {
 			}
 
 			// Right side of the curve
-			if (leftside) {
+			//if (leftside) {
 				if ((rangeDataPoints[i].getMzPeak().getIntensity() >= halfIntensity)
 						&& (rangeDataPoints[i].getScan().getRetentionTime() > RT)
 						&& (rangeDataPoints[i + 1].getMzPeak().getIntensity() <= halfIntensity)) {
@@ -158,14 +157,22 @@ public class EMG implements PeakFillingModel {
 					xRight = rightX1 + (((halfIntensity) - rightY1) / mRight);
 					break;
 				}
-			}
+			//}
 		}
 
+		if ((xRight == -1) && (xLeft > 0)){
+			float halfWidth = RT - xLeft;
+			xRight = RT + halfWidth;
+		}
+
+		if ((xRight > 0) && (xLeft == -1)){
+			float halfWidth = xRight - RT;
+			xLeft = RT - halfWidth;
+		}
+		
 		boolean negative = (((xRight - xLeft) / 2) < 0);
 		
-		// We verify the values to confirm we find the desired points. If not we
-		// return the same mass value.
-		if ((negative) || (xRight == -1) || (xLeft == -1)){
+		if ((negative) || ((xRight == -1) && (xLeft == -1))){
 			float beginning = rangeDataPoints[0].getScan().getRetentionTime();
 			float ending = rangeDataPoints[rangeDataPoints.length-1].getScan().getRetentionTime();
 			xRight = RT + (ending-beginning)/4.71f;
