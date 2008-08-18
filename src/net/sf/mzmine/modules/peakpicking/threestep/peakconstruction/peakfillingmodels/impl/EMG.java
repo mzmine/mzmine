@@ -15,9 +15,9 @@ public class EMG implements PeakFillingModel {
 	private Logger logger = Logger.getLogger(this.getClass().getName());
 
 	public ChromatographicPeak fillingPeak(
-			ChromatographicPeak originalDetectedShape) {
+			ChromatographicPeak originalDetectedShape, float[] params) {
 
-		float C = 0.2f; //Fixed level of excess;
+		float C = params[0]; //0.2f; //Fixed level of excess;
 		float heightMax = originalDetectedShape.getHeight() * (1.0f - (C / 10));
 		float RT = originalDetectedShape.getRT();
 		ConnectedMzPeak[] listMzPeaks = ((ConnectedPeak) originalDetectedShape)
@@ -44,8 +44,8 @@ public class EMG implements PeakFillingModel {
 		float paramB = (1.76f * (float) Math.pow(paramA, 2))
 				- (11.15f * paramA) + 28.0f;
 		float Ap = (FWHM) / paramB;
-		//if (b > a)
-			//Ap *= -1;
+		if (b > a)
+			Ap *= -1;
 
 		float t, shapeHeight;
 
@@ -88,7 +88,7 @@ public class EMG implements PeakFillingModel {
 
 		for (int i = 0; i < rangeDataPoints.length - 1; i++) {
 
-			if (rangeDataPoints[i].getMzPeak().getIntensity() >= height)
+			if (rangeDataPoints[i].getMzPeak().getIntensity() > height)
 				continue;
 
 			// Left side of the curve
@@ -161,11 +161,13 @@ public class EMG implements PeakFillingModel {
 		}
 
 		if ((xRight == -1) && (xLeft > 0)){
+			logger.finest("No encuentra derecha = " + RT);
 			float halfWidth = RT - xLeft;
 			xRight = RT + halfWidth;
 		}
 
 		if ((xRight > 0) && (xLeft == -1)){
+			logger.finest("No encuentra izquierda = " + RT);
 			float halfWidth = xRight - RT;
 			xLeft = RT - halfWidth;
 		}
@@ -175,6 +177,7 @@ public class EMG implements PeakFillingModel {
 		if ((negative) || ((xRight == -1) && (xLeft == -1))){
 			float beginning = rangeDataPoints[0].getScan().getRetentionTime();
 			float ending = rangeDataPoints[rangeDataPoints.length-1].getScan().getRetentionTime();
+			logger.finest("No encuentra derecha/izquierda = " + RT/60.0f + " inicia " + beginning/60.0f + " fin " + ending/60.0f + " negative " + negative );
 			xRight = RT + (ending-beginning)/4.71f;
 			xLeft = RT - (ending-beginning)/4.71f;
 		}
