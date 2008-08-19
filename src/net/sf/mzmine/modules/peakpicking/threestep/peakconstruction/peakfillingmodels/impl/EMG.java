@@ -14,6 +14,14 @@ public class EMG implements PeakFillingModel {
 
 	private Logger logger = Logger.getLogger(this.getClass().getName());
 
+	/**
+	 * This method return a peak with a the most closest EMG shape to the original peak.
+	 * 
+	 * @param originalDetectedPeak
+	 * @param params
+	 * 
+	 * @return peak
+	 */
 	public ChromatographicPeak fillingPeak(
 			ChromatographicPeak originalDetectedShape, float[] params) {
 		
@@ -97,8 +105,10 @@ public class EMG implements PeakFillingModel {
 	 * This method calculates the width of the chromatographic peak at half
 	 * intensity
 	 * 
-	 * @param SimpleMzPeak
-	 * @return float
+	 * @param listMzPeaks
+	 * @param height
+	 * @param RT
+	 * @return FWHM
 	 */
 	private float calculateWidth(ConnectedMzPeak[] listMzPeaks, float height,
 			float RT) {
@@ -218,7 +228,7 @@ public class EMG implements PeakFillingModel {
 	 * @param Ap
 	 * @param C
 	 * @param t
-	 * @return
+	 * @return intensity
 	 */
 	private float calculateEMGIntensity(float heightMax, float RT, float Dp,
 			float Ap, float C, float t) {
