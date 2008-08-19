@@ -51,7 +51,7 @@ public final class SGDerivative {
 		return sign * SGCoefficients.SGCoefficientsFirstDerivativeQuartic[M][C];
 		}
 		else{
-			return SGCoefficients.SGCoefficientsSecondDerivativeQuartic[M][C];
+			return SGCoefficients.SGCoefficientsSecondDerivative[M][C];
 		}
 
 	}

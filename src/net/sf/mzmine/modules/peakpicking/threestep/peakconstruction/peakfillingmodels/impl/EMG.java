@@ -3,7 +3,6 @@ package net.sf.mzmine.modules.peakpicking.threestep.peakconstruction.peakfilling
 import java.util.logging.Logger;
 
 import net.sf.mzmine.data.ChromatographicPeak;
-import net.sf.mzmine.data.MzPeak;
 import net.sf.mzmine.data.impl.SimpleMzPeak;
 import net.sf.mzmine.modules.peakpicking.threestep.peakconstruction.ConnectedPeak;
 import net.sf.mzmine.modules.peakpicking.threestep.peakconstruction.peakfillingmodels.PeakFillingModel;
@@ -23,14 +22,16 @@ public class EMG implements PeakFillingModel {
 		
 		ConnectedMzPeak[] listMzPeaks = ((ConnectedPeak) originalDetectedShape)
 		.getAllMzPeaks();
-
-		float heightMax, RT, C, FWHM;
+		
+		float heightMax, RT, C, FWHM, factor;
 
 		C = params[0]; // level of excess;
-		heightMax = originalDetectedShape.getHeight() * (1.0f - (C / 10.0f));
+		factor = (1.0f - (Math.abs(C) / 10.0f));
+		
+		heightMax = originalDetectedShape.getHeight() * factor;
 		RT = originalDetectedShape.getRT();
 
-		FWHM = calculateWidth(listMzPeaks, heightMax, RT) * (1.0f - (C / 10.0f));
+		FWHM = calculateWidth(listMzPeaks, heightMax, RT) * factor;
 
 		if (FWHM < 0) {
 			return originalDetectedShape;
@@ -46,15 +47,27 @@ public class EMG implements PeakFillingModel {
 		 * Skewed Peaks", Anal. Chem. 1983, 55, 730-737.
 		 */
 
-		float a = (RT - xLeft);
-		float b = (xRight - RT);
+		// Left side
+		float beginning = listMzPeaks[0].getScan().getRetentionTime();
+		float a = (RT - (beginning * factor));
+		
+		// Right side
+		float ending = listMzPeaks[listMzPeaks.length-1].getScan().getRetentionTime();
+		float b = ((ending * factor) - RT);
+		
 		float paramA = b / a;
 		float paramB = (1.76f * (float) Math.pow(paramA, 2))
 				- (11.15f * paramA) + 28.0f;
-		float Ap = (FWHM) / paramB;
-		if (b > a)
+		
+		// Calculates Width at base of the peak.
+		float paramC = (FWHM * 2.355f)/4.71f;
+		
+		float Ap = paramC / paramB;
+		
+		if ((b > a) && (Ap > 0))
 			Ap *= -1;
 
+		// Calculate intensity of each point in the shape.
 		float t, shapeHeight;
 
 		t = listMzPeaks[0].getScan().getRetentionTime();
@@ -181,12 +194,11 @@ public class EMG implements PeakFillingModel {
 		if ((negative) || ((xRight == -1) && (xLeft == -1))){
 			float beginning = rangeDataPoints[0].getScan().getRetentionTime();
 			float ending = rangeDataPoints[rangeDataPoints.length-1].getScan().getRetentionTime();
-			//logger.finest("No encuentra derecha/izquierda = " + RT/60.0f + " inicia " + beginning/60.0f + " fin " + ending/60.0f + " negative " + negative );
-			xRight = RT + (ending-beginning)/4.71f;
-			xLeft = RT - (ending-beginning)/4.71f;
+			xRight = RT + (ending-beginning)/9.42f;
+			xLeft = RT - (ending-beginning)/9.42f;
 		}
 
-		// The center of left and right points is the exact mass of our peak.
+		// 
 		float FWHM = (xRight - xLeft) / 2.355f;
 
 		return FWHM;
@@ -227,18 +239,6 @@ public class EMG implements PeakFillingModel {
 			shapeHeight = 0;
 
 		return shapeHeight;
-	}
-	
-	private float[] getIntensities(ConnectedMzPeak[] listMzPeaks){
-		float[] intensities = new float[listMzPeaks.length];
-		MzPeak mzValue = null;
-		
-		for (int i=0; i<listMzPeaks.length; i++){
-			mzValue = listMzPeaks[i].getMzPeak();
-			intensities[i] = mzValue.getIntensity();
-		}
-		
-		return intensities;
 	}
 
 }
