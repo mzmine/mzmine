@@ -24,6 +24,7 @@ import java.util.logging.Logger;
 
 import net.sf.mzmine.data.ChromatographicPeak;
 import net.sf.mzmine.data.RawDataFile;
+import net.sf.mzmine.data.impl.SimpleDataPoint;
 import net.sf.mzmine.data.impl.SimpleMzPeak;
 import net.sf.mzmine.modules.peakpicking.threestep.peakconstruction.ConnectedPeak;
 import net.sf.mzmine.modules.peakpicking.threestep.peakconstruction.PeakBuilder;
@@ -246,12 +247,12 @@ public class WaveletPeakDetector implements PeakBuilder {
 						.getConnectedMzPeak(scanNumbers[i]);
 				if (mzValue != null) {
 					newMzPeaks.add(mzValue);
-					/*
-					 * ConnectedMzPeak temp = new ConnectedMzPeak(mzValue
-					 * .getScan(), new SimpleMzPeak( new
-					 * SimpleDataPoint(mzValue.getMzPeak().getMZ(), (float)
-					 * waveletIntensities[i]))); newMzPeaks.add(temp);
-					 */
+					
+					  /*ConnectedMzPeak temp = new ConnectedMzPeak(mzValue
+					  .getScan(), new SimpleMzPeak( new
+					  SimpleDataPoint(mzValue.getMzPeak().getMZ(), (float)
+					  waveletIntensities[i]))); newMzPeaks.add(temp);*/
+					 
 				} else if (newMzPeaks.size() > 0) {
 					activeFirstPeak = false;
 					crossZero = 0;
@@ -263,12 +264,12 @@ public class WaveletPeakDetector implements PeakBuilder {
 						.getConnectedMzPeak(scanNumbers[i]);
 				if (mzValue != null) {
 					newOverlappedMzPeaks.add(mzValue);
-					/*
-					 * ConnectedMzPeak temp = new ConnectedMzPeak(mzValue
-					 * .getScan(), new SimpleMzPeak( new
-					 * SimpleDataPoint(mzValue.getMzPeak().getMZ(), (float)
-					 * waveletIntensities[i]))); newOverlappedMzPeaks.add(temp);
-					 */
+					
+					  /*ConnectedMzPeak temp = new ConnectedMzPeak(mzValue
+					  .getScan(), new SimpleMzPeak( new
+					  SimpleDataPoint(mzValue.getMzPeak().getMZ(), (float)
+					  waveletIntensities[i]))); newOverlappedMzPeaks.add(temp);*/
+					 
 				}
 			}
 

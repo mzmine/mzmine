@@ -279,11 +279,13 @@ public class SimpleParameterSet implements StorableParameterSet {
         while (paramIter.hasNext()) {
             Element paramElem = (Element) paramIter.next();
             Parameter param = getParameter(paramElem.attributeValue(PARAMETER_NAME_ATTRIBUTE));
-
             if (param != null) {
 
+            	
                 ParameterType paramType = ParameterType.valueOf(paramElem.attributeValue(PARAMETER_TYPE_ATTRIBUTE));
                 String valueText = paramElem.getText();
+            	
+
                 if ((valueText == null) || (valueText.length() == 0))
                     continue;
                 Object value = null;

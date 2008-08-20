@@ -326,7 +326,7 @@ public class ThreeStepPickerParameters implements StorableParameterSet {
 		Iterator paramIter3 = element.elementIterator("peakbuilder");
 		while (paramIter3.hasNext()) {
 			Element paramElem = (Element) paramIter3.next();
-			for (int i = 0; i < massDetectorNames.length; i++) {
+			for (int i = 0; i < peakBuilderNames.length; i++) {
 				if (paramElem.attributeValue(PARAMETER_NAME_ATTRIBUTE).equals(
 						peakBuilderNames[i])) {
 					peakBuilderParameters[i].importValuesFromXML(paramElem);

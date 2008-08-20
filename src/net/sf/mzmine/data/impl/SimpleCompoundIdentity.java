@@ -136,7 +136,11 @@ public class SimpleCompoundIdentity implements CompoundIdentity, Comparable {
      * @see java.lang.Object#toString()
      */
     public String toString() {
-        return compoundName;
+    	String ret;
+    	ret = "<html><div style=\"text-align:left;align:center;width:400px\">";
+		ret += "Compound: <br>" + compoundName + "<br>";
+		ret += "Formula: " + compoundFormula + "</div></html>";
+        return ret;
     }
 
     /**

@@ -298,7 +298,7 @@ public class ParameterSetupDialog extends JDialog implements ActionListener {
 	}
 
 	void setValue(Parameter p, Object value) {
-
+		
 		JComponent component = parametersAndComponents.get(p);
 		if ((component == null) || (value == null))
 			return;
@@ -332,6 +332,7 @@ public class ParameterSetupDialog extends JDialog implements ActionListener {
 			break;
 		case BOOLEAN:
 			JCheckBox checkBox = (JCheckBox) component;
+			
 			Boolean selected = (Boolean) value;
 			checkBox.setSelected(selected);
 			break;

@@ -54,7 +54,7 @@ public class SavitzkyGolayPeakDetectorParameters extends SimpleParameterSet {
 	
 	public static final Parameter fillingPeaks = new SimpleParameter(
 			ParameterType.BOOLEAN, "Filling peak shape",
-			"Activates the method to fill the peak shape using the selected peak model function", null, false,
+			"Activates the method to fill the peak shape using the selected peak model function", null, null,
 			null, null, null);
 	
 	public static final Parameter peakModel = new SimpleParameter(

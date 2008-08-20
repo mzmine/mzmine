@@ -20,19 +20,25 @@
 package net.sf.mzmine.modules.identification.custom;
 
 import java.awt.BorderLayout;
-import java.awt.GridLayout;
+import java.awt.GridBagConstraints;
+import java.awt.GridBagLayout;
+import java.awt.Insets;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.File;
 import java.text.NumberFormat;
 
+import javax.swing.BorderFactory;
+import javax.swing.BoxLayout;
 import javax.swing.DefaultListModel;
 import javax.swing.JButton;
 import javax.swing.JCheckBox;
 import javax.swing.JDialog;
 import javax.swing.JFileChooser;
 import javax.swing.JFormattedTextField;
+import javax.swing.JLabel;
 import javax.swing.JPanel;
+import javax.swing.JScrollPane;
 import javax.swing.JTextField;
 
 import net.sf.mzmine.main.MZmineCore;
@@ -71,51 +77,77 @@ class CustomDBSearchDialog extends JDialog implements ActionListener {
 
         this.parameters = parameters;
 
-        // Create panel with controls
-        JPanel pnlLabelsAndFields = new JPanel(new GridLayout(7, 2));
+		JPanel pnlLabelsAndFields = new JPanel();
+		pnlLabelsAndFields.setLayout(new GridBagLayout());
 
-        // Database file name
-        GUIUtils.addLabel(pnlLabelsAndFields, "Database file");
+		GridBagConstraints c = new GridBagConstraints();
+		c.fill = GridBagConstraints.HORIZONTAL;
+		c.weighty = 10.0;
+		c.weightx = 10.0;
+		c.insets = new Insets(5, 5, 5, 5);
+
+		c.gridx = 0;
+		c.gridy = 0;
+		pnlLabelsAndFields.add(new JLabel("Database file"), c);
+		c.gridx = 1;
         fileNameField = new JTextField(TEXTFIELD_COLUMNS);
         fileNameField.setText(parameters.getDataBaseFile());
         JPanel fileNamePanel = new JPanel();
+        fileNamePanel.setBorder(BorderFactory.createEmptyBorder(0,0,0,0));
         fileNamePanel.add(fileNameField);
         btnBrowse = GUIUtils.addButton(fileNamePanel, "Browse..", null, this);
-        pnlLabelsAndFields.add(fileNamePanel);
+		pnlLabelsAndFields.add(fileNamePanel, c);
 
-        // Field separator
-        GUIUtils.addLabel(pnlLabelsAndFields, "Field separator");
+		c.gridx = 0;
+		c.gridy = 1;
+		pnlLabelsAndFields.add(new JLabel("Field separator"), c);
+		c.gridx = 1;
         fieldSeparatorField = new JTextField(TEXTFIELD_COLUMNS);
         fieldSeparatorField.setText(String.valueOf(parameters.getFieldSeparator()));
-        pnlLabelsAndFields.add(fieldSeparatorField);
+		pnlLabelsAndFields.add(fieldSeparatorField, c);
 
-        // Field order
-        GUIUtils.addLabel(pnlLabelsAndFields, "Field order");
+		c.gridx = 0;
+		c.gridy = 2;
+		pnlLabelsAndFields.add(new JLabel("Field order"), c);
+		c.gridx = 1;
         fieldOrderModel = new DefaultListModel();
         for (Object item : parameters.getFieldOrder())
             fieldOrderModel.addElement(item);
         fieldOrderList = new DragOrderedJList(fieldOrderModel);
-        pnlLabelsAndFields.add(fieldOrderList);
+		JScrollPane listScroller = new JScrollPane(fieldOrderList);
+		listScroller.setAlignmentX(LEFT_ALIGNMENT);
+		JPanel listPanel = new JPanel();
+		listPanel.setLayout(new BoxLayout(listPanel, BoxLayout.PAGE_AXIS));
+		listPanel.add(listScroller);
+		listPanel.setBorder(BorderFactory.createEmptyBorder(1, 1, 1, 1));
+		pnlLabelsAndFields.add(listPanel, c);
 
-        // Ignore first line
-        GUIUtils.addLabel(pnlLabelsAndFields, "Ignore first line");
+		c.gridx = 0;
+		c.gridy = 3;
+		pnlLabelsAndFields.add(new JLabel("Ignore first line"), c);
+		c.gridx = 1;
         ignoreFirstLineBox = new JCheckBox();
         ignoreFirstLineBox.setSelected(parameters.isIgnoreFirstLine());
-        pnlLabelsAndFields.add(ignoreFirstLineBox);
+		pnlLabelsAndFields.add(ignoreFirstLineBox, c);
 
-        // m/z tolerance
-        GUIUtils.addLabel(pnlLabelsAndFields, "m/z tolerance");
+		c.gridx = 0;
+		c.gridy = 4;
+		pnlLabelsAndFields.add(new JLabel("m/z tolerance"), c);
+		c.gridx = 1;
         NumberFormat mzFormat = MZmineCore.getMZFormat();
         mzToleranceField = new JFormattedTextField(mzFormat);
         mzToleranceField.setValue((Double) parameters.getMzTolerance());
-        pnlLabelsAndFields.add(mzToleranceField);
+		pnlLabelsAndFields.add(mzToleranceField, c);
 
-        // Retention time tolerance
-        GUIUtils.addLabel(pnlLabelsAndFields, "Retention time tolerance (sec)");
+		c.gridx = 0;
+		c.gridy = 5;
+		pnlLabelsAndFields.add(new JLabel("Retention time tolerance (sec)"), c);
+		c.gridx = 1;
         NumberFormat rtFormat = MZmineCore.getRTFormat();
         rtToleranceField = new JFormattedTextField(rtFormat);
         rtToleranceField.setValue((Double) parameters.getRtTolerance());
-        pnlLabelsAndFields.add(rtToleranceField);
+		pnlLabelsAndFields.add(rtToleranceField, c);
+
 
         // Buttons
         JPanel pnlButtons = new JPanel();

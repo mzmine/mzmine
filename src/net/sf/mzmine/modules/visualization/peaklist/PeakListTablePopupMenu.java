@@ -36,6 +36,7 @@ import net.sf.mzmine.data.RawDataFile;
 import net.sf.mzmine.data.impl.SimplePeakListRow;
 import net.sf.mzmine.desktop.Desktop;
 import net.sf.mzmine.main.MZmineCore;
+import net.sf.mzmine.modules.identification.pubchem.PubChemSearch;
 import net.sf.mzmine.modules.peakpicking.manual.ManualPeakPicker;
 import net.sf.mzmine.modules.visualization.intensityplot.IntensityPlot;
 import net.sf.mzmine.modules.visualization.intensityplot.IntensityPlotDialog;
@@ -67,7 +68,7 @@ public class PeakListTablePopupMenu extends JPopupMenu implements
     private PeakListTableColumnModel columnModel;
 
     private JMenuItem deleteRowsItem, addNewRowItem, plotRowsItem, showXICItem,
-            manuallyDefineItem;
+            manuallyDefineItem, pubChemSearch;
 
     private RawDataFile clickedDataFile;
     private PeakListRow clickedPeakListRow;
@@ -94,6 +95,9 @@ public class PeakListTablePopupMenu extends JPopupMenu implements
 
         manuallyDefineItem = GUIUtils.addMenuItem(this, "Manually define peak",
                 this);
+        
+        pubChemSearch = GUIUtils.addMenuItem(this, "Search identity in PubChem",
+                this);
 
     }
 
@@ -112,6 +116,7 @@ public class PeakListTablePopupMenu extends JPopupMenu implements
             showXICItem.setEnabled((clickedColumn == CommonColumnType.PEAKSHAPE.ordinal())
                     || (clickedColumn >= CommonColumnType.values().length));
             manuallyDefineItem.setEnabled(clickedColumn >= CommonColumnType.values().length);
+            pubChemSearch.setEnabled(clickedColumn >= CommonColumnType.values().length);
             if (clickedColumn >= CommonColumnType.values().length) {
                 int dataFileIndex = (clickedColumn - CommonColumnType.values().length)
                         / DataFileColumnType.values().length;
@@ -237,6 +242,19 @@ public class PeakListTablePopupMenu extends JPopupMenu implements
             ManualPeakPicker.runManualDetection(clickedDataFile,
                     clickedPeakListRow);
         }
+        
+        if (src == pubChemSearch) {
+
+        	PubChemSearch pubChem = PubChemSearch.getInstance();
+        	
+        	ChromatographicPeak clickedPeak = clickedPeakListRow.getPeak(clickedDataFile);
+
+            if (clickedPeak != null) {
+            	
+            	pubChem.showPubChemSearchDialog(peakList, clickedPeakListRow, clickedPeak.getMZ());
+            } 
+        }
+
 
         if (src == addNewRowItem) {
 

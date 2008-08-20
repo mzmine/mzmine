@@ -81,10 +81,10 @@ public class CustomDBSearch implements BatchStep, ActionListener {
     public void actionPerformed(ActionEvent e) {
 
         PeakList[] selectedPeakLists = desktop.getSelectedPeakLists();
-        if (selectedPeakLists.length < 1) {
+        /*if (selectedPeakLists.length < 1) {
             desktop.displayErrorMessage("Please select a peak list");
             return;
-        }
+        }*/
 
         ExitCode exitCode = setupParameters(parameters);
         if (exitCode != ExitCode.OK)
