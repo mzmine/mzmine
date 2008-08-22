@@ -27,7 +27,7 @@ import net.sf.mzmine.data.CompoundIdentity;
 public class SimpleCompoundIdentity implements CompoundIdentity, Comparable {
 
     private String compoundID, compoundName, alternateNames[], compoundFormula;
-    private String databaseEntryURL, identificationMethod;
+    private String databaseEntryURL, identificationMethod, scopeNote;
 
     /**
      * @param compoundID
@@ -39,13 +39,14 @@ public class SimpleCompoundIdentity implements CompoundIdentity, Comparable {
      */
     public SimpleCompoundIdentity(String compoundID, String compoundName,
             String[] alternateNames, String compoundFormula,
-            String databaseEntryURL, String identificationMethod) {
+            String databaseEntryURL, String identificationMethod, String scopeNote) {
         this.compoundID = compoundID;
         this.compoundName = compoundName;
         this.alternateNames = alternateNames;
         this.compoundFormula = compoundFormula;
         this.databaseEntryURL = databaseEntryURL;
         this.identificationMethod = identificationMethod;
+        this.scopeNote = scopeNote;
     }
 
     /**
@@ -133,13 +134,26 @@ public class SimpleCompoundIdentity implements CompoundIdentity, Comparable {
     }
     
     /**
+     * @param scopeNote The scope note to set
+     */
+    public void setScopeNote(String scopeNote){
+    	this.scopeNote = scopeNote;
+    }
+    
+    /**
+     * @return Returns scopeNote The scope note
+     */
+    public String getScopeNote(){
+    	return scopeNote;
+    }
+
+    /**
      * @see java.lang.Object#toString()
      */
     public String toString() {
     	String ret;
     	ret = "<html><div style=\"text-align:left;align:center;width:400px\">";
-		ret += "Compound: <br>" + compoundName + "<br>";
-		ret += "Formula: " + compoundFormula + "</div></html>";
+		ret += "Compound: <br>" + compoundName + "<br></div></html>";
         return ret;
     }
 

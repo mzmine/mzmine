@@ -10,6 +10,11 @@ import gov.nih.nlm.ncbi.www.soap.eutils.esearch.ESearchResult;
 import gov.nih.nlm.ncbi.www.soap.eutils.esummary.ESummaryRequest;
 import gov.nih.nlm.ncbi.www.soap.eutils.esummary.ESummaryResult;
 
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.io.Reader;
+import java.net.URL;
+import java.net.URLConnection;
 import java.rmi.RemoteException;
 import java.util.Vector;
 import java.util.logging.Level;
@@ -90,7 +95,6 @@ public class PubChemSearchTask implements Task {
 
         try {
             // connect and read PubChem database contents
-        	logger.finest("Solicita locator ");
 			EUtilsServiceLocator eutils_locator = new EUtilsServiceLocator();
 			eutils_soap = eutils_locator.geteUtilsServiceSoap();
 
@@ -103,21 +107,17 @@ public class PubChemSearchTask implements Task {
 
 			ESearchResult resSearch = eutils_soap.run_eSearch(reqSearch);
 
-			logger.finest("Obtiene resultado "
-					+ System.currentTimeMillis());
-
 			// results output
-			logger.finest("Original query: " + reqSearch.getTerm());
-			logger.finest("Found ids: " + resSearch.getCount());
-			logger.finest("First " + resSearch.getRetMax() + " ids: ");
 			numIDs = resSearch.getIdList().length;
 			SimpleCompoundIdentity compound;
 
 			for (int i = 0; i < numIDs; i++) {
 				String original = resSearch.getIdList()[i];
-				compound = new SimpleCompoundIdentity(original, null, null, null, null, null);
-				showSummary("pccompound", original, compound);
-				showLink(original, compound);
+				compound = new SimpleCompoundIdentity(original, null, null, null, null, null, null);
+				getSummary("pccompound", original, compound);
+				getLink(original, compound);
+				getName(original, compound);
+				
 				window.addNewListItem(compound);
 				finishedLines++;
 			}
@@ -135,7 +135,7 @@ public class PubChemSearchTask implements Task {
 
     }
     
-	public void showLink(String id, SimpleCompoundIdentity compound) throws RemoteException {
+	public void getLink(String id, SimpleCompoundIdentity compound) throws RemoteException {
 
 		ELinkRequest reqLink = new ELinkRequest();
 		reqLink.setDb("mesh");
@@ -150,15 +150,14 @@ public class PubChemSearchTask implements Task {
 			if (list.length > 0) {
 				for (int k = 0; k < list[0].getLink().length; k++) {
 					String s = list[0].getLink()[k].getId().toString();
-					showSummary("mesh", s, compound);
+					getSummary("mesh", s, compound);
 				}
 			}
-			logger.finest("\n----------------------");
 		}
 
 	}
 
-	public void showSummary(String db, String id, SimpleCompoundIdentity compound) throws RemoteException {
+	public void getSummary(String db, String id, SimpleCompoundIdentity compound) throws RemoteException {
 
 		ESummaryRequest reqSummary = new ESummaryRequest();
 		reqSummary.setDb(db);
@@ -171,30 +170,54 @@ public class PubChemSearchTask implements Task {
 		// results output
 
 		for (int i = 0; i < resSum.getDocSum().length; i++) {
-			logger.finest("\nID: " + resSum.getDocSum()[i].getId() );
 			for (int k = 0; k < resSum.getDocSum()[i].getItem().length; k++) {
 				itemName = resSum.getDocSum()[i].getItem()[k].getName();
 				itemContent = resSum.getDocSum()[i].getItem()[k].getItemContent();
-					logger.finest("    " + itemName + ": " + itemContent);
+					//logger.finest("    " + itemName + ": " + itemContent);
 				if (itemName.matches(".*ScopeNote.*"))
-						compound.setCompoundName(itemContent);
+						compound.setScopeNote(itemContent);
 				if (itemName.matches(".*IUPACName.*"))
 					compound.setCompoundName(itemContent);
 				if (itemName.matches(formula + ".*"))
 						compound.setCompoundFormula(itemContent);
-				if (itemName.matches(".*Name.*")){
+				if (itemName.matches(".*Name.*"))
 					names.add(itemContent);
-					//logger.finest(itemName +":" + itemContent);
-				}
 			}
 			String[] alternateNames = names.toArray(new String[0]);
 			compound.setAlternateNames(alternateNames);
-			if ((compound.getCompoundName() == null) && (alternateNames != null))
-				if (alternateNames.length > 0)
-				compound.setCompoundName(alternateNames[0]);
-			
 		}
 
+	}
+	
+	private void getName(String id, SimpleCompoundIdentity compound){
+	       try {
+
+	    	   URL endpoint = new URL("http://eutils.ncbi.nlm.nih.gov/entrez/eutils/efetch.fcgi?db=pccompound&id=" +
+	    	   		id + "&report=docsum&mode=text");
+	    	   URLConnection uc = endpoint.openConnection (  ) ; 
+	           if  ( uc == null )   {  
+	               throw new Exception ( "Got a null URLConnection object!" ) ; 
+	            }  
+	           InputStream is = uc.getInputStream (  ) ; 
+	           if  ( is == null )   {  
+	               throw new Exception ( "Got a null content object!" ) ; 
+	            }  
+	           StringBuffer putBackTogether = new StringBuffer (  ) ; 
+	           Reader reader = new InputStreamReader ( is, "UTF-8" ) ; 
+	           char [  ]  cb = new char [ 1024 ] ; 
+	    
+	    
+	           int amtRead = reader.read ( cb ) ; 
+	           while  ( amtRead  >  0 )   {  
+	               putBackTogether.append ( cb, 0, amtRead ) ; 
+	               amtRead = reader.read ( cb ) ; 
+	            } 
+	           
+	           compound.setCompoundName(putBackTogether.toString()); 
+	         
+	      } catch (Exception e) {
+	      e.printStackTrace();
+	      }
 	}
 
 
