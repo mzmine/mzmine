@@ -30,6 +30,7 @@ import net.sf.mzmine.data.PeakListRow;
 import net.sf.mzmine.data.RawDataFile;
 import net.sf.mzmine.desktop.Desktop;
 import net.sf.mzmine.desktop.MZmineMenu;
+import net.sf.mzmine.desktop.impl.MainWindow;
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.modules.batchmode.BatchStep;
 import net.sf.mzmine.modules.batchmode.BatchStepCategory;
@@ -55,7 +56,7 @@ public class PubChemSearch implements BatchStep, ActionListener {
     
     private float rawMass;
     
-    private PubChemSearchWindow newWindow;
+    private PeakListRow row;
 
     /**
      * @see net.sf.mzmine.main.MZmineModule#getParameterSet()
@@ -99,8 +100,10 @@ public class PubChemSearch implements BatchStep, ActionListener {
 	}
 
 	public void actionPerformed(ActionEvent arg0) {
-        PeakList[] selectedPeakLists = desktop.getSelectedPeakLists();
-        if (selectedPeakLists.length < 1) {
+
+		PeakList[] selectedPeakLists = desktop.getSelectedPeakLists();
+        
+		if (selectedPeakLists.length < 1) {
             desktop.displayErrorMessage("Please select a peak list");
             return;
         }
@@ -108,17 +111,15 @@ public class PubChemSearch implements BatchStep, ActionListener {
         ExitCode exitCode = setupParameters(parameters);
         if (exitCode != ExitCode.OK)
             return;
+
+        this.row = null;
         
-        /*newWindow = new PubChemSearchWindow();
-        desktop.addInternalFrame(newWindow);
-        
-        runModule(null, null, parameters.clone(), null);*/
+        runModule(null, selectedPeakLists, parameters.clone(), null);
     }
 	
     public void showPubChemSearchDialog(PeakList peakList, PeakListRow row, float rawMass) {
         
-        newWindow = new PubChemSearchWindow(row);
-        desktop.addInternalFrame(newWindow);
+    	this.row = row;
 
         PeakList[] selectedPeakLists = new PeakList[] { peakList}; 
     	this.rawMass = rawMass;
@@ -146,7 +147,7 @@ public class PubChemSearch implements BatchStep, ActionListener {
         // prepare a new sequence of tasks
         Task tasks[] = new PubChemSearchTask[peakLists.length];
         for (int i = 0; i < peakLists.length; i++) {
-            tasks[i] = new PubChemSearchTask((PubChemSearchParameters) parameters, newWindow);
+            tasks[i] = new PubChemSearchTask((PubChemSearchParameters) parameters, peakLists[i], row);
         }
         TaskGroup newSequence = new TaskGroup(tasks, null, methodListener);
 

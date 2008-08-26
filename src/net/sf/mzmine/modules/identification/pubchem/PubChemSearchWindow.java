@@ -26,6 +26,7 @@ import net.sf.mzmine.taskcontrol.Task;
 import net.sf.mzmine.taskcontrol.TaskListener;
 import net.sf.mzmine.taskcontrol.Task.TaskStatus;
 import net.sf.mzmine.util.components.DragOrderedJList;
+import net.sf.mzmine.util.molstructureviewer.MolStructureViewer;
 
 public class PubChemSearchWindow extends JInternalFrame implements TaskListener,
 		ActionListener {
@@ -34,7 +35,7 @@ public class PubChemSearchWindow extends JInternalFrame implements TaskListener,
 
 	private Desktop desktop;
 	private DefaultListModel listIDModel;
-	private JButton btnAdd, btnAddAll;
+	private JButton btnAdd, btnAddAll, btnViewer;
 	private PeakListRow peakListRow;
 	private DragOrderedJList IDList;
 
@@ -64,8 +65,10 @@ public class PubChemSearchWindow extends JInternalFrame implements TaskListener,
 						&& (event.getClickCount() == 2)) {
 					int index = IDList.locationToIndex(event.getPoint());
 		            if (IDList.getModel().getSize()>0){
-		            Object item = IDList.getModel().getElementAt(index);
-					desktop.displayMessage("Test of double click on JList " + ((CompoundIdentity)item).getCompoundName());
+		            	IDList.setSelectedIndex(index);
+		            	PubChemSearchWindow.this.actionPerformed(new ActionEvent(this,0,"ADD"));
+		            //Object item = IDList.getModel().getElementAt(index);
+					//desktop.displayMessage("Test of double click on JList " + ((CompoundIdentity)item).getCompoundName());
 		            }
 				}
 			}
@@ -90,9 +93,13 @@ public class PubChemSearchWindow extends JInternalFrame implements TaskListener,
 		btnAddAll = new JButton("Add all");
 		btnAddAll.addActionListener(this);
 		btnAddAll.setActionCommand("ADD_ALL");
+		btnViewer = new JButton("View structure");
+		btnViewer.addActionListener(this);
+		btnViewer.setActionCommand("VIEWER");
 		pnlButtons.setBorder(BorderFactory.createEmptyBorder(5,5,5,5));
 		pnlButtons.add(btnAdd);
 		pnlButtons.add(btnAddAll);
+		pnlButtons.add(btnViewer);
 
 		setLayout(new BorderLayout());
 		setSize(500, 200);
@@ -124,6 +131,19 @@ public class PubChemSearchWindow extends JInternalFrame implements TaskListener,
 				peakListRow.addCompoundIdentity((CompoundIdentity)item);
 			}
 			dispose();
+		}
+
+		if (command.equals("VIEWER")){
+			int[] indices = IDList.getSelectedIndices();
+			Object item;
+			MolStructureViewer viewer;
+			int CID;
+			for (int ind: indices){
+				item = listIDModel.getElementAt(ind);
+				CID = Integer.parseInt(((CompoundIdentity)item).getCompoundID());
+				viewer = new MolStructureViewer(CID, ((CompoundIdentity)item).getCompoundName());
+				viewer.setVisible(true);
+			}
 		}
 
 	}

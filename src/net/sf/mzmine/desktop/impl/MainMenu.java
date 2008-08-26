@@ -24,6 +24,7 @@ import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
 import java.io.File;
 
+import javax.swing.Box;
 import javax.swing.JDesktopPane;
 import javax.swing.JFileChooser;
 import javax.swing.JMenu;

@@ -22,6 +22,7 @@ package net.sf.mzmine.desktop.impl;
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Container;
+import java.awt.LayoutManager;
 import java.awt.event.ActionListener;
 import java.awt.event.WindowEvent;
 import java.awt.event.WindowListener;
@@ -38,6 +39,8 @@ import javax.swing.JMenuItem;
 import javax.swing.JOptionPane;
 import javax.swing.JSplitPane;
 import javax.swing.border.EtchedBorder;
+import javax.swing.event.InternalFrameEvent;
+import javax.swing.event.InternalFrameListener;
 
 import net.sf.mzmine.data.ParameterSet;
 import net.sf.mzmine.data.PeakList;
@@ -57,7 +60,7 @@ import net.sf.mzmine.util.components.TaskProgressWindow;
  * 
  */
 public class MainWindow extends JFrame implements MZmineModule, Desktop,
-        WindowListener {
+        WindowListener, InternalFrameListener {
 
     private DesktopParameters parameters;
 
@@ -70,6 +73,10 @@ public class MainWindow extends JFrame implements MZmineModule, Desktop,
     private TaskProgressWindow taskList;
 
     private HelpMainMenuItem help;
+    
+    private static int openFrameCount = 0;
+    
+    private static final int xOffset = 30, yOffset = 30;
 
     public TaskProgressWindow getTaskList() {
         return taskList;
@@ -87,6 +94,9 @@ public class MainWindow extends JFrame implements MZmineModule, Desktop,
         desktopPane.add(frame, JLayeredPane.DEFAULT_LAYER);
         // TODO: adjust frame position
         frame.setVisible(true);
+        frame.addInternalFrameListener(this);
+        openFrameCount++;
+        frame.setLocation(xOffset*openFrameCount, yOffset*openFrameCount);
     }
 
     /**
@@ -321,5 +331,27 @@ public class MainWindow extends JFrame implements MZmineModule, Desktop,
         }
 
     }
+
+	public void internalFrameActivated(InternalFrameEvent e) {
+	}
+
+	public void internalFrameClosed(InternalFrameEvent e) {
+		openFrameCount--;
+	}
+
+	public void internalFrameClosing(InternalFrameEvent e) {
+	}
+
+	public void internalFrameDeactivated(InternalFrameEvent e) {
+	}
+
+	public void internalFrameDeiconified(InternalFrameEvent e) {
+	}
+
+	public void internalFrameIconified(InternalFrameEvent e) {
+	}
+
+	public void internalFrameOpened(InternalFrameEvent e) {
+	}
 
 }
