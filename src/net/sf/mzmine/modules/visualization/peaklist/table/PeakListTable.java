@@ -20,6 +20,8 @@
 package net.sf.mzmine.modules.visualization.peaklist.table;
 
 import java.awt.Font;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 
 import javax.swing.DefaultCellEditor;
 import javax.swing.JComboBox;
@@ -29,97 +31,123 @@ import javax.swing.table.TableCellEditor;
 import net.sf.mzmine.data.CompoundIdentity;
 import net.sf.mzmine.data.PeakList;
 import net.sf.mzmine.data.PeakListRow;
+import net.sf.mzmine.data.impl.SimpleCompoundIdentity;
 import net.sf.mzmine.modules.visualization.peaklist.PeakListTableParameters;
 import net.sf.mzmine.modules.visualization.peaklist.PeakListTablePopupMenu;
 import net.sf.mzmine.modules.visualization.peaklist.PeakListTableVisualizer;
 import net.sf.mzmine.modules.visualization.peaklist.PeakListTableWindow;
 import net.sf.mzmine.util.components.GroupableTableHeader;
 import net.sf.mzmine.util.components.PopupListener;
+import net.sf.mzmine.util.dialogs.CompoundIdentitySetupDialog;
 
 import com.sun.java.TableSorter;
 
 public class PeakListTable extends JTable {
 
-    static final String UNKNOWN_IDENTITY = "Unknown";
+	static final String UNKNOWN_IDENTITY = "Unknown";
+	static final String NEW_IDENTITY = "Add new...";
 
-    private static final Font comboFont = new Font("SansSerif", Font.PLAIN, 10);
+	private static final Font comboFont = new Font("SansSerif", Font.PLAIN, 10);
 
-    private TableSorter sorter;
-    private PeakListTableModel pkTableModel;
-    private PeakList peakList;
-    private PeakListTableColumnModel cm;
+	private TableSorter sorter;
+	private PeakListTableModel pkTableModel;
+	private PeakList peakList;
+	private PeakListRow peakListRow;
+	private PeakListTableColumnModel cm;
 
-    public PeakListTable(PeakListTableVisualizer visualizer,
-            PeakListTableWindow window, PeakListTableParameters parameters,
-            PeakList peakList) {
+	public PeakListTable(PeakListTableVisualizer visualizer,
+			PeakListTableWindow window, PeakListTableParameters parameters,
+			PeakList peakList) {
 
-        this.peakList = peakList;
+		this.peakList = peakList;
 
-        this.setAutoResizeMode(JTable.AUTO_RESIZE_OFF);
-        this.setAutoCreateColumnsFromModel(false);
+		this.setAutoResizeMode(JTable.AUTO_RESIZE_OFF);
+		this.setAutoCreateColumnsFromModel(false);
 
-        this.pkTableModel = new PeakListTableModel(peakList);
+		this.pkTableModel = new PeakListTableModel(peakList);
 
-        GroupableTableHeader header = new GroupableTableHeader();
-        setTableHeader(header);
+		GroupableTableHeader header = new GroupableTableHeader();
+		setTableHeader(header);
 
-        cm = new PeakListTableColumnModel(visualizer, header, pkTableModel,
-                parameters, peakList);
-        cm.setColumnMargin(0);
-        setColumnModel(cm);
+		cm = new PeakListTableColumnModel(visualizer, header, pkTableModel,
+				parameters, peakList);
+		cm.setColumnMargin(0);
+		setColumnModel(cm);
 
-        // create default columns
-        cm.createColumns();
+		// create default columns
+		cm.createColumns();
 
-        // Initialize sorter
-        sorter = new TableSorter(pkTableModel, header);
-        setModel(sorter);
+		// Initialize sorter
+		sorter = new TableSorter(pkTableModel, header);
+		setModel(sorter);
 
-        PeakListTablePopupMenu popupMenu = new PeakListTablePopupMenu(window,
-                this, cm, peakList);
-        addMouseListener(new PopupListener(popupMenu));
+		PeakListTablePopupMenu popupMenu = new PeakListTablePopupMenu(window,
+				this, cm, peakList);
+		addMouseListener(new PopupListener(popupMenu));
 
-        setRowHeight(parameters.getRowHeight());
+		setRowHeight(parameters.getRowHeight());
 
-    }
+	}
 
-    public PeakList getPeakList() {
-        return peakList;
-    }
+	public PeakList getPeakList() {
+		return peakList;
+	}
 
-    public TableCellEditor getCellEditor(int row, int column) {
+	public TableCellEditor getCellEditor(int row, int column) {
 
-        CommonColumnType commonColumn = pkTableModel.getCommonColumn(column);
-        if (commonColumn == CommonColumnType.IDENTITY) {
-            int peakListRowIndex = sorter.modelIndex(row);
-            PeakListRow peakListRow = peakList.getRow(peakListRowIndex);
+		CommonColumnType commonColumn = pkTableModel.getCommonColumn(column);
+		if (commonColumn == CommonColumnType.IDENTITY) {
+			int peakListRowIndex = sorter.modelIndex(row);
+			peakListRow = peakList.getRow(peakListRowIndex);
 
-            CompoundIdentity identities[] = peakListRow.getCompoundIdentities();
-            CompoundIdentity preferredIdentity = peakListRow.getPreferredCompoundIdentity();
-            JComboBox combo;
+			CompoundIdentity identities[] = peakListRow.getCompoundIdentities();
+			CompoundIdentity preferredIdentity = peakListRow
+					.getPreferredCompoundIdentity();
+			JComboBox combo;
 
-            if ((identities != null) && (identities.length > 0)) {
-                combo = new JComboBox(identities);
-                combo.addItem("--------------");
-            } else {
-                combo = new JComboBox();
-            }
+			if ((identities != null) && (identities.length > 0)) {
+				combo = new JComboBox(identities);
+				combo.addItem("--------------");
+			} else {
+				combo = new JComboBox();
+			}
 
-            combo.setFont(comboFont);
+			combo.setFont(comboFont);
 
-            combo.addItem(UNKNOWN_IDENTITY);
-            combo.addItem("Add new...");
-            if (preferredIdentity == null) {
-                combo.setSelectedItem(UNKNOWN_IDENTITY);
-            } else
-                combo.setSelectedItem(preferredIdentity);
+			combo.addItem(UNKNOWN_IDENTITY);
+			combo.addItem(NEW_IDENTITY);
+			if (preferredIdentity == null) {
+				combo.setSelectedItem(UNKNOWN_IDENTITY);
+			} else
+				combo.setSelectedItem(preferredIdentity);
 
-            DefaultCellEditor cellEd = new DefaultCellEditor(combo);
-            return cellEd;
-        }
+			combo.addActionListener(new ActionListener() {
 
-        return super.getCellEditor(row, column);
+				public void actionPerformed(ActionEvent e) {
+					JComboBox combo = (JComboBox) e.getSource();
+					Object item = combo.getSelectedItem();
+					if (item != null) {
+						if (item.toString() == NEW_IDENTITY) {
+							CompoundIdentitySetupDialog dialog = new CompoundIdentitySetupDialog(
+									peakListRow);
+							dialog.setVisible(true);
+						}
+						if (item.toString() == UNKNOWN_IDENTITY) {
+							peakListRow
+									.addCompoundIdentity(new SimpleCompoundIdentity(
+											null, UNKNOWN_IDENTITY, null, null,
+											null, "User defined", null));
+						}
+					}
+				}
+			});
 
-    }
+			DefaultCellEditor cellEd = new DefaultCellEditor(combo);
+			return cellEd;
+		}
+
+		return super.getCellEditor(row, column);
+
+	}
 
 }

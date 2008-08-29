@@ -52,6 +52,7 @@ ActionListener, PropertyChangeListener {
 			}
 			if (fields[i] instanceof JComboBox){
 				((JComboBox) fields[i]).addActionListener(this);
+				continue;
 			}
 
 			fields[i].addPropertyChangeListener("value", this);
@@ -70,17 +71,21 @@ ActionListener, PropertyChangeListener {
 	 */
 	public void actionPerformed(ActionEvent ae) {
 		
+		super.actionPerformed(ae);
+
 		Object src = ae.getSource();
 		if (src instanceof JComboBox){
+			logger.finest("Si dispara action event");
 			setNeutralMassValue();			
 		}
 
-		super.actionPerformed(ae);
 
 	}
 
-	public void propertyChange(PropertyChangeEvent arg0) {
+	public void propertyChange(PropertyChangeEvent pro) {
+		if (pro.getPropertyName() == "value"){
 		setNeutralMassValue();
+		}
 	}
 	
 	private void setNeutralMassValue(){
@@ -93,8 +98,7 @@ ActionListener, PropertyChangeListener {
 		Parameter[] params = parameters.getParameters();
 		for (int i=0; i< params.length; i++) {
 			if (params[i].getName() == "Charge"){
-				Integer o = (Integer) ((JFormattedTextField)fields[i]).getValue();
-				chargeLevel = o.intValue();
+				chargeLevel = Integer.parseInt(((JTextField)fields[i]).getText());
 				continue;
 			}
 			if (params[i].getName() == "Ionization method"){

@@ -185,7 +185,7 @@ class IsotopeGrouperTask implements Task {
             SimpleIsotopePattern isotopePattern = new SimpleIsotopePattern();
             isotopePattern.setCharge(bestFitCharge);
 
-            float maxHeight = 0, minMZ = Float.MAX_VALUE;
+            float maxHeight = Float.MIN_VALUE, minMZ = Float.MAX_VALUE;
 
             for (ChromatographicPeak p : bestFitPeaks) {
                 isotopePattern.addPeak(p);

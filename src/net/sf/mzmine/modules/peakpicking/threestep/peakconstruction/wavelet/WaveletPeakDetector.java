@@ -150,8 +150,15 @@ public class WaveletPeakDetector implements PeakBuilder {
 					// Apply peak filling method
 					if (fillingPeaks) {
 						ChromatographicPeak shapeFilledPeak = peakModel.fillingPeak(p, new float[]{excessLevel});
+						pLength = shapeFilledPeak.getRawDataPointsRTRange().getSize();
+						pHeight = shapeFilledPeak.getHeight();
+						if ((pLength >= minimumPeakDuration)
+								&& (pHeight >= minimumPeakHeight)) {
 						restPeaktoChromatogram(shapeFilledPeak, chromatogram);
 						detectedPeaks.add(shapeFilledPeak);
+						}
+						else
+							detectedPeaks.add(p);
 					} else
 						detectedPeaks.add(p);
 				}
