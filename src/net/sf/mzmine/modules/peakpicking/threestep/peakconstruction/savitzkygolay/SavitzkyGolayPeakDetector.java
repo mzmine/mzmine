@@ -110,6 +110,7 @@ public class SavitzkyGolayPeakDetector implements PeakBuilder {
 	public ChromatographicPeak[] addChromatogram(Chromatogram chromatogram,
 			RawDataFile dataFile) {
 
+
 		maxValueDerivative = 0.0f;
 		float maxIntensity = 0;
 
@@ -174,6 +175,7 @@ public class SavitzkyGolayPeakDetector implements PeakBuilder {
 		}
 
 		return detectedPeaks.toArray(new ChromatographicPeak[0]);
+
 	}
 
 	/**
@@ -372,12 +374,13 @@ public class SavitzkyGolayPeakDetector implements PeakBuilder {
 			scanNumber = mzPeak.getScan().getScanNumber();
 			filledIntensity = mzPeak.getMzPeak().getIntensity();
 			mzValue = chromatogram.getConnectedMzPeak(scanNumber);
-			if (mzValue != null)
+			if (mzValue != null){
 				originalIntensity = mzValue.getMzPeak().getIntensity();
 				restedIntensity = originalIntensity - filledIntensity;
 				if (restedIntensity < 0)
 					restedIntensity = 0;
 				((SimpleMzPeak) mzValue.getMzPeak()).setIntensity(restedIntensity);
+			}
 			
 		}
 	}

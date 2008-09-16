@@ -29,10 +29,12 @@ import net.sf.mzmine.main.MZmineCore;
 
 public class SavitzkyGolayPeakDetectorParameters extends SimpleParameterSet {
 
-	public static final String peakModelNames[] = { "EMG" };
+	public static final String peakModelNames[] = { "Triangle", "Gaussian", "EMG" };
 
 	public static final String peakModelClasses[] = {
-		"net.sf.mzmine.modules.peakpicking.threestep.peakconstruction.peakfillingmodels.impl.EMG" };
+		"net.sf.mzmine.modules.peakpicking.threestep.peakconstruction.peakfillingmodels.impl.TrianglePeakFillingModel",
+		"net.sf.mzmine.modules.peakpicking.threestep.peakconstruction.peakfillingmodels.impl.GaussianPeakFillingModel",
+		"net.sf.mzmine.modules.peakpicking.threestep.peakconstruction.peakfillingmodels.impl.EMGPeakFillingModel" };
 	
 	public static final NumberFormat percentFormat = NumberFormat
 			.getPercentInstance();

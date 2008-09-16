@@ -448,13 +448,13 @@ public class WaveletPeakDetector implements PeakBuilder {
 			scanNumber = mzPeak.getScan().getScanNumber();
 			filledIntensity = mzPeak.getMzPeak().getIntensity();
 			mzValue = chromatogram.getConnectedMzPeak(scanNumber);
-			if (mzValue != null)
+			if (mzValue != null){
 				originalIntensity = mzValue.getMzPeak().getIntensity();
 				restedIntensity = originalIntensity - filledIntensity;
 				if (restedIntensity < 0)
 					restedIntensity = 0;
 				((SimpleMzPeak) mzValue.getMzPeak()).setIntensity(restedIntensity);
-			
+			}
 		}
 	}
 

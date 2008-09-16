@@ -3,12 +3,16 @@ package net.sf.mzmine.modules.peakpicking.threestep.peakconstruction.peakfilling
 import java.util.logging.Logger;
 
 import net.sf.mzmine.data.ChromatographicPeak;
+import net.sf.mzmine.data.RawDataFile;
+import net.sf.mzmine.data.Scan;
+import net.sf.mzmine.data.impl.SimpleDataPoint;
 import net.sf.mzmine.data.impl.SimpleMzPeak;
 import net.sf.mzmine.modules.peakpicking.threestep.peakconstruction.ConnectedPeak;
 import net.sf.mzmine.modules.peakpicking.threestep.peakconstruction.peakfillingmodels.PeakFillingModel;
 import net.sf.mzmine.modules.peakpicking.threestep.xicconstruction.ConnectedMzPeak;
+import net.sf.mzmine.util.Range;
 
-public class EMG implements PeakFillingModel {
+public class EMGPeakFillingModel implements PeakFillingModel {
 
 	private float xRight = -1, xLeft = -1;
 
@@ -30,6 +34,14 @@ public class EMG implements PeakFillingModel {
 		
 		ConnectedMzPeak[] listMzPeaks = ((ConnectedPeak) originalDetectedShape)
 		.getAllMzPeaks();
+		
+		RawDataFile dataFile = originalDetectedShape.getDataFile();
+		Range originalRange = originalDetectedShape.getRawDataPointsRTRange();
+		float rangeSize = originalRange.getSize();
+		float mass = originalDetectedShape.getMZ();
+		Range extendedRange = new Range(originalRange.getMin() - rangeSize,
+				originalRange.getMax() + rangeSize);
+		int[] listScans = dataFile.getScanNumbers(1, extendedRange);
 		
 		float heightMax, RT, C, FWHM, factor;
 
@@ -77,23 +89,44 @@ public class EMG implements PeakFillingModel {
 
 		// Calculate intensity of each point in the shape.
 		float t, shapeHeight;
+		Scan scan;
 
-		t = listMzPeaks[0].getScan().getRetentionTime();
+		float tempIntensity= Float.MIN_VALUE;
+		int indexListMzPeaks = 0;
+		for (int i = 1; i < listMzPeaks.length; i++) {
+			if (listMzPeaks[i].getMzPeak().getIntensity() > tempIntensity){
+				tempIntensity = listMzPeaks[i].getMzPeak().getIntensity();
+				indexListMzPeaks = i;
+			}
+		}
+		
+		ConnectedMzPeak newMzPeak = listMzPeaks[indexListMzPeaks].clone();
+		
+		t = newMzPeak.getScan().getRetentionTime();
 		shapeHeight = calculateEMGIntensity(heightMax, RT, FWHM, Ap, C, t);
-
-		ConnectedMzPeak newMzPeak = listMzPeaks[0].clone();
 		((SimpleMzPeak) newMzPeak.getMzPeak()).setIntensity(shapeHeight);
-
 		ConnectedPeak filledPeak = new ConnectedPeak(originalDetectedShape
 				.getDataFile(), newMzPeak);
 
-		for (int i = 1; i < listMzPeaks.length; i++) {
+		for (int scanIndex : listScans) {
 
-			t = listMzPeaks[i].getScan().getRetentionTime();
+			scan = dataFile.getScan(scanIndex);
+			t = scan.getRetentionTime();
 			shapeHeight = calculateEMGIntensity(heightMax, RT, FWHM, Ap, C, t);
 
-			newMzPeak = listMzPeaks[i].clone();
-			((SimpleMzPeak) newMzPeak.getMzPeak()).setIntensity(shapeHeight);
+			// Level of significance
+			if (shapeHeight < (heightMax * 0.001))
+				continue;
+
+			newMzPeak = getDetectedMzPeak(listMzPeaks, scan);
+			
+			if (newMzPeak != null) {
+				((SimpleMzPeak) newMzPeak.getMzPeak())
+						.setIntensity(shapeHeight);
+			} else {
+				newMzPeak = new ConnectedMzPeak(scan, new SimpleMzPeak(
+						new SimpleDataPoint(mass, shapeHeight)));
+			}
 
 			filledPeak.addMzPeak(newMzPeak);
 		}
@@ -249,6 +282,15 @@ public class EMG implements PeakFillingModel {
 			shapeHeight = 0;
 
 		return shapeHeight;
+	}
+	
+	public ConnectedMzPeak getDetectedMzPeak(ConnectedMzPeak[] listMzPeaks, Scan scan){
+		int scanNumber = scan.getScanNumber();
+		for (int i=0; i<listMzPeaks.length; i++){
+			if (listMzPeaks[i].getScan().getScanNumber() == scanNumber)
+				return listMzPeaks[i].clone();
+		}
+		return null;
 	}
 
 }

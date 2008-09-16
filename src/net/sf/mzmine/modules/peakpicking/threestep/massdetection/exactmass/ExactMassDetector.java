@@ -127,6 +127,8 @@ public class ExactMassDetector implements MassDetector {
     private void getLocalMaxima(Scan scan, TreeSet<SimpleMzPeak> candidatePeaks) {
 
         DataPoint[] scanDataPoints = scan.getDataPoints();
+        if (scanDataPoints.length == 0)
+        	return;
         DataPoint localMaximum = scanDataPoints[0];
         ArrayList<DataPoint> rangeDataPoints = new ArrayList<DataPoint>();
 
