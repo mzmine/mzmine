@@ -36,6 +36,7 @@ public class SimpleCompoundIdentity implements CompoundIdentity, Comparable {
      * @param compoundFormula
      * @param databaseEntryURL
      * @param identificationMethod
+     * @param scopeNote
      */
     public SimpleCompoundIdentity(String compoundID, String compoundName,
             String[] alternateNames, String compoundFormula,

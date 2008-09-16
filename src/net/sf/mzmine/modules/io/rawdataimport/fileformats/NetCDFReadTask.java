@@ -403,7 +403,6 @@ public class NetCDFReadTask implements Task {
         if (massValueVariable.getDataType().getPrimitiveClassType() == float.class) {
             massValues = (float[])massValueArray.copyTo1DJavaArray();
         }
-
         if (massValueVariable.getDataType().getPrimitiveClassType() == double.class) {
             double[] doubleMassValues = (double[])massValueArray.copyTo1DJavaArray();
             massValues = new float[doubleMassValues.length];
@@ -413,24 +412,73 @@ public class NetCDFReadTask implements Task {
 
         float[] intensityValues = null;
 
+        if (intensityValueVariable.getDataType().getPrimitiveClassType() == int.class) {
+            int[] intIntensityValues = (int[])intensityValueArray.copyTo1DJavaArray();
+            intensityValues = new float[intIntensityValues.length];
+            for (int j=0; j<intensityValues.length; j++) { intensityValues[j] = (float)(intIntensityValues[j]); }
+            intIntensityValues = null;
+        }
         if (intensityValueVariable.getDataType().getPrimitiveClassType() == float.class) {
             intensityValues = (float[])intensityValueArray.copyTo1DJavaArray();
         }
-
         if (intensityValueVariable.getDataType().getPrimitiveClassType() == double.class) {
             double[] doubleIntensityValues = (double[])intensityValueArray.copyTo1DJavaArray();
             intensityValues = new float[doubleIntensityValues.length];
             for (int j=0; j<intensityValues.length; j++) { intensityValues[j] = (float)(doubleIntensityValues[j]); }
             doubleIntensityValues = null;
         }
-
-        DataPoint dataPoints[] = new DataPoint[massValues.length];
+        
+        DataPoint completeDataPoints[] = new DataPoint[massValues.length];
+        DataPoint tempDataPoints[] = new DataPoint[massValues.length];
         for (int i = 0; i < massValues.length; i++) {
-            dataPoints[i] = new SimpleDataPoint(massValues[i], intensityValues[i]);
+        	completeDataPoints[i] = new SimpleDataPoint(massValues[i], intensityValues[i]);
         }
+        
+		/*
+		 * This section verifies DataPoints with intensity="0" and exclude
+		 * them from tempDataPoints array. Only accept some of these points
+		 * because they are part the left/right part of the peak.
+		 */
 
-        scanNum++;
-        return new SimpleScan(scanNum, 1, retentionTime.floatValue(), -1, 0, null, dataPoints, false);
+		int i, j;
+		for (i = 0, j = 0; i < completeDataPoints.length; i++) {
+			float intensity = completeDataPoints[i].getIntensity();
+			float mz = completeDataPoints[i].getMZ();
+			if (completeDataPoints[i].getIntensity() > 0) {
+				tempDataPoints[j] = new SimpleDataPoint(mz, intensity);
+				j++;
+				continue;
+			}
+			if ((i > 0) && (completeDataPoints[i - 1].getIntensity() > 0)) {
+				tempDataPoints[j] = new SimpleDataPoint(mz, intensity);
+				j++;
+				continue;
+			}
+			if ((i < completeDataPoints.length - 1)
+					&& (completeDataPoints[i + 1].getIntensity() > 0)) {
+				tempDataPoints[j] = new SimpleDataPoint(mz, intensity);
+				j++;
+				continue;
+			}
+		}
+
+		scanNum++;
+		
+		SimpleScan buildingScan = new SimpleScan(scanNum, 1, retentionTime.floatValue(), -1, 0, null, new DataPoint[0], false);
+		
+		if (i == j) {
+			buildingScan.setCentroided(true);
+			buildingScan.setDataPoints(tempDataPoints);
+		} else {
+			int sizeArray = j;
+			DataPoint[] dataPoints = new DataPoint[j];
+
+			System.arraycopy(tempDataPoints, 0, dataPoints, 0, sizeArray);
+			buildingScan.setDataPoints(dataPoints);
+		}
+
+        //return new SimpleScan(scanNum, 1, retentionTime.floatValue(), -1, 0, null, dataPoints, false);
+		return buildingScan;
     }
 
     /**

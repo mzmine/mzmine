@@ -37,9 +37,14 @@ public class PubChemSearchParameters extends SimpleParameterSet {
 			"Value to use in the search query", null, null,
 			new Float(0.0), null, MZmineCore.getMZFormat());
 
+	public static final Parameter polarizedMol = new SimpleParameter(
+			ParameterType.BOOLEAN, "Polarized molecule",
+			"Search for moleculaes with total charge different to zero", null, false,
+			null, null, null);
+
 	public PubChemSearchParameters() {
 		super(new Parameter[] { rawMass, charge, numOfResults, mzToleranceField,
-				ionizationMethod, neutralMass });
+				ionizationMethod, neutralMass, polarizedMol });
 	}
 	
 }

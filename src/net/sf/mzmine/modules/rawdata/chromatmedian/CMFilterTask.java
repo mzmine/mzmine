@@ -21,6 +21,7 @@ package net.sf.mzmine.modules.rawdata.chromatmedian;
 
 import java.io.IOException;
 import java.util.Vector;
+import java.util.logging.Logger;
 
 import net.sf.mzmine.data.DataPoint;
 import net.sf.mzmine.data.RawDataFile;
@@ -36,6 +37,8 @@ import net.sf.mzmine.util.MathUtils;
  * 
  */
 class CMFilterTask implements Task {
+	
+	private Logger logger = Logger.getLogger(this.getClass().getName());
 
 	private RawDataFile dataFile;
 	private TaskStatus status = TaskStatus.WAITING;
@@ -160,7 +163,7 @@ class CMFilterTask implements Task {
 				Scan sc = scanBuffer[oneSidedWindowLength];
 				if (sc != null) {
 
-					Integer[] dataPointIndices = new Integer[scanBuffer.length];
+					int[] dataPointIndices = new int[scanBuffer.length];
 
 					DataPoint oldDataPoints[] = sc.getDataPoints();
 					DataPoint newDataPoints[] = new DataPoint[oldDataPoints.length];
@@ -176,7 +179,7 @@ class CMFilterTask implements Task {
 
 						// Loop through the buffer
 						for (int bufferIndex = 0; bufferIndex < scanBuffer.length; bufferIndex++) {
-
+							
 							if (status == TaskStatus.CANCELED)
 								return;
 
@@ -184,8 +187,7 @@ class CMFilterTask implements Task {
 									&& (scanBuffer[bufferIndex] != null)) {
 								Object[] res = findClosestDatapointIntensity(
 										mzValue, scanBuffer[bufferIndex],
-										dataPointIndices[bufferIndex]
-												.intValue());
+										dataPointIndices[bufferIndex]);
 								Float closestInt = (Float) (res[0]);
 								dataPointIndices[bufferIndex] = (Integer) (res[1]);
 								if (closestInt != null) {

@@ -21,6 +21,7 @@ package net.sf.mzmine.modules.rawdata.savitzkygolay;
 
 import java.io.IOException;
 import java.util.Hashtable;
+import java.util.logging.Logger;
 
 import net.sf.mzmine.data.DataPoint;
 import net.sf.mzmine.data.RawDataFile;
@@ -35,6 +36,8 @@ import net.sf.mzmine.taskcontrol.Task;
  * 
  */
 class SGFilterTask implements Task {
+	
+	private Logger logger = Logger.getLogger(this.getClass().getName());
 
     private RawDataFile dataFile;
 
@@ -169,10 +172,17 @@ class SGFilterTask implements Task {
 
         int marginSize = (numOfDataPoints + 1) / 2 - 1;
         float sumOfInts;
-
+        
         DataPoint oldDataPoints[] = sc.getDataPoints();
-        DataPoint newDataPoints[] = new DataPoint[oldDataPoints.length
-                - (marginSize * 2)];
+        int newDataPointsLength = oldDataPoints.length - (marginSize * 2);
+        
+        // only process scans with datapoints
+        if (newDataPointsLength < 1) {
+            writer.addScan(sc);
+            return;
+        }
+        
+        DataPoint newDataPoints[] = new DataPoint[newDataPointsLength];
 
         for (int spectrumInd = marginSize; spectrumInd < (oldDataPoints.length - marginSize); spectrumInd++) {
 

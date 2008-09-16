@@ -112,8 +112,8 @@ public class MolStructureViewer extends JDialog implements WindowListener {
 				jcp.getJChemPaintModel().getControllerModel().setDrawMode(
 						Controller2DModel.LASSO);
 				jcp.getJChemPaintModel().getControllerModel().setMovingAllowed(false);
-				jcp.getJChemPaintModel().getRendererModel().setShowExplicitHydrogens(false);
-				jcp.getJChemPaintModel().getRendererModel().setShowImplicitHydrogens(false);
+				jcp.getJChemPaintModel().getRendererModel().setShowExplicitHydrogens(true);
+				jcp.getJChemPaintModel().getRendererModel().setShowImplicitHydrogens(true);
 
 
 			}

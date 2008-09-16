@@ -24,6 +24,7 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 
 import javax.swing.DefaultCellEditor;
+import javax.swing.DefaultComboBoxModel;
 import javax.swing.JComboBox;
 import javax.swing.JTable;
 import javax.swing.table.TableCellEditor;
@@ -45,6 +46,7 @@ import com.sun.java.TableSorter;
 public class PeakListTable extends JTable {
 
 	static final String UNKNOWN_IDENTITY = "Unknown";
+	static final String REMOVE_IDENTITY = "Remove";
 	static final String NEW_IDENTITY = "Add new...";
 
 	private static final Font comboFont = new Font("SansSerif", Font.PLAIN, 10);
@@ -107,7 +109,8 @@ public class PeakListTable extends JTable {
 
 			if ((identities != null) && (identities.length > 0)) {
 				combo = new JComboBox(identities);
-				combo.addItem("--------------");
+				combo.addItem("-------------------------");
+				combo.addItem(REMOVE_IDENTITY);
 			} else {
 				combo = new JComboBox();
 			}
@@ -131,12 +134,29 @@ public class PeakListTable extends JTable {
 							CompoundIdentitySetupDialog dialog = new CompoundIdentitySetupDialog(
 									peakListRow);
 							dialog.setVisible(true);
+							return;
 						}
 						if (item.toString() == UNKNOWN_IDENTITY) {
 							peakListRow
 									.addCompoundIdentity(new SimpleCompoundIdentity(
 											null, UNKNOWN_IDENTITY, null, null,
 											null, "User defined", null));
+							return;
+						}
+						if (item.toString() == REMOVE_IDENTITY) {
+							CompoundIdentity identity = peakListRow
+									.getPreferredCompoundIdentity();
+							if (identity != CompoundIdentity.UNKNOWN_IDENTITY) {
+								peakListRow.removeCompoundIdentity(identity);
+								DefaultComboBoxModel comboModel = (DefaultComboBoxModel) combo
+										.getModel();
+								comboModel.removeElement(identity);
+							}
+							return;
+						}
+						if (item instanceof CompoundIdentity) {
+							peakListRow
+									.setPreferredCompoundIdentity((CompoundIdentity) item);
 						}
 					}
 				}

@@ -91,6 +91,13 @@ public interface PeakListRow {
      * @param identity New compound identity
      */
     public void addCompoundIdentity(CompoundIdentity identity);
+    
+    /**
+     * Remove identity candidate
+     * 
+     * @param identity Compound identity
+     */
+    public void removeCompoundIdentity(CompoundIdentity identity);
 
     /**
      * Returns all candidates for this compound's identity

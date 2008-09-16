@@ -41,7 +41,8 @@ public class PubChemSearchTask implements Task {
 	private int numOfResults;
 	private PubChemSearchWindow window;
 	private PeakList peakList;
-	private boolean singleRow = false;
+	private TypeOfIonization ionName;
+	private boolean singleRow = false, polarizedMol = false;
 
 	PubChemSearchTask(PubChemSearchParameters parameters, PeakList peakList,
 			PeakListRow peakListRow) {
@@ -63,7 +64,10 @@ public class PubChemSearchTask implements Task {
 				.getParameterValue(PubChemSearchParameters.numOfResults);
 		charge = (Integer) parameters
 				.getParameterValue(PubChemSearchParameters.charge);
-		TypeOfIonization ionName = (TypeOfIonization) parameters
+		polarizedMol = (Boolean) parameters
+				.getParameterValue(PubChemSearchParameters.polarizedMol);
+		
+		ionName = (TypeOfIonization) parameters
 		.getParameterValue(PubChemSearchParameters.ionizationMethod);
 		
 		ion = ionName.getMass();
@@ -127,8 +131,15 @@ public class PubChemSearchTask implements Task {
 
 			ESearchResult resSearch;
 			SimpleCompoundIdentity compound;
-			String pubChemID;
+			String pubChemID, complementQuery;
 			int numIDs;
+			
+			if ((polarizedMol) && (ionName.name().equals("No ionization")))
+				complementQuery = "[MonoisotopicMass] AND NOT 0 [CHRG] AND 1:1000000[CID] NOT Cl[Element] NOT Br[Element]";
+			else
+				complementQuery = "[MonoisotopicMass] AND 1:1000000[CID] NOT Cl[Element] NOT Br[Element]";
+				
+			
 			
 			if (singleRow) {
 				Desktop desktop = MZmineCore.getDesktop();
@@ -138,7 +149,7 @@ public class PubChemSearchTask implements Task {
 						.setTerm(String.valueOf(valueOfQuery - range)
 								+ ":"
 								+ String.valueOf(valueOfQuery + range)
-								+ "[MonoisotopicMass] AND 1:1000000[CID] NOT Cl[Element] NOT Br[Element]");
+								+ complementQuery);
 
 				resSearch = eutils_soap.run_eSearch(reqSearch);
 
@@ -173,7 +184,7 @@ public class PubChemSearchTask implements Task {
 					.setTerm(String.valueOf(valueOfQuery - range)
 							+ ":"
 							+ String.valueOf(valueOfQuery + range)
-							+ "[MonoisotopicMass] AND 1:1000000[CID] NOT Cl[Element] NOT Br[Element]");
+							+ complementQuery);
 					resSearch = eutils_soap.run_eSearch(reqSearch);
 
 					// results output

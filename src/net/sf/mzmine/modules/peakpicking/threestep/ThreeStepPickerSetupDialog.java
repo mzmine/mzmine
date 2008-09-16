@@ -27,6 +27,7 @@ import java.awt.Insets;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.util.Arrays;
+import java.util.logging.Logger;
 
 import javax.swing.BorderFactory;
 import javax.swing.JButton;
@@ -51,6 +52,8 @@ import net.sf.mzmine.util.dialogs.ParameterSetupDialog;
  */
 class ThreeStepPickerSetupDialog extends JDialog implements ActionListener {
 
+	private Logger logger = Logger.getLogger(this.getClass().getName());
+
 	private ThreeStepPickerParameters parameters;
 	private ExitCode exitCode = ExitCode.UNKNOWN;
 	private String title;
@@ -61,7 +64,7 @@ class ThreeStepPickerSetupDialog extends JDialog implements ActionListener {
 	private JComboBox comboMassDetectors, comboChromatoBuilder,
 			comboPeaksConstructors;
 	private JTextField txtField;
-	
+
 	public ThreeStepPickerSetupDialog(String title,
 			ThreeStepPickerParameters parameters) {
 
@@ -99,7 +102,7 @@ class ThreeStepPickerSetupDialog extends JDialog implements ActionListener {
 					ThreeStepPickerParameters.chromatogramBuilderNames[ind]
 							+ "'s parameter setup dialog ", parameters
 							.getChromatogramBuilderParameters(ind),
-							ThreeStepPickerParameters.chromatogramBuilderHelpFiles[ind]);
+					ThreeStepPickerParameters.chromatogramBuilderHelpFiles[ind]);
 			;
 
 			dialog.setVisible(true);
@@ -157,7 +160,8 @@ class ThreeStepPickerSetupDialog extends JDialog implements ActionListener {
 		// Elements of Chromatogram builder
 		comboChromatoBuilder = new JComboBox(
 				ThreeStepPickerParameters.chromatogramBuilderNames);
-		comboChromatoBuilder.setSelectedIndex(parameters.getChromatogramBuilderTypeNumber());
+		comboChromatoBuilder.setSelectedIndex(parameters
+				.getChromatogramBuilderTypeNumber());
 		comboChromatoBuilder.addActionListener(this);
 		comboChromatoBuilder.setMaximumSize(new Dimension(200, 30));
 		btnSetChromato = new JButton("Set parameters");
@@ -178,7 +182,8 @@ class ThreeStepPickerSetupDialog extends JDialog implements ActionListener {
 		btnOK.addActionListener(this);
 		btnCancel = new JButton("Cancel");
 		btnCancel.addActionListener(this);
-		btnHelp = new HelpButton("net/sf/mzmine/modules/peakpicking/threestep/help/ThreeStepsDetector.html");
+		btnHelp = new HelpButton(
+				"net/sf/mzmine/modules/peakpicking/threestep/help/ThreeStepsDetector.html");
 
 		JPanel pnlCombo = new JPanel();
 		pnlCombo.setLayout(new GridBagLayout());
@@ -186,7 +191,7 @@ class ThreeStepPickerSetupDialog extends JDialog implements ActionListener {
 		c.fill = GridBagConstraints.HORIZONTAL;
 		c.weighty = 10.0;
 		c.weightx = 10.0;
-		c.insets = new Insets(5,5,5,5);
+		c.insets = new Insets(5, 5, 5, 5);
 		c.gridx = 0;
 		c.gridy = 0;
 		pnlCombo.add(new JLabel("Filename suffix "), c);
@@ -199,32 +204,33 @@ class ThreeStepPickerSetupDialog extends JDialog implements ActionListener {
 		c.gridy = 1;
 		pnlCombo.add(new JLabel("Mass detection"), c);
 		c.gridwidth = 3;
-		c.gridx = 1;		
+		c.gridx = 1;
 		pnlCombo.add(comboMassDetectors, c);
 		c.gridwidth = 1;
-		c.gridx = 4;		
+		c.gridx = 4;
 		pnlCombo.add(btnSetMass, c);
-		
+
 		c.gridx = 0;
 		c.gridy = 2;
-		pnlCombo.add(new JLabel("<HTML>Chromatogram<BR>construction</HTML>"), c);
+		pnlCombo
+				.add(new JLabel("<HTML>Chromatogram<BR>construction</HTML>"), c);
 		c.gridwidth = 3;
-		c.gridx = 1;		
+		c.gridx = 1;
 		pnlCombo.add(comboChromatoBuilder, c);
 		c.gridwidth = 1;
-		c.gridx = 4;		
+		c.gridx = 4;
 		pnlCombo.add(btnSetChromato, c);
-		
+
 		c.gridx = 0;
 		c.gridy = 3;
 		pnlCombo.add(new JLabel("Peak recognition"), c);
 		c.gridwidth = 3;
-		c.gridx = 1;		
+		c.gridx = 1;
 		pnlCombo.add(comboPeaksConstructors, c);
 		c.gridwidth = 1;
-		c.gridx = 4;		
+		c.gridx = 4;
 		pnlCombo.add(btnSetPeak, c);
-		
+
 		c.gridx = 1;
 		c.gridy = 4;
 		pnlCombo.add(btnOK, c);
@@ -232,8 +238,7 @@ class ThreeStepPickerSetupDialog extends JDialog implements ActionListener {
 		pnlCombo.add(btnCancel, c);
 		c.gridx = 3;
 		pnlCombo.add(btnHelp, c);
-		
-		
+
 		// Panel where everything is collected
 		JPanel pnlAll = new JPanel(new BorderLayout());
 		pnlAll.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
@@ -269,12 +274,17 @@ class ThreeStepPickerSetupDialog extends JDialog implements ActionListener {
 					break;
 				}
 
-				int index = dataFiles[i].getScanNumbers(1)[0];
-				Scan scan = dataFiles[i].getScan(index);
-
-				if (scan.isCentroided()) {
-					centroid = true;
-					break;
+				Scan scan;
+				int[] indexArray = dataFiles[i].getScanNumbers(1);
+				int increment = indexArray.length / 10;
+				
+				// Verify if the current DataFile contains centroided scans
+				for (int j = 0; j < indexArray.length; j += increment) {
+					scan = dataFiles[i].getScan(indexArray[j]);
+					if (scan.isCentroided()) {
+						centroid = true;
+						break;
+					}
 				}
 			}
 

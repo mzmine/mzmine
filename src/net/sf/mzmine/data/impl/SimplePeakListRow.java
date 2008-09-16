@@ -23,6 +23,7 @@ import java.text.Format;
 import java.util.Enumeration;
 import java.util.HashSet;
 import java.util.Hashtable;
+import java.util.logging.Logger;
 
 import net.sf.mzmine.data.ChromatographicPeak;
 import net.sf.mzmine.data.CompoundIdentity;
@@ -35,7 +36,7 @@ import net.sf.mzmine.main.MZmineCore;
  * 
  */
 public class SimplePeakListRow implements PeakListRow {
-
+	
     private Hashtable<RawDataFile, ChromatographicPeak> peaks;
     private Hashtable<RawDataFile, ChromatographicPeak> originalPeaks;
     private HashSet<CompoundIdentity> identities;
@@ -182,8 +183,24 @@ public class SimplePeakListRow implements PeakListRow {
      */
     public void addCompoundIdentity(CompoundIdentity identity) {
         identities.add(identity);
-        if (preferredIdentity == null)
+        if (preferredIdentity == CompoundIdentity.UNKNOWN_IDENTITY){
             setPreferredCompoundIdentity(identity);
+        }
+    }
+
+    /**
+     * @see net.sf.mzmine.data.PeakListRow#addCompoundIdentity(net.sf.mzmine.data.CompoundIdentity)
+     */
+    public void removeCompoundIdentity(CompoundIdentity identity) {
+        identities.remove(identity);
+        if (preferredIdentity == identity){
+        	if (identities.size()> 0){
+        		CompoundIdentity[] identitiesArray = identities.toArray(new CompoundIdentity[0]);
+        		setPreferredCompoundIdentity(identitiesArray[0]);
+        	}
+        	else
+        		preferredIdentity = CompoundIdentity.UNKNOWN_IDENTITY;
+        }
     }
 
     /**
@@ -204,6 +221,7 @@ public class SimplePeakListRow implements PeakListRow {
      * @see net.sf.mzmine.data.PeakListRow#setPreferredCompoundIdentity(net.sf.mzmine.data.CompoundIdentity)
      */
     public void setPreferredCompoundIdentity(CompoundIdentity identity) {
+       	if (identity != null)
         preferredIdentity = identity;
     }
 

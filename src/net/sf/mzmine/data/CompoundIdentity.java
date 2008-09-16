@@ -69,5 +69,12 @@ public interface CompoundIdentity {
      * @return Database entry URL
      */
     public String getDatabaseEntryURL();
+    
+    /**
+     * Returns a String with information about this compound.
+     * 
+     * @return String 
+     */
+    public String toString();
 
 }
