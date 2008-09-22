@@ -69,6 +69,7 @@
 		
 		<copy todir="${dist}/lib">
 			<fileset file="${lib}/*.jar" />
+			<fileset file="${lib}/*.dll" />
 		</copy>
 
 		<jar destfile="${dist}/MZmine2.jar" manifest="${manifest}">
