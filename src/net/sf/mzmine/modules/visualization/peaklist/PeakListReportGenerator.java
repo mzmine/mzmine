@@ -153,6 +153,10 @@ class PeakListReportGenerator {
                 newElementFac = textFac;
                 break;
 
+            default: 
+                // Ignore unknown columns
+                return;
+
             }
         }
         
@@ -247,7 +251,11 @@ class PeakListReportGenerator {
                 intFac.setFormat(MZmineCore.getIntensityFormat());
                 newElementFac = intFac;
                 break;
-
+            
+            default: 
+                // Ignore unknown columns
+                return;
+            
             }
 
         }
