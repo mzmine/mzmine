@@ -136,8 +136,8 @@ public class JChemPanelLight extends JChemPaintEditorPanel {
 				String eval = "";
 				for (int f = 0; f < selectedPart.getAtomCount(); f++) {
 					atom = selectedPart.getAtom(f);
-					eval += "select  atomX=" + atom.getPoint2d().getX();
-					eval += "; color atom yellow;";
+					eval += "select  atomX=" + atom.getPoint2d().x;
+                    eval += "; color atom yellow;";
 					mass += (float) atom.getExactMass();
 				}
 				status = "<html>" + formula + "  Mass: " + mass + "</html>";
