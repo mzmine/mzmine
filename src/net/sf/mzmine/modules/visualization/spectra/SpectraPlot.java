@@ -168,10 +168,12 @@ public class SpectraPlot extends ChartPanel {
 		continuousRenderer.setBaseShapesVisible(false);
 
 		centroidRenderer = new XYBarRenderer();
+        centroidRenderer.setShadowVisible(false);
 		centroidRenderer.setSeriesShape(0, dataPointsShape);
 		centroidRenderer.setSeriesPaint(0, plotColor);
 
 		peakListRenderer = new XYBarRenderer();
+        peakListRenderer.setShadowVisible(false);
 		peakListRenderer.setSeriesPaint(0, pickedPeaksColor);
 
 		// set label generator
