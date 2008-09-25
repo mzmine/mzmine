@@ -21,10 +21,13 @@ package net.sf.mzmine.modules.visualization.spectra;
 
 import java.util.Vector;
 
-import net.sf.mzmine.data.DataPoint;
 import net.sf.mzmine.data.ChromatographicPeak;
+import net.sf.mzmine.data.DataPoint;
+import net.sf.mzmine.data.IsotopePattern;
 import net.sf.mzmine.data.PeakList;
 import net.sf.mzmine.data.RawDataFile;
+import net.sf.mzmine.data.impl.SimpleIsotopePattern;
+import net.sf.mzmine.util.Range;
 
 import org.jfree.data.xy.AbstractXYDataset;
 import org.jfree.data.xy.IntervalXYDataset;
@@ -38,6 +41,9 @@ public class PeakListDataSet extends AbstractXYDataset implements IntervalXYData
 
     private ChromatographicPeak displayedPeaks[];
     private float mzValues[], intensityValues[];
+    private boolean isotopeFlag;
+    private String label;
+    private float thickness = 0.001f;
 
     public PeakListDataSet(RawDataFile dataFile, int scanNumber, PeakList peakList) {
 
@@ -60,7 +66,32 @@ public class PeakListDataSet extends AbstractXYDataset implements IntervalXYData
             mzValues[i] = displayedPeaks[i].getMzPeak(scanNumber).getMZ();
             intensityValues[i] = displayedPeaks[i].getMzPeak(scanNumber).getIntensity();
         }
+        
+        isotopeFlag = false;
+        label = "Identified peaks";
 
+    }
+
+    public PeakListDataSet(IsotopePattern isotopePattern) {
+
+    	displayedPeaks = isotopePattern.getOriginalPeaks();
+
+        mzValues = new float[displayedPeaks.length];
+        intensityValues = new float[displayedPeaks.length];
+
+        for (int i = 0; i < displayedPeaks.length; i++) {
+            mzValues[i] = displayedPeaks[i].getMZ();
+            intensityValues[i] = displayedPeaks[i].getHeight();
+        }
+
+        isotopeFlag = true;
+        
+    	label = "Isotopes ("+ ((SimpleIsotopePattern) isotopePattern).getNumberOfIsotopes()
+		+ ") "+ isotopePattern.getIsotopeInfo();
+    }
+    
+    public boolean isIsotopeDataSet(){
+    	return isotopeFlag;
     }
 
     @Override public int getSeriesCount() {
@@ -68,7 +99,7 @@ public class PeakListDataSet extends AbstractXYDataset implements IntervalXYData
     }
 
     @Override public Comparable getSeriesKey(int series) {
-        return null;
+        return label;
     }
 
     public PeakList getPeakList() {
@@ -92,11 +123,22 @@ public class PeakListDataSet extends AbstractXYDataset implements IntervalXYData
     }
 
     public Number getEndX(int series, int item) {
-        return getX(series, item);
+    	/*Range mzRange = displayedPeaks[item].getRawDataPointsMZRange();
+    	float origin = getX(series, item).floatValue();
+    	float extended = mzRange.getMax() - origin;
+    	extended /= 10.0f;
+    	return origin + extended;*/
+        return getX(series, item).floatValue() + thickness;
     }
 
     public double getEndXValue(int series, int item) {
-        return getXValue(series, item);
+    	/*Range mzRange = displayedPeaks[item].getRawDataPointsMZRange();
+    	float origin = getX(series, item).floatValue();
+    	float extended = mzRange.getMax() - origin;
+    	extended /= 10.0f;
+    	return origin + extended;*/
+        return getX(series, item).floatValue() + thickness;
+        //return getXValue(series, item);
     }
 
     public Number getEndY(int series, int item) {
@@ -108,11 +150,23 @@ public class PeakListDataSet extends AbstractXYDataset implements IntervalXYData
     }
 
     public Number getStartX(int series, int item) {
-        return getX(series, item);
+    	/*Range mzRange = displayedPeaks[item].getRawDataPointsMZRange();
+    	float origin = getX(series, item).floatValue();
+    	float extended = origin - mzRange.getMin();
+    	extended /= 10.0f;
+    	return origin - extended;*/
+        return getX(series, item).floatValue() - thickness;
+    	//return getX(series, item);
     }
 
     public double getStartXValue(int series, int item) {
-        return getXValue(series, item);
+    	/*Range mzRange = displayedPeaks[item].getRawDataPointsMZRange();
+    	float origin = getX(series, item).floatValue();
+    	float extended = origin - mzRange.getMin();
+    	extended /= 10.0f;
+    	return origin - extended;*/
+        return getX(series, item).floatValue() - thickness;
+        //return getXValue(series, item);
     }
 
     public Number getStartY(int series, int item) {
@@ -121,6 +175,10 @@ public class PeakListDataSet extends AbstractXYDataset implements IntervalXYData
 
     public double getStartYValue(int series, int item) {
         return getYValue(series, item);
+    }
+    
+    public void setThickness(float thickness){
+    	this.thickness = thickness;
     }
 
 }

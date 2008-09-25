@@ -19,6 +19,7 @@
 
 package net.sf.mzmine.modules.peakpicking.threestep.peakconstruction;
 
+import java.util.Iterator;
 import java.util.TreeMap;
 import java.util.Vector;
 
@@ -271,6 +272,11 @@ public class ConnectedPeak implements ChromatographicPeak {
 	 */
 	public String toString() {
         return PeakUtils.peakToString(this);
+	}
+
+	public int getRepresentativeScanNumber() {
+		Range range = new Range(rt);
+		return dataFile.getScanNumbers(1, range)[0];
 	}
 
 

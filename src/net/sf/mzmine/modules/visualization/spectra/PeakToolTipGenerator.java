@@ -43,20 +43,28 @@ class PeakToolTipGenerator implements XYToolTipGenerator {
      */
     public String generateToolTip(XYDataset dataset, int series, int item) {
 
+    	String tooltip = null;
         PeakListDataSet peakListDataSet = (PeakListDataSet) dataset;
-
-        PeakList peakList = peakListDataSet.getPeakList();
-        ChromatographicPeak peak = peakListDataSet.getPeak(series, item);
-        PeakListRow row = peakList.getPeakRow(peak);
         double intValue = dataset.getYValue(series, item);
         double mzValue = dataset.getXValue(series, item);
-
-        String tooltip = "<html>" + "Peak: " + peak + "<br>Status: "
-                + peak.getPeakStatus() + "<br>Peak list row: " + row
-                + "<br>Data point m/z: " + mzFormat.format(mzValue)
-                + "<br>Data point intensity: "
-                + intensityFormat.format(intValue) + "</html>";
-
+        ChromatographicPeak peak = peakListDataSet.getPeak(series, item);
+        
+        if (peakListDataSet.isIsotopeDataSet()){
+            tooltip = "<html>" + "Peak: " + peak + "<br>Status: "
+            + peak.getPeakStatus() + "<br>Data point m/z: " + mzFormat.format(mzValue)
+            + "<br>Data point intensity: "
+            + intensityFormat.format(intValue) + "</html>";
+        }
+        else{
+            PeakList peakList = peakListDataSet.getPeakList();
+            PeakListRow row = peakList.getPeakRow(peak);
+            tooltip = "<html>" + "Peak: " + peak + "<br>Status: "
+                    + peak.getPeakStatus() + "<br>Peak list row: " + row
+                    + "<br>Data point m/z: " + mzFormat.format(mzValue)
+                    + "<br>Data point intensity: "
+                    + intensityFormat.format(intValue) + "</html>";
+        }
+        
         return tooltip;
 
     }

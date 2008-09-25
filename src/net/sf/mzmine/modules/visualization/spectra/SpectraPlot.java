@@ -28,6 +28,8 @@ import java.awt.event.ActionListener;
 import java.awt.event.MouseEvent;
 import java.awt.geom.Ellipse2D;
 import java.text.NumberFormat;
+import java.util.HashMap;
+import java.util.Iterator;
 
 import javax.swing.JInternalFrame;
 import javax.swing.JPopupMenu;
@@ -37,25 +39,30 @@ import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.modules.peakpicking.threestep.massdetection.MassDetectorSetupDialog;
 import net.sf.mzmine.util.GUIUtils;
 import net.sf.mzmine.util.dialogs.AxesSetupDialog;
+import net.sf.mzmine.util.dialogs.ThicknessSetupDialog;
 
 import org.jfree.chart.ChartFactory;
 import org.jfree.chart.ChartPanel;
 import org.jfree.chart.JFreeChart;
 import org.jfree.chart.axis.NumberAxis;
+import org.jfree.chart.block.BlockBorder;
 import org.jfree.chart.labels.XYToolTipGenerator;
 import org.jfree.chart.plot.DatasetRenderingOrder;
 import org.jfree.chart.plot.PlotOrientation;
 import org.jfree.chart.plot.XYPlot;
+import org.jfree.chart.renderer.xy.StandardXYBarPainter;
 import org.jfree.chart.renderer.xy.XYBarRenderer;
 import org.jfree.chart.renderer.xy.XYLineAndShapeRenderer;
+import org.jfree.chart.title.LegendTitle;
 import org.jfree.chart.title.TextTitle;
+import org.jfree.data.general.DatasetChangeEvent;
 import org.jfree.ui.RectangleInsets;
 
 /**
  * 
  */
 public class SpectraPlot extends ChartPanel {
-
+	
 	private JFreeChart chart;
 
 	private XYPlot plot;
@@ -69,6 +76,10 @@ public class SpectraPlot extends ChartPanel {
 	// plot color
 	private static final Color plotColor = new Color(0, 0, 192);
 
+	// plot colors for plotted files, circulated by numberOfDataSets
+	private static final Color[] plotColors = { Color.pink,
+			Color.magenta, Color.cyan, Color.orange };
+	
 	// picked peaks color
 	private static final Color pickedPeaksColor = Color.red;
 
@@ -87,18 +98,33 @@ public class SpectraPlot extends ChartPanel {
 	private static final Font subTitleFont = new Font("SansSerif", Font.PLAIN,
 			11);
 	private TextTitle chartTitle, chartSubTitle;
+
+	private static final float zoomCoefficient = 1.2f;
 	
-    private static final float zoomCoefficient = 1.2f;
+	// datasets counter
+	private int numOfPeakDataSets = 1;
+
+	// legend
+	private LegendTitle legend;
+	private static final Font legendFont = new Font("SansSerif", Font.PLAIN, 11);
+
+	private boolean isotopeFlag;
+	
+	private float thickness = 0.0010f;
 
 	XYBarRenderer centroidRenderer, peakListRenderer;
 	XYLineAndShapeRenderer continuousRenderer;
+	XYToolTipGenerator peakToolTipGenerator;
+	HashMap<Integer, XYBarRenderer> peakRendererMap;
 
-	public SpectraPlot(ActionListener masterPlot) {
+	public SpectraPlot(ActionListener masterPlot, SpectraVisualizerType type) {
 
 		super(null, true);
 
 		setBackground(Color.white);
 		setCursor(Cursor.getPredefinedCursor(Cursor.CROSSHAIR_CURSOR));
+		peakRendererMap = new HashMap<Integer, XYBarRenderer>();
+		isotopeFlag = type == SpectraVisualizerType.ISOTOPE;
 
 		// initialize the chart by default time series chart from factory
 		chart = ChartFactory.createXYLineChart("", // title
@@ -106,7 +132,7 @@ public class SpectraPlot extends ChartPanel {
 				"Intensity", // y-axis label
 				null, // data set
 				PlotOrientation.VERTICAL, // orientation
-				false, // create legend?
+				isotopeFlag, // create legend?
 				true, // generate tooltips?
 				false // generate URLs?
 				);
@@ -122,6 +148,13 @@ public class SpectraPlot extends ChartPanel {
 		chartSubTitle.setFont(subTitleFont);
 		chartSubTitle.setMargin(5, 0, 0, 0);
 		chart.addSubtitle(chartSubTitle);
+
+		// legend constructed by ChartFactory
+		if (isotopeFlag) {
+			legend = chart.getLegend();
+			legend.setItemFont(legendFont);
+			legend.setFrame(BlockBorder.NONE);
+		}
 
 		// disable maximum size (we don't want scaling)
 		setMaximumDrawWidth(Integer.MAX_VALUE);
@@ -172,10 +205,6 @@ public class SpectraPlot extends ChartPanel {
 		centroidRenderer.setSeriesShape(0, dataPointsShape);
 		centroidRenderer.setSeriesPaint(0, plotColor);
 
-		peakListRenderer = new XYBarRenderer();
-        peakListRenderer.setShadowVisible(false);
-		peakListRenderer.setSeriesPaint(0, pickedPeaksColor);
-
 		// set label generator
 		SpectraItemLabelGenerator labelGenerator = new SpectraItemLabelGenerator(
 				this);
@@ -191,8 +220,10 @@ public class SpectraPlot extends ChartPanel {
 		continuousRenderer.setBaseToolTipGenerator(spectraToolTipGenerator);
 		centroidRenderer.setBaseToolTipGenerator(spectraToolTipGenerator);
 
-		PeakToolTipGenerator peakToolTipGenerator = new PeakToolTipGenerator();
-		peakListRenderer.setBaseToolTipGenerator(peakToolTipGenerator);
+		peakToolTipGenerator = new PeakToolTipGenerator();
+		
+		XYBarRenderer.setDefaultBarPainter(new StandardXYBarPainter());
+
 
 		// set focusable state to receive key events
 		setFocusable(true);
@@ -209,7 +240,7 @@ public class SpectraPlot extends ChartPanel {
 
 		// add items to popup menu
 		JPopupMenu popupMenu = getPopupMenu();
-		
+
 		popupMenu.addSeparator();
 
 		GUIUtils.addMenuItem(popupMenu, "Toggle centroid/continuous mode",
@@ -225,17 +256,17 @@ public class SpectraPlot extends ChartPanel {
 		popupMenu.addSeparator();
 
 		GUIUtils.addMenuItem(popupMenu, "Set axes range", this, "SETUP_AXES");
-		
+
 		if (!(masterPlot instanceof MassDetectorSetupDialog))
-		GUIUtils.addMenuItem(popupMenu, "Set same range to all windows",
-				this, "SET_SAME_RANGE");
+			GUIUtils.addMenuItem(popupMenu, "Set same range to all windows",
+					this, "SET_SAME_RANGE");
 
 	}
 
 	public void actionPerformed(ActionEvent event) {
 
 		super.actionPerformed(event);
-		
+
 		String command = event.getActionCommand();
 
 		if (command.equals("TOGGLE_PLOT_MODE")) {
@@ -265,21 +296,26 @@ public class SpectraPlot extends ChartPanel {
 			dialog.setVisible(true);
 		}
 
-		if ((command.equals("ZOOM_IN")) || (command.equals("ZOOM_IN_BOTH_COMMAND"))) {
+		if (command.equals("THICKNESS")) {
+			ThicknessSetupDialog dialog = new ThicknessSetupDialog(this);
+			dialog.setVisible(true);
+		}
+
+		if ((command.equals("ZOOM_IN"))
+				|| (command.equals("ZOOM_IN_BOTH_COMMAND"))) {
 			this.getXYPlot().getDomainAxis().resizeRange(1 / zoomCoefficient);
 		}
 
-		if ((command.equals("ZOOM_OUT")) || (command.equals("ZOOM_OUT_BOTH_COMMAND"))) {
+		if ((command.equals("ZOOM_OUT"))
+				|| (command.equals("ZOOM_OUT_BOTH_COMMAND"))) {
 			this.getXYPlot().getDomainAxis().resizeRange(zoomCoefficient);
 		}
 
 		if (command.equals("SET_SAME_RANGE")) {
 
 			// Get current axes range
-			NumberAxis xAxis = (NumberAxis) this.getXYPlot()
-					.getDomainAxis();
-			NumberAxis yAxis = (NumberAxis) this.getXYPlot()
-					.getRangeAxis();
+			NumberAxis xAxis = (NumberAxis) this.getXYPlot().getDomainAxis();
+			NumberAxis yAxis = (NumberAxis) this.getXYPlot().getRangeAxis();
 			float xMin = (float) xAxis.getRange().getLowerBound();
 			float xMax = (float) xAxis.getRange().getUpperBound();
 			float xTick = (float) xAxis.getTickUnit().getSize();
@@ -288,7 +324,8 @@ public class SpectraPlot extends ChartPanel {
 			float yTick = (float) yAxis.getTickUnit().getSize();
 
 			// Get all frames of my class
-			JInternalFrame spectraFrames[] = MZmineCore.getDesktop().getInternalFrames();
+			JInternalFrame spectraFrames[] = MZmineCore.getDesktop()
+					.getInternalFrames();
 
 			// Set the range of these frames
 			for (JInternalFrame frame : spectraFrames) {
@@ -328,7 +365,6 @@ public class SpectraPlot extends ChartPanel {
 				.getBaseItemLabelsVisible();
 		centroidRenderer.setBaseItemLabelsVisible(!itemLabelsVisible);
 		continuousRenderer.setBaseItemLabelsVisible(!itemLabelsVisible);
-		peakListRenderer.setBaseItemLabelsVisible(!itemLabelsVisible);
 	}
 
 	public void switchDataPointsVisible() {
@@ -339,16 +375,31 @@ public class SpectraPlot extends ChartPanel {
 	}
 
 	public boolean getPickedPeaksVisible() {
-		Boolean pickedPeaksVisible = peakListRenderer.getBaseSeriesVisible();
-		if (pickedPeaksVisible == null)
+
+		if (peakRendererMap.size() == 0)
 			return true;
+
+		Boolean pickedPeaksVisible = false;
+		Iterator<Integer> itr = peakRendererMap.keySet().iterator();
+		int key;
+		while(itr.hasNext()){
+			key = itr.next();
+			if (peakRendererMap.get(key).getBaseSeriesVisible()){
+				return true;
+			}
+		}
 		return pickedPeaksVisible;
 	}
 
 	public void switchPickedPeaksVisible() {
 
 		boolean pickedPeaksVisible = getPickedPeaksVisible();
-		peakListRenderer.setBaseSeriesVisible(!pickedPeaksVisible);
+		Iterator<Integer> itr = peakRendererMap.keySet().iterator();
+		int key;
+		while(itr.hasNext()){
+			key = itr.next();
+			peakRendererMap.get(key).setBaseSeriesVisible(!pickedPeaksVisible);
+		}
 
 	}
 
@@ -373,7 +424,7 @@ public class SpectraPlot extends ChartPanel {
 		requestFocus();
 	}
 
-	public void setDataSets(ScanDataSet scanData, PeakListDataSet peakListData) {
+	public void setSpectrumDataSet(SpectraDataSet scanData) {
 
 		plot.setDataset(0, scanData);
 		if (plotMode == PlotMode.CENTROID)
@@ -381,13 +432,48 @@ public class SpectraPlot extends ChartPanel {
 		else
 			plot.setRenderer(0, continuousRenderer);
 
-		if (peakListData != null) {
-			plot.setDataset(1, peakListData);
-			plot.setRenderer(1, peakListRenderer);
-		}
-
 	}
+	
+	public void addPeaksDataSet(PeakListDataSet peakDataSet){
+		Color rendererColor;
+		peakDataSet.setThickness (thickness);
+		plot.setDataset(numOfPeakDataSets, peakDataSet);
+		XYBarRenderer newRenderer = new XYBarRenderer();
+		
+		if (isotopeFlag)
+		 rendererColor = plotColors[numOfPeakDataSets % plotColors.length];
+		else
+			rendererColor = pickedPeaksColor;
+		
+		newRenderer.setSeriesPaint(0, rendererColor);
+		newRenderer.setBaseToolTipGenerator(peakToolTipGenerator);
+		newRenderer.setBaseItemLabelPaint(rendererColor);
+		newRenderer.setShadowVisible(false);
+		plot.setRenderer(numOfPeakDataSets, newRenderer);
+		peakRendererMap.put(numOfPeakDataSets, newRenderer);
+
+		if (isotopeFlag)
+			numOfPeakDataSets++;		
+	}
+
 	public void setPeakToolTipGenerator(XYToolTipGenerator peakToolTipGenerator) {
-		this.peakListRenderer.setBaseToolTipGenerator(peakToolTipGenerator);
+		this.peakToolTipGenerator = peakToolTipGenerator;
+	}
+	
+	public void setThicknessBar(float thickness){
+		this.thickness = thickness;
+		int dataSetCount = plot.getDatasetCount();
+		
+		for (int i=1; i<dataSetCount; i++){
+			((PeakListDataSet)plot.getDataset(i)).setThickness(thickness);
+		}
+		
+		plot.datasetChanged(
+				new DatasetChangeEvent(this, plot.getDataset(0)));
+		
+	}
+	
+	public float getThicknessBar(){
+		return thickness;
 	}
 }

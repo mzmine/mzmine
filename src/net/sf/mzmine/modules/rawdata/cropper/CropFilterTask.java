@@ -143,7 +143,7 @@ class CropFilterTask implements Task {
                     }
 
                     // Pickup datapoints inside the m/z range
-                    DataPoint croppedDataPoints[] = oldScan.getDataPoints(mzRange);
+                    DataPoint croppedDataPoints[] = oldScan.getDataPointsByMass(mzRange);
 
                     // Create updated scan
                     SimpleScan newScan = new SimpleScan(oldScan);

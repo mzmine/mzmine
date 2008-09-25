@@ -19,10 +19,12 @@
 
 package net.sf.mzmine.data;
 
+import net.sf.mzmine.util.Range;
+
 /**
  * This interface defines the properties of a deisotoped peak
  */
-public interface IsotopePattern extends ChromatographicPeak {
+public interface IsotopePattern extends ChromatographicPeak, MzDataTable {
 
     public static final int UNKNOWN_CHARGE = -1;
 
@@ -46,6 +48,16 @@ public interface IsotopePattern extends ChromatographicPeak {
      * Mass is calculated from m/z ratio. If charge cannot be determined from
      * isotope distance, the m/z value is returned (charge is assumed to be 1).
      */
-    public float getMass();
+    public float getIsotopeMass();
+    
+    /**
+     * Returns the m/z range of the pattern
+     */
+    public Range getIsotopeMzRange();
+
+    /**
+     * Returns info about this pattern
+     */
+    public String getIsotopeInfo();
 
 }

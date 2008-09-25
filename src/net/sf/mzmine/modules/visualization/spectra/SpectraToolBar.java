@@ -34,68 +34,75 @@ import net.sf.mzmine.util.GUIUtils;
  */
 public class SpectraToolBar extends JToolBar {
 
-    static final Icon centroidIcon = new ImageIcon("icons/centroidicon.png");
-    static final Icon continuousIcon = new ImageIcon("icons/continuousicon.png");
-    static final Icon dataPointsIcon = new ImageIcon("icons/datapointsicon.png");
-    static final Icon annotationsIcon = new ImageIcon("icons/annotationsicon.png");
-    static final Icon pickedPeakIcon = new ImageIcon("icons/pickedpeakicon.png");
-    static final Icon axesIcon = new ImageIcon("icons/axesicon.png");
-    
-    private JButton centroidContinuousButton, dataPointsButton, peaksButton, axesButton;
+	static final Icon centroidIcon = new ImageIcon("icons/centroidicon.png");
+	static final Icon continuousIcon = new ImageIcon("icons/continuousicon.png");
+	static final Icon dataPointsIcon = new ImageIcon("icons/datapointsicon.png");
+	static final Icon annotationsIcon = new ImageIcon(
+			"icons/annotationsicon.png");
+	static final Icon pickedPeakIcon = new ImageIcon("icons/pickedpeakicon.png");
+	static final Icon axesIcon = new ImageIcon("icons/axesicon.png");
+	static final Icon thicknessIcon = new ImageIcon("icons/thicknessicon.png");
 
-    public SpectraToolBar(SpectraPlot plot) {
+	private JButton centroidContinuousButton, dataPointsButton, peaksButton,
+			axesButton, thicknessButton;
 
-        super(JToolBar.VERTICAL);
+	public SpectraToolBar(SpectraPlot plot, SpectraVisualizerType type) {
 
-        setFloatable(false);
-        setFocusable(false);
-        setMargin(new Insets(5, 5, 5, 5));
-        setBackground(Color.white);
+		super(JToolBar.VERTICAL);
 
-        centroidContinuousButton = GUIUtils.addButton(this, null, centroidIcon,
-        		plot, "TOGGLE_PLOT_MODE",
-                "Toggle centroid/continuous mode");
+		setFloatable(false);
+		setFocusable(false);
+		setMargin(new Insets(5, 5, 5, 5));
+		setBackground(Color.white);
 
-        addSeparator();
+		centroidContinuousButton = GUIUtils.addButton(this, null, centroidIcon,
+				plot, "TOGGLE_PLOT_MODE", "Toggle centroid/continuous mode");
 
-        dataPointsButton = GUIUtils.addButton(this, null, dataPointsIcon,
-        		plot, "SHOW_DATA_POINTS",
-                "Toggle displaying of data points  in continuous mode");
+		addSeparator();
 
-        addSeparator();
+		dataPointsButton = GUIUtils.addButton(this, null, dataPointsIcon, plot,
+				"SHOW_DATA_POINTS",
+				"Toggle displaying of data points  in continuous mode");
 
-        GUIUtils.addButton(this, null, annotationsIcon, plot,
-                "SHOW_ANNOTATIONS", "Toggle displaying of peak values");
+		addSeparator();
 
-        addSeparator();
+		GUIUtils.addButton(this, null, annotationsIcon, plot,
+				"SHOW_ANNOTATIONS", "Toggle displaying of peak values");
 
-        peaksButton = GUIUtils.addButton(this, null, pickedPeakIcon, plot,
-                "SHOW_PICKED_PEAKS", "Toggle displaying of picked peaks");
-        
-        addSeparator();
-        
-        axesButton = GUIUtils.addButton(this, null, axesIcon, plot,
-                "SETUP_AXES", "Setup ranges for axes");
-        
+		addSeparator();
 
-    }
+		peaksButton = GUIUtils.addButton(this, null, pickedPeakIcon, plot,
+				"SHOW_PICKED_PEAKS", "Toggle displaying of picked peaks");
 
-    public void setCentroidButton(boolean centroid) {
-        if (centroid) {
-            centroidContinuousButton.setIcon(centroidIcon);
-            dataPointsButton.setEnabled(true);
-        } else {
-            centroidContinuousButton.setIcon(continuousIcon);
-            dataPointsButton.setEnabled(false);
-        }
-    }
-    
-    public void setPeaksButtonEnabled(boolean enabled) {
-        peaksButton.setEnabled(enabled);
-    }
+		addSeparator();
 
-    public void setAxesButtonEnabled(boolean enabled) {
-    	axesButton.setEnabled(enabled);
-    }
+		axesButton = GUIUtils.addButton(this, null, axesIcon, plot,
+				"SETUP_AXES", "Setup ranges for axes");
+
+		if (type == SpectraVisualizerType.ISOTOPE) {
+			addSeparator();
+			
+			thicknessButton = GUIUtils.addButton(this, null, thicknessIcon, plot,
+					"THICKNESS", "Setup thickness of isotope bar");
+		}
+	}
+
+	public void setCentroidButton(boolean centroid) {
+		if (centroid) {
+			centroidContinuousButton.setIcon(centroidIcon);
+			dataPointsButton.setEnabled(true);
+		} else {
+			centroidContinuousButton.setIcon(continuousIcon);
+			dataPointsButton.setEnabled(false);
+		}
+	}
+
+	public void setPeaksButtonEnabled(boolean enabled) {
+		peaksButton.setEnabled(enabled);
+	}
+
+	public void setAxesButtonEnabled(boolean enabled) {
+		axesButton.setEnabled(enabled);
+	}
 
 }

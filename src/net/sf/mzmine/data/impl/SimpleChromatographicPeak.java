@@ -20,6 +20,7 @@
 package net.sf.mzmine.data.impl;
 
 import java.util.Arrays;
+import java.util.Iterator;
 
 import net.sf.mzmine.data.ChromatographicPeak;
 import net.sf.mzmine.data.DataPoint;
@@ -232,5 +233,10 @@ public class SimpleChromatographicPeak implements ChromatographicPeak {
     public Range getRawDataPointsRTRange() {
         return rtRange;
     }
+
+	public int getRepresentativeScanNumber() {
+		Range range = new Range(rt);
+		return dataFile.getScanNumbers(1, range)[0];
+	}
 
 }

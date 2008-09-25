@@ -91,4 +91,8 @@ public class PreviewPeak implements ChromatographicPeak {
 		return peak.getScanNumbers();
 	}
 
+	public int getRepresentativeScanNumber() {
+		return peak.getRepresentativeScanNumber();
+	}
+
 }

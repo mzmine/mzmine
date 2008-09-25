@@ -22,6 +22,7 @@ package net.sf.mzmine.modules.visualization.spectra;
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Font;
+import java.util.logging.Logger;
 
 import javax.swing.Box;
 import javax.swing.BoxLayout;
@@ -57,12 +58,15 @@ class SpectraBottomPanel extends JPanel implements ProjectListener,
 	private SpectraVisualizerWindow masterFrame;
 	private RawDataFile dataFile;
 	private MZmineProject project;
+	private boolean isotopeFlag;
 
-	SpectraBottomPanel(SpectraVisualizerWindow masterFrame, RawDataFile dataFile) {
+	SpectraBottomPanel(SpectraVisualizerWindow masterFrame,
+			RawDataFile dataFile, SpectraVisualizerType type) {
 
 		super(new BorderLayout());
 		this.dataFile = dataFile;
 		this.masterFrame = masterFrame;
+		isotopeFlag = type == SpectraVisualizerType.ISOTOPE;
 
 		setBackground(Color.white);
 
@@ -80,44 +84,52 @@ class SpectraBottomPanel extends JPanel implements ProjectListener,
 
 		topPanel.add(Box.createHorizontalGlue());
 
-		GUIUtils.addLabel(topPanel, "Peak list: ", SwingConstants.RIGHT);
+		if (!isotopeFlag) {
 
-		peakListSelector = new JComboBox();
-		peakListSelector.setBackground(Color.white);
-		peakListSelector.setFont(smallFont);
-		peakListSelector.addActionListener(masterFrame);
-		peakListSelector.setActionCommand("PEAKLIST_CHANGE");
-		topPanel.add(peakListSelector);
+			GUIUtils.addLabel(topPanel, "Peak list: ", SwingConstants.RIGHT);
 
-		topPanel.add(Box.createHorizontalGlue());
+			peakListSelector = new JComboBox();
+			peakListSelector.setBackground(Color.white);
+			peakListSelector.setFont(smallFont);
+			peakListSelector.addActionListener(masterFrame);
+			peakListSelector.setActionCommand("PEAKLIST_CHANGE");
+			topPanel.add(peakListSelector);
+
+			topPanel.add(Box.createHorizontalGlue());
+
+		}
 
 		JButton nextScanBtn = GUIUtils.addButton(topPanel, rightArrow, null,
 				masterFrame, "NEXT_SCAN");
 		nextScanBtn.setBackground(Color.white);
 		nextScanBtn.setFont(smallFont);
 
-		topPanel.add(Box.createHorizontalStrut(10));
+		if (!isotopeFlag) {
 
-		bottomPanel = new JPanel();
-		bottomPanel.setBackground(Color.white);
-		bottomPanel.setLayout(new BoxLayout(bottomPanel, BoxLayout.X_AXIS));
-		add(bottomPanel, BorderLayout.SOUTH);
+			topPanel.add(Box.createHorizontalStrut(10));
 
-		bottomPanel.add(Box.createHorizontalGlue());
+			bottomPanel = new JPanel();
+			bottomPanel.setBackground(Color.white);
+			bottomPanel.setLayout(new BoxLayout(bottomPanel, BoxLayout.X_AXIS));
+			add(bottomPanel, BorderLayout.SOUTH);
 
-		GUIUtils.addLabel(bottomPanel, "MS/MS: ", SwingConstants.RIGHT);
+			bottomPanel.add(Box.createHorizontalGlue());
 
-		msmsSelector = new JComboBox();
-		msmsSelector.setBackground(Color.white);
-		msmsSelector.setFont(smallFont);
-		bottomPanel.add(msmsSelector);
+			GUIUtils.addLabel(bottomPanel, "MS/MS: ", SwingConstants.RIGHT);
 
-		JButton showButton = GUIUtils.addButton(bottomPanel, "Show", null,
-				masterFrame, "SHOW_MSMS");
-		showButton.setBackground(Color.white);
-		showButton.setFont(smallFont);
+			msmsSelector = new JComboBox();
+			msmsSelector.setBackground(Color.white);
+			msmsSelector.setFont(smallFont);
+			bottomPanel.add(msmsSelector);
 
-		bottomPanel.add(Box.createHorizontalGlue());
+			JButton showButton = GUIUtils.addButton(bottomPanel, "Show", null,
+					masterFrame, "SHOW_MSMS");
+			showButton.setBackground(Color.white);
+			showButton.setFont(smallFont);
+
+			bottomPanel.add(Box.createHorizontalGlue());
+
+		}
 
 		project = MZmineCore.getCurrentProject();
 		project.addProjectListener(this);
@@ -159,7 +171,7 @@ class SpectraBottomPanel extends JPanel implements ProjectListener,
 	}
 
 	public void projectModified(ProjectEvent event, MZmineProject project) {
-		if (event == ProjectEvent.PEAKLIST_CHANGE)
+		if ((event == ProjectEvent.PEAKLIST_CHANGE) && (!isotopeFlag))
 			rebuildPeakListSelector(project);
 	}
 

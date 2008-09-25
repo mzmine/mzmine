@@ -20,6 +20,7 @@
 package net.sf.mzmine.modules.peakpicking.centroid;
 
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.TreeMap;
 
 import net.sf.mzmine.data.ChromatographicPeak;
@@ -303,7 +304,26 @@ class CentroidPeak implements ChromatographicPeak {
 
 	public void setMZ(float mz) {
 		// TODO Auto-generated method stub
+	}
+
+	public int getRepresentativeScanNumber() {
 		
+		Range range = new Range(rt * 0.9f, rt * 1.1f);
+		return dataFile.getScanNumbers(1, range)[0];
+
+		/*Iterator<Integer> itr = datapointsMap.keySet().iterator();
+		float repIntensity = 0, intensity;
+		int scanNumber, repScanNumber = -1;
+		while (itr.hasNext()){
+			scanNumber = itr.next();
+			intensity = datapointsMap.get(scanNumber).getIntensity();
+			if (intensity > repIntensity){
+				repIntensity = intensity;
+				repScanNumber = scanNumber;
+			}
+		}
+		
+		return repScanNumber;*/
 	}
 
 }

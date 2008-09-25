@@ -23,6 +23,7 @@ import java.io.IOException;
 import java.io.RandomAccessFile;
 import java.nio.ByteBuffer;
 import java.nio.FloatBuffer;
+import java.util.Vector;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -120,7 +121,10 @@ public class StorableScan implements Scan {
 
     }
 
-    public DataPoint[] getDataPoints(Range mzRange) {
+	/**
+	 * @return Returns scan datapoints within a given range
+	 */
+    public DataPoint[] getDataPointsByMass(Range mzRange) {
 
         DataPoint dataPoints[] = getDataPoints();
 
@@ -143,6 +147,25 @@ public class StorableScan implements Scan {
 
         return pointsWithinRange;
     }
+    
+	/**
+	 * @return Returns scan datapoints over certain intensity
+	 */
+	public DataPoint[] getDataPointsOverIntensity(float intensity) {
+		int index;
+		Vector<DataPoint> points = new Vector<DataPoint>();
+        DataPoint dataPoints[] = getDataPoints();
+		
+		for (index = 0; index < dataPoints.length; index++) {
+			if (dataPoints[index].getIntensity() >= intensity)
+				points.add(dataPoints[index]);
+		}
+
+		DataPoint pointsOverIntensity[] = points.toArray(new DataPoint[0]);
+
+		return pointsOverIntensity;
+	}
+
 
     /**
      * @param dataPoints New datapoints

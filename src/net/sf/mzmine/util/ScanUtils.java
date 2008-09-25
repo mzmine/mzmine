@@ -39,7 +39,7 @@ public class ScanUtils {
      */
     public static DataPoint findBasePeak(Scan scan, Range mzRange) {
 
-        DataPoint dataPoints[] = scan.getDataPoints(mzRange);
+        DataPoint dataPoints[] = scan.getDataPointsByMass(mzRange);
         DataPoint basePeak = null;
 
         for (DataPoint dp : dataPoints) {

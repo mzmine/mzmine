@@ -31,10 +31,13 @@ import javax.swing.JComboBox;
 import javax.swing.JInternalFrame;
 
 import net.sf.mzmine.data.DataPoint;
+import net.sf.mzmine.data.IsotopePattern;
+import net.sf.mzmine.data.MzDataTable;
 import net.sf.mzmine.data.PeakList;
 import net.sf.mzmine.data.RawDataFile;
 import net.sf.mzmine.data.Scan;
 import net.sf.mzmine.main.MZmineCore;
+import net.sf.mzmine.util.Range;
 
 import org.jfree.chart.axis.NumberAxis;
 import org.jfree.chart.axis.NumberTickUnit;
@@ -47,6 +50,8 @@ public class SpectraVisualizerWindow extends JInternalFrame implements
 
 	private Logger logger = Logger.getLogger(this.getClass().getName());
 
+	private SpectraVisualizerType visualizerType;
+
 	private SpectraToolBar toolBar;
 	private SpectraPlot spectrumPlot;
 	private SpectraBottomPanel bottomPanel;
@@ -57,45 +62,63 @@ public class SpectraVisualizerWindow extends JInternalFrame implements
 	private Scan currentScan;
 
 	// Current scan data set
-	private ScanDataSet scanDataSet;
+	private SpectraDataSet spectrumDataSet;
 
 	private NumberFormat rtFormat = MZmineCore.getRTFormat();
 	private NumberFormat mzFormat = MZmineCore.getMZFormat();
 	private NumberFormat intensityFormat = MZmineCore.getIntensityFormat();
 
-	SpectraVisualizerWindow(RawDataFile dataFile, int scanNumber) {
+	SpectraVisualizerWindow(RawDataFile dataFile, String title,
+			MzDataTable mzDataTable) {
+		// SpectraVisualizerWindow(RawDataFile dataFile, int scanNumber) {
 
-		super(dataFile.toString(), true, true, true, true);
+		// super(dataFile.toString(), true, true, true, true);
+		super(title, true, true, true, true);
+
+		if (mzDataTable instanceof Scan) {
+			visualizerType = SpectraVisualizerType.SPECTRUM;
+		} else if (mzDataTable instanceof IsotopePattern) {
+			visualizerType = SpectraVisualizerType.ISOTOPE;
+		}
 
 		this.dataFile = dataFile;
 
 		setDefaultCloseOperation(DISPOSE_ON_CLOSE);
 		setBackground(Color.white);
 
-		spectrumPlot = new SpectraPlot(this);
+		spectrumPlot = new SpectraPlot(this, visualizerType);
 		add(spectrumPlot, BorderLayout.CENTER);
 
 		// toolBar = new SpectraToolBar(this);
-		toolBar = new SpectraToolBar(spectrumPlot);
+		toolBar = new SpectraToolBar(spectrumPlot, visualizerType);
 		add(toolBar, BorderLayout.EAST);
 
 		// Create relationship between the current Plot and Tool bar
 		spectrumPlot.setRelatedToolBar(toolBar);
 
-		bottomPanel = new SpectraBottomPanel(this, dataFile);
+		if (visualizerType == SpectraVisualizerType.SPECTRUM){
+			bottomPanel = new SpectraBottomPanel(this, dataFile, visualizerType);
 		add(bottomPanel, BorderLayout.SOUTH);
+		}
 
-		loadScan(scanNumber);
+		if (visualizerType == SpectraVisualizerType.SPECTRUM) {
+			loadScan((Scan) mzDataTable);
+		} else {
+			loadIsotopePattern((IsotopePattern) mzDataTable);
+		}
 
 		pack();
 
 		// After we have constructed everything, load the peak lists into the
 		// bottom panel
-		bottomPanel.rebuildPeakListSelector(MZmineCore.getCurrentProject());
+		if (visualizerType == SpectraVisualizerType.SPECTRUM)
+			bottomPanel.rebuildPeakListSelector(MZmineCore.getCurrentProject());
 
 	}
 
-	private void loadScan(final int scanNumber) {
+	private void loadScan(final Scan scan) {
+
+		final int scanNumber = scan.getScanNumber();
 
 		logger.finest("Loading scan #" + scanNumber + " from " + dataFile
 				+ " for spectra visualizer");
@@ -110,8 +133,8 @@ public class SpectraVisualizerWindow extends JInternalFrame implements
 				// other while updating the GUI components
 				synchronized (dataFile) {
 
-					currentScan = dataFile.getScan(scanNumber);
-					scanDataSet = new ScanDataSet(currentScan);
+					currentScan = scan; // dataFile.getScan(scanNumber);
+					spectrumDataSet = new SpectraDataSet(currentScan);
 
 					/*
 					 * DataPoint [] temp = currentScan.getDataPoints(); for (int
@@ -121,6 +144,9 @@ public class SpectraVisualizerWindow extends JInternalFrame implements
 					 * temp[i].getIntensity());
 					 */
 
+					// Set plot data sets
+					spectrumPlot.setSpectrumDataSet(spectrumDataSet);
+
 					PeakList selectedPeakList = bottomPanel
 							.getSelectedPeakList();
 					PeakListDataSet peaksDataSet = null;
@@ -129,12 +155,11 @@ public class SpectraVisualizerWindow extends JInternalFrame implements
 						toolBar.setPeaksButtonEnabled(true);
 						peaksDataSet = new PeakListDataSet(dataFile,
 								scanNumber, selectedPeakList);
+						// Set plot data sets
+						spectrumPlot.addPeaksDataSet(peaksDataSet);
 					} else {
 						toolBar.setPeaksButtonEnabled(false);
 					}
-
-					// Set plot data sets
-					spectrumPlot.setDataSets(scanDataSet, peaksDataSet);
 
 					// Set plot mode only if it hasn't been set before
 					if (spectrumPlot.getPlotMode() == PlotMode.UNDEFINED)
@@ -232,6 +257,50 @@ public class SpectraVisualizerWindow extends JInternalFrame implements
 
 	}
 
+	public void loadIsotopePattern(final IsotopePattern isotopePattern) {
+
+		logger.finest("Loading isotope pattern of " + isotopePattern.toString()
+				+ " for isotope pattern visualizer");
+
+		// Perform the actual loading of the data in a new thread, so we don't
+		// block the GUI
+		Runnable newThreadRunnable = new Runnable() {
+
+			public void run() {
+
+				spectrumDataSet = new SpectraDataSet(isotopePattern);
+				Range mzRange = isotopePattern.getIsotopeMzRange();
+				// Set plot data sets
+				spectrumPlot.setSpectrumDataSet(spectrumDataSet);
+
+				PeakListDataSet peaksDataSet = null;
+				peaksDataSet = new PeakListDataSet(isotopePattern);
+
+				if (peaksDataSet != null) {
+					toolBar.setPeaksButtonEnabled(true);
+					spectrumPlot.addPeaksDataSet(peaksDataSet);
+				} else {
+					toolBar.setPeaksButtonEnabled(false);
+				}
+
+				spectrumPlot.setPlotMode(PlotMode.CONTINUOUS);
+				toolBar.setCentroidButton(true);
+
+				// Set window and plot titles
+				String title = "Isotope pattern of "
+						+ isotopePattern.toString();
+				String subTitle = "";
+				setTitle(title);
+				spectrumPlot.setTitle(title, subTitle);
+				spectrumPlot.getXYPlot().getDomainAxis().setRange(mzRange.getMin(), mzRange.getMax());
+			}
+		};
+
+		Thread newThread = new Thread(newThreadRunnable);
+		newThread.start();
+
+	}
+
 	public void setAxesRange(float xMin, float xMax, float xTickSize,
 			float yMin, float yMax, float yTickSize) {
 		NumberAxis xAxis = (NumberAxis) spectrumPlot.getXYPlot()
@@ -262,31 +331,42 @@ public class SpectraVisualizerWindow extends JInternalFrame implements
 				toolBar.setPeaksButtonEnabled(true);
 				peaksDataSet = new PeakListDataSet(dataFile, currentScan
 						.getScanNumber(), selectedPeakList);
+				spectrumPlot.setSpectrumDataSet(spectrumDataSet);
+				spectrumPlot.addPeaksDataSet(peaksDataSet);
 			} else {
 				toolBar.setPeaksButtonEnabled(false);
 			}
-
-			spectrumPlot.setDataSets(scanDataSet, peaksDataSet);
 
 		}
 
 		if (command.equals("PREVIOUS_SCAN")) {
 
+			if (dataFile == null)
+				return;
+
 			int msLevel = currentScan.getMSLevel();
 			int scanNumbers[] = dataFile.getScanNumbers(msLevel);
 			int scanIndex = Arrays.binarySearch(scanNumbers, currentScan
 					.getScanNumber());
-			if (scanIndex > 0)
-				loadScan(scanNumbers[scanIndex - 1]);
+			if (scanIndex > 0) {
+				int prevScanIndex = scanNumbers[scanIndex - 1];
+				loadScan(dataFile.getScan(prevScanIndex));
+			}
 		}
 
 		if (command.equals("NEXT_SCAN")) {
+
+			if (dataFile == null)
+				return;
+
 			int msLevel = currentScan.getMSLevel();
 			int scanNumbers[] = dataFile.getScanNumbers(msLevel);
 			int scanIndex = Arrays.binarySearch(scanNumbers, currentScan
 					.getScanNumber());
-			if (scanIndex < (scanNumbers.length - 1))
-				loadScan(scanNumbers[scanIndex + 1]);
+			if (scanIndex < (scanNumbers.length - 1)) {
+				int nextScanIndex = scanNumbers[scanIndex + 1];
+				loadScan(dataFile.getScan(nextScanIndex));
+			}
 		}
 
 		if (command.equals("SHOW_MSMS")) {

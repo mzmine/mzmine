@@ -80,7 +80,7 @@ class TwoDDataSet extends AbstractXYDataset implements RawDataAcceptor {
         DataPoint scanBasePeak = scan.getBasePeak();
         retentionTimes[index] = scan.getRetentionTime();
         basePeaks[index] = (scanBasePeak == null ? 0 : scanBasePeak.getIntensity());
-        dataPointMatrix[index] = scan.getDataPoints(totalMZRange);
+        dataPointMatrix[index] = scan.getDataPointsByMass(totalMZRange);
         loadedScans++;
 
         // redraw when we add last value

@@ -60,9 +60,10 @@ import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.modules.peakpicking.threestep.ThreeStepPickerParameters;
 import net.sf.mzmine.modules.visualization.spectra.PeakListDataSet;
 import net.sf.mzmine.modules.visualization.spectra.PlotMode;
-import net.sf.mzmine.modules.visualization.spectra.ScanDataSet;
+import net.sf.mzmine.modules.visualization.spectra.SpectraDataSet;
 import net.sf.mzmine.modules.visualization.spectra.SpectraPlot;
 import net.sf.mzmine.modules.visualization.spectra.SpectraToolBar;
+import net.sf.mzmine.modules.visualization.spectra.SpectraVisualizerType;
 import net.sf.mzmine.util.GUIUtils;
 import net.sf.mzmine.util.dialogs.ParameterSetupDialog;
 
@@ -98,7 +99,7 @@ public class MassDetectorSetupDialog extends ParameterSetupDialog implements
 	// XYPlot
 	private SpectraToolBar toolBar;
 	private SpectraPlot spectrumPlot;
-	private ScanDataSet scanDataSet;
+	private SpectraDataSet spectraDataSet;
 	private PeakListDataSet peaksDataSet;
 
 	// Mass Detector;
@@ -180,10 +181,11 @@ public class MassDetectorSetupDialog extends ParameterSetupDialog implements
 		NumberFormat intensityFormat = MZmineCore.getIntensityFormat();
 
 		currentScan = previewDataFile.getScan(scanNumber);
-		scanDataSet = new ScanDataSet(currentScan);
+		spectraDataSet = new SpectraDataSet(currentScan);
 
 		toolBar.setPeaksButtonEnabled(true);
-		spectrumPlot.setDataSets(scanDataSet, peaksDataSet);
+		spectrumPlot.setSpectrumDataSet(spectraDataSet);
+		spectrumPlot.addPeaksDataSet(peaksDataSet);
 
 		// Set plot mode only if it hasn't been set before
 		if (spectrumPlot.getPlotMode() == PlotMode.UNDEFINED)
@@ -457,13 +459,13 @@ public class MassDetectorSetupDialog extends ParameterSetupDialog implements
 		pnlPlotXY.setBorder(BorderFactory.createCompoundBorder(one, two));
 		pnlPlotXY.setBackground(Color.white);
 
-		spectrumPlot = new SpectraPlot(this);
+		spectrumPlot = new SpectraPlot(this, SpectraVisualizerType.SPECTRUM);
 		MzPeakToolTipGenerator mzPeakToolTipGenerator = new MzPeakToolTipGenerator();
 		spectrumPlot
 				.setPeakToolTipGenerator((XYToolTipGenerator) mzPeakToolTipGenerator);
 		pnlPlotXY.add(spectrumPlot, BorderLayout.CENTER);
 
-		toolBar = new SpectraToolBar(spectrumPlot);
+		toolBar = new SpectraToolBar(spectrumPlot, SpectraVisualizerType.SPECTRUM);
 		spectrumPlot.setRelatedToolBar(toolBar);
 		pnlPlotXY.add(toolBar, BorderLayout.EAST);
 

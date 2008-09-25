@@ -133,7 +133,7 @@ public class TICDataSet extends AbstractXYZDataset implements RawDataAcceptor,
             if (scan.getMZRange().isWithin(mzRange)) {
                 totalIntensity = scan.getTIC();
             } else {
-                DataPoint dataPoints[] = scan.getDataPoints(mzRange);
+                DataPoint dataPoints[] = scan.getDataPointsByMass(mzRange);
                 for (int j = 0; j < dataPoints.length; j++) {
                     totalIntensity += dataPoints[j].getIntensity();
                 }

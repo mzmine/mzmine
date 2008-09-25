@@ -19,14 +19,19 @@
 
 package net.sf.mzmine.data.impl;
 
+import java.text.Format;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.Set;
 
 import net.sf.mzmine.data.ChromatographicPeak;
+import net.sf.mzmine.data.DataPoint;
 import net.sf.mzmine.data.IsotopePattern;
 import net.sf.mzmine.data.MzPeak;
 import net.sf.mzmine.data.PeakStatus;
 import net.sf.mzmine.data.RawDataFile;
+import net.sf.mzmine.data.Scan;
+import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.util.Range;
 
 /**
@@ -34,157 +39,214 @@ import net.sf.mzmine.util.Range;
  */
 public class SimpleIsotopePattern implements IsotopePattern {
 
-    private int charge = UNKNOWN_CHARGE;
-    private Set<ChromatographicPeak> peaks;
-    private ChromatographicPeak representativePeak;
+	private int charge = UNKNOWN_CHARGE;
+	private Set<ChromatographicPeak> peaks;
+	private ChromatographicPeak representativePeak;
 
-    public SimpleIsotopePattern() {
-        peaks = new HashSet<ChromatographicPeak>();
-    }
+	public SimpleIsotopePattern() {
+		peaks = new HashSet<ChromatographicPeak>();
+	}
 
-    /**
-     * @param charge
-     * @param peaks
-     * @param representativePeak
-     */
-    public SimpleIsotopePattern(int charge, ChromatographicPeak peaks[],
-            ChromatographicPeak representativePeak) {
-        this();
-        this.charge = charge;
-        for (ChromatographicPeak p : peaks)
-            this.peaks.add(p);
-        this.representativePeak = representativePeak;
-    }
+	/**
+	 * @param charge
+	 * @param peaks
+	 * @param representativePeak
+	 */
+	public SimpleIsotopePattern(int charge, ChromatographicPeak peaks[],
+			ChromatographicPeak representativePeak) {
+		this();
+		this.charge = charge;
+		for (ChromatographicPeak p : peaks)
+			this.peaks.add(p);
+		this.representativePeak = representativePeak;
+	}
 
-    /**
-     * Adds new isotope (peak) to this pattern
-     * 
-     * @param p Peak to add
-     */
-    public void addPeak(ChromatographicPeak p) {
-        peaks.add(p);
-    }
+	/**
+	 * Adds new isotope (peak) to this pattern
+	 * 
+	 * @param p
+	 *            Peak to add
+	 */
+	public void addPeak(ChromatographicPeak p) {
+		peaks.add(p);
+	}
 
-    /**
-     * Returns the charge state of peaks in the pattern
-     * 
-     * @see net.sf.mzmine.data.IsotopePattern#getCharge()
-     */
-    public int getCharge() {
-        return charge;
-    }
+	/**
+	 * Returns the charge state of peaks in the pattern
+	 * 
+	 * @see net.sf.mzmine.data.IsotopePattern#getCharge()
+	 */
+	public int getCharge() {
+		return charge;
+	}
 
-    /**
-     * @param charge The charge to set.
-     */
-    public void setCharge(int charge) {
-        this.charge = charge;
-    }
+	/**
+	 * @param charge
+	 *            The charge to set.
+	 */
+	public void setCharge(int charge) {
+		this.charge = charge;
+	}
 
-    /**
-     * @see net.sf.mzmine.data.IsotopePattern#getOriginalPeaks()
-     */
-    public ChromatographicPeak[] getOriginalPeaks() {
-        return peaks.toArray(new ChromatographicPeak[0]);
-    }
+	/**
+	 * @see net.sf.mzmine.data.IsotopePattern#getOriginalPeaks()
+	 */
+	public ChromatographicPeak[] getOriginalPeaks() {
+		return peaks.toArray(new ChromatographicPeak[0]);
+	}
 
-    /**
-     * @see net.sf.mzmine.data.IsotopePattern#getRepresentativePeak()
-     */
-    public ChromatographicPeak getRepresentativePeak() {
-        return representativePeak;
-    }
+	/**
+	 * @see net.sf.mzmine.data.IsotopePattern#getRepresentativePeak()
+	 */
+	public ChromatographicPeak getRepresentativePeak() {
+		return representativePeak;
+	}
 
-    /**
-     * @param representativePeak The representativePeak to set.
-     */
-    public void setRepresentativePeak(ChromatographicPeak representativePeak) {
-        this.representativePeak = representativePeak;
-    }
+	/**
+	 * @param representativePeak
+	 *            The representativePeak to set.
+	 */
+	public void setRepresentativePeak(ChromatographicPeak representativePeak) {
+		this.representativePeak = representativePeak;
+	}
 
-    /**
-     * @see net.sf.mzmine.data.ChromatographicPeak#getDataFile()
-     */
-    public RawDataFile getDataFile() {
-        return representativePeak.getDataFile();
-    }
+	/**
+	 * @see net.sf.mzmine.data.ChromatographicPeak#getDataFile()
+	 */
+	public RawDataFile getDataFile() {
+		return representativePeak.getDataFile();
+	}
 
-    /**
-     * @see net.sf.mzmine.data.ChromatographicPeak#getMZ()
-     */
-    public float getMZ() {
-        return representativePeak.getMZ();
-    }
+	/**
+	 * @see net.sf.mzmine.data.ChromatographicPeak#getMZ()
+	 */
+	public float getMZ() {
+		return representativePeak.getMZ();
+	}
 
-    /**
-     * @see net.sf.mzmine.data.ChromatographicPeak#getRT()
-     */
-    public float getRT() {
-        return representativePeak.getRT();
-    }
+	/**
+	 * @see net.sf.mzmine.data.ChromatographicPeak#getRT()
+	 */
+	public float getRT() {
+		return representativePeak.getRT();
+	}
 
-    /**
-     * @see net.sf.mzmine.data.ChromatographicPeak#getHeight()
-     */
-    public float getHeight() {
-        return representativePeak.getHeight();
-    }
+	/**
+	 * @see net.sf.mzmine.data.ChromatographicPeak#getHeight()
+	 */
+	public float getHeight() {
+		return representativePeak.getHeight();
+	}
 
-    /**
-     * @see net.sf.mzmine.data.ChromatographicPeak#getArea()
-     */
-    public float getArea() {
-        return representativePeak.getArea();
-    }
+	/**
+	 * @see net.sf.mzmine.data.ChromatographicPeak#getArea()
+	 */
+	public float getArea() {
+		return representativePeak.getArea();
+	}
 
-    /**
-     * @see net.sf.mzmine.data.ChromatographicPeak#getScanNumbers()
-     */
-    public int[] getScanNumbers() {
-        return representativePeak.getScanNumbers();
-    }
+	/**
+	 * @see net.sf.mzmine.data.ChromatographicPeak#getScanNumbers()
+	 */
+	public int[] getScanNumbers() {
+		return representativePeak.getScanNumbers();
+	}
 
-    /**
-     * @see net.sf.mzmine.data.ChromatographicPeak#getPeakStatus()
-     */
-    public PeakStatus getPeakStatus() {
-        return representativePeak.getPeakStatus();
-    }
+	/**
+	 * @see net.sf.mzmine.data.ChromatographicPeak#getPeakStatus()
+	 */
+	public PeakStatus getPeakStatus() {
+		return representativePeak.getPeakStatus();
+	}
 
-    /**
-     * @see net.sf.mzmine.data.ChromatographicPeak#getRawDatapoint(int)
-     */
-    public MzPeak getMzPeak(int scanNumber) {
-        return representativePeak.getMzPeak(scanNumber);
-    }
+	/**
+	 * @see net.sf.mzmine.data.ChromatographicPeak#getRawDatapoint(int)
+	 */
+	public MzPeak getMzPeak(int scanNumber) {
+		return representativePeak.getMzPeak(scanNumber);
+	}
 
-    /**
-     * @see java.lang.Object#toString()
-     */
-    public String toString() {
-        return representativePeak.toString();
-    }
+	/**
+	 * @see java.lang.Object#toString()
+	 */
+	public String toString() {
+		return representativePeak.toString();
+	}
 
-    public Range getRawDataPointsIntensityRange() {
-        return representativePeak.getRawDataPointsIntensityRange();
-    }
+	public Range getRawDataPointsIntensityRange() {
+		return representativePeak.getRawDataPointsIntensityRange();
+	}
 
-    public Range getRawDataPointsMZRange() {
-        return representativePeak.getRawDataPointsMZRange();
-    }
+	public Range getRawDataPointsMZRange() {
+		return representativePeak.getRawDataPointsMZRange();
+	}
 
-    public Range getRawDataPointsRTRange() {
-        return representativePeak.getRawDataPointsRTRange();
-    }
+	public Range getRawDataPointsRTRange() {
+		return representativePeak.getRawDataPointsRTRange();
+	}
 
-    public float getMass() {
-        if (charge == UNKNOWN_CHARGE) return representativePeak.getMZ();
-        else return representativePeak.getMZ() * charge;
-    }
+	public float getIsotopeMass() {
+		if (charge == UNKNOWN_CHARGE)
+			return representativePeak.getMZ();
+		else
+			return representativePeak.getMZ() * charge;
+	}
 
 	public void setMZ(float mz) {
-		// TODO Auto-generated method stub
+	}
+
+	public DataPoint[] getDataPoints() {
+
+		RawDataFile dataFile = representativePeak.getDataFile();
+		int repScanNumber = representativePeak.getRepresentativeScanNumber();
+		Scan scan = dataFile.getScan(repScanNumber);
+
+		return scan.getDataPoints();
+	}
+
+	public int getNumberOfDataPoints() {
+		return getDataPoints().length;
+	}
+
+	public int getRepresentativeScanNumber() {
+		return representativePeak.getRepresentativeScanNumber();
+	}
+
+	public String getIsotopeInfo() {
+		StringBuffer buf = new StringBuffer();
+		Format mzFormat = MZmineCore.getMZFormat();
+		Format timeFormat = MZmineCore.getRTFormat();
+		buf.append(mzFormat.format(getIsotopeMass()));
+		buf.append(" m/z @");
+		buf.append(timeFormat.format(getRT()));
+		return buf.toString();
+	}
+
+	public int getNumberOfIsotopes() {
+		return peaks.size();
+	}
+
+	public Range getIsotopeMzRange() {
 		
+		Iterator<ChromatographicPeak> itr = peaks.iterator();
+		ChromatographicPeak cp;
+		float repRT = representativePeak.getMZ(), H = 1.0078f;
+		Range mzRange = new Range(repRT);
+		while (itr.hasNext()) {
+			cp = itr.next();
+			mzRange.extendRange(cp.getRawDataPointsMZRange());
+		}
+
+		// Increase range by +/- one hydrogen
+		if ((mzRange.getMin() > (repRT - H))
+				|| (mzRange.getMax() < (repRT + 2 * H))) {
+			float extendRange = mzRange.getMin() - H;
+			mzRange.extendRange(extendRange);
+			extendRange = mzRange.getMax() + 2 * H;
+			mzRange.extendRange(extendRange);
+		}
+
+		return mzRange;
 	}
 
 }

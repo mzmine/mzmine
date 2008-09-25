@@ -30,9 +30,11 @@ import javax.swing.JMenuItem;
 import javax.swing.JPopupMenu;
 
 import net.sf.mzmine.data.ChromatographicPeak;
+import net.sf.mzmine.data.IsotopePattern;
 import net.sf.mzmine.data.PeakList;
 import net.sf.mzmine.data.PeakListRow;
 import net.sf.mzmine.data.RawDataFile;
+import net.sf.mzmine.data.impl.SimpleIsotopePattern;
 import net.sf.mzmine.data.impl.SimplePeakListRow;
 import net.sf.mzmine.desktop.Desktop;
 import net.sf.mzmine.main.MZmineCore;
@@ -47,6 +49,7 @@ import net.sf.mzmine.modules.visualization.peaklist.table.DataFileColumnType;
 import net.sf.mzmine.modules.visualization.peaklist.table.PeakListTable;
 import net.sf.mzmine.modules.visualization.peaklist.table.PeakListTableColumnModel;
 import net.sf.mzmine.modules.visualization.peaklist.table.PeakListTableModel;
+import net.sf.mzmine.modules.visualization.spectra.SpectraVisualizer;
 import net.sf.mzmine.modules.visualization.tic.TICVisualizer;
 import net.sf.mzmine.modules.visualization.tic.TICVisualizerParameters;
 import net.sf.mzmine.util.GUIUtils;
@@ -68,7 +71,7 @@ public class PeakListTablePopupMenu extends JPopupMenu implements
     private PeakListTableColumnModel columnModel;
 
     private JMenuItem deleteRowsItem, addNewRowItem, plotRowsItem, showXICItem,
-            manuallyDefineItem, pubChemSearch;
+            manuallyDefineItem, showIsotopePattern, pubChemSearch;
 
     private RawDataFile clickedDataFile;
     private PeakListRow clickedPeakListRow;
@@ -96,6 +99,9 @@ public class PeakListTablePopupMenu extends JPopupMenu implements
         manuallyDefineItem = GUIUtils.addMenuItem(this, "Manually define peak",
                 this);
         
+        showIsotopePattern = GUIUtils.addMenuItem(this, "Show Isotope pattern",
+                this);
+        
         pubChemSearch = GUIUtils.addMenuItem(this, "Search identity in PubChem",
                 this);
 
@@ -104,6 +110,7 @@ public class PeakListTablePopupMenu extends JPopupMenu implements
     public void show(Component invoker, int x, int y) {
 
         int selectedRows[] = table.getSelectedRows();
+        boolean display;
 
         deleteRowsItem.setEnabled(selectedRows.length > 0);
         plotRowsItem.setEnabled(selectedRows.length > 0);
@@ -113,11 +120,12 @@ public class PeakListTablePopupMenu extends JPopupMenu implements
         int clickedColumn = columnModel.getColumn(
                 table.columnAtPoint(clickedPoint)).getModelIndex();
         if ((clickedRow >= 0) && (clickedColumn >= 0)) {
+        	display = clickedColumn >= CommonColumnType.values().length;
             showXICItem.setEnabled((clickedColumn == CommonColumnType.PEAKSHAPE.ordinal())
-                    || (clickedColumn >= CommonColumnType.values().length));
-            manuallyDefineItem.setEnabled(clickedColumn >= CommonColumnType.values().length);
-            pubChemSearch.setEnabled(clickedColumn >= CommonColumnType.values().length);
-            if (clickedColumn >= CommonColumnType.values().length) {
+                    || (display));
+            manuallyDefineItem.setEnabled(display);
+            pubChemSearch.setEnabled(display);
+            if (display) {
                 int dataFileIndex = (clickedColumn - CommonColumnType.values().length)
                         / DataFileColumnType.values().length;
                 clickedDataFile = peakList.getRawDataFile(dataFileIndex);
@@ -125,6 +133,12 @@ public class PeakListTablePopupMenu extends JPopupMenu implements
                 clickedDataFile = null;
             TableSorter sorter = (TableSorter) table.getModel();
             clickedPeakListRow = peakList.getRow(sorter.modelIndex(clickedRow));
+            
+            if (clickedDataFile != null)
+            	showIsotopePattern.setEnabled(clickedPeakListRow.getPeak(clickedDataFile) instanceof IsotopePattern);
+            else
+            	showIsotopePattern.setEnabled(false);
+            
         }
 
         super.show(invoker, x, y);
@@ -243,6 +257,18 @@ public class PeakListTablePopupMenu extends JPopupMenu implements
                     clickedPeakListRow);
         }
         
+        if (src == showIsotopePattern) {
+
+            SpectraVisualizer specVis = SpectraVisualizer.getInstance();
+
+            ChromatographicPeak clickedPeak = clickedPeakListRow.getPeak(clickedDataFile);
+
+            if (clickedPeak != null) {
+            	if (clickedPeak instanceof IsotopePattern)
+                specVis.showNewSpectrumWindow(clickedDataFile, (IsotopePattern) clickedPeak);
+            } 
+        }
+
         if (src == pubChemSearch) {
 
         	PubChemSearch pubChem = PubChemSearch.getInstance();

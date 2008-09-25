@@ -24,7 +24,7 @@ import net.sf.mzmine.util.Range;
 /**
  * This class represent one spectrum of a raw data file.
  */
-public interface Scan {
+public interface Scan extends MzDataTable{
 
     /**
      * 
@@ -74,7 +74,7 @@ public interface Scan {
      * 
      * @return Data points (m/z and intensity pairs) of this scan
      */
-    public DataPoint[] getDataPoints();
+    //public DataPoint[] getDataPoints();
 
     /**
      * Returns data points in given m/z range, sorted in m/z order.
@@ -84,13 +84,13 @@ public interface Scan {
      * 
      * @return Data points (m/z and intensity pairs) of this scan
      */
-    public DataPoint[] getDataPoints(Range mzRange);
+    public DataPoint[] getDataPointsByMass(Range mzRange);
 
     /**
      * 
      * @return Number of m/z and intensity data points
      */
-    public int getNumberOfDataPoints();
+    //public int getNumberOfDataPoints();
 
     /**
      * 

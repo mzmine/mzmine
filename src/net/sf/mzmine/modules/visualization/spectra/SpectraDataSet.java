@@ -19,8 +19,13 @@
 
 package net.sf.mzmine.modules.visualization.spectra;
 
+import java.util.logging.Logger;
+
 import net.sf.mzmine.data.DataPoint;
+import net.sf.mzmine.data.IsotopePattern;
+import net.sf.mzmine.data.MzDataTable;
 import net.sf.mzmine.data.Scan;
+import net.sf.mzmine.data.impl.SimpleIsotopePattern;
 
 import org.jfree.data.xy.AbstractXYDataset;
 import org.jfree.data.xy.IntervalXYDataset;
@@ -28,19 +33,24 @@ import org.jfree.data.xy.IntervalXYDataset;
 /**
  * Spectra visualizer data set for scan data points
  */
-public class ScanDataSet extends AbstractXYDataset implements IntervalXYDataset {
+public class SpectraDataSet extends AbstractXYDataset implements IntervalXYDataset {
 
-    private Scan scan;
-
-    /*
+	private Logger logger = Logger.getLogger(this.getClass().getName());
+	
+	/*
      * Save a local copy of m/z and intensity values, because accessing the scan
      * every time may cause reloading the data from HDD
      */
     private DataPoint dataPoints[];
+    private String label;
 
-    public ScanDataSet(Scan scan) {
-        this.scan = scan;
-        dataPoints = scan.getDataPoints();
+    public SpectraDataSet(MzDataTable mzDataTable) {
+        dataPoints = mzDataTable.getDataPoints();
+    	boolean isotopeFlag = mzDataTable instanceof IsotopePattern;
+    	if (isotopeFlag)
+    		label = "Raw data";
+    	else
+    		label = "Scan #" + ((Scan) mzDataTable).getScanNumber();
     }
 
     @Override public int getSeriesCount() {
@@ -48,7 +58,7 @@ public class ScanDataSet extends AbstractXYDataset implements IntervalXYDataset 
     }
 
     @Override public Comparable getSeriesKey(int series) {
-        return "Scan #" + scan.getScanNumber();
+   		return label;
     }
 
     public int getItemCount(int series) {

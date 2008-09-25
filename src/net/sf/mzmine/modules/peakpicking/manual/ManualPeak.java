@@ -19,6 +19,7 @@
 
 package net.sf.mzmine.modules.peakpicking.manual;
 
+import java.util.Iterator;
 import java.util.TreeMap;
 
 import net.sf.mzmine.data.ChromatographicPeak;
@@ -221,5 +222,10 @@ class ManualPeak implements ChromatographicPeak {
 	public void setMZ(float mz) {
 		// TODO Auto-generated method stub
 		
+	}
+
+	public int getRepresentativeScanNumber() {
+		Range range = new Range(rt * 0.9f, rt * 1.1f);
+		return dataFile.getScanNumbers(1, range)[0];
 	}
 }
