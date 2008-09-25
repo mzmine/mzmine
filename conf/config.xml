@@ -1,13 +1,13 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
 <configuration> 
-  <nodes local="2"/>  
+  <nodes local="4"/>  
   <modules> 
     <module class="net.sf.mzmine.modules.io.rawdataimport.RawDataImporter"> 
       <parameters>
-        <parameter name="Last open directory" type="STRING">/Volumes/DATA/tor2/071106 to2 and sds23 restr temp</parameter>
+        <parameter name="Last open directory" type="STRING">E:\DATA</parameter>
         <parameter name="Preload level" type="STRING">Store scan data in temporary file</parameter>
-        <parameter name="Files to import" type="STRING">071106_A_pos_100-1000_13.mzXML 071106_B_pos_100-1000_14.mzXML 071106_C_pos_100-1000_15.mzXML 071106_D_pos_100-1000_16.mzXML</parameter>
+        <parameter name="Files to import" type="STRING">071109_A_neg_16.RAW</parameter>
       </parameters> 
     </module>  
     <module class="net.sf.mzmine.modules.peakpicking.threestep.ThreeStepPicker"> 
@@ -63,38 +63,45 @@
           <parameter name="Standard Deviation threshold level" type="FLOAT">0.8</parameter>
         </peakbuilder>
         <peakbuilder name="Savitzky-Golay">
-          <parameter name="Min peak height" type="FLOAT">100.0</parameter>
+          <parameter name="Min peak height" type="FLOAT">10000.0</parameter>
           <parameter name="Min peak duration" type="FLOAT">10.0</parameter>
+          <parameter name="Derivative threshold level" type="FLOAT">0.8</parameter>
+          <parameter name="Filling peak shape" type="BOOLEAN">true</parameter>
+          <parameter name="Peak Model function" type="STRING">EMG</parameter>
+          <parameter name="Level of excess" type="FLOAT">0.1</parameter>
         </peakbuilder>
         <peakbuilder name="Wavelet transform">
           <parameter name="Min peak height" type="FLOAT">100.0</parameter>
           <parameter name="Min peak duration" type="FLOAT">10.0</parameter>
           <parameter name="Wavelet threshold level" type="FLOAT">0.8</parameter>
+          <parameter name="Filling peak shape" type="BOOLEAN">false</parameter>
+          <parameter name="Peak Model function" type="STRING">Gaussian</parameter>
+          <parameter name="Level of excess" type="FLOAT">0.1</parameter>
         </peakbuilder>
         <parameter name="Mass Detector type" type="INTEGER">1</parameter>
         <parameter name="Chromatogram Builder type" type="INTEGER">0</parameter>
-        <parameter name="Peak Builder type" type="INTEGER">1</parameter>
-        <parameter name="Suffix" type="STRING">peaklist_2</parameter>
+        <parameter name="Peak Builder type" type="INTEGER">5</parameter>
+        <parameter name="Suffix" type="STRING">peaklist_emm2_neg</parameter>
       </parameters> 
     </module>  
     <module class="net.sf.mzmine.modules.visualization.tic.TICVisualizer"> 
       <parameters>
         <parameter name="MS level" type="INTEGER">1</parameter>
         <parameter name="Plot type" type="STRING">Base peak intensity</parameter>
-        <parameter name="Retention time" type="RANGE">0.584-2399.65</parameter>
-        <parameter name="m/z range" type="RANGE">256.07584-256.08823</parameter>
+        <parameter name="Retention time" type="RANGE">0.5799-2398.917</parameter>
+        <parameter name="m/z range" type="RANGE">100.985535-100.98784</parameter>
       </parameters> 
     </module>  
     <module class="net.sf.mzmine.modules.visualization.spectra.SpectraVisualizer"> 
       <parameters>
-        <parameter name="Scan number" type="INTEGER"/>
+        <parameter name="Scan number" type="INTEGER">333</parameter>
       </parameters> 
     </module>  
     <module class="net.sf.mzmine.modules.visualization.twod.TwoDVisualizer"> 
       <parameters>
         <parameter name="MS level" type="INTEGER">1</parameter>
-        <parameter name="Retention time" type="RANGE">0.0-600.0</parameter>
-        <parameter name="m/z range" type="RANGE">0.0-1000.0</parameter>
+        <parameter name="Retention time" type="RANGE">0.5799-2398.917</parameter>
+        <parameter name="m/z range" type="RANGE">100.00005-1000.00916</parameter>
       </parameters> 
     </module>  
     <module class="net.sf.mzmine.modules.visualization.threed.ThreeDVisualizer"> 
@@ -102,7 +109,7 @@
         <parameter name="MS level" type="INTEGER">1</parameter>
         <parameter name="Retention time" type="RANGE">0.5799-2398.917</parameter>
         <parameter name="Retention time resolution" type="INTEGER">700</parameter>
-        <parameter name="m/z range" type="RANGE">100.00005-1000.00916</parameter>
+        <parameter name="m/z range" type="RANGE">188.0-189.0</parameter>
         <parameter name="m/z resolution" type="INTEGER">700</parameter>
       </parameters> 
     </module>  
@@ -123,27 +130,31 @@
         </column>
         <column type="common" name="AVERAGEMZ">
           <visible>true</visible>
-          <width>100</width>
+          <width>69</width>
         </column>
         <column type="common" name="AVERAGERT">
           <visible>true</visible>
-          <width>100</width>
+          <width>161</width>
         </column>
         <column type="common" name="IDENTITY">
           <visible>true</visible>
-          <width>100</width>
+          <width>367</width>
         </column>
         <column type="common" name="COMMENT">
           <visible>false</visible>
           <width>100</width>
         </column>
+        <column type="common" name="PEAKSHAPE">
+          <visible>false</visible>
+          <width>313</width>
+        </column>
         <column type="datafile" name="STATUS">
-          <visible>true</visible>
+          <visible>false</visible>
           <width>15</width>
         </column>
         <column type="datafile" name="PEAKSHAPE">
           <visible>true</visible>
-          <width>593</width>
+          <width>322</width>
         </column>
         <column type="datafile" name="MZ">
           <visible>false</visible>
@@ -154,12 +165,12 @@
           <width>100</width>
         </column>
         <column type="datafile" name="DURATION">
-          <visible>true</visible>
-          <width>77</width>
+          <visible>false</visible>
+          <width>76</width>
         </column>
         <column type="datafile" name="HEIGHT">
-          <visible>false</visible>
-          <width>100</width>
+          <visible>true</visible>
+          <width>208</width>
         </column>
         <column type="datafile" name="AREA">
           <visible>false</visible>
@@ -233,13 +244,20 @@
               <parameter name="Standard Deviation threshold level" type="FLOAT">0.8</parameter>
             </peakbuilder>
             <peakbuilder name="Savitzky-Golay">
-              <parameter name="Min peak height" type="FLOAT">100.0</parameter>
+              <parameter name="Min peak height" type="FLOAT">10000.0</parameter>
               <parameter name="Min peak duration" type="FLOAT">10.0</parameter>
+              <parameter name="Derivative threshold level" type="FLOAT">0.8</parameter>
+              <parameter name="Filling peak shape" type="BOOLEAN">true</parameter>
+              <parameter name="Peak Model function" type="STRING">EMG</parameter>
+              <parameter name="Level of excess" type="FLOAT">0.1</parameter>
             </peakbuilder>
             <peakbuilder name="Wavelet transform">
               <parameter name="Min peak height" type="FLOAT">100.0</parameter>
               <parameter name="Min peak duration" type="FLOAT">10.0</parameter>
               <parameter name="Wavelet threshold level" type="FLOAT">0.8</parameter>
+              <parameter name="Filling peak shape" type="BOOLEAN">false</parameter>
+              <parameter name="Peak Model function" type="STRING">Gaussian</parameter>
+              <parameter name="Level of excess" type="FLOAT">0.1</parameter>
             </peakbuilder>
             <parameter name="Mass Detector type" type="INTEGER">4</parameter>
             <parameter name="Chromatogram Builder type" type="INTEGER">0</parameter>
@@ -297,7 +315,7 @@
         <parameter name="Relative RT tolerance" type="FLOAT">0.15</parameter>
       </parameters> 
     </module>  
-    <module class="net.sf.mzmine.modules.peaklist.deisotoper.IsotopeGrouper"> 
+    <module class="net.sf.mzmine.modules.isotopes.deisotoper.IsotopeGrouper"> 
       <parameters>
         <parameter name="Name suffix" type="STRING">deisotoped</parameter>
         <parameter name="M/Z tolerance" type="FLOAT">0.05</parameter>
@@ -401,23 +419,33 @@
     </module>  
     <module class="net.sf.mzmine.modules.identification.custom.CustomDBSearch"> 
       <parameters>
-        <databasefile>/Volumes/Documents/peakid.csv</databasefile>
+        <databasefile>E:\DATA\peakid.csv</databasefile>
         <fieldseparator>,</fieldseparator>
         <fieldorder>
-          <field>ID</field>
           <field>m/z</field>
+          <field>ID</field>
           <field>Retention time (s)</field>
           <field>Name</field>
           <field>Formula</field>
         </fieldorder>
         <ignorefirstline>true</ignorefirstline>
         <mztolerance>0.0050</mztolerance>
-        <rttolerance>180.0</rttolerance>
+        <rttolerance>60.0</rttolerance>
       </parameters> 
     </module>  
     <module class="net.sf.mzmine.modules.identification.fragmentation.InSourceFragmentationSearch"/>  
     <module class="net.sf.mzmine.modules.identification.kegg.KEGGSearch"/>  
-    <module class="net.sf.mzmine.modules.identification.pubchem.PubChemSearch"/>  
+    <module class="net.sf.mzmine.modules.identification.pubchem.PubChemSearch"> 
+      <parameters>
+        <parameter name="Peak mass" type="FLOAT">505.9898</parameter>
+        <parameter name="Charge" type="INTEGER">1</parameter>
+        <parameter name="Number of results" type="INTEGER">50</parameter>
+        <parameter name="Mass tolerance" type="FLOAT">0.0050</parameter>
+        <parameter name="Ionization method" type="STRING"/>
+        <parameter name="Neutral mass" type="FLOAT"/>
+        <parameter name="Molecule with charge" type="BOOLEAN">false</parameter>
+      </parameters> 
+    </module>  
     <module class="net.sf.mzmine.modules.io.peaklistexport.PeakListExporter"> 
       <parameters>
         <parameter name="Filename" type="STRING"/>
@@ -450,11 +478,11 @@
       <pattern>0.0E0</pattern>
     </format>
     <mainwindow>
-      <x>148</x>
-      <y>77</y>
-      <width>1621</width>
-      <height>940</height>
+      <x>460</x>
+      <y>250</y>
+      <width>1000</width>
+      <height>700</height>
     </mainwindow>
-    <lastProjectDirectory>/Users/plusik</lastProjectDirectory>
+    <lastProjectDirectory>E:\DATA\Projects</lastProjectDirectory>
   </desktop> 
 </configuration>
