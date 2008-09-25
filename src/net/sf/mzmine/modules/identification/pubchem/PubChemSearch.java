@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2007 The MZmine Development Team
+ * Copyright 2006-2008 The MZmine Development Team
  * 
  * This file is part of MZmine.
  * 
@@ -22,7 +22,6 @@ package net.sf.mzmine.modules.identification.pubchem;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
-import java.util.logging.Logger;
 
 import net.sf.mzmine.data.ParameterSet;
 import net.sf.mzmine.data.PeakList;
@@ -30,7 +29,6 @@ import net.sf.mzmine.data.PeakListRow;
 import net.sf.mzmine.data.RawDataFile;
 import net.sf.mzmine.desktop.Desktop;
 import net.sf.mzmine.desktop.MZmineMenu;
-import net.sf.mzmine.desktop.impl.MainWindow;
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.modules.batchmode.BatchStep;
 import net.sf.mzmine.modules.batchmode.BatchStepCategory;
@@ -44,9 +42,7 @@ import net.sf.mzmine.util.dialogs.ExitCode;
  */
 public class PubChemSearch implements BatchStep, ActionListener {
 	
-	private Logger logger = Logger.getLogger(this.getClass().getName());
-
-    public static final String MODULE_NAME = "PubChem online search";
+	public static final String MODULE_NAME = "PubChem online search";
 
     private Desktop desktop;
 
