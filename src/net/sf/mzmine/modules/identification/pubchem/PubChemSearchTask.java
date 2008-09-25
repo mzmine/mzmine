@@ -75,7 +75,6 @@ public class PubChemSearchTask implements Task {
 
         status = TaskStatus.WAITING;
         valueOfQuery = (Float) parameters.getParameterValue(PubChemSearchParameters.neutralMass);
-        logger.finest("Value of neutralMass " + valueOfQuery);
         range = (Float) parameters.getParameterValue(PubChemSearchParameters.mzToleranceField);
         numOfResults = (Integer) parameters.getParameterValue(PubChemSearchParameters.numOfResults);
         charge = (Integer) parameters.getParameterValue(PubChemSearchParameters.charge);
@@ -147,10 +146,11 @@ public class PubChemSearchTask implements Task {
             String pubChemID, complementQuery;
             int numIDs;
 
-            if ((chargedMol) && (ionName.name().equals("No ionization")))
-                complementQuery = "[MonoisotopicMass] AND NOT 0 [CHRG]";
+            if ((chargedMol)
+                    && (ionName.equals(TypeOfIonization.NO_IONIZATION)))
+                complementQuery = " AND NOT 0[CHRG]";
             else
-                complementQuery = "[MonoisotopicMass]";
+                complementQuery = "";
 
             if (singleRow) {
                 Desktop desktop = MZmineCore.getDesktop();
@@ -158,7 +158,7 @@ public class PubChemSearchTask implements Task {
 
                 reqSearch.setTerm(String.valueOf(valueOfQuery - range) + ":"
                         + String.valueOf(valueOfQuery + range)
-                        + complementQuery);
+                        + "[MonoisotopicMass]" + complementQuery);
 
                 resSearch = eutils_soap.run_eSearch(reqSearch);
 
