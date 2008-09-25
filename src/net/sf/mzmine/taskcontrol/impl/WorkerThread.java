@@ -1,5 +1,5 @@
 /*
- * Copyright 2006 The MZmine Development Team
+ * Copyright 2006-2008 The MZmine Development Team
  * 
  * This file is part of MZmine.
  * 
@@ -31,7 +31,7 @@ import net.sf.mzmine.taskcontrol.TaskListener;
 class WorkerThread extends Thread {
 
     private Logger logger = Logger.getLogger(this.getClass().getName());
-    
+
     private WrappedTask currentTask;
 
     WorkerThread(int workerNumber) {
@@ -75,41 +75,51 @@ class WorkerThread extends Thread {
             }
 
             try {
-                
+
                 TaskListener listener = currentTask.getListener();
-                
+
                 if (listener != null)
                     listener.taskStarted(currentTask.getTask());
-                
+
                 currentTask.getTask().run();
-                
+
                 if (listener != null)
                     listener.taskFinished(currentTask.getTask());
-                
+
+                /*
+                 * This is important to allow the garbage collector to remove
+                 * the task, while keeping the task description in the "Tasks in
+                 * progress" window
+                 */
+                currentTask.removeTaskReference();
+
             } catch (Throwable e) {
 
                 // this should never happen!
 
-                logger.log(Level.SEVERE, "Unhandled exception " + e + " while processing task "
-                        + currentTask, e);
+                logger.log(Level.SEVERE, "Unhandled exception " + e
+                        + " while processing task " + currentTask, e);
 
                 if (MZmineCore.getDesktop() != null) {
-                    
+
                     String errorMessage = "Unhandled exception while processing task "
-                        + currentTask + ": " + e;
+                            + currentTask + ": " + e;
 
                     MZmineCore.getDesktop().displayErrorMessage(errorMessage);
                 }
 
             }
 
-            /* discard the task, so that garbage collecter can collect it */
+            /*
+             * Discard the reference to the task, so the garbage collecter can
+             * collect it
+             */
             currentTask = null;
 
         }
 
     }
-    
+
     public String toString() {
         return this.getName();
     }

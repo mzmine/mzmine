@@ -1,5 +1,5 @@
 /*
- * Copyright 2006 The MZmine Development Team
+ * Copyright 2006-2008 The MZmine Development Team
  * 
  * This file is part of MZmine.
  * 
@@ -131,7 +131,7 @@ public class TaskControllerImpl implements TaskController, Runnable {
                     }
                 }
             }
-
+            
             WrappedTask[] queueSnapshot = taskQueue.getQueueSnapshot();
 
             // for each task, check if it's assigned and not canceled

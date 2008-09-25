@@ -1,5 +1,5 @@
 /*
- * Copyright 2006 The MZmine Development Team
+ * Copyright 2006-2008 The MZmine Development Team
  * 
  * This file is part of MZmine.
  * 
@@ -366,6 +366,14 @@ class TaskQueue implements TableModel, BoundedRangeModel {
      */
     public void removeChangeListener(ChangeListener listener) {
         listeners.remove(listener);
+    }
+    
+    /**
+     *  Replace each WrappedTask which is already finished by a dummy record. 
+     *  This removes the reference to the finished tasks and enables the garbace collector to free the memory occupied by that task. 
+     */ 
+    synchronized void dereferenceFinishedTasks() {
+        
     }
 
 }
