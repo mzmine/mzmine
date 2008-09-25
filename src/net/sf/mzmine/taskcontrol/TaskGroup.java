@@ -22,6 +22,7 @@ package net.sf.mzmine.taskcontrol;
 import java.util.logging.Logger;
 
 import net.sf.mzmine.main.MZmineCore;
+import net.sf.mzmine.taskcontrol.impl.DummyTask;
 
 /**
  * 
@@ -98,6 +99,11 @@ public class TaskGroup implements TaskListener {
         }
 
         finishedTasks++;
+        
+        
+        for (int i = 0; i < tasks.length; i++) {
+            if (task == tasks[i]) tasks[i] = new DummyTask(task);
+        }
 
         if (finishedTasks == tasks.length) {
 
