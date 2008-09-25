@@ -148,9 +148,9 @@ public class PubChemSearchTask implements Task {
             int numIDs;
 
             if ((chargedMol) && (ionName.name().equals("No ionization")))
-                complementQuery = "[MonoisotopicMass] AND NOT 0 [CHRG] AND 1:1000000[CID] NOT Cl[Element] NOT Br[Element]";
+                complementQuery = "[MonoisotopicMass] AND NOT 0 [CHRG]";
             else
-                complementQuery = "[MonoisotopicMass] AND 1:1000000[CID] NOT Cl[Element] NOT Br[Element]";
+                complementQuery = "[MonoisotopicMass]";
 
             if (singleRow) {
                 Desktop desktop = MZmineCore.getDesktop();
