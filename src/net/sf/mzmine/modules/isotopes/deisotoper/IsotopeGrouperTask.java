@@ -17,7 +17,7 @@
  * Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-package net.sf.mzmine.modules.peaklist.deisotoper;
+package net.sf.mzmine.modules.isotopes.deisotoper;
 
 import java.util.Arrays;
 import java.util.Vector;

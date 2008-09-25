@@ -261,6 +261,13 @@ public class SpectraPlot extends ChartPanel {
 			GUIUtils.addMenuItem(popupMenu, "Set same range to all windows",
 					this, "SET_SAME_RANGE");
 
+		if (isotopeFlag){
+			
+			popupMenu.addSeparator();
+
+			GUIUtils.addMenuItem(popupMenu, "Add Isotope Pattern",
+					this, "ADD_ISOTOPE_PATTERN");
+		}
 	}
 
 	public void actionPerformed(ActionEvent event) {
