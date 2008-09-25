@@ -61,7 +61,7 @@ public class PubChemSearchTask implements Task {
     private PubChemSearchWindow window;
     private PeakList peakList;
     private TypeOfIonization ionName;
-    private boolean singleRow = false, polarizedMol = false;
+    private boolean singleRow = false, chargedMol = false;
 
     PubChemSearchTask(PubChemSearchParameters parameters, PeakList peakList,
             PeakListRow peakListRow) {
@@ -79,7 +79,7 @@ public class PubChemSearchTask implements Task {
         range = (Float) parameters.getParameterValue(PubChemSearchParameters.mzToleranceField);
         numOfResults = (Integer) parameters.getParameterValue(PubChemSearchParameters.numOfResults);
         charge = (Integer) parameters.getParameterValue(PubChemSearchParameters.charge);
-        polarizedMol = (Boolean) parameters.getParameterValue(PubChemSearchParameters.chargedMol);
+        chargedMol = (Boolean) parameters.getParameterValue(PubChemSearchParameters.chargedMol);
 
         ionName = (TypeOfIonization) parameters.getParameterValue(PubChemSearchParameters.ionizationMethod);
 
@@ -147,7 +147,7 @@ public class PubChemSearchTask implements Task {
             String pubChemID, complementQuery;
             int numIDs;
 
-            if ((polarizedMol) && (ionName.name().equals("No ionization")))
+            if ((chargedMol) && (ionName.name().equals("No ionization")))
                 complementQuery = "[MonoisotopicMass] AND NOT 0 [CHRG] AND 1:1000000[CID] NOT Cl[Element] NOT Br[Element]";
             else
                 complementQuery = "[MonoisotopicMass] AND 1:1000000[CID] NOT Cl[Element] NOT Br[Element]";
