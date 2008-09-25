@@ -3,4 +3,4 @@
 SCRIPTDIR=`dirname "$0"`
 cd "$SCRIPTDIR"
 
-java -Djava.util.logging.config.file=conf/logging.properties -Xdock:name="MZmine 2" -Dapple.laf.useScreenMenuBar=true -Xms512m -Xmx2048m -cp MZmine2.jar net.sf.mzmine.main.MZmineClient
+java -Djava.util.logging.config.file=conf/logging.properties -Xdock:name="MZmine 2" -Dapple.laf.useScreenMenuBar=true -Xms1024m -Xmx2048m -cp MZmine2.jar net.sf.mzmine.main.MZmineClient
