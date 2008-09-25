@@ -53,8 +53,13 @@ public class ConsoleFormatter extends Formatter {
         if (record.getThrown() != null) {
             output.append("(");
             output.append(record.getThrown().toString());
-            output.append("@");
-            output.append(record.getThrown().getStackTrace()[0].toString());
+
+            Object[] stackTrace = record.getThrown().getStackTrace();
+            if (stackTrace.length > 0) {
+                output.append("@");
+                output.append(stackTrace[0].toString());
+            }
+            
             output.append(")");
         }
 
