@@ -490,7 +490,7 @@ public class RawDataFileImpl implements RawDataFile, RawDataFileWriter {
      */
     public RawDataFile finishWriting() throws IOException {
 
-        logger.finest("Writing of scans to file " + scanDataFile + " finished");
+        logger.finest("Writing of scans to file " + scanFile + " finished");
 
         // switch temporary file to current datafile and reopen it for reading
         scanDataFile.close();
