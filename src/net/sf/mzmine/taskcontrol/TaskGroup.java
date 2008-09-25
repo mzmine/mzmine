@@ -49,7 +49,7 @@ public class TaskGroup implements TaskListener {
     public TaskGroup(Task task, TaskListener taskListener) {
         this(new Task[] { task }, taskListener, null);
     }
-    
+
     /**
      * @param tasks
      * @param taskController
@@ -66,14 +66,20 @@ public class TaskGroup implements TaskListener {
             TaskGroupListener groupListener) {
         this(new Task[] { task }, taskListener, groupListener);
     }
-    
+
     /**
      * @param tasks
      * @param taskController
      */
     public TaskGroup(Task[] tasks, TaskListener taskListener,
             TaskGroupListener groupListener) {
-        this.tasks = tasks;
+
+        // We need to create a new array of generic type Task[], because the
+        // given array may have more specific type and we want to insert
+        // DummyTasks later in taskFinished()
+        this.tasks = new Task[tasks.length];
+        System.arraycopy(tasks, 0, this.tasks, 0, tasks.length);
+
         this.taskListener = taskListener;
         this.taskGroupListener = groupListener;
     }
@@ -99,10 +105,10 @@ public class TaskGroup implements TaskListener {
         }
 
         finishedTasks++;
-        
-        
+
         for (int i = 0; i < tasks.length; i++) {
-            if (task == tasks[i]) tasks[i] = new DummyTask(task);
+            if (task == tasks[i])
+                tasks[i] = new DummyTask(task);
         }
 
         if (finishedTasks == tasks.length) {
