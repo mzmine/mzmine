@@ -364,7 +364,7 @@ public class PeakBuilderSetupDialog extends ParameterSetupDialog implements
 				}
 
 			if (peakInd > 60) {
-				String message = "Too many peaks detected, please set another parameter values";
+				String message = "Too many peaks detected, please adjust parameter values";
 				desktop.displayMessage(message);
 				logger.finest(message);
 				break;
