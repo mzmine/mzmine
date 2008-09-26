@@ -90,6 +90,7 @@ public class IntensityPlotFrame extends JInternalFrame {
                     true);
             renderer.setBaseStroke(new BasicStroke(2));
             plot.setRenderer(renderer);
+            plot.setBackgroundPaint(Color.white);
 
             // set tooltip generator
             CategoryToolTipGenerator toolTipGenerator = new IntensityPlotTooltipGenerator();
@@ -109,6 +110,7 @@ public class IntensityPlotFrame extends JInternalFrame {
             XYErrorRenderer renderer = new XYErrorRenderer();
             renderer.setBaseStroke(new BasicStroke(2));
             plot.setRenderer(renderer);
+            plot.setBackgroundPaint(Color.white);
             
             // set tooltip generator
             XYToolTipGenerator toolTipGenerator = new IntensityPlotTooltipGenerator();
@@ -117,7 +119,7 @@ public class IntensityPlotFrame extends JInternalFrame {
         }
 
         chart.setBackgroundPaint(Color.white);
-
+        
         // create chart JPanel
         ChartPanel chartPanel = new ChartPanel(chart);
         add(chartPanel, BorderLayout.CENTER);
