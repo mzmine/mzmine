@@ -367,13 +367,5 @@ class TaskQueue implements TableModel, BoundedRangeModel {
     public void removeChangeListener(ChangeListener listener) {
         listeners.remove(listener);
     }
-    
-    /**
-     *  Replace each WrappedTask which is already finished by a dummy record. 
-     *  This removes the reference to the finished tasks and enables the garbace collector to free the memory occupied by that task. 
-     */ 
-    synchronized void dereferenceFinishedTasks() {
-        
-    }
 
 }
