@@ -127,7 +127,10 @@ class DuplicateFilterTask implements Task {
         // Loop through all peak list rows
         for (int firstRowIndex = 0; firstRowIndex < peaklistRows.length; firstRowIndex++) {
         	        	       
-        	if (peaklistRows[firstRowIndex]==null) continue;
+        	if (peaklistRows[firstRowIndex]==null) {
+                processedRows++;
+                continue;
+            }
         	        	
         	// Search for duplicate rows with smaller peak area
         	for (int secondRowIndex = (firstRowIndex + 1); secondRowIndex < peaklistRows.length; secondRowIndex++) {
