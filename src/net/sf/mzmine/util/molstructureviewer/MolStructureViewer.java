@@ -40,6 +40,7 @@ public class MolStructureViewer extends JDialog implements WindowListener {
 	private File inFile;
     private static int openDialogCount = 0;
     private static final int xOffset = 30, yOffset = 30;
+    private String fileName;
 	
 	public MolStructureViewer(int CID, String compoundName){
 		// Make dialog modal
@@ -84,7 +85,8 @@ public class MolStructureViewer extends JDialog implements WindowListener {
 					"http://pubchem.ncbi.nlm.nih.gov/summary/summary.cgi?cid="+CID+"&disopt=DisplaySDF");
 			InputStream in=url.openStream ();
 			
-			File inFile = writeFile(in);
+			fileName = "temp" + this.hashCode() + ".sdf";
+			File inFile = writeFile(in, fileName);
 			FileInputStream reader = new FileInputStream(inFile);
 			IChemObjectReader cor = new MDLV2000Reader(reader);
 			ChemModel chemModel = (ChemModel) cor.read((IChemObject) new ChemModel());
@@ -133,8 +135,8 @@ public class MolStructureViewer extends JDialog implements WindowListener {
 	}
 
 	
-	private File writeFile(InputStream inStream) throws IOException {
-		File file = new File("temp.sdf");
+	private File writeFile(InputStream inStream, String fileName) throws IOException {
+		File file = new File(fileName);
 	    final int bufferSize = 1000;
 	    inStream = new BufferedInputStream(inStream);
 	    BufferedOutputStream fout = new BufferedOutputStream(new FileOutputStream(file));

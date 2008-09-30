@@ -36,6 +36,7 @@ class PeakToolTipGenerator implements XYToolTipGenerator {
 
     private NumberFormat mzFormat = MZmineCore.getMZFormat();
     private NumberFormat intensityFormat = MZmineCore.getIntensityFormat();
+    private NumberFormat percentFormat = NumberFormat.getPercentInstance();;
 
     /**
      * @see org.jfree.chart.labels.XYToolTipGenerator#generateToolTip(org.jfree.data.xy.XYDataset,
@@ -47,15 +48,22 @@ class PeakToolTipGenerator implements XYToolTipGenerator {
         PeakListDataSet peakListDataSet = (PeakListDataSet) dataset;
         double intValue = dataset.getYValue(series, item);
         double mzValue = dataset.getXValue(series, item);
-        ChromatographicPeak peak = peakListDataSet.getPeak(series, item);
+        float increase = peakListDataSet.getIncrease();
         
         if (peakListDataSet.isIsotopeDataSet()){
-            tooltip = "<html>" + "Peak: " + peak + "<br>Status: "
-            + peak.getPeakStatus() + "<br>Data point m/z: " + mzFormat.format(mzValue)
-            + "<br>Data point intensity: "
-            + intensityFormat.format(intValue) + "</html>";
+            tooltip = "<html>" + "Peak: isotope<br>Status: predicted"
+            + "<br>Data point m/z: " + mzFormat.format(mzValue)
+            + "<br>Data point intensity: ";
+            
+            if (peakListDataSet.isPredicted()){
+            	tooltip+= percentFormat.format(intValue/increase) + "</html>";
+            }
+            else{
+            	tooltip+= intensityFormat.format(intValue) + "</html>";
+            }
         }
         else{
+            ChromatographicPeak peak = peakListDataSet.getPeak(series, item);
             PeakList peakList = peakListDataSet.getPeakList();
             PeakListRow row = peakList.getPeakRow(peak);
             tooltip = "<html>" + "Peak: " + peak + "<br>Status: "

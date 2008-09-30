@@ -36,6 +36,7 @@ import javax.swing.JPopupMenu;
 import javax.swing.KeyStroke;
 
 import net.sf.mzmine.main.MZmineCore;
+import net.sf.mzmine.modules.isotopes.isotopeprediction.IsotopePatternCalculator;
 import net.sf.mzmine.modules.peakpicking.threestep.massdetection.MassDetectorSetupDialog;
 import net.sf.mzmine.util.GUIUtils;
 import net.sf.mzmine.util.dialogs.AxesSetupDialog;
@@ -306,6 +307,11 @@ public class SpectraPlot extends ChartPanel {
 		if (command.equals("THICKNESS")) {
 			ThicknessSetupDialog dialog = new ThicknessSetupDialog(this);
 			dialog.setVisible(true);
+		}
+
+		if (command.equals("ADD_ISOTOPE_PATTERN")) {
+			IsotopePatternCalculator ipc = IsotopePatternCalculator.getInstance();
+			ipc.showIsotopePatternCalculatorWindow(this);
 		}
 
 		if ((command.equals("ZOOM_IN"))

@@ -20,6 +20,7 @@
 package net.sf.mzmine.modules.visualization.spectra;
 
 import java.util.Vector;
+import java.util.logging.Logger;
 
 import net.sf.mzmine.data.ChromatographicPeak;
 import net.sf.mzmine.data.DataPoint;
@@ -27,7 +28,6 @@ import net.sf.mzmine.data.IsotopePattern;
 import net.sf.mzmine.data.PeakList;
 import net.sf.mzmine.data.RawDataFile;
 import net.sf.mzmine.data.impl.SimpleIsotopePattern;
-import net.sf.mzmine.util.Range;
 
 import org.jfree.data.xy.AbstractXYDataset;
 import org.jfree.data.xy.IntervalXYDataset;
@@ -37,11 +37,13 @@ import org.jfree.data.xy.IntervalXYDataset;
  */
 public class PeakListDataSet extends AbstractXYDataset implements IntervalXYDataset {
 
+    private Logger logger = Logger.getLogger(this.getClass().getName());
+
     private PeakList peakList;
 
     private ChromatographicPeak displayedPeaks[];
-    private float mzValues[], intensityValues[];
-    private boolean isotopeFlag;
+    private float mzValues[], intensityValues[], increase = 1;
+    private boolean isotopeFlag,  predicted = false;
     private String label;
     private float thickness = 0.001f;
 
@@ -73,21 +75,41 @@ public class PeakListDataSet extends AbstractXYDataset implements IntervalXYData
     }
 
     public PeakListDataSet(IsotopePattern isotopePattern) {
+    	
+    	if (isotopePattern.isPredicted()){
+        	DataPoint[] dataPoints = isotopePattern.getDataPoints();
 
-    	displayedPeaks = isotopePattern.getOriginalPeaks();
+            mzValues = new float[dataPoints.length];
+            intensityValues = new float[dataPoints.length];
 
-        mzValues = new float[displayedPeaks.length];
-        intensityValues = new float[displayedPeaks.length];
+            for (int i = 0; i < dataPoints.length; i++) {
+                mzValues[i] = dataPoints[i].getMZ();
+                intensityValues[i] = dataPoints[i].getIntensity();
+            }
 
-        for (int i = 0; i < displayedPeaks.length; i++) {
-            mzValues[i] = displayedPeaks[i].getMZ();
-            intensityValues[i] = displayedPeaks[i].getHeight();
-        }
+            label = "Isotopes (" + dataPoints.length 
+    		+ ") "+ isotopePattern.getIsotopeInfo();
+            
+            predicted = true;
+    		
+    	}
+    	else{
+        	displayedPeaks = isotopePattern.getOriginalPeaks();
+
+            mzValues = new float[displayedPeaks.length];
+            intensityValues = new float[displayedPeaks.length];
+
+            for (int i = 0; i < displayedPeaks.length; i++) {
+                mzValues[i] = displayedPeaks[i].getMZ();
+                intensityValues[i] = displayedPeaks[i].getHeight();
+            }
+        	label = "Isotopes ("+ ((SimpleIsotopePattern) isotopePattern).getNumberOfIsotopes()
+    		+ ") "+ isotopePattern.getIsotopeInfo();
+    		
+    	}
 
         isotopeFlag = true;
         
-    	label = "Isotopes ("+ ((SimpleIsotopePattern) isotopePattern).getNumberOfIsotopes()
-		+ ") "+ isotopePattern.getIsotopeInfo();
     }
     
     public boolean isIsotopeDataSet(){
@@ -119,26 +141,18 @@ public class PeakListDataSet extends AbstractXYDataset implements IntervalXYData
     }
 
     public Number getY(int series, int item) {
-        return intensityValues[item];
+    	if (predicted)
+    		return intensityValues[item] * increase;
+    	else
+            return intensityValues[item];
     }
 
     public Number getEndX(int series, int item) {
-    	/*Range mzRange = displayedPeaks[item].getRawDataPointsMZRange();
-    	float origin = getX(series, item).floatValue();
-    	float extended = mzRange.getMax() - origin;
-    	extended /= 10.0f;
-    	return origin + extended;*/
         return getX(series, item).floatValue() + thickness;
     }
 
     public double getEndXValue(int series, int item) {
-    	/*Range mzRange = displayedPeaks[item].getRawDataPointsMZRange();
-    	float origin = getX(series, item).floatValue();
-    	float extended = mzRange.getMax() - origin;
-    	extended /= 10.0f;
-    	return origin + extended;*/
         return getX(series, item).floatValue() + thickness;
-        //return getXValue(series, item);
     }
 
     public Number getEndY(int series, int item) {
@@ -150,23 +164,11 @@ public class PeakListDataSet extends AbstractXYDataset implements IntervalXYData
     }
 
     public Number getStartX(int series, int item) {
-    	/*Range mzRange = displayedPeaks[item].getRawDataPointsMZRange();
-    	float origin = getX(series, item).floatValue();
-    	float extended = origin - mzRange.getMin();
-    	extended /= 10.0f;
-    	return origin - extended;*/
         return getX(series, item).floatValue() - thickness;
-    	//return getX(series, item);
     }
 
     public double getStartXValue(int series, int item) {
-    	/*Range mzRange = displayedPeaks[item].getRawDataPointsMZRange();
-    	float origin = getX(series, item).floatValue();
-    	float extended = origin - mzRange.getMin();
-    	extended /= 10.0f;
-    	return origin - extended;*/
         return getX(series, item).floatValue() - thickness;
-        //return getXValue(series, item);
     }
 
     public Number getStartY(int series, int item) {
@@ -180,5 +182,28 @@ public class PeakListDataSet extends AbstractXYDataset implements IntervalXYData
     public void setThickness(float thickness){
     	this.thickness = thickness;
     }
+    
+    public void setIncreaseIntensity (float increase){
+    	this.increase = increase;
+    }
+    
+    public float getIncrease(){
+    	return increase;
+    }
+    
+    public boolean isPredicted(){
+    	return predicted;
+    }
+    
+    public float getBiggestIntensity(){
+    	float biggestIntensity = 0.0f;
+    	for (float intensity: intensityValues){
+    		if ( intensity > biggestIntensity) {
+    			biggestIntensity = intensity;
+    		}
+    	}
+    	return biggestIntensity;
+    }
+
 
 }

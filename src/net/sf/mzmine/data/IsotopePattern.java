@@ -60,4 +60,9 @@ public interface IsotopePattern extends ChromatographicPeak, MzDataTable {
      */
     public String getIsotopeInfo();
 
+    /**
+     * Returns a boolean value.
+     */
+    public boolean isPredicted();
+
 }

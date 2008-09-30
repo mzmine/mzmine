@@ -417,6 +417,13 @@
     <module class="net.sf.mzmine.modules.visualization.intensityplot.IntensityPlot"> 
       <parameters/> 
     </module>  
+    <module class="net.sf.mzmine.util.menu.VisualizationMenuSeparator"/>  
+    <module class="net.sf.mzmine.modules.isotopes.isotopeprediction.IsotopePatternCalculator"> 
+      <parameters>
+        <parameter name="Chemical formula" type="STRING">C26H35O14N8</parameter>
+        <parameter name="Minimum % of relative abundance" type="FLOAT">0.01</parameter>
+      </parameters> 
+    </module>  
     <module class="net.sf.mzmine.modules.identification.custom.CustomDBSearch"> 
       <parameters>
         <databasefile>E:\DATA\peakid.csv</databasefile>

@@ -19,13 +19,10 @@
 
 package net.sf.mzmine.modules.visualization.spectra;
 
-import java.util.logging.Logger;
-
 import net.sf.mzmine.data.DataPoint;
 import net.sf.mzmine.data.IsotopePattern;
 import net.sf.mzmine.data.MzDataTable;
 import net.sf.mzmine.data.Scan;
-import net.sf.mzmine.data.impl.SimpleIsotopePattern;
 
 import org.jfree.data.xy.AbstractXYDataset;
 import org.jfree.data.xy.IntervalXYDataset;
@@ -35,7 +32,9 @@ import org.jfree.data.xy.IntervalXYDataset;
  */
 public class SpectraDataSet extends AbstractXYDataset implements IntervalXYDataset {
 
-	private Logger logger = Logger.getLogger(this.getClass().getName());
+	private boolean predicted = false;
+	private static float increase = (float) Math.pow(10, 4);
+	private float biggestIntensity = Float.MIN_VALUE;
 	
 	/*
      * Save a local copy of m/z and intensity values, because accessing the scan
@@ -45,12 +44,30 @@ public class SpectraDataSet extends AbstractXYDataset implements IntervalXYDatas
     private String label;
 
     public SpectraDataSet(MzDataTable mzDataTable) {
-        dataPoints = mzDataTable.getDataPoints();
+
+    	float intensity;
+    	dataPoints = mzDataTable.getDataPoints();
+        
+    	for (DataPoint dp: dataPoints){
+    		intensity = dp.getIntensity();
+    		if ( intensity > biggestIntensity) {
+    			biggestIntensity = intensity;
+    		}
+    	}
+
     	boolean isotopeFlag = mzDataTable instanceof IsotopePattern;
-    	if (isotopeFlag)
-    		label = "Raw data";
-    	else
+    	if (isotopeFlag){
+    		predicted = ((IsotopePattern)mzDataTable).isPredicted();
+    		if (predicted){
+        		label = "Predicted isotope pattern";
+    		}
+    		else {
+        		label = "Raw data";
+    		}
+    	}
+    	else{
     		label = "Scan #" + ((Scan) mzDataTable).getScanNumber();
+    	}
     }
 
     @Override public int getSeriesCount() {
@@ -70,7 +87,11 @@ public class SpectraDataSet extends AbstractXYDataset implements IntervalXYDatas
     }
 
     public Number getY(int series, int item) {
-        return dataPoints[item].getIntensity();
+    	if (predicted)
+    		return dataPoints[item].getIntensity() * increase;
+    	else
+            return dataPoints[item].getIntensity();
+
     }
 
     public Number getEndX(int series, int item) {
@@ -103,6 +124,17 @@ public class SpectraDataSet extends AbstractXYDataset implements IntervalXYDatas
 
     public double getStartYValue(int series, int item) {
         return getYValue(series, item);
+    }
+    
+    public float getBiggestIntensity(){
+    	if (predicted)
+    		return biggestIntensity * increase;
+    	else
+            return biggestIntensity;
+    }
+    
+    public static float getIncrease(){
+    	return increase;
     }
 
 }

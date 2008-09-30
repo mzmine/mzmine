@@ -249,4 +249,8 @@ public class SimpleIsotopePattern implements IsotopePattern {
 		return mzRange;
 	}
 
+	public boolean isPredicted() {
+		return false;
+	}
+
 }

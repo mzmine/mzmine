@@ -70,9 +70,7 @@ public class SpectraVisualizerWindow extends JInternalFrame implements
 
 	SpectraVisualizerWindow(RawDataFile dataFile, String title,
 			MzDataTable mzDataTable) {
-		// SpectraVisualizerWindow(RawDataFile dataFile, int scanNumber) {
 
-		// super(dataFile.toString(), true, true, true, true);
 		super(title, true, true, true, true);
 
 		if (mzDataTable instanceof Scan) {
@@ -89,16 +87,15 @@ public class SpectraVisualizerWindow extends JInternalFrame implements
 		spectrumPlot = new SpectraPlot(this, visualizerType);
 		add(spectrumPlot, BorderLayout.CENTER);
 
-		// toolBar = new SpectraToolBar(this);
 		toolBar = new SpectraToolBar(spectrumPlot, visualizerType);
 		add(toolBar, BorderLayout.EAST);
 
 		// Create relationship between the current Plot and Tool bar
 		spectrumPlot.setRelatedToolBar(toolBar);
 
-		if (visualizerType == SpectraVisualizerType.SPECTRUM){
+		if (visualizerType == SpectraVisualizerType.SPECTRUM) {
 			bottomPanel = new SpectraBottomPanel(this, dataFile, visualizerType);
-		add(bottomPanel, BorderLayout.SOUTH);
+			add(bottomPanel, BorderLayout.SOUTH);
 		}
 
 		if (visualizerType == SpectraVisualizerType.SPECTRUM) {
@@ -272,9 +269,24 @@ public class SpectraVisualizerWindow extends JInternalFrame implements
 				Range mzRange = isotopePattern.getIsotopeMzRange();
 				// Set plot data sets
 				spectrumPlot.setSpectrumDataSet(spectrumDataSet);
+				String subTitle = "";
 
 				PeakListDataSet peaksDataSet = null;
-				peaksDataSet = new PeakListDataSet(isotopePattern);
+
+				if (isotopePattern.isPredicted()) {
+					spectrumPlot.setPlotMode(PlotMode.CENTROID);
+					toolBar.setCentroidButton(false);
+				} else {
+					peaksDataSet = new PeakListDataSet(isotopePattern);
+					spectrumPlot.setPlotMode(PlotMode.CONTINUOUS);
+					toolBar.setCentroidButton(true);
+					subTitle = isotopePattern.getDataFile().getFileName()
+							+ " Scan "
+							+ isotopePattern.getRepresentativeScanNumber();
+				}
+
+				// Set plot data sets
+				spectrumPlot.setSpectrumDataSet(spectrumDataSet);
 
 				if (peaksDataSet != null) {
 					toolBar.setPeaksButtonEnabled(true);
@@ -283,16 +295,13 @@ public class SpectraVisualizerWindow extends JInternalFrame implements
 					toolBar.setPeaksButtonEnabled(false);
 				}
 
-				spectrumPlot.setPlotMode(PlotMode.CONTINUOUS);
-				toolBar.setCentroidButton(true);
-
 				// Set window and plot titles
 				String title = "Isotope pattern of "
 						+ isotopePattern.toString();
-				String subTitle = "";
 				setTitle(title);
 				spectrumPlot.setTitle(title, subTitle);
-				spectrumPlot.getXYPlot().getDomainAxis().setRange(mzRange.getMin(), mzRange.getMax());
+				spectrumPlot.getXYPlot().getDomainAxis().setRange(
+						mzRange.getMin(), mzRange.getMax());
 			}
 		};
 
