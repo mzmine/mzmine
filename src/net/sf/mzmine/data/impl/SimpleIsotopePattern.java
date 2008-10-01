@@ -27,6 +27,7 @@ import java.util.Set;
 import net.sf.mzmine.data.ChromatographicPeak;
 import net.sf.mzmine.data.DataPoint;
 import net.sf.mzmine.data.IsotopePattern;
+import net.sf.mzmine.data.IsotopePatternStatus;
 import net.sf.mzmine.data.MzPeak;
 import net.sf.mzmine.data.PeakStatus;
 import net.sf.mzmine.data.RawDataFile;
@@ -42,6 +43,7 @@ public class SimpleIsotopePattern implements IsotopePattern {
 	private int charge = UNKNOWN_CHARGE;
 	private Set<ChromatographicPeak> peaks;
 	private ChromatographicPeak representativePeak;
+	private IsotopePatternStatus patternStatus = IsotopePatternStatus.DETECTED;
 
 	public SimpleIsotopePattern() {
 		peaks = new HashSet<ChromatographicPeak>();
@@ -249,8 +251,8 @@ public class SimpleIsotopePattern implements IsotopePattern {
 		return mzRange;
 	}
 
-	public boolean isPredicted() {
-		return false;
+	public IsotopePatternStatus getIsotopePatternStatus() {
+		return patternStatus;
 	}
 
 }

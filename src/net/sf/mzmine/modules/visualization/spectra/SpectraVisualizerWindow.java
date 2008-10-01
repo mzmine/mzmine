@@ -32,6 +32,7 @@ import javax.swing.JInternalFrame;
 
 import net.sf.mzmine.data.DataPoint;
 import net.sf.mzmine.data.IsotopePattern;
+import net.sf.mzmine.data.IsotopePatternStatus;
 import net.sf.mzmine.data.MzDataTable;
 import net.sf.mzmine.data.PeakList;
 import net.sf.mzmine.data.RawDataFile;
@@ -273,7 +274,7 @@ public class SpectraVisualizerWindow extends JInternalFrame implements
 
 				PeakListDataSet peaksDataSet = null;
 
-				if (isotopePattern.isPredicted()) {
+				if (isotopePattern.getIsotopePatternStatus() == IsotopePatternStatus.PREDICTED) {
 					spectrumPlot.setPlotMode(PlotMode.CENTROID);
 					toolBar.setCentroidButton(false);
 				} else {

@@ -3,6 +3,7 @@ package net.sf.mzmine.modules.isotopes.isotopeprediction;
 import net.sf.mzmine.data.ChromatographicPeak;
 import net.sf.mzmine.data.DataPoint;
 import net.sf.mzmine.data.IsotopePattern;
+import net.sf.mzmine.data.IsotopePatternStatus;
 import net.sf.mzmine.data.MzPeak;
 import net.sf.mzmine.data.PeakStatus;
 import net.sf.mzmine.data.RawDataFile;
@@ -14,6 +15,9 @@ public class PredictedIsotopePattern implements IsotopePattern {
 	private String formula;
 	private int charge;
 	private Range range;
+	private IsotopePatternStatus patternStatus = IsotopePatternStatus.PREDICTED;
+	private float height = 10000.0f;
+
 	
 	public PredictedIsotopePattern (DataPoint[] dataPoints, String formula, int charge){
 		this.dataPoints = dataPoints;
@@ -116,9 +120,21 @@ public class PredictedIsotopePattern implements IsotopePattern {
 		
 		return range;
 	}
+	
+	public void setIsotopeHeight(float height){
+		this.height = height;
+	}
+	
+	public float getIsotopeHeight(){
+		return height;
+	}
 
-	public boolean isPredicted() {
-		return true;
+	public IsotopePatternStatus getIsotopePatternStatus() {
+		return patternStatus;
+	}
+	
+	public String getFormula(){
+		return formula;
 	}
 	
 	public String toString(){

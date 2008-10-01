@@ -21,146 +21,148 @@ import net.sf.mzmine.taskcontrol.TaskListener;
 import net.sf.mzmine.util.dialogs.ExitCode;
 import net.sf.mzmine.util.dialogs.ParameterSetupDialog;
 
-public class IsotopePatternCalculator implements MZmineModule, TaskListener, ActionListener {
-	
-    private static IsotopePatternCalculator myInstance;
+public class IsotopePatternCalculator implements MZmineModule, TaskListener,
+		ActionListener {
 
-    private IsotopePatternCalculatorParameters parameters;
+	private static IsotopePatternCalculator myInstance;
 
-    private Logger logger = Logger.getLogger(this.getClass().getName());
+	private IsotopePatternCalculatorParameters parameters;
 
-    private Desktop desktop;
-    
-    private SpectraPlot plot;
+	private Logger logger = Logger.getLogger(this.getClass().getName());
 
-    /**
-     * @see net.sf.mzmine.main.MZmineModule#initModule(net.sf.mzmine.main.MZmineCore)
-     */
-    public void initModule() {
+	private Desktop desktop;
 
-        this.desktop = MZmineCore.getDesktop();
+	private SpectraPlot plot;
 
-        parameters = new IsotopePatternCalculatorParameters();
-        
-        myInstance = this;
+	/**
+	 * @see net.sf.mzmine.main.MZmineModule#initModule(net.sf.mzmine.main.MZmineCore)
+	 */
+	public void initModule() {
 
-        desktop.addMenuItem(MZmineMenu.VISUALIZATION,
-                "Isotope pattern calculator",
-                "Calculation of isotope pattern using a given chemical formula",
-                KeyEvent.VK_P, this, null);
+		this.desktop = MZmineCore.getDesktop();
 
-    }
-    
-    public static IsotopePatternCalculator getInstance() {
-        return myInstance;
-    }
+		parameters = new IsotopePatternCalculatorParameters();
 
-    
-    public void setParameters(ParameterSet parameters) {
-        this.parameters = (IsotopePatternCalculatorParameters) parameters;
-    }
+		myInstance = this;
 
-     /**
-     * @see net.sf.mzmine.main.MZmineModule#getParameterSet()
-     */
-    public ParameterSet getParameterSet() {
-        return parameters;
-    }
-    
- 
+		desktop
+				.addMenuItem(
+						MZmineMenu.VISUALIZATION,
+						"Isotope pattern calculator",
+						"Calculation of isotope pattern using a given chemical formula",
+						KeyEvent.VK_P, this, null);
+
+	}
+
+	public static IsotopePatternCalculator getInstance() {
+		return myInstance;
+	}
+
+	public void setParameters(ParameterSet parameters) {
+		this.parameters = (IsotopePatternCalculatorParameters) parameters;
+	}
+
+	/**
+	 * @see net.sf.mzmine.main.MZmineModule#getParameterSet()
+	 */
+	public ParameterSet getParameterSet() {
+		return parameters;
+	}
 
 	public void actionPerformed(ActionEvent e) {
-        logger.finest("Opening a new spectra visualizer setup dialog");
+		logger.finest("Opening a new spectra visualizer setup dialog");
 
-        ParameterSetupDialog dialog = new ParameterSetupDialog(
-                "Please set parameter values for " + toString(), parameters);
+		ParameterSetupDialog dialog = new ParameterSetupDialog(
+				"Please set parameter values for " + toString(), parameters);
 
-        dialog.setVisible(true);
+		dialog.setVisible(true);
 
-        if (dialog.getExitCode() != ExitCode.OK)
-            return;
+		if (dialog.getExitCode() != ExitCode.OK)
+			return;
 
-        runTask();
-        
+		runTask();
+
 	}
-	
-    public void showIsotopePatternCalculatorWindow(SpectraPlot plot) {
-    	
-    	this.plot = plot;
 
-        ParameterSetupDialog dialog = new ParameterSetupDialog(
-                "Please set parameter values for " + toString(), parameters);
+	public void showIsotopePatternCalculatorWindow(SpectraPlot plot) {
 
-        dialog.setVisible(true);
+		this.plot = plot;
 
-        if (dialog.getExitCode() != ExitCode.OK)
-            return;
-        
-        runTask();
+		ParameterSetupDialog dialog = new ParameterSetupDialog(
+				"Please set parameter values for " + toString(), parameters);
 
-    }
-    
-    public void runTask() {
+		dialog.setVisible(true);
 
-    	// prepare a new group of tasks
-        Task tasks[] = new IsotopePatternCalculatorTask[1];
-        tasks[0] = new IsotopePatternCalculatorTask( (IsotopePatternCalculatorParameters) parameters.clone());
+		if (dialog.getExitCode() != ExitCode.OK)
+			return;
 
-        TaskGroup newGroup = new TaskGroup(tasks, this, null);
+		runTask();
 
-        // start the group
-        newGroup.start();
+	}
 
-    }
-    
-    public String toString(){
-    	return "Isotope pattern calculator";
-    }
+	public void runTask() {
+
+		// prepare a new group of tasks
+		Task tasks[] = new IsotopePatternCalculatorTask[1];
+		tasks[0] = new IsotopePatternCalculatorTask(
+				(IsotopePatternCalculatorParameters) parameters.clone());
+
+		TaskGroup newGroup = new TaskGroup(tasks, this, null);
+
+		// start the group
+		newGroup.start();
+
+	}
+
+	public String toString() {
+		return "Isotope pattern calculator";
+	}
 
 	public void taskFinished(Task task) {
 		IsotopePatternCalculatorTask ipcTask = (IsotopePatternCalculatorTask) task;
 
-        if (task.getStatus() == Task.TaskStatus.FINISHED) {
-            logger.info("Finished isotope pattern of "
-                    + ipcTask.getFormula());
-            
-            IsotopePattern ip = ipcTask.getIsotopePattern();
-            
-            if (plot == null){
-            	SpectraVisualizer visualizer = SpectraVisualizer.getInstance();
-            	visualizer.showNewSpectrumWindow(null, ip);
-            }
-            else{
-            	PeakListDataSet predictedPeakDataSet = new PeakListDataSet(ip);
-            	PeakListDataSet rawPeakDataSet = (PeakListDataSet) plot.getXYPlot().getDataset(1);
-            	float increase;
-            	if (rawPeakDataSet != null){
-            		increase = ((int)(rawPeakDataSet.getBiggestIntensity() * 100) / 100);
-            	}
-            	else{
-            		increase = SpectraDataSet.getIncrease();
-            	}
-            	logger.finest("Value of increase " + increase);
-            	predictedPeakDataSet.setIncreaseIntensity(increase);
-            	plot.addPeaksDataSet(predictedPeakDataSet);
-            }
-            
-            this.plot = null;
-        }
+		if (task.getStatus() == Task.TaskStatus.FINISHED) {
+			logger.info("Finished isotope pattern of " + ipcTask.getFormula());
 
-        if (task.getStatus() == Task.TaskStatus.ERROR) {
-            String msg = "Error while running isotope pattern calculation of "
-                    + ipcTask.getFormula() + ": " + task.getErrorMessage();
-            logger.severe(msg);
-            desktop.displayErrorMessage(msg);
-        }	
+			IsotopePattern ip = ipcTask.getIsotopePattern();
+
+			if (plot == null) {
+				SpectraVisualizer visualizer = SpectraVisualizer.getInstance();
+				visualizer.showNewSpectrumWindow(null, ip);
+			} else {
+				PeakListDataSet predictedPeakDataSet = new PeakListDataSet(ip);
+				PeakListDataSet rawPeakDataSet = (PeakListDataSet) plot
+						.getXYPlot().getDataset(1);
+				float increase = predictedPeakDataSet.getIncrease();
+				if (increase < 0) {
+					if (rawPeakDataSet != null) {
+						increase = ((int) (rawPeakDataSet
+								.getBiggestIntensity(ip.getIsotopeMass()) * 100) / 100);
+					} else {
+						increase = (float) Math.pow(10, 4);
+					}
+				}
+				logger.finest("Value of increase " + increase);
+				predictedPeakDataSet.setIncreaseIntensity(increase);
+				plot.addPeaksDataSet(predictedPeakDataSet);
+			}
+
+			this.plot = null;
+		}
+
+		if (task.getStatus() == Task.TaskStatus.ERROR) {
+			String msg = "Error while running isotope pattern calculation of "
+					+ ipcTask.getFormula() + ": " + task.getErrorMessage();
+			logger.severe(msg);
+			desktop.displayErrorMessage(msg);
+		}
 	}
 
 	public void taskStarted(Task task) {
 		IsotopePatternCalculatorTask ipcTask = (IsotopePatternCalculatorTask) task;
-        logger.info("Running isotope pattern calculation of "
-                + ipcTask.getFormula());
-		
+		logger.info("Running isotope pattern calculation of "
+				+ ipcTask.getFormula());
+
 	}
 
 }

@@ -19,15 +19,18 @@
 
 package net.sf.mzmine.modules.visualization.spectra;
 
+import java.util.TreeMap;
 import java.util.Vector;
 import java.util.logging.Logger;
 
 import net.sf.mzmine.data.ChromatographicPeak;
 import net.sf.mzmine.data.DataPoint;
 import net.sf.mzmine.data.IsotopePattern;
+import net.sf.mzmine.data.IsotopePatternStatus;
 import net.sf.mzmine.data.PeakList;
 import net.sf.mzmine.data.RawDataFile;
 import net.sf.mzmine.data.impl.SimpleIsotopePattern;
+import net.sf.mzmine.modules.isotopes.isotopeprediction.PredictedIsotopePattern;
 
 import org.jfree.data.xy.AbstractXYDataset;
 import org.jfree.data.xy.IntervalXYDataset;
@@ -42,10 +45,12 @@ public class PeakListDataSet extends AbstractXYDataset implements IntervalXYData
     private PeakList peakList;
 
     private ChromatographicPeak displayedPeaks[];
-    private float mzValues[], intensityValues[], increase = 1;
-    private boolean isotopeFlag,  predicted = false;
+    private float mzValues[], intensityValues[], increase = -1.0f;
+    private boolean isotopeFlag=false,  predicted = false;
     private String label;
     private float thickness = 0.001f;
+    private IsotopePatternStatus isotopeStatus;
+    private String formula;
 
     public PeakListDataSet(RawDataFile dataFile, int scanNumber, PeakList peakList) {
 
@@ -76,7 +81,7 @@ public class PeakListDataSet extends AbstractXYDataset implements IntervalXYData
 
     public PeakListDataSet(IsotopePattern isotopePattern) {
     	
-    	if (isotopePattern.isPredicted()){
+    	if (isotopePattern.getIsotopePatternStatus() == IsotopePatternStatus.PREDICTED){
         	DataPoint[] dataPoints = isotopePattern.getDataPoints();
 
             mzValues = new float[dataPoints.length];
@@ -91,6 +96,9 @@ public class PeakListDataSet extends AbstractXYDataset implements IntervalXYData
     		+ ") "+ isotopePattern.getIsotopeInfo();
             
             predicted = true;
+            isotopeStatus = IsotopePatternStatus.PREDICTED;
+            increase = ((PredictedIsotopePattern)isotopePattern).getIsotopeHeight();
+            formula = ((PredictedIsotopePattern)isotopePattern).getFormula();
     		
     	}
     	else{
@@ -106,6 +114,8 @@ public class PeakListDataSet extends AbstractXYDataset implements IntervalXYData
         	label = "Isotopes ("+ ((SimpleIsotopePattern) isotopePattern).getNumberOfIsotopes()
     		+ ") "+ isotopePattern.getIsotopeInfo();
     		
+            isotopeStatus = IsotopePatternStatus.DETECTED;
+            predicted = false;
     	}
 
         isotopeFlag = true;
@@ -114,6 +124,13 @@ public class PeakListDataSet extends AbstractXYDataset implements IntervalXYData
     
     public boolean isIsotopeDataSet(){
     	return isotopeFlag;
+    }
+
+    public IsotopePatternStatus getIsotopePatternStatus(){
+    	if (isIsotopeDataSet())
+    		return isotopeStatus;
+    	else
+    		return null;
     }
 
     @Override public int getSeriesCount() {
@@ -195,14 +212,21 @@ public class PeakListDataSet extends AbstractXYDataset implements IntervalXYData
     	return predicted;
     }
     
-    public float getBiggestIntensity(){
-    	float biggestIntensity = 0.0f;
-    	for (float intensity: intensityValues){
-    		if ( intensity > biggestIntensity) {
-    			biggestIntensity = intensity;
-    		}
+    public String getFormula(){
+    	return formula;
+    }
+    
+    public float getBiggestIntensity(float mass){
+    	
+    	TreeMap<Float,Integer> scores = new TreeMap<Float,Integer>();
+    	float value;
+    	int itemCount = mzValues.length;
+    	
+    	for (int i=0; i<itemCount; i++){
+    		value = Math.abs(mass - mzValues[i]);
+    		scores.put(value,i);
     	}
-    	return biggestIntensity;
+    	return intensityValues[scores.get(scores.firstKey())];
     }
 
 

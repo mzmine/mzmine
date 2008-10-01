@@ -24,6 +24,7 @@ public class ThicknessSetupDialog extends JDialog implements ActionListener {
 	private Logger logger = Logger.getLogger(this.getClass().getName());
 	private SpectraPlot plot;
 	private float oldThickness;
+	private static float minThickness = 0.000010f;
 
 	public ThicknessSetupDialog(SpectraPlot plot) {
 		// Make dialog modal
@@ -92,7 +93,7 @@ public class ThicknessSetupDialog extends JDialog implements ActionListener {
 
 		float thickness = Float.parseFloat(fieldThickness.getText());
 
-		if (thickness > 0.0010f) {
+		if (thickness > minThickness) {
 			plot.setThicknessBar(thickness);
 		} else {
 			displayMessage("Invalid value for thickness ");

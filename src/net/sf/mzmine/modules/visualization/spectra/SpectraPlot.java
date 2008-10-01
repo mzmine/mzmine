@@ -63,9 +63,8 @@ import org.jfree.ui.RectangleInsets;
  * 
  */
 public class SpectraPlot extends ChartPanel {
-	
-	private JFreeChart chart;
 
+	private JFreeChart chart;
 	private XYPlot plot;
 
 	private PlotMode plotMode = PlotMode.UNDEFINED;
@@ -77,10 +76,11 @@ public class SpectraPlot extends ChartPanel {
 	// plot color
 	private static final Color plotColor = new Color(0, 0, 192);
 
-	// plot colors for plotted files, circulated by numberOfDataSets
-	private static final Color[] plotColors = { Color.pink,
-			Color.magenta, Color.cyan, Color.orange };
-	
+	// plot colors for plotted files (predicted), circulated by numOfPeakDataSets
+	private static final Color[] plotColors = { Color.pink, Color.cyan,
+			new Color(148, 0, 211), new Color(47, 79, 79), Color.orange,
+			new Color(173, 255, 47) };
+
 	// picked peaks color
 	private static final Color pickedPeaksColor = Color.red;
 
@@ -101,7 +101,7 @@ public class SpectraPlot extends ChartPanel {
 	private TextTitle chartTitle, chartSubTitle;
 
 	private static final float zoomCoefficient = 1.2f;
-	
+
 	// datasets counter
 	private int numOfPeakDataSets = 1;
 
@@ -110,10 +110,9 @@ public class SpectraPlot extends ChartPanel {
 	private static final Font legendFont = new Font("SansSerif", Font.PLAIN, 11);
 
 	private boolean isotopeFlag;
-	
-	private float thickness = 0.0010f;
+	private float thickness = 0.005f;
 
-	XYBarRenderer centroidRenderer, peakListRenderer;
+	XYBarRenderer centroidRenderer;
 	XYLineAndShapeRenderer continuousRenderer;
 	XYToolTipGenerator peakToolTipGenerator;
 	HashMap<Integer, XYBarRenderer> peakRendererMap;
@@ -202,7 +201,7 @@ public class SpectraPlot extends ChartPanel {
 		continuousRenderer.setBaseShapesVisible(false);
 
 		centroidRenderer = new XYBarRenderer();
-        centroidRenderer.setShadowVisible(false);
+		centroidRenderer.setShadowVisible(false);
 		centroidRenderer.setSeriesShape(0, dataPointsShape);
 		centroidRenderer.setSeriesPaint(0, plotColor);
 
@@ -222,9 +221,8 @@ public class SpectraPlot extends ChartPanel {
 		centroidRenderer.setBaseToolTipGenerator(spectraToolTipGenerator);
 
 		peakToolTipGenerator = new PeakToolTipGenerator();
-		
-		XYBarRenderer.setDefaultBarPainter(new StandardXYBarPainter());
 
+		XYBarRenderer.setDefaultBarPainter(new StandardXYBarPainter());
 
 		// set focusable state to receive key events
 		setFocusable(true);
@@ -262,13 +260,13 @@ public class SpectraPlot extends ChartPanel {
 			GUIUtils.addMenuItem(popupMenu, "Set same range to all windows",
 					this, "SET_SAME_RANGE");
 
-		if (isotopeFlag){
-			
-			popupMenu.addSeparator();
+		// if (isotopeFlag){
 
-			GUIUtils.addMenuItem(popupMenu, "Add Isotope Pattern",
-					this, "ADD_ISOTOPE_PATTERN");
-		}
+		popupMenu.addSeparator();
+
+		GUIUtils.addMenuItem(popupMenu, "Add Isotope Pattern", this,
+				"ADD_ISOTOPE_PATTERN");
+		// }
 	}
 
 	public void actionPerformed(ActionEvent event) {
@@ -310,7 +308,8 @@ public class SpectraPlot extends ChartPanel {
 		}
 
 		if (command.equals("ADD_ISOTOPE_PATTERN")) {
-			IsotopePatternCalculator ipc = IsotopePatternCalculator.getInstance();
+			IsotopePatternCalculator ipc = IsotopePatternCalculator
+					.getInstance();
 			ipc.showIsotopePatternCalculatorWindow(this);
 		}
 
@@ -395,9 +394,9 @@ public class SpectraPlot extends ChartPanel {
 		Boolean pickedPeaksVisible = false;
 		Iterator<Integer> itr = peakRendererMap.keySet().iterator();
 		int key;
-		while(itr.hasNext()){
+		while (itr.hasNext()) {
 			key = itr.next();
-			if (peakRendererMap.get(key).getBaseSeriesVisible()){
+			if (peakRendererMap.get(key).getBaseSeriesVisible()) {
 				return true;
 			}
 		}
@@ -409,7 +408,7 @@ public class SpectraPlot extends ChartPanel {
 		boolean pickedPeaksVisible = getPickedPeaksVisible();
 		Iterator<Integer> itr = peakRendererMap.keySet().iterator();
 		int key;
-		while(itr.hasNext()){
+		while (itr.hasNext()) {
 			key = itr.next();
 			peakRendererMap.get(key).setBaseSeriesVisible(!pickedPeaksVisible);
 		}
@@ -446,47 +445,51 @@ public class SpectraPlot extends ChartPanel {
 			plot.setRenderer(0, continuousRenderer);
 
 	}
-	
-	public void addPeaksDataSet(PeakListDataSet peakDataSet){
+
+	public void addPeaksDataSet(PeakListDataSet peakDataSet) {
 		Color rendererColor;
-		peakDataSet.setThickness (thickness);
-		plot.setDataset(numOfPeakDataSets, peakDataSet);
-		XYBarRenderer newRenderer = new XYBarRenderer();
-		
-		if (isotopeFlag)
-		 rendererColor = plotColors[numOfPeakDataSets % plotColors.length];
-		else
+		int index = 1;
+		peakDataSet.setThickness(thickness);
+		XYBarRenderer newRenderer = new PeakPlotRenderer();
+
+		if (peakDataSet.isPredicted()) {
+			rendererColor = plotColors[numOfPeakDataSets % plotColors.length];
+			((PeakPlotRenderer) newRenderer).setTransparencyLevel(0.6f);
+			index = numOfPeakDataSets;
+		} else
 			rendererColor = pickedPeaksColor;
-		
+
 		newRenderer.setSeriesPaint(0, rendererColor);
 		newRenderer.setBaseToolTipGenerator(peakToolTipGenerator);
 		newRenderer.setBaseItemLabelPaint(rendererColor);
 		newRenderer.setShadowVisible(false);
-		plot.setRenderer(numOfPeakDataSets, newRenderer);
-		peakRendererMap.put(numOfPeakDataSets, newRenderer);
+		plot.setRenderer(index, newRenderer);
+		plot.setDataset(index, peakDataSet);
+		peakRendererMap.put(index, newRenderer);
 
-		if (isotopeFlag)
-			numOfPeakDataSets++;		
+		numOfPeakDataSets++;
 	}
 
 	public void setPeakToolTipGenerator(XYToolTipGenerator peakToolTipGenerator) {
 		this.peakToolTipGenerator = peakToolTipGenerator;
 	}
-	
-	public void setThicknessBar(float thickness){
+
+	public void setThicknessBar(float thickness) {
 		this.thickness = thickness;
 		int dataSetCount = plot.getDatasetCount();
-		
-		for (int i=1; i<dataSetCount; i++){
-			((PeakListDataSet)plot.getDataset(i)).setThickness(thickness);
+		PeakListDataSet dataSet;
+
+		for (int i = 1; i < dataSetCount; i++) {
+			dataSet = (PeakListDataSet) plot.getDataset(i);
+			if (dataSet != null)
+				dataSet.setThickness(thickness);
 		}
-		
-		plot.datasetChanged(
-				new DatasetChangeEvent(this, plot.getDataset(0)));
-		
+
+		plot.datasetChanged(new DatasetChangeEvent(this, plot.getDataset(0)));
+
 	}
-	
-	public float getThicknessBar(){
+
+	public float getThicknessBar() {
 		return thickness;
 	}
 }

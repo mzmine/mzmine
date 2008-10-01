@@ -79,12 +79,12 @@ public class SpectraToolBar extends JToolBar {
 		axesButton = GUIUtils.addButton(this, null, axesIcon, plot,
 				"SETUP_AXES", "Setup ranges for axes");
 
-		if (type == SpectraVisualizerType.ISOTOPE) {
+		//if (type == SpectraVisualizerType.ISOTOPE) {
 			addSeparator();
 			
 			thicknessButton = GUIUtils.addButton(this, null, thicknessIcon, plot,
 					"THICKNESS", "Setup thickness of isotope bar");
-		}
+		//}
 	}
 
 	public void setCentroidButton(boolean centroid) {

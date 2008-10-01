@@ -17,10 +17,11 @@ import org.openscience.cdk.interfaces.IIsotope;
 public class FormulaAnalyzer {
 
 	private IsotopeFactory isoFactory;
-	private float minAbundance;
+	private float minAbundance, isotopeHeight;
 	private DataPoint[] abundanceAndMass = null;
+	private boolean autoHeight = false;
 
-	// private Logger logger = Logger.getLogger(this.getClass().getName());
+	//private Logger logger = Logger.getLogger(this.getClass().getName());
 
 	/**
 	 * This class generates an IsotopePattern using a chemical formula
@@ -44,9 +45,11 @@ public class FormulaAnalyzer {
 	 * @return
 	 */
 	public IsotopePattern getIsotopePattern(String originalFormula,
-			float minAbundance) {
+			float minAbundance, float isotopeHeight, boolean autoHeight) {
 
 		this.minAbundance = minAbundance;
+		this.isotopeHeight = isotopeHeight;
+		this.autoHeight = autoHeight;
 		int numOpenParenthesis = 0, numCloseParenthesis = 0;
 		String mf = originalFormula;
 
@@ -113,7 +116,13 @@ public class FormulaAnalyzer {
 		// Form the IsotopePattern to be displayed.
 		PredictedIsotopePattern isotopePattern = new PredictedIsotopePattern(
 				abundanceAndMass, finalFormula, 0);
-
+		
+		if (!autoHeight)
+			isotopePattern.setIsotopeHeight(isotopeHeight);
+		else
+			isotopePattern.setIsotopeHeight(-1.0f);
+			
+		
 		return isotopePattern;
 
 	}
@@ -143,12 +152,8 @@ public class FormulaAnalyzer {
 		// Generate isotopes for the current atom (element)
 		for (int i = 0; i < isotopes.length; i++) {
 			mass = (float) isotopes[i].getExactMass();
-			mass = (Math.round(mass * pow) / pow);
 			abundance = (float) isotopes[i].getNaturalAbundance();
-
-			if (abundance > minAbundance) {
-				dataPoints.add(new SimpleDataPoint(mass, abundance));
-			}
+			dataPoints.add(new SimpleDataPoint(mass, abundance));
 		}
 
 		currentElementPattern = dataPoints.toArray(new DataPoint[0]);
@@ -176,20 +181,20 @@ public class FormulaAnalyzer {
 						continue;
 
 					newAbundance = totalAbundance * abundance * 0.01f;
+					
+					mass = abundanceAndMass[i].getMZ()
+							+ currentElementPattern[j].getMZ();
+					mass = (Math.round(mass * pow) / pow);
+					
+
+					// Filter duplicated masses
+					if (isotopeMassAndAbundance.containsKey(mass)) {
+						newAbundance += isotopeMassAndAbundance.get(mass);
+					} 
 
 					// Filter isotopes too small
 					if (newAbundance >= minAbundance) {
-						mass = abundanceAndMass[i].getMZ()
-								+ currentElementPattern[j].getMZ();
-
-						// Filter duplicated masses
-						if (isotopeMassAndAbundance.containsKey(mass)) {
-							float oldAbundance = newAbundance
-									+ isotopeMassAndAbundance.get(mass);
-							isotopeMassAndAbundance.put(mass, oldAbundance);
-						} else {
-							isotopeMassAndAbundance.put(mass, newAbundance);
-						}
+						isotopeMassAndAbundance.put(mass, newAbundance);
 					}
 				}
 			}
@@ -561,6 +566,9 @@ public class FormulaAnalyzer {
 	 * @return
 	 */
 	private static DataPoint[] normalizeArray(DataPoint[] dataPoints) {
+		
+		TreeSet<DataPoint> sortedDataPoints = new TreeSet<DataPoint>(
+				new DataPointSorter(true, true));
 
 		float intensity, biggestIntensity = 0.0f;
 
@@ -579,7 +587,11 @@ public class FormulaAnalyzer {
 
 		}
 
-		return dataPoints;
+		for (DataPoint dp : dataPoints) {
+			sortedDataPoints.add(dp);
+		}
+
+		return sortedDataPoints.toArray(new DataPoint[0]);
 
 	}
 

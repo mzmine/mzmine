@@ -21,8 +21,10 @@ package net.sf.mzmine.modules.visualization.spectra;
 
 import net.sf.mzmine.data.DataPoint;
 import net.sf.mzmine.data.IsotopePattern;
+import net.sf.mzmine.data.IsotopePatternStatus;
 import net.sf.mzmine.data.MzDataTable;
 import net.sf.mzmine.data.Scan;
+import net.sf.mzmine.modules.isotopes.isotopeprediction.PredictedIsotopePattern;
 
 import org.jfree.data.xy.AbstractXYDataset;
 import org.jfree.data.xy.IntervalXYDataset;
@@ -33,7 +35,7 @@ import org.jfree.data.xy.IntervalXYDataset;
 public class SpectraDataSet extends AbstractXYDataset implements IntervalXYDataset {
 
 	private boolean predicted = false;
-	private static float increase = (float) Math.pow(10, 4);
+	private float increase = (float) Math.pow(10, 4);
 	private float biggestIntensity = Float.MIN_VALUE;
 	
 	/*
@@ -57,9 +59,12 @@ public class SpectraDataSet extends AbstractXYDataset implements IntervalXYDatas
 
     	boolean isotopeFlag = mzDataTable instanceof IsotopePattern;
     	if (isotopeFlag){
-    		predicted = ((IsotopePattern)mzDataTable).isPredicted();
+    		predicted = ((IsotopePattern)mzDataTable).getIsotopePatternStatus() == IsotopePatternStatus.PREDICTED;
     		if (predicted){
-        		label = "Predicted isotope pattern";
+        		float probablyIncrease = ((PredictedIsotopePattern)mzDataTable).getIsotopeHeight();
+        		if (probablyIncrease > 0)
+        			increase = probablyIncrease;
+    			label = "Predicted isotope pattern";
     		}
     		else {
         		label = "Raw data";
@@ -133,7 +138,7 @@ public class SpectraDataSet extends AbstractXYDataset implements IntervalXYDatas
             return biggestIntensity;
     }
     
-    public static float getIncrease(){
+    public float getIncrease(){
     	return increase;
     }
 
