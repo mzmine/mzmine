@@ -76,7 +76,8 @@ public class SpectraPlot extends ChartPanel {
 	// plot color
 	private static final Color plotColor = new Color(0, 0, 192);
 
-	// plot colors for plotted files (predicted), circulated by numOfPeakDataSets
+	// plot colors for plotted files (predicted), circulated by
+	// numOfPeakDataSets
 	private static final Color[] plotColors = { Color.pink, Color.cyan,
 			new Color(148, 0, 211), new Color(47, 79, 79), Color.orange,
 			new Color(173, 255, 47) };
@@ -132,7 +133,7 @@ public class SpectraPlot extends ChartPanel {
 				"Intensity", // y-axis label
 				null, // data set
 				PlotOrientation.VERTICAL, // orientation
-				isotopeFlag, // create legend?
+				true, // isotopeFlag, // create legend?
 				true, // generate tooltips?
 				false // generate URLs?
 				);
@@ -150,11 +151,9 @@ public class SpectraPlot extends ChartPanel {
 		chart.addSubtitle(chartSubTitle);
 
 		// legend constructed by ChartFactory
-		if (isotopeFlag) {
-			legend = chart.getLegend();
-			legend.setItemFont(legendFont);
-			legend.setFrame(BlockBorder.NONE);
-		}
+		legend = chart.getLegend();
+		legend.setItemFont(legendFont);
+		legend.setFrame(BlockBorder.NONE);
 
 		// disable maximum size (we don't want scaling)
 		setMaximumDrawWidth(Integer.MAX_VALUE);
@@ -260,13 +259,13 @@ public class SpectraPlot extends ChartPanel {
 			GUIUtils.addMenuItem(popupMenu, "Set same range to all windows",
 					this, "SET_SAME_RANGE");
 
-		// if (isotopeFlag){
-
 		popupMenu.addSeparator();
 
-		GUIUtils.addMenuItem(popupMenu, "Add Isotope Pattern", this,
+		GUIUtils.addMenuItem(popupMenu, "Add isotope pattern", this,
 				"ADD_ISOTOPE_PATTERN");
-		// }
+		GUIUtils.addMenuItem(popupMenu, "Remove all isotope patterns", this,
+			"REMOVE_ALL_ISOTOPE_PATTERN");
+
 	}
 
 	public void actionPerformed(ActionEvent event) {
@@ -297,6 +296,10 @@ public class SpectraPlot extends ChartPanel {
 			this.switchPickedPeaksVisible();
 		}
 
+		if (command.equals("SHOW_ISOTOPE_PEAKS")) {
+			this.switchIsotopePeaksVisible();
+		}
+
 		if (command.equals("SETUP_AXES")) {
 			AxesSetupDialog dialog = new AxesSetupDialog(this.getXYPlot());
 			dialog.setVisible(true);
@@ -311,6 +314,10 @@ public class SpectraPlot extends ChartPanel {
 			IsotopePatternCalculator ipc = IsotopePatternCalculator
 					.getInstance();
 			ipc.showIsotopePatternCalculatorWindow(this);
+		}
+
+		if (command.equals("REMOVE_ALL_ISOTOPE_PATTERN")) {
+			removeIsotopePatterns();
 		}
 
 		if ((command.equals("ZOOM_IN"))
@@ -390,12 +397,26 @@ public class SpectraPlot extends ChartPanel {
 
 		if (peakRendererMap.size() == 0)
 			return true;
+		Boolean pickedPeaksVisible = false;
+
+		if (peakRendererMap.get(1).getBaseSeriesVisible()) 
+			return true;
+
+		return pickedPeaksVisible;
+	}
+
+	public boolean getIsotopePeaksVisible() {
+
+		if (peakRendererMap.size() == 0)
+			return true;
 
 		Boolean pickedPeaksVisible = false;
 		Iterator<Integer> itr = peakRendererMap.keySet().iterator();
 		int key;
 		while (itr.hasNext()) {
 			key = itr.next();
+			if (key == 1)
+				continue;
 			if (peakRendererMap.get(key).getBaseSeriesVisible()) {
 				return true;
 			}
@@ -404,12 +425,19 @@ public class SpectraPlot extends ChartPanel {
 	}
 
 	public void switchPickedPeaksVisible() {
-
 		boolean pickedPeaksVisible = getPickedPeaksVisible();
+		peakRendererMap.get(1).setBaseSeriesVisible(!pickedPeaksVisible);
+	}
+
+	public void switchIsotopePeaksVisible() {
+
+		boolean pickedPeaksVisible = getIsotopePeaksVisible();
 		Iterator<Integer> itr = peakRendererMap.keySet().iterator();
 		int key;
 		while (itr.hasNext()) {
 			key = itr.next();
+			if (key == 1)
+				continue;
 			peakRendererMap.get(key).setBaseSeriesVisible(!pickedPeaksVisible);
 		}
 
@@ -454,8 +482,9 @@ public class SpectraPlot extends ChartPanel {
 
 		if (peakDataSet.isPredicted()) {
 			rendererColor = plotColors[numOfPeakDataSets % plotColors.length];
-			((PeakPlotRenderer) newRenderer).setTransparencyLevel(0.6f);
+			((PeakPlotRenderer) newRenderer).setTransparencyLevel(0.8f);
 			index = numOfPeakDataSets;
+			toolBar.setIsotopePeaksButtonEnabled(true);
 		} else
 			rendererColor = pickedPeaksColor;
 
@@ -468,6 +497,19 @@ public class SpectraPlot extends ChartPanel {
 		peakRendererMap.put(index, newRenderer);
 
 		numOfPeakDataSets++;
+	}
+	
+	public void removeIsotopePatterns(){
+		int dataSetCount = plot.getDatasetCount();
+		PeakListDataSet dataSet;
+
+		for (int i = 1; i < dataSetCount; i++) {
+			dataSet = (PeakListDataSet) plot.getDataset(i);
+			if (dataSet != null)
+				if (dataSet.isPredicted())
+					plot.setDataset(i, null);
+		}
+		plot.datasetChanged(new DatasetChangeEvent(this, plot.getDataset(0)));		
 	}
 
 	public void setPeakToolTipGenerator(XYToolTipGenerator peakToolTipGenerator) {

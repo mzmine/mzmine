@@ -40,11 +40,13 @@ public class SpectraToolBar extends JToolBar {
 	static final Icon annotationsIcon = new ImageIcon(
 			"icons/annotationsicon.png");
 	static final Icon pickedPeakIcon = new ImageIcon("icons/pickedpeakicon.png");
+	static final Icon isotopePeakIcon = new ImageIcon(
+			"icons/isotopepeakicon.png");
 	static final Icon axesIcon = new ImageIcon("icons/axesicon.png");
 	static final Icon thicknessIcon = new ImageIcon("icons/thicknessicon.png");
 
 	private JButton centroidContinuousButton, dataPointsButton, peaksButton,
-			axesButton, thicknessButton;
+			isotopePeakButton, axesButton, thicknessButton;
 
 	public SpectraToolBar(SpectraPlot plot, SpectraVisualizerType type) {
 
@@ -74,17 +76,21 @@ public class SpectraToolBar extends JToolBar {
 		peaksButton = GUIUtils.addButton(this, null, pickedPeakIcon, plot,
 				"SHOW_PICKED_PEAKS", "Toggle displaying of picked peaks");
 
+		isotopePeakButton = GUIUtils.addButton(this, null, isotopePeakIcon,
+				plot, "SHOW_ISOTOPE_PEAKS",
+				"Toggle displaying of predicted isotope peaks");
+		
+		isotopePeakButton.setEnabled(false);
+
 		addSeparator();
 
 		axesButton = GUIUtils.addButton(this, null, axesIcon, plot,
 				"SETUP_AXES", "Setup ranges for axes");
 
-		//if (type == SpectraVisualizerType.ISOTOPE) {
-			addSeparator();
-			
-			thicknessButton = GUIUtils.addButton(this, null, thicknessIcon, plot,
-					"THICKNESS", "Setup thickness of isotope bar");
-		//}
+		addSeparator();
+
+		thicknessButton = GUIUtils.addButton(this, null, thicknessIcon, plot,
+				"THICKNESS", "Setup thickness of isotope bar");
 	}
 
 	public void setCentroidButton(boolean centroid) {
@@ -99,6 +105,10 @@ public class SpectraToolBar extends JToolBar {
 
 	public void setPeaksButtonEnabled(boolean enabled) {
 		peaksButton.setEnabled(enabled);
+	}
+
+	public void setIsotopePeaksButtonEnabled(boolean enabled) {
+		isotopePeakButton.setEnabled(enabled);
 	}
 
 	public void setAxesButtonEnabled(boolean enabled) {

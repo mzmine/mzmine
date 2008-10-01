@@ -1,3 +1,22 @@
+/*
+ * Copyright 2006-2008 The MZmine Development Team
+ * 
+ * This file is part of MZmine.
+ * 
+ * MZmine is free software; you can redistribute it and/or modify it under the
+ * terms of the GNU General Public License as published by the Free Software
+ * Foundation; either version 2 of the License, or (at your option) any later
+ * version.
+ * 
+ * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY
+ * WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR
+ * A PARTICULAR PURPOSE. See the GNU General Public License for more details.
+ * 
+ * You should have received a copy of the GNU General Public License along with
+ * MZmine; if not, write to the Free Software Foundation, Inc., 51 Franklin St,
+ * Fifth Floor, Boston, MA 02110-1301 USA
+ */
+
 package net.sf.mzmine.modules.isotopes.isotopeprediction;
 
 import java.util.HashMap;
@@ -17,11 +36,12 @@ import org.openscience.cdk.interfaces.IIsotope;
 public class FormulaAnalyzer {
 
 	private IsotopeFactory isoFactory;
-	private float minAbundance, isotopeHeight;
+	private float minAbundance;//, isotopeHeight;
 	private DataPoint[] abundanceAndMass = null;
-	private boolean autoHeight = false;
+	//private boolean autoHeight = false;
+	private static float ELECTRON_MASS = 0.00054857f;
 
-	//private Logger logger = Logger.getLogger(this.getClass().getName());
+	// private Logger logger = Logger.getLogger(this.getClass().getName());
 
 	/**
 	 * This class generates an IsotopePattern using a chemical formula
@@ -45,11 +65,12 @@ public class FormulaAnalyzer {
 	 * @return
 	 */
 	public IsotopePattern getIsotopePattern(String originalFormula,
-			float minAbundance, float isotopeHeight, boolean autoHeight) {
+			float minAbundance, int charge, boolean positiveCharge,
+			float isotopeHeight, boolean autoHeight) {
 
 		this.minAbundance = minAbundance;
-		this.isotopeHeight = isotopeHeight;
-		this.autoHeight = autoHeight;
+		//this.isotopeHeight = isotopeHeight;
+		//this.autoHeight = autoHeight;
 		int numOpenParenthesis = 0, numCloseParenthesis = 0;
 		String mf = originalFormula;
 
@@ -110,19 +131,24 @@ public class FormulaAnalyzer {
 		// abundant isotope.
 		abundanceAndMass = normalizeArray(abundanceAndMass);
 
+		// Format isotope's mass according with charge distribution
+		abundanceAndMass = loadChargeDistribution(abundanceAndMass, charge,
+				positiveCharge);
+		
+		int chargeDistribution = charge * (positiveCharge? 1:-1); 
+
 		// Get the formula (string) expressed according with C,H,O,N ...
 		String finalFormula = getFinalFormula(tokens);
 
 		// Form the IsotopePattern to be displayed.
 		PredictedIsotopePattern isotopePattern = new PredictedIsotopePattern(
-				abundanceAndMass, finalFormula, 0);
-		
+				abundanceAndMass, finalFormula, chargeDistribution);
+
 		if (!autoHeight)
 			isotopePattern.setIsotopeHeight(isotopeHeight);
 		else
 			isotopePattern.setIsotopeHeight(-1.0f);
-			
-		
+
 		return isotopePattern;
 
 	}
@@ -181,16 +207,15 @@ public class FormulaAnalyzer {
 						continue;
 
 					newAbundance = totalAbundance * abundance * 0.01f;
-					
+
 					mass = abundanceAndMass[i].getMZ()
 							+ currentElementPattern[j].getMZ();
 					mass = (Math.round(mass * pow) / pow);
-					
 
 					// Filter duplicated masses
 					if (isotopeMassAndAbundance.containsKey(mass)) {
 						newAbundance += isotopeMassAndAbundance.get(mass);
-					} 
+					}
 
 					// Filter isotopes too small
 					if (newAbundance >= minAbundance) {
@@ -566,7 +591,7 @@ public class FormulaAnalyzer {
 	 * @return
 	 */
 	private static DataPoint[] normalizeArray(DataPoint[] dataPoints) {
-		
+
 		TreeSet<DataPoint> sortedDataPoints = new TreeSet<DataPoint>(
 				new DataPointSorter(true, true));
 
@@ -595,4 +620,29 @@ public class FormulaAnalyzer {
 
 	}
 
+	private static DataPoint[] loadChargeDistribution(DataPoint[] dataPoints,
+			int charge, boolean positiveCharge) {
+		
+		if (charge == 0){
+			return dataPoints;
+		}
+		else{
+			int sign;
+			float mass;
+			
+			if (positiveCharge)
+				sign = -1;
+			else
+				sign = 1;
+			
+			for (DataPoint dp : dataPoints) {
+
+				mass = ( dp.getMZ() + (charge * sign * ELECTRON_MASS) ) / charge;
+				((SimpleDataPoint) dp).setMZ(mass);
+			}			
+			return dataPoints;
+		}
+		
+
+	}
 }
