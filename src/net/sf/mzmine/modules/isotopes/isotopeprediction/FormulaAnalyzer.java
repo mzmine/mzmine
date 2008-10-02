@@ -170,19 +170,23 @@ public class FormulaAnalyzer {
 
 		IIsotope[] isotopes = isoFactory.getIsotopes(elementSymbol);
 
-		float mass, abundance, totalAbundance, newAbundance, previousMass;
+		float abundance, totalAbundance, newAbundance;
+		double pow = Math.pow(10, 6), mass, previousMass;
 
-		HashMap<Float, Float> isotopeMassAndAbundance = new HashMap<Float, Float>();
+		HashMap<Double, Float> isotopeMassAndAbundance = new HashMap<Double, Float>();
 		TreeSet<DataPoint> dataPoints = new TreeSet<DataPoint>(
 				new DataPointSorter(true, true));
 
-		DataPoint[] currentElementPattern;
+		DataPoint[] currentElementPattern = new DataPoint[isotopes.length];
 
 		// Generate isotopes for the current atom (element)
 		for (int i = 0; i < isotopes.length; i++) {
-			mass = (float) isotopes[i].getExactMass();
-			abundance = (float) isotopes[i].getNaturalAbundance();
-			dataPoints.add(new SimpleDataPoint(mass, abundance));
+			mass =  ((int)(isotopes[i].getExactMass() * pow)/pow);
+			abundance =  (float) isotopes[i].getNaturalAbundance();
+			dataPoints.add(new SimpleDataPoint((float) mass, abundance));
+
+			//logger.finest(" Isotope of "+ elementSymbol + i+" mass " 
+				//	+ isotopes[i].getExactMass()  + " float " + mass );
 		}
 		
 		currentElementPattern = dataPoints.toArray(new DataPoint[0]);
@@ -200,19 +204,27 @@ public class FormulaAnalyzer {
 			for (int i = 0; i < abundanceAndMass.length; i++) {
 
 				totalAbundance = abundanceAndMass[i].getIntensity();
+				
 				if (totalAbundance == 0)
 					continue;
 
 				for (int j = 0; j < currentElementPattern.length; j++) {
 
 					abundance = currentElementPattern[j].getIntensity();
+					mass = abundanceAndMass[i].getMZ();
+					
 					if (abundance == 0)
 						continue;
 
 					newAbundance = totalAbundance * abundance * 0.01f;
 
-					mass = abundanceAndMass[i].getMZ()
-							+ currentElementPattern[j].getMZ();
+					//mass = abundanceAndMass[i].getMZ()
+					mass += currentElementPattern[j].getMZ();
+					
+					
+					//logger.finest(" Mass of "+ elementSymbol + j+" mass " 
+						//	+ currentElementPattern[j].getMZ() + " total "
+						//	+ abundanceAndMass[i].getMZ() + " newMass " + mass );
 					
 					
 					// Filter duplicated masses
@@ -220,22 +232,25 @@ public class FormulaAnalyzer {
 					if (isotopeMassAndAbundance.containsKey(previousMass)) {
 						newAbundance += isotopeMassAndAbundance.get(previousMass);
 						mass = previousMass;
+						//isotopeMassAndAbundance.remove(previousMass);
+						//mass = (mass + previousMass) / 2;
 					}
 
 					// Filter isotopes too small
 					if (isNotZero(newAbundance)) {
+					//	logger.finest("INSERTA  Mass of "+ mass +" float "+ (float) (mass * 10000) + " abundance " + newAbundance); 
 						isotopeMassAndAbundance.put(mass, newAbundance);
 					}
 					previousMass = 0;
 				}
 			}
 			
-			Iterator<Float> itr = isotopeMassAndAbundance.keySet().iterator();
+			Iterator<Double> itr = isotopeMassAndAbundance.keySet().iterator();
 			int i = 0;
 			abundanceAndMass = new DataPoint[isotopeMassAndAbundance.size()];
 			while (itr.hasNext()) {
 				mass = itr.next();
-				dataPoints.add(new SimpleDataPoint(mass,
+				dataPoints.add(new SimpleDataPoint((float) mass,
 						isotopeMassAndAbundance.get(mass)));
 				i++;
 			}
@@ -244,16 +259,16 @@ public class FormulaAnalyzer {
 
 	}
 	
-	private static float searchMass(Set<Float> keySet, float mass){
-		float TOLERANCE = 0.0005f;
-		float diff;
-		for (float key:keySet){
+	private static double searchMass(Set<Double> keySet, double mass){
+		double TOLERANCE = 0.00005f;
+		double diff;
+		for (double key:keySet){
 			diff = Math.abs(key - mass);
 			if (diff < TOLERANCE)
 				return key;
 		}
 		
-		return 0.0f;
+		return 0.0d;
 	}
 	
 	private static boolean isNotZero(float number){
