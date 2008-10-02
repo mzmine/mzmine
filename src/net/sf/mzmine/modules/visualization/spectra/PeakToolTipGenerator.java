@@ -19,6 +19,7 @@
 
 package net.sf.mzmine.modules.visualization.spectra;
 
+import java.text.DecimalFormat;
 import java.text.NumberFormat;
 
 import net.sf.mzmine.data.ChromatographicPeak;
@@ -36,7 +37,7 @@ class PeakToolTipGenerator implements XYToolTipGenerator {
 
 	private NumberFormat mzFormat = MZmineCore.getMZFormat();
 	private NumberFormat intensityFormat = MZmineCore.getIntensityFormat();
-	private NumberFormat percentFormat = NumberFormat.getPercentInstance();;
+	private NumberFormat percentFormat = new DecimalFormat("###.##");//NumberFormat.getPercentInstance();;
 
 	/**
 	 * @see org.jfree.chart.labels.XYToolTipGenerator#generateToolTip(org.jfree.data.xy.XYDataset,
@@ -62,8 +63,8 @@ class PeakToolTipGenerator implements XYToolTipGenerator {
 			if (predicted) {
 				tooltip += "<br>Formula: " + peakListDataSet.getFormula()
 						+ "<br>Data point intensity: "
-						+ percentFormat.format(intValue / increase)
-						+ "</html>";
+						+ percentFormat.format((intValue / increase) * 100)
+						+ "% </html>";
 			} else {
 				tooltip += "<br>Data point intensity: "
 						+ intensityFormat.format(intValue) + "</html>";

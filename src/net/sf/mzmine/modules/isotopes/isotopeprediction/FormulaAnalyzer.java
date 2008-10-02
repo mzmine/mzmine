@@ -21,8 +21,10 @@ package net.sf.mzmine.modules.isotopes.isotopeprediction;
 
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.Set;
 import java.util.TreeSet;
 import java.util.Vector;
+import java.util.logging.Logger;
 
 import net.sf.mzmine.data.DataPoint;
 import net.sf.mzmine.data.IsotopePattern;
@@ -36,12 +38,10 @@ import org.openscience.cdk.interfaces.IIsotope;
 public class FormulaAnalyzer {
 
 	private IsotopeFactory isoFactory;
-	private float minAbundance;//, isotopeHeight;
 	private DataPoint[] abundanceAndMass = null;
-	//private boolean autoHeight = false;
 	private static float ELECTRON_MASS = 0.00054857f;
 
-	// private Logger logger = Logger.getLogger(this.getClass().getName());
+	private Logger logger = Logger.getLogger(this.getClass().getName());
 
 	/**
 	 * This class generates an IsotopePattern using a chemical formula
@@ -68,18 +68,17 @@ public class FormulaAnalyzer {
 			float minAbundance, int charge, boolean positiveCharge,
 			float isotopeHeight, boolean autoHeight) {
 
-		this.minAbundance = minAbundance;
-		//this.isotopeHeight = isotopeHeight;
-		//this.autoHeight = autoHeight;
 		int numOpenParenthesis = 0, numCloseParenthesis = 0;
-		String mf = originalFormula;
+		String mf = originalFormula.trim();
 
-		if ((mf == null) || (mf.trim() == ""))
+
+		if ((mf == null) || (mf == ""))
 			return null;
 
 		// Verify if the passed originalFormula is an abbreviation of a common
 		// organic compound
 		mf = getChemicalFormula(mf);
+
 
 		// Analyze formula's syntaxes
 		for (int i = 0; i < mf.length(); i++) {
@@ -96,14 +95,18 @@ public class FormulaAnalyzer {
 		// the formula in order to get the exact number of atoms per element.
 		mf = getUnfoldedFormula(mf);
 
+
 		// Add coefficient for elements with just one atom
-		boolean currentIsLetter, nextIsLetter;
+		boolean currentIsLetter, nextIsLetter, nextIsUpperCase;
 		for (int i = 0; i < mf.length() - 1; i++) {
 			currentIsLetter = Character.isLetter(mf.charAt(i));
 			nextIsLetter = Character.isLetter(mf.charAt(i + 1));
+			nextIsUpperCase = Character.isUpperCase(mf.charAt(i + 1));
 			if (currentIsLetter && nextIsLetter) {
+				if (nextIsUpperCase){
 				mf = mf.substring(0, i + 1) + "1" + mf.substring(i + 1);
 				i = 0;
+				}
 			}
 		}
 		if (Character.isLetter(mf.charAt(mf.length() - 1))) {
@@ -122,6 +125,7 @@ public class FormulaAnalyzer {
 		while (itr.hasNext()) {
 			elementSymbol = itr.next();
 			atomCount = tokens.get(elementSymbol);
+			
 			for (int i = 0; i < atomCount; i++) {
 				calculateAbundanceAndMass(elementSymbol);
 			}
@@ -129,7 +133,7 @@ public class FormulaAnalyzer {
 
 		// Normalize the intensity of all isotopes in relation to the most
 		// abundant isotope.
-		abundanceAndMass = normalizeArray(abundanceAndMass);
+		abundanceAndMass = normalizeArray(abundanceAndMass, minAbundance);
 
 		// Format isotope's mass according with charge distribution
 		abundanceAndMass = loadChargeDistribution(abundanceAndMass, charge,
@@ -166,8 +170,7 @@ public class FormulaAnalyzer {
 
 		IIsotope[] isotopes = isoFactory.getIsotopes(elementSymbol);
 
-		float mass, abundance, totalAbundance, newAbundance;
-		float pow = (float) Math.pow(10, 6);
+		float mass, abundance, totalAbundance, newAbundance, previousMass;
 
 		HashMap<Float, Float> isotopeMassAndAbundance = new HashMap<Float, Float>();
 		TreeSet<DataPoint> dataPoints = new TreeSet<DataPoint>(
@@ -181,19 +184,19 @@ public class FormulaAnalyzer {
 			abundance = (float) isotopes[i].getNaturalAbundance();
 			dataPoints.add(new SimpleDataPoint(mass, abundance));
 		}
-
+		
 		currentElementPattern = dataPoints.toArray(new DataPoint[0]);
 		dataPoints.clear();
 
 		// Verify if there is a previous calculation. If it exists, add the new
 		// isotopes
 		if (abundanceAndMass == null) {
-
+			
 			abundanceAndMass = currentElementPattern;
 			return;
 
 		} else {
-
+			
 			for (int i = 0; i < abundanceAndMass.length; i++) {
 
 				totalAbundance = abundanceAndMass[i].getIntensity();
@@ -210,31 +213,57 @@ public class FormulaAnalyzer {
 
 					mass = abundanceAndMass[i].getMZ()
 							+ currentElementPattern[j].getMZ();
-					mass = (Math.round(mass * pow) / pow);
-
+					
+					
 					// Filter duplicated masses
-					if (isotopeMassAndAbundance.containsKey(mass)) {
-						newAbundance += isotopeMassAndAbundance.get(mass);
+					previousMass = searchMass(isotopeMassAndAbundance.keySet(), mass);
+					if (isotopeMassAndAbundance.containsKey(previousMass)) {
+						newAbundance += isotopeMassAndAbundance.get(previousMass);
+						mass = previousMass;
 					}
 
 					// Filter isotopes too small
-					if (newAbundance >= minAbundance) {
+					if (isNotZero(newAbundance)) {
 						isotopeMassAndAbundance.put(mass, newAbundance);
 					}
+					previousMass = 0;
 				}
 			}
-
+			
 			Iterator<Float> itr = isotopeMassAndAbundance.keySet().iterator();
 			int i = 0;
 			abundanceAndMass = new DataPoint[isotopeMassAndAbundance.size()];
 			while (itr.hasNext()) {
 				mass = itr.next();
-				abundanceAndMass[i] = new SimpleDataPoint(mass,
-						isotopeMassAndAbundance.get(mass));
+				dataPoints.add(new SimpleDataPoint(mass,
+						isotopeMassAndAbundance.get(mass)));
 				i++;
 			}
+			abundanceAndMass = dataPoints.toArray(new DataPoint[0]);
 		}
 
+	}
+	
+	private static float searchMass(Set<Float> keySet, float mass){
+		float TOLERANCE = 0.0005f;
+		float diff;
+		for (float key:keySet){
+			diff = Math.abs(key - mass);
+			if (diff < TOLERANCE)
+				return key;
+		}
+		
+		return 0.0f;
+	}
+	
+	private static boolean isNotZero(float number){
+		float pow = (float) Math.pow(10, 6);
+		int fraction = (int)(number * pow); 
+
+		if (fraction <= 0)
+			return false;
+		
+		return true;
 	}
 
 	/**
@@ -358,7 +387,7 @@ public class FormulaAnalyzer {
 		if (Character.isDigit(unfoldedFormula.charAt(0)))
 			unfoldedFormula = "." + unfoldedFormula;
 
-		for (int i = 0; i < unfoldedFormula.length(); i++)
+		for (int i = 0; i < unfoldedFormula.length()-1; i++)
 			if (unfoldedFormula.charAt(i) == '(') {
 
 				beginIndex = i;
@@ -370,7 +399,7 @@ public class FormulaAnalyzer {
 						endIndex + 1);
 				unfoldedFormula = replaceWithSpaceAt(unfoldedFormula,
 						beginIndex, endIndex + 1);
-
+				
 				if (Character.isLetter(unfoldedFormula.charAt(i + 2))
 						|| i + 2 == unfoldedFormula.length()
 						|| unfoldedFormula.charAt(i + 2) == '(') {
@@ -378,13 +407,17 @@ public class FormulaAnalyzer {
 				} else if (Character.isDigit(unfoldedFormula.charAt(i + 2))) {
 
 					beginIndex = i + 2;
-					while (Character.isDigit(unfoldedFormula.charAt(i + 2)))
+					i++;
+					while (Character.isDigit(unfoldedFormula.charAt(i + 1))){
 						i++;
+						if (i+1 == unfoldedFormula.length())
+							break;
+					}
 					endIndex = i + 1;
 					numTimes = Integer.parseInt(unfoldedFormula.substring(
-							beginIndex, endIndex + 1));
+							beginIndex, endIndex ));
 					unfoldedFormula = replaceWithSpaceAt(unfoldedFormula,
-							beginIndex, endIndex + 1);
+							beginIndex, endIndex);
 
 				}
 
@@ -454,9 +487,14 @@ public class FormulaAnalyzer {
 		String modified = original;
 
 		for (int i = startIndex; i <= endIndex; i++) {
-
-			modified = modified.substring(0, i) + new Character(' ')
-					+ modified.substring(i + 1);
+			if (i+1 == modified.length()){
+				modified = modified.substring(0, i) + new Character(' ');
+				break;
+			}
+			else {
+				modified = modified.substring(0, i) + new Character(' ')
+				+ modified.substring(i + 1);
+			}
 
 		}
 
@@ -590,7 +628,7 @@ public class FormulaAnalyzer {
 	 * @param dataPoints
 	 * @return
 	 */
-	private static DataPoint[] normalizeArray(DataPoint[] dataPoints) {
+	private static DataPoint[] normalizeArray(DataPoint[] dataPoints, float minAbundance) {
 
 		TreeSet<DataPoint> sortedDataPoints = new TreeSet<DataPoint>(
 				new DataPointSorter(true, true));
@@ -608,12 +646,13 @@ public class FormulaAnalyzer {
 		for (DataPoint dp : dataPoints) {
 
 			intensity = dp.getIntensity();
-			((SimpleDataPoint) dp).setIntensity(intensity / biggestIntensity);
+			((SimpleDataPoint) dp).setIntensity((intensity) / biggestIntensity);
 
 		}
 
 		for (DataPoint dp : dataPoints) {
-			sortedDataPoints.add(dp);
+			if (dp.getIntensity() >= (minAbundance/100))
+				sortedDataPoints.add(dp);
 		}
 
 		return sortedDataPoints.toArray(new DataPoint[0]);
