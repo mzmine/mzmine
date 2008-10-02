@@ -24,8 +24,8 @@ package net.sf.mzmine.data;
  */
 public interface DataPoint {
 
-    public float getMZ();
+    public double getMZ();
 
-    public float getIntensity();
+    public double getIntensity();
 
 }

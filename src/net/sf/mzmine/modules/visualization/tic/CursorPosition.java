@@ -26,7 +26,7 @@ import net.sf.mzmine.data.RawDataFile;
  */
 public class CursorPosition {
 
-    private float retentionTime, mzValue, intensityValue;
+    private double retentionTime, mzValue, intensityValue;
     private RawDataFile dataFile;
     private int scanNumber;
 
@@ -37,7 +37,7 @@ public class CursorPosition {
      * @param rawDataFile
      * @param scanNumber
      */
-    public CursorPosition(float retentionTime, float mzValue, float intensityValue,
+    public CursorPosition(double retentionTime, double mzValue, double intensityValue,
             RawDataFile dataFile, int scanNumber) {
         this.retentionTime = retentionTime;
         this.mzValue = mzValue;
@@ -49,42 +49,42 @@ public class CursorPosition {
     /**
      * @return Returns the intensityValue.
      */
-    public float getIntensityValue() {
+    public double getIntensityValue() {
         return intensityValue;
     }
 
     /**
      * @param intensityValue The intensityValue to set.
      */
-    public void setIntensityValue(float intensityValue) {
+    public void setIntensityValue(double intensityValue) {
         this.intensityValue = intensityValue;
     }
 
     /**
      * @return Returns the mzValue.
      */
-    public float getMzValue() {
+    public double getMzValue() {
         return mzValue;
     }
 
     /**
      * @param mzValue The mzValue to set.
      */
-    public void setMzValue(float mzValue) {
+    public void setMzValue(double mzValue) {
         this.mzValue = mzValue;
     }
 
     /**
      * @return Returns the retentionTime.
      */
-    public float getRetentionTime() {
+    public double getRetentionTime() {
         return retentionTime;
     }
 
     /**
      * @param retentionTime The retentionTime to set.
      */
-    public void setRetentionTime(float retentionTime) {
+    public void setRetentionTime(double retentionTime) {
         this.retentionTime = retentionTime;
     }
 

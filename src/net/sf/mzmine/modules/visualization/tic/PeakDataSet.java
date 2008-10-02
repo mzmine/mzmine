@@ -33,7 +33,7 @@ import org.jfree.data.xy.AbstractXYDataset;
 public class PeakDataSet extends AbstractXYDataset {
 
     private ChromatographicPeak peak;
-    private float retentionTimes[], intensities[];
+    private double retentionTimes[], intensities[];
 
     public PeakDataSet(ChromatographicPeak peak) {
 
@@ -42,8 +42,8 @@ public class PeakDataSet extends AbstractXYDataset {
         int scanNumbers[] = peak.getScanNumbers();
         RawDataFile dataFile = peak.getDataFile();
 
-        retentionTimes = new float[scanNumbers.length];
-        intensities = new float[scanNumbers.length];
+        retentionTimes = new double[scanNumbers.length];
+        intensities = new double[scanNumbers.length];
 
         for (int i = 0; i < scanNumbers.length; i++) {
             Scan scan = dataFile.getScan(scanNumbers[i]);

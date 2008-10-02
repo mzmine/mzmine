@@ -37,17 +37,17 @@ public class LorentzianPeakWithShoulder implements PeakModel {
      * border between the main and the broad (shoulder) peak models. Default is
      * 5%.
      */
-    public static final float shoulderIntensityRatio = 0.05f;
+    public static final double shoulderIntensityRatio = 0.05f;
 
     /**
      * This constant defines what percentage of the resolution shall we use to
      * build the broad (shoulder) peak model. Default is 5%.
      */
-    public static final float shoulderResolutionRatio = 0.05f;
+    public static final double shoulderResolutionRatio = 0.05f;
 
     private LorentzianPeak mainPeak, shoulderPeak;
     private Range mainPeakRange;
-    private float shoulderIntensity;
+    private double shoulderIntensity;
 
     public LorentzianPeakWithShoulder() {
         mainPeak = new LorentzianPeak();
@@ -55,11 +55,11 @@ public class LorentzianPeakWithShoulder implements PeakModel {
     }
 
     /**
-     * @see net.sf.mzmine.modules.peakpicking.twostep.massdetection.exactmass.peakmodel.PeakModel#setParameters(float,
-     *      float, float)
+     * @see net.sf.mzmine.modules.peakpicking.twostep.massdetection.exactmass.peakmodel.PeakModel#setParameters(double,
+     *      double, double)
      */
-    public void setParameters(float mzMain, float intensityMain,
-            float resolution) {
+    public void setParameters(double mzMain, double intensityMain,
+            double resolution) {
 
         mainPeak.setParameters(mzMain, intensityMain, resolution);
         shoulderPeak.setParameters(mzMain, intensityMain
@@ -73,11 +73,11 @@ public class LorentzianPeakWithShoulder implements PeakModel {
     /**
      * @see net.sf.mzmine.modules.peakpicking.twostep.peakmodel.PeakModel#getBasePeakWidth()
      */
-    public Range getWidth(float partialIntensity) {
+    public Range getWidth(double partialIntensity) {
 
         // The height value must be bigger than zero.
         if (partialIntensity <= 0)
-            return new Range(0, Float.MAX_VALUE);
+            return new Range(0, Double.MAX_VALUE);
 
         if (partialIntensity < shoulderIntensity)
             return shoulderPeak.getWidth(partialIntensity);
@@ -87,9 +87,9 @@ public class LorentzianPeakWithShoulder implements PeakModel {
     }
 
     /**
-     * @see net.sf.mzmine.modules.peakpicking.twostep.peakmodel.PeakModel#getIntensity(float)
+     * @see net.sf.mzmine.modules.peakpicking.twostep.peakmodel.PeakModel#getIntensity(double)
      */
-    public float getIntensity(float mz) {
+    public double getIntensity(double mz) {
 
         if (mainPeakRange.contains(mz))
             return mainPeak.getIntensity(mz);

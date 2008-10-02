@@ -115,12 +115,12 @@ public class JChemPanelLight extends JChemPaintEditorPanel {
 			String formula = new MFAnalyser(wholeModel, true)
 					.getHTMLMolecularFormulaWithCharge();
 
-			float mass = 0;
+			double mass = 0;
 			IAtom atom = null;
 			for (int f = 0; f < wholeModel.getAtomCount(); f++) {
 				int hs = 0;
 				atom = wholeModel.getAtom(f);
-				mass += (float) atom.getExactMass();
+				mass += (double) atom.getExactMass();
 			}
 
 			status = "<html>" + formula + "  Mass: " + mass + "</html>";
@@ -131,14 +131,14 @@ public class JChemPanelLight extends JChemPaintEditorPanel {
 				IAtomContainer selectedPart = rendererModel.getSelectedPart();
 				String formula = new MFAnalyser(selectedPart, true)
 						.getHTMLMolecularFormulaWithCharge();
-				float mass = 0;
+				double mass = 0;
 				IAtom atom = null;
 				String eval = "";
 				for (int f = 0; f < selectedPart.getAtomCount(); f++) {
 					atom = selectedPart.getAtom(f);
 					eval += "select  atomX=" + atom.getPoint2d().x;
                     eval += "; color atom yellow;";
-					mass += (float) atom.getExactMass();
+					mass += (double) atom.getExactMass();
 				}
 				status = "<html>" + formula + "  Mass: " + mass + "</html>";
 				if (jmolPanel != null){

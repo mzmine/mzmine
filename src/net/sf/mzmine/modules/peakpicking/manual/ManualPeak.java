@@ -41,7 +41,7 @@ class ManualPeak implements ChromatographicPeak {
     private RawDataFile dataFile;
 
     // Raw M/Z, RT, Height and Area
-    private float mz, rt, height, area;
+    private double mz, rt, height, area;
 
     // Boundaries of the peak
     private Range rtRange, mzRange, intensityRange;
@@ -66,28 +66,28 @@ class ManualPeak implements ChromatographicPeak {
     /**
      * This method returns M/Z value of the peak
      */
-    public float getMZ() {
+    public double getMZ() {
         return mz;
     }
 
     /**
      * This method returns retention time of the peak
      */
-    public float getRT() {
+    public double getRT() {
         return rt;
     }
 
     /**
      * This method returns the raw height of the peak
      */
-    public float getHeight() {
+    public double getHeight() {
         return height;
     }
 
     /**
      * This method returns the raw area of the peak
      */
-    public float getArea() {
+    public double getArea() {
         return area;
     }
 
@@ -138,7 +138,7 @@ class ManualPeak implements ChromatographicPeak {
      */
     void addDatapoint(int scanNumber, DataPoint dataPoint) {
 
-        float rt = dataFile.getScan(scanNumber).getRetentionTime();
+        double rt = dataFile.getScan(scanNumber).getRetentionTime();
 
         if (mzPeakMap.isEmpty()) {
             rtRange = new Range(rt);
@@ -184,7 +184,7 @@ class ManualPeak implements ChromatographicPeak {
         // Find the data point with top intensity and use its RT and height
         for (int i = 0; i < allScanNumbers.length; i++) {
             DataPoint dataPoint = mzPeakMap.get(allScanNumbers[i]);
-            float rt = dataFile.getScan(allScanNumbers[i]).getRetentionTime();
+            double rt = dataFile.getScan(allScanNumbers[i]).getRetentionTime();
             if (dataPoint.getIntensity() > height) {
                 height = dataPoint.getIntensity();
                 this.rt = rt;
@@ -196,14 +196,14 @@ class ManualPeak implements ChromatographicPeak {
         for (int i = 1; i < allScanNumbers.length; i++) {
 
             // X axis interval length
-            float previousRT = dataFile.getScan(allScanNumbers[i - 1]).getRetentionTime();
-            float thisRT = dataFile.getScan(allScanNumbers[i]).getRetentionTime();
-            float rtDifference = thisRT - previousRT;
+            double previousRT = dataFile.getScan(allScanNumbers[i - 1]).getRetentionTime();
+            double thisRT = dataFile.getScan(allScanNumbers[i]).getRetentionTime();
+            double rtDifference = thisRT - previousRT;
 
             // Intensity at the beginning and end of the interval
-            float previousIntensity = mzPeakMap.get(allScanNumbers[i - 1]).getIntensity();
-            float thisIntensity = mzPeakMap.get(allScanNumbers[i]).getIntensity();
-            float averageIntensity = (previousIntensity + thisIntensity) / 2;
+            double previousIntensity = mzPeakMap.get(allScanNumbers[i - 1]).getIntensity();
+            double thisIntensity = mzPeakMap.get(allScanNumbers[i]).getIntensity();
+            double averageIntensity = (previousIntensity + thisIntensity) / 2;
 
             // Calculate area of the interval
             area += (rtDifference * averageIntensity);
@@ -211,7 +211,7 @@ class ManualPeak implements ChromatographicPeak {
         }
 
         // Calculate median MZ
-        float mzArray[] = new float[allScanNumbers.length];
+        double mzArray[] = new double[allScanNumbers.length];
         for (int i = 0; i < allScanNumbers.length; i++) {
             mzArray[i] = mzPeakMap.get(allScanNumbers[i]).getMZ();
         }
@@ -219,7 +219,7 @@ class ManualPeak implements ChromatographicPeak {
 
     }
 
-	public void setMZ(float mz) {
+	public void setMZ(double mz) {
 		// TODO Auto-generated method stub
 		
 	}

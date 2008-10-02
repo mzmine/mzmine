@@ -34,13 +34,13 @@ import net.sf.mzmine.modules.peakpicking.threestep.xicconstruction.ConnectedMzPe
 
 public class ScoreConnector implements ChromatogramBuilder {
 
-    private float mzTolerance, minimumTimeSpan;
+    private double mzTolerance, minimumTimeSpan;
     private Vector<Chromatogram> underConstructionChromatograms;
 
     public ScoreConnector(ScoreConnectorParameters parameters) {
 
-        minimumTimeSpan = (Float) parameters.getParameterValue(ScoreConnectorParameters.minimumTimeSpan);
-        mzTolerance = (Float) parameters.getParameterValue(ScoreConnectorParameters.mzTolerance);
+        minimumTimeSpan = (Double) parameters.getParameterValue(ScoreConnectorParameters.minimumTimeSpan);
+        mzTolerance = (Double) parameters.getParameterValue(ScoreConnectorParameters.mzTolerance);
 
         underConstructionChromatograms = new Vector<Chromatogram>();
     }
@@ -55,10 +55,10 @@ public class ScoreConnector implements ChromatogramBuilder {
 
         // Calculate scores between Chromatogram and MzPeaks
         TreeSet<MatchScore> scores = new TreeSet<MatchScore>();
-        float mz;
+        double mz;
 
         for (Chromatogram currentChromatogram : underConstructionChromatograms) {
-            float chromatogramMz = currentChromatogram.getLastMz();
+            double chromatogramMz = currentChromatogram.getLastMz();
 
             for (ConnectedMzPeak currentMzPeak : cMzPeaks) {
 
@@ -66,12 +66,12 @@ public class ScoreConnector implements ChromatogramBuilder {
                 if (mz > (chromatogramMz + mzTolerance))
                     break;
 
-                float mzDifference = Math.abs(chromatogramMz - mz);
+                double mzDifference = Math.abs(chromatogramMz - mz);
 
                 if (mzDifference <= mzTolerance) {
                     MatchScore score = new MatchScore(currentChromatogram,
                             currentMzPeak);
-                    if (score.getScore() < Float.MAX_VALUE) {
+                    if (score.getScore() < Double.MAX_VALUE) {
                         scores.add(score);
                     }
                 }
@@ -117,7 +117,7 @@ public class ScoreConnector implements ChromatogramBuilder {
 
                 // Check length of detected Chromatogram (filter according to
                 // parameter)
-                float chromatoLength = currentChromatogram.getLastConnectedMzPeaksRTRange().getSize();
+                double chromatoLength = currentChromatogram.getLastConnectedMzPeaksRTRange().getSize();
 
                 if (chromatoLength < minimumTimeSpan) {
 
@@ -173,7 +173,7 @@ public class ScoreConnector implements ChromatogramBuilder {
 
             // Check length of detected Chromatogram (filter according to
             // parameter)
-            float chromatoLength = currentChromatogram.getLastConnectedMzPeaksRTRange().getSize();
+            double chromatoLength = currentChromatogram.getLastConnectedMzPeaksRTRange().getSize();
 
             if (chromatoLength < minimumTimeSpan) {
 

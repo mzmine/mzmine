@@ -143,7 +143,7 @@ public interface PeakList {
      * 
      * @return Maximum intensity
      */
-    public float getDataPointMaxIntensity();
+    public double getDataPointMaxIntensity();
 
     /**
      * Add a new row to the peak list

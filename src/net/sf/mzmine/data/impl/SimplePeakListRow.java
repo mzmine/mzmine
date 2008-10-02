@@ -43,7 +43,7 @@ public class SimplePeakListRow implements PeakListRow {
     private CompoundIdentity preferredIdentity;
     private String comment;
     private int myID;
-    private float maxDataPointIntensity = 0;
+    private double maxDataPointIntensity = 0;
 
     public SimplePeakListRow(int myID) {
         this.myID = myID;
@@ -119,8 +119,8 @@ public class SimplePeakListRow implements PeakListRow {
     /*
      * Returns average normalized M/Z for peaks on this row
      */
-    public float getAverageMZ() {
-        float mzSum = 0.0f;
+    public double getAverageMZ() {
+        double mzSum = 0.0f;
         Enumeration<ChromatographicPeak> peakEnum = peaks.elements();
         while (peakEnum.hasMoreElements()) {
             ChromatographicPeak p = peakEnum.nextElement();
@@ -132,8 +132,8 @@ public class SimplePeakListRow implements PeakListRow {
     /*
      * Returns average normalized RT for peaks on this row
      */
-    public float getAverageRT() {
-        float rtSum = 0.0f;
+    public double getAverageRT() {
+        double rtSum = 0.0f;
         Enumeration<ChromatographicPeak> peakEnum = peaks.elements();
         while (peakEnum.hasMoreElements()) {
             ChromatographicPeak p = peakEnum.nextElement();
@@ -228,7 +228,7 @@ public class SimplePeakListRow implements PeakListRow {
     /**
      * @see net.sf.mzmine.data.PeakListRow#getDataPointMaxIntensity()
      */
-    public float getDataPointMaxIntensity() {
+    public double getDataPointMaxIntensity() {
         return maxDataPointIntensity;
     }
 

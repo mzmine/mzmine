@@ -98,7 +98,7 @@ public class PeakUtils {
      * Returns average m/z of peaks and/or isotope patterns on the peak list
      * row. For isotope patterns, uses the lowest m/z value of the pattern.
      */
-    public static float getAverageMZUsingLowestMZPeaks(PeakListRow peakListRow) {
+    public static double getAverageMZUsingLowestMZPeaks(PeakListRow peakListRow) {
 
         if (peakListRow == null)
             return 0.0f;
@@ -108,7 +108,7 @@ public class PeakUtils {
         if ((peaks == null) || (peaks.length == 0))
             return 0.0f;
 
-        float mzSum = 0.0f;
+        double mzSum = 0.0f;
         for (ChromatographicPeak peak : peaks) {
             if (peak instanceof IsotopePattern)
                 mzSum += getLowestMZPeak((IsotopePattern) peak).getMZ();
@@ -116,7 +116,7 @@ public class PeakUtils {
                 mzSum += peak.getMZ();
         }
 
-        return mzSum / (float) peaks.length;
+        return mzSum / (double) peaks.length;
 
     }
 
@@ -124,7 +124,7 @@ public class PeakUtils {
      * Returns average m/z of the isotope patterns and peaks on the row. For
      * isotope patterns, uses m/z value of the most intense peak of the pattern.
      */
-    public static float getAverageMZUsingMostIntensePeaks(
+    public static double getAverageMZUsingMostIntensePeaks(
             PeakListRow peakListRow) {
 
         if (peakListRow == null)
@@ -135,7 +135,7 @@ public class PeakUtils {
         if ((peaks == null) || (peaks.length == 0))
             return 0.0f;
 
-        float mzSum = 0.0f;
+        double mzSum = 0.0f;
         for (ChromatographicPeak peak : peaks) {
             if (peak instanceof IsotopePattern)
                 mzSum += getMostIntensePeak((IsotopePattern) peak).getMZ();
@@ -143,7 +143,7 @@ public class PeakUtils {
                 mzSum += peak.getMZ();
         }
 
-        return mzSum / (float) peaks.length;
+        return mzSum / (double) peaks.length;
 
     }
 

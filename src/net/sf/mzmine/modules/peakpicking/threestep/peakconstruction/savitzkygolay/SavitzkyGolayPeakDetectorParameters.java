@@ -40,19 +40,19 @@ public class SavitzkyGolayPeakDetectorParameters extends SimpleParameterSet {
 			.getPercentInstance();
 
 	public static final Parameter minimumPeakHeight = new SimpleParameter(
-			ParameterType.FLOAT, "Min peak height",
-			"Minimum acceptable peak height", "absolute", new Float(10000.0),
-			new Float(0.0), null, MZmineCore.getIntensityFormat());
+			ParameterType.DOUBLE, "Min peak height",
+			"Minimum acceptable peak height", "absolute", new Double(10000.0),
+			new Double(0.0), null, MZmineCore.getIntensityFormat());
 
 	public static final Parameter minimumPeakDuration = new SimpleParameter(
-			ParameterType.FLOAT, "Min peak duration",
-			"Minimum acceptable peak duration", null, new Float(10.0),
-			new Float(0.0), null, MZmineCore.getRTFormat());
+			ParameterType.DOUBLE, "Min peak duration",
+			"Minimum acceptable peak duration", null, new Double(10.0),
+			new Double(0.0), null, MZmineCore.getRTFormat());
 
 	public static final Parameter derivativeThresholdLevel = new SimpleParameter(
-			ParameterType.FLOAT, "Derivative threshold level",
-			"Minimum acceptable intensity in the 2nd derivative for peak recognition", null, new Float(0.80),
-			new Float(0.0), null, percentFormat);
+			ParameterType.DOUBLE, "Derivative threshold level",
+			"Minimum acceptable intensity in the 2nd derivative for peak recognition", null, new Double(0.80),
+			new Double(0.0), null, percentFormat);
 	
 	public static final Parameter fillingPeaks = new SimpleParameter(
 			ParameterType.BOOLEAN, "Filling peak shape",
@@ -66,11 +66,11 @@ public class SavitzkyGolayPeakDetectorParameters extends SimpleParameterSet {
 			null, peakModelNames);
 
 	public static final Parameter excessLevel = new SimpleParameter(
-			ParameterType.FLOAT,
+			ParameterType.DOUBLE,
 			"Level of excess",
 			"Increasing this parameter in positive domain the width of the filling peak becomes smaller, " +
 			"and increasing this parameter in negative domain the width is bigger.",
-			"absolute", new Float(0.1), new Float(-0.9), new Float(0.9), null);
+			"absolute", new Double(0.1), new Double(-0.9), new Double(0.9), null);
 
 	public SavitzkyGolayPeakDetectorParameters() {
 		super(new Parameter[] { minimumPeakHeight, minimumPeakDuration, derivativeThresholdLevel,

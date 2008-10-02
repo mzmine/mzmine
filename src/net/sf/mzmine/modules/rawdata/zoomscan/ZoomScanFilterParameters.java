@@ -32,9 +32,9 @@ public class ZoomScanFilterParameters extends SimpleParameterSet {
             "Suffix to be added to filename", null, "filtered", null);
 
     public static final Parameter minMZRange = new SimpleParameter(
-            ParameterType.FLOAT, "Minimum M/Z range",
-            "Required minimum m/z range for a full scan", "m/z", new Float(
-                    100.0), new Float(0.0), null, MZmineCore.getMZFormat());
+            ParameterType.DOUBLE, "Minimum M/Z range",
+            "Required minimum m/z range for a full scan", "m/z", new Double(
+                    100.0), new Double(0.0), null, MZmineCore.getMZFormat());
 
     public static final Parameter autoRemove = new SimpleParameter(
             ParameterType.BOOLEAN,

@@ -54,7 +54,7 @@ class TICItemLabelGenerator implements XYItemLabelGenerator {
      * Only data points which have intensity >= (dataset minimum value *
      * THRESHOLD_FOR_ANNOTATION) will be annotated
      */
-    public static final float THRESHOLD_FOR_ANNOTATION = 2f;
+    public static final double THRESHOLD_FOR_ANNOTATION = 2f;
 
     /*
      * Some saved values
@@ -88,8 +88,8 @@ class TICItemLabelGenerator implements XYItemLabelGenerator {
         TICDataSet ticDataSet = (TICDataSet) dataSet;
 
         // X and Y values of current data point
-        float originalX = ticDataSet.getX(0, item).floatValue();
-        float originalY = ticDataSet.getY(0, item).floatValue();
+        double originalX = ticDataSet.getX(0, item).doubleValue();
+        double originalY = ticDataSet.getY(0, item).doubleValue();
 
         // Check if the intensity of this data point is above threshold
         if (originalY < ticDataSet.getMinIntensity() * THRESHOLD_FOR_ANNOTATION)
@@ -100,10 +100,10 @@ class TICItemLabelGenerator implements XYItemLabelGenerator {
             return null;
 
         // Calculate data size of 1 screen pixel
-        float xLength = (float) plot.getXYPlot().getDomainAxis().getRange().getLength();
-        float pixelX = xLength / plot.getWidth();
-        float yLength = (float) plot.getXYPlot().getRangeAxis().getRange().getLength();
-        float pixelY = yLength / plot.getHeight();
+        double xLength = (double) plot.getXYPlot().getDomainAxis().getRange().getLength();
+        double pixelX = xLength / plot.getWidth();
+        double yLength = (double) plot.getXYPlot().getRangeAxis().getRange().getLength();
+        double pixelY = yLength / plot.getHeight();
 
         TICDataSet[] allDataSets={};
         
@@ -120,10 +120,10 @@ class TICItemLabelGenerator implements XYItemLabelGenerator {
         for (TICDataSet checkedDataSet : allDataSets) {
 
             // Search for local maxima
-            float searchMinX = originalX - (POINTS_RESERVE_X / 2) * pixelX;
-            float searchMaxX = originalX + (POINTS_RESERVE_X / 2) * pixelX;
-            float searchMinY = originalY;
-            float searchMaxY = originalY + POINTS_RESERVE_Y * pixelY;
+            double searchMinX = originalX - (POINTS_RESERVE_X / 2) * pixelX;
+            double searchMaxX = originalX + (POINTS_RESERVE_X / 2) * pixelX;
+            double searchMinY = originalY;
+            double searchMaxY = originalY + POINTS_RESERVE_Y * pixelY;
 
             // We don't want to search below the threshold level of the data set
             if (searchMinY < (checkedDataSet.getMinIntensity() * THRESHOLD_FOR_ANNOTATION))
@@ -145,7 +145,7 @@ class TICItemLabelGenerator implements XYItemLabelGenerator {
 
         // Base peak plot shows m/z, TIC shows total intensity
         if (plotType == TICVisualizerParameters.plotTypeBP) {
-            float mz = ticDataSet.getZ(0, item).floatValue();
+            double mz = ticDataSet.getZ(0, item).doubleValue();
             label = mzFormat.format(mz);
         } else {
             label = intensityFormat.format(originalY);

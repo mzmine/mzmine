@@ -34,22 +34,22 @@ public interface ChromatographicPeak {
     /**
      * This method returns raw M/Z value of the peak
      */
-    public float getMZ();
+    public double getMZ();
 
     /**
      * This method returns raw retention time of the peak
      */
-    public float getRT();
+    public double getRT();
 
     /**
      * This method returns the raw height of the peak
      */
-    public float getHeight();
+    public double getHeight();
 
     /**
      * This method returns the raw area of the peak
      */
-    public float getArea();
+    public double getArea();
 
     /**
      * Returns raw data file where this peak is present

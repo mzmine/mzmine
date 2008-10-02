@@ -28,8 +28,8 @@ import net.sf.mzmine.data.DataPoint;
 public class DataPointSorterByMZ implements Comparator<DataPoint> {
 
     public int compare(DataPoint p1, DataPoint p2) {
-        Float mz1 = p1.getMZ();
-        Float mz2 = p2.getMZ();
+        Double mz1 = p1.getMZ();
+        Double mz2 = p2.getMZ();
         return mz1.compareTo(mz2); 
     }
 

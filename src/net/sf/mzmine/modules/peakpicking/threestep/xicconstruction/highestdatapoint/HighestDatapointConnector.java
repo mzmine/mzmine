@@ -34,15 +34,15 @@ import net.sf.mzmine.modules.peakpicking.threestep.xicconstruction.ConnectedMzPe
 
 public class HighestDatapointConnector implements ChromatogramBuilder {
 
-	private float mzTolerance, minimumTimeSpan;
+	private double mzTolerance, minimumTimeSpan;
 	private Vector<Chromatogram> underConstructionChromatograms;
 
 	public HighestDatapointConnector(
 			HighestDatapointConnectorParameters parameters) {
 
-		minimumTimeSpan = (Float) parameters
+		minimumTimeSpan = (Double) parameters
 				.getParameterValue(HighestDatapointConnectorParameters.minimumTimeSpan);
-		mzTolerance = (Float) parameters
+		mzTolerance = (Double) parameters
 				.getParameterValue(HighestDatapointConnectorParameters.mzTolerance);
 
 		underConstructionChromatograms = new Vector<Chromatogram>();
@@ -58,11 +58,11 @@ public class HighestDatapointConnector implements ChromatogramBuilder {
 
 		// Calculate scores between Chromatogram and MzPeaks
 		TreeSet<ConnectedMzPeak> highestDatapoint = new TreeSet<ConnectedMzPeak>();
-		float mz, mzDifference;
+		double mz, mzDifference;
 
 		for (Chromatogram currentChromatogram : underConstructionChromatograms) {
 
-			float chromatogramMz = currentChromatogram.getLastMz();
+			double chromatogramMz = currentChromatogram.getLastMz();
 
 			for (ConnectedMzPeak currentMzPeak : cMzPeaks) {
 
@@ -102,7 +102,7 @@ public class HighestDatapointConnector implements ChromatogramBuilder {
 
 				// Check length of detected Chromatogram (filter according to
 				// parameter)
-				float chromatoLength = currentChromatogram
+				double chromatoLength = currentChromatogram
 						.getLastConnectedMzPeaksRTRange().getSize();
 
 				if (chromatoLength < minimumTimeSpan) {
@@ -154,7 +154,7 @@ public class HighestDatapointConnector implements ChromatogramBuilder {
 
 			// Check length of detected Chromatogram (filter according to
 			// parameter)
-			float chromatoLength = currentChromatogram
+			double chromatoLength = currentChromatogram
 					.getLastConnectedMzPeaksRTRange().getSize();
 
 			if (chromatoLength < minimumTimeSpan) {

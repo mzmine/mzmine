@@ -36,7 +36,7 @@ import net.sf.mzmine.taskcontrol.Task;
 
 class LinearNormalizerTask implements Task {
 
-    public static final float maximumOverallPeakHeightAfterNormalization = 100000.0f;
+    public static final double maximumOverallPeakHeightAfterNormalization = 100000.0f;
 
     private PeakList originalPeakList;
 
@@ -71,8 +71,8 @@ class LinearNormalizerTask implements Task {
         return errorMessage;
     }
 
-    public float getFinishedPercentage() {
-        return (float) processedDataFiles / (float) totalDataFiles;
+    public double getFinishedPercentage() {
+        return (double) processedDataFiles / (double) totalDataFiles;
     }
 
     public TaskStatus getStatus() {
@@ -98,7 +98,7 @@ class LinearNormalizerTask implements Task {
 
         // Loop through all raw data files, and find the peak with biggest
         // height
-        float maxOriginalHeight = 0.0f;
+        double maxOriginalHeight = 0.0f;
         for (RawDataFile file : originalPeakList.getRawDataFiles()) {
             for (PeakListRow originalpeakListRow : originalPeakList.getRows()) {
                 ChromatographicPeak p = originalpeakListRow.getPeak(file);
@@ -118,11 +118,11 @@ class LinearNormalizerTask implements Task {
 
             // Determine normalization type and calculate normalization factor
             // accfileingly
-            float normalizationFactor = 1.0f;
+            double normalizationFactor = 1.0f;
 
             // - normalization by average squared peak intensity
             if (normalizationType == LinearNormalizerParameters.NormalizationTypeAverageIntensity) {
-                float intensitySum = 0.0f;
+                double intensitySum = 0.0f;
                 int intensityCount = 0;
                 for (PeakListRow peakListRow : originalPeakList.getRows()) {
                     ChromatographicPeak p = peakListRow.getPeak(file);
@@ -135,12 +135,12 @@ class LinearNormalizerTask implements Task {
                         intensityCount++;
                     }
                 }
-                normalizationFactor = intensitySum / (float) intensityCount;
+                normalizationFactor = intensitySum / (double) intensityCount;
             }
 
             // - normalization by average squared peak intensity
             if (normalizationType == LinearNormalizerParameters.NormalizationTypeAverageSquaredIntensity) {
-                float intensitySum = 0.0f;
+                double intensitySum = 0.0f;
                 int intensityCount = 0;
                 for (PeakListRow peakListRow : originalPeakList.getRows()) {
                     ChromatographicPeak p = peakListRow.getPeak(file);
@@ -153,12 +153,12 @@ class LinearNormalizerTask implements Task {
                         intensityCount++;
                     }
                 }
-                normalizationFactor = intensitySum / (float) intensityCount;
+                normalizationFactor = intensitySum / (double) intensityCount;
             }
 
             // - normalization by maximum peak intensity
             if (normalizationType == LinearNormalizerParameters.NormalizationTypeMaximumPeakHeight) {
-                float maximumIntensity = 0.0f;
+                double maximumIntensity = 0.0f;
                 for (PeakListRow peakListRow : originalPeakList.getRows()) {
                     ChromatographicPeak p = peakListRow.getPeak(file);
                     if (p != null) {
@@ -190,7 +190,7 @@ class LinearNormalizerTask implements Task {
             // Readjust normalization factor so that maximum height will be
             // equal to maximumOverallPeakHeightAfterNormalization after
             // normalization
-            float maxNormalizedHeight = maxOriginalHeight / normalizationFactor;
+            double maxNormalizedHeight = maxOriginalHeight / normalizationFactor;
             normalizationFactor = normalizationFactor * maxNormalizedHeight
                     / maximumOverallPeakHeightAfterNormalization;
 
@@ -205,9 +205,9 @@ class LinearNormalizerTask implements Task {
                 ChromatographicPeak originalPeak = originalpeakListRow.getPeak(file);
                 if (originalPeak != null) {
                     SimpleChromatographicPeak normalizedPeak = new SimpleChromatographicPeak(originalPeak);
-                    float normalizedHeight = originalPeak.getHeight()
+                    double normalizedHeight = originalPeak.getHeight()
                             / normalizationFactor;
-                    float normalizedArea = originalPeak.getArea()
+                    double normalizedArea = originalPeak.getArea()
                             / normalizationFactor;
                     normalizedPeak.setHeight(normalizedHeight);
                     normalizedPeak.setArea(normalizedArea);

@@ -55,7 +55,7 @@ class ThreeDSamplingTask implements Task {
     private ThreeDDisplay display;
 
     // maximum value on Z axis
-    private float maxBinnedIntensity;
+    private double maxBinnedIntensity;
 
     /**
      * Task constructor
@@ -91,8 +91,8 @@ class ThreeDSamplingTask implements Task {
     /**
      * @see net.sf.mzmine.taskcontrol.Task#getFinishedPercentage()
      */
-    public float getFinishedPercentage() {
-        return (float) retrievedScans / scanNumbers.length;
+    public double getFinishedPercentage() {
+        return (double) retrievedScans / scanNumbers.length;
     }
 
     /**
@@ -129,7 +129,7 @@ class ThreeDSamplingTask implements Task {
             Set domainSet;
 
             // set the resolution (number of data points) on m/z axis
-            final float mzStep = mzRange.getSize() / mzResolution;
+            final double mzStep = mzRange.getSize() / mzResolution;
 
             // set the resolution (number of data points) on retention time axis
             if (scanNumbers.length > rtResolution) {
@@ -152,11 +152,11 @@ class ThreeDSamplingTask implements Task {
 
                         int point = (rtResolution * j) + i;
                         // set the point's X coordinate
-                        domainPoints[0][point] = dataFile.getScan(
+                        domainPoints[0][point] = (float) dataFile.getScan(
                                 scanNumbers[i]).getRetentionTime();
 
                         // set the point's Y coordinate
-                        domainPoints[1][point] = mzRange.getMin() + (j * mzStep);
+                        domainPoints[1][point] = (float) (mzRange.getMin() + (j * mzStep));
                     }
                 }
 
@@ -165,10 +165,10 @@ class ThreeDSamplingTask implements Task {
 
             }
 
-            final float rtStep = rtRange.getSize() / rtResolution;
+            final double rtStep = rtRange.getSize() / rtResolution;
 
             // create an array for all data points
-            float[][] intensityValues = new float[1][mzResolution
+            double[][] intensityValues = new double[1][mzResolution
                     * rtResolution];
 
             // load scans
@@ -180,14 +180,14 @@ class ThreeDSamplingTask implements Task {
                 Scan scan = dataFile.getScan(scanNumbers[scanIndex]);
 
                 DataPoint dataPoints[] = scan.getDataPoints();
-                float[] scanMZValues = new float[dataPoints.length];
-                float[] scanIntensityValues = new float[dataPoints.length];
+                double[] scanMZValues = new double[dataPoints.length];
+                double[] scanIntensityValues = new double[dataPoints.length];
                 for (int dp = 0; dp < dataPoints.length; dp++) {
                     scanMZValues[dp] = dataPoints[dp].getMZ();
                     scanIntensityValues[dp] = dataPoints[dp].getIntensity();
                 }
 
-                float[] binnedIntensities = ScanUtils.binValues(scanMZValues,
+                double[] binnedIntensities = ScanUtils.binValues(scanMZValues,
                         scanIntensityValues, mzRange, mzResolution, ! scan.isCentroided(),
                         BinningType.MAX);
 
@@ -212,10 +212,10 @@ class ThreeDSamplingTask implements Task {
                             + scanBinIndex;
 
                     if (binnedIntensities[mzIndex] > intensityValues[0][intensityValuesIndex])
-                        intensityValues[0][intensityValuesIndex] = (float) binnedIntensities[mzIndex];
+                        intensityValues[0][intensityValuesIndex] = (double) binnedIntensities[mzIndex];
 
                     if (intensityValues[0][intensityValuesIndex] > maxBinnedIntensity)
-                        maxBinnedIntensity = (float) binnedIntensities[mzIndex];
+                        maxBinnedIntensity = (double) binnedIntensities[mzIndex];
                 }
 
                 retrievedScans++;

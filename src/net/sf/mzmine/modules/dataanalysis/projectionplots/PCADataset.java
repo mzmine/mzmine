@@ -252,7 +252,7 @@ public class PCADataset extends AbstractXYDataset implements
 		return "PCA projection " + parameters.getSourcePeakList(); 
 	}
 
-	public float getFinishedPercentage() {
+	public double getFinishedPercentage() {
 		if (projectionStatus==null) return 0.0f;
 		return projectionStatus.getFinishedPercentage();
 	}

@@ -34,7 +34,7 @@ public class ProjectionPlotRenderer extends XYLineAndShapeRenderer {
 
 	private final Color[] avoidColors = { new Color(255, 255, 85)};
 
-	private static final Shape dataPointsShape = new Ellipse2D.Float(-6, -6,
+	private static final Shape dataPointsShape = new Ellipse2D.Double(-6, -6,
 			12, 12);
 
 	private ProjectionPlotDataset dataset;

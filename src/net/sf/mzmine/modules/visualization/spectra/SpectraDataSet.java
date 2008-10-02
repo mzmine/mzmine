@@ -35,8 +35,8 @@ import org.jfree.data.xy.IntervalXYDataset;
 public class SpectraDataSet extends AbstractXYDataset implements IntervalXYDataset {
 
 	private boolean predicted = false;
-	private float increase = (float) Math.pow(10, 4);
-	private float biggestIntensity = Float.MIN_VALUE;
+	private double increase = (double) Math.pow(10, 4);
+	private double biggestIntensity = Double.MIN_VALUE;
 	
 	/*
      * Save a local copy of m/z and intensity values, because accessing the scan
@@ -47,7 +47,7 @@ public class SpectraDataSet extends AbstractXYDataset implements IntervalXYDatas
 
     public SpectraDataSet(MzDataTable mzDataTable) {
 
-    	float intensity;
+    	double intensity;
     	dataPoints = mzDataTable.getDataPoints();
         
     	for (DataPoint dp: dataPoints){
@@ -61,7 +61,7 @@ public class SpectraDataSet extends AbstractXYDataset implements IntervalXYDatas
     	if (isotopeFlag){
     		predicted = ((IsotopePattern)mzDataTable).getIsotopePatternStatus() == IsotopePatternStatus.PREDICTED;
     		if (predicted){
-        		float probablyIncrease = ((PredictedIsotopePattern)mzDataTable).getIsotopeHeight();
+        		double probablyIncrease = ((PredictedIsotopePattern)mzDataTable).getIsotopeHeight();
         		if (probablyIncrease > 0)
         			increase = probablyIncrease;
     			label = "Predicted isotope pattern";
@@ -131,14 +131,14 @@ public class SpectraDataSet extends AbstractXYDataset implements IntervalXYDatas
         return getYValue(series, item);
     }
     
-    public float getBiggestIntensity(){
+    public double getBiggestIntensity(){
     	if (predicted)
     		return biggestIntensity * increase;
     	else
             return biggestIntensity;
     }
     
-    public float getIncrease(){
+    public double getIncrease(){
     	return increase;
     }
 

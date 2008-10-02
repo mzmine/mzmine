@@ -31,16 +31,16 @@ import net.sf.mzmine.util.DataPointSorter;
 public class RecursiveMassDetector implements MassDetector {
 
     // Parameter values
-    private float minimumMZPeakWidth, maximumMZPeakWidth, noiseLevel;
+    private double minimumMZPeakWidth, maximumMZPeakWidth, noiseLevel;
     private TreeSet<SimpleMzPeak> mzPeaks;
     private DataPoint[] dataPoints;
 
     // private Scan scan;
 
     public RecursiveMassDetector(RecursiveMassDetectorParameters parameters) {
-        noiseLevel = (Float) parameters.getParameterValue(RecursiveMassDetectorParameters.noiseLevel);
-        minimumMZPeakWidth = (Float) parameters.getParameterValue(RecursiveMassDetectorParameters.minimumMZPeakWidth);
-        maximumMZPeakWidth = (Float) parameters.getParameterValue(RecursiveMassDetectorParameters.maximumMZPeakWidth);
+        noiseLevel = (Double) parameters.getParameterValue(RecursiveMassDetectorParameters.noiseLevel);
+        minimumMZPeakWidth = (Double) parameters.getParameterValue(RecursiveMassDetectorParameters.minimumMZPeakWidth);
+        maximumMZPeakWidth = (Double) parameters.getParameterValue(RecursiveMassDetectorParameters.maximumMZPeakWidth);
     }
 
     public SimpleMzPeak[] getMassValues(Scan scan) {
@@ -59,18 +59,18 @@ public class RecursiveMassDetector implements MassDetector {
      * This function searches for maxima from given part of a spectrum
      */
     private int recursiveThreshold(int startInd, int stopInd,
-            float curentNoiseLevel, int recuLevel) {
+            double curentNoiseLevel, int recuLevel) {
 
         // logger.finest(" Level of recursion " + recuLevel);
 
         Vector<DataPoint> RawDataPointsInds = new Vector<DataPoint>();
         int peakStartInd, peakStopInd, peakMaxInd;
-        float peakWidthMZ;
+        double peakWidthMZ;
 
         for (int ind = startInd; ind < stopInd; ind++) {
 
             boolean currentIsBiggerNoise = dataPoints[ind].getIntensity() > curentNoiseLevel;
-            float localMinimum = Float.MAX_VALUE;
+            double localMinimum = Double.MAX_VALUE;
 
             // Ignore intensities below curentNoiseLevel
             if (!currentIsBiggerNoise) {
@@ -127,7 +127,7 @@ public class RecursiveMassDetector implements MassDetector {
             // If the peak is still too big applies the same method until find a
             // peak of the right size
             if (peakWidthMZ > maximumMZPeakWidth) {
-                if (localMinimum < Float.MAX_VALUE) {
+                if (localMinimum < Double.MAX_VALUE) {
                     ind = recursiveThreshold(peakStartInd, peakStopInd,
                             localMinimum, recuLevel + 1);
                 }

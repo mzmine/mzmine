@@ -54,9 +54,9 @@ public class PubChemSearchTask implements Task {
     private TaskStatus status;
     private String errorMessage;
     private int finishedLines = 0, numItems;
-    private float valueOfQuery, range;
+    private double valueOfQuery, range;
     private int charge;
-    private float ion;
+    private double ion;
     private int numOfResults;
     private PubChemSearchWindow window;
     private PeakList peakList;
@@ -74,8 +74,8 @@ public class PubChemSearchTask implements Task {
         this.peakList = peakList;
 
         status = TaskStatus.WAITING;
-        valueOfQuery = (Float) parameters.getParameterValue(PubChemSearchParameters.neutralMass);
-        range = (Float) parameters.getParameterValue(PubChemSearchParameters.mzToleranceField);
+        valueOfQuery = (Double) parameters.getParameterValue(PubChemSearchParameters.neutralMass);
+        range = (Double) parameters.getParameterValue(PubChemSearchParameters.mzToleranceField);
         numOfResults = (Integer) parameters.getParameterValue(PubChemSearchParameters.numOfResults);
         charge = (Integer) parameters.getParameterValue(PubChemSearchParameters.charge);
         chargedMol = (Boolean) parameters.getParameterValue(PubChemSearchParameters.chargedMol);
@@ -104,8 +104,8 @@ public class PubChemSearchTask implements Task {
     /**
      * @see net.sf.mzmine.taskcontrol.Task#getFinishedPercentage()
      */
-    public float getFinishedPercentage() {
-        return ((float) finishedLines) / numItems;
+    public double getFinishedPercentage() {
+        return ((double) finishedLines) / numItems;
     }
 
     /**

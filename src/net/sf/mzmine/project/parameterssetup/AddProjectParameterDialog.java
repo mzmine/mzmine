@@ -271,7 +271,7 @@ public class AddProjectParameterDialog extends JDialog implements
 			SimpleParameter parameter = null;
 
 			if (radiobuttonNumerical.isSelected()) {
-				ParameterType paramType = ParameterType.FLOAT;
+				ParameterType paramType = ParameterType.DOUBLE;
 				Double minValue = Double.NEGATIVE_INFINITY;
 				if (fieldNumericalMinValue.getValue() != null)
 					minValue = ((Number) fieldNumericalMinValue.getValue())

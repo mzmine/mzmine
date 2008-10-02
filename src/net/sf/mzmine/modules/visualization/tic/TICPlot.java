@@ -92,7 +92,7 @@ public class TICPlot extends ChartPanel {
 					5, 3 }, 0);
 
 	// data points shape
-	private static final Shape dataPointsShape = new Ellipse2D.Float(-2, -2, 5,
+	private static final Shape dataPointsShape = new Ellipse2D.Double(-2, -2, 5,
 			5);
 
 	// titles
@@ -308,12 +308,12 @@ public class TICPlot extends ChartPanel {
 			// Get current axes range
 			NumberAxis xAxis = (NumberAxis) this.getXYPlot().getDomainAxis();
 			NumberAxis yAxis = (NumberAxis) this.getXYPlot().getRangeAxis();
-			float xMin = (float) xAxis.getRange().getLowerBound();
-			float xMax = (float) xAxis.getRange().getUpperBound();
-			float xTick = (float) xAxis.getTickUnit().getSize();
-			float yMin = (float) yAxis.getRange().getLowerBound();
-			float yMax = (float) yAxis.getRange().getUpperBound();
-			float yTick = (float) yAxis.getTickUnit().getSize();
+			double xMin = (double) xAxis.getRange().getLowerBound();
+			double xMax = (double) xAxis.getRange().getUpperBound();
+			double xTick = (double) xAxis.getTickUnit().getSize();
+			double yMin = (double) yAxis.getRange().getLowerBound();
+			double yMax = (double) yAxis.getRange().getUpperBound();
+			double yTick = (double) yAxis.getTickUnit().getSize();
 
 			// Get all frames of my class
 			JInternalFrame frames[] = MZmineCore.getDesktop()

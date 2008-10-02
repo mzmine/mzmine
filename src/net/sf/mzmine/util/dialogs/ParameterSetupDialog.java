@@ -178,7 +178,7 @@ public class ParameterSetupDialog extends JDialog implements ActionListener {
 				comp = txtField;
 				break;
 			case INTEGER:
-			case FLOAT:
+			case DOUBLE:
 
 				JFormattedTextField fmtField = new JFormattedTextField(format);
 				fmtField.setColumns(TEXTFIELD_COLUMNS);
@@ -316,7 +316,7 @@ public class ParameterSetupDialog extends JDialog implements ActionListener {
 			strField.setText(strValue);
 			break;
 		case INTEGER:
-		case FLOAT:
+		case DOUBLE:
 			JFormattedTextField txtField = (JFormattedTextField) component;
 			txtField.setValue(value);
 			break;
@@ -369,12 +369,12 @@ public class ParameterSetupDialog extends JDialog implements ActionListener {
 							.intValue();
 					underConstuctionParameter.setParameterValue(p, newIntValue);
 					break;
-				case FLOAT:
+				case DOUBLE:
 					JFormattedTextField doubleField = (JFormattedTextField) parametersAndComponents
 							.get(p);
-					Float newFloatValue = ((Number) doubleField.getValue())
-							.floatValue();
-					underConstuctionParameter.setParameterValue(p, newFloatValue);
+					Double newDoubleValue = ((Number) doubleField.getValue())
+							.doubleValue();
+					underConstuctionParameter.setParameterValue(p, newDoubleValue);
 					break;
 				case RANGE:
 					JPanel panel = (JPanel) parametersAndComponents.get(p);
@@ -382,10 +382,10 @@ public class ParameterSetupDialog extends JDialog implements ActionListener {
 							.getComponent(0);
 					JFormattedTextField maxField = (JFormattedTextField) panel
 							.getComponent(2);
-					float minValue = ((Number) minField.getValue())
-							.floatValue();
-					float maxValue = ((Number) maxField.getValue())
-							.floatValue();
+					double minValue = ((Number) minField.getValue())
+							.doubleValue();
+					double maxValue = ((Number) maxField.getValue())
+							.doubleValue();
 					Range rangeValue = new Range(minValue, maxValue);
 					underConstuctionParameter.setParameterValue(p, rangeValue);
 					break;

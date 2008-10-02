@@ -311,8 +311,8 @@ public class SpectraVisualizerWindow extends JInternalFrame implements
 
 	}
 
-	public void setAxesRange(float xMin, float xMax, float xTickSize,
-			float yMin, float yMax, float yTickSize) {
+	public void setAxesRange(double xMin, double xMax, double xTickSize,
+			double yMin, double yMax, double yTickSize) {
 		NumberAxis xAxis = (NumberAxis) spectrumPlot.getXYPlot()
 				.getDomainAxis();
 		NumberAxis yAxis = (NumberAxis) spectrumPlot.getXYPlot().getRangeAxis();

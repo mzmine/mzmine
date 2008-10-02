@@ -46,13 +46,13 @@ public class TICVisualizerParameters extends SimpleParameterSet {
     public static final Parameter retentionTimeRange = new SimpleParameter(
             ParameterType.RANGE, "Retention time",
             "Retention time (X axis) range", null, new Range(0, 600),
-            new Float(0), null, MZmineCore.getRTFormat());
+            new Double(0), null, MZmineCore.getRTFormat());
 
     public static final Parameter mzRange = new SimpleParameter(
             ParameterType.RANGE,
             "m/z range",
             "Range of m/z values. If this range does not include the whole scan m/z range, the resulting visualizer is XIC type.",
-            "m/z", new Range(0, 1000), new Float(0), null,
+            "m/z", new Range(0, 1000), new Double(0), null,
             MZmineCore.getMZFormat());
 
     public TICVisualizerParameters() {

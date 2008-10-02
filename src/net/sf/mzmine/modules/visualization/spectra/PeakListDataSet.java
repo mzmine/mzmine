@@ -45,10 +45,10 @@ public class PeakListDataSet extends AbstractXYDataset implements IntervalXYData
     private PeakList peakList;
 
     private ChromatographicPeak displayedPeaks[];
-    private float mzValues[], intensityValues[], increase = -1.0f;
+    private double mzValues[], intensityValues[], increase = -1.0f;
     private boolean isotopeFlag=false,  predicted = false;
     private String label;
-    private float thickness = 0.001f;
+    private double thickness = 0.001f;
     private IsotopePatternStatus isotopeStatus;
     private String formula;
 
@@ -66,8 +66,8 @@ public class PeakListDataSet extends AbstractXYDataset implements IntervalXYData
         }
         displayedPeaks = candidates.toArray(new ChromatographicPeak[0]);
 
-        mzValues = new float[displayedPeaks.length];
-        intensityValues = new float[displayedPeaks.length];
+        mzValues = new double[displayedPeaks.length];
+        intensityValues = new double[displayedPeaks.length];
 
         for (int i = 0; i < displayedPeaks.length; i++) {
             mzValues[i] = displayedPeaks[i].getMzPeak(scanNumber).getMZ();
@@ -84,8 +84,8 @@ public class PeakListDataSet extends AbstractXYDataset implements IntervalXYData
     	if (isotopePattern.getIsotopePatternStatus() == IsotopePatternStatus.PREDICTED){
         	DataPoint[] dataPoints = isotopePattern.getDataPoints();
 
-            mzValues = new float[dataPoints.length];
-            intensityValues = new float[dataPoints.length];
+            mzValues = new double[dataPoints.length];
+            intensityValues = new double[dataPoints.length];
 
             for (int i = 0; i < dataPoints.length; i++) {
                 mzValues[i] = dataPoints[i].getMZ();
@@ -104,8 +104,8 @@ public class PeakListDataSet extends AbstractXYDataset implements IntervalXYData
     	else{
         	displayedPeaks = isotopePattern.getOriginalPeaks();
 
-            mzValues = new float[displayedPeaks.length];
-            intensityValues = new float[displayedPeaks.length];
+            mzValues = new double[displayedPeaks.length];
+            intensityValues = new double[displayedPeaks.length];
 
             for (int i = 0; i < displayedPeaks.length; i++) {
                 mzValues[i] = displayedPeaks[i].getMZ();
@@ -165,11 +165,11 @@ public class PeakListDataSet extends AbstractXYDataset implements IntervalXYData
     }
 
     public Number getEndX(int series, int item) {
-        return getX(series, item).floatValue() + thickness;
+        return getX(series, item).doubleValue() + thickness;
     }
 
     public double getEndXValue(int series, int item) {
-        return getX(series, item).floatValue() + thickness;
+        return getX(series, item).doubleValue() + thickness;
     }
 
     public Number getEndY(int series, int item) {
@@ -181,11 +181,11 @@ public class PeakListDataSet extends AbstractXYDataset implements IntervalXYData
     }
 
     public Number getStartX(int series, int item) {
-        return getX(series, item).floatValue() - thickness;
+        return getX(series, item).doubleValue() - thickness;
     }
 
     public double getStartXValue(int series, int item) {
-        return getX(series, item).floatValue() - thickness;
+        return getX(series, item).doubleValue() - thickness;
     }
 
     public Number getStartY(int series, int item) {
@@ -196,15 +196,15 @@ public class PeakListDataSet extends AbstractXYDataset implements IntervalXYData
         return getYValue(series, item);
     }
     
-    public void setThickness(float thickness){
+    public void setThickness(double thickness){
     	this.thickness = thickness;
     }
     
-    public void setIncreaseIntensity (float increase){
+    public void setIncreaseIntensity (double increase){
     	this.increase = increase;
     }
     
-    public float getIncrease(){
+    public double getIncrease(){
     	return increase;
     }
     
@@ -216,10 +216,10 @@ public class PeakListDataSet extends AbstractXYDataset implements IntervalXYData
     	return formula;
     }
     
-    public float getBiggestIntensity(float mass){
+    public double getBiggestIntensity(double mass){
     	
-    	TreeMap<Float,Integer> scores = new TreeMap<Float,Integer>();
-    	float value;
+    	TreeMap<Double,Integer> scores = new TreeMap<Double,Integer>();
+    	double value;
     	int itemCount = mzValues.length;
     	
     	for (int i=0; i<itemCount; i++){

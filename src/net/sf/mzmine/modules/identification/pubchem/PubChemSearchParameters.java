@@ -28,8 +28,8 @@ import net.sf.mzmine.main.MZmineCore;
 public class PubChemSearchParameters extends SimpleParameterSet {
 
     public static final Parameter rawMass = new SimpleParameter(
-            ParameterType.FLOAT, "Peak mass", "Peak mass value of raw data",
-            "(m/z)", null, new Float(0.0), null, MZmineCore.getMZFormat());
+            ParameterType.DOUBLE, "Peak mass", "Peak mass value of raw data",
+            "(m/z)", null, new Double(0.0), null, MZmineCore.getMZFormat());
 
     public static final Parameter charge = new SimpleParameter(
             ParameterType.INTEGER, "Charge",
@@ -42,9 +42,9 @@ public class PubChemSearchParameters extends SimpleParameterSet {
             TypeOfIonization.values());
 
     public static final Parameter mzToleranceField = new SimpleParameter(
-            ParameterType.FLOAT, "Mass tolerance",
+            ParameterType.DOUBLE, "Mass tolerance",
             "Tolerance of the mass value to search (+/- range)", "(m/z)",
-            new Float(0.0010), new Float(0.0001), new Float(1.0),
+            new Double(0.0010), new Double(0.0001), new Double(1.0),
             MZmineCore.getMZFormat());
 
     public static final Parameter numOfResults = new SimpleParameter(
@@ -53,8 +53,8 @@ public class PubChemSearchParameters extends SimpleParameterSet {
             new Integer(1), null, null);
 
     public static final Parameter neutralMass = new SimpleParameter(
-            ParameterType.FLOAT, "Neutral mass",
-            "Value to use in the search query", null, null, new Float(0.0),
+            ParameterType.DOUBLE, "Neutral mass",
+            "Value to use in the search query", null, null, new Double(0.0),
             null, MZmineCore.getMZFormat());
 
     public static final Parameter chargedMol = new SimpleParameter(

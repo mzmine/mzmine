@@ -53,7 +53,7 @@ public class CombinedXICComponent extends JComponent {
     private PeakListRow peaks;
 
     private Range rtRange;
-    private float maxIntensity;
+    private double maxIntensity;
 
     /**
      * @param peak Picked peak to plot
@@ -65,7 +65,7 @@ public class CombinedXICComponent extends JComponent {
     /**
      * @param peak Picked peak to plot
      */
-    public CombinedXICComponent(PeakListRow peaks, float maxIntensity) {
+    public CombinedXICComponent(PeakListRow peaks, double maxIntensity) {
 
         this.peaks = peaks;
 
@@ -156,14 +156,14 @@ public class CombinedXICComponent extends JComponent {
             // find one datapoint with maximum intensity in each scan
             for (int i = 0; i < scanNumbers.length; i++) {
 
-                float dataPointIntensity = 0;
+                double dataPointIntensity = 0;
                 DataPoint dataPoint = peak.getMzPeak(scanNumbers[i]);
 
                 if (dataPoint != null)
                     dataPointIntensity = dataPoint.getIntensity();
 
                 // get retention time (X value)
-                float retentionTime = dataFile.getScan(scanNumbers[i]).getRetentionTime();
+                double retentionTime = dataFile.getScan(scanNumbers[i]).getRetentionTime();
 
                 // calculate [X:Y] coordinates
                 xValues[i + 1] = (int) Math.floor((retentionTime - rtRange.getMin())

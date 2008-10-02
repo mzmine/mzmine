@@ -47,26 +47,26 @@ enum TwoDPaletteType {
      * @param intensity Intensity in range <0-1> inclusive
      * @return Color
      */
-    Color getColor(float intensity) {
+    Color getColor(double intensity) {
 
         switch (this) {
 
         case PALETTE_GRAY20:
             if (intensity > 0.2f)
                 return Color.black;
-            float gray20color = 1f - (intensity / 0.2f);
+            float gray20color = (float) (1 - (intensity / 0.2d));
             return new Color(gray20color, gray20color, gray20color);
 
         case PALETTE_GRAY5:
             if (intensity > 0.05f)
                 return Color.black;
-            float gray5color = 1f - (intensity / 0.05f);
+            float gray5color = (float) (1 - (intensity / 0.05d));
             return new Color(gray5color, gray5color, gray5color);
 
         case PALETTE_GRAY1:
             if (intensity > 0.01f)
                 return Color.black;
-            float gray1color = 1f - (intensity / 0.01f);
+            float gray1color = (float) (1 - (intensity / 0.01d));
             return new Color(gray1color, gray1color, gray1color);
 
         case PALETTE_RAINBOW:

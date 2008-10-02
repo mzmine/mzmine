@@ -30,10 +30,10 @@ import net.sf.mzmine.modules.peakpicking.threestep.massdetection.MassDetector;
 public class CentroidMassDetector implements MassDetector {
 
 	// parameter values
-	private float noiseLevel;
+	private double noiseLevel;
 
 	public CentroidMassDetector(CentroidMassDetectorParameters parameters) {
-		this.noiseLevel = (Float) parameters
+		this.noiseLevel = (Double) parameters
 				.getParameterValue(CentroidMassDetectorParameters.noiseLevel);
 	}
 

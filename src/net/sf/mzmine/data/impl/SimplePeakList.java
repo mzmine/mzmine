@@ -38,7 +38,7 @@ public class SimplePeakList implements PeakList {
     private String name;
     private RawDataFile[] dataFiles;
     private ArrayList<PeakListRow> peakListRows;
-    private float maxDataPointIntensity = 0;
+    private double maxDataPointIntensity = 0;
 
     public SimplePeakList(String name, RawDataFile dataFile) {
         this(name, new RawDataFile[] { dataFile });
@@ -125,13 +125,13 @@ public class SimplePeakList implements PeakList {
     }
 
     public PeakListRow[] getRowsInsideMZRange(Range mzRange) {
-        return getRowsInsideScanAndMZRange(new Range(Float.MIN_VALUE,
-                Float.MAX_VALUE), mzRange);
+        return getRowsInsideScanAndMZRange(new Range(Double.MIN_VALUE,
+                Double.MAX_VALUE), mzRange);
     }
 
     public PeakListRow[] getRowsInsideScanRange(Range rtRange) {
-        return getRowsInsideScanAndMZRange(rtRange, new Range(Float.MIN_VALUE,
-                Float.MAX_VALUE));
+        return getRowsInsideScanAndMZRange(rtRange, new Range(Double.MIN_VALUE,
+                Double.MAX_VALUE));
     }
 
     public PeakListRow[] getRowsInsideScanAndMZRange(Range rtRange,
@@ -169,20 +169,20 @@ public class SimplePeakList implements PeakList {
      */
     public ChromatographicPeak[] getPeaksInsideScanRange(RawDataFile file, Range rtRange) {
         return getPeaksInsideScanAndMZRange(file, rtRange, new Range(
-                Float.MIN_VALUE, Float.MAX_VALUE));
+                Double.MIN_VALUE, Double.MAX_VALUE));
     }
 
     /**
-     * @see net.sf.mzmine.data.PeakList#getPeaksInsideMZRange(float, float)
+     * @see net.sf.mzmine.data.PeakList#getPeaksInsideMZRange(double, double)
      */
     public ChromatographicPeak[] getPeaksInsideMZRange(RawDataFile file, Range mzRange) {
-        return getPeaksInsideScanAndMZRange(file, new Range(Float.MIN_VALUE,
-                Float.MAX_VALUE), mzRange);
+        return getPeaksInsideScanAndMZRange(file, new Range(Double.MIN_VALUE,
+                Double.MAX_VALUE), mzRange);
     }
 
     /**
-     * @see net.sf.mzmine.data.PeakList#getPeaksInsideScanAndMZRange(float,
-     *      float, float, float)
+     * @see net.sf.mzmine.data.PeakList#getPeaksInsideScanAndMZRange(double,
+     *      double, double, double)
      */
     public ChromatographicPeak[] getPeaksInsideScanAndMZRange(RawDataFile file, Range rtRange,
             Range mzRange) {
@@ -239,7 +239,7 @@ public class SimplePeakList implements PeakList {
     /**
      * @see net.sf.mzmine.data.PeakList#getDataPointMaxIntensity()
      */
-    public float getDataPointMaxIntensity() {
+    public double getDataPointMaxIntensity() {
         return maxDataPointIntensity;
     }
 

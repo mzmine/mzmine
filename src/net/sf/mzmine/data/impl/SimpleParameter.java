@@ -136,7 +136,7 @@ public class SimpleParameter implements Parameter {
                 }
             }
             break;
-        case FLOAT:
+        case DOUBLE:
             if ((defaultValue != null) && (!(defaultValue instanceof Number)))
                 throw new IllegalArgumentException("Invalid default value type");
             if ((minValue != null) && (!(minValue instanceof Number)))

@@ -42,13 +42,13 @@ public class PubChemSearchDialog extends ParameterSetupDialog implements
 
     private PubChemSearchParameters parameters;
     private static final Color BACKGROUND_COLOR = new Color(173, 216, 230);
-    private float rawMassValue;
+    private double rawMassValue;
 
     /**
      * Constructor
      */
     public PubChemSearchDialog(PubChemSearchParameters parameters,
-            float massValue) {
+            double massValue) {
 
         // Make dialog modal
         super("PubChem search setup dialog ", parameters);
@@ -109,8 +109,8 @@ public class PubChemSearchDialog extends ParameterSetupDialog implements
 
     private void setNeutralMassValue() {
         int chargeLevel = 1;
-        float ion = 0.0f;
-        float neutral = rawMassValue;
+        double ion = 0.0f;
+        double neutral = rawMassValue;
         int sign = 1;
 
         Component[] fields = pnlFields.getComponents();

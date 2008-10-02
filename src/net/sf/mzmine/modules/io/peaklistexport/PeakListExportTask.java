@@ -72,10 +72,10 @@ class PeakListExportTask implements Task {
         return errorMessage;
     }
 
-    public float getFinishedPercentage() {
+    public double getFinishedPercentage() {
         if (totalRows == 0)
             return 0.0f;
-        return (float) processedRows / (float) totalRows;
+        return (double) processedRows / (double) totalRows;
     }
 
     public TaskStatus getStatus() {

@@ -27,7 +27,7 @@ import net.sf.mzmine.data.MzPeak;
  */
 public class SimpleMzPeak implements MzPeak {
 
-    private float mz, intensity;
+    private double mz, intensity;
     private DataPoint[] rawDataPoints;
 
     /**
@@ -60,7 +60,7 @@ public class SimpleMzPeak implements MzPeak {
      * @param dataPoint
      * @param rawDataPoints
      */
-    public SimpleMzPeak(float mz, float intensity, DataPoint[] rawDataPoints) {
+    public SimpleMzPeak(double mz, double intensity, DataPoint[] rawDataPoints) {
         this.mz = mz;
         this.intensity = intensity;
         this.rawDataPoints = rawDataPoints;
@@ -69,7 +69,7 @@ public class SimpleMzPeak implements MzPeak {
     /**
      * Returns intensity value of this m/z peak
      */
-    public float getIntensity() {
+    public double getIntensity() {
         return intensity;
     }
 
@@ -77,21 +77,21 @@ public class SimpleMzPeak implements MzPeak {
      * Returns m/z value of the peak on this scan. The value depends of the used
      * mass detector.
      */
-    public float getMZ() {
+    public double getMZ() {
         return mz;
     }
 
     /**
      * Sets the m/z value of this m/z peak
      */
-    public void setMZ(float mz) {
+    public void setMZ(double mz) {
         this.mz = mz;
     }
 
     /**
      * Sets the m/z value of this m/z peak
      */
-    public void setIntensity(float intensity) {
+    public void setIntensity(double intensity) {
         this.intensity = intensity;
     }
     

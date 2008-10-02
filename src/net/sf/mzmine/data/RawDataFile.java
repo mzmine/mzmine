@@ -78,9 +78,9 @@ public interface RawDataFile {
 
     public Range getDataRTRange(int msLevel);
 
-    public float getDataMaxBasePeakIntensity(int msLevel);
+    public double getDataMaxBasePeakIntensity(int msLevel);
 
-    public float getDataMaxTotalIonCurrent(int msLevel);
+    public double getDataMaxTotalIonCurrent(int msLevel);
     
     /**
      * Close the file in case it is removed from the project

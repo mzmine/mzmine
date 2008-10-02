@@ -31,7 +31,7 @@ import net.sf.mzmine.util.Range;
 
 public class EMGPeakFillingModel implements PeakFillingModel {
 
-    private float xRight = -1, xLeft = -1;
+    private double xRight = -1, xLeft = -1;
 
     /**
      * This method return a peak with a the most closest EMG shape to the
@@ -43,7 +43,7 @@ public class EMGPeakFillingModel implements PeakFillingModel {
      * @return peak
      */
     public ChromatographicPeak fillingPeak(
-            ChromatographicPeak originalDetectedShape, float[] params) {
+            ChromatographicPeak originalDetectedShape, double[] params) {
 
         xRight = -1;
         xLeft = -1;
@@ -52,13 +52,13 @@ public class EMGPeakFillingModel implements PeakFillingModel {
 
         RawDataFile dataFile = originalDetectedShape.getDataFile();
         Range originalRange = originalDetectedShape.getRawDataPointsRTRange();
-        float rangeSize = originalRange.getSize();
-        float mass = originalDetectedShape.getMZ();
+        double rangeSize = originalRange.getSize();
+        double mass = originalDetectedShape.getMZ();
         Range extendedRange = new Range(originalRange.getMin() - rangeSize,
                 originalRange.getMax() + rangeSize);
         int[] listScans = dataFile.getScanNumbers(1, extendedRange);
 
-        float heightMax, RT, C, FWHM, factor;
+        double heightMax, RT, C, FWHM, factor;
 
         C = params[0]; // level of excess;
         factor = (1.0f - (Math.abs(C) / 10.0f));
@@ -83,27 +83,27 @@ public class EMGPeakFillingModel implements PeakFillingModel {
          */
 
         // Left side
-        float beginning = listMzPeaks[0].getScan().getRetentionTime();
-        float a = (RT - (beginning * factor));
+        double beginning = listMzPeaks[0].getScan().getRetentionTime();
+        double a = (RT - (beginning * factor));
 
         // Right side
-        float ending = listMzPeaks[listMzPeaks.length - 1].getScan().getRetentionTime();
-        float b = ((ending * factor) - RT);
+        double ending = listMzPeaks[listMzPeaks.length - 1].getScan().getRetentionTime();
+        double b = ((ending * factor) - RT);
 
-        float paramA = b / a;
-        float paramB = (1.76f * (float) Math.pow(paramA, 2))
+        double paramA = b / a;
+        double paramB = (1.76f * (double) Math.pow(paramA, 2))
                 - (11.15f * paramA) + 28.0f;
 
         // Calculates Width at base of the peak.
-        float paramC = (FWHM * 2.355f) / 4.71f;
+        double paramC = (FWHM * 2.355f) / 4.71f;
 
-        float Ap = paramC / paramB;
+        double Ap = paramC / paramB;
 
         if ((b > a) && (Ap > 0))
             Ap *= -1;
 
         // Calculate intensity of each point in the shape.
-        float t, shapeHeight;
+        double t, shapeHeight;
         Scan scan;
 
         ConnectedMzPeak newMzPeak = null;
@@ -148,10 +148,10 @@ public class EMGPeakFillingModel implements PeakFillingModel {
      * @param RT
      * @return FWHM
      */
-    private float calculateWidth(ConnectedMzPeak[] listMzPeaks, float height,
-            float RT) {
+    private double calculateWidth(ConnectedMzPeak[] listMzPeaks, double height,
+            double RT) {
 
-        float halfIntensity = height / 2, intensity = 0, intensityPlus = 0, retentionTime = 0;
+        double halfIntensity = height / 2, intensity = 0, intensityPlus = 0, retentionTime = 0;
         ConnectedMzPeak[] rangeDataPoints = listMzPeaks; // .clone();
 
         for (int i = 0; i < rangeDataPoints.length - 1; i++) {
@@ -170,17 +170,17 @@ public class EMGPeakFillingModel implements PeakFillingModel {
 
                     // First point with intensity just less than half of total
                     // intensity
-                    float leftY1 = intensity;
-                    float leftX1 = retentionTime;
+                    double leftY1 = intensity;
+                    double leftX1 = retentionTime;
 
                     // Second point with intensity just bigger than half of
                     // total
                     // intensity
-                    float leftY2 = intensityPlus;
-                    float leftX2 = rangeDataPoints[i + 1].getScan().getRetentionTime();
+                    double leftY2 = intensityPlus;
+                    double leftX2 = rangeDataPoints[i + 1].getScan().getRetentionTime();
 
                     // We calculate the slope with formula m = Y1 - Y2 / X1 - X2
-                    float mLeft = (leftY1 - leftY2) / (leftX1 - leftX2);
+                    double mLeft = (leftY1 - leftY2) / (leftX1 - leftX2);
 
                     // We calculate the desired point (at half intensity) with
                     // the
@@ -199,16 +199,16 @@ public class EMGPeakFillingModel implements PeakFillingModel {
 
                     // First point with intensity just bigger than half of total
                     // intensity
-                    float rightY1 = intensity;
-                    float rightX1 = retentionTime;
+                    double rightY1 = intensity;
+                    double rightX1 = retentionTime;
 
                     // Second point with intensity just less than half of total
                     // intensity
-                    float rightY2 = intensityPlus;
-                    float rightX2 = rangeDataPoints[i + 1].getScan().getRetentionTime();
+                    double rightY2 = intensityPlus;
+                    double rightX2 = rangeDataPoints[i + 1].getScan().getRetentionTime();
 
                     // We calculate the slope with formula m = Y1 - Y2 / X1 - X2
-                    float mRight = (rightY1 - rightY2) / (rightX1 - rightX2);
+                    double mRight = (rightY1 - rightY2) / (rightX1 - rightX2);
 
                     // We calculate the desired point (at half intensity) with
                     // the
@@ -222,28 +222,28 @@ public class EMGPeakFillingModel implements PeakFillingModel {
         }
 
         if ((xRight <= -1) && (xLeft > 0)) {
-            float beginning = rangeDataPoints[0].getScan().getRetentionTime();
-            float ending = rangeDataPoints[rangeDataPoints.length - 1].getScan().getRetentionTime();
+            double beginning = rangeDataPoints[0].getScan().getRetentionTime();
+            double ending = rangeDataPoints[rangeDataPoints.length - 1].getScan().getRetentionTime();
             xRight = RT + (ending - beginning) / 4.71f;
         }
 
         if ((xRight > 0) && (xLeft <= -1)) {
-            float beginning = rangeDataPoints[0].getScan().getRetentionTime();
-            float ending = rangeDataPoints[rangeDataPoints.length - 1].getScan().getRetentionTime();
+            double beginning = rangeDataPoints[0].getScan().getRetentionTime();
+            double ending = rangeDataPoints[rangeDataPoints.length - 1].getScan().getRetentionTime();
             xLeft = RT - (ending - beginning) / 4.71f;
         }
 
         boolean negative = (((xRight - xLeft)) < 0);
 
         if ((negative) || ((xRight == -1) && (xLeft == -1))) {
-            float beginning = rangeDataPoints[0].getScan().getRetentionTime();
-            float ending = rangeDataPoints[rangeDataPoints.length - 1].getScan().getRetentionTime();
+            double beginning = rangeDataPoints[0].getScan().getRetentionTime();
+            double ending = rangeDataPoints[rangeDataPoints.length - 1].getScan().getRetentionTime();
             xRight = RT + (ending - beginning) / 9.42f;
             xLeft = RT - (ending - beginning) / 9.42f;
         }
 
         // 
-        float FWHM = (xRight - xLeft) / 2.355f;
+        double FWHM = (xRight - xLeft) / 2.355f;
 
         return FWHM;
     }
@@ -264,9 +264,9 @@ public class EMGPeakFillingModel implements PeakFillingModel {
      * @param t
      * @return intensity
      */
-    private float calculateEMGIntensity(float heightMax, float RT, float Dp,
-            float Ap, float C, float t) {
-        float shapeHeight;
+    private double calculateEMGIntensity(double heightMax, double RT, double Dp,
+            double Ap, double C, double t) {
+        double shapeHeight;
 
         double partA1 = Math.pow((t - RT), 2) / (2 * Math.pow(Dp, 2));
         double partA = heightMax * Math.exp(-1 * partA1);
@@ -277,7 +277,7 @@ public class EMGPeakFillingModel implements PeakFillingModel {
                 * (Math.pow(partB1, 4) - (6 * Math.pow(partB1, 2)) + 3);
         double partB = 1 + partB2 + partB3;
 
-        shapeHeight = (float) (partA * partB);
+        shapeHeight = (double) (partA * partB);
 
         if (shapeHeight < 0)
             shapeHeight = 0;

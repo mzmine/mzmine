@@ -33,20 +33,20 @@ public class NoiseAmplitudePeakDetectorParameters extends SimpleParameterSet {
 			.getPercentInstance();
 
 	public static final Parameter minimumPeakHeight = new SimpleParameter(
-			ParameterType.FLOAT, "Min peak height",
-			"Minimum acceptable peak height", "absolute", new Float(100.0),
-			new Float(0.0), null, MZmineCore.getIntensityFormat());
+			ParameterType.DOUBLE, "Min peak height",
+			"Minimum acceptable peak height", "absolute", new Double(100.0),
+			new Double(0.0), null, MZmineCore.getIntensityFormat());
 
 	public static final Parameter minimumPeakDuration = new SimpleParameter(
-			ParameterType.FLOAT, "Min peak duration",
-			"Minimum acceptable peak duration", null, new Float(10.0),
-			new Float(0.0), null, MZmineCore.getRTFormat());
+			ParameterType.DOUBLE, "Min peak duration",
+			"Minimum acceptable peak duration", null, new Double(10.0),
+			new Double(0.0), null, MZmineCore.getRTFormat());
 
 	public static final Parameter amplitudeOfNoise = new SimpleParameter(
-			ParameterType.FLOAT,
+			ParameterType.DOUBLE,
 			"Amplitude of noise",
 			"This vaue corresponds to the amplitude of noise present all the time in the signal",
-			"absolute", new Float(1000.0), new Float(500.0), null, MZmineCore
+			"absolute", new Double(1000.0), new Double(500.0), null, MZmineCore
 					.getIntensityFormat());
 
 	public NoiseAmplitudePeakDetectorParameters() {

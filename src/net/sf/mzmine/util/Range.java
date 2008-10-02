@@ -20,11 +20,11 @@
 package net.sf.mzmine.util;
 
 /**
- * This class represents a range of floats.
+ * This class represents a range of doubles.
  */
 public class Range {
 
-    private float min, max;
+    private double min, max;
 
     /**
      * Create a range with only one value, representing both minimum and
@@ -32,7 +32,7 @@ public class Range {
      * 
      * @param minAndMax Range minimum and maximum
      */
-    public Range(float minAndMax) {
+    public Range(double minAndMax) {
         this(minAndMax, minAndMax);
     }
 
@@ -42,7 +42,7 @@ public class Range {
      * @param min Range minimum
      * @param max Range maximum
      */
-    public Range(float min, float max) {
+    public Range(double min, double max) {
         if (min > max) {
             throw (new IllegalArgumentException(
                     "Range minimum must be <= maximum"));
@@ -63,14 +63,14 @@ public class Range {
     /**
      * @return Range minimun
      */
-    public float getMin() {
+    public double getMin() {
         return min;
     }
 
     /**
      * @return Range maximum
      */
-    public float getMax() {
+    public double getMax() {
         return max;
     }
 
@@ -80,7 +80,7 @@ public class Range {
      * @param value Value to check
      * @return True if range contains this value
      */
-    public boolean contains(float value) {
+    public boolean contains(double value) {
         return ((min <= value) && (max >= value));
     }
 
@@ -91,7 +91,7 @@ public class Range {
      * @param checkMax Maximum of given range
      * @return True if this range contains given range
      */
-    public boolean containsRange(float checkMin, float checkMax) {
+    public boolean containsRange(double checkMin, double checkMax) {
         return ((checkMin >= min) && (checkMax <= max));
     }
 
@@ -112,7 +112,7 @@ public class Range {
      * @param checkMax Maximum of given range
      * @return True if this range lies within given range
      */
-    public boolean isWithin(float checkMin, float checkMax) {
+    public boolean isWithin(double checkMin, double checkMax) {
         return ((checkMin <= min) && (checkMax >= max));
     }
 
@@ -131,7 +131,7 @@ public class Range {
      * 
      * @param value Value to extends this range
      */
-    public void extendRange(float value) {
+    public void extendRange(double value) {
         if (min > value)
             min = value;
         if (max < value)
@@ -155,7 +155,7 @@ public class Range {
      * 
      * @return Size of this range
      */
-    public float getSize() {
+    public double getSize() {
         return (max - min);
     }
 
@@ -164,7 +164,7 @@ public class Range {
      * 
      * @return Average
      */
-    public float getAverage() {
+    public double getAverage() {
         return ((min + max) / 2);
     }
 
@@ -183,8 +183,8 @@ public class Range {
      * @return This range as string
      */
     public int compareTo( Range range2) {
-        Float value1 = this.getMax() - this.getMin();
-        Float value2 = range2.getMax() - range2.getMin();
+        Double value1 = this.getMax() - this.getMin();
+        Double value2 = range2.getMax() - range2.getMin();
     	
     	return value1.compareTo(value2);
     }

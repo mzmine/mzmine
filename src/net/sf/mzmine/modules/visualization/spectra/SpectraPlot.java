@@ -92,7 +92,7 @@ public class SpectraPlot extends ChartPanel {
 	private static final Color gridColor = Color.lightGray;
 
 	// data points shape
-	private static final Shape dataPointsShape = new Ellipse2D.Float(-2, -2, 5,
+	private static final Shape dataPointsShape = new Ellipse2D.Double(-2, -2, 5,
 			5);
 
 	// title font
@@ -101,7 +101,7 @@ public class SpectraPlot extends ChartPanel {
 			11);
 	private TextTitle chartTitle, chartSubTitle;
 
-	private static final float zoomCoefficient = 1.2f;
+	private static final double zoomCoefficient = 1.2f;
 
 	// datasets counter
 	private int numOfPeakDataSets = 1;
@@ -111,7 +111,7 @@ public class SpectraPlot extends ChartPanel {
 	private static final Font legendFont = new Font("SansSerif", Font.PLAIN, 11);
 
 	private boolean isotopeFlag;
-	private float thickness = 0.005f;
+	private double thickness = 0.005f;
 
 	XYBarRenderer centroidRenderer;
 	XYLineAndShapeRenderer continuousRenderer;
@@ -335,12 +335,12 @@ public class SpectraPlot extends ChartPanel {
 			// Get current axes range
 			NumberAxis xAxis = (NumberAxis) this.getXYPlot().getDomainAxis();
 			NumberAxis yAxis = (NumberAxis) this.getXYPlot().getRangeAxis();
-			float xMin = (float) xAxis.getRange().getLowerBound();
-			float xMax = (float) xAxis.getRange().getUpperBound();
-			float xTick = (float) xAxis.getTickUnit().getSize();
-			float yMin = (float) yAxis.getRange().getLowerBound();
-			float yMax = (float) yAxis.getRange().getUpperBound();
-			float yTick = (float) yAxis.getTickUnit().getSize();
+			double xMin = (double) xAxis.getRange().getLowerBound();
+			double xMax = (double) xAxis.getRange().getUpperBound();
+			double xTick = (double) xAxis.getTickUnit().getSize();
+			double yMin = (double) yAxis.getRange().getLowerBound();
+			double yMax = (double) yAxis.getRange().getUpperBound();
+			double yTick = (double) yAxis.getTickUnit().getSize();
 
 			// Get all frames of my class
 			JInternalFrame spectraFrames[] = MZmineCore.getDesktop()
@@ -516,7 +516,7 @@ public class SpectraPlot extends ChartPanel {
 		this.peakToolTipGenerator = peakToolTipGenerator;
 	}
 
-	public void setThicknessBar(float thickness) {
+	public void setThicknessBar(double thickness) {
 		this.thickness = thickness;
 		int dataSetCount = plot.getDatasetCount();
 		PeakListDataSet dataSet;
@@ -531,7 +531,7 @@ public class SpectraPlot extends ChartPanel {
 
 	}
 
-	public float getThicknessBar() {
+	public double getThicknessBar() {
 		return thickness;
 	}
 }

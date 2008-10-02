@@ -35,7 +35,7 @@ public class ScanUtils {
      * @param scan Scan to search
      * @param mzMin m/z range minimum
      * @param mzMax m/z range maximum
-     * @return float[2] containing base peak m/z and intensity
+     * @return double[2] containing base peak m/z and intensity
      */
     public static DataPoint findBasePeak(Scan scan, Range mzRange) {
 
@@ -73,17 +73,17 @@ public class ScanUtils {
      *            'y', min of 'y')
      * @return Values for each bin
      */
-    public static float[] binValues(float[] x, float[] y, Range binRange,
+    public static double[] binValues(double[] x, double[] y, Range binRange,
             int numberOfBins, boolean interpolate,
             BinningType binningType) {
 
-        Float[] binValues = new Float[numberOfBins];
-        float binWidth = binRange.getSize() / numberOfBins;
+        Double[] binValues = new Double[numberOfBins];
+        double binWidth = binRange.getSize() / numberOfBins;
 
-        float beforeX = Float.MIN_VALUE;
-        float beforeY = 0.0f;
-        float afterX = Float.MAX_VALUE;
-        float afterY = 0.0f;
+        double beforeX = Double.MIN_VALUE;
+        double beforeY = 0.0f;
+        double afterX = Double.MAX_VALUE;
+        double afterY = 0.0f;
 
         // Binnings
         for (int valueIndex = 0; valueIndex < x.length; valueIndex++) {
@@ -152,7 +152,7 @@ public class ScanUtils {
                 if (binValues[binIndex] == null) {
 
                     // Find exisiting left neighbour
-                    float leftNeighbourValue = beforeY;
+                    double leftNeighbourValue = beforeY;
                     int leftNeighbourBinIndex = (int) java.lang.Math.floor((beforeX - binRange.getMin())
                             / binWidth);
                     for (int anotherBinIndex = binIndex - 1; anotherBinIndex >= 0; anotherBinIndex--) {
@@ -164,7 +164,7 @@ public class ScanUtils {
                     }
 
                     // Find existing right neighbour
-                    float rightNeighbourValue = afterY;
+                    double rightNeighbourValue = afterY;
                     int rightNeighbourBinIndex = (binValues.length - 1)
                             + (int) java.lang.Math.ceil((afterX - binRange.getMax())
                                     / binWidth);
@@ -176,9 +176,9 @@ public class ScanUtils {
                         }
                     }
 
-                    float slope = (rightNeighbourValue - leftNeighbourValue)
+                    double slope = (rightNeighbourValue - leftNeighbourValue)
                             / (rightNeighbourBinIndex - leftNeighbourBinIndex);
-                    binValues[binIndex] = new Float(leftNeighbourValue + slope
+                    binValues[binIndex] = new Double(leftNeighbourValue + slope
                             * (binIndex - leftNeighbourBinIndex));
 
                 }
@@ -187,7 +187,7 @@ public class ScanUtils {
 
         }
 
-        float[] res = new float[binValues.length];
+        double[] res = new double[binValues.length];
         for (int binIndex = 0; binIndex < binValues.length; binIndex++) {
             res[binIndex] = binValues[binIndex] == null ? 0 : binValues[binIndex];
         }
@@ -201,8 +201,8 @@ public class ScanUtils {
      * 
      * @return index of best match, or -1 if no datapoint was found
      */
-    public static int findClosestDatapoint(float key, float mzValues[],
-            float mzTolerance) {
+    public static int findClosestDatapoint(double key, double mzValues[],
+            double mzTolerance) {
 
         int index = Arrays.binarySearch(mzValues, key);
 

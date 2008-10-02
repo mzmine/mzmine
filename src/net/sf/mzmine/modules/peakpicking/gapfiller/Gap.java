@@ -38,14 +38,14 @@ class Gap {
     private PeakListRow peakListRow;
     private RawDataFile rawDataFile;
 
-    private float searchMZ, searchRT;
+    private double searchMZ, searchRT;
     private Range mzRange, rtRange;
-    private float intTolerance;
+    private double intTolerance;
 
     // These store information about peak that is currently under construction
     private List<GapDataPoint> currentPeakDataPoints;
     private List<GapDataPoint> bestPeakDataPoints;
-    private float bestPeakHeight;
+    private double bestPeakHeight;
 
     /**
      * Constructor: Initializes an empty gap
@@ -53,8 +53,8 @@ class Gap {
      * @param mz M/Z coordinate of this empty gap
      * @param rt RT coordinate of this empty gap
      */
-    Gap(PeakListRow peakListRow, RawDataFile rawDataFile, float mz, float rt,
-            float intTolerance, float mzTolerance, float rtTolerance) {
+    Gap(PeakListRow peakListRow, RawDataFile rawDataFile, double mz, double rt,
+            double intTolerance, double mzTolerance, double rtTolerance) {
 
         this.peakListRow = peakListRow;
         this.rawDataFile = rawDataFile;
@@ -72,7 +72,7 @@ class Gap {
 
     void offerNextScan(Scan scan) {
 
-        float scanRT = scan.getRetentionTime();
+        double scanRT = scan.getRetentionTime();
 
         // If not yet inside the RT range
         if (scanRT < rtRange.getMin())
@@ -130,7 +130,7 @@ class Gap {
         // If we have best peak candidate, construct a SimplePeak
         if (bestPeakDataPoints != null) {
 
-            float area = 0f, height = 0f, mz = 0f, rt = 0f;
+            double area = 0f, height = 0f, mz = 0f, rt = 0f;
             int scanNumbers[] = new int[bestPeakDataPoints.size()];
             MzPeak mzPeaks[] = new MzPeak[bestPeakDataPoints.size()];
 
@@ -152,12 +152,12 @@ class Gap {
                     break;
 
                 // X axis interval length
-                float rtDifference = bestPeakDataPoints.get(i + 1).getRT()
+                double rtDifference = bestPeakDataPoints.get(i + 1).getRT()
                         - bestPeakDataPoints.get(i).getRT();
 
                 // intensity at the beginning and end of the interval
-                float intensityStart = bestPeakDataPoints.get(i).getIntensity();
-                float intensityEnd = bestPeakDataPoints.get(i + 1).getIntensity();
+                double intensityStart = bestPeakDataPoints.get(i).getIntensity();
+                double intensityEnd = bestPeakDataPoints.get(i + 1).getIntensity();
 
                 // calculate area of the interval
                 area += (rtDifference * (intensityStart + intensityEnd) / 2);
@@ -185,7 +185,7 @@ class Gap {
     private boolean checkRTShape(GapDataPoint dp) {
 
         if (dp.getRT() < rtRange.getMin()) {
-            float prevInt = currentPeakDataPoints.get(
+            double prevInt = currentPeakDataPoints.get(
                     currentPeakDataPoints.size() - 1).getIntensity();
             if (dp.getIntensity() > (prevInt * (1 - intTolerance))) {
                 return true;
@@ -197,7 +197,7 @@ class Gap {
         }
 
         if (dp.getRT() > rtRange.getMax()) {
-            float prevInt = currentPeakDataPoints.get(
+            double prevInt = currentPeakDataPoints.get(
                     currentPeakDataPoints.size() - 1).getIntensity();
             if (dp.getIntensity() < (prevInt * (1 + intTolerance))) {
                 return true;
@@ -212,7 +212,7 @@ class Gap {
 
         // 1) Check if currentpeak has a local maximum inside the search range
         int highestMaximumInd = -1;
-        float currentMaxHeight = 0f;
+        double currentMaxHeight = 0f;
         for (int i = 1; i < currentPeakDataPoints.size() - 1; i++) {
 
             if (rtRange.contains(currentPeakDataPoints.get(i).getRT())) {
@@ -238,10 +238,10 @@ class Gap {
         // 2) Find elution start and stop
 
         int startInd = highestMaximumInd;
-        float currentInt = currentPeakDataPoints.get(startInd).getIntensity();
+        double currentInt = currentPeakDataPoints.get(startInd).getIntensity();
         while (startInd > 0) {
 
-            float nextInt = currentPeakDataPoints.get(startInd - 1).getIntensity();
+            double nextInt = currentPeakDataPoints.get(startInd - 1).getIntensity();
             if (currentInt < (nextInt * (1 - intTolerance)))
                 break;
             startInd--;
@@ -251,7 +251,7 @@ class Gap {
         int stopInd = highestMaximumInd;
         currentInt = currentPeakDataPoints.get(stopInd).getIntensity();
         while (stopInd < (currentPeakDataPoints.size() - 1)) {
-            float nextInt = currentPeakDataPoints.get(stopInd + 1).getIntensity();
+            double nextInt = currentPeakDataPoints.get(stopInd + 1).getIntensity();
             if (nextInt > (currentInt * (1 + intTolerance)))
                 break;
             stopInd++;

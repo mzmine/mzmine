@@ -84,8 +84,8 @@ public class NetCDFReadTask implements Task {
     /**
      * @see net.sf.mzmine.taskcontrol.Task#getFinishedPercentage()
      */
-    public float getFinishedPercentage() {
-        return totalScans == 0 ? 0 : (float) parsedScans / totalScans;
+    public double getFinishedPercentage() {
+        return totalScans == 0 ? 0 : (double) parsedScans / totalScans;
     }
 
     /**
@@ -139,6 +139,7 @@ public class NetCDFReadTask implements Task {
             MZmineCore.getCurrentProject().addFile(finalRawDataFile);
             
         } catch (Throwable e) {
+        	//e.printStackTrace();
             logger.log(Level.SEVERE, "Could not open file "
                     + originalFile.getPath(), e);
             errorMessage = e.toString();
@@ -229,7 +230,7 @@ public class NetCDFReadTask implements Task {
         ind = 0;
         while (scanTimeIterator.hasNext()) {
             if (scanTimeVariable.getDataType().getPrimitiveClassType() == float.class) {
-                retentionTimes[ind] = ((Float)scanTimeIterator.next()).doubleValue();
+                retentionTimes[ind] = ((Double)scanTimeIterator.next()).floatValue();
             }
             if (scanTimeVariable.getDataType().getPrimitiveClassType() == double.class) {
                 retentionTimes[ind] = ((Double)scanTimeIterator.next()).doubleValue();
@@ -382,7 +383,7 @@ public class NetCDFReadTask implements Task {
         // An empty scan needs some special attention..
         if (scanLength[0]==0) {
             scanNum++;
-            return new SimpleScan(scanNum, 1, retentionTime.floatValue(), -1, 0, null, new DataPoint[0], false);
+            return new SimpleScan(scanNum, 1, retentionTime.doubleValue(), -1, 0, null, new DataPoint[0], false);
         }
 
         // Read mass and intensity values
@@ -398,34 +399,34 @@ public class NetCDFReadTask implements Task {
 
 
         // Translate values to plain Java arrays
-        float[] massValues = null;
+        double[] massValues = null;
 
-        if (massValueVariable.getDataType().getPrimitiveClassType() == float.class) {
-            massValues = (float[])massValueArray.copyTo1DJavaArray();
-        }
         if (massValueVariable.getDataType().getPrimitiveClassType() == double.class) {
-            double[] doubleMassValues = (double[])massValueArray.copyTo1DJavaArray();
-            massValues = new float[doubleMassValues.length];
-            for (int j=0; j<massValues.length; j++) { massValues[j] = (float)(doubleMassValues[j]); }
-            doubleMassValues = null;
+            massValues = (double[])massValueArray.copyTo1DJavaArray();
+        }
+        if (massValueVariable.getDataType().getPrimitiveClassType() == float.class) {
+            float[] floatMassValues = (float[])massValueArray.copyTo1DJavaArray();
+            massValues = new double[floatMassValues.length];
+            for (int j=0; j<massValues.length; j++) { massValues[j] = (double)(floatMassValues[j]); }
+            floatMassValues = null;
         }
 
-        float[] intensityValues = null;
+        double[] intensityValues = null;
 
         if (intensityValueVariable.getDataType().getPrimitiveClassType() == int.class) {
             int[] intIntensityValues = (int[])intensityValueArray.copyTo1DJavaArray();
-            intensityValues = new float[intIntensityValues.length];
-            for (int j=0; j<intensityValues.length; j++) { intensityValues[j] = (float)(intIntensityValues[j]); }
+            intensityValues = new double[intIntensityValues.length];
+            for (int j=0; j<intensityValues.length; j++) { intensityValues[j] = (double)(intIntensityValues[j]); }
             intIntensityValues = null;
         }
-        if (intensityValueVariable.getDataType().getPrimitiveClassType() == float.class) {
-            intensityValues = (float[])intensityValueArray.copyTo1DJavaArray();
-        }
         if (intensityValueVariable.getDataType().getPrimitiveClassType() == double.class) {
-            double[] doubleIntensityValues = (double[])intensityValueArray.copyTo1DJavaArray();
-            intensityValues = new float[doubleIntensityValues.length];
-            for (int j=0; j<intensityValues.length; j++) { intensityValues[j] = (float)(doubleIntensityValues[j]); }
-            doubleIntensityValues = null;
+            intensityValues = (double[])intensityValueArray.copyTo1DJavaArray();
+        }
+        if (intensityValueVariable.getDataType().getPrimitiveClassType() == float.class) {
+            float[] floatIntensityValues = (float[])intensityValueArray.copyTo1DJavaArray();
+            intensityValues = new double[floatIntensityValues.length];
+            for (int j=0; j<intensityValues.length; j++) { intensityValues[j] = (double)(floatIntensityValues[j]); }
+            floatIntensityValues = null;
         }
         
         DataPoint completeDataPoints[] = new DataPoint[massValues.length];
@@ -442,8 +443,8 @@ public class NetCDFReadTask implements Task {
 
 		int i, j;
 		for (i = 0, j = 0; i < completeDataPoints.length; i++) {
-			float intensity = completeDataPoints[i].getIntensity();
-			float mz = completeDataPoints[i].getMZ();
+			double intensity = completeDataPoints[i].getIntensity();
+			double mz = completeDataPoints[i].getMZ();
 			if (completeDataPoints[i].getIntensity() > 0) {
 				tempDataPoints[j] = new SimpleDataPoint(mz, intensity);
 				j++;
@@ -464,7 +465,7 @@ public class NetCDFReadTask implements Task {
 
 		scanNum++;
 		
-		SimpleScan buildingScan = new SimpleScan(scanNum, 1, retentionTime.floatValue(), -1, 0, null, new DataPoint[0], false);
+		SimpleScan buildingScan = new SimpleScan(scanNum, 1, retentionTime.doubleValue(), -1, 0, null, new DataPoint[0], false);
 		
 		if (i == j) {
 			buildingScan.setCentroided(true);
@@ -477,7 +478,7 @@ public class NetCDFReadTask implements Task {
 			buildingScan.setDataPoints(dataPoints);
 		}
 
-        //return new SimpleScan(scanNum, 1, retentionTime.floatValue(), -1, 0, null, dataPoints, false);
+        //return new SimpleScan(scanNum, 1, retentionTime.doubleValue(), -1, 0, null, dataPoints, false);
 		return buildingScan;
     }
 

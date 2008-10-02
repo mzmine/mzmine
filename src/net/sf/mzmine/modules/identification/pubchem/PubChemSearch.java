@@ -50,7 +50,7 @@ public class PubChemSearch implements BatchStep, ActionListener {
     
     private static PubChemSearch myInstance;
     
-    private float rawMass;
+    private double rawMass;
     
     private PeakListRow row;
 
@@ -113,7 +113,7 @@ public class PubChemSearch implements BatchStep, ActionListener {
         runModule(null, selectedPeakLists, parameters.clone(), null);
     }
 	
-    public void showPubChemSearchDialog(PeakList peakList, PeakListRow row, float rawMass) {
+    public void showPubChemSearchDialog(PeakList peakList, PeakListRow row, double rawMass) {
         
     	this.row = row;
 

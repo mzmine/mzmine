@@ -43,14 +43,14 @@ public class FragmentAlignerParameters extends SimpleParameterSet {
 			"Aligned peak list", null);
 
 	public static final Parameter MZTolerance = new SimpleParameter(
-			ParameterType.FLOAT, "m/z tolerance",
-			"Maximum allowed M/Z difference", "m/z", new Float(0.2), new Float(
+			ParameterType.DOUBLE, "m/z tolerance",
+			"Maximum allowed M/Z difference", "m/z", new Double(0.2), new Double(
 					0.0), null, MZmineCore.getMZFormat());
 
 	public static final Parameter MZWeight = new SimpleParameter(
-			ParameterType.FLOAT, "Weight for m/z",
-			"Score for perfectly matching m/z values", "", new Float(10.0),
-			new Float(0.0), null, NumberFormat.getNumberInstance());
+			ParameterType.DOUBLE, "Weight for m/z",
+			"Score for perfectly matching m/z values", "", new Double(10.0),
+			new Double(0.0), null, NumberFormat.getNumberInstance());
 
 	public static final Parameter RTToleranceType = new SimpleParameter(
 			ParameterType.STRING,
@@ -59,19 +59,19 @@ public class FragmentAlignerParameters extends SimpleParameterSet {
 			RTToleranceTypeAbsolute, RTToleranceTypePossibleValues);
 
 	public static final Parameter RTToleranceValueAbs = new SimpleParameter(
-			ParameterType.FLOAT, "Absolute RT tolerance",
-			"Maximum allowed absolute RT difference", null, new Float(15.0),
-			new Float(0.0), null, MZmineCore.getRTFormat());
+			ParameterType.DOUBLE, "Absolute RT tolerance",
+			"Maximum allowed absolute RT difference", null, new Double(15.0),
+			new Double(0.0), null, MZmineCore.getRTFormat());
 
 	public static final Parameter RTToleranceValuePercent = new SimpleParameter(
-			ParameterType.FLOAT, "Relative RT tolerance",
-			"Maximum allowed relative RT difference", "%", new Float(0.15),
-			new Float(0.0), null, percentFormat);
+			ParameterType.DOUBLE, "Relative RT tolerance",
+			"Maximum allowed relative RT difference", "%", new Double(0.15),
+			new Double(0.0), null, percentFormat);
 
 	public static final Parameter RTWeight = new SimpleParameter(
-			ParameterType.FLOAT, "Weight for RT",
-			"Score for perfectly matching RT values", "", new Float(10.0),
-			new Float(0.0), null, NumberFormat.getNumberInstance());
+			ParameterType.DOUBLE, "Weight for RT",
+			"Score for perfectly matching RT values", "", new Double(10.0),
+			new Double(0.0), null, NumberFormat.getNumberInstance());
 
 	public static final Parameter SameIDRequired = new SimpleParameter(
 			ParameterType.BOOLEAN,
@@ -80,9 +80,9 @@ public class FragmentAlignerParameters extends SimpleParameterSet {
 			new Boolean(false));
 
 	public static final Parameter SameIDWeight = new SimpleParameter(
-			ParameterType.FLOAT, "Weight for ID",
-			"Score for matching compound identities", "", new Float(0.0),
-			new Float(0.0), null, NumberFormat.getNumberInstance());
+			ParameterType.DOUBLE, "Weight for ID",
+			"Score for matching compound identities", "", new Double(0.0),
+			new Double(0.0), null, NumberFormat.getNumberInstance());
 
 	public static final Parameter MaxFragments = new SimpleParameter(
 			ParameterType.INTEGER, "Number of fragments",

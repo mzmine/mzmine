@@ -42,7 +42,7 @@ public class SimpleChromatographicPeak implements ChromatographicPeak {
     private MzPeak mzPeaksPerScan[];
 
     // M/Z, RT, Height and Area
-    private float mz, rt, height, area;
+    private double mz, rt, height, area;
 
     // Boundaries of the peak
     private Range rtRange, mzRange, intensityRange;
@@ -51,8 +51,8 @@ public class SimpleChromatographicPeak implements ChromatographicPeak {
      * Initializes a new peak using given values
      * 
      */
-    public SimpleChromatographicPeak(RawDataFile dataFile, float MZ, float RT, float height,
-            float area, int[] scanNumbers, MzPeak[] mzPeaksPerScan,
+    public SimpleChromatographicPeak(RawDataFile dataFile, double MZ, double RT, double height,
+            double area, int[] scanNumbers, MzPeak[] mzPeaksPerScan,
             PeakStatus peakStatus) {
 
         if (mzPeaksPerScan.length == 0) {
@@ -73,7 +73,7 @@ public class SimpleChromatographicPeak implements ChromatographicPeak {
 
         for (int ind = 0; ind < scanNumbers.length; ind++) {
 
-            float dataPointRT = dataFile.getScan(scanNumbers[ind]).getRetentionTime();
+            double dataPointRT = dataFile.getScan(scanNumbers[ind]).getRetentionTime();
 
             // Update RT range
             if (ind == 0) {
@@ -138,50 +138,50 @@ public class SimpleChromatographicPeak implements ChromatographicPeak {
     /**
      * This method returns M/Z value of the peak
      */
-    public float getMZ() {
+    public double getMZ() {
         return mz;
     }
 
-    public void setMZ(float mz) {
+    public void setMZ(double mz) {
         this.mz = mz;
     }
 
-    public void setRT(float rt) {
+    public void setRT(double rt) {
         this.rt = rt;
     }
 
     /**
      * This method returns retention time of the peak
      */
-    public float getRT() {
+    public double getRT() {
         return rt;
     }
 
     /**
      * This method returns the raw height of the peak
      */
-    public float getHeight() {
+    public double getHeight() {
         return height;
     }
 
     /**
      * @param height The height to set.
      */
-    public void setHeight(float height) {
+    public void setHeight(double height) {
         this.height = height;
     }
 
     /**
      * This method returns the raw area of the peak
      */
-    public float getArea() {
+    public double getArea() {
         return area;
     }
 
     /**
      * @param area The area to set.
      */
-    public void setArea(float area) {
+    public void setArea(double area) {
         this.area = area;
     }
 

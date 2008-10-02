@@ -69,10 +69,10 @@ class CustomDBSearchTask implements Task {
 	/**
 	 * @see net.sf.mzmine.taskcontrol.Task#getFinishedPercentage()
 	 */
-	public float getFinishedPercentage() {
+	public double getFinishedPercentage() {
 		if (databaseValues == null)
 			return 0;
-		return ((float) finishedLines) / databaseValues.length;
+		return ((double) finishedLines) / databaseValues.length;
 	}
 
 	/**

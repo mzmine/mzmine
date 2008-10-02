@@ -42,7 +42,7 @@ public interface Scan extends MzDataTable{
      * 
      * @return Retention time of this scan in seconds
      */
-    public float getRetentionTime();
+    public double getRetentionTime();
 
     /**
      * Returns the m/z range of this Scan. Never returns null.
@@ -63,7 +63,7 @@ public interface Scan extends MzDataTable{
      * Returns the sum of intensities of all data points.
      * @return Total ion current
      */
-    public float getTIC();
+    public double getTIC();
 
     /**
      * Returns data points of this scan sorted in m/z order.
@@ -108,7 +108,7 @@ public interface Scan extends MzDataTable{
      * 
      * @return Precursor m/z or 0 if this is not MSn scan
      */
-    public float getPrecursorMZ();
+    public double getPrecursorMZ();
 
     /**
      * 

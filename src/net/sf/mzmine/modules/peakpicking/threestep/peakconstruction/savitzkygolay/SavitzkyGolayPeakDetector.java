@@ -47,12 +47,12 @@ public class SavitzkyGolayPeakDetector implements PeakBuilder {
 
 	private Logger logger = Logger.getLogger(this.getClass().getName());
 
-	private float minimumPeakHeight, minimumPeakDuration, 
+	private double minimumPeakHeight, minimumPeakDuration, 
 			derivativeThresholdLevel, excessLevel;
 	private boolean fillingPeaks;
 	private PeakFillingModel peakModel;
 
-	private float maxValueDerivative = 0.0f;
+	private double maxValueDerivative = 0.0f;
 
 	/**
 	 * Constructor of Savitzky-Golay Peak Builder
@@ -62,16 +62,16 @@ public class SavitzkyGolayPeakDetector implements PeakBuilder {
 	public SavitzkyGolayPeakDetector(
 
 	SavitzkyGolayPeakDetectorParameters parameters) {
-		minimumPeakDuration = (Float) parameters
+		minimumPeakDuration = (Double) parameters
 				.getParameterValue(SavitzkyGolayPeakDetectorParameters.minimumPeakDuration);
-		minimumPeakHeight = (Float) parameters
+		minimumPeakHeight = (Double) parameters
 				.getParameterValue(SavitzkyGolayPeakDetectorParameters.minimumPeakHeight);
-		derivativeThresholdLevel = (Float) parameters
+		derivativeThresholdLevel = (Double) parameters
 				.getParameterValue(SavitzkyGolayPeakDetectorParameters.derivativeThresholdLevel);
 
 		fillingPeaks = (Boolean) parameters
 				.getParameterValue(SavitzkyGolayPeakDetectorParameters.fillingPeaks);
-		excessLevel = (Float) parameters
+		excessLevel = (Double) parameters
 		.getParameterValue(SavitzkyGolayPeakDetectorParameters.excessLevel);
 
 		String peakModelname = (String) parameters
@@ -112,13 +112,13 @@ public class SavitzkyGolayPeakDetector implements PeakBuilder {
 
 
 		maxValueDerivative = 0.0f;
-		float maxIntensity = 0;
+		double maxIntensity = 0;
 
 		Vector<ChromatographicPeak> detectedPeaks = new Vector<ChromatographicPeak>();
 
 		int[] scanNumbers = dataFile.getScanNumbers(1);
-		float[] chromatoIntensities = new float[scanNumbers.length];
-		float avgChromatoIntensities = 0;
+		double[] chromatoIntensities = new double[scanNumbers.length];
+		double avgChromatoIntensities = 0;
 		Arrays.sort(scanNumbers);
 
 		for (int i = 0; i < scanNumbers.length; i++) {
@@ -142,22 +142,22 @@ public class SavitzkyGolayPeakDetector implements PeakBuilder {
 		if ((avgChromatoIntensities) > (maxIntensity * 0.5f))
 			return detectedPeaks.toArray(new ChromatographicPeak[0]);
 
-		float[] chromato2ndDerivative = SGDerivative.calculateDerivative(chromatoIntensities, false, 12);
-		float noiseThreshold = calcDerivativeThreshold(chromato2ndDerivative);
+		double[] chromato2ndDerivative = SGDerivative.calculateDerivative(chromatoIntensities, false, 12);
+		double noiseThreshold = calcDerivativeThreshold(chromato2ndDerivative);
 
 		ChromatographicPeak[] chromatographicPeaks = SGPeaksSearch(dataFile,
 				chromatogram, scanNumbers, chromato2ndDerivative, noiseThreshold);
 
 		if (chromatographicPeaks.length != 0) {
 			for (ChromatographicPeak p : chromatographicPeaks) {
-				float pLength = p.getRawDataPointsRTRange().getSize();
-				float pHeight = p.getHeight();
+				double pLength = p.getRawDataPointsRTRange().getSize();
+				double pHeight = p.getHeight();
 				if ((pLength >= minimumPeakDuration)
 						&& (pHeight >= minimumPeakHeight)) {
 
 					// Apply peak filling method
 					if (fillingPeaks) {
-						ChromatographicPeak shapeFilledPeak = peakModel.fillingPeak(p, new float[]{excessLevel});
+						ChromatographicPeak shapeFilledPeak = peakModel.fillingPeak(p, new double[]{excessLevel});
 						pLength = shapeFilledPeak.getRawDataPointsRTRange().getSize();
 						pHeight = shapeFilledPeak.getHeight();
 						if ((pLength >= minimumPeakDuration)
@@ -191,7 +191,7 @@ public class SavitzkyGolayPeakDetector implements PeakBuilder {
 	 */
 	private ChromatographicPeak[] SGPeaksSearch(RawDataFile dataFile,
 			Chromatogram chromatogram, int[] scanNumbers,
-			float[] derivativeOfIntensities, float noiseThreshold) {
+			double[] derivativeOfIntensities, double noiseThreshold) {
 
 		boolean activeFirstPeak = false, activeSecondPeak = false, passThreshold = false;
 		int crossZero = 0;
@@ -199,12 +199,12 @@ public class SavitzkyGolayPeakDetector implements PeakBuilder {
 		Vector<ConnectedPeak> newPeaks = new Vector<ConnectedPeak>();
 		Vector<ConnectedMzPeak> newMzPeaks = new Vector<ConnectedMzPeak>();
 		Vector<ConnectedMzPeak> newOverlappedMzPeaks = new Vector<ConnectedMzPeak>();
-		float maxDerivativeIntensity = 0;
+		double maxDerivativeIntensity = 0;
 		int indexMaxPoint = 0;
 
 		for (int i = 1; i < derivativeOfIntensities.length; i++) {
 			
-			float absolute = derivativeOfIntensities[i]; //Math.abs(derivativeOfIntensities[i]);
+			double absolute = derivativeOfIntensities[i]; //Math.abs(derivativeOfIntensities[i]);
 			if (( absolute < maxDerivativeIntensity) && (crossZero == 2)) {
 				maxDerivativeIntensity = absolute;
 				indexMaxPoint = i;
@@ -294,11 +294,11 @@ public class SavitzkyGolayPeakDetector implements PeakBuilder {
 					.getConnectedMzPeak(scanNumbers[indexMaxPoint]);
 					
 					if (mzValue != null) {
-						float height = mzValue.getMzPeak()
+						double height = mzValue.getMzPeak()
 								.getIntensity();
 						SGPeak.setHeight(height);
 
-						float rt = mzValue.getScan()
+						double rt = mzValue.getScan()
 								.getRetentionTime();
 						SGPeak.setRT(rt);
 					}
@@ -346,11 +346,11 @@ public class SavitzkyGolayPeakDetector implements PeakBuilder {
 	 * @param chromatoIntensities
 	 * @return noiseThresholdLevel
 	 */
-	private float calcDerivativeThreshold(float[] derivativeIntensities) {
+	private double calcDerivativeThreshold(double[] derivativeIntensities) {
 
-		float[] intensities = new float[derivativeIntensities.length];
+		double[] intensities = new double[derivativeIntensities.length];
 		for (int i = 0; i < derivativeIntensities.length; i++) {
-			intensities[i] = (float) Math.abs(derivativeIntensities[i]);
+			intensities[i] = (double) Math.abs(derivativeIntensities[i]);
 		}
 
 		return MathUtils.calcQuantile(intensities, derivativeThresholdLevel);
@@ -367,7 +367,7 @@ public class SavitzkyGolayPeakDetector implements PeakBuilder {
 		ConnectedMzPeak[] listMzPeaks = ((ConnectedPeak) shapeFilledPeak)
 		.getAllMzPeaks();
 		int scanNumber = 0;
-		float filledIntensity = 0, originalIntensity = 0, restedIntensity;
+		double filledIntensity = 0, originalIntensity = 0, restedIntensity;
 		ConnectedMzPeak mzValue = null;
 		
 		for (ConnectedMzPeak mzPeak: listMzPeaks){

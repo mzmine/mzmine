@@ -32,16 +32,16 @@ public class DuplicateFilterParameters extends SimpleParameterSet {
             "Suffix to be added to peak list name", null, "Duplicate peaks filtered", null);
 
     public static final Parameter mzDifferenceMax = new SimpleParameter(
-            ParameterType.FLOAT, "M/Z tolerance",
+            ParameterType.DOUBLE, "M/Z tolerance",
             "Maximum m/z difference between duplicate peaks",
-            "m/z", new Float(0.05), new Float(0.0), null,
+            "m/z", new Double(0.05), new Double(0.0), null,
             MZmineCore.getMZFormat());
 
     public static final Parameter rtDifferenceMax = new SimpleParameter(
-            ParameterType.FLOAT,
+            ParameterType.DOUBLE,
             "RT difference maximum",
             "Maximum retention time difference between duplicate peaks",
-            "seconds", new Float(5.0), new Float(0.0), null,
+            "seconds", new Double(5.0), new Double(0.0), null,
             MZmineCore.getRTFormat());
 
     public static final Parameter requireSameIdentification = new SimpleParameter(

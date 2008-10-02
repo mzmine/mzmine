@@ -40,7 +40,7 @@ public class WaveletMassDetector implements MassDetector {
 
     // Parameter value
     private int scaleLevel;
-    private float waveletWindow, noiseLevel;
+    private double waveletWindow, noiseLevel;
     private TreeSet<SimpleMzPeak> mzPeaks;
 
     /**
@@ -52,9 +52,9 @@ public class WaveletMassDetector implements MassDetector {
     private static final int WAVELET_ESR = 5;
 
     public WaveletMassDetector(WaveletMassDetectorParameters parameters) {
-        noiseLevel = (Float) parameters.getParameterValue(WaveletMassDetectorParameters.noiseLevel);
+        noiseLevel = (Double) parameters.getParameterValue(WaveletMassDetectorParameters.noiseLevel);
         scaleLevel = (Integer) parameters.getParameterValue(WaveletMassDetectorParameters.scaleLevel);
-        waveletWindow = (Float) parameters.getParameterValue(WaveletMassDetectorParameters.waveletWindow);
+        waveletWindow = (Double) parameters.getParameterValue(WaveletMassDetectorParameters.waveletWindow);
     }
 
     public SimpleMzPeak[] getMassValues(Scan scan) {
@@ -80,7 +80,7 @@ public class WaveletMassDetector implements MassDetector {
         double wstep = ((WAVELET_ESR - WAVELET_ESL) / NPOINTS);
         double[] W = new double[(int) NPOINTS];
 
-        float waveletIndex = WAVELET_ESL;
+        double waveletIndex = WAVELET_ESL;
         for (int j = 0; j < NPOINTS; j++) {
             // Pre calculate the values of the wavelet
             W[j] = cwtMEXHATreal(waveletIndex, waveletWindow, 0.0);
@@ -120,7 +120,7 @@ public class WaveletMassDetector implements MassDetector {
             if (intensity < 0)
                 intensity = 0;
             cwtDataPoints[dx] = new SimpleDataPoint(dataPoints[dx].getMZ(),
-                    (float) intensity);
+                    (double) intensity);
         }
 
         return cwtDataPoints;
@@ -198,9 +198,9 @@ public class WaveletMassDetector implements MassDetector {
 
     }
 
-    private float calcAproxIntensity(Vector<DataPoint> rawDataPoints) {
+    private double calcAproxIntensity(Vector<DataPoint> rawDataPoints) {
 
-        float aproxIntensity = 0;
+        double aproxIntensity = 0;
 
         for (DataPoint d : rawDataPoints) {
             if (d.getIntensity() > aproxIntensity)

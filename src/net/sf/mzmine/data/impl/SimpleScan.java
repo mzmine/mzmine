@@ -35,12 +35,12 @@ public class SimpleScan implements Scan {
 	private int parentScan;
 	private int fragmentScans[];
 	private DataPoint dataPoints[];
-	private float precursorMZ;
+	private double precursorMZ;
 	private int precursorCharge;
-	private float retentionTime;
+	private double retentionTime;
 	private Range mzRange;
 	private DataPoint basePeak;
-	private float totalIonCurrent;
+	private double totalIonCurrent;
 	private boolean centroided;
 
 	/**
@@ -56,8 +56,8 @@ public class SimpleScan implements Scan {
 	/**
 	 * Constructor for creating scan with given data
 	 */
-	public SimpleScan(int scanNumber, int msLevel, float retentionTime,
-			int parentScan, float precursorMZ, int fragmentScans[],
+	public SimpleScan(int scanNumber, int msLevel, double retentionTime,
+			int parentScan, double precursorMZ, int fragmentScans[],
 			DataPoint[] dataPoints, boolean centroided) {
 
 		// check assumptions about proper scan data
@@ -111,7 +111,7 @@ public class SimpleScan implements Scan {
 	/**
 	 * @return Returns scan datapoints over certain intensity
 	 */
-	public DataPoint[] getDataPointsOverIntensity(float intensity) {
+	public DataPoint[] getDataPointsOverIntensity(double intensity) {
 		int index;
 		Vector<DataPoint> points = new Vector<DataPoint>();
 		
@@ -201,7 +201,7 @@ public class SimpleScan implements Scan {
 	/**
 	 * @see net.sf.mzmine.data.Scan#getPrecursorMZ()
 	 */
-	public float getPrecursorMZ() {
+	public double getPrecursorMZ() {
 		return precursorMZ;
 	}
 
@@ -209,7 +209,7 @@ public class SimpleScan implements Scan {
 	 * @param precursorMZ
 	 *            The precursorMZ to set.
 	 */
-	public void setPrecursorMZ(float precursorMZ) {
+	public void setPrecursorMZ(double precursorMZ) {
 		this.precursorMZ = precursorMZ;
 	}
 
@@ -231,7 +231,7 @@ public class SimpleScan implements Scan {
 	/**
 	 * @see net.sf.mzmine.data.Scan#getScanAcquisitionTime()
 	 */
-	public float getRetentionTime() {
+	public double getRetentionTime() {
 		return retentionTime;
 	}
 
@@ -239,7 +239,7 @@ public class SimpleScan implements Scan {
 	 * @param retentionTime
 	 *            The retentionTime to set.
 	 */
-	public void setRetentionTime(float retentionTime) {
+	public void setRetentionTime(double retentionTime) {
 		this.retentionTime = retentionTime;
 	}
 
@@ -302,7 +302,7 @@ public class SimpleScan implements Scan {
 		this.centroided = centroided;
 	}
 
-	public float getTIC() {
+	public double getTIC() {
 		return totalIonCurrent;
 	}
 

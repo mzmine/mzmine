@@ -27,11 +27,11 @@ import net.sf.mzmine.data.DataPoint;
 class GapDataPoint implements DataPoint {
 
     private int scanNumber;
-    private float mz, rt, intensity;
+    private double mz, rt, intensity;
 
     /**
      */
-    GapDataPoint(int scanNumber, float mz, float rt, float intensity) {
+    GapDataPoint(int scanNumber, double mz, double rt, double intensity) {
 
         this.scanNumber = scanNumber;
         this.mz = mz;
@@ -44,15 +44,15 @@ class GapDataPoint implements DataPoint {
         return scanNumber;
     }
 
-    public float getIntensity() {
+    public double getIntensity() {
         return intensity;
     }
 
-    public float getMZ() {
+    public double getMZ() {
         return mz;
     }
 
-    public float getRT() {
+    public double getRT() {
         return rt;
     }
 

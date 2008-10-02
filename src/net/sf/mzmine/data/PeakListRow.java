@@ -68,12 +68,12 @@ public interface PeakListRow {
     /**
      * Returns average M/Z for peaks on this row
      */
-    public float getAverageMZ();
+    public double getAverageMZ();
 
     /**
      * Returns average RT for peaks on this row
      */
-    public float getAverageRT();
+    public double getAverageRT();
 
     /**
      * Returns comment for this row
@@ -125,6 +125,6 @@ public interface PeakListRow {
      * 
      * @return Maximum intensity
      */
-    public float getDataPointMaxIntensity();
+    public double getDataPointMaxIntensity();
 
 }

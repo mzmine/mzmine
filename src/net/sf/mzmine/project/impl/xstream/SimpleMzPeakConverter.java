@@ -42,15 +42,15 @@ public class SimpleMzPeakConverter implements Converter {
 
 		StringBuilder value = new StringBuilder();
         
-        value.append(Float.toString(mzPeak.getMZ()));
+        value.append(Double.toString(mzPeak.getMZ()));
         value.append(":");
-        value.append(Float.toString(mzPeak.getIntensity()));
+        value.append(Double.toString(mzPeak.getIntensity()));
         
         for (DataPoint dp: mzPeak.getRawDataPoints()) {
             value.append(";");
-            value.append(Float.toString(dp.getMZ()));
+            value.append(Double.toString(dp.getMZ()));
             value.append(":");
-            value.append(Float.toString(dp.getIntensity()));
+            value.append(Double.toString(dp.getIntensity()));
         }
         
 		writer.setValue(value.toString());
@@ -63,14 +63,14 @@ public class SimpleMzPeakConverter implements Converter {
 		String value[] = reader.getValue().split(";");
 		String mzValue[] = value[0].split(":");
         
-        float mz = Float.valueOf(mzValue[0]);
-        float intensity = Float.valueOf(mzValue[1]);;
+        double mz = Double.valueOf(mzValue[0]);
+        double intensity = Double.valueOf(mzValue[1]);;
         
         DataPoint dataPoints[] = new DataPoint[value.length - 1];
         for (int i = 1; i < value.length; i++) {
             String dpMzValue[] = value[i].split(":");
-            float dpMz = Float.valueOf(dpMzValue[0]);
-            float dpIntensity = Float.valueOf(dpMzValue[1]);;
+            double dpMz = Double.valueOf(dpMzValue[0]);
+            double dpIntensity = Double.valueOf(dpMzValue[1]);;
             dataPoints[i - 1] = new SimpleDataPoint(dpMz, dpIntensity);
         }
         

@@ -29,30 +29,30 @@ import net.sf.mzmine.main.MZmineCore;
  */
 public class SimpleDataPoint implements DataPoint {
 
-	private float mz, intensity;
+	private double mz, intensity;
 
 	/**
 	 * @param mz
 	 * @param intensity
 	 */
-	public SimpleDataPoint(float mz, float intensity) {
+	public SimpleDataPoint(double mz, double intensity) {
 		this.mz = mz;
 		this.intensity = intensity;
 	}
 
-	public float getIntensity() {
+	public double getIntensity() {
 		return intensity;
 	}
 
-	public float getMZ() {
+	public double getMZ() {
 		return mz;
 	}
 
-	public void setIntensity(float intensity) {
+	public void setIntensity(double intensity) {
 		this.intensity = intensity;
 	}
 
-	public void setMZ(float mz) {
+	public void setMZ(double mz) {
 		this.mz = mz;
 	}
 

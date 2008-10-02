@@ -33,19 +33,19 @@ public class BaselinePeakDetectorParameters extends SimpleParameterSet {
 			.getPercentInstance();
 
 	public static final Parameter minimumPeakHeight = new SimpleParameter(
-			ParameterType.FLOAT, "Min peak height",
-			"Minimum acceptable peak height", "absolute", new Float(100.0),
-			new Float(0.0), null, MZmineCore.getIntensityFormat());
+			ParameterType.DOUBLE, "Min peak height",
+			"Minimum acceptable peak height", "absolute", new Double(100.0),
+			new Double(0.0), null, MZmineCore.getIntensityFormat());
 
 	public static final Parameter minimumPeakDuration = new SimpleParameter(
-			ParameterType.FLOAT, "Min peak duration",
-			"Minimum acceptable peak duration", null, new Float(10.0),
-			new Float(0.0), null, MZmineCore.getRTFormat());
+			ParameterType.DOUBLE, "Min peak duration",
+			"Minimum acceptable peak duration", null, new Double(10.0),
+			new Double(0.0), null, MZmineCore.getRTFormat());
 	
 	public static final Parameter baselineLevel = new SimpleParameter(
-			ParameterType.FLOAT, "Baseline level",
-			"All data points over this level are considered to form a peak", "absolute", new Float(100.0),
-			new Float(0.0), null, MZmineCore.getIntensityFormat());
+			ParameterType.DOUBLE, "Baseline level",
+			"All data points over this level are considered to form a peak", "absolute", new Double(100.0),
+			new Double(0.0), null, MZmineCore.getIntensityFormat());
 
 	public BaselinePeakDetectorParameters() {
 		super(new Parameter[] { minimumPeakHeight, minimumPeakDuration, baselineLevel });

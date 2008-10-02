@@ -40,7 +40,7 @@ public interface Task extends Runnable {
 
     public String getTaskDescription();
 
-    public float getFinishedPercentage();
+    public double getFinishedPercentage();
 
     public TaskStatus getStatus();
 

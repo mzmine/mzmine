@@ -59,8 +59,8 @@ public class RawDataRetrievalTask implements Task {
     /**
      * @see net.sf.mzmine.taskcontrol.Task#getFinishedPercentage()
      */
-    public float getFinishedPercentage() {
-        return (float) retrievedScans / scanNumbers.length;
+    public double getFinishedPercentage() {
+        return (double) retrievedScans / scanNumbers.length;
     }
 
     /**

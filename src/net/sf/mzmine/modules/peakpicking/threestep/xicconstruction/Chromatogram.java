@@ -38,10 +38,10 @@ public class Chromatogram {
 
     // These elements are used to construct the Peak.
     private TreeMap<Integer, ConnectedMzPeak> datapointsMap;
-    private Vector<Float> datapointsMZs;
+    private Vector<Double> datapointsMZs;
 
     // Raw data file, M/Z, RT, Height and Area
-    private float mz, height;
+    private double mz, height;
 
     // This is used for constructing the peak
     private boolean growing = false, previousConnectedMzPeaks = false;
@@ -57,7 +57,7 @@ public class Chromatogram {
         this.dataFile = dataFile;
 
         datapointsMap = new TreeMap<Integer, ConnectedMzPeak>();
-        datapointsMZs = new Vector<Float>();
+        datapointsMZs = new Vector<Double>();
 
         // We map this MzPeak with the scan number as a key due construction
         // peak purpose.
@@ -95,7 +95,7 @@ public class Chromatogram {
         datapointsMZs.add(mzValue.getMzPeak().getMZ());
 
         mz = MathUtils.calcQuantile(
-                CollectionUtils.toFloatArray(datapointsMZs), 0.5f);
+                CollectionUtils.toDoubleArray(datapointsMZs), 0.5f);
 
         // Add MzPeak
         datapointsMap.put(mzValue.getScan().getScanNumber(), mzValue);
@@ -106,14 +106,14 @@ public class Chromatogram {
     /**
      * This method returns M/Z value of the peak
      */
-    public float getMZ() {
+    public double getMZ() {
         return mz;
     }
 
     /**
      * This method returns M/Z value of the peak
      */
-    public float getIntensity() {
+    public double getIntensity() {
         return height;
     }
 
@@ -139,7 +139,7 @@ public class Chromatogram {
                     lastConnectedMzPeaks[0].getScan().getRetentionTime());
 
             if (lastConnectedMzPeaks.length > 1) {
-                float currentRT;
+                double currentRT;
                 for (int i = 1; i < lastConnectedMzPeaks.length; i++) {
                     currentRT = lastConnectedMzPeaks[i].getScan().getRetentionTime();
                     lastRTRange.extendRange(currentRT);
@@ -182,7 +182,7 @@ public class Chromatogram {
      * 
      * @return Array MzPeak
      */
-    public float getLastMz() {
+    public double getLastMz() {
         return datapointsMap.get(datapointsMap.lastKey()).getMzPeak().getMZ();
     }
 

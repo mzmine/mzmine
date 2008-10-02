@@ -40,12 +40,12 @@ public class NeutralLossParameters extends SimpleParameterSet {
     public static final Parameter retentionTimeRange = new SimpleParameter(
             ParameterType.RANGE, "Retention time",
             "Retention time (X axis) range", null, new Range(0, 600),
-            new Float(0), null, MZmineCore.getRTFormat());
+            new Double(0), null, MZmineCore.getRTFormat());
 
     public static final Parameter mzRange = new SimpleParameter(
             ParameterType.RANGE, "Precursor m/z",
             "Range of precursor m/z values", "m/z", new Range(0, 1000),
-            new Float(0), null, MZmineCore.getMZFormat());
+            new Double(0), null, MZmineCore.getMZFormat());
 
     public static final Parameter numOfFragments = new SimpleParameter(
             ParameterType.INTEGER, "Fragments",

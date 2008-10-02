@@ -34,10 +34,10 @@ import net.sf.mzmine.modules.peakpicking.threestep.massdetection.MassDetector;
 public class LocalMaxMassDetector implements MassDetector {
 
     // Parameter value
-    private float noiseLevel;
+    private double noiseLevel;
 
     public LocalMaxMassDetector(LocalMaxMassDetectorParameters parameters) {
-        noiseLevel = (Float) parameters.getParameterValue(LocalMaxMassDetectorParameters.noiseLevel);
+        noiseLevel = (Double) parameters.getParameterValue(LocalMaxMassDetectorParameters.noiseLevel);
     }
 
     public MzPeak[] getMassValues(Scan scan) {

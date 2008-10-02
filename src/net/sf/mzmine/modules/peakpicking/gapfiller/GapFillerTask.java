@@ -41,9 +41,9 @@ class GapFillerTask implements Task {
     private PeakList peakList;
 
     private String suffix;
-    private float intTolerance, mzTolerance;
+    private double intTolerance, mzTolerance;
     private boolean rtToleranceUseAbs;
-    private float rtToleranceValueAbs, rtToleranceValuePercent;
+    private double rtToleranceValueAbs, rtToleranceValuePercent;
 
     private int processedScans, totalScans;
 
@@ -52,12 +52,12 @@ class GapFillerTask implements Task {
         this.peakList = peakList;
 
         suffix = (String) parameters.getParameterValue(GapFillerParameters.suffix);
-        intTolerance = (Float) parameters.getParameterValue(GapFillerParameters.intTolerance);
-        mzTolerance = (Float) parameters.getParameterValue(GapFillerParameters.MZTolerance);
+        intTolerance = (Double) parameters.getParameterValue(GapFillerParameters.intTolerance);
+        mzTolerance = (Double) parameters.getParameterValue(GapFillerParameters.MZTolerance);
         if (parameters.getParameterValue(GapFillerParameters.RTToleranceType) == GapFillerParameters.RTToleranceTypeAbsolute)
             rtToleranceUseAbs = true;
-        rtToleranceValueAbs = (Float) parameters.getParameterValue(GapFillerParameters.RTToleranceValueAbs);
-        rtToleranceValuePercent = (Float) parameters.getParameterValue(GapFillerParameters.RTToleranceValuePercent);
+        rtToleranceValueAbs = (Double) parameters.getParameterValue(GapFillerParameters.RTToleranceValueAbs);
+        rtToleranceValuePercent = (Double) parameters.getParameterValue(GapFillerParameters.RTToleranceValuePercent);
     }
 
     public void run() {
@@ -107,9 +107,9 @@ class GapFillerTask implements Task {
 
                     // Create a new gap
 
-                    float mz = sourceRow.getAverageMZ();
-                    float rt = sourceRow.getAverageRT();
-                    float rtTolerance;
+                    double mz = sourceRow.getAverageMZ();
+                    double rt = sourceRow.getAverageRT();
+                    double rtTolerance;
                     if (rtToleranceUseAbs)
                         rtTolerance = rtToleranceValueAbs;
                     else
@@ -176,10 +176,10 @@ class GapFillerTask implements Task {
         return errorMessage;
     }
 
-    public float getFinishedPercentage() {
+    public double getFinishedPercentage() {
         if (totalScans == 0)
             return 0;
-        return (float) processedScans / (float) totalScans;
+        return (double) processedScans / (double) totalScans;
 
     }
 

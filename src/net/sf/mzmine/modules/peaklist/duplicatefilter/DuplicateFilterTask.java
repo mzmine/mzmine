@@ -47,7 +47,7 @@ class DuplicateFilterTask implements Task {
 
     // parameter values
     private String suffix;
-    private float mzDifferenceMax, rtDifferenceMax;
+    private double mzDifferenceMax, rtDifferenceMax;
     private boolean requireSameIdentification, removeOriginal;
 
     /**
@@ -60,8 +60,8 @@ class DuplicateFilterTask implements Task {
 
         // Get parameter values for easier use
         suffix = (String) parameters.getParameterValue(DuplicateFilterParameters.suffix);
-        mzDifferenceMax = (Float) parameters.getParameterValue(DuplicateFilterParameters.mzDifferenceMax);
-        rtDifferenceMax = (Float) parameters.getParameterValue(DuplicateFilterParameters.rtDifferenceMax);
+        mzDifferenceMax = (Double) parameters.getParameterValue(DuplicateFilterParameters.mzDifferenceMax);
+        rtDifferenceMax = (Double) parameters.getParameterValue(DuplicateFilterParameters.rtDifferenceMax);
         requireSameIdentification = (Boolean) parameters.getParameterValue(DuplicateFilterParameters.requireSameIdentification);
         removeOriginal = (Boolean) parameters.getParameterValue(DuplicateFilterParameters.autoRemove);
 
@@ -77,10 +77,10 @@ class DuplicateFilterTask implements Task {
     /**
      * @see net.sf.mzmine.taskcontrol.Task#getFinishedPercentage()
      */
-    public float getFinishedPercentage() {
+    public double getFinishedPercentage() {
         if (totalRows == 0)
             return 0.0f;
-        return (float) processedRows / (float) totalRows;
+        return (double) processedRows / (double) totalRows;
     }
 
     /**
@@ -168,16 +168,16 @@ class DuplicateFilterTask implements Task {
       				
         		// Compare m/z
         		boolean sameMZ = false;
-        		float firstMZ = peaklistRows[firstRowIndex].getAverageMZ();
-        		float secondMZ = peaklistRows[secondRowIndex].getAverageMZ();
+        		double firstMZ = peaklistRows[firstRowIndex].getAverageMZ();
+        		double secondMZ = peaklistRows[secondRowIndex].getAverageMZ();
         		if (Math.abs(firstMZ-secondMZ) < mzDifferenceMax) {
         			sameMZ = true;
         		}
         		
         		// Compare rt
         		boolean sameRT = false;
-        		float firstRT = peaklistRows[firstRowIndex].getAverageRT();
-        		float secondRT = peaklistRows[secondRowIndex].getAverageRT();
+        		double firstRT = peaklistRows[firstRowIndex].getAverageRT();
+        		double secondRT = peaklistRows[secondRowIndex].getAverageRT();
         		if (Math.abs(firstRT-secondRT) < rtDifferenceMax) {
         			sameRT = true;
         		}

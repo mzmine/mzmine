@@ -33,7 +33,7 @@ public interface MzDataTable {
      * 
      * @return Data points (m/z and intensity pairs) of this MzDataTable
      */
-    //public DataPoint[] getDataPointsOverIntensity(float intensity);
+    //public DataPoint[] getDataPointsOverIntensity(double intensity);
 
     /**
      * 

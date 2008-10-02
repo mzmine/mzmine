@@ -16,15 +16,15 @@ import org.jfree.data.xy.XYDataset;
 
 public class TICPlotRenderer extends XYLineAndShapeRenderer {
 
-	private float transparency = 1.0f;
+	private double transparency = 1.0f;
 
 	public TICPlotRenderer() {
 		super(true, false);
 	}
 	
-	private AlphaComposite makeComposite(float alpha) {
+	private AlphaComposite makeComposite(double alpha) {
 		int type = AlphaComposite.SRC_OVER;
-		return (AlphaComposite.getInstance(type, alpha));
+		return (AlphaComposite.getInstance(type, (float) alpha));
 	}
 
 	public void drawItem(Graphics2D g2, XYItemRendererState state,

@@ -44,16 +44,16 @@ public class NoiseAmplitudePeakDetector implements PeakBuilder {
 
 	// private Logger logger = Logger.getLogger(this.getClass().getName());
 
-	private float amplitudeOfNoise;
-	private float minimumPeakHeight, minimumPeakDuration;
+	private double amplitudeOfNoise;
+	private double minimumPeakHeight, minimumPeakDuration;
 
 	public NoiseAmplitudePeakDetector(NoiseAmplitudePeakDetectorParameters parameters) {
 
-		minimumPeakDuration = (Float) parameters
+		minimumPeakDuration = (Double) parameters
 				.getParameterValue(NoiseAmplitudePeakDetectorParameters.minimumPeakDuration);
-		minimumPeakHeight = (Float) parameters
+		minimumPeakHeight = (Double) parameters
 				.getParameterValue(NoiseAmplitudePeakDetectorParameters.minimumPeakHeight);
-		amplitudeOfNoise = (Float) parameters
+		amplitudeOfNoise = (Double) parameters
 				.getParameterValue(NoiseAmplitudePeakDetectorParameters.amplitudeOfNoise);
 
 	}
@@ -67,12 +67,12 @@ public class NoiseAmplitudePeakDetector implements PeakBuilder {
 
 		// This treeMap stores the score of frequency of intensity ranges
 		TreeMap<Integer, Integer> binsFrequency = new TreeMap<Integer, Integer>();
-		float maxIntensity = 0;
+		double maxIntensity = 0;
 		
 		Vector<ChromatographicPeak> detectedPeaks = new Vector<ChromatographicPeak>();
 
 		int[] scanNumbers = dataFile.getScanNumbers(1);
-		float[] chromatoIntensities = new float[scanNumbers.length];
+		double[] chromatoIntensities = new double[scanNumbers.length];
 
 		for (int i = 0; i < scanNumbers.length; i++) {
 
@@ -89,15 +89,15 @@ public class NoiseAmplitudePeakDetector implements PeakBuilder {
 
 		}
 
-		float noiseThreshold = getNoiseThreshold(binsFrequency, maxIntensity);
+		double noiseThreshold = getNoiseThreshold(binsFrequency, maxIntensity);
 
 		ChromatographicPeak[] chromatographicPeaks = noiseThresholdPeaksSearch(chromatogram,
 				dataFile, scanNumbers, noiseThreshold);
 
 		if (chromatographicPeaks.length != 0) {
 			for (ChromatographicPeak p : chromatographicPeaks) {
-				float pLength = p.getRawDataPointsRTRange().getSize();
-				float pHeight = p.getHeight();
+				double pLength = p.getRawDataPointsRTRange().getSize();
+				double pHeight = p.getHeight();
 				if ((pLength >= minimumPeakDuration)
 						&& (pHeight >= minimumPeakHeight)) {
 					detectedPeaks.add(p);
@@ -157,7 +157,7 @@ public class NoiseAmplitudePeakDetector implements PeakBuilder {
 	 * @return Peak[]
 	 */
 	private ChromatographicPeak[] noiseThresholdPeaksSearch(Chromatogram chromatogram,
-			RawDataFile dataFile, int[] scanNumbers, float noiseThreshold) {
+			RawDataFile dataFile, int[] scanNumbers, double noiseThreshold) {
 
 		Vector<ConnectedPeak> newChromatoPeaks = new Vector<ConnectedPeak>();
 		Vector<ConnectedMzPeak> newChromatoMzPeaks = new Vector<ConnectedMzPeak>();
@@ -226,7 +226,7 @@ public class NoiseAmplitudePeakDetector implements PeakBuilder {
 	 * @param intensity
 	 * @param binsFrequency
 	 */
-	public void addNewIntensity(float intensity,
+	public void addNewIntensity(double intensity,
 			TreeMap<Integer, Integer> binsFrequency) {
 		int frequencyValue = 1;
 		int numberOfBin;
@@ -252,8 +252,8 @@ public class NoiseAmplitudePeakDetector implements PeakBuilder {
 	 * @param maxIntensity
 	 * @return
 	 */
-	public float getNoiseThreshold(TreeMap<Integer, Integer> binsFrequency,
-			float maxIntensity) {
+	public double getNoiseThreshold(TreeMap<Integer, Integer> binsFrequency,
+			double maxIntensity) {
 
 		int numberOfBin = 0;
 		int maxFrequency = 0;
@@ -271,8 +271,8 @@ public class NoiseAmplitudePeakDetector implements PeakBuilder {
 			}
 		}
 
-		float noiseThreshold = (numberOfBin + 2) * amplitudeOfNoise;
-		float percentage = noiseThreshold / maxIntensity;
+		double noiseThreshold = (numberOfBin + 2) * amplitudeOfNoise;
+		double percentage = noiseThreshold / maxIntensity;
 		if (percentage > 0.3)
 			noiseThreshold = amplitudeOfNoise;
 

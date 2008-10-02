@@ -33,9 +33,9 @@ public class WaveletMassDetectorParameters extends SimpleParameterSet {
 	.getPercentInstance();
 	
 	public static final Parameter noiseLevel = new SimpleParameter(
-			ParameterType.FLOAT, "Noise level",
+			ParameterType.DOUBLE, "Noise level",
 			"Intensities less than this value are interpreted as noise",
-			"absolute", new Float(10.0), new Float(0.0), null, MZmineCore
+			"absolute", new Double(10.0), new Double(0.0), null, MZmineCore
 					.getIntensityFormat());
 	
 	public static final Parameter scaleLevel = new SimpleParameter(
@@ -45,10 +45,10 @@ public class WaveletMassDetectorParameters extends SimpleParameterSet {
 			"absolute", new Integer(6), new Integer(1), null, null);
 
 	public static final Parameter waveletWindow = new SimpleParameter(
-			ParameterType.FLOAT,
+			ParameterType.DOUBLE,
 			"Wavelet window size (%)",
 			"Size in % of wavelet window to apply in m/z peak detection",
-			"%", new Float(0.5), new Float(0.01), null, percentFormat);
+			"%", new Double(0.5), new Double(0.01), null, percentFormat);
 
 	public WaveletMassDetectorParameters() {
 		super(new Parameter[] { noiseLevel, scaleLevel, waveletWindow });

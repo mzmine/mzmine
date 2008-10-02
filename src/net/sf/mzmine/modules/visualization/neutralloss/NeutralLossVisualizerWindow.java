@@ -161,8 +161,8 @@ public class NeutralLossVisualizerWindow extends JInternalFrame implements
      * 
      */
     public NeutralLossDataPoint getCursorPosition() {
-        float xValue = (float) neutralLossPlot.getXYPlot().getDomainCrosshairValue();
-        float yValue = (float) neutralLossPlot.getXYPlot().getRangeCrosshairValue();
+        double xValue = (double) neutralLossPlot.getXYPlot().getDomainCrosshairValue();
+        double yValue = (double) neutralLossPlot.getXYPlot().getRangeCrosshairValue();
 
         NeutralLossDataPoint point = dataset.getDataPoint(xValue, yValue);
 

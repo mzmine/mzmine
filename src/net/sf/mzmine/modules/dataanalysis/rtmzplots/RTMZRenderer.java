@@ -30,7 +30,7 @@ import org.jfree.data.xy.AbstractXYZDataset;
 
 public class RTMZRenderer extends XYLineAndShapeRenderer {
 
-	private static final Shape dataPointsShape = new Ellipse2D.Float(-3, -3, 7, 7);
+	private static final Shape dataPointsShape = new Ellipse2D.Double(-3, -3, 7, 7);
 	
 	private AbstractXYZDataset dataset;
 	private PaintScale paintScale;

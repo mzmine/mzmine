@@ -59,7 +59,7 @@ class ConcatenateFragmentsTask implements Task, TaskListener {
 		return errorMessage;
 	}
 
-	public float getFinishedPercentage() {
+	public double getFinishedPercentage() {
 		return 0.0f;
 	}
 

@@ -41,7 +41,7 @@ class RowsFilterTask implements Task {
     // Method parameters
     private int minPresent, minIsotopePatternSize;
     private String suffix;
-    private float minMZ, maxMZ, minRT, maxRT;
+    private double minMZ, maxMZ, minRT, maxRT;
     private boolean identified, removeOriginal;
 
     public RowsFilterTask(PeakList peakList, RowsFilterParameters parameters) {
@@ -51,10 +51,10 @@ class RowsFilterTask implements Task {
         suffix = (String) parameters.getParameterValue(RowsFilterParameters.suffix);
         minPresent = (Integer) parameters.getParameterValue(RowsFilterParameters.minPeaks);
         minIsotopePatternSize = (Integer) parameters.getParameterValue(RowsFilterParameters.minIsotopePatternSize);
-        minMZ = (Float) parameters.getParameterValue(RowsFilterParameters.minMZ);
-        maxMZ = (Float) parameters.getParameterValue(RowsFilterParameters.maxMZ);
-        minRT = (Float) parameters.getParameterValue(RowsFilterParameters.minRT);
-        maxRT = (Float) parameters.getParameterValue(RowsFilterParameters.maxRT);
+        minMZ = (Double) parameters.getParameterValue(RowsFilterParameters.minMZ);
+        maxMZ = (Double) parameters.getParameterValue(RowsFilterParameters.maxMZ);
+        minRT = (Double) parameters.getParameterValue(RowsFilterParameters.minRT);
+        maxRT = (Double) parameters.getParameterValue(RowsFilterParameters.maxRT);
         identified = (Boolean) parameters.getParameterValue(RowsFilterParameters.identified);
         removeOriginal = (Boolean) parameters.getParameterValue(RowsFilterParameters.autoRemove);
 
@@ -68,10 +68,10 @@ class RowsFilterTask implements Task {
         return errorMessage;
     }
 
-    public float getFinishedPercentage() {
+    public double getFinishedPercentage() {
         if (totalRows == 0)
             return 0.0f;
-        return (float) processedRows / (float) totalRows;
+        return (double) processedRows / (double) totalRows;
     }
 
     public TaskStatus getStatus() {

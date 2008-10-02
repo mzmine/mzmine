@@ -45,20 +45,20 @@ public class RTNormalizerParameters extends SimpleParameterSet {
             "Suffix to be added to peak list name", null, "normalized", null);
 
     public static final Parameter MZTolerance = new SimpleParameter(
-            ParameterType.FLOAT, "M/Z tolerance",
-            "Maximum allowed M/Z difference", "m/z", new Float(0.2), new Float(
+            ParameterType.DOUBLE, "M/Z tolerance",
+            "Maximum allowed M/Z difference", "m/z", new Double(0.2), new Double(
                     0.0), null, MZmineCore.getMZFormat());
 
     public static final Parameter RTTolerance = new SimpleParameter(
-            ParameterType.FLOAT, "Retention time tolerance",
-            "Maximum allowed retention time difference", null, new Float(60.0),
-            new Float(0.0), null, MZmineCore.getRTFormat());
+            ParameterType.DOUBLE, "Retention time tolerance",
+            "Maximum allowed retention time difference", null, new Double(60.0),
+            new Double(0.0), null, MZmineCore.getRTFormat());
 
     public static final Parameter minHeight = new SimpleParameter(
-            ParameterType.FLOAT,
+            ParameterType.DOUBLE,
             "Minimum standard intensity",
             "Minimum height of a peak to be selected as normalization standard",
-            null, new Float(1000.0), new Float(0.0), null,
+            null, new Double(1000.0), new Double(0.0), null,
             MZmineCore.getIntensityFormat());
 
     public static final Parameter autoRemove = new SimpleParameter(

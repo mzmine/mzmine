@@ -26,8 +26,8 @@ import net.sf.mzmine.modules.peakpicking.threestep.xicconstruction.Chromatogram;
 public class ChromatogramsSortedByMz implements Comparator<Chromatogram>{
 
 	public int compare(Chromatogram ch1, Chromatogram ch2) {
-        Float mz1 = ch1.getIntensity();
-        Float mz2 = ch2.getIntensity();
+        Double mz1 = ch1.getIntensity();
+        Double mz2 = ch2.getIntensity();
         return mz2.compareTo(mz1); 
 	}
 	

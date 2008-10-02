@@ -39,14 +39,14 @@ public class BaselinePeakDetector implements PeakBuilder {
 
 	// private Logger logger = Logger.getLogger(this.getClass().getName());
 
-	private float minimumPeakHeight, minimumPeakDuration, baselineLevel;
+	private double minimumPeakHeight, minimumPeakDuration, baselineLevel;
 
 	public BaselinePeakDetector(BaselinePeakDetectorParameters parameters) {
-		minimumPeakHeight = (Float) parameters
+		minimumPeakHeight = (Double) parameters
 				.getParameterValue(BaselinePeakDetectorParameters.minimumPeakHeight);
-		minimumPeakDuration = (Float) parameters
+		minimumPeakDuration = (Double) parameters
 				.getParameterValue(BaselinePeakDetectorParameters.minimumPeakDuration);
-		baselineLevel = (Float) parameters
+		baselineLevel = (Double) parameters
 				.getParameterValue(BaselinePeakDetectorParameters.baselineLevel);
 	}
 
@@ -78,8 +78,8 @@ public class BaselinePeakDetector implements PeakBuilder {
 					}
 					regionOfMzPeaks.clear();
 
-					float pLength = peak.getRawDataPointsRTRange().getSize();
-					float pHeight = peak.getHeight();
+					double pLength = peak.getRawDataPointsRTRange().getSize();
+					double pHeight = peak.getHeight();
 					if ((pLength >= minimumPeakDuration)
 							&& (pHeight >= minimumPeakHeight)) {
 						underDetectionPeaks.add(peak);
@@ -96,8 +96,8 @@ public class BaselinePeakDetector implements PeakBuilder {
 					peak.addMzPeak(regionOfMzPeaks.get(i));
 				}
 
-				float pLength = peak.getRawDataPointsRTRange().getSize();
-				float pHeight = peak.getHeight();
+				double pLength = peak.getRawDataPointsRTRange().getSize();
+				double pHeight = peak.getHeight();
 				if ((pLength >= minimumPeakDuration)
 						&& (pHeight >= minimumPeakHeight)) {
 					underDetectionPeaks.add(peak);

@@ -85,25 +85,25 @@ public class ProjectSavingTask implements Task {
     /**
      * @see net.sf.mzmine.taskcontrol.Task#getFinishedPercentage()
      */
-    public float getFinishedPercentage() {
+    public double getFinishedPercentage() {
         switch (currentStage) {
         case 3:
             if (description.getTotalNumOfScanFileBytes() == 0)
                 return 0;
             else
-                return (float) writtenBytes
+                return (double) writtenBytes
                         / description.getTotalNumOfScanFileBytes();
         case 4:
             if (description.getNumOfScans() == 0)
                 return 0;
             else
-                return (float) xstream.getNumOfSerializedScans()
+                return (double) xstream.getNumOfSerializedScans()
                         / description.getNumOfScans();
         case 5:
             if (description.getNumOfPeakListRows() == 0)
                 return 0;
             else
-                return (float) xstream.getNumOfSerializedRows()
+                return (double) xstream.getNumOfSerializedRows()
                         / description.getNumOfPeakListRows();
         case 6:
             return 1f;

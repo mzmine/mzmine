@@ -42,15 +42,15 @@ public class IsotopeGrouperParameters extends SimpleParameterSet {
             "Suffix to be added to peak list name", null, "deisotoped", null);
 
     public static final Parameter mzTolerance = new SimpleParameter(
-            ParameterType.FLOAT, "M/Z tolerance",
+            ParameterType.DOUBLE, "M/Z tolerance",
             "Maximum distance in M/Z from the expected location of a peak",
-            "m/z", new Float(0.05), new Float(0.0), null,
+            "m/z", new Double(0.05), new Double(0.0), null,
             MZmineCore.getMZFormat());
 
     public static final Parameter rtTolerance = new SimpleParameter(
-            ParameterType.FLOAT, "RT tolerance",
+            ParameterType.DOUBLE, "RT tolerance",
             "Maximum distance in RT from the expected location of a peak",
-            null, new Float(5.0), new Float(0.0), null,
+            null, new Double(5.0), new Double(0.0), null,
             MZmineCore.getRTFormat());
 
     public static final Parameter monotonicShape = new SimpleParameter(

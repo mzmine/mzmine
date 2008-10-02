@@ -120,7 +120,7 @@ class ThreeDDisplay extends DisplayImplJ3D {
     // axes
     private AxisScale retentionTimeAxis, mzAxis, intensityAxis;
 
-    private float maxIntensity;
+    private double maxIntensity;
 
     private boolean peaksShown;
 
@@ -313,8 +313,8 @@ class ThreeDDisplay extends DisplayImplJ3D {
     /**
      * Set data points
      */
-    void setData(float intensityValues[][], Set domainSet, float rtMin,
-            float rtMax, float mzMin, float mzMax, float maxIntensity) {
+    void setData(double intensityValues[][], Set domainSet, double rtMin,
+            double rtMax, double mzMin, double mzMax, double maxIntensity) {
 
         try {
 
@@ -334,10 +334,10 @@ class ThreeDDisplay extends DisplayImplJ3D {
             // value, because the peaks are usually sharp
             colorMap.setRange(0, maxIntensity / 5);
 
-            float mzRange = mzMax - mzMin;
-            float rtRange = rtMax - rtMin;
+            double mzRange = mzMax - mzMin;
+            double rtRange = rtMax - rtMin;
 
-            float ticks = Math.round(rtRange / X_AXIS_TICKS);
+            double ticks = Math.round(rtRange / X_AXIS_TICKS);
             retentionTimeAxis.setMinorTickSpacing(ticks / MINOR_TICKS);
             retentionTimeAxis.setMajorTickSpacing(ticks);
 
@@ -373,8 +373,8 @@ class ThreeDDisplay extends DisplayImplJ3D {
             NumberFormat mzFormat = MZmineCore.getMZFormat();
             for (int i = 0; i < peaks.length; i++) {
 
-                peaksDomainPoints[0][i] = peaks[i].getRT();
-                peaksDomainPoints[1][i] = peaks[i].getMZ();
+                peaksDomainPoints[0][i] = (float) peaks[i].getRT();
+                peaksDomainPoints[1][i] = (float) peaks[i].getMZ();
 
                 Data[] peakData = new Data[2];
                 peakData[0] = new Real(peakHeightType, peaks[i].getHeight()

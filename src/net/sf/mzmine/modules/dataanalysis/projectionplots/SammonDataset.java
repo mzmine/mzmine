@@ -248,7 +248,7 @@ public class SammonDataset extends AbstractXYDataset implements
 		return "Sammon's projection " + parameters.getSourcePeakList().toString(); 
 	}	
 	
-	public float getFinishedPercentage() {
+	public double getFinishedPercentage() {
 		if (projectionStatus==null) return 0.0f;
 		return projectionStatus.getFinishedPercentage();
 	}	

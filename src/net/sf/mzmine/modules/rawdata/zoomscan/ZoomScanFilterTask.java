@@ -42,7 +42,7 @@ class ZoomScanFilterTask implements Task {
 
     // parameter values
     private String suffix;
-    private float minMZRange;
+    private double minMZRange;
     private boolean removeOriginal;
 
     /**
@@ -52,7 +52,7 @@ class ZoomScanFilterTask implements Task {
     ZoomScanFilterTask(RawDataFile dataFile, ZoomScanFilterParameters parameters) {
         this.dataFile = dataFile;
         suffix = (String) parameters.getParameterValue(ZoomScanFilterParameters.suffix);
-        minMZRange = (Float) parameters.getParameterValue(ZoomScanFilterParameters.minMZRange);
+        minMZRange = (Double) parameters.getParameterValue(ZoomScanFilterParameters.minMZRange);
         removeOriginal = (Boolean) parameters.getParameterValue(ZoomScanFilterParameters.autoRemove);
     }
 
@@ -66,10 +66,10 @@ class ZoomScanFilterTask implements Task {
     /**
      * @see net.sf.mzmine.taskcontrol.Task#getFinishedPercentage()
      */
-    public float getFinishedPercentage() {
+    public double getFinishedPercentage() {
         if (totalScans == 0)
             return 0.0f;
-        return (float) filteredScans / totalScans;
+        return (double) filteredScans / totalScans;
     }
 
     /**

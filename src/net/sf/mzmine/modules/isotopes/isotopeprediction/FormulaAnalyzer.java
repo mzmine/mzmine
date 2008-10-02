@@ -39,7 +39,7 @@ public class FormulaAnalyzer {
 
 	private IsotopeFactory isoFactory;
 	private DataPoint[] abundanceAndMass = null;
-	private static float ELECTRON_MASS = 0.00054857f;
+	private static double ELECTRON_MASS = 0.00054857d;
 
 	private Logger logger = Logger.getLogger(this.getClass().getName());
 
@@ -65,8 +65,8 @@ public class FormulaAnalyzer {
 	 * @return
 	 */
 	public IsotopePattern getIsotopePattern(String originalFormula,
-			float minAbundance, int charge, boolean positiveCharge,
-			float isotopeHeight, boolean autoHeight) {
+			double minAbundance, int charge, boolean positiveCharge,
+			double isotopeHeight, boolean autoHeight) {
 
 		int numOpenParenthesis = 0, numCloseParenthesis = 0;
 		String mf = originalFormula.trim();
@@ -170,10 +170,10 @@ public class FormulaAnalyzer {
 
 		IIsotope[] isotopes = isoFactory.getIsotopes(elementSymbol);
 
-		float abundance, totalAbundance, newAbundance;
-		double pow = Math.pow(10, 6), mass, previousMass;
+		double mass, previousMass, abundance, totalAbundance, newAbundance;
+		//double pow = Math.pow(10, 6), mass, previousMass;
 
-		HashMap<Double, Float> isotopeMassAndAbundance = new HashMap<Double, Float>();
+		HashMap<Double, Double> isotopeMassAndAbundance = new HashMap<Double, Double>();
 		TreeSet<DataPoint> dataPoints = new TreeSet<DataPoint>(
 				new DataPointSorter(true, true));
 
@@ -181,12 +181,12 @@ public class FormulaAnalyzer {
 
 		// Generate isotopes for the current atom (element)
 		for (int i = 0; i < isotopes.length; i++) {
-			mass =  ((int)(isotopes[i].getExactMass() * pow)/pow);
-			abundance =  (float) isotopes[i].getNaturalAbundance();
-			dataPoints.add(new SimpleDataPoint((float) mass, abundance));
+			mass =  isotopes[i].getExactMass();
+			abundance =  isotopes[i].getNaturalAbundance();
+			dataPoints.add(new SimpleDataPoint(mass, abundance));
 
 			//logger.finest(" Isotope of "+ elementSymbol + i+" mass " 
-				//	+ isotopes[i].getExactMass()  + " float " + mass );
+				//	+ isotopes[i].getExactMass()  + " double " + mass );
 		}
 		
 		currentElementPattern = dataPoints.toArray(new DataPoint[0]);
@@ -238,7 +238,7 @@ public class FormulaAnalyzer {
 
 					// Filter isotopes too small
 					if (isNotZero(newAbundance)) {
-					//	logger.finest("INSERTA  Mass of "+ mass +" float "+ (float) (mass * 10000) + " abundance " + newAbundance); 
+					//	logger.finest("INSERTA  Mass of "+ mass +" double "+ (double) (mass * 10000) + " abundance " + newAbundance); 
 						isotopeMassAndAbundance.put(mass, newAbundance);
 					}
 					previousMass = 0;
@@ -250,7 +250,7 @@ public class FormulaAnalyzer {
 			abundanceAndMass = new DataPoint[isotopeMassAndAbundance.size()];
 			while (itr.hasNext()) {
 				mass = itr.next();
-				dataPoints.add(new SimpleDataPoint((float) mass,
+				dataPoints.add(new SimpleDataPoint(mass,
 						isotopeMassAndAbundance.get(mass)));
 				i++;
 			}
@@ -271,8 +271,8 @@ public class FormulaAnalyzer {
 		return 0.0d;
 	}
 	
-	private static boolean isNotZero(float number){
-		float pow = (float) Math.pow(10, 6);
+	private static boolean isNotZero(double number){
+		double pow = (double) Math.pow(10, 6);
 		int fraction = (int)(number * pow); 
 
 		if (fraction <= 0)
@@ -643,12 +643,12 @@ public class FormulaAnalyzer {
 	 * @param dataPoints
 	 * @return
 	 */
-	private static DataPoint[] normalizeArray(DataPoint[] dataPoints, float minAbundance) {
+	private static DataPoint[] normalizeArray(DataPoint[] dataPoints, double minAbundance) {
 
 		TreeSet<DataPoint> sortedDataPoints = new TreeSet<DataPoint>(
 				new DataPointSorter(true, true));
 
-		float intensity, biggestIntensity = 0.0f;
+		double intensity, biggestIntensity = 0.0f;
 
 		for (DataPoint dp : dataPoints) {
 
@@ -682,7 +682,7 @@ public class FormulaAnalyzer {
 		}
 		else{
 			int sign;
-			float mass;
+			double mass;
 			
 			if (positiveCharge)
 				sign = -1;

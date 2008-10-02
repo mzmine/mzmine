@@ -39,7 +39,7 @@ public class SimpleMzDataTable implements MzDataTable {
 		return pointsWithinRange;
 	}
 
-	public DataPoint[] getDataPointsOverIntensity(float intensity) {
+	public DataPoint[] getDataPointsOverIntensity(double intensity) {
 		int index;
 		Vector<DataPoint> points = new Vector<DataPoint>();
 		

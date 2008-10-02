@@ -50,7 +50,7 @@ public class RawDataFileImpl implements RawDataFile, RawDataFileWriter {
 
     private String fileName; // this is just a name of this object
 
-    private Hashtable<Integer, Float> dataMinMZ, dataMaxMZ, dataMinRT,
+    private Hashtable<Integer, Double> dataMinMZ, dataMaxMZ, dataMinRT,
             dataMaxRT, dataMaxBasePeakIntensity, dataMaxTIC;
 
     private transient File scanFile;
@@ -121,16 +121,16 @@ public class RawDataFileImpl implements RawDataFile, RawDataFileWriter {
     /**
      * @see net.sf.mzmine.data.RawDataFile#getDataMinMZ()
      */
-    public float getDataMinMZ(int msLevel) {
+    public double getDataMinMZ(int msLevel) {
 
         // if there is no cache table, create one
         if (dataMinMZ == null)
-            dataMinMZ = new Hashtable<Integer, Float>();
+            dataMinMZ = new Hashtable<Integer, Double>();
 
         // check if we have this value already cached
-        Float minMZ = dataMinMZ.get(msLevel);
+        Double minMZ = dataMinMZ.get(msLevel);
         if (minMZ != null)
-            return minMZ.floatValue();
+            return minMZ.doubleValue();
 
         // find the value
         for (Scan scan : scans.values()) {
@@ -145,7 +145,7 @@ public class RawDataFileImpl implements RawDataFile, RawDataFileWriter {
 
         // return -1 if no scan at this MS level
         if (minMZ == null)
-            minMZ = -1f;
+            minMZ = -1d;
 
         // cache the value
         dataMinMZ.put(msLevel, minMZ);
@@ -156,16 +156,16 @@ public class RawDataFileImpl implements RawDataFile, RawDataFileWriter {
     /**
      * @see net.sf.mzmine.data.RawDataFile#getDataMaxMZ()
      */
-    public float getDataMaxMZ(int msLevel) {
+    public double getDataMaxMZ(int msLevel) {
 
         // if there is no cache table, create one
         if (dataMaxMZ == null)
-            dataMaxMZ = new Hashtable<Integer, Float>();
+            dataMaxMZ = new Hashtable<Integer, Double>();
 
         // check if we have this value already cached
-        Float maxMZ = dataMaxMZ.get(msLevel);
+        Double maxMZ = dataMaxMZ.get(msLevel);
         if (maxMZ != null)
-            return maxMZ.floatValue();
+            return maxMZ.doubleValue();
 
         // find the value
         for (Scan scan : scans.values()) {
@@ -181,7 +181,7 @@ public class RawDataFileImpl implements RawDataFile, RawDataFileWriter {
 
         // return -1 if no scan at this MS level
         if (maxMZ == null)
-            maxMZ = -1f;
+            maxMZ = -1d;
 
         // cache the value
         dataMaxMZ.put(msLevel, maxMZ);
@@ -192,16 +192,16 @@ public class RawDataFileImpl implements RawDataFile, RawDataFileWriter {
     /**
      * @see net.sf.mzmine.data.RawDataFile#getDataMinRT()
      */
-    public float getDataMinRT(int msLevel) {
+    public double getDataMinRT(int msLevel) {
 
         // if there is no cache table, create one
         if (dataMinRT == null)
-            dataMinRT = new Hashtable<Integer, Float>();
+            dataMinRT = new Hashtable<Integer, Double>();
 
         // check if we have this value already cached
-        Float minRT = dataMinRT.get(msLevel);
+        Double minRT = dataMinRT.get(msLevel);
         if (minRT != null)
-            return minRT.floatValue();
+            return minRT.doubleValue();
 
         // find the value
         Enumeration<Scan> scansEnum = scans.elements();
@@ -219,7 +219,7 @@ public class RawDataFileImpl implements RawDataFile, RawDataFileWriter {
 
         // return -1 if no scan at this MS level
         if (minRT == null)
-            minRT = -1f;
+            minRT = -1d;
 
         // cache the value
         dataMinRT.put(msLevel, minRT);
@@ -231,16 +231,16 @@ public class RawDataFileImpl implements RawDataFile, RawDataFileWriter {
     /**
      * @see net.sf.mzmine.data.RawDataFile#getDataMaxRT()
      */
-    public float getDataMaxRT(int msLevel) {
+    public double getDataMaxRT(int msLevel) {
 
         // if there is no cache table, create one
         if (dataMaxRT == null)
-            dataMaxRT = new Hashtable<Integer, Float>();
+            dataMaxRT = new Hashtable<Integer, Double>();
 
         // check if we have this value already cached
-        Float maxRT = dataMaxRT.get(msLevel);
+        Double maxRT = dataMaxRT.get(msLevel);
         if (maxRT != null)
-            return maxRT.floatValue();
+            return maxRT.doubleValue();
 
         // find the value
         Enumeration<Scan> scansEnum = scans.elements();
@@ -258,7 +258,7 @@ public class RawDataFileImpl implements RawDataFile, RawDataFileWriter {
 
         // return -1 if no scan at this MS level
         if (maxRT == null)
-            maxRT = -1f;
+            maxRT = -1d;
 
         // cache the value
         dataMaxRT.put(msLevel, maxRT);
@@ -270,12 +270,12 @@ public class RawDataFileImpl implements RawDataFile, RawDataFileWriter {
      * @see net.sf.mzmine.data.RawDataFile#getScanNumbers(int)
      */
     public int[] getScanNumbers(int msLevel) {
-        return getScanNumbers(msLevel, new Range(Float.MIN_VALUE,
-                Float.MAX_VALUE));
+        return getScanNumbers(msLevel, new Range(Double.MIN_VALUE,
+                Double.MAX_VALUE));
     }
 
     /**
-     * @see net.sf.mzmine.data.RawDataFile#getScanNumbers(int, float, float)
+     * @see net.sf.mzmine.data.RawDataFile#getScanNumbers(int, double, double)
      */
     public int[] getScanNumbers(int msLevel, Range rtRange) {
 
@@ -331,16 +331,16 @@ public class RawDataFileImpl implements RawDataFile, RawDataFileWriter {
     /**
      * @see net.sf.mzmine.data.RawDataFile#getDataMaxBasePeakIntensity()
      */
-    public float getDataMaxBasePeakIntensity(int msLevel) {
+    public double getDataMaxBasePeakIntensity(int msLevel) {
 
         // if there is no cache table, create one
         if (dataMaxBasePeakIntensity == null)
-            dataMaxBasePeakIntensity = new Hashtable<Integer, Float>();
+            dataMaxBasePeakIntensity = new Hashtable<Integer, Double>();
 
         // check if we have this value already cached
-        Float maxBasePeak = dataMaxBasePeakIntensity.get(msLevel);
+        Double maxBasePeak = dataMaxBasePeakIntensity.get(msLevel);
         if (maxBasePeak != null)
-            return maxBasePeak.floatValue();
+            return maxBasePeak.doubleValue();
 
         // find the value
         Enumeration<Scan> scansEnum = scans.elements();
@@ -363,7 +363,7 @@ public class RawDataFileImpl implements RawDataFile, RawDataFileWriter {
 
         // return -1 if no scan at this MS level
         if (maxBasePeak == null)
-            maxBasePeak = -1f;
+            maxBasePeak = -1d;
 
         // cache the value
         dataMaxBasePeakIntensity.put(msLevel, maxBasePeak);
@@ -375,16 +375,16 @@ public class RawDataFileImpl implements RawDataFile, RawDataFileWriter {
     /**
      * @see net.sf.mzmine.data.RawDataFile#getDataMaxTotalIonCurrent()
      */
-    public float getDataMaxTotalIonCurrent(int msLevel) {
+    public double getDataMaxTotalIonCurrent(int msLevel) {
 
         // if there is no cache table, create one
         if (dataMaxTIC == null)
-            dataMaxTIC = new Hashtable<Integer, Float>();
+            dataMaxTIC = new Hashtable<Integer, Double>();
 
         // check if we have this value already cached
-        Float maxTIC = dataMaxTIC.get(msLevel);
+        Double maxTIC = dataMaxTIC.get(msLevel);
         if (maxTIC != null)
-            return maxTIC.floatValue();
+            return maxTIC.doubleValue();
 
         // find the value
         Enumeration<Scan> scansEnum = scans.elements();
@@ -402,7 +402,7 @@ public class RawDataFileImpl implements RawDataFile, RawDataFileWriter {
 
         // return -1 if no scan at this MS level
         if (maxTIC == null)
-            maxTIC = -1f;
+            maxTIC = -1d;
 
         // cache the value
         dataMaxTIC.put(msLevel, maxTIC);
@@ -501,19 +501,19 @@ public class RawDataFileImpl implements RawDataFile, RawDataFileWriter {
 
     }
 
-    public float getDataMaxMZ() {
+    public double getDataMaxMZ() {
         return getDataMaxMZ(0);
     }
 
-    public float getDataMaxRT() {
+    public double getDataMaxRT() {
         return getDataMaxRT(0);
     }
 
-    public float getDataMinMZ() {
+    public double getDataMinMZ() {
         return getDataMinMZ(0);
     }
 
-    public float getDataMinRT() {
+    public double getDataMinRT() {
         return getDataMinRT(0);
     }
 

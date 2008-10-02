@@ -63,10 +63,10 @@ class ManualPickerTask implements Task {
         return errorMessage;
     }
 
-    public float getFinishedPercentage() {
+    public double getFinishedPercentage() {
         if (totalScans == 0)
             return 0f;
-        return (float) processedScans / totalScans;
+        return (double) processedScans / totalScans;
     }
 
     public TaskStatus getStatus() {

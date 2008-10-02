@@ -203,11 +203,11 @@ class NeutralLossDataSet extends AbstractXYDataset implements RawDataAcceptor,
         return dataPoints.get(item);
     }
 
-    public NeutralLossDataPoint getDataPoint(float xValue, float yValue) {
+    public NeutralLossDataPoint getDataPoint(double xValue, double yValue) {
         Vector<NeutralLossDataPoint> dataCopy = new Vector<NeutralLossDataPoint>(
                 dataPoints);
         Iterator<NeutralLossDataPoint> it = dataCopy.iterator();
-        float currentX, currentY;
+        double currentX, currentY;
         while (it.hasNext()) {
             NeutralLossDataPoint point = it.next();
             if (xAxisType == NeutralLossParameters.xAxisPrecursor)

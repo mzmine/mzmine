@@ -46,7 +46,7 @@ class MeanFilterTask implements Task {
 
     // parameter values
     private String suffix;
-    private float oneSidedWindowLength;
+    private double oneSidedWindowLength;
     private boolean removeOriginal;
 
     /**
@@ -56,7 +56,7 @@ class MeanFilterTask implements Task {
     MeanFilterTask(RawDataFile dataFile, MeanFilterParameters parameters) {
         this.dataFile = dataFile;
         suffix = (String) parameters.getParameterValue(MeanFilterParameters.suffix);
-        oneSidedWindowLength = ((Float) parameters.getParameterValue(MeanFilterParameters.oneSidedWindowLength)).floatValue();
+        oneSidedWindowLength = ((Double) parameters.getParameterValue(MeanFilterParameters.oneSidedWindowLength)).doubleValue();
         removeOriginal = (Boolean) parameters.getParameterValue(MeanFilterParameters.autoRemove);
     }
 
@@ -70,10 +70,10 @@ class MeanFilterTask implements Task {
     /**
      * @see net.sf.mzmine.taskcontrol.Task#getFinishedPercentage()
      */
-    public float getFinishedPercentage() {
+    public double getFinishedPercentage() {
         if (totalScans == 0)
             return 0.0f;
-        return (float) filteredScans / totalScans;
+        return (double) filteredScans / totalScans;
     }
 
     /**
@@ -159,17 +159,17 @@ class MeanFilterTask implements Task {
     }
 
     private void processOneScan(RawDataFileWriter writer, Scan sc,
-            float windowLength) throws IOException {
+            double windowLength) throws IOException {
 
-        Vector<Float> massWindow = new Vector<Float>();
-        Vector<Float> intensityWindow = new Vector<Float>();
+        Vector<Double> massWindow = new Vector<Double>();
+        Vector<Double> intensityWindow = new Vector<Double>();
 
-        float currentMass;
-        float lowLimit;
-        float hiLimit;
-        float mzVal;
+        double currentMass;
+        double lowLimit;
+        double hiLimit;
+        double mzVal;
 
-        float elSum;
+        double elSum;
 
         DataPoint oldDataPoints[] = sc.getDataPoints();
         DataPoint newDataPoints[] = new DataPoint[oldDataPoints.length];
@@ -184,12 +184,12 @@ class MeanFilterTask implements Task {
             // Remove all elements from window whose m/z value is less than the
             // low limit
             if (massWindow.size() > 0) {
-                mzVal = massWindow.get(0).floatValue();
+                mzVal = massWindow.get(0).doubleValue();
                 while ((massWindow.size() > 0) && (mzVal < lowLimit)) {
                     massWindow.remove(0);
                     intensityWindow.remove(0);
                     if (massWindow.size() > 0) {
-                        mzVal = massWindow.get(0).floatValue();
+                        mzVal = massWindow.get(0).doubleValue();
                     }
                 }
             }
@@ -205,11 +205,11 @@ class MeanFilterTask implements Task {
 
             elSum = 0;
             for (int j = 0; j < intensityWindow.size(); j++) {
-                elSum += ((Float) (intensityWindow.get(j))).floatValue();
+                elSum += ((Double) (intensityWindow.get(j))).doubleValue();
             }
 
             newDataPoints[i] = new SimpleDataPoint(currentMass, elSum
-                    / (float) intensityWindow.size());
+                    / (double) intensityWindow.size());
 
         }
 

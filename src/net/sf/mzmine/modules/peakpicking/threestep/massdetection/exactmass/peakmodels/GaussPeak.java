@@ -38,14 +38,14 @@ import net.sf.mzmine.util.Range;
  */
 public class GaussPeak implements PeakModel {
 
-    private float mzMain, intensityMain, FWHM, partC, part2C2;
+    private double mzMain, intensityMain, FWHM, partC, part2C2;
 
     /**
-     * @see net.sf.mzmine.modules.peakpicking.twostep.massdetection.exactmass.peakmodel.PeakModel#setParameters(float,
-     *      float, float)
+     * @see net.sf.mzmine.modules.peakpicking.twostep.massdetection.exactmass.peakmodel.PeakModel#setParameters(double,
+     *      double, double)
      */
-    public void setParameters(float mzMain, float intensityMain,
-            float resolution) {
+    public void setParameters(double mzMain, double intensityMain,
+            double resolution) {
         
         this.mzMain = mzMain;
         this.intensityMain = intensityMain;
@@ -53,25 +53,25 @@ public class GaussPeak implements PeakModel {
         // FWFM (Full Width at Half Maximum)
         FWHM = (mzMain / resolution);
         partC = FWHM / 2.354820045f;
-        part2C2 = 2f * (float) Math.pow(partC, 2);
+        part2C2 = 2f * (double) Math.pow(partC, 2);
     }
 
     /**
      * @see net.sf.mzmine.modules.peakpicking.twostep.peakmodel.PeakModel#getBasePeakWidth()
      */
-    public Range getWidth(float partialIntensity) {
+    public Range getWidth(double partialIntensity) {
 
         // The height value must be bigger than zero.
         if (partialIntensity <= 0)
-            return new Range(0, Float.MAX_VALUE);
+            return new Range(0, Double.MAX_VALUE);
 
         // Using the Gaussian function we calculate the peak width at intensity
         // given (partialIntensity)
 
-        float portion = partialIntensity / intensityMain;
-        float ln = -1 * (float) Math.log(portion);
+        double portion = partialIntensity / intensityMain;
+        double ln = -1 * (double) Math.log(portion);
 
-        float sideRange = (float) (Math.sqrt(part2C2 * ln));
+        double sideRange = (double) (Math.sqrt(part2C2 * ln));
 
         // This range represents the width of our peak in m/z
         Range rangePeak = new Range(mzMain - sideRange, mzMain + sideRange);
@@ -80,15 +80,15 @@ public class GaussPeak implements PeakModel {
     }
 
     /**
-     * @see net.sf.mzmine.modules.peakpicking.twostep.peakmodel.PeakModel#getIntensity(float)
+     * @see net.sf.mzmine.modules.peakpicking.twostep.peakmodel.PeakModel#getIntensity(double)
      */
-    public float getIntensity(float mz) {
+    public double getIntensity(double mz) {
 
         // Using the Gaussian function we calculate the intensity at given m/z
-        float diff2 = (float) Math.pow(mz - mzMain, 2);
-        float exponent = -1 * (diff2 / part2C2);
-        float eX = (float) Math.exp(exponent);
-        float intensity = intensityMain * eX;
+        double diff2 = (double) Math.pow(mz - mzMain, 2);
+        double exponent = -1 * (diff2 / part2C2);
+        double eX = (double) Math.exp(exponent);
+        double intensity = intensityMain * eX;
         return intensity;
     }
 

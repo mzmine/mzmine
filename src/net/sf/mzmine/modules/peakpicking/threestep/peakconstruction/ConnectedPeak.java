@@ -46,11 +46,11 @@ public class ConnectedPeak implements ChromatographicPeak {
 
 	// These elements are used to construct the Peak.
 	private TreeMap<Integer, ConnectedMzPeak> datapointsMap;
-	private Vector<Float> datapointsMZs;
+	private Vector<Double> datapointsMZs;
 
 	// Raw data file, M/Z, RT, Height and Area
 	private RawDataFile dataFile;
-	private float mz, rt, height, area, previousRetentionTime;
+	private double mz, rt, height, area, previousRetentionTime;
 	private int lastValidIndex = 0;
 
 	// Characteristics of the peak
@@ -63,7 +63,7 @@ public class ConnectedPeak implements ChromatographicPeak {
 	public ConnectedPeak(RawDataFile dataFile, ConnectedMzPeak mzValue) {
 		this.dataFile = dataFile;
 		datapointsMap = new TreeMap<Integer, ConnectedMzPeak>();
-		datapointsMZs = new Vector<Float>();
+		datapointsMZs = new Vector<Double>();
 
 		// We map this MzPeak with the scan number as a key due construction
 		// peak purpose.
@@ -120,7 +120,7 @@ public class ConnectedPeak implements ChromatographicPeak {
 		datapointsMZs.add(mzValue.getMzPeak().getMZ());
 
 		mz = MathUtils.calcQuantile(
-				CollectionUtils.toFloatArray(datapointsMZs), 0.5f);
+				CollectionUtils.toDoubleArray(datapointsMZs), 0.5f);
 
 		rtRange.extendRange(mzValue.getScan().getRetentionTime());
 
@@ -135,14 +135,14 @@ public class ConnectedPeak implements ChromatographicPeak {
 		// Use the last added MzPeak to calculate the area of the peak.
 		ConnectedMzPeak lastAddedMzPeak = datapointsMap.get(lastValidIndex);
 
-		float rtDifference = mzValue.getScan().getRetentionTime()
+		double rtDifference = mzValue.getScan().getRetentionTime()
 				- previousRetentionTime;
 
 		// intensity at the beginning of the interval
-		float intensityStart = lastAddedMzPeak.getMzPeak().getIntensity();
+		double intensityStart = lastAddedMzPeak.getMzPeak().getIntensity();
 
 		// intensity at the end of the interval
-		float intensityEnd = mzValue.getMzPeak().getIntensity();
+		double intensityEnd = mzValue.getMzPeak().getIntensity();
 
 		// calculate area of the interval
 		area += (rtDifference * (intensityStart + intensityEnd) / 2);
@@ -170,28 +170,28 @@ public class ConnectedPeak implements ChromatographicPeak {
 	/**
 	 * This method returns M/Z value of the peak
 	 */
-	public float getMZ() {
+	public double getMZ() {
 		return mz;
 	}
 
 	/**
 	 * This method returns retention time of the peak
 	 */
-	public float getRT() {
+	public double getRT() {
 		return rt;
 	}
 
 	/**
 	 * This method returns the height of the peak
 	 */
-	public float getHeight() {
+	public double getHeight() {
 		return height;
 	}
 
 	/**
 	 * This method returns the area of the peak
 	 */
-	public float getArea() {
+	public double getArea() {
 		return area;
 	}
 
@@ -256,11 +256,11 @@ public class ConnectedPeak implements ChromatographicPeak {
 		return datapointsMap.values().toArray(new ConnectedMzPeak[0]);
 	}
 	
-	public void setRT(float rt){
+	public void setRT(double rt){
 		this.rt = rt;
 	}
 	
-	public void setHeight(float height){
+	public void setHeight(double height){
 		this.height = height;
 	}
 

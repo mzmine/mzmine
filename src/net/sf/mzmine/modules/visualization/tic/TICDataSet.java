@@ -58,9 +58,9 @@ public class TICDataSet extends AbstractXYZDataset implements RawDataAcceptor,
     private RawDataFile dataFile;
 
     private int scanNumbers[], loadedScans = 0;
-    private float basePeakValues[], intensityValues[], rtValues[];
+    private double basePeakValues[], intensityValues[], rtValues[];
     private Range mzRange;
-    private float intensityMin, intensityMax;
+    private double intensityMin, intensityMax;
 
     public TICDataSet(RawDataFile dataFile, int scanNumbers[], Range mzRange, ActionListener visualizer) {
 
@@ -69,9 +69,9 @@ public class TICDataSet extends AbstractXYZDataset implements RawDataAcceptor,
         this.dataFile = dataFile;
         this.scanNumbers = scanNumbers;
 
-        basePeakValues = new float[scanNumbers.length];
-        intensityValues = new float[scanNumbers.length];
-        rtValues = new float[scanNumbers.length];
+        basePeakValues = new double[scanNumbers.length];
+        intensityValues = new double[scanNumbers.length];
+        rtValues = new double[scanNumbers.length];
 
         // Start-up the refresh task
         Task updateTask = new RawDataRetrievalTask(dataFile, scanNumbers,
@@ -88,7 +88,7 @@ public class TICDataSet extends AbstractXYZDataset implements RawDataAcceptor,
      * @param intensity
      * @return
      */
-    public int getIndex(float retentionTime, float intensity) {
+    public int getIndex(double retentionTime, double intensity) {
         for (int i = 0; i < loadedScans; i++) {
             if ((Math.abs(retentionTime - rtValues[i]) < 0.0000001f)
                     && (Math.abs(intensity - intensityValues[i]) < 0.0000001f))
@@ -110,7 +110,7 @@ public class TICDataSet extends AbstractXYZDataset implements RawDataAcceptor,
      */
     public void addScan(final Scan scan, int index, int total) {
 
-        float totalIntensity = 0;
+        double totalIntensity = 0;
         DataPoint basePeak = null;
 
         if (scan.getMZRange().isWithin(mzRange)) {
@@ -220,15 +220,15 @@ public class TICDataSet extends AbstractXYZDataset implements RawDataAcceptor,
     /**
      * Gets indexes of local maxima within given range
      */
-    public int[] findLocalMaxima(float xMin, float xMax, float yMin, float yMax) {
+    public int[] findLocalMaxima(double xMin, double xMax, double yMin, double yMax) {
 
         // save data set size
         final int currentSize = loadedScans;
-        float rtCopy[];
+        double rtCopy[];
 
         // if the RT values array is not filled yet, create a shrinked copy
         if (currentSize < rtValues.length) {
-            rtCopy = new float[currentSize];
+            rtCopy = new double[currentSize];
             System.arraycopy(rtValues, 0, rtCopy, 0, currentSize);
         } else {
             rtCopy = rtValues;
@@ -260,11 +260,11 @@ public class TICDataSet extends AbstractXYZDataset implements RawDataAcceptor,
 
     }
 
-    public float getMinIntensity() {
+    public double getMinIntensity() {
         return intensityMin;
     }
 
-    public float getMaxIntensity() {
+    public double getMaxIntensity() {
         return intensityMax;
     }
 

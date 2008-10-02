@@ -58,9 +58,9 @@ public class StandardCompoundNormalizerParameters extends SimpleParameterSet {
             peakMeasurementTypePossibleValues);
 
     public static final Parameter MZvsRTBalance = new SimpleParameter(
-            ParameterType.FLOAT, "M/Z vs RT balance",
+            ParameterType.DOUBLE, "M/Z vs RT balance",
             "Used in distance measuring as multiplier of M/Z difference", "",
-            new Float(10.0), new Float(0.0), null);
+            new Double(10.0), new Double(0.0), null);
 
     public static final Parameter autoRemove = new SimpleParameter(
             ParameterType.BOOLEAN,

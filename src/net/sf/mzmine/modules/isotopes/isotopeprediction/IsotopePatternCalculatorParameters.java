@@ -38,8 +38,8 @@ public class IsotopePatternCalculatorParameters extends SimpleParameterSet {
             "empirical formula of a chemical compound", null, null, null);
 
     public static final Parameter minimalAbundance = new SimpleParameter(
-            ParameterType.FLOAT, "Minimum % of relative abundance", "Mininum relative % of abundance per peak", "%",
-            new Float(0.01f), new Float(0.0001f), new Float(0.1f),
+            ParameterType.DOUBLE, "Minimum % of relative abundance", "Mininum relative % of abundance per peak", "%",
+            new Double(0.01f), new Double(0.0001f), new Double(0.1f),
             null);
 
     public static final Parameter charge = new SimpleParameter(
@@ -58,8 +58,8 @@ public class IsotopePatternCalculatorParameters extends SimpleParameterSet {
 			null, null, null);
 	
     public static final Parameter isotopeHeight = new SimpleParameter(
-            ParameterType.FLOAT, "Height of most abundance isotope", "Height of most abundance isotope", "absolute",
-            new Float(10000.0f), new Float(1.0f), null,
+            ParameterType.DOUBLE, "Height of most abundance isotope", "Height of most abundance isotope", "absolute",
+            new Double(10000.0f), new Double(1.0f), null,
             MZmineCore.getIntensityFormat());
 
     public IsotopePatternCalculatorParameters() {

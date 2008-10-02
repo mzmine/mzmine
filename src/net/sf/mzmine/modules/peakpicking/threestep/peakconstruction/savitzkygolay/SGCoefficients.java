@@ -2,7 +2,7 @@ package net.sf.mzmine.modules.peakpicking.threestep.peakconstruction.savitzkygol
 
 public final class SGCoefficients {
 	
-	public static final float[][] SGCoefficientsFirstDerivative = {
+	public static final double[][] SGCoefficientsFirstDerivative = {
 		{ 0.0f },
 		{ 0.0f, 0.500f },
 		{ 0.0f, 0.100f, 0.200f },
@@ -23,7 +23,7 @@ public final class SGCoefficients {
 		{ 0.0f, 0.001f, 0.002f, 0.002f, 0.003f, 0.004f, 0.005f,
 				0.005f, 0.006f, 0.007f, 0.008f, 0.008f, 0.009f } };
 
-	public static final float[][] SGCoefficientsFirstDerivativeQuartic = {
+	public static final double[][] SGCoefficientsFirstDerivativeQuartic = {
 		{ 0.0f },
 		{ 0.0f, 0.667f },
 		{ 0.0f, 0.667f, -0.083f },
@@ -45,7 +45,7 @@ public final class SGCoefficients {
 				0.019f, 0.016f, 0.012f, 0.005f, -0.005f, -0.017f } };
 
 	
-	public static final float[][] SGCoefficientsSecondDerivative = {
+	public static final double[][] SGCoefficientsSecondDerivative = {
 			{ 0.0f },
 			{ -1.0f, 0.5f },
 			{ -0.143f, -0.071f, 0.143f },
@@ -66,7 +66,7 @@ public final class SGCoefficients {
 			{ -0.001f, -0.001f, -0.001f, -0.001f, -0.001f, -0.001f, 0.000f,
 					0.000f, 0.000f, 0.001f, 0.001f, 0.001f, 0.002f } };
 
-	public static final float[][] SGCoefficientsSecondDerivativeQuartic = {
+	public static final double[][] SGCoefficientsSecondDerivativeQuartic = {
 		{ 0.0f },
 		{ -1.250f, 0.567f },
 		{ -1.250f, 0.567f, -0.042f },

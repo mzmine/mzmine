@@ -46,7 +46,7 @@ class FakePeak implements ChromatographicPeak {
 		this.scanNumber = scanNumber;
 	}
 
-	public float getArea() {
+	public double getArea() {
 		return 0;
 	}
 
@@ -58,11 +58,11 @@ class FakePeak implements ChromatographicPeak {
 		return mzPeak;
 	}
 
-	public float getHeight() {
+	public double getHeight() {
 		return 0;
 	}
 
-	public float getMZ() {
+	public double getMZ() {
 		return 0;
 	}
 
@@ -70,7 +70,7 @@ class FakePeak implements ChromatographicPeak {
 		return null;
 	}
 
-	public float getRT() {
+	public double getRT() {
 		return 0;
 	}
 

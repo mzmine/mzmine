@@ -122,28 +122,28 @@ public class SimpleIsotopePattern implements IsotopePattern {
 	/**
 	 * @see net.sf.mzmine.data.ChromatographicPeak#getMZ()
 	 */
-	public float getMZ() {
+	public double getMZ() {
 		return representativePeak.getMZ();
 	}
 
 	/**
 	 * @see net.sf.mzmine.data.ChromatographicPeak#getRT()
 	 */
-	public float getRT() {
+	public double getRT() {
 		return representativePeak.getRT();
 	}
 
 	/**
 	 * @see net.sf.mzmine.data.ChromatographicPeak#getHeight()
 	 */
-	public float getHeight() {
+	public double getHeight() {
 		return representativePeak.getHeight();
 	}
 
 	/**
 	 * @see net.sf.mzmine.data.ChromatographicPeak#getArea()
 	 */
-	public float getArea() {
+	public double getArea() {
 		return representativePeak.getArea();
 	}
 
@@ -187,14 +187,14 @@ public class SimpleIsotopePattern implements IsotopePattern {
 		return representativePeak.getRawDataPointsRTRange();
 	}
 
-	public float getIsotopeMass() {
+	public double getIsotopeMass() {
 		if (charge == UNKNOWN_CHARGE)
 			return representativePeak.getMZ();
 		else
 			return representativePeak.getMZ() * charge;
 	}
 
-	public void setMZ(float mz) {
+	public void setMZ(double mz) {
 	}
 
 	public DataPoint[] getDataPoints() {
@@ -232,7 +232,7 @@ public class SimpleIsotopePattern implements IsotopePattern {
 		
 		Iterator<ChromatographicPeak> itr = peaks.iterator();
 		ChromatographicPeak cp;
-		float repRT = representativePeak.getMZ(), H = 1.0078f;
+		double repRT = representativePeak.getMZ(), H = 1.0078f;
 		Range mzRange = new Range(repRT);
 		while (itr.hasNext()) {
 			cp = itr.next();
@@ -242,7 +242,7 @@ public class SimpleIsotopePattern implements IsotopePattern {
 		// Increase range by +/- one hydrogen
 		if ((mzRange.getMin() > (repRT - H))
 				|| (mzRange.getMax() < (repRT + 2 * H))) {
-			float extendRange = mzRange.getMin() - H;
+			double extendRange = mzRange.getMin() - H;
 			mzRange.extendRange(extendRange);
 			extendRange = mzRange.getMax() + 2 * H;
 			mzRange.extendRange(extendRange);

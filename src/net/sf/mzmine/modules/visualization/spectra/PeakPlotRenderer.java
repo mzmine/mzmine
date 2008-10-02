@@ -43,11 +43,11 @@ public class PeakPlotRenderer extends XYBarRenderer {
 		alphaCompOriginal = (AlphaComposite.getInstance(type, 1.0f));
 	}
 
-	public void setTransparencyLevel(float transparency) {
+	public void setTransparencyLevel(double transparency) {
 		if ((transparency > 1.0) || (transparency < 0))
 			transparency = 1.0f;
 		int type = AlphaComposite.SRC_OVER;
-		alphaComp = (AlphaComposite.getInstance(type, transparency));
+		alphaComp = (AlphaComposite.getInstance(type, (float)transparency));
 		transparent = true;
 	}
 	

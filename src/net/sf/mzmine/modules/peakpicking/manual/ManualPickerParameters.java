@@ -30,12 +30,12 @@ public class ManualPickerParameters extends SimpleParameterSet {
 
     public static final Parameter retentionTimeRange = new SimpleParameter(
             ParameterType.RANGE, "Retention time", "Retention time range",
-            null, new Range(0, 600), new Float(0), null,
+            null, new Range(0, 600), new Double(0), null,
             MZmineCore.getRTFormat());
 
     public static final Parameter mzRange = new SimpleParameter(
             ParameterType.RANGE, "m/z range", "m/z range", "m/z", new Range(0,
-                    1000), new Float(0), null, MZmineCore.getMZFormat());
+                    1000), new Double(0), null, MZmineCore.getMZFormat());
 
     public ManualPickerParameters() {
         super(new Parameter[] { retentionTimeRange, mzRange });

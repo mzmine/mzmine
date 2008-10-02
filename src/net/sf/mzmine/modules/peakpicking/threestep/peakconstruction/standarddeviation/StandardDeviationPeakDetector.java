@@ -39,17 +39,17 @@ public class StandardDeviationPeakDetector implements PeakBuilder {
 
 	// private Logger logger = Logger.getLogger(this.getClass().getName());
 
-	private float standardDeviationLevel, minimumPeakHeight,
+	private double standardDeviationLevel, minimumPeakHeight,
 			minimumPeakDuration;
 
 	public StandardDeviationPeakDetector(
 			StandardDeviationPeakDetectorParameters parameters) {
 
-		minimumPeakHeight = (Float) parameters
+		minimumPeakHeight = (Double) parameters
 				.getParameterValue(StandardDeviationPeakDetectorParameters.minimumPeakHeight);
-		minimumPeakDuration = (Float) parameters
+		minimumPeakDuration = (Double) parameters
 				.getParameterValue(StandardDeviationPeakDetectorParameters.minimumPeakDuration);
-		standardDeviationLevel = (Float) parameters
+		standardDeviationLevel = (Double) parameters
 				.getParameterValue(StandardDeviationPeakDetectorParameters.standardDeviationLevel);
 	}
 
@@ -62,11 +62,11 @@ public class StandardDeviationPeakDetector implements PeakBuilder {
 
 		ConnectedMzPeak[] cMzPeaks = chromatogram.getConnectedMzPeaks();
 
-		float standardDeviationlevelPeak;
+		double standardDeviationlevelPeak;
 
 		int[] scanNumbers = chromatogram.getDataFile().getScanNumbers(1);
-		float[] chromatoIntensities = new float[scanNumbers.length];
-		float sumIntensities = 0;
+		double[] chromatoIntensities = new double[scanNumbers.length];
+		double sumIntensities = 0;
 
 		for (int i = 0; i < scanNumbers.length; i++) {
 
@@ -100,8 +100,8 @@ public class StandardDeviationPeakDetector implements PeakBuilder {
 					}
 					regionOfMzPeaks.clear();
 
-					float pLength = peak.getRawDataPointsRTRange().getSize();
-					float pHeight = peak.getHeight();
+					double pLength = peak.getRawDataPointsRTRange().getSize();
+					double pHeight = peak.getHeight();
 					if ((pLength >= minimumPeakDuration)
 							&& (pHeight >= minimumPeakHeight)) {
 						underDetectionPeaks.add(peak);
@@ -118,8 +118,8 @@ public class StandardDeviationPeakDetector implements PeakBuilder {
 					peak.addMzPeak(regionOfMzPeaks.get(i));
 				}
 
-				float pLength = peak.getRawDataPointsRTRange().getSize();
-				float pHeight = peak.getHeight();
+				double pLength = peak.getRawDataPointsRTRange().getSize();
+				double pHeight = peak.getHeight();
 				if ((pLength >= minimumPeakDuration)
 						&& (pHeight >= minimumPeakHeight)) {
 					underDetectionPeaks.add(peak);
@@ -140,22 +140,22 @@ public class StandardDeviationPeakDetector implements PeakBuilder {
 	 * @param chromatographicThresholdLevel
 	 * @return
 	 */
-	private float calcChromatogramThreshold(float[] chromatoIntensities,
-			float avgIntensities, float chromatographicThresholdLevel) {
+	private double calcChromatogramThreshold(double[] chromatoIntensities,
+			double avgIntensities, double chromatographicThresholdLevel) {
 
-		float standardDeviation = 0;
-		float percentage = 1.0f - chromatographicThresholdLevel;
+		double standardDeviation = 0;
+		double percentage = 1.0f - chromatographicThresholdLevel;
 
 		for (int i = 0; i < chromatoIntensities.length; i++) {
-			float deviation = chromatoIntensities[i] - avgIntensities;
-			float deviation2 = deviation * deviation;
+			double deviation = chromatoIntensities[i] - avgIntensities;
+			double deviation2 = deviation * deviation;
 			standardDeviation += deviation2;
 		}
 
 		standardDeviation /= chromatoIntensities.length;
-		standardDeviation = (float) Math.sqrt(standardDeviation);
+		standardDeviation = (double) Math.sqrt(standardDeviation);
 
-		float avgDifference = 0;
+		double avgDifference = 0;
 		int cont = 0;
 
 		for (int i = 0; i < chromatoIntensities.length; i++) {

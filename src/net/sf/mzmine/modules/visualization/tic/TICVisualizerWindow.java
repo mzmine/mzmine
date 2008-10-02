@@ -174,8 +174,8 @@ public class TICVisualizerWindow extends JInternalFrame implements
                 rtRange.getMax());
     }
 
-    public void setAxesRange(float xMin, float xMax, float xTickSize,
-            float yMin, float yMax, float yTickSize) {
+    public void setAxesRange(double xMin, double xMax, double xTickSize,
+            double yMin, double yMax, double yTickSize) {
         NumberAxis xAxis = (NumberAxis) ticPlot.getXYPlot().getDomainAxis();
         NumberAxis yAxis = (NumberAxis) ticPlot.getXYPlot().getRangeAxis();
         xAxis.setRange(xMin, xMax);
@@ -231,16 +231,16 @@ public class TICVisualizerWindow extends JInternalFrame implements
      * @return current cursor position
      */
     public CursorPosition getCursorPosition() {
-        float selectedRT = (float) ticPlot.getXYPlot().getDomainCrosshairValue();
-        float selectedIT = (float) ticPlot.getXYPlot().getRangeCrosshairValue();
+        double selectedRT = (double) ticPlot.getXYPlot().getDomainCrosshairValue();
+        double selectedIT = (double) ticPlot.getXYPlot().getRangeCrosshairValue();
         Enumeration<TICDataSet> e = ticDataSets.elements();
         while (e.hasMoreElements()) {
             TICDataSet dataSet = e.nextElement();
             int index = dataSet.getIndex(selectedRT, selectedIT);
             if (index >= 0) {
-                float mz = 0;
+                double mz = 0;
                 if (plotType == TICVisualizerParameters.plotTypeBP)
-                    mz = (float) dataSet.getZValue(0, index);
+                    mz = (double) dataSet.getZValue(0, index);
                 CursorPosition pos = new CursorPosition(selectedRT, mz,
                         selectedIT, dataSet.getDataFile(),
                         dataSet.getScanNumber(0, index));
@@ -304,8 +304,8 @@ public class TICVisualizerWindow extends JInternalFrame implements
                         pos.getIntensityValue());
                 if (index > 0) {
                     index--;
-                    pos.setRetentionTime((float) dataSet.getXValue(0, index));
-                    pos.setIntensityValue((float) dataSet.getYValue(0, index));
+                    pos.setRetentionTime((double) dataSet.getXValue(0, index));
+                    pos.setIntensityValue((double) dataSet.getYValue(0, index));
                     setCursorPosition(pos);
 
                 }
@@ -321,8 +321,8 @@ public class TICVisualizerWindow extends JInternalFrame implements
                 if (index >= 0) {
                     index++;
                     if (index < dataSet.getItemCount(0)) {
-                        pos.setRetentionTime((float) dataSet.getXValue(0, index));
-                        pos.setIntensityValue((float) dataSet.getYValue(0,
+                        pos.setRetentionTime((double) dataSet.getXValue(0, index));
+                        pos.setIntensityValue((double) dataSet.getYValue(0,
                                 index));
                         setCursorPosition(pos);
                     }

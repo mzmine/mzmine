@@ -47,7 +47,7 @@ class RTNormalizerTask implements Task {
     private int processedRows, totalRows;
 
     private String suffix;
-    private float mzTolerance, rtTolerance, minHeight;
+    private double mzTolerance, rtTolerance, minHeight;
     private boolean removeOriginal;
 
     public RTNormalizerTask(PeakList[] peakLists,
@@ -56,9 +56,9 @@ class RTNormalizerTask implements Task {
         this.originalPeakLists = peakLists;
 
         suffix = (String) parameters.getParameterValue(RTNormalizerParameters.suffix);
-        mzTolerance = (Float) parameters.getParameterValue(RTNormalizerParameters.MZTolerance);
-        rtTolerance = (Float) parameters.getParameterValue(RTNormalizerParameters.RTTolerance);
-        minHeight = (Float) parameters.getParameterValue(RTNormalizerParameters.minHeight);
+        mzTolerance = (Double) parameters.getParameterValue(RTNormalizerParameters.MZTolerance);
+        rtTolerance = (Double) parameters.getParameterValue(RTNormalizerParameters.RTTolerance);
+        minHeight = (Double) parameters.getParameterValue(RTNormalizerParameters.minHeight);
         removeOriginal = (Boolean) parameters.getParameterValue(RTNormalizerParameters.autoRemove);
 
     }
@@ -72,10 +72,10 @@ class RTNormalizerTask implements Task {
         return errorMessage;
     }
 
-    public float getFinishedPercentage() {
+    public double getFinishedPercentage() {
         if (totalRows == 0)
             return 0f;
-        return (float) processedRows / (float) totalRows;
+        return (double) processedRows / (double) totalRows;
     }
 
     public TaskStatus getStatus() {
@@ -129,8 +129,8 @@ class RTNormalizerTask implements Task {
             PeakListRow goodStandardCandidate[] = new PeakListRow[originalPeakLists.length];
             goodStandardCandidate[0] = candidate;
 
-            float candidateMZ = candidate.getAverageMZ();
-            float candidateRT = candidate.getAverageRT();
+            double candidateMZ = candidate.getAverageMZ();
+            double candidateRT = candidate.getAverageRT();
 
             // Find matching rows in remaining peaklists
             for (int i = 1; i < originalPeakLists.length; i++) {
@@ -170,12 +170,12 @@ class RTNormalizerTask implements Task {
         }
 
         // Calculate average retention times of all standards
-        float averagedRTs[] = new float[goodStandards.size()];
+        double averagedRTs[] = new double[goodStandards.size()];
         for (int i = 0; i < goodStandards.size(); i++) {
-            float rtAverage = 0;
+            double rtAverage = 0;
             for (PeakListRow row : goodStandards.get(i))
                 rtAverage += row.getAverageRT();
-            rtAverage /= (float) originalPeakLists.length;
+            rtAverage /= (double) originalPeakLists.length;
             averagedRTs[i] = rtAverage;
         }
 
@@ -227,7 +227,7 @@ class RTNormalizerTask implements Task {
      */
     private void normalizePeakList(PeakList originalPeakList,
             PeakList normalizedPeakList, PeakListRow standards[],
-            float normalizedStdRTs[]) {
+            double normalizedStdRTs[]) {
 
         PeakListRow originalRows[] = originalPeakList.getRows();
 
@@ -261,7 +261,7 @@ class RTNormalizerTask implements Task {
      * @return New peak list row with normalized retention time
      */
     private PeakListRow normalizeRow(PeakListRow originalRow,
-            PeakListRow standards[], float normalizedStdRTs[]) {
+            PeakListRow standards[], double normalizedStdRTs[]) {
 
         PeakListRow normalizedRow = new SimplePeakListRow(originalRow.getID());
 
@@ -294,7 +294,7 @@ class RTNormalizerTask implements Task {
         }
 
         // Calculate normalized retention time of this row
-        float normalizedRT = -1;
+        double normalizedRT = -1;
 
         if ((prevStdIndex == -1) || (nextStdIndex == -1)) {
             normalizedRT = originalRow.getAverageRT();
@@ -303,7 +303,7 @@ class RTNormalizerTask implements Task {
         if (prevStdIndex == nextStdIndex) {
             normalizedRT = normalizedStdRTs[prevStdIndex];
         } else {
-            float weight = (originalRow.getAverageRT() - standards[prevStdIndex].getAverageRT())
+            double weight = (originalRow.getAverageRT() - standards[prevStdIndex].getAverageRT())
                     / (standards[nextStdIndex].getAverageRT() - standards[prevStdIndex].getAverageRT());
             normalizedRT = normalizedStdRTs[prevStdIndex]
                     + (weight * (normalizedStdRTs[nextStdIndex] - normalizedStdRTs[prevStdIndex]));

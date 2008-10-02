@@ -85,25 +85,25 @@ public class ProjectOpeningTask implements Task {
     /**
      * @see net.sf.mzmine.taskcontrol.Task#getFinishedPercentage()
      */
-    public float getFinishedPercentage() {
+    public double getFinishedPercentage() {
         switch (currentStage) {
         case 3:
             if (description.getTotalNumOfScanFileBytes() == 0)
                 return 0;
             else
-                return (float) readBytes
+                return (double) readBytes
                         / description.getTotalNumOfScanFileBytes();
         case 4:
             if (description.getNumOfScans() == 0)
                 return 0;
             else
-                return (float) xstream.getNumOfDeserializedScans()
+                return (double) xstream.getNumOfDeserializedScans()
                         / description.getNumOfScans();
         case 5:
             if (description.getNumOfPeakListRows() == 0)
                 return 0;
             else
-                return (float) xstream.getNumOfDeserializedRows()
+                return (double) xstream.getNumOfDeserializedRows()
                         / description.getNumOfPeakListRows();
         case 6:
             return 1f;

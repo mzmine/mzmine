@@ -43,8 +43,8 @@ public class ThicknessSetupDialog extends JDialog implements ActionListener {
 	private JButton btnOK, btnApply, btnCancel;
 	private Logger logger = Logger.getLogger(this.getClass().getName());
 	private SpectraPlot plot;
-	private float oldThickness;
-	private static float minThickness = 0.000010f;
+	private double oldThickness;
+	private static double minThickness = 0.000010f;
 
 	public ThicknessSetupDialog(SpectraPlot plot) {
 		// Make dialog modal
@@ -54,7 +54,7 @@ public class ThicknessSetupDialog extends JDialog implements ActionListener {
 		oldThickness = plot.getThicknessBar();
 		// NumberFormat defaultFormatter = NumberFormat.getNumberInstance();
 		JLabel label = new JLabel("Thickness ");
-		fieldThickness = new JTextField(Float.toString(oldThickness));
+		fieldThickness = new JTextField(Double.toString(oldThickness));
 
 		// Create a panel for labels and fields
 		JPanel pnlLabelsAndFields = new JPanel(new GridLayout(0, 2));
@@ -111,7 +111,7 @@ public class ThicknessSetupDialog extends JDialog implements ActionListener {
 
 	private boolean setValuesToPlot() {
 
-		float thickness = Float.parseFloat(fieldThickness.getText());
+		double thickness = Double.parseDouble(fieldThickness.getText());
 
 		if (thickness > minThickness) {
 			plot.setThicknessBar(thickness);

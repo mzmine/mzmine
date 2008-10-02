@@ -42,9 +42,9 @@ public class ExactMassDetectorParameters extends SimpleParameterSet {
 			.getPercentInstance();
 
 	public static final Parameter noiseLevel = new SimpleParameter(
-			ParameterType.FLOAT, "Noise level",
+			ParameterType.DOUBLE, "Noise level",
 			"Intensities less than this value are interpreted as noise.",
-			"absolute", new Float(10.0), new Float(0.000001), null, MZmineCore
+			"absolute", new Double(10.0), new Double(0.000001), null, MZmineCore
 					.getIntensityFormat());
 
 	public static final Parameter resolution = new SimpleParameter(

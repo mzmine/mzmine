@@ -31,8 +31,8 @@ public class PeakSorterByDescendingHeight implements Comparator<ChromatographicP
 
     public int compare(ChromatographicPeak p1, ChromatographicPeak p2) {
 
-        Float p1Height = p1.getHeight();
-        Float p2Height = p2.getHeight();
+        Double p1Height = p1.getHeight();
+        Double p2Height = p2.getHeight();
 
         return p2Height.compareTo(p1Height);
 

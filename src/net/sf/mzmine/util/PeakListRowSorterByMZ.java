@@ -28,8 +28,8 @@ import net.sf.mzmine.data.PeakListRow;
 public class PeakListRowSorterByMZ implements Comparator<PeakListRow> {
 
     public int compare(PeakListRow row1, PeakListRow row2) {
-        Float mz1 = row1.getAverageMZ();
-        Float mz2 = row2.getAverageMZ();
+        Double mz1 = row1.getAverageMZ();
+        Double mz2 = row2.getAverageMZ();
         return mz1.compareTo(mz2); 
     }
 

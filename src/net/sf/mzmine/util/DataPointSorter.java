@@ -50,7 +50,7 @@ public class DataPointSorter implements Comparator<DataPoint> {
 
 	public int compare(DataPoint dp1, DataPoint dp2) {
         
-		Float value1, value2;
+		Double value1, value2;
 
 		if (sortByMZ) {
             value1 = dp1.getMZ();

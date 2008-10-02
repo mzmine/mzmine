@@ -39,7 +39,7 @@ import org.jfree.data.xy.XYDataset;
 class NeutralLossDataPointRenderer extends XYLineAndShapeRenderer {
 
     // small circle
-    private static final Shape dataPointsShape = new Ellipse2D.Float(-1, -1, 2, 2);
+    private static final Shape dataPointsShape = new Ellipse2D.Double(-1, -1, 2, 2);
 
     private NeutralLossPlot nlPlot;
     

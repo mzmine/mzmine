@@ -38,11 +38,11 @@ public class SimpleDataPointConverter implements Converter {
         
 		SimpleDataPoint dataPoint = (SimpleDataPoint) original;
 
-        float mz = dataPoint.getMZ();
-		float intensity = dataPoint.getIntensity();
+        double mz = dataPoint.getMZ();
+		double intensity = dataPoint.getIntensity();
 		
-		String value = Float.toString(mz) + ":"
-				+ Float.toString(intensity);
+		String value = Double.toString(mz) + ":"
+				+ Double.toString(intensity);
         
 		writer.setValue(value);
 
@@ -53,8 +53,8 @@ public class SimpleDataPointConverter implements Converter {
 
 		String value[] = reader.getValue().split(":");
 
-		float mz = Float.valueOf(value[0]);
-		float intensity = Float.valueOf(value[1]);;
+		double mz = Double.valueOf(value[0]);
+		double intensity = Double.valueOf(value[1]);;
 		SimpleDataPoint dataPoint = new SimpleDataPoint(mz,intensity);
 		return dataPoint;
 

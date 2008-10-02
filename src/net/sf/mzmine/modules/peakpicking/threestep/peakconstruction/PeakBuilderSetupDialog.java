@@ -195,9 +195,9 @@ public class PeakBuilderSetupDialog extends ParameterSetupDialog implements
 
 		if (src == btnLoad) {
 			if (preview.isSelected()) {
-				float minRT = Float.parseFloat(minTxtFieldRet.getValue()
+				double minRT = Double.parseDouble(minTxtFieldRet.getValue()
 						.toString());
-				float maxRT = Float.parseFloat(maxTxtFieldRet.getValue()
+				double maxRT = Double.parseDouble(maxTxtFieldRet.getValue()
 						.toString());
 
 				if (minRT > maxRT) {
@@ -208,9 +208,9 @@ public class PeakBuilderSetupDialog extends ParameterSetupDialog implements
 
 				rtRange = new Range(minRT, maxRT);
 
-				float minMZ = Float.parseFloat(minTxtFieldMZ.getValue()
+				double minMZ = Double.parseDouble(minTxtFieldMZ.getValue()
 						.toString());
-				float maxMZ = Float.parseFloat(maxTxtFieldMZ.getValue()
+				double maxMZ = Double.parseDouble(maxTxtFieldMZ.getValue()
 						.toString());
 
 				if (minMZ > maxMZ) {
@@ -342,7 +342,7 @@ public class PeakBuilderSetupDialog extends ParameterSetupDialog implements
 		for (int i = 0; i < listScans.length; i++) {
 
 			SimpleMzPeak[] mzValues = { new SimpleMzPeak(new SimpleDataPoint(mzRange
-					.getAverage(), ticDataset.getY(0, i).floatValue())) };
+					.getAverage(), ticDataset.getY(0, i).doubleValue())) };
 			chromatoBuilder.addScan(previewDataFile, previewDataFile
 					.getScan(listScans[i]), mzValues);
 

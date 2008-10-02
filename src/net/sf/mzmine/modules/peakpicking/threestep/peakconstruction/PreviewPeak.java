@@ -47,7 +47,7 @@ public class PreviewPeak implements ChromatographicPeak {
 		return "Peak @" + timeFormat.format(this.getRT());
 	}
 
-	public float getArea() {
+	public double getArea() {
 		return peak.getArea();
 	}
 
@@ -59,11 +59,11 @@ public class PreviewPeak implements ChromatographicPeak {
 		return peak.getMzPeak(scanNumber);
 	}
 
-	public float getHeight() {
+	public double getHeight() {
 		return peak.getHeight();
 	}
 
-	public float getMZ() {
+	public double getMZ() {
 		return peak.getMZ();
 	}
 
@@ -71,7 +71,7 @@ public class PreviewPeak implements ChromatographicPeak {
 		return peak.getPeakStatus();
 	}
 
-	public float getRT() {
+	public double getRT() {
 		return peak.getRT();
 	}
 

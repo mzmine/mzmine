@@ -52,20 +52,20 @@ class SpectraItemLabelGenerator implements XYItemLabelGenerator {
     public String generateLabel(XYDataset dataset, int series, int item) {
 
         // X and Y values of current data point
-        float originalX = dataset.getX(series, item).floatValue();
-        float originalY = dataset.getY(series, item).floatValue();
+        double originalX = dataset.getX(series, item).doubleValue();
+        double originalY = dataset.getY(series, item).doubleValue();
 
         // Calculate data size of 1 screen pixel
-        float xLength = (float) plot.getXYPlot().getDomainAxis().getRange().getLength();
-        float pixelX = xLength / plot.getWidth();
+        double xLength = (double) plot.getXYPlot().getDomainAxis().getRange().getLength();
+        double pixelX = xLength / plot.getWidth();
 
         // Size of data set
         int itemCount = dataset.getItemCount(series);
 
         // Search for data points higher than this one in the interval
         // from limitLeft to limitRight
-        float limitLeft = originalX - ((POINTS_RESERVE_X / 2) * pixelX);
-        float limitRight = originalX + ((POINTS_RESERVE_X / 2) * pixelX);
+        double limitLeft = originalX - ((POINTS_RESERVE_X / 2) * pixelX);
+        double limitRight = originalX + ((POINTS_RESERVE_X / 2) * pixelX);
 
         // Iterate data points to the left and right
         for (int i = 1; (item - i > 0) || (item + i < itemCount); i++) {

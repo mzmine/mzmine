@@ -110,7 +110,7 @@ class PeakListReportGenerator {
         Object columnIdentifier = column.getIdentifier();
         int columnWidth = column.getWidth();
         Dimension fieldSize = new Dimension(columnWidth, rowHeight);
-        Point2D position = new Point2D.Float(xPosition, 0);
+        Point2D position = new Point2D.Double(xPosition, 0);
         xPosition += columnWidth;
 
         ElementFactory newElementFac = null;
@@ -198,7 +198,7 @@ class PeakListReportGenerator {
                         if (peak == null)
                             return null;
 
-                        float maxHeight;
+                        double maxHeight;
                         PeakList peakList = table.getPeakList();
                         switch (parameters.getPeakShapeNormalization()) {
                         case GLOBALMAX:

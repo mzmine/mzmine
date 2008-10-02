@@ -28,17 +28,17 @@ import net.sf.mzmine.modules.peakpicking.threestep.xicconstruction.ConnectedMzPe
  */
 public class MatchScore implements Comparable<MatchScore> {
 
-    private float score;
+    private double score;
     private Chromatogram chromatogram;
     private ConnectedMzPeak cMzPeak;
 
     public MatchScore(Chromatogram chromatogram, ConnectedMzPeak cMzPeak) {
         this.chromatogram = chromatogram;
         this.cMzPeak = cMzPeak;
-        score = (float) Math.abs(chromatogram.getLastMz() - cMzPeak.getMzPeak().getMZ());
+        score = (double) Math.abs(chromatogram.getLastMz() - cMzPeak.getMzPeak().getMZ());
     }
 
-    public float getScore() {
+    public double getScore() {
         return score;
     }
 

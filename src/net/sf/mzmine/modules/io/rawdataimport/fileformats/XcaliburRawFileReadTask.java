@@ -54,10 +54,10 @@ public class XcaliburRawFileReadTask implements Task {
 	private int scanNumber = 0;
 	private int msLevel = 0;
 	private int parsedScans = 0;
-	private float retentionTime = 0f;
-	private float mz[] = new float[0];
-	private float intensity[] = new float[0];
-	private float precursorMz = 0f;
+	private double retentionTime = 0d;
+	private double mz[] = new double[0];
+	private double intensity[] = new double[0];
+	private double precursorMz = 0d;
 	private int precursorCharge = 0;
 	private int peaksCount = 0;
 
@@ -103,8 +103,8 @@ public class XcaliburRawFileReadTask implements Task {
 	/**
 	 * @see net.sf.mzmine.taskcontrol.Task#getFinishedPercentage()
 	 */
-	public float getFinishedPercentage() {
-		return totalScans == 0 ? 0 : (float) parsedScans / totalScans;
+	public double getFinishedPercentage() {
+		return totalScans == 0 ? 0 : (double) parsedScans / totalScans;
 	}
 
 	/**
@@ -255,8 +255,8 @@ public class XcaliburRawFileReadTask implements Task {
 
 		int i, j;
 		for (i = 0, j = 0; i < completeDataPoints.length; i++) {
-			float intensity = completeDataPoints[i].getIntensity();
-			float mz = completeDataPoints[i].getMZ();
+			double intensity = completeDataPoints[i].getIntensity();
+			double mz = completeDataPoints[i].getMZ();
 			
 			//logger.finest("Mz " + mz + " " + intensity);
 			
@@ -343,8 +343,8 @@ public class XcaliburRawFileReadTask implements Task {
 		scanNumber = 0;
 		msLevel = 0;
 		retentionTime = 0;
-		mz = new float[0];
-		intensity = new float[0];
+		mz = new double[0];
+		intensity = new double[0];
 		precursorMz = 0;
 		precursorCharge = 0;
 		peaksCount = 0;

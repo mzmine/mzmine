@@ -34,7 +34,7 @@ class PeakDataRenderer extends XYLineAndShapeRenderer {
     private static final Color peakColor = Color.green;
 
     // data points shape
-    private static final Shape dataPointsShape = new Ellipse2D.Float(-2, -2, 5,
+    private static final Shape dataPointsShape = new Ellipse2D.Double(-2, -2, 5,
             5);
 
     PeakDataRenderer() {

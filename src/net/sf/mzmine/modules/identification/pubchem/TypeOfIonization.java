@@ -26,9 +26,9 @@ public enum TypeOfIonization {
 
     private final String name;
     private final int sign;
-    private float mass;
+    private double mass;
 
-    TypeOfIonization(String name, int sign, float mass) {
+    TypeOfIonization(String name, int sign, double mass) {
         this.name = name;
         this.sign = sign;
         this.mass = mass;
@@ -42,7 +42,7 @@ public enum TypeOfIonization {
         return sign;
     }
 
-    public float getMass() {
+    public double getMass() {
         return mass;
     }
 

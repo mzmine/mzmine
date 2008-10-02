@@ -46,7 +46,7 @@ public class PeakXICComponent extends JComponent {
     private ChromatographicPeak peak;
 
     private Range rtRange;
-    private float maxIntensity;
+    private double maxIntensity;
 
     /**
      * @param peak Picked peak to plot
@@ -58,7 +58,7 @@ public class PeakXICComponent extends JComponent {
     /**
      * @param peak Picked peak to plot
      */
-    public PeakXICComponent(ChromatographicPeak peak, float maxIntensity) {
+    public PeakXICComponent(ChromatographicPeak peak, double maxIntensity) {
 
         this.peak = peak;
 
@@ -104,7 +104,7 @@ public class PeakXICComponent extends JComponent {
         // find one datapoint with maximum intensity in each scan
         for (int i = 0; i < scanNumbers.length; i++) {
 
-            float dataPointIntensity = 0;
+            double dataPointIntensity = 0;
         	DataPoint dataPoint = peak.getMzPeak(scanNumbers[i]);
         	
         	if (dataPoint != null)
@@ -112,7 +112,7 @@ public class PeakXICComponent extends JComponent {
             
 
             // get retention time (X value)
-            float retentionTime = dataFile.getScan(scanNumbers[i]).getRetentionTime();
+            double retentionTime = dataFile.getScan(scanNumbers[i]).getRetentionTime();
 
             // calculate [X:Y] coordinates
             xValues[i] = (int) Math.floor((retentionTime - rtRange.getMin())

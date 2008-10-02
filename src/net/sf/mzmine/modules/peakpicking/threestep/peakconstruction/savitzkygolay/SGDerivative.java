@@ -8,9 +8,9 @@ public final class SGDerivative {
 	 * @param chromatoIntensities
 	 * @return
 	 */
-	public static float[] calculateDerivative(float[] chromatoIntensities, boolean firstDerivative, int levelOfFilter) {
+	public static double[] calculateDerivative(double[] chromatoIntensities, boolean firstDerivative, int levelOfFilter) {
 
-		float[] derivative = new float[chromatoIntensities.length];
+		double[] derivative = new double[chromatoIntensities.length];
 		int M = 0;
 
 		for (int k = 0; k < derivative.length; k++) {
@@ -42,7 +42,7 @@ public final class SGDerivative {
 	 * @param signedC
 	 * @return
 	 */
-	private static Float getSGCoefficient(int M, int signedC, boolean firstDerivate) {
+	private static Double getSGCoefficient(int M, int signedC, boolean firstDerivate) {
 
 		int C = Math.abs(signedC), sign = 1;
 		if (firstDerivate){

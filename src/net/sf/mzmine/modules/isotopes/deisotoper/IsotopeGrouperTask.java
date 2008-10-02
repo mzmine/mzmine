@@ -46,7 +46,7 @@ class IsotopeGrouperTask implements Task {
      * we don't know the formula, we can assume the distance to be ~1 Da, with
      * user-defined tolerance.
      */
-    private static final float isotopeDistance = 1f;
+    private static final double isotopeDistance = 1f;
 
     private PeakList peaklist;
 
@@ -58,7 +58,7 @@ class IsotopeGrouperTask implements Task {
 
     // parameter values
     private String suffix;
-    private float mzTolerance, rtTolerance;
+    private double mzTolerance, rtTolerance;
     private boolean monotonicShape, removeOriginal, chooseMostIntense;
     private int maximumCharge;
 
@@ -72,8 +72,8 @@ class IsotopeGrouperTask implements Task {
 
         // Get parameter values for easier use
         suffix = (String) parameters.getParameterValue(IsotopeGrouperParameters.suffix);
-        mzTolerance = (Float) parameters.getParameterValue(IsotopeGrouperParameters.mzTolerance);
-        rtTolerance = (Float) parameters.getParameterValue(IsotopeGrouperParameters.rtTolerance);
+        mzTolerance = (Double) parameters.getParameterValue(IsotopeGrouperParameters.mzTolerance);
+        rtTolerance = (Double) parameters.getParameterValue(IsotopeGrouperParameters.rtTolerance);
         monotonicShape = (Boolean) parameters.getParameterValue(IsotopeGrouperParameters.monotonicShape);
         maximumCharge = (Integer) parameters.getParameterValue(IsotopeGrouperParameters.maximumCharge);
         chooseMostIntense = (parameters.getParameterValue(IsotopeGrouperParameters.representativeIsotope) == IsotopeGrouperParameters.ChooseTopIntensity);
@@ -91,10 +91,10 @@ class IsotopeGrouperTask implements Task {
     /**
      * @see net.sf.mzmine.taskcontrol.Task#getFinishedPercentage()
      */
-    public float getFinishedPercentage() {
+    public double getFinishedPercentage() {
         if (totalPeaks == 0)
             return 0.0f;
-        return (float) processedPeaks / (float) totalPeaks;
+        return (double) processedPeaks / (double) totalPeaks;
     }
 
     /**
@@ -185,7 +185,7 @@ class IsotopeGrouperTask implements Task {
             SimpleIsotopePattern isotopePattern = new SimpleIsotopePattern();
             isotopePattern.setCharge(bestFitCharge);
 
-            float maxHeight = Float.MIN_VALUE, minMZ = Float.MAX_VALUE;
+            double maxHeight = Double.MIN_VALUE, minMZ = Double.MAX_VALUE;
 
             for (ChromatographicPeak p : bestFitPeaks) {
                 isotopePattern.addPeak(p);
@@ -269,8 +269,8 @@ class IsotopeGrouperTask implements Task {
             Vector<ChromatographicPeak> fittedPeaks, ChromatographicPeak[] sortedPeaks) {
 
         // Use M/Z and RT of the strongest peak of the pattern (peak 'p')
-        float mainMZ = p.getMZ();
-        float mainRT = p.getRT();
+        double mainMZ = p.getMZ();
+        double mainRT = p.getRT();
 
         // Variable n is the number of peak we are currently searching. 1=first
         // peak before/after start peak, 2=peak before/after previous, 3=...
@@ -293,8 +293,8 @@ class IsotopeGrouperTask implements Task {
                     continue;
 
                 // Get properties of the candidate peak
-                float candidatePeakMZ = candidatePeak.getMZ();
-                float candidatePeakRT = candidatePeak.getRT();
+                double candidatePeakMZ = candidatePeak.getMZ();
+                double candidatePeakRT = candidatePeak.getRT();
 
                 // Does this peak fill all requirements of a candidate?
                 // - within tolerances from the expected location (M/Z and RT)
@@ -302,7 +302,7 @@ class IsotopeGrouperTask implements Task {
                 // conflicts when parameters are set too wide)
 
                 if ((Math.abs((candidatePeakMZ - isotopeDistance * direction
-                        * n / (float) charge)
+                        * n / (double) charge)
                         - mainMZ) <= mzTolerance)
                         && (Math.abs(candidatePeakRT - mainRT) < rtTolerance)
                         && (!fittedPeaks.contains(candidatePeak))) {

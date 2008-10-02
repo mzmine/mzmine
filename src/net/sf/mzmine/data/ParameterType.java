@@ -32,12 +32,12 @@ public enum ParameterType {
     INTEGER,
 
     /**
-     * Parameter values represented by Float instance
+     * Parameter values represented by Double instance
      */
-    FLOAT,
+    DOUBLE,
 
     /**
-     * Parameter values represented by Range instance (range of float values)
+     * Parameter values represented by Range instance (range of double values)
      */
     RANGE,
 

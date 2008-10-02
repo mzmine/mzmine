@@ -36,17 +36,17 @@ public class GaussPlusTrianglePeak implements PeakModel {
      * This constant defines at what percentage of the intensity we set the
      * height of our triangle. Default is 5%.
      */
-    public static final float shoulderIntensityRatio = 0.05f;
+    public static final double shoulderIntensityRatio = 0.05f;
 
     private GaussPeak gaussModel;
-    private float mzMain, shoulderIntensity;
+    private double mzMain, shoulderIntensity;
 
     public GaussPlusTrianglePeak() {
         gaussModel = new GaussPeak();
     }
 
-    public void setParameters(float mzMain, float intensityMain,
-            float resolution) {
+    public void setParameters(double mzMain, double intensityMain,
+            double resolution) {
 
         this.mzMain = mzMain;
         this.shoulderIntensity = intensityMain * shoulderIntensityRatio;
@@ -57,29 +57,29 @@ public class GaussPlusTrianglePeak implements PeakModel {
     }
 
     /**
-     * @see net.sf.mzmine.modules.peakpicking.twostep.massdetection.exactmass.peakmodel.PeakModel#setParameters(float,
-     *      float, float)
+     * @see net.sf.mzmine.modules.peakpicking.twostep.massdetection.exactmass.peakmodel.PeakModel#setParameters(double,
+     *      double, double)
      */
-    public float getIntensity(float mz) {
+    public double getIntensity(double mz) {
 
-        float gaussIntensity = gaussModel.getIntensity(mz);
+        double gaussIntensity = gaussModel.getIntensity(mz);
 
-        float mzDiff = Math.abs(mzMain - mz);
+        double mzDiff = Math.abs(mzMain - mz);
 
         if (mzDiff >= 1)
             return gaussIntensity;
 
-        float triangleIntensity = shoulderIntensity * (1 - mzDiff);
+        double triangleIntensity = shoulderIntensity * (1 - mzDiff);
 
         return Math.max(gaussIntensity, triangleIntensity);
 
     }
 
-    public Range getWidth(float partialIntensity) {
+    public Range getWidth(double partialIntensity) {
 
         // The height value must be bigger than zero
         if (partialIntensity <= 0)
-            return new Range(0, Float.MAX_VALUE);
+            return new Range(0, Double.MAX_VALUE);
 
         if (partialIntensity < shoulderIntensity)
             return new Range(mzMain - 1, mzMain + 1);

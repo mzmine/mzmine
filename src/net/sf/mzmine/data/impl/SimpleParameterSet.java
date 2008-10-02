@@ -186,17 +186,17 @@ public class SimpleParameterSet implements StorableParameterSet {
 
             break;
 
-        case FLOAT:
-            if (!(value instanceof Float))
+        case DOUBLE:
+            if (!(value instanceof Double))
                 throw (new IllegalArgumentException("Value type mismatch"));
-            float floatValue = (Float) value;
-            Float minFValue = (Float) parameter.getMinimumValue();
-            if ((minFValue != null) && (floatValue < minFValue))
+            double doubleValue = (Double) value;
+            Double minFValue = (Double) parameter.getMinimumValue();
+            if ((minFValue != null) && (doubleValue < minFValue))
                 throw (new IllegalArgumentException(
                         "Minimum value of parameter " + parameter + "  is "
                                 + minFValue));
-            Float maxFValue = (Float) parameter.getMaximumValue();
-            if ((maxFValue != null) && (floatValue > maxFValue))
+            Double maxFValue = (Double) parameter.getMaximumValue();
+            if ((maxFValue != null) && (doubleValue > maxFValue))
                 throw (new IllegalArgumentException(
                         "Maximum value of parameter " + parameter + "  is "
                                 + maxFValue));
@@ -206,12 +206,12 @@ public class SimpleParameterSet implements StorableParameterSet {
             if (!(value instanceof Range))
                 throw (new IllegalArgumentException("Value type mismatch"));
             Range rangeValue = (Range) value;
-            Float minRValue = (Float) parameter.getMinimumValue();
+            Double minRValue = (Double) parameter.getMinimumValue();
             if ((minRValue != null) && (rangeValue.getMin() < minRValue))
                 throw (new IllegalArgumentException(
                         "Minimum value of parameter " + parameter + "  is "
                                 + minRValue));
-            Float maxRValue = (Float) parameter.getMaximumValue();
+            Double maxRValue = (Double) parameter.getMaximumValue();
             if ((maxRValue != null) && (rangeValue.getMax() > maxRValue))
                 throw (new IllegalArgumentException(
                         "Maximum value of parameter " + parameter + "  is "
@@ -296,13 +296,13 @@ public class SimpleParameterSet implements StorableParameterSet {
                 case INTEGER:
                     value = Integer.parseInt(valueText);
                     break;
-                case FLOAT:
-                    value = Float.parseFloat(valueText);
+                case DOUBLE:
+                    value = Double.parseDouble(valueText);
                     break;
                 case RANGE:
                     String values[] = valueText.split("-");
-                    float min = Float.parseFloat(values[0]);
-                    float max = Float.parseFloat(values[1]);
+                    double min = Double.parseDouble(values[0]);
+                    double max = Double.parseDouble(values[1]);
                     value = new Range(min, max);
                     break;
                 case STRING:

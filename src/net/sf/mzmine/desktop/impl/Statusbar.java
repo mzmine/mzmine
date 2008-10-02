@@ -142,7 +142,7 @@ public class Statusbar extends JPanel implements Runnable, MouseListener {
             // get free memory in megabytes
             long freeMem = Runtime.getRuntime().freeMemory() / (1024 * 1024);
             long totalMem = Runtime.getRuntime().totalMemory() / (1024 * 1024);
-            float fullMem = ((float) (totalMem - freeMem)) / totalMem;
+            double fullMem = ((double) (totalMem - freeMem)) / totalMem;
             
             memoryLabel.setValue(fullMem, freeMem + "MB free");
             memoryLabel.setToolTipText("JVM memory: " + freeMem + "MB, "

@@ -28,13 +28,13 @@ import net.sf.mzmine.main.MZmineCore;
  */
 class NeutralLossDataPoint {
 
-    private float mzValue;
+    private double mzValue;
     private int scanNumber, precursorScanNumber;
-    private float precursorMZ;
+    private double precursorMZ;
     private int precursorCharge;
-    private float retentionTime;
-    private float neutralLoss;
-    private float precursorMass;
+    private double retentionTime;
+    private double neutralLoss;
+    private double precursorMass;
     private String label;
 
     /**
@@ -44,9 +44,9 @@ class NeutralLossDataPoint {
      * @param precursorCharge
      * @param retentionTime
      */
-    NeutralLossDataPoint(float mzValue, int scanNumber,
-            int precursorScanNumber, float precursorMZ, int precursorCharge,
-            float retentionTime) {
+    NeutralLossDataPoint(double mzValue, int scanNumber,
+            int precursorScanNumber, double precursorMZ, int precursorCharge,
+            double retentionTime) {
 
         NumberFormat rtFormat = MZmineCore.getRTFormat();
         NumberFormat mzFormat = MZmineCore.getMZFormat();
@@ -82,7 +82,7 @@ class NeutralLossDataPoint {
     /**
      * @return Returns the mzValue.
      */
-    float getMzValue() {
+    double getMzValue() {
         return mzValue;
     }
 
@@ -96,14 +96,14 @@ class NeutralLossDataPoint {
     /**
      * @return Returns the precursorMZ.
      */
-    float getPrecursorMZ() {
+    double getPrecursorMZ() {
         return precursorMZ;
     }
 
     /**
      * @return Returns the precursor mass, or m/z if charge is unknown.
      */
-    float getPrecursorMass() {
+    double getPrecursorMass() {
         return precursorMass;
     }
 
@@ -117,7 +117,7 @@ class NeutralLossDataPoint {
     /**
      * @return Returns the retentionTime.
      */
-    float getRetentionTime() {
+    double getRetentionTime() {
         return retentionTime;
     }
 
@@ -128,7 +128,7 @@ class NeutralLossDataPoint {
         return scanNumber;
     }
 
-    float getNeutralLoss() {
+    double getNeutralLoss() {
         return neutralLoss;
     }
 

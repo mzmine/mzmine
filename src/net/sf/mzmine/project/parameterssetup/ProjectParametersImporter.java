@@ -62,7 +62,7 @@ import com.sun.java.ExampleFileFilter;
  * Rules for deciding type of parameter:
  * 
  * 1. If all values in a column (except column header on the first row) are
- * numeric, then the parameter type is set to Float.
+ * numeric, then the parameter type is set to Double.
  * 
  * 2. If there are at least some duplicate strings among values for a parameter,
  * then the parameter type is String and possible parameter values are all
@@ -194,7 +194,7 @@ public class ProjectParametersImporter {
 				rowNumber++;
 			}
 
-			// Decide parameter types (all numeric => Float, all unique string
+			// Decide parameter types (all numeric => Double, all unique string
 			// => String, at least one duplicate string => Object with possible
 			// values
 
@@ -215,8 +215,8 @@ public class ProjectParametersImporter {
 					}
 				}
 				if (isAllNumeric) {
-					parameters.add(new SimpleParameter(ParameterType.FLOAT,
-							name, null, new Float(0.0)));
+					parameters.add(new SimpleParameter(ParameterType.DOUBLE,
+							name, null, new Double(0.0)));
 					continue;
 				}
 
@@ -323,7 +323,7 @@ public class ProjectParametersImporter {
 					String parameterValue = st.nextToken();
 					Parameter parameter = parameters[parameterIndex];
 
-					if (parameter.getType() == ParameterType.FLOAT)
+					if (parameter.getType() == ParameterType.DOUBLE)
 						mainDialog.setParameterValue(parameter, fileName,
 								Double.parseDouble(parameterValue));
 					else

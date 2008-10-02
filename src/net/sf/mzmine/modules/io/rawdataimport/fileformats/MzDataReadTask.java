@@ -68,8 +68,8 @@ public class MzDataReadTask extends DefaultHandler implements Task {
 	private int scanNumber;
 	private int msLevel;
 	private int parentScan;
-	private float retentionTime;
-	private float precursorMz;
+	private double retentionTime;
+	private double precursorMz;
 	
 	/*
 	 * The information of "m/z" & "int" is content in two arrays because the mzData standard
@@ -115,8 +115,8 @@ public class MzDataReadTask extends DefaultHandler implements Task {
 	/**
 	 * @see net.sf.mzmine.taskcontrol.Task#getFinishedPercentage()
 	 */
-	public float getFinishedPercentage() {
-		return totalScans == 0 ? 0 : (float) parsedScans / totalScans;
+	public double getFinishedPercentage() {
+		return totalScans == 0 ? 0 : (double) parsedScans / totalScans;
 	}
 
 	/**
@@ -220,15 +220,15 @@ public class MzDataReadTask extends DefaultHandler implements Task {
 		if (qName.equalsIgnoreCase("cvParam")) {
 			if (spectrumInstrumentFlag) {
 				if ((attrs.getValue("accession").equals("PSI:1000038")) || (attrs.getValue("name").equals("time.min"))) {
-					retentionTime = Float.parseFloat(attrs.getValue("value")) * 60f;
+					retentionTime = Double.parseDouble(attrs.getValue("value")) * 60f;
 				}
 				if ((attrs.getValue("accession").equals("PSI:1000039")) || (attrs.getValue("name").equals("time.sec"))) {
-					retentionTime = Float.parseFloat(attrs.getValue("value"));
+					retentionTime = Double.parseDouble(attrs.getValue("value"));
 				}
 			}
 			if (precursorFlag) {
 				if ((attrs.getValue("accession").equals("PSI:1000040")) || (attrs.getValue("name").equals("mz"))) {
-					precursorMz = Float.parseFloat(attrs.getValue("value"));
+					precursorMz = Double.parseDouble(attrs.getValue("value"));
 				}
 			}
 		}
@@ -304,7 +304,7 @@ public class MzDataReadTask extends DefaultHandler implements Task {
 			// Copy m/z and intensity data
 			for (int i = 0; i < completeDataPoints.length; i++) {
 				completeDataPoints[i] = new SimpleDataPoint(
-						(float) mzDataPoints[i], (float) intensityDataPoints[i]);
+						(double) mzDataPoints[i], (double) intensityDataPoints[i]);
 			}
 			/*
 			 * This section verifies DataPoints with intensity="0" and exclude
@@ -314,8 +314,8 @@ public class MzDataReadTask extends DefaultHandler implements Task {
 
 			int i, j;
 			for (i = 0, j = 0; i < completeDataPoints.length; i++) {
-				float intensity = completeDataPoints[i].getIntensity();
-				float mz = completeDataPoints[i].getMZ();
+				double intensity = completeDataPoints[i].getIntensity();
+				double mz = completeDataPoints[i].getMZ();
 				if (completeDataPoints[i].getIntensity() > 0) {
 					tempDataPoints[j] = new SimpleDataPoint(mz, intensity);
 					j++;
@@ -454,7 +454,7 @@ public class MzDataReadTask extends DefaultHandler implements Task {
 								.getFloat();
 					else
 						intensityDataPoints[i] = currentIntensityBytes
-								.getFloat();
+								.getDouble();
 				}
 		}
 	}

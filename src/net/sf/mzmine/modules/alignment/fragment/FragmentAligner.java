@@ -222,8 +222,8 @@ public class FragmentAligner implements BatchStep, TaskListener, ActionListener 
         for (PeakList peakList : peakLists)
             numberOfRows += peakList.getNumberOfRows();
 
-        float[] mzValues = new float[numberOfRows];
-        float[] rtValues = new float[numberOfRows];
+        double[] mzValues = new double[numberOfRows];
+        double[] rtValues = new double[numberOfRows];
         int valueIndex = 0;
         for (PeakList peakList : peakLists)
             for (PeakListRow row : peakList.getRows()) {
@@ -235,13 +235,13 @@ public class FragmentAligner implements BatchStep, TaskListener, ActionListener 
         Arrays.sort(rtValues);
 
         // Find all possible boundaries between fragments
-        float mzTolerance = (Float) this.parameters.getParameterValue(FragmentAlignerParameters.MZTolerance);
+        double mzTolerance = (Double) this.parameters.getParameterValue(FragmentAlignerParameters.MZTolerance);
 
-        ArrayList<Float> allMZFragmentLimits = new ArrayList<Float>();
+        ArrayList<Double> allMZFragmentLimits = new ArrayList<Double>();
         ArrayList<Integer> allMZFragmentPeaks = new ArrayList<Integer>();
         int prevIndex = 0;
         for (valueIndex = 0; valueIndex < (mzValues.length - 1); valueIndex++) {
-            float mzDiff = mzValues[valueIndex + 1] - mzValues[valueIndex];
+            double mzDiff = mzValues[valueIndex + 1] - mzValues[valueIndex];
             if (mzDiff > mzTolerance) {
                 allMZFragmentLimits.add(mzValues[valueIndex]);
                 allMZFragmentPeaks.add((valueIndex - prevIndex));
@@ -255,14 +255,14 @@ public class FragmentAligner implements BatchStep, TaskListener, ActionListener 
         // Filter fragments if too many
         int maxNumberOfFragments = (Integer) this.parameters.getParameterValue(FragmentAlignerParameters.MaxFragments);
 
-        ArrayList<Float> filteredMZFragmentLimits;
+        ArrayList<Double> filteredMZFragmentLimits;
 
         if (maxNumberOfFragments < allMZFragmentLimits.size()) {
 
-            filteredMZFragmentLimits = new ArrayList<Float>();
+            filteredMZFragmentLimits = new ArrayList<Double>();
 
-            int peaksPerFragment = (int) Math.ceil((float) mzValues.length
-                    / (float) maxNumberOfFragments);
+            int peaksPerFragment = (int) Math.ceil((double) mzValues.length
+                    / (double) maxNumberOfFragments);
 
             int sumPeaks = 0;
             for (int mzFragmentIndex = 0; mzFragmentIndex < allMZFragmentLimits.size(); mzFragmentIndex++) {
@@ -283,11 +283,11 @@ public class FragmentAligner implements BatchStep, TaskListener, ActionListener 
                 + " fragments.");
 
         /*
-         * for (float mz : filteredMZFragmentLimits) { System.out.print("" + mz + ",
+         * for (double mz : filteredMZFragmentLimits) { System.out.print("" + mz + ",
          * "); } System.out.println();
          */
 
-        Float[] mzFragmentLimits = filteredMZFragmentLimits.toArray(new Float[0]);
+        Double[] mzFragmentLimits = filteredMZFragmentLimits.toArray(new Double[0]);
 
         // Initialize a temp peak list for each fragment and peak list
         PeakList[][] peakListsForFragments = new PeakList[allMZFragmentLimits.size() + 1][peakLists.length];
@@ -313,7 +313,7 @@ public class FragmentAligner implements BatchStep, TaskListener, ActionListener 
             int mzFragmentIndex = 0;
             for (PeakListRow peakListRow : peakListRows) {
 
-                float mz = peakListRow.getAverageMZ();
+                double mz = peakListRow.getAverageMZ();
 
                 // Move to next fragment if possible and necessary
                 while ((mzFragmentIndex < mzFragmentLimits.length)

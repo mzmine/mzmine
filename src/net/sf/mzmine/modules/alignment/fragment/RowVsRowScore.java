@@ -28,24 +28,24 @@ import net.sf.mzmine.util.PeakUtils;
 class RowVsRowScore implements Comparable<RowVsRowScore> {
 
 	private PeakListRow peakListRow, alignedRow;
-	float score;
+	double score;
 
 	RowVsRowScore(PeakListRow peakListRow, PeakListRow alignedRow,
-			float mzMaxDiff, float mzWeight, float rtMaxDiff,
-			float rtWeight, float sameIDWeight) {
+			double mzMaxDiff, double mzWeight, double rtMaxDiff,
+			double rtWeight, double sameIDWeight) {
 
 		this.peakListRow = peakListRow;
 		this.alignedRow = alignedRow;
 
 		// Calculate differences between m/z and RT values
-		float mzDiff = Math.abs(peakListRow.getAverageMZ()
+		double mzDiff = Math.abs(peakListRow.getAverageMZ()
 				- alignedRow.getAverageMZ());
 
-		float rtDiff = Math.abs(peakListRow.getAverageRT()
+		double rtDiff = Math.abs(peakListRow.getAverageRT()
 				- alignedRow.getAverageRT());
 
 		// Compare identities
-		float sameIDFlag = 0.0f;
+		double sameIDFlag = 0.0f;
 		if (PeakUtils.compareIdentities(peakListRow, alignedRow))
 			sameIDFlag = 1.0f;
 
@@ -73,7 +73,7 @@ class RowVsRowScore implements Comparable<RowVsRowScore> {
 	 * This method returns score between the these two peaks (the lower score,
 	 * the better match)
 	 */
-	float getScore() {
+	double getScore() {
 		return score;
 	}
 

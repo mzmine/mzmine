@@ -42,14 +42,14 @@ public class GapFillerParameters extends SimpleParameterSet {
             "Suffix to be added to peak list name", null, "gap-filled", null);
 
     public static final Parameter intTolerance = new SimpleParameter(
-            ParameterType.FLOAT,
+            ParameterType.DOUBLE,
             "Intensity tolerance",
             "Maximum allowed deviation from expected /\\ shape of a peak in chromatographic direction",
-            "%", new Float(0.20), new Float(0.0), null, percentFormat);
+            "%", new Double(0.20), new Double(0.0), null, percentFormat);
 
     public static final Parameter MZTolerance = new SimpleParameter(
-            ParameterType.FLOAT, "M/Z tolerance",
-            "Maximum allowed M/Z difference", "m/z", new Float(0.2), new Float(
+            ParameterType.DOUBLE, "M/Z tolerance",
+            "Maximum allowed M/Z difference", "m/z", new Double(0.2), new Double(
                     0.0), null, MZmineCore.getMZFormat());
 
     public static final Parameter RTToleranceType = new SimpleParameter(
@@ -59,14 +59,14 @@ public class GapFillerParameters extends SimpleParameterSet {
             RTToleranceTypeAbsolute, RTToleranceTypePossibleValues);
 
     public static final Parameter RTToleranceValueAbs = new SimpleParameter(
-            ParameterType.FLOAT, "Absolute RT tolerance",
-            "Maximum allowed absolute RT difference", null, new Float(15.0),
-            new Float(0.0), null, MZmineCore.getRTFormat());
+            ParameterType.DOUBLE, "Absolute RT tolerance",
+            "Maximum allowed absolute RT difference", null, new Double(15.0),
+            new Double(0.0), null, MZmineCore.getRTFormat());
 
     public static final Parameter RTToleranceValuePercent = new SimpleParameter(
-            ParameterType.FLOAT, "Relative RT tolerance",
-            "Maximum allowed relative RT difference", "%", new Float(0.15),
-            new Float(0.0), null, percentFormat);
+            ParameterType.DOUBLE, "Relative RT tolerance",
+            "Maximum allowed relative RT difference", "%", new Double(0.15),
+            new Double(0.0), null, percentFormat);
 
     public GapFillerParameters() {
         super(new Parameter[] { suffix, intTolerance, MZTolerance,

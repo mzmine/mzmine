@@ -49,7 +49,7 @@ class CMFilterTask implements Task {
 
 	// parameter values
 	private String suffix;
-	private float mzTolerance;
+	private double mzTolerance;
 	private int oneSidedWindowLength;
 	private boolean removeOriginal;
 
@@ -61,7 +61,7 @@ class CMFilterTask implements Task {
 		this.dataFile = dataFile;
 		suffix = (String) parameters
 				.getParameterValue(CMFilterParameters.suffix);
-		mzTolerance = (Float) parameters
+		mzTolerance = (Double) parameters
 				.getParameterValue(CMFilterParameters.MZTolerance);
 		oneSidedWindowLength = (Integer) parameters
 				.getParameterValue(CMFilterParameters.oneSidedWindowLength);
@@ -79,10 +79,10 @@ class CMFilterTask implements Task {
 	/**
 	 * @see net.sf.mzmine.taskcontrol.Task#getFinishedPercentage()
 	 */
-	public float getFinishedPercentage() {
+	public double getFinishedPercentage() {
 		if (totalScans == 0)
 			return 0.0f;
-		return (float) filteredScans / totalScans;
+		return (double) filteredScans / totalScans;
 	}
 
 	/**
@@ -170,12 +170,12 @@ class CMFilterTask implements Task {
 
 					for (int datapointIndex = 0; datapointIndex < oldDataPoints.length; datapointIndex++) {
 
-						float mzValue = oldDataPoints[datapointIndex].getMZ();
-						float intValue = oldDataPoints[datapointIndex]
+						double mzValue = oldDataPoints[datapointIndex].getMZ();
+						double intValue = oldDataPoints[datapointIndex]
 								.getIntensity();
 
-						Vector<Float> intValueBuffer = new Vector<Float>();
-						intValueBuffer.add(new Float(intValue));
+						Vector<Double> intValueBuffer = new Vector<Double>();
+						intValueBuffer.add(new Double(intValue));
 
 						// Loop through the buffer
 						for (int bufferIndex = 0; bufferIndex < scanBuffer.length; bufferIndex++) {
@@ -188,7 +188,7 @@ class CMFilterTask implements Task {
 								Object[] res = findClosestDatapointIntensity(
 										mzValue, scanBuffer[bufferIndex],
 										dataPointIndices[bufferIndex]);
-								Float closestInt = (Float) (res[0]);
+								Double closestInt = (Double) (res[0]);
 								dataPointIndices[bufferIndex] = (Integer) (res[1]);
 								if (closestInt != null) {
 									intValueBuffer.add(closestInt);
@@ -198,13 +198,13 @@ class CMFilterTask implements Task {
 
 						// Calculate median of all intensity values in the
 						// buffer
-						float[] tmpIntensities = new float[intValueBuffer
+						double[] tmpIntensities = new double[intValueBuffer
 								.size()];
 						for (int bufferIndex = 0; bufferIndex < tmpIntensities.length; bufferIndex++) {
 							tmpIntensities[bufferIndex] = intValueBuffer.get(
-									bufferIndex).floatValue();
+									bufferIndex).doubleValue();
 						}
-						float medianIntensity = MathUtils.calcQuantile(
+						double medianIntensity = MathUtils.calcQuantile(
 								tmpIntensities, 0.5f);
 
 						newDataPoints[datapointIndex] = new SimpleDataPoint(
@@ -250,29 +250,29 @@ class CMFilterTask implements Task {
 	 * @param startIndex
 	 *            Start searching from this datapoint
 	 * @return Array of two objects, [0] is intensity of closest datapoint as
-	 *         Float or null if not a single datapoint was close enough. [1] is
+	 *         Double or null if not a single datapoint was close enough. [1] is
 	 *         index of datapoint that was closest to given mz value (this will
 	 *         be used as starting point for next search) if nothing was close
 	 *         enough to given mz value, then this is the start index
 	 * 
 	 */
-	private Object[] findClosestDatapointIntensity(float mzValue, Scan s,
+	private Object[] findClosestDatapointIntensity(double mzValue, Scan s,
 			int startIndex) {
 
 		DataPoint dataPoints[] = s.getDataPoints();
 
 		Integer closestIndex = null;
 
-		float closestIntensity = -1;
-		float closestDistance = Float.MAX_VALUE;
+		double closestIntensity = -1;
+		double closestDistance = Double.MAX_VALUE;
 
-		float prevDistance = Float.MAX_VALUE;
+		double prevDistance = Double.MAX_VALUE;
 
 		// Loop through datapoints
 		for (int i = startIndex; i < dataPoints.length; i++) {
 
 			// Check if this mass values is within range to mz value
-			float tmpDistance = Math.abs(dataPoints[i].getMZ() - mzValue);
+			double tmpDistance = Math.abs(dataPoints[i].getMZ() - mzValue);
 			if (tmpDistance < mzTolerance) {
 
 				// If this is closest datapoint so far, then store its' mz and
@@ -298,7 +298,7 @@ class CMFilterTask implements Task {
 		}
 
 		Object[] result = new Object[2];
-		result[0] = new Float(closestIntensity);
+		result[0] = new Double(closestIntensity);
 		result[1] = closestIndex;
 
 		return result;

@@ -41,8 +41,8 @@ public class RangeConverter implements Converter {
 
         Range rng = (Range) original;
 
-        String value = Float.toString(rng.getMin()) + ":"
-                + Float.toString(rng.getMax());
+        String value = Double.toString(rng.getMin()) + ":"
+                + Double.toString(rng.getMax());
 
         writer.setValue(value);
 
@@ -53,7 +53,7 @@ public class RangeConverter implements Converter {
 
         String value[] = reader.getValue().split(":");
 
-        Range rng = new Range(Float.valueOf(value[0]), Float.valueOf(value[1]));
+        Range rng = new Range(Double.valueOf(value[0]), Double.valueOf(value[1]));
 
         return rng;
 

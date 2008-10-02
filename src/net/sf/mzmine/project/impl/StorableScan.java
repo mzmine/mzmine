@@ -22,7 +22,7 @@ package net.sf.mzmine.project.impl;
 import java.io.IOException;
 import java.io.RandomAccessFile;
 import java.nio.ByteBuffer;
-import java.nio.FloatBuffer;
+import java.nio.DoubleBuffer;
 import java.util.Vector;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -40,12 +40,12 @@ public class StorableScan implements Scan {
     private transient Logger logger = Logger.getLogger(this.getClass().getName());
 
     private int scanNumber, msLevel, parentScan, fragmentScans[];
-    private float precursorMZ;
+    private double precursorMZ;
     private int precursorCharge;
-    private float retentionTime;
+    private double retentionTime;
     private Range mzRange;
     private DataPoint basePeak;
-    private float totalIonCurrent;
+    private double totalIonCurrent;
     private boolean centroided;
 
     private long storageFileOffset;
@@ -66,8 +66,8 @@ public class StorableScan implements Scan {
     /**
      * Constructor for creating scan with given data
      */
-    public StorableScan(int scanNumber, int msLevel, float retentionTime,
-            int parentScan, float precursorMZ, int fragmentScans[],
+    public StorableScan(int scanNumber, int msLevel, double retentionTime,
+            int parentScan, double precursorMZ, int fragmentScans[],
             DataPoint[] dataPoints, boolean centroided, RawDataFileImpl rawDataFile) {
 
         // check assumptions about proper scan data
@@ -107,13 +107,13 @@ public class StorableScan implements Scan {
             }
         }
 
-        FloatBuffer floatBuffer = buffer.asFloatBuffer();
+        DoubleBuffer doubleBuffer = buffer.asDoubleBuffer();
 
         DataPoint dataPoints[] = new DataPoint[numberOfDataPoints];
 
         for (int i = 0; i < numberOfDataPoints; i++) {
-            float mz = floatBuffer.get();
-            float intensity = floatBuffer.get();
+            double mz = doubleBuffer.get();
+            double intensity = doubleBuffer.get();
             dataPoints[i] = new SimpleDataPoint(mz, intensity);
         }
 
@@ -151,7 +151,7 @@ public class StorableScan implements Scan {
 	/**
 	 * @return Returns scan datapoints over certain intensity
 	 */
-	public DataPoint[] getDataPointsOverIntensity(float intensity) {
+	public DataPoint[] getDataPointsOverIntensity(double intensity) {
 		int index;
 		Vector<DataPoint> points = new Vector<DataPoint>();
         DataPoint dataPoints[] = getDataPoints();
@@ -174,12 +174,12 @@ public class StorableScan implements Scan {
 
         numberOfDataPoints = dataPoints.length;
 
-        // every float needs 4 bytes, we need one float for m/z and one float
+        // every double needs 8 bytes, we need one double for m/z and one double
         // for intensity
-        storageArrayByteLength = numberOfDataPoints * 4 * 2;
+        storageArrayByteLength = numberOfDataPoints * 8 * 2;
 
         ByteBuffer buffer = ByteBuffer.allocate(storageArrayByteLength);
-        FloatBuffer floatBuffer = buffer.asFloatBuffer();
+        DoubleBuffer doubleBuffer = buffer.asDoubleBuffer();
         RandomAccessFile storageFile = rawDataFile.getScanDataFile();
         synchronized (storageFile) {
             try {
@@ -188,8 +188,8 @@ public class StorableScan implements Scan {
                 storageFile.seek(storageFileOffset);
 
                 for (DataPoint dp : dataPoints) {
-                    floatBuffer.put(dp.getMZ());
-                    floatBuffer.put(dp.getIntensity());
+                    doubleBuffer.put(dp.getMZ());
+                    doubleBuffer.put(dp.getIntensity());
                 }
 
                 storageFile.write(buffer.array());
@@ -251,7 +251,7 @@ public class StorableScan implements Scan {
     /**
      * @see net.sf.mzmine.data.Scan#getPrecursorMZ()
      */
-    public float getPrecursorMZ() {
+    public double getPrecursorMZ() {
         return precursorMZ;
     }
 
@@ -265,7 +265,7 @@ public class StorableScan implements Scan {
     /**
      * @see net.sf.mzmine.data.Scan#getScanAcquisitionTime()
      */
-    public float getRetentionTime() {
+    public double getRetentionTime() {
         return retentionTime;
     }
 
@@ -318,7 +318,7 @@ public class StorableScan implements Scan {
         return centroided;
     }
 
-    public float getTIC() {
+    public double getTIC() {
         return totalIonCurrent;
     }
 

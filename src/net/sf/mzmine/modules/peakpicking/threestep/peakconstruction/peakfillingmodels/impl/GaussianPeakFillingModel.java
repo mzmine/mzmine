@@ -31,11 +31,11 @@ import net.sf.mzmine.util.Range;
 
 public class GaussianPeakFillingModel implements PeakFillingModel {
 
-    private float xRight = -1, xLeft = -1;
-    private float rtMain, intensityMain, FWHM, partC, part2C2;
+    private double xRight = -1, xLeft = -1;
+    private double rtMain, intensityMain, FWHM, partC, part2C2;
 
     public ChromatographicPeak fillingPeak(
-            ChromatographicPeak originalDetectedShape, float[] params) {
+            ChromatographicPeak originalDetectedShape, double[] params) {
 
         xRight = -1;
         xLeft = -1;
@@ -44,13 +44,13 @@ public class GaussianPeakFillingModel implements PeakFillingModel {
 
         RawDataFile dataFile = originalDetectedShape.getDataFile();
         Range originalRange = originalDetectedShape.getRawDataPointsRTRange();
-        float rangeSize = originalRange.getSize();
-        float mass = originalDetectedShape.getMZ();
+        double rangeSize = originalRange.getSize();
+        double mass = originalDetectedShape.getMZ();
         Range extendedRange = new Range(originalRange.getMin() - rangeSize,
                 originalRange.getMax() + rangeSize);
         int[] listScans = dataFile.getScanNumbers(1, extendedRange);
 
-        float C, factor;
+        double C, factor;
 
         C = params[0]; // level of excess;
         factor = (1.0f - (Math.abs(C) / 10.0f));
@@ -66,10 +66,10 @@ public class GaussianPeakFillingModel implements PeakFillingModel {
         }
 
         partC = FWHM / 2.354820045f;
-        part2C2 = 2f * (float) Math.pow(partC, 2);
+        part2C2 = 2f * (double) Math.pow(partC, 2);
 
         // Calculate intensity of each point in the shape.
-        float t, shapeHeight;
+        double t, shapeHeight;
         Scan scan;
 
         ConnectedMzPeak newMzPeak = null;
@@ -114,9 +114,9 @@ public class GaussianPeakFillingModel implements PeakFillingModel {
      * @param RT
      * @return FWHM
      */
-    private float calculateWidth(ConnectedMzPeak[] listMzPeaks) {
+    private double calculateWidth(ConnectedMzPeak[] listMzPeaks) {
 
-        float halfIntensity = intensityMain / 2, intensity = 0, intensityPlus = 0, retentionTime = 0;
+        double halfIntensity = intensityMain / 2, intensity = 0, intensityPlus = 0, retentionTime = 0;
         ConnectedMzPeak[] rangeDataPoints = listMzPeaks; // .clone();
 
         for (int i = 0; i < rangeDataPoints.length - 1; i++) {
@@ -135,17 +135,17 @@ public class GaussianPeakFillingModel implements PeakFillingModel {
 
                     // First point with intensity just less than half of total
                     // intensity
-                    float leftY1 = intensity;
-                    float leftX1 = retentionTime;
+                    double leftY1 = intensity;
+                    double leftX1 = retentionTime;
 
                     // Second point with intensity just bigger than half of
                     // total
                     // intensity
-                    float leftY2 = intensityPlus;
-                    float leftX2 = rangeDataPoints[i + 1].getScan().getRetentionTime();
+                    double leftY2 = intensityPlus;
+                    double leftX2 = rangeDataPoints[i + 1].getScan().getRetentionTime();
 
                     // We calculate the slope with formula m = Y1 - Y2 / X1 - X2
-                    float mLeft = (leftY1 - leftY2) / (leftX1 - leftX2);
+                    double mLeft = (leftY1 - leftY2) / (leftX1 - leftX2);
 
                     // We calculate the desired point (at half intensity) with
                     // the
@@ -164,16 +164,16 @@ public class GaussianPeakFillingModel implements PeakFillingModel {
 
                     // First point with intensity just bigger than half of total
                     // intensity
-                    float rightY1 = intensity;
-                    float rightX1 = retentionTime;
+                    double rightY1 = intensity;
+                    double rightX1 = retentionTime;
 
                     // Second point with intensity just less than half of total
                     // intensity
-                    float rightY2 = intensityPlus;
-                    float rightX2 = rangeDataPoints[i + 1].getScan().getRetentionTime();
+                    double rightY2 = intensityPlus;
+                    double rightX2 = rangeDataPoints[i + 1].getScan().getRetentionTime();
 
                     // We calculate the slope with formula m = Y1 - Y2 / X1 - X2
-                    float mRight = (rightY1 - rightY2) / (rightX1 - rightX2);
+                    double mRight = (rightY1 - rightY2) / (rightX1 - rightX2);
 
                     // We calculate the desired point (at half intensity) with
                     // the
@@ -187,38 +187,38 @@ public class GaussianPeakFillingModel implements PeakFillingModel {
         }
 
         if ((xRight <= -1) && (xLeft > 0)) {
-            float beginning = rangeDataPoints[0].getScan().getRetentionTime();
-            float ending = rangeDataPoints[rangeDataPoints.length - 1].getScan().getRetentionTime();
+            double beginning = rangeDataPoints[0].getScan().getRetentionTime();
+            double ending = rangeDataPoints[rangeDataPoints.length - 1].getScan().getRetentionTime();
             xRight = rtMain + (ending - beginning) / 4.71f;
         }
 
         if ((xRight > 0) && (xLeft <= -1)) {
-            float beginning = rangeDataPoints[0].getScan().getRetentionTime();
-            float ending = rangeDataPoints[rangeDataPoints.length - 1].getScan().getRetentionTime();
+            double beginning = rangeDataPoints[0].getScan().getRetentionTime();
+            double ending = rangeDataPoints[rangeDataPoints.length - 1].getScan().getRetentionTime();
             xLeft = rtMain - (ending - beginning) / 4.71f;
         }
 
         boolean negative = (((xRight - xLeft)) < 0);
 
         if ((negative) || ((xRight == -1) && (xLeft == -1))) {
-            float beginning = rangeDataPoints[0].getScan().getRetentionTime();
-            float ending = rangeDataPoints[rangeDataPoints.length - 1].getScan().getRetentionTime();
+            double beginning = rangeDataPoints[0].getScan().getRetentionTime();
+            double ending = rangeDataPoints[rangeDataPoints.length - 1].getScan().getRetentionTime();
             xRight = rtMain + (ending - beginning) / 9.42f;
             xLeft = rtMain - (ending - beginning) / 9.42f;
         }
 
-        float FWHM = (xRight - xLeft);
+        double FWHM = (xRight - xLeft);
 
         return FWHM;
     }
 
-    public float getIntensity(float rt) {
+    public double getIntensity(double rt) {
 
         // Using the Gaussian function we calculate the intensity at given m/z
-        float diff2 = (float) Math.pow(rt - rtMain, 2);
-        float exponent = -1 * (diff2 / part2C2);
-        float eX = (float) Math.exp(exponent);
-        float intensity = intensityMain * eX;
+        double diff2 = (double) Math.pow(rt - rtMain, 2);
+        double exponent = -1 * (diff2 / part2C2);
+        double eX = (double) Math.exp(exponent);
+        double intensity = intensityMain * eX;
         return intensity;
     }
 

@@ -40,17 +40,17 @@ public class ChromatographicThresholdPeakDetector implements PeakBuilder {
 
 	// private Logger logger = Logger.getLogger(this.getClass().getName());
 
-	private float chromatographicThresholdLevel, minimumPeakHeight,
+	private double chromatographicThresholdLevel, minimumPeakHeight,
 			minimumPeakDuration;
 
 	public ChromatographicThresholdPeakDetector(
 			ChromatographicThresholdPeakDetectorParameters parameters) {
 
-		minimumPeakHeight = (Float) parameters
+		minimumPeakHeight = (Double) parameters
 				.getParameterValue(ChromatographicThresholdPeakDetectorParameters.minimumPeakHeight);
-		minimumPeakDuration = (Float) parameters
+		minimumPeakDuration = (Double) parameters
 				.getParameterValue(ChromatographicThresholdPeakDetectorParameters.minimumPeakDuration);
-		chromatographicThresholdLevel = (Float) parameters
+		chromatographicThresholdLevel = (Double) parameters
 				.getParameterValue(ChromatographicThresholdPeakDetectorParameters.chromatographicThresholdLevel);
 
 	}
@@ -64,11 +64,11 @@ public class ChromatographicThresholdPeakDetector implements PeakBuilder {
 
 		ConnectedMzPeak[] cMzPeaks = chromatogram.getConnectedMzPeaks();
 
-		float recursiveThresholdlevelPeak;
+		double recursiveThresholdlevelPeak;
 
 		int[] scanNumbers = chromatogram.getDataFile().getScanNumbers(1);
-		float[] chromatoIntensities = new float[scanNumbers.length];
-		float sumIntensities = 0;
+		double[] chromatoIntensities = new double[scanNumbers.length];
+		double sumIntensities = 0;
 
 		for (int i = 0; i < scanNumbers.length; i++) {
 
@@ -99,8 +99,8 @@ public class ChromatographicThresholdPeakDetector implements PeakBuilder {
 				}
 				regionOfMzPeaks.clear();
 
-				float pLength = peak.getRawDataPointsRTRange().getSize();
-				float pHeight = peak.getHeight();
+				double pLength = peak.getRawDataPointsRTRange().getSize();
+				double pHeight = peak.getHeight();
 				if ((pLength >= minimumPeakDuration)
 						&& (pHeight >= minimumPeakHeight)) {
 					underDetectionPeaks.add(peak);
@@ -116,8 +116,8 @@ public class ChromatographicThresholdPeakDetector implements PeakBuilder {
 			for (int i = 0; i < regionOfMzPeaks.size(); i++) {
 				peak.addMzPeak(regionOfMzPeaks.get(i));
 			}
-			float pLength = peak.getRawDataPointsRTRange().getSize();
-			float pHeight = peak.getHeight();
+			double pLength = peak.getRawDataPointsRTRange().getSize();
+			double pHeight = peak.getHeight();
 			if ((pLength >= minimumPeakDuration)
 					&& (pHeight >= minimumPeakHeight)) {
 				underDetectionPeaks.add(peak);

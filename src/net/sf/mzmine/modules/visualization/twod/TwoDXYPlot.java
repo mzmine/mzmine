@@ -76,12 +76,12 @@ class TwoDXYPlot extends XYPlot {
         final int width = (int) dataArea.getWidth();
         final int height = (int) dataArea.getHeight();
 
-        final float imageRTMin = (float) getDomainAxis().getRange().getLowerBound();
-        final float imageRTMax = (float) getDomainAxis().getRange().getUpperBound();
-        final float imageRTStep = (imageRTMax - imageRTMin) / width;
-        final float imageMZMin = (float) getRangeAxis().getRange().getLowerBound();
-        final float imageMZMax = (float) getRangeAxis().getRange().getUpperBound();
-        final float imageMZStep = (imageMZMax - imageMZMin) / height;
+        final double imageRTMin = (double) getDomainAxis().getRange().getLowerBound();
+        final double imageRTMax = (double) getDomainAxis().getRange().getUpperBound();
+        final double imageRTStep = (imageRTMax - imageRTMin) / width;
+        final double imageMZMin = (double) getRangeAxis().getRange().getLowerBound();
+        final double imageMZMax = (double) getRangeAxis().getRange().getUpperBound();
+        final double imageMZStep = (imageMZMax - imageMZMin) / height;
 
         if ((zoomOutBitmap != null) && (imageRTMin == totalRTRange.getMin())
                 && (imageRTMax == totalRTRange.getMax()) && (imageMZMin == totalMZRange.getMin())
@@ -95,17 +95,17 @@ class TwoDXYPlot extends XYPlot {
         // Save current time
         Date renderStartTime = new Date();
 
-        // prepare a float array of summed intensities
-        float values[][] = new float[width][height];
-        float maxValue = 0;
+        // prepare a double array of summed intensities
+        double values[][] = new double[width][height];
+        double maxValue = 0;
 
         for (int i = 0; i < width; i++)
             for (int j = 0; j < height; j++) {
 
-                float pointRTMin = imageRTMin + (i * imageRTStep);
-                float pointRTMax = pointRTMin + imageRTStep;
-                float pointMZMin = imageMZMin + (j * imageMZStep);
-                float pointMZMax = pointMZMin + imageMZStep;
+                double pointRTMin = imageRTMin + (i * imageRTStep);
+                double pointRTMax = pointRTMin + imageRTStep;
+                double pointMZMin = imageMZMin + (j * imageMZStep);
+                double pointMZMax = pointMZMin + imageMZStep;
 
                 values[i][j] = dataset.getMaxIntensity(new Range(pointRTMin, pointRTMax),
                         new Range(pointMZMin, pointMZMax), plotMode);

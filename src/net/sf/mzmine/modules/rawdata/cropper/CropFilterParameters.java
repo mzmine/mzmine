@@ -35,12 +35,12 @@ public class CropFilterParameters extends SimpleParameterSet {
     public static final Parameter mzRange = new SimpleParameter(
             ParameterType.RANGE, "m/z range",
             "m/z boundary of the cropped region", "m/z", new Range(0, 1000),
-            new Float(0), null, MZmineCore.getMZFormat());
+            new Double(0), null, MZmineCore.getMZFormat());
 
     public static final Parameter retentionTimeRange = new SimpleParameter(
             ParameterType.RANGE, "Retention time",
             "retention time boundary of the cropped region", null, new Range(0,
-                    600), new Float(0), null, MZmineCore.getRTFormat());
+                    600), new Double(0), null, MZmineCore.getRTFormat());
 
     public static final Parameter autoRemove = new SimpleParameter(
             ParameterType.BOOLEAN,

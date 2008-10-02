@@ -16,17 +16,17 @@ public class PeakTICPlotRenderer extends XYAreaRenderer {
 
 	private float transparency = 1.0f;
 
-	public PeakTICPlotRenderer(float transparency) {
+	public PeakTICPlotRenderer(double transparency) {
 		super(XYAreaRenderer.AREA);
 		if ((transparency > 1.0) || (transparency < 0))
 			return;
 		else
-			this.transparency = transparency;
+			this.transparency = (float) transparency;
 	}
 	
-	private AlphaComposite makeComposite(float alpha) {
+	private AlphaComposite makeComposite(double alpha) {
 		int type = AlphaComposite.SRC_OVER;
-		return (AlphaComposite.getInstance(type, alpha));
+		return (AlphaComposite.getInstance(type, (float) alpha));
 	}
 
 	public void drawItem(Graphics2D g2, XYItemRendererState state,

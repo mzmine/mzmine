@@ -105,8 +105,8 @@ public class MzXMLReadTask extends DefaultHandler implements Task {
 	/**
 	 * @see net.sf.mzmine.taskcontrol.Task#getFinishedPercentage()
 	 */
-	public float getFinishedPercentage() {
-		return totalScans == 0 ? 0 : (float) parsedScans / totalScans;
+	public double getFinishedPercentage() {
+		return totalScans == 0 ? 0 : (double) parsedScans / totalScans;
 	}
 
 	/**
@@ -147,6 +147,7 @@ public class MzXMLReadTask extends DefaultHandler implements Task {
 
 		} catch (Throwable e) {
 			/* we may already have set the status to CANCELED */
+			e.printStackTrace();
 			if (status == TaskStatus.PROCESSING)
 				status = TaskStatus.ERROR;
 			errorMessage = e.toString();
@@ -204,7 +205,7 @@ public class MzXMLReadTask extends DefaultHandler implements Task {
 			peaksCount = Integer.parseInt(attrs.getValue("peaksCount"));
 
 			// Parse retention time
-			float retentionTime = 0;
+			double retentionTime = 0;
 			String retentionTimeStr = attrs.getValue("retentionTime");
 			if (retentionTimeStr != null){
 				Date currentDate = new Date();
@@ -337,7 +338,7 @@ public class MzXMLReadTask extends DefaultHandler implements Task {
 
 		// <precursorMz>
 		if (qName.equalsIgnoreCase("precursorMz")) {
-			float precursorMz = Float.parseFloat(charBuffer.toString());
+			double precursorMz = Double.parseDouble(charBuffer.toString());
 			buildingScan.setPrecursorMZ(precursorMz);
 			return;
 		}
@@ -393,8 +394,8 @@ public class MzXMLReadTask extends DefaultHandler implements Task {
 				for (int i = 0; i < completeDataPoints.length; i++) {
 					
 					//Always respect this order pairOrder="m/z-int"
-					float massOverCharge = peakStream.readFloat();
-					float intensity = peakStream.readFloat();
+					double massOverCharge = (double) peakStream.readFloat();
+					double intensity = (double) peakStream.readFloat();
 
 					// Copy m/z and intensity data
 					completeDataPoints[i] = new SimpleDataPoint(massOverCharge,
@@ -415,8 +416,8 @@ public class MzXMLReadTask extends DefaultHandler implements Task {
 
 			int i, j;
 			for (i = 0, j = 0; i < completeDataPoints.length; i++) {
-				float intensity = completeDataPoints[i].getIntensity();
-				float mz = completeDataPoints[i].getMZ();
+				double intensity = completeDataPoints[i].getIntensity();
+				double mz = completeDataPoints[i].getMZ();
 				if (completeDataPoints[i].getIntensity() > 0) {
 					tempDataPoints[j] = new SimpleDataPoint(mz, intensity);
 					j++;

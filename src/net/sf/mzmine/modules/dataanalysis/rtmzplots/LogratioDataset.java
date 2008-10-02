@@ -36,9 +36,9 @@ public class LogratioDataset extends AbstractXYZDataset implements RTMZDataset  
 
 	private Logger logger = Logger.getLogger(this.getClass().getName());
 	
-	private float[] xCoords = new float[0];
-	private float[] yCoords = new float[0];
-	private float[] colorCoords = new float[0];
+	private double[] xCoords = new double[0];
+	private double[] yCoords = new double[0];
+	private double[] colorCoords = new double[0];
 	private PeakListRow[] peakListRows = new PeakListRow[0];
 	
 	private String datasetTitle;
@@ -61,9 +61,9 @@ public class LogratioDataset extends AbstractXYZDataset implements RTMZDataset  
 		datasetTitle = datasetTitle.concat(")");
 		logger.finest("Computing: " + datasetTitle);
 
-		Vector<Float> xCoordsV = new Vector<Float>();
-		Vector<Float> yCoordsV = new Vector<Float>();
-		Vector<Float> colorCoordsV = new Vector<Float>();
+		Vector<Double> xCoordsV = new Vector<Double>();
+		Vector<Double> yCoordsV = new Vector<Double>();
+		Vector<Double> colorCoordsV = new Vector<Double>();
 		Vector<PeakListRow> peakListRowsV = new Vector<PeakListRow>();
 		
 		for (int rowIndex=0; rowIndex<numOfRows; rowIndex++) {
@@ -71,7 +71,7 @@ public class LogratioDataset extends AbstractXYZDataset implements RTMZDataset  
 			PeakListRow row = alignedPeakList.getRow(rowIndex);
 			
 			// Collect available peak intensities for selected files
-			Vector<Float> groupOnePeakIntensities = new Vector<Float>(); 
+			Vector<Double> groupOnePeakIntensities = new Vector<Double>(); 
 			for (int fileIndex=0; fileIndex<groupOneSelectedFiles.length; fileIndex++) {
 				ChromatographicPeak p = row.getPeak(groupOneSelectedFiles[fileIndex]);
 				if (p!=null) {
@@ -81,7 +81,7 @@ public class LogratioDataset extends AbstractXYZDataset implements RTMZDataset  
 						groupOnePeakIntensities.add(p.getHeight());
 				}
 			}
-			Vector<Float> groupTwoPeakIntensities = new Vector<Float>(); 
+			Vector<Double> groupTwoPeakIntensities = new Vector<Double>(); 
 			for (int fileIndex=0; fileIndex<groupTwoSelectedFiles.length; fileIndex++) {
 				ChromatographicPeak p = row.getPeak(groupTwoSelectedFiles[fileIndex]);
 				if (p!=null) {
@@ -96,16 +96,16 @@ public class LogratioDataset extends AbstractXYZDataset implements RTMZDataset  
 			if ( (groupOnePeakIntensities.size()>0) && 
 					(groupTwoPeakIntensities.size()>0) ) {
 				
-				float[] groupOneInts = CollectionUtils.toFloatArray(groupOnePeakIntensities);
-				float groupOneAvg = MathUtils.calcAvg(groupOneInts);
-				float[] groupTwoInts = CollectionUtils.toFloatArray(groupTwoPeakIntensities);
-				float groupTwoAvg = MathUtils.calcAvg(groupTwoInts);
-				float logratio = Float.NaN;
+				double[] groupOneInts = CollectionUtils.toDoubleArray(groupOnePeakIntensities);
+				double groupOneAvg = MathUtils.calcAvg(groupOneInts);
+				double[] groupTwoInts = CollectionUtils.toDoubleArray(groupTwoPeakIntensities);
+				double groupTwoAvg = MathUtils.calcAvg(groupTwoInts);
+				double logratio = Double.NaN;
 				if (groupTwoAvg!=0.0)
-					logratio = (float) (Math.log(groupOneAvg/groupTwoAvg) / Math.log(2.0)); 
+					logratio = (double) (Math.log(groupOneAvg/groupTwoAvg) / Math.log(2.0)); 
 				
-				Float rt = row.getAverageRT();
-				Float mz = row.getAverageMZ();
+				Double rt = row.getAverageRT();
+				Double mz = row.getAverageMZ();
 				
 				xCoordsV.add(rt);
 				yCoordsV.add(mz);
@@ -117,9 +117,9 @@ public class LogratioDataset extends AbstractXYZDataset implements RTMZDataset  
 		}
 
 		// Finally store all collected values in arrays
-		xCoords = CollectionUtils.toFloatArray(xCoordsV);
-		yCoords = CollectionUtils.toFloatArray(yCoordsV);
-		colorCoords = CollectionUtils.toFloatArray(colorCoordsV);
+		xCoords = CollectionUtils.toDoubleArray(xCoordsV);
+		yCoords = CollectionUtils.toDoubleArray(yCoordsV);
+		colorCoords = CollectionUtils.toDoubleArray(colorCoordsV);
 		peakListRows = peakListRowsV.toArray(new PeakListRow[0]);
 		
 	}

@@ -111,11 +111,11 @@ class ThreeStepPickerTask implements Task {
 	/**
 	 * @see net.sf.mzmine.taskcontrol.Task#getFinishedPercentage()
 	 */
-	public float getFinishedPercentage() {
+	public double getFinishedPercentage() {
 		if (totalScans == 0)
 			return 0.0f;
 		else
-			return (float) processedScans / totalScans;
+			return (double) processedScans / totalScans;
 	}
 
 	/**

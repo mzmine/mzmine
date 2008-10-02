@@ -28,7 +28,7 @@ public class IsotopePatternCalculatorTask implements Task {
 
 	private TaskStatus status = TaskStatus.WAITING;
 	private String errorMessage, description, formula;
-	private float minAbundance, isotopeHeight;
+	private double minAbundance, isotopeHeight;
 	private int charge;
 	// private int processedAtoms, totalNumberOfAtoms;
 	private IsotopePattern isotopePattern;
@@ -40,11 +40,11 @@ public class IsotopePatternCalculatorTask implements Task {
 
 		formula = (String) parameters
 				.getParameterValue(IsotopePatternCalculatorParameters.formula);
-		minAbundance = (Float) parameters
+		minAbundance = (Double) parameters
 				.getParameterValue(IsotopePatternCalculatorParameters.minimalAbundance);
 		charge = (Integer) parameters
 			.getParameterValue(IsotopePatternCalculatorParameters.charge);
-		isotopeHeight = (Float) parameters
+		isotopeHeight = (Double) parameters
 				.getParameterValue(IsotopePatternCalculatorParameters.isotopeHeight);
 		autoHeight = (Boolean) parameters
 				.getParameterValue(IsotopePatternCalculatorParameters.autoHeight);
@@ -64,7 +64,7 @@ public class IsotopePatternCalculatorTask implements Task {
 		return errorMessage;
 	}
 
-	public float getFinishedPercentage() {
+	public double getFinishedPercentage() {
 		return 1;// processedAtoms/totalNumberOfAtoms;
 	}
 

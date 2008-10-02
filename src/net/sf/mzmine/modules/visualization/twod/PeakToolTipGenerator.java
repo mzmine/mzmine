@@ -50,9 +50,9 @@ class PeakToolTipGenerator implements XYToolTipGenerator {
         PeakList peakList = peakDataSet.getPeakList();
         ChromatographicPeak peak = peakDataSet.getPeak(series);
         PeakListRow row = peakList.getPeakRow(peak);
-        float rtValue = dataPoint.getRT();
-        float intValue = dataPoint.getIntensity();
-        float mzValue = dataPoint.getMZ();
+        double rtValue = dataPoint.getRT();
+        double intValue = dataPoint.getIntensity();
+        double mzValue = dataPoint.getMZ();
         int scanNumber = dataPoint.getScanNumber();
 
         String toolTip = "<html>Peak: " + peak + "<br>Status: "

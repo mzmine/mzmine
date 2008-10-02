@@ -42,23 +42,23 @@ public class RowsFilterParameters extends SimpleParameterSet {
             "peaks", new Integer(1), new Integer(1), null);    
     
     public static final Parameter minMZ = new SimpleParameter(
-            ParameterType.FLOAT, "Minimum m/z",
-            "Minimum average m/z value of a row", "m/z", (Float) 0f,
+            ParameterType.DOUBLE, "Minimum m/z",
+            "Minimum average m/z value of a row", "m/z", 0d,
             MZmineCore.getMZFormat());
 
     public static final Parameter maxMZ = new SimpleParameter(
-            ParameterType.FLOAT, "Maximum m/z",
-            "Maximum average m/z value of a row", "m/z", (Float) 0f,
+            ParameterType.DOUBLE, "Maximum m/z",
+            "Maximum average m/z value of a row", "m/z", 0d,
             MZmineCore.getMZFormat());
 
     public static final Parameter minRT = new SimpleParameter(
-            ParameterType.FLOAT, "Minimum retention time",
-            "Maximum average retention time of a row", null, (Float) 0f,
+            ParameterType.DOUBLE, "Minimum retention time",
+            "Maximum average retention time of a row", null, 0d,
             MZmineCore.getRTFormat());
 
     public static final Parameter maxRT = new SimpleParameter(
-            ParameterType.FLOAT, "Maximum retention time",
-            "Maximum average retention time of a row", null, (Float) 0f,
+            ParameterType.DOUBLE, "Maximum retention time",
+            "Maximum average retention time of a row", null, 0d,
             MZmineCore.getRTFormat());
 
     public static final Parameter identified = new SimpleParameter(

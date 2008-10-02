@@ -49,7 +49,7 @@ class PeakToolTipGenerator implements XYToolTipGenerator {
 		PeakListDataSet peakListDataSet = (PeakListDataSet) dataset;
 		double intValue = dataset.getYValue(series, item);
 		double mzValue = dataset.getXValue(series, item);
-		float increase = peakListDataSet.getIncrease();
+		double increase = peakListDataSet.getIncrease();
 		boolean predicted = false;
 
 		if (peakListDataSet.isIsotopeDataSet()) {

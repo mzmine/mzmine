@@ -36,7 +36,7 @@ public class PredictedIsotopePattern implements IsotopePattern {
 	private int charge;
 	private Range range;
 	private IsotopePatternStatus patternStatus = IsotopePatternStatus.PREDICTED;
-	private float height = 10000.0f;
+	private double height = 10000.0f;
 
 	
 	public PredictedIsotopePattern (DataPoint[] dataPoints, String formula, int charge){
@@ -55,7 +55,7 @@ public class PredictedIsotopePattern implements IsotopePattern {
 		return " Pattern of " + formula + " charge=" + charge;
 	}
 
-	public float getIsotopeMass() {
+	public double getIsotopeMass() {
 		return dataPoints[0].getMZ();
 	}
 
@@ -71,7 +71,7 @@ public class PredictedIsotopePattern implements IsotopePattern {
 		return null;
 	}
 
-	public float getArea() {
+	public double getArea() {
 		return 0;
 	}
 
@@ -79,11 +79,11 @@ public class PredictedIsotopePattern implements IsotopePattern {
 		return null;
 	}
 
-	public float getHeight() {
+	public double getHeight() {
 		return dataPoints[0].getIntensity();
 	}
 
-	public float getMZ() {
+	public double getMZ() {
 		return dataPoints[0].getMZ();
 	}
 
@@ -95,7 +95,7 @@ public class PredictedIsotopePattern implements IsotopePattern {
 		return null;
 	}
 
-	public float getRT() {
+	public double getRT() {
 		return 0;
 	}
 
@@ -128,7 +128,7 @@ public class PredictedIsotopePattern implements IsotopePattern {
 	}
 	
 	private Range calculateMzRange(DataPoint[] dataPoints){
-		float H = 1.0078f;
+		double H = 1.0078f;
 		Range range = new Range(dataPoints[0].getMZ());
 		for (int i=1; i<dataPoints.length; i++){
 			range.extendRange(dataPoints[i].getMZ());
@@ -141,11 +141,11 @@ public class PredictedIsotopePattern implements IsotopePattern {
 		return range;
 	}
 	
-	public void setIsotopeHeight(float height){
+	public void setIsotopeHeight(double height){
 		this.height = height;
 	}
 	
-	public float getIsotopeHeight(){
+	public double getIsotopeHeight(){
 		return height;
 	}
 

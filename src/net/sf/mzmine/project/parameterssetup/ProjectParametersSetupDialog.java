@@ -218,7 +218,7 @@ public class ProjectParametersSetupDialog extends JDialog implements
 			Parameter parameter = tablemodelParameterValues
 					.getParameter(columnIndex + 1);
 
-			if (parameter.getType() == ParameterType.FLOAT) {
+			if (parameter.getType() == ParameterType.DOUBLE) {
 				Double minValue = null;
 				Double maxValue = null;
 				if (parameter.getMinimumValue() != null)
@@ -295,7 +295,7 @@ public class ProjectParametersSetupDialog extends JDialog implements
 
 				Object value = tablemodelParameterValues.getValueAt(
 						dataFileIndex, columnIndex + 1);
-				if (parameter.getType() == ParameterType.FLOAT) {
+				if (parameter.getType() == ParameterType.DOUBLE) {
 					Double doubleValue = null;
 					if (value instanceof Double)
 						doubleValue = (Double) value;

@@ -30,7 +30,7 @@ public class DummyTask implements Task {
 
     private String description, errorMessage;
     private TaskStatus status;
-    private float finishedPercentage;
+    private double finishedPercentage;
 
     public DummyTask(Task task) {
         description = task.getTaskDescription();
@@ -46,7 +46,7 @@ public class DummyTask implements Task {
         return errorMessage;
     }
 
-    public float getFinishedPercentage() {
+    public double getFinishedPercentage() {
         return finishedPercentage;
     }
 

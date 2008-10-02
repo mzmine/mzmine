@@ -32,9 +32,9 @@ public class MeanFilterParameters extends SimpleParameterSet {
             "Suffix to be added to filename", null, "filtered", null);
 
     public static final Parameter oneSidedWindowLength = new SimpleParameter(
-            ParameterType.FLOAT, "Window length",
-            "One-sided length of the smoothing window", "m/z", new Float(0.1),
-            new Float(0.0), null, MZmineCore.getMZFormat());
+            ParameterType.DOUBLE, "Window length",
+            "One-sided length of the smoothing window", "m/z", new Double(0.1),
+            new Double(0.0), null, MZmineCore.getMZFormat());
 
     public static final Parameter autoRemove = new SimpleParameter(
             ParameterType.BOOLEAN,

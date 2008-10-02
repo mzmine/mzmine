@@ -27,8 +27,8 @@ import net.sf.mzmine.data.DataPoint;
 public class ScanDataPointsSorterByIntensity implements Comparator<DataPoint>{
 
 	public int compare(DataPoint dp1, DataPoint dp2) {
-        Float mz1 = dp1.getIntensity();
-        Float mz2 = dp2.getIntensity();
+        Double mz1 = dp1.getIntensity();
+        Double mz2 = dp2.getIntensity();
         return mz2.compareTo(mz1); 
 	}
 

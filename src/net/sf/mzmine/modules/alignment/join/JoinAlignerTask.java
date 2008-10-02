@@ -50,12 +50,12 @@ class JoinAlignerTask implements Task {
 	private int processedRows, totalRows;
 
 	private String peakListName;
-	private float mzTolerance, mzWeight;
+	private double mzTolerance, mzWeight;
 	private boolean rtToleranceUseAbs;
-	private float rtToleranceValueAbs, rtToleranceValuePercent;
-	private float rtWeight;
+	private double rtToleranceValueAbs, rtToleranceValuePercent;
+	private double rtWeight;
 	private boolean sameIDRequired;
-	private float sameIDWeight;
+	private double sameIDWeight;
 
 	// ID counter for the new peaklist
 	private int newRowID = 1;
@@ -72,23 +72,23 @@ class JoinAlignerTask implements Task {
 		peakListName = (String) parameters
 				.getParameterValue(JoinAlignerParameters.peakListName);
 
-		mzTolerance = (Float) parameters
+		mzTolerance = (Double) parameters
 				.getParameterValue(JoinAlignerParameters.MZTolerance);
-		mzWeight = (Float) parameters
+		mzWeight = (Double) parameters
 				.getParameterValue(JoinAlignerParameters.MZWeight);
 
 		rtToleranceUseAbs = (parameters
 				.getParameterValue(JoinAlignerParameters.RTToleranceType) == JoinAlignerParameters.RTToleranceTypeAbsolute);
-		rtToleranceValueAbs = (Float) parameters
+		rtToleranceValueAbs = (Double) parameters
 				.getParameterValue(JoinAlignerParameters.RTToleranceValueAbs);
-		rtToleranceValuePercent = (Float) parameters
+		rtToleranceValuePercent = (Double) parameters
 				.getParameterValue(JoinAlignerParameters.RTToleranceValuePercent);
-		rtWeight = (Float) parameters
+		rtWeight = (Double) parameters
 				.getParameterValue(JoinAlignerParameters.RTWeight);
 
 		sameIDRequired = (Boolean) parameters
 				.getParameterValue(JoinAlignerParameters.SameIDRequired);
-		sameIDWeight = (Float) parameters
+		sameIDWeight = (Double) parameters
 				.getParameterValue(JoinAlignerParameters.SameIDWeight);
 
 	}
@@ -104,10 +104,10 @@ class JoinAlignerTask implements Task {
 	/**
 	 * @see net.sf.mzmine.taskcontrol.Task#getFinishedPercentage()
 	 */
-	public float getFinishedPercentage() {
+	public double getFinishedPercentage() {
 		if (totalRows == 0)
 			return 0f;
-		return (float) processedRows / (float) totalRows;
+		return (double) processedRows / (double) totalRows;
 	}
 
 	/**
@@ -181,10 +181,10 @@ class JoinAlignerTask implements Task {
 					return;
 
 				// Calculate limits for a row with which the row can be aligned
-				float mzMin = row.getAverageMZ() - mzTolerance;
-				float mzMax = row.getAverageMZ() + mzTolerance;
-				float rtMin, rtMax;
-				float rtToleranceValue = 0.0f;
+				double mzMin = row.getAverageMZ() - mzTolerance;
+				double mzMax = row.getAverageMZ() + mzTolerance;
+				double rtMin, rtMax;
+				double rtToleranceValue = 0.0f;
 				if (rtToleranceUseAbs) {
 					rtToleranceValue = rtToleranceValueAbs;
 					rtMin = row.getAverageRT() - rtToleranceValue;

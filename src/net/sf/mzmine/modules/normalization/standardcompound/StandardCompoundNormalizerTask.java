@@ -46,7 +46,7 @@ public class StandardCompoundNormalizerTask implements Task {
     private int processedRows, totalRows;
 
     private String suffix, normalizationType, peakMeasurementType;
-    private float MZvsRTBalance;
+    private double MZvsRTBalance;
     private boolean removeOriginal;
     private PeakListRow[] standardRows;
 
@@ -58,7 +58,7 @@ public class StandardCompoundNormalizerTask implements Task {
         suffix = (String) parameters.getParameterValue(LinearNormalizerParameters.suffix);
         normalizationType = (String) parameters.getParameterValue(StandardCompoundNormalizerParameters.standardUsageType);
         peakMeasurementType = (String) parameters.getParameterValue(StandardCompoundNormalizerParameters.peakMeasurementType);
-        MZvsRTBalance = (Float) parameters.getParameterValue(StandardCompoundNormalizerParameters.MZvsRTBalance);
+        MZvsRTBalance = (Double) parameters.getParameterValue(StandardCompoundNormalizerParameters.MZvsRTBalance);
         removeOriginal = (Boolean) parameters.getParameterValue(StandardCompoundNormalizerParameters.autoRemove);
         standardRows = parameters.getSelectedStandardPeakListRows();
 
@@ -72,10 +72,10 @@ public class StandardCompoundNormalizerTask implements Task {
         return errorMessage;
     }
 
-    public float getFinishedPercentage() {
+    public double getFinishedPercentage() {
         if (totalRows == 0)
             return 0f;
-        return (float) processedRows / (float) totalRows;
+        return (double) processedRows / (double) totalRows;
     }
 
     public TaskStatus getStatus() {
@@ -117,27 +117,27 @@ public class StandardCompoundNormalizerTask implements Task {
             normalizedRow.setPreferredCompoundIdentity(row.getPreferredCompoundIdentity());
 
             // Get m/z and RT of the current row
-            float mz = row.getAverageMZ();
-            float rt = row.getAverageRT();
+            double mz = row.getAverageMZ();
+            double rt = row.getAverageRT();
 
             // Loop through all raw data files
             for (RawDataFile file : originalPeakList.getRawDataFiles()) {
 
-                float normalizationFactors[] = null;
-                float normalizationFactorWeights[] = null;
+                double normalizationFactors[] = null;
+                double normalizationFactorWeights[] = null;
 
                 if (normalizationType == StandardCompoundNormalizerParameters.standardUsageTypeNearest) {
 
                     // Search for nearest standard
                     PeakListRow nearestStandardRow = null;
-                    float nearestStandardRowDistance = Float.MAX_VALUE;
+                    double nearestStandardRowDistance = Double.MAX_VALUE;
 
                     for (int standardRowIndex = 0; standardRowIndex < standardRows.length; standardRowIndex++) {
                         PeakListRow standardRow = standardRows[standardRowIndex];
 
-                        float stdMZ = standardRow.getAverageMZ();
-                        float stdRT = standardRow.getAverageRT();
-                        float distance = MZvsRTBalance * Math.abs(mz - stdMZ)
+                        double stdMZ = standardRow.getAverageMZ();
+                        double stdRT = standardRow.getAverageRT();
+                        double distance = MZvsRTBalance * Math.abs(mz - stdMZ)
                                 + Math.abs(rt - stdRT);
                         if (distance <= nearestStandardRowDistance) {
                             nearestStandardRow = standardRow;
@@ -147,8 +147,8 @@ public class StandardCompoundNormalizerTask implements Task {
                     }
 
                     // Calc and store a single normalization factor
-                    normalizationFactors = new float[1];
-                    normalizationFactorWeights = new float[1];
+                    normalizationFactors = new double[1];
+                    normalizationFactorWeights = new double[1];
                     ChromatographicPeak standardPeak = nearestStandardRow.getPeak(file);
                     if (peakMeasurementType == StandardCompoundNormalizerParameters.peakMeasurementTypeHeight) {
                         normalizationFactors[0] = standardPeak.getHeight();
@@ -165,15 +165,15 @@ public class StandardCompoundNormalizerTask implements Task {
                 if (normalizationType == StandardCompoundNormalizerParameters.standardUsageTypeWeighted) {
 
                     // Add all standards as factors, and use distance as weight
-                    normalizationFactors = new float[standardRows.length];
-                    normalizationFactorWeights = new float[standardRows.length];
+                    normalizationFactors = new double[standardRows.length];
+                    normalizationFactorWeights = new double[standardRows.length];
 
                     for (int standardRowIndex = 0; standardRowIndex < standardRows.length; standardRowIndex++) {
                         PeakListRow standardRow = standardRows[standardRowIndex];
 
-                        float stdMZ = standardRow.getAverageMZ();
-                        float stdRT = standardRow.getAverageRT();
-                        float distance = MZvsRTBalance * Math.abs(mz - stdMZ)
+                        double stdMZ = standardRow.getAverageMZ();
+                        double stdRT = standardRow.getAverageRT();
+                        double distance = MZvsRTBalance * Math.abs(mz - stdMZ)
                                 + Math.abs(rt - stdRT);
 
                         ChromatographicPeak standardPeak = standardRow.getPeak(file);
@@ -198,14 +198,14 @@ public class StandardCompoundNormalizerTask implements Task {
 
                 // Calculate a single normalization factor as weighted average
                 // of all factors
-                float weightedSum = 0.0f;
-                float sumOfWeights = 0.0f;
+                double weightedSum = 0.0f;
+                double sumOfWeights = 0.0f;
                 for (int factorIndex = 0; factorIndex < normalizationFactors.length; factorIndex++) {
                     weightedSum += normalizationFactors[factorIndex]
                             * normalizationFactorWeights[factorIndex];
                     sumOfWeights += normalizationFactorWeights[factorIndex];
                 }
-                float normalizationFactor = weightedSum / sumOfWeights;
+                double normalizationFactor = weightedSum / sumOfWeights;
 
                 // For simple scaling of the normalized values
                 normalizationFactor = normalizationFactor / 100.0f;
@@ -215,15 +215,15 @@ public class StandardCompoundNormalizerTask implements Task {
 
                 // How to handle zero normalization factor?
                 if (normalizationFactor == 0.0)
-                    normalizationFactor = Float.MIN_VALUE;
+                    normalizationFactor = Double.MIN_VALUE;
 
                 // Normalize peak
                 ChromatographicPeak originalPeak = row.getPeak(file);
                 if (originalPeak != null) {
                     SimpleChromatographicPeak normalizedPeak = new SimpleChromatographicPeak(originalPeak);
-                    float normalizedHeight = originalPeak.getHeight()
+                    double normalizedHeight = originalPeak.getHeight()
                             / normalizationFactor;
-                    float normalizedArea = originalPeak.getArea()
+                    double normalizedArea = originalPeak.getArea()
                             / normalizationFactor;
                     normalizedPeak.setHeight(normalizedHeight);
                     normalizedPeak.setArea(normalizedArea);

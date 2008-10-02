@@ -153,13 +153,13 @@ public class IsotopePatternCalculator implements MZmineModule, TaskListener,
 				PeakListDataSet predictedPeakDataSet = new PeakListDataSet(ip);
 				PeakListDataSet rawPeakDataSet = (PeakListDataSet) plot
 						.getXYPlot().getDataset(1);
-				float increase = predictedPeakDataSet.getIncrease();
+				double increase = predictedPeakDataSet.getIncrease();
 				if (increase < 0) {
 					if (rawPeakDataSet != null) {
 						increase = ((int) (rawPeakDataSet
 								.getBiggestIntensity(ip.getIsotopeMass()) * 100) / 100);
 					} else {
-						increase = (float) Math.pow(10, 4);
+						increase = (double) Math.pow(10, 4);
 					}
 				}
 				logger.finest("Value of increase " + increase);

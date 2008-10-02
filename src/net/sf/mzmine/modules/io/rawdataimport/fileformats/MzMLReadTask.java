@@ -77,8 +77,8 @@ public class MzMLReadTask extends DefaultHandler implements Task {
 	private int scanNumber;
 	private int msLevel;
 	private int parentScan;
-	private float retentionTime;
-	private float precursorMz;
+	private double retentionTime;
+	private double precursorMz;
 	private int precursorCharge = 0;
 
 	private HashMap<String, Integer> scanId = new HashMap<String, Integer>();
@@ -126,8 +126,8 @@ public class MzMLReadTask extends DefaultHandler implements Task {
 	/**
 	 * @see net.sf.mzmine.taskcontrol.Task#getFinishedPercentage()
 	 */
-	public float getFinishedPercentage() {
-		return totalScans == 0 ? 0 : (float) parsedScans / totalScans;
+	public double getFinishedPercentage() {
+		return totalScans == 0 ? 0 : (double) parsedScans / totalScans;
 	}
 
 	/**
@@ -280,9 +280,9 @@ public class MzMLReadTask extends DefaultHandler implements Task {
 					String value = attrs.getValue("value");
 					if ((unitAccession != null) && (value != null)) {
 						if (unitAccession.equals("MS:1000038"))
-							retentionTime = Float.parseFloat(value) * 60f;
+							retentionTime = Double.parseDouble(value) * 60f;
 						else
-							retentionTime = Float.parseFloat(value);
+							retentionTime = Double.parseDouble(value);
 					}
 					else
 						throw new SAXException("File does not comply with the standard mzML 1.0");
@@ -293,7 +293,7 @@ public class MzMLReadTask extends DefaultHandler implements Task {
 				String value = attrs.getValue("value");
 				if (value != null) {
 				if (accession.equals("MS:1000040"))
-					precursorMz = Float.parseFloat(value);
+					precursorMz = Double.parseDouble(value);
 				if (accession.equals("MS:1000041"))
 					precursorCharge = Integer.parseInt(value);
 				}
@@ -379,7 +379,7 @@ public class MzMLReadTask extends DefaultHandler implements Task {
 			// Copy m/z and intensity data
 			for (int i = 0; i < completeDataPoints.length; i++) {
 				completeDataPoints[i] = new SimpleDataPoint(
-						(float) mzDataPoints[i], (float) intensityDataPoints[i]);
+						(double) mzDataPoints[i], (double) intensityDataPoints[i]);
 			}
 			/*
 			 * This section verifies DataPoints with intensity="0" and exclude
@@ -389,8 +389,8 @@ public class MzMLReadTask extends DefaultHandler implements Task {
 
 			int i, j;
 			for (i = 0, j = 0; i < completeDataPoints.length; i++) {
-				float intensity = completeDataPoints[i].getIntensity();
-				float mz = completeDataPoints[i].getMZ();
+				double intensity = completeDataPoints[i].getIntensity();
+				double mz = completeDataPoints[i].getMZ();
 				if (completeDataPoints[i].getIntensity() > 0) {
 					tempDataPoints[j] = new SimpleDataPoint(mz, intensity);
 					j++;

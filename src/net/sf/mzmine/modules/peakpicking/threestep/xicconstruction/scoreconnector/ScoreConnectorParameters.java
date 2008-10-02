@@ -33,15 +33,15 @@ public class ScoreConnectorParameters extends SimpleParameterSet {
 			.getPercentInstance();
 
 	public static final Parameter minimumTimeSpan = new SimpleParameter(
-			ParameterType.FLOAT, "Min time span",
-			"Minimum acceptable time span of connected string of m/z peaks", null, new Float(10.0),
-			new Float(0.0), null, MZmineCore.getRTFormat());
+			ParameterType.DOUBLE, "Min time span",
+			"Minimum acceptable time span of connected string of m/z peaks", null, new Double(10.0),
+			new Double(0.0), null, MZmineCore.getRTFormat());
 
 	public static final Parameter mzTolerance = new SimpleParameter(
-			ParameterType.FLOAT,
+			ParameterType.DOUBLE,
 			"m/z tolerance",
 			"Maximum allowed distance in M/Z between data points in successive spectrums",
-			"m/z", new Float(0.1), new Float(0.0), new Float(1.0), MZmineCore
+			"m/z", new Double(0.1), new Double(0.0), new Double(1.0), MZmineCore
 					.getMZFormat());
 
 	public ScoreConnectorParameters() {

@@ -209,8 +209,8 @@ class TwoDPlot extends ChartPanel {
             Rectangle2D plotArea = getScreenDataArea();
             RectangleEdge xAxisEdge = plot.getDomainAxisEdge();
             RectangleEdge yAxisEdge = plot.getRangeAxisEdge();
-            float rt = (float) xAxis.java2DToValue(mouseX, plotArea, xAxisEdge);
-            float mz = (float) yAxis.java2DToValue(mouseY, plotArea, yAxisEdge);
+            double rt = (double) xAxis.java2DToValue(mouseX, plotArea, xAxisEdge);
+            double mz = (double) yAxis.java2DToValue(mouseY, plotArea, yAxisEdge);
 
             tooltip = "<html>Retention time: " + rtFormat.format(rt)
                     + "<br>m/z: " + mzFormat.format(mz) + "</html>";

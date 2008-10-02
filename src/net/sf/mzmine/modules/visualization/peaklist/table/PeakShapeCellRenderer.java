@@ -72,7 +72,7 @@ class PeakShapeCellRenderer implements TableCellRenderer {
         if (value instanceof ChromatographicPeak) {
 
             ChromatographicPeak peak = (ChromatographicPeak) value;
-            float maxHeight = 0;
+            double maxHeight = 0;
             
             switch (parameters.getPeakShapeNormalization()) {
             case GLOBALMAX:

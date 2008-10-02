@@ -72,7 +72,7 @@ class IntensityPlotDataset extends AbstractDataset implements
             // if we have a numerical axis, we don't want the values to be
             // sorted by the data file order, but rather numerically
             if ((xAxisParameter.getType() == ParameterType.INTEGER)
-                    || (xAxisParameter.getType() == ParameterType.FLOAT)) {
+                    || (xAxisParameter.getType() == ParameterType.DOUBLE)) {
                 Arrays.sort(xValues);
             }
         }
@@ -123,7 +123,7 @@ class IntensityPlotDataset extends AbstractDataset implements
 
     public Number getMeanValue(int row, int column) {
         ChromatographicPeak[] peaks = getPeaks(xValues[column], selectedRows[row]);
-        HashSet<Float> values = new HashSet<Float>();
+        HashSet<Double> values = new HashSet<Double>();
         for (int i = 0; i < peaks.length; i++) {
             if (peaks[i] == null)
                 continue;
@@ -134,10 +134,10 @@ class IntensityPlotDataset extends AbstractDataset implements
             if (yAxisValueSource == IntensityPlotParameters.PeakRTOption)
                 values.add(peaks[i].getRT());
         }
-        float floatValues[] = CollectionUtils.toFloatArray(values);
-        if (floatValues.length == 0)
+        double doubleValues[] = CollectionUtils.toDoubleArray(values);
+        if (doubleValues.length == 0)
             return 0;
-        float mean = MathUtils.calcAvg(floatValues);
+        double mean = MathUtils.calcAvg(doubleValues);
         return mean;
     }
 
@@ -152,7 +152,7 @@ class IntensityPlotDataset extends AbstractDataset implements
         if (peaks.length == 1)
             return 0;
 
-        HashSet<Float> values = new HashSet<Float>();
+        HashSet<Double> values = new HashSet<Double>();
         for (int i = 0; i < peaks.length; i++) {
             if (peaks[i] == null)
                 continue;
@@ -163,8 +163,8 @@ class IntensityPlotDataset extends AbstractDataset implements
             if (yAxisValueSource == IntensityPlotParameters.PeakRTOption)
                 values.add(peaks[i].getRT());
         }
-        float floatValues[] = CollectionUtils.toFloatArray(values);
-        float std = MathUtils.calcStd(floatValues);
+        double doubleValues[] = CollectionUtils.toDoubleArray(values);
+        double std = MathUtils.calcStd(doubleValues);
         return std;
     }
 
