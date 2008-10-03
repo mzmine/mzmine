@@ -61,8 +61,27 @@ public interface IsotopePattern extends ChromatographicPeak, MzDataTable {
     public String getIsotopeInfo();
 
     /**
-     * Returns a boolean value.
+     * Returns the isotope pattern status.
      */
     public IsotopePatternStatus getIsotopePatternStatus();
+    
+    /**
+     * Returns an array of DataPoint[], that represents all isotopes of this pattern
+     */
+    public DataPoint[] getIsotopes();
 
+    /**
+     * Returns the number of isotopes in this pattern
+     */
+    public int getNumberOfIsotopes();
+
+    /**
+     * Returns the height of the most abundant isotope
+     */
+    public double getIsotopeHeight();
+
+    /**
+     * Returns the chemical formula that represents this pattern
+     */
+    public String getFormula();
 }

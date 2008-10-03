@@ -23,6 +23,7 @@ import java.text.Format;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Set;
+import java.util.TreeSet;
 
 import net.sf.mzmine.data.ChromatographicPeak;
 import net.sf.mzmine.data.DataPoint;
@@ -33,6 +34,7 @@ import net.sf.mzmine.data.PeakStatus;
 import net.sf.mzmine.data.RawDataFile;
 import net.sf.mzmine.data.Scan;
 import net.sf.mzmine.main.MZmineCore;
+import net.sf.mzmine.util.DataPointSorter;
 import net.sf.mzmine.util.Range;
 
 /**
@@ -253,6 +255,29 @@ public class SimpleIsotopePattern implements IsotopePattern {
 
 	public IsotopePatternStatus getIsotopePatternStatus() {
 		return patternStatus;
+	}
+
+	public String getFormula() {
+		return null;
+	}
+
+	public double getIsotopeHeight() {
+		return getRepresentativePeak().getHeight();
+	}
+
+	public DataPoint[] getIsotopes() {
+		
+		TreeSet<DataPoint> dataPoints = new TreeSet<DataPoint>(
+				new DataPointSorter(true, true));
+		ChromatographicPeak cp;
+		Iterator<ChromatographicPeak> itr = peaks.iterator();
+		
+		while (itr.hasNext()) {
+			cp = itr.next();
+			dataPoints.add(new SimpleDataPoint(cp.getMZ(), cp.getHeight()));
+		}
+		
+		return dataPoints.toArray(new DataPoint[0]);
 	}
 
 }

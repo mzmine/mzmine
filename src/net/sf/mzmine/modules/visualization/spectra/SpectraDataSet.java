@@ -67,7 +67,7 @@ public class SpectraDataSet extends AbstractXYDataset implements IntervalXYDatas
     	if (isotopeFlag){
     		predicted = ((IsotopePattern)mzDataTable).getIsotopePatternStatus() == IsotopePatternStatus.PREDICTED;
     		if (predicted){
-        		double probablyIncrease = ((PredictedIsotopePattern)mzDataTable).getIsotopeHeight();
+        		double probablyIncrease = ((IsotopePattern)mzDataTable).getIsotopeHeight();
         		if (probablyIncrease > 0)
         			increase = probablyIncrease;
                 label = "Isotopes (" + dataPoints.length 

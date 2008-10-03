@@ -52,7 +52,7 @@ public class PredictedIsotopePattern implements IsotopePattern {
 	}
 
 	public String getIsotopeInfo() {
-		return " Pattern of " + formula + " charge=" + charge;
+		return " Pattern of " + formula + " Charge=" + charge;
 	}
 
 	public double getIsotopeMass() {
@@ -159,6 +159,14 @@ public class PredictedIsotopePattern implements IsotopePattern {
 	
 	public String toString(){
 		return formula + " Charge " + charge;
+	}
+
+	public int getNumberOfIsotopes() {
+		return dataPoints.length;
+	}
+
+	public DataPoint[] getIsotopes() {
+		return dataPoints;
 	}
 
 }

@@ -39,6 +39,7 @@ import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.modules.isotopes.isotopeprediction.IsotopePatternCalculator;
 import net.sf.mzmine.modules.peakpicking.threestep.massdetection.MassDetectorSetupDialog;
 import net.sf.mzmine.util.GUIUtils;
+import net.sf.mzmine.util.IsotopePatternScoreCalculator;
 import net.sf.mzmine.util.dialogs.AxesSetupDialog;
 import net.sf.mzmine.util.dialogs.ThicknessSetupDialog;
 
@@ -64,7 +65,7 @@ import org.jfree.ui.RectangleInsets;
  * 
  */
 public class SpectraPlot extends ChartPanel {
-	
+
 	private JFreeChart chart;
 	private XYPlot plot;
 
@@ -79,8 +80,8 @@ public class SpectraPlot extends ChartPanel {
 
 	// plot colors for plotted files (predicted), circulated by
 	// numOfPeakDataSets
-	private static final Color[] plotColors = { new Color(148, 0, 211), Color.pink, Color.cyan,
-			 new Color(47, 79, 79), Color.orange,
+	private static final Color[] plotColors = { new Color(148, 0, 211),
+			Color.pink, Color.cyan, new Color(47, 79, 79), Color.orange,
 			new Color(173, 255, 47) };
 
 	// picked peaks color
@@ -93,8 +94,8 @@ public class SpectraPlot extends ChartPanel {
 	private static final Color gridColor = Color.lightGray;
 
 	// data points shape
-	private static final Shape dataPointsShape = new Ellipse2D.Double(-2, -2, 5,
-			5);
+	private static final Shape dataPointsShape = new Ellipse2D.Double(-2, -2,
+			5, 5);
 
 	// title font
 	private static final Font titleFont = new Font("SansSerif", Font.BOLD, 12);
@@ -155,7 +156,7 @@ public class SpectraPlot extends ChartPanel {
 		legend = chart.getLegend();
 		legend.setItemFont(legendFont);
 		legend.setFrame(BlockBorder.NONE);
-		
+
 		chart.removeLegend();
 
 		// disable maximum size (we don't want scaling)
@@ -268,7 +269,7 @@ public class SpectraPlot extends ChartPanel {
 		GUIUtils.addMenuItem(popupMenu, "Add isotope pattern", this,
 				"ADD_ISOTOPE_PATTERN");
 		GUIUtils.addMenuItem(popupMenu, "Remove all isotope patterns", this,
-			"REMOVE_ALL_ISOTOPE_PATTERN");
+				"REMOVE_ALL_ISOTOPE_PATTERN");
 
 	}
 
@@ -403,7 +404,7 @@ public class SpectraPlot extends ChartPanel {
 			return true;
 		Boolean pickedPeaksVisible = false;
 
-		if (peakRendererMap.get(1).getBaseSeriesVisible()) 
+		if (peakRendererMap.get(1).getBaseSeriesVisible())
 			return true;
 
 		return pickedPeaksVisible;
@@ -471,18 +472,17 @@ public class SpectraPlot extends ChartPanel {
 	public void setSpectrumDataSet(SpectraDataSet scanData) {
 
 		XYItemRenderer renderer;
-		
+
 		if (scanData == null)
 			return;
 
-		if (plotMode == PlotMode.CENTROID){
+		if (plotMode == PlotMode.CENTROID) {
 			renderer = centroidRenderer;
-		}
-		else {
+		} else {
 			renderer = continuousRenderer;
 		}
-		
-		if (scanData.isPredicted()){
+
+		if (scanData.isPredicted()) {
 			try {
 				renderer = (XYItemRenderer) centroidRenderer.clone();
 			} catch (Exception e) {
@@ -509,7 +509,22 @@ public class SpectraPlot extends ChartPanel {
 			index = numOfPeakDataSets;
 			toolBar.setIsotopePeaksButtonEnabled(true);
 			setPlotLegend(true);
-		} else{
+
+			if (numOfPeakDataSets > 1) {
+				PeakListDataSet firstPeakDataSet = (PeakListDataSet) plot
+						.getDataset(1);
+				if (firstPeakDataSet.isIsotopeDataSet()) {
+
+					double score = IsotopePatternScoreCalculator.getScore(
+							firstPeakDataSet.getIsotopePatter(), peakDataSet
+									.getIsotopePatter());
+
+					peakDataSet.setScore(score);
+
+				}
+			}
+
+		} else {
 			rendererColor = pickedPeaksColor;
 		}
 
@@ -521,24 +536,25 @@ public class SpectraPlot extends ChartPanel {
 		plot.setDataset(index, peakDataSet);
 		peakRendererMap.put(index, newRenderer);
 
-		numOfPeakDataSets++;
 		updatePeakDataSetIncrease();
+		numOfPeakDataSets++;
+
 	}
-	
-	public void removeIsotopePatterns(){
+
+	public void removeIsotopePatterns() {
 		int dataSetCount = plot.getDatasetCount();
 		PeakListDataSet dataSet;
 
 		for (int i = 1; i < dataSetCount; i++) {
 			dataSet = (PeakListDataSet) plot.getDataset(i);
 			if (dataSet != null)
-				if (dataSet.isPredicted()){
+				if (dataSet.isPredicted()) {
 					plot.setDataset(i, null);
 					numOfPeakDataSets--;
 				}
 		}
 		setPlotLegend(false);
-		plot.datasetChanged(new DatasetChangeEvent(this, plot.getDataset(0)));		
+		plot.datasetChanged(new DatasetChangeEvent(this, plot.getDataset(0)));
 	}
 
 	public void setPeakToolTipGenerator(XYToolTipGenerator peakToolTipGenerator) {
@@ -563,34 +579,32 @@ public class SpectraPlot extends ChartPanel {
 	public double getThicknessBar() {
 		return thickness;
 	}
-	
-	public void updatePeakDataSetIncrease(){
+
+	public void updatePeakDataSetIncrease() {
 		int dataSetCount = plot.getDatasetCount();
 		PeakListDataSet dataSet;
-		SpectraDataSet spectra = (SpectraDataSet)plot.getDataset(0);
+		SpectraDataSet spectra = (SpectraDataSet) plot.getDataset(0);
 		double increase, mass;
 
 		for (int i = 1; i < dataSetCount; i++) {
 			dataSet = (PeakListDataSet) plot.getDataset(i);
 			if (dataSet != null)
-				if (dataSet.isPredicted() && dataSet.isAutoIncrease()){
+				if (dataSet.isPredicted() && dataSet.isAutoIncrease()) {
 					mass = dataSet.getIsotopeMass();
 					increase = spectra.getBiggestIntensity(mass);
 					dataSet.setIncreaseIntensity(increase);
 				}
 		}
-		
+
 	}
-	
-	public void setPlotLegend(boolean enable){
-		if (enable){
-			if(chart.getLegend() == null)
+
+	public void setPlotLegend(boolean enable) {
+		if (enable) {
+			if (chart.getLegend() == null)
 				chart.addLegend(legend);
-		}
-		else{
+		} else {
 			chart.removeLegend();
 		}
-		
-		
+
 	}
 }
