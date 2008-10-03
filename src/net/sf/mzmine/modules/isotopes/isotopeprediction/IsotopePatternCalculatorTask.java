@@ -88,6 +88,14 @@ public class IsotopePatternCalculatorTask implements Task {
 					charge, positiveCharge, isotopeHeight, autoHeight);
 		} catch (Exception e) {
 			e.printStackTrace();
+			status = TaskStatus.ERROR;
+			errorMessage = "Chemical formula or common organic compound not valid";
+		}
+		
+		if (isotopePattern == null){
+			status = TaskStatus.ERROR;
+			errorMessage = analyzer.getMessageError();
+			return;
 		}
 
 		status = TaskStatus.FINISHED;

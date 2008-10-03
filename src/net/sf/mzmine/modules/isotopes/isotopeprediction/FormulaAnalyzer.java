@@ -40,6 +40,7 @@ public class FormulaAnalyzer {
 
 	private IsotopeFactory isoFactory;
 	private DataPoint[] abundanceAndMass = null;
+	private String errorMessage;
 	private static double ELECTRON_MASS = 0.00054857d;
 
 	private Logger logger = Logger.getLogger(this.getClass().getName());
@@ -73,8 +74,10 @@ public class FormulaAnalyzer {
 		String mf = originalFormula.trim();
 		mf = removeSpaces(mf);
 		
-		if ((mf == null) || (mf == ""))
+		if ((mf == null) || (mf == "")){
+			errorMessage = "Please type a chemical formula or common organic compound.";
 			return null;
+		}
 
 		// Verify if the passed originalFormula is an abbreviation of a common
 		// organic compound
@@ -89,8 +92,10 @@ public class FormulaAnalyzer {
 				numCloseParenthesis++;
 		}
 
-		if (numOpenParenthesis != numCloseParenthesis)
+		if (numOpenParenthesis != numCloseParenthesis){
+			errorMessage = "Chemical formula or common organic compound not valid.";
 			return null;
+		}
 
 		// In case of a formula with functional groups is necessary to unfold
 		// the formula in order to get the exact number of atoms per element.
@@ -128,7 +133,10 @@ public class FormulaAnalyzer {
 			atomCount = tokens.get(elementSymbol);
 			
 			for (int i = 0; i < atomCount; i++) {
-				calculateAbundanceAndMass(elementSymbol);
+				if (!calculateAbundanceAndMass(elementSymbol)){
+					errorMessage = "Chemical formula or common organic compound not valid.";
+					return null;
+				}
 			}
 		}
 
@@ -167,12 +175,17 @@ public class FormulaAnalyzer {
 	 * 
 	 * @param elementSymbol
 	 */
-	private void calculateAbundanceAndMass(String elementSymbol) {
+	private boolean calculateAbundanceAndMass(String elementSymbol) {
 
 		IIsotope[] isotopes = isoFactory.getIsotopes(elementSymbol);
+		
+		if (isotopes == null)
+			return false;
+		
+		if (isotopes.length == 0)
+			return false;
 
 		double mass, previousMass, abundance, totalAbundance, newAbundance;
-		//double pow = Math.pow(10, 6), mass, previousMass;
 
 		HashMap<Double, Double> isotopeMassAndAbundance = new HashMap<Double, Double>();
 		TreeSet<DataPoint> dataPoints = new TreeSet<DataPoint>(
@@ -186,8 +199,6 @@ public class FormulaAnalyzer {
 			abundance =  isotopes[i].getNaturalAbundance();
 			dataPoints.add(new SimpleDataPoint(mass, abundance));
 
-			//logger.finest(" Isotope of "+ elementSymbol + i+" mass " 
-				//	+ isotopes[i].getExactMass()  + " double " + mass );
 		}
 		
 		currentElementPattern = dataPoints.toArray(new DataPoint[0]);
@@ -198,7 +209,7 @@ public class FormulaAnalyzer {
 		if (abundanceAndMass == null) {
 			
 			abundanceAndMass = currentElementPattern;
-			return;
+			return true;
 
 		} else {
 			
@@ -218,28 +229,17 @@ public class FormulaAnalyzer {
 						continue;
 
 					newAbundance = totalAbundance * abundance * 0.01f;
-
-					//mass = abundanceAndMass[i].getMZ()
 					mass += currentElementPattern[j].getMZ();
-					
-					
-					//logger.finest(" Mass of "+ elementSymbol + j+" mass " 
-						//	+ currentElementPattern[j].getMZ() + " total "
-						//	+ abundanceAndMass[i].getMZ() + " newMass " + mass );
-					
 					
 					// Filter duplicated masses
 					previousMass = searchMass(isotopeMassAndAbundance.keySet(), mass);
 					if (isotopeMassAndAbundance.containsKey(previousMass)) {
 						newAbundance += isotopeMassAndAbundance.get(previousMass);
 						mass = previousMass;
-						//isotopeMassAndAbundance.remove(previousMass);
-						//mass = (mass + previousMass) / 2;
 					}
 
 					// Filter isotopes too small
 					if (isNotZero(newAbundance)) {
-					//	logger.finest("INSERTA  Mass of "+ mass +" double "+ (double) (mass * 10000) + " abundance " + newAbundance); 
 						isotopeMassAndAbundance.put(mass, newAbundance);
 					}
 					previousMass = 0;
@@ -257,7 +257,13 @@ public class FormulaAnalyzer {
 			}
 			abundanceAndMass = dataPoints.toArray(new DataPoint[0]);
 		}
+		
+		return true;
 
+	}
+	
+	public String getMessageError(){
+		return errorMessage;
 	}
 	
 	private static double searchMass(Set<Double> keySet, double mass){
@@ -679,6 +685,14 @@ public class FormulaAnalyzer {
 
 	}
 
+	
+	/**
+	 * 
+	 * @param dataPoints
+	 * @param charge
+	 * @param positiveCharge
+	 * @return
+	 */
 	private static DataPoint[] loadChargeDistribution(DataPoint[] dataPoints,
 			int charge, boolean positiveCharge) {
 		
@@ -703,6 +717,11 @@ public class FormulaAnalyzer {
 		}
 	}
 	
+	/**
+	 * 
+	 * @param s
+	 * @return
+	 */
 	public static String removeSpaces(String s) {
 		  StringTokenizer st = new StringTokenizer(s," ",false);
 		  String t="";
