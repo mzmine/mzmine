@@ -269,7 +269,7 @@ public class SpectraVisualizerWindow extends JInternalFrame implements
 				spectrumDataSet = new SpectraDataSet(isotopePattern);
 				Range mzRange = isotopePattern.getIsotopeMzRange();
 				// Set plot data sets
-				spectrumPlot.setSpectrumDataSet(spectrumDataSet);
+				//spectrumPlot.setSpectrumDataSet(spectrumDataSet);
 				String subTitle = "";
 
 				PeakListDataSet peaksDataSet = null;

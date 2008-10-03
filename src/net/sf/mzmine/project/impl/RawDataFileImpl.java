@@ -194,14 +194,22 @@ public class RawDataFileImpl implements RawDataFile, RawDataFileWriter {
      */
     public double getDataMinRT(int msLevel) {
 
+        Double minRT = null;
+
         // if there is no cache table, create one
         if (dataMinRT == null)
             dataMinRT = new Hashtable<Integer, Double>();
+        else{
+            minRT = dataMinRT.get(msLevel);
+            if (minRT != null)
+              return minRT.doubleValue();
+        }
+        	
 
         // check if we have this value already cached
-        Double minRT = dataMinRT.get(msLevel);
-        if (minRT != null)
-            return minRT.doubleValue();
+        //Double minRT = dataMinRT.get(msLevel);
+        //if (minRT != null)
+          //  return minRT.doubleValue();
 
         // find the value
         Enumeration<Scan> scansEnum = scans.elements();

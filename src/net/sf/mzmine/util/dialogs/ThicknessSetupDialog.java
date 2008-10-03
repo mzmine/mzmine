@@ -24,27 +24,28 @@ import java.awt.BorderLayout;
 import java.awt.GridLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.text.DecimalFormat;
 import java.util.logging.Logger;
 
 import javax.swing.BorderFactory;
 import javax.swing.JButton;
 import javax.swing.JDialog;
+import javax.swing.JFormattedTextField;
 import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
-import javax.swing.JTextField;
 
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.modules.visualization.spectra.SpectraPlot;
 
 public class ThicknessSetupDialog extends JDialog implements ActionListener {
 
-	private JTextField fieldThickness;
+	private JFormattedTextField fieldThickness;
 	private JButton btnOK, btnApply, btnCancel;
 	private Logger logger = Logger.getLogger(this.getClass().getName());
 	private SpectraPlot plot;
 	private double oldThickness;
-	private static double minThickness = 0.000010f;
+	private static double MIN_THICKNESS = 0.00001d;
 
 	public ThicknessSetupDialog(SpectraPlot plot) {
 		// Make dialog modal
@@ -52,9 +53,11 @@ public class ThicknessSetupDialog extends JDialog implements ActionListener {
 
 		this.plot = plot;
 		oldThickness = plot.getThicknessBar();
-		// NumberFormat defaultFormatter = NumberFormat.getNumberInstance();
+		DecimalFormat defaultFormatter = new DecimalFormat("#.#####"); 
 		JLabel label = new JLabel("Thickness ");
-		fieldThickness = new JTextField(Double.toString(oldThickness));
+		fieldThickness = new JFormattedTextField(defaultFormatter);
+		fieldThickness.setValue(oldThickness);
+		//fieldThickness = new JTextField(Double.toString(oldThickness));
 
 		// Create a panel for labels and fields
 		JPanel pnlLabelsAndFields = new JPanel(new GridLayout(0, 2));
@@ -100,7 +103,8 @@ public class ThicknessSetupDialog extends JDialog implements ActionListener {
 		}
 
 		if (src == btnApply) {
-			setValuesToPlot();
+			if (!setValuesToPlot())
+				fieldThickness.setValue(oldThickness);
 		}
 
 		if (src == btnCancel) {
@@ -113,10 +117,10 @@ public class ThicknessSetupDialog extends JDialog implements ActionListener {
 
 		double thickness = Double.parseDouble(fieldThickness.getText());
 
-		if (thickness > minThickness) {
+		if (thickness >= MIN_THICKNESS) {
 			plot.setThicknessBar(thickness);
 		} else {
-			displayMessage("Invalid value for thickness ");
+			displayMessage("Invalid value for thickness, must be greater or equal than " + MIN_THICKNESS);
 			return false;
 		}
 

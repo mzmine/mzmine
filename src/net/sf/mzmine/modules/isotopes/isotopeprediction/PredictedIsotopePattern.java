@@ -36,7 +36,7 @@ public class PredictedIsotopePattern implements IsotopePattern {
 	private int charge;
 	private Range range;
 	private IsotopePatternStatus patternStatus = IsotopePatternStatus.PREDICTED;
-	private double height = 10000.0f;
+	private double height = 0.0f;
 
 	
 	public PredictedIsotopePattern (DataPoint[] dataPoints, String formula, int charge){

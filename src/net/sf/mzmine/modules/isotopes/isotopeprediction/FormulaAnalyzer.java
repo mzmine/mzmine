@@ -22,6 +22,7 @@ package net.sf.mzmine.modules.isotopes.isotopeprediction;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Set;
+import java.util.StringTokenizer;
 import java.util.TreeSet;
 import java.util.Vector;
 import java.util.logging.Logger;
@@ -70,8 +71,8 @@ public class FormulaAnalyzer {
 
 		int numOpenParenthesis = 0, numCloseParenthesis = 0;
 		String mf = originalFormula.trim();
-
-
+		mf = removeSpaces(mf);
+		
 		if ((mf == null) || (mf == ""))
 			return null;
 
@@ -151,7 +152,7 @@ public class FormulaAnalyzer {
 		if (!autoHeight)
 			isotopePattern.setIsotopeHeight(isotopeHeight);
 		else
-			isotopePattern.setIsotopeHeight(-1.0f);
+			isotopePattern.setIsotopeHeight(0.0f);
 
 		return isotopePattern;
 
@@ -443,7 +444,7 @@ public class FormulaAnalyzer {
 				fragmentFormula = "";
 			}
 
-		unfoldedFormula = unfoldedFormula.trim();
+		unfoldedFormula = removeSpaces(unfoldedFormula);
 
 		for (int i = 0; i < unfoldedFormula.length(); i++)
 			if (unfoldedFormula.charAt(i) == '.') {
@@ -484,7 +485,7 @@ public class FormulaAnalyzer {
 					unfoldedFormula += fragmentFormula;
 			}
 
-		unfoldedFormula = unfoldedFormula.trim();
+		unfoldedFormula = removeSpaces(unfoldedFormula);
 
 		return unfoldedFormula;
 	}
@@ -661,7 +662,11 @@ public class FormulaAnalyzer {
 		for (DataPoint dp : dataPoints) {
 
 			intensity = dp.getIntensity();
-			((SimpleDataPoint) dp).setIntensity((intensity) / biggestIntensity);
+			intensity /= biggestIntensity;
+			if (intensity < 0)
+				intensity = 0;
+			
+			((SimpleDataPoint) dp).setIntensity(intensity);
 
 		}
 
@@ -696,7 +701,13 @@ public class FormulaAnalyzer {
 			}			
 			return dataPoints;
 		}
-		
-
 	}
+	
+	public static String removeSpaces(String s) {
+		  StringTokenizer st = new StringTokenizer(s," ",false);
+		  String t="";
+		  while (st.hasMoreElements()) t += st.nextElement();
+		  return t;
+		  }
+	
 }

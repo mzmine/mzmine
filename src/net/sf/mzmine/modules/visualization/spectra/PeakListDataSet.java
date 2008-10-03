@@ -21,7 +21,6 @@ package net.sf.mzmine.modules.visualization.spectra;
 
 import java.util.TreeMap;
 import java.util.Vector;
-import java.util.logging.Logger;
 
 import net.sf.mzmine.data.ChromatographicPeak;
 import net.sf.mzmine.data.DataPoint;
@@ -40,13 +39,11 @@ import org.jfree.data.xy.IntervalXYDataset;
  */
 public class PeakListDataSet extends AbstractXYDataset implements IntervalXYDataset {
 
-    private Logger logger = Logger.getLogger(this.getClass().getName());
-
     private PeakList peakList;
 
     private ChromatographicPeak displayedPeaks[];
-    private double mzValues[], intensityValues[], increase = -1.0f;
-    private boolean isotopeFlag=false,  predicted = false;
+    private double mzValues[], intensityValues[], increase = 0d, isotopeMass = 0d;
+    private boolean isotopeFlag=false,  predicted = false, autoIncrease = false;
     private String label;
     private double thickness = 0.001f;
     private IsotopePatternStatus isotopeStatus;
@@ -98,7 +95,10 @@ public class PeakListDataSet extends AbstractXYDataset implements IntervalXYData
             predicted = true;
             isotopeStatus = IsotopePatternStatus.PREDICTED;
             increase = ((PredictedIsotopePattern)isotopePattern).getIsotopeHeight();
+            if (increase <= 0)
+            	autoIncrease = true;
             formula = ((PredictedIsotopePattern)isotopePattern).getFormula();
+            isotopeMass = isotopePattern.getIsotopeMass();
     		
     	}
     	else{
@@ -208,6 +208,14 @@ public class PeakListDataSet extends AbstractXYDataset implements IntervalXYData
     	return increase;
     }
     
+    public double getIsotopeMass(){
+    	return isotopeMass;
+    }
+    
+    public boolean isAutoIncrease(){
+    	return autoIncrease;
+    }
+
     public boolean isPredicted(){
     	return predicted;
     }

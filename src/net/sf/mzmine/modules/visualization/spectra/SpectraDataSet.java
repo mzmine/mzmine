@@ -19,6 +19,8 @@
 
 package net.sf.mzmine.modules.visualization.spectra;
 
+import java.util.TreeSet;
+
 import net.sf.mzmine.data.DataPoint;
 import net.sf.mzmine.data.IsotopePattern;
 import net.sf.mzmine.data.IsotopePatternStatus;
@@ -37,6 +39,10 @@ public class SpectraDataSet extends AbstractXYDataset implements IntervalXYDatas
 	private boolean predicted = false;
 	private double increase = (double) Math.pow(10, 4);
 	private double biggestIntensity = Double.MIN_VALUE;
+
+	// Half of one Hydrogen
+	private static double TOLERANCE = 0.5039125d;
+
 	
 	/*
      * Save a local copy of m/z and intensity values, because accessing the scan
@@ -64,8 +70,10 @@ public class SpectraDataSet extends AbstractXYDataset implements IntervalXYDatas
         		double probablyIncrease = ((PredictedIsotopePattern)mzDataTable).getIsotopeHeight();
         		if (probablyIncrease > 0)
         			increase = probablyIncrease;
-    			label = "Predicted isotope pattern";
-    		}
+                label = "Isotopes (" + dataPoints.length 
+        		+ ") "+ ((IsotopePattern)mzDataTable).getIsotopeInfo();
+                
+            }
     		else {
         		label = "Raw data";
     		}
@@ -140,6 +148,25 @@ public class SpectraDataSet extends AbstractXYDataset implements IntervalXYDatas
     
     public double getIncrease(){
     	return increase;
+    }
+    
+    public boolean isPredicted(){
+    	return predicted;
+    }
+    
+    public double getBiggestIntensity(double mass){
+    	
+    	TreeSet<Double> intensities = new TreeSet<Double>();
+    	double value;
+    	int itemCount = getItemCount(0);
+    	
+    	for (int i=0; i<itemCount; i++){
+    		value = Math.abs(mass - getX(0,i).doubleValue());
+    		if (value <= TOLERANCE){
+    			intensities.add(getY(0,i).doubleValue());
+    		}
+    	}
+    	return intensities.last();
     }
 
 }

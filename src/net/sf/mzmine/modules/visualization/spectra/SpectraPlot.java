@@ -53,6 +53,7 @@ import org.jfree.chart.plot.PlotOrientation;
 import org.jfree.chart.plot.XYPlot;
 import org.jfree.chart.renderer.xy.StandardXYBarPainter;
 import org.jfree.chart.renderer.xy.XYBarRenderer;
+import org.jfree.chart.renderer.xy.XYItemRenderer;
 import org.jfree.chart.renderer.xy.XYLineAndShapeRenderer;
 import org.jfree.chart.title.LegendTitle;
 import org.jfree.chart.title.TextTitle;
@@ -63,7 +64,7 @@ import org.jfree.ui.RectangleInsets;
  * 
  */
 public class SpectraPlot extends ChartPanel {
-
+	
 	private JFreeChart chart;
 	private XYPlot plot;
 
@@ -78,8 +79,8 @@ public class SpectraPlot extends ChartPanel {
 
 	// plot colors for plotted files (predicted), circulated by
 	// numOfPeakDataSets
-	private static final Color[] plotColors = { Color.pink, Color.cyan,
-			new Color(148, 0, 211), new Color(47, 79, 79), Color.orange,
+	private static final Color[] plotColors = { new Color(148, 0, 211), Color.pink, Color.cyan,
+			 new Color(47, 79, 79), Color.orange,
 			new Color(173, 255, 47) };
 
 	// picked peaks color
@@ -154,10 +155,13 @@ public class SpectraPlot extends ChartPanel {
 		legend = chart.getLegend();
 		legend.setItemFont(legendFont);
 		legend.setFrame(BlockBorder.NONE);
+		
+		chart.removeLegend();
 
 		// disable maximum size (we don't want scaling)
 		setMaximumDrawWidth(Integer.MAX_VALUE);
 		setMaximumDrawHeight(Integer.MAX_VALUE);
+		setMinimumDrawHeight(0);
 
 		// set the plot properties
 		plot = chart.getXYPlot();
@@ -466,11 +470,30 @@ public class SpectraPlot extends ChartPanel {
 
 	public void setSpectrumDataSet(SpectraDataSet scanData) {
 
+		XYItemRenderer renderer;
+		
+		if (scanData == null)
+			return;
+
+		if (plotMode == PlotMode.CENTROID){
+			renderer = centroidRenderer;
+		}
+		else {
+			renderer = continuousRenderer;
+		}
+		
+		if (scanData.isPredicted()){
+			try {
+				renderer = (XYItemRenderer) centroidRenderer.clone();
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
+			renderer.setSeriesPaint(0, plotColors[0]);
+			setPlotLegend(true);
+		}
+
 		plot.setDataset(0, scanData);
-		if (plotMode == PlotMode.CENTROID)
-			plot.setRenderer(0, centroidRenderer);
-		else
-			plot.setRenderer(0, continuousRenderer);
+		plot.setRenderer(0, renderer);
 
 	}
 
@@ -485,8 +508,10 @@ public class SpectraPlot extends ChartPanel {
 			((PeakPlotRenderer) newRenderer).setTransparencyLevel(0.8f);
 			index = numOfPeakDataSets;
 			toolBar.setIsotopePeaksButtonEnabled(true);
-		} else
+			setPlotLegend(true);
+		} else{
 			rendererColor = pickedPeaksColor;
+		}
 
 		newRenderer.setSeriesPaint(0, rendererColor);
 		newRenderer.setBaseToolTipGenerator(peakToolTipGenerator);
@@ -497,6 +522,7 @@ public class SpectraPlot extends ChartPanel {
 		peakRendererMap.put(index, newRenderer);
 
 		numOfPeakDataSets++;
+		updatePeakDataSetIncrease();
 	}
 	
 	public void removeIsotopePatterns(){
@@ -506,9 +532,12 @@ public class SpectraPlot extends ChartPanel {
 		for (int i = 1; i < dataSetCount; i++) {
 			dataSet = (PeakListDataSet) plot.getDataset(i);
 			if (dataSet != null)
-				if (dataSet.isPredicted())
+				if (dataSet.isPredicted()){
 					plot.setDataset(i, null);
+					numOfPeakDataSets--;
+				}
 		}
+		setPlotLegend(false);
 		plot.datasetChanged(new DatasetChangeEvent(this, plot.getDataset(0)));		
 	}
 
@@ -533,5 +562,35 @@ public class SpectraPlot extends ChartPanel {
 
 	public double getThicknessBar() {
 		return thickness;
+	}
+	
+	public void updatePeakDataSetIncrease(){
+		int dataSetCount = plot.getDatasetCount();
+		PeakListDataSet dataSet;
+		SpectraDataSet spectra = (SpectraDataSet)plot.getDataset(0);
+		double increase, mass;
+
+		for (int i = 1; i < dataSetCount; i++) {
+			dataSet = (PeakListDataSet) plot.getDataset(i);
+			if (dataSet != null)
+				if (dataSet.isPredicted() && dataSet.isAutoIncrease()){
+					mass = dataSet.getIsotopeMass();
+					increase = spectra.getBiggestIntensity(mass);
+					dataSet.setIncreaseIntensity(increase);
+				}
+		}
+		
+	}
+	
+	public void setPlotLegend(boolean enable){
+		if (enable){
+			if(chart.getLegend() == null)
+				chart.addLegend(legend);
+		}
+		else{
+			chart.removeLegend();
+		}
+		
+		
 	}
 }

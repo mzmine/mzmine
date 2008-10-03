@@ -151,18 +151,18 @@ public class IsotopePatternCalculator implements MZmineModule, TaskListener,
 				visualizer.showNewSpectrumWindow(null, ip);
 			} else {
 				PeakListDataSet predictedPeakDataSet = new PeakListDataSet(ip);
-				PeakListDataSet rawPeakDataSet = (PeakListDataSet) plot
-						.getXYPlot().getDataset(1);
+				SpectraDataSet rawSpectraDataSet = (SpectraDataSet) plot
+						.getXYPlot().getDataset(0);
 				double increase = predictedPeakDataSet.getIncrease();
-				if (increase < 0) {
-					if (rawPeakDataSet != null) {
-						increase = ((int) (rawPeakDataSet
-								.getBiggestIntensity(ip.getIsotopeMass()) * 100) / 100);
+				if (!predictedPeakDataSet.isAutoIncrease()) {
+					if (rawSpectraDataSet != null) {
+						increase = rawSpectraDataSet
+								.getBiggestIntensity(ip.getIsotopeMass());
 					} else {
-						increase = (double) Math.pow(10, 4);
+						increase = Math.pow(10, 4);
 					}
 				}
-				logger.finest("Value of increase " + increase);
+				//logger.finest("Value of increase " + increase + " mass " + ip.getIsotopeMass());
 				predictedPeakDataSet.setIncreaseIntensity(increase);
 				plot.addPeaksDataSet(predictedPeakDataSet);
 			}
