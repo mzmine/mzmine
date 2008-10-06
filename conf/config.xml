@@ -95,6 +95,7 @@
     <module class="net.sf.mzmine.modules.visualization.spectra.SpectraVisualizer"> 
       <parameters>
         <parameter name="Scan number" type="INTEGER"/>
+        <parameter name="thickness" type="DOUBLE">0.0010</parameter>
       </parameters> 
     </module>  
     <module class="net.sf.mzmine.modules.visualization.twod.TwoDVisualizer"> 
@@ -336,12 +337,13 @@
     <module class="net.sf.mzmine.util.menu.VisualizationMenuSeparator"/>  
     <module class="net.sf.mzmine.modules.isotopes.isotopeprediction.IsotopePatternCalculator"> 
       <parameters>
-        <parameter name="Chemical formula" type="STRING">C13H17O7N4</parameter>
+        <parameter name="Chemical formula" type="STRING">C50H50</parameter>
         <parameter name="Minimum % of relative abundance" type="DOUBLE">0.009999999776482582</parameter>
         <parameter name="Charge distribution" type="INTEGER">1</parameter>
         <parameter name="Sign of the charge" type="STRING">Negative</parameter>
         <parameter name="Set automatic height" type="BOOLEAN">true</parameter>
         <parameter name="Height of most abundance isotope" type="DOUBLE">10000.0</parameter>
+        <parameter name="Add isotopes masses" type="BOOLEAN">false</parameter>
       </parameters> 
     </module>  
     <module class="net.sf.mzmine.modules.identification.custom.CustomDBSearch"> 
@@ -405,10 +407,10 @@
       <pattern>0.0E0</pattern>
     </format>
     <mainwindow>
-      <x>115</x>
-      <y>-12</y>
+      <x>101</x>
+      <y>91</y>
       <width>1764</width>
-      <height>1009</height>
+      <height>873</height>
     </mainwindow>
     <lastProjectDirectory>E:\DATA\Projects</lastProjectDirectory>
   </desktop> 

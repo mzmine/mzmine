@@ -37,6 +37,8 @@ import javax.swing.JPanel;
 
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.modules.visualization.spectra.SpectraPlot;
+import net.sf.mzmine.modules.visualization.spectra.SpectraVisualizer;
+import net.sf.mzmine.modules.visualization.spectra.SpectraVisualizerParameters;
 
 public class ThicknessSetupDialog extends JDialog implements ActionListener {
 
@@ -52,7 +54,7 @@ public class ThicknessSetupDialog extends JDialog implements ActionListener {
 		super(MZmineCore.getDesktop().getMainFrame(), true);
 
 		this.plot = plot;
-		oldThickness = plot.getThicknessBar();
+		oldThickness = plot.getBarThickness();
 		DecimalFormat defaultFormatter = new DecimalFormat("#.#####"); 
 		JLabel label = new JLabel("Thickness ");
 		fieldThickness = new JFormattedTextField(defaultFormatter);
@@ -108,7 +110,7 @@ public class ThicknessSetupDialog extends JDialog implements ActionListener {
 		}
 
 		if (src == btnCancel) {
-			plot.setThicknessBar(oldThickness);
+			plot.setBarThickness(oldThickness);
 			dispose();
 		}
 	}
@@ -118,7 +120,7 @@ public class ThicknessSetupDialog extends JDialog implements ActionListener {
 		double thickness = Double.parseDouble(fieldThickness.getText());
 
 		if (thickness >= MIN_THICKNESS) {
-			plot.setThicknessBar(thickness);
+			plot.setBarThickness(thickness);
 		} else {
 			displayMessage("Invalid value for thickness, must be greater or equal than " + MIN_THICKNESS);
 			return false;

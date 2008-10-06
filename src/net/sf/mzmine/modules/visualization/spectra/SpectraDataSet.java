@@ -40,7 +40,7 @@ public class SpectraDataSet extends AbstractXYDataset implements IntervalXYDatas
 	private double increase = (double) Math.pow(10, 4);
 	private double biggestIntensity = Double.MIN_VALUE;
 
-	// Half of one Hydrogen
+	// Half of one Hydrogen mass
 	private static double TOLERANCE = 0.5039125d;
 
 	

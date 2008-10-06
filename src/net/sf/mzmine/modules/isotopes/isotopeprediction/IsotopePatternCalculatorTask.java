@@ -32,7 +32,7 @@ public class IsotopePatternCalculatorTask implements Task {
 	private int charge;
 	// private int processedAtoms, totalNumberOfAtoms;
 	private IsotopePattern isotopePattern;
-	private boolean autoHeight = false;
+	private boolean autoHeight = false, sumOfMasses = false;
 	private boolean positiveCharge;
 
 	public IsotopePatternCalculatorTask(
@@ -51,6 +51,9 @@ public class IsotopePatternCalculatorTask implements Task {
 		String signOfCharge = (String) parameters
 		.getParameterValue(IsotopePatternCalculatorParameters.signOfCharge);
 		positiveCharge = signOfCharge.equals("Positive");
+
+		sumOfMasses = (Boolean) parameters
+			.getParameterValue(IsotopePatternCalculatorParameters.sumOfMasses);
 
 		description = "Isotope pattern calculation of " + formula;
 
@@ -85,7 +88,7 @@ public class IsotopePatternCalculatorTask implements Task {
 			return;
 		try {
 			isotopePattern = analyzer.getIsotopePattern(formula, minAbundance,
-					charge, positiveCharge, isotopeHeight, autoHeight);
+					charge, positiveCharge, isotopeHeight, autoHeight, sumOfMasses);
 		} catch (Exception e) {
 			e.printStackTrace();
 			status = TaskStatus.ERROR;

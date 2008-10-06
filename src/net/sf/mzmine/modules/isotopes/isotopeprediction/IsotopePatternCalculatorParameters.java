@@ -62,8 +62,13 @@ public class IsotopePatternCalculatorParameters extends SimpleParameterSet {
             new Double(10000.0f), new Double(1.0f), null,
             MZmineCore.getIntensityFormat());
 
+    public static final Parameter sumOfMasses = new SimpleParameter(
+			ParameterType.BOOLEAN, "Add isotopes masses",
+			"Add the isotope masses in certain range according the charge distribution, in order to get single peaks", null, null,
+			null, null, null);
+
     public IsotopePatternCalculatorParameters() {
-        super(new Parameter[] { formula, minimalAbundance, charge, signOfCharge, autoHeight, isotopeHeight });
+        super(new Parameter[] { formula, minimalAbundance, charge, signOfCharge, autoHeight, isotopeHeight, sumOfMasses });
     }
 
 }

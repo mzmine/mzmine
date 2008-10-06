@@ -36,10 +36,10 @@ import javax.swing.JPopupMenu;
 import javax.swing.KeyStroke;
 
 import net.sf.mzmine.main.MZmineCore;
+import net.sf.mzmine.modules.isotopes.isotopepatternscore.IsotopePatternScoreCalculator;
 import net.sf.mzmine.modules.isotopes.isotopeprediction.IsotopePatternCalculator;
 import net.sf.mzmine.modules.peakpicking.threestep.massdetection.MassDetectorSetupDialog;
 import net.sf.mzmine.util.GUIUtils;
-import net.sf.mzmine.util.IsotopePatternScoreCalculator;
 import net.sf.mzmine.util.dialogs.AxesSetupDialog;
 import net.sf.mzmine.util.dialogs.ThicknessSetupDialog;
 
@@ -113,7 +113,7 @@ public class SpectraPlot extends ChartPanel {
 	private static final Font legendFont = new Font("SansSerif", Font.PLAIN, 11);
 
 	private boolean isotopeFlag;
-	private double thickness = 0.005f;
+	private double thickness = 0.0005f;
 
 	XYBarRenderer centroidRenderer;
 	XYLineAndShapeRenderer continuousRenderer;
@@ -128,6 +128,7 @@ public class SpectraPlot extends ChartPanel {
 		setCursor(Cursor.getPredefinedCursor(Cursor.CROSSHAIR_CURSOR));
 		peakRendererMap = new HashMap<Integer, XYBarRenderer>();
 		isotopeFlag = type == SpectraVisualizerType.ISOTOPE;
+		thickness = SpectraVisualizerParameters.barThickness;
 
 		// initialize the chart by default time series chart from factory
 		chart = ChartFactory.createXYLineChart("", // title
@@ -498,46 +499,66 @@ public class SpectraPlot extends ChartPanel {
 	}
 
 	public void addPeaksDataSet(PeakListDataSet peakDataSet) {
+
 		Color rendererColor;
-		int index = 1;
 		peakDataSet.setThickness(thickness);
-		XYBarRenderer newRenderer = new PeakPlotRenderer();
+		XYBarRenderer newRenderer;
 
 		if (peakDataSet.isPredicted()) {
+
 			rendererColor = plotColors[numOfPeakDataSets % plotColors.length];
+
+			newRenderer = new PeakPlotRenderer();
 			((PeakPlotRenderer) newRenderer).setTransparencyLevel(0.8f);
-			index = numOfPeakDataSets;
+			newRenderer.setSeriesPaint(0, rendererColor);
+			newRenderer.setBaseToolTipGenerator(peakToolTipGenerator);
+			newRenderer.setBaseItemLabelPaint(rendererColor);
+			newRenderer.setShadowVisible(false);
+
 			toolBar.setIsotopePeaksButtonEnabled(true);
 			setPlotLegend(true);
 
 			if (numOfPeakDataSets > 1) {
 				PeakListDataSet firstPeakDataSet = (PeakListDataSet) plot
 						.getDataset(1);
-				if (firstPeakDataSet.isIsotopeDataSet()) {
-
+				if (firstPeakDataSet.isIsotopeDataSet() && (!firstPeakDataSet.isPredicted()) ) {
 					double score = IsotopePatternScoreCalculator.getScore(
 							firstPeakDataSet.getIsotopePatter(), peakDataSet
 									.getIsotopePatter());
-
 					peakDataSet.setScore(score);
-
 				}
 			}
 
-		} else {
-			rendererColor = pickedPeaksColor;
+			plot.setRenderer(numOfPeakDataSets, newRenderer);
+			plot.setDataset(numOfPeakDataSets, peakDataSet);
+			peakRendererMap.put(numOfPeakDataSets, newRenderer);
+			numOfPeakDataSets++;
+
+		} 
+		else {
+			
+			if (numOfPeakDataSets == 1) {
+			
+				rendererColor = pickedPeaksColor;
+				newRenderer = new PeakPlotRenderer();
+				newRenderer.setSeriesPaint(0, rendererColor);
+				newRenderer.setBaseToolTipGenerator(peakToolTipGenerator);
+				newRenderer.setBaseItemLabelPaint(rendererColor);
+				newRenderer.setShadowVisible(false);
+				plot.setRenderer(1, newRenderer);
+				plot.setDataset(1, peakDataSet);
+				peakRendererMap.put(1, newRenderer);
+				peakRendererMap.put(1, newRenderer);
+				numOfPeakDataSets++;
+			
+			}
+			else{
+				plot.setDataset(1, peakDataSet);
+			}
+				
 		}
 
-		newRenderer.setSeriesPaint(0, rendererColor);
-		newRenderer.setBaseToolTipGenerator(peakToolTipGenerator);
-		newRenderer.setBaseItemLabelPaint(rendererColor);
-		newRenderer.setShadowVisible(false);
-		plot.setRenderer(index, newRenderer);
-		plot.setDataset(index, peakDataSet);
-		peakRendererMap.put(index, newRenderer);
-
 		updatePeakDataSetIncrease();
-		numOfPeakDataSets++;
 
 	}
 
@@ -561,8 +582,10 @@ public class SpectraPlot extends ChartPanel {
 		this.peakToolTipGenerator = peakToolTipGenerator;
 	}
 
-	public void setThicknessBar(double thickness) {
+	public void setBarThickness(double thickness) {
 		this.thickness = thickness;
+		SpectraVisualizerParameters.barThickness = thickness;
+
 		int dataSetCount = plot.getDatasetCount();
 		PeakListDataSet dataSet;
 
@@ -576,7 +599,7 @@ public class SpectraPlot extends ChartPanel {
 
 	}
 
-	public double getThicknessBar() {
+	public double getBarThickness() {
 		return thickness;
 	}
 

@@ -17,7 +17,7 @@
  * Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-package net.sf.mzmine.util;
+package net.sf.mzmine.modules.isotopes.isotopepatternscore;
 
 import java.util.TreeSet;
 import java.util.Vector;
@@ -25,6 +25,7 @@ import java.util.Vector;
 import net.sf.mzmine.data.DataPoint;
 import net.sf.mzmine.data.IsotopePattern;
 import net.sf.mzmine.data.impl.SimpleDataPoint;
+import net.sf.mzmine.util.DataPointSorter;
 
 public class IsotopePatternScoreCalculator {
 
@@ -113,7 +114,7 @@ public class IsotopePatternScoreCalculator {
 	private static DataPoint[] sortAndNormalizedByIntensity(
 			DataPoint[] dataPoints) {
 
-		double intensity, biggestIntensity = Double.MIN_VALUE;
+		double intensity, biggestIntensity = Double.MIN_NORMAL;
 		TreeSet<DataPoint> sortedDataPoints = new TreeSet<DataPoint>(
 				new DataPointSorter(false, false));
 

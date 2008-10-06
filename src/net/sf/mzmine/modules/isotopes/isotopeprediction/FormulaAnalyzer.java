@@ -42,6 +42,8 @@ public class FormulaAnalyzer {
 	private DataPoint[] abundanceAndMass = null;
 	private String errorMessage;
 	private static double ELECTRON_MASS = 0.00054857d;
+	// This value is the average from difference of masses between isotopes. 
+	private static double ISOTOPE_DISTANCE = 1.002d;
 
 	private Logger logger = Logger.getLogger(this.getClass().getName());
 
@@ -68,7 +70,7 @@ public class FormulaAnalyzer {
 	 */
 	public IsotopePattern getIsotopePattern(String originalFormula,
 			double minAbundance, int charge, boolean positiveCharge,
-			double isotopeHeight, boolean autoHeight) {
+			double isotopeHeight, boolean autoHeight, boolean sumOfMasses) {
 
 		int numOpenParenthesis = 0, numCloseParenthesis = 0;
 		String mf = originalFormula.trim();
@@ -147,6 +149,10 @@ public class FormulaAnalyzer {
 		// Format isotope's mass according with charge distribution
 		abundanceAndMass = loadChargeDistribution(abundanceAndMass, charge,
 				positiveCharge);
+		
+		if (sumOfMasses)
+			abundanceAndMass = createSingleIsotopePeaks(abundanceAndMass, charge);
+			
 		
 		int chargeDistribution = charge * (positiveCharge? 1:-1); 
 
@@ -717,6 +723,88 @@ public class FormulaAnalyzer {
 		}
 	}
 	
+	/**
+	 * 
+	 * @param dataPoints
+	 * @param charge
+	 * @param positiveCharge
+	 * @return
+	 */
+	private static DataPoint[] createSingleIsotopePeaks(DataPoint[] dataPoints,
+			int charge) {
+
+		double distance;
+		
+		if (charge == 0){
+			distance = ISOTOPE_DISTANCE;
+		}
+		else{
+			distance = ISOTOPE_DISTANCE / charge;
+		}
+
+		TreeSet<DataPoint> sortedDataPoints = new TreeSet<DataPoint>(
+				new DataPointSorter(true, true));
+
+		for (DataPoint localDp : dataPoints) {
+				sortedDataPoints.add(localDp);
+		}
+
+		
+		dataPoints = sortedDataPoints.toArray(new DataPoint[0]);
+		sortedDataPoints.clear();
+		sortedDataPoints.add(dataPoints[0]);
+		
+		double localMass, nextIsotopeMass;
+		nextIsotopeMass = dataPoints[0].getMZ() + distance;
+		
+		for (DataPoint localDp : dataPoints) {
+			localMass = localDp.getMZ();
+			if (localMass > nextIsotopeMass)
+				sortedDataPoints.add(getGroupedDataPoint(localMass,
+						dataPoints));
+		}
+		
+		return sortedDataPoints.toArray(new DataPoint[0]);
+	}
+	
+	/**
+	 * Search and find the closest group of DataPoints in an array to the given mass. Always return a DataPoint
+	 * 
+	 * @param dp
+	 * @param dataPoints
+	 * @return DataPoint
+	 */
+	private static DataPoint getGroupedDataPoint(double mass,
+			DataPoint[] dataPoints) {
+
+		double diff, tolerance = ISOTOPE_DISTANCE / 4.0d;
+		DataPoint dp;
+		TreeSet<DataPoint> sortedDataPoints = new TreeSet<DataPoint>(
+				new DataPointSorter(false, false));
+
+		for (DataPoint localDp : dataPoints) {
+			diff = Math.abs(mass - localDp.getMZ());
+			if (diff <= tolerance) {
+				sortedDataPoints.add(localDp);
+			}
+		}
+		
+		double averageWeightMass = 0, totalMass = 0, totalIntensity = 0;
+		Iterator<DataPoint> itr = sortedDataPoints.iterator();
+		while (itr.hasNext()){
+			dp  = itr.next();
+			averageWeightMass += dp.getMZ() * dp.getIntensity();
+			//totalMass += dp.getMZ();
+			totalIntensity += dp.getIntensity();
+		}
+		
+		averageWeightMass /= totalIntensity;
+		
+
+		return new SimpleDataPoint(averageWeightMass, totalIntensity);
+
+	}
+
 	/**
 	 * 
 	 * @param s
