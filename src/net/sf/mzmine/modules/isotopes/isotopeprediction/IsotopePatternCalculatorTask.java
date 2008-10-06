@@ -19,12 +19,14 @@
 
 package net.sf.mzmine.modules.isotopes.isotopeprediction;
 
+import java.util.logging.Logger;
+
 import net.sf.mzmine.data.IsotopePattern;
 import net.sf.mzmine.taskcontrol.Task;
 
 public class IsotopePatternCalculatorTask implements Task {
 
-	// private Logger logger = Logger.getLogger(this.getClass().getName());
+	//private Logger logger = Logger.getLogger(this.getClass().getName());
 
 	private TaskStatus status = TaskStatus.WAITING;
 	private String errorMessage, description, formula;
@@ -89,6 +91,7 @@ public class IsotopePatternCalculatorTask implements Task {
 		try {
 			isotopePattern = analyzer.getIsotopePattern(formula, minAbundance,
 					charge, positiveCharge, isotopeHeight, autoHeight, sumOfMasses);
+			
 		} catch (Exception e) {
 			e.printStackTrace();
 			status = TaskStatus.ERROR;
@@ -100,7 +103,7 @@ public class IsotopePatternCalculatorTask implements Task {
 			errorMessage = analyzer.getMessageError();
 			return;
 		}
-
+		
 		status = TaskStatus.FINISHED;
 
 	}

@@ -26,7 +26,6 @@ import net.sf.mzmine.data.IsotopePattern;
 import net.sf.mzmine.data.IsotopePatternStatus;
 import net.sf.mzmine.data.MzDataTable;
 import net.sf.mzmine.data.Scan;
-import net.sf.mzmine.modules.isotopes.isotopeprediction.PredictedIsotopePattern;
 
 import org.jfree.data.xy.AbstractXYDataset;
 import org.jfree.data.xy.IntervalXYDataset;
@@ -166,6 +165,10 @@ public class SpectraDataSet extends AbstractXYDataset implements IntervalXYDatas
     			intensities.add(getY(0,i).doubleValue());
     		}
     	}
+    	
+    	if (intensities.size() == 0)
+    		return Math.pow(10, 6);
+    	
     	return intensities.last();
     }
 
