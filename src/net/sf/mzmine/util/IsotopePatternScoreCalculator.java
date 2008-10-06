@@ -31,6 +31,17 @@ public class IsotopePatternScoreCalculator {
 	// A quarter of Hydrogen's mass
 	private static double TOLERANCE = 0.25195625d;
 
+	/**
+	 * Receive to IsotopePattern and compare the second against the first to get
+	 * a score value. This value is based in the difference of ratio between
+	 * isotopes and mass.
+	 * 
+	 * @param ip1
+	 *            Isotope pattern reference
+	 * @param ip2
+	 *            Isotope pattern to be compared
+	 * @return score a calculated double value
+	 */
 	public static double getScore(IsotopePattern ip1, IsotopePattern ip2) {
 
 		double diffMass, diffAbun, factor, totalFactor = 0d;
@@ -40,12 +51,14 @@ public class IsotopePatternScoreCalculator {
 		int numIsotopes2 = ip1.getNumberOfIsotopes();
 		int length = numIsotopes1;
 
+		// Maximum number of isotopes to be compared
 		if (numIsotopes1 < numIsotopes2)
 			length = numIsotopes2;
 
 		DataPoint[] dp1 = ip1.getIsotopes().clone();
 		DataPoint[] dp2 = ip2.getIsotopes().clone();
 
+		// Normalize the intensity of isotopes regarding the biggest one
 		dp1 = sortAndNormalizedByIntensity(dp1);
 		dp2 = sortAndNormalizedByIntensity(dp2);
 
@@ -54,8 +67,23 @@ public class IsotopePatternScoreCalculator {
 			factor = 1.0d;// Math.pow(2.0d, i);
 			totalFactor += factor;
 
+			// Search for the closest isotope in the second pattern to the
+			// current isotope (first pattern)
 			closestDp = getClosestDataPoint(dp1[i], dp2);
+
+			// Remove from the second pattern the used isotope to set the score.
 			dp2 = removeDataPoint(closestDp, dp2);
+
+			// Caluclate the score using the next formula.
+			//
+			// Score = { [ 1 - (IsotopeMass1[i] - IsotopeMass2[j]) + (1 -
+			// (IsotopeIntensity1[i] / IsotopeIntensity2[j])) ] * factor[i] } /
+			// totalFactor
+			//
+			// Where i is equal to the number of isotopes of the first pattern
+			// and j is the closest isotope of the second pattern. Factor is the
+			// given weight to each isotope, and totalFactor is the sum of all
+			// values of factor.
 
 			diffMass = dp1[i].getMZ() - closestDp.getMZ();
 			diffMass = Math.abs(diffMass);
@@ -75,6 +103,13 @@ public class IsotopePatternScoreCalculator {
 		return score / totalFactor;
 	}
 
+	/**
+	 * Sort and normalize an array of DataPoint objects according with the
+	 * biggest intensity DataPoint
+	 * 
+	 * @param dataPoints
+	 * @return
+	 */
 	private static DataPoint[] sortAndNormalizedByIntensity(
 			DataPoint[] dataPoints) {
 
@@ -106,6 +141,14 @@ public class IsotopePatternScoreCalculator {
 
 	}
 
+	/**
+	 * Search and find the closest DataPoint in an array in terms of mass and
+	 * intensity. Always return a DataPoint
+	 * 
+	 * @param dp
+	 * @param dataPoints
+	 * @return DataPoint
+	 */
 	private static DataPoint getClosestDataPoint(DataPoint dp,
 			DataPoint[] dataPoints) {
 
@@ -124,6 +167,15 @@ public class IsotopePatternScoreCalculator {
 
 	}
 
+	/**
+	 * Remove an element from a DataPoint objects array.
+	 * 
+	 * @param dp
+	 *            element to remove
+	 * @param dataPoints
+	 *            array of DataPoint objects
+	 * @return
+	 */
 	private static DataPoint[] removeDataPoint(DataPoint dp,
 			DataPoint[] dataPoints) {
 
