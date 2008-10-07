@@ -67,10 +67,11 @@ public class FormulaAnalyzer {
 	 * @param originalFormula
 	 * @param minAbundance
 	 * @return
+	 * @throws Exception 
 	 */
 	public IsotopePattern getIsotopePattern(String originalFormula,
 			double minAbundance, int charge, boolean positiveCharge,
-			double isotopeHeight, boolean autoHeight, boolean sumOfMasses) {
+			double isotopeHeight, boolean autoHeight, boolean sumOfMasses) throws Exception {
 
 		int numOpenParenthesis = 0, numCloseParenthesis = 0;
 		String mf = originalFormula.trim();
@@ -78,7 +79,7 @@ public class FormulaAnalyzer {
 		
 		if ((mf == null) || (mf == "")){
 			errorMessage = "Please type a chemical formula or common organic compound.";
-			return null;
+			throw new Exception();
 		}
 
 		// Verify if the passed originalFormula is an abbreviation of a common
@@ -95,8 +96,8 @@ public class FormulaAnalyzer {
 		}
 
 		if (numOpenParenthesis != numCloseParenthesis){
-			errorMessage = "Chemical formula or common organic compound not valid.";
-			return null;
+			errorMessage = "Missing one or more parenthesis in the formula " + mf;
+			throw new Exception();
 		}
 
 		// In case of a formula with functional groups is necessary to unfold
@@ -124,6 +125,18 @@ public class FormulaAnalyzer {
 		// Divide the chemical formula into tokens (element and coefficients)
 		HashMap<String, Integer> tokens;
 		tokens = getFormulaInTokens(mf);
+		
+		if (tokens == null){
+			errorMessage = "It is not possible to divide into tokens (elements and coefficients) the formula " + mf
+			+ " .Please remove special characters";
+			throw new Exception();
+		}
+
+		if (tokens.size() == 0){
+			errorMessage = "It is not possible to divide into tokens (elements and coefficients) the formula " + mf
+						+ " . Please remove special characters";
+			throw new Exception();
+		}
 
 		// Calculate abundance and mass
 		Iterator<String> itr = tokens.keySet().iterator();
@@ -136,8 +149,8 @@ public class FormulaAnalyzer {
 			
 			for (int i = 0; i < atomCount; i++) {
 				if (!calculateAbundanceAndMass(elementSymbol)){
-					errorMessage = "Chemical formula or common organic compound not valid.";
-					return null;
+					errorMessage = "Chemical element not valid " + elementSymbol;
+					throw new Exception();
 				}
 			}
 		}
@@ -152,7 +165,16 @@ public class FormulaAnalyzer {
 		
 		if (sumOfMasses)
 			abundanceAndMass = createSingleIsotopePeaks(abundanceAndMass, charge);
+		
+		if (abundanceAndMass == null){
+			errorMessage = "It is not possible to process the formula " + mf;
+			throw new Exception();
+		}
 			
+		if (abundanceAndMass.length == 0){
+			errorMessage = "It is not possible to process the formula " + mf;
+			throw new Exception();
+		}
 		
 		int chargeDistribution = charge * (positiveCharge? 1:-1); 
 

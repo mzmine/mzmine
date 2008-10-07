@@ -44,8 +44,8 @@ public class JoinAlignerParameters extends SimpleParameterSet {
 
 	public static final Parameter MZTolerance = new SimpleParameter(
 			ParameterType.DOUBLE, "m/z tolerance",
-			"Maximum allowed M/Z difference", "m/z", new Double(0.2), new Double(
-					0.0), null, MZmineCore.getMZFormat());
+			"Maximum allowed M/Z difference", "m/z", new Double(0.2),
+			new Double(0.0), null, MZmineCore.getMZFormat());
 
 	public static final Parameter MZWeight = new SimpleParameter(
 			ParameterType.DOUBLE, "Weight for m/z",
@@ -73,7 +73,6 @@ public class JoinAlignerParameters extends SimpleParameterSet {
 			"Score for perfectly matching RT values", "", new Double(10.0),
 			new Double(0.0), null, NumberFormat.getNumberInstance());
 
-	
 	public static final Parameter SameIDRequired = new SimpleParameter(
 			ParameterType.BOOLEAN,
 			"Require same ID",
@@ -85,10 +84,29 @@ public class JoinAlignerParameters extends SimpleParameterSet {
 			"Score for matching compound identities", "", new Double(0.0),
 			new Double(0.0), null, NumberFormat.getNumberInstance());
 
+	public static final Parameter compareIsotopePattern = new SimpleParameter(
+			ParameterType.BOOLEAN,
+			"Compare isotope pattern",
+			"If both peaks represent an isotope pattern, add isotope pattern score to match score",
+			new Boolean(false));
+
+	public static final Parameter isotopePatternScoreThreshold = new SimpleParameter(
+			ParameterType.DOUBLE,
+			"Isotope pattern score thresold level",
+			"If the score between isotope pattern is lower, discard this match",
+			"%", new Double(0.65), new Double(0.15), new Double(1.0),
+			percentFormat);
+
+	public static final Parameter isotopeScoreWeight = new SimpleParameter(
+			ParameterType.DOUBLE, "Weight for isotope pattern score",
+			"Weight for matching isotope pattern score", "", new Double(0.0),
+			new Double(0.0), null, NumberFormat.getNumberInstance());
+
 	public JoinAlignerParameters() {
 		super(new Parameter[] { peakListName, MZTolerance, MZWeight,
 				RTToleranceType, RTToleranceValueAbs, RTToleranceValuePercent,
-				RTWeight, SameIDRequired, SameIDWeight });
+				RTWeight, SameIDRequired, SameIDWeight, compareIsotopePattern,
+				isotopePatternScoreThreshold, isotopeScoreWeight });
 	}
 
 }

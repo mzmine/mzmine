@@ -23,6 +23,7 @@ import java.util.Hashtable;
 import java.util.Iterator;
 import java.util.TreeSet;
 import java.util.Vector;
+import java.util.logging.Logger;
 
 import net.sf.mzmine.data.CompoundIdentity;
 import net.sf.mzmine.data.PeakList;
@@ -40,6 +41,8 @@ import net.sf.mzmine.util.Range;
  * 
  */
 class JoinAlignerTask implements Task {
+	
+	private Logger logger = Logger.getLogger(this.getClass().getName());
 
 	private PeakList[] peakLists;
 
@@ -54,8 +57,8 @@ class JoinAlignerTask implements Task {
 	private boolean rtToleranceUseAbs;
 	private double rtToleranceValueAbs, rtToleranceValuePercent;
 	private double rtWeight;
-	private boolean sameIDRequired;
-	private double sameIDWeight;
+	private boolean sameIDRequired, compareIsotopePattern;
+	private double sameIDWeight, isotopePatternScoreThreshold, isotopeScoreWeight;
 
 	// ID counter for the new peaklist
 	private int newRowID = 1;
@@ -90,6 +93,13 @@ class JoinAlignerTask implements Task {
 				.getParameterValue(JoinAlignerParameters.SameIDRequired);
 		sameIDWeight = (Double) parameters
 				.getParameterValue(JoinAlignerParameters.SameIDWeight);
+
+		compareIsotopePattern = (Boolean) parameters
+				.getParameterValue(JoinAlignerParameters.compareIsotopePattern);
+		isotopePatternScoreThreshold = (Double) parameters
+				.getParameterValue(JoinAlignerParameters.isotopePatternScoreThreshold);
+		isotopeScoreWeight = (Double) parameters
+				.getParameterValue(JoinAlignerParameters.isotopeScoreWeight);
 
 	}
 
@@ -135,6 +145,15 @@ class JoinAlignerTask implements Task {
 	 * @see Runnable#run()
 	 */
 	public void run() {
+		
+		if ((mzWeight == 0) && (rtWeight == 0)){
+			if ( ((isotopeScoreWeight == 0) && (compareIsotopePattern))
+					|| (!compareIsotopePattern)){
+			status = TaskStatus.ERROR;
+			errorMessage = "Cannot run alignment, all the weight parameters are zero";
+			return;
+			}
+		}
 
 		status = TaskStatus.PROCESSING;
 
@@ -208,10 +227,21 @@ class JoinAlignerTask implements Task {
 							continue;
 					}
 
-					RowVsRowScore score = new RowVsRowScore(row, candidate,
-							mzTolerance, mzWeight, rtToleranceValue, rtWeight,
-							sameIDWeight);
-					scoreSet.add(score);
+					RowVsRowScore score;
+					try {
+						
+						score = new RowVsRowScore(row, candidate,
+								mzTolerance, mzWeight, rtToleranceValue, rtWeight,
+								sameIDWeight, compareIsotopePattern, isotopePatternScoreThreshold, isotopeScoreWeight);
+
+						scoreSet.add(score);
+						errorMessage = score.getErrorMessage();
+						
+					} catch (Exception e) {
+						//e.printStackTrace();
+						status = TaskStatus.ERROR;
+						return;
+					}
 				}
 
 				processedRows++;
@@ -237,8 +267,9 @@ class JoinAlignerTask implements Task {
 
 				alignmentMapping.put(score.getPeakListRow(), score
 						.getAlignedRow());
-
+				
 			}
+			
 
 			// Align all rows using mapping
 			for (PeakListRow row : allRows) {

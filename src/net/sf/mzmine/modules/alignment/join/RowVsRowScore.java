@@ -19,7 +19,10 @@
 
 package net.sf.mzmine.modules.alignment.join;
 
+import net.sf.mzmine.data.ChromatographicPeak;
+import net.sf.mzmine.data.IsotopePattern;
 import net.sf.mzmine.data.PeakListRow;
+import net.sf.mzmine.modules.isotopes.isotopepatternscore.IsotopePatternScoreCalculator;
 import net.sf.mzmine.util.PeakUtils;
 
 /**
@@ -29,10 +32,13 @@ class RowVsRowScore implements Comparable<RowVsRowScore> {
 
 	private PeakListRow peakListRow, alignedRow;
 	double score;
+	private String errorMessage;
 
 	RowVsRowScore(PeakListRow peakListRow, PeakListRow alignedRow,
 			double mzMaxDiff, double mzWeight, double rtMaxDiff,
-			double rtWeight, double sameIDWeight) {
+			double rtWeight, double sameIDWeight,
+			boolean compareIsotopePattern, double isotopePatternScoreThresold,
+			double sameIsotopePatternWeight) throws Exception {
 
 		this.peakListRow = peakListRow;
 		this.alignedRow = alignedRow;
@@ -45,13 +51,43 @@ class RowVsRowScore implements Comparable<RowVsRowScore> {
 				- alignedRow.getAverageRT());
 
 		// Compare identities
-		double sameIDFlag = 0.0f;
+		double sameIDFlag = 0.0d;
 		if (PeakUtils.compareIdentities(peakListRow, alignedRow))
-			sameIDFlag = 1.0f;
+			sameIDFlag = 1.0d;
 
-		score = (1 - mzDiff / mzMaxDiff) * mzWeight
-				+ (1 - rtDiff / rtMaxDiff) * rtWeight + sameIDFlag
-				* sameIDWeight;
+		// Compare isotope pattern 
+		double sameIsotopePatternScore = 0.0f;
+		if (compareIsotopePattern){
+			
+			ChromatographicPeak[] p1 = peakListRow.getPeaks();
+			if (p1.length > 1){
+				errorMessage = "One of the peak list contains more than one column";
+				throw new Exception();
+			}
+			
+			ChromatographicPeak[] p2 = alignedRow.getPeaks();
+			if (p2.length > 1){
+				errorMessage = "One of the peak list contains more than one column";
+				throw new Exception();
+			}
+
+			if ((p1[0] instanceof IsotopePattern) && (p2[0] instanceof IsotopePattern)){
+				sameIsotopePatternScore = IsotopePatternScoreCalculator.getScore((IsotopePattern)p1[0], (IsotopePattern)p2[0]);
+			}
+			
+			if (sameIsotopePatternScore < isotopePatternScoreThresold){
+				sameIsotopePatternWeight = 0;
+			}
+			
+		}
+		else{
+			sameIsotopePatternWeight = 0;
+		}
+
+		score = ((1 - mzDiff / mzMaxDiff) * mzWeight) + 
+				((1 - rtDiff / rtMaxDiff) * rtWeight) + 
+				(sameIDFlag * sameIDWeight) + 
+				(sameIsotopePatternScore * sameIsotopePatternWeight);
 
 	}
 
@@ -75,6 +111,10 @@ class RowVsRowScore implements Comparable<RowVsRowScore> {
 	 */
 	double getScore() {
 		return score;
+	}
+	
+	String getErrorMessage(){
+		return errorMessage;
 	}
 
 	/**

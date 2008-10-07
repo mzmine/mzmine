@@ -71,7 +71,10 @@ public class IsotopePatternScoreCalculator {
 			// Search for the closest isotope in the second pattern to the
 			// current isotope (first pattern)
 			closestDp = getClosestDataPoint(dp1[i], dp2);
-
+			
+			if (closestDp == null)
+				continue;
+			
 			// Remove from the second pattern the used isotope to set the score.
 			dp2 = removeDataPoint(closestDp, dp2);
 
@@ -163,8 +166,11 @@ public class IsotopePatternScoreCalculator {
 				sortedDataPoints.add(localDp);
 			}
 		}
-
-		return sortedDataPoints.first();
+		
+		if (sortedDataPoints.size() > 0)
+			return sortedDataPoints.first();
+		
+		return null;
 
 	}
 
