@@ -39,278 +39,347 @@ import java.util.Vector;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import net.sf.mzmine.data.ChromatographicPeak;
+import net.sf.mzmine.data.IsotopePattern;
 import net.sf.mzmine.data.PeakList;
 import net.sf.mzmine.data.PeakListRow;
 import net.sf.mzmine.data.impl.SimpleCompoundIdentity;
 import net.sf.mzmine.desktop.Desktop;
 import net.sf.mzmine.main.MZmineCore;
+import net.sf.mzmine.modules.isotopes.isotopepatternscore.IsotopePatternScoreCalculator;
+import net.sf.mzmine.modules.isotopes.isotopeprediction.FormulaAnalyzer;
 import net.sf.mzmine.taskcontrol.Task;
 
 public class PubChemSearchTask implements Task {
 
-    private Logger logger = Logger.getLogger(this.getClass().getName());
+	private Logger logger = Logger.getLogger(this.getClass().getName());
 
-    private static EUtilsServiceSoap eutils_soap;
-    private TaskStatus status;
-    private String errorMessage;
-    private int finishedLines = 0, numItems;
-    private double valueOfQuery, range;
-    private int charge;
-    private double ion;
-    private int numOfResults;
-    private PubChemSearchWindow window;
-    private PeakList peakList;
-    private TypeOfIonization ionName;
-    private boolean singleRow = false, chargedMol = false;
+	private static EUtilsServiceSoap eutils_soap;
+	private TaskStatus status;
+	private String errorMessage;
+	private int finishedLines = 0, numItems;
+	private double valueOfQuery, range;
+	private int charge;
+	private double ion;
+	private int numOfResults;
+	private PubChemSearchWindow window;
+	private PeakList peakList;
+	private TypeOfIonization ionName;
+	private boolean singleRow = false, chargedMol = false,
+			isotopeFilter = false;
+	private double isotopeScoreThreshold;
+	private FormulaAnalyzer analyzer;
+	private IsotopePattern originalIsotopePattern;
 
-    PubChemSearchTask(PubChemSearchParameters parameters, PeakList peakList,
-            PeakListRow peakListRow) {
+	PubChemSearchTask(PubChemSearchParameters parameters, PeakList peakList,
+			PeakListRow peakListRow, ChromatographicPeak peak) {
 
-        if (peakListRow != null) {
-            window = new PubChemSearchWindow(peakListRow);
-            singleRow = true;
-        }
+		// if (peakListRow != null) {
+		if ((peak != null) && (peakListRow != null)) {
+			window = new PubChemSearchWindow(peakListRow);
+			singleRow = true;
+		}
 
-        this.peakList = peakList;
+		this.peakList = peakList;
 
-        status = TaskStatus.WAITING;
-        valueOfQuery = (Double) parameters.getParameterValue(PubChemSearchParameters.neutralMass);
-        range = (Double) parameters.getParameterValue(PubChemSearchParameters.mzToleranceField);
-        numOfResults = (Integer) parameters.getParameterValue(PubChemSearchParameters.numOfResults);
-        charge = (Integer) parameters.getParameterValue(PubChemSearchParameters.charge);
-        chargedMol = (Boolean) parameters.getParameterValue(PubChemSearchParameters.chargedMol);
+		status = TaskStatus.WAITING;
+		valueOfQuery = (Double) parameters
+				.getParameterValue(PubChemSearchParameters.neutralMass);
+		range = (Double) parameters
+				.getParameterValue(PubChemSearchParameters.mzToleranceField);
+		numOfResults = (Integer) parameters
+				.getParameterValue(PubChemSearchParameters.numOfResults);
+		charge = (Integer) parameters
+				.getParameterValue(PubChemSearchParameters.charge);
+		chargedMol = (Boolean) parameters
+				.getParameterValue(PubChemSearchParameters.chargedMol);
+		isotopeFilter = (Boolean) parameters
+				.getParameterValue(PubChemSearchParameters.isotopeFilter);
 
-        ionName = (TypeOfIonization) parameters.getParameterValue(PubChemSearchParameters.ionizationMethod);
+		if (isotopeFilter) {
+			if (peak instanceof IsotopePattern) {
+				originalIsotopePattern = (IsotopePattern) peak;
+				analyzer = new FormulaAnalyzer();
+				logger.finest("Si es isotope pattern");
+			} else {
+				isotopeFilter = false;
+			}
+		}
 
-        ion = ionName.getMass();
-        ion *= ionName.getSign();
+		isotopeScoreThreshold = (Double) parameters
+				.getParameterValue(PubChemSearchParameters.isotopeScoreTolerance);
+		ionName = (TypeOfIonization) parameters
+				.getParameterValue(PubChemSearchParameters.ionizationMethod);
 
-    }
+		ion = ionName.getMass();
+		ion *= ionName.getSign();
 
-    /**
-     * @see net.sf.mzmine.taskcontrol.Task#cancel()
-     */
-    public void cancel() {
-        status = TaskStatus.CANCELED;
-    }
+	}
 
-    /**
-     * @see net.sf.mzmine.taskcontrol.Task#getErrorMessage()
-     */
-    public String getErrorMessage() {
-        return errorMessage;
-    }
+	/**
+	 * @see net.sf.mzmine.taskcontrol.Task#cancel()
+	 */
+	public void cancel() {
+		status = TaskStatus.CANCELED;
+	}
 
-    /**
-     * @see net.sf.mzmine.taskcontrol.Task#getFinishedPercentage()
-     */
-    public double getFinishedPercentage() {
-        return ((double) finishedLines) / numItems;
-    }
+	/**
+	 * @see net.sf.mzmine.taskcontrol.Task#getErrorMessage()
+	 */
+	public String getErrorMessage() {
+		return errorMessage;
+	}
 
-    /**
-     * @see net.sf.mzmine.taskcontrol.Task#getStatus()
-     */
-    public TaskStatus getStatus() {
-        return status;
-    }
+	/**
+	 * @see net.sf.mzmine.taskcontrol.Task#getFinishedPercentage()
+	 */
+	public double getFinishedPercentage() {
+		return ((double) finishedLines) / numItems;
+	}
 
-    /**
-     * @see net.sf.mzmine.taskcontrol.Task#getTaskDescription()
-     */
-    public String getTaskDescription() {
-        return "Peak identification of " + valueOfQuery
-                + " using PubChem databases ";
-    }
+	/**
+	 * @see net.sf.mzmine.taskcontrol.Task#getStatus()
+	 */
+	public TaskStatus getStatus() {
+		return status;
+	}
 
-    /**
-     * @see java.lang.Runnable#run()
-     */
-    public void run() {
+	/**
+	 * @see net.sf.mzmine.taskcontrol.Task#getTaskDescription()
+	 */
+	public String getTaskDescription() {
+		return "Peak identification of " + valueOfQuery
+				+ " using PubChem databases ";
+	}
 
-        status = TaskStatus.PROCESSING;
+	/**
+	 * @see java.lang.Runnable#run()
+	 */
+	public void run() {
 
-        try {
+		status = TaskStatus.PROCESSING;
 
-            // connect and read PubChem database contents
-            EUtilsServiceLocator eutils_locator = new EUtilsServiceLocator();
-            eutils_soap = eutils_locator.geteUtilsServiceSoap();
+		try {
 
-            ESearchRequest reqSearch = new ESearchRequest();
-            reqSearch.setDb("pccompound");
-            reqSearch.setRetMax(String.valueOf(numOfResults));
-            reqSearch.setSort("CID(up)");
+			// connect and read PubChem database contents
+			EUtilsServiceLocator eutils_locator = new EUtilsServiceLocator();
+			eutils_soap = eutils_locator.geteUtilsServiceSoap();
 
-            ESearchResult resSearch;
-            SimpleCompoundIdentity compound;
-            String pubChemID, complementQuery;
-            int numIDs;
+			ESearchRequest reqSearch = new ESearchRequest();
+			reqSearch.setDb("pccompound");
+			reqSearch.setRetMax(String.valueOf(numOfResults * 5));
+			reqSearch.setSort("CID(up)");
 
-            if ((chargedMol)
-                    && (ionName.equals(TypeOfIonization.NO_IONIZATION)))
-                complementQuery = " AND NOT 0[CHRG]";
-            else
-                complementQuery = "";
+			ESearchResult resSearch;
+			SimpleCompoundIdentity compound;
+			String pubChemID, complementQuery;
+			int numIDs;
 
-            if (singleRow) {
-                Desktop desktop = MZmineCore.getDesktop();
-                desktop.addInternalFrame(window);
+			if ((chargedMol)
+					&& (ionName.equals(TypeOfIonization.NO_IONIZATION)))
+				complementQuery = " AND NOT 0[CHRG]";
+			else
+				complementQuery = "";
 
-                reqSearch.setTerm(String.valueOf(valueOfQuery - range) + ":"
-                        + String.valueOf(valueOfQuery + range)
-                        + "[MonoisotopicMass]" + complementQuery);
+			if (singleRow) {
+				Desktop desktop = MZmineCore.getDesktop();
+				desktop.addInternalFrame(window);
 
-                resSearch = eutils_soap.run_eSearch(reqSearch);
+				reqSearch.setTerm(String.valueOf(valueOfQuery - range) + ":"
+						+ String.valueOf(valueOfQuery + range)
+						+ "[MonoisotopicMass]" + complementQuery);
 
-                // results output
-                numIDs = resSearch.getIdList().length;
-                numItems = numIDs;
+				resSearch = eutils_soap.run_eSearch(reqSearch);
 
-                for (int i = 0; i < numIDs; i++) {
-                    pubChemID = resSearch.getIdList()[i];
-                    compound = new SimpleCompoundIdentity(pubChemID, null,
-                            null, null, null, "PubChem", null);
-                    getSummary("pccompound", pubChemID, compound);
-                    getLink(pubChemID, compound);
-                    getName(pubChemID, compound);
+				// results output
+				numIDs = resSearch.getIdList().length;
+				numItems = numOfResults;//numIDs;
 
-                    window.addNewListItem(compound);
-                    finishedLines++;
-                }
-            } else {
+				int i = 0;
+				boolean goodCandidate = false;
+				IsotopePattern ip2;
+				//double score = 0;
 
-                PeakListRow[] peakListRows = peakList.getRows();
-                numItems = peakListRows.length;
+				while (i < numIDs) {
+					// for (int i = 0; i < numIDs; i++) {
+					
+					if (status != TaskStatus.PROCESSING){
+						return;
+					}
+					
+					pubChemID = resSearch.getIdList()[i];
+					compound = new SimpleCompoundIdentity(pubChemID, null,
+							null, null, null, "PubChem", null);
+					getSummary("pccompound", pubChemID, compound);
 
-                for (PeakListRow row : peakListRows) {
+					if (isotopeFilter) {
 
-                    valueOfQuery = row.getAverageMZ();
-                    valueOfQuery /= charge;
-                    valueOfQuery += ion;
+						ip2 = analyzer.getIsotopePattern(compound
+								.getCompoundFormula(), 0.01,
+								originalIsotopePattern.getCharge(), false,
+								originalIsotopePattern.getIsotopeHeight(), false, true, ionName);
 
-                    reqSearch.setTerm(String.valueOf(valueOfQuery - range)
-                            + ":" + String.valueOf(valueOfQuery + range)
-                            + complementQuery);
-                    resSearch = eutils_soap.run_eSearch(reqSearch);
+						double score = IsotopePatternScoreCalculator.getScore(
+								originalIsotopePattern, ip2);
+						
+						ip2 = null;
+						
+						if (score >= isotopeScoreThreshold)
+							goodCandidate = true;
+						
+					} else {
+						goodCandidate = true;
+					}
 
-                    // results output
-                    numIDs = resSearch.getIdList().length;
+					if (goodCandidate) {
+						getLink(pubChemID, compound);
+						getName(pubChemID, compound);
+						window.addNewListItem(compound);
+						finishedLines++;
+					}
 
-                    for (int i = 0; i < numIDs; i++) {
-                        pubChemID = resSearch.getIdList()[i];
-                        compound = new SimpleCompoundIdentity(pubChemID, null,
-                                null, null, null, "PubChem", null);
-                        getSummary("pccompound", pubChemID, compound);
-                        getLink(pubChemID, compound);
-                        getName(pubChemID, compound);
+					i++;
+					goodCandidate = false;
+					//score = 0;
 
-                        row.addCompoundIdentity(compound);
-                    }
-                    finishedLines++;
-                }
+					if (finishedLines >= numOfResults)
+						break;
+				}
+			} else {
 
-            }
+				PeakListRow[] peakListRows = peakList.getRows();
+				numItems = peakListRows.length;
 
-        } catch (Exception e) {
-            logger.log(Level.WARNING, "Could not connect to PubChem ", e);
-            status = TaskStatus.ERROR;
-            errorMessage = e.toString();
-            e.printStackTrace();
-            return;
-        }
+				for (PeakListRow row : peakListRows) {
 
-        status = TaskStatus.FINISHED;
+					valueOfQuery = row.getAverageMZ();
+					valueOfQuery /= charge;
+					valueOfQuery += ion;
 
-    }
+					reqSearch.setTerm(String.valueOf(valueOfQuery - range)
+							+ ":" + String.valueOf(valueOfQuery + range)
+							+ complementQuery);
+					resSearch = eutils_soap.run_eSearch(reqSearch);
 
-    public void getLink(String id, SimpleCompoundIdentity compound)
-            throws RemoteException {
+					// results output
+					numIDs = resSearch.getIdList().length;
 
-        ELinkRequest reqLink = new ELinkRequest();
-        reqLink.setDb("mesh");
-        reqLink.setDbfrom("pccompound");
-        reqLink.setId(new String[] { id });
-        ELinkResult resLink = eutils_soap.run_eLink(reqLink);
+					for (int i = 0; i < numIDs; i++) {
+						pubChemID = resSearch.getIdList()[i];
+						compound = new SimpleCompoundIdentity(pubChemID, null,
+								null, null, null, "PubChem", null);
+						getSummary("pccompound", pubChemID, compound);
+						getLink(pubChemID, compound);
+						getName(pubChemID, compound);
 
-        // results output
-        for (int i = 0; i < resLink.getLinkSet().length; i++) {
-            LinkSetDbType[] list = resLink.getLinkSet()[i].getLinkSetDb();
-            if (list != null)
-                if (list.length > 0) {
-                    for (int k = 0; k < list[0].getLink().length; k++) {
-                        String s = list[0].getLink()[k].getId().toString();
-                        getSummary("mesh", s, compound);
-                    }
-                }
-        }
+						row.addCompoundIdentity(compound);
+					}
+					finishedLines++;
+				}
 
-    }
+			}
 
-    public void getSummary(String db, String id, SimpleCompoundIdentity compound)
-            throws RemoteException {
+		} catch (Exception e) {
+			logger.log(Level.WARNING, "Could not connect to PubChem ", e);
+			status = TaskStatus.ERROR;
+			errorMessage = e.toString();
+			e.printStackTrace();
+			return;
+		}
 
-        ESummaryRequest reqSummary = new ESummaryRequest();
-        reqSummary.setDb(db);
-        reqSummary.setId(id);
-        ESummaryResult resSum = eutils_soap.run_eSummary(reqSummary);
-        String formula = "MolecularFormula";
-        Vector<String> names = new Vector<String>();
-        String itemName = null, itemContent = null;
+		status = TaskStatus.FINISHED;
 
-        // results output
+	}
 
-        for (int i = 0; i < resSum.getDocSum().length; i++) {
-            for (int k = 0; k < resSum.getDocSum()[i].getItem().length; k++) {
-                itemName = resSum.getDocSum()[i].getItem()[k].getName();
-                itemContent = resSum.getDocSum()[i].getItem()[k].getItemContent();
-                // logger.finest(" " + itemName + ": " + itemContent);
-                if (itemName.matches(".*ScopeNote.*"))
-                    compound.setScopeNote(itemContent);
-                if (itemName.matches(".*IUPACName.*"))
-                    compound.setCompoundName(itemContent);
-                if (itemName.matches(formula + ".*"))
-                    compound.setCompoundFormula(itemContent);
-                if (itemName.matches(".*Name.*"))
-                    names.add(itemContent);
-            }
-            String[] alternateNames = names.toArray(new String[0]);
-            compound.setAlternateNames(alternateNames);
-        }
+	public void getLink(String id, SimpleCompoundIdentity compound)
+			throws RemoteException {
 
-    }
+		ELinkRequest reqLink = new ELinkRequest();
+		reqLink.setDb("mesh");
+		reqLink.setDbfrom("pccompound");
+		reqLink.setId(new String[] { id });
+		ELinkResult resLink = eutils_soap.run_eLink(reqLink);
 
-    private void getName(String id, SimpleCompoundIdentity compound) {
-        try {
+		// results output
+		for (int i = 0; i < resLink.getLinkSet().length; i++) {
+			LinkSetDbType[] list = resLink.getLinkSet()[i].getLinkSetDb();
+			if (list != null)
+				if (list.length > 0) {
+					for (int k = 0; k < list[0].getLink().length; k++) {
+						String s = list[0].getLink()[k].getId().toString();
+						getSummary("mesh", s, compound);
+					}
+				}
+		}
 
-            URL endpoint = new URL(
-                    "http://eutils.ncbi.nlm.nih.gov/entrez/eutils/efetch.fcgi?db=pccompound&id="
-                            + id + "&report=brief&mode=text");
-            URLConnection uc = endpoint.openConnection();
-            if (uc == null) {
-                throw new Exception("Got a null URLConnection object!");
-            }
-            InputStream is = uc.getInputStream();
-            if (is == null) {
-                throw new Exception("Got a null content object!");
-            }
-            StringBuffer putBackTogether = new StringBuffer();
-            Reader reader = new InputStreamReader(is, "UTF-8");
-            char[] cb = new char[1024];
+	}
 
-            int amtRead = reader.read(cb);
-            while (amtRead > 0) {
-                putBackTogether.append(cb, 0, amtRead);
-                amtRead = reader.read(cb);
-            }
-            String name = putBackTogether.toString();
-            int index = name.indexOf(id, 0);
-            name = name.substring(index + 4);
+	public void getSummary(String db, String id, SimpleCompoundIdentity compound)
+			throws RemoteException {
 
-            compound.setCompoundName(name);
+		ESummaryRequest reqSummary = new ESummaryRequest();
+		reqSummary.setDb(db);
+		reqSummary.setId(id);
+		ESummaryResult resSum = eutils_soap.run_eSummary(reqSummary);
+		String formula = "MolecularFormula";
+		Vector<String> names = new Vector<String>();
+		String itemName = null, itemContent = null;
 
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-    }
+		// results output
+
+		for (int i = 0; i < resSum.getDocSum().length; i++) {
+			for (int k = 0; k < resSum.getDocSum()[i].getItem().length; k++) {
+				itemName = resSum.getDocSum()[i].getItem()[k].getName();
+				itemContent = resSum.getDocSum()[i].getItem()[k]
+						.getItemContent();
+				// logger.finest(" " + itemName + ": " + itemContent);
+				if (itemName.matches(".*ScopeNote.*"))
+					compound.setScopeNote(itemContent);
+				if (itemName.matches(".*IUPACName.*"))
+					compound.setCompoundName(itemContent);
+				if (itemName.matches(formula + ".*"))
+					compound.setCompoundFormula(itemContent);
+				if (itemName.matches(".*Name.*"))
+					names.add(itemContent);
+			}
+			String[] alternateNames = names.toArray(new String[0]);
+			compound.setAlternateNames(alternateNames);
+		}
+
+	}
+
+	private void getName(String id, SimpleCompoundIdentity compound) {
+		try {
+
+			URL endpoint = new URL(
+					"http://eutils.ncbi.nlm.nih.gov/entrez/eutils/efetch.fcgi?db=pccompound&id="
+							+ id + "&report=brief&mode=text");
+			URLConnection uc = endpoint.openConnection();
+			if (uc == null) {
+				throw new Exception("Got a null URLConnection object!");
+			}
+			InputStream is = uc.getInputStream();
+			if (is == null) {
+				throw new Exception("Got a null content object!");
+			}
+			StringBuffer putBackTogether = new StringBuffer();
+			Reader reader = new InputStreamReader(is, "UTF-8");
+			char[] cb = new char[1024];
+
+			int amtRead = reader.read(cb);
+			while (amtRead > 0) {
+				putBackTogether.append(cb, 0, amtRead);
+				amtRead = reader.read(cb);
+			}
+			String name = putBackTogether.toString();
+			int index = name.indexOf(id, 0);
+			name = name.substring(index + 4);
+
+			compound.setCompoundName(name);
+
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+	}
 
 }

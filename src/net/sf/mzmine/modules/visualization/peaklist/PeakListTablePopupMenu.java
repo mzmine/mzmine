@@ -277,7 +277,7 @@ public class PeakListTablePopupMenu extends JPopupMenu implements
 
             if (clickedPeak != null) {
             	
-            	pubChem.showPubChemSearchDialog(peakList, clickedPeakListRow, clickedPeak.getMZ());
+            	pubChem.showPubChemSearchDialog(peakList, clickedPeakListRow, clickedPeak);
             } 
         }
 

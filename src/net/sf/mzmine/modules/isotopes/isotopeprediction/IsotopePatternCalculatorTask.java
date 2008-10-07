@@ -22,11 +22,12 @@ package net.sf.mzmine.modules.isotopes.isotopeprediction;
 import java.util.logging.Logger;
 
 import net.sf.mzmine.data.IsotopePattern;
+import net.sf.mzmine.modules.identification.pubchem.TypeOfIonization;
 import net.sf.mzmine.taskcontrol.Task;
 
 public class IsotopePatternCalculatorTask implements Task {
 
-	//private Logger logger = Logger.getLogger(this.getClass().getName());
+	// private Logger logger = Logger.getLogger(this.getClass().getName());
 
 	private TaskStatus status = TaskStatus.WAITING;
 	private String errorMessage, description, formula;
@@ -45,17 +46,17 @@ public class IsotopePatternCalculatorTask implements Task {
 		minAbundance = (Double) parameters
 				.getParameterValue(IsotopePatternCalculatorParameters.minimalAbundance);
 		charge = (Integer) parameters
-			.getParameterValue(IsotopePatternCalculatorParameters.charge);
+				.getParameterValue(IsotopePatternCalculatorParameters.charge);
 		isotopeHeight = (Double) parameters
 				.getParameterValue(IsotopePatternCalculatorParameters.isotopeHeight);
 		autoHeight = (Boolean) parameters
 				.getParameterValue(IsotopePatternCalculatorParameters.autoHeight);
 		String signOfCharge = (String) parameters
-		.getParameterValue(IsotopePatternCalculatorParameters.signOfCharge);
+				.getParameterValue(IsotopePatternCalculatorParameters.signOfCharge);
 		positiveCharge = signOfCharge.equals("Positive");
 
 		sumOfMasses = (Boolean) parameters
-			.getParameterValue(IsotopePatternCalculatorParameters.sumOfMasses);
+				.getParameterValue(IsotopePatternCalculatorParameters.sumOfMasses);
 
 		description = "Isotope pattern calculation of " + formula;
 
@@ -90,20 +91,22 @@ public class IsotopePatternCalculatorTask implements Task {
 			return;
 		try {
 			isotopePattern = analyzer.getIsotopePattern(formula, minAbundance,
-					charge, positiveCharge, isotopeHeight, autoHeight, sumOfMasses);
-			
+					charge, positiveCharge, isotopeHeight, autoHeight,
+					sumOfMasses, TypeOfIonization.NO_IONIZATION);
+
 		} catch (Exception e) {
-			//e.printStackTrace();
+			// e.printStackTrace();
 			status = TaskStatus.ERROR;
-			errorMessage = analyzer.getMessageError();//"Chemical formula or common organic compound not valid";
+			errorMessage = analyzer.getMessageError();// "Chemical formula or common organic compound not valid"
+														// ;
 		}
-		
-		if (isotopePattern == null){
+
+		if (isotopePattern == null) {
 			status = TaskStatus.ERROR;
 			errorMessage = analyzer.getMessageError();
 			return;
 		}
-		
+
 		status = TaskStatus.FINISHED;
 
 	}

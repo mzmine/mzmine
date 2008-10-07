@@ -23,6 +23,7 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
 
+import net.sf.mzmine.data.ChromatographicPeak;
 import net.sf.mzmine.data.ParameterSet;
 import net.sf.mzmine.data.PeakList;
 import net.sf.mzmine.data.PeakListRow;
@@ -53,6 +54,7 @@ public class PubChemSearch implements BatchStep, ActionListener {
     private double rawMass;
     
     private PeakListRow row;
+    private ChromatographicPeak peak;
 
     /**
      * @see net.sf.mzmine.main.MZmineModule#getParameterSet()
@@ -109,16 +111,18 @@ public class PubChemSearch implements BatchStep, ActionListener {
             return;
 
         this.row = null;
+        this.peak = null;
         
         runModule(null, selectedPeakLists, parameters.clone(), null);
     }
 	
-    public void showPubChemSearchDialog(PeakList peakList, PeakListRow row, double rawMass) {
+    public void showPubChemSearchDialog(PeakList peakList, PeakListRow row, ChromatographicPeak peak){
         
     	this.row = row;
+    	this.peak = peak;
 
         PeakList[] selectedPeakLists = new PeakList[] { peakList}; 
-    	this.rawMass = rawMass;
+    	this.rawMass = peak.getMZ();//rawMass;
     	ExitCode exitCode = setupParameters(parameters);
         if (exitCode != ExitCode.OK)
             return;
@@ -143,7 +147,7 @@ public class PubChemSearch implements BatchStep, ActionListener {
         // prepare a new sequence of tasks
         Task tasks[] = new PubChemSearchTask[peakLists.length];
         for (int i = 0; i < peakLists.length; i++) {
-            tasks[i] = new PubChemSearchTask((PubChemSearchParameters) parameters, peakLists[i], row);
+            tasks[i] = new PubChemSearchTask((PubChemSearchParameters) parameters, peakLists[i], row, peak);
         }
         TaskGroup newSequence = new TaskGroup(tasks, null, methodListener);
 

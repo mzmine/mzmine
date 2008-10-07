@@ -95,7 +95,6 @@ public class PubChemSearchDialog extends ParameterSetupDialog implements
 
         Object src = ae.getSource();
         if (src instanceof JComboBox) {
-            logger.finest("Si dispara action event");
             setNeutralMassValue();
         }
 
