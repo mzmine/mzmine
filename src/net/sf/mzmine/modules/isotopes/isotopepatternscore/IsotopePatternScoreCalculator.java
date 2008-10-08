@@ -117,7 +117,7 @@ public class IsotopePatternScoreCalculator {
 	private static DataPoint[] sortAndNormalizedByIntensity(
 			DataPoint[] dataPoints) {
 
-		double intensity, biggestIntensity = Double.MIN_NORMAL;
+		double intensity, biggestIntensity = Double.MIN_VALUE;
 		TreeSet<DataPoint> sortedDataPoints = new TreeSet<DataPoint>(
 				new DataPointSorter(false, false));
 
