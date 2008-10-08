@@ -280,4 +280,8 @@ public class SimpleIsotopePattern implements IsotopePattern {
 		return dataPoints.toArray(new DataPoint[0]);
 	}
 
+	public int getMostIntenseFragmentScanNumber() {
+		return representativePeak.getMostIntenseFragmentScanNumber();
+	}
+
 }

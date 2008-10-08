@@ -99,4 +99,8 @@ class FakePeak implements ChromatographicPeak {
 		return scanNumber;
 	}
 
+	public int getMostIntenseFragmentScanNumber() {
+		return 0;
+	}
+
 }

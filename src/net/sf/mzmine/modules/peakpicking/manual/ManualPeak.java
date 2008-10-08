@@ -19,14 +19,15 @@
 
 package net.sf.mzmine.modules.peakpicking.manual;
 
-import java.util.Iterator;
 import java.util.TreeMap;
+import java.util.Vector;
 
 import net.sf.mzmine.data.ChromatographicPeak;
 import net.sf.mzmine.data.DataPoint;
 import net.sf.mzmine.data.MzPeak;
 import net.sf.mzmine.data.PeakStatus;
 import net.sf.mzmine.data.RawDataFile;
+import net.sf.mzmine.data.Scan;
 import net.sf.mzmine.data.impl.SimpleMzPeak;
 import net.sf.mzmine.util.CollectionUtils;
 import net.sf.mzmine.util.MathUtils;
@@ -46,7 +47,11 @@ class ManualPeak implements ChromatographicPeak {
     // Boundaries of the peak
     private Range rtRange, mzRange, intensityRange;
 
+    // Map of scan number and data point
     private TreeMap<Integer, MzPeak> mzPeakMap;
+    
+    // Number of most intense fragment scan
+    private int fragmentScanNumber;
 
     /**
      * Initializes empty peak for adding data points
@@ -216,16 +221,45 @@ class ManualPeak implements ChromatographicPeak {
             mzArray[i] = mzPeakMap.get(allScanNumbers[i]).getMZ();
         }
         this.mz = MathUtils.calcQuantile(mzArray, 0.5f);
+        
+        updateFragmentscanNumber();
 
+    }
+    
+    private void updateFragmentscanNumber(){
+    	Scan scan;
+    	Vector<Scan> fragmentScans = new Vector<Scan>();
+    	int[] scanNumbers = dataFile.getScanNumbers(2, rtRange);
+    	for (int number: scanNumbers){
+    		scan = dataFile.getScan(number);
+    		if (mzRange.contains(scan.getPrecursorMZ()))
+    				fragmentScans.add(scan);
+    	}
+    	
+        // Find the data point with top intensity and use its RT and height
+    	DataPoint dataPoint;
+        for (Scan fragment:fragmentScans) {
+            dataPoint = mzPeakMap.get(fragment.getParentScanNumber());
+            if (dataPoint == null)
+            	continue;
+            if (dataPoint.getIntensity() == height) {
+                fragmentScanNumber = fragment.getScanNumber();
+                break;
+            }
+        }    	
+    	
     }
 
 	public void setMZ(double mz) {
-		// TODO Auto-generated method stub
-		
+		this.mz = mz;
 	}
 
 	public int getRepresentativeScanNumber() {
 		Range range = new Range(rt * 0.9f, rt * 1.1f);
 		return dataFile.getScanNumbers(1, range)[0];
+	}
+
+	public int getMostIntenseFragmentScanNumber() {
+		return fragmentScanNumber;
 	}
 }

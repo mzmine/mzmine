@@ -71,7 +71,7 @@ public class PeakListTablePopupMenu extends JPopupMenu implements
     private PeakListTableColumnModel columnModel;
 
     private JMenuItem deleteRowsItem, addNewRowItem, plotRowsItem, showXICItem,
-            manuallyDefineItem, showIsotopePattern, pubChemSearch;
+            manuallyDefineItem, showFragmentation, showIsotopePattern, pubChemSearch;
 
     private RawDataFile clickedDataFile;
     private PeakListRow clickedPeakListRow;
@@ -99,6 +99,9 @@ public class PeakListTablePopupMenu extends JPopupMenu implements
         manuallyDefineItem = GUIUtils.addMenuItem(this, "Manually define peak",
                 this);
         
+        showFragmentation = GUIUtils.addMenuItem(this, "Show spectra fragmentation",
+                this);
+        
         showIsotopePattern = GUIUtils.addMenuItem(this, "Show Isotope pattern",
                 this);
         
@@ -120,11 +123,15 @@ public class PeakListTablePopupMenu extends JPopupMenu implements
         int clickedColumn = columnModel.getColumn(
                 table.columnAtPoint(clickedPoint)).getModelIndex();
         if ((clickedRow >= 0) && (clickedColumn >= 0)) {
+        	
         	display = clickedColumn >= CommonColumnType.values().length;
+        	
             showXICItem.setEnabled((clickedColumn == CommonColumnType.PEAKSHAPE.ordinal())
                     || (display));
             manuallyDefineItem.setEnabled(display);
             pubChemSearch.setEnabled(display);
+            showFragmentation.setEnabled(display);
+            
             if (display) {
                 int dataFileIndex = (clickedColumn - CommonColumnType.values().length)
                         / DataFileColumnType.values().length;
@@ -257,6 +264,19 @@ public class PeakListTablePopupMenu extends JPopupMenu implements
                     clickedPeakListRow);
         }
         
+        if (src == showFragmentation) {
+
+            SpectraVisualizer specVis = SpectraVisualizer.getInstance();
+
+            ChromatographicPeak clickedPeak = clickedPeakListRow.getPeak(clickedDataFile);
+
+            if (clickedPeak != null) {
+            	int scanNumber = clickedPeak.getMostIntenseFragmentScanNumber();
+            	if (scanNumber > 0)
+                specVis.showNewSpectrumWindow(clickedDataFile, scanNumber);
+            } 
+        }
+
         if (src == showIsotopePattern) {
 
             SpectraVisualizer specVis = SpectraVisualizer.getInstance();

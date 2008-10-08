@@ -169,4 +169,8 @@ public class PredictedIsotopePattern implements IsotopePattern {
 		return dataPoints;
 	}
 
+	public int getMostIntenseFragmentScanNumber() {
+		return 0;
+	}
+
 }

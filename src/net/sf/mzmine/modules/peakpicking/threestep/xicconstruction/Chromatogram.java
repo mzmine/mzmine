@@ -44,7 +44,7 @@ public class Chromatogram {
     private double mz, height;
 
     // This is used for constructing the peak
-    private boolean growing = false, previousConnectedMzPeaks = false;
+    private boolean growing = false, previousConnectedMzPeaks = false, MzPeakZero = false;
 
     // This dataFile is used to know the complete range of the chromatogram
     private RawDataFile dataFile;
@@ -70,6 +70,10 @@ public class Chromatogram {
 
         // Used in calculation of median MZ
         datapointsMZs.add(mz);
+        
+        // Update flag last peak intensity zero
+        if (height == 0)
+        	MzPeakZero = true;
 
     }
 
@@ -84,7 +88,12 @@ public class Chromatogram {
 
         if (mzValue.getMzPeak().getIntensity() == 0) {
             previousConnectedMzPeaks = true;
+            MzPeakZero = true;
         }
+        else{
+        	MzPeakZero = false;
+        }
+
 
         // Update construction time variables
         if (height <= mzValue.getMzPeak().getIntensity()) {
@@ -100,6 +109,7 @@ public class Chromatogram {
         // Add MzPeak
         datapointsMap.put(mzValue.getScan().getScanNumber(), mzValue);
         growing = true;
+        
 
     }
 
@@ -203,10 +213,12 @@ public class Chromatogram {
 
     public void removeLastConnectedMzPeaks() {
         ConnectedMzPeak[] lastConnectedMzPeaks = getLastConnectedMzPeaks();
+        int scanNumber;
         for (ConnectedMzPeak mzValue : lastConnectedMzPeaks) {
-            Scan scan = mzValue.getScan();
-            datapointsMap.remove(scan.getScanNumber());
+        	scanNumber = mzValue.getScan().getScanNumber();
+            datapointsMap.remove(scanNumber);
         }
+        
     }
 
     public void removeConnectedMzPeak(int scanNumber) {
@@ -227,11 +239,7 @@ public class Chromatogram {
     }
 
     public boolean isLastConnectedMzPeakZero() {
-        ConnectedMzPeak lastConnectedMzPeak = datapointsMap.get(datapointsMap.lastKey());
-        if (lastConnectedMzPeak.getMzPeak().getIntensity() == 0)
-            return true;
-        else
-            return false;
+        return MzPeakZero;
     }
 
     /**

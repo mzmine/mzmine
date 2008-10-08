@@ -95,4 +95,8 @@ public class PreviewPeak implements ChromatographicPeak {
 		return peak.getRepresentativeScanNumber();
 	}
 
+	public int getMostIntenseFragmentScanNumber() {
+		return peak.getMostIntenseFragmentScanNumber();
+	}
+
 }

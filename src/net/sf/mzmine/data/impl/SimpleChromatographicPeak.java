@@ -21,12 +21,14 @@ package net.sf.mzmine.data.impl;
 
 import java.util.Arrays;
 import java.util.Iterator;
+import java.util.Vector;
 
 import net.sf.mzmine.data.ChromatographicPeak;
 import net.sf.mzmine.data.DataPoint;
 import net.sf.mzmine.data.MzPeak;
 import net.sf.mzmine.data.PeakStatus;
 import net.sf.mzmine.data.RawDataFile;
+import net.sf.mzmine.data.Scan;
 import net.sf.mzmine.util.PeakUtils;
 import net.sf.mzmine.util.Range;
 
@@ -46,6 +48,9 @@ public class SimpleChromatographicPeak implements ChromatographicPeak {
 
     // Boundaries of the peak
     private Range rtRange, mzRange, intensityRange;
+    
+    // Number of most intense fragment scan
+    private int fragmentScanNumber;
 
     /**
      * Initializes a new peak using given values
@@ -53,7 +58,7 @@ public class SimpleChromatographicPeak implements ChromatographicPeak {
      */
     public SimpleChromatographicPeak(RawDataFile dataFile, double MZ, double RT, double height,
             double area, int[] scanNumbers, MzPeak[] mzPeaksPerScan,
-            PeakStatus peakStatus) {
+            PeakStatus peakStatus, int fragmentScanNumber) {
 
         if (mzPeaksPerScan.length == 0) {
             throw new IllegalArgumentException(
@@ -98,6 +103,11 @@ public class SimpleChromatographicPeak implements ChromatographicPeak {
         }
 
         this.peakStatus = peakStatus;
+        
+        if (fragmentScanNumber <= 0)
+        	updateFragmentscanNumber();
+        else
+        	this.fragmentScanNumber = fragmentScanNumber;
 
     }
 
@@ -125,6 +135,7 @@ public class SimpleChromatographicPeak implements ChromatographicPeak {
         }
 
         this.peakStatus = p.getPeakStatus();
+        this.fragmentScanNumber = p.getMostIntenseFragmentScanNumber();
 
     }
 
@@ -218,25 +229,91 @@ public class SimpleChromatographicPeak implements ChromatographicPeak {
         this.dataFile = dataFile;
     }
 
+    /**
+     * @see java.lang.Object#toString()
+     */
     public String toString() {
         return PeakUtils.peakToString(this);
     }
 
+    /**
+     * @see net.sf.mzmine.data.ChromatographicPeak#getRawDataPointsIntensityRange()
+     */
     public Range getRawDataPointsIntensityRange() {
         return intensityRange;
     }
 
+
+    /**
+     * @see net.sf.mzmine.data.ChromatographicPeak#getRawDataPointsMZRange()
+     */
     public Range getRawDataPointsMZRange() {
         return mzRange;
     }
 
+    /**
+     * @see net.sf.mzmine.data.ChromatographicPeak#getRawDataPointsRTRange()
+     */
     public Range getRawDataPointsRTRange() {
         return rtRange;
     }
 
-	public int getRepresentativeScanNumber() {
+    /**
+     * @see net.sf.mzmine.data.ChromatographicPeak#getRepresentativeScanNumber()
+     */
+    public int getRepresentativeScanNumber() {
 		Range range = new Range(rt);
 		return dataFile.getScanNumbers(1, range)[0];
+	}
+	
+    /**
+     * 
+     */
+	private void updateFragmentscanNumber(){
+    	Scan scan;
+    	Vector<Scan> fragmentScans = new Vector<Scan>();
+    	int[] fragmentScanNumbers = dataFile.getScanNumbers(2, rtRange);
+    	for (int number: fragmentScanNumbers){
+    		scan = dataFile.getScan(number);
+    		if (mzRange.contains(scan.getPrecursorMZ()))
+    				fragmentScans.add(scan);
+    	}
+    	
+        // Find the data point with top intensity and set the number of scan
+    	double currentHeight = 0;
+    	int index=-1;
+    	DataPoint[] dataPointArray;
+        for (Scan fragment:fragmentScans) {
+        	
+        	for (int i=0;i<scanNumbers.length; i++){
+            	if (fragment.getParentScanNumber() == scanNumbers[i]){
+            		index = i;
+            		break;
+        		}
+        	}
+        	
+        	if (index < 0)
+        		continue;
+        	
+            dataPointArray = mzPeaksPerScan[index].getRawDataPoints();
+            for (DataPoint dp: dataPointArray){
+                if (dp.getIntensity() > currentHeight) {
+                    fragmentScanNumber = fragment.getScanNumber();
+                    currentHeight = dp.getIntensity();
+                }
+            }
+            
+            index=-1;
+            
+        }    	
+    	
+    }
+    
+	/**
+	 * 
+	 */
+    public int getMostIntenseFragmentScanNumber() {
+		return fragmentScanNumber;
 	}
 
 }

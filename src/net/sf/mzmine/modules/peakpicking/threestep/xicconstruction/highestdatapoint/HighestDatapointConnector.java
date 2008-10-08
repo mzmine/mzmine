@@ -68,9 +68,11 @@ public class HighestDatapointConnector implements ChromatogramBuilder {
 
 				mz = currentMzPeak.getMzPeak().getMZ();
 
+				// Tune-up
 				if (mz > (chromatogramMz + mzTolerance))
 					break;
-
+				if (mz < (chromatogramMz - mzTolerance))
+					continue;
 				if (currentMzPeak.isConnected())
 					continue;
 
@@ -88,11 +90,12 @@ public class HighestDatapointConnector implements ChromatogramBuilder {
 
 		// Check if there are any under-construction peaks that were not
 		// connected (finished region)
+		Chromatogram currentChromatogram;
 		Iterator<Chromatogram> iteratorConPeak = underConstructionChromatograms
 				.iterator();
 		while (iteratorConPeak.hasNext()) {
 
-			Chromatogram currentChromatogram = iteratorConPeak.next();
+			currentChromatogram = iteratorConPeak.next();
 
 			// If nothing was added,
 			if (!currentChromatogram.isGrowing()) {
@@ -137,9 +140,8 @@ public class HighestDatapointConnector implements ChromatogramBuilder {
 
 		for (ConnectedMzPeak cMzPeak : cMzPeaks) {
 			if (!cMzPeak.isConnected()) {
-				Chromatogram newChromatogram = new Chromatogram(dataFile,
-						cMzPeak);
-				underConstructionChromatograms.add(newChromatogram);
+				underConstructionChromatograms.add(new Chromatogram(dataFile,
+						cMzPeak));
 			}
 
 		}

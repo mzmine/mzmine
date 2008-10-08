@@ -169,7 +169,7 @@ class Gap {
 
             SimpleChromatographicPeak newPeak = new SimpleChromatographicPeak(
                     rawDataFile, mz, rt, height, area, scanNumbers, mzPeaks,
-                    PeakStatus.ESTIMATED);
+                    PeakStatus.ESTIMATED, 0);
 
             // Fill the gap
             peakListRow.addPeak(rawDataFile, newPeak, newPeak);

@@ -89,5 +89,10 @@ public interface ChromatographicPeak {
      * detect this peak
      */
     public Range getRawDataPointsIntensityRange();
+    
+    /**
+     * Returns the number of scan that represents the fragmentation of this peak in MS2 level. 
+     */
+    public int getMostIntenseFragmentScanNumber();
 
 }

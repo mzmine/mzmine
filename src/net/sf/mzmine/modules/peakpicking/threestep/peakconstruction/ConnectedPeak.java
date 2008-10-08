@@ -28,6 +28,7 @@ import net.sf.mzmine.data.DataPoint;
 import net.sf.mzmine.data.MzPeak;
 import net.sf.mzmine.data.PeakStatus;
 import net.sf.mzmine.data.RawDataFile;
+import net.sf.mzmine.data.Scan;
 import net.sf.mzmine.modules.peakpicking.threestep.xicconstruction.ConnectedMzPeak;
 import net.sf.mzmine.util.CollectionUtils;
 import net.sf.mzmine.util.MathUtils;
@@ -55,6 +56,9 @@ public class ConnectedPeak implements ChromatographicPeak {
 
 	// Characteristics of the peak
 	private Range mzRange, intensityRange, rtRange;
+	
+    // Number of most intense fragment scan
+    private int fragmentScanNumber;
 
 
 	/**
@@ -151,12 +155,15 @@ public class ConnectedPeak implements ChromatographicPeak {
 		lastValidIndex = mzValue.getScan().getScanNumber();
 		datapointsMap.put(lastValidIndex, mzValue);
 		previousRetentionTime = mzValue.getScan().getRetentionTime();
-		
+
+		updateFragmentscanNumber();
+
 
 	}
 	
 	public void addMzPeak(int scanNumber) {
 		datapointsMap.put(scanNumber, null);
+    	updateFragmentscanNumber();
 	}
 
 
@@ -278,6 +285,45 @@ public class ConnectedPeak implements ChromatographicPeak {
 		Range range = new Range(rt);
 		return dataFile.getScanNumbers(1, range)[0];
 	}
+
+    /**
+     * 
+     */
+	private void updateFragmentscanNumber(){
+    	Scan scan;
+    	Vector<Scan> fragmentScans = new Vector<Scan>();
+    	int[] fragmentScanNumbers = dataFile.getScanNumbers(2, rtRange);
+    	for (int number: fragmentScanNumbers){
+    		scan = dataFile.getScan(number);
+    		if (mzRange.contains(scan.getPrecursorMZ()))
+    				fragmentScans.add(scan);
+    	}
+    	
+        // Find the data point with top intensity and set the number of scan
+    	double currentHeight = 0;
+    	ConnectedMzPeak mzPeak;
+        for (Scan fragment:fragmentScans) {
+        	
+        	mzPeak = datapointsMap.get(fragment.getParentScanNumber());
+            if (mzPeak == null)
+            	continue;
+            
+            if (mzPeak.getMzPeak().getIntensity() > currentHeight) {
+                fragmentScanNumber = fragment.getScanNumber();
+                currentHeight = mzPeak.getMzPeak().getIntensity();
+            }
+            
+        }    	
+    	
+    }
+    
+	/**
+	 * 
+	 */
+    public int getMostIntenseFragmentScanNumber() {
+		return fragmentScanNumber;
+	}
+
 
 
 }
