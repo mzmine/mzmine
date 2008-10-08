@@ -43,10 +43,10 @@ class IsotopeGrouperTask implements Task {
      * Actual weight of 1 neutron is 1.008665 Da, but part of this mass is
      * consumed as binding energy to other protons/neutrons. Actual mass
      * increase of isotopes depends on chemical formula of the molecule. Since
-     * we don't know the formula, we can assume the distance to be ~1 Da, with
+     * we don't know the formula, we can assume the distance to be ~1.0033 Da, with
      * user-defined tolerance.
      */
-    private static final double isotopeDistance = 1f;
+    private static final double isotopeDistance = 1.0033;
 
     private PeakList peaklist;
 
