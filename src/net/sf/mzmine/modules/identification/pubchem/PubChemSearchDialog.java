@@ -25,7 +25,7 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
-import java.util.logging.Logger;
+import java.text.DecimalFormat;
 
 import javax.swing.JComboBox;
 import javax.swing.JFormattedTextField;
@@ -38,14 +38,13 @@ import net.sf.mzmine.util.dialogs.ParameterSetupDialog;
 public class PubChemSearchDialog extends ParameterSetupDialog implements
         ActionListener, PropertyChangeListener {
 
-    private Logger logger = Logger.getLogger(this.getClass().getName());
-
     private PubChemSearchParameters parameters;
     private static final Color BACKGROUND_COLOR = new Color(173, 216, 230);
     private double rawMassValue;
+    public static final DecimalFormat massFormat = new DecimalFormat("#####.#####");
 
     /**
-     * Constructor
+     * 
      */
     public PubChemSearchDialog(PubChemSearchParameters parameters,
             double massValue) {
@@ -65,7 +64,7 @@ public class PubChemSearchDialog extends ParameterSetupDialog implements
                 continue;
             }
             if (params[i].getName() == "Peak mass") {
-                ((JTextField) fields[i]).setText(String.valueOf(massValue));
+                ((JTextField) fields[i]).setText(massFormat.format(massValue));
                 ((JTextField) fields[i]).setEditable(false);
                 ((JTextField) fields[i]).setBackground(BACKGROUND_COLOR);
                 continue;
@@ -100,12 +99,18 @@ public class PubChemSearchDialog extends ParameterSetupDialog implements
 
     }
 
+    /** 
+     * @see java.beans.PropertyChangeListener#propertyChange(java.beans.PropertyChangeEvent)
+     */
     public void propertyChange(PropertyChangeEvent pro) {
         if (pro.getPropertyName() == "value") {
             setNeutralMassValue();
         }
     }
 
+    /**
+     * Update the field of neutral mass according with the rest of parameters.
+     */
     private void setNeutralMassValue() {
         int chargeLevel = 1;
         double ion = 0.0f;

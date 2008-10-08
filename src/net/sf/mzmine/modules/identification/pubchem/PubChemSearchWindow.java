@@ -24,36 +24,43 @@ import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.awt.event.MouseEvent;
-import java.awt.event.MouseListener;
 
 import javax.swing.BorderFactory;
 import javax.swing.BoxLayout;
-import javax.swing.DefaultListModel;
 import javax.swing.JButton;
 import javax.swing.JInternalFrame;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
+import javax.swing.JTable;
 
+import net.sf.mzmine.data.ChromatographicPeak;
 import net.sf.mzmine.data.CompoundIdentity;
+import net.sf.mzmine.data.IsotopePattern;
 import net.sf.mzmine.data.PeakListRow;
-import net.sf.mzmine.util.components.DragOrderedJList;
+import net.sf.mzmine.desktop.Desktop;
+import net.sf.mzmine.main.MZmineCore;
+import net.sf.mzmine.modules.visualization.spectra.PeakListDataSet;
+import net.sf.mzmine.modules.visualization.spectra.SpectraVisualizer;
+import net.sf.mzmine.modules.visualization.spectra.SpectraVisualizerWindow;
 import net.sf.mzmine.util.molstructureviewer.MolStructureViewer;
 
 public class PubChemSearchWindow extends JInternalFrame implements
         ActionListener {
 
-    private DefaultListModel listIDModel;
-    private JButton btnAdd, btnAddAll, btnViewer;
+    private PubChemResultTableModel listElementModel;
+    private JButton btnAdd, btnAddAll, btnViewer, btnIsotopeViewer;
     private PeakListRow peakListRow;
-    private DragOrderedJList IDList;
+    private JTable IDList;
+    private ChromatographicPeak peak;
 
-    public PubChemSearchWindow(PeakListRow peakListRow) {
+
+    public PubChemSearchWindow(PeakListRow peakListRow, ChromatographicPeak peak) {
 
         super(null, true, true, true, true);
-
+        
         this.peakListRow = peakListRow;
+        this.peak = peak;
 
         setDefaultCloseOperation(DISPOSE_ON_CLOSE);
         setBackground(Color.white);
@@ -64,38 +71,9 @@ public class PubChemSearchWindow extends JInternalFrame implements
         pnlLabelsAndList.add(new JLabel("List of possible identities"),
                 BorderLayout.NORTH);
 
-        listIDModel = new DefaultListModel();
-        IDList = new DragOrderedJList(listIDModel);
-        IDList.addMouseListener(new MouseListener() {
-
-            public void mouseClicked(MouseEvent event) {
-                requestFocus();
-                if ((event.getButton() == MouseEvent.BUTTON1)
-                        && (event.getClickCount() == 2)) {
-                    int index = IDList.locationToIndex(event.getPoint());
-                    if (IDList.getModel().getSize() > 0) {
-                        IDList.setSelectedIndex(index);
-                        PubChemSearchWindow.this.actionPerformed(new ActionEvent(
-                                this, 0, "ADD"));
-                        // Object item = IDList.getModel().getElementAt(index);
-                        // desktop.displayMessage("Test of double click on JList
-                        // " + ((CompoundIdentity)item).getCompoundName());
-                    }
-                }
-            }
-
-            public void mouseEntered(MouseEvent e) {
-            }
-
-            public void mouseExited(MouseEvent e) {
-            }
-
-            public void mousePressed(MouseEvent e) {
-            }
-
-            public void mouseReleased(MouseEvent e) {
-            }
-        });
+        listElementModel = new PubChemResultTableModel();
+        IDList = new JTable();
+        IDList.setModel(listElementModel);
         JScrollPane listScroller = new JScrollPane(IDList);
         listScroller.setPreferredSize(new Dimension(350, 100));
         listScroller.setAlignmentX(LEFT_ALIGNMENT);
@@ -115,10 +93,14 @@ public class PubChemSearchWindow extends JInternalFrame implements
         btnViewer = new JButton("View structure");
         btnViewer.addActionListener(this);
         btnViewer.setActionCommand("VIEWER");
+        btnIsotopeViewer = new JButton("View isotope pattern");
+        btnIsotopeViewer.addActionListener(this);
+        btnIsotopeViewer.setActionCommand("ISOTOPE_VIEWER");
         pnlButtons.setBorder(BorderFactory.createEmptyBorder(5, 5, 5, 5));
         pnlButtons.add(btnAdd);
         pnlButtons.add(btnAddAll);
         pnlButtons.add(btnViewer);
+        pnlButtons.add(btnIsotopeViewer);
 
         setLayout(new BorderLayout());
         setSize(500, 200);
@@ -133,43 +115,74 @@ public class PubChemSearchWindow extends JInternalFrame implements
         String command = e.getActionCommand();
 
         if (command.equals("ADD")) {
-            int[] indices = IDList.getSelectedIndices();
-            Object item;
+            int[] indices = IDList.getSelectedRows();
             for (int ind : indices) {
-                item = listIDModel.getElementAt(ind);
-                peakListRow.addCompoundIdentity((CompoundIdentity) item);
+                peakListRow.addCompoundIdentity(listElementModel.getElementAt(ind));
             }
             dispose();
         }
 
         if (command.equals("ADD_ALL")) {
-            int length = listIDModel.size();
-            Object item;
+            int length = listElementModel.getRowCount();
             for (int i = 0; i < length; i++) {
-                item = listIDModel.getElementAt(i);
-                peakListRow.addCompoundIdentity((CompoundIdentity) item);
+                peakListRow.addCompoundIdentity(listElementModel.getElementAt(i));
             }
             dispose();
         }
 
         if (command.equals("VIEWER")) {
-            int[] indices = IDList.getSelectedIndices();
-            Object item;
+            int[] indices = IDList.getSelectedRows();
             MolStructureViewer viewer;
-            int CID;
+            String CID, name;
             for (int ind : indices) {
-                item = listIDModel.getElementAt(ind);
-                CID = Integer.parseInt(((CompoundIdentity) item).getCompoundID());
-                viewer = new MolStructureViewer(CID,
-                        ((CompoundIdentity) item).getCompoundName());
-                viewer.setVisible(true);
+                CID = (String) listElementModel.getValueAt(ind,0);
+                name = (String) listElementModel.getValueAt(ind,1);
+                viewer = new MolStructureViewer(CID, name);
+				Desktop desktop = MZmineCore.getDesktop();
+				desktop.addInternalFrame(viewer);
             }
         }
 
+        if (command.equals("ISOTOPE_VIEWER")) {
+
+            if (!(peak instanceof IsotopePattern)){
+            	MZmineCore.getDesktop()
+				.displayMessage("The selected peak does not represent an isotope pattern.");
+            	return;
+            }
+            
+            int[] indices = IDList.getSelectedRows();
+
+            SpectraVisualizer specVis = SpectraVisualizer.getInstance();
+        	SpectraVisualizerWindow spectraWindow;
+        	IsotopePattern isotopePattern;
+        	PeakListDataSet peakDataSet;
+        	
+            for (int ind : indices) {
+            	
+            	if (listElementModel.getValueAt(ind, 4).equals(""))
+            		continue;
+            	
+            	isotopePattern = listElementModel.getElementAt(ind).getIsotopePattern();
+            	
+            	if (isotopePattern == null)
+            		continue;
+
+            	peakDataSet = new PeakListDataSet(isotopePattern);
+            	
+            	if (peakDataSet == null)
+            		continue;
+            	
+            	spectraWindow = specVis.showNewSpectrumWindow(peak.getDataFile(), (IsotopePattern) peak);
+            	spectraWindow.getSpectrumPlot().addPeaksDataSet(new PeakListDataSet((IsotopePattern) peak));
+            	spectraWindow.getSpectrumPlot().addPeaksDataSet(peakDataSet);
+            	
+            }
+        }
     }
 
     public void addNewListItem(CompoundIdentity compound) {
-        listIDModel.addElement(compound);
+        listElementModel.addElement(compound);
     }
 
 }

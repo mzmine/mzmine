@@ -68,19 +68,20 @@ public class PubChemSearchTask implements Task {
 	private boolean singleRow = false, chargedMol = false,
 			isotopeFilter = false;
 	private double isotopeScoreThreshold;
-	private FormulaAnalyzer analyzer;
+	private FormulaAnalyzer analyzer = new FormulaAnalyzer();
 	private IsotopePattern originalIsotopePattern;
+	private ChromatographicPeak peak;
 
 	PubChemSearchTask(PubChemSearchParameters parameters, PeakList peakList,
 			PeakListRow peakListRow, ChromatographicPeak peak) {
 
-		// if (peakListRow != null) {
 		if ((peak != null) && (peakListRow != null)) {
-			window = new PubChemSearchWindow(peakListRow);
+			window = new PubChemSearchWindow(peakListRow, peak);
 			singleRow = true;
 		}
 
 		this.peakList = peakList;
+		this.peak = peak;
 
 		status = TaskStatus.WAITING;
 		valueOfQuery = (Double) parameters
@@ -99,8 +100,6 @@ public class PubChemSearchTask implements Task {
 		if (isotopeFilter) {
 			if (peak instanceof IsotopePattern) {
 				originalIsotopePattern = (IsotopePattern) peak;
-				analyzer = new FormulaAnalyzer();
-				logger.finest("Si es isotope pattern");
 			} else {
 				isotopeFilter = false;
 			}
@@ -198,10 +197,8 @@ public class PubChemSearchTask implements Task {
 				int i = 0;
 				boolean goodCandidate = false;
 				IsotopePattern ip2;
-				//double score = 0;
 
 				while (i < numIDs) {
-					// for (int i = 0; i < numIDs; i++) {
 					
 					if (status != TaskStatus.PROCESSING){
 						return;
@@ -212,8 +209,10 @@ public class PubChemSearchTask implements Task {
 							null, null, null, "PubChem", null);
 					getSummary("pccompound", pubChemID, compound);
 
+
 					if (isotopeFilter) {
 
+						// Generate isotope pattern using formula of compound, and set score of proximity
 						ip2 = analyzer.getIsotopePattern(compound
 								.getCompoundFormula(), 0.01,
 								originalIsotopePattern.getCharge(), false,
@@ -222,15 +221,36 @@ public class PubChemSearchTask implements Task {
 						double score = IsotopePatternScoreCalculator.getScore(
 								originalIsotopePattern, ip2);
 						
-						ip2 = null;
+						double massDiff = originalIsotopePattern.getIsotopeMass() - ip2.getIsotopeMass();
+						massDiff = Math.abs(massDiff);
 						
-						if (score >= isotopeScoreThreshold)
+						compound.setExactMassDifference(String.valueOf(massDiff));
+						compound.setIsotopePatterScore(String.valueOf(score));
+						compound.setIsotopePattern(ip2);
+						
+						ip2 = null;
+
+						if (score >= isotopeScoreThreshold){
 							goodCandidate = true;
+						}
 						
 					} else {
+						
+						//Calculate mass of the compound formula.
+						ip2 = analyzer.getIsotopePattern(compound
+								.getCompoundFormula(), 0.01,
+								0, false, 0, true, true, ionName);
+
+						double massDiff = peak.getMZ() - ip2.getIsotopeMass();
+						massDiff = Math.abs(massDiff);
+
+						compound.setExactMassDifference(String.valueOf(massDiff));
+						ip2 = null;
+
 						goodCandidate = true;
 					}
 
+					//Add compound to the list of possible candidate and display it in window of results.
 					if (goodCandidate) {
 						getLink(pubChemID, compound);
 						getName(pubChemID, compound);
@@ -240,7 +260,6 @@ public class PubChemSearchTask implements Task {
 
 					i++;
 					goodCandidate = false;
-					//score = 0;
 
 					if (finishedLines >= numOfResults)
 						break;
@@ -291,7 +310,7 @@ public class PubChemSearchTask implements Task {
 
 	}
 
-	public void getLink(String id, SimpleCompoundIdentity compound)
+	private static void getLink(String id, SimpleCompoundIdentity compound)
 			throws RemoteException {
 
 		ELinkRequest reqLink = new ELinkRequest();
@@ -314,7 +333,7 @@ public class PubChemSearchTask implements Task {
 
 	}
 
-	public void getSummary(String db, String id, SimpleCompoundIdentity compound)
+	private static void getSummary(String db, String id, SimpleCompoundIdentity compound)
 			throws RemoteException {
 
 		ESummaryRequest reqSummary = new ESummaryRequest();
@@ -332,7 +351,7 @@ public class PubChemSearchTask implements Task {
 				itemName = resSum.getDocSum()[i].getItem()[k].getName();
 				itemContent = resSum.getDocSum()[i].getItem()[k]
 						.getItemContent();
-				// logger.finest(" " + itemName + ": " + itemContent);
+				//logger.finest(" " + itemName + ": " + itemContent);
 				if (itemName.matches(".*ScopeNote.*"))
 					compound.setScopeNote(itemContent);
 				if (itemName.matches(".*IUPACName.*"))
@@ -348,7 +367,7 @@ public class PubChemSearchTask implements Task {
 
 	}
 
-	private void getName(String id, SimpleCompoundIdentity compound) {
+	private static void getName(String id, SimpleCompoundIdentity compound) {
 		try {
 
 			URL endpoint = new URL(
@@ -373,7 +392,7 @@ public class PubChemSearchTask implements Task {
 			}
 			String name = putBackTogether.toString();
 			int index = name.indexOf(id, 0);
-			name = name.substring(index + 4);
+			name = name.substring(index + id.length());
 
 			compound.setCompoundName(name);
 

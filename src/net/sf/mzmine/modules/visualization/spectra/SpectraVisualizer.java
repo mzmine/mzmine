@@ -107,13 +107,14 @@ public class SpectraVisualizer implements MZmineModule, ActionListener {
         desktop.addInternalFrame(newWindow);
     }
 
-    public void showNewSpectrumWindow(RawDataFile dataFile, IsotopePattern isotopePattern) {
+    public SpectraVisualizerWindow showNewSpectrumWindow(RawDataFile dataFile, IsotopePattern isotopePattern) {
     	String title = "";
     	if (dataFile != null)
     		title = dataFile.toString();
         SpectraVisualizerWindow newWindow = new SpectraVisualizerWindow(
                 dataFile, title, isotopePattern);
         desktop.addInternalFrame(newWindow);
+        return newWindow;
     }
 
     /**

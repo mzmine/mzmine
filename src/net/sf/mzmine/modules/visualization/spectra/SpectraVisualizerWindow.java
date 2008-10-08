@@ -397,5 +397,9 @@ public class SpectraVisualizerWindow extends JInternalFrame implements
 		}
 
 	}
+	
+	public SpectraPlot getSpectrumPlot(){
+		return spectrumPlot;
+	}
 
 }

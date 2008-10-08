@@ -97,6 +97,7 @@ public class MainWindow extends JFrame implements MZmineModule, Desktop,
         frame.addInternalFrameListener(this);
         openFrameCount++;
         frame.setLocation(xOffset*openFrameCount, yOffset*openFrameCount);
+        desktopPane.validate();
     }
 
     /**

@@ -4,8 +4,6 @@ import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.Font;
-import java.awt.event.WindowEvent;
-import java.awt.event.WindowListener;
 import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
 import java.io.File;
@@ -16,14 +14,14 @@ import java.io.InputStream;
 import java.net.URL;
 
 import javax.swing.BorderFactory;
-import javax.swing.JDialog;
+import javax.swing.JInternalFrame;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.SwingConstants;
 import javax.swing.border.Border;
 import javax.swing.border.EtchedBorder;
-
-import net.sf.mzmine.main.MZmineCore;
+import javax.swing.event.InternalFrameEvent;
+import javax.swing.event.InternalFrameListener;
 
 import org.jmol.api.JmolViewer;
 import org.openscience.cdk.ChemModel;
@@ -34,28 +32,30 @@ import org.openscience.cdk.io.IChemObjectReader;
 import org.openscience.cdk.io.MDLV2000Reader;
 import org.openscience.cdk.tools.HydrogenAdder;
 
-public class MolStructureViewer extends JDialog implements WindowListener {
+public class MolStructureViewer extends JInternalFrame implements InternalFrameListener {
 	
 	private JMolPanelLight jmolPanel;
+	private JChemPanelLight jcp;
 	private File inFile;
     private static int openDialogCount = 0;
     private static final int xOffset = 30, yOffset = 30;
     private String fileName;
 	
-	public MolStructureViewer(int CID, String compoundName){
-		// Make dialog modal
-		super(MZmineCore.getDesktop().getMainFrame(), false);
-		
-		addWindowListener(this);		
-		add(JChemPanelLight.getEmptyPanelWithModel());
-		setPreferredSize(new Dimension(1000, 500));
-		setTitle("Molecular structure visualization of CID " + CID);
+	public MolStructureViewer(String cid, String compoundName){
 
-		JChemPanelLight jcp = (JChemPanelLight) this.getContentPane().getComponent(0);
+		super("Molecular structure visualization of CID " + cid, true, true, true, true);
+		
+        setDefaultCloseOperation(DISPOSE_ON_CLOSE);
+        setBackground(Color.white);
+
+        addInternalFrameListener(this);
+
+		jcp = (JChemPanelLight) JChemPanelLight.getEmptyPanelWithModel();
 		jcp.setShowInsertTextField(false);
 		jcp.setShowMenuBar(false);
 		jcp.setShowToolBar(false);
 		jcp.revalidate();
+
 
 		jmolPanel = new JMolPanelLight();
 		jmolPanel.setPreferredSize(new Dimension(400, 400));
@@ -74,7 +74,6 @@ public class MolStructureViewer extends JDialog implements WindowListener {
 		labelName.setFont(new Font("SansSerif", Font.BOLD, 20));
 		container.add(labelName, BorderLayout.NORTH);
 		
-		pack();
 		openDialogCount++;
 		setLocation(xOffset*openDialogCount, yOffset*openDialogCount);
 		setVisible(true);
@@ -82,7 +81,7 @@ public class MolStructureViewer extends JDialog implements WindowListener {
 		URL url;
 		try {
 			url = new URL(
-					"http://pubchem.ncbi.nlm.nih.gov/summary/summary.cgi?cid="+CID+"&disopt=DisplaySDF");
+					"http://pubchem.ncbi.nlm.nih.gov/summary/summary.cgi?cid="+cid+"&disopt=DisplaySDF");
 			InputStream in=url.openStream ();
 			
 			fileName = "temp" + this.hashCode() + ".sdf";
@@ -108,6 +107,7 @@ public class MolStructureViewer extends JDialog implements WindowListener {
 						}
 					}
 				}
+				
 				//The following do apply either to the existing or the new frame
 				jcp.lastUsedJCPP.getJChemPaintModel().setTitle("CID_5957.sdf");
 				jcp.lastUsedJCPP.setIsAlreadyAFile(inFile);
@@ -130,7 +130,9 @@ public class MolStructureViewer extends JDialog implements WindowListener {
 			e.printStackTrace();
 		}
 		
-		
+		setPreferredSize(new Dimension(1000, 500));
+		add(jcp);
+		pack();
 		
 	}
 
@@ -170,38 +172,39 @@ public class MolStructureViewer extends JDialog implements WindowListener {
 	}
 
 
-	public void windowActivated(WindowEvent e) {
+	public void internalFrameActivated(InternalFrameEvent e) {
 	}
 
 
-	public void windowClosed(WindowEvent e) {
+	public void internalFrameClosed(InternalFrameEvent e) {
 		openDialogCount--;
 		try{
-		inFile.delete();
+			File file = new File(fileName);
+			file.delete();
 		}
 		catch (Exception eFile){
 			eFile.printStackTrace();
 		}
-		dispose();
 	}
 
 
-	public void windowClosing(WindowEvent e) {
+	public void internalFrameClosing(InternalFrameEvent e) {
 	}
 
 
-	public void windowDeactivated(WindowEvent e) {
+	public void internalFrameDeactivated(InternalFrameEvent e) {
 	}
 
 
-	public void windowDeiconified(WindowEvent e) {
+	public void internalFrameDeiconified(InternalFrameEvent e) {
 	}
 
 
-	public void windowIconified(WindowEvent e) {
+	public void internalFrameIconified(InternalFrameEvent e) {
 	}
 
 
-	public void windowOpened(WindowEvent e) {
+	public void internalFrameOpened(InternalFrameEvent e) {
 	}
+	
 }
