@@ -103,7 +103,7 @@ public class PeakListDataSet extends AbstractXYDataset implements IntervalXYData
         if (increase <= 0)
         	autoIncrease = true;
         formula = isotopePattern.getFormula();
-        isotopeMass = isotopePattern.getIsotopeMass();
+        isotopeMass = isotopePattern.getMZ();
 
 
     	label = "Isotopes ("+ isotopePattern.getNumberOfIsotopes()

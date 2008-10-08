@@ -49,6 +49,13 @@ public enum TypeOfIonization {
         return sign;
     }
 
+    public boolean isPositiveCharge() {
+    	if (sign < 0)
+    		return true;
+    	else
+    		return false;
+    }
+
     public double getMass() {
         return mass;
     }

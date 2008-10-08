@@ -69,7 +69,6 @@ public class PubChemSearchTask implements Task {
 			isotopeFilter = false;
 	private double isotopeScoreThreshold;
 	private FormulaAnalyzer analyzer = new FormulaAnalyzer();
-	private IsotopePattern originalIsotopePattern;
 	private ChromatographicPeak peak;
 
 	PubChemSearchTask(PubChemSearchParameters parameters, PeakList peakList,
@@ -98,11 +97,8 @@ public class PubChemSearchTask implements Task {
 				.getParameterValue(PubChemSearchParameters.isotopeFilter);
 
 		if (isotopeFilter) {
-			if (peak instanceof IsotopePattern) {
-				originalIsotopePattern = (IsotopePattern) peak;
-			} else {
+			if (!(peak instanceof IsotopePattern)) 
 				isotopeFilter = false;
-			}
 		}
 
 		isotopeScoreThreshold = (Double) parameters
@@ -209,46 +205,33 @@ public class PubChemSearchTask implements Task {
 							null, null, null, "PubChem", null);
 					getSummary("pccompound", pubChemID, compound);
 
+					//Calculate mass of the compound formula.
+					ip2 = analyzer.getIsotopePattern(compound
+							.getCompoundFormula(), 0.01,
+							charge, ionName.isPositiveCharge(),
+							0, true, true, ionName);
+
+					double massDiff = ((IsotopePattern) peak).getMZ() - ip2.getMZ();
+					massDiff = Math.abs(massDiff);
+					compound.setExactMassDifference(String.valueOf(massDiff));
 
 					if (isotopeFilter) {
 
-						// Generate isotope pattern using formula of compound, and set score of proximity
-						ip2 = analyzer.getIsotopePattern(compound
-								.getCompoundFormula(), 0.01,
-								originalIsotopePattern.getCharge(), false,
-								originalIsotopePattern.getIsotopeHeight(), false, true, ionName);
-
 						double score = IsotopePatternScoreCalculator.getScore(
-								originalIsotopePattern, ip2);
+								((IsotopePattern) peak), ip2);
 						
-						double massDiff = originalIsotopePattern.getIsotopeMass() - ip2.getIsotopeMass();
-						massDiff = Math.abs(massDiff);
-						
-						compound.setExactMassDifference(String.valueOf(massDiff));
 						compound.setIsotopePatterScore(String.valueOf(score));
 						compound.setIsotopePattern(ip2);
 						
-						ip2 = null;
-
 						if (score >= isotopeScoreThreshold){
 							goodCandidate = true;
 						}
 						
 					} else {
-						
-						//Calculate mass of the compound formula.
-						ip2 = analyzer.getIsotopePattern(compound
-								.getCompoundFormula(), 0.01,
-								0, false, 0, true, true, ionName);
-
-						double massDiff = peak.getMZ() - ip2.getIsotopeMass();
-						massDiff = Math.abs(massDiff);
-
-						compound.setExactMassDifference(String.valueOf(massDiff));
-						ip2 = null;
-
 						goodCandidate = true;
 					}
+
+					ip2 = null;
 
 					//Add compound to the list of possible candidate and display it in window of results.
 					if (goodCandidate) {

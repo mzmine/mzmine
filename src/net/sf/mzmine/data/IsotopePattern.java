@@ -44,13 +44,6 @@ public interface IsotopePattern extends ChromatographicPeak, MzDataTable {
     public int getCharge();
 
     /**
-     * Returns the mass of the compound represented by this isotope pattern.
-     * Mass is calculated from m/z ratio. If charge cannot be determined from
-     * isotope distance, the m/z value is returned (charge is assumed to be 1).
-     */
-    public double getIsotopeMass();
-    
-    /**
      * Returns the m/z range of the pattern
      */
     public Range getIsotopeMzRange();

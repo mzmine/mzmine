@@ -80,11 +80,25 @@ public class PredictedIsotopePattern implements IsotopePattern {
 	}
 
 	public double getHeight() {
-		return dataPoints[0].getIntensity();
+		return getMostIntenseDataPoint().getIntensity();
 	}
 
 	public double getMZ() {
-		return dataPoints[0].getMZ();
+		return getMostIntenseDataPoint().getMZ();
+	}
+	
+	private DataPoint getMostIntenseDataPoint(){
+		int index = 0;
+		double intensity = 0;
+		
+		for (int i=0; i<dataPoints.length; i++){
+			if (dataPoints[i].getIntensity() > intensity){
+				index = i;
+				intensity = dataPoints[i].getIntensity();
+			}
+		}
+		
+		return dataPoints[index];
 	}
 
 	public MzPeak getMzPeak(int scanNumber) {
