@@ -56,41 +56,6 @@ public interface CompoundIdentity {
 	 */
 	public String getCompoundFormula();
 
-	/**
-	 * Returns alternate names of this compound
-	 * 
-	 * @return Array of alternate names
-	 */
-	public String[] getAlternateNames();
-
-	/**
-	 * Returns the calculated exact mass of this compound
-	 * 
-	 * @return String exact mass
-	 */
-	public String getExactMassDifference();
-
-	/**
-	 * Returns the isotope pattern (predicted) of this compound
-	 * 
-	 * @return IsotopePattern
-	 */
-	public IsotopePattern getIsotopePattern();
-
-	/**
-	 * Returns the score of the isotope pattern (generated from this formula),
-	 * against the related peak (isotope pattern) of this compound.
-	 * 
-	 * @return
-	 */
-	public String getIsotopePatternScore();
-
-	/**
-	 * Returns an URL for a WWW database entry covering this compound.
-	 * 
-	 * @return Database entry URL
-	 */
-	public String getDatabaseEntryURL();
 
 	/**
 	 * Returns a String with information about this compound.

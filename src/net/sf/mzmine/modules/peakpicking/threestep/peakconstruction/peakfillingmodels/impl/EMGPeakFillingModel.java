@@ -19,6 +19,8 @@
 
 package net.sf.mzmine.modules.peakpicking.threestep.peakconstruction.peakfillingmodels.impl;
 
+import java.util.logging.Logger;
+
 import net.sf.mzmine.data.ChromatographicPeak;
 import net.sf.mzmine.data.RawDataFile;
 import net.sf.mzmine.data.Scan;
@@ -31,6 +33,8 @@ import net.sf.mzmine.util.Range;
 
 public class EMGPeakFillingModel implements PeakFillingModel {
 
+	private Logger logger = Logger.getLogger(this.getClass().getName());
+	
     private double xRight = -1, xLeft = -1;
 
     /**
@@ -58,15 +62,17 @@ public class EMGPeakFillingModel implements PeakFillingModel {
                 originalRange.getMax() + rangeSize);
         int[] listScans = dataFile.getScanNumbers(1, extendedRange);
 
-        double heightMax, RT, C, FWHM, factor;
+        double heightMax, RT, MZ, C, FWHM, factor, resolution;
 
         C = params[0]; // level of excess;
+        resolution = params[1];
         factor = (1.0f - (Math.abs(C) / 10.0f));
 
         heightMax = originalDetectedShape.getHeight() * factor;
         RT = originalDetectedShape.getRT();
+        MZ = originalDetectedShape.getMZ();
 
-        FWHM = calculateWidth(listMzPeaks, heightMax, RT) * factor;
+        FWHM = calculateWidth(listMzPeaks, heightMax, RT, MZ, resolution) * factor;
 
         if (FWHM < 0) {
             return originalDetectedShape;
@@ -83,25 +89,28 @@ public class EMGPeakFillingModel implements PeakFillingModel {
          */
 
         // Left side
-        double beginning = listMzPeaks[0].getScan().getRetentionTime();
-        double a = (RT - (beginning * factor));
-
+        double beginning = xLeft;//listMzPeaks[0].getScan().getRetentionTime();
+        if (beginning <= 0)
+        	beginning = listMzPeaks[0].getScan().getRetentionTime();
+        double a = (RT - beginning) * factor;
+        
         // Right side
-        double ending = listMzPeaks[listMzPeaks.length - 1].getScan().getRetentionTime();
-        double b = ((ending * factor) - RT);
+        double ending = xRight;//listMzPeaks[listMzPeaks.length - 1].getScan().getRetentionTime();
+        if (ending <= 0)
+        	ending = listMzPeaks[listMzPeaks.length - 1].getScan().getRetentionTime();
+        double b = (ending - RT) * factor;
 
         double paramA = b / a;
-        double paramB = (1.76f * (double) Math.pow(paramA, 2))
-                - (11.15f * paramA) + 28.0f;
+        double paramB = (1.76d * Math.pow(paramA, 2))
+                - (11.15d * paramA) + 28.0d;
 
         // Calculates Width at base of the peak.
-        double paramC = (FWHM * 2.355f) / 4.71f;
-
+        double paramC = (FWHM *2.355 ) / 4.71;
         double Ap = paramC / paramB;
 
         if ((b > a) && (Ap > 0))
             Ap *= -1;
-
+        
         // Calculate intensity of each point in the shape.
         double t, shapeHeight;
         Scan scan;
@@ -135,6 +144,12 @@ public class EMGPeakFillingModel implements PeakFillingModel {
 
             filledPeak.addMzPeak(newMzPeak);
         }
+        
+        if (filledPeak == null)
+        	return originalDetectedShape;
+
+        if (filledPeak.getAllMzPeaks().length == 0)
+        	return originalDetectedShape;
 
         return filledPeak;
     }
@@ -149,10 +164,16 @@ public class EMGPeakFillingModel implements PeakFillingModel {
      * @return FWHM
      */
     private double calculateWidth(ConnectedMzPeak[] listMzPeaks, double height,
-            double RT) {
+            double RT, double MZ, double resolution) {
 
         double halfIntensity = height / 2, intensity = 0, intensityPlus = 0, retentionTime = 0;
+        double leftY1,leftX1,leftY2,leftX2,mLeft;
+        double rightY1,rightX1,rightY2,rightX2,mRight;
+        double localXLeft = -1, localXRight = -1;
+        double lowestLeft = intensity/5, lowestRight = intensity/5;
         ConnectedMzPeak[] rangeDataPoints = listMzPeaks; // .clone();
+        
+        double FWHM ;
 
         for (int i = 0; i < rangeDataPoints.length - 1; i++) {
 
@@ -165,87 +186,112 @@ public class EMGPeakFillingModel implements PeakFillingModel {
 
             // Left side of the curve
             if (retentionTime < RT) {
+            	if (intensity < lowestLeft){
+            		lowestLeft = intensity;
+            		xLeft = retentionTime;
+            	}
+            	
+            	
+            	
                 if ((intensity <= halfIntensity) && (retentionTime < RT)
                         && (intensityPlus >= halfIntensity)) {
 
                     // First point with intensity just less than half of total
                     // intensity
-                    double leftY1 = intensity;
-                    double leftX1 = retentionTime;
+                    leftY1 = intensity;
+                    leftX1 = retentionTime;
 
                     // Second point with intensity just bigger than half of
                     // total
                     // intensity
-                    double leftY2 = intensityPlus;
-                    double leftX2 = rangeDataPoints[i + 1].getScan().getRetentionTime();
+                    leftY2 = intensityPlus;
+                    leftX2 = rangeDataPoints[i + 1].getScan().getRetentionTime();
 
                     // We calculate the slope with formula m = Y1 - Y2 / X1 - X2
-                    double mLeft = (leftY1 - leftY2) / (leftX1 - leftX2);
+                    mLeft = (leftY1 - leftY2) / (leftX1 - leftX2);
 
                     // We calculate the desired point (at half intensity) with
                     // the
                     // linear equation
                     // X = X1 + [(Y - Y1) / m ], where Y = half of total
                     // intensity
-                    xLeft = leftX1 + (((halfIntensity) - leftY1) / mLeft);
+                    localXLeft = leftX1 + (((halfIntensity) - leftY1) / mLeft);
                     continue;
                 }
             }
 
             // Right side of the curve
             if (retentionTime > RT) {
-                if ((intensity >= halfIntensity) && (retentionTime > RT)
+
+            	if (intensity < lowestRight){
+            		lowestRight = intensity;
+            		xRight = retentionTime;
+            	}
+
+            	
+            	if ((intensity >= halfIntensity) && (retentionTime > RT)
                         && (intensityPlus <= halfIntensity)) {
 
                     // First point with intensity just bigger than half of total
                     // intensity
-                    double rightY1 = intensity;
-                    double rightX1 = retentionTime;
+                    rightY1 = intensity;
+                    rightX1 = retentionTime;
 
                     // Second point with intensity just less than half of total
                     // intensity
-                    double rightY2 = intensityPlus;
-                    double rightX2 = rangeDataPoints[i + 1].getScan().getRetentionTime();
+                    rightY2 = intensityPlus;
+                    rightX2 = rangeDataPoints[i + 1].getScan().getRetentionTime();
 
                     // We calculate the slope with formula m = Y1 - Y2 / X1 - X2
-                    double mRight = (rightY1 - rightY2) / (rightX1 - rightX2);
+                    mRight = (rightY1 - rightY2) / (rightX1 - rightX2);
 
                     // We calculate the desired point (at half intensity) with
                     // the
                     // linear equation
                     // X = X1 + [(Y - Y1) / m ], where Y = half of total
                     // intensity
-                    xRight = rightX1 + (((halfIntensity) - rightY1) / mRight);
+                    localXRight = rightX1 + (((halfIntensity) - rightY1) / mRight);
                     break;
                 }
             }
         }
 
-        if ((xRight <= -1) && (xLeft > 0)) {
+        if ((localXRight <= -1) && (localXLeft > 0)) {
             double beginning = rangeDataPoints[0].getScan().getRetentionTime();
             double ending = rangeDataPoints[rangeDataPoints.length - 1].getScan().getRetentionTime();
-            xRight = RT + (ending - beginning) / 4.71f;
+            localXRight = RT + (ending - beginning) / 4.71f;
+            //xRight = localXRight;
+            FWHM = (localXRight - localXLeft) / 2.354820045d;
+            return FWHM;
         }
 
-        if ((xRight > 0) && (xLeft <= -1)) {
+        if ((localXRight > 0) && (localXLeft <= -1)) {
             double beginning = rangeDataPoints[0].getScan().getRetentionTime();
             double ending = rangeDataPoints[rangeDataPoints.length - 1].getScan().getRetentionTime();
-            xLeft = RT - (ending - beginning) / 4.71f;
+            localXLeft = RT - (ending - beginning) / 4.71f;
+            //xLeft = localXLeft;
+            FWHM = (localXRight - localXLeft) / 2.354820045d;
+            return FWHM;
         }
 
-        boolean negative = (((xRight - xLeft)) < 0);
+        boolean negative = (((localXRight - localXLeft)) < 0);
 
-        if ((negative) || ((xRight == -1) && (xLeft == -1))) {
-            double beginning = rangeDataPoints[0].getScan().getRetentionTime();
+        if ((negative) || ((localXRight == -1) && (localXLeft == -1))) {
+            
+        	FWHM = (MZ / resolution);
+            FWHM /= 2.354820045d;
+            return FWHM;
+        	
+            /*double beginning = rangeDataPoints[0].getScan().getRetentionTime();
             double ending = rangeDataPoints[rangeDataPoints.length - 1].getScan().getRetentionTime();
             xRight = RT + (ending - beginning) / 9.42f;
             xLeft = RT - (ending - beginning) / 9.42f;
+            FWHM = (xRight - xLeft) / 2.355f;*/
         }
 
         // 
-        double FWHM = (xRight - xLeft) / 2.355f;
+        return FWHM = (localXRight - localXLeft) / 2.354820045d;
 
-        return FWHM;
     }
 
     /**

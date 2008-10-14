@@ -72,9 +72,17 @@ public class SavitzkyGolayPeakDetectorParameters extends SimpleParameterSet {
 			"and increasing this parameter in negative domain the width is bigger.",
 			"absolute", new Double(0.1), new Double(-0.9), new Double(0.9), null);
 
+	public static final Parameter resolution = new SimpleParameter(
+			ParameterType.INTEGER,
+			"Mass Resolution",
+			"Mass resolution is the dimensionless ratio of the mass of the peak divided by its width."
+					+ " Peak width is taken as the full width at half maximum intensity, (fwhm).",
+			null, new Integer(60000), new Integer(0), null, NumberFormat
+					.getIntegerInstance());
+	
 	public SavitzkyGolayPeakDetectorParameters() {
 		super(new Parameter[] { minimumPeakHeight, minimumPeakDuration, derivativeThresholdLevel,
-				fillingPeaks, peakModel, excessLevel });
+				fillingPeaks, peakModel, excessLevel, resolution });
 	}
 
 }

@@ -49,6 +49,7 @@ public class SavitzkyGolayPeakDetector implements PeakBuilder {
 
 	private double minimumPeakHeight, minimumPeakDuration, 
 			derivativeThresholdLevel, excessLevel;
+	private int resolution;
 	private boolean fillingPeaks;
 	private PeakFillingModel peakModel;
 
@@ -73,6 +74,8 @@ public class SavitzkyGolayPeakDetector implements PeakBuilder {
 				.getParameterValue(SavitzkyGolayPeakDetectorParameters.fillingPeaks);
 		excessLevel = (Double) parameters
 		.getParameterValue(SavitzkyGolayPeakDetectorParameters.excessLevel);
+		resolution = (Integer) parameters
+		.getParameterValue(SavitzkyGolayPeakDetectorParameters.resolution);
 
 		String peakModelname = (String) parameters
 				.getParameterValue(SavitzkyGolayPeakDetectorParameters.peakModel);
@@ -157,13 +160,18 @@ public class SavitzkyGolayPeakDetector implements PeakBuilder {
 
 					// Apply peak filling method
 					if (fillingPeaks) {
-						ChromatographicPeak shapeFilledPeak = peakModel.fillingPeak(p, new double[]{excessLevel});
+						ChromatographicPeak shapeFilledPeak = peakModel.fillingPeak(p, new double[]{excessLevel, resolution});
+						
+						if (shapeFilledPeak == null)
+							detectedPeaks.add(p);
+						
 						pLength = shapeFilledPeak.getRawDataPointsRTRange().getSize();
 						pHeight = shapeFilledPeak.getHeight();
+						
 						if ((pLength >= minimumPeakDuration)
 								&& (pHeight >= minimumPeakHeight)) {
-						restPeaktoChromatogram(shapeFilledPeak, chromatogram);
-						detectedPeaks.add(shapeFilledPeak);
+							restPeaktoChromatogram(shapeFilledPeak, chromatogram);
+							detectedPeaks.add(shapeFilledPeak);
 						}
 						else
 							detectedPeaks.add(p);

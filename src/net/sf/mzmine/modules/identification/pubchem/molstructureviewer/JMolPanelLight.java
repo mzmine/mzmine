@@ -1,4 +1,4 @@
-package net.sf.mzmine.util.molstructureviewer;
+package net.sf.mzmine.modules.identification.pubchem.molstructureviewer;
 
 import java.awt.Dimension;
 import java.awt.Graphics;

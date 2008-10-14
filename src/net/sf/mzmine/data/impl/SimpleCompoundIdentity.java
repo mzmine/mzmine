@@ -20,7 +20,6 @@
 package net.sf.mzmine.data.impl;
 
 import net.sf.mzmine.data.CompoundIdentity;
-import net.sf.mzmine.data.IsotopePattern;
 
 /**
  * Simple CompoundIdentity implementation;
@@ -29,8 +28,6 @@ public class SimpleCompoundIdentity implements CompoundIdentity, Comparable {
 
     private String compoundID, compoundName, alternateNames[], compoundFormula;
     private String databaseEntryURL, identificationMethod, scopeNote;
-    private String exactMass = "", isotopePatternScore = "";
-    private IsotopePattern isotopePattern;
 
     /**
      * @param compoundID
@@ -151,22 +148,7 @@ public class SimpleCompoundIdentity implements CompoundIdentity, Comparable {
     	return scopeNote;
     }
     
-    public void setExactMassDifference (String exactMass){
-    	this.exactMass = exactMass;
-    }
-    
-    public String getExactMassDifference(){
-    	return exactMass;
-    }
-    
-    public void setIsotopePatterScore(String score){
-    	this.isotopePatternScore = score;
-    }
-    
-    public String getIsotopePatternScore(){
-    	return isotopePatternScore;
-    }
-
+ 
     /**
      * @see java.lang.Object#toString()
      */
@@ -190,23 +172,6 @@ public class SimpleCompoundIdentity implements CompoundIdentity, Comparable {
         if (valueName == null) return 1;
         return valueName.compareTo(compoundName);
     }
-
-	/** 
-	 * @see net.sf.mzmine.data.CompoundIdentity#getIsotopePattern()
-	 */
-	public IsotopePattern getIsotopePattern() {
-		return isotopePattern;
-	}
-
-	
-	/**
-	 * Assign an isotope pattern to this compound identity.
-	 * 
-	 * @param isotopePattern
-	 */
-	public void setIsotopePattern(IsotopePattern isotopePattern) {
-		this.isotopePattern = isotopePattern;
-	}
 
 
 }

@@ -79,9 +79,7 @@ public class CompoundIdentityCellRenderer implements TableCellRenderer {
                 "<html>Identification method: " + identity.getIdentificationMethod() + "<br>" +
                 "Compound name: " + identity.getCompoundName() + "<br>" +
                 "Compound ID: " + identity.getCompoundID() + "<br>" +
-                "Compound formula: " + identity.getCompoundFormula() + "<br>" +
-                "Alternative names: " + (identity.getAlternateNames() == null ? "" : Arrays.toString(identity.getAlternateNames())) +
-                "</html>";
+                "Compound formula: " + identity.getCompoundFormula() + "<br></html>";
 
             newLabel.setToolTipText(toolTipText);
 

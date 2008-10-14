@@ -10,7 +10,7 @@ import net.sf.mzmine.data.CompoundIdentity;
 
 public class PubChemResultTableModel extends AbstractTableModel{
 
-	private TreeMap<Integer, CompoundIdentity> compounds = new TreeMap<Integer, CompoundIdentity>();
+	private TreeMap<Integer, PubChemCompound> compounds = new TreeMap<Integer, PubChemCompound>();
 	private int row = 0;
     private static String[] columnNames = {"CID",
         "Common Name",
@@ -36,7 +36,7 @@ public class PubChemResultTableModel extends AbstractTableModel{
     
     public Object getValueAt(int row, int col) {
     	Object value = null;
-    	CompoundIdentity comp = compounds.get(row);
+    	PubChemCompound comp = compounds.get(row);
     	switch(col){
     	case (0):
     		value = comp.getCompoundID();
@@ -63,7 +63,7 @@ public class PubChemResultTableModel extends AbstractTableModel{
     	return value;
     }
     
-    public CompoundIdentity getElementAt(int row){
+    public PubChemCompound getElementAt(int row){
     	return compounds.get(row);
     }
     
@@ -71,12 +71,12 @@ public class PubChemResultTableModel extends AbstractTableModel{
     	return false;
     }
     
-    public void addElement(CompoundIdentity compound){
+    public void addElement(PubChemCompound compound){
     	setValueAt(compound, row, 0);
     }
     
     public void setValueAt(Object value, int row, int col){
-    	compounds.put(row, (CompoundIdentity) value);
+    	compounds.put(row, (PubChemCompound) value);
     	fireTableRowsInserted(0,row);
     	this.row++;
     }
