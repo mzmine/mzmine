@@ -21,6 +21,7 @@ package net.sf.mzmine.modules.identification.pubchem.molstructureviewer;
 
 import java.awt.Component;
 import java.awt.Dimension;
+import java.awt.Font;
 import java.awt.event.ComponentAdapter;
 import java.awt.event.ComponentEvent;
 import java.text.NumberFormat;

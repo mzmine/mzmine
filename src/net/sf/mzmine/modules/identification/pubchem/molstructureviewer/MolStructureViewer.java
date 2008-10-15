@@ -207,8 +207,13 @@ public class MolStructureViewer extends JInternalFrame implements
 					.setShowExplicitHydrogens(true);
 			jcp.getJChemPaintModel().getRendererModel()
 					.setShowImplicitHydrogens(true);
+
+			double zoomFactor = jcp.getJChemPaintModel().getRendererModel().getZoomFactor();
+			
+			jcp.getJChemPaintModel().getRendererModel().setZoomFactor(zoomFactor / 1.5);
+			
 			jcp.getScrollPane().getViewport().setViewPosition(
-					new java.awt.Point(115, 320));
+					new java.awt.Point(0, 115));
 
 		}
 	}
