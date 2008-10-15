@@ -1,15 +1,36 @@
+/*
+ * Copyright 2006-2008 The MZmine Development Team
+ * 
+ * This file is part of MZmine.
+ * 
+ * MZmine is free software; you can redistribute it and/or modify it under the
+ * terms of the GNU General Public License as published by the Free Software
+ * Foundation; either version 2 of the License, or (at your option) any later
+ * version.
+ * 
+ * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY
+ * WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR
+ * A PARTICULAR PURPOSE. See the GNU General Public License for more details.
+ * 
+ * You should have received a copy of the GNU General Public License along with
+ * MZmine; if not, write to the Free Software Foundation, Inc., 51 Franklin St,
+ * Fifth Floor, Boston, MA 02110-1301 USA
+ */
+
 package net.sf.mzmine.modules.identification.pubchem.molstructureviewer;
 
 import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.event.ComponentAdapter;
 import java.awt.event.ComponentEvent;
+import java.text.NumberFormat;
 import java.util.Iterator;
 
 import javax.swing.JFrame;
 import javax.swing.JPanel;
-import javax.swing.ScrollPaneConstants;
 import javax.swing.event.ChangeEvent;
+
+import net.sf.mzmine.main.MZmineCore;
 
 import org.openscience.cdk.applications.jchempaint.JChemPaintEditorPanel;
 import org.openscience.cdk.applications.jchempaint.JChemPaintModel;
@@ -24,65 +45,119 @@ import org.openscience.cdk.tools.MFAnalyser;
 import org.openscience.cdk.tools.manipulator.ChemModelManipulator;
 
 public class JChemPanelLight extends JChemPaintEditorPanel {
-	
+
 	private JMolPanelLight jmolPanel;
 	private String compoundName;
-	
-	public static JPanel getEmptyPanelWithModel()
-	{
+	public static final NumberFormat massFormater = MZmineCore.getMZFormat();
+
+	/**
+	 * This method initialize a JChemPanelLight object and registers a new model
+	 * 
+	 * @return JPanel jmolViewer
+	 */
+	public static JPanel getEmptyPanelWithModel() {
+
 		JChemPaintModel model = new JChemPaintModel();
+		model.getControllerModel().setAutoUpdateImplicitHydrogens(true);
+		model.getRendererModel().setShowEndCarbons(true);
+		model.getControllerModel().setDrawMode(Controller2DModel.LASSO);
+		model.getControllerModel().setMovingAllowed(false);
 
 		JChemPanelLight jcpep = new JChemPanelLight();
 		jcpep.registerModel(model);
-		jcpep.setJChemPaintModel(model,null);
-		model.getControllerModel().setAutoUpdateImplicitHydrogens(true);
-		model.getRendererModel().setShowEndCarbons(true);
-		model.getControllerModel().setDrawMode(
-				Controller2DModel.LASSO);
-		model.getControllerModel().setMovingAllowed(false);
-		
-		//jcpep.getScrollPane().setHorizontalScrollBarPolicy(ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER);
-		//jcpep.getScrollPane().setVerticalScrollBarPolicy(ScrollPaneConstants.VERTICAL_SCROLLBAR_NEVER);
+		jcpep.setJChemPaintModel(model, null);
+		jcpep.setShowInsertTextField(false);
+		jcpep.setShowMenuBar(false);
+		jcpep.setShowToolBar(false);
+		jcpep.revalidate();
 
-		//JPanel jcpf = getNewPanel(model);
 		return jcpep;
 	}
-	
-	public static JPanel getNewPanel(JChemPaintModel model)
-	{
+
+	/**
+	 * This method returns a JPanel with a JChemPanelLight object. The
+	 * JChemPanelLight is initialized with the model passed as parameter
+	 * 
+	 * @param model
+	 * @return JPanel jmolViewer
+	 */
+	public static JPanel getNewPanel(JChemPaintModel model) {
 		JPanel panel = new JPanel();
 		JChemPanelLight jcpep = new JChemPanelLight();
 		panel.add(jcpep);
 		jcpep.registerModel(model);
-		jcpep.setJChemPaintModel(model,null);
-		//frame.setTitle(model.getTitle());
-		//This ensures that the drawingpanel is never smaller than the application
-		panel.addComponentListener(new ComponentAdapter(){
+		jcpep.setJChemPaintModel(model, null);
+
+		// This ensures that the drawing panel is never smaller than the
+		// application
+		panel.addComponentListener(new ComponentAdapter() {
 			public void componentResized(ComponentEvent e) {
-				if(((JChemPaintEditorPanel)((JFrame)e.getSource()).getContentPane().getComponent(0)).getJChemPaintModel().getRendererModel().getBackgroundDimension().width<((JFrame)e.getSource()).getWidth()-30)
-					((JChemPaintEditorPanel)((JFrame)e.getSource()).getContentPane().getComponent(0)).getJChemPaintModel().getRendererModel().setBackgroundDimension(new Dimension(((JFrame)e.getSource()).getWidth()-30,((JChemPaintEditorPanel)((JFrame)e.getSource()).getContentPane().getComponent(0)).getJChemPaintModel().getRendererModel().getBackgroundDimension().height));
-				if(((JChemPaintEditorPanel)((JFrame)e.getSource()).getContentPane().getComponent(0)).getJChemPaintModel().getRendererModel().getBackgroundDimension().height<((JFrame)e.getSource()).getHeight()-30)
-					((JChemPaintEditorPanel)((JFrame)e.getSource()).getContentPane().getComponent(0)).getJChemPaintModel().getRendererModel().setBackgroundDimension(new Dimension(((JChemPaintEditorPanel)((JFrame)e.getSource()).getContentPane().getComponent(0)).getJChemPaintModel().getRendererModel().getBackgroundDimension().width,((JFrame)e.getSource()).getHeight()-30));
+				if (((JChemPaintEditorPanel) ((JFrame) e.getSource())
+						.getContentPane().getComponent(0)).getJChemPaintModel()
+						.getRendererModel().getBackgroundDimension().width < ((JFrame) e
+						.getSource()).getWidth() - 30)
+					((JChemPaintEditorPanel) ((JFrame) e.getSource())
+							.getContentPane().getComponent(0))
+							.getJChemPaintModel()
+							.getRendererModel()
+							.setBackgroundDimension(
+									new Dimension(
+											((JFrame) e.getSource()).getWidth() - 30,
+											((JChemPaintEditorPanel) ((JFrame) e
+													.getSource())
+													.getContentPane()
+													.getComponent(0))
+													.getJChemPaintModel()
+													.getRendererModel()
+													.getBackgroundDimension().height));
+				if (((JChemPaintEditorPanel) ((JFrame) e.getSource())
+						.getContentPane().getComponent(0)).getJChemPaintModel()
+						.getRendererModel().getBackgroundDimension().height < ((JFrame) e
+						.getSource()).getHeight() - 30)
+					((JChemPaintEditorPanel) ((JFrame) e.getSource())
+							.getContentPane().getComponent(0))
+							.getJChemPaintModel()
+							.getRendererModel()
+							.setBackgroundDimension(
+									new Dimension(
+											((JChemPaintEditorPanel) ((JFrame) e
+													.getSource())
+													.getContentPane()
+													.getComponent(0))
+													.getJChemPaintModel()
+													.getRendererModel()
+													.getBackgroundDimension().width,
+											((JFrame) e.getSource())
+													.getHeight() - 30));
 			}
 		});
 		model.getControllerModel().setAutoUpdateImplicitHydrogens(true);
 		model.getRendererModel().setShowEndCarbons(true);
-		model.getControllerModel().setDrawMode(
-				Controller2DModel.LASSO);
+		model.getControllerModel().setDrawMode(Controller2DModel.LASSO);
 		model.getControllerModel().setMovingAllowed(false);
-		
-		jcpep.getScrollPane().setHorizontalScrollBarPolicy(ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER);
-		jcpep.getScrollPane().setVerticalScrollBarPolicy(ScrollPaneConstants.VERTICAL_SCROLLBAR_NEVER);
-
 
 		return panel;
-	}	
+	}
 
-    @Override public void stateChanged(ChangeEvent e)
-    {
+	/**
+	 * Override method to restrict functionality
+	 */
+	@Override
+	public void stateChanged(ChangeEvent e) {
 		updateStatusBar();
-    }
+	}
 
+	/**
+	 * Override method to restrict functionality
+	 */
+	@Override
+	public void setupPopupMenus(PopupController2D inputAdapter) {
+	}
+
+	/**
+	 * This method updates the text in the status bar.
+	 * 
+	 */
 	public void updateStatusBar() {
 		StatusBar statusbar = new StatusBar();
 		Component[] components = ((JPanel) this).getComponents();
@@ -98,11 +173,20 @@ public class JChemPanelLight extends JChemPaintEditorPanel {
 		}
 	}
 
+	/**
+	 * This method return a string with the information regarding the asked
+	 * position
+	 * 
+	 * @param position
+	 * @return String
+	 */
 	public String getStatus(int position) {
 		String status = "";
 		if (position == 0) {
 			status = "Unknown";
 		} else if (position == 1) {
+
+			// Get the formula and mass of complete molecule
 			IChemModel model = getJChemPaintModel().getChemModel();
 			IAtomContainer wholeModel = model.getBuilder().newAtomContainer();
 			Iterator containers = ChemModelManipulator.getAllAtomContainers(
@@ -123,11 +207,20 @@ public class JChemPanelLight extends JChemPaintEditorPanel {
 				mass += (double) atom.getExactMass();
 			}
 
-			status = "<html>" + formula + "  Mass: " + mass + "</html>";
+			status = "<html>" + formula + "  Mass: "
+					+ massFormater.format(mass) + "</html>";
+
 		} else if (position == 2) {
+
+			// Get the formula and mass of selected portion in the molecule
 			Renderer2DModel rendererModel = getJChemPaintModel()
 					.getRendererModel();
+
 			if (rendererModel.getSelectedPart() != null) {
+
+				// Clean previous selection
+				jmolPanel.getViewer().evalString("select all; color cpk");
+
 				IAtomContainer selectedPart = rendererModel.getSelectedPart();
 				String formula = new MFAnalyser(selectedPart, true)
 						.getHTMLMolecularFormulaWithCharge();
@@ -136,37 +229,53 @@ public class JChemPanelLight extends JChemPaintEditorPanel {
 				String eval = "";
 				for (int f = 0; f < selectedPart.getAtomCount(); f++) {
 					atom = selectedPart.getAtom(f);
-					eval += "select  atomX=" + atom.getPoint2d().x;
-                    eval += "; color atom yellow;";
+					eval += "select  (atomX=" + atom.getPoint2d().x;
+					eval += " and  atomY=" + atom.getPoint2d().y;
+					eval += "); color atom yellow;";
 					mass += (double) atom.getExactMass();
 				}
-				status = "<html>" + formula + "  Mass: " + mass + "</html>";
-				if (jmolPanel != null){
+
+				status = "<html>" + formula + "  Mass: "
+						+ massFormater.format(mass) + "</html>";
+
+				// Change the color of selected atoms to yellow in jmolViewer
+				if (jmolPanel != null) {
 					if (selectedPart.getAtomCount() > 0)
 						jmolPanel.getViewer().evalString(eval);
 					else
-						jmolPanel.getViewer().evalString("select all; color cpk");
+						jmolPanel.getViewer().evalString(
+								"select all; color cpk");
 				}
-				
+
 			}
+
 			else {
+				// In case of no selected atom exists, the jmolViewer display
+				// atoms in original colors
 				if (jmolPanel != null)
-				jmolPanel.getViewer().evalString("select all; color cpk");
+					jmolPanel.getViewer().evalString("select all; color cpk");
 			}
 		}
 		return status;
 	}
-	
-	public void setJmolPanel(JMolPanelLight jmolPanel){
+
+	/**
+	 * Establish the relationship between this JChemPanel and JmolViewer to
+	 * provide visualization effects (atom selection)
+	 * 
+	 * @param jmolPanel
+	 */
+	public void setJmolPanel(JMolPanelLight jmolPanel) {
 		this.jmolPanel = jmolPanel;
 	}
-	
-	public void setCompoundName(String compoundName){
+
+	/**
+	 * Set the name of the visualized compound
+	 * 
+	 * @param compoundName
+	 */
+	public void setCompoundName(String compoundName) {
 		this.compoundName = compoundName;
-	}
-	
-	@Override 	public void setupPopupMenus(PopupController2D inputAdapter)
-	{
 	}
 
 }

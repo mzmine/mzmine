@@ -24,6 +24,7 @@ import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.text.NumberFormat;
 import java.util.logging.Logger;
 
 import javax.swing.BorderFactory;
@@ -34,6 +35,7 @@ import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTable;
+import javax.swing.ListSelectionModel;
 
 import net.sf.mzmine.data.ChromatographicPeak;
 import net.sf.mzmine.data.IsotopePattern;
@@ -50,15 +52,16 @@ import edu.stanford.ejalbert.exception.UnsupportedOperatingSystemException;
 
 public class PubChemSearchWindow extends JInternalFrame implements
 		ActionListener {
-	
+
 	private Logger logger = Logger.getLogger(this.getClass().getName());
 
 	private PubChemResultTableModel listElementModel;
-	private JButton btnAdd, btnAddAll, btnViewer, btnIsotopeViewer,
-			btnPubChemLink;
+	private JButton btnAdd, btnViewer, btnIsotopeViewer, btnPubChemLink;
 	private PeakListRow peakListRow;
 	private JTable IDList;
 	private ChromatographicPeak peak;
+	private String description;
+	public static final NumberFormat massFormater = MZmineCore.getMZFormat();
 
 	public PubChemSearchWindow(PeakListRow peakListRow, ChromatographicPeak peak) {
 
@@ -66,6 +69,8 @@ public class PubChemSearchWindow extends JInternalFrame implements
 
 		this.peakListRow = peakListRow;
 		this.peak = peak;
+		
+		description = "PubChem search results " + massFormater.format(peak.getMZ());
 
 		setDefaultCloseOperation(DISPOSE_ON_CLOSE);
 		setBackground(Color.white);
@@ -79,6 +84,8 @@ public class PubChemSearchWindow extends JInternalFrame implements
 		listElementModel = new PubChemResultTableModel();
 		IDList = new JTable();
 		IDList.setModel(listElementModel);
+		IDList.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+
 		JScrollPane listScroller = new JScrollPane(IDList);
 		listScroller.setPreferredSize(new Dimension(350, 100));
 		listScroller.setAlignmentX(LEFT_ALIGNMENT);
@@ -92,9 +99,6 @@ public class PubChemSearchWindow extends JInternalFrame implements
 		btnAdd = new JButton("Add identity");
 		btnAdd.addActionListener(this);
 		btnAdd.setActionCommand("ADD");
-		btnAddAll = new JButton("Add all");
-		btnAddAll.addActionListener(this);
-		btnAddAll.setActionCommand("ADD_ALL");
 		btnViewer = new JButton("View structure");
 		btnViewer.addActionListener(this);
 		btnViewer.setActionCommand("VIEWER");
@@ -107,7 +111,6 @@ public class PubChemSearchWindow extends JInternalFrame implements
 
 		pnlButtons.setBorder(BorderFactory.createEmptyBorder(5, 5, 5, 5));
 		pnlButtons.add(btnAdd);
-		pnlButtons.add(btnAddAll);
 		pnlButtons.add(btnViewer);
 		pnlButtons.add(btnIsotopeViewer);
 		pnlButtons.add(btnPubChemLink);
@@ -116,6 +119,7 @@ public class PubChemSearchWindow extends JInternalFrame implements
 		setSize(500, 200);
 		add(pnlLabelsAndList, BorderLayout.CENTER);
 		add(pnlButtons, BorderLayout.SOUTH);
+		setTitle(description);
 		pack();
 
 	}
@@ -125,32 +129,21 @@ public class PubChemSearchWindow extends JInternalFrame implements
 		String command = e.getActionCommand();
 
 		if (command.equals("ADD")) {
-			int[] indices = IDList.getSelectedRows();
-			for (int ind : indices) {
-				peakListRow.addCompoundIdentity(listElementModel
-						.getElementAt(ind));
-			}
-			dispose();
-		}
-
-		if (command.equals("ADD_ALL")) {
-			int length = listElementModel.getRowCount();
-			for (int i = 0; i < length; i++) {
-				peakListRow.addCompoundIdentity(listElementModel
-						.getElementAt(i));
-			}
+			int index = IDList.getSelectedRow();
+			peakListRow.addCompoundIdentity(listElementModel
+					.getElementAt(index));
 			dispose();
 		}
 
 		if (command.equals("VIEWER")) {
-			int[] indices = IDList.getSelectedRows();
+
+			int index = IDList.getSelectedRow();
 			MolStructureViewer viewer;
-			for (int ind : indices) {
-				viewer = new MolStructureViewer(listElementModel
-						.getElementAt(ind));
-				Desktop desktop = MZmineCore.getDesktop();
-				desktop.addInternalFrame(viewer);
-			}
+			viewer = new MolStructureViewer(listElementModel
+					.getElementAt(index));
+			Desktop desktop = MZmineCore.getDesktop();
+			desktop.addInternalFrame(viewer);
+
 		}
 
 		if (command.equals("ISOTOPE_VIEWER")) {
@@ -163,58 +156,61 @@ public class PubChemSearchWindow extends JInternalFrame implements
 				return;
 			}
 
-			int[] indices = IDList.getSelectedRows();
+			int index = IDList.getSelectedRow();
 
 			SpectraVisualizer specVis = SpectraVisualizer.getInstance();
 			SpectraVisualizerWindow spectraWindow;
 			IsotopePattern isotopePattern;
 			PeakListDataSet peakDataSet;
 
-			for (int ind : indices) {
-
-				if (listElementModel.getValueAt(ind, 4).equals(""))
-					continue;
-
-				isotopePattern = listElementModel.getElementAt(ind)
-						.getIsotopePattern();
-
-				if (isotopePattern == null)
-					continue;
-
-				peakDataSet = new PeakListDataSet(isotopePattern);
-
-				if (peakDataSet == null)
-					continue;
-
-				spectraWindow = specVis.showNewSpectrumWindow(peak
-						.getDataFile(), (IsotopePattern) peak);
-				spectraWindow.getSpectrumPlot().addPeaksDataSet(
-						new PeakListDataSet((IsotopePattern) peak));
-				spectraWindow.getSpectrumPlot().addPeaksDataSet(peakDataSet);
-
+			if (listElementModel.getValueAt(index, 4) == null) {
+				MZmineCore
+						.getDesktop()
+						.displayMessage(
+								"The selected result compound does not have a predicted isotope pattern." +
+								" Please repite the search with \"Isotope Pattern filter\" checked");
+				return;
 			}
+
+			isotopePattern = listElementModel.getElementAt(index)
+					.getIsotopePattern();
+
+			if (isotopePattern == null)
+				return;
+
+			peakDataSet = new PeakListDataSet(isotopePattern);
+
+			if (peakDataSet == null)
+				return;
+
+			spectraWindow = specVis.showNewSpectrumWindow(peak.getDataFile(),
+					(IsotopePattern) peak);
+			spectraWindow.getSpectrumPlot().addPeaksDataSet(
+					new PeakListDataSet((IsotopePattern) peak));
+			spectraWindow.getSpectrumPlot().addPeaksDataSet(peakDataSet);
+
 		}
 
 		if (command.equals("PUBCHEM_LINK")) {
-			int[] indices = IDList.getSelectedRows();
-			logger.finest("Launching default browser to display PubChem compound");
+			int index = IDList.getSelectedRow();
+			logger
+					.finest("Launching default browser to display PubChem compound");
 			try {
 				BrowserLauncher launcher = new BrowserLauncher();
 				launcher.setNewWindowPolicy(false);
 
-				for (int ind : indices) {
-					// launcher = new BrowserLauncher();
-					String urlString = listElementModel.getElementAt(ind)
-							.getDatabaseEntryURL();
-					launcher.openURLinBrowser("DEFAULT", urlString);
-				}
+				String urlString = listElementModel.getElementAt(index)
+						.getDatabaseEntryURL();
+				launcher.openURLinBrowser("DEFAULT", urlString);
 
 			} catch (BrowserLaunchingInitializingException e1) {
 				e1.printStackTrace();
-				logger.severe(" Error trying to launch default browser " + e1.getMessage());
+				logger.severe(" Error trying to launch default browser "
+						+ e1.getMessage());
 			} catch (UnsupportedOperatingSystemException e1) {
 				e1.printStackTrace();
-				logger.severe(" Error trying to launch default browser " + e1.getMessage());
+				logger.severe(" Error trying to launch default browser "
+						+ e1.getMessage());
 			}
 
 		}
@@ -222,7 +218,15 @@ public class PubChemSearchWindow extends JInternalFrame implements
 	}
 
 	public void addNewListItem(PubChemCompound compound) {
+		int index = IDList.getSelectedRow();
 		listElementModel.addElement(compound);
+		if (index > -1)
+			IDList.setRowSelectionInterval(index, index);
 	}
+	
+	public String toString() {
+		return description;
+	}
+
 
 }

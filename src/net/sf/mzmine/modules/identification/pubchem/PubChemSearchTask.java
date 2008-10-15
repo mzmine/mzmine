@@ -29,6 +29,7 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.Reader;
 import java.net.URL;
+import java.text.NumberFormat;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -45,6 +46,7 @@ import net.sf.mzmine.taskcontrol.Task;
 public class PubChemSearchTask implements Task {
 
 	private Logger logger = Logger.getLogger(this.getClass().getName());
+	public static final NumberFormat massFormater = MZmineCore.getMZFormat();
 
 	private static EUtilsServiceSoap eutils_soap;
 	private TaskStatus status;
@@ -63,6 +65,13 @@ public class PubChemSearchTask implements Task {
 	private FormulaAnalyzer analyzer = new FormulaAnalyzer();
 	private ChromatographicPeak peak;
 
+	/**
+	 * 
+	 * @param parameters
+	 * @param peakList
+	 * @param peakListRow
+	 * @param peak
+	 */
 	PubChemSearchTask(PubChemSearchParameters parameters, PeakList peakList,
 			PeakListRow peakListRow, ChromatographicPeak peak) {
 
@@ -135,8 +144,8 @@ public class PubChemSearchTask implements Task {
 	 * @see net.sf.mzmine.taskcontrol.Task#getTaskDescription()
 	 */
 	public String getTaskDescription() {
-		return "Peak identification of " + valueOfQuery
-				+ " using PubChem databases ";
+		return "Peak identification of " + massFormater.format(valueOfQuery)
+				+ " using PubChem databases";
 	}
 
 	/**
@@ -152,6 +161,7 @@ public class PubChemSearchTask implements Task {
 			EUtilsServiceLocator eutils_locator = new EUtilsServiceLocator();
 			eutils_soap = eutils_locator.geteUtilsServiceSoap();
 
+			// Set conditions of search
 			ESearchRequest reqSearch = new ESearchRequest();
 			reqSearch.setDb("pccompound");
 			reqSearch.setRetMax(String.valueOf(numOfResults * 5));
@@ -168,18 +178,19 @@ public class PubChemSearchTask implements Task {
 			else
 				complementQuery = "";
 
+			// This task is performed for one single peak or a peak list?
 			if (singleRow) {
-				
+
 				Desktop desktop = MZmineCore.getDesktop();
 				desktop.addInternalFrame(window);
 
 				reqSearch.setTerm(String.valueOf(valueOfQuery - range) + ":"
 						+ String.valueOf(valueOfQuery + range)
 						+ "[MonoisotopicMass]" + complementQuery);
-				
+
 				resSearch = eutils_soap.run_eSearch(reqSearch);
 
-				// results output
+				// Get the number of results
 				numIDs = resSearch.getIdList().length;
 				numItems = numOfResults;
 
@@ -187,6 +198,7 @@ public class PubChemSearchTask implements Task {
 				boolean goodCandidate = false;
 				IsotopePattern ip2;
 
+				// Process each one of the result ID's.
 				while (i < numIDs) {
 
 					if (status != TaskStatus.PROCESSING) {
@@ -196,10 +208,11 @@ public class PubChemSearchTask implements Task {
 					pubChemID = resSearch.getIdList()[i];
 					compound = new PubChemCompound(pubChemID, null, null, null,
 							null, "PubChem", null);
-					
-					getSummary(compound, valueOfQuery );
+
+					getSummary(compound, valueOfQuery);
 					getName(pubChemID, compound);
 
+					// Generate IsotopePattern to compare and set score
 					if (isotopeFilter) {
 
 						ip2 = analyzer.getIsotopePattern(compound
@@ -237,8 +250,7 @@ public class PubChemSearchTask implements Task {
 					if (finishedLines >= numOfResults)
 						break;
 				}
-			} 
-			else {
+			} else {
 
 				PeakListRow[] peakListRows = peakList.getRows();
 				numItems = peakListRows.length;
@@ -254,7 +266,7 @@ public class PubChemSearchTask implements Task {
 							+ complementQuery);
 					resSearch = eutils_soap.run_eSearch(reqSearch);
 
-					// results output
+					// Number of results
 					numIDs = resSearch.getIdList().length;
 
 					for (int i = 0; i < numIDs; i++) {
@@ -283,6 +295,13 @@ public class PubChemSearchTask implements Task {
 
 	}
 
+	/**
+	 * This method retrieve the SDF file of the compound from PubChem
+	 * 
+	 * @param compound
+	 * @param mass
+	 * @throws Exception
+	 */
 	private static void getSummary(PubChemCompound compound, double mass)
 			throws Exception {
 
@@ -334,16 +353,24 @@ public class PubChemSearchTask implements Task {
 
 	}
 
+	/**
+	 * This method exists due a lack of information in SDF file (missing name)
+	 * from PubChem
+	 * 
+	 * @param id
+	 * @param compound
+	 */
 	private static void getName(String id, PubChemCompound compound) {
 		try {
 
 			URL endpoint = new URL(
 					"http://eutils.ncbi.nlm.nih.gov/entrez/eutils/efetch.fcgi?db=pccompound&id="
 							+ id + "&report=brief&mode=text");
-			
+
 			InputStream is = endpoint.openStream();
 			if (is == null) {
-				throw new Exception("Got a null PubChem input stream connection");
+				throw new Exception(
+						"Got a null PubChem input stream connection");
 			}
 			StringBuffer putBackTogether = new StringBuffer();
 			Reader reader = new InputStreamReader(is, "UTF-8");

@@ -2,16 +2,13 @@ package net.sf.mzmine.modules.identification.pubchem;
 
 import java.text.DecimalFormat;
 import java.text.NumberFormat;
-import java.util.TreeMap;
+import java.util.Vector;
 
 import javax.swing.table.AbstractTableModel;
 
-import net.sf.mzmine.data.CompoundIdentity;
-
 public class PubChemResultTableModel extends AbstractTableModel{
 
-	private TreeMap<Integer, PubChemCompound> compounds = new TreeMap<Integer, PubChemCompound>();
-	private int row = 0;
+	private Vector<PubChemCompound> compounds = new Vector<PubChemCompound>();
     private static String[] columnNames = {"CID",
         "Common Name",
         "Formula",
@@ -27,7 +24,7 @@ public class PubChemResultTableModel extends AbstractTableModel{
     }
     
     public int getRowCount() { 
-    	return row;
+    	return compounds.size();
     }
     
     public int getColumnCount() { 
@@ -72,13 +69,11 @@ public class PubChemResultTableModel extends AbstractTableModel{
     }
     
     public void addElement(PubChemCompound compound){
-    	setValueAt(compound, row, 0);
+    	compounds.add(compound);
+    	fireTableRowsInserted(0,compounds.size()-1);
     }
     
     public void setValueAt(Object value, int row, int col){
-    	compounds.put(row, (PubChemCompound) value);
-    	fireTableRowsInserted(0,row);
-    	this.row++;
     }
 
 

@@ -1,3 +1,22 @@
+/*
+ * Copyright 2006-2008 The MZmine Development Team
+ * 
+ * This file is part of MZmine.
+ * 
+ * MZmine is free software; you can redistribute it and/or modify it under the
+ * terms of the GNU General Public License as published by the Free Software
+ * Foundation; either version 2 of the License, or (at your option) any later
+ * version.
+ * 
+ * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY
+ * WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR
+ * A PARTICULAR PURPOSE. See the GNU General Public License for more details.
+ * 
+ * You should have received a copy of the GNU General Public License along with
+ * MZmine; if not, write to the Free Software Foundation, Inc., 51 Franklin St,
+ * Fifth Floor, Boston, MA 02110-1301 USA
+ */
+
 package net.sf.mzmine.modules.identification.pubchem.molstructureviewer;
 
 import java.awt.Dimension;
@@ -11,12 +30,15 @@ import org.jmol.api.JmolAdapter;
 import org.jmol.api.JmolViewer;
 
 public class JMolPanelLight extends JPanel {
-	/**
-     * 
-     */
-	JmolViewer viewer;
+	
+	private JmolViewer viewer;
 	JmolAdapter adapter;
+	final Dimension currentSize = new Dimension();
+	final Rectangle rectClip = new Rectangle();
 
+	/**
+	 * 
+	 */
 	public JMolPanelLight() {
 		adapter = new SmarterJmolAdapter();
 		viewer = JmolViewer.allocateViewer(this, adapter);
@@ -24,17 +46,27 @@ public class JMolPanelLight extends JPanel {
 		viewer.setShowHydrogens(false);
 	}
 
+	/**
+	 * Returns the Jmol.viewer object
+	 * 
+	 * @return
+	 */
 	public JmolViewer getViewer() {
 		return viewer;
 	}
-
+	
+	/**
+	 * This method help to execute a string as a script command for Jmol
+	 * 
+	 * @param rasmolScript
+	 */
 	public void executeCmd(String rasmolScript) {
 		viewer.evalString(rasmolScript);
 	}
 
-	final Dimension currentSize = new Dimension();
-	final Rectangle rectClip = new Rectangle();
-
+	/**
+	 * 
+	 */
 	public void paint(Graphics g) {
 		getSize(currentSize);
 		g.getClipBounds(rectClip);
