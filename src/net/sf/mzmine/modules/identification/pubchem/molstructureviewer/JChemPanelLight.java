@@ -21,7 +21,6 @@ package net.sf.mzmine.modules.identification.pubchem.molstructureviewer;
 
 import java.awt.Component;
 import java.awt.Dimension;
-import java.awt.Font;
 import java.awt.event.ComponentAdapter;
 import java.awt.event.ComponentEvent;
 import java.text.NumberFormat;
@@ -59,10 +58,12 @@ public class JChemPanelLight extends JChemPaintEditorPanel {
 	public static JPanel getEmptyPanelWithModel() {
 
 		JChemPaintModel model = new JChemPaintModel();
+		
 		model.getControllerModel().setAutoUpdateImplicitHydrogens(true);
-		model.getRendererModel().setShowEndCarbons(true);
 		model.getControllerModel().setDrawMode(Controller2DModel.LASSO);
 		model.getControllerModel().setMovingAllowed(false);
+		
+		model.getRendererModel().setShowEndCarbons(true);
 
 		JChemPanelLight jcpep = new JChemPanelLight();
 		jcpep.registerModel(model);

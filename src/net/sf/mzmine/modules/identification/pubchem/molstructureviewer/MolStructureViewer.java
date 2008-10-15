@@ -52,6 +52,7 @@ import org.openscience.cdk.interfaces.IChemObject;
 import org.openscience.cdk.interfaces.IMolecule;
 import org.openscience.cdk.io.IChemObjectReader;
 import org.openscience.cdk.io.MDLV2000Reader;
+import org.openscience.cdk.renderer.Renderer2DModel;
 import org.openscience.cdk.tools.HydrogenAdder;
 
 public class MolStructureViewer extends JInternalFrame implements
@@ -180,6 +181,7 @@ public class MolStructureViewer extends JInternalFrame implements
 		ChemModel chemModel = (ChemModel) cor
 				.read((IChemObject) new ChemModel());
 		if (chemModel != null) {
+
 			jcp.processChemModel(chemModel);
 			if (jcp.getJChemPaintModel().getControllerModel()
 					.getAutoUpdateImplicitHydrogens()) {
@@ -199,18 +201,19 @@ public class MolStructureViewer extends JInternalFrame implements
 			// frame
 			jcp.lastUsedJCPP.getJChemPaintModel().setTitle(
 					"CID_" + compound.getCompoundID() + ".sdf");
-			jcp.getJChemPaintModel().getControllerModel().setDrawMode(
-					Controller2DModel.LASSO);
-			jcp.getJChemPaintModel().getControllerModel().setMovingAllowed(
-					false);
-			jcp.getJChemPaintModel().getRendererModel()
-					.setShowExplicitHydrogens(true);
-			jcp.getJChemPaintModel().getRendererModel()
-					.setShowImplicitHydrogens(true);
 
-			double zoomFactor = jcp.getJChemPaintModel().getRendererModel().getZoomFactor();
+			Controller2DModel controller = jcp.getJChemPaintModel().getControllerModel();
 			
-			jcp.getJChemPaintModel().getRendererModel().setZoomFactor(zoomFactor / 1.5);
+			controller.setDrawMode(Controller2DModel.LASSO);
+			controller.setMovingAllowed(false);
+			
+			Renderer2DModel renderer = jcp.getJChemPaintModel().getRendererModel();
+			
+			double zoomFactor = renderer.getZoomFactor();
+
+			renderer.setShowExplicitHydrogens(true);
+			renderer.setShowImplicitHydrogens(true);
+			renderer.setZoomFactor(zoomFactor / 1.5);
 			
 			jcp.getScrollPane().getViewport().setViewPosition(
 					new java.awt.Point(0, 115));
