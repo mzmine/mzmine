@@ -29,7 +29,7 @@ public class PubChemCompound implements CompoundIdentity, Comparable {
         this.compoundFormula = compoundFormula;
         if (databaseEntryURL == null){
         	this.databaseEntryURL = "http://pubchem.ncbi.nlm.nih.gov/summary/summary.cgi?cid=" +
-        	compoundID + "&loc=ec_rcs";
+        	compoundID;
         }
         else{
             this.databaseEntryURL = databaseEntryURL;
