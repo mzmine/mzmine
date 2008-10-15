@@ -214,9 +214,8 @@ public class PubChemCompound implements CompoundIdentity, Comparable {
      */
     public String toString() {
     	String ret;
-    	ret = "<html><div style=\"text-align:left;align:center;width:400px\">";
-		ret += "Compound: <br>" + compoundName + "<br>";
-		ret += "Formula: " + compoundFormula + "</div></html>";
+		ret = compoundName + " (" + compoundFormula + 
+			") CID" + compoundID + " identification method: " + identificationMethod;
         return ret;
     }
 
