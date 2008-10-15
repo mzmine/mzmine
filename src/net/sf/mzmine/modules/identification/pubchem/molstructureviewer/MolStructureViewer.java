@@ -181,7 +181,6 @@ public class MolStructureViewer extends JInternalFrame implements
 		ChemModel chemModel = (ChemModel) cor
 				.read((IChemObject) new ChemModel());
 		if (chemModel != null) {
-
 			jcp.processChemModel(chemModel);
 			if (jcp.getJChemPaintModel().getControllerModel()
 					.getAutoUpdateImplicitHydrogens()) {
@@ -213,7 +212,7 @@ public class MolStructureViewer extends JInternalFrame implements
 
 			renderer.setShowExplicitHydrogens(true);
 			renderer.setShowImplicitHydrogens(true);
-			renderer.setZoomFactor(zoomFactor / 1.5);
+			renderer.setZoomFactor(0.9);
 			
 			jcp.getScrollPane().getViewport().setViewPosition(
 					new java.awt.Point(0, 115));

@@ -164,7 +164,7 @@ public class PubChemSearchTask implements Task {
 			// Set conditions of search
 			ESearchRequest reqSearch = new ESearchRequest();
 			reqSearch.setDb("pccompound");
-			reqSearch.setRetMax(String.valueOf(numOfResults * 5));
+			reqSearch.setRetMax(String.valueOf(numOfResults));
 			reqSearch.setSort("CID(up)");
 
 			ESearchResult resSearch;
@@ -192,10 +192,9 @@ public class PubChemSearchTask implements Task {
 
 				// Get the number of results
 				numIDs = resSearch.getIdList().length;
-				numItems = numOfResults;
+				numItems = numIDs;
 
 				int i = 0;
-				boolean goodCandidate = false;
 				IsotopePattern ip2;
 
 				// Process each one of the result ID's.
@@ -226,26 +225,21 @@ public class PubChemSearchTask implements Task {
 						compound.setIsotopePattern(ip2);
 
 						if (score >= isotopeScoreThreshold) {
-							goodCandidate = true;
+							// Add compound to the list of possible candidate and
+							// display it in window of results.
+							window.addNewListItem(compound);
 						}
 
 					} else {
-						goodCandidate = true;
+						// Add compound to the list of possible candidate and
+						// display it in window of results.
+						window.addNewListItem(compound);
 					}
 
 					ip2 = null;
 
-					// Add compound to the list of possible candidate and
-					// display it in window of results.
-					if (goodCandidate) {
-
-						window.addNewListItem(compound);
-						finishedLines++;
-
-					}
-
 					i++;
-					goodCandidate = false;
+					finishedLines++;
 
 					if (finishedLines >= numOfResults)
 						break;
