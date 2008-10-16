@@ -10,6 +10,7 @@ public class PubChemCompound implements CompoundIdentity, Comparable {
     private String exactMass = "", isotopePatternScore = "";
     private IsotopePattern isotopePattern;
     private String structure;
+    private static final String pubchemAddress = "http://pubchem.ncbi.nlm.nih.gov/summary/summary.cgi?cid=";
 
     /**
      * @param compoundID
@@ -23,13 +24,20 @@ public class PubChemCompound implements CompoundIdentity, Comparable {
     public PubChemCompound(String compoundID, String compoundName,
             String[] alternateNames, String compoundFormula,
             String databaseEntryURL, String identificationMethod, String scopeNote) {
-        this.compoundID = compoundID;
         this.compoundName = compoundName;
-        this.alternateNames = alternateNames;
         this.compoundFormula = compoundFormula;
+        
+        if (compoundName == null){
+            this.compoundName = compoundFormula;
+        }
+        else if (compoundName.equals("")){
+            this.compoundName = compoundFormula;
+        }
+        
+        this.compoundID = compoundID;
+        this.alternateNames = alternateNames;
         if (databaseEntryURL == null){
-        	this.databaseEntryURL = "http://pubchem.ncbi.nlm.nih.gov/summary/summary.cgi?cid=" +
-        	compoundID;
+        	this.databaseEntryURL =  pubchemAddress + compoundID;
         }
         else{
             this.databaseEntryURL = databaseEntryURL;

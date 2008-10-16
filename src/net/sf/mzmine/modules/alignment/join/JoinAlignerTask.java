@@ -238,7 +238,7 @@ class JoinAlignerTask implements Task {
 						errorMessage = score.getErrorMessage();
 						
 					} catch (Exception e) {
-						//e.printStackTrace();
+						e.printStackTrace();
 						status = TaskStatus.ERROR;
 						return;
 					}

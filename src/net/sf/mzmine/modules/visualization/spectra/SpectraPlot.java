@@ -126,7 +126,7 @@ public class SpectraPlot extends ChartPanel {
 
 		setBackground(Color.white);
 		setCursor(Cursor.getPredefinedCursor(Cursor.CROSSHAIR_CURSOR));
-		peakRendererMap = new HashMap<Integer, XYBarRenderer>();
+		//peakRendererMap = new HashMap<Integer, XYBarRenderer>();
 		isotopeFlag = type == SpectraVisualizerType.ISOTOPE;
 		thickness = SpectraVisualizerParameters.barThickness;
 
@@ -531,7 +531,7 @@ public class SpectraPlot extends ChartPanel {
 
 			plot.setRenderer(numOfPeakDataSets, newRenderer);
 			plot.setDataset(numOfPeakDataSets, peakDataSet);
-			peakRendererMap.put(numOfPeakDataSets, newRenderer);
+			//peakRendererMap.put(numOfPeakDataSets, newRenderer);
 			numOfPeakDataSets++;
 
 		} 
@@ -604,9 +604,14 @@ public class SpectraPlot extends ChartPanel {
 	}
 
 	public void updatePeakDataSetIncrease() {
+		
 		int dataSetCount = plot.getDatasetCount();
 		PeakListDataSet dataSet;
 		SpectraDataSet spectra = (SpectraDataSet) plot.getDataset(0);
+		
+		if (spectra == null)
+			return;
+		
 		double increase, mass;
 
 		for (int i = 1; i < dataSetCount; i++) {

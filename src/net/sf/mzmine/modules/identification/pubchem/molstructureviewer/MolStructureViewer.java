@@ -63,6 +63,7 @@ public class MolStructureViewer extends JInternalFrame implements
 	private JChemPanelLight jcp;
 	private String description, structure3D;
 	private PubChemCompound compound;
+	private JButton button3d;
 	private static int openDialogCount = 0;
 	private static final int xOffset = 30, yOffset = 30;
 	private static final Font buttonFont = new Font("SansSerif", Font.BOLD, 11);
@@ -99,11 +100,11 @@ public class MolStructureViewer extends JInternalFrame implements
 
 		// Add button for 3D visualization
 		JPanel jmolAndButton = new JPanel(new BorderLayout());
-		JButton button = new JButton(chembiogrid);
-		button.addActionListener(this);
-		button.setFont(buttonFont);
+		button3d = new JButton(chembiogrid);
+		button3d.addActionListener(this);
+		button3d.setFont(buttonFont);
 		jmolAndButton.add(jmolPanel, BorderLayout.CENTER);
-		jmolAndButton.add(button, BorderLayout.SOUTH);
+		jmolAndButton.add(button3d, BorderLayout.SOUTH);
 
 		JPanel container = (JPanel) jcp.getScrollPane().getParent();
 		container.add(jmolAndButton, BorderLayout.WEST);
@@ -137,7 +138,9 @@ public class MolStructureViewer extends JInternalFrame implements
 
 		} catch (Exception e) {
 			e.printStackTrace();
-			logger.severe("Error trying to load chemical structure for visualization " + e.getMessage());
+			logger
+					.severe("Error trying to load chemical structure for visualization "
+							+ e.getMessage());
 		}
 
 		setPreferredSize(new Dimension(1000, 600));
@@ -162,7 +165,8 @@ public class MolStructureViewer extends JInternalFrame implements
 			// );
 		} catch (Exception e) {
 			e.printStackTrace();
-			logger.severe("Error trying to load chemical structure in Jmol " + e.getMessage());
+			logger.severe("Error trying to load chemical structure in Jmol "
+					+ e.getMessage());
 		}
 
 	}
@@ -201,21 +205,21 @@ public class MolStructureViewer extends JInternalFrame implements
 			jcp.lastUsedJCPP.getJChemPaintModel().setTitle(
 					"CID_" + compound.getCompoundID() + ".sdf");
 
-			Controller2DModel controller = jcp.getJChemPaintModel().getControllerModel();
-			
+			Controller2DModel controller = jcp.getJChemPaintModel()
+					.getControllerModel();
+
 			controller.setDrawMode(Controller2DModel.LASSO);
 			controller.setMovingAllowed(false);
-			
-			Renderer2DModel renderer = jcp.getJChemPaintModel().getRendererModel();
-			
-			double zoomFactor = renderer.getZoomFactor();
+
+			Renderer2DModel renderer = jcp.getJChemPaintModel()
+					.getRendererModel();
 
 			renderer.setShowExplicitHydrogens(true);
 			renderer.setShowImplicitHydrogens(true);
 			renderer.setZoomFactor(0.9);
-			
+
 			jcp.getScrollPane().getViewport().setViewPosition(
-					new java.awt.Point(0, 115));
+					new java.awt.Point(80, 250));
 
 		}
 	}
@@ -225,27 +229,43 @@ public class MolStructureViewer extends JInternalFrame implements
 	 */
 	public void actionPerformed(ActionEvent e) {
 		Object source = e.getSource();
+
 		if (source instanceof JButton) {
-			JButton b = (JButton) source;
-			if (b.getText().equals(chembiogrid)) {
+
+			if (button3d.getText().equals(chembiogrid)) {
 
 				// Request 3D structure
 				if (structure3D == null) {
-					try {
-						structure3D = get3DStructure(compound.getCompoundID());
-					} catch (Exception e1) {
-						e1.printStackTrace();
-						MZmineCore.getDesktop().displayMessage(
-								"The Pub3D does not contain this structure.");
-						return;
-					}
-				}
 
-				setJmolViewerStructure(structure3D);
-				b.setText(pubchem);
+					final org.wonderly.swing.SwingWorker worker = new org.wonderly.swing.SwingWorker() {
+						@Override
+						public Object construct() {
+							try {
+								structure3D = get3DStructure(compound
+										.getCompoundID());
+							} catch (Exception e) {
+								MZmineCore
+										.getDesktop()
+										.displayMessage(
+												"The Pub3D does not contain this structure.");
+								return e;
+							}
+							setJmolViewerStructure(structure3D);
+							button3d.setText(pubchem);
+							return null;
+						}
+					};
+					worker.start();
+
+				} else {
+
+					setJmolViewerStructure(structure3D);
+					button3d.setText(pubchem);
+
+				}
 			} else {
 				setJmolViewerStructure(compound.getStructure());
-				b.setText(chembiogrid);
+				button3d.setText(chembiogrid);
 			}
 		}
 
@@ -265,19 +285,21 @@ public class MolStructureViewer extends JInternalFrame implements
 		InputStream in = url.openStream();
 
 		if (in == null) {
-			throw new Exception("Got a null content PubChem connection!");
+			throw new Exception("Got a null content Pub3d connection!");
 		}
 
 		BufferedReader is = new BufferedReader(new InputStreamReader(in,
 				"UTF-8"));
-		String responseLine, structure = "";
+		String responseLine;
+		StringBuffer buffer = new StringBuffer();
 
 		while ((responseLine = is.readLine()) != null) {
-			structure += responseLine + "\n";
+			buffer.append(responseLine);
+			buffer.append("\n");
 		}
 
 		is.close();
-		return structure;
+		return buffer.toString();
 
 	}
 

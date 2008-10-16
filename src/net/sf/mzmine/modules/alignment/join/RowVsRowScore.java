@@ -66,10 +66,6 @@ class RowVsRowScore implements Comparable<RowVsRowScore> {
 			}
 			
 			ChromatographicPeak[] p2 = alignedRow.getPeaks();
-			if (p2.length > 1){
-				errorMessage = "One of the peak list contains more than one column";
-				throw new Exception();
-			}
 
 			if ((p1[0] instanceof IsotopePattern) && (p2[0] instanceof IsotopePattern)){
 				sameIsotopePatternScore = IsotopePatternScoreCalculator.getScore((IsotopePattern)p1[0], (IsotopePattern)p2[0]);
