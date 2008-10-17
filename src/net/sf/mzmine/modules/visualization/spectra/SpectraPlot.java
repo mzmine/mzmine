@@ -30,6 +30,7 @@ import java.awt.geom.Ellipse2D;
 import java.text.NumberFormat;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.logging.Logger;
 
 import javax.swing.JInternalFrame;
 import javax.swing.JPopupMenu;
@@ -65,6 +66,8 @@ import org.jfree.ui.RectangleInsets;
  * 
  */
 public class SpectraPlot extends ChartPanel {
+	
+	private Logger logger = Logger.getLogger(this.getClass().getName());
 
 	private JFreeChart chart;
 	private XYPlot plot;
@@ -126,7 +129,7 @@ public class SpectraPlot extends ChartPanel {
 
 		setBackground(Color.white);
 		setCursor(Cursor.getPredefinedCursor(Cursor.CROSSHAIR_CURSOR));
-		//peakRendererMap = new HashMap<Integer, XYBarRenderer>();
+		peakRendererMap = new HashMap<Integer, XYBarRenderer>();
 		isotopeFlag = type == SpectraVisualizerType.ISOTOPE;
 		thickness = SpectraVisualizerParameters.barThickness;
 
@@ -495,11 +498,16 @@ public class SpectraPlot extends ChartPanel {
 
 		plot.setDataset(0, scanData);
 		plot.setRenderer(0, renderer);
+		
+		logger.finest("Adiciona spectraDataSet");
 
 	}
 
 	public void addPeaksDataSet(PeakListDataSet peakDataSet) {
 
+		if (peakDataSet == null)
+			return;
+		
 		Color rendererColor;
 		peakDataSet.setThickness(thickness);
 		XYBarRenderer newRenderer;
@@ -523,15 +531,21 @@ public class SpectraPlot extends ChartPanel {
 						.getDataset(1);
 				if (firstPeakDataSet.isIsotopeDataSet() && (!firstPeakDataSet.isPredicted()) ) {
 					double score = IsotopePatternScoreCalculator.getScore(
-							firstPeakDataSet.getIsotopePatter(), peakDataSet
-									.getIsotopePatter());
+							firstPeakDataSet.getIsotopePattern(), peakDataSet
+									.getIsotopePattern());
 					peakDataSet.setScore(score);
 				}
+			}
+			
+			if (peakDataSet.isAutoIncrease()) {
+				SpectraDataSet spectra = (SpectraDataSet) plot.getDataset(0);
+				double increase = spectra.getBiggestIntensity(peakDataSet.getIsotopePattern().getDataPoints());
+				peakDataSet.setIncreaseIntensity(increase);
 			}
 
 			plot.setRenderer(numOfPeakDataSets, newRenderer);
 			plot.setDataset(numOfPeakDataSets, peakDataSet);
-			//peakRendererMap.put(numOfPeakDataSets, newRenderer);
+			peakRendererMap.put(numOfPeakDataSets, newRenderer);
 			numOfPeakDataSets++;
 
 		} 
@@ -548,14 +562,13 @@ public class SpectraPlot extends ChartPanel {
 				plot.setRenderer(1, newRenderer);
 				plot.setDataset(1, peakDataSet);
 				peakRendererMap.put(1, newRenderer);
-				peakRendererMap.put(1, newRenderer);
 				numOfPeakDataSets++;
 			
 			}
 			else{
 				plot.setDataset(1, peakDataSet);
 			}
-				
+			
 		}
 
 		updatePeakDataSetIncrease();
@@ -603,25 +616,24 @@ public class SpectraPlot extends ChartPanel {
 		return thickness;
 	}
 
-	public void updatePeakDataSetIncrease() {
+	private void updatePeakDataSetIncrease() {
 		
 		int dataSetCount = plot.getDatasetCount();
 		PeakListDataSet dataSet;
 		SpectraDataSet spectra = (SpectraDataSet) plot.getDataset(0);
 		
-		if (spectra == null)
-			return;
+		assert spectra != null;
 		
-		double increase, mass;
+		double increase;
 
 		for (int i = 1; i < dataSetCount; i++) {
 			dataSet = (PeakListDataSet) plot.getDataset(i);
-			if (dataSet != null)
+			if (dataSet != null){
 				if (dataSet.isPredicted() && dataSet.isAutoIncrease()) {
-					mass = dataSet.getIsotopeMass();
-					increase = spectra.getBiggestIntensity(mass);
+					increase = spectra.getBiggestIntensity(dataSet.getIsotopePattern().getDataPoints());
 					dataSet.setIncreaseIntensity(increase);
 				}
+			}
 		}
 
 	}

@@ -19,6 +19,7 @@
 
 package net.sf.mzmine.modules.visualization.spectra;
 
+import java.util.TreeMap;
 import java.util.TreeSet;
 
 import net.sf.mzmine.data.DataPoint;
@@ -33,7 +34,8 @@ import org.jfree.data.xy.IntervalXYDataset;
 /**
  * Spectra visualizer data set for scan data points
  */
-public class SpectraDataSet extends AbstractXYDataset implements IntervalXYDataset {
+public class SpectraDataSet extends AbstractXYDataset implements
+		IntervalXYDataset {
 
 	private boolean predicted = false;
 	private double increase = (double) Math.pow(10, 4);
@@ -42,134 +44,150 @@ public class SpectraDataSet extends AbstractXYDataset implements IntervalXYDatas
 	// Half of one Hydrogen mass
 	private static double TOLERANCE = 0.5039125d;
 
-	
 	/*
-     * Save a local copy of m/z and intensity values, because accessing the scan
-     * every time may cause reloading the data from HDD
-     */
-    private DataPoint dataPoints[];
-    private String label;
+	 * Save a local copy of m/z and intensity values, because accessing the scan
+	 * every time may cause reloading the data from HDD
+	 */
+	private DataPoint dataPoints[];
+	private String label;
 
-    public SpectraDataSet(MzDataTable mzDataTable) {
+	public SpectraDataSet(MzDataTable mzDataTable) {
 
-    	double intensity;
-    	dataPoints = mzDataTable.getDataPoints();
-        
-    	for (DataPoint dp: dataPoints){
-    		intensity = dp.getIntensity();
-    		if ( intensity > biggestIntensity) {
-    			biggestIntensity = intensity;
-    		}
-    	}
+		double intensity;
+		dataPoints = mzDataTable.getDataPoints();
 
-    	boolean isotopeFlag = mzDataTable instanceof IsotopePattern;
-    	if (isotopeFlag){
-    		predicted = ((IsotopePattern)mzDataTable).getIsotopePatternStatus() == IsotopePatternStatus.PREDICTED;
-    		if (predicted){
-        		double probablyIncrease = ((IsotopePattern)mzDataTable).getIsotopeHeight();
-        		if (probablyIncrease > 0)
-        			increase = probablyIncrease;
-                label = "Isotopes (" + dataPoints.length 
-        		+ ") "+ ((IsotopePattern)mzDataTable).getIsotopeInfo();
-                
-            }
-    		else {
-        		label = "Raw data";
-    		}
-    	}
-    	else{
-    		label = "Scan #" + ((Scan) mzDataTable).getScanNumber();
-    	}
-    }
+		for (DataPoint dp : dataPoints) {
+			intensity = dp.getIntensity();
+			if (intensity > biggestIntensity) {
+				biggestIntensity = intensity;
+			}
+		}
 
-    @Override public int getSeriesCount() {
-        return 1;
-    }
+		boolean isotopeFlag = mzDataTable instanceof IsotopePattern;
+		if (isotopeFlag) {
+			predicted = ((IsotopePattern) mzDataTable)
+					.getIsotopePatternStatus() == IsotopePatternStatus.PREDICTED;
+			if (predicted) {
+				double probablyIncrease = ((IsotopePattern) mzDataTable)
+						.getIsotopeHeight();
+				if (probablyIncrease > 0)
+					increase = probablyIncrease;
+				label = "Isotopes (" + dataPoints.length + ") "
+						+ ((IsotopePattern) mzDataTable).getIsotopeInfo();
 
-    @Override public Comparable getSeriesKey(int series) {
-   		return label;
-    }
+			} else {
+				label = "Raw data";
+			}
+		} else {
+			label = "Scan #" + ((Scan) mzDataTable).getScanNumber();
+		}
+	}
 
-    public int getItemCount(int series) {
-        return dataPoints.length;
-    }
+	@Override
+	public int getSeriesCount() {
+		return 1;
+	}
 
-    public Number getX(int series, int item) {
-        return dataPoints[item].getMZ();
-    }
+	@Override
+	public Comparable getSeriesKey(int series) {
+		return label;
+	}
 
-    public Number getY(int series, int item) {
-    	if (predicted)
-    		return dataPoints[item].getIntensity() * increase;
-    	else
-            return dataPoints[item].getIntensity();
+	public int getItemCount(int series) {
+		return dataPoints.length;
+	}
 
-    }
+	public Number getX(int series, int item) {
+		return dataPoints[item].getMZ();
+	}
 
-    public Number getEndX(int series, int item) {
-        return getX(series, item);
-    }
+	public Number getY(int series, int item) {
+		if (predicted)
+			return dataPoints[item].getIntensity() * increase;
+		else
+			return dataPoints[item].getIntensity();
 
-    public double getEndXValue(int series, int item) {
-        return getXValue(series, item);
-    }
+	}
 
-    public Number getEndY(int series, int item) {
-        return getY(series, item);
-    }
+	public Number getEndX(int series, int item) {
+		return getX(series, item);
+	}
 
-    public double getEndYValue(int series, int item) {
-        return getYValue(series, item);
-    }
+	public double getEndXValue(int series, int item) {
+		return getXValue(series, item);
+	}
 
-    public Number getStartX(int series, int item) {
-        return getX(series, item);
-    }
+	public Number getEndY(int series, int item) {
+		return getY(series, item);
+	}
 
-    public double getStartXValue(int series, int item) {
-        return getXValue(series, item);
-    }
+	public double getEndYValue(int series, int item) {
+		return getYValue(series, item);
+	}
 
-    public Number getStartY(int series, int item) {
-        return getY(series, item);
-    }
+	public Number getStartX(int series, int item) {
+		return getX(series, item);
+	}
 
-    public double getStartYValue(int series, int item) {
-        return getYValue(series, item);
-    }
-    
-    public double getBiggestIntensity(){
-    	if (predicted)
-    		return biggestIntensity * increase;
-    	else
-            return biggestIntensity;
-    }
-    
-    public double getIncrease(){
-    	return increase;
-    }
-    
-    public boolean isPredicted(){
-    	return predicted;
-    }
-    
-    public double getBiggestIntensity(double mass){
-    	
-    	TreeSet<Double> intensities = new TreeSet<Double>();
-    	double value;
-    	int itemCount = getItemCount(0);
-    	
-    	for (int i=0; i<itemCount; i++){
-    		value = Math.abs(mass - getX(0,i).doubleValue());
-    		if (value <= TOLERANCE){
-    			intensities.add(getY(0,i).doubleValue());
-    		}
-    	}
-    	
-    	if (intensities.size() == 0)
-    		return Math.pow(10, 6);
-    	
-    	return intensities.last();
-    }
+	public double getStartXValue(int series, int item) {
+		return getXValue(series, item);
+	}
+
+	public Number getStartY(int series, int item) {
+		return getY(series, item);
+	}
+
+	public double getStartYValue(int series, int item) {
+		return getYValue(series, item);
+	}
+
+	public double getBiggestIntensity() {
+		if (predicted)
+			return biggestIntensity * increase;
+		else
+			return biggestIntensity;
+	}
+
+	public double getIncrease() {
+		return increase;
+	}
+
+	public boolean isPredicted() {
+		return predicted;
+	}
+
+	public double getBiggestIntensity(DataPoint[] dataPoints) {// double mass){
+
+		TreeSet<Double> intensities = new TreeSet<Double>();
+		TreeMap<Double, Integer> iso = new TreeMap<Double, Integer>();
+		double value, mass;
+		int itemCount = getItemCount(0);
+
+		for (int j = 0; j < dataPoints.length; j++) {
+			
+			mass = dataPoints[j].getMZ();
+			
+			for (int i = 0; i < itemCount; i++) {
+				value = Math.abs(mass - getX(0, i).doubleValue());
+				if (value <= TOLERANCE) {
+					intensities.add(getY(0, i).doubleValue());
+				}
+			}
+
+			if (intensities.size() == 0)
+				intensities.add(Math.pow(10, 6));
+
+			iso.put(intensities.last(), j);
+			intensities.clear();
+
+		}
+		
+		double height = iso.lastKey();
+		int index = iso.get(height);
+		
+		height /= dataPoints[index].getIntensity();
+
+		return height;
+	}
 
 }

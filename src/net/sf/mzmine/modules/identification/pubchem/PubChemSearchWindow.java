@@ -44,7 +44,9 @@ import net.sf.mzmine.desktop.Desktop;
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.modules.identification.pubchem.molstructureviewer.MolStructureViewer;
 import net.sf.mzmine.modules.visualization.spectra.PeakListDataSet;
+import net.sf.mzmine.modules.visualization.spectra.SpectraPlot;
 import net.sf.mzmine.modules.visualization.spectra.SpectraVisualizer;
+import net.sf.mzmine.modules.visualization.spectra.SpectraVisualizerType;
 import net.sf.mzmine.modules.visualization.spectra.SpectraVisualizerWindow;
 import edu.stanford.ejalbert.BrowserLauncher;
 import edu.stanford.ejalbert.exception.BrowserLaunchingInitializingException;
@@ -69,8 +71,9 @@ public class PubChemSearchWindow extends JInternalFrame implements
 
 		this.peakListRow = peakListRow;
 		this.peak = peak;
-		
-		description = "PubChem search results " + massFormater.format(peak.getMZ());
+
+		description = "PubChem search results "
+				+ massFormater.format(peak.getMZ());
 
 		setDefaultCloseOperation(DISPOSE_ON_CLOSE);
 		setBackground(Color.white);
@@ -158,36 +161,43 @@ public class PubChemSearchWindow extends JInternalFrame implements
 
 			int index = IDList.getSelectedRow();
 
-			SpectraVisualizer specVis = SpectraVisualizer.getInstance();
-			SpectraVisualizerWindow spectraWindow;
-			IsotopePattern isotopePattern;
-			PeakListDataSet peakDataSet;
-
 			if (listElementModel.getValueAt(index, 4) == null) {
 				MZmineCore
 						.getDesktop()
 						.displayMessage(
-								"The selected result compound does not have a predicted isotope pattern." +
-								" Please repite the search with \"Isotope Pattern filter\" checked");
+								"The selected result compound does not have a predicted isotope pattern."
+										+ " Please repite the search with \"Isotope Pattern filter\" checked");
 				return;
 			}
 
-			isotopePattern = listElementModel.getElementAt(index)
-					.getIsotopePattern();
+			final IsotopePattern isotopePattern = listElementModel
+					.getElementAt(index).getIsotopePattern();
 
 			if (isotopePattern == null)
 				return;
 
-			peakDataSet = new PeakListDataSet(isotopePattern);
+			PeakListDataSet peakDataSet = new PeakListDataSet(isotopePattern);
 
 			if (peakDataSet == null)
 				return;
 
-			spectraWindow = specVis.showNewSpectrumWindow(peak.getDataFile(),
-					(IsotopePattern) peak);
-			spectraWindow.getSpectrumPlot().addPeaksDataSet(
-					new PeakListDataSet((IsotopePattern) peak));
-			spectraWindow.getSpectrumPlot().addPeaksDataSet(peakDataSet);
+			final SpectraVisualizerWindow spectraWindow = new SpectraVisualizerWindow(
+					peak.getDataFile(), null, SpectraVisualizerType.ISOTOPE);
+	        
+			MZmineCore.getDesktop().addInternalFrame(spectraWindow);
+
+			Runnable newThreadRunnable = new Runnable() {
+
+				public void run() {			
+					spectraWindow.loadRawData((IsotopePattern) peak);
+					spectraWindow.loadIsotopePattern((IsotopePattern) peak);
+					spectraWindow.loadIsotopePattern(isotopePattern);
+				}
+
+			};
+
+			Thread newThread = new Thread(newThreadRunnable);
+			newThread.start();
 
 		}
 
@@ -223,10 +233,9 @@ public class PubChemSearchWindow extends JInternalFrame implements
 		if (index > -1)
 			IDList.setRowSelectionInterval(index, index);
 	}
-	
+
 	public String toString() {
 		return description;
 	}
-
 
 }

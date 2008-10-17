@@ -718,7 +718,7 @@ public class FormulaAnalyzer {
 		}
 
 		for (DataPoint dp : dataPoints) {
-			if (dp.getIntensity() >= (minAbundance / 100))
+			if (dp.getIntensity() >= (minAbundance ))
 				sortedDataPoints.add(dp);
 		}
 

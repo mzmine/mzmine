@@ -38,7 +38,7 @@ import org.jfree.data.xy.IntervalXYDataset;
  */
 public class PeakListDataSet extends AbstractXYDataset implements IntervalXYDataset {
 
-    private PeakList peakList;
+	private PeakList peakList;
 
     private ChromatographicPeak displayedPeaks[];
     private IsotopePattern isotopePattern;
@@ -102,6 +102,7 @@ public class PeakListDataSet extends AbstractXYDataset implements IntervalXYData
         increase = isotopePattern.getIsotopeHeight();
         if (increase <= 0)
         	autoIncrease = true;
+        
         formula = isotopePattern.getFormula();
         isotopeMass = isotopePattern.getMZ();
 
@@ -119,7 +120,7 @@ public class PeakListDataSet extends AbstractXYDataset implements IntervalXYData
     	return isotopeFlag;
     }
     
-    public IsotopePattern getIsotopePatter(){
+    public IsotopePattern getIsotopePattern(){
     	return isotopePattern;
     }
 

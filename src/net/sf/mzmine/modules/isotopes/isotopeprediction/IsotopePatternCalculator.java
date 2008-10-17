@@ -157,12 +157,11 @@ public class IsotopePatternCalculator implements MZmineModule, TaskListener,
 				if (predictedPeakDataSet.isAutoIncrease()) {
 					if (rawSpectraDataSet != null) {
 						increase = rawSpectraDataSet
-								.getBiggestIntensity(ip.getMZ());
+								.getBiggestIntensity(ip.getDataPoints());
 					} else {
 						increase = Math.pow(10, 6);
 					}
 				}
-				//logger.finest("Value of increase " + increase + " mass " + ip.getIsotopeMass());
 				predictedPeakDataSet.setIncreaseIntensity(increase);
 				plot.addPeaksDataSet(predictedPeakDataSet);
 			}
