@@ -38,9 +38,9 @@ public class IsotopePatternScoreCalculator {
 	 * isotopes and mass.
 	 * 
 	 * @param ip1
-	 *            Isotope pattern reference
+	 *            Isotope pattern reference (predicted)
 	 * @param ip2
-	 *            Isotope pattern to be compared
+	 *            Isotope pattern to be compared (detected)
 	 * @return score a calculated double value
 	 */
 	public static double getScore(IsotopePattern ip1, IsotopePattern ip2) {
@@ -65,20 +65,20 @@ public class IsotopePatternScoreCalculator {
 
 		for (int i = 0; i < length; i++) {
 
-			factor = 1.0d;// Math.pow(2.0d, i);
+			factor = dp1[i].getIntensity();//1.0d;// Math.pow(2.0d, i);
 			totalFactor += factor;
-
-			// Search for the closest isotope in the second pattern to the
-			// current isotope (first pattern)
+			
+			// Search for the closest isotope in the second pattern (detected) to the
+			// current isotope (predicted pattern)
 			closestDp = getClosestDataPoint(dp1[i], dp2);
 			
 			if (closestDp == null)
 				continue;
-			
+
 			// Remove from the second pattern the used isotope to set the score.
 			dp2 = removeDataPoint(closestDp, dp2);
 
-			// Caluclate the score using the next formula.
+			// Calculate the score using the next formula.
 			//
 			// Score = { [ 1 - (IsotopeMass1[i] - IsotopeMass2[j]) + (1 -
 			// (IsotopeIntensity1[i] / IsotopeIntensity2[j])) ] * factor[i] } /

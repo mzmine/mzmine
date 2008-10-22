@@ -83,6 +83,9 @@ class PeakListReportGenerator {
          ReportGenerator gener = ReportGenerator.getInstance();
         
         URL def = getClass().getResource("print-report-definition.xml");
+        
+        if (def == null)
+        	throw new IOException("Could not load \"print-report-definition.xml\"");
 
         JFreeReport report = gener.parseReport(def);
         

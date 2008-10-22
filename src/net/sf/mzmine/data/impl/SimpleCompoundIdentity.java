@@ -45,6 +45,14 @@ public class SimpleCompoundIdentity implements CompoundIdentity, Comparable {
         this.compoundName = compoundName;
         this.alternateNames = alternateNames;
         this.compoundFormula = compoundFormula;
+        
+        if (compoundName == null){
+            this.compoundName = compoundFormula;
+        }
+        else if (compoundName.equals("")){
+            this.compoundName = compoundFormula;
+        }
+        
         this.databaseEntryURL = databaseEntryURL;
         this.identificationMethod = identificationMethod;
         this.scopeNote = scopeNote;

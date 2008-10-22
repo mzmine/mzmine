@@ -68,7 +68,7 @@ class RowVsRowScore implements Comparable<RowVsRowScore> {
 			ChromatographicPeak[] p2 = alignedRow.getPeaks();
 
 			if ((p1[0] instanceof IsotopePattern) && (p2[0] instanceof IsotopePattern)){
-				sameIsotopePatternScore = IsotopePatternScoreCalculator.getScore((IsotopePattern)p1[0], (IsotopePattern)p2[0]);
+				sameIsotopePatternScore = IsotopePatternScoreCalculator.getScore((IsotopePattern)p2[0], (IsotopePattern)p1[0]);
 			}
 			
 			if (sameIsotopePatternScore < isotopePatternScoreThresold){

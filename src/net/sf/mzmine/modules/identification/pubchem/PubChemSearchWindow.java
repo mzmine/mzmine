@@ -133,6 +133,16 @@ public class PubChemSearchWindow extends JInternalFrame implements
 
 		if (command.equals("ADD")) {
 			int index = IDList.getSelectedRow();
+			
+			if (index < 0){
+				MZmineCore
+				.getDesktop()
+				.displayMessage(
+						"Select one PubChem result candidate as compound identity");
+				return;
+				
+			}
+
 			peakListRow.addCompoundIdentity(listElementModel
 					.getElementAt(index));
 			dispose();
@@ -141,6 +151,16 @@ public class PubChemSearchWindow extends JInternalFrame implements
 		if (command.equals("VIEWER")) {
 
 			int index = IDList.getSelectedRow();
+
+			if (index < 0){
+				MZmineCore
+				.getDesktop()
+				.displayMessage(
+						"Select one PubChem result candidate to display molecule structure");
+				return;
+				
+			}
+
 			MolStructureViewer viewer;
 			viewer = new MolStructureViewer(listElementModel
 					.getElementAt(index));
@@ -160,6 +180,14 @@ public class PubChemSearchWindow extends JInternalFrame implements
 			}
 
 			int index = IDList.getSelectedRow();
+			
+			if (index < 0){
+				MZmineCore
+				.getDesktop()
+				.displayMessage(
+						"Select one PubChem result candidate to display the isotope pattern");
+				return;
+			}
 
 			if (listElementModel.getValueAt(index, 4) == null) {
 				MZmineCore
@@ -203,6 +231,16 @@ public class PubChemSearchWindow extends JInternalFrame implements
 
 		if (command.equals("PUBCHEM_LINK")) {
 			int index = IDList.getSelectedRow();
+			
+			if (index < 0){
+				MZmineCore
+				.getDesktop()
+				.displayMessage(
+						"Select one PubChem result candidate to display in the deafult web browser");
+				return;
+				
+			}
+
 			logger
 					.finest("Launching default browser to display PubChem compound");
 			try {

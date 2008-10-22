@@ -293,6 +293,9 @@ public class SpectraVisualizerWindow extends JInternalFrame implements
 	public void loadPeaks() {
 
 		PeakListDataSet peaksDataSet = null;
+		
+		if (bottomPanel == null)
+			return;
 
 		PeakList selectedPeakList = bottomPanel.getSelectedPeakList();
 

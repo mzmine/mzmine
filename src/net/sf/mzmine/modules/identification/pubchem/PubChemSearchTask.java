@@ -219,7 +219,7 @@ public class PubChemSearchTask implements Task {
 								.isPositiveCharge(), 0, true, true, ionName);
 
 						double score = IsotopePatternScoreCalculator.getScore(
-								((IsotopePattern) peak), ip2);
+								 ip2, ((IsotopePattern) peak));
 
 						compound.setIsotopePatterScore(String.valueOf(score));
 						compound.setIsotopePattern(ip2);

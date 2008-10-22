@@ -23,6 +23,7 @@ import java.awt.Component;
 import java.awt.Point;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.text.NumberFormat;
 import java.util.Arrays;
 import java.util.logging.Logger;
 
@@ -62,265 +63,287 @@ import com.sun.java.TableSorter;
  * 
  */
 public class PeakListTablePopupMenu extends JPopupMenu implements
-        ActionListener {
+		ActionListener {
 
-    private Logger logger = Logger.getLogger(this.getClass().getName());
+	private Logger logger = Logger.getLogger(this.getClass().getName());
 
-    private PeakListTable table;
-    private PeakList peakList;
-    private PeakListTableColumnModel columnModel;
+	private PeakListTable table;
+	private PeakList peakList;
+	private PeakListTableColumnModel columnModel;
 
-    private JMenuItem deleteRowsItem, addNewRowItem, plotRowsItem, showXICItem,
-            manuallyDefineItem, showFragmentation, showIsotopePattern, pubChemSearch;
+	private JMenuItem deleteRowsItem, addNewRowItem, plotRowsItem, showXICItem,
+			manuallyDefineItem, showFragmentation, showIsotopePattern,
+			pubChemSearch;
 
-    private RawDataFile clickedDataFile;
-    private PeakListRow clickedPeakListRow;
+	private RawDataFile clickedDataFile;
+	private PeakListRow clickedPeakListRow;
 
-    public PeakListTablePopupMenu(PeakListTableWindow window,
-            PeakListTable table, PeakListTableColumnModel columnModel,
-            PeakList peakList) {
+	public static final NumberFormat massFormater = MZmineCore.getMZFormat();
 
-        this.table = table;
-        this.peakList = peakList;
-        this.columnModel = columnModel;
+	public PeakListTablePopupMenu(PeakListTableWindow window,
+			PeakListTable table, PeakListTableColumnModel columnModel,
+			PeakList peakList) {
 
-        GUIUtils.addMenuItem(this, "Set properties", window, "PROPERTIES");
+		this.table = table;
+		this.peakList = peakList;
+		this.columnModel = columnModel;
 
-        deleteRowsItem = GUIUtils.addMenuItem(this, "Delete selected rows",
-                this);
+		GUIUtils.addMenuItem(this, "Set properties", window, "PROPERTIES");
 
-        addNewRowItem = GUIUtils.addMenuItem(this, "Add new row", this);
+		deleteRowsItem = GUIUtils.addMenuItem(this, "Delete selected rows",
+				this);
 
-        plotRowsItem = GUIUtils.addMenuItem(this,
-                "Plot selected rows using Intensity Plot module", this);
+		addNewRowItem = GUIUtils.addMenuItem(this, "Add new row", this);
 
-        showXICItem = GUIUtils.addMenuItem(this, "Show XIC of this peak", this);
+		plotRowsItem = GUIUtils.addMenuItem(this,
+				"Plot selected rows using Intensity Plot module", this);
 
-        manuallyDefineItem = GUIUtils.addMenuItem(this, "Manually define peak",
-                this);
-        
-        showFragmentation = GUIUtils.addMenuItem(this, "Show spectra fragmentation",
-                this);
-        
-        showIsotopePattern = GUIUtils.addMenuItem(this, "Show Isotope pattern",
-                this);
-        
-        pubChemSearch = GUIUtils.addMenuItem(this, "Search identity in PubChem",
-                this);
+		showXICItem = GUIUtils.addMenuItem(this, "Show XIC of this peak", this);
 
-    }
+		manuallyDefineItem = GUIUtils.addMenuItem(this, "Manually define peak",
+				this);
 
-    public void show(Component invoker, int x, int y) {
+		showFragmentation = GUIUtils.addMenuItem(this,
+				"Show spectra fragmentation", this);
 
-        int selectedRows[] = table.getSelectedRows();
-        boolean display;
+		showIsotopePattern = GUIUtils.addMenuItem(this, "Show Isotope pattern",
+				this);
 
-        deleteRowsItem.setEnabled(selectedRows.length > 0);
-        plotRowsItem.setEnabled(selectedRows.length > 0);
+		pubChemSearch = GUIUtils.addMenuItem(this,
+				"Search identity in PubChem", this);
 
-        Point clickedPoint = new Point(x, y);
-        int clickedRow = table.rowAtPoint(clickedPoint);
-        int clickedColumn = columnModel.getColumn(
-                table.columnAtPoint(clickedPoint)).getModelIndex();
-        if ((clickedRow >= 0) && (clickedColumn >= 0)) {
-        	
-        	display = clickedColumn >= CommonColumnType.values().length;
-        	
-            showXICItem.setEnabled((clickedColumn == CommonColumnType.PEAKSHAPE.ordinal())
-                    || (display));
-            manuallyDefineItem.setEnabled(display);
-            pubChemSearch.setEnabled(display);
-            showFragmentation.setEnabled(display);
-            
-            if (display) {
-                int dataFileIndex = (clickedColumn - CommonColumnType.values().length)
-                        / DataFileColumnType.values().length;
-                clickedDataFile = peakList.getRawDataFile(dataFileIndex);
-            } else
-                clickedDataFile = null;
-            TableSorter sorter = (TableSorter) table.getModel();
-            clickedPeakListRow = peakList.getRow(sorter.modelIndex(clickedRow));
-            
-            if (clickedDataFile != null)
-            	showIsotopePattern.setEnabled(clickedPeakListRow.getPeak(clickedDataFile) instanceof IsotopePattern);
-            else
-            	showIsotopePattern.setEnabled(false);
-            
-        }
+	}
 
-        super.show(invoker, x, y);
-    }
+	public void show(Component invoker, int x, int y) {
 
-    /**
-     * @see java.awt.event.ActionListener#actionPerformed(java.awt.event.ActionEvent)
-     */
-    public void actionPerformed(ActionEvent event) {
+		int selectedRows[] = table.getSelectedRows();
+		boolean display;
 
-        Object src = event.getSource();
+		deleteRowsItem.setEnabled(selectedRows.length > 0);
+		plotRowsItem.setEnabled(selectedRows.length > 0);
 
-        if (src == deleteRowsItem) {
+		Point clickedPoint = new Point(x, y);
+		int clickedRow = table.rowAtPoint(clickedPoint);
+		int clickedColumn = columnModel.getColumn(
+				table.columnAtPoint(clickedPoint)).getModelIndex();
+		if ((clickedRow >= 0) && (clickedColumn >= 0)) {
 
-            int rowsToDelete[] = table.getSelectedRows();
-            // sort row indices
-            Arrays.sort(rowsToDelete);
-            TableSorter sorterModel = (TableSorter) table.getModel();
-            PeakListTableModel originalModel = (PeakListTableModel) sorterModel.getTableModel();
+			display = clickedColumn >= CommonColumnType.values().length;
 
-            // delete the rows starting from last
-            for (int i = rowsToDelete.length - 1; i >= 0; i--) {
-                int unsordedIndex = sorterModel.modelIndex(rowsToDelete[i]);
-                peakList.removeRow(unsordedIndex);
-                originalModel.fireTableRowsDeleted(unsordedIndex, unsordedIndex);
-            }
+			showXICItem.setEnabled((clickedColumn == CommonColumnType.PEAKSHAPE
+					.ordinal())
+					|| (display));
+			manuallyDefineItem.setEnabled(display);
+			pubChemSearch.setEnabled(display);
+			showFragmentation.setEnabled(display);
 
-            table.clearSelection();
+			if (display) {
+				int dataFileIndex = (clickedColumn - CommonColumnType.values().length)
+						/ DataFileColumnType.values().length;
+				clickedDataFile = peakList.getRawDataFile(dataFileIndex);
+			} else
+				clickedDataFile = null;
+			TableSorter sorter = (TableSorter) table.getModel();
+			clickedPeakListRow = peakList.getRow(sorter.modelIndex(clickedRow));
 
-        }
+			if (clickedDataFile != null)
+				showIsotopePattern.setEnabled(clickedPeakListRow
+						.getPeak(clickedDataFile) instanceof IsotopePattern);
+			else
+				showIsotopePattern.setEnabled(false);
 
-        if (src == plotRowsItem) {
+		}
 
-            int selectedTableRows[] = table.getSelectedRows();
-            TableSorter sorterModel = (TableSorter) table.getModel();
-            PeakListRow selectedPeakListRows[] = new PeakListRow[selectedTableRows.length];
-            for (int i = 0; i < selectedTableRows.length; i++) {
-                int unsortedIndex = sorterModel.modelIndex(selectedTableRows[i]);
-                selectedPeakListRows[i] = peakList.getRow(unsortedIndex);
-            }
-            IntensityPlot intensityPlotModule = IntensityPlot.getInstance();
-            IntensityPlotParameters currentParameters = intensityPlotModule.getParameterSet();
-            IntensityPlotParameters newParameters = new IntensityPlotParameters(
-                    peakList, currentParameters.getXAxisValueSource(),
-                    currentParameters.getYAxisValueSource(),
-                    peakList.getRawDataFiles(), selectedPeakListRows);
-            IntensityPlotDialog setupDialog = new IntensityPlotDialog(peakList,
-                    newParameters);
-            setupDialog.setVisible(true);
-            if (setupDialog.getExitCode() == ExitCode.OK) {
-                intensityPlotModule.setParameters(newParameters);
-                Desktop desktop = MZmineCore.getDesktop();
-                logger.info("Opening new intensity plot");
-                IntensityPlotFrame newFrame = new IntensityPlotFrame(
-                        newParameters);
-                desktop.addInternalFrame(newFrame);
-            }
+		super.show(invoker, x, y);
+	}
 
-        }
+	/**
+	 * @see java.awt.event.ActionListener#actionPerformed(java.awt.event.ActionEvent)
+	 */
+	public void actionPerformed(ActionEvent event) {
 
-        if (src == showXICItem) {
+		Object src = event.getSource();
 
-            TICVisualizer tic = TICVisualizer.getInstance();
+		if (src == deleteRowsItem) {
 
-            // Check if we clicked on a raw data file XIC, or combined XIC
-            if (clickedDataFile == null) {
-                Range rtRange = null, mzRange = null;
-                for (RawDataFile dataFile : clickedPeakListRow.getRawDataFiles()) {
-                    if (rtRange == null)
-                        rtRange = dataFile.getDataRTRange(1);
-                    else
-                        rtRange.extendRange(dataFile.getDataRTRange(1));
-                }
-                for (ChromatographicPeak peak : clickedPeakListRow.getPeaks()) {
-                    if (mzRange == null)
-                        mzRange = peak.getRawDataPointsMZRange();
-                    else
-                        mzRange.extendRange(peak.getRawDataPointsMZRange());
-                }
-                tic.showNewTICVisualizerWindow(
-                        clickedPeakListRow.getRawDataFiles(),
-                        clickedPeakListRow.getPeaks(), 1,
-                        TICVisualizerParameters.plotTypeBP, rtRange, mzRange);
-                return;
-            }
+			int rowsToDelete[] = table.getSelectedRows();
+			// sort row indices
+			Arrays.sort(rowsToDelete);
+			TableSorter sorterModel = (TableSorter) table.getModel();
+			PeakListTableModel originalModel = (PeakListTableModel) sorterModel
+					.getTableModel();
 
-            ChromatographicPeak clickedPeak = clickedPeakListRow.getPeak(clickedDataFile);
+			// delete the rows starting from last
+			for (int i = rowsToDelete.length - 1; i >= 0; i--) {
+				int unsordedIndex = sorterModel.modelIndex(rowsToDelete[i]);
+				peakList.removeRow(unsordedIndex);
+				originalModel
+						.fireTableRowsDeleted(unsordedIndex, unsordedIndex);
+			}
 
-            if (clickedPeak != null) {
-                tic.showNewTICVisualizerWindow(
-                        new RawDataFile[] { clickedDataFile },
-                        new ChromatographicPeak[] { clickedPeak }, 1,
-                        TICVisualizerParameters.plotTypeBP,
-                        clickedDataFile.getDataRTRange(1),
-                        clickedPeak.getRawDataPointsMZRange());
+			table.clearSelection();
 
-            } else {
-                Range mzRange = new Range(clickedPeakListRow.getAverageMZ());
+		}
 
-                for (ChromatographicPeak peak : clickedPeakListRow.getPeaks()) {
-                    if (peak == null)
-                        continue;
-                    mzRange.extendRange(peak.getRawDataPointsMZRange());
+		if (src == plotRowsItem) {
 
-                }
-                tic.showNewTICVisualizerWindow(
-                        new RawDataFile[] { clickedDataFile }, null, 1,
-                        TICVisualizerParameters.plotTypeBP,
-                        clickedDataFile.getDataRTRange(1), mzRange);
-            }
+			int selectedTableRows[] = table.getSelectedRows();
+			TableSorter sorterModel = (TableSorter) table.getModel();
+			PeakListRow selectedPeakListRows[] = new PeakListRow[selectedTableRows.length];
+			for (int i = 0; i < selectedTableRows.length; i++) {
+				int unsortedIndex = sorterModel
+						.modelIndex(selectedTableRows[i]);
+				selectedPeakListRows[i] = peakList.getRow(unsortedIndex);
+			}
+			IntensityPlot intensityPlotModule = IntensityPlot.getInstance();
+			IntensityPlotParameters currentParameters = intensityPlotModule
+					.getParameterSet();
+			IntensityPlotParameters newParameters = new IntensityPlotParameters(
+					peakList, currentParameters.getXAxisValueSource(),
+					currentParameters.getYAxisValueSource(), peakList
+							.getRawDataFiles(), selectedPeakListRows);
+			IntensityPlotDialog setupDialog = new IntensityPlotDialog(peakList,
+					newParameters);
+			setupDialog.setVisible(true);
+			if (setupDialog.getExitCode() == ExitCode.OK) {
+				intensityPlotModule.setParameters(newParameters);
+				Desktop desktop = MZmineCore.getDesktop();
+				logger.info("Opening new intensity plot");
+				IntensityPlotFrame newFrame = new IntensityPlotFrame(
+						newParameters);
+				desktop.addInternalFrame(newFrame);
+			}
 
-        }
+		}
 
-        if (src == manuallyDefineItem) {
-            ManualPeakPicker.runManualDetection(clickedDataFile,
-                    clickedPeakListRow);
-        }
-        
-        if (src == showFragmentation) {
+		if (src == showXICItem) {
 
-            SpectraVisualizer specVis = SpectraVisualizer.getInstance();
+			TICVisualizer tic = TICVisualizer.getInstance();
 
-            ChromatographicPeak clickedPeak = clickedPeakListRow.getPeak(clickedDataFile);
+			// Check if we clicked on a raw data file XIC, or combined XIC
+			if (clickedDataFile == null) {
+				Range rtRange = null, mzRange = null;
+				for (RawDataFile dataFile : clickedPeakListRow
+						.getRawDataFiles()) {
+					if (rtRange == null)
+						rtRange = dataFile.getDataRTRange(1);
+					else
+						rtRange.extendRange(dataFile.getDataRTRange(1));
+				}
+				for (ChromatographicPeak peak : clickedPeakListRow.getPeaks()) {
+					if (mzRange == null)
+						mzRange = peak.getRawDataPointsMZRange();
+					else
+						mzRange.extendRange(peak.getRawDataPointsMZRange());
+				}
+				tic.showNewTICVisualizerWindow(clickedPeakListRow
+						.getRawDataFiles(), clickedPeakListRow.getPeaks(), 1,
+						TICVisualizerParameters.plotTypeBP, rtRange, mzRange);
+				return;
+			}
 
-            if (clickedPeak != null) {
-            	int scanNumber = clickedPeak.getMostIntenseFragmentScanNumber();
-            	if (scanNumber > 0)
-                specVis.showNewSpectrumWindow(clickedDataFile, scanNumber);
-            } 
-        }
+			ChromatographicPeak clickedPeak = clickedPeakListRow
+					.getPeak(clickedDataFile);
 
-        if (src == showIsotopePattern) {
+			if (clickedPeak != null) {
+				tic.showNewTICVisualizerWindow(
+						new RawDataFile[] { clickedDataFile },
+						new ChromatographicPeak[] { clickedPeak }, 1,
+						TICVisualizerParameters.plotTypeBP, clickedDataFile
+								.getDataRTRange(1), clickedPeak
+								.getRawDataPointsMZRange());
 
-            SpectraVisualizer specVis = SpectraVisualizer.getInstance();
+			} else {
+				Range mzRange = new Range(clickedPeakListRow.getAverageMZ());
 
-            ChromatographicPeak clickedPeak = clickedPeakListRow.getPeak(clickedDataFile);
+				for (ChromatographicPeak peak : clickedPeakListRow.getPeaks()) {
+					if (peak == null)
+						continue;
+					mzRange.extendRange(peak.getRawDataPointsMZRange());
 
-            if (clickedPeak != null) {
-            	if (clickedPeak instanceof IsotopePattern)
-                specVis.showNewSpectrumWindow(clickedDataFile, (IsotopePattern) clickedPeak);
-            } 
-        }
+				}
+				tic.showNewTICVisualizerWindow(
+						new RawDataFile[] { clickedDataFile }, null, 1,
+						TICVisualizerParameters.plotTypeBP, clickedDataFile
+								.getDataRTRange(1), mzRange);
+			}
 
-        if (src == pubChemSearch) {
+		}
 
-        	PubChemSearch pubChem = PubChemSearch.getInstance();
-        	
-        	ChromatographicPeak clickedPeak = clickedPeakListRow.getPeak(clickedDataFile);
+		if (src == manuallyDefineItem) {
+			ManualPeakPicker.runManualDetection(clickedDataFile,
+					clickedPeakListRow);
+		}
 
-            if (clickedPeak != null) {
-            	
-            	pubChem.showPubChemSearchDialog(peakList, clickedPeakListRow, clickedPeak);
-            } 
-        }
+		if (src == showFragmentation) {
 
+			SpectraVisualizer specVis = SpectraVisualizer.getInstance();
 
-        if (src == addNewRowItem) {
+			ChromatographicPeak clickedPeak = clickedPeakListRow
+					.getPeak(clickedDataFile);
 
-            // find maximum ID and add 1
-            int newID = 1;
-            for (PeakListRow row : peakList.getRows()) {
-                if (row.getID() >= newID)
-                    newID = row.getID() + 1;
-            }
+			if (clickedPeak != null) {
+				int scanNumber = clickedPeak.getMostIntenseFragmentScanNumber();
+				if (scanNumber > 0) {
+					specVis.showNewSpectrumWindow(clickedDataFile, scanNumber);
+				} else {
+					MZmineCore.getDesktop().displayMessage(
+							"There is not fragments for the mass "
+									+ massFormater.format(clickedPeak.getMZ())
+									+ "m/z in the current raw data.");
+					return;
+				}
+			}
+		}
 
-            // create a new row
-            SimplePeakListRow newRow = new SimplePeakListRow(newID);
-            peakList.addRow(newRow);
-            TableSorter sorterModel = (TableSorter) table.getModel();
-            PeakListTableModel originalModel = (PeakListTableModel) sorterModel.getTableModel();
-            originalModel.fireTableDataChanged();
-            ManualPeakPicker.runManualDetection(peakList.getRawDataFiles(),
-                    newRow);
-        }
+		if (src == showIsotopePattern) {
 
-    }
+			SpectraVisualizer specVis = SpectraVisualizer.getInstance();
+
+			ChromatographicPeak clickedPeak = clickedPeakListRow
+					.getPeak(clickedDataFile);
+
+			if (clickedPeak != null) {
+				if (clickedPeak instanceof IsotopePattern)
+					specVis.showNewSpectrumWindow(clickedDataFile,
+							(IsotopePattern) clickedPeak);
+			}
+		}
+
+		if (src == pubChemSearch) {
+
+			PubChemSearch pubChem = PubChemSearch.getInstance();
+
+			ChromatographicPeak clickedPeak = clickedPeakListRow
+					.getPeak(clickedDataFile);
+
+			if (clickedPeak != null) {
+
+				pubChem.showPubChemSearchDialog(peakList, clickedPeakListRow,
+						clickedPeak);
+			}
+		}
+
+		if (src == addNewRowItem) {
+
+			// find maximum ID and add 1
+			int newID = 1;
+			for (PeakListRow row : peakList.getRows()) {
+				if (row.getID() >= newID)
+					newID = row.getID() + 1;
+			}
+
+			// create a new row
+			SimplePeakListRow newRow = new SimplePeakListRow(newID);
+			peakList.addRow(newRow);
+			TableSorter sorterModel = (TableSorter) table.getModel();
+			PeakListTableModel originalModel = (PeakListTableModel) sorterModel
+					.getTableModel();
+			originalModel.fireTableDataChanged();
+			ManualPeakPicker.runManualDetection(peakList.getRawDataFiles(),
+					newRow);
+		}
+
+	}
 
 }

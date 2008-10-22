@@ -531,8 +531,7 @@ public class SpectraPlot extends ChartPanel {
 						.getDataset(1);
 				if (firstPeakDataSet.isIsotopeDataSet() && (!firstPeakDataSet.isPredicted()) ) {
 					double score = IsotopePatternScoreCalculator.getScore(
-							firstPeakDataSet.getIsotopePattern(), peakDataSet
-									.getIsotopePattern());
+							peakDataSet.getIsotopePattern(), firstPeakDataSet.getIsotopePattern());
 					peakDataSet.setScore(score);
 				}
 			}
