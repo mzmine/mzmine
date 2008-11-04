@@ -24,7 +24,6 @@ import java.util.HashSet;
 import java.util.Hashtable;
 import java.util.Iterator;
 import java.util.Vector;
-import java.util.logging.Logger;
 
 import net.sf.mzmine.data.ChromatographicPeak;
 import net.sf.mzmine.data.CompoundIdentity;
@@ -38,7 +37,6 @@ import net.sf.mzmine.taskcontrol.Task;
 
 public class RelatedPeaksSearchTask implements Task {
 
-	private Logger logger = Logger.getLogger(this.getClass().getName());
 	private TaskStatus status = TaskStatus.WAITING;
 	private String errorMessage;
 	private int finishedRows = 0, numRows;
@@ -234,7 +232,7 @@ public class RelatedPeaksSearchTask implements Task {
 	private static ChromatographicPeak getBiggestPeak(PeakListRow row) {
 		ChromatographicPeak peak = null;
 
-		double intensity = Double.MIN_NORMAL;
+		double intensity = Double.MIN_VALUE;
 
 		for (ChromatographicPeak p : row.getPeaks()) {
 			if (p.getHeight() > intensity) {
