@@ -159,7 +159,7 @@ public class CompoundIdentitySetupDialog extends JDialog implements ActionListen
 			compound = new SimpleCompoundIdentity(id, name, null,
 					formula, null, "User defined", note);
 
-			peakListRow.addCompoundIdentity(compound);
+			peakListRow.addCompoundIdentity(compound, true);
 			peakListRow.setComment(note);
 			
 			exitCode = ExitCode.OK;

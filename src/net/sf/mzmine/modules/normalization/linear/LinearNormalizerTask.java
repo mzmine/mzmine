@@ -218,7 +218,7 @@ class LinearNormalizerTask implements Task {
                                 originalpeakListRow.getID());
                         normalizedRow.setComment(originalpeakListRow.getComment());
                         for (CompoundIdentity ident : originalpeakListRow.getCompoundIdentities())
-                            normalizedRow.addCompoundIdentity(ident);
+                            normalizedRow.addCompoundIdentity(ident, false);
                         rowMap.put(originalpeakListRow, normalizedRow);
                     }
 

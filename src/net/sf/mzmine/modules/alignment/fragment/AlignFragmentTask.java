@@ -260,7 +260,7 @@ class AlignFragmentTask implements Task {
 				// Add all non-existing identities from the original row to the aligned row
 				for (CompoundIdentity identity : row.getCompoundIdentities()) {
 					if (!PeakUtils.containsIdentity(targetRow, identity))
-						targetRow.addCompoundIdentity(identity);
+						targetRow.addCompoundIdentity(identity, false);
 				}
 				// TODO Handling of conflicting preferred identities
 				targetRow.setPreferredCompoundIdentity(row.getPreferredCompoundIdentity());

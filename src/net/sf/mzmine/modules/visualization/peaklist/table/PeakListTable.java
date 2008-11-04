@@ -140,7 +140,7 @@ public class PeakListTable extends JTable {
 							peakListRow
 									.addCompoundIdentity(new SimpleCompoundIdentity(
 											null, UNKNOWN_IDENTITY, null, null,
-											null, "User defined", null));
+											null, "User defined", null), true);
 							return;
 						}
 						if (item.toString() == REMOVE_IDENTITY) {

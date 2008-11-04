@@ -110,7 +110,7 @@ class ConcatenateFragmentsTask implements Task, TaskListener {
 				for (CompoundIdentity identity : fragmentRow
 						.getCompoundIdentities()) {
 					if (!PeakUtils.containsIdentity(targetRow, identity))
-						targetRow.addCompoundIdentity(identity);
+						targetRow.addCompoundIdentity(identity, false);
 				}
 
 				targetRow.setPreferredCompoundIdentity(fragmentRow

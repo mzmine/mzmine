@@ -162,7 +162,7 @@ class CustomDBSearchTask implements Task {
 						+ ", RT " + lineRT + ")");
 
 				// add new identity to the row
-				peakRow.addCompoundIdentity(newIdentity);
+				peakRow.addCompoundIdentity(newIdentity, false);
 
 			}
 		}

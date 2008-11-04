@@ -89,8 +89,9 @@ public interface PeakListRow {
      * Add a new identity candidate (result of identification method)
      * 
      * @param identity New compound identity
+     * @param preffered boolean value to define this identity as preferred identity
      */
-    public void addCompoundIdentity(CompoundIdentity identity);
+    public void addCompoundIdentity(CompoundIdentity identity, boolean preffered);
     
     /**
      * Remove identity candidate

@@ -144,7 +144,7 @@ public class PubChemSearchWindow extends JInternalFrame implements
 			}
 
 			peakListRow.addCompoundIdentity(listElementModel
-					.getElementAt(index));
+					.getElementAt(index), false);
 			dispose();
 		}
 

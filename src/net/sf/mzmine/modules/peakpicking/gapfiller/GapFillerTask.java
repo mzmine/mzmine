@@ -79,7 +79,7 @@ class GapFillerTask implements Task {
             PeakListRow newRow = new SimplePeakListRow(sourceRow.getID());
             newRow.setComment(sourceRow.getComment());
             for (CompoundIdentity ident : sourceRow.getCompoundIdentities())
-                newRow.addCompoundIdentity(ident);
+                newRow.addCompoundIdentity(ident, false);
             if (sourceRow.getPreferredCompoundIdentity() != null)
                 newRow.setPreferredCompoundIdentity(sourceRow.getPreferredCompoundIdentity());
             processedPeakList.addRow(newRow);
