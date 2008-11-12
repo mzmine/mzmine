@@ -46,7 +46,7 @@ public class SpectraToolBar extends JToolBar {
 	static final Icon thicknessIcon = new ImageIcon("icons/thicknessicon.png");
 
 	private JButton centroidContinuousButton, dataPointsButton, peaksButton,
-			isotopePeakButton, axesButton, thicknessButton;
+			isotopePeakButton, axesButton;
 
 	public SpectraToolBar(SpectraPlot plot, SpectraVisualizerType type) {
 
@@ -89,7 +89,7 @@ public class SpectraToolBar extends JToolBar {
 
 		addSeparator();
 
-		thicknessButton = GUIUtils.addButton(this, null, thicknessIcon, plot,
+		GUIUtils.addButton(this, null, thicknessIcon, plot,
 				"THICKNESS", "Setup thickness of isotope bar");
 	}
 

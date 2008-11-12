@@ -25,7 +25,6 @@ import java.util.logging.Logger;
 
 import net.sf.mzmine.data.ChromatographicPeak;
 import net.sf.mzmine.data.RawDataFile;
-import net.sf.mzmine.data.impl.SimpleDataPoint;
 import net.sf.mzmine.data.impl.SimpleMzPeak;
 import net.sf.mzmine.modules.peakpicking.threestep.peakconstruction.ConnectedPeak;
 import net.sf.mzmine.modules.peakpicking.threestep.peakconstruction.PeakBuilder;
@@ -52,8 +51,6 @@ public class SavitzkyGolayPeakDetector implements PeakBuilder {
 	private int resolution;
 	private boolean fillingPeaks;
 	private PeakFillingModel peakModel;
-
-	private double maxValueDerivative = 0.0f;
 
 	/**
 	 * Constructor of Savitzky-Golay Peak Builder
@@ -113,8 +110,6 @@ public class SavitzkyGolayPeakDetector implements PeakBuilder {
 	public ChromatographicPeak[] addChromatogram(Chromatogram chromatogram,
 			RawDataFile dataFile) {
 
-
-		maxValueDerivative = 0.0f;
 		double maxIntensity = 0;
 
 		Vector<ChromatographicPeak> detectedPeaks = new Vector<ChromatographicPeak>();

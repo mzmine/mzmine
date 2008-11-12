@@ -37,8 +37,6 @@ import javax.swing.JPanel;
 
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.modules.visualization.spectra.SpectraPlot;
-import net.sf.mzmine.modules.visualization.spectra.SpectraVisualizer;
-import net.sf.mzmine.modules.visualization.spectra.SpectraVisualizerParameters;
 
 public class ThicknessSetupDialog extends JDialog implements ActionListener {
 

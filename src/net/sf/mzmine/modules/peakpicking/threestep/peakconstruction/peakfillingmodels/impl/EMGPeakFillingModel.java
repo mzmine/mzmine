@@ -19,8 +19,6 @@
 
 package net.sf.mzmine.modules.peakpicking.threestep.peakconstruction.peakfillingmodels.impl;
 
-import java.util.logging.Logger;
-
 import net.sf.mzmine.data.ChromatographicPeak;
 import net.sf.mzmine.data.RawDataFile;
 import net.sf.mzmine.data.Scan;
@@ -33,8 +31,6 @@ import net.sf.mzmine.util.Range;
 
 public class EMGPeakFillingModel implements PeakFillingModel {
 
-	private Logger logger = Logger.getLogger(this.getClass().getName());
-	
     private double xRight = -1, xLeft = -1;
 
     /**

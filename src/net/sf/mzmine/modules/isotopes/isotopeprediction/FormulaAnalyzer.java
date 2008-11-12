@@ -26,8 +26,8 @@ import java.util.StringTokenizer;
 import java.util.TreeSet;
 import java.util.Vector;
 
-import net.sf.mzmine.data.MzDataPoint;
 import net.sf.mzmine.data.IsotopePattern;
+import net.sf.mzmine.data.MzDataPoint;
 import net.sf.mzmine.data.impl.SimpleDataPoint;
 import net.sf.mzmine.modules.identification.pubchem.TypeOfIonization;
 import net.sf.mzmine.util.DataPointSorter;
@@ -834,7 +834,7 @@ public class FormulaAnalyzer {
 			}
 		}
 
-		double averageWeightMass = 0, totalMass = 0, totalIntensity = 0;
+		double averageWeightMass = 0, totalIntensity = 0;
 		Iterator<MzDataPoint> itr = sortedDataPoints.iterator();
 		while (itr.hasNext()) {
 			dp = itr.next();
@@ -863,7 +863,6 @@ public class FormulaAnalyzer {
 	}
 	
 	private static String removeSymbols(String s){
-		String temp;
 		
 		for (int i=0; i< s.length(); i++){
 			if ((s.charAt(i) == '+') || (s.charAt(i) == '-')){

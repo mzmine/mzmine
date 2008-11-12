@@ -24,9 +24,9 @@ import java.util.TreeMap;
 import java.util.Vector;
 
 import net.sf.mzmine.data.ChromatographicPeak;
-import net.sf.mzmine.data.MzDataPoint;
 import net.sf.mzmine.data.IsotopePattern;
 import net.sf.mzmine.data.IsotopePatternStatus;
+import net.sf.mzmine.data.MzDataPoint;
 import net.sf.mzmine.data.PeakList;
 import net.sf.mzmine.data.RawDataFile;
 
@@ -220,6 +220,10 @@ public class PeakListDataSet extends AbstractXYDataset implements IntervalXYData
     
     public String getFormula(){
     	return formula;
+    }
+    
+    public double getScore() {
+        return score;
     }
     
     public void setScore(double score){

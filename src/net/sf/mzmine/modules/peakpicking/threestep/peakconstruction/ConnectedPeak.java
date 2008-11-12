@@ -19,7 +19,6 @@
 
 package net.sf.mzmine.modules.peakpicking.threestep.peakconstruction;
 
-import java.util.Iterator;
 import java.util.TreeMap;
 import java.util.Vector;
 

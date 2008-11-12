@@ -21,7 +21,6 @@ package net.sf.mzmine.modules.rawdata.chromatmedian;
 
 import java.io.IOException;
 import java.util.Vector;
-import java.util.logging.Logger;
 
 import net.sf.mzmine.data.MzDataPoint;
 import net.sf.mzmine.data.RawDataFile;
@@ -38,8 +37,6 @@ import net.sf.mzmine.util.MathUtils;
  */
 class CMFilterTask implements Task {
 	
-	private Logger logger = Logger.getLogger(this.getClass().getName());
-
 	private RawDataFile dataFile;
 	private TaskStatus status = TaskStatus.WAITING;
 	private String errorMessage;

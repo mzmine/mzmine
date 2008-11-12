@@ -204,7 +204,6 @@ public class JChemPanelLight extends JChemPaintEditorPanel {
 			double mass = 0;
 			IAtom atom = null;
 			for (int f = 0; f < wholeModel.getAtomCount(); f++) {
-				int hs = 0;
 				atom = wholeModel.getAtom(f);
 				mass += (double) atom.getExactMass();
 			}

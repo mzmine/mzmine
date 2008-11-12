@@ -22,7 +22,6 @@ package net.sf.mzmine.modules.visualization.spectra;
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Font;
-import java.util.logging.Logger;
 
 import javax.swing.Box;
 import javax.swing.BoxLayout;

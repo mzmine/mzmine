@@ -44,8 +44,6 @@ import net.sf.mzmine.desktop.Desktop;
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.modules.identification.pubchem.molstructureviewer.MolStructureViewer;
 import net.sf.mzmine.modules.visualization.spectra.PeakListDataSet;
-import net.sf.mzmine.modules.visualization.spectra.SpectraPlot;
-import net.sf.mzmine.modules.visualization.spectra.SpectraVisualizer;
 import net.sf.mzmine.modules.visualization.spectra.SpectraVisualizerType;
 import net.sf.mzmine.modules.visualization.spectra.SpectraVisualizerWindow;
 import edu.stanford.ejalbert.BrowserLauncher;

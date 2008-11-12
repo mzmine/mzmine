@@ -21,7 +21,6 @@ package net.sf.mzmine.modules.rawdata.savitzkygolay;
 
 import java.io.IOException;
 import java.util.Hashtable;
-import java.util.logging.Logger;
 
 import net.sf.mzmine.data.MzDataPoint;
 import net.sf.mzmine.data.RawDataFile;
@@ -36,8 +35,6 @@ import net.sf.mzmine.taskcontrol.Task;
  * 
  */
 class SGFilterTask implements Task {
-	
-	private Logger logger = Logger.getLogger(this.getClass().getName());
 
     private RawDataFile dataFile;
 

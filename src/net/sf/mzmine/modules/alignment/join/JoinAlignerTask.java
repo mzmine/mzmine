@@ -23,7 +23,6 @@ import java.util.Hashtable;
 import java.util.Iterator;
 import java.util.TreeSet;
 import java.util.Vector;
-import java.util.logging.Logger;
 
 import net.sf.mzmine.data.PeakIdentity;
 import net.sf.mzmine.data.PeakList;
@@ -42,8 +41,6 @@ import net.sf.mzmine.util.Range;
  */
 class JoinAlignerTask implements Task {
 	
-	private Logger logger = Logger.getLogger(this.getClass().getName());
-
 	private PeakList[] peakLists;
 
 	private TaskStatus status = TaskStatus.WAITING;

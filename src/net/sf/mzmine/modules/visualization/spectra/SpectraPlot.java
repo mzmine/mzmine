@@ -30,7 +30,6 @@ import java.awt.geom.Ellipse2D;
 import java.text.NumberFormat;
 import java.util.HashMap;
 import java.util.Iterator;
-import java.util.logging.Logger;
 
 import javax.swing.JInternalFrame;
 import javax.swing.JPopupMenu;
@@ -66,8 +65,6 @@ import org.jfree.ui.RectangleInsets;
  * 
  */
 public class SpectraPlot extends ChartPanel {
-
-	private Logger logger = Logger.getLogger(this.getClass().getName());
 
 	private JFreeChart chart;
 	private XYPlot plot;
@@ -115,7 +112,6 @@ public class SpectraPlot extends ChartPanel {
 	private LegendTitle legend;
 	private static final Font legendFont = new Font("SansSerif", Font.PLAIN, 11);
 
-	private boolean isotopeFlag;
 	private double thickness = 0.0005f;
 
 	XYBarRenderer centroidRenderer;
@@ -130,7 +126,6 @@ public class SpectraPlot extends ChartPanel {
 		setBackground(Color.white);
 		setCursor(Cursor.getPredefinedCursor(Cursor.CROSSHAIR_CURSOR));
 		peakRendererMap = new HashMap<Integer, XYBarRenderer>();
-		isotopeFlag = type == SpectraVisualizerType.ISOTOPE;
 		thickness = SpectraVisualizerParameters.barThickness;
 
 		// initialize the chart by default time series chart from factory
