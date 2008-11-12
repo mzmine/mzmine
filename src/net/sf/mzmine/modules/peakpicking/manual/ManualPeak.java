@@ -23,7 +23,7 @@ import java.util.TreeMap;
 import java.util.Vector;
 
 import net.sf.mzmine.data.ChromatographicPeak;
-import net.sf.mzmine.data.DataPoint;
+import net.sf.mzmine.data.MzDataPoint;
 import net.sf.mzmine.data.MzPeak;
 import net.sf.mzmine.data.PeakStatus;
 import net.sf.mzmine.data.RawDataFile;
@@ -141,7 +141,7 @@ class ManualPeak implements ChromatographicPeak {
      * @param dataPoints
      * @param rawDataPoints
      */
-    void addDatapoint(int scanNumber, DataPoint dataPoint) {
+    void addDatapoint(int scanNumber, MzDataPoint dataPoint) {
 
         double rt = dataFile.getScan(scanNumber).getRetentionTime();
 
@@ -188,7 +188,7 @@ class ManualPeak implements ChromatographicPeak {
 
         // Find the data point with top intensity and use its RT and height
         for (int i = 0; i < allScanNumbers.length; i++) {
-            DataPoint dataPoint = mzPeakMap.get(allScanNumbers[i]);
+            MzDataPoint dataPoint = mzPeakMap.get(allScanNumbers[i]);
             double rt = dataFile.getScan(allScanNumbers[i]).getRetentionTime();
             if (dataPoint.getIntensity() > height) {
                 height = dataPoint.getIntensity();
@@ -237,7 +237,7 @@ class ManualPeak implements ChromatographicPeak {
     	}
     	
         // Find the data point with top intensity and use its RT and height
-    	DataPoint dataPoint;
+    	MzDataPoint dataPoint;
         for (Scan fragment:fragmentScans) {
             dataPoint = mzPeakMap.get(fragment.getParentScanNumber());
             if (dataPoint == null)

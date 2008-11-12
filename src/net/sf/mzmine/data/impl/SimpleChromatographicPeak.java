@@ -20,11 +20,10 @@
 package net.sf.mzmine.data.impl;
 
 import java.util.Arrays;
-import java.util.Iterator;
 import java.util.Vector;
 
 import net.sf.mzmine.data.ChromatographicPeak;
-import net.sf.mzmine.data.DataPoint;
+import net.sf.mzmine.data.MzDataPoint;
 import net.sf.mzmine.data.MzPeak;
 import net.sf.mzmine.data.PeakStatus;
 import net.sf.mzmine.data.RawDataFile;
@@ -88,7 +87,7 @@ public class SimpleChromatographicPeak implements ChromatographicPeak {
             }
 
             // Update m/z and intensity ranges
-            for (DataPoint dp : mzPeaksPerScan[ind].getRawDataPoints()) {
+            for (MzDataPoint dp : mzPeaksPerScan[ind].getRawDataPoints()) {
 
                 if (ind == 0) {
                     mzRange = new Range(dp.getMZ());
@@ -282,7 +281,7 @@ public class SimpleChromatographicPeak implements ChromatographicPeak {
         // Find the data point with top intensity and set the number of scan
     	double currentHeight = 0;
     	int index=-1;
-    	DataPoint[] dataPointArray;
+    	MzDataPoint[] dataPointArray;
         for (Scan fragment:fragmentScans) {
         	
         	for (int i=0;i<scanNumbers.length; i++){
@@ -296,7 +295,7 @@ public class SimpleChromatographicPeak implements ChromatographicPeak {
         		continue;
         	
             dataPointArray = mzPeaksPerScan[index].getRawDataPoints();
-            for (DataPoint dp: dataPointArray){
+            for (MzDataPoint dp: dataPointArray){
                 if (dp.getIntensity() > currentHeight) {
                     fragmentScanNumber = fragment.getScanNumber();
                     currentHeight = dp.getIntensity();

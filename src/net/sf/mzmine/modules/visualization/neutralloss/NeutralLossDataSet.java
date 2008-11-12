@@ -24,7 +24,7 @@ import java.util.Date;
 import java.util.Iterator;
 import java.util.Vector;
 
-import net.sf.mzmine.data.DataPoint;
+import net.sf.mzmine.data.MzDataPoint;
 import net.sf.mzmine.data.RawDataFile;
 import net.sf.mzmine.data.Scan;
 import net.sf.mzmine.main.MZmineCore;
@@ -93,7 +93,7 @@ class NeutralLossDataSet extends AbstractXYDataset implements RawDataAcceptor,
             return;
 
         // get m/z and intensity values
-        DataPoint scanDataPoints[] = scan.getDataPoints();
+        MzDataPoint scanDataPoints[] = scan.getDataPoints();
 
         // skip empty scans
         if (scan.getBasePeak() == null)

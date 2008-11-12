@@ -25,7 +25,7 @@ import java.util.Arrays;
 import java.util.Date;
 import java.util.Vector;
 
-import net.sf.mzmine.data.DataPoint;
+import net.sf.mzmine.data.MzDataPoint;
 import net.sf.mzmine.data.RawDataFile;
 import net.sf.mzmine.data.Scan;
 import net.sf.mzmine.main.MZmineCore;
@@ -111,7 +111,7 @@ public class TICDataSet extends AbstractXYZDataset implements RawDataAcceptor,
     public void addScan(final Scan scan, int index, int total) {
 
         double totalIntensity = 0;
-        DataPoint basePeak = null;
+        MzDataPoint basePeak = null;
 
         if (scan.getMZRange().isWithin(mzRange)) {
             basePeak = scan.getBasePeak();
@@ -133,7 +133,7 @@ public class TICDataSet extends AbstractXYZDataset implements RawDataAcceptor,
             if (scan.getMZRange().isWithin(mzRange)) {
                 totalIntensity = scan.getTIC();
             } else {
-                DataPoint dataPoints[] = scan.getDataPointsByMass(mzRange);
+                MzDataPoint dataPoints[] = scan.getDataPointsByMass(mzRange);
                 for (int j = 0; j < dataPoints.length; j++) {
                     totalIntensity += dataPoints[j].getIntensity();
                 }

@@ -22,7 +22,7 @@ package net.sf.mzmine.modules.rawdata.mean;
 import java.io.IOException;
 import java.util.Vector;
 
-import net.sf.mzmine.data.DataPoint;
+import net.sf.mzmine.data.MzDataPoint;
 import net.sf.mzmine.data.RawDataFile;
 import net.sf.mzmine.data.RawDataFileWriter;
 import net.sf.mzmine.data.Scan;
@@ -171,8 +171,8 @@ class MeanFilterTask implements Task {
 
         double elSum;
 
-        DataPoint oldDataPoints[] = sc.getDataPoints();
-        DataPoint newDataPoints[] = new DataPoint[oldDataPoints.length];
+        MzDataPoint oldDataPoints[] = sc.getDataPoints();
+        MzDataPoint newDataPoints[] = new MzDataPoint[oldDataPoints.length];
 
         int addi = 0;
         for (int i = 0; i < oldDataPoints.length; i++) {

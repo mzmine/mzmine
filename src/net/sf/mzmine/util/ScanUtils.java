@@ -19,9 +19,10 @@
 
 package net.sf.mzmine.util;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 
-import net.sf.mzmine.data.DataPoint;
+import net.sf.mzmine.data.MzDataPoint;
 import net.sf.mzmine.data.Scan;
 
 /**
@@ -37,18 +38,42 @@ public class ScanUtils {
      * @param mzMax m/z range maximum
      * @return double[2] containing base peak m/z and intensity
      */
-    public static DataPoint findBasePeak(Scan scan, Range mzRange) {
+    public static MzDataPoint findBasePeak(Scan scan, Range mzRange) {
 
-        DataPoint dataPoints[] = scan.getDataPointsByMass(mzRange);
-        DataPoint basePeak = null;
+        MzDataPoint dataPoints[] = scan.getDataPointsByMass(mzRange);
+        MzDataPoint basePeak = null;
 
-        for (DataPoint dp : dataPoints) {
+        for (MzDataPoint dp : dataPoints) {
             if ((basePeak == null)
                     || (dp.getIntensity() > basePeak.getIntensity()))
                 basePeak = dp;
         }
 
         return basePeak;
+    }
+    
+    /**
+     * Selects data points within given m/z range
+     * 
+     */
+    public static MzDataPoint[] selectDataPointsByMass(MzDataPoint dataPoints[], Range mzRange) {
+        ArrayList<MzDataPoint> goodPoints = new ArrayList<MzDataPoint>();
+        for (MzDataPoint dp : dataPoints) {
+            if (mzRange.contains(dp.getMZ())) goodPoints.add(dp);
+        }
+        return goodPoints.toArray(new MzDataPoint[0]);
+    }
+    
+    /**
+     * Selects data points with intensity >= given intensity
+     * 
+     */
+    public static MzDataPoint[] selectDataPointsOverIntensity(MzDataPoint dataPoints[], double minIntensity) {
+        ArrayList<MzDataPoint> goodPoints = new ArrayList<MzDataPoint>();
+        for (MzDataPoint dp : dataPoints) {
+            if (dp.getIntensity() >= minIntensity) goodPoints.add(dp);
+        }
+        return goodPoints.toArray(new MzDataPoint[0]);
     }
 
     /**

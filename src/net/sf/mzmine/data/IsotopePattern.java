@@ -61,7 +61,7 @@ public interface IsotopePattern extends ChromatographicPeak, MzDataTable {
     /**
      * Returns an array of DataPoint[], that represents all isotopes of this pattern
      */
-    public DataPoint[] getIsotopes();
+    public MzDataPoint[] getIsotopes();
 
     /**
      * Returns the number of isotopes in this pattern

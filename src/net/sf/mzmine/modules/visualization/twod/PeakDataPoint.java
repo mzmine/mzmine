@@ -19,7 +19,7 @@
 
 package net.sf.mzmine.modules.visualization.twod;
 
-import net.sf.mzmine.data.DataPoint;
+import net.sf.mzmine.data.MzDataPoint;
 
 /**
  * This class represents one peak datapoint (retention time and m/z)
@@ -28,11 +28,11 @@ class PeakDataPoint {
 
     private int scanNumber;
     private double rt;
-    private DataPoint dataPoint;
+    private MzDataPoint dataPoint;
 
     /**
      */
-    PeakDataPoint(int scanNumber, double rt, DataPoint dataPoint) {
+    PeakDataPoint(int scanNumber, double rt, MzDataPoint dataPoint) {
         this.scanNumber = scanNumber;
         this.rt = rt;
         this.dataPoint = dataPoint;

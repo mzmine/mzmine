@@ -22,11 +22,11 @@ package net.sf.mzmine.util;
 
 import java.util.Comparator;
 
-import net.sf.mzmine.data.DataPoint;
+import net.sf.mzmine.data.MzDataPoint;
 
-public class ScanDataPointsSorterByIntensity implements Comparator<DataPoint>{
+public class ScanDataPointsSorterByIntensity implements Comparator<MzDataPoint>{
 
-	public int compare(DataPoint dp1, DataPoint dp2) {
+	public int compare(MzDataPoint dp1, MzDataPoint dp2) {
         Double mz1 = dp1.getIntensity();
         Double mz2 = dp2.getIntensity();
         return mz2.compareTo(mz1); 

@@ -48,7 +48,7 @@ import javax.swing.border.Border;
 import javax.swing.border.EtchedBorder;
 
 import net.sf.mzmine.data.ChromatographicPeak;
-import net.sf.mzmine.data.DataPoint;
+import net.sf.mzmine.data.MzDataPoint;
 import net.sf.mzmine.data.MzPeak;
 import net.sf.mzmine.data.RawDataFile;
 import net.sf.mzmine.data.Scan;
@@ -206,7 +206,7 @@ public class MassDetectorSetupDialog extends ParameterSetupDialog implements
 		String subTitle = "MS" + currentScan.getMSLevel() + ", RT "
 				+ rtFormat.format(currentScan.getRetentionTime());
 
-		DataPoint basePeak = currentScan.getBasePeak();
+		MzDataPoint basePeak = currentScan.getBasePeak();
 		if (basePeak != null) {
 			subTitle += ", base peak: " + mzFormat.format(basePeak.getMZ())
 					+ " m/z ("

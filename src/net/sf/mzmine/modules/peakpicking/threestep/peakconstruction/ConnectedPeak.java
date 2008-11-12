@@ -24,7 +24,7 @@ import java.util.TreeMap;
 import java.util.Vector;
 
 import net.sf.mzmine.data.ChromatographicPeak;
-import net.sf.mzmine.data.DataPoint;
+import net.sf.mzmine.data.MzDataPoint;
 import net.sf.mzmine.data.MzPeak;
 import net.sf.mzmine.data.PeakStatus;
 import net.sf.mzmine.data.RawDataFile;
@@ -89,10 +89,10 @@ public class ConnectedPeak implements ChromatographicPeak {
 		// Initial ranges of our peak using all values from MzPeak
 		rtRange = new Range(rt);
 
-		DataPoint[] mzPeakRawDataPoints = mzValue.getMzPeak()
+		MzDataPoint[] mzPeakRawDataPoints = mzValue.getMzPeak()
 				.getRawDataPoints();
 
-		for (DataPoint dp : mzPeakRawDataPoints) {
+		for (MzDataPoint dp : mzPeakRawDataPoints) {
 			if (mzRange == null)
 				mzRange = new Range(dp.getMZ());
 			else
@@ -128,10 +128,10 @@ public class ConnectedPeak implements ChromatographicPeak {
 
 		rtRange.extendRange(mzValue.getScan().getRetentionTime());
 
-		DataPoint[] mzPeakRawDataPoints = mzValue.getMzPeak()
+		MzDataPoint[] mzPeakRawDataPoints = mzValue.getMzPeak()
 				.getRawDataPoints();
 
-		for (DataPoint dp : mzPeakRawDataPoints) {
+		for (MzDataPoint dp : mzPeakRawDataPoints) {
 			mzRange.extendRange(dp.getMZ());
 			intensityRange.extendRange(dp.getIntensity());
 		}
@@ -223,7 +223,7 @@ public class ConnectedPeak implements ChromatographicPeak {
 	 * This method returns an array of all raw data point of this peak in a
 	 * given scan
 	 */
-	public DataPoint[] getRawDataPoints(int scanNumber) {
+	public MzDataPoint[] getRawDataPoints(int scanNumber) {
 		return datapointsMap.get(scanNumber).getMzPeak().getRawDataPoints();
 	}
 

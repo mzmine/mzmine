@@ -24,7 +24,7 @@ import net.sf.mzmine.util.Range;
 /**
  * This class represent one spectrum of a raw data file.
  */
-public interface Scan extends MzDataTable{
+public interface Scan extends MzDataTable {
 
     /**
      * 
@@ -57,40 +57,14 @@ public interface Scan extends MzDataTable{
      * 
      * @return Base peak
      */
-    public DataPoint getBasePeak();
+    public MzDataPoint getBasePeak();
 
     /**
      * Returns the sum of intensities of all data points.
+     * 
      * @return Total ion current
      */
     public double getTIC();
-
-    /**
-     * Returns data points of this scan sorted in m/z order.
-     * 
-     * This method may need to read data from disk, therefore it may be quite
-     * slow. Modules should be aware of that and cache the data points if
-     * necessary.
-     * 
-     * @return Data points (m/z and intensity pairs) of this scan
-     */
-    //public DataPoint[] getDataPoints();
-
-    /**
-     * Returns data points in given m/z range, sorted in m/z order.
-     * This method may need to read data from disk, therefore it may be quite
-     * slow. Modules should be aware of that and cache the data points if
-     * necessary.
-     * 
-     * @return Data points (m/z and intensity pairs) of this scan
-     */
-    public DataPoint[] getDataPointsByMass(Range mzRange);
-
-    /**
-     * 
-     * @return Number of m/z and intensity data points
-     */
-    //public int getNumberOfDataPoints();
 
     /**
      * 

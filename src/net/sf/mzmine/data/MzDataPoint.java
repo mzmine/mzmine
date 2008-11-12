@@ -22,7 +22,7 @@ package net.sf.mzmine.data;
 /**
  * This interface represents one datapoint of a spectra (m/z and intensity)
  */
-public interface DataPoint {
+public interface MzDataPoint {
 
     public double getMZ();
 

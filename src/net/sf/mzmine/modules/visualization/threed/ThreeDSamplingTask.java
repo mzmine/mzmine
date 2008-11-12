@@ -22,7 +22,7 @@ package net.sf.mzmine.modules.visualization.threed;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import net.sf.mzmine.data.DataPoint;
+import net.sf.mzmine.data.MzDataPoint;
 import net.sf.mzmine.data.RawDataFile;
 import net.sf.mzmine.data.Scan;
 import net.sf.mzmine.taskcontrol.Task;
@@ -179,7 +179,7 @@ class ThreeDSamplingTask implements Task {
 
                 Scan scan = dataFile.getScan(scanNumbers[scanIndex]);
 
-                DataPoint dataPoints[] = scan.getDataPoints();
+                MzDataPoint dataPoints[] = scan.getDataPoints();
                 double[] scanMZValues = new double[dataPoints.length];
                 double[] scanIntensityValues = new double[dataPoints.length];
                 for (int dp = 0; dp < dataPoints.length; dp++) {

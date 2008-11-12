@@ -22,7 +22,7 @@ package net.sf.mzmine.modules.visualization.spectra;
 import java.util.TreeMap;
 import java.util.TreeSet;
 
-import net.sf.mzmine.data.DataPoint;
+import net.sf.mzmine.data.MzDataPoint;
 import net.sf.mzmine.data.IsotopePattern;
 import net.sf.mzmine.data.IsotopePatternStatus;
 import net.sf.mzmine.data.MzDataTable;
@@ -48,7 +48,7 @@ public class SpectraDataSet extends AbstractXYDataset implements
 	 * Save a local copy of m/z and intensity values, because accessing the scan
 	 * every time may cause reloading the data from HDD
 	 */
-	private DataPoint dataPoints[];
+	private MzDataPoint dataPoints[];
 	private String label;
 
 	public SpectraDataSet(MzDataTable mzDataTable) {
@@ -56,7 +56,7 @@ public class SpectraDataSet extends AbstractXYDataset implements
 		double intensity;
 		dataPoints = mzDataTable.getDataPoints();
 
-		for (DataPoint dp : dataPoints) {
+		for (MzDataPoint dp : dataPoints) {
 			intensity = dp.getIntensity();
 			if (intensity > biggestIntensity) {
 				biggestIntensity = intensity;
@@ -156,7 +156,7 @@ public class SpectraDataSet extends AbstractXYDataset implements
 		return predicted;
 	}
 
-	public double getBiggestIntensity(DataPoint[] dataPoints) {// double mass){
+	public double getBiggestIntensity(MzDataPoint[] dataPoints) {// double mass){
 
 		TreeSet<Double> intensities = new TreeSet<Double>();
 		TreeMap<Double, Integer> iso = new TreeMap<Double, Integer>();

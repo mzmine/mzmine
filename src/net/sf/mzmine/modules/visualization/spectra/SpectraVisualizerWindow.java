@@ -30,7 +30,7 @@ import java.util.logging.Logger;
 import javax.swing.JComboBox;
 import javax.swing.JInternalFrame;
 
-import net.sf.mzmine.data.DataPoint;
+import net.sf.mzmine.data.MzDataPoint;
 import net.sf.mzmine.data.IsotopePattern;
 import net.sf.mzmine.data.IsotopePatternStatus;
 import net.sf.mzmine.data.MzDataTable;
@@ -245,7 +245,7 @@ public class SpectraVisualizerWindow extends JInternalFrame implements
 			String subTitle = "MS" + currentScan.getMSLevel() + ", RT "
 					+ rtFormat.format(currentScan.getRetentionTime());
 
-			DataPoint basePeak = currentScan.getBasePeak();
+			MzDataPoint basePeak = currentScan.getBasePeak();
 			if (basePeak != null) {
 				subTitle += ", base peak: " + mzFormat.format(basePeak.getMZ())
 						+ " m/z ("

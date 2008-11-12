@@ -21,13 +21,13 @@ package net.sf.mzmine.util;
 
 import java.util.Comparator;
 
-import net.sf.mzmine.data.DataPoint;
+import net.sf.mzmine.data.MzDataPoint;
 
 /**
  */
-public class DataPointSorterByMZ implements Comparator<DataPoint> {
+public class DataPointSorterByMZ implements Comparator<MzDataPoint> {
 
-    public int compare(DataPoint p1, DataPoint p2) {
+    public int compare(MzDataPoint p1, MzDataPoint p2) {
         Double mz1 = p1.getMZ();
         Double mz2 = p2.getMZ();
         return mz1.compareTo(mz2); 

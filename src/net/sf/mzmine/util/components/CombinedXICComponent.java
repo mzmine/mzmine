@@ -31,7 +31,7 @@ import javax.swing.JComponent;
 import javax.swing.border.Border;
 
 import net.sf.mzmine.data.ChromatographicPeak;
-import net.sf.mzmine.data.DataPoint;
+import net.sf.mzmine.data.MzDataPoint;
 import net.sf.mzmine.data.PeakListRow;
 import net.sf.mzmine.data.RawDataFile;
 import net.sf.mzmine.main.MZmineCore;
@@ -157,7 +157,7 @@ public class CombinedXICComponent extends JComponent {
             for (int i = 0; i < scanNumbers.length; i++) {
 
                 double dataPointIntensity = 0;
-                DataPoint dataPoint = peak.getMzPeak(scanNumbers[i]);
+                MzDataPoint dataPoint = peak.getMzPeak(scanNumbers[i]);
 
                 if (dataPoint != null)
                     dataPointIntensity = dataPoint.getIntensity();

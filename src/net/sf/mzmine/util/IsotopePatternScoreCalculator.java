@@ -22,7 +22,7 @@ package net.sf.mzmine.util;
 import java.util.TreeSet;
 import java.util.Vector;
 
-import net.sf.mzmine.data.DataPoint;
+import net.sf.mzmine.data.MzDataPoint;
 import net.sf.mzmine.data.IsotopePattern;
 import net.sf.mzmine.data.impl.SimpleDataPoint;
 
@@ -46,7 +46,7 @@ public class IsotopePatternScoreCalculator {
 
 		double diffMass, diffAbun, factor, totalFactor = 0d;
 		double score = 0d, tempScore;
-		DataPoint closestDp;
+		MzDataPoint closestDp;
 		int numIsotopes1 = ip1.getNumberOfIsotopes();
 		int numIsotopes2 = ip1.getNumberOfIsotopes();
 		int length = numIsotopes1;
@@ -55,8 +55,8 @@ public class IsotopePatternScoreCalculator {
 		if (numIsotopes1 < numIsotopes2)
 			length = numIsotopes2;
 
-		DataPoint[] dp1 = ip1.getIsotopes().clone();
-		DataPoint[] dp2 = ip2.getIsotopes().clone();
+		MzDataPoint[] dp1 = ip1.getIsotopes().clone();
+		MzDataPoint[] dp2 = ip2.getIsotopes().clone();
 
 		// Normalize the intensity of isotopes regarding the biggest one
 		dp1 = sortAndNormalizedByIntensity(dp1);
@@ -110,14 +110,14 @@ public class IsotopePatternScoreCalculator {
 	 * @param dataPoints
 	 * @return
 	 */
-	private static DataPoint[] sortAndNormalizedByIntensity(
-			DataPoint[] dataPoints) {
+	private static MzDataPoint[] sortAndNormalizedByIntensity(
+			MzDataPoint[] dataPoints) {
 
 		double intensity, biggestIntensity = Double.MIN_VALUE;
-		TreeSet<DataPoint> sortedDataPoints = new TreeSet<DataPoint>(
+		TreeSet<MzDataPoint> sortedDataPoints = new TreeSet<MzDataPoint>(
 				new DataPointSorter(false, false));
 
-		for (DataPoint dp : dataPoints) {
+		for (MzDataPoint dp : dataPoints) {
 
 			intensity = dp.getIntensity();
 			if (intensity > biggestIntensity)
@@ -125,7 +125,7 @@ public class IsotopePatternScoreCalculator {
 
 		}
 
-		for (DataPoint dp : dataPoints) {
+		for (MzDataPoint dp : dataPoints) {
 
 			intensity = dp.getIntensity();
 			intensity /= biggestIntensity;
@@ -137,7 +137,7 @@ public class IsotopePatternScoreCalculator {
 
 		}
 
-		return sortedDataPoints.toArray(new DataPoint[0]);
+		return sortedDataPoints.toArray(new MzDataPoint[0]);
 
 	}
 
@@ -149,14 +149,14 @@ public class IsotopePatternScoreCalculator {
 	 * @param dataPoints
 	 * @return DataPoint
 	 */
-	private static DataPoint getClosestDataPoint(DataPoint dp,
-			DataPoint[] dataPoints) {
+	private static MzDataPoint getClosestDataPoint(MzDataPoint dp,
+			MzDataPoint[] dataPoints) {
 
 		double diff;
-		TreeSet<DataPoint> sortedDataPoints = new TreeSet<DataPoint>(
+		TreeSet<MzDataPoint> sortedDataPoints = new TreeSet<MzDataPoint>(
 				new DataPointSorter(false, false));
 
-		for (DataPoint localDp : dataPoints) {
+		for (MzDataPoint localDp : dataPoints) {
 			diff = Math.abs(dp.getMZ() - localDp.getMZ());
 			if (diff <= TOLERANCE) {
 				sortedDataPoints.add(localDp);
@@ -176,19 +176,19 @@ public class IsotopePatternScoreCalculator {
 	 *            array of DataPoint objects
 	 * @return
 	 */
-	private static DataPoint[] removeDataPoint(DataPoint dp,
-			DataPoint[] dataPoints) {
+	private static MzDataPoint[] removeDataPoint(MzDataPoint dp,
+			MzDataPoint[] dataPoints) {
 
-		Vector<DataPoint> sortedDataPoints = new Vector<DataPoint>();
+		Vector<MzDataPoint> sortedDataPoints = new Vector<MzDataPoint>();
 
-		for (DataPoint localDp : dataPoints) {
+		for (MzDataPoint localDp : dataPoints) {
 			if ((localDp.getMZ() == dp.getMZ())
 					&& (localDp.getIntensity() == dp.getIntensity()))
 				continue;
 			sortedDataPoints.add(localDp);
 		}
 
-		return sortedDataPoints.toArray(new DataPoint[0]);
+		return sortedDataPoints.toArray(new MzDataPoint[0]);
 
 	}
 

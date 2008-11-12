@@ -20,7 +20,7 @@
 package net.sf.mzmine.modules.peakpicking.threestep.massdetection;
 
 import net.sf.mzmine.data.ChromatographicPeak;
-import net.sf.mzmine.data.DataPoint;
+import net.sf.mzmine.data.MzDataPoint;
 import net.sf.mzmine.data.MzPeak;
 import net.sf.mzmine.data.PeakStatus;
 import net.sf.mzmine.data.RawDataFile;
@@ -74,7 +74,7 @@ class FakePeak implements ChromatographicPeak {
 		return 0;
 	}
 
-	public DataPoint[] getRawDataPoints(int scanNumber) {
+	public MzDataPoint[] getRawDataPoints(int scanNumber) {
 		return null;
 	}
 

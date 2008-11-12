@@ -25,7 +25,7 @@ import java.util.Hashtable;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import net.sf.mzmine.data.DataPoint;
+import net.sf.mzmine.data.MzDataPoint;
 import net.sf.mzmine.data.PreloadLevel;
 import net.sf.mzmine.data.RawDataFile;
 import net.sf.mzmine.data.RawDataFileWriter;
@@ -383,7 +383,7 @@ public class NetCDFReadTask implements Task {
         // An empty scan needs some special attention..
         if (scanLength[0]==0) {
             scanNum++;
-            return new SimpleScan(scanNum, 1, retentionTime.doubleValue(), -1, 0, null, new DataPoint[0], false);
+            return new SimpleScan(scanNum, 1, retentionTime.doubleValue(), -1, 0, null, new MzDataPoint[0], false);
         }
 
         // Read mass and intensity values
@@ -429,8 +429,8 @@ public class NetCDFReadTask implements Task {
             floatIntensityValues = null;
         }
         
-        DataPoint completeDataPoints[] = new DataPoint[massValues.length];
-        DataPoint tempDataPoints[] = new DataPoint[massValues.length];
+        MzDataPoint completeDataPoints[] = new MzDataPoint[massValues.length];
+        MzDataPoint tempDataPoints[] = new MzDataPoint[massValues.length];
         for (int i = 0; i < massValues.length; i++) {
         	completeDataPoints[i] = new SimpleDataPoint(massValues[i], intensityValues[i]);
         }
@@ -465,14 +465,14 @@ public class NetCDFReadTask implements Task {
 
 		scanNum++;
 		
-		SimpleScan buildingScan = new SimpleScan(scanNum, 1, retentionTime.doubleValue(), -1, 0, null, new DataPoint[0], false);
+		SimpleScan buildingScan = new SimpleScan(scanNum, 1, retentionTime.doubleValue(), -1, 0, null, new MzDataPoint[0], false);
 		
 		if (i == j) {
 			buildingScan.setCentroided(true);
 			buildingScan.setDataPoints(tempDataPoints);
 		} else {
 			int sizeArray = j;
-			DataPoint[] dataPoints = new DataPoint[j];
+			MzDataPoint[] dataPoints = new MzDataPoint[j];
 
 			System.arraycopy(tempDataPoints, 0, dataPoints, 0, sizeArray);
 			buildingScan.setDataPoints(dataPoints);

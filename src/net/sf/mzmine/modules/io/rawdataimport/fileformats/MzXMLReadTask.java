@@ -34,7 +34,7 @@ import javax.xml.datatype.Duration;
 import javax.xml.parsers.SAXParser;
 import javax.xml.parsers.SAXParserFactory;
 
-import net.sf.mzmine.data.DataPoint;
+import net.sf.mzmine.data.MzDataPoint;
 import net.sf.mzmine.data.PreloadLevel;
 import net.sf.mzmine.data.RawDataFile;
 import net.sf.mzmine.data.RawDataFileWriter;
@@ -238,7 +238,7 @@ public class MzXMLReadTask extends DefaultHandler implements Task {
 				parentTreeValue[msLevel] = scanNumber;
 
 			buildingScan = new SimpleScan(scanNumber, msLevel, retentionTime,
-					parentScan, 0f, null, new DataPoint[0], false);
+					parentScan, 0f, null, new MzDataPoint[0], false);
 
 		}
 
@@ -347,8 +347,8 @@ public class MzXMLReadTask extends DefaultHandler implements Task {
 		if (qName.equalsIgnoreCase("peaks")) {
 
 			//
-			DataPoint completeDataPoints[] = new DataPoint[peaksCount];
-			DataPoint tempDataPoints[] = new DataPoint[peaksCount];
+			MzDataPoint completeDataPoints[] = new MzDataPoint[peaksCount];
+			MzDataPoint tempDataPoints[] = new MzDataPoint[peaksCount];
 			byte[] peakBytes = Base64.decode(charBuffer.toString()
 					.toCharArray());
 			
@@ -443,7 +443,7 @@ public class MzXMLReadTask extends DefaultHandler implements Task {
 				buildingScan.setDataPoints(tempDataPoints);
 			} else {
 				int sizeArray = j;
-				DataPoint[] dataPoints = new DataPoint[j];
+				MzDataPoint[] dataPoints = new MzDataPoint[j];
 
 				System.arraycopy(tempDataPoints, 0, dataPoints, 0, sizeArray);
 				/*

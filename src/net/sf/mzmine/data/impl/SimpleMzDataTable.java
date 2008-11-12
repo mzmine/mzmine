@@ -2,23 +2,23 @@ package net.sf.mzmine.data.impl;
 
 import java.util.Vector;
 
-import net.sf.mzmine.data.DataPoint;
+import net.sf.mzmine.data.MzDataPoint;
 import net.sf.mzmine.data.MzDataTable;
 import net.sf.mzmine.util.Range;
 
 public class SimpleMzDataTable implements MzDataTable {
 	
-	private DataPoint dataPoints[];
+	private MzDataPoint dataPoints[];
 	
-	public SimpleMzDataTable(DataPoint[] dataPoints){
+	public SimpleMzDataTable(MzDataPoint[] dataPoints){
 		this.dataPoints = dataPoints;
 	}
 
-	public DataPoint[] getDataPoints() {
+	public MzDataPoint[] getDataPoints() {
 		return dataPoints;
 	}
 
-	public DataPoint[] getDataPointsByMass(Range mzRange) {
+	public MzDataPoint[] getDataPointsByMass(Range mzRange) {
 		int startIndex, endIndex;
 		for (startIndex = 0; startIndex < dataPoints.length; startIndex++) {
 			if (dataPoints[startIndex].getMZ() >= mzRange.getMin())
@@ -30,7 +30,7 @@ public class SimpleMzDataTable implements MzDataTable {
 				break;
 		}
 
-		DataPoint pointsWithinRange[] = new DataPoint[endIndex - startIndex];
+		MzDataPoint pointsWithinRange[] = new MzDataPoint[endIndex - startIndex];
 
 		// Copy the relevant points
 		System.arraycopy(dataPoints, startIndex, pointsWithinRange, 0, endIndex
@@ -39,16 +39,16 @@ public class SimpleMzDataTable implements MzDataTable {
 		return pointsWithinRange;
 	}
 
-	public DataPoint[] getDataPointsOverIntensity(double intensity) {
+	public MzDataPoint[] getDataPointsOverIntensity(double intensity) {
 		int index;
-		Vector<DataPoint> points = new Vector<DataPoint>();
+		Vector<MzDataPoint> points = new Vector<MzDataPoint>();
 		
 		for (index = 0; index < dataPoints.length; index++) {
 			if (dataPoints[index].getIntensity() >= intensity)
 				points.add(dataPoints[index]);
 		}
 
-		DataPoint pointsOverIntensity[] = points.toArray(new DataPoint[0]);
+		MzDataPoint pointsOverIntensity[] = points.toArray(new MzDataPoint[0]);
 
 		return pointsOverIntensity;
 	}
@@ -63,7 +63,7 @@ public class SimpleMzDataTable implements MzDataTable {
 	 * @param intensityValues
 	 *            Intensity values to set
 	 */
-	public void setDataPoints(DataPoint[] dataPoints) {
+	public void setDataPoints(MzDataPoint[] dataPoints) {
 		this.dataPoints = dataPoints;
 	}
 

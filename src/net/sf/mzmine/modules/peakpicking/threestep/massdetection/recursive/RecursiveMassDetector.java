@@ -22,7 +22,7 @@ package net.sf.mzmine.modules.peakpicking.threestep.massdetection.recursive;
 import java.util.TreeSet;
 import java.util.Vector;
 
-import net.sf.mzmine.data.DataPoint;
+import net.sf.mzmine.data.MzDataPoint;
 import net.sf.mzmine.data.Scan;
 import net.sf.mzmine.data.impl.SimpleMzPeak;
 import net.sf.mzmine.modules.peakpicking.threestep.massdetection.MassDetector;
@@ -33,7 +33,7 @@ public class RecursiveMassDetector implements MassDetector {
     // Parameter values
     private double minimumMZPeakWidth, maximumMZPeakWidth, noiseLevel;
     private TreeSet<SimpleMzPeak> mzPeaks;
-    private DataPoint[] dataPoints;
+    private MzDataPoint[] dataPoints;
 
     // private Scan scan;
 
@@ -63,7 +63,7 @@ public class RecursiveMassDetector implements MassDetector {
 
         // logger.finest(" Level of recursion " + recuLevel);
 
-        Vector<DataPoint> RawDataPointsInds = new Vector<DataPoint>();
+        Vector<MzDataPoint> RawDataPointsInds = new Vector<MzDataPoint>();
         int peakStartInd, peakStopInd, peakMaxInd;
         double peakWidthMZ;
 
@@ -115,7 +115,7 @@ public class RecursiveMassDetector implements MassDetector {
                 // Declare a new MzPeak with intensity equal to max intensity
                 // data point
                 mzPeaks.add(new SimpleMzPeak(dataPoints[peakMaxInd],
-                        RawDataPointsInds.toArray(new DataPoint[0])));
+                        RawDataPointsInds.toArray(new MzDataPoint[0])));
 
                 if (recuLevel > 0) {
                     // return stop index and beginning of the next peak

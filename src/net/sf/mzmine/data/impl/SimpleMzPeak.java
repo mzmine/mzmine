@@ -19,7 +19,7 @@
 
 package net.sf.mzmine.data.impl;
 
-import net.sf.mzmine.data.DataPoint;
+import net.sf.mzmine.data.MzDataPoint;
 import net.sf.mzmine.data.MzPeak;
 
 /**
@@ -28,7 +28,7 @@ import net.sf.mzmine.data.MzPeak;
 public class SimpleMzPeak implements MzPeak {
 
     private double mz, intensity;
-    private DataPoint[] rawDataPoints;
+    private MzDataPoint[] rawDataPoints;
 
     /**
      * This constructor takes the given raw data point to represent this m/z
@@ -36,9 +36,9 @@ public class SimpleMzPeak implements MzPeak {
      * 
      * @param dataPoint
      */
-    public SimpleMzPeak(DataPoint dataPoint) {
+    public SimpleMzPeak(MzDataPoint dataPoint) {
         this(dataPoint.getMZ(), dataPoint.getIntensity(),
-                new DataPoint[] { dataPoint });
+                new MzDataPoint[] { dataPoint });
     }
 
     /**
@@ -49,7 +49,7 @@ public class SimpleMzPeak implements MzPeak {
      * @param dataPoint
      * @param rawDataPoints
      */
-    public SimpleMzPeak(DataPoint dp, DataPoint[] rawDataPoints) {
+    public SimpleMzPeak(MzDataPoint dp, MzDataPoint[] rawDataPoints) {
         this(dp.getMZ(), dp.getIntensity(), rawDataPoints);
     }
 
@@ -60,7 +60,7 @@ public class SimpleMzPeak implements MzPeak {
      * @param dataPoint
      * @param rawDataPoints
      */
-    public SimpleMzPeak(double mz, double intensity, DataPoint[] rawDataPoints) {
+    public SimpleMzPeak(double mz, double intensity, MzDataPoint[] rawDataPoints) {
         this.mz = mz;
         this.intensity = intensity;
         this.rawDataPoints = rawDataPoints;
@@ -99,7 +99,7 @@ public class SimpleMzPeak implements MzPeak {
     /**
      * This method returns an array of raw data points that form this m/z peak
      */
-    public DataPoint[] getRawDataPoints() {
+    public MzDataPoint[] getRawDataPoints() {
         return rawDataPoints;
     }
     

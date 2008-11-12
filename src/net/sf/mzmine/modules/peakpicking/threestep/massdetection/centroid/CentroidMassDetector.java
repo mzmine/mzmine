@@ -21,7 +21,7 @@ package net.sf.mzmine.modules.peakpicking.threestep.massdetection.centroid;
 
 import java.util.ArrayList;
 
-import net.sf.mzmine.data.DataPoint;
+import net.sf.mzmine.data.MzDataPoint;
 import net.sf.mzmine.data.MzPeak;
 import net.sf.mzmine.data.Scan;
 import net.sf.mzmine.data.impl.SimpleMzPeak;
@@ -41,7 +41,7 @@ public class CentroidMassDetector implements MassDetector {
 		
         ArrayList<MzPeak> mzPeaks = new ArrayList<MzPeak>();
         
-        DataPoint dataPoints[] = scan.getDataPoints();
+        MzDataPoint dataPoints[] = scan.getDataPoints();
 
 		// Find possible mzPeaks
 		for (int j = 0; j < dataPoints.length; j++) {

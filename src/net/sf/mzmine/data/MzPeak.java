@@ -26,13 +26,13 @@ package net.sf.mzmine.data;
  * Instead, MzPeak provides the getRawDataPoints() method which returns those
  * data points that were considered to form this MzPeak.
  */
-public interface MzPeak extends DataPoint {
+public interface MzPeak extends MzDataPoint {
 
     /**
      * This method returns an array of raw data points that form this peak,
      * sorted in m/z order.
      */
-    public DataPoint[] getRawDataPoints();
+    public MzDataPoint[] getRawDataPoints();
     
     public MzPeak clone();
 

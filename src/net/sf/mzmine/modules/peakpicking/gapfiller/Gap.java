@@ -22,7 +22,7 @@ package net.sf.mzmine.modules.peakpicking.gapfiller;
 import java.util.List;
 import java.util.Vector;
 
-import net.sf.mzmine.data.DataPoint;
+import net.sf.mzmine.data.MzDataPoint;
 import net.sf.mzmine.data.MzPeak;
 import net.sf.mzmine.data.PeakListRow;
 import net.sf.mzmine.data.PeakStatus;
@@ -83,7 +83,7 @@ class Gap {
             return;
 
         // Find top m/z peak in our range
-        DataPoint basePeak = ScanUtils.findBasePeak(scan, mzRange);
+        MzDataPoint basePeak = ScanUtils.findBasePeak(scan, mzRange);
 
         GapDataPoint currentDataPoint;
         if (basePeak != null) {

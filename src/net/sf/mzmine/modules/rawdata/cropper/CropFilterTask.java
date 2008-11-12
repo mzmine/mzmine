@@ -21,7 +21,7 @@ package net.sf.mzmine.modules.rawdata.cropper;
 
 import java.io.IOException;
 
-import net.sf.mzmine.data.DataPoint;
+import net.sf.mzmine.data.MzDataPoint;
 import net.sf.mzmine.data.RawDataFile;
 import net.sf.mzmine.data.RawDataFileWriter;
 import net.sf.mzmine.data.Scan;
@@ -143,7 +143,7 @@ class CropFilterTask implements Task {
                     }
 
                     // Pickup datapoints inside the m/z range
-                    DataPoint croppedDataPoints[] = oldScan.getDataPointsByMass(mzRange);
+                    MzDataPoint croppedDataPoints[] = oldScan.getDataPointsByMass(mzRange);
 
                     // Create updated scan
                     SimpleScan newScan = new SimpleScan(oldScan);

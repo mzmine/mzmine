@@ -24,7 +24,7 @@ import java.util.TreeSet;
 import java.util.ArrayList;
 import java.util.logging.Logger;
 
-import net.sf.mzmine.data.DataPoint;
+import net.sf.mzmine.data.MzDataPoint;
 import net.sf.mzmine.data.Scan;
 import net.sf.mzmine.data.impl.SimpleMzPeak;
 import net.sf.mzmine.modules.peakpicking.threestep.massdetection.MassDetector;
@@ -126,11 +126,11 @@ public class ExactMassDetector implements MassDetector {
      */
     private void getLocalMaxima(Scan scan, TreeSet<SimpleMzPeak> candidatePeaks) {
 
-        DataPoint[] scanDataPoints = scan.getDataPoints();
+        MzDataPoint[] scanDataPoints = scan.getDataPoints();
         if (scanDataPoints.length == 0)
         	return;
-        DataPoint localMaximum = scanDataPoints[0];
-        ArrayList<DataPoint> rangeDataPoints = new ArrayList<DataPoint>();
+        MzDataPoint localMaximum = scanDataPoints[0];
+        ArrayList<MzDataPoint> rangeDataPoints = new ArrayList<MzDataPoint>();
 
         boolean ascending = true;
 
@@ -162,7 +162,7 @@ public class ExactMassDetector implements MassDetector {
                 // Add the m/z peak if it is above the noise level
                 if (localMaximum.getIntensity() > noiseLevel) {
 
-                    DataPoint[] rawDataPoints = rangeDataPoints.toArray(new DataPoint[0]);
+                    MzDataPoint[] rawDataPoints = rangeDataPoints.toArray(new MzDataPoint[0]);
                     candidatePeaks.add(new SimpleMzPeak(localMaximum, rawDataPoints));
                 }
 
@@ -201,7 +201,7 @@ public class ExactMassDetector implements MassDetector {
 
         double xRight = -1, xLeft = -1;
         double halfIntensity = currentCandidate.getIntensity() / 2;
-        DataPoint[] rangeDataPoints = currentCandidate.getRawDataPoints();
+        MzDataPoint[] rangeDataPoints = currentCandidate.getRawDataPoints();
 
         for (int i = 0; i < rangeDataPoints.length - 1; i++) {
 

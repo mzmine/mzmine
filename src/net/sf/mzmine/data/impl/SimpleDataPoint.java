@@ -21,13 +21,13 @@ package net.sf.mzmine.data.impl;
 
 import java.text.Format;
 
-import net.sf.mzmine.data.DataPoint;
+import net.sf.mzmine.data.MzDataPoint;
 import net.sf.mzmine.main.MZmineCore;
 
 /**
  * This class represents one datapoint of a spectra (m/z and intensity)
  */
-public class SimpleDataPoint implements DataPoint {
+public class SimpleDataPoint implements MzDataPoint {
 
 	private double mz, intensity;
 

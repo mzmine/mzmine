@@ -22,7 +22,7 @@ package net.sf.mzmine.modules.peakpicking.threestep.massdetection.wavelet;
 import java.util.TreeSet;
 import java.util.Vector;
 
-import net.sf.mzmine.data.DataPoint;
+import net.sf.mzmine.data.MzDataPoint;
 import net.sf.mzmine.data.Scan;
 import net.sf.mzmine.data.impl.SimpleMzPeak;
 import net.sf.mzmine.data.impl.SimpleDataPoint;
@@ -58,11 +58,11 @@ public class WaveletMassDetector implements MassDetector {
     }
 
     public SimpleMzPeak[] getMassValues(Scan scan) {
-        DataPoint[] originalDataPoints = scan.getDataPoints();
+        MzDataPoint[] originalDataPoints = scan.getDataPoints();
         mzPeaks = new TreeSet<SimpleMzPeak>(new DataPointSorter(true,
                 true));
 
-        DataPoint[] waveletDataPoints = performCWT(originalDataPoints);
+        MzDataPoint[] waveletDataPoints = performCWT(originalDataPoints);
 
         getMzPeaks(originalDataPoints, waveletDataPoints);
 
@@ -74,7 +74,7 @@ public class WaveletMassDetector implements MassDetector {
      * 
      * @param dataPoints
      */
-    private SimpleDataPoint[] performCWT(DataPoint[] dataPoints) {
+    private SimpleDataPoint[] performCWT(MzDataPoint[] dataPoints) {
         int length = dataPoints.length;
         SimpleDataPoint[] cwtDataPoints = new SimpleDataPoint[length];
         double wstep = ((WAVELET_ESR - WAVELET_ESL) / NPOINTS);
@@ -149,10 +149,10 @@ public class WaveletMassDetector implements MassDetector {
     /**
      * This function searches for maximums from wavelet data points
      */
-    private void getMzPeaks(DataPoint[] originalDataPoints,
-            DataPoint[] waveletDataPoints) {
+    private void getMzPeaks(MzDataPoint[] originalDataPoints,
+            MzDataPoint[] waveletDataPoints) {
 
-        Vector<DataPoint> rawDataPoints = new Vector<DataPoint>();
+        Vector<MzDataPoint> rawDataPoints = new Vector<MzDataPoint>();
         int peakMaxInd = 0;
         int stopInd = waveletDataPoints.length - 1;
 
@@ -190,7 +190,7 @@ public class WaveletMassDetector implements MassDetector {
                         calcAproxIntensity(rawDataPoints));
 
                 mzPeaks.add(new SimpleMzPeak(peakDataPoint,
-                        rawDataPoints.toArray(new DataPoint[0])));
+                        rawDataPoints.toArray(new MzDataPoint[0])));
 
             }
             rawDataPoints.clear();
@@ -198,11 +198,11 @@ public class WaveletMassDetector implements MassDetector {
 
     }
 
-    private double calcAproxIntensity(Vector<DataPoint> rawDataPoints) {
+    private double calcAproxIntensity(Vector<MzDataPoint> rawDataPoints) {
 
         double aproxIntensity = 0;
 
-        for (DataPoint d : rawDataPoints) {
+        for (MzDataPoint d : rawDataPoints) {
             if (d.getIntensity() > aproxIntensity)
                 aproxIntensity = d.getIntensity();
         }

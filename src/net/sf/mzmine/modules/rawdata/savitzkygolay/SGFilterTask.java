@@ -23,7 +23,7 @@ import java.io.IOException;
 import java.util.Hashtable;
 import java.util.logging.Logger;
 
-import net.sf.mzmine.data.DataPoint;
+import net.sf.mzmine.data.MzDataPoint;
 import net.sf.mzmine.data.RawDataFile;
 import net.sf.mzmine.data.RawDataFileWriter;
 import net.sf.mzmine.data.Scan;
@@ -173,7 +173,7 @@ class SGFilterTask implements Task {
         int marginSize = (numOfDataPoints + 1) / 2 - 1;
         double sumOfInts;
         
-        DataPoint oldDataPoints[] = sc.getDataPoints();
+        MzDataPoint oldDataPoints[] = sc.getDataPoints();
         int newDataPointsLength = oldDataPoints.length - (marginSize * 2);
         
         // only process scans with datapoints
@@ -182,7 +182,7 @@ class SGFilterTask implements Task {
             return;
         }
         
-        DataPoint newDataPoints[] = new DataPoint[newDataPointsLength];
+        MzDataPoint newDataPoints[] = new MzDataPoint[newDataPointsLength];
 
         for (int spectrumInd = marginSize; spectrumInd < (oldDataPoints.length - marginSize); spectrumInd++) {
 

@@ -31,7 +31,7 @@ import java.util.Hashtable;
 import java.util.Set;
 import java.util.logging.Logger;
 
-import net.sf.mzmine.data.DataPoint;
+import net.sf.mzmine.data.MzDataPoint;
 import net.sf.mzmine.data.PreloadLevel;
 import net.sf.mzmine.data.RawDataFile;
 import net.sf.mzmine.data.RawDataFileWriter;
@@ -359,7 +359,7 @@ public class RawDataFileImpl implements RawDataFile, RawDataFileWriter {
             if (scan.getMSLevel() != msLevel)
                 continue;
 
-            DataPoint scanBasePeak = scan.getBasePeak();
+            MzDataPoint scanBasePeak = scan.getBasePeak();
             if (scanBasePeak == null)
                 continue;
 

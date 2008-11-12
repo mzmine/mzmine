@@ -26,7 +26,7 @@ import java.util.Set;
 import java.util.TreeSet;
 
 import net.sf.mzmine.data.ChromatographicPeak;
-import net.sf.mzmine.data.DataPoint;
+import net.sf.mzmine.data.MzDataPoint;
 import net.sf.mzmine.data.IsotopePattern;
 import net.sf.mzmine.data.IsotopePatternStatus;
 import net.sf.mzmine.data.MzPeak;
@@ -36,6 +36,7 @@ import net.sf.mzmine.data.Scan;
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.util.DataPointSorter;
 import net.sf.mzmine.util.Range;
+import net.sf.mzmine.util.ScanUtils;
 
 /**
  * Simple implementation of IsotopePattern interface
@@ -199,7 +200,7 @@ public class SimpleIsotopePattern implements IsotopePattern {
 	public void setMZ(double mz) {
 	}
 
-	public DataPoint[] getDataPoints() {
+	public MzDataPoint[] getDataPoints() {
 
 		RawDataFile dataFile = representativePeak.getDataFile();
 		int repScanNumber = representativePeak.getRepresentativeScanNumber();
@@ -265,9 +266,9 @@ public class SimpleIsotopePattern implements IsotopePattern {
 		return getRepresentativePeak().getHeight();
 	}
 
-	public DataPoint[] getIsotopes() {
+	public MzDataPoint[] getIsotopes() {
 		
-		TreeSet<DataPoint> dataPoints = new TreeSet<DataPoint>(
+		TreeSet<MzDataPoint> dataPoints = new TreeSet<MzDataPoint>(
 				new DataPointSorter(true, true));
 		ChromatographicPeak cp;
 		Iterator<ChromatographicPeak> itr = peaks.iterator();
@@ -277,11 +278,19 @@ public class SimpleIsotopePattern implements IsotopePattern {
 			dataPoints.add(new SimpleDataPoint(cp.getMZ(), cp.getHeight()));
 		}
 		
-		return dataPoints.toArray(new DataPoint[0]);
+		return dataPoints.toArray(new MzDataPoint[0]);
 	}
 
 	public int getMostIntenseFragmentScanNumber() {
 		return representativePeak.getMostIntenseFragmentScanNumber();
 	}
+    
+    public MzDataPoint[] getDataPointsByMass(Range mzRange) {
+        return ScanUtils.selectDataPointsByMass(getDataPoints(), mzRange);
+    }
+
+    public MzDataPoint[] getDataPointsOverIntensity(double intensity) {
+        return ScanUtils.selectDataPointsOverIntensity(getDataPoints(), intensity);
+    }
 
 }

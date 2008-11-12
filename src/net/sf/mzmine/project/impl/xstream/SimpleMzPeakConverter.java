@@ -19,7 +19,7 @@
 
 package net.sf.mzmine.project.impl.xstream;
 
-import net.sf.mzmine.data.DataPoint;
+import net.sf.mzmine.data.MzDataPoint;
 import net.sf.mzmine.data.impl.SimpleDataPoint;
 import net.sf.mzmine.data.impl.SimpleMzPeak;
 
@@ -46,7 +46,7 @@ public class SimpleMzPeakConverter implements Converter {
         value.append(":");
         value.append(Double.toString(mzPeak.getIntensity()));
         
-        for (DataPoint dp: mzPeak.getRawDataPoints()) {
+        for (MzDataPoint dp: mzPeak.getRawDataPoints()) {
             value.append(";");
             value.append(Double.toString(dp.getMZ()));
             value.append(":");
@@ -66,7 +66,7 @@ public class SimpleMzPeakConverter implements Converter {
         double mz = Double.valueOf(mzValue[0]);
         double intensity = Double.valueOf(mzValue[1]);;
         
-        DataPoint dataPoints[] = new DataPoint[value.length - 1];
+        MzDataPoint dataPoints[] = new MzDataPoint[value.length - 1];
         for (int i = 1; i < value.length; i++) {
             String dpMzValue[] = value[i].split(":");
             double dpMz = Double.valueOf(dpMzValue[0]);

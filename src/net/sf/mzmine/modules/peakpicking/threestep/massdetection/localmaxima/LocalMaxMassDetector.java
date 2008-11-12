@@ -22,7 +22,7 @@ package net.sf.mzmine.modules.peakpicking.threestep.massdetection.localmaxima;
 import java.util.ArrayList;
 import java.util.Vector;
 
-import net.sf.mzmine.data.DataPoint;
+import net.sf.mzmine.data.MzDataPoint;
 import net.sf.mzmine.data.MzPeak;
 import net.sf.mzmine.data.Scan;
 import net.sf.mzmine.data.impl.SimpleMzPeak;
@@ -45,13 +45,13 @@ public class LocalMaxMassDetector implements MassDetector {
         // List of found mz peaks
         ArrayList<MzPeak> mzPeaks = new ArrayList<MzPeak>();
 
-        DataPoint dataPoints[] = scan.getDataPoints();
+        MzDataPoint dataPoints[] = scan.getDataPoints();
 
         // All data points of current m/z peak
-        Vector<DataPoint> currentMzPeakDataPoints = new Vector<DataPoint>();
+        Vector<MzDataPoint> currentMzPeakDataPoints = new Vector<MzDataPoint>();
 
         // Top data point of current m/z peak
-        DataPoint currentMzPeakTop = null;
+        MzDataPoint currentMzPeakTop = null;
 
         // True if we haven't reached the current local maximum yet
         boolean ascending = true;
@@ -83,7 +83,7 @@ public class LocalMaxMassDetector implements MassDetector {
                 // Add the m/z peak if it is above the noise level
                 if (currentMzPeakTop.getIntensity() > noiseLevel) {
                     SimpleMzPeak newMzPeak = new SimpleMzPeak(currentMzPeakTop,
-                            currentMzPeakDataPoints.toArray(new DataPoint[0]));
+                            currentMzPeakDataPoints.toArray(new MzDataPoint[0]));
                     mzPeaks.add(newMzPeak);
                 }
 
