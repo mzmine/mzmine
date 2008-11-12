@@ -38,8 +38,10 @@ public class HelpMainMenuItem {
 		    MZmineHelpSet hs = MZmineCore.getHelpImp().getHelpSet();
 		    
 			HelpBroker hb = hs.createHelpBroker();
-			ActionListener helpListener = new CSH.DisplayHelpFromSource(hb);
+			ActionListener helpListener = new HelpListener(hb); //CSH.DisplayHelpFromSource(hb);
 
+			hs.setHomeID("net/sf/mzmine/desktop/helpsystem/AboutText.html");
+			
 			menu.addMenuItem(MZmineMenu.HELPSYSTEM, "About MZmine 2 ...",
 					"Help system contents", KeyEvent.VK_C, helpListener, null);
 			
