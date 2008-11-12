@@ -144,13 +144,12 @@ public class SpectraVisualizerWindow extends JInternalFrame implements
 
 		} else {
 
-			// loadIsotopePattern((IsotopePattern) mzDataTable);
 			Runnable newThreadRunnable = new Runnable() {
 
 				public void run() {
 					loadRawData(mzDataTable);
-					loadPeaks();
-					loadIsotopePattern((IsotopePattern) mzDataTable);
+					//loadPeaks();
+					//loadIsotopePattern((IsotopePattern) mzDataTable);
 				}
 
 			};

@@ -66,7 +66,7 @@ import org.jfree.ui.RectangleInsets;
  * 
  */
 public class SpectraPlot extends ChartPanel {
-	
+
 	private Logger logger = Logger.getLogger(this.getClass().getName());
 
 	private JFreeChart chart;
@@ -419,18 +419,20 @@ public class SpectraPlot extends ChartPanel {
 		if (peakRendererMap.size() == 0)
 			return true;
 
-		Boolean pickedPeaksVisible = false;
+		Boolean isotopePeaksVisible = false;
 		Iterator<Integer> itr = peakRendererMap.keySet().iterator();
 		int key;
 		while (itr.hasNext()) {
 			key = itr.next();
-			if (key == 1)
-				continue;
+			if (key == 1) {
+				if (!((PeakListDataSet) plot.getDataset(1)).isPredicted())
+					continue;
+			}
 			if (peakRendererMap.get(key).getBaseSeriesVisible()) {
 				return true;
 			}
 		}
-		return pickedPeaksVisible;
+		return isotopePeaksVisible;
 	}
 
 	public void switchPickedPeaksVisible() {
@@ -440,14 +442,16 @@ public class SpectraPlot extends ChartPanel {
 
 	public void switchIsotopePeaksVisible() {
 
-		boolean pickedPeaksVisible = getIsotopePeaksVisible();
+		boolean isotopePeaksVisible = getIsotopePeaksVisible();
 		Iterator<Integer> itr = peakRendererMap.keySet().iterator();
 		int key;
 		while (itr.hasNext()) {
 			key = itr.next();
-			if (key == 1)
-				continue;
-			peakRendererMap.get(key).setBaseSeriesVisible(!pickedPeaksVisible);
+			if (key == 1){
+				if (!((PeakListDataSet) plot.getDataset(1)).isPredicted())
+					continue;
+			}
+			peakRendererMap.get(key).setBaseSeriesVisible(!isotopePeaksVisible);
 		}
 
 	}
@@ -498,8 +502,7 @@ public class SpectraPlot extends ChartPanel {
 
 		plot.setDataset(0, scanData);
 		plot.setRenderer(0, renderer);
-		
-		logger.finest("Adiciona spectraDataSet");
+
 
 	}
 
@@ -507,7 +510,7 @@ public class SpectraPlot extends ChartPanel {
 
 		if (peakDataSet == null)
 			return;
-		
+
 		Color rendererColor;
 		peakDataSet.setThickness(thickness);
 		XYBarRenderer newRenderer;
@@ -529,16 +532,19 @@ public class SpectraPlot extends ChartPanel {
 			if (numOfPeakDataSets > 1) {
 				PeakListDataSet firstPeakDataSet = (PeakListDataSet) plot
 						.getDataset(1);
-				if (firstPeakDataSet.isIsotopeDataSet() && (!firstPeakDataSet.isPredicted()) ) {
+				if (firstPeakDataSet.isIsotopeDataSet()
+						&& (!firstPeakDataSet.isPredicted())) {
 					double score = IsotopePatternScoreCalculator.getScore(
-							peakDataSet.getIsotopePattern(), firstPeakDataSet.getIsotopePattern());
+							peakDataSet.getIsotopePattern(), firstPeakDataSet
+									.getIsotopePattern());
 					peakDataSet.setScore(score);
 				}
 			}
-			
+
 			if (peakDataSet.isAutoIncrease()) {
 				SpectraDataSet spectra = (SpectraDataSet) plot.getDataset(0);
-				double increase = spectra.getBiggestIntensity(peakDataSet.getIsotopePattern().getDataPoints());
+				double increase = spectra.getBiggestIntensity(peakDataSet
+						.getIsotopePattern().getDataPoints());
 				peakDataSet.setIncreaseIntensity(increase);
 			}
 
@@ -547,11 +553,10 @@ public class SpectraPlot extends ChartPanel {
 			peakRendererMap.put(numOfPeakDataSets, newRenderer);
 			numOfPeakDataSets++;
 
-		} 
-		else {
-			
+		} else {
+
 			if (numOfPeakDataSets == 1) {
-			
+
 				rendererColor = pickedPeaksColor;
 				newRenderer = new PeakPlotRenderer();
 				newRenderer.setSeriesPaint(0, rendererColor);
@@ -562,12 +567,11 @@ public class SpectraPlot extends ChartPanel {
 				plot.setDataset(1, peakDataSet);
 				peakRendererMap.put(1, newRenderer);
 				numOfPeakDataSets++;
-			
-			}
-			else{
+
+			} else {
 				plot.setDataset(1, peakDataSet);
 			}
-			
+
 		}
 
 		updatePeakDataSetIncrease();
@@ -616,20 +620,21 @@ public class SpectraPlot extends ChartPanel {
 	}
 
 	private void updatePeakDataSetIncrease() {
-		
+
 		int dataSetCount = plot.getDatasetCount();
 		PeakListDataSet dataSet;
 		SpectraDataSet spectra = (SpectraDataSet) plot.getDataset(0);
-		
+
 		assert spectra != null;
-		
+
 		double increase;
 
 		for (int i = 1; i < dataSetCount; i++) {
 			dataSet = (PeakListDataSet) plot.getDataset(i);
-			if (dataSet != null){
+			if (dataSet != null) {
 				if (dataSet.isPredicted() && dataSet.isAutoIncrease()) {
-					increase = spectra.getBiggestIntensity(dataSet.getIsotopePattern().getDataPoints());
+					increase = spectra.getBiggestIntensity(dataSet
+							.getIsotopePattern().getDataPoints());
 					dataSet.setIncreaseIntensity(increase);
 				}
 			}
