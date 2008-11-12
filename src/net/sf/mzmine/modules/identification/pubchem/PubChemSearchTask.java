@@ -301,7 +301,7 @@ public class PubChemSearchTask implements Task {
 
 		URL url = new URL(
 				"http://pubchem.ncbi.nlm.nih.gov/summary/summary.cgi?cid="
-						+ compound.getCompoundID() + "&disopt=DisplaySDF");
+						+ compound.getID() + "&disopt=DisplaySDF");
 
 		InputStream in = url.openStream();
 

@@ -79,13 +79,13 @@ public class MolStructureViewer extends JInternalFrame implements
 	 */
 	public MolStructureViewer(PubChemCompound compound) {
 
-		super("Structure " + compound.getCompoundName() + " CID"
-				+ compound.getCompoundID(), true, true, true, true);
+		super("Structure " + compound.getName() + " CID"
+				+ compound.getID(), true, true, true, true);
 
 		this.compound = compound;
 
-		this.description = "Structure " + compound.getCompoundName() + " CID"
-				+ compound.getCompoundID();
+		this.description = "Structure " + compound.getName() + " CID"
+				+ compound.getID();
 
 		setDefaultCloseOperation(DISPOSE_ON_CLOSE);
 		setBackground(Color.white);
@@ -109,7 +109,7 @@ public class MolStructureViewer extends JInternalFrame implements
 		JPanel container = (JPanel) jcp.getScrollPane().getParent();
 		container.add(jmolAndButton, BorderLayout.WEST);
 
-		String compoundName = compound.getCompoundName();
+		String compoundName = compound.getName();
 
 		JLabel labelName = new JLabel(compoundName + " ("
 				+ compound.getCompoundFormula() + ")", SwingConstants.CENTER);
@@ -203,7 +203,7 @@ public class MolStructureViewer extends JInternalFrame implements
 			// The following do apply either to the existing or the new
 			// frame
 			jcp.lastUsedJCPP.getJChemPaintModel().setTitle(
-					"CID_" + compound.getCompoundID() + ".sdf");
+					"CID_" + compound.getID() + ".sdf");
 
 			Controller2DModel controller = jcp.getJChemPaintModel()
 					.getControllerModel();
@@ -242,7 +242,7 @@ public class MolStructureViewer extends JInternalFrame implements
 						public Object construct() {
 							try {
 								structure3D = get3DStructure(compound
-										.getCompoundID());
+										.getID());
 							} catch (Exception e) {
 								MZmineCore
 										.getDesktop()

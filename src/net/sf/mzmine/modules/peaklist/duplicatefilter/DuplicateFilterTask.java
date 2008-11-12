@@ -21,7 +21,7 @@ package net.sf.mzmine.modules.peaklist.duplicatefilter;
 
 import java.util.Arrays;
 
-import net.sf.mzmine.data.CompoundIdentity;
+import net.sf.mzmine.data.PeakIdentity;
 import net.sf.mzmine.data.PeakList;
 import net.sf.mzmine.data.PeakListRow;
 import net.sf.mzmine.data.impl.SimplePeakList;
@@ -146,16 +146,16 @@ class DuplicateFilterTask implements Task {
         			// Use preferred identifications if available instead of all identifications
         			// Use CompoundIDs if available instead of CompoundNames
         			
-       				CompoundIdentity[] firstIdentities = peaklistRows[firstRowIndex].getCompoundIdentities();
-       				CompoundIdentity[] secondIdentities = peaklistRows[secondRowIndex].getCompoundIdentities();
+       				PeakIdentity[] firstIdentities = peaklistRows[firstRowIndex].getCompoundIdentities();
+       				PeakIdentity[] secondIdentities = peaklistRows[secondRowIndex].getCompoundIdentities();
        				
        				if ( (firstIdentities.length==0) && (secondIdentities.length==0) )
        					sameID = true;
        				
-       				for (CompoundIdentity firstIdentity : firstIdentities) {
+       				for (PeakIdentity firstIdentity : firstIdentities) {
        					sameID = false;
-       					for (CompoundIdentity secondIdentity : secondIdentities) {
-       						if (firstIdentity.getCompoundName().equals(secondIdentity.getCompoundName())) {
+       					for (PeakIdentity secondIdentity : secondIdentities) {
+       						if (firstIdentity.getName().equals(secondIdentity.getName())) {
        							sameID = true;
        							break;
        						}

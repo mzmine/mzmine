@@ -26,7 +26,7 @@ import java.util.Hashtable;
 import java.util.Iterator;
 
 import net.sf.mzmine.data.ChromatographicPeak;
-import net.sf.mzmine.data.CompoundIdentity;
+import net.sf.mzmine.data.PeakIdentity;
 import net.sf.mzmine.data.IsotopePattern;
 import net.sf.mzmine.data.PeakListRow;
 import net.sf.mzmine.data.RawDataFile;
@@ -39,8 +39,8 @@ public class SimplePeakListRow implements PeakListRow {
 
 	private Hashtable<RawDataFile, ChromatographicPeak> peaks;
 	private Hashtable<RawDataFile, ChromatographicPeak> originalPeaks;
-	private HashSet<CompoundIdentity> identities;
-	private CompoundIdentity preferredIdentity;
+	private HashSet<PeakIdentity> identities;
+	private PeakIdentity preferredIdentity;
 	private String comment;
 	private int myID;
 	private double maxDataPointIntensity = 0;
@@ -49,8 +49,8 @@ public class SimplePeakListRow implements PeakListRow {
 		this.myID = myID;
 		peaks = new Hashtable<RawDataFile, ChromatographicPeak>();
 		originalPeaks = new Hashtable<RawDataFile, ChromatographicPeak>();
-		identities = new HashSet<CompoundIdentity>();
-		preferredIdentity = CompoundIdentity.UNKNOWN_IDENTITY;
+		identities = new HashSet<PeakIdentity>();
+		preferredIdentity = PeakIdentity.UNKNOWN_IDENTITY;
 	}
 
 	/**
@@ -161,7 +161,7 @@ public class SimplePeakListRow implements PeakListRow {
 		buf.append(" m/z @");
 		buf.append(timeFormat.format(getAverageRT()));
 		if (preferredIdentity != null)
-			buf.append(" " + preferredIdentity.getCompoundName());
+			buf.append(" " + preferredIdentity.getName());
 		if ((comment != null) && (comment.length() > 0))
 			buf.append(" (" + comment + ")");
 		return buf.toString();
@@ -182,18 +182,18 @@ public class SimplePeakListRow implements PeakListRow {
 	}
 
 	/**
-	 * @see net.sf.mzmine.data.PeakListRow#addCompoundIdentity(net.sf.mzmine.data.CompoundIdentity)
+	 * @see net.sf.mzmine.data.PeakListRow#addCompoundIdentity(net.sf.mzmine.data.PeakIdentity)
 	 */
-	public void addCompoundIdentity(CompoundIdentity identity, boolean preferred) {
+	public void addCompoundIdentity(PeakIdentity identity, boolean preferred) {
 		
 		// Verify if exists already an identity with the same name
-		CompoundIdentity compoundIdentity;
+		PeakIdentity compoundIdentity;
 		boolean exists = false;
 		Iterator itr = identities.iterator();
 		while (itr.hasNext()) {
-			compoundIdentity = (CompoundIdentity) itr.next();
-			if (compoundIdentity.getCompoundName().equals(
-					identity.getCompoundName())) {
+			compoundIdentity = (PeakIdentity) itr.next();
+			if (compoundIdentity.getName().equals(
+					identity.getName())) {
 				exists = true;
 				break;
 			}
@@ -201,7 +201,7 @@ public class SimplePeakListRow implements PeakListRow {
 
 		if (!exists) {
 			identities.add(identity);
-			if ((preferredIdentity == CompoundIdentity.UNKNOWN_IDENTITY) ||
+			if ((preferredIdentity == PeakIdentity.UNKNOWN_IDENTITY) ||
 				(preferred)){
 				setPreferredCompoundIdentity(identity);
 			}
@@ -209,38 +209,38 @@ public class SimplePeakListRow implements PeakListRow {
 	}
 
 	/**
-	 * @see net.sf.mzmine.data.PeakListRow#addCompoundIdentity(net.sf.mzmine.data.CompoundIdentity)
+	 * @see net.sf.mzmine.data.PeakListRow#addCompoundIdentity(net.sf.mzmine.data.PeakIdentity)
 	 */
-	public void removeCompoundIdentity(CompoundIdentity identity) {
+	public void removeCompoundIdentity(PeakIdentity identity) {
 		identities.remove(identity);
 		if (preferredIdentity == identity) {
 			if (identities.size() > 0) {
-				CompoundIdentity[] identitiesArray = identities
-						.toArray(new CompoundIdentity[0]);
+				PeakIdentity[] identitiesArray = identities
+						.toArray(new PeakIdentity[0]);
 				setPreferredCompoundIdentity(identitiesArray[0]);
 			} else
-				preferredIdentity = CompoundIdentity.UNKNOWN_IDENTITY;
+				preferredIdentity = PeakIdentity.UNKNOWN_IDENTITY;
 		}
 	}
 
 	/**
 	 * @see net.sf.mzmine.data.PeakListRow#getCompoundIdentities()
 	 */
-	public CompoundIdentity[] getCompoundIdentities() {
-		return identities.toArray(new CompoundIdentity[0]);
+	public PeakIdentity[] getCompoundIdentities() {
+		return identities.toArray(new PeakIdentity[0]);
 	}
 
 	/**
 	 * @see net.sf.mzmine.data.PeakListRow#getPreferredCompoundIdentity()
 	 */
-	public CompoundIdentity getPreferredCompoundIdentity() {
+	public PeakIdentity getPreferredCompoundIdentity() {
 		return preferredIdentity;
 	}
 
 	/**
-	 * @see net.sf.mzmine.data.PeakListRow#setPreferredCompoundIdentity(net.sf.mzmine.data.CompoundIdentity)
+	 * @see net.sf.mzmine.data.PeakListRow#setPreferredCompoundIdentity(net.sf.mzmine.data.PeakIdentity)
 	 */
-	public void setPreferredCompoundIdentity(CompoundIdentity identity) {
+	public void setPreferredCompoundIdentity(PeakIdentity identity) {
 		if (identity != null)
 			preferredIdentity = identity;
 	}

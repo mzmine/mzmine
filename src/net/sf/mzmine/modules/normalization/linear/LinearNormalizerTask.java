@@ -21,7 +21,7 @@ package net.sf.mzmine.modules.normalization.linear;
 
 import java.util.Hashtable;
 
-import net.sf.mzmine.data.CompoundIdentity;
+import net.sf.mzmine.data.PeakIdentity;
 import net.sf.mzmine.data.ChromatographicPeak;
 import net.sf.mzmine.data.PeakList;
 import net.sf.mzmine.data.PeakListRow;
@@ -217,7 +217,7 @@ class LinearNormalizerTask implements Task {
                         normalizedRow = new SimplePeakListRow(
                                 originalpeakListRow.getID());
                         normalizedRow.setComment(originalpeakListRow.getComment());
-                        for (CompoundIdentity ident : originalpeakListRow.getCompoundIdentities())
+                        for (PeakIdentity ident : originalpeakListRow.getCompoundIdentities())
                             normalizedRow.addCompoundIdentity(ident, false);
                         rowMap.put(originalpeakListRow, normalizedRow);
                     }

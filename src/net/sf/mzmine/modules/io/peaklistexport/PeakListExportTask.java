@@ -170,7 +170,7 @@ class PeakListExportTask implements Task {
                 if (peakListRow.getPreferredCompoundIdentity() == null)
                     line.append(fieldSeparator);
                 else
-                    line.append(peakListRow.getPreferredCompoundIdentity().getCompoundName()
+                    line.append(peakListRow.getPreferredCompoundIdentity().getName()
                             + fieldSeparator);
             }
             if (exportRowNumDetected) {

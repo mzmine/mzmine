@@ -19,12 +19,12 @@
 
 package net.sf.mzmine.data.impl;
 
-import net.sf.mzmine.data.CompoundIdentity;
+import net.sf.mzmine.data.PeakIdentity;
 
 /**
  * Simple CompoundIdentity implementation;
  */
-public class SimpleCompoundIdentity implements CompoundIdentity, Comparable {
+public class SimpleCompoundIdentity implements PeakIdentity, Comparable {
 
     private String compoundID, compoundName, alternateNames[], compoundFormula;
     private String databaseEntryURL, identificationMethod, scopeNote;
@@ -89,7 +89,7 @@ public class SimpleCompoundIdentity implements CompoundIdentity, Comparable {
     /**
      * @return Returns the compoundID.
      */
-    public String getCompoundID() {
+    public String getID() {
         return compoundID;
     }
 
@@ -103,7 +103,7 @@ public class SimpleCompoundIdentity implements CompoundIdentity, Comparable {
     /**
      * @return Returns the compoundName.
      */
-    public String getCompoundName() {
+    public String getName() {
         return compoundName;
     }
 
@@ -173,8 +173,8 @@ public class SimpleCompoundIdentity implements CompoundIdentity, Comparable {
         
         if (value == UNKNOWN_IDENTITY) return 1;
         
-        CompoundIdentity identityValue = (CompoundIdentity) value;
-        String valueName = identityValue.getCompoundName();
+        PeakIdentity identityValue = (PeakIdentity) value;
+        String valueName = identityValue.getName();
         if (valueName == null) return 1;
         return valueName.compareTo(compoundName);
     }

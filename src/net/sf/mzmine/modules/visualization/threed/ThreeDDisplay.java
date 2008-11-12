@@ -25,7 +25,7 @@ import java.rmi.RemoteException;
 import java.text.NumberFormat;
 
 import net.sf.mzmine.data.ChromatographicPeak;
-import net.sf.mzmine.data.CompoundIdentity;
+import net.sf.mzmine.data.PeakIdentity;
 import net.sf.mzmine.data.PeakList;
 import net.sf.mzmine.data.PeakListRow;
 import net.sf.mzmine.main.MZmineCore;
@@ -383,9 +383,9 @@ class ThreeDDisplay extends DisplayImplJ3D {
                 String peakText;
 
                 PeakListRow row = peakList.getPeakRow(peaks[i]);
-                CompoundIdentity id = row.getPreferredCompoundIdentity();
+                PeakIdentity id = row.getPreferredCompoundIdentity();
                 if (showCompoundName && (id != null))
-                    peakText = id.getCompoundName();
+                    peakText = id.getName();
                 else
                     peakText = mzFormat.format(peaks[i].getMZ());
                 peakData[1] = new Text(annotationType, peakText);

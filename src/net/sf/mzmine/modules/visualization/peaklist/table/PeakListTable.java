@@ -29,7 +29,7 @@ import javax.swing.JComboBox;
 import javax.swing.JTable;
 import javax.swing.table.TableCellEditor;
 
-import net.sf.mzmine.data.CompoundIdentity;
+import net.sf.mzmine.data.PeakIdentity;
 import net.sf.mzmine.data.PeakList;
 import net.sf.mzmine.data.PeakListRow;
 import net.sf.mzmine.data.impl.SimpleCompoundIdentity;
@@ -102,8 +102,8 @@ public class PeakListTable extends JTable {
 			int peakListRowIndex = sorter.modelIndex(row);
 			peakListRow = peakList.getRow(peakListRowIndex);
 
-			CompoundIdentity identities[] = peakListRow.getCompoundIdentities();
-			CompoundIdentity preferredIdentity = peakListRow
+			PeakIdentity identities[] = peakListRow.getCompoundIdentities();
+			PeakIdentity preferredIdentity = peakListRow
 					.getPreferredCompoundIdentity();
 			JComboBox combo;
 
@@ -144,9 +144,9 @@ public class PeakListTable extends JTable {
 							return;
 						}
 						if (item.toString() == REMOVE_IDENTITY) {
-							CompoundIdentity identity = peakListRow
+							PeakIdentity identity = peakListRow
 									.getPreferredCompoundIdentity();
-							if (identity != CompoundIdentity.UNKNOWN_IDENTITY) {
+							if (identity != PeakIdentity.UNKNOWN_IDENTITY) {
 								peakListRow.removeCompoundIdentity(identity);
 								DefaultComboBoxModel comboModel = (DefaultComboBoxModel) combo
 										.getModel();
@@ -154,9 +154,9 @@ public class PeakListTable extends JTable {
 							}
 							return;
 						}
-						if (item instanceof CompoundIdentity) {
+						if (item instanceof PeakIdentity) {
 							peakListRow
-									.setPreferredCompoundIdentity((CompoundIdentity) item);
+									.setPreferredCompoundIdentity((PeakIdentity) item);
 						}
 					}
 				}

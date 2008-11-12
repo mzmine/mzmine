@@ -91,35 +91,35 @@ public interface PeakListRow {
      * @param identity New compound identity
      * @param preffered boolean value to define this identity as preferred identity
      */
-    public void addCompoundIdentity(CompoundIdentity identity, boolean preffered);
+    public void addCompoundIdentity(PeakIdentity identity, boolean preffered);
     
     /**
      * Remove identity candidate
      * 
      * @param identity Compound identity
      */
-    public void removeCompoundIdentity(CompoundIdentity identity);
+    public void removeCompoundIdentity(PeakIdentity identity);
 
     /**
      * Returns all candidates for this compound's identity
      * 
      * @return Identity candidates
      */
-    public CompoundIdentity[] getCompoundIdentities();
+    public PeakIdentity[] getCompoundIdentities();
 
     /**
      * Returns preferred compound identity among candidates
      * 
      * @return Preferred identity
      */
-    public CompoundIdentity getPreferredCompoundIdentity();
+    public PeakIdentity getPreferredCompoundIdentity();
 
     /**
      * Sets a preferred compound identity among candidates
      * 
      * @param identity Preferred identity
      */
-    public void setPreferredCompoundIdentity(CompoundIdentity identity);
+    public void setPreferredCompoundIdentity(PeakIdentity identity);
 
     /**
      * Returns maximum raw data point intensity among all peaks in this row

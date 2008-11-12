@@ -19,7 +19,7 @@
 
 package net.sf.mzmine.modules.visualization.peaklist.table;
 
-import net.sf.mzmine.data.CompoundIdentity;
+import net.sf.mzmine.data.PeakIdentity;
 import net.sf.mzmine.data.PeakListRow;
 
 public enum CommonColumnType {
@@ -27,7 +27,7 @@ public enum CommonColumnType {
     ROWID("ID", Integer.class),
     AVERAGEMZ("m/z", Double.class),
     AVERAGERT("Ret.time", Double.class),
-    IDENTITY("Identity", CompoundIdentity.class),
+    IDENTITY("Identity", PeakIdentity.class),
     COMMENT("Comment", String.class),
     PEAKSHAPE("Peak shape", PeakListRow.class);
 

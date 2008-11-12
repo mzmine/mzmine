@@ -1,9 +1,9 @@
 package net.sf.mzmine.modules.identification.pubchem;
 
-import net.sf.mzmine.data.CompoundIdentity;
+import net.sf.mzmine.data.PeakIdentity;
 import net.sf.mzmine.data.IsotopePattern;
 
-public class PubChemCompound implements CompoundIdentity, Comparable {
+public class PubChemCompound implements PeakIdentity, Comparable {
 
     private String compoundID, compoundName, alternateNames[], compoundFormula;
     private String databaseEntryURL, identificationMethod, scopeNote;
@@ -77,7 +77,7 @@ public class PubChemCompound implements CompoundIdentity, Comparable {
     /**
      * @return Returns the compoundID.
      */
-    public String getCompoundID() {
+    public String getID() {
         return compoundID;
     }
 
@@ -91,7 +91,7 @@ public class PubChemCompound implements CompoundIdentity, Comparable {
     /**
      * @return Returns the compoundName.
      */
-    public String getCompoundName() {
+    public String getName() {
         return compoundName;
     }
 
@@ -234,8 +234,8 @@ public class PubChemCompound implements CompoundIdentity, Comparable {
         
         if (value == UNKNOWN_IDENTITY) return 1;
         
-        CompoundIdentity identityValue = (CompoundIdentity) value;
-        String valueName = identityValue.getCompoundName();
+        PeakIdentity identityValue = (PeakIdentity) value;
+        String valueName = identityValue.getName();
         if (valueName == null) return 1;
         return valueName.compareTo(compoundName);
     }

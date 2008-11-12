@@ -21,7 +21,7 @@ package net.sf.mzmine.modules.normalization.standardcompound;
 
 import java.util.logging.Logger;
 
-import net.sf.mzmine.data.CompoundIdentity;
+import net.sf.mzmine.data.PeakIdentity;
 import net.sf.mzmine.data.ChromatographicPeak;
 import net.sf.mzmine.data.PeakList;
 import net.sf.mzmine.data.PeakListRow;
@@ -112,7 +112,7 @@ public class StandardCompoundNormalizerTask implements Task {
 
             SimplePeakListRow normalizedRow = new SimplePeakListRow(row.getID());
             normalizedRow.setComment(row.getComment());
-            for (CompoundIdentity ident : row.getCompoundIdentities())
+            for (PeakIdentity ident : row.getCompoundIdentities())
                 normalizedRow.addCompoundIdentity(ident, false);
             normalizedRow.setPreferredCompoundIdentity(row.getPreferredCompoundIdentity());
 

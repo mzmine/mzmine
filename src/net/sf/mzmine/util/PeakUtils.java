@@ -21,7 +21,7 @@ package net.sf.mzmine.util;
 
 import java.text.Format;
 
-import net.sf.mzmine.data.CompoundIdentity;
+import net.sf.mzmine.data.PeakIdentity;
 import net.sf.mzmine.data.IsotopePattern;
 import net.sf.mzmine.data.ChromatographicPeak;
 import net.sf.mzmine.data.PeakListRow;
@@ -162,19 +162,19 @@ public class PeakUtils {
             return false;
 
         // If both have preferred identity available, then compare only those
-        CompoundIdentity row1PreferredIdentity = row1.getPreferredCompoundIdentity();
-        CompoundIdentity row2PreferredIdentity = row2.getPreferredCompoundIdentity();
+        PeakIdentity row1PreferredIdentity = row1.getPreferredCompoundIdentity();
+        PeakIdentity row2PreferredIdentity = row2.getPreferredCompoundIdentity();
         if ((row1PreferredIdentity != null) && (row2PreferredIdentity != null)) {
-            if (row1PreferredIdentity.getCompoundName().equals(
-                    row2PreferredIdentity.getCompoundName()))
+            if (row1PreferredIdentity.getName().equals(
+                    row2PreferredIdentity.getName()))
                 return true;
             else
                 return false;
         }
 
         // If no identities at all for both rows, then return true
-        CompoundIdentity[] row1Identities = row1.getCompoundIdentities();
-        CompoundIdentity[] row2Identities = row2.getCompoundIdentities();
+        PeakIdentity[] row1Identities = row1.getCompoundIdentities();
+        PeakIdentity[] row2Identities = row2.getCompoundIdentities();
         if ((row1Identities.length == 0) && (row2Identities.length == 0))
             return true;
 
@@ -183,11 +183,11 @@ public class PeakUtils {
         if (row1Identities.length != row2Identities.length)
             return false;
         boolean sameID = false;
-        for (CompoundIdentity row1Identity : row1Identities) {
+        for (PeakIdentity row1Identity : row1Identities) {
             sameID = false;
-            for (CompoundIdentity row2Identity : row2Identities) {
-                if (row1Identity.getCompoundName().equals(
-                        row2Identity.getCompoundName())) {
+            for (PeakIdentity row2Identity : row2Identities) {
+                if (row1Identity.getName().equals(
+                        row2Identity.getName())) {
                     sameID = true;
                     break;
                 }
@@ -205,10 +205,10 @@ public class PeakUtils {
      * 
      * TODO Compare IDs instead of names when possible
      */
-    public static boolean containsIdentity(PeakListRow row, CompoundIdentity id) {
+    public static boolean containsIdentity(PeakListRow row, PeakIdentity id) {
 
-        for (CompoundIdentity identity : row.getCompoundIdentities()) {
-            if (identity.getCompoundName().equals(id.getCompoundName()))
+        for (PeakIdentity identity : row.getCompoundIdentities()) {
+            if (identity.getName().equals(id.getName()))
                 return true;
         }
 

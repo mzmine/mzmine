@@ -21,7 +21,7 @@ package net.sf.mzmine.modules.visualization.peaklist.table;
 
 import javax.swing.table.AbstractTableModel;
 
-import net.sf.mzmine.data.CompoundIdentity;
+import net.sf.mzmine.data.PeakIdentity;
 import net.sf.mzmine.data.ChromatographicPeak;
 import net.sf.mzmine.data.PeakList;
 import net.sf.mzmine.data.PeakListRow;
@@ -151,10 +151,10 @@ public class PeakListTableModel extends AbstractTableModel {
         }
 
         if (columnType == CommonColumnType.IDENTITY) {
-            if (value instanceof CompoundIdentity)
-                peakListRow.setPreferredCompoundIdentity((CompoundIdentity) value);
+            if (value instanceof PeakIdentity)
+                peakListRow.setPreferredCompoundIdentity((PeakIdentity) value);
             else
-                peakListRow.setPreferredCompoundIdentity(CompoundIdentity.UNKNOWN_IDENTITY);
+                peakListRow.setPreferredCompoundIdentity(PeakIdentity.UNKNOWN_IDENTITY);
         }
 
     }

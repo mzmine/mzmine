@@ -26,7 +26,7 @@ import java.util.Iterator;
 import java.util.Vector;
 
 import net.sf.mzmine.data.ChromatographicPeak;
-import net.sf.mzmine.data.CompoundIdentity;
+import net.sf.mzmine.data.PeakIdentity;
 import net.sf.mzmine.data.MzDataPoint;
 import net.sf.mzmine.data.PeakList;
 import net.sf.mzmine.data.PeakListRow;
@@ -108,7 +108,7 @@ public class RelatedPeaksSearchTask implements Task {
 		Iterator itr;
 		PeakListRow comparedRow;
 		ChromatographicPeak currentPeak, comparedPeak;
-		CompoundIdentity identity;
+		PeakIdentity identity;
 		boolean alreadyRelated = false, goodCandidate = false;
 		RelatedPeaksIdentity currentGroup = null;
 		Vector<RelatedPeaksIdentity> relatedPeaksGroups = new Vector<RelatedPeaksIdentity>();

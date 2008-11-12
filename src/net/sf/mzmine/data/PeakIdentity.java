@@ -22,9 +22,9 @@ package net.sf.mzmine.data;
 /**
  * This interface represents an identification result.
  */
-public interface CompoundIdentity {
+public interface PeakIdentity {
 
-	public static final CompoundIdentity UNKNOWN_IDENTITY = null;
+	public static final PeakIdentity UNKNOWN_IDENTITY = null;
 
 	/**
 	 * Returns description of identification method, e.g. which database was
@@ -40,14 +40,14 @@ public interface CompoundIdentity {
 	 * 
 	 * @return Compound ID
 	 */
-	public String getCompoundID();
+	public String getID();
 
 	/**
 	 * Returns compound name
 	 * 
 	 * @return Compound name
 	 */
-	public String getCompoundName();
+	public String getName();
 
 	/**
 	 * Returns compound formula

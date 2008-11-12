@@ -36,10 +36,10 @@ public class PubChemResultTableModel extends AbstractTableModel{
     	PubChemCompound comp = compounds.get(row);
     	switch(col){
     	case (0):
-    		value = comp.getCompoundID();
+    		value = comp.getID();
     		break;
     	case(1): 
-    		value = comp.getCompoundName();
+    		value = comp.getName();
 			break;
     	case(2): 
     		value = comp.getCompoundFormula();

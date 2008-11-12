@@ -29,7 +29,7 @@ import javax.swing.UIManager;
 import javax.swing.border.Border;
 import javax.swing.table.TableCellRenderer;
 
-import net.sf.mzmine.data.CompoundIdentity;
+import net.sf.mzmine.data.PeakIdentity;
 
 /**
  * Table cell renderer
@@ -68,16 +68,16 @@ public class CompoundIdentityCellRenderer implements TableCellRenderer {
             newLabel.setBorder(border);
         }
 
-        if (value instanceof CompoundIdentity) {
+        if (value instanceof PeakIdentity) {
 
-            CompoundIdentity identity = (CompoundIdentity) value;
+            PeakIdentity identity = (PeakIdentity) value;
 
-            newLabel.setText(identity.getCompoundName());
+            newLabel.setText(identity.getName());
 
             String toolTipText = 
                 "<html>Identification method: " + identity.getIdentificationMethod() + "<br>" +
-                "Compound name: " + identity.getCompoundName() + "<br>" +
-                "Compound ID: " + identity.getCompoundID() + "<br>" +
+                "Compound name: " + identity.getName() + "<br>" +
+                "Compound ID: " + identity.getID() + "<br>" +
                 "Compound formula: " + identity.getCompoundFormula() + "<br></html>";
 
             newLabel.setToolTipText(toolTipText);
