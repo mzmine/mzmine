@@ -144,6 +144,9 @@ public class RelatedPeaksSearchTask implements Task {
 			while (itr.hasNext()) {
 
 				comparedRow = (PeakListRow) itr.next();
+				if (comparedRow == null)
+					break;
+				
 				// Always the comparison is against peaks from the same raw data
 				comparedPeak = comparedRow.getPeak(currentPeak.getDataFile());
 
