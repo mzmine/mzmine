@@ -35,7 +35,6 @@ import javax.xml.parsers.SAXParser;
 import javax.xml.parsers.SAXParserFactory;
 
 import net.sf.mzmine.data.MzDataPoint;
-import net.sf.mzmine.data.PreloadLevel;
 import net.sf.mzmine.data.RawDataFile;
 import net.sf.mzmine.data.RawDataFileWriter;
 import net.sf.mzmine.data.impl.SimpleDataPoint;
@@ -53,416 +52,417 @@ import org.xml.sax.helpers.DefaultHandler;
  */
 public class MzXMLReadTask extends DefaultHandler implements Task {
 
-	private Logger logger = Logger.getLogger(this.getClass().getName());
+    private Logger logger = Logger.getLogger(this.getClass().getName());
 
-	private File originalFile;
-	private RawDataFileWriter newMZmineFile;
-	private PreloadLevel preloadLevel;
-	private TaskStatus status;
-	private int totalScans = -1;
-	private int parsedScans;
-	private int peaksCount = 0;
-	private String errorMessage;
-	private StringBuilder charBuffer;
-	private Boolean compressFlag = false;
-	private int compressedLen;
+    private File originalFile;
+    private RawDataFileWriter newMZmineFile;
+    private TaskStatus status = TaskStatus.WAITING;
+    private int totalScans = -1;
+    private int parsedScans;
+    private int peaksCount = 0;
+    private String errorMessage;
+    private StringBuilder charBuffer;
+    private Boolean compressFlag = false;
+    private int compressedLen;
 
-	/*
-	 * This variables are used to set the number of fragments that one single
-	 * scan can have. The initial size of array is set to 10, but it depends of 
-	 * fragmentation level. 
-	 */
-	private int parentTreeValue[] = new int[10];
-	private int msLevelTree = 0;
+    /*
+     * This variables are used to set the number of fragments that one single
+     * scan can have. The initial size of array is set to 10, but it depends of
+     * fragmentation level.
+     */
+    private int parentTreeValue[] = new int[10];
+    private int msLevelTree = 0;
 
-	/*
-	 * This stack stores the current scan and all his fragments until all the information
-	 * is recover. The logic is FIFO at the moment of write into the MZmineFile
-	 */
-	private LinkedList<SimpleScan> parentStack;
-	
-	/*
-	 * This variable hold the present scan or fragment, it is send to the stack when
-	 * another scan/fragment appears as a parser.startElement
-	 */
-	private SimpleScan buildingScan;
+    /*
+     * This stack stores the current scan and all his fragments until all the
+     * information is recover. The logic is FIFO at the moment of write into the
+     * MZmineFile
+     */
+    private LinkedList<SimpleScan> parentStack;
 
-	public MzXMLReadTask(File fileToOpen, PreloadLevel preloadLevel) {
-		originalFile = fileToOpen;
-		status = TaskStatus.WAITING;
-		this.preloadLevel = preloadLevel;
-		charBuffer = new StringBuilder(2048);
-		parentStack = new LinkedList<SimpleScan>();
-	}
+    /*
+     * This variable hold the present scan or fragment, it is send to the stack
+     * when another scan/fragment appears as a parser.startElement
+     */
+    private SimpleScan buildingScan;
 
-	/**
-	 * @see net.sf.mzmine.taskcontrol.Task#getTaskDescription()
-	 */
-	public String getTaskDescription() {
-		return "Opening file " + originalFile;
-	}
+    public MzXMLReadTask(File fileToOpen) {
+        originalFile = fileToOpen;
+        charBuffer = new StringBuilder(2048);
+        parentStack = new LinkedList<SimpleScan>();
+    }
 
-	/**
-	 * @see net.sf.mzmine.taskcontrol.Task#getFinishedPercentage()
-	 */
-	public double getFinishedPercentage() {
-		return totalScans == 0 ? 0 : (double) parsedScans / totalScans;
-	}
+    /**
+     * @see net.sf.mzmine.taskcontrol.Task#getTaskDescription()
+     */
+    public String getTaskDescription() {
+        return "Opening file " + originalFile;
+    }
 
-	/**
-	 * @see net.sf.mzmine.taskcontrol.Task#getStatus()
-	 */
-	public TaskStatus getStatus() {
-		return status;
-	}
+    /**
+     * @see net.sf.mzmine.taskcontrol.Task#getFinishedPercentage()
+     */
+    public double getFinishedPercentage() {
+        return totalScans == 0 ? 0 : (double) parsedScans / totalScans;
+    }
 
-	/**
-	 * @see net.sf.mzmine.taskcontrol.Task#getErrorMessage()
-	 */
-	public String getErrorMessage() {
-		return errorMessage;
-	}
+    /**
+     * @see net.sf.mzmine.taskcontrol.Task#getStatus()
+     */
+    public TaskStatus getStatus() {
+        return status;
+    }
 
-	/**
-	 * @see java.lang.Runnable#run()
-	 */
-	public void run() {
+    /**
+     * @see net.sf.mzmine.taskcontrol.Task#getErrorMessage()
+     */
+    public String getErrorMessage() {
+        return errorMessage;
+    }
 
-		status = TaskStatus.PROCESSING;
-		logger.info("Started parsing file " + originalFile);
+    /**
+     * @see java.lang.Runnable#run()
+     */
+    public void run() {
 
-		// Use the default (non-validating) parser
-		SAXParserFactory factory = SAXParserFactory.newInstance();
+        status = TaskStatus.PROCESSING;
+        logger.info("Started parsing file " + originalFile);
 
-		try {
+        // Use the default (non-validating) parser
+        SAXParserFactory factory = SAXParserFactory.newInstance();
 
-			newMZmineFile = MZmineCore.createNewFile(originalFile.getName(), preloadLevel);
+        try {
 
-			SAXParser saxParser = factory.newSAXParser();
-			saxParser.parse(originalFile, this);
+            newMZmineFile = MZmineCore.createNewFile(originalFile.getName());
 
-			// Close file
-			RawDataFile finalRawDataFile = newMZmineFile.finishWriting();
-			MZmineCore.getCurrentProject().addFile(finalRawDataFile);
+            SAXParser saxParser = factory.newSAXParser();
+            saxParser.parse(originalFile, this);
 
-		} catch (Throwable e) {
-			/* we may already have set the status to CANCELED */
-			e.printStackTrace();
-			if (status == TaskStatus.PROCESSING)
-				status = TaskStatus.ERROR;
-			errorMessage = e.toString();
-			return;
-		}
+            // Close file
+            RawDataFile finalRawDataFile = newMZmineFile.finishWriting();
+            MZmineCore.getCurrentProject().addFile(finalRawDataFile);
 
-		if (parsedScans == 0) {
-			status = TaskStatus.ERROR;
-			errorMessage = "No scans found";
-			return;
-		}
+        } catch (Throwable e) {
+            /* we may already have set the status to CANCELED */
+            e.printStackTrace();
+            if (status == TaskStatus.PROCESSING)
+                status = TaskStatus.ERROR;
+            errorMessage = e.toString();
+            return;
+        }
 
-		logger.info("Finished parsing " + originalFile + ", parsed "
-				+ parsedScans + " scans");
-		status = TaskStatus.FINISHED;
+        if (parsedScans == 0) {
+            status = TaskStatus.ERROR;
+            errorMessage = "No scans found";
+            return;
+        }
 
-	}
+        logger.info("Finished parsing " + originalFile + ", parsed "
+                + parsedScans + " scans");
+        status = TaskStatus.FINISHED;
 
-	/**
-	 * @see net.sf.mzmine.taskcontrol.Task#cancel()
-	 */
-	public void cancel() {
-		logger.info("Cancelling opening of MZXML file " + originalFile);
-		status = TaskStatus.CANCELED;
-	}
+    }
 
-	public void startElement(String namespaceURI, String lName, // local name
-			String qName, // qualified name
-			Attributes attrs) throws SAXException {
+    /**
+     * @see net.sf.mzmine.taskcontrol.Task#cancel()
+     */
+    public void cancel() {
+        logger.info("Cancelling opening of MZXML file " + originalFile);
+        status = TaskStatus.CANCELED;
+    }
 
-		if (status == TaskStatus.CANCELED)
-			throw new SAXException("Parsing Cancelled");
+    public void startElement(String namespaceURI, String lName, // local name
+            String qName, // qualified name
+            Attributes attrs) throws SAXException {
 
-		// <msRun>
-		if (qName.equals("msRun")) {
-			String s = attrs.getValue("scanCount");
-			if (s != null)
-			totalScans = Integer.parseInt(s);
-		}
+        if (status == TaskStatus.CANCELED)
+            throw new SAXException("Parsing Cancelled");
 
-		// <scan>
-		if (qName.equalsIgnoreCase("scan")) {
+        // <msRun>
+        if (qName.equals("msRun")) {
+            String s = attrs.getValue("scanCount");
+            if (s != null)
+                totalScans = Integer.parseInt(s);
+        }
 
-			if (buildingScan != null) {
-				parentStack.addFirst(buildingScan);
-				buildingScan = null;
-			}
+        // <scan>
+        if (qName.equalsIgnoreCase("scan")) {
 
-			/*
-			 * Only num, msLevel & peaksCount values are required according with mzxml standard,
-			 * the others are optional
-			 */
-			int scanNumber = Integer.parseInt(attrs.getValue("num"));
-			int msLevel = Integer.parseInt(attrs.getValue("msLevel"));
-			peaksCount = Integer.parseInt(attrs.getValue("peaksCount"));
+            if (buildingScan != null) {
+                parentStack.addFirst(buildingScan);
+                buildingScan = null;
+            }
 
-			// Parse retention time
-			double retentionTime = 0;
-			String retentionTimeStr = attrs.getValue("retentionTime");
-			if (retentionTimeStr != null){
-				Date currentDate = new Date();
-				try {
-					DatatypeFactory dataTypeFactory = DatatypeFactory.newInstance();
-					Duration dur = dataTypeFactory.newDuration(retentionTimeStr);
-					retentionTime = dur.getTimeInMillis(currentDate) / 1000f;
-				} catch (DatatypeConfigurationException e) {
-					throw new SAXException("Could not read retention time: " + e);
-				}
-			}else {
-				status = TaskStatus.ERROR;
-				errorMessage = "This file does not contain retentionTime for scans";
-				throw new SAXException("Could not read retention time");
-			}
+            /*
+             * Only num, msLevel & peaksCount values are required according with
+             * mzxml standard, the others are optional
+             */
+            int scanNumber = Integer.parseInt(attrs.getValue("num"));
+            int msLevel = Integer.parseInt(attrs.getValue("msLevel"));
+            peaksCount = Integer.parseInt(attrs.getValue("peaksCount"));
 
-			int parentScan = -1;
-			if (msLevelTree > 0) {
-				if (msLevel > 9) {
-					status = TaskStatus.ERROR;
-					errorMessage = "msLevel value bigger than 10";
-					throw new SAXException("The value of msLevel is bigger than 10");
-				}
-				parentScan = parentTreeValue[msLevel - 1];
-			}
+            // Parse retention time
+            double retentionTime = 0;
+            String retentionTimeStr = attrs.getValue("retentionTime");
+            if (retentionTimeStr != null) {
+                Date currentDate = new Date();
+                try {
+                    DatatypeFactory dataTypeFactory = DatatypeFactory.newInstance();
+                    Duration dur = dataTypeFactory.newDuration(retentionTimeStr);
+                    retentionTime = dur.getTimeInMillis(currentDate) / 1000f;
+                } catch (DatatypeConfigurationException e) {
+                    throw new SAXException("Could not read retention time: "
+                            + e);
+                }
+            } else {
+                status = TaskStatus.ERROR;
+                errorMessage = "This file does not contain retentionTime for scans";
+                throw new SAXException("Could not read retention time");
+            }
 
-			
-			// Setting the level of fragment of scan and parent scan number
-				msLevelTree++;
-				parentTreeValue[msLevel] = scanNumber;
+            int parentScan = -1;
+            if (msLevelTree > 0) {
+                if (msLevel > 9) {
+                    status = TaskStatus.ERROR;
+                    errorMessage = "msLevel value bigger than 10";
+                    throw new SAXException(
+                            "The value of msLevel is bigger than 10");
+                }
+                parentScan = parentTreeValue[msLevel - 1];
+            }
 
-			buildingScan = new SimpleScan(scanNumber, msLevel, retentionTime,
-					parentScan, 0f, null, new MzDataPoint[0], false);
+            // Setting the level of fragment of scan and parent scan number
+            msLevelTree++;
+            parentTreeValue[msLevel] = scanNumber;
 
-		}
+            buildingScan = new SimpleScan(scanNumber, msLevel, retentionTime,
+                    parentScan, 0f, null, new MzDataPoint[0], false);
 
-		// <peak>
-		if (qName.equalsIgnoreCase("peaks")) {
-			// clean the current char buffer for the new element
-			charBuffer.setLength(0);
-			compressFlag = false;
-			compressedLen = 0;
-			if ((attrs.getValue("compressionType"))!= null){
-				compressFlag = true;
-			    compressedLen = Integer.parseInt(attrs.getValue("compressedLen"));
-			}
-		}
+        }
 
-		// <precursorMz>
-		if (qName.equalsIgnoreCase("precursorMz")) {
-			// clean the current char buffer for the new element
-			charBuffer.setLength(0);
-			String precursorCharge = attrs.getValue("precursorCharge");
-			if (precursorCharge != null)
-				buildingScan.setPrecursorCharge(Integer
-						.parseInt(precursorCharge));
-		}
+        // <peak>
+        if (qName.equalsIgnoreCase("peaks")) {
+            // clean the current char buffer for the new element
+            charBuffer.setLength(0);
+            compressFlag = false;
+            compressedLen = 0;
+            if ((attrs.getValue("compressionType")) != null) {
+                compressFlag = true;
+                compressedLen = Integer.parseInt(attrs.getValue("compressedLen"));
+            }
+        }
 
-	}
+        // <precursorMz>
+        if (qName.equalsIgnoreCase("precursorMz")) {
+            // clean the current char buffer for the new element
+            charBuffer.setLength(0);
+            String precursorCharge = attrs.getValue("precursorCharge");
+            if (precursorCharge != null)
+                buildingScan.setPrecursorCharge(Integer.parseInt(precursorCharge));
+        }
 
-	/**
-	 * endElement()
-	 */
-	public void endElement(String namespaceURI, String sName, // simple name
-			String qName // qualified name
-	) throws SAXException {
+    }
 
-		// </scan>
-		if (qName.equalsIgnoreCase("scan")) {
+    /**
+     * endElement()
+     */
+    public void endElement(String namespaceURI, String sName, // simple name
+            String qName // qualified name
+    ) throws SAXException {
 
-			msLevelTree--;
-			
-			/*
-			 * At this point we verify if the scan and his fragments are closed,
-			 * so we include the present scan/fragment into the stack and start 
-			 * to take elements from them (FIFO) for the MZmineFile. 
-			 */
+        // </scan>
+        if (qName.equalsIgnoreCase("scan")) {
 
-			if (msLevelTree == 0) {
-				parentStack.addFirst(buildingScan);
-				buildingScan = null;
-				while (!parentStack.isEmpty()) {
-					SimpleScan currentScan = parentStack.removeLast();
-					try {
+            msLevelTree--;
+
+            /*
+             * At this point we verify if the scan and his fragments are closed,
+             * so we include the present scan/fragment into the stack and start
+             * to take elements from them (FIFO) for the MZmineFile.
+             */
+
+            if (msLevelTree == 0) {
+                parentStack.addFirst(buildingScan);
+                buildingScan = null;
+                while (!parentStack.isEmpty()) {
+                    SimpleScan currentScan = parentStack.removeLast();
+                    try {
                         newMZmineFile.addScan(currentScan);
                     } catch (IOException e) {
                         status = TaskStatus.ERROR;
                         errorMessage = "IO error: " + e;
                         throw new SAXException("Parsing cancelled");
                     }
-					parsedScans++;
-				}
-				
-				/* 
-				 * The scan with all his fragments is in the MzmineFile, now we clean
-				 * the stack for the next scan and fragments.
-				 */
-				parentStack.clear();
-				
-			} 
-			
-			/*
-			 * If there are some scan/fragments still open, we update the reference of 
-			 * fragments of each element in the stack with the current scan/fragment.
-			 */
-			
-			else {
-				for (SimpleScan currentScan : parentStack) {
-					if (currentScan.getScanNumber() == buildingScan.getParentScanNumber()) {
-						int[] currentFragmentScanNumbers = currentScan.getFragmentScanNumbers();
-						if (currentFragmentScanNumbers != null) {
-							int[] tempFragmentScanNumbers = currentFragmentScanNumbers;
-							currentFragmentScanNumbers = new int[tempFragmentScanNumbers.length + 1];
-							System.arraycopy(tempFragmentScanNumbers, 0,
-									currentFragmentScanNumbers, 0, 
-									tempFragmentScanNumbers.length);
-							currentFragmentScanNumbers[tempFragmentScanNumbers.length] = buildingScan.
-									getScanNumber();
-							currentScan.setFragmentScanNumbers(currentFragmentScanNumbers);
-						} else {
-							currentFragmentScanNumbers = new int[1];
-							currentFragmentScanNumbers[0] = buildingScan.getScanNumber();
-							currentScan.setFragmentScanNumbers(currentFragmentScanNumbers);
-						}
-					}
-				}
-			}
-			return;
-		}
+                    parsedScans++;
+                }
 
-		// <precursorMz>
-		if (qName.equalsIgnoreCase("precursorMz")) {
-			double precursorMz = Double.parseDouble(charBuffer.toString());
-			buildingScan.setPrecursorMZ(precursorMz);
-			return;
-		}
+                /*
+                 * The scan with all his fragments is in the MzmineFile, now we
+                 * clean the stack for the next scan and fragments.
+                 */
+                parentStack.clear();
 
-		// <peak>
-		if (qName.equalsIgnoreCase("peaks")) {
+            }
 
-			//
-			MzDataPoint completeDataPoints[] = new MzDataPoint[peaksCount];
-			MzDataPoint tempDataPoints[] = new MzDataPoint[peaksCount];
-			byte[] peakBytes = Base64.decode(charBuffer.toString()
-					.toCharArray());
-			
-			/*
-			 * This section provides support for decompression ZLIB compression library. 
-			 */
-			
-			if (compressFlag){
-				// Decompress the bytes
-				Inflater decompresser = new Inflater();
-				decompresser.setInput(peakBytes, 0, compressedLen);
-				byte[] resultCompressed = new byte[1024];
-				byte[] resultTotal = new byte [0];
-				
-				try {
-					int resultLength = decompresser.inflate(resultCompressed);
-					while (!decompresser.finished()){
-						byte buffer[] = resultTotal;
-						resultTotal = new byte[resultTotal.length + resultLength];
-						System.arraycopy(buffer, 0, resultTotal, 0, buffer.length);
-						System.arraycopy(resultCompressed, 0, resultTotal, buffer.length, resultLength);
-						resultLength = decompresser.inflate(resultCompressed);
-					}
-					byte buffer[] = resultTotal;
-					resultTotal = new byte[resultTotal.length + resultLength];
-					System.arraycopy(buffer, 0, resultTotal, 0, buffer.length);
-					System.arraycopy(resultCompressed, 0, resultTotal, buffer.length, resultLength);
-					decompresser.end();
-					peakBytes = new byte[resultTotal.length];
-					peakBytes = resultTotal;
-				} 
-				catch (Exception eof) {
-					status = TaskStatus.ERROR;
-					errorMessage = "Corrupt compressed peak";
-					throw new SAXException("Parsing Cancelled");
-				 }
-			}
+            /*
+             * If there are some scan/fragments still open, we update the
+             * reference of fragments of each element in the stack with the
+             * current scan/fragment.
+             */
 
-			// make a data input stream
-			DataInputStream peakStream = new DataInputStream(
-					new ByteArrayInputStream(peakBytes));
-			try {
-				for (int i = 0; i < completeDataPoints.length; i++) {
-					
-					//Always respect this order pairOrder="m/z-int"
-					double massOverCharge = (double) peakStream.readFloat();
-					double intensity = (double) peakStream.readFloat();
+            else {
+                for (SimpleScan currentScan : parentStack) {
+                    if (currentScan.getScanNumber() == buildingScan.getParentScanNumber()) {
+                        int[] currentFragmentScanNumbers = currentScan.getFragmentScanNumbers();
+                        if (currentFragmentScanNumbers != null) {
+                            int[] tempFragmentScanNumbers = currentFragmentScanNumbers;
+                            currentFragmentScanNumbers = new int[tempFragmentScanNumbers.length + 1];
+                            System.arraycopy(tempFragmentScanNumbers, 0,
+                                    currentFragmentScanNumbers, 0,
+                                    tempFragmentScanNumbers.length);
+                            currentFragmentScanNumbers[tempFragmentScanNumbers.length] = buildingScan.getScanNumber();
+                            currentScan.setFragmentScanNumbers(currentFragmentScanNumbers);
+                        } else {
+                            currentFragmentScanNumbers = new int[1];
+                            currentFragmentScanNumbers[0] = buildingScan.getScanNumber();
+                            currentScan.setFragmentScanNumbers(currentFragmentScanNumbers);
+                        }
+                    }
+                }
+            }
+            return;
+        }
 
-					// Copy m/z and intensity data
-					completeDataPoints[i] = new SimpleDataPoint(massOverCharge,
-							intensity);
+        // <precursorMz>
+        if (qName.equalsIgnoreCase("precursorMz")) {
+            double precursorMz = Double.parseDouble(charBuffer.toString());
+            buildingScan.setPrecursorMZ(precursorMz);
+            return;
+        }
 
-				}
-			} catch (IOException eof) {
-				status = TaskStatus.ERROR;
-				errorMessage = "Corrupt mzXML file";
-				throw new SAXException("Parsing Cancelled");
-			}
+        // <peak>
+        if (qName.equalsIgnoreCase("peaks")) {
 
-			/*
-			 * This section verifies DataPoints with intensity="0" and exclude
-			 * them from tempDataPoints array. Only accept some of these points
-			 * because they are part the left/right part of the peak.
-			 */
+            //
+            MzDataPoint completeDataPoints[] = new MzDataPoint[peaksCount];
+            MzDataPoint tempDataPoints[] = new MzDataPoint[peaksCount];
+            byte[] peakBytes = Base64.decode(charBuffer.toString().toCharArray());
 
-			int i, j;
-			for (i = 0, j = 0; i < completeDataPoints.length; i++) {
-				double intensity = completeDataPoints[i].getIntensity();
-				double mz = completeDataPoints[i].getMZ();
-				if (completeDataPoints[i].getIntensity() > 0) {
-					tempDataPoints[j] = new SimpleDataPoint(mz, intensity);
-					j++;
-					continue;
-				}
-				if ((i > 0) && (completeDataPoints[i - 1].getIntensity() > 0)) {
-					tempDataPoints[j] = new SimpleDataPoint(mz, intensity);
-					j++;
-					continue;
-				}
-				if ((i < completeDataPoints.length - 1)
-						&& (completeDataPoints[i + 1].getIntensity() > 0)) {
-					tempDataPoints[j] = new SimpleDataPoint(mz, intensity);
-					j++;
-					continue;
-				}
-			}
+            /*
+             * This section provides support for decompression ZLIB compression
+             * library.
+             */
 
-			// If we have no peaks with intensity of 0, we assume the scan is
-			// centroided
-			if (i == j) {
-				buildingScan.setCentroided(true);
-				buildingScan.setDataPoints(tempDataPoints);
-			} else {
-				int sizeArray = j;
-				MzDataPoint[] dataPoints = new MzDataPoint[j];
+            if (compressFlag) {
+                // Decompress the bytes
+                Inflater decompresser = new Inflater();
+                decompresser.setInput(peakBytes, 0, compressedLen);
+                byte[] resultCompressed = new byte[1024];
+                byte[] resultTotal = new byte[0];
 
-				System.arraycopy(tempDataPoints, 0, dataPoints, 0, sizeArray);
-				/*
-				 * for (int i = 0; i < j; i++){ dataPoints[i]=tempDataPoints[i]; }
-				 */
-				buildingScan.setDataPoints(dataPoints);
-			}
+                try {
+                    int resultLength = decompresser.inflate(resultCompressed);
+                    while (!decompresser.finished()) {
+                        byte buffer[] = resultTotal;
+                        resultTotal = new byte[resultTotal.length
+                                + resultLength];
+                        System.arraycopy(buffer, 0, resultTotal, 0,
+                                buffer.length);
+                        System.arraycopy(resultCompressed, 0, resultTotal,
+                                buffer.length, resultLength);
+                        resultLength = decompresser.inflate(resultCompressed);
+                    }
+                    byte buffer[] = resultTotal;
+                    resultTotal = new byte[resultTotal.length + resultLength];
+                    System.arraycopy(buffer, 0, resultTotal, 0, buffer.length);
+                    System.arraycopy(resultCompressed, 0, resultTotal,
+                            buffer.length, resultLength);
+                    decompresser.end();
+                    peakBytes = new byte[resultTotal.length];
+                    peakBytes = resultTotal;
+                } catch (Exception eof) {
+                    status = TaskStatus.ERROR;
+                    errorMessage = "Corrupt compressed peak";
+                    throw new SAXException("Parsing Cancelled");
+                }
+            }
 
-			return;
-		}
-	}
+            // make a data input stream
+            DataInputStream peakStream = new DataInputStream(
+                    new ByteArrayInputStream(peakBytes));
+            try {
+                for (int i = 0; i < completeDataPoints.length; i++) {
 
-	/**
-	 * characters()
-	 * 
-	 * @see org.xml.sax.ContentHandler#characters(char[], int, int)
-	 */
-	public void characters(char buf[], int offset, int len) throws SAXException {
-		charBuffer = charBuffer.append(buf, offset, len);
-	}
+                    // Always respect this order pairOrder="m/z-int"
+                    double massOverCharge = (double) peakStream.readFloat();
+                    double intensity = (double) peakStream.readFloat();
+
+                    // Copy m/z and intensity data
+                    completeDataPoints[i] = new SimpleDataPoint(massOverCharge,
+                            intensity);
+
+                }
+            } catch (IOException eof) {
+                status = TaskStatus.ERROR;
+                errorMessage = "Corrupt mzXML file";
+                throw new SAXException("Parsing Cancelled");
+            }
+
+            /*
+             * This section verifies DataPoints with intensity="0" and exclude
+             * them from tempDataPoints array. Only accept some of these points
+             * because they are part the left/right part of the peak.
+             */
+
+            int i, j;
+            for (i = 0, j = 0; i < completeDataPoints.length; i++) {
+                double intensity = completeDataPoints[i].getIntensity();
+                double mz = completeDataPoints[i].getMZ();
+                if (completeDataPoints[i].getIntensity() > 0) {
+                    tempDataPoints[j] = new SimpleDataPoint(mz, intensity);
+                    j++;
+                    continue;
+                }
+                if ((i > 0) && (completeDataPoints[i - 1].getIntensity() > 0)) {
+                    tempDataPoints[j] = new SimpleDataPoint(mz, intensity);
+                    j++;
+                    continue;
+                }
+                if ((i < completeDataPoints.length - 1)
+                        && (completeDataPoints[i + 1].getIntensity() > 0)) {
+                    tempDataPoints[j] = new SimpleDataPoint(mz, intensity);
+                    j++;
+                    continue;
+                }
+            }
+
+            // If we have no peaks with intensity of 0, we assume the scan is
+            // centroided
+            if (i == j) {
+                buildingScan.setCentroided(true);
+                buildingScan.setDataPoints(tempDataPoints);
+            } else {
+                int sizeArray = j;
+                MzDataPoint[] dataPoints = new MzDataPoint[j];
+
+                System.arraycopy(tempDataPoints, 0, dataPoints, 0, sizeArray);
+                /*
+                 * for (int i = 0; i < j; i++){ dataPoints[i]=tempDataPoints[i]; }
+                 */
+                buildingScan.setDataPoints(dataPoints);
+            }
+
+            return;
+        }
+    }
+
+    /**
+     * characters()
+     * 
+     * @see org.xml.sax.ContentHandler#characters(char[], int, int)
+     */
+    public void characters(char buf[], int offset, int len) throws SAXException {
+        charBuffer = charBuffer.append(buf, offset, len);
+    }
 
 }

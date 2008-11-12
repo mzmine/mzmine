@@ -27,7 +27,6 @@ import java.io.ObjectInputStream;
 import java.util.logging.Logger;
 import java.util.zip.ZipInputStream;
 
-import net.sf.mzmine.data.PreloadLevel;
 import net.sf.mzmine.desktop.impl.MainWindow;
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.project.MZmineProject;
@@ -243,16 +242,13 @@ public class ProjectOpeningTask implements Task {
             ClassNotFoundException {
         zipStream.getNextEntry();
         ObjectInputStream objectStream = xstream.createObjectInputStream(unclosableZipStream);
-        
+
         int scanDataFileIndex = 0;
         for (int i = 0; i < description.getNumOfDataFiles(); i++) {
             RawDataFileImpl rawDataFile = (RawDataFileImpl) objectStream.readObject();
-
-            if (rawDataFile.getPreloadLevel() != PreloadLevel.PRELOAD_ALL_SCANS) {
-                File scanDataFile = scanDataFiles[scanDataFileIndex];
-                scanDataFileIndex++;
-                rawDataFile.setScanDataFile(scanDataFile);
-            }
+            File scanDataFile = scanDataFiles[scanDataFileIndex];
+            scanDataFileIndex++;
+            rawDataFile.setScanDataFile(scanDataFile);
         }
         objectStream.close();
     }

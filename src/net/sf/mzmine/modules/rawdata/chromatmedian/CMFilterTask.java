@@ -36,270 +36,260 @@ import net.sf.mzmine.util.MathUtils;
  * 
  */
 class CMFilterTask implements Task {
-	
-	private RawDataFile dataFile;
-	private TaskStatus status = TaskStatus.WAITING;
-	private String errorMessage;
 
-	// scan counter
-	private int filteredScans, totalScans;
+    private RawDataFile dataFile;
+    private TaskStatus status = TaskStatus.WAITING;
+    private String errorMessage;
 
-	// parameter values
-	private String suffix;
-	private double mzTolerance;
-	private int oneSidedWindowLength;
-	private boolean removeOriginal;
+    // scan counter
+    private int filteredScans, totalScans;
 
-	/**
-	 * @param dataFile
-	 * @param parameters
-	 */
-	CMFilterTask(RawDataFile dataFile, CMFilterParameters parameters) {
-		this.dataFile = dataFile;
-		suffix = (String) parameters
-				.getParameterValue(CMFilterParameters.suffix);
-		mzTolerance = (Double) parameters
-				.getParameterValue(CMFilterParameters.MZTolerance);
-		oneSidedWindowLength = (Integer) parameters
-				.getParameterValue(CMFilterParameters.oneSidedWindowLength);
-		removeOriginal = (Boolean) parameters
-				.getParameterValue(CMFilterParameters.autoRemove);
-	}
+    // parameter values
+    private String suffix;
+    private double mzTolerance;
+    private int oneSidedWindowLength;
+    private boolean removeOriginal;
 
-	/**
-	 * @see net.sf.mzmine.taskcontrol.Task#getTaskDescription()
-	 */
-	public String getTaskDescription() {
-		return "Chromatographic median filtering " + dataFile;
-	}
+    /**
+     * @param dataFile
+     * @param parameters
+     */
+    CMFilterTask(RawDataFile dataFile, CMFilterParameters parameters) {
+        this.dataFile = dataFile;
+        suffix = (String) parameters.getParameterValue(CMFilterParameters.suffix);
+        mzTolerance = (Double) parameters.getParameterValue(CMFilterParameters.MZTolerance);
+        oneSidedWindowLength = (Integer) parameters.getParameterValue(CMFilterParameters.oneSidedWindowLength);
+        removeOriginal = (Boolean) parameters.getParameterValue(CMFilterParameters.autoRemove);
+    }
 
-	/**
-	 * @see net.sf.mzmine.taskcontrol.Task#getFinishedPercentage()
-	 */
-	public double getFinishedPercentage() {
-		if (totalScans == 0)
-			return 0.0f;
-		return (double) filteredScans / totalScans;
-	}
+    /**
+     * @see net.sf.mzmine.taskcontrol.Task#getTaskDescription()
+     */
+    public String getTaskDescription() {
+        return "Chromatographic median filtering " + dataFile;
+    }
 
-	/**
-	 * @see net.sf.mzmine.taskcontrol.Task#getStatus()
-	 */
-	public TaskStatus getStatus() {
-		return status;
-	}
+    /**
+     * @see net.sf.mzmine.taskcontrol.Task#getFinishedPercentage()
+     */
+    public double getFinishedPercentage() {
+        if (totalScans == 0)
+            return 0.0f;
+        return (double) filteredScans / totalScans;
+    }
 
-	/**
-	 * @see net.sf.mzmine.taskcontrol.Task#getErrorMessage()
-	 */
-	public String getErrorMessage() {
-		return errorMessage;
-	}
+    /**
+     * @see net.sf.mzmine.taskcontrol.Task#getStatus()
+     */
+    public TaskStatus getStatus() {
+        return status;
+    }
 
-	public RawDataFile getDataFile() {
-		return dataFile;
-	}
+    /**
+     * @see net.sf.mzmine.taskcontrol.Task#getErrorMessage()
+     */
+    public String getErrorMessage() {
+        return errorMessage;
+    }
 
-	/**
-	 * @see net.sf.mzmine.taskcontrol.Task#cancel()
-	 */
-	public void cancel() {
-		status = TaskStatus.CANCELED;
-	}
+    public RawDataFile getDataFile() {
+        return dataFile;
+    }
 
-	/**
-	 * @see java.lang.Runnable#run()
-	 */
-	public void run() {
+    /**
+     * @see net.sf.mzmine.taskcontrol.Task#cancel()
+     */
+    public void cancel() {
+        status = TaskStatus.CANCELED;
+    }
 
-		status = TaskStatus.PROCESSING;
+    /**
+     * @see java.lang.Runnable#run()
+     */
+    public void run() {
 
-		try {
+        status = TaskStatus.PROCESSING;
 
-			// Create new temporary file
-			String newName = dataFile.getFileName() + " " + suffix;
-			RawDataFileWriter rawDataFileWriter = MZmineCore.createNewFile(
-					newName, dataFile.getPreloadLevel());
+        try {
 
-			// Prepare scan buffer of selected window size
-			Scan[] scanBuffer = new Scan[1 + 2 * oneSidedWindowLength];
+            // Create new temporary file
+            String newName = dataFile.getFileName() + " " + suffix;
+            RawDataFileWriter rawDataFileWriter = MZmineCore.createNewFile(newName);
 
-			Scan oldScan = null;
+            // Prepare scan buffer of selected window size
+            Scan[] scanBuffer = new Scan[1 + 2 * oneSidedWindowLength];
 
-			int[] scanNumbers = dataFile.getScanNumbers();
-			totalScans = scanNumbers.length;
+            Scan oldScan = null;
 
-			for (int scanIndex = 0; scanIndex < (totalScans + oneSidedWindowLength); scanIndex++) {
+            int[] scanNumbers = dataFile.getScanNumbers();
+            totalScans = scanNumbers.length;
 
-				if (status == TaskStatus.CANCELED)
-					return;
+            for (int scanIndex = 0; scanIndex < (totalScans + oneSidedWindowLength); scanIndex++) {
 
-				// Pickup next scan from original raw data file
-				if (scanIndex < totalScans) {
+                if (status == TaskStatus.CANCELED)
+                    return;
 
-					oldScan = dataFile.getScan(scanNumbers[scanIndex]);
+                // Pickup next scan from original raw data file
+                if (scanIndex < totalScans) {
 
-					// ignore scans of MS level other than 1
-					if (oldScan.getMSLevel() != 1) {
-						rawDataFileWriter.addScan(oldScan);
-						filteredScans++;
-						continue;
-					}
+                    oldScan = dataFile.getScan(scanNumbers[scanIndex]);
 
-				} else {
-					oldScan = null;
-				}
+                    // ignore scans of MS level other than 1
+                    if (oldScan.getMSLevel() != 1) {
+                        rawDataFileWriter.addScan(oldScan);
+                        filteredScans++;
+                        continue;
+                    }
 
-				// Advance scan buffer
-				for (int bufferIndex = 0; bufferIndex < (scanBuffer.length - 1); bufferIndex++) {
-					scanBuffer[bufferIndex] = scanBuffer[bufferIndex + 1];
-				}
-				scanBuffer[scanBuffer.length - 1] = oldScan;
+                } else {
+                    oldScan = null;
+                }
 
-				// Pickup mid element in the buffer
-				Scan sc = scanBuffer[oneSidedWindowLength];
-				if (sc != null) {
+                // Advance scan buffer
+                for (int bufferIndex = 0; bufferIndex < (scanBuffer.length - 1); bufferIndex++) {
+                    scanBuffer[bufferIndex] = scanBuffer[bufferIndex + 1];
+                }
+                scanBuffer[scanBuffer.length - 1] = oldScan;
 
-					int[] dataPointIndices = new int[scanBuffer.length];
+                // Pickup mid element in the buffer
+                Scan sc = scanBuffer[oneSidedWindowLength];
+                if (sc != null) {
 
-					MzDataPoint oldDataPoints[] = sc.getDataPoints();
-					MzDataPoint newDataPoints[] = new MzDataPoint[oldDataPoints.length];
+                    int[] dataPointIndices = new int[scanBuffer.length];
 
-					for (int datapointIndex = 0; datapointIndex < oldDataPoints.length; datapointIndex++) {
+                    MzDataPoint oldDataPoints[] = sc.getDataPoints();
+                    MzDataPoint newDataPoints[] = new MzDataPoint[oldDataPoints.length];
 
-						double mzValue = oldDataPoints[datapointIndex].getMZ();
-						double intValue = oldDataPoints[datapointIndex]
-								.getIntensity();
+                    for (int datapointIndex = 0; datapointIndex < oldDataPoints.length; datapointIndex++) {
 
-						Vector<Double> intValueBuffer = new Vector<Double>();
-						intValueBuffer.add(new Double(intValue));
+                        double mzValue = oldDataPoints[datapointIndex].getMZ();
+                        double intValue = oldDataPoints[datapointIndex].getIntensity();
 
-						// Loop through the buffer
-						for (int bufferIndex = 0; bufferIndex < scanBuffer.length; bufferIndex++) {
-							
-							if (status == TaskStatus.CANCELED)
-								return;
+                        Vector<Double> intValueBuffer = new Vector<Double>();
+                        intValueBuffer.add(new Double(intValue));
 
-							if ((bufferIndex != oneSidedWindowLength)
-									&& (scanBuffer[bufferIndex] != null)) {
-								Object[] res = findClosestDatapointIntensity(
-										mzValue, scanBuffer[bufferIndex],
-										dataPointIndices[bufferIndex]);
-								Double closestInt = (Double) (res[0]);
-								dataPointIndices[bufferIndex] = (Integer) (res[1]);
-								if (closestInt != null) {
-									intValueBuffer.add(closestInt);
-								}
-							}
-						}
+                        // Loop through the buffer
+                        for (int bufferIndex = 0; bufferIndex < scanBuffer.length; bufferIndex++) {
 
-						// Calculate median of all intensity values in the
-						// buffer
-						double[] tmpIntensities = new double[intValueBuffer
-								.size()];
-						for (int bufferIndex = 0; bufferIndex < tmpIntensities.length; bufferIndex++) {
-							tmpIntensities[bufferIndex] = intValueBuffer.get(
-									bufferIndex).doubleValue();
-						}
-						double medianIntensity = MathUtils.calcQuantile(
-								tmpIntensities, 0.5f);
+                            if (status == TaskStatus.CANCELED)
+                                return;
 
-						newDataPoints[datapointIndex] = new SimpleDataPoint(
-								mzValue, medianIntensity);
+                            if ((bufferIndex != oneSidedWindowLength)
+                                    && (scanBuffer[bufferIndex] != null)) {
+                                Object[] res = findClosestDatapointIntensity(
+                                        mzValue, scanBuffer[bufferIndex],
+                                        dataPointIndices[bufferIndex]);
+                                Double closestInt = (Double) (res[0]);
+                                dataPointIndices[bufferIndex] = (Integer) (res[1]);
+                                if (closestInt != null) {
+                                    intValueBuffer.add(closestInt);
+                                }
+                            }
+                        }
 
-					}
+                        // Calculate median of all intensity values in the
+                        // buffer
+                        double[] tmpIntensities = new double[intValueBuffer.size()];
+                        for (int bufferIndex = 0; bufferIndex < tmpIntensities.length; bufferIndex++) {
+                            tmpIntensities[bufferIndex] = intValueBuffer.get(
+                                    bufferIndex).doubleValue();
+                        }
+                        double medianIntensity = MathUtils.calcQuantile(
+                                tmpIntensities, 0.5f);
 
-					// Write the modified scan to file
-					SimpleScan newScan = new SimpleScan(sc);
-					newScan.setDataPoints(newDataPoints);
-					rawDataFileWriter.addScan(newScan);
-					filteredScans++;
+                        newDataPoints[datapointIndex] = new SimpleDataPoint(
+                                mzValue, medianIntensity);
 
-				}
+                    }
 
-			}
+                    // Write the modified scan to file
+                    SimpleScan newScan = new SimpleScan(sc);
+                    newScan.setDataPoints(newDataPoints);
+                    rawDataFileWriter.addScan(newScan);
+                    filteredScans++;
 
-			// Finalize writing
-			RawDataFile filteredRawDataFile = rawDataFileWriter.finishWriting();
-			MZmineCore.getCurrentProject().addFile(filteredRawDataFile);
+                }
 
-			// Remove the original file if requested
-			if (removeOriginal)
-				MZmineCore.getCurrentProject().removeFile(dataFile);
+            }
 
-			status = TaskStatus.FINISHED;
+            // Finalize writing
+            RawDataFile filteredRawDataFile = rawDataFileWriter.finishWriting();
+            MZmineCore.getCurrentProject().addFile(filteredRawDataFile);
 
-		} catch (IOException e) {
-			status = TaskStatus.ERROR;
-			errorMessage = e.toString();
-			return;
-		}
+            // Remove the original file if requested
+            if (removeOriginal)
+                MZmineCore.getCurrentProject().removeFile(dataFile);
 
-	}
+            status = TaskStatus.FINISHED;
 
-	/**
-	 * Searches for data point in a scan closest to given mz value.
-	 * 
-	 * @param mzValue
-	 *            Search for datapoint that is closest to this mzvalue
-	 * @param s
-	 *            Search among datapoints in this scan
-	 * @param startIndex
-	 *            Start searching from this datapoint
-	 * @return Array of two objects, [0] is intensity of closest datapoint as
-	 *         Double or null if not a single datapoint was close enough. [1] is
-	 *         index of datapoint that was closest to given mz value (this will
-	 *         be used as starting point for next search) if nothing was close
-	 *         enough to given mz value, then this is the start index
-	 * 
-	 */
-	private Object[] findClosestDatapointIntensity(double mzValue, Scan s,
-			int startIndex) {
+        } catch (IOException e) {
+            status = TaskStatus.ERROR;
+            errorMessage = e.toString();
+            return;
+        }
 
-		MzDataPoint dataPoints[] = s.getDataPoints();
+    }
 
-		Integer closestIndex = null;
+    /**
+     * Searches for data point in a scan closest to given mz value.
+     * 
+     * @param mzValue Search for datapoint that is closest to this mzvalue
+     * @param s Search among datapoints in this scan
+     * @param startIndex Start searching from this datapoint
+     * @return Array of two objects, [0] is intensity of closest datapoint as
+     *         Double or null if not a single datapoint was close enough. [1] is
+     *         index of datapoint that was closest to given mz value (this will
+     *         be used as starting point for next search) if nothing was close
+     *         enough to given mz value, then this is the start index
+     * 
+     */
+    private Object[] findClosestDatapointIntensity(double mzValue, Scan s,
+            int startIndex) {
 
-		double closestIntensity = -1;
-		double closestDistance = Double.MAX_VALUE;
+        MzDataPoint dataPoints[] = s.getDataPoints();
 
-		double prevDistance = Double.MAX_VALUE;
+        Integer closestIndex = null;
 
-		// Loop through datapoints
-		for (int i = startIndex; i < dataPoints.length; i++) {
+        double closestIntensity = -1;
+        double closestDistance = Double.MAX_VALUE;
 
-			// Check if this mass values is within range to mz value
-			double tmpDistance = Math.abs(dataPoints[i].getMZ() - mzValue);
-			if (tmpDistance < mzTolerance) {
+        double prevDistance = Double.MAX_VALUE;
 
-				// If this is closest datapoint so far, then store its' mz and
-				// intensity
-				if (tmpDistance <= closestDistance) {
-					closestIntensity = dataPoints[i].getIntensity();
-					closestDistance = tmpDistance;
-					closestIndex = new Integer(i);
-				}
+        // Loop through datapoints
+        for (int i = startIndex; i < dataPoints.length; i++) {
 
-			}
+            // Check if this mass values is within range to mz value
+            double tmpDistance = Math.abs(dataPoints[i].getMZ() - mzValue);
+            if (tmpDistance < mzTolerance) {
 
-			if (tmpDistance > prevDistance) {
-				break;
-			}
+                // If this is closest datapoint so far, then store its' mz and
+                // intensity
+                if (tmpDistance <= closestDistance) {
+                    closestIntensity = dataPoints[i].getIntensity();
+                    closestDistance = tmpDistance;
+                    closestIndex = new Integer(i);
+                }
 
-			prevDistance = tmpDistance;
+            }
 
-		}
+            if (tmpDistance > prevDistance) {
+                break;
+            }
 
-		if (closestIndex == null) {
-			closestIndex = new Integer(startIndex);
-		}
+            prevDistance = tmpDistance;
 
-		Object[] result = new Object[2];
-		result[0] = new Double(closestIntensity);
-		result[1] = closestIndex;
+        }
 
-		return result;
+        if (closestIndex == null) {
+            closestIndex = new Integer(startIndex);
+        }
 
-	}
+        Object[] result = new Object[2];
+        result[0] = new Double(closestIntensity);
+        result[1] = closestIndex;
+
+        return result;
+
+    }
 
 }

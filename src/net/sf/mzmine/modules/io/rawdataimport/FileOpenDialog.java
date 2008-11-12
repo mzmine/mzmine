@@ -20,7 +20,6 @@
 package net.sf.mzmine.modules.io.rawdataimport;
 
 import java.awt.BorderLayout;
-import java.awt.FlowLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.File;
@@ -29,11 +28,8 @@ import java.util.logging.Logger;
 import javax.swing.JComboBox;
 import javax.swing.JDialog;
 import javax.swing.JFileChooser;
-import javax.swing.JPanel;
 
-import net.sf.mzmine.data.PreloadLevel;
 import net.sf.mzmine.main.MZmineCore;
-import net.sf.mzmine.util.GUIUtils;
 import net.sf.mzmine.util.dialogs.ExitCode;
 
 import com.sun.java.ExampleFileFilter;
@@ -103,16 +99,7 @@ public class FileOpenDialog extends JDialog implements ActionListener {
         filter.setDescription("All raw data files");
         fileChooser.setFileFilter(filter);
 
-        JPanel preloadChooserPanel = new JPanel(new FlowLayout());
-        preloadChooser = new JComboBox(PreloadLevel.values());
-        PreloadLevel previousPreloadLevel = (PreloadLevel) parameters.getParameterValue(RawDataImporterParameters.preloadLevel);
-        if (previousPreloadLevel != null) preloadChooser.setSelectedItem(previousPreloadLevel);
-        GUIUtils.addLabel(preloadChooserPanel, "Data storage:");
-        preloadChooserPanel.add(preloadChooser);
-        GUIUtils.addMargin(preloadChooserPanel, 10);
-
         add(fileChooser, BorderLayout.CENTER);
-        add(preloadChooserPanel, BorderLayout.SOUTH);
 
         pack();
 
@@ -137,9 +124,6 @@ public class FileOpenDialog extends JDialog implements ActionListener {
             parameters.setParameterValue(
                     RawDataImporterParameters.importDirectory,
                     fileChooser.getCurrentDirectory().toString());
-            PreloadLevel preloadLevel = (PreloadLevel) preloadChooser.getSelectedItem();
-            parameters.setParameterValue(
-                    RawDataImporterParameters.preloadLevel, preloadLevel);
 
         } else {
             exitCode = ExitCode.CANCEL;

@@ -116,8 +116,7 @@ class SGFilterTask implements Task {
 
             // Create new temporary file
             String newName = dataFile.getFileName() + " " + suffix;
-            RawDataFileWriter rawDataFileWriter = MZmineCore.createNewFile(
-                    newName, dataFile.getPreloadLevel());
+            RawDataFileWriter rawDataFileWriter = MZmineCore.createNewFile(newName);
 
             // Get all scans
             int[] scanNumbers = dataFile.getScanNumbers();
@@ -169,16 +168,16 @@ class SGFilterTask implements Task {
 
         int marginSize = (numOfDataPoints + 1) / 2 - 1;
         double sumOfInts;
-        
+
         MzDataPoint oldDataPoints[] = sc.getDataPoints();
         int newDataPointsLength = oldDataPoints.length - (marginSize * 2);
-        
+
         // only process scans with datapoints
         if (newDataPointsLength < 1) {
             writer.addScan(sc);
             return;
         }
-        
+
         MzDataPoint newDataPoints[] = new MzDataPoint[newDataPointsLength];
 
         for (int spectrumInd = marginSize; spectrumInd < (oldDataPoints.length - marginSize); spectrumInd++) {

@@ -30,7 +30,6 @@ import javax.xml.parsers.SAXParser;
 import javax.xml.parsers.SAXParserFactory;
 
 import net.sf.mzmine.data.MzDataPoint;
-import net.sf.mzmine.data.PreloadLevel;
 import net.sf.mzmine.data.RawDataFile;
 import net.sf.mzmine.data.RawDataFileWriter;
 import net.sf.mzmine.data.impl.SimpleDataPoint;
@@ -52,7 +51,6 @@ public class MzDataReadTask extends DefaultHandler implements Task {
 
 	private File originalFile;
     private RawDataFileWriter newMZmineFile;
-	private PreloadLevel preloadLevel;
 	private TaskStatus status;
 	private int totalScans = -1;
 	private int parsedScans;
@@ -97,10 +95,9 @@ public class MzDataReadTask extends DefaultHandler implements Task {
 	 */
 	private LinkedList<SimpleScan> parentStack;
 
-	public MzDataReadTask(File fileToOpen, PreloadLevel preloadLevel) {
+	public MzDataReadTask(File fileToOpen) {
 		originalFile = fileToOpen;
 		status = TaskStatus.WAITING;
-		this.preloadLevel = preloadLevel;
 		charBuffer = new StringBuilder(2048);
 		parentStack = new LinkedList<SimpleScan>();
 	}
@@ -146,7 +143,7 @@ public class MzDataReadTask extends DefaultHandler implements Task {
 
 		try {
 
-			newMZmineFile = MZmineCore.createNewFile(originalFile.getName(), preloadLevel);
+			newMZmineFile = MZmineCore.createNewFile(originalFile.getName());
 
 			SAXParser saxParser = factory.newSAXParser();
 			saxParser.parse(originalFile, this);

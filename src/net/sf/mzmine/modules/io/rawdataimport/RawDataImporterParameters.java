@@ -23,7 +23,6 @@ import java.io.File;
 
 import net.sf.mzmine.data.Parameter;
 import net.sf.mzmine.data.ParameterType;
-import net.sf.mzmine.data.PreloadLevel;
 import net.sf.mzmine.data.impl.SimpleParameter;
 import net.sf.mzmine.data.impl.SimpleParameterSet;
 
@@ -35,18 +34,11 @@ public class RawDataImporterParameters extends SimpleParameterSet {
             ParameterType.STRING, "Last open directory",
             "Last directory used to import files");
 
-    public static final Parameter preloadLevel = new SimpleParameter(
-            ParameterType.STRING, "Preload level",
-            "Defines which scans will be pre-loaded to memory, if any",
-            PreloadLevel.NO_PRELOAD, PreloadLevel.values());
-
-    public static final Parameter LastFiles = new SimpleParameter(
-            ParameterType.STRING, "Files to import",
-            "");
+    public static final Parameter lastFileNames = new SimpleParameter(
+            ParameterType.STRING, "Files to import", "");
 
     public RawDataImporterParameters() {
-        super(new Parameter[] { importDirectory, preloadLevel// });
-        , LastFiles });
+        super(new Parameter[] { importDirectory, lastFileNames });
     }
 
     public File[] getFileNames() {
@@ -54,15 +46,15 @@ public class RawDataImporterParameters extends SimpleParameterSet {
     }
 
     public void setFileNames(File[] fileNames) {
-    	this.fileNames = fileNames;
+        this.fileNames = fileNames;
 
-    	String files = "  ";
-    	 		if (fileNames != null){
-			for(File f:fileNames){
-				files += f.getName() + " ";
-			}
-		}
-		this.setParameterValue(LastFiles, files);
+        String files = "  ";
+        if (fileNames != null) {
+            for (File f : fileNames) {
+                files += f.getName() + " ";
+            }
+        }
+        this.setParameterValue(lastFileNames, files);
     }
 
 }

@@ -27,7 +27,6 @@ import java.util.logging.Logger;
 
 import net.sf.mzmine.data.ParameterSet;
 import net.sf.mzmine.data.PeakList;
-import net.sf.mzmine.data.PreloadLevel;
 import net.sf.mzmine.data.RawDataFile;
 import net.sf.mzmine.desktop.Desktop;
 import net.sf.mzmine.desktop.MZmineMenu;
@@ -116,7 +115,6 @@ public class RawDataImporter implements MZmineModule, ActionListener,
         RawDataImporterParameters rawDataImporterParameters = (RawDataImporterParameters) parameters;
         File file[] = rawDataImporterParameters.getFileNames();
         Task openTasks[] = new Task[file.length];
-        PreloadLevel preloadLevel = (PreloadLevel) rawDataImporterParameters.getParameterValue(RawDataImporterParameters.preloadLevel);
 
         for (int i = 0; i < file.length; i++) {
 
@@ -124,20 +122,19 @@ public class RawDataImporter implements MZmineModule, ActionListener,
                     file[i].getName().lastIndexOf(".") + 1).toLowerCase();
 
             if (extension.endsWith("mzdata")) {
-                openTasks[i] = new MzDataReadTask(file[i], preloadLevel);
+                openTasks[i] = new MzDataReadTask(file[i]);
             }
             if (extension.endsWith("mzxml")) {
-                openTasks[i] = new MzXMLReadTask(file[i], preloadLevel);
+                openTasks[i] = new MzXMLReadTask(file[i]);
             }
             if (extension.endsWith("mzml")) {
-                openTasks[i] = new MzMLReadTask(file[i], preloadLevel);
+                openTasks[i] = new MzMLReadTask(file[i]);
             }
             if (extension.endsWith("cdf")) {
-                openTasks[i] = new NetCDFReadTask(file[i], preloadLevel);
+                openTasks[i] = new NetCDFReadTask(file[i]);
             }
             if (extension.endsWith("raw")) {
-                openTasks[i] = new XcaliburRawFileReadTask(file[i],
-                        preloadLevel);
+                openTasks[i] = new XcaliburRawFileReadTask(file[i]);
             }
             if (openTasks[i] == null) {
                 desktop.displayErrorMessage("Cannot determine file type of file "

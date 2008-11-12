@@ -30,8 +30,6 @@ public interface RawDataFile {
      */
     public String getFileName();
 
-    public PreloadLevel getPreloadLevel();
-
     public int getNumOfScans();
 
     public int getNumOfScans(int msLevel);
@@ -81,10 +79,10 @@ public interface RawDataFile {
     public double getDataMaxBasePeakIntensity(int msLevel);
 
     public double getDataMaxTotalIonCurrent(int msLevel);
-    
+
     /**
      * Close the file in case it is removed from the project
      */
     public void close();
-    
+
 }

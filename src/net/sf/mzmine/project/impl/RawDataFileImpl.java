@@ -32,7 +32,6 @@ import java.util.Set;
 import java.util.logging.Logger;
 
 import net.sf.mzmine.data.MzDataPoint;
-import net.sf.mzmine.data.PreloadLevel;
 import net.sf.mzmine.data.RawDataFile;
 import net.sf.mzmine.data.RawDataFileWriter;
 import net.sf.mzmine.data.Scan;
@@ -60,24 +59,19 @@ public class RawDataFileImpl implements RawDataFile, RawDataFileWriter {
      * Preloaded scans
      */
     private Hashtable<Integer, Scan> scans;
-    private PreloadLevel preloadLevel;
 
-    public RawDataFileImpl(String fileName, PreloadLevel preloadLevel)
-            throws IOException {
+    public RawDataFileImpl(String fileName) throws IOException {
 
-        this.preloadLevel = preloadLevel;
         this.fileName = fileName;
         // create temporary file for scan data
-        if (preloadLevel != PreloadLevel.PRELOAD_ALL_SCANS) {
-            File tmpFile = File.createTempFile("mzmine", ".scans");
-            tmpFile.deleteOnExit();
-            setScanDataFile(tmpFile);
-        }
+        File tmpFile = File.createTempFile("mzmine", ".scans");
+        tmpFile.deleteOnExit();
+        setScanDataFile(tmpFile);
 
         // prepare new Hashtable for scans
         scans = new Hashtable<Integer, Scan>();
     }
-    
+
     void setScanDataFile(File scanFile) throws FileNotFoundException {
         this.scanFile = scanFile;
         this.scanDataFile = new RandomAccessFile(scanFile, "rw");
@@ -96,7 +90,7 @@ public class RawDataFileImpl implements RawDataFile, RawDataFileWriter {
     RandomAccessFile getScanDataFile() {
         return scanDataFile;
     }
-    
+
     /**
      * @see net.sf.mzmine.data.RawDataFile#getScanDataFile()
      */
@@ -199,17 +193,16 @@ public class RawDataFileImpl implements RawDataFile, RawDataFileWriter {
         // if there is no cache table, create one
         if (dataMinRT == null)
             dataMinRT = new Hashtable<Integer, Double>();
-        else{
+        else {
             minRT = dataMinRT.get(msLevel);
             if (minRT != null)
-              return minRT.doubleValue();
+                return minRT.doubleValue();
         }
-        	
 
         // check if we have this value already cached
-        //Double minRT = dataMinRT.get(msLevel);
-        //if (minRT != null)
-          //  return minRT.doubleValue();
+        // Double minRT = dataMinRT.get(msLevel);
+        // if (minRT != null)
+        // return minRT.doubleValue();
 
         // find the value
         Enumeration<Scan> scansEnum = scans.elements();
@@ -427,24 +420,8 @@ public class RawDataFileImpl implements RawDataFile, RawDataFileWriter {
         int msLevel = newScan.getMSLevel();
 
         // Store the scan data
-        switch (preloadLevel) {
-        case NO_PRELOAD:
-            StorableScan storedScan = new StorableScan(newScan, this);
-            scans.put(scanNumber, storedScan);
-            break;
-        case PRELOAD_ALL_SCANS:
-            scans.put(scanNumber, newScan);
-            break;
-        case PRELOAD_FULL_SCANS:
-            if (msLevel == 1) {
-                scans.put(scanNumber, newScan);
-            } else {
-                StorableScan storedFullScan = new StorableScan(newScan, this);
-                scans.put(scanNumber, storedFullScan);
-            }
-            break;
-
-        }
+        StorableScan storedScan = new StorableScan(newScan, this);
+        scans.put(scanNumber, storedScan);
 
         // If this is a fragment scan, update the fragmentScans[] array of its
         // parent
@@ -484,13 +461,6 @@ public class RawDataFileImpl implements RawDataFile, RawDataFileWriter {
 
     public String toString() {
         return fileName;
-    }
-
-    /**
-     * @see net.sf.mzmine.data.RawDataFile#getPreloadLevel()
-     */
-    public PreloadLevel getPreloadLevel() {
-        return preloadLevel;
     }
 
     /**
@@ -557,15 +527,14 @@ public class RawDataFileImpl implements RawDataFile, RawDataFileWriter {
     }
 
     public void close() {
-        if (preloadLevel != PreloadLevel.PRELOAD_ALL_SCANS) {
-            try {
-                scanDataFile.close();
-                scanFile.delete();
-            } catch (IOException e) {
-                logger.warning("Could not close file " + scanFile + ": " + e.toString());
-            }
+        try {
+            scanDataFile.close();
+            scanFile.delete();
+        } catch (IOException e) {
+            logger.warning("Could not close file " + scanFile + ": "
+                    + e.toString());
         }
 
     }
-    
+
 }
