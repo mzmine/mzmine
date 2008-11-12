@@ -21,6 +21,7 @@ package net.sf.mzmine.taskcontrol.impl;
 
 import java.util.Arrays;
 import java.util.HashSet;
+import java.util.Hashtable;
 import java.util.Iterator;
 
 import javax.swing.event.TableModelEvent;
@@ -43,6 +44,7 @@ class TaskQueue implements TableModel {
 	private int size, capacity;
 
 	private HashSet<TableModelListener> listeners;
+	private Hashtable<Integer, LabeledProgressBar> progressBars;
 
 	TaskQueue() {
 
@@ -50,6 +52,7 @@ class TaskQueue implements TableModel {
 		capacity = DEFAULT_CAPACITY;
 		queue = new WrappedTask[capacity];
 		listeners = new HashSet<TableModelListener>();
+		progressBars = new Hashtable<Integer, LabeledProgressBar>();
 
 	}
 
@@ -187,8 +190,16 @@ class TaskQueue implements TableModel {
 			case 2:
 				return task.getTask().getStatus();
 			case 3:
-				return new LabeledProgressBar(task.getTask()
-						.getFinishedPercentage());
+				LabeledProgressBar progressBar = progressBars.get(row);
+				if (progressBar == null) {
+					progressBar = new LabeledProgressBar(task.getTask()
+							.getFinishedPercentage());
+					progressBars.put(row, progressBar);
+				} else {
+					progressBar
+							.setValue(task.getTask().getFinishedPercentage());
+				}
+				return progressBar;
 			}
 		}
 
