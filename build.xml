@@ -72,6 +72,11 @@
 			<fileset file="${lib}/*.dll" />
 		</copy>
 
+		<copy todir="${dist}">
+			<fileset file="COPYRIGHT.TXT" />
+			<fileset file="GPL.TXT" />
+		</copy>
+				
 		<jar destfile="${dist}/MZmine2.jar" manifest="${manifest}">
 			<fileset dir="${build}" />
 		</jar>
