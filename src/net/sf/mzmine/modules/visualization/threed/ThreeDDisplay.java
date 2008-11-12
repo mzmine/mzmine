@@ -67,20 +67,8 @@ import visad.java3d.MouseBehaviorJ3D;
  */
 class ThreeDDisplay extends DisplayImplJ3D {
 
-    // number of labeled ticks on retention time axis
-    private static final int X_AXIS_TICKS = 30;
-
-    // number of labeled ticks on m/z axis
-    private static final int Y_AXIS_TICKS = 20;
-
-    // number of labeled ticks (marks) on intensity axis
-    private static final int Z_AXIS_TICKS = 10;
-
-    // number of minor (not labeled) axis ticks per 1 major tick
-    private static final int MINOR_TICKS = 5;
-
-    // tick labels font size
-    private static final int LABEL_FONT_SIZE = 2;
+    private static final Font annotationFont = new Font("SansSerif",
+            Font.PLAIN, 8);
 
     // axes aspect ratio X:Y:Z
     private static final double[] ASPECT_RATIO = new double[] { 1, 0.8, 0.3 };
@@ -172,31 +160,29 @@ class ThreeDDisplay extends DisplayImplJ3D {
 
         // Get formatters
         NumberFormat rtFormat = MZmineCore.getRTFormat();
-        NumberFormat mzFormat = MZmineCore.getMZFormat();
         NumberFormat intensityFormat = MZmineCore.getIntensityFormat();
 
         // set retention time axis properties
         retentionTimeAxis = retentionTimeMap.getAxisScale();
         retentionTimeAxis.setColor(Color.black);
         retentionTimeAxis.setTitle("Retention time");
-        retentionTimeAxis.setLabelSize(LABEL_FONT_SIZE);
         retentionTimeAxis.setLabelAllTicks(true);
         retentionTimeAxis.setNumberFormat(rtFormat);
+        retentionTimeAxis.setFont(annotationFont);
 
         // set m/z axis properties
+        // we ignore mzformat because it ends up like 400.00000 anyway
         mzAxis = mzMap.getAxisScale();
         mzAxis.setColor(Color.black);
-        mzAxis.setLabelSize(LABEL_FONT_SIZE);
         mzAxis.setLabelAllTicks(true);
-        mzAxis.setNumberFormat(mzFormat);
-        mzAxis.setFont(new Font("SansSerif", Font.PLAIN, 8));
+        mzAxis.setFont(annotationFont);
 
         // set intensity axis properties
         intensityAxis = intensityMap.getAxisScale();
         intensityAxis.setColor(Color.black);
-        intensityAxis.setLabelSize(LABEL_FONT_SIZE);
         intensityAxis.setLabelAllTicks(true);
         intensityAxis.setNumberFormat(intensityFormat);
+        intensityAxis.setFont(annotationFont);
 
         // height is the same as intensity
         AxisScale peakHeightAxis = heightMap.getAxisScale();
@@ -222,8 +208,9 @@ class ThreeDDisplay extends DisplayImplJ3D {
         dRenderer.setBoxOn(false);
 
         // set the mouse behavior
-        int mouseBehavior[][][] = new int[][][] { { 
-            { MouseHelper.ROTATE, // left mouse button
+        int mouseBehavior[][][] = new int[][][] { { { MouseHelper.ROTATE, // left
+                                                                            // mouse
+                                                                            // button
                 MouseHelper.ZOOM // SHIFT + left mouse button
                 }, { MouseHelper.ROTATE, // CTRL + left mouse button
                         MouseHelper.ZOOM // CTRL + SHIFT + left mouse button
@@ -268,7 +255,8 @@ class ThreeDDisplay extends DisplayImplJ3D {
         TextControl textControl = (TextControl) annotationMap.getControl();
         textControl.setCenter(true);
         textControl.setAutoSize(false);
-        textControl.setScale(0.1);
+        textControl.setScale(0.3);
+        textControl.setFont(annotationFont);
 
         // get projection control to set initial rotation and zooming
         ProjectionControl projCont = getProjectionControl();
@@ -280,8 +268,8 @@ class ThreeDDisplay extends DisplayImplJ3D {
         double[] pControlMatrix = projCont.getMatrix();
 
         // prepare rotation and scaling matrix
-        double[] mult = MouseBehaviorJ3D.static_make_matrix(
-                75, 0, 0, // rotation X,Y,Z
+        double[] mult = MouseBehaviorJ3D.static_make_matrix(75, 0, 0, // rotation
+                                                                        // X,Y,Z
                 1, // scaling
                 0.1, 0.2, 0 // translation (moving) X,Y,Z
         );
@@ -294,9 +282,9 @@ class ThreeDDisplay extends DisplayImplJ3D {
         projCont.setMatrix(pControlMatrix);
 
         // color of text annotations
-        peakColorMap = new ConstantMap[] { new ConstantMap(0.8, Display.Red),
-                new ConstantMap(0.8, Display.Green),
-                new ConstantMap(0.0f, Display.Blue) };
+        peakColorMap = new ConstantMap[] { new ConstantMap(1, Display.Red),
+                new ConstantMap(1, Display.Green),
+                new ConstantMap(0.0, Display.Blue) };
 
         // create a pick renderer, so we can track user clicks
         pickRenderer = new PickManipulationRendererJ3D();
@@ -309,8 +297,6 @@ class ThreeDDisplay extends DisplayImplJ3D {
         cells = new ThreeDPeakCells(this);
 
     }
-
-
 
     /**
      * Set data points
@@ -336,21 +322,6 @@ class ThreeDDisplay extends DisplayImplJ3D {
             // value, because the peaks are usually sharp
             colorMap.setRange(0, maxIntensity / 5);
 
-            double mzRange = mzMax - mzMin;
-            double rtRange = rtMax - rtMin;
-
-            double ticks = Math.round(rtRange / X_AXIS_TICKS);
-            retentionTimeAxis.setMinorTickSpacing(ticks / MINOR_TICKS);
-            retentionTimeAxis.setMajorTickSpacing(ticks);
-
-            ticks = Math.round(mzRange / Y_AXIS_TICKS);
-            mzAxis.setMinorTickSpacing(ticks / MINOR_TICKS);
-            mzAxis.setMajorTickSpacing(ticks);
-
-            ticks = Math.round(maxIntensity / Z_AXIS_TICKS);
-            intensityAxis.setMinorTickSpacing(ticks / MINOR_TICKS);
-            intensityAxis.setMajorTickSpacing(ticks);
-
             dataReference.setData(intensityValuesFlatField);
             addReference(dataReference);
 
@@ -363,7 +334,8 @@ class ThreeDDisplay extends DisplayImplJ3D {
     /**
      * Set picked peaks
      */
-    void setPeaks(PeakList peakList, ChromatographicPeak peaks[], boolean showCompoundName) {
+    void setPeaks(PeakList peakList, ChromatographicPeak peaks[],
+            boolean showCompoundName) {
 
         try {
 
@@ -460,5 +432,5 @@ class ThreeDDisplay extends DisplayImplJ3D {
     RealTupleType getDomainTuple() {
         return domainTuple;
     }
-    
+
 }
