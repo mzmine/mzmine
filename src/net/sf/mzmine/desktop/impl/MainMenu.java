@@ -33,6 +33,7 @@ import javax.swing.KeyStroke;
 
 import net.sf.mzmine.desktop.MZmineMenu;
 import net.sf.mzmine.main.MZmineCore;
+import net.sf.mzmine.project.impl.ProjectManagerImpl;
 import net.sf.mzmine.project.parameterssetup.ProjectParametersSetupDialog;
 import net.sf.mzmine.util.GUIUtils;
 import net.sf.mzmine.util.dialogs.FormatSetupDialog;
@@ -45,18 +46,18 @@ import ca.guydavis.swing.desktop.JWindowsMenu;
 public class MainMenu extends JMenuBar implements ActionListener {
 
     private JMenu projectMenu, rawDataMenu, peakListMenu, visualizationMenu,
-            helpMenu;
+            helpMenu, rawDataFilteringMenu, peakDetectionMenu, isotopesMenu,
+            peakListFilteringMenu, alignmentMenu, normalizationMenu,
+            identificationMenu, dataAnalysisMenu, peakListExportMenu;
+
     private JWindowsMenu windowsMenu;
 
-    private JMenu rawDataImportMenu, rawDataFilteringMenu, peakDetectionMenu;
-    private JMenu isotopesMenu, peakListFilteringMenu, alignmentMenu,
-            normalizationMenu, identificationMenu, dataAnalysisMenu,
-            peakListExportMenu;
+    private JMenuItem projectOpen, projectSave, projectSaveAs,
+            projectSampleParameters, projectFormats, projectSaveParameters,
+            projectLoadParameters, projectExit;
 
-    private JMenuItem projectExperimentalParameters, projectFormats,
-            projectSaveParameters, projectLoadParameters, projectExit;
-
-    private int projectMenuIndex = 0;
+    private int projectMenuIndex = 4, rawDataMenuIndex = 0,
+            visualizationMenuIndex = 0;
 
     MainMenu() {
 
@@ -68,12 +69,25 @@ public class MainMenu extends JMenuBar implements ActionListener {
         projectMenu.setMnemonic(KeyEvent.VK_P);
         add(projectMenu);
 
+        projectOpen = GUIUtils.addMenuItem(projectMenu, "Open project...",
+                this, KeyEvent.VK_O);
+
+        projectSave = GUIUtils.addMenuItem(projectMenu, "Save project...",
+                this, KeyEvent.VK_S);
+
+        projectSaveAs = GUIUtils.addMenuItem(projectMenu,
+                "Save project as....", this, KeyEvent.VK_A);
+
+        projectMenu.addSeparator();
+
         // module items go here (e.g. batch mode)
 
         projectMenu.addSeparator();
 
-        projectExperimentalParameters = GUIUtils.addMenuItem(projectMenu,
-                "Set project parameters...", this, KeyEvent.VK_P);
+        projectSampleParameters = GUIUtils.addMenuItem(projectMenu,
+                "Set sample parameters...", this, KeyEvent.VK_P);
+
+        projectMenu.addSeparator();
 
         projectFormats = GUIUtils.addMenuItem(projectMenu,
                 "Set number formats...", this, KeyEvent.VK_F);
@@ -86,6 +100,7 @@ public class MainMenu extends JMenuBar implements ActionListener {
                 "Load MZmine parameters...", this, KeyEvent.VK_L);
 
         projectMenu.addSeparator();
+
         projectExit = GUIUtils.addMenuItem(projectMenu, "Exit", this,
                 KeyEvent.VK_X, true);
 
@@ -96,10 +111,6 @@ public class MainMenu extends JMenuBar implements ActionListener {
         rawDataMenu = new JMenu("Raw data methods");
         rawDataMenu.setMnemonic(KeyEvent.VK_R);
         add(rawDataMenu);
-
-        rawDataImportMenu = new JMenu("Import");
-        rawDataImportMenu.setMnemonic(KeyEvent.VK_I);
-        rawDataMenu.add(rawDataImportMenu);
 
         rawDataFilteringMenu = new JMenu("Filtering");
         rawDataFilteringMenu.setMnemonic(KeyEvent.VK_F);
@@ -121,7 +132,7 @@ public class MainMenu extends JMenuBar implements ActionListener {
         isotopesMenu.setMnemonic(KeyEvent.VK_D);
         peakListMenu.add(isotopesMenu);
 
-        peakListFilteringMenu = new JMenu("Peak list filtering");
+        peakListFilteringMenu = new JMenu("Filtering");
         peakListFilteringMenu.setMnemonic(KeyEvent.VK_P);
         peakListMenu.add(peakListFilteringMenu);
 
@@ -175,14 +186,16 @@ public class MainMenu extends JMenuBar implements ActionListener {
 
     }
 
-    public void addMenuItem(MZmineMenu parentMenu, JMenuItem newItem) {
+    public synchronized void addMenuItem(MZmineMenu parentMenu,
+            JMenuItem newItem) {
         switch (parentMenu) {
         case PROJECT:
             projectMenu.add(newItem, projectMenuIndex);
             projectMenuIndex++;
             break;
-        case RAWDATAIMPORT:
-            rawDataImportMenu.add(newItem);
+        case RAWDATA:
+            rawDataMenu.add(newItem, rawDataMenuIndex);
+            rawDataMenuIndex++;
             break;
         case RAWDATAFILTERING:
             rawDataFilteringMenu.add(newItem);
@@ -208,7 +221,11 @@ public class MainMenu extends JMenuBar implements ActionListener {
         case PEAKLISTEXPORT:
             peakListExportMenu.add(newItem);
             break;
-        case VISUALIZATION:
+        case VISUALIZATIONRAWDATA:
+            visualizationMenu.add(newItem, visualizationMenuIndex);
+            visualizationMenuIndex++;
+            break;
+        case VISUALIZATIONPEAKLIST:
             visualizationMenu.add(newItem);
             break;
         case DATAANALYSIS:
@@ -252,6 +269,21 @@ public class MainMenu extends JMenuBar implements ActionListener {
             MZmineCore.exitMZmine();
         }
 
+        if (src == projectOpen) {
+            ProjectManagerImpl projectManager = ProjectManagerImpl.getInstance();
+            projectManager.openProject();
+        }
+
+        if (src == projectSave) {
+            ProjectManagerImpl projectManager = ProjectManagerImpl.getInstance();
+            projectManager.saveProject();
+        }
+
+        if (src == projectSaveAs) {
+            ProjectManagerImpl projectManager = ProjectManagerImpl.getInstance();
+            projectManager.saveProjectAs();
+        }
+
         if (src == projectSaveParameters) {
             JFileChooser chooser = new JFileChooser();
             int returnVal = chooser.showSaveDialog(MZmineCore.getDesktop().getMainFrame());
@@ -270,7 +302,7 @@ public class MainMenu extends JMenuBar implements ActionListener {
             }
         }
 
-        if (src == projectExperimentalParameters) {
+        if (src == projectSampleParameters) {
             ProjectParametersSetupDialog dialog = new ProjectParametersSetupDialog();
             dialog.setVisible(true);
         }
@@ -281,5 +313,4 @@ public class MainMenu extends JMenuBar implements ActionListener {
         }
 
     }
-
 }

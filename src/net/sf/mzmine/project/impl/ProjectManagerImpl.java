@@ -21,13 +21,10 @@ package net.sf.mzmine.project.impl;
 
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.awt.event.KeyEvent;
 import java.io.File;
 
 import javax.swing.JFileChooser;
 
-import net.sf.mzmine.desktop.Desktop;
-import net.sf.mzmine.desktop.MZmineMenu;
 import net.sf.mzmine.desktop.impl.DesktopParameters;
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.project.MZmineProject;
@@ -39,8 +36,6 @@ import com.sun.java.ExampleFileFilter;
  * implementation of actual tasks
  */
 public class ProjectManagerImpl implements ActionListener {
-
-    // private Logger logger = Logger.getLogger(this.getClass().getName());
 
     private static ProjectManagerImpl myInstance;
 
@@ -54,60 +49,16 @@ public class ProjectManagerImpl implements ActionListener {
         myInstance = this;
     }
 
-    /**
-     * Desktop is not initialized yet, when we run our initModule, so we need to
-     * create menu items later
-     * 
-     */
-    public void createMenuItems() {
-        Desktop desktop = MZmineCore.getDesktop();
-
-        desktop.addMenuItem(MZmineMenu.PROJECT, "Open project...", null,
-                KeyEvent.VK_O, this, "OPEN_PROJECT");
-
-        desktop.addMenuItem(MZmineMenu.PROJECT, "Save project...", null,
-                KeyEvent.VK_S, this, "SAVE_PROJECT");
-
-        desktop.addMenuItem(MZmineMenu.PROJECT, "Save project as...", null,
-                KeyEvent.VK_A, this, "SAVE_PROJECT_AS");
-
-    }
-
     public void actionPerformed(ActionEvent event) {
 
         String cmd = event.getActionCommand();
 
         if (cmd.equals("OPEN_PROJECT")) {
-            DesktopParameters parameters = (DesktopParameters) MZmineCore.getDesktop().getParameterSet();
-            String lastPath = parameters.getLastOpenProjectPath();
-            JFileChooser chooser = new JFileChooser();
-            if (lastPath != null)
-                chooser.setCurrentDirectory(new File(lastPath));
 
-            ExampleFileFilter filter = new ExampleFileFilter();
-            filter.addExtension("mzmine");
-            filter.setDescription("MZmine 2 projects");
-            chooser.setFileFilter(filter);
-            int returnVal = chooser.showOpenDialog(MZmineCore.getDesktop().getMainFrame());
-            if (returnVal == JFileChooser.APPROVE_OPTION) {
-                File selectedFile = chooser.getSelectedFile();
-                ProjectOpeningTask task = new ProjectOpeningTask(
-                        selectedFile);
-                MZmineCore.getTaskController().addTask(task);
-                DesktopParameters newDesktopParams = (DesktopParameters) MZmineCore.getDesktop().getParameterSet();
-                newDesktopParams.setLastOpenProjectPath(selectedFile.getParent());
-            }
         }
 
         if (cmd.equals("SAVE_PROJECT")) {
-            File projectFile = MZmineCore.getCurrentProject().getProjectFile();
-            if (projectFile == null) {
-                saveProjectAs();
-                return;
-            }
-            ProjectSavingTask task = new ProjectSavingTask(projectFile);
-            MZmineCore.getTaskController().addTask(task);
-            
+
         }
 
         if (cmd.equals("SAVE_PROJECT_AS")) {
@@ -123,11 +74,42 @@ public class ProjectManagerImpl implements ActionListener {
         this.currentProject = project;
     }
 
-    static ProjectManagerImpl getInstance() {
+    public static ProjectManagerImpl getInstance() {
         return myInstance;
     }
-    
-    private void saveProjectAs() {
+
+    public void openProject() {
+        DesktopParameters parameters = (DesktopParameters) MZmineCore.getDesktop().getParameterSet();
+        String lastPath = parameters.getLastOpenProjectPath();
+        JFileChooser chooser = new JFileChooser();
+        if (lastPath != null)
+            chooser.setCurrentDirectory(new File(lastPath));
+
+        ExampleFileFilter filter = new ExampleFileFilter();
+        filter.addExtension("mzmine");
+        filter.setDescription("MZmine 2 projects");
+        chooser.setFileFilter(filter);
+        int returnVal = chooser.showOpenDialog(MZmineCore.getDesktop().getMainFrame());
+        if (returnVal == JFileChooser.APPROVE_OPTION) {
+            File selectedFile = chooser.getSelectedFile();
+            ProjectOpeningTask task = new ProjectOpeningTask(selectedFile);
+            MZmineCore.getTaskController().addTask(task);
+            DesktopParameters newDesktopParams = (DesktopParameters) MZmineCore.getDesktop().getParameterSet();
+            newDesktopParams.setLastOpenProjectPath(selectedFile.getParent());
+        }
+    }
+
+    public void saveProject() {
+        File projectFile = MZmineCore.getCurrentProject().getProjectFile();
+        if (projectFile == null) {
+            saveProjectAs();
+            return;
+        }
+        ProjectSavingTask task = new ProjectSavingTask(projectFile);
+        MZmineCore.getTaskController().addTask(task);
+    }
+
+    public void saveProjectAs() {
         DesktopParameters parameters = (DesktopParameters) MZmineCore.getDesktop().getParameterSet();
         String lastPath = parameters.getLastOpenProjectPath();
         JFileChooser chooser = new JFileChooser();

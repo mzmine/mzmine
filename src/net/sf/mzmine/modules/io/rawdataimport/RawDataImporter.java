@@ -58,8 +58,6 @@ public class RawDataImporter implements MZmineModule, ActionListener,
 
     private Desktop desktop;
 
-    private static RawDataImporter myInstance;
-
     /**
      * @see net.sf.mzmine.main.MZmineModule#initModule(net.sf.mzmine.main.MZmineCore)
      */
@@ -67,13 +65,11 @@ public class RawDataImporter implements MZmineModule, ActionListener,
 
         this.desktop = MZmineCore.getDesktop();
 
-        myInstance = this;
-
         parameters = new RawDataImporterParameters();
 
-        desktop.addMenuItem(MZmineMenu.RAWDATAIMPORT, "Import raw data files",
+        desktop.addMenuItem(MZmineMenu.RAWDATA, "Import raw data files",
                 "This module imports raw data files into the project",
-                KeyEvent.VK_W, this, null);
+                KeyEvent.VK_I, this, null);
 
     }
 
@@ -185,10 +181,6 @@ public class RawDataImporter implements MZmineModule, ActionListener,
             desktop.displayErrorMessage(msg);
         }
 
-    }
-
-    public static RawDataImporter getInstance() {
-        return myInstance;
     }
 
 }

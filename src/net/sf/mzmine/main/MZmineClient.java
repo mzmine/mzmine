@@ -110,9 +110,6 @@ public class MZmineClient extends MZmineCore implements Runnable {
             projectManager.initModule();
             desktop.initModule();
 
-            // menu items have to be added after desktop is initialized
-            projectManager.createMenuItems();
-
             logger.finer("Loading modules");
 
             moduleSet = new Vector<MZmineModule>();

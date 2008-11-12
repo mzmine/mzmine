@@ -54,7 +54,7 @@ public class IntensityPlot implements MZmineModule, ActionListener {
 
         myInstance = this;
 
-        desktop.addMenuItem(MZmineMenu.VISUALIZATION, "Peak intensity plot",
+        desktop.addMenuItem(MZmineMenu.VISUALIZATIONPEAKLIST, "Peak intensity plot",
                 "Plots the peak height or area vs selected parameter",
                 KeyEvent.VK_D, this, null);
 
