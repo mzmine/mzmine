@@ -417,8 +417,7 @@ public class RawDataFileImpl implements RawDataFile, RawDataFileWriter {
     public void addScan(Scan newScan) {
 
         int scanNumber = newScan.getScanNumber();
-        int msLevel = newScan.getMSLevel();
-
+        
         // Store the scan data
         StorableScan storedScan = new StorableScan(newScan, this);
         scans.put(scanNumber, storedScan);
