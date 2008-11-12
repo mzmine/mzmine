@@ -41,7 +41,7 @@ import ca.guydavis.swing.desktop.CascadingWindowPositioner;
 import ca.guydavis.swing.desktop.JWindowsMenu;
 
 /**
- * This class represents main menu of the MZmine desktop
+ * This class represents the main menu of MZmine desktop
  */
 public class MainMenu extends JMenuBar implements ActionListener {
 
@@ -70,13 +70,13 @@ public class MainMenu extends JMenuBar implements ActionListener {
         add(projectMenu);
 
         projectOpen = GUIUtils.addMenuItem(projectMenu, "Open project...",
-                this, KeyEvent.VK_O);
+                this, KeyEvent.VK_O, true);
 
         projectSave = GUIUtils.addMenuItem(projectMenu, "Save project...",
-                this, KeyEvent.VK_S);
+                this, KeyEvent.VK_S, true);
 
         projectSaveAs = GUIUtils.addMenuItem(projectMenu,
-                "Save project as....", this, KeyEvent.VK_A);
+                "Save project as....", this, KeyEvent.VK_A, true);
 
         projectMenu.addSeparator();
 
@@ -95,9 +95,9 @@ public class MainMenu extends JMenuBar implements ActionListener {
         projectMenu.addSeparator();
 
         projectSaveParameters = GUIUtils.addMenuItem(projectMenu,
-                "Save MZmine parameters...", this, KeyEvent.VK_S);
+                "Save MZmine parameters...", this);
         projectLoadParameters = GUIUtils.addMenuItem(projectMenu,
-                "Load MZmine parameters...", this, KeyEvent.VK_L);
+                "Load MZmine parameters...", this);
 
         projectMenu.addSeparator();
 
@@ -163,6 +163,8 @@ public class MainMenu extends JMenuBar implements ActionListener {
         visualizationMenu = new JMenu("Visualization");
         visualizationMenu.setMnemonic(KeyEvent.VK_V);
         this.add(visualizationMenu);
+
+        visualizationMenu.addSeparator();
 
         /*
          * Windows menu
