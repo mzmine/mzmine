@@ -22,7 +22,6 @@ package net.sf.mzmine.desktop.helpsystem;
 import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
 
-import javax.help.CSH;
 import javax.help.HelpBroker;
 
 import net.sf.mzmine.desktop.MZmineMenu;
@@ -38,12 +37,12 @@ public class HelpMainMenuItem {
 		    MZmineHelpSet hs = MZmineCore.getHelpImp().getHelpSet();
 		    
 			HelpBroker hb = hs.createHelpBroker();
-			ActionListener helpListener = new HelpListener(hb); //CSH.DisplayHelpFromSource(hb);
+			ActionListener helpListener = new HelpListener(hb);
 
 			hs.setHomeID("net/sf/mzmine/desktop/helpsystem/AboutText.html");
 			
 			menu.addMenuItem(MZmineMenu.HELPSYSTEM, "About MZmine 2 ...",
-					"Help system contents", KeyEvent.VK_C, helpListener, null);
+					"About MZmine 2...", KeyEvent.VK_A, helpListener, null);
 			
 			
 		} catch (Exception e) {
