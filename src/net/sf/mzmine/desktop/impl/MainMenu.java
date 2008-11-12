@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2007 The MZmine Development Team
+ * Copyright 2006-2008 The MZmine Development Team
  * 
  * This file is part of MZmine.
  * 
@@ -24,7 +24,6 @@ import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
 import java.io.File;
 
-import javax.swing.Box;
 import javax.swing.JDesktopPane;
 import javax.swing.JFileChooser;
 import javax.swing.JMenu;
@@ -41,26 +40,35 @@ import ca.guydavis.swing.desktop.CascadingWindowPositioner;
 import ca.guydavis.swing.desktop.JWindowsMenu;
 
 /**
- * 
+ * This class represents main menu of the MZmine desktop
  */
 public class MainMenu extends JMenuBar implements ActionListener {
 
-    private JMenu projectMenu, filterMenu, peakMenu, alignmentMenu,
-            normalizationMenu, identificationMenu, rawDataVisualizationMenu,
-            dataAnalysisMenu, helpMenu, peakListMenu;
-
+    private JMenu projectMenu, rawDataMenu, peakListMenu, visualizationMenu,
+            helpMenu;
     private JWindowsMenu windowsMenu;
+
+    private JMenu rawDataImportMenu, rawDataFilteringMenu, peakDetectionMenu;
+    private JMenu isotopesMenu, peakListFilteringMenu, alignmentMenu,
+            normalizationMenu, identificationMenu, dataAnalysisMenu,
+            peakListExportMenu;
 
     private JMenuItem projectExperimentalParameters, projectFormats,
             projectSaveParameters, projectLoadParameters, projectExit;
-    
+
     private int projectMenuIndex = 0;
 
     MainMenu() {
 
+        /*
+         * Project menu
+         */
+
         projectMenu = new JMenu("Project");
         projectMenu.setMnemonic(KeyEvent.VK_P);
         add(projectMenu);
+
+        // module items go here (e.g. batch mode)
 
         projectMenu.addSeparator();
 
@@ -71,8 +79,6 @@ public class MainMenu extends JMenuBar implements ActionListener {
                 "Set number formats...", this, KeyEvent.VK_F);
 
         projectMenu.addSeparator();
-        // module items go here (e.g. batch mode)
-        
 
         projectSaveParameters = GUIUtils.addMenuItem(projectMenu,
                 "Save MZmine parameters...", this, KeyEvent.VK_S);
@@ -83,37 +89,73 @@ public class MainMenu extends JMenuBar implements ActionListener {
         projectExit = GUIUtils.addMenuItem(projectMenu, "Exit", this,
                 KeyEvent.VK_X, true);
 
-        filterMenu = new JMenu("Raw data processing");
-        filterMenu.setMnemonic(KeyEvent.VK_F);
-        this.add(filterMenu);
+        /*
+         * Raw data methods menu
+         */
 
-        peakMenu = new JMenu("Peak detection");
-        peakMenu.setMnemonic(KeyEvent.VK_D);
-        this.add(peakMenu);
+        rawDataMenu = new JMenu("Raw data methods");
+        rawDataMenu.setMnemonic(KeyEvent.VK_R);
+        add(rawDataMenu);
 
-        peakListMenu = new JMenu("Peaklist processing");
+        rawDataImportMenu = new JMenu("Import");
+        rawDataImportMenu.setMnemonic(KeyEvent.VK_I);
+        rawDataMenu.add(rawDataImportMenu);
+
+        rawDataFilteringMenu = new JMenu("Filtering");
+        rawDataFilteringMenu.setMnemonic(KeyEvent.VK_F);
+        rawDataMenu.add(rawDataFilteringMenu);
+
+        peakDetectionMenu = new JMenu("Peak detection");
+        peakDetectionMenu.setMnemonic(KeyEvent.VK_D);
+        rawDataMenu.add(peakDetectionMenu);
+
+        /*
+         * Peak list methods menu
+         */
+
+        peakListMenu = new JMenu("Peak list methods");
         peakListMenu.setMnemonic(KeyEvent.VK_P);
         this.add(peakListMenu);
 
+        isotopesMenu = new JMenu("Isotopes");
+        isotopesMenu.setMnemonic(KeyEvent.VK_D);
+        peakListMenu.add(isotopesMenu);
+
+        peakListFilteringMenu = new JMenu("Peak list filtering");
+        peakListFilteringMenu.setMnemonic(KeyEvent.VK_P);
+        peakListMenu.add(peakListFilteringMenu);
+
         alignmentMenu = new JMenu("Alignment");
         alignmentMenu.setMnemonic(KeyEvent.VK_A);
-        this.add(alignmentMenu);
+        peakListMenu.add(alignmentMenu);
 
         normalizationMenu = new JMenu("Normalization");
         normalizationMenu.setMnemonic(KeyEvent.VK_N);
-        this.add(normalizationMenu);
+        peakListMenu.add(normalizationMenu);
 
         identificationMenu = new JMenu("Identification");
         identificationMenu.setMnemonic(KeyEvent.VK_I);
-        this.add(identificationMenu);
-
-        rawDataVisualizationMenu = new JMenu("Visualization");
-        rawDataVisualizationMenu.setMnemonic(KeyEvent.VK_V);
-        this.add(rawDataVisualizationMenu);
+        peakListMenu.add(identificationMenu);
 
         dataAnalysisMenu = new JMenu("Data analysis");
         dataAnalysisMenu.setMnemonic(KeyEvent.VK_S);
-        this.add(dataAnalysisMenu);
+        peakListMenu.add(dataAnalysisMenu);
+
+        peakListExportMenu = new JMenu("Export");
+        peakListExportMenu.setMnemonic(KeyEvent.VK_E);
+        peakListMenu.add(peakListExportMenu);
+
+        /*
+         * Visualization menu
+         */
+
+        visualizationMenu = new JMenu("Visualization");
+        visualizationMenu.setMnemonic(KeyEvent.VK_V);
+        this.add(visualizationMenu);
+
+        /*
+         * Windows menu
+         */
 
         JDesktopPane mainDesktopPane = ((MainWindow) MZmineCore.getDesktop()).getDesktopPane();
         windowsMenu = new JWindowsMenu(mainDesktopPane);
@@ -122,6 +164,10 @@ public class MainMenu extends JMenuBar implements ActionListener {
         windowsMenu.setWindowPositioner(positioner);
         windowsMenu.setMnemonic(KeyEvent.VK_W);
         this.add(windowsMenu);
+
+        /*
+         * Help menu
+         */
 
         helpMenu = new JMenu("Help");
         helpMenu.setMnemonic(KeyEvent.VK_H);
@@ -135,14 +181,20 @@ public class MainMenu extends JMenuBar implements ActionListener {
             projectMenu.add(newItem, projectMenuIndex);
             projectMenuIndex++;
             break;
-        case RAWDATAPROCESSING:
-            filterMenu.add(newItem);
+        case RAWDATAIMPORT:
+            rawDataImportMenu.add(newItem);
+            break;
+        case RAWDATAFILTERING:
+            rawDataFilteringMenu.add(newItem);
             break;
         case PEAKPICKING:
-            peakMenu.add(newItem);
+            peakDetectionMenu.add(newItem);
             break;
-        case PEAKLISTPROCESSING:
-            peakListMenu.add(newItem);
+        case ISOTOPES:
+            isotopesMenu.add(newItem);
+            break;
+        case PEAKLISTFILTERING:
+            peakListFilteringMenu.add(newItem);
             break;
         case ALIGNMENT:
             alignmentMenu.add(newItem);
@@ -153,9 +205,11 @@ public class MainMenu extends JMenuBar implements ActionListener {
         case IDENTIFICATION:
             identificationMenu.add(newItem);
             break;
-
+        case PEAKLISTEXPORT:
+            peakListExportMenu.add(newItem);
+            break;
         case VISUALIZATION:
-            rawDataVisualizationMenu.add(newItem);
+            visualizationMenu.add(newItem);
             break;
         case DATAANALYSIS:
             dataAnalysisMenu.add(newItem);
@@ -185,43 +239,6 @@ public class MainMenu extends JMenuBar implements ActionListener {
         addMenuItem(parentMenu, newItem);
         return newItem;
 
-    }
-
-    public void addMenuSeparator(MZmineMenu parentMenu) {
-        switch (parentMenu) {
-        case PROJECT:
-            projectMenu.insertSeparator(projectMenuIndex);
-            projectMenuIndex++;
-            break;
-        case RAWDATAPROCESSING:
-            filterMenu.addSeparator();
-            break;
-        case PEAKPICKING:
-            peakMenu.addSeparator();
-            break;
-        case PEAKLISTPROCESSING:
-            peakListMenu.addSeparator();
-            break;
-        case ALIGNMENT:
-            alignmentMenu.addSeparator();
-            break;
-        case NORMALIZATION:
-            normalizationMenu.addSeparator();
-            break;
-        case IDENTIFICATION:
-            identificationMenu.addSeparator();
-            break;
-        case VISUALIZATION:
-            rawDataVisualizationMenu.addSeparator();
-            break;
-        case DATAANALYSIS:
-            dataAnalysisMenu.addSeparator();
-            break;
-        case HELPSYSTEM:
-            helpMenu.addSeparator();
-            break;
-
-        }
     }
 
     /**

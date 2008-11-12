@@ -54,7 +54,7 @@ public class PeakListExporter implements MZmineModule, ActionListener,
 
         parameters = new PeakListExportParameters();
 
-        desktop.addMenuItem(MZmineMenu.PROJECT, "Peak list export",
+        desktop.addMenuItem(MZmineMenu.PEAKLISTEXPORT, "Export to CSV file",
                 "Export peak list data into CSV file", KeyEvent.VK_P, this, null);
 
     }

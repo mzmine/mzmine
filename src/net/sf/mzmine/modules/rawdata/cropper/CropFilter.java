@@ -60,7 +60,7 @@ public class CropFilter implements BatchStep, TaskListener, ActionListener {
         parameters = new CropFilterParameters();
 
         desktop.addMenuItem(
-                MZmineMenu.RAWDATAPROCESSING,
+                MZmineMenu.RAWDATAFILTERING,
                 "Crop filter",
                 "Cropping of the data set to given m/z and retention time ranges",
                 KeyEvent.VK_C, this, null);

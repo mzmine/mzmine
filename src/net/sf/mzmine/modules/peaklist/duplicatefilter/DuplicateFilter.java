@@ -70,7 +70,7 @@ public class DuplicateFilter implements BatchStep, TaskListener, ActionListener 
 
         parameters = new DuplicateFilterParameters();
 
-        desktop.addMenuItem(MZmineMenu.PEAKLISTPROCESSING, toString(),
+        desktop.addMenuItem(MZmineMenu.PEAKLISTFILTERING, toString(),
                 "Removing of duplicate entries in a peak list", KeyEvent.VK_D, this, null);
 
     }

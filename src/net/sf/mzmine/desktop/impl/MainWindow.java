@@ -22,7 +22,6 @@ package net.sf.mzmine.desktop.impl;
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Container;
-import java.awt.LayoutManager;
 import java.awt.event.ActionListener;
 import java.awt.event.WindowEvent;
 import java.awt.event.WindowListener;
@@ -73,9 +72,9 @@ public class MainWindow extends JFrame implements MZmineModule, Desktop,
     private TaskProgressWindow taskList;
 
     private HelpMainMenuItem help;
-    
+
     private static int openFrameCount = 0;
-    
+
     private static final int xOffset = 30, yOffset = 30;
 
     public TaskProgressWindow getTaskList() {
@@ -96,7 +95,7 @@ public class MainWindow extends JFrame implements MZmineModule, Desktop,
         frame.setVisible(true);
         frame.addInternalFrameListener(this);
         openFrameCount++;
-        frame.setLocation(xOffset*openFrameCount, yOffset*openFrameCount);
+        frame.setLocation(xOffset * openFrameCount, yOffset * openFrameCount);
         desktopPane.validate();
     }
 
@@ -250,14 +249,6 @@ public class MainWindow extends JFrame implements MZmineModule, Desktop,
     }
 
     /**
-     * @see net.sf.mzmine.desktop.Desktop#addMenuSeparator(net.sf.mzmine.desktop.Desktop.BatchStepCategory)
-     */
-    public void addMenuSeparator(MZmineMenu parentMenu) {
-        menuBar.addMenuSeparator(parentMenu);
-
-    }
-
-    /**
      * @see net.sf.mzmine.desktop.Desktop#getSelectedFrame()
      */
     public JInternalFrame getSelectedFrame() {
@@ -320,7 +311,7 @@ public class MainWindow extends JFrame implements MZmineModule, Desktop,
 
     public void reloadProject() {
         MZmineProject project = MZmineCore.getCurrentProject();
-        
+
         itemSelector.reloadDataModel();
 
         if (project.getProjectFile() != null) {
@@ -333,26 +324,26 @@ public class MainWindow extends JFrame implements MZmineModule, Desktop,
 
     }
 
-	public void internalFrameActivated(InternalFrameEvent e) {
-	}
+    public void internalFrameActivated(InternalFrameEvent e) {
+    }
 
-	public void internalFrameClosed(InternalFrameEvent e) {
-		openFrameCount--;
-	}
+    public void internalFrameClosed(InternalFrameEvent e) {
+        openFrameCount--;
+    }
 
-	public void internalFrameClosing(InternalFrameEvent e) {
-	}
+    public void internalFrameClosing(InternalFrameEvent e) {
+    }
 
-	public void internalFrameDeactivated(InternalFrameEvent e) {
-	}
+    public void internalFrameDeactivated(InternalFrameEvent e) {
+    }
 
-	public void internalFrameDeiconified(InternalFrameEvent e) {
-	}
+    public void internalFrameDeiconified(InternalFrameEvent e) {
+    }
 
-	public void internalFrameIconified(InternalFrameEvent e) {
-	}
+    public void internalFrameIconified(InternalFrameEvent e) {
+    }
 
-	public void internalFrameOpened(InternalFrameEvent e) {
-	}
+    public void internalFrameOpened(InternalFrameEvent e) {
+    }
 
 }

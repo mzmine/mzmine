@@ -55,8 +55,6 @@ public class RelatedPeaksSearch implements BatchStep, ActionListener,
 
 	private RelatedPeaksSearchParameters parameters;
 
-	private static RelatedPeaksSearch myInstance;
-
 	/**
 	 * @see net.sf.mzmine.main.MZmineModule#getParameterSet()
 	 */
@@ -78,8 +76,6 @@ public class RelatedPeaksSearch implements BatchStep, ActionListener,
 						MODULE_NAME,
 						"Identification of related peaks by mass and retention time throw the same raw data",
 						KeyEvent.VK_R, this, null);
-
-		myInstance = this;
 
 	}
 

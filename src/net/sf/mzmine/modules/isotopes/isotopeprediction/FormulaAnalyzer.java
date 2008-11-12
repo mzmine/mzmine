@@ -25,7 +25,6 @@ import java.util.Set;
 import java.util.StringTokenizer;
 import java.util.TreeSet;
 import java.util.Vector;
-import java.util.logging.Logger;
 
 import net.sf.mzmine.data.DataPoint;
 import net.sf.mzmine.data.IsotopePattern;
@@ -45,8 +44,6 @@ public class FormulaAnalyzer {
 	private static double ELECTRON_MASS = 0.00054857d;
 	// This value is the average from difference of masses between isotopes.
 	private static double ISOTOPE_DISTANCE = 1.002d;
-
-	private Logger logger = Logger.getLogger(this.getClass().getName());
 
 	/**
 	 * This class generates an IsotopePattern using a chemical formula

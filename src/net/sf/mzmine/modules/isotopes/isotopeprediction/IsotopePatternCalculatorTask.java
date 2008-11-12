@@ -19,8 +19,6 @@
 
 package net.sf.mzmine.modules.isotopes.isotopeprediction;
 
-import java.util.logging.Logger;
-
 import net.sf.mzmine.data.IsotopePattern;
 import net.sf.mzmine.modules.identification.pubchem.TypeOfIonization;
 import net.sf.mzmine.taskcontrol.Task;

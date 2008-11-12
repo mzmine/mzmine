@@ -57,12 +57,6 @@ public interface Desktop extends MZmineModule {
     public JMenuItem addMenuItem(MZmineMenu parentMenu, String text,
             String toolTip, int mnemonic, ActionListener listener, String actionCommand);
 
-    /**
-     * Adds a separator to a given MZmine menu
-     * 
-     * @param parentMenu Menu where to add a separator
-     */
-    public void addMenuSeparator(MZmineMenu parentMenu);
 
     /**
      * Adds a new internal frame (JInternalFrame) to the desktop pane

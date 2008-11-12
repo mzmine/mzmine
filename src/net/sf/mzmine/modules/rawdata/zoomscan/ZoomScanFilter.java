@@ -57,7 +57,7 @@ public class ZoomScanFilter implements BatchStep, TaskListener, ActionListener {
 
         parameters = new ZoomScanFilterParameters();
 
-        desktop.addMenuItem(MZmineMenu.RAWDATAPROCESSING, "Zoom scan filter",
+        desktop.addMenuItem(MZmineMenu.RAWDATAFILTERING, "Zoom scan filter",
                 "Filter which removes scans with a narrow m/z range",
                 KeyEvent.VK_Z, this, null);
 
