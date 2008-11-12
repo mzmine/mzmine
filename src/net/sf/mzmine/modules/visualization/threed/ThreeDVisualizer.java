@@ -57,7 +57,7 @@ public class ThreeDVisualizer implements MZmineModule, ActionListener {
         parameters = new ThreeDVisualizerParameters();
 
         desktop.addMenuItem(MZmineMenu.VISUALIZATIONRAWDATA, "3D plot",
-                "3D visualization (requires Java3D)", KeyEvent.VK_3, this, null);
+                "3D visualization (requires Java3D)", KeyEvent.VK_3, false, this, null);
 
     }
 

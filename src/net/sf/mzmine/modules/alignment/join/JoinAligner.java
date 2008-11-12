@@ -64,7 +64,7 @@ public class JoinAligner implements BatchStep, TaskListener, ActionListener {
 
         desktop.addMenuItem(MZmineMenu.ALIGNMENT, toString(),
                 "Alignment based on m/z and retention time tolerance",
-                KeyEvent.VK_J, this, null);
+                KeyEvent.VK_J, false, this, null);
 
     }
 

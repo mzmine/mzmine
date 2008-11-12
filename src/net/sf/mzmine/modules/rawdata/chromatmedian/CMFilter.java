@@ -60,7 +60,7 @@ public class CMFilter implements BatchStep, TaskListener, ActionListener {
         desktop.addMenuItem(MZmineMenu.RAWDATAFILTERING,
                 "Chromatographic median filter",
                 "Smoothing filter in chromatographic direction", KeyEvent.VK_H,
-                this, null);
+                false, this, null);
 
     }
 

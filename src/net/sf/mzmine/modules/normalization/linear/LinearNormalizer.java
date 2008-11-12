@@ -63,7 +63,7 @@ public class LinearNormalizer implements BatchStep, TaskListener,
 
         desktop.addMenuItem(MZmineMenu.NORMALIZATION, "Linear normalizer",
                 "Peak list normalization using linear coefficients",
-                KeyEvent.VK_L, this, null);
+                KeyEvent.VK_L, false, this, null);
 
     }
 

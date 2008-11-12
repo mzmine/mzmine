@@ -61,7 +61,7 @@ public class StandardCompoundNormalizer implements MZmineModule, TaskListener,
         desktop.addMenuItem(MZmineMenu.NORMALIZATION,
                 "Standard compound normalizer",
                 "Peak list normalization using selected internal standards",
-                KeyEvent.VK_S, this, null);
+                KeyEvent.VK_S, false, this, null);
 
     }
 

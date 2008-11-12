@@ -65,7 +65,7 @@ public class MeanFilter implements BatchStep, TaskListener, ActionListener {
                 MZmineMenu.RAWDATAFILTERING,
                 "Mean filter",
                 "Smoothing filter for each individual spectrum, using a mean of neighbouring data points",
-                KeyEvent.VK_M, this, null);
+                KeyEvent.VK_M, false, this, null);
 
     }
 

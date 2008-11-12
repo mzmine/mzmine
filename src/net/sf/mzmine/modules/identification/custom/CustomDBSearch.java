@@ -58,7 +58,7 @@ public class CustomDBSearch implements BatchStep, ActionListener {
 
         desktop.addMenuItem(MZmineMenu.IDENTIFICATION, MODULE_NAME,
                 "Identification by searching a custom database in CSV file",
-                KeyEvent.VK_C, this, null);
+                KeyEvent.VK_C, false, this, null);
     }
 
     /**
@@ -81,10 +81,10 @@ public class CustomDBSearch implements BatchStep, ActionListener {
     public void actionPerformed(ActionEvent e) {
 
         PeakList[] selectedPeakLists = desktop.getSelectedPeakLists();
-        /*if (selectedPeakLists.length < 1) {
-            desktop.displayErrorMessage("Please select a peak list");
-            return;
-        }*/
+        /*
+         * if (selectedPeakLists.length < 1) {
+         * desktop.displayErrorMessage("Please select a peak list"); return; }
+         */
 
         ExitCode exitCode = setupParameters(parameters);
         if (exitCode != ExitCode.OK)

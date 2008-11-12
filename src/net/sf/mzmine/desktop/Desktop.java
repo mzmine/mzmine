@@ -55,8 +55,8 @@ public interface Desktop extends MZmineModule {
      * @return Newly created JMenuItem
      */
     public JMenuItem addMenuItem(MZmineMenu parentMenu, String text,
-            String toolTip, int mnemonic, ActionListener listener, String actionCommand);
-
+            String toolTip, int mnemonic, boolean setAccelerator,
+            ActionListener listener, String actionCommand);
 
     /**
      * Adds a new internal frame (JInternalFrame) to the desktop pane

@@ -30,24 +30,24 @@ import net.sf.mzmine.main.MZmineCore;
 
 public class HelpMainMenuItem {
 
-	public void addMenuItem(MainMenu menu) {
+    public void addMenuItem(MainMenu menu) {
 
-		try {
-			
-		    MZmineHelpSet hs = MZmineCore.getHelpImp().getHelpSet();
-		    
-			HelpBroker hb = hs.createHelpBroker();
-			ActionListener helpListener = new HelpListener(hb);
+        try {
 
-			hs.setHomeID("net/sf/mzmine/desktop/helpsystem/AboutText.html");
-			
-			menu.addMenuItem(MZmineMenu.HELPSYSTEM, "About MZmine 2 ...",
-					"About MZmine 2...", KeyEvent.VK_A, helpListener, null);
-			
-			
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
-	}
+            MZmineHelpSet hs = MZmineCore.getHelpImp().getHelpSet();
+
+            HelpBroker hb = hs.createHelpBroker();
+            ActionListener helpListener = new HelpListener(hb);
+
+            hs.setHomeID("net/sf/mzmine/desktop/helpsystem/AboutText.html");
+
+            menu.addMenuItem(MZmineMenu.HELPSYSTEM, "About MZmine 2 ...",
+                    "About MZmine 2...", KeyEvent.VK_A, false, helpListener,
+                    null);
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
 
 }

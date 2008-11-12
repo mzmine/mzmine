@@ -63,7 +63,7 @@ public class CropFilter implements BatchStep, TaskListener, ActionListener {
                 MZmineMenu.RAWDATAFILTERING,
                 "Crop filter",
                 "Cropping of the data set to given m/z and retention time ranges",
-                KeyEvent.VK_C, this, null);
+                KeyEvent.VK_C, false, this, null);
 
     }
 

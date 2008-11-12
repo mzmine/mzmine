@@ -242,10 +242,10 @@ public class MainWindow extends JFrame implements MZmineModule, Desktop,
      *      int, boolean, boolean)
      */
     public JMenuItem addMenuItem(MZmineMenu parentMenu, String text,
-            String toolTip, int mnemonic, ActionListener listener,
-            String actionCommand) {
+            String toolTip, int mnemonic, boolean setAccelerator,
+            ActionListener listener, String actionCommand) {
         return menuBar.addMenuItem(parentMenu, text, toolTip, mnemonic,
-                listener, actionCommand);
+                setAccelerator, listener, actionCommand);
     }
 
     /**

@@ -83,7 +83,7 @@ public class FragmentAligner implements BatchStep, TaskListener, ActionListener 
 
         desktop.addMenuItem(MZmineMenu.ALIGNMENT, toString(),
                 "Parallel alignment of divided peak list m/z intervals",
-                KeyEvent.VK_F, this, null);
+                KeyEvent.VK_F, false, this, null);
 
     }
 

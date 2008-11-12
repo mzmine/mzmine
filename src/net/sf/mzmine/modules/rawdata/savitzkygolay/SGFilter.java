@@ -40,8 +40,7 @@ import net.sf.mzmine.taskcontrol.TaskListener;
 import net.sf.mzmine.util.dialogs.ExitCode;
 import net.sf.mzmine.util.dialogs.ParameterSetupDialog;
 
-public class SGFilter implements BatchStep, TaskListener,
-        ActionListener {
+public class SGFilter implements BatchStep, TaskListener, ActionListener {
 
     private SGFilterParameters parameters;
 
@@ -58,9 +57,11 @@ public class SGFilter implements BatchStep, TaskListener,
 
         parameters = new SGFilterParameters();
 
-        desktop.addMenuItem(MZmineMenu.RAWDATAFILTERING,
-                "Savitzky-Golay filter", "Smoothing filter for each individual spectrum, using Savitzky-Golay method",
-                KeyEvent.VK_S, this, null);
+        desktop.addMenuItem(
+                MZmineMenu.RAWDATAFILTERING,
+                "Savitzky-Golay filter",
+                "Smoothing filter for each individual spectrum, using Savitzky-Golay method",
+                KeyEvent.VK_S, false, this, null);
 
     }
 
@@ -177,5 +178,5 @@ public class SGFilter implements BatchStep, TaskListener,
     public BatchStepCategory getBatchStepCategory() {
         return BatchStepCategory.RAWDATAPROCESSING;
     }
-    
+
 }

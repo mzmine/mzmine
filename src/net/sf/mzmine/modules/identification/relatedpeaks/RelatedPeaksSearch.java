@@ -45,144 +45,142 @@ import net.sf.mzmine.util.dialogs.ParameterSetupDialog;
  * 
  */
 public class RelatedPeaksSearch implements BatchStep, ActionListener,
-		TaskListener {
+        TaskListener {
 
-	public static final String MODULE_NAME = "Related peaks search";
+    public static final String MODULE_NAME = "Related peaks search";
 
-	private Logger logger = Logger.getLogger(this.getClass().getName());
+    private Logger logger = Logger.getLogger(this.getClass().getName());
 
-	private Desktop desktop;
+    private Desktop desktop;
 
-	private RelatedPeaksSearchParameters parameters;
+    private RelatedPeaksSearchParameters parameters;
 
-	/**
-	 * @see net.sf.mzmine.main.MZmineModule#getParameterSet()
-	 */
-	public ParameterSet getParameterSet() {
-		return parameters;
-	}
+    /**
+     * @see net.sf.mzmine.main.MZmineModule#getParameterSet()
+     */
+    public ParameterSet getParameterSet() {
+        return parameters;
+    }
 
-	/**
-	 * @see net.sf.mzmine.main.MZmineModule#initModule(net.sf.mzmine.main.MZmineCore)
-	 */
-	public void initModule() {
-		this.desktop = MZmineCore.getDesktop();
+    /**
+     * @see net.sf.mzmine.main.MZmineModule#initModule(net.sf.mzmine.main.MZmineCore)
+     */
+    public void initModule() {
+        this.desktop = MZmineCore.getDesktop();
 
-		parameters = new RelatedPeaksSearchParameters();
+        parameters = new RelatedPeaksSearchParameters();
 
-		desktop
-				.addMenuItem(
-						MZmineMenu.IDENTIFICATION,
-						MODULE_NAME,
-						"Identification of related peaks by mass and retention time throw the same raw data",
-						KeyEvent.VK_R, this, null);
+        desktop.addMenuItem(
+                MZmineMenu.IDENTIFICATION,
+                MODULE_NAME,
+                "Identification of related peaks by mass and retention time throw the same raw data",
+                KeyEvent.VK_R, false, this, null);
 
-	}
+    }
 
-	/**
-	 * @see net.sf.mzmine.main.MZmineModule#setParameters(net.sf.mzmine.data.ParameterSet)
-	 */
-	public void setParameters(ParameterSet parameterValues) {
-		this.parameters = (RelatedPeaksSearchParameters) parameterValues;
-	}
+    /**
+     * @see net.sf.mzmine.main.MZmineModule#setParameters(net.sf.mzmine.data.ParameterSet)
+     */
+    public void setParameters(ParameterSet parameterValues) {
+        this.parameters = (RelatedPeaksSearchParameters) parameterValues;
+    }
 
-	/**
-	 * @see net.sf.mzmine.modules.batchmode.BatchStep#getBatchStepCategory()
-	 */
-	public BatchStepCategory getBatchStepCategory() {
-		return BatchStepCategory.IDENTIFICATION;
-	}
+    /**
+     * @see net.sf.mzmine.modules.batchmode.BatchStep#getBatchStepCategory()
+     */
+    public BatchStepCategory getBatchStepCategory() {
+        return BatchStepCategory.IDENTIFICATION;
+    }
 
-	/**
-	 * @see net.sf.mzmine.modules.batchmode.BatchStep#setupParameters(net.sf.mzmine.data.ParameterSet)
-	 */
-	public ExitCode setupParameters(ParameterSet parameters) {
-		ParameterSetupDialog dialog = new ParameterSetupDialog(
-				"Please set parameter values for " + toString(),
-				(SimpleParameterSet) parameters);
-		dialog.setVisible(true);
-		return dialog.getExitCode();
-	}
+    /**
+     * @see net.sf.mzmine.modules.batchmode.BatchStep#setupParameters(net.sf.mzmine.data.ParameterSet)
+     */
+    public ExitCode setupParameters(ParameterSet parameters) {
+        ParameterSetupDialog dialog = new ParameterSetupDialog(
+                "Please set parameter values for " + toString(),
+                (SimpleParameterSet) parameters);
+        dialog.setVisible(true);
+        return dialog.getExitCode();
+    }
 
-	/**
-	 * @see java.awt.event.ActionListener#actionPerformed(java.awt.event.ActionEvent)
-	 */
-	public void actionPerformed(ActionEvent e) {
+    /**
+     * @see java.awt.event.ActionListener#actionPerformed(java.awt.event.ActionEvent)
+     */
+    public void actionPerformed(ActionEvent e) {
 
-		PeakList[] peaklists = desktop.getSelectedPeakLists();
+        PeakList[] peaklists = desktop.getSelectedPeakLists();
 
-		if (peaklists.length == 0) {
-			desktop
-					.displayErrorMessage("Please select a peak lists to process");
-			return;
-		}
+        if (peaklists.length == 0) {
+            desktop.displayErrorMessage("Please select a peak lists to process");
+            return;
+        }
 
-		ExitCode exitCode = setupParameters(parameters);
-		if (exitCode != ExitCode.OK)
-			return;
+        ExitCode exitCode = setupParameters(parameters);
+        if (exitCode != ExitCode.OK)
+            return;
 
-		runModule(null, peaklists, parameters.clone(), null);
+        runModule(null, peaklists, parameters.clone(), null);
 
-	}
+    }
 
-	/**
-	 * @see net.sf.mzmine.modules.batchmode.BatchStep#runModule(net.sf.mzmine.data.RawDataFile[],
-	 *      net.sf.mzmine.data.PeakList[], net.sf.mzmine.data.ParameterSet,
-	 *      net.sf.mzmine.taskcontrol.TaskGroupListener)
-	 */
-	public TaskGroup runModule(RawDataFile[] dataFiles, PeakList[] peakLists,
-			ParameterSet parameters, TaskGroupListener taskGroupListener) {
-		if (peakLists == null) {
-			throw new IllegalArgumentException(
-					"Cannot run identification without a peak list");
-		}
+    /**
+     * @see net.sf.mzmine.modules.batchmode.BatchStep#runModule(net.sf.mzmine.data.RawDataFile[],
+     *      net.sf.mzmine.data.PeakList[], net.sf.mzmine.data.ParameterSet,
+     *      net.sf.mzmine.taskcontrol.TaskGroupListener)
+     */
+    public TaskGroup runModule(RawDataFile[] dataFiles, PeakList[] peakLists,
+            ParameterSet parameters, TaskGroupListener taskGroupListener) {
+        if (peakLists == null) {
+            throw new IllegalArgumentException(
+                    "Cannot run identification without a peak list");
+        }
 
-		// prepare a new sequence of tasks
-		Task tasks[] = new RelatedPeaksSearchTask[peakLists.length];
-		for (int i = 0; i < peakLists.length; i++) {
-			tasks[i] = new RelatedPeaksSearchTask(
-					(RelatedPeaksSearchParameters) parameters, peakLists[i]);
-		}
-		TaskGroup newSequence = new TaskGroup(tasks, this, taskGroupListener);
+        // prepare a new sequence of tasks
+        Task tasks[] = new RelatedPeaksSearchTask[peakLists.length];
+        for (int i = 0; i < peakLists.length; i++) {
+            tasks[i] = new RelatedPeaksSearchTask(
+                    (RelatedPeaksSearchParameters) parameters, peakLists[i]);
+        }
+        TaskGroup newSequence = new TaskGroup(tasks, this, taskGroupListener);
 
-		// execute the sequence
-		newSequence.start();
+        // execute the sequence
+        newSequence.start();
 
-		return newSequence;
-	}
+        return newSequence;
+    }
 
-	/**
-	 * @see java.lang.Object#toString()
-	 */
-	public String toString() {
-		return "related peaks search";
-	}
+    /**
+     * @see java.lang.Object#toString()
+     */
+    public String toString() {
+        return "related peaks search";
+    }
 
-	/**
-	 * @see net.sf.mzmine.taskcontrol.TaskListener#taskStarted(net.sf.mzmine.taskcontrol.Task)
-	 */
-	public void taskStarted(Task task) {
-		logger.info("Running related peaks search");
-	}
+    /**
+     * @see net.sf.mzmine.taskcontrol.TaskListener#taskStarted(net.sf.mzmine.taskcontrol.Task)
+     */
+    public void taskStarted(Task task) {
+        logger.info("Running related peaks search");
+    }
 
-	/**
-	 * @see net.sf.mzmine.taskcontrol.TaskListener#taskFinished(net.sf.mzmine.taskcontrol.Task)
-	 */
-	public void taskFinished(Task task) {
+    /**
+     * @see net.sf.mzmine.taskcontrol.TaskListener#taskFinished(net.sf.mzmine.taskcontrol.Task)
+     */
+    public void taskFinished(Task task) {
 
-		if (task.getStatus() == Task.TaskStatus.FINISHED) {
-			logger.info("Finished realted peaks searching");
-		}
+        if (task.getStatus() == Task.TaskStatus.FINISHED) {
+            logger.info("Finished realted peaks searching");
+        }
 
-		if (task.getStatus() == Task.TaskStatus.ERROR) {
+        if (task.getStatus() == Task.TaskStatus.ERROR) {
 
-			String msg = "Error while searching ofr related peaks: "
-					+ task.getErrorMessage();
-			logger.severe(msg);
-			desktop.displayErrorMessage(msg);
+            String msg = "Error while searching ofr related peaks: "
+                    + task.getErrorMessage();
+            logger.severe(msg);
+            desktop.displayErrorMessage(msg);
 
-		}
+        }
 
-	}
+    }
 
 }

@@ -60,7 +60,7 @@ public class TICVisualizer implements MZmineModule, ActionListener {
         parameters = new TICVisualizerParameters();
 
         desktop.addMenuItem(MZmineMenu.VISUALIZATIONRAWDATA, "TIC plot",
-                "Visualization of the chromatogram", KeyEvent.VK_T, this, null);
+                "Visualization of the chromatogram", KeyEvent.VK_T, false, this, null);
 
         myInstance = this;
 

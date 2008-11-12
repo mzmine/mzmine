@@ -20,6 +20,7 @@
 package net.sf.mzmine.modules.visualization.threed;
 
 import java.awt.Color;
+import java.awt.Font;
 import java.awt.event.KeyEvent;
 import java.rmi.RemoteException;
 import java.text.NumberFormat;
@@ -188,6 +189,7 @@ class ThreeDDisplay extends DisplayImplJ3D {
         mzAxis.setLabelSize(LABEL_FONT_SIZE);
         mzAxis.setLabelAllTicks(true);
         mzAxis.setNumberFormat(mzFormat);
+        mzAxis.setFont(new Font("SansSerif", Font.PLAIN, 8));
 
         // set intensity axis properties
         intensityAxis = intensityMap.getAxisScale();

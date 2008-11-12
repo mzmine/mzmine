@@ -42,17 +42,17 @@ import net.sf.mzmine.util.dialogs.ExitCode;
  * 
  */
 public class PubChemSearch implements BatchStep, ActionListener {
-	
-	public static final String MODULE_NAME = "PubChem online search";
+
+    public static final String MODULE_NAME = "PubChem online search";
 
     private Desktop desktop;
 
     private PubChemSearchParameters parameters;
-    
+
     private static PubChemSearch myInstance;
-    
+
     private double rawMass;
-    
+
     private PeakListRow row;
     private ChromatographicPeak peak;
 
@@ -73,8 +73,8 @@ public class PubChemSearch implements BatchStep, ActionListener {
 
         desktop.addMenuItem(MZmineMenu.IDENTIFICATION, MODULE_NAME,
                 "Identification by searching in PubChem databases",
-                KeyEvent.VK_C, this, null);
-        
+                KeyEvent.VK_P, false, this, null);
+
         myInstance = this;
 
     }
@@ -86,22 +86,22 @@ public class PubChemSearch implements BatchStep, ActionListener {
         this.parameters = (PubChemSearchParameters) parameterValues;
     }
 
-	public BatchStepCategory getBatchStepCategory() {
+    public BatchStepCategory getBatchStepCategory() {
         return BatchStepCategory.IDENTIFICATION;
-	}
+    }
 
-	public ExitCode setupParameters(ParameterSet parameters) {
-	       PubChemSearchDialog dialog = new PubChemSearchDialog(
-	                (PubChemSearchParameters) parameters, rawMass);
-	        dialog.setVisible(true);
-	        return dialog.getExitCode();
-	}
+    public ExitCode setupParameters(ParameterSet parameters) {
+        PubChemSearchDialog dialog = new PubChemSearchDialog(
+                (PubChemSearchParameters) parameters, rawMass);
+        dialog.setVisible(true);
+        return dialog.getExitCode();
+    }
 
-	public void actionPerformed(ActionEvent arg0) {
+    public void actionPerformed(ActionEvent arg0) {
 
-		PeakList[] selectedPeakLists = desktop.getSelectedPeakLists();
-        
-		if (selectedPeakLists.length < 1) {
+        PeakList[] selectedPeakLists = desktop.getSelectedPeakLists();
+
+        if (selectedPeakLists.length < 1) {
             desktop.displayErrorMessage("Please select a peak list");
             return;
         }
@@ -112,25 +112,25 @@ public class PubChemSearch implements BatchStep, ActionListener {
 
         this.row = null;
         this.peak = null;
-        
+
         runModule(null, selectedPeakLists, parameters.clone(), null);
     }
-	
-    public void showPubChemSearchDialog(PeakList peakList, PeakListRow row, ChromatographicPeak peak){
-        
-    	this.row = row;
-    	this.peak = peak;
 
-        PeakList[] selectedPeakLists = new PeakList[] { peakList}; 
-    	this.rawMass = peak.getMZ();//rawMass;
-    	ExitCode exitCode = setupParameters(parameters);
+    public void showPubChemSearchDialog(PeakList peakList, PeakListRow row,
+            ChromatographicPeak peak) {
+
+        this.row = row;
+        this.peak = peak;
+
+        PeakList[] selectedPeakLists = new PeakList[] { peakList };
+        this.rawMass = peak.getMZ();// rawMass;
+        ExitCode exitCode = setupParameters(parameters);
         if (exitCode != ExitCode.OK)
             return;
-        
-        
+
         runModule(null, selectedPeakLists, parameters.clone(), null);
-   }
-    
+    }
+
     /**
      * @see net.sf.mzmine.modules.BatchStep#runModule(net.sf.mzmine.data.RawDataFile[],
      *      net.sf.mzmine.data.PeakList[], net.sf.mzmine.data.ParameterSet,
@@ -147,7 +147,9 @@ public class PubChemSearch implements BatchStep, ActionListener {
         // prepare a new sequence of tasks
         Task tasks[] = new PubChemSearchTask[peakLists.length];
         for (int i = 0; i < peakLists.length; i++) {
-            tasks[i] = new PubChemSearchTask((PubChemSearchParameters) parameters, peakLists[i], row, peak);
+            tasks[i] = new PubChemSearchTask(
+                    (PubChemSearchParameters) parameters, peakLists[i], row,
+                    peak);
         }
         TaskGroup newSequence = new TaskGroup(tasks, null, methodListener);
 
@@ -158,12 +160,10 @@ public class PubChemSearch implements BatchStep, ActionListener {
 
     }
 
-    
-    public static PubChemSearch getInstance(){
-    	return myInstance;
+    public static PubChemSearch getInstance() {
+        return myInstance;
     }
-    
-    
+
     public String toString() {
         return MODULE_NAME;
     }

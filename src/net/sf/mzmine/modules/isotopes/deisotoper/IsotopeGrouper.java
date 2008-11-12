@@ -63,10 +63,9 @@ public class IsotopeGrouper implements BatchStep, TaskListener, ActionListener {
 
         parameters = new IsotopeGrouperParameters();
 
-        desktop.addMenuItem(MZmineMenu.ISOTOPES,
-                "Isotopic peaks grouper",
+        desktop.addMenuItem(MZmineMenu.ISOTOPES, "Isotopic peaks grouper",
                 "Grouping of isotopic peaks into one representative peak",
-                KeyEvent.VK_I, this, null);
+                KeyEvent.VK_I, false, this, null);
 
     }
 

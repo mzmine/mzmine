@@ -61,7 +61,7 @@ public class ThreeStepPicker implements BatchStep, TaskListener, ActionListener 
                         + "1) detection of mass values in each scan<br>"
                         + "2) Construction of XIC for each mass<br>"
                         + "3) Resolving individual peaks within each chromatogram"
-                        + "</html>", KeyEvent.VK_T, this, null);
+                        + "</html>", KeyEvent.VK_T, true, this, null);
     }
 
     /**

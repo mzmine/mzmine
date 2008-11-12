@@ -68,7 +68,7 @@ public class IsotopePatternCalculator implements MZmineModule, TaskListener,
                 MZmineMenu.ISOTOPES,
                 "Isotope pattern calculator",
                 "Calculation of isotope pattern using a given chemical formula",
-                KeyEvent.VK_P, this, null);
+                KeyEvent.VK_C, false, this, null);
 
     }
 

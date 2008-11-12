@@ -59,7 +59,8 @@ public class SpectraVisualizer implements MZmineModule, ActionListener {
         parameters = new SpectraVisualizerParameters();
 
         desktop.addMenuItem(MZmineMenu.VISUALIZATIONRAWDATA, "Spectra plot",
-                "Shows an individual spectrum", KeyEvent.VK_S, this, null);
+                "Shows an individual spectrum", KeyEvent.VK_S, false, this,
+                null);
 
     }
 
@@ -107,10 +108,11 @@ public class SpectraVisualizer implements MZmineModule, ActionListener {
         desktop.addInternalFrame(newWindow);
     }
 
-    public SpectraVisualizerWindow showNewSpectrumWindow(RawDataFile dataFile, IsotopePattern isotopePattern) {
-    	String title = "";
-    	if (dataFile != null)
-    		title = dataFile.toString();
+    public SpectraVisualizerWindow showNewSpectrumWindow(RawDataFile dataFile,
+            IsotopePattern isotopePattern) {
+        String title = "";
+        if (dataFile != null)
+            title = dataFile.toString();
         SpectraVisualizerWindow newWindow = new SpectraVisualizerWindow(
                 dataFile, title, isotopePattern);
         desktop.addInternalFrame(newWindow);

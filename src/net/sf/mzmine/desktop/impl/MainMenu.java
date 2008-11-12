@@ -240,8 +240,8 @@ public class MainMenu extends JMenuBar implements ActionListener {
     }
 
     public JMenuItem addMenuItem(MZmineMenu parentMenu, String text,
-            String toolTip, int mnemonic, ActionListener listener,
-            String actionCommand) {
+            String toolTip, int mnemonic, boolean setAccelerator,
+            ActionListener listener, String actionCommand) {
 
         JMenuItem newItem = new JMenuItem(text);
         if (listener != null)
@@ -252,8 +252,9 @@ public class MainMenu extends JMenuBar implements ActionListener {
             newItem.setToolTipText(toolTip);
         if (mnemonic > 0) {
             newItem.setMnemonic(mnemonic);
-            newItem.setAccelerator(KeyStroke.getKeyStroke(mnemonic,
-                    ActionEvent.CTRL_MASK));
+            if (setAccelerator)
+                newItem.setAccelerator(KeyStroke.getKeyStroke(mnemonic,
+                        ActionEvent.CTRL_MASK));
         }
         addMenuItem(parentMenu, newItem);
         return newItem;

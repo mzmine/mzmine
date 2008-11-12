@@ -63,7 +63,7 @@ public class RTNormalizer implements BatchStep, TaskListener, ActionListener {
         desktop.addMenuItem(MZmineMenu.NORMALIZATION,
                 "Retention time normalizer",
                 "Retention time normalization using common, high intensity peaks",
-                KeyEvent.VK_R, this, null);
+                KeyEvent.VK_R, false, this, null);
 
     }
 
