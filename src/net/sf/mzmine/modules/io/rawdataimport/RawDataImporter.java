@@ -25,6 +25,8 @@ import java.awt.event.KeyEvent;
 import java.io.File;
 import java.util.logging.Logger;
 
+import javax.swing.JFileChooser;
+
 import net.sf.mzmine.data.ParameterSet;
 import net.sf.mzmine.data.PeakList;
 import net.sf.mzmine.data.RawDataFile;
@@ -44,6 +46,8 @@ import net.sf.mzmine.taskcontrol.TaskGroup;
 import net.sf.mzmine.taskcontrol.TaskGroupListener;
 import net.sf.mzmine.taskcontrol.TaskListener;
 import net.sf.mzmine.util.dialogs.ExitCode;
+
+import com.sun.java.ExampleFileFilter;
 
 /**
  * Raw data import module
@@ -150,14 +154,66 @@ public class RawDataImporter implements MZmineModule, ActionListener,
         return newGroup;
     }
 
-    public ExitCode setupParameters(ParameterSet parameters) {
+    public ExitCode setupParameters(ParameterSet parameterSet) {
 
-        FileOpenDialog dialog = new FileOpenDialog(
-                (RawDataImporterParameters) parameters);
+        RawDataImporterParameters parameters = (RawDataImporterParameters) parameterSet;
 
-        dialog.setVisible(true);
+        JFileChooser fileChooser = new JFileChooser();
 
-        return dialog.getExitCode();
+        String path = (String) parameters.getParameterValue(RawDataImporterParameters.importDirectory);
+        if (path != null)
+            fileChooser.setCurrentDirectory(new File(path));
+        fileChooser.setMultiSelectionEnabled(true);
+
+        ExampleFileFilter filter = new ExampleFileFilter();
+        filter.addExtension("cdf");
+        filter.addExtension("nc");
+        filter.setDescription("NetCDF files");
+        fileChooser.addChoosableFileFilter(filter);
+
+        filter = new ExampleFileFilter();
+        filter.addExtension("mzDATA");
+        filter.setDescription("mzDATA files");
+        fileChooser.addChoosableFileFilter(filter);
+
+        filter = new ExampleFileFilter();
+        filter.addExtension("mzML");
+        filter.setDescription("mzML files");
+        fileChooser.addChoosableFileFilter(filter);
+
+        filter = new ExampleFileFilter();
+        filter.addExtension("RAW");
+        filter.setDescription("XCalibur RAW files");
+        fileChooser.addChoosableFileFilter(filter);
+
+        filter = new ExampleFileFilter();
+        filter.addExtension("mzxml");
+        filter.setDescription("MZXML files");
+        fileChooser.addChoosableFileFilter(filter);
+
+        filter = new ExampleFileFilter();
+        filter.addExtension("cdf");
+        filter.addExtension("nc");
+        filter.addExtension("mzDATA");
+        filter.addExtension("mzML");
+        filter.addExtension("mzxml");
+        filter.addExtension("RAW");
+        filter.setDescription("All raw data files");
+        fileChooser.setFileFilter(filter);
+
+        int returnVal = fileChooser.showOpenDialog(MZmineCore.getDesktop().getMainFrame());
+
+        if (returnVal == JFileChooser.APPROVE_OPTION) {
+            File[] selectedFiles = fileChooser.getSelectedFiles();
+            parameters.setFileNames(selectedFiles);
+            parameters.setParameterValue(
+                    RawDataImporterParameters.importDirectory,
+                    fileChooser.getCurrentDirectory().toString());
+
+            return ExitCode.OK;
+        } else
+            return ExitCode.CANCEL;
+
     }
 
     public void taskStarted(Task task) {

@@ -144,7 +144,6 @@ public class MzXMLReadTask extends DefaultHandler implements Task {
 
         } catch (Throwable e) {
             /* we may already have set the status to CANCELED */
-            e.printStackTrace();
             if (status == TaskStatus.PROCESSING)
                 status = TaskStatus.ERROR;
             errorMessage = e.toString();
