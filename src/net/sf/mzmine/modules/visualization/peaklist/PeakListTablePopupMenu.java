@@ -27,6 +27,7 @@ import java.text.NumberFormat;
 import java.util.Arrays;
 import java.util.logging.Logger;
 
+import javax.swing.JMenu;
 import javax.swing.JMenuItem;
 import javax.swing.JPopupMenu;
 
@@ -50,6 +51,7 @@ import net.sf.mzmine.modules.visualization.peaklist.table.PeakListTable;
 import net.sf.mzmine.modules.visualization.peaklist.table.PeakListTableColumnModel;
 import net.sf.mzmine.modules.visualization.peaklist.table.PeakListTableModel;
 import net.sf.mzmine.modules.visualization.spectra.SpectraVisualizer;
+import net.sf.mzmine.modules.visualization.threed.ThreeDVisualizer;
 import net.sf.mzmine.modules.visualization.tic.TICVisualizer;
 import net.sf.mzmine.modules.visualization.tic.TICVisualizerParameters;
 import net.sf.mzmine.util.GUIUtils;
@@ -70,9 +72,11 @@ public class PeakListTablePopupMenu extends JPopupMenu implements
 	private PeakList peakList;
 	private PeakListTableColumnModel columnModel;
 
-	private JMenuItem deleteRowsItem, addNewRowItem, plotRowsItem, showXICItem,
-			manuallyDefineItem, showFragmentation, showIsotopePattern,
-			pubChemSearch;
+	private JMenu showMenu, searchMenu;
+	private JMenuItem deleteRowsItem, addNewRowItem, plotRowsItem,
+			showSpectrumItem, showXICItem, showFragmentation,
+			showIsotopePattern, show2DItem, show3DItem, pubChemSearch,
+			manuallyDefineItem;
 
 	private RawDataFile clickedDataFile;
 	private PeakListRow clickedPeakListRow;
@@ -87,6 +91,24 @@ public class PeakListTablePopupMenu extends JPopupMenu implements
 		this.peakList = peakList;
 		this.columnModel = columnModel;
 
+		showMenu = new JMenu("Show...");
+		this.add(showMenu);
+
+		showSpectrumItem = GUIUtils
+				.addMenuItem(showMenu, "Mass spectrum", this);
+		showXICItem = GUIUtils.addMenuItem(showMenu, "Chromatogram", this);
+		showFragmentation = GUIUtils.addMenuItem(showMenu, "MS/MS", this);
+		showIsotopePattern = GUIUtils.addMenuItem(showMenu, "Isotope pattern",
+				this);
+		show2DItem = GUIUtils.addMenuItem(showMenu, "Peak in 2D", this);
+		show3DItem = GUIUtils.addMenuItem(showMenu, "Peak in 3D", this);
+
+		searchMenu = new JMenu("Search...");
+		this.add(searchMenu);
+
+		pubChemSearch = GUIUtils.addMenuItem(searchMenu,
+				"Search identity in PubChem", this);
+
 		GUIUtils.addMenuItem(this, "Set properties", window, "PROPERTIES");
 
 		deleteRowsItem = GUIUtils.addMenuItem(this, "Delete selected rows",
@@ -95,28 +117,17 @@ public class PeakListTablePopupMenu extends JPopupMenu implements
 		addNewRowItem = GUIUtils.addMenuItem(this, "Add new row", this);
 
 		plotRowsItem = GUIUtils.addMenuItem(this,
-				"Plot selected rows using Intensity Plot module", this);
-
-		showXICItem = GUIUtils.addMenuItem(this, "Show XIC of this peak", this);
+				"Plot using Intensity Plot module", this);
 
 		manuallyDefineItem = GUIUtils.addMenuItem(this, "Manually define peak",
 				this);
-
-		showFragmentation = GUIUtils.addMenuItem(this,
-				"Show spectra fragmentation", this);
-
-		showIsotopePattern = GUIUtils.addMenuItem(this, "Show Isotope pattern",
-				this);
-
-		pubChemSearch = GUIUtils.addMenuItem(this,
-				"Search identity in PubChem", this);
 
 	}
 
 	public void show(Component invoker, int x, int y) {
 
 		int selectedRows[] = table.getSelectedRows();
-		boolean display;
+		boolean displayPeakItems;
 
 		deleteRowsItem.setEnabled(selectedRows.length > 0);
 		plotRowsItem.setEnabled(selectedRows.length > 0);
@@ -127,16 +138,16 @@ public class PeakListTablePopupMenu extends JPopupMenu implements
 				table.columnAtPoint(clickedPoint)).getModelIndex();
 		if ((clickedRow >= 0) && (clickedColumn >= 0)) {
 
-			display = clickedColumn >= CommonColumnType.values().length;
+			displayPeakItems = clickedColumn >= CommonColumnType.values().length;
 
 			showXICItem.setEnabled((clickedColumn == CommonColumnType.PEAKSHAPE
 					.ordinal())
-					|| (display));
-			manuallyDefineItem.setEnabled(display);
-			pubChemSearch.setEnabled(display);
-			showFragmentation.setEnabled(display);
+					|| (displayPeakItems));
+			manuallyDefineItem.setEnabled(displayPeakItems);
+			showFragmentation.setEnabled(false);
+			showIsotopePattern.setEnabled(false);
 
-			if (display) {
+			if (displayPeakItems) {
 				int dataFileIndex = (clickedColumn - CommonColumnType.values().length)
 						/ DataFileColumnType.values().length;
 				clickedDataFile = peakList.getRawDataFile(dataFileIndex);
@@ -144,12 +155,16 @@ public class PeakListTablePopupMenu extends JPopupMenu implements
 				clickedDataFile = null;
 			TableSorter sorter = (TableSorter) table.getModel();
 			clickedPeakListRow = peakList.getRow(sorter.modelIndex(clickedRow));
-
-			if (clickedDataFile != null)
-				showIsotopePattern.setEnabled(clickedPeakListRow
-						.getPeak(clickedDataFile) instanceof IsotopePattern);
-			else
-				showIsotopePattern.setEnabled(false);
+			if (clickedDataFile != null) {
+				ChromatographicPeak clickedPeak = clickedPeakListRow
+						.getPeak(clickedDataFile);
+				if (clickedPeak != null) {
+					showIsotopePattern
+							.setEnabled(clickedPeak instanceof IsotopePattern);
+					showFragmentation.setEnabled(clickedPeak
+							.getMostIntenseFragmentScanNumber() > 0);
+				}
+			}
 
 		}
 
@@ -269,6 +284,32 @@ public class PeakListTablePopupMenu extends JPopupMenu implements
 
 		}
 
+		if (src == show3DItem) {
+
+			ThreeDVisualizer threeDVisualizer = ThreeDVisualizer.getInstance();
+
+			if (clickedDataFile != null) {
+				ChromatographicPeak clickedPeak = clickedPeakListRow
+						.getPeak(clickedDataFile);
+
+				if (clickedPeak != null) {
+					Range peakRTRange = clickedPeak.getRawDataPointsRTRange();
+					Range peakMZRange = clickedPeak.getRawDataPointsMZRange();
+					Range rtRange = new Range(Math.max(0, peakRTRange.getMin()
+							- peakRTRange.getSize()), peakRTRange.getMax()
+							+ peakRTRange.getSize());
+
+					Range mzRange = new Range(Math.max(0, peakMZRange.getMin()
+							- peakMZRange.getSize()), peakMZRange.getMax()
+							+ peakMZRange.getSize());
+					threeDVisualizer.show3DVisualizerSetupDialog(
+							clickedDataFile, mzRange, rtRange);
+
+				}
+			}
+
+		}
+
 		if (src == manuallyDefineItem) {
 			ManualPeakPicker.runManualDetection(clickedDataFile,
 					clickedPeakListRow);
@@ -287,7 +328,7 @@ public class PeakListTablePopupMenu extends JPopupMenu implements
 					specVis.showNewSpectrumWindow(clickedDataFile, scanNumber);
 				} else {
 					MZmineCore.getDesktop().displayMessage(
-							"There is not fragments for the mass "
+							"There is no fragment for the mass "
 									+ massFormater.format(clickedPeak.getMZ())
 									+ "m/z in the current raw data.");
 					return;

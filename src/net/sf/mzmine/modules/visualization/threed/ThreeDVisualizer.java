@@ -41,87 +41,143 @@ import net.sf.mzmine.util.dialogs.ParameterSetupDialog;
  */
 public class ThreeDVisualizer implements MZmineModule, ActionListener {
 
-    private Logger logger = Logger.getLogger(this.getClass().getName());
+	private Logger logger = Logger.getLogger(this.getClass().getName());
 
-    private ThreeDVisualizerParameters parameters;
+	private static ThreeDVisualizer myInstance;
 
-    private Desktop desktop;
+	private ThreeDVisualizerParameters parameters;
 
-    /**
-     * @see net.sf.mzmine.main.MZmineModule#initModule(net.sf.mzmine.main.MZmineCore)
-     */
-    public void initModule() {
+	private Desktop desktop;
 
-        this.desktop = MZmineCore.getDesktop();
+	/**
+	 * @see net.sf.mzmine.main.MZmineModule#initModule(net.sf.mzmine.main.MZmineCore)
+	 */
+	public void initModule() {
 
-        parameters = new ThreeDVisualizerParameters();
+		this.desktop = MZmineCore.getDesktop();
 
-        desktop.addMenuItem(MZmineMenu.VISUALIZATIONRAWDATA, "3D plot",
-                "3D visualization (requires Java3D)", KeyEvent.VK_3, false, this, null);
+		myInstance = this;
 
-    }
+		parameters = new ThreeDVisualizerParameters();
 
-    /**
-     * @see java.awt.event.ActionListener#actionPerformed(java.awt.event.ActionEvent)
-     */
-    public void actionPerformed(ActionEvent e) {
+		desktop.addMenuItem(MZmineMenu.VISUALIZATIONRAWDATA, "3D plot",
+				"3D visualization (requires Java3D)", KeyEvent.VK_3, false,
+				this, null);
 
-        logger.finest("Opening a new 3D visualizer setup dialog");
+	}
 
-        RawDataFile dataFiles[] = desktop.getSelectedDataFiles();
-        if (dataFiles.length != 1) {
-            desktop.displayErrorMessage("Please select a single data file");
-            return;
-        }
+	/**
+	 * @see java.awt.event.ActionListener#actionPerformed(java.awt.event.ActionEvent)
+	 */
+	public void actionPerformed(ActionEvent e) {
 
-        Hashtable<Parameter, Object> autoValues = new Hashtable<Parameter, Object>();
-        autoValues.put(ThreeDVisualizerParameters.msLevel, 1);
-        autoValues.put(ThreeDVisualizerParameters.retentionTimeRange,
-                dataFiles[0].getDataRTRange(1));
-        autoValues.put(ThreeDVisualizerParameters.mzRange,
-                dataFiles[0].getDataMZRange(1));
+		logger.finest("Opening a new 3D visualizer setup dialog");
 
-        ParameterSetupDialog dialog = new ParameterSetupDialog(
-                "Please set parameter values for " + toString(), parameters,
-                autoValues);
+		RawDataFile dataFiles[] = desktop.getSelectedDataFiles();
+		if (dataFiles.length != 1) {
+			desktop.displayErrorMessage("Please select a single data file");
+			return;
+		}
 
-        dialog.setVisible(true);
+		Hashtable<Parameter, Object> autoValues = new Hashtable<Parameter, Object>();
+		autoValues.put(ThreeDVisualizerParameters.msLevel, 1);
+		autoValues.put(ThreeDVisualizerParameters.retentionTimeRange,
+				dataFiles[0].getDataRTRange(1));
+		autoValues.put(ThreeDVisualizerParameters.mzRange, dataFiles[0]
+				.getDataMZRange(1));
 
-        if (dialog.getExitCode() != ExitCode.OK)
-            return;
+		ParameterSetupDialog dialog = new ParameterSetupDialog(
+				"Please set parameter values for " + toString(), parameters,
+				autoValues);
 
-        int msLevel = (Integer) parameters.getParameterValue(ThreeDVisualizerParameters.msLevel);
-        Range rtRange = (Range) parameters.getParameterValue(ThreeDVisualizerParameters.retentionTimeRange);
-        Range mzRange = (Range) parameters.getParameterValue(ThreeDVisualizerParameters.mzRange);
-        int rtRes = (Integer) parameters.getParameterValue(ThreeDVisualizerParameters.rtResolution);
-        int mzRes = (Integer) parameters.getParameterValue(ThreeDVisualizerParameters.mzResolution);
+		dialog.setVisible(true);
 
-        // Create a window, but do not add it to the desktop. It will be added
-        // automatically after finishing the sampling task.
-        new ThreeDVisualizerWindow(dataFiles[0], msLevel, rtRange, rtRes,
-                mzRange, mzRes);
+		if (dialog.getExitCode() != ExitCode.OK)
+			return;
 
-    }
+		int msLevel = (Integer) parameters
+				.getParameterValue(ThreeDVisualizerParameters.msLevel);
+		Range rtRange = (Range) parameters
+				.getParameterValue(ThreeDVisualizerParameters.retentionTimeRange);
+		Range mzRange = (Range) parameters
+				.getParameterValue(ThreeDVisualizerParameters.mzRange);
+		int rtRes = (Integer) parameters
+				.getParameterValue(ThreeDVisualizerParameters.rtResolution);
+		int mzRes = (Integer) parameters
+				.getParameterValue(ThreeDVisualizerParameters.mzResolution);
 
-    /**
-     * @see net.sf.mzmine.main.MZmineModule#toString()
-     */
-    public String toString() {
-        return "3D visualizer";
-    }
+		// Create a window, but do not add it to the desktop. It will be added
+		// automatically after finishing the sampling task.
+		new ThreeDVisualizerWindow(dataFiles[0], msLevel, rtRange, rtRes,
+				mzRange, mzRes);
 
-    /**
-     * @see net.sf.mzmine.main.MZmineModule#getParameterSet()
-     */
-    public ParameterSet getParameterSet() {
-        return parameters;
-    }
+	}
 
-    /**
-     * @see net.sf.mzmine.main.MZmineModule#setParameters(net.sf.mzmine.data.ParameterSet)
-     */
-    public void setParameters(ParameterSet parameters) {
-        this.parameters = (ThreeDVisualizerParameters) parameters;
-    }
+	/**
+	 * @see net.sf.mzmine.main.MZmineModule#toString()
+	 */
+	public String toString() {
+		return "3D visualizer";
+	}
+
+	/**
+	 * @see net.sf.mzmine.main.MZmineModule#getParameterSet()
+	 */
+	public ParameterSet getParameterSet() {
+		return parameters;
+	}
+
+	/**
+	 * @see net.sf.mzmine.main.MZmineModule#setParameters(net.sf.mzmine.data.ParameterSet)
+	 */
+	public void setParameters(ParameterSet parameters) {
+		this.parameters = (ThreeDVisualizerParameters) parameters;
+	}
+
+	public static ThreeDVisualizer getInstance() {
+		return myInstance;
+	}
+
+	public void show3DVisualizerSetupDialog(RawDataFile dataFile,
+			Range mzRange, Range rtRange) {
+
+		Hashtable<Parameter, Object> autoValues = new Hashtable<Parameter, Object>();
+		autoValues.put(ThreeDVisualizerParameters.msLevel, 1);
+		autoValues.put(ThreeDVisualizerParameters.retentionTimeRange, dataFile
+				.getDataRTRange(1));
+		autoValues.put(ThreeDVisualizerParameters.mzRange, dataFile
+				.getDataMZRange(1));
+
+		parameters.setParameterValue(
+				ThreeDVisualizerParameters.retentionTimeRange, rtRange);
+		parameters.setParameterValue(ThreeDVisualizerParameters.mzRange,
+				mzRange);
+
+		ParameterSetupDialog dialog = new ParameterSetupDialog(
+				"Please set parameter values for " + toString(), parameters,
+				autoValues);
+
+		dialog.setVisible(true);
+
+		if (dialog.getExitCode() != ExitCode.OK)
+			return;
+
+		int msLevel = (Integer) parameters
+				.getParameterValue(ThreeDVisualizerParameters.msLevel);
+		rtRange = (Range) parameters
+				.getParameterValue(ThreeDVisualizerParameters.retentionTimeRange);
+		mzRange = (Range) parameters
+				.getParameterValue(ThreeDVisualizerParameters.mzRange);
+		int rtRes = (Integer) parameters
+				.getParameterValue(ThreeDVisualizerParameters.rtResolution);
+		int mzRes = (Integer) parameters
+				.getParameterValue(ThreeDVisualizerParameters.mzResolution);
+
+		// Create a window, but do not add it to the desktop. It will be added
+		// automatically after finishing the sampling task.
+		new ThreeDVisualizerWindow(dataFile, msLevel, rtRange, rtRes, mzRange,
+				mzRes);
+
+	}
 
 }
