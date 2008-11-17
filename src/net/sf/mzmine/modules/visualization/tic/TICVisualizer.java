@@ -60,14 +60,11 @@ public class TICVisualizer implements MZmineModule, ActionListener {
         parameters = new TICVisualizerParameters();
 
         desktop.addMenuItem(MZmineMenu.VISUALIZATIONRAWDATA, "TIC plot",
-                "Visualization of the chromatogram", KeyEvent.VK_T, false, this, null);
+                "Visualization of the chromatogram", KeyEvent.VK_T, false,
+                this, null);
 
         myInstance = this;
 
-    }
-
-    public static TICVisualizer getInstance() {
-        return myInstance;
     }
 
     /**
@@ -78,10 +75,10 @@ public class TICVisualizer implements MZmineModule, ActionListener {
         showNewTICVisualizerWindow(selectedFiles, null, parameters);
     }
 
-    public void showNewTICVisualizerWindow(RawDataFile[] dataFiles,
+    public static void showNewTICVisualizerWindow(RawDataFile[] dataFiles,
             ChromatographicPeak[] peaks, int msLevel, Object plotType,
             Range rtRange, Range mzRange) {
-        TICVisualizerParameters newParameters = (TICVisualizerParameters) parameters.clone();
+        TICVisualizerParameters newParameters = (TICVisualizerParameters) myInstance.parameters.clone();
         newParameters.setParameterValue(TICVisualizerParameters.msLevel,
                 msLevel);
         newParameters.setParameterValue(TICVisualizerParameters.plotType,
@@ -90,12 +87,13 @@ public class TICVisualizer implements MZmineModule, ActionListener {
                 TICVisualizerParameters.retentionTimeRange, rtRange);
         newParameters.setParameterValue(TICVisualizerParameters.mzRange,
                 mzRange);
-        showNewTICVisualizerWindow(dataFiles, peaks, newParameters);
+        myInstance.showNewTICVisualizerWindow(dataFiles, peaks, newParameters);
     }
 
-    public void showNewTICVisualizerWindow(RawDataFile[] dataFiles,
+    public static void showNewTICVisualizerWindow(RawDataFile[] dataFiles,
             ChromatographicPeak[] peaks) {
-        showNewTICVisualizerWindow(dataFiles, peaks, parameters);
+        myInstance.showNewTICVisualizerWindow(dataFiles, peaks,
+                myInstance.parameters);
     }
 
     private void showNewTICVisualizerWindow(RawDataFile[] dataFiles,

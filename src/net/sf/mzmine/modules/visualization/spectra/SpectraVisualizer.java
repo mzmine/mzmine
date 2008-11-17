@@ -27,7 +27,6 @@ import java.util.logging.Logger;
 import net.sf.mzmine.data.IsotopePattern;
 import net.sf.mzmine.data.ParameterSet;
 import net.sf.mzmine.data.RawDataFile;
-import net.sf.mzmine.desktop.Desktop;
 import net.sf.mzmine.desktop.MZmineMenu;
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.main.MZmineModule;
@@ -39,33 +38,21 @@ import net.sf.mzmine.util.dialogs.ParameterSetupDialog;
  */
 public class SpectraVisualizer implements MZmineModule, ActionListener {
 
-    private static SpectraVisualizer myInstance;
-
     private SpectraVisualizerParameters parameters;
 
     private Logger logger = Logger.getLogger(this.getClass().getName());
-
-    private Desktop desktop;
 
     /**
      * @see net.sf.mzmine.main.MZmineModule#initModule(net.sf.mzmine.main.MZmineCore)
      */
     public void initModule() {
 
-        this.desktop = MZmineCore.getDesktop();
-
-        myInstance = this;
-
         parameters = new SpectraVisualizerParameters();
 
-        desktop.addMenuItem(MZmineMenu.VISUALIZATIONRAWDATA, "Spectra plot",
-                "Shows an individual spectrum", KeyEvent.VK_S, false, this,
-                null);
+        MZmineCore.getDesktop().addMenuItem(MZmineMenu.VISUALIZATIONRAWDATA,
+                "Spectra plot", "Shows an individual spectrum", KeyEvent.VK_S,
+                false, this, null);
 
-    }
-
-    public static SpectraVisualizer getInstance() {
-        return myInstance;
     }
 
     /**
@@ -75,9 +62,10 @@ public class SpectraVisualizer implements MZmineModule, ActionListener {
 
         logger.finest("Opening a new spectra visualizer setup dialog");
 
-        RawDataFile dataFiles[] = desktop.getSelectedDataFiles();
+        RawDataFile dataFiles[] = MZmineCore.getDesktop().getSelectedDataFiles();
         if (dataFiles.length != 1) {
-            desktop.displayErrorMessage("Please select a single data file");
+            MZmineCore.getDesktop().displayErrorMessage(
+                    "Please select a single data file");
             return;
         }
 
@@ -102,21 +90,26 @@ public class SpectraVisualizer implements MZmineModule, ActionListener {
 
     }
 
-    public void showNewSpectrumWindow(RawDataFile dataFile, int scanNumber) {
+    public static void showNewSpectrumWindow(RawDataFile dataFile,
+            int scanNumber) {
         SpectraVisualizerWindow newWindow = new SpectraVisualizerWindow(
                 dataFile, dataFile.toString(), dataFile.getScan(scanNumber));
-        desktop.addInternalFrame(newWindow);
+        MZmineCore.getDesktop().addInternalFrame(newWindow);
     }
 
-    public SpectraVisualizerWindow showNewSpectrumWindow(RawDataFile dataFile,
+    public static void showIsotopePattern(RawDataFile dataFile,
             IsotopePattern isotopePattern) {
-        String title = "";
-        if (dataFile != null)
-            title = dataFile.toString();
+        String title = dataFile.toString();
         SpectraVisualizerWindow newWindow = new SpectraVisualizerWindow(
                 dataFile, title, isotopePattern);
-        desktop.addInternalFrame(newWindow);
-        return newWindow;
+        MZmineCore.getDesktop().addInternalFrame(newWindow);
+
+    }
+
+    public static void showIsotopePattern(IsotopePattern isotopePattern) {
+        SpectraVisualizerWindow newWindow = new SpectraVisualizerWindow(null,
+                "", isotopePattern);
+        MZmineCore.getDesktop().addInternalFrame(newWindow);
     }
 
     /**

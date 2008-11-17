@@ -49,242 +49,235 @@ import net.sf.mzmine.util.components.DragOrderedJList;
  * This class implements a selector of raw data files and alignment results
  */
 public class ItemSelector extends JPanel implements ActionListener,
-		MouseListener, ListSelectionListener {
+        MouseListener, ListSelectionListener {
 
-	public static final String DATA_FILES_LABEL = "Raw data files";
-	public static final String PEAK_LISTS_LABEL = "Peak lists";
+    public static final String DATA_FILES_LABEL = "Raw data files";
+    public static final String PEAK_LISTS_LABEL = "Peak lists";
 
-	private DragOrderedJList rawDataFiles, peakLists;
-	private DefaultListModel rawDataFilesModel, peakListsModel;
-	private JPopupMenu dataFilePopupMenu, peakListPopupMenu;
+    private DragOrderedJList rawDataFiles, peakLists;
+    private DefaultListModel rawDataFilesModel, peakListsModel;
+    private JPopupMenu dataFilePopupMenu, peakListPopupMenu;
 
-	/**
-	 * Constructor
-	 */
-	public ItemSelector(Desktop desktop) {
+    /**
+     * Constructor
+     */
+    public ItemSelector(Desktop desktop) {
 
-		// Create panel for raw data objects
-		JPanel rawDataPanel = new JPanel();
-		JLabel rawDataTitle = new JLabel(DATA_FILES_LABEL);
-		MZmineProjectImpl project = (MZmineProjectImpl) MZmineCore
-				.getCurrentProject();
-		rawDataFilesModel = project.getRawDataListModel();
-		rawDataFiles = new DragOrderedJList(rawDataFilesModel);
-		rawDataFiles.setCellRenderer(new ItemSelectorListRenderer());
-		rawDataFiles.addMouseListener(this);
-		rawDataFiles.addListSelectionListener(this);
-		JScrollPane rawDataScroll = new JScrollPane(rawDataFiles);
+        // Create panel for raw data objects
+        JPanel rawDataPanel = new JPanel();
+        JLabel rawDataTitle = new JLabel(DATA_FILES_LABEL);
+        MZmineProjectImpl project = (MZmineProjectImpl) MZmineCore.getCurrentProject();
+        rawDataFilesModel = project.getRawDataListModel();
+        rawDataFiles = new DragOrderedJList(rawDataFilesModel);
+        rawDataFiles.setCellRenderer(new ItemSelectorListRenderer());
+        rawDataFiles.addMouseListener(this);
+        rawDataFiles.addListSelectionListener(this);
+        JScrollPane rawDataScroll = new JScrollPane(rawDataFiles);
 
-		rawDataPanel.setLayout(new BorderLayout());
-		rawDataPanel.add(rawDataTitle, BorderLayout.NORTH);
-		rawDataPanel.add(rawDataScroll, BorderLayout.CENTER);
-		rawDataPanel.setMinimumSize(new Dimension(150, 10));
+        rawDataPanel.setLayout(new BorderLayout());
+        rawDataPanel.add(rawDataTitle, BorderLayout.NORTH);
+        rawDataPanel.add(rawDataScroll, BorderLayout.CENTER);
+        rawDataPanel.setMinimumSize(new Dimension(150, 10));
 
-		// Create panel for alignment results
-		JPanel resultsPanel = new JPanel();
-		JLabel resultsTitle = new JLabel(PEAK_LISTS_LABEL);
+        // Create panel for alignment results
+        JPanel resultsPanel = new JPanel();
+        JLabel resultsTitle = new JLabel(PEAK_LISTS_LABEL);
 
-		peakListsModel = project.getPeakListsListModel();
-		peakLists = new DragOrderedJList(peakListsModel);
-		peakLists.setCellRenderer(new ItemSelectorListRenderer());
-		peakLists.addMouseListener(this);
-		peakLists.addListSelectionListener(this);
-		JScrollPane resultScroll = new JScrollPane(peakLists);
+        peakListsModel = project.getPeakListsListModel();
+        peakLists = new DragOrderedJList(peakListsModel);
+        peakLists.setCellRenderer(new ItemSelectorListRenderer());
+        peakLists.addMouseListener(this);
+        peakLists.addListSelectionListener(this);
+        JScrollPane resultScroll = new JScrollPane(peakLists);
 
-		resultsPanel.setLayout(new BorderLayout());
-		resultsPanel.add(resultsTitle, BorderLayout.NORTH);
-		resultsPanel.add(resultScroll, BorderLayout.CENTER);
-		resultsPanel.setMinimumSize(new Dimension(200, 10));
+        resultsPanel.setLayout(new BorderLayout());
+        resultsPanel.add(resultsTitle, BorderLayout.NORTH);
+        resultsPanel.add(resultScroll, BorderLayout.CENTER);
+        resultsPanel.setMinimumSize(new Dimension(200, 10));
 
-		// Add panels to a split and put split on the main panel
-		setPreferredSize(new Dimension(200, 10));
-		setLayout(new BorderLayout());
+        // Add panels to a split and put split on the main panel
+        setPreferredSize(new Dimension(200, 10));
+        setLayout(new BorderLayout());
 
-		JSplitPane rawAndResultsSplit = new JSplitPane(
-				JSplitPane.VERTICAL_SPLIT, rawDataPanel, resultsPanel);
-		add(rawAndResultsSplit, BorderLayout.CENTER);
+        JSplitPane rawAndResultsSplit = new JSplitPane(
+                JSplitPane.VERTICAL_SPLIT, rawDataPanel, resultsPanel);
+        add(rawAndResultsSplit, BorderLayout.CENTER);
 
-		rawAndResultsSplit.setDividerLocation(300);
+        rawAndResultsSplit.setDividerLocation(300);
 
-		dataFilePopupMenu = new JPopupMenu();
-		GUIUtils.addMenuItem(dataFilePopupMenu, "Show TIC", this, "SHOW_TIC");
-		GUIUtils.addMenuItem(dataFilePopupMenu, "Remove", this, "REMOVE_FILE");
+        dataFilePopupMenu = new JPopupMenu();
+        GUIUtils.addMenuItem(dataFilePopupMenu, "Show TIC", this, "SHOW_TIC");
+        GUIUtils.addMenuItem(dataFilePopupMenu, "Remove", this, "REMOVE_FILE");
 
-		peakListPopupMenu = new JPopupMenu();
-		GUIUtils.addMenuItem(peakListPopupMenu, "Show peak list", this,
-				"SHOW_ALIGNED_PEAKLIST");
-		GUIUtils.addMenuItem(peakListPopupMenu, "Remove", this,
-				"REMOVE_PEAKLIST");
+        peakListPopupMenu = new JPopupMenu();
+        GUIUtils.addMenuItem(peakListPopupMenu, "Show peak list", this,
+                "SHOW_ALIGNED_PEAKLIST");
+        GUIUtils.addMenuItem(peakListPopupMenu, "Remove", this,
+                "REMOVE_PEAKLIST");
 
-	}
+    }
 
-	void addSelectionListener(ListSelectionListener listener) {
-		rawDataFiles.addListSelectionListener(listener);
-		peakLists.addListSelectionListener(listener);
-	}
+    void addSelectionListener(ListSelectionListener listener) {
+        rawDataFiles.addListSelectionListener(listener);
+        peakLists.addListSelectionListener(listener);
+    }
 
-	// Implementation of action listener interface
+    // Implementation of action listener interface
 
-	public void actionPerformed(ActionEvent e) {
+    public void actionPerformed(ActionEvent e) {
 
-		String command = e.getActionCommand();
+        String command = e.getActionCommand();
 
-		if (command.equals("REMOVE_FILE")) {
-			RawDataFile[] selectedFiles = getSelectedRawData();
-			for (RawDataFile file : selectedFiles)
-				MZmineCore.getCurrentProject().removeFile(file);
-		}
+        if (command.equals("REMOVE_FILE")) {
+            RawDataFile[] selectedFiles = getSelectedRawData();
+            for (RawDataFile file : selectedFiles)
+                MZmineCore.getCurrentProject().removeFile(file);
+        }
 
-		if (command.equals("SHOW_TIC")) {
-			RawDataFile[] selectedFiles = getSelectedRawData();
-			TICVisualizer tic = TICVisualizer.getInstance();
-			tic.showNewTICVisualizerWindow(selectedFiles, null);
-		}
+        if (command.equals("SHOW_TIC")) {
+            RawDataFile[] selectedFiles = getSelectedRawData();
+            TICVisualizer.showNewTICVisualizerWindow(selectedFiles, null);
+        }
 
-		if (command.equals("REMOVE_PEAKLIST")) {
-			PeakList[] selectedPeakLists = getSelectedPeakLists();
-			for (PeakList peakList : selectedPeakLists)
-				MZmineCore.getCurrentProject().removePeakList(peakList);
-		}
+        if (command.equals("REMOVE_PEAKLIST")) {
+            PeakList[] selectedPeakLists = getSelectedPeakLists();
+            for (PeakList peakList : selectedPeakLists)
+                MZmineCore.getCurrentProject().removePeakList(peakList);
+        }
 
-		if (command.equals("SHOW_ALIGNED_PEAKLIST")) {
-			PeakList[] selectedPeakLists = getSelectedPeakLists();
-			Desktop desktop = MZmineCore.getDesktop();
-			for (PeakList peakList : selectedPeakLists) {
-				PeakListTableWindow window = new PeakListTableWindow(peakList);
-				desktop.addInternalFrame(window);
-			}
-		}
+        if (command.equals("SHOW_ALIGNED_PEAKLIST")) {
+            PeakList[] selectedPeakLists = getSelectedPeakLists();
+            Desktop desktop = MZmineCore.getDesktop();
+            for (PeakList peakList : selectedPeakLists) {
+                PeakListTableWindow window = new PeakListTableWindow(peakList);
+                desktop.addInternalFrame(window);
+            }
+        }
 
-	}
+    }
 
-	/**
-	 * Returns selected raw data objects in an array
-	 */
-	public RawDataFile[] getSelectedRawData() {
+    /**
+     * Returns selected raw data objects in an array
+     */
+    public RawDataFile[] getSelectedRawData() {
 
-		Object o[] = rawDataFiles.getSelectedValues();
+        Object o[] = rawDataFiles.getSelectedValues();
 
-		RawDataFile res[] = new RawDataFile[o.length];
+        RawDataFile res[] = new RawDataFile[o.length];
 
-		for (int i = 0; i < o.length; i++) {
-			res[i] = (RawDataFile) (o[i]);
-		}
+        for (int i = 0; i < o.length; i++) {
+            res[i] = (RawDataFile) (o[i]);
+        }
 
-		return res;
+        return res;
 
-	}
+    }
 
-	/**
-	 * Sets the active raw data item in the list
-	 */
-	public void setActiveRawData(RawDataFile rawData) {
-		rawDataFiles.setSelectedValue(rawData, true);
-	}
+    /**
+     * Sets the active raw data item in the list
+     */
+    public void setActiveRawData(RawDataFile rawData) {
+        rawDataFiles.setSelectedValue(rawData, true);
+    }
 
+    public PeakList[] getSelectedPeakLists() {
 
-	public PeakList[] getSelectedPeakLists() {
+        Object o[] = peakLists.getSelectedValues();
 
-		Object o[] = peakLists.getSelectedValues();
+        PeakList res[] = new PeakList[o.length];
 
-		PeakList res[] = new PeakList[o.length];
+        for (int i = 0; i < o.length; i++) {
+            res[i] = (PeakList) (o[i]);
+        }
 
-		for (int i = 0; i < o.length; i++) {
-			res[i] = (PeakList) (o[i]);
-		}
+        return res;
 
-		return res;
+    }
 
-	}
+    public void mouseClicked(MouseEvent e) {
 
-	public void mouseClicked(MouseEvent e) {
+        if ((e.getClickCount() == 2) && (e.getButton() == MouseEvent.BUTTON1)) {
 
-		if ((e.getClickCount() == 2) && (e.getButton() == MouseEvent.BUTTON1)) {
+            if (e.getSource() == rawDataFiles) {
+                int clickedIndex = rawDataFiles.locationToIndex(e.getPoint());
+                if (clickedIndex < 0)
+                    return;
+                RawDataFile clickedFile = (RawDataFile) rawDataFilesModel.get(clickedIndex);
+                TICVisualizer.showNewTICVisualizerWindow(
+                        new RawDataFile[] { clickedFile }, null);
+            }
 
-			if (e.getSource() == rawDataFiles) {
-				int clickedIndex = rawDataFiles.locationToIndex(e.getPoint());
-				if (clickedIndex < 0)
-					return;
-				RawDataFile clickedFile = (RawDataFile) rawDataFilesModel
-						.get(clickedIndex);
-				TICVisualizer tic = TICVisualizer.getInstance();
-				tic.showNewTICVisualizerWindow(
-						new RawDataFile[] { clickedFile }, null);
-			}
+            if (e.getSource() == peakLists) {
+                int clickedIndex = peakLists.locationToIndex(e.getPoint());
+                if (clickedIndex < 0)
+                    return;
+                PeakList clickedPeakList = (PeakList) peakListsModel.get(clickedIndex);
+                PeakListTableWindow window = new PeakListTableWindow(
+                        clickedPeakList);
+                Desktop desktop = MZmineCore.getDesktop();
+                desktop.addInternalFrame(window);
+            }
 
-			if (e.getSource() == peakLists) {
-				int clickedIndex = peakLists.locationToIndex(e.getPoint());
-				if (clickedIndex < 0)
-					return;
-				PeakList clickedPeakList = (PeakList) peakListsModel
-						.get(clickedIndex);
-				PeakListTableWindow window = new PeakListTableWindow(
-						clickedPeakList);
-				Desktop desktop = MZmineCore.getDesktop();
-				desktop.addInternalFrame(window);
-			}
+        }
 
-		}
+    }
 
-	}
+    public void mouseEntered(MouseEvent e) {
+        // ignore
 
-	public void mouseEntered(MouseEvent e) {
-		// ignore
+    }
 
-	}
+    public void mouseExited(MouseEvent e) {
+        // ignore
+    }
 
-	public void mouseExited(MouseEvent e) {
-		// ignore
-	}
+    public void mousePressed(MouseEvent e) {
 
-	public void mousePressed(MouseEvent e) {
+        if (e.isPopupTrigger()) {
+            if (e.getSource() == rawDataFiles)
+                dataFilePopupMenu.show(e.getComponent(), e.getX(), e.getY());
+            if (e.getSource() == peakLists)
+                peakListPopupMenu.show(e.getComponent(), e.getX(), e.getY());
+        }
 
-		if (e.isPopupTrigger()) {
-			if (e.getSource() == rawDataFiles)
-				dataFilePopupMenu.show(e.getComponent(), e.getX(), e.getY());
-			if (e.getSource() == peakLists)
-				peakListPopupMenu.show(e.getComponent(), e.getX(), e.getY());
-		}
+    }
 
-	}
+    public void mouseReleased(MouseEvent e) {
+        if (e.isPopupTrigger()) {
+            if (e.getSource() == rawDataFiles)
+                dataFilePopupMenu.show(e.getComponent(), e.getX(), e.getY());
+            if (e.getSource() == peakLists)
+                peakListPopupMenu.show(e.getComponent(), e.getX(), e.getY());
+        }
+    }
 
-	public void mouseReleased(MouseEvent e) {
-		if (e.isPopupTrigger()) {
-			if (e.getSource() == rawDataFiles)
-				dataFilePopupMenu.show(e.getComponent(), e.getX(), e.getY());
-			if (e.getSource() == peakLists)
-				peakListPopupMenu.show(e.getComponent(), e.getX(), e.getY());
-		}
-	}
+    public void valueChanged(ListSelectionEvent event) {
 
-	public void valueChanged(ListSelectionEvent event) {
+        Object src = event.getSource();
 
-		Object src = event.getSource();
+        // Update the highlighting of peak list list in case raw data list
+        // selection has changed and vice versa.
+        if (src == rawDataFiles) {
+            peakLists.repaint();
+        }
 
-		// Update the highlighting of peak list list in case raw data list
-		// selection has changed and vice versa.
-		if (src == rawDataFiles) {
-			peakLists.repaint();
-		}
+        if (src == peakLists) {
+            rawDataFiles.repaint();
+        }
 
-		if (src == peakLists) {
-			rawDataFiles.repaint();
-		}
+    }
 
-	}
+    public void reloadDataModel() {
+        MZmineProjectImpl project = (MZmineProjectImpl) MZmineCore.getCurrentProject();
 
-	public void reloadDataModel() {
-		MZmineProjectImpl project = (MZmineProjectImpl) MZmineCore
-				.getCurrentProject();
+        rawDataFilesModel = project.getRawDataListModel();
+        rawDataFiles.setModel(rawDataFilesModel);
+        rawDataFiles.repaint();
 
-		rawDataFilesModel = project.getRawDataListModel();
-		rawDataFiles.setModel(rawDataFilesModel);
-		rawDataFiles.repaint();
+        peakListsModel = project.getPeakListsListModel();
+        peakLists.setModel(peakListsModel);
+        peakLists.repaint();
 
-		peakListsModel = project.getPeakListsListModel();
-		peakLists.setModel(peakListsModel);
-		peakLists.repaint();
-
-	}
+    }
 
 }

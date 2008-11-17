@@ -145,8 +145,7 @@ public class IsotopePatternCalculator implements MZmineModule, TaskListener,
             IsotopePattern ip = ipcTask.getIsotopePattern();
 
             if (plot == null) {
-                SpectraVisualizer visualizer = SpectraVisualizer.getInstance();
-                visualizer.showNewSpectrumWindow(null, ip);
+                SpectraVisualizer.showIsotopePattern(ip);
             } else {
                 PeakListDataSet predictedPeakDataSet = new PeakListDataSet(ip);
                 SpectraDataSet rawSpectraDataSet = (SpectraDataSet) plot.getXYPlot().getDataset(

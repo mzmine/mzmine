@@ -43,6 +43,8 @@ public class TwoDVisualizer implements MZmineModule, ActionListener {
 
     private Logger logger = Logger.getLogger(this.getClass().getName());
 
+    private static TwoDVisualizer myInstance;
+
     private TwoDParameters parameters;
 
     private Desktop desktop;
@@ -51,6 +53,8 @@ public class TwoDVisualizer implements MZmineModule, ActionListener {
      * @see net.sf.mzmine.main.MZmineModule#initModule(net.sf.mzmine.main.MZmineCore)
      */
     public void initModule() {
+
+        myInstance = this;
 
         this.desktop = MZmineCore.getDesktop();
 
@@ -118,6 +122,38 @@ public class TwoDVisualizer implements MZmineModule, ActionListener {
      */
     public void setParameters(ParameterSet parameters) {
         this.parameters = (TwoDParameters) parameters;
+    }
+
+    public static void show2DVisualizerSetupDialog(RawDataFile dataFile,
+            Range mzRange, Range rtRange) {
+
+        Hashtable<Parameter, Object> autoValues = new Hashtable<Parameter, Object>();
+        autoValues.put(TwoDParameters.msLevel, 1);
+        autoValues.put(TwoDParameters.retentionTimeRange,
+                dataFile.getDataRTRange(1));
+        autoValues.put(TwoDParameters.mzRange, dataFile.getDataMZRange(1));
+
+        myInstance.parameters.setParameterValue(
+                TwoDParameters.retentionTimeRange, rtRange);
+        myInstance.parameters.setParameterValue(TwoDParameters.mzRange, mzRange);
+
+        ParameterSetupDialog dialog = new ParameterSetupDialog(
+                "Please set parameter values for 2D visualizer",
+                myInstance.parameters, autoValues);
+
+        dialog.setVisible(true);
+
+        if (dialog.getExitCode() != ExitCode.OK)
+            return;
+
+        int msLevel = (Integer) myInstance.parameters.getParameterValue(TwoDParameters.msLevel);
+        rtRange = (Range) myInstance.parameters.getParameterValue(TwoDParameters.retentionTimeRange);
+        mzRange = (Range) myInstance.parameters.getParameterValue(TwoDParameters.mzRange);
+
+        // Create a window, but do not add it to the desktop. It will be added
+        // automatically after finishing the sampling task.
+        new TwoDVisualizerWindow(dataFile, msLevel, rtRange, mzRange);
+
     }
 
 }

@@ -26,6 +26,7 @@ import java.util.logging.Logger;
 
 import net.sf.mzmine.data.ParameterSet;
 import net.sf.mzmine.data.PeakList;
+import net.sf.mzmine.data.PeakListRow;
 import net.sf.mzmine.desktop.Desktop;
 import net.sf.mzmine.desktop.MZmineMenu;
 import net.sf.mzmine.main.MZmineCore;
@@ -54,7 +55,8 @@ public class IntensityPlot implements MZmineModule, ActionListener {
 
         myInstance = this;
 
-        desktop.addMenuItem(MZmineMenu.VISUALIZATIONPEAKLIST, "Peak intensity plot",
+        desktop.addMenuItem(MZmineMenu.VISUALIZATIONPEAKLIST,
+                "Peak intensity plot",
                 "Plots the peak height or area vs selected parameter",
                 KeyEvent.VK_D, false, this, null);
 
@@ -116,8 +118,21 @@ public class IntensityPlot implements MZmineModule, ActionListener {
         this.parameters = (IntensityPlotParameters) parameterValues;
     }
 
-    public static IntensityPlot getInstance() {
-        return myInstance;
+    public static void showIntensityPlot(PeakList peakList, PeakListRow rows[]) {
+
+        IntensityPlotParameters newParameters = new IntensityPlotParameters(
+                peakList, myInstance.parameters.getXAxisValueSource(),
+                myInstance.parameters.getYAxisValueSource(),
+                peakList.getRawDataFiles(), rows);
+        IntensityPlotDialog setupDialog = new IntensityPlotDialog(peakList,
+                newParameters);
+        setupDialog.setVisible(true);
+        if (setupDialog.getExitCode() == ExitCode.OK) {
+            myInstance.setParameters(newParameters);
+            Desktop desktop = MZmineCore.getDesktop();
+            IntensityPlotFrame newFrame = new IntensityPlotFrame(newParameters);
+            desktop.addInternalFrame(newFrame);
+        }
     }
 
 }

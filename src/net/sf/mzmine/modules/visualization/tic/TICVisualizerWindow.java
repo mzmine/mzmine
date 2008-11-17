@@ -59,7 +59,6 @@ public class TICVisualizerWindow extends JInternalFrame implements
     private int msLevel;
     private Range rtRange, mzRange;
 
-
     private Desktop desktop;
 
     /**
@@ -67,10 +66,11 @@ public class TICVisualizerWindow extends JInternalFrame implements
      * 
      */
     public TICVisualizerWindow(RawDataFile dataFiles[], Object plotType,
-            int msLevel, Range rtRange, Range mzRange, ChromatographicPeak[] peaks) {
+            int msLevel, Range rtRange, Range mzRange,
+            ChromatographicPeak[] peaks) {
 
         super(null, true, true, true, true);
-        
+
         this.desktop = MZmineCore.getDesktop();
         this.plotType = plotType;
         this.msLevel = msLevel;
@@ -84,7 +84,7 @@ public class TICVisualizerWindow extends JInternalFrame implements
         ticPlot = new TICPlot(this);
         add(ticPlot, BorderLayout.CENTER);
 
-        //toolBar = new TICToolBar(this);
+        // toolBar = new TICToolBar(this);
         toolBar = new TICToolBar(ticPlot);
         add(toolBar, BorderLayout.EAST);
 
@@ -290,8 +290,7 @@ public class TICVisualizerWindow extends JInternalFrame implements
         if (command.equals("SHOW_SPECTRUM")) {
             CursorPosition pos = getCursorPosition();
             if (pos != null) {
-                SpectraVisualizer specVis = SpectraVisualizer.getInstance();
-                specVis.showNewSpectrumWindow(pos.getDataFile(),
+                SpectraVisualizer.showNewSpectrumWindow(pos.getDataFile(),
                         pos.getScanNumber());
             }
         }
@@ -321,7 +320,8 @@ public class TICVisualizerWindow extends JInternalFrame implements
                 if (index >= 0) {
                     index++;
                     if (index < dataSet.getItemCount(0)) {
-                        pos.setRetentionTime((double) dataSet.getXValue(0, index));
+                        pos.setRetentionTime((double) dataSet.getXValue(0,
+                                index));
                         pos.setIntensityValue((double) dataSet.getYValue(0,
                                 index));
                         setCursorPosition(pos);
