@@ -40,7 +40,7 @@ class PeakListExportTask implements Task {
     // parameter values
     private String fileName, fieldSeparator;
     private boolean exportRowID, exportRowMZ, exportRowRT, exportRowComment,
-            exportRowIdentity, exportRowNumDetected;
+            exportRowIdentity, exportRowFormula, exportRowNumDetected;
     private boolean exportPeakStatus, exportPeakMZ, exportPeakRT,
             exportPeakHeight, exportPeakArea;
 
@@ -55,6 +55,7 @@ class PeakListExportTask implements Task {
         exportRowRT = (Boolean) parameters.getParameterValue(PeakListExportParameters.exportRowRT);
         exportRowComment = (Boolean) parameters.getParameterValue(PeakListExportParameters.exportRowComment);
         exportRowIdentity = (Boolean) parameters.getParameterValue(PeakListExportParameters.exportRowIdentity);
+        exportRowFormula = (Boolean) parameters.getParameterValue(PeakListExportParameters.exportRowFormula);
         exportRowNumDetected = (Boolean) parameters.getParameterValue(PeakListExportParameters.exportRowNumberOfDetected);
         exportPeakStatus = (Boolean) parameters.getParameterValue(PeakListExportParameters.exportPeakStatus);
         exportPeakMZ = (Boolean) parameters.getParameterValue(PeakListExportParameters.exportPeakMZ);
@@ -114,9 +115,11 @@ class PeakListExportTask implements Task {
         if (exportRowComment)
             line.append("Comment" + fieldSeparator);
         if (exportRowIdentity)
-            line.append("Identity" + fieldSeparator);
+            line.append("Name" + fieldSeparator);
+        if (exportRowFormula)
+            line.append("Formula" + fieldSeparator);
         if (exportRowNumDetected)
-        	line.append("Number of detected peaks" + fieldSeparator);
+            line.append("Number of detected peaks" + fieldSeparator);
 
         for (RawDataFile dataFile : peakList.getRawDataFiles()) {
             if (exportPeakStatus)
@@ -173,16 +176,23 @@ class PeakListExportTask implements Task {
                     line.append(peakListRow.getPreferredCompoundIdentity().getName()
                             + fieldSeparator);
             }
+            if (exportRowFormula) {
+                if (peakListRow.getPreferredCompoundIdentity() == null)
+                    line.append(fieldSeparator);
+                else
+                    line.append(peakListRow.getPreferredCompoundIdentity().getCompoundFormula()
+                            + fieldSeparator);
+            }
             if (exportRowNumDetected) {
-            	int numDetected = 0;
-            	for (ChromatographicPeak p : peakListRow.getPeaks())
-            		if (p.getPeakStatus() == PeakStatus.DETECTED)
-            			numDetected++;
-            	
-            	line.append(numDetected + fieldSeparator);
+                int numDetected = 0;
+                for (ChromatographicPeak p : peakListRow.getPeaks())
+                    if (p.getPeakStatus() == PeakStatus.DETECTED)
+                        numDetected++;
+
+                line.append(numDetected + fieldSeparator);
 
             }
-            
+
             for (RawDataFile dataFile : peakList.getRawDataFiles()) {
                 ChromatographicPeak peak = peakListRow.getPeak(dataFile);
                 if (peak != null) {
