@@ -35,114 +35,107 @@ import net.sf.mzmine.util.PeakUtils;
 
 class ConcatenateFragmentsTask implements Task, TaskListener {
 
-	private TaskStatus status;
-	private String errorMessage;
+    private TaskStatus status;
+    private String errorMessage;
 
-	private ArrayList<PeakList> fragmentPeakLists;
+    private ArrayList<PeakList> fragmentPeakLists;
 
+    private String peakListName;
 
-	private String peakListName;
+    ConcatenateFragmentsTask(ArrayList<PeakList> fragmentPeakLists,
+            FragmentAlignerParameters parameters) {
+        this.fragmentPeakLists = fragmentPeakLists;
 
-	ConcatenateFragmentsTask(ArrayList<PeakList> fragmentPeakLists,
-			FragmentAlignerParameters parameters) {
-		this.fragmentPeakLists = fragmentPeakLists;
+        peakListName = (String) parameters.getParameterValue(FragmentAlignerParameters.peakListName);
+    }
 
-		peakListName = (String) parameters
-				.getParameterValue(FragmentAlignerParameters.peakListName);
-	}
+    public void cancel() {
+        status = TaskStatus.CANCELED;
+    }
 
-	public void cancel() {
-		status = TaskStatus.CANCELED;
-	}
+    public String getErrorMessage() {
+        return errorMessage;
+    }
 
-	public String getErrorMessage() {
-		return errorMessage;
-	}
+    public double getFinishedPercentage() {
+        return 0.0f;
+    }
 
-	public double getFinishedPercentage() {
-		return 0.0f;
-	}
+    public TaskStatus getStatus() {
+        return status;
+    }
 
-	public TaskStatus getStatus() {
-		return status;
-	}
+    public String getTaskDescription() {
+        return "Fragment aligner: concatenate fragments";
+    }
 
-	public String getTaskDescription() {
-		return "Fragment aligner: concatenate fragments";
-	}
+    public void run() {
+        if (status == TaskStatus.ERROR)
+            return;
 
-	public void run() {
-		if (status == TaskStatus.ERROR)
-			return;
+        if (status == TaskStatus.CANCELED)
+            return;
 
-		if (status == TaskStatus.CANCELED)
-			return;
+        status = TaskStatus.PROCESSING;
 
-		status = TaskStatus.PROCESSING;
-		
-		// Initialize a new peak list
-		PeakList fragmentPeakList = fragmentPeakLists.get(0);
-		SimplePeakList alignedPeakList = new SimplePeakList(peakListName,
-				fragmentPeakList.getRawDataFiles());
+        // Initialize a new peak list
+        PeakList fragmentPeakList = fragmentPeakLists.get(0);
+        SimplePeakList alignedPeakList = new SimplePeakList(peakListName,
+                fragmentPeakList.getRawDataFiles());
 
-		// Copy rows from fragment peak lists to the final aligned peak list
-		Iterator<PeakList> fragmentPeakListIterator = fragmentPeakLists
-				.iterator();
-		int newRowID = 1;
-		while (fragmentPeakListIterator.hasNext()) {
-			fragmentPeakList = fragmentPeakListIterator.next();
-			for (PeakListRow fragmentRow : fragmentPeakList.getRows()) {
+        // Copy rows from fragment peak lists to the final aligned peak list
+        Iterator<PeakList> fragmentPeakListIterator = fragmentPeakLists.iterator();
+        int newRowID = 1;
+        while (fragmentPeakListIterator.hasNext()) {
+            fragmentPeakList = fragmentPeakListIterator.next();
+            for (PeakListRow fragmentRow : fragmentPeakList.getRows()) {
 
-				// Create a new row
-				PeakListRow targetRow = new SimplePeakListRow(newRowID);
-				newRowID++;
-				alignedPeakList.addRow(targetRow);
+                // Create a new row
+                PeakListRow targetRow = new SimplePeakListRow(newRowID);
+                newRowID++;
+                alignedPeakList.addRow(targetRow);
 
-				// Add all peaks from the original row to the aligned row
-				for (RawDataFile file : fragmentRow.getRawDataFiles()) {
-					targetRow.addPeak(file, fragmentRow
-							.getOriginalPeakListEntry(file), fragmentRow
-							.getPeak(file));
-				}
+                // Add all peaks from the original row to the aligned row
+                for (RawDataFile file : fragmentRow.getRawDataFiles()) {
+                    targetRow.addPeak(file, fragmentRow.getPeak(file));
+                }
 
-				// Add all non-existing identities from the original row to the
-				// aligned row
-				for (PeakIdentity identity : fragmentRow
-						.getCompoundIdentities()) {
-					if (!PeakUtils.containsIdentity(targetRow, identity))
-						targetRow.addCompoundIdentity(identity, false);
-				}
+                // Add all non-existing identities from the original row to the
+                // aligned row
+                for (PeakIdentity identity : fragmentRow.getCompoundIdentities()) {
+                    if (!PeakUtils.containsIdentity(targetRow, identity))
+                        targetRow.addCompoundIdentity(identity, false);
+                }
 
-				targetRow.setPreferredCompoundIdentity(fragmentRow
-						.getPreferredCompoundIdentity());
+                targetRow.setPreferredCompoundIdentity(fragmentRow.getPreferredCompoundIdentity());
 
-			}
+            }
 
-		}
+        }
 
-		// Put result to project
-		MZmineCore.getCurrentProject().addPeakList(alignedPeakList);
+        // Put result to project
+        MZmineCore.getCurrentProject().addPeakList(alignedPeakList);
 
-		status = TaskStatus.FINISHED;
+        status = TaskStatus.FINISHED;
 
-	}
+    }
 
-	public void taskStarted(Task task) {
-	}
+    public void taskStarted(Task task) {
+    }
 
-	/**
-	 * Listens to results of aligning each fragment. If align fails for a
-	 * fragment, then also concatenating must fail
-	 */
-	public void taskFinished(Task task) {
+    /**
+     * Listens to results of aligning each fragment. If align fails for a
+     * fragment, then also concatenating must fail
+     */
+    public void taskFinished(Task task) {
 
-		if (task.getStatus() == TaskStatus.ERROR)
-			status = TaskStatus.ERROR;
+        if (task.getStatus() == TaskStatus.ERROR)
+            status = TaskStatus.ERROR;
 
-		if (task.getStatus() == TaskStatus.CANCELED)
-			if (status != TaskStatus.ERROR)
-				status = TaskStatus.CANCELED;
+        if (task.getStatus() == TaskStatus.CANCELED)
+            if (status != TaskStatus.ERROR)
+                status = TaskStatus.CANCELED;
 
-	}
+    }
 
 }

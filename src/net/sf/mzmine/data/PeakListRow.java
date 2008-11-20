@@ -53,18 +53,13 @@ public interface PeakListRow {
     /**
      * Add a peak
      */
-    public void addPeak(RawDataFile rawData, ChromatographicPeak original, ChromatographicPeak current);
+    public void addPeak(RawDataFile rawData, ChromatographicPeak peak);
     
     /**
      * Has a peak?
      */
     public boolean hasPeak(ChromatographicPeak peak);
         
-    /**
-     * Returns peak for given raw data file
-     */
-    public ChromatographicPeak getOriginalPeakListEntry(RawDataFile rawData);
-
     /**
      * Returns average M/Z for peaks on this row
      */

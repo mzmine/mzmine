@@ -26,8 +26,8 @@ import java.util.Hashtable;
 import java.util.Iterator;
 
 import net.sf.mzmine.data.ChromatographicPeak;
-import net.sf.mzmine.data.PeakIdentity;
 import net.sf.mzmine.data.IsotopePattern;
+import net.sf.mzmine.data.PeakIdentity;
 import net.sf.mzmine.data.PeakListRow;
 import net.sf.mzmine.data.RawDataFile;
 import net.sf.mzmine.main.MZmineCore;
@@ -37,223 +37,198 @@ import net.sf.mzmine.main.MZmineCore;
  */
 public class SimplePeakListRow implements PeakListRow {
 
-	private Hashtable<RawDataFile, ChromatographicPeak> peaks;
-	private Hashtable<RawDataFile, ChromatographicPeak> originalPeaks;
-	private HashSet<PeakIdentity> identities;
-	private PeakIdentity preferredIdentity;
-	private String comment;
-	private int myID;
-	private double maxDataPointIntensity = 0;
+    private Hashtable<RawDataFile, ChromatographicPeak> peaks;
+    private HashSet<PeakIdentity> identities;
+    private PeakIdentity preferredIdentity;
+    private String comment;
+    private int myID;
+    private double maxDataPointIntensity = 0;
 
-	public SimplePeakListRow(int myID) {
-		this.myID = myID;
-		peaks = new Hashtable<RawDataFile, ChromatographicPeak>();
-		originalPeaks = new Hashtable<RawDataFile, ChromatographicPeak>();
-		identities = new HashSet<PeakIdentity>();
-		preferredIdentity = PeakIdentity.UNKNOWN_IDENTITY;
-	}
+    public SimplePeakListRow(int myID) {
+        this.myID = myID;
+        peaks = new Hashtable<RawDataFile, ChromatographicPeak>();
+        identities = new HashSet<PeakIdentity>();
+        preferredIdentity = PeakIdentity.UNKNOWN_IDENTITY;
+    }
 
-	/**
-	 * @see net.sf.mzmine.data.PeakListRow#getID()
-	 */
-	public int getID() {
-		return myID;
-	}
+    /**
+     * @see net.sf.mzmine.data.PeakListRow#getID()
+     */
+    public int getID() {
+        return myID;
+    }
 
-	/*
-	 * Return peaks assigned to this row
-	 */
-	public ChromatographicPeak[] getPeaks() {
-		return peaks.values().toArray(new ChromatographicPeak[0]);
-	}
+    /*
+     * Return peaks assigned to this row
+     */
+    public ChromatographicPeak[] getPeaks() {
+        return peaks.values().toArray(new ChromatographicPeak[0]);
+    }
 
-	/*
-	 * Return opened raw data files with a peak on this row
-	 */
-	public RawDataFile[] getRawDataFiles() {
-		return peaks.keySet().toArray(new RawDataFile[0]);
-	}
+    /*
+     * Return opened raw data files with a peak on this row
+     */
+    public RawDataFile[] getRawDataFiles() {
+        return peaks.keySet().toArray(new RawDataFile[0]);
+    }
 
-	/*
-	 * Returns peak for given raw data file
-	 */
-	public ChromatographicPeak getPeak(RawDataFile rawData) {
-		return peaks.get(rawData);
-	}
+    /*
+     * Returns peak for given raw data file
+     */
+    public ChromatographicPeak getPeak(RawDataFile rawData) {
+        return peaks.get(rawData);
+    }
 
-	/**
-	 * @see net.sf.mzmine.data.PeakListRow#getOriginalPeakListEntry(net.sf.mzmine.data.RawDataFile)
-	 */
-	public ChromatographicPeak getOriginalPeakListEntry(RawDataFile rawData) {
-		return originalPeaks.get(rawData);
-	}
+    public void addPeak(RawDataFile rawData, ChromatographicPeak peak) {
 
-	public void addPeak(RawDataFile rawData, ChromatographicPeak original,
-			ChromatographicPeak current) {
+        if (peak != null) {
 
-		if (original != null) {
+            // convert the peak to SimpleChromatographicPeak for easy
+            // serialization
+            if (!((peak instanceof SimpleChromatographicPeak) || (peak instanceof IsotopePattern)))
+                peak = new SimpleChromatographicPeak(peak);
 
-			// convert the peak to SimpleChromatographicPeak for easy
-			// serialization
-			if (!((original instanceof SimpleChromatographicPeak) || (original instanceof IsotopePattern)))
-				original = new SimpleChromatographicPeak(original);
+            peaks.put(rawData, peak);
+            if (peak.getRawDataPointsIntensityRange().getMax() > maxDataPointIntensity)
+                maxDataPointIntensity = peak.getRawDataPointsIntensityRange().getMax();
+        } else
+            peaks.remove(rawData);
 
-			originalPeaks.put(rawData, original);
-		} else {
-			originalPeaks.remove(rawData);
-		}
+    }
 
-		if (current != null) {
+    /*
+     * Returns average normalized M/Z for peaks on this row
+     */
+    public double getAverageMZ() {
+        double mzSum = 0.0f;
+        Enumeration<ChromatographicPeak> peakEnum = peaks.elements();
+        while (peakEnum.hasMoreElements()) {
+            ChromatographicPeak p = peakEnum.nextElement();
+            mzSum += p.getMZ();
+        }
+        return mzSum / peaks.size();
+    }
 
-			// convert the peak to SimpleChromatographicPeak for easy
-			// serialization
-			if (!((current instanceof SimpleChromatographicPeak) || (current instanceof IsotopePattern)))
-				current = new SimpleChromatographicPeak(current);
+    /*
+     * Returns average normalized RT for peaks on this row
+     */
+    public double getAverageRT() {
+        double rtSum = 0.0f;
+        Enumeration<ChromatographicPeak> peakEnum = peaks.elements();
+        while (peakEnum.hasMoreElements()) {
+            ChromatographicPeak p = peakEnum.nextElement();
+            rtSum += p.getRT();
+        }
+        return rtSum / peaks.size();
+    }
 
-			peaks.put(rawData, current);
-			if (current.getRawDataPointsIntensityRange().getMax() > maxDataPointIntensity)
-				maxDataPointIntensity = current
-						.getRawDataPointsIntensityRange().getMax();
-		} else
-			peaks.remove(rawData);
+    /*
+     * Returns number of peaks assigned to this row
+     */
+    public int getNumberOfPeaks() {
+        return peaks.size();
+    }
 
-	}
+    public String toString() {
+        StringBuffer buf = new StringBuffer();
+        Format mzFormat = MZmineCore.getMZFormat();
+        Format timeFormat = MZmineCore.getRTFormat();
+        buf.append("#" + myID + " ");
+        buf.append(mzFormat.format(getAverageMZ()));
+        buf.append(" m/z @");
+        buf.append(timeFormat.format(getAverageRT()));
+        if (preferredIdentity != null)
+            buf.append(" " + preferredIdentity.getName());
+        if ((comment != null) && (comment.length() > 0))
+            buf.append(" (" + comment + ")");
+        return buf.toString();
+    }
 
-	/*
-	 * Returns average normalized M/Z for peaks on this row
-	 */
-	public double getAverageMZ() {
-		double mzSum = 0.0f;
-		Enumeration<ChromatographicPeak> peakEnum = peaks.elements();
-		while (peakEnum.hasMoreElements()) {
-			ChromatographicPeak p = peakEnum.nextElement();
-			mzSum += p.getMZ();
-		}
-		return mzSum / peaks.size();
-	}
+    /**
+     * @see net.sf.mzmine.data.PeakListRow#getComment()
+     */
+    public String getComment() {
+        return comment;
+    }
 
-	/*
-	 * Returns average normalized RT for peaks on this row
-	 */
-	public double getAverageRT() {
-		double rtSum = 0.0f;
-		Enumeration<ChromatographicPeak> peakEnum = peaks.elements();
-		while (peakEnum.hasMoreElements()) {
-			ChromatographicPeak p = peakEnum.nextElement();
-			rtSum += p.getRT();
-		}
-		return rtSum / peaks.size();
-	}
+    /**
+     * @see net.sf.mzmine.data.PeakListRow#setComment(java.lang.String)
+     */
+    public void setComment(String comment) {
+        this.comment = comment;
+    }
 
-	/*
-	 * Returns number of peaks assigned to this row
-	 */
-	public int getNumberOfPeaks() {
-		return peaks.size();
-	}
+    /**
+     * @see net.sf.mzmine.data.PeakListRow#addCompoundIdentity(net.sf.mzmine.data.PeakIdentity)
+     */
+    public void addCompoundIdentity(PeakIdentity identity, boolean preferred) {
 
-	public String toString() {
-		StringBuffer buf = new StringBuffer();
-		Format mzFormat = MZmineCore.getMZFormat();
-		Format timeFormat = MZmineCore.getRTFormat();
-		buf.append("#" + myID + " ");
-		buf.append(mzFormat.format(getAverageMZ()));
-		buf.append(" m/z @");
-		buf.append(timeFormat.format(getAverageRT()));
-		if (preferredIdentity != null)
-			buf.append(" " + preferredIdentity.getName());
-		if ((comment != null) && (comment.length() > 0))
-			buf.append(" (" + comment + ")");
-		return buf.toString();
-	}
+        // Verify if exists already an identity with the same name
+        PeakIdentity compoundIdentity;
+        boolean exists = false;
+        Iterator itr = identities.iterator();
+        while (itr.hasNext()) {
+            compoundIdentity = (PeakIdentity) itr.next();
+            if (compoundIdentity.getName().equals(identity.getName())) {
+                exists = true;
+                break;
+            }
+        }
 
-	/**
-	 * @see net.sf.mzmine.data.PeakListRow#getComment()
-	 */
-	public String getComment() {
-		return comment;
-	}
+        if (!exists) {
+            identities.add(identity);
+            if ((preferredIdentity == PeakIdentity.UNKNOWN_IDENTITY)
+                    || (preferred)) {
+                setPreferredCompoundIdentity(identity);
+            }
+        }
+    }
 
-	/**
-	 * @see net.sf.mzmine.data.PeakListRow#setComment(java.lang.String)
-	 */
-	public void setComment(String comment) {
-		this.comment = comment;
-	}
+    /**
+     * @see net.sf.mzmine.data.PeakListRow#addCompoundIdentity(net.sf.mzmine.data.PeakIdentity)
+     */
+    public void removeCompoundIdentity(PeakIdentity identity) {
+        identities.remove(identity);
+        if (preferredIdentity == identity) {
+            if (identities.size() > 0) {
+                PeakIdentity[] identitiesArray = identities.toArray(new PeakIdentity[0]);
+                setPreferredCompoundIdentity(identitiesArray[0]);
+            } else
+                preferredIdentity = PeakIdentity.UNKNOWN_IDENTITY;
+        }
+    }
 
-	/**
-	 * @see net.sf.mzmine.data.PeakListRow#addCompoundIdentity(net.sf.mzmine.data.PeakIdentity)
-	 */
-	public void addCompoundIdentity(PeakIdentity identity, boolean preferred) {
-		
-		// Verify if exists already an identity with the same name
-		PeakIdentity compoundIdentity;
-		boolean exists = false;
-		Iterator itr = identities.iterator();
-		while (itr.hasNext()) {
-			compoundIdentity = (PeakIdentity) itr.next();
-			if (compoundIdentity.getName().equals(
-					identity.getName())) {
-				exists = true;
-				break;
-			}
-		}
+    /**
+     * @see net.sf.mzmine.data.PeakListRow#getCompoundIdentities()
+     */
+    public PeakIdentity[] getCompoundIdentities() {
+        return identities.toArray(new PeakIdentity[0]);
+    }
 
-		if (!exists) {
-			identities.add(identity);
-			if ((preferredIdentity == PeakIdentity.UNKNOWN_IDENTITY) ||
-				(preferred)){
-				setPreferredCompoundIdentity(identity);
-			}
-		}
-	}
+    /**
+     * @see net.sf.mzmine.data.PeakListRow#getPreferredCompoundIdentity()
+     */
+    public PeakIdentity getPreferredCompoundIdentity() {
+        return preferredIdentity;
+    }
 
-	/**
-	 * @see net.sf.mzmine.data.PeakListRow#addCompoundIdentity(net.sf.mzmine.data.PeakIdentity)
-	 */
-	public void removeCompoundIdentity(PeakIdentity identity) {
-		identities.remove(identity);
-		if (preferredIdentity == identity) {
-			if (identities.size() > 0) {
-				PeakIdentity[] identitiesArray = identities
-						.toArray(new PeakIdentity[0]);
-				setPreferredCompoundIdentity(identitiesArray[0]);
-			} else
-				preferredIdentity = PeakIdentity.UNKNOWN_IDENTITY;
-		}
-	}
+    /**
+     * @see net.sf.mzmine.data.PeakListRow#setPreferredCompoundIdentity(net.sf.mzmine.data.PeakIdentity)
+     */
+    public void setPreferredCompoundIdentity(PeakIdentity identity) {
+        if (identity != null)
+            preferredIdentity = identity;
+    }
 
-	/**
-	 * @see net.sf.mzmine.data.PeakListRow#getCompoundIdentities()
-	 */
-	public PeakIdentity[] getCompoundIdentities() {
-		return identities.toArray(new PeakIdentity[0]);
-	}
+    /**
+     * @see net.sf.mzmine.data.PeakListRow#getDataPointMaxIntensity()
+     */
+    public double getDataPointMaxIntensity() {
+        return maxDataPointIntensity;
+    }
 
-	/**
-	 * @see net.sf.mzmine.data.PeakListRow#getPreferredCompoundIdentity()
-	 */
-	public PeakIdentity getPreferredCompoundIdentity() {
-		return preferredIdentity;
-	}
-
-	/**
-	 * @see net.sf.mzmine.data.PeakListRow#setPreferredCompoundIdentity(net.sf.mzmine.data.PeakIdentity)
-	 */
-	public void setPreferredCompoundIdentity(PeakIdentity identity) {
-		if (identity != null)
-			preferredIdentity = identity;
-	}
-
-	/**
-	 * @see net.sf.mzmine.data.PeakListRow#getDataPointMaxIntensity()
-	 */
-	public double getDataPointMaxIntensity() {
-		return maxDataPointIntensity;
-	}
-
-	public boolean hasPeak(ChromatographicPeak peak) {
-		return peaks.containsValue(peak);
-	}
+    public boolean hasPeak(ChromatographicPeak peak) {
+        return peaks.containsValue(peak);
+    }
 
 }

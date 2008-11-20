@@ -341,7 +341,7 @@ public class MassDetectorSetupDialog extends ParameterSetupDialog implements
 		for (ChromatographicPeak finishedPeak : pickedDataPoint) {
 			SimplePeakListRow newRow = new SimplePeakListRow(newPeakID);
 			newPeakID++;
-			newRow.addPeak(previewDataFile, finishedPeak, finishedPeak);
+			newRow.addPeak(previewDataFile, finishedPeak);
 			newPeakList.addRow(newRow);
 		}
 

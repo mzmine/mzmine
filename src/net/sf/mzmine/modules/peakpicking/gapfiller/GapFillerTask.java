@@ -101,7 +101,6 @@ class GapFillerTask implements Task {
                 PeakListRow newRow = processedPeakList.getRow(row);
 
                 ChromatographicPeak sourcePeak = sourceRow.getPeak(dataFile);
-                ChromatographicPeak sourceOriginalPeak = sourceRow.getOriginalPeakListEntry(dataFile);
 
                 if (sourcePeak == null) {
 
@@ -115,13 +114,13 @@ class GapFillerTask implements Task {
                     else
                         rtTolerance = rt * rtToleranceValuePercent;
 
-                    Gap newGap = new Gap(newRow, dataFile, mz, rt, intTolerance,
-                            mzTolerance, rtTolerance);
+                    Gap newGap = new Gap(newRow, dataFile, mz, rt,
+                            intTolerance, mzTolerance, rtTolerance);
 
                     gaps.add(newGap);
 
                 } else {
-                    newRow.addPeak(dataFile, sourceOriginalPeak, sourcePeak);
+                    newRow.addPeak(dataFile, sourcePeak);
                 }
 
             }

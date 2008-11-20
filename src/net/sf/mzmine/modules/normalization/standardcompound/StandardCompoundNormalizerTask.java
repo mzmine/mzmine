@@ -220,7 +220,8 @@ public class StandardCompoundNormalizerTask implements Task {
                 // Normalize peak
                 ChromatographicPeak originalPeak = row.getPeak(file);
                 if (originalPeak != null) {
-                    SimpleChromatographicPeak normalizedPeak = new SimpleChromatographicPeak(originalPeak);
+                    SimpleChromatographicPeak normalizedPeak = new SimpleChromatographicPeak(
+                            originalPeak);
                     double normalizedHeight = originalPeak.getHeight()
                             / normalizationFactor;
                     double normalizedArea = originalPeak.getArea()
@@ -228,7 +229,7 @@ public class StandardCompoundNormalizerTask implements Task {
                     normalizedPeak.setHeight(normalizedHeight);
                     normalizedPeak.setArea(normalizedArea);
 
-                    normalizedRow.addPeak(file, originalPeak, normalizedPeak);
+                    normalizedRow.addPeak(file, normalizedPeak);
                 }
 
             }

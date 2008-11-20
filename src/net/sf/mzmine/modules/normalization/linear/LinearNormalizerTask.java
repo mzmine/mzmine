@@ -190,7 +190,8 @@ class LinearNormalizerTask implements Task {
             // Readjust normalization factor so that maximum height will be
             // equal to maximumOverallPeakHeightAfterNormalization after
             // normalization
-            double maxNormalizedHeight = maxOriginalHeight / normalizationFactor;
+            double maxNormalizedHeight = maxOriginalHeight
+                    / normalizationFactor;
             normalizationFactor = normalizationFactor * maxNormalizedHeight
                     / maximumOverallPeakHeightAfterNormalization;
 
@@ -204,7 +205,8 @@ class LinearNormalizerTask implements Task {
 
                 ChromatographicPeak originalPeak = originalpeakListRow.getPeak(file);
                 if (originalPeak != null) {
-                    SimpleChromatographicPeak normalizedPeak = new SimpleChromatographicPeak(originalPeak);
+                    SimpleChromatographicPeak normalizedPeak = new SimpleChromatographicPeak(
+                            originalPeak);
                     double normalizedHeight = originalPeak.getHeight()
                             / normalizationFactor;
                     double normalizedArea = originalPeak.getArea()
@@ -222,7 +224,7 @@ class LinearNormalizerTask implements Task {
                         rowMap.put(originalpeakListRow, normalizedRow);
                     }
 
-                    normalizedRow.addPeak(file, originalPeak, normalizedPeak);
+                    normalizedRow.addPeak(file, normalizedPeak);
 
                 }
 

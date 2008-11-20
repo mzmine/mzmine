@@ -172,7 +172,7 @@ class Gap {
                     PeakStatus.ESTIMATED, 0);
 
             // Fill the gap
-            peakListRow.addPeak(rawDataFile, newPeak, newPeak);
+            peakListRow.addPeak(rawDataFile, newPeak);
         }
 
     }

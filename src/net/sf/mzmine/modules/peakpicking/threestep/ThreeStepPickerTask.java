@@ -235,7 +235,7 @@ class ThreeStepPickerTask implements Task {
 				for (ChromatographicPeak finishedPeak : peaks) {
 					SimplePeakListRow newRow = new SimplePeakListRow(newPeakID);
 					newPeakID++;
-					newRow.addPeak(dataFile, finishedPeak, finishedPeak);
+					newRow.addPeak(dataFile, finishedPeak);
 					newPeakList.addRow(newRow);
 				}
 

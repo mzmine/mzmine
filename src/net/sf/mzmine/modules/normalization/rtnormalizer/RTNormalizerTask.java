@@ -135,8 +135,9 @@ class RTNormalizerTask implements Task {
             // Find matching rows in remaining peaklists
             for (int i = 1; i < originalPeakLists.length; i++) {
                 PeakListRow matchingRows[] = originalPeakLists[i].getRowsInsideScanAndMZRange(
-                        new Range(candidateRT - rtTolerance, candidateRT + rtTolerance),
-                        new Range(candidateMZ - mzTolerance, candidateMZ + mzTolerance));
+                        new Range(candidateRT - rtTolerance, candidateRT
+                                + rtTolerance), new Range(candidateMZ
+                                - mzTolerance, candidateMZ + mzTolerance));
 
                 // If we have not found exactly 1 matching peak, move to next
                 // standard candidate
@@ -190,7 +191,7 @@ class RTNormalizerTask implements Task {
 
             normalizePeakList(originalPeakLists[peakListIndex],
                     normalizedPeakLists[peakListIndex], standards, averagedRTs);
-            
+
         }
 
         // Cancel?
@@ -313,10 +314,10 @@ class RTNormalizerTask implements Task {
         for (RawDataFile file : originalRow.getRawDataFiles()) {
             ChromatographicPeak dataFilePeak = originalRow.getPeak(file);
             if (dataFilePeak != null) {
-                SimpleChromatographicPeak newPeak = new SimpleChromatographicPeak(dataFilePeak);
+                SimpleChromatographicPeak newPeak = new SimpleChromatographicPeak(
+                        dataFilePeak);
                 newPeak.setRT(normalizedRT);
-                normalizedRow.addPeak(file,
-                        originalRow.getOriginalPeakListEntry(file), newPeak);
+                normalizedRow.addPeak(file, newPeak);
             }
         }
 

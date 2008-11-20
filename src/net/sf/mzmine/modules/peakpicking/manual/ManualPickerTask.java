@@ -125,7 +125,7 @@ class ManualPickerTask implements Task {
 
             if (dataPointFound) {
                 newPeak.finalizePeak();
-                peakListRow.addPeak(dataFile, newPeak, newPeak);
+                peakListRow.addPeak(dataFile, newPeak);
             }
 
         }
