@@ -162,7 +162,7 @@ class PeakListExportTask implements Task {
             if (exportRowMZ)
                 line.append(peakListRow.getAverageMZ() + fieldSeparator);
             if (exportRowRT)
-                line.append(peakListRow.getAverageRT() + fieldSeparator);
+                line.append((peakListRow.getAverageRT() / 60) + fieldSeparator);
             if (exportRowComment) {
                 if (peakListRow.getComment() == null)
                     line.append(fieldSeparator);
