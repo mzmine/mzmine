@@ -34,6 +34,7 @@ import net.sf.mzmine.data.impl.SimpleScan;
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.taskcontrol.Task;
 import ucar.ma2.Array;
+import ucar.ma2.Index;
 import ucar.ma2.IndexIterator;
 import ucar.nc2.NetcdfFile;
 import ucar.nc2.Variable;
@@ -164,12 +165,14 @@ public class NetCDFReadTask implements Task {
             logger.severe("Could not find variable mass_values");
             throw (new IOException("Could not find variable mass_values"));
         }
+        assert (massValueVariable.getRank() == 1);
 
         intensityValueVariable = inputFile.findVariable("intensity_values");
         if (intensityValueVariable == null) {
             logger.severe("Could not find variable intensity_values");
             throw (new IOException("Could not find variable intensity_values"));
         }
+        assert (intensityValueVariable.getRank() == 1);
 
         // Read number of scans
         Variable scanIndexVariable = inputFile.findVariable("scan_index");
@@ -183,13 +186,9 @@ public class NetCDFReadTask implements Task {
         totalScans = scanIndexVariable.getShape()[0];
 
         // Read scan start positions
-        int[] scanStartPositions = new int[totalScans + 1]; // Extra element is
-        // required, because
-        // element
-        // totalScans+1 is
-        // used to find the
-        // stop position for
-        // last scan
+        // Extra element is required, because element totalScans+1 is used to
+        // find the stop position for last scan
+        int[] scanStartPositions = new int[totalScans + 1];
 
         Array scanIndexArray = null;
         try {
@@ -212,15 +211,8 @@ public class NetCDFReadTask implements Task {
         scanIndexVariable = null;
 
         // Calc stop position for the last scan
-        scanStartPositions[totalScans] = (int) massValueVariable.getSize(); // This
-        // defines
-        // the
-        // end
-        // index
-        // of
-        // the
-        // last
-        // scan
+        // This defines the end index of the last scan
+        scanStartPositions[totalScans] = (int) massValueVariable.getSize();
 
         // Read retention times
         double[] retentionTimes = new double[totalScans];
@@ -431,41 +423,16 @@ public class NetCDFReadTask implements Task {
                     "Could not read from variables mass_values and/or intensity_values."));
         }
 
-        // Translate values to plain Java arrays
-        double[] massValues = null;
-
-        if (massValueVariable.getDataType().getPrimitiveClassType() == double.class) {
-            massValues = (double[]) massValueArray.copyTo1DJavaArray();
-        }
-        if (massValueVariable.getDataType().getPrimitiveClassType() == float.class) {
-            float[] floatMassValues = (float[]) massValueArray.copyTo1DJavaArray();
-            massValues = new double[floatMassValues.length];
-            for (int j = 0; j < massValues.length; j++) {
-                massValues[j] = (double) (floatMassValues[j]);
-            }
-            floatMassValues = null;
+        double[] massValues = new double[massValueArray.getShape()[0]];
+        Index massValuesIndex = massValueArray.getIndex();
+        for (int j = 0; j < massValues.length; j++) {
+            massValues[j] = massValueArray.getDouble(massValuesIndex.set0(j));
         }
 
-        double[] intensityValues = null;
-
-        if (intensityValueVariable.getDataType().getPrimitiveClassType() == int.class) {
-            int[] intIntensityValues = (int[]) intensityValueArray.copyTo1DJavaArray();
-            intensityValues = new double[intIntensityValues.length];
-            for (int j = 0; j < intensityValues.length; j++) {
-                intensityValues[j] = (double) (intIntensityValues[j]);
-            }
-            intIntensityValues = null;
-        }
-        if (intensityValueVariable.getDataType().getPrimitiveClassType() == double.class) {
-            intensityValues = (double[]) intensityValueArray.copyTo1DJavaArray();
-        }
-        if (intensityValueVariable.getDataType().getPrimitiveClassType() == float.class) {
-            float[] floatIntensityValues = (float[]) intensityValueArray.copyTo1DJavaArray();
-            intensityValues = new double[floatIntensityValues.length];
-            for (int j = 0; j < intensityValues.length; j++) {
-                intensityValues[j] = (double) (floatIntensityValues[j]);
-            }
-            floatIntensityValues = null;
+        double[] intensityValues = new double[intensityValueArray.getShape()[0]];
+        Index intensityValuesIndex = intensityValueArray.getIndex();
+        for (int j = 0; j < intensityValues.length; j++) {
+            intensityValues[j] = intensityValueArray.getDouble(intensityValuesIndex.set0(j));
         }
 
         MzDataPoint completeDataPoints[] = new MzDataPoint[massValues.length];
@@ -514,15 +481,13 @@ public class NetCDFReadTask implements Task {
             buildingScan.setDataPoints(tempDataPoints);
         } else {
             int sizeArray = j;
-            MzDataPoint[] dataPoints = new MzDataPoint[j];
-
+            MzDataPoint[] dataPoints = new MzDataPoint[sizeArray];
             System.arraycopy(tempDataPoints, 0, dataPoints, 0, sizeArray);
             buildingScan.setDataPoints(dataPoints);
         }
 
-        // return new SimpleScan(scanNum, 1, retentionTime.doubleValue(), -1, 0,
-        // null, dataPoints, false);
         return buildingScan;
+
     }
 
     /**
