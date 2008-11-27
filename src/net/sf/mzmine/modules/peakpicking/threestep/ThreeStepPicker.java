@@ -57,11 +57,11 @@ public class ThreeStepPicker implements BatchStep, TaskListener, ActionListener 
         desktop.addMenuItem(
                 MZmineMenu.PEAKPICKING,
                 "Three step peak detector",
-                "<html>Peak detection method based on three steps:<br>"
-                        + "1) detection of mass values in each scan<br>"
-                        + "2) Construction of XIC for each mass<br>"
-                        + "3) Resolving individual peaks within each chromatogram"
-                        + "</html>", KeyEvent.VK_T, true, this, null);
+                "Peak detection method based on three steps: "
+                        + "1) detection of mass values in each scan, "
+                        + "2) Construction of XIC for each mass, "
+                        + "3) Resolving individual peaks within each chromatogram",
+                KeyEvent.VK_T, true, this, null);
     }
 
     /**
