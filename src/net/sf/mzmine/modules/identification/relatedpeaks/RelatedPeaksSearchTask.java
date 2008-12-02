@@ -42,7 +42,8 @@ public class RelatedPeaksSearchTask implements Task {
 	private int finishedRows = 0, numRows;
 	private PeakList peakList;
 	private int numOfGroups;
-	private double shapeTolerance, rtTolerance, sharingPoints;
+	private double shapeTolerance, rtTolerance, mzDistance, mzTolerance, sharingPoints;       
+        private String[] adducts;
 
 	/**
 	 * @param parameters
@@ -58,9 +59,24 @@ public class RelatedPeaksSearchTask implements Task {
 				.getParameterValue(RelatedPeaksSearchParameters.shapeTolerance);
 		rtTolerance = (Double) parameters
 				.getParameterValue(RelatedPeaksSearchParameters.rtTolerance);
-		sharingPoints = (Double) parameters
+                mzDistance = (Double) parameters
+                                .getParameterValue(RelatedPeaksSearchParameters.mzDistance);
+                mzTolerance = (Double) parameters
+                                .getParameterValue(RelatedPeaksSearchParameters.mzTolerance);
+                sharingPoints = (Double) parameters
 				.getParameterValue(RelatedPeaksSearchParameters.sharingPoints);
-
+                adducts = parameters.getSelectedAdducts();
+                
+                //add the distance defined by the user to the "adducts" list
+                if(mzDistance != 0.0){
+                    String newAdduct = "User defined adduct: + " + String.valueOf(mzDistance);
+                    String[] newAdducts = new String[adducts.length + 1];
+                    for(int i = 0; i < adducts.length; i++){
+                        newAdducts[i] = adducts[i];
+                    }
+                    newAdducts[adducts.length] = newAdduct;
+                    adducts = newAdducts;
+                }                
 	}
 
 	/**
@@ -159,62 +175,65 @@ public class RelatedPeaksSearchTask implements Task {
 				// Avoid compare the same peak
 				if (currentPeak == comparedPeak) {
 					continue;
-				}
+				}                                
+                               
+                                for(String adduct : adducts){
+                                        // Verify if the compared peak is related to the current peak
+                                        goodCandidate = areRelatedPeaks(currentPeak, comparedPeak,
+                                                        shapeTolerance, adduct, rtTolerance,
+                                                        mzTolerance, sharingPoints);
 
-				// Verify if the compared peak is related to the current peak
-				goodCandidate = areRelatedPeaks(currentPeak, comparedPeak,
-						shapeTolerance, rtTolerance, sharingPoints);
+                                        if (goodCandidate) {
 
-				if (goodCandidate) {
+                                                goodCandidate = false;
+                                                alreadyRelated = false;
 
-					goodCandidate = false;
-					alreadyRelated = false;
+                                                // If the current peak already belongs to one group, add the
+                                                // compared peak to that group
+                                                if (currentGroup != null) {
+                                                        currentGroup.addRow(comparedRow);
+                                                        identity = new SimpleCompoundIdentity(null,
+                                                                        currentGroup.getGroupName(), null, null, null,
+                                                                        "Related peak search", null);
+                                                        comparedRow.addCompoundIdentity(identity, true);
+                                                        alreadyRelated = true;
+                                                        continue;
+                                                }
 
-					// If the current peak already belongs to one group, add the
-					// compared peak to that group
-					if (currentGroup != null) {
-						currentGroup.addRow(comparedRow);
-						identity = new SimpleCompoundIdentity(null,
-								currentGroup.getGroupName(), null, null, null,
-								"Related peak search", null);
-						comparedRow.addCompoundIdentity(identity, true);
-						alreadyRelated = true;
-						continue;
-					}
+                                                // If the compared peak belongs to any group, add the
+                                                // current peak to that group
+                                                for (RelatedPeaksIdentity group : relatedPeaksGroups) {
+                                                        if (group.containsRow(comparedRow)) {
+                                                                group.addRow(currentRow);
+                                                                identity = new SimpleCompoundIdentity(null, group
+                                                                                .getGroupName(), null, null, null,
+                                                                                "Related peak search", null);
+                                                                currentRow.addCompoundIdentity(identity, true);
+                                                                currentGroup = group;
+                                                                alreadyRelated = true;
+                                                                break;
+                                                        }
+                                                }
 
-					// If the compared peak belongs to any group, add the
-					// current peak to that group
-					for (RelatedPeaksIdentity group : relatedPeaksGroups) {
-						if (group.containsRow(comparedRow)) {
-							group.addRow(currentRow);
-							identity = new SimpleCompoundIdentity(null, group
-									.getGroupName(), null, null, null,
-									"Related peak search", null);
-							currentRow.addCompoundIdentity(identity, true);
-							currentGroup = group;
-							alreadyRelated = true;
-							break;
-						}
-					}
+                                                // If the current peak doesn't belong to any group neither
+                                                // the compared, then initializes a new group
+                                                if (alreadyRelated) {
+                                                        alreadyRelated = false;
+                                                } else {
+                                                        String name = adduct.substring(0, adduct.indexOf(":")) + " - " +numOfGroups;
+                                                        identity = new SimpleCompoundIdentity(null, name, null,
+                                                                        null, null, "Related peak search", null);
+                                                        comparedRow.addCompoundIdentity(identity, true);
+                                                        currentRow.addCompoundIdentity(identity, true);
+                                                        currentGroup = new SimpleRelatedPeaksIdentity(name,
+                                                                        currentRow, comparedRow);
+                                                        relatedPeaksGroups.add(currentGroup);
+                                                        numOfGroups++;
 
-					// If the current peak doesn't belong to any group neither
-					// the compared, then initializes a new group
-					if (alreadyRelated) {
-						alreadyRelated = false;
-					} else {
-						String name = "Group" + numOfGroups;
-						identity = new SimpleCompoundIdentity(null, name, null,
-								null, null, "Related peak search", null);
-						comparedRow.addCompoundIdentity(identity, true);
-						currentRow.addCompoundIdentity(identity, true);
-						currentGroup = new SimpleRelatedPeaksIdentity(name,
-								currentRow, comparedRow);
-						relatedPeaksGroups.add(currentGroup);
-						numOfGroups++;
+                                                }
 
-					}
-
-				}
+                                        }
+                                }
 
 			}
 
@@ -259,14 +278,24 @@ public class RelatedPeaksSearchTask implements Task {
 	 * @return boolean
 	 */
 	private static boolean areRelatedPeaks(ChromatographicPeak p1,
-			ChromatographicPeak p2, double shapeTolerance, double rtTolerance,
-			double sharingPoints) {
+			ChromatographicPeak p2, double shapeTolerance, String adduct, double rtTolerance, 
+                        double mzTolerance, double sharingPoints) {
 
 		// Verify proximity in retention time axis
 		double diffRT = Math.abs(p1.getRT() - p2.getRT());
 		if (diffRT > rtTolerance)
 			return false;
 
+                //Verify the distance between peaks in m/z axis
+                double mzDistance = 0;
+                if(!adduct.matches("Any m/z difference")){
+                    mzDistance = Double.valueOf(adduct.substring(adduct.indexOf(":")+3));
+                }                
+                double diffMZ = Math.abs(p1.getMZ() - p2.getMZ());
+                if(diffMZ > mzDistance + mzTolerance || diffMZ < mzDistance - mzTolerance)
+                        return false;        
+
+                
 		// Verify % of sharing points
 		if (!hasSharedPoints(p1, p2, sharingPoints))
 			return false;

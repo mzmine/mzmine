@@ -31,12 +31,22 @@ public class RelatedPeaksSearchParameters extends SimpleParameterSet {
 
 	public static final NumberFormat percentFormat = NumberFormat
 			.getPercentInstance();
-
+        
 	public static final Parameter rtTolerance = new SimpleParameter(
 			ParameterType.DOUBLE, "Time tolerance",
 			"Maximum allowed difference of time to set a relationship between peaks", null, new Double(10.0),
-			new Double(0.0), null, MZmineCore.getRTFormat());
-
+			new Double(0.0), null, MZmineCore.getRTFormat());        
+          
+        public static final Parameter mzDistance = new SimpleParameter(
+			ParameterType.DOUBLE, "MZ distance",
+			"Allowed difference of m/z to set a relationship between peaks", null, new Double(0.0),
+			new Double(0.0), null, MZmineCore.getMZFormat());  
+        
+        public static final Parameter mzTolerance = new SimpleParameter(
+			ParameterType.DOUBLE, "MZ Precision Tolerance",
+			"Tolerance value of the m/z difference between peaks", null, new Double(0.1),
+			new Double(0.0), null, MZmineCore.getMZFormat());  
+        
 	public static final Parameter shapeTolerance = new SimpleParameter(
 			ParameterType.DOUBLE,
 			"Shape difference tolerance",
@@ -50,9 +60,30 @@ public class RelatedPeaksSearchParameters extends SimpleParameterSet {
 			"%", new Double(0.85), new Double(0.0), new Double(1.0), percentFormat);
 
 	public RelatedPeaksSearchParameters() {
-		super(new Parameter[] { rtTolerance,
-				shapeTolerance, sharingPoints });
+		super(new Parameter[] { rtTolerance, mzDistance, mzTolerance,
+				shapeTolerance, sharingPoints  });
 	}
 	
-	
+	private String[] selectedAdducts;
+        
+        public RelatedPeaksSearchParameters clone() {
+
+        RelatedPeaksSearchParameters clone = (RelatedPeaksSearchParameters) super.clone();
+
+        if (selectedAdducts != null) {
+            clone.setSelectedAdducts(selectedAdducts);
+        }
+
+        return clone;
+
+        }
+
+        public void setSelectedAdducts(String[] selectedAdducts) {
+            this.selectedAdducts = selectedAdducts;
+        }
+
+        public String[] getSelectedAdducts() {
+            return selectedAdducts;
+        }
+
 }

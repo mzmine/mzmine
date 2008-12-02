@@ -115,10 +115,13 @@ public class RelatedPeaksSearch implements BatchStep, ActionListener,
             return;
         }
 
-        ExitCode exitCode = setupParameters(parameters);
-        if (exitCode != ExitCode.OK)
-            return;
+        RelatedPeaksSearchDialog dialog = new  RelatedPeaksSearchDialog(parameters);
+        dialog.setVisible(true);
 
+        if (dialog.getExitCode() != ExitCode.OK) {
+            return;
+        }
+        
         runModule(null, peaklists, parameters.clone(), null);
 
     }
