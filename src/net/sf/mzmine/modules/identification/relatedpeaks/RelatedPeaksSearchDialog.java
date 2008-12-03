@@ -16,13 +16,12 @@
  * MZmine; if not, write to the Free Software Foundation, Inc., 51 Franklin St,
  * Fifth Floor, Boston, MA 02110-1301 USA
  */
-
 package net.sf.mzmine.modules.identification.relatedpeaks;
-
 
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Dimension;
+import java.awt.GridLayout;
 import java.awt.event.ActionEvent;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -35,6 +34,7 @@ import javax.swing.JCheckBox;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
+import javax.swing.JTextField;
 import javax.swing.ScrollPaneConstants;
 
 import net.sf.mzmine.util.GUIUtils;
@@ -44,11 +44,10 @@ import net.sf.mzmine.util.dialogs.ParameterSetupDialog;
 class RelatedPeaksSearchDialog extends ParameterSetupDialog {
 
     private RelatedPeaksSearchParameters parameters;
-    
-
     private Vector<ExtendedCheckBox<String>> adductsCheckBoxes;
-    private Vector<String> selectedAdducts;
-    
+    private Vector<CommonAdducts> selectedAdducts;
+    private JTextField customAdduct;
+
     public RelatedPeaksSearchDialog(RelatedPeaksSearchParameters parameters) {
 
         // make dialog modal
@@ -56,27 +55,33 @@ class RelatedPeaksSearchDialog extends ParameterSetupDialog {
 
         this.parameters = parameters;
 
+
         JPanel peakCheckBoxesPanel = new JPanel();
         peakCheckBoxesPanel.setBackground(Color.white);
-        peakCheckBoxesPanel.setLayout(new BoxLayout(peakCheckBoxesPanel,
-                BoxLayout.Y_AXIS));
+        peakCheckBoxesPanel.setLayout(new GridLayout(CommonAdducts.values().length, 2));
 
         adductsCheckBoxes = new Vector<ExtendedCheckBox<String>>();
         int minimumHorizSize = 0;
-        
-        List<String> selectedRows;
-        if (parameters.getSelectedAdducts() != null)
+
+        customAdduct = new JTextField("0.0");
+        List<CommonAdducts> selectedRows;
+        if (parameters.getSelectedAdducts() != null) {
             selectedRows = Arrays.asList(parameters.getSelectedAdducts());
-        else
-            selectedRows = new ArrayList<String>(0);
+        } else {
+            selectedRows = new ArrayList<CommonAdducts>(0);
+        }
         for (CommonAdducts adducts : CommonAdducts.values()) {
-                ExtendedCheckBox<String> ecb = new ExtendedCheckBox<String>(
-                        adducts.getName(), selectedRows.contains(adducts.getName()));
-                adductsCheckBoxes.add(ecb);
-                minimumHorizSize = Math.max(minimumHorizSize,
-                        ecb.getPreferredWidth());
-                peakCheckBoxesPanel.add(ecb);
-           
+            ExtendedCheckBox<String> ecb = new ExtendedCheckBox<String>(
+                    adducts.getName(), selectedRows.contains(adducts));
+            adductsCheckBoxes.add(ecb);
+            minimumHorizSize = Math.max(minimumHorizSize,
+                    ecb.getPreferredWidth());
+            peakCheckBoxesPanel.add(ecb, BorderLayout.WEST);
+            if (adducts.getName().matches("Custom:")) {
+                peakCheckBoxesPanel.add(customAdduct, BorderLayout.EAST);
+            } else {
+                peakCheckBoxesPanel.add(new JLabel(String.valueOf(adducts.getMassDifference())), BorderLayout.EAST);
+            }
         }
 
         int minimumVertSize = new JCheckBox().getHeight();
@@ -89,7 +94,6 @@ class RelatedPeaksSearchDialog extends ParameterSetupDialog {
                 ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER);
         peakPanelScroll.setPreferredSize(new Dimension(minimumHorizSize,
                 minimumVertSize));
-
         JPanel pnlStdSelection = new JPanel();
         pnlStdSelection.setLayout(new BoxLayout(pnlStdSelection,
                 BoxLayout.X_AXIS));
@@ -112,15 +116,20 @@ class RelatedPeaksSearchDialog extends ParameterSetupDialog {
         Object src = ae.getSource();
 
         if (src == btnOK) {
-            selectedAdducts = new Vector<String>();
-            
+            selectedAdducts = new Vector<CommonAdducts>();
+
             for (ExtendedCheckBox<String> box : adductsCheckBoxes) {
-                if (box.isSelected())
-                    selectedAdducts.add(box.getObject());
-            }            
+                if (box.isSelected()) {
+                    for (CommonAdducts adduct : CommonAdducts.values()) {
+                        if (box.getObject().compareTo(adduct.getName()) == 0) {
+                            selectedAdducts.add(adduct);
+                        }
+                    }
+                }
+            }
 
-            parameters.setSelectedAdducts(selectedAdducts.toArray(new String[0]));
-
+            parameters.setSelectedAdducts(selectedAdducts.toArray(new CommonAdducts[0]));
+            parameters.setCustomMassDifference(Double.valueOf(customAdduct.getText()));
         }
 
         super.actionPerformed(ae);
@@ -130,5 +139,4 @@ class RelatedPeaksSearchDialog extends ParameterSetupDialog {
     public String[] getSelectedStandardPeakListRows() {
         return selectedAdducts.toArray(new String[0]);
     }
-
 }

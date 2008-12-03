@@ -16,24 +16,28 @@
  * MZmine; if not, write to the Free Software Foundation, Inc., 51 Franklin St,
  * Fifth Floor, Boston, MA 02110-1301 USA
  */
-
 package net.sf.mzmine.modules.identification.relatedpeaks;
 
-
 public enum CommonAdducts {
-        DEUTERIUM ("[1,1,2,3,3-2H5(Deuterium)]glycerol: + 5"),
-        NAH ("[M+Na-H]: + 21.9825"),
-        MNH4 ("[M+NH4-H]: + 17.0027");
-       
-        private final String name;
-       
-        
-        CommonAdducts (String name){
-                this.name = name;               
-        }
-        
-        public String getName(){
-                return this.name;
-        }
 
+    ALLRELATED("All related peaks", 0.0),
+    DEUTERIUM("[(Deuterium)]glycerol", 5.0),
+    NAH("[M+Na-H]", 21.9825),
+    MNH4("[M+NH4-H]", 17.0027),
+    CUSTOM ("Custom:", 0.0);
+    private final String name;
+    private final double massDifference;
+
+    CommonAdducts(String name, double massDifference) {
+        this.name = name;
+        this.massDifference = massDifference;
+    }
+
+    public String getName() {
+        return this.name;
+    }
+
+    public double getMassDifference() {
+        return this.massDifference;
+    }
 }

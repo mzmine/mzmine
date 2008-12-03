@@ -16,7 +16,6 @@
  * MZmine; if not, write to the Free Software Foundation, Inc., 51 Franklin St,
  * Fifth Floor, Boston, MA 02110-1301 USA
  */
-
 package net.sf.mzmine.modules.identification.relatedpeaks;
 
 import java.util.Arrays;
@@ -31,386 +30,379 @@ import net.sf.mzmine.data.MzDataPoint;
 import net.sf.mzmine.data.PeakList;
 import net.sf.mzmine.data.PeakListRow;
 import net.sf.mzmine.data.RelatedPeaksIdentity;
-import net.sf.mzmine.data.impl.SimpleCompoundIdentity;
 import net.sf.mzmine.data.impl.SimpleRelatedPeaksIdentity;
 import net.sf.mzmine.taskcontrol.Task;
 
 public class RelatedPeaksSearchTask implements Task {
 
-	private TaskStatus status = TaskStatus.WAITING;
-	private String errorMessage;
-	private int finishedRows = 0, numRows;
-	private PeakList peakList;
-	private int numOfGroups;
-	private double shapeTolerance, rtTolerance, mzDistance, mzTolerance, sharingPoints;       
-        private String[] adducts;
+    private TaskStatus status = TaskStatus.WAITING;
+    private String errorMessage;
+    private int finishedRows = 0,  numRows;
+    private PeakList peakList;
+    private int numOfGroups;
+    private double shapeTolerance,  rtTolerance,  customMassDifference,  mzTolerance,  sharingPoints;
+    private CommonAdducts[] adducts;
 
-	/**
-	 * @param parameters
-	 * @param peakList
-	 */
-	public RelatedPeaksSearchTask(RelatedPeaksSearchParameters parameters,
-			PeakList peakList) {
+    /**
+     * @param parameters
+     * @param peakList
+     */
+    public RelatedPeaksSearchTask(RelatedPeaksSearchParameters parameters,
+            PeakList peakList) {
 
-		this.peakList = peakList;
-		numRows = peakList.getNumberOfRows();
-		numOfGroups = 0;
-		shapeTolerance = (Double) parameters
-				.getParameterValue(RelatedPeaksSearchParameters.shapeTolerance);
-		rtTolerance = (Double) parameters
-				.getParameterValue(RelatedPeaksSearchParameters.rtTolerance);
-                mzDistance = (Double) parameters
-                                .getParameterValue(RelatedPeaksSearchParameters.mzDistance);
-                mzTolerance = (Double) parameters
-                                .getParameterValue(RelatedPeaksSearchParameters.mzTolerance);
-                sharingPoints = (Double) parameters
-				.getParameterValue(RelatedPeaksSearchParameters.sharingPoints);
-                adducts = parameters.getSelectedAdducts();
-                
-                //add the distance defined by the user to the "adducts" list
-                if(mzDistance != 0.0){
-                    String newAdduct = "User defined adduct: + " + String.valueOf(mzDistance);
-                    String[] newAdducts = new String[adducts.length + 1];
-                    for(int i = 0; i < adducts.length; i++){
-                        newAdducts[i] = adducts[i];
+        this.peakList = peakList;
+        numRows = peakList.getNumberOfRows();
+        numOfGroups = 0;
+        shapeTolerance = (Double) parameters.getParameterValue(RelatedPeaksSearchParameters.shapeTolerance);
+        rtTolerance = (Double) parameters.getParameterValue(RelatedPeaksSearchParameters.rtTolerance);
+        mzTolerance = (Double) parameters.getParameterValue(RelatedPeaksSearchParameters.mzTolerance);
+        sharingPoints = (Double) parameters.getParameterValue(RelatedPeaksSearchParameters.sharingPoints);
+        adducts = parameters.getSelectedAdducts();
+        customMassDifference = parameters.getCustomMassDifference();
+    }
+
+    /**
+     * @see net.sf.mzmine.taskcontrol.Task#cancel()
+     */
+    public void cancel() {
+        status = TaskStatus.CANCELED;
+    }
+
+    /**
+     * @see net.sf.mzmine.taskcontrol.Task#getErrorMessage()
+     */
+    public String getErrorMessage() {
+        return errorMessage;
+    }
+
+    /**
+     * @see net.sf.mzmine.taskcontrol.Task#getFinishedPercentage()
+     */
+    public double getFinishedPercentage() {
+        return ((double) finishedRows) / numRows;
+    }
+
+    /**
+     * @see net.sf.mzmine.taskcontrol.Task#getStatus()
+     */
+    public TaskStatus getStatus() {
+        return status;
+    }
+
+    /**
+     * @see net.sf.mzmine.taskcontrol.Task#getTaskDescription()
+     */
+    public String getTaskDescription() {
+        return "Identification of related peaks throw " + peakList.toString();
+    }
+
+    /**
+     * @see java.lang.Runnable#run()
+     */
+    public void run() {
+
+        status = TaskStatus.PROCESSING;
+
+        Iterator itr;
+        PeakListRow comparedRow;
+        ChromatographicPeak currentPeak, comparedPeak;
+        PeakIdentity identity;
+        boolean alreadyRelated = false, goodCandidate = false;
+        RelatedPeaksIdentity currentGroup = null;
+        Vector<RelatedPeaksIdentity> relatedPeaksGroups = new Vector<RelatedPeaksIdentity>();
+        HashSet<PeakListRow> comparissonPeaks = new HashSet<PeakListRow>(Arrays.asList(peakList.getRows()));
+
+        for (PeakListRow currentRow : peakList.getRows()) {
+
+            if (status == TaskStatus.CANCELED) {
+                return;
+            }
+
+            // Verify if the current row already belongs to one group
+            for (RelatedPeaksIdentity group : relatedPeaksGroups) {
+                if (group.containsRow(currentRow)) {
+                    alreadyRelated = true;
+                    break;
+                }
+            }
+
+            if (alreadyRelated) {
+                alreadyRelated = false;
+                continue;
+            }
+
+            // Get the biggest peak in the row for comparison
+            currentPeak = getBiggestPeak(currentRow);
+
+            currentGroup = null;
+            itr = comparissonPeaks.iterator();
+
+            // Compare the current row against the complete peak list over the
+            // same raw data file
+            while (itr.hasNext()) {
+
+                comparedRow = (PeakListRow) itr.next();
+                if (comparedRow == null) {
+                    break;
+                }
+
+                // Always the comparison is against peaks from the same raw data
+                comparedPeak = comparedRow.getPeak(currentPeak.getDataFile());
+
+                // Verify if there is not peak in the same retention time in
+                // this row
+                if (comparedPeak == null) {
+                    continue;
+                }
+
+                // Avoid compare the same peak
+                if (currentPeak == comparedPeak) {
+                    continue;
+                }
+
+                for (CommonAdducts adduct : adducts) {
+                    // Verify if the compared peak is related to the current peak
+                    goodCandidate = areRelatedPeaks(currentPeak, comparedPeak,
+                            shapeTolerance, adduct, customMassDifference,
+                            rtTolerance, mzTolerance, sharingPoints);
+
+                    if (goodCandidate) {
+
+                        goodCandidate = false;
+                        alreadyRelated = false;
+
+                        // If the current peak already belongs to one group, add the
+                        // compared peak to that group
+                        if (currentGroup != null) {
+                            currentGroup.addRow(comparedRow);
+                            identity = new RelatedPeakIdentity(null, 
+                                    currentGroup.getGroupName(), null,
+                                    "Related peak search", currentRow, comparedRow,
+                                    adduct);                                    
+                            comparedRow.addCompoundIdentity(identity, true);
+                            alreadyRelated = true;
+                            continue;
+                        }
+
+                        // If the compared peak belongs to any group, add the
+                        // current peak to that group
+                        for (RelatedPeaksIdentity group : relatedPeaksGroups) {
+                            if (group.containsRow(comparedRow)) {
+                                group.addRow(currentRow);
+                                identity = new RelatedPeakIdentity(null, 
+                                    group.getGroupName(), null,
+                                    "Related peak search", currentRow, comparedRow,
+                                    adduct); 
+                                currentRow.addCompoundIdentity(identity, true);
+                                currentGroup = group;
+                                alreadyRelated = true;
+                                break;
+                            }
+                        }
+
+                        // If the current peak doesn't belong to any group neither
+                        // the compared, then initializes a new group
+                        if (alreadyRelated) {
+                            alreadyRelated = false;
+                        } else {
+                            String name = adduct.getName() + " - " + numOfGroups;
+                            identity = new RelatedPeakIdentity(null, 
+                                    name, null, "Related peak search", 
+                                    currentRow, comparedRow,
+                                    adduct); 
+                            comparedRow.addCompoundIdentity(identity, true);
+                            currentRow.addCompoundIdentity(identity, true);
+                            currentGroup = new SimpleRelatedPeaksIdentity(name,
+                                    currentRow, comparedRow);
+                            relatedPeaksGroups.add(currentGroup);
+                            numOfGroups++;
+                        }
+
                     }
-                    newAdducts[adducts.length] = newAdduct;
-                    adducts = newAdducts;
-                }                
-	}
+                }
 
-	/**
-	 * @see net.sf.mzmine.taskcontrol.Task#cancel()
-	 */
-	public void cancel() {
-		status = TaskStatus.CANCELED;
-	}
+            }
 
-	/**
-	 * @see net.sf.mzmine.taskcontrol.Task#getErrorMessage()
-	 */
-	public String getErrorMessage() {
-		return errorMessage;
-	}
+            finishedRows++;
 
-	/**
-	 * @see net.sf.mzmine.taskcontrol.Task#getFinishedPercentage()
-	 */
-	public double getFinishedPercentage() {
-		return ((double) finishedRows) / numRows;
-	}
+        }
 
-	/**
-	 * @see net.sf.mzmine.taskcontrol.Task#getStatus()
-	 */
-	public TaskStatus getStatus() {
-		return status;
-	}
+        status = TaskStatus.FINISHED;
 
-	/**
-	 * @see net.sf.mzmine.taskcontrol.Task#getTaskDescription()
-	 */
-	public String getTaskDescription() {
-		return "Identification of related peaks throw " + peakList.toString();
-	}
+    }
 
-	/**
-	 * @see java.lang.Runnable#run()
-	 */
-	public void run() {
+    /**
+     * Retrieve the biggest peak of the peak list row parameter
+     * 
+     * @param row
+     * @return
+     */
+    private static ChromatographicPeak getBiggestPeak(PeakListRow row) {
+        ChromatographicPeak peak = null;
 
-		status = TaskStatus.PROCESSING;
+        double intensity = Double.MIN_VALUE;
 
-		Iterator itr;
-		PeakListRow comparedRow;
-		ChromatographicPeak currentPeak, comparedPeak;
-		PeakIdentity identity;
-		boolean alreadyRelated = false, goodCandidate = false;
-		RelatedPeaksIdentity currentGroup = null;
-		Vector<RelatedPeaksIdentity> relatedPeaksGroups = new Vector<RelatedPeaksIdentity>();
-		HashSet<PeakListRow> comparissonPeaks = new HashSet<PeakListRow>(Arrays
-				.asList(peakList.getRows()));
+        for (ChromatographicPeak p : row.getPeaks()) {
+            if (p.getHeight() > intensity) {
+                peak = p;
+                intensity = p.getHeight();
+            }
+        }
 
-		for (PeakListRow currentRow : peakList.getRows()) {
+        return peak;
+    }
 
-			if (status == TaskStatus.CANCELED)
-				return;
+    /**
+     * This method defines if the two peaks received as parameters are related
+     * each other according the tolerance parameters. Return a boolean value.
+     * 
+     * @param peak1
+     * @param peak2
+     * @param shapeTolerance
+     * @param rtTolerance
+     * @param sharingPoints
+     * @return boolean
+     */
+    private static boolean areRelatedPeaks(ChromatographicPeak p1,
+            ChromatographicPeak p2, double shapeTolerance, CommonAdducts adduct,
+            double customMassDifference, double rtTolerance,
+            double mzTolerance, double sharingPoints) {
 
-			// Verify if the current row already belongs to one group
-			for (RelatedPeaksIdentity group : relatedPeaksGroups) {
-				if (group.containsRow(currentRow)) {
-					alreadyRelated = true;
-					break;
-				}
-			}
+        // Verify proximity in retention time axis
+        double diffRT = Math.abs(p1.getRT() - p2.getRT());
+        if (diffRT > rtTolerance) {
+            return false;
+        }
 
-			if (alreadyRelated) {
-				alreadyRelated = false;
-				continue;
-			}
+        //Verify the distance between peaks in m/z axis
+        double mzDistance;
+        if (adduct == CommonAdducts.CUSTOM) {
+            mzDistance = customMassDifference;
+        } else {
+            mzDistance = adduct.getMassDifference();
+        }
+        double diffMZ = Math.abs(p1.getMZ() - p2.getMZ());
+        if (diffMZ > mzDistance + mzTolerance || diffMZ < mzDistance - mzTolerance) {
+            return false;
+        }
 
-			// Get the biggest peak in the row for comparison
-			currentPeak = getBiggestPeak(currentRow);
 
-			currentGroup = null;
-			itr = comparissonPeaks.iterator();
+        // Verify % of sharing points
+        if (!hasSharedPoints(p1, p2, sharingPoints)) {
+            return false;
+        }
 
-			// Compare the current row against the complete peak list over the
-			// same raw data file
-			while (itr.hasNext()) {
+        // Verify proximity in term of shape form
+        Hashtable<Integer, Double> shapePoints1 = getNormalizedShapePoints(p1);
+        Hashtable<Integer, Double> shapePoints2 = getNormalizedShapePoints(p2);
 
-				comparedRow = (PeakListRow) itr.next();
-				if (comparedRow == null)
-					break;
-				
-				// Always the comparison is against peaks from the same raw data
-				comparedPeak = comparedRow.getPeak(currentPeak.getDataFile());
+        int key, comparedPoints = 0;
+        double intPoint1, intPoint2, totalDiff = 0;
 
-				// Verify if there is not peak in the same retention time in
-				// this row
-				if (comparedPeak == null) {
-					continue;
-				}
+        Iterator itr = shapePoints1.keySet().iterator();
+        while (itr.hasNext()) {
+            key = (Integer) itr.next();
+            intPoint1 = shapePoints1.get(key);
+            try {
+                intPoint2 = shapePoints2.get(key);
+                totalDiff += Math.abs(intPoint1 - intPoint2);
+            } catch (Exception e) {
+                totalDiff += intPoint1;
+            }
+            comparedPoints++;
+        }
 
-				// Avoid compare the same peak
-				if (currentPeak == comparedPeak) {
-					continue;
-				}                                
-                               
-                                for(String adduct : adducts){
-                                        // Verify if the compared peak is related to the current peak
-                                        goodCandidate = areRelatedPeaks(currentPeak, comparedPeak,
-                                                        shapeTolerance, adduct, rtTolerance,
-                                                        mzTolerance, sharingPoints);
+        totalDiff /= comparedPoints;
 
-                                        if (goodCandidate) {
+        if (totalDiff > shapeTolerance) {
+            return false;
+        }
 
-                                                goodCandidate = false;
-                                                alreadyRelated = false;
+        return true;
+    }
 
-                                                // If the current peak already belongs to one group, add the
-                                                // compared peak to that group
-                                                if (currentGroup != null) {
-                                                        currentGroup.addRow(comparedRow);
-                                                        identity = new SimpleCompoundIdentity(null,
-                                                                        currentGroup.getGroupName(), null, null, null,
-                                                                        "Related peak search", null);
-                                                        comparedRow.addCompoundIdentity(identity, true);
-                                                        alreadyRelated = true;
-                                                        continue;
-                                                }
+    /**
+     * Verify the percentage of scans in common between two peaks. Returns a
+     * boolean value depending on tolerance parameter
+     * 
+     * @param p1
+     * @param p2
+     * @param sharingPoints
+     * @return boolean
+     */
+    private static boolean hasSharedPoints(ChromatographicPeak p1,
+            ChromatographicPeak p2, double sharingPoints) {
 
-                                                // If the compared peak belongs to any group, add the
-                                                // current peak to that group
-                                                for (RelatedPeaksIdentity group : relatedPeaksGroups) {
-                                                        if (group.containsRow(comparedRow)) {
-                                                                group.addRow(currentRow);
-                                                                identity = new SimpleCompoundIdentity(null, group
-                                                                                .getGroupName(), null, null, null,
-                                                                                "Related peak search", null);
-                                                                currentRow.addCompoundIdentity(identity, true);
-                                                                currentGroup = group;
-                                                                alreadyRelated = true;
-                                                                break;
-                                                        }
-                                                }
+        int numOfHits = 0;
+        double sharedPercentage = 0;
+        int[] scansNumbersPeak1 = p1.getScanNumbers();
+        int[] scansNumbersPeak2 = p2.getScanNumbers();
+        int length1 = scansNumbersPeak1.length;
+        int length2 = scansNumbersPeak2.length;
 
-                                                // If the current peak doesn't belong to any group neither
-                                                // the compared, then initializes a new group
-                                                if (alreadyRelated) {
-                                                        alreadyRelated = false;
-                                                } else {
-                                                        String name = adduct.substring(0, adduct.indexOf(":")) + " - " +numOfGroups;
-                                                        identity = new SimpleCompoundIdentity(null, name, null,
-                                                                        null, null, "Related peak search", null);
-                                                        comparedRow.addCompoundIdentity(identity, true);
-                                                        currentRow.addCompoundIdentity(identity, true);
-                                                        currentGroup = new SimpleRelatedPeaksIdentity(name,
-                                                                        currentRow, comparedRow);
-                                                        relatedPeaksGroups.add(currentGroup);
-                                                        numOfGroups++;
+        // Count the number of scans in comon
+        for (int scanP1 : scansNumbersPeak1) {
+            for (int scanP2 : scansNumbersPeak2) {
+                if (scanP1 == scanP2) {
+                    numOfHits++;
+                    break;
+                }
+            }
+        }
 
-                                                }
+        // Always use the peak with less number of scans to set the percentage
+        // of shared points
+        if (length1 > length2) {
+            sharedPercentage = numOfHits / (double) length2;
+        } else {
+            sharedPercentage = numOfHits / (double) length1;
+        }
 
-                                        }
-                                }
+        if (sharedPercentage >= sharingPoints) {
+            return true;
+        }
 
-			}
+        return false;
+    }
 
-			finishedRows++;
+    /**
+     * This method returns a Hastable that contains the number of scan as key
+     * and the normalized intensity as value. The intensity is normalized
+     * according the biggest intensity in the peak.
+     * 
+     * @param peak
+     * @return Hashtable<Integer, Double>
+     */
+    private static Hashtable<Integer, Double> getNormalizedShapePoints(
+            ChromatographicPeak peak) {
 
-		}
+        double biggestIntensity = Double.MIN_VALUE;
+        int scanNumbers[] = peak.getScanNumbers();
+        Hashtable<Integer, Double> shapePoints = new Hashtable<Integer, Double>();
 
-		status = TaskStatus.FINISHED;
+        double[] intensities = new double[scanNumbers.length];
 
-	}
+        // Get the shape in terms of intensity
+        for (int i = 0; i < scanNumbers.length; i++) {
+            MzDataPoint dataPoint = peak.getMzPeak(scanNumbers[i]);
+            if (dataPoint == null) {
+                intensities[i] = 0;
+            } else {
+                intensities[i] = dataPoint.getIntensity();
+            }
 
-	/**
-	 * Retrieve the biggest peak of the peak list row parameter
-	 * 
-	 * @param row
-	 * @return
-	 */
-	private static ChromatographicPeak getBiggestPeak(PeakListRow row) {
-		ChromatographicPeak peak = null;
+            if (intensities[i] > biggestIntensity) {
+                biggestIntensity = intensities[i];
+            }
+        }
 
-		double intensity = Double.MIN_VALUE;
+        // Normalize all intensities according to biggest intensity point
+        for (int i = 0; i < scanNumbers.length; i++) {
+            intensities[i] /= biggestIntensity;
+            shapePoints.put(scanNumbers[i], intensities[i]);
+        }
 
-		for (ChromatographicPeak p : row.getPeaks()) {
-			if (p.getHeight() > intensity) {
-				peak = p;
-				intensity = p.getHeight();
-			}
-		}
+        return shapePoints;
 
-		return peak;
-	}
-
-	/**
-	 * This method defines if the two peaks received as parameters are related
-	 * each other according the tolerance parameters. Return a boolean value.
-	 * 
-	 * @param peak1
-	 * @param peak2
-	 * @param shapeTolerance
-	 * @param rtTolerance
-	 * @param sharingPoints
-	 * @return boolean
-	 */
-	private static boolean areRelatedPeaks(ChromatographicPeak p1,
-			ChromatographicPeak p2, double shapeTolerance, String adduct, double rtTolerance, 
-                        double mzTolerance, double sharingPoints) {
-
-		// Verify proximity in retention time axis
-		double diffRT = Math.abs(p1.getRT() - p2.getRT());
-		if (diffRT > rtTolerance)
-			return false;
-
-                //Verify the distance between peaks in m/z axis
-                double mzDistance = 0;
-                if(!adduct.matches("Any m/z difference")){
-                    mzDistance = Double.valueOf(adduct.substring(adduct.indexOf(":")+3));
-                }                
-                double diffMZ = Math.abs(p1.getMZ() - p2.getMZ());
-                if(diffMZ > mzDistance + mzTolerance || diffMZ < mzDistance - mzTolerance)
-                        return false;        
-
-                
-		// Verify % of sharing points
-		if (!hasSharedPoints(p1, p2, sharingPoints))
-			return false;
-
-		// Verify proximity in term of shape form
-		Hashtable<Integer, Double> shapePoints1 = getNormalizedShapePoints(p1);
-		Hashtable<Integer, Double> shapePoints2 = getNormalizedShapePoints(p2);
-
-		int key, comparedPoints = 0;
-		double intPoint1, intPoint2, totalDiff = 0;
-
-		Iterator itr = shapePoints1.keySet().iterator();
-		while (itr.hasNext()) {
-			key = (Integer) itr.next();
-			intPoint1 = shapePoints1.get(key);
-			try {
-				intPoint2 = shapePoints2.get(key);
-				totalDiff += Math.abs(intPoint1 - intPoint2);
-			} catch (Exception e) {
-				totalDiff += intPoint1;
-			}
-			comparedPoints++;
-		}
-
-		totalDiff /= comparedPoints;
-
-		if (totalDiff > shapeTolerance) {
-			return false;
-		}
-
-		return true;
-	}
-
-	/**
-	 * Verify the percentage of scans in common between two peaks. Returns a
-	 * boolean value depending on tolerance parameter
-	 * 
-	 * @param p1
-	 * @param p2
-	 * @param sharingPoints
-	 * @return boolean
-	 */
-	private static boolean hasSharedPoints(ChromatographicPeak p1,
-			ChromatographicPeak p2, double sharingPoints) {
-
-		int numOfHits = 0;
-		double sharedPercentage = 0;
-		int[] scansNumbersPeak1 = p1.getScanNumbers();
-		int[] scansNumbersPeak2 = p2.getScanNumbers();
-		int length1 = scansNumbersPeak1.length;
-		int length2 = scansNumbersPeak2.length;
-
-		// Count the number of scans in comon
-		for (int scanP1 : scansNumbersPeak1) {
-			for (int scanP2 : scansNumbersPeak2) {
-				if (scanP1 == scanP2) {
-					numOfHits++;
-					break;
-				}
-			}
-		}
-
-		// Always use the peak with less number of scans to set the percentage
-		// of shared points
-		if (length1 > length2) {
-			sharedPercentage = numOfHits / (double) length2;
-		} else {
-			sharedPercentage = numOfHits / (double) length1;
-		}
-
-		if (sharedPercentage >= sharingPoints) {
-			return true;
-		}
-
-		return false;
-	}
-
-	/**
-	 * This method returns a Hastable that contains the number of scan as key
-	 * and the normalized intensity as value. The intensity is normalized
-	 * according the biggest intensity in the peak.
-	 * 
-	 * @param peak
-	 * @return Hashtable<Integer, Double>
-	 */
-	private static Hashtable<Integer, Double> getNormalizedShapePoints(
-			ChromatographicPeak peak) {
-
-		double biggestIntensity = Double.MIN_VALUE;
-		int scanNumbers[] = peak.getScanNumbers();
-		Hashtable<Integer, Double> shapePoints = new Hashtable<Integer, Double>();
-
-		double[] intensities = new double[scanNumbers.length];
-
-		// Get the shape in terms of intensity
-		for (int i = 0; i < scanNumbers.length; i++) {
-			MzDataPoint dataPoint = peak.getMzPeak(scanNumbers[i]);
-			if (dataPoint == null)
-				intensities[i] = 0;
-			else
-				intensities[i] = dataPoint.getIntensity();
-
-			if (intensities[i] > biggestIntensity) {
-				biggestIntensity = intensities[i];
-			}
-		}
-
-		// Normalize all intensities according to biggest intensity point
-		for (int i = 0; i < scanNumbers.length; i++) {
-			intensities[i] /= biggestIntensity;
-			shapePoints.put(scanNumbers[i], intensities[i]);
-		}
-
-		return shapePoints;
-
-	}
-
+    }
 }
