@@ -16,7 +16,6 @@
  * MZmine; if not, write to the Free Software Foundation, Inc., 51 Franklin St,
  * Fifth Floor, Boston, MA 02110-1301 USA
  */
-
 package net.sf.mzmine.modules.identification.relatedpeaks;
 
 import java.awt.event.ActionEvent;
@@ -48,11 +47,8 @@ public class RelatedPeaksSearch implements BatchStep, ActionListener,
         TaskListener {
 
     public static final String MODULE_NAME = "Related peaks search";
-
     private Logger logger = Logger.getLogger(this.getClass().getName());
-
     private Desktop desktop;
-
     private RelatedPeaksSearchParameters parameters;
 
     /**
@@ -115,13 +111,13 @@ public class RelatedPeaksSearch implements BatchStep, ActionListener,
             return;
         }
 
-        RelatedPeaksSearchDialog dialog = new  RelatedPeaksSearchDialog(parameters);
+        RelatedPeaksSearchDialog dialog = new RelatedPeaksSearchDialog(parameters);
         dialog.setVisible(true);
 
         if (dialog.getExitCode() != ExitCode.OK) {
             return;
         }
-        
+
         runModule(null, peaklists, parameters.clone(), null);
 
     }
@@ -177,13 +173,11 @@ public class RelatedPeaksSearch implements BatchStep, ActionListener,
 
         if (task.getStatus() == Task.TaskStatus.ERROR) {
 
-            String msg = "Error while searching ofr related peaks: "
-                    + task.getErrorMessage();
+            String msg = "Error while searching ofr related peaks: " + task.getErrorMessage();
             logger.severe(msg);
             desktop.displayErrorMessage(msg);
 
         }
 
     }
-
 }

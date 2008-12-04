@@ -77,7 +77,7 @@ class RelatedPeaksSearchDialog extends ParameterSetupDialog {
             minimumHorizSize = Math.max(minimumHorizSize,
                     ecb.getPreferredWidth());
             peakCheckBoxesPanel.add(ecb, BorderLayout.WEST);
-            if (adducts.getName().matches("Custom:")) {
+            if (adducts.getName().matches("Custom")) {
                 peakCheckBoxesPanel.add(customAdduct, BorderLayout.EAST);
             } else {
                 peakCheckBoxesPanel.add(new JLabel(String.valueOf(adducts.getMassDifference())), BorderLayout.EAST);

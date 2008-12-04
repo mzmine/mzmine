@@ -16,7 +16,6 @@
  * MZmine; if not, write to the Free Software Foundation, Inc., 51 Franklin St,
  * Fifth Floor, Boston, MA 02110-1301 USA
  */
-
 package net.sf.mzmine.modules.io.peaklistexport;
 
 import java.awt.event.ActionEvent;
@@ -42,7 +41,6 @@ public class PeakListExporter implements MZmineModule, ActionListener,
         BatchStep {
 
     private PeakListExportParameters parameters;
-
     private Desktop desktop;
 
     /**
@@ -103,7 +101,7 @@ public class PeakListExporter implements MZmineModule, ActionListener,
         PeakListExportTask task = new PeakListExportTask(peakLists[0],
                 (PeakListExportParameters) parameters);
 
-        TaskGroup newGroup = new TaskGroup(new Task[] { task }, null,
+        TaskGroup newGroup = new TaskGroup(new Task[]{task}, null,
                 taskGroupListener);
 
         // start this group
@@ -123,5 +121,4 @@ public class PeakListExporter implements MZmineModule, ActionListener,
 
         return dialog.getExitCode();
     }
-
 }

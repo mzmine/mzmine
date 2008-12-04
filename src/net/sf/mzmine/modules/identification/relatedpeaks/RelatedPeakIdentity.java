@@ -23,62 +23,50 @@ import net.sf.mzmine.data.PeakListRow;
 
 public class RelatedPeakIdentity implements PeakIdentity, Comparable {
 
-    private String compoundID,  compoundName,  compoundFormula;
-    private String identificationMethod;
     private PeakListRow originalPeakListRow;
     private PeakListRow relatedPeakListRow;
     private CommonAdducts adduct;
+    private String group;
 
-    /**
-     * @param compoundID
-     * @param compoundName  
-     * @param compoundFormula    
-     * @param identificationMethod 
+    /** 
+     * @param originalPeakListRow
+     * @param relatedPeakListRow
+     * @param adduct
      */
-    public RelatedPeakIdentity(String compoundID, String compoundName,
-            String compoundFormula, String identificationMethod,
-            PeakListRow originalPeakListRow, PeakListRow relatedPeakListRow,
-            CommonAdducts adduct) {
-        this.compoundID = compoundID;
-        this.compoundName = compoundName;
-        this.compoundFormula = compoundFormula;
-        if (compoundName == null) {
-            this.compoundName = compoundFormula;
-        } else if (compoundName.equals("")) {
-            this.compoundName = compoundFormula;
-        }
-        this.identificationMethod = identificationMethod;
+    public RelatedPeakIdentity(PeakListRow originalPeakListRow, PeakListRow relatedPeakListRow,
+            CommonAdducts adduct, String group) {
         this.originalPeakListRow = originalPeakListRow;
         this.relatedPeakListRow = relatedPeakListRow;
         this.adduct = adduct;
+        this.group = group;
     }
 
     /**
      * @return Returns the identificationMethod
      */
     public String getIdentificationMethod() {
-        return this.identificationMethod;
+        return "Related peak search";
     }
 
     /**
      * @return Returns the ID
      */
     public String getID() {
-        return this.compoundID;
+        return null;
     }
 
     /**
      * @return Returns the Name
      */
     public String getName() {
-        return this.compoundName;
+        return group + " " + adduct.getName() + " adduct of peak: #" + originalPeakListRow.getID();
     }
 
     /**
      * @return Returns the compoundFormula.
      */
     public String getCompoundFormula() {
-        return this.compoundFormula;
+        return null;
     }
 
     /**
@@ -114,7 +102,7 @@ public class RelatedPeakIdentity implements PeakIdentity, Comparable {
      */
     public String toString() {
         String ret;
-        ret = compoundName + " (" + adduct.getMassDifference() + ") identification method: " + identificationMethod;
+        ret = this.getName() + " (" + adduct.getMassDifference() + ") identification method: " + this.getIdentificationMethod();
         return ret;
     }
 
@@ -128,6 +116,6 @@ public class RelatedPeakIdentity implements PeakIdentity, Comparable {
         if (valueName == null) {
             return 1;
         }
-        return valueName.compareTo(compoundName);
+        return valueName.compareTo(this.getName());
     }
 }

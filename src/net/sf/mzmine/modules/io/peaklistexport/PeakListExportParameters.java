@@ -55,7 +55,11 @@ public class PeakListExportParameters extends SimpleParameterSet {
     public static final Parameter exportRowIdentity = new SimpleParameter(
             ParameterType.BOOLEAN, "Export row compound name",
             "Toggles exporting of row compound name", true);
-
+    
+    public static final Parameter exportRowIdentities = new SimpleParameter(
+            ParameterType.BOOLEAN, "Export row all compound names",
+            "Toggles exporting of row compound names", true);
+    
     public static final Parameter exportRowFormula = new SimpleParameter(
             ParameterType.BOOLEAN, "Export row compound formula",
             "Toggles exporting of row compound formula", true);
@@ -87,8 +91,9 @@ public class PeakListExportParameters extends SimpleParameterSet {
     public PeakListExportParameters() {
         super(new Parameter[] { filename, fieldSeparator, exportRowID,
                 exportRowMZ, exportRowRT, exportRowComment, exportRowIdentity,
-                exportRowFormula, exportRowNumberOfDetected, exportPeakStatus,
-                exportPeakMZ, exportPeakRT, exportPeakHeight, exportPeakArea });
+                exportRowIdentities, exportRowFormula, exportRowNumberOfDetected,
+                exportPeakStatus, exportPeakMZ, exportPeakRT, exportPeakHeight, 
+                exportPeakArea });
     }
 
 }

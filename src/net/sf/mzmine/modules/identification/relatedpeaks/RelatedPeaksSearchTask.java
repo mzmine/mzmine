@@ -160,6 +160,8 @@ public class RelatedPeaksSearchTask implements Task {
                     continue;
                 }
 
+                //set the group of the peak looking the mass differences of
+                //each selected adduct
                 for (CommonAdducts adduct : adducts) {
                     // Verify if the compared peak is related to the current peak
                     goodCandidate = areRelatedPeaks(currentPeak, comparedPeak,
@@ -175,41 +177,40 @@ public class RelatedPeaksSearchTask implements Task {
                         // compared peak to that group
                         if (currentGroup != null) {
                             currentGroup.addRow(comparedRow);
-                            identity = new RelatedPeakIdentity(null, 
-                                    currentGroup.getGroupName(), null,
-                                    "Related peak search", currentRow, comparedRow,
-                                    adduct);                                    
+                            identity = new RelatedPeakIdentity(currentRow,
+                                    comparedRow, adduct, currentGroup.getGroupName());
                             comparedRow.addCompoundIdentity(identity, true);
+
                             alreadyRelated = true;
                             continue;
                         }
 
                         // If the compared peak belongs to any group, add the
                         // current peak to that group
+
                         for (RelatedPeaksIdentity group : relatedPeaksGroups) {
                             if (group.containsRow(comparedRow)) {
                                 group.addRow(currentRow);
-                                identity = new RelatedPeakIdentity(null, 
-                                    group.getGroupName(), null,
-                                    "Related peak search", currentRow, comparedRow,
-                                    adduct); 
+                                identity = new RelatedPeakIdentity(currentRow,
+                                        comparedRow, adduct, group.getGroupName());
                                 currentRow.addCompoundIdentity(identity, true);
                                 currentGroup = group;
+
                                 alreadyRelated = true;
                                 break;
                             }
                         }
+
 
                         // If the current peak doesn't belong to any group neither
                         // the compared, then initializes a new group
                         if (alreadyRelated) {
                             alreadyRelated = false;
                         } else {
-                            String name = adduct.getName() + " - " + numOfGroups;
-                            identity = new RelatedPeakIdentity(null, 
-                                    name, null, "Related peak search", 
+                            String name = "Group" + numOfGroups;
+                            identity = new RelatedPeakIdentity(
                                     currentRow, comparedRow,
-                                    adduct); 
+                                    adduct, name);
                             comparedRow.addCompoundIdentity(identity, true);
                             currentRow.addCompoundIdentity(identity, true);
                             currentGroup = new SimpleRelatedPeaksIdentity(name,
@@ -282,7 +283,7 @@ public class RelatedPeaksSearchTask implements Task {
             mzDistance = adduct.getMassDifference();
         }
         double diffMZ = Math.abs(p1.getMZ() - p2.getMZ());
-        if (diffMZ > mzDistance + mzTolerance || diffMZ < mzDistance - mzTolerance) {
+        if (adduct != CommonAdducts.ALLRELATED && (diffMZ > mzDistance + mzTolerance || diffMZ < mzDistance - mzTolerance)) {
             return false;
         }
 
