@@ -29,7 +29,6 @@ import java.util.zip.ZipInputStream;
 
 import net.sf.mzmine.desktop.impl.MainWindow;
 import net.sf.mzmine.main.MZmineCore;
-import net.sf.mzmine.project.MZmineProject;
 import net.sf.mzmine.project.impl.xstream.MZmineXStream;
 import net.sf.mzmine.taskcontrol.Task;
 import net.sf.mzmine.util.UnclosableInputStream;
@@ -52,7 +51,7 @@ public class ProjectOpeningTask implements Task {
     private StoredProjectDescription description;
     private File scanDataFiles[];
 
-    private MZmineProject loadedProject;
+    private MZmineProjectImpl loadedProject;
 
     private int currentStage;
 
@@ -277,8 +276,10 @@ public class ProjectOpeningTask implements Task {
     private void loadMZmineProject() throws IOException, ClassNotFoundException {
         zipStream.getNextEntry();
         ObjectInputStream objectStream = xstream.createObjectInputStream(unclosableZipStream);
-        loadedProject = (MZmineProject) objectStream.readObject();
+        loadedProject = (MZmineProjectImpl) objectStream.readObject();
         objectStream.close();
+        // we need to update the project's location
+        loadedProject.setProjectFile(openFile);
     }
 
 }

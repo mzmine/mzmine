@@ -55,11 +55,6 @@ public class MZmineProjectImpl implements MZmineProject {
         
 	}
 
-
-	public File getLocation() {
-		return this.projectFile;
-	}
-
 	public void addParameter(Parameter parameter) {
 		if (projectParametersAndValues.containsKey(parameter))
 			return;
