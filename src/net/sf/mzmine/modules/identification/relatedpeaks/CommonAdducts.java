@@ -25,7 +25,7 @@ public enum CommonAdducts {
     MNH4("[M+NH4-H]", 17.027),
     MK("[M+K-H]", 37.9559),
     DEUTERIUM("[(Deuterium)]glycerol", 5.0),
-    CUSTOM("Custom", 0.0);
+    CUSTOM("Custom:", 0.0);
     private final String name;
     private final double massDifference;
 

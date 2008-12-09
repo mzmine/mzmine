@@ -46,7 +46,7 @@ class RelatedPeaksSearchDialog extends ParameterSetupDialog {
     private RelatedPeaksSearchParameters parameters;
     private Vector<ExtendedCheckBox<String>> adductsCheckBoxes;
     private Vector<CommonAdducts> selectedAdducts;
-    private JTextField customAdduct;
+    private JTextField customAdduct,  customAdductName;
 
     public RelatedPeaksSearchDialog(RelatedPeaksSearchParameters parameters) {
 
@@ -63,7 +63,8 @@ class RelatedPeaksSearchDialog extends ParameterSetupDialog {
         adductsCheckBoxes = new Vector<ExtendedCheckBox<String>>();
         int minimumHorizSize = 0;
 
-        customAdduct = new JTextField("0.0");
+        customAdduct = new JTextField(String.valueOf(parameters.getCustomMassDifference()));
+        customAdductName = new JTextField(parameters.getCustomName());
         List<CommonAdducts> selectedRows;
         if (parameters.getSelectedAdducts() != null) {
             selectedRows = Arrays.asList(parameters.getSelectedAdducts());
@@ -71,15 +72,26 @@ class RelatedPeaksSearchDialog extends ParameterSetupDialog {
             selectedRows = new ArrayList<CommonAdducts>(0);
         }
         for (CommonAdducts adducts : CommonAdducts.values()) {
-            ExtendedCheckBox<String> ecb = new ExtendedCheckBox<String>(
-                    adducts.getName(), selectedRows.contains(adducts));
-            adductsCheckBoxes.add(ecb);
-            minimumHorizSize = Math.max(minimumHorizSize,
-                    ecb.getPreferredWidth());
-            peakCheckBoxesPanel.add(ecb, BorderLayout.WEST);
-            if (adducts.getName().matches("Custom")) {
-                peakCheckBoxesPanel.add(customAdduct, BorderLayout.EAST);
+            if (adducts == CommonAdducts.CUSTOM) {
+                JPanel CustomAdductPanel = new JPanel();
+                CustomAdductPanel.setBackground(Color.white);
+                CustomAdductPanel.setLayout(new BoxLayout(CustomAdductPanel, BoxLayout.X_AXIS));
+                ExtendedCheckBox<String> ecb = new ExtendedCheckBox<String>(
+                        "Custom:", selectedRows.contains(adducts));
+                adductsCheckBoxes.add(ecb);
+                minimumHorizSize = Math.max(minimumHorizSize,
+                        ecb.getPreferredWidth());
+                CustomAdductPanel.add(ecb);
+                CustomAdductPanel.add(customAdductName);
+                peakCheckBoxesPanel.add(CustomAdductPanel);
+                peakCheckBoxesPanel.add(customAdduct);
             } else {
+                ExtendedCheckBox<String> ecb = new ExtendedCheckBox<String>(
+                        adducts.getName(), selectedRows.contains(adducts));
+                adductsCheckBoxes.add(ecb);
+                minimumHorizSize = Math.max(minimumHorizSize,
+                        ecb.getPreferredWidth());
+                peakCheckBoxesPanel.add(ecb);
                 peakCheckBoxesPanel.add(new JLabel(String.valueOf(adducts.getMassDifference())), BorderLayout.EAST);
             }
         }
@@ -130,6 +142,7 @@ class RelatedPeaksSearchDialog extends ParameterSetupDialog {
 
             parameters.setSelectedAdducts(selectedAdducts.toArray(new CommonAdducts[0]));
             parameters.setCustomMassDifference(Double.valueOf(customAdduct.getText()));
+            parameters.setCustomName(customAdductName.getText());
         }
 
         super.actionPerformed(ae);

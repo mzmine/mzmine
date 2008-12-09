@@ -55,6 +55,7 @@ public class RelatedPeaksSearchParameters extends SimpleParameterSet {
     }
     private CommonAdducts[] selectedAdducts;
     private double customMassDifference;
+    private String customName;
 
     public RelatedPeaksSearchParameters clone() {
 
@@ -63,6 +64,7 @@ public class RelatedPeaksSearchParameters extends SimpleParameterSet {
         if (selectedAdducts != null) {
             clone.setSelectedAdducts(selectedAdducts);
             clone.setCustomMassDifference(customMassDifference);
+            clone.setCustomName(customName);
         }
 
         return clone;
@@ -83,5 +85,13 @@ public class RelatedPeaksSearchParameters extends SimpleParameterSet {
 
     public double getCustomMassDifference() {
         return customMassDifference;
+    }
+
+    public void setCustomName(String customName) {
+        this.customName = customName;
+    }
+
+    public String getCustomName() {
+        return customName;
     }
 }

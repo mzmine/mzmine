@@ -41,6 +41,7 @@ public class RelatedPeaksSearchTask implements Task {
     private PeakList peakList;
     private int numOfGroups;
     private double shapeTolerance,  rtTolerance,  customMassDifference,  mzTolerance,  sharingPoints;
+    private String customName;
     private CommonAdducts[] adducts;
 
     /**
@@ -59,6 +60,7 @@ public class RelatedPeaksSearchTask implements Task {
         sharingPoints = (Double) parameters.getParameterValue(RelatedPeaksSearchParameters.sharingPoints);
         adducts = parameters.getSelectedAdducts();
         customMassDifference = parameters.getCustomMassDifference();
+        customName = parameters.getCustomName();
     }
 
     /**
@@ -178,7 +180,7 @@ public class RelatedPeaksSearchTask implements Task {
                         if (currentGroup != null) {
                             currentGroup.addRow(comparedRow);
                             identity = new RelatedPeakIdentity(currentRow,
-                                    comparedRow, adduct, currentGroup.getGroupName());
+                                    comparedRow, adduct, currentGroup.getGroupName(), customName);
                             comparedRow.addCompoundIdentity(identity, true);
 
                             alreadyRelated = true;
@@ -192,7 +194,7 @@ public class RelatedPeaksSearchTask implements Task {
                             if (group.containsRow(comparedRow)) {
                                 group.addRow(currentRow);
                                 identity = new RelatedPeakIdentity(currentRow,
-                                        comparedRow, adduct, group.getGroupName());
+                                        comparedRow, adduct, group.getGroupName(), customName);
                                 currentRow.addCompoundIdentity(identity, true);
                                 currentGroup = group;
 
@@ -210,7 +212,7 @@ public class RelatedPeaksSearchTask implements Task {
                             String name = "Group" + numOfGroups;
                             identity = new RelatedPeakIdentity(
                                     currentRow, comparedRow,
-                                    adduct, name);
+                                    adduct, name, customName);
                             comparedRow.addCompoundIdentity(identity, true);
                             currentRow.addCompoundIdentity(identity, true);
                             currentGroup = new SimpleRelatedPeaksIdentity(name,
