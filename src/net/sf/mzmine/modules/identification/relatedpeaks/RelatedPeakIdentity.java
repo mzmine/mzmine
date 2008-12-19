@@ -25,7 +25,7 @@ public class RelatedPeakIdentity implements PeakIdentity, Comparable {
 
     private PeakListRow originalPeakListRow;
     private PeakListRow relatedPeakListRow;
-    private CommonAdducts adduct;
+    private SimpleAdduct adduct;
     private String group,  customName;
 
     /** 
@@ -34,12 +34,12 @@ public class RelatedPeakIdentity implements PeakIdentity, Comparable {
      * @param adduct
      */
     public RelatedPeakIdentity(PeakListRow originalPeakListRow, PeakListRow relatedPeakListRow,
-            CommonAdducts adduct, String group, String customName) {
+    		SimpleAdduct adduct, String group) {//, String customName) {
         this.originalPeakListRow = originalPeakListRow;
         this.relatedPeakListRow = relatedPeakListRow;
         this.adduct = adduct;
         this.group = group;
-        this.customName = customName;
+        //this.customName = customName;
     }
 
     /**
@@ -61,11 +61,11 @@ public class RelatedPeakIdentity implements PeakIdentity, Comparable {
      */
     public String getName() {
         String name = "";
-        if (adduct == CommonAdducts.CUSTOM) {
-            name = customName;
-        } else {
+        //if (adduct == CommonAdducts.CUSTOM_ITEM) {
+          //  name = customName;
+        //} else {
             name = adduct.getName();
-        }
+        //}
         return group + " " + name + " adduct of peak: #" + originalPeakListRow.getID();
     }
 

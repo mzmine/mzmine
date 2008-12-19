@@ -63,6 +63,12 @@ public interface Parameter {
      * @return Array of possible values of this parameter or null
      */
     public Object[] getPossibleValues();
+    
+    /**
+     * 
+     * @return Array of selected values of this parameter or null
+     */
+    public Object[] getMultipleSelectedValues();
 
     /**
      * 
@@ -82,4 +88,5 @@ public interface Parameter {
      */
     public NumberFormat getNumberFormat();
     
+
 }

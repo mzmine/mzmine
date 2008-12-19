@@ -19,6 +19,8 @@
 
 package net.sf.mzmine.modules.peakpicking.threestep.peakconstruction.peakfillingmodels.impl;
 
+import java.util.logging.Logger;
+
 import net.sf.mzmine.data.ChromatographicPeak;
 import net.sf.mzmine.data.RawDataFile;
 import net.sf.mzmine.data.Scan;
@@ -32,6 +34,8 @@ import net.sf.mzmine.util.Range;
 public class EMGPeakFillingModel implements PeakFillingModel {
 
     private double xRight = -1, xLeft = -1;
+    
+    private Logger logger = Logger.getLogger(this.getClass().getName());
 
     /**
      * This method return a peak with a the most closest EMG shape to the
@@ -127,6 +131,9 @@ public class EMGPeakFillingModel implements PeakFillingModel {
             newMzPeak = getDetectedMzPeak(listMzPeaks, scan);
 
             if (newMzPeak != null) {
+            	
+            	//logger.finest(t + "        " + newMzPeak.getMzPeak().getIntensity());
+            	
                 ((SimpleMzPeak) newMzPeak.getMzPeak()).setIntensity(shapeHeight);
             } else {
                 newMzPeak = new ConnectedMzPeak(scan, new SimpleMzPeak(
@@ -167,7 +174,7 @@ public class EMGPeakFillingModel implements PeakFillingModel {
         double rightY1,rightX1,rightY2,rightX2,mRight;
         double localXLeft = -1, localXRight = -1;
         double lowestLeft = intensity/5, lowestRight = intensity/5;
-        ConnectedMzPeak[] rangeDataPoints = listMzPeaks; // .clone();
+        ConnectedMzPeak[] rangeDataPoints = listMzPeaks.clone();
         
         double FWHM ;
 
@@ -176,6 +183,8 @@ public class EMGPeakFillingModel implements PeakFillingModel {
             intensity = rangeDataPoints[i].getMzPeak().getIntensity();
             intensityPlus = rangeDataPoints[i + 1].getMzPeak().getIntensity();
             retentionTime = rangeDataPoints[i].getScan().getRetentionTime();
+            
+            //logger.finest(retentionTime + " " + intensity);
 
             if (intensity > height)
                 continue;

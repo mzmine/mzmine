@@ -25,6 +25,7 @@ import java.util.logging.Logger;
 
 import net.sf.mzmine.data.ChromatographicPeak;
 import net.sf.mzmine.data.RawDataFile;
+import net.sf.mzmine.data.impl.SimpleDataPoint;
 import net.sf.mzmine.data.impl.SimpleMzPeak;
 import net.sf.mzmine.modules.peakpicking.threestep.peakconstruction.ConnectedPeak;
 import net.sf.mzmine.modules.peakpicking.threestep.peakconstruction.PeakBuilder;
@@ -213,6 +214,7 @@ public class SavitzkyGolayPeakDetector implements PeakBuilder {
 				indexMaxPoint = i;
 			}
 			
+			//Changing sign and crossing zero
 			if (((derivativeOfIntensities[i - 1] < 0.0f) && (derivativeOfIntensities[i] > 0.0f))
 					|| ((derivativeOfIntensities[i - 1] > 0.0f) && (derivativeOfIntensities[i] < 0.0f))) {
 
@@ -258,7 +260,7 @@ public class SavitzkyGolayPeakDetector implements PeakBuilder {
 				if (mzValue != null) {
 					newMzPeaks.add(mzValue);
 					
-					 /* ConnectedMzPeak temp = new ConnectedMzPeak(mzValue
+					  /*ConnectedMzPeak temp = new ConnectedMzPeak(mzValue
 					  .getScan(), new SimpleMzPeak(new SimpleDataPoint(mzValue
 					  .getMzPeak().getMZ(), derivativeOfIntensities[i]*100)));
 					  newMzPeaks.add(temp);*/

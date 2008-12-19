@@ -242,4 +242,8 @@ public class PeakListTableParameters implements StorableParameterSet {
 		return null;
 	}
 
+	public Object[] getCustomObjectArray() {
+		return null;
+	}
+
 }

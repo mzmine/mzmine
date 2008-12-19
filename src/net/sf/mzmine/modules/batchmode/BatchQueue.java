@@ -114,4 +114,8 @@ public class BatchQueue extends Vector<BatchStepWrapper> implements
 		return null;
 	}
 
+	public Object[] getCustomObjectArray() {
+		return null;
+	}
+
 }

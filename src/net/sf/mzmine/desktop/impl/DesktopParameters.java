@@ -311,4 +311,8 @@ public class DesktopParameters implements StorableParameterSet,
 		return null;
 	}
 
+	public Object[] getCustomObjectArray() {
+		return null;
+	}
+
 }

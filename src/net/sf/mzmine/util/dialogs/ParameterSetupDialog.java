@@ -20,15 +20,20 @@
 package net.sf.mzmine.util.dialogs;
 
 import java.awt.BorderLayout;
+import java.awt.Color;
+import java.awt.Component;
+import java.awt.Dimension;
 import java.awt.FlowLayout;
-import java.awt.GridLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.text.NumberFormat;
 import java.util.Hashtable;
 import java.util.Iterator;
+import java.util.Vector;
+import java.util.logging.Logger;
 
 import javax.swing.BorderFactory;
+import javax.swing.BoxLayout;
 import javax.swing.JButton;
 import javax.swing.JCheckBox;
 import javax.swing.JComboBox;
@@ -37,14 +42,19 @@ import javax.swing.JDialog;
 import javax.swing.JFormattedTextField;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
+import javax.swing.JScrollPane;
 import javax.swing.JTextField;
+import javax.swing.ScrollPaneConstants;
 
 import net.sf.mzmine.data.Parameter;
+import net.sf.mzmine.data.ParameterType;
+import net.sf.mzmine.data.impl.SimpleParameter;
 import net.sf.mzmine.data.impl.SimpleParameterSet;
 import net.sf.mzmine.desktop.Desktop;
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.util.GUIUtils;
 import net.sf.mzmine.util.Range;
+import net.sf.mzmine.util.components.ExtendedCheckBox;
 import net.sf.mzmine.util.components.HelpButton;
 
 /**
@@ -56,6 +66,8 @@ import net.sf.mzmine.util.components.HelpButton;
  * 
  */
 public class ParameterSetupDialog extends JDialog implements ActionListener {
+
+	private Logger logger = Logger.getLogger(this.getClass().getName());
 
 	public static final int TEXTFIELD_COLUMNS = 10;
 
@@ -78,6 +90,8 @@ public class ParameterSetupDialog extends JDialog implements ActionListener {
 
 	private SimpleParameterSet parameters;
 	private Hashtable<Parameter, Object> autoValues;
+	private Vector<ExtendedCheckBox> customCheckBoxes;
+	private JTextField customItemTextField;
 
 	// Desktop
 	private Desktop desktop = MZmineCore.getDesktop();
@@ -126,9 +140,12 @@ public class ParameterSetupDialog extends JDialog implements ActionListener {
 		parametersAndComponents = new Hashtable<Parameter, JComponent>();
 
 		// panels for labels, text fields and units
-		pnlLabels = new JPanel(new GridLayout(0, 1));
-		pnlFields = new JPanel(new GridLayout(0, 1));
-		pnlUnits = new JPanel(new GridLayout(0, 1));
+		pnlLabels = new JPanel();// new GridLayout(0, 1));
+		pnlLabels.setLayout(new BoxLayout(pnlLabels, BoxLayout.PAGE_AXIS));
+		pnlFields = new JPanel();// new GridLayout(0, 1));
+		pnlFields.setLayout(new BoxLayout(pnlFields, BoxLayout.PAGE_AXIS));
+		pnlUnits = new JPanel();// new GridLayout(0, 1));
+		pnlUnits.setLayout(new BoxLayout(pnlUnits, BoxLayout.PAGE_AXIS));
 
 		pnlFields.setBorder(BorderFactory.createEmptyBorder(0, 5, 5, 5));
 		pnlLabels.setBorder(BorderFactory.createEmptyBorder(0, 5, 5, 5));
@@ -151,13 +168,21 @@ public class ParameterSetupDialog extends JDialog implements ActionListener {
 			pnlUnits.add(unitLabel);
 
 			Object[] possibleValues = p.getPossibleValues();
-			if (possibleValues != null) {
+			if ((possibleValues != null)
+					&& (p.getType() != ParameterType.MULTIPLE_SELECTION)) {
 				JComboBox combo = new JComboBox();
 				for (Object value : possibleValues) {
 					combo.addItem(value);
 					if (value == parameters.getParameterValue(p))
 						combo.setSelectedItem(value);
 				}
+
+				int height = (int) combo.getPreferredSize().getHeight();
+				lblLabel.setMaximumSize(new Dimension((int) lblLabel
+						.getPreferredSize().getWidth(), height));
+				unitLabel.setMaximumSize(new Dimension((int) unitLabel
+						.getPreferredSize().getWidth(), height));
+
 				combo.setToolTipText(p.getDescription());
 				parametersAndComponents.put(p, combo);
 				lblLabel.setLabelFor(combo);
@@ -172,6 +197,7 @@ public class ParameterSetupDialog extends JDialog implements ActionListener {
 				format = NumberFormat.getNumberInstance();
 
 			switch (p.getType()) {
+
 			case STRING:
 				JTextField txtField = new JTextField();
 				txtField.setColumns(TEXTFIELD_COLUMNS);
@@ -205,7 +231,51 @@ public class ParameterSetupDialog extends JDialog implements ActionListener {
 				comp = checkBox;
 				break;
 
+			case MULTIPLE_SELECTION:
+
+				JPanel peakCheckBoxesPanel = new JPanel();
+				peakCheckBoxesPanel.setBackground(Color.white);
+				peakCheckBoxesPanel.setLayout(new BoxLayout(
+						peakCheckBoxesPanel, BoxLayout.Y_AXIS));
+				customCheckBoxes = new Vector<ExtendedCheckBox>();
+				customItemTextField = new JTextField(5);
+
+				int vertSize = 0;
+				for (Object genericObject : p.getPossibleValues()) {
+					ExtendedCheckBox ecb = new ExtendedCheckBox(genericObject,
+							false);
+					customCheckBoxes.add(ecb);
+					ecb.setAlignmentX(Component.LEFT_ALIGNMENT);
+					peakCheckBoxesPanel.add(ecb);
+					vertSize += ecb.getPreferredSize().getHeight();
+				}
+
+				JScrollPane peakPanelScroll = new JScrollPane(
+						peakCheckBoxesPanel,
+						ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED,
+						ScrollPaneConstants.HORIZONTAL_SCROLLBAR_AS_NEEDED);
+				peakPanelScroll.setPreferredSize(new Dimension(1, vertSize));
+				comp = peakPanelScroll;
+				break;
+
+			case CUSTOM:
+
+				JTextField nameTxtField = new JTextField(TEXTFIELD_COLUMNS);
+				JTextField valueTxtField = new JTextField(TEXTFIELD_COLUMNS);
+				JPanel customPanel = new JPanel(new FlowLayout());
+				customPanel.add(nameTxtField);
+				GUIUtils.addLabel(customPanel, " @ ");
+				customPanel.add(valueTxtField);
+				comp = customPanel;
+				break;
+
 			}
+
+			int height = (int) comp.getPreferredSize().getHeight();
+			lblLabel.setMaximumSize(new Dimension((int) lblLabel
+					.getPreferredSize().getWidth(), height));
+			unitLabel.setMaximumSize(new Dimension((int) unitLabel
+					.getPreferredSize().getWidth(), height));
 
 			comp.setToolTipText(p.getDescription());
 			parametersAndComponents.put(p, comp);
@@ -270,6 +340,11 @@ public class ParameterSetupDialog extends JDialog implements ActionListener {
 
 		if (src == btnOK) {
 			parameters = buildParameterSet(parameters);
+			
+			if (parameters == null){
+				exitCode = ExitCode.CANCEL;
+				return;
+			}
 			exitCode = ExitCode.OK;
 			dispose();
 		}
@@ -298,7 +373,7 @@ public class ParameterSetupDialog extends JDialog implements ActionListener {
 	}
 
 	void setValue(Parameter p, Object value) {
-		
+
 		JComponent component = parametersAndComponents.get(p);
 		if ((component == null) || (value == null))
 			return;
@@ -332,10 +407,11 @@ public class ParameterSetupDialog extends JDialog implements ActionListener {
 			break;
 		case BOOLEAN:
 			JCheckBox checkBox = (JCheckBox) component;
-			
+
 			Boolean selected = (Boolean) value;
 			checkBox.setSelected(selected);
 			break;
+
 		}
 	}
 
@@ -344,7 +420,8 @@ public class ParameterSetupDialog extends JDialog implements ActionListener {
 	 * the ParameterSet.
 	 * 
 	 */
-	public SimpleParameterSet buildParameterSet(SimpleParameterSet underConstuctionParameter) {
+	public SimpleParameterSet buildParameterSet(
+			SimpleParameterSet underConstuctionParameter) {
 		Iterator<Parameter> paramIter = parametersAndComponents.keySet()
 				.iterator();
 		while (paramIter.hasNext()) {
@@ -353,11 +430,12 @@ public class ParameterSetupDialog extends JDialog implements ActionListener {
 			try {
 
 				Object[] possibleValues = p.getPossibleValues();
-				if (possibleValues != null) {
+				if ((possibleValues != null) 
+					&& (p.getType() != ParameterType.MULTIPLE_SELECTION)){
 					JComboBox combo = (JComboBox) parametersAndComponents
 							.get(p);
-					underConstuctionParameter.setParameterValue(p, possibleValues[combo
-							.getSelectedIndex()]);
+					underConstuctionParameter.setParameterValue(p,
+							possibleValues[combo.getSelectedIndex()]);
 					continue;
 				}
 
@@ -374,7 +452,8 @@ public class ParameterSetupDialog extends JDialog implements ActionListener {
 							.get(p);
 					Double newDoubleValue = ((Number) doubleField.getValue())
 							.doubleValue();
-					underConstuctionParameter.setParameterValue(p, newDoubleValue);
+					underConstuctionParameter.setParameterValue(p,
+							newDoubleValue);
 					break;
 				case RANGE:
 					JPanel panel = (JPanel) parametersAndComponents.get(p);
@@ -392,19 +471,65 @@ public class ParameterSetupDialog extends JDialog implements ActionListener {
 				case STRING:
 					JTextField stringField = (JTextField) parametersAndComponents
 							.get(p);
-					underConstuctionParameter.setParameterValue(p, stringField.getText());
+					underConstuctionParameter.setParameterValue(p, stringField
+							.getText());
 					break;
 				case BOOLEAN:
 					JCheckBox checkBox = (JCheckBox) parametersAndComponents
 							.get(p);
 					Boolean newBoolValue = checkBox.isSelected();
-					underConstuctionParameter.setParameterValue(p, newBoolValue);
+					underConstuctionParameter
+							.setParameterValue(p, newBoolValue);
 					break;
+
+				case MULTIPLE_SELECTION:
+					Vector<Object> selectedGenericObject = new Vector<Object>();
+
+					int numSelections = 0;
+					for (ExtendedCheckBox box : customCheckBoxes) {
+						if (box.isSelected()) {
+							Object genericObject = box.getObject();
+							selectedGenericObject.add(genericObject);
+							numSelections += 1;
+						}
+					}
+
+					logger.finest("Multiple seleccion de " + numSelections);
+					
+					((SimpleParameter) p)
+							.setMultipleSelectedValues(selectedGenericObject
+									.toArray(new Object[0]));
+					underConstuctionParameter.setParameterValue(p, numSelections);
+					break;
+
+				case CUSTOM:
+					JPanel customPanel = (JPanel) parametersAndComponents
+							.get(p);
+					JTextField nameField = (JTextField) customPanel
+							.getComponent(0);
+					JTextField valueField = (JTextField) customPanel
+							.getComponent(2);
+					
+					String nameTextValue = nameField.getText();
+					((SimpleParameter) p).setCustomName(nameTextValue);
+					
+					String valueText = valueField.getText();
+					Object value = new Double(0.0);
+					if ((valueText != null) && (valueText != "")){
+						logger.finest("Valor de custom value " + valueText);
+						value = (Number) Double.parseDouble(valueText);
+					}
+					
+					underConstuctionParameter.setParameterValue(p,
+							value);
+					break;
+
 				}
 
 			} catch (Exception invalidValueException) {
 				desktop.displayMessage(invalidValueException.getMessage());
-				return underConstuctionParameter;
+				invalidValueException.printStackTrace();
+				return null;
 			}
 
 		}

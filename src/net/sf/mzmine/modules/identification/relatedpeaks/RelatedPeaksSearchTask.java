@@ -25,11 +25,13 @@ import java.util.Iterator;
 import java.util.Vector;
 
 import net.sf.mzmine.data.ChromatographicPeak;
-import net.sf.mzmine.data.PeakIdentity;
 import net.sf.mzmine.data.MzDataPoint;
+import net.sf.mzmine.data.Parameter;
+import net.sf.mzmine.data.PeakIdentity;
 import net.sf.mzmine.data.PeakList;
 import net.sf.mzmine.data.PeakListRow;
 import net.sf.mzmine.data.RelatedPeaksIdentity;
+import net.sf.mzmine.data.impl.SimpleParameter;
 import net.sf.mzmine.data.impl.SimpleRelatedPeaksIdentity;
 import net.sf.mzmine.taskcontrol.Task;
 
@@ -40,9 +42,8 @@ public class RelatedPeaksSearchTask implements Task {
     private int finishedRows = 0,  numRows;
     private PeakList peakList;
     private int numOfGroups;
-    private double shapeTolerance,  rtTolerance,  customMassDifference,  mzTolerance,  sharingPoints;
-    private String customName;
-    private CommonAdducts[] adducts;
+    private double shapeTolerance,  rtTolerance,  mzTolerance,  sharingPoints;
+    private SimpleAdduct[] selectedAdducts;
 
     /**
      * @param parameters
@@ -58,9 +59,34 @@ public class RelatedPeaksSearchTask implements Task {
         rtTolerance = (Double) parameters.getParameterValue(RelatedPeaksSearchParameters.rtTolerance);
         mzTolerance = (Double) parameters.getParameterValue(RelatedPeaksSearchParameters.mzTolerance);
         sharingPoints = (Double) parameters.getParameterValue(RelatedPeaksSearchParameters.sharingPoints);
-        adducts = parameters.getSelectedAdducts();
-        customMassDifference = parameters.getCustomMassDifference();
-        customName = parameters.getCustomName();
+        
+        Parameter p = parameters.getParameter("Adducts");
+        Object[] objectArray = ((SimpleParameter)p).getMultipleSelectedValues();
+        int length = objectArray.length;
+        
+        boolean customAdduct = false;
+        double customMassDifference = (Double) parameters.getParameterValue(RelatedPeaksSearchParameters.customAdduct);
+        if (customMassDifference > 0){
+        	customAdduct = true;
+        	length += 1;
+        }
+        
+        selectedAdducts = new SimpleAdduct[length];
+        String name;
+        double mass = 0;
+        for (int i=0; i<length; i++){
+        	if ((i == length-1) && (customAdduct)){
+        		p = parameters.getParameter("Custom adduct (name @ value)");
+        		name = ((SimpleParameter)p).getCustomName();
+        		mass = customMassDifference;
+        	}
+        	else{
+        		name = ((CommonAdducts) objectArray[i]).getName();
+        		mass = ((CommonAdducts) objectArray[i]).getMassDifference();
+        	}
+    		selectedAdducts[i] = new SimpleAdduct(name, mass);
+        }
+        
     }
 
     /**
@@ -164,11 +190,10 @@ public class RelatedPeaksSearchTask implements Task {
 
                 //set the group of the peak looking the mass differences of
                 //each selected adduct
-                for (CommonAdducts adduct : adducts) {
+                for (SimpleAdduct adduct : selectedAdducts) {
                     // Verify if the compared peak is related to the current peak
                     goodCandidate = areRelatedPeaks(currentPeak, comparedPeak,
-                            shapeTolerance, adduct, customMassDifference,
-                            rtTolerance, mzTolerance, sharingPoints);
+                            shapeTolerance, adduct, rtTolerance, mzTolerance, sharingPoints);
 
                     if (goodCandidate) {
 
@@ -180,7 +205,7 @@ public class RelatedPeaksSearchTask implements Task {
                         if (currentGroup != null) {
                             currentGroup.addRow(comparedRow);
                             identity = new RelatedPeakIdentity(currentRow,
-                                    comparedRow, adduct, currentGroup.getGroupName(), customName);
+                                    comparedRow, adduct, currentGroup.getGroupName());//, customName);
                             comparedRow.addCompoundIdentity(identity, true);
 
                             alreadyRelated = true;
@@ -194,7 +219,7 @@ public class RelatedPeaksSearchTask implements Task {
                             if (group.containsRow(comparedRow)) {
                                 group.addRow(currentRow);
                                 identity = new RelatedPeakIdentity(currentRow,
-                                        comparedRow, adduct, group.getGroupName(), customName);
+                                        comparedRow, adduct, group.getGroupName());//, customName);
                                 currentRow.addCompoundIdentity(identity, true);
                                 currentGroup = group;
 
@@ -209,10 +234,10 @@ public class RelatedPeaksSearchTask implements Task {
                         if (alreadyRelated) {
                             alreadyRelated = false;
                         } else {
-                            String name = "Group" + numOfGroups;
+                            String name = "Group " + numOfGroups;
                             identity = new RelatedPeakIdentity(
                                     currentRow, comparedRow,
-                                    adduct, name, customName);
+                                    adduct, name); //, customName);
                             comparedRow.addCompoundIdentity(identity, true);
                             currentRow.addCompoundIdentity(identity, true);
                             currentGroup = new SimpleRelatedPeaksIdentity(name,
@@ -267,8 +292,8 @@ public class RelatedPeaksSearchTask implements Task {
      * @return boolean
      */
     private static boolean areRelatedPeaks(ChromatographicPeak p1,
-            ChromatographicPeak p2, double shapeTolerance, CommonAdducts adduct,
-            double customMassDifference, double rtTolerance,
+            ChromatographicPeak p2, double shapeTolerance, SimpleAdduct adduct,
+            double rtTolerance,
             double mzTolerance, double sharingPoints) {
 
         // Verify proximity in retention time axis
@@ -278,14 +303,10 @@ public class RelatedPeaksSearchTask implements Task {
         }
 
         //Verify the distance between peaks in m/z axis
-        double mzDistance;
-        if (adduct == CommonAdducts.CUSTOM) {
-            mzDistance = customMassDifference;
-        } else {
-            mzDistance = adduct.getMassDifference();
-        }
+        double mzDistance = adduct.getMassDifference();
         double diffMZ = Math.abs(p1.getMZ() - p2.getMZ());
-        if (adduct != CommonAdducts.ALLRELATED && (diffMZ > mzDistance + mzTolerance || diffMZ < mzDistance - mzTolerance)) {
+        if (!(adduct.getName().equals(CommonAdducts.ALLRELATED.getName())) 
+        		&& (diffMZ > mzDistance + mzTolerance || diffMZ < mzDistance - mzTolerance)) {
             return false;
         }
 

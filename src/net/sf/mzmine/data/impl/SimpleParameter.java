@@ -31,8 +31,8 @@ import net.sf.mzmine.util.Range;
 public class SimpleParameter implements Parameter {
 
     private ParameterType type;
-    private String name, description, units;
-    private Object defaultValue, minValue, maxValue, possibleValues[];
+    private String name, description, units, customName;
+    private Object defaultValue, minValue, maxValue, possibleValues[], multipleSelectedValues[];
     private NumberFormat defaultNumberFormat;
 
     public SimpleParameter(ParameterType type, String name, String description) {
@@ -163,6 +163,14 @@ public class SimpleParameter implements Parameter {
                         "Range parameters do not support selection from possible values");
             }
             break;
+        	
+        case MULTIPLE_SELECTION:
+            if (possibleValues == null) {
+                throw new IllegalArgumentException(
+                        "Missing possible values for multiple selection");
+            }
+            break;
+        	
         }
 
     }
@@ -232,6 +240,27 @@ public class SimpleParameter implements Parameter {
      */
     public NumberFormat getNumberFormat() {
         return defaultNumberFormat;
+    }
+
+    public void setMultipleSelectedValues(Object[] values) {
+        this.multipleSelectedValues = values;
+    }
+
+    public Object[] getMultipleSelectedValues() {
+		return multipleSelectedValues;
+	}
+    
+    public void setCustomName(String name) {
+    	if (type == ParameterType.CUSTOM){
+    		if ((name == null) || (name == ""))
+    			customName = "Custom";
+    		
+    		this.customName = name;
+    	}
+    }
+
+    public String getCustomName(){
+    	return this.customName;
     }
 
 }

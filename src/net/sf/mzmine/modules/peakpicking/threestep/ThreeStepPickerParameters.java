@@ -394,4 +394,8 @@ public class ThreeStepPickerParameters implements StorableParameterSet {
 		return threeStepsParameters.getParameters();
 	}
 
+	public Object[] getCustomObjectArray() {
+		return null;
+	}
+
 }

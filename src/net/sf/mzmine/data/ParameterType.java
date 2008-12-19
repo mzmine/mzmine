@@ -44,5 +44,15 @@ public enum ParameterType {
     /**
      * Parameter values represented by Boolean instance
      */
-    BOOLEAN
+    BOOLEAN,
+    
+    /**
+     * Parameter values represented by a list of selection
+     */
+    MULTIPLE_SELECTION,
+    
+    /**
+     * Parameter values represented by a list of selection
+     */
+    CUSTOM   
 }

@@ -182,4 +182,8 @@ public class IntensityPlotParameters implements StorableParameterSet {
 		return null;
 	}
 
+	public Object[] getCustomObjectArray() {
+		return null;
+	}
+
 }

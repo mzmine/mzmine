@@ -150,7 +150,8 @@ public class SimpleParameterSet implements StorableParameterSet {
         
         Object possibleValues[] = parameter.getPossibleValues();
         
-        if (possibleValues != null) {
+        if ((possibleValues != null) &&
+        		(parameter.getType() != ParameterType.MULTIPLE_SELECTION)){
             for (Object possibleValue : possibleValues) {
                 // We compare String version of the values, in case some values were specified as Enum constants
                 if (possibleValue.toString().equals(value.toString())) {
@@ -222,11 +223,21 @@ public class SimpleParameterSet implements StorableParameterSet {
             if (!(value instanceof String))
                 throw (new IllegalArgumentException("Value type mismatch"));
             break;
+
+        case MULTIPLE_SELECTION:
+            if ((Integer)value <= 0)
+                throw (new IllegalArgumentException("Please select at least one option from multiple selection parameter"));
+            break;
+
+        case CUSTOM:
+            break;
+
         }
 
         values.put(parameter, value);
     }
-
+    
+ 
     /**
      * @see net.sf.mzmine.data.ParameterSet#removeParameterValue(net.sf.mzmine.data.Parameter)
      */
@@ -350,5 +361,7 @@ public class SimpleParameterSet implements StorableParameterSet {
         }
         return s.toString();
     }
+
+	
 
 }

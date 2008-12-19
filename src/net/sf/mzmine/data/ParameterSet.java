@@ -35,8 +35,19 @@ public interface ParameterSet {
      */
     public String toString();
     
+    /**
+     * 
+     * @return
+     */
     public Parameter[] getParameters();
     
+    /**
+     * 
+     * @param parameter
+     * @return
+     */
     public Object getParameterValue(Parameter parameter);
+    
+     
 
 }

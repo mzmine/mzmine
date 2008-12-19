@@ -28,70 +28,44 @@ import net.sf.mzmine.main.MZmineCore;
 
 public class RelatedPeaksSearchParameters extends SimpleParameterSet {
 
-    public static final NumberFormat percentFormat = NumberFormat.getPercentInstance();
-    public static final Parameter rtTolerance = new SimpleParameter(
-            ParameterType.DOUBLE, "Time tolerance",
-            "Maximum allowed difference of time to set a relationship between peaks", null, new Double(10.0),
-            new Double(0.0), null, MZmineCore.getRTFormat());
-    public static final Parameter mzTolerance = new SimpleParameter(
-            ParameterType.DOUBLE, "m/z Precision Tolerance",
-            "Tolerance value of the m/z difference between peaks", null, new Double(0.1),
-            new Double(0.0), null, MZmineCore.getMZFormat());
-    public static final Parameter shapeTolerance = new SimpleParameter(
-            ParameterType.DOUBLE,
-            "Shape difference tolerance",
-            "Maximum allowed difference of shape form to set a relationship between peaks",
-            "m/z", new Double(0.1), new Double(0.0), new Double(1.0), percentFormat);
-    public static final Parameter sharingPoints = new SimpleParameter(
-            ParameterType.DOUBLE,
-            "Sharing points",
-            "Minimum required % of points (scans) in common to set a relationship between peaks",
-            "%", new Double(0.85), new Double(0.0), new Double(1.0), percentFormat);
+	public static final NumberFormat percentFormat = NumberFormat
+			.getPercentInstance();
+	public static final Parameter rtTolerance = new SimpleParameter(
+			ParameterType.DOUBLE,
+			"Time tolerance",
+			"Maximum allowed difference of time to set a relationship between peaks",
+			null, new Double(10.0), new Double(0.0), null, MZmineCore
+					.getRTFormat());
+	public static final Parameter mzTolerance = new SimpleParameter(
+			ParameterType.DOUBLE, "m/z tolerance",
+			"Tolerance value of the m/z difference between peaks", "m/z",
+			new Double(0.1), new Double(0.0), null, MZmineCore.getMZFormat());
+	public static final Parameter shapeTolerance = new SimpleParameter(
+			ParameterType.DOUBLE,
+			"Shape tolerance",
+			"Maximum allowed difference between peak's shapes to set a related condition",
+			"%", new Double(0.1), new Double(0.0), new Double(1.0),
+			percentFormat);
+	public static final Parameter sharingPoints = new SimpleParameter(
+			ParameterType.DOUBLE,
+			"Sharing points",
+			"Minimum percentage (number of scans in common) to set a related condition",
+			"%", new Double(0.85), new Double(0.0), new Double(1.0),
+			percentFormat);
 
-    public RelatedPeaksSearchParameters() {
-        super(new Parameter[]{rtTolerance, mzTolerance, shapeTolerance,
-            sharingPoints
-        });
-    }
-    private CommonAdducts[] selectedAdducts;
-    private double customMassDifference;
-    private String customName;
+	public static final Parameter adducts = new SimpleParameter(
+			ParameterType.MULTIPLE_SELECTION,
+			"Adducts",
+			"List of adducts, each one refers a specific distance in m/z axis between related peaks",
+			null, CommonAdducts.values());
 
-    public RelatedPeaksSearchParameters clone() {
+	public static final Parameter customAdduct = new SimpleParameter(
+			ParameterType.CUSTOM, "Custom adduct (name @ value)",
+			"Custom parameter, name and value specified by the user");
 
-        RelatedPeaksSearchParameters clone = (RelatedPeaksSearchParameters) super.clone();
+	public RelatedPeaksSearchParameters() {
+		super(new Parameter[] { rtTolerance, mzTolerance, shapeTolerance,
+				sharingPoints, adducts, customAdduct });
+	}
 
-        if (selectedAdducts != null) {
-            clone.setSelectedAdducts(selectedAdducts);
-            clone.setCustomMassDifference(customMassDifference);
-            clone.setCustomName(customName);
-        }
-
-        return clone;
-
-    }
-
-    public void setSelectedAdducts(CommonAdducts[] selectedAdducts) {
-        this.selectedAdducts = selectedAdducts;
-    }
-
-    public CommonAdducts[] getSelectedAdducts() {
-        return selectedAdducts;
-    }
-
-    public void setCustomMassDifference(double customMassDifference) {
-        this.customMassDifference = customMassDifference;
-    }
-
-    public double getCustomMassDifference() {
-        return customMassDifference;
-    }
-
-    public void setCustomName(String customName) {
-        this.customName = customName;
-    }
-
-    public String getCustomName() {
-        return customName;
-    }
 }

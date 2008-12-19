@@ -24,8 +24,8 @@ public enum CommonAdducts {
     NAH("[M+Na-H]", 21.9825),
     MNH4("[M+NH4-H]", 17.027),
     MK("[M+K-H]", 37.9559),
-    DEUTERIUM("[(Deuterium)]glycerol", 5.0),
-    CUSTOM("Custom:", 0.0);
+    DEUTERIUM("[(Deuterium)]glycerol", 5.0);
+    
     private final String name;
     private final double massDifference;
 
@@ -40,5 +40,9 @@ public enum CommonAdducts {
 
     public double getMassDifference() {
         return this.massDifference;
+    }
+    
+    public String toString(){
+    	return this.name + ", " + this.massDifference + " m/z";
     }
 }
