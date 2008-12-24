@@ -31,7 +31,7 @@ import net.sf.mzmine.util.Range;
 public class SimpleParameter implements Parameter {
 
     private ParameterType type;
-    private String name, description, units, customName;
+    private String name, description, units;
     private Object defaultValue, minValue, maxValue, possibleValues[], multipleSelectedValues[];
     private NumberFormat defaultNumberFormat;
 
@@ -250,17 +250,5 @@ public class SimpleParameter implements Parameter {
 		return multipleSelectedValues;
 	}
     
-    public void setCustomName(String name) {
-    	if (type == ParameterType.CUSTOM){
-    		if ((name == null) || (name == ""))
-    			customName = "Custom";
-    		
-    		this.customName = name;
-    	}
-    }
-
-    public String getCustomName(){
-    	return this.customName;
-    }
 
 }

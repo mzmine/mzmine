@@ -229,9 +229,6 @@ public class SimpleParameterSet implements StorableParameterSet {
                 throw (new IllegalArgumentException("Please select at least one option from multiple selection parameter"));
             break;
 
-        case CUSTOM:
-            break;
-
         }
 
         values.put(parameter, value);
@@ -318,6 +315,9 @@ public class SimpleParameterSet implements StorableParameterSet {
                     break;
                 case STRING:
                     value = valueText;
+                    break;
+                case MULTIPLE_SELECTION:
+                    value = Integer.parseInt(valueText);
                     break;
                 }
 

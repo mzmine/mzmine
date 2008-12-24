@@ -30,22 +30,21 @@ public class RelatedPeaksSearchParameters extends SimpleParameterSet {
 
 	public static final NumberFormat percentFormat = NumberFormat
 			.getPercentInstance();
+
 	public static final Parameter rtTolerance = new SimpleParameter(
 			ParameterType.DOUBLE,
 			"Time tolerance",
 			"Maximum allowed difference of time to set a relationship between peaks",
 			null, new Double(10.0), new Double(0.0), null, MZmineCore
 					.getRTFormat());
-	public static final Parameter mzTolerance = new SimpleParameter(
-			ParameterType.DOUBLE, "m/z tolerance",
-			"Tolerance value of the m/z difference between peaks", "m/z",
-			new Double(0.1), new Double(0.0), null, MZmineCore.getMZFormat());
+	
 	public static final Parameter shapeTolerance = new SimpleParameter(
 			ParameterType.DOUBLE,
 			"Shape tolerance",
 			"Maximum allowed difference between peak's shapes to set a related condition",
 			"%", new Double(0.1), new Double(0.0), new Double(1.0),
 			percentFormat);
+	
 	public static final Parameter sharingPoints = new SimpleParameter(
 			ParameterType.DOUBLE,
 			"Sharing points",
@@ -59,13 +58,23 @@ public class RelatedPeaksSearchParameters extends SimpleParameterSet {
 			"List of adducts, each one refers a specific distance in m/z axis between related peaks",
 			null, CommonAdducts.values());
 
-	public static final Parameter customAdduct = new SimpleParameter(
-			ParameterType.CUSTOM, "Custom adduct (name @ value)",
-			"Custom parameter, name and value specified by the user");
+	public static final Parameter mzAdductTolerance = new SimpleParameter(
+			ParameterType.DOUBLE, "m/z adduct tolerance",
+			"Tolerance value of the m/z difference between peaks", "m/z",
+			new Double(0.1), new Double(0.0), null, MZmineCore.getMZFormat());
+
+	public static final Parameter customAdductName = new SimpleParameter(
+			ParameterType.STRING, "Custom adduct name",
+			"Custom parameter, name specified by the user", null, "Custom", null);
+
+	public static final Parameter customAdductValue = new SimpleParameter(
+			ParameterType.DOUBLE, "Custom adduct value",
+			"Mass value (m/z difference) for custom adduct", "m/z",
+			new Double(1.007825), new Double(0.0), null, MZmineCore.getMZFormat());
 
 	public RelatedPeaksSearchParameters() {
-		super(new Parameter[] { rtTolerance, mzTolerance, shapeTolerance,
-				sharingPoints, adducts, customAdduct });
+		super(new Parameter[] { rtTolerance, shapeTolerance,
+				sharingPoints, adducts, mzAdductTolerance, customAdductName, customAdductValue });
 	}
 
 }

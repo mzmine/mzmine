@@ -5,18 +5,17 @@
   <modules> 
     <module class="net.sf.mzmine.modules.io.rawdataimport.RawDataImporter"> 
       <parameters>
-        <parameter name="Last open directory" type="STRING">/Users/plusik</parameter>
-        <parameter name="Preload level" type="STRING">Store scan data in temporary file</parameter>
-        <parameter name="Files to import" type="STRING">070308_STD_19_profile.mzXML</parameter>
+        <parameter name="Last open directory" type="STRING">E:\DATA\Culture fluid\081015 VE and G0</parameter>
+        <parameter name="Files to import" type="STRING">081015_A_EMM2-noautoclave_neg_04.mzXML</parameter>
       </parameters> 
     </module>  
     <module class="net.sf.mzmine.modules.peakpicking.threestep.ThreeStepPicker"> 
       <parameters>
         <massdetector name="Centroid">
-          <parameter name="Noise level" type="DOUBLE">10.0</parameter>
+          <parameter name="Noise level" type="DOUBLE">3000.0</parameter>
         </massdetector>
         <massdetector name="Exact mass">
-          <parameter name="Noise level" type="DOUBLE">600.0</parameter>
+          <parameter name="Noise level" type="DOUBLE">6000.0</parameter>
           <parameter name="Mass Resolution" type="INTEGER">60000</parameter>
           <parameter name="Peak Model function" type="STRING">Gaussian plus triangle</parameter>
         </massdetector>
@@ -34,7 +33,7 @@
           <parameter name="Wavelet window size (%)" type="DOUBLE">0.5</parameter>
         </massdetector>
         <chromatogrambuilder name="Score connector">
-          <parameter name="Min time span" type="DOUBLE">20.0</parameter>
+          <parameter name="Min time span" type="DOUBLE">10.0</parameter>
           <parameter name="m/z tolerance" type="DOUBLE">0.0020</parameter>
         </chromatogrambuilder>
         <chromatogrambuilder name="Highest datapoint">
@@ -48,9 +47,9 @@
           <parameter name="Baseline level" type="DOUBLE">100.0</parameter>
         </peakbuilder>
         <peakbuilder name="Chromatographic threshold">
-          <parameter name="Min peak height" type="DOUBLE">5000.0</parameter>
-          <parameter name="Min peak duration" type="DOUBLE">20.0</parameter>
-          <parameter name="Chromatographic threshold level" type="DOUBLE">0.85</parameter>
+          <parameter name="Min peak height" type="DOUBLE">8000.0</parameter>
+          <parameter name="Min peak duration" type="DOUBLE">10.0</parameter>
+          <parameter name="Chromatographic threshold level" type="DOUBLE">0.95</parameter>
         </peakbuilder>
         <peakbuilder name="Noise amplitude">
           <parameter name="Min peak height" type="DOUBLE">100.0</parameter>
@@ -82,37 +81,37 @@
         <parameter name="Mass Detector type" type="INTEGER">1</parameter>
         <parameter name="Chromatogram Builder type" type="INTEGER">0</parameter>
         <parameter name="Peak Builder type" type="INTEGER">2</parameter>
-        <parameter name="Suffix" type="STRING">peaklist</parameter>
+        <parameter name="Suffix" type="STRING">peaklist 2</parameter>
       </parameters> 
     </module>  
     <module class="net.sf.mzmine.modules.visualization.tic.TICVisualizer"> 
       <parameters>
         <parameter name="MS level" type="INTEGER">1</parameter>
         <parameter name="Plot type" type="STRING">Base peak intensity</parameter>
-        <parameter name="Retention time" type="RANGE">0.7580000162124634-2399.989990234375</parameter>
-        <parameter name="m/z range" type="RANGE">130.08642578125-130.0889434814453</parameter>
+        <parameter name="Retention time" type="RANGE">0.7670000195503235-2398.300048828125</parameter>
+        <parameter name="m/z range" type="RANGE">353.0827331542969-353.0977783203125</parameter>
       </parameters> 
     </module>  
     <module class="net.sf.mzmine.modules.visualization.spectra.SpectraVisualizer"> 
       <parameters>
         <parameter name="Scan number" type="INTEGER">502</parameter>
-        <parameter name="thickness" type="DOUBLE">0.02</parameter>
+        <parameter name="thickness" type="DOUBLE">1.0E-4</parameter>
       </parameters> 
     </module>  
     <module class="net.sf.mzmine.modules.visualization.twod.TwoDVisualizer"> 
       <parameters>
         <parameter name="MS level" type="INTEGER">1</parameter>
-        <parameter name="Retention time" type="RANGE">0.7689999938011169-1800.0</parameter>
-        <parameter name="m/z range" type="RANGE">99.99993133544922-999.9996948242188</parameter>
+        <parameter name="Retention time" type="RANGE">180.0-300.0</parameter>
+        <parameter name="m/z range" type="RANGE">121.025-121.035</parameter>
       </parameters> 
     </module>  
     <module class="net.sf.mzmine.modules.visualization.threed.ThreeDVisualizer"> 
       <parameters>
         <parameter name="MS level" type="INTEGER">1</parameter>
-        <parameter name="Retention time" type="RANGE">0.7580000162124634-1800.0</parameter>
-        <parameter name="Retention time resolution" type="INTEGER">700</parameter>
-        <parameter name="m/z range" type="RANGE">100.0014419555664-900.0118</parameter>
-        <parameter name="m/z resolution" type="INTEGER">700</parameter>
+        <parameter name="Retention time" type="RANGE">1756.9100341796875-1887.3800048828125</parameter>
+        <parameter name="Retention time resolution" type="INTEGER">100</parameter>
+        <parameter name="m/z range" type="RANGE">100.98310089111328-100.98941802978516</parameter>
+        <parameter name="m/z resolution" type="INTEGER">100</parameter>
       </parameters> 
     </module>  
     <module class="net.sf.mzmine.modules.visualization.neutralloss.NeutralLossVisualizer"> 
@@ -127,35 +126,35 @@
       <parameters>
         <column type="common" name="ROWID">
           <visible>true</visible>
-          <width>43</width>
+          <width>33</width>
         </column>
         <column type="common" name="AVERAGEMZ">
           <visible>true</visible>
-          <width>64</width>
+          <width>60</width>
         </column>
         <column type="common" name="AVERAGERT">
           <visible>true</visible>
-          <width>52</width>
+          <width>48</width>
         </column>
         <column type="common" name="IDENTITY">
           <visible>true</visible>
-          <width>201</width>
+          <width>267</width>
         </column>
         <column type="common" name="COMMENT">
           <visible>false</visible>
           <width>100</width>
         </column>
         <column type="common" name="PEAKSHAPE">
-          <visible>false</visible>
-          <width>862</width>
+          <visible>true</visible>
+          <width>721</width>
         </column>
         <column type="datafile" name="STATUS">
-          <visible>true</visible>
-          <width>15</width>
+          <visible>false</visible>
+          <width>18</width>
         </column>
         <column type="datafile" name="PEAKSHAPE">
-          <visible>true</visible>
-          <width>443</width>
+          <visible>false</visible>
+          <width>313</width>
         </column>
         <column type="datafile" name="MZ">
           <visible>false</visible>
@@ -171,14 +170,14 @@
         </column>
         <column type="datafile" name="HEIGHT">
           <visible>true</visible>
-          <width>50</width>
+          <width>63</width>
         </column>
         <column type="datafile" name="AREA">
-          <visible>true</visible>
-          <width>49</width>
+          <visible>false</visible>
+          <width>205</width>
         </column>
-        <rowheight>50</rowheight>
-        <peakshapenormalization>PEAKMAX</peakshapenormalization>
+        <rowheight>20</rowheight>
+        <peakshapenormalization>ROWMAX</peakshapenormalization>
       </parameters> 
     </module>  
     <module class="net.sf.mzmine.modules.batchmode.BatchMode"> 
@@ -225,58 +224,58 @@
     <module class="net.sf.mzmine.modules.peakpicking.gapfiller.GapFiller"> 
       <parameters>
         <parameter name="Name suffix" type="STRING">gap-filled</parameter>
-        <parameter name="Intensity tolerance" type="DOUBLE">0.4</parameter>
-        <parameter name="M/Z tolerance" type="DOUBLE">0.0040</parameter>
+        <parameter name="Intensity tolerance" type="DOUBLE">0.2</parameter>
+        <parameter name="M/Z tolerance" type="DOUBLE">0.0020</parameter>
         <parameter name="Retention time tolerance type" type="STRING">Absolute</parameter>
-        <parameter name="Absolute RT tolerance" type="DOUBLE">40.0</parameter>
+        <parameter name="Absolute RT tolerance" type="DOUBLE">15.0</parameter>
         <parameter name="Relative RT tolerance" type="DOUBLE">0.15</parameter>
       </parameters> 
     </module>  
     <module class="net.sf.mzmine.modules.isotopes.deisotoper.IsotopeGrouper"> 
       <parameters>
         <parameter name="Name suffix" type="STRING">deisotoped</parameter>
-        <parameter name="M/Z tolerance" type="DOUBLE">0.02</parameter>
-        <parameter name="RT tolerance" type="DOUBLE">20.0</parameter>
+        <parameter name="M/Z tolerance" type="DOUBLE">0.0050</parameter>
+        <parameter name="RT tolerance" type="DOUBLE">15.0</parameter>
         <parameter name="Monotonic shape" type="BOOLEAN">false</parameter>
-        <parameter name="Maximum charge" type="INTEGER">3</parameter>
+        <parameter name="Maximum charge" type="INTEGER">1</parameter>
         <parameter name="Representative isotope" type="STRING">Most intense</parameter>
         <parameter name="Remove original peaklist" type="BOOLEAN">true</parameter>
       </parameters> 
     </module>  
     <module class="net.sf.mzmine.modules.peaklist.duplicatefilter.DuplicateFilter"> 
       <parameters>
-        <parameter name="Name suffix" type="STRING">dup</parameter>
-        <parameter name="M/Z tolerance" type="DOUBLE">0.0015</parameter>
-        <parameter name="RT difference maximum" type="DOUBLE">30.0</parameter>
+        <parameter name="Name suffix" type="STRING">Duplicate peaks filtered</parameter>
+        <parameter name="M/Z tolerance" type="DOUBLE">5.0E-4</parameter>
+        <parameter name="RT difference maximum" type="DOUBLE">10.0</parameter>
         <parameter name="Require same identification" type="BOOLEAN">false</parameter>
         <parameter name="Remove original peaklist" type="BOOLEAN">true</parameter>
       </parameters> 
     </module>  
     <module class="net.sf.mzmine.modules.peaklist.rowsfilter.RowsFilter"> 
       <parameters>
-        <parameter name="Name suffix" type="STRING">id</parameter>
+        <parameter name="Name suffix" type="STRING">filtered</parameter>
         <parameter name="Minimum peaks in a row" type="INTEGER">1</parameter>
         <parameter name="Minimum peaks in an isotope pattern" type="INTEGER">1</parameter>
         <parameter name="Minimum m/z" type="DOUBLE">0.0</parameter>
-        <parameter name="Maximum m/z" type="DOUBLE">1000.0</parameter>
+        <parameter name="Maximum m/z" type="DOUBLE">0.0</parameter>
         <parameter name="Minimum retention time" type="DOUBLE">0.0</parameter>
-        <parameter name="Maximum retention time" type="DOUBLE">1800.0</parameter>
+        <parameter name="Maximum retention time" type="DOUBLE">0.0</parameter>
         <parameter name="Only identified?" type="BOOLEAN">true</parameter>
-        <parameter name="Remove source peak list after filtering" type="BOOLEAN">false</parameter>
+        <parameter name="Remove source peak list after filtering" type="BOOLEAN">true</parameter>
       </parameters> 
     </module>  
     <module class="net.sf.mzmine.modules.alignment.join.JoinAligner"> 
       <parameters>
-        <parameter name="Peak list name" type="STRING">positive</parameter>
+        <parameter name="Peak list name" type="STRING">Aligned peaklist VE</parameter>
         <parameter name="m/z tolerance" type="DOUBLE">0.0020</parameter>
         <parameter name="Weight for m/z" type="DOUBLE">10.0</parameter>
         <parameter name="Retention time tolerance type" type="STRING">Absolute</parameter>
-        <parameter name="Absolute RT tolerance" type="DOUBLE">40.0</parameter>
+        <parameter name="Absolute RT tolerance" type="DOUBLE">30.0</parameter>
         <parameter name="Relative RT tolerance" type="DOUBLE">0.15</parameter>
         <parameter name="Weight for RT" type="DOUBLE">10.0</parameter>
         <parameter name="Require same ID" type="BOOLEAN">false</parameter>
         <parameter name="Weight for ID" type="DOUBLE">0.0</parameter>
-        <parameter name="Compare isotope pattern" type="BOOLEAN">false</parameter>
+        <parameter name="Compare isotope pattern" type="BOOLEAN">true</parameter>
         <parameter name="Isotope pattern score thresold level" type="DOUBLE">0.9</parameter>
         <parameter name="Weight for isotope pattern score" type="DOUBLE">10.0</parameter>
       </parameters> 
@@ -290,7 +289,7 @@
         <parameter name="Absolute RT tolerance" type="DOUBLE">15.0</parameter>
         <parameter name="Relative RT tolerance" type="DOUBLE">0.15</parameter>
         <parameter name="Weight for RT" type="DOUBLE">10.0</parameter>
-        <parameter name="Require same ID" type="BOOLEAN">false</parameter>
+        <parameter name="Require same ID" type="BOOLEAN">true</parameter>
         <parameter name="Weight for ID" type="DOUBLE">0.0</parameter>
         <parameter name="Number of fragments" type="INTEGER">50</parameter>
       </parameters> 
@@ -301,7 +300,7 @@
         <parameter name="M/Z tolerance" type="DOUBLE">0.2</parameter>
         <parameter name="Retention time tolerance" type="DOUBLE">60.0</parameter>
         <parameter name="Minimum standard intensity" type="DOUBLE">1000.0</parameter>
-        <parameter name="Remove original peak list" type="BOOLEAN">true</parameter>
+        <parameter name="Remove original peak list" type="BOOLEAN">false</parameter>
       </parameters> 
     </module>  
     <module class="net.sf.mzmine.modules.normalization.linear.LinearNormalizer"> 
@@ -315,10 +314,10 @@
     <module class="net.sf.mzmine.modules.normalization.standardcompound.StandardCompoundNormalizer"> 
       <parameters>
         <parameter name="Name suffix" type="STRING">normalized</parameter>
-        <parameter name="Normalization type" type="STRING">Weighted contribution of all standards</parameter>
-        <parameter name="Peak measurement type" type="STRING">Peak area</parameter>
+        <parameter name="Normalization type" type="STRING">Nearest standard</parameter>
+        <parameter name="Peak measurement type" type="STRING">Peak height</parameter>
         <parameter name="M/Z vs RT balance" type="DOUBLE">10.0</parameter>
-        <parameter name="Remove original peak list" type="BOOLEAN">false</parameter>
+        <parameter name="Remove original peak list" type="BOOLEAN">true</parameter>
       </parameters> 
     </module>  
     <module class="net.sf.mzmine.modules.dataanalysis.rtmzplots.RTMZAnalyzer"> 
@@ -328,41 +327,41 @@
     </module>  
     <module class="net.sf.mzmine.modules.dataanalysis.projectionplots.ProjectionPlot"> 
       <parameters> 
-        <parameter name="Coloring type" type="STRING">Color by parameter value</parameter>  
-        <parameter name="Peak measurement type" type="STRING">Peak area</parameter>  
+        <parameter name="Coloring type" type="STRING">No coloring</parameter>  
+        <parameter name="Peak measurement type" type="STRING">Peak height</parameter>  
         <parameter name="X-axis component" type="INTEGER">1</parameter>  
         <parameter name="Y-axis component" type="INTEGER">2</parameter> 
       </parameters> 
     </module>  
     <module class="net.sf.mzmine.modules.visualization.intensityplot.IntensityPlot"> 
       <parameters>
-        <yValueSource>Peak area</yValueSource>
+        <yValueSource>Peak height</yValueSource>
       </parameters> 
     </module>  
     <module class="net.sf.mzmine.modules.isotopes.isotopeprediction.IsotopePatternCalculator"> 
       <parameters>
-        <parameter name="Chemical formula" type="STRING">C100</parameter>
+        <parameter name="Chemical formula" type="STRING">C4H5O4</parameter>
         <parameter name="Minimum % of relative abundance" type="DOUBLE">0.009999999776482582</parameter>
         <parameter name="Charge distribution" type="INTEGER">1</parameter>
-        <parameter name="Sign of the charge" type="STRING">Positive</parameter>
-        <parameter name="Set automatic height" type="BOOLEAN">false</parameter>
+        <parameter name="Sign of the charge" type="STRING">Negative</parameter>
+        <parameter name="Set automatic height" type="BOOLEAN">true</parameter>
         <parameter name="Height of most abundance isotope" type="DOUBLE">1.0E7</parameter>
         <parameter name="Add isotopes masses" type="BOOLEAN">false</parameter>
       </parameters> 
     </module>  
     <module class="net.sf.mzmine.modules.identification.custom.CustomDBSearch"> 
       <parameters>
-        <databasefile>/Volumes/Documents/peakid.csv</databasefile>
+        <databasefile>E:\DATA\personal_peaks.csv</databasefile>
         <fieldseparator>,</fieldseparator>
         <fieldorder>
-          <field>ID</field>
           <field>m/z</field>
+          <field>ID</field>
           <field>Retention time (s)</field>
           <field>Name</field>
           <field>Formula</field>
         </fieldorder>
-        <ignorefirstline>true</ignorefirstline>
-        <mztolerance>0.0050</mztolerance>
+        <ignorefirstline>false</ignorefirstline>
+        <mztolerance>0.015</mztolerance>
         <rttolerance>90.0</rttolerance>
       </parameters> 
     </module>  
@@ -371,37 +370,43 @@
     <module class="net.sf.mzmine.modules.identification.relatedpeaks.RelatedPeaksSearch"> 
       <parameters>
         <parameter name="Time tolerance" type="DOUBLE">40.0</parameter>
-        <parameter name="Shape difference tolerance" type="DOUBLE">0.1</parameter>
+        <parameter name="Shape tolerance" type="DOUBLE">0.1</parameter>
         <parameter name="Sharing points" type="DOUBLE">0.6</parameter>
+        <parameter name="Adducts" type="MULTIPLE_SELECTION">1</parameter>
+        <parameter name="m/z adduct tolerance" type="DOUBLE">0.1</parameter>
+        <parameter name="Custom adduct name" type="STRING">Custom</parameter>
+        <parameter name="Custom adduct value" type="DOUBLE">1.007825</parameter>
       </parameters> 
     </module>  
     <module class="net.sf.mzmine.modules.identification.pubchem.PubChemSearch"> 
       <parameters>
-        <parameter name="Peak mass" type="DOUBLE">508.00211</parameter>
+        <parameter name="Peak mass" type="DOUBLE"/>
         <parameter name="Charge" type="INTEGER">1</parameter>
-        <parameter name="Ionization method" type="STRING">+H</parameter>
-        <parameter name="Neutral mass" type="DOUBLE">506.9941673405999</parameter>
+        <parameter name="Ionization method" type="STRING"/>
+        <parameter name="Neutral mass" type="DOUBLE"/>
         <parameter name="Molecule with charge" type="BOOLEAN">false</parameter>
-        <parameter name="Number of results" type="INTEGER">100</parameter>
-        <parameter name="Mass tolerance" type="DOUBLE">0.0020</parameter>
-        <parameter name="Isotope pattern filter" type="BOOLEAN">true</parameter>
-        <parameter name="Isotope pattern score threshold" type="DOUBLE">0.8</parameter>
+        <parameter name="Number of results" type="INTEGER">15</parameter>
+        <parameter name="Mass tolerance" type="DOUBLE">0.0010</parameter>
+        <parameter name="Isotope pattern filter" type="BOOLEAN">false</parameter>
+        <parameter name="Isotope pattern score threshold" type="DOUBLE">0.65</parameter>
       </parameters> 
     </module>  
     <module class="net.sf.mzmine.modules.io.peaklistexport.PeakListExporter"> 
       <parameters>
-        <parameter name="Filename" type="STRING">/tmp/neg.csv</parameter>
+        <parameter name="Filename" type="STRING"/>
         <parameter name="Field separator" type="STRING">,</parameter>
-        <parameter name="Export row ID" type="BOOLEAN">false</parameter>
+        <parameter name="Export row ID" type="BOOLEAN">true</parameter>
         <parameter name="Export row m/z" type="BOOLEAN">true</parameter>
         <parameter name="Export row retention time" type="BOOLEAN">true</parameter>
-        <parameter name="Export row comment" type="BOOLEAN">false</parameter>
-        <parameter name="Export row compound identity" type="BOOLEAN">true</parameter>
-        <parameter name="Export row number of detected peaks" type="BOOLEAN">false</parameter>
-        <parameter name="Export peak status" type="BOOLEAN">false</parameter>
-        <parameter name="Export peak m/z" type="BOOLEAN">false</parameter>
-        <parameter name="Export peak retention time" type="BOOLEAN">false</parameter>
-        <parameter name="Export peak height" type="BOOLEAN">false</parameter>
+        <parameter name="Export row comment" type="BOOLEAN">true</parameter>
+        <parameter name="Export row compound name" type="BOOLEAN">true</parameter>
+        <parameter name="Export row all compound names" type="BOOLEAN">true</parameter>
+        <parameter name="Export row compound formula" type="BOOLEAN">true</parameter>
+        <parameter name="Export row number of detected peaks" type="BOOLEAN">true</parameter>
+        <parameter name="Export peak status" type="BOOLEAN">true</parameter>
+        <parameter name="Export peak m/z" type="BOOLEAN">true</parameter>
+        <parameter name="Export peak retention time" type="BOOLEAN">true</parameter>
+        <parameter name="Export peak height" type="BOOLEAN">true</parameter>
         <parameter name="Export peak area" type="BOOLEAN">true</parameter>
       </parameters> 
     </module> 
@@ -420,11 +425,11 @@
       <pattern>0.0E0</pattern>
     </format>
     <mainwindow>
-      <x>0</x>
-      <y>22</y>
-      <width>-1</width>
-      <height>-1</height>
+      <x>460</x>
+      <y>235</y>
+      <width>1000</width>
+      <height>700</height>
     </mainwindow>
-    <lastProjectDirectory>/Users/plusik/Documents</lastProjectDirectory>
+    <lastProjectDirectory>E:\DATA\Projects</lastProjectDirectory>
   </desktop> 
 </configuration>

@@ -90,8 +90,7 @@ public class ParameterSetupDialog extends JDialog implements ActionListener {
 
 	private SimpleParameterSet parameters;
 	private Hashtable<Parameter, Object> autoValues;
-	private Vector<ExtendedCheckBox> customCheckBoxes;
-	private JTextField customItemTextField;
+	private Vector<ExtendedCheckBox> multipleCheckBoxes;
 
 	// Desktop
 	private Desktop desktop = MZmineCore.getDesktop();
@@ -237,14 +236,13 @@ public class ParameterSetupDialog extends JDialog implements ActionListener {
 				peakCheckBoxesPanel.setBackground(Color.white);
 				peakCheckBoxesPanel.setLayout(new BoxLayout(
 						peakCheckBoxesPanel, BoxLayout.Y_AXIS));
-				customCheckBoxes = new Vector<ExtendedCheckBox>();
-				customItemTextField = new JTextField(5);
+				multipleCheckBoxes = new Vector<ExtendedCheckBox>();
 
 				int vertSize = 0;
 				for (Object genericObject : p.getPossibleValues()) {
 					ExtendedCheckBox ecb = new ExtendedCheckBox(genericObject,
 							false);
-					customCheckBoxes.add(ecb);
+					multipleCheckBoxes.add(ecb);
 					ecb.setAlignmentX(Component.LEFT_ALIGNMENT);
 					peakCheckBoxesPanel.add(ecb);
 					vertSize += ecb.getPreferredSize().getHeight();
@@ -256,17 +254,6 @@ public class ParameterSetupDialog extends JDialog implements ActionListener {
 						ScrollPaneConstants.HORIZONTAL_SCROLLBAR_AS_NEEDED);
 				peakPanelScroll.setPreferredSize(new Dimension(1, vertSize));
 				comp = peakPanelScroll;
-				break;
-
-			case CUSTOM:
-
-				JTextField nameTxtField = new JTextField(TEXTFIELD_COLUMNS);
-				JTextField valueTxtField = new JTextField(TEXTFIELD_COLUMNS);
-				JPanel customPanel = new JPanel(new FlowLayout());
-				customPanel.add(nameTxtField);
-				GUIUtils.addLabel(customPanel, " @ ");
-				customPanel.add(valueTxtField);
-				comp = customPanel;
 				break;
 
 			}
@@ -339,12 +326,14 @@ public class ParameterSetupDialog extends JDialog implements ActionListener {
 		Object src = ae.getSource();
 
 		if (src == btnOK) {
-			parameters = buildParameterSet(parameters);
-			
-			if (parameters == null){
+			SimpleParameterSet p = buildParameterSet(parameters);
+		
+			if (p == null){
 				exitCode = ExitCode.CANCEL;
 				return;
 			}
+			
+			parameters = p;
 			exitCode = ExitCode.OK;
 			dispose();
 		}
@@ -486,7 +475,7 @@ public class ParameterSetupDialog extends JDialog implements ActionListener {
 					Vector<Object> selectedGenericObject = new Vector<Object>();
 
 					int numSelections = 0;
-					for (ExtendedCheckBox box : customCheckBoxes) {
+					for (ExtendedCheckBox box : multipleCheckBoxes) {
 						if (box.isSelected()) {
 							Object genericObject = box.getObject();
 							selectedGenericObject.add(genericObject);
@@ -502,33 +491,10 @@ public class ParameterSetupDialog extends JDialog implements ActionListener {
 					underConstuctionParameter.setParameterValue(p, numSelections);
 					break;
 
-				case CUSTOM:
-					JPanel customPanel = (JPanel) parametersAndComponents
-							.get(p);
-					JTextField nameField = (JTextField) customPanel
-							.getComponent(0);
-					JTextField valueField = (JTextField) customPanel
-							.getComponent(2);
-					
-					String nameTextValue = nameField.getText();
-					((SimpleParameter) p).setCustomName(nameTextValue);
-					
-					String valueText = valueField.getText();
-					Object value = new Double(0.0);
-					if ((valueText != null) && (valueText != "")){
-						logger.finest("Valor de custom value " + valueText);
-						value = (Number) Double.parseDouble(valueText);
-					}
-					
-					underConstuctionParameter.setParameterValue(p,
-							value);
-					break;
-
 				}
 
 			} catch (Exception invalidValueException) {
 				desktop.displayMessage(invalidValueException.getMessage());
-				invalidValueException.printStackTrace();
 				return null;
 			}
 

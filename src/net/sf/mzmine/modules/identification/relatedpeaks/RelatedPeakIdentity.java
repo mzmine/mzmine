@@ -18,6 +18,7 @@
  */
 package net.sf.mzmine.modules.identification.relatedpeaks;
 
+import net.sf.mzmine.data.GroupRelatedPeaks;
 import net.sf.mzmine.data.PeakIdentity;
 import net.sf.mzmine.data.PeakListRow;
 
@@ -26,7 +27,7 @@ public class RelatedPeakIdentity implements PeakIdentity, Comparable {
     private PeakListRow originalPeakListRow;
     private PeakListRow relatedPeakListRow;
     private SimpleAdduct adduct;
-    private String group,  customName;
+    private GroupRelatedPeaks group;
 
     /** 
      * @param originalPeakListRow
@@ -34,12 +35,11 @@ public class RelatedPeakIdentity implements PeakIdentity, Comparable {
      * @param adduct
      */
     public RelatedPeakIdentity(PeakListRow originalPeakListRow, PeakListRow relatedPeakListRow,
-    		SimpleAdduct adduct, String group) {//, String customName) {
+    		SimpleAdduct adduct, GroupRelatedPeaks group) {
         this.originalPeakListRow = originalPeakListRow;
         this.relatedPeakListRow = relatedPeakListRow;
         this.adduct = adduct;
         this.group = group;
-        //this.customName = customName;
     }
 
     /**
@@ -60,13 +60,13 @@ public class RelatedPeakIdentity implements PeakIdentity, Comparable {
      * @return Returns the Name
      */
     public String getName() {
-        String name = "";
-        //if (adduct == CommonAdducts.CUSTOM_ITEM) {
-          //  name = customName;
-        //} else {
-            name = adduct.getName();
-        //}
-        return group + " " + name + " adduct of peak: #" + originalPeakListRow.getID();
+    	String adductName = adduct.getName();
+    	if (adductName.equals(CommonAdducts.ALLRELATED.getName())){
+    		return group.getGroupName() + " Fragment of peak: #" + group.getBiggestPeakListRow().getID();
+    	}
+    	else{
+    		return group.getGroupName() + " " + adduct.getName() + " adduct of peak: #" + group.getBiggestPeakListRow().getID();
+    	}
     }
 
     /**
@@ -109,7 +109,7 @@ public class RelatedPeakIdentity implements PeakIdentity, Comparable {
      */
     public String toString() {
         String ret;
-        ret = this.getName() + " (" + adduct.getMassDifference() + ") identification method: " + this.getIdentificationMethod();
+        ret = this.getName() + " (" + adduct.getMassDifference() + " m/z) identification method: " + this.getIdentificationMethod();
         return ret;
     }
 

@@ -21,12 +21,14 @@ package net.sf.mzmine.data.impl;
 
 import java.text.NumberFormat;
 import java.util.HashSet;
+import java.util.Iterator;
 
+import net.sf.mzmine.data.ChromatographicPeak;
 import net.sf.mzmine.data.PeakListRow;
-import net.sf.mzmine.data.RelatedPeaksIdentity;
+import net.sf.mzmine.data.GroupRelatedPeaks;
 import net.sf.mzmine.main.MZmineCore;
 
-public class SimpleRelatedPeaksIdentity implements RelatedPeaksIdentity {
+public class SimpleGroupRelatedPeaks implements GroupRelatedPeaks {
 
 	public static final NumberFormat massFormater = MZmineCore.getMZFormat();
 	public static final NumberFormat timeFormater = MZmineCore.getRTFormat();
@@ -42,7 +44,7 @@ public class SimpleRelatedPeaksIdentity implements RelatedPeaksIdentity {
 	 * @param row1
 	 * @param row2
 	 */
-	public SimpleRelatedPeaksIdentity(String groupName, PeakListRow row1,
+	public SimpleGroupRelatedPeaks(String groupName, PeakListRow row1,
 			PeakListRow row2) {
 
 		this.groupName = groupName;
@@ -52,14 +54,14 @@ public class SimpleRelatedPeaksIdentity implements RelatedPeaksIdentity {
 	}
 
 	/**
-	 * @see net.sf.mzmine.data.RelatedPeaksIdentity#setGroupName(java.lang.String)
+	 * @see net.sf.mzmine.data.GroupRelatedPeaks#setGroupName(java.lang.String)
 	 */
 	public void setGroupName(String name) {
 		this.groupName = name;
 	}
 
 	/**
-	 * @see net.sf.mzmine.data.RelatedPeaksIdentity#getGroupName()
+	 * @see net.sf.mzmine.data.GroupRelatedPeaks#getGroupName()
 	 */
 	public String getGroupName() {
 		return groupName;
@@ -83,24 +85,46 @@ public class SimpleRelatedPeaksIdentity implements RelatedPeaksIdentity {
 	}
 
 	/**
-	 * @see net.sf.mzmine.data.RelatedPeaksIdentity#addRow(net.sf.mzmine.data.PeakListRow)
+	 * @see net.sf.mzmine.data.GroupRelatedPeaks#addRow(net.sf.mzmine.data.PeakListRow)
 	 */
 	public void addRow(PeakListRow row) {
 		rowsGroup.add(row);
 	}
 
 	/**
-	 * @see net.sf.mzmine.data.RelatedPeaksIdentity#getRows()
+	 * @see net.sf.mzmine.data.GroupRelatedPeaks#getRows()
 	 */
 	public PeakListRow[] getRows() {
 		return rowsGroup.toArray(new PeakListRow[0]);
 	}
 
 	/**
-	 * @see net.sf.mzmine.data.RelatedPeaksIdentity#containsRow(net.sf.mzmine.data.PeakListRow)
+	 * @see net.sf.mzmine.data.GroupRelatedPeaks#containsRow(net.sf.mzmine.data.PeakListRow)
 	 */
 	public boolean containsRow(PeakListRow row) {
 		return rowsGroup.contains(row);
 	}
+
+	/**
+	 * @see net.sf.mzmine.data.GroupRelatedPeaks#getBiggestPeakListRow()
+	 */
+	public PeakListRow getBiggestPeakListRow() {
+		
+		PeakListRow row, biggestRow = null;
+		double maxIntensity = 0;
+
+		Iterator<PeakListRow> itr = rowsGroup.iterator();
+		while (itr.hasNext()){
+			row = itr.next();
+			if (row.getDataPointMaxIntensity() > maxIntensity){
+				maxIntensity = row.getDataPointMaxIntensity();
+				biggestRow = row;
+			}
+		}
+		
+		return biggestRow;
+	}
+	
+
 
 }

@@ -22,7 +22,7 @@ package net.sf.mzmine.data;
 /**
  *
  */
-public interface RelatedPeaksIdentity {
+public interface GroupRelatedPeaks {
 
 	/**
 	 * This method verifies if this identity (group) contains the peak list row as a member.
@@ -60,5 +60,13 @@ public interface RelatedPeaksIdentity {
 	 * @param name
 	 */
 	public void setGroupName(String name);
+	
+	
+	/**
+	 * Returns peak list row with the biggest peak (intensity) of this group.
+	 * 
+	 * @return PeakListRow
+	 */
+	public PeakListRow getBiggestPeakListRow();
 
 }
