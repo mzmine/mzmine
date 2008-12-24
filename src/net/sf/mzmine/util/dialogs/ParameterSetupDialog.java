@@ -26,6 +26,7 @@ import java.awt.Dimension;
 import java.awt.FlowLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.io.File;
 import java.text.NumberFormat;
 import java.util.Hashtable;
 import java.util.Iterator;
@@ -33,12 +34,16 @@ import java.util.Vector;
 import java.util.logging.Logger;
 
 import javax.swing.BorderFactory;
+import javax.swing.Box;
 import javax.swing.BoxLayout;
+import javax.swing.Icon;
+import javax.swing.ImageIcon;
 import javax.swing.JButton;
 import javax.swing.JCheckBox;
 import javax.swing.JComboBox;
 import javax.swing.JComponent;
 import javax.swing.JDialog;
+import javax.swing.JFileChooser;
 import javax.swing.JFormattedTextField;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
@@ -46,12 +51,15 @@ import javax.swing.JScrollPane;
 import javax.swing.JTextField;
 import javax.swing.ScrollPaneConstants;
 
+import com.sun.java.ExampleFileFilter;
+
 import net.sf.mzmine.data.Parameter;
 import net.sf.mzmine.data.ParameterType;
 import net.sf.mzmine.data.impl.SimpleParameter;
 import net.sf.mzmine.data.impl.SimpleParameterSet;
 import net.sf.mzmine.desktop.Desktop;
 import net.sf.mzmine.main.MZmineCore;
+import net.sf.mzmine.modules.io.rawdataimport.RawDataImporterParameters;
 import net.sf.mzmine.util.GUIUtils;
 import net.sf.mzmine.util.Range;
 import net.sf.mzmine.util.components.ExtendedCheckBox;
@@ -94,6 +102,7 @@ public class ParameterSetupDialog extends JDialog implements ActionListener {
 
 	// Desktop
 	private Desktop desktop = MZmineCore.getDesktop();
+	
 
 	/**
 	 * Constructor
@@ -238,22 +247,42 @@ public class ParameterSetupDialog extends JDialog implements ActionListener {
 						peakCheckBoxesPanel, BoxLayout.Y_AXIS));
 				multipleCheckBoxes = new Vector<ExtendedCheckBox>();
 
-				int vertSize = 0;
+				int vertSize = 0, numCheckBoxes = 0;
 				for (Object genericObject : p.getPossibleValues()) {
+					
 					ExtendedCheckBox ecb = new ExtendedCheckBox(genericObject,
 							false);
 					multipleCheckBoxes.add(ecb);
 					ecb.setAlignmentX(Component.LEFT_ALIGNMENT);
 					peakCheckBoxesPanel.add(ecb);
-					vertSize += ecb.getPreferredSize().getHeight();
+					
+					if (numCheckBoxes < 7)
+						vertSize += (int) ecb.getPreferredSize().getHeight();
+					
+					numCheckBoxes++;
 				}
-
+				
 				JScrollPane peakPanelScroll = new JScrollPane(
 						peakCheckBoxesPanel,
 						ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED,
 						ScrollPaneConstants.HORIZONTAL_SCROLLBAR_AS_NEEDED);
-				peakPanelScroll.setPreferredSize(new Dimension(1, vertSize));
+				int width = (int) peakPanelScroll.getPreferredSize().getWidth();
+				peakPanelScroll.setPreferredSize(new Dimension(width, vertSize));
 				comp = peakPanelScroll;
+				break;
+				
+			case FILE_NAME:
+				JTextField txtFilename = new JTextField();
+				txtFilename.setColumns(TEXTFIELD_COLUMNS);
+				JButton btnFileBrowser = new JButton("\\...");
+				btnFileBrowser.setActionCommand("FILE_BROWSER");
+				btnFileBrowser.addActionListener(this);
+				JPanel panelFilename = new JPanel();
+				panelFilename.setLayout(new BoxLayout(panelFilename, BoxLayout.X_AXIS));
+				panelFilename.add(txtFilename);
+				panelFilename.add(Box.createRigidArea(new Dimension(10,1)));
+				panelFilename.add(btnFileBrowser);
+				comp = panelFilename;
 				break;
 
 			}
@@ -324,6 +353,7 @@ public class ParameterSetupDialog extends JDialog implements ActionListener {
 	public void actionPerformed(ActionEvent ae) {
 
 		Object src = ae.getSource();
+		String action = ae.getActionCommand();
 
 		if (src == btnOK) {
 			SimpleParameterSet p = buildParameterSet(parameters);
@@ -348,6 +378,28 @@ public class ParameterSetupDialog extends JDialog implements ActionListener {
 			for (Parameter p : autoValues.keySet()) {
 				setValue(p, autoValues.get(p));
 			}
+
+		}
+		
+		if (action.equals("FILE_BROWSER")){
+	        JFileChooser fileChooser = new JFileChooser();
+	        fileChooser.setMultiSelectionEnabled(false);
+
+	        ExampleFileFilter filter = new ExampleFileFilter();
+	        filter.addExtension("csv");
+	        fileChooser.addChoosableFileFilter(filter);
+	        int returnVal = fileChooser.showOpenDialog(MZmineCore.getDesktop().getMainFrame());
+
+	        if (returnVal == JFileChooser.APPROVE_OPTION) {
+	            File selectedFile = fileChooser.getSelectedFile();
+	    		Iterator<Parameter> paramIter = parametersAndComponents.keySet()
+				.iterator();
+	    			while (paramIter.hasNext()) {
+	    				Parameter p = paramIter.next();
+	    				if (p.getType() == ParameterType.FILE_NAME)
+	    					setValue(p,(selectedFile.getAbsolutePath()));
+	    			}
+	        }
 
 		}
 
@@ -399,6 +451,11 @@ public class ParameterSetupDialog extends JDialog implements ActionListener {
 
 			Boolean selected = (Boolean) value;
 			checkBox.setSelected(selected);
+			break;
+		case FILE_NAME:
+			JPanel panelFile = (JPanel) component;
+			JTextField txtFilename = (JTextField) panelFile.getComponent(0);
+			txtFilename.setText((String) value);
 			break;
 
 		}
@@ -483,18 +540,24 @@ public class ParameterSetupDialog extends JDialog implements ActionListener {
 						}
 					}
 
-					logger.finest("Multiple seleccion de " + numSelections);
-					
 					((SimpleParameter) p)
 							.setMultipleSelectedValues(selectedGenericObject
 									.toArray(new Object[0]));
 					underConstuctionParameter.setParameterValue(p, numSelections);
+					break;
+					
+				case FILE_NAME:
+					JPanel panelFile = (JPanel) parametersAndComponents.get(p);
+					JTextField txtFilename = (JTextField) panelFile.getComponent(0);
+					underConstuctionParameter.setParameterValue(p, txtFilename
+							.getText());
 					break;
 
 				}
 
 			} catch (Exception invalidValueException) {
 				desktop.displayMessage(invalidValueException.getMessage());
+				invalidValueException.printStackTrace();
 				return null;
 			}
 

@@ -21,271 +21,255 @@ package net.sf.mzmine.modules.io.peaklistexport;
 import java.io.FileWriter;
 
 import net.sf.mzmine.data.ChromatographicPeak;
+import net.sf.mzmine.data.Parameter;
 import net.sf.mzmine.data.PeakIdentity;
 import net.sf.mzmine.data.PeakList;
 import net.sf.mzmine.data.PeakListRow;
 import net.sf.mzmine.data.PeakStatus;
 import net.sf.mzmine.data.RawDataFile;
+import net.sf.mzmine.data.impl.SimpleParameter;
 import net.sf.mzmine.taskcontrol.Task;
 
 class PeakListExportTask implements Task {
 
-    private PeakList peakList;
-    private TaskStatus status = TaskStatus.WAITING;
-    private String errorMessage;
-    private int processedRows,  totalRows;
+	private PeakList peakList;
+	private TaskStatus status = TaskStatus.WAITING;
+	private String errorMessage;
+	private int processedRows, totalRows;
 
-    // parameter values
-    private String fileName,  fieldSeparator;
-    private boolean exportRowID,  exportRowMZ,  exportRowRT,  exportRowComment,  exportRowIdentity,  exportRowIdentities,  exportRowFormula,  exportRowNumDetected;
-    private boolean exportPeakStatus,  exportPeakMZ,  exportPeakRT,  exportPeakHeight,  exportPeakArea;
+	// parameter values
+	private String fileName, fieldSeparator;
+	private ExportRowElement[] elements;
 
-    PeakListExportTask(PeakList peakList, PeakListExportParameters parameters) {
+	PeakListExportTask(PeakList peakList, PeakListExportParameters parameters) {
 
-        this.peakList = peakList;
+		this.peakList = peakList;
 
-        fileName = (String) parameters.getParameterValue(PeakListExportParameters.filename);
-        fieldSeparator = (String) parameters.getParameterValue(PeakListExportParameters.fieldSeparator);
-        exportRowID = (Boolean) parameters.getParameterValue(PeakListExportParameters.exportRowID);
-        exportRowMZ = (Boolean) parameters.getParameterValue(PeakListExportParameters.exportRowMZ);
-        exportRowRT = (Boolean) parameters.getParameterValue(PeakListExportParameters.exportRowRT);
-        exportRowComment = (Boolean) parameters.getParameterValue(PeakListExportParameters.exportRowComment);
-        exportRowIdentity = (Boolean) parameters.getParameterValue(PeakListExportParameters.exportRowIdentity);
-        exportRowIdentities = (Boolean) parameters.getParameterValue(PeakListExportParameters.exportRowIdentities);
-        exportRowFormula = (Boolean) parameters.getParameterValue(PeakListExportParameters.exportRowFormula);
-        exportRowNumDetected = (Boolean) parameters.getParameterValue(PeakListExportParameters.exportRowNumberOfDetected);
-        exportPeakStatus = (Boolean) parameters.getParameterValue(PeakListExportParameters.exportPeakStatus);
-        exportPeakMZ = (Boolean) parameters.getParameterValue(PeakListExportParameters.exportPeakMZ);
-        exportPeakRT = (Boolean) parameters.getParameterValue(PeakListExportParameters.exportPeakRT);
-        exportPeakHeight = (Boolean) parameters.getParameterValue(PeakListExportParameters.exportPeakHeight);
-        exportPeakArea = (Boolean) parameters.getParameterValue(PeakListExportParameters.exportPeakArea);
+		fileName = (String) parameters
+				.getParameterValue(PeakListExportParameters.filename);
+		fieldSeparator = (String) parameters
+				.getParameterValue(PeakListExportParameters.fieldSeparator);
 
-    }
+		Parameter p = parameters.getParameter("Export elements");
+		Object[] objectArray = ((SimpleParameter) p)
+				.getMultipleSelectedValues();
+		int length = objectArray.length;
+		elements = new ExportRowElement[length];
 
-    public void cancel() {
-        status = TaskStatus.CANCELED;
-    }
+		for (int i = 0; i < length; i++) {
+			elements[i] = (ExportRowElement) objectArray[i];
+		}
 
-    public String getErrorMessage() {
-        return errorMessage;
-    }
+	}
 
-    public double getFinishedPercentage() {
-        if (totalRows == 0) {
-            return 0.0f;
-        }
-        return (double) processedRows / (double) totalRows;
-    }
+	public void cancel() {
+		status = TaskStatus.CANCELED;
+	}
 
-    public TaskStatus getStatus() {
-        return status;
-    }
+	public String getErrorMessage() {
+		return errorMessage;
+	}
 
-    public String getTaskDescription() {
-        return "Exporting peak list " + peakList + " to " + fileName;
-    }
+	public double getFinishedPercentage() {
+		if (totalRows == 0) {
+			return 0.0f;
+		}
+		return (double) processedRows / (double) totalRows;
+	}
 
-    public void run() {
+	public TaskStatus getStatus() {
+		return status;
+	}
 
-        // Open file
-        FileWriter writer;
-        try {
-            writer = new FileWriter(fileName);
-        } catch (Exception e) {
-            status = TaskStatus.ERROR;
-            errorMessage = "Could not open file " + fileName + " for writing.";
-            return;
-        }
+	public String getTaskDescription() {
+		return "Exporting peak list " + peakList + " to " + fileName;
+	}
 
-        // Get number of rows
-        totalRows = peakList.getNumberOfRows();
+	public void run() {
 
-        // Buffer for writing
-        StringBuffer line = new StringBuffer();
+		// Open file
+		FileWriter writer;
+		try {
+			writer = new FileWriter(fileName);
+		} catch (Exception e) {
+			status = TaskStatus.ERROR;
+			errorMessage = "Could not open file " + fileName + " for writing.";
+			return;
+		}
 
-        // Write column headers
-        if (exportRowID) {
-            line.append("ID" + fieldSeparator);
-        }
-        if (exportRowMZ) {
-            line.append("Average m/z" + fieldSeparator);
-        }
-        if (exportRowRT) {
-            line.append("Average retention time" + fieldSeparator);
-        }
-        if (exportRowComment) {
-            line.append("Comment" + fieldSeparator);
-        }
-        if (exportRowIdentity) {
-            line.append("Name" + fieldSeparator);
-        }
-        if (exportRowIdentities) {
-            line.append("All Names" + fieldSeparator);
-        }
-        if (exportRowFormula) {
-            line.append("Formula" + fieldSeparator);
-        }
-        if (exportRowNumDetected) {
-            line.append("Number of detected peaks" + fieldSeparator);
-        }
+		// Get number of rows
+		totalRows = peakList.getNumberOfRows();
 
-        for (RawDataFile dataFile : peakList.getRawDataFiles()) {
-            if (exportPeakStatus) {
-                line.append(dataFile.getFileName() + " status" + fieldSeparator);
-            }
-            if (exportPeakMZ) {
-                line.append(dataFile.getFileName() + " m/z" + fieldSeparator);
-            }
-            if (exportPeakRT) {
-                line.append(dataFile.getFileName() + " retention time" + fieldSeparator);
-            }
-            if (exportPeakHeight) {
-                line.append(dataFile.getFileName() + " height" + fieldSeparator);
-            }
-            if (exportPeakArea) {
-                line.append(dataFile.getFileName() + " area" + fieldSeparator);
-            }
-        }
+		// Buffer for writing
+		StringBuffer line = new StringBuffer();
 
-        line.append("\n");
+		// Write column headers
+		int length = elements.length;
+		String name;
+		for (int i = 0; i < length; i++) {
+			if (elements[i].isCommon()) {
+				name = elements[i].getName();
+				name = name.replace("Export ", "");
+				line.append(name + fieldSeparator);
+			}
+		}
 
-        try {
-            writer.write(line.toString());
-        } catch (Exception e) {
-            status = TaskStatus.ERROR;
-            errorMessage = "Could not write to file " + fileName;
-            return;
-        }
+		for (RawDataFile dataFile : peakList.getRawDataFiles()) {
+			for (int i = 0; i < length; i++) {
+				if (!elements[i].isCommon()) {
+					name = elements[i].getName();
+					name = name.replace("Export ", "");
+					line.append(name + fieldSeparator);
+				}
+			}
+		}
 
-        // Write data rows
+		line.append("\n");
 
-        for (PeakListRow peakListRow : peakList.getRows()) {
+		try {
+			writer.write(line.toString());
+		} catch (Exception e) {
+			status = TaskStatus.ERROR;
+			errorMessage = "Could not write to file " + fileName;
+			return;
+		}
 
-            // Cancel?
-            if (status == TaskStatus.CANCELED) {
-                return;
-            }
+		// Write data rows
+		for (PeakListRow peakListRow : peakList.getRows()) {
 
-            // Reset the buffer
-            line.setLength(0);
+			// Cancel?
+			if (status == TaskStatus.CANCELED) {
+				return;
+			}
 
-            // Write row data
-            if (exportRowID) {
-                line.append(peakListRow.getID() + fieldSeparator);
-            }
-            if (exportRowMZ) {
-                line.append(peakListRow.getAverageMZ() + fieldSeparator);
-            }
-            if (exportRowRT) {
-                line.append((peakListRow.getAverageRT() / 60) + fieldSeparator);
-            }
-            if (exportRowComment) {
-                if (peakListRow.getComment() == null) {
-                    line.append(fieldSeparator);
-                } else {
-                    line.append(peakListRow.getComment() + fieldSeparator);
-                }
-            }
-            if (exportRowIdentity) {
-                if (peakListRow.getPreferredCompoundIdentity() == null) {
-                    line.append(fieldSeparator);
-                } else {
-                    line.append(peakListRow.getPreferredCompoundIdentity() + fieldSeparator);
-                }
+			// Reset the buffer
+			line.setLength(0);
 
-            }
-            if (exportRowIdentities) {
-                if (peakListRow.getPreferredCompoundIdentity() == null) {
-                    line.append(fieldSeparator);
-                } else {
-                    String name = "";
-                    PeakIdentity[] compoundIdentities = peakListRow.getCompoundIdentities();
-                    for (PeakIdentity compoundIdentity : compoundIdentities) {
-                        name += compoundIdentity.getName() + " // ";
-                    }
-                    line.append(name + fieldSeparator);
-                }
-            }
-            if (exportRowFormula) {
-                if (peakListRow.getPreferredCompoundIdentity() == null) {
-                    line.append(fieldSeparator);
-                } else {
-                    line.append(peakListRow.getPreferredCompoundIdentity().getCompoundFormula() + fieldSeparator);
-                }
-            }
-            if (exportRowNumDetected) {
-                int numDetected = 0;
-                for (ChromatographicPeak p : peakListRow.getPeaks()) {
-                    if (p.getPeakStatus() == PeakStatus.DETECTED) {
-                        numDetected++;
-                    }
-                }
+			// Write row data
+			length = elements.length;
+			for (int i = 0; i < length; i++) {
+				if (elements[i].isCommon()) {
+					switch (elements[i]) {
+					case ROW_ID:
+						line.append(peakListRow.getID() + fieldSeparator);
+						break;
+					case ROW_MZ:
+						line
+								.append(peakListRow.getAverageMZ()
+										+ fieldSeparator);
+						break;
+					case ROW_RT:
+						line.append((peakListRow.getAverageRT() / 60)
+								+ fieldSeparator);
+						break;
+					case ROW_COMMENT:
+						if (peakListRow.getComment() == null) {
+							line.append(fieldSeparator);
+						} else {
+							line.append(peakListRow.getComment()
+									+ fieldSeparator);
+						}
+						break;
+					case ROW_NAME:
+						if (peakListRow.getPreferredCompoundIdentity() == null) {
+							line.append(fieldSeparator);
+						} else {
+							line.append(peakListRow
+									.getPreferredCompoundIdentity()
+									+ fieldSeparator);
+						}
+						break;
+					case ROW_ALL_NAME:
+						if (peakListRow.getPreferredCompoundIdentity() == null) {
+							line.append(fieldSeparator);
+						} else {
+							name = "";
+							PeakIdentity[] compoundIdentities = peakListRow
+									.getCompoundIdentities();
+							for (PeakIdentity compoundIdentity : compoundIdentities) {
+								name += compoundIdentity.getName() + " // ";
+							}
+							line.append(name + fieldSeparator);
+						}
+						break;
+					case ROW_FORMULA:
+						if (peakListRow.getPreferredCompoundIdentity() == null) {
+							line.append(fieldSeparator);
+						} else {
+							line.append(peakListRow
+									.getPreferredCompoundIdentity()
+									.getCompoundFormula()
+									+ fieldSeparator);
+						}
+						break;
+					case ROW_PEAK_NUMBER:
+						int numDetected = 0;
+						for (ChromatographicPeak p : peakListRow.getPeaks()) {
+							if (p.getPeakStatus() == PeakStatus.DETECTED) {
+								numDetected++;
+							}
+						}
+						line.append(numDetected + fieldSeparator);
+						break;
+					}
+				}
+			}
 
-                line.append(numDetected + fieldSeparator);
+			for (RawDataFile dataFile : peakList.getRawDataFiles()) {
+				for (int i = 0; i < length; i++) {
+					if (!elements[i].isCommon()) {
+						ChromatographicPeak peak = peakListRow
+								.getPeak(dataFile);
+						if (peak != null) {
+							switch (elements[i]) {
+							case PEAK_STATUS:
+								line.append(peak.getPeakStatus()
+										+ fieldSeparator);
+								break;
+							case PEAK_MZ:
+								line.append(peak.getMZ() + fieldSeparator);
+								break;
+							case PEAK_RT:
+								line.append(peak.getRT() + fieldSeparator);
+								break;
+							case PEAK_HEIGHT:
+								line.append(peak.getHeight() + fieldSeparator);
+								break;
+							case PEAK_AREA:
+								line.append(peak.getArea() + fieldSeparator);
+								break;
+							}
+						} else {
+							line.append("N/A" + fieldSeparator);
+						}
+					}
+				}
+			}
 
-            }
+			line.append("\n");
 
-            for (RawDataFile dataFile : peakList.getRawDataFiles()) {
-                ChromatographicPeak peak = peakListRow.getPeak(dataFile);
-                if (peak != null) {
-                    if (exportPeakStatus) {
-                        line.append(peak.getPeakStatus() + fieldSeparator);
-                    }
-                    if (exportPeakMZ) {
-                        line.append(peak.getMZ() + fieldSeparator);
-                    }
-                    if (exportPeakRT) {
-                        line.append(peak.getRT() + fieldSeparator);
-                    }
-                    if (exportPeakHeight) {
-                        line.append(peak.getHeight() + fieldSeparator);
-                    }
-                    if (exportPeakArea) {
-                        line.append(peak.getArea() + fieldSeparator);
-                    }
-                } else {
-                    if (exportPeakStatus) {
-                        line.append("N/A" + fieldSeparator);
-                    }
-                    if (exportPeakMZ) {
-                        line.append("N/A" + fieldSeparator);
-                    }
-                    if (exportPeakRT) {
-                        line.append("N/A" + fieldSeparator);
-                    }
-                    if (exportPeakHeight) {
-                        line.append("N/A" + fieldSeparator);
-                    }
-                    if (exportPeakArea) {
-                        line.append("N/A" + fieldSeparator);
-                    }
-                }
-            }
+			try {
+				writer.write(line.toString());
+			} catch (Exception e) {
+				status = TaskStatus.ERROR;
+				errorMessage = "Could not write to file " + fileName;
+				return;
+			}
 
-            line.append("\n");
+			processedRows++;
 
-            try {
-                writer.write(line.toString());
-            } catch (Exception e) {
-                status = TaskStatus.ERROR;
-                errorMessage = "Could not write to file " + fileName;
-                return;
-            }
+		}
 
-            processedRows++;
+		// Close file
+		try {
+			writer.close();
+		} catch (Exception e) {
+			status = TaskStatus.ERROR;
+			errorMessage = "Could not close file " + fileName;
+			return;
+		}
 
-        }
+		status = TaskStatus.FINISHED;
 
-        // Close file
-        try {
-            writer.close();
-        } catch (Exception e) {
-            status = TaskStatus.ERROR;
-            errorMessage = "Could not close file " + fileName;
-            return;
-        }
-
-        status = TaskStatus.FINISHED;
-
-    }
+	}
 }

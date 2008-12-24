@@ -228,6 +228,11 @@ public class SimpleParameterSet implements StorableParameterSet {
             if ((Integer)value <= 0)
                 throw (new IllegalArgumentException("Please select at least one option from multiple selection parameter"));
             break;
+            
+        case FILE_NAME:
+            if (!(value instanceof String))
+                throw (new IllegalArgumentException("Value type mismatch"));
+        	break;
 
         }
 
@@ -318,6 +323,9 @@ public class SimpleParameterSet implements StorableParameterSet {
                     break;
                 case MULTIPLE_SELECTION:
                     value = Integer.parseInt(valueText);
+                    break;
+                case FILE_NAME:
+                    value = valueText;
                     break;
                 }
 

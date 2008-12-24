@@ -51,5 +51,10 @@ public enum ParameterType {
      */
     MULTIPLE_SELECTION,
     
+    /**
+     * Parameter values represented by a list of selection
+     */
+    FILE_NAME
+    
 
 }

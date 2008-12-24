@@ -393,21 +393,9 @@
     </module>  
     <module class="net.sf.mzmine.modules.io.peaklistexport.PeakListExporter"> 
       <parameters>
-        <parameter name="Filename" type="STRING"/>
+        <parameter name="Filename" type="FILE_NAME">E:\temp\tempcsv.csv</parameter>
         <parameter name="Field separator" type="STRING">,</parameter>
-        <parameter name="Export row ID" type="BOOLEAN">true</parameter>
-        <parameter name="Export row m/z" type="BOOLEAN">true</parameter>
-        <parameter name="Export row retention time" type="BOOLEAN">true</parameter>
-        <parameter name="Export row comment" type="BOOLEAN">true</parameter>
-        <parameter name="Export row compound name" type="BOOLEAN">true</parameter>
-        <parameter name="Export row all compound names" type="BOOLEAN">true</parameter>
-        <parameter name="Export row compound formula" type="BOOLEAN">true</parameter>
-        <parameter name="Export row number of detected peaks" type="BOOLEAN">true</parameter>
-        <parameter name="Export peak status" type="BOOLEAN">true</parameter>
-        <parameter name="Export peak m/z" type="BOOLEAN">true</parameter>
-        <parameter name="Export peak retention time" type="BOOLEAN">true</parameter>
-        <parameter name="Export peak height" type="BOOLEAN">true</parameter>
-        <parameter name="Export peak area" type="BOOLEAN">true</parameter>
+        <parameter name="Export elements" type="MULTIPLE_SELECTION">3</parameter>
       </parameters> 
     </module> 
   </modules>  

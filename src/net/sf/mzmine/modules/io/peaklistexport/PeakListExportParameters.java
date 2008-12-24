@@ -27,7 +27,7 @@ import net.sf.mzmine.data.impl.SimpleParameterSet;
 public class PeakListExportParameters extends SimpleParameterSet {
 
     public static final Parameter filename = new SimpleParameter(
-            ParameterType.STRING,
+            ParameterType.FILE_NAME,
             "Filename",
             "Name of exported peak list file name. If the file exists, it will be overwritten.");
 
@@ -36,64 +36,13 @@ public class PeakListExportParameters extends SimpleParameterSet {
             "Character(s) used to separate fields in the exported file",
             (Object) ",");
 
-    public static final Parameter exportRowID = new SimpleParameter(
-            ParameterType.BOOLEAN, "Export row ID",
-            "Toggles exporting of row ID", true);
+    public static final Parameter exportItemMultipleSelection = new SimpleParameter(
+            ParameterType.MULTIPLE_SELECTION, "Export elements",
+            "Multiple selection of row's elements to export", null, ExportRowElement.values());
 
-    public static final Parameter exportRowMZ = new SimpleParameter(
-            ParameterType.BOOLEAN, "Export row m/z",
-            "Toggles exporting of row average m/z", true);
-
-    public static final Parameter exportRowRT = new SimpleParameter(
-            ParameterType.BOOLEAN, "Export row retention time",
-            "Toggles exporting of row averate retention time", true);
-
-    public static final Parameter exportRowComment = new SimpleParameter(
-            ParameterType.BOOLEAN, "Export row comment",
-            "Toggles exporting of row's comment", true);
-
-    public static final Parameter exportRowIdentity = new SimpleParameter(
-            ParameterType.BOOLEAN, "Export row compound name",
-            "Toggles exporting of row compound name", true);
-    
-    public static final Parameter exportRowIdentities = new SimpleParameter(
-            ParameterType.BOOLEAN, "Export row all compound names",
-            "Toggles exporting of row compound names", true);
-    
-    public static final Parameter exportRowFormula = new SimpleParameter(
-            ParameterType.BOOLEAN, "Export row compound formula",
-            "Toggles exporting of row compound formula", true);
-
-    public static final Parameter exportRowNumberOfDetected = new SimpleParameter(
-            ParameterType.BOOLEAN, "Export row number of detected peaks",
-            "Toggles exporting of number of detected peaks on row", true);
-
-    public static final Parameter exportPeakStatus = new SimpleParameter(
-            ParameterType.BOOLEAN, "Export peak status",
-            "Toggles exporting of peak status in each file", true);
-
-    public static final Parameter exportPeakMZ = new SimpleParameter(
-            ParameterType.BOOLEAN, "Export peak m/z",
-            "Toggles exporting of peak m/z in each file", true);
-
-    public static final Parameter exportPeakRT = new SimpleParameter(
-            ParameterType.BOOLEAN, "Export peak retention time",
-            "Toggles exporting of peak retention time in each file", true);
-
-    public static final Parameter exportPeakHeight = new SimpleParameter(
-            ParameterType.BOOLEAN, "Export peak height",
-            "Toggles exporting of peak height in each file", true);
-
-    public static final Parameter exportPeakArea = new SimpleParameter(
-            ParameterType.BOOLEAN, "Export peak area",
-            "Toggles exporting of peak area in each file", true);
 
     public PeakListExportParameters() {
-        super(new Parameter[] { filename, fieldSeparator, exportRowID,
-                exportRowMZ, exportRowRT, exportRowComment, exportRowIdentity,
-                exportRowIdentities, exportRowFormula, exportRowNumberOfDetected,
-                exportPeakStatus, exportPeakMZ, exportPeakRT, exportPeakHeight, 
-                exportPeakArea });
+        super(new Parameter[] { filename, fieldSeparator, exportItemMultipleSelection });
     }
 
 }
