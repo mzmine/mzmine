@@ -15,7 +15,7 @@
           <parameter name="Noise level" type="DOUBLE">3000.0</parameter>
         </massdetector>
         <massdetector name="Exact mass">
-          <parameter name="Noise level" type="DOUBLE">6000.0</parameter>
+          <parameter name="Noise level" type="DOUBLE">60000.0</parameter>
           <parameter name="Mass Resolution" type="INTEGER">60000</parameter>
           <parameter name="Peak Model function" type="STRING">Gaussian plus triangle</parameter>
         </massdetector>
@@ -81,7 +81,7 @@
         <parameter name="Mass Detector type" type="INTEGER">1</parameter>
         <parameter name="Chromatogram Builder type" type="INTEGER">0</parameter>
         <parameter name="Peak Builder type" type="INTEGER">2</parameter>
-        <parameter name="Suffix" type="STRING">peaklist 2</parameter>
+        <parameter name="Suffix" type="STRING">peaklist 1</parameter>
       </parameters> 
     </module>  
     <module class="net.sf.mzmine.modules.visualization.tic.TICVisualizer"> 
@@ -318,6 +318,7 @@
         <parameter name="Peak measurement type" type="STRING">Peak height</parameter>
         <parameter name="M/Z vs RT balance" type="DOUBLE">10.0</parameter>
         <parameter name="Remove original peak list" type="BOOLEAN">true</parameter>
+        <parameter name="Standard compounds" type="MULTIPLE_SELECTION">1</parameter>
       </parameters> 
     </module>  
     <module class="net.sf.mzmine.modules.dataanalysis.rtmzplots.RTMZAnalyzer"> 

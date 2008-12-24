@@ -209,6 +209,13 @@ public class SimpleParameter implements Parameter {
     public Object[] getPossibleValues() {
         return possibleValues;
     }
+    
+    /**
+     * Set possible values to display in ParameterSetupDialog
+     */
+    public void setPossibleValues(Object[] values) {
+        this.possibleValues = values;
+    }
 
     /**
      * @see net.sf.mzmine.data.Parameter#getDefaultValue()

@@ -21,12 +21,14 @@ package net.sf.mzmine.modules.normalization.standardcompound;
 
 import java.util.logging.Logger;
 
-import net.sf.mzmine.data.PeakIdentity;
 import net.sf.mzmine.data.ChromatographicPeak;
+import net.sf.mzmine.data.Parameter;
+import net.sf.mzmine.data.PeakIdentity;
 import net.sf.mzmine.data.PeakList;
 import net.sf.mzmine.data.PeakListRow;
 import net.sf.mzmine.data.RawDataFile;
 import net.sf.mzmine.data.impl.SimpleChromatographicPeak;
+import net.sf.mzmine.data.impl.SimpleParameter;
 import net.sf.mzmine.data.impl.SimplePeakList;
 import net.sf.mzmine.data.impl.SimplePeakListRow;
 import net.sf.mzmine.main.MZmineCore;
@@ -60,8 +62,17 @@ public class StandardCompoundNormalizerTask implements Task {
         peakMeasurementType = (String) parameters.getParameterValue(StandardCompoundNormalizerParameters.peakMeasurementType);
         MZvsRTBalance = (Double) parameters.getParameterValue(StandardCompoundNormalizerParameters.MZvsRTBalance);
         removeOriginal = (Boolean) parameters.getParameterValue(StandardCompoundNormalizerParameters.autoRemove);
-        standardRows = parameters.getSelectedStandardPeakListRows();
+        
+		Parameter p = parameters.getParameter("Standard compounds");
+		Object[] objectArray = ((SimpleParameter) p)
+				.getMultipleSelectedValues();
+		int length = objectArray.length;
 
+		standardRows = new PeakListRow[length];
+		for (int i = 0; i < length; i++) {
+			standardRows[i] = (PeakListRow) objectArray[i];
+		} 
+		
     }
 
     public void cancel() {

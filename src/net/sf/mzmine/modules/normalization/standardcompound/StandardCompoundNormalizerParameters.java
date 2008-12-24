@@ -24,6 +24,7 @@ import net.sf.mzmine.data.ParameterType;
 import net.sf.mzmine.data.PeakListRow;
 import net.sf.mzmine.data.impl.SimpleParameter;
 import net.sf.mzmine.data.impl.SimpleParameterSet;
+import net.sf.mzmine.data.impl.SimplePeakListRow;
 
 /**
  * 
@@ -67,33 +68,17 @@ public class StandardCompoundNormalizerParameters extends SimpleParameterSet {
             "Remove original peak list",
             "If checked, original peak list will be removed and only normalized version remains",
             new Boolean(true));
-
-    private PeakListRow[] selectedPeaks;
+    
+	public static final Parameter standardCompounds = new SimpleParameter(
+			ParameterType.MULTIPLE_SELECTION,
+			"Standard compounds",
+			"List of peaks, where is possible to choose one or more peaks as standard for normalization",
+			null, new PeakListRow[]{new SimplePeakListRow(0)});
 
     public StandardCompoundNormalizerParameters() {
         super(new Parameter[] { suffix, standardUsageType, peakMeasurementType,
-                MZvsRTBalance, autoRemove });
+                MZvsRTBalance, autoRemove, standardCompounds });
 
-    }
-
-    public StandardCompoundNormalizerParameters clone() {
-
-        StandardCompoundNormalizerParameters clone = (StandardCompoundNormalizerParameters) super.clone();
-
-        if (selectedPeaks != null) {
-            clone.setSelectedStandardPeakListRows(selectedPeaks);
-        }
-
-        return clone;
-
-    }
-
-    public void setSelectedStandardPeakListRows(PeakListRow[] selectedPeaks) {
-        this.selectedPeaks = selectedPeaks;
-    }
-
-    public PeakListRow[] getSelectedStandardPeakListRows() {
-        return selectedPeaks;
     }
 
 }

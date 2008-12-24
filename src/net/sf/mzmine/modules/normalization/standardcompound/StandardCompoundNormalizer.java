@@ -22,11 +22,15 @@ package net.sf.mzmine.modules.normalization.standardcompound;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
+import java.util.Arrays;
 import java.util.logging.Logger;
 
 import net.sf.mzmine.data.ParameterSet;
 import net.sf.mzmine.data.PeakList;
+import net.sf.mzmine.data.PeakListRow;
 import net.sf.mzmine.data.RawDataFile;
+import net.sf.mzmine.data.impl.SimpleParameter;
+import net.sf.mzmine.data.impl.SimpleParameterSet;
 import net.sf.mzmine.desktop.Desktop;
 import net.sf.mzmine.desktop.MZmineMenu;
 import net.sf.mzmine.main.MZmineCore;
@@ -35,7 +39,9 @@ import net.sf.mzmine.taskcontrol.Task;
 import net.sf.mzmine.taskcontrol.TaskGroup;
 import net.sf.mzmine.taskcontrol.TaskGroupListener;
 import net.sf.mzmine.taskcontrol.TaskListener;
+import net.sf.mzmine.util.PeakListRowSorterByMZ;
 import net.sf.mzmine.util.dialogs.ExitCode;
+import net.sf.mzmine.util.dialogs.ParameterSetupDialog;
 
 /**
  * Normalization module using selected internal standards
@@ -81,6 +87,17 @@ public class StandardCompoundNormalizer implements MZmineModule, TaskListener,
     }
 
     /**
+     * @see net.sf.mzmine.modules.batchmode.BatchStep#setupParameters(net.sf.mzmine.data.ParameterSet)
+     */
+    public ExitCode setupParameters(ParameterSet parameters) {
+        ParameterSetupDialog dialog = new ParameterSetupDialog(
+                "Please set parameter values for " + toString(),
+                (SimpleParameterSet) parameters);
+        dialog.setVisible(true);
+        return dialog.getExitCode();
+    }
+
+    /**
      * @see java.awt.event.ActionListener#actionPerformed(java.awt.event.ActionEvent)
      */
     public void actionPerformed(ActionEvent e) {
@@ -92,11 +109,12 @@ public class StandardCompoundNormalizer implements MZmineModule, TaskListener,
         }
 
         for (PeakList pl : selectedPeakLists) {
-            StandardCompoundNormalizerDialog dialog = new StandardCompoundNormalizerDialog(
-                    pl, parameters);
-            dialog.setVisible(true);
-
-            if (dialog.getExitCode() != ExitCode.OK) {
+        	
+        	SimpleParameter p = (SimpleParameter) parameters.getParameter("Standard compounds");
+        	p.setPossibleValues(getPeakListRows(pl));
+        	
+            ExitCode exitCode = setupParameters(parameters);
+            if (exitCode != ExitCode.OK) {
                 return;
             }
 
@@ -151,6 +169,19 @@ public class StandardCompoundNormalizer implements MZmineModule, TaskListener,
 
         return newGroup;
 
+    }
+    
+    /**
+     * Return an array of peak list rows
+     * 
+     * @param peakList
+     * @return PeakListRow[]
+     */
+    private static PeakListRow[] getPeakListRows(PeakList peakList){
+        // Get all rows and sort them
+        PeakListRow rows[] = peakList.getRows();
+        Arrays.sort(rows, new PeakListRowSorterByMZ());
+        return rows;
     }
 
 }
