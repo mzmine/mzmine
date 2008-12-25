@@ -54,7 +54,11 @@ public enum ParameterType {
     /**
      * Parameter values represented by a list of selection
      */
-    FILE_NAME
+    FILE_NAME,
     
+    /**
+     * Parameter values represented by a list of selection
+     */
+    DRAG_ORDERED_LIST
 
 }

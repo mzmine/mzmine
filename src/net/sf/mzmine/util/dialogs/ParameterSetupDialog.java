@@ -36,6 +36,7 @@ import java.util.logging.Logger;
 import javax.swing.BorderFactory;
 import javax.swing.Box;
 import javax.swing.BoxLayout;
+import javax.swing.DefaultListModel;
 import javax.swing.JButton;
 import javax.swing.JCheckBox;
 import javax.swing.JComboBox;
@@ -57,6 +58,7 @@ import net.sf.mzmine.desktop.Desktop;
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.util.GUIUtils;
 import net.sf.mzmine.util.Range;
+import net.sf.mzmine.util.components.DragOrderedJList;
 import net.sf.mzmine.util.components.ExtendedCheckBox;
 import net.sf.mzmine.util.components.HelpButton;
 
@@ -96,6 +98,7 @@ public class ParameterSetupDialog extends JDialog implements ActionListener {
 	private SimpleParameterSet parameters;
 	private Hashtable<Parameter, Object> autoValues;
 	private Vector<ExtendedCheckBox> multipleCheckBoxes;
+	private DefaultListModel fieldOrderModel;
 
 	// Desktop
 	private Desktop desktop = MZmineCore.getDesktop();
@@ -174,7 +177,8 @@ public class ParameterSetupDialog extends JDialog implements ActionListener {
 
 			Object[] possibleValues = p.getPossibleValues();
 			if ((possibleValues != null)
-					&& (p.getType() != ParameterType.MULTIPLE_SELECTION)) {
+					&& (p.getType() != ParameterType.MULTIPLE_SELECTION)
+					&& (p.getType() != ParameterType.DRAG_ORDERED_LIST)){
 				JComboBox combo = new JComboBox();
 				for (Object value : possibleValues) {
 					combo.addItem(value);
@@ -280,6 +284,16 @@ public class ParameterSetupDialog extends JDialog implements ActionListener {
 				panelFilename.add(Box.createRigidArea(new Dimension(10,1)));
 				panelFilename.add(btnFileBrowser);
 				comp = panelFilename;
+				break;
+				
+			case DRAG_ORDERED_LIST:
+				fieldOrderModel = new DefaultListModel();
+		        for (Object item : p.getPossibleValues())
+		            fieldOrderModel.addElement(item);
+		        DragOrderedJList fieldOrderList = new DragOrderedJList(fieldOrderModel);
+				JScrollPane listScroller = new JScrollPane(fieldOrderList);
+				comp = listScroller;
+				
 				break;
 
 			}
@@ -474,7 +488,8 @@ public class ParameterSetupDialog extends JDialog implements ActionListener {
 
 				Object[] possibleValues = p.getPossibleValues();
 				if ((possibleValues != null) 
-					&& (p.getType() != ParameterType.MULTIPLE_SELECTION)){
+					&& (p.getType() != ParameterType.MULTIPLE_SELECTION)
+					&& (p.getType() != ParameterType.DRAG_ORDERED_LIST)){
 					JComboBox combo = (JComboBox) parametersAndComponents
 							.get(p);
 					underConstuctionParameter.setParameterValue(p,
@@ -550,6 +565,12 @@ public class ParameterSetupDialog extends JDialog implements ActionListener {
 							.getText());
 					break;
 
+				case DRAG_ORDERED_LIST:
+					((SimpleParameter) p)
+							.setPossibleValues(fieldOrderModel.toArray());
+					underConstuctionParameter.setParameterValue(p, fieldOrderModel.toArray().length);
+					break;
+					
 				}
 
 			} catch (Exception invalidValueException) {

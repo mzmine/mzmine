@@ -19,223 +19,52 @@
 
 package net.sf.mzmine.modules.identification.custom;
 
-import java.util.List;
-
 import net.sf.mzmine.data.Parameter;
-import net.sf.mzmine.data.StorableParameterSet;
-
-import org.dom4j.Element;
+import net.sf.mzmine.data.ParameterType;
+import net.sf.mzmine.data.impl.SimpleParameter;
+import net.sf.mzmine.data.impl.SimpleParameterSet;
+import net.sf.mzmine.main.MZmineCore;
 
 /**
  * 
  */
-class CustomDBSearchParameters implements StorableParameterSet {
+public class CustomDBSearchParameters extends SimpleParameterSet {
 
-    public static final String DATABASEFILE_ELEMENT = "databasefile";
-    public static final String FIELDSEPARATOR_ELEMENT = "fieldseparator";
-    public static final String FIELDORDER_ELEMENT = "fieldorder";
-    public static final String FIELD_ELEMENT = "field";
-    public static final String IGNOREFIRSTLINE_ELEMENT = "ignorefirstline";
-    public static final String MZTOLERANCE_ELEMENT = "mztolerance";
-    public static final String RTTOLERANCE_ELEMENT = "rttolerance";
+	public static final Parameter dataBaseFile = new SimpleParameter(
+			ParameterType.FILE_NAME, "Database file",
+			"Name of file that contains information for peak identification");
 
-    public static final String fieldID = "ID";
-    public static final String fieldMZ = "m/z";
-    public static final String fieldRT = "Retention time (s)";
-    public static final String fieldName = "Name";
-    public static final String fieldFormula = "Formula";
+	public static final Parameter fieldSeparator = new SimpleParameter(
+			ParameterType.STRING, "Field separator",
+			"Character(s) used to separate fields in the exported file",
+			(Object) ",");
 
-    private String dataBaseFile = "";
-    private char fieldSeparator = '\t';
-    private Object[] fieldOrder = { fieldID, fieldMZ, fieldRT, fieldName,
-            fieldFormula };
-    private boolean ignoreFirstLine = false;
-    private double mzTolerance = 1;
-    private double rtTolerance = 60;
+	public static final Parameter fieldOrder = new SimpleParameter(
+			ParameterType.DRAG_ORDERED_LIST, "Field order",
+			"Order of items in which they are readed from database file", null,
+			FieldItem.values());
 
-    /**
-     * 
-     */
-    CustomDBSearchParameters() {
-    }
+	public static final Parameter ignoreFirstLine = new SimpleParameter(
+			ParameterType.BOOLEAN, "Ignore first line",
+			"Ignore the first line of database file", null, true, null, null,
+			null);
 
-    /**
-     * @param dataBaseFile
-     * @param fieldSeparator
-     * @param fieldOrder
-     * @param ignoreFirstLine
-     * @param mzTolerance
-     * @param rtTolerance
-     * @param updateRowComment
-     */
-    CustomDBSearchParameters(String dataBaseFile, char fieldSeparator,
-            Object[] fieldOrder, boolean ignoreFirstLine, double mzTolerance,
-            double rtTolerance) {
-        this.dataBaseFile = dataBaseFile;
-        this.fieldSeparator = fieldSeparator;
-        this.fieldOrder = fieldOrder;
-        this.ignoreFirstLine = ignoreFirstLine;
-        this.mzTolerance = mzTolerance;
-        this.rtTolerance = rtTolerance;
-    }
+	public static final Parameter mzTolerance = new SimpleParameter(
+			ParameterType.DOUBLE, "m/z tolerance",
+			"Tolerance mass difference to set an identification to one peak",
+			"m/z", new Double(1.0), new Double(0.0), null, MZmineCore
+					.getMZFormat());
 
-    /**
-     * @return Returns the dataBaseFile.
-     */
-    String getDataBaseFile() {
-        return dataBaseFile;
-    }
+	public static final Parameter rtTolerance = new SimpleParameter(
+			ParameterType.DOUBLE,
+			"Time tolerance",
+			"Maximum allowed difference of time to set an identification to one peak",
+			null, new Double(60.0), new Double(0.0), null, MZmineCore
+					.getRTFormat());
 
-    /**
-     * @param dataBaseFile The dataBaseFile to set.
-     */
-    void setDataBaseFile(String dataBaseFile) {
-        this.dataBaseFile = dataBaseFile;
-    }
-
-    /**
-     * @return Returns the fieldOrder.
-     */
-    Object[] getFieldOrder() {
-        return fieldOrder;
-    }
-
-    /**
-     * @param fieldOrder The fieldOrder to set.
-     */
-    void setFieldOrder(Object[] fieldOrder) {
-        this.fieldOrder = fieldOrder;
-    }
-
-    /**
-     * @return Returns the fieldSeparator.
-     */
-    char getFieldSeparator() {
-        return fieldSeparator;
-    }
-
-    /**
-     * @param fieldSeparator The fieldSeparator to set.
-     */
-    void setFieldSeparator(char fieldSeparator) {
-        this.fieldSeparator = fieldSeparator;
-    }
-
-    /**
-     * @return Returns the ignoreFirstLine.
-     */
-    boolean isIgnoreFirstLine() {
-        return ignoreFirstLine;
-    }
-
-    /**
-     * @param ignoreFirstLine The ignoreFirstLine to set.
-     */
-    void setIgnoreFirstLine(boolean ignoreFirstLine) {
-        this.ignoreFirstLine = ignoreFirstLine;
-    }
-
-    /**
-     * @return Returns the mzTolerance.
-     */
-    double getMzTolerance() {
-        return mzTolerance;
-    }
-
-    /**
-     * @param mzTolerance The mzTolerance to set.
-     */
-    void setMzTolerance(double mzTolerance) {
-        this.mzTolerance = mzTolerance;
-    }
-
-    /**
-     * @return Returns the rtTolerance.
-     */
-    double getRtTolerance() {
-        return rtTolerance;
-    }
-
-    /**
-     * @param rtTolerance The rtTolerance to set.
-     */
-    void setRtTolerance(double rtTolerance) {
-        this.rtTolerance = rtTolerance;
-    }
-
-    /**
-     * @see net.sf.mzmine.data.StorableParameterSet#exportValuesToXML(org.dom4j.Element)
-     */
-    public void exportValuesToXML(Element element) {
-
-        element.addElement(DATABASEFILE_ELEMENT).setText(dataBaseFile);
-        element.addElement(FIELDSEPARATOR_ELEMENT).setText(
-                String.valueOf(fieldSeparator));
-        Element orderElement = element.addElement(FIELDORDER_ELEMENT);
-        for (Object field : fieldOrder)
-            orderElement.addElement(FIELD_ELEMENT).setText((String) field);
-        element.addElement(IGNOREFIRSTLINE_ELEMENT).setText(
-                String.valueOf(ignoreFirstLine));
-        element.addElement(MZTOLERANCE_ELEMENT).setText(
-                String.valueOf(mzTolerance));
-        element.addElement(RTTOLERANCE_ELEMENT).setText(
-                String.valueOf(rtTolerance));
-
-    }
-
-    /**
-     * @see net.sf.mzmine.data.StorableParameterSet#importValuesFromXML(org.dom4j.Element)
-     */
-    public void importValuesFromXML(Element element) {
-
-        dataBaseFile = element.elementText(DATABASEFILE_ELEMENT);
-        String fieldSeparatorString = element.elementText(FIELDSEPARATOR_ELEMENT);
-        if (fieldSeparatorString.length() > 0)
-            fieldSeparator = fieldSeparatorString.charAt(0);
-        Element orderElement = element.element(FIELDORDER_ELEMENT);
-        List fields = orderElement.elements(FIELD_ELEMENT);
-        if (fields.size() == fieldOrder.length) {
-            for (int i = 0; i < fieldOrder.length; i++) {
-                Element fel = (Element) fields.get(i);
-                fieldOrder[i] = fel.getText();
-            }
-        }
-
-        ignoreFirstLine = Boolean.parseBoolean(element.elementText(IGNOREFIRSTLINE_ELEMENT));
-        mzTolerance = Double.parseDouble(element.elementText(MZTOLERANCE_ELEMENT));
-        rtTolerance = Double.parseDouble(element.elementText(RTTOLERANCE_ELEMENT));
-
-    }
-
-    public CustomDBSearchParameters clone() {
-        return new CustomDBSearchParameters(dataBaseFile, fieldSeparator,
-                fieldOrder, ignoreFirstLine, mzTolerance, rtTolerance);
-    }
-
-    public String toString() {
-
-        StringBuffer paramString = new StringBuffer();
-
-        paramString.append("Database file: " + dataBaseFile + "\n");
-        paramString.append("Field separator: " + fieldSeparator + "\n");
-        paramString.append("Field order: " + fieldOrder + "\n");
-        paramString.append("Ignore first line: " + ignoreFirstLine + "\n");
-        paramString.append("m/z tolerance: " + mzTolerance + "\n");
-        paramString.append("Retention time tolerance: " + rtTolerance + "\n");
-
-        return paramString.toString();
-    }
-
-	public Object getParameterValue(Parameter parameter) {
-		return null;
-	}
-
-	public Parameter[] getParameters() {
-		return null;
-	}
-
-	public Object[] getCustomObjectArray() {
-		return null;
+	public CustomDBSearchParameters() {
+		super(new Parameter[] { dataBaseFile, fieldSeparator, fieldOrder,
+				ignoreFirstLine, mzTolerance, rtTolerance });
 	}
 
 }

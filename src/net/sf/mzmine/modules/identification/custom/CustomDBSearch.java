@@ -26,6 +26,7 @@ import java.awt.event.KeyEvent;
 import net.sf.mzmine.data.ParameterSet;
 import net.sf.mzmine.data.PeakList;
 import net.sf.mzmine.data.RawDataFile;
+import net.sf.mzmine.data.impl.SimpleParameterSet;
 import net.sf.mzmine.desktop.Desktop;
 import net.sf.mzmine.desktop.MZmineMenu;
 import net.sf.mzmine.main.MZmineCore;
@@ -35,6 +36,7 @@ import net.sf.mzmine.taskcontrol.Task;
 import net.sf.mzmine.taskcontrol.TaskGroup;
 import net.sf.mzmine.taskcontrol.TaskGroupListener;
 import net.sf.mzmine.util.dialogs.ExitCode;
+import net.sf.mzmine.util.dialogs.ParameterSetupDialog;
 
 /**
  * 
@@ -126,8 +128,11 @@ public class CustomDBSearch implements BatchStep, ActionListener {
      * @see net.sf.mzmine.modules.BatchStep#setupParameters(net.sf.mzmine.data.ParameterSet)
      */
     public ExitCode setupParameters(ParameterSet parameters) {
-        CustomDBSearchDialog dialog = new CustomDBSearchDialog(
-                (CustomDBSearchParameters) parameters);
+        //CustomDBSearchDialog dialog = new CustomDBSearchDialog(
+          //      (CustomDBSearchParameters) parameters);
+        ParameterSetupDialog dialog = new ParameterSetupDialog(
+                "Please set parameter values for " + toString(),
+                (SimpleParameterSet) parameters);
         dialog.setVisible(true);
         return dialog.getExitCode();
     }

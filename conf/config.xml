@@ -5,8 +5,8 @@
   <modules> 
     <module class="net.sf.mzmine.modules.io.rawdataimport.RawDataImporter"> 
       <parameters>
-        <parameter name="Last open directory" type="STRING">E:\DATA\Culture fluid\081015 VE and G0</parameter>
-        <parameter name="Files to import" type="STRING">081015_A_EMM2-noautoclave_neg_04.mzXML</parameter>
+        <parameter name="Last open directory" type="STRING">E:\DATA\Culture fluid\Combined Fluid</parameter>
+        <parameter name="Files to import" type="STRING">080822_EMM2_neg_07.mzXML</parameter>
       </parameters> 
     </module>  
     <module class="net.sf.mzmine.modules.peakpicking.threestep.ThreeStepPicker"> 
@@ -15,7 +15,7 @@
           <parameter name="Noise level" type="DOUBLE">3000.0</parameter>
         </massdetector>
         <massdetector name="Exact mass">
-          <parameter name="Noise level" type="DOUBLE">60000.0</parameter>
+          <parameter name="Noise level" type="DOUBLE">6000.0</parameter>
           <parameter name="Mass Resolution" type="INTEGER">60000</parameter>
           <parameter name="Peak Model function" type="STRING">Gaussian plus triangle</parameter>
         </massdetector>
@@ -331,7 +331,7 @@
         <parameter name="Coloring type" type="STRING">No coloring</parameter>  
         <parameter name="Peak measurement type" type="STRING">Peak height</parameter>  
         <parameter name="X-axis component" type="INTEGER">1</parameter>  
-        <parameter name="Y-axis component" type="INTEGER">2</parameter> 
+        <parameter name="Y-axis component" type="INTEGER">1</parameter> 
       </parameters> 
     </module>  
     <module class="net.sf.mzmine.modules.visualization.intensityplot.IntensityPlot"> 
@@ -352,28 +352,22 @@
     </module>  
     <module class="net.sf.mzmine.modules.identification.custom.CustomDBSearch"> 
       <parameters>
-        <databasefile>E:\DATA\personal_peaks.csv</databasefile>
-        <fieldseparator>,</fieldseparator>
-        <fieldorder>
-          <field>m/z</field>
-          <field>ID</field>
-          <field>Retention time (s)</field>
-          <field>Name</field>
-          <field>Formula</field>
-        </fieldorder>
-        <ignorefirstline>false</ignorefirstline>
-        <mztolerance>0.015</mztolerance>
-        <rttolerance>90.0</rttolerance>
+        <parameter name="Database file" type="FILE_NAME">E:\DATA\personal_peaks_verified.csv</parameter>
+        <parameter name="Field separator" type="STRING">,</parameter>
+        <parameter name="Field order" type="DRAG_ORDERED_LIST">m/z,ID,Retention time,Identity,Formula</parameter>
+        <parameter name="Ignore first line" type="BOOLEAN">true</parameter>
+        <parameter name="m/z tolerance" type="DOUBLE">0.0030</parameter>
+        <parameter name="Time tolerance" type="DOUBLE">90.0</parameter>
       </parameters> 
     </module>  
     <module class="net.sf.mzmine.modules.identification.fragmentation.InSourceFragmentationSearch"/>  
     <module class="net.sf.mzmine.modules.identification.kegg.KEGGSearch"/>  
     <module class="net.sf.mzmine.modules.identification.relatedpeaks.RelatedPeaksSearch"> 
       <parameters>
-        <parameter name="Time tolerance" type="DOUBLE">40.0</parameter>
+        <parameter name="Time tolerance" type="DOUBLE">10.0</parameter>
         <parameter name="Shape tolerance" type="DOUBLE">0.1</parameter>
-        <parameter name="Sharing points" type="DOUBLE">0.6</parameter>
-        <parameter name="Adducts" type="MULTIPLE_SELECTION">1</parameter>
+        <parameter name="Sharing points" type="DOUBLE">0.85</parameter>
+        <parameter name="Adducts" type="MULTIPLE_SELECTION"/>
         <parameter name="m/z adduct tolerance" type="DOUBLE">0.1</parameter>
         <parameter name="Custom adduct name" type="STRING">Custom</parameter>
         <parameter name="Custom adduct value" type="DOUBLE">1.007825</parameter>
@@ -394,9 +388,9 @@
     </module>  
     <module class="net.sf.mzmine.modules.io.peaklistexport.PeakListExporter"> 
       <parameters>
-        <parameter name="Filename" type="FILE_NAME">E:\temp\tempcsv.csv</parameter>
+        <parameter name="Filename" type="FILE_NAME"/>
         <parameter name="Field separator" type="STRING">,</parameter>
-        <parameter name="Export elements" type="MULTIPLE_SELECTION">3</parameter>
+        <parameter name="Export elements" type="MULTIPLE_SELECTION"/>
       </parameters> 
     </module> 
   </modules>  

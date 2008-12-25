@@ -24,9 +24,11 @@ import java.io.FileReader;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import net.sf.mzmine.data.Parameter;
 import net.sf.mzmine.data.PeakList;
 import net.sf.mzmine.data.PeakListRow;
 import net.sf.mzmine.data.impl.SimpleCompoundIdentity;
+import net.sf.mzmine.data.impl.SimpleParameter;
 import net.sf.mzmine.taskcontrol.Task;
 
 import com.Ostermiller.util.CSVParser;
@@ -39,17 +41,40 @@ class CustomDBSearchTask implements Task {
 	private Logger logger = Logger.getLogger(this.getClass().getName());
 
 	private PeakList peakList;
-	private CustomDBSearchParameters parameters;
 
 	private TaskStatus status;
 	private String errorMessage;
 	private String[][] databaseValues;
 	private int finishedLines = 0;
+	
+	private String dataBaseFile;
+	private String fieldSeparator;
+	private Object[] fieldOrder;
+	private boolean ignoreFirstLine;
+	private double mzTolerance;
+	private double rtTolerance;
+
 
 	CustomDBSearchTask(PeakList peakList, CustomDBSearchParameters parameters) {
 		status = TaskStatus.WAITING;
 		this.peakList = peakList;
-		this.parameters = parameters;
+		
+		dataBaseFile = (String) parameters
+		.getParameterValue(CustomDBSearchParameters.dataBaseFile);
+		fieldSeparator = (String) parameters
+		.getParameterValue(CustomDBSearchParameters.fieldSeparator);
+
+		Parameter p = parameters.getParameter("Field order");
+		fieldOrder = ((SimpleParameter) p)
+				.getPossibleValues();
+
+		ignoreFirstLine = (Boolean) parameters
+		.getParameterValue(CustomDBSearchParameters.ignoreFirstLine);
+		mzTolerance = (Double) parameters
+		.getParameterValue(CustomDBSearchParameters.mzTolerance);
+		rtTolerance = (Double) parameters
+		.getParameterValue(CustomDBSearchParameters.rtTolerance);
+		
 	}
 
 	/**
@@ -87,7 +112,7 @@ class CustomDBSearchTask implements Task {
 	 */
 	public String getTaskDescription() {
 		return "Peak identification of " + peakList + " using database "
-				+ parameters.getDataBaseFile();
+				+ dataBaseFile;
 	}
 
 	/**
@@ -97,13 +122,13 @@ class CustomDBSearchTask implements Task {
 
 		status = TaskStatus.PROCESSING;
 
-		File dbFile = new File(parameters.getDataBaseFile());
+		File dbFile = new File(dataBaseFile);
 
 		try {
 			// read database contents in memory
 			FileReader dbFileReader = new FileReader(dbFile);
-			databaseValues = CSVParser.parse(dbFileReader);
-			if (parameters.isIgnoreFirstLine())
+			databaseValues = CSVParser.parse(dbFileReader, fieldSeparator.charAt(0));
+			if (ignoreFirstLine)
 				finishedLines++;
 			for (; finishedLines < databaseValues.length; finishedLines++) {
 				try {
@@ -127,35 +152,34 @@ class CustomDBSearchTask implements Task {
 
 	private void processOneLine(String values[]) {
 
-		Object fieldOrder[] = parameters.getFieldOrder();
+		//Object fieldOrder[] = parameters.getFieldOrder();
 		int numOfColumns = Math.min(fieldOrder.length, values.length);
 
 		String lineID = null, lineName = null, lineFormula = null;
 		double lineMZ = 0, lineRT = 0;
 
 		for (int i = 0; i < numOfColumns; i++) {
-			if (fieldOrder[i].equals(CustomDBSearchParameters.fieldID))
+			if (fieldOrder[i].equals(FieldItem.FIELD_ID.getName()))
 				lineID = values[i];
-			if (fieldOrder[i].equals(CustomDBSearchParameters.fieldName))
+			if (fieldOrder[i].equals(FieldItem.FIELD_NAME.getName()))
 				lineName = values[i];
-			if (fieldOrder[i].equals(CustomDBSearchParameters.fieldFormula))
+			if (fieldOrder[i].equals(FieldItem.FIELD_FORMULA.getName()))
 				lineFormula = values[i];
-			if (fieldOrder[i].equals(CustomDBSearchParameters.fieldMZ))
+			if (fieldOrder[i].equals(FieldItem.FIELD_MZ.getName()))
 				lineMZ = Double.parseDouble(values[i]);
-			if (fieldOrder[i].equals(CustomDBSearchParameters.fieldRT))
+			if (fieldOrder[i].equals(FieldItem.FIELD_RT.getName()))
 				lineRT = Double.parseDouble(values[i]) * 60;
 		}
-
-		File dbFile = new File(parameters.getDataBaseFile());
+		
+		File dbFile = new File(dataBaseFile);
 		SimpleCompoundIdentity newIdentity = new SimpleCompoundIdentity(lineID,
 				lineName, null, lineFormula, null, dbFile.getName(), null);
 
 		for (PeakListRow peakRow : peakList.getRows()) {
 
-			boolean mzOK = (Math.abs(peakRow.getAverageMZ() - lineMZ) < parameters
-					.getMzTolerance());
-			boolean rtOK = (Math.abs(peakRow.getAverageRT() - lineRT) < parameters
-					.getRtTolerance());
+			boolean mzOK = (Math.abs(peakRow.getAverageMZ() - lineMZ) < mzTolerance);
+			boolean rtOK = (Math.abs(peakRow.getAverageRT() - lineRT) < rtTolerance);
+			
 			if (mzOK && rtOK) {
 
 				logger.finest("Found compound " + lineName + " (m/z " + lineMZ

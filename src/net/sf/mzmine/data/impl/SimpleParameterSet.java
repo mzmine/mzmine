@@ -150,8 +150,9 @@ public class SimpleParameterSet implements StorableParameterSet {
         
         Object possibleValues[] = parameter.getPossibleValues();
         
-        if ((possibleValues != null) &&
-        		(parameter.getType() != ParameterType.MULTIPLE_SELECTION)){
+        if ((possibleValues != null) 
+        		&& (parameter.getType() != ParameterType.MULTIPLE_SELECTION)
+        		&& (parameter.getType() != ParameterType.DRAG_ORDERED_LIST)){
             for (Object possibleValue : possibleValues) {
                 // We compare String version of the values, in case some values were specified as Enum constants
                 if (possibleValue.toString().equals(value.toString())) {
@@ -234,6 +235,11 @@ public class SimpleParameterSet implements StorableParameterSet {
                 throw (new IllegalArgumentException("Value type mismatch"));
         	break;
 
+        case DRAG_ORDERED_LIST:
+            if ((Integer)value <= 0)
+                throw (new IllegalArgumentException("Illegal number of list's items"));
+            break;
+        
         }
 
         values.put(parameter, value);
@@ -263,7 +269,23 @@ public class SimpleParameterSet implements StorableParameterSet {
             newElement.addAttribute(PARAMETER_NAME_ATTRIBUTE, p.getName());
             newElement.addAttribute(PARAMETER_TYPE_ATTRIBUTE,
                     p.getType().toString());
-
+            
+            if (p.getType() == ParameterType.DRAG_ORDERED_LIST){
+                Object[] values = p.getPossibleValues();
+                if (values != null) {
+                    String valueAsString="";
+                    for (int i=0;i<values.length; i++){
+                    	if (i==values.length-1){
+                            valueAsString += String.valueOf(values[i]);
+                    	}
+                    	else{
+                            valueAsString += String.valueOf(values[i]) + ",";
+                    	}
+                    }
+                    newElement.addText(valueAsString);
+                } 
+            }
+            else{
             Object value = getParameterValue(p);
             if (value != null) {
                 String valueAsString;
@@ -276,6 +298,7 @@ public class SimpleParameterSet implements StorableParameterSet {
                 }
                 newElement.addText(valueAsString);
 
+            }
             }
 
         }
@@ -326,6 +349,11 @@ public class SimpleParameterSet implements StorableParameterSet {
                     break;
                 case FILE_NAME:
                     value = valueText;
+                    break;
+                case DRAG_ORDERED_LIST:
+                    String orderedValues[] = valueText.split(",");
+                    ((SimpleParameter)param).setPossibleValues(orderedValues);
+                    value = orderedValues.length;
                     break;
                 }
 
