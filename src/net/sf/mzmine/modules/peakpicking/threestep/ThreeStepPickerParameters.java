@@ -66,7 +66,7 @@ public class ThreeStepPickerParameters implements StorableParameterSet {
 	// Peak recognition
 	public static final String peakBuilderNames[] = { "No recognition", "Baseline cut-off",
 			"Chromatographic threshold", "Noise amplitude",
-			"Standard deviation", "Savitzky-Golay", "Wavelet transform" };
+			"Standard deviation", "Savitzky-Golay", "Wavelet transform", "Local minimum search" };
 
 	public static final String peakBuilderClasses[] = {
 			"net.sf.mzmine.modules.peakpicking.threestep.peakconstruction.simple.SimplePeakDetector",
@@ -75,7 +75,9 @@ public class ThreeStepPickerParameters implements StorableParameterSet {
 			"net.sf.mzmine.modules.peakpicking.threestep.peakconstruction.noiseamplitude.NoiseAmplitudePeakDetector",
 			"net.sf.mzmine.modules.peakpicking.threestep.peakconstruction.standarddeviation.StandardDeviationPeakDetector",
 			"net.sf.mzmine.modules.peakpicking.threestep.peakconstruction.savitzkygolay.SavitzkyGolayPeakDetector",
-			"net.sf.mzmine.modules.peakpicking.threestep.peakconstruction.wavelet.WaveletPeakDetector" };
+			"net.sf.mzmine.modules.peakpicking.threestep.peakconstruction.wavelet.WaveletPeakDetector",
+            "net.sf.mzmine.modules.peakpicking.threestep.peakconstruction.minimumsearch.MinimumSearch",
+            };
 
 	public static final String peakBuilderHelpFiles[] = {
 		"net/sf/mzmine/modules/peakpicking/threestep/peakconstruction/simple/help/SimplePeakDetector.html",
@@ -84,7 +86,8 @@ public class ThreeStepPickerParameters implements StorableParameterSet {
 		"net/sf/mzmine/modules/peakpicking/threestep/peakconstruction/noiseamplitude/help/NoiseAmplitudePeakDetector.html",
 		"net/sf/mzmine/modules/peakpicking/threestep/peakconstruction/standarddeviation/help/StandardDeviationPeakDetector.html",
 		"net/sf/mzmine/modules/peakpicking/threestep/peakconstruction/savitzkygolay/help/SavitzkyGolayPeakDetector.html",
-		"net/sf/mzmine/modules/peakpicking/threestep/peakconstruction/wavelet/help/WaveletPeakDetector.html" };
+		"net/sf/mzmine/modules/peakpicking/threestep/peakconstruction/wavelet/help/WaveletPeakDetector.html",
+        "TODO"};
 
 	
 	// Three step parameters
