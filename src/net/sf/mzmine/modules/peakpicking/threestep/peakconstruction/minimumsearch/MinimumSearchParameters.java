@@ -27,6 +27,12 @@ import net.sf.mzmine.main.MZmineCore;
 
 public class MinimumSearchParameters extends SimpleParameterSet {
 
+    public static final Parameter smoothingCycles = new SimpleParameter(
+            ParameterType.INTEGER,
+            "Number of smoothing cycles",
+            "In each cycle, each data point of the chromatogram is replaced by an average of neighbouring data points. This parameter defines the number of such smoothing cycles.",
+            null, 1, 0, 10);
+
     public static final Parameter searchRTRange = new SimpleParameter(
             ParameterType.DOUBLE,
             "Search minimum in retention time range",
@@ -35,7 +41,7 @@ public class MinimumSearchParameters extends SimpleParameterSet {
             MZmineCore.getRTFormat());
 
     public MinimumSearchParameters() {
-        super(new Parameter[] { searchRTRange });
+        super(new Parameter[] { smoothingCycles, searchRTRange });
     }
 
 }
