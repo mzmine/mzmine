@@ -6,7 +6,7 @@
     <module class="net.sf.mzmine.modules.io.rawdataimport.RawDataImporter"> 
       <parameters>
         <parameter name="Last open directory" type="STRING">E:\DATA\Culture fluid\Combined Fluid</parameter>
-        <parameter name="Files to import" type="STRING">080822_EMM2_neg_07.mzXML</parameter>
+        <parameter name="Files to import" type="STRING">080822_Culture_fluid_neg_06.mzXML 080822_EMM2_neg_07.mzXML</parameter>
       </parameters> 
     </module>  
     <module class="net.sf.mzmine.modules.peakpicking.threestep.ThreeStepPicker"> 
@@ -180,6 +180,7 @@
         <peakshapenormalization>ROWMAX</peakshapenormalization>
       </parameters> 
     </module>  
+    <module class="net.sf.mzmine.modules.visualization.scatterplot.ScatterPlotVisualizer"/>  
     <module class="net.sf.mzmine.modules.batchmode.BatchMode"> 
       <parameters/> 
     </module>  
@@ -408,10 +409,10 @@
       <pattern>0.0E0</pattern>
     </format>
     <mainwindow>
-      <x>460</x>
-      <y>235</y>
-      <width>1000</width>
-      <height>700</height>
+      <x>-8</x>
+      <y>-8</y>
+      <width>-1</width>
+      <height>-1</height>
     </mainwindow>
     <lastProjectDirectory>E:\DATA\Projects</lastProjectDirectory>
   </desktop> 

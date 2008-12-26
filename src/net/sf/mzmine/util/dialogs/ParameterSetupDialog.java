@@ -81,6 +81,8 @@ public class ParameterSetupDialog extends JDialog implements ActionListener {
 	private ExitCode exitCode = ExitCode.UNKNOWN;
 
 	protected String helpID;
+	
+	private boolean invalidParameterValue = false;
 
 	// Parameters and their representation in the dialog
 	public Hashtable<Parameter, JComponent> parametersAndComponents;
@@ -369,8 +371,9 @@ public class ParameterSetupDialog extends JDialog implements ActionListener {
 		if (src == btnOK) {
 			SimpleParameterSet p = buildParameterSet(parameters);
 		
-			if (p == null){
-				exitCode = ExitCode.CANCEL;
+			if (invalidParameterValue){
+				exitCode = ExitCode.UNKNOWN;
+				invalidParameterValue = false;
 				return;
 			}
 			
@@ -575,8 +578,8 @@ public class ParameterSetupDialog extends JDialog implements ActionListener {
 
 			} catch (Exception invalidValueException) {
 				desktop.displayMessage(invalidValueException.getMessage());
-				invalidValueException.printStackTrace();
-				return null;
+				invalidParameterValue = true;
+				return underConstuctionParameter;
 			}
 
 		}
