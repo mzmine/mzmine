@@ -37,123 +37,118 @@ import net.sf.mzmine.util.Range;
  */
 public class MinimumSearch implements PeakBuilder {
 
-    private int smoothingCycles;
-    private double searchRTRange;
+	private double searchRTRange, minRelativeHeight, minRatio;
 
-    public MinimumSearch(MinimumSearchParameters parameters) {
-        smoothingCycles = (Integer) parameters.getParameterValue(MinimumSearchParameters.smoothingCycles);
-        searchRTRange = (Double) parameters.getParameterValue(MinimumSearchParameters.searchRTRange);
-    }
+	public MinimumSearch(MinimumSearchParameters parameters) {
+		searchRTRange = (Double) parameters
+				.getParameterValue(MinimumSearchParameters.searchRTRange);
+		minRelativeHeight = (Double) parameters
+				.getParameterValue(MinimumSearchParameters.minRelativeHeight);
+		minRatio = (Double) parameters
+		.getParameterValue(MinimumSearchParameters.minRatio);
 
-    /**
-     * @see net.sf.mzmine.modules.peakpicking.threestep.peakconstruction.PeakBuilder#addChromatogram(net.sf.mzmine.modules.peakpicking.threestep.xicconstruction.Chromatogram,
-     *      net.sf.mzmine.data.RawDataFile)
-     */
-    public ChromatographicPeak[] addChromatogram(Chromatogram chromatogram,
-            RawDataFile dataFile) {
+	}
 
-        /*
-         * Preparation: make a copy of the chromatogram points so we can smooth
-         * it
-         */
+	/**
+	 * @see net.sf.mzmine.modules.peakpicking.threestep.peakconstruction.PeakBuilder#addChromatogram(net.sf.mzmine.modules.peakpicking.threestep.xicconstruction.Chromatogram,
+	 *      net.sf.mzmine.data.RawDataFile)
+	 */
+	public ChromatographicPeak[] addChromatogram(Chromatogram chromatogram,
+			RawDataFile dataFile) {
 
-        ConnectedMzPeak[] cMzPeaks = chromatogram.getConnectedMzPeaks();
-        ChromatogramPoint points[] = new ChromatogramPoint[cMzPeaks.length];
-        for (int i = 0; i < cMzPeaks.length; i++) {
-            points[i] = new ChromatogramPoint(
-                    cMzPeaks[i].getScan().getRetentionTime(),
-                    cMzPeaks[i].getMzPeak().getIntensity());
-        }
+		/*
+		 * Preparation: make a copy of the chromatogram points so we can smooth
+		 * it
+		 */
 
-        /*
-         * Part 1: smoothing
-         */
-        if (smoothingCycles > 0) {
-            for (int i = smoothingCycles; i < points.length - smoothingCycles; i++) {
-                double sum = 0;
-                for (int j = i - smoothingCycles; j <= i + smoothingCycles; j++) {
-                    sum += points[j].getIntensity();
-                }
-                double newIntensity = sum / (2 * smoothingCycles + 1);
-                points[i].setIntensity(newIntensity);
-            }
-        }
-        
-        for (ChromatogramPoint p : points) System.out.print((int) p.getIntensity() + ";");
-        System.out.println();
-        
-        /*
-         * Part 2: searching for local minima
-         */
+		ConnectedMzPeak[] cMzPeaks = chromatogram.getConnectedMzPeaks();
+		ChromatogramPoint points[] = new ChromatogramPoint[cMzPeaks.length];
+		for (int i = 0; i < cMzPeaks.length; i++) {
+			points[i] = new ChromatogramPoint(cMzPeaks[i].getScan()
+					.getRetentionTime(), cMzPeaks[i].getMzPeak().getIntensity());
+		}
 
-        // Current segment is a region between two minima, representing one
-        // resolved peak
-        int currentSegmentStart = 0;
 
-        Vector<ConnectedPeak> resolvedPeaks = new Vector<ConnectedPeak>();
+		/*
+		 * Part 2: searching for local minima
+		 */
 
-        minimumSearch: for (int i = 1; i < cMzPeaks.length; i++) {
+		// Current segment is a region between two minima, representing one
+		// resolved peak
+		int currentSegmentStart = 0;
 
-            // Minimum duration of peak must be at least searchRTRange
-            if (points[i].getRetentionTime()
-                    - points[currentSegmentStart].getRetentionTime() < searchRTRange)
-                continue;
+		Vector<ConnectedPeak> resolvedPeaks = new Vector<ConnectedPeak>();
 
-            // Set the RT range to check
-            Range checkRange = new Range(points[i].getRetentionTime()
-                    - searchRTRange, points[i].getRetentionTime()
-                    + searchRTRange);
+		minimumSearch: for (int i = 1; i < cMzPeaks.length; i++) {
 
-            // Search on the left from current peak i
-            int srch = i - 1;
-            while ((srch > 0)
-                    && (checkRange.contains(points[srch].getRetentionTime()))) {
-                if (points[srch].getIntensity() < points[i].getIntensity())
-                    continue minimumSearch;
-                srch--;
-            }
+			// Minimum duration of peak must be at least searchRTRange
+			if (points[i].getRetentionTime()
+					- points[currentSegmentStart].getRetentionTime() < searchRTRange)
+				continue;
 
-            // Search on the right from current peak i
-            srch = i + 1;
-            while ((srch < cMzPeaks.length)
-                    && (checkRange.contains(points[srch].getRetentionTime()))) {
-                if (points[srch].getIntensity() < points[i].getIntensity())
-                    continue minimumSearch;
-                srch++;
-            }
+			// Set the RT range to check
+			Range checkRange = new Range(points[i].getRetentionTime()
+					- searchRTRange, points[i].getRetentionTime()
+					+ searchRTRange);
 
-            // Found a good minimum, so remove zero data points from the sides
-            // of
-            // the peak. We have to look at the original data points, not
-            // smoothed ones.
-            int currentPeakStart = currentSegmentStart;
-            int currentPeakEnd = i;
-            while ((currentPeakStart < currentPeakEnd)
-                    && (cMzPeaks[currentPeakStart].getMzPeak().getIntensity() == 0))
-                currentPeakStart++;
-            while ((currentPeakEnd > 0)
-                    && (cMzPeaks[currentPeakEnd].getMzPeak().getIntensity() == 0))
-                currentPeakEnd--;
+			// Search on the left from current peak i
+			int srch = i - 1;
+			while ((srch > 0)
+					&& (checkRange.contains(points[srch].getRetentionTime()))) {
+				if (points[srch].getIntensity() < points[i].getIntensity())
+					continue minimumSearch;
+				srch--;
+			}
 
-            // Create a new peak, if the retention time span is at least
-            // searchRTRange
-            if (points[currentPeakEnd].getRetentionTime()
-                    - points[currentPeakStart].getRetentionTime() > searchRTRange) {
-                ConnectedPeak currentPeak = new ConnectedPeak(dataFile,
-                        cMzPeaks[currentSegmentStart]);
-                for (int j = currentSegmentStart + 1; j <= i; j++) {
-                    currentPeak.addMzPeak(cMzPeaks[j]);
-                }
-                resolvedPeaks.add(currentPeak);
-            }
+			// Search on the right from current peak i
+			srch = i + 1;
+			while ((srch < cMzPeaks.length)
+					&& (checkRange.contains(points[srch].getRetentionTime()))) {
+				if (points[srch].getIntensity() < points[i].getIntensity())
+					continue minimumSearch;
+				srch++;
+			}
 
-            // Start searching new segment
-            currentSegmentStart = i;
+			// Found a good minimum, so remove zero data points from the sides
+			// of
+			// the peak. We have to look at the original data points, not
+			// smoothed ones.
+			int currentPeakStart = currentSegmentStart;
+			int currentPeakEnd = i;
+			while ((currentPeakStart < currentPeakEnd)
+					&& (cMzPeaks[currentPeakStart].getMzPeak().getIntensity() == 0))
+				currentPeakStart++;
+			while ((currentPeakEnd > 0)
+					&& (cMzPeaks[currentPeakEnd].getMzPeak().getIntensity() == 0))
+				currentPeakEnd--;
 
-        }
+			// Create a new peak, if the retention time span is at least
+			// searchRTRange
+			if (points[currentPeakEnd].getRetentionTime()
+					- points[currentPeakStart].getRetentionTime() > searchRTRange) {
+				// Check the shape of the peak
 
-        return resolvedPeaks.toArray(new ChromatographicPeak[0]);
+				ConnectedPeak currentPeak = new ConnectedPeak(dataFile,
+						cMzPeaks[currentSegmentStart]);
+				for (int j = currentSegmentStart; j <= i; j++) {
+					currentPeak.addMzPeak(cMzPeaks[j]);
+				}
+				double peakMax = currentPeak.getHeight();
+				if ((peakMax >= minRelativeHeight * chromatogram.getIntensity()) &&
+						(peakMax >= cMzPeaks[currentSegmentStart +1 ].getMzPeak().getIntensity() * minRatio) &&
+						(peakMax >= cMzPeaks[i - 1].getMzPeak().getIntensity() * minRatio) 
+						)
+					resolvedPeaks.add(currentPeak);
 
-    }
+			}
+
+			// Start searching new segment
+			currentSegmentStart = i;
+
+		}
+
+		return resolvedPeaks.toArray(new ChromatographicPeak[0]);
+
+	}
 
 }

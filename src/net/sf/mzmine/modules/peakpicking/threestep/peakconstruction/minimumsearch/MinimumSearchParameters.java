@@ -19,6 +19,8 @@
 
 package net.sf.mzmine.modules.peakpicking.threestep.peakconstruction.minimumsearch;
 
+import java.text.NumberFormat;
+
 import net.sf.mzmine.data.Parameter;
 import net.sf.mzmine.data.ParameterType;
 import net.sf.mzmine.data.impl.SimpleParameter;
@@ -27,11 +29,8 @@ import net.sf.mzmine.main.MZmineCore;
 
 public class MinimumSearchParameters extends SimpleParameterSet {
 
-    public static final Parameter smoothingCycles = new SimpleParameter(
-            ParameterType.INTEGER,
-            "Number of smoothing cycles",
-            "In each cycle, each data point of the chromatogram is replaced by an average of neighbouring data points. This parameter defines the number of such smoothing cycles.",
-            null, 1, 0, 10);
+	public static final NumberFormat percentFormat = NumberFormat
+	.getPercentInstance();
 
     public static final Parameter searchRTRange = new SimpleParameter(
             ParameterType.DOUBLE,
@@ -40,8 +39,21 @@ public class MinimumSearchParameters extends SimpleParameterSet {
             null, new Double(10.0), new Double(0.0), null,
             MZmineCore.getRTFormat());
 
+    public static final Parameter minRelativeHeight = new SimpleParameter(
+            ParameterType.DOUBLE,
+            "Minimum relative height",
+            "Minimum height of a peak relative to the chromatogram top data point",
+            null, 0.05, 0d, 1d, percentFormat);
+
+    public static final Parameter minRatio = new SimpleParameter(
+            ParameterType.DOUBLE,
+            "Minimum ratio between peak min and max",
+            "Minimum between peak's top data point and bottom data points",
+            null, 3d, 0d, null);
+
+    
     public MinimumSearchParameters() {
-        super(new Parameter[] { smoothingCycles, searchRTRange });
+        super(new Parameter[] { searchRTRange, minRelativeHeight, minRatio });
     }
 
 }
