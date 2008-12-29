@@ -19,7 +19,6 @@
 
 package net.sf.mzmine.modules.peakpicking.threestep.peakconstruction.minimumsearch;
 
-import java.util.Arrays;
 import java.util.Vector;
 
 import net.sf.mzmine.data.ChromatographicPeak;
@@ -45,7 +44,7 @@ public class MinimumSearch implements PeakBuilder {
 		minRelativeHeight = (Double) parameters
 				.getParameterValue(MinimumSearchParameters.minRelativeHeight);
 		minRatio = (Double) parameters
-		.getParameterValue(MinimumSearchParameters.minRatio);
+				.getParameterValue(MinimumSearchParameters.minRatio);
 
 	}
 
@@ -67,7 +66,6 @@ public class MinimumSearch implements PeakBuilder {
 			points[i] = new ChromatogramPoint(cMzPeaks[i].getScan()
 					.getRetentionTime(), cMzPeaks[i].getMzPeak().getIntensity());
 		}
-
 
 		/*
 		 * Part 2: searching for local minima
@@ -134,10 +132,17 @@ public class MinimumSearch implements PeakBuilder {
 					currentPeak.addMzPeak(cMzPeaks[j]);
 				}
 				double peakMax = currentPeak.getHeight();
-				if ((peakMax >= minRelativeHeight * chromatogram.getIntensity()) &&
-						(peakMax >= cMzPeaks[currentSegmentStart +1 ].getMzPeak().getIntensity() * minRatio) &&
-						(peakMax >= cMzPeaks[i - 1].getMzPeak().getIntensity() * minRatio) 
-						)
+				double peakMinLeft = cMzPeaks[currentSegmentStart].getMzPeak()
+						.getIntensity();
+				if (peakMinLeft == 0)
+					peakMinLeft = cMzPeaks[currentSegmentStart + 1].getMzPeak()
+							.getIntensity();
+				double peakMinRight = cMzPeaks[i].getMzPeak().getIntensity();
+				if (peakMinRight == 0)
+					peakMinRight = cMzPeaks[i - 1].getMzPeak().getIntensity();
+				if ((peakMax >= minRelativeHeight * chromatogram.getIntensity())
+						&& (peakMax >= peakMinLeft * minRatio)
+						&& (peakMax >= peakMinRight * minRatio))
 					resolvedPeaks.add(currentPeak);
 
 			}
