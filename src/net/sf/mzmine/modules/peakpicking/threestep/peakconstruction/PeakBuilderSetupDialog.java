@@ -47,8 +47,8 @@ import javax.swing.border.EtchedBorder;
 
 import net.sf.mzmine.data.ChromatographicPeak;
 import net.sf.mzmine.data.RawDataFile;
-import net.sf.mzmine.data.impl.SimpleMzPeak;
 import net.sf.mzmine.data.impl.SimpleDataPoint;
+import net.sf.mzmine.data.impl.SimpleMzPeak;
 import net.sf.mzmine.data.impl.SimpleParameterSet;
 import net.sf.mzmine.desktop.Desktop;
 import net.sf.mzmine.main.MZmineCore;
@@ -93,6 +93,7 @@ public class PeakBuilderSetupDialog extends ParameterSetupDialog implements
 	private String[] currentScanNumberlist;
 	private int[] listScans;
 	private Range rtRange, mzRange;
+	private ThreeStepPickerParameters threeStepParameters;
 
 	// XYPlot
 	private TICToolBar toolBar;
@@ -113,9 +114,13 @@ public class PeakBuilderSetupDialog extends ParameterSetupDialog implements
 	public PeakBuilderSetupDialog(ThreeStepPickerParameters parameters,
 			int chromatogramBuilderTypeNumber, int peakBuilderTypeNumber) {
 
-		super(ThreeStepPickerParameters.peakBuilderNames[peakBuilderTypeNumber]
-				+ "'s parameter setup dialog ", parameters
-				.getPeakBuilderParameters(peakBuilderTypeNumber), ThreeStepPickerParameters.peakBuilderHelpFiles[peakBuilderTypeNumber]);
+		super(
+				ThreeStepPickerParameters.peakBuilderNames[peakBuilderTypeNumber]
+						+ "'s parameter setup dialog ",
+				parameters.getPeakBuilderParameters(peakBuilderTypeNumber),
+				ThreeStepPickerParameters.peakBuilderHelpFiles[peakBuilderTypeNumber]);
+
+		this.threeStepParameters = parameters;
 
 		dataFiles = MZmineCore.getCurrentProject().getDataFiles();
 
@@ -138,8 +143,12 @@ public class PeakBuilderSetupDialog extends ParameterSetupDialog implements
 
 			// List of scan to apply mass detector
 			listScans = previewDataFile.getScanNumbers(1);
-			rtRange = previewDataFile.getDataRTRange(1);
-			mzRange = previewDataFile.getDataMZRange(1);
+			rtRange = threeStepParameters.getPeakBuilderPreviewRTRange();
+			if (rtRange == null)
+				rtRange = previewDataFile.getDataRTRange(1);
+			mzRange = threeStepParameters.getPeakBuilderPreviewMZRange();
+			if (mzRange == null)
+				mzRange = previewDataFile.getDataMZRange(1);
 
 			currentScanNumberlist = new String[listScans.length];
 			for (int i = 0; i < listScans.length; i++)
@@ -221,6 +230,8 @@ public class PeakBuilderSetupDialog extends ParameterSetupDialog implements
 
 				mzRange = new Range(minMZ, maxMZ);
 
+				threeStepParameters.setPeakBuilderPreview(mzRange, rtRange);
+
 				listScans = previewDataFile.getScanNumbers(1, rtRange);
 				removePeakDataSet();
 				setDataSet();
@@ -233,15 +244,7 @@ public class PeakBuilderSetupDialog extends ParameterSetupDialog implements
 
 			previewDataFile = dataFiles[ind];
 			listScans = previewDataFile.getScanNumbers(1);
-
-			rtRange = previewDataFile.getDataRTRange(1);
-			minTxtFieldRet.setValue(rtRange.getMin());
-			maxTxtFieldRet.setValue(rtRange.getMax());
-
-			mzRange = previewDataFile.getDataMZRange(1);
-			minTxtFieldMZ.setValue(mzRange.getMin());
-			maxTxtFieldMZ.setValue(mzRange.getMax());
-
+			
 			removePeakDataSet();
 			setDataSet();
 		}
@@ -341,8 +344,8 @@ public class PeakBuilderSetupDialog extends ParameterSetupDialog implements
 
 		for (int i = 0; i < listScans.length; i++) {
 
-			SimpleMzPeak[] mzValues = { new SimpleMzPeak(new SimpleDataPoint(mzRange
-					.getAverage(), ticDataset.getY(0, i).doubleValue())) };
+			SimpleMzPeak[] mzValues = { new SimpleMzPeak(new SimpleDataPoint(
+					mzRange.getAverage(), ticDataset.getY(0, i).doubleValue())) };
 			chromatoBuilder.addScan(previewDataFile, previewDataFile
 					.getScan(listScans[i]), mzValues);
 
@@ -357,7 +360,8 @@ public class PeakBuilderSetupDialog extends ParameterSetupDialog implements
 
 			if (peaks.length > 0)
 				for (ChromatographicPeak p : peaks) {
-					PeakDataSet peakDataSet = new PeakDataSet(new PreviewPeak(p));
+					PeakDataSet peakDataSet = new PeakDataSet(
+							new PreviewPeak(p));
 					ticPlot.addPeakDataset(peakDataSet);
 					peakDataSets.put(Integer.valueOf(peakInd), peakDataSet);
 					peakInd++;

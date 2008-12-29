@@ -26,6 +26,7 @@ import net.sf.mzmine.data.ParameterType;
 import net.sf.mzmine.data.StorableParameterSet;
 import net.sf.mzmine.data.impl.SimpleParameter;
 import net.sf.mzmine.data.impl.SimpleParameterSet;
+import net.sf.mzmine.util.Range;
 
 import org.dom4j.Element;
 
@@ -116,8 +117,17 @@ public class ThreeStepPickerParameters implements StorableParameterSet {
 	private static final Parameter suffix = new SimpleParameter(
 			ParameterType.STRING, "Suffix",
 			"This string is added to filename as suffix",
-			new String("peaklist"));
+			"peaklist");
 
+	private static final Parameter peakBuilderPreviewMZRange = new SimpleParameter(
+			ParameterType.RANGE, "Peak builder preview m/z range",
+			null);
+
+	private static final Parameter peakBuilderPreviewRTRange = new SimpleParameter(
+			ParameterType.RANGE, "Peak builder preview RT range",
+			null);
+
+	
 	public ThreeStepPickerParameters() {
 
 		massDetectorParameters = new SimpleParameterSet[massDetectorClasses.length];
@@ -126,7 +136,7 @@ public class ThreeStepPickerParameters implements StorableParameterSet {
 
 		threeStepsParameters = new SimpleParameterSet(new Parameter[] {
 				massDetectorTypeNumber, chromatogramBuilderTypeNumber,
-				peakBuilderTypeNumber, suffix });
+				peakBuilderTypeNumber, suffix, peakBuilderPreviewMZRange,peakBuilderPreviewRTRange });
 
 		for (int i = 0; i < massDetectorClasses.length; i++) {
 			String className = massDetectorClasses[i] + "Parameters";
@@ -254,6 +264,19 @@ public class ThreeStepPickerParameters implements StorableParameterSet {
 	public int getChromatogramBuilderTypeNumber() {
 		return (Integer) threeStepsParameters
 				.getParameterValue(chromatogramBuilderTypeNumber);
+	}
+	
+	public void setPeakBuilderPreview(Range mzRange, Range rtRange) {
+		threeStepsParameters.setParameterValue(peakBuilderPreviewMZRange, mzRange);
+		threeStepsParameters.setParameterValue(peakBuilderPreviewRTRange, rtRange);
+	}
+
+	public Range getPeakBuilderPreviewMZRange() {
+		return (Range) threeStepsParameters.getParameterValue(peakBuilderPreviewMZRange);
+	}
+
+	public Range getPeakBuilderPreviewRTRange() {
+		return (Range) threeStepsParameters.getParameterValue(peakBuilderPreviewRTRange);
 	}
 
 	/**
@@ -395,10 +418,6 @@ public class ThreeStepPickerParameters implements StorableParameterSet {
 
 	public Parameter[] getParameters() {
 		return threeStepsParameters.getParameters();
-	}
-
-	public Object[] getCustomObjectArray() {
-		return null;
 	}
 
 }
