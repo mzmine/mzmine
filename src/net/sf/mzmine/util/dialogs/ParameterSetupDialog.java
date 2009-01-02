@@ -1,19 +1,19 @@
 /*
- * Copyright 2006-2008 The MZmine Development Team
+ * Copyright 2006-2009 The MZmine 2 Development Team
  * 
- * This file is part of MZmine.
+ * This file is part of MZmine 2.
  * 
- * MZmine is free software; you can redistribute it and/or modify it under the
+ * MZmine 2 is free software; you can redistribute it and/or modify it under the
  * terms of the GNU General Public License as published by the Free Software
  * Foundation; either version 2 of the License, or (at your option) any later
  * version.
  * 
- * MZmine is distributed in the hope that it will be useful, but WITHOUT ANY
+ * MZmine 2 is distributed in the hope that it will be useful, but WITHOUT ANY
  * WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR
  * A PARTICULAR PURPOSE. See the GNU General Public License for more details.
  * 
  * You should have received a copy of the GNU General Public License along with
- * MZmine; if not, write to the Free Software Foundation, Inc., 51 Franklin St,
+ * MZmine 2; if not, write to the Free Software Foundation, Inc., 51 Franklin St,
  * Fifth Floor, Boston, MA 02110-1301 USA
  */
 
@@ -31,7 +31,6 @@ import java.text.NumberFormat;
 import java.util.Hashtable;
 import java.util.Iterator;
 import java.util.Vector;
-import java.util.logging.Logger;
 
 import javax.swing.BorderFactory;
 import javax.swing.Box;
@@ -68,20 +67,15 @@ import com.sun.java.ExampleFileFilter;
  * This class represents the parameter setup dialog shown to the user before
  * processing
  * 
- * TODO: this class needs to be easily inheritable, modules should be able to
- * add their own components
- * 
  */
 public class ParameterSetupDialog extends JDialog implements ActionListener {
-
-	private Logger logger = Logger.getLogger(this.getClass().getName());
 
 	public static final int TEXTFIELD_COLUMNS = 10;
 
 	private ExitCode exitCode = ExitCode.UNKNOWN;
 
 	protected String helpID;
-	
+
 	private boolean invalidParameterValue = false;
 
 	// Parameters and their representation in the dialog
@@ -104,7 +98,6 @@ public class ParameterSetupDialog extends JDialog implements ActionListener {
 
 	// Desktop
 	private Desktop desktop = MZmineCore.getDesktop();
-	
 
 	/**
 	 * Constructor
@@ -180,7 +173,7 @@ public class ParameterSetupDialog extends JDialog implements ActionListener {
 			Object[] possibleValues = p.getPossibleValues();
 			if ((possibleValues != null)
 					&& (p.getType() != ParameterType.MULTIPLE_SELECTION)
-					&& (p.getType() != ParameterType.DRAG_ORDERED_LIST)){
+					&& (p.getType() != ParameterType.DRAG_ORDERED_LIST)) {
 				JComboBox combo = new JComboBox();
 				for (Object value : possibleValues) {
 					combo.addItem(value);
@@ -250,30 +243,32 @@ public class ParameterSetupDialog extends JDialog implements ActionListener {
 						peakCheckBoxesPanel, BoxLayout.Y_AXIS));
 				multipleCheckBoxes = new Vector<ExtendedCheckBox>();
 
-				int vertSize = 0, numCheckBoxes = 0;
+				int vertSize = 0,
+				numCheckBoxes = 0;
 				for (Object genericObject : p.getPossibleValues()) {
-					
-					ExtendedCheckBox ecb = new ExtendedCheckBox(genericObject,
-							false);
+
+					ExtendedCheckBox<Object> ecb = new ExtendedCheckBox<Object>(
+							genericObject, false);
 					multipleCheckBoxes.add(ecb);
 					ecb.setAlignmentX(Component.LEFT_ALIGNMENT);
 					peakCheckBoxesPanel.add(ecb);
-					
+
 					if (numCheckBoxes < 7)
 						vertSize += (int) ecb.getPreferredSize().getHeight();
-					
+
 					numCheckBoxes++;
 				}
-				
+
 				JScrollPane peakPanelScroll = new JScrollPane(
 						peakCheckBoxesPanel,
 						ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED,
 						ScrollPaneConstants.HORIZONTAL_SCROLLBAR_AS_NEEDED);
 				int width = (int) peakPanelScroll.getPreferredSize().getWidth();
-				peakPanelScroll.setPreferredSize(new Dimension(width, vertSize));
+				peakPanelScroll
+						.setPreferredSize(new Dimension(width, vertSize));
 				comp = peakPanelScroll;
 				break;
-				
+
 			case FILE_NAME:
 				JTextField txtFilename = new JTextField();
 				txtFilename.setColumns(TEXTFIELD_COLUMNS);
@@ -281,21 +276,23 @@ public class ParameterSetupDialog extends JDialog implements ActionListener {
 				btnFileBrowser.setActionCommand("FILE_BROWSER");
 				btnFileBrowser.addActionListener(this);
 				JPanel panelFilename = new JPanel();
-				panelFilename.setLayout(new BoxLayout(panelFilename, BoxLayout.X_AXIS));
+				panelFilename.setLayout(new BoxLayout(panelFilename,
+						BoxLayout.X_AXIS));
 				panelFilename.add(txtFilename);
-				panelFilename.add(Box.createRigidArea(new Dimension(10,1)));
+				panelFilename.add(Box.createRigidArea(new Dimension(10, 1)));
 				panelFilename.add(btnFileBrowser);
 				comp = panelFilename;
 				break;
-				
+
 			case DRAG_ORDERED_LIST:
 				fieldOrderModel = new DefaultListModel();
-		        for (Object item : p.getPossibleValues())
-		            fieldOrderModel.addElement(item);
-		        DragOrderedJList fieldOrderList = new DragOrderedJList(fieldOrderModel);
+				for (Object item : p.getPossibleValues())
+					fieldOrderModel.addElement(item);
+				DragOrderedJList fieldOrderList = new DragOrderedJList(
+						fieldOrderModel);
 				JScrollPane listScroller = new JScrollPane(fieldOrderList);
 				comp = listScroller;
-				
+
 				break;
 
 			}
@@ -370,13 +367,13 @@ public class ParameterSetupDialog extends JDialog implements ActionListener {
 
 		if (src == btnOK) {
 			SimpleParameterSet p = buildParameterSet(parameters);
-		
-			if (invalidParameterValue){
+
+			if (invalidParameterValue) {
 				exitCode = ExitCode.UNKNOWN;
 				invalidParameterValue = false;
 				return;
 			}
-			
+
 			parameters = p;
 			exitCode = ExitCode.OK;
 			dispose();
@@ -394,26 +391,27 @@ public class ParameterSetupDialog extends JDialog implements ActionListener {
 			}
 
 		}
-		
-		if (action.equals("FILE_BROWSER")){
-	        JFileChooser fileChooser = new JFileChooser();
-	        fileChooser.setMultiSelectionEnabled(false);
 
-	        ExampleFileFilter filter = new ExampleFileFilter();
-	        filter.addExtension("csv");
-	        fileChooser.addChoosableFileFilter(filter);
-	        int returnVal = fileChooser.showOpenDialog(MZmineCore.getDesktop().getMainFrame());
+		if (action.equals("FILE_BROWSER")) {
+			JFileChooser fileChooser = new JFileChooser();
+			fileChooser.setMultiSelectionEnabled(false);
 
-	        if (returnVal == JFileChooser.APPROVE_OPTION) {
-	            File selectedFile = fileChooser.getSelectedFile();
-	    		Iterator<Parameter> paramIter = parametersAndComponents.keySet()
-				.iterator();
-	    			while (paramIter.hasNext()) {
-	    				Parameter p = paramIter.next();
-	    				if (p.getType() == ParameterType.FILE_NAME)
-	    					setValue(p,(selectedFile.getAbsolutePath()));
-	    			}
-	        }
+			ExampleFileFilter filter = new ExampleFileFilter();
+			filter.addExtension("csv");
+			fileChooser.addChoosableFileFilter(filter);
+			int returnVal = fileChooser.showOpenDialog(MZmineCore.getDesktop()
+					.getMainFrame());
+
+			if (returnVal == JFileChooser.APPROVE_OPTION) {
+				File selectedFile = fileChooser.getSelectedFile();
+				Iterator<Parameter> paramIter = parametersAndComponents
+						.keySet().iterator();
+				while (paramIter.hasNext()) {
+					Parameter p = paramIter.next();
+					if (p.getType() == ParameterType.FILE_NAME)
+						setValue(p, (selectedFile.getAbsolutePath()));
+				}
+			}
 
 		}
 
@@ -490,9 +488,9 @@ public class ParameterSetupDialog extends JDialog implements ActionListener {
 			try {
 
 				Object[] possibleValues = p.getPossibleValues();
-				if ((possibleValues != null) 
-					&& (p.getType() != ParameterType.MULTIPLE_SELECTION)
-					&& (p.getType() != ParameterType.DRAG_ORDERED_LIST)){
+				if ((possibleValues != null)
+						&& (p.getType() != ParameterType.MULTIPLE_SELECTION)
+						&& (p.getType() != ParameterType.DRAG_ORDERED_LIST)) {
 					JComboBox combo = (JComboBox) parametersAndComponents
 							.get(p);
 					underConstuctionParameter.setParameterValue(p,
@@ -558,22 +556,25 @@ public class ParameterSetupDialog extends JDialog implements ActionListener {
 					((SimpleParameter) p)
 							.setMultipleSelectedValues(selectedGenericObject
 									.toArray(new Object[0]));
-					underConstuctionParameter.setParameterValue(p, numSelections);
+					underConstuctionParameter.setParameterValue(p,
+							numSelections);
 					break;
-					
+
 				case FILE_NAME:
 					JPanel panelFile = (JPanel) parametersAndComponents.get(p);
-					JTextField txtFilename = (JTextField) panelFile.getComponent(0);
+					JTextField txtFilename = (JTextField) panelFile
+							.getComponent(0);
 					underConstuctionParameter.setParameterValue(p, txtFilename
 							.getText());
 					break;
 
 				case DRAG_ORDERED_LIST:
-					((SimpleParameter) p)
-							.setPossibleValues(fieldOrderModel.toArray());
-					underConstuctionParameter.setParameterValue(p, fieldOrderModel.toArray().length);
+					((SimpleParameter) p).setPossibleValues(fieldOrderModel
+							.toArray());
+					underConstuctionParameter.setParameterValue(p,
+							fieldOrderModel.toArray().length);
 					break;
-					
+
 				}
 
 			} catch (Exception invalidValueException) {
