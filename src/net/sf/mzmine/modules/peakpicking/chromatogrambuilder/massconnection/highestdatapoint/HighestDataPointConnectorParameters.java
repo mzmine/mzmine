@@ -17,7 +17,7 @@
  * Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-package net.sf.mzmine.modules.peakpicking.chromatogrambuilder.massconnection.selective;
+package net.sf.mzmine.modules.peakpicking.chromatogrambuilder.massconnection.highestdatapoint;
 
 import net.sf.mzmine.data.Parameter;
 import net.sf.mzmine.data.ParameterType;
@@ -25,7 +25,7 @@ import net.sf.mzmine.data.impl.SimpleParameter;
 import net.sf.mzmine.data.impl.SimpleParameterSet;
 import net.sf.mzmine.main.MZmineCore;
 
-public class SelectiveConnectorParameters extends SimpleParameterSet {
+public class HighestDataPointConnectorParameters extends SimpleParameterSet {
 
 	public static final Parameter minimumTimeSpan = new SimpleParameter(
 			ParameterType.DOUBLE, "Min time span",
@@ -45,7 +45,7 @@ public class SelectiveConnectorParameters extends SimpleParameterSet {
 			"m/z", new Double(0.1), new Double(0.0), new Double(1.0),
 			MZmineCore.getMZFormat());
 
-	public SelectiveConnectorParameters() {
+	public HighestDataPointConnectorParameters() {
 		super(new Parameter[] { minimumTimeSpan, minimumHeight, mzTolerance });
 	}
 

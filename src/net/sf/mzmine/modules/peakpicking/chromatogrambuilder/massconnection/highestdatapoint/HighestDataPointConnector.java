@@ -17,9 +17,10 @@
  * Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-package net.sf.mzmine.modules.peakpicking.chromatogrambuilder.massconnection.simple;
+package net.sf.mzmine.modules.peakpicking.chromatogrambuilder.massconnection.highestdatapoint;
 
 import java.util.Arrays;
+import java.util.Iterator;
 import java.util.TreeMap;
 
 import net.sf.mzmine.data.MzPeak;
@@ -29,17 +30,21 @@ import net.sf.mzmine.modules.peakpicking.chromatogrambuilder.massconnection.Mass
 import net.sf.mzmine.util.CollectionUtils;
 import net.sf.mzmine.util.DataPointSorter;
 
-public class SimpleConnector implements MassConnector {
+public class HighestDataPointConnector implements MassConnector {
 
-	private double mzTolerance;
+	private double mzTolerance, minimumTimeSpan, minimumHeight;
 
 	// Mapping of last data point m/z --> chromatogram
 	private TreeMap<Double, Chromatogram> buildingChromatograms;
 
-	public SimpleConnector(SimpleConnectorParameters parameters) {
+	public HighestDataPointConnector(HighestDataPointConnectorParameters parameters) {
 
+		minimumTimeSpan = (Double) parameters
+				.getParameterValue(HighestDataPointConnectorParameters.minimumTimeSpan);
+		minimumHeight = (Double) parameters
+				.getParameterValue(HighestDataPointConnectorParameters.minimumHeight);
 		mzTolerance = (Double) parameters
-				.getParameterValue(SimpleConnectorParameters.mzTolerance);
+				.getParameterValue(HighestDataPointConnectorParameters.mzTolerance);
 
 		buildingChromatograms = new TreeMap<Double, Chromatogram>();
 	}
@@ -93,7 +98,18 @@ public class SimpleConnector implements MassConnector {
 		}
 
 		for (Chromatogram testChrom : buildingChromatograms.values()) {
-			connectedChromatograms.put(testChrom.getMZ(), testChrom);
+
+			if (testChrom.getBuildingSegmentLength() >= minimumTimeSpan) {
+				testChrom.commitBuildingSegment();
+				connectedChromatograms.put(testChrom.getMZ(), testChrom);
+				continue;
+			}
+
+			if (testChrom.getNumberOfCommittedSegments() > 0) {
+				testChrom.removeBuildingSegment();
+				connectedChromatograms.put(testChrom.getMZ(), testChrom);
+			}
+
 		}
 
 		buildingChromatograms = connectedChromatograms;
@@ -101,6 +117,29 @@ public class SimpleConnector implements MassConnector {
 	}
 
 	public Chromatogram[] finishChromatograms() {
+
+		Iterator<Chromatogram> chromIterator = buildingChromatograms.values()
+				.iterator();
+		while (chromIterator.hasNext()) {
+
+			Chromatogram chromatogram = chromIterator.next();
+
+			if (chromatogram.getBuildingSegmentLength() >= minimumTimeSpan) {
+				chromatogram.commitBuildingSegment();
+			} else {
+				if (chromatogram.getNumberOfCommittedSegments() == 0) {
+					chromIterator.remove();
+					continue;
+				} else
+					chromatogram.removeBuildingSegment();
+			}
+
+			// Check the height of the chromatogram
+			if (chromatogram.getHeight() < minimumHeight)
+				chromIterator.remove();
+
+		}
+
 		Chromatogram[] chromatograms = buildingChromatograms.values().toArray(
 				new Chromatogram[0]);
 		return chromatograms;
