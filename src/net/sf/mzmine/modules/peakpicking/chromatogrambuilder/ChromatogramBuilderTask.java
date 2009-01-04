@@ -29,7 +29,6 @@ import net.sf.mzmine.data.RawDataFile;
 import net.sf.mzmine.data.Scan;
 import net.sf.mzmine.data.impl.SimplePeakList;
 import net.sf.mzmine.data.impl.SimplePeakListRow;
-import net.sf.mzmine.desktop.Desktop;
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.modules.peakpicking.chromatogrambuilder.massconnection.Chromatogram;
 import net.sf.mzmine.modules.peakpicking.chromatogrambuilder.massconnection.MassConnector;
@@ -136,12 +135,10 @@ class ChromatogramBuilderTask implements Task {
 
 		status = TaskStatus.PROCESSING;
 
-		logger.info("Running chromatogram builder on " + dataFile);
+		logger.info("Started chromatogram builder on " + dataFile);
 
 		scanNumbers = dataFile.getScanNumbers(1);
 		totalScans = scanNumbers.length;
-
-		Desktop desktop = MZmineCore.getDesktop();
 
 		// Create new mass detector according with the user's selection
 		String massDetectorClassName = ChromatogramBuilderParameters.massDetectorClasses[massDetectorTypeNumber];
@@ -152,11 +149,8 @@ class ChromatogramBuilderTask implements Task {
 			massDetector = (MassDetector) massDetectorConstruct
 					.newInstance(mdParameters);
 		} catch (Exception e) {
-			logger.finest("Error trying to make an instance of mass detector "
-					+ massDetectorClassName);
-			desktop
-					.displayErrorMessage("Error trying to make an instance of mass detector "
-							+ massDetectorClassName);
+			errorMessage = "Error trying to make an instance of mass detector "
+					+ massDetectorClassName;
 			status = TaskStatus.ERROR;
 			return;
 		}
@@ -170,12 +164,8 @@ class ChromatogramBuilderTask implements Task {
 			massConnector = (MassConnector) chromtogramBuilderConstruct
 					.newInstance(mcParameters);
 		} catch (Exception e) {
-			logger
-					.severe("Error trying to make an instance of chromatogram builder "
-							+ massConnectorClassName);
-			desktop
-					.displayErrorMessage("Error trying to make an instance of chromatogram builder "
-							+ massConnectorClassName);
+			errorMessage = "Error trying to make an instance of chromatogram builder "
+					+ massConnectorClassName;
 			status = TaskStatus.ERROR;
 			return;
 		}
@@ -214,9 +204,9 @@ class ChromatogramBuilderTask implements Task {
 		MZmineProject currentProject = MZmineCore.getCurrentProject();
 		currentProject.addPeakList(newPeakList);
 
-		logger.info("Finished three steps peak picker on " + dataFile);
-
 		status = TaskStatus.FINISHED;
+
+		logger.info("Finished chromatogram builder on " + dataFile);
 
 	}
 
