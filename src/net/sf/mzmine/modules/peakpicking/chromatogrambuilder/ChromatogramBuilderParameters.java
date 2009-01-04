@@ -53,13 +53,16 @@ public class ChromatogramBuilderParameters implements StorableParameterSet {
 			"net/sf/mzmine/modules/peakpicking/chromatogrambuilder/massdetection/wavelet/help/WaveletMassDetector.html" };
 
 	// Chromatogram Builders
-	public static final String massConnectorNames[] = { "Highest datapoint" };
+	public static final String massConnectorNames[] = { "Simple connector",
+			"Selective connector" };
 
 	public static final String massConnectorClasses[] = {
-		"net.sf.mzmine.modules.peakpicking.chromatogrambuilder.massconnection.highestdatapoint.HighestDatapointConnector" };
+			"net.sf.mzmine.modules.peakpicking.chromatogrambuilder.massconnection.simple.SimpleConnector",
+			"net.sf.mzmine.modules.peakpicking.chromatogrambuilder.massconnection.selective.SelectiveConnector" };
 
-	public static final String massConnectorHelpFiles[] = { 
-		"net/sf/mzmine/modules/peakpicking/chromatogrambuilder/massconnection/highestdatapoint/help/HighIntensityConnector.html" };
+	public static final String massConnectorHelpFiles[] = {
+			"net/sf/mzmine/modules/peakpicking/chromatogrambuilder/massconnection/simple/help/SimpleConnector.html",
+			"net/sf/mzmine/modules/peakpicking/chromatogrambuilder/massconnection/selective/help/SelectiveConnector.html" };
 
 	// All parameters
 	private SimpleParameterSet massDetectorParameters[],

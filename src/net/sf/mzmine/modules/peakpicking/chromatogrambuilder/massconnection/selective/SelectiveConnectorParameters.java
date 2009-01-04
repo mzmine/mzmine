@@ -17,9 +17,7 @@
  * Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-package net.sf.mzmine.modules.peakpicking.chromatogrambuilder.massconnection.highestdatapoint;
-
-import java.text.NumberFormat;
+package net.sf.mzmine.modules.peakpicking.chromatogrambuilder.massconnection.selective;
 
 import net.sf.mzmine.data.Parameter;
 import net.sf.mzmine.data.ParameterType;
@@ -27,26 +25,28 @@ import net.sf.mzmine.data.impl.SimpleParameter;
 import net.sf.mzmine.data.impl.SimpleParameterSet;
 import net.sf.mzmine.main.MZmineCore;
 
-public class HighestDatapointConnectorParameters extends SimpleParameterSet {
-
-	public static final NumberFormat percentFormat = NumberFormat
-			.getPercentInstance();
+public class SelectiveConnectorParameters extends SimpleParameterSet {
 
 	public static final Parameter minimumTimeSpan = new SimpleParameter(
 			ParameterType.DOUBLE, "Min time span",
-			"Minimum acceptable time span of connected string of m/z peaks", null, new Double(10.0),
-			new Double(0.0), null, MZmineCore.getRTFormat());
+			"Minimum acceptable time span of connected string of m/z peaks",
+			null, new Double(10.0), new Double(0.0), null, MZmineCore
+					.getRTFormat());
+
+	public static final Parameter minimumHeight = new SimpleParameter(
+			ParameterType.DOUBLE, "Min height",
+			"Minimum top intensity of the chromatogram", null, new Double(100.0),
+			new Double(0.0), null, MZmineCore.getIntensityFormat());
 
 	public static final Parameter mzTolerance = new SimpleParameter(
 			ParameterType.DOUBLE,
 			"m/z tolerance",
 			"Maximum allowed distance in M/Z between data points in successive spectrums",
-			"m/z", new Double(0.1), new Double(0.0), new Double(1.0), MZmineCore
-					.getMZFormat());
+			"m/z", new Double(0.1), new Double(0.0), new Double(1.0),
+			MZmineCore.getMZFormat());
 
-	public HighestDatapointConnectorParameters() {
-		super(new Parameter[] { minimumTimeSpan,
-				mzTolerance });
+	public SelectiveConnectorParameters() {
+		super(new Parameter[] { minimumTimeSpan, minimumHeight, mzTolerance });
 	}
 
 }

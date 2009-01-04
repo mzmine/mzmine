@@ -26,7 +26,6 @@ import java.awt.GridBagLayout;
 import java.awt.Insets;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.util.Arrays;
 
 import javax.swing.BorderFactory;
 import javax.swing.JButton;
@@ -230,7 +229,6 @@ class ChromatogramBuilderSetupDialog extends JDialog implements ActionListener {
 			for (int i = 0; i < dataFiles.length; i++) {
 
 				int msLevels[] = dataFiles[i].getMSLevels();
-				Arrays.sort(msLevels);
 
 				if (msLevels[0] != 1) {
 					notMsLevelOne = true;

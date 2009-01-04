@@ -17,10 +17,9 @@
  * Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-package net.sf.mzmine.modules.peakpicking.chromatogrambuilder.massconnection.highestdatapoint;
+package net.sf.mzmine.modules.peakpicking.chromatogrambuilder.massconnection.simple;
 
 import java.util.Arrays;
-import java.util.Iterator;
 import java.util.TreeMap;
 
 import net.sf.mzmine.data.MzPeak;
@@ -30,20 +29,17 @@ import net.sf.mzmine.modules.peakpicking.chromatogrambuilder.massconnection.Mass
 import net.sf.mzmine.util.CollectionUtils;
 import net.sf.mzmine.util.DataPointSorter;
 
-public class HighestDatapointConnector implements MassConnector {
+public class SimpleConnector implements MassConnector {
 
-	private double mzTolerance, minimumTimeSpan;
+	private double mzTolerance;
 
 	// Mapping of last data point m/z --> chromatogram
 	private TreeMap<Double, Chromatogram> buildingChromatograms;
 
-	public HighestDatapointConnector(
-			HighestDatapointConnectorParameters parameters) {
+	public SimpleConnector(SimpleConnectorParameters parameters) {
 
-		minimumTimeSpan = (Double) parameters
-				.getParameterValue(HighestDatapointConnectorParameters.minimumTimeSpan);
 		mzTolerance = (Double) parameters
-				.getParameterValue(HighestDatapointConnectorParameters.mzTolerance);
+				.getParameterValue(SimpleConnectorParameters.mzTolerance);
 
 		buildingChromatograms = new TreeMap<Double, Chromatogram>();
 	}
@@ -57,13 +53,14 @@ public class HighestDatapointConnector implements MassConnector {
 		TreeMap<Double, Chromatogram> connectedChromatograms = new TreeMap<Double, Chromatogram>();
 
 		for (MzPeak mzPeak : mzValues) {
-			
+
 			// Use binary search to find chromatograms within m/z tolerance
 			double mzKeys[] = CollectionUtils
 					.toDoubleArray(buildingChromatograms.keySet());
 			int index = Arrays.binarySearch(mzKeys, mzPeak.getMZ()
 					- mzTolerance);
-			if (index < 0) index = (index + 1) * -1;
+			if (index < 0)
+				index = (index + 1) * -1;
 			Chromatogram bestChromatogram = null;
 			double bestKey = -1;
 
@@ -71,7 +68,7 @@ public class HighestDatapointConnector implements MassConnector {
 
 				if (mzKeys[index] > mzPeak.getMZ() + mzTolerance)
 					break;
-				
+
 				Chromatogram chrom = buildingChromatograms.get(mzKeys[index]);
 				if ((bestChromatogram == null)
 						|| (chrom.getLastMzPeak().getIntensity() > bestChromatogram
@@ -79,9 +76,9 @@ public class HighestDatapointConnector implements MassConnector {
 					bestChromatogram = chrom;
 					bestKey = mzKeys[index];
 				}
-				
+
 				index++;
-			
+
 			}
 
 			if (bestChromatogram != null) {
@@ -96,9 +93,7 @@ public class HighestDatapointConnector implements MassConnector {
 		}
 
 		for (Chromatogram testChrom : buildingChromatograms.values()) {
-
-			if (testChrom.getRawDataPointsRTRange().getSize() >= minimumTimeSpan)
-				connectedChromatograms.put(testChrom.getMZ(), testChrom);
+			connectedChromatograms.put(testChrom.getMZ(), testChrom);
 		}
 
 		buildingChromatograms = connectedChromatograms;
@@ -106,22 +101,6 @@ public class HighestDatapointConnector implements MassConnector {
 	}
 
 	public Chromatogram[] finishChromatograms() {
-
-		Iterator<Chromatogram> chromIterator = buildingChromatograms.values()
-				.iterator();
-		while (chromIterator.hasNext()) {
-
-			Chromatogram currentChromatogram = chromIterator.next();
-
-			// Check length of detected Chromatogram
-			double chromatoLength = currentChromatogram
-					.getRawDataPointsRTRange().getSize();
-
-			if (chromatoLength < minimumTimeSpan) {
-				chromIterator.remove();
-			}
-		}
-
 		Chromatogram[] chromatograms = buildingChromatograms.values().toArray(
 				new Chromatogram[0]);
 		return chromatograms;
