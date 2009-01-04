@@ -1,0 +1,78 @@
+<!doctype html public "-//w3c//dtd html 4.0 transitional//en">
+<html>
+  <head>
+      <title>Wavelet transform peak recognition</title>
+  </head>
+<body>
+<h1 style="color: #0066CC; font-size: 35;">Wavelet transform peak recognition</h1>
+
+<h2 style="margin-left: 20px;">Spectrum analysis</h2>
+
+<p style="margin-left: 30px;" align="justify"; >
+This mass detector uses the Mexican Hat wavelet, same implementation as 
+<a href="../../../massdetection/wavelet/help/WaveletMassDetector.html">Wavelet mass detector</a>.
+ The recognition of chormatographic peaks is executed in three steps. First converts the 
+ original intensity of data points into wavelet domain. Next calculates the threshold level,
+ taking the "Wavelet threshold level" value to calculate the quantile from the wavelet's intensities. And finally 
+ uses the calculated threshold to identfy true chromatographic peaks.  
+<br><br>
+</p>
+
+
+<table style="margin-left: 30px; margin-right: auto;">
+<tr></tr>
+<tr></tr>
+<tr>
+	<td>
+	<img src="Wavelet_calculated.jpg">
+	</td>
+</tr>
+</table>
+
+<p style="margin-left: 30px;" align="justify"; >
+The difference with the Wavelet mass detector (algorithm implemented) is that this method does not require the user define the
+"Scale level" for the wavelet. The scale level is determined automatically. The algorithm 
+looks for a wavelet with an intensity just bigger than the chromatogram's intensity, until that point
+ the algorithm calculates the wavelet again with a bigger scale each time. Actually the method just calculates until scale
+  level 100, due must of the chromatograms are resolved with a scale less than 20.  
+ <br><br>
+This mass detector is recommended for raw data with low resolution. 
+</p>
+<h2 style="margin-left: 20px;">Parameters</h2>
+
+<p style="margin-left: 30px;" align="justify"; >
+This recognizer uses a three parameters:<br><br>
+<i>"Min peak height"</i><br><br>
+This value sets the minimum acceptable height (intensity) for a chromatographic peak. 
+<br><br> 
+<i>"Min peak duration"</i><br><br>
+This value sets the minimum acceptable length (time duration) for a chromatographic peak. 
+<br><br> 
+<i>"Wavelet threshold level"</i><br><br>
+This value sets the quantile level to calculate the wavelet threshold. 
+<br><br> 
+</p>
+
+<table style="margin-left: 30px; margin-right: auto;">
+
+<tr></tr>
+<tr></tr>
+<tr>
+	<td>Parameter setup dialog<br><br>
+	<img src="wavelet_recognizer_set.jpg">
+	</td>
+</tr>
+<tr></tr>
+<tr></tr>
+<tr>
+	<td>
+	Spectrum plot showing detected peaks<br><br>
+	<img src="wavelet_recognizer_preview.jpg">
+	</p>
+	</td>
+</tr>
+
+</table>
+
+</body>
+</html>

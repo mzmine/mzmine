@@ -1,0 +1,68 @@
+<!doctype html public "-//w3c//dtd html 4.0 transitional//en">
+<html>
+  <head>
+      <title>Savitzky Golay peak recognition</title>
+  </head>
+<body>
+<h1 style="color: #0066CC; font-size: 35;">Savitzky Golay peak recognition</h1>
+
+<h2 style="margin-left: 20px;">Chromatogram analysis</h2>
+
+<p style="margin-left: 30px;" align="justify"; >
+This peak recognizer uses the Savitzky-Golay polynomial (A. Savitzky and M. J. E. Golay, Anal. Chem.,
+ 36, 1627 (1964)) to get the second smoothed derivative of the chromatogram intensities. The next 
+ figure (left) presents the shape of a Gaussian peak (a), the first derivative (b), and the second 
+ derivative (c). The figure at right side shows how is divided the signal into possible chromatographic peaks. <br><br>
+</p>
+
+<table style="margin-left: 30px; margin-right: auto;">
+
+<tr></tr>
+<tr></tr>
+<tr>
+	<td>
+	<img src="1nd2ndDerivative.jpg" border="2">
+	</td>
+	<td>
+	<img src="1nd2ndDerivative2.jpg" border="2">
+	</td>
+</tr>
+
+</table>
+
+<h2 style="margin-left: 20px;">Parameters</h2>
+
+<p style="margin-left: 30px;" align="justify"; >
+This recognizer uses a two parameters:<br><br>
+<i>"Min peak height"</i><br><br>
+This value sets the minimum acceptable height (intensity) for a chromatographic peak. 
+<br><br> 
+<i>"Min peak duration"</i><br><br>
+This value sets the minimum acceptable length (time duration) for a chromatographic peak. 
+<br><br> 
+
+</p>
+
+<table style="margin-left: 30px; margin-right: auto;">
+
+<tr></tr>
+<tr></tr>
+<tr>
+	<td>Parameter setup dialog<br><br>
+	<img src="savitzky_recognizer_set.jpg">
+	</td>
+</tr>
+<tr></tr>
+<tr></tr>
+<tr>
+	<td>
+	Chromatogram plot showing detected peaks<br><br>
+	<img src="savitzky_recognizer_preview.jpg">
+	</p>
+	</td>
+</tr>
+
+</table>
+
+</body>
+</html>
