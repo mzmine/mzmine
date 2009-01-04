@@ -46,6 +46,11 @@ public class HelpButton extends JButton {
 
 			MZmineHelpSet hs = MZmineCore.getHelpImp().getHelpSet();
 			
+			if (hs == null) {
+				setEnabled(false);
+				return;
+			}
+			
 			HelpBroker hb = hs.createHelpBroker();
 			hs.setHomeID(helpID);
 

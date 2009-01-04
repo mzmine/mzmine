@@ -24,6 +24,7 @@ import java.util.logging.Logger;
 
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.taskcontrol.TaskListener;
+import net.sf.mzmine.taskcontrol.Task.TaskStatus;
 
 /**
  * Task controller worker thread
@@ -85,6 +86,12 @@ class WorkerThread extends Thread {
 
                 if (listener != null)
                     listener.taskFinished(currentTask.getTask());
+                
+                // Task finished with an error
+                if (currentTask.getTask().getStatus() == TaskStatus.ERROR) {
+                	logger.severe("Task error: " + currentTask.getTask().getErrorMessage());
+                	MZmineCore.getDesktop().displayErrorMessage("Task error: " + currentTask.getTask().getErrorMessage());
+                }
 
                 /*
                  * This is important to allow the garbage collector to remove

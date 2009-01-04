@@ -38,7 +38,6 @@ import javax.swing.KeyStroke;
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.modules.isotopes.isotopepatternscore.IsotopePatternScoreCalculator;
 import net.sf.mzmine.modules.isotopes.isotopeprediction.IsotopePatternCalculator;
-import net.sf.mzmine.modules.peakpicking.threestep.massdetection.MassDetectorSetupDialog;
 import net.sf.mzmine.util.GUIUtils;
 import net.sf.mzmine.util.dialogs.AxesSetupDialog;
 import net.sf.mzmine.util.dialogs.ThicknessSetupDialog;
@@ -259,8 +258,7 @@ public class SpectraPlot extends ChartPanel {
 
 		GUIUtils.addMenuItem(popupMenu, "Set axes range", this, "SETUP_AXES");
 
-		if (!(masterPlot instanceof MassDetectorSetupDialog))
-			GUIUtils.addMenuItem(popupMenu, "Set same range to all windows",
+		GUIUtils.addMenuItem(popupMenu, "Set same range to all windows",
 					this, "SET_SAME_RANGE");
 
 		popupMenu.addSeparator();

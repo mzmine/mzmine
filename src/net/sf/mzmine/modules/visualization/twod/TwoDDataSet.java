@@ -28,7 +28,7 @@ import net.sf.mzmine.data.impl.SimpleDataPoint;
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.taskcontrol.Task;
 import net.sf.mzmine.taskcontrol.Task.TaskPriority;
-import net.sf.mzmine.util.DataPointSorterByMZ;
+import net.sf.mzmine.util.DataPointSorter;
 import net.sf.mzmine.util.Range;
 import net.sf.mzmine.util.RawDataAcceptor;
 import net.sf.mzmine.util.RawDataRetrievalTask;
@@ -40,162 +40,166 @@ import org.jfree.data.xy.AbstractXYDataset;
  */
 class TwoDDataSet extends AbstractXYDataset implements RawDataAcceptor {
 
-    private RawDataFile rawDataFile;
+	private RawDataFile rawDataFile;
 
-    private double retentionTimes[];
-    private double basePeaks[];
-    private MzDataPoint dataPointMatrix[][];
+	private double retentionTimes[];
+	private double basePeaks[];
+	private MzDataPoint dataPointMatrix[][];
 
-    private Range totalRTRange, totalMZRange;
-    private int loadedScans = 0;
+	private Range totalRTRange, totalMZRange;
+	private int loadedScans = 0;
 
-    TwoDDataSet(RawDataFile rawDataFile, int msLevel, Range rtRange,
-            Range mzRange, TwoDVisualizerWindow visualizer) {
+	TwoDDataSet(RawDataFile rawDataFile, int msLevel, Range rtRange,
+			Range mzRange, TwoDVisualizerWindow visualizer) {
 
-        this.rawDataFile = rawDataFile;
+		this.rawDataFile = rawDataFile;
 
-        totalRTRange = rtRange;
-        totalMZRange = mzRange;
+		totalRTRange = rtRange;
+		totalMZRange = mzRange;
 
-        int scanNumbers[] = rawDataFile.getScanNumbers(msLevel, rtRange);
-        assert scanNumbers != null;
+		int scanNumbers[] = rawDataFile.getScanNumbers(msLevel, rtRange);
+		assert scanNumbers != null;
 
-        dataPointMatrix = new MzDataPoint[scanNumbers.length][];
-        retentionTimes = new double[scanNumbers.length];
-        basePeaks = new double[scanNumbers.length];
+		dataPointMatrix = new MzDataPoint[scanNumbers.length][];
+		retentionTimes = new double[scanNumbers.length];
+		basePeaks = new double[scanNumbers.length];
 
-        Task updateTask = new RawDataRetrievalTask(rawDataFile, scanNumbers,
-                "Updating 2D visualizer of " + rawDataFile, this);
+		Task updateTask = new RawDataRetrievalTask(rawDataFile, scanNumbers,
+				"Updating 2D visualizer of " + rawDataFile, this);
 
-        MZmineCore.getTaskController().addTask(updateTask, TaskPriority.HIGH,
-                visualizer);
+		MZmineCore.getTaskController().addTask(updateTask, TaskPriority.HIGH,
+				visualizer);
 
-    }
+	}
 
-    /**
-     * @see net.sf.mzmine.io.RawDataAcceptor#addScan(net.sf.mzmine.data.Scan)
-     */
-    public void addScan(Scan scan, int index, int total) {
+	/**
+	 * @see net.sf.mzmine.io.RawDataAcceptor#addScan(net.sf.mzmine.data.Scan)
+	 */
+	public void addScan(Scan scan, int index, int total) {
 
-        MzDataPoint scanBasePeak = scan.getBasePeak();
-        retentionTimes[index] = scan.getRetentionTime();
-        basePeaks[index] = (scanBasePeak == null ? 0 : scanBasePeak.getIntensity());
-        dataPointMatrix[index] = scan.getDataPointsByMass(totalMZRange);
-        loadedScans++;
+		MzDataPoint scanBasePeak = scan.getBasePeak();
+		retentionTimes[index] = scan.getRetentionTime();
+		basePeaks[index] = (scanBasePeak == null ? 0 : scanBasePeak
+				.getIntensity());
+		dataPointMatrix[index] = scan.getDataPointsByMass(totalMZRange);
+		loadedScans++;
 
-        // redraw when we add last value
-        if (index == total - 1) {
-            fireDatasetChanged();
-        }
+		// redraw when we add last value
+		if (index == total - 1) {
+			fireDatasetChanged();
+		}
 
-    }
+	}
 
-    /**
-     * @see org.jfree.data.general.AbstractSeriesDataset#getSeriesCount()
-     */
-    public int getSeriesCount() {
-        return 2;
-    }
+	/**
+	 * @see org.jfree.data.general.AbstractSeriesDataset#getSeriesCount()
+	 */
+	public int getSeriesCount() {
+		return 2;
+	}
 
-    /**
-     * @see org.jfree.data.general.AbstractSeriesDataset#getSeriesKey(int)
-     */
-    public Comparable getSeriesKey(int series) {
-        return rawDataFile.toString();
-    }
+	/**
+	 * @see org.jfree.data.general.AbstractSeriesDataset#getSeriesKey(int)
+	 */
+	public Comparable getSeriesKey(int series) {
+		return rawDataFile.toString();
+	}
 
-    /**
-     * @see org.jfree.data.xy.XYDataset#getItemCount(int)
-     */
-    public int getItemCount(int series) {
-        return 2;
-    }
+	/**
+	 * @see org.jfree.data.xy.XYDataset#getItemCount(int)
+	 */
+	public int getItemCount(int series) {
+		return 2;
+	}
 
-    /**
-     * @see org.jfree.data.xy.XYDataset#getX(int, int)
-     */
-    public Number getX(int series, int item) {
-        if (series == 0)
-            return totalRTRange.getMin();
-        else
-            return totalRTRange.getMax();
-    }
+	/**
+	 * @see org.jfree.data.xy.XYDataset#getX(int, int)
+	 */
+	public Number getX(int series, int item) {
+		if (series == 0)
+			return totalRTRange.getMin();
+		else
+			return totalRTRange.getMax();
+	}
 
-    /**
-     * @see org.jfree.data.xy.XYDataset#getY(int, int)
-     */
-    public Number getY(int series, int item) {
-        if (item == 0)
-            return totalMZRange.getMin();
-        else
-            return totalMZRange.getMax();
-    }
+	/**
+	 * @see org.jfree.data.xy.XYDataset#getY(int, int)
+	 */
+	public Number getY(int series, int item) {
+		if (item == 0)
+			return totalMZRange.getMin();
+		else
+			return totalMZRange.getMax();
+	}
 
-    double getMaxIntensity(Range rtRange, Range mzRange, PlotMode plotMode) {
+	double getMaxIntensity(Range rtRange, Range mzRange, PlotMode plotMode) {
 
-        double maxIntensity = 0;
+		double maxIntensity = 0;
 
-        double searchRetentionTimes[] = retentionTimes;
-        if (loadedScans < retentionTimes.length) {
-            searchRetentionTimes = new double[loadedScans];
-            System.arraycopy(retentionTimes, 0, searchRetentionTimes, 0,
-                    searchRetentionTimes.length);
-        }
+		double searchRetentionTimes[] = retentionTimes;
+		if (loadedScans < retentionTimes.length) {
+			searchRetentionTimes = new double[loadedScans];
+			System.arraycopy(retentionTimes, 0, searchRetentionTimes, 0,
+					searchRetentionTimes.length);
+		}
 
-        int startScanIndex = Arrays.binarySearch(searchRetentionTimes,
-                rtRange.getMin());
+		int startScanIndex = Arrays.binarySearch(searchRetentionTimes, rtRange
+				.getMin());
 
-        if (startScanIndex < 0)
-            startScanIndex = (startScanIndex * -1) - 1;
+		if (startScanIndex < 0)
+			startScanIndex = (startScanIndex * -1) - 1;
 
-        if (startScanIndex >= searchRetentionTimes.length) {
-            return 0;
-        }
+		if (startScanIndex >= searchRetentionTimes.length) {
+			return 0;
+		}
 
-        if (searchRetentionTimes[startScanIndex] > rtRange.getMax()) {
-            if (startScanIndex == 0)
-                return 0;
+		if (searchRetentionTimes[startScanIndex] > rtRange.getMax()) {
+			if (startScanIndex == 0)
+				return 0;
 
-            if (startScanIndex == searchRetentionTimes.length - 1)
-                return getMaxIntensity(dataPointMatrix[startScanIndex - 1],
-                        mzRange, plotMode);
+			if (startScanIndex == searchRetentionTimes.length - 1)
+				return getMaxIntensity(dataPointMatrix[startScanIndex - 1],
+						mzRange, plotMode);
 
-            // find which scan point is closer
-            double diffNext = searchRetentionTimes[startScanIndex]
-                    - rtRange.getMax();
-            double diffPrev = rtRange.getMin()
-                    - searchRetentionTimes[startScanIndex - 1];
+			// find which scan point is closer
+			double diffNext = searchRetentionTimes[startScanIndex]
+					- rtRange.getMax();
+			double diffPrev = rtRange.getMin()
+					- searchRetentionTimes[startScanIndex - 1];
 
-            if (diffPrev < diffNext)
-                return getMaxIntensity(dataPointMatrix[startScanIndex - 1],
-                        mzRange, plotMode);
-            else
-                return getMaxIntensity(dataPointMatrix[startScanIndex], mzRange, plotMode);
-        }
+			if (diffPrev < diffNext)
+				return getMaxIntensity(dataPointMatrix[startScanIndex - 1],
+						mzRange, plotMode);
+			else
+				return getMaxIntensity(dataPointMatrix[startScanIndex],
+						mzRange, plotMode);
+		}
 
-        for (int scanIndex = startScanIndex; ((scanIndex < searchRetentionTimes.length) && (searchRetentionTimes[scanIndex] <= rtRange.getMax())); scanIndex++) {
+		for (int scanIndex = startScanIndex; ((scanIndex < searchRetentionTimes.length) && (searchRetentionTimes[scanIndex] <= rtRange
+				.getMax())); scanIndex++) {
 
-            // ignore scans where all peaks are smaller than current max
-            if (basePeaks[scanIndex] < maxIntensity)
-                continue;
+			// ignore scans where all peaks are smaller than current max
+			if (basePeaks[scanIndex] < maxIntensity)
+				continue;
 
-            double scanMax = getMaxIntensity(dataPointMatrix[scanIndex], mzRange, plotMode);
-            if (scanMax > maxIntensity)
-                maxIntensity = scanMax;
+			double scanMax = getMaxIntensity(dataPointMatrix[scanIndex],
+					mzRange, plotMode);
+			if (scanMax > maxIntensity)
+				maxIntensity = scanMax;
 
-        }
+		}
 
-        return maxIntensity;
+		return maxIntensity;
 
-    }
+	}
 
-    double getMaxIntensity(MzDataPoint dataPoints[], Range mzRange, PlotMode plotMode) {
+	double getMaxIntensity(MzDataPoint dataPoints[], Range mzRange, PlotMode plotMode) {
 
         double maxIntensity = 0;
 
         MzDataPoint searchMZ = new SimpleDataPoint(mzRange.getMin(), 0);
         int startMZIndex = Arrays.binarySearch(dataPoints, searchMZ,
-                new DataPointSorterByMZ());
+                new DataPointSorter(true, true));
         if (startMZIndex < 0)
             startMZIndex = (startMZIndex * -1) - 1;
 

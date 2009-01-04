@@ -41,6 +41,7 @@ class TICToolTipGenerator implements XYToolTipGenerator {
      */
     public String generateToolTip(XYDataset dataset, int series, int item) {
 
+    	if (! (dataset instanceof TICDataSet)) return "gaga";
         TICDataSet ticDataSet = (TICDataSet) dataset;
 
         double rtValue = dataset.getXValue(series, item);

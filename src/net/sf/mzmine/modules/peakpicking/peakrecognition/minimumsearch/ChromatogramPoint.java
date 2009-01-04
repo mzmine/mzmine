@@ -17,21 +17,40 @@
  * Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-package net.sf.mzmine.data;
+package net.sf.mzmine.modules.peakpicking.peakrecognition.minimumsearch;
 
-/**
- * This interface represents a single m/z peak within a spectrum. The getMZ()
- * and getIntensity() methods of MzPeak return the best m/z and intensity
- * values, which do not necessarily match any raw data points within the scan.
- * Instead, MzPeak provides the getRawDataPoints() method which returns those
- * data points that were considered to form this MzPeak.
- */
-public interface MzPeak extends MzDataPoint {
+class ChromatogramPoint {
+
+    private double retentionTime, intensity;
 
     /**
-     * This method returns an array of raw data points that form this peak,
-     * sorted in m/z order.
+     * @param retentionTime
+     * @param intensity
      */
-    public MzDataPoint[] getRawDataPoints();
-    
+    ChromatogramPoint(double retentionTime, double intensity) {
+        this.retentionTime = retentionTime;
+        this.intensity = intensity;
+    }
+
+    /**
+     * @return the intensity
+     */
+    double getIntensity() {
+        return intensity;
+    }
+
+    /**
+     * @param intensity the intensity to set
+     */
+    void setIntensity(double intensity) {
+        this.intensity = intensity;
+    }
+
+    /**
+     * @return the retentionTime
+     */
+    double getRetentionTime() {
+        return retentionTime;
+    }
+
 }

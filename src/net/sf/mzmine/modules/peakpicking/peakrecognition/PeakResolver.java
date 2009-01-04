@@ -17,20 +17,16 @@
  * Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-package net.sf.mzmine.util;
+package net.sf.mzmine.modules.peakpicking.peakrecognition;
 
-import java.util.Comparator;
+import net.sf.mzmine.data.ChromatographicPeak;
 
-import net.sf.mzmine.data.MzDataPoint;
+public interface PeakResolver {
 
-/**
- */
-public class DataPointSorterByMZ implements Comparator<MzDataPoint> {
-
-    public int compare(MzDataPoint p1, MzDataPoint p2) {
-        Double mz1 = p1.getMZ();
-        Double mz2 = p2.getMZ();
-        return mz1.compareTo(mz2); 
-    }
+	/**
+     * 
+	 */
+	public ChromatographicPeak[] resolvePeaks(ChromatographicPeak chromatogram,
+			int scanNumbers[], double retentionTimes[], double intensities[]);
 
 }

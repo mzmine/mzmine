@@ -52,6 +52,7 @@ import org.jfree.chart.plot.XYPlot;
 import org.jfree.chart.renderer.xy.XYLineAndShapeRenderer;
 import org.jfree.chart.title.LegendTitle;
 import org.jfree.chart.title.TextTitle;
+import org.jfree.data.xy.XYDataset;
 import org.jfree.ui.RectangleInsets;
 
 /**
@@ -424,7 +425,7 @@ public class TICPlot extends ChartPanel {
 		return plot;
 	}
 
-	synchronized public void addTICDataset(TICDataSet newSet) {
+	synchronized public void addTICDataset(XYDataset newSet) {
 
 		plot.setDataset(numOfDataSets + numOfPeaks, newSet);
 

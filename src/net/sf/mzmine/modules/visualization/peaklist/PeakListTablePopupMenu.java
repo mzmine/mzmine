@@ -59,323 +59,336 @@ import com.sun.java.TableSorter;
  * 
  */
 public class PeakListTablePopupMenu extends JPopupMenu implements
-        ActionListener {
-
-    private PeakListTable table;
-    private PeakList peakList;
-    private PeakListTableColumnModel columnModel;
-
-    private JMenu showMenu, searchMenu;
-    private JMenuItem deleteRowsItem, addNewRowItem, plotRowsItem,
-            showSpectrumItem, showXICItem, showMSMSItem,
-            showIsotopePatternItem, show2DItem, show3DItem, pubChemSearchItem,
-            manuallyDefineItem;
+		ActionListener {
+
+	private PeakListTable table;
+	private PeakList peakList;
+	private PeakListTableColumnModel columnModel;
+
+	private JMenu showMenu, searchMenu;
+	private JMenuItem deleteRowsItem, addNewRowItem, plotRowsItem,
+			showSpectrumItem, showXICItem, showMSMSItem,
+			showIsotopePatternItem, show2DItem, show3DItem, pubChemSearchItem,
+			manuallyDefineItem;
+
+	private RawDataFile clickedDataFile;
+	private PeakListRow clickedPeakListRow;
+
+	public static final NumberFormat massFormater = MZmineCore.getMZFormat();
 
-    private RawDataFile clickedDataFile;
-    private PeakListRow clickedPeakListRow;
+	public PeakListTablePopupMenu(PeakListTableWindow window,
+			PeakListTable table, PeakListTableColumnModel columnModel,
+			PeakList peakList) {
 
-    public static final NumberFormat massFormater = MZmineCore.getMZFormat();
+		this.table = table;
+		this.peakList = peakList;
+		this.columnModel = columnModel;
 
-    public PeakListTablePopupMenu(PeakListTableWindow window,
-            PeakListTable table, PeakListTableColumnModel columnModel,
-            PeakList peakList) {
+		showMenu = new JMenu("Show...");
+		this.add(showMenu);
 
-        this.table = table;
-        this.peakList = peakList;
-        this.columnModel = columnModel;
+		showXICItem = GUIUtils.addMenuItem(showMenu, "Chromatogram", this);
+		showSpectrumItem = GUIUtils
+				.addMenuItem(showMenu, "Mass spectrum", this);
+		show2DItem = GUIUtils.addMenuItem(showMenu, "Peak in 2D", this);
+		show3DItem = GUIUtils.addMenuItem(showMenu, "Peak in 3D", this);
+		showMSMSItem = GUIUtils.addMenuItem(showMenu, "MS/MS", this);
+		showIsotopePatternItem = GUIUtils.addMenuItem(showMenu,
+				"Isotope pattern", this);
 
-        showMenu = new JMenu("Show...");
-        this.add(showMenu);
+		searchMenu = new JMenu("Search...");
+		this.add(searchMenu);
 
-        showXICItem = GUIUtils.addMenuItem(showMenu, "Chromatogram", this);
-        showSpectrumItem = GUIUtils.addMenuItem(showMenu, "Mass spectrum", this);
-        show2DItem = GUIUtils.addMenuItem(showMenu, "Peak in 2D", this);
-        show3DItem = GUIUtils.addMenuItem(showMenu, "Peak in 3D", this);
-        showMSMSItem = GUIUtils.addMenuItem(showMenu, "MS/MS", this);
-        showIsotopePatternItem = GUIUtils.addMenuItem(showMenu,
-                "Isotope pattern", this);
+		pubChemSearchItem = GUIUtils.addMenuItem(searchMenu,
+				"Search in PubChem", this);
 
-        searchMenu = new JMenu("Search...");
-        this.add(searchMenu);
+		plotRowsItem = GUIUtils.addMenuItem(this,
+				"Plot using Intensity Plot module", this);
 
-        pubChemSearchItem = GUIUtils.addMenuItem(searchMenu,
-                "Search in PubChem", this);
+		manuallyDefineItem = GUIUtils.addMenuItem(this, "Manually define peak",
+				this);
 
-        plotRowsItem = GUIUtils.addMenuItem(this,
-                "Plot using Intensity Plot module", this);
+		deleteRowsItem = GUIUtils.addMenuItem(this, "Delete selected rows",
+				this);
 
-        manuallyDefineItem = GUIUtils.addMenuItem(this, "Manually define peak",
-                this);
+		addNewRowItem = GUIUtils.addMenuItem(this, "Add new row", this);
 
-        deleteRowsItem = GUIUtils.addMenuItem(this, "Delete selected rows",
-                this);
+	}
 
-        addNewRowItem = GUIUtils.addMenuItem(this, "Add new row", this);
-
-    }
-
-    public void show(Component invoker, int x, int y) {
-
-        // First, disable all the Show... items
-        showXICItem.setEnabled(true);
-        manuallyDefineItem.setEnabled(false);
-        showSpectrumItem.setEnabled(false);
-        show2DItem.setEnabled(false);
-        show3DItem.setEnabled(false);
-        showMSMSItem.setEnabled(false);
-        showIsotopePatternItem.setEnabled(false);
-
-        // Enable row items if applicable
-        int selectedRows[] = table.getSelectedRows();
-        deleteRowsItem.setEnabled(selectedRows.length > 0);
-        plotRowsItem.setEnabled(selectedRows.length > 0);
-
-        // Find the row and column where the user clicked
-        Point clickedPoint = new Point(x, y);
-        int clickedRow = table.rowAtPoint(clickedPoint);
-        int clickedColumn = columnModel.getColumn(
-                table.columnAtPoint(clickedPoint)).getModelIndex();
-        if ((clickedRow >= 0) && (clickedColumn >= 0)) {
-
-            TableSorter sorter = (TableSorter) table.getModel();
-            clickedPeakListRow = peakList.getRow(sorter.modelIndex(clickedRow));
-            showXICItem.setEnabled(true);
-
-            // If we clicked on data file columns, check the peak
-            if (clickedColumn >= CommonColumnType.values().length) {
-
-                // Enable manual peak picking
-                manuallyDefineItem.setEnabled(true);
-
-                // Find the actual peak, if we have it
-                int dataFileIndex = (clickedColumn - CommonColumnType.values().length)
-                        / DataFileColumnType.values().length;
-                clickedDataFile = peakList.getRawDataFile(dataFileIndex);
-
-                ChromatographicPeak clickedPeak = clickedPeakListRow.getPeak(clickedDataFile);
-
-                // If we have the peak, enable Show... items
-                if (clickedPeak != null) {
-                    showSpectrumItem.setEnabled(true);
-                    show2DItem.setEnabled(true);
-                    show3DItem.setEnabled(true);
-                    showIsotopePatternItem.setEnabled(clickedPeak instanceof IsotopePattern);
-                    showMSMSItem.setEnabled(clickedPeak.getMostIntenseFragmentScanNumber() > 0);
-                }
-
-            }
-
-        }
-
-        super.show(invoker, x, y);
-    }
-
-    /**
-     * @see java.awt.event.ActionListener#actionPerformed(java.awt.event.ActionEvent)
-     */
-    public void actionPerformed(ActionEvent event) {
-
-        Object src = event.getSource();
-
-        if (src == deleteRowsItem) {
-
-            int rowsToDelete[] = table.getSelectedRows();
-
-            TableSorter sorterModel = (TableSorter) table.getModel();
-            PeakListTableModel originalModel = (PeakListTableModel) sorterModel.getTableModel();
-
-            int unsordedIndexes[] = new int[rowsToDelete.length];
-            for (int i = rowsToDelete.length - 1; i >= 0; i--) {
-                unsordedIndexes[i] = sorterModel.modelIndex(rowsToDelete[i]);
-            }
-
-            // sort row indexes and start removing from the last
-            Arrays.sort(unsordedIndexes);
-
-            // delete the rows starting from last
-            for (int i = unsordedIndexes.length - 1; i >= 0; i--) {
-                peakList.removeRow(unsordedIndexes[i]);
-            }
-            originalModel.fireTableDataChanged();
-
-        }
-
-        if (src == plotRowsItem) {
-
-            int selectedTableRows[] = table.getSelectedRows();
-            TableSorter sorterModel = (TableSorter) table.getModel();
-            PeakListRow selectedRows[] = new PeakListRow[selectedTableRows.length];
-            for (int i = 0; i < selectedTableRows.length; i++) {
-                int unsortedIndex = sorterModel.modelIndex(selectedTableRows[i]);
-                selectedRows[i] = peakList.getRow(unsortedIndex);
-            }
-            IntensityPlot.showIntensityPlot(peakList, selectedRows);
-        }
-
-        if (src == showXICItem) {
-
-            // Check if we clicked on a raw data file XIC, or combined XIC
-            if (clickedDataFile == null) {
-                Range rtRange = null, mzRange = null;
-                for (RawDataFile dataFile : clickedPeakListRow.getRawDataFiles()) {
-                    if (rtRange == null)
-                        rtRange = dataFile.getDataRTRange(1);
-                    else
-                        rtRange.extendRange(dataFile.getDataRTRange(1));
-                }
-                for (ChromatographicPeak peak : clickedPeakListRow.getPeaks()) {
-                    if (mzRange == null)
-                        mzRange = peak.getRawDataPointsMZRange();
-                    else
-                        mzRange.extendRange(peak.getRawDataPointsMZRange());
-                }
-                TICVisualizer.showNewTICVisualizerWindow(
-                        clickedPeakListRow.getRawDataFiles(),
-                        clickedPeakListRow.getPeaks(), 1,
-                        TICVisualizerParameters.plotTypeBP, rtRange, mzRange);
-                return;
-            }
-
-            ChromatographicPeak clickedPeak = clickedPeakListRow.getPeak(clickedDataFile);
-
-            if (clickedPeak != null) {
-                TICVisualizer.showNewTICVisualizerWindow(
-                        new RawDataFile[] { clickedDataFile },
-                        new ChromatographicPeak[] { clickedPeak }, 1,
-                        TICVisualizerParameters.plotTypeBP,
-                        clickedDataFile.getDataRTRange(1),
-                        clickedPeak.getRawDataPointsMZRange());
-
-            } else {
-                Range mzRange = new Range(clickedPeakListRow.getAverageMZ());
-
-                for (ChromatographicPeak peak : clickedPeakListRow.getPeaks()) {
-                    if (peak == null)
-                        continue;
-                    mzRange.extendRange(peak.getRawDataPointsMZRange());
-
-                }
-                TICVisualizer.showNewTICVisualizerWindow(
-                        new RawDataFile[] { clickedDataFile }, null, 1,
-                        TICVisualizerParameters.plotTypeBP,
-                        clickedDataFile.getDataRTRange(1), mzRange);
-            }
-
-        }
-
-        if (src == show2DItem) {
-
-            ChromatographicPeak clickedPeak = clickedPeakListRow.getPeak(clickedDataFile);
-
-            if (clickedPeak != null) {
-                Range peakRTRange = clickedPeak.getRawDataPointsRTRange();
-                Range peakMZRange = clickedPeak.getRawDataPointsMZRange();
-                Range rtRange = new Range(Math.max(0, peakRTRange.getMin()
-                        - peakRTRange.getSize()), peakRTRange.getMax()
-                        + peakRTRange.getSize());
-
-                Range mzRange = new Range(Math.max(0, peakMZRange.getMin()
-                        - peakMZRange.getSize()), peakMZRange.getMax()
-                        + peakMZRange.getSize());
-                TwoDVisualizer.show2DVisualizerSetupDialog(clickedDataFile,
-                        mzRange, rtRange);
-
-            }
-        }
-
-        if (src == show3DItem) {
-
-            ChromatographicPeak clickedPeak = clickedPeakListRow.getPeak(clickedDataFile);
-
-            if (clickedPeak != null) {
-                Range peakRTRange = clickedPeak.getRawDataPointsRTRange();
-                Range peakMZRange = clickedPeak.getRawDataPointsMZRange();
-                Range rtRange = new Range(Math.max(0, peakRTRange.getMin()
-                        - peakRTRange.getSize()), peakRTRange.getMax()
-                        + peakRTRange.getSize());
-
-                Range mzRange = new Range(Math.max(0, peakMZRange.getMin()
-                        - peakMZRange.getSize()), peakMZRange.getMax()
-                        + peakMZRange.getSize());
-                ThreeDVisualizer.show3DVisualizerSetupDialog(clickedDataFile,
-                        mzRange, rtRange);
-
-            }
-        }
-
-        if (src == manuallyDefineItem) {
-            ManualPeakPicker.runManualDetection(clickedDataFile,
-                    clickedPeakListRow);
-        }
-
-        if (src == showSpectrumItem) {
-            ChromatographicPeak clickedPeak = clickedPeakListRow.getPeak(clickedDataFile);
-            SpectraVisualizer.showNewSpectrumWindow(clickedDataFile,
-                    clickedPeak.getRepresentativeScanNumber());
-        }
-
-        if (src == showMSMSItem) {
-
-            ChromatographicPeak clickedPeak = clickedPeakListRow.getPeak(clickedDataFile);
-
-            if (clickedPeak != null) {
-                int scanNumber = clickedPeak.getMostIntenseFragmentScanNumber();
-                if (scanNumber > 0) {
-                    SpectraVisualizer.showNewSpectrumWindow(clickedDataFile,
-                            scanNumber);
-                } else {
-                    MZmineCore.getDesktop().displayMessage(
-                            "There is no fragment for the mass "
-                                    + massFormater.format(clickedPeak.getMZ())
-                                    + "m/z in the current raw data.");
-                    return;
-                }
-            }
-        }
-
-        if (src == showIsotopePatternItem) {
-
-            ChromatographicPeak clickedPeak = clickedPeakListRow.getPeak(clickedDataFile);
-
-            if (clickedPeak != null) {
-                if (clickedPeak instanceof IsotopePattern)
-                    SpectraVisualizer.showIsotopePattern(clickedDataFile,
-                            (IsotopePattern) clickedPeak);
-            }
-        }
-
-        if (src == pubChemSearchItem) {
-
-            PubChemSearch pubChem = PubChemSearch.getInstance();
-
-            ChromatographicPeak clickedPeak = clickedPeakListRow.getPeak(clickedDataFile);
-
-            if (clickedPeak != null) {
-
-                pubChem.showPubChemSearchDialog(peakList, clickedPeakListRow,
-                        clickedPeak);
-            }
-        }
-
-        if (src == addNewRowItem) {
-
-            // find maximum ID and add 1
-            int newID = 1;
-            for (PeakListRow row : peakList.getRows()) {
-                if (row.getID() >= newID)
-                    newID = row.getID() + 1;
-            }
-
-            // create a new row
-            SimplePeakListRow newRow = new SimplePeakListRow(newID);
-            peakList.addRow(newRow);
-            TableSorter sorterModel = (TableSorter) table.getModel();
-            PeakListTableModel originalModel = (PeakListTableModel) sorterModel.getTableModel();
-            originalModel.fireTableDataChanged();
-            ManualPeakPicker.runManualDetection(peakList.getRawDataFiles(),
-                    newRow);
-        }
-
-    }
+	public void show(Component invoker, int x, int y) {
+
+		// First, disable all the Show... items
+		showXICItem.setEnabled(true);
+		manuallyDefineItem.setEnabled(false);
+		showSpectrumItem.setEnabled(false);
+		show2DItem.setEnabled(false);
+		show3DItem.setEnabled(false);
+		showMSMSItem.setEnabled(false);
+		showIsotopePatternItem.setEnabled(false);
+
+		// Enable row items if applicable
+		int selectedRows[] = table.getSelectedRows();
+		deleteRowsItem.setEnabled(selectedRows.length > 0);
+		plotRowsItem.setEnabled(selectedRows.length > 0);
+
+		// Find the row and column where the user clicked
+		Point clickedPoint = new Point(x, y);
+		int clickedRow = table.rowAtPoint(clickedPoint);
+		int clickedColumn = columnModel.getColumn(
+				table.columnAtPoint(clickedPoint)).getModelIndex();
+		if ((clickedRow >= 0) && (clickedColumn >= 0)) {
+
+			TableSorter sorter = (TableSorter) table.getModel();
+			clickedPeakListRow = peakList.getRow(sorter.modelIndex(clickedRow));
+			showXICItem.setEnabled(true);
+
+			// If we clicked on data file columns, check the peak
+			if (clickedColumn >= CommonColumnType.values().length) {
+
+				// Enable manual peak picking
+				manuallyDefineItem.setEnabled(true);
+
+				// Find the actual peak, if we have it
+				int dataFileIndex = (clickedColumn - CommonColumnType.values().length)
+						/ DataFileColumnType.values().length;
+				clickedDataFile = peakList.getRawDataFile(dataFileIndex);
+
+				ChromatographicPeak clickedPeak = clickedPeakListRow
+						.getPeak(clickedDataFile);
+
+				// If we have the peak, enable Show... items
+				if (clickedPeak != null) {
+					showSpectrumItem.setEnabled(true);
+					show2DItem.setEnabled(true);
+					show3DItem.setEnabled(true);
+					showIsotopePatternItem
+							.setEnabled(clickedPeak instanceof IsotopePattern);
+					showMSMSItem.setEnabled(clickedPeak
+							.getMostIntenseFragmentScanNumber() > 0);
+				}
+
+			}
+
+		}
+
+		super.show(invoker, x, y);
+	}
+
+	/**
+	 * @see java.awt.event.ActionListener#actionPerformed(java.awt.event.ActionEvent)
+	 */
+	public void actionPerformed(ActionEvent event) {
+
+		Object src = event.getSource();
+
+		if (src == deleteRowsItem) {
+
+			int rowsToDelete[] = table.getSelectedRows();
+
+			TableSorter sorterModel = (TableSorter) table.getModel();
+			PeakListTableModel originalModel = (PeakListTableModel) sorterModel
+					.getTableModel();
+
+			int unsordedIndexes[] = new int[rowsToDelete.length];
+			for (int i = rowsToDelete.length - 1; i >= 0; i--) {
+				unsordedIndexes[i] = sorterModel.modelIndex(rowsToDelete[i]);
+			}
+
+			// sort row indexes and start removing from the last
+			Arrays.sort(unsordedIndexes);
+
+			// delete the rows starting from last
+			for (int i = unsordedIndexes.length - 1; i >= 0; i--) {
+				peakList.removeRow(unsordedIndexes[i]);
+			}
+			originalModel.fireTableDataChanged();
+
+		}
+
+		if (src == plotRowsItem) {
+
+			int selectedTableRows[] = table.getSelectedRows();
+			TableSorter sorterModel = (TableSorter) table.getModel();
+			PeakListRow selectedRows[] = new PeakListRow[selectedTableRows.length];
+			for (int i = 0; i < selectedTableRows.length; i++) {
+				int unsortedIndex = sorterModel
+						.modelIndex(selectedTableRows[i]);
+				selectedRows[i] = peakList.getRow(unsortedIndex);
+			}
+			IntensityPlot.showIntensityPlot(peakList, selectedRows);
+		}
+
+		if (src == showXICItem) {
+
+			// Check if we clicked on a raw data file XIC, or combined XIC
+			if (clickedDataFile == null) {
+				Range rtRange = null, mzRange = null;
+				for (RawDataFile dataFile : clickedPeakListRow
+						.getRawDataFiles()) {
+					if (rtRange == null)
+						rtRange = dataFile.getDataRTRange(1);
+					else
+						rtRange.extendRange(dataFile.getDataRTRange(1));
+				}
+				for (ChromatographicPeak peak : clickedPeakListRow.getPeaks()) {
+					if (mzRange == null)
+						mzRange = peak.getRawDataPointsMZRange();
+					else
+						mzRange.extendRange(peak.getRawDataPointsMZRange());
+				}
+				TICVisualizer.showNewTICVisualizerWindow(clickedPeakListRow
+						.getRawDataFiles(), clickedPeakListRow.getPeaks(), 1,
+						TICVisualizerParameters.plotTypeBP, rtRange, mzRange);
+				return;
+			}
+
+			ChromatographicPeak clickedPeak = clickedPeakListRow
+					.getPeak(clickedDataFile);
+
+			if (clickedPeak != null) {
+				TICVisualizer.showNewTICVisualizerWindow(
+						new RawDataFile[] { clickedDataFile },
+						new ChromatographicPeak[] { clickedPeak }, 1,
+						TICVisualizerParameters.plotTypeBP, clickedDataFile
+								.getDataRTRange(1), clickedPeak
+								.getRawDataPointsMZRange());
+
+			} else {
+				Range mzRange = new Range(clickedPeakListRow.getAverageMZ());
+
+				for (ChromatographicPeak peak : clickedPeakListRow.getPeaks()) {
+					if (peak == null)
+						continue;
+					mzRange.extendRange(peak.getRawDataPointsMZRange());
+
+				}
+				TICVisualizer.showNewTICVisualizerWindow(
+						new RawDataFile[] { clickedDataFile }, null, 1,
+						TICVisualizerParameters.plotTypeBP, clickedDataFile
+								.getDataRTRange(1), mzRange);
+			}
+
+		}
+
+		if (src == show2DItem) {
+
+			ChromatographicPeak clickedPeak = clickedPeakListRow
+					.getPeak(clickedDataFile);
+
+			if (clickedPeak != null) {
+				Range peakRTRange = clickedPeak.getRawDataPointsRTRange();
+				Range peakMZRange = clickedPeak.getRawDataPointsMZRange();
+				Range rtRange = new Range(Math.max(0, peakRTRange.getMin()
+						- peakRTRange.getSize()), peakRTRange.getMax()
+						+ peakRTRange.getSize());
+
+				Range mzRange = new Range(Math.max(0, peakMZRange.getMin()
+						- peakMZRange.getSize()), peakMZRange.getMax()
+						+ peakMZRange.getSize());
+				TwoDVisualizer.show2DVisualizerSetupDialog(clickedDataFile,
+						mzRange, rtRange);
+
+			}
+		}
+
+		if (src == show3DItem) {
+
+			ChromatographicPeak clickedPeak = clickedPeakListRow
+					.getPeak(clickedDataFile);
+
+			if (clickedPeak != null) {
+				Range peakRTRange = clickedPeak.getRawDataPointsRTRange();
+				Range peakMZRange = clickedPeak.getRawDataPointsMZRange();
+				Range rtRange = new Range(Math.max(0, peakRTRange.getMin()
+						- peakRTRange.getSize()), peakRTRange.getMax()
+						+ peakRTRange.getSize());
+
+				Range mzRange = new Range(Math.max(0, peakMZRange.getMin()
+						- peakMZRange.getSize()), peakMZRange.getMax()
+						+ peakMZRange.getSize());
+				ThreeDVisualizer.show3DVisualizerSetupDialog(clickedDataFile,
+						mzRange, rtRange);
+
+			}
+		}
+
+		if (src == manuallyDefineItem) {
+			ManualPeakPicker.runManualDetection(clickedDataFile,
+					clickedPeakListRow);
+		}
+
+		if (src == showSpectrumItem) {
+			ChromatographicPeak clickedPeak = clickedPeakListRow
+					.getPeak(clickedDataFile);
+			SpectraVisualizer.showNewSpectrumWindow(clickedDataFile,
+					clickedPeak.getRepresentativeScanNumber());
+		}
+
+		if (src == showMSMSItem) {
+
+			ChromatographicPeak clickedPeak = clickedPeakListRow
+					.getPeak(clickedDataFile);
+
+			if (clickedPeak != null) {
+				int scanNumber = clickedPeak.getMostIntenseFragmentScanNumber();
+				if (scanNumber > 0) {
+					SpectraVisualizer.showNewSpectrumWindow(clickedDataFile,
+							scanNumber);
+				} else {
+					MZmineCore.getDesktop().displayMessage(
+							"There is no fragment for the mass "
+									+ massFormater.format(clickedPeak.getMZ())
+									+ "m/z in the current raw data.");
+					return;
+				}
+			}
+		}
+
+		if (src == showIsotopePatternItem) {
+
+			ChromatographicPeak clickedPeak = clickedPeakListRow
+					.getPeak(clickedDataFile);
+
+			if (clickedPeak != null) {
+				if (clickedPeak instanceof IsotopePattern)
+					SpectraVisualizer.showIsotopePattern(clickedDataFile,
+							(IsotopePattern) clickedPeak);
+			}
+		}
+
+		if (src == pubChemSearchItem) {
+
+			PubChemSearch pubChem = PubChemSearch.getInstance();
+
+			ChromatographicPeak clickedPeak = null;
+
+			if (clickedDataFile != null)
+				clickedPeak = clickedPeakListRow.getPeak(clickedDataFile);
+
+			pubChem.showPubChemSearchDialog(peakList, clickedPeakListRow,
+					clickedPeak);
+		}
+
+		if (src == addNewRowItem) {
+
+			// find maximum ID and add 1
+			int newID = 1;
+			for (PeakListRow row : peakList.getRows()) {
+				if (row.getID() >= newID)
+					newID = row.getID() + 1;
+			}
+
+			// create a new row
+			SimplePeakListRow newRow = new SimplePeakListRow(newID);
+			peakList.addRow(newRow);
+			TableSorter sorterModel = (TableSorter) table.getModel();
+			PeakListTableModel originalModel = (PeakListTableModel) sorterModel
+					.getTableModel();
+			originalModel.fireTableDataChanged();
+			ManualPeakPicker.runManualDetection(peakList.getRawDataFiles(),
+					newRow);
+		}
+
+	}
 
 }

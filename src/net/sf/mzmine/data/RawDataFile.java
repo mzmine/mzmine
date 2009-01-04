@@ -34,6 +34,9 @@ public interface RawDataFile {
 
     public int getNumOfScans(int msLevel);
 
+    /**
+     * Returns sorted array of all MS levels in this file
+     */
     public int[] getMSLevels();
 
     /**

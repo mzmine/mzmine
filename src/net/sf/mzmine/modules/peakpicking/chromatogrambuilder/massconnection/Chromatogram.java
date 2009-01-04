@@ -28,6 +28,7 @@ import net.sf.mzmine.data.MzPeak;
 import net.sf.mzmine.data.PeakStatus;
 import net.sf.mzmine.data.RawDataFile;
 import net.sf.mzmine.data.Scan;
+import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.util.CollectionUtils;
 import net.sf.mzmine.util.MathUtils;
 import net.sf.mzmine.util.Range;
@@ -116,7 +117,7 @@ public class Chromatogram implements ChromatographicPeak {
 	public String toString() {
 		if (chromatogramModified)
 			updateChromatogramVariables();
-		return "Chromatogram @ m/z " + mz;
+		return "Chromatogram " + MZmineCore.getMZFormat().format(mz) + " m/z";
 	}
 
 	public double getArea() {
