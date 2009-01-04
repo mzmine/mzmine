@@ -31,7 +31,7 @@ import net.sf.mzmine.util.Range;
  * This class is only used for visualization terms by MassDetectorSetupDialog.
  * 
  */
-class FakePeak implements ChromatographicPeak {
+class MassDetectorPreviewPeak implements ChromatographicPeak {
 
 	private MzPeak mzPeak;
 	private int scanNumber;
@@ -41,7 +41,7 @@ class FakePeak implements ChromatographicPeak {
 	 * @param scanNumber
 	 * @param datapoint
 	 */
-	public FakePeak(int scanNumber, MzPeak mzPeak) {
+	public MassDetectorPreviewPeak(int scanNumber, MzPeak mzPeak) {
 		this.mzPeak = mzPeak;
 		this.scanNumber = scanNumber;
 	}

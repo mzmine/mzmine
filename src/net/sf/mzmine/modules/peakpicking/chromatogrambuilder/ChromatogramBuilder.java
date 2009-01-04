@@ -38,104 +38,106 @@ import net.sf.mzmine.util.dialogs.ExitCode;
 
 public class ChromatogramBuilder implements BatchStep, ActionListener {
 
-    private ChromatogramBuilderParameters parameters;
+	private ChromatogramBuilderParameters parameters;
 
-    private Desktop desktop;
+	private Desktop desktop;
 
-    /**
-     * @see net.sf.mzmine.main.MZmineModule#initModule(net.sf.mzmine.main.MZmineCore)
-     */
-    public void initModule() {
+	/**
+	 * @see net.sf.mzmine.main.MZmineModule#initModule(net.sf.mzmine.main.MZmineCore)
+	 */
+	public void initModule() {
 
-        this.desktop = MZmineCore.getDesktop();
+		this.desktop = MZmineCore.getDesktop();
 
-        parameters = new ChromatogramBuilderParameters();
+		parameters = new ChromatogramBuilderParameters();
 
-        desktop.addMenuItem(
-                MZmineMenu.PEAKPICKING,
-                "Chromatogram builder",
-                "Chromatogram construction by detecting masses in each m/z spectrum and connecting following masses together",
-                KeyEvent.VK_C, true, this, null);
-    }
+		desktop
+				.addMenuItem(
+						MZmineMenu.PEAKPICKING,
+						"Chromatogram builder",
+						"Chromatogram construction by detecting masses in each m/z spectrum and connecting following masses together",
+						KeyEvent.VK_C, true, this, null);
+	}
 
-    /**
-     * @see java.awt.event.ActionListener#actionPerformed(java.awt.event.ActionEvent)
-     */
-    public void actionPerformed(ActionEvent e) {
+	/**
+	 * @see java.awt.event.ActionListener#actionPerformed(java.awt.event.ActionEvent)
+	 */
+	public void actionPerformed(ActionEvent e) {
 
-        RawDataFile[] dataFiles = desktop.getSelectedDataFiles();
-        if (dataFiles.length == 0) {
-            desktop.displayErrorMessage("Please select at least one data file");
-            return;
-        }
+		RawDataFile[] dataFiles = desktop.getSelectedDataFiles();
+		if (dataFiles.length == 0) {
+			desktop.displayErrorMessage("Please select at least one data file");
+			return;
+		}
 
-        ExitCode exitCode = setupParameters(parameters);
-        if (exitCode != ExitCode.OK)
-            return;
+		ExitCode exitCode = setupParameters(parameters);
+		if (exitCode != ExitCode.OK)
+			return;
 
-        runModule(dataFiles, null, parameters.clone(), null);
+		runModule(dataFiles, null, parameters.clone(), null);
 
-    }
+	}
 
-    /**
-     * @see net.sf.mzmine.modules.BatchStep#toString()
-     */
-    public String toString() {
-        return "Chromatogram builder";
-    }
+	/**
+	 * @see net.sf.mzmine.modules.BatchStep#toString()
+	 */
+	public String toString() {
+		return "Chromatogram builder";
+	}
 
-    /**
-     * @see net.sf.mzmine.modules.BatchStep#setupParameters(net.sf.mzmine.data.ParameterSet)
-     */
-    public ExitCode setupParameters(ParameterSet parameters) {
-        ChromatogramBuilderSetupDialog dialog = new ChromatogramBuilderSetupDialog(
-                "Please set parameter values for " + toString(),
-                (ChromatogramBuilderParameters) parameters);
-        dialog.setVisible(true);
-        return dialog.getExitCode();
-    }
+	/**
+	 * @see net.sf.mzmine.modules.BatchStep#setupParameters(net.sf.mzmine.data.ParameterSet)
+	 */
+	public ExitCode setupParameters(ParameterSet parameters) {
+		ChromatogramBuilderSetupDialog dialog = new ChromatogramBuilderSetupDialog(
+				"Please set parameter values for " + toString(),
+				(ChromatogramBuilderParameters) parameters);
+		dialog.setVisible(true);
+		return dialog.getExitCode();
+	}
 
-    /**
-     * @see net.sf.mzmine.main.MZmineModule#getParameterSet()
-     */
-    public ParameterSet getParameterSet() {
-        return parameters;
-    }
+	/**
+	 * @see net.sf.mzmine.main.MZmineModule#getParameterSet()
+	 */
+	public ParameterSet getParameterSet() {
+		return parameters;
+	}
 
-    public void setParameters(ParameterSet parameters) {
-        this.parameters = (ChromatogramBuilderParameters) parameters;
-    }
+	public void setParameters(ParameterSet parameters) {
+		this.parameters = (ChromatogramBuilderParameters) parameters;
+	}
 
-    /**
-     * @see net.sf.mzmine.modules.BatchStep#runModule(net.sf.mzmine.data.RawDataFile[],
-     *      net.sf.mzmine.data.AlignmentResult[],
-     *      net.sf.mzmine.data.ParameterSet,
-     *      net.sf.mzmine.taskcontrol.TaskGroupListener)
-     */
-    public TaskGroup runModule(RawDataFile[] dataFiles, PeakList[] peakLists,
-            ParameterSet parameters, TaskGroupListener taskGroupListener) {
-        // check data files
-        if ((dataFiles == null) || (dataFiles.length == 0)) {
-            desktop.displayErrorMessage("Please select data files for peak picking");
-            return null;
-        }
+	/**
+	 * @see net.sf.mzmine.modules.BatchStep#runModule(net.sf.mzmine.data.RawDataFile[],
+	 *      net.sf.mzmine.data.AlignmentResult[],
+	 *      net.sf.mzmine.data.ParameterSet,
+	 *      net.sf.mzmine.taskcontrol.TaskGroupListener)
+	 */
+	public TaskGroup runModule(RawDataFile[] dataFiles, PeakList[] peakLists,
+			ParameterSet parameters, TaskGroupListener taskGroupListener) {
+		// check data files
+		if ((dataFiles == null) || (dataFiles.length == 0)) {
+			desktop
+					.displayErrorMessage("Please select data files for peak picking");
+			return null;
+		}
 
-        // prepare a new group of tasks
-        Task tasks[] = new ChromatogramBuilderTask[dataFiles.length];
-        for (int i = 0; i < dataFiles.length; i++) {
-            tasks[i] = new ChromatogramBuilderTask(dataFiles[i],
-                    (ChromatogramBuilderParameters) parameters);
-        }
-        TaskGroup newGroup = new TaskGroup(tasks, null, taskGroupListener);
+		// prepare a new group of tasks
+		Task tasks[] = new ChromatogramBuilderTask[dataFiles.length];
+		for (int i = 0; i < dataFiles.length; i++) {
+			tasks[i] = new ChromatogramBuilderTask(dataFiles[i],
+					(ChromatogramBuilderParameters) parameters);
+		}
+		TaskGroup newGroup = new TaskGroup(tasks, null, taskGroupListener);
 
-        // start the group
-        newGroup.start();
+		// start the group
+		newGroup.start();
 
-        return newGroup;
-    }
+		return newGroup;
+	}
 
-    public BatchStepCategory getBatchStepCategory() {
-        return BatchStepCategory.PEAKPICKING;
-    }
+	public BatchStepCategory getBatchStepCategory() {
+		return BatchStepCategory.PEAKPICKING;
+	}
 
 }

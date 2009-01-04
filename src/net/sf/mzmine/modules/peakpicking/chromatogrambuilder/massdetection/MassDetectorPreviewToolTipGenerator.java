@@ -29,7 +29,7 @@ import org.jfree.data.xy.XYDataset;
 /**
  * Tooltip generator for picked MzPeaks
  */
-class MzPeakToolTipGenerator implements XYToolTipGenerator {
+class MassDetectorPreviewToolTipGenerator implements XYToolTipGenerator {
 
 	private NumberFormat mzFormat = MZmineCore.getMZFormat();
 	private NumberFormat intensityFormat = MZmineCore.getIntensityFormat();

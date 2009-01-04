@@ -20,7 +20,6 @@
 package net.sf.mzmine.modules.peakpicking.chromatogrambuilder;
 
 import java.lang.reflect.Constructor;
-import java.util.Arrays;
 import java.util.logging.Logger;
 
 import net.sf.mzmine.data.ChromatographicPeak;
@@ -32,10 +31,9 @@ import net.sf.mzmine.data.impl.SimplePeakList;
 import net.sf.mzmine.data.impl.SimplePeakListRow;
 import net.sf.mzmine.desktop.Desktop;
 import net.sf.mzmine.main.MZmineCore;
-import net.sf.mzmine.modules.peakpicking.threestep.massdetection.MassDetector;
-import net.sf.mzmine.modules.peakpicking.threestep.peakconstruction.PeakBuilder;
-import net.sf.mzmine.modules.peakpicking.threestep.xicconstruction.Chromatogram;
-import net.sf.mzmine.modules.peakpicking.threestep.xicconstruction.ChromatogramBuilder;
+import net.sf.mzmine.modules.peakpicking.chromatogrambuilder.massconnection.Chromatogram;
+import net.sf.mzmine.modules.peakpicking.chromatogrambuilder.massconnection.MassConnector;
+import net.sf.mzmine.modules.peakpicking.chromatogrambuilder.massdetection.MassDetector;
 import net.sf.mzmine.project.MZmineProject;
 import net.sf.mzmine.taskcontrol.Task;
 
@@ -44,196 +42,182 @@ import net.sf.mzmine.taskcontrol.Task;
  */
 class ChromatogramBuilderTask implements Task {
 
-    private Logger logger = Logger.getLogger(this.getClass().getName());
-    private RawDataFile dataFile;
+	private Logger logger = Logger.getLogger(this.getClass().getName());
+	private RawDataFile dataFile;
 
-    private TaskStatus status = TaskStatus.WAITING;
-    private String errorMessage;
+	private TaskStatus status = TaskStatus.WAITING;
+	private String errorMessage;
 
-    // scan counter
-    private int processedScans, totalScans;
-    private int newPeakID = 1;
-    private int[] scanNumbers;
+	// scan counter
+	private int processedScans = 0, totalScans;
+	private int newPeakID = 1;
+	private int[] scanNumbers;
 
-    // User parameters
-    private String suffix;
+	// User parameters
+	private String suffix;
 
-    private int massDetectorTypeNumber, chromatogramBuilderTypeNumber;
+	private int massDetectorTypeNumber, massConnectorTypeNumber;
 
-    // Mass Detector
-    private MassDetector massDetector;
+	// Mass detector
+	private MassDetector massDetector;
 
-    // Chromatogram Builders
-    private ChromatogramBuilder chromatogramBuilder;
+	// Mass connector
+	private MassConnector massConnector;
 
-    // Peak Builders
-    private PeakBuilder peakBuilder;
+	private ParameterSet mdParameters, mcParameters;
 
-    private ParameterSet mdParameters, cbParameters;
+	/**
+	 * @param dataFile
+	 * @param parameters
+	 */
+	ChromatogramBuilderTask(RawDataFile dataFile,
+			ChromatogramBuilderParameters parameters) {
 
-    private String description;
+		this.dataFile = dataFile;
 
-    /**
-     * @param dataFile
-     * @param parameters
-     */
-    ChromatogramBuilderTask(RawDataFile dataFile,
-            ChromatogramBuilderParameters parameters) {
+		massDetectorTypeNumber = parameters.getMassDetectorTypeNumber();
+		mdParameters = parameters
+				.getMassDetectorParameters(massDetectorTypeNumber);
 
-        this.dataFile = dataFile;
+		massConnectorTypeNumber = parameters.getMassConnectorTypeNumber();
+		mcParameters = parameters
+				.getMassConnectorParameters(massConnectorTypeNumber);
 
-        massDetectorTypeNumber = parameters.getMassDetectorTypeNumber();
-        mdParameters = parameters.getMassDetectorParameters(massDetectorTypeNumber);
+		suffix = parameters.getSuffix();
 
-        chromatogramBuilderTypeNumber = parameters.getChromatogramBuilderTypeNumber();
-        cbParameters = parameters.getChromatogramBuilderParameters(chromatogramBuilderTypeNumber);
+	}
 
-        suffix = parameters.getSuffix();
-        scanNumbers = dataFile.getScanNumbers(1);
-        Arrays.sort(scanNumbers);
-        totalScans = scanNumbers.length;
-        description = "Three step peak detection on " + dataFile
-                + " (Chromatogram building)";
+	/**
+	 * @see net.sf.mzmine.taskcontrol.Task#getTaskDescription()
+	 */
+	public String getTaskDescription() {
+		return "Detecting chromatograms in " + dataFile;
+	}
 
-    }
+	/**
+	 * @see net.sf.mzmine.taskcontrol.Task#getFinishedPercentage()
+	 */
+	public double getFinishedPercentage() {
+		if (totalScans == 0)
+			return 0;
+		else
+			return (double) processedScans / totalScans;
+	}
 
-    /**
-     * @see net.sf.mzmine.taskcontrol.Task#getTaskDescription()
-     */
-    public String getTaskDescription() {
-        return description;
-    }
+	/**
+	 * @see net.sf.mzmine.taskcontrol.Task#getStatus()
+	 */
+	public TaskStatus getStatus() {
+		return status;
+	}
 
-    /**
-     * @see net.sf.mzmine.taskcontrol.Task#getFinishedPercentage()
-     */
-    public double getFinishedPercentage() {
-        if (totalScans == 0)
-            return 0.0f;
-        else
-            return (double) processedScans / totalScans;
-    }
+	/**
+	 * @see net.sf.mzmine.taskcontrol.Task#getErrorMessage()
+	 */
+	public String getErrorMessage() {
+		return errorMessage;
+	}
 
-    /**
-     * @see net.sf.mzmine.taskcontrol.Task#getStatus()
-     */
-    public TaskStatus getStatus() {
-        return status;
-    }
+	public RawDataFile getDataFile() {
+		return dataFile;
+	}
 
-    /**
-     * @see net.sf.mzmine.taskcontrol.Task#getErrorMessage()
-     */
-    public String getErrorMessage() {
-        return errorMessage;
-    }
+	/**
+	 * @see net.sf.mzmine.taskcontrol.Task#cancel()
+	 */
+	public void cancel() {
+		status = TaskStatus.CANCELED;
+	}
 
-    public RawDataFile getDataFile() {
-        return dataFile;
-    }
+	/**
+	 * @see Runnable#run()
+	 */
+	public void run() {
 
-    /**
-     * @see net.sf.mzmine.taskcontrol.Task#cancel()
-     */
-    public void cancel() {
-        status = TaskStatus.CANCELED;
-    }
+		status = TaskStatus.PROCESSING;
 
-    /**
-     * @see Runnable#run()
-     */
-    public void run() {
+		logger.info("Running chromatogram builder on " + dataFile);
 
-        status = TaskStatus.PROCESSING;
+		scanNumbers = dataFile.getScanNumbers(1);
+		totalScans = scanNumbers.length;
 
-        logger.info("Running chromatogram builder on " + dataFile);
+		Desktop desktop = MZmineCore.getDesktop();
 
-        Desktop desktop = MZmineCore.getDesktop();
+		// Create new mass detector according with the user's selection
+		String massDetectorClassName = ChromatogramBuilderParameters.massDetectorClasses[massDetectorTypeNumber];
+		try {
+			Class massDetectorClass = Class.forName(massDetectorClassName);
+			Constructor massDetectorConstruct = massDetectorClass
+					.getConstructors()[0];
+			massDetector = (MassDetector) massDetectorConstruct
+					.newInstance(mdParameters);
+		} catch (Exception e) {
+			logger.finest("Error trying to make an instance of mass detector "
+					+ massDetectorClassName);
+			desktop
+					.displayErrorMessage("Error trying to make an instance of mass detector "
+							+ massDetectorClassName);
+			status = TaskStatus.ERROR;
+			return;
+		}
 
-        // Create new mass detector according with the user's selection
-        String massDetectorClassName = ChromatogramBuilderParameters.massDetectorClasses[massDetectorTypeNumber];
-        try {
-            Class massDetectorClass = Class.forName(massDetectorClassName);
-            Constructor massDetectorConstruct = massDetectorClass.getConstructors()[0];
-            massDetector = (MassDetector) massDetectorConstruct.newInstance(mdParameters);
-        } catch (Exception e) {
-            logger.finest("Error trying to make an instance of mass detector "
-                    + massDetectorClassName);
-            desktop.displayErrorMessage("Error trying to make an instance of mass detector "
-                    + massDetectorClassName);
-            status = TaskStatus.ERROR;
-            return;
-        }
+		// Create new chromatogram builder according with the user's selection
+		String massConnectorClassName = ChromatogramBuilderParameters.massConnectorClasses[massConnectorTypeNumber];
+		try {
+			Class massConnectorClass = Class.forName(massConnectorClassName);
+			Constructor chromtogramBuilderConstruct = massConnectorClass
+					.getConstructors()[0];
+			massConnector = (MassConnector) chromtogramBuilderConstruct
+					.newInstance(mcParameters);
+		} catch (Exception e) {
+			logger
+					.severe("Error trying to make an instance of chromatogram builder "
+							+ massConnectorClassName);
+			desktop
+					.displayErrorMessage("Error trying to make an instance of chromatogram builder "
+							+ massConnectorClassName);
+			status = TaskStatus.ERROR;
+			return;
+		}
 
-        // Create new chromatogram builder according with the user's selection
-        String chromatogramBuilderClassName = ChromatogramBuilderParameters.chromatogramBuilderClasses[chromatogramBuilderTypeNumber];
-        try {
-            Class chromatogramBuilderClass = Class.forName(chromatogramBuilderClassName);
-            Constructor chromtogramBuilderConstruct = chromatogramBuilderClass.getConstructors()[0];
-            chromatogramBuilder = (ChromatogramBuilder) chromtogramBuilderConstruct.newInstance(cbParameters);
-        } catch (Exception e) {
-            logger.severe("Error trying to make an instance of chromatogram builder "
-                    + chromatogramBuilderClassName);
-            desktop.displayErrorMessage("Error trying to make an instance of chromatogram builder "
-                    + chromatogramBuilderClassName);
-            status = TaskStatus.ERROR;
-            return;
-        }
+		// Create new peak list
+		SimplePeakList newPeakList = new SimplePeakList(
+				dataFile + " " + suffix, dataFile);
 
-        // Create new peak list
-        SimplePeakList newPeakList = new SimplePeakList(
-                dataFile + " " + suffix, dataFile);
+		MzPeak[] mzValues;
+		Chromatogram[] chromatograms;
 
-        MzPeak[] mzValues;
-        Chromatogram[] chromatograms;
-        ChromatographicPeak[] peaks;
+		for (int i = 0; i < totalScans; i++) {
 
-        for (int i = 0; i < totalScans; i++) {
+			if (status == TaskStatus.CANCELED)
+				return;
 
-            if (status == TaskStatus.CANCELED)
-                return;
+			Scan scan = dataFile.getScan(scanNumbers[i]);
 
-            Scan scan = dataFile.getScan(scanNumbers[i]);
+			mzValues = massDetector.getMassValues(scan);
 
-            mzValues = massDetector.getMassValues(scan);
+			massConnector.addScan(dataFile, scanNumbers[i], mzValues);
+			processedScans++;
+		}
 
-            chromatogramBuilder.addScan(dataFile, scan, mzValues);
-            processedScans++;
-        }
+		// peaks = peakBuilder.finishPeaks();
+		chromatograms = massConnector.finishChromatograms();
 
-        // peaks = peakBuilder.finishPeaks();
-        chromatograms = chromatogramBuilder.finishChromatograms();
+		for (ChromatographicPeak finishedPeak : chromatograms) {
+			SimplePeakListRow newRow = new SimplePeakListRow(newPeakID);
+			newPeakID++;
+			newRow.addPeak(dataFile, finishedPeak);
+			newPeakList.addRow(newRow);
+		}
 
-        description = "Three step peak detection on " + dataFile
-                + " (Peak recognition)";
-        totalScans = chromatograms.length;
-        processedScans = 0;
+		// Add new peaklist to the project
+		MZmineProject currentProject = MZmineCore.getCurrentProject();
+		currentProject.addPeakList(newPeakList);
 
-        for (Chromatogram chromatogram : chromatograms) {
-            if (status == TaskStatus.CANCELED)
-                return;
+		logger.info("Finished three steps peak picker on " + dataFile);
 
-            peaks = peakBuilder.addChromatogram(chromatogram, dataFile);
+		status = TaskStatus.FINISHED;
 
-            if (peaks != null)
-                for (ChromatographicPeak finishedPeak : peaks) {
-                    SimplePeakListRow newRow = new SimplePeakListRow(newPeakID);
-                    newPeakID++;
-                    newRow.addPeak(dataFile, finishedPeak);
-                    newPeakList.addRow(newRow);
-                }
-
-            processedScans++;
-        }
-
-        // Add new peaklist to the project
-        MZmineProject currentProject = MZmineCore.getCurrentProject();
-        currentProject.addPeakList(newPeakList);
-
-        logger.info("Finished three steps peak picker on " + dataFile);
-
-        status = TaskStatus.FINISHED;
-
-    }
+	}
 
 }

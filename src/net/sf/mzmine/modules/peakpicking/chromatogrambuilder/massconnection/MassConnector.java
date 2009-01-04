@@ -21,20 +21,17 @@ package net.sf.mzmine.modules.peakpicking.chromatogrambuilder.massconnection;
 
 import net.sf.mzmine.data.MzPeak;
 import net.sf.mzmine.data.RawDataFile;
-import net.sf.mzmine.data.Scan;
-import net.sf.mzmine.modules.peakpicking.chromatogrambuilder.Chromatogram;
 
 public interface MassConnector {
 
-	public void addScan(RawDataFile dataFile, Scan scan, MzPeak[] mzValues);
+	public void addScan(RawDataFile dataFile, int scanNumber, MzPeak[] mzValues);
 
 	/**
-	 * This method creates an array of peaks with all MzPeaks that have not yet
-	 * connected. This function must be called after the last scan of the
-	 * DataFile.
+	 * This method creates an array of chromatogram. This function must be
+	 * called after the last scan of the DataFile.
 	 * 
-	 * @return Peak[]
+	 * @return Chromatogram[]
 	 */
 	public Chromatogram[] finishChromatograms();
-	
+
 }

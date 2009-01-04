@@ -19,7 +19,7 @@
 
 package net.sf.mzmine.modules.peakpicking.chromatogrambuilder.massdetection.exactmass.peakmodels;
 
-import net.sf.mzmine.modules.peakpicking.threestep.massdetection.exactmass.PeakModel;
+import net.sf.mzmine.modules.peakpicking.chromatogrambuilder.massdetection.exactmass.PeakModel;
 import net.sf.mzmine.util.Range;
 
 /**

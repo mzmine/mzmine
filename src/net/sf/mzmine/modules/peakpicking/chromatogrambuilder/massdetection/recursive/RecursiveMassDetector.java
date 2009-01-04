@@ -25,7 +25,7 @@ import java.util.Vector;
 import net.sf.mzmine.data.MzDataPoint;
 import net.sf.mzmine.data.Scan;
 import net.sf.mzmine.data.impl.SimpleMzPeak;
-import net.sf.mzmine.modules.peakpicking.threestep.massdetection.MassDetector;
+import net.sf.mzmine.modules.peakpicking.chromatogrambuilder.massdetection.MassDetector;
 import net.sf.mzmine.util.DataPointSorter;
 
 public class RecursiveMassDetector implements MassDetector {

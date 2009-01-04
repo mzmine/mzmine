@@ -26,7 +26,7 @@ import net.sf.mzmine.data.MzDataPoint;
 import net.sf.mzmine.data.MzPeak;
 import net.sf.mzmine.data.Scan;
 import net.sf.mzmine.data.impl.SimpleMzPeak;
-import net.sf.mzmine.modules.peakpicking.threestep.massdetection.MassDetector;
+import net.sf.mzmine.modules.peakpicking.chromatogrambuilder.massdetection.MassDetector;
 
 /**
  * This class detects all local maxima in a given scan.

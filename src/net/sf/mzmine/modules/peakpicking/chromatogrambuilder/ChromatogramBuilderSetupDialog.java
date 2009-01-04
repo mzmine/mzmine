@@ -50,218 +50,225 @@ import net.sf.mzmine.util.dialogs.ParameterSetupDialog;
  */
 class ChromatogramBuilderSetupDialog extends JDialog implements ActionListener {
 
-    private ChromatogramBuilderParameters parameters;
-    private ExitCode exitCode = ExitCode.UNKNOWN;
-    private String title;
+	private ChromatogramBuilderParameters parameters;
+	private ExitCode exitCode = ExitCode.UNKNOWN;
+	private String title;
 
-    // Dialog components
-    private JButton btnOK, btnCancel, btnHelp, btnSetMass, btnSetChromato;
-    private JComboBox comboMassDetectors, comboChromatoBuilder;
-    private JTextField txtField;
+	// Dialog components
+	private JButton btnOK, btnCancel, btnHelp, btnSetMass, btnSetConnector;
+	private JComboBox comboMassDetectors, comboChromatoBuilder;
+	private JTextField txtField;
 
-    public ChromatogramBuilderSetupDialog(String title,
-            ChromatogramBuilderParameters parameters) {
+	public ChromatogramBuilderSetupDialog(String title,
+			ChromatogramBuilderParameters parameters) {
 
-        super(MZmineCore.getDesktop().getMainFrame(),
-                "Please select mass detector  & peak detector", true);
+		super(MZmineCore.getDesktop().getMainFrame(),
+				"Please select mass detector & connector", true);
 
-        this.parameters = parameters;
-        this.title = title;
+		this.parameters = parameters;
+		this.title = title;
 
-        addComponentsToDialog();
-        this.setResizable(false);
-    }
+		addComponentsToDialog();
+		this.setResizable(false);
+	}
 
-    public ExitCode getExitCode() {
-        return exitCode;
-    }
+	public ExitCode getExitCode() {
+		return exitCode;
+	}
 
-    public void actionPerformed(ActionEvent ae) {
+	public void actionPerformed(ActionEvent ae) {
 
-        Object src = ae.getSource();
+		Object src = ae.getSource();
 
-        if (src == btnSetMass) {
-            int ind = comboMassDetectors.getSelectedIndex();
+		if (src == btnSetMass) {
+			int ind = comboMassDetectors.getSelectedIndex();
 
-            MassDetectorSetupDialog dialog = new MassDetectorSetupDialog(
-                    parameters, ind);
-            dialog.setVisible(true);
+			MassDetectorSetupDialog dialog = new MassDetectorSetupDialog(
+					parameters, ind);
+			dialog.setVisible(true);
 
-        }
+		}
 
-        if (src == btnSetChromato) {
-            int ind = comboChromatoBuilder.getSelectedIndex();
+		if (src == btnSetConnector) {
+			int ind = comboChromatoBuilder.getSelectedIndex();
 
-            ParameterSetupDialog dialog = new ParameterSetupDialog(
-                    ChromatogramBuilderParameters.chromatogramBuilderNames[ind]
-                            + "'s parameter setup dialog ",
-                    parameters.getChromatogramBuilderParameters(ind),
-                    ChromatogramBuilderParameters.chromatogramBuilderHelpFiles[ind]);;
+			ParameterSetupDialog dialog = new ParameterSetupDialog(
+					ChromatogramBuilderParameters.massConnectorNames[ind]
+							+ "'s parameter setup dialog ", parameters
+							.getMassConnectorParameters(ind),
+					ChromatogramBuilderParameters.massConnectorHelpFiles[ind]);
+			;
 
-            dialog.setVisible(true);
-        }
+			dialog.setVisible(true);
+		}
 
-        if (src == btnOK) {
-            inform();
-            parameters.setTypeNumber(comboMassDetectors.getSelectedIndex(),
-                    comboChromatoBuilder.getSelectedIndex());
-            parameters.setSuffix(txtField.getText());
-            exitCode = ExitCode.OK;
-            dispose();
-        }
+		if (src == btnOK) {
+			inform();
+			parameters.setTypeNumber(comboMassDetectors.getSelectedIndex(),
+					comboChromatoBuilder.getSelectedIndex());
+			parameters.setSuffix(txtField.getText());
+			exitCode = ExitCode.OK;
+			dispose();
+		}
 
-        if (src == btnCancel) {
-            exitCode = ExitCode.CANCEL;
-            dispose();
-        }
+		if (src == btnCancel) {
+			exitCode = ExitCode.CANCEL;
+			dispose();
+		}
 
-    }
+	}
 
-    /**
-     * This function add all components for this dialog
+	/**
+	 * This function add all components for this dialog
+	 * 
+	 */
+	private void addComponentsToDialog() {
+
+		// Elements of suffix
+		txtField = new JTextField();
+		txtField.setText(parameters.getSuffix());
+		txtField.selectAll();
+		txtField.setMaximumSize(new Dimension(250, 30));
+
+		// Elements of Mass detector
+		comboMassDetectors = new JComboBox(
+				ChromatogramBuilderParameters.massDetectorNames);
+		comboMassDetectors.setSelectedIndex(parameters
+				.getMassDetectorTypeNumber());
+		comboMassDetectors.addActionListener(this);
+		comboMassDetectors.setMaximumSize(new Dimension(200, 30));
+		btnSetMass = new JButton("Set parameters");
+		btnSetMass.addActionListener(this);
+
+		// Elements of Chromatogram builder
+		comboChromatoBuilder = new JComboBox(
+				ChromatogramBuilderParameters.massConnectorNames);
+		comboChromatoBuilder.setSelectedIndex(parameters
+				.getMassConnectorTypeNumber());
+		comboChromatoBuilder.addActionListener(this);
+		comboChromatoBuilder.setMaximumSize(new Dimension(200, 30));
+		btnSetConnector = new JButton("Set parameters");
+		btnSetConnector.addActionListener(this);
+
+		// Elements of buttons
+		btnOK = new JButton("OK");
+		btnOK.addActionListener(this);
+		btnCancel = new JButton("Cancel");
+		btnCancel.addActionListener(this);
+		btnHelp = new HelpButton(
+				"net/sf/mzmine/modules/peakpicking/threestep/help/ThreeStepsDetector.html");
+
+		JPanel pnlCombo = new JPanel();
+		pnlCombo.setLayout(new GridBagLayout());
+		GridBagConstraints c = new GridBagConstraints();
+		c.fill = GridBagConstraints.HORIZONTAL;
+		c.weighty = 10.0;
+		c.weightx = 10.0;
+		c.insets = new Insets(5, 5, 5, 5);
+		c.gridx = 0;
+		c.gridy = 0;
+		pnlCombo.add(new JLabel("Filename suffix "), c);
+		c.gridwidth = 4;
+		c.gridx = 1;
+		pnlCombo.add(txtField, c);
+
+		c.gridwidth = 1;
+		c.gridx = 0;
+		c.gridy = 1;
+		pnlCombo.add(new JLabel("Mass detection"), c);
+		c.gridwidth = 3;
+		c.gridx = 1;
+		pnlCombo.add(comboMassDetectors, c);
+		c.gridwidth = 1;
+		c.gridx = 4;
+		pnlCombo.add(btnSetMass, c);
+
+		c.gridx = 0;
+		c.gridy = 2;
+		pnlCombo
+				.add(new JLabel("<HTML>Chromatogram<BR>construction</HTML>"), c);
+		c.gridwidth = 3;
+		c.gridx = 1;
+		pnlCombo.add(comboChromatoBuilder, c);
+		c.gridwidth = 1;
+		c.gridx = 4;
+		pnlCombo.add(btnSetConnector, c);
+
+		c.gridx = 1;
+		c.gridy = 4;
+		pnlCombo.add(btnOK, c);
+		c.gridx = 2;
+		pnlCombo.add(btnCancel, c);
+		c.gridx = 3;
+		pnlCombo.add(btnHelp, c);
+
+		// Panel where everything is collected
+		JPanel pnlAll = new JPanel(new BorderLayout());
+		pnlAll.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
+		pnlAll.add(pnlCombo, BorderLayout.CENTER);
+		add(pnlAll);
+
+		pack();
+		setTitle(title);
+		setLocationRelativeTo(MZmineCore.getDesktop().getMainFrame());
+
+	}
+
+	/**
      * 
      */
-    private void addComponentsToDialog() {
+	private void inform() {
 
-        // Elements of suffix
-        txtField = new JTextField();
-        txtField.setText(parameters.getSuffix());
-        txtField.selectAll();
-        txtField.setMaximumSize(new Dimension(250, 30));
+		Desktop desktop = MZmineCore.getDesktop();
+		RawDataFile[] dataFiles = desktop.getSelectedDataFiles();
+		int massDetectorNumber = comboMassDetectors.getSelectedIndex();
+		String massDetectorName = ChromatogramBuilderParameters.massDetectorNames[massDetectorNumber];
+		boolean centroid = false;
+		boolean notMsLevelOne = false;
 
-        // Elements of Mass detector
-        comboMassDetectors = new JComboBox(
-                ChromatogramBuilderParameters.massDetectorNames);
-        comboMassDetectors.setSelectedIndex(parameters.getMassDetectorTypeNumber());
-        comboMassDetectors.addActionListener(this);
-        comboMassDetectors.setMaximumSize(new Dimension(200, 30));
-        btnSetMass = new JButton("Set parameters");
-        btnSetMass.addActionListener(this);
+		if (dataFiles.length != 0) {
+			for (int i = 0; i < dataFiles.length; i++) {
 
-        // Elements of Chromatogram builder
-        comboChromatoBuilder = new JComboBox(
-                ChromatogramBuilderParameters.chromatogramBuilderNames);
-        comboChromatoBuilder.setSelectedIndex(parameters.getChromatogramBuilderTypeNumber());
-        comboChromatoBuilder.addActionListener(this);
-        comboChromatoBuilder.setMaximumSize(new Dimension(200, 30));
-        btnSetChromato = new JButton("Set parameters");
-        btnSetChromato.addActionListener(this);
+				int msLevels[] = dataFiles[i].getMSLevels();
+				Arrays.sort(msLevels);
 
-        // Elements of buttons
-        btnOK = new JButton("OK");
-        btnOK.addActionListener(this);
-        btnCancel = new JButton("Cancel");
-        btnCancel.addActionListener(this);
-        btnHelp = new HelpButton(
-                "net/sf/mzmine/modules/peakpicking/threestep/help/ThreeStepsDetector.html");
+				if (msLevels[0] != 1) {
+					notMsLevelOne = true;
+					break;
+				}
 
-        JPanel pnlCombo = new JPanel();
-        pnlCombo.setLayout(new GridBagLayout());
-        GridBagConstraints c = new GridBagConstraints();
-        c.fill = GridBagConstraints.HORIZONTAL;
-        c.weighty = 10.0;
-        c.weightx = 10.0;
-        c.insets = new Insets(5, 5, 5, 5);
-        c.gridx = 0;
-        c.gridy = 0;
-        pnlCombo.add(new JLabel("Filename suffix "), c);
-        c.gridwidth = 4;
-        c.gridx = 1;
-        pnlCombo.add(txtField, c);
+				Scan scan;
+				int[] indexArray = dataFiles[i].getScanNumbers(1);
+				int increment = indexArray.length / 10;
 
-        c.gridwidth = 1;
-        c.gridx = 0;
-        c.gridy = 1;
-        pnlCombo.add(new JLabel("Mass detection"), c);
-        c.gridwidth = 3;
-        c.gridx = 1;
-        pnlCombo.add(comboMassDetectors, c);
-        c.gridwidth = 1;
-        c.gridx = 4;
-        pnlCombo.add(btnSetMass, c);
+				// Verify if the current DataFile contains centroided scans
+				for (int j = 0; j < indexArray.length; j += increment) {
+					scan = dataFiles[i].getScan(indexArray[j]);
+					if (scan.isCentroided()) {
+						centroid = true;
+						break;
+					}
+				}
+			}
 
-        c.gridx = 0;
-        c.gridy = 2;
-        pnlCombo.add(new JLabel("<HTML>Chromatogram<BR>construction</HTML>"), c);
-        c.gridwidth = 3;
-        c.gridx = 1;
-        pnlCombo.add(comboChromatoBuilder, c);
-        c.gridwidth = 1;
-        c.gridx = 4;
-        pnlCombo.add(btnSetChromato, c);
+			if (notMsLevelOne) {
+				desktop
+						.displayMessage(" One or more selected files does not contain spectrum of MS level 1.\n"
+								+ " The actual mass detector only works over spectrum of this level.");
+			}
 
-        c.gridx = 1;
-        c.gridy = 4;
-        pnlCombo.add(btnOK, c);
-        c.gridx = 2;
-        pnlCombo.add(btnCancel, c);
-        c.gridx = 3;
-        pnlCombo.add(btnHelp, c);
+			if ((centroid) && (!massDetectorName.equals("Centroid"))) {
+				desktop
+						.displayMessage(" One or more selected files contains centroided data points.\n"
+								+ " The actual mass detector could give an unexpected result ");
+			}
 
-        // Panel where everything is collected
-        JPanel pnlAll = new JPanel(new BorderLayout());
-        pnlAll.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
-        pnlAll.add(pnlCombo, BorderLayout.CENTER);
-        add(pnlAll);
-
-        pack();
-        setTitle(title);
-        setLocationRelativeTo(MZmineCore.getDesktop().getMainFrame());
-
-    }
-
-    /**
-     * 
-     */
-    private void inform() {
-
-        Desktop desktop = MZmineCore.getDesktop();
-        RawDataFile[] dataFiles = desktop.getSelectedDataFiles();
-        int massDetectorNumber = comboMassDetectors.getSelectedIndex();
-        String massDetectorName = ChromatogramBuilderParameters.massDetectorNames[massDetectorNumber];
-        boolean centroid = false;
-        boolean notMsLevelOne = false;
-
-        if (dataFiles.length != 0) {
-            for (int i = 0; i < dataFiles.length; i++) {
-
-                int msLevels[] = dataFiles[i].getMSLevels();
-                Arrays.sort(msLevels);
-
-                if (msLevels[0] != 1) {
-                    notMsLevelOne = true;
-                    break;
-                }
-
-                Scan scan;
-                int[] indexArray = dataFiles[i].getScanNumbers(1);
-                int increment = indexArray.length / 10;
-
-                // Verify if the current DataFile contains centroided scans
-                for (int j = 0; j < indexArray.length; j += increment) {
-                    scan = dataFiles[i].getScan(indexArray[j]);
-                    if (scan.isCentroided()) {
-                        centroid = true;
-                        break;
-                    }
-                }
-            }
-
-            if (notMsLevelOne) {
-                desktop.displayMessage(" One or more selected files does not contain spectrum of MS level \"1\".\n"
-                        + " The actual mass detector only works over spectrum of this level.");
-            }
-
-            if ((centroid) && (!massDetectorName.equals("Centroid"))) {
-                desktop.displayMessage(" One or more selected files contains centroided data points.\n"
-                        + " The actual mass detector could give an unexpected result ");
-            }
-
-            if ((!centroid) && (massDetectorName.equals("Centroid"))) {
-                desktop.displayMessage(" Neither one of the selected files contains centroided data points.\n"
-                        + " The actual mass detector could give an unexpected result ");
-            }
-        }
-    }
+			if ((!centroid) && (massDetectorName.equals("Centroid"))) {
+				desktop
+						.displayMessage(" Neither one of the selected files contains centroided data points.\n"
+								+ " The actual mass detector could give an unexpected result ");
+			}
+		}
+	}
 
 }

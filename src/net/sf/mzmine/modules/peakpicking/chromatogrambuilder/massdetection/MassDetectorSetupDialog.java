@@ -117,10 +117,12 @@ public class MassDetectorSetupDialog extends ParameterSetupDialog implements
 	public MassDetectorSetupDialog(ChromatogramBuilderParameters parameters,
 			int massDetectorTypeNumber) {
 
-		super(ChromatogramBuilderParameters.massDetectorNames[massDetectorTypeNumber]
-				+ "'s parameter setup dialog ", parameters
-				.getMassDetectorParameters(massDetectorTypeNumber), ChromatogramBuilderParameters.massDetectorHelpFiles[massDetectorTypeNumber]);
-		
+		super(
+				ChromatogramBuilderParameters.massDetectorNames[massDetectorTypeNumber]
+						+ "'s parameter setup dialog ",
+				parameters.getMassDetectorParameters(massDetectorTypeNumber),
+				ChromatogramBuilderParameters.massDetectorHelpFiles[massDetectorTypeNumber]);
+
 		dataFiles = MZmineCore.getCurrentProject().getDataFiles();
 		this.massDetectorTypeNumber = massDetectorTypeNumber;
 		peaksDataSet = null;
@@ -232,7 +234,7 @@ public class MassDetectorSetupDialog extends ParameterSetupDialog implements
 			dispose();
 		}
 
-		if ((src == comboScanNumber) 
+		if ((src == comboScanNumber)
 				|| ((src instanceof JCheckBox) && (src != preview))
 				|| ((src instanceof JComboBox) && (src != comboDataFileName))) {
 			if (preview.isSelected()) {
@@ -334,7 +336,8 @@ public class MassDetectorSetupDialog extends ParameterSetupDialog implements
 		Vector<ChromatographicPeak> pickedDataPoint = new Vector<ChromatographicPeak>();
 
 		for (MzPeak mzPeak : mzValues) {
-			pickedDataPoint.add(new FakePeak(scan.getScanNumber(), mzPeak));
+			pickedDataPoint.add(new MassDetectorPreviewPeak(scan
+					.getScanNumber(), mzPeak));
 		}
 
 		int newPeakID = 1;
@@ -374,7 +377,7 @@ public class MassDetectorSetupDialog extends ParameterSetupDialog implements
 
 		// Elements of pnlpreview
 		JPanel pnlpreview = new JPanel(new BorderLayout());
-		
+
 		preview = new JCheckBox(" Show preview of mass peak detection ");
 		preview.addActionListener(this);
 		preview.setHorizontalAlignment(SwingConstants.CENTER);
@@ -446,7 +449,7 @@ public class MassDetectorSetupDialog extends ParameterSetupDialog implements
 		pnlFileNameScanNumber.add(pnlFlds, BorderLayout.CENTER);
 		pnlFileNameScanNumber.add(pnlSpace, BorderLayout.EAST);
 		pnlFileNameScanNumber.setVisible(false);
-		
+
 		JPanel pnlVisible = new JPanel(new BorderLayout());
 
 		pnlVisible.add(pnlpreview, BorderLayout.NORTH);
@@ -460,12 +463,13 @@ public class MassDetectorSetupDialog extends ParameterSetupDialog implements
 		pnlPlotXY.setBackground(Color.white);
 
 		spectrumPlot = new SpectraPlot(this, SpectraVisualizerType.SPECTRUM);
-		MzPeakToolTipGenerator mzPeakToolTipGenerator = new MzPeakToolTipGenerator();
+		MassDetectorPreviewToolTipGenerator mzPeakToolTipGenerator = new MassDetectorPreviewToolTipGenerator();
 		spectrumPlot
 				.setPeakToolTipGenerator((XYToolTipGenerator) mzPeakToolTipGenerator);
 		pnlPlotXY.add(spectrumPlot, BorderLayout.CENTER);
 
-		toolBar = new SpectraToolBar(spectrumPlot, SpectraVisualizerType.SPECTRUM);
+		toolBar = new SpectraToolBar(spectrumPlot,
+				SpectraVisualizerType.SPECTRUM);
 		spectrumPlot.setRelatedToolBar(toolBar);
 		pnlPlotXY.add(toolBar, BorderLayout.EAST);
 
@@ -476,6 +480,5 @@ public class MassDetectorSetupDialog extends ParameterSetupDialog implements
 
 		pnlLocal.add(pnlAll, BorderLayout.WEST);
 	}
-	
 
 }
