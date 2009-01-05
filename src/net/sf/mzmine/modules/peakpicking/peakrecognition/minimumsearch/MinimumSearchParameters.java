@@ -47,8 +47,8 @@ public class MinimumSearchParameters extends SimpleParameterSet {
 
     public static final Parameter minRatio = new SimpleParameter(
             ParameterType.DOUBLE,
-            "Minimum ratio between peak min and max",
-            "Minimum between peak's top data point and bottom data points",
+            "Min ratio of peak average/min",
+            "Minimum between peak's average intensity and bottom data points",
             null, 3d, 0d, null);
 
     

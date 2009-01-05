@@ -102,11 +102,27 @@ public class MinimumSearch implements PeakResolver {
 
                 // Check the shape of the peak
                 double peakMinLeft = intensities[currentPeakStart];
+                if (peakMinLeft == 0)
+                    peakMinLeft = intensities[currentPeakStart + 1];
                 double peakMinRight = intensities[currentPeakEnd];
+                if (peakMinRight == 0)
+                    peakMinRight = intensities[currentPeakEnd - 1];
+
+                // Calculate average peak intensity
+                double peakAvgHeight = 0;
+                int peakAvgCount = 0;
+                for (int a = currentPeakStart; a <= currentPeakEnd; a++) {
+                    if (intensities[a] > 0) {
+                        peakAvgHeight += intensities[a];
+                        peakAvgCount++;
+                    }
+                }
+                peakAvgHeight /= peakAvgCount;
+
                 if ((currentRegionHeight >= minRelativeHeight
                         * chromatogram.getHeight())
-                        && (currentRegionHeight >= peakMinLeft * minRatio)
-                        && (currentRegionHeight >= peakMinRight * minRatio)) {
+                        && (peakAvgHeight >= Math.min(peakMinLeft, peakMinRight)
+                                * minRatio)) {
 
                     ResolvedPeak newPeak = new ResolvedPeak(chromatogram,
                             currentPeakStart, currentPeakEnd);
