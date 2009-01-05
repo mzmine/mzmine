@@ -230,7 +230,7 @@ public class PeakResolverSetupDialog extends ParameterSetupDialog implements
             PeakDataSet peakDataSet = new PeakDataSet(resolvedPeaks[i]);
             ticPlot.addPeakDataset(peakDataSet);
 
-            if (i > 50) {
+            if (i > 30) {
                 String message = "Too many peaks detected, please adjust parameter values";
                 MZmineCore.getDesktop().displayMessage(message);
                 break;

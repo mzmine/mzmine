@@ -34,7 +34,7 @@ public class MinimumSearchPeakDetectorParameters extends SimpleParameterSet {
 
     public static final Parameter searchRTRange = new SimpleParameter(
             ParameterType.DOUBLE,
-            "Search minimum in retention time range",
+            "Search minimum in RT range",
             "If a local minimum is minimal in this range of retention time, it will be considered a border between two peaks",
             null, new Double(10.0), new Double(0.0), null,
             MZmineCore.getRTFormat());
@@ -47,7 +47,7 @@ public class MinimumSearchPeakDetectorParameters extends SimpleParameterSet {
 
     public static final Parameter minRatio = new SimpleParameter(
             ParameterType.DOUBLE,
-            "Min ratio of peak average/min",
+            "Min ratio of peak avg/min",
             "Minimum between peak's average intensity and bottom data points",
             null, 3d, 0d, null);
 

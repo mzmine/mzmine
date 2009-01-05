@@ -41,10 +41,7 @@ public class SavitzkyGolayPeakDetector implements PeakResolver {
 	private Logger logger = Logger.getLogger(this.getClass().getName());
 
 	private double minimumPeakHeight, minimumPeakDuration, 
-			derivativeThresholdLevel, excessLevel;
-	private int resolution;
-	private boolean fillingPeaks;
-	private Class peakModelClass;
+			derivativeThresholdLevel;
 
 	/**
 	 * Constructor of Savitzky-Golay Peak Builder
@@ -61,39 +58,8 @@ public class SavitzkyGolayPeakDetector implements PeakResolver {
 		derivativeThresholdLevel = (Double) parameters
 				.getParameterValue(SavitzkyGolayPeakDetectorParameters.derivativeThresholdLevel);
 
-		fillingPeaks = (Boolean) parameters
-				.getParameterValue(SavitzkyGolayPeakDetectorParameters.fillingPeaks);
-		excessLevel = (Double) parameters
-		.getParameterValue(SavitzkyGolayPeakDetectorParameters.excessLevel);
-		resolution = (Integer) parameters
-		.getParameterValue(SavitzkyGolayPeakDetectorParameters.resolution);
-
-		String peakModelname = (String) parameters
-				.getParameterValue(SavitzkyGolayPeakDetectorParameters.peakModel);
 
 		// Create an instance of selected model class
-		try {
-
-			String peakModelClassName = null;
-
-			for (int modelIndex = 0; modelIndex < SavitzkyGolayPeakDetectorParameters.peakModelNames.length; modelIndex++) {
-				if (SavitzkyGolayPeakDetectorParameters.peakModelNames[modelIndex]
-						.equals(peakModelname))
-					peakModelClassName = SavitzkyGolayPeakDetectorParameters.peakModelClasses[modelIndex];
-				;
-			}
-
-			if (peakModelClassName == null)
-				throw new ClassNotFoundException();
-
-			peakModelClass = Class.forName(peakModelClassName);
-
-			//peakModel = (PeakModel) peakModelClass.newInstance();
-
-		} catch (Exception e) {
-			logger.warning("Error trying to make an instance of peak model "
-					+ peakModelname);
-		}
 
 	}
 

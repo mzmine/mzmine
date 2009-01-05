@@ -29,13 +29,6 @@ import net.sf.mzmine.main.MZmineCore;
 
 public class SavitzkyGolayPeakDetectorParameters extends SimpleParameterSet {
 
-	public static final String peakModelNames[] = { "Triangle", "Gaussian", "EMG" };
-
-	public static final String peakModelClasses[] = {
-		"net.sf.mzmine.modules.peakpicking.threestep.peakconstruction.peakfillingmodels.impl.TrianglePeakFillingModel",
-		"net.sf.mzmine.modules.peakpicking.threestep.peakconstruction.peakfillingmodels.impl.GaussianPeakFillingModel",
-		"net.sf.mzmine.modules.peakpicking.threestep.peakconstruction.peakfillingmodels.impl.EMGPeakFillingModel" };
-	
 	public static final NumberFormat percentFormat = NumberFormat
 			.getPercentInstance();
 
@@ -50,39 +43,14 @@ public class SavitzkyGolayPeakDetectorParameters extends SimpleParameterSet {
 			new Double(0.0), null, MZmineCore.getRTFormat());
 
 	public static final Parameter derivativeThresholdLevel = new SimpleParameter(
-			ParameterType.DOUBLE, "Derivative threshold level",
-			"Minimum acceptable intensity in the 2nd derivative for peak recognition", null, new Double(0.80),
-			new Double(0.0), null, percentFormat);
-	
-	public static final Parameter fillingPeaks = new SimpleParameter(
-			ParameterType.BOOLEAN, "Filling peak shape",
-			"Activates the method to fill the peak shape using the selected peak model function", null, null,
-			null, null, null);
-	
-	public static final Parameter peakModel = new SimpleParameter(
-			ParameterType.STRING,
-			"Peak Model function",
-			"Lateral peaks under the curve of this peak model are not considered as a possible peak",
-			null, peakModelNames);
-
-	public static final Parameter excessLevel = new SimpleParameter(
 			ParameterType.DOUBLE,
-			"Level of excess",
-			"Increasing this parameter in positive domain the width of the filling peak becomes smaller, " +
-			"and increasing this parameter in negative domain the width is bigger.",
-			"absolute", new Double(0.1), new Double(-0.9), new Double(0.9), null);
+			"Derivative threshold level",
+			"Minimum acceptable intensity in the 2nd derivative for peak recognition",
+			null, new Double(0.80), new Double(0.0), null, percentFormat);
 
-	public static final Parameter resolution = new SimpleParameter(
-			ParameterType.INTEGER,
-			"Mass Resolution",
-			"Mass resolution is the dimensionless ratio of the mass of the peak divided by its width."
-					+ " Peak width is taken as the full width at half maximum intensity, (fwhm).",
-			null, new Integer(60000), new Integer(0), null, NumberFormat
-					.getIntegerInstance());
-	
 	public SavitzkyGolayPeakDetectorParameters() {
-		super(new Parameter[] { minimumPeakHeight, minimumPeakDuration, derivativeThresholdLevel,
-				fillingPeaks, peakModel, excessLevel, resolution });
+		super(new Parameter[] { minimumPeakHeight, minimumPeakDuration,
+				derivativeThresholdLevel });
 	}
 
 }
