@@ -13,8 +13,8 @@
  * A PARTICULAR PURPOSE. See the GNU General Public License for more details.
  * 
  * You should have received a copy of the GNU General Public License along with
- * MZmine 2; if not, write to the Free Software Foundation, Inc., 51 Franklin St,
- * Fifth Floor, Boston, MA 02110-1301 USA
+ * MZmine 2; if not, write to the Free Software Foundation, Inc., 51 Franklin
+ * St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
 package net.sf.mzmine.modules.visualization.tic;
@@ -41,18 +41,27 @@ class TICToolTipGenerator implements XYToolTipGenerator {
      */
     public String generateToolTip(XYDataset dataset, int series, int item) {
 
-    	if (! (dataset instanceof TICDataSet)) return "gaga";
-        TICDataSet ticDataSet = (TICDataSet) dataset;
+        String toolTip;
 
         double rtValue = dataset.getXValue(series, item);
         double intValue = dataset.getYValue(series, item);
-        double mzValue = ((TICDataSet) dataset).getZValue(series, item);
-        int scanNumber = ticDataSet.getScanNumber(series, item);
 
-        String toolTip = "<html>Scan #" + scanNumber + "<br>Retention time: "
-                + rtFormat.format(rtValue) + "<br>Base peak m/z: "
-                + mzFormat.format(mzValue) + "<br>Intensity: "
-                + intensityFormat.format(intValue) + "</html>";
+        if (dataset instanceof TICDataSet) {
+
+            TICDataSet ticDataSet = (TICDataSet) dataset;
+
+            double mzValue = ticDataSet.getZValue(series, item);
+            int scanNumber = ticDataSet.getScanNumber(series, item);
+
+            toolTip = "<html>Scan #" + scanNumber + "<br>Retention time: "
+                    + rtFormat.format(rtValue) + "<br>Base peak m/z: "
+                    + mzFormat.format(mzValue) + "<br>Intensity: "
+                    + intensityFormat.format(intValue) + "</html>";
+        } else {
+            toolTip = "<html>Retention time: " + rtFormat.format(rtValue)
+                    + "<br>Intensity: " + intensityFormat.format(intValue)
+                    + "</html>";
+        }
 
         return toolTip;
     }
