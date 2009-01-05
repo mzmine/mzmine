@@ -22,6 +22,7 @@ package net.sf.mzmine.modules.peakpicking.peakrecognition.chromatographicthresho
 import java.util.Vector;
 
 import net.sf.mzmine.data.ChromatographicPeak;
+import net.sf.mzmine.data.MzPeak;
 import net.sf.mzmine.modules.peakpicking.peakrecognition.PeakResolver;
 import net.sf.mzmine.modules.peakpicking.peakrecognition.ResolvedPeak;
 import net.sf.mzmine.util.MathUtils;
@@ -31,8 +32,6 @@ import net.sf.mzmine.util.MathUtils;
  * 
  */
 public class ChromatographicThresholdPeakDetector implements PeakResolver {
-
-	// private Logger logger = Logger.getLogger(this.getClass().getName());
 
 	private double chromatographicThresholdLevel, minimumPeakHeight,
 			minimumPeakDuration;
@@ -51,69 +50,65 @@ public class ChromatographicThresholdPeakDetector implements PeakResolver {
 
 	/**
 	 */
-    public ChromatographicPeak[] resolvePeaks(ChromatographicPeak chromatogram,
-            int scanNumbers[], double retentionTimes[], double intensities[]) {
+	public ChromatographicPeak[] resolvePeaks(ChromatographicPeak chromatogram,
+			int scanNumbers[], double retentionTimes[], double intensities[]) {
 
-        Vector<ResolvedPeak> resolvedPeaks = new Vector<ResolvedPeak>();
+		Vector<ResolvedPeak> resolvedPeaks = new Vector<ResolvedPeak>();
 
-        /*        ConnectedMzPeak[] cMzPeaks = chromatogram.getConnectedMzPeaks();
+		double thresholdLevel = MathUtils.calcQuantile(intensities,
+				chromatographicThresholdLevel);
 
-		double recursiveThresholdlevelPeak;
+		// Current region is a region of consecutive scans which all have
+		// intensity above chromatographic threshold level
+		int currentRegionStart = 0, currentRegionEnd;
+		double currentRegionHeight;
 
-		double[] chromatoIntensities = new double[scanNumbers.length];
-		double sumIntensities = 0;
+		while (currentRegionStart < scanNumbers.length) {
 
-		for (int i = 0; i < scanNumbers.length; i++) {
+			// Find a start of the region
+			MzPeak startPeak = chromatogram
+					.getMzPeak(scanNumbers[currentRegionStart]);
+			if ((startPeak == null)
+					|| (startPeak.getIntensity() < thresholdLevel)) {
+				currentRegionStart++;
+				continue;
+			}
 
-			ConnectedMzPeak mzValue = chromatogram
-					.getConnectedMzPeak(scanNumbers[i]);
-			if (mzValue != null) {
-				chromatoIntensities[i] = mzValue.getMzPeak().getIntensity();
-			} else
-				chromatoIntensities[i] = 0;
-			sumIntensities += chromatoIntensities[i];
-		}
+			currentRegionHeight = startPeak.getIntensity();
 
-		recursiveThresholdlevelPeak = MathUtils.calcQuantile(
-				chromatoIntensities, chromatographicThresholdLevel);
-
-
-		for (ConnectedMzPeak mzPeak : cMzPeaks) {
-
-			if (mzPeak.getMzPeak().getIntensity() > recursiveThresholdlevelPeak) {
-				regionOfMzPeaks.add(mzPeak);
-			} else if (regionOfMzPeaks.size() != 0) {
-				ConnectedPeak peak = new ConnectedPeak(dataFile,
-						regionOfMzPeaks.get(0));
-				for (int i = 0; i < regionOfMzPeaks.size(); i++) {
-					peak.addMzPeak(regionOfMzPeaks.get(i));
+			// Search for end of the region
+			currentRegionEnd = currentRegionStart + 1;
+			while (currentRegionEnd < scanNumbers.length) {
+				MzPeak endPeak = chromatogram
+						.getMzPeak(scanNumbers[currentRegionEnd]);
+				if ((endPeak == null)
+						|| (endPeak.getIntensity() < thresholdLevel)) {
+					break;
 				}
-				regionOfMzPeaks.clear();
-
-				double pLength = peak.getRawDataPointsRTRange().getSize();
-				double pHeight = peak.getHeight();
-				if ((pLength >= minimumPeakDuration)
-						&& (pHeight >= minimumPeakHeight)) {
-					resolvedPeaks.add(peak);
-				}
-
+				if (endPeak.getIntensity() > currentRegionHeight)
+					currentRegionHeight = endPeak.getIntensity();
+				currentRegionEnd++;
 			}
+
+			// Subtract one index, so the end index points at the last data
+			// point of current region
+			currentRegionEnd--;
+
+			// Check current region, if it makes a good peak
+			if ((retentionTimes[currentRegionEnd]
+					- retentionTimes[currentRegionStart] >= minimumPeakDuration)
+					&& (currentRegionHeight >= minimumPeakHeight)) {
+
+				// Create a new ResolvedPeak and add it
+				ResolvedPeak newPeak = new ResolvedPeak(chromatogram,
+						currentRegionStart, currentRegionEnd);
+				resolvedPeaks.add(newPeak);
+			}
+
+			// Find next peak region, starting from next data point
+			currentRegionStart = currentRegionEnd + 1;
 
 		}
-
-		if (regionOfMzPeaks.size() != 0) {
-			ConnectedPeak peak = new ConnectedPeak(dataFile, regionOfMzPeaks
-					.get(0));
-			for (int i = 0; i < regionOfMzPeaks.size(); i++) {
-				peak.addMzPeak(regionOfMzPeaks.get(i));
-			}
-			double pLength = peak.getRawDataPointsRTRange().getSize();
-			double pHeight = peak.getHeight();
-			if ((pLength >= minimumPeakDuration)
-					&& (pHeight >= minimumPeakHeight)) {
-				resolvedPeaks.add(peak);
-			}
-		}*/
 
 		return resolvedPeaks.toArray(new ChromatographicPeak[0]);
 	}

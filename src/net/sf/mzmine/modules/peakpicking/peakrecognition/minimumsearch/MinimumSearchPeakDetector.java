@@ -31,14 +31,14 @@ import net.sf.mzmine.util.Range;
  * If a local minimum is a local minimum even at a given retention time range,
  * it is considered a border between two peaks.
  */
-public class MinimumSearch implements PeakResolver {
+public class MinimumSearchPeakDetector implements PeakResolver {
 
     private double searchRTRange, minRelativeHeight, minRatio;
 
-    public MinimumSearch(MinimumSearchParameters parameters) {
-        searchRTRange = (Double) parameters.getParameterValue(MinimumSearchParameters.searchRTRange);
-        minRelativeHeight = (Double) parameters.getParameterValue(MinimumSearchParameters.minRelativeHeight);
-        minRatio = (Double) parameters.getParameterValue(MinimumSearchParameters.minRatio);
+    public MinimumSearchPeakDetector(MinimumSearchPeakDetectorParameters parameters) {
+        searchRTRange = (Double) parameters.getParameterValue(MinimumSearchPeakDetectorParameters.searchRTRange);
+        minRelativeHeight = (Double) parameters.getParameterValue(MinimumSearchPeakDetectorParameters.minRelativeHeight);
+        minRatio = (Double) parameters.getParameterValue(MinimumSearchPeakDetectorParameters.minRatio);
 
     }
 

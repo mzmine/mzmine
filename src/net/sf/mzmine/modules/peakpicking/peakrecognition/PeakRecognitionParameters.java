@@ -46,7 +46,7 @@ public class PeakRecognitionParameters implements StorableParameterSet {
 			"net.sf.mzmine.modules.peakpicking.peakrecognition.standarddeviation.StandardDeviationPeakDetector",
 			"net.sf.mzmine.modules.peakpicking.peakrecognition.savitzkygolay.SavitzkyGolayPeakDetector",
 			"net.sf.mzmine.modules.peakpicking.peakrecognition.wavelet.WaveletPeakDetector",
-			"net.sf.mzmine.modules.peakpicking.peakrecognition.minimumsearch.MinimumSearch", };
+			"net.sf.mzmine.modules.peakpicking.peakrecognition.minimumsearch.MinimumSearchPeakDetector" };
 
 	public static final String peakResolverHelpFiles[] = {
 			"net/sf/mzmine/modules/peakpicking/peakrecognition/baseline/help/BaselinePeakDetector.html",

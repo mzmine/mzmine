@@ -27,7 +27,7 @@ import net.sf.mzmine.data.impl.SimpleParameter;
 import net.sf.mzmine.data.impl.SimpleParameterSet;
 import net.sf.mzmine.main.MZmineCore;
 
-public class MinimumSearchParameters extends SimpleParameterSet {
+public class MinimumSearchPeakDetectorParameters extends SimpleParameterSet {
 
 	public static final NumberFormat percentFormat = NumberFormat
 	.getPercentInstance();
@@ -52,7 +52,7 @@ public class MinimumSearchParameters extends SimpleParameterSet {
             null, 3d, 0d, null);
 
     
-    public MinimumSearchParameters() {
+    public MinimumSearchPeakDetectorParameters() {
         super(new Parameter[] { searchRTRange, minRelativeHeight, minRatio });
     }
 
