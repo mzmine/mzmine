@@ -13,8 +13,8 @@
  * A PARTICULAR PURPOSE. See the GNU General Public License for more details.
  * 
  * You should have received a copy of the GNU General Public License along with
- * MZmine 2; if not, write to the Free Software Foundation, Inc., 51 Franklin St,
- * Fifth Floor, Boston, MA 02110-1301 USA
+ * MZmine 2; if not, write to the Free Software Foundation, Inc., 51 Franklin
+ * St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
 package net.sf.mzmine.modules.peakpicking.peakrecognition;
@@ -22,6 +22,7 @@ package net.sf.mzmine.modules.peakpicking.peakrecognition;
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Component;
+import java.awt.Font;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.beans.PropertyChangeEvent;
@@ -44,6 +45,7 @@ import javax.swing.border.EtchedBorder;
 import net.sf.mzmine.data.ChromatographicPeak;
 import net.sf.mzmine.data.MzPeak;
 import net.sf.mzmine.data.PeakList;
+import net.sf.mzmine.data.PeakListRow;
 import net.sf.mzmine.data.RawDataFile;
 import net.sf.mzmine.data.impl.SimpleParameterSet;
 import net.sf.mzmine.main.MZmineCore;
@@ -56,278 +58,272 @@ import net.sf.mzmine.util.dialogs.ParameterSetupDialog;
  * This class extends ParameterSetupDialog class, including a TIC plot.
  */
 public class PeakResolverSetupDialog extends ParameterSetupDialog implements
-		ActionListener, PropertyChangeListener {
+        ActionListener, PropertyChangeListener {
 
-	private Logger logger = Logger.getLogger(this.getClass().getName());
+    private Logger logger = Logger.getLogger(this.getClass().getName());
 
-	// Dialog components
-	private JPanel pnlPlotXY, pnlLocal, pnlVisible, pnlLab, pnlFlds;
-	private JComboBox comboPeakList, comboPeak;
-	private JCheckBox preview;
+    // Dialog components
+    static final Font comboFont = new Font("SansSerif", Font.PLAIN, 10);
+    private JPanel pnlPlotXY, pnlLocal, pnlVisible, pnlLab, pnlFlds;
+    private JComboBox comboPeakList, comboPeak;
+    private JCheckBox preview;
 
-	// Currently loaded chromatogram
-	private PeakRecognitionParameters threeStepParameters;
+    // XYPlot
+    private TICToolBar toolBar;
+    private TICPlot ticPlot;
+    private ChromatogramTICDataSet ticDataset;
 
-	// XYPlot
-	private TICToolBar toolBar;
-	private TICPlot ticPlot;
-	private ChromatogramTICDataSet ticDataset;
+    // Peak resolver
+    private SimpleParameterSet pbParameters;
+    private int peakResolverTypeNumber;
 
-	private SimpleParameterSet pbParameters;
-	private int peakBuilderTypeNumber;
+    /**
+     * @param parameters
+     * @param massDetectorTypeNumber
+     */
+    public PeakResolverSetupDialog(PeakRecognitionParameters parameters,
+            int peakResolverTypeNumber) {
 
-	/**
-	 * @param parameters
-	 * @param massDetectorTypeNumber
-	 */
-	public PeakResolverSetupDialog(PeakRecognitionParameters parameters,
-			int peakBuilderTypeNumber) {
+        super(
+                PeakRecognitionParameters.peakResolverNames[peakResolverTypeNumber]
+                        + "'s parameter setup dialog ",
+                parameters.getPeakBuilderParameters(peakResolverTypeNumber),
+                PeakRecognitionParameters.peakResolverHelpFiles[peakResolverTypeNumber]);
 
-		super(
-				PeakRecognitionParameters.peakBuilderNames[peakBuilderTypeNumber]
-						+ "'s parameter setup dialog ",
-				parameters.getPeakBuilderParameters(peakBuilderTypeNumber),
-				PeakRecognitionParameters.peakBuilderHelpFiles[peakBuilderTypeNumber]);
+        this.peakResolverTypeNumber = peakResolverTypeNumber;
 
-		this.threeStepParameters = parameters;
+        // Parameters of local mass detector to get preview values
+        pbParameters = parameters.getPeakBuilderParameters(
+                peakResolverTypeNumber).clone();
 
-		this.peakBuilderTypeNumber = peakBuilderTypeNumber;
+        // Set a listener in all parameters's fields to add functionality to
+        // this dialog
+        Component[] fields = pnlFields.getComponents();
+        for (Component field : fields) {
+            field.addPropertyChangeListener("value", this);
+            if (field instanceof JCheckBox)
+                ((JCheckBox) field).addActionListener(this);
+        }
 
-		// Parameters of local mass detector to get preview values
-		pbParameters = parameters.getPeakBuilderParameters(
-				peakBuilderTypeNumber).clone();
+        // Add all complementary components for this dialog
+        addComponentsPnl();
+        add(pnlLocal);
+        pack();
+        setLocationRelativeTo(MZmineCore.getDesktop().getMainFrame());
 
-		// Set a listener in all parameters's fields to add functionality to
-		// this dialog
-		Component[] fields = pnlFields.getComponents();
-		for (Component field : fields) {
-			field.addPropertyChangeListener("value", this);
-			if (field instanceof JCheckBox)
-				((JCheckBox) field).addActionListener(this);
-		}
+    }
 
-		// Add all complementary components for this dialog
-		addComponentsPnl();
-		add(pnlLocal);
-		pack();
-		setLocationRelativeTo(MZmineCore.getDesktop().getMainFrame());
+    public void actionPerformed(ActionEvent event) {
 
-	}
+        Object src = event.getSource();
 
-	public void actionPerformed(ActionEvent event) {
+        if (src == btnOK) {
+            super.actionPerformed(event);
+        }
 
-		Object src = event.getSource();
+        if (src == btnCancel) {
+            dispose();
+        }
 
-		if (src == btnOK) {
-			super.actionPerformed(event);
-		}
+        if (((src instanceof JCheckBox) && (src != preview))) {
+            if (preview.isSelected()) {
+                loadPreviewPeak();
+            }
+        }
 
-		if (src == btnCancel) {
-			dispose();
-		}
+        if (src == comboPeakList) {
+            PeakList selectedPeakList = (PeakList) comboPeakList.getSelectedItem();
+            PeakListRow peaks[] = selectedPeakList.getRows();
+            comboPeak.removeActionListener(this);
+            comboPeak.removeAllItems();
+            for (PeakListRow peak : peaks)
+                comboPeak.addItem(peak);
+            comboPeak.addActionListener(this);
+            comboPeak.setSelectedIndex(0);
+        }
 
-		/*
-		 * if (((src instanceof JCheckBox) && (src != preview))) { if
-		 * (preview.isSelected()) { removePeakDataSet(); setPeakDataSet(); } }
-		 */
-		if (src == comboPeakList) {
-			PeakList selectedPeakList = (PeakList) comboPeakList
-					.getSelectedItem();
-			ChromatographicPeak peaks[] = selectedPeakList
-					.getPeaks(selectedPeakList.getRawDataFile(0));
-			comboPeak.removeAllItems();
-			for (ChromatographicPeak peak : peaks)
-				comboPeak.addItem(peak);
-		}
+        if (src == comboPeak) {
+            loadPreviewPeak();
+        }
 
-		if (src == comboPeak) {
-			loadPreviewPeak();
-		}
+        if (src == preview) {
+            if (preview.isSelected()) {
+                pnlLocal.add(pnlPlotXY, BorderLayout.CENTER);
+                pnlVisible.add(pnlLab, BorderLayout.WEST);
+                pnlVisible.add(pnlFlds, BorderLayout.CENTER);
+                pack();
+                PeakList selected[] = MZmineCore.getDesktop().getSelectedPeakLists();
+                if (selected.length > 0)
+                    comboPeakList.setSelectedItem(selected[0]);
+                else
+                    comboPeakList.setSelectedIndex(0);
+                setLocationRelativeTo(MZmineCore.getDesktop().getMainFrame());
+                this.setResizable(true);
+            } else {
+                pnlLocal.remove(pnlPlotXY);
+                pnlVisible.remove(pnlLab);
+                pnlVisible.remove(pnlFlds);
+                pack();
+                setLocationRelativeTo(MZmineCore.getDesktop().getMainFrame());
+                this.setResizable(false);
+            }
+        }
 
-		if (src == preview) {
-			if (preview.isSelected()) {
-				pnlLocal.add(pnlPlotXY, BorderLayout.CENTER);
-				pnlVisible.add(pnlLab, BorderLayout.WEST);
-				pnlVisible.add(pnlFlds, BorderLayout.CENTER);
-				pack();
-				loadPreviewPeak();
-				setLocationRelativeTo(MZmineCore.getDesktop().getMainFrame());
-				this.setResizable(true);
-			} else {
-				pnlLocal.remove(pnlPlotXY);
-				pnlVisible.remove(pnlLab);
-				pnlVisible.remove(pnlFlds);
-				pack();
-				setLocationRelativeTo(MZmineCore.getDesktop().getMainFrame());
-				this.setResizable(false);
-			}
-		}
+    }
 
-	}
+    public void propertyChange(PropertyChangeEvent e) {
+        if (preview.isSelected()) {
+            loadPreviewPeak();
+        }
+    }
 
-	public void propertyChange(PropertyChangeEvent e) {
+    private void loadPreviewPeak() {
 
-		synchronized (this) {
-			if (preview.isSelected()) {
-				// removePeakDataSet();
-				// setPeakDataSet();
-			}
-		}
-	}
+        PeakListRow previewRow = (PeakListRow) comboPeak.getSelectedItem();
+        if (previewRow == null)
+            return;
+        logger.finest("Loading new preview peak " + previewRow);
+        ChromatographicPeak previewPeak = previewRow.getPeaks()[0];
 
-	private void loadPreviewPeak() {
+        int dataSetCount = ticPlot.getXYPlot().getDatasetCount();
+        for (int index = 0; index < dataSetCount; index++) {
+            ticPlot.getXYPlot().setDataset(index, null);
+        }
+        ticPlot.startDatasetCounter();
 
-		ChromatographicPeak previewPeak = (ChromatographicPeak) comboPeak.getSelectedItem();
-		if (previewPeak == null) return;
-		
-		int dataSetCount = ticPlot.getXYPlot().getDatasetCount();
-		for (int index = 0; index < dataSetCount; index++) {
-			ticPlot.getXYPlot().setDataset(index, null);
-		}
-		ticPlot.startDatasetCounter();
+        // Create Peak Builder
+        PeakResolver peakResolver;
+        pbParameters = buildParameterSet(pbParameters);
+        String peakResolverClassName = PeakRecognitionParameters.peakResolverClasses[peakResolverTypeNumber];
 
-		ticDataset = new ChromatogramTICDataSet(previewPeak);
-		ticPlot.addTICDataset(ticDataset);
+        try {
+            Class peakResolverClass = Class.forName(peakResolverClassName);
+            Constructor peakResolverConstruct = peakResolverClass.getConstructors()[0];
+            peakResolver = (PeakResolver) peakResolverConstruct.newInstance(pbParameters);
+        } catch (Exception e) {
+            String message = "Error trying to make an instance of Peak Builder "
+                    + peakResolverClassName;
+            MZmineCore.getDesktop().displayErrorMessage(message);
+            logger.severe(message);
+            return;
+        }
 
-		// Create Peak Builder
-		PeakResolver peakBuilder;
-		pbParameters = buildParameterSet(pbParameters);
-		String peakBuilderClassName = PeakRecognitionParameters.peakBuilderClasses[peakBuilderTypeNumber];
+        // Load the intensities into array
+        RawDataFile dataFile = previewPeak.getDataFile();
+        int scanNumbers[] = dataFile.getScanNumbers(1);
+        double retentionTimes[] = new double[scanNumbers.length];
+        for (int i = 0; i < scanNumbers.length; i++)
+            retentionTimes[i] = dataFile.getScan(scanNumbers[i]).getRetentionTime();
+        double intensities[] = new double[scanNumbers.length];
+        for (int i = 0; i < scanNumbers.length; i++) {
+            MzPeak mzPeak = previewPeak.getMzPeak(scanNumbers[i]);
+            if (mzPeak != null)
+                intensities[i] = mzPeak.getIntensity();
+            else
+                intensities[i] = 0;
+        }
+        ChromatographicPeak[] resolvedPeaks = peakResolver.resolvePeaks(
+                previewPeak, scanNumbers, retentionTimes, intensities);
 
-		try {
-			Class peakBuilderClass = Class.forName(peakBuilderClassName);
-			Constructor peakBuilderConstruct = peakBuilderClass
-					.getConstructors()[0];
-			peakBuilder = (PeakResolver) peakBuilderConstruct
-					.newInstance(pbParameters);
-		} catch (Exception e) {
-			String message = "Error trying to make an instance of Peak Builder "
-					+ peakBuilderClassName;
-			MZmineCore.getDesktop().displayErrorMessage(message);
-			logger.severe(message);
-			return;
-		}
+        for (int i = 0; i < resolvedPeaks.length; i++) {
 
-		
-		// Load the intensities into array
-		RawDataFile dataFile = previewPeak.getDataFile();
-		int scanNumbers[] = dataFile.getScanNumbers(1);
-		double retentionTimes[] = new double[scanNumbers.length];
-		for (int i = 0; i < scanNumbers.length; i++)
-			retentionTimes[i] = dataFile.getScan(scanNumbers[i])
-					.getRetentionTime();
-		double intensities[] = new double[scanNumbers.length];
-		for (int i = 0; i < scanNumbers.length; i++) {
-			MzPeak mzPeak = previewPeak.getMzPeak(scanNumbers[i]);
-			if (mzPeak != null)
-				intensities[i] = mzPeak.getIntensity();
-			else
-				intensities[i] = 0;
-		}
-		ChromatographicPeak[] resolvedPeaks = peakBuilder.resolvePeaks(
-				previewPeak, scanNumbers, retentionTimes, intensities);
+            PeakDataSet peakDataSet = new PeakDataSet(resolvedPeaks[i]);
+            ticPlot.addPeakDataset(peakDataSet);
 
-		for (int i = 0; i < resolvedPeaks.length; i++) {
+            if (i > 50) {
+                String message = "Too many peaks detected, please adjust parameter values";
+                MZmineCore.getDesktop().displayMessage(message);
+                break;
+            }
 
-			PeakDataSet peakDataSet = new PeakDataSet(new PreviewPeak(
-					resolvedPeaks[i]));
-			ticPlot.addPeakDataset(peakDataSet);
+        }
 
-			if (i > 50) {
-				String message = "Too many peaks detected, please adjust parameter values";
-				MZmineCore.getDesktop().displayMessage(message);
-				break;
-			}
+        ticDataset = new ChromatogramTICDataSet(previewRow.getPeaks()[0]);
+        ticPlot.addTICDataset(ticDataset);
 
-		}
+    }
 
+    /**
+     * This function add all the additional components for this dialog over the
+     * original ParameterSetupDialog.
+     * 
+     */
+    private void addComponentsPnl() {
 
-	}
+        PeakList peakLists[] = MZmineCore.getCurrentProject().getPeakLists();
 
-	/**
-	 * This function add all the additional components for this dialog over the
-	 * original ParameterSetupDialog.
-	 * 
-	 */
-	private void addComponentsPnl() {
+        // Elements of pnlpreview
+        JPanel pnlpreview = new JPanel(new BorderLayout());
 
-		PeakList peakLists[] = MZmineCore.getCurrentProject().getPeakLists();
+        preview = new JCheckBox(" Show preview of peak building ");
+        preview.addActionListener(this);
+        preview.setHorizontalAlignment(SwingConstants.CENTER);
+        preview.setEnabled(peakLists.length > 0);
 
-		// Elements of pnlpreview
-		JPanel pnlpreview = new JPanel(new BorderLayout());
+        pnlpreview.add(new JSeparator(), BorderLayout.NORTH);
+        pnlpreview.add(preview, BorderLayout.CENTER);
+        pnlpreview.add(Box.createVerticalStrut(10), BorderLayout.SOUTH);
 
-		preview = new JCheckBox(" Show preview of peak building ");
-		preview.addActionListener(this);
-		preview.setHorizontalAlignment(SwingConstants.CENTER);
-		preview.setEnabled(peakLists.length > 0);
+        // Elements of pnlLab
+        pnlLab = new JPanel();
+        pnlLab.setLayout(new BoxLayout(pnlLab, BoxLayout.Y_AXIS));
+        pnlLab.setBorder(BorderFactory.createEmptyBorder(5, 5, 5, 5));
 
-		pnlpreview.add(new JSeparator(), BorderLayout.NORTH);
-		pnlpreview.add(preview, BorderLayout.CENTER);
-		pnlpreview.add(Box.createVerticalStrut(10), BorderLayout.SOUTH);
+        JLabel lblFileSelected = new JLabel("Peak list ");
+        JLabel lblRetentionTime = new JLabel("Peak");
 
-		// Elements of pnlLab
-		pnlLab = new JPanel();
-		pnlLab.setLayout(new BoxLayout(pnlLab, BoxLayout.Y_AXIS));
-		pnlLab.setBorder(BorderFactory.createEmptyBorder(5, 5, 5, 5));
+        pnlLab.add(lblFileSelected);
+        pnlLab.add(Box.createVerticalStrut(25));
+        pnlLab.add(lblRetentionTime);
 
-		JLabel lblFileSelected = new JLabel("Peak list ");
-		JLabel lblRetentionTime = new JLabel("Peak");
+        // Elements of pnlFlds
+        pnlFlds = new JPanel();
+        pnlFlds.setLayout(new BoxLayout(pnlFlds, BoxLayout.Y_AXIS));
+        pnlFlds.setBorder(BorderFactory.createEmptyBorder(5, 5, 5, 5));
 
-		pnlLab.add(lblFileSelected);
-		pnlLab.add(Box.createVerticalStrut(25));
-		pnlLab.add(lblRetentionTime);
+        comboPeakList = new JComboBox();
+        for (PeakList peakList : peakLists) {
+            if (peakList.getNumberOfRawDataFiles() == 1)
+                comboPeakList.addItem(peakList);
+        }
 
-		// Elements of pnlFlds
-		pnlFlds = new JPanel();
-		pnlFlds.setLayout(new BoxLayout(pnlFlds, BoxLayout.Y_AXIS));
-		pnlFlds.setBorder(BorderFactory.createEmptyBorder(5, 5, 5, 5));
+        comboPeakList.setBackground(Color.WHITE);
+        comboPeakList.setFont(comboFont);
+        comboPeakList.addActionListener(this);
 
-		comboPeakList = new JComboBox();
-		for (PeakList peakList : peakLists) {
-			if (peakList.getNumberOfRawDataFiles() == 1)
-				comboPeakList.addItem(peakList);
-		}
-		PeakList selected[] = MZmineCore.getDesktop().getSelectedPeakLists();
-		if (selected.length > 0)
-			comboPeakList.setSelectedItem(selected[0]);
-		comboPeakList.setBackground(Color.WHITE);
-		comboPeakList.addActionListener(this);
+        comboPeak = new JComboBox();
+        comboPeak.setBackground(Color.WHITE);
+        comboPeak.setFont(comboFont);
+        comboPeak.setRenderer(new PeakPreviewComboRenderer());
 
-		pnlFlds.add(comboPeakList);
-		pnlFlds.add(Box.createVerticalStrut(10));
+        pnlFlds.add(comboPeakList);
+        pnlFlds.add(Box.createVerticalStrut(10));
+        pnlFlds.add(comboPeak);
+        pnlFlds.add(Box.createVerticalStrut(10));
 
-		comboPeak = new JComboBox();
-		comboPeak.setBackground(Color.WHITE);
-		comboPeak.addActionListener(this);
+        // Put all together
+        pnlVisible = new JPanel(new BorderLayout());
+        pnlVisible.add(pnlpreview, BorderLayout.NORTH);
 
-		pnlFlds.add(comboPeak);
-		pnlFlds.add(Box.createVerticalStrut(10));
+        // Panel for XYPlot
+        pnlPlotXY = new JPanel(new BorderLayout());
+        Border one = BorderFactory.createEtchedBorder(EtchedBorder.RAISED);
+        Border two = BorderFactory.createEmptyBorder(10, 10, 10, 10);
+        pnlPlotXY.setBorder(BorderFactory.createCompoundBorder(one, two));
+        pnlPlotXY.setBackground(Color.white);
 
-		// Put all together
+        ticPlot = new TICPlot((ActionListener) this);
+        pnlPlotXY.add(ticPlot, BorderLayout.CENTER);
 
-		pnlVisible = new JPanel(new BorderLayout());
-		pnlVisible.add(pnlpreview, BorderLayout.NORTH);
+        toolBar = new TICToolBar(ticPlot);
+        toolBar.getComponentAtIndex(0).setVisible(false);
+        pnlPlotXY.add(toolBar, BorderLayout.EAST);
 
-		// Panel for XYPlot
-		pnlPlotXY = new JPanel(new BorderLayout());
-		Border one = BorderFactory.createEtchedBorder(EtchedBorder.RAISED);
-		Border two = BorderFactory.createEmptyBorder(10, 10, 10, 10);
-		pnlPlotXY.setBorder(BorderFactory.createCompoundBorder(one, two));
-		pnlPlotXY.setBackground(Color.white);
+        labelsAndFields.add(pnlVisible, BorderLayout.SOUTH);
 
-		ticPlot = new TICPlot((ActionListener) this);
-		pnlPlotXY.add(ticPlot, BorderLayout.CENTER);
-
-		toolBar = new TICToolBar(ticPlot);
-		toolBar.getComponentAtIndex(0).setVisible(false);
-		pnlPlotXY.add(toolBar, BorderLayout.EAST);
-
-		labelsAndFields.add(pnlVisible, BorderLayout.SOUTH);
-
-		// Complete panel for this dialog including pnlPlotXY
-		pnlLocal = new JPanel(new BorderLayout());
-
-		pnlLocal.add(pnlAll, BorderLayout.WEST);
-	}
+        // Complete panel for this dialog including pnlPlotXY
+        pnlLocal = new JPanel(new BorderLayout());
+        pnlLocal.add(pnlAll, BorderLayout.WEST);
+    }
 
 }

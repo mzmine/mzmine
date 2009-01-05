@@ -17,19 +17,18 @@
  * Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-package net.sf.mzmine.modules.peakpicking.threestep.peakconstruction.peakfillingmodels.impl;
+package net.sf.mzmine.modules.peakpicking.peakrecognition.savitzkygolay.peakmodels;
 
 import net.sf.mzmine.data.ChromatographicPeak;
+import net.sf.mzmine.data.MzPeak;
+import net.sf.mzmine.data.PeakStatus;
 import net.sf.mzmine.data.RawDataFile;
 import net.sf.mzmine.data.Scan;
 import net.sf.mzmine.data.impl.SimpleDataPoint;
 import net.sf.mzmine.data.impl.SimpleMzPeak;
-import net.sf.mzmine.modules.peakpicking.threestep.peakconstruction.ConnectedPeak;
-import net.sf.mzmine.modules.peakpicking.threestep.peakconstruction.peakfillingmodels.PeakFillingModel;
-import net.sf.mzmine.modules.peakpicking.threestep.xicconstruction.ConnectedMzPeak;
 import net.sf.mzmine.util.Range;
 
-public class EMGPeakFillingModel implements PeakFillingModel {
+public class EMGPeakModel implements ChromatographicPeak {
 
     private double xRight = -1, xLeft = -1;
     
@@ -42,12 +41,14 @@ public class EMGPeakFillingModel implements PeakFillingModel {
      * 
      * @return peak
      */
+    /*
     public ChromatographicPeak fillingPeak(
             ChromatographicPeak originalDetectedShape, double[] params) {
 
         xRight = -1;
         xLeft = -1;
 
+        
         ConnectedMzPeak[] listMzPeaks = ((ConnectedPeak) originalDetectedShape).getAllMzPeaks();
 
         RawDataFile dataFile = originalDetectedShape.getDataFile();
@@ -82,7 +83,7 @@ public class EMGPeakFillingModel implements PeakFillingModel {
          * This formula is a variation of Foley J.P., Dorsey J.G. "Equations for
          * calculation of chormatographic figures of Merit for Ideal and Skewed
          * Peaks", Anal. Chem. 1983, 55, 730-737.
-         */
+         
 
         // Left side
         double beginning = xLeft;//listMzPeaks[0].getScan().getRetentionTime();
@@ -161,7 +162,7 @@ public class EMGPeakFillingModel implements PeakFillingModel {
      * @param height
      * @param RT
      * @return FWHM
-     */
+     
     private double calculateWidth(ConnectedMzPeak[] listMzPeaks, double height,
             double RT, double MZ, double resolution) {
 
@@ -283,11 +284,7 @@ public class EMGPeakFillingModel implements PeakFillingModel {
             FWHM /= 2.354820045d;
             return FWHM;
         	
-            /*double beginning = rangeDataPoints[0].getScan().getRetentionTime();
-            double ending = rangeDataPoints[rangeDataPoints.length - 1].getScan().getRetentionTime();
-            xRight = RT + (ending - beginning) / 9.42f;
-            xLeft = RT - (ending - beginning) / 9.42f;
-            FWHM = (xRight - xLeft) / 2.355f;*/
+            
         }
 
         // 
@@ -331,7 +328,7 @@ public class EMGPeakFillingModel implements PeakFillingModel {
 
         return shapeHeight;
     }
-
+/*
     public ConnectedMzPeak getDetectedMzPeak(ConnectedMzPeak[] listMzPeaks,
             Scan scan) {
         int scanNumber = scan.getScanNumber();
@@ -339,6 +336,72 @@ public class EMGPeakFillingModel implements PeakFillingModel {
             if (listMzPeaks[i].getScan().getScanNumber() == scanNumber)
                 return listMzPeaks[i].clone();
         }
+        return null;
+    }
+    */
+
+    public double getArea() {
+        // TODO Auto-generated method stub
+        return 0;
+    }
+
+    public RawDataFile getDataFile() {
+        // TODO Auto-generated method stub
+        return null;
+    }
+
+    public double getHeight() {
+        // TODO Auto-generated method stub
+        return 0;
+    }
+
+    public double getMZ() {
+        // TODO Auto-generated method stub
+        return 0;
+    }
+
+    public int getMostIntenseFragmentScanNumber() {
+        // TODO Auto-generated method stub
+        return 0;
+    }
+
+    public MzPeak getMzPeak(int scanNumber) {
+        // TODO Auto-generated method stub
+        return null;
+    }
+
+    public PeakStatus getPeakStatus() {
+        // TODO Auto-generated method stub
+        return null;
+    }
+
+    public double getRT() {
+        // TODO Auto-generated method stub
+        return 0;
+    }
+
+    public Range getRawDataPointsIntensityRange() {
+        // TODO Auto-generated method stub
+        return null;
+    }
+
+    public Range getRawDataPointsMZRange() {
+        // TODO Auto-generated method stub
+        return null;
+    }
+
+    public Range getRawDataPointsRTRange() {
+        // TODO Auto-generated method stub
+        return null;
+    }
+
+    public int getRepresentativeScanNumber() {
+        // TODO Auto-generated method stub
+        return 0;
+    }
+
+    public int[] getScanNumbers() {
+        // TODO Auto-generated method stub
         return null;
     }
 

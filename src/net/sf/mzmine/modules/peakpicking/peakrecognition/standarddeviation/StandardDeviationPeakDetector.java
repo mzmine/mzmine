@@ -22,11 +22,8 @@ package net.sf.mzmine.modules.peakpicking.peakrecognition.standarddeviation;
 import java.util.Vector;
 
 import net.sf.mzmine.data.ChromatographicPeak;
-import net.sf.mzmine.data.RawDataFile;
-import net.sf.mzmine.modules.peakpicking.threestep.peakconstruction.ConnectedPeak;
-import net.sf.mzmine.modules.peakpicking.threestep.peakconstruction.PeakBuilder;
-import net.sf.mzmine.modules.peakpicking.threestep.xicconstruction.Chromatogram;
-import net.sf.mzmine.modules.peakpicking.threestep.xicconstruction.ConnectedMzPeak;
+import net.sf.mzmine.modules.peakpicking.peakrecognition.PeakResolver;
+import net.sf.mzmine.modules.peakpicking.peakrecognition.ResolvedPeak;
 
 /**
  * This class implements a simple peak builder. This takes all collected MzPeaks
@@ -35,7 +32,7 @@ import net.sf.mzmine.modules.peakpicking.threestep.xicconstruction.ConnectedMzPe
  * level).
  * 
  */
-public class StandardDeviationPeakDetector implements PeakBuilder {
+public class StandardDeviationPeakDetector implements PeakResolver {
 
 	// private Logger logger = Logger.getLogger(this.getClass().getName());
 
@@ -53,16 +50,14 @@ public class StandardDeviationPeakDetector implements PeakBuilder {
 				.getParameterValue(StandardDeviationPeakDetectorParameters.standardDeviationLevel);
 	}
 
-	/**
-	 * @see net.sf.mzmine.modules.peakpicking.threestep.peakconstruction.PeakBuilder#addChromatogram(net.net.sf.mzmine.modules.peakpicking.chromatogrambuilder.massconnection.Chromatogram,
-	 *      net.sf.mzmine.data.RawDataFile)
-	 */
-	public ChromatographicPeak[] addChromatogram(Chromatogram chromatogram,
-			RawDataFile dataFile) {
+    /**
+     */
+    public ChromatographicPeak[] resolvePeaks(ChromatographicPeak chromatogram,
+            int scanNumbers[], double retentionTimes[], double intensities[]) {
 
-		ConnectedMzPeak[] cMzPeaks = chromatogram.getConnectedMzPeaks();
+        Vector<ResolvedPeak> resolvedPeaks = new Vector<ResolvedPeak>();
 
-		double standardDeviationlevelPeak;
+/*		double standardDeviationlevelPeak;
 
 		int[] scanNumbers = chromatogram.getDataFile().getScanNumbers(1);
 		double[] chromatoIntensities = new double[scanNumbers.length];
@@ -128,9 +123,8 @@ public class StandardDeviationPeakDetector implements PeakBuilder {
 			}
 
 		}
-
-		// logger.finest(" Numero de picos " + underDetectionPeaks.size());
-		return underDetectionPeaks.toArray(new ChromatographicPeak[0]);
+*/
+		return resolvedPeaks.toArray(new ResolvedPeak[0]);
 	}
 
 	/**
@@ -144,7 +138,7 @@ public class StandardDeviationPeakDetector implements PeakBuilder {
 			double avgIntensities, double chromatographicThresholdLevel) {
 
 		double standardDeviation = 0;
-		double percentage = 1.0f - chromatographicThresholdLevel;
+		double percentage = 1.0 - chromatographicThresholdLevel;
 
 		for (int i = 0; i < chromatoIntensities.length; i++) {
 			double deviation = chromatoIntensities[i] - avgIntensities;

@@ -28,9 +28,13 @@ import org.jfree.data.xy.AbstractXYDataset;
 public class ChromatogramTICDataSet extends AbstractXYDataset {
 
 	private ChromatographicPeak chromatogram;
+    private RawDataFile dataFile;
+    private int scanNumbers[];
 
 	public ChromatogramTICDataSet(ChromatographicPeak chromatogram) {
 		this.chromatogram = chromatogram;
+        this.dataFile = chromatogram.getDataFile();
+        this.scanNumbers = dataFile.getScanNumbers(1);
 	}
 
 	public Comparable getSeriesKey(int series) {
@@ -38,18 +42,14 @@ public class ChromatogramTICDataSet extends AbstractXYDataset {
 	}
 
 	public int getItemCount(int series) {
-		return chromatogram.getDataFile().getNumOfScans(1);
+		return scanNumbers.length;
 	}
 
 	public Number getX(int series, int index) {
-		RawDataFile dataFile = chromatogram.getDataFile();
-		int scanNumbers[] = dataFile.getScanNumbers(1);
 		return dataFile.getScan(scanNumbers[index]).getRetentionTime();
 	}
 
 	public Number getY(int series, int index) {
-		RawDataFile dataFile = chromatogram.getDataFile();
-		int scanNumbers[] = dataFile.getScanNumbers(1);
 		MzPeak mzPeak = chromatogram.getMzPeak(scanNumbers[index]);
 		if (mzPeak == null)
 			return 0;

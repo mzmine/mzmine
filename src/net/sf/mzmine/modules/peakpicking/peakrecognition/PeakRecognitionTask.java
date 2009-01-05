@@ -13,8 +13,8 @@
  * A PARTICULAR PURPOSE. See the GNU General Public License for more details.
  * 
  * You should have received a copy of the GNU General Public License along with
- * MZmine 2; if not, write to the Free Software Foundation, Inc., 51 Franklin St,
- * Fifth Floor, Boston, MA 02110-1301 USA
+ * MZmine 2; if not, write to the Free Software Foundation, Inc., 51 Franklin
+ * St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
 package net.sf.mzmine.modules.peakpicking.peakrecognition;
@@ -38,156 +38,152 @@ import net.sf.mzmine.taskcontrol.Task;
  */
 class PeakRecognitionTask implements Task {
 
-	private Logger logger = Logger.getLogger(this.getClass().getName());
+    private Logger logger = Logger.getLogger(this.getClass().getName());
 
-	private PeakList peakList;
+    private PeakList peakList;
 
-	private TaskStatus status = TaskStatus.WAITING;
-	private String errorMessage;
+    private TaskStatus status = TaskStatus.WAITING;
+    private String errorMessage;
 
-	// scan counter
-	private int processedRows = 0, totalRows;
-	private int newPeakID = 1;
+    // scan counter
+    private int processedRows = 0, totalRows;
+    private int newPeakID = 1;
 
-	// User parameters
-	private String suffix;
+    // User parameters
+    private String suffix;
 
-	private int peakBuilderTypeNumber;
+    private int peakResolverTypeNumber;
 
-	// Peak Builders
-	private PeakResolver peakBuilder;
+    // Peak Builders
+    private PeakResolver peakResolver;
 
-	private ParameterSet pbParameters;
+    private ParameterSet pbParameters;
 
-	/**
-	 * @param dataFile
-	 * @param parameters
-	 */
-	PeakRecognitionTask(PeakList peakList, PeakRecognitionParameters parameters) {
+    /**
+     * @param dataFile
+     * @param parameters
+     */
+    PeakRecognitionTask(PeakList peakList, PeakRecognitionParameters parameters) {
 
-		this.peakList = peakList;
+        this.peakList = peakList;
 
-		peakBuilderTypeNumber = parameters.getPeakBuilderTypeNumber();
-		pbParameters = parameters
-				.getPeakBuilderParameters(peakBuilderTypeNumber);
-		suffix = parameters.getSuffix();
+        peakResolverTypeNumber = parameters.getPeakBuilderTypeNumber();
+        pbParameters = parameters.getPeakBuilderParameters(peakResolverTypeNumber);
+        suffix = parameters.getSuffix();
 
-	}
+    }
 
-	/**
-	 * @see net.sf.mzmine.taskcontrol.Task#getTaskDescription()
-	 */
-	public String getTaskDescription() {
-		return "Peak recognition on " + peakList;
-	}
+    /**
+     * @see net.sf.mzmine.taskcontrol.Task#getTaskDescription()
+     */
+    public String getTaskDescription() {
+        return "Peak recognition on " + peakList;
+    }
 
-	/**
-	 * @see net.sf.mzmine.taskcontrol.Task#getFinishedPercentage()
-	 */
-	public double getFinishedPercentage() {
-		if (totalRows == 0)
-			return 0;
-		else
-			return (double) processedRows / totalRows;
-	}
+    /**
+     * @see net.sf.mzmine.taskcontrol.Task#getFinishedPercentage()
+     */
+    public double getFinishedPercentage() {
+        if (totalRows == 0)
+            return 0;
+        else
+            return (double) processedRows / totalRows;
+    }
 
-	/**
-	 * @see net.sf.mzmine.taskcontrol.Task#getStatus()
-	 */
-	public TaskStatus getStatus() {
-		return status;
-	}
+    /**
+     * @see net.sf.mzmine.taskcontrol.Task#getStatus()
+     */
+    public TaskStatus getStatus() {
+        return status;
+    }
 
-	/**
-	 * @see net.sf.mzmine.taskcontrol.Task#getErrorMessage()
-	 */
-	public String getErrorMessage() {
-		return errorMessage;
-	}
+    /**
+     * @see net.sf.mzmine.taskcontrol.Task#getErrorMessage()
+     */
+    public String getErrorMessage() {
+        return errorMessage;
+    }
 
-	/**
-	 * @see net.sf.mzmine.taskcontrol.Task#cancel()
-	 */
-	public void cancel() {
-		status = TaskStatus.CANCELED;
-	}
+    /**
+     * @see net.sf.mzmine.taskcontrol.Task#cancel()
+     */
+    public void cancel() {
+        status = TaskStatus.CANCELED;
+    }
 
-	/**
-	 * @see Runnable#run()
-	 */
-	public void run() {
+    /**
+     * @see Runnable#run()
+     */
+    public void run() {
 
-		status = TaskStatus.PROCESSING;
+        status = TaskStatus.PROCESSING;
 
-		logger.info("Started peak recognition on " + peakList);
+        logger.info("Started peak recognition on " + peakList);
 
-		// Create new peak constructor according with the user's selection
-		String peakBuilderClassName = PeakRecognitionParameters.peakBuilderClasses[peakBuilderTypeNumber];
-		try {
-			Class peakBuilderClass = Class.forName(peakBuilderClassName);
-			Constructor peakBuilderConstruct = peakBuilderClass
-					.getConstructors()[0];
-			peakBuilder = (PeakResolver) peakBuilderConstruct
-					.newInstance(pbParameters);
-		} catch (Exception e) {
-			errorMessage = "Error trying to make an instance of peak builder "
-					+ peakBuilderClassName;
-			status = TaskStatus.ERROR;
-			return;
-		}
+        // Create new peak constructor according with the user's selection
+        String peakResolverClassName = PeakRecognitionParameters.peakResolverClasses[peakResolverTypeNumber];
+        try {
+            Class peakResolverClass = Class.forName(peakResolverClassName);
+            Constructor peakResolverConstruct = peakResolverClass.getConstructors()[0];
+            peakResolver = (PeakResolver) peakResolverConstruct.newInstance(pbParameters);
+        } catch (Exception e) {
+            errorMessage = "Error trying to make an instance of peak builder "
+                    + peakResolverClassName;
+            status = TaskStatus.ERROR;
+            return;
+        }
 
-		// Get data file information
-		RawDataFile dataFile = peakList.getRawDataFile(0);
-		int scanNumbers[] = dataFile.getScanNumbers(1);
-		double retentionTimes[] = new double[scanNumbers.length];
-		for (int i = 0; i < scanNumbers.length; i++)
-			retentionTimes[i] = dataFile.getScan(scanNumbers[i])
-					.getRetentionTime();
-		double intensities[] = new double[scanNumbers.length];
+        // Get data file information
+        RawDataFile dataFile = peakList.getRawDataFile(0);
+        int scanNumbers[] = dataFile.getScanNumbers(1);
+        double retentionTimes[] = new double[scanNumbers.length];
+        for (int i = 0; i < scanNumbers.length; i++)
+            retentionTimes[i] = dataFile.getScan(scanNumbers[i]).getRetentionTime();
+        double intensities[] = new double[scanNumbers.length];
 
-		// Create new peak list
-		SimplePeakList newPeakList = new SimplePeakList(
-				peakList + " " + suffix, dataFile);
+        // Create new peak list
+        SimplePeakList newPeakList = new SimplePeakList(
+                peakList + " " + suffix, dataFile);
 
-		totalRows = peakList.getNumberOfRows();
+        totalRows = peakList.getNumberOfRows();
 
-		for (ChromatographicPeak chromatogram : peakList.getPeaks(dataFile)) {
+        for (ChromatographicPeak chromatogram : peakList.getPeaks(dataFile)) {
 
-			if (status == TaskStatus.CANCELED)
-				return;
+            if (status == TaskStatus.CANCELED)
+                return;
 
-			// Load the intensities into array
-			for (int i = 0; i < scanNumbers.length; i++) {
-				MzPeak mzPeak = chromatogram.getMzPeak(scanNumbers[i]);
-				if (mzPeak != null)
-					intensities[i] = mzPeak.getIntensity();
-				else
-					intensities[i] = 0;
-			}
+            // Load the intensities into array
+            for (int i = 0; i < scanNumbers.length; i++) {
+                MzPeak mzPeak = chromatogram.getMzPeak(scanNumbers[i]);
+                if (mzPeak != null)
+                    intensities[i] = mzPeak.getIntensity();
+                else
+                    intensities[i] = 0;
+            }
 
-			// Resolve peaks
-			ChromatographicPeak peaks[] = peakBuilder.resolvePeaks(
-					chromatogram, scanNumbers, retentionTimes, intensities);
+            // Resolve peaks
+            ChromatographicPeak peaks[] = peakResolver.resolvePeaks(
+                    chromatogram, scanNumbers, retentionTimes, intensities);
 
-			// Add peaks to the new peak list
-			for (ChromatographicPeak finishedPeak : peaks) {
-				SimplePeakListRow newRow = new SimplePeakListRow(newPeakID);
-				newPeakID++;
-				newRow.addPeak(dataFile, finishedPeak);
-				newPeakList.addRow(newRow);
-			}
+            // Add peaks to the new peak list
+            for (ChromatographicPeak finishedPeak : peaks) {
+                SimplePeakListRow newRow = new SimplePeakListRow(newPeakID);
+                newPeakID++;
+                newRow.addPeak(dataFile, finishedPeak);
+                newPeakList.addRow(newRow);
+            }
 
-			processedRows++;
-		}
+            processedRows++;
+        }
 
-		// Add new peaklist to the project
-		MZmineProject currentProject = MZmineCore.getCurrentProject();
-		currentProject.addPeakList(newPeakList);
+        // Add new peaklist to the project
+        MZmineProject currentProject = MZmineCore.getCurrentProject();
+        currentProject.addPeakList(newPeakList);
 
-		status = TaskStatus.FINISHED;
+        status = TaskStatus.FINISHED;
 
-		logger.info("Finished peak recognition on " + peakList);
+        logger.info("Finished peak recognition on " + peakList);
 
-	}
+    }
 
 }

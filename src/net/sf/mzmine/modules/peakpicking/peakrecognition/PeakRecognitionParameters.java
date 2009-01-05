@@ -34,12 +34,12 @@ public class PeakRecognitionParameters implements StorableParameterSet {
 	private static final String PARAMETER_NAME_ATTRIBUTE = "name";
 
 	// Peak recognition
-	public static final String peakBuilderNames[] = { "Baseline cut-off",
+	public static final String peakResolverNames[] = { "Baseline cut-off",
 			"Chromatographic threshold", "Noise amplitude",
 			"Standard deviation", "Savitzky-Golay", "Wavelet transform",
 			"Local minimum search" };
 
-	public static final String peakBuilderClasses[] = {
+	public static final String peakResolverClasses[] = {
 			"net.sf.mzmine.modules.peakpicking.peakrecognition.baseline.BaselinePeakDetector",
 			"net.sf.mzmine.modules.peakpicking.peakrecognition.chromatographicthreshold.ChromatographicThresholdPeakDetector",
 			"net.sf.mzmine.modules.peakpicking.peakrecognition.noiseamplitude.NoiseAmplitudePeakDetector",
@@ -48,7 +48,7 @@ public class PeakRecognitionParameters implements StorableParameterSet {
 			"net.sf.mzmine.modules.peakpicking.peakrecognition.wavelet.WaveletPeakDetector",
 			"net.sf.mzmine.modules.peakpicking.peakrecognition.minimumsearch.MinimumSearch", };
 
-	public static final String peakBuilderHelpFiles[] = {
+	public static final String peakResolverHelpFiles[] = {
 			"net/sf/mzmine/modules/peakpicking/peakrecognition/baseline/help/BaselinePeakDetector.html",
 			"net/sf/mzmine/modules/peakpicking/peakrecognition/chromatographicthreshold/help/ChromatographicThresholdPeakDetector.html",
 			"net/sf/mzmine/modules/peakpicking/peakrecognition/noiseamplitude/help/NoiseAmplitudePeakDetector.html",
@@ -58,9 +58,9 @@ public class PeakRecognitionParameters implements StorableParameterSet {
 			"TODO" };
 
 	// Three step parameters
-	private SimpleParameterSet peakBuilderParameters[], myParameters;
+	private SimpleParameterSet peakResolverParameters[], myParameters;
 
-	private static final Parameter peakBuilderTypeNumber = new SimpleParameter(
+	private static final Parameter peakResolverTypeNumber = new SimpleParameter(
 			ParameterType.INTEGER,
 			"Peak Builder type",
 			"This value defines the type of peak builder to use in three steps peak picking process",
@@ -68,22 +68,22 @@ public class PeakRecognitionParameters implements StorableParameterSet {
 
 	private static final Parameter suffix = new SimpleParameter(
 			ParameterType.STRING, "Suffix",
-			"This string is added to filename as suffix", "peaklist");
+			"This string is added to filename as suffix", "resolved");
 
 	public PeakRecognitionParameters() {
 
-		peakBuilderParameters = new SimpleParameterSet[peakBuilderClasses.length];
+		peakResolverParameters = new SimpleParameterSet[peakResolverClasses.length];
 
 		myParameters = new SimpleParameterSet(new Parameter[] {
 
-		peakBuilderTypeNumber, suffix });
+		peakResolverTypeNumber, suffix });
 
-		for (int i = 0; i < peakBuilderClasses.length; i++) {
-			String className = peakBuilderClasses[i] + "Parameters";
+		for (int i = 0; i < peakResolverClasses.length; i++) {
+			String className = peakResolverClasses[i] + "Parameters";
 			Class paramClass;
 			try {
 				paramClass = Class.forName(className);
-				peakBuilderParameters[i] = (SimpleParameterSet) paramClass
+				peakResolverParameters[i] = (SimpleParameterSet) paramClass
 						.newInstance();
 			} catch (Exception e) {
 				e.printStackTrace();
@@ -97,7 +97,7 @@ public class PeakRecognitionParameters implements StorableParameterSet {
 	 * @return SimpleParameterSet
 	 */
 	public SimpleParameterSet getPeakBuilderParameters(int ind) {
-		return peakBuilderParameters[ind];
+		return peakResolverParameters[ind];
 	}
 
 	/**
@@ -128,19 +128,19 @@ public class PeakRecognitionParameters implements StorableParameterSet {
 	 * 
 	 * @param int massDetectorInd
 	 * @param int chromatogramBuilderInd
-	 * @param int peakBuilderInd
+	 * @param int peakResolverInd
 	 */
-	public void setTypeNumber(int peakBuilderInd) {
+	public void setTypeNumber(int peakResolverInd) {
 
-		myParameters.setParameterValue(peakBuilderTypeNumber, peakBuilderInd);
+		myParameters.setParameterValue(peakResolverTypeNumber, peakResolverInd);
 	}
 
 	/**
 	 * 
-	 * @return Integer peakBuilderTypeNumber
+	 * @return Integer peakResolverTypeNumber
 	 */
 	public int getPeakBuilderTypeNumber() {
-		return (Integer) myParameters.getParameterValue(peakBuilderTypeNumber);
+		return (Integer) myParameters.getParameterValue(peakResolverTypeNumber);
 	}
 
 	/**
@@ -149,11 +149,11 @@ public class PeakRecognitionParameters implements StorableParameterSet {
 	 */
 	public void exportValuesToXML(Element element) {
 
-		for (int i = 0; i < peakBuilderParameters.length; i++) {
+		for (int i = 0; i < peakResolverParameters.length; i++) {
 			Element subElement = element.addElement("peakbuilder");
 			subElement.addAttribute(PARAMETER_NAME_ATTRIBUTE,
-					peakBuilderNames[i]);
-			peakBuilderParameters[i].exportValuesToXML(subElement);
+					peakResolverNames[i]);
+			peakResolverParameters[i].exportValuesToXML(subElement);
 		}
 
 		myParameters.exportValuesToXML(element);
@@ -168,10 +168,10 @@ public class PeakRecognitionParameters implements StorableParameterSet {
 		Iterator paramIter = element.elementIterator("peakbuilder");
 		while (paramIter.hasNext()) {
 			Element paramElem = (Element) paramIter.next();
-			for (int i = 0; i < peakBuilderNames.length; i++) {
+			for (int i = 0; i < peakResolverNames.length; i++) {
 				if (paramElem.attributeValue(PARAMETER_NAME_ATTRIBUTE).equals(
-						peakBuilderNames[i])) {
-					peakBuilderParameters[i].importValuesFromXML(paramElem);
+						peakResolverNames[i])) {
+					peakResolverParameters[i].importValuesFromXML(paramElem);
 					break;
 				}
 			}
@@ -191,9 +191,9 @@ public class PeakRecognitionParameters implements StorableParameterSet {
 
 		PeakRecognitionParameters newSet = new PeakRecognitionParameters();
 
-		newSet.peakBuilderParameters = new SimpleParameterSet[peakBuilderParameters.length];
-		for (int i = 0; i < peakBuilderParameters.length; i++) {
-			newSet.peakBuilderParameters[i] = peakBuilderParameters[i].clone();
+		newSet.peakResolverParameters = new SimpleParameterSet[peakResolverParameters.length];
+		for (int i = 0; i < peakResolverParameters.length; i++) {
+			newSet.peakResolverParameters[i] = peakResolverParameters[i].clone();
 		}
 
 		newSet.myParameters = myParameters.clone();
@@ -210,7 +210,7 @@ public class PeakRecognitionParameters implements StorableParameterSet {
 		String parameterName = parameter.getName();
 
 		if (parameterName.equals("Peak Builder type")) {
-			return peakBuilderNames[index];
+			return peakResolverNames[index];
 		}
 		return null;
 	}

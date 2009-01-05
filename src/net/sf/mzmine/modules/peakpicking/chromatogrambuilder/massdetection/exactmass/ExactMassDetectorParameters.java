@@ -44,12 +44,12 @@ public class ExactMassDetectorParameters extends SimpleParameterSet {
 	public static final Parameter noiseLevel = new SimpleParameter(
 			ParameterType.DOUBLE, "Noise level",
 			"Intensities less than this value are interpreted as noise.",
-			"absolute", new Double(10.0), new Double(0.000001), null, MZmineCore
+			"absolute", new Double(10.0), new Double(0), null, MZmineCore
 					.getIntensityFormat());
 
 	public static final Parameter resolution = new SimpleParameter(
 			ParameterType.INTEGER,
-			"Mass Resolution",
+			"Mass resolution",
 			"Mass resolution is the dimensionless ratio of the mass of the peak divided by its width."
 					+ " Peak width is taken as the full width at half maximum intensity, (fwhm).",
 			null, new Integer(60000), new Integer(0), null, NumberFormat
@@ -57,7 +57,7 @@ public class ExactMassDetectorParameters extends SimpleParameterSet {
 
 	public static final Parameter peakModel = new SimpleParameter(
 			ParameterType.STRING,
-			"Peak Model function",
+			"Peak model function",
 			"Lateral peaks under the curve of this peak model are not considered as a possible peak",
 			null, peakModelNames);
 

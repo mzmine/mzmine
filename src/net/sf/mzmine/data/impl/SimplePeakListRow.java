@@ -26,7 +26,6 @@ import java.util.Hashtable;
 import java.util.Iterator;
 
 import net.sf.mzmine.data.ChromatographicPeak;
-import net.sf.mzmine.data.IsotopePattern;
 import net.sf.mzmine.data.PeakIdentity;
 import net.sf.mzmine.data.PeakListRow;
 import net.sf.mzmine.data.RawDataFile;
@@ -83,11 +82,12 @@ public class SimplePeakListRow implements PeakListRow {
 
         if (peak != null) {
 
-            // convert the peak to SimpleChromatographicPeak for easy
+            /* convert the peak to SimpleChromatographicPeak for easy
             // serialization
             if (!((peak instanceof SimpleChromatographicPeak) || (peak instanceof IsotopePattern)))
                 peak = new SimpleChromatographicPeak(peak);
-
+            */
+            
             peaks.put(rawData, peak);
             if (peak.getRawDataPointsIntensityRange().getMax() > maxDataPointIntensity)
                 maxDataPointIntensity = peak.getRawDataPointsIntensityRange().getMax();

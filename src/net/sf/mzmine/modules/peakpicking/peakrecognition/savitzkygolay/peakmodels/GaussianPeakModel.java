@@ -20,18 +20,72 @@
 package net.sf.mzmine.modules.peakpicking.peakrecognition.savitzkygolay.peakmodels;
 
 import net.sf.mzmine.data.ChromatographicPeak;
+import net.sf.mzmine.data.MzPeak;
+import net.sf.mzmine.data.PeakStatus;
 import net.sf.mzmine.data.RawDataFile;
 import net.sf.mzmine.data.Scan;
 import net.sf.mzmine.data.impl.SimpleDataPoint;
 import net.sf.mzmine.data.impl.SimpleMzPeak;
 import net.sf.mzmine.util.Range;
 
-public class GaussianPeakFillingModel implements PeakFillingModel {
+public class GaussianPeakModel implements ChromatographicPeak {
 
     private double xRight = -1, xLeft = -1;
     private double rtMain, intensityMain, FWHM, partC, part2C2;
+    public double getArea() {
+        // TODO Auto-generated method stub
+        return 0;
+    }
+    public RawDataFile getDataFile() {
+        // TODO Auto-generated method stub
+        return null;
+    }
+    public double getHeight() {
+        // TODO Auto-generated method stub
+        return 0;
+    }
+    public double getMZ() {
+        // TODO Auto-generated method stub
+        return 0;
+    }
+    public int getMostIntenseFragmentScanNumber() {
+        // TODO Auto-generated method stub
+        return 0;
+    }
+    public MzPeak getMzPeak(int scanNumber) {
+        // TODO Auto-generated method stub
+        return null;
+    }
+    public PeakStatus getPeakStatus() {
+        // TODO Auto-generated method stub
+        return null;
+    }
+    public double getRT() {
+        // TODO Auto-generated method stub
+        return 0;
+    }
+    public Range getRawDataPointsIntensityRange() {
+        // TODO Auto-generated method stub
+        return null;
+    }
+    public Range getRawDataPointsMZRange() {
+        // TODO Auto-generated method stub
+        return null;
+    }
+    public Range getRawDataPointsRTRange() {
+        // TODO Auto-generated method stub
+        return null;
+    }
+    public int getRepresentativeScanNumber() {
+        // TODO Auto-generated method stub
+        return 0;
+    }
+    public int[] getScanNumbers() {
+        // TODO Auto-generated method stub
+        return null;
+    }
 
-    public ChromatographicPeak fillingPeak(
+    /*public ChromatographicPeak fillingPeak(
             ChromatographicPeak originalDetectedShape, double[] params) {
 
         xRight = -1;
@@ -110,8 +164,7 @@ public class GaussianPeakFillingModel implements PeakFillingModel {
      * @param height
      * @param RT
      * @return FWHM
-     */
-    private double calculateWidth(ConnectedMzPeak[] listMzPeaks) {
+     private double calculateWidth(ConnectedMzPeak[] listMzPeaks) {
 
         double halfIntensity = intensityMain / 2, intensity = 0, intensityPlus = 0, retentionTime = 0;
         ConnectedMzPeak[] rangeDataPoints = listMzPeaks; // .clone();
@@ -228,5 +281,6 @@ public class GaussianPeakFillingModel implements PeakFillingModel {
         }
         return null;
     }
+    */
 
 }

@@ -19,18 +19,12 @@
 
 package net.sf.mzmine.modules.peakpicking.peakrecognition.savitzkygolay;
 
-import java.util.Arrays;
 import java.util.Vector;
 import java.util.logging.Logger;
 
 import net.sf.mzmine.data.ChromatographicPeak;
-import net.sf.mzmine.data.RawDataFile;
-import net.sf.mzmine.data.impl.SimpleMzPeak;
-import net.sf.mzmine.modules.peakpicking.threestep.peakconstruction.ConnectedPeak;
-import net.sf.mzmine.modules.peakpicking.threestep.peakconstruction.PeakBuilder;
-import net.sf.mzmine.modules.peakpicking.threestep.peakconstruction.peakfillingmodels.PeakFillingModel;
-import net.sf.mzmine.modules.peakpicking.threestep.xicconstruction.Chromatogram;
-import net.sf.mzmine.modules.peakpicking.threestep.xicconstruction.ConnectedMzPeak;
+import net.sf.mzmine.modules.peakpicking.peakrecognition.PeakResolver;
+import net.sf.mzmine.modules.peakpicking.peakrecognition.ResolvedPeak;
 import net.sf.mzmine.util.MathUtils;
 
 /**
@@ -42,7 +36,7 @@ import net.sf.mzmine.util.MathUtils;
  * intensity of the peak.
  * 
  */
-public class SavitzkyGolayPeakDetector implements PeakBuilder {
+public class SavitzkyGolayPeakDetector implements PeakResolver {
 
 	private Logger logger = Logger.getLogger(this.getClass().getName());
 
@@ -50,7 +44,7 @@ public class SavitzkyGolayPeakDetector implements PeakBuilder {
 			derivativeThresholdLevel, excessLevel;
 	private int resolution;
 	private boolean fillingPeaks;
-	private PeakFillingModel peakModel;
+	private Class peakModelClass;
 
 	/**
 	 * Constructor of Savitzky-Golay Peak Builder
@@ -92,9 +86,9 @@ public class SavitzkyGolayPeakDetector implements PeakBuilder {
 			if (peakModelClassName == null)
 				throw new ClassNotFoundException();
 
-			Class peakModelClass = Class.forName(peakModelClassName);
+			peakModelClass = Class.forName(peakModelClassName);
 
-			peakModel = (PeakFillingModel) peakModelClass.newInstance();
+			//peakModel = (PeakModel) peakModelClass.newInstance();
 
 		} catch (Exception e) {
 			logger.warning("Error trying to make an instance of peak model "
@@ -103,16 +97,15 @@ public class SavitzkyGolayPeakDetector implements PeakBuilder {
 
 	}
 
-	/**
-	 * @see net.sf.mzmine.modules.peakpicking.threestep.peakconstruction.PeakBuilder#addChromatogram(net.net.sf.mzmine.modules.peakpicking.chromatogrambuilder.massconnection.Chromatogram,
-	 *      net.sf.mzmine.data.RawDataFile)
-	 */
-	public ChromatographicPeak[] addChromatogram(Chromatogram chromatogram,
-			RawDataFile dataFile) {
+    /**
+     */
+    public ChromatographicPeak[] resolvePeaks(ChromatographicPeak chromatogram,
+            int scanNumbers[], double retentionTimes[], double intensities[]) {
+        
+        Vector<ResolvedPeak> resolvedPeaks = new Vector<ResolvedPeak>();
 
 		double maxIntensity = 0;
-
-		Vector<ChromatographicPeak> detectedPeaks = new Vector<ChromatographicPeak>();
+/*
 
 		int[] scanNumbers = dataFile.getScanNumbers(1);
 		double[] chromatoIntensities = new double[scanNumbers.length];
@@ -176,8 +169,8 @@ public class SavitzkyGolayPeakDetector implements PeakBuilder {
 				}
 			}
 		}
-
-		return detectedPeaks.toArray(new ChromatographicPeak[0]);
+*/
+		return resolvedPeaks.toArray(new ResolvedPeak[0]);
 
 	}
 
@@ -192,6 +185,7 @@ public class SavitzkyGolayPeakDetector implements PeakBuilder {
 	 * 
 	 * @return ChromatographicPeak[]
 	 */
+    /*
 	private ChromatographicPeak[] SGPeaksSearch(RawDataFile dataFile,
 			Chromatogram chromatogram, int[] scanNumbers,
 			double[] derivativeOfIntensities, double noiseThreshold) {
@@ -259,10 +253,6 @@ public class SavitzkyGolayPeakDetector implements PeakBuilder {
 				if (mzValue != null) {
 					newMzPeaks.add(mzValue);
 					
-					  /*ConnectedMzPeak temp = new ConnectedMzPeak(mzValue
-					  .getScan(), new SimpleMzPeak(new SimpleDataPoint(mzValue
-					  .getMzPeak().getMZ(), derivativeOfIntensities[i]*100)));
-					  newMzPeaks.add(temp);*/
 					 
 				} else if (newMzPeaks.size() > 0) {
 					activeFirstPeak = false;
@@ -277,10 +267,6 @@ public class SavitzkyGolayPeakDetector implements PeakBuilder {
 				if (mzValue != null) {
 					newOverlappedMzPeaks.add(mzValue);
 					
-					 /*ConnectedMzPeak temp = new ConnectedMzPeak(mzValue
-					  .getScan(), new SimpleMzPeak(new SimpleDataPoint(mzValue
-					  .getMzPeak().getMZ(), derivativeOfIntensities[i]* 100)));
-					  newOverlappedMzPeaks.add(temp);*/
 					 
 				}
 			}
@@ -366,6 +352,7 @@ public class SavitzkyGolayPeakDetector implements PeakBuilder {
 	 * @param shapeFilledPeak
 	 * @param chromatogram
 	 */
+    /*
 	public void restPeaktoChromatogram(ChromatographicPeak shapeFilledPeak, Chromatogram chromatogram){
 		
 		ConnectedMzPeak[] listMzPeaks = ((ConnectedPeak) shapeFilledPeak)
@@ -388,5 +375,6 @@ public class SavitzkyGolayPeakDetector implements PeakBuilder {
 			
 		}
 	}
+    */
 
 }

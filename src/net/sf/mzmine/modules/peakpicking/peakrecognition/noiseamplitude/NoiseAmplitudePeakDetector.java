@@ -26,10 +26,9 @@ import java.util.Vector;
 
 import net.sf.mzmine.data.ChromatographicPeak;
 import net.sf.mzmine.data.RawDataFile;
-import net.sf.mzmine.modules.peakpicking.threestep.peakconstruction.ConnectedPeak;
-import net.sf.mzmine.modules.peakpicking.threestep.peakconstruction.PeakBuilder;
-import net.sf.mzmine.modules.peakpicking.threestep.xicconstruction.Chromatogram;
-import net.sf.mzmine.modules.peakpicking.threestep.xicconstruction.ConnectedMzPeak;
+import net.sf.mzmine.modules.peakpicking.chromatogrambuilder.massconnection.Chromatogram;
+import net.sf.mzmine.modules.peakpicking.peakrecognition.PeakResolver;
+import net.sf.mzmine.modules.peakpicking.peakrecognition.ResolvedPeak;
 
 /**
  * This class implements a simple peak builder. This takes all detected MzPeaks
@@ -40,7 +39,7 @@ import net.sf.mzmine.modules.peakpicking.threestep.xicconstruction.ConnectedMzPe
  * level), over a already detected peak.
  * 
  */
-public class NoiseAmplitudePeakDetector implements PeakBuilder {
+public class NoiseAmplitudePeakDetector implements PeakResolver {
 
 	// private Logger logger = Logger.getLogger(this.getClass().getName());
 
@@ -59,18 +58,17 @@ public class NoiseAmplitudePeakDetector implements PeakBuilder {
 	}
 
 	/**
-	 * @see net.sf.mzmine.modules.peakpicking.threestep.peakconstruction.PeakBuilder#addChromatogram(net.net.sf.mzmine.modules.peakpicking.chromatogrambuilder.massconnection.Chromatogram,
-	 *      net.sf.mzmine.data.RawDataFile)
 	 */
-	public ChromatographicPeak[] addChromatogram(Chromatogram chromatogram,
-			RawDataFile dataFile) {
+    public ChromatographicPeak[] resolvePeaks(ChromatographicPeak chromatogram,
+            int scanNumbers[], double retentionTimes[], double intensities[]) {
 
+        Vector<ResolvedPeak> resolvedPeaks = new Vector<ResolvedPeak>();
+        /*
 		// This treeMap stores the score of frequency of intensity ranges
 		TreeMap<Integer, Integer> binsFrequency = new TreeMap<Integer, Integer>();
 		double maxIntensity = 0;
 		
-		Vector<ChromatographicPeak> detectedPeaks = new Vector<ChromatographicPeak>();
-
+		
 		int[] scanNumbers = dataFile.getScanNumbers(1);
 		double[] chromatoIntensities = new double[scanNumbers.length];
 
@@ -139,9 +137,9 @@ public class NoiseAmplitudePeakDetector implements PeakBuilder {
 				}
 				
 			}
-		}
+		}*/
 
-		return detectedPeaks.toArray(new ChromatographicPeak[0]);
+		return resolvedPeaks.toArray(new ResolvedPeak[0]);
 	}
 
 	/**
@@ -156,6 +154,7 @@ public class NoiseAmplitudePeakDetector implements PeakBuilder {
 	 *            ucPeak
 	 * @return Peak[]
 	 */
+    /*
 	private ChromatographicPeak[] noiseThresholdPeaksSearch(Chromatogram chromatogram,
 			RawDataFile dataFile, int[] scanNumbers, double noiseThreshold) {
 

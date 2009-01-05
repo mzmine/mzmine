@@ -34,9 +34,9 @@ import net.sf.mzmine.util.MathUtils;
 import net.sf.mzmine.util.Range;
 
 /**
- * Chromatogram implementing ChromatographicPeak, covering the whole retention
- * time range with a single m/z value
- * 
+ * Chromatogram implementing ChromatographicPeak. The getScanNumbers() method
+ * returns all scans in the data file MS level 1, which means the Chromatogram
+ * always covers the whole retention time range.
  */
 public class Chromatogram implements ChromatographicPeak {
 

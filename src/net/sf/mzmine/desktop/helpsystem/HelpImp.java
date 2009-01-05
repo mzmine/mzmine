@@ -13,8 +13,8 @@
  * A PARTICULAR PURPOSE. See the GNU General Public License for more details.
  * 
  * You should have received a copy of the GNU General Public License along with
- * MZmine 2; if not, write to the Free Software Foundation, Inc., 51 Franklin St,
- * Fifth Floor, Boston, MA 02110-1301 USA
+ * MZmine 2; if not, write to the Free Software Foundation, Inc., 51 Franklin
+ * St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
 package net.sf.mzmine.desktop.helpsystem;
@@ -25,54 +25,59 @@ import java.util.jar.JarEntry;
 import java.util.jar.JarFile;
 
 public class HelpImp {
-	
-	private MZmineHelpSet hs;
-	
-	public HelpImp(){
-		try {
-			
-			// Construct help
-			boolean test = false;
-			
-			File file = new File(System.getProperty("user.dir") + File.separator// + "dist" + File.separator
-					+ "MZmine2.jar");
-			
-			if (!file.exists()){
-				file = new File(System.getProperty("user.dir") + File.separator + "dist" + File.separator
-						+ "MZmine2.jar");
-				test = true;
-			}
-			
-			MZmineHelpMap helpMap = new MZmineHelpMap(test);
-			
-			JarFile jarFile = new JarFile(file);
-		    Enumeration<JarEntry> e = jarFile.entries();
-		       while (e.hasMoreElements()) {
-		           JarEntry entry = e.nextElement();
-		           String name = entry.getName();
-		           if ( name.contains("htm") ){
-		        	   helpMap.setTarget(name);
-		           }
-		       }
-		       
-		    helpMap.setTargetImage("topic.png");
-			
-		    hs = new MZmineHelpSet();
-	        hs.setLocalMap(helpMap);
 
-	        MZmineTOCView myTOC = new MZmineTOCView(hs, "TOC", "Table Of Contents", helpMap, file);
-	        
-			hs.setHomeID("net/sf/mzmine/desktop/helpsystem/AboutText.html");
-			hs.setTitle("MZmine 2 - LC/MS Toolbox");
-			hs.addTOCView(myTOC);
-			
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
-	}
-	
-	public MZmineHelpSet getHelpSet(){
-		return hs;
-	}
+    private MZmineHelpSet hs;
+
+    public HelpImp() {
+        try {
+
+            // Construct help
+            boolean test = false;
+
+            File file = new File(System.getProperty("user.dir")
+                    + File.separator + "MZmine2.jar");
+
+            if (!file.exists()) {
+                file = new File(System.getProperty("user.dir") + File.separator
+                        + "dist" + File.separator + "MZmine2.jar");
+                test = true;
+            }
+
+            if (!file.exists()) {
+                return;
+            }
+
+            MZmineHelpMap helpMap = new MZmineHelpMap(test);
+
+            JarFile jarFile = new JarFile(file);
+            Enumeration<JarEntry> e = jarFile.entries();
+            while (e.hasMoreElements()) {
+                JarEntry entry = e.nextElement();
+                String name = entry.getName();
+                if (name.contains("htm")) {
+                    helpMap.setTarget(name);
+                }
+            }
+
+            helpMap.setTargetImage("topic.png");
+
+            hs = new MZmineHelpSet();
+            hs.setLocalMap(helpMap);
+
+            MZmineTOCView myTOC = new MZmineTOCView(hs, "TOC",
+                    "Table Of Contents", helpMap, file);
+
+            hs.setHomeID("net/sf/mzmine/desktop/helpsystem/AboutText.html");
+            hs.setTitle("MZmine 2 - LC/MS Toolbox");
+            hs.addTOCView(myTOC);
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    public MZmineHelpSet getHelpSet() {
+        return hs;
+    }
 
 }

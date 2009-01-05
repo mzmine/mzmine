@@ -17,19 +17,72 @@
  * Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-package net.sf.mzmine.modules.peakpicking.threestep.peakconstruction.peakfillingmodels.impl;
+package net.sf.mzmine.modules.peakpicking.peakrecognition.savitzkygolay.peakmodels;
 
 import net.sf.mzmine.data.ChromatographicPeak;
-import net.sf.mzmine.data.impl.SimpleMzPeak;
-import net.sf.mzmine.modules.peakpicking.threestep.peakconstruction.ConnectedPeak;
-import net.sf.mzmine.modules.peakpicking.threestep.peakconstruction.peakfillingmodels.PeakFillingModel;
-import net.sf.mzmine.modules.peakpicking.threestep.xicconstruction.ConnectedMzPeak;
+import net.sf.mzmine.data.MzPeak;
+import net.sf.mzmine.data.PeakStatus;
+import net.sf.mzmine.data.RawDataFile;
+import net.sf.mzmine.util.Range;
 
-public class TrianglePeakFillingModel implements PeakFillingModel {
+public class TrianglePeakModel implements ChromatographicPeak {
 
     private double rtRight = -1, rtLeft = -1;
     private double rtMain, intensityMain, alpha, beta;
+    public double getArea() {
+        // TODO Auto-generated method stub
+        return 0;
+    }
+    public RawDataFile getDataFile() {
+        // TODO Auto-generated method stub
+        return null;
+    }
+    public double getHeight() {
+        // TODO Auto-generated method stub
+        return 0;
+    }
+    public double getMZ() {
+        // TODO Auto-generated method stub
+        return 0;
+    }
+    public int getMostIntenseFragmentScanNumber() {
+        // TODO Auto-generated method stub
+        return 0;
+    }
+    public MzPeak getMzPeak(int scanNumber) {
+        // TODO Auto-generated method stub
+        return null;
+    }
+    public PeakStatus getPeakStatus() {
+        // TODO Auto-generated method stub
+        return null;
+    }
+    public double getRT() {
+        // TODO Auto-generated method stub
+        return 0;
+    }
+    public Range getRawDataPointsIntensityRange() {
+        // TODO Auto-generated method stub
+        return null;
+    }
+    public Range getRawDataPointsMZRange() {
+        // TODO Auto-generated method stub
+        return null;
+    }
+    public Range getRawDataPointsRTRange() {
+        // TODO Auto-generated method stub
+        return null;
+    }
+    public int getRepresentativeScanNumber() {
+        // TODO Auto-generated method stub
+        return 0;
+    }
+    public int[] getScanNumbers() {
+        // TODO Auto-generated method stub
+        return null;
+    }
 
+    /*
     public ChromatographicPeak fillingPeak(
             ChromatographicPeak originalDetectedShape, double[] params) {
 
@@ -142,5 +195,6 @@ public class TrianglePeakFillingModel implements PeakFillingModel {
             rtLeft = rtMain - ((ending - beginning) / 9.42f);
         }
     }
+    */
 
 }

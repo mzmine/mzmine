@@ -13,8 +13,8 @@
  * A PARTICULAR PURPOSE. See the GNU General Public License for more details.
  * 
  * You should have received a copy of the GNU General Public License along with
- * MZmine 2; if not, write to the Free Software Foundation, Inc., 51 Franklin St,
- * Fifth Floor, Boston, MA 02110-1301 USA
+ * MZmine 2; if not, write to the Free Software Foundation, Inc., 51 Franklin
+ * St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
 package net.sf.mzmine.project.impl;
@@ -51,6 +51,7 @@ public class RawDataFileImpl implements RawDataFile, RawDataFileWriter {
 
     private Hashtable<Integer, Double> dataMinMZ, dataMaxMZ, dataMinRT,
             dataMaxRT, dataMaxBasePeakIntensity, dataMaxTIC;
+    private Hashtable<Integer, int[]> scanNumbersCache;
 
     private transient File scanFile;
     private transient RandomAccessFile scanDataFile;
@@ -70,6 +71,8 @@ public class RawDataFileImpl implements RawDataFile, RawDataFileWriter {
 
         // prepare new Hashtable for scans
         scans = new Hashtable<Integer, Scan>();
+        scanNumbersCache = new Hashtable<Integer, int[]>();
+
     }
 
     void setScanDataFile(File scanFile) throws FileNotFoundException {
@@ -280,6 +283,9 @@ public class RawDataFileImpl implements RawDataFile, RawDataFileWriter {
      */
     public int[] getScanNumbers(int msLevel, Range rtRange) {
 
+        if (scanNumbersCache.containsKey(msLevel))
+            return scanNumbersCache.get(msLevel);
+
         ArrayList<Integer> eligibleScanNumbers = new ArrayList<Integer>();
 
         Enumeration<Scan> scansEnum = scans.elements();
@@ -293,6 +299,8 @@ public class RawDataFileImpl implements RawDataFile, RawDataFileWriter {
 
         int[] numbersArray = CollectionUtils.toIntArray(eligibleScanNumbers);
         Arrays.sort(numbersArray);
+
+        scanNumbersCache.put(msLevel, numbersArray);
 
         return numbersArray;
     }
@@ -417,7 +425,7 @@ public class RawDataFileImpl implements RawDataFile, RawDataFileWriter {
     public void addScan(Scan newScan) {
 
         int scanNumber = newScan.getScanNumber();
-        
+
         // Store the scan data
         StorableScan storedScan = new StorableScan(newScan, this);
         scans.put(scanNumber, storedScan);
