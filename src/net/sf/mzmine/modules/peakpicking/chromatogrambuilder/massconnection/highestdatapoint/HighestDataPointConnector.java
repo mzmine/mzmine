@@ -66,7 +66,6 @@ public class HighestDataPointConnector implements MassConnector {
 
             // Search for best chromatogram, which has highest last data point
             Chromatogram bestChromatogram = null;
-            double bestKey = Double.NaN;
 
             while (index < mzKeys.length) {
 
@@ -77,17 +76,18 @@ public class HighestDataPointConnector implements MassConnector {
                 if ((bestChromatogram == null)
                         || (chrom.getLastMzPeak().getIntensity() > bestChromatogram.getLastMzPeak().getIntensity())) {
                     bestChromatogram = chrom;
-                    bestKey = mzKeys[index];
                 }
 
                 index++;
 
             }
 
-            // If we found best chromatogram, remove it from
-            // buildingChromatograms. If we haven't, create a new one.
+            // If we found best chromatogram, check if it is already connected.
+            // In such case, we may discard this mass and continue. If we
+            // haven't found a chromatogram, we may create a new one.
             if (bestChromatogram != null) {
-                buildingChromatograms.remove(bestKey);
+                if (connectedChromatograms.containsValue(bestChromatogram))
+                    continue;
             } else {
                 bestChromatogram = new Chromatogram(dataFile);
             }
@@ -103,6 +103,9 @@ public class HighestDataPointConnector implements MassConnector {
         // Process those chromatograms which were not connected to any m/z peak
         for (Chromatogram testChrom : buildingChromatograms.values()) {
 
+            // Skip those which were connected
+            if (connectedChromatograms.containsValue(testChrom)) continue;
+            
             // Check if we just finished a long-enough segment
             if (testChrom.getBuildingSegmentLength() >= minimumTimeSpan) {
                 testChrom.commitBuildingSegment();
