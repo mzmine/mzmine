@@ -31,12 +31,6 @@ import net.sf.mzmine.modules.peakpicking.peakrecognition.PeakResolver;
 import net.sf.mzmine.modules.peakpicking.peakrecognition.ResolvedPeak;
 
 /**
- * This class implements a simple peak builder. This takes all detected MzPeaks
- * in one Scan and try to find a possible relationship between each one of these
- * with MzPeaks of the previous scan. This relationship is set by a match score
- * using MatchScore class, according with the parameters of Tolerance of MZ and
- * Intensity. Also it can apply a second search for possible peaks (threshold
- * level), over a already detected peak.
  * 
  */
 public class NoiseAmplitudePeakDetector implements PeakResolver {
