@@ -23,7 +23,6 @@ import java.util.Vector;
 import java.util.logging.Logger;
 
 import net.sf.mzmine.data.ChromatographicPeak;
-import net.sf.mzmine.modules.peakpicking.chromatogrambuilder.massdetection.exactmass.PeakModel;
 import net.sf.mzmine.modules.peakpicking.peakrecognition.PeakResolver;
 import net.sf.mzmine.modules.peakpicking.peakrecognition.ResolvedPeak;
 import net.sf.mzmine.util.MathUtils;
@@ -42,9 +41,7 @@ public class WaveletPeakDetector implements PeakResolver {
 	private Logger logger = Logger.getLogger(this.getClass().getName());
 
 	private double minimumPeakHeight, minimumPeakDuration,
-			waveletThresholdLevel, excessLevel;
-	private boolean fillingPeaks;
-	//private PeakModel peakModel;
+			waveletThresholdLevel;
 
 	/**
 	 * Parameters of the wavelet, The WAVELET_ESL & WAVELET_ESL indicates the
@@ -64,37 +61,6 @@ public class WaveletPeakDetector implements PeakResolver {
 				.getParameterValue(WaveletPeakDetectorParameters.minimumPeakDuration);
 		waveletThresholdLevel = (Double) parameters
 				.getParameterValue(WaveletPeakDetectorParameters.waveletThresholdLevel);
-		fillingPeaks = (Boolean) parameters
-				.getParameterValue(WaveletPeakDetectorParameters.fillingPeaks);
-		excessLevel = (Double) parameters
-				.getParameterValue(WaveletPeakDetectorParameters.excessLevel);
-
-		String peakModelname = (String) parameters
-				.getParameterValue(WaveletPeakDetectorParameters.peakModel);
-
-		// Create an instance of selected model class
-		try {
-
-			String peakModelClassName = null;
-
-			for (int modelIndex = 0; modelIndex < WaveletPeakDetectorParameters.peakModelNames.length; modelIndex++) {
-				if (WaveletPeakDetectorParameters.peakModelNames[modelIndex]
-						.equals(peakModelname))
-					peakModelClassName = WaveletPeakDetectorParameters.peakModelClasses[modelIndex];
-				;
-			}
-
-			if (peakModelClassName == null)
-				throw new ClassNotFoundException();
-
-			Class peakModelClass = Class.forName(peakModelClassName);
-
-			//peakModel = (PeakModel) peakModelClass.newInstance();
-
-		} catch (Exception e) {
-			logger.warning("Error trying to make an instance of peak model "
-					+ peakModelname);
-		}
 
 		// Pre-calculate coefficients of the wavelet
 		preCalculateCWT(1000);

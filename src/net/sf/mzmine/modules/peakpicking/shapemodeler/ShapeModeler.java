@@ -20,14 +20,7 @@
 package net.sf.mzmine.modules.peakpicking.shapemodeler;
 
 import net.sf.mzmine.data.ParameterSet;
-import net.sf.mzmine.data.ChromatographicPeak;
-import net.sf.mzmine.data.PeakListRow;
-import net.sf.mzmine.data.RawDataFile;
-import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.main.MZmineModule;
-import net.sf.mzmine.util.Range;
-import net.sf.mzmine.util.dialogs.ExitCode;
-import net.sf.mzmine.util.dialogs.ParameterSetupDialog;
 
 public class ShapeModeler implements MZmineModule {
 
@@ -43,71 +36,6 @@ public class ShapeModeler implements MZmineModule {
      */
     public String toString() {
         return "Manual peak detector";
-    }
-
-    public static void runManualDetection(RawDataFile dataFile,
-            PeakListRow peakListRow) {
-        runManualDetection(new RawDataFile[] { dataFile }, peakListRow);
-    }
-    
-    public static void runManualDetection(RawDataFile dataFiles[],
-            PeakListRow peakListRow) {
-
-        Range mzRange = null, rtRange = null;
-
-        // Check the peaks for selected data files
-        for (RawDataFile dataFile : dataFiles) {
-            ChromatographicPeak peak = peakListRow.getPeak(dataFile);
-            if (peak == null)
-                continue;
-            if (mzRange == null) {
-                mzRange = new Range(peak.getRawDataPointsMZRange());
-                rtRange = new Range(peak.getRawDataPointsRTRange());
-            } else {
-                mzRange.extendRange(peak.getRawDataPointsMZRange());
-                rtRange.extendRange(peak.getRawDataPointsRTRange());
-            }
-
-        }
-
-        // If none of the data files had a peak, check the whole row
-        if (mzRange == null) {
-            for (ChromatographicPeak peak : peakListRow.getPeaks()) {
-                if (peak == null)
-                    continue;
-                if (mzRange == null) {
-                    mzRange = new Range(peak.getRawDataPointsMZRange());
-                    rtRange = new Range(peak.getRawDataPointsRTRange());
-                } else {
-                    mzRange.extendRange(peak.getRawDataPointsMZRange());
-                    rtRange.extendRange(peak.getRawDataPointsRTRange());
-                }
-
-            }
-        }
-
-        ShapeModelerParameters parameters = new ShapeModelerParameters();
-
-        if (mzRange != null) {
-            parameters.setParameterValue(
-                    ShapeModelerParameters.retentionTimeRange, rtRange);
-            parameters.setParameterValue(ShapeModelerParameters.mzRange,
-                    mzRange);
-        }
-
-        ParameterSetupDialog dialog = new ParameterSetupDialog(
-                "Please set parameter values for Manual peak detector",
-                parameters);
-        dialog.setVisible(true);
-
-        if (dialog.getExitCode() != ExitCode.OK)
-            return;
-
-        ShapeModelerTask task = new ShapeModelerTask(peakListRow, dataFiles,
-                parameters);
-
-        MZmineCore.getTaskController().addTask(task);
-
     }
 
     public ParameterSet getParameterSet() {

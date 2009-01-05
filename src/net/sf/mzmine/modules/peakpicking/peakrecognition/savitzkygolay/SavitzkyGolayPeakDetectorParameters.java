@@ -34,7 +34,7 @@ public class SavitzkyGolayPeakDetectorParameters extends SimpleParameterSet {
 
 	public static final Parameter minimumPeakHeight = new SimpleParameter(
 			ParameterType.DOUBLE, "Min peak height",
-			"Minimum acceptable peak height", "absolute", new Double(10000.0),
+			"Minimum acceptable peak height", null, new Double(10000.0),
 			new Double(0.0), null, MZmineCore.getIntensityFormat());
 
 	public static final Parameter minimumPeakDuration = new SimpleParameter(

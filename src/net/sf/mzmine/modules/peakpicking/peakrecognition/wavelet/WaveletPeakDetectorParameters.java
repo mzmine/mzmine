@@ -28,14 +28,7 @@ import net.sf.mzmine.data.impl.SimpleParameterSet;
 import net.sf.mzmine.main.MZmineCore;
 
 public class WaveletPeakDetectorParameters extends SimpleParameterSet {
-	
-	public static final String peakModelNames[] = { "Triangle", "Gaussian", "EMG" };
 
-	public static final String peakModelClasses[] = {
-		"net.sf.mzmine.modules.peakpicking.threestep.peakconstruction.peakfillingmodels.impl.TrianglePeakFillingModel",
-		"net.sf.mzmine.modules.peakpicking.threestep.peakconstruction.peakfillingmodels.impl.GaussianPeakFillingModel",
-		"net.sf.mzmine.modules.peakpicking.threestep.peakconstruction.peakfillingmodels.impl.EMGPeakFillingModel" };
-	
 	public static final NumberFormat percentFormat = NumberFormat
 			.getPercentInstance();
 
@@ -51,28 +44,11 @@ public class WaveletPeakDetectorParameters extends SimpleParameterSet {
 
 	public static final Parameter waveletThresholdLevel = new SimpleParameter(
 			ParameterType.DOUBLE, "Wavelet threshold level",
-			"Minimum acceptable intensity in the wavelet for peak recognition", null, new Double(0.80),
-			new Double(0.0), null, percentFormat);
-	
-	public static final Parameter fillingPeaks = new SimpleParameter(
-			ParameterType.BOOLEAN, "Filling peak shape",
-			"Activates the method to fill the peak shape using the selected peak model function", null, false,
-			null, null, null);
-	
-	public static final Parameter peakModel = new SimpleParameter(
-			ParameterType.STRING,
-			"Peak Model function",
-			"Lateral peaks under the curve of this peak model are not considered as a possible peak",
-			null, peakModelNames);
-
-	public static final Parameter excessLevel = new SimpleParameter(
-			ParameterType.DOUBLE,
-			"Level of excess",
-			"Increasing this parameter in positive domain the width of the filling peak becomes smaller, " +
-			"and increasing this parameter in negative domain the width is bigger.",
-			"absolute", new Double(0.1), new Double(-0.9), new Double(0.9), null);
+			"Minimum acceptable intensity in the wavelet for peak recognition",
+			null, new Double(0.80), new Double(0.0), null, percentFormat);
 
 	public WaveletPeakDetectorParameters() {
-		super(new Parameter[] { minimumPeakHeight, minimumPeakDuration, waveletThresholdLevel, fillingPeaks, peakModel, excessLevel });
+		super(new Parameter[] { minimumPeakHeight, minimumPeakDuration,
+				waveletThresholdLevel });
 	}
 }
