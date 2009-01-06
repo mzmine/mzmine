@@ -13,8 +13,8 @@
  * A PARTICULAR PURPOSE. See the GNU General Public License for more details.
  * 
  * You should have received a copy of the GNU General Public License along with
- * MZmine 2; if not, write to the Free Software Foundation, Inc., 51 Franklin St,
- * Fifth Floor, Boston, MA 02110-1301 USA
+ * MZmine 2; if not, write to the Free Software Foundation, Inc., 51 Franklin
+ * St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
 package net.sf.mzmine.modules.peakpicking.peakrecognition.minimumsearch;
@@ -29,8 +29,14 @@ import net.sf.mzmine.main.MZmineCore;
 
 public class MinimumSearchPeakDetectorParameters extends SimpleParameterSet {
 
-	public static final NumberFormat percentFormat = NumberFormat
-	.getPercentInstance();
+    public static final NumberFormat percentFormat = NumberFormat.getPercentInstance();
+
+    public static final Parameter chromatographicThresholdLevel = new SimpleParameter(
+            ParameterType.DOUBLE,
+            "Chromatographic threshold",
+            "Find such intensity that given percentage of the chromatogram data points is below, and ignore all data points below that intensity",
+            "%", new Double(0.70), new Double(0.0), new Double(1.0),
+            percentFormat);
 
     public static final Parameter searchRTRange = new SimpleParameter(
             ParameterType.DOUBLE,
@@ -47,13 +53,13 @@ public class MinimumSearchPeakDetectorParameters extends SimpleParameterSet {
 
     public static final Parameter minRatio = new SimpleParameter(
             ParameterType.DOUBLE,
-            "Min ratio of peak avg/min",
-            "Minimum between peak's average intensity and bottom data points",
-            null, 3d, 0d, null);
+            "Min ratio of peak top/edge",
+            "Minimum ratio between peak's top intensity and side (lowest) data points",
+            null, 2d, 0d, null);
 
-    
     public MinimumSearchPeakDetectorParameters() {
-        super(new Parameter[] { searchRTRange, minRelativeHeight, minRatio });
+        super(new Parameter[] { chromatographicThresholdLevel, searchRTRange,
+                minRelativeHeight, minRatio });
     }
 
 }

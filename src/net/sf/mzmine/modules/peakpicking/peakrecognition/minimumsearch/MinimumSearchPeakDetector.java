@@ -24,6 +24,7 @@ import java.util.Vector;
 import net.sf.mzmine.data.ChromatographicPeak;
 import net.sf.mzmine.modules.peakpicking.peakrecognition.PeakResolver;
 import net.sf.mzmine.modules.peakpicking.peakrecognition.ResolvedPeak;
+import net.sf.mzmine.util.MathUtils;
 import net.sf.mzmine.util.Range;
 
 /**
@@ -33,9 +34,12 @@ import net.sf.mzmine.util.Range;
  */
 public class MinimumSearchPeakDetector implements PeakResolver {
 
-    private double searchRTRange, minRelativeHeight, minRatio;
+    private double chromatographicThreshold, searchRTRange, minRelativeHeight,
+            minRatio;
 
-    public MinimumSearchPeakDetector(MinimumSearchPeakDetectorParameters parameters) {
+    public MinimumSearchPeakDetector(
+            MinimumSearchPeakDetectorParameters parameters) {
+        chromatographicThreshold = (Double) parameters.getParameterValue(MinimumSearchPeakDetectorParameters.chromatographicThresholdLevel);
         searchRTRange = (Double) parameters.getParameterValue(MinimumSearchPeakDetectorParameters.searchRTRange);
         minRelativeHeight = (Double) parameters.getParameterValue(MinimumSearchPeakDetectorParameters.minRelativeHeight);
         minRatio = (Double) parameters.getParameterValue(MinimumSearchPeakDetectorParameters.minRatio);
@@ -48,6 +52,14 @@ public class MinimumSearchPeakDetector implements PeakResolver {
             int[] scanNumbers, double[] retentionTimes, double[] intensities) {
 
         Vector<ResolvedPeak> resolvedPeaks = new Vector<ResolvedPeak>();
+
+        // First, remove all data points below chromatographic threshold
+        double chromatographicThresholdLevel = MathUtils.calcQuantile(
+                intensities, chromatographicThreshold);
+        for (int i = 0; i < intensities.length; i++) {
+            if (intensities[i] < chromatographicThresholdLevel)
+                intensities[i] = 0;
+        }
 
         // Current region is a region between two minima, representing a
         // candidate for a resolved peak
@@ -100,7 +112,7 @@ public class MinimumSearchPeakDetector implements PeakResolver {
             if (retentionTimes[currentPeakEnd]
                     - retentionTimes[currentPeakStart] > searchRTRange) {
 
-                // Check the shape of the peak
+                // Find the intensity at the sides (lowest data points)
                 double peakMinLeft = intensities[currentPeakStart];
                 if (peakMinLeft == 0)
                     peakMinLeft = intensities[currentPeakStart + 1];
@@ -108,21 +120,18 @@ public class MinimumSearchPeakDetector implements PeakResolver {
                 if (peakMinRight == 0)
                     peakMinRight = intensities[currentPeakEnd - 1];
 
-                // Calculate average peak intensity
-                double peakAvgHeight = 0;
-                int peakAvgCount = 0;
+                // Find the intensity of the top data point
+                double peakHeight = 0;
                 for (int a = currentPeakStart; a <= currentPeakEnd; a++) {
-                    if (intensities[a] > 0) {
-                        peakAvgHeight += intensities[a];
-                        peakAvgCount++;
-                    }
+                    if (intensities[a] > peakHeight)
+                        peakHeight = intensities[a];
                 }
-                peakAvgHeight /= peakAvgCount;
 
+                // Check the shape of the peak
                 if ((currentRegionHeight >= minRelativeHeight
                         * chromatogram.getHeight())
-                        && (peakAvgHeight >= Math.min(peakMinLeft, peakMinRight)
-                                * minRatio)) {
+                        && (peakHeight >= peakMinLeft * minRatio)
+                        && (peakHeight >= peakMinRight * minRatio)) {
 
                     ResolvedPeak newPeak = new ResolvedPeak(chromatogram,
                             currentPeakStart, currentPeakEnd);
