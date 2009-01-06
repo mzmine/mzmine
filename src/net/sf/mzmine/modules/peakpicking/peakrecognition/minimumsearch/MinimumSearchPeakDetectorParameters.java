@@ -51,6 +51,11 @@ public class MinimumSearchPeakDetectorParameters extends SimpleParameterSet {
             "Minimum height of a peak relative to the chromatogram top data point",
             null, 0.05, 0d, 1d, percentFormat);
 
+    public static final Parameter minAbsoluteHeight = new SimpleParameter(
+            ParameterType.DOUBLE, "Minimum absolute height",
+            "Minimum absolute height of a peak to be recognized", null, 1000d,
+            0d, null, MZmineCore.getIntensityFormat());
+
     public static final Parameter minRatio = new SimpleParameter(
             ParameterType.DOUBLE,
             "Min ratio of peak top/edge",
@@ -59,7 +64,7 @@ public class MinimumSearchPeakDetectorParameters extends SimpleParameterSet {
 
     public MinimumSearchPeakDetectorParameters() {
         super(new Parameter[] { chromatographicThresholdLevel, searchRTRange,
-                minRelativeHeight, minRatio });
+                minRelativeHeight, minAbsoluteHeight, minRatio });
     }
 
 }
