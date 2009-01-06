@@ -34,120 +34,122 @@ import net.sf.mzmine.util.Range;
  */
 public class MinimumSearchPeakDetector implements PeakResolver {
 
-    private double chromatographicThreshold, searchRTRange, minRelativeHeight,
-            minRatio;
+	private double chromatographicThreshold, searchRTRange, minRelativeHeight,
+			minRatio;
 
-    public MinimumSearchPeakDetector(
-            MinimumSearchPeakDetectorParameters parameters) {
-        chromatographicThreshold = (Double) parameters.getParameterValue(MinimumSearchPeakDetectorParameters.chromatographicThresholdLevel);
-        searchRTRange = (Double) parameters.getParameterValue(MinimumSearchPeakDetectorParameters.searchRTRange);
-        minRelativeHeight = (Double) parameters.getParameterValue(MinimumSearchPeakDetectorParameters.minRelativeHeight);
-        minRatio = (Double) parameters.getParameterValue(MinimumSearchPeakDetectorParameters.minRatio);
+	public MinimumSearchPeakDetector(
+			MinimumSearchPeakDetectorParameters parameters) {
+		chromatographicThreshold = (Double) parameters
+				.getParameterValue(MinimumSearchPeakDetectorParameters.chromatographicThresholdLevel);
+		searchRTRange = (Double) parameters
+				.getParameterValue(MinimumSearchPeakDetectorParameters.searchRTRange);
+		minRelativeHeight = (Double) parameters
+				.getParameterValue(MinimumSearchPeakDetectorParameters.minRelativeHeight);
+		minRatio = (Double) parameters
+				.getParameterValue(MinimumSearchPeakDetectorParameters.minRatio);
 
-    }
+	}
 
-    /**
+	/**
      */
-    public ChromatographicPeak[] resolvePeaks(ChromatographicPeak chromatogram,
-            int[] scanNumbers, double[] retentionTimes, double[] intensities) {
+	public ChromatographicPeak[] resolvePeaks(ChromatographicPeak chromatogram,
+			int[] scanNumbers, double[] retentionTimes, double[] intensities) {
 
-        Vector<ResolvedPeak> resolvedPeaks = new Vector<ResolvedPeak>();
+		Vector<ResolvedPeak> resolvedPeaks = new Vector<ResolvedPeak>();
 
-        // First, remove all data points below chromatographic threshold
-        double chromatographicThresholdLevel = MathUtils.calcQuantile(
-                intensities, chromatographicThreshold);
-        for (int i = 0; i < intensities.length; i++) {
-            if (intensities[i] < chromatographicThresholdLevel)
-                intensities[i] = 0;
-        }
+		// First, remove all data points below chromatographic threshold
+		double chromatographicThresholdLevel = MathUtils.calcQuantile(
+				intensities, chromatographicThreshold);
+		for (int i = 0; i < intensities.length; i++) {
+			if (intensities[i] < chromatographicThresholdLevel)
+				intensities[i] = 0;
+		}
 
-        // Current region is a region between two minima, representing a
-        // candidate for a resolved peak
-        int currentRegionStart = 0;
-        double currentRegionHeight = intensities[0];
+		// Current region is a region between two minima, representing a
+		// candidate for a resolved peak
+		int currentRegionStart = 0;
+		double currentRegionHeight = intensities[0];
 
-        minimumSearch: for (int i = 1; i < scanNumbers.length; i++) {
+		minimumSearch: for (int i = 1; i < scanNumbers.length; i++) {
 
-            // Update height of current region
-            if (currentRegionHeight < intensities[i])
-                currentRegionHeight = intensities[i];
+			// Update height of current region
+			if (currentRegionHeight < intensities[i])
+				currentRegionHeight = intensities[i];
 
-            // Minimum duration of peak must be at least searchRTRange
-            if (retentionTimes[i] - retentionTimes[currentRegionStart] < searchRTRange)
-                continue;
+			// Minimum duration of peak must be at least searchRTRange
+			if (retentionTimes[i] - retentionTimes[currentRegionStart] < searchRTRange)
+				continue;
 
-            // Set the RT range to check
-            Range checkRange = new Range(retentionTimes[i] - searchRTRange,
-                    retentionTimes[i] + searchRTRange);
+			// Set the RT range to check
+			Range checkRange = new Range(retentionTimes[i] - searchRTRange,
+					retentionTimes[i] + searchRTRange);
 
-            // Search on the left from current peak i
-            int srch = i - 1;
-            while ((srch > 0) && (checkRange.contains(retentionTimes[srch]))) {
-                if (intensities[srch] < intensities[i])
-                    continue minimumSearch;
-                srch--;
-            }
+			// Search on the left from current peak i
+			int srch = i - 1;
+			while ((srch > 0) && (checkRange.contains(retentionTimes[srch]))) {
+				if (intensities[srch] < intensities[i])
+					continue minimumSearch;
+				srch--;
+			}
 
-            // Search on the right from current peak i
-            srch = i + 1;
-            while ((srch < scanNumbers.length)
-                    && (checkRange.contains(retentionTimes[srch]))) {
-                if (intensities[srch] < intensities[i])
-                    continue minimumSearch;
-                srch++;
-            }
+			// Search on the right from current peak i
+			srch = i + 1;
+			while ((srch < scanNumbers.length)
+					&& (checkRange.contains(retentionTimes[srch]))) {
+				if (intensities[srch] < intensities[i])
+					continue minimumSearch;
+				srch++;
+			}
 
-            // Found a good minimum, so remove zero data points from the sides
-            // of the peak.
-            int currentPeakStart = currentRegionStart;
-            int currentPeakEnd = i;
-            while ((currentPeakStart < scanNumbers.length - 1)
-                    && (intensities[currentPeakStart + 1] == 0))
-                currentPeakStart++;
-            while ((currentPeakEnd > 1)
-                    && (intensities[currentPeakEnd - 1] == 0))
-                currentPeakEnd--;
+			// Found a good minimum, so remove zero data points from the sides
+			// of the peak.
+			int currentPeakStart = currentRegionStart;
+			int currentPeakEnd = i;
+			while ((currentPeakStart < scanNumbers.length - 1)
+					&& (intensities[currentPeakStart + 1] == 0))
+				currentPeakStart++;
+			while ((currentPeakEnd > 1)
+					&& (intensities[currentPeakEnd - 1] == 0))
+				currentPeakEnd--;
 
-            // Check retention time span of current region
-            if (retentionTimes[currentPeakEnd]
-                    - retentionTimes[currentPeakStart] > searchRTRange) {
+			// Stop if we reached the end of the chromatogram
+			if (currentPeakStart == intensities.length - 1)
+				break;
 
-                // Find the intensity at the sides (lowest data points)
-                double peakMinLeft = intensities[currentPeakStart];
-                if (peakMinLeft == 0)
-                    peakMinLeft = intensities[currentPeakStart + 1];
-                double peakMinRight = intensities[currentPeakEnd];
-                if (peakMinRight == 0)
-                    peakMinRight = intensities[currentPeakEnd - 1];
+			// Find the intensity at the sides (lowest data points)
+			double peakMinLeft = intensities[currentPeakStart];
+			if (peakMinLeft == 0)
+				peakMinLeft = intensities[currentPeakStart + 1];
+			double peakMinRight = intensities[currentPeakEnd];
+			if (peakMinRight == 0)
+				peakMinRight = intensities[currentPeakEnd - 1];
 
-                // Find the intensity of the top data point
-                double peakHeight = 0;
-                for (int a = currentPeakStart; a <= currentPeakEnd; a++) {
-                    if (intensities[a] > peakHeight)
-                        peakHeight = intensities[a];
-                }
+			// If we have reached a minimum which is non-zero, but the peak
+			// shape would not fulfill the ratio condition, continue searching
+			// for next minimum
+			if ((intensities[currentPeakEnd] > 0)
+					&& (currentRegionHeight < peakMinRight * minRatio))
+				continue minimumSearch;
 
-                // Check the shape of the peak
-                if ((currentRegionHeight >= minRelativeHeight
-                        * chromatogram.getHeight())
-                        && (peakHeight >= peakMinLeft * minRatio)
-                        && (peakHeight >= peakMinRight * minRatio)) {
+			// Check the shape of the peak
+			if ((currentRegionHeight >= minRelativeHeight
+					* chromatogram.getHeight())
+					&& (currentRegionHeight >= peakMinLeft * minRatio)
+					&& (currentRegionHeight >= peakMinRight * minRatio)) {
 
-                    ResolvedPeak newPeak = new ResolvedPeak(chromatogram,
-                            currentPeakStart, currentPeakEnd);
-                    resolvedPeaks.add(newPeak);
-                }
+				ResolvedPeak newPeak = new ResolvedPeak(chromatogram,
+						currentPeakStart, currentPeakEnd);
+				resolvedPeaks.add(newPeak);
+			}
 
-            }
+			// Start searching new region
+			currentRegionStart = i;
+			currentRegionHeight = intensities[i];
 
-            // Start searching new region
-            currentRegionStart = i;
-            currentRegionHeight = intensities[i];
+		}
 
-        }
+		return resolvedPeaks.toArray(new ChromatographicPeak[0]);
 
-        return resolvedPeaks.toArray(new ChromatographicPeak[0]);
-
-    }
+	}
 
 }
