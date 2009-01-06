@@ -103,6 +103,8 @@ public class PeakResolverSetupDialog extends ParameterSetupDialog implements
             field.addPropertyChangeListener("value", this);
             if (field instanceof JCheckBox)
                 ((JCheckBox) field).addActionListener(this);
+            if (field instanceof JComboBox)
+                ((JComboBox) field).addActionListener(this);
         }
 
         // Add all complementary components for this dialog
@@ -119,16 +121,12 @@ public class PeakResolverSetupDialog extends ParameterSetupDialog implements
 
         if (src == btnOK) {
             super.actionPerformed(event);
+            return;
         }
 
         if (src == btnCancel) {
             dispose();
-        }
-
-        if (((src instanceof JCheckBox) && (src != preview))) {
-            if (preview.isSelected()) {
-                loadPreviewPeak();
-            }
+            return;
         }
 
         if (src == comboPeakList) {
@@ -140,10 +138,7 @@ public class PeakResolverSetupDialog extends ParameterSetupDialog implements
                 comboPeak.addItem(peak);
             comboPeak.addActionListener(this);
             comboPeak.setSelectedIndex(0);
-        }
-
-        if (src == comboPeak) {
-            loadPreviewPeak();
+            return;
         }
 
         if (src == preview) {
@@ -167,6 +162,12 @@ public class PeakResolverSetupDialog extends ParameterSetupDialog implements
                 setLocationRelativeTo(MZmineCore.getDesktop().getMainFrame());
                 this.setResizable(false);
             }
+            return;
+        }
+
+        // Any other event will cause reloading the preview
+        if (preview.isSelected()) {
+            loadPreviewPeak();
         }
 
     }
